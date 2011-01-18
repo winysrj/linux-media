@@ -1,63 +1,87 @@
 Return-path: <mchehab@pedra>
-Received: from cnc.isely.net ([64.81.146.143]:59479 "EHLO cnc.isely.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754375Ab1ASN23 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Jan 2011 08:28:29 -0500
-Date: Wed, 19 Jan 2011 07:28:28 -0600 (CST)
-From: Mike Isely <isely@isely.net>
-To: Andy Walls <awalls@md.metrocast.net>
-cc: Jean Delvare <khali@linux-fr.org>,
-	Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org,
-	Janne Grunau <j@jannau.net>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Mike Isely <isely@isely.net>
-Subject: Re: [GIT PATCHES for 2.6.38] Zilog Z8 IR unit fixes
-In-Reply-To: <1295443454.4317.6.camel@morgan.silverblock.net>
-Message-ID: <alpine.DEB.1.10.1101190726120.5396@ivanova.isely.net>
-References: <1295205650.2400.27.camel@localhost>  <1295234982.2407.38.camel@localhost>  <848D2317-613E-42B1-950D-A227CFF15C5B@wilsonet.com>  <1295439718.2093.17.camel@morgan.silverblock.net>  <20110119134009.1d473320@endymion.delvare>
- <1295443454.4317.6.camel@morgan.silverblock.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:49502 "HELO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752799Ab1ARCNe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Jan 2011 21:13:34 -0500
+From: Qing Xu <qingx@marvell.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Mon, 17 Jan 2011 18:13:25 -0800
+Subject: RE: soc-camera s_fmt question?
+Message-ID: <7BAC95F5A7E67643AAFB2C31BEE662D014040BF29F@SC-VEXCH2.marvell.com>
+References: <AANLkTimucMmO8Vb_y4xnhehQt+mamNMmXyY_qfrVOSo7@mail.gmail.com>
+ <AANLkTinv64SL4HavFRK-s2Tr4CTGPH4iQ9bz7=40v1Hc@mail.gmail.com>
+  <7BAC95F5A7E67643AAFB2C31BEE662D014040BF23F@SC-VEXCH2.marvell.com>
+ <Pine.LNX.4.64.1101171840360.16051@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1101171840360.16051@axis700.grange>
+Content-Language: en-US
+Content-Type: text/plain; charset="gb2312"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 19 Jan 2011, Andy Walls wrote:
-
-> On Wed, 2011-01-19 at 13:40 +0100, Jean Delvare wrote:
-> > On Wed, 19 Jan 2011 07:21:58 -0500, Andy Walls wrote:
-> > > For debugging, you might want to hack in a probe of address 0x70 for
-> > > your HVR-1950, to ensure the Tx side responds in the bridge driver. 
-> > 
-> > ... keeping in mind that the Z8 doesn't seem to like quick writes, so
-> > short reads should be used for probing purpose.
-> > 
-> 
-> Noted.  Thanks.
-> 
-> Actually, I think that might be due to the controller in the USB
-> connected devices (hdpvr and pvrusb2).  The PCI connected devices, like
-> cx18 cards, don't have a problem with the Z8, the default I2C probe
-> method, and i2c-algo-bit.
-> (A good example of why only bridge drivers should do any required
-> probing.)
-> 
-> 
-> Looking at the code in pvrusb2, it appears to already use a 0 length
-> read for a probe:
-> 
-> http://git.linuxtv.org/media_tree.git?a=blob;f=drivers/media/video/pvrusb2/pvrusb2-i2c-core.c;h=ccc884948f34b385563ccbf548c5f80b33cd4f08;hb=refs/heads/staging/for_2.6.38-rc1#l542
-
-Yes but that function is used in two places: (1) If a bus scan is 
-performed during initialization (normally it isn't), and (2) it is 
-called once ONLY for a 24xxx device (targeting 0x71) in order to 
-determine if it is dealing with the MCE variant.
-
-  -Mike
-
-
--- 
-
-Mike Isely
-isely @ isely (dot) net
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
+SGkgR3Vlbm5hZGksDQoNCkluIGNsb3NlKCksIHRoZSBzZW5zb3IvY2FtZXJhIGNvbnRyb2xsZXIg
+d2lsbCBiZSB0b3RhbGx5IHBvd2VyZWQtb2ZmL2Nsb2NrLW9mZiwgdGhlbiBpbiBvcGVuKCksIHdl
+IHdpbGwgc2V0IGh1bmRyZWRzIG9mIGRlZmF1bHQgdmFsdWVzIGludG8gc2Vuc29yJ3MgcmVnaXN0
+ZXJzIGJ5IEkyQywgdG8gZW5hYmxlL2NvbmZpZ3VyZSBzZW5zb3IgdG8gYSBkZWZhdWx0IHN0YXR1
+cywgaXQgdGFrZXMgdG9vIG11Y2ggdGltZShzZXZlcmFsIHNlY29uZHMpIHRvIHN3aXRjaCBmcm9t
+IHByZXZpZXcgdG8gc3RpbGwgY2FwdHVyZSB0aGF0IG91ciBjdXN0b21lcnMgY2FuIG5vdCBiZWFy
+Lg0KU28sIGluc3RlYWQsIHdoZW4gc3dpdGNoIGZvcm1hdCwgb3VyIGFwcGxpY2F0aW9uIGp1c3Qg
+Y2FsbHMgc3RyZWFtLW9mZi9zdHJlYW0tb24sIGFzIGluIHN0cmVhbS1vZmYoKSwgd2UgcHV0IHRo
+ZSBzZW5zb3IvY2FtZXJhIGNvbnRyb2xsZXIgdG8gYSBwYXVzZSBzdGF0ZSwgb25jZSBzd2l0Y2gg
+Zm9ybWF0LCB3ZSBvbmx5IG5lZWQgdG8gc2V0IHNldmVyYWwgc2Vuc29yIHJlZ2lzdGVycywgaXQg
+dGFrZXMgYSBsaXR0bGUgdGltZSB0byBzd2l0Y2ggZnJvbSBwcmV2aWV3IHRvIHN0aWxsIGNhcHR1
+cmUuDQoNCkFuZCwgZnVydGhlciBtb3JlLCBkdXJpbmcgcHJldmlldywgY3VzdG9tZXJzIHdvdWxk
+IGxpa2UgdG8gc2V0IHNvbWUgc3BlY2lhbCBlZmZlY3QgdG8gaW1hZ2UsIHN1Y2ggYXMgdHVybmlu
+ZyBjb2xvciB0byBibHVlLCBjaGFuZ2luZyB0aGUgYnJpZ2h0bmVzcywgZXRjLCB3aGVuIHRoZXkg
+Y2FwdHVyZSB0aGUgcGljdHVyZSwgdGhleSB3b3VsZCBob3BlIHRoZSBwaWN0dXJlIGxvb2tzIHRo
+ZSBzYW1lIGFzIHRoZSB3aGF0IHRoZXkgY2hhbmdlIGR1cmluZyBwcmV2aWV3LCBzbywgb3VyIGFw
+cGxpY2F0aW9uIGRvZXMgbm90IHRvdGFsbHkgY2xvc2UoKSBjYW1lcmEsIGp1c3Qgc3RyZWFtLW9m
+ZigpLCBpbiB0aGlzIHdheSwgdGhlIHJlZ2lzdGVycyB2YWx1ZXMgYXJlIGtlcHQgaW4gc2Vuc29y
+LCB0aG9zZSBzcGVjaWFsIGVmZmVjdCBzdGF0dXMgaXMgYWxzbyBrZXB0Lg0KDQpUaGUgMiByZWFz
+b25zIGFib3ZlIG1ha2Ugb3VyIGFwcGxpY2F0aW9uIHdpbGwgbm90IGNsb3NlL29wZW4sIGJ1dCBq
+dXN0IHN0cmVhbS1vZmYvc3RyZWFtLW9uIGR1cmluZyBzd2l0Y2hpbmcgZm9ybWF0IGZyb20gcHJl
+dmlldyB0byBzdGlsbCBjYXB0dXJlLg0KDQpUaGFua3MhDQotUWluZw0KDQotLS0tLU9yaWdpbmFs
+IE1lc3NhZ2UtLS0tLQ0KRnJvbTogR3Vlbm5hZGkgTGlha2hvdmV0c2tpIFttYWlsdG86Zy5saWFr
+aG92ZXRza2lAZ214LmRlXQ0KU2VudDogMjAxMcTqMdTCMTjI1SAxOjQzDQpUbzogUWluZyBYdQ0K
+Q2M6IExhdXJlbnQgUGluY2hhcnQ7IGxpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZw0KU3ViamVj
+dDogUmU6IHNvYy1jYW1lcmEgc19mbXQgcXVlc3Rpb24/DQoNCk9uIE1vbiwgMTcgSmFuIDIwMTEs
+IFFpbmcgWHUgd3JvdGU6DQoNCj4gSGksDQo+DQo+IFdlIGFyZSBub3cgbmVhcmx5IGNvbXBsZXRl
+IHBvcnRpbmcgb3VyIGNhbWVyYSBkcml2ZXIgdG8gYWxpZ24gd2l0aA0KPiBzb2MtY2FtZXJhIGZy
+YW1ld29yaywgaG93ZXZlciwgd2UgZW5jb3VudGVyIGEgcHJvYmxlbSB3aGVuIGl0IHdvcmtzIHdp
+dGgNCj4gb3VyIGFwcGxpY2F0aW9uIGR1cmluZyBzd2l0Y2ggZm9ybWF0IGZyb20gcHJldmlldyB0
+byBzdGlsbCBjYXB0dXJlLA0KPiBhcHBsaWNhdGlvbidzIG1haW4gY2FsbGluZyBzZXF1ZW5jZSBp
+cyBhcyBmb2xsb3c6DQo+IDEpIHNfZm10IC8qIHByZXZpZXcgQCBZVVYsIFZHQSAqLw0KPiAyKSBy
+ZXF1ZXN0IGJ1ZmZlciAoYnVmZmVyIGNvdW50ID0gNikNCj4gMikgcXVldWUgYnVmZmVyDQo+IDMp
+IHN0cmVhbSBvbg0KPiA0KSBxLWJ1ZiwgZHEtYnVmLi4uDQo+IDUpIHN0cmVhbSBvZmYNCj4NCj4g
+Nikgc19mbXQgLyogc3RpbGwgY2FwdHVyZSBAIGpwZWcsIDI1OTJ4MTk0NCovDQo+IDcpIHJlcXVl
+c3QgYnVmZmVyIChidWZmZXIgY291bnQgPSAzKQ0KPiA4KSBzYW1lIGFzIDMpLT41KS4uLg0KPg0K
+PiBUaGUgcG9pbnQgaXMgaW4gc29jX2NhbWVyYV9zX2ZtdF92aWRfY2FwKCkgew0KPiAgICAgICAg
+IGlmIChpY2QtPnZiX3ZpZHEuYnVmc1swXSkgew0KPiAgICAgICAgICAgICAgICAgZGV2X2Vycigm
+aWNkLT5kZXYsICJTX0ZNVCBkZW5pZWQ6IHF1ZXVlIGluaXRpYWxpc2VkXG4iKTsNCj4gICAgICAg
+ICAgICAgICAgIHJldCA9IC1FQlVTWTsNCj4gICAgICAgICAgICAgICAgIGdvdG8gdW5sb2NrOw0K
+PiAgICAgICAgIH0NCj4gfQ0KPiBXZSBkaWRuJ3QgZmluZCB2Yl92aWRxLmJ1ZnNbMF0gYmUgZnJl
+ZSwgKGl0IGlzIGZyZWVkIGluDQo+IHZpZGVvYnVmX21tYXBfZnJlZSgpLCBhbmQgaW4gX192aWRl
+b2J1Zl9tbWFwX3NldHVwLCBidXQgbm8gb25lIGNhbGxzDQo+IHZpZGVvYnVmX21tYXBfZnJlZSgp
+LCBhbmQgaW4gX192aWRlb2J1Zl9tbWFwX3NldHVwIGl0IGlzIGZyZWVkIGF0IGZpcnN0DQo+IGFu
+ZCB0aGVuIGFsbG9jYXRlZCBzZXF1ZW50aWFsbHkpLCBzbyB3ZSBhbHdheXMgZmFpbCBhdCBjYWxs
+aW5nIHNfZm10Lg0KPiBNeSBpZGVhIGlzIHRvIGltcGxlbWVudCBzb2NfY2FtZXJhX3JlcWJ1ZnMo
+YnVmZmVyIGNvdW50ID0gMCksIHRvIHByb3ZpZGUNCj4gYXBwbGljYXRpb24gb3Bwb3J0dW5pdHkg
+dG8gZnJlZSB0aGlzIGJ1ZmZlciBub2RlLCByZWZlciB0byB2NGwyIHNwZWMsDQo+IGh0dHA6Ly9s
+aW51eHR2Lm9yZy9kb3dubG9hZHMvdjRsLWR2Yi1hcGlzL3ZpZGlvYy1yZXFidWZzLmh0bWwNCj4g
+IkEgY291bnQgdmFsdWUgb2YgemVybyBmcmVlcyBhbGwgYnVmZmVycywgYWZ0ZXIgYWJvcnRpbmcg
+b3IgZmluaXNoaW5nDQo+IGFueSBETUEgaW4gcHJvZ3Jlc3MsIGFuIGltcGxpY2l0IFZJRElPQ19T
+VFJFQU1PRkYuIg0KDQpDdXJyZW50bHkgYnVmZmVycyBhcmUgZnJlZWQgaW4gc29jLWNhbWVyYSB1
+cG9uIGNsb3NlKCkuIFllcywgSSBrbm93IGFib3V0DQp0aGF0IGNsYXVzZSBpbiB0aGUgQVBJIHNw
+ZWMsIGFuZCBJIGtub3csIHRoYXQgaXQgaXMgdW5pbXBsZW1lbnRlZCBpbg0Kc29jLWNhbWVyYS4g
+RG8geW91IGhhdmUgYSByZWFzb24gdG8gcHJlZmVyIHRoYXQgb3ZlciBjbG9zZSgpaW5nIGFuZA0K
+cmUtb3BlbigpaW5nIHRoZSBkZXZpY2U/DQoNClRoYW5rcw0KR3Vlbm5hZGkNCg0KPg0KPiBXaGF0
+IGRvIHlvdSB0aGluaz8NCj4NCj4gQW55IGlkZWFzIHdpbGwgYmUgYXBwcmVjaWF0ZWQhDQo+IFRo
+YW5rcyENCj4gUWluZyBYdQ0KPg0KPiBFbWFpbDogcWluZ3hAbWFydmVsbC5jb20NCj4gQXBwbGlj
+YXRpb24gUHJvY2Vzc29yIFN5c3RlbXMgRW5naW5lZXJpbmcsDQo+IE1hcnZlbGwgVGVjaG5vbG9n
+eSBHcm91cCBMdGQuDQo+DQoNCi0tLQ0KR3Vlbm5hZGkgTGlha2hvdmV0c2tpLCBQaC5ELg0KRnJl
+ZWxhbmNlIE9wZW4tU291cmNlIFNvZnR3YXJlIERldmVsb3Blcg0KaHR0cDovL3d3dy5vcGVuLXRl
+Y2hub2xvZ3kuZGUvDQo=
