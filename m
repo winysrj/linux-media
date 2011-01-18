@@ -1,103 +1,140 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:38371 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754715Ab1ATXTU (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:58220 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751018Ab1ARNUU convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Jan 2011 18:19:20 -0500
-Received: by ewy5 with SMTP id 5so640836ewy.19
-        for <linux-media@vger.kernel.org>; Thu, 20 Jan 2011 15:19:19 -0800 (PST)
-Date: Fri, 21 Jan 2011 08:20:08 +0900
-From: Dmitri Belimov <d.belimov@gmail.com>
-To: Stefan Ringel <stefan.ringel@arcor.de>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Felipe Sanches <juca@members.fsf.org>,
-	Bee Hock Goh <beehock@gmail.com>,
-	Luis Henrique Fagundes <lhfagundes@hacklab.com.br>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Jarod Wilson <jarod@redhat.com>
-Subject: Re: [PATCH] tm6000: add/rework reg.defines
-Message-ID: <20110121082008.415bcabe@glory.local>
-In-Reply-To: <4D388C44.7040500@arcor.de>
-References: <4CAD5A78.3070803@redhat.com>
-	<4CAF0602.6050002@redhat.com>
-	<20101012142856.2b4ee637@glory.local>
-	<4CB492D4.1000609@arcor.de>
-	<20101129174412.08f2001c@glory.local>
-	<4CF51C9E.6040600@arcor.de>
-	<20101201144704.43b58f2c@glory.local>
-	<4CF67AB9.6020006@arcor.de>
-	<20101202134128.615bbfa0@glory.local>
-	<4CF71CF6.7080603@redhat.com>
-	<20101206010934.55d07569@glory.local>
-	<4CFBF62D.7010301@arcor.de>
-	<20101206190230.2259d7ab@glory.local>
-	<4CFEA3D2.4050309@arcor.de>
-	<20101208125539.739e2ed2@glory.local>
-	<4CFFAD1E.7040004@arcor.de>
-	<20101214122325.5cdea67e@glory.local>
-	<4D079ADF.2000705@arcor.de>
-	<20101215164634.44846128@glory.local>
-	<4D08E43C.8080002@arcor.de>
-	<20101216183844.6258734e@glory.local>
-	<4D0A4883.20804@arcor.de>
-	<20101217104633.7c9d10d7@glory.local>
-	<4D0AF2A7.6080100@arcor.de>
-	<20101217160854.16a1f754@glory.local>
-	<4D0BFF4B.3060001@redhat.com>
-	<20110120150508.53c9b55e@glory.local>
-	<4D388C44.7040500@arcor.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Tue, 18 Jan 2011 08:20:20 -0500
+MIME-Version: 1.0
+In-Reply-To: <5fc7c1cdc4aed93c1dbe7a3d1916bb1c.squirrel@webmail.xs4all.nl>
+References: <1294745487-29138-1-git-send-email-manjunatha_halli@ti.com>
+ <1294745487-29138-2-git-send-email-manjunatha_halli@ti.com>
+ <1294745487-29138-3-git-send-email-manjunatha_halli@ti.com>
+ <1294745487-29138-4-git-send-email-manjunatha_halli@ti.com>
+ <20110111112434.GE2385@legolas.emea.dhcp.ti.com> <AANLkTi=TF9uYEv2Y3qwMKham=K2cCxo4UOTn8Vf+S-KC@mail.gmail.com>
+ <AANLkTimRLGYugF+2=-nFvLeXdnLOy8Morx_wxzVTt9w5@mail.gmail.com> <5fc7c1cdc4aed93c1dbe7a3d1916bb1c.squirrel@webmail.xs4all.nl>
+From: halli manjunatha <manjunatha_halli@ti.com>
+Date: Tue, 18 Jan 2011 18:49:41 +0530
+Message-ID: <AANLkTikRDWF5fyqixbJs+DRJN=aJGmgqmQOdVL_d9tPo@mail.gmail.com>
+Subject: Re: [RFC V10 3/7] drivers:media:radio: wl128x: FM Driver Common sources
+To: "mchehab@infradead.org" <mchehab@infradead.org>
+Cc: gregkh@suse.de, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Stefan
+ have a look at the driver it’s already reviewed by Hans Verkuil.
+Please let me know if you are okay to include this in mainline.
 
-> 
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
+Regards
+Manju
 
-snip
 
-> > #define TM6010_REQ08_RF2_LEFT_CHANNEL_VOL 0x08, 0xf2
-> >
-> > Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov
-> > <d.belimov@gmail.com>
-> >
-> >
-> > With my best regards, Dmitry.
-> Dmitry, that are good news! And that anwers my questions. Now I think
-> we must separate the both chipsets in any points:
-> 
->     *  audio standards
->     *  video standards
->     * in tm6000-alsa the functions " _tm6000_start_audio_dma" and
->       "_tm6000_stop_audio_dma"
->     * in tm6000-input "tm6000_ir_config"
->     * in tm6000-core ?? "init_analog_mode" and "init_digital_mode"
->     * in tm6000-core "tm6000_set_audio_bitrate"
-> 
-> My rework in tm6000-video, isoc usb buffer and vbi device, I move this
-> into summer 2011!!
+On Mon, Jan 17, 2011 at 4:03 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> Hi Hans and Mauro,
+>>
+>> If there are no major comments for the V10 of FM V4L2 driver, is it
+>> possible to take this driver (V10) to mainline?
+>>
+>> Since the files are becoming big to be posted as patches and
+>> maintaining it that way is a bit difficult. We can submit the patches
+>> to mainline to fix minor comments and also to add newer features
+>> (complete scan, stop seek) as patches once this driver makes its way
+>> in to mainline.
+>>
+>> Please let me know your views on this.
+>
+> I have no objections in merging this for 2.6.39 or even 2.6.38 if Mauro is
+> willing.
+>
+> Regards,
+>
+>         Hans
+>
+>>
+>> Thanks,
+>> Manju
+>>
+>>
+>> On Tue, Jan 11, 2011 at 6:12 PM, Raja Mani <rajambsc@gmail.com> wrote:
+>>> balbi,
+>>>
+>>>  Agree , interrupt pkts could have handled in thread context . But in
+>>> the current way , FM driver never create any additional task in the
+>>> system
+>>>  to handle FM interrupt. In fact, there is no task being created in
+>>> this driver to handle FM RDS data, AF,etc.
+>>>
+>>>  This method is suitable for light weight system where we want to
+>>> reduce number of thread in the system.
+>>>
+>>>  On Tue, Jan 11, 2011 at 4:54 PM, Felipe Balbi <balbi@ti.com> wrote:
+>>>> Hi,
+>>>>
+>>>> On Tue, Jan 11, 2011 at 06:31:23AM -0500, manjunatha_halli@ti.com
+>>>> wrote:
+>>>>> From: Manjunatha Halli <manjunatha_halli@ti.com>
+>>>>>
+>>>>> These are the sources for the common interfaces required by the
+>>>>> FM V4L2 driver for TI WL127x and WL128x chips.
+>>>>>
+>>>>> These implement the FM channel-8 protocol communication with the
+>>>>> chip. This makes use of the Shared Transport as its transport.
+>>>>>
+>>>>> Signed-off-by: Manjunatha Halli <manjunatha_halli@ti.com>
+>>>>> Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
+>>>>
+>>>> looks like this is implementing a "proprietary" (by that I mean: for
+>>>> this driver only) IRQ API. Why aren't you using GENIRQ with threaded
+>>>> IRQs support ?
+>>>>
+>>>> Core IRQ Subsystem would handle a lot of stuff for you.
+>>>>
+>>>> --
+>>>> balbi
+>>>> --
+>>>> To unsubscribe from this list: send the line "unsubscribe linux-media"
+>>>> in
+>>>> the body of a message to majordomo@vger.kernel.org
+>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>
+>>>
+>>>
+>>>
+>>> --
+>>> Regards,
+>>> Raja.
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media"
+>>> in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>>
+>>
+>>
+>> --
+>> Regards
+>> Halli
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
+>
+> --
+> Hans Verkuil - video4linux developer - sponsored by Cisco
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-Ok. I work too. :)
-I have Software Programmers Guide from Trident for TM6000 and TM6010 under NDA.
-If you have any question about any registers you can ask me.
 
-With my best regards, Dmitry.
 
-> Stefan Ringel
-> -----BEGIN PGP SIGNATURE-----
-> Version: GnuPG v2.0.12 (MingW32)
-> Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
->  
-> iQEcBAEBAgAGBQJNOIxEAAoJEAWtPFjxMvFG3LQIAKlIMVWYTTPA5RD45Sw4QBQH
-> I+yqhs89Qe7bKl+JjDrSiCG/ttRDtTy0+ksUFmicglntLmmtPVQnv59tIU9evQmn
-> Yt7n1XWHcq442+ySbQ/3fVLay1WG1eJ3UEsC7bkpT2hSUhmUf6zjSZ3ockIJfxEJ
-> geqFOy630vfwcKcS7KWgAJO8LKYQXcW8TLmkb3/D4W1G8o7zCKIH624Q5u+k1IGk
-> mmm5CiqO17FS/oK0pxTZAY8uqWr3DH3UUqiMR3GdGoivaOR+1QCdrrYZXkQxklai
-> zPQ6AYx/zPStZK8iUSSOHpVkfqHTgB3f6BSpsWhNGT3mgW8tTxnAz/MyECUiEms=
-> =Cxjk
-> -----END PGP SIGNATURE-----
-> 
+-- 
+Regards
+Halli
