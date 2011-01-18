@@ -1,64 +1,108 @@
-Return-path: <mchehab@gaivota>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:16080 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751312Ab1AEVwl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Jan 2011 16:52:41 -0500
-Date: Wed, 5 Jan 2011 22:51:49 +0100
-From: Jean Delvare <khali@linux-fr.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org,
-	Jarod Wilson <jarod@redhat.com>, Janne Grunau <j@jannau.net>
-Subject: Re: [PATCH 3/3] lirc_zilog: Remove use of deprecated struct
- i2c_adapter.id  field
-Message-ID: <20110105225149.1145420b@endymion.delvare>
-In-Reply-To: <4D24ABA4.5070100@redhat.com>
-References: <1293587067.3098.10.camel@localhost>
-	<1293587390.3098.16.camel@localhost>
-	<20110105154553.546998bf@endymion.delvare>
-	<4D24ABA4.5070100@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Return-path: <mchehab@pedra>
+Received: from mailout3.samsung.com ([203.254.224.33]:52743 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751157Ab1ARL1k (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Jan 2011 06:27:40 -0500
+Date: Tue, 18 Jan 2011 20:27:32 +0900
+From: Jeongtae Park <jtp.park@samsung.com>
+Subject: RE: [PATCH 0/1] v4l: videobuf2: Add DMA pool allocator
+In-reply-to: <008f01cbb65d$f4c33a40$de49aec0$%szyprowski@samsung.com>
+To: 'Marek Szyprowski' <m.szyprowski@samsung.com>,
+	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: k.debski@samsung.com, jaeryul.oh@samsung.com,
+	jonghun.han@samsung.com, kgene.kim@samsung.com
+Reply-to: jtp.park@samsung.com
+Message-id: <006a01cbb702$b5d62900$21827b00$%park@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=Windows-1252
+Content-language: ko
+Content-transfer-encoding: 7BIT
+References: <1293684907-7272-1-git-send-email-jtp.park@samsung.com>
+ <008f01cbb65d$f4c33a40$de49aec0$%szyprowski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hi Mauro,
+Hi,
 
-On Wed, 05 Jan 2011 15:34:28 -0200, Mauro Carvalho Chehab wrote:
-> Hi Jean,
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Marek Szyprowski
+> Sent: Tuesday, January 18, 2011 12:48 AM
+> To: 'Jeongtae Park'; linux-media@vger.kernel.org; linux-samsung-
+> soc@vger.kernel.org
+> Cc: k.debski@samsung.com; jaeryul.oh@samsung.com; jonghun.han@samsung.com;
+> kgene.kim@samsung.com
+> Subject: RE: [PATCH 0/1] v4l: videobuf2: Add DMA pool allocator
 > 
-> Thanks for your acks for patches 1 and 2. I've already applied the patches 
-> on my tree and at linux-next. I'll try to add the acks on it before sending
-> upstream.
-
-If you can't, it's fine. I merely wanted to show my support to Andy's
-work, I don't care if I'm not counted as a reviewer for these small
-patches.
-
-> Em 05-01-2011 12:45, Jean Delvare escreveu:
-> > From a purely technical perspective, changing client->addr in the
-> > probe() function is totally prohibited.
+> Hello,
 > 
-> Agreed. Btw, there are some other hacks with client->addr abuse on some 
-> other random places at drivers/media, mostly at the device bridge code, 
-> used to test if certain devices are present and/or to open some I2C gates 
-> before doing some init code. People use this approach as it provides a
-> fast way to do some things. On several cases, the amount of code for
-> doing such hack is very small, when compared to writing a new I2C driver
-> just to do some static initialization code. Not sure what would be the 
-> better approach to fix them.
+> On Thursday, December 30, 2010 5:55 AM Jeongtae Park wrote:
+> 
+> > The DMA pool allocator allocates a memory using dma_alloc_coherent(),
+> > creates a pool using generic allocator in the initialization.
+> > For every allocation requests, the allocator returns a part of its
+> > memory pool using generic allocator instead of new memory allocation.
+> >
+> > This allocator used for devices have below limitations.
+> > - the start address should be aligned
+> > - the range of memory access limited to the offset from the start
+> >   address (= the allocation address should be existed in a
+> >   constant offset from the start address)
+> > - the allocation address should be aligned
+> >
+> > I would be grateful for your comments.
+> >
+> > This patch series contains:
+> >
+> > [PATCH 1/1] v4l: videobuf2: Add DMA pool allocator
+> >
+> > Best regards,
+> > Jeongtae Park
+> >
+> > Patch summary:
+> >
+> > Jeongtae Park (1):
+> >       v4l: videobuf2: Add DMA pool allocator
+> >
+> >  drivers/media/video/Kconfig              |    7 +
+> >  drivers/media/video/Makefile             |    1 +
+> >  drivers/media/video/videobuf2-dma-pool.c |  310
+> ++++++++++++++++++++++++++++++
+> >  include/media/videobuf2-dma-pool.h       |   37 ++++
+> >  4 files changed, 355 insertions(+), 0 deletions(-)
+> >  create mode 100644 drivers/media/video/videobuf2-dma-pool.c
+> >  create mode 100644 include/media/videobuf2-dma-pool.h
+> 
+> The code looks nice but I have one suggestion. This dma-pool memory
+allocator
+> make sense only for a s5p-mfc driver. All other drivers can use dma-contig
+> vb2
+> allocator directly. For this reason I suggest to move this allocator
+directly
+> to drivers/media/video/s5p-mfc/ directory.
+>
 
-Hard to tell without seeing the exact code. Ideally,
-i2c_new_dummy() would cover these cases: you don't need to write an
-actual driver for the device, it's perfectly OK to use the freshly
-instantiated i2c_client from the bridge driver directly. Alternatively,
-i2c_smbus_xfer() or i2c_transfer() can be used for one-time data
-exchange with any slave on the bus as long as you know what you're
-doing (i.e. you know that no i2c_client will ever be instantiated for
-this slave.)
+Is it not possible that there is the device with above limitations or
+constraints?
+If it's possible, the dma-pool allocator can be useful, but currently this
+allocator
+is useful only for a s5p-mfc.
+But, all other allocators of vb2 framework are drivers/media/video/
+directory.
+I'm not sure which position is right for dma-pool allocator.
 
-If you have specific cases you don't know how to solve, please point me
-to them and I'll take a look.
+Thanks for your comment.
 
--- 
-Jean Delvare
+> Best regards
+> --
+> Marek Szyprowski
+> Samsung Poland R&D Center
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Best regards
+
