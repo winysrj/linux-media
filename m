@@ -1,131 +1,100 @@
-Return-path: <mchehab@gaivota>
-Received: from mailout-de.gmx.net ([213.165.64.22]:57824 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1752864Ab1AFSeF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 6 Jan 2011 13:34:05 -0500
-Subject: KWorld 355 U DVB-T support
-From: Florian Brandes <florian.brandes@gmx.de>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Date: Thu, 06 Jan 2011 19:34:01 +0100
-Message-ID: <1294338841.3264.10.camel@ubuntu>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Return-path: <mchehab@pedra>
+Received: from comal.ext.ti.com ([198.47.26.152]:45510 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751254Ab1ARNjh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Jan 2011 08:39:37 -0500
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>,
+	LAK <linux-arm-kernel@lists.arm.linux.org.uk>,
+	Kevin Hilman <khilman@deeprootsystems.com>
+Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [PATCH v16 1/3] davinci vpbe: changes to common files
+Date: Tue, 18 Jan 2011 19:09:07 +0530
+Message-Id: <1295357947-17646-1-git-send-email-manjunath.hadli@ti.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hello, 
+Implemented a common and single mapping for DAVINCI_SYSTEM_MODULE_BASE
+to be used by all davinci platforms.
 
-I've been trying to get my USB-DVB-T stick to work and I've been
-searching quite a bit, but now I think I need a little bit help.
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ arch/arm/mach-davinci/common.c                |    4 +++-
+ arch/arm/mach-davinci/devices.c               |   10 ++++------
+ arch/arm/mach-davinci/include/mach/hardware.h |    5 +++++
+ 3 files changed, 12 insertions(+), 7 deletions(-)
 
-I've bought a XTension XD 380 stick in Germany through Amazon, but the
-USB-ID differs from the one in the wiki. The page shows "1ae7:0381" as a
-USB-ID, but my sticks offers "1ae7:0380". This doesn't sound like to
-much a difference, but it appears that my stick has an Empia 2870 USB
-chip built in. 
-
-After some trial and error I got the "em28xx-new" driver working for my
-Ubuntu installation, although I couldn't compile the driver myself. (I
-guess the driver is too far outdated, as it complains about certain i2c
-errors). The precompiled driver worked for me. dmesg should the
-following:
-
-usb 1-1: new high speed USB device using ehci_hcd and address 3
-usb 1-1: configuration #1 chosen from 1 choice
-Linux video capture interface: v2.00
-em28xx v4l2 driver version 0.0.1 loaded
-em28xx: new video device (1ae7:0380): interface 0, class 255
-em28xx: device is attached to a USB 2.0 bus
-em28xx #0: Alternate settings: 8
-em28xx #0: Alternate setting 0, max size= 0
-em28xx #0: Alternate setting 1, max size= 0
-em28xx #0: Alternate setting 2, max size= 1448
-em28xx #0: Alternate setting 3, max size= 2048
-em28xx #0: Alternate setting 4, max size= 2304
-em28xx #0: Alternate setting 5, max size= 2580
-em28xx #0: Alternate setting 6, max size= 2892
-em28xx #0: Alternate setting 7, max size= 3072
-em28xx #0: Found Empia QT1010 - ZL10353
-usbcore: registered new interface driver em28xx
-em2880-dvb.c: DVB Init
-Quantek QT1010 successfully identified.
-DVB: registering new adapter (em2880 DVB-T)
-DVB: registering adapter 0 frontend 0 (Zarlink ZL10353 DVB-T)...
-Em28xx: Initialized (Em2880 DVB Extension) extension
-
-The driver source offers me "EM2870_BOARD_KWORLD_355U" as the
-corresponding board. It appears to me that the combination of Zarlink
-ZL10353 frontend and Qantek QT1010 seems to be working, since I can
-watch TV in quite a good quality through me-tv.
-
-Now the knack:
-
-The precompiled "em28xx-new" driver module is not available for the
-kernel I'd like to use. 
-
-Therefore I turned to v4l and looked for the KWorld 355U DVB-T stick.
-
-I found it in "em28xx-cards.c" and added the unique USB-ID to it.
-
-After compiling and installing, the driver recognizes my stick:
-dmesg:
-
-usb 1-1: new high speed USB device using ehci_hcd and address 6
-usb 1-1: configuration #1 chosen from 1 choice
-em28xx: New device USB 2870 Device @ 480 Mbps (1ae7:0380, interface 0,
-class 0)
-em28xx #0: chip ID is em2870
-(eeprom image)
-em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0xb7dcaae2
-em28xx #0: EEPROM info:
-em28xx #0: No audio on board.
-em28xx #0: 500mA max power
-em28xx #0: Table at 0x04, strings=0x226a, 0x0000, 0x0000
-em28xx #0: Identified as Kworld 355 U DVB-T (card=42)
-em28xx #0: 
-em28xx #0: The support for this board weren't valid yet.
-em28xx #0: Please send a report of having this working
-em28xx #0: not to V4L mailing list (and/or to other addresses)
-em28xx #0: v4l2 driver version 0.1.2
-em28xx #0: V4L2 video device registered as video0
-
-But I don't know how to add the tuner support.
-
-I changed my em28xx-dvb.c file and added the following case (this is the
-bachporting tree!):
-
-case EM2870_BOARD_KWORLD_355U:
-	dvb->frontend = dvb_attach(zl10353_attach,
-	   &em28xx_zl10353_with_xc3028,
-  	 &dev->i2c_adap);
-
-	if (dvb->frontend != NULL)
-		dvb_attach(qt1010_attach, dvb->frontend,
-		&dev->i2c_adap, &em2870_qt1010_config);
-
-
-break;
-
-as I've seen this at the gl861.c file, which uses Zarlink and Qantek for
-the same device. 
-But how can I add support in the "em28xx-cards.c" file? The section
-concerning the device is (which I already changed):
-
-[EM2870_BOARD_KWORLD_355U] = {
-		.name         = "Kworld 355 U DVB-T",
-		.valid        = EM28XX_BOARD_NOT_VALIDATED,
-		.has_dvb      = 1,
-		.tuner_type   = (what to enter here?!),
-/*		.dvb_gpio     = em2870_kworld_355u_digital,
-		.dvb_gpio     = default_digital,*/
-
-	},
-
-If someone could point me to the right direction, I'd very much
-appreciate it. 
-
-Thanks in advance,
-
-Florian Brandes
+diff --git a/arch/arm/mach-davinci/common.c b/arch/arm/mach-davinci/common.c
+index 1d25573..949e615 100644
+--- a/arch/arm/mach-davinci/common.c
++++ b/arch/arm/mach-davinci/common.c
+@@ -111,7 +111,9 @@ void __init davinci_common_init(struct davinci_soc_info *soc_info)
+ 		if (ret != 0)
+ 			goto err;
+ 	}
+-
++	davinci_sysmodbase = ioremap_nocache(DAVINCI_SYSTEM_MODULE_BASE, 0x800);
++	if (!davinci_sysmodbase)
++		goto err;
+ 	return;
+ 
+ err:
+diff --git a/arch/arm/mach-davinci/devices.c b/arch/arm/mach-davinci/devices.c
+index 22ebc64..2bff2d6 100644
+--- a/arch/arm/mach-davinci/devices.c
++++ b/arch/arm/mach-davinci/devices.c
+@@ -33,6 +33,8 @@
+ #define DM365_MMCSD0_BASE	     0x01D11000
+ #define DM365_MMCSD1_BASE	     0x01D00000
+ 
++void __iomem  *davinci_sysmodbase;
++
+ static struct resource i2c_resources[] = {
+ 	{
+ 		.start		= DAVINCI_I2C_BASE,
+@@ -209,9 +211,7 @@ void __init davinci_setup_mmc(int module, struct davinci_mmc_config *config)
+ 			davinci_cfg_reg(DM355_SD1_DATA2);
+ 			davinci_cfg_reg(DM355_SD1_DATA3);
+ 		} else if (cpu_is_davinci_dm365()) {
+-			void __iomem *pupdctl1 =
+-				IO_ADDRESS(DAVINCI_SYSTEM_MODULE_BASE + 0x7c);
+-
++			void __iomem *pupdctl1 = DAVINCI_SYSMODULE_VIRT(0x7c);
+ 			/* Configure pull down control */
+ 			__raw_writel((__raw_readl(pupdctl1) & ~0xfc0),
+ 					pupdctl1);
+@@ -243,9 +243,7 @@ void __init davinci_setup_mmc(int module, struct davinci_mmc_config *config)
+ 			mmcsd0_resources[2].start = IRQ_DM365_SDIOINT0;
+ 		} else if (cpu_is_davinci_dm644x()) {
+ 			/* REVISIT: should this be in board-init code? */
+-			void __iomem *base =
+-				IO_ADDRESS(DAVINCI_SYSTEM_MODULE_BASE);
+-
++			void __iomem *base = DAVINCI_SYSMODULE_VIRT(0);
+ 			/* Power-on 3.3V IO cells */
+ 			__raw_writel(0, base + DM64XX_VDD3P3V_PWDN);
+ 			/*Set up the pull regiter for MMC */
+diff --git a/arch/arm/mach-davinci/include/mach/hardware.h b/arch/arm/mach-davinci/include/mach/hardware.h
+index c45ba1f..5a105c4 100644
+--- a/arch/arm/mach-davinci/include/mach/hardware.h
++++ b/arch/arm/mach-davinci/include/mach/hardware.h
+@@ -24,6 +24,11 @@
+ /* System control register offsets */
+ #define DM64XX_VDD3P3V_PWDN	0x48
+ 
++#ifndef __ASSEMBLER__
++	extern void __iomem  *davinci_sysmodbase;
++	#define DAVINCI_SYSMODULE_VIRT(x)       (davinci_sysmodbase+(x))
++#endif
++
+ /*
+  * I/O mapping
+  */
+-- 
+1.6.2.4
 
