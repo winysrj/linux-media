@@ -1,132 +1,227 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:47531 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751457Ab1A1Jjd (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.9]:61393 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752143Ab1ARWcb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Jan 2011 04:39:33 -0500
-Date: Fri, 28 Jan 2011 01:39:22 -0800
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mark Lord <kernel@teksavvy.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Linux Kernel <linux-kernel@vger.kernel.org>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils ?
-Message-ID: <20110128093922.GA3357@core.coreip.homeip.net>
-References: <20110126020003.GA23085@core.coreip.homeip.net>
- <4D403855.4050706@teksavvy.com>
- <4D40C3D7.90608@teksavvy.com>
- <4D40C551.4020907@teksavvy.com>
- <20110127021227.GA29709@core.coreip.homeip.net>
- <4D40E41D.2030003@teksavvy.com>
- <20110127063815.GA29924@core.coreip.homeip.net>
- <4D414928.80801@redhat.com>
- <20110127172128.GA19672@core.coreip.homeip.net>
- <4D41C071.2090201@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4D41C071.2090201@redhat.com>
+	Tue, 18 Jan 2011 17:32:31 -0500
+From: Martin Hostettler <martin@neutronstar.dyndns.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Martin Hostettler <martin@neutronstar.dyndns.org>
+Subject: [PATCH RFC] arm: omap3evm: Add support for an MT9M032 based camera board.
+Date: Tue, 18 Jan 2011 23:32:16 +0100
+Message-Id: <1295389936-3238-1-git-send-email-martin@neutronstar.dyndns.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, Jan 27, 2011 at 04:58:57PM -0200, Mauro Carvalho Chehab wrote:
-> Em 27-01-2011 15:21, Dmitry Torokhov escreveu:
-> > On Thu, Jan 27, 2011 at 08:30:00AM -0200, Mauro Carvalho Chehab wrote:
-> >>
-> >> On my tests here, this is working fine, with Fedora and RHEL 6, on my
-> >> usual test devices, so I don't believe that the tool itself is broken, 
-> >> nor I think that the issue is due to the fix patch.
-> >>
-> >> I remember that when Kay added a persistence utility tool that opens a V4L
-> >> device in order to read some capabilities, this caused a race condition
-> >> into a number of drivers that use to register the video device too early.
-> >> The result is that udev were opening the device before the end of the
-> >> register process, causing OOPS and other problems.
-> > 
-> > Well, this is quite possible. The usev ruls in the v4l-utils reads:
-> > 
-> > ACTION=="add", SUBSYSTEM=="rc", RUN+="/usr/bin/ir-keytable -a /etc/rc_maps.cfg -s $name"
-> > 
-> > So we act when we add RC device to the system. The corresponding input
-> > device has not been registered yet (and will not be for some time
-> > because before creating input ddevice we invoke request_module() to load
-> > initial rc map module) so the tool runs simultaneously with kernel
-> > registering input device and it could very well be it can't find
-> > something it really wants.
-> > 
-> > This would explain why Mark sees the segfault only when invoked via
-> > udev but not when ran manually.
-> > 
-> > However I still do not understand why Mark does not see the same issue
-> > without the patch. Like I said, maybe if Mark could recompile with
-> > debug data and us a core we'd see what is going on.
-> 
-> Race conditions are hard to track... probably the new code added some delay,
-> and this allowed the request_module() to finish his job.
-> 
-> > BTW, that means that we need to redo udev rules. 
-> 
-> If there's a race condition, then the proper fix is to lock the driver
-> until it is ready to receive a fops. Maybe we'll need a mutex to preventing
-> opening the device until it is completely initialized.
+Adds board support for an MT9M032 based camera to omap3evm.
 
-No, not at all. The devices are ready to handle everything when they are
-created, it's just some devices are not there yet. What you do with
-current udev rule is similar to trying to mount filesystem as soon as
-you discover a PCI SCSI card. The controller is there but disks have not
-been discovered, block devices have not been created, and so on.
+Sigend-off-by: Martin Hostettler <martin@neutronstar.dyndns.org>
+---
+ arch/arm/mach-omap2/Makefile                |    1 +
+ arch/arm/mach-omap2/board-omap3evm-camera.c |  177 +++++++++++++++++++++++++++
+ 2 files changed, 178 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-omap3evm-camera.c
 
-> 
-> It is hard to tell, as Mark didn't provide us yet the dmesg info (at least
-> on the emails I was c/c), so I don't even know what device he has, and what
-> drivers are used.
+This patch depends on the recent not yet mainline media controller framework
+and omap3-isp driver availible at git.linuxtv.org/pinchartl/media.git.
 
-I belie you have been copied on the mail that had the following snippet:
-
-> kernel: Registered IR keymap rc-rc5-tv
-> udevd-event[6438]: run_program: '/usr/bin/ir-keytable' abnormal exit
-> kernel: input: i2c IR (Hauppauge) as /devices/virtual/rc/rc0/input7
-> kernel: ir-keytable[6439]: segfault at 8 ip 00000000004012d2 sp 00007fff6d43ca60 error 4 in ir-keytable[400000+7000]
-> kernel: rc0: i2c IR (Hauppauge) as /devices/virtual/rc/rc0
-> kernel: ir-kbd-i2c: i2c IR (Hauppauge) detected at i2c-0/0-0018/ir0 [ivtv i2c driver #0]
-
-> 
-> > Maybe we should split
-> > the utility into 2 parts - one dealing with rcX device and for keymap
-> > setting reuse udev's existing utility that adjusts maps on ann input
-> > devices, not for RCs only.
-> 
-> It could be done, but then we'll need to pollute the existing input tools
-> with RC-specific stuff. For IR, there are some additional steps, like
-> the need to select the IR protocol, otherwise the keytable is useless.
-
-That should be done by the separate utility that fires up when udev gets
-event for /sys/class/rc/rcX device.
-
-> Also, the keytable and persistent info is provided via /sys/class/rc/rc?/uevent.
-> So, the tool need to first read the RC class, check what keytable should be
-> associated with that device (based on a custom file), and load the proper
-> table.
-
-And this could be easily added to the udev's keymap utility that is
-fired up when we discover evdevX devices.
-
-> 
-> Also, I'm currently working on a way to map media keys for remote controllers 
-> into X11 (basically, mapping them into the keyspace between 8-255, passing 
-> through Xorg evdev.c, and then mapping back into some X11 symbols). This way,
-> we don't need to violate the X11 protocol. (Yeah, I know this is hacky, but
-> while X11 cannot pass the full evdev keycode, at least the Remote Controllers
-> will work). This probably means that we may need to add some DBus logic
-> inside ir-keytable, when called via udev, to allow it to announce to X11.
-
-The same issue is present with other types of input devices (multimedia
-keyboards emitting codes that X can't consume) and so it again would
-make sense to enhance udev's utility instead of confining it all to
-ir-keytable.
-
-Thanks.
-
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 60e51bc..5f43cc5 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -132,6 +132,7 @@ obj-$(CONFIG_MACH_OMAP3_TORPEDO)        += board-omap3logic.o \
+ obj-$(CONFIG_MACH_OVERO)		+= board-overo.o \
+ 					   hsmmc.o
+ obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o \
++					   board-omap3evm-camera.o \
+ 					   hsmmc.o
+ obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o \
+ 					   hsmmc.o
+diff --git a/arch/arm/mach-omap2/board-omap3evm-camera.c b/arch/arm/mach-omap2/board-omap3evm-camera.c
+new file mode 100644
+index 0000000..ea82a49
+--- /dev/null
++++ b/arch/arm/mach-omap2/board-omap3evm-camera.c
+@@ -0,0 +1,177 @@
++/*
++ * Copyright (C) 2010-2011 Lund Engineering
++ * Contact: Gil Lund <gwlund@lundeng.com>
++ * Author: Martin Hostettler <martin@neutronstar.dyndns.org>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ */
++
++#include <linux/i2c.h>
++#include <linux/init.h>
++#include <linux/platform_device.h>
++
++#include <asm/gpio.h>
++#include <plat/mux.h>
++#include "mux.h"
++
++#include "../../../drivers/media/video/isp/isp.h"
++#include "../../../drivers/media/video/mt9m032.h"
++
++#include "devices.h"
++
++#define EVM_TWL_GPIO_BASE OMAP_MAX_GPIO_LINES
++#define GPIO98_VID_DEC_RES	98
++#define nCAM_VD_SEL		157
++
++#define MT9M032_I2C_BUS_NUM	2
++
++
++enum omap3evmdc_mux {
++	MUX_TVP5146,
++	MUX_CAMERA_SENSOR,
++	MUX_EXP_CAMERA_SENSOR,
++};
++
++/**
++ * omap3evm_set_mux - Sets mux to enable signal routing to
++ *                           different peripherals present on new EVM board
++ * @mux_id: enum, mux id to enable
++ *
++ * Returns 0 for success or a negative error code
++ */
++static int omap3evm_set_mux(enum omap3evmdc_mux mux_id)
++{
++	/* Set GPIO6 = 1 */
++	gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 6, 1);
++	gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 0);
++
++	switch (mux_id) {
++	case MUX_TVP5146:
++		gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 0);
++		gpio_set_value(nCAM_VD_SEL, 1);
++		break;
++
++	case MUX_CAMERA_SENSOR:
++		gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 0);
++		gpio_set_value(nCAM_VD_SEL, 0);
++		break;
++
++	case MUX_EXP_CAMERA_SENSOR:
++		gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 1);
++		break;
++
++	default:
++		pr_err("omap3evm-camera: Invalid mux id #%d\n", mux_id);
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++static struct mt9m032_platform_data mt9m032_platform_data = {
++	.ext_clock = 13500000,
++	.pll_pre_div = 6,
++	.pll_mul = 120,
++	.pll_out_div = 5,
++	.invert_pixclock = 1,
++};
++
++static struct i2c_board_info camera_i2c_devices[] = {
++	{
++		I2C_BOARD_INFO(MT9M032_NAME, MT9M032_I2C_ADDR),
++		.platform_data = &mt9m032_platform_data,
++	},
++};
++
++static struct isp_subdev_i2c_board_info camera_i2c_subdevs[] = {
++	{
++		.board_info = &camera_i2c_devices[0],
++		.i2c_adapter_id = MT9M032_I2C_BUS_NUM,
++	},
++	{},
++};
++
++static struct isp_v4l2_subdevs_group camera_subdevs[] = {
++	{
++		.subdevs = camera_i2c_subdevs,
++		.interface = ISP_INTERFACE_PARALLEL,
++		.bus = {
++			.parallel = {
++				.data_lane_shift = 1,
++				.clk_pol = 0,
++				.bridge = ISPCTRL_PAR_BRIDGE_DISABLE,
++				.width = 8,
++			}
++		},
++	},
++	{},
++};
++
++static struct isp_platform_data isp_platform_data = {
++	.subdevs = camera_subdevs,
++};
++
++static int __init camera_init(void)
++{
++	omap_mux_init_gpio(nCAM_VD_SEL, OMAP_PIN_OUTPUT);
++	if (gpio_request(nCAM_VD_SEL, "nCAM_VD_SEL") < 0) {
++		pr_err("omap3evm-camera: Failed to get GPIO nCAM_VD_SEL(%d)\n",
++		       nCAM_VD_SEL);
++		goto err;
++	}
++	if (gpio_direction_output(nCAM_VD_SEL, 1) < 0) {
++		pr_err("omap3evm-camera: Failed to set GPIO nCAM_VD_SEL(%d) direction\n",
++		       nCAM_VD_SEL);
++		goto err_vdsel;
++	}
++
++	if (gpio_request(EVM_TWL_GPIO_BASE + 2, "T2_GPIO2") < 0) {
++		pr_err("omap3evm-camera: Failed to get GPIO T2_GPIO2(%d)\n",
++		       EVM_TWL_GPIO_BASE + 2);
++		goto err_vdsel;
++	}
++	if (gpio_direction_output(EVM_TWL_GPIO_BASE + 2, 0) < 0) {
++		pr_err("omap3evm-camera: Failed to set GPIO T2_GPIO2(%d) direction\n",
++		       EVM_TWL_GPIO_BASE + 2);
++		goto err_2;
++	}
++
++	if (gpio_request(EVM_TWL_GPIO_BASE + 8, "nCAM_VD_EN") < 0) {
++		pr_err("omap3evm-camera: Failed to get GPIO nCAM_VD_EN(%d)\n",
++		       EVM_TWL_GPIO_BASE + 8);
++		goto err_2;
++	}
++	if (gpio_direction_output(EVM_TWL_GPIO_BASE + 8, 0) < 0) {
++		pr_err("omap3evm-camera: Failed to set GPIO nCAM_VD_EN(%d) direction\n",
++		       EVM_TWL_GPIO_BASE + 8);
++		goto err_8;
++	}
++
++	omap3evm_set_mux(MUX_CAMERA_SENSOR);
++
++	
++	return omap3_init_camera(&isp_platform_data);
++
++err_8:
++	gpio_free(EVM_TWL_GPIO_BASE + 8);
++err_2:
++	gpio_free(EVM_TWL_GPIO_BASE + 2);
++err_vdsel:
++	gpio_free(nCAM_VD_SEL);
++err:
++	return -EINVAL;
++}
++
++device_initcall(camera_init);
 -- 
-Dmitry
+1.7.1
+
