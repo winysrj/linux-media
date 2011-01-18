@@ -1,161 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1361 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751346Ab1AWR2s (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:36718 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752050Ab1ARXad (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Jan 2011 12:28:48 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Kamil Debski <k.debski@samsung.com>
-Subject: Re: [RFC/PATCH v6 1/4] Changes in include/linux/videodev2.h for MFC 5.1
-Date: Sun, 23 Jan 2011 18:28:23 +0100
-Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	m.szyprowski@samsung.com, pawel@osciak.com,
-	kyungmin.park@samsung.com, jaeryul.oh@samsung.com,
-	kgene.kim@samsung.com
-References: <1294417534-3856-1-git-send-email-k.debski@samsung.com> <1294417534-3856-2-git-send-email-k.debski@samsung.com>
-In-Reply-To: <1294417534-3856-2-git-send-email-k.debski@samsung.com>
+	Tue, 18 Jan 2011 18:30:33 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Michael Jones <michael.jones@matrix-vision.de>
+Subject: Re: link error w/ media-0006-sensors
+Date: Wed, 19 Jan 2011 00:30:27 +0100
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <4D35BC6D.1050801@matrix-vision.de>
+In-Reply-To: <4D35BC6D.1050801@matrix-vision.de>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-15"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201101231828.23723.hverkuil@xs4all.nl>
+Message-Id: <201101190030.30161.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Kamil,
+Hi Michael,
 
-Here is a review of this patch. I didn't really look that closely at the others,
-other than noticing that they didn't use the control framework yet.
-
-The main issue really is lack of documentation. It's hard to review something if
-you don't know what a new define stands for.
-
-On Friday, January 07, 2011 17:25:31 Kamil Debski wrote:
-> This patch adds fourcc values for compressed video stream formats and
-> V4L2_CTRL_CLASS_CODEC. Also adds controls used by MFC 5.1 driver.
+On Tuesday 18 January 2011 17:14:37 Michael Jones wrote:
+> Hi Laurent & Sakari,
 > 
-> Signed-off-by: Kamil Debski <k.debski@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  include/linux/videodev2.h |   45 +++++++++++++++++++++++++++++++++++++++++++++
->  1 files changed, 45 insertions(+), 0 deletions(-)
+> On Laurent's media-0006-sensors branch, when compiling with
+> CONFIG_VIDEO_OMAP3=m, I got the following linking error:
 > 
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index d30c98d..b8952fc 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -339,6 +339,14 @@ struct v4l2_pix_format {
->  #define V4L2_PIX_FMT_NV16    v4l2_fourcc('N', 'V', '1', '6') /* 16  Y/CbCr 4:2:2  */
->  #define V4L2_PIX_FMT_NV61    v4l2_fourcc('N', 'V', '6', '1') /* 16  Y/CrCb 4:2:2  */
->  
-> +/* two non contiguous planes -- one Y, one Cr + Cb interleaved  */
-> +#define V4L2_PIX_FMT_NV12M   v4l2_fourcc('N', 'M', '1', '2') /* 12  Y/CbCr 4:2:0  */
-> +/* 12  Y/CbCr 4:2:0 64x32 macroblocks */
-> +#define V4L2_PIX_FMT_NV12MT  v4l2_fourcc('T', 'M', '1', '2')
-> +
-> +/* three non contiguous planes -- Y, Cb, Cr */
-> +#define V4L2_PIX_FMT_YUV420M v4l2_fourcc('Y', 'M', '1', '2') /* 12  YUV420 planar */
-> +
-
-Don't forget to document these formats in the V4L2 spec.
-
->  /* Bayer formats - see http://www.siliconimaging.com/RGB%20Bayer.htm */
->  #define V4L2_PIX_FMT_SBGGR8  v4l2_fourcc('B', 'A', '8', '1') /*  8  BGBG.. GRGR.. */
->  #define V4L2_PIX_FMT_SGBRG8  v4l2_fourcc('G', 'B', 'R', 'G') /*  8  GBGB.. RGRG.. */
-> @@ -362,6 +370,18 @@ struct v4l2_pix_format {
->  #define V4L2_PIX_FMT_DV       v4l2_fourcc('d', 'v', 's', 'd') /* 1394          */
->  #define V4L2_PIX_FMT_MPEG     v4l2_fourcc('M', 'P', 'E', 'G') /* MPEG-1/2/4    */
->  
-> +#define V4L2_PIX_FMT_H264     v4l2_fourcc('H', '2', '6', '4') /* H264    */
-> +#define V4L2_PIX_FMT_H263     v4l2_fourcc('H', '2', '6', '3') /* H263    */
-> +#define V4L2_PIX_FMT_MPEG12   v4l2_fourcc('M', 'P', '1', '2') /* MPEG-1/2  */
-> +#define V4L2_PIX_FMT_MPEG4    v4l2_fourcc('M', 'P', 'G', '4') /* MPEG-4  */
-> +#define V4L2_PIX_FMT_DIVX     v4l2_fourcc('D', 'I', 'V', 'X') /* DivX  */
-> +#define V4L2_PIX_FMT_DIVX3    v4l2_fourcc('D', 'I', 'V', '3') /* DivX 3.11  */
-> +#define V4L2_PIX_FMT_DIVX4    v4l2_fourcc('D', 'I', 'V', '4') /* DivX 4.12  */
-> +#define V4L2_PIX_FMT_DIVX5    v4l2_fourcc('D', 'X', '5', '0') /* DivX 5  */
-> +#define V4L2_PIX_FMT_XVID     v4l2_fourcc('X', 'V', 'I', 'D') /* Xvid */
-> +#define V4L2_PIX_FMT_VC1      v4l2_fourcc('V', 'C', '1', 'A') /* VC-1 */
-> +#define V4L2_PIX_FMT_VC1_RCV      v4l2_fourcc('V', 'C', '1', 'R') /* VC-1 RCV */
-> +
-
-Ditto. Note: FMT_MPEG and FMT_MPEG12 and possibly FMT_MPEG4 seem to describe the
-same format. What's the difference? And do these formats describe raw video
-streams or program/transport streams? Can I just put in any old DivX file or
-does the hardware understand only a specific dialect or even a hardware-specific
-variation of the standard?
-
-Does the codec just go from compressed video to raw video? If it also goes in
-the other direction, how does one set bitrates, etc.?
-
-Does it accept multiplexed streams containing audio as well? If so, what does
-it do with the audio?
-
->  /*  Vendor-specific formats   */
->  #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1 YUV */
->  #define V4L2_PIX_FMT_WNVA     v4l2_fourcc('W', 'N', 'V', 'A') /* Winnov hw compress */
-> @@ -972,6 +992,7 @@ struct v4l2_output {
->  #define V4L2_OUTPUT_TYPE_ANALOG			2
->  #define V4L2_OUTPUT_TYPE_ANALOGVGAOVERLAY	3
->  
-> +
->  /* capabilities flags */
->  #define V4L2_OUT_CAP_PRESETS		0x00000001 /* Supports S_DV_PRESET */
->  #define V4L2_OUT_CAP_CUSTOM_TIMINGS	0x00000002 /* Supports S_DV_TIMINGS */
-> @@ -1009,6 +1030,7 @@ struct v4l2_ext_controls {
->  #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls */
->  #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
->  #define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
-> +#define V4L2_CTRL_CLASS_CODEC 0x009c0000	/* Codec control class */
->  
->  #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
->  #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
-> @@ -1342,6 +1364,29 @@ enum v4l2_mpeg_cx2341x_video_median_filter_type {
->  #define V4L2_CID_MPEG_CX2341X_VIDEO_CHROMA_MEDIAN_FILTER_TOP 	(V4L2_CID_MPEG_CX2341X_BASE+10)
->  #define V4L2_CID_MPEG_CX2341X_STREAM_INSERT_NAV_PACKETS 	(V4L2_CID_MPEG_CX2341X_BASE+11)
->  
-> +/* For codecs */
-> +
-> +#define V4L2_CID_CODEC_BASE 			(V4L2_CTRL_CLASS_CODEC | 0x900)
-> +#define V4L2_CID_CODEC_CLASS 			(V4L2_CTRL_CLASS_CODEC | 1)
-> +
-> +/* For both decoding and encoding */
-> +
-> +/* For encoding */
-> +#define V4L2_CID_CODEC_LOOP_FILTER_H264		(V4L2_CID_CODEC_BASE + 0)
-> +enum v4l2_cid_codec_loop_filter_h264 {
-> +	V4L2_CID_CODEC_LOOP_FILTER_H264_ENABLE = 0,
-> +	V4L2_CID_CODEC_LOOP_FILTER_H264_DISABLE = 1,
-> +	V4L2_CID_CODEC_LOOP_FILTER_H264_DISABLE_AT_BOUNDARY = 2,
-> +};
-> +
-> +/* For decoding */
-> +
-> +#define V4L2_CID_CODEC_LOOP_FILTER_MPEG4_ENABLE	(V4L2_CID_CODEC_BASE + 1)
-> +#define V4L2_CID_CODEC_DISPLAY_DELAY		(V4L2_CID_CODEC_BASE + 2)
-> +#define V4L2_CID_CODEC_REQ_NUM_BUFS		(V4L2_CID_CODEC_BASE + 3)
-> +#define V4L2_CID_CODEC_SLICE_INTERFACE		(V4L2_CID_CODEC_BASE + 4)
-> +#define V4L2_CID_CODEC_PACKED_PB		(V4L2_CID_CODEC_BASE + 5)
-> +
-
-This needs to be documented in the spec as well.
-
-It seems to me just looking at the names that these controls are highly
-hardware specific. If so, then these controls would have to be in the range
-of (V4L2_CTRL_CLASS_CODEC | 0x1000) and up and need the name of the chipset
-as part of their ID. Similar to the cx2341x specific controls (see
-V4L2_CID_MPEG_CX2341X_BASE in videodev2.h).
-
-Creating a CODEC control class seems sensible to me, so I'm fine with that.
-
->  /*  Camera class control IDs */
->  #define V4L2_CID_CAMERA_CLASS_BASE 	(V4L2_CTRL_CLASS_CAMERA | 0x900)
->  #define V4L2_CID_CAMERA_CLASS 		(V4L2_CTRL_CLASS_CAMERA | 1)
+> ERROR: "omap_pm_set_min_bus_tput" [drivers/media/video/isp/omap3-isp.ko]
+> undefined!
 > 
+> I can get rid of the error with the patch below. But as always, I
+> wonder: Why didn't anybody else come across this error? Are you all
+> compiling with VIDEO_OMAP3=y? Is there a config file somewhere I can see
+> where someone is using that?
+> 
+> And would anything be wrong with the patch below?
 
-Regards,
-
-	Hans
+Martin Hostettler sent the same patch to linux-omap today ("[PATCH] OMAP: PM: 
+Export omap_pm_set_min_bus_tput to modules"). See Please see Paul Wamsley's 
+answer on the list.
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+Regards,
+
+Laurent Pinchart
