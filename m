@@ -1,140 +1,75 @@
 Return-path: <mchehab@pedra>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:56997 "HELO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751751Ab1ASCzX (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3738 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751532Ab1ARWp3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Jan 2011 21:55:23 -0500
-From: Qing Xu <qingx@marvell.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Date: Tue, 18 Jan 2011 18:50:35 -0800
-Subject: RE: soc-camera jpeg support?
-Message-ID: <7BAC95F5A7E67643AAFB2C31BEE662D014040BF54D@SC-VEXCH2.marvell.com>
-References: <1294368595-2518-1-git-send-email-qingx@marvell.com>
- <7BAC95F5A7E67643AAFB2C31BEE662D014040171EE@SC-VEXCH2.marvell.com>
- <Pine.LNX.4.64.1101100853490.24479@axis700.grange>
- <201101101133.01636.laurent.pinchart@ideasonboard.com>
- <7BAC95F5A7E67643AAFB2C31BEE662D014040BF237@SC-VEXCH2.marvell.com>
- <Pine.LNX.4.64.1101171826340.16051@axis700.grange>
- <7BAC95F5A7E67643AAFB2C31BEE662D014040BF2EF@SC-VEXCH2.marvell.com>
- <Pine.LNX.4.64.1101181811590.19950@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1101181811590.19950@axis700.grange>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+	Tue, 18 Jan 2011 17:45:29 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Luca Tettamanti <kronos.it@gmail.com>
+Subject: Re: Upstreaming syntek driver
+Date: Tue, 18 Jan 2011 23:45:17 +0100
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Nicolas VIVIEN <progweb@free.fr>
+References: <AANLkTi=bv+NkwS+ASUDeAjbpNht8+YJaPRKYF7TTZDes@mail.gmail.com>
+In-Reply-To: <AANLkTi=bv+NkwS+ASUDeAjbpNht8+YJaPRKYF7TTZDes@mail.gmail.com>
 MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201101182345.17725.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-DQpTb3JyeSwgd2hpY2ggc29sdXRpb24geW91IHdvdWxkIGxpa2UgbWUgdG8gaW1wbGVtZW50Pw0K
-KDEpIGlzIHRvIGFkZCBTT0NfTUJVU19QQUNLSU5HX1ZBUklBQkxFIGRlZmluZSBhbmQgYWRkIGVy
-cm9yIGNvZGUgaW4gc29jX21idXNfYnl0ZXNfcGVyX2xpbmUoKSwNCmFuZCAoMikgaXMgdG8gaW1w
-bGVtZW50IGludCAoKnRyeV9mbXQpKHN0cnVjdCB2NGwyX3N1YmRldiAqc2QsIHN0cnVjdCB2NGwy
-X2Zvcm1hdCAqZm10KTsgaW4gc3ViZGV2LCBkaXJlY3RseSBnZXQgVjRMMl9QSVhfRk1UX0pQRUcg
-aW5mbyBmcm9tIGhvc3QgZHJpdmVyLg0KDQotUWluZw0KDQotLS0tLU9yaWdpbmFsIE1lc3NhZ2Ut
-LS0tLQ0KRnJvbTogR3Vlbm5hZGkgTGlha2hvdmV0c2tpIFttYWlsdG86Zy5saWFraG92ZXRza2lA
-Z214LmRlXQ0KU2VudDogMjAxMeW5tDHmnIgxOeaXpSAxOjMxDQpUbzogUWluZyBYdQ0KQ2M6IExh
-dXJlbnQgUGluY2hhcnQ7IExpbnV4IE1lZGlhIE1haWxpbmcgTGlzdA0KU3ViamVjdDogUkU6IHNv
-Yy1jYW1lcmEganBlZyBzdXBwb3J0Pw0KDQpUaGFua3MgZm9yIHRoZSBjb2RlISBXaXRoIGl0IGF0
-IGhhbmQgaXQgaXMgZ29pbmcgdG8gYmUgZWFzaWVyIHRvDQp1bmRlcnN0YW5kIGFuZCBldmFsdWF0
-ZSBjaGFuZ2VzLCB0aGF0IHlvdSBwcm9wb3NlIHRvIHRoZSBnZW5lcmljIG1vZHVsZXMuDQoNCk9u
-IE1vbiwgMTcgSmFuIDIwMTEsIFFpbmcgWHUgd3JvdGU6DQoNCj4gSGksIEd1ZW5uYWRpLA0KPg0K
-PiBPaCwgeWVzLCBJIGFncmVlIHdpdGggeW91LCB5b3UgYXJlIHJpZ2h0LCBpdCBpcyByZWFsbHkg
-bm90IHRoYXQgc2ltcGxlLA0KPiBKUEVHIGlzIGFsd2F5cyBhIGhlYWRhY2hlLDooLCBhcyBpdCBp
-cyBxdWl0ZSBkaWZmZXJlbnQgZnJvbSBvcmlnaW5hbA0KPiB5dXYvcmdiIGZvcm1hdCwgaXQgaGFz
-IG5laXRoZXIgZml4ZWQgYml0cy1wZXItc2FtcGxlLCBub3IgZml4ZWQNCj4gcGFja2luZy9ieXRl
-cy1wZXItbGluZS9wZXItZnJhbWUsIHNvIHdoZW4gY29kaW5nLCBJIGp1c3QgaGFjayB2YWx1ZSBv
-Zg0KPiAuYml0c19wZXJfc2FtcGxlIGFuZCAucGFja2luZywgaW4gZmFjdCwgeW91IHdpbGwgc2Vl
-IGluIG91ciBob3N0IGRyaXZlciwNCj4gaWYgd2UgZmluZCBpdCBpcyBKUEVHLCB3aWxsIGlnbm9y
-ZSBieXRlcy1wZXItbGluZSB2YWx1ZSwgZm9yIGV4YW1wbGUsIGluDQo+IHB4YTk1NV92aWRlb2J1
-Zl9wcmVwYXJlKCksIGZvciBqcGVnLCB3ZSBhbHdheXMgYWxsb2NhdGUgZml4ZWQgYnVmZmVyDQo+
-IHNpemUgZm9yIGl0IChvciwgYSBiZXR0ZXIgbWV0aG9kIGlzIHRvIGFsbG9jYXRlIGJ1ZmZlciBz
-aXplID0NCj4gd2lkdGgqaGVpZ2h0L2pwZWctY29tcHJlc3MtcmF0aW8pLg0KPg0KPiBJIGhhdmUg
-MiBpZGVhczoNCj4gMSkgRG8geW91IHRoaW5rIGl0IGlzIHJlYXNvbmFibGUgdG8gYWRkIGEgbm90
-LWZpeGVkIGRlZmluZSBpbnRvIHNvY19tYnVzX3BhY2tpbmc6DQo+IGVudW0gc29jX21idXNfcGFj
-a2luZyB7DQo+ICAgICAgICAgU09DX01CVVNfUEFDS0lOR19OT1RfRklYRUQsDQo+ICAgICAgICAg
-Li4uDQo+IH07DQo+IEFuZCB0aGVuLCAuYml0c19wZXJfc2FtcGxlICAgICAgPSAwLCAvKiBpbmRp
-Y2F0ZSB0aGF0IHNhbXBsZSBiaXRzIGlzIG5vdC1maXhlZCovDQo+IEFuZCwgaW4gZnVuY3Rpb246
-DQo+IHMzMiBzb2NfbWJ1c19ieXRlc19wZXJfbGluZSh1MzIgd2lkdGgsIGNvbnN0IHN0cnVjdCBz
-b2NfbWJ1c19waXhlbGZtdCAqbWYpDQo+IHsNCj4gICAgICAgICBzd2l0Y2ggKG1mLT5wYWNraW5n
-KSB7DQo+ICAgICAgICAgICAgICAgICBjYXNlIFNPQ19NQlVTX1BBQ0tJTkdfTk9UX0ZJWEVEOg0K
-PiAgICAgICAgICAgICAgICAgICAgICAgICByZXR1cm4gMDsNCj4gICAgICAgICAgICAgICAgIGNh
-c2UgU09DX01CVVNfUEFDS0lOR19OT05FOg0KPiAgICAgICAgICAgICAgICAgICAgICAgICByZXR1
-cm4gd2lkdGggKiBtZi0+Yml0c19wZXJfc2FtcGxlIC8gODsNCj4gICAgICAgICAgICAgICAgIC4u
-Lg0KPiAgICAgICAgIH0NCj4gICAgICAgICByZXR1cm4gLUVJTlZBTDsNCj4gfQ0KPg0KPiAyKSBP
-ciwgYW4gd29ya2Fyb3VuZCBpbiBzZW5zb3Iob3Y1NjQyLmMpLCBpcyB0byBpbXBsZW1lbnQ6DQo+
-IGludCAoKnRyeV9mbXQpKHN0cnVjdCB2NGwyX3N1YmRldiAqc2QsIHN0cnVjdCB2NGwyX2Zvcm1h
-dCAqZm10KTsNCj4gdXNlIHRoZSBtZW1iZXIgKGZtdC0+cGl4LT5waXhlbGZvcm1hdCA9PSBWNEwy
-X1BJWF9GTVRfSlBFRykgdG8gZmluZCBvdXQNCj4gaWYgaXQgaXMganBlZy4gQW5kIGluIGhvc3Qg
-ZHJpdmVyLCBpdCBjYWxscyB0cnlfZm10KCkgaW50byBzZW5zb3IuIEluDQo+IHRoaXMgd2F5LCBu
-byBuZWVkIHRvIGNoYW5nZSBzb2MtY2FtZXJhIGNvbW1vbiBjb2RlLCBidXQgSSBmZWVsIHRoYXQg
-aXQNCj4gZ29lcyBhZ2FpbnN0IHdpdGggeW91ciB4eHhfbWJ1c194eHggZGVzaWduIHB1cnBvc2Us
-IHJpZ2h0Pw0KDQpJIGFjdHVhbGx5IHByZWZlciB0aGlzIG9uZSwgYnV0IHdpdGggYW4gYWRkaXRp
-b24gb2YgVjRMMl9NQlVTX0ZNVF9KUEVHXzFYOA0KYXMgcGVyIHlvdXIgYWRkaXRpb25hbCDDvGF0
-Y2gsIGJ1dCwgcGxlYXNlLCBhbHNvIGFkZCBhIG5ldyBwYWNraW5nLCBlLmcuLA0KU09DX01CVVNf
-UEFDS0lOR19DT01QUkVTU0VEIChvciBTT0NfTUJVU19QQUNLSU5HX1ZBUklBQkxFPykuIFNvLCB0
-aGF0IHdlDQpjYW4gY2xlYW5seSB0cmFuc2xhdGUgYmV0d2VlbiBWNEwyX01CVVNfRk1UX0pQRUdf
-MVg4IGFuZA0KVjRMMl9QSVhfRk1UX0pQRUcsIGJ1dCBob3N0IGRyaXZlcnMsIHRoYXQgd2FudCB0
-byBzdXBwb3J0IHRoaXMsIHdpbGwgaGF2ZQ0KdG8ga25vdyB0byBjYWxjdWxhdGUgZnJhbWUgc2l6
-ZXMgaW4gc29tZSBzcGVjaWFsIHdheSwgbm90IGp1c3QgYWJvcnRpbmcsDQppZiBzb2NfbWJ1c19i
-eXRlc19wZXJfbGluZSgpIHJldHVybmVkIGFuIGVycm9yLiBXZSBtaWdodCBhbHNvIGNvbnNpZGVy
-DQpyZXR1cm5pbmcgYSBkaWZmZXJlbnQgZXJyb3IgY29kZSBmb3IgdGhpcyBjYXNlLCBlLmcuLCB3
-ZSBjb3VsZCBjaGFuZ2UgdGhlDQpnZW5lcmFsIGVycm9yIGNhc2UgdG8gcmV0dXJuIC1FTk9FTlQs
-IGFuZCB1c2UgLUVJTlZBTCBmb3IgY2FzZXMgbGlrZSBKUEVHLA0Kd2hlcmUgZGF0YSBpcyB2YWxp
-ZCwgYnV0IG5vIHZhbGlkIGNhbGN1bGF0aW9uIGlzIHBvc3NpYmxlLg0KDQpUaGFua3MNCkd1ZW5u
-YWRpDQoNCj4gV2hhdCBkbyB5b3UgdGhpbms/DQo+DQo+IFBsZWFzZSBjaGVjayB0aGUgYXR0YWNo
-bWVudCwgaXQgaXMgb3VyIGhvc3QgY2FtZXJhIGNvbnRyb2xsZXIgZHJpdmVyIGFuZCBzZW5zb3Iu
-DQo+DQo+IFRoYW5rcyBhIGxvdCENCj4gLVFpbmcNCj4NCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdl
-LS0tLS0NCj4gRnJvbTogR3Vlbm5hZGkgTGlha2hvdmV0c2tpIFttYWlsdG86Zy5saWFraG92ZXRz
-a2lAZ214LmRlXQ0KPiBTZW50OiAyMDExw4TDqjHDlMOCMTjDiMOVIDE6MzkNCj4gVG86IFFpbmcg
-WHUNCj4gQ2M6IExhdXJlbnQgUGluY2hhcnQ7IExpbnV4IE1lZGlhIE1haWxpbmcgTGlzdA0KPiBT
-dWJqZWN0OiBSZTogc29jLWNhbWVyYSBqcGVnIHN1cHBvcnQ/DQo+DQo+IE9uIE1vbiwgMTcgSmFu
-IDIwMTEsIFFpbmcgWHUgd3JvdGU6DQo+DQo+ID4gSGksDQo+ID4NCj4gPiBNYW55IG9mIG91ciBz
-ZW5zb3JzIHN1cHBvcnQgZGlyZWN0bHkgb3V0cHV0dGluZyBKUEVHIGRhdGEgdG8gY2FtZXJhDQo+
-ID4gY29udHJvbGxlciwgZG8geW91IGZlZWwgaXQncyByZWFzb25hYmxlIHRvIGFkZCBqcGVnIHN1
-cHBvcnQgaW50bw0KPiA+IHNvYy1jYW1lcmE/IEFzIGl0IHNlZW1zIHRoYXQgdGhlcmUgaXMgbm8g
-ZGVmaW5lIGluIHY0bDItbWVkaWFidXMuaCB3aGljaA0KPiA+IGlzIHN1aXRhYmxlIGZvciBvdXIg
-Y2FzZS4NCj4NCj4gSW4gcHJpbmNpcGxlIEkgaGF2ZSBub3RoaW5nIGFnYWluc3QgdGhpcywgYnV0
-LCBJJ20gYWZyYWlkLCBpdCBpcyBub3QgcXVpdGUNCj4gdGhhdCBzaW1wbGUuIEkgaGF2ZW4ndCB3
-b3JrZWQgd2l0aCBzdWNoIHNlbnNvcnMgbXlzZWxmLCBidXQsIEFGQUlVLCB0aGUNCj4gSlBFRyBp
-bWFnZSBmb3JtYXQgZG9lc24ndCBoYXZlIGZpeGVkIGJ5dGVzLXBlci1saW5lIGFuZCBieXRlcy1w
-ZXItZnJhbWUNCj4gdmFsdWVzLiBJZiB5b3UgYWRkIGl0IGxpa2UgeW91IHByb3Bvc2UsIHRoaXMg
-d291bGQgbWVhbiwgdGhhdCBpdCBqdXN0DQo+IGRlbGl2ZXJzICJub3JtYWwiIDggYml0cyBwZXIg
-cGl4ZWwgaW1hZ2VzLiBPVE9ILCBzb2NfbWJ1c19ieXRlc19wZXJfbGluZSgpDQo+IHdvdWxkIGp1
-c3QgcmV0dXJuIC1FSU5WQUwgZm9yIHlvdXIgSlBFRyBmb3JtYXQsIHNvLCB1bnN1cHBvcnRpbmcg
-ZHJpdmVycw0KPiB3b3VsZCBqdXN0IGVycm9yIG91dCwgd2hpY2ggaXMgbm90IGFsbCB0aGF0IGJh
-ZC4gV2hlbiB0aGUgZmlyc3QgZHJpdmVyDQo+IGRlY2lkZXMgdG8gc3VwcG9ydCBKUEVHLCB0aGV5
-IHdpbGwgaGF2ZSB0byBoYW5kbGUgdGhhdCBlcnJvci4gQnV0IG1heWJlDQo+IHdlJ2xsIHdhbnQg
-dG8gcmV0dXJuIGEgc3BlY2lhbCBlcnJvciBjb2RlIGZvciBpdC4NCj4NCj4gQnV0LCBpbiBmYWN0
-LCB0aGF0IGlzIGluIGEgd2F5IG15IHByb2JsZW0gd2l0aCB5b3VyIHBhdGNoZXM6IHlvdSBwcm9w
-b3NlDQo+IGV4dGVuc2lvbnMgdG8gZ2VuZXJpYyBjb2RlIHdpdGhvdXQgc2hvd2luZyBob3cgdGhp
-cyBpcyBnb2luZyB0byBiZSB1c2VkIGluDQo+IHNwZWNpZmljIGRyaXZlcnMuIENvdWxkIHlvdSBz
-aG93IHVzIHlvdXIgaG9zdCBkcml2ZXIsIHBsZWFzZT8gSSBkb24ndA0KPiB0aGluayB0aGlzIGlz
-IHN0aWxsIHRoZSBweGEyN3ggZHJpdmVyLCBpcyBpdD8NCj4NCj4gVGhhbmtzDQo+IEd1ZW5uYWRp
-DQo+DQo+ID4NCj4gPiBTdWNoIGFzOg0KPiA+IC0tLSBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vc29j
-X21lZGlhYnVzLmMNCj4gPiArKysgYi9kcml2ZXJzL21lZGlhL3ZpZGVvL3NvY19tZWRpYWJ1cy5j
-DQo+ID4gQEAgLTEzMCw2ICsxMzAsMTMgQEAgc3RhdGljIGNvbnN0IHN0cnVjdCBzb2NfbWJ1c19w
-aXhlbGZtdCBtYnVzX2ZtdFtdID0gew0KPiA+ICAgICAgICAgICAgICAgICAucGFja2luZyAgICAg
-ICAgICAgICAgICA9IFNPQ19NQlVTX1BBQ0tJTkdfMlg4X1BBRExPLA0KPiA+ICAgICAgICAgICAg
-ICAgICAub3JkZXIgICAgICAgICAgICAgICAgICA9IFNPQ19NQlVTX09SREVSX0JFLA0KPiA+ICAg
-ICAgICAgfSwNCj4gPiArICAgICAgIFtNQlVTX0lEWChKUEVHXzFYOCldID0gew0KPiA+ICsgICAg
-ICAgICAgICAgICAuZm91cmNjICAgICAgICAgICAgICAgICA9IFY0TDJfUElYX0ZNVF9KUEVHLA0K
-PiA+ICsgICAgICAgICAgICAgICAubmFtZSAgICAgICAgICAgICAgICAgICA9ICJKUEVHIiwNCj4g
-PiArICAgICAgICAgICAgICAgLmJpdHNfcGVyX3NhbXBsZSAgICAgICAgPSA4LA0KPiA+ICsgICAg
-ICAgICAgICAgICAucGFja2luZyAgICAgICAgICAgICAgICA9IFNPQ19NQlVTX1BBQ0tJTkdfTk9O
-RSwNCj4gPiArICAgICAgICAgICAgICAgLm9yZGVyICAgICAgICAgICAgICAgICAgPSBTT0NfTUJV
-U19PUkRFUl9MRSwNCj4gPiArICAgICAgIH0sDQo+ID4gIH07DQo+ID4NCj4gPiAtLS0gYS9pbmNs
-dWRlL21lZGlhL3Y0bDItbWVkaWFidXMuaA0KPiA+ICsrKyBiL2luY2x1ZGUvbWVkaWEvdjRsMi1t
-ZWRpYWJ1cy5oDQo+ID4gQEAgLTQxLDYgKzQxLDcgQEAgZW51bSB2NGwyX21idXNfcGl4ZWxjb2Rl
-IHsNCj4gPiAgICAgICAgIFY0TDJfTUJVU19GTVRfU0JHR1IxMF8yWDhfUEFESElfQkUsDQo+ID4g
-ICAgICAgICBWNEwyX01CVVNfRk1UX1NCR0dSMTBfMlg4X1BBRExPX0JFLA0KPiA+ICAgICAgICAg
-VjRMMl9NQlVTX0ZNVF9TR1JCRzhfMVg4LA0KPiA+ICsgICAgICAgVjRMMl9NQlVTX0ZNVF9KUEVH
-XzFYOCwNCj4gPiAgfTsNCj4gPg0KPiA+IEFueSBpZGVhcyB3aWxsIGJlIGFwcHJlY2lhdGVkIQ0K
-PiA+IFRoYW5rcyENCj4gPiBRaW5nIFh1DQo+ID4NCj4gPiBFbWFpbDogcWluZ3hAbWFydmVsbC5j
-b20NCj4gPiBBcHBsaWNhdGlvbiBQcm9jZXNzb3IgU3lzdGVtcyBFbmdpbmVlcmluZywNCj4gPiBN
-YXJ2ZWxsIFRlY2hub2xvZ3kgR3JvdXAgTHRkLg0KPiA+DQo+DQo+IC0tLQ0KPiBHdWVubmFkaSBM
-aWFraG92ZXRza2ksIFBoLkQuDQo+IEZyZWVsYW5jZSBPcGVuLVNvdXJjZSBTb2Z0d2FyZSBEZXZl
-bG9wZXINCj4gaHR0cDovL3d3dy5vcGVuLXRlY2hub2xvZ3kuZGUvDQo+DQoNCi0tLQ0KR3Vlbm5h
-ZGkgTGlha2hvdmV0c2tpLCBQaC5ELg0KRnJlZWxhbmNlIE9wZW4tU291cmNlIFNvZnR3YXJlIERl
-dmVsb3Blcg0KaHR0cDovL3d3dy5vcGVuLXRlY2hub2xvZ3kuZGUvDQo=
+On Tuesday, January 18, 2011 23:17:11 Luca Tettamanti wrote:
+> Hello,
+> I'm a "lucky" owner of a Syntek USB webcam (embedded on my Asus
+> laptop); as you might know Nicolas (CC) wrote a driver for these
+> cams[1][2], but it's still not included in mainline kernel.
+> Since I'd rather save myself and the other users the pain of compiling
+> an out-of-tree driver I'm offering my help to make the changes
+> necessary to see this driver upstreamed; I'm already a maintainer of
+> another driver (in hwmon), so I'm familiar with the development
+> process.
+> From a quick overview of the code I've spotted a few problems:
+> - minor style issues, trivially dealt with
+> - missing cleanups in error paths, idem
+> - possible memory leak, reported on the bug tracker - requires investigation
+> - big switch statements for all the models, could be simplified with
+> function pointers
+> 
+> Another objection could be that the initialization is basically
+> writing magic numbers into magic registers... I guess that Nicolas
+> recorded the initialization sequence with a USB sniffer. No solution
+> for this one; does anybody have a contact inside Syntek?
+> 
+> Are there other issues blocking the inclusion of this driver?
+
+After a quick scan through the sources in svn I found the following (in no
+particular order):
+
+- Supports easycap model with ID 05e1:0408: a driver for this model is now
+  in driver/staging/easycap.
+
+- format conversion must be moved to libv4lconvert (if that can't already be
+  used out of the box). Ditto for software brightness correction.
+
+- kill off the sysfs bits
+
+- kill off V4L1
+
+- use the new control framework for the control handling
+
+- use video_ioctl2 instead of the current ioctl function
+
+- use unlocked_ioctl instead of ioctl
+
+But probably the first step should be to see if this can't be made part of the
+gspca driver. I can't help thinking that that would be the best approach. But
+I guess the gspca developers can give a better idea of how hard that is.
+
+Regards,
+
+       Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
