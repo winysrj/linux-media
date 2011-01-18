@@ -1,62 +1,61 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:45132 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751728Ab1AZTle (ORCPT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:63451 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753127Ab1ARBFL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Jan 2011 14:41:34 -0500
-Date: Wed, 26 Jan 2011 11:41:27 -0800
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Mark Lord <kernel@teksavvy.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Linux Kernel <linux-kernel@vger.kernel.org>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils ?
-Message-ID: <20110126194127.GE29268@core.coreip.homeip.net>
-References: <20110125164803.GA19701@core.coreip.homeip.net>
- <AANLkTi=1Mh0JrYk5itvef7O7e7pR+YKos-w56W5q4B8B@mail.gmail.com>
- <20110125205453.GA19896@core.coreip.homeip.net>
- <4D3F4804.6070508@redhat.com>
- <4D3F4D11.9040302@teksavvy.com>
- <20110125232914.GA20130@core.coreip.homeip.net>
- <20110126020003.GA23085@core.coreip.homeip.net>
- <4D403855.4050706@teksavvy.com>
- <4D405A9D.4070607@redhat.com>
- <4D4076FD.6070207@teksavvy.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4D4076FD.6070207@teksavvy.com>
+	Mon, 17 Jan 2011 20:05:11 -0500
+Received: by eye27 with SMTP id 27so2958607eye.19
+        for <linux-media@vger.kernel.org>; Mon, 17 Jan 2011 17:05:09 -0800 (PST)
+Subject: Re: How to help with RTL2832U based TV?
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: Keld =?ISO-8859-1?Q?J=F8rn?= Simonsen <keld@keldix.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <20110116105535.GA17461@www2.open-std.org>
+References: <20110116105535.GA17461@www2.open-std.org>
+Content-Type: text/plain; charset="UTF-8"
+Date: Tue, 18 Jan 2011 03:05:04 +0200
+Message-ID: <1295312704.3156.3.camel@maxim-laptop>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Jan 26, 2011 at 02:33:17PM -0500, Mark Lord wrote:
-> On 11-01-26 12:32 PM, Mauro Carvalho Chehab wrote:
-> > Em 26-01-2011 13:05, Mark Lord escreveu:
-> ..
-> >> Nope. Does not work here:
-> >>
-> >> $ lsinput
-> >> protocol version mismatch (expected 65536, got 65537)
+On Sun, 2011-01-16 at 11:55 +0100, Keld Jørn Simonsen wrote:
+> Antti Palosaari wrote Thu, 03 Dec 2009 13:48:01 -0800
+> 
+> > On 12/03/2009 10:09 PM, Peter Rasmussen wrote:
 > > 
-> > You need to relax the version test at the tree. As I said before, this is
-> > a development tool from the early RC days, bound to work with one specific
-> > version of the API, and programmed by purpose to fail if there would by any
-> > updates at the Input layer.
-> ..
+> >     as mentioned in the welcome email of this list, but it isn't
+> > apparent to
+> >     me what the status in Linux of using a device based on this chip is?
+> > 
+> > I have got today device having this chip (thanks to verkkokauppa.com for
+> > sponsoring) and I am going to implement the driver. I am in hope I can
+> > share some code from the old RTL2831U chip driver. I haven't looked
+> > driver code yet nor taken any sniffs. I will do that during next week.
 > 
-> As I said before, I personally have done that on my copy here.
-> But that's not what this thread is about.
+> OK, what is the status of this now?
+> It seems from the status page that it is not finished.
 > 
-> This thread is about broken userspace courtesy of these changes.
-> So I am testing with the original userspace binary here,
-> and it still fails.  And will continue to fail until that regression is fixed.
+> > Anyhow, there is Realtek released driver spreading over the net for that
+> > chip, you can use it.
+> 
+> I tried to find this but without luck.
+> Do you know where it can be found?
+> 
+> Anyway, I got the dongle to work via the following receipt:
+> http://www.linuxin.dk/node/15583 (in Danish, but I think Google can
+> translate it).
+> 
+> I would appreciate that this be in the kernel tree proper
 
-I do not consider lsinput refusing to work a regression. The tool
-claims to work with particular protocol version and it is tool's choice.
+I am doing a driver rewrite.
+Don't know when I finish it though.
+Could you tell me what tuner you have, and does your card also support
+DVB-C?
+(some Realtek cards also support Chinese DTMB, but even if yours does,
+you probably won't be able to test it (unless you live there).
 
-Shall I write a utility that checks kernel version and only works with
-2.6.37 and yell when we release 2.6.38?
+Best regards,
+	Maxim Levitsky
 
--- 
-Dmitry
