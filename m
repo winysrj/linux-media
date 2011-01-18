@@ -1,69 +1,73 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:18890 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752557Ab1AOP0s (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:45346 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751955Ab1ARXug (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Jan 2011 10:26:48 -0500
-Subject: Re: [PATCH] hdpvr: enable IR part
-From: Andy Walls <awalls@md.metrocast.net>
-To: Jarod Wilson <jarod@wilsonet.com>
-Cc: Jean Delvare <khali@linux-fr.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Janne Grunau <j@jannau.net>, Jarod Wilson <jarod@redhat.com>
-In-Reply-To: <cwd2gkgtgyb91bkc0m1dtmnx.1295095844198@email.android.com>
-References: <cwd2gkgtgyb91bkc0m1dtmnx.1295095844198@email.android.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 15 Jan 2011 10:26:24 -0500
-Message-ID: <1295105185.3258.32.camel@localhost>
-Mime-Version: 1.0
+	Tue, 18 Jan 2011 18:50:36 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] v4l: Add driver for Micron MT9M032 camera sensor
+Date: Wed, 19 Jan 2011 00:50:35 +0100
+Cc: Martin Hostettler <martin@neutronstar.dyndns.org>,
+	linux-media@vger.kernel.org
+References: <1295389122-30325-1-git-send-email-martin@neutronstar.dyndns.org> <201101190005.10652.hverkuil@xs4all.nl>
+In-Reply-To: <201101190005.10652.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201101190050.35863.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sat, 2011-01-15 at 07:50 -0500, Andy Walls wrote:
-> Jarod Wilson <jarod@wilsonet.com> wrote:
+Hi Hans and Martin,
 
-> >Forgot to mention: I think it was suggested that one could use ir-kbd-i2c
-> >for receive and lirc_zilog for transmit, at the same time. With ir-kbd-i2c
-> >already loaded, lirc_zilog currently won't bind to anything.
+On Wednesday 19 January 2011 00:05:10 Hans Verkuil wrote:
+> On Tuesday, January 18, 2011 23:18:42 Martin Hostettler wrote:
 
+[snip]
 
-> With my newly hacked lirc_zilog, try using the 'tx_only' parameter
-> please.  It's not quite ready yet, but I'd like to know if it can
-> bind.
+> > +	return mt9m032_write_reg(client, MT9M032_VBLANK,
+> > additional_blanking_rows);
+> 
+> I've found it easier to do the v4l2_subdev to i2c_client conversion at the
+> lowest level: the read/write register functions. That way the conversion is
+> done at only a few places, rather than at every place these read/write reg
+> functions are called. Just my opinion, though.
 
-I have now tested this.
+I agree with this.
 
-Using the 'tx_only' module parameter to lirc_zilog appears to allow
-ir-kbd-i2c and lirc_zilog to coexist, for I2C subsystem binding at
-least.
+> > +#ifdef CONFIG_VIDEO_ADV_DEBUG
+> > +static long mt9m032_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void
+> > *arg) +{
+> > +	if (cmd == VIDIOC_DBG_G_REGISTER || cmd == VIDIOC_DBG_S_REGISTER) {
+> > +		struct v4l2_dbg_register *p = arg;
+> > +
+> > +		if (!capable(CAP_SYS_ADMIN))
+> > +			return -EPERM;
+> > +
+> > +		if (cmd == VIDIOC_DBG_G_REGISTER)
+> > +			return v4l2_subdev_call(sd, core, g_register, p);
+> > +		else
+> > +			return v4l2_subdev_call(sd, core, s_register, p);
+> > +	} else {
+> > +		return -ENOIOCTLCMD;
+> > +	}
+> > +}
+> 
+> Huh? Ah, I get it. This is for when the user uses the subdev's device node
+> directly. This is not good, the v4l2 framework should do translate this to
+> g/s_register.
 
-It does not appear to matter what order the two modules are loaded. I
-tried it both ways.
+Agreed.
 
+> The same should be done for g_chip_ident, I guess.
 
-However, lirc_zilog sharing of Z8 is not fully functional yet.  I need
-to change things to have the bridge drivers provide a IR transceiver
-mutex to both lirc_zilog and ir-kbd-i2c.  lirc_zilog and ir-kbd-i2c
-would use that mutex for exclusive access to the Z8 when needed, if it
-was provided by the bridge driver.
+I don't think we need g_chip_ident for subdev nodes, do we ?
 
-I view proper sharing of the Z8 as an important requirement, because of
-two use cases:
+> > +#endif
 
-1. User only wants to use the Z8 for IR Rx.  User doesn't want to fetch
-the lirc_zilog required firmware or perform any LIRC setup.
-
-2. User only wants to use the Z8 for IR Tx.  User uses some other
-ir-kbd-i2c supported receiver and remote IR Rx.
-
-Maybe use case #2 is too rare to worry about?
-However, if one accepts both use cases as valid, then ir-kbd-i2c must
-support the Z8, and lirc_zilog must be able to coexist with ir-kbd-i2c.
-
-Proper sharing of the Z8 is, however, lower on my to-do list than fixing
-some internal lirc_zilog problems.
-
+-- 
 Regards,
-Andy
 
+Laurent Pinchart
