@@ -1,103 +1,105 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:45699 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932098Ab1ACPJC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jan 2011 10:09:02 -0500
-MIME-Version: 1.0
-In-Reply-To: <alpine.LNX.2.00.1101022150120.11481@swampdragon.chaosbits.net>
-References: <alpine.LNX.2.00.1101022150120.11481@swampdragon.chaosbits.net>
-Date: Mon, 3 Jan 2011 23:09:00 +0800
-Message-ID: <AANLkTikc8pjsWcHRsAQwx8wMy0DQk+be0WnNUirPBS1C@mail.gmail.com>
-Subject: Re: [PATCH] media, tlg2300: Fix memory leak in alloc_bulk_urbs_generic()
-From: Huang Shijie <shijie8@gmail.com>
-To: Jesper Juhl <jj@chaosbits.net>
-Cc: linux-media@vger.kernel.org, Kang Yong <kangyong@telegent.com>,
-	Zhang Xiaobing <xbzhang@telegent.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Return-path: <mchehab@pedra>
+Received: from moutng.kundenserver.de ([212.227.17.9]:56864 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751604Ab1ARV16 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Jan 2011 16:27:58 -0500
+From: Martin Hostettler <martin@neutronstar.dyndns.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Cc: Martin Hostettler <martin@neutronstar.dyndns.org>
+Subject: [PATCH V2] v4l: OMAP3 ISP CCDC: Add support for 8bit greyscale sensors
+Date: Tue, 18 Jan 2011 22:27:42 +0100
+Message-Id: <1295386062-10618-1-git-send-email-martin@neutronstar.dyndns.org>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hi Jesper:
-Thanks for your patch.
+Adds support for V4L2_MBUS_FMT_Y8_1X8 format and 8bit data width in
+synchronous interface.
 
+When in 8bit mode don't apply DC substraction of 64 per default as this would
+remove 1/4 of the sensor range.
 
-2011/1/3 Jesper Juhl <jj@chaosbits.net>:
-> Hi,
->
-> While reading
-> drivers/media/video/tlg2300/pd-video.c::alloc_bulk_urbs_generic() I
-> noticed that
->
->  - We don't free the memory allocated to 'urb' if the call to
->   usb_alloc_coherent() fails.
-Yes.
-thanks.
+When using V4L2_MBUS_FMT_Y8_1X8 (or possibly another 8bit per pixel) mode
+set the CDCC to output 8bit per pixel instead of 16bit.
 
->  - If the 'num' argument to the function is ever <= 0 we'll return an
->   uninitialized variable 'i' to the caller.
+Signed-off-by: Martin Hostettler <martin@neutronstar.dyndns.org>
+---
+ drivers/media/video/isp/ispccdc.c  |   22 ++++++++++++++++++----
+ drivers/media/video/isp/ispvideo.c |    2 ++
+ 2 files changed, 20 insertions(+), 4 deletions(-)
 
-Do not worry about this. All the 'num' are macros which is greater
-then zero now.
+Changes since first version:
+	- forward ported to current media.git
 
->
-> The following patch addresses both of the above by a) calling
-> usb_free_urb() when usb_alloc_coherent() fails and by explicitly
-> initializing 'i' to zero.
-> I also moved the variables 'mem' and 'urb' inside the for loop. This does
-> not actually make any difference, it just seemed more correct to me to let
-> variables exist only in the innermost scope they are used.
->
+diff --git a/drivers/media/video/isp/ispccdc.c b/drivers/media/video/isp/ispccdc.c
+index 578c8bf..c7397c9 100644
+--- a/drivers/media/video/isp/ispccdc.c
++++ b/drivers/media/video/isp/ispccdc.c
+@@ -43,6 +43,7 @@ __ccdc_get_format(struct isp_ccdc_device *ccdc, struct v4l2_subdev_fh *fh,
+ 		  unsigned int pad, enum v4l2_subdev_format_whence which);
+ 
+ static const unsigned int ccdc_fmts[] = {
++	V4L2_MBUS_FMT_Y8_1X8,
+ 	V4L2_MBUS_FMT_SGRBG10_1X10,
+ 	V4L2_MBUS_FMT_SRGGB10_1X10,
+ 	V4L2_MBUS_FMT_SBGGR10_1X10,
+@@ -1127,6 +1128,9 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
+ 	ccdc->syncif.datsz = pdata ? pdata->width : 10;
+ 	ispccdc_config_sync_if(ccdc, &ccdc->syncif);
+ 
++	/* CCDC_PAD_SINK */
++	format = &ccdc->formats[CCDC_PAD_SINK];
++
+ 	syn_mode = isp_reg_readl(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
+ 
+ 	/* Use the raw, unprocessed data when writing to memory. The H3A and
+@@ -1144,10 +1148,15 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
+ 	else
+ 		syn_mode &= ~ISPCCDC_SYN_MODE_SDR2RSZ;
+ 
+-	isp_reg_writel(isp, syn_mode, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
++	/* Use PACK8 mode for 1byte per pixel formats */
+ 
+-	/* CCDC_PAD_SINK */
+-	format = &ccdc->formats[CCDC_PAD_SINK];
++	if (isp_video_format_info(format->code)->bpp <= 8)
++		syn_mode |= ISPCCDC_SYN_MODE_PACK8;
++	else
++		syn_mode &= ~ISPCCDC_SYN_MODE_PACK8;
++
++
++	isp_reg_writel(isp, syn_mode, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
+ 
+ 	/* Mosaic filter */
+ 	switch (format->code) {
+@@ -2244,7 +2253,12 @@ int isp_ccdc_init(struct isp_device *isp)
+ 	ccdc->syncif.vdpol = 0;
+ 
+ 	ccdc->clamp.oblen = 0;
+-	ccdc->clamp.dcsubval = 64;
++
++	if (isp->pdata->subdevs->interface == ISP_INTERFACE_PARALLEL
++	    && isp->pdata->subdevs->bus.parallel.width <= 8)
++		ccdc->clamp.dcsubval = 0;
++	else
++		ccdc->clamp.dcsubval = 64;
+ 
+ 	ccdc->vpcfg.pixelclk = 0;
+ 
+diff --git a/drivers/media/video/isp/ispvideo.c b/drivers/media/video/isp/ispvideo.c
+index 5f984e4..cd3d331 100644
+--- a/drivers/media/video/isp/ispvideo.c
++++ b/drivers/media/video/isp/ispvideo.c
+@@ -221,6 +221,8 @@ isp_video_check_format(struct isp_video *video, struct isp_video_fh *vfh)
+ }
+ 
+ static struct isp_format_info formats[] = {
++	{ V4L2_MBUS_FMT_Y8_1X8, V4L2_MBUS_FMT_Y8_1X8,
++	  V4L2_MBUS_FMT_Y8_1X8, V4L2_PIX_FMT_GREY, 8, },
+ 	{ V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8, V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8,
+ 	  V4L2_MBUS_FMT_SGRBG10_1X10, V4L2_PIX_FMT_SGRBG10DPCM8, 8, },
+ 	{ V4L2_MBUS_FMT_SBGGR10_1X10, V4L2_MBUS_FMT_SBGGR10_1X10,
+-- 
+1.7.1
 
-Acked-by: Huang Shijie <shijie8@gmail.com>
-
->
-> Signed-off-by: Jesper Juhl <jj@chaosbits.net>
-> ---
->  pd-video.c |   13 +++++++------
->  1 file changed, 7 insertions(+), 6 deletions(-)
->
->  compile tested only.
->
-> diff --git a/drivers/media/video/tlg2300/pd-video.c b/drivers/media/video/tlg2300/pd-video.c
-> index a1ffe18..df33a1d 100644
-> --- a/drivers/media/video/tlg2300/pd-video.c
-> +++ b/drivers/media/video/tlg2300/pd-video.c
-> @@ -512,19 +512,20 @@ int alloc_bulk_urbs_generic(struct urb **urb_array, int num,
->                        int buf_size, gfp_t gfp_flags,
->                        usb_complete_t complete_fn, void *context)
->  {
-> -       struct urb *urb;
-> -       void *mem;
-> -       int i;
-> +       int i = 0;
->
-> -       for (i = 0; i < num; i++) {
-> -               urb = usb_alloc_urb(0, gfp_flags);
-> +       for (; i < num; i++) {
-> +               void *mem;
-> +               struct urb *urb = usb_alloc_urb(0, gfp_flags);
->                if (urb == NULL)
->                        return i;
->
->                mem = usb_alloc_coherent(udev, buf_size, gfp_flags,
->                                         &urb->transfer_dma);
-> -               if (mem == NULL)
-> +               if (mem == NULL) {
-> +                       usb_free_urb(urb);
->                        return i;
-> +               }
->
->                usb_fill_bulk_urb(urb, udev, usb_rcvbulkpipe(udev, ep_addr),
->                                mem, buf_size, complete_fn, context);
->
->
->
-> --
-> Jesper Juhl <jj@chaosbits.net>            http://www.chaosbits.net/
-> Don't top-post http://www.catb.org/~esr/jargon/html/T/top-post.html
-> Plain text mails only, please.
->
->
