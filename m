@@ -1,55 +1,57 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:63502 "EHLO mx1.redhat.com"
+Received: from cnc.isely.net ([64.81.146.143]:41203 "EHLO cnc.isely.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753636Ab1ASLd0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Jan 2011 06:33:26 -0500
-Message-ID: <4D36CBF2.5080002@redhat.com>
-Date: Wed, 19 Jan 2011 09:33:06 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: Oliver Endriss <o.endriss@gmx.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [GIT PATCHES FOR 2.6.38] Compile error fix
-References: <201101182103.49349.hverkuil@xs4all.nl> <201101190241.40529@orion.escape-edv.de>
-In-Reply-To: <201101190241.40529@orion.escape-edv.de>
-Content-Type: text/plain; charset=ISO-8859-1
+	id S1753957Ab1ASPJr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Jan 2011 10:09:47 -0500
+Date: Wed, 19 Jan 2011 09:09:47 -0600 (CST)
+From: Mike Isely <isely@isely.net>
+To: Jean Delvare <khali@linux-fr.org>
+cc: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org,
+	Jarod Wilson <jarod@redhat.com>, Janne Grunau <j@jannau.net>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [GIT PATCHES for 2.6.38] Zilog Z8 IR unit fixes
+In-Reply-To: <20110119155932.08d080b7@endymion.delvare>
+Message-ID: <alpine.DEB.1.10.1101190902190.22872@cnc.isely.net>
+References: <1295205650.2400.27.camel@localhost> <20110119155932.08d080b7@endymion.delvare>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 18-01-2011 23:41, Oliver Endriss escreveu:
-> On Tuesday 18 January 2011 21:03:49 Hans Verkuil wrote:
->> Hi Mauro,
->>
->> That beautiful 'OK' from the daily build disappeared again. This should bring
->> it back :-)
->>
->> Regards,
->>
->> 	Hans
->>
->> The following changes since commit fd4564a8c4f23b5ea6526180898ca2aedda2444e:
->>   Jarod Wilson (1):
->>         [media] staging/lirc: fix mem leaks and ptr err usage
->>
->> are available in the git repository at:
->>
->>   ssh://linuxtv.org/git/hverkuil/media_tree.git cxd2099
+On Wed, 19 Jan 2011, Jean Delvare wrote:
+
+> Hi Andy,
 > 
-> I've already posted that fix here:
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg27186.html
-> https://patchwork.kernel.org/patch/485781/
+> On Sun, 16 Jan 2011 14:20:49 -0500, Andy Walls wrote:
+> > 3. I hear from Jean, or whomever really cares about ir-kbd-i2c, if
+> > adding some new fields for struct IR_i2c_init_data is acceptable.
+> > Specifically, I'd like to add a transceiver_lock mutex, a transceiver
+> > reset callback, and a data pointer for that reset callback.
+> > (Only lirc_zilog would use the reset callback and data pointer.)
+> 
+> Adding fields to these structures is perfectly fine, if you need to do
+> that, just go on.
+> 
+> But I'm a little confused about the names you chose,
+> "ir_transceiver_lock" and "transceiver_lock". These seem too
+> TX-oriented for a mutex that is supposed to synchronize TX and RX
+> access. It's particularly surprising for the ir-kbd-i2c driver, which
+> as far as I know only supports RX. The name "xcvr_lock" you used for
+> lirc_zilog seems more appropriate.
 
-Hi Oliver,
+Actually the term "transceiver" is normally understood to mean both 
+directions.  Otherwise it would be "receiver" or "transmitter".  
+Another screwy as aspect of english, and I say this as a native english 
+speaker.  The term "xcvr" is usually just considered to be shorthand for 
+"transceiver".
 
-Thanks for the patch. I noticed that problem late night when preparing my linux-next tree,
-and added the same fix you did there:
-	http://git.kernel.org/?p=linux/kernel/git/mchehab/linux-next.git;a=commit;h=9fca5943233de717b3edcd4a84a51d93e3eae302
+  -Mike
 
-Hans/Oliver,
 
-I didn't backport it yet to the main tree. I'll be doing it today.
+-- 
 
-Cheers,
-Mauro
+Mike Isely
+isely @ isely (dot) net
+PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
