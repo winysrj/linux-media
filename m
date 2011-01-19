@@ -1,78 +1,78 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:58419 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753706Ab1AYUtp (ORCPT
+Received: from poutre.nerim.net ([62.4.16.124]:54127 "EHLO poutre.nerim.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753228Ab1ASRDf convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Jan 2011 15:49:45 -0500
-Message-ID: <4d3f3766.857a0e0a.122c.478f@mx.google.com>
-From: "Igor M. Liplianin" <liplianin@me.by>
-Date: Tue, 25 Jan 2011 22:06:00 +0200
-Subject: [PATCH 7/9 v3] cx23885: implement num_fds_portb, num_fds_portc parameters for cx23885_board structure.
-To: <mchehab@infradead.org>, <linux-media@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>
+	Wed, 19 Jan 2011 12:03:35 -0500
+From: Thierry LELEGARD <tlelegard@logiways.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Andreas Oberritter <obi@linuxtv.org>
+Subject: RE: [linux-media] API V3 vs SAPI behavior difference in reading
+  tuning  parameters
+Date: Wed, 19 Jan 2011 17:03:31 +0000
+Message-ID: <BA2A2355403563449C28518F517A3C4805AAD036@titan.logiways-france.fr>
+References: <BA2A2355403563449C28518F517A3C4805AA9B9B@titan.logiways-france.fr>
+ <AANLkTi=Y_ikxp2hHHh5B=rQqQLf5w5_5SivzLJ+DfVLm@mail.gmail.com>
+ <4D307A80.4050807@linuxtv.org>
+ <BA2A2355403563449C28518F517A3C4805AA9CE2@titan.logiways-france.fr>
+In-Reply-To: <BA2A2355403563449C28518F517A3C4805AA9CE2@titan.logiways-france.fr>
+Content-Language: fr-FR
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This is needed for multifrontend support.
-NetUP Dual DVB-T/C CI RF card has frontends connected to port B & C
-Each frontend has two switchable cores - DVB-T & DVB-C
+OK, then what? Is the S2API behavior (returning cached - but incorrect - tuning
+parameter values) satisfactory for everyone or shall we adapt S2API to mimic the
+API V3 behavior (return the actual tuning parameter values as automatically
+adjusted by the driver)?
 
-Signed-off-by: Igor M. Liplianin <liplianin@netup.ru>
----
- drivers/media/video/cx23885/cx23885-cards.c |    2 ++
- drivers/media/video/cx23885/cx23885-core.c  |    6 ++++++
- drivers/media/video/cx23885/cx23885.h       |    1 +
- 3 files changed, 9 insertions(+), 0 deletions(-)
+-Thierry
 
-diff --git a/drivers/media/video/cx23885/cx23885-cards.c b/drivers/media/video/cx23885/cx23885-cards.c
-index fb2045a..ea88722 100644
---- a/drivers/media/video/cx23885/cx23885-cards.c
-+++ b/drivers/media/video/cx23885/cx23885-cards.c
-@@ -344,6 +344,8 @@ struct cx23885_board cx23885_boards[] = {
- 		.porta		= CX23885_ANALOG_VIDEO,
- 		.portb		= CX23885_MPEG_DVB,
- 		.portc		= CX23885_MPEG_DVB,
-+		.num_fds_portb	= 2,
-+		.num_fds_portc	= 2,
- 		.tuner_type	= TUNER_XC5000,
- 		.tuner_addr	= 0x64,
- 		.input          = { {
-diff --git a/drivers/media/video/cx23885/cx23885-core.c b/drivers/media/video/cx23885/cx23885-core.c
-index d621d76..d778b1a 100644
---- a/drivers/media/video/cx23885/cx23885-core.c
-+++ b/drivers/media/video/cx23885/cx23885-core.c
-@@ -1005,6 +1005,9 @@ static int cx23885_dev_setup(struct cx23885_dev *dev)
- 	}
- 
- 	if (cx23885_boards[dev->board].portb == CX23885_MPEG_DVB) {
-+		if (cx23885_boards[dev->board].num_fds_portb)
-+			dev->ts1.num_frontends =
-+				cx23885_boards[dev->board].num_fds_portb;
- 		if (cx23885_dvb_register(&dev->ts1) < 0) {
- 			printk(KERN_ERR "%s() Failed to register dvb adapters on VID_B\n",
- 			       __func__);
-@@ -1019,6 +1022,9 @@ static int cx23885_dev_setup(struct cx23885_dev *dev)
- 	}
- 
- 	if (cx23885_boards[dev->board].portc == CX23885_MPEG_DVB) {
-+		if (cx23885_boards[dev->board].num_fds_portc)
-+			dev->ts2.num_frontends =
-+				cx23885_boards[dev->board].num_fds_portc;
- 		if (cx23885_dvb_register(&dev->ts2) < 0) {
- 			printk(KERN_ERR
- 				"%s() Failed to register dvb on VID_C\n",
-diff --git a/drivers/media/video/cx23885/cx23885.h b/drivers/media/video/cx23885/cx23885.h
-index d8c76b0..8db2797 100644
---- a/drivers/media/video/cx23885/cx23885.h
-+++ b/drivers/media/video/cx23885/cx23885.h
-@@ -205,6 +205,7 @@ typedef enum {
- struct cx23885_board {
- 	char                    *name;
- 	port_t			porta, portb, portc;
-+	int		num_fds_portb, num_fds_portc;
- 	unsigned int		tuner_type;
- 	unsigned int		radio_type;
- 	unsigned char		tuner_addr;
--- 
-1.7.1
-
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-owner@vger.kernel.org] On
+> Behalf Of Thierry LELEGARD
+> Sent: Friday, January 14, 2011 5:44 PM
+> To: linux-media@vger.kernel.org
+> Cc: Devin Heitmueller; Andreas Oberritter
+> Subject: RE: [linux-media] API V3 vs SAPI behavior difference in reading tuning
+> parameters
+> 
+> > -----Original Message-----
+> > From: Andreas Oberritter [mailto:obi@linuxtv.org]
+> > Sent: Friday, January 14, 2011 5:32 PM
+> 
+> 
+> > Albeit, DVB-SI data isn't perfect and misconfiguration at the
+> > transmitter happens (e.g. wrong FEC values), especially where most of
+> > the parameters are signaled in-band (e.g. TPS for DVB-T). It's a better
+> > user experience if the reception continues to work, even if the user
+> > didn't specify AUTO.
+> 
+> Exactly. In the French DVB-T network, there is no regional NIT, only one
+> common national NIT. As a consequence, all tuning parameters (frequency
+> but also FEC, guard interval, etc) are wrong in the terrestrial delivery
+> descriptors because for a given TS they are obviously not identical on all
+> transmitters. Moreover, these parameters change over time (many transmitters
+> recently moved from 2/3 - 1/32 to 3/4 - 1/8).
+> 
+> In such networks, nobody "knows" for sure the modulation parameters. This is
+> why it is a good thing that the tuners can 1) find the actual parameters and
+> 2) report them to the application whenever it requests them.
+> 
+> > I'd rather understand non-AUTO parameters that way: "Try these first,
+> > but if you want and if you can, you're free to try other parameters."
+> 
+> Exactly, for the same reasons as above.
+> 
+> This is why the new behavior of S2API (compared to API V3) is quite unfortunate.
+> On a pragmatic standpoint, this is really a major step backward.
+> 
+> -Thierry
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
