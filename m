@@ -1,98 +1,99 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:31029 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753281Ab1AXPca (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Jan 2011 10:32:30 -0500
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id p0OFWUfw001057
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 24 Jan 2011 10:32:30 -0500
-Received: from pedra (vpn-236-9.phx2.redhat.com [10.3.236.9])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p0OFJAS0027064
-	for <linux-media@vger.kernel.org>; Mon, 24 Jan 2011 10:32:29 -0500
-Date: Mon, 24 Jan 2011 13:18:44 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 10/13] [media] rc-rc5-hauppauge-new: Add support for the old
- Black RC
-Message-ID: <20110124131844.541ad787@pedra>
-In-Reply-To: <cover.1295882104.git.mchehab@redhat.com>
-References: <cover.1295882104.git.mchehab@redhat.com>
-Mime-Version: 1.0
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1959 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753636Ab1ASL7v (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Jan 2011 06:59:51 -0500
+Message-ID: <697cdbf8159360de2a68ca7ce3adb329.squirrel@webmail.xs4all.nl>
+In-Reply-To: <4D36CA70.8060204@redhat.com>
+References: <201101190839.15175.hverkuil@xs4all.nl>
+    <4D36CA70.8060204@redhat.com>
+Date: Wed, 19 Jan 2011 12:59:39 +0100
+Subject: Re: video_device -> v4l2_devnode rename
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Mauro Carvalho Chehab" <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Content-Transfer-Encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hans borrowed me an old Black Hauppauge RC. Thanks to that, we
-can fix the RC5 table for Hauppauge.
+> Em 19-01-2011 05:39, Hans Verkuil escreveu:
+>> Hi Mauro,
+>>
+>> We want to rename video_device to v4l2_devnode. So let me know when I
+>> can
+>> finalize my patches and, most importantly, against which branch.
+>>
+>> My current tree:
+>>
+>> http://git.linuxtv.org/hverkuil/media_tree.git?a=shortlog;h=refs/heads/devnode2
+>>
+>> tracks for_2.6.38-rc1 and should apply cleanly at the moment.
+>
+> Even not being able to handle it for .38, I did a look on the proposed
+> changes. I'm not convinced about those renaming stuff.
+>
+> By looking on other subsystems, it seems to me that
+> video_device_register()
+> is a better name than any other name. Btw, by far, the use of _node for
+> the
+> device registration on Linux kernel is not usual at all:
+>
+> $ git grep -e "_register"  --and -e "(" --and -e "node" include |grep -v
+> "of_mdiobus_register("
+> include/linux/compaction.h:extern int compaction_register_node(struct node
+> *node);
+> include/linux/compaction.h:static inline int
+> compaction_register_node(struct node *node)
+> include/linux/swap.h:extern int scan_unevictable_register_node(struct node
+> *node);
+> include/linux/swap.h:static inline int
+> scan_unevictable_register_node(struct node *node)
+>
+> There are only 2 functions using it. On those, the "node" at the function
+> register name is due to "struct node", and they likely make sense.
+>
+> A seek for *register*device or *device*register patterns show a lot:
+>
+> $ git grep -e "_register_device"  --and -e "("  include|wc -l
+> 28
+>
+> $ git grep -e "_device_register"  --and -e "("  include|wc -l
+> 32
+>
+> Basically, what I'm trying to say is that, on all subsystems, the function
+> that creates
+> the devices is called *register*device or *device*register.
+>
+> Why should we adopt anything different than the kernel convention for
+> V4L2?
 
-Thanks-to: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+I'm sure we went through this before.
 
-diff --git a/drivers/media/rc/keymaps/rc-rc5-hauppauge-new.c b/drivers/media/rc/keymaps/rc-rc5-hauppauge-new.c
-index dcbf3bd..4106008 100644
---- a/drivers/media/rc/keymaps/rc-rc5-hauppauge-new.c
-+++ b/drivers/media/rc/keymaps/rc-rc5-hauppauge-new.c
-@@ -82,7 +82,7 @@ static struct rc_map_table rc5_hauppauge_new[] = {
- 
- 	/*
- 	 * Old Remote Controller Hauppauge Gray with a golden screen
--	 * Keycodes start with address = 0x1d
-+	 * Keycodes start with address = 0x1f
- 	 */
- 	{ 0x1f3d, KEY_POWER2 },		/* system power (green button) */
- 	{ 0x1f3b, KEY_SELECT },		/* GO */
-@@ -130,6 +130,7 @@ static struct rc_map_table rc5_hauppauge_new[] = {
- 
- 	/*
- 	 * Keycodes for DSR-0112 remote bundled with Haupauge MiniStick
-+	 * Keycodes start with address = 0x1d
- 	 */
- 	{ 0x1d00, KEY_0 },
- 	{ 0x1d01, KEY_1 },
-@@ -167,6 +168,39 @@ static struct rc_map_table rc5_hauppauge_new[] = {
- 	{ 0x1d3b, KEY_GOTO },
- 	{ 0x1d3d, KEY_POWER },
- 	{ 0x1d3f, KEY_HOME },
-+
-+	/*
-+	 * Keycodes for the old Black Remote Controller
-+	 * This one also uses RC-5 protocol
-+	 * Keycodes start with address = 0x00
-+	 */
-+	{ 0x001f, KEY_TV },
-+	{ 0x0020, KEY_CHANNELUP },
-+	{ 0x000c, KEY_RADIO },
-+
-+	{ 0x0011, KEY_VOLUMEDOWN },
-+	{ 0x002e, KEY_ZOOM },		/* full screen */
-+	{ 0x0010, KEY_VOLUMEUP },
-+
-+	{ 0x000d, KEY_MUTE },
-+	{ 0x0021, KEY_CHANNELDOWN },
-+	{ 0x0022, KEY_VIDEO },		/* source */
-+
-+	{ 0x0001, KEY_1 },
-+	{ 0x0002, KEY_2 },
-+	{ 0x0003, KEY_3 },
-+
-+	{ 0x0004, KEY_4 },
-+	{ 0x0005, KEY_5 },
-+	{ 0x0006, KEY_6 },
-+
-+	{ 0x0007, KEY_7 },
-+	{ 0x0008, KEY_8 },
-+	{ 0x0009, KEY_9 },
-+
-+	{ 0x001e, KEY_RED },	/* Reserved */
-+	{ 0x0000, KEY_0 },
-+	{ 0x0026, KEY_SLEEP },	/* Minimize */
- };
- 
- static struct rc_map_list rc5_hauppauge_new_map = {
+1) the name originates from the time that drivers had only one video node.
+It makes little sense anymore when drivers can create many video, radio,
+vbi and later v4l-subdev nodes. The key thing is that this driver
+registers a V4L2 node.
+
+2) struct v4l2_device and struct video_device look too similar. While
+v4l2_device represents the whole V4L2 hardware, the video_device
+represents the video/radio/vbi/... device node only.
+
+3) (less important) all types/functions within the v4l2 framework now have
+the v4l2_ prefix, except this one. Aligning this will make everything more
+consistent and recognizable.
+
+We're not like most other subsystems where often just a single device node
+is registered. We have much more complex hardware. So I think that
+'v4l2_devnode' much more clearly identifies what it represents than
+'video_device'.
+
+Regards,
+
+          Hans
+
 -- 
-1.7.1
-
+Hans Verkuil - video4linux developer - sponsored by Cisco
 
