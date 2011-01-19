@@ -1,76 +1,92 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:3479 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752707Ab1AYUeC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Jan 2011 15:34:02 -0500
-Message-ID: <4D3F346B.9000102@redhat.com>
-Date: Tue, 25 Jan 2011 21:36:59 +0100
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH 2/3] v4l2-ctrls: add v4l2_ctrl_auto_cluster to simplify
- autogain/gain scenarios
-References: <1295694361-23237-1-git-send-email-hverkuil@xs4all.nl> <ad0ec022eea20f19d3936a10268d429b1be57980.1295693790.git.hverkuil@xs4all.nl> <4D3C45F7.4040103@redhat.com> <201101231713.33776.hverkuil@xs4all.nl>
-In-Reply-To: <201101231713.33776.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:56587 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751978Ab1ASRjA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Jan 2011 12:39:00 -0500
+Received: by qyk12 with SMTP id 12so1180829qyk.19
+        for <linux-media@vger.kernel.org>; Wed, 19 Jan 2011 09:38:59 -0800 (PST)
+References: <1295205650.2400.27.camel@localhost> <1295234982.2407.38.camel@localhost> <848D2317-613E-42B1-950D-A227CFF15C5B@wilsonet.com> <1295439718.2093.17.camel@morgan.silverblock.net> <alpine.DEB.1.10.1101190714570.5396@ivanova.isely.net> <1295444282.4317.20.camel@morgan.silverblock.net> <20110119145002.6f94f800@endymion.delvare> <D7F0E4A6-5A23-4A28-95F8-0A088F1D6114@wilsonet.com>
+In-Reply-To: <D7F0E4A6-5A23-4A28-95F8-0A088F1D6114@wilsonet.com>
+Mime-Version: 1.0 (Apple Message framework v1082)
+Content-Type: text/plain; charset=us-ascii
+Message-Id: <2ED85E98-FCAE-4851-9A42-E32D16C820F5@wilsonet.com>
 Content-Transfer-Encoding: 7bit
+Cc: Andy Walls <awalls@md.metrocast.net>, Mike Isely <isely@isely.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Jarod Wilson <jarod@redhat.com>, Janne Grunau <j@jannau.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+From: Jarod Wilson <jarod@wilsonet.com>
+Subject: Re: [GIT PATCHES for 2.6.38] Zilog Z8 IR unit fixes
+Date: Wed, 19 Jan 2011 12:39:13 -0500
+To: Jean Delvare <khali@linux-fr.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+On Jan 19, 2011, at 12:12 PM, Jarod Wilson wrote:
 
-On 01/23/2011 05:13 PM, Hans Verkuil wrote:
-> On Sunday, January 23, 2011 16:15:03 Hans de Goede wrote:
+> On Jan 19, 2011, at 8:50 AM, Jean Delvare wrote:
+> 
+>> Hi Andy,
+>> 
+>> On Wed, 19 Jan 2011 08:38:02 -0500, Andy Walls wrote:
+>>> As I understand it, the rules/guidelines for I2C probing are now
+>>> something like this:
+>>> 
+>>> 1. I2C device driver modules (ir-kbd-i2c, lirc_zilog, etc.) should not
+>>> do hardware probes at all.  They are to assume the bridge or platform
+>>> drivers verified the I2C slave hardware's existence somehow.
+>>> 
+>>> 2. Bridge drivers (pvrusb, hdpvr, cx18, ivtv, etc.) should not ask the
+>>> I2C subsystem to probe hardware that it knows for sure exists, or knows
+>>> for sure does not exist.  Just add the I2C device or not.
+>>> 
+>>> 3. Bridge drivers should generally ask the I2C subsystem to probe for
+>>> hardware that _may_ exist.
+>>> 
+>>> 4. If the default I2C subsystem hardware probe method doesn't work on a
+>>> particular hardware unit, the bridge driver may perform its own hardware
+>>> probe or provide a custom hardware probe method to the I2C subsystem.
+>>> hdpvr and pvrusb2 currently do the former.
+>> 
+>> Yes, that's exactly how things are supposed to work now. And hopefully
+>> it makes sense and helps you all write cleaner code (that was the
+>> intent at least.)
+> 
+> One more i2c question...
+> 
+> Am I correct in assuming that since the zilog is a single device, which
+> can be accessed via two different addresses (0x70 for tx, 0x71 for rx),
+> that i2c_new_device() just once with both addresses in i2c_board_info
+> is correct, vs. calling i2c_new_device() once for each address?
+> 
+> At least, I'm reasonably sure that was the key to making the hdpvr IR
+> behave with lirc_zilog, and after lunch, I should know if that's also
+> the case for pvrusb2 devices w/a zilog IR chip.
 
-<snip>
+Actually, in looking at things closer and talking to Andy on irc, it
+looks like this:
 
->> This is what the UVC spec for example mandates and what the current UVC driver
->> does. Combining this with an app which honors the update and the read only
->> flag (try gtk-v4l), results in a nice experience. User enables auto exposure
->> ->  exposure control gets grayed out, put exposure back manual ->  control
->> is ungrayed.
->>
->> So this new auto_cluster behavior would be a behavioral change (for both the
->> uvc driver and several gspca drivers), and more over an unwanted one IMHO
->> setting one control should not change another as a side effect.
->
-> Actually, I've been converting a whole list of subdev drivers recently (soc_camera,
-> ov7670) and they all behaved like this. So I didn't change anything.
+static struct i2c_board_info pvr2_xcvr_i2c_board_info = {
+        I2C_BOARD_INFO("ir_tx_z8f0811_haup", Z8F0811_IR_TX_I2C_ADDR),
+        I2C_BOARD_INFO("ir_rx_z8f0811_haup", Z8F0811_IR_RX_I2C_ADDR),
+};
 
-Hmm, interesting.
+Expands to:
 
-> There is nothing preventing other drivers from doing something different.
->
-> That said, changing the behavior to your proposal may not be such a bad idea.
+static struct i2c_board_info pvr2_xcvr_i2c_board_info = {
+        .type = "ir_tx_z8f0811_haup",
+	.addr = Z8F0811_IR_TX_I2C_ADDR,
+        .type = "ir_rx_z8f0811_haup",
+	.addr = Z8F0811_IR_RX_I2C_ADDR,
+};
 
-Yes and AFAIK this is what we agreed on when we discussed auto control a
-couple of months ago.
+In which case, we're actually only registering 0x71 -- i2c_new_device()
+certainly only appears to act on a single address, anyway.
 
-> But then I need the OK from all driver authors involved, since this would
-> mean a change of behavior for them.
->
-> The good news is that once they use the new framework function I only need
-> to change what that function does and I don't need to change any of those
-> drivers.
->
-> So I will proceed for now by converting those drivers to use this new function,
-> and at the same time I can contact the authors and ask what their opinion is
-> of this change. I'm hoping for more feedback as well from what others think.
->
+-- 
+Jarod Wilson
+jarod@wilsonet.com
 
-Yes, contacting the authors to discuss this further sounds like a good idea.
 
-> BTW, if I understand the gspca code correctly then it seems that if an e.g.
-> autogain control is set to 1, then the gain control effectively disappears.
-> I think queryctrl will just never return it. That can't be right.
 
-Erm, it should not disappear, but just get disabled. But this may have
-(accidentally) changed with the drivers which were converted to the new
-control framework. Anyways, we should discuss this with involved driver
-authors and agree on a standard way to handle this. Once we have agreement
-on how to handle this converting the drivers should be relatively easy.
-
-Regards,
-
-Hans
