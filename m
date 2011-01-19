@@ -1,92 +1,53 @@
 Return-path: <mchehab@pedra>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:40232 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751446Ab1A3Bur (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:63983 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753389Ab1ASNYW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Jan 2011 20:50:47 -0500
-From: Qing Xu <qingx@marvell.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Sat, 29 Jan 2011 17:50:35 -0800
-Subject: RE: soc-camera s_fmt question?
-Message-ID: <7BAC95F5A7E67643AAFB2C31BEE662D0140417474B@SC-VEXCH2.marvell.com>
-References: <AANLkTimucMmO8Vb_y4xnhehQt+mamNMmXyY_qfrVOSo7@mail.gmail.com>
- <7BAC95F5A7E67643AAFB2C31BEE662D014040BF23F@SC-VEXCH2.marvell.com>
- <Pine.LNX.4.64.1101171840360.16051@axis700.grange>
- <201101171854.27768.hverkuil@xs4all.nl>
- <Pine.LNX.4.64.1101291908250.26696@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1101291908250.26696@axis700.grange>
-Content-Language: en-US
-Content-Type: text/plain; charset="gb2312"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+	Wed, 19 Jan 2011 08:24:22 -0500
+Subject: Re: [GIT PATCHES for 2.6.38] Zilog Z8 IR unit fixes
+From: Andy Walls <awalls@md.metrocast.net>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org,
+	Mike Isely <isely@isely.net>, Janne Grunau <j@jannau.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+In-Reply-To: <20110119134009.1d473320@endymion.delvare>
+References: <1295205650.2400.27.camel@localhost>
+	 <1295234982.2407.38.camel@localhost>
+	 <848D2317-613E-42B1-950D-A227CFF15C5B@wilsonet.com>
+	 <1295439718.2093.17.camel@morgan.silverblock.net>
+	 <20110119134009.1d473320@endymion.delvare>
+Content-Type: text/plain; charset="UTF-8"
+Date: Wed, 19 Jan 2011 08:24:14 -0500
+Message-ID: <1295443454.4317.6.camel@morgan.silverblock.net>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-VGhhbmtzIGZvciB5b3VyIGluZm9ybWF0aW9uISBJIGNvdWxkIHRyeSBpdCBvbiBvdXIgZHJpdmVy
-Lg0KDQotUWluZw0KDQotLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KRnJvbTogR3Vlbm5hZGkg
-TGlha2hvdmV0c2tpIFttYWlsdG86Zy5saWFraG92ZXRza2lAZ214LmRlXQ0KU2VudDogMjAxMcTq
-MdTCMzDI1SAyOjEwDQpUbzogSGFucyBWZXJrdWlsDQpDYzogUWluZyBYdTsgTGF1cmVudCBQaW5j
-aGFydDsgbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnDQpTdWJqZWN0OiBSZTogc29jLWNhbWVy
-YSBzX2ZtdCBxdWVzdGlvbj8NCg0KT24gTW9uLCAxNyBKYW4gMjAxMSwgSGFucyBWZXJrdWlsIHdy
-b3RlOg0KDQo+IE9uIE1vbmRheSwgSmFudWFyeSAxNywgMjAxMSAxODo0MzowNiBHdWVubmFkaSBM
-aWFraG92ZXRza2kgd3JvdGU6DQo+ID4gT24gTW9uLCAxNyBKYW4gMjAxMSwgUWluZyBYdSB3cm90
-ZToNCj4gPg0KPiA+ID4gSGksDQo+ID4gPg0KPiA+ID4gV2UgYXJlIG5vdyBuZWFybHkgY29tcGxl
-dGUgcG9ydGluZyBvdXIgY2FtZXJhIGRyaXZlciB0byBhbGlnbiB3aXRoDQo+ID4gPiBzb2MtY2Ft
-ZXJhIGZyYW1ld29yaywgaG93ZXZlciwgd2UgZW5jb3VudGVyIGEgcHJvYmxlbSB3aGVuIGl0IHdv
-cmtzIHdpdGgNCj4gPiA+IG91ciBhcHBsaWNhdGlvbiBkdXJpbmcgc3dpdGNoIGZvcm1hdCBmcm9t
-IHByZXZpZXcgdG8gc3RpbGwgY2FwdHVyZSwNCj4gPiA+IGFwcGxpY2F0aW9uJ3MgbWFpbiBjYWxs
-aW5nIHNlcXVlbmNlIGlzIGFzIGZvbGxvdzoNCj4gPiA+IDEpIHNfZm10IC8qIHByZXZpZXcgQCBZ
-VVYsIFZHQSAqLw0KPiA+ID4gMikgcmVxdWVzdCBidWZmZXIgKGJ1ZmZlciBjb3VudCA9IDYpDQo+
-ID4gPiAyKSBxdWV1ZSBidWZmZXINCj4gPiA+IDMpIHN0cmVhbSBvbg0KPiA+ID4gNCkgcS1idWYs
-IGRxLWJ1Zi4uLg0KPiA+ID4gNSkgc3RyZWFtIG9mZg0KPiA+ID4NCj4gPiA+IDYpIHNfZm10IC8q
-IHN0aWxsIGNhcHR1cmUgQCBqcGVnLCAyNTkyeDE5NDQqLw0KPiA+ID4gNykgcmVxdWVzdCBidWZm
-ZXIgKGJ1ZmZlciBjb3VudCA9IDMpDQo+ID4gPiA4KSBzYW1lIGFzIDMpLT41KS4uLg0KPiA+ID4N
-Cj4gPiA+IFRoZSBwb2ludCBpcyBpbiBzb2NfY2FtZXJhX3NfZm10X3ZpZF9jYXAoKSB7DQo+ID4g
-PiAgICAgICAgIGlmIChpY2QtPnZiX3ZpZHEuYnVmc1swXSkgew0KPiA+ID4gICAgICAgICAgICAg
-ICAgIGRldl9lcnIoJmljZC0+ZGV2LCAiU19GTVQgZGVuaWVkOiBxdWV1ZSBpbml0aWFsaXNlZFxu
-Iik7DQo+ID4gPiAgICAgICAgICAgICAgICAgcmV0ID0gLUVCVVNZOw0KPiA+ID4gICAgICAgICAg
-ICAgICAgIGdvdG8gdW5sb2NrOw0KPiA+ID4gICAgICAgICB9DQo+ID4gPiB9DQo+ID4gPiBXZSBk
-aWRuJ3QgZmluZCB2Yl92aWRxLmJ1ZnNbMF0gYmUgZnJlZSwgKGl0IGlzIGZyZWVkIGluDQo+ID4g
-PiB2aWRlb2J1Zl9tbWFwX2ZyZWUoKSwgYW5kIGluIF9fdmlkZW9idWZfbW1hcF9zZXR1cCwgYnV0
-IG5vIG9uZSBjYWxscw0KPiA+ID4gdmlkZW9idWZfbW1hcF9mcmVlKCksIGFuZCBpbiBfX3ZpZGVv
-YnVmX21tYXBfc2V0dXAgaXQgaXMgZnJlZWQgYXQgZmlyc3QNCj4gPiA+IGFuZCB0aGVuIGFsbG9j
-YXRlZCBzZXF1ZW50aWFsbHkpLCBzbyB3ZSBhbHdheXMgZmFpbCBhdCBjYWxsaW5nIHNfZm10Lg0K
-PiA+ID4gTXkgaWRlYSBpcyB0byBpbXBsZW1lbnQgc29jX2NhbWVyYV9yZXFidWZzKGJ1ZmZlciBj
-b3VudCA9IDApLCB0byBwcm92aWRlDQo+ID4gPiBhcHBsaWNhdGlvbiBvcHBvcnR1bml0eSB0byBm
-cmVlIHRoaXMgYnVmZmVyIG5vZGUsIHJlZmVyIHRvIHY0bDIgc3BlYywNCj4gPiA+IGh0dHA6Ly9s
-aW51eHR2Lm9yZy9kb3dubG9hZHMvdjRsLWR2Yi1hcGlzL3ZpZGlvYy1yZXFidWZzLmh0bWwNCj4g
-PiA+ICJBIGNvdW50IHZhbHVlIG9mIHplcm8gZnJlZXMgYWxsIGJ1ZmZlcnMsIGFmdGVyIGFib3J0
-aW5nIG9yIGZpbmlzaGluZw0KPiA+ID4gYW55IERNQSBpbiBwcm9ncmVzcywgYW4gaW1wbGljaXQg
-VklESU9DX1NUUkVBTU9GRi4iDQo+ID4NCj4gPiBDdXJyZW50bHkgYnVmZmVycyBhcmUgZnJlZWQg
-aW4gc29jLWNhbWVyYSB1cG9uIGNsb3NlKCkuIFllcywgSSBrbm93IGFib3V0DQo+ID4gdGhhdCBj
-bGF1c2UgaW4gdGhlIEFQSSBzcGVjLCBhbmQgSSBrbm93LCB0aGF0IGl0IGlzIHVuaW1wbGVtZW50
-ZWQgaW4NCj4gPiBzb2MtY2FtZXJhLiBEbyB5b3UgaGF2ZSBhIHJlYXNvbiB0byBwcmVmZXIgdGhh
-dCBvdmVyIGNsb3NlKClpbmcgYW5kDQo+ID4gcmUtb3BlbigpaW5nIHRoZSBkZXZpY2U/DQo+DQo+
-IEkgdGhpbmsgaXQgd291bGQgYmUgYSBnb29kIGlkZWEgdG8gbG9vayBpbnRvIGNvbnZlcnRpbmcg
-c29jX2NhbWVyYSB0byB0aGUNCj4gbmV3IHZpZGVvYnVmMiBmcmFtZXdvcmsgdGhhdCB3YXMganVz
-dCBtZXJnZWQuIEl0IGhhcyBtdWNoIGJldHRlciBzZW1hbnRpY3MNCj4gd2hlbiBpdCBjb21lcyB0
-byBhbGxvY2F0aW5nIGFuZCBmcmVlaW5nIHF1ZXVlcy4gWW91IGNhbiBhY3R1YWxseSB1bmRlcnN0
-YW5kDQo+IGl0LCBzb21ldGhpbmcgdGhhdCB5b3UgY2FuJ3Qgc2F5IGZvciB0aGUgb2xkIHZpZGVv
-YnVmLiBBbmQgdmlkZW9idWYyIGRvZXMNCj4gdGhlIHJpZ2h0IHRoaW5nIHdpdGggUkVRQlVGUygw
-KSBhcyB3ZWxsLg0KDQpRaW5nIFh1LCB5b3UgY291bGQgdHJ5IHZpZGVvYnVmMiBub3c6DQpodHRw
-Oi8vdGhyZWFkLmdtYW5lLm9yZy9nbWFuZS5saW51eC5kcml2ZXJzLnZpZGVvLWlucHV0LWluZnJh
-c3RydWN0dXJlLzI4NjU4DQoocGxlYXNlLCB1c2UgdjIgb2YgcGF0Y2hlcykuDQoNClRoYW5rcw0K
-R3Vlbm5hZGkNCg0KPg0KPiBSZWdhcmRzLA0KPg0KPiAgICAgICBIYW5zDQo+DQo+ID4NCj4gPiBU
-aGFua3MNCj4gPiBHdWVubmFkaQ0KPiA+DQo+ID4gPg0KPiA+ID4gV2hhdCBkbyB5b3UgdGhpbms/
-DQo+ID4gPg0KPiA+ID4gQW55IGlkZWFzIHdpbGwgYmUgYXBwcmVjaWF0ZWQhDQo+ID4gPiBUaGFu
-a3MhDQo+ID4gPiBRaW5nIFh1DQo+ID4gPg0KPiA+ID4gRW1haWw6IHFpbmd4QG1hcnZlbGwuY29t
-DQo+ID4gPiBBcHBsaWNhdGlvbiBQcm9jZXNzb3IgU3lzdGVtcyBFbmdpbmVlcmluZywNCj4gPiA+
-IE1hcnZlbGwgVGVjaG5vbG9neSBHcm91cCBMdGQuDQo+ID4gPg0KPiA+DQo+ID4gLS0tDQo+ID4g
-R3Vlbm5hZGkgTGlha2hvdmV0c2tpLCBQaC5ELg0KPiA+IEZyZWVsYW5jZSBPcGVuLVNvdXJjZSBT
-b2Z0d2FyZSBEZXZlbG9wZXINCj4gPiBodHRwOi8vd3d3Lm9wZW4tdGVjaG5vbG9neS5kZS8NCj4g
-PiAtLQ0KPiA+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1
-bnN1YnNjcmliZSBsaW51eC1tZWRpYSIgaW4NCj4gPiB0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8g
-bWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZw0KPiA+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0
-dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA0KPiA+DQo+DQo+IC0tDQo+
-IEhhbnMgVmVya3VpbCAtIHZpZGVvNGxpbnV4IGRldmVsb3BlciAtIHNwb25zb3JlZCBieSBDaXNj
-bw0KPg0KDQotLS0NCkd1ZW5uYWRpIExpYWtob3ZldHNraSwgUGguRC4NCkZyZWVsYW5jZSBPcGVu
-LVNvdXJjZSBTb2Z0d2FyZSBEZXZlbG9wZXINCmh0dHA6Ly93d3cub3Blbi10ZWNobm9sb2d5LmRl
-Lw0K
+On Wed, 2011-01-19 at 13:40 +0100, Jean Delvare wrote:
+> On Wed, 19 Jan 2011 07:21:58 -0500, Andy Walls wrote:
+> > For debugging, you might want to hack in a probe of address 0x70 for
+> > your HVR-1950, to ensure the Tx side responds in the bridge driver. 
+> 
+> ... keeping in mind that the Z8 doesn't seem to like quick writes, so
+> short reads should be used for probing purpose.
+> 
+
+Noted.  Thanks.
+
+Actually, I think that might be due to the controller in the USB
+connected devices (hdpvr and pvrusb2).  The PCI connected devices, like
+cx18 cards, don't have a problem with the Z8, the default I2C probe
+method, and i2c-algo-bit.
+(A good example of why only bridge drivers should do any required
+probing.)
+
+
+Looking at the code in pvrusb2, it appears to already use a 0 length
+read for a probe:
+
+http://git.linuxtv.org/media_tree.git?a=blob;f=drivers/media/video/pvrusb2/pvrusb2-i2c-core.c;h=ccc884948f34b385563ccbf548c5f80b33cd4f08;hb=refs/heads/staging/for_2.6.38-rc1#l542
+
+Regards,
+Andy
+
