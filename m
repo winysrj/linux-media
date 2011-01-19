@@ -1,99 +1,228 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:50412 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752263Ab1AGW3V (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jan 2011 17:29:21 -0500
-Received: by fxm20 with SMTP id 20so17368694fxm.19
-        for <linux-media@vger.kernel.org>; Fri, 07 Jan 2011 14:29:19 -0800 (PST)
-Message-ID: <4D2793BD.9070108@gmail.com>
-Date: Fri, 07 Jan 2011 23:29:17 +0100
-From: Sylwester Nawrocki <snjw23@gmail.com>
-MIME-Version: 1.0
+Received: from moutng.kundenserver.de ([212.227.126.171]:60169 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753762Ab1ASRt0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Jan 2011 12:49:26 -0500
+Date: Wed, 19 Jan 2011 18:49:19 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC PATCH 1/5] v4l2-subdev: remove core.s_config and v4l2_i2c_new_subdev_cfg()
-References: <1294404455-22050-1-git-send-email-hverkuil@xs4all.nl> <cc5591b13e048b8fbc1482db6dffeb7d48f9134b.1294402580.git.hverkuil@xs4all.nl>
-In-Reply-To: <cc5591b13e048b8fbc1482db6dffeb7d48f9134b.1294402580.git.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+cc: linux-media@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
+	Kuninori Morimoto <morimoto.kuninori@renesas.com>,
+	Alberto Panizzo <maramaopercheseimorto@gmail.com>,
+	Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>,
+	Marek Vasut <marek.vasut@gmail.com>,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: Re: [RFC PATCH 01/12] soc_camera: add control handler support
+In-Reply-To: <8aa4d48eaf40a1e967e4a7450d9313de0e2c8452.1294786597.git.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1101191838300.1425@axis700.grange>
+References: <1294787172-13638-1-git-send-email-hverkuil@xs4all.nl>
+ <8aa4d48eaf40a1e967e4a7450d9313de0e2c8452.1294786597.git.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Hans,
+Hi Hans
 
-On 01/07/2011 01:47 PM, Hans Verkuil wrote:
-> The core.s_config op was meant for legacy drivers that needed to work with old
-> pre-2.6.26 kernels. This is no longer relevant. Unfortunately, this op was
-> incorrectly called from several drivers.
->
-> Replace those occurences with proper i2c_board_info structs and call
-> v4l2_i2c_new_subdev_board.
->
-> After these changes v4l2_i2c_new_subdev_cfg() was no longer used, so remove
-> that function as well.
->
-> Signed-off-by: Hans Verkuil<hverkuil@xs4all.nl>
+This is not a complete review yet, but just something that occurred to me, 
+while looking at the result of applying all these your patches, maybe you 
+could just explain, why I'm wrong, or this will be something to change in 
+the next version:
+
+On Wed, 12 Jan 2011, Hans Verkuil wrote:
+
+> The soc_camera framework is switched over to use the control framework.
+> After this patch none of the controls in subdevs or host drivers are available,
+> until those drivers are also converted to the control framework.
+> 
+> Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
 > ---
->   drivers/media/video/cafe_ccic.c            |   11 +++-
->   drivers/media/video/cx25840/cx25840-core.c |   22 ++------
->   drivers/media/video/em28xx/em28xx-cards.c  |   18 ++++---
->   drivers/media/video/ivtv/ivtv-i2c.c        |    9 +++-
->   drivers/media/video/mt9v011.c              |   29 ++++-------
->   drivers/media/video/mt9v011.h              |   36 -------------
->   drivers/media/video/mt9v011_regs.h         |   36 +++++++++++++
->   drivers/media/video/ov7670.c               |   74 ++++++++++++----------------
->   drivers/media/video/sr030pc30.c            |   10 ----
->   drivers/media/video/v4l2-common.c          |   19 +------
->   include/media/mt9v011.h                    |   17 ++++++
->   include/media/v4l2-common.h                |   13 +-----
->   include/media/v4l2-subdev.h                |    6 +--
->   13 files changed, 130 insertions(+), 170 deletions(-)
->   delete mode 100644 drivers/media/video/mt9v011.h
->   create mode 100644 drivers/media/video/mt9v011_regs.h
->   create mode 100644 include/media/mt9v011.h
->
-...
->
-> diff --git a/drivers/media/video/sr030pc30.c b/drivers/media/video/sr030pc30.c
-> index 864696b..c901721 100644
-> --- a/drivers/media/video/sr030pc30.c
-> +++ b/drivers/media/video/sr030pc30.c
-> @@ -714,15 +714,6 @@ static int sr030pc30_base_config(struct v4l2_subdev *sd)
->   	return ret;
->   }
->
-> -static int sr030pc30_s_config(struct v4l2_subdev *sd,
-> -			      int irq, void *platform_data)
-> -{
-> -	struct sr030pc30_info *info = to_sr030pc30(sd);
+>  drivers/media/video/soc_camera.c          |  104 +++++++----------------------
+>  drivers/media/video/soc_camera_platform.c |    8 ++-
+>  include/media/soc_camera.h                |    2 +
+>  3 files changed, 33 insertions(+), 81 deletions(-)
+> 
+> diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+> index a66811b..7de3fe2 100644
+> --- a/drivers/media/video/soc_camera.c
+> +++ b/drivers/media/video/soc_camera.c
+
+[snip]
+
+> @@ -908,6 +840,8 @@ static int soc_camera_init_i2c(struct soc_camera_device *icd,
+>  				icl->board_info, NULL);
+>  	if (!subdev)
+>  		goto ei2cnd;
+> +	if (v4l2_ctrl_add_handler(&icd->ctrl_handler, subdev->ctrl_handler))
+> +		goto ei2cnd;
+>  
+>  	client = v4l2_get_subdevdata(subdev);
+>  
+
+Is this really i2c-specific? You added this to soc_camera_init_i2c(), 
+which is only even built if I2C is configured, and is only used with i2c 
+subdevs. It is called from soc_camera_probe(), if the respective subdev 
+has i2c board-information. Otherwise a generic initialisation will take 
+place, as is, e.g., the case with the soc-camera-platform driver. 
+Shouldn't this call to add_handler be moved directly to soc_camera_probe() 
+ot be used for all - not only i2c - subdevs? And one more nitpick below:
+
+> @@ -963,15 +897,15 @@ static int soc_camera_probe(struct device *dev)
+>  	if (icl->reset)
+>  		icl->reset(icd->pdev);
+>  
+> -	ret = ici->ops->add(icd);
+> -	if (ret < 0)
+> -		goto eadd;
 > -
-> -	info->pdata = platform_data;
-> -	return 0;
-> -}
+>  	/* Must have icd->vdev before registering the device */
+>  	ret = video_dev_create(icd);
+>  	if (ret < 0)
+>  		goto evdc;
+>  
+> +	ret = ici->ops->add(icd);
+> +	if (ret < 0)
+> +		goto eadd;
+> +
+
+Yes, this is something, I'll have to think about / have a look at / test.
+
+>  	/* Non-i2c cameras, e.g., soc_camera_platform, have no board_info */
+>  	if (icl->board_info) {
+>  		ret = soc_camera_init_i2c(icd, icl);
+> @@ -1054,10 +988,10 @@ eiufmt:
+>  	}
+>  enodrv:
+>  eadddev:
+> -	video_device_release(icd->vdev);
+> -evdc:
+>  	ici->ops->remove(icd);
+>  eadd:
+> +	video_device_release(icd->vdev);
+> +evdc:
+>  	soc_camera_power_set(icd, icl, 0);
+>  epower:
+>  	regulator_bulk_free(icl->num_regulators, icl->regulators);
+> @@ -1324,9 +1258,6 @@ static const struct v4l2_ioctl_ops soc_camera_ioctl_ops = {
+>  	.vidioc_dqbuf		 = soc_camera_dqbuf,
+>  	.vidioc_streamon	 = soc_camera_streamon,
+>  	.vidioc_streamoff	 = soc_camera_streamoff,
+> -	.vidioc_queryctrl	 = soc_camera_queryctrl,
+> -	.vidioc_g_ctrl		 = soc_camera_g_ctrl,
+> -	.vidioc_s_ctrl		 = soc_camera_s_ctrl,
+>  	.vidioc_cropcap		 = soc_camera_cropcap,
+>  	.vidioc_g_crop		 = soc_camera_g_crop,
+>  	.vidioc_s_crop		 = soc_camera_s_crop,
+> @@ -1355,6 +1286,7 @@ static int video_dev_create(struct soc_camera_device *icd)
+>  	vdev->ioctl_ops		= &soc_camera_ioctl_ops;
+>  	vdev->release		= video_device_release;
+>  	vdev->tvnorms		= V4L2_STD_UNKNOWN;
+> +	vdev->ctrl_handler	= &icd->ctrl_handler;
+>  
+>  	icd->vdev = vdev;
+>  
+> @@ -1402,13 +1334,24 @@ static int __devinit soc_camera_pdrv_probe(struct platform_device *pdev)
+>  	if (!icd)
+>  		return -ENOMEM;
+>  
+> +	/*
+> +	 * Currently the subdev with the largest number of controls (13) is
+> +	 * ov6550. So let's pick 16 as a hint for the control handler. Note
+> +	 * that this is a hint only: too large and you waste some memory, too
+> +	 * small and there is a (very) small performance hit when looking up
+> +	 * controls in the internal hash.
+> +	 */
+> +	ret = v4l2_ctrl_handler_init(&icd->ctrl_handler, 16);
+> +	if (ret < 0)
+> +		goto escdevreg;
+> +
+>  	icd->iface = icl->bus_id;
+>  	icd->pdev = &pdev->dev;
+>  	platform_set_drvdata(pdev, icd);
+>  
+>  	ret = soc_camera_device_register(icd);
+>  	if (ret < 0)
+> -		goto escdevreg;
+> +		goto eschdlinit;
+
+hm, no, eXXX means in my notation XXX has failed. So, escdevreg means 
+"soc_camera_device_register() failed" and your eschdlinit should go to the 
+previous goto.
+
+>  
+>  	soc_camera_device_init(&icd->dev, icl);
+>  
+> @@ -1417,6 +1360,8 @@ static int __devinit soc_camera_pdrv_probe(struct platform_device *pdev)
+>  
+>  	return 0;
+>  
+> +eschdlinit:
+> +	v4l2_ctrl_handler_free(&icd->ctrl_handler);
+
+Then this will change too, of course.
+
+>  escdevreg:
+>  	kfree(icd);
+>  
+> @@ -1437,6 +1382,7 @@ static int __devexit soc_camera_pdrv_remove(struct platform_device *pdev)
+>  
+>  	soc_camera_device_unregister(icd);
+>  
+> +	v4l2_ctrl_handler_free(&icd->ctrl_handler);
+>  	kfree(icd);
+>  
+>  	return 0;
+> diff --git a/drivers/media/video/soc_camera_platform.c b/drivers/media/video/soc_camera_platform.c
+> index bf406e8..e319dda 100644
+> --- a/drivers/media/video/soc_camera_platform.c
+> +++ b/drivers/media/video/soc_camera_platform.c
+> @@ -174,9 +174,13 @@ static int soc_camera_platform_probe(struct platform_device *pdev)
+>  	ret = v4l2_device_register_subdev(&ici->v4l2_dev, &priv->subdev);
+>  	if (ret)
+>  		goto evdrs;
+> +	ret = v4l2_ctrl_add_handler(&icd->ctrl_handler, priv->subdev.ctrl_handler);
+> +	if (ret)
+> +		goto evunreg;
+
+and this will get a different name
+
+> +	return 0;
+>  
+> -	return ret;
 > -
->   static int sr030pc30_s_stream(struct v4l2_subdev *sd, int enable)
->   {
->   	return 0;
-> @@ -763,7 +754,6 @@ static int sr030pc30_s_power(struct v4l2_subdev *sd, int on)
->   }
->
->   static const struct v4l2_subdev_core_ops sr030pc30_core_ops = {
-> -	.s_config	= sr030pc30_s_config,
->   	.s_power	= sr030pc30_s_power,
->   	.queryctrl	= sr030pc30_queryctrl,
->   	.s_ctrl		= sr030pc30_s_ctrl,
->
+> +evunreg:
+> +	v4l2_device_unregister_subdev(&priv->subdev);
+>  evdrs:
+>  	icd->ops = NULL;
+>  	platform_set_drvdata(pdev, NULL);
+> diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+> index 9386db8..ee61ffb 100644
+> --- a/include/media/soc_camera.h
+> +++ b/include/media/soc_camera.h
+> @@ -18,6 +18,7 @@
+>  #include <linux/videodev2.h>
+>  #include <media/videobuf-core.h>
+>  #include <media/v4l2-device.h>
+> +#include <media/v4l2-ctrls.h>
+>  
+>  extern struct bus_type soc_camera_bus_type;
+>  
+> @@ -35,6 +36,7 @@ struct soc_camera_device {
+>  	struct soc_camera_sense *sense;	/* See comment in struct definition */
+>  	struct soc_camera_ops *ops;
+>  	struct video_device *vdev;
+> +	struct v4l2_ctrl_handler ctrl_handler;
+>  	const struct soc_camera_format_xlate *current_fmt;
+>  	struct soc_camera_format_xlate *user_formats;
+>  	int num_user_formats;
+> -- 
+> 1.7.0.4
+> 
 
-I've just had prepared a patch removing s_config as well as an empty 
-s_stream op. So now there is only one left for me ;)
-Thanks for handling that, and sorry for the trouble. I've got also
-prepared a patch converting sr030pc30 driver to the control framework,
-just need to find a time slot to test it.
-An another one replacing the set_power callback with the regulator API.
-
-
-Regards,
-Sylwester
-
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
