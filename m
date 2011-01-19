@@ -1,51 +1,57 @@
 Return-path: <mchehab@pedra>
-Received: from lo.gmane.org ([80.91.229.12]:46800 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751736Ab1AZRf0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Jan 2011 12:35:26 -0500
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1Pi9HB-0008CL-I6
-	for linux-media@vger.kernel.org; Wed, 26 Jan 2011 18:35:25 +0100
-Received: from nemi.mork.no ([148.122.252.4])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 26 Jan 2011 18:35:25 +0100
-Received: from bjorn by nemi.mork.no with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 26 Jan 2011 18:35:25 +0100
-To: linux-media@vger.kernel.org
-From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
-Subject: Re: DVB driver for TerraTec H7 - how do I install them?
-Date: Wed, 26 Jan 2011 18:35:14 +0100
-Message-ID: <87oc73muul.fsf@nemi.mork.no>
-References: <AANLkTi=_LHucekW21KeGt3yWMNYHntQ5nVvHUO2EVHAO@mail.gmail.com>
-	<AANLkTimDK7kwV3AeZm5+56W3V_yp+nghq67qYP2r4DWq@mail.gmail.com>
-	<AANLkTimDVfv-SGv8d0TVPPQD+eU8yUQ08MrCGXrXhMtz@mail.gmail.com>
-	<AANLkTi=wotgd2JQ5b65rh5ExoU=+c4cAOZNFAg-NzJwr@mail.gmail.com>
-	<AANLkTin6LyzVV=xw7mPOx3TupmX0YjQ38Q2Jzzpve+nS@mail.gmail.com>
+Received: from zone0.gcu-squad.org ([212.85.147.21]:24803 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754479Ab1ASPTj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Jan 2011 10:19:39 -0500
+Date: Wed, 19 Jan 2011 16:18:46 +0100
+From: Jean Delvare <khali@linux-fr.org>
+To: Mike Isely <isely@isely.net>
+Cc: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org,
+	Jarod Wilson <jarod@redhat.com>, Janne Grunau <j@jannau.net>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [GIT PATCHES for 2.6.38] Zilog Z8 IR unit fixes
+Message-ID: <20110119161846.515b0294@endymion.delvare>
+In-Reply-To: <alpine.DEB.1.10.1101190902190.22872@cnc.isely.net>
+References: <1295205650.2400.27.camel@localhost>
+	<20110119155932.08d080b7@endymion.delvare>
+	<alpine.DEB.1.10.1101190902190.22872@cnc.isely.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Torfinn Ingolfsen <tingox@gmail.com> writes:
+On Wed, 19 Jan 2011 09:09:47 -0600 (CST), Mike Isely wrote:
+> On Wed, 19 Jan 2011, Jean Delvare wrote:
+> 
+> > Hi Andy,
+> > 
+> > On Sun, 16 Jan 2011 14:20:49 -0500, Andy Walls wrote:
+> > > 3. I hear from Jean, or whomever really cares about ir-kbd-i2c, if
+> > > adding some new fields for struct IR_i2c_init_data is acceptable.
+> > > Specifically, I'd like to add a transceiver_lock mutex, a transceiver
+> > > reset callback, and a data pointer for that reset callback.
+> > > (Only lirc_zilog would use the reset callback and data pointer.)
+> > 
+> > Adding fields to these structures is perfectly fine, if you need to do
+> > that, just go on.
+> > 
+> > But I'm a little confused about the names you chose,
+> > "ir_transceiver_lock" and "transceiver_lock". These seem too
+> > TX-oriented for a mutex that is supposed to synchronize TX and RX
+> > access. It's particularly surprising for the ir-kbd-i2c driver, which
+> > as far as I know only supports RX. The name "xcvr_lock" you used for
+> > lirc_zilog seems more appropriate.
+> 
+> Actually the term "transceiver" is normally understood to mean both 
+> directions.  Otherwise it would be "receiver" or "transmitter".  
+> Another screwy as aspect of english, and I say this as a native english 
+> speaker.  The term "xcvr" is usually just considered to be shorthand for 
+> "transceiver".
 
-> That is the point: TerraTec states that these are third-party drivers,
-> and they provide no support (as far as "we can't give you a better
-> answer").
-> So I am just trying to find out where those drivers came from, and if
-> somebody has any experience / a how-to or something.
->
-> This list seemed to to be the logical place to ask.
+Oh. I stand corrected, thanks.
 
-Sure is.  But even if you get past the build errors, you'll soon
-discover that Terratec "forgot" to include the necessary firmware as
-well.  You can find it and some other hints in this thread:
-http://www.vdr-portal.de/board/thread.php?threadid=103040
-
-
-Bjørn
-
-
+-- 
+Jean Delvare
