@@ -1,62 +1,43 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:43348 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754066Ab1ASL04 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Jan 2011 06:26:56 -0500
-Message-ID: <4D36CA70.8060204@redhat.com>
-Date: Wed, 19 Jan 2011 09:26:40 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:48036 "HELO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752780Ab1ASGcV convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Jan 2011 01:32:21 -0500
+From: Qing Xu <qingx@marvell.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Date: Tue, 18 Jan 2011 22:32:16 -0800
+Subject: How to support MIPI CSI-2 controller in soc-camera framework?
+Message-ID: <7BAC95F5A7E67643AAFB2C31BEE662D014040BF5AF@SC-VEXCH2.marvell.com>
+References: <1294368595-2518-1-git-send-email-qingx@marvell.com>
+ <7BAC95F5A7E67643AAFB2C31BEE662D014040171EE@SC-VEXCH2.marvell.com>
+ <Pine.LNX.4.64.1101100853490.24479@axis700.grange>
+ <201101101133.01636.laurent.pinchart@ideasonboard.com>
+ <7BAC95F5A7E67643AAFB2C31BEE662D014040BF237@SC-VEXCH2.marvell.com>
+ <Pine.LNX.4.64.1101171826340.16051@axis700.grange>
+ <7BAC95F5A7E67643AAFB2C31BEE662D014040BF2EF@SC-VEXCH2.marvell.com>
+ <Pine.LNX.4.64.1101181811590.19950@axis700.grange>
+ <7BAC95F5A7E67643AAFB2C31BEE662D014040BF54D@SC-VEXCH2.marvell.com>
+In-Reply-To: <7BAC95F5A7E67643AAFB2C31BEE662D014040BF54D@SC-VEXCH2.marvell.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org
-Subject: Re: video_device -> v4l2_devnode rename
-References: <201101190839.15175.hverkuil@xs4all.nl>
-In-Reply-To: <201101190839.15175.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 19-01-2011 05:39, Hans Verkuil escreveu:
-> Hi Mauro,
-> 
-> We want to rename video_device to v4l2_devnode. So let me know when I can
-> finalize my patches and, most importantly, against which branch.
-> 
-> My current tree:
-> 
-> http://git.linuxtv.org/hverkuil/media_tree.git?a=shortlog;h=refs/heads/devnode2
-> 
-> tracks for_2.6.38-rc1 and should apply cleanly at the moment.
+Hi,
 
-Even not being able to handle it for .38, I did a look on the proposed
-changes. I'm not convinced about those renaming stuff.
+Our chip support both MIPI and parallel interface. The HW connection logic is
+sensor(such as ov5642) -> our MIPI controller(handle DPHY timing/ CSI-2 things) -> our camera controller (handle DMA transmitting/ fmt/ size things). Now, I find the driver of sh_mobile_csi2.c, it seems like a CSI-2 driver, but I don't quite understand how it works:
+1) how the host controller call into this driver?
+2) how the host controller/sensor negotiate MIPI variable with this driver, such as D-PHY timing(hs_settle/hs_termen/clk_settle/clk_termen), number of lanes...?
 
-By looking on other subsystems, it seems to me that video_device_register()
-is a better name than any other name. Btw, by far, the use of _node for the
-device registration on Linux kernel is not usual at all:
+Thanks a lot!
+Qing Xu
 
-$ git grep -e "_register"  --and -e "(" --and -e "node" include |grep -v "of_mdiobus_register("
-include/linux/compaction.h:extern int compaction_register_node(struct node *node);
-include/linux/compaction.h:static inline int compaction_register_node(struct node *node)
-include/linux/swap.h:extern int scan_unevictable_register_node(struct node *node);
-include/linux/swap.h:static inline int scan_unevictable_register_node(struct node *node)
-
-There are only 2 functions using it. On those, the "node" at the function 
-register name is due to "struct node", and they likely make sense.
-
-A seek for *register*device or *device*register patterns show a lot:
-
-$ git grep -e "_register_device"  --and -e "("  include|wc -l
-28
-
-$ git grep -e "_device_register"  --and -e "("  include|wc -l
-32
-
-Basically, what I'm trying to say is that, on all subsystems, the function that creates
-the devices is called *register*device or *device*register.
-
-Why should we adopt anything different than the kernel convention for V4L2?
-
-Cheers,
-Mauro
+Email: qingx@marvell.com
+Application Processor Systems Engineering,
+Marvell Technology Group Ltd.
