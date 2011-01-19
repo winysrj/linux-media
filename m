@@ -1,68 +1,47 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3876 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751176Ab1AKHfH (ORCPT
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:58656 "EHLO
+	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753811Ab1ASKSd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Jan 2011 02:35:07 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [GIT PATCHES FOR 2.6.38]
-Date: Tue, 11 Jan 2011 08:34:48 +0100
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Jonathan Corbet <corbet@lwn.net>
+	Wed, 19 Jan 2011 05:18:33 -0500
+Date: Wed, 19 Jan 2011 10:18:51 +0000
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+To: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Cc: alsa-devel@alsa-project.org, lrg@slimlogic.co.uk,
+	mchehab@redhat.com, hverkuil@xs4all.nl, sameo@linux.intel.com,
+	linux-media@vger.kernel.org
+Subject: Re: WL1273 FM Radio driver...
+Message-ID: <20110119101850.GA16453@opensource.wolfsonmicro.com>
+References: <1295363063.25951.67.camel@masi.mnp.nokia.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201101110834.51032.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1295363063.25951.67.camel@masi.mnp.nokia.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
+On Tue, Jan 18, 2011 at 05:04:23PM +0200, Matti J. Aaltonen wrote:
 
-These patches remove s_config legacy support, replace it with new internal
-operations (also needed for the upcoming subdev device nodes) and finally
-rename has_new to is_new and document that control framework flag.
+> The driver consists of an MFD core and two child drivers (the audio
+> codec and the V4L2 driver). And the question is mainly about the role of
+> the MFD driver: the original design had the IO functions in the core.
+> Currently the core is practically empty mainly because Mauro very
+> strongly wanted to have “everything” in the V4L2 driver.
 
-My original RFC also converted OLPC drivers, but those are scheduled for
-2.6.39. It needs a bit more testing and I intend to improve the handling
-of autofoo/foo type of controls in the control framework.
+> I liked the original design because it didn't have the bug that the
+> current MFD has: the codec can be initialized before the V4L2 part sets
+> the IO function pointers. Having in principle equally capable interface
+> drivers is symmetrical and esthetically pleasing:-) Also somebody could
+> easily leave out the existing interfaces and create a completely new one
+> based for example to sysfs or something... Having the IO in the core
+> would also conveniently hide the physical communication layer and make
+> it easy to change I2C to UART, which is also supported by the chip.
 
-Regards,
-
-	Hans
-
-The following changes since commit 04c3fafd933379fbc8b1fa55ea9b65281af416f7:
-  Hans Verkuil (1):
-        [media] vivi: convert to the control framework and add test controls
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/hverkuil/media_tree.git s_config2
-
-Hans Verkuil (3):
-      v4l2-subdev: remove core.s_config and v4l2_i2c_new_subdev_cfg()
-      v4l2-subdev: add (un)register internal ops
-      v4l2-ctrls: v4l2_ctrl_handler_setup must set is_new to 1
-
- Documentation/video4linux/v4l2-controls.txt |   12 ++++
- drivers/media/video/cafe_ccic.c             |   11 +++-
- drivers/media/video/cx25840/cx25840-core.c  |   22 ++------
- drivers/media/video/em28xx/em28xx-cards.c   |   18 ++++---
- drivers/media/video/ivtv/ivtv-i2c.c         |    9 +++-
- drivers/media/video/mt9v011.c               |   54 ++++++++++++-------
- drivers/media/video/mt9v011.h               |   36 -------------
- drivers/media/video/ov7670.c                |   74 ++++++++++++---------------
- drivers/media/video/sr030pc30.c             |   10 ----
- drivers/media/video/v4l2-common.c           |   19 +------
- drivers/media/video/v4l2-ctrls.c            |   20 ++++---
- drivers/media/video/v4l2-device.c           |   14 ++++-
- include/media/mt9v011.h                     |   17 ++++++
- include/media/v4l2-common.h                 |   13 +----
- include/media/v4l2-ctrls.h                  |    6 ++-
- include/media/v4l2-subdev.h                 |   23 +++++++--
- 16 files changed, 174 insertions(+), 184 deletions(-)
- delete mode 100644 drivers/media/video/mt9v011.h
- create mode 100644 include/media/mt9v011.h
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+The above pattern with the core taking responsibility for register I/O
+is used by all the other MFD drivers in part because it's much less
+fragile against initialisation ordering issues.  It ensures that before
+any subdevices can instantiate and try to do register I/O all the
+infrastructure required to do that is present.  Is there any great
+reason for following a different pattern, and if we are going to do so
+how do we deal with the init ordering?
