@@ -1,332 +1,1097 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:22018 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750708Ab1ANTzM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Jan 2011 14:55:12 -0500
-Date: Fri, 14 Jan 2011 14:54:48 -0500
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Andy Walls <awalls@md.metrocast.net>, Janne Grunau <j@jannau.net>
-Subject: [PATCH] hdpvr: enable IR part
-Message-ID: <20110114195448.GA9849@redhat.com>
+Received: from dslb-084-063-125-244.pools.arcor-ip.net ([84.63.125.244]:49410
+	"HELO neutronstar.dyndns.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753039Ab1ASTMU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Jan 2011 14:12:20 -0500
+Date: Wed, 19 Jan 2011 20:12:14 +0100
+From: martin@neutronstar.dyndns.org
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH] v4l: Add driver for Micron MT9M032 camera sensor
+Message-ID: <20110119191214.GB13173@neutronstar.dyndns.org>
+References: <1295389122-30325-1-git-send-email-martin@neutronstar.dyndns.org> <201101190005.10652.hverkuil@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <201101190005.10652.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-A number of things going on here, but the end result is that the IR part
-on the hdpvr gets enabled, and can be used with ir-kbd-i2c and/or
-lirc_zilog.
+Hi Hans,
 
-First up, there are some conditional build fixes that come into play
-whether i2c is built-in or modular. Second, we're swapping out
-i2c_new_probed_device() for i2c_new_device(), as in my testing, probing
-always fails, but we *know* that all hdpvr devices have a z8 chip at
-0x70 and 0x71. Third, we're poking at an i2c address directly without a
-client, and writing some magic bits to actually turn on this IR part
-(this could use some improvement in the future). Fourth, some of the
-i2c_adapter storage has been reworked, as the existing implementation
-used to lead to an oops following i2c changes c. 2.6.31.
+Thanks for the quick review.
 
-Earlier editions of this patch have been floating around the 'net for a
-while, including being patched into Fedora kernels, and they *do* work.
-This specific version isn't yet tested, beyond loading ir-kbd-i2c and
-confirming that it does bind to the RX address of the hdpvr:
+<offtopic>
+I just noticed i didn't really understand the new control framework that well, could
+you maybe add a comment pointing to Documentation/video4linux/v4l2-controls.txt in
+the v4l2-ctrl.h header? I think that would help a lot.
+</offtopic>
 
-Registered IR keymap rc-hauppauge-new
-input: i2c IR (HD PVR) as /devices/virtual/rc/rc1/input6
-rc1: i2c IR (HD PVR) as /devices/virtual/rc/rc1
-ir-kbd-i2c: i2c IR (HD PVR) detected at i2c-1/1-0071/ir0 [Hauppage HD PVR I2C]
+On Wed, Jan 19, 2011 at 12:05:10AM +0100, Hans Verkuil wrote:
+> Hi Martin,
+> 
+> On Tuesday, January 18, 2011 23:18:42 Martin Hostettler wrote:
+> > The MT9M032 is a parallel 1284x812 sensor from Micron controlled through I2C.
+> > 
+> > The driver creates a V4L2 subdevice. It currently supports cropping, gain,
+> > exposure and v/h flipping controls in monochrome mode with an
+> > external pixel clock.
+> 
+> Now, this is a truly bleeding edge driver :-)
+> 
+> Pads aren't even merged yet!
 
-(Yes, I'm posting before fully testing, and I do have a reason for that,
-and will post a v2 after testing this weekend, if need be)...
+Yes, indeed. Blame the omap3 ISP driver for this :)
 
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/video/hdpvr/Makefile      |    4 +-
- drivers/media/video/hdpvr/hdpvr-core.c  |   10 +--
- drivers/media/video/hdpvr/hdpvr-i2c.c   |  120 +++++++++++++++----------------
- drivers/media/video/hdpvr/hdpvr-video.c |    7 +--
- drivers/media/video/hdpvr/hdpvr.h       |    2 +-
- 5 files changed, 66 insertions(+), 77 deletions(-)
+> 
+> Got some small comments:
+> 
+> > Signed-off-by: Martin Hostettler <martin@neutronstar.dyndns.org>
+> > ---
+> >  drivers/media/video/Kconfig     |    7 +
+> >  drivers/media/video/Makefile    |    1 +
+> >  drivers/media/video/mt9m032.c   |  834 +++++++++++++++++++++++++++++++++++++++
+> >  drivers/media/video/mt9m032.h   |   38 ++
+> >  include/media/v4l2-chip-ident.h |    1 +
+> >  5 files changed, 881 insertions(+), 0 deletions(-)
+> >  create mode 100644 drivers/media/video/mt9m032.c
+> >  create mode 100644 drivers/media/video/mt9m032.h
+> > 
+> > diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+> > index 9fad1a6..f2d5f80 100644
+> > --- a/drivers/media/video/Kconfig
+> > +++ b/drivers/media/video/Kconfig
+> > @@ -773,6 +773,13 @@ config SOC_CAMERA_MT9M001
+> >  	  This driver supports MT9M001 cameras from Micron, monochrome
+> >  	  and colour models.
+> >  
+> > +config VIDEO_MT9M032
+> > +	tristate "MT9M032 camera sensor support"
+> > +	depends on I2C && VIDEO_V4L2
+> > +	help
+> > +	  This driver supports MT9M032 cameras from Micron, monochrome
+> > +	  models only.
+> > +
+> >  config SOC_CAMERA_MT9M111
+> >  	tristate "mt9m111, mt9m112 and mt9m131 support"
+> >  	depends on SOC_CAMERA && I2C
+> > diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+> > index 8f70b06..3e7299f 100644
+> > --- a/drivers/media/video/Makefile
+> > +++ b/drivers/media/video/Makefile
+> > @@ -70,6 +70,7 @@ obj-$(CONFIG_VIDEO_UPD64083) += upd64083.o
+> >  obj-$(CONFIG_VIDEO_OV7670) 	+= ov7670.o
+> >  obj-$(CONFIG_VIDEO_TCM825X) += tcm825x.o
+> >  obj-$(CONFIG_VIDEO_TVEEPROM) += tveeprom.o
+> > +obj-$(CONFIG_VIDEO_MT9M032) += mt9m032.o
+> >  obj-$(CONFIG_VIDEO_MT9T001) += mt9t001.o
+> >  obj-$(CONFIG_VIDEO_MT9V011) += mt9v011.o
+> >  obj-$(CONFIG_VIDEO_MT9V032) += mt9v032.o
+> > diff --git a/drivers/media/video/mt9m032.c b/drivers/media/video/mt9m032.c
+> > new file mode 100644
+> > index 0000000..fe6af7b
+> > --- /dev/null
+> > +++ b/drivers/media/video/mt9m032.c
+> > @@ -0,0 +1,834 @@
+> > +/*
+> > + * Driver for MT9M032 CMOS Image Sensor from Micron
+> > + *
+> > + * Copyright (C) 2010-2011 Lund Engineering
+> > + * Contact: Gil Lund <gwlund@lundeng.com>
+> > + * Author: Martin Hostettler <martin@neutronstar.dyndns.org>
+> > + *
+> > + * This program is free software; you can redistribute it and/or
+> > + * modify it under the terms of the GNU General Public License
+> > + * version 2 as published by the Free Software Foundation.
+> > + *
+> > + * This program is distributed in the hope that it will be useful, but
+> > + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> > + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> > + * General Public License for more details.
+> > + *
+> > + * You should have received a copy of the GNU General Public License
+> > + * along with this program; if not, write to the Free Software
+> > + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+> > + * 02110-1301 USA
+> > + */
+> > +
+> > +#include <linux/delay.h>
+> > +#include <linux/i2c.h>
+> > +#include <linux/init.h>
+> > +#include <linux/kernel.h>
+> > +#include <linux/module.h>
+> > +#include <linux/slab.h>
+> > +#include <linux/v4l2-mediabus.h>
+> > +
+> > +#include <media/media-entity.h>
+> > +#include <media/v4l2-chip-ident.h>
+> > +#include <media/v4l2-ctrls.h>
+> > +#include <media/v4l2-device.h>
+> > +#include <media/v4l2-subdev.h>
+> > +
+> > +#include "mt9m032.h"
+> > +
+> > +#define MT9M032_CHIP_VERSION		0x00
+> > +#define MT9M032_ROW_START		0x01
+> > +#define MT9M032_COLUMN_START		0x02
+> > +#define MT9M032_ROW_SIZE		0x03
+> > +#define MT9M032_COLUMN_SIZE		0x04
+> > +#define MT9M032_HBLANK			0x05
+> > +#define MT9M032_VBLANK			0x06
+> > +#define MT9M032_SHUTTER_WIDTH_HIGH	0x08
+> > +#define MT9M032_SHUTTER_WIDTH_LOW	0x09
+> > +#define MT9M032_PIX_CLK_CTRL		0x0A
+> > +#define MT9M032_RESTART			0x0B
+> > +#define MT9M032_RESET			0x0D
+> > +#define MT9M032_PLL_CONFIG1		0x11
+> > +#define MT9M032_READ_MODE1		0x1E
+> > +#define MT9M032_READ_MODE2		0x20
+> > +#define MT9M032_GAIN_GREEN1		0x2B
+> > +#define MT9M032_GAIN_BLUE		0x2C
+> > +#define MT9M032_GAIN_RED		0x2D
+> > +#define MT9M032_GAIN_GREEN2		0x2E
+> > +/* write only */
+> > +#define MT9M032_GAIN_ALL		0x35
+> > +#define MT9M032_FORMATTER1		0x9E
+> > +#define MT9M032_FORMATTER2		0x9F
+> > +
+> > +#define to_mt9m032(sd)	container_of(sd, struct mt9m032, subdev)
+> > +#define to_dev(sensor)	&((struct i2c_client *)v4l2_get_subdevdata(&sensor->subdev))->dev
+> > +
+> > +struct mt9m032 {
+> > +	struct v4l2_subdev subdev;
+> > +	struct media_pad pad;
+> > +	struct mt9m032_platform_data *pdata;
+> > +	struct v4l2_ctrl_handler ctrls;
+> > +
+> > +	bool streaming;
+> > +
+> > +	int pix_clock;
+> > +
+> > +	struct v4l2_mbus_framefmt format;	/* height and width always the same as in crop */
+> > +	struct v4l2_rect crop;
+> > +	struct v4l2_fract frame_interval;
+> > +
+> > +	struct v4l2_ctrl *hflip, *vflip, *gain, *exposure;
+> > +};
+> > +
+> > +
+> > +static int mt9m032_read_reg(struct i2c_client *client, const u8 reg)
+> > +{
+> > +	s32 data = i2c_smbus_read_word_data(client, reg);
+> 
+> Add empty line.
 
-diff --git a/drivers/media/video/hdpvr/Makefile b/drivers/media/video/hdpvr/Makefile
-index e0230fc..3baa9f6 100644
---- a/drivers/media/video/hdpvr/Makefile
-+++ b/drivers/media/video/hdpvr/Makefile
-@@ -1,6 +1,4 @@
--hdpvr-objs	:= hdpvr-control.o hdpvr-core.o hdpvr-video.o
--
--hdpvr-$(CONFIG_I2C) += hdpvr-i2c.o
-+hdpvr-objs	:= hdpvr-control.o hdpvr-core.o hdpvr-video.o hdpvr-i2c.o
- 
- obj-$(CONFIG_VIDEO_HDPVR) += hdpvr.o
- 
-diff --git a/drivers/media/video/hdpvr/hdpvr-core.c b/drivers/media/video/hdpvr/hdpvr-core.c
-index f7d1ee5..a6572e5 100644
---- a/drivers/media/video/hdpvr/hdpvr-core.c
-+++ b/drivers/media/video/hdpvr/hdpvr-core.c
-@@ -378,19 +378,17 @@ static int hdpvr_probe(struct usb_interface *interface,
- 		goto error;
- 	}
- 
--#ifdef CONFIG_I2C
--	/* until i2c is working properly */
--	retval = 0; /* hdpvr_register_i2c_adapter(dev); */
-+#if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
-+	retval = hdpvr_register_i2c_adapter(dev);
- 	if (retval < 0) {
- 		v4l2_err(&dev->v4l2_dev, "registering i2c adapter failed\n");
- 		goto error;
- 	}
- 
--	/* until i2c is working properly */
--	retval = 0; /* hdpvr_register_i2c_ir(dev); */
-+	retval = hdpvr_register_i2c_ir(dev);
- 	if (retval < 0)
- 		v4l2_err(&dev->v4l2_dev, "registering i2c IR devices failed\n");
--#endif /* CONFIG_I2C */
-+#endif
- 
- 	/* let the user know what node this device is now attached to */
- 	v4l2_info(&dev->v4l2_dev, "device now attached to %s\n",
-diff --git a/drivers/media/video/hdpvr/hdpvr-i2c.c b/drivers/media/video/hdpvr/hdpvr-i2c.c
-index 24966aa..c0696c3 100644
---- a/drivers/media/video/hdpvr/hdpvr-i2c.c
-+++ b/drivers/media/video/hdpvr/hdpvr-i2c.c
-@@ -13,6 +13,8 @@
-  *
-  */
- 
-+#if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
-+
- #include <linux/i2c.h>
- #include <linux/slab.h>
- 
-@@ -28,55 +30,31 @@
- #define Z8F0811_IR_TX_I2C_ADDR	0x70
- #define Z8F0811_IR_RX_I2C_ADDR	0x71
- 
--static const u8 ir_i2c_addrs[] = {
--	Z8F0811_IR_TX_I2C_ADDR,
--	Z8F0811_IR_RX_I2C_ADDR,
--};
- 
--static const char * const ir_devicenames[] = {
--	"ir_tx_z8f0811_hdpvr",
--	"ir_rx_z8f0811_hdpvr",
-+static struct i2c_board_info hdpvr_i2c_board_info = {
-+	I2C_BOARD_INFO("ir_tx_z8f0811_hdpvr", Z8F0811_IR_TX_I2C_ADDR),
-+	I2C_BOARD_INFO("ir_rx_z8f0811_hdpvr", Z8F0811_IR_RX_I2C_ADDR),
- };
- 
--static int hdpvr_new_i2c_ir(struct hdpvr_device *dev, struct i2c_adapter *adap,
--			    const char *type, u8 addr)
-+int hdpvr_register_i2c_ir(struct hdpvr_device *dev)
- {
--	struct i2c_board_info info;
-+	struct i2c_client *c;
- 	struct IR_i2c_init_data *init_data = &dev->ir_i2c_init_data;
--	unsigned short addr_list[2] = { addr, I2C_CLIENT_END };
--
--	memset(&info, 0, sizeof(struct i2c_board_info));
--	strlcpy(info.type, type, I2C_NAME_SIZE);
- 
- 	/* Our default information for ir-kbd-i2c.c to use */
--	switch (addr) {
--	case Z8F0811_IR_RX_I2C_ADDR:
--		init_data->ir_codes = RC_MAP_HAUPPAUGE_NEW;
--		init_data->internal_get_key_func = IR_KBD_GET_KEY_HAUP_XVR;
--		init_data->type = RC_TYPE_RC5;
--		init_data->name = "HD PVR";
--		info.platform_data = init_data;
--		break;
--	}
--
--	return i2c_new_probed_device(adap, &info, addr_list, NULL) == NULL ?
--	       -1 : 0;
--}
-+	init_data->ir_codes = RC_MAP_HAUPPAUGE_NEW;
-+	init_data->internal_get_key_func = IR_KBD_GET_KEY_HAUP_XVR;
-+	init_data->type = RC_TYPE_RC5;
-+	init_data->name = "HD PVR";
-+	hdpvr_i2c_board_info.platform_data = init_data;
- 
--int hdpvr_register_i2c_ir(struct hdpvr_device *dev)
--{
--	int i;
--	int ret = 0;
-+	c = i2c_new_device(&dev->i2c_adapter, &hdpvr_i2c_board_info);
- 
--	for (i = 0; i < ARRAY_SIZE(ir_i2c_addrs); i++)
--		ret += hdpvr_new_i2c_ir(dev, dev->i2c_adapter,
--					ir_devicenames[i], ir_i2c_addrs[i]);
--
--	return ret;
-+	return (c == NULL) ? -ENODEV : 0;
- }
- 
--static int hdpvr_i2c_read(struct hdpvr_device *dev, unsigned char addr,
--			  char *data, int len)
-+static int hdpvr_i2c_read(struct hdpvr_device *dev, int bus,
-+			  unsigned char addr, char *data, int len)
- {
- 	int ret;
- 	char *buf = kmalloc(len, GFP_KERNEL);
-@@ -86,7 +64,7 @@ static int hdpvr_i2c_read(struct hdpvr_device *dev, unsigned char addr,
- 	ret = usb_control_msg(dev->udev,
- 			      usb_rcvctrlpipe(dev->udev, 0),
- 			      REQTYPE_I2C_READ, CTRL_READ_REQUEST,
--			      0x100|addr, 0, buf, len, 1000);
-+			      (bus << 8) | addr, 0, buf, len, 1000);
- 
- 	if (ret == len) {
- 		memcpy(data, buf, len);
-@@ -99,8 +77,8 @@ static int hdpvr_i2c_read(struct hdpvr_device *dev, unsigned char addr,
- 	return ret;
- }
- 
--static int hdpvr_i2c_write(struct hdpvr_device *dev, unsigned char addr,
--			   char *data, int len)
-+static int hdpvr_i2c_write(struct hdpvr_device *dev, int bus,
-+			   unsigned char addr, char *data, int len)
- {
- 	int ret;
- 	char *buf = kmalloc(len, GFP_KERNEL);
-@@ -111,7 +89,7 @@ static int hdpvr_i2c_write(struct hdpvr_device *dev, unsigned char addr,
- 	ret = usb_control_msg(dev->udev,
- 			      usb_sndctrlpipe(dev->udev, 0),
- 			      REQTYPE_I2C_WRITE, CTRL_WRITE_REQUEST,
--			      0x100|addr, 0, buf, len, 1000);
-+			      (bus << 8) | addr, 0, buf, len, 1000);
- 
- 	if (ret < 0)
- 		goto error;
-@@ -121,7 +99,7 @@ static int hdpvr_i2c_write(struct hdpvr_device *dev, unsigned char addr,
- 			      REQTYPE_I2C_WRITE_STATT, CTRL_READ_REQUEST,
- 			      0, 0, buf, 2, 1000);
- 
--	if (ret == 2)
-+	if ((ret == 2) && (buf[1] == (len - 1)))
- 		ret = 0;
- 	else if (ret >= 0)
- 		ret = -EIO;
-@@ -146,10 +124,10 @@ static int hdpvr_transfer(struct i2c_adapter *i2c_adapter, struct i2c_msg *msgs,
- 		addr = msgs[i].addr << 1;
- 
- 		if (msgs[i].flags & I2C_M_RD)
--			retval = hdpvr_i2c_read(dev, addr, msgs[i].buf,
-+			retval = hdpvr_i2c_read(dev, 1, addr, msgs[i].buf,
- 						msgs[i].len);
- 		else
--			retval = hdpvr_i2c_write(dev, addr, msgs[i].buf,
-+			retval = hdpvr_i2c_write(dev, 1, addr, msgs[i].buf,
- 						 msgs[i].len);
- 	}
- 
-@@ -168,30 +146,48 @@ static struct i2c_algorithm hdpvr_algo = {
- 	.functionality = hdpvr_functionality,
- };
- 
-+static struct i2c_adapter hdpvr_i2c_adapter_template = {
-+	.name   = "Hauppage HD PVR I2C",
-+	.owner  = THIS_MODULE,
-+	.algo   = &hdpvr_algo,
-+	.class  = I2C_CLASS_TV_ANALOG,
-+};
-+
-+static int hdpvr_activate_ir(struct hdpvr_device *dev)
-+{
-+	char buffer[8];
-+
-+	mutex_lock(&dev->i2c_mutex);
-+
-+	hdpvr_i2c_read(dev, 0, 0x54, buffer, 1);
-+
-+	buffer[0] = 0;
-+	buffer[1] = 0x8;
-+	hdpvr_i2c_write(dev, 1, 0x54, buffer, 2);
-+
-+	buffer[1] = 0x18;
-+	hdpvr_i2c_write(dev, 1, 0x54, buffer, 2);
-+
-+	mutex_unlock(&dev->i2c_mutex);
-+
-+	return 0;
-+}
-+
- int hdpvr_register_i2c_adapter(struct hdpvr_device *dev)
- {
--	struct i2c_adapter *i2c_adap;
- 	int retval = -ENOMEM;
- 
--	i2c_adap = kzalloc(sizeof(struct i2c_adapter), GFP_KERNEL);
--	if (i2c_adap == NULL)
--		goto error;
-+	hdpvr_activate_ir(dev);
- 
--	strlcpy(i2c_adap->name, "Hauppauge HD PVR I2C",
--		sizeof(i2c_adap->name));
--	i2c_adap->algo  = &hdpvr_algo;
--	i2c_adap->owner = THIS_MODULE;
--	i2c_adap->dev.parent = &dev->udev->dev;
-+	memcpy(&dev->i2c_adapter, &hdpvr_i2c_adapter_template,
-+	       sizeof(struct i2c_adapter));
-+	dev->i2c_adapter.dev.parent = &dev->udev->dev;
- 
--	i2c_set_adapdata(i2c_adap, dev);
-+	i2c_set_adapdata(&dev->i2c_adapter, dev);
- 
--	retval = i2c_add_adapter(i2c_adap);
-+	retval = i2c_add_adapter(&dev->i2c_adapter);
- 
--	if (!retval)
--		dev->i2c_adapter = i2c_adap;
--	else
--		kfree(i2c_adap);
--
--error:
- 	return retval;
- }
-+
-+#endif
-diff --git a/drivers/media/video/hdpvr/hdpvr-video.c b/drivers/media/video/hdpvr/hdpvr-video.c
-index d38fe10..514aea7 100644
---- a/drivers/media/video/hdpvr/hdpvr-video.c
-+++ b/drivers/media/video/hdpvr/hdpvr-video.c
-@@ -1220,12 +1220,9 @@ static void hdpvr_device_release(struct video_device *vdev)
- 	v4l2_device_unregister(&dev->v4l2_dev);
- 
- 	/* deregister I2C adapter */
--#ifdef CONFIG_I2C
-+#if defined(CONFIG_I2C) || (CONFIG_I2C_MODULE)
- 	mutex_lock(&dev->i2c_mutex);
--	if (dev->i2c_adapter)
--		i2c_del_adapter(dev->i2c_adapter);
--	kfree(dev->i2c_adapter);
--	dev->i2c_adapter = NULL;
-+	i2c_del_adapter(&dev->i2c_adapter);
- 	mutex_unlock(&dev->i2c_mutex);
- #endif /* CONFIG_I2C */
- 
-diff --git a/drivers/media/video/hdpvr/hdpvr.h b/drivers/media/video/hdpvr/hdpvr.h
-index 37f1e4c..29f7426 100644
---- a/drivers/media/video/hdpvr/hdpvr.h
-+++ b/drivers/media/video/hdpvr/hdpvr.h
-@@ -106,7 +106,7 @@ struct hdpvr_device {
- 	struct work_struct	worker;
- 
- 	/* I2C adapter */
--	struct i2c_adapter	*i2c_adapter;
-+	struct i2c_adapter	i2c_adapter;
- 	/* I2C lock */
- 	struct mutex		i2c_mutex;
- 
--- 
-1.7.1
+right.
 
--- 
-Jarod Wilson
-jarod@redhat.com
+> 
+> > +	return data < 0 ? data : swab16(data);
+> > +}
+> > +
+> > +static int mt9m032_write_reg(struct i2c_client *client, const u8 reg,
+> > +		     const u16 data)
+> > +{
+> > +	return i2c_smbus_write_word_data(client, reg, swab16(data));
+> > +}
+> > +
+> > +
+> > +static unsigned long mt9m032_row_time(struct mt9m032 *sensor, int width)
+> > +{
+> > +	int effective_width;
+> > +	u64 ns;
+> 
+> Add empty line.
+> 
+> > +	effective_width = width + 716; /* emperical value */
+> > +	ns = 1000000000ll * effective_width;
+> > +	do_div(ns, sensor->pix_clock);
+> > +	dev_dbg(to_dev(sensor),	"MT9M032 line time: %llu ns\n", ns);
+> > +	return ns;
+> > +}
+> > +
+> > +static int mt9m032_update_timing(struct mt9m032 *sensor,
+> > +				 const struct v4l2_fract *interval,
+> > +				 const struct v4l2_rect *crop)
+> > +{
+> > +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+> > +	u64 ns = 1000000000; /* 1 sec */
+> > +	unsigned long row_time;
+> > +	int additional_blanking_rows;
+> > +	int min_blank;
+> > +
+> > +	if (!interval)
+> > +		interval = &sensor->frame_interval;
+> > +	if (!crop)
+> > +		crop = &sensor->crop;
+> > +
+> > +	ns = ns * interval->numerator;
+> > +	do_div(ns, interval->denominator);
+> > +
+> > +	row_time = mt9m032_row_time(sensor, crop->width);
+> > +	do_div(ns, row_time);
+> > +
+> > +	additional_blanking_rows = ns - crop->height;
+> > +
+> > +	/* enforce minimal 1.6ms blanking time. */
+> > +	min_blank = 1600000 / row_time;
+> > +	if (additional_blanking_rows < min_blank)
+> > +		additional_blanking_rows = min_blank;
+> > +
+> > +	dev_dbg(to_dev(sensor),
+> > +		"%s: V-blank %i\n", __func__, additional_blanking_rows);
+> > +	if (additional_blanking_rows > 0x7ff) {
+> > +		/* hardware limits 11 bit values */
+> > +		dev_warn(to_dev(sensor),
+> > +			"mt9m032: frame rate too low.\n");
+> > +		additional_blanking_rows = 0x7ff;
+> > +	}
+> > +	return mt9m032_write_reg(client, MT9M032_VBLANK, additional_blanking_rows);
+> 
+> I've found it easier to do the v4l2_subdev to i2c_client conversion at the
+> lowest level: the read/write register functions. That way the conversion is
+> done at only a few places, rather than at every place these read/write reg
+> functions are called. Just my opinion, though.
 
+Yes, looking at the code you're right. That would reduce the boilerplate a bit.
+
+> 
+> > +}
+> > +
+> > +static int mt9m032_update_geom_timing(struct mt9m032 *sensor,
+> > +				 const struct v4l2_rect *crop)
+> > +{
+> > +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+> > +	int ret;
+> > +
+> > +	if (!crop)
+> > +		crop = &sensor->crop;
+> > +
+> > +	ret = mt9m032_write_reg(client, MT9M032_COLUMN_SIZE, crop->width - 1);
+> > +	if (!ret)
+> > +		mt9m032_write_reg(client, MT9M032_ROW_SIZE, crop->height - 1);
+> > +	/* offsets compensate for black border */
+> > +	if (!ret)
+> > +		mt9m032_write_reg(client, MT9M032_COLUMN_START, crop->left + 16);
+> > +	if (!ret)
+> > +		mt9m032_write_reg(client, MT9M032_ROW_START, crop->top + 52);
+> > +	if (!ret)
+> > +		ret = mt9m032_update_timing(sensor, NULL, crop);
+> > +	return ret;
+> > +}
+> > +
+> > +static int update_formatter2(struct mt9m032 *sensor, bool streaming)
+> > +{
+> > +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+> > +
+> > +	u16 reg_val =   0x1000   /* Dout enable */
+> > +		      | 0x0070;  /* parts reserved! */
+> > +				 /* possibly for changing to 14-bit mode */
+> > +
+> > +	if (streaming)
+> > +		reg_val |= 0x2000;   /* pixclock enable */
+> > +
+> > +	return mt9m032_write_reg(client, MT9M032_FORMATTER2, reg_val);
+> > +}
+> > +
+> > +static int mt9m032_s_stream(struct v4l2_subdev *subdev, int streaming)
+> > +{
+> > +	struct mt9m032 *sensor = to_mt9m032(subdev);
+> > +	int ret;
+> > +
+> > +	ret = update_formatter2(sensor, streaming);
+> > +	if (!ret)
+> > +		sensor->streaming = streaming;
+> > +	return ret;
+> > +}
+> > +
+> > +static int mt9m032_enum_mbus_code(struct v4l2_subdev *subdev,
+> > +				  struct v4l2_subdev_fh *fh,
+> > +				  struct v4l2_subdev_mbus_code_enum *code)
+> > +{
+> > +	if (code->index != 0 || code->pad != 0)
+> > +		return -EINVAL;
+> > +	code->code = V4L2_MBUS_FMT_Y8_1X8;
+> > +	return 0;
+> > +}
+> > +
+> > +static int mt9m032_enum_frame_size(struct v4l2_subdev *subdev,
+> > +				   struct v4l2_subdev_fh *fh,
+> > +				   struct v4l2_subdev_frame_size_enum *fse)
+> > +{
+> > +	if (fse->index != 0 || fse->code != V4L2_MBUS_FMT_Y8_1X8 || fse->pad != 0)
+> > +		return -EINVAL;
+> > +
+> > +	fse->min_width = 32;
+> > +	fse->max_width = 1440;
+> > +	fse->min_height = 32;
+> > +	fse->max_height = 1096;
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +/**
+> > + * __mt9m032_get_pad_crop() - get crop rect
+> > + * @sensor:	pointer to the sensor struct
+> > + * @fh:	filehandle for getting the try crop rect from
+> > + * @which:	select try or active crop rect
+> > + * Returns a pointer the current active or fh relative try crop rect
+> > + */
+> > +static struct v4l2_rect *__mt9m032_get_pad_crop(struct mt9m032 *sensor,
+> > +						struct v4l2_subdev_fh *fh,
+> > +						u32 which)
+> > +{
+> > +	switch (which) {
+> > +	case V4L2_SUBDEV_FORMAT_TRY:
+> > +		return v4l2_subdev_get_try_crop(fh, 0);
+> > +	case V4L2_SUBDEV_FORMAT_ACTIVE:
+> > +		return &sensor->crop;
+> > +	default:
+> > +		return NULL;
+> > +	}
+> > +}
+> > +
+> > +/**
+> > + * __mt9m032_get_pad_format() - get format
+> > + * @sensor:	pointer to the sensor struct
+> > + * @fh:	filehandle for getting the try format from
+> > + * @which:	select try or active format
+> > + * Returns a pointer the current active or fh relative try format
+> > + */
+> > +static struct v4l2_mbus_framefmt *__mt9m032_get_pad_format(struct mt9m032 *sensor,
+> > +							   struct v4l2_subdev_fh *fh,
+> > +							   u32 which)
+> > +{
+> > +	switch (which) {
+> > +	case V4L2_SUBDEV_FORMAT_TRY:
+> > +		return v4l2_subdev_get_try_format(fh, 0);
+> > +	case V4L2_SUBDEV_FORMAT_ACTIVE:
+> > +		return &sensor->format;
+> > +	default:
+> > +		return NULL;
+> > +	}
+> > +}
+> > +
+> > +#define OFFSET_UNCHANGED	0xFFFFFFFF
+> > +static int mt9m032_set_pad_geom(struct mt9m032 *sensor,
+> > +				struct v4l2_subdev_fh *fh,
+> > +				u32 which, u32 pad,
+> > +				s32 top, s32 left, s32 width, s32 height)
+> > +{
+> > +	struct v4l2_mbus_framefmt tmp_format;
+> > +	struct v4l2_rect tmp_crop;
+> > +	struct v4l2_mbus_framefmt *format;
+> > +	struct v4l2_rect *crop;
+> > +
+> > +	if (pad != 0)
+> > +		return -EINVAL;
+> > +
+> > +	format = __mt9m032_get_pad_format(sensor, fh, which);
+> > +	crop = __mt9m032_get_pad_crop(sensor, fh, which);
+> > +	if (!format || !crop)
+> > +		return -EINVAL;
+> > +	if (which == V4L2_SUBDEV_FORMAT_ACTIVE) {
+> > +		tmp_crop = *crop;
+> > +		tmp_format = *format;
+> > +		format = &tmp_format;
+> > +		crop = &tmp_crop;
+> > +	}
+> > +
+> > +	if (top != OFFSET_UNCHANGED)
+> > +		crop->top = top & ~0x1;
+> > +	if (left != OFFSET_UNCHANGED)
+> > +		crop->left = left;
+> > +	crop->height = height;
+> > +	crop->width = width & ~1;
+> > +
+> > +	format->height = crop->height;
+> > +	format->width = crop->width;
+> > +
+> > +	if (which == V4L2_SUBDEV_FORMAT_ACTIVE) {
+> > +		int ret = mt9m032_update_geom_timing(sensor, crop);
+> 
+> Add empty line. I won't repeat this, just check the code for this.
+
+Ok, i'll go over the driver and try to fix this. 
+
+> 
+> > +		if (!ret) {
+> > +			sensor->crop = tmp_crop;
+> > +			sensor->format = tmp_format;
+> > +		}
+> > +		return ret;
+> > +	} else {
+> 
+> No need for the 'else' keyword here since the 'if' case will always return.
+
+Yes, that seems to be the prefered way in kernel space...
+
+> 
+> > +		return 0;
+> > +	}
+> > +}
+> > +
+> > +static int mt9m032_get_pad_format(struct v4l2_subdev *subdev,
+> > +				  struct v4l2_subdev_fh *fh,
+> > +				  struct v4l2_subdev_format *fmt)
+> > +{
+> > +	struct mt9m032 *sensor = to_mt9m032(subdev);
+> > +	struct v4l2_mbus_framefmt *format;
+> > +
+> > +	if (fmt->pad != 0)
+> > +		return -EINVAL;
+> > +	format = __mt9m032_get_pad_format(sensor, fh, fmt->which);
+> > +	if (format == NULL)
+> > +		return -EINVAL;
+> > +
+> > +	fmt->format = *format;
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static int mt9m032_set_pad_format(struct v4l2_subdev *subdev,
+> > +				  struct v4l2_subdev_fh *fh,
+> > +				  struct v4l2_subdev_format *fmt)
+> > +{
+> > +	struct mt9m032 *sensor = to_mt9m032(subdev);
+> > +	int ret;
+> > +
+> > +	if (sensor->streaming)
+> > +		return -EBUSY;
+> > +	if (fmt->format.code != V4L2_MBUS_FMT_Y8_1X8)
+> > +		return -EINVAL;
+> > +	/*
+> > +	 * fmt->format.colorspace and fmt->format.field are ignored
+> > +	 * and thus forced to fixed values by the get call below
+> > +	 */
+> > +
+> > +	ret = mt9m032_set_pad_geom(sensor, fh, fmt->which, fmt->pad,
+> > +				   OFFSET_UNCHANGED, OFFSET_UNCHANGED,
+> > +				   fmt->format.width, fmt->format.height);
+> > +
+> > +	if (ret < 0)
+> > +		return ret;
+> > +	return mt9m032_get_pad_format(subdev, fh, fmt);
+> > +}
+> > +
+> > +static int mt9m032_get_crop(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *fh,
+> > +			    struct v4l2_subdev_crop *crop)
+> > +{
+> > +	struct mt9m032 *sensor = to_mt9m032(subdev);
+> > +	struct v4l2_rect *curcrop;
+> > +
+> > +	if (crop->pad != 0)
+> > +		return -EINVAL;
+> > +	curcrop = __mt9m032_get_pad_crop(sensor, fh, crop->which);
+> > +	if (!curcrop)
+> > +		return -EINVAL;
+> > +
+> > +	crop->rect = *curcrop;
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static int mt9m032_set_crop(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *fh,
+> > +		     struct v4l2_subdev_crop *crop)
+> > +{
+> > +	struct mt9m032 *sensor = to_mt9m032(subdev);
+> > +	int ret;
+> > +
+> > +	if (sensor->streaming)
+> > +		return -EBUSY;
+> > +	ret = mt9m032_set_pad_geom(sensor, fh, crop->which, crop->pad,
+> > +				   crop->rect.top, crop->rect.left,
+> > +				   crop->rect.width, crop->rect.height);
+> > +	if (ret < 0)
+> > +		return ret;
+> > +	return mt9m032_get_crop(subdev, fh, crop);
+> > +}
+> > +
+> > +static int mt9m032_get_frame_interval(struct v4l2_subdev *subdev,
+> > +				      struct v4l2_subdev_frame_interval *fi)
+> > +{
+> > +	struct mt9m032 *sensor = to_mt9m032(subdev);
+> > +
+> > +	fi->pad = 0;
+> > +	memset(fi->reserved, 0, sizeof(fi->reserved));
+> > +	fi->interval = sensor->frame_interval;
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static int mt9m032_set_frame_interval(struct v4l2_subdev *subdev,
+> > +				      struct v4l2_subdev_frame_interval *fi)
+> > +{
+> > +	struct mt9m032 *sensor = to_mt9m032(subdev);
+> > +	int ret;
+> > +
+> > +	if (sensor->streaming)
+> > +		return -EBUSY;
+> > +
+> > +	memset(fi->reserved, 0, sizeof(fi->reserved));
+> > +
+> > +	ret = mt9m032_update_timing(sensor, &fi->interval, NULL);
+> > +	if (!ret)
+> > +		sensor->frame_interval = fi->interval;
+> > +	return ret;
+> > +}
+> > +
+> > +#ifdef CONFIG_VIDEO_ADV_DEBUG
+> > +static int mt9m032_g_register(struct v4l2_subdev *sd,
+> > +			      struct v4l2_dbg_register *reg)
+> > +{
+> > +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> > +	int val;
+> > +
+> > +	if (reg->match.type != V4L2_CHIP_MATCH_I2C_ADDR || reg->reg > 0xff)
+> > +		return -EINVAL;
+> > +	if (reg->match.addr != client->addr)
+> > +		return -ENODEV;
+> > +
+> > +	val = mt9m032_read_reg(client, reg->reg);
+> > +	if (val < 0)
+> > +		return -EIO;
+> > +
+> > +	reg->size = 2;
+> > +	reg->val = (u64) val;
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static int mt9m032_s_register(struct v4l2_subdev *sd,
+> > +			      struct v4l2_dbg_register *reg)
+> > +{
+> > +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> > +
+> > +	if (reg->match.type != V4L2_CHIP_MATCH_I2C_ADDR || reg->reg > 0xff)
+> > +		return -EINVAL;
+> > +
+> > +	if (reg->match.addr != client->addr)
+> > +		return -ENODEV;
+> > +
+> > +	if (mt9m032_write_reg(client, reg->reg, reg->val) < 0)
+> > +		return -EIO;
+> > +
+> > +	return 0;
+> > +}
+> > +#endif
+> > +
+> > +static int update_read_mode2(struct mt9m032 *sensor, bool vflip, bool hflip)
+> > +{
+> > +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+> > +
+> > +	int reg_val = (!!vflip) << 15
+> > +		      | (!!hflip) << 14
+> > +		      | 0x0040	/* row black level correction (ROW BLC) */
+> > +		      | 0x0007;
+> > +
+> > +	return mt9m032_write_reg(client, MT9M032_READ_MODE2, reg_val);
+> > +}
+> > +
+> > +static int mt9m032_set_hflip(struct mt9m032 *sensor, s32 val)
+> > +{
+> > +	return update_read_mode2(sensor, sensor->vflip->cur.val, val);
+> > +}
+> > +
+> > +static int mt9m032_set_vflip(struct mt9m032 *sensor, s32 val)
+> > +{
+> > +	return update_read_mode2(sensor, val, sensor->hflip->cur.val);
+> > +}
+> 
+> I recommend making a control cluster for these two controls (see below).
+> 
+> > +
+> > +static int mt9m032_set_exposure(struct mt9m032 *sensor, s32 val)
+> > +{
+> > +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+> > +	int shutter_width;
+> > +	u16 high_val, low_val;
+> > +	int ret;
+> > +
+> > +	/* shutter width is in row times */
+> > +	shutter_width = (val * 1000) / mt9m032_row_time(sensor, sensor->crop.width);
+> > +
+> > +	high_val = (shutter_width >> 16) & 0xF;
+> > +	low_val = shutter_width & 0xFFFF;
+> > +
+> > +	ret = mt9m032_write_reg(client, MT9M032_SHUTTER_WIDTH_HIGH, high_val);
+> > +	if (!ret)
+> > +		mt9m032_write_reg(client, MT9M032_SHUTTER_WIDTH_LOW, low_val);
+> > +
+> > +	return ret;
+> > +}
+> > +
+> > +static int mt9m032_set_gain(struct mt9m032 *sensor, s32 val)
+> > +{
+> > +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+> > +	int digital_gain_val;	/* in 1/8th (0..127) */
+> > +	int analog_mul;		/* 0 or 1 */
+> > +	int analog_gain_val;	/* in 1/16th. (0..63) */
+> > +	u16 reg_val;
+> > +
+> > +	digital_gain_val = 51; /* from setup example */
+> > +
+> > +	if (val < 63) {
+> > +		analog_mul = 0;
+> > +		analog_gain_val = val;
+> > +	} else {
+> > +		analog_mul = 1;
+> > +		analog_gain_val = val / 2;
+> > +	}
+> > +
+> > +	/* a_gain = (1+analog_mul) + (analog_gain_val+1)/16 */
+> > +	/* overall_gain = a_gain * (1 + digital_gain_val / 8) */
+> > +
+> > +	reg_val = (digital_gain_val & 0x7f) << 8
+> > +		  | (analog_mul & 1) << 6
+> > +		  | (analog_gain_val & 0x3f);
+> > +
+> > +	return mt9m032_write_reg(client, MT9M032_GAIN_ALL, reg_val);
+> > +}
+> > +
+> > +static int mt9m032_setup_pll(struct mt9m032 *sensor)
+> > +{
+> > +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+> > +	struct mt9m032_platform_data* pdata = sensor->pdata;
+> > +	u16 reg_pll1;
+> > +	unsigned int pre_div;
+> > +	int res, ret;
+> > +
+> > +	/* TODO: also support other pre-div values */
+> > +	if (pdata->pll_pre_div != 6) {
+> > +		dev_warn(to_dev(sensor),
+> > +			"Unsupported PLL pre-divisor value %u, using default 6\n",
+> > +			pdata->pll_pre_div);
+> > +		pre_div = 6;
+> > +	} else {
+> > +		pre_div = pdata->pll_pre_div;
+> > +	}
+> > +
+> > +	sensor->pix_clock = pdata->ext_clock * pdata->pll_mul /
+> > +		(pre_div * pdata->pll_out_div);
+> > +
+> > +	reg_pll1 = ((pdata->pll_out_div - 1) & 0x3F)
+> > +		   | pdata->pll_mul << 8;
+> > +
+> > +	ret = mt9m032_write_reg(client, MT9M032_PLL_CONFIG1, reg_pll1);
+> > +	if (!ret)
+> > +		ret = mt9m032_write_reg(client, 0x10, 0x53); /* Select PLL as clock source */
+> > +
+> > +	if (!ret)
+> > +		ret = mt9m032_write_reg(client, MT9M032_READ_MODE1, 0x8006);
+> > +							/* more reserved, Continuous */
+> > +							/* Master Mode */
+> > +	if (!ret)
+> > +		res = mt9m032_read_reg(client, MT9M032_READ_MODE1);
+> > +
+> > +	if (!ret)
+> > +		ret = mt9m032_write_reg(client, MT9M032_FORMATTER1, 0x111e);
+> > +					/* Set 14-bit mode, select 7 divider */
+> > +
+> > +	return ret;
+> > +}
+> > +
+> > +static int mt9m032_get_chip_ident(struct v4l2_subdev *subdev,
+> > +		       struct v4l2_dbg_chip_ident *chip)
+> > +{
+> > +	struct i2c_client *client = v4l2_get_subdevdata(subdev);
+> > +
+> > +	return v4l2_chip_ident_i2c_client(client, chip, V4L2_IDENT_MT9M032, 0);
+> > +}
+> > +
+> > +static int mt9m032_set_config(struct v4l2_subdev *subdev, int irq, void *pdata)
+> > +{
+> > +	struct mt9m032 *sensor = to_mt9m032(subdev);
+> > +	struct i2c_client *client = v4l2_get_subdevdata(subdev);
+> > +
+> > +	int res, ret;
+> > +
+> > +	if (!pdata)
+> > +		return -ENODEV;
+> > +
+> > +	sensor->pdata = pdata;
+> > +
+> > +	ret = mt9m032_write_reg(client, MT9M032_RESET, 1);	/* reset on */
+> > +	if (!ret)
+> > +		mt9m032_write_reg(client, MT9M032_RESET, 0);	/* reset off */
+> > +
+> > +	if (!ret) {
+> > +		ret = mt9m032_setup_pll(sensor);
+> > +		msleep(10);
+> > +	}
+> > +	/* Sensor Gain */
+> > +	if (!ret)
+> > +		ret = mt9m032_set_gain(sensor, sensor->gain->cur.val);
+> 
+> No need to set this,
+> 
+> > +
+> > +	   /* Shutter Width */
+> > +	if (!ret)
+> > +		ret = mt9m032_set_exposure(sensor, sensor->exposure->cur.val);
+> 
+> and this,
+> 
+> > +
+> > +	/* SIZE */
+> > +	if (!ret)
+> > +		ret = mt9m032_update_geom_timing(sensor, NULL);
+> > +
+> > +	if (!ret)
+> > +		ret = update_read_mode2(sensor, sensor->vflip->cur.val, sensor->hflip->cur.val);
+> 
+> and this if you call v4l2_ctrl_handler_setup: this forces all controls to be
+> set to their current values. Much cleaner.
+
+I'll try how this will work out with the hardware. If it goes well, i'll change it.
+
+> 
+> > +
+> > +	if (!ret)
+> > +		ret = mt9m032_write_reg(client, 0x41, 0x0000);	/* reserved !!! */
+> > +	if (!ret)
+> > +		ret = mt9m032_write_reg(client, 0x42, 0x0003);	/* reserved !!! */
+> > +	if (!ret)
+> > +		ret = mt9m032_write_reg(client, 0x43, 0x0003);	/* reserved !!! */
+> > +	if (!ret)
+> > +		ret = mt9m032_write_reg(client, 0x7F, 0x0000);	/* reserved !!! */
+> > +	if (ret == 0 && sensor->pdata->invert_pixclock)
+> > +		mt9m032_write_reg(client, MT9M032_PIX_CLK_CTRL, 0x8000);
+> > +
+> > +	res = mt9m032_read_reg(client, MT9M032_PIX_CLK_CTRL);
+> > +
+> > +	if (!ret) {
+> > +		ret = mt9m032_write_reg(client, MT9M032_RESTART, 0x0001); /* Restart on */
+> > +		msleep(100);
+> > +	}
+> > +	if (!ret) {
+> > +		ret = mt9m032_write_reg(client, MT9M032_RESTART, 0x0000); /* Restart off */
+> > +		msleep(100);
+> > +	}
+> > +	if (!ret)
+> > +		ret = update_formatter2(sensor, false);
+> > +
+> > +	return ret;
+> > +}
+> > +
+> > +static int mt9m032_set_ctrl(struct v4l2_ctrl *ctrl)
+> > +{
+> > +	struct mt9m032 *sensor = container_of(ctrl->handler, struct mt9m032, ctrls);
+> > +
+> > +	switch (ctrl->id) {
+> > +	case V4L2_CID_GAIN:
+> > +		return mt9m032_set_gain(sensor, ctrl->val);
+> > +		break;
+> 
+> Spurious break. Ditto below.
+
+Ok, i'll remove them.
+
+> 
+> > +
+> > +	case V4L2_CID_HFLIP:
+> > +		return mt9m032_set_hflip(sensor, ctrl->val);
+> > +		break;
+> > +
+> > +	case V4L2_CID_VFLIP:
+> > +		return mt9m032_set_vflip(sensor, ctrl->val);
+> > +		break;
+> > +
+> > +	case V4L2_CID_EXPOSURE:
+> > +		return mt9m032_set_exposure(sensor, ctrl->val);
+> > +		break;
+> > +
+> > +	default:
+> > +		return -EINVAL;
+> > +	}
+> > +}
+> > +
+> > +static const struct v4l2_subdev_video_ops mt9m032_video_ops = {
+> > +	.s_stream = mt9m032_s_stream,
+> > +	.g_frame_interval = mt9m032_get_frame_interval,
+> > +	.s_frame_interval = mt9m032_set_frame_interval,
+> > +};
+> > +
+> > +#ifdef CONFIG_VIDEO_ADV_DEBUG
+> > +static long mt9m032_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
+> > +{
+> > +	if (cmd == VIDIOC_DBG_G_REGISTER || cmd == VIDIOC_DBG_S_REGISTER) {
+> > +		struct v4l2_dbg_register *p = arg;
+> > +
+> > +		if (!capable(CAP_SYS_ADMIN))
+> > +			return -EPERM;
+> > +
+> > +		if (cmd == VIDIOC_DBG_G_REGISTER)
+> > +			return v4l2_subdev_call(sd, core, g_register, p);
+> > +		else
+> > +			return v4l2_subdev_call(sd, core, s_register, p);
+> > +	} else {
+> > +		return -ENOIOCTLCMD;
+> > +	}
+> > +}
+> 
+> Huh? Ah, I get it. This is for when the user uses the subdev's device node
+> directly. This is not good, the v4l2 framework should do translate this to
+> g/s_register. The same should be done for g_chip_ident, I guess.
+
+I'm not sure what you are saying here. Should i move this to a patch for
+v4l2-subdev.c to dispatch those ioctls for all subdevs?
+I need these ioctls to work with the driver and last that i looked nothing in the
+general framework or the omap3 ISP driver was forwarding there from the video device
+node to the subdevice driver...
+
+
+> 
+> > +#endif
+> > +
+> > +static struct v4l2_ctrl_ops mt9m032_ctrl_ops = {
+> > +	.s_ctrl = mt9m032_set_ctrl,
+> > +};
+> > +
+> > +
+> > +static const struct v4l2_subdev_core_ops mt9m032_core_ops = {
+> > +	.g_chip_ident = mt9m032_get_chip_ident,
+> > +	.s_config = mt9m032_set_config,
+> 
+> s_config was removed in 2.6.38. Use proper platform_data instead and do this
+> functionality in the probe function.
+
+Ok, i didn't see that i can just pick this out of client->dev.platform_data too.
+Will refactor this.
+
+> 
+> > +#ifdef CONFIG_VIDEO_ADV_DEBUG
+> > +	.ioctl = mt9m032_ioctl,
+> > +	.g_register = mt9m032_g_register,
+> > +	.s_register = mt9m032_s_register,
+> > +#endif
+> > +};
+> > +
+> > +static const struct v4l2_subdev_pad_ops mt9m032_pad_ops = {
+> > +	.enum_mbus_code = mt9m032_enum_mbus_code,
+> > +	.enum_frame_size = mt9m032_enum_frame_size,
+> > +	.get_fmt = mt9m032_get_pad_format,
+> > +	.set_fmt = mt9m032_set_pad_format,
+> > +	.set_crop = mt9m032_set_crop,
+> > +	.get_crop = mt9m032_get_crop,
+> > +};
+> > +
+> > +static const struct v4l2_subdev_ops mt9m032_ops = {
+> > +	.core = &mt9m032_core_ops,
+> > +	.video = &mt9m032_video_ops,
+> > +	.pad = &mt9m032_pad_ops,
+> > +};
+> > +
+> > +static int mt9m032_probe(struct i2c_client *client,
+> > +			 const struct i2c_device_id *devid)
+> > +{
+> > +	struct mt9m032 *sensor;
+> > +	int chip_version;
+> > +	int ret;
+> > +
+> > +	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_WORD_DATA)) {
+> > +		dev_warn(&client->adapter->dev,
+> > +			 "I2C-Adapter doesn't support I2C_FUNC_SMBUS_WORD\n");
+> > +		return -EIO;
+> > +	}
+> > +
+> > +	/*
+> > +	 * This driver was developed with a camera module with seperate external
+> > +	 * pix clock. For setups which use the clock from the camera interface
+> > +	 * the code will need to be extended with the appropriate platform
+> > +	 * callback to setup the clock.
+> > +	 */
+> > +	chip_version = mt9m032_read_reg(client, MT9M032_CHIP_VERSION);
+> > +	if (0x1402 == chip_version) {
+> > +		dev_info(&client->dev, "mt9m032: detected chip version 0x%x\n", chip_version);
+> > +	} else {
+> > +		dev_warn(&client->dev, "mt9m032: error: detected unsupported chip version 0x%x\n",
+> > +			 chip_version);
+> > +		return -ENODEV;
+> > +	}
+> > +
+> > +	sensor = kzalloc(sizeof(*sensor), GFP_KERNEL);
+> > +	if (sensor == NULL)
+> > +		return -ENOMEM;
+> > +
+> > +	sensor->frame_interval.numerator = 1;
+> > +	sensor->frame_interval.denominator = 30;
+> > +
+> > +	sensor->crop.left = 416;
+> > +	sensor->crop.top = 360;
+> > +	sensor->crop.width = 640;
+> > +	sensor->crop.height = 480;
+> > +
+> > +	sensor->format.width = sensor->crop.width;
+> > +	sensor->format.height = sensor->crop.height;
+> > +	sensor->format.code = V4L2_MBUS_FMT_Y8_1X8;
+> > +	sensor->format.field = V4L2_FIELD_NONE;
+> > +	sensor->format.colorspace = V4L2_COLORSPACE_SRGB;
+> > +
+> > +	v4l2_ctrl_handler_init(&sensor->ctrls, 4);
+> > +	
+> > +	sensor->gain = v4l2_ctrl_new_std(&sensor->ctrls, &mt9m032_ctrl_ops,
+> > +			  V4L2_CID_GAIN, 0, 127, 1, 64);
+> 
+> Shouldn't be necessary to have a gain field in sensor.
+
+You're right if i can use v4l2_ctrl_handler_setup.
+> 
+> > +
+> > +	sensor->hflip = v4l2_ctrl_new_std(&sensor->ctrls, &mt9m032_ctrl_ops,
+> > +			  V4L2_CID_HFLIP, 0, 1, 1, 0);
+> > +	sensor->vflip = v4l2_ctrl_new_std(&sensor->ctrls, &mt9m032_ctrl_ops,
+> > +			  V4L2_CID_VFLIP, 0, 1, 1, 0);
+> 
+> Since these two are set together you should make a control cluster of these.
+> That way they are always handled atomically. It's not strictly needed in this
+> case, but it makes it explicit that these are a unit.
+
+I'd rather keep it as seperate controls because i don't need the features of a
+control cluster here. I don't think it would make much difference either way.
+
+> 
+> > +	sensor->exposure = v4l2_ctrl_new_std(&sensor->ctrls, &mt9m032_ctrl_ops,
+> > +			  V4L2_CID_EXPOSURE, 0, 8000, 1, 1700);    /* 1.7ms */
+> 
+> Shouldn't be necessary to have an exposure field in sensor.
+
+dito.
+
+> 
+> I'm missing error checking here. Usually you have to check sensors->ctrls.error
+> in case something failed in the preceding sequence. On error you have to free
+> the control handler (v4l2_ctrl_handler_free()).
+
+Yes, i didn't know about the error handling. 
+
+> 
+> > +
+> > +	v4l2_i2c_subdev_init(&sensor->subdev, client, &mt9m032_ops);
+> > +	sensor->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+> > +	sensor->subdev.ctrl_handler = &sensor->ctrls;
+> > +
+> > +	sensor->pad.flags = MEDIA_PAD_FLAG_OUTPUT;
+> > +	ret = media_entity_init(&sensor->subdev.entity, 1, &sensor->pad, 0);
+> > +	if (ret < 0)
+> > +		kfree(sensor);
+> > +
+> > +	return ret;
+> > +}
+> > +
+> > +static int mt9m032_remove(struct i2c_client *client)
+> > +{
+> > +	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
+> > +	struct mt9m032 *sensor = to_mt9m032(subdev);
+> > +
+> > +	v4l2_device_unregister_subdev(&sensor->subdev);
+> > +	media_entity_cleanup(&sensor->subdev.entity);
+> 
+> v4l2_ctrl_handler_free() isn't called!
+
+oops.
+
+> 
+> > +	kfree(sensor);
+> > +	return 0;
+> > +}
+> > +
+> > +static const struct i2c_device_id mt9m032_id_table[] = {
+> > +	{MT9M032_NAME, 0},
+> > +	{}
+> > +};
+> > +
+> > +MODULE_DEVICE_TABLE(i2c, mt9m032_id_table);
+> > +
+> > +static struct i2c_driver mt9m032_i2c_driver = {
+> > +	.driver = {
+> > +		   .name = MT9M032_NAME,
+> > +		   },
+> > +	.probe = mt9m032_probe,
+> > +	.remove = mt9m032_remove,
+> > +	.id_table = mt9m032_id_table,
+> > +};
+> > +
+> > +static int __init mt9m032_init(void)
+> > +{
+> > +	int rval;
+> > +
+> > +	rval = i2c_add_driver(&mt9m032_i2c_driver);
+> > +	if (rval)
+> > +		pr_err("%s: failed registering " MT9M032_NAME "\n", __func__);
+> > +
+> > +	return rval;
+> > +}
+> > +
+> > +static void mt9m032_exit(void)
+> > +{
+> > +	i2c_del_driver(&mt9m032_i2c_driver);
+> > +}
+> > +
+> > +module_init(mt9m032_init);
+> > +module_exit(mt9m032_exit);
+> > +
+> > +MODULE_AUTHOR("Martin Hostettler");
+> > +MODULE_DESCRIPTION("MT9M032 camera sensor driver");
+> > +MODULE_LICENSE("GPL v2");
+> > diff --git a/drivers/media/video/mt9m032.h b/drivers/media/video/mt9m032.h
+> > new file mode 100644
+> > index 0000000..a473af4
+> > --- /dev/null
+> > +++ b/drivers/media/video/mt9m032.h
+> > @@ -0,0 +1,38 @@
+> > +/*
+> > + * Driver for MT9M032 CMOS Image Sensor from Micron
+> > + *
+> > + * Copyright (C) 2010-2011 Lund Engineering
+> > + * Contact: Gil Lund <gwlund@lundeng.com>
+> > + * Author: Martin Hostettler <martin@neutronstar.dyndns.org>
+> > + *
+> > + * This program is free software; you can redistribute it and/or
+> > + * modify it under the terms of the GNU General Public License
+> > + * version 2 as published by the Free Software Foundation.
+> > + *
+> > + * This program is distributed in the hope that it will be useful, but
+> > + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> > + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> > + * General Public License for more details.
+> > + *
+> > + * You should have received a copy of the GNU General Public License
+> > + * along with this program; if not, write to the Free Software
+> > + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+> > + * 02110-1301 USA
+> > + *
+> > + */
+> > +
+> > +#ifndef MT9M032_H
+> > +#define MT9M032_H
+> > +
+> > +#define MT9M032_NAME		"mt9m032"
+> > +#define MT9M032_I2C_ADDR	(0xB8 >> 1)
+> > +
+> > +struct mt9m032_platform_data {
+> > +	u32 ext_clock;
+> > +	u32 pll_pre_div;
+> > +	u32 pll_mul;
+> > +	u32 pll_out_div;
+> > +	int invert_pixclock;
+> > +
+> > +};
+> > +#endif /* MT9M032_H */
+> > diff --git a/include/media/v4l2-chip-ident.h b/include/media/v4l2-chip-ident.h
+> > index a7194fb..7d4e5c5 100644
+> > --- a/include/media/v4l2-chip-ident.h
+> > +++ b/include/media/v4l2-chip-ident.h
+> > @@ -283,6 +283,7 @@ enum {
+> >  	/* Micron CMOS sensor chips: 45000-45099 */
+> >  	V4L2_IDENT_MT9M001C12ST		= 45000,
+> >  	V4L2_IDENT_MT9M001C12STM	= 45005,
+> > +	V4L2_IDENT_MT9M032              = 45006,
+> >  	V4L2_IDENT_MT9M111		= 45007,
+> >  	V4L2_IDENT_MT9M112		= 45008,
+> >  	V4L2_IDENT_MT9V022IX7ATC	= 45010, /* No way to detect "normal" I77ATx */
+> > 
+> 
+> -- 
+> Hans Verkuil - video4linux developer - sponsored by Cisco
