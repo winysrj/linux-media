@@ -1,61 +1,166 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:41951 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932524Ab1AMDFX convert rfc822-to-8bit (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.171]:59668 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752314Ab1ASPqb convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Jan 2011 22:05:23 -0500
-Received: by wyb28 with SMTP id 28so1282323wyb.19
-        for <linux-media@vger.kernel.org>; Wed, 12 Jan 2011 19:05:22 -0800 (PST)
+	Wed, 19 Jan 2011 10:46:31 -0500
+Date: Wed, 19 Jan 2011 16:46:27 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Qing Xu <qingx@marvell.com>
+cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: [PATCH] [media] v4l: soc-camera: add enum-frame-size ioctl
+In-Reply-To: <7BAC95F5A7E67643AAFB2C31BEE662D014040BF547@SC-VEXCH2.marvell.com>
+Message-ID: <Pine.LNX.4.64.1101191639180.620@axis700.grange>
+References: <1295404602-9730-1-git-send-email-qingx@marvell.com>
+ <7BAC95F5A7E67643AAFB2C31BEE662D014040BF547@SC-VEXCH2.marvell.com>
 MIME-Version: 1.0
-In-Reply-To: <4D2DF7A9.2070103@redhat.com>
-References: <4D21FDC1.7000803@samsung.com> <4D2CBB3F.5050904@redhat.com>
- <000001cbb243$1051cb60$30f56220$%szyprowski@samsung.com> <4D2DF7A9.2070103@redhat.com>
-From: Pawel Osciak <pawel@osciak.com>
-Date: Wed, 12 Jan 2011 19:05:01 -0800
-Message-ID: <AANLkTikt69vKoiMkVjxi877GTLjwmbw=i07Abts6G+-9@mail.gmail.com>
-Subject: Re: [GIT PATCHES FOR 2.6.38] Videbuf2 framework, NOON010PC30 sensor
- driver and s5p-fimc updates
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"Andrzej Pietrasiewicz/Poland R&D Center-Linux/./????"
-	<andrzej.p@samsung.com>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=gb2312
 Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
+On Tue, 18 Jan 2011, Qing Xu wrote:
 
-On Wed, Jan 12, 2011 at 10:49, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
-> Em 12-01-2011 08:25, Marek Szyprowski escreveu:
->> Hello Mauro,
->>
->> I've rebased our fimc and saa patches onto http://linuxtv.org/git/mchehab/experimental.git
->> vb2_test branch.
->
-> Thanks!
->
-> As before, I'll be commenting the patches as I'll be seeing any issues.
->
->> Pawel Osciak (2):
->>       Fix mmap() example in the V4L2 API DocBook
->
-> In fact, the check for retval < 0 instead of retval == -1 is not a fix. According with
-> mmap man pages:
->        RETURN VALUE
->               On  success,  mmap() returns a pointer to the mapped area.  On error, the value MAP_FAILED (that is, (void *) -1) is returned, and errno
->               is set appropriately.  On success, munmap() returns 0, on failure -1, and errno is set (probably to EINVAL).
->
-> The change is not wrong, as -1 is lower than 0, but using -1 is more compliant with
-> libc. So, I'll be applying just the CodingStyle fixes on it.
+> Hi Guennadi,
+> 
+> Thanks for reviewing my patch! I update it again following your 
+> suggestion, please take your time to review it again, Thanks a lot!
+> 
+> -Qing
+> 
+> Email: qingx@marvell.com
+> Application Processor Systems Engineering,
+> Marvell Technology Group Ltd.
+> 
+> -----Original Message-----
+> From: Qing Xu [mailto:qingx@marvell.com]
+> Sent: 2011Äê1ÔÂ19ÈÕ 10:37
+> To: g.liakhovetski@gmx.de
+> Cc: linux-media@vger.kernel.org; Qing Xu
+> Subject: [PATCH] [media] v4l: soc-camera: add enum-frame-size ioctl
+> 
+> add vidioc_enum_framesizes implementation
+> 
+> Signed-off-by: Qing Xu <qingx@marvell.com>
+> ---
+>  drivers/media/video/soc_camera.c |   34 ++++++++++++++++++++++++++++++++++
+>  include/media/soc_camera.h       |    1 +
+>  include/media/v4l2-subdev.h      |    2 ++
+>  3 files changed, 37 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+> index 052bd6d..5e0aa9e 100644
+> --- a/drivers/media/video/soc_camera.c
+> +++ b/drivers/media/video/soc_camera.c
+> @@ -145,6 +145,15 @@ static int soc_camera_s_std(struct file *file, void *priv, v4l2_std_id *a)
+>         return v4l2_subdev_call(sd, core, s_std, *a);
+>  }
+> 
+> +static int soc_camera_enum_fsizes(struct file *file, void *fh,
+> +                                        struct v4l2_frmsizeenum *fsize)
+> +{
+> +       struct soc_camera_device *icd = file->private_data;
+> +       struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+> +
+> +       return ici->ops->enum_fsizes(icd, fsize);
+> +}
+> +
+>  static int soc_camera_reqbufs(struct file *file, void *priv,
+>                               struct v4l2_requestbuffers *p)
+>  {
+> @@ -1160,6 +1169,28 @@ static int default_s_parm(struct soc_camera_device *icd,
+>         return v4l2_subdev_call(sd, video, s_parm, parm);
+>  }
+> 
+> +static int default_enum_fsizes(struct soc_camera_device *icd,
+> +                         struct v4l2_frmsizeenum *fsize)
+> +{
+> +       int ret;
+> +       struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+> +       const struct soc_camera_format_xlate *xlate;
+> +       __u32 pixfmt = fsize->pixel_format;
+> +       struct v4l2_frmsizeenum *fsize_mbus = fsize;
 
-Sorry, but I think you got it wrong. The example is called "mmap()
-example". But I did not change return value checking of mmap() calls.
-I changed return value checking of ioctl() calls. So I believe the
-patch is correct.
+Please, test your patches before posting! The above should have been
 
++       struct v4l2_frmsizeenum *fsize_mbus = *fsize;
 
--- 
-Best regards,
-Pawel Osciak
+> +
+> +       xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
+> +       if (!xlate)
+> +               return -EINVAL;
+> +       /* map xlate-code to pixel_format, sensor only handle xlate-code*/
+> +       fsize_mbus->pixel_format = xlate->code;
+> +
+> +       ret = v4l2_subdev_call(sd, video, enum_mbus_fsizes, fsize_mbus);
+> +       if (ret < 0)
+> +               return ret;
+> +
+> +       return 0;
+
+Yes, almost. You're still missing one important point though: you're not 
+returning the result to the user... So, before your "return 0;" you have 
+to add two more lines:
+
++	*fsize = *fsize_mbus;
++	fsize->pixel_format = pixfmt;
+
+Thanks
+Guennadi
+
+> +}
+> +
+>  static void soc_camera_device_init(struct device *dev, void *pdata)
+>  {
+>         dev->platform_data      = pdata;
+> @@ -1195,6 +1226,8 @@ int soc_camera_host_register(struct soc_camera_host *ici)
+>                 ici->ops->set_parm = default_s_parm;
+>         if (!ici->ops->get_parm)
+>                 ici->ops->get_parm = default_g_parm;
+> +       if (!ici->ops->enum_fsizes)
+> +               ici->ops->enum_fsizes = default_enum_fsizes;
+> 
+>         mutex_lock(&list_lock);
+>         list_for_each_entry(ix, &hosts, list) {
+> @@ -1302,6 +1335,7 @@ static const struct v4l2_ioctl_ops soc_camera_ioctl_ops = {
+>         .vidioc_g_input          = soc_camera_g_input,
+>         .vidioc_s_input          = soc_camera_s_input,
+>         .vidioc_s_std            = soc_camera_s_std,
+> +       .vidioc_enum_framesizes  = soc_camera_enum_fsizes,
+>         .vidioc_reqbufs          = soc_camera_reqbufs,
+>         .vidioc_try_fmt_vid_cap  = soc_camera_try_fmt_vid_cap,
+>         .vidioc_querybuf         = soc_camera_querybuf,
+> diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+> index 86e3631..6e4800c 100644
+> --- a/include/media/soc_camera.h
+> +++ b/include/media/soc_camera.h
+> @@ -85,6 +85,7 @@ struct soc_camera_host_ops {
+>         int (*set_ctrl)(struct soc_camera_device *, struct v4l2_control *);
+>         int (*get_parm)(struct soc_camera_device *, struct v4l2_streamparm *);
+>         int (*set_parm)(struct soc_camera_device *, struct v4l2_streamparm *);
+> +       int (*enum_fsizes)(struct soc_camera_device *, struct v4l2_frmsizeenum *);
+>         unsigned int (*poll)(struct file *, poll_table *);
+>         const struct v4l2_queryctrl *controls;
+>         int num_controls;
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index b0316a7..0d482c9 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -275,6 +275,8 @@ struct v4l2_subdev_video_ops {
+>                         struct v4l2_dv_timings *timings);
+>         int (*enum_mbus_fmt)(struct v4l2_subdev *sd, unsigned int index,
+>                              enum v4l2_mbus_pixelcode *code);
+> +       int (*enum_mbus_fsizes)(struct v4l2_subdev *sd,
+> +                            struct v4l2_frmsizeenum *fsize);
+>         int (*g_mbus_fmt)(struct v4l2_subdev *sd,
+>                           struct v4l2_mbus_framefmt *fmt);
+>         int (*try_mbus_fmt)(struct v4l2_subdev *sd,
+> --
+> 1.6.3.3
+> 
+> 
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
