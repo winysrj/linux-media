@@ -1,253 +1,195 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.187]:53933 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750712Ab1AXUpl (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:36323 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753191Ab1ASKIe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Jan 2011 15:45:41 -0500
-Date: Mon, 24 Jan 2011 21:45:39 +0100
-From: martin@neutronstar.dyndns.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] v4l: Add driver for Micron MT9M032 camera sensor
-Message-ID: <20110124204539.GA16733@neutronstar.dyndns.org>
-References: <1295389122-30325-1-git-send-email-martin@neutronstar.dyndns.org> <20110120225607.GD13173@neutronstar.dyndns.org> <201101241232.12633.laurent.pinchart@ideasonboard.com>
+	Wed, 19 Jan 2011 05:08:34 -0500
+Message-ID: <4D36B81B.9000602@gmail.com>
+Date: Wed, 19 Jan 2011 11:08:27 +0100
+From: Patrik Jakobsson <patrik.r.jakobsson@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201101241232.12633.laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Rune Saetre <rune.saetre@aptomar.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: PROBLEM: kernel BUG at drivers/media/video/em28xx/em28xx-video.c:891
+References: <Pine.LNX.4.64.1101171420420.15860@pingle.local.rsnet> <Pine.LNX.4.64.1101180213130.15860@pingle.local.rsnet> <4D35BC4B.50108@gmail.com> <201101181730.52239.hverkuil@xs4all.nl>
+In-Reply-To: <201101181730.52239.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, Jan 24, 2011 at 12:32:12PM +0100, Laurent Pinchart wrote:
-> Hi Martin,
-> 
-> On Thursday 20 January 2011 23:56:07 martin@neutronstar.dyndns.org wrote:
-> 
-> [snip]
-> 
-> > >> +static unsigned long mt9m032_row_time(struct mt9m032 *sensor, int
-> > >> width) +{
-> > >> +	int effective_width;
-> > >> +	u64 ns;
-> > >> +	effective_width = width + 716; /* emperical value */
-> > > 
-> > > Where does it come from ?
-> > 
-> > Like the comment says, it's just what the hardware seems to do from
-> > measureing framerates. Sadly i couldn't find anything exact anywhere...
-> 
-> :-( Is the datasheet publicly available ?
+On 01/18/2011 05:30 PM, Hans Verkuil wrote:
+> On Tuesday, January 18, 2011 17:14:03 Patrik Jakobsson wrote:
+>> Hello Rune
+>>
+>> I'm trying to learn more about the linux kernel so I figured helping
+>> with bugs is a good way to get started.
+>>
+>> On 01/18/2011 02:20 AM, Rune Saetre wrote:
+>>> Hi
+>>>
+>>> The crash is not as consistent as I first believed. I have managed to
+>>> stop and start capturing several (but not many) times without the
+>>> driver crashing now.
+>>>
+>> To me it seems that the resource locking (functions res_get, res_check,
+>> res_locked and res_free) is subject to race condition.
+>>
+>> I looked at older versions of the code and found that there used to be
+>> locks around some of these pieces. It was removed in commit:
+>>
+>> 0499a5aa777f8e56e46df362f0bb9d9d116186f9 - V4L/DVB: em28xx: remove BKL
+>>
+>> Other V4L drivers use pretty much the same code (res_get, res_free,
+>> etc.) for resource locking but still have the mutex_lock/unlock around
+>> it. Does anyone know why this was removed?
+> Because now the video4linux core does the locking.
+>
+> Anyway, I'm pretty sure this is the bug that was fixed here:
+>
+> http://www.mail-archive.com/linuxtv-commits@linuxtv.org/msg09413.html
+>
+> This fix will be in 2.6.38.
+>
+> The change in the locking mechanism had nothing to do this particular bug.
+> It was just incorrect administration of resources.
+>
+> Regards,
+>
+> 	Hans
+>
+Thanks for the explanation. I see now how the V4L core locks around the 
+ioctls. The member unlocked_ioctl of struct v4l2_file_operations 
+confused me a little. Maybe serialized_ioctl would be a better name? Not 
+a big issue though.
 
-Only a very reduced version, that has nothing detailed afaik...
+Hopefully the patch fixes your problem Rune.
 
-> 
-> [snip]
-> 
-> > >> +	row_time = mt9m032_row_time(sensor, crop->width);
-> > >> +	do_div(ns, row_time);
-> > >> +
-> > >> +	additional_blanking_rows = ns - crop->height;
-> > >> +
-> > >> +	/* enforce minimal 1.6ms blanking time. */
-> > >> +	min_blank = 1600000 / row_time;
-> > >> +	if (additional_blanking_rows < min_blank)
-> > >> +		additional_blanking_rows = min_blank;
-> > > 
-> > > You can use the min() macro.
-> > 
-> > I'm pretty sure it's the max() one, but yes.
-> >
-> > >> +	dev_dbg(to_dev(sensor),
-> > >> +		"%s: V-blank %i\n", __func__, additional_blanking_rows);
-> > >> +	if (additional_blanking_rows > 0x7ff) {
-> > >> +		/* hardware limits 11 bit values */
-> > >> +		dev_warn(to_dev(sensor),
-> > >> +			"mt9m032: frame rate too low.\n");
-> > >> +		additional_blanking_rows = 0x7ff;
-> > >> +	}
-> > > 
-> > > Or rather the clamp() macro.
-> > 
-> > I think the error reporting reads more natual when doing the upper bound in
-> > the if.
-> 
-> I would just do
-> 
-> 	additional_blanking_rows = clamp(ns - crop->height, min_blank, 0x7ff);
-> 
-> I don't think there's a need for any error reporting here. What you must do 
-> instead is to limit the frame rate to hardware-acceptable values when the user 
-> tries to set it.
+Thanks
+Patrik Jakobsson
 
-Well when the value returned to userspace get gets clamped properly that
-should be enough, yes.
+>> Thanks
+>> Patrik Jakobsson
+>>> The trace logs also differ slightly. Here is the last one:
+>>>
+>>> Jan 18 02:12:08 mate kernel: [  117.219326] ------------[ cut here
+>>> ]------------
+>>> Jan 18 02:12:08 mate kernel: [  117.219412] kernel BUG at
+>>> drivers/media/video/em28xx/em28xx-video.c:891!
+>>> Jan 18 02:12:08 mate kernel: [  117.219507] invalid opcode: 0000 [#1]
+>>> PREEMPT SMP Jan 18 02:12:08 mate kernel: [  117.219597] last sysfs
+>>> file: /sys/devices/virtual/block/dm-8/stat
+>>> Jan 18 02:12:08 mate kernel: [  117.219681] CPU 1 Jan 18 02:12:08 mate
+>>> kernel: [  117.219714] Modules linked in: acpi_cpufreq mperf
+>>> cpufreq_powersave cpufreq_stats cpufreq_userspace cpufreq_conservative
+>>> ppdev lp nfsd lockd nfs_acl auth_rpcgss sunrpc exportfs binfmt_misc
+>>> fuse dummy bridge stp ext2 mbcache coretemp kvm_intel kvm loop
+>>> firewire_sbp2 tuner snd_hda_codec_realtek arc4 snd_hda_intel
+>>> snd_usb_audio snd_hda_codec ecb snd_seq_dummy snd_pcm_oss
+>>> snd_mixer_oss saa7115 snd_pcm ir_lirc_codec lirc_dev ir_sony_decoder
+>>> snd_hwdep snd_usbmidi_lib em28xx ir_jvc_decoder ir_rc6_decoder
+>>> snd_seq_oss snd_seq_midi snd_rawmidi r8169 ir_rc5_decoder mii
+>>> ir_nec_decoder snd_seq_midi_event i915 v4l2_common iwlagn iwlcore
+>>> snd_seq ir_core drm_kms_helper drm videobuf_vmalloc snd_timer
+>>> snd_seq_device videobuf_core pcmcia joydev mac80211 uvcvideo videodev
+>>> v4l1_compat v4l2_compat_ioctl32 tveeprom cfg80211 rfkill i2c_i801
+>>> i2c_algo_bit tpm_tis tpm yenta_socket snd intel_agp shpchp pci_hotplug
+>>> video output pcmcia_rsrc wmi pcmcia_core soundcore snd_page_alloc
+>>> parport_pc parport i2c_cor
+>>> Jan 18 02:12:08 mate kernel:  irda tpm_bios intel_gtt pcspkr crc_ccitt
+>>> psmouse evdev serio_raw container processor battery ac button reiserfs
+>>> dm_mod raid10 raid456 async_raid6_recov async_pq raid6_pq async_xor
+>>> xor async_memcpy async_tx raid1 raid0 multipath linear md_mod
+>>> ide_cd_mod cdrom sd_mod ata_generic pata_acpi ata_piix crc_t10dif
+>>> ide_pci_generic ahci libahci sdhci_pci firewire_ohci sdhci libata
+>>> scsi_mod piix ide_core firewire_core mmc_core uhci_hcd tg3 thermal
+>>> crc_itu_t thermal_sys ehci_hcd [last unloaded: scsi_wait_scan]
+>>> Jan 18 02:12:08 mate kernel: [  117.220091] Jan 18 02:12:08 mate
+>>> kernel: [  117.220091] Pid: 3154, comm: camera_factory_ Not tainted
+>>> 2.6.37-rst #1 Victoria        /TravelMate 6292 Jan 18 02:12:08 mate
+>>> kernel: [  117.220091] RIP: 0010:[<ffffffffa05a37f4>]
+>>> [<ffffffffa05a37f4>] res_free+0x14/0x49 [em28xx]
+>>> Jan 18 02:12:08 mate kernel: [  117.220091] RSP:
+>>> 0018:ffff8800794a1c48  EFLAGS: 00010297
+>>> Jan 18 02:12:08 mate kernel: [  117.220091] RAX: 0000000000000001 RBX:
+>>> ffff88007b94dc00 RCX: 0000000000000000
+>>> Jan 18 02:12:08 mate kernel: [  117.220091] RDX: 0000000000000000 RSI:
+>>> ffff8800378e7000 RDI: ffff88007b94dc00
+>>> Jan 18 02:12:09 mate kernel: [  117.220091] RBP: ffff8800378e7000 R08:
+>>> 0000000000000001 R09: 0000000000000c52
+>>> Jan 18 02:12:09 mate kernel: [  117.220091] R10: 0000000000000000 R11:
+>>> 0000000000000246 R12: 0000000000000000
+>>> Jan 18 02:12:09 mate kernel: [  117.220091] R13: ffffffffa05ab920 R14:
+>>> ffff88006dd123c0 R15: ffff88007b94dc00
+>>> Jan 18 02:12:09 mate kernel: [  117.220091] FS:
+>>> 00007f37105bb820(0000) GS:ffff88007f500000(0000) knlGS:0000000000000000
+>>> Jan 18 02:12:09 mate kernel: [  117.220091] CS:  0010 DS: 0000 ES:
+>>> 0000 CR0: 0000000080050033
+>>> Jan 18 02:12:09 mate kernel: [  117.220091] CR2: 000000000378b248 CR3:
+>>> 000000007a079000 CR4: 00000000000006e0
+>>> Jan 18 02:12:09 mate kernel: [  117.220091] DR0: 0000000000000000 DR1:
+>>> 0000000000000000 DR2: 0000000000000000
+>>> Jan 18 02:12:09 mate kernel: [  117.220091] DR3: 0000000000000000 DR6:
+>>> 00000000ffff0ff0 DR7: 0000000000000400
+>>> Jan 18 02:12:09 mate kernel: [  117.220091] Process camera_factory_
+>>> (pid: 3154, threadinfo ffff8800794a0000, task ffff880071f6d820)
+>>> Jan 18 02:12:09 mate kernel: [  117.220091] Stack:
+>>> Jan 18 02:12:09 mate kernel: [  117.220091]  ffff8800378e7000
+>>> ffffffffa05a46b9 ffff88007a2fd040 ffffffff81042cf3
+>>> Jan 18 02:12:09 mate kernel: [  117.220091]  0000000000000001
+>>> ffffffff00000001 ffffffff8103dadb 0000000000000001
+>>> Jan 18 02:12:09 mate kernel: [  117.220091]  ffff88007ba3e400
+>>> ffffffffa03302ff 00000000000135c0 00000000000135c0
+>>> Jan 18 02:12:09 mate kernel: [  117.220091] Call Trace:
+>>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffffa05a46b9>] ?
+>>> vidioc_streamoff+0xa6/0xb6 [em28xx]
+>>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff81042cf3>] ?
+>>> get_parent_ip+0x9/0x1b
+>>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff8103dadb>] ?
+>>> need_resched+0x1a/0x23
+>>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffffa03302ff>] ?
+>>> __video_do_ioctl+0x12e2/0x33a0 [videodev]
+>>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff8103a5fe>] ?
+>>> __wake_up_common+0x41/0x78
+>>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff8103da1b>] ?
+>>> __wake_up+0x35/0x46
+>>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff81042cf3>] ?
+>>> get_parent_ip+0x9/0x1b
+>>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff81044d80>] ?
+>>> add_preempt_count+0x9e/0xa0
+>>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff8132935c>] ?
+>>> _raw_spin_lock_irqsave+0x40/0x61
+>>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffffa03326f4>] ?
+>>> video_ioctl2+0x2ad/0x35d [videodev]
+>>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff81042cf3>] ?
+>>> get_parent_ip+0x9/0x1b
+>>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffffa032e342>] ?
+>>> v4l2_ioctl+0x74/0x113 [videodev]
+>>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff81106f51>] ?
+>>> do_vfs_ioctl+0x418/0x465
+>>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff81106fda>] ?
+>>> sys_ioctl+0x3c/0x5e
+>>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff81009c52>] ?
+>>> system_call_fastpath+0x16/0x1b
+>>> Jan 18 02:12:09 mate kernel: [  117.220091] Code: 03 4c 39 e3 0f 18 08
+>>> 75 d4 31 c0 eb 05 b8 ea ff ff ff 5b 5d 41 5c c3 48 83 ec 08 8b 57 0c
+>>> 89 f0 89 c1 48 8b 37 21 d1 39 c1 74 04<0f>  0b eb fe 89 c8 f7 d0 21 c2
+>>> 89 57 0c 21 86 d0 09 00 00 83 3d Jan 18 02:12:09 mate kernel: [
+>>> 117.220091] RIP  [<ffffffffa05a37f4>] res_free+0x14/0x49 [em28xx]
+>>> Jan 18 02:12:09 mate kernel: [  117.220091]  RSP<ffff8800794a1c48>
+>>> Jan 18 02:12:09 mate kernel: [  117.264998] ---[ end trace
+>>> 6d6576ecd99356c8 ]---
+>>>
+>>> I hope this helps.
+>>>
+>>> Regards
+>>> Rune
+>>>
+>>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
 
-
-> 
-> [snip]
-> 
-> > >> +static int update_formatter2(struct mt9m032 *sensor, bool streaming)
-> > >> +{
-> > >> +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
-> > >> +
-> > >> +	u16 reg_val =   0x1000   /* Dout enable */
-> > >> +		      | 0x0070;  /* parts reserved! */
-> > >> +				 /* possibly for changing to 14-bit mode */
-> > >> +
-> > >> +	if (streaming)
-> > >> +		reg_val |= 0x2000;   /* pixclock enable */
-> > > 
-> > > Please define constants at the beginning of the file (with the register
-> > > addresses) instead of using magic numbers.
-> > 
-> > I'm using defines for all register numbers where i know the function
-> > reasonably well and explicit comments or variable names for all the bits i
-> > set in these registers. (And each register is only set in one function)
-> > 
-> > I think that should be quite decent. Sadly from the material i have i have a
-> > lot of just undocumented pokeing at reserved bits to keep. For these cases i
-> > marked it in the code somehow are reserved and didn't do any defines for the
-> > register names because they would be useless.
-> 
-> How did you get the information in the first place ?
-
-Pseudo code for the setup tasks.
-
-
-> 
-> > Do you think this is acceptable? Or do i need to have a define for each
-> > known bit position the driver sets?
-> 
-> Please define them. See 
-> http://git.linuxtv.org/pinchartl/media.git?a=commitdiff;h=26e4a508f6e0fcb416e21bd29967ce6e2622abc7;hp=10affb3c5e0c8ae74461c1b6a4ca6ed5251c27d8#patch3
-> 
-
-Ok, i move everything where i'm confident that i know what it does to
-defines.
-
-> > What would i do with the undocumented bits?
-> > 
-> > >> +#define OFFSET_UNCHANGED	0xFFFFFFFF
-> > >> +static int mt9m032_set_pad_geom(struct mt9m032 *sensor,
-> > >> +				struct v4l2_subdev_fh *fh,
-> > >> +				u32 which, u32 pad,
-> > >> +				s32 top, s32 left, s32 width, s32 height)
-> > >> +{
-> > >> +	struct v4l2_mbus_framefmt tmp_format;
-> > >> +	struct v4l2_rect tmp_crop;
-> > >> +	struct v4l2_mbus_framefmt *format;
-> > >> +	struct v4l2_rect *crop;
-> > >> +
-> > >> +	if (pad != 0)
-> > >> +		return -EINVAL;
-> > >> +
-> > >> +	format = __mt9m032_get_pad_format(sensor, fh, which);
-> > >> +	crop = __mt9m032_get_pad_crop(sensor, fh, which);
-> > >> +	if (!format || !crop)
-> > >> +		return -EINVAL;
-> > >> +	if (which == V4L2_SUBDEV_FORMAT_ACTIVE) {
-> > >> +		tmp_crop = *crop;
-> > >> +		tmp_format = *format;
-> > >> +		format = &tmp_format;
-> > >> +		crop = &tmp_crop;
-> > >> +	}
-> > >> +
-> > >> +	if (top != OFFSET_UNCHANGED)
-> > >> +		crop->top = top & ~0x1;
-> > >> +	if (left != OFFSET_UNCHANGED)
-> > >> +		crop->left = left;
-> > >> +	crop->height = height;
-> > >> +	crop->width = width & ~1;
-> > >> +
-> > >> +	format->height = crop->height;
-> > >> +	format->width = crop->width;
-> > > 
-> > > This looks very weird to me. If your sensor doesn't include a scaler, it
-> > > should support a single fixed format. Crop will then be used to select
-> > > the crop rectangle. You're mixing the two for no obvious reason.
-> > 
-> > I think i have to have both size and crop writable. So i wrote the code to
-> > just have format width/height and crop width/height to be equal at all
-> > times. So actually almost all code for crop setting and format are shared.
-> > 
-> > As you wrote in your recent mail this api isn't really intuitive and i'm
-> > not really sure what's the right thing to do thus i just copied the
-> > semantics from an existing driver with similar capable hardware.
-> > 
-> > This code works nicely and media-ctl needs to be able to set the size so
-> > that's the most logical i could come up with...
-> 
-> See 
-> http://git.linuxtv.org/pinchartl/media.git?a=commitdiff;h=10affb3c5e0c8ae74461c1b6a4ca6ed5251c27d8 
-> for crop/format implementation for a sensor that supports cropping and 
-> binning.
-
-You basically say the set_format should just force the width and height of
-the format to the croping rect's width and height if the sensor doesn't
-support binning? That would of course be easy to implement.
-
-Btw, i noticed MT9T001 does the register writes on crop->which ==
-V4L2_SUBDEV_FORMAT_TRY in mt9t001_set_crop... Looks like a tiny bug.
-
-
-> 
-> > >> +static int mt9m032_set_gain(struct mt9m032 *sensor, s32 val)
-> > >> +{
-> > >> +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
-> > >> +	int digital_gain_val;	/* in 1/8th (0..127) */
-> > >> +	int analog_mul;		/* 0 or 1 */
-> > >> +	int analog_gain_val;	/* in 1/16th. (0..63) */
-> > >> +	u16 reg_val;
-> > >> +
-> > >> +	digital_gain_val = 51; /* from setup example */
-> > > 
-> > > So the digital gain isn't configurable ?
-> > 
-> > Right. That's all that was needed and i couldn't come up with a simple and
-> > nice way to map from one scalar to both digital and analog gain in a nice
-> > way.
-> 
-> What about 
-> http://git.linuxtv.org/pinchartl/media.git?a=commitdiff;h=10affb3c5e0c8ae74461c1b6a4ca6ed5251c27d8 
-> (search for V4L2_CID_GAIN) ?
-
-I though we need to have the analog gain configurable while using the
-digital gain too. That actually makes sense in a setting where the lower
-digital bits get thrown away on the data path (12bit sensor with just 8bits
-used). Ideally the driver would implement something that's general enough
-but it's hard to cram that into one scalar. 
-But maybe i can just use something similar to what's done for mt9t001...
-
-> 
-> > >> +	ret = mt9m032_write_reg(client, MT9M032_PLL_CONFIG1, reg_pll1);
-> > >> +	if (!ret)
-> > >> +		ret = mt9m032_write_reg(client, 0x10, 0x53); /* Select PLL as clock
-> > > 
-> > > No magic numbers please.
-> > 
-> > Undocumented magical values is all that i have here. I just know these
-> > values have to go there and are the comment text... Nothing hidden i have
-> > access too.
-> 
-> :-(
-> 
-> > >> +static int mt9m032_get_chip_ident(struct v4l2_subdev *subdev,
-> > >> +		       struct v4l2_dbg_chip_ident *chip)
-> > >> +{
-> > >> +	struct i2c_client *client = v4l2_get_subdevdata(subdev);
-> > >> +
-> > >> +	return v4l2_chip_ident_i2c_client(client, chip, V4L2_IDENT_MT9M032,
-> > >> 0); +}
-> > > 
-> > > Is g_chip_ident needed ?
-> > 
-> > Some comments in the headers said i should implement this...
-> 
-> See my answer to Hans about this. I don't think the operation is needed in 
-> this case.
-
-Ok, i dropped g_chip_ident, if it's needed maybe the framework can just do
-the right thing for i2c based sensors anyway.
-
-regards,
- - Martin Hostettler
