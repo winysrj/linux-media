@@ -1,66 +1,89 @@
-Return-path: <mchehab@gaivota>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1317 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750960Ab1ABLZk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Jan 2011 06:25:40 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: RFC: Move the deprecated et61x251 and sn9c102 to staging
-Date: Sun, 2 Jan 2011 12:25:21 +0100
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	"Jean-Francois Moine" <moinejf@free.fr>
-References: <201101012053.00372.hverkuil@xs4all.nl> <4D20565B.9090307@redhat.com>
-In-Reply-To: <4D20565B.9090307@redhat.com>
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2726 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753713Ab1ASLxk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Jan 2011 06:53:40 -0500
+Message-ID: <8544fb4aeb5aad63c78a4f9f9d2edcaf.squirrel@webmail.xs4all.nl>
+In-Reply-To: <4D36C40C.3080607@redhat.com>
+References: <201101190839.15175.hverkuil@xs4all.nl>
+    <4D36C40C.3080607@redhat.com>
+Date: Wed, 19 Jan 2011 12:53:27 +0100
+Subject: Re: video_device -> v4l2_devnode rename
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Mauro Carvalho Chehab" <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201101021225.22104.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On Sunday, January 02, 2011 11:41:31 Mauro Carvalho Chehab wrote:
-> Em 01-01-2011 17:53, Hans Verkuil escreveu:
-> > The subject says it all:
-> > 
-> > If there are no objections, then I propose that the deprecated et61x251 and
-> > sn9c102 are moved to staging for 2.6.38 and marked for removal in 2.6.39.
-> 
-> Nack.
-> 
-> There are several USB ID's on sn9c102 not covered by gspca driver yet.
+> Em 19-01-2011 05:39, Hans Verkuil escreveu:
+>> Hi Mauro,
+>>
+>> I saw that 2.6.38-rc1 was released. I also noticed that not all the
+>> patches
+>> that are in the for_2.6.38-rc1 branch are in 2.6.38-rc1.
+>
+> Yes. Unfortunately, when I was sending the pull request yesterday, I
+> noticed
+> an issue on my linux next tree, and I had to abort its send. After that,
+> Linus
+> released -rc1, before I have time to fix it.
+>
+> People should really send me patches for the next window before the start
+> of the
+> merge window, as doing it during the merge window makes my work harder and
+> may
+> cause troubles like that.
+>
+> The net result is that most patches were submitted in time and were
+> applied upstream.
+> Of course, there are usual fix patches sent during the merge window, that
+> will be sent
+> upstream anyway during the rc period.
 
-Why are these drivers marked deprecated then?
+Speaking of that, my prio patches and the dsbr100 patches (with the new
+v4l2_device release callback) can be moved to 2.6.39. If they can be
+merged fairly early on, then I can build on those.
 
-> It seems to me that et61x251 will also stay there for a long time, as there are
-> just two devices supported by gspca driver, while et61x251 supports 25.
-> 
-> Btw, we currently have a conflict with this USB ID:
-> 	USB_DEVICE(0x102c, 0x6151),
-> 
-> Both etoms and et61x251 support it, and there's no #if to disable it on one
-> driver, if both drivers are compiled. We need to disable it either at gspca_etoms
-> or at et61x251, in order to avoid users of having a random experience with this
-> device.
+> There are two patch series with new stuff submitted in time and merged on
+> my
+> tree that didn't reach upstream:
+> 	- vb2/s5p-fimc - they required me more time to review - I also spent 3
+> days testing it;
+> 	- ngene - there were a pending API discussion - I waited for a while to
+> see if
+> 	  there were some solution, before deciding to merge and move the
+> problematic
+> 	  code to staging.
+>
+> So, I'll need to dig into the pending patches, in order to send the ones
+> that
+> are acceptable after the end of the merge window, and letting the other
+> patches
+> for .39. I'll likely try to send the two above and the dib0700 patches on
+> a separate
+> pull request, but this pull request might be rejected.
+>
+>> We want to rename video_device to v4l2_devnode. So let me know when I
+>> can
+>> finalize my patches and, most importantly, against which branch.
+>
+> It is too late for that. As I said you, the better time for doing that is
+> during
+> the merge window. Linus said me that he don't want to make life easier for
+> function
+> rename. So, he won't be accepting such patch after the merge window.
 
-Surely such devices should be removed from et61x251 or sn9c102 as soon as they are
-added to gspca?
+You were going to tell me when you had finished merging so that I wouldn't
+aim at a moving target. This is very annoying.
 
 Regards,
 
-	Hans
-
-> > 
-> > If there are no objections, then I'll make a patch for this.
-> > 
-> > Regards,
-> > 
-> > 	Hans
-> > 
-> Cheers,
-> Mauro
-> 
+        Hans
 
 -- 
 Hans Verkuil - video4linux developer - sponsored by Cisco
+
