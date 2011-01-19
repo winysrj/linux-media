@@ -1,52 +1,43 @@
 Return-path: <mchehab@pedra>
-Received: from utm.netup.ru ([193.203.36.250]:54656 "EHLO utm.netup.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752746Ab1AZI4H (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Jan 2011 03:56:07 -0500
-Message-ID: <4D3FE13E.5090901@netup.ru>
-Date: Wed, 26 Jan 2011 08:54:22 +0000
-From: Abylay Ospan <aospan@netup.ru>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:41952 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751758Ab1ASQK3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Jan 2011 11:10:29 -0500
+Received: by ewy5 with SMTP id 5so505125ewy.19
+        for <linux-media@vger.kernel.org>; Wed, 19 Jan 2011 08:10:28 -0800 (PST)
 MIME-Version: 1.0
-To: "Igor M. Liplianin" <liplianin@me.by>
-CC: mchehab@infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH 1/1] Update stv0900 status when LOCK is missed
-References: <4d3f3764.857a0e0a.122c.478e@mx.google.com>
-In-Reply-To: <4d3f3764.857a0e0a.122c.478e@mx.google.com>
-Content-Type: text/plain; charset=KOI8-R; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <A64C85B6-F295-4AB9-B355-8D72BBC2F45C@wilsonet.com>
+References: <1295205650.2400.27.camel@localhost>
+	<1295234982.2407.38.camel@localhost>
+	<848D2317-613E-42B1-950D-A227CFF15C5B@wilsonet.com>
+	<1295439718.2093.17.camel@morgan.silverblock.net>
+	<A64C85B6-F295-4AB9-B355-8D72BBC2F45C@wilsonet.com>
+Date: Wed, 19 Jan 2011 11:10:27 -0500
+Message-ID: <AANLkTi=t5dah07C0QF=TK-sWK4AZVuTqaHT695OgAR_=@mail.gmail.com>
+Subject: Re: [GIT PATCHES for 2.6.38] Zilog Z8 IR unit fixes
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org,
+	Mike Isely <isely@isely.net>, Jarod Wilson <jarod@redhat.com>,
+	Jean Delvare <khali@linux-fr.org>, Janne Grunau <j@jannau.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Update stv0900 status when LOCK is missed
+On Wed, Jan 19, 2011 at 11:08 AM, Jarod Wilson <jarod@wilsonet.com> wrote:
+>> BTW, does your HVR-1950 have a blaster?
+>
+> Yes, it does, looks like a jack identical to the one on the hdpvr, which
+> is good, since I don't have the 1950's blaster cable.
 
-Signed-off-by: Abylay Ospan <aospan@netup.ru>
----
-  drivers/media/dvb/frontends/stv0900_core.c |    4 +++-
-  1 files changed, 3 insertions(+), 1 deletions(-)
+Correct - it uses the same cable as the HD-PVR.  The IR receiver on
+that device is built into the front of the unit though, unlike the PCI
+cards where it's on the cable.
 
-diff --git a/drivers/media/dvb/frontends/stv0900_core.c 
-b/drivers/media/dvb/frontends/stv0900_core.c
-index 4f5e7d3..34afcc6 100644
---- a/drivers/media/dvb/frontends/stv0900_core.c
-+++ b/drivers/media/dvb/frontends/stv0900_core.c
-@@ -1660,8 +1660,10 @@ static int stv0900_read_status(struct 
-dvb_frontend *fe, enum fe_status *status)
-                         | FE_HAS_VITERBI
-                         | FE_HAS_SYNC
-                         | FE_HAS_LOCK;
--       } else
-+       } else {
-+               *status = 0;
-                 dprintk("DEMOD LOCK FAIL\n");
-+       }
-
-         return 0;
-  }
---
-1.7.2.1.95.g3d045
+Devin
 
 -- 
-Abylai Ospan<aospan@netup.ru>
-NetUP Inc.
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
