@@ -1,129 +1,58 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59797 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753330Ab1A0Mat (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:44994 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754448Ab1ASQrb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Jan 2011 07:30:49 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Cc: sakari.ailus@maxwell.research.nokia.com,
-	broonie@opensource.wolfsonmicro.com, clemens@ladisch.de
-Subject: [PATCH v8 10/12] v4l: Add a media_device pointer to the v4l2_device structure
-Date: Thu, 27 Jan 2011 13:30:35 +0100
-Message-Id: <1296131437-29954-11-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1296131437-29954-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1296131437-29954-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Wed, 19 Jan 2011 11:47:31 -0500
+Date: Wed, 19 Jan 2011 11:46:39 -0500
+Subject: Re: [GIT PATCHES for 2.6.38] Zilog Z8 IR unit fixes
+Message-ID: <8jr3ertthab30fwv8vm30x7l.1295455556628@email.android.com>
+From: Andy Walls <awalls@md.metrocast.net>
+To: Mike Isely <isely@isely.net>, Jean Delvare <khali@linux-fr.org>
+Cc: linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
+	Janne Grunau <j@jannau.net>, Jarod Wilson <jarod@wilsonet.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The pointer will later be used to register/unregister media entities
-when registering/unregistering a v4l2_subdev or a video_device.
-
-With the introduction of media devices, device drivers need to store a
-pointer to a driver-specific structure in the device's drvdata.
-v4l2_device can't claim ownership of the drvdata anymore.
-
-To maintain compatibility with drivers that rely on v4l2_device storing
-a pointer to itself in the device's drvdata, v4l2_device_register() will
-keep doing so if the drvdata is NULL.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- Documentation/video4linux/v4l2-framework.txt |   17 ++++++++++++-----
- drivers/media/video/v4l2-device.c            |   13 +++++++------
- include/media/v4l2-device.h                  |    4 ++++
- 3 files changed, 23 insertions(+), 11 deletions(-)
-
-diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
-index 4db1def..aeb2a22 100644
---- a/Documentation/video4linux/v4l2-framework.txt
-+++ b/Documentation/video4linux/v4l2-framework.txt
-@@ -83,11 +83,17 @@ You must register the device instance:
- 
- 	v4l2_device_register(struct device *dev, struct v4l2_device *v4l2_dev);
- 
--Registration will initialize the v4l2_device struct and link dev->driver_data
--to v4l2_dev. If v4l2_dev->name is empty then it will be set to a value derived
--from dev (driver name followed by the bus_id, to be precise). If you set it
--up before calling v4l2_device_register then it will be untouched. If dev is
--NULL, then you *must* setup v4l2_dev->name before calling v4l2_device_register.
-+Registration will initialize the v4l2_device struct. If the dev->driver_data
-+field is NULL, it will be linked to v4l2_dev. Drivers that use the media
-+device framework in addition to the V4L2 framework need to set
-+dev->driver_data manually to point to the driver-specific device structure
-+that embed the struct v4l2_device instance. This is achieved by a
-+dev_set_drvdata() call before registering the V4L2 device instance.
-+
-+If v4l2_dev->name is empty then it will be set to a value derived from dev
-+(driver name followed by the bus_id, to be precise). If you set it up before
-+calling v4l2_device_register then it will be untouched. If dev is NULL, then
-+you *must* setup v4l2_dev->name before calling v4l2_device_register.
- 
- You can use v4l2_device_set_name() to set the name based on a driver name and
- a driver-global atomic_t instance. This will generate names like ivtv0, ivtv1,
-@@ -108,6 +114,7 @@ You unregister with:
- 
- 	v4l2_device_unregister(struct v4l2_device *v4l2_dev);
- 
-+If the dev->driver_data field points to v4l2_dev, it will be reset to NULL.
- Unregistering will also automatically unregister all subdevs from the device.
- 
- If you have a hotpluggable device (e.g. a USB device), then when a disconnect
-diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
-index 97e84df..5c16a12 100644
---- a/drivers/media/video/v4l2-device.c
-+++ b/drivers/media/video/v4l2-device.c
-@@ -47,9 +47,8 @@ int v4l2_device_register(struct device *dev, struct v4l2_device *v4l2_dev)
- 	if (!v4l2_dev->name[0])
- 		snprintf(v4l2_dev->name, sizeof(v4l2_dev->name), "%s %s",
- 			dev->driver->name, dev_name(dev));
--	if (dev_get_drvdata(dev))
--		v4l2_warn(v4l2_dev, "Non-NULL drvdata on register\n");
--	dev_set_drvdata(dev, v4l2_dev);
-+	if (!dev_get_drvdata(dev))
-+		dev_set_drvdata(dev, v4l2_dev);
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(v4l2_device_register);
-@@ -72,10 +71,12 @@ EXPORT_SYMBOL_GPL(v4l2_device_set_name);
- 
- void v4l2_device_disconnect(struct v4l2_device *v4l2_dev)
- {
--	if (v4l2_dev->dev) {
-+	if (v4l2_dev->dev == NULL)
-+		return;
-+
-+	if (dev_get_drvdata(v4l2_dev->dev) == v4l2_dev)
- 		dev_set_drvdata(v4l2_dev->dev, NULL);
--		v4l2_dev->dev = NULL;
--	}
-+	v4l2_dev->dev = NULL;
- }
- EXPORT_SYMBOL_GPL(v4l2_device_disconnect);
- 
-diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
-index b16f307..759db73 100644
---- a/include/media/v4l2-device.h
-+++ b/include/media/v4l2-device.h
-@@ -21,6 +21,7 @@
- #ifndef _V4L2_DEVICE_H
- #define _V4L2_DEVICE_H
- 
-+#include <media/media-device.h>
- #include <media/v4l2-subdev.h>
- 
- /* Each instance of a V4L2 device should create the v4l2_device struct,
-@@ -39,6 +40,9 @@ struct v4l2_device {
- 	   Note: dev might be NULL if there is no parent device
- 	   as is the case with e.g. ISA devices. */
- 	struct device *dev;
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	struct media_device *mdev;
-+#endif
- 	/* used to keep track of the registered subdevs */
- 	struct list_head subdevs;
- 	/* lock this struct; can be used by the driver as well if this
--- 
-1.7.3.4
+SmVhbiwKCkFzIE1pa2Ugbm90ZWQsICJ0cmFuc2NlaXZlciIgaXMgYSBjb250cmFjdGlvbiBvZiAi
+dHJhbnNtaXR0ZXItcmVjZWl2ZXIiLiAgQnV0IEkgd291bGRuJ3QgYmxhbWUgRW5nbGlzaCBzcGVh
+a2VycyBpbiBnZW5lcmFsIGZvciB0aGF0LCBqdXN0IEVuZ2xpc2ggc3BlYWtpbmcgZW5naW5lZXJz
+LiA7KQoKRW5nbGlzaCBzcGVha2luZyBlbmdpbmVlcnMgKGxpa2VseSkgYWxzbyBvcmlnbmF0ZWQg
+dXNlIG9mIHRoZSAieCIgYXMgc2hvcnRoYW5kIGZvciAidHJhbnMtIiBhbmQgImNyeXMtIi4KCiJU
+cmFuc2NlaXZlcl9sb2NrIiB3YXMgaW50ZW5kZWQgdG8gbWVhbiBhIGxvY2sgcHJvdGVjdGluZyBh
+Y2Nlc3MgdG8gYm90aCBwb3J0aW9ucyBvZiBhIGNoaXA6IHR4IGFuZCByeC4KCkknbSBzdGlsbCBt
+dWxsaW5nIGl0IGFsbCBvdmVyIHRob3VnaC4gIFNvbWUgY2hhbmdlIHdpbGwgYmUgbWFkZSB0byBJ
+Ul9pMmNfaW5pdF9kYXRhLiBJIGZvdW5kIEkgbmVlZCBzb21lIG1vcmUgdGltZSB0byBkZXNpZ24g
+ZXhhY3RseSB3aGF0IEkgbmVlZC4KClJlZ2FyZHMsCkFuZHkKCk1pa2UgSXNlbHkgPGlzZWx5QGlz
+ZWx5Lm5ldD4gd3JvdGU6Cgo+T24gV2VkLCAxOSBKYW4gMjAxMSwgSmVhbiBEZWx2YXJlIHdyb3Rl
+Ogo+Cj4+IEhpIEFuZHksCj4+IAo+PiBPbiBTdW4sIDE2IEphbiAyMDExIDE0OjIwOjQ5IC0wNTAw
+LCBBbmR5IFdhbGxzIHdyb3RlOgo+PiA+IDMuIEkgaGVhciBmcm9tIEplYW4sIG9yIHdob21ldmVy
+IHJlYWxseSBjYXJlcyBhYm91dCBpci1rYmQtaTJjLCBpZgo+PiA+IGFkZGluZyBzb21lIG5ldyBm
+aWVsZHMgZm9yIHN0cnVjdCBJUl9pMmNfaW5pdF9kYXRhIGlzIGFjY2VwdGFibGUuCj4+ID4gU3Bl
+Y2lmaWNhbGx5LCBJJ2QgbGlrZSB0byBhZGQgYSB0cmFuc2NlaXZlcl9sb2NrIG11dGV4LCBhIHRy
+YW5zY2VpdmVyCj4+ID4gcmVzZXQgY2FsbGJhY2ssIGFuZCBhIGRhdGEgcG9pbnRlciBmb3IgdGhh
+dCByZXNldCBjYWxsYmFjay4KPj4gPiAoT25seSBsaXJjX3ppbG9nIHdvdWxkIHVzZSB0aGUgcmVz
+ZXQgY2FsbGJhY2sgYW5kIGRhdGEgcG9pbnRlci4pCj4+IAo+PiBBZGRpbmcgZmllbGRzIHRvIHRo
+ZXNlIHN0cnVjdHVyZXMgaXMgcGVyZmVjdGx5IGZpbmUsIGlmIHlvdSBuZWVkIHRvIGRvCj4+IHRo
+YXQsIGp1c3QgZ28gb24uCj4+IAo+PiBCdXQgSSdtIGEgbGl0dGxlIGNvbmZ1c2VkIGFib3V0IHRo
+ZSBuYW1lcyB5b3UgY2hvc2UsCj4+ICJpcl90cmFuc2NlaXZlcl9sb2NrIiBhbmQgInRyYW5zY2Vp
+dmVyX2xvY2siLiBUaGVzZSBzZWVtIHRvbwo+PiBUWC1vcmllbnRlZCBmb3IgYSBtdXRleCB0aGF0
+IGlzIHN1cHBvc2VkIHRvIHN5bmNocm9uaXplIFRYIGFuZCBSWAo+PiBhY2Nlc3MuIEl0J3MgcGFy
+dGljdWxhcmx5IHN1cnByaXNpbmcgZm9yIHRoZSBpci1rYmQtaTJjIGRyaXZlciwgd2hpY2gKPj4g
+YXMgZmFyIGFzIEkga25vdyBvbmx5IHN1cHBvcnRzIFJYLiBUaGUgbmFtZSAieGN2cl9sb2NrIiB5
+b3UgdXNlZCBmb3IKPj4gbGlyY196aWxvZyBzZWVtcyBtb3JlIGFwcHJvcHJpYXRlLgo+Cj5BY3R1
+YWxseSB0aGUgdGVybSAidHJhbnNjZWl2ZXIiIGlzIG5vcm1hbGx5IHVuZGVyc3Rvb2QgdG8gbWVh
+biBib3RoIAo+ZGlyZWN0aW9ucy4gIE90aGVyd2lzZSBpdCB3b3VsZCBiZSAicmVjZWl2ZXIiIG9y
+ICJ0cmFuc21pdHRlciIuICAKPkFub3RoZXIgc2NyZXd5IGFzIGFzcGVjdCBvZiBlbmdsaXNoLCBh
+bmQgSSBzYXkgdGhpcyBhcyBhIG5hdGl2ZSBlbmdsaXNoIAo+c3BlYWtlci4gIFRoZSB0ZXJtICJ4
+Y3ZyIiBpcyB1c3VhbGx5IGp1c3QgY29uc2lkZXJlZCB0byBiZSBzaG9ydGhhbmQgZm9yIAo+InRy
+YW5zY2VpdmVyIi4KPgo+ICAtTWlrZQo+Cj4KPi0tIAo+Cj5NaWtlIElzZWx5Cj5pc2VseSBAIGlz
+ZWx5IChkb3QpIG5ldAo+UEdQOiAwMyA1NCA0MyA0RCA3NSBFNSBDQyA5MiA3MSAxNiAwMSBFMiBC
+NSBGNSBDMSBFOAo+LS0KPlRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBs
+aW5lICJ1bnN1YnNjcmliZSBsaW51eC1tZWRpYSIgaW4KPnRoZSBib2R5IG9mIGEgbWVzc2FnZSB0
+byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnCj5Nb3JlIG1ham9yZG9tbyBpbmZvIGF0ICBodHRw
+Oi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwK
 
