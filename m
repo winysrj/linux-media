@@ -1,38 +1,44 @@
 Return-path: <mchehab@pedra>
-Received: from mail3.lastar.com ([74.84.105.102]:22394 "EHLO mail.lastar.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S932356Ab1ALNt4 convert rfc822-to-8bit (ORCPT
+Received: from zone0.gcu-squad.org ([212.85.147.21]:21069 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754605Ab1ASPA2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Jan 2011 08:49:56 -0500
-From: Jason Gauthier <jgauthier@lastar.com>
-To: Jarod Wilson <jarod@wilsonet.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Janne Grunau <j@jannau.net>
-Subject: RE: Enable IR on hdpvr
-Date: Wed, 12 Jan 2011 13:49:52 +0000
-Message-ID: <65DE7931C559BF4DBEE42C3F8246249A0B6A54C7@V-ALBEXCHANGE.ctg.com>
-References: <65DE7931C559BF4DBEE42C3F8246249A0B686EB0@V-EXMAILBOX.ctg.com>
- <8AFBEFD7-69E3-4E71-B155-EA773C2FED43@wilsonet.com>
- <65DE7931C559BF4DBEE42C3F8246249A0B69B014@V-ALBEXCHANGE.ctg.com>
- <EC37FC85-82B2-48AE-BB94-64ED00E7647D@wilsonet.com>
- <93CE8497-D6AB-43BA-A239-EE32D51582FC@wilsonet.com>
-In-Reply-To: <93CE8497-D6AB-43BA-A239-EE32D51582FC@wilsonet.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	Wed, 19 Jan 2011 10:00:28 -0500
+Date: Wed, 19 Jan 2011 15:59:32 +0100
+From: Jean Delvare <khali@linux-fr.org>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: linux-media@vger.kernel.org, Mike Isely <isely@isely.net>,
+	Jarod Wilson <jarod@redhat.com>, Janne Grunau <j@jannau.net>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [GIT PATCHES for 2.6.38] Zilog Z8 IR unit fixes
+Message-ID: <20110119155932.08d080b7@endymion.delvare>
+In-Reply-To: <1295205650.2400.27.camel@localhost>
+References: <1295205650.2400.27.camel@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
->> 
->> Bah. Yeah, sorry, that wasn't the current patch in Fedora 14. This is:
->> 
->> http://wilsonet.com/jarod/lirc_misc/hdpvr-ir/hdpvr-ir-enable-2.patch
->> 
->> Its atop the F14 2.6.35.10 kernel, which has a fairly recent v4l/dvb 
->> backport on top of it, so it should be pretty close to matching the 
->> current v4l/dvb code...
+Hi Andy,
 
->With the help of Andy Walls and Jean Delvare, I think we've hashed out an updated patch that will work sitting atop the current v4l/dvb hdpvr code, but I'm only just now getting around to compile->testing it, and its past my bedtime, so it'll be tomorrow before I can do any sort of functional testing (but hey, due to the snow, I'll be working from home tomorrow, where my hdpvr happens to be...).
+On Sun, 16 Jan 2011 14:20:49 -0500, Andy Walls wrote:
+> 3. I hear from Jean, or whomever really cares about ir-kbd-i2c, if
+> adding some new fields for struct IR_i2c_init_data is acceptable.
+> Specifically, I'd like to add a transceiver_lock mutex, a transceiver
+> reset callback, and a data pointer for that reset callback.
+> (Only lirc_zilog would use the reset callback and data pointer.)
 
-I've got two hdpvrs.  Whenever you're ready to extend your testing, I'm happy to extend that functional testing.  I didn't get a chance to look at the FC14 patch yet (busy couple of days), but I will hold off now, anyway!
+Adding fields to these structures is perfectly fine, if you need to do
+that, just go on.
+
+But I'm a little confused about the names you chose,
+"ir_transceiver_lock" and "transceiver_lock". These seem too
+TX-oriented for a mutex that is supposed to synchronize TX and RX
+access. It's particularly surprising for the ir-kbd-i2c driver, which
+as far as I know only supports RX. The name "xcvr_lock" you used for
+lirc_zilog seems more appropriate.
+
+-- 
+Jean Delvare
