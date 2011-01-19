@@ -1,80 +1,79 @@
 Return-path: <mchehab@pedra>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:35213 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753794Ab1AZR7Z (ORCPT
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:60158 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754272Ab1ASRGu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Jan 2011 12:59:25 -0500
-Date: Wed, 26 Jan 2011 09:59:18 -0800
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mark Lord <kernel@teksavvy.com>,
-	Linux Kernel <linux-kernel@vger.kernel.org>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	Gerd Hoffmann <kraxel@redhat.com>
-Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils ?
-Message-ID: <20110126175918.GA29268@core.coreip.homeip.net>
-References: <20110125164803.GA19701@core.coreip.homeip.net>
- <AANLkTi=1Mh0JrYk5itvef7O7e7pR+YKos-w56W5q4B8B@mail.gmail.com>
- <20110125205453.GA19896@core.coreip.homeip.net>
- <4D3F4804.6070508@redhat.com>
- <4D3F4D11.9040302@teksavvy.com>
- <20110125232914.GA20130@core.coreip.homeip.net>
- <20110126020003.GA23085@core.coreip.homeip.net>
- <4D4004F9.6090200@redhat.com>
- <4D403693.50702@teksavvy.com>
- <4D405CAD.5040107@redhat.com>
-MIME-Version: 1.0
+	Wed, 19 Jan 2011 12:06:50 -0500
+Received: by qwa26 with SMTP id 26so1051498qwa.19
+        for <linux-media@vger.kernel.org>; Wed, 19 Jan 2011 09:06:49 -0800 (PST)
+References: <1295205650.2400.27.camel@localhost>  <1295234982.2407.38.camel@localhost>  <848D2317-613E-42B1-950D-A227CFF15C5B@wilsonet.com> <1295439718.2093.17.camel@morgan.silverblock.net> <alpine.DEB.1.10.1101190714570.5396@ivanova.isely.net> <399CBB46-ACEB-403F-BAD5-87FD286D057B@wilsonet.com> <alpine.DEB.1.10.1101191050560.22872@cnc.isely.net>
+In-Reply-To: <alpine.DEB.1.10.1101191050560.22872@cnc.isely.net>
+Mime-Version: 1.0 (Apple Message framework v1082)
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4D405CAD.5040107@redhat.com>
+Message-Id: <7E3BC710-2BEA-4492-9EF5-D7E531609202@wilsonet.com>
+Content-Transfer-Encoding: 7bit
+Cc: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org,
+	Jarod Wilson <jarod@redhat.com>,
+	Jean Delvare <khali@linux-fr.org>, Janne Grunau <j@jannau.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+From: Jarod Wilson <jarod@wilsonet.com>
+Subject: Re: [GIT PATCHES for 2.6.38] Zilog Z8 IR unit fixes
+Date: Wed, 19 Jan 2011 12:07:02 -0500
+To: Mike Isely <isely@isely.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Jan 26, 2011 at 03:41:01PM -0200, Mauro Carvalho Chehab wrote:
-> Em 26-01-2011 12:58, Mark Lord escreveu:
-> > On 11-01-26 06:26 AM, Mauro Carvalho Chehab wrote:
-> > ..
-> >> However, as said previously in this thread, input-kbd won't work with any
-> >> RC table that uses NEC extended (and there are several devices on the
-> >> current Kernels with those tables), since it only reads up to 16 bits.
-> >>
-> >> ir-keytable works with all RC tables, if you use a kernel equal or upper to
-> >> 2.6.36, due to the usage of the new ioctl's.
-> > 
-> > Is there a way to control the key repeat rate for a device
-> > controlled by ir-kbd-i2c ?
-> > 
-> > It appears to be limited to a max of between 4 and 5 repeats/sec somewhere,
-> > and I'd like to fix that.
-> 
-> It depends on what device do you have. Several I2C chips have the repeat
-> logic inside the I2C microcontroller PROM firmware. or at the remote
-> controller itself. So, there's nothing we can do to change it.
-> 
-> I have even one device here (I think it is a saa7134-based Kworld device) 
-> that doesn't send any repeat event at all for most keys (I think it only
-> sends repeat events for volume - Can't remember the specific details anymore -
-> too many devices!).
-> 
-> The devices that produce repeat events can be adjusted via the normal
-> input layer tools like kbdrate.
-> 
+On Jan 19, 2011, at 11:57 AM, Mike Isely wrote:
 
-Unfortunately kbdrate affects all connected devices and I am not sure if
-there is a utility allowing to set rate on individual devices. But here
-is the main part: 
+> On Wed, 19 Jan 2011, Jarod Wilson wrote:
+> 
+>> On Jan 19, 2011, at 8:20 AM, Mike Isely wrote:
+>> 
+>>> This probing behavior does not happen for HVR-1950 (or HVR-1900) since 
+>>> there's only one possible IR configuration there.
+>> 
+>> Just to be 100% clear, the device I'm poking it is definitely an
+>> HVR-1950, using ir_scheme PVR2_IR_SCHEME_ZILOG, so the probe bits
+>> shouldn't coming into play with anything I'm doing. Only just now
+>> started looking at the pvrusb2 code. Wow, there's a LOT of it. ;)
+> 
+> Yes, and yes :-)
+> 
+> The standalone driver version (which is loaded with ifdef's that allow 
+> compilation back to 2.6.11) makes the in-kernel driver look small by 
+> comparison.
+> 
+> There is a fair degree of compartmentalization between the modules.  
+> The roadmap to what it does for just HVR-1950 you can find by first 
+> looking at the declarations in pvrusb2-devattr.h and then the 
+> device-specific configurations in pvrusb2-devattr.c.  From there you can 
+> usually grep your way around to see how those configuration bits affect 
+> the rest of the driver.  Most of the really fun stuff is in 
+> pvrusb2-hdw.c.  Pretty much everything else supports or uses that 
+> central component.
+> 
+> The actual stuff which deals with I2C is not that large.  Beyond making 
+> the access possible at all, the driver largely just tries to stay out of 
+> the way of external logic that needs to reach the bus.
 
-static int input_set_rate(int fd,
-			  unsigned int delay, unsigned int period)
-{
-	unsigned int rep[2] = { delay, period };
+Cool, thanks much for the pointers, that does help. Based on just
+looking at pvrusb2-i2c-core.c's pvr2_i2c_register_ir() versus the
+hdpvr's register function, I think I already see how to make the
+IR part co-operate with lirc_zilog, and have hacked up a quick patch
+to test that theory out...
 
-	if (ioctl(fd, EVIOCSREP, rep) < 0) {
-		perror("evdev ioctl");
-		return -1;
-	}
-	return 0;
-}
+Basically, rather than calling i2c_new_device() independently for
+each address (0x70 and 0x71), call it a single time with an
+i2c_board_info struct that looks similar to what's in the hdpvr
+driver now. The -EIO I was seeing from lirc_zilog, from what I can
+recall, is identical to what was happening with the hdpvr prior to
+commit 37634d7308c5c1bdde03ab703a3cac3f0fb12453 (in media_tree.git).
+
+Should be able to test this after lunch.
 
 -- 
-Dmitry
+Jarod Wilson
+jarod@wilsonet.com
+
+
+
