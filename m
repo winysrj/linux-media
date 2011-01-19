@@ -1,83 +1,237 @@
 Return-path: <mchehab@pedra>
-Received: from ironport2-out.teksavvy.com ([206.248.154.183]:16672 "EHLO
-	ironport2-out.pppoe.ca" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753897Ab1AZTaU (ORCPT
+Received: from 84-16-211.226.3p.ntebredband.no ([84.16.211.226]:55709 "EHLO
+	mail.aptomar.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753908Ab1ASMGh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Jan 2011 14:30:20 -0500
-Message-ID: <4D40764B.5040306@teksavvy.com>
-Date: Wed, 26 Jan 2011 14:30:19 -0500
-From: Mark Lord <kernel@teksavvy.com>
+	Wed, 19 Jan 2011 07:06:37 -0500
+Date: Wed, 19 Jan 2011 12:47:02 +0100 (CET)
+From: Rune Saetre <rune.saetre@aptomar.com>
+To: linux-kernel@vger.kernel.org
+cc: Patrik Jakobsson <patrik.r.jakobsson@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Rune Saetre <rune.saetre@aptomar.com>,
+	linux-media@vger.kernel.org
+In-Reply-To: <4D36B81B.9000602@gmail.com>
+Message-ID: <Pine.LNX.4.64.1101191245150.15860@pingle.local.rsnet>
+References: <Pine.LNX.4.64.1101171420420.15860@pingle.local.rsnet>
+ <Pine.LNX.4.64.1101180213130.15860@pingle.local.rsnet> <4D35BC4B.50108@gmail.com>
+ <201101181730.52239.hverkuil@xs4all.nl> <4D36B81B.9000602@gmail.com>
 MIME-Version: 1.0
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Kernel <linux-kernel@vger.kernel.org>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	Gerd Hoffmann <kraxel@redhat.com>
-Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils
- ?
-References: <20110125164803.GA19701@core.coreip.homeip.net> <AANLkTi=1Mh0JrYk5itvef7O7e7pR+YKos-w56W5q4B8B@mail.gmail.com> <20110125205453.GA19896@core.coreip.homeip.net> <4D3F4804.6070508@redhat.com> <4D3F4D11.9040302@teksavvy.com> <20110125232914.GA20130@core.coreip.homeip.net> <20110126020003.GA23085@core.coreip.homeip.net> <4D4004F9.6090200@redhat.com> <4D403693.50702@teksavvy.com> <4D405CAD.5040107@redhat.com> <20110126175918.GA29268@core.coreip.homeip.net>
-In-Reply-To: <20110126175918.GA29268@core.coreip.homeip.net>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: MULTIPART/MIXED; BOUNDARY="279707905-1434398323-1295437622=:15860"
+Subject: Re: PROBLEM: kernel BUG at drivers/media/video/em28xx/em28xx-video.c:891
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 11-01-26 12:59 PM, Dmitry Torokhov wrote:
-> On Wed, Jan 26, 2011 at 03:41:01PM -0200, Mauro Carvalho Chehab wrote:
->> Em 26-01-2011 12:58, Mark Lord escreveu:
->>> On 11-01-26 06:26 AM, Mauro Carvalho Chehab wrote:
->>> ..
->>>> However, as said previously in this thread, input-kbd won't work with any
->>>> RC table that uses NEC extended (and there are several devices on the
->>>> current Kernels with those tables), since it only reads up to 16 bits.
->>>>
->>>> ir-keytable works with all RC tables, if you use a kernel equal or upper to
->>>> 2.6.36, due to the usage of the new ioctl's.
->>>
->>> Is there a way to control the key repeat rate for a device
->>> controlled by ir-kbd-i2c ?
->>>
->>> It appears to be limited to a max of between 4 and 5 repeats/sec somewhere,
->>> and I'd like to fix that.
->>
->> It depends on what device do you have. Several I2C chips have the repeat
->> logic inside the I2C microcontroller PROM firmware. or at the remote
->> controller itself. So, there's nothing we can do to change it.
->>
->> I have even one device here (I think it is a saa7134-based Kworld device) 
->> that doesn't send any repeat event at all for most keys (I think it only
->> sends repeat events for volume - Can't remember the specific details anymore -
->> too many devices!).
->>
->> The devices that produce repeat events can be adjusted via the normal
->> input layer tools like kbdrate.
->>
-> 
-> Unfortunately kbdrate affects all connected devices and I am not sure if
-> there is a utility allowing to set rate on individual devices. But here
-> is the main part: 
-> 
-> static int input_set_rate(int fd,
-> 			  unsigned int delay, unsigned int period)
-> {
-> 	unsigned int rep[2] = { delay, period };
-> 
-> 	if (ioctl(fd, EVIOCSREP, rep) < 0) {
-> 		perror("evdev ioctl");
-> 		return -1;
-> 	}
-> 	return 0;
-> }
-> 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Okay, if that's still a global in this day and age,
-then I suppose I'll just have to special-case it here in my copy.
+--279707905-1434398323-1295437622=:15860
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-The hardware itself is capable of much faster repeat rates,
-and prior to 2.6.36 I used to patch it for intelligent ramp-up
-on repeats inside ir-kbd-i2c.
+Hi
 
-As of 2.6.36 that stopped working, and is now limited somewhere
-to no more than one repeat every 210msecs.
+Yes. I will try it out and post a message as soon as I have some=20
+experience with it.
 
-Cheers
+Regards
+Rune
+
+--=20
+We are proud to present our new web-pages at www.aptomar.com
+Do not miss our video-window to the world; aptotube
+
+Rune S=E6tre <rune.saetre@aptomar.com>
+aptomar as
+
+Tel.=A0=A0 (+47) 40 00 34 03
+Mob.   (+47) 93 43 42 85
+Fax=A0=A0=A0 (+47) 73 51 00 84
+
+www.aptomar.com
+
+
+On Wed, 19 Jan 2011, Patrik Jakobsson wrote:
+
+> On 01/18/2011 05:30 PM, Hans Verkuil wrote:
+>> On Tuesday, January 18, 2011 17:14:03 Patrik Jakobsson wrote:
+>>> Hello Rune
+>>>=20
+>>> I'm trying to learn more about the linux kernel so I figured helping
+>>> with bugs is a good way to get started.
+>>>=20
+>>> On 01/18/2011 02:20 AM, Rune Saetre wrote:
+>>>> Hi
+>>>>=20
+>>>> The crash is not as consistent as I first believed. I have managed to
+>>>> stop and start capturing several (but not many) times without the
+>>>> driver crashing now.
+>>>>=20
+>>> To me it seems that the resource locking (functions res_get, res_check,
+>>> res_locked and res_free) is subject to race condition.
+>>>=20
+>>> I looked at older versions of the code and found that there used to be
+>>> locks around some of these pieces. It was removed in commit:
+>>>=20
+>>> 0499a5aa777f8e56e46df362f0bb9d9d116186f9 - V4L/DVB: em28xx: remove BKL
+>>>=20
+>>> Other V4L drivers use pretty much the same code (res_get, res_free,
+>>> etc.) for resource locking but still have the mutex_lock/unlock around
+>>> it. Does anyone know why this was removed?
+>> Because now the video4linux core does the locking.
+>>=20
+>> Anyway, I'm pretty sure this is the bug that was fixed here:
+>>=20
+>> http://www.mail-archive.com/linuxtv-commits@linuxtv.org/msg09413.html
+>>=20
+>> This fix will be in 2.6.38.
+>>=20
+>> The change in the locking mechanism had nothing to do this particular bu=
+g.
+>> It was just incorrect administration of resources.
+>>=20
+>> Regards,
+>>
+>> =09Hans
+>>=20
+> Thanks for the explanation. I see now how the V4L core locks around the=
+=20
+> ioctls. The member unlocked_ioctl of struct v4l2_file_operations confused=
+ me=20
+> a little. Maybe serialized_ioctl would be a better name? Not a big issue=
+=20
+> though.
+>
+> Hopefully the patch fixes your problem Rune.
+>
+> Thanks
+> Patrik Jakobsson
+>
+>>> Thanks
+>>> Patrik Jakobsson
+>>>> The trace logs also differ slightly. Here is the last one:
+>>>>=20
+>>>> Jan 18 02:12:08 mate kernel: [  117.219326] ------------[ cut here
+>>>> ]------------
+>>>> Jan 18 02:12:08 mate kernel: [  117.219412] kernel BUG at
+>>>> drivers/media/video/em28xx/em28xx-video.c:891!
+>>>> Jan 18 02:12:08 mate kernel: [  117.219507] invalid opcode: 0000 [#1]
+>>>> PREEMPT SMP Jan 18 02:12:08 mate kernel: [  117.219597] last sysfs
+>>>> file: /sys/devices/virtual/block/dm-8/stat
+>>>> Jan 18 02:12:08 mate kernel: [  117.219681] CPU 1 Jan 18 02:12:08 mate
+>>>> kernel: [  117.219714] Modules linked in: acpi_cpufreq mperf
+>>>> cpufreq_powersave cpufreq_stats cpufreq_userspace cpufreq_conservative
+>>>> ppdev lp nfsd lockd nfs_acl auth_rpcgss sunrpc exportfs binfmt_misc
+>>>> fuse dummy bridge stp ext2 mbcache coretemp kvm_intel kvm loop
+>>>> firewire_sbp2 tuner snd_hda_codec_realtek arc4 snd_hda_intel
+>>>> snd_usb_audio snd_hda_codec ecb snd_seq_dummy snd_pcm_oss
+>>>> snd_mixer_oss saa7115 snd_pcm ir_lirc_codec lirc_dev ir_sony_decoder
+>>>> snd_hwdep snd_usbmidi_lib em28xx ir_jvc_decoder ir_rc6_decoder
+>>>> snd_seq_oss snd_seq_midi snd_rawmidi r8169 ir_rc5_decoder mii
+>>>> ir_nec_decoder snd_seq_midi_event i915 v4l2_common iwlagn iwlcore
+>>>> snd_seq ir_core drm_kms_helper drm videobuf_vmalloc snd_timer
+>>>> snd_seq_device videobuf_core pcmcia joydev mac80211 uvcvideo videodev
+>>>> v4l1_compat v4l2_compat_ioctl32 tveeprom cfg80211 rfkill i2c_i801
+>>>> i2c_algo_bit tpm_tis tpm yenta_socket snd intel_agp shpchp pci_hotplug
+>>>> video output pcmcia_rsrc wmi pcmcia_core soundcore snd_page_alloc
+>>>> parport_pc parport i2c_cor
+>>>> Jan 18 02:12:08 mate kernel:  irda tpm_bios intel_gtt pcspkr crc_ccitt
+>>>> psmouse evdev serio_raw container processor battery ac button reiserfs
+>>>> dm_mod raid10 raid456 async_raid6_recov async_pq raid6_pq async_xor
+>>>> xor async_memcpy async_tx raid1 raid0 multipath linear md_mod
+>>>> ide_cd_mod cdrom sd_mod ata_generic pata_acpi ata_piix crc_t10dif
+>>>> ide_pci_generic ahci libahci sdhci_pci firewire_ohci sdhci libata
+>>>> scsi_mod piix ide_core firewire_core mmc_core uhci_hcd tg3 thermal
+>>>> crc_itu_t thermal_sys ehci_hcd [last unloaded: scsi_wait_scan]
+>>>> Jan 18 02:12:08 mate kernel: [  117.220091] Jan 18 02:12:08 mate
+>>>> kernel: [  117.220091] Pid: 3154, comm: camera_factory_ Not tainted
+>>>> 2.6.37-rst #1 Victoria        /TravelMate 6292 Jan 18 02:12:08 mate
+>>>> kernel: [  117.220091] RIP: 0010:[<ffffffffa05a37f4>]
+>>>> [<ffffffffa05a37f4>] res_free+0x14/0x49 [em28xx]
+>>>> Jan 18 02:12:08 mate kernel: [  117.220091] RSP:
+>>>> 0018:ffff8800794a1c48  EFLAGS: 00010297
+>>>> Jan 18 02:12:08 mate kernel: [  117.220091] RAX: 0000000000000001 RBX:
+>>>> ffff88007b94dc00 RCX: 0000000000000000
+>>>> Jan 18 02:12:08 mate kernel: [  117.220091] RDX: 0000000000000000 RSI:
+>>>> ffff8800378e7000 RDI: ffff88007b94dc00
+>>>> Jan 18 02:12:09 mate kernel: [  117.220091] RBP: ffff8800378e7000 R08:
+>>>> 0000000000000001 R09: 0000000000000c52
+>>>> Jan 18 02:12:09 mate kernel: [  117.220091] R10: 0000000000000000 R11:
+>>>> 0000000000000246 R12: 0000000000000000
+>>>> Jan 18 02:12:09 mate kernel: [  117.220091] R13: ffffffffa05ab920 R14:
+>>>> ffff88006dd123c0 R15: ffff88007b94dc00
+>>>> Jan 18 02:12:09 mate kernel: [  117.220091] FS:
+>>>> 00007f37105bb820(0000) GS:ffff88007f500000(0000) knlGS:000000000000000=
+0
+>>>> Jan 18 02:12:09 mate kernel: [  117.220091] CS:  0010 DS: 0000 ES:
+>>>> 0000 CR0: 0000000080050033
+>>>> Jan 18 02:12:09 mate kernel: [  117.220091] CR2: 000000000378b248 CR3:
+>>>> 000000007a079000 CR4: 00000000000006e0
+>>>> Jan 18 02:12:09 mate kernel: [  117.220091] DR0: 0000000000000000 DR1:
+>>>> 0000000000000000 DR2: 0000000000000000
+>>>> Jan 18 02:12:09 mate kernel: [  117.220091] DR3: 0000000000000000 DR6:
+>>>> 00000000ffff0ff0 DR7: 0000000000000400
+>>>> Jan 18 02:12:09 mate kernel: [  117.220091] Process camera_factory_
+>>>> (pid: 3154, threadinfo ffff8800794a0000, task ffff880071f6d820)
+>>>> Jan 18 02:12:09 mate kernel: [  117.220091] Stack:
+>>>> Jan 18 02:12:09 mate kernel: [  117.220091]  ffff8800378e7000
+>>>> ffffffffa05a46b9 ffff88007a2fd040 ffffffff81042cf3
+>>>> Jan 18 02:12:09 mate kernel: [  117.220091]  0000000000000001
+>>>> ffffffff00000001 ffffffff8103dadb 0000000000000001
+>>>> Jan 18 02:12:09 mate kernel: [  117.220091]  ffff88007ba3e400
+>>>> ffffffffa03302ff 00000000000135c0 00000000000135c0
+>>>> Jan 18 02:12:09 mate kernel: [  117.220091] Call Trace:
+>>>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffffa05a46b9>] ?
+>>>> vidioc_streamoff+0xa6/0xb6 [em28xx]
+>>>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff81042cf3>] ?
+>>>> get_parent_ip+0x9/0x1b
+>>>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff8103dadb>] ?
+>>>> need_resched+0x1a/0x23
+>>>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffffa03302ff>] ?
+>>>> __video_do_ioctl+0x12e2/0x33a0 [videodev]
+>>>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff8103a5fe>] ?
+>>>> __wake_up_common+0x41/0x78
+>>>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff8103da1b>] ?
+>>>> __wake_up+0x35/0x46
+>>>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff81042cf3>] ?
+>>>> get_parent_ip+0x9/0x1b
+>>>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff81044d80>] ?
+>>>> add_preempt_count+0x9e/0xa0
+>>>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff8132935c>] ?
+>>>> _raw_spin_lock_irqsave+0x40/0x61
+>>>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffffa03326f4>] ?
+>>>> video_ioctl2+0x2ad/0x35d [videodev]
+>>>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff81042cf3>] ?
+>>>> get_parent_ip+0x9/0x1b
+>>>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffffa032e342>] ?
+>>>> v4l2_ioctl+0x74/0x113 [videodev]
+>>>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff81106f51>] ?
+>>>> do_vfs_ioctl+0x418/0x465
+>>>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff81106fda>] ?
+>>>> sys_ioctl+0x3c/0x5e
+>>>> Jan 18 02:12:09 mate kernel: [  117.220091]  [<ffffffff81009c52>] ?
+>>>> system_call_fastpath+0x16/0x1b
+>>>> Jan 18 02:12:09 mate kernel: [  117.220091] Code: 03 4c 39 e3 0f 18 08
+>>>> 75 d4 31 c0 eb 05 b8 ea ff ff ff 5b 5d 41 5c c3 48 83 ec 08 8b 57 0c
+>>>> 89 f0 89 c1 48 8b 37 21 d1 39 c1 74 04<0f>  0b eb fe 89 c8 f7 d0 21 c2
+>>>> 89 57 0c 21 86 d0 09 00 00 83 3d Jan 18 02:12:09 mate kernel: [
+>>>> 117.220091] RIP  [<ffffffffa05a37f4>] res_free+0x14/0x49 [em28xx]
+>>>> Jan 18 02:12:09 mate kernel: [  117.220091]  RSP<ffff8800794a1c48>
+>>>> Jan 18 02:12:09 mate kernel: [  117.264998] ---[ end trace
+>>>> 6d6576ecd99356c8 ]---
+>>>>=20
+>>>> I hope this helps.
+>>>>=20
+>>>> Regards
+>>>> Rune
+>>>>=20
+>>>>=20
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media" =
+in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>=20
+>
+>
+--279707905-1434398323-1295437622=:15860--
