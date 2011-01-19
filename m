@@ -1,77 +1,45 @@
 Return-path: <mchehab@pedra>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:39942 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753945Ab1AZSYX (ORCPT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:65157 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753030Ab1ASRW2 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Jan 2011 13:24:23 -0500
-Date: Wed, 26 Jan 2011 10:24:15 -0800
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Gerd Hoffmann <kraxel@redhat.com>, Mark Lord <kernel@teksavvy.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Linux Kernel <linux-kernel@vger.kernel.org>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils ?
-Message-ID: <20110126182415.GB29268@core.coreip.homeip.net>
-References: <20110125205453.GA19896@core.coreip.homeip.net>
- <4D3F4804.6070508@redhat.com>
- <4D3F4D11.9040302@teksavvy.com>
- <20110125232914.GA20130@core.coreip.homeip.net>
- <20110126020003.GA23085@core.coreip.homeip.net>
- <4D4004F9.6090200@redhat.com>
- <4D401CC5.4020000@redhat.com>
- <4D402D35.4090206@redhat.com>
- <20110126165132.GC29163@core.coreip.homeip.net>
- <4D4059E5.7050300@redhat.com>
+	Wed, 19 Jan 2011 12:22:28 -0500
+Received: by iyj18 with SMTP id 18so1052537iyj.19
+        for <linux-media@vger.kernel.org>; Wed, 19 Jan 2011 09:22:28 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4D4059E5.7050300@redhat.com>
+In-Reply-To: <AANLkTi=59dytuN25H3DVRrPAB8GAcn6N88Ji_dkorsGB@mail.gmail.com>
+References: <20101207190753.GA21666@io.frii.com>
+	<20110110021439.GA70495@io.frii.com>
+	<AANLkTingFP9ajGckXXy2wScHHGxhz+KTyOBa-mE7SUs5@mail.gmail.com>
+	<AANLkTi=59dytuN25H3DVRrPAB8GAcn6N88Ji_dkorsGB@mail.gmail.com>
+Date: Wed, 19 Jan 2011 09:22:28 -0800
+Message-ID: <AANLkTi=FFV8CWrBU-20huQRDysTPWGaen2mtP2sBQJef@mail.gmail.com>
+Subject: Re: DViCO FusionHDTV7 Dual Express I2C write failed
+From: VDR User <user.vdr@gmail.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Mark Zimmerman <markzimm@frii.com>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Jan 26, 2011 at 03:29:09PM -0200, Mauro Carvalho Chehab wrote:
-> Em 26-01-2011 14:51, Dmitry Torokhov escreveu:
-> > On Wed, Jan 26, 2011 at 12:18:29PM -0200, Mauro Carvalho Chehab wrote:
-> >> diff --git a/input.c b/input.c
-> >> index d57a31e..a9bd5e8 100644
-> >> --- a/input.c
-> >> +++ b/input.c
-> >> @@ -101,8 +101,8 @@ int device_open(int nr, int verbose)
-> >>  		close(fd);
-> >>  		return -1;
-> >>  	}
-> >> -	if (EV_VERSION != version) {
-> >> -		fprintf(stderr, "protocol version mismatch (expected %d, got %d)\n",
-> >> +	if (EV_VERSION > version) {
-> >> +		fprintf(stderr, "protocol version mismatch (expected >= %d, got %d)\n",
-> >>  			EV_VERSION, version);
-> > 
-> > Please do not do this. It causes check to "float" depending on the
-> > version of kernel headers it was compiled against.
-> > 
-> > The check should be against concrete version (0x10000 in this case).
-> 
-> The idea here is to not prevent it to load if version is 0x10001.
-> This is actually the only change that it is really needed (after applying
-> your KEY_RESERVED patch to 2.6.37) for the tool to work. Reverting it causes
-> the error:
+On Wed, Jan 19, 2011 at 8:13 AM, Devin Heitmueller
+<dheitmueller@kernellabs.com> wrote:
+>> Can someone please look into this and possibly provide a fix for the
+>> bug?  I'm surprised it hasn't happened yet after all this time but
+>> maybe it's been forgotten the bug existed.
+>
+> You shouldn't be too surprised.  In many cases device support for more
+> obscure products comes not from the maintainer of the actual driver
+> but rather from some random user who hacked in an additional board
+> profile (in many cases, not doing it correctly but good enough so it
+> "works for them").  In cases like that, the changes get committed, the
+> original submitter disappears, and then when things break there is
+> nobody with the appropriate knowledge and the hardware to debug the
+> problem.
 
-You did not understand. When comparing against EV_VERSION, if you
-compile on 2.6.32 you are comparing with 0x10000. If you are compiling
-on 2.6.37 you are comparing with 0x10001 as EV_VERSION value changes
-(not the value returned by EVIOCGVERSION, the value of the _define_
-itself).
+Good point.  My understanding is that this is a fairly common card so
+I wouldn't think that would be the case.  At any rate, hopefully we'll
+be able to narrow down the cause of the problem and get it fixed.
 
-The proper check is:
-
-#define EVDEV_MIN_VERSION 0x10000
-	if (version < EVDEV_MIN_VERSION) {
-		fprintf(stderr,
-			"protocol version mismatch (need at least %d, got %d)\n",
-			EVDEV_MIN_VERSION, version);
-		...
-	}
-
--- 
-Dmitry
+Thanks.
