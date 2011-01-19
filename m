@@ -1,72 +1,77 @@
 Return-path: <mchehab@pedra>
-Received: from bear.ext.ti.com ([192.94.94.41]:60641 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754606Ab1ANNaV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Jan 2011 08:30:21 -0500
-From: Manjunath Hadli <manjunath.hadli@ti.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Kevin Hilman <khilman@deeprootsystems.com>
-Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: [PATCH v14 5/6] davinci vpbe: Build infrastructure for VPBE driver
-Date: Fri, 14 Jan 2011 19:00:04 +0530
-Message-Id: <1295011804-548-1-git-send-email-manjunath.hadli@ti.com>
+Received: from gateway12.websitewelcome.com ([69.93.179.29]:56628 "HELO
+	gateway12.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751714Ab1ASAjs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Jan 2011 19:39:48 -0500
+Received: from tman103 by gator1257.hostgator.com with local (Exim 4.69)
+	(envelope-from <bounce@leadsystem103.info>)
+	id 1PfLw3-0004cl-8K
+	for linux-media@vger.kernel.org; Tue, 18 Jan 2011 18:30:03 -0600
+To: linux-media@vger.kernel.org
+Subject: Another New Member Makes $7,500 In 1 WEEK!
+From: Tom VanBuren <tom@leadsystem103.info>
+Reply-To: tom@leadsystem103.info
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Message-Id: <E1PfLw3-0004cl-8K@gator1257.hostgator.com>
+Date: Tue, 18 Jan 2011 18:30:03 -0600
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This patch adds the build infra-structure for Davinci
-VPBE dislay driver.
+Hello,
 
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/video/davinci/Kconfig  |   22 ++++++++++++++++++++++
- drivers/media/video/davinci/Makefile |    2 ++
- 2 files changed, 24 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/video/davinci/Kconfig b/drivers/media/video/davinci/Kconfig
-index 6b19540..a7f11e7 100644
---- a/drivers/media/video/davinci/Kconfig
-+++ b/drivers/media/video/davinci/Kconfig
-@@ -91,3 +91,25 @@ config VIDEO_ISIF
- 
- 	   To compile this driver as a module, choose M here: the
- 	   module will be called vpfe.
-+
-+config VIDEO_DM644X_VPBE
-+	tristate "DM644X VPBE HW module"
-+	select VIDEO_VPSS_SYSTEM
-+	select VIDEOBUF_DMA_CONTIG
-+	help
-+	    Enables VPBE modules used for display on a DM644x
-+	    SoC.
-+
-+	    To compile this driver as a module, choose M here: the
-+	    module will be called vpbe.
-+
-+
-+config VIDEO_VPBE_DISPLAY
-+	tristate "VPBE V4L2 Display driver"
-+	select VIDEO_DM644X_VPBE
-+	default y
-+	help
-+	    Enables VPBE V4L2 Display driver on a DMXXX device
-+
-+	    To compile this driver as a module, choose M here: the
-+	    module will be called vpbe_display.
-diff --git a/drivers/media/video/davinci/Makefile b/drivers/media/video/davinci/Makefile
-index a379557..ae7dafb 100644
---- a/drivers/media/video/davinci/Makefile
-+++ b/drivers/media/video/davinci/Makefile
-@@ -16,3 +16,5 @@ obj-$(CONFIG_VIDEO_VPFE_CAPTURE) += vpfe_capture.o
- obj-$(CONFIG_VIDEO_DM6446_CCDC) += dm644x_ccdc.o
- obj-$(CONFIG_VIDEO_DM355_CCDC) += dm355_ccdc.o
- obj-$(CONFIG_VIDEO_ISIF) += isif.o
-+obj-$(CONFIG_VIDEO_DM644X_VPBE) += vpbe.o vpbe_osd.o vpbe_venc.o
-+obj-$(CONFIG_VIDEO_VPBE_DISPLAY) += vpbe_display.o
--- 
-1.6.2.4
+
+Yes It is True!!!
+
+
+
+Would you like a little
+proof that this business works?
+
+
+We show you our automated, turnkey,
+never chase another lead system.
+
+
+One new member just received
+$7,500 using this simple formula.
+$7,500 in just one week!
+
+
+Imagine how much you can earn in a month.
+
+
+"All I did was follow the simple formula" he said!
+
+
+http://www.dailycashatm.com 
+
+
+
+With this system I DO NOT chase
+anybody and you won't have
+to either...
+
+
+Call me with any questions.
+
+
+Sincerely,
+
+
+Tom VanBuren
+
+
+"The Work At Home Expert"
+
+
+
+363 Harbor Ct Holland,MI 49424
+
+
+To be removed just reply with "REMOVE"
+
 
