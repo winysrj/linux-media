@@ -1,510 +1,346 @@
 Return-path: <mchehab@pedra>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:46071 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752527Ab1ATBoX (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.8]:61684 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753323Ab1ATW4K (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Jan 2011 20:44:23 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from eu_spt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LFA00A9GSTW5S50@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 20 Jan 2011 01:44:21 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LFA00NJKSTW0Z@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 20 Jan 2011 01:44:20 +0000 (GMT)
-Date: Thu, 20 Jan 2011 02:44:01 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 2/3] sr030pc30: Use the control framework
-In-reply-to: <1295487842-23410-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, m.szyprowski@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <1295487842-23410-3-git-send-email-s.nawrocki@samsung.com>
-References: <1295487842-23410-1-git-send-email-s.nawrocki@samsung.com>
+	Thu, 20 Jan 2011 17:56:10 -0500
+Date: Thu, 20 Jan 2011 23:56:07 +0100
+From: martin@neutronstar.dyndns.org
+To: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH] v4l: Add driver for Micron MT9M032 camera sensor
+Message-ID: <20110120225607.GD13173@neutronstar.dyndns.org>
+References: <1295389122-30325-1-git-send-email-martin@neutronstar.dyndns.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1295389122-30325-1-git-send-email-martin@neutronstar.dyndns.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Implement controls using the control framework.
-Add horizontal/vertical flip controls, minor cleanup.
+Hi Laurent,
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/sr030pc30.c |  311 +++++++++++++++++----------------------
- 1 files changed, 132 insertions(+), 179 deletions(-)
+>> +
+>> +#define MT9M032_CHIP_VERSION		0x00
+>> +#define MT9M032_ROW_START		0x01
+>> +#define MT9M032_COLUMN_START		0x02
+>> +#define MT9M032_ROW_SIZE		0x03
+>> +#define MT9M032_COLUMN_SIZE		0x04
+>> +#define MT9M032_HBLANK			0x05
+>> +#define MT9M032_VBLANK			0x06
+>> +#define MT9M032_SHUTTER_WIDTH_HIGH	0x08
+>> +#define MT9M032_SHUTTER_WIDTH_LOW	0x09
+>> +#define MT9M032_PIX_CLK_CTRL		0x0A
+>
+> Kernel code usually uses lowercase hex constants.
+ok.
 
-diff --git a/drivers/media/video/sr030pc30.c b/drivers/media/video/sr030pc30.c
-index e1eced1..1a195f0 100644
---- a/drivers/media/video/sr030pc30.c
-+++ b/drivers/media/video/sr030pc30.c
-@@ -19,6 +19,8 @@
- #include <linux/i2c.h>
- #include <linux/delay.h>
- #include <linux/slab.h>
-+#include <media/v4l2-chip-ident.h>
-+#include <media/v4l2-ctrls.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-subdev.h>
- #include <media/v4l2-mediabus.h>
-@@ -141,17 +143,24 @@ module_param(debug, int, 0644);
- 
- struct sr030pc30_info {
- 	struct v4l2_subdev sd;
-+	struct v4l2_ctrl_handler hdl;
-+	struct {
-+		/* exposure/auto-exposure cluster */
-+		struct v4l2_ctrl *autoexposure;
-+		struct v4l2_ctrl *exposure;
-+	};
-+	struct {
-+		/* blue/red/autowhitebalance cluster */
-+		struct v4l2_ctrl *autowb;
-+		struct v4l2_ctrl *blue;
-+		struct v4l2_ctrl *red;
-+	};
-+	struct v4l2_ctrl *hflip;
-+	struct v4l2_ctrl *vflip;
- 	const struct sr030pc30_platform_data *pdata;
- 	const struct sr030pc30_format *curr_fmt;
- 	const struct sr030pc30_frmsize *curr_win;
--	unsigned int auto_wb:1;
--	unsigned int auto_exp:1;
--	unsigned int hflip:1;
--	unsigned int vflip:1;
- 	unsigned int sleep:1;
--	unsigned int exposure;
--	u8 blue_balance;
--	u8 red_balance;
- 	u8 i2c_reg_page;
- };
- 
-@@ -172,52 +181,6 @@ struct i2c_regval {
- 	u16 val;
- };
- 
--static const struct v4l2_queryctrl sr030pc30_ctrl[] = {
--	{
--		.id		= V4L2_CID_AUTO_WHITE_BALANCE,
--		.type		= V4L2_CTRL_TYPE_BOOLEAN,
--		.name		= "Auto White Balance",
--		.minimum	= 0,
--		.maximum	= 1,
--		.step		= 1,
--		.default_value	= 1,
--	}, {
--		.id		= V4L2_CID_RED_BALANCE,
--		.type		= V4L2_CTRL_TYPE_INTEGER,
--		.name		= "Red Balance",
--		.minimum	= 0,
--		.maximum	= 127,
--		.step		= 1,
--		.default_value	= 64,
--		.flags		= 0,
--	}, {
--		.id		= V4L2_CID_BLUE_BALANCE,
--		.type		= V4L2_CTRL_TYPE_INTEGER,
--		.name		= "Blue Balance",
--		.minimum	= 0,
--		.maximum	= 127,
--		.step		= 1,
--		.default_value	= 64,
--	}, {
--		.id		= V4L2_CID_EXPOSURE_AUTO,
--		.type		= V4L2_CTRL_TYPE_INTEGER,
--		.name		= "Auto Exposure",
--		.minimum	= 0,
--		.maximum	= 1,
--		.step		= 1,
--		.default_value	= 1,
--	}, {
--		.id		= V4L2_CID_EXPOSURE,
--		.type		= V4L2_CTRL_TYPE_INTEGER,
--		.name		= "Exposure",
--		.minimum	= EXPOS_MIN_MS,
--		.maximum	= EXPOS_MAX_MS,
--		.step		= 1,
--		.default_value	= 1,
--	}, {
--	}
--};
--
- /* supported resolutions */
- static const struct sr030pc30_frmsize sr030pc30_sizes[] = {
- 	{
-@@ -323,6 +286,11 @@ static inline struct sr030pc30_info *to_sr030pc30(struct v4l2_subdev *sd)
- 	return container_of(sd, struct sr030pc30_info, sd);
- }
- 
-+static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
-+{
-+	return &container_of(ctrl->handler, struct sr030pc30_info, hdl)->sd;
-+}
-+
- static inline int set_i2c_page(struct sr030pc30_info *info,
- 			       struct i2c_client *client, unsigned int reg)
- {
-@@ -395,59 +363,56 @@ static int sr030pc30_pwr_ctrl(struct v4l2_subdev *sd,
- 
- static inline int sr030pc30_enable_autoexposure(struct v4l2_subdev *sd, int on)
- {
--	struct sr030pc30_info *info = to_sr030pc30(sd);
- 	/* auto anti-flicker is also enabled here */
--	int ret = cam_i2c_write(sd, AE_CTL1_REG, on ? 0xDC : 0x0C);
--	if (!ret)
--		info->auto_exp = on;
--	return ret;
-+	return cam_i2c_write(sd, AE_CTL1_REG, on ? 0xDC : 0x0C);
- }
- 
- static int sr030pc30_set_exposure(struct v4l2_subdev *sd, int value)
- {
- 	struct sr030pc30_info *info = to_sr030pc30(sd);
--
- 	unsigned long expos = value * info->pdata->clk_rate / (8 * 1000);
-+	int ret;
- 
--	int ret = cam_i2c_write(sd, EXP_TIMEH_REG, expos >> 16 & 0xFF);
-+	ret = cam_i2c_write(sd, EXP_TIMEH_REG, expos >> 16 & 0xFF);
- 	if (!ret)
- 		ret = cam_i2c_write(sd, EXP_TIMEM_REG, expos >> 8 & 0xFF);
- 	if (!ret)
- 		ret = cam_i2c_write(sd, EXP_TIMEL_REG, expos & 0xFF);
--	if (!ret) { /* Turn off AE */
--		info->exposure = value;
-+	if (!ret) /* Turn off AE */
- 		ret = sr030pc30_enable_autoexposure(sd, 0);
--	}
-+
- 	return ret;
- }
- 
- /* Automatic white balance control */
- static int sr030pc30_enable_autowhitebalance(struct v4l2_subdev *sd, int on)
- {
--	struct sr030pc30_info *info = to_sr030pc30(sd);
-+	int ret;
- 
--	int ret = cam_i2c_write(sd, AWB_CTL2_REG, on ? 0x2E : 0x2F);
-+	ret = cam_i2c_write(sd, AWB_CTL2_REG, on ? 0x2E : 0x2F);
- 	if (!ret)
- 		ret = cam_i2c_write(sd, AWB_CTL1_REG, on ? 0xFB : 0x7B);
--	if (!ret)
--		info->auto_wb = on;
- 
- 	return ret;
- }
- 
--static int sr030pc30_set_flip(struct v4l2_subdev *sd)
-+/**
-+ * sr030pc30_set_flip - set image flipping
-+ * @sd: a pointer to the subdev to apply the seetings to
-+ * @hflip: 1 to enable or 0 to disable horizontal flip
-+ * @vflip: as above but for vertical flip
-+ */
-+static int sr030pc30_set_flip(struct v4l2_subdev *sd, u32 hflip, u32 vflip)
- {
--	struct sr030pc30_info *info = to_sr030pc30(sd);
--
- 	s32 reg = cam_i2c_read(sd, VDO_CTL2_REG);
-+
- 	if (reg < 0)
- 		return reg;
- 
- 	reg &= 0x7C;
--	if (info->hflip)
--		reg |= 0x01;
--	if (info->vflip)
--		reg |= 0x02;
-+	reg |= ((hflip & 0x1) << 0);
-+	reg |= ((vflip & 0x1) << 1);
-+
- 	return cam_i2c_write(sd, VDO_CTL2_REG, reg | 0x80);
- }
- 
-@@ -468,8 +433,8 @@ static int sr030pc30_set_params(struct v4l2_subdev *sd)
- 		ret = cam_i2c_write(sd, ISP_CTL_REG(0),
- 				info->curr_fmt->ispctl1_reg);
- 	if (!ret)
--		ret = sr030pc30_set_flip(sd);
--
-+		ret = sr030pc30_set_flip(sd, info->hflip->val,
-+					 info->vflip->val);
- 	return ret;
- }
- 
-@@ -497,108 +462,48 @@ static int sr030pc30_try_frame_size(struct v4l2_mbus_framefmt *mf)
- 	return -EINVAL;
- }
- 
--static int sr030pc30_queryctrl(struct v4l2_subdev *sd,
--			       struct v4l2_queryctrl *qc)
--{
--	int i;
--
--	for (i = 0; i < ARRAY_SIZE(sr030pc30_ctrl); i++)
--		if (qc->id == sr030pc30_ctrl[i].id) {
--			*qc = sr030pc30_ctrl[i];
--			v4l2_dbg(1, debug, sd, "%s id: %d\n",
--				 __func__, qc->id);
--			return 0;
--		}
--
--	return -EINVAL;
--}
--
--static inline int sr030pc30_set_bluebalance(struct v4l2_subdev *sd, int value)
--{
--	int ret = cam_i2c_write(sd, MWB_BGAIN_REG, value);
--	if (!ret)
--		to_sr030pc30(sd)->blue_balance = value;
--	return ret;
--}
--
--static inline int sr030pc30_set_redbalance(struct v4l2_subdev *sd, int value)
--{
--	int ret = cam_i2c_write(sd, MWB_RGAIN_REG, value);
--	if (!ret)
--		to_sr030pc30(sd)->red_balance = value;
--	return ret;
--}
--
--static int sr030pc30_s_ctrl(struct v4l2_subdev *sd,
--			    struct v4l2_control *ctrl)
-+static int sr030pc30_s_ctrl(struct v4l2_ctrl *ctrl)
- {
--	int i, ret = 0;
--
--	for (i = 0; i < ARRAY_SIZE(sr030pc30_ctrl); i++)
--		if (ctrl->id == sr030pc30_ctrl[i].id)
--			break;
--
--	if (i == ARRAY_SIZE(sr030pc30_ctrl))
--		return -EINVAL;
--
--	if (ctrl->value < sr030pc30_ctrl[i].minimum ||
--		ctrl->value > sr030pc30_ctrl[i].maximum)
--			return -ERANGE;
-+	struct v4l2_subdev *sd = to_sd(ctrl);
-+	struct sr030pc30_info *info = to_sr030pc30(sd);
-+	int ret = 0;
- 
--	v4l2_dbg(1, debug, sd, "%s: ctrl_id: %d, value: %d\n",
--			 __func__, ctrl->id, ctrl->value);
-+	v4l2_dbg(1, debug, sd, "%s: ctrl id: %d, value: %d\n",
-+			 __func__, ctrl->id, ctrl->val);
- 
- 	switch (ctrl->id) {
- 	case V4L2_CID_AUTO_WHITE_BALANCE:
--		sr030pc30_enable_autowhitebalance(sd, ctrl->value);
--		break;
--	case V4L2_CID_BLUE_BALANCE:
--		ret = sr030pc30_set_bluebalance(sd, ctrl->value);
--		break;
--	case V4L2_CID_RED_BALANCE:
--		ret = sr030pc30_set_redbalance(sd, ctrl->value);
--		break;
--	case V4L2_CID_EXPOSURE_AUTO:
--		sr030pc30_enable_autoexposure(sd,
--			ctrl->value == V4L2_EXPOSURE_AUTO);
--		break;
--	case V4L2_CID_EXPOSURE:
--		ret = sr030pc30_set_exposure(sd, ctrl->value);
--		break;
--	default:
--		return -EINVAL;
--	}
-+		if (!ctrl->has_new)
-+			ctrl->val = 0;
- 
--	return ret;
--}
--
--static int sr030pc30_g_ctrl(struct v4l2_subdev *sd,
--			    struct v4l2_control *ctrl)
--{
--	struct sr030pc30_info *info = to_sr030pc30(sd);
-+		ret = sr030pc30_enable_autowhitebalance(sd, ctrl->val);
- 
--	v4l2_dbg(1, debug, sd, "%s: id: %d\n", __func__, ctrl->id);
-+		if (!ret && !ctrl->val) {
-+			ret = cam_i2c_write(sd, MWB_BGAIN_REG, info->blue->val);
-+			if (!ret)
-+				ret = cam_i2c_write(sd, MWB_RGAIN_REG,
-+						    info->red->val);
-+		}
-+		return ret;
- 
--	switch (ctrl->id) {
--	case V4L2_CID_AUTO_WHITE_BALANCE:
--		ctrl->value = info->auto_wb;
--		break;
--	case V4L2_CID_BLUE_BALANCE:
--		ctrl->value = info->blue_balance;
--		break;
--	case V4L2_CID_RED_BALANCE:
--		ctrl->value = info->red_balance;
--		break;
- 	case V4L2_CID_EXPOSURE_AUTO:
--		ctrl->value = info->auto_exp;
--		break;
--	case V4L2_CID_EXPOSURE:
--		ctrl->value = info->exposure;
--		break;
-+		if (!ctrl->has_new)
-+			ctrl->val = V4L2_EXPOSURE_MANUAL;
-+
-+		if (ctrl->val == V4L2_EXPOSURE_MANUAL)
-+			return sr030pc30_set_exposure(sd, info->exposure->val);
-+		else
-+			return sr030pc30_enable_autoexposure(sd, 1);
-+
-+	case V4L2_CID_HFLIP:
-+		return sr030pc30_set_flip(sd, ctrl->val,
-+					  info->vflip->val);
-+	case V4L2_CID_VFLIP:
-+		return sr030pc30_set_flip(sd, info->hflip->val,
-+					  ctrl->val);
- 	default:
- 		return -EINVAL;
- 	}
--	return 0;
- }
- 
- static int sr030pc30_enum_fmt(struct v4l2_subdev *sd, unsigned int index,
-@@ -700,7 +605,7 @@ static int sr030pc30_base_config(struct v4l2_subdev *sd)
- 	v4l2_dbg(1, debug, sd, "%s: expmin= %lx, expmax= %lx", __func__,
- 		 expmin, expmax);
- 
--	/* Setting up manual exposure time range */
-+	/* Setting up manual exposure time range. */
- 	ret = cam_i2c_write(sd, EXP_MMINH_REG, expmin >> 8 & 0xFF);
- 	if (!ret)
- 		ret = cam_i2c_write(sd, EXP_MMINL_REG, expmin & 0xFF);
-@@ -710,8 +615,11 @@ static int sr030pc30_base_config(struct v4l2_subdev *sd)
- 		ret = cam_i2c_write(sd, EXP_MMAXM_REG, expmax >> 8 & 0xFF);
- 	if (!ret)
- 		ret = cam_i2c_write(sd, EXP_MMAXL_REG, expmax & 0xFF);
-+	if (ret)
-+		return ret;
- 
--	return ret;
-+	/* Sync the handler and the registers state. */
-+	return v4l2_ctrl_handler_setup(&info->hdl);
- }
- 
- static int sr030pc30_s_power(struct v4l2_subdev *sd, int on)
-@@ -748,11 +656,28 @@ static int sr030pc30_s_power(struct v4l2_subdev *sd, int on)
- 	return ret;
- }
- 
-+static int sr030pc30_log_status(struct v4l2_subdev *sd)
-+{
-+	struct sr030pc30_info *info = to_sr030pc30(sd);
-+
-+	v4l2_ctrl_handler_log_status(&info->hdl, sd->name);
-+	return 0;
-+}
-+
-+static const struct v4l2_ctrl_ops sr030pc30_ctrl_ops = {
-+	.s_ctrl = sr030pc30_s_ctrl,
-+};
-+
- static const struct v4l2_subdev_core_ops sr030pc30_core_ops = {
- 	.s_power	= sr030pc30_s_power,
--	.queryctrl	= sr030pc30_queryctrl,
--	.s_ctrl		= sr030pc30_s_ctrl,
--	.g_ctrl		= sr030pc30_g_ctrl,
-+	.g_ctrl		= v4l2_subdev_g_ctrl,
-+	.s_ctrl		= v4l2_subdev_s_ctrl,
-+	.queryctrl	= v4l2_subdev_queryctrl,
-+	.querymenu	= v4l2_subdev_querymenu,
-+	.g_ext_ctrls	= v4l2_subdev_g_ext_ctrls,
-+	.try_ext_ctrls	= v4l2_subdev_try_ext_ctrls,
-+	.s_ext_ctrls	= v4l2_subdev_s_ext_ctrls,
-+	.log_status	= sr030pc30_log_status,
- };
- 
- static const struct v4l2_subdev_video_ops sr030pc30_video_ops = {
-@@ -797,7 +722,6 @@ static int sr030pc30_detect(struct i2c_client *client)
- 	return ret == SR030PC30_ID ? 0 : -ENODEV;
- }
- 
--
- static int sr030pc30_probe(struct i2c_client *client,
- 			   const struct i2c_device_id *id)
- {
-@@ -808,7 +732,7 @@ static int sr030pc30_probe(struct i2c_client *client,
- 	int ret;
- 
- 	if (!pdata) {
--		dev_err(&client->dev, "No platform data!");
-+		dev_err(&client->dev, "No platform data!\n");
- 		return -EIO;
- 	}
- 
-@@ -820,17 +744,45 @@ static int sr030pc30_probe(struct i2c_client *client,
- 	if (!info)
- 		return -ENOMEM;
- 
-+	info->i2c_reg_page = -1;
-+
- 	sd = &info->sd;
--	strcpy(sd->name, MODULE_NAME);
-+	strlcpy(sd->name, MODULE_NAME, sizeof(sd->name));
- 	info->pdata = client->dev.platform_data;
- 
- 	v4l2_i2c_subdev_init(sd, client, &sr030pc30_ops);
-+	v4l2_ctrl_handler_init(&info->hdl, 6);
-+
-+	info->autowb = v4l2_ctrl_new_std(&info->hdl, &sr030pc30_ctrl_ops,
-+				V4L2_CID_AUTO_WHITE_BALANCE, 0, 1, 1, 1);
-+	info->red = v4l2_ctrl_new_std(&info->hdl, &sr030pc30_ctrl_ops,
-+				V4L2_CID_RED_BALANCE, 0, 127, 1, 64);
-+	info->blue = v4l2_ctrl_new_std(&info->hdl, &sr030pc30_ctrl_ops,
-+				V4L2_CID_BLUE_BALANCE, 0, 127, 1, 64);
-+
-+	info->hflip = v4l2_ctrl_new_std(&info->hdl, &sr030pc30_ctrl_ops,
-+				V4L2_CID_HFLIP, 0, 1, 1, 0);
-+	info->vflip = v4l2_ctrl_new_std(&info->hdl, &sr030pc30_ctrl_ops,
-+				V4L2_CID_VFLIP, 0, 1, 1, 0);
-+
-+	info->exposure = v4l2_ctrl_new_std(&info->hdl, &sr030pc30_ctrl_ops,
-+				V4L2_CID_EXPOSURE, EXPOS_MIN_MS,
-+				EXPOS_MAX_MS, 1, 30);
-+
-+	info->autoexposure = v4l2_ctrl_new_std_menu(&info->hdl,
-+				&sr030pc30_ctrl_ops, V4L2_CID_EXPOSURE_AUTO,
-+				1, 0, V4L2_EXPOSURE_AUTO);
-+
-+	sd->ctrl_handler = &info->hdl;
-+
-+	if (info->hdl.error) {
-+		v4l2_ctrl_handler_free(&info->hdl);
-+		kfree(info);
-+		return info->hdl.error;
-+	}
- 
--	info->i2c_reg_page	= -1;
--	info->hflip		= 1;
--	info->auto_exp		= 1;
--	info->exposure		= 30;
--
-+	v4l2_ctrl_cluster(2, &info->autoexposure);
-+	v4l2_ctrl_cluster(3, &info->autowb);
- 	return 0;
- }
- 
-@@ -840,6 +792,7 @@ static int sr030pc30_remove(struct i2c_client *client)
- 	struct sr030pc30_info *info = to_sr030pc30(sd);
- 
- 	v4l2_device_unregister_subdev(sd);
-+	v4l2_ctrl_handler_free(&info->hdl);
- 	kfree(info);
- 	return 0;
- }
--- 
-1.7.0.4
+>> +static unsigned long mt9m032_row_time(struct mt9m032 *sensor, int width)
+>> +{
+>> +	int effective_width;
+>> +	u64 ns;
+>> +	effective_width = width + 716; /* emperical value */
+> 
+> Where does it come from ?
 
+Like the comment says, it's just what the hardware seems to do from
+measureing framerates. Sadly i couldn't find anything exact anywhere...
+
+
+>> +	ns = 1000000000ll * effective_width;
+>> +	do_div(ns, sensor->pix_clock);
+> 
+> Do you have high enough clock frequencies that you would loose precision by 
+> dividing 1e9 by the clock first, and the multiplying it by the row length ? If 
+> so I would use div_u64().
+
+Thanks for the hint to use div_u64, that's a bit nicer.
+To be honest, this is in a slow path, it uses SI units and with div_64
+reads reasonably well and is what i want to express. I don't see to do
+something clever here just to save a few cycles and have it harder to
+reason about...
+
+
+[...]
+
+>> +
+>> +	row_time = mt9m032_row_time(sensor, crop->width);
+>> +	do_div(ns, row_time);
+>> +
+>> +	additional_blanking_rows = ns - crop->height;
+>> +
+>> +	/* enforce minimal 1.6ms blanking time. */
+>> +	min_blank = 1600000 / row_time;
+>> +	if (additional_blanking_rows < min_blank)
+>> +		additional_blanking_rows = min_blank;
+> 
+> You can use the min() macro.
+
+I'm pretty sure it's the max() one, but yes.
+
+>> +	dev_dbg(to_dev(sensor),
+>> +		"%s: V-blank %i\n", __func__, additional_blanking_rows);
+>> +	if (additional_blanking_rows > 0x7ff) {
+>> +		/* hardware limits 11 bit values */
+>> +		dev_warn(to_dev(sensor),
+>> +			"mt9m032: frame rate too low.\n");
+>> +		additional_blanking_rows = 0x7ff;
+>> +	}
+> 
+> Or rather the clamp() macro.
+
+I think the error reporting reads more natual when doing the upper bound in
+the if.
+
+>> +	return mt9m032_write_reg(client, MT9M032_VBLANK,
+>> additional_blanking_rows);
+>> +}
+>> +
+>> +static int mt9m032_update_geom_timing(struct mt9m032 *sensor,
+>> +				 const struct v4l2_rect *crop)
+>> +{
+>> +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+>> +	int ret;
+>> +
+>> +	if (!crop)
+>> +		crop = &sensor->crop;
+> 
+> I'd rather have the caller do this instead of magically working around a NULL 
+> argument.
+
+Yes, on a second look at the current code you're right.
+
+>> +	ret = mt9m032_write_reg(client, MT9M032_COLUMN_SIZE, crop->width - 1);
+>> +	if (!ret)
+>> +		mt9m032_write_reg(client, MT9M032_ROW_SIZE, crop->height - 1);
+> 
+> Aren't you missing a ret = here (and below) ?
+
+Ouch.
+
+
+>> +static int update_formatter2(struct mt9m032 *sensor, bool streaming)
+>> +{
+>> +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+>> +
+>> +	u16 reg_val =   0x1000   /* Dout enable */
+>> +		      | 0x0070;  /* parts reserved! */
+>> +				 /* possibly for changing to 14-bit mode */
+>> +
+>> +	if (streaming)
+>> +		reg_val |= 0x2000;   /* pixclock enable */
+> 
+> Please define constants at the beginning of the file (with the register 
+> addresses) instead of using magic numbers.
+
+I'm using defines for all register numbers where i know the function
+reasonably well and explicit comments or variable names for all the bits i
+set in these registers. (And each register is only set in one function)
+
+I think that should be quite decent. Sadly from the material i
+have i have a lot of just undocumented pokeing at reserved bits to keep.
+For these cases i marked it in the code somehow are reserved and didn't do
+any defines for the register names because they would be useless.
+
+Do you think this is acceptable? Or do i need to have a define for each
+known bit position the driver sets? What would i do with the undocumented
+bits?
+
+
+
+>> +#define OFFSET_UNCHANGED	0xFFFFFFFF
+>> +static int mt9m032_set_pad_geom(struct mt9m032 *sensor,
+>> +				struct v4l2_subdev_fh *fh,
+>> +				u32 which, u32 pad,
+>> +				s32 top, s32 left, s32 width, s32 height)
+>> +{
+>> +	struct v4l2_mbus_framefmt tmp_format;
+>> +	struct v4l2_rect tmp_crop;
+>> +	struct v4l2_mbus_framefmt *format;
+>> +	struct v4l2_rect *crop;
+>> +
+>> +	if (pad != 0)
+>> +		return -EINVAL;
+>> +
+>> +	format = __mt9m032_get_pad_format(sensor, fh, which);
+>> +	crop = __mt9m032_get_pad_crop(sensor, fh, which);
+>> +	if (!format || !crop)
+>> +		return -EINVAL;
+>> +	if (which == V4L2_SUBDEV_FORMAT_ACTIVE) {
+>> +		tmp_crop = *crop;
+>> +		tmp_format = *format;
+>> +		format = &tmp_format;
+>> +		crop = &tmp_crop;
+>> +	}
+>> +
+>> +	if (top != OFFSET_UNCHANGED)
+>> +		crop->top = top & ~0x1;
+>> +	if (left != OFFSET_UNCHANGED)
+>> +		crop->left = left;
+>> +	crop->height = height;
+>> +	crop->width = width & ~1;
+>> +
+>> +	format->height = crop->height;
+>> +	format->width = crop->width;
+> 
+> This looks very weird to me. If your sensor doesn't include a scaler, it 
+> should support a single fixed format. Crop will then be used to select the 
+> crop rectangle. You're mixing the two for no obvious reason.
+> 
+
+I think i have to have both size and crop writable. So i wrote the code to
+just have format width/height and crop width/height to be equal at all
+times. So actually almost all code for crop setting and format are shared.
+
+As you wrote in your recent mail this api isn't really intuitive and i'm
+not really sure what's the right thing to do thus i just copied the
+semantics from an existing driver with similar capable hardware.
+
+This code works nicely and media-ctl needs to be able to set the size so
+that's the most logical i could come up with... 
+
+>> +	if (which == V4L2_SUBDEV_FORMAT_ACTIVE) {
+>> +		int ret = mt9m032_update_geom_timing(sensor, crop);
+>> +		if (!ret) {
+>> +			sensor->crop = tmp_crop;
+>> +			sensor->format = tmp_format;
+>> +		}
+>> +		return ret;
+>> +	} else {
+>> +		return 0;
+>> +	}
+>> +}
+>> +
+
+
+>> +static int mt9m032_set_pad_format(struct v4l2_subdev *subdev,
+>> +				  struct v4l2_subdev_fh *fh,
+>> +				  struct v4l2_subdev_format *fmt)
+>> +{
+>> +	struct mt9m032 *sensor = to_mt9m032(subdev);
+>> +	int ret;
+>> +
+>> +	if (sensor->streaming)
+>> +		return -EBUSY;
+>> +	if (fmt->format.code != V4L2_MBUS_FMT_Y8_1X8)
+>> +		return -EINVAL;
+> 
+> Don't return -EINVAL, force the code to V4L2_MBUS_FMT_Y8_1X8 instead.
+> 
+
+ok, then i'll handle it like colorspace and field.
+
+
+>> +static int mt9m032_set_gain(struct mt9m032 *sensor, s32 val)
+>> +{
+>> +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+>> +	int digital_gain_val;	/* in 1/8th (0..127) */
+>> +	int analog_mul;		/* 0 or 1 */
+>> +	int analog_gain_val;	/* in 1/16th. (0..63) */
+>> +	u16 reg_val;
+>> +
+>> +	digital_gain_val = 51; /* from setup example */
+> 
+> So the digital gain isn't configurable ?
+
+Right. That's all that was needed and i couldn't come up with a simple and
+nice way to map from one scalar to both digital and analog gain in a nice
+way. 
+
+>> +	ret = mt9m032_write_reg(client, MT9M032_PLL_CONFIG1, reg_pll1);
+>> +	if (!ret)
+>> +		ret = mt9m032_write_reg(client, 0x10, 0x53); /* Select PLL as clock
+> 
+> No magic numbers please.
+
+Undocumented magical values is all that i have here. I just know these
+values have to go there and are the comment text... Nothing hidden i have
+access too.
+
+>> +static int mt9m032_get_chip_ident(struct v4l2_subdev *subdev,
+>> +		       struct v4l2_dbg_chip_ident *chip)
+>> +{
+>> +	struct i2c_client *client = v4l2_get_subdevdata(subdev);
+>> +
+>> +	return v4l2_chip_ident_i2c_client(client, chip, V4L2_IDENT_MT9M032, 0);
+>> +}
+> 
+> Is g_chip_ident needed ?
+
+Some comments in the headers said i should implement this...
+
+>> +static int mt9m032_set_config(struct v4l2_subdev *subdev, int irq, void
+>> *pdata) +{
+>> +	struct mt9m032 *sensor = to_mt9m032(subdev);
+>> +	struct i2c_client *client = v4l2_get_subdevdata(subdev);
+>> +
+>> +	int res, ret;
+>> +
+>> +	if (!pdata)
+>> +		return -ENODEV;
+>> +
+>> +	sensor->pdata = pdata;
+>> +
+>> +	ret = mt9m032_write_reg(client, MT9M032_RESET, 1);	/* reset on */
+>> +	if (!ret)
+>> +		mt9m032_write_reg(client, MT9M032_RESET, 0);	/* reset off */
+> 
+> Does the chip need a minimum reset duration ?
+
+Not that i know of.
+
+>> +	if (!ret) {
+>> +		ret = mt9m032_setup_pll(sensor);
+>> +		msleep(10);
+>> +	}
+>> +	/* Sensor Gain */
+>> +	if (!ret)
+>> +		ret = mt9m032_set_gain(sensor, sensor->gain->cur.val);
+>> +
+>> +	   /* Shutter Width */
+>> +	if (!ret)
+>> +		ret = mt9m032_set_exposure(sensor, sensor->exposure->cur.val);
+>> +
+>> +	/* SIZE */
+>> +	if (!ret)
+>> +		ret = mt9m032_update_geom_timing(sensor, NULL);
+> 
+> Do you really need to override the default reset values ?
+
+Well, maybe it's not strictly needed, but this way we're sure the cached
+values and the hardware are in sync.
+
+>> +	if (!ret)
+>> +		ret = update_read_mode2(sensor, sensor->vflip->cur.val,
+>> sensor->hflip->cur.val); +
+>> +	if (!ret)
+>> +		ret = mt9m032_write_reg(client, 0x41, 0x0000);	/* reserved !!! */
+>> +	if (!ret)
+>> +		ret = mt9m032_write_reg(client, 0x42, 0x0003);	/* reserved !!! */
+>> +	if (!ret)
+>> +		ret = mt9m032_write_reg(client, 0x43, 0x0003);	/* reserved !!! */
+>> +	if (!ret)
+>> +		ret = mt9m032_write_reg(client, 0x7F, 0x0000);	/* reserved !!! */
+> 
+> Reserved for what ? No magic numbers here either.
+
+That's all i have. Just that i have to poke these values in. Not even a
+clue what they are :/
+
+>> +static int mt9m032_set_ctrl(struct v4l2_ctrl *ctrl)
+>> +{
+>> +	struct mt9m032 *sensor = container_of(ctrl->handler, struct mt9m032,
+>> ctrls); +
+>> +	switch (ctrl->id) {
+>> +	case V4L2_CID_GAIN:
+>> +		return mt9m032_set_gain(sensor, ctrl->val);
+>
+>As your gain control has two analog stages and a digital stage, 
+>mt9m032_set_gain() will sometimes round the gain value. ctrl->val should be 
+>updated accordingly.
+
+Ok. i added a try_ctrl to round down the values if >= 63
+
+
+regards,
+ - Martin Hostettler
