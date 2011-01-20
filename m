@@ -1,125 +1,103 @@
-Return-path: <mchehab@gaivota>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1684 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750897Ab1ADKk5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Jan 2011 05:40:57 -0500
-Message-ID: <f9cf31c9689f55d57cc2315395db31ad.squirrel@webmail.xs4all.nl>
-In-Reply-To: <201101040946.21645.laurent.pinchart@ideasonboard.com>
-References: <000601cba2d8$eaedcdc0$c0c96940$@org>
-    <000001cbabb8$49892d10$dc9b8730$@org> <4D22BAA8.9050607@codeaurora.org>
-    <201101040946.21645.laurent.pinchart@ideasonboard.com>
-Date: Tue, 4 Jan 2011 11:40:40 +0100
-Subject: Re: RFC: V4L2 driver for Qualcomm MSM camera.
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>
-Cc: "Haibo Zhong" <hzhong@codeaurora.org>,
-	"Shuzhen Wang" <shuzhenw@codeaurora.org>,
-	"'Mauro Carvalho Chehab'" <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, "Yan, Yupeng" <yyan@quicinc.com>
-MIME-Version: 1.0
+Return-path: <mchehab@pedra>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:38371 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754715Ab1ATXTU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Jan 2011 18:19:20 -0500
+Received: by ewy5 with SMTP id 5so640836ewy.19
+        for <linux-media@vger.kernel.org>; Thu, 20 Jan 2011 15:19:19 -0800 (PST)
+Date: Fri, 21 Jan 2011 08:20:08 +0900
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: Stefan Ringel <stefan.ringel@arcor.de>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Felipe Sanches <juca@members.fsf.org>,
+	Bee Hock Goh <beehock@gmail.com>,
+	Luis Henrique Fagundes <lhfagundes@hacklab.com.br>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Jarod Wilson <jarod@redhat.com>
+Subject: Re: [PATCH] tm6000: add/rework reg.defines
+Message-ID: <20110121082008.415bcabe@glory.local>
+In-Reply-To: <4D388C44.7040500@arcor.de>
+References: <4CAD5A78.3070803@redhat.com>
+	<4CAF0602.6050002@redhat.com>
+	<20101012142856.2b4ee637@glory.local>
+	<4CB492D4.1000609@arcor.de>
+	<20101129174412.08f2001c@glory.local>
+	<4CF51C9E.6040600@arcor.de>
+	<20101201144704.43b58f2c@glory.local>
+	<4CF67AB9.6020006@arcor.de>
+	<20101202134128.615bbfa0@glory.local>
+	<4CF71CF6.7080603@redhat.com>
+	<20101206010934.55d07569@glory.local>
+	<4CFBF62D.7010301@arcor.de>
+	<20101206190230.2259d7ab@glory.local>
+	<4CFEA3D2.4050309@arcor.de>
+	<20101208125539.739e2ed2@glory.local>
+	<4CFFAD1E.7040004@arcor.de>
+	<20101214122325.5cdea67e@glory.local>
+	<4D079ADF.2000705@arcor.de>
+	<20101215164634.44846128@glory.local>
+	<4D08E43C.8080002@arcor.de>
+	<20101216183844.6258734e@glory.local>
+	<4D0A4883.20804@arcor.de>
+	<20101217104633.7c9d10d7@glory.local>
+	<4D0AF2A7.6080100@arcor.de>
+	<20101217160854.16a1f754@glory.local>
+	<4D0BFF4B.3060001@redhat.com>
+	<20110120150508.53c9b55e@glory.local>
+	<4D388C44.7040500@arcor.de>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-> Hi Jeff,
->
-> On Tuesday 04 January 2011 07:14:00 Haibo Zhong wrote:
->> On 1/3/2011 6:37 PM, Shuzhen Wang wrote:
->> > On Tuesday, December 28, 2010 12:24 PM Laurent Pinchart wrote:
->> >>
->> >> I will strongly NAK any implementation that requires a daemon.
->> >
->> > We understand the motivation behind making the daemon optional.
->> > However there are restrictions from legal perspective, which we
->> > don't know how to get around.
->> >
->> > A simplest video streaming data flow with MSM ISP is like this:
->> >
->> > Sensor ->  ISP Hardware pipeline ->  videobuf
->> >
->> > The procedure to set up ISP pipeline is proprietary and cannot
->> > be open sourced. Without proper pipeline configuration, streaming
->> > won't work. And That's why we require the daemon.
->>
->> Laurent/Hans/Mauro,
->>
->> We are working on and will provide more design information on Qualcomm
->> MSM ISP design and explain the legal concern of the daemon
->> implementation.
->>
->> The underlined idea is to comply to V4L2 architecture with MSM solution.
->
-> That's a good first step, but I'm afraid it's not enough. If you want your
-> driver to be included in the mainline Linux kernel (and its derivative
-> distribution kernels such as the MeeGo kernel for instance) all the code
-> needed to access and use the hardware must be open-source.
->
-> This of course doesn't preclude you from providing a closed-source
-> userspace
-> implementation of proprietary hardware-assisted image processing
-> algorithms
-> for instance (as a library or as a daemon).
->
->> In the meantime, Laurent, can you share with your major concern about
->> the
->> Daemon?
->
-> I have two concerns.
->
-> - The daemon makes code required to use the hardware closed-source, making
-> the
-> driver closed-source (whether the kernel-side code is licensed under the
-> GPL
-> or not is irrelevant). I would have the exact same opinion if the required
-> userspace proprietary code was provided as a library, so this concern is
-> not
-> specific to the implementation being in the form of a daemon.
->
-> - The daemon makes the kernel-side driver architecture more complex for no
-> reason. Assuming you can make all the driver open-source in the future and
-> want to keep proprietary userspace image processing code closed-source,
-> the
-> driver architecture must not be designed solely to support that use case.
-> The
-> driver should be clean and lean, and the proprietary code must then come
-> as a
-> user of the driver, not the other way around.
->
-> As a summary, having part of the driver closed-source is a no-go, and
-> having
-> part of the kernel driver API designed and used to support closed-source
-> components only is a no-go as well.
+Hi Stefan
 
-I don't entirely understand the whole discussion: in Helsinki this was
-discussed extensively with Jeff Zhong and I thought we all agreed on how
-to implement the driver: using a libv4l plugin which communicates to a
-daemon for your proprietary ISP code.
+> 
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
 
-Also, the driver should work without any proprietary code (obviously with
-sub-optimal picture quality, but you should get something out of the
-hardware). The driver API should be well-documented when it comes to any
-custom ioctls/controls. This makes it possible for sufficiently motivated
-developers to write open source libv4l plugins. It was my understanding
-that the proprietary code was about determining the optimal ISP settings,
-not about getting the ISP hardware to work.
+snip
 
-Regards,
+> > #define TM6010_REQ08_RF2_LEFT_CHANNEL_VOL 0x08, 0xf2
+> >
+> > Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov
+> > <d.belimov@gmail.com>
+> >
+> >
+> > With my best regards, Dmitry.
+> Dmitry, that are good news! And that anwers my questions. Now I think
+> we must separate the both chipsets in any points:
+> 
+>     *  audio standards
+>     *  video standards
+>     * in tm6000-alsa the functions " _tm6000_start_audio_dma" and
+>       "_tm6000_stop_audio_dma"
+>     * in tm6000-input "tm6000_ir_config"
+>     * in tm6000-core ?? "init_analog_mode" and "init_digital_mode"
+>     * in tm6000-core "tm6000_set_audio_bitrate"
+> 
+> My rework in tm6000-video, isoc usb buffer and vbi device, I move this
+> into summer 2011!!
 
-        Hans
+Ok. I work too. :)
+I have Software Programmers Guide from Trident for TM6000 and TM6010 under NDA.
+If you have any question about any registers you can ask me.
 
->
-> --
-> Regards,
->
-> Laurent Pinchart
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+With my best regards, Dmitry.
 
-
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
-
+> Stefan Ringel
+> -----BEGIN PGP SIGNATURE-----
+> Version: GnuPG v2.0.12 (MingW32)
+> Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+>  
+> iQEcBAEBAgAGBQJNOIxEAAoJEAWtPFjxMvFG3LQIAKlIMVWYTTPA5RD45Sw4QBQH
+> I+yqhs89Qe7bKl+JjDrSiCG/ttRDtTy0+ksUFmicglntLmmtPVQnv59tIU9evQmn
+> Yt7n1XWHcq442+ySbQ/3fVLay1WG1eJ3UEsC7bkpT2hSUhmUf6zjSZ3ockIJfxEJ
+> geqFOy630vfwcKcS7KWgAJO8LKYQXcW8TLmkb3/D4W1G8o7zCKIH624Q5u+k1IGk
+> mmm5CiqO17FS/oK0pxTZAY8uqWr3DH3UUqiMR3GdGoivaOR+1QCdrrYZXkQxklai
+> zPQ6AYx/zPStZK8iUSSOHpVkfqHTgB3f6BSpsWhNGT3mgW8tTxnAz/MyECUiEms=
+> =Cxjk
+> -----END PGP SIGNATURE-----
+> 
