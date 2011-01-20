@@ -1,304 +1,52 @@
 Return-path: <mchehab@pedra>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:34040 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751384Ab1AYGwZ (ORCPT
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:40730 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755031Ab1ATEwf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Jan 2011 01:52:25 -0500
-Date: Mon, 24 Jan 2011 22:52:17 -0800
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Mark Lord <kernel@teksavvy.com>
-Cc: Linux Kernel <linux-kernel@vger.kernel.org>,
-	linux-input@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils ?
-Message-ID: <20110125065217.GE7850@core.coreip.homeip.net>
-References: <20110124175456.GA17855@core.coreip.homeip.net>
- <4D3E1A08.5060303@teksavvy.com>
- <20110125005555.GA18338@core.coreip.homeip.net>
- <4D3E4DD1.60705@teksavvy.com>
- <20110125042016.GA7850@core.coreip.homeip.net>
- <4D3E5372.9010305@teksavvy.com>
- <20110125045559.GB7850@core.coreip.homeip.net>
- <4D3E59CA.6070107@teksavvy.com>
- <4D3E5A91.30207@teksavvy.com>
- <20110125053117.GD7850@core.coreip.homeip.net>
-MIME-Version: 1.0
+	Wed, 19 Jan 2011 23:52:35 -0500
+Received: by qyj19 with SMTP id 19so1476547qyj.19
+        for <linux-media@vger.kernel.org>; Wed, 19 Jan 2011 20:52:34 -0800 (PST)
+Subject: Re: [GIT PATCHES for 2.6.38] Zilog Z8 IR unit fixes
+Mime-Version: 1.0 (Apple Message framework v1082)
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20110125053117.GD7850@core.coreip.homeip.net>
+From: Jarod Wilson <jarod@wilsonet.com>
+In-Reply-To: <DF6BA086-43FF-4FD9-A30E-EB8AAF451A94@wilsonet.com>
+Date: Wed, 19 Jan 2011 23:52:31 -0500
+Cc: Jean Delvare <khali@linux-fr.org>, Mike Isely <isely@isely.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Jarod Wilson <jarod@redhat.com>, Janne Grunau <j@jannau.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Content-Transfer-Encoding: 7bit
+Message-Id: <86D1EB39-C624-4AF9-96A4-26E139D89CD2@wilsonet.com>
+References: <1295205650.2400.27.camel@localhost> <1295234982.2407.38.camel@localhost> <848D2317-613E-42B1-950D-A227CFF15C5B@wilsonet.com> <1295439718.2093.17.camel@morgan.silverblock.net> <alpine.DEB.1.10.1101190714570.5396@ivanova.isely.net> <1295444282.4317.20.camel@morgan.silverblock.net> <20110119145002.6f94f800@endymion.delvare> <D7F0E4A6-5A23-4A28-95F8-0A088F1D6114@wilsonet.com> <20110119184322.0e5d12cd@endymion.delvare> <0281052D-AFBF-4764-ADFF-64EF0A0CC2CB@wilsonet.com> <DF6BA086-43FF-4FD9-A30E-EB8AAF451A94@wilsonet.com>
+To: Andy Walls <awalls@md.metrocast.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, Jan 24, 2011 at 09:31:17PM -0800, Dmitry Torokhov wrote:
-> On Tue, Jan 25, 2011 at 12:07:29AM -0500, Mark Lord wrote:
-> > On 11-01-25 12:04 AM, Mark Lord wrote:
-> > > On 11-01-24 11:55 PM, Dmitry Torokhov wrote:
-> > >> On Mon, Jan 24, 2011 at 11:37:06PM -0500, Mark Lord wrote:
-> > > ..
-> > >>> This results in (map->size==10) for 2.6.36+ (wrong),
-> > >>> and a much larger map->size for 2.6.35 and earlier.
-> > >>>
-> > >>> So perhaps EVIOCGKEYCODE has changed?
-> > >>>
-> > >>
-> > >> So the utility expects that all devices have flat scancode space and
-> > >> driver might have changed so it does not recognize scancode 10 as valid
-> > >> scancode anymore.
-> > >>
-> > >> The options are:
-> > >>
-> > >> 1. Convert to EVIOCGKEYCODE2
-> > >> 2. Ignore errors from EVIOCGKEYCODE and go through all 65536 iterations.
-> > > 
-> > > or 3. Revert/fix the in-kernel regression.
-> > > 
-> > > The EVIOCGKEYCODE ioctl is supposed to return KEY_RESERVED for unmapped
-> > > (but value) keycodes, and only return -EINVAL when the keycode itself
-> > > is out of range.
-> > > 
-> > > That's how it worked in all kernels prior to 2.6.36,
-> > > and now it is broken.  It now returns -EINVAL for any unmapped keycode,
-> > > even though keycodes higher than that still have mappings.
-> > > 
-> > > This is a bug, a regression, and breaks userspace.
-> > > I haven't identified *where* in the kernel the breakage happened,
-> > > though.. that code confuses me.  :)
-> > 
-> > Note that this device DOES have "flat scancode space",
-> > and the kernel is now incorrectly signalling an error (-EINVAL)
-> > in response to a perfectly valid query of a VALID (and mappable)
-> > keycode on the remote control
-> > 
-> > The code really is a valid button, it just doesn't have a default mapping
-> > set by the kernel (I can set a mapping for that code from userspace and it works).
-> > 
-> 
-> OK, in this case let's ping Mauro - I think he done the adjustments to
-> IR keymap hanlding.
-> 
-> Thanks.
-> 
+On Jan 19, 2011, at 11:45 PM, Jarod Wilson wrote:
 
-BTW, could you please try the following patch (it assumes that
-EVIOCGVERSION in input.c is alreday relaxed).
+> So as we were discussing on irc today, the -EIO is within lirc_zilog's
+> send_boot_data() function. The firmware is loaded, and then we send the
+> z8 a command to activate the firmware, immediately follow by an attempt
+> to read the firmware version. The z8 is still busy when we do that, and
+> throwing in a simple mdelay() remedies the problem for both the hvr-1950
+> and the hdpvr -- tried 100 initially, and all the way down to 20 still
+> worked, didn't try any lower.
+> 
+> And I definitely horked up the hdpvr i2c a bit, but have a follow-up
+> patch that goes back to doing the right thing with two i2c_new_device()
+> calls, which I've successfully tested with the latest lirc_zilog plus
+> mdelay patch.
+> 
+> Will post patches tomorrow though, its already past my bed time.
 
-Thanks!
+D'oh. Forgot to mention: while lirc_zilog tx binds to the hvr-1950, it
+doesn't actually work, I get -EIO when trying to transmit, iirc. So that
+is on the list of things to poke at some tomorrow as well.
 
 -- 
-Dmitry
+Jarod Wilson
+jarod@wilsonet.com
 
->From c22c85c0b675422a23e3d853ed06fedc36805774 Mon Sep 17 00:00:00 2001
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Date: Mon, 24 Jan 2011 22:49:59 -0800
-Subject: [PATCH] input-kbd - switch to using EVIOCGKEYCODE2 when available
 
-Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
----
- input-kbd.c |  118 ++++++++++++++++++++++++++++++++++++++++-------------------
- 1 files changed, 80 insertions(+), 38 deletions(-)
-
-diff --git a/input-kbd.c b/input-kbd.c
-index e94529d..5d93d54 100644
---- a/input-kbd.c
-+++ b/input-kbd.c
-@@ -9,9 +9,27 @@
- 
- #include "input.h"
- 
-+struct input_keymap_entry_v1 {
-+	uint32_t scancode;
-+	uint32_t keycode;
-+};
-+
-+struct input_keymap_entry_v2 {
-+#define KEYMAP_BY_INDEX	(1 << 0)
-+	uint8_t  flags;
-+	uint8_t  len;
-+	uint16_t index;
-+	uint32_t keycode;
-+	uint8_t  scancode[32];
-+};
-+
-+#ifndef EVIOCGKEYCODE2
-+#define EVIOCGKEYCODE2 _IOR('E', 0x04, struct input_keymap_entry_v2)
-+#endif
-+
- struct kbd_entry {
--	int scancode;
--	int keycode;
-+	unsigned int scancode;
-+	unsigned int keycode;
- };
- 
- struct kbd_map {
-@@ -23,7 +41,7 @@ struct kbd_map {
- 
- /* ------------------------------------------------------------------ */
- 
--static struct kbd_map* kbd_map_read(int fd)
-+static struct kbd_map* kbd_map_read(int fd, unsigned int version)
- {
- 	struct kbd_entry entry;
- 	struct kbd_map *map;
-@@ -32,16 +50,37 @@ static struct kbd_map* kbd_map_read(int fd)
- 	map = malloc(sizeof(*map));
- 	memset(map,0,sizeof(*map));
- 	for (map->size = 0; map->size < 65536; map->size++) {
--		entry.scancode = map->size;
--		entry.keycode  = KEY_RESERVED;
--		rc = ioctl(fd, EVIOCGKEYCODE, &entry);
--		if (rc < 0) {
--			break;
-+		if (version < 0x10001) {
-+			struct input_keymap_entry_v1 ke = {
-+				.scancode = map->size,
-+				.keycode = KEY_RESERVED,
-+			};
-+
-+			rc = ioctl(fd, EVIOCGKEYCODE, &ke);
-+			if (rc < 0)
-+				break;
-+		} else {
-+			struct input_keymap_entry_v2 ke = {
-+				.index = map->size,
-+				.flags = KEYMAP_BY_INDEX,
-+				.len = sizeof(uint32_t),
-+				.keycode = KEY_RESERVED,
-+			};
-+
-+			rc = ioctl(fd, EVIOCGKEYCODE2, &ke);
-+			if (rc < 0)
-+				break;
-+
-+			memcpy(&entry.scancode, ke.scancode,
-+				sizeof(entry.scancode));
-+			entry.keycode = ke.keycode;
- 		}
-+
- 		if (map->size >= map->alloc) {
- 			map->alloc += 64;
- 			map->map = realloc(map->map, map->alloc * sizeof(entry));
- 		}
-+
- 		map->map[map->size] = entry;
- 
- 		if (KEY_RESERVED != entry.keycode)
-@@ -155,40 +194,27 @@ static void kbd_print_bits(int fd)
- 	}
- }
- 
--static void show_kbd(int nr)
-+static void show_kbd(int fd, unsigned int protocol_version)
- {
- 	struct kbd_map *map;
--	int fd;
- 
--	fd = device_open(nr,1);
--	if (-1 == fd)
--		return;
- 	device_info(fd);
- 
--	map = kbd_map_read(fd);
--	if (NULL != map) {
--		kbd_map_print(stdout,map,0);
--	} else {
-+	map = kbd_map_read(fd, protocol_version);
-+	if (map)
-+		kbd_map_print(stdout, map, 0);
-+	else
- 		kbd_print_bits(fd);
--	}
--
--	close(fd);
- }
- 
--static int set_kbd(int nr, char *mapfile)
-+static int set_kbd(int fd, unsigned int protocol_version, char *mapfile)
- {
- 	struct kbd_map *map;
- 	FILE *fp;
--	int fd;
--
--	fd = device_open(nr,1);
--	if (-1 == fd)
--		return -1;
- 
--	map = kbd_map_read(fd);
-+	map = kbd_map_read(fd, protocol_version);
- 	if (NULL == map) {
- 		printf("device has no map\n");
--		close(fd);
- 		return -1;
- 	}
- 
-@@ -198,18 +224,15 @@ static int set_kbd(int nr, char *mapfile)
- 		fp = fopen(mapfile,"r");
- 		if (NULL == fp) {
- 			printf("open %s: %s\n",mapfile,strerror(errno));
--			close(fd);
- 			return -1;
- 		}
- 	}
--	
-+
- 	if (0 != kbd_map_parse(fp,map) ||
- 	    0 != kbd_map_write(fd,map)) {
--		close(fd);
- 		return -1;
- 	}
- 
--	close(fd);
- 	return 0;
- }
- 
-@@ -223,8 +246,10 @@ static int usage(char *prog, int error)
- 
- int main(int argc, char *argv[])
- {
--	int c,devnr;
-+	int c, devnr, fd;
- 	char *mapfile = NULL;
-+	unsigned int protocol_version;
-+	int rc = EXIT_FAILURE;
- 
- 	for (;;) {
- 		if (-1 == (c = getopt(argc, argv, "hf:")))
-@@ -244,12 +269,29 @@ int main(int argc, char *argv[])
- 		usage(argv[0],1);
- 
- 	devnr = atoi(argv[optind]);
--	if (mapfile) {
--		set_kbd(devnr,mapfile);
--	} else {
--		show_kbd(devnr);
-+
-+	fd = device_open(devnr, 1);
-+	if (fd < 0)
-+		goto out;
-+
-+	if (ioctl(fd, EVIOCGVERSION, &protocol_version) < 0) {
-+		fprintf(stderr,
-+			"Unable to query evdev protocol version: %s\n",
-+			strerror(errno));
-+		goto out_close;
- 	}
--	return 0;
-+
-+	if (mapfile)
-+		set_kbd(fd, protocol_version, mapfile);
-+	else
-+		show_kbd(fd, protocol_version);
-+
-+	rc = EXIT_SUCCESS;
-+
-+out_close:
-+	close(fd);
-+out:
-+	return rc;
- }
- 
- /* ---------------------------------------------------------------------
--- 
-1.7.3.4
 
