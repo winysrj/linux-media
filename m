@@ -1,78 +1,67 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:64513 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752136Ab1ALLQZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Jan 2011 06:16:25 -0500
-Subject: [PATCH 1/2] soc_mediabus: export a useful method to obtain the
- number of samples that makes up a pixel format
-From: Alberto Panizzo <maramaopercheseimorto@gmail.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: HansVerkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	linux-kernel <linux-kernel@vger.kernel.org>
-In-Reply-To: <1294830836.2576.46.camel@realization>
-References: <1290964687.3016.5.camel@realization>
-	 <1290965045.3016.11.camel@realization>
-	 <Pine.LNX.4.64.1012011832430.28110@axis700.grange>
-	 <Pine.LNX.4.64.1012181722200.18515@axis700.grange>
-	 <Pine.LNX.4.64.1012302028100.13281@axis700.grange>
-	 <1294076008.2493.85.camel@realization>
-	 <Pine.LNX.4.64.1101031931160.23134@axis700.grange>
-	 <1294092449.2493.135.camel@realization>
-	 <1294830836.2576.46.camel@realization>
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 12 Jan 2011 12:16:19 +0100
-Message-ID: <1294830979.2576.48.camel@realization>
-Mime-Version: 1.0
+Received: from mx1.redhat.com ([209.132.183.28]:53852 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755620Ab1ATNcM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Jan 2011 08:32:12 -0500
+Message-ID: <4D383B6B.4050608@redhat.com>
+Date: Thu, 20 Jan 2011 14:40:59 +0100
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Luca Tettamanti <kronos.it@gmail.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Nicolas VIVIEN <progweb@free.fr>
+Subject: Re: Upstreaming syntek driver
+References: <AANLkTi=bv+NkwS+ASUDeAjbpNht8+YJaPRKYF7TTZDes@mail.gmail.com>	<201101182345.17725.hverkuil@xs4all.nl> <AANLkTikrXyqr8ZS7bbeJe5yPxdyxE-X-pwk=5MaLOy4N@mail.gmail.com>
+In-Reply-To: <AANLkTikrXyqr8ZS7bbeJe5yPxdyxE-X-pwk=5MaLOy4N@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+Hi,
 
-Signed-off-by: Alberto Panizzo <maramaopercheseimorto@gmail.com>
----
- drivers/media/video/soc_mediabus.c |   14 ++++++++++++++
- include/media/soc_mediabus.h       |    1 +
- 2 files changed, 15 insertions(+), 0 deletions(-)
+On 01/20/2011 12:35 PM, Luca Tettamanti wrote:
+> On Tue, Jan 18, 2011 at 11:45 PM, Hans Verkuil<hverkuil@xs4all.nl>  wrote:
+> [...]
+>> After a quick scan through the sources in svn I found the following (in no
+>> particular order):
+>>
+>> - Supports easycap model with ID 05e1:0408: a driver for this model is now
+>>   in driver/staging/easycap.
+>
+> Can you elaborate? Is this the same hardware?
+>
+>> - format conversion must be moved to libv4lconvert (if that can't already be
+>>   used out of the box). Ditto for software brightness correction.
+>>
+>> - kill off the sysfs bits
+>>
+>> - kill off V4L1
+>>
+>> - use the new control framework for the control handling
+>>
+>> - use video_ioctl2 instead of the current ioctl function
+>>
+>> - use unlocked_ioctl instead of ioctl
+>
+> Ok, major surgery then :)
+>
+>> But probably the first step should be to see if this can't be made part of the
+>> gspca driver. I can't help thinking that that would be the best approach. But
+>> I guess the gspca developers can give a better idea of how hard that is.
+>
+> I've looked at the framework provided by gspca, it would probably
+> allow to drop most of the USB support code from the driver.
 
-diff --git a/drivers/media/video/soc_mediabus.c b/drivers/media/video/soc_mediabus.c
-index 9139121..5bba424 100644
---- a/drivers/media/video/soc_mediabus.c
-+++ b/drivers/media/video/soc_mediabus.c
-@@ -132,6 +132,20 @@ static const struct soc_mbus_pixelfmt mbus_fmt[] = {
- 	},
- };
- 
-+s32 soc_mbus_samples_per_pixel(const struct soc_mbus_pixelfmt *mf)
-+{
-+	switch (mf->packing) {
-+	case SOC_MBUS_PACKING_NONE:
-+	case SOC_MBUS_PACKING_EXTEND16:
-+		return 1;
-+	case SOC_MBUS_PACKING_2X8_PADHI:
-+	case SOC_MBUS_PACKING_2X8_PADLO:
-+		return 2;
-+	}
-+	return -EINVAL;
-+}
-+EXPORT_SYMBOL(soc_mbus_samples_per_pixel);
-+
- s32 soc_mbus_bytes_per_line(u32 width, const struct soc_mbus_pixelfmt *mf)
- {
- 	switch (mf->packing) {
-diff --git a/include/media/soc_mediabus.h b/include/media/soc_mediabus.h
-index 037cd7b..f21cbd0 100644
---- a/include/media/soc_mediabus.h
-+++ b/include/media/soc_mediabus.h
-@@ -61,5 +61,6 @@ struct soc_mbus_pixelfmt {
- const struct soc_mbus_pixelfmt *soc_mbus_get_fmtdesc(
- 	enum v4l2_mbus_pixelcode code);
- s32 soc_mbus_bytes_per_line(u32 width, const struct soc_mbus_pixelfmt *mf);
-+s32 soc_mbus_samples_per_pixel(const struct soc_mbus_pixelfmt *mf);
- 
- #endif
--- 
-1.7.1
+Yeah, that is the whole idea :) I give a big +1 to the Hans' suggestion
+to convert this to a gspca driver!
 
+> I'm looking into frame handling.
 
+Let me know if you need any help / explanation about how certain things
+are done in gspca.
 
+Regards,
+
+Hans G (aka the other Hans).
