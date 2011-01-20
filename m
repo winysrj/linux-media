@@ -1,433 +1,279 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.187]:55457 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751002Ab1AWAAT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Jan 2011 19:00:19 -0500
-Date: Sun, 23 Jan 2011 01:00:16 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: linux-media@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
-	Kuninori Morimoto <morimoto.kuninori@renesas.com>,
-	Alberto Panizzo <maramaopercheseimorto@gmail.com>,
-	Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>,
-	Marek Vasut <marek.vasut@gmail.com>,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: Re: [RFC PATCH 06/12] mt9t031: convert to the control framework.
-In-Reply-To: <01a5d12712d23738722c2e0ee76efd9426c22942.1294786597.git.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.1101230058240.1872@axis700.grange>
-References: <1294787172-13638-1-git-send-email-hverkuil@xs4all.nl>
- <01a5d12712d23738722c2e0ee76efd9426c22942.1294786597.git.hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:54413 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751485Ab1ATRCX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Jan 2011 12:02:23 -0500
+Message-ID: <4D386A69.3080000@redhat.com>
+Date: Thu, 20 Jan 2011 15:01:29 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Linus Torvalds <torvalds@linux-foundation.org>
+CC: Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for 2.6.38-rc2] V4L/DVB patches
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Same questions as to the previous ones:
+Hi Linus,
 
-1. how is V4L2_CID_EXPOSURE taken care of? I see, that the functionality 
-is provided by the control cluster, but, AFAIU, user just issuing that 
-control will not get the desired result?
+Those are some changes that I tried to prepare to send you during the 
+merge window, but, unfortunately, the new videobuf2 driver took me a longer
+time to review/test than I originally expected.
 
-2. separate handlers
+Please pull from:
+  ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
 
-3. v4l2_device_unregister_subdev()
+This series contains:
+	- videobuf2 new video buffer handling, and the corresponding
+	  changes at Samsung s5p-fimc driver for using it. This were
+	  developed over the last year and largely tested by Samsung
+	  on their devices. Currently, the only driver using it is for
+	  their own hardware (and for the virtual video driver, used for
+	  testing purposes only). We expect to have drivers ported to it
+	  as times goes by, as it does buffer allocation in a better way
+	  than the previous videobuf.
+	- multiplanar buffer support - needed by some embedded devices
+	  that store luminance into one memory block and chroma
+	  layers into a separate memory blocks, including s5p-fimc driver;
+	- The corresponding updates at V4L DocBook because of multiplanar
+	  patches;
+	- support for new DibCom hardware based on 709x/90xx family;
+	- support for ngene hardware with Common Interface controller;
+	- Trivial board addition to support a new saa7134 hardware.
 
-Thanks
-Guennadi
+Thanks!
+Mauro
 
-On Wed, 12 Jan 2011, Hans Verkuil wrote:
+-
 
-> Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
-> ---
->  drivers/media/video/mt9t031.c |  229 +++++++++++++++--------------------------
->  1 files changed, 81 insertions(+), 148 deletions(-)
-> 
-> diff --git a/drivers/media/video/mt9t031.c b/drivers/media/video/mt9t031.c
-> index 7ce279c..cd73ef1 100644
-> --- a/drivers/media/video/mt9t031.c
-> +++ b/drivers/media/video/mt9t031.c
-> @@ -18,6 +18,7 @@
->  #include <media/soc_camera.h>
->  #include <media/v4l2-chip-ident.h>
->  #include <media/v4l2-subdev.h>
-> +#include <media/v4l2-ctrls.h>
->  
->  /*
->   * mt9t031 i2c address 0x5d
-> @@ -64,14 +65,17 @@
->  
->  struct mt9t031 {
->  	struct v4l2_subdev subdev;
-> +	struct v4l2_ctrl_handler hdl;
-> +	struct {
-> +		/* exposure/auto-exposure cluster */
-> +		struct v4l2_ctrl *autoexposure;
-> +		struct v4l2_ctrl *exposure;
-> +	};
->  	struct v4l2_rect rect;	/* Sensor window */
->  	int model;	/* V4L2_IDENT_MT9T031* codes from v4l2-chip-ident.h */
->  	u16 xskip;
->  	u16 yskip;
-> -	unsigned int gain;
->  	unsigned short y_skip_top;	/* Lines to skip at the top */
-> -	unsigned int exposure;
-> -	unsigned char autoexposure;
->  };
->  
->  static struct mt9t031 *to_mt9t031(const struct i2c_client *client)
-> @@ -211,61 +215,9 @@ enum {
->  	MT9T031_CTRL_EXPOSURE_AUTO,
->  };
->  
-> -static const struct v4l2_queryctrl mt9t031_controls[] = {
-> -	[MT9T031_CTRL_VFLIP] = {
-> -		.id		= V4L2_CID_VFLIP,
-> -		.type		= V4L2_CTRL_TYPE_BOOLEAN,
-> -		.name		= "Flip Vertically",
-> -		.minimum	= 0,
-> -		.maximum	= 1,
-> -		.step		= 1,
-> -		.default_value	= 0,
-> -	},
-> -	[MT9T031_CTRL_HFLIP] = {
-> -		.id		= V4L2_CID_HFLIP,
-> -		.type		= V4L2_CTRL_TYPE_BOOLEAN,
-> -		.name		= "Flip Horizontally",
-> -		.minimum	= 0,
-> -		.maximum	= 1,
-> -		.step		= 1,
-> -		.default_value	= 0,
-> -	},
-> -	[MT9T031_CTRL_GAIN] = {
-> -		.id		= V4L2_CID_GAIN,
-> -		.type		= V4L2_CTRL_TYPE_INTEGER,
-> -		.name		= "Gain",
-> -		.minimum	= 0,
-> -		.maximum	= 127,
-> -		.step		= 1,
-> -		.default_value	= 64,
-> -		.flags		= V4L2_CTRL_FLAG_SLIDER,
-> -	},
-> -	[MT9T031_CTRL_EXPOSURE] = {
-> -		.id		= V4L2_CID_EXPOSURE,
-> -		.type		= V4L2_CTRL_TYPE_INTEGER,
-> -		.name		= "Exposure",
-> -		.minimum	= 1,
-> -		.maximum	= 255,
-> -		.step		= 1,
-> -		.default_value	= 255,
-> -		.flags		= V4L2_CTRL_FLAG_SLIDER,
-> -	},
-> -	[MT9T031_CTRL_EXPOSURE_AUTO] = {
-> -		.id		= V4L2_CID_EXPOSURE_AUTO,
-> -		.type		= V4L2_CTRL_TYPE_BOOLEAN,
-> -		.name		= "Automatic Exposure",
-> -		.minimum	= 0,
-> -		.maximum	= 1,
-> -		.step		= 1,
-> -		.default_value	= 1,
-> -	}
-> -};
-> -
->  static struct soc_camera_ops mt9t031_ops = {
->  	.set_bus_param		= mt9t031_set_bus_param,
->  	.query_bus_param	= mt9t031_query_bus_param,
-> -	.controls		= mt9t031_controls,
-> -	.num_controls		= ARRAY_SIZE(mt9t031_controls),
->  };
->  
->  /* target must be _even_ */
-> @@ -364,18 +316,20 @@ static int mt9t031_set_params(struct i2c_client *client,
->  	if (ret >= 0)
->  		ret = reg_write(client, MT9T031_WINDOW_HEIGHT,
->  				rect->height + mt9t031->y_skip_top - 1);
-> -	if (ret >= 0 && mt9t031->autoexposure) {
-> +	v4l2_ctrl_lock(mt9t031->autoexposure);
-> +	if (ret >= 0 && mt9t031->autoexposure->cur.val == V4L2_EXPOSURE_AUTO) {
->  		unsigned int total_h = rect->height + mt9t031->y_skip_top + vblank;
->  		ret = set_shutter(client, total_h);
->  		if (ret >= 0) {
->  			const u32 shutter_max = MT9T031_MAX_HEIGHT + vblank;
-> -			const struct v4l2_queryctrl *qctrl =
-> -				&mt9t031_controls[MT9T031_CTRL_EXPOSURE];
-> -			mt9t031->exposure = (shutter_max / 2 + (total_h - 1) *
-> -				 (qctrl->maximum - qctrl->minimum)) /
-> -				shutter_max + qctrl->minimum;
-> +			struct v4l2_ctrl *ctrl = mt9t031->exposure;
-> +
-> +			ctrl->cur.val = (shutter_max / 2 + (total_h - 1) *
-> +				 (ctrl->maximum - ctrl->minimum)) /
-> +				shutter_max + ctrl->minimum;
->  		}
->  	}
-> +	v4l2_ctrl_unlock(mt9t031->autoexposure);
->  
->  	/* Re-enable register update, commit all changes */
->  	if (ret >= 0)
-> @@ -543,71 +497,38 @@ static int mt9t031_s_register(struct v4l2_subdev *sd,
->  }
->  #endif
->  
-> -static int mt9t031_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
-> -{
-> -	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> -	struct mt9t031 *mt9t031 = to_mt9t031(client);
-> -	int data;
-> -
-> -	switch (ctrl->id) {
-> -	case V4L2_CID_VFLIP:
-> -		data = reg_read(client, MT9T031_READ_MODE_2);
-> -		if (data < 0)
-> -			return -EIO;
-> -		ctrl->value = !!(data & 0x8000);
-> -		break;
-> -	case V4L2_CID_HFLIP:
-> -		data = reg_read(client, MT9T031_READ_MODE_2);
-> -		if (data < 0)
-> -			return -EIO;
-> -		ctrl->value = !!(data & 0x4000);
-> -		break;
-> -	case V4L2_CID_EXPOSURE_AUTO:
-> -		ctrl->value = mt9t031->autoexposure;
-> -		break;
-> -	case V4L2_CID_GAIN:
-> -		ctrl->value = mt9t031->gain;
-> -		break;
-> -	case V4L2_CID_EXPOSURE:
-> -		ctrl->value = mt9t031->exposure;
-> -		break;
-> -	}
-> -	return 0;
-> -}
-> -
-> -static int mt9t031_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
-> +static int mt9t031_s_ctrl(struct v4l2_ctrl *ctrl)
->  {
-> +	struct v4l2_subdev *sd =
-> +		&container_of(ctrl->handler, struct mt9t031, hdl)->subdev;
->  	struct i2c_client *client = v4l2_get_subdevdata(sd);
->  	struct mt9t031 *mt9t031 = to_mt9t031(client);
-> -	const struct v4l2_queryctrl *qctrl;
-> +	struct v4l2_ctrl *exp = mt9t031->exposure;
->  	int data;
->  
->  	switch (ctrl->id) {
->  	case V4L2_CID_VFLIP:
-> -		if (ctrl->value)
-> +		if (ctrl->val)
->  			data = reg_set(client, MT9T031_READ_MODE_2, 0x8000);
->  		else
->  			data = reg_clear(client, MT9T031_READ_MODE_2, 0x8000);
->  		if (data < 0)
->  			return -EIO;
-> -		break;
-> +		return 0;
->  	case V4L2_CID_HFLIP:
-> -		if (ctrl->value)
-> +		if (ctrl->val)
->  			data = reg_set(client, MT9T031_READ_MODE_2, 0x4000);
->  		else
->  			data = reg_clear(client, MT9T031_READ_MODE_2, 0x4000);
->  		if (data < 0)
->  			return -EIO;
-> -		break;
-> +		return 0;
->  	case V4L2_CID_GAIN:
-> -		qctrl = &mt9t031_controls[MT9T031_CTRL_GAIN];
-> -		if (ctrl->value > qctrl->maximum || ctrl->value < qctrl->minimum)
-> -			return -EINVAL;
->  		/* See Datasheet Table 7, Gain settings. */
-> -		if (ctrl->value <= qctrl->default_value) {
-> +		if (ctrl->val <= ctrl->default_value) {
->  			/* Pack it into 0..1 step 0.125, register values 0..8 */
-> -			unsigned long range = qctrl->default_value - qctrl->minimum;
-> -			data = ((ctrl->value - qctrl->minimum) * 8 + range / 2) / range;
-> +			unsigned long range = ctrl->default_value - ctrl->minimum;
-> +			data = ((ctrl->val - ctrl->minimum) * 8 + range / 2) / range;
->  
->  			dev_dbg(&client->dev, "Setting gain %d\n", data);
->  			data = reg_write(client, MT9T031_GLOBAL_GAIN, data);
-> @@ -616,9 +537,9 @@ static int mt9t031_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
->  		} else {
->  			/* Pack it into 1.125..128 variable step, register values 9..0x7860 */
->  			/* We assume qctrl->maximum - qctrl->default_value - 1 > 0 */
-> -			unsigned long range = qctrl->maximum - qctrl->default_value - 1;
-> +			unsigned long range = ctrl->maximum - ctrl->default_value - 1;
->  			/* calculated gain: map 65..127 to 9..1024 step 0.125 */
-> -			unsigned long gain = ((ctrl->value - qctrl->default_value - 1) *
-> +			unsigned long gain = ((ctrl->val - ctrl->default_value - 1) *
->  					       1015 + range / 2) / range + 9;
->  
->  			if (gain <= 32)		/* calculated gain 9..32 -> 9..32 */
-> @@ -635,19 +556,16 @@ static int mt9t031_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
->  			if (data < 0)
->  				return -EIO;
->  		}
-> +		return 0;
->  
-> -		/* Success */
-> -		mt9t031->gain = ctrl->value;
-> -		break;
-> -	case V4L2_CID_EXPOSURE:
-> -		qctrl = &mt9t031_controls[MT9T031_CTRL_EXPOSURE];
-> -		/* mt9t031 has maximum == default */
-> -		if (ctrl->value > qctrl->maximum || ctrl->value < qctrl->minimum)
-> -			return -EINVAL;
-> -		else {
-> -			const unsigned long range = qctrl->maximum - qctrl->minimum;
-> -			const u32 shutter = ((ctrl->value - qctrl->minimum) * 1048 +
-> -					     range / 2) / range + 1;
-> +	case V4L2_CID_EXPOSURE_AUTO:
-> +		/* Force manual exposure if only the exposure was changed */
-> +		if (!ctrl->has_new)
-> +			ctrl->val = V4L2_EXPOSURE_MANUAL;
-> +		if (ctrl->val == V4L2_EXPOSURE_MANUAL) {
-> +			unsigned int range = exp->maximum - exp->minimum;
-> +			unsigned int shutter = ((exp->val - exp->minimum) * 1048 +
-> +						 range / 2) / range + 1;
->  			u32 old;
->  
->  			get_shutter(client, &old);
-> @@ -655,12 +573,8 @@ static int mt9t031_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
->  				old, shutter);
->  			if (set_shutter(client, shutter) < 0)
->  				return -EIO;
-> -			mt9t031->exposure = ctrl->value;
-> -			mt9t031->autoexposure = 0;
-> -		}
-> -		break;
-> -	case V4L2_CID_EXPOSURE_AUTO:
-> -		if (ctrl->value) {
-> +			ctrl->val = V4L2_EXPOSURE_MANUAL;
-> +		} else {
->  			const u16 vblank = MT9T031_VERTICAL_BLANK;
->  			const u32 shutter_max = MT9T031_MAX_HEIGHT + vblank;
->  			unsigned int total_h = mt9t031->rect.height +
-> @@ -668,14 +582,11 @@ static int mt9t031_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
->  
->  			if (set_shutter(client, total_h) < 0)
->  				return -EIO;
-> -			qctrl = &mt9t031_controls[MT9T031_CTRL_EXPOSURE];
-> -			mt9t031->exposure = (shutter_max / 2 + (total_h - 1) *
-> -				 (qctrl->maximum - qctrl->minimum)) /
-> -				shutter_max + qctrl->minimum;
-> -			mt9t031->autoexposure = 1;
-> -		} else
-> -			mt9t031->autoexposure = 0;
-> -		break;
-> +			exp->val = (shutter_max / 2 + (total_h - 1) *
-> +				 (exp->maximum - exp->minimum)) /
-> +				shutter_max + exp->minimum;
-> +		}
-> +		return 0;
->  	default:
->  		return -EINVAL;
->  	}
-> @@ -766,15 +677,12 @@ static int mt9t031_video_probe(struct i2c_client *client)
->  	dev_info(&client->dev, "Detected a MT9T031 chip ID %x\n", data);
->  
->  	ret = mt9t031_idle(client);
-> -	if (ret < 0)
-> +	if (ret < 0) {
->  		dev_err(&client->dev, "Failed to initialise the camera\n");
-> -	else
-> +	} else {
->  		vdev->dev.type = &mt9t031_dev_type;
-> -
-> -	/* mt9t031_idle() has reset the chip to default. */
-> -	mt9t031->exposure = 255;
-> -	mt9t031->gain = 64;
-> -
-> +		v4l2_ctrl_handler_setup(&mt9t031->hdl);
-> +	}
->  	return ret;
->  }
->  
-> @@ -788,9 +696,11 @@ static int mt9t031_g_skip_top_lines(struct v4l2_subdev *sd, u32 *lines)
->  	return 0;
->  }
->  
-> +static const struct v4l2_ctrl_ops mt9t031_ctrl_ops = {
-> +	.s_ctrl = mt9t031_s_ctrl,
-> +};
-> +
->  static struct v4l2_subdev_core_ops mt9t031_subdev_core_ops = {
-> -	.g_ctrl		= mt9t031_g_ctrl,
-> -	.s_ctrl		= mt9t031_s_ctrl,
->  	.g_chip_ident	= mt9t031_g_chip_ident,
->  #ifdef CONFIG_VIDEO_ADV_DEBUG
->  	.g_register	= mt9t031_g_register,
-> @@ -858,6 +768,32 @@ static int mt9t031_probe(struct i2c_client *client,
->  		return -ENOMEM;
->  
->  	v4l2_i2c_subdev_init(&mt9t031->subdev, client, &mt9t031_subdev_ops);
-> +	v4l2_ctrl_handler_init(&mt9t031->hdl, 5);
-> +	v4l2_ctrl_new_std(&mt9t031->hdl, &mt9t031_ctrl_ops,
-> +			V4L2_CID_VFLIP, 0, 1, 1, 0);
-> +	v4l2_ctrl_new_std(&mt9t031->hdl, &mt9t031_ctrl_ops,
-> +			V4L2_CID_HFLIP, 0, 1, 1, 0);
-> +	v4l2_ctrl_new_std(&mt9t031->hdl, &mt9t031_ctrl_ops,
-> +			V4L2_CID_GAIN, 0, 127, 1, 64);
-> +
-> +	/*
-> +	 * Simulated autoexposure. If enabled, we calculate shutter width
-> +	 * ourselves in the driver based on vertical blanking and frame width
-> +	 */
-> +	mt9t031->autoexposure = v4l2_ctrl_new_std_menu(&mt9t031->hdl,
-> +			&mt9t031_ctrl_ops, V4L2_CID_EXPOSURE_AUTO, 1, 0,
-> +			V4L2_EXPOSURE_AUTO);
-> +	mt9t031->exposure = v4l2_ctrl_new_std(&mt9t031->hdl, &mt9t031_ctrl_ops,
-> +			V4L2_CID_EXPOSURE, 1, 255, 1, 255);
-> +
-> +	mt9t031->subdev.ctrl_handler = &mt9t031->hdl;
-> +	if (mt9t031->hdl.error) {
-> +		int err = mt9t031->hdl.error;
-> +
-> +		kfree(mt9t031);
-> +		return err;
-> +	}
-> +	v4l2_ctrl_cluster(2, &mt9t031->autoexposure);
->  
->  	mt9t031->y_skip_top	= 0;
->  	mt9t031->rect.left	= MT9T031_COLUMN_SKIP;
-> @@ -865,12 +801,6 @@ static int mt9t031_probe(struct i2c_client *client,
->  	mt9t031->rect.width	= MT9T031_MAX_WIDTH;
->  	mt9t031->rect.height	= MT9T031_MAX_HEIGHT;
->  
-> -	/*
-> -	 * Simulated autoexposure. If enabled, we calculate shutter width
-> -	 * ourselves in the driver based on vertical blanking and frame width
-> -	 */
-> -	mt9t031->autoexposure = 1;
-> -
->  	mt9t031->xskip = 1;
->  	mt9t031->yskip = 1;
->  
-> @@ -883,6 +813,7 @@ static int mt9t031_probe(struct i2c_client *client,
->  	if (ret) {
->  		if (icd)
->  			icd->ops = NULL;
-> +		v4l2_ctrl_handler_free(&mt9t031->hdl);
->  		kfree(mt9t031);
->  	}
->  
-> @@ -894,8 +825,10 @@ static int mt9t031_remove(struct i2c_client *client)
->  	struct mt9t031 *mt9t031 = to_mt9t031(client);
->  	struct soc_camera_device *icd = client->dev.platform_data;
->  
-> +	v4l2_device_unregister_subdev(&mt9t031->subdev);
->  	if (icd)
->  		icd->ops = NULL;
-> +	v4l2_ctrl_handler_free(&mt9t031->hdl);
->  	kfree(mt9t031);
->  
->  	return 0;
-> -- 
-> 1.7.0.4
-> 
+The following changes since commit c56eb8fb6dccb83d9fe62fd4dc00c834de9bc470:
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+  Linux 2.6.38-rc1 (2011-01-18 15:14:02 -0800)
+
+are available in the git repository at:
+  ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
+
+Andreas Regel (1):
+      [media] stv090x: make sleep/wakeup specific to the demod path
+
+Andrzej Pietrasiewicz (1):
+      [media] v4l: videobuf2: add DMA scatter/gather allocator
+
+Hans Verkuil (2):
+      [media] DocBook/v4l: update V4L2 revision and update copyright years
+      [media] DocBook/v4l: fix validation errors
+
+Hyunwoong Kim (5):
+      [media] s5p-fimc: fix the value of YUV422 1-plane formats
+      [media] s5p-fimc: Configure scaler registers depending on FIMC version
+      [media] s5p-fimc: update checking scaling ratio range
+      [media] s5p-fimc: Support stop_streaming and job_abort
+      [media] s5p-fimc: fix MSCTRL.FIFO_CTRL for performance enhancement
+
+Marek Szyprowski (4):
+      [media] v4l: videobuf2: add generic memory handling routines
+      [media] v4l: videobuf2: add read() and write() emulator
+      [media] v4l: mem2mem: port to videobuf2
+      [media] v4l: mem2mem: port m2m_testdev to vb2
+
+Mauro Carvalho Chehab (10):
+      [media] technisat-usb2: Don't use a deprecated call
+      [media] vb2 core: Fix a few printk warnings
+      [media] dib7000p: Fix 4-byte wrong alignments for some case statements
+      [media] dib8000: Fix some wrong alignments
+      [media] Move CI cxd2099 driver to staging
+      [media] ngene: Fix compilation when cxd2099 is not enabled
+      [media] v4l: vivi: port to videobuf2
+      [media] tuner-simple: add support for Tena TNF5337 MFD
+      [media] saa7134: Properly report when a board doesn't have eeprom
+      [media] add support for Encore FM3
+
+Oliver Endriss (12):
+      [media] stv090x: Optional external lock routine
+      [media] ngene: Firmware 18 support
+      [media] ngene: Fixes for TS input over I2S
+      [media] ngene: Support up to 4 tuners
+      [media] ngene: Clean-up driver initialisation (part 1)
+      [media] ngene: Enable CI for Mystique SaTiX-S2 Dual (v2)
+      [media] get_dvb_firmware: ngene_18.fw added
+      [media] ngene: Fix copy-paste error
+      [media] stv090x: Fixed typos in register macros
+      [media] stv090x: Fix losing lock in dual DVB-S2 mode
+      [media] ngene: Improved channel initialisation and release
+      [media] stv090x: 22kHz workaround must also be performed for the 2nd frontend
+
+Olivier Grenie (8):
+      [media] DiB0700: add function to change I2C-speed
+      [media] DiB8000: add diversity support
+      [media] DiBx000: add addition i2c-interface names
+      [media] DiB0090: misc improvements
+      [media] DIB9000: initial support added
+      [media] DiB7090: add support for the dib7090 based
+      [media] DiB0700: add support for several board-layouts
+      [media] DiBxxxx: Codingstype updates
+
+Patrick Boettcher (3):
+      [media] stv090x: added function to control GPIOs from the outside
+      [media] stv090x: add tei-field to config-structure
+      [media] technisat-usb2: added driver for Technisat's USB2.0 DVB-S/S2 receiver
+
+Pawel Osciak (8):
+      [media] v4l: Add multi-planar API definitions to the V4L2 API
+      [media] v4l: Add multi-planar ioctl handling code
+      [media] v4l: Add compat functions for the multi-planar API
+      [media] v4l: add videobuf2 Video for Linux 2 driver framework
+      [media] v4l: videobuf2: add vmalloc allocator
+      [media] v4l: videobuf2: add DMA coherent allocator
+      [media] Fix mmap() example in the V4L2 API DocBook
+      [media] Add multi-planar API documentation
+
+Ralph Metzler (3):
+      [media] ngene: CXD2099AR Common Interface driver
+      [media] ngene: Shutdown workaround
+      [media] ngene: Add net device
+
+Sungchun Kang (1):
+      [media] s5p-fimc: fimc_stop_capture bug fix
+
+Sylwester Nawrocki (14):
+      [media] v4l: Add multiplanar format fourccs for s5p-fimc driver
+      [media] v4l: Add DocBook documentation for YU12M, NV12M image formats
+      [media] s5p-fimc: Porting to videobuf 2
+      [media] s5p-fimc: Conversion to multiplanar formats
+      [media] s5p-fimc: Use v4l core mutex in ioctl and file operations
+      [media] s5p-fimc: Rename s3c_fimc* to s5p_fimc*
+      [media] s5p-fimc: Derive camera bus width from mediabus pixelcode
+      [media] s5p-fimc: Enable interworking without subdev s_stream
+      [media] s5p-fimc: Use default input DMA burst count
+      [media] s5p-fimc: Enable simultaneous rotation and flipping
+      [media] s5p-fimc: Add control of the external sensor clock
+      [media] s5p-fimc: Move scaler details handling to the register API file
+      [media] Add chip identity for NOON010PC30 camera sensor
+      [media] Add v4l2 subdev driver for NOON010PC30L image sensor
+
+ Documentation/DocBook/dvb/dvbapi.xml          |    2 +-
+ Documentation/DocBook/media-entities.tmpl     |    8 +
+ Documentation/DocBook/media.tmpl              |    4 +-
+ Documentation/DocBook/v4l/common.xml          |    2 +
+ Documentation/DocBook/v4l/compat.xml          |   11 +
+ Documentation/DocBook/v4l/dev-capture.xml     |   13 +-
+ Documentation/DocBook/v4l/dev-output.xml      |   13 +-
+ Documentation/DocBook/v4l/func-mmap.xml       |   10 +-
+ Documentation/DocBook/v4l/func-munmap.xml     |    3 +-
+ Documentation/DocBook/v4l/io.xml              |  283 +++-
+ Documentation/DocBook/v4l/pixfmt-nv12m.xml    |  154 ++
+ Documentation/DocBook/v4l/pixfmt-yuv420m.xml  |  162 ++
+ Documentation/DocBook/v4l/pixfmt.xml          |  118 ++-
+ Documentation/DocBook/v4l/planar-apis.xml     |   81 +
+ Documentation/DocBook/v4l/v4l2.xml            |   25 +-
+ Documentation/DocBook/v4l/vidioc-enum-fmt.xml |    2 +
+ Documentation/DocBook/v4l/vidioc-g-fmt.xml    |   15 +-
+ Documentation/DocBook/v4l/vidioc-qbuf.xml     |   24 +-
+ Documentation/DocBook/v4l/vidioc-querybuf.xml |   14 +-
+ Documentation/DocBook/v4l/vidioc-querycap.xml |   24 +-
+ Documentation/dvb/get_dvb_firmware            |    8 +-
+ drivers/media/common/tuners/tuner-types.c     |   21 +
+ drivers/media/dvb/dvb-usb/Kconfig             |    8 +
+ drivers/media/dvb/dvb-usb/Makefile            |    3 +
+ drivers/media/dvb/dvb-usb/dib0700.h           |    2 +
+ drivers/media/dvb/dvb-usb/dib0700_core.c      |   47 +-
+ drivers/media/dvb/dvb-usb/dib0700_devices.c   | 1374 +++++++++++++--
+ drivers/media/dvb/dvb-usb/dvb-usb-ids.h       |    6 +
+ drivers/media/dvb/dvb-usb/dvb-usb-remote.c    |    2 +-
+ drivers/media/dvb/dvb-usb/dvb-usb.h           |    2 +
+ drivers/media/dvb/dvb-usb/technisat-usb2.c    |  808 +++++++++
+ drivers/media/dvb/frontends/Kconfig           |    8 +
+ drivers/media/dvb/frontends/Makefile          |    1 +
+ drivers/media/dvb/frontends/dib0090.c         | 1583 +++++++++++++----
+ drivers/media/dvb/frontends/dib0090.h         |   31 +
+ drivers/media/dvb/frontends/dib7000p.c        | 1945 +++++++++++++++------
+ drivers/media/dvb/frontends/dib7000p.h        |   96 +-
+ drivers/media/dvb/frontends/dib8000.c         |  821 ++++++----
+ drivers/media/dvb/frontends/dib8000.h         |   20 +
+ drivers/media/dvb/frontends/dib9000.c         | 2350 +++++++++++++++++++++++++
+ drivers/media/dvb/frontends/dib9000.h         |  131 ++
+ drivers/media/dvb/frontends/dibx000_common.c  |  279 +++-
+ drivers/media/dvb/frontends/dibx000_common.h  |  152 ++-
+ drivers/media/dvb/frontends/stv090x.c         |  286 +++-
+ drivers/media/dvb/frontends/stv090x.h         |   16 +
+ drivers/media/dvb/frontends/stv090x_reg.h     |   16 +-
+ drivers/media/dvb/ngene/Makefile              |    3 +
+ drivers/media/dvb/ngene/ngene-cards.c         |  179 ++-
+ drivers/media/dvb/ngene/ngene-core.c          |  236 ++-
+ drivers/media/dvb/ngene/ngene-dvb.c           |   71 +-
+ drivers/media/dvb/ngene/ngene.h               |   24 +
+ drivers/media/rc/keymaps/Makefile             |    1 +
+ drivers/media/rc/keymaps/rc-technisat-usb2.c  |   93 +
+ drivers/media/video/Kconfig                   |   36 +-
+ drivers/media/video/Makefile                  |    7 +
+ drivers/media/video/mem2mem_testdev.c         |  227 ++--
+ drivers/media/video/noon010pc30.c             |  792 +++++++++
+ drivers/media/video/s5p-fimc/fimc-capture.c   |  550 ++++---
+ drivers/media/video/s5p-fimc/fimc-core.c      |  872 +++++-----
+ drivers/media/video/s5p-fimc/fimc-core.h      |  134 +-
+ drivers/media/video/s5p-fimc/fimc-reg.c       |  199 ++-
+ drivers/media/video/s5p-fimc/regs-fimc.h      |   29 +-
+ drivers/media/video/saa7134/saa7134-cards.c   |   39 +
+ drivers/media/video/saa7134/saa7134-core.c    |   35 +-
+ drivers/media/video/saa7134/saa7134-input.c   |    1 +
+ drivers/media/video/saa7134/saa7134.h         |    1 +
+ drivers/media/video/v4l2-compat-ioctl32.c     |  229 ++-
+ drivers/media/video/v4l2-ioctl.c              |  455 +++++-
+ drivers/media/video/v4l2-mem2mem.c            |  232 ++--
+ drivers/media/video/videobuf2-core.c          | 1804 +++++++++++++++++++
+ drivers/media/video/videobuf2-dma-contig.c    |  185 ++
+ drivers/media/video/videobuf2-dma-sg.c        |  292 +++
+ drivers/media/video/videobuf2-memops.c        |  232 +++
+ drivers/media/video/videobuf2-vmalloc.c       |  132 ++
+ drivers/media/video/vivi.c                    |  357 +++--
+ drivers/staging/Kconfig                       |    2 +
+ drivers/staging/Makefile                      |    1 +
+ drivers/staging/cxd2099/Kconfig               |   11 +
+ drivers/staging/cxd2099/Makefile              |    5 +
+ drivers/staging/cxd2099/TODO                  |   12 +
+ drivers/staging/cxd2099/cxd2099.c             |  574 ++++++
+ drivers/staging/cxd2099/cxd2099.h             |   41 +
+ include/linux/videodev2.h                     |  131 ++-
+ include/media/noon010pc30.h                   |   28 +
+ include/media/rc-map.h                        |    1 +
+ include/media/{s3c_fimc.h => s5p_fimc.h}      |   20 +-
+ include/media/tuner.h                         |    1 +
+ include/media/v4l2-chip-ident.h               |    3 +
+ include/media/v4l2-ioctl.h                    |   16 +
+ include/media/v4l2-mem2mem.h                  |   56 +-
+ include/media/videobuf2-core.h                |  380 ++++
+ include/media/videobuf2-dma-contig.h          |   29 +
+ include/media/videobuf2-dma-sg.h              |   32 +
+ include/media/videobuf2-memops.h              |   45 +
+ include/media/videobuf2-vmalloc.h             |   20 +
+ 95 files changed, 16900 insertions(+), 2939 deletions(-)
+ create mode 100644 Documentation/DocBook/v4l/pixfmt-nv12m.xml
+ create mode 100644 Documentation/DocBook/v4l/pixfmt-yuv420m.xml
+ create mode 100644 Documentation/DocBook/v4l/planar-apis.xml
+ create mode 100644 drivers/media/dvb/dvb-usb/technisat-usb2.c
+ create mode 100644 drivers/media/dvb/frontends/dib9000.c
+ create mode 100644 drivers/media/dvb/frontends/dib9000.h
+ create mode 100644 drivers/media/rc/keymaps/rc-technisat-usb2.c
+ create mode 100644 drivers/media/video/noon010pc30.c
+ create mode 100644 drivers/media/video/videobuf2-core.c
+ create mode 100644 drivers/media/video/videobuf2-dma-contig.c
+ create mode 100644 drivers/media/video/videobuf2-dma-sg.c
+ create mode 100644 drivers/media/video/videobuf2-memops.c
+ create mode 100644 drivers/media/video/videobuf2-vmalloc.c
+ create mode 100644 drivers/staging/cxd2099/Kconfig
+ create mode 100644 drivers/staging/cxd2099/Makefile
+ create mode 100644 drivers/staging/cxd2099/TODO
+ create mode 100644 drivers/staging/cxd2099/cxd2099.c
+ create mode 100644 drivers/staging/cxd2099/cxd2099.h
+ delete mode 100644 drivers/staging/vme/bridges/Module.symvers
+ create mode 100644 include/media/noon010pc30.h
+ rename include/media/{s3c_fimc.h => s5p_fimc.h} (75%)
+ create mode 100644 include/media/videobuf2-core.h
+ create mode 100644 include/media/videobuf2-dma-contig.h
+ create mode 100644 include/media/videobuf2-dma-sg.h
+ create mode 100644 include/media/videobuf2-memops.h
+ create mode 100644 include/media/videobuf2-vmalloc.h
+
