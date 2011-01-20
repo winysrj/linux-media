@@ -1,47 +1,50 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:64120 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751182Ab1AaF4E (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Jan 2011 00:56:04 -0500
-Received: by wwa36 with SMTP id 36so5438040wwa.1
-        for <linux-media@vger.kernel.org>; Sun, 30 Jan 2011 21:56:02 -0800 (PST)
+Received: from mx1.redhat.com ([209.132.183.28]:27664 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754780Ab1ATVQx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Jan 2011 16:16:53 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id p0KLGrqA028222
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 20 Jan 2011 16:16:53 -0500
+Received: from [10.11.11.101] (vpn-11-101.rdu.redhat.com [10.11.11.101])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p0KLGp6P002192
+	for <linux-media@vger.kernel.org>; Thu, 20 Jan 2011 16:16:52 -0500
+Message-ID: <4D38A642.4090904@redhat.com>
+Date: Thu, 20 Jan 2011 19:16:50 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <20110127092255.2cb6f0a3@wker>
-References: <1296031789-1721-1-git-send-email-agust@denx.de>
-	<1296031789-1721-3-git-send-email-agust@denx.de>
-	<20110127092255.2cb6f0a3@wker>
-Date: Sun, 30 Jan 2011 21:56:02 -0800
-Message-ID: <AANLkTinkv5PszU3-_rQx50rymJPXEc5oDkbvczbtjmfx@mail.gmail.com>
-Subject: Re: [PATCH 2/2] dma: ipu_idmac: do not lose valid received data in
- the irq handler
-From: Dan Williams <dan.j.williams@intel.com>
-To: Anatolij Gustschin <agust@denx.de>
-Cc: Detlev Zundel <dzu@denx.de>, Markus Niebel <Markus.Niebel@tqs.de>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] ir-raw: Properly initialize the IR event (BZ#27202)
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, Jan 27, 2011 at 12:22 AM, Anatolij Gustschin <agust@denx.de> wrote:
-> Reading the commit message again I now realize that there is
-> a mistake.
->
-> On Wed, 26 Jan 2011 09:49:49 +0100
-> Anatolij Gustschin <agust@denx.de> wrote:
-> ...
->> received data. DMA_BUFx_RDY won't be set by the IPU, so waiting
->> for this event in the interrupt handler is wrong.
->
-> This should read 'DMAIC_x_CUR_BUF flag won't be flipped here by
-> the IPU, so waiting for this event in the EOF interrupt handler
-> is wrong.'
->
-> I'll submit another patch fixing the commit message.
->
+Changeset 4651918a4afdd49bdea21d2f919b189ef17a6399 changed the way events
+are stored. However, it forgot to fix ir_raw_event_store_edge() to work
+with the new way. Due to that, the decoders will likely do bad things.
 
-Ok, also looking for a reviewed/acked by Guennadi.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
---
-Dan
+diff --git a/drivers/media/rc/ir-raw.c b/drivers/media/rc/ir-raw.c
+index 185badd..45ffb08 100644
+--- a/drivers/media/rc/ir-raw.c
++++ b/drivers/media/rc/ir-raw.c
+@@ -112,7 +112,7 @@ int ir_raw_event_store_edge(struct rc_dev *dev, enum raw_event_type type)
+ {
+ 	ktime_t			now;
+ 	s64			delta; /* ns */
+-	struct ir_raw_event	ev;
++	DEFINE_IR_RAW_EVENT(ev);
+ 	int			rc = 0;
+ 
+ 	if (!dev->raw)
+@@ -125,7 +125,6 @@ int ir_raw_event_store_edge(struct rc_dev *dev, enum raw_event_type type)
+ 	 * being called for the first time, note that delta can't
+ 	 * possibly be negative.
+ 	 */
+-	ev.duration = 0;
+ 	if (delta > IR_MAX_DURATION || !dev->raw->last_type)
+ 		type |= IR_START_EVENT;
+ 	else
