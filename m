@@ -1,117 +1,80 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:38843 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751977Ab1AYOnC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Jan 2011 09:43:02 -0500
-Message-ID: <4D3EE171.4020605@redhat.com>
-Date: Tue, 25 Jan 2011 12:42:57 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-CC: Mark Lord <kernel@teksavvy.com>,
-	Linux Kernel <linux-kernel@vger.kernel.org>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Extending rc-core/userspace to handle bigger scancodes - Was: Re:
- 2.6.36/2.6.37: broken compatibility with userspace input-utils ?
-References: <20110124175456.GA17855@core.coreip.homeip.net> <4D3E1A08.5060303@teksavvy.com> <20110125005555.GA18338@core.coreip.homeip.net> <4D3E4DD1.60705@teksavvy.com> <20110125042016.GA7850@core.coreip.homeip.net> <4D3E5372.9010305@teksavvy.com> <20110125045559.GB7850@core.coreip.homeip.net> <4D3E59CA.6070107@teksavvy.com> <4D3E5A91.30207@teksavvy.com> <20110125053117.GD7850@core.coreip.homeip.net> <20110125065217.GE7850@core.coreip.homeip.net>
-In-Reply-To: <20110125065217.GE7850@core.coreip.homeip.net>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:39127 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754046Ab1ATEpX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Jan 2011 23:45:23 -0500
+Received: by qyk12 with SMTP id 12so188360qyk.19
+        for <linux-media@vger.kernel.org>; Wed, 19 Jan 2011 20:45:23 -0800 (PST)
+Subject: Re: [GIT PATCHES for 2.6.38] Zilog Z8 IR unit fixes
+Mime-Version: 1.0 (Apple Message framework v1082)
+Content-Type: text/plain; charset=us-ascii
+From: Jarod Wilson <jarod@wilsonet.com>
+In-Reply-To: <0281052D-AFBF-4764-ADFF-64EF0A0CC2CB@wilsonet.com>
+Date: Wed, 19 Jan 2011 23:45:17 -0500
+Cc: Jean Delvare <khali@linux-fr.org>, Mike Isely <isely@isely.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Jarod Wilson <jarod@redhat.com>, Janne Grunau <j@jannau.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
 Content-Transfer-Encoding: 7bit
+Message-Id: <DF6BA086-43FF-4FD9-A30E-EB8AAF451A94@wilsonet.com>
+References: <1295205650.2400.27.camel@localhost> <1295234982.2407.38.camel@localhost> <848D2317-613E-42B1-950D-A227CFF15C5B@wilsonet.com> <1295439718.2093.17.camel@morgan.silverblock.net> <alpine.DEB.1.10.1101190714570.5396@ivanova.isely.net> <1295444282.4317.20.camel@morgan.silverblock.net> <20110119145002.6f94f800@endymion.delvare> <D7F0E4A6-5A23-4A28-95F8-0A088F1D6114@wilsonet.com> <20110119184322.0e5d12cd@endymion.delvare> <0281052D-AFBF-4764-ADFF-64EF0A0CC2CB@wilsonet.com>
+To: Andy Walls <awalls@md.metrocast.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 25-01-2011 04:52, Dmitry Torokhov escreveu:
-> On Mon, Jan 24, 2011 at 09:31:17PM -0800, Dmitry Torokhov wrote:
->> On Tue, Jan 25, 2011 at 12:07:29AM -0500, Mark Lord wrote:
->>> On 11-01-25 12:04 AM, Mark Lord wrote:
->>>> On 11-01-24 11:55 PM, Dmitry Torokhov wrote:
->>>>> On Mon, Jan 24, 2011 at 11:37:06PM -0500, Mark Lord wrote:
->>>> ..
->>>>>> This results in (map->size==10) for 2.6.36+ (wrong),
->>>>>> and a much larger map->size for 2.6.35 and earlier.
->>>>>>
->>>>>> So perhaps EVIOCGKEYCODE has changed?
->>>>>>
->>>>>
->>>>> So the utility expects that all devices have flat scancode space and
->>>>> driver might have changed so it does not recognize scancode 10 as valid
->>>>> scancode anymore.
->>>>>
->>>>> The options are:
->>>>>
->>>>> 1. Convert to EVIOCGKEYCODE2
->>>>> 2. Ignore errors from EVIOCGKEYCODE and go through all 65536 iterations.
->>>>
->>>> or 3. Revert/fix the in-kernel regression.
->>>>
->>>> The EVIOCGKEYCODE ioctl is supposed to return KEY_RESERVED for unmapped
->>>> (but value) keycodes, and only return -EINVAL when the keycode itself
->>>> is out of range.
->>>>
->>>> That's how it worked in all kernels prior to 2.6.36,
->>>> and now it is broken.  It now returns -EINVAL for any unmapped keycode,
->>>> even though keycodes higher than that still have mappings.
->>>>
->>>> This is a bug, a regression, and breaks userspace.
->>>> I haven't identified *where* in the kernel the breakage happened,
->>>> though.. that code confuses me.  :)
->>>
->>> Note that this device DOES have "flat scancode space",
->>> and the kernel is now incorrectly signalling an error (-EINVAL)
->>> in response to a perfectly valid query of a VALID (and mappable)
->>> keycode on the remote control
->>>
->>> The code really is a valid button, it just doesn't have a default mapping
->>> set by the kernel (I can set a mapping for that code from userspace and it works).
->>>
->>
->> OK, in this case let's ping Mauro - I think he done the adjustments to
->> IR keymap hanlding.
->>
->> Thanks.
->>
+On Jan 19, 2011, at 3:08 PM, Jarod Wilson wrote:
+
+> On Jan 19, 2011, at 12:43 PM, Jean Delvare wrote:
 > 
-> BTW, could you please try the following patch (it assumes that
-> EVIOCGVERSION in input.c is alreday relaxed).
+>> Preliminary technical nitpicking: you can't actually pass two addresses
+>> in i2c_board_info, so the second address has to be passed as platform
+>> data.
+>> 
+>> I am sorry if you expected an authoritative answer, but... both options
+>> are actually possible.
+>> 
+>> If you use a single call to i2c_new_device(), you'll have a single
+>> i2c_client to start with, and you'll have to instantiate the second one
+>> in the probe function using i2c_new_dummy().
+>> 
+>> If you instead decide to call i2c_new_device() twice, there will be two
+>> calls to the probe function (which can be the same one in a single
+>> driver, or two different ones in separate drivers, at your option.) If
+>> any synchronization is needed between the two i2c_clients, you have to
+>> use the bridge driver as a relay, as Andy proposed doing already.
+>> 
+>> Really, both are possible, and the two options aren't that different in
+>> the end. I can't think of anything that can be done with one that
+>> couldn't be achieved with the other.
+> 
+> Yeah, see my follow-up mail. The code in hdpvr-i2c.c is clearly a bit
+> off now, and only worked in my testing, as at the time, I was using
+> an older lirc_zilog from prior to Andy's changes that still used the
+> old style binding and probing directly in the driver. I'm working on
+> fixing up hdpvr-i2c further right now, and will do some more prodding
+> with pvrusb2, the code for which looks correct with two i2c_new_device()
+> calls in it, one for each address, so I just need to figure out why
+> lirc_zilog is getting an -EIO trying to get tx brought up.
 
-Dmitry,
+So as we were discussing on irc today, the -EIO is within lirc_zilog's
+send_boot_data() function. The firmware is loaded, and then we send the
+z8 a command to activate the firmware, immediately follow by an attempt
+to read the firmware version. The z8 is still busy when we do that, and
+throwing in a simple mdelay() remedies the problem for both the hvr-1950
+and the hdpvr -- tried 100 initially, and all the way down to 20 still
+worked, didn't try any lower.
 
-Thanks for your patch. I used part of his logic to improve the ir-keytable 
-tool at v4l-utils:
-	http://git.linuxtv.org/v4l-utils.git
+And I definitely horked up the hdpvr i2c a bit, but have a follow-up
+patch that goes back to doing the right thing with two i2c_new_device()
+calls, which I've successfully tested with the latest lirc_zilog plus
+mdelay patch.
 
-The ir-keytable is a tool that just handles Remote Controller input devices,
-and do it well, allowing all sorts of operations related to it, and using the
-sysfs /sys/class/rc stuff to help its operation. Without any arguments, it
-lists the existing RC devices. Arguments are there to allow enabling/disabling
-RC protocols, reading/writing/cleaning keycode tables and to test if the
-remote is generating events (EV_MSC/EV_KEY/EV_REP/EV_SYN).
+Will post patches tomorrow though, its already past my bed time.
 
-Now, it will be using V2 for reads and keycode cleanups, but will still use
-V1 for writes, as, currently with 32 bits scancodes, there's no gain to use
-V2 for it. Also, changing the tool to use more bits will require to rewrite
-part of the code.
+-- 
+Jarod Wilson
+jarod@wilsonet.com
 
-Also, writing a rc-core code that can work with an arbitrary large scancode
-is still on our TODO list.
 
-I'm not entirely sure how to extend the scancode size, as there are a
-few options:
-	1) Core would always work internally with 32 bytes (1024 bits). Some
-logic will be required to accept entries with .len < 32;
-	2) Drivers will define the code lengtht, and core will use it,
-returning -EINVAL if userspace uses a len grater than used internally by
-the core. In this case, we'll need a sysfs node to tell userspace what's
-the maximum allowed size;
-	3) Drivers will define the max number of bits, and core will use it,
-truncating the number to the max size if userspace tries to write more bits 
-than the internal representation;
-	4) Drivers will define the max number of bits, and core will use it,
-returning an error if the number is bigger than the max scancode that can be
-represented internally.
 
-I think that (2) is the best way for doing it, but I'm not yet entirely sure.
-So, it is good to hear some comments about that.
-
-Cheers,
-Mauro
