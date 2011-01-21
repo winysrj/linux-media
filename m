@@ -1,55 +1,39 @@
 Return-path: <mchehab@pedra>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:47523 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752285Ab1AQUKq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Jan 2011 15:10:46 -0500
-Date: Mon, 17 Jan 2011 21:07:56 +0100
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH incremental update] firedtv: fix remote control - addendum
-Message-ID: <20110117210756.510d4135@stein>
-In-Reply-To: <20110117170015.GA15404@core.coreip.homeip.net>
-References: <20110116093921.6275ac89@stein>
-	<20110117081703.GA22802@core.coreip.homeip.net>
-	<20110117141758.56af41f5@stein>
-	<20110117170015.GA15404@core.coreip.homeip.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:34460 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752082Ab1AUEal (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Jan 2011 23:30:41 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id p0L4UesO031307
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 20 Jan 2011 23:30:40 -0500
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Jarod Wilson <jarod@redhat.com>
+Subject: [PATCH 0/3] i2c IR fixups
+Date: Thu, 20 Jan 2011 23:30:22 -0500
+Message-Id: <1295584225-21210-1-git-send-email-jarod@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Dimitry notes that EV_SYN is also necessary between down and up,
-otherwise userspace could combine their state.
+After these patches, both ir-kbd-i2c and lirc_zilog behave considerably
+better with the HD-PVR and HVR-1950. I'd call the behavior of the 1950
+perfect. The HD-PVR needs a touch more work, but these changes make
+both RX and TX usable, its just a bit quirky still.
 
-Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
----
-Hi Mauro,
-since you already pushed out the first version of "firedtv: fix remote
-control with newer Xorg evdev", here is the differential patch to the
-updated version.  It's surely not super urgent though.
+Jarod Wilson (3):
+  hdpvr: fix up i2c device registration
+  lirc_zilog: z8 on usb doesn't like back-to-back i2c_master_send
+  ir-kbd-i2c: improve remote behavior with z8 behind usb
 
- drivers/media/dvb/firewire/firedtv-rc.c |    1 +
- 1 file changed, 1 insertion(+)
-
-Index: b/drivers/media/dvb/firewire/firedtv-rc.c
-===================================================================
---- a/drivers/media/dvb/firewire/firedtv-rc.c
-+++ b/drivers/media/dvb/firewire/firedtv-rc.c
-@@ -190,6 +190,7 @@ void fdtv_handle_rc(struct firedtv *fdtv
- 	}
- 
- 	input_report_key(idev, code, 1);
-+	input_sync(idev);
- 	input_report_key(idev, code, 0);
- 	input_sync(idev);
- }
-
+ drivers/media/video/hdpvr/hdpvr-core.c         |   21 ++++++++++++---
+ drivers/media/video/hdpvr/hdpvr-i2c.c          |   28 +++++++++++++++------
+ drivers/media/video/hdpvr/hdpvr.h              |    6 +++-
+ drivers/media/video/ir-kbd-i2c.c               |   13 +++++++++
+ drivers/media/video/pvrusb2/pvrusb2-i2c-core.c |    1 -
+ drivers/staging/lirc/lirc_zilog.c              |   32 +++++++++++++++++++----
+ 6 files changed, 81 insertions(+), 20 deletions(-)
 
 -- 
-Stefan Richter
--=====-==-== ---= =---=
-http://arcgraph.de/sr/
+1.7.3.4
+
