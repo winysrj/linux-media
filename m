@@ -1,156 +1,183 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:28570 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752263Ab1ALUYD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Jan 2011 15:24:03 -0500
-Message-ID: <4D2E0DD8.4010305@redhat.com>
-Date: Wed, 12 Jan 2011 18:23:52 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from moutng.kundenserver.de ([212.227.126.187]:58802 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750872Ab1AUIFO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Jan 2011 03:05:14 -0500
+Date: Fri, 21 Jan 2011 09:05:07 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Qing Xu <qingx@marvell.com>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: [PATCH] [media] v4l: soc-camera: add enum-frame-size ioctl
+In-Reply-To: <7BAC95F5A7E67643AAFB2C31BEE662D014040BFA37@SC-VEXCH2.marvell.com>
+Message-ID: <Pine.LNX.4.64.1101210841190.14675@axis700.grange>
+References: <1295574498-8666-1-git-send-email-qingx@marvell.com>
+ <7BAC95F5A7E67643AAFB2C31BEE662D014040BFA37@SC-VEXCH2.marvell.com>
 MIME-Version: 1.0
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"'Andrzej Pietrasiewicz/Poland R&D Center-Linux/./????'"
-	<andrzej.p@samsung.com>, pawel@osciak.com,
-	linux-media@vger.kernel.org
-Subject: Re: [GIT PATCHES FOR 2.6.38] Videbuf2 framework, NOON010PC30 sensor
- driver and s5p-fimc updates
-References: <4D21FDC1.7000803@samsung.com> <4D2CBB3F.5050904@redhat.com> <000001cbb243$1051cb60$30f56220$%szyprowski@samsung.com>
-In-Reply-To: <000001cbb243$1051cb60$30f56220$%szyprowski@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=gb2312
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 12-01-2011 08:25, Marek Szyprowski escreveu:
-> Hello Mauro,
+On Thu, 20 Jan 2011, Qing Xu wrote:
+
+> Hi Guennadi, Hans,
 > 
-> I've rebased our fimc and saa patches onto http://linuxtv.org/git/mchehab/experimental.git
-> vb2_test branch.
+> I update this patch, I use enum_framesizes instead of
+> enum_mbus_fsizes, which is already defined in v4l2-subdev.h,
+> so, do not need to modify v4l2-subdev.h now.
 > 
-> The last 2 patches are for SAA7134 driver and are only to show that videobuf2-dma-sg works
-> correctly. 
+> Are you ok with it?
 
-On my first test with saa7134, it hanged. It seems that the code reached a dead lock.
+Hm, you see, this would mean, hijacking a "wrong" operation. This is one 
+of those "wrong" subdevice operations, using fourcc formats to specify a 
+data format on the video-bus between a subdevice (a sensor) and a sink (a 
+host). Previously there have been more of such "wrong" operations, like 
+.{g,s,try,enum}_fmt, all of those have been _gradually_ replaced by 
+respective mediabus counterparts. While doing that we first added new 
+operations with different names (with an extra "mbus_" in them), then 
+ported all existing users over to them, and eventually removed the old 
+"wrong" ones (Hans has done the dirtiest and most difficult part of that - 
+porting and removing;)). Now, the .enum_framesizes() video subdev 
+operation is also one such wrong API element. It has much fewer current 
+users (ov7670.c and cafe_ccic.c - the OLPC project). If we just blatantly 
+re-use it with a media-bus code, it will be relatively harmless, imho, 
+still, it will introduce an ambiguity. Of the above two drivers the sensor 
+driver will not have to be changed at all, because it just ignores the 
+pixel_format field altogether, cafe_ccic.c will have to be trivially 
+ported, we'd just have to add a couple of lines, e.g.
 
-On my test environment, I'm using a remote machine, without monitor. My test is using
-qv4l2 via a remote X server. Using a remote X server is an interesting test, as it will
-likely loose some frames, increasing the probability of races and dead locks.
+ static int cafe_vidioc_enum_framesizes(struct file *filp, void *priv,
+ 		struct v4l2_frmsizeenum *sizes)
+ {
+ 	struct cafe_camera *cam = priv;
++	__u32 fourcc = sizes->pixel_format;
+ 	int ret;
+ 
+ 	mutex_lock(&cam->s_mutex);
++	sizes->pixel_format = cam->mbus_code;
+ 	ret = sensor_call(cam, video, enum_framesizes, sizes);
+ 	mutex_unlock(&cam->s_mutex);
++	sizes->pixel_format = fourcc;
+ 	return ret;
+ }
+ 
 
-That's what happened: 
+or something similar. So, that's certainly doable, still, I think, this 
+would introduce a precedent of inconsistent naming - we'll have an 
+operation, without an "mbus" in the name, operating at the media-bus 
+level, which is not a very good idea, imho. Hans?
 
-Linux video capture interface: v2.00
-saa7130/34: v4l2 driver version 0.2.16 loaded
-saa7130/34: w/o radio and vbi
-saa7133[0]: found at 0000:37:09.0, rev: 209, irq: 21, latency: 32, mmio: 0xfb000
-saa7133[0]: subsystem: 17de:b136, board: Kworld PCI SBTVD/ISDB-T Full-Seg Hybri]
-saa7133[0]: board init: gpio is 4000
-hwinit1
-IRQ 21/saa7133[0]: IRQF_DISABLED is not guaranteed on shared IRQs
-saa7133[0]/irq: no (more) work
-saa7133[0]: i2c eeprom 00: de 17 36 b1 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
-saa7133[0]: i2c eeprom 10: ff ff ff ff ff 20 ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 20: 01 40 01 03 03 ff 01 03 08 ff 01 90 ff ff ff ff
-saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 40: ff 1c 00 c0 ff 1c 01 00 ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-Chip ID is not zero. It is not a TEA5767
-tuner 2-0060: chip found @ 0xc0 (saa7133[0])
-tda18271 2-0060: creating new instance
-TDA18271HD/C2 detected @ 2-0060
-hwinit2
-tda18271: performing RF tracking filter calibration
-tda18271: RF tracking filter calibration complete
-DCSDT: pll: not locked, sync: no, norm: (no signal)
-saa7133[0]: registered device video0 [v4l2]
-saa7134_dvb: disagrees about version of symbol videobuf_dvb_alloc_frontend
-saa7134_dvb: Unknown symbol videobuf_dvb_alloc_frontend
-saa7134_dvb: Unknown symbol saa7134_ts_register
-saa7134_dvb: disagrees about version of symbol videobuf_dvb_get_frontend
-saa7134_dvb: Unknown symbol videobuf_dvb_get_frontend
-saa7134_dvb: disagrees about version of symbol videobuf_queue_sg_init
-saa7134_dvb: Unknown symbol videobuf_queue_sg_init
-saa7134_dvb: disagrees about version of symbol saa7134_set_gpio
-saa7134_dvb: Unknown symbol saa7134_set_gpio
-saa7134_dvb: Unknown symbol saa7134_ts_qops
-saa7134_dvb: Unknown symbol saa7134_ts_unregister
-saa7134_alsa: Unknown symbol saa7134_tvaudio_setmute
-saa7134_alsa: Unknown symbol saa_dsp_writel
-saa7134_alsa: disagrees about version of symbol saa7134_boards
-saa7134_alsa: Unknown symbol saa7134_boards
-saa7134_alsa: disagrees about version of symbol saa7134_dmasound_init
-saa7134_alsa: Unknown symbol saa7134_dmasound_init
-saa7134_alsa: disagrees about version of symbol saa7134_dmasound_exit
-saa7134_alsa: Unknown symbol saa7134_dmasound_exit
-saa7134_alsa: disagrees about version of symbol saa7134_set_dmabits
-saa7134_alsa: Unknown symbol saa7134_set_dmabits
-saa7134_reqbufs: ffff880051ecd528 ffff880051d2fd48
-queue_setup
-vb2_dma_sg_alloc: Allocated buffer of 304 pages
-saa7134_querybuf: ffff880051ecd528 ffff880051d2fd48
-saa7134_reqbufs: ffff880051ecd528 ffff880051d2fd48
-vb2_dma_sg_put: Freeing buffer of 304 pages
-queue_setup
-saa7134_reqbufs: ffff880051ecd528 ffff880051d2fd48
-queue_setup
-vb2_dma_sg_alloc: Allocated buffer of 304 pages
-vb2_dma_sg_alloc: Allocated buffer of 304 pages
-vb2_dma_sg_alloc: Allocated buffer of 304 pages
-saa7134_querybuf: ffff880051ecd528 ffff880051d2fd48
-vb2_common_vm_open: ffff880067d1b178, refcount: 1, vma: 7fa8e0d67000-7fa8e0e9700
-saa7134_querybuf: ffff880051ecd528 ffff880051d2fd48
-vb2_common_vm_open: ffff8800a21cb278, refcount: 1, vma: 7fa8e0c37000-7fa8e0d6700
-saa7134_querybuf: ffff880051ecd528 ffff880051d2fd48
-vb2_common_vm_open: ffff880067c84ef8, refcount: 1, vma: 7fa8e0b07000-7fa8e0c3700
-saa7134_qbuf: ffff880051ecd528 ffff880051d2fd48
-buffer_prepare: sglist:ffffc90005139000 num_pages:304
-saa7134_qbuf: ffff880051ecd528 ffff880051d2fd48
-buffer_prepare: sglist:ffffc900051ab000 num_pages:304
-saa7134_qbuf: ffff880051ecd528 ffff880051d2fd48
-buffer_prepare: sglist:ffffc900051bf000 num_pages:304
-saa7134_streamon: ffff880051ecd528
-buffer_queue
-buffer_queue ffff880067dd9800
-buffer_activate buf=ffff880067dd9800
-saa7134_set_dmabits
-dmabits: task=0x01 ctrl=0x01 irq=0x3 split=yes
-buffer_queue
-buffer_queue ffff880051ecd000
-buffer_queue
-buffer_queue ffff880088e69800
-video_poll: ffff880051ecd528
-video_poll: ffff880051ecd528
-video_poll: ffff880051ecd528
-video_poll: ffff880051ecd528
-saa7133[0]/irq[0,4317235087]: r=0x1 s=0x90 DONE_RA0 | RA0=video,a,odd,0
-buffer_finish ffff880067dd9800
-bu
+Thanks
+Guennadi
 
-(yes, the last msg become incomplete on my serial console)
+> 
+> -Qing
+> 
+> -----Original Message-----
+> From: Qing Xu [mailto:qingx@marvell.com]
+> Sent: 2011Äê1ÔÂ21ÈÕ 9:48
+> To: g.liakhovetski@gmx.de
+> Cc: linux-media@vger.kernel.org; Qing Xu
+> Subject: [PATCH] [media] v4l: soc-camera: add enum-frame-size ioctl
+> 
+> add vidioc_enum_framesizes implementation, follow default_g_parm()
+> and g_mbus_fmt() method
+> 
+> Signed-off-by: Qing Xu <qingx@marvell.com>
+> ---
+>  drivers/media/video/soc_camera.c |   37 +++++++++++++++++++++++++++++++++++++
+>  include/media/soc_camera.h       |    1 +
+>  2 files changed, 38 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+> index 052bd6d..7290107 100644
+> --- a/drivers/media/video/soc_camera.c
+> +++ b/drivers/media/video/soc_camera.c
+> @@ -145,6 +145,15 @@ static int soc_camera_s_std(struct file *file, void *priv, v4l2_std_id *a)
+>         return v4l2_subdev_call(sd, core, s_std, *a);
+>  }
+> 
+> +static int soc_camera_enum_fsizes(struct file *file, void *fh,
+> +                                        struct v4l2_frmsizeenum *fsize)
+> +{
+> +       struct soc_camera_device *icd = file->private_data;
+> +       struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+> +
+> +       return ici->ops->enum_fsizes(icd, fsize);
+> +}
+> +
+>  static int soc_camera_reqbufs(struct file *file, void *priv,
+>                               struct v4l2_requestbuffers *p)
+>  {
+> @@ -1160,6 +1169,31 @@ static int default_s_parm(struct soc_camera_device *icd,
+>         return v4l2_subdev_call(sd, video, s_parm, parm);
+>  }
+> 
+> +static int default_enum_fsizes(struct soc_camera_device *icd,
+> +                         struct v4l2_frmsizeenum *fsize)
+> +{
+> +       int ret;
+> +       struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+> +       const struct soc_camera_format_xlate *xlate;
+> +       __u32 pixfmt = fsize->pixel_format;
+> +       struct v4l2_frmsizeenum fsize_mbus = *fsize;
+> +
+> +       xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
+> +       if (!xlate)
+> +               return -EINVAL;
+> +       /* map xlate-code to pixel_format, sensor only handle xlate-code*/
+> +       fsize_mbus.pixel_format = xlate->code;
+> +
+> +       ret = v4l2_subdev_call(sd, video, enum_framesizes, &fsize_mbus);
+> +       if (ret < 0)
+> +               return ret;
+> +
+> +       *fsize = fsize_mbus;
+> +       fsize->pixel_format = pixfmt;
+> +
+> +       return 0;
+> +}
+> +
+>  static void soc_camera_device_init(struct device *dev, void *pdata)
+>  {
+>         dev->platform_data      = pdata;
+> @@ -1195,6 +1229,8 @@ int soc_camera_host_register(struct soc_camera_host *ici)
+>                 ici->ops->set_parm = default_s_parm;
+>         if (!ici->ops->get_parm)
+>                 ici->ops->get_parm = default_g_parm;
+> +       if (!ici->ops->enum_fsizes)
+> +               ici->ops->enum_fsizes = default_enum_fsizes;
+> 
+>         mutex_lock(&list_lock);
+>         list_for_each_entry(ix, &hosts, list) {
+> @@ -1302,6 +1338,7 @@ static const struct v4l2_ioctl_ops soc_camera_ioctl_ops = {
+>         .vidioc_g_input          = soc_camera_g_input,
+>         .vidioc_s_input          = soc_camera_s_input,
+>         .vidioc_s_std            = soc_camera_s_std,
+> +       .vidioc_enum_framesizes  = soc_camera_enum_fsizes,
+>         .vidioc_reqbufs          = soc_camera_reqbufs,
+>         .vidioc_try_fmt_vid_cap  = soc_camera_try_fmt_vid_cap,
+>         .vidioc_querybuf         = soc_camera_querybuf,
+> diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+> index 86e3631..6e4800c 100644
+> --- a/include/media/soc_camera.h
+> +++ b/include/media/soc_camera.h
+> @@ -85,6 +85,7 @@ struct soc_camera_host_ops {
+>         int (*set_ctrl)(struct soc_camera_device *, struct v4l2_control *);
+>         int (*get_parm)(struct soc_camera_device *, struct v4l2_streamparm *);
+>         int (*set_parm)(struct soc_camera_device *, struct v4l2_streamparm *);
+> +       int (*enum_fsizes)(struct soc_camera_device *, struct v4l2_frmsizeenum *);
+>         unsigned int (*poll)(struct file *, poll_table *);
+>         const struct v4l2_queryctrl *controls;
+>         int num_controls;
+> --
+> 1.6.3.3
+> 
+> 
 
-I've rebooted and did more tests, with mmap and qv4l2. On all cases, the first time,
-the stream worked, but after a stream off/stream on, it didn't start. read() didn't
-work.
-
-After that, I did a test with v4l2grab. It also hanged. The last messages were:
-
-saa7134_set_dmabits
-dmabits: task=0x01 ctrl=0x01 irq=0x3 split=yes
-buffer_queue
-buffer_queue ffff880110a82800
-video_poll: ffff88010feac528
-saa7133[0]/irq[0,4295231408]: r=0x1 s=0x90 DONE_RA0 | RA0=video,a,odd,0
-buffer_finish ffff88010fe33000
-buffer_next ffff880110a82800 [prev=ffff88
-
-So, it seems that there's something wrong on it.
-
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
