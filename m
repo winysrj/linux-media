@@ -1,287 +1,212 @@
 Return-path: <mchehab@pedra>
-Received: from antispam01.maxim-ic.com ([205.153.101.182]:50930 "EHLO
-	antispam01.dummydomain.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752075Ab1AaTFb (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4566 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753689Ab1AUWh4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Jan 2011 14:05:31 -0500
-Subject: Re: [PATCH 1/5] uvcvideo: Add UVCIOC_CTRL_QUERY ioctl
-From: Stephan Lachowsky <stephan.lachowsky@maxim-ic.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	<martin_rubli@logitech.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-In-Reply-To: <1294416040-28371-2-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1294416040-28371-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	 <1294416040-28371-2-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 31 Jan 2011 11:05:24 -0800
-Message-ID: <1296500724.17673.72.camel@svmlwks101>
+	Fri, 21 Jan 2011 17:37:56 -0500
+Received: from tschai.localnet (43.80-203-71.nextgentel.com [80.203.71.43])
+	(authenticated bits=0)
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id p0LMbsgm075582
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 21 Jan 2011 23:37:55 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: v4l2-compliance utility
+Date: Fri, 21 Jan 2011 23:37:54 +0100
 MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201101212337.54213.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Fri, 2011-01-07 at 08:00 -0800, Laurent Pinchart wrote:
-> From: Martin Rubli <martin_rubli@logitech.com>
-> 
-> This ioctl extends UVCIOC_CTRL_GET/SET by not only allowing to get/set
-> XU controls but to also send arbitrary UVC commands to XU controls,
-> namely GET_CUR, SET_CUR, GET_MIN, GET_MAX, GET_RES, GET_LEN, GET_INFO
-> and GET_DEF. This is required for applications to work with XU controls,
-> so that they can properly query the size and allocate the necessary
-> buffers.
-> 
-> Signed-off-by: Martin Rubli <martin_rubli@logitech.com>
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Hi all,
 
-I think that this is a great improvement to the existing ioctls, but I'd
-like some feedback on the vacuum around bUnitID.  The XU descriptor
-basically associates a unique address (bUnitID) with a specific
-extension unit (guidExtensionCode).  It is the GUID that specifies the
-semantics of the control, and bUnitID simply provides routing to a
-specific instance.
+As you may have seen I have been adding a lot of tests to the v4l2-compliance
+utility in v4l-utils lately. It is now getting to the state that is becomes
+quite useful even though there is no full coverage yet.
 
-Now, the ioctls as currently implemented are very flexible, but I feel
-that there should be some mechanism for discovering the bUnitID(s)
-associated with a specific guidExtensionCode.  Currently there is no way
-to do this: you must either dead reckon the bUnitID value, or parse the
-USB descriptors in user space to come up with the value needed for
-UVCIOC_CTRL_GET/SET/QUERY (UVCIOC_CTRL_MAP matches on the GUID, which
-makes bUnitID opaque to the user).
+Currently the following ioctls are being tested:
 
-I think this functionality has been missed in the dynctrl ioctls since
-their inception.  As UVC XU controls are standardized it is inevitable
-that different vendors will implement the same control with different
-bUnitID values.  I propose that we add something along the lines of
-UVCIOC_CTRL_ENUM to enumerate through the XUs so that userspace can
-simply discover the guidExtensionCode <-> bUnitID mappings that exist on
-the specific device (or any other type of XU reporting they wish).
+General ioctls:
 
-I would be willing to implement the patch provided I get some feedback
-that this functionality belongs in the driver.  We had implemented
-something similar prior to just using to UVCIOC_CTRL_MAP'ings.
+VIDIOC_QUERYCAP
+VIDIOC_G/S_PRIORITY
 
-Stephan
-> ---
->  drivers/media/video/uvc/uvc_ctrl.c |   92 ++++++++++++++++++++++++------------
->  drivers/media/video/uvc/uvc_v4l2.c |   19 ++++++-
->  drivers/media/video/uvc/uvcvideo.h |   11 ++++-
->  3 files changed, 87 insertions(+), 35 deletions(-)
-> 
-> diff --git a/drivers/media/video/uvc/uvc_ctrl.c b/drivers/media/video/uvc/uvc_ctrl.c
-> index 59f8a9a..47175cc 100644
-> --- a/drivers/media/video/uvc/uvc_ctrl.c
-> +++ b/drivers/media/video/uvc/uvc_ctrl.c
-> @@ -1344,32 +1344,33 @@ static int uvc_ctrl_init_xu_ctrl(struct uvc_device *dev,
->  }
->  
->  int uvc_xu_ctrl_query(struct uvc_video_chain *chain,
-> -	struct uvc_xu_control *xctrl, int set)
-> +	struct uvc_xu_control_query *xqry)
->  {
->  	struct uvc_entity *entity;
-> -	struct uvc_control *ctrl = NULL;
-> +	struct uvc_control *ctrl;
->  	unsigned int i, found = 0;
-> -	int restore = 0;
-> -	__u8 *data;
-> +	__u32 reqflags;
-> +	__u16 size;
-> +	__u8 *data = NULL;
->  	int ret;
->  
->  	/* Find the extension unit. */
->  	list_for_each_entry(entity, &chain->entities, chain) {
->  		if (UVC_ENTITY_TYPE(entity) == UVC_VC_EXTENSION_UNIT &&
-> -		    entity->id == xctrl->unit)
-> +		    entity->id == xqry->unit)
->  			break;
->  	}
->  
-> -	if (entity->id != xctrl->unit) {
-> +	if (entity->id != xqry->unit) {
->  		uvc_trace(UVC_TRACE_CONTROL, "Extension unit %u not found.\n",
-> -			xctrl->unit);
-> -		return -EINVAL;
-> +			xqry->unit);
-> +		return -ENOENT;
->  	}
->  
->  	/* Find the control and perform delayed initialization if needed. */
->  	for (i = 0; i < entity->ncontrols; ++i) {
->  		ctrl = &entity->controls[i];
-> -		if (ctrl->index == xctrl->selector - 1) {
-> +		if (ctrl->index == xqry->selector - 1) {
->  			found = 1;
->  			break;
->  		}
-> @@ -1377,8 +1378,8 @@ int uvc_xu_ctrl_query(struct uvc_video_chain *chain,
->  
->  	if (!found) {
->  		uvc_trace(UVC_TRACE_CONTROL, "Control %pUl/%u not found.\n",
-> -			entity->extension.guidExtensionCode, xctrl->selector);
-> -		return -EINVAL;
-> +			entity->extension.guidExtensionCode, xqry->selector);
-> +		return -ENOENT;
->  	}
->  
->  	if (mutex_lock_interruptible(&chain->ctrl_mutex))
-> @@ -1390,43 +1391,72 @@ int uvc_xu_ctrl_query(struct uvc_video_chain *chain,
->  		goto done;
->  	}
->  
-> -	/* Validate control data size. */
-> -	if (ctrl->info.size != xctrl->size) {
-> +	/* Validate the required buffer size and flags for the request */
-> +	reqflags = 0;
-> +	size = ctrl->info.size;
-> +
-> +	switch (xqry->query) {
-> +	case UVC_GET_CUR:
-> +		reqflags = UVC_CONTROL_GET_CUR;
-> +		break;
-> +	case UVC_GET_MIN:
-> +		reqflags = UVC_CONTROL_GET_MIN;
-> +		break;
-> +	case UVC_GET_MAX:
-> +		reqflags = UVC_CONTROL_GET_MAX;
-> +		break;
-> +	case UVC_GET_DEF:
-> +		reqflags = UVC_CONTROL_GET_DEF;
-> +		break;
-> +	case UVC_GET_RES:
-> +		reqflags = UVC_CONTROL_GET_RES;
-> +		break;
-> +	case UVC_SET_CUR:
-> +		reqflags = UVC_CONTROL_SET_CUR;
-> +		break;
-> +	case UVC_GET_LEN:
-> +		size = 2;
-> +		break;
-> +	case UVC_GET_INFO:
-> +		size = 1;
-> +		break;
-> +	default:
->  		ret = -EINVAL;
->  		goto done;
->  	}
->  
-> -	if ((set && !(ctrl->info.flags & UVC_CONTROL_SET_CUR)) ||
-> -	    (!set && !(ctrl->info.flags & UVC_CONTROL_GET_CUR))) {
-> -		ret = -EINVAL;
-> +	if (size != xqry->size) {
-> +		ret = -ENOBUFS;
->  		goto done;
->  	}
->  
-> -	memcpy(uvc_ctrl_data(ctrl, UVC_CTRL_DATA_BACKUP),
-> -	       uvc_ctrl_data(ctrl, UVC_CTRL_DATA_CURRENT),
-> -	       ctrl->info.size);
-> -	data = uvc_ctrl_data(ctrl, UVC_CTRL_DATA_CURRENT);
-> -	restore = set;
-> +	if (reqflags && !(ctrl->info.flags & reqflags)) {
-> +		ret = -EBADRQC;
-> +		goto done;
-> +	}
->  
-> -	if (set && copy_from_user(data, xctrl->data, xctrl->size)) {
-> +	data = kmalloc(size, GFP_KERNEL);
-> +	if (data == NULL) {
-> +		ret = -ENOMEM;
-> +		goto done;
-> +	}
-> +
-> +	if (xqry->query == UVC_SET_CUR &&
-> +	    copy_from_user(data, xqry->data, size)) {
->  		ret = -EFAULT;
->  		goto done;
->  	}
->  
-> -	ret = uvc_query_ctrl(chain->dev, set ? UVC_SET_CUR : UVC_GET_CUR,
-> -			     xctrl->unit, chain->dev->intfnum, xctrl->selector,
-> -			     data, xctrl->size);
-> +	ret = uvc_query_ctrl(chain->dev, xqry->query, xqry->unit,
-> +			     chain->dev->intfnum, xqry->selector, data, size);
->  	if (ret < 0)
->  		goto done;
->  
-> -	if (!set && copy_to_user(xctrl->data, data, xctrl->size))
-> +	if (xqry->query != UVC_SET_CUR &&
-> +	    copy_to_user(xqry->data, data, size))
->  		ret = -EFAULT;
->  done:
-> -	if (ret && restore)
-> -		memcpy(uvc_ctrl_data(ctrl, UVC_CTRL_DATA_CURRENT),
-> -		       uvc_ctrl_data(ctrl, UVC_CTRL_DATA_BACKUP),
-> -		       xctrl->size);
-> -
-> +	kfree(data);
->  	mutex_unlock(&chain->ctrl_mutex);
->  	return ret;
->  }
-> diff --git a/drivers/media/video/uvc/uvc_v4l2.c b/drivers/media/video/uvc/uvc_v4l2.c
-> index 9005a8d..7432336 100644
-> --- a/drivers/media/video/uvc/uvc_v4l2.c
-> +++ b/drivers/media/video/uvc/uvc_v4l2.c
-> @@ -1029,10 +1029,23 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
->  					  cmd == UVCIOC_CTRL_MAP_OLD);
->  
->  	case UVCIOC_CTRL_GET:
-> -		return uvc_xu_ctrl_query(chain, arg, 0);
-> -
->  	case UVCIOC_CTRL_SET:
-> -		return uvc_xu_ctrl_query(chain, arg, 1);
-> +	{
-> +		struct uvc_xu_control *xctrl = arg;
-> +		struct uvc_xu_control_query xqry = {
-> +			.unit		= xctrl->unit,
-> +			.selector	= xctrl->selector,
-> +			.query		= cmd == UVCIOC_CTRL_GET
-> +					? UVC_GET_CUR : UVC_SET_CUR,
-> +			.size		= xctrl->size,
-> +			.data		= xctrl->data,
-> +		};
-> +
-> +		return uvc_xu_ctrl_query(chain, &xqry);
-> +	}
-> +
-> +	case UVCIOC_CTRL_QUERY:
-> +		return uvc_xu_ctrl_query(chain, arg);
->  
->  	default:
->  		uvc_trace(UVC_TRACE_IOCTL, "Unknown ioctl 0x%08x\n", cmd);
-> diff --git a/drivers/media/video/uvc/uvcvideo.h b/drivers/media/video/uvc/uvcvideo.h
-> index 45f01e7..8933b2a 100644
-> --- a/drivers/media/video/uvc/uvcvideo.h
-> +++ b/drivers/media/video/uvc/uvcvideo.h
-> @@ -73,11 +73,20 @@ struct uvc_xu_control {
->  	__u8 __user *data;
->  };
->  
-> +struct uvc_xu_control_query {
-> +	__u8 unit;
-> +	__u8 selector;
-> +	__u8 query;
-> +	__u16 size;
-> +	__u8 __user *data;
-> +};
-> +
->  #define UVCIOC_CTRL_ADD		_IOW('U', 1, struct uvc_xu_control_info)
->  #define UVCIOC_CTRL_MAP_OLD	_IOWR('U', 2, struct uvc_xu_control_mapping_old)
->  #define UVCIOC_CTRL_MAP		_IOWR('U', 2, struct uvc_xu_control_mapping)
->  #define UVCIOC_CTRL_GET		_IOWR('U', 3, struct uvc_xu_control)
->  #define UVCIOC_CTRL_SET		_IOW('U', 4, struct uvc_xu_control)
-> +#define UVCIOC_CTRL_QUERY	_IOWR('U', 5, struct uvc_xu_control_query)
->  
->  #ifdef __KERNEL__
->  
-> @@ -638,7 +647,7 @@ extern int uvc_ctrl_set(struct uvc_video_chain *chain,
->  		struct v4l2_ext_control *xctrl);
->  
->  extern int uvc_xu_ctrl_query(struct uvc_video_chain *chain,
-> -		struct uvc_xu_control *ctrl, int set);
-> +		struct uvc_xu_control_query *xqry);
->  
->  /* Utility functions */
->  extern void uvc_simplify_fraction(uint32_t *numerator, uint32_t *denominator,
+Debug ioctls:
 
+VIDIOC_DBG_G_CHIP_IDENT
+VIDIOC_DBG_G/S_REGISTER
+VIDIOC_LOG_STATUS
 
+Input ioctls:
+
+VIDIOC_G/S_TUNER
+VIDIOC_G/S_FREQUENCY
+VIDIOC_G/S/ENUMAUDIO
+VIDIOC_G/S/ENUMINPUT
+
+Output ioctls:
+
+VIDIOC_G/S_MODULATOR
+VIDIOC_G/S_FREQUENCY
+VIDIOC_G/S/ENUMAUDOUT
+VIDIOC_G/S/ENUMOUTPUT
+
+Control ioctls:
+
+VIDIOC_QUERYCTRL/MENU
+VIDIOC_G/S_CTRL
+VIDIOC_G/S/TRY_EXT_CTRLS
+
+I/O configuration ioctls:
+
+VIDIOC_ENUM/G/S/QUERY_STD
+VIDIOC_ENUM/G/S/QUERY_DV_PRESETS
+VIDIOC_G/S_DV_TIMINGS
+
+Not yet implemented:
+
+VIDIOC_CROPCAP, VIDIOC_G/S_CROP
+VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS
+VIDIOC_G/S_FBUF/OVERLAY
+VIDIOC_G/S/TRY_FMT
+VIDIOC_G/S_PARM
+VIDIOC_G/S_JPEGCOMP
+VIDIOC_SLICED_VBI_CAP
+VIDIOC_S_HW_FREQ_SEEK
+VIDIOC_SUBSCRIBE_EVENT/UNSUBSCRIBE_EVENT/DQEVENT
+VIDIOC_(TRY_)ENCODER_CMD
+VIDIOC_G_ENC_INDEX
+VIDIOC_REQBUFS/QBUF/DQBUF/QUERYBUF
+VIDIOC_STREAMON/OFF
+Interactive tests with e.g. hotplugging
+
+Also tested is whether you can open device nodes multiple times.
+
+These tests are pretty exhaustive and more strict than the spec itself.
+
+The main goal is to get consistent behavior for all drivers that applications
+can rely on. For example, if a driver has controls then the compliance tool
+checks if *all* control functions are supported. So apps do not have to guess
+whether a driver does or does not support extended controls. Ditto for priority
+handling: the compliance test requires support for this.
+
+The control framework gives an easy way to support the full control API and
+the upcoming priority core patches will make it trivial to support the priority
+API.
+
+Most other tests check carefully whether the information returned by the driver
+is consistent. E.g. if you support S_INPUT, then you must also support ENUMINPUT.
+And if ENUMINPUT says that you support certain standards, then S_STD is also
+checked for that, etc. etc.
+
+By default the output looks like this:
+
+$ ./v4l2-compliance -d1
+Running on 2.6.37
+
+Driver Info:
+        Driver name   : ivtv
+        Card type     : Hauppauge WinTV PVR-350
+        Bus info      : PCI:0000:04:05.0
+        Driver version: 1.4.2
+        Capabilities  : 0x010702D3
+                Video Capture
+                Video Output
+                Video Output Overlay
+                VBI Capture
+                Sliced VBI Capture
+                Sliced VBI Output
+                Tuner
+                Audio
+                Radio
+                Read/Write
+
+Compliance test for device /dev/video1 (not using libv4l2):
+
+Required ioctls:
+        test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+        test second video open: OK
+        test VIDIOC_QUERYCAP: OK
+        test VIDIOC_G/S_PRIORITY: OK
+
+Debug ioctls:
+        test VIDIOC_DBG_G_CHIP_IDENT: OK
+        test VIDIOC_DBG_G/S_REGISTER: OK
+        test VIDIOC_LOG_STATUS: OK
+
+Input ioctls:
+                fail: rangelow >= rangehigh
+                fail: invalid tuner 0
+        test VIDIOC_G/S_TUNER: FAIL
+                fail: could get frequency for invalid tuner 0
+        test VIDIOC_G/S_FREQUENCY: FAIL
+        test VIDIOC_G/S/ENUMAUDIO: OK
+        test VIDIOC_G/S/ENUMINPUT: OK
+        Inputs: 6 Audio Inputs: 3 Tuners: 0
+
+Output ioctls:
+        test VIDIOC_G/S_MODULATOR: Not Supported
+                fail: could get frequency for invalid modulator 0
+        test VIDIOC_G/S_FREQUENCY: FAIL
+        test VIDIOC_G/S/ENUMAUDOUT: OK
+        test VIDIOC_G/S/ENUMOUTPUT: OK
+        Outputs: 6 Audio Outputs: 1 Modulators: 0
+
+Control ioctls:
+        test VIDIOC_QUERYCTRL/MENU: OK
+        test VIDIOC_G/S_CTRL: OK
+        test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+        Standard Controls: 32 Private Controls: 12
+
+Input/Output configuration ioctls:
+        test VIDIOC_ENUM/G/S/QUERY_STD: OK
+        test VIDIOC_ENUM/G/S/QUERY_DV_PRESETS: Not Supported
+        test VIDIOC_G/S_DV_TIMINGS: Not Supported
+
+Total: 21 Succeeded: 18 Failed: 3 Warnings: 4
+
+Each test will bail out as soon as the first error appears. There are three
+possible results: OK, FAIL and "Not Supported", which means that the driver
+does not support these ioctls and gives the correct error code back to the
+application if it tries to use it anyway.
+
+With -v you set the verbosity level: -v1 shows warnings as well, -v2 also shows
+info messages.
+
+Other options:
+
+$ ./v4l2-compliance -h
+Usage:
+Common options:
+  -D, --info         show driver info [VIDIOC_QUERYCAP]
+  -d, --device=<dev> use device <dev> as the video device
+                     if <dev> is a single digit, then /dev/video<dev> is used
+  -r, --radio-device=<dev> use device <dev> as the radio device
+                     if <dev> is a single digit, then /dev/radio<dev> is used
+  -V, --vbi-device=<dev> use device <dev> as the vbi device
+                     if <dev> is a single digit, then /dev/vbi<dev> is used
+  -h, --help         display this help message
+  -v, --verbose=<level> turn on verbose reporting.
+                     level 1: show warnings
+                     level 2: show warnings and info messages
+  -T, --trace        trace all called ioctls.
+  -w, --wrapper      use the libv4l2 wrapper library.
+
+The tool is still under heavy development, so I'm sure these options will
+change in the future.
+
+Anyway, try it out and let me know if you find errors, corner cases that are not
+tested, etc. etc.
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
