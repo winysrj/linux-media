@@ -1,88 +1,52 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:61566 "EHLO mx1.redhat.com"
+Received: from cnc.isely.net ([64.81.146.143]:52616 "EHLO cnc.isely.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756267Ab1AKUIO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Jan 2011 15:08:14 -0500
-Message-ID: <4D2CD4CA.7090507@redhat.com>
-Date: Tue, 11 Jan 2011 20:08:10 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [GIT PATCHES FOR 2.6.38] Videbuf2 framework, NOON010PC30 sensor
- driver and s5p-fimc updates
-References: <4D21FDC1.7000803@samsung.com>
-In-Reply-To: <4D21FDC1.7000803@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	id S1754459Ab1AUQku (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Jan 2011 11:40:50 -0500
+Date: Fri, 21 Jan 2011 10:40:49 -0600 (CST)
+From: Mike Isely <isely@isely.net>
+To: Jarod Wilson <jarod@redhat.com>
+cc: linux-media@vger.kernel.org, Andy Walls <awalls@md.metrocast.net>,
+	Mike Isely <isely@isely.net>
+Subject: Re: [PATCH 3/3] ir-kbd-i2c: improve remote behavior with z8 behind
+ usb
+In-Reply-To: <20110121163411.GC16585@redhat.com>
+Message-ID: <alpine.DEB.1.10.1101211036430.5370@ivanova.isely.net>
+References: <1295584225-21210-1-git-send-email-jarod@redhat.com> <1295584225-21210-4-git-send-email-jarod@redhat.com> <alpine.DEB.1.10.1101211029150.5370@ivanova.isely.net> <20110121163411.GC16585@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 03-01-2011 14:48, Sylwester Nawrocki escreveu:
-> Hi Mauro,
+On Fri, 21 Jan 2011, Jarod Wilson wrote:
+
+> On Fri, Jan 21, 2011 at 10:31:42AM -0600, Mike Isely wrote:
+> > 
+> > The pvrusb2 change is obviously trivial so I have no issue with it.
+> > 
+> > Acked-By: Mike Isely <isely@pobox.com>
+> > 
+> > Note the spelling of my last name "Isely" not "Isley".  A good way to 
+> > remember is to think of the normal word "wisely" and just drop the 
+> > leading "w".  (And yes, isely@isely.net and isely@pobox.com lead to the 
+> > same inbox.)
 > 
-> Please pull from our tree for the following items:
+> Thanks Mike, apologies about the misspelling, I didn't catch it until
+> after I hit send. I had the Isley Brothers in my head. :)
 
-> 6. Patches for SAA7134 driver for Videbuf2 testing.
+No problem.  It's a very common mistake.  And no, I'm not related to 
+them.  For the record, I generally don't get concerned about the 
+spelling of my name, unless the error causes problems (e.g. lost e-mail) 
+or the error gets propagated to a large list where it might multiply...
 
-There's something wrong with those patches. I got lots of errors: 
+Anyway, sorry also about taking this thread off topic.  Enough said...
 
-  CC [M]  /home/v4l/new_build/v4l/saa7134-tvaudio.o
-/home/v4l/new_build/v4l/saa7134-core.c: In function 'saa7134_dma_free':
-/home/v4l/new_build/v4l/saa7134-core.c:262: warning: unused variable 'dma'
-/home/v4l/new_build/v4l/saa7134-core.c: In function 'saa7134_finidev':
-/home/v4l/new_build/v4l/saa7134-core.c:1006: warning: unused variable 'mops'
-/home/v4l/new_build/v4l/saa7134-core.c: In function 'saa7134_buffer_requeue':
-/home/v4l/new_build/v4l/saa7134-core.c:1085: error: 'struct saa7134_buf' has no member named 'vb'
-/home/v4l/new_build/v4l/saa7134-core.c:1085: warning: type defaults to 'int' in declaration of '__mptr'
-/home/v4l/new_build/v4l/saa7134-core.c:1085: warning: initialization from incompatible pointer type
-/home/v4l/new_build/v4l/saa7134-core.c:1085: error: 'struct saa7134_buf' has no member named 'vb'
-/home/v4l/new_build/v4l/saa7134-ts.c: In function 'buffer_activate':
-/home/v4l/new_build/v4l/saa7134-ts.c:49: error: 'struct saa7134_buf' has no member named 'vb'
-/home/v4l/new_build/v4l/saa7134-ts.c:54: error: 'struct saa7134_buf' has no member named 'vb'
-/home/v4l/new_build/v4l/saa7134-ts.c: In function 'buffer_prepare':
-/home/v4l/new_build/v4l/saa7134-ts.c:79: error: 'struct saa7134_buf' has no member named 'vb'
-/home/v4l/new_build/v4l/saa7134-ts.c:79: warning: type defaults to 'int' in declaration of '__mptr'
-/home/v4l/new_build/v4l/saa7134-ts.c:79: warning: initialization from incompatible pointer type
-/home/v4l/new_build/v4l/saa7134-ts.c:79: error: 'struct saa7134_buf' has no member named 'vb'
-/home/v4l/new_build/v4l/saa7134-ts.c:89: error: 'struct saa7134_buf' has no member named 'vb'
-/home/v4l/new_build/v4l/saa7134-ts.c:89: error: 'struct saa7134_buf' has no member named 'vb'
-/home/v4l/new_build/v4l/saa7134-ts.c:92: error: 'struct saa7134_buf' has no member named 'vb'
-/home/v4l/new_build/v4l/saa7134-ts.c:93: warning: passing argument 1 of 'saa7134_dma_free' from incompatible pointer type
-/home/v4l/new_build/v4l/saa7134.h:728: note: expected 'struct vb2_queue *' but argument is of type 'struct videobuf_queue *'
-/home/v4l/new_build/v4l/saa7134-ts.c:96: error: 'struct saa7134_buf' has no member named 'vb'
-/home/v4l/new_build/v4l/saa7134-ts.c:98: error: 'struct saa7134_buf' has no member named 'vb'
-/home/v4l/new_build/v4l/saa7134-ts.c:102: error: 'struct saa7134_buf' has no member named 'vb'
-/home/v4l/new_build/v4l/saa7134-ts.c:103: error: 'struct saa7134_buf' has no member named 'vb'
-/home/v4l/new_build/v4l/saa7134-ts.c:104: error: 'struct saa7134_buf' has no member named 'vb'
-/home/v4l/new_build/v4l/saa7134-ts.c:107: error: 'struct saa7134_buf' has no member named 'vb'
-/home/v4l/new_build/v4l/saa7134-ts.c:118: error: 'struct saa7134_buf' has no member named 'vb'
-/home/v4l/new_build/v4l/saa7134-ts.c:120: error: 'struct saa7134_buf' has no member named 'vb'
-/home/v4l/new_build/v4l/saa7134-ts.c:124: warning: passing argument 1 of 'saa7134_dma_free' from incompatible pointer type
-/home/v4l/new_build/v4l/saa7134.h:728: note: expected 'struct vb2_queue *' but argument is of type 'struct videobuf_queue *'
-/home/v4l/new_build/v4l/saa7134-ts.c: In function 'buffer_queue':
-/home/v4l/new_build/v4l/saa7134-ts.c:144: error: 'struct saa7134_buf' has no member named 'vb'
-/home/v4l/new_build/v4l/saa7134-ts.c:144: warning: type defaults to 'int' in declaration of '__mptr'
-/home/v4l/new_build/v4l/saa7134-ts.c:144: warning: initialization from incompatible pointer type
-/home/v4l/new_build/v4l/saa7134-ts.c:144: error: 'struct saa7134_buf' has no member named 'vb'
-/home/v4l/new_build/v4l/saa7134-ts.c: In function 'buffer_release':
-/home/v4l/new_build/v4l/saa7134-ts.c:151: error: 'struct saa7134_buf' has no member named 'vb'
-/home/v4l/new_build/v4l/saa7134-ts.c:151: warning: type defaults to 'int' in declaration of '__mptr'
-/home/v4l/new_build/v4l/saa7134-ts.c:151: warning: initialization from incompatible pointer type
-/home/v4l/new_build/v4l/saa7134-ts.c:151: error: 'struct saa7134_buf' has no member named 'vb'
-/home/v4l/new_build/v4l/saa7134-ts.c:157: warning: passing argument 1 of 'saa7134_dma_free' from incompatible pointer type
-/home/v4l/new_build/v4l/saa7134.h:728: note: expected 'struct vb2_queue *' but argument is of type 'struct videobuf_queue *'
-/home/v4l/new_build/v4l/saa7134-ts.c: In function 'saa7134_irq_ts_done':
-/home/v4l/new_build/v4l/saa7134-ts.c:306: error: 'struct saa7134_buf' has no member named 'vb'
-/home/v4l/new_build/v4l/saa7134-tvaudio.c: In function 'mute_input_7134':
-/home/v4l/new_build/v4l/saa7134-tvaudio.c:197: error: 'struct saa7134_board' has no member named 'radio'
-/home/v4l/new_build/v4l/saa7134-tvaudio.c: In function 'tvaudio_thread_ddep':
-/home/v4l/new_build/v4l/saa7134-tvaudio.c:791: error: 'struct saa7134_board' has no member named 'radio'
+  -Mike
 
-Ok, those are the last ones from the patch series.
 
-Please answer/fix the issues I've pointed, in order to allow me to finish vb2 tests
-and move those stuff forward.
+-- 
 
-Thanks!
-Mauro
+Mike Isely
+isely @ isely (dot) net
+PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
