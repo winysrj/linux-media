@@ -1,230 +1,103 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.186]:56003 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752772Ab1ATWXP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Jan 2011 17:23:15 -0500
-Date: Thu, 20 Jan 2011 23:23:07 +0100
-From: martin@neutronstar.dyndns.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH RFC] arm: omap3evm: Add support for an MT9M032 based
-	camera board.
-Message-ID: <20110120222307.GC13173@neutronstar.dyndns.org>
-References: <1295389936-3238-1-git-send-email-martin@neutronstar.dyndns.org> <201101190038.14123.laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:55725 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754387Ab1AUQfS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Jan 2011 11:35:18 -0500
+Date: Fri, 21 Jan 2011 11:34:11 -0500
+From: Jarod Wilson <jarod@redhat.com>
+To: Mike Isely <isely@isely.net>
+Cc: linux-media@vger.kernel.org, Andy Walls <awalls@md.metrocast.net>,
+	Mike Isley <isley@isley.net>
+Subject: Re: [PATCH 3/3] ir-kbd-i2c: improve remote behavior with z8 behind
+ usb
+Message-ID: <20110121163411.GC16585@redhat.com>
+References: <1295584225-21210-1-git-send-email-jarod@redhat.com>
+ <1295584225-21210-4-git-send-email-jarod@redhat.com>
+ <alpine.DEB.1.10.1101211029150.5370@ivanova.isely.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <201101190038.14123.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <alpine.DEB.1.10.1101211029150.5370@ivanova.isely.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Laurent,
+On Fri, Jan 21, 2011 at 10:31:42AM -0600, Mike Isely wrote:
+> 
+> The pvrusb2 change is obviously trivial so I have no issue with it.
+> 
+> Acked-By: Mike Isely <isely@pobox.com>
+> 
+> Note the spelling of my last name "Isely" not "Isley".  A good way to 
+> remember is to think of the normal word "wisely" and just drop the 
+> leading "w".  (And yes, isely@isely.net and isely@pobox.com lead to the 
+> same inbox.)
 
-On Wed, Jan 19, 2011 at 12:38:09AM +0100, Laurent Pinchart wrote:
-> Hi Martin,
+Thanks Mike, apologies about the misspelling, I didn't catch it until
+after I hit send. I had the Isley Brothers in my head. :)
+
+
+> On Thu, 20 Jan 2011, Jarod Wilson wrote:
 > 
-> Thanks for the patch.
-> 
-> On Tuesday 18 January 2011 23:32:16 Martin Hostettler wrote:
-> > Adds board support for an MT9M032 based camera to omap3evm.
+> > Add the same "are you ready?" i2c_master_send() poll command to
+> > get_key_haup_xvr found in lirc_zilog, which is apparently seen in
+> > the Windows driver for the PVR-150 w/a z8. This stabilizes what is
+> > received from both the HD-PVR and HVR-1950, even with their polling
+> > intervals at the default of 100, thus the removal of the custom
+> > 260ms polling_interval in pvrusb2-i2c-core.c.
 > > 
-> > Sigend-off-by: Martin Hostettler <martin@neutronstar.dyndns.org>
+> > CC: Andy Walls <awalls@md.metrocast.net>
+> > CC: Mike Isley <isley@isley.net>
+> > Signed-off-by: Jarod Wilson <jarod@redhat.com>
 > > ---
-> >  arch/arm/mach-omap2/Makefile                |    1 +
-> >  arch/arm/mach-omap2/board-omap3evm-camera.c |  177 ++++++++++++++++++++++++
-> >  2 files changed, 178 insertions(+), 0 deletions(-)
-> >  create mode 100644 arch/arm/mach-omap2/board-omap3evm-camera.c
+> >  drivers/media/video/ir-kbd-i2c.c               |   13 +++++++++++++
+> >  drivers/media/video/pvrusb2/pvrusb2-i2c-core.c |    1 -
+> >  2 files changed, 13 insertions(+), 1 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/ir-kbd-i2c.c b/drivers/media/video/ir-kbd-i2c.c
+> > index d2b20ad..a221ad6 100644
+> > --- a/drivers/media/video/ir-kbd-i2c.c
+> > +++ b/drivers/media/video/ir-kbd-i2c.c
+> > @@ -128,6 +128,19 @@ static int get_key_haup(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
+> >  
+> >  static int get_key_haup_xvr(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
+> >  {
+> > +	int ret;
+> > +	unsigned char buf[1] = { 0 };
+> > +
+> > +	/*
+> > +	 * This is the same apparent "are you ready?" poll command observed
+> > +	 * watching Windows driver traffic and implemented in lirc_zilog. With
+> > +	 * this added, we get far saner remote behavior with z8 chips on usb
+> > +	 * connected devices, even with the default polling interval of 100ms.
+> > +	 */
+> > +	ret = i2c_master_send(ir->c, buf, 1);
+> > +	if (ret != 1)
+> > +		return (ret < 0) ? ret : -EINVAL;
+> > +
+> >  	return get_key_haup_common (ir, ir_key, ir_raw, 6, 3);
+> >  }
+> >  
+> > diff --git a/drivers/media/video/pvrusb2/pvrusb2-i2c-core.c b/drivers/media/video/pvrusb2/pvrusb2-i2c-core.c
+> > index ccc8849..451ecd4 100644
+> > --- a/drivers/media/video/pvrusb2/pvrusb2-i2c-core.c
+> > +++ b/drivers/media/video/pvrusb2/pvrusb2-i2c-core.c
+> > @@ -597,7 +597,6 @@ static void pvr2_i2c_register_ir(struct pvr2_hdw *hdw)
+> >  		init_data->internal_get_key_func = IR_KBD_GET_KEY_HAUP_XVR;
+> >  		init_data->type                  = RC_TYPE_RC5;
+> >  		init_data->name                  = hdw->hdw_desc->description;
+> > -		init_data->polling_interval      = 260; /* ms From lirc_zilog */
+> >  		/* IR Receiver */
+> >  		info.addr          = 0x71;
+> >  		info.platform_data = init_data;
+> > 
 > 
-> Is there a special reason to add camera support to a separate file ?
+> -- 
+> 
+> Mike Isely
+> isely @ isely (dot) net
+> PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
 
-No it's just that the other code i looked at did it in the same way. I don't
-really know what's the best way to handle this board code...
+-- 
+Jarod Wilson
+jarod@redhat.com
 
-> 
-> Of course not all OMAP3 EVM systems will use an MT9M032 sensor, so some kind 
-> of modularity (and if possible runtime configuration) will be needed.
-
-My 0th version did have a Kconfig option, but i got advise (off-list) that i
-should be doing it unconditionally and leave the design for compile or runtime
-selection to the developer who adds code for another option.
-
-> 
-> [snip]
-> 
-> > diff --git a/arch/arm/mach-omap2/board-omap3evm-camera.c
-> > b/arch/arm/mach-omap2/board-omap3evm-camera.c new file mode 100644
-> > index 0000000..ea82a49
-> > --- /dev/null
-> > +++ b/arch/arm/mach-omap2/board-omap3evm-camera.c
-> > @@ -0,0 +1,177 @@
-> 
-> [snip]
-> 
-> 
-> > +/*
-> > + * Copyright (C) 2010-2011 Lund Engineering
-> > + * Contact: Gil Lund <gwlund@lundeng.com>
-> > + * Author: Martin Hostettler <martin@neutronstar.dyndns.org>
-> > + *
-> > + * This program is free software; you can redistribute it and/or
-> > + * modify it under the terms of the GNU General Public License
-> > + * version 2 as published by the Free Software Foundation.
-> > + *
-> > + * This program is distributed in the hope that it will be useful, but
-> > + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> > + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> > + * General Public License for more details.
-> > + *
-> > + * You should have received a copy of the GNU General Public License
-> > + * along with this program; if not, write to the Free Software
-> > + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> > + * 02110-1301 USA
-> > + */
-> > +
-> > +#include <linux/i2c.h>
-> > +#include <linux/init.h>
-> > +#include <linux/platform_device.h>
-> > +
-> > +#include <asm/gpio.h>
-> > +#include <plat/mux.h>
-> > +#include "mux.h"
-> > +
-> > +#include "../../../drivers/media/video/isp/isp.h"
-> > +#include "../../../drivers/media/video/mt9m032.h"
-> 
-> mt9m032.h should be moved to include/media (the same is true for isp.h as 
-> well, I'll probably split it and move the part required by board files to 
-> include/media/omap3isp.h).
-
-Ok, sounds sensible.
-
-> 
-> > +#include "devices.h"
-> > +
-> > +#define EVM_TWL_GPIO_BASE OMAP_MAX_GPIO_LINES
-> > +#define GPIO98_VID_DEC_RES	98
-> > +#define nCAM_VD_SEL		157
-> > +
-> > +#define MT9M032_I2C_BUS_NUM	2
-> > +
-> > +
-> > +enum omap3evmdc_mux {
-> > +	MUX_TVP5146,
-> > +	MUX_CAMERA_SENSOR,
-> > +	MUX_EXP_CAMERA_SENSOR,
-> > +};
-> > +
-> > +/**
-> > + * omap3evm_set_mux - Sets mux to enable signal routing to
-> > + *                           different peripherals present on new EVM
-> > board + * @mux_id: enum, mux id to enable
-> > + *
-> > + * Returns 0 for success or a negative error code
-> > + */
-> > +static int omap3evm_set_mux(enum omap3evmdc_mux mux_id)
-> > +{
-> > +	/* Set GPIO6 = 1 */
-> > +	gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 6, 1);
-> > +	gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 0);
-> > +
-> > +	switch (mux_id) {
-> > +	case MUX_TVP5146:
-> > +		gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 0);
-> > +		gpio_set_value(nCAM_VD_SEL, 1);
-> > +		break;
-> > +
-> > +	case MUX_CAMERA_SENSOR:
-> > +		gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 0);
-> > +		gpio_set_value(nCAM_VD_SEL, 0);
-> > +		break;
-> > +
-> > +	case MUX_EXP_CAMERA_SENSOR:
-> > +		gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 1);
-> > +		break;
-> > +
-> > +	default:
-> > +		pr_err("omap3evm-camera: Invalid mux id #%d\n", mux_id);
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	return 0;
-> > +}
-> > +
-> 
-> > +static int __init camera_init(void)
-> > +{
-> > +	omap_mux_init_gpio(nCAM_VD_SEL, OMAP_PIN_OUTPUT);
-> > +	if (gpio_request(nCAM_VD_SEL, "nCAM_VD_SEL") < 0) {
-> > +		pr_err("omap3evm-camera: Failed to get GPIO nCAM_VD_SEL(%d)\n",
-> > +		       nCAM_VD_SEL);
-> > +		goto err;
-> 
-> You can return -EINVAL directly here. This removes the need for the 'err' 
-> label.
-
-I like to have all error handling work the same way. So one return for error
-and one return for success. At least if it's as trivial as here.
-
-> 
-> > +	}
-> > +	if (gpio_direction_output(nCAM_VD_SEL, 1) < 0) {
-> > +		pr_err("omap3evm-camera: Failed to set GPIO nCAM_VD_SEL(%d)
-> > direction\n", +		       nCAM_VD_SEL);
-> > +		goto err_vdsel;
-> > +	}
-> > +
-> > +	if (gpio_request(EVM_TWL_GPIO_BASE + 2, "T2_GPIO2") < 0) {
-> > +		pr_err("omap3evm-camera: Failed to get GPIO T2_GPIO2(%d)\n",
-> > +		       EVM_TWL_GPIO_BASE + 2);
-> > +		goto err_vdsel;
-> > +	}
-> > +	if (gpio_direction_output(EVM_TWL_GPIO_BASE + 2, 0) < 0) {
-> > +		pr_err("omap3evm-camera: Failed to set GPIO T2_GPIO2(%d) direction\n",
-> > +		       EVM_TWL_GPIO_BASE + 2);
-> > +		goto err_2;
-> > +	}
-> > +
-> > +	if (gpio_request(EVM_TWL_GPIO_BASE + 8, "nCAM_VD_EN") < 0) {
-> > +		pr_err("omap3evm-camera: Failed to get GPIO nCAM_VD_EN(%d)\n",
-> > +		       EVM_TWL_GPIO_BASE + 8);
-> > +		goto err_2;
-> > +	}
-> > +	if (gpio_direction_output(EVM_TWL_GPIO_BASE + 8, 0) < 0) {
-> > +		pr_err("omap3evm-camera: Failed to set GPIO nCAM_VD_EN(%d) direction\n",
-> > +		       EVM_TWL_GPIO_BASE + 8);
-> > +		goto err_8;
-> > +	}
-> > +
-> > +	omap3evm_set_mux(MUX_CAMERA_SENSOR);
-> > +
-> > +
-> > +	return omap3_init_camera(&isp_platform_data);
-> 
-> If this call fails, shouldn't you free the GPIOs ?
-
-Yes, indeed.
-
-> 
-> > +
-> > +err_8:
-> > +	gpio_free(EVM_TWL_GPIO_BASE + 8);
-> > +err_2:
-> > +	gpio_free(EVM_TWL_GPIO_BASE + 2);
-> > +err_vdsel:
-> > +	gpio_free(nCAM_VD_SEL);
-> > +err:
-> > +	return -EINVAL;
-> > +}
-> > +
-> > +device_initcall(camera_init);
-> 
-> If the code is kept in its own file, you should make camera_init non-static 
-> (and rename it) and call it from the OMAP3 EVM initialization function 
-> instead.
-
-If it's agreed that that's the right way i can do this.
-
-regards,
- - Martin Hostettler
