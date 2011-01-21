@@ -1,224 +1,128 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:24084 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753888Ab1AZSMI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Jan 2011 13:12:08 -0500
-Message-ID: <4D4059E5.7050300@redhat.com>
-Date: Wed, 26 Jan 2011 15:29:09 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-CC: Gerd Hoffmann <kraxel@redhat.com>, Mark Lord <kernel@teksavvy.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Linux Kernel <linux-kernel@vger.kernel.org>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils
- ?
-References: <20110125164803.GA19701@core.coreip.homeip.net> <AANLkTi=1Mh0JrYk5itvef7O7e7pR+YKos-w56W5q4B8B@mail.gmail.com> <20110125205453.GA19896@core.coreip.homeip.net> <4D3F4804.6070508@redhat.com> <4D3F4D11.9040302@teksavvy.com> <20110125232914.GA20130@core.coreip.homeip.net> <20110126020003.GA23085@core.coreip.homeip.net> <4D4004F9.6090200@redhat.com> <4D401CC5.4020000@redhat.com> <4D402D35.4090206@redhat.com> <20110126165132.GC29163@core.coreip.homeip.net>
-In-Reply-To: <20110126165132.GC29163@core.coreip.homeip.net>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:49343 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751701Ab1AUBLi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Jan 2011 20:11:38 -0500
+Subject: Re: [GIT PATCHES for 2.6.38] Zilog Z8 IR unit fixes
+From: Andy Walls <awalls@md.metrocast.net>
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: Jean Delvare <khali@linux-fr.org>, Mike Isely <isely@isely.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Jarod Wilson <jarod@redhat.com>, Janne Grunau <j@jannau.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+In-Reply-To: <F3EC69D7-B0B9-4475-B21A-2312BA4D1E05@wilsonet.com>
+References: <1295205650.2400.27.camel@localhost>
+	 <1295234982.2407.38.camel@localhost>
+	 <848D2317-613E-42B1-950D-A227CFF15C5B@wilsonet.com>
+	 <1295439718.2093.17.camel@morgan.silverblock.net>
+	 <alpine.DEB.1.10.1101190714570.5396@ivanova.isely.net>
+	 <1295444282.4317.20.camel@morgan.silverblock.net>
+	 <20110119145002.6f94f800@endymion.delvare>
+	 <D7F0E4A6-5A23-4A28-95F8-0A088F1D6114@wilsonet.com>
+	 <20110119184322.0e5d12cd@endymion.delvare>
+	 <0281052D-AFBF-4764-ADFF-64EF0A0CC2CB@wilsonet.com>
+	 <DF6BA086-43FF-4FD9-A30E-EB8AAF451A94@wilsonet.com>
+	 <1295529772.2056.24.camel@morgan.silverblock.net>
+	 <F3EC69D7-B0B9-4475-B21A-2312BA4D1E05@wilsonet.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Thu, 20 Jan 2011 20:10:27 -0500
+Message-ID: <1295572227.18114.8.camel@localhost>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 26-01-2011 14:51, Dmitry Torokhov escreveu:
-> On Wed, Jan 26, 2011 at 12:18:29PM -0200, Mauro Carvalho Chehab wrote:
->> diff --git a/input.c b/input.c
->> index d57a31e..a9bd5e8 100644
->> --- a/input.c
->> +++ b/input.c
->> @@ -101,8 +101,8 @@ int device_open(int nr, int verbose)
->>  		close(fd);
->>  		return -1;
->>  	}
->> -	if (EV_VERSION != version) {
->> -		fprintf(stderr, "protocol version mismatch (expected %d, got %d)\n",
->> +	if (EV_VERSION > version) {
->> +		fprintf(stderr, "protocol version mismatch (expected >= %d, got %d)\n",
->>  			EV_VERSION, version);
+On Thu, 2011-01-20 at 16:49 -0500, Jarod Wilson wrote:
+> On Jan 20, 2011, at 8:22 AM, Andy Walls wrote:
 > 
-> Please do not do this. It causes check to "float" depending on the
-> version of kernel headers it was compiled against.
+> > On Wed, 2011-01-19 at 23:45 -0500, Jarod Wilson wrote:
+> >> On Jan 19, 2011, at 3:08 PM, Jarod Wilson wrote:
+> > 
+> >>> I'm working on
+> >>> fixing up hdpvr-i2c further right now, and will do some more prodding
+> >>> with pvrusb2, the code for which looks correct with two i2c_new_device()
+> >>> calls in it, one for each address, so I just need to figure out why
+> >>> lirc_zilog is getting an -EIO trying to get tx brought up.
+> >> 
+> >> So as we were discussing on irc today, the -EIO is within lirc_zilog's
+> >> send_boot_data() function. The firmware is loaded, and then we send the
+> >> z8 a command to activate the firmware, immediately follow by an attempt
+> >> to read the firmware version. The z8 is still busy when we do that, and
+> >> throwing in a simple mdelay() remedies the problem for both the hvr-1950
+> >> and the hdpvr -- tried 100 initially, and all the way down to 20 still
+> >> worked, didn't try any lower.
+> > 
+> > The Z8 on my HVR-1600 is using a 18.432 MHz crystal for its clock.
+> > 
+> > The Z8 CPU Fetch and Execution units are running with a pipeline depth
+> > of 1: 1 insn being executed while another 1 insn is being fetched.  Most
+> > Z8 fetch or execution cycle counts are in the range of 2-4 cycles.  So
+> > let's just assume an insn takes 4 cycles to execute.
+> > 
+> > 	18.432 MHz * 20 ms = 368,640 cycles 
+> > 	368,640 cycles / 4 cycles/insn = 92,160 insns
+> > 
+> > 20 ms is ~90k instructions, and seems like too long a delay to be just
+> > for Z8 latency.
 > 
-> The check should be against concrete version (0x10000 in this case).
+> Some further testing today with a try-check success-delay-retry loop
+> shows one i2c_master_send() failure plus a udelay(100), and the second
+> i2c_master_send() typically always works (I haven't seen it *not* work
+> on the HVR-1950 in cursory testing).
 
-The idea here is to not prevent it to load if version is 0x10001.
-This is actually the only change that it is really needed (after applying
-your KEY_RESERVED patch to 2.6.37) for the tool to work. Reverting it causes
-the error:
+Cool.
 
-$ sudo ./input-kbd 2
-/dev/input/event2
-protocol version mismatch (expected >= 65536, got 65537)
+> A second similar loop has proven necessary for IR TX attempts to actually
+> claim to succeed -- not 100% certain they really worked, as I don't have
+> the IR emitter with me at the moment, its at home hooked up to my hdpvr,
+> but I suspect its working fine now.
 
-Just applying this diff to the previous version:
+I'm not sure I follow here.  By "claim" I assume you mean no
+i2c_master_send() error.
 
-$ git diff 442bc4e7697a3f20ce9a24df630324d94cd22ba6
-diff --git a/input.c b/input.c
-index d57a31e..a9bd5e8 100644
---- a/input.c
-+++ b/input.c
-@@ -101,8 +101,8 @@ int device_open(int nr, int verbose)
-                close(fd);
-                return -1;
-        }
--       if (EV_VERSION != version) {
--               fprintf(stderr, "protocol version mismatch (expected %d, got %d)
-+       if (EV_VERSION > version) {
-+               fprintf(stderr, "protocol version mismatch (expected >= %d, got 
-                        EV_VERSION, version);
-                close(fd);
-                return -1;
+> > I find it interesting that for the HVR-1600 the delay isn't needed at
+> > all.
+> > 
+> > I'm wondering if there might also be some Linux/USB latency in getting
+> > commands shoved over to the HVR-1950's controller (or maybe latency in
+> > the HVR-1950's controller too), for which this delay is really
+> > accounting.  I suppose in kernel tracing can be used to find the latency
+> > on shoving things across the USB and watching for any Ack from the
+> > HVR-1950 controller.  An experiment for some other day, I guess.
+> 
+> Yeah, definitely seems to be specific to usb devices. On the plus side,
+> the delay loops should only add insignificant delay overhead for pci
+> devices, since if they work on the first call, there won't be any delay
+> added.
 
-And, with your KEY_RESERVED patch applied to 2.6.37, the tool works
-fine, with 16-bits keytables:
+Cool, nice implementation.
 
-$ sudo ./input-kbd 2
-/dev/input/event2
-   bustype : BUS_I2C
-   vendor  : 0x0
-   product : 0x0
-   version : 0
-   name    : "i2c IR (i2c IR (EM2820 Winfast "
-   phys    : "i2c-0/0-0030/ir0"
-   bits ev : EV_SYN EV_KEY EV_MSC EV_REP
+> Oh, I've also got IR RX with ir-kbd-i2c attached to the HVR-1950 working
+> much better now, with the polling interval reverted to the standard
+> 100ms, but simply introducing the same i2c_master_send() poll that
+> lirc_zilog uses into get_key_haup_xvr().
 
-map: 28 keys, size: 65536/65536
-0x0021 = 363  # KEY_CHANNEL
-0x0031 =  52  # KEY_DOT
-0x0035 = 359  # KEY_TIME
-0x0037 = 167  # KEY_RECORD
-0x0038 = 212  # KEY_CAMERA
-0x0039 = 154  # KEY_CYCLEWINDOWS
-0x003a = 181  # KEY_NEW
-0x0060 = 403  # KEY_CHANNELDOWN
-0x0061 = 405  # KEY_LAST
-0x0062 =  11  # KEY_0
-0x0063 =  28  # KEY_ENTER
-0x0064 = 113  # KEY_MIN_INTERESTING
-0x0066 = 358  # KEY_INFO
-0x0070 = 356  # KEY_POWER2
-0x0072 = 393  # KEY_VIDEO
-0x0073 = 372  # KEY_ZOOM
-0x0074 = 115  # KEY_VOLUMEUP
-0x0075 =   2  # KEY_1
-0x0076 =   3  # KEY_2
-0x0077 =   4  # KEY_3
-0x0078 = 114  # KEY_VOLUMEDOWN
-0x0079 =   5  # KEY_4
-0x007a =   6  # KEY_5
-0x007b =   7  # KEY_6
-0x007c = 402  # KEY_CHANNELUP
-0x007d =   8  # KEY_7
-0x007e =   9  # KEY_8
-0x007f =  10  # KEY_9
+You might want to check what video cards in the source tree request of,
+or are defaulted by, ir-kbd-i2c to use get_key_haup_xvr().  If it's only
+the chips at address 0x71, you're probably OK.
 
-(this is the original RC-5 table for the IR that comes with this device)
 
-It will fail, however, it the keytable has 24 bits keycode:
+> I want to test today's changes with the hdpvr tonight (and verify that
+> tx is working on the HVR-1950) before I send along my current stack of
+> patches, and I have suspicions that most of the hdpvr-specific crud in
+> lirc_zilog is bogus now -- it *should* behave exactly like the HVR-1950,
+> which obviously doesn't follow any of those hdpvr-specific code paths,
+> so I'm hoping we can rip out some additional complexity from lirc_zilog.
 
-$ sudo ir-keytable -cw /etc/rc_keymaps/pixelview_mk12 
+Good riddance to old kludges. :)
 
-(loads a 24 bits NEC-extended keycode, found on Pixelview MK12 remote
-control)
+You could then rename the i2c client strings back to
+"ir_[tr]x_z8f0811_haup".  We're going to modify struct IR_i2c_init_data
+with all the bridge specific parameters that need to be sent anyway, so
+no need to encode that information implicitly in the client's name
+anymore.
 
-$ sudo ./input-kbd 2
-/dev/input/event2
-   bustype : BUS_I2C
-   vendor  : 0x0
-   product : 0x0
-   version : 0
-   name    : "i2c IR (i2c IR (EM2820 Winfast "
-   phys    : "i2c-0/0-0030/ir0"
-   bits ev : EV_SYN EV_KEY EV_MSC EV_REP
+Regards,
+Andy
 
-bits: KEY_1
-bits: KEY_2
-bits: KEY_3
-bits: KEY_4
-bits: KEY_5
-bits: KEY_6
-bits: KEY_7
-bits: KEY_8
-bits: KEY_9
-bits: KEY_0
-bits: KEY_MIN_INTERESTING
-bits: KEY_VOLUMEDOWN
-bits: KEY_VOLUMEUP
-bits: KEY_PAUSE
-bits: KEY_STOP
-bits: KEY_AGAIN
-bits: KEY_FORWARD
-bits: KEY_RECORD
-bits: KEY_REWIND
-bits: KEY_PLAY
-bits: KEY_CAMERA
-bits: KEY_SEARCH
-bits: KEY_POWER2
-bits: KEY_ZOOM
-bits: KEY_TV
-bits: KEY_RADIO
-bits: KEY_TUNER
-bits: KEY_VIDEO
-bits: KEY_CHANNELUP
-bits: KEY_CHANNELDOWN
-bits: KEY_DIGITS
-
-Instead of showing the scancode/keycode table, it shows the mapped keys as
-if they were some event bits.
-
-The current kraxel tree at http://bigendian.kraxel.org/cgit/input/
-with your userspace input patch, plus my backports for upstream work fine
-also with the 24-bits keycode table:
-
-$ git reset --hard && make
-[mchehab@nehalem input]$ git reset --hard && make
-HEAD is now at 52f533a input-kbd - switch to using EVIOCGKEYCODE2 when available
-  CC	  input-kbd.o
-  LD	  input-kbd
-
-$ sudo ./input-kbd 2
-/dev/input/event2
-   bustype : BUS_I2C
-   vendor  : 0x0
-   product : 0x0
-   version : 0
-   name    : "i2c IR (i2c IR (EM2820 Winfast "
-   phys    : "i2c-0/0-0030/ir0"
-   bits ev : EV_SYN EV_KEY EV_MSC EV_REP
-
-map: 31 keys, size: 31/64
-0x866b00 = 393  # KEY_VIDEO
-0x866b01 =   2  # KEY_1
-0x866b02 =  11  # KEY_0
-0x866b03 = 386  # KEY_TUNER
-0x866b04 = 168  # KEY_REWIND
-0x866b05 =   5  # KEY_4
-0x866b06 =   8  # KEY_7
-0x866b07 = 385  # KEY_RADIO
-0x866b08 = 207  # KEY_PLAY
-0x866b09 =   6  # KEY_5
-0x866b0a =   9  # KEY_8
-0x866b0b =   3  # KEY_2
-0x866b0c = 159  # KEY_FORWARD
-0x866b0d = 377  # KEY_TV
-0x866b0e = 167  # KEY_RECORD
-0x866b0f = 119  # KEY_PAUSE
-0x866b10 = 413  # KEY_DIGITS
-0x866b12 =  10  # KEY_9
-0x866b13 = 129  # KEY_AGAIN
-0x866b14 = 403  # KEY_CHANNELDOWN
-0x866b15 =   7  # KEY_6
-0x866b16 = 402  # KEY_CHANNELUP
-0x866b17 = 114  # KEY_VOLUMEDOWN
-0x866b18 = 113  # KEY_MIN_INTERESTING
-0x866b19 = 212  # KEY_CAMERA
-0x866b1a = 217  # KEY_SEARCH
-0x866b1b =   4  # KEY_3
-0x866b1c = 372  # KEY_ZOOM
-0x866b1d = 128  # KEY_STOP
-0x866b1e = 356  # KEY_POWER2
-0x866b1f = 115  # KEY_VOLUMEUP
-
-Cheers,
-Mauro
