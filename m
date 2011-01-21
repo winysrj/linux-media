@@ -1,43 +1,49 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:49635 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750927Ab1ADEQY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jan 2011 23:16:24 -0500
-Received: by wwa36 with SMTP id 36so14815842wwa.1
-        for <linux-media@vger.kernel.org>; Mon, 03 Jan 2011 20:16:23 -0800 (PST)
+Return-path: <mchehab@pedra>
+Received: from mx1.redhat.com ([209.132.183.28]:4243 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754647Ab1AUNRP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Jan 2011 08:17:15 -0500
+Message-ID: <4D398755.7040107@redhat.com>
+Date: Fri, 21 Jan 2011 11:17:09 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Date: Mon, 3 Jan 2011 22:16:23 -0600
-Message-ID: <AANLkTikedj2Pun=KvjdfRue57+1eOo1uKR9zuomz=H5W@mail.gmail.com>
-Subject: TW68 driver fails to compile
-From: isaac smith <hunternet93@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8BIT
+To: Linus Torvalds <torvalds@linux-foundation.org>
+CC: Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [GIT PULL for 2.6.38-rc2] V4L/DVB patches
+References: <4D386A69.3080000@redhat.com>
+In-Reply-To: <4D386A69.3080000@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-I am trying to compile the TW68 driver (freshly cloned from the git
-repo), on Fedora 14 kernel version 2.6.37-rc8. Make dies with the
-errors:
-make -C /lib/modules/2.6.37-rc5/build M=/home/hunter/devel/tw68-v2 modules
-make[1]: Entering directory `/usr/src/kernels/linux-2.6.37-rc5'
-  CC [M]  /home/hunter/devel/tw68-v2/tw68-core.o
-/home/hunter/devel/tw68-v2/tw68-core.c: In function ‘tw68_dma_free’:
-/home/hunter/devel/tw68-v2/tw68-core.c:113:2: error: incompatible type
-for argument 1 of ‘videobuf_waiton’
-include/media/videobuf-core.h:183:5: note: expected ‘struct
-videobuf_queue *’ but argument is of type ‘struct videobuf_buffer’
-/home/hunter/devel/tw68-v2/tw68-core.c:113:2: error: too few arguments
-to function ‘videobuf_waiton’
-include/media/videobuf-core.h:183:5: note: declared here
-make[2]: *** [/home/hunter/devel/tw68-v2/tw68-core.o] Error 1
-make[1]: *** [_module_/home/hunter/devel/tw68-v2] Error 2
-make[1]: Leaving directory `/usr/src/kernels/linux-2.6.37-rc5'
-make: *** [all] Error 2
+Linus,
 
-I poked in the code a bit, but it was way over my head. I've tried
-this on a 64-bit and a 32-bit computer, with the same result.
+Em 20-01-2011 15:01, Mauro Carvalho Chehab escreveu:
+> Hi Linus,
+> 
+> Those are some changes that I tried to prepare to send you during the 
+> merge window, but, unfortunately, the new videobuf2 driver took me a longer
+> time to review/test than I originally expected.
+> 
+> Please pull from:
+>   ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
 
--- 
-God Bless ,
-                     Isaac
+Please, don't pull yet. There are some changesets that have some
+weird stuff, like this:
+
+diff --git a/drivers/staging/vme/bridges/Module.symvers b/drivers/staging/vme/bridges/Module.symvers
+deleted file mode 100644
+index e69de29..0000000
+
+I have no idea why those things appeared, as I never handled any patch
+that touched inside drivers/staging/vme. I need to further investigate
+the entire patchset and see if other weird stuff happened there.
+
+I'll send you another pull request after fixing those things.
+
+Thanks,
+Mauro
+
