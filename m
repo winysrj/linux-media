@@ -1,40 +1,75 @@
 Return-path: <mchehab@pedra>
-Received: from ironport2-out.teksavvy.com ([206.248.154.183]:9171 "EHLO
-	ironport2-out.pppoe.ca" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752841Ab1AZO6a (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Jan 2011 09:58:30 -0500
-Message-ID: <4D403693.50702@teksavvy.com>
-Date: Wed, 26 Jan 2011 09:58:27 -0500
-From: Mark Lord <kernel@teksavvy.com>
+Received: from smtp.ispras.ru ([83.149.198.201]:41495 "EHLO smtp.ispras.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752314Ab1AURnP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Jan 2011 12:43:15 -0500
+From: Alexander Strakh <strakh@ispras.ru>
+To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Tobias Lorenz <tobias.lorenz@gmx.net>,
+	Edouard Lafargue <edouard@lafargue.name>
+Subject: BUG: double mutex lock in  drivers/media/radio/si470x/radio-si470x-common.c
+Date: Fri, 21 Jan 2011 21:00:25 +0300
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Linux Kernel <linux-kernel@vger.kernel.org>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	Gerd Hoffmann <kraxel@redhat.com>
-Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils
- ?
-References: <4D3E59CA.6070107@teksavvy.com> <4D3E5A91.30207@teksavvy.com> <20110125053117.GD7850@core.coreip.homeip.net> <4D3EB734.5090100@redhat.com> <20110125164803.GA19701@core.coreip.homeip.net> <AANLkTi=1Mh0JrYk5itvef7O7e7pR+YKos-w56W5q4B8B@mail.gmail.com> <20110125205453.GA19896@core.coreip.homeip.net> <4D3F4804.6070508@redhat.com> <4D3F4D11.9040302@teksavvy.com> <20110125232914.GA20130@core.coreip.homeip.net> <20110126020003.GA23085@core.coreip.homeip.net> <4D4004F9.6090200@redhat.com>
-In-Reply-To: <4D4004F9.6090200@redhat.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201101212100.25827.strakh@ispras.ru>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 11-01-26 06:26 AM, Mauro Carvalho Chehab wrote:
-..
-> However, as said previously in this thread, input-kbd won't work with any
-> RC table that uses NEC extended (and there are several devices on the
-> current Kernels with those tables), since it only reads up to 16 bits.
-> 
-> ir-keytable works with all RC tables, if you use a kernel equal or upper to
-> 2.6.36, due to the usage of the new ioctl's.
+        KERNEL_VERSION: 2.6.37
+        SUBJECT: double mutex lock in drivers/media/radio/si470x/radio-si470x-
+common.c in function ssize_t si470x_fops_read.
 
-Is there a way to control the key repeat rate for a device
-controlled by ir-kbd-i2c ?
+1. First mutex_lock on &radio->lock in line 441
+2. Second in line 462
 
-It appears to be limited to a max of between 4 and 5 repeats/sec somewhere,
-and I'd like to fix that.
+I think that mutex in line 462 is not needed.
 
-???
+ 433static ssize_t si470x_fops_read(struct file *file, char __user *buf,
+ 434                size_t count, loff_t *ppos)
+ 435{
+....
+ 441        mutex_lock(&radio->lock);
+ 442        if ((radio->registers[SYSCONFIG1] & SYSCONFIG1_RDS) == 0)
+ 443                si470x_rds_on(radio);
+ 444
+ 445        /* block if no new data available */
+ 446        while (radio->wr_index == radio->rd_index) {
+ 447                if (file->f_flags & O_NONBLOCK) {
+ 448                        retval = -EWOULDBLOCK;
+ 449                        goto done;
+ 450                }
+ 451                if (wait_event_interruptible(radio->read_queue,
+ 452                        radio->wr_index != radio->rd_index) < 0) {
+ 453                        retval = -EINTR;
+ 454                        goto done;
+ 455                }
+ 456        }
+ 457
+ 458        /* calculate block count from byte count */
+ 459        count /= 3;
+ 460
+ 461        /* copy RDS block out of internal buffer and to user buffer */
+ 462        mutex_lock(&radio->lock);
+
+Found by Linux Device Drivers Verification Project
+
+Remove second mutex.
+
+Signed-off-by: Alexander Strakh <strakh@ispras.ru>
+___
+diff --git a/drivers/media/radio/si470x/radio-si470x-common.c 
+b/drivers/media/radio/si470x/radio-si470x-common.c
+index ac76dfe..e50452b 100644
+--- a/drivers/media/radio/si470x/radio-si470x-common.c
++++ b/drivers/media/radio/si470x/radio-si470x-common.c
+@@ -459,7 +459,6 @@ static ssize_t si470x_fops_read(struct file *file, char 
+__user *buf,
+ 	count /= 3;
+ 
+ 	/* copy RDS block out of internal buffer and to user buffer */
+-	mutex_lock(&radio->lock);
+ 	while (block_count < count) {
+ 		if (radio->rd_index == radio->wr_index)
+ 			break;
