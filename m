@@ -1,69 +1,65 @@
 Return-path: <mchehab@pedra>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:63197 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751520Ab1A0RVl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Jan 2011 12:21:41 -0500
-Date: Thu, 27 Jan 2011 09:21:29 -0800
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mark Lord <kernel@teksavvy.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Linux Kernel <linux-kernel@vger.kernel.org>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils ?
-Message-ID: <20110127172128.GA19672@core.coreip.homeip.net>
-References: <4D3F4D11.9040302@teksavvy.com>
- <20110125232914.GA20130@core.coreip.homeip.net>
- <20110126020003.GA23085@core.coreip.homeip.net>
- <4D403855.4050706@teksavvy.com>
- <4D40C3D7.90608@teksavvy.com>
- <4D40C551.4020907@teksavvy.com>
- <20110127021227.GA29709@core.coreip.homeip.net>
- <4D40E41D.2030003@teksavvy.com>
- <20110127063815.GA29924@core.coreip.homeip.net>
- <4D414928.80801@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4D414928.80801@redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:50038 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751827Ab1AUE1h (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Jan 2011 23:27:37 -0500
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id p0L4RbHH021482
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 20 Jan 2011 23:27:37 -0500
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Jarod Wilson <jarod@redhat.com>
+Subject: [PATCH] rc/ir-lirc-codec: add back debug spew
+Date: Thu, 20 Jan 2011 23:27:33 -0500
+Message-Id: <1295584053-20978-1-git-send-email-jarod@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, Jan 27, 2011 at 08:30:00AM -0200, Mauro Carvalho Chehab wrote:
-> 
-> On my tests here, this is working fine, with Fedora and RHEL 6, on my
-> usual test devices, so I don't believe that the tool itself is broken, 
-> nor I think that the issue is due to the fix patch.
-> 
-> I remember that when Kay added a persistence utility tool that opens a V4L
-> device in order to read some capabilities, this caused a race condition
-> into a number of drivers that use to register the video device too early.
-> The result is that udev were opening the device before the end of the
-> register process, causing OOPS and other problems.
+Some occasionally useful debug spew disappeared as part of a feature
+update a while back, and I'm finding myself in need of it again to help
+diagnose some issues.
 
-Well, this is quite possible. The usev ruls in the v4l-utils reads:
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
+---
+ drivers/media/rc/ir-lirc-codec.c |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletions(-)
 
-ACTION=="add", SUBSYSTEM=="rc", RUN+="/usr/bin/ir-keytable -a /etc/rc_maps.cfg -s $name"
-
-So we act when we add RC device to the system. The corresponding input
-device has not been registered yet (and will not be for some time
-because before creating input ddevice we invoke request_module() to load
-initial rc map module) so the tool runs simultaneously with kernel
-registering input device and it could very well be it can't find
-something it really wants.
-
-This would explain why Mark sees the segfault only when invoked via
-udev but not when ran manually.
-
-However I still do not understand why Mark does not see the same issue
-without the patch. Like I said, maybe if Mark could recompile with
-debug data and us a core we'd see what is going on.
-
-BTW, that means that we need to redo udev rules. Maybe we should split
-the utility into 2 parts - one dealing with rcX device and for keymap
-setting reuse udev's existing utility that adjusts maps on ann input
-devices, not for RCs only.
-
+diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
+index f011c5d..1c5cc65 100644
+--- a/drivers/media/rc/ir-lirc-codec.c
++++ b/drivers/media/rc/ir-lirc-codec.c
+@@ -1,4 +1,4 @@
+-/* ir-lirc-codec.c - ir-core to classic lirc interface bridge
++/* ir-lirc-codec.c - rc-core to classic lirc interface bridge
+  *
+  * Copyright (C) 2010 by Jarod Wilson <jarod@redhat.com>
+  *
+@@ -47,6 +47,7 @@ static int ir_lirc_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ 	/* Carrier reports */
+ 	if (ev.carrier_report) {
+ 		sample = LIRC_FREQUENCY(ev.carrier);
++		IR_dprintk(2, "carrier report (freq: %d)\n", sample);
+ 
+ 	/* Packet end */
+ 	} else if (ev.timeout) {
+@@ -62,6 +63,7 @@ static int ir_lirc_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ 			return 0;
+ 
+ 		sample = LIRC_TIMEOUT(ev.duration / 1000);
++		IR_dprintk(2, "timeout report (duration: %d)\n", sample);
+ 
+ 	/* Normal sample */
+ 	} else {
+@@ -85,6 +87,8 @@ static int ir_lirc_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ 
+ 		sample = ev.pulse ? LIRC_PULSE(ev.duration / 1000) :
+ 					LIRC_SPACE(ev.duration / 1000);
++		IR_dprintk(2, "delivering %uus %s to lirc_dev\n",
++			   TO_US(ev.duration), TO_STR(ev.pulse));
+ 	}
+ 
+ 	lirc_buffer_write(dev->raw->lirc.drv->rbuf,
 -- 
-Dmitry
+1.7.3.4
+
