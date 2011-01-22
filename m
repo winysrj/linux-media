@@ -1,83 +1,161 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.samsung.com ([203.254.224.25]:25035 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751993Ab1AQL43 (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.10]:55758 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752818Ab1AVXpS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Jan 2011 06:56:29 -0500
-Received: from epmmp1 (mailout2.samsung.com [203.254.224.25])
- by mailout2.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LF6003PP163IP10@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 17 Jan 2011 20:56:27 +0900 (KST)
-Received: from JONGHUNHA11 ([12.23.103.140])
- by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LF6009TW1637F@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 17 Jan 2011 20:56:27 +0900 (KST)
-Date: Mon, 17 Jan 2011 20:56:22 +0900
-From: Jonghun Han <jonghun.han@samsung.com>
-Subject: RE: How to set global alpha to V4L2_BUF_TYPE_CAPTURE ?
-In-reply-to: <201101170752.03018.hverkuil@xs4all.nl>
-To: 'Hans Verkuil' <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, pawel@osciak.com,
-	'Marek Szyprowski' <m.szyprowski@samsung.com>
-Message-id: <005b01cbb63d$9298aa50$b7c9fef0$%han@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: ko
-Content-transfer-encoding: 7BIT
-References: <003801cbb5f8$ec278180$c4768480$%han@samsung.com>
- <201101170752.03018.hverkuil@xs4all.nl>
+	Sat, 22 Jan 2011 18:45:18 -0500
+Date: Sun, 23 Jan 2011 00:45:15 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: linux-media@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
+	Kuninori Morimoto <morimoto.kuninori@renesas.com>,
+	Alberto Panizzo <maramaopercheseimorto@gmail.com>,
+	Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>,
+	Marek Vasut <marek.vasut@gmail.com>,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: Re: [RFC PATCH 04/12] mt9m111.c: convert to the control framework.
+In-Reply-To: <56c1a8ef6e1a5405881611a18579db98e271fb86.1294786597.git.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1101230032110.1872@axis700.grange>
+References: <1294787172-13638-1-git-send-email-hverkuil@xs4all.nl>
+ <56c1a8ef6e1a5405881611a18579db98e271fb86.1294786597.git.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Thanks for interesting.
+On Wed, 12 Jan 2011, Hans Verkuil wrote:
 
-Ok, I will submit it using VIDIOC_S_CTRL.
+> Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+> ---
+>  drivers/media/video/mt9m111.c |  184 ++++++++++++-----------------------------
+>  1 files changed, 54 insertions(+), 130 deletions(-)
+> 
+> diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
+> index 53fa2a7..2328579 100644
+> --- a/drivers/media/video/mt9m111.c
+> +++ b/drivers/media/video/mt9m111.c
 
-Best regards,
+[snip]
 
-> -----Original Message-----
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> Sent: Monday, January 17, 2011 3:52 PM
-> To: Jonghun Han
-> Cc: linux-media@vger.kernel.org; pawel@osciak.com; 'Marek Szyprowski'
-> Subject: Re: How to set global alpha to V4L2_BUF_TYPE_CAPTURE ?
-> 
-> On Monday, January 17, 2011 04:44:54 Jonghun Han wrote:
-> >
-> > Hello,
-> >
-> > How to set global alpha to V4L2_BUF_TYPE_CAPTURE ?
-> >
-> > Samsung SoC S5PC210 has Camera interface and Video post processor
-> > named FIMC which can set the alpha value to V4L2_BUF_TYPE_CAPTURE.
-> > For example during color space conversion from YUV422 to ARGB8888,
-> > FIMC can set the alpha value to V4L2_BUF_TYPE_CAPTURE.
-> >
-> > I tried to find an available command to set it but I couldn't found it.
-> 
-> That's right, there isn't.
-> 
-> > But there is fmt.win.global_alpha for Video Overlay Interface.
-> > So in my opinion VIDIOC_S_FMT is also suitable for
-> V4L2_BUF_TYPE_CAPTURE*.
-> > How about using fmt.pix.priv in struct v4l2_format and
-> > fmt.pix_mp.reserved[0] in struct v4l2_format ?
-> 
-> Not a good idea. This is really ideal for a control. We already have a
-somewhat
-> similar control in the form of V4L2_CID_BG_COLOR. It's perfectly
-reasonable to
-> add a V4L2_CID_ALPHA_COLOR (or something similar) where you set this up.
-> 
-> The little available space in the format structs is too precious to use
-for something
-> trivial like this :-)
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> --
-> Hans Verkuil - video4linux developer - sponsored by Cisco
+> -static int mt9m111_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+> +static int mt9m111_s_ctrl(struct v4l2_ctrl *ctrl)
+>  {
+> +	struct v4l2_subdev *sd =
+> +		&container_of(ctrl->handler, struct mt9m111, hdl)->subdev;
+>  	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> -	struct mt9m111 *mt9m111 = to_mt9m111(client);
+> -	const struct v4l2_queryctrl *qctrl;
+> -	int ret;
+> -
+> -	qctrl = soc_camera_find_qctrl(&mt9m111_ops, ctrl->id);
+> -	if (!qctrl)
+> -		return -EINVAL;
+>  
+>  	switch (ctrl->id) {
+>  	case V4L2_CID_VFLIP:
+> -		mt9m111->vflip = ctrl->value;
+> -		ret = mt9m111_set_flip(client, ctrl->value,
+> +		return mt9m111_set_flip(client, ctrl->val,
+>  					MT9M111_RMB_MIRROR_ROWS);
+> -		break;
+>  	case V4L2_CID_HFLIP:
+> -		mt9m111->hflip = ctrl->value;
+> -		ret = mt9m111_set_flip(client, ctrl->value,
+> +		return mt9m111_set_flip(client, ctrl->val,
+>  					MT9M111_RMB_MIRROR_COLS);
+> -		break;
+>  	case V4L2_CID_GAIN:
+> -		ret = mt9m111_set_global_gain(client, ctrl->value);
+> -		break;
+> +		return mt9m111_set_global_gain(client, ctrl->val);
+> +
+>  	case V4L2_CID_EXPOSURE_AUTO:
+> -		ret =  mt9m111_set_autoexposure(client, ctrl->value);
+> -		break;
+> +		return mt9m111_set_autoexposure(client, ctrl->val);
+> +
+>  	case V4L2_CID_AUTO_WHITE_BALANCE:
+> -		ret =  mt9m111_set_autowhitebalance(client, ctrl->value);
+> -		break;
+> -	default:
+> -		ret = -EINVAL;
+> +		return mt9m111_set_autowhitebalance(client, ctrl->val);
+>  	}
+> -
+> -	return ret;
+> +	return -EINVAL;
+>  }
+>  
+>  static int mt9m111_suspend(struct soc_camera_device *icd, pm_message_t state)
 
+[snip]
+
+> @@ -1067,6 +968,26 @@ static int mt9m111_probe(struct i2c_client *client,
+>  		return -ENOMEM;
+>  
+>  	v4l2_i2c_subdev_init(&mt9m111->subdev, client, &mt9m111_subdev_ops);
+> +	v4l2_ctrl_handler_init(&mt9m111->hdl, 5);
+> +	v4l2_ctrl_new_std(&mt9m111->hdl, &mt9m111_ctrl_ops,
+> +			V4L2_CID_VFLIP, 0, 1, 1, 0);
+> +	v4l2_ctrl_new_std(&mt9m111->hdl, &mt9m111_ctrl_ops,
+> +			V4L2_CID_HFLIP, 0, 1, 1, 0);
+> +	v4l2_ctrl_new_std(&mt9m111->hdl, &mt9m111_ctrl_ops,
+> +			V4L2_CID_AUTO_WHITE_BALANCE, 0, 1, 1, 1);
+> +	mt9m111->gain = v4l2_ctrl_new_std(&mt9m111->hdl, &mt9m111_ctrl_ops,
+> +			V4L2_CID_GAIN, 0, 63 * 2 * 2, 1, 32);
+> +	v4l2_ctrl_new_std_menu(&mt9m111->hdl,
+> +			&mt9m111_ctrl_ops, V4L2_CID_EXPOSURE_AUTO, 1, 0,
+> +			V4L2_EXPOSURE_AUTO);
+> +	mt9m111->subdev.ctrl_handler = &mt9m111->hdl;
+> +	if (mt9m111->hdl.error) {
+> +		int err = mt9m111->hdl.error;
+> +
+> +		kfree(mt9m111);
+> +		return err;
+> +	}
+> +	mt9m111->gain->is_volatile = 1;
+
+I'm not sure I like this approach: you register each control separately, 
+but with the same handler, and then in that handler you switch-case again 
+to find out which control has to be processed... If we already register 
+them separately, and they share no code, apart from context extraction 
+from parameters - why not make separate handlers, waste some memory on a 
+couple more structs, but avoid run-time switching (I know it is not 
+critical, although, with still photo-shooting you might want to care about 
+the time between your controls and the actual shot), and win clarity?
+
+>  
+>  	/* Second stage probe - when a capture adapter is there */
+>  	icd->ops		= &mt9m111_ops;
+> @@ -1080,6 +1001,7 @@ static int mt9m111_probe(struct i2c_client *client,
+>  	ret = mt9m111_video_probe(icd, client);
+>  	if (ret) {
+>  		icd->ops = NULL;
+> +		v4l2_ctrl_handler_free(&mt9m111->hdl);
+>  		kfree(mt9m111);
+>  	}
+>  
+> @@ -1091,7 +1013,9 @@ static int mt9m111_remove(struct i2c_client *client)
+>  	struct mt9m111 *mt9m111 = to_mt9m111(client);
+>  	struct soc_camera_device *icd = client->dev.platform_data;
+>  
+> +	v4l2_device_unregister_subdev(&mt9m111->subdev);
+
+Same here - don't like redundancy with soc_camera.c
+
+Thanks
+Guennadi
+
+>  	icd->ops = NULL;
+> +	v4l2_ctrl_handler_free(&mt9m111->hdl);
+>  	kfree(mt9m111);
+>  
+>  	return 0;
+> -- 
+> 1.7.0.4
+> 
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
