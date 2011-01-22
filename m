@@ -1,56 +1,44 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.10]:64672 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755735Ab1ATXCs (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4876 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751820Ab1AVLGV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Jan 2011 18:02:48 -0500
-Date: Fri, 21 Jan 2011 00:02:46 +0100
-From: Martin Hostettler <martin@neutronstar.dyndns.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH V2] v4l: OMAP3 ISP CCDC: Add support for 8bit greyscale
-	sensors
-Message-ID: <20110120230246.GE13173@neutronstar.dyndns.org>
-References: <1295386062-10618-1-git-send-email-martin@neutronstar.dyndns.org> <201101190027.19904.laurent.pinchart@ideasonboard.com> <20110119174759.GA13173@neutronstar.dyndns.org> <201101201537.50841.laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201101201537.50841.laurent.pinchart@ideasonboard.com>
+	Sat, 22 Jan 2011 06:06:21 -0500
+Received: from localhost.localdomain (43.80-203-71.nextgentel.com [80.203.71.43])
+	(authenticated bits=0)
+	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id p0MB69iY074561
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 22 Jan 2011 12:06:20 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [RFC PATCH 0/3] v4l2-ctrls: add new functionality
+Date: Sat, 22 Jan 2011 12:05:58 +0100
+Message-Id: <1295694361-23237-1-git-send-email-hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, Jan 20, 2011 at 03:37:50PM +0100, Laurent Pinchart wrote:
-> Hi Martin,
-> 
-> On Wednesday 19 January 2011 18:47:59 martin@neutronstar.dyndns.org wrote:
-> > But the only clean solution i can think of is setting it to 0
-> > unconditionally.
-> > I'm not sure what this default should acomplish, so maybe i'm missing
-> > something here, but i think the right value if dc substraction is needed
-> > would be highly sensor specific?
-> > I think all other of these postprocessing features for the CCDC default to
-> > off, so it would make sense to default this to off too.
-> > 
-> > The overenginered solution would be to maintain a different value for each
-> > bus width and let the user change the setting for the buswidth of the
-> > currently linked sensor. In a way this would make sense,
-> > because the DC substraction is fundamentally dependent on the bus size i
-> > think. But i don't think anyone would want such complexity.
-> > 
-> > But i think it wouldn't be nice if every user of an 8bit sensor needs to
-> > set this manually just to get the sensor working in a sane way (for 8bit
-> > substracting 64 is insane, for wider buses it's different)
-> > 
-> > So how to proceed with this?
-> 
-> My personal opinion (at least for now) is that we should set the default value 
-> to 0. I'll see if I can convince people at Nokia that it would be the right 
-> way to go. If so I'll apply a patch for that.
-> 
+This RFC patch series adds and documents two new features of the control
+framework.
 
-Yes, that would be great, thanks.
+The first adds support to enable or disable specific controls or all controls
+from a control handler. This is needed to support drivers that need to change
+which controls are available based on the chosen input or output. In cases
+like this each input or output is hooked up to a different video receiver or
+transmitter, each with its own set of controls. Switching inputs/outputs means
+that the controls from the new input should be enabled, while those of the
+others should be disabled.
 
-I'll resend the patch with this part removed.
+The second adds support to simplify handling of 'auto-foo/foo' type of controls.
+E.g.: autogain/gain, autoexposure/exposure, etc. It is a bit tricky to handle
+that correctly and after having to do this many times when I was converting the
+soc_camera sensors I decided to add special support for this in the framework.
 
-regards,
- - Martin Hostettler
+It should ensure consistent handling of these special kinds of controls in the
+drivers.
+
+If there are no comments, then I plan on making a pull request for this for
+2.6.39 and base the soc_camera and ov7670 conversions on this. For 2.6.39 I
+want to finish converting all subdev to the control framework and make a good
+start at converting the v4l2 drivers as well.
+
