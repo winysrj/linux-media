@@ -1,77 +1,49 @@
-Return-path: <mchehab@gaivota>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4677 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754733Ab1ACORF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jan 2011 09:17:05 -0500
-Received: from tschai.localnet (43.80-203-71.nextgentel.com [80.203.71.43])
-	(authenticated bits=0)
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id p03EH2m3038374
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 3 Jan 2011 15:17:03 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [GIT PATCHES FOR 2.6.38] Fix memory leak in __video_register_device
-Date: Mon, 3 Jan 2011 15:17:03 +0100
+Return-path: <mchehab@pedra>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:42971 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751348Ab1AVRFD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 22 Jan 2011 12:05:03 -0500
+Received: by wyb28 with SMTP id 28so2841580wyb.19
+        for <linux-media@vger.kernel.org>; Sat, 22 Jan 2011 09:05:01 -0800 (PST)
+Message-ID: <4D3B0E0E.6010003@googlemail.com>
+Date: Sat, 22 Jan 2011 17:04:14 +0000
+From: Robert Longbottom <rongblor@googlemail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: ngene & Satix-S2 dual problems
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201101031517.03078.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-The __video_register_device function memset()s the embedded struct device.
+On 11 Jan 2011, at 15:25, Andre wrote:
 
-It is common practice for drivers to call video_set_drvdata() before the
-video device node is registered. But video_set_drvdata() calls dev_set_drvdata()
-in turn, and dev_set_drvdata allocates memory to store the void pointer.
+>On 28 Dec 2010, at 17:25, Andre wrote:
+>>/>  /
+>>/>  I seems to work with the last patch commited by Oliver Endriss. Did you/
+>>/>  try with a CI ?/
+>>/  /
+>>/  No I didn't, I don't have a CI./
+>>/  /
+>>/  I'll try Olivers latest commit in a few days, I'm a long way from my Myth system right now :-)/
+>
+>  Finally got chance to try the latest commits, no extra nodes now and drivers work fine with several simultaneous HD recordings across both tuners.
+>
+>  Satix S2 dual v2 on Ubuntu 10.0.4.1 kernel 2.6.32-25-generic
+>
+>  Thanks
+>
+>  Andre
 
-The __video_register_device function makes a copy of the driver data by
-calling video_get_drvdata and before memsetting the struct device to 0.
-It restores it afterwards.
+Hi,
+I've finally gotten round to trying the latest commits as well
+and I can also report success.  No extra nodes, drivers appear to be working
+ok after a very quick test.  I'll see how it goes over the next few days.
 
-Unfortunately, due to the memset the memory allocated in struct device is
-never freed.
+Satix S2 dual on Gentoo with kernel 2.6.35.4.
 
-This patch series fixes this situation by no longer doing the memset. This
-requires that all drivers always memset the struct video_device before use.
+Cheers,
+Robert.
+  <http://vger.kernel.org/majordomo-info.html>
 
-I analyzed *all* v4l drivers and found two that do not do this properly. The
-zoran driver uses kmalloc to allocate video_device (although it copies a
-video_device template later, so it is actually safe. But it really should
-call video_device_alloc). The w9966 driver would likely fail since after the
-device is disconnected the old struct may be reused after a reconnect.
-
-But since nobody has this parallel port webcam anymore it is unlikely anyone
-would ever notice.
-
-Note that this still does not fix the case if video_register_device bails out
-before device_register is called: the memory is still leaked in that case.
-
-But let's tackle the majority of the leaks first.
-
-Regards,
-
-	Hans
-
-The following changes since commit 187134a5875df20356f4dca075db29f294115a47:
-  David Henningsson (1):
-        [media] DVB: IR support for TechnoTrend CT-3650
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/hverkuil/media_tree.git vdev-fix
-
-Hans Verkuil (3):
-      w9966: zero device state after a detach
-      zoran: use video_device_alloc instead of kmalloc.
-      v4l2-dev: don't memset video_device.dev.
-
- drivers/media/video/v4l2-dev.c         |    9 ++++-----
- drivers/media/video/w9966.c            |    1 +
- drivers/media/video/zoran/zoran_card.c |    2 +-
- 3 files changed, 6 insertions(+), 6 deletions(-)
-
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
