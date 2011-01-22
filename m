@@ -1,50 +1,51 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59757 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751140Ab1A0M2E (ORCPT
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:4491 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751883Ab1AVJmh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Jan 2011 07:28:04 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Neil MacMunn <neil@gumstix.com>
-Subject: Re: omap3-isp segfault
-Date: Thu, 27 Jan 2011 13:28:05 +0100
-Cc: linux-media@vger.kernel.org
-References: <4D4076C3.4080201@gumstix.com> <4D40CDB3.7090106@gumstix.com>
-In-Reply-To: <4D40CDB3.7090106@gumstix.com>
+	Sat, 22 Jan 2011 04:42:37 -0500
+Received: from tschai.localnet (43.80-203-71.nextgentel.com [80.203.71.43])
+	(authenticated bits=0)
+	by smtp-vbr18.xs4all.nl (8.13.8/8.13.8) with ESMTP id p0M9gZTg031842
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 22 Jan 2011 10:42:36 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [GIT PATCHES FOR 2.6.39] Switch cpia2 and pwc to video_ioctl2
+Date: Sat, 22 Jan 2011 10:42:35 +0100
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201101271328.05891.laurent.pinchart@ideasonboard.com>
+Message-Id: <201101221042.35713.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi again,
+Tested with pwc, but we still have no hardware for cpia2 so that is untested.
+But the changes are pretty straightforward.
 
-On Thursday 27 January 2011 02:43:15 Neil MacMunn wrote:
-> Ok I solved the segfault problem by updating some of my v4l2 files
-> (specifically v4l2-common.c). Now I only get nice sounding console
-> messages.
-> 
->      Linux media interface: v0.10
->      Linux video capture interface: v2.00
->      omap3isp omap3isp: Revision 2.0 found
->      omap-iommu omap-iommu.0: isp: version 1.1
->      omap3isp omap3isp: hist: DMA channel = 4
->      mt9v032 3-005c: Probing MT9V032 at address 0x5c
->      omap3isp omap3isp: isp_set_xclk(): cam_xclka set to 28800000 Hz
->      omap3isp omap3isp: isp_set_xclk(): cam_xclka set to 0 Hz
->      mt9v032 3-005c: MT9V032 detected at address 0x5c
-
-As you're using an MT9V032 sensor, I can help you with the pipeline setup. You
-can run the following commands to capture 5 raw images.
-
-./media-ctl -r -l '"mt9v032 2-005c":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
-./media-ctl -f '"mt9v032 2-005c":0[SGRBG10 752x480], "OMAP3 ISP CCDC":1[SGRBG10 752x480]'
-
-./yavta -p -f SGRBG10 -s 752x480 -n 4 --capture=5 --skip 4 -F $(./media-ctl -e "OMAP3 ISP CCDC output")
-
--- 
 Regards,
 
-Laurent Pinchart
+	Hans
+
+The following changes since commit cf720fed25b8078ce0d6a10036dbf7a0baded679:
+  Mauro Carvalho Chehab (1):
+        [media] add support for Encore FM3
+
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/hverkuil/media_tree.git ioctl2
+
+Hans Verkuil (3):
+      pwc: convert to core-assisted locking
+      pwc: convert to video_ioctl2
+      cpia2: convert to video_ioctl2
+
+ drivers/media/video/cpia2/cpia2_v4l.c |  373 ++++--------
+ drivers/media/video/pwc/pwc-if.c      |   38 +-
+ drivers/media/video/pwc/pwc-v4l.c     | 1032 ++++++++++++++++-----------------
+ drivers/media/video/pwc/pwc.h         |    3 +-
+ 4 files changed, 623 insertions(+), 823 deletions(-)
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
