@@ -1,78 +1,162 @@
 Return-path: <mchehab@pedra>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:58595 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753610Ab1AYUzC (ORCPT
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:39803 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750897Ab1AWLWD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Jan 2011 15:55:02 -0500
-Date: Tue, 25 Jan 2011 12:54:53 -0800
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Mark Lord <kernel@teksavvy.com>,
-	Linux Kernel <linux-kernel@vger.kernel.org>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils ?
-Message-ID: <20110125205453.GA19896@core.coreip.homeip.net>
-References: <4D3E4DD1.60705@teksavvy.com>
- <20110125042016.GA7850@core.coreip.homeip.net>
- <4D3E5372.9010305@teksavvy.com>
- <20110125045559.GB7850@core.coreip.homeip.net>
- <4D3E59CA.6070107@teksavvy.com>
- <4D3E5A91.30207@teksavvy.com>
- <20110125053117.GD7850@core.coreip.homeip.net>
- <4D3EB734.5090100@redhat.com>
- <20110125164803.GA19701@core.coreip.homeip.net>
- <AANLkTi=1Mh0JrYk5itvef7O7e7pR+YKos-w56W5q4B8B@mail.gmail.com>
+	Sun, 23 Jan 2011 06:22:03 -0500
+Received: by pva4 with SMTP id 4so533017pva.19
+        for <linux-media@vger.kernel.org>; Sun, 23 Jan 2011 03:22:02 -0800 (PST)
+Message-ID: <4D3C0F33.6060208@gmail.com>
+Date: Sun, 23 Jan 2011 20:21:23 +0900
+From: Sylwester Nawrocki <snjw23@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <AANLkTi=1Mh0JrYk5itvef7O7e7pR+YKos-w56W5q4B8B@mail.gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
+	m.szyprowski@samsung.com
+Subject: Re: [PATCH 2/3] sr030pc30: Use the control framework
+References: <1295487842-23410-1-git-send-email-s.nawrocki@samsung.com> <1295487842-23410-3-git-send-email-s.nawrocki@samsung.com> <201101202009.15015.hverkuil@xs4all.nl>
+In-Reply-To: <201101202009.15015.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Jan 26, 2011 at 06:09:45AM +1000, Linus Torvalds wrote:
-> On Wed, Jan 26, 2011 at 2:48 AM, Dmitry Torokhov
-> <dmitry.torokhov@gmail.com> wrote:
-> >
-> > We should be able to handle the case where scancode is valid even though
-> > it might be unmapped yet. This is regardless of what version of
-> > EVIOCGKEYCODE we use, 1 or 2, and whether it is sparse keymap or not.
-> >
-> > Is it possible to validate the scancode by driver?
+On 01/21/2011 04:09 AM, Hans Verkuil wrote:
+> Hi Sylwester!
 > 
-> More appropriately, why not just revert the thing? The version change
-
-Well, then we'll break Ubuntu again as they recompiled their input-utils
-package (without fixing the check). And the rest of distros do not seem
-to be using that package...
-
-> and the buggy EINVAL return both.
-
-I believe that -EINVAL thing only affects RC devices that Mauro switched
-to the new rc-core; input core in itself should be ABI compatible. Thus
-I'll leave the decision to him whether he wants to revert or fix
-compatibility issue.
-
+> I have some review comments below...
 > 
-> As Mark said, breaking user space simply isn't acceptable. And since
-> breaking user space isn't acceptable, then incrementing the version is
-> stupid too.
-
-It might not have been the best idea to increment, however I maintain
-that if there exists version is can be changed. Otherwise there is no
-point in having version at all.
-
-As I said, reverting the version bump will cause yet another wave of
-breakages so I propose leaving version as is.
-
+> On Thursday, January 20, 2011 02:44:01 Sylwester Nawrocki wrote:
+>> Implement controls using the control framework.
+>> Add horizontal/vertical flip controls, minor cleanup.
+>>
+>> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
+>> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
+>> ---
+>>   drivers/media/video/sr030pc30.c |  311 +++++++++++++++++----------------------
+>>   1 files changed, 132 insertions(+), 179 deletions(-)
+>>
+...
+>> -
+>> -static int sr030pc30_s_ctrl(struct v4l2_subdev *sd,
+>> -			    struct v4l2_control *ctrl)
+>> +static int sr030pc30_s_ctrl(struct v4l2_ctrl *ctrl)
+>>   {
+>> -	int i, ret = 0;
+>> -
+>> -	for (i = 0; i<  ARRAY_SIZE(sr030pc30_ctrl); i++)
+>> -		if (ctrl->id == sr030pc30_ctrl[i].id)
+>> -			break;
+>> -
+>> -	if (i == ARRAY_SIZE(sr030pc30_ctrl))
+>> -		return -EINVAL;
+>> -
+>> -	if (ctrl->value<  sr030pc30_ctrl[i].minimum ||
+>> -		ctrl->value>  sr030pc30_ctrl[i].maximum)
+>> -			return -ERANGE;
+>> +	struct v4l2_subdev *sd = to_sd(ctrl);
+>> +	struct sr030pc30_info *info = to_sr030pc30(sd);
+>> +	int ret = 0;
+>>
+>> -	v4l2_dbg(1, debug, sd, "%s: ctrl_id: %d, value: %d\n",
+>> -			 __func__, ctrl->id, ctrl->value);
+>> +	v4l2_dbg(1, debug, sd, "%s: ctrl id: %d, value: %d\n",
+>> +			 __func__, ctrl->id, ctrl->val);
+>>
+>>   	switch (ctrl->id) {
+>>   	case V4L2_CID_AUTO_WHITE_BALANCE:
+>> -		sr030pc30_enable_autowhitebalance(sd, ctrl->value);
+>> -		break;
+>> -	case V4L2_CID_BLUE_BALANCE:
+>> -		ret = sr030pc30_set_bluebalance(sd, ctrl->value);
+>> -		break;
+>> -	case V4L2_CID_RED_BALANCE:
+>> -		ret = sr030pc30_set_redbalance(sd, ctrl->value);
+>> -		break;
+>> -	case V4L2_CID_EXPOSURE_AUTO:
+>> -		sr030pc30_enable_autoexposure(sd,
+>> -			ctrl->value == V4L2_EXPOSURE_AUTO);
+>> -		break;
+>> -	case V4L2_CID_EXPOSURE:
+>> -		ret = sr030pc30_set_exposure(sd, ctrl->value);
+>> -		break;
+>> -	default:
+>> -		return -EINVAL;
+>> -	}
+>> +		if (!ctrl->has_new)
+>> +			ctrl->val = 0;
+>>
+>> -	return ret;
+>> -}
+>> -
+>> -static int sr030pc30_g_ctrl(struct v4l2_subdev *sd,
+>> -			    struct v4l2_control *ctrl)
+>> -{
+>> -	struct sr030pc30_info *info = to_sr030pc30(sd);
+>> +		ret = sr030pc30_enable_autowhitebalance(sd, ctrl->val);
+>>
+>> -	v4l2_dbg(1, debug, sd, "%s: id: %d\n", __func__, ctrl->id);
+>> +		if (!ret&&  !ctrl->val) {
+>> +			ret = cam_i2c_write(sd, MWB_BGAIN_REG, info->blue->val);
+>> +			if (!ret)
+>> +				ret = cam_i2c_write(sd, MWB_RGAIN_REG,
+>> +						    info->red->val);
+>> +		}
+>> +		return ret;
+>>
+>> -	switch (ctrl->id) {
+>> -	case V4L2_CID_AUTO_WHITE_BALANCE:
+>> -		ctrl->value = info->auto_wb;
+>> -		break;
+>> -	case V4L2_CID_BLUE_BALANCE:
+>> -		ctrl->value = info->blue_balance;
+>> -		break;
+>> -	case V4L2_CID_RED_BALANCE:
+>> -		ctrl->value = info->red_balance;
+>> -		break;
+>>   	case V4L2_CID_EXPOSURE_AUTO:
+>> -		ctrl->value = info->auto_exp;
+>> -		break;
+>> -	case V4L2_CID_EXPOSURE:
+>> -		ctrl->value = info->exposure;
+>> -		break;
+>> +		if (!ctrl->has_new)
+>> +			ctrl->val = V4L2_EXPOSURE_MANUAL;
+>> +
+>> +		if (ctrl->val == V4L2_EXPOSURE_MANUAL)
+>> +			return sr030pc30_set_exposure(sd, info->exposure->val);
+>> +		else
+>> +			return sr030pc30_enable_autoexposure(sd, 1);
 > 
-> The way we add new ioctl's is not by incrementing some "ABI version"
-> crap. It's by adding new ioctl's or system calls or whatever that
-> simply used to return -ENOSYS or other error before, while preserving
-> the old ABI. That way old binaries don't break (for _ANY_ reason), and
-> new binaries can see "oh, this doesn't support the new thing".
+> Setting up auto<foo>  and<foo>  controls like this is a bit tricky. I've
+> converted several drivers recently and had to do quite a few of these. Based
+> on that experience I will be posting a RFC patch this weekend adding special
+> support for this to the control framework that simplifies life a bit.
+> 
+> So I'd appreciate it if you could test those changes with this driver and if
+> all is OK, then I'll make a pull request for that and you can base your
+> changes on top of that.
+> 
 
-That has been done as well; we have 2 new ioctls and kept 2 old ioctls.
+I have converted sr030pc30 already just need to do testing when I get my hands
+on the hardware. With your foo/auto-foo for V4L2_CID_EXPOSURE_AUTO I did:
 
--- 
-Dmitry
+	case V4L2_CID_EXPOSURE_AUTO:
+	        if (ctrl->val == V4L2_EXPOSURE_MANUAL)
+                        ret = sr030pc30_set_exposure(sd, info->exposure->val);
+
+                /* Set autoexposure and auto anti-flicker. */
+                if (!ret)
+                        return cam_i2c_write(sd, AE_CTL1_REG,
+                                             ctrl->val == V4L2_EXPOSURE_MANUAL ?
+                                             0xDC : 0x0C);
+                return ret;
+ 
+Is the change with foo/auto-foo controls support in v4l2 core only about
+that the "is_new" flag don't have to be checked in s_ctrl for each control
+and ctrl->val reassigned there?
+
+
+Regards,
+Sylwester
