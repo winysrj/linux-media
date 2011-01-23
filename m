@@ -1,98 +1,80 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1882 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752630Ab1AGMrv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jan 2011 07:47:51 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Jonathan Corbet <corbet@lwn.net>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [RFC PATCH 2/5] v4l2-subdev: add (un)register internal ops
-Date: Fri,  7 Jan 2011 13:47:32 +0100
-Message-Id: <2bce44c24896652e068d2c2a679e13c6bd820b65.1294402580.git.hverkuil@xs4all.nl>
-In-Reply-To: <1294404455-22050-1-git-send-email-hverkuil@xs4all.nl>
-References: <1294404455-22050-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <cc5591b13e048b8fbc1482db6dffeb7d48f9134b.1294402580.git.hverkuil@xs4all.nl>
-References: <cc5591b13e048b8fbc1482db6dffeb7d48f9134b.1294402580.git.hverkuil@xs4all.nl>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:60180 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752248Ab1AWWM3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 Jan 2011 17:12:29 -0500
+Received: by ewy5 with SMTP id 5so1627374ewy.19
+        for <linux-media@vger.kernel.org>; Sun, 23 Jan 2011 14:12:28 -0800 (PST)
+MIME-Version: 1.0
+Date: Sun, 23 Jan 2011 17:12:27 -0500
+Message-ID: <AANLkTimmvf++nF=mzHHQJ0-aMc2=aYJnwo-hYto75Mpc@mail.gmail.com>
+Subject: [PATCH] Fix bug in au0828 VBI streaming
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: multipart/mixed; boundary=000e0cd1d2d85bd37c049a8ac76a
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Some subdevs need to call into the board code after they are registered
-and have a valid struct v4l2_device pointer. The s_config op was abused
-for this, but now that it is removed we need a cleaner way of solving this.
+--000e0cd1d2d85bd37c049a8ac76a
+Content-Type: text/plain; charset=ISO-8859-1
 
-So this patch adds a struct with internal ops that the v4l2 core can call.
+Attached is a patch for a V4L2 spec violation with regards to the
+au0828 not working in streaming mode.
 
-Currently only two ops exist: register and unregister. Subdevs can implement
-these to call the board code and pass it the v4l2_device pointer, which the
-board code can then use to get access to the struct that embeds the
-v4l2_device.
+This was just an oversight on my part when I did the original VBI
+support for this bridge, as libzvbi was silently falling back to using
+the read() interface.
 
-It is expected that in the future open and close ops will also be added.
+Devin
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/video/v4l2-device.c |    4 ++++
- include/media/v4l2-subdev.h       |   17 +++++++++++++++++
- 2 files changed, 21 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
-index 7fe6f92..0780c32 100644
---- a/drivers/media/video/v4l2-device.c
-+++ b/drivers/media/video/v4l2-device.c
-@@ -131,6 +131,8 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
- 	if (err)
- 		return err;
- 	sd->v4l2_dev = v4l2_dev;
-+	if (sd->internal_ops && sd->internal_ops->registered)
-+		sd->internal_ops->registered(sd);
- 	spin_lock(&v4l2_dev->lock);
- 	list_add_tail(&sd->list, &v4l2_dev->subdevs);
- 	spin_unlock(&v4l2_dev->lock);
-@@ -146,6 +148,8 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
- 	spin_lock(&sd->v4l2_dev->lock);
- 	list_del(&sd->list);
- 	spin_unlock(&sd->v4l2_dev->lock);
-+	if (sd->internal_ops && sd->internal_ops->unregistered)
-+		sd->internal_ops->unregistered(sd);
- 	sd->v4l2_dev = NULL;
- 	module_put(sd->owner);
- }
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 42fbe46..f559562 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -411,6 +411,21 @@ struct v4l2_subdev_ops {
- 	const struct v4l2_subdev_sensor_ops	*sensor;
- };
- 
-+/*
-+ * Internal ops. Never call this from drivers, only the v4l2 framework can call
-+ * these ops.
-+ *
-+ * registered: called when this subdev is registered. When called the v4l2_dev
-+ *	field is set to the correct v4l2_device.
-+ *
-+ * unregistered: called when this subdev is unregistered. When called the
-+ *	v4l2_dev field is still set to the correct v4l2_device.
-+ */
-+struct v4l2_subdev_internal_ops {
-+	int (*registered)(struct v4l2_subdev *sd);
-+	int (*unregistered)(struct v4l2_subdev *sd);
-+};
-+
- #define V4L2_SUBDEV_NAME_SIZE 32
- 
- /* Set this flag if this subdev is a i2c device. */
-@@ -427,6 +442,8 @@ struct v4l2_subdev {
- 	u32 flags;
- 	struct v4l2_device *v4l2_dev;
- 	const struct v4l2_subdev_ops *ops;
-+	/* Never call these internal ops from within a driver! */
-+	const struct v4l2_subdev_internal_ops *internal_ops;
- 	/* The control handler of this subdev. May be NULL. */
- 	struct v4l2_ctrl_handler *ctrl_handler;
- 	/* name must be unique */
 -- 
-1.7.0.4
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
 
+--000e0cd1d2d85bd37c049a8ac76a
+Content-Type: text/x-patch; charset=US-ASCII; name="au0828_vbi_streaming.patch"
+Content-Disposition: attachment; filename="au0828_vbi_streaming.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gjai6mpw0
+
+YXUwODI4OiBmaXggVkJJIGhhbmRsaW5nIHdoZW4gaW4gVjRMMiBzdHJlYW1pbmcgbW9kZQoKRnJv
+bTogRGV2aW4gSGVpdG11ZWxsZXIgPGRoZWl0bXVlbGxlckBrZXJuZWxsYWJzLmNvbT4KCkl0IHR1
+cm5zIHVwIFY0TDIgc3RyZWFtaW5nIG1vZGUgKGEuay5hIG1tYXApIHdhcyBicm9rZW4gZm9yIFZC
+SSBzdHJlYW1pbmcuClRoaXMgd2FzIGNhdXNpbmcgbGlienZiaSB0byBmYWxsIGJhY2sgdG8gVjRM
+MSBjYXB0dXJlIG1vZGUsIGFuZCBpcyBhIGJsYXRlbnQKdmlvbGF0aW9uIG9mIHRoZSBWNEwyIHNw
+ZWNpZmljYXRpb24uCgpNYWtlIHRoZSBpbXBsZW1lbnRhdGlvbiB3b3JrIHByb3Blcmx5IGluIHRo
+aXMgbW9kZS4KClByaW9yaXR5OiBoaWdoCgpTaWduZWQtb2ZmLWJ5OiBEZXZpbiBIZWl0bXVlbGxl
+ciA8ZGhlaXRtdWVsbGVyQGtlcm5lbGxhYnMuY29tPiAKCi0tLSBtZWRpYV9idWlsZC9saW51eC9k
+cml2ZXJzL21lZGlhL3ZpZGVvL2F1MDgyOC9hdTA4MjgtdmlkZW8uYwkyMDExLTAxLTEwIDEwOjI0
+OjQ1LjAwMDAwMDAwMCAtMDUwMAorKysgbWVkaWFfYnVpbGRfOTUwcWZpeGVzLy9saW51eC9kcml2
+ZXJzL21lZGlhL3ZpZGVvL2F1MDgyOC9hdTA4MjgtdmlkZW8uYwkyMDExLTAxLTIzIDE3OjA1OjA4
+LjQ2MTEwNzU2OSAtMDUwMApAQCAtMTc1OCw3ICsxNzU4LDEyIEBACiAJaWYgKHJjIDwgMCkKIAkJ
+cmV0dXJuIHJjOwogCi0JcmV0dXJuIHZpZGVvYnVmX3JlcWJ1ZnMoJmZoLT52Yl92aWRxLCByYik7
+CisJaWYgKGZoLT50eXBlID09IFY0TDJfQlVGX1RZUEVfVklERU9fQ0FQVFVSRSkKKwkJcmMgPSB2
+aWRlb2J1Zl9yZXFidWZzKCZmaC0+dmJfdmlkcSwgcmIpOworCWVsc2UgaWYgKGZoLT50eXBlID09
+IFY0TDJfQlVGX1RZUEVfVkJJX0NBUFRVUkUpCisJCXJjID0gdmlkZW9idWZfcmVxYnVmcygmZmgt
+PnZiX3ZiaXEsIHJiKTsKKworCXJldHVybiByYzsKIH0KIAogc3RhdGljIGludCB2aWRpb2NfcXVl
+cnlidWYoc3RydWN0IGZpbGUgKmZpbGUsIHZvaWQgKnByaXYsCkBAIC0xNzcyLDcgKzE3NzcsMTIg
+QEAKIAlpZiAocmMgPCAwKQogCQlyZXR1cm4gcmM7CiAKLQlyZXR1cm4gdmlkZW9idWZfcXVlcnli
+dWYoJmZoLT52Yl92aWRxLCBiKTsKKwlpZiAoZmgtPnR5cGUgPT0gVjRMMl9CVUZfVFlQRV9WSURF
+T19DQVBUVVJFKQorCQlyYyA9IHZpZGVvYnVmX3F1ZXJ5YnVmKCZmaC0+dmJfdmlkcSwgYik7CisJ
+ZWxzZSBpZiAoZmgtPnR5cGUgPT0gVjRMMl9CVUZfVFlQRV9WQklfQ0FQVFVSRSkKKwkJcmMgPSB2
+aWRlb2J1Zl9xdWVyeWJ1ZigmZmgtPnZiX3ZiaXEsIGIpOworCisJcmV0dXJuIHJjOwogfQogCiBz
+dGF0aWMgaW50IHZpZGlvY19xYnVmKHN0cnVjdCBmaWxlICpmaWxlLCB2b2lkICpwcml2LCBzdHJ1
+Y3QgdjRsMl9idWZmZXIgKmIpCkBAIC0xNzg1LDcgKzE3OTUsMTIgQEAKIAlpZiAocmMgPCAwKQog
+CQlyZXR1cm4gcmM7CiAKLQlyZXR1cm4gdmlkZW9idWZfcWJ1ZigmZmgtPnZiX3ZpZHEsIGIpOwor
+CWlmIChmaC0+dHlwZSA9PSBWNEwyX0JVRl9UWVBFX1ZJREVPX0NBUFRVUkUpCisJCXJjID0gdmlk
+ZW9idWZfcWJ1ZigmZmgtPnZiX3ZpZHEsIGIpOworCWVsc2UgaWYgKGZoLT50eXBlID09IFY0TDJf
+QlVGX1RZUEVfVkJJX0NBUFRVUkUpCisJCXJjID0gdmlkZW9idWZfcWJ1ZigmZmgtPnZiX3ZiaXEs
+IGIpOworCisJcmV0dXJuIHJjOwogfQogCiBzdGF0aWMgaW50IHZpZGlvY19kcWJ1ZihzdHJ1Y3Qg
+ZmlsZSAqZmlsZSwgdm9pZCAqcHJpdiwgc3RydWN0IHY0bDJfYnVmZmVyICpiKQpAQCAtMTgwNiw3
+ICsxODIxLDEyIEBACiAJCWRldi0+Z3JlZW5zY3JlZW5fZGV0ZWN0ZWQgPSAwOwogCX0KIAotCXJl
+dHVybiB2aWRlb2J1Zl9kcWJ1ZigmZmgtPnZiX3ZpZHEsIGIsIGZpbGUtPmZfZmxhZ3MgJiBPX05P
+TkJMT0NLKTsKKwlpZiAoZmgtPnR5cGUgPT0gVjRMMl9CVUZfVFlQRV9WSURFT19DQVBUVVJFKQor
+CQlyYyA9IHZpZGVvYnVmX2RxYnVmKCZmaC0+dmJfdmlkcSwgYiwgZmlsZS0+Zl9mbGFncyAmIE9f
+Tk9OQkxPQ0spOworCWVsc2UgaWYgKGZoLT50eXBlID09IFY0TDJfQlVGX1RZUEVfVkJJX0NBUFRV
+UkUpCisJCXJjID0gdmlkZW9idWZfZHFidWYoJmZoLT52Yl92YmlxLCBiLCBmaWxlLT5mX2ZsYWdz
+ICYgT19OT05CTE9DSyk7CisKKwlyZXR1cm4gcmM7CiB9CiAKIHN0YXRpYyBzdHJ1Y3QgdjRsMl9m
+aWxlX29wZXJhdGlvbnMgYXUwODI4X3Y0bF9mb3BzID0gewo=
+--000e0cd1d2d85bd37c049a8ac76a--
