@@ -1,183 +1,78 @@
 Return-path: <mchehab@pedra>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:42915 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754373Ab1AGQZr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jan 2011 11:25:47 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Fri, 07 Jan 2011 17:25:32 +0100
-From: Kamil Debski <k.debski@samsung.com>
-Subject: [RFC/PATCH v6 2/4] MFC: Add MFC 5.1 driver to plat-s5p
-In-reply-to: <1294417534-3856-1-git-send-email-k.debski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, pawel@osciak.com,
-	kyungmin.park@samsung.com, k.debski@samsung.com,
-	jaeryul.oh@samsung.com, kgene.kim@samsung.com
-Message-id: <1294417534-3856-3-git-send-email-k.debski@samsung.com>
-References: <1294417534-3856-1-git-send-email-k.debski@samsung.com>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:62305 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751261Ab1AWJRB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 Jan 2011 04:17:01 -0500
+From: Alexander Strakh <cromlehg@gmail.com>
+To: mchehab@infradead.org
+Cc: tobias.lorenz@gmx.net, jy0922.shim@samsung.com,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Alexander Strakh <cromlehg@gmail.com>,
+	Alexander Strakh <strakh@ispras.ru>
+Subject: [PATCH 1/1] Media: radio: si470x: remove double mutex lock
+Date: Sun, 23 Jan 2011 12:16:54 +0300
+Message-Id: <1295774214-3606-1-git-send-email-strakh@ispras.ru>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This patch adds platform support for Multi Format Codec 5.1.
-MFC 5.1 is capable of handling a range of video codecs and this driver
-provides V4L2 interface for video decoding.
+From: Alexander Strakh <cromlehg@gmail.com>
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+
+1. First mutex_lock on &radio->lock in line 441
+2. Second in line 462
+
+I think that mutex in line 462 is not needed. In kernel v2.6.36.3 function si470
+x_rds_on contains mutex_lock/mutex_unlock. Have no mutex_lock in line 441. In kernel v2.6.37 mutex_lock/mutex_unlock has been moved from si470x_rds_on to fops_read. But old mutex_lock (line 462) forgot to remove. 
+
+ 433static ssize_t si470x_fops_read(struct file *file, char __user *buf,
+ 434                size_t count, loff_t *ppos)
+ 435{
+....
+ 441        mutex_lock(&radio->lock);
+ 442        if ((radio->registers[SYSCONFIG1] & SYSCONFIG1_RDS) == 0)
+ 443                si470x_rds_on(radio);
+ 444
+ 445        /* block if no new data available */
+ 446        while (radio->wr_index == radio->rd_index) {
+ 447                if (file->f_flags & O_NONBLOCK) {
+ 448                        retval = -EWOULDBLOCK;
+ 449                        goto done;
+ 450                }
+ 451                if (wait_event_interruptible(radio->read_queue,
+ 452                        radio->wr_index != radio->rd_index) < 0) {
+ 453                        retval = -EINTR;
+ 454                        goto done;
+ 455                }
+ 456        }
+ 457
+ 458        /* calculate block count from byte count */
+ 459        count /= 3;
+ 460
+ 461        /* copy RDS block out of internal buffer and to user buffer */
+ 462        mutex_lock(&radio->lock);
+
+Found by Linux Device Drivers Verification Project
+
+Remove second mutex_lock from fops_read
+
+Signed-off-by: Alexander Strakh <strakh@ispras.ru>
 ---
- arch/arm/mach-s5pv210/clock.c                   |    6 +++
- arch/arm/mach-s5pv210/include/mach/map.h        |    4 ++
- arch/arm/plat-s5p/Kconfig                       |    5 ++
- arch/arm/plat-s5p/Makefile                      |    2 +-
- arch/arm/plat-s5p/dev-mfc.c                     |   49 +++++++++++++++++++++++
- arch/arm/plat-samsung/include/plat/devs.h       |    2 +
- 9 files changed, 116 insertions(+), 2 deletions(-)
- create mode 100644 arch/arm/plat-s5p/dev-mfc.c
+ drivers/media/radio/si470x/radio-si470x-common.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-s5pv210/clock.c b/arch/arm/mach-s5pv210/clock.c
-index 5014b62..f7d742d 100644
---- a/arch/arm/mach-s5pv210/clock.c
-+++ b/arch/arm/mach-s5pv210/clock.c
-@@ -364,6 +364,12 @@ static struct clk init_clocks_disable[] = {
- 		.enable		= s5pv210_clk_ip0_ctrl,
- 		.ctrlbit	= (1 << 26),
- 	}, {
-+		.name		= "mfc",
-+		.id		= -1,
-+		.parent		= &clk_pclk_psys.clk,
-+		.enable		= s5pv210_clk_ip0_ctrl,
-+		.ctrlbit	= (1 << 16),
-+	}, {
- 		.name		= "nfcon",
- 		.id		= -1,
- 		.parent		= &clk_hclk_psys.clk,
-diff --git a/arch/arm/mach-s5pv210/include/mach/map.h b/arch/arm/mach-s5pv210/include/mach/map.h
-index 0982443..d56db00 100644
---- a/arch/arm/mach-s5pv210/include/mach/map.h
-+++ b/arch/arm/mach-s5pv210/include/mach/map.h
-@@ -73,6 +73,8 @@
- #define S5PV210_PA_FIMC1	(0xFB300000)
- #define S5PV210_PA_FIMC2	(0xFB400000)
+diff --git a/drivers/media/radio/si470x/radio-si470x-common.c b/drivers/media/radio/si470x/radio-si470x-common.c
+index 60c176f..38ae6cd 100644
+--- a/drivers/media/radio/si470x/radio-si470x-common.c
++++ b/drivers/media/radio/si470x/radio-si470x-common.c
+@@ -460,7 +460,6 @@ static ssize_t si470x_fops_read(struct file *file, char __user *buf,
+ 	count /= 3;
  
-+#define S5PV210_PA_MFC		(0xF1700000)
-+
- #define S5PV210_PA_HSMMC(x)	(0xEB000000 + ((x) * 0x100000))
- 
- #define S5PV210_PA_HSOTG	(0xEC000000)
-@@ -107,6 +109,7 @@
- #define S5PV210_PA_DMC0		(0xF0000000)
- #define S5PV210_PA_DMC1		(0xF1400000)
- 
-+
- /* compatibiltiy defines. */
- #define S3C_PA_UART		S5PV210_PA_UART
- #define S3C_PA_HSMMC0		S5PV210_PA_HSMMC(0)
-@@ -123,6 +126,7 @@
- #define S5P_PA_FIMC0		S5PV210_PA_FIMC0
- #define S5P_PA_FIMC1		S5PV210_PA_FIMC1
- #define S5P_PA_FIMC2		S5PV210_PA_FIMC2
-+#define S5P_PA_MFC		S5PV210_PA_MFC
- 
- #define SAMSUNG_PA_ADC		S5PV210_PA_ADC
- #define SAMSUNG_PA_CFCON	S5PV210_PA_CFCON
-diff --git a/arch/arm/plat-s5p/Kconfig b/arch/arm/plat-s5p/Kconfig
-index 9755df9..c7a048e 100644
---- a/arch/arm/plat-s5p/Kconfig
-+++ b/arch/arm/plat-s5p/Kconfig
-@@ -5,6 +5,11 @@
- #
- # Licensed under GPLv2
- 
-+config S5P_DEV_MFC
-+	bool
-+	help
-+	  Compile in platform device definitions for MFC 
-+	  
- config PLAT_S5P
- 	bool
- 	depends on (ARCH_S5P64X0 || ARCH_S5P6442 || ARCH_S5PC100 || ARCH_S5PV210 || ARCH_S5PV310)
-diff --git a/arch/arm/plat-s5p/Makefile b/arch/arm/plat-s5p/Makefile
-index df65cb7..8c1c97c 100644
---- a/arch/arm/plat-s5p/Makefile
-+++ b/arch/arm/plat-s5p/Makefile
-@@ -23,7 +23,7 @@ obj-$(CONFIG_PM)		+= pm.o
- obj-$(CONFIG_PM)		+= irq-pm.o
- 
- # devices
--
-+obj-$(CONFIG_S5P_DEV_MFC)	+= dev-mfc.o
- obj-$(CONFIG_S5P_DEV_FIMC0)	+= dev-fimc0.o
- obj-$(CONFIG_S5P_DEV_FIMC1)	+= dev-fimc1.o
- obj-$(CONFIG_S5P_DEV_FIMC2)	+= dev-fimc2.o
-diff --git a/arch/arm/plat-s5p/dev-mfc.c b/arch/arm/plat-s5p/dev-mfc.c
-new file mode 100644
-index 0000000..0dfcb1a
---- /dev/null
-+++ b/arch/arm/plat-s5p/dev-mfc.c
-@@ -0,0 +1,49 @@
-+/* linux/arch/arm/plat-s5p/dev-mfc.c
-+ *
-+ * Copyright (c) 2010 Samsung Electronics
-+ *
-+ * Base S5P MFC 5.1 resource and device definitions
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+
-+#include <linux/kernel.h>
-+#include <linux/interrupt.h>
-+#include <linux/platform_device.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/ioport.h>
-+
-+#include <mach/map.h>
-+#include <plat/devs.h>
-+#include <plat/irqs.h>
-+
-+static struct resource s5p_mfc_resource[] = {
-+	[0] = {
-+		.start  = S5P_PA_MFC,
-+		.end    = S5P_PA_MFC + SZ_64K - 1,
-+		.flags  = IORESOURCE_MEM,
-+	},
-+	[1] = {
-+		.start  = IRQ_MFC,
-+		.end    = IRQ_MFC,
-+		.flags  = IORESOURCE_IRQ,
-+	}
-+};
-+
-+static u64 s5p_mfc_dma_mask = DMA_BIT_MASK(32);
-+
-+struct platform_device s5p_device_mfc = {
-+	.name          = "s5p-mfc",
-+	.id            = -1,
-+	.num_resources = ARRAY_SIZE(s5p_mfc_resource),
-+	.resource      = s5p_mfc_resource,
-+	.dev		= {
-+		.dma_mask		= &s5p_mfc_dma_mask,
-+		.coherent_dma_mask	= DMA_BIT_MASK(32),
-+	},
-+};
-+
-+EXPORT_SYMBOL(s5p_device_mfc);
-diff --git a/arch/arm/plat-samsung/include/plat/devs.h b/arch/arm/plat-samsung/include/plat/devs.h
-index 628b331..67594e2 100644
---- a/arch/arm/plat-samsung/include/plat/devs.h
-+++ b/arch/arm/plat-samsung/include/plat/devs.h
-@@ -124,6 +124,8 @@ extern struct platform_device s5p_device_fimc2;
- extern struct platform_device s5p_device_fimc3;
- extern struct platform_device s5pv310_device_fb0;
- 
-+extern struct platform_device s5p_device_mfc;
-+
- /* s3c2440 specific devices */
- 
- #ifdef CONFIG_CPU_S3C2440
+ 	/* copy RDS block out of internal buffer and to user buffer */
+-	mutex_lock(&radio->lock);
+ 	while (block_count < count) {
+ 		if (radio->rd_index == radio->wr_index)
+ 			break;
 -- 
-1.6.3.3
+1.7.1
 
