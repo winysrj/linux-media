@@ -1,412 +1,130 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59797 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753064Ab1A0Maj (ORCPT
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:60362 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752730Ab1AWDi3 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Jan 2011 07:30:39 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Cc: sakari.ailus@maxwell.research.nokia.com,
-	broonie@opensource.wolfsonmicro.com, clemens@ladisch.de
-Subject: [PATCH v8 02/12] media: Media device
-Date: Thu, 27 Jan 2011 13:30:27 +0100
-Message-Id: <1296131437-29954-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1296131437-29954-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1296131437-29954-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Sat, 22 Jan 2011 22:38:29 -0500
+Received: by iwn9 with SMTP id 9so2947045iwn.19
+        for <linux-media@vger.kernel.org>; Sat, 22 Jan 2011 19:38:29 -0800 (PST)
+Subject: Re: [RFC PATCH 03/12] mt9m001: convert to the control framework.
+Mime-Version: 1.0 (Apple Message framework v1082)
+Content-Type: text/plain; charset=euc-kr
+From: Kim HeungJun <riverful@gmail.com>
+In-Reply-To: <Pine.LNX.4.64.1101222135010.31015@axis700.grange>
+Date: Sun, 23 Jan 2011 12:38:21 +0900
+Cc: linux-media@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
+	Kuninori Morimoto <morimoto.kuninori@renesas.com>,
+	Alberto Panizzo <maramaopercheseimorto@gmail.com>,
+	Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>,
+	Marek Vasut <marek.vasut@gmail.com>,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+Content-Transfer-Encoding: 8BIT
+Message-Id: <EF95014F-3C7A-46E3-B298-032E0CB58D61@gmail.com>
+References: <1294787172-13638-1-git-send-email-hverkuil@xs4all.nl> <47023fea8af2dd4be5c03491427bf0edd2592cb6.1294786597.git.hverkuil@xs4all.nl> <Pine.LNX.4.64.1101222135010.31015@axis700.grange>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	VerkuilHans <hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The media_device structure abstracts functions common to all kind of
-media devices (v4l2, dvb, alsa, ...). It manages media entities and
-offers a userspace API to discover and configure the media device
-internal topology.
+Hello,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- Documentation/ABI/testing/sysfs-bus-media      |    6 ++
- Documentation/DocBook/media-entities.tmpl      |    2 +
- Documentation/DocBook/media.tmpl               |    3 +
- Documentation/DocBook/v4l/media-controller.xml |   56 +++++++++++++
- Documentation/media-framework.txt              |   67 ++++++++++++++++
- drivers/media/Makefile                         |    2 +-
- drivers/media/media-device.c                   |  100 ++++++++++++++++++++++++
- include/media/media-device.h                   |   69 ++++++++++++++++
- 8 files changed, 304 insertions(+), 1 deletions(-)
- create mode 100644 Documentation/ABI/testing/sysfs-bus-media
- create mode 100644 Documentation/DocBook/v4l/media-controller.xml
- create mode 100644 Documentation/media-framework.txt
- create mode 100644 drivers/media/media-device.c
- create mode 100644 include/media/media-device.h
+I'm reading threads about the new v4l2_ctrl framework and If you don't mind
+I gotta tell you my humble opinion about testing result the new v4l2_ctrl
+framework subdev.
+I have actually similar curcumstance, with I2C subdev M5MOLS Fujitsu device
+which is just send the patch and S5PC210 board for testing this, except not
+using soc_camera framework.
+But, it's maybe helpful to discuss about this changes to everyone.
 
-diff --git a/Documentation/ABI/testing/sysfs-bus-media b/Documentation/ABI/testing/sysfs-bus-media
-new file mode 100644
-index 0000000..7057e57
---- /dev/null
-+++ b/Documentation/ABI/testing/sysfs-bus-media
-@@ -0,0 +1,6 @@
-+What:		/sys/bus/media/devices/.../model
-+Date:		January 2011
-+Contact:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+		linux-media@vger.kernel.org
-+Description:	Contains the device model name in UTF-8. The device version is
-+		is not be appended to the model name.
-diff --git a/Documentation/DocBook/media-entities.tmpl b/Documentation/DocBook/media-entities.tmpl
-index be34dcb..61d6f11 100644
---- a/Documentation/DocBook/media-entities.tmpl
-+++ b/Documentation/DocBook/media-entities.tmpl
-@@ -321,6 +321,8 @@
- <!ENTITY sub-media-entities SYSTEM "media-entities.tmpl">
- <!ENTITY sub-media-indices SYSTEM "media-indices.tmpl">
- 
-+<!ENTITY sub-media-controller SYSTEM "v4l/media-controller.xml">
-+
- <!-- Function Reference -->
- <!ENTITY close SYSTEM "v4l/func-close.xml">
- <!ENTITY ioctl SYSTEM "v4l/func-ioctl.xml">
-diff --git a/Documentation/DocBook/media.tmpl b/Documentation/DocBook/media.tmpl
-index f11048d..73464b0 100644
---- a/Documentation/DocBook/media.tmpl
-+++ b/Documentation/DocBook/media.tmpl
-@@ -106,6 +106,9 @@ Foundation. A copy of the license is included in the chapter entitled
- &sub-remote_controllers;
- </chapter>
- </part>
-+<part id="media_common">
-+&sub-media-controller;
-+</part>
- 
- &sub-fdl-appendix;
- 
-diff --git a/Documentation/DocBook/v4l/media-controller.xml b/Documentation/DocBook/v4l/media-controller.xml
-new file mode 100644
-index 0000000..253ddb4
---- /dev/null
-+++ b/Documentation/DocBook/v4l/media-controller.xml
-@@ -0,0 +1,56 @@
-+<partinfo>
-+  <authorgroup>
-+    <author>
-+      <firstname>Laurent</firstname>
-+      <surname>Pinchart</surname>
-+      <affiliation><address><email>laurent.pinchart@ideasonboard.com</email></address></affiliation>
-+      <contrib>Initial version.</contrib>
-+    </author>
-+  </authorgroup>
-+  <copyright>
-+    <year>2010</year>
-+    <holder>Laurent Pinchart</holder>
-+  </copyright>
-+
-+  <revhistory>
-+    <!-- Put document revisions here, newest first. -->
-+    <revision>
-+      <revnumber>1.0.0</revnumber>
-+      <date>2010-11-10</date>
-+      <authorinitials>lp</authorinitials>
-+      <revremark>Initial revision</revremark>
-+    </revision>
-+  </revhistory>
-+</partinfo>
-+
-+<title>Media Controller API</title>
-+
-+<chapter id="media_controller">
-+  <title>Media Controller</title>
-+
-+  <section id="media-controller-intro">
-+    <title>Introduction</title>
-+    <para>Media devices increasingly handle multiple related functions. Many USB
-+    cameras include microphones, video capture hardware can also output video,
-+    or SoC camera interfaces also perform memory-to-memory operations similar to
-+    video codecs.</para>
-+    <para>Independent functions, even when implemented in the same hardware, can
-+    be modelled as separate devices. A USB camera with a microphone will be
-+    presented to userspace applications as V4L2 and ALSA capture devices. The
-+    devices' relationships (when using a webcam, end-users shouldn't have to
-+    manually select the associated USB microphone), while not made available
-+    directly to applications by the drivers, can usually be retrieved from
-+    sysfs.</para>
-+    <para>With more and more advanced SoC devices being introduced, the current
-+    approach will not scale. Device topologies are getting increasingly complex
-+    and can't always be represented by a tree structure. Hardware blocks are
-+    shared between different functions, creating dependencies between seemingly
-+    unrelated devices.</para>
-+    <para>Kernel abstraction APIs such as V4L2 and ALSA provide means for
-+    applications to access hardware parameters. As newer hardware expose an
-+    increasingly high number of those parameters, drivers need to guess what
-+    applications really require based on limited information, thereby
-+    implementing policies that belong to userspace.</para>
-+    <para>The media controller API aims at solving those problems.</para>
-+  </section>
-+</chapter>
-diff --git a/Documentation/media-framework.txt b/Documentation/media-framework.txt
-new file mode 100644
-index 0000000..1844c3f
---- /dev/null
-+++ b/Documentation/media-framework.txt
-@@ -0,0 +1,67 @@
-+Linux kernel media framework
-+============================
-+
-+This document describes the Linux kernel media framework, its data structures,
-+functions and their usage.
-+
-+
-+Introduction
-+------------
-+
-+The media controller API is documented in DocBook format in
-+Documentation/DocBook/v4l/media-controller.xml. This document will focus on
-+the kernel-side implementation of the media framework.
-+
-+
-+Media device
-+------------
-+
-+A media device is represented by a struct media_device instance, defined in
-+include/media/media-device.h. Allocation of the structure is handled by the
-+media device driver, usually by embedding the media_device instance in a
-+larger driver-specific structure.
-+
-+Drivers register media device instances by calling
-+
-+	media_device_register(struct media_device *mdev);
-+
-+The caller is responsible for initializing the media_device structure before
-+registration. The following fields must be set:
-+
-+ - dev must point to the parent device (usually a pci_dev, usb_interface or
-+   platform_device instance).
-+
-+ - model must be filled with the device model name as a NUL-terminated UTF-8
-+   string. The device/model revision must not be stored in this field.
-+
-+The following fields are optional:
-+
-+ - serial is a unique serial number stored as a NUL-terminated ASCII string.
-+   The field is big enough to store a GUID in text form. If the hardware
-+   doesn't provide a unique serial number this field must be left empty.
-+
-+ - bus_info represents the location of the device in the system as a
-+   NUL-terminated ASCII string. For PCI/PCIe devices bus_info must be set to
-+   "PCI:" (or "PCIe:") followed by the value of pci_name(). For USB devices,
-+   the usb_make_path() function must be used. This field is used by
-+   applications to distinguish between otherwise identical devices that don't
-+   provide a serial number.
-+
-+ - hw_revision is the hardware device revision in a driver-specific format.
-+   When possible the revision should be formatted with the KERNEL_VERSION
-+   macro.
-+
-+ - driver_version is formatted with the KERNEL_VERSION macro. The version
-+   minor must be incremented when new features are added to the userspace API
-+   without breaking binary compatibility. The version major must be
-+   incremented when binary compatibility is broken.
-+
-+Upon successful registration a character device named media[0-9]+ is created.
-+The device major and minor numbers are dynamic. The model name is exported as
-+a sysfs attribute.
-+
-+Drivers unregister media device instances by calling
-+
-+	media_device_unregister(struct media_device *mdev);
-+
-+Unregistering a media device that hasn't been registered is *NOT* safe.
-diff --git a/drivers/media/Makefile b/drivers/media/Makefile
-index 3a08991..019d3e0 100644
---- a/drivers/media/Makefile
-+++ b/drivers/media/Makefile
-@@ -2,7 +2,7 @@
- # Makefile for the kernel multimedia device drivers.
- #
- 
--media-objs	:= media-devnode.o
-+media-objs	:= media-device.o media-devnode.o
- 
- ifeq ($(CONFIG_MEDIA_CONTROLLER),y)
-   obj-$(CONFIG_MEDIA_SUPPORT) += media.o
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-new file mode 100644
-index 0000000..57a9c6b
---- /dev/null
-+++ b/drivers/media/media-device.c
-@@ -0,0 +1,100 @@
-+/*
-+ * Media device
-+ *
-+ * Copyright (C) 2010 Nokia Corporation
-+ *
-+ * Contacts: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+ *	     Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ */
-+
-+#include <linux/types.h>
-+#include <linux/ioctl.h>
-+
-+#include <media/media-device.h>
-+#include <media/media-devnode.h>
-+
-+static const struct media_file_operations media_device_fops = {
-+	.owner = THIS_MODULE,
-+};
-+
-+/* -----------------------------------------------------------------------------
-+ * sysfs
-+ */
-+
-+static ssize_t show_model(struct device *cd,
-+			  struct device_attribute *attr, char *buf)
-+{
-+	struct media_device *mdev = to_media_device(to_media_devnode(cd));
-+
-+	return sprintf(buf, "%.*s\n", (int)sizeof(mdev->model), mdev->model);
-+}
-+
-+static DEVICE_ATTR(model, S_IRUGO, show_model, NULL);
-+
-+/* -----------------------------------------------------------------------------
-+ * Registration/unregistration
-+ */
-+
-+static void media_device_release(struct media_devnode *mdev)
-+{
-+}
-+
-+/**
-+ * media_device_register - register a media device
-+ * @mdev:	The media device
-+ *
-+ * The caller is responsible for initializing the media device before
-+ * registration. The following fields must be set:
-+ *
-+ * - dev must point to the parent device
-+ * - model must be filled with the device model name
-+ */
-+int __must_check media_device_register(struct media_device *mdev)
-+{
-+	int ret;
-+
-+	if (WARN_ON(mdev->dev == NULL || mdev->model[0] == 0))
-+		return -EINVAL;
-+
-+	/* Register the device node. */
-+	mdev->devnode.fops = &media_device_fops;
-+	mdev->devnode.parent = mdev->dev;
-+	mdev->devnode.release = media_device_release;
-+	ret = media_devnode_register(&mdev->devnode);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = device_create_file(&mdev->devnode.dev, &dev_attr_model);
-+	if (ret < 0) {
-+		media_devnode_unregister(&mdev->devnode);
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(media_device_register);
-+
-+/**
-+ * media_device_unregister - unregister a media device
-+ * @mdev:	The media device
-+ *
-+ */
-+void media_device_unregister(struct media_device *mdev)
-+{
-+	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
-+	media_devnode_unregister(&mdev->devnode);
-+}
-+EXPORT_SYMBOL_GPL(media_device_unregister);
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-new file mode 100644
-index 0000000..e11f01a
---- /dev/null
-+++ b/include/media/media-device.h
-@@ -0,0 +1,69 @@
-+/*
-+ * Media device
-+ *
-+ * Copyright (C) 2010 Nokia Corporation
-+ *
-+ * Contacts: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+ *	     Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ */
-+
-+#ifndef _MEDIA_DEVICE_H
-+#define _MEDIA_DEVICE_H
-+
-+#include <linux/device.h>
-+#include <linux/list.h>
-+
-+#include <media/media-devnode.h>
-+
-+/**
-+ * struct media_device - Media device
-+ * @dev:	Parent device
-+ * @devnode:	Media device node
-+ * @model:	Device model name
-+ * @serial:	Device serial number (optional)
-+ * @bus_info:	Unique and stable device location identifier
-+ * @hw_revision: Hardware device revision
-+ * @driver_version: Device driver version
-+ *
-+ * This structure represents an abstract high-level media device. It allows easy
-+ * access to entities and provides basic media device-level support. The
-+ * structure can be allocated directly or embedded in a larger structure.
-+ *
-+ * The parent @dev is a physical device. It must be set before registering the
-+ * media device.
-+ *
-+ * @model is a descriptive model name exported through sysfs. It doesn't have to
-+ * be unique.
-+ */
-+struct media_device {
-+	/* dev->driver_data points to this struct. */
-+	struct device *dev;
-+	struct media_devnode devnode;
-+
-+	char model[32];
-+	char serial[40];
-+	char bus_info[32];
-+	u32 hw_revision;
-+	u32 driver_version;
-+};
-+
-+/* media_devnode to media_device */
-+#define to_media_device(node) container_of(node, struct media_device, devnode)
-+
-+int __must_check media_device_register(struct media_device *mdev);
-+void media_device_unregister(struct media_device *mdev);
-+
-+#endif
--- 
-1.7.3.4
+2011. 1. 23., 오전 6:21, Guennadi Liakhovetski 작성:
 
+> On Wed, 12 Jan 2011, Hans Verkuil wrote:
+> 
+>> Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+
+[snip]
+
+>> -	case V4L2_CID_EXPOSURE:
+>> -		/* mt9m001 has maximum == default */
+>> -		if (ctrl->value > qctrl->maximum || ctrl->value < qctrl->minimum)
+>> -			return -EINVAL;
+>> -		else {
+>> -			unsigned long range = qctrl->maximum - qctrl->minimum;
+>> -			unsigned long shutter = ((ctrl->value - qctrl->minimum) * 1048 +
+>> +	case V4L2_CID_EXPOSURE_AUTO:
+>> +		/* Force manual exposure if only the exposure was changed */
+>> +		if (!ctrl->has_new)
+>> +			ctrl->val = V4L2_EXPOSURE_MANUAL;
+>> +		if (ctrl->val == V4L2_EXPOSURE_MANUAL) {
+>> +			unsigned long range = exp->maximum - exp->minimum;
+>> +			unsigned long shutter = ((exp->val - exp->minimum) * 1048 +
+>> 						 range / 2) / range + 1;
+>> 
+>> 			dev_dbg(&client->dev,
+>> 				"Setting shutter width from %d to %lu\n",
+>> -				reg_read(client, MT9M001_SHUTTER_WIDTH),
+>> -				shutter);
+>> +				reg_read(client, MT9M001_SHUTTER_WIDTH), shutter);
+>> 			if (reg_write(client, MT9M001_SHUTTER_WIDTH, shutter) < 0)
+>> 				return -EIO;
+>> -			mt9m001->exposure = ctrl->value;
+>> -			mt9m001->autoexposure = 0;
+>> -		}
+>> -		break;
+>> -	case V4L2_CID_EXPOSURE_AUTO:
+>> -		if (ctrl->value) {
+>> +		} else {
+>> 			const u16 vblank = 25;
+>> 			unsigned int total_h = mt9m001->rect.height +
+>> 				mt9m001->y_skip_top + vblank;
+>> -			if (reg_write(client, MT9M001_SHUTTER_WIDTH,
+>> -				      total_h) < 0)
+>> +
+>> +			if (reg_write(client, MT9M001_SHUTTER_WIDTH, total_h) < 0)
+>> 				return -EIO;
+>> -			qctrl = soc_camera_find_qctrl(icd->ops, V4L2_CID_EXPOSURE);
+>> -			mt9m001->exposure = (524 + (total_h - 1) *
+>> -				 (qctrl->maximum - qctrl->minimum)) /
+>> -				1048 + qctrl->minimum;
+>> -			mt9m001->autoexposure = 1;
+>> -		} else
+>> -			mt9m001->autoexposure = 0;
+>> -		break;
+>> +			exp->val = (524 + (total_h - 1) *
+>> +					(exp->maximum - exp->minimum)) / 1048 +
+>> +						exp->minimum;
+>> +		}
+>> +		return 0;
+>> 	}
+>> -	return 0;
+>> +	return -EINVAL;
+> 
+> It seems to me, that you've dropped V4L2_CID_EXPOSURE here, was it 
+> intentional? I won't verify this in detail now, because, if it wasn't 
+> intentional and you fix it in v2, I'll have to re-check it anyway. Or is 
+> it supposed to be handled by that V4L2_EXPOSURE_MANUAL? So, if the user 
+> issues a V4L2_CID_EXPOSURE, are you getting V4L2_CID_EXPOSURE_AUTO with 
+> val == V4L2_EXPOSURE_MANUAL instead? Weird...
+
+I also wonder first at this part for a long time like below:
+
+1. when calling V4L2_CID_EXPOSURE_AUTO with V4L2_EXPOSURE_AUTO, it's ok.
+2. when calling V4L2_CID_EXPOSURE_AUTO with V4L2_EXPOSURE_MANUAL, it's
+also ok.
+3. when calling V4L2_CID_EXPOSURE? where the device handle this CID?
+
+but, after testing with application step by step, I finally know below:
+when calling V4L2_CID_EXPOSURE, changing internal(v4l2_ctrl framework) variable,
+exactly struct v4l2_ctrl exposure, which is register for probing time by
+V4L2_CID_EXPOSURE, and clustered with struct v4l2_ctrl autoexposure. So, when
+the device no needs to handle this values, but it automatically calls control clustered with
+itself, in this case the V4L2_CID_EXPOSURE calls(just words)V4L2_CID_EXPOSURE_AUTO.
+
+So, the my POV is that foo clustered with auto_foo calls auto_foo with foo's characteristics.  
+
+But, Hans probably would do more clear answer.
+
+Regards,
+Heungjun Kim
+
+  
