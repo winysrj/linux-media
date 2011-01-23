@@ -1,46 +1,47 @@
 Return-path: <mchehab@pedra>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:35482 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752176Ab1AJKpd (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:38251 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751050Ab1AWQDE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Jan 2011 05:45:33 -0500
-Received: by gxk9 with SMTP id 9so4871606gxk.19
-        for <linux-media@vger.kernel.org>; Mon, 10 Jan 2011 02:45:33 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <20110109095540.21fcd9e4@bike.lwn.net>
-References: <1294484508-14820-1-git-send-email-hverkuil@xs4all.nl>
-	<20110109095540.21fcd9e4@bike.lwn.net>
-Date: Mon, 10 Jan 2011 10:45:32 +0000
-Message-ID: <AANLkTi=9jZPTin=0TCrfPeiO9koE69pQLkqFjHOhLMZA@mail.gmail.com>
-Subject: Re: [RFCv2 PATCH 0/5] Use control framework in cafe_ccic and s_config removal
-From: Daniel Drake <dsd@laptop.org>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	Sun, 23 Jan 2011 11:03:04 -0500
+Received: by wwa36 with SMTP id 36so3516891wwa.1
+        for <linux-media@vger.kernel.org>; Sun, 23 Jan 2011 08:03:02 -0800 (PST)
+Subject: Re: Hauppauge Nova-T-500; losing one tuner. Regression?
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: Alex Butcher <linuxtv@assursys.co.uk>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <alpine.LFD.2.00.1101231119320.26778@sbhezbfg.of5.nffheflf.cev>
+References: <alpine.LFD.2.00.1101231119320.26778@sbhezbfg.of5.nffheflf.cev>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sun, 23 Jan 2011 16:02:55 +0000
+Message-ID: <1295798575.9525.21.camel@tvboxspy>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+On Sun, 2011-01-23 at 11:58 +0000, Alex Butcher wrote:
+> 
+> 11) I briefly experimented with setting buggy_sfn_workaround=1 when
+> loading
+> the dib3000mc and dib7000p modules with no apparent improvement.  As
+> far as
+> I can see, though, UK DVB-T broadcasting isn't a single frequency
+> network,
+> so a) this is not relevant here and b) it will impair performace.  As
+> a
+> result, I'm NOT using the buggy_sfn_workaround.
 
->> Another reason why s_config is a bad idea.
+The dib7000p does have issues with the UK DVB-T network where old 2K
+mode DVB-T is mixed with high power 8K transmissions in areas that have
+had a half switch over.
 
-Thanks a lot for working on this. I had a quick look and don't have
-any objections.
+Only the 2K mode appears to lock reliably. I think it something to do
+with the AGC settings.
 
->> This has been extensively tested on my humble OLPC laptop (and it took me 4-5
->> hours just to get the damn thing up and running with these drivers).
+Unfortunately, attenuation of the signal results in reliable lock of the
+8K signal with the 2K channels being lost.
 
-In future, come into irc.oftc.net #olpc-devel and talk to me (dsd) or
-cjb (Chris Ball), we'll get you up and running in less time!
+Until the 2K signals disappear in 2012 with the full retune this will
+remain a problem.
 
-I'll test the via-camera patch unless Jon beats me too it, but won't
-be immediately. If you are ever interested in doing more in-depth work
-on that driver, please drop me a mail and we will send you a XO-1.5.
-
-Also, perhaps you are interested in working on this bug, which is
-probably reproducible with cafe_ccic too:
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg23841.html
-
-Thanks!
-Daniel
