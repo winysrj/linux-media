@@ -1,155 +1,157 @@
 Return-path: <mchehab@pedra>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:27844 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751446Ab1ANUgQ (ORCPT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:43959 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752248Ab1AWWXB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Jan 2011 15:36:16 -0500
-Date: Fri, 14 Jan 2011 21:35:24 +0100
-From: Jean Delvare <khali@linux-fr.org>
-To: Jarod Wilson <jarod@redhat.com>
-Cc: linux-media@vger.kernel.org, Andy Walls <awalls@md.metrocast.net>,
-	Janne Grunau <j@jannau.net>
-Subject: Re: [PATCH] hdpvr: reduce latency of i2c read/write w/recycled
- buffer
-Message-ID: <20110114213524.16a74206@endymion.delvare>
-In-Reply-To: <20110114200109.GB9849@redhat.com>
-References: <20110114200109.GB9849@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Sun, 23 Jan 2011 17:23:01 -0500
+Received: by eye27 with SMTP id 27so1625931eye.19
+        for <linux-media@vger.kernel.org>; Sun, 23 Jan 2011 14:23:00 -0800 (PST)
+MIME-Version: 1.0
+Date: Sun, 23 Jan 2011 17:22:59 -0500
+Message-ID: <AANLkTim3=Xuyantq2zKJ0W8C+-objnBQNbYNaqb9pgc-@mail.gmail.com>
+Subject: [RFC PATCH] tuner-core: fix broken G_TUNER call when tuner is in standby
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: multipart/mixed; boundary=000e0cd1d2d801c44f049a8aed42
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Jarod,
+--000e0cd1d2d801c44f049a8aed42
+Content-Type: text/plain; charset=ISO-8859-1
 
-On Fri, 14 Jan 2011 15:01:09 -0500, Jarod Wilson wrote:
-> The current hdpvr code kmalloc's a new buffer for every i2c read and
-> write. Rather than do that, lets allocate a buffer in the driver's
-> device struct and just use that every time.
-> 
-> The size I've chosen for the buffer is the maximum size I could
-> ascertain might be used by either ir-kbd-i2c or lirc_zilog, plus a bit
-> of padding (lirc_zilog may use up to 100 bytes on tx, rounded that up
-> to 128).
+Hello all,
 
-Definitely a good move, as discussed on IRC earlier this week.
+The following patch addresses a V4L2 specification violation where the
+G_TUNER call would return complete garbage in the event that the tuner
+is asleep.  Per Hans' suggestion, I have split out the tuner
+operational mode from whether it is in standby, and fixed the G_TUNER
+call to return as much as possible when the tuner is in standby.
 
-> Note that this might also remedy user reports of very sluggish behavior
-> of IR receive with hdpvr hardware.
+Without this change, products that have tuners which support standby
+mode cannot be tuned from within VLC.
 
-Maybe. But the fact that the Zilog is unresponsive during processing of
-sent data certainly contributes to this feeling too.
+I recognize that changes to tuner-core tend to be pretty hairy, so I
+welcome suggestions/feedback on this patch.
 
-> 
-> Reported-by: Jean Delvare <khali@linux-fr.org>
-> Signed-off-by: Jarod Wilson <jarod@redhat.com>
-> ---
-> 
-> Nb: This patch was done atop my prior patch 'hdpvr: enable IR part',
-> and serves no purpose if that patch isn't applied first.
-> 
->  drivers/media/video/hdpvr/hdpvr-i2c.c |   24 +++++++-----------------
->  drivers/media/video/hdpvr/hdpvr.h     |    3 +++
->  2 files changed, 10 insertions(+), 17 deletions(-)
-> 
-> diff --git a/drivers/media/video/hdpvr/hdpvr-i2c.c b/drivers/media/video/hdpvr/hdpvr-i2c.c
-> index c0696c3..7f1a313 100644
-> --- a/drivers/media/video/hdpvr/hdpvr-i2c.c
-> +++ b/drivers/media/video/hdpvr/hdpvr-i2c.c
-> @@ -57,23 +57,18 @@ static int hdpvr_i2c_read(struct hdpvr_device *dev, int bus,
->  			  unsigned char addr, char *data, int len)
->  {
->  	int ret;
-> -	char *buf = kmalloc(len, GFP_KERNEL);
-> -	if (!buf)
-> -		return -ENOMEM;
->  
->  	ret = usb_control_msg(dev->udev,
->  			      usb_rcvctrlpipe(dev->udev, 0),
->  			      REQTYPE_I2C_READ, CTRL_READ_REQUEST,
-> -			      (bus << 8) | addr, 0, buf, len, 1000);
-> +			      (bus << 8) | addr, 0, &dev->i2c_buf, len, 1000);
+Regards,
 
-Shouldn't you first ensure that len <= sizeof(dev->i2c_buf)? It should
-hopefully always be the case, but... if it isn't, you'll corrupt your
-data structure and possibly more.
-
->  
->  	if (ret == len) {
-> -		memcpy(data, buf, len);
-> +		memcpy(data, &dev->i2c_buf, len);
->  		ret = 0;
->  	} else if (ret >= 0)
->  		ret = -EIO;
->  
-> -	kfree(buf);
-> -
->  	return ret;
->  }
->  
-> @@ -81,31 +76,26 @@ static int hdpvr_i2c_write(struct hdpvr_device *dev, int bus,
->  			   unsigned char addr, char *data, int len)
->  {
->  	int ret;
-> -	char *buf = kmalloc(len, GFP_KERNEL);
-> -	if (!buf)
-> -		return -ENOMEM;
->  
-> -	memcpy(buf, data, len);
-> +	memcpy(&dev->i2c_buf, data, len);
-
-Same here.
-
->  	ret = usb_control_msg(dev->udev,
->  			      usb_sndctrlpipe(dev->udev, 0),
->  			      REQTYPE_I2C_WRITE, CTRL_WRITE_REQUEST,
-> -			      (bus << 8) | addr, 0, buf, len, 1000);
-> +			      (bus << 8) | addr, 0, &dev->i2c_buf, len, 1000);
->  
->  	if (ret < 0)
-> -		goto error;
-> +		return ret;
->  
->  	ret = usb_control_msg(dev->udev,
->  			      usb_rcvctrlpipe(dev->udev, 0),
->  			      REQTYPE_I2C_WRITE_STATT, CTRL_READ_REQUEST,
-> -			      0, 0, buf, 2, 1000);
-> +			      0, 0, &dev->i2c_buf, 2, 1000);
->  
-> -	if ((ret == 2) && (buf[1] == (len - 1)))
-> +	if ((ret == 2) && (dev->i2c_buf[1] == (len - 1)))
->  		ret = 0;
->  	else if (ret >= 0)
->  		ret = -EIO;
->  
-> -error:
-> -	kfree(buf);
->  	return ret;
->  }
->  
-> diff --git a/drivers/media/video/hdpvr/hdpvr.h b/drivers/media/video/hdpvr/hdpvr.h
-> index 29f7426..ee74e3b 100644
-> --- a/drivers/media/video/hdpvr/hdpvr.h
-> +++ b/drivers/media/video/hdpvr/hdpvr.h
-> @@ -25,6 +25,7 @@
->  	KERNEL_VERSION(HDPVR_MAJOR_VERSION, HDPVR_MINOR_VERSION, HDPVR_RELEASE)
->  
->  #define HDPVR_MAX 8
-> +#define HDPVR_I2C_MAX_SIZE 128
->  
->  /* Define these values to match your devices */
->  #define HD_PVR_VENDOR_ID	0x2040
-> @@ -109,6 +110,8 @@ struct hdpvr_device {
->  	struct i2c_adapter	i2c_adapter;
->  	/* I2C lock */
->  	struct mutex		i2c_mutex;
-> +	/* I2C message buffer space */
-> +	char			i2c_buf[HDPVR_I2C_MAX_SIZE];
->  
->  	/* For passing data to ir-kbd-i2c */
->  	struct IR_i2c_init_data	ir_i2c_init_data;
-
-Other than that, it looks pretty good.
+Devin
 
 -- 
-Jean Delvare
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
+
+--000e0cd1d2d801c44f049a8aed42
+Content-Type: text/x-patch; charset=US-ASCII; name="tuner_standby_mode.patch"
+Content-Disposition: attachment; filename="tuner_standby_mode.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gjaijqjj0
+
+dHVuZXItY29yZTogZml4IGJyb2tlbiBHX1RVTkVSIGNhbGwgd2hlbiB0dW5lciBpcyBpbiBzdGFu
+ZGJ5CgpGcm9tOiBEZXZpbiBIZWl0bXVlbGxlciA8ZGhlaXRtdWVsbGVyQGtlcm5lbGxhYnMuY29t
+PgoKVGhlIGxvZ2ljIGZvciBkZXRlcm1pbmluZyB0aGUgc3VwcG9ydGVkIGRldmljZSBtb2RlcyB3
+YXMgY29tYmluZWQgd2l0aCB0aGUKbG9naWMgd2hpY2ggZGljdGF0ZXMgd2hldGhlciB0aGUgdHVu
+ZXIgd2FzIGFzbGVlcC4gIFRoaXMgcmVzdWx0ZWQgaW4gY2FsbHMKc3VjaCBhcyBHX1RVTkVSIHJl
+dHVybmluZyBjb21wbGV0ZSBnYXJiYWdlIGluIHRoZSBldmVudCB0aGF0IHRoZSB0dW5lciB3YXMK
+aW4gc3RhbmRieSBtb2RlIChhIHZpb2xhdGlvbiBvZiB0aGUgVjRMMiBzcGVjaWZpY2F0aW9uLCBh
+bmQgY2F1c2luZyBWTEMgdG8KYmUgYnJva2VuIGZvciBzdWNoIHR1bmVycykuCgpUaGlzIHBhdGNo
+IHJld29ya3MgdGhlIGxvZ2ljIHNvIHRoZSBjdXJyZW50IHR1bmVyIG1vZGUgaXMgbWFpbnRhaW5l
+ZCBzZXBhcmF0ZWx5CmZyb20gd2hldGhlciBpdCBpcyBpbiBzdGFuZGJ5IChwZXIgSGFucyBWZXJr
+dWlsJ3Mgc3VnZ2VzdGlvbikuICBJdCBhbHNvCnJlc3RydWN0dXJlcyB0aGUgR19UVU5FUiBjYWxs
+IHN1Y2ggdGhhdCBhbGwgdGhlIHN0YXRpY2x5IGRlZmluZWQgaW5mb3JtYXRpb24KcmVsYXRlZCB0
+byB0aGUgdHVuZXIgaXMgcmV0dXJuZWQgcmVnYXJkbGVzcyBvZiB3aGV0aGVyIGl0IGlzIGluIHN0
+YW5kYnkgKGUuZy4KdGhlIHN1cHBvcnRlZCBmcmVxdWVuY3kgcmFuZ2UsIGV0YykuCgpQcmlvcml0
+eTogbm9ybWFsCgpTaWduZWQtb2ZmLWJ5OiBEZXZpbiBIZWl0bXVlbGxlciA8ZGhlaXRtdWVsbGVy
+QGtlcm5lbGxhYnMuY29tPiAKQ2M6IEhhbnMgVmVya3VpbCA8aHZlcmt1aWxAeHM0YWxsLm5sPgoK
+LS0tIG1lZGlhX2J1aWxkL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vdHVuZXItY29yZS5jCTIw
+MTAtMTAtMjQgMTk6MzQ6NTkuMDAwMDAwMDAwIC0wNDAwCisrKyBtZWRpYV9idWlsZF85NTBxZml4
+ZXMvL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vdHVuZXItY29yZS5jCTIwMTEtMDEtMjMgMTc6
+MTg6MjIuMzgxMTA3NTY4IC0wNTAwCkBAIC05MCw2ICs5MCw3IEBACiAKIAl1bnNpZ25lZCBpbnQg
+ICAgICAgIG1vZGU7CiAJdW5zaWduZWQgaW50ICAgICAgICBtb2RlX21hc2s7IC8qIENvbWJpbmF0
+aW9uIG9mIGFsbG93YWJsZSBtb2RlcyAqLworCXVuc2lnbmVkIGludCAgICAgICAgaW5fc3RhbmRi
+eToxOwogCiAJdW5zaWduZWQgaW50ICAgICAgICB0eXBlOyAvKiBjaGlwIHR5cGUgaWQgKi8KIAl1
+bnNpZ25lZCBpbnQgICAgICAgIGNvbmZpZzsKQEAgLTcwMCw2ICs3MDEsNyBAQAogc3RhdGljIGlu
+bGluZSBpbnQgc2V0X21vZGUoc3RydWN0IGkyY19jbGllbnQgKmNsaWVudCwgc3RydWN0IHR1bmVy
+ICp0LCBpbnQgbW9kZSwgY2hhciAqY21kKQogewogCXN0cnVjdCBhbmFsb2dfZGVtb2Rfb3BzICph
+bmFsb2dfb3BzID0gJnQtPmZlLm9wcy5hbmFsb2dfb3BzOworCXVuc2lnbmVkIGludCBvcmlnX21v
+ZGUgPSB0LT5tb2RlOwogCiAJaWYgKG1vZGUgPT0gdC0+bW9kZSkKIAkJcmV0dXJuIDA7CkBAIC03
+MDksNyArNzExLDggQEAKIAlpZiAoY2hlY2tfbW9kZSh0LCBjbWQpID09IC1FSU5WQUwpIHsKIAkJ
+dHVuZXJfZGJnKCJUdW5lciBkb2Vzbid0IHN1cHBvcnQgdGhpcyBtb2RlLiAiCiAJCQkgICJQdXR0
+aW5nIHR1bmVyIHRvIHNsZWVwXG4iKTsKLQkJdC0+bW9kZSA9IFRfU1RBTkRCWTsKKwkJdC0+bW9k
+ZSA9IG9yaWdfbW9kZTsKKwkJdC0+aW5fc3RhbmRieSA9IDE7CiAJCWlmIChhbmFsb2dfb3BzLT5z
+dGFuZGJ5KQogCQkJYW5hbG9nX29wcy0+c3RhbmRieSgmdC0+ZmUpOwogCQlyZXR1cm4gLUVJTlZB
+TDsKQEAgLTc2OSw3ICs3NzIsNyBAQAogCiAJaWYgKGNoZWNrX21vZGUodCwgInNfcG93ZXIiKSA9
+PSAtRUlOVkFMKQogCQlyZXR1cm4gMDsKLQl0LT5tb2RlID0gVF9TVEFOREJZOworCXQtPmluX3N0
+YW5kYnkgPSAxOwogCWlmIChhbmFsb2dfb3BzLT5zdGFuZGJ5KQogCQlhbmFsb2dfb3BzLT5zdGFu
+ZGJ5KCZ0LT5mZSk7CiAJcmV0dXJuIDA7CkBAIC04NTQsNDcgKzg1Nyw1NCBAQAogCXN0cnVjdCBh
+bmFsb2dfZGVtb2Rfb3BzICphbmFsb2dfb3BzID0gJnQtPmZlLm9wcy5hbmFsb2dfb3BzOwogCXN0
+cnVjdCBkdmJfdHVuZXJfb3BzICpmZV90dW5lcl9vcHMgPSAmdC0+ZmUub3BzLnR1bmVyX29wczsK
+IAotCWlmIChjaGVja19tb2RlKHQsICJnX3R1bmVyIikgPT0gLUVJTlZBTCkKLQkJcmV0dXJuIDA7
+CiAJc3dpdGNoX3Y0bDIoKTsKIAorCS8qIEZpcnN0IHBvcHVsYXRlIGV2ZXJ5dGhpbmcgdGhhdCBk
+b2Vzbid0IHJlcXVpcmUgdGFsa2luZyB0byB0aGUgCisJICAgYWN0dWFsIGhhcmR3YXJlICovCiAJ
+dnQtPnR5cGUgPSB0LT5tb2RlOwotCWlmIChhbmFsb2dfb3BzLT5nZXRfYWZjKQotCQl2dC0+YWZj
+ID0gYW5hbG9nX29wcy0+Z2V0X2FmYygmdC0+ZmUpOwogCWlmICh0LT5tb2RlID09IFY0TDJfVFVO
+RVJfQU5BTE9HX1RWKQorCXsKIAkJdnQtPmNhcGFiaWxpdHkgfD0gVjRMMl9UVU5FUl9DQVBfTk9S
+TTsKLQlpZiAodC0+bW9kZSAhPSBWNEwyX1RVTkVSX1JBRElPKSB7CiAJCXZ0LT5yYW5nZWxvdyA9
+IHR2X3JhbmdlWzBdICogMTY7CiAJCXZ0LT5yYW5nZWhpZ2ggPSB0dl9yYW5nZVsxXSAqIDE2Owot
+CQlyZXR1cm4gMDsKKwl9IGVsc2UgeworCQkvKiByYWRpbyBtb2RlICovCisJCXZ0LT5yeHN1YmNo
+YW5zID0gVjRMMl9UVU5FUl9TVUJfTU9OTyB8IFY0TDJfVFVORVJfU1VCX1NURVJFTzsKKwkJdnQt
+PmNhcGFiaWxpdHkgfD0gVjRMMl9UVU5FUl9DQVBfTE9XIHwgVjRMMl9UVU5FUl9DQVBfU1RFUkVP
+OworCQl2dC0+YXVkbW9kZSA9IHQtPmF1ZG1vZGU7CisJCXZ0LT5yYW5nZWxvdyA9IHJhZGlvX3Jh
+bmdlWzBdICogMTYwMDA7CisJCXZ0LT5yYW5nZWhpZ2ggPSByYWRpb19yYW5nZVsxXSAqIDE2MDAw
+OwogCX0KIAotCS8qIHJhZGlvIG1vZGUgKi8KLQl2dC0+cnhzdWJjaGFucyA9Ci0JCVY0TDJfVFVO
+RVJfU1VCX01PTk8gfCBWNEwyX1RVTkVSX1NVQl9TVEVSRU87Ci0JaWYgKGZlX3R1bmVyX29wcy0+
+Z2V0X3N0YXR1cykgewotCQl1MzIgdHVuZXJfc3RhdHVzOworCS8qIElmIHRoZSBoYXJkd2FyZSBp
+cyBpbiBzbGVlcCBtb2RlLCBiYWlsIG91dCBhdCB0aGlzIHBvaW50ICovCisJaWYgKHQtPmluX3N0
+YW5kYnkpCisJCXJldHVybiAwOwogCi0JCWZlX3R1bmVyX29wcy0+Z2V0X3N0YXR1cygmdC0+ZmUs
+ICZ0dW5lcl9zdGF0dXMpOwotCQl2dC0+cnhzdWJjaGFucyA9Ci0JCQkodHVuZXJfc3RhdHVzICYg
+VFVORVJfU1RBVFVTX1NURVJFTykgPwotCQkJVjRMMl9UVU5FUl9TVUJfU1RFUkVPIDoKLQkJCVY0
+TDJfVFVORVJfU1VCX01PTk87CisJLyogTm93IHBvcHVsYXRlIHRoZSBmaWVsZHMgdGhhdCByZXF1
+aXJlcyB0aGUgaGFyZHdhcmUgdG8gYmUgYWxpdmUgKi8KKwlpZiAodC0+bW9kZSA9PSBWNEwyX1RV
+TkVSX0FOQUxPR19UVikgeworCQlpZiAoYW5hbG9nX29wcy0+Z2V0X2FmYykKKwkJCXZ0LT5hZmMg
+PSBhbmFsb2dfb3BzLT5nZXRfYWZjKCZ0LT5mZSk7CiAJfSBlbHNlIHsKLQkJaWYgKGFuYWxvZ19v
+cHMtPmlzX3N0ZXJlbykgeworCQlpZiAoZmVfdHVuZXJfb3BzLT5nZXRfc3RhdHVzKSB7CisJCQl1
+MzIgdHVuZXJfc3RhdHVzOworCisJCQlmZV90dW5lcl9vcHMtPmdldF9zdGF0dXMoJnQtPmZlLCAm
+dHVuZXJfc3RhdHVzKTsKIAkJCXZ0LT5yeHN1YmNoYW5zID0KLQkJCQlhbmFsb2dfb3BzLT5pc19z
+dGVyZW8oJnQtPmZlKSA/CisJCQkJKHR1bmVyX3N0YXR1cyAmIFRVTkVSX1NUQVRVU19TVEVSRU8p
+ID8KIAkJCQlWNEwyX1RVTkVSX1NVQl9TVEVSRU8gOgogCQkJCVY0TDJfVFVORVJfU1VCX01PTk87
+CisJCX0gZWxzZSB7CisJCQlpZiAoYW5hbG9nX29wcy0+aXNfc3RlcmVvKSB7CisJCQkJdnQtPnJ4
+c3ViY2hhbnMgPQorCQkJCQlhbmFsb2dfb3BzLT5pc19zdGVyZW8oJnQtPmZlKSA/CisJCQkJCVY0
+TDJfVFVORVJfU1VCX1NURVJFTyA6CisJCQkJCVY0TDJfVFVORVJfU1VCX01PTk87CisJCQl9CiAJ
+CX0KKwkJaWYgKGFuYWxvZ19vcHMtPmhhc19zaWduYWwpCisJCQl2dC0+c2lnbmFsID0gYW5hbG9n
+X29wcy0+aGFzX3NpZ25hbCgmdC0+ZmUpOwogCX0KLQlpZiAoYW5hbG9nX29wcy0+aGFzX3NpZ25h
+bCkKLQkJdnQtPnNpZ25hbCA9IGFuYWxvZ19vcHMtPmhhc19zaWduYWwoJnQtPmZlKTsKLQl2dC0+
+Y2FwYWJpbGl0eSB8PQotCQlWNEwyX1RVTkVSX0NBUF9MT1cgfCBWNEwyX1RVTkVSX0NBUF9TVEVS
+RU87Ci0JdnQtPmF1ZG1vZGUgPSB0LT5hdWRtb2RlOwotCXZ0LT5yYW5nZWxvdyA9IHJhZGlvX3Jh
+bmdlWzBdICogMTYwMDA7Ci0JdnQtPnJhbmdlaGlnaCA9IHJhZGlvX3JhbmdlWzFdICogMTYwMDA7
+CisKIAlyZXR1cm4gMDsKIH0KIApAQCAtOTExLDYgKzkyMSwxMSBAQAogCS8qIGRvIG5vdGhpbmcg
+dW5sZXNzIHdlJ3JlIGEgcmFkaW8gdHVuZXIgKi8KIAlpZiAodC0+bW9kZSAhPSBWNEwyX1RVTkVS
+X1JBRElPKQogCQlyZXR1cm4gMDsKKworCS8qIFNob3VsZCB0aGlzIHJlYWxseSBmYWlsIHNpbGVu
+dGx5IGlmIHRoZSBkZXZpY2UgaXMgYXNsZWVwPyAqLworCWlmICh0LT5pbl9zdGFuZGJ5ID09IDEp
+CisJCXJldHVybiAwOworCiAJdC0+YXVkbW9kZSA9IHZ0LT5hdWRtb2RlOwogCXNldF9yYWRpb19m
+cmVxKGNsaWVudCwgdC0+cmFkaW9fZnJlcSk7CiAJcmV0dXJuIDA7CkBAIC0xMDA0LDE0ICsxMDE5
+LDExIEBACiAJKnR2ID0gTlVMTDsKIAogCWxpc3RfZm9yX2VhY2hfZW50cnkocG9zLCAmdHVuZXJf
+bGlzdCwgbGlzdCkgewotCQlpbnQgbW9kZV9tYXNrOwotCiAJCWlmIChwb3MtPmkyYy0+YWRhcHRl
+ciAhPSBhZGFwIHx8CiAJCSAgICBzdHJjbXAocG9zLT5pMmMtPmRyaXZlci0+ZHJpdmVyLm5hbWUs
+ICJ0dW5lciIpKQogCQkJY29udGludWU7CiAKLQkJbW9kZV9tYXNrID0gcG9zLT5tb2RlX21hc2sg
+JiB+VF9TVEFOREJZOwotCQlpZiAoKnJhZGlvID09IE5VTEwgJiYgbW9kZV9tYXNrID09IFRfUkFE
+SU8pCisJCWlmICgqcmFkaW8gPT0gTlVMTCAmJiBwb3MtPm1vZGVfbWFzayA9PSBUX1JBRElPKQog
+CQkJKnJhZGlvID0gcG9zOwogCQkvKiBOb3RlOiBjdXJyZW50bHkgVERBOTg4NyBpcyB0aGUgb25s
+eSBkZW1vZC1vbmx5CiAJCSAgIGRldmljZS4gSWYgb3RoZXIgZGV2aWNlcyBhcHBlYXIgdGhlbiB3
+ZSBuZWVkIHRvCkBAIC0xMDYzLDcgKzEwNzUsOCBAQAogCQkJCQkgICAgICAgdC0+aTJjLT5hZGRy
+KSA+PSAwKSB7CiAJCQkJdC0+dHlwZSA9IFRVTkVSX1RFQTU3NjE7CiAJCQkJdC0+bW9kZV9tYXNr
+ID0gVF9SQURJTzsKLQkJCQl0LT5tb2RlID0gVF9TVEFOREJZOworCQkJCXQtPm1vZGUgPSBUX1JB
+RElPOworCQkJCXQtPmluX3N0YW5kYnkgPSAxOwogCQkJCS8qIFNldHMgZnJlcSB0byBGTSByYW5n
+ZSAqLwogCQkJCXQtPnJhZGlvX2ZyZXEgPSA4Ny41ICogMTYwMDA7CiAJCQkJdHVuZXJfbG9va3Vw
+KHQtPmkyYy0+YWRhcHRlciwgJnJhZGlvLCAmdHYpOwpAQCAtMTA4OCw3ICsxMTAxLDggQEAKIAkJ
+CQl0LT50eXBlID0gVFVORVJfVERBOTg4NzsKIAkJCQl0LT5tb2RlX21hc2sgPSBUX1JBRElPIHwg
+VF9BTkFMT0dfVFYgfAogCQkJCQkgICAgICAgVF9ESUdJVEFMX1RWOwotCQkJCXQtPm1vZGUgPSBU
+X1NUQU5EQlk7CisJCQkJdC0+bW9kZSA9IFRfQU5BTE9HX1RWOworCQkJCXQtPmluX3N0YW5kYnkg
+PSAxOwogCQkJCWdvdG8gcmVnaXN0ZXJfY2xpZW50OwogCQkJfQogCQkJYnJlYWs7CkBAIC0xMDk4
+LDcgKzExMTIsOCBAQAogCQkJCQk+PSAwKSB7CiAJCQkJdC0+dHlwZSA9IFRVTkVSX1RFQTU3Njc7
+CiAJCQkJdC0+bW9kZV9tYXNrID0gVF9SQURJTzsKLQkJCQl0LT5tb2RlID0gVF9TVEFOREJZOwor
+CQkJCXQtPm1vZGUgPSBUX1JBRElPOworCQkJCXQtPmluX3N0YW5kYnkgPSAxOwogCQkJCS8qIFNl
+dHMgZnJlcSB0byBGTSByYW5nZSAqLwogCQkJCXQtPnJhZGlvX2ZyZXEgPSA4Ny41ICogMTYwMDA7
+CiAJCQkJdHVuZXJfbG9va3VwKHQtPmkyYy0+YWRhcHRlciwgJnJhZGlvLCAmdHYpOwo=
+--000e0cd1d2d801c44f049a8aed42--
