@@ -1,67 +1,37 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:56687 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754402Ab1AGQZs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jan 2011 11:25:48 -0500
-Date: Fri, 07 Jan 2011 17:25:34 +0100
-From: Kamil Debski <k.debski@samsung.com>
-Subject: [RFC/PATCH v6 4/4] s5pv210: Enable MFC on Goni
-In-reply-to: <1294417534-3856-1-git-send-email-k.debski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, pawel@osciak.com,
-	kyungmin.park@samsung.com, k.debski@samsung.com,
-	jaeryul.oh@samsung.com, kgene.kim@samsung.com
-Message-id: <1294417534-3856-5-git-send-email-k.debski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1294417534-3856-1-git-send-email-k.debski@samsung.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:43096 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751246Ab1AWCFH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 22 Jan 2011 21:05:07 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Martin Hostettler <martin@neutronstar.dyndns.org>
+Subject: Re: [PATCH] media-ctl: subdev: add Y8 format.
+Date: Sun, 23 Jan 2011 03:05:10 +0100
+Cc: linux-media@vger.kernel.org
+References: <1295564429-19578-1-git-send-email-martin@neutronstar.dyndns.org>
+In-Reply-To: <1295564429-19578-1-git-send-email-martin@neutronstar.dyndns.org>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201101230305.10717.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This patch enables MFC 5.1 on Goni board. Multi Format Codec 5.1 is capable
-of handling a range of video codecs.
+Hi Martin,
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- arch/arm/mach-s5pv210/Kconfig     |    1 +
- arch/arm/mach-s5pv210/mach-goni.c |    3 ++-
- 2 files changed, 3 insertions(+), 1 deletions(-)
+On Friday 21 January 2011 00:00:29 Martin Hostettler wrote:
+> ---
+>  subdev.c |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> This is a trivial patch for media-ctl to support monochrome 8bit video
+> formats.
 
-diff --git a/arch/arm/mach-s5pv210/Kconfig b/arch/arm/mach-s5pv210/Kconfig
-index c45a1b7..43f408d 100644
---- a/arch/arm/mach-s5pv210/Kconfig
-+++ b/arch/arm/mach-s5pv210/Kconfig
-@@ -85,6 +85,7 @@ config MACH_GONI
- 	select S3C_DEV_HSMMC2
- 	select S3C_DEV_I2C1
- 	select S3C_DEV_I2C2
-+	select S5P_DEV_MFC
- 	select S3C_DEV_USB_HSOTG
- 	select S5P_DEV_ONENAND
- 	select SAMSUNG_DEV_KEYPAD
-diff --git a/arch/arm/mach-s5pv210/mach-goni.c b/arch/arm/mach-s5pv210/mach-goni.c
-index 8d19ead..553a60e 100644
---- a/arch/arm/mach-s5pv210/mach-goni.c
-+++ b/arch/arm/mach-s5pv210/mach-goni.c
-@@ -810,6 +810,7 @@ static struct platform_device *goni_devices[] __initdata = {
- 	&goni_i2c_gpio5,
- 	&mmc2_fixed_voltage,
- 	&goni_device_gpiokeys,
-+	&s5p_device_mfc,
- 	&s5p_device_fimc0,
- 	&s5p_device_fimc1,
- 	&s5p_device_fimc2,
-@@ -857,7 +858,7 @@ static void __init goni_reserve(void)
- 	};
- 
- 	static const char map[] __initconst =
--		"s5p-mfc5/f=fw;s5p-mfc5/a=b1;s5p-mfc5/b=b2;*=b1,b2";
-+		"s5p-mfc/f=fw;s5p-mfc/a=b1;s5p-mfc/b=b2;*=b1,b2";
- 
- 	cma_set_defaults(regions, map);
- 	cma_early_regions_reserve(NULL);
+Thanks for the patch. I've applied it.
+
 -- 
-1.6.3.3
+Regards,
 
+Laurent Pinchart
