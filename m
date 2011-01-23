@@ -1,64 +1,161 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f42.google.com ([74.125.82.42]:49805 "EHLO
-	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751346Ab1A2U1W (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1361 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751346Ab1AWR2s (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Jan 2011 15:27:22 -0500
-Received: by wwi17 with SMTP id 17so2226383wwi.1
-        for <linux-media@vger.kernel.org>; Sat, 29 Jan 2011 12:27:21 -0800 (PST)
+	Sun, 23 Jan 2011 12:28:48 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Kamil Debski <k.debski@samsung.com>
+Subject: Re: [RFC/PATCH v6 1/4] Changes in include/linux/videodev2.h for MFC 5.1
+Date: Sun, 23 Jan 2011 18:28:23 +0100
+Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	m.szyprowski@samsung.com, pawel@osciak.com,
+	kyungmin.park@samsung.com, jaeryul.oh@samsung.com,
+	kgene.kim@samsung.com
+References: <1294417534-3856-1-git-send-email-k.debski@samsung.com> <1294417534-3856-2-git-send-email-k.debski@samsung.com>
+In-Reply-To: <1294417534-3856-2-git-send-email-k.debski@samsung.com>
 MIME-Version: 1.0
-Date: Sun, 30 Jan 2011 01:57:21 +0530
-Message-ID: <AANLkTi=TA1a4J4PGK6Q08-2P=T5kyy0qdETaE0CdPhG3@mail.gmail.com>
-Subject: Osprey 440
-From: "jeetu.golani@gmail.com" <jeetu.golani@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201101231828.23723.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+Hi Kamil,
 
-First, I'd like to apologize if this is the wrong place for this question.
+Here is a review of this patch. I didn't really look that closely at the others,
+other than noticing that they didn't use the control framework yet.
 
-I have an Osprey 440 video capture card that I'm trying to use with
-linux kernel 2.6.32-5 on my debian system.  I'm having trouble
-capturing the sound off the device. Has anyone managed to get both
-audio and video to work on this card on all four channels?
+The main issue really is lack of documentation. It's hard to review something if
+you don't know what a new define stands for.
 
-The card itself is plugged into a PCI 32 bit socket.
+On Friday, January 07, 2011 17:25:31 Kamil Debski wrote:
+> This patch adds fourcc values for compressed video stream formats and
+> V4L2_CTRL_CLASS_CODEC. Also adds controls used by MFC 5.1 driver.
+> 
+> Signed-off-by: Kamil Debski <k.debski@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  include/linux/videodev2.h |   45 +++++++++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 45 insertions(+), 0 deletions(-)
+> 
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index d30c98d..b8952fc 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -339,6 +339,14 @@ struct v4l2_pix_format {
+>  #define V4L2_PIX_FMT_NV16    v4l2_fourcc('N', 'V', '1', '6') /* 16  Y/CbCr 4:2:2  */
+>  #define V4L2_PIX_FMT_NV61    v4l2_fourcc('N', 'V', '6', '1') /* 16  Y/CrCb 4:2:2  */
+>  
+> +/* two non contiguous planes -- one Y, one Cr + Cb interleaved  */
+> +#define V4L2_PIX_FMT_NV12M   v4l2_fourcc('N', 'M', '1', '2') /* 12  Y/CbCr 4:2:0  */
+> +/* 12  Y/CbCr 4:2:0 64x32 macroblocks */
+> +#define V4L2_PIX_FMT_NV12MT  v4l2_fourcc('T', 'M', '1', '2')
+> +
+> +/* three non contiguous planes -- Y, Cb, Cr */
+> +#define V4L2_PIX_FMT_YUV420M v4l2_fourcc('Y', 'M', '1', '2') /* 12  YUV420 planar */
+> +
 
-Using the bttv drivers, the card gets detected by the kernel, video
-devices get created with the four channels as /dev/video0, 1,2 and 3.
-The video shows up fine.
+Don't forget to document these formats in the V4L2 spec.
 
-On one of my setups I have audio devices created as /dev/dsp1,2,3 and
-4 and on this device I can get audio though very feeble and with
-distortion.
+>  /* Bayer formats - see http://www.siliconimaging.com/RGB%20Bayer.htm */
+>  #define V4L2_PIX_FMT_SBGGR8  v4l2_fourcc('B', 'A', '8', '1') /*  8  BGBG.. GRGR.. */
+>  #define V4L2_PIX_FMT_SGBRG8  v4l2_fourcc('G', 'B', 'R', 'G') /*  8  GBGB.. RGRG.. */
+> @@ -362,6 +370,18 @@ struct v4l2_pix_format {
+>  #define V4L2_PIX_FMT_DV       v4l2_fourcc('d', 'v', 's', 'd') /* 1394          */
+>  #define V4L2_PIX_FMT_MPEG     v4l2_fourcc('M', 'P', 'E', 'G') /* MPEG-1/2/4    */
+>  
+> +#define V4L2_PIX_FMT_H264     v4l2_fourcc('H', '2', '6', '4') /* H264    */
+> +#define V4L2_PIX_FMT_H263     v4l2_fourcc('H', '2', '6', '3') /* H263    */
+> +#define V4L2_PIX_FMT_MPEG12   v4l2_fourcc('M', 'P', '1', '2') /* MPEG-1/2  */
+> +#define V4L2_PIX_FMT_MPEG4    v4l2_fourcc('M', 'P', 'G', '4') /* MPEG-4  */
+> +#define V4L2_PIX_FMT_DIVX     v4l2_fourcc('D', 'I', 'V', 'X') /* DivX  */
+> +#define V4L2_PIX_FMT_DIVX3    v4l2_fourcc('D', 'I', 'V', '3') /* DivX 3.11  */
+> +#define V4L2_PIX_FMT_DIVX4    v4l2_fourcc('D', 'I', 'V', '4') /* DivX 4.12  */
+> +#define V4L2_PIX_FMT_DIVX5    v4l2_fourcc('D', 'X', '5', '0') /* DivX 5  */
+> +#define V4L2_PIX_FMT_XVID     v4l2_fourcc('X', 'V', 'I', 'D') /* Xvid */
+> +#define V4L2_PIX_FMT_VC1      v4l2_fourcc('V', 'C', '1', 'A') /* VC-1 */
+> +#define V4L2_PIX_FMT_VC1_RCV      v4l2_fourcc('V', 'C', '1', 'R') /* VC-1 RCV */
+> +
 
-On another similar setup but with Alsa, I am unable to get any sound.
-arecord -l shows the following output for this device:
+Ditto. Note: FMT_MPEG and FMT_MPEG12 and possibly FMT_MPEG4 seem to describe the
+same format. What's the difference? And do these formats describe raw video
+streams or program/transport streams? Can I just put in any old DivX file or
+does the hardware understand only a specific dialect or even a hardware-specific
+variation of the standard?
 
-**** List of CAPTURE Hardware Devices ****
-card 0: Intel [HDA Intel], device 0: STAC92xx Analog [STAC92xx Analog]
-  Subdevices: 2/2
-  Subdevice #0: subdevice #0
-  Subdevice #1: subdevice #1
-card 1: Bt878 [Brooktree Bt878], device 0: Bt87x Digital [Bt87x Digital]
-  Subdevices: 1/1
-  Subdevice #0: subdevice #0
-card 2: Bt878_1 [Brooktree Bt878], device 0: Bt87x Digital [Bt87x Digital]
-  Subdevices: 1/1
-  Subdevice #0: subdevice #0
-card 3: Bt878_2 [Brooktree Bt878], device 0: Bt87x Digital [Bt87x Digital]
-  Subdevices: 1/1
-  Subdevice #0: subdevice #0
-card 4: Bt878_3 [Brooktree Bt878], device 0: Bt87x Digital [Bt87x Digital]
-  Subdevices: 1/1
-  Subdevice #0: subdevice #0
+Does the codec just go from compressed video to raw video? If it also goes in
+the other direction, how does one set bitrates, etc.?
 
-Would sincerely appreciate any help and wisdom from someone who has
-managed to get audio off this device under linux.
+Does it accept multiplexed streams containing audio as well? If so, what does
+it do with the audio?
 
-Thanks so much. Any help is sincerely appreciated.
+>  /*  Vendor-specific formats   */
+>  #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1 YUV */
+>  #define V4L2_PIX_FMT_WNVA     v4l2_fourcc('W', 'N', 'V', 'A') /* Winnov hw compress */
+> @@ -972,6 +992,7 @@ struct v4l2_output {
+>  #define V4L2_OUTPUT_TYPE_ANALOG			2
+>  #define V4L2_OUTPUT_TYPE_ANALOGVGAOVERLAY	3
+>  
+> +
+>  /* capabilities flags */
+>  #define V4L2_OUT_CAP_PRESETS		0x00000001 /* Supports S_DV_PRESET */
+>  #define V4L2_OUT_CAP_CUSTOM_TIMINGS	0x00000002 /* Supports S_DV_TIMINGS */
+> @@ -1009,6 +1030,7 @@ struct v4l2_ext_controls {
+>  #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls */
+>  #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
+>  #define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
+> +#define V4L2_CTRL_CLASS_CODEC 0x009c0000	/* Codec control class */
+>  
+>  #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
+>  #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
+> @@ -1342,6 +1364,29 @@ enum v4l2_mpeg_cx2341x_video_median_filter_type {
+>  #define V4L2_CID_MPEG_CX2341X_VIDEO_CHROMA_MEDIAN_FILTER_TOP 	(V4L2_CID_MPEG_CX2341X_BASE+10)
+>  #define V4L2_CID_MPEG_CX2341X_STREAM_INSERT_NAV_PACKETS 	(V4L2_CID_MPEG_CX2341X_BASE+11)
+>  
+> +/* For codecs */
+> +
+> +#define V4L2_CID_CODEC_BASE 			(V4L2_CTRL_CLASS_CODEC | 0x900)
+> +#define V4L2_CID_CODEC_CLASS 			(V4L2_CTRL_CLASS_CODEC | 1)
+> +
+> +/* For both decoding and encoding */
+> +
+> +/* For encoding */
+> +#define V4L2_CID_CODEC_LOOP_FILTER_H264		(V4L2_CID_CODEC_BASE + 0)
+> +enum v4l2_cid_codec_loop_filter_h264 {
+> +	V4L2_CID_CODEC_LOOP_FILTER_H264_ENABLE = 0,
+> +	V4L2_CID_CODEC_LOOP_FILTER_H264_DISABLE = 1,
+> +	V4L2_CID_CODEC_LOOP_FILTER_H264_DISABLE_AT_BOUNDARY = 2,
+> +};
+> +
+> +/* For decoding */
+> +
+> +#define V4L2_CID_CODEC_LOOP_FILTER_MPEG4_ENABLE	(V4L2_CID_CODEC_BASE + 1)
+> +#define V4L2_CID_CODEC_DISPLAY_DELAY		(V4L2_CID_CODEC_BASE + 2)
+> +#define V4L2_CID_CODEC_REQ_NUM_BUFS		(V4L2_CID_CODEC_BASE + 3)
+> +#define V4L2_CID_CODEC_SLICE_INTERFACE		(V4L2_CID_CODEC_BASE + 4)
+> +#define V4L2_CID_CODEC_PACKED_PB		(V4L2_CID_CODEC_BASE + 5)
+> +
 
-Bye for now
+This needs to be documented in the spec as well.
+
+It seems to me just looking at the names that these controls are highly
+hardware specific. If so, then these controls would have to be in the range
+of (V4L2_CTRL_CLASS_CODEC | 0x1000) and up and need the name of the chipset
+as part of their ID. Similar to the cx2341x specific controls (see
+V4L2_CID_MPEG_CX2341X_BASE in videodev2.h).
+
+Creating a CODEC control class seems sensible to me, so I'm fine with that.
+
+>  /*  Camera class control IDs */
+>  #define V4L2_CID_CAMERA_CLASS_BASE 	(V4L2_CTRL_CLASS_CAMERA | 0x900)
+>  #define V4L2_CID_CAMERA_CLASS 		(V4L2_CTRL_CLASS_CAMERA | 1)
+> 
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
