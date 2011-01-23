@@ -1,39 +1,53 @@
 Return-path: <mchehab@pedra>
-Received: from smtp4.Stanford.EDU ([171.67.219.84]:36375 "EHLO
-	smtp.stanford.edu" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752986Ab1A1WT1 (ORCPT
+Received: from mailout-de.gmx.net ([213.165.64.22]:43216 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751037Ab1AWQdV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Jan 2011 17:19:27 -0500
-Message-ID: <4D434100.3020903@stanford.edu>
-Date: Fri, 28 Jan 2011 14:19:44 -0800
-From: Eino-Ville Talvala <talvala@stanford.edu>
+	Sun, 23 Jan 2011 11:33:21 -0500
+Cc: rglowery@exemail.com.au, linux-media@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Date: Sun, 23 Jan 2011 17:33:18 +0100
+From: "Alina Friedrichsen" <x-alina@gmx.net>
+In-Reply-To: <4D3C3750.8060301@redhat.com>
+Message-ID: <20110123163318.25910@gmx.net>
 MIME-Version: 1.0
-To: Neil MacMunn <neil@gumstix.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: omap3-isp segfault
-References: <4D4076C3.4080201@gumstix.com> <4D40CDB3.7090106@gumstix.com> <201101271328.05891.laurent.pinchart@ideasonboard.com> <4D41F54C.2030804@gumstix.com>
-In-Reply-To: <4D41F54C.2030804@gumstix.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+References: <20110123001615.86290@gmx.net> <4D3C3750.8060301@redhat.com>
+Subject: Re: [RFC PATCH] Getting Hauppauge WinTV HVR-1400 (XC3028L) to work
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 1/27/2011 2:44 PM, Neil MacMunn wrote:
-> When I use media-ctl the pipeline gets configured properly. I can generate graphs before and after and see the pipeline change. However, my system hangs when I attempt to use yavta. I've also tried outputting to video4.
->
-....
->
->
->
-> Does anybody know how I can capture images from the camera? From previous posts it appears that I'm not the first to go through this process.
->
-> Thanks. Neil
+Hi Mauro!
 
-A few questions that would help to diagnose problems:
-What version of the ISP drivers and the MT9V032 driver are you using? Kernel version?
+> This is problematic, as it seems to be country-specific and/or
+> demod-specific. 
+> We'll need to work on a different solution for it. On what Country do you
+> live?
+> By looking at HVR1400 entry, it uses a dibcom 7000p demod.
+> We need to know what are country/demod for the users for whose the old
+> code
+> were broken.
 
-You could try to force the format on the gst-launch command, as a further test, although I don't know why it's not matching up to the YUVY format you configured in the pipeline.
+I live in Germany. In which country, with which hardware does the old code work, and the new not?
 
-Eino-Ville Talvala
-Stanford University
+Old code:
 
+if (priv->cur_fw.type & DTV7)
+	offset += 500000;
+
+
+New code:
+
+if (priv->firm_version < 0x0302) {
+	if (priv->cur_fw.type & DTV7)
+		offset += 500000;
+} else {
+	if (priv->cur_fw.type & DTV7)
+		offset -= 300000;
+	else if (type != ATSC) /* DVB @6MHz, DTV 8 and DTV 7/8 */
+		offset += 200000;
+}
+
+Cheers,
+Alina
