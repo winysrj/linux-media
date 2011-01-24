@@ -1,72 +1,64 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:50829 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751292Ab1AJUN2 convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39975 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752129Ab1AXLWZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Jan 2011 15:13:28 -0500
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 01/18] Altera FPGA firmware download module.
-Date: Mon, 10 Jan 2011 22:10:37 +0200
-Cc: Ben Gamari <bgamari.foss@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	aospan@netup.ru
-References: <201012310726.31851.liplianin@netup.ru> <8739pec7bm.fsf@gmail.com> <201101051126.04180.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201101051126.04180.laurent.pinchart@ideasonboard.com>
+	Mon, 24 Jan 2011 06:22:25 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: martin@neutronstar.dyndns.org
+Subject: Re: [PATCH] v4l: Add driver for Micron MT9M032 camera sensor
+Date: Mon, 24 Jan 2011 12:22:30 +0100
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+References: <1295389122-30325-1-git-send-email-martin@neutronstar.dyndns.org> <201101190005.10652.hverkuil@xs4all.nl> <20110119191214.GB13173@neutronstar.dyndns.org>
+In-Reply-To: <20110119191214.GB13173@neutronstar.dyndns.org>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201101102210.37513.liplianin@me.by>
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201101241222.30468.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-В сообщении от 5 января 2011 12:26:03 автор Laurent Pinchart написал:
-> Hi,
-> 
-> On Friday 31 December 2010 16:04:13 Ben Gamari wrote:
-> > On Fri, 31 Dec 2010 09:47:41 -0200, Mauro Carvalho Chehab wrote:
-> > > > I understand this. However, a complete JTAG state machine in the
-> > > > kernel, plus an Altera firmware parser, seems to be a lot of code
-> > > > that could live in userspace.
-> > > 
-> > > Moving it to userspace would mean a kernel driver that would depend on
-> > > an userspace daemon^Wfirmware loader to work. I would NAK such
-> > > designs.
-> > 
-> > Why? I agree that JTAG is a lot to place in the kernel and is much
-> > better suited to be in user space. What exactly is your objection to
-> > depending on a userspace utility? There is no shortage of precedent for
-> > loading firmware in userspace (e.g. fx2 usb devices).
-> 
-> I agree with this. Mauro, why would a userspace firmware loader be such a
-> bad idea ?
-> 
-> > > > If I understand it correctly the driver assumes the firmware is in an
-> > > > Altera proprietary format. If we really want JTAG code in the kernel
-> > > > we should at least split the file parser and the TAP access code.
-> > > 
-> > > Agreed, but I don't think this would be a good reason to block the code
-> > > merge for .38.
-> > 
-> > I agree with the above isn't good reason to block it but if there is
-> > still debate about the general architecture of the code (see above),
-> > then it seems aren't ready yet. The code looks very nice, but I'm not at
-> > all convinced that it needs to be in the kernel. Just my two-tenths of a
-> > cent.
-We all realize, that FPGA programming not belongs to DVB only, it is more common.
-But my intention to write driver for DVB and V4L device... 
-Yes, it needed for DVB device to work, and it works on real hardware.
-FPGA model used in device has not flash memory. So every time the so-called "firmware" has to be 
-loaded on early device initialization stage. Then FPGA itself drives CI and hardware PID filter. 
-Fhysically, FPGA JTAG interface connected to cx23885 GPIO lines.
+Hi Martin,
 
-Take a look on  media/dvb/dvb-usb drivers. There is a lot of FX2 firmware dependant devices, but 
-no one of them uses userspace utilities to push firmware inside.
-If someone has something to put on table, I mean code implementation, then put it on.
+On Wednesday 19 January 2011 20:12:14 martin@neutronstar.dyndns.org wrote:
+> On Wed, Jan 19, 2011 at 12:05:10AM +0100, Hans Verkuil wrote:
+> > On Tuesday, January 18, 2011 23:18:42 Martin Hostettler wrote:
 
-Everithing is possible to change, but it is needed to begin with something.
+[snip]
+
+> > > +#ifdef CONFIG_VIDEO_ADV_DEBUG
+> > > +static long mt9m032_ioctl(struct v4l2_subdev *sd, unsigned int cmd,
+> > > void *arg) +{
+> > > +	if (cmd == VIDIOC_DBG_G_REGISTER || cmd == VIDIOC_DBG_S_REGISTER) {
+> > > +		struct v4l2_dbg_register *p = arg;
+> > > +
+> > > +		if (!capable(CAP_SYS_ADMIN))
+> > > +			return -EPERM;
+> > > +
+> > > +		if (cmd == VIDIOC_DBG_G_REGISTER)
+> > > +			return v4l2_subdev_call(sd, core, g_register, p);
+> > > +		else
+> > > +			return v4l2_subdev_call(sd, core, s_register, p);
+> > > +	} else {
+> > > +		return -ENOIOCTLCMD;
+> > > +	}
+> > > +}
+> > 
+> > Huh? Ah, I get it. This is for when the user uses the subdev's device
+> > node directly. This is not good, the v4l2 framework should do translate
+> > this to g/s_register. The same should be done for g_chip_ident, I guess.
+> 
+> I'm not sure what you are saying here. Should i move this to a patch for
+> v4l2-subdev.c to dispatch those ioctls for all subdevs?
+
+Yes, please do that.
+
+> I need these ioctls to work with the driver and last that i looked nothing
+> in the general framework or the omap3 ISP driver was forwarding there from
+> the video device node to the subdevice driver...
+
 -- 
-Igor M. Liplianin
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+Regards,
+
+Laurent Pinchart
