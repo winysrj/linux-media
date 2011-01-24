@@ -1,121 +1,291 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.8]:60867 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754372Ab1AZXqy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Jan 2011 18:46:54 -0500
-Date: Thu, 27 Jan 2011 00:46:51 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Michael Jones <michael.jones@matrix-vision.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC] ISP lane shifter support
-In-Reply-To: <201101251020.22804.laurent.pinchart@ideasonboard.com>
-Message-ID: <Pine.LNX.4.64.1101262218090.6179@axis700.grange>
-References: <4D394675.90304@matrix-vision.de> <201101242045.24561.laurent.pinchart@ideasonboard.com>
- <4D3E939A.5020100@matrix-vision.de> <201101251020.22804.laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mx1.redhat.com ([209.132.183.28]:11085 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751829Ab1AXPYT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Jan 2011 10:24:19 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id p0OFOIsq027441
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 24 Jan 2011 10:24:19 -0500
+Received: from pedra (vpn-236-9.phx2.redhat.com [10.3.236.9])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p0OFJARq027064
+	for <linux-media@vger.kernel.org>; Mon, 24 Jan 2011 10:24:17 -0500
+Date: Mon, 24 Jan 2011 13:18:37 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 02/13] [media] rc/keymaps: Use KEY_VIDEO for Video Source
+Message-ID: <20110124131837.199000df@pedra>
+In-Reply-To: <cover.1295882104.git.mchehab@redhat.com>
+References: <cover.1295882104.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, 25 Jan 2011, Laurent Pinchart wrote:
+Each keyboard map were using a different definition for
+the Source/Video Source key.
+Behold Columbus were the only one using KEY_PROPS.
 
-> Hi Michael,
-> 
-> On Tuesday 25 January 2011 10:10:50 Michael Jones wrote:
-> > On 01/24/2011 08:45 PM, Laurent Pinchart wrote:
-> > > On Monday 24 January 2011 15:16:28 Michael Jones wrote:
-> > >> On 01/24/2011 02:57 PM, Laurent Pinchart wrote:
-> > >> <snip>
-> > >> 
-> > >>>>> As the lane shifter is located at the CCDC input, it might be easier
-> > >>>>> to implement support for this using the CCDC input format.
-> > >>>>> ispvideo.c would need to validate the pipeline when the output of
-> > >>>>> the entity connected to the CCDC input (parallel sensor, CCP2 or
-> > >>>>> CSI2) is configured with a format that can be shifted to the format
-> > >>>>> at the CCDC input.
-> > >>>> 
-> > >>>> This crossed my mind, but it seems illogical to have a link with a
-> > >>>> different format at each of its ends.
-> > >>> 
-> > >>> I agree in theory, but it might be problematic for the CCDC. Right now
-> > >>> the CCDC can write to memory or send the data to the preview engine,
-> > >>> but not both at the same time. That's something that I'd like to
-> > >>> change in the future. What happens if the user then sets different
-> > >>> widths on the output pads ?
-> > >> 
-> > >> Shouldn't we prohibit the user from doing this in ccdc_[try/set]_format
-> > >> in the first place? By "prohibit", I mean shouldn't we be sure that the
-> > >> pixel format on pad 1 is always the same as on pad 2?
-> > > 
-> > > Yes we should (although we could have a larger width on the memory write
-> > > port, as the video port can further shift the data).
-> > 
-> > Doesn't this conflict with your comment below that we shouldn't silently
-> > change pad 1 when setting pad 2?  How can we ensure that they're always
-> > the same if a change in one doesn't result in a change in the other?
-> > See my example below.
-> 
-> Yes it does, and that's why I'm not too sure yet how this should be 
-> implemented.
-> 
-> > I didn't realize the video port can further shift the data.  Where can I
-> > find this in the TRM?
-> 
-> VPIN field of the CCDC_FMTCFG register.
+As we want to standardize those keys at X11 and at
+userspace applications, we need to use just one code
+for it.
 
-This only plays a role, if cam_d is set to 10 bits raw in 
-CCDC_SYN_MODE.DATSIZ, right?
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-> > >> Downside: this suggests that set_fmt on pad 2 could change the fmt on
-> > >> pad 1, which may be unexpected. But that does at least reflect the
-> > >> reality of the hardware, right?
-> > > 
-> > > I don't think it would be a good idea to silently change formats on pad 1
-> > > when setting the format on pad 2. Applications don't expect that. That's
-> > > why I've proposed changing the format on pad 0 instead. I agree that it
-> > > would be better to have the same format on the sensor output and on CCDC
-> > > pad 0 though.
-> > 
-> > I don't understand how we can change the pixel format on pad 1 without
-> > also changing it on pad 2.  Let me take a simple example:
-> > 0. Default state: all 3 CCDC pads have SGRBG10.
-> > 1. Sensor delivers Y10, so I set CCDC pad 0 to Y10. CCDC then changes
-> > format of pad 1&2 to Y10 also.
-> > 2. I want 8-bit data written to memory, so I set Y8 on pad 1 to use the
-> > shifter. Pad 0 stays Y10, but pad 2 can no longer get Y10, so (?) it
-> > must be changed to Y8.  And I have to allow the change on pad 1 to be
-> > able to use the shifter at all.
-> > 
-> > I agree applications may not expect this behavior.  They may _expect_
-> > that they can get Y10 to the video port and Y8 to memory, but they
-> > can't.  Isn't this just what we pay for the simplicity of building the
-> > lane shifter into the CCDC subdev rather than creating its own subdev?
-> 
-> It could be, yes. The other option is to modify the format at the CCDC input. 
-> I agree that both options have drawbacks.
-> 
-> Hans, Guennadi, any opinion on this ?
+diff --git a/drivers/media/rc/keymaps/rc-avermedia-dvbt.c b/drivers/media/rc/keymaps/rc-avermedia-dvbt.c
+index 3ddb41b..c25809d 100644
+--- a/drivers/media/rc/keymaps/rc-avermedia-dvbt.c
++++ b/drivers/media/rc/keymaps/rc-avermedia-dvbt.c
+@@ -26,12 +26,12 @@ static struct rc_map_table avermedia_dvbt[] = {
+ 	{ 0x16, KEY_8 },		/* '8' / 'down arrow' */
+ 	{ 0x36, KEY_9 },		/* '9' */
+ 
+-	{ 0x20, KEY_LIST },		/* 'source' */
++	{ 0x20, KEY_VIDEO },		/* 'source' */
+ 	{ 0x10, KEY_TEXT },		/* 'teletext' */
+ 	{ 0x00, KEY_POWER },		/* 'power' */
+ 	{ 0x04, KEY_AUDIO },		/* 'audio' */
+ 	{ 0x06, KEY_ZOOM },		/* 'full screen' */
+-	{ 0x18, KEY_VIDEO },		/* 'display' */
++	{ 0x18, KEY_SWITCHVIDEOMODE },	/* 'display' */
+ 	{ 0x38, KEY_SEARCH },		/* 'loop' */
+ 	{ 0x08, KEY_INFO },		/* 'preview' */
+ 	{ 0x2a, KEY_REWIND },		/* 'backward <<' */
+diff --git a/drivers/media/rc/keymaps/rc-behold-columbus.c b/drivers/media/rc/keymaps/rc-behold-columbus.c
+index 4b787fa..8bf058f 100644
+--- a/drivers/media/rc/keymaps/rc-behold-columbus.c
++++ b/drivers/media/rc/keymaps/rc-behold-columbus.c
+@@ -28,7 +28,7 @@ static struct rc_map_table behold_columbus[] = {
+ 	 *                             */
+ 
+ 	{ 0x13, KEY_MUTE },
+-	{ 0x11, KEY_PROPS },
++	{ 0x11, KEY_VIDEO },
+ 	{ 0x1C, KEY_TUNER },	/* KEY_TV/KEY_RADIO	*/
+ 	{ 0x12, KEY_POWER },
+ 
+diff --git a/drivers/media/rc/keymaps/rc-behold.c b/drivers/media/rc/keymaps/rc-behold.c
+index 0ee1f14..c909a23 100644
+--- a/drivers/media/rc/keymaps/rc-behold.c
++++ b/drivers/media/rc/keymaps/rc-behold.c
+@@ -97,7 +97,7 @@ static struct rc_map_table behold[] = {
+ 	{ 0x6b861a, KEY_STOP },
+ 	{ 0x6b860e, KEY_TEXT },
+ 	{ 0x6b861f, KEY_RED },	/*XXX KEY_AUDIO	*/
+-	{ 0x6b861e, KEY_YELLOW },	/*XXX KEY_SOURCE	*/
++	{ 0x6b861e, KEY_VIDEO },
+ 
+ 	/*  0x1d   0x13     0x19  *
+ 	 * SLEEP  PREVIEW   DVB   *
+diff --git a/drivers/media/rc/keymaps/rc-dntv-live-dvb-t.c b/drivers/media/rc/keymaps/rc-dntv-live-dvb-t.c
+index 43912bd..82c0200 100644
+--- a/drivers/media/rc/keymaps/rc-dntv-live-dvb-t.c
++++ b/drivers/media/rc/keymaps/rc-dntv-live-dvb-t.c
+@@ -32,7 +32,7 @@ static struct rc_map_table dntv_live_dvb_t[] = {
+ 	{ 0x0c, KEY_SEARCH },		/* scan */
+ 	{ 0x0d, KEY_STOP },
+ 	{ 0x0e, KEY_PAUSE },
+-	{ 0x0f, KEY_LIST },		/* source */
++	{ 0x0f, KEY_VIDEO },		/* source */
+ 
+ 	{ 0x10, KEY_MUTE },
+ 	{ 0x11, KEY_REWIND },		/* backward << */
+diff --git a/drivers/media/rc/keymaps/rc-encore-enltv2.c b/drivers/media/rc/keymaps/rc-encore-enltv2.c
+index 7d5b00e..b6264f1 100644
+--- a/drivers/media/rc/keymaps/rc-encore-enltv2.c
++++ b/drivers/media/rc/keymaps/rc-encore-enltv2.c
+@@ -32,7 +32,7 @@ static struct rc_map_table encore_enltv2[] = {
+ 	{ 0x64, KEY_LAST },		/* +100 */
+ 	{ 0x4e, KEY_AGAIN },		/* Recall */
+ 
+-	{ 0x6c, KEY_SWITCHVIDEOMODE },	/* Video Source */
++	{ 0x6c, KEY_VIDEO },		/* Video Source */
+ 	{ 0x5e, KEY_MENU },
+ 	{ 0x56, KEY_SCREEN },
+ 	{ 0x7a, KEY_SETUP },
+diff --git a/drivers/media/rc/keymaps/rc-flydvb.c b/drivers/media/rc/keymaps/rc-flydvb.c
+index aea2f4a..a8b0f66 100644
+--- a/drivers/media/rc/keymaps/rc-flydvb.c
++++ b/drivers/media/rc/keymaps/rc-flydvb.c
+@@ -37,8 +37,8 @@ static struct rc_map_table flydvb[] = {
+ 	{ 0x13, KEY_CHANNELDOWN },	/* CH- */
+ 	{ 0x1d, KEY_ENTER },		/* Enter */
+ 
+-	{ 0x1a, KEY_MODE },		/* PIP */
+-	{ 0x18, KEY_TUNER },		/* Source */
++	{ 0x1a, KEY_TV2 },		/* PIP */
++	{ 0x18, KEY_VIDEO },		/* Source */
+ 
+ 	{ 0x1e, KEY_RECORD },		/* Record/Pause */
+ 	{ 0x15, KEY_ANGLE },		/* Swap (no label on key) */
+diff --git a/drivers/media/rc/keymaps/rc-hauppauge-new.c b/drivers/media/rc/keymaps/rc-hauppauge-new.c
+index b6a12fe..44f3283 100644
+--- a/drivers/media/rc/keymaps/rc-hauppauge-new.c
++++ b/drivers/media/rc/keymaps/rc-hauppauge-new.c
+@@ -42,7 +42,7 @@ static struct rc_map_table hauppauge_new[] = {
+ 	{ 0x15, KEY_DOWN },
+ 	{ 0x16, KEY_LEFT },
+ 	{ 0x17, KEY_RIGHT },
+-	{ 0x18, KEY_VIDEO },		/* Videos */
++	{ 0x18, KEY_VCR },		/* Videos */
+ 	{ 0x19, KEY_AUDIO },		/* Music */
+ 	/* 0x1a: Pictures - presume this means
+ 	   "Multimedia Home Platform" -
+@@ -56,7 +56,7 @@ static struct rc_map_table hauppauge_new[] = {
+ 	{ 0x1f, KEY_EXIT },		/* back/exit */
+ 	{ 0x20, KEY_CHANNELUP },	/* channel / program + */
+ 	{ 0x21, KEY_CHANNELDOWN },	/* channel / program - */
+-	{ 0x22, KEY_CHANNEL },		/* source (old black remote) */
++	{ 0x22, KEY_VIDEO },		/* source (old black remote) */
+ 	{ 0x24, KEY_PREVIOUSSONG },	/* replay |< */
+ 	{ 0x25, KEY_ENTER },		/* OK */
+ 	{ 0x26, KEY_SLEEP },		/* minimize (old black remote) */
+diff --git a/drivers/media/rc/keymaps/rc-kworld-315u.c b/drivers/media/rc/keymaps/rc-kworld-315u.c
+index 3ce6ef7..7f33edb 100644
+--- a/drivers/media/rc/keymaps/rc-kworld-315u.c
++++ b/drivers/media/rc/keymaps/rc-kworld-315u.c
+@@ -17,7 +17,7 @@
+ 
+ static struct rc_map_table kworld_315u[] = {
+ 	{ 0x6143, KEY_POWER },
+-	{ 0x6101, KEY_TUNER },		/* source */
++	{ 0x6101, KEY_VIDEO },		/* source */
+ 	{ 0x610b, KEY_ZOOM },
+ 	{ 0x6103, KEY_POWER2 },		/* shutdown */
+ 
+diff --git a/drivers/media/rc/keymaps/rc-msi-tvanywhere-plus.c b/drivers/media/rc/keymaps/rc-msi-tvanywhere-plus.c
+index fa8fd0a..8e9969d 100644
+--- a/drivers/media/rc/keymaps/rc-msi-tvanywhere-plus.c
++++ b/drivers/media/rc/keymaps/rc-msi-tvanywhere-plus.c
+@@ -62,7 +62,7 @@ static struct rc_map_table msi_tvanywhere_plus[] = {
+ 	{ 0x13, KEY_AGAIN },		/* Recall */
+ 
+ 	{ 0x1e, KEY_POWER },		/* Power */
+-	{ 0x07, KEY_TUNER },		/* Source */
++	{ 0x07, KEY_VIDEO },		/* Source */
+ 	{ 0x1c, KEY_SEARCH },		/* Scan */
+ 	{ 0x18, KEY_MUTE },		/* Mute */
+ 
+diff --git a/drivers/media/rc/keymaps/rc-norwood.c b/drivers/media/rc/keymaps/rc-norwood.c
+index 629ee9d..f1c1281 100644
+--- a/drivers/media/rc/keymaps/rc-norwood.c
++++ b/drivers/media/rc/keymaps/rc-norwood.c
+@@ -29,7 +29,7 @@ static struct rc_map_table norwood[] = {
+ 	{ 0x28, KEY_8 },
+ 	{ 0x29, KEY_9 },
+ 
+-	{ 0x78, KEY_TUNER },		/* Video Source        */
++	{ 0x78, KEY_VIDEO },		/* Video Source        */
+ 	{ 0x2c, KEY_EXIT },		/* Open/Close software */
+ 	{ 0x2a, KEY_SELECT },		/* 2 Digit Select      */
+ 	{ 0x69, KEY_AGAIN },		/* Recall              */
+diff --git a/drivers/media/rc/keymaps/rc-pctv-sedna.c b/drivers/media/rc/keymaps/rc-pctv-sedna.c
+index fa5ae59..7cdef6e 100644
+--- a/drivers/media/rc/keymaps/rc-pctv-sedna.c
++++ b/drivers/media/rc/keymaps/rc-pctv-sedna.c
+@@ -36,7 +36,7 @@ static struct rc_map_table pctv_sedna[] = {
+ 	{ 0x0e, KEY_STOP },
+ 	{ 0x0f, KEY_PREVIOUSSONG },
+ 	{ 0x10, KEY_ZOOM },
+-	{ 0x11, KEY_TUNER },	/* Source */
++	{ 0x11, KEY_VIDEO },	/* Source */
+ 	{ 0x12, KEY_POWER },
+ 	{ 0x13, KEY_MUTE },
+ 	{ 0x15, KEY_CHANNELDOWN },
+diff --git a/drivers/media/rc/keymaps/rc-pixelview-mk12.c b/drivers/media/rc/keymaps/rc-pixelview-mk12.c
+index 8d9f664..125fc39 100644
+--- a/drivers/media/rc/keymaps/rc-pixelview-mk12.c
++++ b/drivers/media/rc/keymaps/rc-pixelview-mk12.c
+@@ -34,7 +34,7 @@ static struct rc_map_table pixelview_mk12[] = {
+ 	{ 0x866b13, KEY_AGAIN },	/* loop */
+ 	{ 0x866b10, KEY_DIGITS },	/* +100 */
+ 
+-	{ 0x866b00, KEY_MEDIA },	/* source */
++	{ 0x866b00, KEY_VIDEO },		/* source */
+ 	{ 0x866b18, KEY_MUTE },		/* mute */
+ 	{ 0x866b19, KEY_CAMERA },	/* snapshot */
+ 	{ 0x866b1a, KEY_SEARCH },	/* scan */
+diff --git a/drivers/media/rc/keymaps/rc-pixelview-new.c b/drivers/media/rc/keymaps/rc-pixelview-new.c
+index 777a700..bd78d6a 100644
+--- a/drivers/media/rc/keymaps/rc-pixelview-new.c
++++ b/drivers/media/rc/keymaps/rc-pixelview-new.c
+@@ -33,7 +33,7 @@ static struct rc_map_table pixelview_new[] = {
+ 	{ 0x3e, KEY_0 },
+ 
+ 	{ 0x1c, KEY_AGAIN },		/* LOOP	*/
+-	{ 0x3f, KEY_MEDIA },		/* Source */
++	{ 0x3f, KEY_VIDEO },		/* Source */
+ 	{ 0x1f, KEY_LAST },		/* +100 */
+ 	{ 0x1b, KEY_MUTE },
+ 
+diff --git a/drivers/media/rc/keymaps/rc-pixelview.c b/drivers/media/rc/keymaps/rc-pixelview.c
+index 0ec5988..06187e7 100644
+--- a/drivers/media/rc/keymaps/rc-pixelview.c
++++ b/drivers/media/rc/keymaps/rc-pixelview.c
+@@ -15,7 +15,7 @@
+ static struct rc_map_table pixelview[] = {
+ 
+ 	{ 0x1e, KEY_POWER },	/* power */
+-	{ 0x07, KEY_MEDIA },	/* source */
++	{ 0x07, KEY_VIDEO },	/* source */
+ 	{ 0x1c, KEY_SEARCH },	/* scan */
+ 
+ 
+diff --git a/drivers/media/rc/keymaps/rc-pv951.c b/drivers/media/rc/keymaps/rc-pv951.c
+index 83a418d..5e8beee 100644
+--- a/drivers/media/rc/keymaps/rc-pv951.c
++++ b/drivers/media/rc/keymaps/rc-pv951.c
+@@ -46,10 +46,10 @@ static struct rc_map_table pv951[] = {
+ 	{ 0x0c, KEY_SEARCH },		/* AUTOSCAN */
+ 
+ 	/* Not sure what to do with these ones! */
+-	{ 0x0f, KEY_SELECT },		/* SOURCE */
++	{ 0x0f, KEY_VIDEO },		/* SOURCE */
+ 	{ 0x0a, KEY_KPPLUS },		/* +100 */
+ 	{ 0x14, KEY_EQUAL },		/* SYNC */
+-	{ 0x1c, KEY_MEDIA },		/* PC/TV */
++	{ 0x1c, KEY_TV },		/* PC/TV */
+ };
+ 
+ static struct rc_map_list pv951_map = {
+diff --git a/drivers/media/rc/keymaps/rc-rc5-hauppauge-new.c b/drivers/media/rc/keymaps/rc-rc5-hauppauge-new.c
+index 2ca825b..a581c86 100644
+--- a/drivers/media/rc/keymaps/rc-rc5-hauppauge-new.c
++++ b/drivers/media/rc/keymaps/rc-rc5-hauppauge-new.c
+@@ -45,7 +45,7 @@ static struct rc_map_table rc5_hauppauge_new[] = {
+ 	{ 0x1e15, KEY_DOWN },
+ 	{ 0x1e16, KEY_LEFT },
+ 	{ 0x1e17, KEY_RIGHT },
+-	{ 0x1e18, KEY_VIDEO },		/* Videos */
++	{ 0x1e18, KEY_VCR },		/* Videos */
+ 	{ 0x1e19, KEY_AUDIO },		/* Music */
+ 	/* 0x1e1a: Pictures - presume this means
+ 	   "Multimedia Home Platform" -
+@@ -59,7 +59,7 @@ static struct rc_map_table rc5_hauppauge_new[] = {
+ 	{ 0x1e1f, KEY_EXIT },		/* back/exit */
+ 	{ 0x1e20, KEY_CHANNELUP },	/* channel / program + */
+ 	{ 0x1e21, KEY_CHANNELDOWN },	/* channel / program - */
+-	{ 0x1e22, KEY_CHANNEL },		/* source (old black remote) */
++	{ 0x1e22, KEY_VIDEO },		/* source (old black remote) */
+ 	{ 0x1e24, KEY_PREVIOUSSONG },	/* replay |< */
+ 	{ 0x1e25, KEY_ENTER },		/* OK */
+ 	{ 0x1e26, KEY_SLEEP },		/* minimize (old black remote) */
+diff --git a/drivers/media/rc/keymaps/rc-real-audio-220-32-keys.c b/drivers/media/rc/keymaps/rc-real-audio-220-32-keys.c
+index 2d14598..6813d11 100644
+--- a/drivers/media/rc/keymaps/rc-real-audio-220-32-keys.c
++++ b/drivers/media/rc/keymaps/rc-real-audio-220-32-keys.c
+@@ -35,7 +35,7 @@ static struct rc_map_table real_audio_220_32_keys[] = {
+ 	{ 0x15, KEY_CHANNELDOWN},
+ 	{ 0x16, KEY_ENTER},
+ 
+-	{ 0x11, KEY_LIST},		/* Source */
++	{ 0x11, KEY_VIDEO},		/* Source */
+ 	{ 0x0d, KEY_AUDIO},		/* stereo */
+ 
+ 	{ 0x0f, KEY_PREVIOUS},		/* Prev */
+-- 
+1.7.1
 
-Looking at the "Data-Lane Shifter" table (12.27 in my datasheet, in the 
-"Bridge-Lane Shifter" chapter), I think, the first two columns are fixed 
-by the board design, right? So, our freedom lies only in one line there 
-and is a single parameter - the shift value. The output shifter (VPIN) is 
-independent from this one, but not unrelated. It seems logical to me to 
-relate the former one to CCDC's input pad, and the latter one to CCDC's 
-output pad. AFAIU, Laurent, your implementation in what concerns pad 
-configuration is: let the user configure all interfaces independently, and 
-first when we have to actually activate the pipeline (start streaming or 
-configure video buffers) we can verify, whether all parts fit together. 
-So, why don't we stay consistent and do the same here? Give the user both 
-parameters and see how clever they were in the end;) I also think, if we 
-later decide to add some consistency checks, we can always do it.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
