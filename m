@@ -1,75 +1,73 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40239 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33790 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752748Ab1AXAKt (ORCPT
+	with ESMTP id S1752155Ab1AXLUj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Jan 2011 19:10:49 -0500
+	Mon, 24 Jan 2011 06:20:39 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Michael Jones <michael.jones@matrix-vision.de>
-Subject: Re: [RFC] ISP lane shifter support
-Date: Mon, 24 Jan 2011 01:10:52 +0100
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <4D394675.90304@matrix-vision.de>
-In-Reply-To: <4D394675.90304@matrix-vision.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] v4l: Add driver for Micron MT9M032 camera sensor
+Date: Mon, 24 Jan 2011 12:20:41 +0100
+Cc: Martin Hostettler <martin@neutronstar.dyndns.org>,
+	linux-media@vger.kernel.org
+References: <1295389122-30325-1-git-send-email-martin@neutronstar.dyndns.org> <201101190050.35863.laurent.pinchart@ideasonboard.com> <201101190823.18900.hverkuil@xs4all.nl>
+In-Reply-To: <201101190823.18900.hverkuil@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201101240110.52703.laurent.pinchart@ideasonboard.com>
+Message-Id: <201101241220.41598.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Michael,
+Hi Hans,
 
-On Friday 21 January 2011 09:40:21 Michael Jones wrote:
-> Hi all,
+On Wednesday 19 January 2011 08:23:18 Hans Verkuil wrote:
+> On Wednesday, January 19, 2011 00:50:35 Laurent Pinchart wrote:
+> > On Wednesday 19 January 2011 00:05:10 Hans Verkuil wrote:
+> > > On Tuesday, January 18, 2011 23:18:42 Martin Hostettler wrote:
+
+[snip]
+
+> > > > +#ifdef CONFIG_VIDEO_ADV_DEBUG
+> > > > +static long mt9m032_ioctl(struct v4l2_subdev *sd, unsigned int cmd,
+> > > > void *arg) +{
+> > > > +	if (cmd == VIDIOC_DBG_G_REGISTER || cmd == VIDIOC_DBG_S_REGISTER) {
+> > > > +		struct v4l2_dbg_register *p = arg;
+> > > > +
+> > > > +		if (!capable(CAP_SYS_ADMIN))
+> > > > +			return -EPERM;
+> > > > +
+> > > > +		if (cmd == VIDIOC_DBG_G_REGISTER)
+> > > > +			return v4l2_subdev_call(sd, core, g_register, p);
+> > > > +		else
+> > > > +			return v4l2_subdev_call(sd, core, s_register, p);
+> > > > +	} else {
+> > > > +		return -ENOIOCTLCMD;
+> > > > +	}
+> > > > +}
+> > > 
+> > > Huh? Ah, I get it. This is for when the user uses the subdev's device
+> > > node directly. This is not good, the v4l2 framework should do
+> > > translate this to g/s_register.
+> > 
+> > Agreed.
+> > 
+> > > The same should be done for g_chip_ident, I guess.
+> > 
+> > I don't think we need g_chip_ident for subdev nodes, do we ?
 > 
-> In the OMAP ISP driver, I'm interested in being able to choose between
-> 8-bit and 12-bit formats when I have a 12-bit sensor attached.  At the
-> moment it looks like it's only possible to define this statically with
-> data_lane_shift in the board definition.  But with the ISP's lane
-> shifter, it should be possible for the application to ask for 8-bits
-> although it has a 12-bit sensor attached.
+> Why not? It makes the use of v4l2-dbg a bit easier if it is there. If you
+> provide g/s_register, then you should provide this one as well.
 
-That's right. This would be an interesting feature for the driver. It's also 
-possible to implement this at the input of the video port (but only when 
-forwarding data to the preview engine).
+Because v4l2_dbg_register::match is used to address a specific subdevice. When 
+issuing the VIDIOC_DBG_[GS]_REGISTER ioctls on a subdev device node, the field 
+isn't needed anymore.
 
-> Has anybody already begun implementing this functionality?
-
-Not that I know of.
-
-> One approach that comes to mind is to create a subdev for the
-> bridge/lane shifter in front of the CCDC, but this also seems a bit
-> overkill.  Otherwise, perhaps consider the lane shifter a part of the
-> CCDC and put the code in there?
-
-I would keep the code in isp.c, and call it from ccdc_configure(). It should 
-just be a matter of adding an argument to the function.
-
-> Then ccdc_try_format() would have to check whether the sink pad has a pixel
-> format which is shiftable to the requested pixel format on the source pad. 
-> A problem with this might be if there are architectures which have a CCDC
-> but no shifter.
-
-The CCDC module already calls isp_configure_bridge(), so I don't think it's an 
-issue for now. Let's fix the code when (and if) we start using the driver on a 
-platform without a lane shifter.
-
-> Are there other approaches I'm not considering?  Or problems I'm
-> overlooking?
-
-As the lane shifter is located at the CCDC input, it might be easier to 
-implement support for this using the CCDC input format. ispvideo.c would need 
-to validate the pipeline when the output of the entity connected to the CCDC 
-input (parallel sensor, CCP2 or CSI2) is configured with a format that can be 
-shifted to the format at the CCDC input.
-
-> Also- it looks like the CCDC now supports writing 12-bit bayer
-> data to memory.  Is that true?
-
-That's correct. It will support 8-bit grey data soon (patches have been 
-submitted internally already).
+> I though of another one that should be handled in the framework:
+> VIDIOC_LOG_STATUS.
+> 
+> That definitely should be handled as well.
 
 -- 
 Regards,
