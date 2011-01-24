@@ -1,217 +1,219 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59830 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:37024 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753414Ab1A0Ma4 (ORCPT
+	with ESMTP id S1752357Ab1AXLcI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Jan 2011 07:30:56 -0500
+	Mon, 24 Jan 2011 06:32:08 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [PATCH v6 01/11] v4l: Move the media/v4l2-mediabus.h header to include/linux
-Date: Thu, 27 Jan 2011 13:30:46 +0100
-Message-Id: <1296131456-30000-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1296131456-30000-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1296131456-30000-1-git-send-email-laurent.pinchart@ideasonboard.com>
+To: martin@neutronstar.dyndns.org
+Subject: Re: [PATCH] v4l: Add driver for Micron MT9M032 camera sensor
+Date: Mon, 24 Jan 2011 12:32:12 +0100
+Cc: linux-media@vger.kernel.org
+References: <1295389122-30325-1-git-send-email-martin@neutronstar.dyndns.org> <20110120225607.GD13173@neutronstar.dyndns.org>
+In-Reply-To: <20110120225607.GD13173@neutronstar.dyndns.org>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201101241232.12633.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The header defines the v4l2_mbus_framefmt structure which will be used
-by the V4L2 subdevs userspace API.
+Hi Martin,
 
-Change the type of the v4l2_mbus_framefmt::code field to __u32, as enum
-sizes can differ between different ABIs on the same architectures.
+On Thursday 20 January 2011 23:56:07 martin@neutronstar.dyndns.org wrote:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- include/linux/Kbuild          |    1 +
- include/linux/v4l2-mediabus.h |   78 +++++++++++++++++++++++++++++++++++++++++
- include/media/soc_mediabus.h  |    3 +-
- include/media/v4l2-mediabus.h |   61 +-------------------------------
- 4 files changed, 81 insertions(+), 62 deletions(-)
- create mode 100644 include/linux/v4l2-mediabus.h
+[snip]
 
-diff --git a/include/linux/Kbuild b/include/linux/Kbuild
-index 26e0a7f..796e1d8 100644
---- a/include/linux/Kbuild
-+++ b/include/linux/Kbuild
-@@ -366,6 +366,7 @@ header-y += unistd.h
- header-y += usbdevice_fs.h
- header-y += utime.h
- header-y += utsname.h
-+header-y += v4l2-mediabus.h
- header-y += veth.h
- header-y += vhost.h
- header-y += videodev.h
-diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
-new file mode 100644
-index 0000000..a62cd64
---- /dev/null
-+++ b/include/linux/v4l2-mediabus.h
-@@ -0,0 +1,78 @@
-+/*
-+ * Media Bus API header
-+ *
-+ * Copyright (C) 2009, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef __LINUX_V4L2_MEDIABUS_H
-+#define __LINUX_V4L2_MEDIABUS_H
-+
-+#include <linux/types.h>
-+#include <linux/videodev2.h>
-+
-+/*
-+ * These pixel codes uniquely identify data formats on the media bus. Mostly
-+ * they correspond to similarly named V4L2_PIX_FMT_* formats, format 0 is
-+ * reserved, V4L2_MBUS_FMT_FIXED shall be used by host-client pairs, where the
-+ * data format is fixed. Additionally, "2X8" means that one pixel is transferred
-+ * in two 8-bit samples, "BE" or "LE" specify in which order those samples are
-+ * transferred over the bus: "LE" means that the least significant bits are
-+ * transferred first, "BE" means that the most significant bits are transferred
-+ * first, and "PADHI" and "PADLO" define which bits - low or high, in the
-+ * incomplete high byte, are filled with padding bits.
-+ */
-+enum v4l2_mbus_pixelcode {
-+	V4L2_MBUS_FMT_FIXED = 1,
-+	V4L2_MBUS_FMT_YUYV8_2X8,
-+	V4L2_MBUS_FMT_YVYU8_2X8,
-+	V4L2_MBUS_FMT_UYVY8_2X8,
-+	V4L2_MBUS_FMT_VYUY8_2X8,
-+	V4L2_MBUS_FMT_YVYU10_2X10,
-+	V4L2_MBUS_FMT_YUYV10_2X10,
-+	V4L2_MBUS_FMT_YVYU10_1X20,
-+	V4L2_MBUS_FMT_YUYV10_1X20,
-+	V4L2_MBUS_FMT_RGB444_2X8_PADHI_LE,
-+	V4L2_MBUS_FMT_RGB444_2X8_PADHI_BE,
-+	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
-+	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE,
-+	V4L2_MBUS_FMT_RGB565_2X8_LE,
-+	V4L2_MBUS_FMT_RGB565_2X8_BE,
-+	V4L2_MBUS_FMT_BGR565_2X8_LE,
-+	V4L2_MBUS_FMT_BGR565_2X8_BE,
-+	V4L2_MBUS_FMT_SBGGR8_1X8,
-+	V4L2_MBUS_FMT_SBGGR10_1X10,
-+	V4L2_MBUS_FMT_GREY8_1X8,
-+	V4L2_MBUS_FMT_Y10_1X10,
-+	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE,
-+	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE,
-+	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
-+	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
-+	V4L2_MBUS_FMT_SGRBG8_1X8,
-+	V4L2_MBUS_FMT_SBGGR12_1X12,
-+	V4L2_MBUS_FMT_YUYV8_1_5X8,
-+	V4L2_MBUS_FMT_YVYU8_1_5X8,
-+	V4L2_MBUS_FMT_UYVY8_1_5X8,
-+	V4L2_MBUS_FMT_VYUY8_1_5X8,
-+};
-+
-+/**
-+ * struct v4l2_mbus_framefmt - frame format on the media bus
-+ * @width:	frame width
-+ * @height:	frame height
-+ * @code:	data format code
-+ * @field:	used interlacing type
-+ * @colorspace:	colorspace of the data
-+ */
-+struct v4l2_mbus_framefmt {
-+	__u32				width;
-+	__u32				height;
-+	__u32				code;
-+	enum v4l2_field			field;
-+	enum v4l2_colorspace		colorspace;
-+};
-+
-+#endif
-diff --git a/include/media/soc_mediabus.h b/include/media/soc_mediabus.h
-index 037cd7b..6243147 100644
---- a/include/media/soc_mediabus.h
-+++ b/include/media/soc_mediabus.h
-@@ -12,8 +12,7 @@
- #define SOC_MEDIABUS_H
- 
- #include <linux/videodev2.h>
--
--#include <media/v4l2-mediabus.h>
-+#include <linux/v4l2-mediabus.h>
- 
- /**
-  * enum soc_mbus_packing - data packing types on the media-bus
-diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-index 8e65598..971c7fa 100644
---- a/include/media/v4l2-mediabus.h
-+++ b/include/media/v4l2-mediabus.h
-@@ -11,66 +11,7 @@
- #ifndef V4L2_MEDIABUS_H
- #define V4L2_MEDIABUS_H
- 
--/*
-- * These pixel codes uniquely identify data formats on the media bus. Mostly
-- * they correspond to similarly named V4L2_PIX_FMT_* formats, format 0 is
-- * reserved, V4L2_MBUS_FMT_FIXED shall be used by host-client pairs, where the
-- * data format is fixed. Additionally, "2X8" means that one pixel is transferred
-- * in two 8-bit samples, "BE" or "LE" specify in which order those samples are
-- * transferred over the bus: "LE" means that the least significant bits are
-- * transferred first, "BE" means that the most significant bits are transferred
-- * first, and "PADHI" and "PADLO" define which bits - low or high, in the
-- * incomplete high byte, are filled with padding bits.
-- */
--enum v4l2_mbus_pixelcode {
--	V4L2_MBUS_FMT_FIXED = 1,
--	V4L2_MBUS_FMT_YUYV8_2X8,
--	V4L2_MBUS_FMT_YVYU8_2X8,
--	V4L2_MBUS_FMT_UYVY8_2X8,
--	V4L2_MBUS_FMT_VYUY8_2X8,
--	V4L2_MBUS_FMT_YVYU10_2X10,
--	V4L2_MBUS_FMT_YUYV10_2X10,
--	V4L2_MBUS_FMT_YVYU10_1X20,
--	V4L2_MBUS_FMT_YUYV10_1X20,
--	V4L2_MBUS_FMT_RGB444_2X8_PADHI_LE,
--	V4L2_MBUS_FMT_RGB444_2X8_PADHI_BE,
--	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
--	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE,
--	V4L2_MBUS_FMT_RGB565_2X8_LE,
--	V4L2_MBUS_FMT_RGB565_2X8_BE,
--	V4L2_MBUS_FMT_BGR565_2X8_LE,
--	V4L2_MBUS_FMT_BGR565_2X8_BE,
--	V4L2_MBUS_FMT_SBGGR8_1X8,
--	V4L2_MBUS_FMT_SBGGR10_1X10,
--	V4L2_MBUS_FMT_GREY8_1X8,
--	V4L2_MBUS_FMT_Y10_1X10,
--	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE,
--	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE,
--	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
--	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
--	V4L2_MBUS_FMT_SGRBG8_1X8,
--	V4L2_MBUS_FMT_SBGGR12_1X12,
--	V4L2_MBUS_FMT_YUYV8_1_5X8,
--	V4L2_MBUS_FMT_YVYU8_1_5X8,
--	V4L2_MBUS_FMT_UYVY8_1_5X8,
--	V4L2_MBUS_FMT_VYUY8_1_5X8,
--};
--
--/**
-- * struct v4l2_mbus_framefmt - frame format on the media bus
-- * @width:	frame width
-- * @height:	frame height
-- * @code:	data format code
-- * @field:	used interlacing type
-- * @colorspace:	colorspace of the data
-- */
--struct v4l2_mbus_framefmt {
--	__u32				width;
--	__u32				height;
--	enum v4l2_mbus_pixelcode	code;
--	enum v4l2_field			field;
--	enum v4l2_colorspace		colorspace;
--};
-+#include <linux/v4l2-mediabus.h>
- 
- static inline void v4l2_fill_pix_format(struct v4l2_pix_format *pix_fmt,
- 				const struct v4l2_mbus_framefmt *mbus_fmt)
+> >> +static unsigned long mt9m032_row_time(struct mt9m032 *sensor, int
+> >> width) +{
+> >> +	int effective_width;
+> >> +	u64 ns;
+> >> +	effective_width = width + 716; /* emperical value */
+> > 
+> > Where does it come from ?
+> 
+> Like the comment says, it's just what the hardware seems to do from
+> measureing framerates. Sadly i couldn't find anything exact anywhere...
+
+:-( Is the datasheet publicly available ?
+
+[snip]
+
+> >> +	row_time = mt9m032_row_time(sensor, crop->width);
+> >> +	do_div(ns, row_time);
+> >> +
+> >> +	additional_blanking_rows = ns - crop->height;
+> >> +
+> >> +	/* enforce minimal 1.6ms blanking time. */
+> >> +	min_blank = 1600000 / row_time;
+> >> +	if (additional_blanking_rows < min_blank)
+> >> +		additional_blanking_rows = min_blank;
+> > 
+> > You can use the min() macro.
+> 
+> I'm pretty sure it's the max() one, but yes.
+>
+> >> +	dev_dbg(to_dev(sensor),
+> >> +		"%s: V-blank %i\n", __func__, additional_blanking_rows);
+> >> +	if (additional_blanking_rows > 0x7ff) {
+> >> +		/* hardware limits 11 bit values */
+> >> +		dev_warn(to_dev(sensor),
+> >> +			"mt9m032: frame rate too low.\n");
+> >> +		additional_blanking_rows = 0x7ff;
+> >> +	}
+> > 
+> > Or rather the clamp() macro.
+> 
+> I think the error reporting reads more natual when doing the upper bound in
+> the if.
+
+I would just do
+
+	additional_blanking_rows = clamp(ns - crop->height, min_blank, 0x7ff);
+
+I don't think there's a need for any error reporting here. What you must do 
+instead is to limit the frame rate to hardware-acceptable values when the user 
+tries to set it.
+
+[snip]
+
+> >> +static int update_formatter2(struct mt9m032 *sensor, bool streaming)
+> >> +{
+> >> +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+> >> +
+> >> +	u16 reg_val =   0x1000   /* Dout enable */
+> >> +		      | 0x0070;  /* parts reserved! */
+> >> +				 /* possibly for changing to 14-bit mode */
+> >> +
+> >> +	if (streaming)
+> >> +		reg_val |= 0x2000;   /* pixclock enable */
+> > 
+> > Please define constants at the beginning of the file (with the register
+> > addresses) instead of using magic numbers.
+> 
+> I'm using defines for all register numbers where i know the function
+> reasonably well and explicit comments or variable names for all the bits i
+> set in these registers. (And each register is only set in one function)
+> 
+> I think that should be quite decent. Sadly from the material i have i have a
+> lot of just undocumented pokeing at reserved bits to keep. For these cases i
+> marked it in the code somehow are reserved and didn't do any defines for the
+> register names because they would be useless.
+
+How did you get the information in the first place ?
+
+> Do you think this is acceptable? Or do i need to have a define for each
+> known bit position the driver sets?
+
+Please define them. See 
+http://git.linuxtv.org/pinchartl/media.git?a=commitdiff;h=26e4a508f6e0fcb416e21bd29967ce6e2622abc7;hp=10affb3c5e0c8ae74461c1b6a4ca6ed5251c27d8#patch3
+
+> What would i do with the undocumented bits?
+> 
+> >> +#define OFFSET_UNCHANGED	0xFFFFFFFF
+> >> +static int mt9m032_set_pad_geom(struct mt9m032 *sensor,
+> >> +				struct v4l2_subdev_fh *fh,
+> >> +				u32 which, u32 pad,
+> >> +				s32 top, s32 left, s32 width, s32 height)
+> >> +{
+> >> +	struct v4l2_mbus_framefmt tmp_format;
+> >> +	struct v4l2_rect tmp_crop;
+> >> +	struct v4l2_mbus_framefmt *format;
+> >> +	struct v4l2_rect *crop;
+> >> +
+> >> +	if (pad != 0)
+> >> +		return -EINVAL;
+> >> +
+> >> +	format = __mt9m032_get_pad_format(sensor, fh, which);
+> >> +	crop = __mt9m032_get_pad_crop(sensor, fh, which);
+> >> +	if (!format || !crop)
+> >> +		return -EINVAL;
+> >> +	if (which == V4L2_SUBDEV_FORMAT_ACTIVE) {
+> >> +		tmp_crop = *crop;
+> >> +		tmp_format = *format;
+> >> +		format = &tmp_format;
+> >> +		crop = &tmp_crop;
+> >> +	}
+> >> +
+> >> +	if (top != OFFSET_UNCHANGED)
+> >> +		crop->top = top & ~0x1;
+> >> +	if (left != OFFSET_UNCHANGED)
+> >> +		crop->left = left;
+> >> +	crop->height = height;
+> >> +	crop->width = width & ~1;
+> >> +
+> >> +	format->height = crop->height;
+> >> +	format->width = crop->width;
+> > 
+> > This looks very weird to me. If your sensor doesn't include a scaler, it
+> > should support a single fixed format. Crop will then be used to select
+> > the crop rectangle. You're mixing the two for no obvious reason.
+> 
+> I think i have to have both size and crop writable. So i wrote the code to
+> just have format width/height and crop width/height to be equal at all
+> times. So actually almost all code for crop setting and format are shared.
+> 
+> As you wrote in your recent mail this api isn't really intuitive and i'm
+> not really sure what's the right thing to do thus i just copied the
+> semantics from an existing driver with similar capable hardware.
+> 
+> This code works nicely and media-ctl needs to be able to set the size so
+> that's the most logical i could come up with...
+
+See 
+http://git.linuxtv.org/pinchartl/media.git?a=commitdiff;h=10affb3c5e0c8ae74461c1b6a4ca6ed5251c27d8 
+for crop/format implementation for a sensor that supports cropping and 
+binning.
+
+> >> +static int mt9m032_set_gain(struct mt9m032 *sensor, s32 val)
+> >> +{
+> >> +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+> >> +	int digital_gain_val;	/* in 1/8th (0..127) */
+> >> +	int analog_mul;		/* 0 or 1 */
+> >> +	int analog_gain_val;	/* in 1/16th. (0..63) */
+> >> +	u16 reg_val;
+> >> +
+> >> +	digital_gain_val = 51; /* from setup example */
+> > 
+> > So the digital gain isn't configurable ?
+> 
+> Right. That's all that was needed and i couldn't come up with a simple and
+> nice way to map from one scalar to both digital and analog gain in a nice
+> way.
+
+What about 
+http://git.linuxtv.org/pinchartl/media.git?a=commitdiff;h=10affb3c5e0c8ae74461c1b6a4ca6ed5251c27d8 
+(search for V4L2_CID_GAIN) ?
+
+> >> +	ret = mt9m032_write_reg(client, MT9M032_PLL_CONFIG1, reg_pll1);
+> >> +	if (!ret)
+> >> +		ret = mt9m032_write_reg(client, 0x10, 0x53); /* Select PLL as clock
+> > 
+> > No magic numbers please.
+> 
+> Undocumented magical values is all that i have here. I just know these
+> values have to go there and are the comment text... Nothing hidden i have
+> access too.
+
+:-(
+
+> >> +static int mt9m032_get_chip_ident(struct v4l2_subdev *subdev,
+> >> +		       struct v4l2_dbg_chip_ident *chip)
+> >> +{
+> >> +	struct i2c_client *client = v4l2_get_subdevdata(subdev);
+> >> +
+> >> +	return v4l2_chip_ident_i2c_client(client, chip, V4L2_IDENT_MT9M032,
+> >> 0); +}
+> > 
+> > Is g_chip_ident needed ?
+> 
+> Some comments in the headers said i should implement this...
+
+See my answer to Hans about this. I don't think the operation is needed in 
+this case.
+
 -- 
-1.7.3.4
+Regards,
 
+Laurent Pinchart
