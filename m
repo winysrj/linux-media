@@ -1,52 +1,95 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:40730 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755031Ab1ATEwf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Jan 2011 23:52:35 -0500
-Received: by qyj19 with SMTP id 19so1476547qyj.19
-        for <linux-media@vger.kernel.org>; Wed, 19 Jan 2011 20:52:34 -0800 (PST)
-Subject: Re: [GIT PATCHES for 2.6.38] Zilog Z8 IR unit fixes
-Mime-Version: 1.0 (Apple Message framework v1082)
-Content-Type: text/plain; charset=us-ascii
-From: Jarod Wilson <jarod@wilsonet.com>
-In-Reply-To: <DF6BA086-43FF-4FD9-A30E-EB8AAF451A94@wilsonet.com>
-Date: Wed, 19 Jan 2011 23:52:31 -0500
-Cc: Jean Delvare <khali@linux-fr.org>, Mike Isely <isely@isely.net>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Jarod Wilson <jarod@redhat.com>, Janne Grunau <j@jannau.net>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:61708 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753354Ab1AXP1X (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Jan 2011 10:27:23 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id p0OFRMVs032422
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 24 Jan 2011 10:27:23 -0500
+Received: from pedra (vpn-236-9.phx2.redhat.com [10.3.236.9])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p0OFJARt027064
+	for <linux-media@vger.kernel.org>; Mon, 24 Jan 2011 10:27:21 -0500
+Date: Mon, 24 Jan 2011 13:18:40 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 05/13] [media] dw2102: Use multimedia keys instead of an
+ app-specific mapping
+Message-ID: <20110124131840.28802d35@pedra>
+In-Reply-To: <cover.1295882104.git.mchehab@redhat.com>
+References: <cover.1295882104.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <86D1EB39-C624-4AF9-96A4-26E139D89CD2@wilsonet.com>
-References: <1295205650.2400.27.camel@localhost> <1295234982.2407.38.camel@localhost> <848D2317-613E-42B1-950D-A227CFF15C5B@wilsonet.com> <1295439718.2093.17.camel@morgan.silverblock.net> <alpine.DEB.1.10.1101190714570.5396@ivanova.isely.net> <1295444282.4317.20.camel@morgan.silverblock.net> <20110119145002.6f94f800@endymion.delvare> <D7F0E4A6-5A23-4A28-95F8-0A088F1D6114@wilsonet.com> <20110119184322.0e5d12cd@endymion.delvare> <0281052D-AFBF-4764-ADFF-64EF0A0CC2CB@wilsonet.com> <DF6BA086-43FF-4FD9-A30E-EB8AAF451A94@wilsonet.com>
-To: Andy Walls <awalls@md.metrocast.net>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Jan 19, 2011, at 11:45 PM, Jarod Wilson wrote:
+This driver uses an app-specific keymap for one of the tables. This
+is wrong. Instead, use the standard keycodes.
 
-> So as we were discussing on irc today, the -EIO is within lirc_zilog's
-> send_boot_data() function. The firmware is loaded, and then we send the
-> z8 a command to activate the firmware, immediately follow by an attempt
-> to read the firmware version. The z8 is still busy when we do that, and
-> throwing in a simple mdelay() remedies the problem for both the hvr-1950
-> and the hdpvr -- tried 100 initially, and all the way down to 20 still
-> worked, didn't try any lower.
-> 
-> And I definitely horked up the hdpvr i2c a bit, but have a follow-up
-> patch that goes back to doing the right thing with two i2c_new_device()
-> calls, which I've successfully tested with the latest lirc_zilog plus
-> mdelay patch.
-> 
-> Will post patches tomorrow though, its already past my bed time.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-D'oh. Forgot to mention: while lirc_zilog tx binds to the hvr-1950, it
-doesn't actually work, I get -EIO when trying to transmit, iirc. So that
-is on the list of things to poke at some tomorrow as well.
-
+diff --git a/drivers/media/dvb/dvb-usb/dw2102.c b/drivers/media/dvb/dvb-usb/dw2102.c
+index 2c307ba..3544dff 100644
+--- a/drivers/media/dvb/dvb-usb/dw2102.c
++++ b/drivers/media/dvb/dvb-usb/dw2102.c
+@@ -949,8 +949,8 @@ static int dw3101_tuner_attach(struct dvb_usb_adapter *adap)
+ }
+ 
+ static struct rc_map_table rc_map_dw210x_table[] = {
+-	{ 0xf80a, KEY_Q },		/*power*/
+-	{ 0xf80c, KEY_M },		/*mute*/
++	{ 0xf80a, KEY_POWER2 },		/*power*/
++	{ 0xf80c, KEY_MUTE },		/*mute*/
+ 	{ 0xf811, KEY_1 },
+ 	{ 0xf812, KEY_2 },
+ 	{ 0xf813, KEY_3 },
+@@ -961,25 +961,25 @@ static struct rc_map_table rc_map_dw210x_table[] = {
+ 	{ 0xf818, KEY_8 },
+ 	{ 0xf819, KEY_9 },
+ 	{ 0xf810, KEY_0 },
+-	{ 0xf81c, KEY_PAGEUP },	/*ch+*/
+-	{ 0xf80f, KEY_PAGEDOWN },	/*ch-*/
+-	{ 0xf81a, KEY_O },		/*vol+*/
+-	{ 0xf80e, KEY_Z },		/*vol-*/
+-	{ 0xf804, KEY_R },		/*rec*/
+-	{ 0xf809, KEY_D },		/*fav*/
+-	{ 0xf808, KEY_BACKSPACE },	/*rewind*/
+-	{ 0xf807, KEY_A },		/*fast*/
+-	{ 0xf80b, KEY_P },		/*pause*/
+-	{ 0xf802, KEY_ESC },	/*cancel*/
+-	{ 0xf803, KEY_G },		/*tab*/
++	{ 0xf81c, KEY_CHANNELUP },	/*ch+*/
++	{ 0xf80f, KEY_CHANNELDOWN },	/*ch-*/
++	{ 0xf81a, KEY_VOLUMEUP },	/*vol+*/
++	{ 0xf80e, KEY_VOLUMEDOWN },	/*vol-*/
++	{ 0xf804, KEY_RECORD },		/*rec*/
++	{ 0xf809, KEY_FAVORITES },	/*fav*/
++	{ 0xf808, KEY_REWIND },		/*rewind*/
++	{ 0xf807, KEY_FASTFORWARD },	/*fast*/
++	{ 0xf80b, KEY_PAUSE },		/*pause*/
++	{ 0xf802, KEY_ESC },		/*cancel*/
++	{ 0xf803, KEY_TAB },		/*tab*/
+ 	{ 0xf800, KEY_UP },		/*up*/
+-	{ 0xf81f, KEY_ENTER },	/*ok*/
+-	{ 0xf801, KEY_DOWN },	/*down*/
+-	{ 0xf805, KEY_C },		/*cap*/
+-	{ 0xf806, KEY_S },		/*stop*/
+-	{ 0xf840, KEY_F },		/*full*/
+-	{ 0xf81e, KEY_W },		/*tvmode*/
+-	{ 0xf81b, KEY_B },		/*recall*/
++	{ 0xf81f, KEY_OK },		/*ok*/
++	{ 0xf801, KEY_DOWN },		/*down*/
++	{ 0xf805, KEY_CAMERA },		/*cap*/
++	{ 0xf806, KEY_STOP },		/*stop*/
++	{ 0xf840, KEY_ZOOM },		/*full*/
++	{ 0xf81e, KEY_TV },		/*tvmode*/
++	{ 0xf81b, KEY_LAST },		/*recall*/
+ };
+ 
+ static struct rc_map_table rc_map_tevii_table[] = {
 -- 
-Jarod Wilson
-jarod@wilsonet.com
-
+1.7.1
 
 
