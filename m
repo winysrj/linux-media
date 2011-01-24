@@ -1,91 +1,152 @@
 Return-path: <mchehab@pedra>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:52798 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932641Ab1AMMNR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Jan 2011 07:13:17 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=us-ascii
-Received: from eu_spt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LEY009T7NA1HE70@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 13 Jan 2011 12:13:13 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LEY00HW1NA1XZ@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 13 Jan 2011 12:13:13 +0000 (GMT)
-Date: Thu, 13 Jan 2011 13:13:10 +0100
-From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-Subject: RE: [GIT PATCHES FOR 2.6.38] Videbuf2 framework,
- NOON010PC30 sensor driver and s5p-fimc updates
-In-reply-to: <000001cbb2fe$5d8f2290$18ad67b0$%p@samsung.com>
-To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	'Mauro Carvalho Chehab' <mchehab@redhat.com>,
-	'Marek Szyprowski' <m.szyprowski@samsung.com>
-Cc: 'Sylwester Nawrocki' <s.nawrocki@samsung.com>, pawel@osciak.com,
-	linux-media@vger.kernel.org
-Message-id: <000701cbb31b$3e692c40$bb3b84c0$%p@samsung.com>
-Content-language: pl
-References: <4D21FDC1.7000803@samsung.com> <4D2CBB3F.5050904@redhat.com>
- <000001cbb243$1051cb60$30f56220$%szyprowski@samsung.com>
- <4D2E0DD8.4010305@redhat.com> <000001cbb2fe$5d8f2290$18ad67b0$%p@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:19284 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753078Ab1AXPTM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Jan 2011 10:19:12 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id p0OFJBfB030947
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 24 Jan 2011 10:19:11 -0500
+Received: from pedra (vpn-236-9.phx2.redhat.com [10.3.236.9])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p0OFJARl027064
+	for <linux-media@vger.kernel.org>; Mon, 24 Jan 2011 10:19:10 -0500
+Date: Mon, 24 Jan 2011 13:18:45 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 11/13] [media] rc-rc5-hauppauge-new: Fix Hauppauge Grey
+ mapping
+Message-ID: <20110124131845.5801dadd@pedra>
+In-Reply-To: <cover.1295882104.git.mchehab@redhat.com>
+References: <cover.1295882104.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello again, Mauro,
+The keys for the old black were messed with the ones for the
+hauppauge grey. Fix it.
 
-On Thursday, January 13, 2011 9:46 AM Andrzej Pietrasiewicz  wrote:
+Also, fixes some keycodes and order the keys according with
+the way they appear inside the remote controller.
 
-> 
-> Hello Mauro,
-> 
-> On Wednesday, January 12, 2011 9:24 PM Mauro Carvalho Chehab wrote:
-> >
-> > Em 12-01-2011 08:25, Marek Szyprowski escreveu:
-> > > Hello Mauro,
-> > >
-> > > I've rebased our fimc and saa patches onto
-> > http://linuxtv.org/git/mchehab/experimental.git
-> > > vb2_test branch.
-> > >
-> > > The last 2 patches are for SAA7134 driver and are only to show that
-> > videobuf2-dma-sg works
-> > > correctly.
-> >
-> > On my first test with saa7134, it hanged. It seems that the code
-> > reached a dead lock.
-> >
-> > On my test environment, I'm using a remote machine, without monitor.
-> > My test is using
-> > qv4l2 via a remote X server. Using a remote X server is an
-> interesting
-> > test, as it will likely loose some frames, increasing the probability
-> > of races and dead locks.
-> >
-> 
-> We did a similar test using a remote machine and qv4l2 with X
-> forwarding.
-> Both userptr and mmap worked. Read does not work because it is not
-> implemented, but there was no freeze anyway, just green screen in
-> qv4l2.
-> However, we set "Capture Image Formats" to "YUV - 4:2:2 packed, YUV",
-> "TV Standard" to "PAL". I enclose a (lengthy) log for reference - it is
-> a log of a short session when modules where loaded, qv4l2 started,
-> userptr mode run for a while and then mmap mode run for a while.
-> 
-> We did it on a 32-bit system. We are going to repeat the test on a 64-
-> bit system, it just takes some time to set it up. Perhaps this is the
-> difference.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-We did the test on a 64-bit system, both locally and with X forwarding to a
-remote machine. It works in both cases.
-Our TV card is "Avermedia AverTV Super 007" pure analog. Yours is a hybrid
-analog/ISDB card. Does your card work with videobuf 1? Perhaps you could do
-such a test: please use code from the commit f73e66a8e91e4ebb "v4l: saa7134:
-remove radio, vbi, mpeg, input, alsa, tvaudio, saa6752hs support" and see if
-you TV card works with videobuf (not videobuf2)?
-
-Andrzej
+diff --git a/drivers/media/rc/keymaps/rc-rc5-hauppauge-new.c b/drivers/media/rc/keymaps/rc-rc5-hauppauge-new.c
+index 4106008..cb312da 100644
+--- a/drivers/media/rc/keymaps/rc-rc5-hauppauge-new.c
++++ b/drivers/media/rc/keymaps/rc-rc5-hauppauge-new.c
+@@ -24,61 +24,67 @@ static struct rc_map_table rc5_hauppauge_new[] = {
+ 	 * Remote Controller Hauppauge Gray found on modern devices
+ 	 * Keycodes start with address = 0x1e
+ 	 */
+-	/* Keys 0 to 9 */
+-	{ 0x1e00, KEY_0 },
++
++	{ 0x1e3b, KEY_SELECT },		/* GO / house symbol */
++	{ 0x1e3d, KEY_POWER2 },		/* system power (green button) */
++
++	{ 0x1e1c, KEY_TV },
++	{ 0x1e18, KEY_VIDEO },		/* Videos */
++	{ 0x1e19, KEY_AUDIO },		/* Music */
++	{ 0x1e1a, KEY_CAMERA },		/* Pictures */
++
++	{ 0x1e1b, KEY_EPG },		/* Guide */
++	{ 0x1e0c, KEY_RADIO },
++
++	{ 0x1e14, KEY_UP },
++	{ 0x1e15, KEY_DOWN },
++	{ 0x1e16, KEY_LEFT },
++	{ 0x1e17, KEY_RIGHT },
++	{ 0x1e25, KEY_OK },		/* OK */
++
++	{ 0x1e1f, KEY_EXIT },		/* back/exit */
++	{ 0x1e0d, KEY_MENU },
++
++	{ 0x1e10, KEY_VOLUMEUP },
++	{ 0x1e11, KEY_VOLUMEDOWN },
++
++	{ 0x1e12, KEY_PREVIOUS },	/* previous channel */
++	{ 0x1e0f, KEY_MUTE },
++
++	{ 0x1e20, KEY_CHANNELUP },	/* channel / program + */
++	{ 0x1e21, KEY_CHANNELDOWN },	/* channel / program - */
++
++	{ 0x1e37, KEY_RECORD },		/* recording */
++	{ 0x1e36, KEY_STOP },
++
++	{ 0x1e32, KEY_REWIND },		/* backward << */
++	{ 0x1e35, KEY_PLAY },
++	{ 0x1e34, KEY_FASTFORWARD },	/* forward >> */
++
++	{ 0x1e24, KEY_PREVIOUSSONG },	/* replay |< */
++	{ 0x1e30, KEY_PAUSE },		/* pause */
++	{ 0x1e1e, KEY_NEXTSONG },	/* skip >| */
++
+ 	{ 0x1e01, KEY_1 },
+ 	{ 0x1e02, KEY_2 },
+ 	{ 0x1e03, KEY_3 },
++
+ 	{ 0x1e04, KEY_4 },
+ 	{ 0x1e05, KEY_5 },
+ 	{ 0x1e06, KEY_6 },
++
+ 	{ 0x1e07, KEY_7 },
+ 	{ 0x1e08, KEY_8 },
+ 	{ 0x1e09, KEY_9 },
+ 
+ 	{ 0x1e0a, KEY_TEXT },		/* keypad asterisk as well */
++	{ 0x1e00, KEY_0 },
++	{ 0x1e0e, KEY_SUBTITLE },	/* also the Pound key (#) */
++
+ 	{ 0x1e0b, KEY_RED },		/* red button */
+-	{ 0x1e0c, KEY_RADIO },
+-	{ 0x1e0d, KEY_MENU },
+-	{ 0x1e0e, KEY_SUBTITLE },		/* also the # key */
+-	{ 0x1e0f, KEY_MUTE },
+-	{ 0x1e10, KEY_VOLUMEUP },
+-	{ 0x1e11, KEY_VOLUMEDOWN },
+-	{ 0x1e12, KEY_PREVIOUS },		/* previous channel */
+-	{ 0x1e14, KEY_UP },
+-	{ 0x1e15, KEY_DOWN },
+-	{ 0x1e16, KEY_LEFT },
+-	{ 0x1e17, KEY_RIGHT },
+-	{ 0x1e18, KEY_VCR },		/* Videos */
+-	{ 0x1e19, KEY_AUDIO },		/* Music */
+-	/* 0x1e1a: Pictures - presume this means
+-	   "Multimedia Home Platform" -
+-	   no "PICTURES" key in input.h
+-	 */
+-	{ 0x1e1a, KEY_CAMERA },
+-
+-	{ 0x1e1b, KEY_EPG },		/* Guide */
+-	{ 0x1e1c, KEY_TV },
+-	{ 0x1e1e, KEY_NEXTSONG },		/* skip >| */
+-	{ 0x1e1f, KEY_EXIT },		/* back/exit */
+-	{ 0x1e20, KEY_CHANNELUP },	/* channel / program + */
+-	{ 0x1e21, KEY_CHANNELDOWN },	/* channel / program - */
+-	{ 0x1e22, KEY_VIDEO },		/* source (old black remote) */
+-	{ 0x1e24, KEY_PREVIOUSSONG },	/* replay |< */
+-	{ 0x1e25, KEY_ENTER },		/* OK */
+-	{ 0x1e26, KEY_SLEEP },		/* minimize (old black remote) */
+-	{ 0x1e29, KEY_BLUE },		/* blue key */
+ 	{ 0x1e2e, KEY_GREEN },		/* green button */
+-	{ 0x1e30, KEY_PAUSE },		/* pause */
+-	{ 0x1e32, KEY_REWIND },		/* backward << */
+-	{ 0x1e34, KEY_FASTFORWARD },	/* forward >> */
+-	{ 0x1e35, KEY_PLAY },
+-	{ 0x1e36, KEY_STOP },
+-	{ 0x1e37, KEY_RECORD },		/* recording */
+ 	{ 0x1e38, KEY_YELLOW },		/* yellow key */
+-	{ 0x1e3b, KEY_SELECT },		/* top right button */
+-	{ 0x1e3c, KEY_ZOOM },		/* full */
+-	{ 0x1e3d, KEY_POWER },		/* system power (green button) */
++	{ 0x1e29, KEY_BLUE },		/* blue key */
+ 
+ 	/*
+ 	 * Old Remote Controller Hauppauge Gray with a golden screen
+-- 
+1.7.1
 
 
