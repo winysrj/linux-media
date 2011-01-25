@@ -1,203 +1,147 @@
 Return-path: <mchehab@pedra>
-Received: from cnc.isely.net ([64.81.146.143]:42657 "EHLO cnc.isely.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751253Ab1AQC1H (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Jan 2011 21:27:07 -0500
-Date: Sun, 16 Jan 2011 20:27:03 -0600 (CST)
-From: Mike Isely <isely@isely.net>
-To: Andy Walls <awalls@md.metrocast.net>
-cc: linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
-	Janne Grunau <j@jannau.net>, Jarod Wilson <jarod@wilsonet.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Mike Isely <isely@isely.net>
-Subject: Re: [RFC PATCH] pvrusb2: Provide more information about IR units to
- lirc_zilog and ir-kbd-i2c
-In-Reply-To: <1295225086.2400.119.camel@localhost>
-Message-ID: <alpine.DEB.1.10.1101162018420.5396@ivanova.isely.net>
-References: <1295225086.2400.119.camel@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2029 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751855Ab1AYIDD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Jan 2011 03:03:03 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Kim HeungJun <riverful@gmail.com>
+Subject: Re: [RFC PATCH 03/12] mt9m001: convert to the control framework.
+Date: Tue, 25 Jan 2011 09:02:58 +0100
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
+	Kuninori Morimoto <morimoto.kuninori@renesas.com>,
+	Alberto Panizzo <maramaopercheseimorto@gmail.com>,
+	Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>,
+	Marek Vasut <marek.vasut@gmail.com>,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+References: <1294787172-13638-1-git-send-email-hverkuil@xs4all.nl> <Pine.LNX.4.64.1101222135010.31015@axis700.grange> <EF95014F-3C7A-46E3-B298-032E0CB58D61@gmail.com>
+In-Reply-To: <EF95014F-3C7A-46E3-B298-032E0CB58D61@gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="euc-kr"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201101250902.58987.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-
-Andy:
-
-Is the IR_i2c_init_data struct instance required to remain around for 
-the life of the driver's registration and is that why you stuffed it 
-into the pvr2_hdw struct?  Second: If the first question is yes, then is 
-that struct considered to be read-only once it is set up and passed 
-through to the i2c device registration function?  In other words, could 
-that structure be a const static initialized at compile time, perhaps 
-as part of a table definition?
-
-I believe I follow this and it looks good.  The concept looks very 
-simple and it's nice that the changes are really only in a single spot.  
-Just thinking ahead about making the setup table-driven and not 
-requiring data segment storage.
-
-  -Mike
-
-
-Acked-By: Mike Isely <isely@pobox.com>
-
-On Sun, 16 Jan 2011, Andy Walls wrote:
-
->     
-> When registering an IR Rx device with the I2C subsystem, provide more detailed
-> information about the IR device and default remote configuration for the IR
-> driver modules.
->     
-> Also explicitly register any IR Tx device with the I2C subsystem.
->     
-> Signed-off-by: Andy Walls <awalls@md.metrocast.net>
-> Cc: Mike Isely <isely@isely.net>
+On Sunday, January 23, 2011 04:38:21 Kim HeungJun wrote:
+> Hello,
 > 
-> --
-> Mike,
+> I'm reading threads about the new v4l2_ctrl framework and If you don't mind
+> I gotta tell you my humble opinion about testing result the new v4l2_ctrl
+> framework subdev.
+> I have actually similar curcumstance, with I2C subdev M5MOLS Fujitsu device
+> which is just send the patch and S5PC210 board for testing this, except not
+> using soc_camera framework.
+> But, it's maybe helpful to discuss about this changes to everyone.
 > 
-> As discussed on IRC, this patch will enable lirc_zilog to bind to Zilog
-> Z8 IR units on devices supported by pvrusb2.
+> 2011. 1. 23., 오전 6:21, Guennadi Liakhovetski 작성:
 > 
-> Please review and comment.  This patch could have been written a number
-> of ways.  The way I chose was very direct: hard-coding information in a
-> single function.
+> > On Wed, 12 Jan 2011, Hans Verkuil wrote:
+> > 
+> >> Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
 > 
-> A git branch with this change, and the updated lirc_zilog, is here:
+> [snip]
 > 
-> 	git://linuxtv.org/awalls/media_tree.git z8-pvrusb2
+> >> -	case V4L2_CID_EXPOSURE:
+> >> -		/* mt9m001 has maximum == default */
+> >> -		if (ctrl->value > qctrl->maximum || ctrl->value < qctrl->minimum)
+> >> -			return -EINVAL;
+> >> -		else {
+> >> -			unsigned long range = qctrl->maximum - qctrl->minimum;
+> >> -			unsigned long shutter = ((ctrl->value - qctrl->minimum) * 1048 +
+> >> +	case V4L2_CID_EXPOSURE_AUTO:
+> >> +		/* Force manual exposure if only the exposure was changed */
+> >> +		if (!ctrl->has_new)
+> >> +			ctrl->val = V4L2_EXPOSURE_MANUAL;
+> >> +		if (ctrl->val == V4L2_EXPOSURE_MANUAL) {
+> >> +			unsigned long range = exp->maximum - exp->minimum;
+> >> +			unsigned long shutter = ((exp->val - exp->minimum) * 1048 +
+> >> 						 range / 2) / range + 1;
+> >> 
+> >> 			dev_dbg(&client->dev,
+> >> 				"Setting shutter width from %d to %lu\n",
+> >> -				reg_read(client, MT9M001_SHUTTER_WIDTH),
+> >> -				shutter);
+> >> +				reg_read(client, MT9M001_SHUTTER_WIDTH), shutter);
+> >> 			if (reg_write(client, MT9M001_SHUTTER_WIDTH, shutter) < 0)
+> >> 				return -EIO;
+> >> -			mt9m001->exposure = ctrl->value;
+> >> -			mt9m001->autoexposure = 0;
+> >> -		}
+> >> -		break;
+> >> -	case V4L2_CID_EXPOSURE_AUTO:
+> >> -		if (ctrl->value) {
+> >> +		} else {
+> >> 			const u16 vblank = 25;
+> >> 			unsigned int total_h = mt9m001->rect.height +
+> >> 				mt9m001->y_skip_top + vblank;
+> >> -			if (reg_write(client, MT9M001_SHUTTER_WIDTH,
+> >> -				      total_h) < 0)
+> >> +
+> >> +			if (reg_write(client, MT9M001_SHUTTER_WIDTH, total_h) < 0)
+> >> 				return -EIO;
+> >> -			qctrl = soc_camera_find_qctrl(icd->ops, V4L2_CID_EXPOSURE);
+> >> -			mt9m001->exposure = (524 + (total_h - 1) *
+> >> -				 (qctrl->maximum - qctrl->minimum)) /
+> >> -				1048 + qctrl->minimum;
+> >> -			mt9m001->autoexposure = 1;
+> >> -		} else
+> >> -			mt9m001->autoexposure = 0;
+> >> -		break;
+> >> +			exp->val = (524 + (total_h - 1) *
+> >> +					(exp->maximum - exp->minimum)) / 1048 +
+> >> +						exp->minimum;
+> >> +		}
+> >> +		return 0;
+> >> 	}
+> >> -	return 0;
+> >> +	return -EINVAL;
+> > 
+> > It seems to me, that you've dropped V4L2_CID_EXPOSURE here, was it 
+> > intentional? I won't verify this in detail now, because, if it wasn't 
+> > intentional and you fix it in v2, I'll have to re-check it anyway. Or is 
+> > it supposed to be handled by that V4L2_EXPOSURE_MANUAL? So, if the user 
+> > issues a V4L2_CID_EXPOSURE, are you getting V4L2_CID_EXPOSURE_AUTO with 
+> > val == V4L2_EXPOSURE_MANUAL instead? Weird...
 > 
-> 	http://git.linuxtv.org/awalls/media_tree.git?a=shortlog;h=refs/heads/z8-pvrusb2
+> I also wonder first at this part for a long time like below:
+> 
+> 1. when calling V4L2_CID_EXPOSURE_AUTO with V4L2_EXPOSURE_AUTO, it's ok.
+> 2. when calling V4L2_CID_EXPOSURE_AUTO with V4L2_EXPOSURE_MANUAL, it's
+> also ok.
+> 3. when calling V4L2_CID_EXPOSURE? where the device handle this CID?
+> 
+> but, after testing with application step by step, I finally know below:
+> when calling V4L2_CID_EXPOSURE, changing internal(v4l2_ctrl framework) variable,
+> exactly struct v4l2_ctrl exposure, which is register for probing time by
+> V4L2_CID_EXPOSURE, and clustered with struct v4l2_ctrl autoexposure. So, when
+> the device no needs to handle this values, but it automatically calls control clustered with
+> itself, in this case the V4L2_CID_EXPOSURE calls(just words)V4L2_CID_EXPOSURE_AUTO.
+> 
+> So, the my POV is that foo clustered with auto_foo calls auto_foo with foo's characteristics.  
+
+Correct. This tells me two things: 1) nobody ever reads documentation, and 2) I
+must place a comment in the code making people aware that the V4L2_CID_EXPOSURE_AUTO
+case will handle all controls in the cluster.
+
+Regards,
+
+	Hans
+
+> 
+> But, Hans probably would do more clear answer.
 > 
 > Regards,
-> Andy
+> Heungjun Kim
 > 
-> diff --git a/drivers/media/video/pvrusb2/pvrusb2-hdw-internal.h b/drivers/media/video/pvrusb2/pvrusb2-hdw-internal.h
-> index ac94a8b..305e6aa 100644
-> --- a/drivers/media/video/pvrusb2/pvrusb2-hdw-internal.h
-> +++ b/drivers/media/video/pvrusb2/pvrusb2-hdw-internal.h
-> @@ -40,6 +40,7 @@
->  #include "pvrusb2-io.h"
->  #include <media/v4l2-device.h>
->  #include <media/cx2341x.h>
-> +#include <media/ir-kbd-i2c.h>
->  #include "pvrusb2-devattr.h"
->  
->  /* Legal values for PVR2_CID_HSM */
-> @@ -202,6 +203,7 @@ struct pvr2_hdw {
->  
->  	/* IR related */
->  	unsigned int ir_scheme_active; /* IR scheme as seen from the outside */
-> +	struct IR_i2c_init_data ir_init_data; /* params passed to IR modules */
->  
->  	/* Frequency table */
->  	unsigned int freqTable[FREQTABLE_SIZE];
-> diff --git a/drivers/media/video/pvrusb2/pvrusb2-i2c-core.c b/drivers/media/video/pvrusb2/pvrusb2-i2c-core.c
-> index 7cbe18c..ccc8849 100644
-> --- a/drivers/media/video/pvrusb2/pvrusb2-i2c-core.c
-> +++ b/drivers/media/video/pvrusb2/pvrusb2-i2c-core.c
-> @@ -19,6 +19,7 @@
->   */
->  
->  #include <linux/i2c.h>
-> +#include <media/ir-kbd-i2c.h>
->  #include "pvrusb2-i2c-core.h"
->  #include "pvrusb2-hdw-internal.h"
->  #include "pvrusb2-debug.h"
-> @@ -48,13 +49,6 @@ module_param_named(disable_autoload_ir_video, pvr2_disable_ir_video,
->  MODULE_PARM_DESC(disable_autoload_ir_video,
->  		 "1=do not try to autoload ir_video IR receiver");
->  
-> -/* Mapping of IR schemes to known I2C addresses - if any */
-> -static const unsigned char ir_video_addresses[] = {
-> -	[PVR2_IR_SCHEME_ZILOG] = 0x71,
-> -	[PVR2_IR_SCHEME_29XXX] = 0x18,
-> -	[PVR2_IR_SCHEME_24XXX] = 0x18,
-> -};
-> -
->  static int pvr2_i2c_write(struct pvr2_hdw *hdw, /* Context */
->  			  u8 i2c_addr,      /* I2C address we're talking to */
->  			  u8 *data,         /* Data to write */
-> @@ -574,26 +568,56 @@ static void do_i2c_scan(struct pvr2_hdw *hdw)
->  static void pvr2_i2c_register_ir(struct pvr2_hdw *hdw)
->  {
->  	struct i2c_board_info info;
-> -	unsigned char addr = 0;
-> +	struct IR_i2c_init_data *init_data = &hdw->ir_init_data;
->  	if (pvr2_disable_ir_video) {
->  		pvr2_trace(PVR2_TRACE_INFO,
->  			   "Automatic binding of ir_video has been disabled.");
->  		return;
->  	}
-> -	if (hdw->ir_scheme_active < ARRAY_SIZE(ir_video_addresses)) {
-> -		addr = ir_video_addresses[hdw->ir_scheme_active];
-> -	}
-> -	if (!addr) {
-> +	memset(&info, 0, sizeof(struct i2c_board_info));
-> +	switch (hdw->ir_scheme_active) {
-> +	case PVR2_IR_SCHEME_24XXX: /* FX2-controlled IR */
-> +	case PVR2_IR_SCHEME_29XXX: /* Original 29xxx device */
-> +		init_data->ir_codes              = RC_MAP_HAUPPAUGE_NEW;
-> +		init_data->internal_get_key_func = IR_KBD_GET_KEY_HAUP;
-> +		init_data->type                  = RC_TYPE_RC5;
-> +		init_data->name                  = hdw->hdw_desc->description;
-> +		init_data->polling_interval      = 100; /* ms From ir-kbd-i2c */
-> +		/* IR Receiver */
-> +		info.addr          = 0x18;
-> +		info.platform_data = init_data;
-> +		strlcpy(info.type, "ir_video", I2C_NAME_SIZE);
-> +		pvr2_trace(PVR2_TRACE_INFO, "Binding %s to i2c address 0x%02x.",
-> +			   info.type, info.addr);
-> +		i2c_new_device(&hdw->i2c_adap, &info);
-> +		break;
-> +	case PVR2_IR_SCHEME_ZILOG:     /* HVR-1950 style */
-> +	case PVR2_IR_SCHEME_24XXX_MCE: /* 24xxx MCE device */
-> +		init_data->ir_codes              = RC_MAP_HAUPPAUGE_NEW;
-> +		init_data->internal_get_key_func = IR_KBD_GET_KEY_HAUP_XVR;
-> +		init_data->type                  = RC_TYPE_RC5;
-> +		init_data->name                  = hdw->hdw_desc->description;
-> +		init_data->polling_interval      = 260; /* ms From lirc_zilog */
-> +		/* IR Receiver */
-> +		info.addr          = 0x71;
-> +		info.platform_data = init_data;
-> +		strlcpy(info.type, "ir_rx_z8f0811_haup", I2C_NAME_SIZE);
-> +		pvr2_trace(PVR2_TRACE_INFO, "Binding %s to i2c address 0x%02x.",
-> +			   info.type, info.addr);
-> +		i2c_new_device(&hdw->i2c_adap, &info);
-> +		/* IR Trasmitter */
-> +		info.addr          = 0x70;
-> +		info.platform_data = init_data;
-> +		strlcpy(info.type, "ir_tx_z8f0811_haup", I2C_NAME_SIZE);
-> +		pvr2_trace(PVR2_TRACE_INFO, "Binding %s to i2c address 0x%02x.",
-> +			   info.type, info.addr);
-> +		i2c_new_device(&hdw->i2c_adap, &info);
-> +		break;
-> +	default:
->  		/* The device either doesn't support I2C-based IR or we
->  		   don't know (yet) how to operate IR on the device. */
-> -		return;
-> +		break;
->  	}
-> -	pvr2_trace(PVR2_TRACE_INFO,
-> -		   "Binding ir_video to i2c address 0x%02x.", addr);
-> -	memset(&info, 0, sizeof(struct i2c_board_info));
-> -	strlcpy(info.type, "ir_video", I2C_NAME_SIZE);
-> -	info.addr = addr;
-> -	i2c_new_device(&hdw->i2c_adap, &info);
->  }
->  
->  void pvr2_i2c_core_init(struct pvr2_hdw *hdw)
-> 
-> 
-> --
+>   --
 > To unsubscribe from this list: send the line "unsubscribe linux-media" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
+> 
 
 -- 
-
-Mike Isely
-isely @ isely (dot) net
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
+Hans Verkuil - video4linux developer - sponsored by Cisco
