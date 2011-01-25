@@ -1,60 +1,51 @@
 Return-path: <mchehab@pedra>
-Received: from bonnie-vm4.ifh.de ([141.34.50.21]:35424 "EHLO smtp.ifh.de"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1757490Ab1ANPPJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Jan 2011 10:15:09 -0500
-Date: Fri, 14 Jan 2011 15:51:32 +0100 (CET)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PULL] request for 2.6.38-rc1
-Message-ID: <alpine.LRH.2.00.1101141542460.6649@pub3.ifh.de>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:55235 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753836Ab1AYUtm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Jan 2011 15:49:42 -0500
+Message-ID: <4d3f3764.857a0e0a.122c.478e@mx.google.com>
+From: "Igor M. Liplianin" <liplianin@me.by>
+Date: Tue, 25 Jan 2011 22:07:00 +0200
+Subject: [PATCH 8/9 v3] cx23885: disable MSI for NetUP cards, otherwise CI is not working
+To: <mchehab@infradead.org>, <linux-media@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
+Signed-off-by: Igor M. Liplianin <liplianin@netup.ru>
+---
+ drivers/media/video/cx23885/cx23885-core.c |    4 ++++
+ drivers/media/video/cx23885/cx23885-reg.h  |    1 +
+ 2 files changed, 5 insertions(+), 0 deletions(-)
 
-if it is not too late, here is a pull request for some new devices from 
-DiBcom. It would be nice to have it in 2.6.38-rc1.
+diff --git a/drivers/media/video/cx23885/cx23885-core.c b/drivers/media/video/cx23885/cx23885-core.c
+index d778b1a..9933810 100644
+--- a/drivers/media/video/cx23885/cx23885-core.c
++++ b/drivers/media/video/cx23885/cx23885-core.c
+@@ -1041,6 +1041,10 @@ static int cx23885_dev_setup(struct cx23885_dev *dev)
+ 
+ 	cx23885_dev_checkrevision(dev);
+ 
++	/* disable MSI for NetUP cards, otherwise CI is not working */
++	if (cx23885_boards[dev->board].ci_type > 0)
++		cx_clear(RDR_RDRCTL1, 1 << 8);
++
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/video/cx23885/cx23885-reg.h b/drivers/media/video/cx23885/cx23885-reg.h
+index a28772d..c87ac68 100644
+--- a/drivers/media/video/cx23885/cx23885-reg.h
++++ b/drivers/media/video/cx23885/cx23885-reg.h
+@@ -292,6 +292,7 @@ Channel manager Data Structure entry = 20 DWORD
+ #define RDR_CFG0	0x00050000
+ #define RDR_CFG1	0x00050004
+ #define RDR_CFG2	0x00050008
++#define RDR_RDRCTL1	0x0005030c
+ #define RDR_TLCTL0	0x00050318
+ 
+ /* APB DMAC Current Buffer Pointer */
+-- 
+1.7.1
 
-Pull from
-
-git://linuxtv.org/pb/media_tree.git staging/for_2.6.38-rc1.dibcom
-
-for
-
-DiBxxxx: Codingstype updates
-DiB0700: add support for several board-layouts
-DiB7090: add support for the dib7090 based
-DIB9000: initial support added
-DiB0090: misc improvements
-DiBx000: add addition i2c-interface names
-DiB8000: add diversity support
-DiB0700: add function to change I2C-speed
-
-  drivers/media/dvb/dvb-usb/dib0700.h          |    2 +
-  drivers/media/dvb/dvb-usb/dib0700_core.c     |   47 +-
-  drivers/media/dvb/dvb-usb/dib0700_devices.c  | 1374 ++++++++++++++--
-  drivers/media/dvb/dvb-usb/dvb-usb-ids.h      |    5 +
-  drivers/media/dvb/frontends/Kconfig          |    8 +
-  drivers/media/dvb/frontends/Makefile         |    1 +
-  drivers/media/dvb/frontends/dib0090.c        | 1583 ++++++++++++++----
-  drivers/media/dvb/frontends/dib0090.h        |   31 +
-  drivers/media/dvb/frontends/dib7000p.c       | 1943 ++++++++++++++++------
-  drivers/media/dvb/frontends/dib7000p.h       |   96 +-
-  drivers/media/dvb/frontends/dib8000.c        |  833 ++++++----
-  drivers/media/dvb/frontends/dib8000.h        |   20 +
-  drivers/media/dvb/frontends/dib9000.c        | 2350 ++++++++++++++++++++++++++
-  drivers/media/dvb/frontends/dib9000.h        |  131 ++
-  drivers/media/dvb/frontends/dibx000_common.c |  279 +++-
-  drivers/media/dvb/frontends/dibx000_common.h |  152 ++-
-  16 files changed, 7487 insertions(+), 1368 deletions(-)
-
-
-best regards,
---
-
-Patrick Boettcher - Kernel Labs
-http://www.kernellabs.com/
