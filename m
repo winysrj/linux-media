@@ -1,34 +1,117 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:45842 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751625Ab1AYXzt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Jan 2011 18:55:49 -0500
-Received: by ewy5 with SMTP id 5so2956107ewy.19
-        for <linux-media@vger.kernel.org>; Tue, 25 Jan 2011 15:55:48 -0800 (PST)
+Received: from mx1.redhat.com ([209.132.183.28]:38843 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751977Ab1AYOnC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Jan 2011 09:43:02 -0500
+Message-ID: <4D3EE171.4020605@redhat.com>
+Date: Tue, 25 Jan 2011 12:42:57 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <AANLkTimDVfv-SGv8d0TVPPQD+eU8yUQ08MrCGXrXhMtz@mail.gmail.com>
-References: <AANLkTi=_LHucekW21KeGt3yWMNYHntQ5nVvHUO2EVHAO@mail.gmail.com>
-	<AANLkTimDK7kwV3AeZm5+56W3V_yp+nghq67qYP2r4DWq@mail.gmail.com>
-	<AANLkTimDVfv-SGv8d0TVPPQD+eU8yUQ08MrCGXrXhMtz@mail.gmail.com>
-Date: Tue, 25 Jan 2011 18:55:47 -0500
-Message-ID: <AANLkTi=wotgd2JQ5b65rh5ExoU=+c4cAOZNFAg-NzJwr@mail.gmail.com>
-Subject: Re: DVB driver for TerraTec H7 - how do I install them?
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Torfinn Ingolfsen <tingox@gmail.com>
-Cc: linux-media@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+CC: Mark Lord <kernel@teksavvy.com>,
+	Linux Kernel <linux-kernel@vger.kernel.org>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Extending rc-core/userspace to handle bigger scancodes - Was: Re:
+ 2.6.36/2.6.37: broken compatibility with userspace input-utils ?
+References: <20110124175456.GA17855@core.coreip.homeip.net> <4D3E1A08.5060303@teksavvy.com> <20110125005555.GA18338@core.coreip.homeip.net> <4D3E4DD1.60705@teksavvy.com> <20110125042016.GA7850@core.coreip.homeip.net> <4D3E5372.9010305@teksavvy.com> <20110125045559.GB7850@core.coreip.homeip.net> <4D3E59CA.6070107@teksavvy.com> <4D3E5A91.30207@teksavvy.com> <20110125053117.GD7850@core.coreip.homeip.net> <20110125065217.GE7850@core.coreip.homeip.net>
+In-Reply-To: <20110125065217.GE7850@core.coreip.homeip.net>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, Jan 25, 2011 at 6:29 PM, Torfinn Ingolfsen <tingox@gmail.com> wrote:
-> Anybody?
+Em 25-01-2011 04:52, Dmitry Torokhov escreveu:
+> On Mon, Jan 24, 2011 at 09:31:17PM -0800, Dmitry Torokhov wrote:
+>> On Tue, Jan 25, 2011 at 12:07:29AM -0500, Mark Lord wrote:
+>>> On 11-01-25 12:04 AM, Mark Lord wrote:
+>>>> On 11-01-24 11:55 PM, Dmitry Torokhov wrote:
+>>>>> On Mon, Jan 24, 2011 at 11:37:06PM -0500, Mark Lord wrote:
+>>>> ..
+>>>>>> This results in (map->size==10) for 2.6.36+ (wrong),
+>>>>>> and a much larger map->size for 2.6.35 and earlier.
+>>>>>>
+>>>>>> So perhaps EVIOCGKEYCODE has changed?
+>>>>>>
+>>>>>
+>>>>> So the utility expects that all devices have flat scancode space and
+>>>>> driver might have changed so it does not recognize scancode 10 as valid
+>>>>> scancode anymore.
+>>>>>
+>>>>> The options are:
+>>>>>
+>>>>> 1. Convert to EVIOCGKEYCODE2
+>>>>> 2. Ignore errors from EVIOCGKEYCODE and go through all 65536 iterations.
+>>>>
+>>>> or 3. Revert/fix the in-kernel regression.
+>>>>
+>>>> The EVIOCGKEYCODE ioctl is supposed to return KEY_RESERVED for unmapped
+>>>> (but value) keycodes, and only return -EINVAL when the keycode itself
+>>>> is out of range.
+>>>>
+>>>> That's how it worked in all kernels prior to 2.6.36,
+>>>> and now it is broken.  It now returns -EINVAL for any unmapped keycode,
+>>>> even though keycodes higher than that still have mappings.
+>>>>
+>>>> This is a bug, a regression, and breaks userspace.
+>>>> I haven't identified *where* in the kernel the breakage happened,
+>>>> though.. that code confuses me.  :)
+>>>
+>>> Note that this device DOES have "flat scancode space",
+>>> and the kernel is now incorrectly signalling an error (-EINVAL)
+>>> in response to a perfectly valid query of a VALID (and mappable)
+>>> keycode on the remote control
+>>>
+>>> The code really is a valid button, it just doesn't have a default mapping
+>>> set by the kernel (I can set a mapping for that code from userspace and it works).
+>>>
+>>
+>> OK, in this case let's ping Mauro - I think he done the adjustments to
+>> IR keymap hanlding.
+>>
+>> Thanks.
+>>
+> 
+> BTW, could you please try the following patch (it assumes that
+> EVIOCGVERSION in input.c is alreday relaxed).
 
-If Terratec provided the driver, any support related questions should
-be directed to them, not to this list.
+Dmitry,
 
-Devin
+Thanks for your patch. I used part of his logic to improve the ir-keytable 
+tool at v4l-utils:
+	http://git.linuxtv.org/v4l-utils.git
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+The ir-keytable is a tool that just handles Remote Controller input devices,
+and do it well, allowing all sorts of operations related to it, and using the
+sysfs /sys/class/rc stuff to help its operation. Without any arguments, it
+lists the existing RC devices. Arguments are there to allow enabling/disabling
+RC protocols, reading/writing/cleaning keycode tables and to test if the
+remote is generating events (EV_MSC/EV_KEY/EV_REP/EV_SYN).
+
+Now, it will be using V2 for reads and keycode cleanups, but will still use
+V1 for writes, as, currently with 32 bits scancodes, there's no gain to use
+V2 for it. Also, changing the tool to use more bits will require to rewrite
+part of the code.
+
+Also, writing a rc-core code that can work with an arbitrary large scancode
+is still on our TODO list.
+
+I'm not entirely sure how to extend the scancode size, as there are a
+few options:
+	1) Core would always work internally with 32 bytes (1024 bits). Some
+logic will be required to accept entries with .len < 32;
+	2) Drivers will define the code lengtht, and core will use it,
+returning -EINVAL if userspace uses a len grater than used internally by
+the core. In this case, we'll need a sysfs node to tell userspace what's
+the maximum allowed size;
+	3) Drivers will define the max number of bits, and core will use it,
+truncating the number to the max size if userspace tries to write more bits 
+than the internal representation;
+	4) Drivers will define the max number of bits, and core will use it,
+returning an error if the number is bigger than the max scancode that can be
+represented internally.
+
+I think that (2) is the best way for doing it, but I'm not yet entirely sure.
+So, it is good to hear some comments about that.
+
+Cheers,
+Mauro
