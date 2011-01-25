@@ -1,58 +1,85 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:8138 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753469Ab1AZRXm (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:64273 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751354Ab1AYFsj convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Jan 2011 12:23:42 -0500
-Date: Wed, 26 Jan 2011 12:23:41 -0500
-Subject: Re: [GIT PULL] More IR fixes for 2.6.38
-Message-ID: <yc7vxnkntxcbxdk5pe3jpndi.1296062052946@email.android.com>
-From: Andy Walls <awalls@md.metrocast.net>
-To: Jarod Wilson <jarod@redhat.com>, mchehab@redhat.com
-Cc: linux-media@vger.kernel.org
+	Tue, 25 Jan 2011 00:48:39 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
+From: halli manjunatha <manjunatha_halli@ti.com>
+Date: Tue, 25 Jan 2011 11:18:18 +0530
+Message-ID: <AANLkTinAYrGV1k357Bn8trtxafZDoYozG7LDcm3KNBSt@mail.gmail.com>
+Subject: [GIT PULL] TI WL 128x FM V4L2 driver
+To: linux-media <linux-media@vger.kernel.org>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-TWF1cm8sCgogSSBwbGFuIHRvIG1ha2UgZXh0ZW5zaXZlIGxpcmNfemlsb2cgY2hhbmdlcyBzdGFy
-dGluZyB0b25pZ2h0LCBzbyB0aGUgc29vbmVyIEphcnJvZCdzIGxpcmNfemlsb2cuYyBmaXggaXMg
-aW4gYSBtZWRpYV90cmVlIGJyYW5jaCwgdGhlIGxlc3MgcmViYXNlIEknbGwgaGF2ZSB0byBkby4g
-OikKClRoYW5rcy4KCkFuZHkKCkphcm9kIFdpbHNvbiA8amFyb2RAcmVkaGF0LmNvbT4gd3JvdGU6
-Cgo+TWF1cm8sCj4KPlBsZWFzZSBwdWxsIHRoZXNlIGFkZGl0aW9uYWwgSVIgZHJpdmVyIGZpeGVz
-IGFnYWluc3QgTGludXMnIHRyZWUgaW4gZm9yCj4yLjYuMzggbWVyZ2UuIFdpdGhvdXQgdGhlc2Us
-IG1jZXVzYiBpcyBzdGlsbCBicm9rZW4gKGtleWJvdW5jZSBpc3N1ZXMpLAo+dGhlIEhELVBWUiB0
-eCB3b24ndCB3b3JrLCBhbmQgaXIta2JkLWkyYyBiZWhhdmVzIGJhZGx5IHdpdGggYm90aCB0aGUK
-PkhELVBWUiBhbmQgdGhlIEhWUi0xOTUwLgo+Cj5UaGFua3MgbXVjaCEKPgo+VGhlIGZvbGxvd2lu
-ZyBjaGFuZ2VzIHNpbmNlIGNvbW1pdCA2ZmIxYjMwNDI1NWVmYzVjNGM5Mzg3NGFjOGMwNjYyNzJl
-MjU3ZTI4Ogo+Cj4gIE1lcmdlIGJyYW5jaCAnZm9yLWxpbnVzJyBvZiBnaXQ6Ly9naXQua2VybmVs
-Lm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvZHRvci9pbnB1dCAoMjAxMS0wMS0yNiAxNjoz
-MTo0NCArMTAwMCkKPgo+YXJlIGF2YWlsYWJsZSBpbiB0aGUgZ2l0IHJlcG9zaXRvcnkgYXQ6Cj4K
-PiAgZ2l0Oi8vbGludXh0di5vcmcvamFyb2QvbGludXgtMi42LWlyLmdpdCBmb3ItMi42LjM4Cj4K
-Pkphcm9kIFdpbHNvbiAoNyk6Cj4gICAgICByYy9tY2U6IGFkZCBtYXBwaW5ncyBmb3IgbWlzc2lu
-ZyBrZXlzCj4gICAgICBoZHB2cjogZml4IHVwIGkyYyBkZXZpY2UgcmVnaXN0cmF0aW9uCj4gICAg
-ICBsaXJjX3ppbG9nOiB6OCBvbiB1c2IgZG9lc24ndCBsaWtlIGJhY2stdG8tYmFjayBpMmNfbWFz
-dGVyX3NlbmQKPiAgICAgIGlyLWtiZC1pMmM6IGltcHJvdmUgcmVtb3RlIGJlaGF2aW9yIHdpdGgg
-ejggYmVoaW5kIHVzYgo+ICAgICAgcmMvaXItbGlyYy1jb2RlYzogYWRkIGJhY2sgZGVidWcgc3Bl
-dwo+ICAgICAgcmM6IHVzZSB0aW1lIHVuaXQgY29udmVyc2lvbiBtYWNyb3MgY29ycmVjdGx5Cj4g
-ICAgICBtY2V1c2I6IHJlYWxseSBmaXggcmVtYWluaW5nIGtleWJvdW5jZSBpc3N1ZXMKPgo+IGRy
-aXZlcnMvbWVkaWEvcmMvaXItbGlyYy1jb2RlYy5jICAgICAgICAgICAgICAgfCAgICA2ICsrKy0K
-PiBkcml2ZXJzL21lZGlhL3JjL2tleW1hcHMvcmMtcmM2LW1jZS5jICAgICAgICAgIHwgICAgNiAr
-KysrCj4gZHJpdmVycy9tZWRpYS9yYy9tY2V1c2IuYyAgICAgICAgICAgICAgICAgICAgICB8ICAg
-IDkgKysrKy0tCj4gZHJpdmVycy9tZWRpYS9yYy9udXZvdG9uLWNpci5jICAgICAgICAgICAgICAg
-ICB8ICAgIDYgKystLQo+IGRyaXZlcnMvbWVkaWEvcmMvc3RyZWFtemFwLmMgICAgICAgICAgICAg
-ICAgICAgfCAgIDEyICsrKystLS0tCj4gZHJpdmVycy9tZWRpYS92aWRlby9oZHB2ci9oZHB2ci1j
-b3JlLmMgICAgICAgICB8ICAgMjQgKysrKysrKysrKysrKysrLS0tCj4gZHJpdmVycy9tZWRpYS92
-aWRlby9oZHB2ci9oZHB2ci1pMmMuYyAgICAgICAgICB8ICAgMzAgKysrKysrKysrKysrKystLS0t
-LS0tLQo+IGRyaXZlcnMvbWVkaWEvdmlkZW8vaGRwdnIvaGRwdnIuaCAgICAgICAgICAgICAgfCAg
-ICAzICstCj4gZHJpdmVycy9tZWRpYS92aWRlby9pci1rYmQtaTJjLmMgICAgICAgICAgICAgICB8
-ICAgMTMgKysrKysrKysrCj4gZHJpdmVycy9tZWRpYS92aWRlby9wdnJ1c2IyL3B2cnVzYjItaTJj
-LWNvcmUuYyB8ICAgIDEgLQo+IGRyaXZlcnMvc3RhZ2luZy9saXJjL2xpcmNfemlsb2cuYyAgICAg
-ICAgICAgICAgfCAgIDMyICsrKysrKysrKysrKysrKysrKystLS0tCj4gMTEgZmlsZXMgY2hhbmdl
-ZCwgMTA2IGluc2VydGlvbnMoKyksIDM2IGRlbGV0aW9ucygtKQo+Cj4tLSAKPkphcm9kIFdpbHNv
-bgo+amFyb2RAcmVkaGF0LmNvbQo+Cj4tLQo+VG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6
-IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LW1lZGlhIiBpbgo+dGhlIGJvZHkgb2Yg
-YSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcKPk1vcmUgbWFqb3Jkb21vIGlu
-Zm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbAo=
+Hi Mauro,
 
+Please pull the WL128x FM V4L2 driver from
+http://dev.omapzoom.org/pub/scm/manju/L24x-btfm.git fm_v4l2_upstream
+
+This is TI WL128x FM V4L2 driver and it introduces ‘wl128x’ folder
+under the ‘drivers/media/radio’. This driver enables support for FM RX
+and TX for Texas Instrument's WL128x (also compatible with WL127x)
+WiLink chip sets. The V4L2 FM driver can work in either Rx or Tx mode,
+and V4L2 interfaces are provided for both.
+
+Texas Instrument's WL128x chip set packs BT, FM, GPS and WLAN in a
+single die with BT, FM and GPS being interfaced over a single UART.
+This driver works on top of the shared transport line discipline
+driver. This driver can also be made use for the WL127x version of the
+chip which packs BT, FM and WLAN only.
+
+This driver has been reviewed by various folks within TI and also in
+Linux media community. The driver has been tested extensively on TI
+platforms and we believe that it is ready for merge into mainline.
+
+The following changes since commit db309d3d54c2f721dd1176ce86c63b0381c0a258:
+  Mauro Carvalho Chehab (1):
+        [media] add support for Encore FM3
+
+are available in the git repository at:
+
+  http://dev.omapzoom.org/pub/scm/manju/L24x-btfm.git fm_v4l2_upstream
+
+Manjunatha Halli (7):
+      drivers:media:radio: wl128x: FM Driver common header file
+      drivers:media:radio: wl128x: FM Driver V4L2 sources
+      drivers:media:radio: wl128x: FM Driver Common sources
+      drivers:media:radio: wl128x: FM driver RX sources
+      drivers:media:radio: wl128x: FM driver TX sources
+      drivers:media:radio: wl128x: Kconfig & Makefile for wl128x driver
+      drivers:media:radio: Update Kconfig and Makefile for wl128x FM driver
+
+ drivers/media/radio/Kconfig               |    3 +
+ drivers/media/radio/Makefile              |    1 +
+ drivers/media/radio/wl128x/Kconfig        |   17 +
+ drivers/media/radio/wl128x/Makefile       |    6 +
+ drivers/media/radio/wl128x/fmdrv.h        |  244 +++++
+ drivers/media/radio/wl128x/fmdrv_common.c | 1677 +++++++++++++++++++++++++++++
+ drivers/media/radio/wl128x/fmdrv_common.h |  402 +++++++
+ drivers/media/radio/wl128x/fmdrv_rx.c     |  847 +++++++++++++++
+ drivers/media/radio/wl128x/fmdrv_rx.h     |   59 +
+ drivers/media/radio/wl128x/fmdrv_tx.c     |  425 ++++++++
+ drivers/media/radio/wl128x/fmdrv_tx.h     |   37 +
+ drivers/media/radio/wl128x/fmdrv_v4l2.c   |  580 ++++++++++
+ drivers/media/radio/wl128x/fmdrv_v4l2.h   |   33 +
+ 13 files changed, 4331 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/radio/wl128x/Kconfig
+ create mode 100644 drivers/media/radio/wl128x/Makefile
+ create mode 100644 drivers/media/radio/wl128x/fmdrv.h
+ create mode 100644 drivers/media/radio/wl128x/fmdrv_common.c
+ create mode 100644 drivers/media/radio/wl128x/fmdrv_common.h
+ create mode 100644 drivers/media/radio/wl128x/fmdrv_rx.c
+ create mode 100644 drivers/media/radio/wl128x/fmdrv_rx.h
+ create mode 100644 drivers/media/radio/wl128x/fmdrv_tx.c
+ create mode 100644 drivers/media/radio/wl128x/fmdrv_tx.h
+ create mode 100644 drivers/media/radio/wl128x/fmdrv_v4l2.c
+ create mode 100644 drivers/media/radio/wl128x/fmdrv_v4l2.h
+
+-- 
+Best Regards
+Manjunatha Halli
