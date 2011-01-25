@@ -1,42 +1,78 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:21321 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751736Ab1AZTQt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Jan 2011 14:16:49 -0500
-Message-ID: <4D4072F9.5060206@redhat.com>
-Date: Wed, 26 Jan 2011 20:16:09 +0100
-From: Gerd Hoffmann <kraxel@redhat.com>
-MIME-Version: 1.0
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Mark Lord <kernel@teksavvy.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Linux Kernel <linux-kernel@vger.kernel.org>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils
- ?
-References: <20110125205453.GA19896@core.coreip.homeip.net> <4D3F4804.6070508@redhat.com> <4D3F4D11.9040302@teksavvy.com> <20110125232914.GA20130@core.coreip.homeip.net> <20110126020003.GA23085@core.coreip.homeip.net> <4D4004F9.6090200@redhat.com> <4D401CC5.4020000@redhat.com> <4D402D35.4090206@redhat.com> <20110126165132.GC29163@core.coreip.homeip.net> <4D4059E5.7050300@redhat.com> <20110126182415.GB29268@core.coreip.homeip.net>
-In-Reply-To: <20110126182415.GB29268@core.coreip.homeip.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:58419 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753706Ab1AYUtp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Jan 2011 15:49:45 -0500
+Message-ID: <4d3f3766.857a0e0a.122c.478f@mx.google.com>
+From: "Igor M. Liplianin" <liplianin@me.by>
+Date: Tue, 25 Jan 2011 22:06:00 +0200
+Subject: [PATCH 7/9 v3] cx23885: implement num_fds_portb, num_fds_portc parameters for cx23885_board structure.
+To: <mchehab@infradead.org>, <linux-media@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-   Hi,
+This is needed for multifrontend support.
+NetUP Dual DVB-T/C CI RF card has frontends connected to port B & C
+Each frontend has two switchable cores - DVB-T & DVB-C
 
->>> The check should be against concrete version (0x10000 in this case).
+Signed-off-by: Igor M. Liplianin <liplianin@netup.ru>
+---
+ drivers/media/video/cx23885/cx23885-cards.c |    2 ++
+ drivers/media/video/cx23885/cx23885-core.c  |    6 ++++++
+ drivers/media/video/cx23885/cx23885.h       |    1 +
+ 3 files changed, 9 insertions(+), 0 deletions(-)
 
-Stepping back: what does the version mean?
-
-0x10000 == 1.0 ?
-0x10001 == 1.1 ?
-
-Can I expect the interface stay backward compatible if only the minor 
-revision changes, i.e. makes it sense to accept 1.x?
-
-Will the major revision ever change?  Does it make sense to check the 
-version at all?
-
-thanks,
-   Gerd
+diff --git a/drivers/media/video/cx23885/cx23885-cards.c b/drivers/media/video/cx23885/cx23885-cards.c
+index fb2045a..ea88722 100644
+--- a/drivers/media/video/cx23885/cx23885-cards.c
++++ b/drivers/media/video/cx23885/cx23885-cards.c
+@@ -344,6 +344,8 @@ struct cx23885_board cx23885_boards[] = {
+ 		.porta		= CX23885_ANALOG_VIDEO,
+ 		.portb		= CX23885_MPEG_DVB,
+ 		.portc		= CX23885_MPEG_DVB,
++		.num_fds_portb	= 2,
++		.num_fds_portc	= 2,
+ 		.tuner_type	= TUNER_XC5000,
+ 		.tuner_addr	= 0x64,
+ 		.input          = { {
+diff --git a/drivers/media/video/cx23885/cx23885-core.c b/drivers/media/video/cx23885/cx23885-core.c
+index d621d76..d778b1a 100644
+--- a/drivers/media/video/cx23885/cx23885-core.c
++++ b/drivers/media/video/cx23885/cx23885-core.c
+@@ -1005,6 +1005,9 @@ static int cx23885_dev_setup(struct cx23885_dev *dev)
+ 	}
+ 
+ 	if (cx23885_boards[dev->board].portb == CX23885_MPEG_DVB) {
++		if (cx23885_boards[dev->board].num_fds_portb)
++			dev->ts1.num_frontends =
++				cx23885_boards[dev->board].num_fds_portb;
+ 		if (cx23885_dvb_register(&dev->ts1) < 0) {
+ 			printk(KERN_ERR "%s() Failed to register dvb adapters on VID_B\n",
+ 			       __func__);
+@@ -1019,6 +1022,9 @@ static int cx23885_dev_setup(struct cx23885_dev *dev)
+ 	}
+ 
+ 	if (cx23885_boards[dev->board].portc == CX23885_MPEG_DVB) {
++		if (cx23885_boards[dev->board].num_fds_portc)
++			dev->ts2.num_frontends =
++				cx23885_boards[dev->board].num_fds_portc;
+ 		if (cx23885_dvb_register(&dev->ts2) < 0) {
+ 			printk(KERN_ERR
+ 				"%s() Failed to register dvb on VID_C\n",
+diff --git a/drivers/media/video/cx23885/cx23885.h b/drivers/media/video/cx23885/cx23885.h
+index d8c76b0..8db2797 100644
+--- a/drivers/media/video/cx23885/cx23885.h
++++ b/drivers/media/video/cx23885/cx23885.h
+@@ -205,6 +205,7 @@ typedef enum {
+ struct cx23885_board {
+ 	char                    *name;
+ 	port_t			porta, portb, portc;
++	int		num_fds_portb, num_fds_portc;
+ 	unsigned int		tuner_type;
+ 	unsigned int		radio_type;
+ 	unsigned char		tuner_addr;
+-- 
+1.7.1
 
