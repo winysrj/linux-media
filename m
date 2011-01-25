@@ -1,69 +1,96 @@
 Return-path: <mchehab@pedra>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:48862 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753400Ab1ASR5y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Jan 2011 12:57:54 -0500
-Received: by ywl5 with SMTP id 5so400206ywl.19
-        for <linux-media@vger.kernel.org>; Wed, 19 Jan 2011 09:57:53 -0800 (PST)
-Subject: Re: [BUG] media: dvb: dib9000: buggy locking
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: linux-media@vger.kernel.org
-In-Reply-To: <20110119131010.GA10321@albatros>
-References: <20110119131010.GA10321@albatros>
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 19 Jan 2011 17:57:45 +0000
-Message-ID: <1295459865.2200.25.camel@tvboxspy>
-Mime-Version: 1.0
+Received: from mx1.redhat.com ([209.132.183.28]:57366 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751940Ab1AYLmw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Jan 2011 06:42:52 -0500
+Message-ID: <4D3EB734.5090100@redhat.com>
+Date: Tue, 25 Jan 2011 09:42:44 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+CC: Mark Lord <kernel@teksavvy.com>,
+	Linux Kernel <linux-kernel@vger.kernel.org>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils
+ ?
+References: <4D3C5F73.2050408@teksavvy.com> <20110124175456.GA17855@core.coreip.homeip.net> <4D3E1A08.5060303@teksavvy.com> <20110125005555.GA18338@core.coreip.homeip.net> <4D3E4DD1.60705@teksavvy.com> <20110125042016.GA7850@core.coreip.homeip.net> <4D3E5372.9010305@teksavvy.com> <20110125045559.GB7850@core.coreip.homeip.net> <4D3E59CA.6070107@teksavvy.com> <4D3E5A91.30207@teksavvy.com> <20110125053117.GD7850@core.coreip.homeip.net>
+In-Reply-To: <20110125053117.GD7850@core.coreip.homeip.net>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 2011-01-19 at 16:10 +0300, Vasiliy Kulikov wrote:
-> Hi,
+Em 25-01-2011 03:31, Dmitry Torokhov escreveu:
+> On Tue, Jan 25, 2011 at 12:07:29AM -0500, Mark Lord wrote:
+>> On 11-01-25 12:04 AM, Mark Lord wrote:
+>>> On 11-01-24 11:55 PM, Dmitry Torokhov wrote:
+>>>> On Mon, Jan 24, 2011 at 11:37:06PM -0500, Mark Lord wrote:
+>>> ..
+>>>>> This results in (map->size==10) for 2.6.36+ (wrong),
+>>>>> and a much larger map->size for 2.6.35 and earlier.
+>>>>>
+>>>>> So perhaps EVIOCGKEYCODE has changed?
+>>>>>
+>>>>
+>>>> So the utility expects that all devices have flat scancode space and
+>>>> driver might have changed so it does not recognize scancode 10 as valid
+>>>> scancode anymore.
+>>>>
+>>>> The options are:
+>>>>
+>>>> 1. Convert to EVIOCGKEYCODE2
+>>>> 2. Ignore errors from EVIOCGKEYCODE and go through all 65536 iterations.
+>>>
+>>> or 3. Revert/fix the in-kernel regression.
+>>>
+>>> The EVIOCGKEYCODE ioctl is supposed to return KEY_RESERVED for unmapped
+>>> (but value) keycodes, and only return -EINVAL when the keycode itself
+>>> is out of range.
+>>>
+>>> That's how it worked in all kernels prior to 2.6.36,
+>>> and now it is broken.  It now returns -EINVAL for any unmapped keycode,
+>>> even though keycodes higher than that still have mappings.
+>>>
+>>> This is a bug, a regression, and breaks userspace.
+>>> I haven't identified *where* in the kernel the breakage happened,
+>>> though.. that code confuses me.  :)
+>>
+>> Note that this device DOES have "flat scancode space",
+>> and the kernel is now incorrectly signalling an error (-EINVAL)
+>> in response to a perfectly valid query of a VALID (and mappable)
+>> keycode on the remote control
+>>
+>> The code really is a valid button, it just doesn't have a default mapping
+>> set by the kernel (I can set a mapping for that code from userspace and it works).
+>>
 > 
-> I've noticed that locking in drivers/media/dvb/frontends/dib9000.c is
-> not correct:
-> 
-> static int dib9000_fw_get_channel(...)
-> {
->     ...
-> 	DibAcquireLock(&state->platform.risc.mem_mbx_lock);
->     ...
-> 
-> error:
-> 	DibReleaseLock(&state->platform.risc.mem_mbx_lock);
-> 	return ret;
-> }
-> 
-> #define DibAcquireLock(lock) do { if (mutex_lock_interruptible(lock) < 0) dprintk("could not get the lock"); } while (0)
-> #define DibReleaseLock(lock) mutex_unlock(lock)
-> 
-> 
-> 1) If mutex is not hold, then the critical section is not protected.
-> 
-> 2) If mutex was not hold, then the code tries to release not holded
-> mutex.
+> OK, in this case let's ping Mauro - I think he done the adjustments to
+> IR keymap hanlding.
 
-I didn't think that was a problem, because most callers didn't have code
-to handle the error. and would therefore hopefully just call again.
+I lost part of the thread, but a quick search via the Internet showed that you're using
+the input tools to work with a Remote Controller, right? Are you using a vanilla
+kernel, or are you using the media_build backports? There are some distros that are
+using those backports also like Fedora 14.
 
-What I noticed in particular the lock is never released on error
-condition as in...
+In the latter case, I found the reason why the backports were not working and I fixed
+it a couple days ago:
+	http://git.linuxtv.org/media_build.git?a=commit;h=b83dc3e49d90527d8e1016d09e06f4842a6a847a
 
-static int dib9000_read_ber(struct dvb_frontend *fe, u32 * ber)
-{
-	struct dib9000_state *state = fe->demodulator_priv;
-	u16 c[16];
+The issue is simple, and it is related on how the input.c used to handle EVIOSGKEYCODE.
+Basically, before allowing you to change a key, it used to call EVIOCGKEYCODE to check
+it that key exists. However, when you're creating a new association, the key didn't
+exist, and, to be strict with input rules, EVIOCGKEYCODE should return -EINVAL.
+To circumvent that behaviour, old versions were returning 0, and associating unmapped
+scancodes to KEY_RESERVED. We used this workaround for a few kernel versions, while
+we were discussing the improvements so support larger scancodes.
 
-	DibAcquireLock(&state->platform.risc.mem_mbx_lock);
-	if (dib9000_fw_memmbx_sync(state, FE_SYNC_CHANNEL) < 0)
-		return -EIO;               <----------the lock is never released.
-	dib9000_risc_mem_read(state, FE_MM_R_FE_MONITOR, (u8 *) c, sizeof(c));
-	DibReleaseLock(&state->platform.risc.mem_mbx_lock);
+Yet, on all vanilla kernels, changing the keycode association works fine.
 
-	*ber = c[10] << 16 | c[11];
-	return 0;
-}
+However, the backport patch at media_build were not taking this workaround into account,
+and were just returning -EINVAL. So, the backported media drivers stopped allowing
+some keytable changes. The patch above fixes it.
+
+Cheers,
+Mauro
 
 
