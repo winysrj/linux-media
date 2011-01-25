@@ -1,56 +1,101 @@
 Return-path: <mchehab@pedra>
-Received: from lo.gmane.org ([80.91.229.12]:42283 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752772Ab1AJBtJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Jan 2011 20:49:09 -0500
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1Pc6se-0001db-EV
-	for linux-media@vger.kernel.org; Mon, 10 Jan 2011 02:49:08 +0100
-Received: from 154.139.70.115.static.exetel.com.au ([115.70.139.154])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 10 Jan 2011 02:49:08 +0100
-Received: from 0123peter by 154.139.70.115.static.exetel.com.au with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 10 Jan 2011 02:49:08 +0100
-To: linux-media@vger.kernel.org
-From: "Peter D." <0123peter@gmail.com>
-Subject: Re: [patch] new_build.git - avoid failing on 'rm' of nonexistent file
-Date: Mon, 10 Jan 2011 12:48:09 +1100
-Message-ID: <q35qv7-94q.ln1@psd.motzarella.org>
-References: <AANLkTinUVpHdJRZ_EHw8B4nv=X2yNoOwdNqtH_+wiV=r@mail.gmail.com> <6B50A1B6-ED80-46CB-996F-86F4F1BF4C35@wilsonet.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7Bit
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:55488 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751307Ab1AYQsM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Jan 2011 11:48:12 -0500
+Date: Tue, 25 Jan 2011 08:48:03 -0800
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mark Lord <kernel@teksavvy.com>,
+	Linux Kernel <linux-kernel@vger.kernel.org>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils ?
+Message-ID: <20110125164803.GA19701@core.coreip.homeip.net>
+References: <4D3E1A08.5060303@teksavvy.com>
+ <20110125005555.GA18338@core.coreip.homeip.net>
+ <4D3E4DD1.60705@teksavvy.com>
+ <20110125042016.GA7850@core.coreip.homeip.net>
+ <4D3E5372.9010305@teksavvy.com>
+ <20110125045559.GB7850@core.coreip.homeip.net>
+ <4D3E59CA.6070107@teksavvy.com>
+ <4D3E5A91.30207@teksavvy.com>
+ <20110125053117.GD7850@core.coreip.homeip.net>
+ <4D3EB734.5090100@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4D3EB734.5090100@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-on Sat, 8 Jan 2011 03:23
-in the Usenet newsgroup gmane.linux.drivers.video-input-infrastructure
-Jarod Wilson wrote:
-
-> On Jan 7, 2011, at 6:53 AM, Vincent McIntyre wrote:
+On Tue, Jan 25, 2011 at 09:42:44AM -0200, Mauro Carvalho Chehab wrote:
+> Em 25-01-2011 03:31, Dmitry Torokhov escreveu:
+> > On Tue, Jan 25, 2011 at 12:07:29AM -0500, Mark Lord wrote:
+> >> On 11-01-25 12:04 AM, Mark Lord wrote:
+> >>> On 11-01-24 11:55 PM, Dmitry Torokhov wrote:
+> >>>> On Mon, Jan 24, 2011 at 11:37:06PM -0500, Mark Lord wrote:
+> >>> ..
+> >>>>> This results in (map->size==10) for 2.6.36+ (wrong),
+> >>>>> and a much larger map->size for 2.6.35 and earlier.
+> >>>>>
+> >>>>> So perhaps EVIOCGKEYCODE has changed?
+> >>>>>
+> >>>>
+> >>>> So the utility expects that all devices have flat scancode space and
+> >>>> driver might have changed so it does not recognize scancode 10 as valid
+> >>>> scancode anymore.
+> >>>>
+> >>>> The options are:
+> >>>>
+> >>>> 1. Convert to EVIOCGKEYCODE2
+> >>>> 2. Ignore errors from EVIOCGKEYCODE and go through all 65536 iterations.
+> >>>
+> >>> or 3. Revert/fix the in-kernel regression.
+> >>>
+> >>> The EVIOCGKEYCODE ioctl is supposed to return KEY_RESERVED for unmapped
+> >>> (but value) keycodes, and only return -EINVAL when the keycode itself
+> >>> is out of range.
+> >>>
+> >>> That's how it worked in all kernels prior to 2.6.36,
+> >>> and now it is broken.  It now returns -EINVAL for any unmapped keycode,
+> >>> even though keycodes higher than that still have mappings.
+> >>>
+> >>> This is a bug, a regression, and breaks userspace.
+> >>> I haven't identified *where* in the kernel the breakage happened,
+> >>> though.. that code confuses me.  :)
+> >>
+> >> Note that this device DOES have "flat scancode space",
+> >> and the kernel is now incorrectly signalling an error (-EINVAL)
+> >> in response to a perfectly valid query of a VALID (and mappable)
+> >> keycode on the remote control
+> >>
+> >> The code really is a valid button, it just doesn't have a default mapping
+> >> set by the kernel (I can set a mapping for that code from userspace and it works).
+> >>
+> > 
+> > OK, in this case let's ping Mauro - I think he done the adjustments to
+> > IR keymap hanlding.
 > 
->> While attempting to build recently I have found the 'make distclean'
->> target fails if 'rm' tries to remove a file that is not there. The
->> attached patch fixes the issue for me (by using rm -f).
->> I converted all the other 'rm' calls to 'rm -f' along the way.
->> 
->> Please consider applying this.
+> I lost part of the thread, but a quick search via the Internet showed that you're using
+> the input tools to work with a Remote Controller, right? Are you using a vanilla
+> kernel, or are you using the media_build backports? There are some distros that are
+> using those backports also like Fedora 14.
 > 
-> Yeah, I did the same earlier for another target, I'll go ahead and 
-get
-> it applied and pushed.
+> In the latter case, I found the reason why the backports were not working and I fixed
+> it a couple days ago:
+> 	http://git.linuxtv.org/media_build.git?a=commit;h=b83dc3e49d90527d8e1016d09e06f4842a6a847a
+> 
+> The issue is simple, and it is related on how the input.c used to handle EVIOSGKEYCODE.
+> Basically, before allowing you to change a key, it used to call EVIOCGKEYCODE to check
+> it that key exists. However, when you're creating a new association, the key didn't
+> exist, and, to be strict with input rules, EVIOCGKEYCODE should return -EINVAL.
 
-Third attempt to post to this news group...  
+We should be able to handle the case where scancode is valid even though
+it might be unmapped yet. This is regardless of what version of
+EVIOCGKEYCODE we use, 1 or 2, and whether it is sparse keymap or not.
 
-The --force option stops complaints about non existent files 
-AND removes read only files.  If that is what you want, then fine.  
-If you are only trying to stop existence problems, test for 
-existence before removing.  
+Is it possible to validate the scancode by driver?
 
 -- 
-Peter D.  
-Sig goes here...  
-
+Dmitry
