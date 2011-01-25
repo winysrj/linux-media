@@ -1,237 +1,101 @@
-Return-path: <mchehab@gaivota>
-Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:1105 "EHLO
-	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752868Ab1ACSb3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jan 2011 13:31:29 -0500
-Received: from localhost.localdomain (43.80-203-71.nextgentel.com [80.203.71.43])
-	(authenticated bits=0)
-	by smtp-vbr18.xs4all.nl (8.13.8/8.13.8) with ESMTP id p03IVMuS006180
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 3 Jan 2011 19:31:27 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [RFCv2 PATCH 01/10] v4l2_prio: move from v4l2-common to v4l2-dev.
-Date: Mon,  3 Jan 2011 19:31:06 +0100
-Message-Id: <6515cfbdde63364fd12bca1219870f38ff371145.1294078230.git.hverkuil@xs4all.nl>
-In-Reply-To: <1294079475-13259-1-git-send-email-hverkuil@xs4all.nl>
-References: <1294079475-13259-1-git-send-email-hverkuil@xs4all.nl>
+Return-path: <mchehab@pedra>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44018 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752586Ab1AYJUS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Jan 2011 04:20:18 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Michael Jones <michael.jones@matrix-vision.de>
+Subject: Re: [RFC] ISP lane shifter support
+Date: Tue, 25 Jan 2011 10:20:18 +0100
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+References: <4D394675.90304@matrix-vision.de> <201101242045.24561.laurent.pinchart@ideasonboard.com> <4D3E939A.5020100@matrix-vision.de>
+In-Reply-To: <4D3E939A.5020100@matrix-vision.de>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201101251020.22804.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-We are going to move priority handling into the v4l2 core. As a consequence
-the v4l2_prio helper functions need to be moved into the core videodev
-module as well to prevent circular dependencies.
+Hi Michael,
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/video/v4l2-common.c |   63 ------------------------------------
- drivers/media/video/v4l2-dev.c    |   64 +++++++++++++++++++++++++++++++++++++
- include/media/v4l2-common.h       |   15 ---------
- include/media/v4l2-dev.h          |   15 +++++++++
- 4 files changed, 79 insertions(+), 78 deletions(-)
+On Tuesday 25 January 2011 10:10:50 Michael Jones wrote:
+> On 01/24/2011 08:45 PM, Laurent Pinchart wrote:
+> > On Monday 24 January 2011 15:16:28 Michael Jones wrote:
+> >> On 01/24/2011 02:57 PM, Laurent Pinchart wrote:
+> >> <snip>
+> >> 
+> >>>>> As the lane shifter is located at the CCDC input, it might be easier
+> >>>>> to implement support for this using the CCDC input format.
+> >>>>> ispvideo.c would need to validate the pipeline when the output of
+> >>>>> the entity connected to the CCDC input (parallel sensor, CCP2 or
+> >>>>> CSI2) is configured with a format that can be shifted to the format
+> >>>>> at the CCDC input.
+> >>>> 
+> >>>> This crossed my mind, but it seems illogical to have a link with a
+> >>>> different format at each of its ends.
+> >>> 
+> >>> I agree in theory, but it might be problematic for the CCDC. Right now
+> >>> the CCDC can write to memory or send the data to the preview engine,
+> >>> but not both at the same time. That's something that I'd like to
+> >>> change in the future. What happens if the user then sets different
+> >>> widths on the output pads ?
+> >> 
+> >> Shouldn't we prohibit the user from doing this in ccdc_[try/set]_format
+> >> in the first place? By "prohibit", I mean shouldn't we be sure that the
+> >> pixel format on pad 1 is always the same as on pad 2?
+> > 
+> > Yes we should (although we could have a larger width on the memory write
+> > port, as the video port can further shift the data).
+> 
+> Doesn't this conflict with your comment below that we shouldn't silently
+> change pad 1 when setting pad 2?  How can we ensure that they're always
+> the same if a change in one doesn't result in a change in the other?
+> See my example below.
 
-diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-common.c
-index 3f0871b..b25d3e9 100644
---- a/drivers/media/video/v4l2-common.c
-+++ b/drivers/media/video/v4l2-common.c
-@@ -81,69 +81,6 @@ MODULE_LICENSE("GPL");
-  *  Video Standard Operations (contributed by Michael Schimek)
-  */
- 
--
--/* ----------------------------------------------------------------- */
--/* priority handling                                                 */
--
--#define V4L2_PRIO_VALID(val) (val == V4L2_PRIORITY_BACKGROUND   || \
--			      val == V4L2_PRIORITY_INTERACTIVE  || \
--			      val == V4L2_PRIORITY_RECORD)
--
--void v4l2_prio_init(struct v4l2_prio_state *global)
--{
--	memset(global, 0, sizeof(*global));
--}
--EXPORT_SYMBOL(v4l2_prio_init);
--
--int v4l2_prio_change(struct v4l2_prio_state *global, enum v4l2_priority *local,
--		     enum v4l2_priority new)
--{
--	if (!V4L2_PRIO_VALID(new))
--		return -EINVAL;
--	if (*local == new)
--		return 0;
--
--	atomic_inc(&global->prios[new]);
--	if (V4L2_PRIO_VALID(*local))
--		atomic_dec(&global->prios[*local]);
--	*local = new;
--	return 0;
--}
--EXPORT_SYMBOL(v4l2_prio_change);
--
--void v4l2_prio_open(struct v4l2_prio_state *global, enum v4l2_priority *local)
--{
--	v4l2_prio_change(global, local, V4L2_PRIORITY_DEFAULT);
--}
--EXPORT_SYMBOL(v4l2_prio_open);
--
--void v4l2_prio_close(struct v4l2_prio_state *global, enum v4l2_priority local)
--{
--	if (V4L2_PRIO_VALID(local))
--		atomic_dec(&global->prios[local]);
--}
--EXPORT_SYMBOL(v4l2_prio_close);
--
--enum v4l2_priority v4l2_prio_max(struct v4l2_prio_state *global)
--{
--	if (atomic_read(&global->prios[V4L2_PRIORITY_RECORD]) > 0)
--		return V4L2_PRIORITY_RECORD;
--	if (atomic_read(&global->prios[V4L2_PRIORITY_INTERACTIVE]) > 0)
--		return V4L2_PRIORITY_INTERACTIVE;
--	if (atomic_read(&global->prios[V4L2_PRIORITY_BACKGROUND]) > 0)
--		return V4L2_PRIORITY_BACKGROUND;
--	return V4L2_PRIORITY_UNSET;
--}
--EXPORT_SYMBOL(v4l2_prio_max);
--
--int v4l2_prio_check(struct v4l2_prio_state *global, enum v4l2_priority local)
--{
--	return (local < v4l2_prio_max(global)) ? -EBUSY : 0;
--}
--EXPORT_SYMBOL(v4l2_prio_check);
--
--/* ----------------------------------------------------------------- */
--
- /* Helper functions for control handling			     */
- 
- /* Check for correctness of the ctrl's value based on the data from
-diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
-index 359e232..8698fe4 100644
---- a/drivers/media/video/v4l2-dev.c
-+++ b/drivers/media/video/v4l2-dev.c
-@@ -182,6 +182,70 @@ struct video_device *video_devdata(struct file *file)
- }
- EXPORT_SYMBOL(video_devdata);
- 
-+
-+/* Priority handling */
-+
-+static inline bool prio_is_valid(enum v4l2_priority prio)
-+{
-+	return prio == V4L2_PRIORITY_BACKGROUND ||
-+	       prio == V4L2_PRIORITY_INTERACTIVE ||
-+	       prio == V4L2_PRIORITY_RECORD;
-+}
-+
-+void v4l2_prio_init(struct v4l2_prio_state *global)
-+{
-+	memset(global, 0, sizeof(*global));
-+}
-+EXPORT_SYMBOL(v4l2_prio_init);
-+
-+int v4l2_prio_change(struct v4l2_prio_state *global, enum v4l2_priority *local,
-+		     enum v4l2_priority new)
-+{
-+	if (!prio_is_valid(new))
-+		return -EINVAL;
-+	if (*local == new)
-+		return 0;
-+
-+	atomic_inc(&global->prios[new]);
-+	if (prio_is_valid(*local))
-+		atomic_dec(&global->prios[*local]);
-+	*local = new;
-+	return 0;
-+}
-+EXPORT_SYMBOL(v4l2_prio_change);
-+
-+void v4l2_prio_open(struct v4l2_prio_state *global, enum v4l2_priority *local)
-+{
-+	v4l2_prio_change(global, local, V4L2_PRIORITY_DEFAULT);
-+}
-+EXPORT_SYMBOL(v4l2_prio_open);
-+
-+void v4l2_prio_close(struct v4l2_prio_state *global, enum v4l2_priority local)
-+{
-+	if (prio_is_valid(local))
-+		atomic_dec(&global->prios[local]);
-+}
-+EXPORT_SYMBOL(v4l2_prio_close);
-+
-+enum v4l2_priority v4l2_prio_max(struct v4l2_prio_state *global)
-+{
-+	if (atomic_read(&global->prios[V4L2_PRIORITY_RECORD]) > 0)
-+		return V4L2_PRIORITY_RECORD;
-+	if (atomic_read(&global->prios[V4L2_PRIORITY_INTERACTIVE]) > 0)
-+		return V4L2_PRIORITY_INTERACTIVE;
-+	if (atomic_read(&global->prios[V4L2_PRIORITY_BACKGROUND]) > 0)
-+		return V4L2_PRIORITY_BACKGROUND;
-+	return V4L2_PRIORITY_UNSET;
-+}
-+EXPORT_SYMBOL(v4l2_prio_max);
-+
-+int v4l2_prio_check(struct v4l2_prio_state *global, enum v4l2_priority local)
-+{
-+	return (local < v4l2_prio_max(global)) ? -EBUSY : 0;
-+}
-+EXPORT_SYMBOL(v4l2_prio_check);
-+
-+
- static ssize_t v4l2_read(struct file *filp, char __user *buf,
- 		size_t sz, loff_t *off)
- {
-diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-index 2d65b35..e34993e 100644
---- a/include/media/v4l2-common.h
-+++ b/include/media/v4l2-common.h
-@@ -80,21 +80,6 @@
- 
- /* ------------------------------------------------------------------------- */
- 
--/* Priority helper functions */
--
--struct v4l2_prio_state {
--	atomic_t prios[4];
--};
--void v4l2_prio_init(struct v4l2_prio_state *global);
--int v4l2_prio_change(struct v4l2_prio_state *global, enum v4l2_priority *local,
--		     enum v4l2_priority new);
--void v4l2_prio_open(struct v4l2_prio_state *global, enum v4l2_priority *local);
--void v4l2_prio_close(struct v4l2_prio_state *global, enum v4l2_priority local);
--enum v4l2_priority v4l2_prio_max(struct v4l2_prio_state *global);
--int v4l2_prio_check(struct v4l2_prio_state *global, enum v4l2_priority local);
--
--/* ------------------------------------------------------------------------- */
--
- /* Control helper functions */
- 
- int v4l2_ctrl_check(struct v4l2_ext_control *ctrl, struct v4l2_queryctrl *qctrl,
-diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-index 15802a0..861f323 100644
---- a/include/media/v4l2-dev.h
-+++ b/include/media/v4l2-dev.h
-@@ -34,6 +34,21 @@ struct v4l2_ctrl_handler;
- #define V4L2_FL_REGISTERED	(0)
- #define V4L2_FL_USES_V4L2_FH	(1)
- 
-+/* Priority helper functions */
-+
-+struct v4l2_prio_state {
-+	atomic_t prios[4];
-+};
-+
-+void v4l2_prio_init(struct v4l2_prio_state *global);
-+int v4l2_prio_change(struct v4l2_prio_state *global, enum v4l2_priority *local,
-+		     enum v4l2_priority new);
-+void v4l2_prio_open(struct v4l2_prio_state *global, enum v4l2_priority *local);
-+void v4l2_prio_close(struct v4l2_prio_state *global, enum v4l2_priority local);
-+enum v4l2_priority v4l2_prio_max(struct v4l2_prio_state *global);
-+int v4l2_prio_check(struct v4l2_prio_state *global, enum v4l2_priority local);
-+
-+
- struct v4l2_file_operations {
- 	struct module *owner;
- 	ssize_t (*read) (struct file *, char __user *, size_t, loff_t *);
+Yes it does, and that's why I'm not too sure yet how this should be 
+implemented.
+
+> I didn't realize the video port can further shift the data.  Where can I
+> find this in the TRM?
+
+VPIN field of the CCDC_FMTCFG register.
+
+> >> Downside: this suggests that set_fmt on pad 2 could change the fmt on
+> >> pad 1, which may be unexpected. But that does at least reflect the
+> >> reality of the hardware, right?
+> > 
+> > I don't think it would be a good idea to silently change formats on pad 1
+> > when setting the format on pad 2. Applications don't expect that. That's
+> > why I've proposed changing the format on pad 0 instead. I agree that it
+> > would be better to have the same format on the sensor output and on CCDC
+> > pad 0 though.
+> 
+> I don't understand how we can change the pixel format on pad 1 without
+> also changing it on pad 2.  Let me take a simple example:
+> 0. Default state: all 3 CCDC pads have SGRBG10.
+> 1. Sensor delivers Y10, so I set CCDC pad 0 to Y10. CCDC then changes
+> format of pad 1&2 to Y10 also.
+> 2. I want 8-bit data written to memory, so I set Y8 on pad 1 to use the
+> shifter. Pad 0 stays Y10, but pad 2 can no longer get Y10, so (?) it
+> must be changed to Y8.  And I have to allow the change on pad 1 to be
+> able to use the shifter at all.
+> 
+> I agree applications may not expect this behavior.  They may _expect_
+> that they can get Y10 to the video port and Y8 to memory, but they
+> can't.  Isn't this just what we pay for the simplicity of building the
+> lane shifter into the CCDC subdev rather than creating its own subdev?
+
+It could be, yes. The other option is to modify the format at the CCDC input. 
+I agree that both options have drawbacks.
+
+Hans, Guennadi, any opinion on this ?
+
 -- 
-1.7.0.4
+Regards,
 
+Laurent Pinchart
