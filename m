@@ -1,112 +1,144 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:2558 "EHLO
-	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751847Ab1AHLCD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Jan 2011 06:02:03 -0500
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1440 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751855Ab1AYHiI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Jan 2011 02:38:08 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Jonathan Corbet <corbet@lwn.net>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [RFCv2 PATCH 2/5] v4l2-subdev: add (un)register internal ops
-Date: Sat,  8 Jan 2011 12:01:45 +0100
-Message-Id: <f4f5844dc17caf2f056cfe4a56f9aa48e4b61420.1294484338.git.hverkuil@xs4all.nl>
-In-Reply-To: <1294484508-14820-1-git-send-email-hverkuil@xs4all.nl>
-References: <1294484508-14820-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <c17e89942fa7c2a1928f0dadc676f39a7e34e54c.1294484338.git.hverkuil@xs4all.nl>
-References: <c17e89942fa7c2a1928f0dadc676f39a7e34e54c.1294484338.git.hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [RFC PATCH 02/12] sh_mobile_ceu_camera: implement the control handler.
+Date: Tue, 25 Jan 2011 08:37:56 +0100
+Cc: linux-media@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
+	Kuninori Morimoto <morimoto.kuninori@renesas.com>,
+	Alberto Panizzo <maramaopercheseimorto@gmail.com>,
+	Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>,
+	Marek Vasut <marek.vasut@gmail.com>,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+References: <1294787172-13638-1-git-send-email-hverkuil@xs4all.nl> <4ef0bba6ffe2a932c43cdc99d22fe0da0e6bfcd5.1294786597.git.hverkuil@xs4all.nl> <Pine.LNX.4.64.1101222120110.31015@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1101222120110.31015@axis700.grange>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201101250837.56488.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Some subdevs need to call into the board code after they are registered
-and have a valid struct v4l2_device pointer. The s_config op was abused
-for this, but now that it is removed we need a cleaner way of solving this.
+On Saturday, January 22, 2011 21:31:52 Guennadi Liakhovetski wrote:
+> On Wed, 12 Jan 2011, Hans Verkuil wrote:
+> 
+> > And since this is the last and only host driver that uses controls, also
+> > remove the now obsolete control fields from soc_camera.h.
+> > 
+> > Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+> > ---
+> >  drivers/media/video/sh_mobile_ceu_camera.c |   95 ++++++++++++---------------
+> >  include/media/soc_camera.h                 |    4 -
+> >  2 files changed, 42 insertions(+), 57 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
+> > index 954222b..f007f57 100644
+> > --- a/drivers/media/video/sh_mobile_ceu_camera.c
+> > +++ b/drivers/media/video/sh_mobile_ceu_camera.c
+> > @@ -112,6 +112,7 @@ struct sh_mobile_ceu_dev {
+> >  
+> >  	unsigned int image_mode:1;
+> >  	unsigned int is_16bit:1;
+> > +	unsigned int added_controls:1;
+> >  };
+> >  
+> >  struct sh_mobile_ceu_cam {
+> > @@ -133,6 +134,12 @@ struct sh_mobile_ceu_cam {
+> >  	enum v4l2_mbus_pixelcode code;
+> >  };
+> >  
+> > +static inline struct soc_camera_device *to_icd(struct v4l2_ctrl *ctrl)
+> 
+> I've been told a while ago not to use "inline" in .c files, and to let the 
+> compiler decide instead. Also this file has no inline directives in it 
+> until now, please, keep it that way.
 
-So this patch adds a struct with internal ops that the v4l2 core can call.
+OK.
 
-Currently only two ops exist: register and unregister. Subdevs can implement
-these to call the board code and pass it the v4l2_device pointer, which the
-board code can then use to get access to the struct that embeds the
-v4l2_device.
+> > +{
+> > +	return container_of(ctrl->handler, struct soc_camera_device,
+> > +							ctrl_handler);
+> > +}
+> > +
+> >  static unsigned long make_bus_param(struct sh_mobile_ceu_dev *pcdev)
+> >  {
+> >  	unsigned long flags;
+> > @@ -490,6 +497,33 @@ out:
+> >  	return IRQ_HANDLED;
+> >  }
+> >  
+> > +static int sh_mobile_ceu_s_ctrl(struct v4l2_ctrl *ctrl)
+> > +{
+> > +	struct soc_camera_device *icd = to_icd(ctrl);
+> > +	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+> > +	struct sh_mobile_ceu_dev *pcdev = ici->priv;
+> > +
+> > +	ici = to_soc_camera_host(icd->dev.parent);
+> > +	pcdev = ici->priv;
+> 
+> These two are redundant.
 
-It is expected that in the future open and close ops will also be added.
+Must have missed that. Will remove these lines.
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/v4l2-device.c |   14 ++++++++++++--
- include/media/v4l2-subdev.h       |   17 +++++++++++++++++
- 2 files changed, 29 insertions(+), 2 deletions(-)
+> 
+> > +	switch (ctrl->id) {
+> > +	case V4L2_CID_SHARPNESS:
+> > +		switch (icd->current_fmt->host_fmt->fourcc) {
+> > +		case V4L2_PIX_FMT_NV12:
+> > +		case V4L2_PIX_FMT_NV21:
+> > +		case V4L2_PIX_FMT_NV16:
+> > +		case V4L2_PIX_FMT_NV61:
+> > +			ceu_write(pcdev, CLFCR, !ctrl->val);
+> > +			return 0;
+> > +		}
+> > +		break;
+> > +	}
+> > +	return -EINVAL;
+> > +}
+> > +
+> > +static const struct v4l2_ctrl_ops sh_mobile_ceu_ctrl_ops = {
+> > +	.s_ctrl = sh_mobile_ceu_s_ctrl,
+> > +};
+> > +
+> >  /* Called with .video_lock held */
+> >  static int sh_mobile_ceu_add_device(struct soc_camera_device *icd)
+> >  {
+> > @@ -500,6 +534,14 @@ static int sh_mobile_ceu_add_device(struct soc_camera_device *icd)
+> >  	if (pcdev->icd)
+> >  		return -EBUSY;
+> >  
+> > +	if (!pcdev->added_controls) {
+> > +		v4l2_ctrl_new_std(&icd->ctrl_handler, &sh_mobile_ceu_ctrl_ops,
+> > +				V4L2_CID_SHARPNESS, 0, 1, 1, 0);
+> 
+> Hm, am I missing something with this new API? You register a handler for 
+> only one control ID, and in the handler itself you check once more, which 
+> ID it is?...
 
-diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
-index 7fe6f92..b24f002 100644
---- a/drivers/media/video/v4l2-device.c
-+++ b/drivers/media/video/v4l2-device.c
-@@ -126,11 +126,19 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
- 	WARN_ON(sd->v4l2_dev != NULL);
- 	if (!try_module_get(sd->owner))
- 		return -ENODEV;
-+	sd->v4l2_dev = v4l2_dev;
-+	if (sd->internal_ops && sd->internal_ops->registered) {
-+		err = sd->internal_ops->registered(sd);
-+		if (err)
-+			return err;
-+	}
- 	/* This just returns 0 if either of the two args is NULL */
- 	err = v4l2_ctrl_add_handler(v4l2_dev->ctrl_handler, sd->ctrl_handler);
--	if (err)
-+	if (err) {
-+		if (sd->internal_ops && sd->internal_ops->unregistered)
-+			sd->internal_ops->unregistered(sd);
- 		return err;
--	sd->v4l2_dev = v4l2_dev;
-+	}
- 	spin_lock(&v4l2_dev->lock);
- 	list_add_tail(&sd->list, &v4l2_dev->subdevs);
- 	spin_unlock(&v4l2_dev->lock);
-@@ -146,6 +154,8 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
- 	spin_lock(&sd->v4l2_dev->lock);
- 	list_del(&sd->list);
- 	spin_unlock(&sd->v4l2_dev->lock);
-+	if (sd->internal_ops && sd->internal_ops->unregistered)
-+		sd->internal_ops->unregistered(sd);
- 	sd->v4l2_dev = NULL;
- 	module_put(sd->owner);
- }
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 42fbe46..daf1e57 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -411,6 +411,21 @@ struct v4l2_subdev_ops {
- 	const struct v4l2_subdev_sensor_ops	*sensor;
- };
+I can remove the check, but having a switch, even if only for one control,
+makes it very easy later to add additional controls. But if you prefer not
+to have that, then I can easily remove it.
  
-+/*
-+ * Internal ops. Never call this from drivers, only the v4l2 framework can call
-+ * these ops.
-+ *
-+ * registered: called when this subdev is registered. When called the v4l2_dev
-+ *	field is set to the correct v4l2_device.
-+ *
-+ * unregistered: called when this subdev is unregistered. When called the
-+ *	v4l2_dev field is still set to the correct v4l2_device.
-+ */
-+struct v4l2_subdev_internal_ops {
-+	int (*registered)(struct v4l2_subdev *sd);
-+	void (*unregistered)(struct v4l2_subdev *sd);
-+};
-+
- #define V4L2_SUBDEV_NAME_SIZE 32
- 
- /* Set this flag if this subdev is a i2c device. */
-@@ -427,6 +442,8 @@ struct v4l2_subdev {
- 	u32 flags;
- 	struct v4l2_device *v4l2_dev;
- 	const struct v4l2_subdev_ops *ops;
-+	/* Never call these internal ops from within a driver! */
-+	const struct v4l2_subdev_internal_ops *internal_ops;
- 	/* The control handler of this subdev. May be NULL. */
- 	struct v4l2_ctrl_handler *ctrl_handler;
- 	/* name must be unique */
+> > +		if (icd->ctrl_handler.error)
+> > +			return icd->ctrl_handler.error;
+> > +		pcdev->added_controls = 1;
+> > +	}
+> > +
+> >  	dev_info(icd->dev.parent,
+> >  		 "SuperH Mobile CEU driver attached to camera %d\n",
+> >  		 icd->devnum);
+> 
+> Thanks
+> Guennadi
+
+Regards,
+
+	Hans
+
 -- 
-1.7.0.4
-
+Hans Verkuil - video4linux developer - sponsored by Cisco
