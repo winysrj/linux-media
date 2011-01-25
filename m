@@ -1,288 +1,277 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.work.de ([212.12.45.188]:54228 "EHLO smtp2.work.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752905Ab1AHPkZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 8 Jan 2011 10:40:25 -0500
-Message-ID: <4D288565.6040503@jusst.de>
-Date: Sat, 08 Jan 2011 16:40:21 +0100
-From: Julian Scheel <julian@jusst.de>
-MIME-Version: 1.0
-To: Steven Toth <stoth@kernellabs.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	linux-media@vger.kernel.org
-Subject: Re: Hauppauge HVR-2200 analog
-References: <4CFE14A1.3040801@jusst.de> <1291726869.2073.5.camel@morgan.silverblock.net> <4D07A829.6080406@jusst.de> <4D07CAA6.3030300@kernellabs.com> <67DB049D-B91E-4457-93CE-2CE0164C5B54@jusst.de> <4D2283AD.3000006@jusst.de> <4D2642CA.4080309@jusst.de>
-In-Reply-To: <4D2642CA.4080309@jusst.de>
-Content-Type: multipart/mixed;
- boundary="------------070202020705030308000305"
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:48233 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751547Ab1AYCid (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Jan 2011 21:38:33 -0500
+Date: Tue, 25 Jan 2011 11:38:25 +0900
+From: Kamil Debski <k.debski@samsung.com>
+Subject: RE: [RFC/PATCH v6 1/4] Changes in include/linux/videodev2.h for MFC 5.1
+In-reply-to: <201101231828.23723.hverkuil@xs4all.nl>
+To: 'Hans Verkuil' <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>, pawel@osciak.com,
+	kyungmin.park@samsung.com, jaeryul.oh@samsung.com,
+	kgene.kim@samsung.com
+Message-id: <00b501cbbc38$f3b35dc0$db1a1940$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: en-gb
+Content-transfer-encoding: 7BIT
+References: <1294417534-3856-1-git-send-email-k.debski@samsung.com>
+ <1294417534-3856-2-git-send-email-k.debski@samsung.com>
+ <201101231828.23723.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This is a multi-part message in MIME format.
---------------070202020705030308000305
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi Hans,
 
-Am 06.01.2011 23:31, schrieb Julian Scheel:
->
->> Attached is the diff I currently use.
->>
-> Some more process. Attached is a new patch, which allows me to capture 
-> video and audio from a PAL tuner. Imho the video has wrong colours 
-> though (using PAL-B). Maybe someone would want to test that patch and 
-> give some feedback?
-Ok some hours of debugging later, I figured out that only encoder 1 was 
-not working properly. This was due to a wrong addressing when sending 
-the dif setup commands. The attached new patch fixes this.
+I am pretty busy with other work now. That's why I have little time to
+work on the open source driver for the open source. I hope to have more
+time soon.
 
+> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+> 
+> Hi Kamil,
+> 
+> Here is a review of this patch. I didn't really look that closely at
+> the others,
+> other than noticing that they didn't use the control framework yet.
+> 
+> The main issue really is lack of documentation. It's hard to review
+> something if
+> you don't know what a new define stands for.
 
---------------070202020705030308000305
-Content-Type: text/x-patch;
- name="saa7164-card-pal.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="saa7164-card-pal.diff"
+Yes, no control framework so far, but I understand this is high priority.
+ 
+> On Friday, January 07, 2011 17:25:31 Kamil Debski wrote:
+> > This patch adds fourcc values for compressed video stream formats and
+> > V4L2_CTRL_CLASS_CODEC. Also adds controls used by MFC 5.1 driver.
+> >
+> > Signed-off-by: Kamil Debski <k.debski@samsung.com>
+> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> > ---
+> >  include/linux/videodev2.h |   45
+> +++++++++++++++++++++++++++++++++++++++++++++
+> >  1 files changed, 45 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> > index d30c98d..b8952fc 100644
+> > --- a/include/linux/videodev2.h
+> > +++ b/include/linux/videodev2.h
+> > @@ -339,6 +339,14 @@ struct v4l2_pix_format {
+> >  #define V4L2_PIX_FMT_NV16    v4l2_fourcc('N', 'V', '1', '6') /* 16
+> Y/CbCr 4:2:2  */
+> >  #define V4L2_PIX_FMT_NV61    v4l2_fourcc('N', 'V', '6', '1') /* 16
+> Y/CrCb 4:2:2  */
+> >
+> > +/* two non contiguous planes -- one Y, one Cr + Cb interleaved  */
+> > +#define V4L2_PIX_FMT_NV12M   v4l2_fourcc('N', 'M', '1', '2') /* 12
+> Y/CbCr 4:2:0  */
+> > +/* 12  Y/CbCr 4:2:0 64x32 macroblocks */
+> > +#define V4L2_PIX_FMT_NV12MT  v4l2_fourcc('T', 'M', '1', '2')
+> > +
+> > +/* three non contiguous planes -- Y, Cb, Cr */
+> > +#define V4L2_PIX_FMT_YUV420M v4l2_fourcc('Y', 'M', '1', '2') /* 12
+> YUV420 planar */
+> > +
+> 
+> Don't forget to document these formats in the V4L2 spec.
 
-Nur in linux-2.6.37/drivers/media/video/saa7164/: modules.order.
-diff -x '*.o' -x '*.ko' -x '*.cmd' -x '*.mod.*' -ru linux-2.6.37.a/drivers/media/video/saa7164//saa7164-api.c linux-2.6.37/drivers/media/video/saa7164//saa7164-api.c
---- linux-2.6.37.a/drivers/media/video/saa7164//saa7164-api.c	2011-01-05 01:50:19.000000000 +0100
-+++ linux-2.6.37/drivers/media/video/saa7164//saa7164-api.c	2011-01-08 16:10:32.000000000 +0100
-@@ -548,7 +548,7 @@
- 		tvaudio.std = TU_STANDARD_NTSC_M;
- 		tvaudio.country = 1;
- 	} else {
--		tvaudio.std = TU_STANDARD_PAL_I;
-+		tvaudio.std = 0x04; //TU_STANDARD_PAL_I;
- 		tvaudio.country = 44;
- 	}
- 
-@@ -608,7 +608,7 @@
- 	dprintk(DBGLVL_API, "%s(nr=%d type=%d val=%x)\n", __func__,
- 		port->nr, port->type, val);
- 
--	if (port->nr == 0)
-+	if (port->nr < 3) //== 0)
- 		mas = 0xd0;
- 	else
- 		mas = 0xe0;
-diff -x '*.o' -x '*.ko' -x '*.cmd' -x '*.mod.*' -ru linux-2.6.37.a/drivers/media/video/saa7164//saa7164-cards.c linux-2.6.37/drivers/media/video/saa7164//saa7164-cards.c
---- linux-2.6.37.a/drivers/media/video/saa7164//saa7164-cards.c	2011-01-05 01:50:19.000000000 +0100
-+++ linux-2.6.37/drivers/media/video/saa7164//saa7164-cards.c	2011-01-06 16:16:56.000000000 +0100
-@@ -203,6 +203,66 @@
- 			.i2c_reg_len	= REGLEN_8bit,
- 		} },
- 	},
-+	[SAA7164_BOARD_HAUPPAUGE_HVR2200_4] = {
-+		.name		= "Hauppauge WinTV-HVR2200",
-+		.porta		= SAA7164_MPEG_DVB,
-+		.portb		= SAA7164_MPEG_DVB,
-+                .portc          = SAA7164_MPEG_ENCODER,
-+                .portd          = SAA7164_MPEG_ENCODER,
-+                .porte          = SAA7164_MPEG_VBI,
-+                .portf          = SAA7164_MPEG_VBI,
-+		.chiprev	= SAA7164_CHIP_REV3,
-+		.unit		= {{
-+			.id		= 0x1d,
-+			.type		= SAA7164_UNIT_EEPROM,
-+			.name		= "4K EEPROM",
-+			.i2c_bus_nr	= SAA7164_I2C_BUS_0,
-+			.i2c_bus_addr	= 0xa0 >> 1,
-+			.i2c_reg_len	= REGLEN_8bit,
-+		}, {
-+			.id		= 0x04,
-+			.type		= SAA7164_UNIT_TUNER,
-+			.name		= "TDA18271-1",
-+			.i2c_bus_nr	= SAA7164_I2C_BUS_1,
-+			.i2c_bus_addr	= 0xc0 >> 1,
-+			.i2c_reg_len	= REGLEN_8bit,
-+		}, {
-+			.id		= 0x05,
-+			.type		= SAA7164_UNIT_ANALOG_DEMODULATOR,
-+			.name		= "TDA8290-1",
-+			.i2c_bus_nr	= SAA7164_I2C_BUS_1,
-+			.i2c_bus_addr	= 0x84 >> 1,
-+			.i2c_reg_len	= REGLEN_8bit,
-+		}, {
-+			.id		= 0x1b,
-+			.type		= SAA7164_UNIT_TUNER,
-+			.name		= "TDA18271-2",
-+			.i2c_bus_nr	= SAA7164_I2C_BUS_2,
-+			.i2c_bus_addr	= 0xc0 >> 1,
-+			.i2c_reg_len	= REGLEN_8bit,
-+		}, {
-+			.id		= 0x1c,
-+			.type		= SAA7164_UNIT_ANALOG_DEMODULATOR,
-+			.name		= "TDA8290-2",
-+			.i2c_bus_nr	= SAA7164_I2C_BUS_2,
-+			.i2c_bus_addr	= 0x84 >> 1,
-+			.i2c_reg_len	= REGLEN_8bit,
-+		}, {
-+			.id		= 0x1e,
-+			.type		= SAA7164_UNIT_DIGITAL_DEMODULATOR,
-+			.name		= "TDA10048-1",
-+			.i2c_bus_nr	= SAA7164_I2C_BUS_1,
-+			.i2c_bus_addr	= 0x10 >> 1,
-+			.i2c_reg_len	= REGLEN_8bit,
-+		}, {
-+			.id		= 0x1f,
-+			.type		= SAA7164_UNIT_DIGITAL_DEMODULATOR,
-+			.name		= "TDA10048-2",
-+			.i2c_bus_nr	= SAA7164_I2C_BUS_2,
-+			.i2c_bus_addr	= 0x12 >> 1,
-+			.i2c_reg_len	= REGLEN_8bit,
-+		} },
-+	},
- 	[SAA7164_BOARD_HAUPPAUGE_HVR2250] = {
- 		.name		= "Hauppauge WinTV-HVR2250",
- 		.porta		= SAA7164_MPEG_DVB,
-@@ -426,6 +486,10 @@
- 		.subvendor = 0x0070,
- 		.subdevice = 0x8851,
- 		.card      = SAA7164_BOARD_HAUPPAUGE_HVR2250_2,
-+	}, {
-+		.subvendor = 0x0070,
-+		.subdevice = 0x8940,
-+		.card      = SAA7164_BOARD_HAUPPAUGE_HVR2200_4,
- 	},
- };
- const unsigned int saa7164_idcount = ARRAY_SIZE(saa7164_subids);
-@@ -469,6 +533,7 @@
- 	case SAA7164_BOARD_HAUPPAUGE_HVR2200:
- 	case SAA7164_BOARD_HAUPPAUGE_HVR2200_2:
- 	case SAA7164_BOARD_HAUPPAUGE_HVR2200_3:
-+	case SAA7164_BOARD_HAUPPAUGE_HVR2200_4:
- 	case SAA7164_BOARD_HAUPPAUGE_HVR2250:
- 	case SAA7164_BOARD_HAUPPAUGE_HVR2250_2:
- 	case SAA7164_BOARD_HAUPPAUGE_HVR2250_3:
-@@ -549,6 +614,7 @@
- 	case SAA7164_BOARD_HAUPPAUGE_HVR2200:
- 	case SAA7164_BOARD_HAUPPAUGE_HVR2200_2:
- 	case SAA7164_BOARD_HAUPPAUGE_HVR2200_3:
-+	case SAA7164_BOARD_HAUPPAUGE_HVR2200_4:
- 	case SAA7164_BOARD_HAUPPAUGE_HVR2250:
- 	case SAA7164_BOARD_HAUPPAUGE_HVR2250_2:
- 	case SAA7164_BOARD_HAUPPAUGE_HVR2250_3:
-diff -x '*.o' -x '*.ko' -x '*.cmd' -x '*.mod.*' -ru linux-2.6.37.a/drivers/media/video/saa7164//saa7164-dvb.c linux-2.6.37/drivers/media/video/saa7164//saa7164-dvb.c
---- linux-2.6.37.a/drivers/media/video/saa7164//saa7164-dvb.c	2011-01-05 01:50:19.000000000 +0100
-+++ linux-2.6.37/drivers/media/video/saa7164//saa7164-dvb.c	2011-01-06 16:16:56.000000000 +0100
-@@ -475,6 +475,7 @@
- 	case SAA7164_BOARD_HAUPPAUGE_HVR2200:
- 	case SAA7164_BOARD_HAUPPAUGE_HVR2200_2:
- 	case SAA7164_BOARD_HAUPPAUGE_HVR2200_3:
-+	case SAA7164_BOARD_HAUPPAUGE_HVR2200_4:
- 		i2c_bus = &dev->i2c_bus[port->nr + 1];
- 		switch (port->nr) {
- 		case 0:
-diff -x '*.o' -x '*.ko' -x '*.cmd' -x '*.mod.*' -ru linux-2.6.37.a/drivers/media/video/saa7164//saa7164-encoder.c linux-2.6.37/drivers/media/video/saa7164//saa7164-encoder.c
---- linux-2.6.37.a/drivers/media/video/saa7164//saa7164-encoder.c	2011-01-05 01:50:19.000000000 +0100
-+++ linux-2.6.37/drivers/media/video/saa7164//saa7164-encoder.c	2011-01-08 16:11:04.000000000 +0100
-@@ -32,7 +32,25 @@
- 	}, {
- 		.name      = "NTSC-JP",
- 		.id        = V4L2_STD_NTSC_M_JP,
--	}
-+	}, {
-+                .name      = "PAL-I",
-+                .id        = V4L2_STD_PAL_I,
-+	}, {
-+                .name      = "PAL-M",
-+                .id        = V4L2_STD_PAL_M,
-+	}, {
-+                .name      = "PAL-N",
-+                .id        = V4L2_STD_PAL_N,
-+	}, {
-+                .name      = "PAL-Nc",
-+                .id        = V4L2_STD_PAL_Nc,
-+	}, {
-+                .name      = "PAL-B",
-+                .id        = V4L2_STD_PAL_B,
-+	}, {
-+                .name      = "PAL-DK",
-+                .id        = V4L2_STD_PAL_DK,
-+        }
- };
- 
- static const u32 saa7164_v4l2_ctrls[] = {
-@@ -1359,7 +1377,7 @@
- 	.ioctl_ops     = &mpeg_ioctl_ops,
- 	.minor         = -1,
- 	.tvnorms       = SAA7164_NORMS,
--	.current_norm  = V4L2_STD_NTSC_M,
-+	.current_norm  = V4L2_STD_PAL_B,
- };
- 
- static struct video_device *saa7164_encoder_alloc(
-@@ -1407,7 +1425,7 @@
- 
- 	/* Establish encoder defaults here */
- 	/* Set default TV standard */
--	port->encodernorm = saa7164_tvnorms[0];
-+	port->encodernorm = saa7164_tvnorms[6];
- 	port->width = 720;
- 	port->mux_input = 1; /* Composite */
- 	port->video_format = EU_VIDEO_FORMAT_MPEG_2;
-diff -x '*.o' -x '*.ko' -x '*.cmd' -x '*.mod.*' -ru linux-2.6.37.a/drivers/media/video/saa7164//saa7164-fw.c linux-2.6.37/drivers/media/video/saa7164//saa7164-fw.c
---- linux-2.6.37.a/drivers/media/video/saa7164//saa7164-fw.c	2011-01-05 01:50:19.000000000 +0100
-+++ linux-2.6.37/drivers/media/video/saa7164//saa7164-fw.c	2011-01-08 16:13:11.000000000 +0100
-@@ -29,6 +29,9 @@
- 
- #define SAA7164_REV3_FIRMWARE		"NXP7164-2010-03-10.1.fw"
- #define SAA7164_REV3_FIRMWARE_SIZE	4019072
-+//#define SAA7164_REV3_FIRMWARE		"v4l-saa7164-1.0.3-3.fw"
-+//#define SAA7164_REV3_FIRMWARE_SIZE	4038864
+Sylwester has described two of the formats.
+You can find it here
+http://linuxtv.org/downloads/v4l-dvb-apis/V4L2-PIX-FMT-YUV420M.html
+or look at the patch here
+http://git.linuxtv.org/media_tree.git?a=commit;h=8104f63b9af30c22530d1c5cea0
+5d241566fad90
+
+As to V4L2_PIX_FMT_NV12MT - this format is pretty complicated. The layout of
+the macro blocks is non obvious. Actually, I have been
+working on the documentation not long ago, but I have received some higher
+priority work recently...
+
+> 
+> >  /* Bayer formats - see http://www.siliconimaging.com/RGB%20Bayer.htm
+> */
+> >  #define V4L2_PIX_FMT_SBGGR8  v4l2_fourcc('B', 'A', '8', '1') /*  8
+> BGBG.. GRGR.. */
+> >  #define V4L2_PIX_FMT_SGBRG8  v4l2_fourcc('G', 'B', 'R', 'G') /*  8
+> GBGB.. RGRG.. */
+> > @@ -362,6 +370,18 @@ struct v4l2_pix_format {
+> >  #define V4L2_PIX_FMT_DV       v4l2_fourcc('d', 'v', 's', 'd') /*
+> 1394          */
+> >  #define V4L2_PIX_FMT_MPEG     v4l2_fourcc('M', 'P', 'E', 'G') /*
+> MPEG-1/2/4    */
+> >
+> > +#define V4L2_PIX_FMT_H264     v4l2_fourcc('H', '2', '6', '4') /*
+> H264    */
+> > +#define V4L2_PIX_FMT_H263     v4l2_fourcc('H', '2', '6', '3') /*
+> H263    */
+> > +#define V4L2_PIX_FMT_MPEG12   v4l2_fourcc('M', 'P', '1', '2') /*
+> MPEG-1/2  */
+> > +#define V4L2_PIX_FMT_MPEG4    v4l2_fourcc('M', 'P', 'G', '4') /*
+> MPEG-4  */
+> > +#define V4L2_PIX_FMT_DIVX     v4l2_fourcc('D', 'I', 'V', 'X') /*
+> DivX  */
+> > +#define V4L2_PIX_FMT_DIVX3    v4l2_fourcc('D', 'I', 'V', '3') /*
+> DivX 3.11  */
+> > +#define V4L2_PIX_FMT_DIVX4    v4l2_fourcc('D', 'I', 'V', '4') /*
+> DivX 4.12  */
+> > +#define V4L2_PIX_FMT_DIVX5    v4l2_fourcc('D', 'X', '5', '0') /*
+> DivX 5  */
+> > +#define V4L2_PIX_FMT_XVID     v4l2_fourcc('X', 'V', 'I', 'D') /*
+> Xvid */
+> > +#define V4L2_PIX_FMT_VC1      v4l2_fourcc('V', 'C', '1', 'A') /* VC-
+> 1 */
+> > +#define V4L2_PIX_FMT_VC1_RCV      v4l2_fourcc('V', 'C', '1', 'R') /*
+> VC-1 RCV */
+> > +
+> 
+> Ditto. Note: FMT_MPEG and FMT_MPEG12 and possibly FMT_MPEG4 seem to
+> describe the
+> same format. What's the difference? And do these formats describe raw
+> video
+> streams or program/transport streams? Can I just put in any old DivX
+> file or
+> does the hardware understand only a specific dialect or even a
+> hardware-specific
+> variation of the standard?
+
+The idea was to choose the codec by using the pixel formats. The hardware
+needs the application to specify what kind of stream it will deal with.
+Hence the different pixel formats. I think that MPEG1, 2 and 4 may fall in
+the V4L2_PIX_FMT_MPEG category. But when I look at the enum
+v4l2_mpeg_stream_type
+there is no value for MPEG4 value. In addition - for MPEG1 and 2 MFC accepts
+elementary stream (ES) and I don't see it in the enum too.
+
+It will accept only elementary stream. As to DivX one should select the
+version and the hardware will support the features defined by the standard.
+I think Jaeryul Oh could provide more information about DivX support.
+
+In H264 you can have different profiles supported by hardware,
+still I imagine that the drivers would use V4L2_PIX_FMT_H264.
+
+> 
+> Does the codec just go from compressed video to raw video? If it also
+> goes in
+> the other direction, how does one set bitrates, etc.?
+
+This is the decoder only version of the driver. The hardware supports
+also encoding and we are working at an updated driver. There will be
+a set of controls for adjusting the encoding parameters.
+
+> Does it accept multiplexed streams containing audio as well? If so,
+> what does
+> it do with the audio?
+
+Only video elementary streams are supported.
+
+> 
+> >  /*  Vendor-specific formats   */
+> >  #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /*
+> cpia1 YUV */
+> >  #define V4L2_PIX_FMT_WNVA     v4l2_fourcc('W', 'N', 'V', 'A') /*
+> Winnov hw compress */
+> > @@ -972,6 +992,7 @@ struct v4l2_output {
+> >  #define V4L2_OUTPUT_TYPE_ANALOG			2
+> >  #define V4L2_OUTPUT_TYPE_ANALOGVGAOVERLAY	3
+> >
+> > +
+> >  /* capabilities flags */
+> >  #define V4L2_OUT_CAP_PRESETS		0x00000001 /* Supports
+> S_DV_PRESET */
+> >  #define V4L2_OUT_CAP_CUSTOM_TIMINGS	0x00000002 /* Supports
+> S_DV_TIMINGS */
+> > @@ -1009,6 +1030,7 @@ struct v4l2_ext_controls {
+> >  #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression
+> controls */
+> >  #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class
+> controls */
+> >  #define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control
+> class */
+> > +#define V4L2_CTRL_CLASS_CODEC 0x009c0000	/* Codec control class
+> */
+> >
+> >  #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
+> >  #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
+> > @@ -1342,6 +1364,29 @@ enum
+> v4l2_mpeg_cx2341x_video_median_filter_type {
+> >  #define V4L2_CID_MPEG_CX2341X_VIDEO_CHROMA_MEDIAN_FILTER_TOP
+> 	(V4L2_CID_MPEG_CX2341X_BASE+10)
+> >  #define V4L2_CID_MPEG_CX2341X_STREAM_INSERT_NAV_PACKETS
+> 	(V4L2_CID_MPEG_CX2341X_BASE+11)
+> >
+> > +/* For codecs */
+> > +
+> > +#define V4L2_CID_CODEC_BASE
+(V4L2_CTRL_CLASS_CODEC
+> | 0x900)
+> > +#define V4L2_CID_CODEC_CLASS
+(V4L2_CTRL_CLASS_CODEC
+> | 1)
+> > +
+> > +/* For both decoding and encoding */
+> > +
+> > +/* For encoding */
+> > +#define V4L2_CID_CODEC_LOOP_FILTER_H264
+> 	(V4L2_CID_CODEC_BASE + 0)
+> > +enum v4l2_cid_codec_loop_filter_h264 {
+> > +	V4L2_CID_CODEC_LOOP_FILTER_H264_ENABLE = 0,
+> > +	V4L2_CID_CODEC_LOOP_FILTER_H264_DISABLE = 1,
+> > +	V4L2_CID_CODEC_LOOP_FILTER_H264_DISABLE_AT_BOUNDARY = 2,
+> > +};
+> > +
+> > +/* For decoding */
+> > +
+> > +#define V4L2_CID_CODEC_LOOP_FILTER_MPEG4_ENABLE
+> 	(V4L2_CID_CODEC_BASE + 1)
+> > +#define V4L2_CID_CODEC_DISPLAY_DELAY		(V4L2_CID_CODEC_BASE
 +
- 
- struct fw_header {
- 	u32	firmwaresize;
-diff -x '*.o' -x '*.ko' -x '*.cmd' -x '*.mod.*' -ru linux-2.6.37.a/drivers/media/video/saa7164//saa7164.h linux-2.6.37/drivers/media/video/saa7164//saa7164.h
---- linux-2.6.37.a/drivers/media/video/saa7164//saa7164.h	2011-01-05 01:50:19.000000000 +0100
-+++ linux-2.6.37/drivers/media/video/saa7164//saa7164.h	2011-01-06 23:13:06.000000000 +0100
-@@ -83,6 +83,7 @@
- #define SAA7164_BOARD_HAUPPAUGE_HVR2200_3	6
- #define SAA7164_BOARD_HAUPPAUGE_HVR2250_2	7
- #define SAA7164_BOARD_HAUPPAUGE_HVR2250_3	8
-+#define SAA7164_BOARD_HAUPPAUGE_HVR2200_4	9
- 
- #define SAA7164_MAX_UNITS		8
- #define SAA7164_TS_NUMBER_OF_LINES	312
-@@ -113,7 +114,7 @@
- #define DBGLVL_THR 4096
- #define DBGLVL_CPU 8192
- 
--#define SAA7164_NORMS (V4L2_STD_NTSC_M |  V4L2_STD_NTSC_M_JP |  V4L2_STD_NTSC_443)
-+#define SAA7164_NORMS (V4L2_STD_NTSC_M |  V4L2_STD_NTSC_M_JP |  V4L2_STD_NTSC_443 | V4L2_STD_PAL_I | V4L2_STD_PAL_M | V4L2_STD_PAL_N | V4L2_STD_PAL_Nc | V4L2_STD_PAL_B | V4L2_STD_PAL_DK)
- 
- enum port_t {
- 	SAA7164_MPEG_UNDEFINED = 0,
-diff -x '*.o' -x '*.ko' -x '*.cmd' -x '*.mod.*' -ru linux-2.6.37.a/drivers/media/video/saa7164//saa7164-vbi.c linux-2.6.37/drivers/media/video/saa7164//saa7164-vbi.c
---- linux-2.6.37.a/drivers/media/video/saa7164//saa7164-vbi.c	2011-01-05 01:50:19.000000000 +0100
-+++ linux-2.6.37/drivers/media/video/saa7164//saa7164-vbi.c	2011-01-08 15:30:50.000000000 +0100
-@@ -28,7 +28,25 @@
- 	}, {
- 		.name      = "NTSC-JP",
- 		.id        = V4L2_STD_NTSC_M_JP,
--	}
-+	}, {
-+                .name      = "PAL-I",
-+                .id        = V4L2_STD_PAL_I,
-+        }, {
-+                .name      = "PAL-M",
-+                .id        = V4L2_STD_PAL_M,
-+        }, {
-+                .name      = "PAL-N",
-+                .id        = V4L2_STD_PAL_N,
-+        }, {
-+                .name      = "PAL-Nc",
-+                .id        = V4L2_STD_PAL_Nc,
-+        }, {
-+                .name      = "PAL-B",
-+                .id        = V4L2_STD_PAL_B,
-+        }, {
-+                .name      = "PAL-DK",
-+                .id        = V4L2_STD_PAL_DK,
-+        }
- };
- 
- static const u32 saa7164_v4l2_ctrls[] = {
+> 2)
+> > +#define V4L2_CID_CODEC_REQ_NUM_BUFS		(V4L2_CID_CODEC_BASE
++
+> 3)
+> > +#define V4L2_CID_CODEC_SLICE_INTERFACE		(V4L2_CID_CODEC_BASE
++
+> 4)
+> > +#define V4L2_CID_CODEC_PACKED_PB		(V4L2_CID_CODEC_BASE + 5)
+> > +
+> 
+> This needs to be documented in the spec as well.
 
---------------070202020705030308000305--
+Ok.
+ 
+> It seems to me just looking at the names that these controls are highly
+> hardware specific. If so, then these controls would have to be in the
+> range
+> of (V4L2_CTRL_CLASS_CODEC | 0x1000) and up and need the name of the
+> chipset
+> as part of their ID. Similar to the cx2341x specific controls (see
+> V4L2_CID_MPEG_CX2341X_BASE in videodev2.h).
+
+I think that DISPLAY_DELAY would be used by more than one codec. It may
+be difficult to judge what is common until more chip vendors decide to
+include drivers for their hardware codecs in the video4linux.
+
+> Creating a CODEC control class seems sensible to me, so I'm fine with
+> that.
+
+That's good news.
+
+> 
+> >  /*  Camera class control IDs */
+> >  #define V4L2_CID_CAMERA_CLASS_BASE 	(V4L2_CTRL_CLASS_CAMERA |
+> 0x900)
+> >  #define V4L2_CID_CAMERA_CLASS 		(V4L2_CTRL_CLASS_CAMERA | 1)
+> >
+> 
+
+Thank you for your comments.
+
+Best wishes,
+--
+Kamil Debski
+Linux Platform Group
+Samsung Poland R&D Center
+
