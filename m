@@ -1,176 +1,179 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.8]:58486 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751813Ab1A0RK1 (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1630 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751954Ab1AYH7Q (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Jan 2011 12:10:27 -0500
-Date: Thu, 27 Jan 2011 18:10:25 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Janusz Uzycki <janusz.uzycki@elproma.com.pl>
-cc: g.daniluk@elproma.com.pl,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: SoC Camera driver and TV decoder
-In-Reply-To: <F95361ABAE1D4A70A10790A798004482@laptop2>
-Message-ID: <Pine.LNX.4.64.1101271809030.8916@axis700.grange>
-References: <1E539FC23CF84B8A91428720570395E0@laptop2>
- <Pine.LNX.4.64.1101241720001.17567@axis700.grange> <AD14536027B946D6B4504D4F43E352A5@laptop2>
- <Pine.LNX.4.64.1101262045550.3989@axis700.grange> <F95361ABAE1D4A70A10790A798004482@laptop2>
+	Tue, 25 Jan 2011 02:59:16 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [RFC PATCH 04/12] mt9m111.c: convert to the control framework.
+Date: Tue, 25 Jan 2011 08:59:07 +0100
+Cc: linux-media@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
+	Kuninori Morimoto <morimoto.kuninori@renesas.com>,
+	Alberto Panizzo <maramaopercheseimorto@gmail.com>,
+	Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>,
+	Marek Vasut <marek.vasut@gmail.com>,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+References: <1294787172-13638-1-git-send-email-hverkuil@xs4all.nl> <56c1a8ef6e1a5405881611a18579db98e271fb86.1294786597.git.hverkuil@xs4all.nl> <Pine.LNX.4.64.1101230032110.1872@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1101230032110.1872@axis700.grange>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201101250859.07104.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, 27 Jan 2011, Janusz Uzycki wrote:
-
-> Hello Guennadi again.
+On Sunday, January 23, 2011 00:45:15 Guennadi Liakhovetski wrote:
+> On Wed, 12 Jan 2011, Hans Verkuil wrote:
 > 
-> I patched tvp5150.c according to tw9910 driver (without real cropping
-> support yet).
-> Unfortunately I got the messages:
-> camera 0-0: Probing 0-0
-> sh_mobile_ceu sh_mobile_ceu.0: SuperH Mobile CEU driver attached to camera 0
-> tvp5150 0-005d: chip found @ 0xba (i2c-sh_mobile)
-> tvp5150 0-005d: tvp5150am1 detected.
-
-This looks good - i2c to the chip works!
-
-> sh_mobile_ceu sh_mobile_ceu.0: SuperH Mobile CEU driver detached from camera 0
-> camera: probe of 0-0 failed with error -515
-
-This is strange, however - error code 515... Can you try to find out where 
-it is coming from?
-
-Thanks
-Guennadi
-
-> 
-> I have also found 2 patches here http://www.sleepyrobot.com/?cat=3 but it
-> does not support soc camera also.
-> 
-> My "copy-paste" patch in attachement this time.
-> 
-> kind regards
-> Janusz
-> 
-> ----- Original Message ----- From: "Guennadi Liakhovetski"
-> <g.liakhovetski@gmx.de>
-> To: "Janusz Uzycki" <janusz.uzycki@elproma.com.pl>
-> Cc: <g.daniluk@elproma.com.pl>
-> Sent: Wednesday, January 26, 2011 8:47 PM
-> Subject: Re: SoC Camera driver and TV decoder
-> 
-> 
-> > On Wed, 26 Jan 2011, Janusz Uzycki wrote:
-> > 
-> > > Thanks for the help. I found your post at
-> > > http://www.spinics.net/lists/linux-media/msg16346.html and
-> > > http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/11486/focus=11493
-> > > Do you remember some similar threads or guide? It will be better to read
-> > > before to ask :)
-> > 
-> > There have been a couple of threads with similar content, and no, there is
-> > no guide.
-> > 
-> > Regards
-> > Guennadi
-> > 
-> > > 
-> > > best regards
-> > > Janusz Uzycki
-> > > ELPROMA
-> > > 
-> > > ----- Original Message ----- From: "Guennadi Liakhovetski"
-> > > <g.liakhovetski@gmx.de>
-> > > To: "Janusz Uzycki" <janusz.uzycki@elproma.com.pl>
-> > > Cc: <g.daniluk@elproma.com.pl>
-> > > Sent: Monday, January 24, 2011 5:25 PM
-> > > Subject: Re: SoC Camera driver and TV decoder
-> > > 
-> > > 
-> > > > On Mon, 24 Jan 2011, Janusz Uzycki wrote:
-> > > >
-> > > > > Hello.
-> > > > >
-> > > > > We are developing a customized system based on Renesas SH7724 CPU. In
-> > > > > dev.kit of that CPU video input (TV decoder) is powered by TW9910 > >
-> > > chip.
-> > > > > Our customized board contains TVP5150 chip instead. Unfortunately
-> > > > > SoC-camera driver supports SH-mobile host but not the our client.
-> > > > > TVP5150 is supported in Linux kernel via default video decoders > >
-> > > driver
-> > > > > but we weren't able to link SoC-camera and V4L2 driver of TVP5150 to
-> > > > > work together. Both modules are loaded but /dev/video0 has not > >
-> > > appeared.
-> > > > > Could you point how to do it right? Does we need to rewrite TVP5150
-> > > > > driver using TW9910 driver as template?
-> > > >
-> > > > Yes, you will have to adjust / extend the tvp5150.c driver to (also) >
-> > > work
-> > > > with soc-camera. Unfortunately, the soc-camera framework is still not
-> > > > completely compatible with the plain v4l2-subdev API. Yes, use any of
-> > > > existing soc-camera sensor or tv-decoder drivers as an example. The >
-> > > only
-> > > > soc-camera tv-decoder driver currently available, as you've correctly
-> > > > recognised, is tw9910.
-> > > >
-> > > > With more detailed questions please CC the
-> > > >
-> > > > Linux Media Mailing List <linux-media@vger.kernel.org>
-> > > >
-> > > > mailing list.
-> > > >
-> > > > Thanks
-> > > > Guennadi
-> > > >
-> > > > >
-> > > > > Current our part for SoC in /arch/sh/boards/mach-ecovec24/setup.c is:
-> > > > >
-> > > > > static struct i2c_board_info i2c_camera[] = {
-> > > > >         {
-> > > > >                 I2C_BOARD_INFO("tvp5150", 0x5d),
-> > > > >         },
-> > > > > };
-> > > > >
-> > > > > static struct soc_camera_link tvp5150_link = {
-> > > > >         .i2c_adapter_id = 0,
-> > > > >         .bus_id         = 0,
-> > > > >         .board_info     = &i2c_camera[0],
-> > > > >          /*.priv           = &tw9910_info,*/            /* not > >
-> > > supported
-> > > > > */
-> > > > >          /*.power          = tw9910_power,*/        /* not supported >
-> > > > */
-> > > > >         .module_name    = "tvp5150"
-> > > > > };
-> > > > >
-> > > > > static struct platform_device camera_devices[] = {
-> > > > >         {
-> > > > >                 .name   = "soc-camera-pdrv",
-> > > > >                 .id     = 0,
-> > > > >                 .dev    = {
-> > > > >                         .platform_data = &tvp5150_link,
-> > > > >                 },
-> > > > >         },
-> > > > > };
-> > > > >
-> > > > > kind regards
-> > > > > Janusz Uzycki
-> > > > > ELPROMA
-> > > > >
-> > > >
-> > > > ---
-> > > > Guennadi Liakhovetski, Ph.D.
-> > > > Freelance Open-Source Software Developer
-> > > > http://www.open-technology.de/
-> > > >
-> > > 
-> > 
+> > Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
 > > ---
-> > Guennadi Liakhovetski
+> >  drivers/media/video/mt9m111.c |  184 ++++++++++++-----------------------------
+> >  1 files changed, 54 insertions(+), 130 deletions(-)
 > > 
+> > diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
+> > index 53fa2a7..2328579 100644
+> > --- a/drivers/media/video/mt9m111.c
+> > +++ b/drivers/media/video/mt9m111.c
+> 
+> [snip]
+> 
+> > -static int mt9m111_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+> > +static int mt9m111_s_ctrl(struct v4l2_ctrl *ctrl)
+> >  {
+> > +	struct v4l2_subdev *sd =
+> > +		&container_of(ctrl->handler, struct mt9m111, hdl)->subdev;
+> >  	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> > -	struct mt9m111 *mt9m111 = to_mt9m111(client);
+> > -	const struct v4l2_queryctrl *qctrl;
+> > -	int ret;
+> > -
+> > -	qctrl = soc_camera_find_qctrl(&mt9m111_ops, ctrl->id);
+> > -	if (!qctrl)
+> > -		return -EINVAL;
+> >  
+> >  	switch (ctrl->id) {
+> >  	case V4L2_CID_VFLIP:
+> > -		mt9m111->vflip = ctrl->value;
+> > -		ret = mt9m111_set_flip(client, ctrl->value,
+> > +		return mt9m111_set_flip(client, ctrl->val,
+> >  					MT9M111_RMB_MIRROR_ROWS);
+> > -		break;
+> >  	case V4L2_CID_HFLIP:
+> > -		mt9m111->hflip = ctrl->value;
+> > -		ret = mt9m111_set_flip(client, ctrl->value,
+> > +		return mt9m111_set_flip(client, ctrl->val,
+> >  					MT9M111_RMB_MIRROR_COLS);
+> > -		break;
+> >  	case V4L2_CID_GAIN:
+> > -		ret = mt9m111_set_global_gain(client, ctrl->value);
+> > -		break;
+> > +		return mt9m111_set_global_gain(client, ctrl->val);
+> > +
+> >  	case V4L2_CID_EXPOSURE_AUTO:
+> > -		ret =  mt9m111_set_autoexposure(client, ctrl->value);
+> > -		break;
+> > +		return mt9m111_set_autoexposure(client, ctrl->val);
+> > +
+> >  	case V4L2_CID_AUTO_WHITE_BALANCE:
+> > -		ret =  mt9m111_set_autowhitebalance(client, ctrl->value);
+> > -		break;
+> > -	default:
+> > -		ret = -EINVAL;
+> > +		return mt9m111_set_autowhitebalance(client, ctrl->val);
+> >  	}
+> > -
+> > -	return ret;
+> > +	return -EINVAL;
+> >  }
+> >  
+> >  static int mt9m111_suspend(struct soc_camera_device *icd, pm_message_t state)
+> 
+> [snip]
+> 
+> > @@ -1067,6 +968,26 @@ static int mt9m111_probe(struct i2c_client *client,
+> >  		return -ENOMEM;
+> >  
+> >  	v4l2_i2c_subdev_init(&mt9m111->subdev, client, &mt9m111_subdev_ops);
+> > +	v4l2_ctrl_handler_init(&mt9m111->hdl, 5);
+> > +	v4l2_ctrl_new_std(&mt9m111->hdl, &mt9m111_ctrl_ops,
+> > +			V4L2_CID_VFLIP, 0, 1, 1, 0);
+> > +	v4l2_ctrl_new_std(&mt9m111->hdl, &mt9m111_ctrl_ops,
+> > +			V4L2_CID_HFLIP, 0, 1, 1, 0);
+> > +	v4l2_ctrl_new_std(&mt9m111->hdl, &mt9m111_ctrl_ops,
+> > +			V4L2_CID_AUTO_WHITE_BALANCE, 0, 1, 1, 1);
+> > +	mt9m111->gain = v4l2_ctrl_new_std(&mt9m111->hdl, &mt9m111_ctrl_ops,
+> > +			V4L2_CID_GAIN, 0, 63 * 2 * 2, 1, 32);
+> > +	v4l2_ctrl_new_std_menu(&mt9m111->hdl,
+> > +			&mt9m111_ctrl_ops, V4L2_CID_EXPOSURE_AUTO, 1, 0,
+> > +			V4L2_EXPOSURE_AUTO);
+> > +	mt9m111->subdev.ctrl_handler = &mt9m111->hdl;
+> > +	if (mt9m111->hdl.error) {
+> > +		int err = mt9m111->hdl.error;
+> > +
+> > +		kfree(mt9m111);
+> > +		return err;
+> > +	}
+> > +	mt9m111->gain->is_volatile = 1;
+> 
+> I'm not sure I like this approach: you register each control separately, 
+> but with the same handler, and then in that handler you switch-case again 
+> to find out which control has to be processed... If we already register 
+> them separately, and they share no code, apart from context extraction 
+> from parameters - why not make separate handlers, waste some memory on a 
+> couple more structs, but avoid run-time switching (I know it is not 
+> critical, although, with still photo-shooting you might want to care about 
+> the time between your controls and the actual shot), and win clarity?
+
+I find that as long as the handler for each control is short (one-liners
+in this case), then there is no benefit to split it up. It just adds a
+fair amount of code to the source which in my opinion does not make it
+easier to read.
+
+Regards,
+
+	Hans
+
+> 
+> >  
+> >  	/* Second stage probe - when a capture adapter is there */
+> >  	icd->ops		= &mt9m111_ops;
+> > @@ -1080,6 +1001,7 @@ static int mt9m111_probe(struct i2c_client *client,
+> >  	ret = mt9m111_video_probe(icd, client);
+> >  	if (ret) {
+> >  		icd->ops = NULL;
+> > +		v4l2_ctrl_handler_free(&mt9m111->hdl);
+> >  		kfree(mt9m111);
+> >  	}
+> >  
+> > @@ -1091,7 +1013,9 @@ static int mt9m111_remove(struct i2c_client *client)
+> >  	struct mt9m111 *mt9m111 = to_mt9m111(client);
+> >  	struct soc_camera_device *icd = client->dev.platform_data;
+> >  
+> > +	v4l2_device_unregister_subdev(&mt9m111->subdev);
+> 
+> Same here - don't like redundancy with soc_camera.c
+> 
+> Thanks
+> Guennadi
+> 
+> >  	icd->ops = NULL;
+> > +	v4l2_ctrl_handler_free(&mt9m111->hdl);
+> >  	kfree(mt9m111);
+> >  
+> >  	return 0;
+> 
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 > 
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
