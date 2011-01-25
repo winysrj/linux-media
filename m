@@ -1,41 +1,132 @@
 Return-path: <mchehab@pedra>
-Received: from ffm.saftware.de ([83.141.3.46]:55126 "EHLO ffm.saftware.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751457Ab1AJOFh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Jan 2011 09:05:37 -0500
-Message-ID: <4D2B122E.3050803@linuxtv.org>
-Date: Mon, 10 Jan 2011 15:05:34 +0100
-From: Andreas Oberritter <obi@linuxtv.org>
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:63125 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752628Ab1AYQzd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Jan 2011 11:55:33 -0500
+Date: Tue, 25 Jan 2011 08:55:24 -0800
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mark Lord <kernel@teksavvy.com>,
+	Linux Kernel <linux-kernel@vger.kernel.org>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: Extending rc-core/userspace to handle bigger scancodes - Was:
+ Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils ?
+Message-ID: <20110125165524.GC19701@core.coreip.homeip.net>
+References: <20110125005555.GA18338@core.coreip.homeip.net>
+ <4D3E4DD1.60705@teksavvy.com>
+ <20110125042016.GA7850@core.coreip.homeip.net>
+ <4D3E5372.9010305@teksavvy.com>
+ <20110125045559.GB7850@core.coreip.homeip.net>
+ <4D3E59CA.6070107@teksavvy.com>
+ <4D3E5A91.30207@teksavvy.com>
+ <20110125053117.GD7850@core.coreip.homeip.net>
+ <20110125065217.GE7850@core.coreip.homeip.net>
+ <4D3EE171.4020605@redhat.com>
 MIME-Version: 1.0
-To: Oliver Endriss <o.endriss@gmx.de>
-CC: linux-media@vger.kernel.org, mchehab@redhat.com
-Subject: Re: [PATCH 07/16] ngene: CXD2099AR Common Interface driver
-References: <1294652184-12843-1-git-send-email-o.endriss@gmx.de> <1294652184-12843-8-git-send-email-o.endriss@gmx.de>
-In-Reply-To: <1294652184-12843-8-git-send-email-o.endriss@gmx.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4D3EE171.4020605@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 01/10/2011 10:36 AM, Oliver Endriss wrote:
-> From: Ralph Metzler <rjkm@metzlerbros.de>
+On Tue, Jan 25, 2011 at 12:42:57PM -0200, Mauro Carvalho Chehab wrote:
+> Em 25-01-2011 04:52, Dmitry Torokhov escreveu:
+> > On Mon, Jan 24, 2011 at 09:31:17PM -0800, Dmitry Torokhov wrote:
+> >> On Tue, Jan 25, 2011 at 12:07:29AM -0500, Mark Lord wrote:
+> >>> On 11-01-25 12:04 AM, Mark Lord wrote:
+> >>>> On 11-01-24 11:55 PM, Dmitry Torokhov wrote:
+> >>>>> On Mon, Jan 24, 2011 at 11:37:06PM -0500, Mark Lord wrote:
+> >>>> ..
+> >>>>>> This results in (map->size==10) for 2.6.36+ (wrong),
+> >>>>>> and a much larger map->size for 2.6.35 and earlier.
+> >>>>>>
+> >>>>>> So perhaps EVIOCGKEYCODE has changed?
+> >>>>>>
+> >>>>>
+> >>>>> So the utility expects that all devices have flat scancode space and
+> >>>>> driver might have changed so it does not recognize scancode 10 as valid
+> >>>>> scancode anymore.
+> >>>>>
+> >>>>> The options are:
+> >>>>>
+> >>>>> 1. Convert to EVIOCGKEYCODE2
+> >>>>> 2. Ignore errors from EVIOCGKEYCODE and go through all 65536 iterations.
+> >>>>
+> >>>> or 3. Revert/fix the in-kernel regression.
+> >>>>
+> >>>> The EVIOCGKEYCODE ioctl is supposed to return KEY_RESERVED for unmapped
+> >>>> (but value) keycodes, and only return -EINVAL when the keycode itself
+> >>>> is out of range.
+> >>>>
+> >>>> That's how it worked in all kernels prior to 2.6.36,
+> >>>> and now it is broken.  It now returns -EINVAL for any unmapped keycode,
+> >>>> even though keycodes higher than that still have mappings.
+> >>>>
+> >>>> This is a bug, a regression, and breaks userspace.
+> >>>> I haven't identified *where* in the kernel the breakage happened,
+> >>>> though.. that code confuses me.  :)
+> >>>
+> >>> Note that this device DOES have "flat scancode space",
+> >>> and the kernel is now incorrectly signalling an error (-EINVAL)
+> >>> in response to a perfectly valid query of a VALID (and mappable)
+> >>> keycode on the remote control
+> >>>
+> >>> The code really is a valid button, it just doesn't have a default mapping
+> >>> set by the kernel (I can set a mapping for that code from userspace and it works).
+> >>>
+> >>
+> >> OK, in this case let's ping Mauro - I think he done the adjustments to
+> >> IR keymap hanlding.
+> >>
+> >> Thanks.
+> >>
+> > 
+> > BTW, could you please try the following patch (it assumes that
+> > EVIOCGVERSION in input.c is alreday relaxed).
 > 
-> Driver for the Common Interface Controller CXD2099AR.
-> Supports the CI of the cineS2 DVB-S2.
+> Dmitry,
 > 
-> For now, data is passed through '/dev/dvb/adapterX/sec0':
-> - Encrypted data must be written to 'sec0'.
-> - Decrypted data can be read from 'sec0'.
-> - Setup the CAM using device 'ca0'.
+> Thanks for your patch. I used part of his logic to improve the ir-keytable 
+> tool at v4l-utils:
+> 	http://git.linuxtv.org/v4l-utils.git
+> 
+> The ir-keytable is a tool that just handles Remote Controller input devices,
+> and do it well, allowing all sorts of operations related to it, and using the
+> sysfs /sys/class/rc stuff to help its operation. Without any arguments, it
+> lists the existing RC devices. Arguments are there to allow enabling/disabling
+> RC protocols, reading/writing/cleaning keycode tables and to test if the
+> remote is generating events (EV_MSC/EV_KEY/EV_REP/EV_SYN).
+> 
+> Now, it will be using V2 for reads and keycode cleanups, but will still use
+> V1 for writes, as, currently with 32 bits scancodes, there's no gain to use
+> V2 for it. Also, changing the tool to use more bits will require to rewrite
+> part of the code.
+> 
+> Also, writing a rc-core code that can work with an arbitrary large scancode
+> is still on our TODO list.
+> 
+> I'm not entirely sure how to extend the scancode size, as there are a
+> few options:
+> 	1) Core would always work internally with 32 bytes (1024 bits). Some
+> logic will be required to accept entries with .len < 32;
+> 	2) Drivers will define the code lengtht, and core will use it,
+> returning -EINVAL if userspace uses a len grater than used internally by
+> the core. In this case, we'll need a sysfs node to tell userspace what's
+> the maximum allowed size;
+> 	3) Drivers will define the max number of bits, and core will use it,
+> truncating the number to the max size if userspace tries to write more bits 
+> than the internal representation;
+> 	4) Drivers will define the max number of bits, and core will use it,
+> returning an error if the number is bigger than the max scancode that can be
+> represented internally.
+> 
+> I think that (2) is the best way for doing it, but I'm not yet entirely sure.
+> So, it is good to hear some comments about that.
 
-Nack. In DVB API terms, "sec" stands for satellite equipment control,
-and if I remember correctly, sec0 already existed in the first versions
-of the API and that's why its leftovers can be abused by this driver.
+I'd say 4 and userspace utility should normalize scancodes packing them into the
+least number of bits possible. Since keymap should be device specific
+data in the keymap will not exceed what the driver expects, right?
 
-The interfaces for writing data are dvr0 and demux0. If they don't fit
-for decryption of recorded data, then they should be extended.
-
-For decryption of live data, no new user interface needs to be created.
-
-Regards,
-Andreas
+-- 
+Dmitry
