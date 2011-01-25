@@ -1,46 +1,46 @@
 Return-path: <mchehab@pedra>
-Received: from ironport2-out.teksavvy.com ([206.248.154.181]:50570 "EHLO
-	ironport2-out.pppoe.ca" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754038Ab1AZTdT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Jan 2011 14:33:19 -0500
-Message-ID: <4D4076FD.6070207@teksavvy.com>
-Date: Wed, 26 Jan 2011 14:33:17 -0500
-From: Mark Lord <kernel@teksavvy.com>
+Received: from mx1.redhat.com ([209.132.183.28]:64142 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753023Ab1AYPwa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Jan 2011 10:52:30 -0500
+Message-ID: <4D3EF3EF.6000100@redhat.com>
+Date: Tue, 25 Jan 2011 17:01:51 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Linux Kernel <linux-kernel@vger.kernel.org>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils
- ?
-References: <4D3E59CA.6070107@teksavvy.com> <4D3E5A91.30207@teksavvy.com> <20110125053117.GD7850@core.coreip.homeip.net> <4D3EB734.5090100@redhat.com> <20110125164803.GA19701@core.coreip.homeip.net> <AANLkTi=1Mh0JrYk5itvef7O7e7pR+YKos-w56W5q4B8B@mail.gmail.com> <20110125205453.GA19896@core.coreip.homeip.net> <4D3F4804.6070508@redhat.com> <4D3F4D11.9040302@teksavvy.com> <20110125232914.GA20130@core.coreip.homeip.net> <20110126020003.GA23085@core.coreip.homeip.net> <4D403855.4050706@teksavvy.com> <4D405A9D.4070607@redhat.com>
-In-Reply-To: <4D405A9D.4070607@redhat.com>
-Content-Type: text/plain; charset=UTF-8
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Announcing v4l-utils-0.8.2
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 11-01-26 12:32 PM, Mauro Carvalho Chehab wrote:
-> Em 26-01-2011 13:05, Mark Lord escreveu:
-..
->> Nope. Does not work here:
->>
->> $ lsinput
->> protocol version mismatch (expected 65536, got 65537)
-> 
-> You need to relax the version test at the tree. As I said before, this is
-> a development tool from the early RC days, bound to work with one specific
-> version of the API, and programmed by purpose to fail if there would by any
-> updates at the Input layer.
-..
+Hi,
 
-As I said before, I personally have done that on my copy here.
-But that's not what this thread is about.
+I'm happy to announce the release of v4l-utils-0.8.2
+This release features many small fixes, esp. to the ir-keytable
+util (which now comes with udev rules and a manpage), qv4l2,
+v4l2-ctl and v4l2-compliance.
 
-This thread is about broken userspace courtesy of these changes.
-So I am testing with the original userspace binary here,
-and it still fails.  And will continue to fail until that regression is fixed.
+v4l-utils-0.8.2
+---------------
+* Utils changes:
+   * Various ir-keytable improvements (mchehab)
+   * Various qv4l2 fixes (hverkuil, hdegoede)
+   * Various v4l2-ctl fixes (hverkuil)
+   * Add parsers for cx231xx i2c, saa7134 pci, sn9c201 usb and generic usb
+     logs (mchehab)
+   * v4l2-compliance: lots of new tests (hverkuil)
+* libv4l changes
+   * Add many more laptop models to the upside down devices table (hdegoede)
+   * Add support for 8-bits grey format (V4L2_PIX_FMT_GREY) (mchehab)
 
-Cheers
+
+Go get it here:
+http://linuxtv.org/downloads/v4l-utils/v4l-utils-0.8.2.tar.bz2
+
+You can always find the latest developments here:
+http://git.linuxtv.org/v4l-utils.git
+
+Regards,
+
+Hans
