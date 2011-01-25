@@ -1,79 +1,82 @@
 Return-path: <mchehab@pedra>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:45521 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751913Ab1A0Qjo (ORCPT
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:58359 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750950Ab1AYFbZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Jan 2011 11:39:44 -0500
-Date: Thu, 27 Jan 2011 08:39:31 -0800
+	Tue, 25 Jan 2011 00:31:25 -0500
+Date: Mon, 24 Jan 2011 21:31:17 -0800
 From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 To: Mark Lord <kernel@teksavvy.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Linux Kernel <linux-kernel@vger.kernel.org>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Cc: Linux Kernel <linux-kernel@vger.kernel.org>,
+	linux-input@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
 Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils ?
-Message-ID: <20110127163931.GA1825@core.coreip.homeip.net>
-References: <20110125205453.GA19896@core.coreip.homeip.net>
- <4D3F4804.6070508@redhat.com>
- <4D3F4D11.9040302@teksavvy.com>
- <20110125232914.GA20130@core.coreip.homeip.net>
- <20110126020003.GA23085@core.coreip.homeip.net>
- <4D403855.4050706@teksavvy.com>
- <4D40C3D7.90608@teksavvy.com>
- <4D40C551.4020907@teksavvy.com>
- <20110127021227.GA29709@core.coreip.homeip.net>
- <4D40E41D.2030003@teksavvy.com>
+Message-ID: <20110125053117.GD7850@core.coreip.homeip.net>
+References: <4D3C5F73.2050408@teksavvy.com>
+ <20110124175456.GA17855@core.coreip.homeip.net>
+ <4D3E1A08.5060303@teksavvy.com>
+ <20110125005555.GA18338@core.coreip.homeip.net>
+ <4D3E4DD1.60705@teksavvy.com>
+ <20110125042016.GA7850@core.coreip.homeip.net>
+ <4D3E5372.9010305@teksavvy.com>
+ <20110125045559.GB7850@core.coreip.homeip.net>
+ <4D3E59CA.6070107@teksavvy.com>
+ <4D3E5A91.30207@teksavvy.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <4D40E41D.2030003@teksavvy.com>
+In-Reply-To: <4D3E5A91.30207@teksavvy.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Jan 26, 2011 at 10:18:53PM -0500, Mark Lord wrote:
-> On 11-01-26 09:12 PM, Dmitry Torokhov wrote:
-> > On Wed, Jan 26, 2011 at 08:07:29PM -0500, Mark Lord wrote:
-> >> On 11-01-26 08:01 PM, Mark Lord wrote:
-> >>> On 11-01-26 10:05 AM, Mark Lord wrote:
-> >>>> On 11-01-25 09:00 PM, Dmitry Torokhov wrote:
-> >>> ..
-> >>>>> I wonder if the patch below is all that is needed...
-> >>>>
-> >>>> Nope. Does not work here:
-> >>>>
-> >>>> $ lsinput
-> >>>> protocol version mismatch (expected 65536, got 65537)
-> >>>>
+On Tue, Jan 25, 2011 at 12:07:29AM -0500, Mark Lord wrote:
+> On 11-01-25 12:04 AM, Mark Lord wrote:
+> > On 11-01-24 11:55 PM, Dmitry Torokhov wrote:
+> >> On Mon, Jan 24, 2011 at 11:37:06PM -0500, Mark Lord wrote:
+> > ..
+> >>> This results in (map->size==10) for 2.6.36+ (wrong),
+> >>> and a much larger map->size for 2.6.35 and earlier.
 > >>>
-> >>> Heh.. I just noticed something *new* in the bootlogs on my system:
+> >>> So perhaps EVIOCGKEYCODE has changed?
 > >>>
-> >>> kernel: Registered IR keymap rc-rc5-tv
-> >>> udevd-event[6438]: run_program: '/usr/bin/ir-keytable' abnormal exit
-> >>> kernel: input: i2c IR (Hauppauge) as /devices/virtual/rc/rc0/input7
-> >>> kernel: ir-keytable[6439]: segfault at 8 ip 00000000004012d2 sp 00007fff6d43ca60
-> >>> error 4 in ir-keytable[400000+7000]
-> >>> kernel: rc0: i2c IR (Hauppauge) as /devices/virtual/rc/rc0
-> >>> kernel: ir-kbd-i2c: i2c IR (Hauppauge) detected at i2c-0/0-0018/ir0 [ivtv i2c
-> >>> driver #0]
-> >>>
-> >>> That's udev invoking ir-keyboard when the ir-kbd-i2c kernel module is loaded,
-> >>> and that is also ir-keyboard (userspace) segfaulting when run.
 > >>
-> >> Note: I tried to capture an strace of ir-keyboard segfaulting during boot
-> >> (as above), but doing so kills the system (hangs on boot).
+> >> So the utility expects that all devices have flat scancode space and
+> >> driver might have changed so it does not recognize scancode 10 as valid
+> >> scancode anymore.
 > >>
-> >> The command from udev was: /usr/bin/ir-keytable -a /etc/rc_maps.cfg -s rc0
+> >> The options are:
+> >>
+> >> 1. Convert to EVIOCGKEYCODE2
+> >> 2. Ignore errors from EVIOCGKEYCODE and go through all 65536 iterations.
 > > 
-> > Does it die when you try to invoke the command by hand? Can you see where?
+> > or 3. Revert/fix the in-kernel regression.
+> > 
+> > The EVIOCGKEYCODE ioctl is supposed to return KEY_RESERVED for unmapped
+> > (but value) keycodes, and only return -EINVAL when the keycode itself
+> > is out of range.
+> > 
+> > That's how it worked in all kernels prior to 2.6.36,
+> > and now it is broken.  It now returns -EINVAL for any unmapped keycode,
+> > even though keycodes higher than that still have mappings.
+> > 
+> > This is a bug, a regression, and breaks userspace.
+> > I haven't identified *where* in the kernel the breakage happened,
+> > though.. that code confuses me.  :)
 > 
+> Note that this device DOES have "flat scancode space",
+> and the kernel is now incorrectly signalling an error (-EINVAL)
+> in response to a perfectly valid query of a VALID (and mappable)
+> keycode on the remote control
 > 
-> No, it does not seem to segfault when I unload/reload ir-kbd-i2c
-> and then invoke it by hand with the same parameters.
-> Quite possibly the environment is different when udev invokes it,
-> and my strace attempt with udev killed the system, so no info there.
+> The code really is a valid button, it just doesn't have a default mapping
+> set by the kernel (I can set a mapping for that code from userspace and it works).
 > 
 
-Hmm, what about compiling with debug and getting a core then?
+OK, in this case let's ping Mauro - I think he done the adjustments to
+IR keymap hanlding.
+
+Thanks.
 
 -- 
 Dmitry
