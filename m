@@ -1,86 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:7263 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753376Ab1AOV5M (ORCPT
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:53392 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752880Ab1AYVuq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Jan 2011 16:57:12 -0500
-Subject: Re: [PATCH] hdpvr: enable IR part
-From: Andy Walls <awalls@md.metrocast.net>
-To: Jarod Wilson <jarod@wilsonet.com>
-Cc: Jean Delvare <khali@linux-fr.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Janne Grunau <j@jannau.net>, Jarod Wilson <jarod@redhat.com>
-In-Reply-To: <C59C652B-B4C2-40B9-A195-7719718ECC9D@wilsonet.com>
-References: <20110114195448.GA9849@redhat.com>
-	 <1295041480.2459.9.camel@localhost> <20110114220759.GG9849@redhat.com>
-	 <661A728F-3CF1-47F3-A650-D17429AF7DF1@wilsonet.com>
-	 <1295066141.2459.34.camel@localhost>
-	 <0EADA025-77B0-4E8B-A649-F3BE6F2E437B@wilsonet.com>
-	 <C59C652B-B4C2-40B9-A195-7719718ECC9D@wilsonet.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 15 Jan 2011 16:56:48 -0500
-Message-ID: <1295128608.7147.14.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Tue, 25 Jan 2011 16:50:46 -0500
+Date: Tue, 25 Jan 2011 13:50:39 -0800
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Mark Lord <kernel@teksavvy.com>,
+	Linux Kernel <linux-kernel@vger.kernel.org>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils ?
+Message-ID: <20110125215039.GB20030@core.coreip.homeip.net>
+References: <20110125045559.GB7850@core.coreip.homeip.net>
+ <4D3E59CA.6070107@teksavvy.com>
+ <4D3E5A91.30207@teksavvy.com>
+ <20110125053117.GD7850@core.coreip.homeip.net>
+ <4D3EB734.5090100@redhat.com>
+ <20110125164803.GA19701@core.coreip.homeip.net>
+ <AANLkTi=1Mh0JrYk5itvef7O7e7pR+YKos-w56W5q4B8B@mail.gmail.com>
+ <20110125205453.GA19896@core.coreip.homeip.net>
+ <20110125210153.GB19896@core.coreip.homeip.net>
+ <AANLkTiknmVaOhvhTXC_5G3m-HDrTJCyqbjOPgnUEFZpA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <AANLkTiknmVaOhvhTXC_5G3m-HDrTJCyqbjOPgnUEFZpA@mail.gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sat, 2011-01-15 at 01:56 -0500, Jarod Wilson wrote:
-> On Jan 15, 2011, at 12:37 AM, Jarod Wilson wrote:
-
-> >>>>>> Registered IR keymap rc-hauppauge-new
-> >>>>>> input: i2c IR (HD PVR) as /devices/virtual/rc/rc1/input6
-> >>>>>> rc1: i2c IR (HD PVR) as /devices/virtual/rc/rc1
-> >>>>>> ir-kbd-i2c: i2c IR (HD PVR) detected at i2c-1/1-0071/ir0 [Hauppage HD PVR I2C]
-
-> Okay, last spam before I head off to bed... :)
+On Wed, Jan 26, 2011 at 07:20:07AM +1000, Linus Torvalds wrote:
+> On Wed, Jan 26, 2011 at 7:01 AM, Dmitry Torokhov
+> <dmitry.torokhov@gmail.com> wrote:
+> >
+> > BTW, another issue is that evdev's ioctl returns -EINVAL for unknown
+> > ioctls so applications would have hard time figuring out whether error
+> > returned because of kernel being too old or because they are trying to
+> > retrieve/establish invalid mapping if they had to go only by the error
+> > code.
 > 
-> I can get ir-kbd-i2c behavior to pretty much match lirc_zilog wrt key repeat,
-> by simply setting init_data->polling_interval = 260; in hdpvr-i2c.c, which
-> matches up with the delay in lirc_zilog. With the 260 interval:
+> So that's just another evdev interface bug.
 
-RC-5 has a repetition interval of about 4096/36kHz = 113.8 ms, IIRC.  
+Huh? I do not have lot of options here as far as error codes go. Invalid
+request, invalid data in request - all goes to EINVAL.
 
-Using 260 ms, you are throwing away one repeat from the remote for sure,
-maybe two.  Maybe that will help you understand what may be going on.
-(I've lost the bubble on hdpvr with ir-kbd-i2c.)
-
-Regards,
-Andy
-
-> Event: time 1295072449.490542, -------------- Report Sync ------------
-> Event: time 1295072453.321206, type 4 (Misc), code 4 (ScanCode), value 15
-> Event: time 1295072453.321245, type 1 (Key), code 108 (Down), value 1
-> Event: time 1295072453.321252, -------------- Report Sync ------------
-> Event: time 1295072453.570512, type 1 (Key), code 108 (Down), value 0
-> Event: time 1295072453.570544, -------------- Report Sync ------------
-> Event: time 1295072453.575718, type 4 (Misc), code 4 (ScanCode), value 15
-> Event: time 1295072453.575744, type 1 (Key), code 108 (Down), value 1
-> Event: time 1295072453.575752, -------------- Report Sync ------------
-> Event: time 1295072453.816215, type 4 (Misc), code 4 (ScanCode), value 15
-> Event: time 1295072454.065515, type 1 (Key), code 108 (Down), value 0
-> Event: time 1295072454.065544, -------------- Report Sync ------------
 > 
-> Lowering this a bit, I can get split personality, one press will look like
-> what I was originally seeing, another will look like the 260 output.
+> > As far as I can see EINVAL is a proper error for unknown ioctls:
+> >
+> > [dtor@hammer work]$ man 2 ioctl | grep EINVAL
+> >       EINVAL Request or argp is not valid.
 > 
-> Adding filtering (return 0 if buf[0] != 0x80) doesn't help any.
+> Yeah, there's some confusion there.
 > 
-> The final thing I've noticed tonight is that ir-kbd-i2c calls rc_keydown
-> using a value of 0 for its 3rd parameter. From rc-main.c:
+> The "unknown ioctl" error code is (for traditional reasons) ENOTTY,
+> but yes, the EINVAL thing admittedly has a lot of legacy use too.
 > 
->  * @toggle:     the toggle value (protocol dependent, if the protocol doesn't
->  *              support toggle values, this should be set to zero)
+> Inside the kernel, the preferred way to say "I don't recognize that
+> ioctl number" is actually ENOIOCTLCMD.  That's exactly so that various
+> nested ioctl handlers can then tell the difference between "I didn't
+> recognize that ioctl" and "I understand what you asked me to do, but
+> your arguments were crap".
 > 
-> Well, in this case, the protocol *does* use a toggle, so that's probably
-> something that could use fixing. Not sure it actually has anything to do with
-> the odd repeats I'm seeing. Okay, wasn't too much work to pass along toggle
-> values too, but it didn't help any.
-> 
-> I'll sleep on it.
+> vfs_ioctl() will then turn ENOIOCTLCMD to EINVAL to return to user space.
 
+OK, so I can change evdev to employ ENOIOCTLCMD where needed, bit that
+will not change older kernels where such distinction is needed (as never
+kernels do support newer ioctl). And even if I could go back it would
+not help since userspace still sees EINVAL only.
 
-
-
-
-
+-- 
+Dmitry
