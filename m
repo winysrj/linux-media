@@ -1,84 +1,103 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3526 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751215Ab1AVIw2 (ORCPT
+Received: from ironport2-out.teksavvy.com ([206.248.154.183]:1319 "EHLO
+	ironport2-out.pppoe.ca" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754210Ab1AYWWL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Jan 2011 03:52:28 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Andy Walls <awalls@md.metrocast.net>
-Subject: Re: v4l2-compliance utility
-Date: Sat, 22 Jan 2011 09:52:18 +0100
-Cc: linux-media@vger.kernel.org
-References: <201101212337.54213.hverkuil@xs4all.nl> <1295652919.2474.14.camel@localhost>
-In-Reply-To: <1295652919.2474.14.camel@localhost>
+	Tue, 25 Jan 2011 17:22:11 -0500
+Message-ID: <4D3F4D11.9040302@teksavvy.com>
+Date: Tue, 25 Jan 2011 17:22:09 -0500
+From: Mark Lord <kernel@teksavvy.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Linux Kernel <linux-kernel@vger.kernel.org>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils
+ ?
+References: <4D3E4DD1.60705@teksavvy.com> <20110125042016.GA7850@core.coreip.homeip.net> <4D3E5372.9010305@teksavvy.com> <20110125045559.GB7850@core.coreip.homeip.net> <4D3E59CA.6070107@teksavvy.com> <4D3E5A91.30207@teksavvy.com> <20110125053117.GD7850@core.coreip.homeip.net> <4D3EB734.5090100@redhat.com> <20110125164803.GA19701@core.coreip.homeip.net> <AANLkTi=1Mh0JrYk5itvef7O7e7pR+YKos-w56W5q4B8B@mail.gmail.com> <20110125205453.GA19896@core.coreip.homeip.net> <4D3F4804.6070508@redhat.com>
+In-Reply-To: <4D3F4804.6070508@redhat.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <201101220952.18293.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Saturday, January 22, 2011 00:35:19 Andy Walls wrote:
-> On Fri, 2011-01-21 at 23:37 +0100, Hans Verkuil wrote:
-> > Hi all,
-> > 
-> > As you may have seen I have been adding a lot of tests to the v4l2-compliance
-> > utility in v4l-utils lately. It is now getting to the state that is becomes
-> > quite useful even though there is no full coverage yet.
-> > 
-> > Currently the following ioctls are being tested:
+On 11-01-25 05:00 PM, Mauro Carvalho Chehab wrote:
+> Em 25-01-2011 18:54, Dmitry Torokhov escreveu:
+>> On Wed, Jan 26, 2011 at 06:09:45AM +1000, Linus Torvalds wrote:
+>>> On Wed, Jan 26, 2011 at 2:48 AM, Dmitry Torokhov
+>>> <dmitry.torokhov@gmail.com> wrote:
+>>>>
+>>>> We should be able to handle the case where scancode is valid even though
+>>>> it might be unmapped yet. This is regardless of what version of
+>>>> EVIOCGKEYCODE we use, 1 or 2, and whether it is sparse keymap or not.
+>>>>
+>>>> Is it possible to validate the scancode by driver?
+>>>
+>>> More appropriately, why not just revert the thing? The version change
 > 
-> Hans,
+> Reverting the version increment is a bad thing. I agree with Dmitry that
+> an application that fails just because the API version were incremented
+> is buggy.
 > 
-> This is a great thing to have.  Thanks!
+>> Well, then we'll break Ubuntu again as they recompiled their input-utils
+>> package (without fixing the check). And the rest of distros do not seem
+>> to be using that package...
 > 
+> Reverting it will also break the ir-keytable userspace program that it is
+> meant to be used by the Remote Controller devices, and uses it to adjust
+> its behaviour to support RC's with more than 16 bits of scancodes.
 > 
-> > Also tested is whether you can open device nodes multiple times.
-> > 
-> > These tests are pretty exhaustive and more strict than the spec itself.
+> I agree that it is bad that the ABI broke, but reverting it will cause even
+> more damage.
+
+There we disagree.  Sure it's a very poorly thought out interface,
+but the way to fix it is to put a new one along side the old,
+and put the old back the way it was before it got broken.
+
+I'm not making a fuss here for myself -- I'm more than capable of working
+around new kernel bugs like these, but for every person like me there are
+likely hundreds of others who simply get frustrated and give up.
+
+If you're worried about Ubuntu's adaptation to the buggy regression,
+then email their developers (kernel and input-utils packagers) explaining
+the revert, and they can coordination their kernel and input-utils updates
+to do the Right Thing.
+
+But for all of the rest of us, our systems are broken by this change.
+
+...
+
+
+>>> As Mark said, breaking user space simply isn't acceptable. And since
+>>> breaking user space isn't acceptable, then incrementing the version is
+>>> stupid too.
+>>
+>> It might not have been the best idea to increment, however I maintain
+>> that if there exists version is can be changed. Otherwise there is no
+>> point in having version at all.
 > 
-> OK, so multiple open is not strictly required by the spec, IIRC.  If you
-> check the ivtv /dev/radio node, it does not allow multiple open, IIRC,
-> so it should not get OK for that test.
-
-And indeed it fails on that test.
-
-> I also think during the subdev conversion, some of the less popular ivtv
-> cards with GPIO controlled radio audio may have been broken (and still
-> not fixed yet :(  ), but working for the PVR-150, PVR-500, etc..
-
-What the tool does not do of course is test if your driver actually works.
-So it tests if you can e.g. set the audio output to some value, but whether
-you actually get audio on that output is a completely separate matter :-)
- 
-> The DEBUG ioctl()s can be compiled out too.
-
-In that case the tool should report 'Not Supported'.
-
+> Not arguing in favor of the version numbering, but it is easy to read
+> the version increment at the beginning of the application, and adjust
+> if the code will use EVIOCGKEYCODE or EVIOCGKEYCODE_V2 of the ioctl's,
+> depending on what kernel provides.
 > 
-> So for someone making decisions based on the output of this tool:
+> Ok, we might be just calling the new ioctl and check for -ENOSYS at
+> the beginning, using some fake arguments.
 > 
-> 1. if something comes back as "Not supported", that still means the
-> driver is API specification compliant, right?
+>> As I said, reverting the version bump will cause yet another wave of
+>> breakages so I propose leaving version as is.
+>>
+>>>
+>>> The way we add new ioctl's is not by incrementing some "ABI version"
+>>> crap. It's by adding new ioctl's or system calls or whatever that
+>>> simply used to return -ENOSYS or other error before, while preserving
+>>> the old ABI. That way old binaries don't break (for _ANY_ reason), and
+>>> new binaries can see "oh, this doesn't support the new thing".
+>>
+>> That has been done as well; we have 2 new ioctls and kept 2 old ioctls.
 
-Yes. And as far as the compliance tool is concerned the driver tells it
-that it doesn't support that particular API. E.g. a card without a tuner
-should report 'Not Supported' for the S/G_TUNER tests.
+That's the problem: you did NOT keep the two old ioctls().
+Those got changed too.. so now we have four NEW ioctls(),
+none of which backward compatible with userspace.
 
-> 2. could it be the case that this compliance tool will be sensitive to
-> the driver/hardware combination and not the driver alone?
-
-Definitely. If certain features (e.g. a tuner) are only available on certain
-cards, then the tool can only test what the hardware you use at the moment
-supports.
-
-The utility tests whether, for the current kernel configuration, driver and
-hardware, the V4L2 device node works as it should.
-
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
