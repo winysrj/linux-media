@@ -1,51 +1,76 @@
 Return-path: <mchehab@pedra>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:3177 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932878Ab1AMJrU (ORCPT
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:48483 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753098Ab1AZQrH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Jan 2011 04:47:20 -0500
-Date: Thu, 13 Jan 2011 10:46:27 +0100
-From: Jean Delvare <khali@linux-fr.org>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
-	Janne Grunau <j@jannau.net>
-Subject: Re: [PATCH 3/3] lirc_zilog: Remove use of deprecated struct  
- i2c_adapter.id field
-Message-ID: <20110113104627.4d1607e9@endymion.delvare>
-In-Reply-To: <1294276835.9672.99.camel@morgan.silverblock.net>
-References: <1293587067.3098.10.camel@localhost>
-	<1293587390.3098.16.camel@localhost>
-	<20110105154553.546998bf@endymion.delvare>
-	<4D24ABA4.5070100@redhat.com>
-	<20110105225149.1145420b@endymion.delvare>
-	<4D24EA81.8080205@redhat.com>
-	<1294276835.9672.99.camel@morgan.silverblock.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Wed, 26 Jan 2011 11:47:07 -0500
+Date: Wed, 26 Jan 2011 08:46:57 -0800
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Gerd Hoffmann <kraxel@redhat.com>, Mark Lord <kernel@teksavvy.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Linux Kernel <linux-kernel@vger.kernel.org>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils ?
+Message-ID: <20110126164657.GB29163@core.coreip.homeip.net>
+References: <20110125164803.GA19701@core.coreip.homeip.net>
+ <AANLkTi=1Mh0JrYk5itvef7O7e7pR+YKos-w56W5q4B8B@mail.gmail.com>
+ <20110125205453.GA19896@core.coreip.homeip.net>
+ <4D3F4804.6070508@redhat.com>
+ <4D3F4D11.9040302@teksavvy.com>
+ <20110125232914.GA20130@core.coreip.homeip.net>
+ <20110126020003.GA23085@core.coreip.homeip.net>
+ <4D4004F9.6090200@redhat.com>
+ <4D401CC5.4020000@redhat.com>
+ <4D402D35.4090206@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4D402D35.4090206@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Andy,
+On Wed, Jan 26, 2011 at 12:18:29PM -0200, Mauro Carvalho Chehab wrote:
+> Em 26-01-2011 11:08, Gerd Hoffmann escreveu:
+> >   Hi,
+> > 
+> >> Btw, I took some time to take analyse the input-kbd stuff.
+> >> As said at the README:
+> >>
+> >>     This is a small collection of input layer utilities.  I wrote them
+> >>     mainly for testing and debugging, but maybe others find them useful
+> >>     too :-)
+> >>     ...
+> >>     Gerd Knorr<kraxel@bytesex.org>  [SUSE Labs]
+> >>
+> >> This is an old testing tool written by Gerd Hoffmann probably used for him
+> >> to test the V4L early Remote Controller implementations.
+> > 
+> > Indeed.
+> > 
+> >> The last "official" version seems to be this one:
+> >>     http://dl.bytesex.org/cvs-snapshots/input-20081014-101501.tar.gz
+> > 
+> > Just moved the bits to git a few days ago.
+> > http://bigendian.kraxel.org/cgit/input/
+> > 
+> > Code is unchanged since 2008 though.
+> > 
+> >> Gerd, if you're still maintaining it, it is a good idea to apply Dmitry's
+> >> patch:
+> >>     http://www.spinics.net/lists/linux-input/msg13728.html
+> > 
+> > Hmm, doesn't apply cleanly ...
+> 
+> I suspect that Dmitry did the patch against the Debian package, based on a 2007
+> version of it, as it seems that Debian is using an older version of the package.
 
-On Wed, 05 Jan 2011 20:20:35 -0500, Andy Walls wrote:
-> The cx18 driver has a function scope i2c_client for reading the EEPROM,
-> and there's a good reason for it.  We don't want to register the EEPROM
-> with the I2C system and make it visible to the rest of the system,
-> including i2c-dev and user-space tools.  To avoid EEPROM corruption,
-> it's better keep communication with EEPROMs to a very limited scope.
+Actually it was from Ubuntu, so it is based on 2008 checkout, but they
+also have more patches, take a peek here:
 
-Note that it is possible to declare a read-only EEPROM, so that
-user-space has no chance to write to it. If you really don't want
-user-space to touch it, the best approach is i2c_new_dummy(), because
-it will mark the slave address as busy, preventing i2c-dev from
-accessing it (unless the user forces access - but then he/she is
-obviously on his/her own...)
+https://launchpad.net/ubuntu/+archive/primary/+files/input-utils_0.0.20081014-1.debian.tar.gz
 
-The i2c_client provided by i2c_new_dummy() can be unregistered at the
-end of the function which needs it, or kept for the lifetime of the
-driver, as you prefer.
+Thanks.
 
 -- 
-Jean Delvare
+Dmitry
