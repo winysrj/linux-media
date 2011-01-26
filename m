@@ -1,140 +1,81 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:58220 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751018Ab1ARNUU convert rfc822-to-8bit (ORCPT
+Received: from ironport2-out.teksavvy.com ([206.248.154.183]:12132 "EHLO
+	ironport2-out.pppoe.ca" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751435Ab1AZT1I (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Jan 2011 08:20:20 -0500
+	Wed, 26 Jan 2011 14:27:08 -0500
+Message-ID: <4D407589.2030909@teksavvy.com>
+Date: Wed, 26 Jan 2011 14:27:05 -0500
+From: Mark Lord <kernel@teksavvy.com>
 MIME-Version: 1.0
-In-Reply-To: <5fc7c1cdc4aed93c1dbe7a3d1916bb1c.squirrel@webmail.xs4all.nl>
-References: <1294745487-29138-1-git-send-email-manjunatha_halli@ti.com>
- <1294745487-29138-2-git-send-email-manjunatha_halli@ti.com>
- <1294745487-29138-3-git-send-email-manjunatha_halli@ti.com>
- <1294745487-29138-4-git-send-email-manjunatha_halli@ti.com>
- <20110111112434.GE2385@legolas.emea.dhcp.ti.com> <AANLkTi=TF9uYEv2Y3qwMKham=K2cCxo4UOTn8Vf+S-KC@mail.gmail.com>
- <AANLkTimRLGYugF+2=-nFvLeXdnLOy8Morx_wxzVTt9w5@mail.gmail.com> <5fc7c1cdc4aed93c1dbe7a3d1916bb1c.squirrel@webmail.xs4all.nl>
-From: halli manjunatha <manjunatha_halli@ti.com>
-Date: Tue, 18 Jan 2011 18:49:41 +0530
-Message-ID: <AANLkTikRDWF5fyqixbJs+DRJN=aJGmgqmQOdVL_d9tPo@mail.gmail.com>
-Subject: Re: [RFC V10 3/7] drivers:media:radio: wl128x: FM Driver Common sources
-To: "mchehab@infradead.org" <mchehab@infradead.org>
-Cc: gregkh@suse.de, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8BIT
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Gerd Hoffmann <kraxel@redhat.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Linux Kernel <linux-kernel@vger.kernel.org>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils
+ ?
+References: <20110125205453.GA19896@core.coreip.homeip.net> <4D3F4804.6070508@redhat.com> <4D3F4D11.9040302@teksavvy.com> <20110125232914.GA20130@core.coreip.homeip.net> <20110126020003.GA23085@core.coreip.homeip.net> <4D4004F9.6090200@redhat.com> <4D401CC5.4020000@redhat.com> <4D402D35.4090206@redhat.com> <20110126165132.GC29163@core.coreip.homeip.net> <4D4059E5.7050300@redhat.com> <20110126182415.GB29268@core.coreip.homeip.net>
+In-Reply-To: <20110126182415.GB29268@core.coreip.homeip.net>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
- have a look at the driver it’s already reviewed by Hans Verkuil.
-Please let me know if you are okay to include this in mainline.
-
-Regards
-Manju
-
-
-On Mon, Jan 17, 2011 at 4:03 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> Hi Hans and Mauro,
->>
->> If there are no major comments for the V10 of FM V4L2 driver, is it
->> possible to take this driver (V10) to mainline?
->>
->> Since the files are becoming big to be posted as patches and
->> maintaining it that way is a bit difficult. We can submit the patches
->> to mainline to fix minor comments and also to add newer features
->> (complete scan, stop seek) as patches once this driver makes its way
->> in to mainline.
->>
->> Please let me know your views on this.
->
-> I have no objections in merging this for 2.6.39 or even 2.6.38 if Mauro is
-> willing.
->
-> Regards,
->
->         Hans
->
->>
->> Thanks,
->> Manju
->>
->>
->> On Tue, Jan 11, 2011 at 6:12 PM, Raja Mani <rajambsc@gmail.com> wrote:
->>> balbi,
+On 11-01-26 01:24 PM, Dmitry Torokhov wrote:
+> On Wed, Jan 26, 2011 at 03:29:09PM -0200, Mauro Carvalho Chehab wrote:
+>> Em 26-01-2011 14:51, Dmitry Torokhov escreveu:
+>>> On Wed, Jan 26, 2011 at 12:18:29PM -0200, Mauro Carvalho Chehab wrote:
+>>>> diff --git a/input.c b/input.c
+>>>> index d57a31e..a9bd5e8 100644
+>>>> --- a/input.c
+>>>> +++ b/input.c
+>>>> @@ -101,8 +101,8 @@ int device_open(int nr, int verbose)
+>>>>  		close(fd);
+>>>>  		return -1;
+>>>>  	}
+>>>> -	if (EV_VERSION != version) {
+>>>> -		fprintf(stderr, "protocol version mismatch (expected %d, got %d)\n",
+>>>> +	if (EV_VERSION > version) {
+>>>> +		fprintf(stderr, "protocol version mismatch (expected >= %d, got %d)\n",
+>>>>  			EV_VERSION, version);
 >>>
->>>  Agree , interrupt pkts could have handled in thread context . But in
->>> the current way , FM driver never create any additional task in the
->>> system
->>>  to handle FM interrupt. In fact, there is no task being created in
->>> this driver to handle FM RDS data, AF,etc.
+>>> Please do not do this. It causes check to "float" depending on the
+>>> version of kernel headers it was compiled against.
 >>>
->>>  This method is suitable for light weight system where we want to
->>> reduce number of thread in the system.
->>>
->>>  On Tue, Jan 11, 2011 at 4:54 PM, Felipe Balbi <balbi@ti.com> wrote:
->>>> Hi,
->>>>
->>>> On Tue, Jan 11, 2011 at 06:31:23AM -0500, manjunatha_halli@ti.com
->>>> wrote:
->>>>> From: Manjunatha Halli <manjunatha_halli@ti.com>
->>>>>
->>>>> These are the sources for the common interfaces required by the
->>>>> FM V4L2 driver for TI WL127x and WL128x chips.
->>>>>
->>>>> These implement the FM channel-8 protocol communication with the
->>>>> chip. This makes use of the Shared Transport as its transport.
->>>>>
->>>>> Signed-off-by: Manjunatha Halli <manjunatha_halli@ti.com>
->>>>> Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
->>>>
->>>> looks like this is implementing a "proprietary" (by that I mean: for
->>>> this driver only) IRQ API. Why aren't you using GENIRQ with threaded
->>>> IRQs support ?
->>>>
->>>> Core IRQ Subsystem would handle a lot of stuff for you.
->>>>
->>>> --
->>>> balbi
->>>> --
->>>> To unsubscribe from this list: send the line "unsubscribe linux-media"
->>>> in
->>>> the body of a message to majordomo@vger.kernel.org
->>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>>
->>>
->>>
->>>
->>> --
->>> Regards,
->>> Raja.
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-media"
->>> in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
+>>> The check should be against concrete version (0x10000 in this case).
 >>
->>
->>
->> --
->> Regards
->> Halli
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->
->
-> --
-> Hans Verkuil - video4linux developer - sponsored by Cisco
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+>> The idea here is to not prevent it to load if version is 0x10001.
+>> This is actually the only change that it is really needed (after applying
+>> your KEY_RESERVED patch to 2.6.37) for the tool to work. Reverting it causes
+>> the error:
+> 
+> You did not understand. When comparing against EV_VERSION, if you
+> compile on 2.6.32 you are comparing with 0x10000. If you are compiling
+> on 2.6.37 you are comparing with 0x10001 as EV_VERSION value changes
+> (not the value returned by EVIOCGVERSION, the value of the _define_
+> itself).
+> 
+> The proper check is:
+> 
+> #define EVDEV_MIN_VERSION 0x10000
+> 	if (version < EVDEV_MIN_VERSION) {
+> 		fprintf(stderr,
+> 			"protocol version mismatch (need at least %d, got %d)\n",
+> 			EVDEV_MIN_VERSION, version);
+> 		...
+> 	}
 
 
+Guys, NO!
 
--- 
-Regards
-Halli
+The proper check is actually to remove all of that silly VERSION testing
+from the userspace binary.  And then have it try EVIOCGKEYCODE_V2 first.
+If EVIOCGKEYCODE_V2 fails (-ENOTTY, -EINVAL, or -ENOSYS), then
+have it fall back to trying to use EVIOCGKEYCODE.
+
+Of course this does assume that the new EVIOCGKEYCODE_V2 interface uses
+correct ioctl return values..
+
+Cheers
