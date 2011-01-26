@@ -1,70 +1,89 @@
 Return-path: <mchehab@pedra>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:22357 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751498Ab1AMNcT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Jan 2011 08:32:19 -0500
-Date: Thu, 13 Jan 2011 14:31:29 +0100
-From: Jean Delvare <khali@linux-fr.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org,
-	Jarod Wilson <jarod@redhat.com>, Janne Grunau <j@jannau.net>
-Subject: Re: [PATCH 3/3] lirc_zilog: Remove use of deprecated struct
- i2c_adapter.id   field
-Message-ID: <20110113143129.117053ef@endymion.delvare>
-In-Reply-To: <4D24EA81.8080205@redhat.com>
-References: <1293587067.3098.10.camel@localhost>
-	<1293587390.3098.16.camel@localhost>
-	<20110105154553.546998bf@endymion.delvare>
-	<4D24ABA4.5070100@redhat.com>
-	<20110105225149.1145420b@endymion.delvare>
-	<4D24EA81.8080205@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mx1.redhat.com ([209.132.183.28]:20972 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751906Ab1AZSJf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Jan 2011 13:09:35 -0500
+Message-ID: <4D405D8E.6020900@redhat.com>
+Date: Wed, 26 Jan 2011 15:44:46 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Andy Walls <awalls@md.metrocast.net>
+CC: Jarod Wilson <jarod@redhat.com>, linux-media@vger.kernel.org
+Subject: Re: [GIT PULL] More IR fixes for 2.6.38
+References: <yc7vxnkntxcbxdk5pe3jpndi.1296062052946@email.android.com>
+In-Reply-To: <yc7vxnkntxcbxdk5pe3jpndi.1296062052946@email.android.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 05 Jan 2011 20:02:41 -0200, Mauro Carvalho Chehab wrote:
-> Em 05-01-2011 19:51, Jean Delvare escreveu:
-> > If you have specific cases you don't know how to solve, please point me
-> > to them and I'll take a look.
+Em 26-01-2011 15:23, Andy Walls escreveu:
+> Mauro,
 > 
-> You can take a look at saa7134-cards.c, for example. saa7134_tuner_setup()
-> has several examples. It starts with this one:
+>  I plan to make extensive lirc_zilog changes starting tonight, so the sooner Jarrod's lirc_zilog.c fix is in a media_tree branch, the less rebase I'll have to do. :)
+
+Andy,
+
+Then, it is better to use Jarod's tree for it. His patches are against
+upstream, and are meant to be applied to .38. So, I need first to send
+them to linux-next, then to upstream and then merge from upstream,
+otherwise, I'll have to manually fix the conflicts on the next merge window.
+Due to LCA, I'm not sure if Linus will apply much patches during this
+week. So, I'll probably wait until next week to send Jarod's patches
+upstream.
+
 > 
-> 	switch (dev->board) {
-> 	case SAA7134_BOARD_BMK_MPEX_NOTUNER:
-> 	case SAA7134_BOARD_BMK_MPEX_TUNER:
-> 		/* Checks if the device has a tuner at 0x60 addr
-> 		   If the device doesn't have a tuner, TUNER_ABSENT
-> 		   will be used at tuner_type, avoiding loading tuner
-> 		   without needing it
-> 		 */
-> 		dev->i2c_client.addr = 0x60;
-> 		board = (i2c_master_recv(&dev->i2c_client, &buf, 0) < 0)
-> 			? SAA7134_BOARD_BMK_MPEX_NOTUNER
-> 			: SAA7134_BOARD_BMK_MPEX_TUNER;
+> Thanks.
 > 
-> In this specific case, it is simply a probe for a device at address 0x60, but
+> Andy
+> 
+> Jarod Wilson <jarod@redhat.com> wrote:
+> 
+>> Mauro,
+>>
+>> Please pull these additional IR driver fixes against Linus' tree in for
+>> 2.6.38 merge. Without these, mceusb is still broken (keybounce issues),
+>> the HD-PVR tx won't work, and ir-kbd-i2c behaves badly with both the
+>> HD-PVR and the HVR-1950.
+>>
+>> Thanks much!
+>>
+>> The following changes since commit 6fb1b304255efc5c4c93874ac8c066272e257e28:
+>>
+>>  Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/dtor/input (2011-01-26 16:31:44 +1000)
+>>
+>> are available in the git repository at:
+>>
+>>  git://linuxtv.org/jarod/linux-2.6-ir.git for-2.6.38
+>>
+>> Jarod Wilson (7):
+>>      rc/mce: add mappings for missing keys
+>>      hdpvr: fix up i2c device registration
+>>      lirc_zilog: z8 on usb doesn't like back-to-back i2c_master_send
+>>      ir-kbd-i2c: improve remote behavior with z8 behind usb
+>>      rc/ir-lirc-codec: add back debug spew
+>>      rc: use time unit conversion macros correctly
+>>      mceusb: really fix remaining keybounce issues
+>>
+>> drivers/media/rc/ir-lirc-codec.c               |    6 +++-
+>> drivers/media/rc/keymaps/rc-rc6-mce.c          |    6 ++++
+>> drivers/media/rc/mceusb.c                      |    9 ++++--
+>> drivers/media/rc/nuvoton-cir.c                 |    6 ++--
+>> drivers/media/rc/streamzap.c                   |   12 ++++----
+>> drivers/media/video/hdpvr/hdpvr-core.c         |   24 +++++++++++++++---
+>> drivers/media/video/hdpvr/hdpvr-i2c.c          |   30 ++++++++++++++--------
+>> drivers/media/video/hdpvr/hdpvr.h              |    3 +-
+>> drivers/media/video/ir-kbd-i2c.c               |   13 +++++++++
+>> drivers/media/video/pvrusb2/pvrusb2-i2c-core.c |    1 -
+>> drivers/staging/lirc/lirc_zilog.c              |   32 +++++++++++++++++++----
+>> 11 files changed, 106 insertions(+), 36 deletions(-)
+>>
+>> -- 
+>> Jarod Wilson
+>> jarod@redhat.com
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-This call to i2c_master_recv() could be replaced easily with
-i2c_transfer(), which doesn't require an i2c_client.
-
-Alternatively, you could delay the probe until you are ready to
-instantiate the tuner device, and use i2c_new_device() when you're sure
-it's there, and i2c_new_probed_device() when you aren't. This would be
-nicer, but this also requires non-trivial changes.
-
-> there are more complex cases there, with eeprom reads and/or some random init
-> that happens before actually attaching some driver at the i2c address.
-> It is known to work, but it sounds like a hack.
-
-For eeprom reads, I would definitely recommend getting a clean
-i2c_client from i2c-core using i2c_new_dummy() or i2c_new_device().
-
-For "random init", well, I guess each case is different, so I can't
-make a general statement.
-
--- 
-Jean Delvare
