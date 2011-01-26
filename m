@@ -1,130 +1,75 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:60362 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752730Ab1AWDi3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Jan 2011 22:38:29 -0500
-Received: by iwn9 with SMTP id 9so2947045iwn.19
-        for <linux-media@vger.kernel.org>; Sat, 22 Jan 2011 19:38:29 -0800 (PST)
-Subject: Re: [RFC PATCH 03/12] mt9m001: convert to the control framework.
-Mime-Version: 1.0 (Apple Message framework v1082)
-Content-Type: text/plain; charset=euc-kr
-From: Kim HeungJun <riverful@gmail.com>
-In-Reply-To: <Pine.LNX.4.64.1101222135010.31015@axis700.grange>
-Date: Sun, 23 Jan 2011 12:38:21 +0900
-Cc: linux-media@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
-	Kuninori Morimoto <morimoto.kuninori@renesas.com>,
-	Alberto Panizzo <maramaopercheseimorto@gmail.com>,
-	Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>,
-	Marek Vasut <marek.vasut@gmail.com>,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-Content-Transfer-Encoding: 8BIT
-Message-Id: <EF95014F-3C7A-46E3-B298-032E0CB58D61@gmail.com>
-References: <1294787172-13638-1-git-send-email-hverkuil@xs4all.nl> <47023fea8af2dd4be5c03491427bf0edd2592cb6.1294786597.git.hverkuil@xs4all.nl> <Pine.LNX.4.64.1101222135010.31015@axis700.grange>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	VerkuilHans <hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:24076 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753105Ab1AZLgL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Jan 2011 06:36:11 -0500
+Message-ID: <4D400727.3000205@redhat.com>
+Date: Wed, 26 Jan 2011 09:36:07 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Hans de Goede <hdegoede@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: What to do with videodev.h
+References: <4D3FDAAC.2020303@redhat.com> <4D3FE453.6080307@redhat.com> <613f734c5a59a342c587769455e939af.squirrel@webmail.xs4all.nl>
+In-Reply-To: <613f734c5a59a342c587769455e939af.squirrel@webmail.xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
-
-I'm reading threads about the new v4l2_ctrl framework and If you don't mind
-I gotta tell you my humble opinion about testing result the new v4l2_ctrl
-framework subdev.
-I have actually similar curcumstance, with I2C subdev M5MOLS Fujitsu device
-which is just send the patch and S5PC210 board for testing this, except not
-using soc_camera framework.
-But, it's maybe helpful to discuss about this changes to everyone.
-
-2011. 1. 23., 오전 6:21, Guennadi Liakhovetski 작성:
-
-> On Wed, 12 Jan 2011, Hans Verkuil wrote:
+Em 26-01-2011 07:47, Hans Verkuil escreveu:
+>> Hi Hans,
+>>
+>> Em 26-01-2011 06:26, Hans de Goede escreveu:
+>>> Hi All,
+>>>
+>>> With v4l1 support going completely away, the question is
+>>> raised what to do with linux/videodev.h .
+>>>
+>>> Since v4l1 apps can still use the old API through libv4l1,
+>>> these apps will still need linux/videodev.h to compile.
+>>>
+>>> So I see 3 options:
+>>> 1) Keep videodev.h in the kernel tree even after we've dropped
+>>> the API support at the kernel level (seems like a bad idea to me)
+>>
+>> That's a bad idea.
+>>
+>>> 2) Copy videodev.h over to v4l-utils as is (under a different name)
+>>> and modify the #include in libv4l1.h to include it under the
+>>> new name
+>>> 3) Copy the (needed) contents of videodev.h over to libv4l1.h
+>>
+>> I would do (3). This provides a clearer signal that V4L1-only apps need
+>> to use libv4l1, or otherwise will stop working.
 > 
->> Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
-
-[snip]
-
->> -	case V4L2_CID_EXPOSURE:
->> -		/* mt9m001 has maximum == default */
->> -		if (ctrl->value > qctrl->maximum || ctrl->value < qctrl->minimum)
->> -			return -EINVAL;
->> -		else {
->> -			unsigned long range = qctrl->maximum - qctrl->minimum;
->> -			unsigned long shutter = ((ctrl->value - qctrl->minimum) * 1048 +
->> +	case V4L2_CID_EXPOSURE_AUTO:
->> +		/* Force manual exposure if only the exposure was changed */
->> +		if (!ctrl->has_new)
->> +			ctrl->val = V4L2_EXPOSURE_MANUAL;
->> +		if (ctrl->val == V4L2_EXPOSURE_MANUAL) {
->> +			unsigned long range = exp->maximum - exp->minimum;
->> +			unsigned long shutter = ((exp->val - exp->minimum) * 1048 +
->> 						 range / 2) / range + 1;
->> 
->> 			dev_dbg(&client->dev,
->> 				"Setting shutter width from %d to %lu\n",
->> -				reg_read(client, MT9M001_SHUTTER_WIDTH),
->> -				shutter);
->> +				reg_read(client, MT9M001_SHUTTER_WIDTH), shutter);
->> 			if (reg_write(client, MT9M001_SHUTTER_WIDTH, shutter) < 0)
->> 				return -EIO;
->> -			mt9m001->exposure = ctrl->value;
->> -			mt9m001->autoexposure = 0;
->> -		}
->> -		break;
->> -	case V4L2_CID_EXPOSURE_AUTO:
->> -		if (ctrl->value) {
->> +		} else {
->> 			const u16 vblank = 25;
->> 			unsigned int total_h = mt9m001->rect.height +
->> 				mt9m001->y_skip_top + vblank;
->> -			if (reg_write(client, MT9M001_SHUTTER_WIDTH,
->> -				      total_h) < 0)
->> +
->> +			if (reg_write(client, MT9M001_SHUTTER_WIDTH, total_h) < 0)
->> 				return -EIO;
->> -			qctrl = soc_camera_find_qctrl(icd->ops, V4L2_CID_EXPOSURE);
->> -			mt9m001->exposure = (524 + (total_h - 1) *
->> -				 (qctrl->maximum - qctrl->minimum)) /
->> -				1048 + qctrl->minimum;
->> -			mt9m001->autoexposure = 1;
->> -		} else
->> -			mt9m001->autoexposure = 0;
->> -		break;
->> +			exp->val = (524 + (total_h - 1) *
->> +					(exp->maximum - exp->minimum)) / 1048 +
->> +						exp->minimum;
->> +		}
->> +		return 0;
->> 	}
->> -	return 0;
->> +	return -EINVAL;
+> I agree with this.
 > 
-> It seems to me, that you've dropped V4L2_CID_EXPOSURE here, was it 
-> intentional? I won't verify this in detail now, because, if it wasn't 
-> intentional and you fix it in v2, I'll have to re-check it anyway. Or is 
-> it supposed to be handled by that V4L2_EXPOSURE_MANUAL? So, if the user 
-> issues a V4L2_CID_EXPOSURE, are you getting V4L2_CID_EXPOSURE_AUTO with 
-> val == V4L2_EXPOSURE_MANUAL instead? Weird...
+>> Of course, the better is to remove V4L1 support from those old apps.
+>> There are a number of applications that support both API's. So, it
+>> is time to remove V4L1 support from them.
+> 
+> So who is going to do that work? That's the problem...
+> 
+> But ensuring that they no longer compile is a good start :-)
+> 
+> Although most have a private copy of videodev.h as part of their sources.
 
-I also wonder first at this part for a long time like below:
+The ones that don't have videodev.h will compile-break on distros. So distros
+will need to do something to keep it working, or they'll just drop those
+pre-historic beasts. It is the Evolution Theory working for software:
+to adapt or to be extinguished ;)
 
-1. when calling V4L2_CID_EXPOSURE_AUTO with V4L2_EXPOSURE_AUTO, it's ok.
-2. when calling V4L2_CID_EXPOSURE_AUTO with V4L2_EXPOSURE_MANUAL, it's
-also ok.
-3. when calling V4L2_CID_EXPOSURE? where the device handle this CID?
+The ones that are shipped with videodev.h and weren't converted to libv4l
+might eventually stay there for a longer time, as people will only notice
+when a bug will be reported. If we know what are those apps, then we can
+add a blacklist at linuxtv and/or contact interested parties on fixing/removing
+them.
 
-but, after testing with application step by step, I finally know below:
-when calling V4L2_CID_EXPOSURE, changing internal(v4l2_ctrl framework) variable,
-exactly struct v4l2_ctrl exposure, which is register for probing time by
-V4L2_CID_EXPOSURE, and clustered with struct v4l2_ctrl autoexposure. So, when
-the device no needs to handle this values, but it automatically calls control clustered with
-itself, in this case the V4L2_CID_EXPOSURE calls(just words)V4L2_CID_EXPOSURE_AUTO.
-
-So, the my POV is that foo clustered with auto_foo calls auto_foo with foo's characteristics.  
-
-But, Hans probably would do more clear answer.
+We should touch the tools that we care of. Maybe Devin could change tvtime,
+we should remove V4L1 driver from xawtv3/xawtv4.
 
 Regards,
-Heungjun Kim
-
-  
+Mauro
