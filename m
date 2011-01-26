@@ -1,196 +1,126 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:47727 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755217Ab1AaIyA (ORCPT
+Received: from mail-out.m-online.net ([212.18.0.9]:45797 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752653Ab1AZIta (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Jan 2011 03:54:00 -0500
-Date: Mon, 31 Jan 2011 00:53:52 -0800
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Input <linux-input@vger.kernel.org>
-Subject: [PATCH] dvb-usb-remote - convert to new style of get/setkeycode
-Message-ID: <20110131085352.GA30343@core.coreip.homeip.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+	Wed, 26 Jan 2011 03:49:30 -0500
+From: Anatolij Gustschin <agust@denx.de>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Dan Williams <dan.j.williams@intel.com>,
+	linux-arm-kernel@lists.infradead.org, Detlev Zundel <dzu@denx.de>,
+	Markus Niebel <Markus.Niebel@tqs.de>,
+	Anatolij Gustschin <agust@denx.de>
+Subject: [PATCH 2/2] dma: ipu_idmac: do not lose valid received data in the irq handler
+Date: Wed, 26 Jan 2011 09:49:49 +0100
+Message-Id: <1296031789-1721-3-git-send-email-agust@denx.de>
+In-Reply-To: <1296031789-1721-1-git-send-email-agust@denx.de>
+References: <1296031789-1721-1-git-send-email-agust@denx.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Input: dvb-usb-remote - convert to new style of get/setkeycode
+Currently when two or more buffers are queued by the camera driver
+and so the double buffering is enabled in the idmac, we lose the
+first frame comming from CSI since it is just dropped by the
+interrupt handler. The reason for this dropping is that the interrupt
+handler misleadingly assumes that the cur_buf flag is pointing to the
+buffer used by the IDMAC. Actually it is not the case since the
+CUR_BUF flag will be flipped by the FSU when the FSU is sending the
+<TASK>_NEW_FRM_RDY signal when new frame data is delivered by the CSI.
+When sending this singal, FSU updates the DMA_CUR_BUF and the
+DMA_BUFx_RDY flags: the DMA_CUR_BUF is flipped, the DMA_BUFx_RDY
+is cleared, indicating that the frame data is beeing written by
+the IDMAC to the pointed buffer. DMA_BUFx_RDY is supposed to be
+set to the ready state again by the MCU, when it has handled the
+received data. DMA_BUFx_RDY won't be set by the IPU, so waiting
+for this event in the interrupt handler is wrong. Actually there
+is no spurious interrupt as described in the comments, this
+is the valid DMAIC_7_EOF interrupt indicating reception of the
+frame from CSI.
 
-Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+This has been verified on the hardware which is triggering the
+image sensor by the programmable state machine, allowing to
+obtain exact number of frames. On this hardware we do not tolerate
+losing frames.
+
+This patch also removes resetting the DMA_BUFx_RDY flags of
+all channels in ipu_disable_channel() since transfers on other
+DMA channels might be triggered by other running tasks and the
+buffers should always be ready for data sending or reception.
+
+Signed-off-by: Anatolij Gustschin <agust@denx.de>
 ---
+ drivers/dma/ipu/ipu_idmac.c |   50 -------------------------------------------
+ 1 files changed, 0 insertions(+), 50 deletions(-)
 
-Mauro,
-
-This is needed so that I could rename get/setkeycode_new into
-get/setkeycode and get rid of duplicate pointers and compat code in
-input core.
-
-Compiled only, not tested.
-
-If you are OK with the patch then I'd like to merge this through my
-tree.
-
-Thanks!
-
- drivers/media/dvb/dvb-usb/dvb-usb-remote.c |  113 +++++++++++++++++-----------
- 1 files changed, 70 insertions(+), 43 deletions(-)
-
-
-diff --git a/drivers/media/dvb/dvb-usb/dvb-usb-remote.c b/drivers/media/dvb/dvb-usb/dvb-usb-remote.c
-index 23005b3..347fbd4 100644
---- a/drivers/media/dvb/dvb-usb/dvb-usb-remote.c
-+++ b/drivers/media/dvb/dvb-usb/dvb-usb-remote.c
-@@ -8,60 +8,71 @@
- #include "dvb-usb-common.h"
- #include <linux/usb/input.h>
- 
-+static unsigned int
-+legacy_dvb_usb_get_keymap_index(const struct input_keymap_entry *ke,
-+				struct rc_map_table *keymap,
-+				unsigned int keymap_size)
-+{
-+	unsigned int index;
-+	unsigned int scancode;
-+
-+	if (ke->flags & INPUT_KEYMAP_BY_INDEX) {
-+		index = ke->index;
-+	} else {
-+		if (input_scancode_to_scalar(ke, &scancode))
-+			return keymap_size;
-+
-+		/* See if we can match the raw key code. */
-+		for (index = 0; index < keymap_size; index++)
-+			if (keymap[index].scancode == scancode)
-+				break;
-+
-+		/* See if there is an unused hole in the map */
-+		if (index >= keymap_size) {
-+			for (index = 0; index < keymap_size; index++) {
-+				if (keymap[index].keycode == KEY_RESERVED ||
-+				    keymap[index].keycode == KEY_UNKNOWN) {
-+					break;
-+				}
-+			}
-+		}
-+	}
-+
-+	return index;
-+}
-+
- static int legacy_dvb_usb_getkeycode(struct input_dev *dev,
--				unsigned int scancode, unsigned int *keycode)
-+				     struct input_keymap_entry *ke)
- {
- 	struct dvb_usb_device *d = input_get_drvdata(dev);
--
- 	struct rc_map_table *keymap = d->props.rc.legacy.rc_map_table;
--	int i;
-+	unsigned int keymap_size = d->props.rc.legacy.rc_map_size;
-+	unsigned int index;
- 
--	/* See if we can match the raw key code. */
--	for (i = 0; i < d->props.rc.legacy.rc_map_size; i++)
--		if (keymap[i].scancode == scancode) {
--			*keycode = keymap[i].keycode;
--			return 0;
--		}
-+	index = legacy_dvb_usb_get_keymap_index(ke, keymap, keymap_size);
-+	if (index >= keymap_size)
-+		return -EINVAL;
+diff --git a/drivers/dma/ipu/ipu_idmac.c b/drivers/dma/ipu/ipu_idmac.c
+index cb26ee9..c1a125e 100644
+--- a/drivers/dma/ipu/ipu_idmac.c
++++ b/drivers/dma/ipu/ipu_idmac.c
+@@ -1145,29 +1145,6 @@ static int ipu_disable_channel(struct idmac *idmac, struct idmac_channel *ichan,
+ 	reg = idmac_read_icreg(ipu, IDMAC_CHA_EN);
+ 	idmac_write_icreg(ipu, reg & ~chan_mask, IDMAC_CHA_EN);
  
 -	/*
--	 * If is there extra space, returns KEY_RESERVED,
--	 * otherwise, input core won't let legacy_dvb_usb_setkeycode
--	 * to work
+-	 * Problem (observed with channel DMAIC_7): after enabling the channel
+-	 * and initialising buffers, there comes an interrupt with current still
+-	 * pointing at buffer 0, whereas it should use buffer 0 first and only
+-	 * generate an interrupt when it is done, then current should already
+-	 * point to buffer 1. This spurious interrupt also comes on channel
+-	 * DMASDC_0. With DMAIC_7 normally, is we just leave the ISR after the
+-	 * first interrupt, there comes the second with current correctly
+-	 * pointing to buffer 1 this time. But sometimes this second interrupt
+-	 * doesn't come and the channel hangs. Clearing BUFx_RDY when disabling
+-	 * the channel seems to prevent the channel from hanging, but it doesn't
+-	 * prevent the spurious interrupt. This might also be unsafe. Think
+-	 * about the IDMAC controller trying to switch to a buffer, when we
+-	 * clear the ready bit, and re-enable it a moment later.
 -	 */
--	for (i = 0; i < d->props.rc.legacy.rc_map_size; i++)
--		if (keymap[i].keycode == KEY_RESERVED ||
--		    keymap[i].keycode == KEY_UNKNOWN) {
--			*keycode = KEY_RESERVED;
--			return 0;
--		}
-+	ke->keycode = keymap[index].keycode;
-+	if (ke->keycode == KEY_UNKNOWN)
-+		ke->keycode = KEY_RESERVED;
-+	ke->len = sizeof(keymap[index].scancode);
-+	memcpy(&ke->scancode, &keymap[index].scancode, ke->len);
-+	ke->index = index;
- 
--	return -EINVAL;
-+	return 0;
- }
- 
- static int legacy_dvb_usb_setkeycode(struct input_dev *dev,
--				unsigned int scancode, unsigned int keycode)
-+				     const struct input_keymap_entry *ke,
-+				     unsigned int *old_keycode)
- {
- 	struct dvb_usb_device *d = input_get_drvdata(dev);
+-	reg = idmac_read_ipureg(ipu, IPU_CHA_BUF0_RDY);
+-	idmac_write_ipureg(ipu, 0, IPU_CHA_BUF0_RDY);
+-	idmac_write_ipureg(ipu, reg & ~(1UL << channel), IPU_CHA_BUF0_RDY);
 -
- 	struct rc_map_table *keymap = d->props.rc.legacy.rc_map_table;
--	int i;
+-	reg = idmac_read_ipureg(ipu, IPU_CHA_BUF1_RDY);
+-	idmac_write_ipureg(ipu, 0, IPU_CHA_BUF1_RDY);
+-	idmac_write_ipureg(ipu, reg & ~(1UL << channel), IPU_CHA_BUF1_RDY);
 -
--	/* Search if it is replacing an existing keycode */
--	for (i = 0; i < d->props.rc.legacy.rc_map_size; i++)
--		if (keymap[i].scancode == scancode) {
--			keymap[i].keycode = keycode;
--			return 0;
+ 	spin_unlock_irqrestore(&ipu->lock, flags);
+ 
+ 	return 0;
+@@ -1246,33 +1223,6 @@ static irqreturn_t idmac_interrupt(int irq, void *dev_id)
+ 
+ 	/* Other interrupts do not interfere with this channel */
+ 	spin_lock(&ichan->lock);
+-	if (unlikely(chan_id != IDMAC_SDC_0 && chan_id != IDMAC_SDC_1 &&
+-		     ((curbuf >> chan_id) & 1) == ichan->active_buffer &&
+-		     !list_is_last(ichan->queue.next, &ichan->queue))) {
+-		int i = 100;
+-
+-		/* This doesn't help. See comment in ipu_disable_channel() */
+-		while (--i) {
+-			curbuf = idmac_read_ipureg(&ipu_data, IPU_CHA_CUR_BUF);
+-			if (((curbuf >> chan_id) & 1) != ichan->active_buffer)
+-				break;
+-			cpu_relax();
 -		}
 -
--	/* Search if is there a clean entry. If so, use it */
--	for (i = 0; i < d->props.rc.legacy.rc_map_size; i++)
--		if (keymap[i].keycode == KEY_RESERVED ||
--		    keymap[i].keycode == KEY_UNKNOWN) {
--			keymap[i].scancode = scancode;
--			keymap[i].keycode = keycode;
--			return 0;
--		}
-+	unsigned int keymap_size = d->props.rc.legacy.rc_map_size;
-+	unsigned int index;
- 
-+	index = legacy_dvb_usb_get_keymap_index(ke, keymap, keymap_size);
- 	/*
- 	 * FIXME: Currently, it is not possible to increase the size of
- 	 * scancode table. For it to happen, one possibility
-@@ -69,8 +80,24 @@ static int legacy_dvb_usb_setkeycode(struct input_dev *dev,
- 	 * copying data, appending the new key on it, and freeing
- 	 * the old one - or maybe just allocating some spare space
- 	 */
-+	if (index >= keymap_size)
-+		return -EINVAL;
-+
-+	*old_keycode = keymap[index].keycode;
-+	keymap->keycode = ke->keycode;
-+	__set_bit(ke->keycode, dev->keybit);
-+
-+	if (*old_keycode != KEY_RESERVED) {
-+		__clear_bit(*old_keycode, dev->keybit);
-+		for (index = 0; index < keymap_size; index++) {
-+			if (keymap[index].keycode == *old_keycode) {
-+				__set_bit(*old_keycode, dev->keybit);
-+				break;
-+			}
-+		}
-+	}
- 
--	return -EINVAL;
-+	return 0;
- }
- 
- /* Remote-control poll function - called every dib->rc_query_interval ms to see
-@@ -171,8 +198,8 @@ static int legacy_dvb_usb_remote_init(struct dvb_usb_device *d)
- 	d->input_dev = input_dev;
- 	d->rc_dev = NULL;
- 
--	input_dev->getkeycode = legacy_dvb_usb_getkeycode;
--	input_dev->setkeycode = legacy_dvb_usb_setkeycode;
-+	input_dev->getkeycode_new = legacy_dvb_usb_getkeycode;
-+	input_dev->setkeycode_new = legacy_dvb_usb_setkeycode;
- 
- 	/* set the bits for the keys */
- 	deb_rc("key map size: %d\n", d->props.rc.legacy.rc_map_size);
+-		if (!i) {
+-			spin_unlock(&ichan->lock);
+-			dev_dbg(dev,
+-				"IRQ on active buffer on channel %x, active "
+-				"%d, ready %x, %x, current %x!\n", chan_id,
+-				ichan->active_buffer, ready0, ready1, curbuf);
+-			return IRQ_NONE;
+-		} else
+-			dev_dbg(dev,
+-				"Buffer deactivated on channel %x, active "
+-				"%d, ready %x, %x, current %x, rest %d!\n", chan_id,
+-				ichan->active_buffer, ready0, ready1, curbuf, i);
+-	}
+-
+ 	if (unlikely((ichan->active_buffer && (ready1 >> chan_id) & 1) ||
+ 		     (!ichan->active_buffer && (ready0 >> chan_id) & 1)
+ 		     )) {
 -- 
-Dmitry
+1.7.1
+
