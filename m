@@ -1,79 +1,53 @@
-Return-path: <mchehab@gaivota>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:40837 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751026Ab1ADNUw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 4 Jan 2011 08:20:52 -0500
-Subject: Re: [PATCH 11/32] v4l/cx18: update workqueue usage
-From: Andy Walls <awalls@md.metrocast.net>
-To: Tejun Heo <tj@kernel.org>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-In-Reply-To: <20110104083637.GB8066@mtj.dyndns.org>
-References: <1294062595-30097-1-git-send-email-tj@kernel.org>
-	 <1294062595-30097-12-git-send-email-tj@kernel.org>
-	 <1294102496.10094.152.camel@morgan.silverblock.net>
-	 <20110104083637.GB8066@mtj.dyndns.org>
-Content-Type: text/plain; charset="UTF-8"
-Date: Tue, 04 Jan 2011 08:21:35 -0500
-Message-ID: <1294147295.2107.14.camel@morgan.silverblock.net>
-Mime-Version: 1.0
+Return-path: <mchehab@pedra>
+Received: from mx1.redhat.com ([209.132.183.28]:30787 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753469Ab1AZRqj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Jan 2011 12:46:39 -0500
+Message-ID: <4D405CAD.5040107@redhat.com>
+Date: Wed, 26 Jan 2011 15:41:01 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Mark Lord <kernel@teksavvy.com>
+CC: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Linux Kernel <linux-kernel@vger.kernel.org>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	Gerd Hoffmann <kraxel@redhat.com>
+Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils
+ ?
+References: <4D3E59CA.6070107@teksavvy.com> <4D3E5A91.30207@teksavvy.com> <20110125053117.GD7850@core.coreip.homeip.net> <4D3EB734.5090100@redhat.com> <20110125164803.GA19701@core.coreip.homeip.net> <AANLkTi=1Mh0JrYk5itvef7O7e7pR+YKos-w56W5q4B8B@mail.gmail.com> <20110125205453.GA19896@core.coreip.homeip.net> <4D3F4804.6070508@redhat.com> <4D3F4D11.9040302@teksavvy.com> <20110125232914.GA20130@core.coreip.homeip.net> <20110126020003.GA23085@core.coreip.homeip.net> <4D4004F9.6090200@redhat.com> <4D403693.50702@teksavvy.com>
+In-Reply-To: <4D403693.50702@teksavvy.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On Tue, 2011-01-04 at 09:36 +0100, Tejun Heo wrote:
-> Hello,
+Em 26-01-2011 12:58, Mark Lord escreveu:
+> On 11-01-26 06:26 AM, Mauro Carvalho Chehab wrote:
+> ..
+>> However, as said previously in this thread, input-kbd won't work with any
+>> RC table that uses NEC extended (and there are several devices on the
+>> current Kernels with those tables), since it only reads up to 16 bits.
+>>
+>> ir-keytable works with all RC tables, if you use a kernel equal or upper to
+>> 2.6.36, due to the usage of the new ioctl's.
 > 
-> On Mon, Jan 03, 2011 at 07:54:56PM -0500, Andy Walls wrote:
-> > 2. To prevent work items being handled by keventd/n from being delayed
-> > too long, as the deferred work in question can involve a bit of sleeping
-> > due to contention, the workload of the CX23418's MPEG encoding engine,
-> > and the number of CX23418 devices in the system.
-> > 
-> > Will all the sleeping that can happen, is the move to a system wq, under
-> > cmwq, going to have adverse affects on processing other work items in
-> > the system?
-> > 
-> > I get the feeling it won't be a problem with cmwq, but I haven't paid
-> > enough attention to be sure. 
+> Is there a way to control the key repeat rate for a device
+> controlled by ir-kbd-i2c ?
 > 
-> It won't be a problem.  Now the system_wq supports parallel execution
-> of multiple works and manages concurrency automatically.  Work items
-> can sleep as necessary without worrying about other work items.
+> It appears to be limited to a max of between 4 and 5 repeats/sec somewhere,
+> and I'd like to fix that.
 
-OK, that's what I thought.  I just wanted to ensure that busy CX23418
-chips are not going to delay the processing of other work-events in the
-rest the system down. 
+It depends on what device do you have. Several I2C chips have the repeat
+logic inside the I2C microcontroller PROM firmware. or at the remote
+controller itself. So, there's nothing we can do to change it.
 
-> ...
-> > It is not unusual for scheduled TV recording software to start nearly
-> > simultaneous DTV TS, MPEG, and VBI or MPEG Index streams on multiple
-> > cards.  So 3 CX23418 cards with 3 streams each.   Let's nominally
-> > estimate the timing of the CX18_CPU_DE_SET_MDL commands per stream at
-> > the PAL frame rate of 25 Hz; or 1 CX18_CPU_DE_SET_MDL mailbox command
-> > per stream per 40 milliseconds.
-> 
-> IIUC, if they spend any significant amount of time executing, they'll
-> be doing so by waiting for events (mutex, IRQ...), right?
+I have even one device here (I think it is a saa7134-based Kworld device) 
+that doesn't send any repeat event at all for most keys (I think it only
+sends repeat events for volume - Can't remember the specific details anymore -
+too many devices!).
 
-Right.  As a CX23418 is expected to do more streaming by the host, the
-mailbox mutex contention goes up and the latency of the CX23418
-responding to mailbox commands also goes up so there is more wait()ing.
+The devices that produce repeat events can be adjusted via the normal
+input layer tools like kbdrate.
 
-
->   If so,
-> there's nothing to worry about.  If it's gonna burn a lot of CPU
-> cycles, we'll need to use a workqueue marked CPU_INTENSIVE but I don't
-> think that's the case here.
-
-Correct, CPU is not the concern here.
-
-
-> Thank you.
-
-Thanks.  I'll do a proper inspection of the patch tonight.  It looked OK
-on cursory review.
-
-Regards,
-Andy
-
+Thanks,
+Mauro
