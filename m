@@ -1,57 +1,77 @@
 Return-path: <mchehab@pedra>
-Received: from poutre.nerim.net ([62.4.16.124]:60399 "EHLO poutre.nerim.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756724Ab1ANQnt convert rfc822-to-8bit (ORCPT
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:39942 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753945Ab1AZSYX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Jan 2011 11:43:49 -0500
-From: Thierry LELEGARD <tlelegard@logiways.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Andreas Oberritter <obi@linuxtv.org>
-Subject: RE: [linux-media] API V3 vs SAPI behavior difference in reading
- tuning  parameters
-Date: Fri, 14 Jan 2011 16:43:45 +0000
-Message-ID: <BA2A2355403563449C28518F517A3C4805AA9CE2@titan.logiways-france.fr>
-References: <BA2A2355403563449C28518F517A3C4805AA9B9B@titan.logiways-france.fr>
- <AANLkTi=Y_ikxp2hHHh5B=rQqQLf5w5_5SivzLJ+DfVLm@mail.gmail.com>
- <4D307A80.4050807@linuxtv.org>
-In-Reply-To: <4D307A80.4050807@linuxtv.org>
-Content-Language: fr-FR
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Wed, 26 Jan 2011 13:24:23 -0500
+Date: Wed, 26 Jan 2011 10:24:15 -0800
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Gerd Hoffmann <kraxel@redhat.com>, Mark Lord <kernel@teksavvy.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Linux Kernel <linux-kernel@vger.kernel.org>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils ?
+Message-ID: <20110126182415.GB29268@core.coreip.homeip.net>
+References: <20110125205453.GA19896@core.coreip.homeip.net>
+ <4D3F4804.6070508@redhat.com>
+ <4D3F4D11.9040302@teksavvy.com>
+ <20110125232914.GA20130@core.coreip.homeip.net>
+ <20110126020003.GA23085@core.coreip.homeip.net>
+ <4D4004F9.6090200@redhat.com>
+ <4D401CC5.4020000@redhat.com>
+ <4D402D35.4090206@redhat.com>
+ <20110126165132.GC29163@core.coreip.homeip.net>
+ <4D4059E5.7050300@redhat.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4D4059E5.7050300@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-> -----Original Message-----
-> From: Andreas Oberritter [mailto:obi@linuxtv.org]
-> Sent: Friday, January 14, 2011 5:32 PM
+On Wed, Jan 26, 2011 at 03:29:09PM -0200, Mauro Carvalho Chehab wrote:
+> Em 26-01-2011 14:51, Dmitry Torokhov escreveu:
+> > On Wed, Jan 26, 2011 at 12:18:29PM -0200, Mauro Carvalho Chehab wrote:
+> >> diff --git a/input.c b/input.c
+> >> index d57a31e..a9bd5e8 100644
+> >> --- a/input.c
+> >> +++ b/input.c
+> >> @@ -101,8 +101,8 @@ int device_open(int nr, int verbose)
+> >>  		close(fd);
+> >>  		return -1;
+> >>  	}
+> >> -	if (EV_VERSION != version) {
+> >> -		fprintf(stderr, "protocol version mismatch (expected %d, got %d)\n",
+> >> +	if (EV_VERSION > version) {
+> >> +		fprintf(stderr, "protocol version mismatch (expected >= %d, got %d)\n",
+> >>  			EV_VERSION, version);
+> > 
+> > Please do not do this. It causes check to "float" depending on the
+> > version of kernel headers it was compiled against.
+> > 
+> > The check should be against concrete version (0x10000 in this case).
+> 
+> The idea here is to not prevent it to load if version is 0x10001.
+> This is actually the only change that it is really needed (after applying
+> your KEY_RESERVED patch to 2.6.37) for the tool to work. Reverting it causes
+> the error:
 
+You did not understand. When comparing against EV_VERSION, if you
+compile on 2.6.32 you are comparing with 0x10000. If you are compiling
+on 2.6.37 you are comparing with 0x10001 as EV_VERSION value changes
+(not the value returned by EVIOCGVERSION, the value of the _define_
+itself).
 
-> Albeit, DVB-SI data isn't perfect and misconfiguration at the
-> transmitter happens (e.g. wrong FEC values), especially where most of
-> the parameters are signaled in-band (e.g. TPS for DVB-T). It's a better
-> user experience if the reception continues to work, even if the user
-> didn't specify AUTO.
+The proper check is:
 
-Exactly. In the French DVB-T network, there is no regional NIT, only one
-common national NIT. As a consequence, all tuning parameters (frequency
-but also FEC, guard interval, etc) are wrong in the terrestrial delivery
-descriptors because for a given TS they are obviously not identical on all
-transmitters. Moreover, these parameters change over time (many transmitters
-recently moved from 2/3 - 1/32 to 3/4 - 1/8).
+#define EVDEV_MIN_VERSION 0x10000
+	if (version < EVDEV_MIN_VERSION) {
+		fprintf(stderr,
+			"protocol version mismatch (need at least %d, got %d)\n",
+			EVDEV_MIN_VERSION, version);
+		...
+	}
 
-In such networks, nobody "knows" for sure the modulation parameters. This is
-why it is a good thing that the tuners can 1) find the actual parameters and
-2) report them to the application whenever it requests them.
-
-> I'd rather understand non-AUTO parameters that way: "Try these first,
-> but if you want and if you can, you're free to try other parameters."
-
-Exactly, for the same reasons as above.
-
-This is why the new behavior of S2API (compared to API V3) is quite unfortunate.
-On a pragmatic standpoint, this is really a major step backward.
-
--Thierry
-
+-- 
+Dmitry
