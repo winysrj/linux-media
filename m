@@ -1,327 +1,312 @@
-Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:10972 "EHLO mx1.redhat.com"
+Return-path: <mchehab@pedra>
+Received: from mx1.redhat.com ([209.132.183.28]:63709 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752555Ab1AFL3R convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Jan 2011 06:29:17 -0500
-Date: Thu, 6 Jan 2011 09:28:35 -0200
+	id S1751680Ab1AZOTJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Jan 2011 09:19:09 -0500
+Message-ID: <4D402D35.4090206@redhat.com>
+Date: Wed, 26 Jan 2011 12:18:29 -0200
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: stable@kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	moinejf@free.fr
-Subject: [PATCH 1/4] [media] gspca - sonixj: Move bridge init to sd start
-Message-ID: <20110106092835.0d300343@gaivota>
-In-Reply-To: <cover.1294312927.git.mchehab@redhat.com>
-References: <cover.1294312927.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+MIME-Version: 1.0
+To: Gerd Hoffmann <kraxel@redhat.com>
+CC: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Mark Lord <kernel@teksavvy.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Linux Kernel <linux-kernel@vger.kernel.org>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils
+ ?
+References: <4D3E59CA.6070107@teksavvy.com> <4D3E5A91.30207@teksavvy.com> <20110125053117.GD7850@core.coreip.homeip.net> <4D3EB734.5090100@redhat.com> <20110125164803.GA19701@core.coreip.homeip.net> <AANLkTi=1Mh0JrYk5itvef7O7e7pR+YKos-w56W5q4B8B@mail.gmail.com> <20110125205453.GA19896@core.coreip.homeip.net> <4D3F4804.6070508@redhat.com> <4D3F4D11.9040302@teksavvy.com> <20110125232914.GA20130@core.coreip.homeip.net> <20110126020003.GA23085@core.coreip.homeip.net> <4D4004F9.6090200@redhat.com> <4D401CC5.4020000@redhat.com>
+In-Reply-To: <4D401CC5.4020000@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Backports changeset 5e68f400aad4e2c29e2531cc4413c459fa88cb62
+Em 26-01-2011 11:08, Gerd Hoffmann escreveu:
+>   Hi,
+> 
+>> Btw, I took some time to take analyse the input-kbd stuff.
+>> As said at the README:
+>>
+>>     This is a small collection of input layer utilities.  I wrote them
+>>     mainly for testing and debugging, but maybe others find them useful
+>>     too :-)
+>>     ...
+>>     Gerd Knorr<kraxel@bytesex.org>  [SUSE Labs]
+>>
+>> This is an old testing tool written by Gerd Hoffmann probably used for him
+>> to test the V4L early Remote Controller implementations.
+> 
+> Indeed.
+> 
+>> The last "official" version seems to be this one:
+>>     http://dl.bytesex.org/cvs-snapshots/input-20081014-101501.tar.gz
+> 
+> Just moved the bits to git a few days ago.
+> http://bigendian.kraxel.org/cgit/input/
+> 
+> Code is unchanged since 2008 though.
+> 
+>> Gerd, if you're still maintaining it, it is a good idea to apply Dmitry's
+>> patch:
+>>     http://www.spinics.net/lists/linux-input/msg13728.html
+> 
+> Hmm, doesn't apply cleanly ...
 
-Signed-off-by: Jean-François Moine <moinejf@free.fr>
+I suspect that Dmitry did the patch against the Debian package, based on a 2007
+version of it, as it seems that Debian is using an older version of the package.
+
+Anyway, I've ported his patch to be applied over your -git tree, and tested
+on it, with vanilla 2.6.37.
+
+That's the incorrect output result of the old version, with an existing
+NEC extended map:
+
+$ sudo /tmp/input/input-kbd 2
+/dev/input/event2
+   bustype : BUS_I2C
+   vendor  : 0x0
+   product : 0x0
+   version : 0
+   name    : "i2c IR (i2c IR (EM2820 Winfast "
+   phys    : "i2c-0/0-0030/ir0"
+   bits ev : EV_SYN EV_KEY EV_MSC EV_REP
+
+bits: KEY_1
+bits: KEY_2
+bits: KEY_3
+bits: KEY_4
+...
+
+And that's the output after applying the patch:
+
+$ sudo ./input-kbd 2
+/dev/input/event2
+   bustype : BUS_I2C
+   vendor  : 0x0
+   product : 0x0
+   version : 0
+   name    : "i2c IR (i2c IR (EM2820 Winfast "
+   phys    : "i2c-0/0-0030/ir0"
+   bits ev : EV_SYN EV_KEY EV_MSC EV_REP
+
+map: 31 keys, size: 31/64
+0x866b00 = 393  # KEY_VIDEO
+0x866b01 =   2  # KEY_1
+0x866b02 =  11  # KEY_0
+0x866b03 = 386  # KEY_TUNER
+
+-
+
+[PATCH] input-kbd - switch to using EVIOCGKEYCODE2 when available
+
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+
+[mchehab@redhat.com: Ported it to the -git version]
+
+Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-diff --git a/drivers/media/video/gspca/sonixj.c b/drivers/media/video/gspca/sonixj.c
-index 248c2e6..63f789d 100644
---- a/drivers/media/video/gspca/sonixj.c
-+++ b/drivers/media/video/gspca/sonixj.c
-@@ -1643,136 +1643,6 @@ static void po2030n_probe(struct gspca_dev *gspca_dev)
+diff --git a/input-kbd.c b/input-kbd.c
+index c432d0d..aaf23b9 100644
+--- a/input-kbd.c
++++ b/input-kbd.c
+@@ -9,9 +9,22 @@
+ 
+ #include "input.h"
+ 
++struct input_keymap_entry_v2 {
++#define KEYMAP_BY_INDEX	(1 << 0)
++	uint8_t  flags;
++	uint8_t  len;
++	uint16_t index;
++	uint32_t keycode;
++	uint8_t  scancode[32];
++};
++
++#ifndef EVIOCGKEYCODE_V2
++#define EVIOCGKEYCODE_V2 _IOR('E', 0x04, struct input_keymap_entry_v2)
++#endif
++
+ struct kbd_entry {
+-	int scancode;
+-	int keycode;
++	unsigned int scancode;
++	unsigned int keycode;
+ };
+ 
+ struct kbd_map {
+@@ -23,7 +36,7 @@ struct kbd_map {
+ 
+ /* ------------------------------------------------------------------ */
+ 
+-static struct kbd_map* kbd_map_read(int fd)
++static struct kbd_map* kbd_map_read(int fd, unsigned int version)
+ {
+ 	struct kbd_entry entry;
+ 	struct kbd_map *map;
+@@ -32,17 +45,35 @@ static struct kbd_map* kbd_map_read(int fd)
+ 	map = malloc(sizeof(*map));
+ 	memset(map,0,sizeof(*map));
+ 	for (map->size = 0; map->size < 65536; map->size++) {
+-		entry.scancode = map->size;
+-		entry.keycode  = KEY_RESERVED;
+-		rc = ioctl(fd, EVIOCGKEYCODE, &entry);
+-		if (rc < 0) {
+-			map->size--;
+-			break;
++		if (version < 0x10001) {
++			entry.scancode = map->size;
++			entry.keycode  = KEY_RESERVED;
++			rc = ioctl(fd, EVIOCGKEYCODE, &entry);
++			if (rc < 0) {
++				map->size--;
++				break;
++			}
++		} else {
++			struct input_keymap_entry_v2 ke = {
++				.index = map->size,
++				.flags = KEYMAP_BY_INDEX,
++				.len = sizeof(uint32_t),
++				.keycode = KEY_RESERVED,
++			};
++
++			rc = ioctl(fd, EVIOCGKEYCODE_V2, &ke);
++			if (rc < 0)
++				break;
++			memcpy(&entry.scancode, ke.scancode,
++				sizeof(entry.scancode));
++			entry.keycode = ke.keycode;
+ 		}
++
+ 		if (map->size >= map->alloc) {
+ 			map->alloc += 64;
+ 			map->map = realloc(map->map, map->alloc * sizeof(entry));
+ 		}
++
+ 		map->map[map->size] = entry;
+ 
+ 		if (KEY_RESERVED != entry.keycode)
+@@ -156,37 +187,25 @@ static void kbd_print_bits(int fd)
  	}
  }
  
--static void bridge_init(struct gspca_dev *gspca_dev,
--			  const u8 *sn9c1xx)
--{
--	struct sd *sd = (struct sd *) gspca_dev;
--	u8 reg0102[2];
--	const u8 *reg9a;
--	static const u8 reg9a_def[] =
--		{0x00, 0x40, 0x20, 0x00, 0x00, 0x00};
--	static const u8 reg9a_spec[] =
--		{0x00, 0x40, 0x38, 0x30, 0x00, 0x20};
--	static const u8 regd4[] = {0x60, 0x00, 0x00};
--
--	/* sensor clock already enabled in sd_init */
--	/* reg_w1(gspca_dev, 0xf1, 0x00); */
--	reg_w1(gspca_dev, 0x01, sn9c1xx[1]);
--
--	/* configure gpio */
--	reg0102[0] = sn9c1xx[1];
--	reg0102[1] = sn9c1xx[2];
--	if (gspca_dev->audio)
--		reg0102[1] |= 0x04;	/* keep the audio connection */
--	reg_w(gspca_dev, 0x01, reg0102, 2);
--	reg_w(gspca_dev, 0x08, &sn9c1xx[8], 2);
--	reg_w(gspca_dev, 0x17, &sn9c1xx[0x17], 5);
--	switch (sd->sensor) {
--	case SENSOR_GC0307:
--	case SENSOR_OV7660:
--	case SENSOR_PO1030:
--	case SENSOR_PO2030N:
--	case SENSOR_SOI768:
--	case SENSOR_SP80708:
--		reg9a = reg9a_spec;
--		break;
--	default:
--		reg9a = reg9a_def;
--		break;
--	}
--	reg_w(gspca_dev, 0x9a, reg9a, 6);
--
--	reg_w(gspca_dev, 0xd4, regd4, sizeof regd4);
--
--	reg_w(gspca_dev, 0x03, &sn9c1xx[3], 0x0f);
--
--	switch (sd->sensor) {
--	case SENSOR_ADCM1700:
--		reg_w1(gspca_dev, 0x01, 0x43);
--		reg_w1(gspca_dev, 0x17, 0x62);
--		reg_w1(gspca_dev, 0x01, 0x42);
--		reg_w1(gspca_dev, 0x01, 0x42);
--		break;
--	case SENSOR_GC0307:
--		msleep(50);
--		reg_w1(gspca_dev, 0x01, 0x61);
--		reg_w1(gspca_dev, 0x17, 0x22);
--		reg_w1(gspca_dev, 0x01, 0x60);
--		reg_w1(gspca_dev, 0x01, 0x40);
--		msleep(50);
--		break;
--	case SENSOR_MT9V111:
--		reg_w1(gspca_dev, 0x01, 0x61);
--		reg_w1(gspca_dev, 0x17, 0x61);
--		reg_w1(gspca_dev, 0x01, 0x60);
--		reg_w1(gspca_dev, 0x01, 0x40);
--		break;
--	case SENSOR_OM6802:
--		msleep(10);
--		reg_w1(gspca_dev, 0x02, 0x73);
--		reg_w1(gspca_dev, 0x17, 0x60);
--		reg_w1(gspca_dev, 0x01, 0x22);
--		msleep(100);
--		reg_w1(gspca_dev, 0x01, 0x62);
--		reg_w1(gspca_dev, 0x17, 0x64);
--		reg_w1(gspca_dev, 0x17, 0x64);
--		reg_w1(gspca_dev, 0x01, 0x42);
--		msleep(10);
--		reg_w1(gspca_dev, 0x01, 0x42);
--		i2c_w8(gspca_dev, om6802_init0[0]);
--		i2c_w8(gspca_dev, om6802_init0[1]);
--		msleep(15);
--		reg_w1(gspca_dev, 0x02, 0x71);
--		msleep(150);
--		break;
--	case SENSOR_OV7630:
--		reg_w1(gspca_dev, 0x01, 0x61);
--		reg_w1(gspca_dev, 0x17, 0xe2);
--		reg_w1(gspca_dev, 0x01, 0x60);
--		reg_w1(gspca_dev, 0x01, 0x40);
--		break;
--	case SENSOR_OV7648:
--		reg_w1(gspca_dev, 0x01, 0x63);
--		reg_w1(gspca_dev, 0x17, 0x20);
--		reg_w1(gspca_dev, 0x01, 0x62);
--		reg_w1(gspca_dev, 0x01, 0x42);
--		break;
--	case SENSOR_PO1030:
--	case SENSOR_SOI768:
--		reg_w1(gspca_dev, 0x01, 0x61);
--		reg_w1(gspca_dev, 0x17, 0x20);
--		reg_w1(gspca_dev, 0x01, 0x60);
--		reg_w1(gspca_dev, 0x01, 0x40);
--		break;
--	case SENSOR_PO2030N:
--	case SENSOR_OV7660:
--		reg_w1(gspca_dev, 0x01, 0x63);
--		reg_w1(gspca_dev, 0x17, 0x20);
--		reg_w1(gspca_dev, 0x01, 0x62);
--		reg_w1(gspca_dev, 0x01, 0x42);
--		break;
--	case SENSOR_SP80708:
--		reg_w1(gspca_dev, 0x01, 0x63);
--		reg_w1(gspca_dev, 0x17, 0x20);
--		reg_w1(gspca_dev, 0x01, 0x62);
--		reg_w1(gspca_dev, 0x01, 0x42);
--		msleep(100);
--		reg_w1(gspca_dev, 0x02, 0x62);
--		break;
--	default:
--/*	case SENSOR_HV7131R: */
--/*	case SENSOR_MI0360: */
--/*	case SENSOR_MO4000: */
--		reg_w1(gspca_dev, 0x01, 0x43);
--		reg_w1(gspca_dev, 0x17, 0x61);
--		reg_w1(gspca_dev, 0x01, 0x42);
--		if (sd->sensor == SENSOR_HV7131R
--		    && sd->bridge == BRIDGE_SN9C102P)
--			hv7131r_probe(gspca_dev);
--		break;
--	}
--}
--
- /* this function is called at probe time */
- static int sd_config(struct gspca_dev *gspca_dev,
- 			const struct usb_device_id *id)
-@@ -2282,10 +2152,17 @@ static int sd_start(struct gspca_dev *gspca_dev)
+-static void show_kbd(int nr)
++static void show_kbd(int fd, unsigned int protocol_version)
  {
- 	struct sd *sd = (struct sd *) gspca_dev;
- 	int i;
-+	u8 reg0102[2];
-+	const u8 *reg9a;
- 	u8 reg1, reg17;
- 	const u8 *sn9c1xx;
- 	const u8 (*init)[8];
- 	int mode;
-+	static const u8 reg9a_def[] =
-+		{0x00, 0x40, 0x20, 0x00, 0x00, 0x00};
-+	static const u8 reg9a_spec[] =
-+		{0x00, 0x40, 0x38, 0x30, 0x00, 0x20};
-+	static const u8 regd4[] = {0x60, 0x00, 0x00};
- 	static const u8 C0[] = { 0x2d, 0x2d, 0x3a, 0x05, 0x04, 0x3f };
- 	static const u8 CA[] = { 0x28, 0xd8, 0x14, 0xec };
- 	static const u8 CA_adcm1700[] =
-@@ -2307,7 +2184,128 @@ static int sd_start(struct gspca_dev *gspca_dev)
+ 	struct kbd_map *map;
+-	int fd;
  
- 	/* initialize the bridge */
- 	sn9c1xx = sn_tb[sd->sensor];
--	bridge_init(gspca_dev, sn9c1xx);
-+
-+	/* sensor clock already enabled in sd_init */
-+	/* reg_w1(gspca_dev, 0xf1, 0x00); */
-+	reg_w1(gspca_dev, 0x01, sn9c1xx[1]);
-+
-+	/* configure gpio */
-+	reg0102[0] = sn9c1xx[1];
-+	reg0102[1] = sn9c1xx[2];
-+	if (gspca_dev->audio)
-+		reg0102[1] |= 0x04;	/* keep the audio connection */
-+	reg_w(gspca_dev, 0x01, reg0102, 2);
-+	reg_w(gspca_dev, 0x08, &sn9c1xx[8], 2);
-+	reg_w(gspca_dev, 0x17, &sn9c1xx[0x17], 5);
-+	switch (sd->sensor) {
-+	case SENSOR_GC0307:
-+	case SENSOR_OV7660:
-+	case SENSOR_PO1030:
-+	case SENSOR_PO2030N:
-+	case SENSOR_SOI768:
-+	case SENSOR_SP80708:
-+		reg9a = reg9a_spec;
-+		break;
-+	default:
-+		reg9a = reg9a_def;
-+		break;
-+	}
-+	reg_w(gspca_dev, 0x9a, reg9a, 6);
-+
-+	reg_w(gspca_dev, 0xd4, regd4, sizeof regd4);
-+
-+	reg_w(gspca_dev, 0x03, &sn9c1xx[3], 0x0f);
-+
-+	switch (sd->sensor) {
-+	case SENSOR_ADCM1700:
-+		reg_w1(gspca_dev, 0x01, 0x43);
-+		reg_w1(gspca_dev, 0x17, 0x62);
-+		reg_w1(gspca_dev, 0x01, 0x42);
-+		reg_w1(gspca_dev, 0x01, 0x42);
-+		break;
-+	case SENSOR_GC0307:
-+		msleep(50);
-+		reg_w1(gspca_dev, 0x01, 0x61);
-+		reg_w1(gspca_dev, 0x17, 0x22);
-+		reg_w1(gspca_dev, 0x01, 0x60);
-+		reg_w1(gspca_dev, 0x01, 0x40);
-+		msleep(50);
-+		break;
-+	case SENSOR_MI0360B:
-+		reg_w1(gspca_dev, 0x01, 0x61);
-+		reg_w1(gspca_dev, 0x17, 0x60);
-+		reg_w1(gspca_dev, 0x01, 0x60);
-+		reg_w1(gspca_dev, 0x01, 0x40);
-+		break;
-+	case SENSOR_MT9V111:
-+		reg_w1(gspca_dev, 0x01, 0x61);
-+		reg_w1(gspca_dev, 0x17, 0x61);
-+		reg_w1(gspca_dev, 0x01, 0x60);
-+		reg_w1(gspca_dev, 0x01, 0x40);
-+		break;
-+	case SENSOR_OM6802:
-+		msleep(10);
-+		reg_w1(gspca_dev, 0x02, 0x73);
-+		reg_w1(gspca_dev, 0x17, 0x60);
-+		reg_w1(gspca_dev, 0x01, 0x22);
-+		msleep(100);
-+		reg_w1(gspca_dev, 0x01, 0x62);
-+		reg_w1(gspca_dev, 0x17, 0x64);
-+		reg_w1(gspca_dev, 0x17, 0x64);
-+		reg_w1(gspca_dev, 0x01, 0x42);
-+		msleep(10);
-+		reg_w1(gspca_dev, 0x01, 0x42);
-+		i2c_w8(gspca_dev, om6802_init0[0]);
-+		i2c_w8(gspca_dev, om6802_init0[1]);
-+		msleep(15);
-+		reg_w1(gspca_dev, 0x02, 0x71);
-+		msleep(150);
-+		break;
-+	case SENSOR_OV7630:
-+		reg_w1(gspca_dev, 0x01, 0x61);
-+		reg_w1(gspca_dev, 0x17, 0xe2);
-+		reg_w1(gspca_dev, 0x01, 0x60);
-+		reg_w1(gspca_dev, 0x01, 0x40);
-+		break;
-+	case SENSOR_OV7648:
-+		reg_w1(gspca_dev, 0x01, 0x63);
-+		reg_w1(gspca_dev, 0x17, 0x20);
-+		reg_w1(gspca_dev, 0x01, 0x62);
-+		reg_w1(gspca_dev, 0x01, 0x42);
-+		break;
-+	case SENSOR_PO1030:
-+	case SENSOR_SOI768:
-+		reg_w1(gspca_dev, 0x01, 0x61);
-+		reg_w1(gspca_dev, 0x17, 0x20);
-+		reg_w1(gspca_dev, 0x01, 0x60);
-+		reg_w1(gspca_dev, 0x01, 0x40);
-+		break;
-+	case SENSOR_PO2030N:
-+	case SENSOR_OV7660:
-+		reg_w1(gspca_dev, 0x01, 0x63);
-+		reg_w1(gspca_dev, 0x17, 0x20);
-+		reg_w1(gspca_dev, 0x01, 0x62);
-+		reg_w1(gspca_dev, 0x01, 0x42);
-+		break;
-+	case SENSOR_SP80708:
-+		reg_w1(gspca_dev, 0x01, 0x63);
-+		reg_w1(gspca_dev, 0x17, 0x20);
-+		reg_w1(gspca_dev, 0x01, 0x62);
-+		reg_w1(gspca_dev, 0x01, 0x42);
-+		msleep(100);
-+		reg_w1(gspca_dev, 0x02, 0x62);
-+		break;
-+	default:
-+/*	case SENSOR_HV7131R: */
-+/*	case SENSOR_MI0360: */
-+/*	case SENSOR_MO4000: */
-+		reg_w1(gspca_dev, 0x01, 0x43);
-+		reg_w1(gspca_dev, 0x17, 0x61);
-+		reg_w1(gspca_dev, 0x01, 0x42);
-+		if (sd->sensor == SENSOR_HV7131R)
-+			hv7131r_probe(gspca_dev);
-+		break;
-+	}
+-	fd = device_open(nr,1);
+-	if (-1 == fd)
+-		return;
+ 	device_info(fd);
  
- 	/* initialize the sensor */
- 	i2c_w_seq(gspca_dev, sensor_init[sd->sensor]);
-@@ -2530,7 +2528,6 @@ static int sd_start(struct gspca_dev *gspca_dev)
- 		break;
+-	map = kbd_map_read(fd);
+-	if (NULL != map) {
+-		kbd_map_print(stdout,map,0);
+-	} else {
++	map = kbd_map_read(fd, protocol_version);
++	if (map)
++		kbd_map_print(stdout, map, 0);
++	else
+ 		kbd_print_bits(fd);
+-	}
+-
+-	close(fd);
+ }
+ 
+-static int set_kbd(int nr, char *mapfile)
++static int set_kbd(int fd, unsigned int protocol_version, char *mapfile)
+ {
+ 	struct kbd_map *map;
+ 	FILE *fp;
+-	int fd;
+ 
+-	fd = device_open(nr,1);
+-	if (-1 == fd)
+-		return -1;
+-
+-	map = kbd_map_read(fd);
++	map = kbd_map_read(fd, protocol_version);
+ 	if (NULL == map) {
+ 		fprintf(stderr,"device has no map\n");
+ 		close(fd);
+@@ -203,14 +222,12 @@ static int set_kbd(int nr, char *mapfile)
+ 			return -1;
+ 		}
+ 	}
+-	
++
+ 	if (0 != kbd_map_parse(fp,map) ||
+ 	    0 != kbd_map_write(fd,map)) {
+-		close(fd);
+ 		return -1;
  	}
  
--
- 	/* here change size mode 0 -> VGA; 1 -> CIF */
- 	sd->reg18 = sn9c1xx[0x18] | (mode << 4) | 0x40;
- 	reg_w1(gspca_dev, 0x18, sd->reg18);
--- 
-1.7.3.4
-
-
+-	close(fd);
+ 	return 0;
+ }
+ 
+@@ -224,8 +241,10 @@ static int usage(char *prog, int error)
+ 
+ int main(int argc, char *argv[])
+ {
+-	int c,devnr;
++	int c, devnr, fd;
+ 	char *mapfile = NULL;
++	unsigned int protocol_version;
++	int rc = EXIT_FAILURE;
+ 
+ 	for (;;) {
+ 		if (-1 == (c = getopt(argc, argv, "hf:")))
+@@ -245,12 +264,29 @@ int main(int argc, char *argv[])
+ 		usage(argv[0],1);
+ 
+ 	devnr = atoi(argv[optind]);
+-	if (mapfile) {
+-		set_kbd(devnr,mapfile);
+-	} else {
+-		show_kbd(devnr);
++
++	fd = device_open(devnr, 1);
++	if (fd < 0)
++		goto out;
++
++	if (ioctl(fd, EVIOCGVERSION, &protocol_version) < 0) {
++		fprintf(stderr,
++			"Unable to query evdev protocol version: %s\n",
++			strerror(errno));
++		goto out_close;
+ 	}
+-	return 0;
++
++	if (mapfile)
++		set_kbd(fd, protocol_version, mapfile);
++	else
++		show_kbd(fd, protocol_version);
++
++	rc = EXIT_SUCCESS;
++
++out_close:
++	close(fd);
++out:
++	return rc;
+ }
+ 
+ /* ---------------------------------------------------------------------
+diff --git a/input.c b/input.c
+index d57a31e..a9bd5e8 100644
+--- a/input.c
++++ b/input.c
+@@ -101,8 +101,8 @@ int device_open(int nr, int verbose)
+ 		close(fd);
+ 		return -1;
+ 	}
+-	if (EV_VERSION != version) {
+-		fprintf(stderr, "protocol version mismatch (expected %d, got %d)\n",
++	if (EV_VERSION > version) {
++		fprintf(stderr, "protocol version mismatch (expected >= %d, got %d)\n",
+ 			EV_VERSION, version);
+ 		close(fd);
+ 		return -1;
