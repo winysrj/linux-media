@@ -1,54 +1,42 @@
-Return-path: <mchehab@gaivota>
-Received: from DSL01.212.114.205.243.ip-pool.NEFkom.net ([212.114.205.243]:55627
-	"EHLO enzo.pibbs.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751989Ab1ADQqM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Jan 2011 11:46:12 -0500
-Received: from trixi.localnet (trixi.pibbs.org [192.168.20.4])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by enzo.pibbs.org (Postfix) with ESMTPS id 18826DCE8C
-	for <linux-media@vger.kernel.org>; Tue,  4 Jan 2011 17:56:20 +0100 (CET)
-From: Martin Seekatz <martin@pibbs.de>
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:4032 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751583Ab1AZHXx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Jan 2011 02:23:53 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: Re: Problem with em28xx driver in Gumstix Overo
-Date: Tue, 4 Jan 2011 17:46:08 +0100
-References: <AANLkTinPEYyLrTWqt1r0QgoYmsv2Xg16qGKo5yTqu9FO@mail.gmail.com> <AANLkTi=AVjhEbsqZOWJbwkYRo+HLoHfdWxuFO7Bs_a7H@mail.gmail.com> <AANLkTiknspxdjZNZW=h7NWTffzCZ4uEJmADU=tYPZSNe@mail.gmail.com>
-In-Reply-To: <AANLkTiknspxdjZNZW=h7NWTffzCZ4uEJmADU=tYPZSNe@mail.gmail.com>
+Subject: [GIT PATCHES FOR 2.6.39] fix cx18 regression
+Date: Wed, 26 Jan 2011 08:23:43 +0100
+Cc: Andy Walls <awalls@md.metrocast.net>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201101041746.09136.martin@pibbs.de>
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201101260823.43809.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Am Montag 03 Januar 2011 schrieb Devin Heitmueller:
-> On Mon, Jan 3, 2011 at 3:13 PM, Linus Torvalds
-> 
-> <torvalds@linux-foundation.org> wrote:
-> >> // if (!dev->progressive)
-> >> // height >>= norm_maxh(dev);
-> 
-> This would suggest that the device is providing progressive video
-> and there is a mismatch between the board profile and the actual
-> hardware, which is certainly possible but I know absolutely
-> nothing about the product in question.
-> 
-> It would be helpful if we could get the output of dmesg for
-> starters, so we can see which board profile is being used.
+Mauro, please get this upstream asap since this fix needs to go into 2.6.38
+as well.
 
-This main problem seems to be similare to the problem I reportet on 
-2011-01-01 to the ML, subject: 
-Silver Crest VG2000  "USB 2.0 Video Grabber", USB-Id: eb1a:2863 - does 
-not work
+Regards,
 
-In the meantime the figures of the partikular device, including dmesg 
-output,  is been included in the linuxtv wiki as
-http://www.linuxtv.org/wiki/index.php/SilverCrest_USB_2.0_Video_Grabber_VG_2000
+	Hans
 
-Best regards
-Martin
+The following changes since commit e5fb95675639f064ca40df7ad319f1c380443999:
+  Hans Verkuil (1):
+        [media] vivi: fix compiler warning
+
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/hverkuil/media_tree.git cx18-fix
+
+Hans Verkuil (1):
+      cx18: fix kernel oops when setting MPEG control before capturing.
+
+ drivers/media/video/cx18/cx18-driver.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
 -- 
-"Was ist der Unterschied zwischen Franken und Oberbayern?" -
-"Die Franken haben weniger Berge, aber dafür mehr Horizont."
+Hans Verkuil - video4linux developer - sponsored by Cisco
