@@ -1,54 +1,56 @@
-Return-path: <mchehab@gaivota>
-Received: from bear.ext.ti.com ([192.94.94.41]:47988 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751507Ab1AEKRj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Jan 2011 05:17:39 -0500
-From: "Nori, Sekhar" <nsekhar@ti.com>
-To: "mchehab@redhat.com" <mchehab@redhat.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Wed, 5 Jan 2011 15:47:22 +0530
-Subject: [GIT PATCHES FOR 2.6.38] DaVinci VPIF: Support for DV preset and DV
- timings
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024816E1E6@dbde02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Return-path: <mchehab@pedra>
+Received: from ironport2-out.teksavvy.com ([206.248.154.181]:43349 "EHLO
+	ironport2-out.pppoe.ca" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753531Ab1AZVlK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Jan 2011 16:41:10 -0500
+Message-ID: <4D4094F3.3020607@teksavvy.com>
+Date: Wed, 26 Jan 2011 16:41:07 -0500
+From: Mark Lord <kernel@teksavvy.com>
 MIME-Version: 1.0
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Linux Kernel <linux-kernel@vger.kernel.org>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils
+ ?
+References: <20110125205453.GA19896@core.coreip.homeip.net> <4D3F4804.6070508@redhat.com> <4D3F4D11.9040302@teksavvy.com> <20110125232914.GA20130@core.coreip.homeip.net> <20110126020003.GA23085@core.coreip.homeip.net> <4D403855.4050706@teksavvy.com> <4D405A9D.4070607@redhat.com> <4D4076FD.6070207@teksavvy.com> <20110126194127.GE29268@core.coreip.homeip.net> <4D407A46.4080407@teksavvy.com> <20110126195011.GF29268@core.coreip.homeip.net>
+In-Reply-To: <20110126195011.GF29268@core.coreip.homeip.net>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hi Mauro,
+On 11-01-26 02:50 PM, Dmitry Torokhov wrote:
+> On Wed, Jan 26, 2011 at 02:47:18PM -0500, Mark Lord wrote:
+>> On 11-01-26 02:41 PM, Dmitry Torokhov wrote:
+>>>
+>>> I do not consider lsinput refusing to work a regression.
+>>
+>> Obviously, since you don't use that tool.
+>> Those of us who do use it see this as broken userspace compatibility.
+>>
+>> Who the hell reviews this crap, anyway?
+>> Code like that should never have made it upstream in the first place.
+>>
+> 
+> You are more than welcome spend more time on reviews.
 
-Can you please pull from the following tree for DV preset
-and DV timings support for DaVinci VPIF.
+Somehow I detect a totally lack of sincerity there.
 
-Sorry for the late request, but we were waiting for an ack
-from Manju. The patches themselves have been reviewed on the
-list quite a while ago. The patches affect only DaVinci VPIF
-video and have been verified by Manju to not have broken anything.
+But thanks for fixing the worst of this regression, at least.
 
-Thanks,
-Sekhar
+Perhaps you might think about eventually fixing the bad use of -EINVAL
+in future revisions.  One way perhaps to approach that, would be to begin
+fixing it internally, but still returning the same things from the actual
+f_ops->ioctl() routine.
 
-The following changes since commit 187134a5875df20356f4dca075db29f294115a47:
-  David Henningsson (1):
-        [media] DVB: IR support for TechnoTrend CT-3650
+Then eventually provide new ioctl numbers which return the correct -ENOTTY
+(or whatever is best there), rather than converting to -EVINAL at the interface.
+Then a nice multi-year overlap, with a scheduled removal of the old codes some day.
 
-are available in the git repository at:
+Then the input subsystem would work more like most other subsystems,
+and make userspace programming simpler and easier to "get correct".
 
-  git://arago-project.org/git/projects/linux-davinci.git for-mauro
-
-Mats Randgaard (5):
-      vpif_cap/disp: Add debug functionality
-      vpif: Consolidate formats from capture and display
-      vpif_cap/disp: Add support for DV presets
-      vpif_cap/disp: Added support for DV timings
-      vpif_cap/disp: Cleanup, improved comments
-
- drivers/media/video/davinci/vpif.c         |  177 ++++++++++++
- drivers/media/video/davinci/vpif.h         |   18 +-
- drivers/media/video/davinci/vpif_capture.c |  361 +++++++++++++++++++++++--
- drivers/media/video/davinci/vpif_capture.h |    2 +
- drivers/media/video/davinci/vpif_display.c |  400 +++++++++++++++++++++++++---
- drivers/media/video/davinci/vpif_display.h |    2 +
- 6 files changed, 884 insertions(+), 76 deletions(-)
+Cheers
