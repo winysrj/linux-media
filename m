@@ -1,107 +1,112 @@
-Return-path: <mchehab@gaivota>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:63521 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753080Ab1AFBUI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 Jan 2011 20:20:08 -0500
-Subject: Re: [PATCH 3/3] lirc_zilog: Remove use of deprecated struct
- i2c_adapter.id field
-From: Andy Walls <awalls@md.metrocast.net>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Jean Delvare <khali@linux-fr.org>, linux-media@vger.kernel.org,
-	Jarod Wilson <jarod@redhat.com>, Janne Grunau <j@jannau.net>
-In-Reply-To: <4D24EA81.8080205@redhat.com>
-References: <1293587067.3098.10.camel@localhost>
-	 <1293587390.3098.16.camel@localhost>
-	 <20110105154553.546998bf@endymion.delvare>	<4D24ABA4.5070100@redhat.com>
-	 <20110105225149.1145420b@endymion.delvare>  <4D24EA81.8080205@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 05 Jan 2011 20:20:35 -0500
-Message-ID: <1294276835.9672.99.camel@morgan.silverblock.net>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Return-path: <mchehab@pedra>
+Received: from mgw2.diku.dk ([130.225.96.92]:33906 "EHLO mgw2.diku.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750809Ab1AZF7p (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Jan 2011 00:59:45 -0500
+Date: Wed, 26 Jan 2011 06:59:39 +0100 (CET)
+From: Julia Lawall <julia@diku.dk>
+To: Peter =?iso-8859-1?q?H=FCwe?= <PeterHuewe@gmx.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org,
+	Steven Toth <stoth@kernellabs.com>, Tejun Heo <tj@kernel.org>,
+	Dan Carpenter <error27@gmail.com>
+Subject: Re: [PATCH] video/saa7164: Fix sparse warning: Using plain integer
+ as NULL pointer
+In-Reply-To: <201101252354.31217.PeterHuewe@gmx.de>
+Message-ID: <Pine.LNX.4.64.1101260653450.18314@ask.diku.dk>
+References: <1295988851-23561-1-git-send-email-peterhuewe@gmx.de>
+ <Pine.LNX.4.64.1101252319570.3668@ask.diku.dk> <201101252354.31217.PeterHuewe@gmx.de>
+MIME-Version: 1.0
+Content-Type: MULTIPART/MIXED; BOUNDARY="-511516320-865825280-1296021280=:18314"
+Content-ID: <Pine.LNX.4.64.1101260655030.18314@ask.diku.dk>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On Wed, 2011-01-05 at 20:02 -0200, Mauro Carvalho Chehab wrote:
-> Em 05-01-2011 19:51, Jean Delvare escreveu:
-> > Hi Mauro,
-> > 
-> > On Wed, 05 Jan 2011 15:34:28 -0200, Mauro Carvalho Chehab wrote:
-> >> Hi Jean,
-> >>
-> >> Thanks for your acks for patches 1 and 2. I've already applied the patches 
-> >> on my tree and at linux-next. I'll try to add the acks on it before sending
-> >> upstream.
-> > 
-> > If you can't, it's fine. I merely wanted to show my support to Andy's
-> > work, I don't care if I'm not counted as a reviewer for these small
-> > patches.
-> 
-> Ok. So, it is probably better to keep it as-is, to avoid rebasing and having
-> to wait for a couple days at linux-next before sending the git pull request.
-> 
-> > 
-> >> Em 05-01-2011 12:45, Jean Delvare escreveu:
-> >>> From a purely technical perspective, changing client->addr in the
-> >>> probe() function is totally prohibited.
-> >>
-> >> Agreed. Btw, there are some other hacks with client->addr abuse on some 
-> >> other random places at drivers/media, mostly at the device bridge code, 
-> >> used to test if certain devices are present and/or to open some I2C gates 
-> >> before doing some init code. People use this approach as it provides a
-> >> fast way to do some things. On several cases, the amount of code for
-> >> doing such hack is very small, when compared to writing a new I2C driver
-> >> just to do some static initialization code. Not sure what would be the 
-> >> better approach to fix them.
-> > 
-> > Hard to tell without seeing the exact code. Ideally,
-> > i2c_new_dummy() would cover these cases: you don't need to write an
-> > actual driver for the device, it's perfectly OK to use the freshly
-> > instantiated i2c_client from the bridge driver directly. Alternatively,
-> > i2c_smbus_xfer() or i2c_transfer() can be used for one-time data
-> > exchange with any slave on the bus as long as you know what you're
-> > doing (i.e. you know that no i2c_client will ever be instantiated for
-> > this slave.)
-> > 
-> > If you have specific cases you don't know how to solve, please point me
-> > to them and I'll take a look.
-> 
-> You can take a look at saa7134-cards.c, for example. saa7134_tuner_setup()
-> has several examples. It starts with this one:
-> 
-> 	switch (dev->board) {
-> 	case SAA7134_BOARD_BMK_MPEX_NOTUNER:
-> 	case SAA7134_BOARD_BMK_MPEX_TUNER:
-> 		/* Checks if the device has a tuner at 0x60 addr
-> 		   If the device doesn't have a tuner, TUNER_ABSENT
-> 		   will be used at tuner_type, avoiding loading tuner
-> 		   without needing it
-> 		 */
-> 		dev->i2c_client.addr = 0x60;
-> 		board = (i2c_master_recv(&dev->i2c_client, &buf, 0) < 0)
-> 			? SAA7134_BOARD_BMK_MPEX_NOTUNER
-> 			: SAA7134_BOARD_BMK_MPEX_TUNER;
-> 
-> In this specific case, it is simply a probe for a device at address 0x60, but
-> there are more complex cases there, with eeprom reads and/or some random init
-> that happens before actually attaching some driver at the i2c address.
-> It is known to work, but it sounds like a hack.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-The cx18 driver has a function scope i2c_client for reading the EEPROM,
-and there's a good reason for it.  We don't want to register the EEPROM
-with the I2C system and make it visible to the rest of the system,
-including i2c-dev and user-space tools.  To avoid EEPROM corruption,
-it's better keep communication with EEPROMs to a very limited scope.
+---511516320-865825280-1296021280=:18314
+Content-Type: TEXT/PLAIN; CHARSET=iso-8859-1
+Content-Transfer-Encoding: 8BIT
+Content-ID: <Pine.LNX.4.64.1101260655031.18314@ask.diku.dk>
 
-Regards,
-Andy
+On Tue, 25 Jan 2011, Peter Hüwe wrote:
 
-> Cheers,
-> Mauro
+> Am Dienstag 25 Januar 2011, 23:20:44 schrieb Julia Lawall:
+> > On Tue, 25 Jan 2011, Peter Huewe wrote:
+> > > This patch fixes the warning "Using plain integer as NULL pointer",
+> > > generated by sparse, by replacing the offending 0s with NULL.
+> > 
+> > I recall (a number of years ago) being told that for things like kmalloc,
+> > the proper test was !x, not x == NULL.
+> > 
+> > julia
+> > 
+> 
+> 
+> Hi Julia,
+> 
+> thanks for your input.
+> So do I understand you correctly if I say
+> if(!x) is better than if(x==NULL) in any case?
+
+No.
+
+> Or only for the kmalloc family?
+> 
+> Do you remember the reason why !x should be preferred?
+
+Because it is a function call, and NULL represents failure of that 
+function, not an actual NULL value.
+
+Here is an email that explains that:
+
+http://lkml.org/lkml/2007/7/27/103
+
+Here is the beginning of the thread:
+
+http://lkml.org/lkml/2007/7/27/75
+
+julia
+
+> In Documentation/CodingStyle ,  Chapter 7: Centralized exiting of functions 
+> there is a function fun with looks like this:
+> int fun(int a)
+> {
+>     int result = 0;
+>     char *buffer = kmalloc(SIZE);
+> 
+>     if (buffer == NULL)
+>         return -ENOMEM;
+> 
+>     if (condition1) {
+>         while (loop1) {
+>             ...
+>         }
+>         result = 1;
+>         goto out;
+>     }
+>     ...
+> out:
+>     kfree(buffer);
+>     return result;
+> }
+> 
+> 
+> -->  So   if (buffer == NULL) is in the official CodingStyle - maybe we should 
+> add a paragraph there as well ;)
+> 
+> 
+> Don't get me wrong, I just want to learn ;)
+> 
+> 
+> Thanks,
+> Peter
+> 
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> To unsubscribe from this list: send the line "unsubscribe kernel-janitors" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
+> 
+---511516320-865825280-1296021280=:18314--
