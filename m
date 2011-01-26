@@ -1,69 +1,58 @@
 Return-path: <mchehab@pedra>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:40697 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750972Ab1AWOxl convert rfc822-to-8bit (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:8138 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753469Ab1AZRXm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Jan 2011 09:53:41 -0500
-Received: by pxi15 with SMTP id 15so548318pxi.19
-        for <linux-media@vger.kernel.org>; Sun, 23 Jan 2011 06:53:40 -0800 (PST)
-Subject: Re: [RFC PATCH 3/3] v4l2-ctrls: update control framework documentation
-Mime-Version: 1.0 (Apple Message framework v1082)
-Content-Type: text/plain; charset=euc-kr
-From: Kim HeungJun <riverful@gmail.com>
-In-Reply-To: <4D3C0C14.20100@gmail.com>
-Date: Sun, 23 Jan 2011 23:53:32 +0900
-Cc: Kim HeungJun <riverful@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Transfer-Encoding: 8BIT
-Message-Id: <7306FADB-8EBA-4E95-886F-B9837A55A01A@gmail.com>
-References: <1295694361-23237-1-git-send-email-hverkuil@xs4all.nl> <ebb5547e48e2d7e6e620d7218c6543d6dc7b06b1.1295693790.git.hverkuil@xs4all.nl> <4D3C0C14.20100@gmail.com>
-To: Sylwester Nawrocki <snjw23@gmail.com>
+	Wed, 26 Jan 2011 12:23:42 -0500
+Date: Wed, 26 Jan 2011 12:23:41 -0500
+Subject: Re: [GIT PULL] More IR fixes for 2.6.38
+Message-ID: <yc7vxnkntxcbxdk5pe3jpndi.1296062052946@email.android.com>
+From: Andy Walls <awalls@md.metrocast.net>
+To: Jarod Wilson <jarod@redhat.com>, mchehab@redhat.com
+Cc: linux-media@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Sylwester,
-
-It's my humble opinions. Just read plz :)
-
-2011. 1. 23., 오후 8:08, Sylwester Nawrocki 작성:
-
-[snip]
- 
->> +Handling autogain/gain-type Controls with Auto Clusters
->> +=======================================================
->> +
->> +A common type of control cluster is one that handles 'auto-foo/foo'-type
->> +controls. Typical examples are autogain/gain, autoexposure/exposure,
->> +autowhitebalance/red balance/blue balance. In all cases you have one controls
->> +that determines whether another control is handled automatically by the hardware,
->> +or whether it is under manual control from the user.
->> +
->> +The way these are supposed to be handled is that if you set one of the 'foo'
->> +controls, then the 'auto-foo' control should automatically switch to manual
->> +mode, except when you set the 'auto-foo' control at the same time, in which
-> 
-> Do "set the 'auto-foo' control at the same time" refer to what is done in
-> a driver? I can't see how this statement could apply to userland.
-
-If you are talking about how platform or user application can call CID twice in such specific
-case, as you already know, yes, it happened. Actually, I have been faced the same
-difficulty with platform and user application peoples. But, for now, this new control
-framework seems to be easy handling the driver actions.
-
-When the user controls the devices, the user application wants to call only one CID.
-For example, when the user exposures camera device manually, they want to call
-only V4L2_CID_EXPOSURE, not call additionally V4L2_CID_EXPOSURE_AUTO
-setting the enumeration by V4L2_EXPOSURE_MANUAL.
-
-IMHO, the ultimate reason seems that V4L2_CID_EXPOSURE is only responsible to
-handle Manual Exposure, but the V4L2_CID_EXPOSURE_AUTO can influence Auto
-and Manual case. The all CID having AUTO feature is likely to be the same case.
-But, as I know, the previous driver using this CID having AUTO feature still exist now,
-and it is very difficult to change the current control logic to handle devices. 
-
-The birth of new v4l2_ctrl framework seems to be the better options I think, and
-I'm very happy for that because it's ok not to be worry about how to set the
-internal variables for matching the control sequence with platform and user any more.
-
+TWF1cm8sCgogSSBwbGFuIHRvIG1ha2UgZXh0ZW5zaXZlIGxpcmNfemlsb2cgY2hhbmdlcyBzdGFy
+dGluZyB0b25pZ2h0LCBzbyB0aGUgc29vbmVyIEphcnJvZCdzIGxpcmNfemlsb2cuYyBmaXggaXMg
+aW4gYSBtZWRpYV90cmVlIGJyYW5jaCwgdGhlIGxlc3MgcmViYXNlIEknbGwgaGF2ZSB0byBkby4g
+OikKClRoYW5rcy4KCkFuZHkKCkphcm9kIFdpbHNvbiA8amFyb2RAcmVkaGF0LmNvbT4gd3JvdGU6
+Cgo+TWF1cm8sCj4KPlBsZWFzZSBwdWxsIHRoZXNlIGFkZGl0aW9uYWwgSVIgZHJpdmVyIGZpeGVz
+IGFnYWluc3QgTGludXMnIHRyZWUgaW4gZm9yCj4yLjYuMzggbWVyZ2UuIFdpdGhvdXQgdGhlc2Us
+IG1jZXVzYiBpcyBzdGlsbCBicm9rZW4gKGtleWJvdW5jZSBpc3N1ZXMpLAo+dGhlIEhELVBWUiB0
+eCB3b24ndCB3b3JrLCBhbmQgaXIta2JkLWkyYyBiZWhhdmVzIGJhZGx5IHdpdGggYm90aCB0aGUK
+PkhELVBWUiBhbmQgdGhlIEhWUi0xOTUwLgo+Cj5UaGFua3MgbXVjaCEKPgo+VGhlIGZvbGxvd2lu
+ZyBjaGFuZ2VzIHNpbmNlIGNvbW1pdCA2ZmIxYjMwNDI1NWVmYzVjNGM5Mzg3NGFjOGMwNjYyNzJl
+MjU3ZTI4Ogo+Cj4gIE1lcmdlIGJyYW5jaCAnZm9yLWxpbnVzJyBvZiBnaXQ6Ly9naXQua2VybmVs
+Lm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvZHRvci9pbnB1dCAoMjAxMS0wMS0yNiAxNjoz
+MTo0NCArMTAwMCkKPgo+YXJlIGF2YWlsYWJsZSBpbiB0aGUgZ2l0IHJlcG9zaXRvcnkgYXQ6Cj4K
+PiAgZ2l0Oi8vbGludXh0di5vcmcvamFyb2QvbGludXgtMi42LWlyLmdpdCBmb3ItMi42LjM4Cj4K
+Pkphcm9kIFdpbHNvbiAoNyk6Cj4gICAgICByYy9tY2U6IGFkZCBtYXBwaW5ncyBmb3IgbWlzc2lu
+ZyBrZXlzCj4gICAgICBoZHB2cjogZml4IHVwIGkyYyBkZXZpY2UgcmVnaXN0cmF0aW9uCj4gICAg
+ICBsaXJjX3ppbG9nOiB6OCBvbiB1c2IgZG9lc24ndCBsaWtlIGJhY2stdG8tYmFjayBpMmNfbWFz
+dGVyX3NlbmQKPiAgICAgIGlyLWtiZC1pMmM6IGltcHJvdmUgcmVtb3RlIGJlaGF2aW9yIHdpdGgg
+ejggYmVoaW5kIHVzYgo+ICAgICAgcmMvaXItbGlyYy1jb2RlYzogYWRkIGJhY2sgZGVidWcgc3Bl
+dwo+ICAgICAgcmM6IHVzZSB0aW1lIHVuaXQgY29udmVyc2lvbiBtYWNyb3MgY29ycmVjdGx5Cj4g
+ICAgICBtY2V1c2I6IHJlYWxseSBmaXggcmVtYWluaW5nIGtleWJvdW5jZSBpc3N1ZXMKPgo+IGRy
+aXZlcnMvbWVkaWEvcmMvaXItbGlyYy1jb2RlYy5jICAgICAgICAgICAgICAgfCAgICA2ICsrKy0K
+PiBkcml2ZXJzL21lZGlhL3JjL2tleW1hcHMvcmMtcmM2LW1jZS5jICAgICAgICAgIHwgICAgNiAr
+KysrCj4gZHJpdmVycy9tZWRpYS9yYy9tY2V1c2IuYyAgICAgICAgICAgICAgICAgICAgICB8ICAg
+IDkgKysrKy0tCj4gZHJpdmVycy9tZWRpYS9yYy9udXZvdG9uLWNpci5jICAgICAgICAgICAgICAg
+ICB8ICAgIDYgKystLQo+IGRyaXZlcnMvbWVkaWEvcmMvc3RyZWFtemFwLmMgICAgICAgICAgICAg
+ICAgICAgfCAgIDEyICsrKystLS0tCj4gZHJpdmVycy9tZWRpYS92aWRlby9oZHB2ci9oZHB2ci1j
+b3JlLmMgICAgICAgICB8ICAgMjQgKysrKysrKysrKysrKysrLS0tCj4gZHJpdmVycy9tZWRpYS92
+aWRlby9oZHB2ci9oZHB2ci1pMmMuYyAgICAgICAgICB8ICAgMzAgKysrKysrKysrKysrKystLS0t
+LS0tLQo+IGRyaXZlcnMvbWVkaWEvdmlkZW8vaGRwdnIvaGRwdnIuaCAgICAgICAgICAgICAgfCAg
+ICAzICstCj4gZHJpdmVycy9tZWRpYS92aWRlby9pci1rYmQtaTJjLmMgICAgICAgICAgICAgICB8
+ICAgMTMgKysrKysrKysrCj4gZHJpdmVycy9tZWRpYS92aWRlby9wdnJ1c2IyL3B2cnVzYjItaTJj
+LWNvcmUuYyB8ICAgIDEgLQo+IGRyaXZlcnMvc3RhZ2luZy9saXJjL2xpcmNfemlsb2cuYyAgICAg
+ICAgICAgICAgfCAgIDMyICsrKysrKysrKysrKysrKysrKystLS0tCj4gMTEgZmlsZXMgY2hhbmdl
+ZCwgMTA2IGluc2VydGlvbnMoKyksIDM2IGRlbGV0aW9ucygtKQo+Cj4tLSAKPkphcm9kIFdpbHNv
+bgo+amFyb2RAcmVkaGF0LmNvbQo+Cj4tLQo+VG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6
+IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LW1lZGlhIiBpbgo+dGhlIGJvZHkgb2Yg
+YSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcKPk1vcmUgbWFqb3Jkb21vIGlu
+Zm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbAo=
 
