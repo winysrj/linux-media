@@ -1,56 +1,53 @@
-Return-path: <mchehab@gaivota>
-Received: from eu1sys200aog117.obsmtp.com ([207.126.144.143]:49182 "EHLO
-	eu1sys200aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751388Ab1ADQ7I convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 4 Jan 2011 11:59:08 -0500
-From: Johan MOSSBERG <johan.xx.mossberg@stericsson.com>
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Kyungmin Park <kmpark@infradead.org>
-Cc: Michal Nazarewicz <m.nazarewicz@samsung.com>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Michal Nazarewicz <mina86@mina86.com>,
-	"linux-mm@kvack.org" <linux-mm@kvack.org>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Date: Tue, 4 Jan 2011 17:23:37 +0100
-Subject: RE: [PATCHv8 00/12] Contiguous Memory Allocator
-Message-ID: <C832F8F5D375BD43BFA11E82E0FE9FE00829C13EB2@EXDCVYMBSTM005.EQ1STM.local>
-References: <cover.1292443200.git.m.nazarewicz@samsung.com>
- <AANLkTim8_=0+-zM5z4j0gBaw3PF3zgpXQNetEn-CfUGb@mail.gmail.com>
- <20101223100642.GD3636@n2100.arm.linux.org.uk>
-In-Reply-To: <20101223100642.GD3636@n2100.arm.linux.org.uk>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Return-path: <mchehab@pedra>
+Received: from mail-out.m-online.net ([212.18.0.10]:51410 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752653Ab1AZIt3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Jan 2011 03:49:29 -0500
+From: Anatolij Gustschin <agust@denx.de>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Dan Williams <dan.j.williams@intel.com>,
+	linux-arm-kernel@lists.infradead.org, Detlev Zundel <dzu@denx.de>,
+	Markus Niebel <Markus.Niebel@tqs.de>,
+	Anatolij Gustschin <agust@denx.de>
+Subject: [PATCH 1/2] v4l: soc-camera: start stream after queueing the buffers
+Date: Wed, 26 Jan 2011 09:49:48 +0100
+Message-Id: <1296031789-1721-2-git-send-email-agust@denx.de>
+In-Reply-To: <1296031789-1721-1-git-send-email-agust@denx.de>
+References: <1296031789-1721-1-git-send-email-agust@denx.de>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Russell King wrote:
-> Has anyone addressed my issue with it that this is wide-open for
-> abuse by allocating large chunks of memory, and then remapping
-> them in some way with different attributes, thereby violating the
-> ARM architecture specification?
+Some camera systems have strong requirement for capturing
+an exact number of frames after starting the stream and do
+not tolerate losing captured frames. By starting the stream
+after the videobuf has queued the buffers, we ensure that
+no frame will be lost.
 
-I seem to have missed the previous discussion about this issue.
-Where in the specification (preferably ARMv7) can I find
-information about this? Is the problem that it is simply
-forbidden to map an address multiple times with different cache
-setting and if this is done the hardware might start failing? Or
-is the problem that having an address mapped cached means that
-speculative pre-fetch can read it into the cache at any time,
-possibly causing problems if an un-cached mapping exists? In my
-opinion option number two can be handled and I've made an attempt
-at doing that in hwmem (posted on linux-mm a while ago), look in
-cache_handler.c. Hwmem currently does not use cma but the next
-version probably will.
+Signed-off-by: Anatolij Gustschin <agust@denx.de>
+---
+ drivers/media/video/soc_camera.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-/Johan Mossberg
+diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+index a66811b..7299de0 100644
+--- a/drivers/media/video/soc_camera.c
++++ b/drivers/media/video/soc_camera.c
+@@ -646,11 +646,11 @@ static int soc_camera_streamon(struct file *file, void *priv,
+ 	if (icd->streamer != file)
+ 		return -EBUSY;
+ 
+-	v4l2_subdev_call(sd, video, s_stream, 1);
+-
+ 	/* This calls buf_queue from host driver's videobuf_queue_ops */
+ 	ret = videobuf_streamon(&icd->vb_vidq);
+ 
++	v4l2_subdev_call(sd, video, s_stream, 1);
++
+ 	return ret;
+ }
+ 
+-- 
+1.7.1
+
