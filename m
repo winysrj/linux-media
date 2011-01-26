@@ -1,27 +1,25 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com (ext-mx02.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.6])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id p0OD1jhG012693
-	for <video4linux-list@redhat.com>; Mon, 24 Jan 2011 08:01:45 -0500
-Received: from mail-ww0-f46.google.com (mail-ww0-f46.google.com [74.125.82.46])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id p0OD1a8v010872
-	for <video4linux-list@redhat.com>; Mon, 24 Jan 2011 08:01:36 -0500
-Received: by wwj40 with SMTP id 40so4778782wwj.27
-	for <video4linux-list@redhat.com>; Mon, 24 Jan 2011 05:01:32 -0800 (PST)
+Received: from mx1.redhat.com (ext-mx05.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.9])
+	by int-mx09.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP
+	id p0QKjeOU009256
+	for <video4linux-list@redhat.com>; Wed, 26 Jan 2011 15:45:40 -0500
+Received: from smtp2.sms.unimo.it (smtp2.sms.unimo.it [155.185.44.12])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id p0QKjVna012291
+	for <video4linux-list@redhat.com>; Wed, 26 Jan 2011 15:45:31 -0500
+Received: from mail-ey0-f179.google.com ([209.85.215.179]:41399)
+	by smtp2.sms.unimo.it with esmtps (TLS1.0:RSA_ARCFOUR_MD5:16)
+	(Exim 4.69) (envelope-from <76466@studenti.unimore.it>)
+	id 1PiCF8-0006E9-6a
+	for video4linux-list@redhat.com; Wed, 26 Jan 2011 21:45:30 +0100
+Received: by eyg24 with SMTP id 24so790698eyg.24
+	for <video4linux-list@redhat.com>; Wed, 26 Jan 2011 12:45:29 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <20110124132310.116472tnxlp48n5a@webmail.hebergement.com>
-References: <AANLkTi=SMpfBj6bjKMzfHC--Rhpeb5MzF3g9KFUUSef7@mail.gmail.com>
-	<20110124115107.20972qivh7d7l28r@webmail.hebergement.com>
-	<AANLkTik4t_zZe8Uz=1LvcdHLnKx7jOirCm7+BhT0zU60@mail.gmail.com>
-	<20110124124946.97531j0p9ou68nkq@webmail.hebergement.com>
-	<AANLkTikuc9v6HTa3-691iW6XsNWCGtDT2ACYVH0pH4rz@mail.gmail.com>
-	<20110124132310.116472tnxlp48n5a@webmail.hebergement.com>
-From: chetan patil <chtpatil@gmail.com>
-Date: Mon, 24 Jan 2011 18:31:12 +0530
-Message-ID: <AANLkTikh65TobYLyY4Nkm3Tfep2uA362JNBOWM+HY8wP@mail.gmail.com>
-Subject: Re: v4l2
-To: fpantaleao@mobisensesystems.com, video4linux-list@redhat.com
+Date: Wed, 26 Jan 2011 21:45:29 +0100
+Message-ID: <AANLkTiny6hNE68x_kFh37o328w2Et70RBfKFOarqtxZG@mail.gmail.com>
+Subject: Image sensor OV9655 and
+From: Paolo Santinelli <paolo.santinelli@unimore.it>
+To: video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,157 +33,64 @@ Errors-To: video4linux-list-bounces@redhat.com
 Sender: <mchehab@pedra>
 List-ID: <video4linux-list@redhat.com>
 
-And
+Dear Sirs,
+Hi all,
 
-For FBDev driver. The memory is allocated from??
+I am currently trying to write C code for an embedded smart camera
+equipped with an XScal-PXA270 processor running Linux 2.6.9-dma270 and
+the OV9655 Image sensor.
 
-Is it that the memory is taken from ram or rom and
-buffered till the image is being displayed???
+I am asking help, my goal is capture a subfield of the whole image.
 
-Like in my laptop is i press volume button then one
-On Screen Display comes, is it due to FBDev driver??
+How to do it?
 
-Thanks.
+Is this function (VIDIOCSCAPTURE or something else?) supported by the
+Video4Linux driver for the OV9655 Image sensor ?
 
-On Mon, Jan 24, 2011 at 5:53 PM, <fpantaleao@mobisensesystems.com> wrote:
+Currently I am able to reconfigure the OV9655 in order to change the
+whole image resolution, 640x480, 320x240 and even lower. The problem
+is I need do it dynamically, quickly, without close the camera and
+then reopen it every time I need sub-capture the image.
 
-> Right.
->
->
-> chetan patil <chtpatil@gmail.com> a =E9crit :
->
->  So suppose if i want to access v4l2, then at that time i
->> must have an application to do so??
->>
->> Like if i start my webcam aap in Linux.
->> Then
->>  First: Application starts
->>    Second: v4l2 is called
->>      Third: v4l2 interacts with capturing device from /dev/video0
->>        Fourth: Gives it back to application.
->>          Fifth: Image is displayed?
->>
->> In case of frame buffer.
->> The image to be displayed (graphics) will be done with
->> FBDev Driver ???
->>
->> So V4l2 becomes capture driver and FBDev becomes display driver??
->>
->> Right?
->>
->> Thanks.
->>
->>
->> On Mon, Jan 24, 2011 at 5:19 PM, <fpantaleao@mobisensesystems.com> wrote:
->>
->>  FBDev and V4l2 are not related but they share the same philosophy: HAL.
->>> FBDev is for graphics controller, V4L2 is for image/video/radio
->>> acquisition.
->>> You will find details about V4L2 at http://v4l2spec.bytesex.org/
->>> You can also download MBS270 V2 demo programs at:
->>> http://mobisense.free.fr/fics/xscale_BSPs/2009_08/app.tar.bz2
->>>
->>>
->>> FP
->>>
->>> chetan patil <chtpatil@gmail.com> a =E9crit :
->>>
->>>  Thanks.
->>>
->>>>
->>>> If possible can you share some docs related to
->>>> FBDev and V4l2.
->>>>
->>>> Are FBDev and V4l2 related.?/
->>>>
->>>>
->>>>
->>>> On Mon, Jan 24, 2011 at 4:21 PM, <fpantaleao@mobisensesystems.com>
->>>> wrote:
->>>>
->>>>  V4L2 is an API to uniformly access video devices on Linux machine. It
->>>>
->>>>> consists of several modules acting as a HAL( Hardware Abstraction
->>>>> Layer)
->>>>> between video devices and user land.
->>>>>
->>>>> FP
->>>>>
->>>>> chetan patil <chtpatil@gmail.com> a =E9crit :
->>>>>
->>>>>  Hi,
->>>>>
->>>>>
->>>>>> I was trying to understand v4l2.
->>>>>>
->>>>>> I'm not getting whether it is a driver or a module
->>>>>> which is dynamically inserted into the kernel
->>>>>> whenever we have to use it.
->>>>>>
->>>>>> Does all video capture device (webcam) only use
->>>>>> v4l2??
->>>>>>
->>>>>> Please give some overview if possible.
->>>>>>
->>>>>> Thanks.
->>>>>>
->>>>>>
->>>>>> I did google but not getting proper answers.
->>>>>>
->>>>>> --
->>>>>> Regards,
->>>>>>
->>>>>> Chetan Arvind Patil,
->>>>>> +919970018364
->>>>>> <http://sites.google.com/site/chtpatil/>
->>>>>> --
->>>>>> video4linux-list mailing list
->>>>>> Unsubscribe mailto:video4linux-list-request@redhat.com
->>>>>> ?subject=3Dunsubscribe
->>>>>> https://www.redhat.com/mailman/listinfo/video4linux-list
->>>>>>
->>>>>>
->>>>>>
->>>>>>
->>>>>
->>>>>
->>>>>
->>>>>
->>>> --
->>>> Regards,
->>>>
->>>> Chetan Arvind Patil,
->>>> +919970018364
->>>> <http://sites.google.com/site/chtpatil/>
->>>>
->>>>
->>>>
->>>
->>>
->>>
->>>
->>
->> --
->> Regards,
->>
->> Chetan Arvind Patil,
->> +919970018364
->> <http://sites.google.com/site/chtpatil/>
->>
->>
->
->
->
->
+I don't have any experience using device driver.
 
+I have tried to change the capture area using this call:
+
+vw.width  =3D new_image_width;
+vw.height =3D new_image_height;
+
+ioctl(fd_camera, VIDIOCSWIN, &vw)
+
+where vw is a struct video_window.
+
+I get the right image but it seems to be not vertically centred, it
+appears shifted and wrapped vertically. To get the right image I have
+to close and reopen the camera. The  closing and opening operations
+take too much time. I would like dynamically  change the  linux device
+driver behaviour without close and reopen the camera.
+
+BTW, the VIDIOCSCAPTURE doesn't work!
+
+Somebody could help me ?
+
+Thanks
+
+Paolo Santinelli
 
 -- =
 
-Regards,
+--------------------------------------------------
+PhD student Paolo Santinelli
+ImageLab Computer Vision and Pattern Recognition Lab
+Dipartimento di Ingegneria dell'Informazione
+Universita' di Modena e Reggio Emilia
+via Vignolese 905/B, 41125, Modena, Italy
 
-Chetan Arvind Patil,
-+919970018364
-<http://sites.google.com/site/chtpatil/>
+Cell. +39 3472953357,=A0 Office +39 059 2056270, Fax +39 059 2056129
+email:=A0 <mailto:paolo.santinelli@unimore.it> paolo.santinelli@unimore.it
+URL:=A0 <http://imagelab.ing.unimo.it/> http://imagelab.ing.unimo.it
+--------------------------------------------------
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=3Dunsubscribe
