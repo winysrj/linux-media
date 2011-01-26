@@ -1,62 +1,66 @@
-Return-path: <mchehab@gaivota>
-Received: from bear.ext.ti.com ([192.94.94.41]:40592 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752427Ab1AFKRq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Jan 2011 05:17:46 -0500
-From: "Nori, Sekhar" <nsekhar@ti.com>
-To: "mchehab@redhat.com" <mchehab@redhat.com>
-CC: "'Hans Verkuil'" <hverkuil@xs4all.nl>,
-	"Hadli, Manjunath" <manjunath.hadli@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Thu, 6 Jan 2011 15:47:31 +0530
-Subject: RE: [RFC PATCH 0/2] davinci: convert to core-assisted locking
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB5930248201846@dbde02.ent.ti.com>
-References: <1294245760-2803-1-git-send-email-hverkuil@xs4all.nl>
- <B85A65D85D7EB246BE421B3FB0FBB5930247F9A81E@dbde02.ent.ti.com>
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB5930247F9A81E@dbde02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Return-path: <mchehab@pedra>
+Received: from mail-px0-f174.google.com ([209.85.212.174]:53206 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753853Ab1AZTiL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Jan 2011 14:38:11 -0500
+Date: Wed, 26 Jan 2011 11:38:05 -0800
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Mark Lord <kernel@teksavvy.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Linux Kernel <linux-kernel@vger.kernel.org>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils ?
+Message-ID: <20110126193804.GD29268@core.coreip.homeip.net>
+References: <20110125164803.GA19701@core.coreip.homeip.net>
+ <AANLkTi=1Mh0JrYk5itvef7O7e7pR+YKos-w56W5q4B8B@mail.gmail.com>
+ <20110125205453.GA19896@core.coreip.homeip.net>
+ <4D3F4804.6070508@redhat.com>
+ <4D3F4D11.9040302@teksavvy.com>
+ <20110125232914.GA20130@core.coreip.homeip.net>
+ <20110126020003.GA23085@core.coreip.homeip.net>
+ <4D403855.4050706@teksavvy.com>
+ <20110126164359.GA29163@core.coreip.homeip.net>
+ <4D4076A0.9090805@teksavvy.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4D4076A0.9090805@teksavvy.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hi Mauro,
-
-On Thu, Jan 06, 2011 at 12:10:07, Hadli, Manjunath wrote:
-> Tested for SD loopback and other IOCTLS. Reviewed the patches.
+On Wed, Jan 26, 2011 at 02:31:44PM -0500, Mark Lord wrote:
+> On 11-01-26 11:44 AM, Dmitry Torokhov wrote:
+> > On Wed, Jan 26, 2011 at 10:05:57AM -0500, Mark Lord wrote:
+> ..
+> >> Nope. Does not work here:
+> >>
+> >> $ lsinput
+> >> protocol version mismatch (expected 65536, got 65537)
+> >>
+> > 
+> > It would be much more helpful if you tried to test what has been fixed
+> > (hint: version change wasn't it).
 > 
-> Patch series Acked by: Manjunath Hadli <Manjunath.hadli@ti.com> 	
-
-Shall I add these two patches as well to the pull request I sent
-yesterday[1]? These changes are localized to the DaVinci VPIF driver
-and should be safe to take in.
-
-I can also send a separate pull request.
-
-Let me know and I will do that way.
-
-Thanks,
-Sekhar
-
-[1] http://www.mail-archive.com/linux-media@vger.kernel.org/msg26594.html
-
-> -Manju
-> 
-> On Wed, Jan 05, 2011 at 22:12:38, Hans Verkuil wrote:
-> > 
-> > These two patches convert vpif_capture and vpif_display to core-assisted locking and now use .unlocked_ioctl instead of .ioctl.
-> > 
-> > These patches assume that the 'DaVinci VPIF: Support for DV preset and DV timings' patch series was applied first. See:
-> > 
-> > http://www.mail-archive.com/linux-media@vger.kernel.org/msg26594.html
-> > 
-> > These patches are targeted for 2.6.38.
-> > 
-> > Regards,
-> > 
-> > 	Hans
-> > 
-> 
+> It would be much more helpful if you would revert that which was broken
+> in 2.6.36.  (hint: version was part of it).
 > 
 
+No, version change will not be reverted as we do not have a way to
+validate whether new ioctls are supported. The older kernels are
+returning -EINVAL for unknown evdev ioctls so userspace can't know
+if ioctl failed because it is unsupported or because arguments are
+wrong/not applicable for the underlying device.
+
+> The other part does indeed appear to work with the old binary for input-kbd,
+> but the binary for lsinput still fails as above.
+> 
+
+Great, then I'' include the fix for RC keytables in my next pull
+request. I guess it should go to stable as well.
+
+Thanks.
+
+-- 
+Dmitry
