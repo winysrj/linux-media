@@ -1,277 +1,141 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:48233 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751547Ab1AYCid (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Jan 2011 21:38:33 -0500
-Date: Tue, 25 Jan 2011 11:38:25 +0900
-From: Kamil Debski <k.debski@samsung.com>
-Subject: RE: [RFC/PATCH v6 1/4] Changes in include/linux/videodev2.h for MFC 5.1
-In-reply-to: <201101231828.23723.hverkuil@xs4all.nl>
-To: 'Hans Verkuil' <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>, pawel@osciak.com,
-	kyungmin.park@samsung.com, jaeryul.oh@samsung.com,
-	kgene.kim@samsung.com
-Message-id: <00b501cbbc38$f3b35dc0$db1a1940$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: en-gb
-Content-transfer-encoding: 7BIT
-References: <1294417534-3856-1-git-send-email-k.debski@samsung.com>
- <1294417534-3856-2-git-send-email-k.debski@samsung.com>
- <201101231828.23723.hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:46050 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751736Ab1AZJos (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Jan 2011 04:44:48 -0500
+Message-ID: <4D3FED0B.3060108@redhat.com>
+Date: Wed, 26 Jan 2011 07:44:43 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+CC: Mark Lord <kernel@teksavvy.com>,
+	Linux Kernel <linux-kernel@vger.kernel.org>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: Extending rc-core/userspace to handle bigger scancodes - Was:
+ Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils ?
+References: <20110125005555.GA18338@core.coreip.homeip.net> <4D3E4DD1.60705@teksavvy.com> <20110125042016.GA7850@core.coreip.homeip.net> <4D3E5372.9010305@teksavvy.com> <20110125045559.GB7850@core.coreip.homeip.net> <4D3E59CA.6070107@teksavvy.com> <4D3E5A91.30207@teksavvy.com> <20110125053117.GD7850@core.coreip.homeip.net> <20110125065217.GE7850@core.coreip.homeip.net> <4D3EE171.4020605@redhat.com> <20110125165524.GC19701@core.coreip.homeip.net>
+In-Reply-To: <20110125165524.GC19701@core.coreip.homeip.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Hans,
-
-I am pretty busy with other work now. That's why I have little time to
-work on the open source driver for the open source. I hope to have more
-time soon.
-
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+Em 25-01-2011 14:55, Dmitry Torokhov escreveu:
+> On Tue, Jan 25, 2011 at 12:42:57PM -0200, Mauro Carvalho Chehab wrote:
+>> Em 25-01-2011 04:52, Dmitry Torokhov escreveu:
+>>> On Mon, Jan 24, 2011 at 09:31:17PM -0800, Dmitry Torokhov wrote:
+>>>> On Tue, Jan 25, 2011 at 12:07:29AM -0500, Mark Lord wrote:
+>>>>> On 11-01-25 12:04 AM, Mark Lord wrote:
+>>>>>> On 11-01-24 11:55 PM, Dmitry Torokhov wrote:
+>>>>>>> On Mon, Jan 24, 2011 at 11:37:06PM -0500, Mark Lord wrote:
+>>>>>> ..
+>>>>>>>> This results in (map->size==10) for 2.6.36+ (wrong),
+>>>>>>>> and a much larger map->size for 2.6.35 and earlier.
+>>>>>>>>
+>>>>>>>> So perhaps EVIOCGKEYCODE has changed?
+>>>>>>>>
+>>>>>>>
+>>>>>>> So the utility expects that all devices have flat scancode space and
+>>>>>>> driver might have changed so it does not recognize scancode 10 as valid
+>>>>>>> scancode anymore.
+>>>>>>>
+>>>>>>> The options are:
+>>>>>>>
+>>>>>>> 1. Convert to EVIOCGKEYCODE2
+>>>>>>> 2. Ignore errors from EVIOCGKEYCODE and go through all 65536 iterations.
+>>>>>>
+>>>>>> or 3. Revert/fix the in-kernel regression.
+>>>>>>
+>>>>>> The EVIOCGKEYCODE ioctl is supposed to return KEY_RESERVED for unmapped
+>>>>>> (but value) keycodes, and only return -EINVAL when the keycode itself
+>>>>>> is out of range.
+>>>>>>
+>>>>>> That's how it worked in all kernels prior to 2.6.36,
+>>>>>> and now it is broken.  It now returns -EINVAL for any unmapped keycode,
+>>>>>> even though keycodes higher than that still have mappings.
+>>>>>>
+>>>>>> This is a bug, a regression, and breaks userspace.
+>>>>>> I haven't identified *where* in the kernel the breakage happened,
+>>>>>> though.. that code confuses me.  :)
+>>>>>
+>>>>> Note that this device DOES have "flat scancode space",
+>>>>> and the kernel is now incorrectly signalling an error (-EINVAL)
+>>>>> in response to a perfectly valid query of a VALID (and mappable)
+>>>>> keycode on the remote control
+>>>>>
+>>>>> The code really is a valid button, it just doesn't have a default mapping
+>>>>> set by the kernel (I can set a mapping for that code from userspace and it works).
+>>>>>
+>>>>
+>>>> OK, in this case let's ping Mauro - I think he done the adjustments to
+>>>> IR keymap hanlding.
+>>>>
+>>>> Thanks.
+>>>>
+>>>
+>>> BTW, could you please try the following patch (it assumes that
+>>> EVIOCGVERSION in input.c is alreday relaxed).
+>>
+>> Dmitry,
+>>
+>> Thanks for your patch. I used part of his logic to improve the ir-keytable 
+>> tool at v4l-utils:
+>> 	http://git.linuxtv.org/v4l-utils.git
+>>
+>> The ir-keytable is a tool that just handles Remote Controller input devices,
+>> and do it well, allowing all sorts of operations related to it, and using the
+>> sysfs /sys/class/rc stuff to help its operation. Without any arguments, it
+>> lists the existing RC devices. Arguments are there to allow enabling/disabling
+>> RC protocols, reading/writing/cleaning keycode tables and to test if the
+>> remote is generating events (EV_MSC/EV_KEY/EV_REP/EV_SYN).
+>>
+>> Now, it will be using V2 for reads and keycode cleanups, but will still use
+>> V1 for writes, as, currently with 32 bits scancodes, there's no gain to use
+>> V2 for it. Also, changing the tool to use more bits will require to rewrite
+>> part of the code.
+>>
+>> Also, writing a rc-core code that can work with an arbitrary large scancode
+>> is still on our TODO list.
+>>
+>> I'm not entirely sure how to extend the scancode size, as there are a
+>> few options:
+>> 	1) Core would always work internally with 32 bytes (1024 bits). Some
+>> logic will be required to accept entries with .len < 32;
+>> 	2) Drivers will define the code lengtht, and core will use it,
+>> returning -EINVAL if userspace uses a len grater than used internally by
+>> the core. In this case, we'll need a sysfs node to tell userspace what's
+>> the maximum allowed size;
+>> 	3) Drivers will define the max number of bits, and core will use it,
+>> truncating the number to the max size if userspace tries to write more bits 
+>> than the internal representation;
+>> 	4) Drivers will define the max number of bits, and core will use it,
+>> returning an error if the number is bigger than the max scancode that can be
+>> represented internally.
+>>
+>> I think that (2) is the best way for doing it, but I'm not yet entirely sure.
+>> So, it is good to hear some comments about that.
 > 
-> Hi Kamil,
-> 
-> Here is a review of this patch. I didn't really look that closely at
-> the others,
-> other than noticing that they didn't use the control framework yet.
-> 
-> The main issue really is lack of documentation. It's hard to review
-> something if
-> you don't know what a new define stands for.
+> I'd say 4 and userspace utility should normalize scancodes packing them into the
+> least number of bits possible. Since keymap should be device specific
+> data in the keymap will not exceed what the driver expects, right?
 
-Yes, no control framework so far, but I understand this is high priority.
- 
-> On Friday, January 07, 2011 17:25:31 Kamil Debski wrote:
-> > This patch adds fourcc values for compressed video stream formats and
-> > V4L2_CTRL_CLASS_CODEC. Also adds controls used by MFC 5.1 driver.
-> >
-> > Signed-off-by: Kamil Debski <k.debski@samsung.com>
-> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> > ---
-> >  include/linux/videodev2.h |   45
-> +++++++++++++++++++++++++++++++++++++++++++++
-> >  1 files changed, 45 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> > index d30c98d..b8952fc 100644
-> > --- a/include/linux/videodev2.h
-> > +++ b/include/linux/videodev2.h
-> > @@ -339,6 +339,14 @@ struct v4l2_pix_format {
-> >  #define V4L2_PIX_FMT_NV16    v4l2_fourcc('N', 'V', '1', '6') /* 16
-> Y/CbCr 4:2:2  */
-> >  #define V4L2_PIX_FMT_NV61    v4l2_fourcc('N', 'V', '6', '1') /* 16
-> Y/CrCb 4:2:2  */
-> >
-> > +/* two non contiguous planes -- one Y, one Cr + Cb interleaved  */
-> > +#define V4L2_PIX_FMT_NV12M   v4l2_fourcc('N', 'M', '1', '2') /* 12
-> Y/CbCr 4:2:0  */
-> > +/* 12  Y/CbCr 4:2:0 64x32 macroblocks */
-> > +#define V4L2_PIX_FMT_NV12MT  v4l2_fourcc('T', 'M', '1', '2')
-> > +
-> > +/* three non contiguous planes -- Y, Cb, Cr */
-> > +#define V4L2_PIX_FMT_YUV420M v4l2_fourcc('Y', 'M', '1', '2') /* 12
-> YUV420 planar */
-> > +
-> 
-> Don't forget to document these formats in the V4L2 spec.
+Well, it depends on what you name "device" ;) If you call it the Linux device that
+will handle the Remote Controller, then, the keymap is not driver-specific data. 
 
-Sylwester has described two of the formats.
-You can find it here
-http://linuxtv.org/downloads/v4l-dvb-apis/V4L2-PIX-FMT-YUV420M.html
-or look at the patch here
-http://git.linuxtv.org/media_tree.git?a=commit;h=8104f63b9af30c22530d1c5cea0
-5d241566fad90
+They will follow one of the protocol standards, like RC-5 (14 bits), NEC (16 bits), 
+NEC EXTENDED (24 bits), some NEC variants with 32 bits, RC6 (there are several modes,
+and the key length depends on what mode is used, ranging from 16 to 64 bits).
 
-As to V4L2_PIX_FMT_NV12MT - this format is pretty complicated. The layout of
-the macro blocks is non obvious. Actually, I have been
-working on the documentation not long ago, but I have received some higher
-priority work recently...
+The problem is that some drivers support the NEC protocol, with 16 bits, plus 16
+bits of checksum, but doesn't support the variants that (ab)use the checksum bits
+to extend it to 24 or 32 bits. So, if we do (4), the userspace program will clean
+the keytable but will fail on the new keytable programming.
 
-> 
-> >  /* Bayer formats - see http://www.siliconimaging.com/RGB%20Bayer.htm
-> */
-> >  #define V4L2_PIX_FMT_SBGGR8  v4l2_fourcc('B', 'A', '8', '1') /*  8
-> BGBG.. GRGR.. */
-> >  #define V4L2_PIX_FMT_SGBRG8  v4l2_fourcc('G', 'B', 'R', 'G') /*  8
-> GBGB.. RGRG.. */
-> > @@ -362,6 +370,18 @@ struct v4l2_pix_format {
-> >  #define V4L2_PIX_FMT_DV       v4l2_fourcc('d', 'v', 's', 'd') /*
-> 1394          */
-> >  #define V4L2_PIX_FMT_MPEG     v4l2_fourcc('M', 'P', 'E', 'G') /*
-> MPEG-1/2/4    */
-> >
-> > +#define V4L2_PIX_FMT_H264     v4l2_fourcc('H', '2', '6', '4') /*
-> H264    */
-> > +#define V4L2_PIX_FMT_H263     v4l2_fourcc('H', '2', '6', '3') /*
-> H263    */
-> > +#define V4L2_PIX_FMT_MPEG12   v4l2_fourcc('M', 'P', '1', '2') /*
-> MPEG-1/2  */
-> > +#define V4L2_PIX_FMT_MPEG4    v4l2_fourcc('M', 'P', 'G', '4') /*
-> MPEG-4  */
-> > +#define V4L2_PIX_FMT_DIVX     v4l2_fourcc('D', 'I', 'V', 'X') /*
-> DivX  */
-> > +#define V4L2_PIX_FMT_DIVX3    v4l2_fourcc('D', 'I', 'V', '3') /*
-> DivX 3.11  */
-> > +#define V4L2_PIX_FMT_DIVX4    v4l2_fourcc('D', 'I', 'V', '4') /*
-> DivX 4.12  */
-> > +#define V4L2_PIX_FMT_DIVX5    v4l2_fourcc('D', 'X', '5', '0') /*
-> DivX 5  */
-> > +#define V4L2_PIX_FMT_XVID     v4l2_fourcc('X', 'V', 'I', 'D') /*
-> Xvid */
-> > +#define V4L2_PIX_FMT_VC1      v4l2_fourcc('V', 'C', '1', 'A') /* VC-
-> 1 */
-> > +#define V4L2_PIX_FMT_VC1_RCV      v4l2_fourcc('V', 'C', '1', 'R') /*
-> VC-1 RCV */
-> > +
-> 
-> Ditto. Note: FMT_MPEG and FMT_MPEG12 and possibly FMT_MPEG4 seem to
-> describe the
-> same format. What's the difference? And do these formats describe raw
-> video
-> streams or program/transport streams? Can I just put in any old DivX
-> file or
-> does the hardware understand only a specific dialect or even a
-> hardware-specific
-> variation of the standard?
+Currently, the driver exports the supported protocols, but it doesn't export the
+protocol variants. Maybe the better would be to also export the supported protocol
+variants via sysfs.
 
-The idea was to choose the codec by using the pixel formats. The hardware
-needs the application to specify what kind of stream it will deal with.
-Hence the different pixel formats. I think that MPEG1, 2 and 4 may fall in
-the V4L2_PIX_FMT_MPEG category. But when I look at the enum
-v4l2_mpeg_stream_type
-there is no value for MPEG4 value. In addition - for MPEG1 and 2 MFC accepts
-elementary stream (ES) and I don't see it in the enum too.
+Cheers,
+Mauro
 
-It will accept only elementary stream. As to DivX one should select the
-version and the hardware will support the features defined by the standard.
-I think Jaeryul Oh could provide more information about DivX support.
-
-In H264 you can have different profiles supported by hardware,
-still I imagine that the drivers would use V4L2_PIX_FMT_H264.
-
-> 
-> Does the codec just go from compressed video to raw video? If it also
-> goes in
-> the other direction, how does one set bitrates, etc.?
-
-This is the decoder only version of the driver. The hardware supports
-also encoding and we are working at an updated driver. There will be
-a set of controls for adjusting the encoding parameters.
-
-> Does it accept multiplexed streams containing audio as well? If so,
-> what does
-> it do with the audio?
-
-Only video elementary streams are supported.
-
-> 
-> >  /*  Vendor-specific formats   */
-> >  #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /*
-> cpia1 YUV */
-> >  #define V4L2_PIX_FMT_WNVA     v4l2_fourcc('W', 'N', 'V', 'A') /*
-> Winnov hw compress */
-> > @@ -972,6 +992,7 @@ struct v4l2_output {
-> >  #define V4L2_OUTPUT_TYPE_ANALOG			2
-> >  #define V4L2_OUTPUT_TYPE_ANALOGVGAOVERLAY	3
-> >
-> > +
-> >  /* capabilities flags */
-> >  #define V4L2_OUT_CAP_PRESETS		0x00000001 /* Supports
-> S_DV_PRESET */
-> >  #define V4L2_OUT_CAP_CUSTOM_TIMINGS	0x00000002 /* Supports
-> S_DV_TIMINGS */
-> > @@ -1009,6 +1030,7 @@ struct v4l2_ext_controls {
-> >  #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression
-> controls */
-> >  #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class
-> controls */
-> >  #define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control
-> class */
-> > +#define V4L2_CTRL_CLASS_CODEC 0x009c0000	/* Codec control class
-> */
-> >
-> >  #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
-> >  #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
-> > @@ -1342,6 +1364,29 @@ enum
-> v4l2_mpeg_cx2341x_video_median_filter_type {
-> >  #define V4L2_CID_MPEG_CX2341X_VIDEO_CHROMA_MEDIAN_FILTER_TOP
-> 	(V4L2_CID_MPEG_CX2341X_BASE+10)
-> >  #define V4L2_CID_MPEG_CX2341X_STREAM_INSERT_NAV_PACKETS
-> 	(V4L2_CID_MPEG_CX2341X_BASE+11)
-> >
-> > +/* For codecs */
-> > +
-> > +#define V4L2_CID_CODEC_BASE
-(V4L2_CTRL_CLASS_CODEC
-> | 0x900)
-> > +#define V4L2_CID_CODEC_CLASS
-(V4L2_CTRL_CLASS_CODEC
-> | 1)
-> > +
-> > +/* For both decoding and encoding */
-> > +
-> > +/* For encoding */
-> > +#define V4L2_CID_CODEC_LOOP_FILTER_H264
-> 	(V4L2_CID_CODEC_BASE + 0)
-> > +enum v4l2_cid_codec_loop_filter_h264 {
-> > +	V4L2_CID_CODEC_LOOP_FILTER_H264_ENABLE = 0,
-> > +	V4L2_CID_CODEC_LOOP_FILTER_H264_DISABLE = 1,
-> > +	V4L2_CID_CODEC_LOOP_FILTER_H264_DISABLE_AT_BOUNDARY = 2,
-> > +};
-> > +
-> > +/* For decoding */
-> > +
-> > +#define V4L2_CID_CODEC_LOOP_FILTER_MPEG4_ENABLE
-> 	(V4L2_CID_CODEC_BASE + 1)
-> > +#define V4L2_CID_CODEC_DISPLAY_DELAY		(V4L2_CID_CODEC_BASE
-+
-> 2)
-> > +#define V4L2_CID_CODEC_REQ_NUM_BUFS		(V4L2_CID_CODEC_BASE
-+
-> 3)
-> > +#define V4L2_CID_CODEC_SLICE_INTERFACE		(V4L2_CID_CODEC_BASE
-+
-> 4)
-> > +#define V4L2_CID_CODEC_PACKED_PB		(V4L2_CID_CODEC_BASE + 5)
-> > +
-> 
-> This needs to be documented in the spec as well.
-
-Ok.
- 
-> It seems to me just looking at the names that these controls are highly
-> hardware specific. If so, then these controls would have to be in the
-> range
-> of (V4L2_CTRL_CLASS_CODEC | 0x1000) and up and need the name of the
-> chipset
-> as part of their ID. Similar to the cx2341x specific controls (see
-> V4L2_CID_MPEG_CX2341X_BASE in videodev2.h).
-
-I think that DISPLAY_DELAY would be used by more than one codec. It may
-be difficult to judge what is common until more chip vendors decide to
-include drivers for their hardware codecs in the video4linux.
-
-> Creating a CODEC control class seems sensible to me, so I'm fine with
-> that.
-
-That's good news.
-
-> 
-> >  /*  Camera class control IDs */
-> >  #define V4L2_CID_CAMERA_CLASS_BASE 	(V4L2_CTRL_CLASS_CAMERA |
-> 0x900)
-> >  #define V4L2_CID_CAMERA_CLASS 		(V4L2_CTRL_CLASS_CAMERA | 1)
-> >
-> 
-
-Thank you for your comments.
-
-Best wishes,
---
-Kamil Debski
-Linux Platform Group
-Samsung Poland R&D Center
 
