@@ -1,67 +1,84 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:53852 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755620Ab1ATNcM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Jan 2011 08:32:12 -0500
-Message-ID: <4D383B6B.4050608@redhat.com>
-Date: Thu, 20 Jan 2011 14:40:59 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:47798 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754155Ab1AZWEO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Jan 2011 17:04:14 -0500
+Date: Wed, 26 Jan 2011 14:04:07 -0800
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Mark Lord <kernel@teksavvy.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Linux Kernel <linux-kernel@vger.kernel.org>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils ?
+Message-ID: <20110126220407.GA29484@core.coreip.homeip.net>
+References: <4D3F4D11.9040302@teksavvy.com>
+ <20110125232914.GA20130@core.coreip.homeip.net>
+ <20110126020003.GA23085@core.coreip.homeip.net>
+ <4D403855.4050706@teksavvy.com>
+ <4D405A9D.4070607@redhat.com>
+ <4D4076FD.6070207@teksavvy.com>
+ <20110126194127.GE29268@core.coreip.homeip.net>
+ <4D407A46.4080407@teksavvy.com>
+ <20110126195011.GF29268@core.coreip.homeip.net>
+ <4D4094F3.3020607@teksavvy.com>
 MIME-Version: 1.0
-To: Luca Tettamanti <kronos.it@gmail.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Nicolas VIVIEN <progweb@free.fr>
-Subject: Re: Upstreaming syntek driver
-References: <AANLkTi=bv+NkwS+ASUDeAjbpNht8+YJaPRKYF7TTZDes@mail.gmail.com>	<201101182345.17725.hverkuil@xs4all.nl> <AANLkTikrXyqr8ZS7bbeJe5yPxdyxE-X-pwk=5MaLOy4N@mail.gmail.com>
-In-Reply-To: <AANLkTikrXyqr8ZS7bbeJe5yPxdyxE-X-pwk=5MaLOy4N@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4D4094F3.3020607@teksavvy.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+On Wed, Jan 26, 2011 at 04:41:07PM -0500, Mark Lord wrote:
+> On 11-01-26 02:50 PM, Dmitry Torokhov wrote:
+> > On Wed, Jan 26, 2011 at 02:47:18PM -0500, Mark Lord wrote:
+> >> On 11-01-26 02:41 PM, Dmitry Torokhov wrote:
+> >>>
+> >>> I do not consider lsinput refusing to work a regression.
+> >>
+> >> Obviously, since you don't use that tool.
+> >> Those of us who do use it see this as broken userspace compatibility.
+> >>
+> >> Who the hell reviews this crap, anyway?
+> >> Code like that should never have made it upstream in the first place.
+> >>
+> > 
+> > You are more than welcome spend more time on reviews.
+> 
+> Somehow I detect a totally lack of sincerity there.
 
-On 01/20/2011 12:35 PM, Luca Tettamanti wrote:
-> On Tue, Jan 18, 2011 at 11:45 PM, Hans Verkuil<hverkuil@xs4all.nl>  wrote:
-> [...]
->> After a quick scan through the sources in svn I found the following (in no
->> particular order):
->>
->> - Supports easycap model with ID 05e1:0408: a driver for this model is now
->>   in driver/staging/easycap.
->
-> Can you elaborate? Is this the same hardware?
->
->> - format conversion must be moved to libv4lconvert (if that can't already be
->>   used out of the box). Ditto for software brightness correction.
->>
->> - kill off the sysfs bits
->>
->> - kill off V4L1
->>
->> - use the new control framework for the control handling
->>
->> - use video_ioctl2 instead of the current ioctl function
->>
->> - use unlocked_ioctl instead of ioctl
->
-> Ok, major surgery then :)
->
->> But probably the first step should be to see if this can't be made part of the
->> gspca driver. I can't help thinking that that would be the best approach. But
->> I guess the gspca developers can give a better idea of how hard that is.
->
-> I've looked at the framework provided by gspca, it would probably
-> allow to drop most of the USB support code from the driver.
+No, not really. If we known about Ubuntu's employ of such utility before
+we'd try to come up with workaround or updated the utility proactively
+so user-visible changes would be limited.
 
-Yeah, that is the whole idea :) I give a big +1 to the Hans' suggestion
-to convert this to a gspca driver!
+> 
+> But thanks for fixing the worst of this regression, at least.
+> 
+> Perhaps you might think about eventually fixing the bad use of -EINVAL
+> in future revisions.  One way perhaps to approach that, would be to begin
+> fixing it internally,
 
-> I'm looking into frame handling.
+Yes, that is on my lest (unless somebody beats me to it). Won't help
+with the older kernels though, unfortunately.
 
-Let me know if you need any help / explanation about how certain things
-are done in gspca.
+> but still returning the same things from the actual
+> f_ops->ioctl() routine.
 
-Regards,
+Not sure if this is needed.
 
-Hans G (aka the other Hans).
+> 
+> Then eventually provide new ioctl numbers which return the correct -ENOTTY
+> (or whatever is best there), rather than converting to -EVINAL at the interface.
+> Then a nice multi-year overlap, with a scheduled removal of the old codes some day.
+> 
+> Then the input subsystem would work more like most other subsystems,
+> and make userspace programming simpler and easier to "get correct".
+
+I do not believe that such characterization is called for. We did fix
+the breakage that was ABI breakage. The version issue is different. If
+we go by what you say _none_ of the versions anywhere can be changed
+ever because there might be a program that does not expect new version.
+
+-- 
+Dmitry
