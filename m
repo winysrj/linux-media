@@ -1,37 +1,56 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.23]:60766 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750947Ab1AWAQS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Jan 2011 19:16:18 -0500
-Content-Type: text/plain; charset="utf-8"
-Date: Sun, 23 Jan 2011 01:16:15 +0100
-From: "Alina Friedrichsen" <x-alina@gmx.net>
-Message-ID: <20110123001615.86290@gmx.net>
+Received: from mx1.redhat.com ([209.132.183.28]:56840 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751383Ab1AZJHd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Jan 2011 04:07:33 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id p0Q97X2Y002105
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 26 Jan 2011 04:07:33 -0500
+Message-ID: <4D3FE453.6080307@redhat.com>
+Date: Wed, 26 Jan 2011 07:07:31 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Subject: [RFC PATCH] Getting Hauppauge WinTV HVR-1400 (XC3028L) to work
-To: linux-media@vger.kernel.org, rglowery@exemail.com.au
-Content-Transfer-Encoding: 8bit
+To: Hans de Goede <hdegoede@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: What to do with videodev.h
+References: <4D3FDAAC.2020303@redhat.com>
+In-Reply-To: <4D3FDAAC.2020303@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-With this patch my DVB-T receiver works now like before 2.6.34, only the
-first four tunings fails, after that all works fine.
-The code was still in there, only commented out. As the original author
-says, please test it with different XC3028 hardware. If no one has problems
-with it, please commit it.
+Hi Hans,
 
-Signed-off-by: Alina Friedrichsen <x-alina@gmx.net>
----
-diff -urNp linux-2.6.37.orig/drivers/media/common/tuners/tuner-xc2028.c linux-2.6.37/drivers/media/common/tuners/tuner-xc2028.c
---- linux-2.6.37.orig/drivers/media/common/tuners/tuner-xc2028.c	2011-01-22 23:46:57.000000000 +0100
-+++ linux-2.6.37/drivers/media/common/tuners/tuner-xc2028.c	2011-01-22 23:51:33.000000000 +0100
-@@ -967,7 +967,7 @@ static int generic_set_freq(struct dvb_f
- 		 * newer firmwares
- 		 */
- 
--#if 1
-+#if 0
- 		/*
- 		 * The proper adjustment would be to do it at s-code table.
- 		 * However, this didn't work, as reported by
+Em 26-01-2011 06:26, Hans de Goede escreveu:
+> Hi All,
+> 
+> With v4l1 support going completely away, the question is
+> raised what to do with linux/videodev.h .
+> 
+> Since v4l1 apps can still use the old API through libv4l1,
+> these apps will still need linux/videodev.h to compile.
+> 
+> So I see 3 options:
+> 1) Keep videodev.h in the kernel tree even after we've dropped
+> the API support at the kernel level (seems like a bad idea to me)
+
+That's a bad idea.
+
+> 2) Copy videodev.h over to v4l-utils as is (under a different name)
+> and modify the #include in libv4l1.h to include it under the
+> new name
+> 3) Copy the (needed) contents of videodev.h over to libv4l1.h
+
+I would do (3). This provides a clearer signal that V4L1-only apps need
+to use libv4l1, or otherwise will stop working.
+
+Of course, the better is to remove V4L1 support from those old apps.
+There are a number of applications that support both API's. So, it
+is time to remove V4L1 support from them.
+
+> I'm not sure where I stand wrt 2 versus 3. Comments anyone?
+
+Cheers,
+Mauro
