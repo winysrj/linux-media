@@ -1,84 +1,50 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:47798 "EHLO
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:35052 "EHLO
 	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754155Ab1AZWEO (ORCPT
+	with ESMTP id S1750773Ab1AZFLM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Jan 2011 17:04:14 -0500
-Date: Wed, 26 Jan 2011 14:04:07 -0800
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Mark Lord <kernel@teksavvy.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Linux Kernel <linux-kernel@vger.kernel.org>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils ?
-Message-ID: <20110126220407.GA29484@core.coreip.homeip.net>
-References: <4D3F4D11.9040302@teksavvy.com>
- <20110125232914.GA20130@core.coreip.homeip.net>
- <20110126020003.GA23085@core.coreip.homeip.net>
- <4D403855.4050706@teksavvy.com>
- <4D405A9D.4070607@redhat.com>
- <4D4076FD.6070207@teksavvy.com>
- <20110126194127.GE29268@core.coreip.homeip.net>
- <4D407A46.4080407@teksavvy.com>
- <20110126195011.GF29268@core.coreip.homeip.net>
- <4D4094F3.3020607@teksavvy.com>
+	Wed, 26 Jan 2011 00:11:12 -0500
+Received: by iyj18 with SMTP id 18so30917iyj.19
+        for <linux-media@vger.kernel.org>; Tue, 25 Jan 2011 21:11:12 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4D4094F3.3020607@teksavvy.com>
+In-Reply-To: <AANLkTimn5nPjsZnJ2NVrpXkBZamhiPSf-R6jSpZixCwS@mail.gmail.com>
+References: <AANLkTiktFYcJwJePy=jjeo2qGHWip52cZyCkCDTgdFmc@mail.gmail.com>
+	<AANLkTimn5nPjsZnJ2NVrpXkBZamhiPSf-R6jSpZixCwS@mail.gmail.com>
+Date: Tue, 25 Jan 2011 21:11:12 -0800
+Message-ID: <AANLkTimcM8fy9Cu8Xuk=M74WBnfoG9gyb7zLqcQV2Hoa@mail.gmail.com>
+Subject: Re: Is media_build download broken?
+From: VDR User <user.vdr@gmail.com>
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: "mailing list: linux-media" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Jan 26, 2011 at 04:41:07PM -0500, Mark Lord wrote:
-> On 11-01-26 02:50 PM, Dmitry Torokhov wrote:
-> > On Wed, Jan 26, 2011 at 02:47:18PM -0500, Mark Lord wrote:
-> >> On 11-01-26 02:41 PM, Dmitry Torokhov wrote:
-> >>>
-> >>> I do not consider lsinput refusing to work a regression.
-> >>
-> >> Obviously, since you don't use that tool.
-> >> Those of us who do use it see this as broken userspace compatibility.
-> >>
-> >> Who the hell reviews this crap, anyway?
-> >> Code like that should never have made it upstream in the first place.
-> >>
-> > 
-> > You are more than welcome spend more time on reviews.
-> 
-> Somehow I detect a totally lack of sincerity there.
+On Tue, Jan 25, 2011 at 8:30 PM, Jarod Wilson <jarod@wilsonet.com> wrote:
+>> I'm getting the following now:
+>>
+>> git pull ssh://linuxtv.org/git/media_build master
+>> Permission denied (publickey).
+>
+> Works here just fine. Looks like your ssh key setup is amiss.
 
-No, not really. If we known about Ubuntu's employ of such utility before
-we'd try to come up with workaround or updated the utility proactively
-so user-visible changes would be limited.
+I deleted my ~/.ssh/known_hosts and I'm getting this:
 
-> 
-> But thanks for fixing the worst of this regression, at least.
-> 
-> Perhaps you might think about eventually fixing the bad use of -EINVAL
-> in future revisions.  One way perhaps to approach that, would be to begin
-> fixing it internally,
-
-Yes, that is on my lest (unless somebody beats me to it). Won't help
-with the older kernels though, unfortunately.
-
-> but still returning the same things from the actual
-> f_ops->ioctl() routine.
-
-Not sure if this is needed.
-
-> 
-> Then eventually provide new ioctl numbers which return the correct -ENOTTY
-> (or whatever is best there), rather than converting to -EVINAL at the interface.
-> Then a nice multi-year overlap, with a scheduled removal of the old codes some day.
-> 
-> Then the input subsystem would work more like most other subsystems,
-> and make userspace programming simpler and easier to "get correct".
-
-I do not believe that such characterization is called for. We did fix
-the breakage that was ABI breakage. The version issue is different. If
-we go by what you say _none_ of the versions anywhere can be changed
-ever because there might be a program that does not expect new version.
-
--- 
-Dmitry
+Cloning into media_build...
+remote: Counting objects: 682, done.
+remote: Compressing objects: 100% (335/335), done.
+remote: Total 682 (delta 382), reused 572 (delta 313)
+Receiving objects: 100% (682/682), 235.82 KiB | 140 KiB/s, done.
+Resolving deltas: 100% (382/382), done.
+************************************************************
+* This script will download the latest tarball and build it*
+* Assuming that your kernel is compatible with the latest  *
+* drivers. If not, you'll need to add some extra backports,*
+* ./backports/<kernel> directory.                          *
+* It will also update this tree to be sure that all compat *
+* bits are there, to avoid compilation failures            *
+************************************************************
+git pull ssh://linuxtv.org/git/media_build master
+The authenticity of host 'linuxtv.org (130.149.80.248)' can't be established.
+RSA key fingerprint is fa:d5:ff:8c:63:e1:59:38:79:8b:9a:bf:bc:81:6b:92.
+Are you sure you want to continue connecting (yes/no)?
