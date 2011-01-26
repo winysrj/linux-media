@@ -1,78 +1,56 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:62305 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751261Ab1AWJRB (ORCPT
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:56939 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752517Ab1AZQvn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Jan 2011 04:17:01 -0500
-From: Alexander Strakh <cromlehg@gmail.com>
-To: mchehab@infradead.org
-Cc: tobias.lorenz@gmx.net, jy0922.shim@samsung.com,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Alexander Strakh <cromlehg@gmail.com>,
-	Alexander Strakh <strakh@ispras.ru>
-Subject: [PATCH 1/1] Media: radio: si470x: remove double mutex lock
-Date: Sun, 23 Jan 2011 12:16:54 +0300
-Message-Id: <1295774214-3606-1-git-send-email-strakh@ispras.ru>
+	Wed, 26 Jan 2011 11:51:43 -0500
+Date: Wed, 26 Jan 2011 08:51:32 -0800
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Gerd Hoffmann <kraxel@redhat.com>, Mark Lord <kernel@teksavvy.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Linux Kernel <linux-kernel@vger.kernel.org>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils ?
+Message-ID: <20110126165132.GC29163@core.coreip.homeip.net>
+References: <20110125164803.GA19701@core.coreip.homeip.net>
+ <AANLkTi=1Mh0JrYk5itvef7O7e7pR+YKos-w56W5q4B8B@mail.gmail.com>
+ <20110125205453.GA19896@core.coreip.homeip.net>
+ <4D3F4804.6070508@redhat.com>
+ <4D3F4D11.9040302@teksavvy.com>
+ <20110125232914.GA20130@core.coreip.homeip.net>
+ <20110126020003.GA23085@core.coreip.homeip.net>
+ <4D4004F9.6090200@redhat.com>
+ <4D401CC5.4020000@redhat.com>
+ <4D402D35.4090206@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4D402D35.4090206@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Alexander Strakh <cromlehg@gmail.com>
+On Wed, Jan 26, 2011 at 12:18:29PM -0200, Mauro Carvalho Chehab wrote:
+> diff --git a/input.c b/input.c
+> index d57a31e..a9bd5e8 100644
+> --- a/input.c
+> +++ b/input.c
+> @@ -101,8 +101,8 @@ int device_open(int nr, int verbose)
+>  		close(fd);
+>  		return -1;
+>  	}
+> -	if (EV_VERSION != version) {
+> -		fprintf(stderr, "protocol version mismatch (expected %d, got %d)\n",
+> +	if (EV_VERSION > version) {
+> +		fprintf(stderr, "protocol version mismatch (expected >= %d, got %d)\n",
+>  			EV_VERSION, version);
 
+Please do not do this. It causes check to "float" depending on the
+version of kernel headers it was compiled against.
 
-1. First mutex_lock on &radio->lock in line 441
-2. Second in line 462
+The check should be against concrete version (0x10000 in this case).
 
-I think that mutex in line 462 is not needed. In kernel v2.6.36.3 function si470
-x_rds_on contains mutex_lock/mutex_unlock. Have no mutex_lock in line 441. In kernel v2.6.37 mutex_lock/mutex_unlock has been moved from si470x_rds_on to fops_read. But old mutex_lock (line 462) forgot to remove. 
+Thanks.
 
- 433static ssize_t si470x_fops_read(struct file *file, char __user *buf,
- 434                size_t count, loff_t *ppos)
- 435{
-....
- 441        mutex_lock(&radio->lock);
- 442        if ((radio->registers[SYSCONFIG1] & SYSCONFIG1_RDS) == 0)
- 443                si470x_rds_on(radio);
- 444
- 445        /* block if no new data available */
- 446        while (radio->wr_index == radio->rd_index) {
- 447                if (file->f_flags & O_NONBLOCK) {
- 448                        retval = -EWOULDBLOCK;
- 449                        goto done;
- 450                }
- 451                if (wait_event_interruptible(radio->read_queue,
- 452                        radio->wr_index != radio->rd_index) < 0) {
- 453                        retval = -EINTR;
- 454                        goto done;
- 455                }
- 456        }
- 457
- 458        /* calculate block count from byte count */
- 459        count /= 3;
- 460
- 461        /* copy RDS block out of internal buffer and to user buffer */
- 462        mutex_lock(&radio->lock);
-
-Found by Linux Device Drivers Verification Project
-
-Remove second mutex_lock from fops_read
-
-Signed-off-by: Alexander Strakh <strakh@ispras.ru>
----
- drivers/media/radio/si470x/radio-si470x-common.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/radio/si470x/radio-si470x-common.c b/drivers/media/radio/si470x/radio-si470x-common.c
-index 60c176f..38ae6cd 100644
---- a/drivers/media/radio/si470x/radio-si470x-common.c
-+++ b/drivers/media/radio/si470x/radio-si470x-common.c
-@@ -460,7 +460,6 @@ static ssize_t si470x_fops_read(struct file *file, char __user *buf,
- 	count /= 3;
- 
- 	/* copy RDS block out of internal buffer and to user buffer */
--	mutex_lock(&radio->lock);
- 	while (block_count < count) {
- 		if (radio->rd_index == radio->wr_index)
- 			break;
 -- 
-1.7.1
-
+Dmitry
