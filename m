@@ -1,155 +1,192 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41990 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754086Ab1AJOIb (ORCPT
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:64333 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752654Ab1AZCAM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Jan 2011 09:08:31 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Greg KH <gregkh@suse.de>
-Subject: Re: [RFC/PATCH v7 01/12] media: Media device node support
-Date: Mon, 10 Jan 2011 15:09:11 +0100
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	alsa-devel@alsa-project.org, broonie@opensource.wolfsonmicro.com,
-	clemens@ladisch.de, sakari.ailus@maxwell.research.nokia.com
-References: <1292844995-7900-1-git-send-email-laurent.pinchart@ideasonboard.com> <201012241259.39148.laurent.pinchart@ideasonboard.com> <20110106221912.GA31328@suse.de>
-In-Reply-To: <20110106221912.GA31328@suse.de>
+	Tue, 25 Jan 2011 21:00:12 -0500
+Date: Tue, 25 Jan 2011 18:00:03 -0800
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Mark Lord <kernel@teksavvy.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Linux Kernel <linux-kernel@vger.kernel.org>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils ?
+Message-ID: <20110126020003.GA23085@core.coreip.homeip.net>
+References: <4D3E59CA.6070107@teksavvy.com>
+ <4D3E5A91.30207@teksavvy.com>
+ <20110125053117.GD7850@core.coreip.homeip.net>
+ <4D3EB734.5090100@redhat.com>
+ <20110125164803.GA19701@core.coreip.homeip.net>
+ <AANLkTi=1Mh0JrYk5itvef7O7e7pR+YKos-w56W5q4B8B@mail.gmail.com>
+ <20110125205453.GA19896@core.coreip.homeip.net>
+ <4D3F4804.6070508@redhat.com>
+ <4D3F4D11.9040302@teksavvy.com>
+ <20110125232914.GA20130@core.coreip.homeip.net>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201101101509.13793.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20110125232914.GA20130@core.coreip.homeip.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Greg,
-
-On Thursday 06 January 2011 23:19:12 Greg KH wrote:
-> On Fri, Dec 24, 2010 at 12:59:38PM +0100, Laurent Pinchart wrote:
-> > On Thursday 23 December 2010 04:32:53 Greg KH wrote:
-> > > On Mon, Dec 20, 2010 at 12:36:24PM +0100, Laurent Pinchart wrote:
-> > > > +config MEDIA_CONTROLLER
-> > > > +	bool "Media Controller API (EXPERIMENTAL)"
-> > > > +	depends on EXPERIMENTAL
-> > > > +	---help---
-> > > > +	  Enable the media controller API used to query media devices
-> > > > internal +	  topology and configure it dynamically.
-> > > > +
-> > > > +	  This API is mostly used by camera interfaces in embedded
-> > > > platforms.
+On Tue, Jan 25, 2011 at 03:29:14PM -0800, Dmitry Torokhov wrote:
+> On Tue, Jan 25, 2011 at 05:22:09PM -0500, Mark Lord wrote:
+> > On 11-01-25 05:00 PM, Mauro Carvalho Chehab wrote:
+> > > Em 25-01-2011 18:54, Dmitry Torokhov escreveu:
+> > >> On Wed, Jan 26, 2011 at 06:09:45AM +1000, Linus Torvalds wrote:
+> > >>> On Wed, Jan 26, 2011 at 2:48 AM, Dmitry Torokhov
+> > >>> <dmitry.torokhov@gmail.com> wrote:
+> > >>>>
+> > >>>> We should be able to handle the case where scancode is valid even though
+> > >>>> it might be unmapped yet. This is regardless of what version of
+> > >>>> EVIOCGKEYCODE we use, 1 or 2, and whether it is sparse keymap or not.
+> > >>>>
+> > >>>> Is it possible to validate the scancode by driver?
+> > >>>
+> > >>> More appropriately, why not just revert the thing? The version change
 > > > 
-> > > That's nice, but why should I enable this?  Or will drivers enable it
-> > > automatically?
-> > 
-> > Drivers depending on the media controller API will enable this, yes. The
-> > option will probably removed later when the API won't be deemed as
-> > experimental anymore.
-> > 
-> > > > +#define MEDIA_NUM_DEVICES	256
+> > > Reverting the version increment is a bad thing. I agree with Dmitry that
+> > > an application that fails just because the API version were incremented
+> > > is buggy.
 > > > 
-> > > Why this limit?
+> > >> Well, then we'll break Ubuntu again as they recompiled their input-utils
+> > >> package (without fixing the check). And the rest of distros do not seem
+> > >> to be using that package...
+> > > 
+> > > Reverting it will also break the ir-keytable userspace program that it is
+> > > meant to be used by the Remote Controller devices, and uses it to adjust
+> > > its behaviour to support RC's with more than 16 bits of scancodes.
+> > > 
+> > > I agree that it is bad that the ABI broke, but reverting it will cause even
+> > > more damage.
 > > 
-> > Because I'm using a bitmap to store the used minor numbers, and I thus
-> > need a limit. I could get rid of it of it by using a linked list, but
-> > that will not be efficient (you could argue that the list will hold a
-> > few entries only most of the time, but in that case a limit of 256
-> > minors wouldn't be a problem
+> > There we disagree.  Sure it's a very poorly thought out interface,
+> > but the way to fix it is to put a new one along side the old,
+> > and put the old back the way it was before it got broken.
 > > 
-> > :-)).
+> > I'm not making a fuss here for myself -- I'm more than capable of working
+> > around new kernel bugs like these, but for every person like me there are
+> > likely hundreds of others who simply get frustrated and give up.
+> > 
+> > If you're worried about Ubuntu's adaptation to the buggy regression,
+> > then email their developers (kernel and input-utils packagers) explaining
+> > the revert, and they can coordination their kernel and input-utils updates
+> > to do the Right Thing.
+> > 
+> > But for all of the rest of us, our systems are broken by this change.
+> > 
+> > ...
+> > 
+> > 
+> > >>> As Mark said, breaking user space simply isn't acceptable. And since
+> > >>> breaking user space isn't acceptable, then incrementing the version is
+> > >>> stupid too.
+> > >>
+> > >> It might not have been the best idea to increment, however I maintain
+> > >> that if there exists version is can be changed. Otherwise there is no
+> > >> point in having version at all.
+> > > 
+> > > Not arguing in favor of the version numbering, but it is easy to read
+> > > the version increment at the beginning of the application, and adjust
+> > > if the code will use EVIOCGKEYCODE or EVIOCGKEYCODE_V2 of the ioctl's,
+> > > depending on what kernel provides.
+> > > 
+> > > Ok, we might be just calling the new ioctl and check for -ENOSYS at
+> > > the beginning, using some fake arguments.
+> > > 
+> > >> As I said, reverting the version bump will cause yet another wave of
+> > >> breakages so I propose leaving version as is.
+> > >>
+> > >>>
+> > >>> The way we add new ioctl's is not by incrementing some "ABI version"
+> > >>> crap. It's by adding new ioctl's or system calls or whatever that
+> > >>> simply used to return -ENOSYS or other error before, while preserving
+> > >>> the old ABI. That way old binaries don't break (for _ANY_ reason), and
+> > >>> new binaries can see "oh, this doesn't support the new thing".
+> > >>
+> > >> That has been done as well; we have 2 new ioctls and kept 2 old ioctls.
+> > 
+> > That's the problem: you did NOT keep the two old ioctls().
+> > Those got changed too.. so now we have four NEW ioctls(),
+> > none of which backward compatible with userspace.
+> > 
 > 
-> As it's only needed to be looked up at open() time, why not just make it
-> dynamic?
-
-How so ? With include/linux/idr.h ?
-
-> > > > +/* Override for the open function */
-> > > > +static int media_open(struct inode *inode, struct file *filp)
-> > > > +{
-> > > > +	struct media_devnode *mdev;
-> > > > +	int ret;
-> > > > +
-> > > > +	/* Check if the media device is available. This needs to be done
-> > > > with +	 * the media_devnode_lock held to prevent an open/unregister
-> > > > race: +	 * without the lock, the device could be unregistered and
-> > > > freed between +	 * the media_devnode_is_registered() and
-> > > > get_device() calls, leading to +	 * a crash.
-> > > > +	 */
-> > > > +	mutex_lock(&media_devnode_lock);
-> > > > +	mdev = container_of(inode->i_cdev, struct media_devnode, cdev);
-> > > 
-> > > By virtue of having the reference to the module held by the vfs, this
-> > > shouldn't ever go away, even if the lock is not held.
-> > 
-> > inode->i_cdev is set to NULL by cdev_default_release() which can be
-> > called from media_devnode_unregister(). I could move to container_of
-> > outside the lock, but in that case I would have to check for mdev ==
-> > NULL || !mdev_devnode_is_registered(mdev) (or move the NULL check inside
-> > mdev_devnode_is_registered). Is that what you would like ?
+> Please calm down. This, in fact, is not new vs old ioctl problem but
+> rather particular driver (or rather set of drivers) implementation
+> issue. Even if we drop the new ioctls and convert the RC code to use the
+> old ones you'd be observing the same breakage as RC code responds with
+> -EINVAL to not-yet-established mappings.
 > 
-> As container_of _ALWAYS_ returns a valid pointer, you can't check it for
-> NULL. I don't know, it just doesn't seem correct here, but if you are sure
-> it's working properly, I'll not push the issue.
-
-I haven't found any issue with it. I'm not sure why it would be incorrect to 
-be honest. Am I missing something ?
-
-> > > Then that's fine, but you can put the lock after the container_of(),
-> > > right?
-> > 
-> > If I add a NULL check (as explained above), yes.
+> I'll see what can be done for these drivers; I guess we could supply a
+> fake KEY_RESERVED entry for not mapped scancodes if there are mapped
+> scancodes "above" current one. That should result in the same behavior
+> for RCs as before.
 > 
-> Again, you can't check for NULL as the result of container_of() that
-> does not work (hint, container_of() is just pointer math, without ever
-> looking at the original pointer value.)
 
-Yes, my bad, I meant inode->i_cdev == NULL || 
-!mdev_devnode_is_registered(mdev). If I moved the container_of outside of the 
-locked section I would need to add an extra check inside, and I don't think 
-the resulting locked section will get any smaller.
+I wonder if the patch below is all that is needed...
 
-> > > > +	/* and increase the device refcount */
-> > > > +	get_device(&mdev->dev);
-> > > 
-> > > How is that holding anything into memory?
-> > 
-> > That will prevent the device instance from being freed until the device
-> > is closed, thereby holding both the device instance and the cdev
-> > instance in memory.
-> 
-> Tricky :)
-
-Tell me about it. I've spent lots of time on this issue in V4L2 a while ago. 
-Fortunately refcount nightmares are getting less frequent ;-)
-
-> > > Anyway, it looks like what you really want is an "easier" way to handle
-> > > a cdev and a struct device that will export the proper information to
-> > > userspace, right?
-> > > 
-> > > Why not do this generically, fixing up the cdev interface (which really
-> > > needs it) and not tie it to media devices at all, making it possible
-> > > for _everyone_ to use this type of infrastructure?
-> > > 
-> > > That seems like the better thing to do here.
-> > 
-> > Sounds like a good idea. You're a better cdev expert than me, so could
-> > you give me a few pointers ? Do you want me to create a new object that
-> > will hold a struct cdev and a struct device together, or to embed the
-> > device structure into the existing cdev structure ?
-> 
-> I don't really know, all I know is that cdev is a difficult thing to
-> handle at times, but not everyone who uses it needs a struct device.
-> But some people do (as this code shows), so I guess it needs to be a
-> whole new structure/interface that binds the two together like you just
-> did.  I think that would be good for a lot more places other than just
-> the media subsystem, so it should go into the core kernel instead.
-
-There are so few direct struct cdev users in the kernel that I'm beginning to 
-wonder if this is the right way to go or if I'm just using cdev in a way it 
-hasn't been designed to be used. My understanding was that I needed an 
-instance of struct cdev per minor, but many subsystems seems to handle cdev 
-differently. Is there any detailed documentation regarding how it should be 
-used ?
+Thanks!
 
 -- 
-Regards,
+Dmitry
 
-Laurent Pinchart
+
+Input: ir-keymap - return KEY_RESERVED for unknown mappings
+
+Do not respond with -EINVAL to EVIOCGKEYCODE for not-yet-mapped scancodes,
+but rather return KEY_RESERVED.
+
+This fixes breakage with Ubuntu's input-kbd utility that stopped returning
+full keymaps for remote controls.
+
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+---
+
+ drivers/media/IR/ir-keytable.c |   28 +++++++++++++++++-----------
+ 1 files changed, 17 insertions(+), 11 deletions(-)
+
+
+diff --git a/drivers/media/IR/ir-keytable.c b/drivers/media/IR/ir-keytable.c
+index f60107c..c4645d7 100644
+--- a/drivers/media/IR/ir-keytable.c
++++ b/drivers/media/IR/ir-keytable.c
+@@ -374,21 +374,27 @@ static int ir_getkeycode(struct input_dev *dev,
+ 		index = ir_lookup_by_scancode(rc_tab, scancode);
+ 	}
+ 
+-	if (index >= rc_tab->len) {
+-		if (!(ke->flags & INPUT_KEYMAP_BY_INDEX))
+-			IR_dprintk(1, "unknown key for scancode 0x%04x\n",
+-				   scancode);
++	if (index < rc_tab->len) {
++		entry = &rc_tab->scan[index];
++
++		ke->index = index;
++		ke->keycode = entry->keycode;
++		ke->len = sizeof(entry->scancode);
++		memcpy(ke->scancode, &entry->scancode, sizeof(entry->scancode));
++
++	} else if (!(ke->flags & INPUT_KEYMAP_BY_INDEX)) {
++		/*
++		 * We do not really know the valid range of scancodes
++		 * so let's respond with KEY_RESERVED to anything we
++		 * do not have mapping for [yet].
++		 */
++		ke->index = index;
++		ke->keycode = KEY_RESERVED;
++	} else {
+ 		retval = -EINVAL;
+ 		goto out;
+ 	}
+ 
+-	entry = &rc_tab->scan[index];
+-
+-	ke->index = index;
+-	ke->keycode = entry->keycode;
+-	ke->len = sizeof(entry->scancode);
+-	memcpy(ke->scancode, &entry->scancode, sizeof(entry->scancode));
+-
+ 	retval = 0;
+ 
+ out:
