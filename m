@@ -1,123 +1,47 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:2757 "EHLO
-	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751715Ab1AQKeG (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:44913 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753471Ab1AZXdr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Jan 2011 05:34:06 -0500
-Message-ID: <5fc7c1cdc4aed93c1dbe7a3d1916bb1c.squirrel@webmail.xs4all.nl>
-In-Reply-To: <AANLkTimRLGYugF+2=-nFvLeXdnLOy8Morx_wxzVTt9w5@mail.gmail.com>
-References: <1294745487-29138-1-git-send-email-manjunatha_halli@ti.com>
-    <1294745487-29138-2-git-send-email-manjunatha_halli@ti.com>
-    <1294745487-29138-3-git-send-email-manjunatha_halli@ti.com>
-    <1294745487-29138-4-git-send-email-manjunatha_halli@ti.com>
-    <20110111112434.GE2385@legolas.emea.dhcp.ti.com>
-    <AANLkTi=TF9uYEv2Y3qwMKham=K2cCxo4UOTn8Vf+S-KC@mail.gmail.com>
-    <AANLkTimRLGYugF+2=-nFvLeXdnLOy8Morx_wxzVTt9w5@mail.gmail.com>
-Date: Mon, 17 Jan 2011 11:33:59 +0100
-Subject: Re: [RFC V10 3/7] drivers:media:radio: wl128x: FM Driver Common
- sources
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "halli manjunatha" <manjunatha_halli@ti.com>
-Cc: mchehab@infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+	Wed, 26 Jan 2011 18:33:47 -0500
+Subject: Re: [GIT PULL] More IR fixes for 2.6.38
+From: Andy Walls <awalls@md.metrocast.net>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Jarod Wilson <jarod@redhat.com>, linux-media@vger.kernel.org
+In-Reply-To: <4D405D8E.6020900@redhat.com>
+References: <yc7vxnkntxcbxdk5pe3jpndi.1296062052946@email.android.com>
+	 <4D405D8E.6020900@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Wed, 26 Jan 2011 18:33:23 -0500
+Message-ID: <1296084803.2444.2.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-> Hi Hans and Mauro,
->
-> If there are no major comments for the V10 of FM V4L2 driver, is it
-> possible to take this driver (V10) to mainline?
->
-> Since the files are becoming big to be posted as patches and
-> maintaining it that way is a bit difficult. We can submit the patches
-> to mainline to fix minor comments and also to add newer features
-> (complete scan, stop seek) as patches once this driver makes its way
-> in to mainline.
->
-> Please let me know your views on this.
+On Wed, 2011-01-26 at 15:44 -0200, Mauro Carvalho Chehab wrote:
 
-I have no objections in merging this for 2.6.39 or even 2.6.38 if Mauro is
-willing.
+> Andy,
+> 
+> Then, it is better to use Jarod's tree for it. His patches are against
+> upstream, and are meant to be applied to .38. So, I need first to send
+> them to linux-next, then to upstream and then merge from upstream,
+> otherwise, I'll have to manually fix the conflicts on the next merge window.
+> Due to LCA, I'm not sure if Linus will apply much patches during this
+> week. So, I'll probably wait until next week to send Jarod's patches
+> upstream.
+
+> Jarod Wilson <jarod@redhat.com> wrote:
+
+> >>  git://linuxtv.org/jarod/linux-2.6-ir.git for-2.6.38
+
+
+OK.  I'll work off of Jarod's branch then.
+
+Thanks.
 
 Regards,
-
-         Hans
-
->
-> Thanks,
-> Manju
->
->
-> On Tue, Jan 11, 2011 at 6:12 PM, Raja Mani <rajambsc@gmail.com> wrote:
->> balbi,
->>
->>  Agree , interrupt pkts could have handled in thread context . But in
->> the current way , FM driver never create any additional task in the
->> system
->>  to handle FM interrupt. In fact, there is no task being created in
->> this driver to handle FM RDS data, AF,etc.
->>
->>  This method is suitable for light weight system where we want to
->> reduce number of thread in the system.
->>
->>  On Tue, Jan 11, 2011 at 4:54 PM, Felipe Balbi <balbi@ti.com> wrote:
->>> Hi,
->>>
->>> On Tue, Jan 11, 2011 at 06:31:23AM -0500, manjunatha_halli@ti.com
->>> wrote:
->>>> From: Manjunatha Halli <manjunatha_halli@ti.com>
->>>>
->>>> These are the sources for the common interfaces required by the
->>>> FM V4L2 driver for TI WL127x and WL128x chips.
->>>>
->>>> These implement the FM channel-8 protocol communication with the
->>>> chip. This makes use of the Shared Transport as its transport.
->>>>
->>>> Signed-off-by: Manjunatha Halli <manjunatha_halli@ti.com>
->>>> Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
->>>
->>> looks like this is implementing a "proprietary" (by that I mean: for
->>> this driver only) IRQ API. Why aren't you using GENIRQ with threaded
->>> IRQs support ?
->>>
->>> Core IRQ Subsystem would handle a lot of stuff for you.
->>>
->>> --
->>> balbi
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-media"
->>> in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->>
->>
->>
->> --
->> Regards,
->> Raja.
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media"
->> in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->
->
->
-> --
-> Regards
-> Halli
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Andy
 
 
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
 
