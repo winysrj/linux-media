@@ -1,47 +1,83 @@
 Return-path: <mchehab@pedra>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:58656 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753811Ab1ASKSd (ORCPT
+Received: from ironport2-out.teksavvy.com ([206.248.154.183]:16672 "EHLO
+	ironport2-out.pppoe.ca" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753897Ab1AZTaU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Jan 2011 05:18:33 -0500
-Date: Wed, 19 Jan 2011 10:18:51 +0000
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-To: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Cc: alsa-devel@alsa-project.org, lrg@slimlogic.co.uk,
-	mchehab@redhat.com, hverkuil@xs4all.nl, sameo@linux.intel.com,
-	linux-media@vger.kernel.org
-Subject: Re: WL1273 FM Radio driver...
-Message-ID: <20110119101850.GA16453@opensource.wolfsonmicro.com>
-References: <1295363063.25951.67.camel@masi.mnp.nokia.com>
+	Wed, 26 Jan 2011 14:30:20 -0500
+Message-ID: <4D40764B.5040306@teksavvy.com>
+Date: Wed, 26 Jan 2011 14:30:19 -0500
+From: Mark Lord <kernel@teksavvy.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1295363063.25951.67.camel@masi.mnp.nokia.com>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Kernel <linux-kernel@vger.kernel.org>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	Gerd Hoffmann <kraxel@redhat.com>
+Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils
+ ?
+References: <20110125164803.GA19701@core.coreip.homeip.net> <AANLkTi=1Mh0JrYk5itvef7O7e7pR+YKos-w56W5q4B8B@mail.gmail.com> <20110125205453.GA19896@core.coreip.homeip.net> <4D3F4804.6070508@redhat.com> <4D3F4D11.9040302@teksavvy.com> <20110125232914.GA20130@core.coreip.homeip.net> <20110126020003.GA23085@core.coreip.homeip.net> <4D4004F9.6090200@redhat.com> <4D403693.50702@teksavvy.com> <4D405CAD.5040107@redhat.com> <20110126175918.GA29268@core.coreip.homeip.net>
+In-Reply-To: <20110126175918.GA29268@core.coreip.homeip.net>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, Jan 18, 2011 at 05:04:23PM +0200, Matti J. Aaltonen wrote:
+On 11-01-26 12:59 PM, Dmitry Torokhov wrote:
+> On Wed, Jan 26, 2011 at 03:41:01PM -0200, Mauro Carvalho Chehab wrote:
+>> Em 26-01-2011 12:58, Mark Lord escreveu:
+>>> On 11-01-26 06:26 AM, Mauro Carvalho Chehab wrote:
+>>> ..
+>>>> However, as said previously in this thread, input-kbd won't work with any
+>>>> RC table that uses NEC extended (and there are several devices on the
+>>>> current Kernels with those tables), since it only reads up to 16 bits.
+>>>>
+>>>> ir-keytable works with all RC tables, if you use a kernel equal or upper to
+>>>> 2.6.36, due to the usage of the new ioctl's.
+>>>
+>>> Is there a way to control the key repeat rate for a device
+>>> controlled by ir-kbd-i2c ?
+>>>
+>>> It appears to be limited to a max of between 4 and 5 repeats/sec somewhere,
+>>> and I'd like to fix that.
+>>
+>> It depends on what device do you have. Several I2C chips have the repeat
+>> logic inside the I2C microcontroller PROM firmware. or at the remote
+>> controller itself. So, there's nothing we can do to change it.
+>>
+>> I have even one device here (I think it is a saa7134-based Kworld device) 
+>> that doesn't send any repeat event at all for most keys (I think it only
+>> sends repeat events for volume - Can't remember the specific details anymore -
+>> too many devices!).
+>>
+>> The devices that produce repeat events can be adjusted via the normal
+>> input layer tools like kbdrate.
+>>
+> 
+> Unfortunately kbdrate affects all connected devices and I am not sure if
+> there is a utility allowing to set rate on individual devices. But here
+> is the main part: 
+> 
+> static int input_set_rate(int fd,
+> 			  unsigned int delay, unsigned int period)
+> {
+> 	unsigned int rep[2] = { delay, period };
+> 
+> 	if (ioctl(fd, EVIOCSREP, rep) < 0) {
+> 		perror("evdev ioctl");
+> 		return -1;
+> 	}
+> 	return 0;
+> }
+> 
 
-> The driver consists of an MFD core and two child drivers (the audio
-> codec and the V4L2 driver). And the question is mainly about the role of
-> the MFD driver: the original design had the IO functions in the core.
-> Currently the core is practically empty mainly because Mauro very
-> strongly wanted to have “everything” in the V4L2 driver.
+Okay, if that's still a global in this day and age,
+then I suppose I'll just have to special-case it here in my copy.
 
-> I liked the original design because it didn't have the bug that the
-> current MFD has: the codec can be initialized before the V4L2 part sets
-> the IO function pointers. Having in principle equally capable interface
-> drivers is symmetrical and esthetically pleasing:-) Also somebody could
-> easily leave out the existing interfaces and create a completely new one
-> based for example to sysfs or something... Having the IO in the core
-> would also conveniently hide the physical communication layer and make
-> it easy to change I2C to UART, which is also supported by the chip.
+The hardware itself is capable of much faster repeat rates,
+and prior to 2.6.36 I used to patch it for intelligent ramp-up
+on repeats inside ir-kbd-i2c.
 
-The above pattern with the core taking responsibility for register I/O
-is used by all the other MFD drivers in part because it's much less
-fragile against initialisation ordering issues.  It ensures that before
-any subdevices can instantiate and try to do register I/O all the
-infrastructure required to do that is present.  Is there any great
-reason for following a different pattern, and if we are going to do so
-how do we deal with the init ordering?
+As of 2.6.36 that stopped working, and is now limited somewhere
+to no more than one repeat every 210msecs.
+
+Cheers
