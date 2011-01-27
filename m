@@ -1,135 +1,54 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41419 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752153Ab1ASQiv (ORCPT
+Received: from ironport2-out.teksavvy.com ([206.248.154.183]:28855 "EHLO
+	ironport2-out.pppoe.ca" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753561Ab1A0BHb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Jan 2011 11:38:51 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Michael Jones <michael.jones@matrix-vision.de>
-Subject: Re: [PATCH V2] v4l: OMAP3 ISP CCDC: Add support for 8bit greyscale sensors
-Date: Wed, 19 Jan 2011 17:38:52 +0100
-Cc: Martin Hostettler <martin@neutronstar.dyndns.org>,
-	linux-media@vger.kernel.org
-References: <1295386062-10618-1-git-send-email-martin@neutronstar.dyndns.org> <201101190027.19904.laurent.pinchart@ideasonboard.com> <4D36EB0A.9050002@matrix-vision.de>
-In-Reply-To: <4D36EB0A.9050002@matrix-vision.de>
+	Wed, 26 Jan 2011 20:07:31 -0500
+Message-ID: <4D40C551.4020907@teksavvy.com>
+Date: Wed, 26 Jan 2011 20:07:29 -0500
+From: Mark Lord <kernel@teksavvy.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Linux Kernel <linux-kernel@vger.kernel.org>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils
+ ?
+References: <4D3E59CA.6070107@teksavvy.com> <4D3E5A91.30207@teksavvy.com> <20110125053117.GD7850@core.coreip.homeip.net> <4D3EB734.5090100@redhat.com> <20110125164803.GA19701@core.coreip.homeip.net> <AANLkTi=1Mh0JrYk5itvef7O7e7pR+YKos-w56W5q4B8B@mail.gmail.com> <20110125205453.GA19896@core.coreip.homeip.net> <4D3F4804.6070508@redhat.com> <4D3F4D11.9040302@teksavvy.com> <20110125232914.GA20130@core.coreip.homeip.net> <20110126020003.GA23085@core.coreip.homeip.net> <4D403855.4050706@teksavvy.com> <4D40C3D7.90608@teksavvy.com>
+In-Reply-To: <4D40C3D7.90608@teksavvy.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <201101191738.52668.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Michael,
-
-On Wednesday 19 January 2011 14:45:46 Michael Jones wrote:
-> On 01/19/2011 12:27 AM, Laurent Pinchart wrote:
-> > On Tuesday 18 January 2011 22:27:42 Martin Hostettler wrote:
-> >> Adds support for V4L2_MBUS_FMT_Y8_1X8 format and 8bit data width in
-> >> synchronous interface.
-> >> 
-> >> When in 8bit mode don't apply DC substraction of 64 per default as this
-> >> would remove 1/4 of the sensor range.
-> >> 
-> >> When using V4L2_MBUS_FMT_Y8_1X8 (or possibly another 8bit per pixel)
-> >> mode set the CDCC to output 8bit per pixel instead of 16bit.
-> >> 
-> >> Signed-off-by: Martin Hostettler <martin@neutronstar.dyndns.org>
-> >> ---
-> >> 
-> >>  drivers/media/video/isp/ispccdc.c  |   22 ++++++++++++++++++----
-> >>  drivers/media/video/isp/ispvideo.c |    2 ++
-> >>  2 files changed, 20 insertions(+), 4 deletions(-)
-> >> 
-> >> Changes since first version:
-> >> 	- forward ported to current media.git
-> >> 
-> >> diff --git a/drivers/media/video/isp/ispccdc.c
-> >> b/drivers/media/video/isp/ispccdc.c index 578c8bf..c7397c9 100644
-> >> --- a/drivers/media/video/isp/ispccdc.c
-> >> +++ b/drivers/media/video/isp/ispccdc.c
-> >> @@ -43,6 +43,7 @@ __ccdc_get_format(struct isp_ccdc_device *ccdc, struct
-> >> v4l2_subdev_fh *fh, unsigned int pad, enum v4l2_subdev_format_whence
-> >> which);
-> >> 
-> >>  static const unsigned int ccdc_fmts[] = {
-> >> 
-> >> +	V4L2_MBUS_FMT_Y8_1X8,
-> >> 
-> >>  	V4L2_MBUS_FMT_SGRBG10_1X10,
-> >>  	V4L2_MBUS_FMT_SRGGB10_1X10,
-> >>  	V4L2_MBUS_FMT_SBGGR10_1X10,
-> >> 
-> >> @@ -1127,6 +1128,9 @@ static void ccdc_configure(struct isp_ccdc_device
-> >> *ccdc) ccdc->syncif.datsz = pdata ? pdata->width : 10;
-> >> 
-> >>  	ispccdc_config_sync_if(ccdc, &ccdc->syncif);
-> >> 
-> >> +	/* CCDC_PAD_SINK */
-> >> +	format = &ccdc->formats[CCDC_PAD_SINK];
-> >> +
-> >> 
-> >>  	syn_mode = isp_reg_readl(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
-> >>  	
-> >>  	/* Use the raw, unprocessed data when writing to memory. The H3A and
-> >> 
-> >> @@ -1144,10 +1148,15 @@ static void ccdc_configure(struct
-> >> isp_ccdc_device *ccdc) else
-> >> 
-> >>  		syn_mode &= ~ISPCCDC_SYN_MODE_SDR2RSZ;
-> >> 
-> >> -	isp_reg_writel(isp, syn_mode, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
-> >> +	/* Use PACK8 mode for 1byte per pixel formats */
-> >> 
-> >> -	/* CCDC_PAD_SINK */
-> >> -	format = &ccdc->formats[CCDC_PAD_SINK];
-> >> +	if (isp_video_format_info(format->code)->bpp <= 8)
-> >> +		syn_mode |= ISPCCDC_SYN_MODE_PACK8;
-> >> +	else
-> >> +		syn_mode &= ~ISPCCDC_SYN_MODE_PACK8;
-> >> +
+On 11-01-26 08:01 PM, Mark Lord wrote:
+> On 11-01-26 10:05 AM, Mark Lord wrote:
+>> On 11-01-25 09:00 PM, Dmitry Torokhov wrote:
+> ..
+>>> I wonder if the patch below is all that is needed...
+>>
+>> Nope. Does not work here:
+>>
+>> $ lsinput
+>> protocol version mismatch (expected 65536, got 65537)
+>>
 > 
-> It would make sense to me to move this bit into ispccdc_config_sync_if().
-
-Why do you think so ? This configures how the data is written to memory, while 
-ispccdc_config_sync_if() configures the CCDC input interface.
-
-> >> +
-> >> +	isp_reg_writel(isp, syn_mode, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
-> >> 
-> >>  	/* Mosaic filter */
-> >>  	switch (format->code) {
-> >> 
-> >> @@ -2244,7 +2253,12 @@ int isp_ccdc_init(struct isp_device *isp)
-> >> 
-> >>  	ccdc->syncif.vdpol = 0;
-> >>  	
-> >>  	ccdc->clamp.oblen = 0;
-> >> 
-> >> -	ccdc->clamp.dcsubval = 64;
-> >> +
-> >> +	if (isp->pdata->subdevs->interface == ISP_INTERFACE_PARALLEL
-> >> +	    && isp->pdata->subdevs->bus.parallel.width <= 8)
-> >> +		ccdc->clamp.dcsubval = 0;
-> >> +	else
-> >> +		ccdc->clamp.dcsubval = 64;
-> > 
-> > I don't like this too much. What happens if you have several sensors
-> > connected to the system with different bus width ?
+> Heh.. I just noticed something *new* in the bootlogs on my system:
 > 
-> I see Laurent's point here.  Maybe move the dcsubval assignment into
-> ccdc_configure().  Also, don't we also want to remove dcsubval for an
-> 8-bit serially-attached sensor?  In ccdc_configure() you could make it
-> conditional on the mbus format's width on the CCDC sink pad.
+> kernel: Registered IR keymap rc-rc5-tv
+> udevd-event[6438]: run_program: '/usr/bin/ir-keytable' abnormal exit
+> kernel: input: i2c IR (Hauppauge) as /devices/virtual/rc/rc0/input7
+> kernel: ir-keytable[6439]: segfault at 8 ip 00000000004012d2 sp 00007fff6d43ca60
+> error 4 in ir-keytable[400000+7000]
+> kernel: rc0: i2c IR (Hauppauge) as /devices/virtual/rc/rc0
+> kernel: ir-kbd-i2c: i2c IR (Hauppauge) detected at i2c-0/0-0018/ir0 [ivtv i2c
+> driver #0]
+> 
+> That's udev invoking ir-keyboard when the ir-kbd-i2c kernel module is loaded,
+> and that is also ir-keyboard (userspace) segfaulting when run.
 
-This piece of code only sets the default value. If the user sets another 
-value, the driver must not override it silently when the video stream is 
-started. I'm not really sure how to properly fix this. The best solution is of 
-course to set the value from userspace.
+Note: I tried to capture an strace of ir-keyboard segfaulting during boot
+(as above), but doing so kills the system (hangs on boot).
 
-> >>  	ccdc->vpcfg.pixelclk = 0;
-
--- 
-Regards,
-
-Laurent Pinchart
+The command from udev was: /usr/bin/ir-keytable -a /etc/rc_maps.cfg -s rc0
