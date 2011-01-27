@@ -1,61 +1,33 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:38526 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751416Ab1AWVWw (ORCPT
+Received: from ironport2-out.teksavvy.com ([206.248.154.183]:8676 "EHLO
+	ironport2-out.pppoe.ca" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751042Ab1A0Oyq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Jan 2011 16:22:52 -0500
-Received: by wwa36 with SMTP id 36so3688236wwa.1
-        for <linux-media@vger.kernel.org>; Sun, 23 Jan 2011 13:22:51 -0800 (PST)
-Subject: [PATCH 1/2] DM04/QQBOX Update V1.76 - use 32 bit remote decoding
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 23 Jan 2011 21:22:45 +0000
-Message-ID: <1295817765.3007.4.camel@tvboxspy>
-Mime-Version: 1.0
+	Thu, 27 Jan 2011 09:54:46 -0500
+Message-ID: <4D418732.70107@teksavvy.com>
+Date: Thu, 27 Jan 2011 09:54:42 -0500
+From: Mark Lord <kernel@teksavvy.com>
+MIME-Version: 1.0
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Linux Kernel <linux-kernel@vger.kernel.org>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils
+ ?
+References: <20110125205453.GA19896@core.coreip.homeip.net> <4D3F4804.6070508@redhat.com> <4D3F4D11.9040302@teksavvy.com> <20110125232914.GA20130@core.coreip.homeip.net> <20110126020003.GA23085@core.coreip.homeip.net> <4D403855.4050706@teksavvy.com> <4D40C3D7.90608@teksavvy.com> <4D40C551.4020907@teksavvy.com> <20110127021227.GA29709@core.coreip.homeip.net> <4D40E41D.2030003@teksavvy.com> <20110127063815.GA29924@core.coreip.homeip.net>
+In-Reply-To: <20110127063815.GA29924@core.coreip.homeip.net>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Use 32 bit decoding to add support for more than one variant of remote
-control.
+On 11-01-27 01:38 AM, Dmitry Torokhov wrote:
+..
+> BTW, I wonder what package ir-keytable is coming from? Ubuntu seems to
+> have v4l-utils at 0.8.1-2 and you say yours is 0.8.2...
+..
 
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
----
- drivers/media/dvb/dvb-usb/lmedm04.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+I downloaded/built/installed it from the link you gave earlier in this thread.
 
-diff --git a/drivers/media/dvb/dvb-usb/lmedm04.c b/drivers/media/dvb/dvb-usb/lmedm04.c
-index 46ccd01..c58d3fc 100644
---- a/drivers/media/dvb/dvb-usb/lmedm04.c
-+++ b/drivers/media/dvb/dvb-usb/lmedm04.c
-@@ -191,7 +191,7 @@ static int lme2510_stream_restart(struct dvb_usb_device *d)
- 			rbuff, sizeof(rbuff));
- 	return ret;
- }
--static int lme2510_remote_keypress(struct dvb_usb_adapter *adap, u16 keypress)
-+static int lme2510_remote_keypress(struct dvb_usb_adapter *adap, u32 keypress)
- {
- 	struct dvb_usb_device *d = adap->dev;
- 
-@@ -237,7 +237,8 @@ static void lme2510_int_response(struct urb *lme_urb)
- 		case 0xaa:
- 			debug_data_snipet(1, "INT Remote data snipet in", ibuf);
- 			lme2510_remote_keypress(adap,
--				(u16)(ibuf[4]<<8)+ibuf[5]);
-+				(u32)(ibuf[2] << 24) + (ibuf[3] << 16) +
-+				(ibuf[4] << 8) + ibuf[5]);
- 			break;
- 		case 0xbb:
- 			switch (st->tuner_config) {
-@@ -1109,5 +1110,5 @@ module_exit(lme2510_module_exit);
- 
- MODULE_AUTHOR("Malcolm Priestley <tvboxspy@gmail.com>");
- MODULE_DESCRIPTION("LME2510(C) DVB-S USB2.0");
--MODULE_VERSION("1.75");
-+MODULE_VERSION("1.76");
- MODULE_LICENSE("GPL");
--- 
-1.7.1
-
-
+Cheers
