@@ -1,18 +1,21 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com (ext-mx10.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.14])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id p0OCbrSA029374
-	for <video4linux-list@redhat.com>; Mon, 24 Jan 2011 07:37:54 -0500
-Received: from nm16-vm0.bullet.mail.sp2.yahoo.com
-	(nm16-vm0.bullet.mail.sp2.yahoo.com [98.139.91.210])
-	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id p0OCbjX3002692
-	for <video4linux-list@redhat.com>; Mon, 24 Jan 2011 07:37:45 -0500
-Message-ID: <641398.74830.qm@web111724.mail.gq1.yahoo.com>
-Date: Mon, 24 Jan 2011 04:25:01 -0800 (PST)
-From: Mike Farrell <gccdragoonkain@yahoo.com>
-To: video4linux-list@redhat.com, coolguys@novell.com
+Received: from mx1.redhat.com (ext-mx08.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.12])
+	by int-mx09.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP
+	id p0R5oHBU010343
+	for <video4linux-list@redhat.com>; Thu, 27 Jan 2011 00:50:17 -0500
+Received: from mail-pz0-f46.google.com (mail-pz0-f46.google.com
+	[209.85.210.46])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id p0R5o6ZL000735
+	for <video4linux-list@redhat.com>; Thu, 27 Jan 2011 00:50:06 -0500
+Received: by pzk35 with SMTP id 35so234548pzk.33
+	for <video4linux-list@redhat.com>; Wed, 26 Jan 2011 21:50:06 -0800 (PST)
+Message-ID: <4D410768.2070406@gmail.com>
+Date: Thu, 27 Jan 2011 16:49:28 +1100
+From: Steven Adams <stevezau@gmail.com>
 MIME-Version: 1.0
+To: video4linux-list@redhat.com
+Subject: FusionHDTV Nano+ (DVICO) support
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -20,16 +23,26 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: video4linux-list-bounces@redhat.com
 Sender: <mchehab@pedra>
 List-ID: <video4linux-list@redhat.com>
 
-http://colbatol.com/images/mto.php
+Hi All,
 
+Does anyone know if there is a linux driver that supoprts FusionHDTV 
+Nano+ (Dvico)?
 
-      
+I've search everywhere and can only find info on nano not nano+. I've 
+tried kernel 2.6.38 but only get the following in demsg
+
+"[  153.875752] usb 1-3: new high speed USB device using ehci_hcd and 
+address 6"
+
+Thanks
+Steve
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
