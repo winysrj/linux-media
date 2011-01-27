@@ -1,108 +1,105 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.samsung.com ([203.254.224.33]:52743 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751157Ab1ARL1k (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59831 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753446Ab1A0MbA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Jan 2011 06:27:40 -0500
-Date: Tue, 18 Jan 2011 20:27:32 +0900
-From: Jeongtae Park <jtp.park@samsung.com>
-Subject: RE: [PATCH 0/1] v4l: videobuf2: Add DMA pool allocator
-In-reply-to: <008f01cbb65d$f4c33a40$de49aec0$%szyprowski@samsung.com>
-To: 'Marek Szyprowski' <m.szyprowski@samsung.com>,
-	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: k.debski@samsung.com, jaeryul.oh@samsung.com,
-	jonghun.han@samsung.com, kgene.kim@samsung.com
-Reply-to: jtp.park@samsung.com
-Message-id: <006a01cbb702$b5d62900$21827b00$%park@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=Windows-1252
-Content-language: ko
-Content-transfer-encoding: 7BIT
-References: <1293684907-7272-1-git-send-email-jtp.park@samsung.com>
- <008f01cbb65d$f4c33a40$de49aec0$%szyprowski@samsung.com>
+	Thu, 27 Jan 2011 07:31:00 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [PATCH v6 06/11] v4l: subdev: Add a new file operations class
+Date: Thu, 27 Jan 2011 13:30:51 +0100
+Message-Id: <1296131456-30000-7-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1296131456-30000-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1296131456-30000-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+V4L2 sub-devices store pad formats and crop settings in the file handle.
+To let drivers initialize those settings properly, add a file::open
+operation that is called when the subdev is opened as well as a
+corresponding file::close operation.
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Marek Szyprowski
-> Sent: Tuesday, January 18, 2011 12:48 AM
-> To: 'Jeongtae Park'; linux-media@vger.kernel.org; linux-samsung-
-> soc@vger.kernel.org
-> Cc: k.debski@samsung.com; jaeryul.oh@samsung.com; jonghun.han@samsung.com;
-> kgene.kim@samsung.com
-> Subject: RE: [PATCH 0/1] v4l: videobuf2: Add DMA pool allocator
-> 
-> Hello,
-> 
-> On Thursday, December 30, 2010 5:55 AM Jeongtae Park wrote:
-> 
-> > The DMA pool allocator allocates a memory using dma_alloc_coherent(),
-> > creates a pool using generic allocator in the initialization.
-> > For every allocation requests, the allocator returns a part of its
-> > memory pool using generic allocator instead of new memory allocation.
-> >
-> > This allocator used for devices have below limitations.
-> > - the start address should be aligned
-> > - the range of memory access limited to the offset from the start
-> >   address (= the allocation address should be existed in a
-> >   constant offset from the start address)
-> > - the allocation address should be aligned
-> >
-> > I would be grateful for your comments.
-> >
-> > This patch series contains:
-> >
-> > [PATCH 1/1] v4l: videobuf2: Add DMA pool allocator
-> >
-> > Best regards,
-> > Jeongtae Park
-> >
-> > Patch summary:
-> >
-> > Jeongtae Park (1):
-> >       v4l: videobuf2: Add DMA pool allocator
-> >
-> >  drivers/media/video/Kconfig              |    7 +
-> >  drivers/media/video/Makefile             |    1 +
-> >  drivers/media/video/videobuf2-dma-pool.c |  310
-> ++++++++++++++++++++++++++++++
-> >  include/media/videobuf2-dma-pool.h       |   37 ++++
-> >  4 files changed, 355 insertions(+), 0 deletions(-)
-> >  create mode 100644 drivers/media/video/videobuf2-dma-pool.c
-> >  create mode 100644 include/media/videobuf2-dma-pool.h
-> 
-> The code looks nice but I have one suggestion. This dma-pool memory
-allocator
-> make sense only for a s5p-mfc driver. All other drivers can use dma-contig
-> vb2
-> allocator directly. For this reason I suggest to move this allocator
-directly
-> to drivers/media/video/s5p-mfc/ directory.
->
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/v4l2-subdev.c |   13 ++++++++++---
+ include/media/v4l2-subdev.h       |   10 ++++++++++
+ 2 files changed, 20 insertions(+), 3 deletions(-)
 
-Is it not possible that there is the device with above limitations or
-constraints?
-If it's possible, the dma-pool allocator can be useful, but currently this
-allocator
-is useful only for a s5p-mfc.
-But, all other allocators of vb2 framework are drivers/media/video/
-directory.
-I'm not sure which position is right for dma-pool allocator.
-
-Thanks for your comment.
-
-> Best regards
-> --
-> Marek Szyprowski
-> Samsung Poland R&D Center
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-Best regards
+diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+index 15449fc..0f904e2 100644
+--- a/drivers/media/video/v4l2-subdev.c
++++ b/drivers/media/video/v4l2-subdev.c
+@@ -61,7 +61,7 @@ static int subdev_open(struct file *file)
+ 	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
+ 	struct v4l2_subdev_fh *subdev_fh;
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+-	struct media_entity *entity;
++	struct media_entity *entity = NULL;
+ #endif
+ 	int ret;
+ 
+@@ -104,9 +104,17 @@ static int subdev_open(struct file *file)
+ 	}
+ #endif
+ 
++	ret = v4l2_subdev_call(sd, file, open, subdev_fh);
++	if (ret < 0 && ret != -ENOIOCTLCMD)
++		goto err;
++
+ 	return 0;
+ 
+ err:
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	if (entity)
++		media_entity_put(entity);
++#endif
+ 	v4l2_fh_del(&subdev_fh->vfh);
+ 	v4l2_fh_exit(&subdev_fh->vfh);
+ 	subdev_fh_free(subdev_fh);
+@@ -117,13 +125,12 @@ err:
+ 
+ static int subdev_close(struct file *file)
+ {
+-#if defined(CONFIG_MEDIA_CONTROLLER)
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
+-#endif
+ 	struct v4l2_fh *vfh = file->private_data;
+ 	struct v4l2_subdev_fh *subdev_fh = to_v4l2_subdev_fh(vfh);
+ 
++	v4l2_subdev_call(sd, file, close, subdev_fh);
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 	if (sd->v4l2_dev->mdev)
+ 		media_entity_put(&sd->entity);
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index f8704ff..af704df 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -175,6 +175,15 @@ struct v4l2_subdev_core_ops {
+ 				 struct v4l2_event_subscription *sub);
+ };
+ 
++/* open: called when the subdev device node is opened by an application.
++
++   close: called when the subdev device node is close.
++ */
++struct v4l2_subdev_file_ops {
++	int (*open)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh);
++	int (*close)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh);
++};
++
+ /* s_mode: switch the tuner to a specific tuner mode. Replacement of s_radio.
+ 
+    s_radio: v4l device was opened in Radio mode, to be replaced by s_mode.
+@@ -416,6 +425,7 @@ struct v4l2_subdev_ir_ops {
+ 
+ struct v4l2_subdev_ops {
+ 	const struct v4l2_subdev_core_ops	*core;
++	const struct v4l2_subdev_file_ops	*file;
+ 	const struct v4l2_subdev_tuner_ops	*tuner;
+ 	const struct v4l2_subdev_audio_ops	*audio;
+ 	const struct v4l2_subdev_video_ops	*video;
+-- 
+1.7.3.4
 
