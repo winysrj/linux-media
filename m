@@ -1,47 +1,46 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:38251 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751050Ab1AWQDE (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47349 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753842Ab1A0McY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Jan 2011 11:03:04 -0500
-Received: by wwa36 with SMTP id 36so3516891wwa.1
-        for <linux-media@vger.kernel.org>; Sun, 23 Jan 2011 08:03:02 -0800 (PST)
-Subject: Re: Hauppauge Nova-T-500; losing one tuner. Regression?
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: Alex Butcher <linuxtv@assursys.co.uk>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <alpine.LFD.2.00.1101231119320.26778@sbhezbfg.of5.nffheflf.cev>
-References: <alpine.LFD.2.00.1101231119320.26778@sbhezbfg.of5.nffheflf.cev>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 23 Jan 2011 16:02:55 +0000
-Message-ID: <1295798575.9525.21.camel@tvboxspy>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Thu, 27 Jan 2011 07:32:24 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [PATCH v5 2/5] omap3: Remove unusued ISP CBUFF resource
+Date: Thu, 27 Jan 2011 13:32:18 +0100
+Message-Id: <1296131541-30092-3-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1296131541-30092-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1296131541-30092-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sun, 2011-01-23 at 11:58 +0000, Alex Butcher wrote:
-> 
-> 11) I briefly experimented with setting buggy_sfn_workaround=1 when
-> loading
-> the dib3000mc and dib7000p modules with no apparent improvement.  As
-> far as
-> I can see, though, UK DVB-T broadcasting isn't a single frequency
-> network,
-> so a) this is not relevant here and b) it will impair performace.  As
-> a
-> result, I'm NOT using the buggy_sfn_workaround.
+From: Sergio Aguirre <saaguirre@ti.com>
 
-The dib7000p does have issues with the UK DVB-T network where old 2K
-mode DVB-T is mixed with high power 8K transmissions in areas that have
-had a half switch over.
+The ISP CBUFF module isn't use, its resource isn't needed.
 
-Only the 2K mode appears to lock reliably. I think it something to do
-with the AGC settings.
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ arch/arm/mach-omap2/devices.c |    5 -----
+ 1 files changed, 0 insertions(+), 5 deletions(-)
 
-Unfortunately, attenuation of the signal results in reliable lock of the
-8K signal with the 2K channels being lost.
-
-Until the 2K signals disappear in 2012 with the full retune this will
-remain a problem.
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index d5da345..f16268d 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -69,11 +69,6 @@ static struct resource omap3isp_resources[] = {
+ 		.flags		= IORESOURCE_MEM,
+ 	},
+ 	{
+-		.start		= OMAP3430_ISP_CBUFF_BASE,
+-		.end		= OMAP3430_ISP_CBUFF_END,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	{
+ 		.start		= OMAP3430_ISP_CCP2_BASE,
+ 		.end		= OMAP3430_ISP_CCP2_END,
+ 		.flags		= IORESOURCE_MEM,
+-- 
+1.7.3.4
 
