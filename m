@@ -1,91 +1,52 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:58227 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752945Ab1AYXFj convert rfc822-to-8bit (ORCPT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:55477 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751482Ab1A0Txf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Jan 2011 18:05:39 -0500
+	Thu, 27 Jan 2011 14:53:35 -0500
+Date: Thu, 27 Jan 2011 11:53:25 -0800
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Mark Lord <kernel@teksavvy.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Linux Kernel <linux-kernel@vger.kernel.org>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils ?
+Message-ID: <20110127195325.GB29910@core.coreip.homeip.net>
+References: <4D3F4D11.9040302@teksavvy.com>
+ <20110125232914.GA20130@core.coreip.homeip.net>
+ <20110126020003.GA23085@core.coreip.homeip.net>
+ <4D403855.4050706@teksavvy.com>
+ <4D40C3D7.90608@teksavvy.com>
+ <4D40C551.4020907@teksavvy.com>
+ <20110127021227.GA29709@core.coreip.homeip.net>
+ <4D40E41D.2030003@teksavvy.com>
+ <20110127163931.GA1825@core.coreip.homeip.net>
+ <4D41B5A0.70704@teksavvy.com>
 MIME-Version: 1.0
-In-Reply-To: <201101252354.31217.PeterHuewe@gmx.de>
-References: <1295988851-23561-1-git-send-email-peterhuewe@gmx.de>
-	<Pine.LNX.4.64.1101252319570.3668@ask.diku.dk>
-	<201101252354.31217.PeterHuewe@gmx.de>
-Date: Tue, 25 Jan 2011 18:05:37 -0500
-Message-ID: <AANLkTinap-4djdUORmOnnnVFtTm4wSxMqTNVxrfg2jYw@mail.gmail.com>
-Subject: Re: [PATCH] video/saa7164: Fix sparse warning: Using plain integer as
- NULL pointer
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: =?ISO-8859-1?Q?Peter_H=FCwe?= <PeterHuewe@gmx.de>
-Cc: Julia Lawall <julia@diku.dk>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	kernel-janitors@vger.kernel.org,
-	Steven Toth <stoth@kernellabs.com>, Tejun Heo <tj@kernel.org>,
-	Dan Carpenter <error27@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4D41B5A0.70704@teksavvy.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, Jan 25, 2011 at 5:54 PM, Peter Hüwe <PeterHuewe@gmx.de> wrote:
-> Hi Julia,
->
-> thanks for your input.
-> So do I understand you correctly if I say
-> if(!x) is better than if(x==NULL) in any case?
->
-> Or only for the kmalloc family?
->
-> Do you remember the reason why !x should be preferred?
->
-> In Documentation/CodingStyle ,  Chapter 7: Centralized exiting of functions
-> there is a function fun with looks like this:
-> int fun(int a)
-> {
->    int result = 0;
->    char *buffer = kmalloc(SIZE);
->
->    if (buffer == NULL)
->        return -ENOMEM;
->
->    if (condition1) {
->        while (loop1) {
->            ...
->        }
->        result = 1;
->        goto out;
->    }
->    ...
-> out:
->    kfree(buffer);
->    return result;
-> }
->
->
-> -->  So   if (buffer == NULL) is in the official CodingStyle - maybe we should
-> add a paragraph there as well ;)
->
->
-> Don't get me wrong, I just want to learn ;)
+On Thu, Jan 27, 2011 at 01:12:48PM -0500, Mark Lord wrote:
+> On 11-01-27 11:39 AM, Dmitry Torokhov wrote:
+> > On Wed, Jan 26, 2011 at 10:18:53PM -0500, Mark Lord wrote:
+> >> No, it does not seem to segfault when I unload/reload ir-kbd-i2c
+> >> and then invoke it by hand with the same parameters.
+> >> Quite possibly the environment is different when udev invokes it,
+> >> and my strace attempt with udev killed the system, so no info there.
+> >>
+> > 
+> > Hmm, what about compiling with debug and getting a core then?
+> 
+> Sure.  debug is easy, -g, but you'll have to tell me how to get it
+> do produce a core dump.
+> 
 
-To my knowledge, the current CodingStyle doesn't enforce a particular
-standard in this regard, leaving it at the discretion of the author.
-
-Whether to do (!foo) or (foo == NULL) is one of those debates people
-have similar to whether to use tabs as whitespace.  People have
-differing opinions and there is no clearly "right" answer.  Personally
-I strongly prefer (foo == NULL) as it makes it blindingly obvious that
-it's a pointer comparison, whereas (!foo) leaves you wondering whether
-it's an integer or pointer comparison.
-
-All that said, you shouldn't submit patches which arbitrarily change
-from one format to the other.  With regards to the proposed patch, you
-should follow whatever style the author employed in the rest of the
-file.
-
-Cheers,
-
-Devin
+See if adjusting /etc/security/limits.conf will enable it to dump core.
+Otherwise you'll have to stick 'ulimit -c unlimited' somewhere...
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Dmitry
