@@ -1,35 +1,58 @@
 Return-path: <mchehab@pedra>
-Received: from bonnie-vm4.ifh.de ([141.34.50.21]:35425 "EHLO smtp.ifh.de"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1757471Ab1ANPPJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Jan 2011 10:15:09 -0500
-Date: Fri, 14 Jan 2011 15:52:29 +0100 (CET)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: Robin Humble <robin.humble+dvb@anu.edu.au>
-cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] dib7000m/p: struct alignment fix
-In-Reply-To: <20110112131732.GA26294@grizzly.cita.utoronto.ca>
-Message-ID: <alpine.LRH.2.00.1101141551390.6649@pub3.ifh.de>
-References: <20110112131732.GA26294@grizzly.cita.utoronto.ca>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59831 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753445Ab1A0MbX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Jan 2011 07:31:23 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [PATCH v1 1/8] v4l: subdev: Generic ioctl support
+Date: Thu, 27 Jan 2011 13:31:05 +0100
+Message-Id: <1296131472-30045-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1296131472-30045-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1296131472-30045-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+Instead of returning an error when receiving an ioctl call with an
+unsupported command, forward the call to the subdev core::ioctl handler.
 
-On Wed, 12 Jan 2011, Robin Humble wrote:
-> Ubuntu has a bug open for the issue:
->  https://bugs.launchpad.net/ubuntu/+source/linux/+bug/654791
-> but the disable pid filtering workaround one person uses there doesn't
-> work for me.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ Documentation/video4linux/v4l2-framework.txt |    5 +++++
+ drivers/media/video/v4l2-subdev.c            |    2 +-
+ 2 files changed, 6 insertions(+), 1 deletions(-)
 
-Sorry for the delay, but I only realized today that this bug exists.
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index d0fb880..1bb5f22 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -407,6 +407,11 @@ VIDIOC_UNSUBSCRIBE_EVENT
+ 	To properly support events, the poll() file operation is also
+ 	implemented.
+ 
++Private ioctls
++
++	All ioctls not in the above list are passed directly to the sub-device
++	driver through the core::ioctl operation.
++
+ 
+ I2C sub-device drivers
+ ----------------------
+diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+index e706c4c..1710a64 100644
+--- a/drivers/media/video/v4l2-subdev.c
++++ b/drivers/media/video/v4l2-subdev.c
+@@ -276,7 +276,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 	}
+ #endif
+ 	default:
+-		return -ENOIOCTLCMD;
++		return v4l2_subdev_call(sd, core, ioctl, cmd, arg);
+ 	}
+ 
+ 	return 0;
+-- 
+1.7.3.4
 
-We are currently creating a proper fix for it.
-
-best regards,
---
-
-Patrick Boettcher - Kernel Labs
-http://www.kernellabs.com/
