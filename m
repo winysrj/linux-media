@@ -1,257 +1,124 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59832 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59831 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753445Ab1A0MbA (ORCPT
+	with ESMTP id S1753420Ab1A0Ma7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Jan 2011 07:31:00 -0500
+	Thu, 27 Jan 2011 07:30:59 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
 Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [PATCH v6 05/11] v4l: Create v4l2 subdev file handle structure
-Date: Thu, 27 Jan 2011 13:30:50 +0100
-Message-Id: <1296131456-30000-6-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v6 04/11] v4l: Group media bus pixel codes by types and sort them alphabetically
+Date: Thu, 27 Jan 2011 13:30:49 +0100
+Message-Id: <1296131456-30000-5-git-send-email-laurent.pinchart@ideasonboard.com>
 In-Reply-To: <1296131456-30000-1-git-send-email-laurent.pinchart@ideasonboard.com>
 References: <1296131456-30000-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Stanimir Varbanov <svarbanov@mm-sol.com>
+Adding new pixel codes at the end of the enumeration will soon create a
+mess, so group the pixel codes by type and sort them by bus_width, bits
+per component, samples per pixel and order of subsamples.
 
-Used for storing subdev information per file handle and hold V4L2 file
-handle.
+As the codes are part of the kernel ABI their value can't change when a
+new code is inserted in the enumeration, so they are given an explicit
+numerical value. When inserting a new pixel code developers must use and
+update the next free value.
 
-Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
-Signed-off-by: Antti Koskipaa <antti.koskipaa@nokia.com>
 Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/Kconfig             |    9 ++++
- drivers/media/video/v4l2-subdev.c |   85 +++++++++++++++++++++++++------------
- include/media/v4l2-subdev.h       |   29 +++++++++++++
- 3 files changed, 96 insertions(+), 27 deletions(-)
+ include/linux/v4l2-mediabus.h |   77 ++++++++++++++++++++++++----------------
+ 1 files changed, 46 insertions(+), 31 deletions(-)
 
-diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
-index 6b946e6..eaf4734 100644
---- a/drivers/media/Kconfig
-+++ b/drivers/media/Kconfig
-@@ -82,6 +82,15 @@ config VIDEO_V4L1_COMPAT
- 
- 	  If you are unsure as to whether this is required, answer Y.
- 
-+config VIDEO_V4L2_SUBDEV_API
-+	bool "V4L2 sub-device userspace API (EXPERIMENTAL)"
-+	depends on VIDEO_DEV && MEDIA_CONTROLLER && EXPERIMENTAL
-+	---help---
-+	  Enables the V4L2 sub-device pad-level userspace API used to configure
-+	  video format, size and frame rate between hardware blocks.
+diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
+index dc1d5c0..cccfa34 100644
+--- a/include/linux/v4l2-mediabus.h
++++ b/include/linux/v4l2-mediabus.h
+@@ -24,39 +24,54 @@
+  * transferred first, "BE" means that the most significant bits are transferred
+  * first, and "PADHI" and "PADLO" define which bits - low or high, in the
+  * incomplete high byte, are filled with padding bits.
++ *
++ * The pixel codes are grouped by type, bus_width, bits per component, samples
++ * per pixel and order of subsamples. Numerical values are sorted using generic
++ * numerical sort order (8 thus comes before 10).
++ *
++ * As their value can't change when a new pixel code is inserted in the
++ * enumeration, the pixel codes are explicitly given a numerical value. The next
++ * free values for each category are listed below, update them when inserting
++ * new pixel codes.
+  */
+ enum v4l2_mbus_pixelcode {
+-	V4L2_MBUS_FMT_FIXED = 1,
+-	V4L2_MBUS_FMT_YUYV8_2X8,
+-	V4L2_MBUS_FMT_YVYU8_2X8,
+-	V4L2_MBUS_FMT_UYVY8_2X8,
+-	V4L2_MBUS_FMT_VYUY8_2X8,
+-	V4L2_MBUS_FMT_YVYU10_2X10,
+-	V4L2_MBUS_FMT_YUYV10_2X10,
+-	V4L2_MBUS_FMT_YVYU10_1X20,
+-	V4L2_MBUS_FMT_YUYV10_1X20,
+-	V4L2_MBUS_FMT_RGB444_2X8_PADHI_LE,
+-	V4L2_MBUS_FMT_RGB444_2X8_PADHI_BE,
+-	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
+-	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE,
+-	V4L2_MBUS_FMT_RGB565_2X8_LE,
+-	V4L2_MBUS_FMT_RGB565_2X8_BE,
+-	V4L2_MBUS_FMT_BGR565_2X8_LE,
+-	V4L2_MBUS_FMT_BGR565_2X8_BE,
+-	V4L2_MBUS_FMT_SBGGR8_1X8,
+-	V4L2_MBUS_FMT_SBGGR10_1X10,
+-	V4L2_MBUS_FMT_Y8_1X8,
+-	V4L2_MBUS_FMT_Y10_1X10,
+-	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE,
+-	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE,
+-	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
+-	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
+-	V4L2_MBUS_FMT_SGRBG8_1X8,
+-	V4L2_MBUS_FMT_SBGGR12_1X12,
+-	V4L2_MBUS_FMT_YUYV8_1_5X8,
+-	V4L2_MBUS_FMT_YVYU8_1_5X8,
+-	V4L2_MBUS_FMT_UYVY8_1_5X8,
+-	V4L2_MBUS_FMT_VYUY8_1_5X8,
++	V4L2_MBUS_FMT_FIXED = 0x0001,
 +
-+	  This API is mostly used by camera interfaces in embedded platforms.
++	/* RGB - next is 0x1009 */
++	V4L2_MBUS_FMT_RGB444_2X8_PADHI_BE = 0x1001,
++	V4L2_MBUS_FMT_RGB444_2X8_PADHI_LE = 0x1002,
++	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE = 0x1003,
++	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE = 0x1004,
++	V4L2_MBUS_FMT_BGR565_2X8_BE = 0x1005,
++	V4L2_MBUS_FMT_BGR565_2X8_LE = 0x1006,
++	V4L2_MBUS_FMT_RGB565_2X8_BE = 0x1007,
++	V4L2_MBUS_FMT_RGB565_2X8_LE = 0x1008,
 +
- #
- # DVB Core
- #
-diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-index a49856a..15449fc 100644
---- a/drivers/media/video/v4l2-subdev.c
-+++ b/drivers/media/video/v4l2-subdev.c
-@@ -31,39 +31,69 @@
- #include <media/v4l2-fh.h>
- #include <media/v4l2-event.h>
- 
-+static int subdev_fh_init(struct v4l2_subdev_fh *fh, struct v4l2_subdev *sd)
-+{
-+#if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
-+	/* Allocate try format and crop in the same memory block */
-+	fh->try_fmt = kzalloc((sizeof(*fh->try_fmt) + sizeof(*fh->try_crop))
-+			      * sd->entity.num_pads, GFP_KERNEL);
-+	if (fh->try_fmt == NULL)
-+		return -ENOMEM;
++	/* YUV (including grey) - next is 0x200f */
++	V4L2_MBUS_FMT_Y8_1X8 = 0x2001,
++	V4L2_MBUS_FMT_UYVY8_1_5X8 = 0x2002,
++	V4L2_MBUS_FMT_VYUY8_1_5X8 = 0x2003,
++	V4L2_MBUS_FMT_YUYV8_1_5X8 = 0x2004,
++	V4L2_MBUS_FMT_YVYU8_1_5X8 = 0x2005,
++	V4L2_MBUS_FMT_UYVY8_2X8 = 0x2006,
++	V4L2_MBUS_FMT_VYUY8_2X8 = 0x2007,
++	V4L2_MBUS_FMT_YUYV8_2X8 = 0x2008,
++	V4L2_MBUS_FMT_YVYU8_2X8 = 0x2009,
++	V4L2_MBUS_FMT_Y10_1X10 = 0x200a,
++	V4L2_MBUS_FMT_YUYV10_2X10 = 0x200b,
++	V4L2_MBUS_FMT_YVYU10_2X10 = 0x200c,
++	V4L2_MBUS_FMT_YUYV10_1X20 = 0x200d,
++	V4L2_MBUS_FMT_YVYU10_1X20 = 0x200e,
 +
-+	fh->try_crop = (struct v4l2_rect *)
-+		(fh->try_fmt + sd->entity.num_pads);
-+#endif
-+	return 0;
-+}
-+
-+static void subdev_fh_free(struct v4l2_subdev_fh *fh)
-+{
-+#if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
-+	kfree(fh->try_fmt);
-+	fh->try_fmt = NULL;
-+	fh->try_crop = NULL;
-+#endif
-+}
-+
- static int subdev_open(struct file *file)
- {
- 	struct video_device *vdev = video_devdata(file);
- 	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
-+	struct v4l2_subdev_fh *subdev_fh;
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	struct media_entity *entity;
- #endif
--	struct v4l2_fh *vfh = NULL;
- 	int ret;
++	/* Bayer - next is 0x3009 */
++	V4L2_MBUS_FMT_SBGGR8_1X8 = 0x3001,
++	V4L2_MBUS_FMT_SGRBG8_1X8 = 0x3002,
++	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE = 0x3003,
++	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE = 0x3004,
++	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE = 0x3005,
++	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE = 0x3006,
++	V4L2_MBUS_FMT_SBGGR10_1X10 = 0x3007,
++	V4L2_MBUS_FMT_SBGGR12_1X12 = 0x3008,
+ };
  
- 	if (!sd->initialized)
- 		return -EAGAIN;
- 
--	if (sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS) {
--		vfh = kzalloc(sizeof(*vfh), GFP_KERNEL);
--		if (vfh == NULL)
--			return -ENOMEM;
-+	subdev_fh = kzalloc(sizeof(*subdev_fh), GFP_KERNEL);
-+	if (subdev_fh == NULL)
-+		return -ENOMEM;
- 
--		ret = v4l2_fh_init(vfh, vdev);
--		if (ret)
--			goto err;
-+	ret = subdev_fh_init(subdev_fh, sd);
-+	if (ret) {
-+		kfree(subdev_fh);
-+		return ret;
-+	}
-+
-+	ret = v4l2_fh_init(&subdev_fh->vfh, vdev);
-+	if (ret)
-+		goto err;
- 
--		ret = v4l2_event_init(vfh);
-+	if (sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS) {
-+		ret = v4l2_event_init(&subdev_fh->vfh);
- 		if (ret)
- 			goto err;
- 
--		ret = v4l2_event_alloc(vfh, sd->nevents);
-+		ret = v4l2_event_alloc(&subdev_fh->vfh, sd->nevents);
- 		if (ret)
- 			goto err;
--
--		v4l2_fh_add(vfh);
--		file->private_data = vfh;
- 	}
-+
-+	v4l2_fh_add(&subdev_fh->vfh);
-+	file->private_data = &subdev_fh->vfh;
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	if (sd->v4l2_dev->mdev) {
- 		entity = media_entity_get(&sd->entity);
-@@ -73,14 +103,14 @@ static int subdev_open(struct file *file)
- 		}
- 	}
- #endif
-+
- 	return 0;
- 
- err:
--	if (vfh != NULL) {
--		v4l2_fh_del(vfh);
--		v4l2_fh_exit(vfh);
--		kfree(vfh);
--	}
-+	v4l2_fh_del(&subdev_fh->vfh);
-+	v4l2_fh_exit(&subdev_fh->vfh);
-+	subdev_fh_free(subdev_fh);
-+	kfree(subdev_fh);
- 
- 	return ret;
- }
-@@ -92,16 +122,17 @@ static int subdev_close(struct file *file)
- 	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
- #endif
- 	struct v4l2_fh *vfh = file->private_data;
-+	struct v4l2_subdev_fh *subdev_fh = to_v4l2_subdev_fh(vfh);
- 
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	if (sd->v4l2_dev->mdev)
- 		media_entity_put(&sd->entity);
- #endif
--	if (vfh != NULL) {
--		v4l2_fh_del(vfh);
--		v4l2_fh_exit(vfh);
--		kfree(vfh);
--	}
-+	v4l2_fh_del(vfh);
-+	v4l2_fh_exit(vfh);
-+	subdev_fh_free(subdev_fh);
-+	kfree(subdev_fh);
-+	file->private_data = NULL;
- 
- 	return 0;
- }
-@@ -110,7 +141,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- {
- 	struct video_device *vdev = video_devdata(file);
- 	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
--	struct v4l2_fh *fh = file->private_data;
-+	struct v4l2_fh *vfh = file->private_data;
- 
- 	switch (cmd) {
- 	case VIDIOC_QUERYCTRL:
-@@ -138,13 +169,13 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		if (!(sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS))
- 			return -ENOIOCTLCMD;
- 
--		return v4l2_event_dequeue(fh, arg, file->f_flags & O_NONBLOCK);
-+		return v4l2_event_dequeue(vfh, arg, file->f_flags & O_NONBLOCK);
- 
- 	case VIDIOC_SUBSCRIBE_EVENT:
--		return v4l2_subdev_call(sd, core, subscribe_event, fh, arg);
-+		return v4l2_subdev_call(sd, core, subscribe_event, vfh, arg);
- 
- 	case VIDIOC_UNSUBSCRIBE_EVENT:
--		return v4l2_subdev_call(sd, core, unsubscribe_event, fh, arg);
-+		return v4l2_subdev_call(sd, core, unsubscribe_event, vfh, arg);
- 
- 	default:
- 		return -ENOIOCTLCMD;
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 7d55b0c..f8704ff 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -24,6 +24,7 @@
- #include <media/media-entity.h>
- #include <media/v4l2-common.h>
- #include <media/v4l2-dev.h>
-+#include <media/v4l2-fh.h>
- #include <media/v4l2-mediabus.h>
- 
- /* generic v4l2_device notify callback notification values */
-@@ -467,6 +468,34 @@ struct v4l2_subdev {
- #define vdev_to_v4l2_subdev(vdev) \
- 	container_of(vdev, struct v4l2_subdev, devnode)
- 
-+/*
-+ * Used for storing subdev information per file handle
-+ */
-+struct v4l2_subdev_fh {
-+	struct v4l2_fh vfh;
-+#if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
-+	struct v4l2_mbus_framefmt *try_fmt;
-+	struct v4l2_rect *try_crop;
-+#endif
-+};
-+
-+#define to_v4l2_subdev_fh(fh)	\
-+	container_of(fh, struct v4l2_subdev_fh, vfh)
-+
-+#if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
-+static inline struct v4l2_mbus_framefmt *
-+v4l2_subdev_get_try_format(struct v4l2_subdev_fh *fh, unsigned int pad)
-+{
-+	return &fh->try_fmt[pad];
-+}
-+
-+static inline struct v4l2_rect *
-+v4l2_subdev_get_try_crop(struct v4l2_subdev_fh *fh, unsigned int pad)
-+{
-+	return &fh->try_crop[pad];
-+}
-+#endif
-+
- extern const struct v4l2_file_operations v4l2_subdev_fops;
- 
- static inline void v4l2_set_subdevdata(struct v4l2_subdev *sd, void *p)
+ /**
 -- 
 1.7.3.4
 
