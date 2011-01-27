@@ -1,76 +1,55 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:11004 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751490Ab1AYAcq (ORCPT
+Received: from ironport2-out.teksavvy.com ([206.248.154.183]:12617 "EHLO
+	ironport2-out.pppoe.ca" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754126Ab1A0BBO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Jan 2011 19:32:46 -0500
-Subject: Re: [PATCH 13/13] [media] remove the old RC_MAP_HAUPPAUGE_NEW RC
- map
-From: Andy Walls <awalls@md.metrocast.net>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-In-Reply-To: <20110124131848.59f438d3@pedra>
-References: <cover.1295882104.git.mchehab@redhat.com>
-	 <20110124131848.59f438d3@pedra>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 24 Jan 2011 19:32:28 -0500
-Message-ID: <1295915548.2420.44.camel@localhost>
-Mime-Version: 1.0
+	Wed, 26 Jan 2011 20:01:14 -0500
+Message-ID: <4D40C3D7.90608@teksavvy.com>
+Date: Wed, 26 Jan 2011 20:01:11 -0500
+From: Mark Lord <kernel@teksavvy.com>
+MIME-Version: 1.0
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Linux Kernel <linux-kernel@vger.kernel.org>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils
+ ?
+References: <4D3E59CA.6070107@teksavvy.com> <4D3E5A91.30207@teksavvy.com> <20110125053117.GD7850@core.coreip.homeip.net> <4D3EB734.5090100@redhat.com> <20110125164803.GA19701@core.coreip.homeip.net> <AANLkTi=1Mh0JrYk5itvef7O7e7pR+YKos-w56W5q4B8B@mail.gmail.com> <20110125205453.GA19896@core.coreip.homeip.net> <4D3F4804.6070508@redhat.com> <4D3F4D11.9040302@teksavvy.com> <20110125232914.GA20130@core.coreip.homeip.net> <20110126020003.GA23085@core.coreip.homeip.net> <4D403855.4050706@teksavvy.com>
+In-Reply-To: <4D403855.4050706@teksavvy.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, 2011-01-24 at 13:18 -0200, Mauro Carvalho Chehab wrote:
-> The rc-hauppauge-new map is a messy thing, as it bundles 3
-> different remote controllers as if they were just one,
-> discarding the address byte. Also, some key maps are wrong.
-> 
-> With the conversion to the new rc-core, it is likely that
-> most of the devices won't be working properly, as the i2c
-> driver and the raw decoders are now providing 16 bits for
-> the remote, instead of just 8.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+On 11-01-26 10:05 AM, Mark Lord wrote:
+> On 11-01-25 09:00 PM, Dmitry Torokhov wrote:
+..
+>> I wonder if the patch below is all that is needed...
+>
+> Nope. Does not work here:
+>
+> $ lsinput
+> protocol version mismatch (expected 65536, got 65537)
+>
 
-All the patch emails didn't/haven't come through to me.
+Heh.. I just noticed something *new* in the bootlogs on my system:
 
-Did you miss cx23885-input.c, or is that using a map that isn't affected
-by these changes?
+kernel: Registered IR keymap rc-rc5-tv
+udevd-event[6438]: run_program: '/usr/bin/ir-keytable' abnormal exit
+kernel: input: i2c IR (Hauppauge) as /devices/virtual/rc/rc0/input7
+kernel: ir-keytable[6439]: segfault at 8 ip 00000000004012d2 sp 00007fff6d43ca60
+error 4 in ir-keytable[400000+7000]
+kernel: rc0: i2c IR (Hauppauge) as /devices/virtual/rc/rc0
+kernel: ir-kbd-i2c: i2c IR (Hauppauge) detected at i2c-0/0-0018/ir0 [ivtv i2c
+driver #0]
 
-Also one comment below:
+That's udev invoking ir-keyboard when the ir-kbd-i2c kernel module is loaded,
+and that is also ir-keyboard (userspace) segfaulting when run.
 
->  delete mode 100644 drivers/media/rc/keymaps/rc-hauppauge-new.c
-[...]
-> diff --git a/drivers/media/video/ir-kbd-i2c.c b/drivers/media/video/ir-kbd-i2c.c
-> index d2b20ad..b18373a 100644
-> --- a/drivers/media/video/ir-kbd-i2c.c
-> +++ b/drivers/media/video/ir-kbd-i2c.c
-> @@ -300,7 +300,7 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
->  		ir->get_key = get_key_haup;
->  		rc_type     = RC_TYPE_RC5;
->  		if (hauppauge == 1) {
-> -			ir_codes    = RC_MAP_HAUPPAUGE_NEW;
-> +			ir_codes    = RC_MAP_HAUPPAUGE;
->  		} else {
->  			ir_codes    = RC_MAP_RC5_TV;
->  		}
-> @@ -327,7 +327,7 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
->  		name        = "Hauppauge/Zilog Z8";
->  		ir->get_key = get_key_haup_xvr;
->  		rc_type     = RC_TYPE_RC5;
-> -		ir_codes    = hauppauge ? RC_MAP_HAUPPAUGE_NEW : RC_MAP_RC5_TV;
-> +		ir_codes    = hauppauge ? RC_MAP_HAUPPAUGE : RC_MAP_RC5_TV;
->  		break;
->  	}
+That behaviour is new, with the proposed "fix" patch from this thread.
+So the "fix" itself appears to also break userspace.
 
-The "hauppauge" module parameter was to make ir-kbd-i2c to default to a
-keymap for the old black remote.
+The ir-keyboard program reports: IR keytable control version 0.8.2
 
-If you have combined the black remote's keymap with the grey remote's
-keymap, why keep the "hauppauge" module parameter?
-
-Regards,
-Andy
-
-
-
+Cheers
