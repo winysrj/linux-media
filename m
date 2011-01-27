@@ -1,74 +1,87 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:46456 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751913Ab1AIBMR (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57614 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750764Ab1A0MZk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 8 Jan 2011 20:12:17 -0500
-Subject: Re: user accesses in ivtv-fileops.c:ivtv_v4l2_write ?
-From: Andy Walls <awalls@md.metrocast.net>
-To: "Dr. David Alan Gilbert" <linux@treblig.org>
-Cc: hverkuil@xs4all.nl, ivtv-devel@ivtvdriver.org,
-	linux-media@vger.kernel.org
-In-Reply-To: <20110109003404.GB21550@gallifrey>
-References: <20101128174022.GA4401@gallifrey>
-	 <1292118578.21588.13.camel@localhost> <20101212175737.GA30695@gallifrey>
-	 <20110109003404.GB21550@gallifrey>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 08 Jan 2011 19:14:12 -0500
-Message-ID: <1294532052.2435.5.camel@localhost>
-Mime-Version: 1.0
+	Thu, 27 Jan 2011 07:25:40 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Neil MacMunn <neil@gumstix.com>
+Subject: Re: omap3-isp segfault
+Date: Thu, 27 Jan 2011 13:25:38 +0100
+Cc: linux-media@vger.kernel.org
+References: <4D4076C3.4080201@gumstix.com> <4D40CDB3.7090106@gumstix.com>
+In-Reply-To: <4D40CDB3.7090106@gumstix.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201101271325.39630.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sun, 2011-01-09 at 00:34 +0000, Dr. David Alan Gilbert wrote:
-> Hi Andy,
->   It looks like we missed something in that copy from user
-> patch from the end of last year:
+Hi Neil,
+
+On Thursday 27 January 2011 02:43:15 Neil MacMunn wrote:
+> Ok I solved the segfault problem by updating some of my v4l2 files
+> (specifically v4l2-common.c). Now I only get nice sounding console
+> messages.
 > 
-> +void ivtv_write_vbi_from_user(struct ivtv *itv,
-> +                             const struct v4l2_sliced_vbi_data __user *sliced,
-> +                             size_t cnt)
-> +{
-> +       struct vbi_cc cc = { .odd = { 0x80, 0x80 }, .even = { 0x80, 0x80 } };
-> +       int found_cc = 0;
-> +       size_t i;
-> +       struct v4l2_sliced_vbi_data d;
-> +
-> +       for (i = 0; i < cnt; i++) {
-> +               if (copy_from_user(&d, sliced + i,
-> +                                  sizeof(struct v4l2_sliced_vbi_data)))
-> +                       break;
-> +               ivtv_write_vbi_line(itv, sliced + i, &cc, &found_cc);
-                                           ^^^^^^^^^^
-What was I thinking?  ---------------------+
-
-Decent plan; failed execution. :(
-
-
+>      Linux media interface: v0.10
+>      Linux video capture interface: v2.00
+>      omap3isp omap3isp: Revision 2.0 found
+>      omap-iommu omap-iommu.0: isp: version 1.1
+>      omap3isp omap3isp: hist: DMA channel = 4
+>      mt9v032 3-005c: Probing MT9V032 at address 0x5c
+>      omap3isp omap3isp: isp_set_xclk(): cam_xclka set to 28800000 Hz
+>      omap3isp omap3isp: isp_set_xclk(): cam_xclka set to 0 Hz
+>      mt9v032 3-005c: MT9V032 detected at address 0x5c
 > 
-> sparse is giving me:
-> drivers/media/video/ivtv/ivtv-vbi.c:177:49: warning: incorrect type in argument 2 (different address spaces)
-> drivers/media/video/ivtv/ivtv-vbi.c:177:49:    expected struct v4l2_sliced_vbi_data const *d
-> drivers/media/video/ivtv/ivtv-vbi.c:177:49:    got struct v4l2_sliced_vbi_data const [noderef] <asn:1>*
+> And a bunch of devices.
 > 
-> and I think the point is that while you've copied the data I think
-> you're still passing the user pointer to ivtv_write_vbi_line and it 
-> should be:
+>      # ls /dev
+>      ...
+>      v4l-subdev0
+>      v4l-subdev1
+>      v4l-subdev2
+>      v4l-subdev3
+>      v4l-subdev4
+>      v4l-subdev5
+>      v4l-subdev6
+>      v4l-subdev7
+>      v4l-subdev8
+>      ...
+>      video0
+>      video1
+>      video2
+>      video3
+>      video4
+>      video5
+>      video6
+>      ...
 > 
->                ivtv_write_vbi_line(itv, &d, &cc, &found_cc);
-> 
-> 
-> What do you think?
+> But don't know how to start the camera. How can I test the module?
 
-Yes, it looks like I gooned that one up. :)
+You can get the media-ctl and yavta test applications from 
+http://git.ideasonboard.org/
 
-That's what I get for trying to fix things with the kids running around
-before bedtime.
+media-ctl is used to configure the OMAP3 ISP pipeline, and yavta to test video 
+capture.
 
-I assume that you have made the replacement and tested that sparse is
-satisfied?
+You can run
 
+media-ctl --print-dot > omap3-isp.dot
+
+to create a .dot description of the OMAP3 ISP topology. Process the file with
+
+dot -Tps omap3-isp.dot > omap3-isp.ps
+
+to generate a graph.
+
+I'll unfortunately be offline from tomorrow evening until Monday the 7th of 
+February, but I think other users of the OMAP3 ISP driver will be able to help 
+you.
+
+-- 
 Regards,
-Andy
 
+Laurent Pinchart
