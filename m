@@ -1,180 +1,279 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:35476 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756675Ab1AMSQS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Jan 2011 13:16:18 -0500
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id p0DIGIsE022555
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 13 Jan 2011 13:16:18 -0500
-Received: from pedra (vpn-234-99.phx2.redhat.com [10.3.234.99])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p0DIECc2016438
-	for <linux-media@vger.kernel.org>; Thu, 13 Jan 2011 13:16:17 -0500
-Date: Thu, 13 Jan 2011 16:13:46 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 1/3] [media] saa7134: Fix analog mode for Kworld SBTVD
-Message-ID: <20110113161346.22264631@pedra>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59797 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753221Ab1A0Mav (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Jan 2011 07:30:51 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Cc: sakari.ailus@maxwell.research.nokia.com,
+	broonie@opensource.wolfsonmicro.com, clemens@ladisch.de
+Subject: [PATCH v8 12/12] v4l: Make v4l2_subdev inherit from media_entity
+Date: Thu, 27 Jan 2011 13:30:37 +0100
+Message-Id: <1296131437-29954-13-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1296131437-29954-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1296131437-29954-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-There were some issues at tda8290 that were preventing this device
-to work. Now that those fixes were fixed, we can enable analog
-mode.
+V4L2 subdevices are media entities. As such they need to inherit from
+(include) the media_entity structure.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+When registering/unregistering the subdevice, the media entity is
+automatically registered/unregistered. The entity is acquired on device
+open and released on device close.
 
-diff --git a/drivers/media/video/saa7134/saa7134-cards.c b/drivers/media/video/saa7134/saa7134-cards.c
-index e7aa588..b242600 100644
---- a/drivers/media/video/saa7134/saa7134-cards.c
-+++ b/drivers/media/video/saa7134/saa7134-cards.c
-@@ -5179,18 +5179,8 @@ struct saa7134_board saa7134_boards[] = {
- 	[SAA7134_BOARD_KWORLD_PCI_SBTVD_FULLSEG] = {
- 		.name           = "Kworld PCI SBTVD/ISDB-T Full-Seg Hybrid",
- 		.audio_clock    = 0x00187de7,
--#if 0
--	/*
--	 * FIXME: Analog mode doesn't work, if digital is enabled. The proper
--	 * fix is to use tda8290 driver, but Kworld seems to use an
--	 * unsupported version of tda8295.
--	 */
--		.tuner_type     = TUNER_NXP_TDA18271,	/* TUNER_PHILIPS_TDA8290 */
--		.tuner_addr     = 0x60,
--#else
--		.tuner_type     = UNSET,
-+		.tuner_type     = TUNER_PHILIPS_TDA8290,
- 		.tuner_addr     = ADDR_UNSET,
--#endif
- 		.radio_type     = UNSET,
- 		.radio_addr	= ADDR_UNSET,
- 		.gpiomask       = 0x8e054000,
-@@ -5201,6 +5191,7 @@ struct saa7134_board saa7134_boards[] = {
- 			.vmux   = 1,
- 			.amux   = TV,
- 			.tv     = 1,
-+			.gpio	= 0x4000,
- #if 0	/* FIXME */
- 		}, {
- 			.name   = name_comp1,
-@@ -7659,36 +7650,11 @@ int saa7134_board_init2(struct saa7134_dev *dev)
- 		break;
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ Documentation/video4linux/v4l2-framework.txt |   23 ++++++++++++++
+ drivers/media/video/v4l2-device.c            |   39 ++++++++++++++++++++----
+ drivers/media/video/v4l2-subdev.c            |   41 ++++++++++++++++++++++++-
+ include/media/v4l2-subdev.h                  |   10 ++++++
+ 4 files changed, 104 insertions(+), 9 deletions(-)
+
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index f231bc20..d0fb880 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -268,6 +268,26 @@ A sub-device driver initializes the v4l2_subdev struct using:
+ Afterwards you need to initialize subdev->name with a unique name and set the
+ module owner. This is done for you if you use the i2c helper functions.
+ 
++If integration with the media framework is needed, you must initialize the
++media_entity struct embedded in the v4l2_subdev struct (entity field) by
++calling media_entity_init():
++
++	struct media_pad *pads = &my_sd->pads;
++	int err;
++
++	err = media_entity_init(&sd->entity, npads, pads, 0);
++
++The pads array must have been previously initialized. There is no need to
++manually set the struct media_entity type and name fields, but the revision
++field must be initialized if needed.
++
++A reference to the entity will be automatically acquired/released when the
++subdev device node (if any) is opened/closed.
++
++Don't forget to cleanup the media entity before the sub-device is destroyed:
++
++	media_entity_cleanup(&sd->entity);
++
+ A device (bridge) driver needs to register the v4l2_subdev with the
+ v4l2_device:
+ 
+@@ -277,6 +297,9 @@ This can fail if the subdev module disappeared before it could be registered.
+ After this function was called successfully the subdev->dev field points to
+ the v4l2_device.
+ 
++If the v4l2_device parent device has a non-NULL mdev field, the sub-device
++entity will be automatically registered with the media device.
++
+ You can unregister a sub-device using:
+ 
+ 	v4l2_device_unregister_subdev(sd);
+diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
+index 5c16a12..69cb429 100644
+--- a/drivers/media/video/v4l2-device.c
++++ b/drivers/media/video/v4l2-device.c
+@@ -116,8 +116,11 @@ void v4l2_device_unregister(struct v4l2_device *v4l2_dev)
+ EXPORT_SYMBOL_GPL(v4l2_device_unregister);
+ 
+ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+-						struct v4l2_subdev *sd)
++				struct v4l2_subdev *sd)
+ {
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	struct media_entity *entity = &sd->entity;
++#endif
+ 	struct video_device *vdev;
+ 	int err;
+ 
+@@ -135,7 +138,16 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+ 	err = v4l2_ctrl_add_handler(v4l2_dev->ctrl_handler, sd->ctrl_handler);
+ 	if (err)
+ 		return err;
+-
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	/* Register the entity. */
++	if (v4l2_dev->mdev) {
++		err = media_device_register_entity(v4l2_dev->mdev, entity);
++		if (err < 0) {
++			module_put(sd->owner);
++			return err;
++		}
++	}
++#endif
+ 	sd->v4l2_dev = v4l2_dev;
+ 	spin_lock(&v4l2_dev->lock);
+ 	list_add_tail(&sd->list, &v4l2_dev->subdevs);
+@@ -150,26 +162,39 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+ 	if (sd->flags & V4L2_SUBDEV_FL_HAS_DEVNODE) {
+ 		err = __video_register_device(vdev, VFL_TYPE_SUBDEV, -1, 1,
+ 					      sd->owner);
+-		if (err < 0)
++		if (err < 0) {
+ 			v4l2_device_unregister_subdev(sd);
++			return err;
++		}
  	}
- 	case SAA7134_BOARD_KWORLD_PCI_SBTVD_FULLSEG:
--	{
--		struct i2c_msg msg = { .addr = 0x4b, .flags = 0 };
--		int i;
--		static u8 buffer[][2] = {
--			{0x30, 0x31},
--			{0xff, 0x00},
--			{0x41, 0x03},
--			{0x41, 0x1a},
--			{0xff, 0x02},
--			{0x34, 0x00},
--			{0x45, 0x97},
--			{0x45, 0xc1},
--		};
- 		saa_writel(SAA7134_GPIO_GPMODE0 >> 2, 0x4000);
- 		saa_writel(SAA7134_GPIO_GPSTATUS0 >> 2, 0x4000);
+-
+-	return err;
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	entity->v4l.major = VIDEO_MAJOR;
++	entity->v4l.minor = vdev->minor;
++#endif
++	return 0;
+ }
+ EXPORT_SYMBOL_GPL(v4l2_device_register_subdev);
  
--		/*
--		 * FIXME: identify what device is at addr 0x4b and what means
--		 * this initialization
--		 */
--		for (i = 0; i < ARRAY_SIZE(buffer); i++) {
--			msg.buf = &buffer[i][0];
--			msg.len = ARRAY_SIZE(buffer[0]);
--			if (i2c_transfer(&dev->i2c_adap, &msg, 1) != 1)
--				printk(KERN_WARNING
--				       "%s: Unable to enable tuner(%i).\n",
--				       dev->name, i);
--		}
-+		saa7134_set_gpio(dev, 27, 0);
- 		break;
--	}
- 	} /* switch() */
+ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
+ {
++	struct v4l2_device *v4l2_dev;
++
+ 	/* return if it isn't registered */
+ 	if (sd == NULL || sd->v4l2_dev == NULL)
+ 		return;
  
- 	/* initialize tuner */
-diff --git a/drivers/media/video/saa7134/saa7134-dvb.c b/drivers/media/video/saa7134/saa7134-dvb.c
-index 3315a48..064bf2c 100644
---- a/drivers/media/video/saa7134/saa7134-dvb.c
-+++ b/drivers/media/video/saa7134/saa7134-dvb.c
-@@ -236,7 +236,7 @@ static struct tda18271_std_map mb86a20s_tda18271_std_map = {
+-	spin_lock(&sd->v4l2_dev->lock);
++	v4l2_dev = sd->v4l2_dev;
++
++	spin_lock(&v4l2_dev->lock);
+ 	list_del(&sd->list);
+-	spin_unlock(&sd->v4l2_dev->lock);
++	spin_unlock(&v4l2_dev->lock);
+ 	sd->v4l2_dev = NULL;
  
- static struct tda18271_config kworld_tda18271_config = {
- 	.std_map = &mb86a20s_tda18271_std_map,
--	.gate    = TDA18271_GATE_DIGITAL,
-+	.gate    = TDA18271_GATE_ANALOG,
+ 	module_put(sd->owner);
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	if (v4l2_dev->mdev)
++		media_device_unregister_entity(&sd->entity);
++#endif
+ 	video_unregister_device(&sd->devnode);
+ }
+ EXPORT_SYMBOL_GPL(v4l2_device_unregister_subdev);
+diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+index fbccefd..a49856a 100644
+--- a/drivers/media/video/v4l2-subdev.c
++++ b/drivers/media/video/v4l2-subdev.c
+@@ -35,7 +35,10 @@ static int subdev_open(struct file *file)
+ {
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
+-	struct v4l2_fh *vfh;
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	struct media_entity *entity;
++#endif
++	struct v4l2_fh *vfh = NULL;
+ 	int ret;
+ 
+ 	if (!sd->initialized)
+@@ -61,11 +64,20 @@ static int subdev_open(struct file *file)
+ 		v4l2_fh_add(vfh);
+ 		file->private_data = vfh;
+ 	}
+-
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	if (sd->v4l2_dev->mdev) {
++		entity = media_entity_get(&sd->entity);
++		if (!entity) {
++			ret = -EBUSY;
++			goto err;
++		}
++	}
++#endif
+ 	return 0;
+ 
+ err:
+ 	if (vfh != NULL) {
++		v4l2_fh_del(vfh);
+ 		v4l2_fh_exit(vfh);
+ 		kfree(vfh);
+ 	}
+@@ -75,8 +87,16 @@ err:
+ 
+ static int subdev_close(struct file *file)
+ {
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	struct video_device *vdev = video_devdata(file);
++	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
++#endif
+ 	struct v4l2_fh *vfh = file->private_data;
+ 
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	if (sd->v4l2_dev->mdev)
++		media_entity_put(&sd->entity);
++#endif
+ 	if (vfh != NULL) {
+ 		v4l2_fh_del(vfh);
+ 		v4l2_fh_exit(vfh);
+@@ -176,5 +196,22 @@ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
+ 	sd->dev_priv = NULL;
+ 	sd->host_priv = NULL;
+ 	sd->initialized = 1;
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	sd->entity.name = sd->name;
++	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV;
++#endif
+ }
+ EXPORT_SYMBOL(v4l2_subdev_init);
++
++#if defined(CONFIG_MEDIA_CONTROLLER)
++int v4l2_subdev_set_power(struct media_entity *entity, int power)
++{
++	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
++
++	dev_dbg(entity->parent->dev,
++		"%s power%s\n", entity->name, power ? "on" : "off");
++
++	return v4l2_subdev_call(sd, core, s_power, power);
++}
++EXPORT_SYMBOL_GPL(v4l2_subdev_set_power);
++#endif
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 68cbe48..7d55b0c 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -21,6 +21,7 @@
+ #ifndef _V4L2_SUBDEV_H
+ #define _V4L2_SUBDEV_H
+ 
++#include <media/media-entity.h>
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-mediabus.h>
+@@ -437,6 +438,9 @@ struct v4l2_subdev_ops {
+    stand-alone or embedded in a larger struct.
+  */
+ struct v4l2_subdev {
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	struct media_entity entity;
++#endif
+ 	struct list_head list;
+ 	struct module *owner;
+ 	u32 flags;
+@@ -458,6 +462,8 @@ struct v4l2_subdev {
+ 	unsigned int nevents;
  };
  
- static const struct mb86a20s_config kworld_mb86a20s_config = {
-@@ -623,37 +623,6 @@ static struct tda827x_config tda827x_cfg_2_sw42 = {
++#define media_entity_to_v4l2_subdev(ent) \
++	container_of(ent, struct v4l2_subdev, entity)
+ #define vdev_to_v4l2_subdev(vdev) \
+ 	container_of(vdev, struct v4l2_subdev, devnode)
  
- /* ------------------------------------------------------------------ */
+@@ -486,6 +492,10 @@ static inline void *v4l2_get_subdev_hostdata(const struct v4l2_subdev *sd)
+ void v4l2_subdev_init(struct v4l2_subdev *sd,
+ 		      const struct v4l2_subdev_ops *ops);
  
--static int __kworld_sbtvd_i2c_gate_ctrl(struct saa7134_dev *dev, int enable)
--{
--	unsigned char initmsg[] = {0x45, 0x97};
--	unsigned char msg_enable[] = {0x45, 0xc1};
--	unsigned char msg_disable[] = {0x45, 0x81};
--	struct i2c_msg msg = {.addr = 0x4b, .flags = 0, .buf = initmsg, .len = 2};
--
--	if (i2c_transfer(&dev->i2c_adap, &msg, 1) != 1) {
--		wprintk("could not access the I2C gate\n");
--		return -EIO;
--	}
--	if (enable)
--		msg.buf = msg_enable;
--	else
--		msg.buf = msg_disable;
--	if (i2c_transfer(&dev->i2c_adap, &msg, 1) != 1) {
--		wprintk("could not access the I2C gate\n");
--		return -EIO;
--	}
--	msleep(20);
--	return 0;
--}
--static int kworld_sbtvd_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
--{
--	struct saa7134_dev *dev = fe->dvb->priv;
--
--	return __kworld_sbtvd_i2c_gate_ctrl(dev, enable);
--}
--
--/* ------------------------------------------------------------------ */
--
- static struct tda1004x_config tda827x_lifeview_config = {
- 	.demod_address = 0x08,
- 	.invert        = 1,
-@@ -1660,7 +1629,6 @@ static int dvb_init(struct saa7134_dev *dev)
- 		}
- 		break;
- 	case SAA7134_BOARD_KWORLD_PCI_SBTVD_FULLSEG:
--		__kworld_sbtvd_i2c_gate_ctrl(dev, 0);
- 		saa_writel(SAA7134_GPIO_GPMODE0 >> 2, 0x14000);
- 		saa_writel(SAA7134_GPIO_GPSTATUS0 >> 2, 0x14000);
- 		msleep(20);
-@@ -1670,16 +1638,10 @@ static int dvb_init(struct saa7134_dev *dev)
- 		fe0->dvb.frontend = dvb_attach(mb86a20s_attach,
- 					       &kworld_mb86a20s_config,
- 					       &dev->i2c_adap);
--		__kworld_sbtvd_i2c_gate_ctrl(dev, 1);
- 		if (fe0->dvb.frontend != NULL) {
- 			dvb_attach(tda18271_attach, fe0->dvb.frontend,
- 				   0x60, &dev->i2c_adap,
- 				   &kworld_tda18271_config);
--			/*
--			 * Only after success, it can initialize the gate, otherwise
--			 * an OOPS will hit, due to kfree(fe0->dvb.frontend)
--			 */
--			fe0->dvb.frontend->ops.i2c_gate_ctrl = kworld_sbtvd_i2c_gate_ctrl;
- 		}
- 		break;
- 	default:
++#if defined(CONFIG_MEDIA_CONTROLLER)
++int v4l2_subdev_set_power(struct media_entity *entity, int power);
++#endif
++
+ /* Call an ops of a v4l2_subdev, doing the right checks against
+    NULL pointers.
+ 
 -- 
-1.7.1
-
+1.7.3.4
 
