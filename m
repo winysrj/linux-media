@@ -1,419 +1,248 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:17289 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752085Ab1AQE7h (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59804 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753334Ab1A0Mau (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Jan 2011 23:59:37 -0500
-Date: Mon, 17 Jan 2011 13:59:28 +0900
-From: Kamil Debski <k.debski@samsung.com>
-Subject: RE: [RFC/PATCH v6 3/4] MFC: Add MFC 5.1 V4L2 driver
-In-reply-to: <001601cbb3d4$af238390$0d6a8ab0$%oh@samsung.com>
-To: jaeryul.oh@samsung.com, 'Jonghun Han' <jonghun.han@samsung.com>,
-	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: 'Marek Szyprowski' <m.szyprowski@samsung.com>, pawel@osciak.com,
-	kyungmin.park@samsung.com, kgene.kim@samsung.com
-Message-id: <000301cbb603$54acd0c0$fe067240$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: en-gb
-Content-transfer-encoding: 7BIT
-References: <1294417534-3856-1-git-send-email-k.debski@samsung.com>
- <1294417534-3856-4-git-send-email-k.debski@samsung.com>
- <008001cbb307$6f8cea00$4ea6be00$%han@samsung.com>
- <001d01cbb3bc$0be39980$23aacc80$%debski@samsung.com>
- <000b01cbb3cf$bbaed330$330c7990$%han@samsung.com>
- <001601cbb3d4$af238390$0d6a8ab0$%oh@samsung.com>
+	Thu, 27 Jan 2011 07:30:50 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Cc: sakari.ailus@maxwell.research.nokia.com,
+	broonie@opensource.wolfsonmicro.com, clemens@ladisch.de
+Subject: [PATCH v8 11/12] v4l: Make video_device inherit from media_entity
+Date: Thu, 27 Jan 2011 13:30:36 +0100
+Message-Id: <1296131437-29954-12-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1296131437-29954-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1296131437-29954-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+V4L2 devices are media entities. As such they need to inherit from
+(include) the media_entity structure.
 
-I don't see the need to do DQBUF on the source buffer that has the
-I-frame with changed resolution. I think that one could notify the 
-application by setting size=0 on the CAPTURE buffer. So the OUTPUT
-buffer would not be dequeued. It would be dequeued after it has
-been decoded. Do you think anything is wrong with this approach?
+When registering/unregistering the device, the media entity is
+automatically registered/unregistered. The entity is acquired on device
+open and released on device close.
 
-I really think that copying the source buffer contents is unnecessary.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ Documentation/video4linux/v4l2-framework.txt |   38 ++++++++++++++++++--
+ drivers/media/video/v4l2-dev.c               |   49 +++++++++++++++++++++++--
+ include/media/v4l2-dev.h                     |    7 ++++
+ 3 files changed, 87 insertions(+), 7 deletions(-)
 
-Best wishes,
---
-Kamil Debski
-Linux Platform Group
-Samsung Poland R&D Center
-
-> -----Original Message-----
-> From: Jaeryul Oh [mailto:jaeryul.oh@samsung.com]
-> Sent: 14 January 2011 19:21
-> To: 'Jonghun Han'; 'Kamil Debski'; linux-media@vger.kernel.org; linux-
-> samsung-soc@vger.kernel.org
-> Cc: 'Marek Szyprowski'; pawel@osciak.com; kyungmin.park@samsung.com;
-> kgene.kim@samsung.com
-> Subject: RE: [RFC/PATCH v6 3/4] MFC: Add MFC 5.1 V4L2 driver
-> 
-> I added my comments.
-> I guess that Kamil's way could be possible to run seq. of dynamic
-> resolution
-> change.
-> 
-> > -----Original Message-----
-> > From: Jonghun Han [mailto:jonghun.han@samsung.com]
-> > Sent: Friday, January 14, 2011 6:45 PM
-> > To: 'Kamil Debski'; linux-media@vger.kernel.org; linux-samsung-
-> > soc@vger.kernel.org
-> > Cc: 'Marek Szyprowski'; pawel@osciak.com; kyungmin.park@samsung.com;
-> > jaeryul.oh@samsung.com; kgene.kim@samsung.com
-> > Subject: RE: [RFC/PATCH v6 3/4] MFC: Add MFC 5.1 V4L2 driver
-> >
-> >
-> > Hi,
-> >
-> > I was confused the source and destination.
-> > I agree with you mostly.
-> >
-> > In my opinion, the way how to notify the resolution change is return
-> value
-> > of the DQBUF.
-> > But if we use DQBUF, there are some problem as below.
-> >
-> > DQBUF means that the buffer has been operated already and application
-> will
-> > have the buffer's right.
-> >
-> > Although application new QBUF destination buffers after changing
-> > destination(CAPTURE),
-> > driver cannot re-decode the I-frame which has the resolution change
-> > information
-> > because the I-frame has been dequeued already.
-> > If application re-QBUF the buffer, the buffer sequence will be out of
-> > order
-> > as below.
-> > Original: I -> B -> B .....
-> > Out of order: missed -> B -> B -> I .....
-> >
-> > How do you think about the following sequence.
-> >
-> > 1. getting the resolution change from the MFC H/W
-> >
-> > 2. copy the buffer to driver's internal memory.
-> >
-> > 3. send the result with DQBUF
-> >
-> > 4. changing destination buffers by application
-> >
-> > 5. QBUF for new destination buffers
-> >
-> > 6. in the first vb2_try_schedule
-> >   re-decode the driver's internal buffer instead of the B frame.
-> >
-> > 7. in the next vb2_try_schedule
-> >   decode the B frame in order.
-> >
-> > I also welcome your comments.
-> 
-> In the blocking sequence, blocking will be done in DQBUF.
->   1. QBUF done for I1 frame with hdr(first buf, res. chd)
->    : Copy I1 frame in the driver
->   2. DQBUF done for I1 frame
->   3. QBUF P2,P3,P4 frame, but it should NOT be DEQUED which means
->       Qbufed p2,p3,p4 is not executed
->    :  P4(third buf) -> P3(second buf) -> P2 frame(first buf)
->   4. While waiting for DEQUE about P2, copied I1 frame is executed for
-> INIT_CODEC
->   5. Copied I1 frame is runned FRAME_START after dst buffer is
-> reallocated
->       (5~9 in your seq.)
->   6. Queued P2 frame is executed, then DQBUF will be OK
-> 
-> >
-> > Best regards,
-> >
-> > > -----Original Message-----
-> > > From: Kamil Debski [mailto:k.debski@samsung.com]
-> > > Sent: Friday, January 14, 2011 4:24 PM
-> > > To: 'Jonghun Han'; linux-media@vger.kernel.org; linux-samsung-
-> > > soc@vger.kernel.org
-> > > Cc: Marek Szyprowski; pawel@osciak.com; kyungmin.park@samsung.com;
-> > > jaeryul.oh@samsung.com; kgene.kim@samsung.com
-> > > Subject: RE: [RFC/PATCH v6 3/4] MFC: Add MFC 5.1 V4L2 driver
-> > >
-> > > Hi,
-> > >
-> > > > -----Original Message-----
-> > > > From: Jonghun Han [mailto:jonghun.han@samsung.com]
-> > > >
-> > > > Hi,
-> > > >
-> > > > Kamil Debski wrote:
-> > > >
-> > > > <snip>
-> > > >
-> > > > > +/* Reqeust buffers */
-> > > > > +static int vidioc_reqbufs(struct file *file, void *priv,
-> > > > > +					  struct v4l2_requestbuffers
-> > > > *reqbufs)
-> > > > > +{
-> > > > > +	struct s5p_mfc_dev *dev = video_drvdata(file);
-> > > > > +	struct s5p_mfc_ctx *ctx = priv;
-> > > > > +	int ret = 0;
-> > > > > +	unsigned long flags;
-> > > > > +
-> > > > > +	mfc_debug_enter();
-> > > > > +	mfc_debug("Memory type: %d\n", reqbufs->memory);
-> > > > > +	if (reqbufs->memory != V4L2_MEMORY_MMAP) {
-> > > > > +		mfc_err("Only V4L2_MEMORY_MAP is supported.\n");
-> > > > > +		return -EINVAL;
-> > > > > +	}
-> > > > > +	if (reqbufs->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
-> > > > > +		/* Can only request buffers after an instance has
-> been
-> > > > opened.*/
-> > > > > +		if (ctx->state == MFCINST_DEC_GOT_INST) {
-> > > > > +			/* Decoding */
-> > > > > +			if (ctx->output_state != QUEUE_FREE) {
-> > > > > +				mfc_err("Bufs have already been
-> > > > requested.\n");
-> > > > > +				return -EINVAL;
-> > > > > +			}
-> > > > > +			ret = vb2_reqbufs(&ctx->vq_src, reqbufs);
-> > > > > +			if (ret) {
-> > > > > +				mfc_err("vb2_reqbufs on output
-> > failed.\n");
-> > > > > +				return ret;
-> > > > > +			}
-> > > > > +			mfc_debug("vb2_reqbufs: %d\n", ret);
-> > > > > +			ctx->output_state = QUEUE_BUFS_REQUESTED;
-> > > > > +		}
-> > > > > +	} else if (reqbufs->type ==
-> > > > > V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
-> > > > > +		if (ctx->capture_state != QUEUE_FREE) {
-> > > > > +			mfc_err("Bufs have already been
-> requested.\n");
-> > > > > +			return -EINVAL;
-> > > > > +		}
-> > > > > +		ctx->capture_state = QUEUE_BUFS_REQUESTED;
-> > > > > +		ret = vb2_reqbufs(&ctx->vq_dst, reqbufs);
-> > > > > +		if (ret) {
-> > > > > +			mfc_err("vb2_reqbufs on capture failed.\n");
-> > > > > +			return ret;
-> > > > > +		}
-> > > > > +		if (reqbufs->count < ctx->dpb_count) {
-> > > > > +			mfc_err("Not enough buffers allocated.\n");
-> > > > > +			reqbufs->count = 0;
-> > > > > +			ret = vb2_reqbufs(&ctx->vq_dst, reqbufs);
-> > > > > +			return -ENOMEM;
-> > > > > +		}
-> > > > > +		ctx->total_dpb_count = reqbufs->count;
-> > > > > +		ret = s5p_mfc_alloc_dec_buffers(ctx);
-> > > > > +		if (ret) {
-> > > > > +			mfc_err("Failed to allocate decoding
-> > buffers.\n");
-> > > > > +			reqbufs->count = 0;
-> > > > > +			ret = vb2_reqbufs(&ctx->vq_dst, reqbufs);
-> > > > > +			return -ENOMEM;
-> > > > > +		}
-> > > > > +		if (ctx->dst_bufs_cnt == ctx->total_dpb_count) {
-> > > > > +			ctx->capture_state = QUEUE_BUFS_MMAPED;
-> > > > > +		} else {
-> > > > > +			mfc_err("Not all buffers passed to
-> > buf_init.\n");
-> > > > > +			reqbufs->count = 0;
-> > > > > +			ret = vb2_reqbufs(&ctx->vq_dst, reqbufs);
-> > > > > +			s5p_mfc_release_dec_buffers(ctx);
-> > > > > +			return -ENOMEM;
-> > > > > +		}
-> > > > > +		if (s5p_mfc_ctx_ready(ctx)) {
-> > > > > +			spin_lock_irqsave(&dev->condlock, flags);
-> > > > > +			set_bit(ctx->num, &dev->ctx_work_bits);
-> > > > > +			spin_unlock_irqrestore(&dev->condlock,
-> flags);
-> > > > > +		}
-> > > > > +		s5p_mfc_try_run(dev);
-> > > > > +		s5p_mfc_wait_for_done_ctx(ctx,
-> > > > > +
-> > > > > S5P_FIMV_R2H_CMD_INIT_BUFFERS_RET, 1);
-> > > > > +	}
-> > > > > +	mfc_debug_leave();
-> > > > > +	return ret;
-> > > > > +}
-> > > >
-> > > > I don't know how to handle the followings.
-> > > >
-> > > > So I suggest that in reqbufs->type == V4L2_BUF_TYPE_VIDEO_OUTPUT
-> case,
-> > > > how about return -EINVAL if reqbufs->count is bigger than 1.
-> > > >
-> > > > Because if reqbufs->count is bigger than 1, it is hard to handle
-> the
-> > > > encoded
-> > > > input stream.
-> > > >
-> > > > For example: Dynamic resolution change
-> > > > Dynamic resolution change means that resolution can be changed at
-> any
-> > > > I-frame with header on the fly during streaming.
-> > > >
-> > > > MFC H/W can detect it after getting decoding command from the
-> driver.
-> > > > If the dynamic resolution change is detected by MFC H/W,
-> > > > driver should let application know the fact to do the following
-> > > > Sequence 1
-> > > > by application.
-> > > >
-> > > > Sequence 1:
-> > > > streamoff -> munmap -> reqbufs(0) -> S_FMT(changed resolution) ->
-> > > > querybuf
-> > > > -> mmap -> re-QBUF with the I-frame -> STREAMON -> ...
-> > > >
-> > > > Why it is hard to handle the encoded input stream in multiple
-> input
-> > > > stream
-> > > > case is the following Sequence 2.
-> > > >
-> > > > Sequence 2:
-> > > > QBUF(0) -> QBUF(1: resolution changed I-frame) -> QBUF(2: already
-> > > > changed)
-> > > > -> QBUF(3: already changed) -> DQBUF(0) -> DQBUF(1): return fail
-> ->
-> ...
-> > > >
-> > > > Application cannot know the resolution change in the QBUF ioctl.
-> > > > Driver will return 0 at the QBUF because all parameters are fine.
-> > > > But after sending the decode command to MFC H/W, driver can know
-> that
-> > > > the
-> > > > I-frame needs to change resolution.
-> > > > In that case driver can return error at the DQBUF of the buffer.
-> > > >
-> > > > In the sequence 2, application can know the resolution change in
-> the
-> > > > DQBUF(1).
-> > > > So the application should re-QBUF the buffer 2, 3 after Sequence
-> 1.
-> > > > It is hard to re-control the buffers which are already queued in
-> the
-> > > > point
-> > > > of application.
-> > > > Because in the reqbufs(0) buffers will be freed.
-> > > > So application has to copy them to the temporary buffer to re-
-> QBUF
-> > > > after
-> > > > Sequence 1.
-> > > >
-> > > > How can we solve this case ?
-> > >
-> > > There are two buffer queues - the OUTPUT is the queue for the
-> compressed
-> > > source. I don't see the need to do anything with this queue when
-> > resolution
-> > > is changed.
-> > >
-> > > There could be 3 src buffers queued for example. Let's say the
-> first is
-> > an
-> > > I-frame
-> > > with changed resolution. This does not affect the following source
-> > buffers.
-> > > I
-> > > agree with you that it will have impact on the destination
-> (CAPTURE)
-> > > buffers.
-> > > The problem is how to notify the application that the resolution
-> has
-> > been
-> > > changed.
-> > >
-> > > After the application is notified by the driver that resolution has
-> been
-> > > changed it has to do the following:
-> > > 1. DQBUF all the remaining destination CAPTURE buffers (with old
-> > resolution)
-> > > 2. Do stream off on CAPUTRE
-> > > 3. unmap all the CAPTURE buffers
-> > > 4. REQBUFS(0) on CAPTURE
-> > > 5. G_FMT on CAPTURE to get the new resolution
-> > > 6. REQBUFS(n) on CAPTURE
-> > > 7. mmap the CAPTURE buffers
-> > > 8. QBUF all the new CAPTURE buffers
-> > > 9. Do stream on on CAPTURE
-> > >
-> > > As you can see, the OUTPUT queue has not been modified. All the 3
-> source
-> > > buffers
-> > > are still queued until after step 9 when the processing restarts.
-> > >
-> > > From the driver perspective it looks like this:
-> > > a) After it has received DISP_STATUS [5:4] != 0 it sends the
-> > > FRAME_START_REALLOC
-> > > command. Then it behave the same as if the stream was finished -
-> running
-> > > FRAME_START
-> > > and returning the remaining buffers. This is the step 1 for
-> application
-> > > described above.
-> > > b) When no more buffers are left (DISP_STATUS[2:0]= 3) it has to
-> notify
-> > the
-> > > application
-> > > that the resolution have changed. I will discuss how to do it
-> below.
-> > > c) The application was notified and completed steps 2-4, at this
-> time
-> > the
-> > > driver has to
-> > > reinitialize the stream. Here it will use the source buffer that
-> had
-> > > resolution change
-> > > again with command INIT_CODEC.
-> > > d) The instance is reinitialized, and new resolution is read from
-> MFC.
-> > The
-> > > application now
-> > > completes steps 5-9.
-> > > e) As destination (CAPTURE) buffers are now queued the driver
-> continues
-> > > decoding.
-> > > FRAME_START command is issued for the source buffer that had
-> resolution
-> > > change and it is
-> > > decoded. This is the place when this source buffer is marked as
-> done and
-> > it
-> > > can be dequeued
-> > > by the application.
-> > >
-> > > As you can see - there was no need to reinitialize the OUTPUT
-> queue.
-> > Only
-> > > CAPTURE, so there
-> > > is no need to restrict number of source (OUTPUT) buffers to 1.
-> > >
-> > > The question is how to notify the application. I think I could be
-> done
-> > same
-> > > as end of stream
-> > > notification - by returning a buffer with size equal to 0.
-> > > If the application knows that source stream has ended, and queued a
-> > source
-> > > buffer of size 0
-> > > to notify the driver - then a destination buffer of size 0 means
-> that
-> > > decoding is finished.
-> > > In case of resolution change the application still has source
-> buffers
-> > queued
-> > > and it receives
-> > > a destination buffer with size=0. Knowing this the application can
-> do
-> > the
-> > > resolution change
-> > > procedure.
-> > >
-> > > I welcome your comments.
-> > >
-> > > Best regards,
-> > > --
-> > > Kamil Debski
-> > > Linux Platform Group
-> > > Samsung Poland R&D Center
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index aeb2a22..f231bc20 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -71,6 +71,10 @@ sub-device instances, the video_device struct stores V4L2 device node data
+ and in the future a v4l2_fh struct will keep track of filehandle instances
+ (this is not yet implemented).
+ 
++The V4L2 framework also optionally integrates with the media framework. If a
++driver sets the struct v4l2_device mdev field, sub-devices and video nodes
++will automatically appear in the media framework as entities.
++
+ 
+ struct v4l2_device
+ ------------------
+@@ -84,11 +88,14 @@ You must register the device instance:
+ 	v4l2_device_register(struct device *dev, struct v4l2_device *v4l2_dev);
+ 
+ Registration will initialize the v4l2_device struct. If the dev->driver_data
+-field is NULL, it will be linked to v4l2_dev. Drivers that use the media
+-device framework in addition to the V4L2 framework need to set
++field is NULL, it will be linked to v4l2_dev.
++
++Drivers that want integration with the media device framework need to set
+ dev->driver_data manually to point to the driver-specific device structure
+ that embed the struct v4l2_device instance. This is achieved by a
+-dev_set_drvdata() call before registering the V4L2 device instance.
++dev_set_drvdata() call before registering the V4L2 device instance. They must
++also set the struct v4l2_device mdev field to point to a properly initialized
++and registered media_device instance.
+ 
+ If v4l2_dev->name is empty then it will be set to a value derived from dev
+ (driver name followed by the bus_id, to be precise). If you set it up before
+@@ -532,6 +539,21 @@ If you use v4l2_ioctl_ops, then you should set either .unlocked_ioctl or
+ The v4l2_file_operations struct is a subset of file_operations. The main
+ difference is that the inode argument is omitted since it is never used.
+ 
++If integration with the media framework is needed, you must initialize the
++media_entity struct embedded in the video_device struct (entity field) by
++calling media_entity_init():
++
++	struct media_pad *pad = &my_vdev->pad;
++	int err;
++
++	err = media_entity_init(&vdev->entity, 1, pad, 0);
++
++The pads array must have been previously initialized. There is no need to
++manually set the struct media_entity type and name fields.
++
++A reference to the entity will be automatically acquired/released when the
++video device is opened/closed.
++
+ v4l2_file_operations and locking
+ --------------------------------
+ 
+@@ -561,6 +583,9 @@ for you.
+ 		return err;
+ 	}
+ 
++If the v4l2_device parent device has a non-NULL mdev field, the video device
++entity will be automatically registered with the media device.
++
+ Which device is registered depends on the type argument. The following
+ types exist:
+ 
+@@ -636,6 +661,13 @@ release, of course) will return an error as well.
+ When the last user of the video device node exits, then the vdev->release()
+ callback is called and you can do the final cleanup there.
+ 
++Don't forget to cleanup the media entity associated with the video device if
++it has been initialized:
++
++	media_entity_cleanup(&vdev->entity);
++
++This can be done from the release callback.
++
+ 
+ video_device helper functions
+ -----------------------------
+diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+index f22bd41..f91348f 100644
+--- a/drivers/media/video/v4l2-dev.c
++++ b/drivers/media/video/v4l2-dev.c
+@@ -303,6 +303,9 @@ static int v4l2_mmap(struct file *filp, struct vm_area_struct *vm)
+ static int v4l2_open(struct inode *inode, struct file *filp)
+ {
+ 	struct video_device *vdev;
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	struct media_entity *entity = NULL;
++#endif
+ 	int ret = 0;
+ 
+ 	/* Check if the video device is available */
+@@ -316,6 +319,16 @@ static int v4l2_open(struct inode *inode, struct file *filp)
+ 	/* and increase the device refcount */
+ 	video_get(vdev);
+ 	mutex_unlock(&videodev_lock);
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev) {
++		entity = media_entity_get(&vdev->entity);
++		if (!entity) {
++			ret = -EBUSY;
++			video_put(vdev);
++			return ret;
++		}
++	}
++#endif
+ 	if (vdev->fops->open) {
+ 		if (vdev->lock && mutex_lock_interruptible(vdev->lock)) {
+ 			ret = -ERESTARTSYS;
+@@ -331,8 +344,13 @@ static int v4l2_open(struct inode *inode, struct file *filp)
+ 
+ err:
+ 	/* decrease the refcount in case of an error */
+-	if (ret)
++	if (ret) {
++#if defined(CONFIG_MEDIA_CONTROLLER)
++		if (vdev->v4l2_dev && vdev->v4l2_dev->mdev)
++			media_entity_put(entity);
++#endif
+ 		video_put(vdev);
++	}
+ 	return ret;
+ }
+ 
+@@ -349,7 +367,10 @@ static int v4l2_release(struct inode *inode, struct file *filp)
+ 		if (vdev->lock)
+ 			mutex_unlock(vdev->lock);
+ 	}
+-
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev)
++		media_entity_put(&vdev->entity);
++#endif
+ 	/* decrease the refcount unconditionally since the release()
+ 	   return value is ignored. */
+ 	video_put(vdev);
+@@ -586,12 +607,27 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
+ 	if (nr != -1 && nr != vdev->num && warn_if_nr_in_use)
+ 		printk(KERN_WARNING "%s: requested %s%d, got %s\n", __func__,
+ 			name_base, nr, video_device_node_name(vdev));
+-
+-	/* Part 5: Activate this minor. The char device can now be used. */
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	/* Part 5: Register the entity. */
++	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev) {
++		vdev->entity.type = MEDIA_ENT_T_DEVNODE_V4L;
++		vdev->entity.name = vdev->name;
++		vdev->entity.v4l.major = VIDEO_MAJOR;
++		vdev->entity.v4l.minor = vdev->minor;
++		ret = media_device_register_entity(vdev->v4l2_dev->mdev,
++			&vdev->entity);
++		if (ret < 0)
++			printk(KERN_WARNING
++			       "%s: media_device_register_entity failed\n",
++			       __func__);
++	}
++#endif
++	/* Part 6: Activate this minor. The char device can now be used. */
+ 	set_bit(V4L2_FL_REGISTERED, &vdev->flags);
+ 	mutex_lock(&videodev_lock);
+ 	video_device[vdev->minor] = vdev;
+ 	mutex_unlock(&videodev_lock);
++
+ 	return 0;
+ 
+ cleanup:
+@@ -619,6 +655,11 @@ void video_unregister_device(struct video_device *vdev)
+ 	if (!vdev || !video_is_registered(vdev))
+ 		return;
+ 
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev)
++		media_device_unregister_entity(&vdev->entity);
++#endif
++
+ 	mutex_lock(&videodev_lock);
+ 	/* This must be in a critical section to prevent a race with v4l2_open.
+ 	 * Once this bit has been cleared video_get may never be called again.
+diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+index 4fe6831..51b2c51 100644
+--- a/include/media/v4l2-dev.h
++++ b/include/media/v4l2-dev.h
+@@ -16,6 +16,8 @@
+ #include <linux/mutex.h>
+ #include <linux/videodev2.h>
+ 
++#include <media/media-entity.h>
++
+ #define VIDEO_MAJOR	81
+ 
+ #define VFL_TYPE_GRABBER	0
+@@ -55,6 +57,9 @@ struct v4l2_file_operations {
+ 
+ struct video_device
+ {
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	struct media_entity entity;
++#endif
+ 	/* device ops */
+ 	const struct v4l2_file_operations *fops;
+ 
+@@ -100,6 +105,8 @@ struct video_device
+ 	struct mutex *lock;
+ };
+ 
++#define media_entity_to_video_device(entity) \
++	container_of(entity, struct video_device, entity)
+ /* dev to video-device */
+ #define to_video_device(cd) container_of(cd, struct video_device, dev)
+ 
+-- 
+1.7.3.4
 
