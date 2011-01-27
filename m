@@ -1,83 +1,100 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:28651 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751827Ab1AUEv5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Jan 2011 23:51:57 -0500
-Date: Thu, 20 Jan 2011 23:51:19 -0500
-From: Jarod Wilson <jarod@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59767 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751269Ab1A0M3E (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Jan 2011 07:29:04 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Andy Walls <awalls@md.metrocast.net>, Mike Isely <isely@isely.net>
-Subject: Re: [PATCH 3/3] ir-kbd-i2c: improve remote behavior with z8 behind
- usb
-Message-ID: <20110121045119.GA14446@redhat.com>
-References: <1295584225-21210-1-git-send-email-jarod@redhat.com>
- <1295584225-21210-4-git-send-email-jarod@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1295584225-21210-4-git-send-email-jarod@redhat.com>
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [PATCH v6 6/7] v4l: subdev: Control ioctls support
+Date: Thu, 27 Jan 2011 13:28:57 +0100
+Message-Id: <1296131338-29892-7-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1296131338-29892-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1296131338-29892-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-D'oh, butchered Mike's last name (and domain name), apologies...
+Pass the control-related ioctls to the subdev driver through the control
+framework.
 
-On Thu, Jan 20, 2011 at 11:30:25PM -0500, Jarod Wilson wrote:
-> Add the same "are you ready?" i2c_master_send() poll command to
-> get_key_haup_xvr found in lirc_zilog, which is apparently seen in
-> the Windows driver for the PVR-150 w/a z8. This stabilizes what is
-> received from both the HD-PVR and HVR-1950, even with their polling
-> intervals at the default of 100, thus the removal of the custom
-> 260ms polling_interval in pvrusb2-i2c-core.c.
-> 
-> CC: Andy Walls <awalls@md.metrocast.net>
-> CC: Mike Isely <isely@isely.net>
-> Signed-off-by: Jarod Wilson <jarod@redhat.com>
-> ---
->  drivers/media/video/ir-kbd-i2c.c               |   13 +++++++++++++
->  drivers/media/video/pvrusb2/pvrusb2-i2c-core.c |    1 -
->  2 files changed, 13 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/ir-kbd-i2c.c b/drivers/media/video/ir-kbd-i2c.c
-> index d2b20ad..a221ad6 100644
-> --- a/drivers/media/video/ir-kbd-i2c.c
-> +++ b/drivers/media/video/ir-kbd-i2c.c
-> @@ -128,6 +128,19 @@ static int get_key_haup(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
->  
->  static int get_key_haup_xvr(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
->  {
-> +	int ret;
-> +	unsigned char buf[1] = { 0 };
-> +
-> +	/*
-> +	 * This is the same apparent "are you ready?" poll command observed
-> +	 * watching Windows driver traffic and implemented in lirc_zilog. With
-> +	 * this added, we get far saner remote behavior with z8 chips on usb
-> +	 * connected devices, even with the default polling interval of 100ms.
-> +	 */
-> +	ret = i2c_master_send(ir->c, buf, 1);
-> +	if (ret != 1)
-> +		return (ret < 0) ? ret : -EINVAL;
-> +
->  	return get_key_haup_common (ir, ir_key, ir_raw, 6, 3);
->  }
->  
-> diff --git a/drivers/media/video/pvrusb2/pvrusb2-i2c-core.c b/drivers/media/video/pvrusb2/pvrusb2-i2c-core.c
-> index ccc8849..451ecd4 100644
-> --- a/drivers/media/video/pvrusb2/pvrusb2-i2c-core.c
-> +++ b/drivers/media/video/pvrusb2/pvrusb2-i2c-core.c
-> @@ -597,7 +597,6 @@ static void pvr2_i2c_register_ir(struct pvr2_hdw *hdw)
->  		init_data->internal_get_key_func = IR_KBD_GET_KEY_HAUP_XVR;
->  		init_data->type                  = RC_TYPE_RC5;
->  		init_data->name                  = hdw->hdw_desc->description;
-> -		init_data->polling_interval      = 260; /* ms From lirc_zilog */
->  		/* IR Receiver */
->  		info.addr          = 0x71;
->  		info.platform_data = init_data;
-> -- 
-> 1.7.3.4
-> 
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ Documentation/video4linux/v4l2-framework.txt |   16 ++++++++++++++++
+ drivers/media/video/v4l2-subdev.c            |   25 +++++++++++++++++++++++++
+ 2 files changed, 41 insertions(+), 0 deletions(-)
 
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index 4c9185a..f683f63 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -336,6 +336,22 @@ argument to 0. Setting the argument to 1 will only enable device node
+ registration if the sub-device driver has set the V4L2_SUBDEV_FL_HAS_DEVNODE
+ flag.
+ 
++The device node handles a subset of the V4L2 API.
++
++VIDIOC_QUERYCTRL
++VIDIOC_QUERYMENU
++VIDIOC_G_CTRL
++VIDIOC_S_CTRL
++VIDIOC_G_EXT_CTRLS
++VIDIOC_S_EXT_CTRLS
++VIDIOC_TRY_EXT_CTRLS
++
++	The controls ioctls are identical to the ones defined in V4L2. They
++	behave identically, with the only exception that they deal only with
++	controls implemented in the sub-device. Depending on the driver, those
++	controls can be also be accessed through one (or several) V4L2 device
++	nodes.
++
+ 
+ I2C sub-device drivers
+ ----------------------
+diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+index 0deff78..fc57ce7 100644
+--- a/drivers/media/video/v4l2-subdev.c
++++ b/drivers/media/video/v4l2-subdev.c
+@@ -24,6 +24,7 @@
+ #include <linux/ioctl.h>
+ #include <linux/videodev2.h>
+ 
++#include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+ 
+@@ -45,7 +46,31 @@ static int subdev_close(struct file *file)
+ 
+ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ {
++	struct video_device *vdev = video_devdata(file);
++	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
++
+ 	switch (cmd) {
++	case VIDIOC_QUERYCTRL:
++		return v4l2_subdev_queryctrl(sd, arg);
++
++	case VIDIOC_QUERYMENU:
++		return v4l2_subdev_querymenu(sd, arg);
++
++	case VIDIOC_G_CTRL:
++		return v4l2_subdev_g_ctrl(sd, arg);
++
++	case VIDIOC_S_CTRL:
++		return v4l2_subdev_s_ctrl(sd, arg);
++
++	case VIDIOC_G_EXT_CTRLS:
++		return v4l2_subdev_g_ext_ctrls(sd, arg);
++
++	case VIDIOC_S_EXT_CTRLS:
++		return v4l2_subdev_s_ext_ctrls(sd, arg);
++
++	case VIDIOC_TRY_EXT_CTRLS:
++		return v4l2_subdev_try_ext_ctrls(sd, arg);
++
+ 	default:
+ 		return -ENOIOCTLCMD;
+ 	}
 -- 
-Jarod Wilson
-jarod@redhat.com
+1.7.3.4
 
