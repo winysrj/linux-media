@@ -1,100 +1,63 @@
 Return-path: <mchehab@pedra>
-Received: from comal.ext.ti.com ([198.47.26.152]:45510 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751254Ab1ARNjh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Jan 2011 08:39:37 -0500
-From: Manjunath Hadli <manjunath.hadli@ti.com>
-To: LMML <linux-media@vger.kernel.org>,
-	LAK <linux-arm-kernel@lists.arm.linux.org.uk>,
-	Kevin Hilman <khilman@deeprootsystems.com>
-Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: [PATCH v16 1/3] davinci vpbe: changes to common files
-Date: Tue, 18 Jan 2011 19:09:07 +0530
-Message-Id: <1295357947-17646-1-git-send-email-manjunath.hadli@ti.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59763 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751140Ab1A0M27 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Jan 2011 07:28:59 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [PATCH v6 0/7] V4L2 subdev userspace API
+Date: Thu, 27 Jan 2011 13:28:51 +0100
+Message-Id: <1296131338-29892-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Implemented a common and single mapping for DAVINCI_SYSTEM_MODULE_BASE
-to be used by all davinci platforms.
+Hi everybody,
 
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- arch/arm/mach-davinci/common.c                |    4 +++-
- arch/arm/mach-davinci/devices.c               |   10 ++++------
- arch/arm/mach-davinci/include/mach/hardware.h |    5 +++++
- 3 files changed, 12 insertions(+), 7 deletions(-)
+Here's the sixth version of the V4L2 subdev userspace API patches. The patches
+have been rebased on top of 2.6.37, and support for the control framework has
+been integrated.
 
-diff --git a/arch/arm/mach-davinci/common.c b/arch/arm/mach-davinci/common.c
-index 1d25573..949e615 100644
---- a/arch/arm/mach-davinci/common.c
-+++ b/arch/arm/mach-davinci/common.c
-@@ -111,7 +111,9 @@ void __init davinci_common_init(struct davinci_soc_info *soc_info)
- 		if (ret != 0)
- 			goto err;
- 	}
--
-+	davinci_sysmodbase = ioremap_nocache(DAVINCI_SYSTEM_MODULE_BASE, 0x800);
-+	if (!davinci_sysmodbase)
-+		goto err;
- 	return;
- 
- err:
-diff --git a/arch/arm/mach-davinci/devices.c b/arch/arm/mach-davinci/devices.c
-index 22ebc64..2bff2d6 100644
---- a/arch/arm/mach-davinci/devices.c
-+++ b/arch/arm/mach-davinci/devices.c
-@@ -33,6 +33,8 @@
- #define DM365_MMCSD0_BASE	     0x01D11000
- #define DM365_MMCSD1_BASE	     0x01D00000
- 
-+void __iomem  *davinci_sysmodbase;
-+
- static struct resource i2c_resources[] = {
- 	{
- 		.start		= DAVINCI_I2C_BASE,
-@@ -209,9 +211,7 @@ void __init davinci_setup_mmc(int module, struct davinci_mmc_config *config)
- 			davinci_cfg_reg(DM355_SD1_DATA2);
- 			davinci_cfg_reg(DM355_SD1_DATA3);
- 		} else if (cpu_is_davinci_dm365()) {
--			void __iomem *pupdctl1 =
--				IO_ADDRESS(DAVINCI_SYSTEM_MODULE_BASE + 0x7c);
--
-+			void __iomem *pupdctl1 = DAVINCI_SYSMODULE_VIRT(0x7c);
- 			/* Configure pull down control */
- 			__raw_writel((__raw_readl(pupdctl1) & ~0xfc0),
- 					pupdctl1);
-@@ -243,9 +243,7 @@ void __init davinci_setup_mmc(int module, struct davinci_mmc_config *config)
- 			mmcsd0_resources[2].start = IRQ_DM365_SDIOINT0;
- 		} else if (cpu_is_davinci_dm644x()) {
- 			/* REVISIT: should this be in board-init code? */
--			void __iomem *base =
--				IO_ADDRESS(DAVINCI_SYSTEM_MODULE_BASE);
--
-+			void __iomem *base = DAVINCI_SYSMODULE_VIRT(0);
- 			/* Power-on 3.3V IO cells */
- 			__raw_writel(0, base + DM64XX_VDD3P3V_PWDN);
- 			/*Set up the pull regiter for MMC */
-diff --git a/arch/arm/mach-davinci/include/mach/hardware.h b/arch/arm/mach-davinci/include/mach/hardware.h
-index c45ba1f..5a105c4 100644
---- a/arch/arm/mach-davinci/include/mach/hardware.h
-+++ b/arch/arm/mach-davinci/include/mach/hardware.h
-@@ -24,6 +24,11 @@
- /* System control register offsets */
- #define DM64XX_VDD3P3V_PWDN	0x48
- 
-+#ifndef __ASSEMBLER__
-+	extern void __iomem  *davinci_sysmodbase;
-+	#define DAVINCI_SYSMODULE_VIRT(x)       (davinci_sysmodbase+(x))
-+#endif
-+
- /*
-  * I/O mapping
-  */
+You can find them as usual in  http://git.linuxtv.org/pinchartl/media.git
+(media-0001-subdev-devnode branch).
+
+Laurent Pinchart (6):
+  v4l: Share code between video_usercopy and video_ioctl2
+  v4l: subdev: Don't require core operations
+  v4l: subdev: Merge v4l2_i2c_new_subdev_cfg and v4l2_i2c_new_subdev
+  v4l: subdev: Add device node support
+  v4l: subdev: Uninline the v4l2_subdev_init function
+  v4l: subdev: Control ioctls support
+
+Sakari Ailus (1):
+  v4l: subdev: Events support
+
+ Documentation/video4linux/v4l2-framework.txt |   52 ++++++
+ drivers/media/radio/radio-si4713.c           |    2 +-
+ drivers/media/video/Makefile                 |    2 +-
+ drivers/media/video/cafe_ccic.c              |   11 +-
+ drivers/media/video/davinci/vpfe_capture.c   |    2 +-
+ drivers/media/video/davinci/vpif_capture.c   |    2 +-
+ drivers/media/video/davinci/vpif_display.c   |    2 +-
+ drivers/media/video/ivtv/ivtv-i2c.c          |   11 +-
+ drivers/media/video/s5p-fimc/fimc-capture.c  |    2 +-
+ drivers/media/video/sh_vou.c                 |    2 +-
+ drivers/media/video/soc_camera.c             |    2 +-
+ drivers/media/video/v4l2-common.c            |   22 ++-
+ drivers/media/video/v4l2-dev.c               |   27 ++--
+ drivers/media/video/v4l2-device.c            |   24 +++-
+ drivers/media/video/v4l2-ioctl.c             |  216 +++++++++-----------------
+ drivers/media/video/v4l2-subdev.c            |  180 +++++++++++++++++++++
+ include/media/v4l2-common.h                  |   18 +--
+ include/media/v4l2-dev.h                     |   18 ++-
+ include/media/v4l2-ioctl.h                   |    3 +
+ include/media/v4l2-subdev.h                  |   41 +++--
+ 20 files changed, 423 insertions(+), 216 deletions(-)
+ create mode 100644 drivers/media/video/v4l2-subdev.c
+
 -- 
-1.6.2.4
+Regards,
+
+Laurent Pinchart
 
