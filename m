@@ -1,125 +1,531 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:52537 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750925Ab1AHTFH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 8 Jan 2011 14:05:07 -0500
-Message-ID: <4D28B720.7050202@redhat.com>
-Date: Sat, 08 Jan 2011 20:12:32 +0100
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Yordan Kamenov <ykamenov@mm-sol.com>
-CC: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-Subject: Re: [PATCH 1/1] Add plugin support to libv4l
-References: <cover.1294418213.git.ykamenov@mm-sol.com> <4aa83c66a0b9030d422123f49d75e6eb5e2d58bd.1294418213.git.ykamenov@mm-sol.com>
-In-Reply-To: <4aa83c66a0b9030d422123f49d75e6eb5e2d58bd.1294418213.git.ykamenov@mm-sol.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59797 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753240Ab1A0Mao (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Jan 2011 07:30:44 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Cc: sakari.ailus@maxwell.research.nokia.com,
+	broonie@opensource.wolfsonmicro.com, clemens@ladisch.de
+Subject: [PATCH v8 08/12] media: Links setup
+Date: Thu, 27 Jan 2011 13:30:33 +0100
+Message-Id: <1296131437-29954-9-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1296131437-29954-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1296131437-29954-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+Create the following ioctl and implement it at the media device level to
+setup links.
 
-First of all many thanks for working on this! I've several remarks
-which I would like to see addressed before merging this.
+- MEDIA_IOC_SETUP_LINK: Modify the properties of a given link
 
-Since most remarks are rather high level remarks I've opted to
-just make a bulleted list of them rather then inserting them inline.
+The only property that can currently be modified is the ENABLED link
+flag to enable/disable a link. Links marked with the IMMUTABLE link flag
+can not be enabled or disabled.
 
-* The biggest problem with your current implementation is that for
-each existing libv4l2_foo function you check if there is a plugin attached
-to the fd passed in and if that plugin wants to handle the call. Now lets
-assume that there is a plugin and that it wants to handle all calls. That
-means that you've now effectively replaced all libv4l2_foo calls
-with calling the corresponding foo function from the plugin and returning
-its result. This means that for this fd / device you've achieved the
-same result as completely replacing libv4l2.so.0 with a new library
-containing the plugin code.
+Enabling or disabling a link has effects on entities' use count. Those
+changes are automatically propagated through the graph.
 
-IOW you've not placed then plugin between libv4l2 and the device (as
-intended) but completely short-circuited / replaced libv4l2. This means
-for example for a device which only supports yuv output, that libv4l2 will
-no longer do format emulation and conversion and an app which only supports
-devices which deliver rgb data will no longer work.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ Documentation/DocBook/media-entities.tmpl          |    2 +
+ Documentation/DocBook/v4l/media-controller.xml     |    1 +
+ Documentation/DocBook/v4l/media-ioc-setup-link.xml |   90 +++++++++++
+ Documentation/media-framework.txt                  |   42 ++++++
+ drivers/media/media-device.c                       |   45 ++++++
+ drivers/media/media-entity.c                       |  155 ++++++++++++++++++++
+ include/linux/media.h                              |    1 +
+ include/media/media-device.h                       |    3 +
+ include/media/media-entity.h                       |   17 ++
+ 9 files changed, 356 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/DocBook/v4l/media-ioc-setup-link.xml
 
-To actually place the plugin between libv4l2 (and libv4lconvert) and the
-device, you should replace all the SYS_FOO calls in libv4l2. The SYS_FOO
-calls are the calls to the actual device, so be replacing those with calls
-to the plugin you actual place the plugin between libv4l and the device as
-intended.
-
-* Currently you add a loop much like the one in the v4l2_get_index
-function to each libv4l2_plugin function. Basically you add an array of
-v4l2_plugin_info structs in libv4l2-plugin. Which gets searched by fd,
-much like the v4l2_dev_info struct array. Including needing similar
-locking. I would like you to instead just store the plugin info for
-a certain fd directly into the v4l2_dev_info struct. This way the
-separate array, looping and locking can go away.
-
-* Next I would also like to see all the libv4l2_plugin_foo functions
-except for libv4l2_plugin_open go away. Instead libv4l2.c can call
-the plugin functions directly. Let me try to explain what I have in
-mind. Lets say we store the struct libv4l2_plugin_data pointer to the
-active plugin in the v4l2_dev_info struct and name it dev_ops
-(short for device operations).
-
-Then we can replace all SYS_FOO calls inside libv4l2 (except the ones
-were v4l2_get_index returns -1), with a call to the relevant devop
-functions, for example:
-                 result = SYS_IOCTL(devices[index].fd, VIDIOC_REQBUFS, req);
-Would become:
-                 result = devices[index].dev_ops->v4l2_plugin_ioctl(
-                                     devices[index].fd, VIDIOC_REQBUFS, req);
-
-Note that the plugin_used parameter of the v4l2_plugin_ioctl is gone,
-it should simply do a normal SYS_IOCTL and return the return value
-of that if it is not interested in intercepting the ioctl (you could move
-the definition of the SYS_FOO macros to libv4l2-plugin.h to make them
-availables to plugins).
-
-Also I think it would be better to rename the function pointers inside
-the libv4l2_plugin_data struct from v4l2_plugin_foo to just foo, so
-that the above code would become:
-                 result = devices[index].dev_ops->v4l2_plugin_ioctl(
-                                     devices[index].fd, VIDIOC_REQBUFS, req);
-
-* The above means that need to always have a dev_ops pointer, so we
-need to have a default_dev_ops struct to use when no plugin wants to
-talk to the device.
-
-* You've put the v4l2_plugin_foo functions (of which only
-v4l2_plugin_foo will remain in my vision) in lib/include/libv4l2.h
-I don't think these functions should be public, their prototypes should
-be moved to lib/libv4l2/libv4l2-priv.h, and they should not be declared
-LIBV4L_PUBLIC.
-
-* There is one special case in all this, files under libv4lconvert also
-use SYS_IOCTL in various places. Since this now need to go through the
-plugin we need to take some special measures here. There are 2 options:
-1) Break the libv4lconvert ABI (very few programs use it) and pass a
-    struct libv4l2_plugin_data pointer to the v4lconvert_create function.
-    *And* export the default_dev_ops struct from libv4l2.
-2) Add a libv4l2_raw_ioctl method, which just gets the index and then
-    does devices[index].dev_ops->v4l2_plugin_ioctl
-    Except that this is not really an option as libv4lconvert should not
-    depend on libv4l2
-My vote personally goes to 1.
-
-* I think that once we do 1) from above it would be good to rename
-libv4l2_plugin_data to libv4l2_dev_ops, as that makes the public API
-more clear and dev_ops is in essence what a plugin provides.
-
-* Note that were I wrote: "like to see all the libv4l2_plugin_foo
-functions except for libv4l2_plugin_open go away" I did so for
-simplicity, in reality the wrappers around mmap and munmap need to
-stay too, but they should use data directly stored inside the
-v4l2_dev_info struct. This means that we need to either:
-mv the mmap and munmap code to libv4l2.c; or export the v4l2_dev_info
-struct array. I vote for exporting the v4l2_dev_info struct array
-(through libv4l2-priv.h, so it won't be visible to the outside
-world, but it will be usable outside libv4l2.c).
-
-Thanks & Regards,
-
-Hans
+diff --git a/Documentation/DocBook/media-entities.tmpl b/Documentation/DocBook/media-entities.tmpl
+index 6e7dae4..679c585 100644
+--- a/Documentation/DocBook/media-entities.tmpl
++++ b/Documentation/DocBook/media-entities.tmpl
+@@ -94,6 +94,7 @@
+ <!ENTITY MEDIA-IOC-DEVICE-INFO "<link linkend='media-ioc-device-info'><constant>MEDIA_IOC_DEVICE_INFO</constant></link>">
+ <!ENTITY MEDIA-IOC-ENUM-ENTITIES "<link linkend='media-ioc-enum-entities'><constant>MEDIA_IOC_ENUM_ENTITIES</constant></link>">
+ <!ENTITY MEDIA-IOC-ENUM-LINKS "<link linkend='media-ioc-enum-links'><constant>MEDIA_IOC_ENUM_LINKS</constant></link>">
++<!ENTITY MEDIA-IOC-SETUP-LINK "<link linkend='media-ioc-setup-link'><constant>MEDIA_IOC_SETUP_LINK</constant></link>">
+ 
+ <!-- Types -->
+ <!ENTITY v4l2-std-id "<link linkend='v4l2-std-id'>v4l2_std_id</link>">
+@@ -342,6 +343,7 @@
+ <!ENTITY sub-media-ioc-device-info SYSTEM "v4l/media-ioc-device-info.xml">
+ <!ENTITY sub-media-ioc-enum-entities SYSTEM "v4l/media-ioc-enum-entities.xml">
+ <!ENTITY sub-media-ioc-enum-links SYSTEM "v4l/media-ioc-enum-links.xml">
++<!ENTITY sub-media-ioc-setup-link SYSTEM "v4l/media-ioc-setup-link.xml">
+ 
+ <!-- Function Reference -->
+ <!ENTITY close SYSTEM "v4l/func-close.xml">
+diff --git a/Documentation/DocBook/v4l/media-controller.xml b/Documentation/DocBook/v4l/media-controller.xml
+index 2c4fd2b..2dc25e1 100644
+--- a/Documentation/DocBook/v4l/media-controller.xml
++++ b/Documentation/DocBook/v4l/media-controller.xml
+@@ -85,4 +85,5 @@
+   &sub-media-ioc-device-info;
+   &sub-media-ioc-enum-entities;
+   &sub-media-ioc-enum-links;
++  &sub-media-ioc-setup-link;
+ </appendix>
+diff --git a/Documentation/DocBook/v4l/media-ioc-setup-link.xml b/Documentation/DocBook/v4l/media-ioc-setup-link.xml
+new file mode 100644
+index 0000000..09ab3d2
+--- /dev/null
++++ b/Documentation/DocBook/v4l/media-ioc-setup-link.xml
+@@ -0,0 +1,90 @@
++<refentry id="media-ioc-setup-link">
++  <refmeta>
++    <refentrytitle>ioctl MEDIA_IOC_SETUP_LINK</refentrytitle>
++    &manvol;
++  </refmeta>
++
++  <refnamediv>
++    <refname>MEDIA_IOC_SETUP_LINK</refname>
++    <refpurpose>Modify the properties of a link</refpurpose>
++  </refnamediv>
++
++  <refsynopsisdiv>
++    <funcsynopsis>
++      <funcprototype>
++	<funcdef>int <function>ioctl</function></funcdef>
++	<paramdef>int <parameter>fd</parameter></paramdef>
++	<paramdef>int <parameter>request</parameter></paramdef>
++	<paramdef>struct media_link_desc *<parameter>argp</parameter></paramdef>
++      </funcprototype>
++    </funcsynopsis>
++  </refsynopsisdiv>
++
++  <refsect1>
++    <title>Arguments</title>
++
++    <variablelist>
++      <varlistentry>
++	<term><parameter>fd</parameter></term>
++	<listitem>
++	  <para>File descriptor returned by
++	  <link linkend='media-func-open'><function>open()</function></link>.</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>request</parameter></term>
++	<listitem>
++	  <para>MEDIA_IOC_ENUM_LINKS</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>argp</parameter></term>
++	<listitem>
++	  <para></para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++
++  <refsect1>
++    <title>Description</title>
++
++    <para>To change link properties applications fill a &media-link-desc; with
++    link identification information (source and sink pad) and the new requested
++    link flags. They then call the MEDIA_IOC_SETUP_LINK ioctl with a pointer to
++    that structure.</para>
++    <para>The only configurable property is the <constant>ENABLED</constant>
++    link flag to enable/disable a link. Links marked with the
++    <constant>IMMUTABLE</constant> link flag can not be enabled or disabled.
++    </para>
++    <para>Link configuration has no side effect on other links. If an enabled
++    link at the sink pad prevents the link from being enabled, the driver
++    returns with an &EBUSY;.</para>
++    <para>If the specified link can't be found the driver returns with an
++    &EINVAL;.</para>
++  </refsect1>
++
++  <refsect1>
++    &return-value;
++
++    <variablelist>
++      <varlistentry>
++	<term><errorcode>EBUSY</errorcode></term>
++	<listitem>
++	  <para>The link properties can't be changed because the link is
++	  currently busy. This can be caused, for instance, by an active media
++	  stream (audio or video) on the link. The ioctl shouldn't be retried if
++	  no other action is performed before to fix the problem.</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><errorcode>EINVAL</errorcode></term>
++	<listitem>
++	  <para>The &media-link-desc; references a non-existing link, or the
++	  link is immutable and an attempt to modify its configuration was made.
++	  </para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++</refentry>
+diff --git a/Documentation/media-framework.txt b/Documentation/media-framework.txt
+index 9017a41..634845e 100644
+--- a/Documentation/media-framework.txt
++++ b/Documentation/media-framework.txt
+@@ -259,6 +259,16 @@ When the graph traversal is complete the function will return NULL.
+ Graph traversal can be interrupted at any moment. No cleanup function call is
+ required and the graph structure can be freed normally.
+ 
++Helper functions can be used to find a link between two given pads, or a pad
++connected to another pad through an enabled link
++
++	media_entity_find_link(struct media_pad *source,
++			       struct media_pad *sink);
++
++	media_entity_remote_source(struct media_pad *pad);
++
++Refer to the kerneldoc documentation for more information.
++
+ 
+ Use count and power handling
+ ----------------------------
+@@ -271,3 +281,35 @@ track the number of users of every entity for power management needs.
+ The use_count field is owned by media drivers and must not be touched by entity
+ drivers. Access to the field must be protected by the media device graph_mutex
+ lock.
++
++
++Links setup
++-----------
++
++Link properties can be modified at runtime by calling
++
++	media_entity_setup_link(struct media_link *link, u32 flags);
++
++The flags argument contains the requested new link flags.
++
++The only configurable property is the ENABLED link flag to enable/disable a
++link. Links marked with the IMMUTABLE link flag can not be enabled or disabled.
++
++When a link is enabled or disabled, the media framework calls the
++link_setup operation for the two entities at the source and sink of the link,
++in that order. If the second link_setup call fails, another link_setup call is
++made on the first entity to restore the original link flags.
++
++Media device drivers can be notified of link setup operations by setting the
++media_device::link_notify pointer to a callback function. If provided, the
++notification callback will be called before enabling and after disabling
++links.
++
++Entity drivers must implement the link_setup operation if any of their links
++is non-immutable. The operation must either configure the hardware or store
++the configuration information to be applied later.
++
++Link configuration must not have any side effect on other links. If an enabled
++link at a sink pad prevents another link at the same pad from being disabled,
++the link_setup operation must return -EBUSY and can't implicitly disable the
++first enabled link.
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 1f46acb..719deba 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -172,6 +172,44 @@ static long media_device_enum_links(struct media_device *mdev,
+ 	return 0;
+ }
+ 
++static long media_device_setup_link(struct media_device *mdev,
++				    struct media_link_desc __user *_ulink)
++{
++	struct media_link *link = NULL;
++	struct media_link_desc ulink;
++	struct media_entity *source;
++	struct media_entity *sink;
++	int ret;
++
++	if (copy_from_user(&ulink, _ulink, sizeof(ulink)))
++		return -EFAULT;
++
++	/* Find the source and sink entities and link.
++	 */
++	source = find_entity(mdev, ulink.source.entity);
++	sink = find_entity(mdev, ulink.sink.entity);
++
++	if (source == NULL || sink == NULL)
++		return -EINVAL;
++
++	if (ulink.source.index >= source->num_pads ||
++	    ulink.sink.index >= sink->num_pads)
++		return -EINVAL;
++
++	link = media_entity_find_link(&source->pads[ulink.source.index],
++				      &sink->pads[ulink.sink.index]);
++	if (link == NULL)
++		return -EINVAL;
++
++	/* Setup the link on both entities. */
++	ret = __media_entity_setup_link(link, ulink.flags);
++
++	if (copy_to_user(_ulink, &ulink, sizeof(ulink)))
++		return -EFAULT;
++
++	return ret;
++}
++
+ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+ 			       unsigned long arg)
+ {
+@@ -197,6 +235,13 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+ 		mutex_unlock(&dev->graph_mutex);
+ 		break;
+ 
++	case MEDIA_IOC_SETUP_LINK:
++		mutex_lock(&dev->graph_mutex);
++		ret = media_device_setup_link(dev,
++				(struct media_link_desc __user *)arg);
++		mutex_unlock(&dev->graph_mutex);
++		break;
++
+ 	default:
+ 		ret = -ENOIOCTLCMD;
+ 	}
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index fe6bfd2..d703ce8 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -306,3 +306,158 @@ media_entity_create_link(struct media_entity *source, u16 source_pad,
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(media_entity_create_link);
++
++static int __media_entity_setup_link_notify(struct media_link *link, u32 flags)
++{
++	const u32 mask = MEDIA_LNK_FL_ENABLED;
++	int ret;
++
++	/* Notify both entities. */
++	ret = media_entity_call(link->source->entity, link_setup,
++				link->source, link->sink, flags);
++	if (ret < 0 && ret != -ENOIOCTLCMD)
++		return ret;
++
++	ret = media_entity_call(link->sink->entity, link_setup,
++				link->sink, link->source, flags);
++	if (ret < 0 && ret != -ENOIOCTLCMD) {
++		media_entity_call(link->source->entity, link_setup,
++				  link->source, link->sink, link->flags);
++		return ret;
++	}
++
++	link->flags = (link->flags & ~mask) | (flags & mask);
++	link->reverse->flags = link->flags;
++
++	return 0;
++}
++
++/**
++ * __media_entity_setup_link - Configure a media link
++ * @link: The link being configured
++ * @flags: Link configuration flags
++ *
++ * The bulk of link setup is handled by the two entities connected through the
++ * link. This function notifies both entities of the link configuration change.
++ *
++ * If the link is immutable or if the current and new configuration are
++ * identical, return immediately.
++ *
++ * The user is expected to hold link->source->parent->mutex. If not,
++ * media_entity_setup_link() should be used instead.
++ */
++int __media_entity_setup_link(struct media_link *link, u32 flags)
++{
++	struct media_device *mdev;
++	struct media_entity *source, *sink;
++	int ret = -EBUSY;
++
++	if (link == NULL)
++		return -EINVAL;
++
++	if (link->flags & MEDIA_LNK_FL_IMMUTABLE)
++		return link->flags == flags ? 0 : -EINVAL;
++
++	if (link->flags == flags)
++		return 0;
++
++	source = link->source->entity;
++	sink = link->sink->entity;
++
++	mdev = source->parent;
++
++	if ((flags & MEDIA_LNK_FL_ENABLED) && mdev->link_notify) {
++		ret = mdev->link_notify(link->source, link->sink,
++					MEDIA_LNK_FL_ENABLED);
++		if (ret < 0)
++			return ret;
++	}
++
++	ret = __media_entity_setup_link_notify(link, flags);
++	if (ret < 0)
++		goto err;
++
++	if (!(flags & MEDIA_LNK_FL_ENABLED) && mdev->link_notify)
++		mdev->link_notify(link->source, link->sink, 0);
++
++	return 0;
++
++err:
++	if ((flags & MEDIA_LNK_FL_ENABLED) && mdev->link_notify)
++		mdev->link_notify(link->source, link->sink, 0);
++
++	return ret;
++}
++
++int media_entity_setup_link(struct media_link *link, u32 flags)
++{
++	int ret;
++
++	mutex_lock(&link->source->entity->parent->graph_mutex);
++	ret = __media_entity_setup_link(link, flags);
++	mutex_unlock(&link->source->entity->parent->graph_mutex);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(media_entity_setup_link);
++
++/**
++ * media_entity_find_link - Find a link between two pads
++ * @source: Source pad
++ * @sink: Sink pad
++ *
++ * Return a pointer to the link between the two entities. If no such link
++ * exists, return NULL.
++ */
++struct media_link *
++media_entity_find_link(struct media_pad *source, struct media_pad *sink)
++{
++	struct media_link *link;
++	unsigned int i;
++
++	for (i = 0; i < source->entity->num_links; ++i) {
++		link = &source->entity->links[i];
++
++		if (link->source->entity == source->entity &&
++		    link->source->index == source->index &&
++		    link->sink->entity == sink->entity &&
++		    link->sink->index == sink->index)
++			return link;
++	}
++
++	return NULL;
++}
++EXPORT_SYMBOL_GPL(media_entity_find_link);
++
++/**
++ * media_entity_remote_source - Find the source pad at the remote end of a link
++ * @pad: Sink pad at the local end of the link
++ *
++ * Search for a remote source pad connected to the given sink pad by iterating
++ * over all links originating or terminating at that pad until an enabled link
++ * is found.
++ *
++ * Return a pointer to the pad at the remote end of the first found enabled
++ * link, or NULL if no enabled link has been found.
++ */
++struct media_pad *media_entity_remote_source(struct media_pad *pad)
++{
++	unsigned int i;
++
++	for (i = 0; i < pad->entity->num_links; i++) {
++		struct media_link *link = &pad->entity->links[i];
++
++		if (!(link->flags & MEDIA_LNK_FL_ENABLED))
++			continue;
++
++		if (link->source == pad)
++			return link->sink;
++
++		if (link->sink == pad)
++			return link->source;
++	}
++
++	return NULL;
++
++}
++EXPORT_SYMBOL_GPL(media_entity_remote_source);
+diff --git a/include/linux/media.h b/include/linux/media.h
+index 64c0313..2f67ed2 100644
+--- a/include/linux/media.h
++++ b/include/linux/media.h
+@@ -126,5 +126,6 @@ struct media_links_enum {
+ #define MEDIA_IOC_DEVICE_INFO		_IOWR('M', 1, struct media_device_info)
+ #define MEDIA_IOC_ENUM_ENTITIES		_IOWR('M', 2, struct media_entity_desc)
+ #define MEDIA_IOC_ENUM_LINKS		_IOWR('M', 3, struct media_links_enum)
++#define MEDIA_IOC_SETUP_LINK		_IOWR('M', 4, struct media_link_desc)
+ 
+ #endif /* __LINUX_MEDIA_H */
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index 260d59c..ad93e66 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -73,6 +73,9 @@ struct media_device {
+ 	spinlock_t lock;
+ 	/* Serializes graph operations. */
+ 	struct mutex graph_mutex;
++
++	int (*link_notify)(struct media_pad *source,
++			   struct media_pad *sink, u32 flags);
+ };
+ 
+ /* media_devnode to media_device */
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 0954490..60fc7bd 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -39,6 +39,12 @@ struct media_pad {
+ 	unsigned long flags;		/* Pad flags (MEDIA_PAD_FL_*) */
+ };
+ 
++struct media_entity_operations {
++	int (*link_setup)(struct media_entity *entity,
++			  const struct media_pad *local,
++			  const struct media_pad *remote, u32 flags);
++};
++
+ struct media_entity {
+ 	struct list_head list;
+ 	struct media_device *parent;	/* Media device this entity belongs to*/
+@@ -59,6 +65,8 @@ struct media_entity {
+ 	struct media_pad *pads;		/* Pads array (num_pads elements) */
+ 	struct media_link *links;	/* Links array (max_links elements)*/
+ 
++	const struct media_entity_operations *ops;	/* Entity operations */
++
+ 	int use_count;			/* Use count for the entity. */
+ 
+ 	union {
+@@ -108,6 +116,11 @@ int media_entity_init(struct media_entity *entity, u16 num_pads,
+ void media_entity_cleanup(struct media_entity *entity);
+ int media_entity_create_link(struct media_entity *source, u16 source_pad,
+ 		struct media_entity *sink, u16 sink_pad, u32 flags);
++int __media_entity_setup_link(struct media_link *link, u32 flags);
++int media_entity_setup_link(struct media_link *link, u32 flags);
++struct media_link *media_entity_find_link(struct media_pad *source,
++		struct media_pad *sink);
++struct media_pad *media_entity_remote_source(struct media_pad *pad);
+ 
+ struct media_entity *media_entity_get(struct media_entity *entity);
+ void media_entity_put(struct media_entity *entity);
+@@ -117,4 +130,8 @@ void media_entity_graph_walk_start(struct media_entity_graph *graph,
+ struct media_entity *
+ media_entity_graph_walk_next(struct media_entity_graph *graph);
+ 
++#define media_entity_call(entity, operation, args...)			\
++	(((entity)->ops && (entity)->ops->operation) ?			\
++	 (entity)->ops->operation((entity) , ##args) : -ENOIOCTLCMD)
++
+ #endif
+-- 
+1.7.3.4
 
