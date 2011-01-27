@@ -1,74 +1,115 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1290 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754271Ab1AKUcv (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59784 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752259Ab1A0Mai (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Jan 2011 15:32:51 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [GIT PATCHES FOR 2.6.38] Use the control framework in various subdevs
-Date: Tue, 11 Jan 2011 21:32:28 +0100
-Cc: linux-media@vger.kernel.org, Andy Walls <awalls@md.metrocast.net>
-References: <201012311437.00074.hverkuil@xs4all.nl> <201101071144.55426.hverkuil@xs4all.nl> <4D2CD5A4.2040404@redhat.com>
-In-Reply-To: <4D2CD5A4.2040404@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201101112132.28221.hverkuil@xs4all.nl>
+	Thu, 27 Jan 2011 07:30:38 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Cc: sakari.ailus@maxwell.research.nokia.com,
+	broonie@opensource.wolfsonmicro.com, clemens@ladisch.de
+Subject: [PATCH v8 00/12] Media controller (core and V4L2)
+Date: Thu, 27 Jan 2011 13:30:25 +0100
+Message-Id: <1296131437-29954-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tuesday, January 11, 2011 23:11:48 Mauro Carvalho Chehab wrote:
-> Em 07-01-2011 08:44, Hans Verkuil escreveu:
-> > On Friday, January 07, 2011 10:49:30 Hans Verkuil wrote:
-> 
-> > So this patch series is OK to merge.
-> 
-> >>> The following changes since commit 187134a5875df20356f4dca075db29f294115a47:
-> >>>   David Henningsson (1):
-> >>>         [media] DVB: IR support for TechnoTrend CT-3650
-> >>>
-> >>> are available in the git repository at:
-> >>>
-> >>>   ssh://linuxtv.org/git/hverkuil/media_tree.git subdev-ctrl1
-> >>>
-> >>> Hans Verkuil (11):
-> >>>       vivi: convert to the control framework and add test controls.
-> 
-> 
-> Hmm.. this patch is producing a new warning:
-> drivers/media/video/vivi.c:1059: warning: this decimal constant is unsigned only in ISO C90
-> 
-> Please fix.
-> Mauro.
+Hi everybody,
 
-Here it is:
+Here is the eighth version of the media controller core and V4L2 patches.
 
-vivi: fix compiler warning
+Quick reminder for those who missed the previous version. let me quote the
+documentation (Documentation/DocBook/v4l/media-controller.xml).
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+"Discovering a [media] device internal topology, and configuring it at runtime,
+is one of the goals of the media controller API. To achieve this, hardware
+devices are modelled as an oriented graph of building blocks called entities
+connected through pads."
 
-Regards,
+The code has been extensively reviewed by the V4L community, and this version
+is the first one to incorporate comments from the ALSA community (big thanks
+to Mark Brown and Clemens Ladisch). Two issues are not fully addressed yet,
+namely power management (I need to discuss this some more with the ALSA
+developers to really understand their requirements) and entities type names.
+I'm still posting this for review, as other developers have showed interest in
+commenting on the code.
 
-	Hans
+I want to emphasize once again that the media controller API does not replace
+the V4L, DVB or ALSA APIs. It complements them.
 
-diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
-index 598acfe..6beb270 100644
---- a/drivers/media/video/vivi.c
-+++ b/drivers/media/video/vivi.c
-@@ -1056,8 +1056,8 @@ static const struct v4l2_ctrl_config vivi_ctrl_int32 = {
- 	.id = VIVI_CID_CUSTOM_BASE + 2,
- 	.name = "Integer 32 Bits",
- 	.type = V4L2_CTRL_TYPE_INTEGER,
--	.min = -2147483648,
--	.max = 2147483647,
-+	.min = 0x80000000,
-+	.max = 0x7f000000,
- 	.step = 1,
- };
- 
+The first user of the media controller API is the OMAP3 ISP driver. You can
+find it (as well as these patches and other V4L-specific patches) in a git tree
+at http://git.linuxtv.org/pinchartl/media.git (media-0005-omap3isp branch). The
+OMAP3 ISP driver patches are regularly posted for review on the linux-media
+list.
 
+Laurent Pinchart (11):
+  media: Media device node support
+  media: Media device
+  media: Entities, pads and links
+  media: Entity use count
+  media: Media device information query
+  media: Entities, pads and links enumeration
+  media: Links setup
+  media: Pipelines and media streams
+  v4l: Add a media_device pointer to the v4l2_device structure
+  v4l: Make video_device inherit from media_entity
+  v4l: Make v4l2_subdev inherit from media_entity
+
+Sakari Ailus (1):
+  media: Entity graph traversal
+
+ Documentation/ABI/testing/sysfs-bus-media          |    6 +
+ Documentation/DocBook/media-entities.tmpl          |   24 +
+ Documentation/DocBook/media.tmpl                   |    3 +
+ Documentation/DocBook/v4l/media-controller.xml     |   89 ++++
+ Documentation/DocBook/v4l/media-func-close.xml     |   59 +++
+ Documentation/DocBook/v4l/media-func-ioctl.xml     |  116 +++++
+ Documentation/DocBook/v4l/media-func-open.xml      |   94 ++++
+ .../DocBook/v4l/media-ioc-device-info.xml          |  133 +++++
+ .../DocBook/v4l/media-ioc-enum-entities.xml        |  308 +++++++++++
+ Documentation/DocBook/v4l/media-ioc-enum-links.xml |  207 ++++++++
+ Documentation/DocBook/v4l/media-ioc-setup-link.xml |   93 ++++
+ Documentation/media-framework.txt                  |  353 +++++++++++++
+ Documentation/video4linux/v4l2-framework.txt       |   72 +++-
+ drivers/media/Kconfig                              |   13 +
+ drivers/media/Makefile                             |   10 +-
+ drivers/media/media-device.c                       |  382 ++++++++++++++
+ drivers/media/media-devnode.c                      |  321 ++++++++++++
+ drivers/media/media-entity.c                       |  536 ++++++++++++++++++++
+ drivers/media/video/v4l2-dev.c                     |   49 ++-
+ drivers/media/video/v4l2-device.c                  |   52 ++-
+ drivers/media/video/v4l2-subdev.c                  |   41 ++-
+ include/linux/Kbuild                               |    1 +
+ include/linux/media.h                              |  132 +++++
+ include/media/media-device.h                       |   95 ++++
+ include/media/media-devnode.h                      |   97 ++++
+ include/media/media-entity.h                       |  147 ++++++
+ include/media/v4l2-dev.h                           |    7 +
+ include/media/v4l2-device.h                        |    4 +
+ include/media/v4l2-subdev.h                        |   10 +
+ 29 files changed, 3428 insertions(+), 26 deletions(-)
+ create mode 100644 Documentation/ABI/testing/sysfs-bus-media
+ create mode 100644 Documentation/DocBook/v4l/media-controller.xml
+ create mode 100644 Documentation/DocBook/v4l/media-func-close.xml
+ create mode 100644 Documentation/DocBook/v4l/media-func-ioctl.xml
+ create mode 100644 Documentation/DocBook/v4l/media-func-open.xml
+ create mode 100644 Documentation/DocBook/v4l/media-ioc-device-info.xml
+ create mode 100644 Documentation/DocBook/v4l/media-ioc-enum-entities.xml
+ create mode 100644 Documentation/DocBook/v4l/media-ioc-enum-links.xml
+ create mode 100644 Documentation/DocBook/v4l/media-ioc-setup-link.xml
+ create mode 100644 Documentation/media-framework.txt
+ create mode 100644 drivers/media/media-device.c
+ create mode 100644 drivers/media/media-devnode.c
+ create mode 100644 drivers/media/media-entity.c
+ create mode 100644 include/linux/media.h
+ create mode 100644 include/media/media-device.h
+ create mode 100644 include/media/media-devnode.h
+ create mode 100644 include/media/media-entity.h
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+Regards,
+
+Laurent Pinchart
+
