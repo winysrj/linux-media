@@ -1,61 +1,40 @@
 Return-path: <mchehab@pedra>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:52629 "HELO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752583Ab1AQJ4m convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Jan 2011 04:56:42 -0500
-From: Qing Xu <qingx@marvell.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Date: Mon, 17 Jan 2011 01:53:00 -0800
-Subject: soc-camera jpeg support?
-Message-ID: <7BAC95F5A7E67643AAFB2C31BEE662D014040BF237@SC-VEXCH2.marvell.com>
-References: <1294368595-2518-1-git-send-email-qingx@marvell.com>
- <7BAC95F5A7E67643AAFB2C31BEE662D014040171EE@SC-VEXCH2.marvell.com>
- <Pine.LNX.4.64.1101100853490.24479@axis700.grange>
- <201101101133.01636.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201101101133.01636.laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:55702 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754078Ab1A0Ln5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Jan 2011 06:43:57 -0500
 MIME-Version: 1.0
+In-Reply-To: <20110127095441.GA1338@opensource.wolfsonmicro.com>
+References: <AANLkTinAYrGV1k357Bn8trtxafZDoYozG7LDcm3KNBSt@mail.gmail.com>
+ <20110125150430.GF13051@sirena.org.uk> <AANLkTi=J6mC7yWL9DF91Tp4+67QpAVK8vTMVVmsfJNyw@mail.gmail.com>
+ <20110127095441.GA1338@opensource.wolfsonmicro.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Date: Thu, 27 Jan 2011 13:43:36 +0200
+Message-ID: <AANLkTi=DWsZBtL9Wd1G_H4tC=iS9=05zdV0H00F_1Gcq@mail.gmail.com>
+Subject: Re: [GIT PULL] TI WL 128x FM V4L2 driver
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: halli manjunatha <manjunatha_halli@ti.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	linux-kernel <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+On Thu, Jan 27, 2011 at 11:54 AM, Mark Brown
+<broonie@opensource.wolfsonmicro.com> > So what happens when both
+drivers are in the system?  It sounds like
+> you've got two different drivers for the same hardware. There must be
+> some redundancy there if nothing else.
 
-Many of our sensors support directly outputting JPEG data to camera controller, do you feel it's reasonable to add jpeg support into soc-camera? As it seems that there is no define in v4l2-mediabus.h which is suitable for our case.
+Not really;
 
-Such as:
---- a/drivers/media/video/soc_mediabus.c
-+++ b/drivers/media/video/soc_mediabus.c
-@@ -130,6 +130,13 @@ static const struct soc_mbus_pixelfmt mbus_fmt[] = {
-                .packing                = SOC_MBUS_PACKING_2X8_PADLO,
-                .order                  = SOC_MBUS_ORDER_BE,
-        },
-+       [MBUS_IDX(JPEG_1X8)] = {
-+               .fourcc                 = V4L2_PIX_FMT_JPEG,
-+               .name                   = "JPEG",
-+               .bits_per_sample        = 8,
-+               .packing                = SOC_MBUS_PACKING_NONE,
-+               .order                  = SOC_MBUS_ORDER_LE,
-+       },
- };
+TI's 127x/128x devices are built of completely separate hardware
+cores, with completely separate and independent drivers.
 
---- a/include/media/v4l2-mediabus.h
-+++ b/include/media/v4l2-mediabus.h
-@@ -41,6 +41,7 @@ enum v4l2_mbus_pixelcode {
-        V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
-        V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
-        V4L2_MBUS_FMT_SGRBG8_1X8,
-+       V4L2_MBUS_FMT_JPEG_1X8,
- };
+You can use one, a subset, or all of the cores (/drivers) together on
+the same time.
 
-Any ideas will be appreciated!
-Thanks!
-Qing Xu
-
-Email: qingx@marvell.com
-Application Processor Systems Engineering,
-Marvell Technology Group Ltd.
+The mainline wl12xx driver you refer to is a mac80211 SDIO/SPI WLAN
+driver that has nothing to do with Manjunatha's FM driver.
