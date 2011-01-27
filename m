@@ -1,90 +1,72 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:54275 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753902Ab0LaVpM (ORCPT
+Return-path: <mchehab@pedra>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59831 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753421Ab1A0MbY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Dec 2010 16:45:12 -0500
-Received: by vws16 with SMTP id 16so4908910vws.19
-        for <linux-media@vger.kernel.org>; Fri, 31 Dec 2010 13:45:11 -0800 (PST)
-MIME-Version: 1.0
-Date: Fri, 31 Dec 2010 22:45:09 +0100
-Message-ID: <AANLkTi=_LHucekW21KeGt3yWMNYHntQ5nVvHUO2EVHAO@mail.gmail.com>
-Subject: DVB driver for TerraTec H7 - how do I install them?
-From: Torfinn Ingolfsen <tingox@gmail.com>
+	Thu, 27 Jan 2011 07:31:24 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [PATCH v1 5/8] v4l: Add 8-bit YUYV on 16-bit bus and SGRBG10 media bus pixel codes
+Date: Thu, 27 Jan 2011 13:31:09 +0100
+Message-Id: <1296131472-30045-6-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1296131472-30045-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1296131472-30045-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Ok,
-I downloaded drivers for the TerraTec H7 from here: http://linux.terratec.de/
-This file to be exact: http://linux.terratec.de/files/TERRATEC_H7_Linux.tar.gz
-Which supposedly contains drivers for the H7.
+Add the following media bus format code definitions:
 
-I am running Xubuntu 10.04:
-tingo@kg-htpc:~$ lsb_release -a
-No LSB modules are available.
-Distributor ID: Ubuntu
-Description:    Ubuntu 10.04.1 LTS
-Release:        10.04
-Codename:       lucid
-tingo@kg-htpc:~$ uname -a
-Linux kg-htpc 2.6.32-27-generic #49-Ubuntu SMP Wed Dec 1 23:52:12 UTC
-2010 i686 GNU/Linux
+- V4L2_MBUS_FMT_SGRBG10_1X10 for 10-bit GRBG Bayer
+- V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8 for 10-bit DPCM compressed GRBG Bayer
+- V4L2_MBUS_FMT_YUYV16_1X16 for 8-bit YUYV on 16-bit bus
+- V4L2_MBUS_FMT_UYVY16_1X16 for 8-bit UYVY on 16-bit bus
+- V4L2_MBUS_FMT_YVYU16_1X16 for 8-bit YVYU on 16-bit bus
+- V4L2_MBUS_FMT_VYUY16_1X16 for 8-bit VYUY on 16-bit bus
 
-I followed this guide[1] to get and install a new v4l-dvb, which worked fine.
-Then I did 'make distclean' and copied the files from the
-TERRATEC_H7_Linux.tar.gz file to where I thought they should be, and
-tried recompiling the v4l-dvb tree.
-That didn't work, the compilation aborted:
- CC [M]  /home/tingo/work/v4l-dvb/v4l/au6610.o
- CC [M]  /home/tingo/work/v4l-dvb/v4l/az6007.o
-In file included from /home/tingo/work/v4l-dvb/v4l/az6007.c:11:
-/home/tingo/work/v4l-dvb/v4l/mt2063_cfg.h: In function 'tuner_MT2063_Open':
-/home/tingo/work/v4l-dvb/v4l/mt2063_cfg.h:62: error:
-'DVBFE_TUNER_OPEN' undeclared (first use in this function)
-/home/tingo/work/v4l-dvb/v4l/mt2063_cfg.h:62: error: (Each undeclared
-identifier is reported only once
-/home/tingo/work/v4l-dvb/v4l/mt2063_cfg.h:62: error: for each function
-it appears in.)
-/home/tingo/work/v4l-dvb/v4l/mt2063_cfg.h: In function
-'tuner_MT2063_SoftwareShutdown':
-/home/tingo/work/v4l-dvb/v4l/mt2063_cfg.h:83: error:
-'DVBFE_TUNER_SOFTWARE_SHUTDOWN' undeclared (first use in this
-function)
-/home/tingo/work/v4l-dvb/v4l/mt2063_cfg.h: In function
-'tuner_MT2063_ClearPowerMaskBits':
-/home/tingo/work/v4l-dvb/v4l/mt2063_cfg.h:104: error:
-'DVBFE_TUNER_CLEAR_POWER_MASKBITS' undeclared (first use in this
-function)
-/home/tingo/work/v4l-dvb/v4l/az6007.c: At top level:
-/home/tingo/work/v4l-dvb/v4l/az6007.c:157: warning: excess elements in
-struct initializer
-/home/tingo/work/v4l-dvb/v4l/az6007.c:157: warning: (near
-initialization for 'az6007_rc_keys[0]')
-/home/tingo/work/v4l-dvb/v4l/az6007.c:158: warning: excess elements in
-struct initializer
-/home/tingo/work/v4l-dvb/v4l/az6007.c:158: warning: (near
-initialization for 'az6007_rc_keys[1]')
-/home/tingo/work/v4l-dvb/v4l/az6007.c:535: error:
-'USB_PID_AZUREWAVE_6007' undeclared here (not in a function)
-/home/tingo/work/v4l-dvb/v4l/az6007.c:536: error:
-'USB_PID_TERRATEC_H7' undeclared here (not in a function)
-make[3]: *** [/home/tingo/work/v4l-dvb/v4l/az6007.o] Error 1
-make[2]: *** [_module_/home/tingo/work/v4l-dvb/v4l] Error 2
-make[2]: Leaving directory `/usr/src/linux-headers-2.6.32-27-generic'
-make[1]: *** [default] Error 2
-make[1]: Leaving directory `/home/tingo/work/v4l-dvb/v4l'
-make: *** [all] Error 2
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ include/linux/v4l2-mediabus.h |   10 ++++++++--
+ 1 files changed, 8 insertions(+), 2 deletions(-)
 
-So obviously I'm doing something wrong.
-How do I install those drivers for the TerraTec H7?
+diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
+index cccfa34..c4caca3 100644
+--- a/include/linux/v4l2-mediabus.h
++++ b/include/linux/v4l2-mediabus.h
+@@ -47,7 +47,7 @@ enum v4l2_mbus_pixelcode {
+ 	V4L2_MBUS_FMT_RGB565_2X8_BE = 0x1007,
+ 	V4L2_MBUS_FMT_RGB565_2X8_LE = 0x1008,
+ 
+-	/* YUV (including grey) - next is 0x200f */
++	/* YUV (including grey) - next is 0x2013 */
+ 	V4L2_MBUS_FMT_Y8_1X8 = 0x2001,
+ 	V4L2_MBUS_FMT_UYVY8_1_5X8 = 0x2002,
+ 	V4L2_MBUS_FMT_VYUY8_1_5X8 = 0x2003,
+@@ -60,17 +60,23 @@ enum v4l2_mbus_pixelcode {
+ 	V4L2_MBUS_FMT_Y10_1X10 = 0x200a,
+ 	V4L2_MBUS_FMT_YUYV10_2X10 = 0x200b,
+ 	V4L2_MBUS_FMT_YVYU10_2X10 = 0x200c,
++	V4L2_MBUS_FMT_UYVY8_1X16 = 0x200f,
++	V4L2_MBUS_FMT_VYUY8_1X16 = 0x2010,
++	V4L2_MBUS_FMT_YUYV8_1X16 = 0x2011,
++	V4L2_MBUS_FMT_YVYU8_1X16 = 0x2012,
+ 	V4L2_MBUS_FMT_YUYV10_1X20 = 0x200d,
+ 	V4L2_MBUS_FMT_YVYU10_1X20 = 0x200e,
+ 
+-	/* Bayer - next is 0x3009 */
++	/* Bayer - next is 0x300b */
+ 	V4L2_MBUS_FMT_SBGGR8_1X8 = 0x3001,
+ 	V4L2_MBUS_FMT_SGRBG8_1X8 = 0x3002,
++	V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8 = 0x3009,
+ 	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE = 0x3003,
+ 	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE = 0x3004,
+ 	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE = 0x3005,
+ 	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE = 0x3006,
+ 	V4L2_MBUS_FMT_SBGGR10_1X10 = 0x3007,
++	V4L2_MBUS_FMT_SGRBG10_1X10 = 0x300a,
+ 	V4L2_MBUS_FMT_SBGGR12_1X12 = 0x3008,
+ };
+ 
+-- 
+1.7.3.4
 
-Oh, and best wishes for the new year to everyone!
-
-References:
-1) http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
---
-Regards,
-Torfinn Ingolfsen
-Norway
