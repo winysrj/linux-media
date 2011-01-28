@@ -1,25 +1,29 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com (ext-mx09.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.13])
-	by int-mx12.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP
-	id p0RM0CtP018555
-	for <video4linux-list@redhat.com>; Thu, 27 Jan 2011 17:00:12 -0500
-Received: from soapstone1.mail.cornell.edu (soapstone1.mail.cornell.edu
-	[128.253.83.143])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id p0RM01o8002573
-	for <video4linux-list@redhat.com>; Thu, 27 Jan 2011 17:00:02 -0500
-From: Devin Bougie <devin.bougie@cornell.edu>
-To: "Charlie X. Liu" <charlie@sensoray.com>
-Date: Thu, 27 Jan 2011 17:00:00 -0500
-Subject: Re: xawtv crashes with Sensoray 611 on RHEL5
-Message-ID: <F4FFE7D4-65AE-49C7-85CC-40BD4B0FE720@cornell.edu>
-References: <3A916790-1E8D-4460-90B6-CF92D9F517F5@cornell.edu>
-	<835A8D82-5E54-4958-98A0-F7647EA93317@cornell.edu>
-	<000001cbbdb4$dab74d40$9025e7c0$@com>
-In-Reply-To: <000001cbbdb4$dab74d40$9025e7c0$@com>
-Content-Language: en-US
+Received: from mx1.redhat.com (ext-mx05.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.9])
+	by int-mx09.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP
+	id p0SJ94lg011992
+	for <video4linux-list@redhat.com>; Fri, 28 Jan 2011 14:09:04 -0500
+Received: from mail-ww0-f46.google.com (mail-ww0-f46.google.com [74.125.82.46])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id p0SJ8Hd2016996
+	for <video4linux-list@redhat.com>; Fri, 28 Jan 2011 14:08:57 -0500
+Received: by mail-ww0-f46.google.com with SMTP id 40so4168085wwj.27
+	for <video4linux-list@redhat.com>; Fri, 28 Jan 2011 11:08:56 -0800 (PST)
 MIME-Version: 1.0
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
+In-Reply-To: <20110128173627.GL25038@beta.zimage.com>
+References: <AANLkTindYgatAuWoVog0dnVKkhUHWO9-MaOC39oAMQgK@mail.gmail.com>
+	<20110127092248.18877dx8p3qe0k0o@webmail.hebergement.com>
+	<AANLkTimNr=87qc7TKwJu6c3grphfbToD2tpQcpnXHv3w@mail.gmail.com>
+	<20110128094254.11965b0zcrkqshhq@webmail.hebergement.com>
+	<AANLkTiniyqtmzv7UUC9AiDQYcOb1Sa+aKDbdvB0ioS=M@mail.gmail.com>
+	<2dac589a6c232e004c3f29de4252b883.squirrel@sensoray.com>
+	<20110128173627.GL25038@beta.zimage.com>
+From: chetan patil <chtpatil@gmail.com>
+Date: Sat, 29 Jan 2011 00:38:35 +0530
+Message-ID: <AANLkTikdc6rh1DwmdzXTMn5t3p9Zajb=Gb7ML=9Eeboq@mail.gmail.com>
+Subject: Re: DM6446
+To: Phillip Pi <ant@zimage.com>
+Cc: video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,29 +37,55 @@ Errors-To: video4linux-list-bounces@redhat.com
 Sender: <mchehab@pedra>
 List-ID: <video4linux-list@redhat.com>
 
-Hi Charlie,
+Hey.
 
-On Jan 26, 2011, at 6:57 PM, Charlie X. Liu wrote:
-> Have you tried with other distro's, like Ubuntu or SuSE? If they are Ok, you
-> may report to RedHat for investigation or as bug report. If the same behave,
-> the PC chipset may not be proper or compatible working at 64-bit mode. Then,
-> staying with 32-bit, would be Ok for your application?
+I want to cross compile the source code for arm based processor.
 
-I have not yet tried with any distributions besides RHEL5.  We will try to look at this a little more when we get a chance.
+I don't want to compile it on Linux distro.
+The target platform is MontaVista.
+Board: Dm6446.
 
-> BTW, for multi-channel video/frame capturing, Sensoray has Model 811 (
-> http://www.sensoray.com/products/811.htm) for your consideration. It uses a
-> better capturing chipset (in terms of video/frame capturing quality),
-> SAA7135. Four of the SAA7135's are on one Model 811 board, and it supports
-> 4-channel capturing simultaneously. Have you noticed it and would like to
-> consider or try out?
+Thanks.
 
-Thanks!  It looks like we will order a Model 811 for evaluation.  What will we need in modprobe.conf to support the Model 811 in RHEL5?
+On Fri, Jan 28, 2011 at 11:06 PM, Phillip Pi <ant@zimage.com> wrote:
 
-Thanks again,
-Devin
+> Wow, these are old. Did Xawtv project die or something? Is there an
+> updated fork or anything? I never got my old ASUS TV tuner to work
+> with it. :(
+>
+>
+> On Fri, Jan 28, 2011 at 11:25:48AM -0600, charlie@sensoray.com wrote:
+> > It's in:
+> >
+> > http://rbytes.net/linux/xawtv-review/
+> > http://linux.wareseeker.com/Multimedia/xawtv-3.95.zip/322997
+> > http://nixbit.com/cat/multimedia/video/xawtv/
+> >
+> >
+> > > Does any one has resources/source of XAWTV ?!
+> --
+> Quote of the Week: "A coconut shell full of water is a(n) sea/ocean to an
+> ant." --Indians
+>  /\___/\          Phil./Ant @ http://antfarm.ma.cx (Personal Web Site)
+>  / /\ /\ \                 Ant's Quality Foraged Links: http://aqfl.net
+> | |o   o| |                 E-mail: philpi@earthlink.net/ant@zimage.com
+>   \ _ /              If crediting, then please kindly use Ant nickname
+>    ( )                                              and AQFL URL/link.
+>
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+>
 
 
+
+-- 
+Regards,
+
+Chetan Arvind Patil,
++919970018364
+<http://sites.google.com/site/chtpatil/>
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
