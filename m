@@ -1,35 +1,68 @@
 Return-path: <mchehab@pedra>
-Received: from mail-in-03.arcor-online.net ([151.189.21.43]:40021 "EHLO
-	mail-in-03.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753795Ab1AJSB4 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Jan 2011 13:01:56 -0500
-Subject: Re: [PATCH] DVB Satellite Channel Routing support for DVB-S
-Mime-Version: 1.0 (Apple Message framework v1082)
-Content-Type: text/plain; charset=us-ascii
-From: =?iso-8859-1?Q?Thomas_Schl=F6ter?= <thomas.schloeter@gmx.net>
-In-Reply-To: <4D2B2BA6.7030009@linuxtv.org>
-Date: Mon, 10 Jan 2011 19:01:47 +0100
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Transfer-Encoding: 8BIT
-Message-Id: <E063370D-7EC3-4E21-8B25-AE3064FA6FB1@gmx.net>
-References: <BDD0B014-3AD5-4693-82D9-026F47A7F8A4@gmx.net> <4D2B0521.1020404@linuxtv.org> <C8296DFF-0E53-4AA2-A6ED-CA8B83D424F2@gmx.net> <4D2B2BA6.7030009@linuxtv.org>
-To: Andreas Oberritter <obi@linuxtv.org>
+Received: from ironport2-out.teksavvy.com ([206.248.154.183]:13366 "EHLO
+	ironport2-out.pppoe.ca" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750982Ab1A1VDJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Jan 2011 16:03:09 -0500
+Message-ID: <4D432F0B.70808@teksavvy.com>
+Date: Fri, 28 Jan 2011 16:03:07 -0500
+From: Mark Lord <kernel@teksavvy.com>
+MIME-Version: 1.0
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Linux Kernel <linux-kernel@vger.kernel.org>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils
+ ?
+References: <20110125232914.GA20130@core.coreip.homeip.net> <20110126020003.GA23085@core.coreip.homeip.net> <4D403855.4050706@teksavvy.com> <4D40C3D7.90608@teksavvy.com> <4D40C551.4020907@teksavvy.com> <20110127021227.GA29709@core.coreip.homeip.net> <4D40E41D.2030003@teksavvy.com> <20110127163931.GA1825@core.coreip.homeip.net> <4D41B5A0.70704@teksavvy.com> <20110127195325.GB29910@core.coreip.homeip.net> <20110128164244.GB6252@core.coreip.homeip.net> <4D432D47.2000600@teksavvy.com>
+In-Reply-To: <4D432D47.2000600@teksavvy.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-
-Am 10.01.2011 um 16:54 schrieb Andreas Oberritter:
+On 11-01-28 03:55 PM, Mark Lord wrote:
+> On 11-01-28 11:42 AM, Dmitry Torokhov wrote:
+>> On Thu, Jan 27, 2011 at 11:53:25AM -0800, Dmitry Torokhov wrote:
+>>> On Thu, Jan 27, 2011 at 01:12:48PM -0500, Mark Lord wrote:
+>>>> On 11-01-27 11:39 AM, Dmitry Torokhov wrote:
+> ..
+>>>>> Hmm, what about compiling with debug and getting a core then?
+>>>>
+>>>> Sure.  debug is easy, -g, but you'll have to tell me how to get it
+>>>> do produce a core dump.
+>>>>
+>>>
+>>> See if adjusting /etc/security/limits.conf will enable it to dump core.
+>>> Otherwise you'll have to stick 'ulimit -c unlimited' somewhere...
+> ..
+>> Any luck with getting the core? I'd really like to resolve this issue.
+> ..
 > 
->> - In many TV recording applications there is no support for SCR and it would be harder to implement in these. For VDR, there is a patch which is difficult to configure and has some technical limitations. In MythTV and XMBC I could not find any support for SCR. Their Wiki pages or forums say, that there are no plans for Unicable support as it would take huge changes.
+> I'm upgrading the box to new userspace now.
+> But I still have the old installation drive,
+> so perhaps I'll go there now and try this.
 > 
-> Many of these applications didn't or don't support DiSEqC 1.1
-> (uncommittted switches) or DiSEqC 1.2 (rotor commands) or USALS. Still,
-> we don't put this logic into the kernel to make their life easier.
+> My plan is to replace /usr/bin/ir-keytable with a script
+> that issues the 'ulimit -c unlimited' command and then
+> invokes the original /usr/bin/ir-keytable binary.
+> 
+> Should take half an hour or so before I get back here again.
 
-> Don't add unneeded complexity to the kernel.
+No-go.  According to the syslog, the segfault has not happened
+since I reconfigured the kernel and startup sequence two days
+ago to resolve an XFS mount issue.
 
-I think this is the point we are talking about and I understand the feature might not be critical enough to justify a kernel implementation.
+Something in there changed the init timing just enough to make
+it go away, I believe.
 
-Regards,
-Thomas
+Now I'm blowing it all away in favour of fresh userspace,
+with a whole new set of issues to resolve.  :)
+
+Off-Topic:
+Ubuntu (Mythbuntu) really has a ton of timing issues with
+this upstart thing at startup and shutdown.. running from an SSD
+really exposes the flaws.
+
+Cheers
