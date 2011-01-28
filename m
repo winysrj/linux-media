@@ -1,161 +1,77 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.10]:55758 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752818Ab1AVXpS (ORCPT
+Received: from mail-yi0-f46.google.com ([209.85.218.46]:65521 "EHLO
+	mail-yi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752681Ab1A1VKK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Jan 2011 18:45:18 -0500
-Date: Sun, 23 Jan 2011 00:45:15 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: linux-media@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
-	Kuninori Morimoto <morimoto.kuninori@renesas.com>,
-	Alberto Panizzo <maramaopercheseimorto@gmail.com>,
-	Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>,
-	Marek Vasut <marek.vasut@gmail.com>,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: Re: [RFC PATCH 04/12] mt9m111.c: convert to the control framework.
-In-Reply-To: <56c1a8ef6e1a5405881611a18579db98e271fb86.1294786597.git.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.1101230032110.1872@axis700.grange>
-References: <1294787172-13638-1-git-send-email-hverkuil@xs4all.nl>
- <56c1a8ef6e1a5405881611a18579db98e271fb86.1294786597.git.hverkuil@xs4all.nl>
+	Fri, 28 Jan 2011 16:10:10 -0500
+Date: Fri, 28 Jan 2011 13:09:58 -0800
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Mark Lord <kernel@teksavvy.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Linux Kernel <linux-kernel@vger.kernel.org>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils ?
+Message-ID: <20110128210958.GJ6252@core.coreip.homeip.net>
+References: <4D40C3D7.90608@teksavvy.com>
+ <4D40C551.4020907@teksavvy.com>
+ <20110127021227.GA29709@core.coreip.homeip.net>
+ <4D40E41D.2030003@teksavvy.com>
+ <20110127163931.GA1825@core.coreip.homeip.net>
+ <4D41B5A0.70704@teksavvy.com>
+ <20110127195325.GB29910@core.coreip.homeip.net>
+ <20110128164244.GB6252@core.coreip.homeip.net>
+ <4D432D47.2000600@teksavvy.com>
+ <4D432F0B.70808@teksavvy.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4D432F0B.70808@teksavvy.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 12 Jan 2011, Hans Verkuil wrote:
-
-> Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
-> ---
->  drivers/media/video/mt9m111.c |  184 ++++++++++++-----------------------------
->  1 files changed, 54 insertions(+), 130 deletions(-)
+On Fri, Jan 28, 2011 at 04:03:07PM -0500, Mark Lord wrote:
+> On 11-01-28 03:55 PM, Mark Lord wrote:
+> > On 11-01-28 11:42 AM, Dmitry Torokhov wrote:
+> >> On Thu, Jan 27, 2011 at 11:53:25AM -0800, Dmitry Torokhov wrote:
+> >>> On Thu, Jan 27, 2011 at 01:12:48PM -0500, Mark Lord wrote:
+> >>>> On 11-01-27 11:39 AM, Dmitry Torokhov wrote:
+> > ..
+> >>>>> Hmm, what about compiling with debug and getting a core then?
+> >>>>
+> >>>> Sure.  debug is easy, -g, but you'll have to tell me how to get it
+> >>>> do produce a core dump.
+> >>>>
+> >>>
+> >>> See if adjusting /etc/security/limits.conf will enable it to dump core.
+> >>> Otherwise you'll have to stick 'ulimit -c unlimited' somewhere...
+> > ..
+> >> Any luck with getting the core? I'd really like to resolve this issue.
+> > ..
+> > 
+> > I'm upgrading the box to new userspace now.
+> > But I still have the old installation drive,
+> > so perhaps I'll go there now and try this.
+> > 
+> > My plan is to replace /usr/bin/ir-keytable with a script
+> > that issues the 'ulimit -c unlimited' command and then
+> > invokes the original /usr/bin/ir-keytable binary.
+> > 
+> > Should take half an hour or so before I get back here again.
 > 
-> diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
-> index 53fa2a7..2328579 100644
-> --- a/drivers/media/video/mt9m111.c
-> +++ b/drivers/media/video/mt9m111.c
-
-[snip]
-
-> -static int mt9m111_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
-> +static int mt9m111_s_ctrl(struct v4l2_ctrl *ctrl)
->  {
-> +	struct v4l2_subdev *sd =
-> +		&container_of(ctrl->handler, struct mt9m111, hdl)->subdev;
->  	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> -	struct mt9m111 *mt9m111 = to_mt9m111(client);
-> -	const struct v4l2_queryctrl *qctrl;
-> -	int ret;
-> -
-> -	qctrl = soc_camera_find_qctrl(&mt9m111_ops, ctrl->id);
-> -	if (!qctrl)
-> -		return -EINVAL;
->  
->  	switch (ctrl->id) {
->  	case V4L2_CID_VFLIP:
-> -		mt9m111->vflip = ctrl->value;
-> -		ret = mt9m111_set_flip(client, ctrl->value,
-> +		return mt9m111_set_flip(client, ctrl->val,
->  					MT9M111_RMB_MIRROR_ROWS);
-> -		break;
->  	case V4L2_CID_HFLIP:
-> -		mt9m111->hflip = ctrl->value;
-> -		ret = mt9m111_set_flip(client, ctrl->value,
-> +		return mt9m111_set_flip(client, ctrl->val,
->  					MT9M111_RMB_MIRROR_COLS);
-> -		break;
->  	case V4L2_CID_GAIN:
-> -		ret = mt9m111_set_global_gain(client, ctrl->value);
-> -		break;
-> +		return mt9m111_set_global_gain(client, ctrl->val);
-> +
->  	case V4L2_CID_EXPOSURE_AUTO:
-> -		ret =  mt9m111_set_autoexposure(client, ctrl->value);
-> -		break;
-> +		return mt9m111_set_autoexposure(client, ctrl->val);
-> +
->  	case V4L2_CID_AUTO_WHITE_BALANCE:
-> -		ret =  mt9m111_set_autowhitebalance(client, ctrl->value);
-> -		break;
-> -	default:
-> -		ret = -EINVAL;
-> +		return mt9m111_set_autowhitebalance(client, ctrl->val);
->  	}
-> -
-> -	return ret;
-> +	return -EINVAL;
->  }
->  
->  static int mt9m111_suspend(struct soc_camera_device *icd, pm_message_t state)
-
-[snip]
-
-> @@ -1067,6 +968,26 @@ static int mt9m111_probe(struct i2c_client *client,
->  		return -ENOMEM;
->  
->  	v4l2_i2c_subdev_init(&mt9m111->subdev, client, &mt9m111_subdev_ops);
-> +	v4l2_ctrl_handler_init(&mt9m111->hdl, 5);
-> +	v4l2_ctrl_new_std(&mt9m111->hdl, &mt9m111_ctrl_ops,
-> +			V4L2_CID_VFLIP, 0, 1, 1, 0);
-> +	v4l2_ctrl_new_std(&mt9m111->hdl, &mt9m111_ctrl_ops,
-> +			V4L2_CID_HFLIP, 0, 1, 1, 0);
-> +	v4l2_ctrl_new_std(&mt9m111->hdl, &mt9m111_ctrl_ops,
-> +			V4L2_CID_AUTO_WHITE_BALANCE, 0, 1, 1, 1);
-> +	mt9m111->gain = v4l2_ctrl_new_std(&mt9m111->hdl, &mt9m111_ctrl_ops,
-> +			V4L2_CID_GAIN, 0, 63 * 2 * 2, 1, 32);
-> +	v4l2_ctrl_new_std_menu(&mt9m111->hdl,
-> +			&mt9m111_ctrl_ops, V4L2_CID_EXPOSURE_AUTO, 1, 0,
-> +			V4L2_EXPOSURE_AUTO);
-> +	mt9m111->subdev.ctrl_handler = &mt9m111->hdl;
-> +	if (mt9m111->hdl.error) {
-> +		int err = mt9m111->hdl.error;
-> +
-> +		kfree(mt9m111);
-> +		return err;
-> +	}
-> +	mt9m111->gain->is_volatile = 1;
-
-I'm not sure I like this approach: you register each control separately, 
-but with the same handler, and then in that handler you switch-case again 
-to find out which control has to be processed... If we already register 
-them separately, and they share no code, apart from context extraction 
-from parameters - why not make separate handlers, waste some memory on a 
-couple more structs, but avoid run-time switching (I know it is not 
-critical, although, with still photo-shooting you might want to care about 
-the time between your controls and the actual shot), and win clarity?
-
->  
->  	/* Second stage probe - when a capture adapter is there */
->  	icd->ops		= &mt9m111_ops;
-> @@ -1080,6 +1001,7 @@ static int mt9m111_probe(struct i2c_client *client,
->  	ret = mt9m111_video_probe(icd, client);
->  	if (ret) {
->  		icd->ops = NULL;
-> +		v4l2_ctrl_handler_free(&mt9m111->hdl);
->  		kfree(mt9m111);
->  	}
->  
-> @@ -1091,7 +1013,9 @@ static int mt9m111_remove(struct i2c_client *client)
->  	struct mt9m111 *mt9m111 = to_mt9m111(client);
->  	struct soc_camera_device *icd = client->dev.platform_data;
->  
-> +	v4l2_device_unregister_subdev(&mt9m111->subdev);
-
-Same here - don't like redundancy with soc_camera.c
-
-Thanks
-Guennadi
-
->  	icd->ops = NULL;
-> +	v4l2_ctrl_handler_free(&mt9m111->hdl);
->  	kfree(mt9m111);
->  
->  	return 0;
-> -- 
-> 1.7.0.4
+> No-go.  According to the syslog, the segfault has not happened
+> since I reconfigured the kernel and startup sequence two days
+> ago to resolve an XFS mount issue.
 > 
+> Something in there changed the init timing just enough to make
+> it go away, I believe.
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+OK, this reinforces my suspicion that the cause of segfault is the race
+we were discussing with Mauro, not the keymap retrieval fix.
+
+I shall be sending the patch to Linus/stable in the next pull then.
+
+Thank you for your help.
+
+-- 
+Dmitry
