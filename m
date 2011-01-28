@@ -1,76 +1,71 @@
-Return-path: <mchehab@gaivota>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2750 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932148Ab1ACNyu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jan 2011 08:54:50 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Return-path: <mchehab@pedra>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:24642 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752798Ab1A1M5K (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Jan 2011 07:57:10 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from eu_spt1 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LFQ00E2PHB78090@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 28 Jan 2011 12:57:08 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LFQ00GEKHB77J@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 28 Jan 2011 12:57:07 +0000 (GMT)
+Date: Fri, 28 Jan 2011 13:56:39 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 1/2] v4l2: vb2: fix queue reallocation and REQBUFS(0) case
+In-reply-to: <1296219400-2582-1-git-send-email-m.szyprowski@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: David Ellingsworth <david@identd.dyndns.org>
-Subject: v4l2_device release callback and dsbr100 unlocked_ioctl
-Date: Mon,  3 Jan 2011 14:54:28 +0100
-Message-Id: <1294062872-8312-1-git-send-email-hverkuil@xs4all.nl>
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	kyungmin.park@samsung.com
+Message-id: <1296219400-2582-2-git-send-email-m.szyprowski@samsung.com>
+References: <1296219400-2582-1-git-send-email-m.szyprowski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
+This patch fixes 2 minor bugs in videobuf2 core:
+1. Queue should be reallocated if one change the memory access
+method without changing the number of buffers.
+2. In case of REQBUFS(0), the request should not be passed to the
+driver.
 
-This patch series adds reference counting to v4l2_device and a top-level
-release callback. This is needed to correctly handle hotplug disconnects.
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/videobuf2-core.c |    9 ++++++++-
+ 1 files changed, 8 insertions(+), 1 deletions(-)
 
-There are three reasons why this is needed:
+diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
+index cc7ab0a..2f724ed 100644
+--- a/drivers/media/video/videobuf2-core.c
++++ b/drivers/media/video/videobuf2-core.c
+@@ -488,7 +488,7 @@ int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
+ 		return -EINVAL;
+ 	}
+ 
+-	if (req->count == 0 || q->num_buffers != 0) {
++	if (req->count == 0 || q->num_buffers != 0 || q->memory != req->memory) {
+ 		/*
+ 		 * We already have buffers allocated, so first check if they
+ 		 * are not in use and can be freed.
+@@ -501,6 +501,13 @@ int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
+ 		ret = __vb2_queue_free(q);
+ 		if (ret != 0)
+ 			return ret;
++
++		/*
++		 * In case of REQBUFS(0) return immedietely without calling
++		 * driver's queue_setup() callback and allocating resources.
++		 */
++		if (req->count == 0)
++			return 0;
+ 	}
+ 
+ 	/*
+-- 
+1.7.1.569.g6f426
 
-1) drivers with multiple device nodes shouldn't call release() until all
-   device nodes are no longer referenced. This is hard to implement without
-   reference counting in struct v4l2_device.
-
-2) The typical disconnect sequence is this (from radio-mr800.c):
-
-static void usb_amradio_disconnect(struct usb_interface *intf)
-{
-        struct amradio_device *radio = to_amradio_dev(usb_get_intfdata(intf));
-
-        mutex_lock(&radio->lock);
-        /* increase the device node's refcount */
-        get_device(&radio->videodev.dev);
-        v4l2_device_disconnect(&radio->v4l2_dev);
-        video_unregister_device(&radio->videodev);
-        mutex_unlock(&radio->lock);
-        /* decrease the device node's refcount, allowing it to be released */
-        put_device(&radio->videodev.dev);
-}
-
-The low-level get/put_device calls are needed because otherwise the
-video_unregister_device will cause the video_device's release callback to be
-called which kfree()s the radio struct. So without the get_device the
-mutex_unlock might access freed memory.
-
-Using such low-level calls is very ugly though, and with the new API it can
-be rewritten to:
-
-static void usb_amradio_disconnect(struct usb_interface *intf)
-{
-        struct amradio_device *radio = to_amradio_dev(usb_get_intfdata(intf));
-
-        mutex_lock(&radio->lock);
-        v4l2_device_get(&radio->v4l2_dev);
-        v4l2_device_disconnect(&radio->v4l2_dev);
-        video_unregister_device(&radio->videodev);
-        mutex_unlock(&radio->lock);
-        v4l2_device_put(&radio->v4l2_dev);
-}
-
-3) drivers with a mix of v4l and dvb/alsa/... device nodes need a way to increase
-   or decrease the v4l2_device refcount for every non-v4l2 device node that is
-   created or removed. The purpose is the same: the top-level release should only
-   be called when the last reference is gone.
-
-The other two patches convert dsbr100 to .unlocked_ioctl using core-assisted
-locking, and then simplify the code using the proper disconnect construct. The
-radio->removed field is deleted since the v4l2 framework will guarantee that
-once a device node is unregistered no ioctl can ever be made. So the 'removed'
-check is now no longer needed.
-
-The refcount patches have been posted before and are unchanged.
-
-Regards,
-
-	Hans
