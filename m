@@ -1,41 +1,52 @@
 Return-path: <mchehab@pedra>
-Received: from mout.perfora.net ([74.208.4.195]:50379 "EHLO mout.perfora.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753140Ab1ASTCc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Jan 2011 14:02:32 -0500
-Message-ID: <4D373501.2010301@vorgon.com>
-Date: Wed, 19 Jan 2011 12:01:21 -0700
-From: "Timothy D. Lenz" <tlenz@vorgon.com>
+Received: from ironport2-out.teksavvy.com ([206.248.154.181]:16794 "EHLO
+	ironport2-out.pppoe.ca" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750982Ab1A1Uzy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Jan 2011 15:55:54 -0500
+Message-ID: <4D432D47.2000600@teksavvy.com>
+Date: Fri, 28 Jan 2011 15:55:35 -0500
+From: Mark Lord <kernel@teksavvy.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: DViCO FusionHDTV7 Dual Express I2C write failed
-References: <20101207190753.GA21666@io.frii.com>	<20110110021439.GA70495@io.frii.com>	<AANLkTingFP9ajGckXXy2wScHHGxhz+KTyOBa-mE7SUs5@mail.gmail.com> <AANLkTi=59dytuN25H3DVRrPAB8GAcn6N88Ji_dkorsGB@mail.gmail.com>
-In-Reply-To: <AANLkTi=59dytuN25H3DVRrPAB8GAcn6N88Ji_dkorsGB@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Linux Kernel <linux-kernel@vger.kernel.org>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils
+ ?
+References: <20110125232914.GA20130@core.coreip.homeip.net> <20110126020003.GA23085@core.coreip.homeip.net> <4D403855.4050706@teksavvy.com> <4D40C3D7.90608@teksavvy.com> <4D40C551.4020907@teksavvy.com> <20110127021227.GA29709@core.coreip.homeip.net> <4D40E41D.2030003@teksavvy.com> <20110127163931.GA1825@core.coreip.homeip.net> <4D41B5A0.70704@teksavvy.com> <20110127195325.GB29910@core.coreip.homeip.net> <20110128164244.GB6252@core.coreip.homeip.net>
+In-Reply-To: <20110128164244.GB6252@core.coreip.homeip.net>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-So what would a "mainstream" dual (or more) tuner card be? I've found 
-these Fusions to be flaky. Had one die and another went flaky when I 
-enabled the sleep mode. Can't really afford any more now, but am always 
-watching. A company called Ceton seems to havea  quad, but it's a cable 
-card tuner costing $450.
+On 11-01-28 11:42 AM, Dmitry Torokhov wrote:
+> On Thu, Jan 27, 2011 at 11:53:25AM -0800, Dmitry Torokhov wrote:
+>> On Thu, Jan 27, 2011 at 01:12:48PM -0500, Mark Lord wrote:
+>>> On 11-01-27 11:39 AM, Dmitry Torokhov wrote:
+..
+>>>> Hmm, what about compiling with debug and getting a core then?
+>>>
+>>> Sure.  debug is easy, -g, but you'll have to tell me how to get it
+>>> do produce a core dump.
+>>>
+>>
+>> See if adjusting /etc/security/limits.conf will enable it to dump core.
+>> Otherwise you'll have to stick 'ulimit -c unlimited' somewhere...
+..
+> Any luck with getting the core? I'd really like to resolve this issue.
+..
 
-On 1/19/2011 9:13 AM, Devin Heitmueller wrote:
-> On Wed, Jan 19, 2011 at 10:59 AM, VDR User<user.vdr@gmail.com>  wrote:
->> Can someone please look into this and possibly provide a fix for the
->> bug?  I'm surprised it hasn't happened yet after all this time but
->> maybe it's been forgotten the bug existed.
->
-> You shouldn't be too surprised.  In many cases device support for more
-> obscure products comes not from the maintainer of the actual driver
-> but rather from some random user who hacked in an additional board
-> profile (in many cases, not doing it correctly but good enough so it
-> "works for them").  In cases like that, the changes get committed, the
-> original submitter disappears, and then when things break there is
-> nobody with the appropriate knowledge and the hardware to debug the
-> problem.
->
-> Devin
->
+I'm upgrading the box to new userspace now.
+But I still have the old installation drive,
+so perhaps I'll go there now and try this.
+
+My plan is to replace /usr/bin/ir-keytable with a script
+that issues the 'ulimit -c unlimited' command and then
+invokes the original /usr/bin/ir-keytable binary.
+
+Should take half an hour or so before I get back here again.
+
+-ml
