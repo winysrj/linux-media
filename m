@@ -1,514 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59792 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752937Ab1A0Mai (ORCPT
+Received: from antispam01.maxim-ic.com ([205.153.101.182]:37311 "EHLO
+	antispam01.dummydomain.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751556Ab1A1TjA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Jan 2011 07:30:38 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Cc: sakari.ailus@maxwell.research.nokia.com,
-	broonie@opensource.wolfsonmicro.com, clemens@ladisch.de
-Subject: [PATCH v8 01/12] media: Media device node support
-Date: Thu, 27 Jan 2011 13:30:26 +0100
-Message-Id: <1296131437-29954-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1296131437-29954-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1296131437-29954-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Fri, 28 Jan 2011 14:39:00 -0500
+Subject: [PATCH RFC] uvcvideo: Add a mapping for H.264 payloads
+From: Stephan Lachowsky <stephan.lachowsky@maxim-ic.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-uvc-devel@lists.berlios.de" <linux-uvc-devel@lists.berlios.de>
+Content-Type: text/plain; charset="UTF-8"
+Date: Fri, 28 Jan 2011 11:38:58 -0800
+Message-ID: <1296243538.17673.23.camel@svmlwks101>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The media_devnode structure provides support for registering and
-unregistering character devices using a dynamic major number. Reference
-counting is handled internally, making device drivers easier to write
-without having to solve the open/disconnect race condition issue over
-and over again.
-
-The code is based on video/v4l2-dev.c.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Associate the H.264 GUID with an H.264 pixel format so that frame
+and stream based format descriptors with this GUID are recognized
+by the UVC video driver.
 ---
- drivers/media/Kconfig         |   13 ++
- drivers/media/Makefile        |   10 +-
- drivers/media/media-devnode.c |  321 +++++++++++++++++++++++++++++++++++++++++
- include/media/media-devnode.h |   97 +++++++++++++
- 4 files changed, 439 insertions(+), 2 deletions(-)
- create mode 100644 drivers/media/media-devnode.c
- create mode 100644 include/media/media-devnode.h
+ drivers/media/video/uvc/uvc_driver.c |    5 +++++
+ drivers/media/video/uvc/uvcvideo.h   |    3 +++
+ include/linux/videodev2.h            |    1 +
+ 3 files changed, 9 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
-index a28541b..6b946e6 100644
---- a/drivers/media/Kconfig
-+++ b/drivers/media/Kconfig
-@@ -14,6 +14,19 @@ if MEDIA_SUPPORT
- comment "Multimedia core support"
+diff --git a/drivers/media/video/uvc/uvc_driver.c b/drivers/media/video/uvc/uvc_driver.c
+index 6bcb9e1..a5a86ce 100644
+--- a/drivers/media/video/uvc/uvc_driver.c
++++ b/drivers/media/video/uvc/uvc_driver.c
+@@ -108,6 +108,11 @@ static struct uvc_format_desc uvc_fmts[] = {
+ 		.guid		= UVC_GUID_FORMAT_MPEG,
+ 		.fcc		= V4L2_PIX_FMT_MPEG,
+ 	},
++	{
++		.name		= "H.264",
++		.guid		= UVC_GUID_FORMAT_H264,
++		.fcc		= V4L2_PIX_FMT_H264,
++	},
+ };
  
- #
-+# Media controller
-+#
-+
-+config MEDIA_CONTROLLER
-+	bool "Media Controller API (EXPERIMENTAL)"
-+	depends on EXPERIMENTAL
-+	---help---
-+	  Enable the media controller API used to query media devices internal
-+	  topology and configure it dynamically.
-+
-+	  This API is mostly used by camera interfaces in embedded platforms.
-+
-+#
- # V4L core and enabled API's
- #
+ /* ------------------------------------------------------------------------
+diff --git a/drivers/media/video/uvc/uvcvideo.h b/drivers/media/video/uvc/uvcvideo.h
+index e522f99..4f65ac6 100644
+--- a/drivers/media/video/uvc/uvcvideo.h
++++ b/drivers/media/video/uvc/uvcvideo.h
+@@ -155,6 +155,9 @@ struct uvc_xu_control {
+ #define UVC_GUID_FORMAT_MPEG \
+ 	{ 'M',  'P',  'E',  'G', 0x00, 0x00, 0x10, 0x00, \
+ 	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
++#define UVC_GUID_FORMAT_H264 \
++	{ 'H',  '2',  '6',  '4', 0x00, 0x00, 0x10, 0x00, \
++	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
  
-diff --git a/drivers/media/Makefile b/drivers/media/Makefile
-index 499b081..3a08991 100644
---- a/drivers/media/Makefile
-+++ b/drivers/media/Makefile
-@@ -2,7 +2,13 @@
- # Makefile for the kernel multimedia device drivers.
- #
+ /* ------------------------------------------------------------------------
+  * Driver specific constants.
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 5f6f470..d3b5877 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -341,6 +341,7 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_JPEG     v4l2_fourcc('J', 'P', 'E', 'G') /* JFIF JPEG     */
+ #define V4L2_PIX_FMT_DV       v4l2_fourcc('d', 'v', 's', 'd') /* 1394          */
+ #define V4L2_PIX_FMT_MPEG     v4l2_fourcc('M', 'P', 'E', 'G') /* MPEG-1/2/4    */
++#define V4L2_PIX_FMT_H264     v4l2_fourcc('H', '2', '6', '4') /* H.264 Annex-B NAL Units */
  
-+media-objs	:= media-devnode.o
-+
-+ifeq ($(CONFIG_MEDIA_CONTROLLER),y)
-+  obj-$(CONFIG_MEDIA_SUPPORT) += media.o
-+endif
-+
- obj-y += common/ IR/ video/
- 
--obj-$(CONFIG_VIDEO_DEV) += radio/
--obj-$(CONFIG_DVB_CORE)  += dvb/
-+obj-$(CONFIG_VIDEO_DEV)		+= radio/
-+obj-$(CONFIG_DVB_CORE)		+= dvb/
-diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
-new file mode 100644
-index 0000000..7804b70
---- /dev/null
-+++ b/drivers/media/media-devnode.c
-@@ -0,0 +1,321 @@
-+/*
-+ * Media device node
-+ *
-+ * Copyright (C) 2010 Nokia Corporation
-+ *
-+ * Based on drivers/media/video/v4l2_dev.c code authored by
-+ *	Mauro Carvalho Chehab <mchehab@infradead.org> (version 2)
-+ *	Alan Cox, <alan@lxorguk.ukuu.org.uk> (version 1)
-+ *
-+ * Contacts: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+ *	     Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ *
-+ * --
-+ *
-+ * Generic media device node infrastructure to register and unregister
-+ * character devices using a dynamic major number and proper reference
-+ * counting.
-+ */
-+
-+#include <linux/errno.h>
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/kmod.h>
-+#include <linux/slab.h>
-+#include <linux/mm.h>
-+#include <linux/smp_lock.h>
-+#include <linux/string.h>
-+#include <linux/types.h>
-+#include <linux/uaccess.h>
-+#include <asm/system.h>
-+
-+#include <media/media-devnode.h>
-+
-+#define MEDIA_NUM_DEVICES	256
-+#define MEDIA_NAME		"media"
-+
-+static dev_t media_dev_t;
-+
-+/*
-+ *	Active devices
-+ */
-+static DEFINE_MUTEX(media_devnode_lock);
-+static DECLARE_BITMAP(media_devnode_nums, MEDIA_NUM_DEVICES);
-+
-+/* Called when the last user of the media device exits. */
-+static void media_devnode_release(struct device *cd)
-+{
-+	struct media_devnode *mdev = to_media_devnode(cd);
-+
-+	mutex_lock(&media_devnode_lock);
-+
-+	/* Delete the cdev on this minor as well */
-+	cdev_del(&mdev->cdev);
-+
-+	/* Mark device node number as free */
-+	clear_bit(mdev->minor, media_devnode_nums);
-+
-+	mutex_unlock(&media_devnode_lock);
-+
-+	/* Release media_devnode and perform other cleanups as needed. */
-+	if (mdev->release)
-+		mdev->release(mdev);
-+}
-+
-+static struct bus_type media_bus_type = {
-+	.name = MEDIA_NAME,
-+};
-+
-+static ssize_t media_read(struct file *filp, char __user *buf,
-+		size_t sz, loff_t *off)
-+{
-+	struct media_devnode *mdev = media_devnode_data(filp);
-+
-+	if (!mdev->fops->read)
-+		return -EINVAL;
-+	if (!media_devnode_is_registered(mdev))
-+		return -EIO;
-+	return mdev->fops->read(filp, buf, sz, off);
-+}
-+
-+static ssize_t media_write(struct file *filp, const char __user *buf,
-+		size_t sz, loff_t *off)
-+{
-+	struct media_devnode *mdev = media_devnode_data(filp);
-+
-+	if (!mdev->fops->write)
-+		return -EINVAL;
-+	if (!media_devnode_is_registered(mdev))
-+		return -EIO;
-+	return mdev->fops->write(filp, buf, sz, off);
-+}
-+
-+static unsigned int media_poll(struct file *filp,
-+			       struct poll_table_struct *poll)
-+{
-+	struct media_devnode *mdev = media_devnode_data(filp);
-+
-+	if (!media_devnode_is_registered(mdev))
-+		return POLLERR | POLLHUP;
-+	if (!mdev->fops->poll)
-+		return DEFAULT_POLLMASK;
-+	return mdev->fops->poll(filp, poll);
-+}
-+
-+static long media_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
-+{
-+	struct media_devnode *mdev = media_devnode_data(filp);
-+
-+	if (!mdev->fops->ioctl)
-+		return -ENOTTY;
-+
-+	if (!media_devnode_is_registered(mdev))
-+		return -EIO;
-+
-+	return mdev->fops->ioctl(filp, cmd, arg);
-+}
-+
-+/* Override for the open function */
-+static int media_open(struct inode *inode, struct file *filp)
-+{
-+	struct media_devnode *mdev;
-+	int ret;
-+
-+	/* Check if the media device is available. This needs to be done with
-+	 * the media_devnode_lock held to prevent an open/unregister race:
-+	 * without the lock, the device could be unregistered and freed between
-+	 * the media_devnode_is_registered() and get_device() calls, leading to
-+	 * a crash.
-+	 */
-+	mutex_lock(&media_devnode_lock);
-+	mdev = container_of(inode->i_cdev, struct media_devnode, cdev);
-+	/* return ENXIO if the media device has been removed
-+	   already or if it is not registered anymore. */
-+	if (!media_devnode_is_registered(mdev)) {
-+		mutex_unlock(&media_devnode_lock);
-+		return -ENXIO;
-+	}
-+	/* and increase the device refcount */
-+	get_device(&mdev->dev);
-+	mutex_unlock(&media_devnode_lock);
-+
-+	filp->private_data = mdev;
-+
-+	if (mdev->fops->open) {
-+		ret = mdev->fops->open(filp);
-+		if (ret) {
-+			put_device(&mdev->dev);
-+			return ret;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+/* Override for the release function */
-+static int media_release(struct inode *inode, struct file *filp)
-+{
-+	struct media_devnode *mdev = media_devnode_data(filp);
-+	int ret = 0;
-+
-+	if (mdev->fops->release)
-+		mdev->fops->release(filp);
-+
-+	/* decrease the refcount unconditionally since the release()
-+	   return value is ignored. */
-+	put_device(&mdev->dev);
-+	filp->private_data = NULL;
-+	return ret;
-+}
-+
-+static const struct file_operations media_devnode_fops = {
-+	.owner = THIS_MODULE,
-+	.read = media_read,
-+	.write = media_write,
-+	.open = media_open,
-+	.unlocked_ioctl = media_ioctl,
-+	.release = media_release,
-+	.poll = media_poll,
-+	.llseek = no_llseek,
-+};
-+
-+/**
-+ * media_devnode_register - register a media device node
-+ * @mdev: media device node structure we want to register
-+ *
-+ * The registration code assigns minor numbers and registers the new device node
-+ * with the kernel. An error is returned if no free minor number can be found,
-+ * or if the registration of the device node fails.
-+ *
-+ * Zero is returned on success.
-+ *
-+ * Note that if the media_devnode_register call fails, the release() callback of
-+ * the media_devnode structure is *not* called, so the caller is responsible for
-+ * freeing any data.
-+ */
-+int __must_check media_devnode_register(struct media_devnode *mdev)
-+{
-+	int minor;
-+	int ret;
-+
-+	/* Part 1: Find a free minor number */
-+	mutex_lock(&media_devnode_lock);
-+	minor = find_next_zero_bit(media_devnode_nums, 0, MEDIA_NUM_DEVICES);
-+	if (minor == MEDIA_NUM_DEVICES) {
-+		mutex_unlock(&media_devnode_lock);
-+		printk(KERN_ERR "could not get a free minor\n");
-+		return -ENFILE;
-+	}
-+
-+	set_bit(mdev->minor, media_devnode_nums);
-+	mutex_unlock(&media_devnode_lock);
-+
-+	mdev->minor = minor;
-+
-+	/* Part 2: Initialize and register the character device */
-+	cdev_init(&mdev->cdev, &media_devnode_fops);
-+	mdev->cdev.owner = mdev->fops->owner;
-+
-+	ret = cdev_add(&mdev->cdev, MKDEV(MAJOR(media_dev_t), mdev->minor), 1);
-+	if (ret < 0) {
-+		printk(KERN_ERR "%s: cdev_add failed\n", __func__);
-+		goto error;
-+	}
-+
-+	/* Part 3: Register the media device */
-+	mdev->dev.bus = &media_bus_type;
-+	mdev->dev.devt = MKDEV(MAJOR(media_dev_t), mdev->minor);
-+	mdev->dev.release = media_devnode_release;
-+	if (mdev->parent)
-+		mdev->dev.parent = mdev->parent;
-+	dev_set_name(&mdev->dev, "media%d", mdev->minor);
-+	ret = device_register(&mdev->dev);
-+	if (ret < 0) {
-+		printk(KERN_ERR "%s: device_register failed\n", __func__);
-+		goto error;
-+	}
-+
-+	/* Part 4: Activate this minor. The char device can now be used. */
-+	set_bit(MEDIA_FLAG_REGISTERED, &mdev->flags);
-+
-+	return 0;
-+
-+error:
-+	cdev_del(&mdev->cdev);
-+	clear_bit(mdev->minor, media_devnode_nums);
-+	return ret;
-+}
-+
-+/**
-+ * media_devnode_unregister - unregister a media device node
-+ * @mdev: the device node to unregister
-+ *
-+ * This unregisters the passed device. Future open calls will be met with
-+ * errors.
-+ *
-+ * This function can safely be called if the device node has never been
-+ * registered or has already been unregistered.
-+ */
-+void media_devnode_unregister(struct media_devnode *mdev)
-+{
-+	/* Check if mdev was ever registered at all */
-+	if (!media_devnode_is_registered(mdev))
-+		return;
-+
-+	mutex_lock(&media_devnode_lock);
-+	clear_bit(MEDIA_FLAG_REGISTERED, &mdev->flags);
-+	mutex_unlock(&media_devnode_lock);
-+	device_unregister(&mdev->dev);
-+}
-+
-+/*
-+ *	Initialise media for linux
-+ */
-+static int __init media_devnode_init(void)
-+{
-+	int ret;
-+
-+	printk(KERN_INFO "Linux media interface: v0.10\n");
-+	ret = alloc_chrdev_region(&media_dev_t, 0, MEDIA_NUM_DEVICES,
-+				  MEDIA_NAME);
-+	if (ret < 0) {
-+		printk(KERN_WARNING "media: unable to allocate major\n");
-+		return ret;
-+	}
-+
-+	ret = bus_register(&media_bus_type);
-+	if (ret < 0) {
-+		unregister_chrdev_region(media_dev_t, MEDIA_NUM_DEVICES);
-+		printk(KERN_WARNING "media: bus_register failed\n");
-+		return -EIO;
-+	}
-+
-+	return 0;
-+}
-+
-+static void __exit media_devnode_exit(void)
-+{
-+	bus_unregister(&media_bus_type);
-+	unregister_chrdev_region(media_dev_t, MEDIA_NUM_DEVICES);
-+}
-+
-+module_init(media_devnode_init)
-+module_exit(media_devnode_exit)
-+
-+MODULE_AUTHOR("Laurent Pinchart <laurent.pinchart@ideasonboard.com>");
-+MODULE_DESCRIPTION("Device node registration for media drivers");
-+MODULE_LICENSE("GPL");
-diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
-new file mode 100644
-index 0000000..01cd034
---- /dev/null
-+++ b/include/media/media-devnode.h
-@@ -0,0 +1,97 @@
-+/*
-+ * Media device node
-+ *
-+ * Copyright (C) 2010 Nokia Corporation
-+ *
-+ * Contacts: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+ *	     Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ *
-+ * --
-+ *
-+ * Common functions for media-related drivers to register and unregister media
-+ * device nodes.
-+ */
-+
-+#ifndef _MEDIA_DEVNODE_H
-+#define _MEDIA_DEVNODE_H
-+
-+#include <linux/poll.h>
-+#include <linux/fs.h>
-+#include <linux/device.h>
-+#include <linux/cdev.h>
-+
-+/*
-+ * Flag to mark the media_devnode struct as registered. Drivers must not touch
-+ * this flag directly, it will be set and cleared by media_devnode_register and
-+ * media_devnode_unregister.
-+ */
-+#define MEDIA_FLAG_REGISTERED	0
-+
-+struct media_file_operations {
-+	struct module *owner;
-+	ssize_t (*read) (struct file *, char __user *, size_t, loff_t *);
-+	ssize_t (*write) (struct file *, const char __user *, size_t, loff_t *);
-+	unsigned int (*poll) (struct file *, struct poll_table_struct *);
-+	long (*ioctl) (struct file *, unsigned int, unsigned long);
-+	int (*open) (struct file *);
-+	int (*release) (struct file *);
-+};
-+
-+/**
-+ * struct media_devnode - Media device node
-+ * @parent:	parent device
-+ * @minor:	device node minor number
-+ * @flags:	flags, combination of the MEDIA_FLAG_* constants
-+ *
-+ * This structure represents a media-related device node.
-+ *
-+ * The @parent is a physical device. It must be set by core or device drivers
-+ * before registering the node.
-+ */
-+struct media_devnode {
-+	/* device ops */
-+	const struct media_file_operations *fops;
-+
-+	/* sysfs */
-+	struct device dev;		/* media device */
-+	struct cdev cdev;		/* character device */
-+	struct device *parent;		/* device parent */
-+
-+	/* device info */
-+	int minor;
-+	unsigned long flags;		/* Use bitops to access flags */
-+
-+	/* callbacks */
-+	void (*release)(struct media_devnode *mdev);
-+};
-+
-+/* dev to media_devnode */
-+#define to_media_devnode(cd) container_of(cd, struct media_devnode, dev)
-+
-+int __must_check media_devnode_register(struct media_devnode *mdev);
-+void media_devnode_unregister(struct media_devnode *mdev);
-+
-+static inline struct media_devnode *media_devnode_data(struct file *filp)
-+{
-+	return filp->private_data;
-+}
-+
-+static inline int media_devnode_is_registered(struct media_devnode *mdev)
-+{
-+	return test_bit(MEDIA_FLAG_REGISTERED, &mdev->flags);
-+}
-+
-+#endif /* _MEDIA_DEVNODE_H */
+ /*  Vendor-specific formats   */
+ #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1 YUV */
 -- 
-1.7.3.4
+1.7.3.5
+
 
