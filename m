@@ -1,141 +1,132 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f42.google.com ([74.125.82.42]:51299 "EHLO
-	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751416Ab1AWV0K (ORCPT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:47531 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751457Ab1A1Jjd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Jan 2011 16:26:10 -0500
-Received: by wwi17 with SMTP id 17so2583062wwi.1
-        for <linux-media@vger.kernel.org>; Sun, 23 Jan 2011 13:26:08 -0800 (PST)
-Subject: [PATCH 2/2] Change to 32 bit and add other remote controls for
- lme2510
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 23 Jan 2011 21:26:03 +0000
-Message-ID: <1295817963.3007.8.camel@tvboxspy>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Fri, 28 Jan 2011 04:39:33 -0500
+Date: Fri, 28 Jan 2011 01:39:22 -0800
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mark Lord <kernel@teksavvy.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Linux Kernel <linux-kernel@vger.kernel.org>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils ?
+Message-ID: <20110128093922.GA3357@core.coreip.homeip.net>
+References: <20110126020003.GA23085@core.coreip.homeip.net>
+ <4D403855.4050706@teksavvy.com>
+ <4D40C3D7.90608@teksavvy.com>
+ <4D40C551.4020907@teksavvy.com>
+ <20110127021227.GA29709@core.coreip.homeip.net>
+ <4D40E41D.2030003@teksavvy.com>
+ <20110127063815.GA29924@core.coreip.homeip.net>
+ <4D414928.80801@redhat.com>
+ <20110127172128.GA19672@core.coreip.homeip.net>
+ <4D41C071.2090201@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4D41C071.2090201@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-These bubble button remote controls appear to be generic from China.
+On Thu, Jan 27, 2011 at 04:58:57PM -0200, Mauro Carvalho Chehab wrote:
+> Em 27-01-2011 15:21, Dmitry Torokhov escreveu:
+> > On Thu, Jan 27, 2011 at 08:30:00AM -0200, Mauro Carvalho Chehab wrote:
+> >>
+> >> On my tests here, this is working fine, with Fedora and RHEL 6, on my
+> >> usual test devices, so I don't believe that the tool itself is broken, 
+> >> nor I think that the issue is due to the fix patch.
+> >>
+> >> I remember that when Kay added a persistence utility tool that opens a V4L
+> >> device in order to read some capabilities, this caused a race condition
+> >> into a number of drivers that use to register the video device too early.
+> >> The result is that udev were opening the device before the end of the
+> >> register process, causing OOPS and other problems.
+> > 
+> > Well, this is quite possible. The usev ruls in the v4l-utils reads:
+> > 
+> > ACTION=="add", SUBSYSTEM=="rc", RUN+="/usr/bin/ir-keytable -a /etc/rc_maps.cfg -s $name"
+> > 
+> > So we act when we add RC device to the system. The corresponding input
+> > device has not been registered yet (and will not be for some time
+> > because before creating input ddevice we invoke request_module() to load
+> > initial rc map module) so the tool runs simultaneously with kernel
+> > registering input device and it could very well be it can't find
+> > something it really wants.
+> > 
+> > This would explain why Mark sees the segfault only when invoked via
+> > udev but not when ran manually.
+> > 
+> > However I still do not understand why Mark does not see the same issue
+> > without the patch. Like I said, maybe if Mark could recompile with
+> > debug data and us a core we'd see what is going on.
+> 
+> Race conditions are hard to track... probably the new code added some delay,
+> and this allowed the request_module() to finish his job.
+> 
+> > BTW, that means that we need to redo udev rules. 
+> 
+> If there's a race condition, then the proper fix is to lock the driver
+> until it is ready to receive a fops. Maybe we'll need a mutex to preventing
+> opening the device until it is completely initialized.
 
-These are the three variants known to be supplied with DM04/QQBOX DVB-S
+No, not at all. The devices are ready to handle everything when they are
+created, it's just some devices are not there yet. What you do with
+current udev rule is similar to trying to mount filesystem as soon as
+you discover a PCI SCSI card. The controller is there but disks have not
+been discovered, block devices have not been created, and so on.
 
-They could well be supplied with other devices from the region.
+> 
+> It is hard to tell, as Mark didn't provide us yet the dmesg info (at least
+> on the emails I was c/c), so I don't even know what device he has, and what
+> drivers are used.
 
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
----
- drivers/media/rc/keymaps/rc-lme2510.c |   96 +++++++++++++++++++++++---------
- 1 files changed, 69 insertions(+), 27 deletions(-)
+I belie you have been copied on the mail that had the following snippet:
 
-diff --git a/drivers/media/rc/keymaps/rc-lme2510.c b/drivers/media/rc/keymaps/rc-lme2510.c
-index 875cd81..3c19139 100644
---- a/drivers/media/rc/keymaps/rc-lme2510.c
-+++ b/drivers/media/rc/keymaps/rc-lme2510.c
-@@ -13,33 +13,75 @@
- 
- 
- static struct rc_map_table lme2510_rc[] = {
--	{ 0xba45, KEY_0 },
--	{ 0xa05f, KEY_1 },
--	{ 0xaf50, KEY_2 },
--	{ 0xa25d, KEY_3 },
--	{ 0xbe41, KEY_4 },
--	{ 0xf50a, KEY_5 },
--	{ 0xbd42, KEY_6 },
--	{ 0xb847, KEY_7 },
--	{ 0xb649, KEY_8 },
--	{ 0xfa05, KEY_9 },
--	{ 0xbc43, KEY_POWER },
--	{ 0xb946, KEY_SUBTITLE },
--	{ 0xf906, KEY_PAUSE },
--	{ 0xfc03, KEY_MEDIA_REPEAT},
--	{ 0xfd02, KEY_PAUSE },
--	{ 0xa15e, KEY_VOLUMEUP },
--	{ 0xa35c, KEY_VOLUMEDOWN },
--	{ 0xf609, KEY_CHANNELUP },
--	{ 0xe51a, KEY_CHANNELDOWN },
--	{ 0xe11e, KEY_PLAY },
--	{ 0xe41b, KEY_ZOOM },
--	{ 0xa659, KEY_MUTE },
--	{ 0xa55a, KEY_TV },
--	{ 0xe718, KEY_RECORD },
--	{ 0xf807, KEY_EPG },
--	{ 0xfe01, KEY_STOP },
--
-+	/* Type 1 - 26 buttons */
-+	{ 0xef12ba45, KEY_0 },
-+	{ 0xef12a05f, KEY_1 },
-+	{ 0xef12af50, KEY_2 },
-+	{ 0xef12a25d, KEY_3 },
-+	{ 0xef12be41, KEY_4 },
-+	{ 0xef12f50a, KEY_5 },
-+	{ 0xef12bd42, KEY_6 },
-+	{ 0xef12b847, KEY_7 },
-+	{ 0xef12b649, KEY_8 },
-+	{ 0xef12fa05, KEY_9 },
-+	{ 0xef12bc43, KEY_POWER },
-+	{ 0xef12b946, KEY_SUBTITLE },
-+	{ 0xef12f906, KEY_PAUSE },
-+	{ 0xef12fc03, KEY_MEDIA_REPEAT},
-+	{ 0xef12fd02, KEY_PAUSE },
-+	{ 0xef12a15e, KEY_VOLUMEUP },
-+	{ 0xef12a35c, KEY_VOLUMEDOWN },
-+	{ 0xef12f609, KEY_CHANNELUP },
-+	{ 0xef12e51a, KEY_CHANNELDOWN },
-+	{ 0xef12e11e, KEY_PLAY },
-+	{ 0xef12e41b, KEY_ZOOM },
-+	{ 0xef12a659, KEY_MUTE },
-+	{ 0xef12a55a, KEY_TV },
-+	{ 0xef12e718, KEY_RECORD },
-+	{ 0xef12f807, KEY_EPG },
-+	{ 0xef12fe01, KEY_STOP },
-+	/* Type 2 - 20 buttons */
-+	{ 0xff40ea15, KEY_0 },
-+	{ 0xff40f708, KEY_1 },
-+	{ 0xff40f609, KEY_2 },
-+	{ 0xff40f50a, KEY_3 },
-+	{ 0xff40f30c, KEY_4 },
-+	{ 0xff40f20d, KEY_5 },
-+	{ 0xff40f10e, KEY_6 },
-+	{ 0xff40ef10, KEY_7 },
-+	{ 0xff40ee11, KEY_8 },
-+	{ 0xff40ed12, KEY_9 },
-+	{ 0xff40ff00, KEY_POWER },
-+	{ 0xff40fb04, KEY_MEDIA_REPEAT}, /* Recall */
-+	{ 0xff40e51a, KEY_PAUSE }, /* Timeshift */
-+	{ 0xff40fd02, KEY_VOLUMEUP }, /* 2 x -/+ Keys not marked */
-+	{ 0xff40f906, KEY_VOLUMEDOWN }, /* Volumne defined as right hand*/
-+	{ 0xff40fe01, KEY_CHANNELUP },
-+	{ 0xff40fa05, KEY_CHANNELDOWN },
-+	{ 0xff40eb14, KEY_ZOOM },
-+	{ 0xff40e718, KEY_RECORD },
-+	{ 0xff40e916, KEY_STOP },
-+	/* Type 3 - 20 buttons */
-+	{ 0xff00e31c, KEY_0 },
-+	{ 0xff00f807, KEY_1 },
-+	{ 0xff00ea15, KEY_2 },
-+	{ 0xff00f609, KEY_3 },
-+	{ 0xff00e916, KEY_4 },
-+	{ 0xff00e619, KEY_5 },
-+	{ 0xff00f20d, KEY_6 },
-+	{ 0xff00f30c, KEY_7 },
-+	{ 0xff00e718, KEY_8 },
-+	{ 0xff00a15e, KEY_9 },
-+	{ 0xff00ba45, KEY_POWER },
-+	{ 0xff00bb44, KEY_MEDIA_REPEAT}, /* Recall */
-+	{ 0xff00b54a, KEY_PAUSE }, /* Timeshift */
-+	{ 0xff00b847, KEY_VOLUMEUP }, /* 2 x -/+ Keys not marked */
-+	{ 0xff00bc43, KEY_VOLUMEDOWN }, /* Volumne defined as right hand*/
-+	{ 0xff00b946, KEY_CHANNELUP },
-+	{ 0xff00bf40, KEY_CHANNELDOWN },
-+	{ 0xff00f708, KEY_ZOOM },
-+	{ 0xff00bd42, KEY_RECORD },
-+	{ 0xff00a55a, KEY_STOP },
- };
- 
- static struct rc_map_list lme2510_map = {
+> kernel: Registered IR keymap rc-rc5-tv
+> udevd-event[6438]: run_program: '/usr/bin/ir-keytable' abnormal exit
+> kernel: input: i2c IR (Hauppauge) as /devices/virtual/rc/rc0/input7
+> kernel: ir-keytable[6439]: segfault at 8 ip 00000000004012d2 sp 00007fff6d43ca60 error 4 in ir-keytable[400000+7000]
+> kernel: rc0: i2c IR (Hauppauge) as /devices/virtual/rc/rc0
+> kernel: ir-kbd-i2c: i2c IR (Hauppauge) detected at i2c-0/0-0018/ir0 [ivtv i2c driver #0]
+
+> 
+> > Maybe we should split
+> > the utility into 2 parts - one dealing with rcX device and for keymap
+> > setting reuse udev's existing utility that adjusts maps on ann input
+> > devices, not for RCs only.
+> 
+> It could be done, but then we'll need to pollute the existing input tools
+> with RC-specific stuff. For IR, there are some additional steps, like
+> the need to select the IR protocol, otherwise the keytable is useless.
+
+That should be done by the separate utility that fires up when udev gets
+event for /sys/class/rc/rcX device.
+
+> Also, the keytable and persistent info is provided via /sys/class/rc/rc?/uevent.
+> So, the tool need to first read the RC class, check what keytable should be
+> associated with that device (based on a custom file), and load the proper
+> table.
+
+And this could be easily added to the udev's keymap utility that is
+fired up when we discover evdevX devices.
+
+> 
+> Also, I'm currently working on a way to map media keys for remote controllers 
+> into X11 (basically, mapping them into the keyspace between 8-255, passing 
+> through Xorg evdev.c, and then mapping back into some X11 symbols). This way,
+> we don't need to violate the X11 protocol. (Yeah, I know this is hacky, but
+> while X11 cannot pass the full evdev keycode, at least the Remote Controllers
+> will work). This probably means that we may need to add some DBus logic
+> inside ir-keytable, when called via udev, to allow it to announce to X11.
+
+The same issue is present with other types of input devices (multimedia
+keyboards emitting codes that X can't consume) and so it again would
+make sense to enhance udev's utility instead of confining it all to
+ir-keytable.
+
+Thanks.
+
 -- 
-1.7.1
-
+Dmitry
