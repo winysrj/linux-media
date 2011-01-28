@@ -1,141 +1,68 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:46050 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751736Ab1AZJos (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Jan 2011 04:44:48 -0500
-Message-ID: <4D3FED0B.3060108@redhat.com>
-Date: Wed, 26 Jan 2011 07:44:43 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from 7.86.5d45.static.theplanet.com ([69.93.134.7]:37269 "HELO
+	gateway10.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751278Ab1A1Tek (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Jan 2011 14:34:40 -0500
+From: "Charlie X. Liu" <charlie@sensoray.com>
+To: "'Phillip Pi'" <ant@zimage.com>, <video4linux-list@redhat.com>
+Cc: <linux-media@vger.kernel.org>
+References: <AANLkTindYgatAuWoVog0dnVKkhUHWO9-MaOC39oAMQgK@mail.gmail.com>	<20110127092248.18877dx8p3qe0k0o@webmail.hebergement.com>	<AANLkTimNr=87qc7TKwJu6c3grphfbToD2tpQcpnXHv3w@mail.gmail.com>	<20110128094254.11965b0zcrkqshhq@webmail.hebergement.com>	<AANLkTiniyqtmzv7UUC9AiDQYcOb1Sa+aKDbdvB0ioS=M@mail.gmail.com>	<2dac589a6c232e004c3f29de4252b883.squirrel@sensoray.com> <20110128173627.GL25038@beta.zimage.com>
+In-Reply-To: <20110128173627.GL25038@beta.zimage.com>
+Subject: RE: DM6446
+Date: Fri, 28 Jan 2011 11:25:04 -0800
+Message-ID: <000301cbbf21$116c7e60$34457b20$@com>
 MIME-Version: 1.0
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-CC: Mark Lord <kernel@teksavvy.com>,
-	Linux Kernel <linux-kernel@vger.kernel.org>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: Extending rc-core/userspace to handle bigger scancodes - Was:
- Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils ?
-References: <20110125005555.GA18338@core.coreip.homeip.net> <4D3E4DD1.60705@teksavvy.com> <20110125042016.GA7850@core.coreip.homeip.net> <4D3E5372.9010305@teksavvy.com> <20110125045559.GB7850@core.coreip.homeip.net> <4D3E59CA.6070107@teksavvy.com> <4D3E5A91.30207@teksavvy.com> <20110125053117.GD7850@core.coreip.homeip.net> <20110125065217.GE7850@core.coreip.homeip.net> <4D3EE171.4020605@redhat.com> <20110125165524.GC19701@core.coreip.homeip.net>
-In-Reply-To: <20110125165524.GC19701@core.coreip.homeip.net>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Language: en-us
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 25-01-2011 14:55, Dmitry Torokhov escreveu:
-> On Tue, Jan 25, 2011 at 12:42:57PM -0200, Mauro Carvalho Chehab wrote:
->> Em 25-01-2011 04:52, Dmitry Torokhov escreveu:
->>> On Mon, Jan 24, 2011 at 09:31:17PM -0800, Dmitry Torokhov wrote:
->>>> On Tue, Jan 25, 2011 at 12:07:29AM -0500, Mark Lord wrote:
->>>>> On 11-01-25 12:04 AM, Mark Lord wrote:
->>>>>> On 11-01-24 11:55 PM, Dmitry Torokhov wrote:
->>>>>>> On Mon, Jan 24, 2011 at 11:37:06PM -0500, Mark Lord wrote:
->>>>>> ..
->>>>>>>> This results in (map->size==10) for 2.6.36+ (wrong),
->>>>>>>> and a much larger map->size for 2.6.35 and earlier.
->>>>>>>>
->>>>>>>> So perhaps EVIOCGKEYCODE has changed?
->>>>>>>>
->>>>>>>
->>>>>>> So the utility expects that all devices have flat scancode space and
->>>>>>> driver might have changed so it does not recognize scancode 10 as valid
->>>>>>> scancode anymore.
->>>>>>>
->>>>>>> The options are:
->>>>>>>
->>>>>>> 1. Convert to EVIOCGKEYCODE2
->>>>>>> 2. Ignore errors from EVIOCGKEYCODE and go through all 65536 iterations.
->>>>>>
->>>>>> or 3. Revert/fix the in-kernel regression.
->>>>>>
->>>>>> The EVIOCGKEYCODE ioctl is supposed to return KEY_RESERVED for unmapped
->>>>>> (but value) keycodes, and only return -EINVAL when the keycode itself
->>>>>> is out of range.
->>>>>>
->>>>>> That's how it worked in all kernels prior to 2.6.36,
->>>>>> and now it is broken.  It now returns -EINVAL for any unmapped keycode,
->>>>>> even though keycodes higher than that still have mappings.
->>>>>>
->>>>>> This is a bug, a regression, and breaks userspace.
->>>>>> I haven't identified *where* in the kernel the breakage happened,
->>>>>> though.. that code confuses me.  :)
->>>>>
->>>>> Note that this device DOES have "flat scancode space",
->>>>> and the kernel is now incorrectly signalling an error (-EINVAL)
->>>>> in response to a perfectly valid query of a VALID (and mappable)
->>>>> keycode on the remote control
->>>>>
->>>>> The code really is a valid button, it just doesn't have a default mapping
->>>>> set by the kernel (I can set a mapping for that code from userspace and it works).
->>>>>
->>>>
->>>> OK, in this case let's ping Mauro - I think he done the adjustments to
->>>> IR keymap hanlding.
->>>>
->>>> Thanks.
->>>>
->>>
->>> BTW, could you please try the following patch (it assumes that
->>> EVIOCGVERSION in input.c is alreday relaxed).
->>
->> Dmitry,
->>
->> Thanks for your patch. I used part of his logic to improve the ir-keytable 
->> tool at v4l-utils:
->> 	http://git.linuxtv.org/v4l-utils.git
->>
->> The ir-keytable is a tool that just handles Remote Controller input devices,
->> and do it well, allowing all sorts of operations related to it, and using the
->> sysfs /sys/class/rc stuff to help its operation. Without any arguments, it
->> lists the existing RC devices. Arguments are there to allow enabling/disabling
->> RC protocols, reading/writing/cleaning keycode tables and to test if the
->> remote is generating events (EV_MSC/EV_KEY/EV_REP/EV_SYN).
->>
->> Now, it will be using V2 for reads and keycode cleanups, but will still use
->> V1 for writes, as, currently with 32 bits scancodes, there's no gain to use
->> V2 for it. Also, changing the tool to use more bits will require to rewrite
->> part of the code.
->>
->> Also, writing a rc-core code that can work with an arbitrary large scancode
->> is still on our TODO list.
->>
->> I'm not entirely sure how to extend the scancode size, as there are a
->> few options:
->> 	1) Core would always work internally with 32 bytes (1024 bits). Some
->> logic will be required to accept entries with .len < 32;
->> 	2) Drivers will define the code lengtht, and core will use it,
->> returning -EINVAL if userspace uses a len grater than used internally by
->> the core. In this case, we'll need a sysfs node to tell userspace what's
->> the maximum allowed size;
->> 	3) Drivers will define the max number of bits, and core will use it,
->> truncating the number to the max size if userspace tries to write more bits 
->> than the internal representation;
->> 	4) Drivers will define the max number of bits, and core will use it,
->> returning an error if the number is bigger than the max scancode that can be
->> represented internally.
->>
->> I think that (2) is the best way for doing it, but I'm not yet entirely sure.
->> So, it is good to hear some comments about that.
+1) Is your driver for ASUS TV tuner right?
+2) tvtime ( http://tvtime.sourceforge.net/ ) may work for you better, as
+it's designed for TV tuner type of capture cards.
+3) For V4L/V4L2 compliance test, I like Xawtv better (personally). Though
+it's old, it's mature and stable.
+
+Best regards,
+
+Charlie X. Liu @ Sensoray Co.
+
+
+-----Original Message-----
+From: video4linux-list-bounces@redhat.com
+[mailto:video4linux-list-bounces@redhat.com] On Behalf Of Phillip Pi
+Sent: Friday, January 28, 2011 9:36 AM
+To: video4linux-list@redhat.com
+Subject: Re: DM6446
+
+Wow, these are old. Did Xawtv project die or something? Is there an 
+updated fork or anything? I never got my old ASUS TV tuner to work 
+with it. :(
+
+
+On Fri, Jan 28, 2011 at 11:25:48AM -0600, charlie@sensoray.com wrote:
+> It's in:
 > 
-> I'd say 4 and userspace utility should normalize scancodes packing them into the
-> least number of bits possible. Since keymap should be device specific
-> data in the keymap will not exceed what the driver expects, right?
+> http://rbytes.net/linux/xawtv-review/
+> http://linux.wareseeker.com/Multimedia/xawtv-3.95.zip/322997
+> http://nixbit.com/cat/multimedia/video/xawtv/
+> 
+> 
+> > Does any one has resources/source of XAWTV ?!
+-- 
+Quote of the Week: "A coconut shell full of water is a(n) sea/ocean to an
+ant." --Indians
+  /\___/\          Phil./Ant @ http://antfarm.ma.cx (Personal Web Site)
+ / /\ /\ \                 Ant's Quality Foraged Links: http://aqfl.net
+| |o   o| |                 E-mail: philpi@earthlink.net/ant@zimage.com
+   \ _ /              If crediting, then please kindly use Ant nickname
+    ( )                                              and AQFL URL/link.
 
-Well, it depends on what you name "device" ;) If you call it the Linux device that
-will handle the Remote Controller, then, the keymap is not driver-specific data. 
-
-They will follow one of the protocol standards, like RC-5 (14 bits), NEC (16 bits), 
-NEC EXTENDED (24 bits), some NEC variants with 32 bits, RC6 (there are several modes,
-and the key length depends on what mode is used, ranging from 16 to 64 bits).
-
-The problem is that some drivers support the NEC protocol, with 16 bits, plus 16
-bits of checksum, but doesn't support the variants that (ab)use the checksum bits
-to extend it to 24 or 32 bits. So, if we do (4), the userspace program will clean
-the keytable but will fail on the new keytable programming.
-
-Currently, the driver exports the supported protocols, but it doesn't export the
-protocol variants. Maybe the better would be to also export the supported protocol
-variants via sysfs.
-
-Cheers,
-Mauro
-
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+https://www.redhat.com/mailman/listinfo/video4linux-list
 
