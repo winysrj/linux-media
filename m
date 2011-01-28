@@ -1,138 +1,101 @@
 Return-path: <mchehab@pedra>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:51760 "HELO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751865Ab1AJCpg convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Jan 2011 21:45:36 -0500
-From: Qing Xu <qingx@marvell.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Kassey Li <ygli@marvell.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Date: Sun, 9 Jan 2011 18:45:28 -0800
-Subject: RE: [PATCH] [media] v4l: soc-camera: add enum-frame-size ioctl
-Message-ID: <7BAC95F5A7E67643AAFB2C31BEE662D014040171ED@SC-VEXCH2.marvell.com>
-References: <1294368595-2518-1-git-send-email-qingx@marvell.com>
- <Pine.LNX.4.64.1101071515410.32550@axis700.grange>
- <Pine.LNX.4.64.1101092023510.833@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1101092023510.833@axis700.grange>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mx1.redhat.com ([209.132.183.28]:35438 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754838Ab1A1RCj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Jan 2011 12:02:39 -0500
+Message-ID: <4D42F686.8010104@redhat.com>
+Date: Fri, 28 Jan 2011 15:01:58 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+CC: Mark Lord <kernel@teksavvy.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Linux Kernel <linux-kernel@vger.kernel.org>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils
+ ?
+References: <4D40C3D7.90608@teksavvy.com> <4D40C551.4020907@teksavvy.com> <20110127021227.GA29709@core.coreip.homeip.net> <4D40E41D.2030003@teksavvy.com> <20110127063815.GA29924@core.coreip.homeip.net> <4D414928.80801@redhat.com> <20110127172128.GA19672@core.coreip.homeip.net> <4D41C071.2090201@redhat.com> <20110128093922.GA3357@core.coreip.homeip.net> <4D42AECE.3020402@redhat.com> <20110128164057.GA6252@core.coreip.homeip.net>
+In-Reply-To: <20110128164057.GA6252@core.coreip.homeip.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, 10 Jan 2011, Qing Xu wrote:
+Em 28-01-2011 14:40, Dmitry Torokhov escreveu:
+> On Fri, Jan 28, 2011 at 09:55:58AM -0200, Mauro Carvalho Chehab wrote:
 
-> On Fri, 7 Jan 2011, Guennadi Liakhovetski wrote:
+>> The rc-core register (and the corresponding input register) is done when
+>> the device detected a remote controller, so, it should be safe to register
+>> on that point. If not, IMHO, there's a bug somewhere. 
+> 
+> It is not a matter of safe or unsafe registration. Registration is fine.
+> The problem is that with the current set up is that utility is fired
+> when trunk of [sub]tree is created, but the utility wants to operate on
+> leaves which may not be there yet.
 
-> On Fri, 7 Jan 2011, Qing Xu wrote:
->
-> > pass VIDIOC_ENUM_FRAMESIZES down to sub device drivers. So far no
-> > special handling in soc-camera core.
->
-> Hm, no, guess what? I don't think this can work. The parameter, that this
-> routine gets from the user struct v4l2_frmsizeenum contains a member
-> pixel_format, which is a fourcc code. Whereas subdevices don't deal with
-> them, they deal with mediabus codes. It is the same problem as with old
-> s/g/try/enum_fmt, which we replaced with respective mbus variants. So, we
-> either have to add our own .enum_mbus_framesizes video subdevice
-> operation, or we abuse this one, but interpret the pixel_format field as a
-> media-bus code.
->
-> Currently I only see one subdev driver, that implements this API:
-> ov7670.c, and it just happily ignores the pixel_format altogether...
->
-> Hans, Laurent, what do you think?
->
-> In the soc-camera case you will have to use soc_camera_xlate_by_fourcc()
-> to convert to media-bus code from fourcc. A nit-pick: please, follow the
-> style of the file, that you patch and don't add double empty lines between
-> functions.
->
-> A side question: why do you need this format at all? Is it for some custom
+I'm not an udev expert. Is there a udev event that hits only after having
+the driver completely loaded? Starting an udev rule while modprobe is
+still running is asking for race conditions.
 
-> Sorry, I meant to ask - what do you need this operation / ioctl() for?
+I'm not entirely convinced that this is the bug that Mark is hitting, as
+rc-core does all needed setups before registering the evdev device. We
+need the core and the dmesg to be sure about what's happening there.
 
-Hi Guennadi,
+>> Yet, I agree that udev tries to set devices too fast.
+> 
+> It tries to set devices exacty when you tell it to do so. It's not like
+> it goes trolling for random devices is sysfs.
+> 
+>> It would be better if
+>> it would wait for a few milisseconds, to reduce the risk of race conditions.
+> 
+> Gah, I really prefer using properly engineered solutions instead of
+> adding crutches.
 
-Before we launch camera application, we will use enum-frame-size ioctl to get all frame size that the sensor supports, and show all options in UI menu, then the customers could choose a size, and tell camera driver.
+I agree.
 
-If use mbus structure pass to sensor, we need to modify the second parameter definition, it will contain both mbus code information and width/height ingotmation:
-int (*enum_framesizes)(struct v4l2_subdev *sd, struct v4l2_frmsizeenum *fsize);
+>>> And this could be easily added to the udev's keymap utility that is
+>>> fired up when we discover evdevX devices.
+>>
+>> Yes, it can, if you add the IR protocol selection on that tool. A remote 
+>> controller keycode table has both the protocol and the keycodes.
+>> This basically means to merge 99% of the logic inside ir-keytable into the
+>> evdev generic tool.
+> 
+> Or just have an utility producing keymap name and feed it as input to
+> the generic tools. The way most of utilities work...
 
-or use g_mbus_fmt instead:
-int (*g_mbus_fmt)(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *fmt);
-soc_camera_enum_framesizes()
-{
-        ...
-        return v4l2_subdev_call(sd, video, enum_framesizes, fsize);
-}
+I don't like the idea of running a some logic at udev that would generate
+such keymap in runtime just before calling the generic tool. The other
+alternative (e. g.) to maintain the RC-protocol dependent keytables separate
+from the RC protocol used by each table will be a maintenance nightmare.
 
-What do you think?
+>>>> Also, I'm currently working on a way to map media keys for remote controllers 
+>>>> into X11 (basically, mapping them into the keyspace between 8-255, passing 
+>>>> through Xorg evdev.c, and then mapping back into some X11 symbols). This way,
+>>>> we don't need to violate the X11 protocol. (Yeah, I know this is hacky, but
+>>>> while X11 cannot pass the full evdev keycode, at least the Remote Controllers
+>>>> will work). This probably means that we may need to add some DBus logic
+>>>> inside ir-keytable, when called via udev, to allow it to announce to X11.
+>>>
+>>> The same issue is present with other types of input devices (multimedia
+>>> keyboards emitting codes that X can't consume) and so it again would
+>>> make sense to enhance udev's utility instead of confining it all to
+>>> ir-keytable.
+>>
+>> I agree with you, but I'm not sure if we can find a solution that will
+>> work for both RC and media keyboards, as X11 evdev just maps keyboards
+>> on the 8-255 range. I was thinking to add a detection there for RC, and
+>> use a separate map for them, as RC don't need most of the normal keyboard
+>> keys.
+> 
+> Well, there will always be clashes - there is reason why evdev goes
+> beyond 255 keycodes...
 
-Thanks!
-Qing
+Yeah. The most appropriate fix would be for X to just use the full evdev
+keycode range. However, I'm not seeing any indication that such change
+will happen soon. Not sure if there are some news about it at LCA, as
+there were one speech about this subject there.
 
-> application? What is your use-case, that makes try_fmt / s_fmt
-> insufficient for you and how does enum_framesizes help you?
->
-> Thanks
-> Guennadi
->
-> >
-> > Signed-off-by: Kassey Lee <ygli@marvell.com>
-> > Signed-off-by: Qing Xu <qingx@marvell.com>
-> > ---
-> >  drivers/media/video/soc_camera.c |   11 +++++++++++
-> >  1 files changed, 11 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-> > index 052bd6d..11715fb 100644
-> > --- a/drivers/media/video/soc_camera.c
-> > +++ b/drivers/media/video/soc_camera.c
-> > @@ -145,6 +145,16 @@ static int soc_camera_s_std(struct file *file, void *priv, v4l2_std_id *a)
-> >     return v4l2_subdev_call(sd, core, s_std, *a);
-> >  }
-> >
-> > +static int soc_camera_enum_framesizes(struct file *file, void *fh,
-> > +                                    struct v4l2_frmsizeenum *fsize)
-> > +{
-> > +   struct soc_camera_device *icd = file->private_data;
-> > +   struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
-> > +
-> > +   return v4l2_subdev_call(sd, video, enum_framesizes, fsize);
-> > +}
-> > +
-> > +
-> >  static int soc_camera_reqbufs(struct file *file, void *priv,
-> >                           struct v4l2_requestbuffers *p)
-> >  {
-> > @@ -1302,6 +1312,7 @@ static const struct v4l2_ioctl_ops soc_camera_ioctl_ops = {
-> >     .vidioc_g_input          = soc_camera_g_input,
-> >     .vidioc_s_input          = soc_camera_s_input,
-> >     .vidioc_s_std            = soc_camera_s_std,
-> > +   .vidioc_enum_framesizes  = soc_camera_enum_framesizes,
-> >     .vidioc_reqbufs          = soc_camera_reqbufs,
-> >     .vidioc_try_fmt_vid_cap  = soc_camera_try_fmt_vid_cap,
-> >     .vidioc_querybuf         = soc_camera_querybuf,
-> > --
-> > 1.6.3.3
-> >
->
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Cheers,
+Mauro
