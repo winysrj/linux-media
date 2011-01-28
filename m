@@ -1,284 +1,146 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:39501 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:13009 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756687Ab1AMSOQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Jan 2011 13:14:16 -0500
-Date: Thu, 13 Jan 2011 16:13:33 -0200
+	id S1753735Ab1A1L4I (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Jan 2011 06:56:08 -0500
+Message-ID: <4D42AECE.3020402@redhat.com>
+Date: Fri, 28 Jan 2011 09:55:58 -0200
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: mkrufky@kernellabs.com
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 2/3] [media] tda8290: Make all read operations atomic
-Message-ID: <20110113161333.1370919b@pedra>
-In-Reply-To: <7c3d11fc6242f190067a9c64cb2b3ba670e51739.1294942291.git.mchehab@redhat.com>
-References: <7c3d11fc6242f190067a9c64cb2b3ba670e51739.1294942291.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+MIME-Version: 1.0
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+CC: Mark Lord <kernel@teksavvy.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Linux Kernel <linux-kernel@vger.kernel.org>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils
+ ?
+References: <20110126020003.GA23085@core.coreip.homeip.net> <4D403855.4050706@teksavvy.com> <4D40C3D7.90608@teksavvy.com> <4D40C551.4020907@teksavvy.com> <20110127021227.GA29709@core.coreip.homeip.net> <4D40E41D.2030003@teksavvy.com> <20110127063815.GA29924@core.coreip.homeip.net> <4D414928.80801@redhat.com> <20110127172128.GA19672@core.coreip.homeip.net> <4D41C071.2090201@redhat.com> <20110128093922.GA3357@core.coreip.homeip.net>
+In-Reply-To: <20110128093922.GA3357@core.coreip.homeip.net>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Read operations should be preceeded by a write operation. However,
-nothing prevents that an I2C operation could happen between the two
-transactions.
+Em 28-01-2011 07:39, Dmitry Torokhov escreveu:
+> On Thu, Jan 27, 2011 at 04:58:57PM -0200, Mauro Carvalho Chehab wrote:
+>> Em 27-01-2011 15:21, Dmitry Torokhov escreveu:
+>>> On Thu, Jan 27, 2011 at 08:30:00AM -0200, Mauro Carvalho Chehab wrote:
+>>>>
+>>>> On my tests here, this is working fine, with Fedora and RHEL 6, on my
+>>>> usual test devices, so I don't believe that the tool itself is broken, 
+>>>> nor I think that the issue is due to the fix patch.
+>>>>
+>>>> I remember that when Kay added a persistence utility tool that opens a V4L
+>>>> device in order to read some capabilities, this caused a race condition
+>>>> into a number of drivers that use to register the video device too early.
+>>>> The result is that udev were opening the device before the end of the
+>>>> register process, causing OOPS and other problems.
+>>>
+>>> Well, this is quite possible. The usev ruls in the v4l-utils reads:
+>>>
+>>> ACTION=="add", SUBSYSTEM=="rc", RUN+="/usr/bin/ir-keytable -a /etc/rc_maps.cfg -s $name"
+>>>
+>>> So we act when we add RC device to the system. The corresponding input
+>>> device has not been registered yet (and will not be for some time
+>>> because before creating input ddevice we invoke request_module() to load
+>>> initial rc map module) so the tool runs simultaneously with kernel
+>>> registering input device and it could very well be it can't find
+>>> something it really wants.
+>>>
+>>> This would explain why Mark sees the segfault only when invoked via
+>>> udev but not when ran manually.
+>>>
+>>> However I still do not understand why Mark does not see the same issue
+>>> without the patch. Like I said, maybe if Mark could recompile with
+>>> debug data and us a core we'd see what is going on.
+>>
+>> Race conditions are hard to track... probably the new code added some delay,
+>> and this allowed the request_module() to finish his job.
+>>
+>>> BTW, that means that we need to redo udev rules. 
+>>
+>> If there's a race condition, then the proper fix is to lock the driver
+>> until it is ready to receive a fops. Maybe we'll need a mutex to preventing
+>> opening the device until it is completely initialized.
+> 
+> No, not at all. The devices are ready to handle everything when they are
+> created, it's just some devices are not there yet. What you do with
+> current udev rule is similar to trying to mount filesystem as soon as
+> you discover a PCI SCSI card. The controller is there but disks have not
+> been discovered, block devices have not been created, and so on.
 
-To avoid that problem, use an unique I2C transfer for both parts of
-the I2C transaction.
+The rc-core register (and the corresponding input register) is done when
+the device detected a remote controller, so, it should be safe to register
+on that point. If not, IMHO, there's a bug somewhere. 
 
-Cc: Michael Krufky <mkrufky@kernellabs.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Yet, I agree that udev tries to set devices too fast. It would be better if
+it would wait for a few milisseconds, to reduce the risk of race conditions.
 
-diff --git a/drivers/media/common/tuners/tda8290.c b/drivers/media/common/tuners/tda8290.c
-index c9062ce..5f889c1 100644
---- a/drivers/media/common/tuners/tda8290.c
-+++ b/drivers/media/common/tuners/tda8290.c
-@@ -95,8 +95,7 @@ static int tda8295_i2c_bridge(struct dvb_frontend *fe, int close)
- 		msleep(20);
- 	} else {
- 		msg = disable;
--		tuner_i2c_xfer_send(&priv->i2c_props, msg, 1);
--		tuner_i2c_xfer_recv(&priv->i2c_props, &msg[1], 1);
-+		tuner_i2c_xfer_send_recv(&priv->i2c_props, msg, 1, &msg[1], 1);
- 
- 		buf[2] = msg[1];
- 		buf[2] &= ~0x04;
-@@ -239,13 +238,15 @@ static void tda8290_set_params(struct dvb_frontend *fe,
- 		fe->ops.tuner_ops.set_analog_params(fe, params);
- 
- 	for (i = 0; i < 3; i++) {
--		tuner_i2c_xfer_send(&priv->i2c_props, &addr_pll_stat, 1);
--		tuner_i2c_xfer_recv(&priv->i2c_props, &pll_stat, 1);
-+		tuner_i2c_xfer_send_recv(&priv->i2c_props,
-+					 &addr_pll_stat, 1, &pll_stat, 1);
- 		if (pll_stat & 0x80) {
--			tuner_i2c_xfer_send(&priv->i2c_props, &addr_adc_sat, 1);
--			tuner_i2c_xfer_recv(&priv->i2c_props, &adc_sat, 1);
--			tuner_i2c_xfer_send(&priv->i2c_props, &addr_agc_stat, 1);
--			tuner_i2c_xfer_recv(&priv->i2c_props, &agc_stat, 1);
-+			tuner_i2c_xfer_send_recv(&priv->i2c_props,
-+						 &addr_adc_sat, 1,
-+						 &adc_sat, 1);
-+			tuner_i2c_xfer_send_recv(&priv->i2c_props,
-+						 &addr_agc_stat, 1,
-+						 &agc_stat, 1);
- 			tuner_dbg("tda8290 is locked, AGC: %d\n", agc_stat);
- 			break;
- 		} else {
-@@ -259,20 +260,22 @@ static void tda8290_set_params(struct dvb_frontend *fe,
- 			   agc_stat, adc_sat, pll_stat & 0x80);
- 		tuner_i2c_xfer_send(&priv->i2c_props, gainset_2, 2);
- 		msleep(100);
--		tuner_i2c_xfer_send(&priv->i2c_props, &addr_agc_stat, 1);
--		tuner_i2c_xfer_recv(&priv->i2c_props, &agc_stat, 1);
--		tuner_i2c_xfer_send(&priv->i2c_props, &addr_pll_stat, 1);
--		tuner_i2c_xfer_recv(&priv->i2c_props, &pll_stat, 1);
-+		tuner_i2c_xfer_send_recv(&priv->i2c_props,
-+					 &addr_agc_stat, 1, &agc_stat, 1);
-+		tuner_i2c_xfer_send_recv(&priv->i2c_props,
-+					 &addr_pll_stat, 1, &pll_stat, 1);
- 		if ((agc_stat > 115) || !(pll_stat & 0x80)) {
- 			tuner_dbg("adjust gain, step 2. Agc: %d, lock: %d\n",
- 				   agc_stat, pll_stat & 0x80);
- 			if (priv->cfg.agcf)
- 				priv->cfg.agcf(fe);
- 			msleep(100);
--			tuner_i2c_xfer_send(&priv->i2c_props, &addr_agc_stat, 1);
--			tuner_i2c_xfer_recv(&priv->i2c_props, &agc_stat, 1);
--			tuner_i2c_xfer_send(&priv->i2c_props, &addr_pll_stat, 1);
--			tuner_i2c_xfer_recv(&priv->i2c_props, &pll_stat, 1);
-+			tuner_i2c_xfer_send_recv(&priv->i2c_props,
-+						 &addr_agc_stat, 1,
-+						 &agc_stat, 1);
-+			tuner_i2c_xfer_send_recv(&priv->i2c_props,
-+						 &addr_pll_stat, 1,
-+						 &pll_stat, 1);
- 			if((agc_stat > 115) || !(pll_stat & 0x80)) {
- 				tuner_dbg("adjust gain, step 3. Agc: %d\n", agc_stat);
- 				tuner_i2c_xfer_send(&priv->i2c_props, adc_head_12, 2);
-@@ -284,10 +287,12 @@ static void tda8290_set_params(struct dvb_frontend *fe,
- 
- 	/* l/ l' deadlock? */
- 	if(priv->tda8290_easy_mode & 0x60) {
--		tuner_i2c_xfer_send(&priv->i2c_props, &addr_adc_sat, 1);
--		tuner_i2c_xfer_recv(&priv->i2c_props, &adc_sat, 1);
--		tuner_i2c_xfer_send(&priv->i2c_props, &addr_pll_stat, 1);
--		tuner_i2c_xfer_recv(&priv->i2c_props, &pll_stat, 1);
-+		tuner_i2c_xfer_send_recv(&priv->i2c_props,
-+					 &addr_adc_sat, 1,
-+					 &adc_sat, 1);
-+		tuner_i2c_xfer_send_recv(&priv->i2c_props,
-+					 &addr_pll_stat, 1,
-+					 &pll_stat, 1);
- 		if ((adc_sat > 20) || !(pll_stat & 0x80)) {
- 			tuner_dbg("trying to resolve SECAM L deadlock\n");
- 			tuner_i2c_xfer_send(&priv->i2c_props, agc_rst_on, 2);
-@@ -307,8 +312,7 @@ static void tda8295_power(struct dvb_frontend *fe, int enable)
- 	struct tda8290_priv *priv = fe->analog_demod_priv;
- 	unsigned char buf[] = { 0x30, 0x00 }; /* clb_stdbt */
- 
--	tuner_i2c_xfer_send(&priv->i2c_props, &buf[0], 1);
--	tuner_i2c_xfer_recv(&priv->i2c_props, &buf[1], 1);
-+	tuner_i2c_xfer_send_recv(&priv->i2c_props, &buf[0], 1, &buf[1], 1);
- 
- 	if (enable)
- 		buf[1] = 0x01;
-@@ -323,8 +327,7 @@ static void tda8295_set_easy_mode(struct dvb_frontend *fe, int enable)
- 	struct tda8290_priv *priv = fe->analog_demod_priv;
- 	unsigned char buf[] = { 0x01, 0x00 };
- 
--	tuner_i2c_xfer_send(&priv->i2c_props, &buf[0], 1);
--	tuner_i2c_xfer_recv(&priv->i2c_props, &buf[1], 1);
-+	tuner_i2c_xfer_send_recv(&priv->i2c_props, &buf[0], 1, &buf[1], 1);
- 
- 	if (enable)
- 		buf[1] = 0x01; /* rising edge sets regs 0x02 - 0x23 */
-@@ -353,8 +356,7 @@ static void tda8295_agc1_out(struct dvb_frontend *fe, int enable)
- 	struct tda8290_priv *priv = fe->analog_demod_priv;
- 	unsigned char buf[] = { 0x02, 0x00 }; /* DIV_FUNC */
- 
--	tuner_i2c_xfer_send(&priv->i2c_props, &buf[0], 1);
--	tuner_i2c_xfer_recv(&priv->i2c_props, &buf[1], 1);
-+	tuner_i2c_xfer_send_recv(&priv->i2c_props, &buf[0], 1, &buf[1], 1);
- 
- 	if (enable)
- 		buf[1] &= ~0x40;
-@@ -370,10 +372,10 @@ static void tda8295_agc2_out(struct dvb_frontend *fe, int enable)
- 	unsigned char set_gpio_cf[]    = { 0x44, 0x00 };
- 	unsigned char set_gpio_val[]   = { 0x46, 0x00 };
- 
--	tuner_i2c_xfer_send(&priv->i2c_props, &set_gpio_cf[0], 1);
--	tuner_i2c_xfer_recv(&priv->i2c_props, &set_gpio_cf[1], 1);
--	tuner_i2c_xfer_send(&priv->i2c_props, &set_gpio_val[0], 1);
--	tuner_i2c_xfer_recv(&priv->i2c_props, &set_gpio_val[1], 1);
-+	tuner_i2c_xfer_send_recv(&priv->i2c_props,
-+				 &set_gpio_cf[0], 1, &set_gpio_cf[1], 1);
-+	tuner_i2c_xfer_send_recv(&priv->i2c_props,
-+				 &set_gpio_val[0], 1, &set_gpio_val[1], 1);
- 
- 	set_gpio_cf[1] &= 0xf0; /* clear GPIO_0 bits 3-0 */
- 
-@@ -392,8 +394,7 @@ static int tda8295_has_signal(struct dvb_frontend *fe)
- 	unsigned char hvpll_stat = 0x26;
- 	unsigned char ret;
- 
--	tuner_i2c_xfer_send(&priv->i2c_props, &hvpll_stat, 1);
--	tuner_i2c_xfer_recv(&priv->i2c_props, &ret, 1);
-+	tuner_i2c_xfer_send_recv(&priv->i2c_props, &hvpll_stat, 1, &ret, 1);
- 	return (ret & 0x01) ? 65535 : 0;
- }
- 
-@@ -413,8 +414,8 @@ static void tda8295_set_params(struct dvb_frontend *fe,
- 	tda8295_power(fe, 1);
- 	tda8295_agc1_out(fe, 1);
- 
--	tuner_i2c_xfer_send(&priv->i2c_props, &blanking_mode[0], 1);
--	tuner_i2c_xfer_recv(&priv->i2c_props, &blanking_mode[1], 1);
-+	tuner_i2c_xfer_send_recv(&priv->i2c_props,
-+				 &blanking_mode[0], 1, &blanking_mode[1], 1);
- 
- 	tda8295_set_video_std(fe);
- 
-@@ -447,8 +448,8 @@ static int tda8290_has_signal(struct dvb_frontend *fe)
- 	unsigned char i2c_get_afc[1] = { 0x1B };
- 	unsigned char afc = 0;
- 
--	tuner_i2c_xfer_send(&priv->i2c_props, i2c_get_afc, ARRAY_SIZE(i2c_get_afc));
--	tuner_i2c_xfer_recv(&priv->i2c_props, &afc, 1);
-+	tuner_i2c_xfer_send_recv(&priv->i2c_props,
-+				 i2c_get_afc, ARRAY_SIZE(i2c_get_afc), &afc, 1);
- 	return (afc & 0x80)? 65535:0;
- }
- 
-@@ -654,20 +655,26 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
- static int tda8290_probe(struct tuner_i2c_props *i2c_props)
- {
- #define TDA8290_ID 0x89
--	unsigned char tda8290_id[] = { 0x1f, 0x00 };
-+	u8 reg = 0x1f, id;
-+	struct i2c_msg msg_read[] = {
-+		{ .addr = 0x4b, .flags = 0, .len = 1, .buf = &reg },
-+		{ .addr = 0x4b, .flags = I2C_M_RD, .len = 1, .buf = &id },
-+	};
- 
- 	/* detect tda8290 */
--	tuner_i2c_xfer_send(i2c_props, &tda8290_id[0], 1);
--	tuner_i2c_xfer_recv(i2c_props, &tda8290_id[1], 1);
-+	if (i2c_transfer(i2c_props->adap, msg_read, 2) != 2) {
-+		printk(KERN_WARNING "%s: tda8290 couldn't read register 0x%02x\n",
-+			       __func__, reg);
-+		return -ENODEV;
-+	}
- 
--	if (tda8290_id[1] == TDA8290_ID) {
-+	if (id == TDA8290_ID) {
- 		if (debug)
- 			printk(KERN_DEBUG "%s: tda8290 detected @ %d-%04x\n",
- 			       __func__, i2c_adapter_id(i2c_props->adap),
- 			       i2c_props->addr);
- 		return 0;
- 	}
--
- 	return -ENODEV;
- }
- 
-@@ -675,16 +682,23 @@ static int tda8295_probe(struct tuner_i2c_props *i2c_props)
- {
- #define TDA8295_ID 0x8a
- #define TDA8295C2_ID 0x8b
--	unsigned char tda8295_id[] = { 0x2f, 0x00 };
-+	u8 reg = 0x2f, id;
-+	struct i2c_msg msg_read[] = {
-+		{ .addr = 0x4b, .flags = 0, .len = 1, .buf = &reg },
-+		{ .addr = 0x4b, .flags = I2C_M_RD, .len = 1, .buf = &id },
-+	};
- 
--	/* detect tda8295 */
--	tuner_i2c_xfer_send(i2c_props, &tda8295_id[0], 1);
--	tuner_i2c_xfer_recv(i2c_props, &tda8295_id[1], 1);
-+	/* detect tda8290 */
-+	if (i2c_transfer(i2c_props->adap, msg_read, 2) != 2) {
-+		printk(KERN_WARNING "%s: tda8290 couldn't read register 0x%02x\n",
-+			       __func__, reg);
-+		return -ENODEV;
-+	}
- 
--	if ((tda8295_id[1] & 0xfe) == TDA8295_ID) {
-+	if ((id & 0xfe) == TDA8295_ID) {
- 		if (debug)
- 			printk(KERN_DEBUG "%s: %s detected @ %d-%04x\n",
--			       __func__, (tda8295_id[1] == TDA8295_ID) ?
-+			       __func__, (id == TDA8295_ID) ?
- 			       "tda8295c1" : "tda8295c2",
- 			       i2c_adapter_id(i2c_props->adap),
- 			       i2c_props->addr);
-@@ -809,8 +823,8 @@ int tda829x_probe(struct i2c_adapter *i2c_adap, u8 i2c_addr)
- 	int i;
- 
- 	/* rule out tda9887, which would return the same byte repeatedly */
--	tuner_i2c_xfer_send(&i2c_props, soft_reset, 1);
--	tuner_i2c_xfer_recv(&i2c_props, buf, PROBE_BUFFER_SIZE);
-+	tuner_i2c_xfer_send_recv(&i2c_props,
-+				 soft_reset, 1, buf, PROBE_BUFFER_SIZE);
- 	for (i = 1; i < PROBE_BUFFER_SIZE; i++) {
- 		if (buf[i] != buf[0])
- 			break;
-@@ -827,13 +841,12 @@ int tda829x_probe(struct i2c_adapter *i2c_adap, u8 i2c_addr)
- 	/* fall back to old probing method */
- 	tuner_i2c_xfer_send(&i2c_props, easy_mode_b, 2);
- 	tuner_i2c_xfer_send(&i2c_props, soft_reset, 2);
--	tuner_i2c_xfer_send(&i2c_props, &addr_dto_lsb, 1);
--	tuner_i2c_xfer_recv(&i2c_props, &data, 1);
-+	tuner_i2c_xfer_send_recv(&i2c_props, &addr_dto_lsb, 1, &data, 1);
- 	if (data == 0) {
- 		tuner_i2c_xfer_send(&i2c_props, easy_mode_g, 2);
- 		tuner_i2c_xfer_send(&i2c_props, soft_reset, 2);
--		tuner_i2c_xfer_send(&i2c_props, &addr_dto_lsb, 1);
--		tuner_i2c_xfer_recv(&i2c_props, &data, 1);
-+		tuner_i2c_xfer_send_recv(&i2c_props,
-+					 &addr_dto_lsb, 1, &data, 1);
- 		if (data == 0x7b) {
- 			return 0;
- 		}
--- 
-1.7.1
+>> It is hard to tell, as Mark didn't provide us yet the dmesg info (at least
+>> on the emails I was c/c), so I don't even know what device he has, and what
+>> drivers are used.
+> 
+> I belie you have been copied on the mail that had the following snippet:
+> 
+>> kernel: Registered IR keymap rc-rc5-tv
+>> udevd-event[6438]: run_program: '/usr/bin/ir-keytable' abnormal exit
+>> kernel: input: i2c IR (Hauppauge) as /devices/virtual/rc/rc0/input7
+>> kernel: ir-keytable[6439]: segfault at 8 ip 00000000004012d2 sp 00007fff6d43ca60 error 4 in ir-keytable[400000+7000]
+>> kernel: rc0: i2c IR (Hauppauge) as /devices/virtual/rc/rc0
+>> kernel: ir-kbd-i2c: i2c IR (Hauppauge) detected at i2c-0/0-0018/ir0 [ivtv i2c driver #0]
 
+Ok, the last line says it is a ivtv board, using IR. However, it doesn't show
+the I2C detection of other devices that might be racing to gain access to the
+I2C bus, nor if some OOPS were hit by kernel.
 
+I don't have any ivtv boards handy, but there are some developers at
+linux-media ML that may help with this.
+
+>>> Maybe we should split
+>>> the utility into 2 parts - one dealing with rcX device and for keymap
+>>> setting reuse udev's existing utility that adjusts maps on ann input
+>>> devices, not for RCs only.
+>>
+>> It could be done, but then we'll need to pollute the existing input tools
+>> with RC-specific stuff. For IR, there are some additional steps, like
+>> the need to select the IR protocol, otherwise the keytable is useless.
+> 
+> That should be done by the separate utility that fires up when udev gets
+> event for /sys/class/rc/rcX device.
+> 
+>> Also, the keytable and persistent info is provided via /sys/class/rc/rc?/uevent.
+>> So, the tool need to first read the RC class, check what keytable should be
+>> associated with that device (based on a custom file), and load the proper
+>> table.
+> 
+> And this could be easily added to the udev's keymap utility that is
+> fired up when we discover evdevX devices.
+
+Yes, it can, if you add the IR protocol selection on that tool. A remote 
+controller keycode table has both the protocol and the keycodes.
+This basically means to merge 99% of the logic inside ir-keytable into the
+evdev generic tool.
+
+I'm not against it, although I prefer a specialized tool for RC.
+
+>> Also, I'm currently working on a way to map media keys for remote controllers 
+>> into X11 (basically, mapping them into the keyspace between 8-255, passing 
+>> through Xorg evdev.c, and then mapping back into some X11 symbols). This way,
+>> we don't need to violate the X11 protocol. (Yeah, I know this is hacky, but
+>> while X11 cannot pass the full evdev keycode, at least the Remote Controllers
+>> will work). This probably means that we may need to add some DBus logic
+>> inside ir-keytable, when called via udev, to allow it to announce to X11.
+> 
+> The same issue is present with other types of input devices (multimedia
+> keyboards emitting codes that X can't consume) and so it again would
+> make sense to enhance udev's utility instead of confining it all to
+> ir-keytable.
+
+I agree with you, but I'm not sure if we can find a solution that will
+work for both RC and media keyboards, as X11 evdev just maps keyboards
+on the 8-255 range. I was thinking to add a detection there for RC, and
+use a separate map for them, as RC don't need most of the normal keyboard
+keys.
+
+Cheers,
+Mauro
