@@ -1,73 +1,57 @@
 Return-path: <mchehab@pedra>
-Received: from bear.ext.ti.com ([192.94.94.41]:38743 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753417Ab1AGNlF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Jan 2011 08:41:05 -0500
-From: Manjunath Hadli <manjunath.hadli@ti.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Kevin Hilman <khilman@deeprootsystems.com>
-Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-arm-kernel@listinfradead.com,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: [PATCH v12 7/8] davinci vpbe: Build infrastructure for VPBE driver
-Date: Fri,  7 Jan 2011 19:10:48 +0530
-Message-Id: <1294407648-25927-1-git-send-email-manjunath.hadli@ti.com>
+Received: from mail-out.m-online.net ([212.18.0.9]:60433 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754057Ab1A2TYL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 29 Jan 2011 14:24:11 -0500
+Date: Sat, 29 Jan 2011 20:24:09 +0100
+From: Anatolij Gustschin <agust@denx.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org,
+	Dan Williams <dan.j.williams@intel.com>,
+	linux-arm-kernel@lists.infradead.org, Detlev Zundel <dzu@denx.de>,
+	Markus Niebel <Markus.Niebel@tqs.de>
+Subject: Re: [PATCH 1/2] v4l: soc-camera: start stream after queueing the
+ buffers
+Message-ID: <20110129202409.36307b2d@wker>
+In-Reply-To: <Pine.LNX.4.64.1101292015140.26696@axis700.grange>
+References: <1296031789-1721-1-git-send-email-agust@denx.de>
+	<1296031789-1721-2-git-send-email-agust@denx.de>
+	<Pine.LNX.4.64.1101292015140.26696@axis700.grange>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This patch adds the build infra-structure for Davinci
-VPBE dislay driver.
+On Sat, 29 Jan 2011 20:16:42 +0100 (CET)
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+...
+> > --- a/drivers/media/video/soc_camera.c
+> > +++ b/drivers/media/video/soc_camera.c
+> > @@ -646,11 +646,11 @@ static int soc_camera_streamon(struct file *file, void *priv,
+> >  	if (icd->streamer != file)
+> >  		return -EBUSY;
+> >  
+> > -	v4l2_subdev_call(sd, video, s_stream, 1);
+> > -
+> >  	/* This calls buf_queue from host driver's videobuf_queue_ops */
+> >  	ret = videobuf_streamon(&icd->vb_vidq);
+> >  
+> > +	v4l2_subdev_call(sd, video, s_stream, 1);
+> > +
+> 
+> After a bit more testing I'll make this to
+> 
+> +	if (!ret)
+> +		v4l2_subdev_call(sd, video, s_stream, 1);
+> +
+> 
+> Ok? Or you can submit a v2 yourself, if you like - when you fix the 
+> comment in the other patch from this series.
 
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/video/davinci/Kconfig  |   22 ++++++++++++++++++++++
- drivers/media/video/davinci/Makefile |    2 ++
- 2 files changed, 24 insertions(+), 0 deletions(-)
+I'll submit a v2 patch since I have to resubmit the other patch, too.
 
-diff --git a/drivers/media/video/davinci/Kconfig b/drivers/media/video/davinci/Kconfig
-index 6b19540..a7f11e7 100644
---- a/drivers/media/video/davinci/Kconfig
-+++ b/drivers/media/video/davinci/Kconfig
-@@ -91,3 +91,25 @@ config VIDEO_ISIF
- 
- 	   To compile this driver as a module, choose M here: the
- 	   module will be called vpfe.
-+
-+config VIDEO_DM644X_VPBE
-+	tristate "DM644X VPBE HW module"
-+	select VIDEO_VPSS_SYSTEM
-+	select VIDEOBUF_DMA_CONTIG
-+	help
-+	    Enables VPBE modules used for display on a DM644x
-+	    SoC.
-+
-+	    To compile this driver as a module, choose M here: the
-+	    module will be called vpbe.
-+
-+
-+config VIDEO_VPBE_DISPLAY
-+	tristate "VPBE V4L2 Display driver"
-+	select VIDEO_DM644X_VPBE
-+	default y
-+	help
-+	    Enables VPBE V4L2 Display driver on a DMXXX device
-+
-+	    To compile this driver as a module, choose M here: the
-+	    module will be called vpbe_display.
-diff --git a/drivers/media/video/davinci/Makefile b/drivers/media/video/davinci/Makefile
-index a379557..ae7dafb 100644
---- a/drivers/media/video/davinci/Makefile
-+++ b/drivers/media/video/davinci/Makefile
-@@ -16,3 +16,5 @@ obj-$(CONFIG_VIDEO_VPFE_CAPTURE) += vpfe_capture.o
- obj-$(CONFIG_VIDEO_DM6446_CCDC) += dm644x_ccdc.o
- obj-$(CONFIG_VIDEO_DM355_CCDC) += dm355_ccdc.o
- obj-$(CONFIG_VIDEO_ISIF) += isif.o
-+obj-$(CONFIG_VIDEO_DM644X_VPBE) += vpbe.o vpbe_osd.o vpbe_venc.o
-+obj-$(CONFIG_VIDEO_VPBE_DISPLAY) += vpbe_display.o
--- 
-1.6.2.4
 
+Thanks,
+Anatolij
