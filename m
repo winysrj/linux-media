@@ -1,100 +1,41 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59767 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751269Ab1A0M3E (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:47012 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754009Ab1A2SxW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Jan 2011 07:29:04 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Sat, 29 Jan 2011 13:53:22 -0500
+Received: by wwa36 with SMTP id 36so4508700wwa.1
+        for <linux-media@vger.kernel.org>; Sat, 29 Jan 2011 10:53:21 -0800 (PST)
+MIME-Version: 1.0
+Date: Sat, 29 Jan 2011 13:53:21 -0500
+Message-ID: <AANLkTi=D4GOqJB+9CS1xZGAc4vs3WPM5S=GQwm8PK2Sa@mail.gmail.com>
+Subject: HVR1255 svideo
+From: Jon Goldberg <jond578@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [PATCH v6 6/7] v4l: subdev: Control ioctls support
-Date: Thu, 27 Jan 2011 13:28:57 +0100
-Message-Id: <1296131338-29892-7-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1296131338-29892-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1296131338-29892-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Pass the control-related ioctls to the subdev driver through the control
-framework.
+Hi
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- Documentation/video4linux/v4l2-framework.txt |   16 ++++++++++++++++
- drivers/media/video/v4l2-subdev.c            |   25 +++++++++++++++++++++++++
- 2 files changed, 41 insertions(+), 0 deletions(-)
+I've been trying to get the Svideo input on my HVR-1255 working.  From
+the latest code in cx23885-cards.c, it seems that only DVB is
+supported.  I have some experience writing Linux Kernel/Drivers so I'm
+determined to get this working.
 
-diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
-index 4c9185a..f683f63 100644
---- a/Documentation/video4linux/v4l2-framework.txt
-+++ b/Documentation/video4linux/v4l2-framework.txt
-@@ -336,6 +336,22 @@ argument to 0. Setting the argument to 1 will only enable device node
- registration if the sub-device driver has set the V4L2_SUBDEV_FL_HAS_DEVNODE
- flag.
- 
-+The device node handles a subset of the V4L2 API.
-+
-+VIDIOC_QUERYCTRL
-+VIDIOC_QUERYMENU
-+VIDIOC_G_CTRL
-+VIDIOC_S_CTRL
-+VIDIOC_G_EXT_CTRLS
-+VIDIOC_S_EXT_CTRLS
-+VIDIOC_TRY_EXT_CTRLS
-+
-+	The controls ioctls are identical to the ones defined in V4L2. They
-+	behave identically, with the only exception that they deal only with
-+	controls implemented in the sub-device. Depending on the driver, those
-+	controls can be also be accessed through one (or several) V4L2 device
-+	nodes.
-+
- 
- I2C sub-device drivers
- ----------------------
-diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-index 0deff78..fc57ce7 100644
---- a/drivers/media/video/v4l2-subdev.c
-+++ b/drivers/media/video/v4l2-subdev.c
-@@ -24,6 +24,7 @@
- #include <linux/ioctl.h>
- #include <linux/videodev2.h>
- 
-+#include <media/v4l2-ctrls.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
- 
-@@ -45,7 +46,31 @@ static int subdev_close(struct file *file)
- 
- static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- {
-+	struct video_device *vdev = video_devdata(file);
-+	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
-+
- 	switch (cmd) {
-+	case VIDIOC_QUERYCTRL:
-+		return v4l2_subdev_queryctrl(sd, arg);
-+
-+	case VIDIOC_QUERYMENU:
-+		return v4l2_subdev_querymenu(sd, arg);
-+
-+	case VIDIOC_G_CTRL:
-+		return v4l2_subdev_g_ctrl(sd, arg);
-+
-+	case VIDIOC_S_CTRL:
-+		return v4l2_subdev_s_ctrl(sd, arg);
-+
-+	case VIDIOC_G_EXT_CTRLS:
-+		return v4l2_subdev_g_ext_ctrls(sd, arg);
-+
-+	case VIDIOC_S_EXT_CTRLS:
-+		return v4l2_subdev_s_ext_ctrls(sd, arg);
-+
-+	case VIDIOC_TRY_EXT_CTRLS:
-+		return v4l2_subdev_try_ext_ctrls(sd, arg);
-+
- 	default:
- 		return -ENOIOCTLCMD;
- 	}
--- 
-1.7.3.4
+I copied the cx23885_boards[CX23885_BOARD_HAUPPAUGE_HVR1250] settings
+and did get the V4L layer connected enough to get a /dev/video0,
+albeit with only green video and no picture.  I then realized that was
+probably a dumb thing to do (possibly damaging the GPIO), since the
+eeprom is clearly different based on what I saw in tveeprom.c.
 
+My question is, am I going down the right path to add this support?
+Should I go ahead and install Windows (sigh) and get the output from
+RegSpy?  Are there any developer git trees that are focused on this
+area?
+
+Regards,
+Jon
+
+- cx23885[0]: subsystem: 0070:2259, board: Hauppauge WinTV-HVR1255
+[card=20,autodetected]
