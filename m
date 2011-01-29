@@ -1,155 +1,94 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:1436 "EHLO
-	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751628Ab1AHLCF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Jan 2011 06:02:05 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Jonathan Corbet <corbet@lwn.net>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [RFCv2 PATCH 5/5] cafe_ccic: implement the control framework.
-Date: Sat,  8 Jan 2011 12:01:48 +0100
-Message-Id: <be7db3c40d835ee202a4a7bc66ffaed4c12f2f63.1294484338.git.hverkuil@xs4all.nl>
-In-Reply-To: <1294484508-14820-1-git-send-email-hverkuil@xs4all.nl>
-References: <1294484508-14820-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <c17e89942fa7c2a1928f0dadc676f39a7e34e54c.1294484338.git.hverkuil@xs4all.nl>
-References: <c17e89942fa7c2a1928f0dadc676f39a7e34e54c.1294484338.git.hverkuil@xs4all.nl>
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:58574 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750765Ab1A2Hdg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 29 Jan 2011 02:33:36 -0500
+Date: Fri, 28 Jan 2011 23:33:29 -0800
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Mark Lord <kernel@teksavvy.com>, linux-kernel@vger.kernel.org,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCH] Input: rc-keymap - return KEY_RESERVED for unknown mappings
+Message-ID: <20110129073329.GB26915@core.coreip.homeip.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-And also swapped the out_free and out_unreg labels as they were in the
-wrong order.
+Do not respond with -EINVAL to EVIOCGKEYCODE for not-yet-mapped scancodes,
+but rather return KEY_RESERVED.
 
-Tested with the OLPC laptop.
+This fixes breakage with Ubuntu's input-kbd utility that stopped returning
+full keymaps for remote controls.
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+Tested-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Tested-by: Mark Lord <kernel@teksavvy.com>
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
 ---
- drivers/media/video/cafe_ccic.c |   59 +++++++-------------------------------
- 1 files changed, 11 insertions(+), 48 deletions(-)
 
-diff --git a/drivers/media/video/cafe_ccic.c b/drivers/media/video/cafe_ccic.c
-index 7488b47..44ec342 100644
---- a/drivers/media/video/cafe_ccic.c
-+++ b/drivers/media/video/cafe_ccic.c
-@@ -35,6 +35,7 @@
- #include <linux/slab.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
-+#include <media/v4l2-ctrls.h>
- #include <media/v4l2-chip-ident.h>
- #include <linux/device.h>
- #include <linux/wait.h>
-@@ -145,6 +146,7 @@ struct cafe_sio_buffer {
- struct cafe_camera
- {
- 	struct v4l2_device v4l2_dev;
-+	struct v4l2_ctrl_handler ctrl_handler;
- 	enum cafe_state state;
- 	unsigned long flags;   		/* Buffer status, mainly (dev_lock) */
- 	int users;			/* How many open FDs */
-@@ -1466,48 +1468,6 @@ static unsigned int cafe_v4l_poll(struct file *filp,
+Linus,
+
+Due to the fact that contents of drivers/media in my 'for-linus' branch
+are quite different from mainline/Mauro's trees and I am not planning on
+merging this branch until closer to the next merge window I am sending
+this regression fix in patch form instead of pull request.
+
+Please consider applying.
+
+Thanks,
+Dmitry
+
+ drivers/media/rc/rc-main.c |   28 +++++++++++++++++-----------
+ 1 files changed, 17 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index 72be8a0..512a2f4 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -458,21 +458,27 @@ static int ir_getkeycode(struct input_dev *idev,
+ 		index = ir_lookup_by_scancode(rc_map, scancode);
+ 	}
  
+-	if (index >= rc_map->len) {
+-		if (!(ke->flags & INPUT_KEYMAP_BY_INDEX))
+-			IR_dprintk(1, "unknown key for scancode 0x%04x\n",
+-				   scancode);
++	if (index < rc_map->len) {
++		entry = &rc_map->scan[index];
++
++		ke->index = index;
++		ke->keycode = entry->keycode;
++		ke->len = sizeof(entry->scancode);
++		memcpy(ke->scancode, &entry->scancode, sizeof(entry->scancode));
++
++	} else if (!(ke->flags & INPUT_KEYMAP_BY_INDEX)) {
++		/*
++		 * We do not really know the valid range of scancodes
++		 * so let's respond with KEY_RESERVED to anything we
++		 * do not have mapping for [yet].
++		 */
++		ke->index = index;
++		ke->keycode = KEY_RESERVED;
++	} else {
+ 		retval = -EINVAL;
+ 		goto out;
+ 	}
  
+-	entry = &rc_map->scan[index];
+-
+-	ke->index = index;
+-	ke->keycode = entry->keycode;
+-	ke->len = sizeof(entry->scancode);
+-	memcpy(ke->scancode, &entry->scancode, sizeof(entry->scancode));
+-
+ 	retval = 0;
  
--static int cafe_vidioc_queryctrl(struct file *filp, void *priv,
--		struct v4l2_queryctrl *qc)
--{
--	struct cafe_camera *cam = priv;
--	int ret;
--
--	mutex_lock(&cam->s_mutex);
--	ret = sensor_call(cam, core, queryctrl, qc);
--	mutex_unlock(&cam->s_mutex);
--	return ret;
--}
--
--
--static int cafe_vidioc_g_ctrl(struct file *filp, void *priv,
--		struct v4l2_control *ctrl)
--{
--	struct cafe_camera *cam = priv;
--	int ret;
--
--	mutex_lock(&cam->s_mutex);
--	ret = sensor_call(cam, core, g_ctrl, ctrl);
--	mutex_unlock(&cam->s_mutex);
--	return ret;
--}
--
--
--static int cafe_vidioc_s_ctrl(struct file *filp, void *priv,
--		struct v4l2_control *ctrl)
--{
--	struct cafe_camera *cam = priv;
--	int ret;
--
--	mutex_lock(&cam->s_mutex);
--	ret = sensor_call(cam, core, s_ctrl, ctrl);
--	mutex_unlock(&cam->s_mutex);
--	return ret;
--}
--
--
--
--
--
- static int cafe_vidioc_querycap(struct file *file, void *priv,
- 		struct v4l2_capability *cap)
- {
-@@ -1792,9 +1752,6 @@ static const struct v4l2_ioctl_ops cafe_v4l_ioctl_ops = {
- 	.vidioc_dqbuf		= cafe_vidioc_dqbuf,
- 	.vidioc_streamon	= cafe_vidioc_streamon,
- 	.vidioc_streamoff	= cafe_vidioc_streamoff,
--	.vidioc_queryctrl	= cafe_vidioc_queryctrl,
--	.vidioc_g_ctrl		= cafe_vidioc_g_ctrl,
--	.vidioc_s_ctrl		= cafe_vidioc_s_ctrl,
- 	.vidioc_g_parm		= cafe_vidioc_g_parm,
- 	.vidioc_s_parm		= cafe_vidioc_s_parm,
- 	.vidioc_enum_framesizes = cafe_vidioc_enum_framesizes,
-@@ -2031,6 +1988,10 @@ static int cafe_pci_probe(struct pci_dev *pdev,
- 	INIT_LIST_HEAD(&cam->sb_avail);
- 	INIT_LIST_HEAD(&cam->sb_full);
- 	tasklet_init(&cam->s_tasklet, cafe_frame_tasklet, (unsigned long) cam);
-+	ret = v4l2_ctrl_handler_init(&cam->ctrl_handler, 10);
-+	if (ret)
-+		goto out_unreg;
-+	cam->v4l2_dev.ctrl_handler = &cam->ctrl_handler;
- 	/*
- 	 * Get set up on the PCI bus.
- 	 */
-@@ -2087,10 +2048,10 @@ static int cafe_pci_probe(struct pci_dev *pdev,
- 	cam->vdev.debug = 0;
- /*	cam->vdev.debug = V4L2_DEBUG_IOCTL_ARG;*/
- 	cam->vdev.v4l2_dev = &cam->v4l2_dev;
-+	video_set_drvdata(&cam->vdev, cam);
- 	ret = video_register_device(&cam->vdev, VFL_TYPE_GRABBER, -1);
- 	if (ret)
- 		goto out_unlock;
--	video_set_drvdata(&cam->vdev, cam);
- 
- 	/*
- 	 * If so requested, try to get our DMA buffers now.
-@@ -2113,9 +2074,10 @@ out_freeirq:
- 	free_irq(pdev->irq, cam);
- out_iounmap:
- 	pci_iounmap(pdev, cam->regs);
--out_free:
--	v4l2_device_unregister(&cam->v4l2_dev);
- out_unreg:
-+	v4l2_ctrl_handler_free(&cam->ctrl_handler);
-+	v4l2_device_unregister(&cam->v4l2_dev);
-+out_free:
- 	kfree(cam);
  out:
- 	return ret;
-@@ -2154,6 +2116,7 @@ static void cafe_pci_remove(struct pci_dev *pdev)
- 	if (cam->users > 0)
- 		cam_warn(cam, "Removing a device with users!\n");
- 	cafe_shutdown(cam);
-+	v4l2_ctrl_handler_free(&cam->ctrl_handler);
- 	v4l2_device_unregister(&cam->v4l2_dev);
- 	kfree(cam);
- /* No unlock - it no longer exists */
 -- 
-1.7.0.4
+1.7.3.5
 
+-- 
+Dmitry
