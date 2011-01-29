@@ -1,55 +1,64 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:8414 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753437Ab1AZT3R (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Jan 2011 14:29:17 -0500
-Message-ID: <4D4075E5.70401@redhat.com>
-Date: Wed, 26 Jan 2011 17:28:37 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-ww0-f42.google.com ([74.125.82.42]:49805 "EHLO
+	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751346Ab1A2U1W (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 29 Jan 2011 15:27:22 -0500
+Received: by wwi17 with SMTP id 17so2226383wwi.1
+        for <linux-media@vger.kernel.org>; Sat, 29 Jan 2011 12:27:21 -0800 (PST)
 MIME-Version: 1.0
-To: Gerd Hoffmann <kraxel@redhat.com>
-CC: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Mark Lord <kernel@teksavvy.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Linux Kernel <linux-kernel@vger.kernel.org>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: 2.6.36/2.6.37: broken compatibility with userspace input-utils
- ?
-References: <20110125205453.GA19896@core.coreip.homeip.net> <4D3F4804.6070508@redhat.com> <4D3F4D11.9040302@teksavvy.com> <20110125232914.GA20130@core.coreip.homeip.net> <20110126020003.GA23085@core.coreip.homeip.net> <4D4004F9.6090200@redhat.com> <4D401CC5.4020000@redhat.com> <4D402D35.4090206@redhat.com> <20110126165132.GC29163@core.coreip.homeip.net> <4D4059E5.7050300@redhat.com> <20110126182415.GB29268@core.coreip.homeip.net> <4D4072F9.5060206@redhat.com>
-In-Reply-To: <4D4072F9.5060206@redhat.com>
+Date: Sun, 30 Jan 2011 01:57:21 +0530
+Message-ID: <AANLkTi=TA1a4J4PGK6Q08-2P=T5kyy0qdETaE0CdPhG3@mail.gmail.com>
+Subject: Osprey 440
+From: "jeetu.golani@gmail.com" <jeetu.golani@gmail.com>
+To: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 26-01-2011 17:16, Gerd Hoffmann escreveu:
->   Hi,
-> 
->>>> The check should be against concrete version (0x10000 in this case).
+Hello,
 
-Dmitry,
+First, I'd like to apologize if this is the wrong place for this question.
 
-Ok, now I see what you're meaning. Yeah, an absolute version check like
-what you've proposed is better than a relative version check.
+I have an Osprey 440 video capture card that I'm trying to use with
+linux kernel 2.6.32-5 on my debian system.  I'm having trouble
+capturing the sound off the device. Has anyone managed to get both
+audio and video to work on this card on all four channels?
 
-> 
-> Stepping back: what does the version mean?
-> 
-> 0x10000 == 1.0 ?
-> 0x10001 == 1.1 ?
-> 
-> Can I expect the interface stay backward compatible if only the minor revision changes, i.e. makes it sense to accept 1.x?
-> 
-> Will the major revision ever change?  Does it make sense to check the version at all?
+The card itself is plugged into a PCI 32 bit socket.
 
-Gerd,
+Using the bttv drivers, the card gets detected by the kernel, video
+devices get created with the four channels as /dev/video0, 1,2 and 3.
+The video shows up fine.
 
-Dmitry will likely have a better answer for me, but I think you should
-just remove the test. By principle, the interface should always be 
-backward compatible (if it isn't, then we have a regression to fix). 
-You may expect newer features on newer versions, so I understand 
-that the version check is there to just allow userspace to enable 
-new code for newer evdev protocol revisions.
+On one of my setups I have audio devices created as /dev/dsp1,2,3 and
+4 and on this device I can get audio though very feeble and with
+distortion.
 
-Thanks,
-Mauro
+On another similar setup but with Alsa, I am unable to get any sound.
+arecord -l shows the following output for this device:
+
+**** List of CAPTURE Hardware Devices ****
+card 0: Intel [HDA Intel], device 0: STAC92xx Analog [STAC92xx Analog]
+  Subdevices: 2/2
+  Subdevice #0: subdevice #0
+  Subdevice #1: subdevice #1
+card 1: Bt878 [Brooktree Bt878], device 0: Bt87x Digital [Bt87x Digital]
+  Subdevices: 1/1
+  Subdevice #0: subdevice #0
+card 2: Bt878_1 [Brooktree Bt878], device 0: Bt87x Digital [Bt87x Digital]
+  Subdevices: 1/1
+  Subdevice #0: subdevice #0
+card 3: Bt878_2 [Brooktree Bt878], device 0: Bt87x Digital [Bt87x Digital]
+  Subdevices: 1/1
+  Subdevice #0: subdevice #0
+card 4: Bt878_3 [Brooktree Bt878], device 0: Bt87x Digital [Bt87x Digital]
+  Subdevices: 1/1
+  Subdevice #0: subdevice #0
+
+Would sincerely appreciate any help and wisdom from someone who has
+managed to get audio off this device under linux.
+
+Thanks so much. Any help is sincerely appreciated.
+
+Bye for now
