@@ -1,219 +1,92 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:37024 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752357Ab1AXLcI (ORCPT
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:40232 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751446Ab1A3Bur (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Jan 2011 06:32:08 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: martin@neutronstar.dyndns.org
-Subject: Re: [PATCH] v4l: Add driver for Micron MT9M032 camera sensor
-Date: Mon, 24 Jan 2011 12:32:12 +0100
-Cc: linux-media@vger.kernel.org
-References: <1295389122-30325-1-git-send-email-martin@neutronstar.dyndns.org> <20110120225607.GD13173@neutronstar.dyndns.org>
-In-Reply-To: <20110120225607.GD13173@neutronstar.dyndns.org>
+	Sat, 29 Jan 2011 20:50:47 -0500
+From: Qing Xu <qingx@marvell.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Sat, 29 Jan 2011 17:50:35 -0800
+Subject: RE: soc-camera s_fmt question?
+Message-ID: <7BAC95F5A7E67643AAFB2C31BEE662D0140417474B@SC-VEXCH2.marvell.com>
+References: <AANLkTimucMmO8Vb_y4xnhehQt+mamNMmXyY_qfrVOSo7@mail.gmail.com>
+ <7BAC95F5A7E67643AAFB2C31BEE662D014040BF23F@SC-VEXCH2.marvell.com>
+ <Pine.LNX.4.64.1101171840360.16051@axis700.grange>
+ <201101171854.27768.hverkuil@xs4all.nl>
+ <Pine.LNX.4.64.1101291908250.26696@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1101291908250.26696@axis700.grange>
+Content-Language: en-US
+Content-Type: text/plain; charset="gb2312"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201101241232.12633.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Martin,
-
-On Thursday 20 January 2011 23:56:07 martin@neutronstar.dyndns.org wrote:
-
-[snip]
-
-> >> +static unsigned long mt9m032_row_time(struct mt9m032 *sensor, int
-> >> width) +{
-> >> +	int effective_width;
-> >> +	u64 ns;
-> >> +	effective_width = width + 716; /* emperical value */
-> > 
-> > Where does it come from ?
-> 
-> Like the comment says, it's just what the hardware seems to do from
-> measureing framerates. Sadly i couldn't find anything exact anywhere...
-
-:-( Is the datasheet publicly available ?
-
-[snip]
-
-> >> +	row_time = mt9m032_row_time(sensor, crop->width);
-> >> +	do_div(ns, row_time);
-> >> +
-> >> +	additional_blanking_rows = ns - crop->height;
-> >> +
-> >> +	/* enforce minimal 1.6ms blanking time. */
-> >> +	min_blank = 1600000 / row_time;
-> >> +	if (additional_blanking_rows < min_blank)
-> >> +		additional_blanking_rows = min_blank;
-> > 
-> > You can use the min() macro.
-> 
-> I'm pretty sure it's the max() one, but yes.
->
-> >> +	dev_dbg(to_dev(sensor),
-> >> +		"%s: V-blank %i\n", __func__, additional_blanking_rows);
-> >> +	if (additional_blanking_rows > 0x7ff) {
-> >> +		/* hardware limits 11 bit values */
-> >> +		dev_warn(to_dev(sensor),
-> >> +			"mt9m032: frame rate too low.\n");
-> >> +		additional_blanking_rows = 0x7ff;
-> >> +	}
-> > 
-> > Or rather the clamp() macro.
-> 
-> I think the error reporting reads more natual when doing the upper bound in
-> the if.
-
-I would just do
-
-	additional_blanking_rows = clamp(ns - crop->height, min_blank, 0x7ff);
-
-I don't think there's a need for any error reporting here. What you must do 
-instead is to limit the frame rate to hardware-acceptable values when the user 
-tries to set it.
-
-[snip]
-
-> >> +static int update_formatter2(struct mt9m032 *sensor, bool streaming)
-> >> +{
-> >> +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
-> >> +
-> >> +	u16 reg_val =   0x1000   /* Dout enable */
-> >> +		      | 0x0070;  /* parts reserved! */
-> >> +				 /* possibly for changing to 14-bit mode */
-> >> +
-> >> +	if (streaming)
-> >> +		reg_val |= 0x2000;   /* pixclock enable */
-> > 
-> > Please define constants at the beginning of the file (with the register
-> > addresses) instead of using magic numbers.
-> 
-> I'm using defines for all register numbers where i know the function
-> reasonably well and explicit comments or variable names for all the bits i
-> set in these registers. (And each register is only set in one function)
-> 
-> I think that should be quite decent. Sadly from the material i have i have a
-> lot of just undocumented pokeing at reserved bits to keep. For these cases i
-> marked it in the code somehow are reserved and didn't do any defines for the
-> register names because they would be useless.
-
-How did you get the information in the first place ?
-
-> Do you think this is acceptable? Or do i need to have a define for each
-> known bit position the driver sets?
-
-Please define them. See 
-http://git.linuxtv.org/pinchartl/media.git?a=commitdiff;h=26e4a508f6e0fcb416e21bd29967ce6e2622abc7;hp=10affb3c5e0c8ae74461c1b6a4ca6ed5251c27d8#patch3
-
-> What would i do with the undocumented bits?
-> 
-> >> +#define OFFSET_UNCHANGED	0xFFFFFFFF
-> >> +static int mt9m032_set_pad_geom(struct mt9m032 *sensor,
-> >> +				struct v4l2_subdev_fh *fh,
-> >> +				u32 which, u32 pad,
-> >> +				s32 top, s32 left, s32 width, s32 height)
-> >> +{
-> >> +	struct v4l2_mbus_framefmt tmp_format;
-> >> +	struct v4l2_rect tmp_crop;
-> >> +	struct v4l2_mbus_framefmt *format;
-> >> +	struct v4l2_rect *crop;
-> >> +
-> >> +	if (pad != 0)
-> >> +		return -EINVAL;
-> >> +
-> >> +	format = __mt9m032_get_pad_format(sensor, fh, which);
-> >> +	crop = __mt9m032_get_pad_crop(sensor, fh, which);
-> >> +	if (!format || !crop)
-> >> +		return -EINVAL;
-> >> +	if (which == V4L2_SUBDEV_FORMAT_ACTIVE) {
-> >> +		tmp_crop = *crop;
-> >> +		tmp_format = *format;
-> >> +		format = &tmp_format;
-> >> +		crop = &tmp_crop;
-> >> +	}
-> >> +
-> >> +	if (top != OFFSET_UNCHANGED)
-> >> +		crop->top = top & ~0x1;
-> >> +	if (left != OFFSET_UNCHANGED)
-> >> +		crop->left = left;
-> >> +	crop->height = height;
-> >> +	crop->width = width & ~1;
-> >> +
-> >> +	format->height = crop->height;
-> >> +	format->width = crop->width;
-> > 
-> > This looks very weird to me. If your sensor doesn't include a scaler, it
-> > should support a single fixed format. Crop will then be used to select
-> > the crop rectangle. You're mixing the two for no obvious reason.
-> 
-> I think i have to have both size and crop writable. So i wrote the code to
-> just have format width/height and crop width/height to be equal at all
-> times. So actually almost all code for crop setting and format are shared.
-> 
-> As you wrote in your recent mail this api isn't really intuitive and i'm
-> not really sure what's the right thing to do thus i just copied the
-> semantics from an existing driver with similar capable hardware.
-> 
-> This code works nicely and media-ctl needs to be able to set the size so
-> that's the most logical i could come up with...
-
-See 
-http://git.linuxtv.org/pinchartl/media.git?a=commitdiff;h=10affb3c5e0c8ae74461c1b6a4ca6ed5251c27d8 
-for crop/format implementation for a sensor that supports cropping and 
-binning.
-
-> >> +static int mt9m032_set_gain(struct mt9m032 *sensor, s32 val)
-> >> +{
-> >> +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
-> >> +	int digital_gain_val;	/* in 1/8th (0..127) */
-> >> +	int analog_mul;		/* 0 or 1 */
-> >> +	int analog_gain_val;	/* in 1/16th. (0..63) */
-> >> +	u16 reg_val;
-> >> +
-> >> +	digital_gain_val = 51; /* from setup example */
-> > 
-> > So the digital gain isn't configurable ?
-> 
-> Right. That's all that was needed and i couldn't come up with a simple and
-> nice way to map from one scalar to both digital and analog gain in a nice
-> way.
-
-What about 
-http://git.linuxtv.org/pinchartl/media.git?a=commitdiff;h=10affb3c5e0c8ae74461c1b6a4ca6ed5251c27d8 
-(search for V4L2_CID_GAIN) ?
-
-> >> +	ret = mt9m032_write_reg(client, MT9M032_PLL_CONFIG1, reg_pll1);
-> >> +	if (!ret)
-> >> +		ret = mt9m032_write_reg(client, 0x10, 0x53); /* Select PLL as clock
-> > 
-> > No magic numbers please.
-> 
-> Undocumented magical values is all that i have here. I just know these
-> values have to go there and are the comment text... Nothing hidden i have
-> access too.
-
-:-(
-
-> >> +static int mt9m032_get_chip_ident(struct v4l2_subdev *subdev,
-> >> +		       struct v4l2_dbg_chip_ident *chip)
-> >> +{
-> >> +	struct i2c_client *client = v4l2_get_subdevdata(subdev);
-> >> +
-> >> +	return v4l2_chip_ident_i2c_client(client, chip, V4L2_IDENT_MT9M032,
-> >> 0); +}
-> > 
-> > Is g_chip_ident needed ?
-> 
-> Some comments in the headers said i should implement this...
-
-See my answer to Hans about this. I don't think the operation is needed in 
-this case.
-
--- 
-Regards,
-
-Laurent Pinchart
+VGhhbmtzIGZvciB5b3VyIGluZm9ybWF0aW9uISBJIGNvdWxkIHRyeSBpdCBvbiBvdXIgZHJpdmVy
+Lg0KDQotUWluZw0KDQotLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KRnJvbTogR3Vlbm5hZGkg
+TGlha2hvdmV0c2tpIFttYWlsdG86Zy5saWFraG92ZXRza2lAZ214LmRlXQ0KU2VudDogMjAxMcTq
+MdTCMzDI1SAyOjEwDQpUbzogSGFucyBWZXJrdWlsDQpDYzogUWluZyBYdTsgTGF1cmVudCBQaW5j
+aGFydDsgbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnDQpTdWJqZWN0OiBSZTogc29jLWNhbWVy
+YSBzX2ZtdCBxdWVzdGlvbj8NCg0KT24gTW9uLCAxNyBKYW4gMjAxMSwgSGFucyBWZXJrdWlsIHdy
+b3RlOg0KDQo+IE9uIE1vbmRheSwgSmFudWFyeSAxNywgMjAxMSAxODo0MzowNiBHdWVubmFkaSBM
+aWFraG92ZXRza2kgd3JvdGU6DQo+ID4gT24gTW9uLCAxNyBKYW4gMjAxMSwgUWluZyBYdSB3cm90
+ZToNCj4gPg0KPiA+ID4gSGksDQo+ID4gPg0KPiA+ID4gV2UgYXJlIG5vdyBuZWFybHkgY29tcGxl
+dGUgcG9ydGluZyBvdXIgY2FtZXJhIGRyaXZlciB0byBhbGlnbiB3aXRoDQo+ID4gPiBzb2MtY2Ft
+ZXJhIGZyYW1ld29yaywgaG93ZXZlciwgd2UgZW5jb3VudGVyIGEgcHJvYmxlbSB3aGVuIGl0IHdv
+cmtzIHdpdGgNCj4gPiA+IG91ciBhcHBsaWNhdGlvbiBkdXJpbmcgc3dpdGNoIGZvcm1hdCBmcm9t
+IHByZXZpZXcgdG8gc3RpbGwgY2FwdHVyZSwNCj4gPiA+IGFwcGxpY2F0aW9uJ3MgbWFpbiBjYWxs
+aW5nIHNlcXVlbmNlIGlzIGFzIGZvbGxvdzoNCj4gPiA+IDEpIHNfZm10IC8qIHByZXZpZXcgQCBZ
+VVYsIFZHQSAqLw0KPiA+ID4gMikgcmVxdWVzdCBidWZmZXIgKGJ1ZmZlciBjb3VudCA9IDYpDQo+
+ID4gPiAyKSBxdWV1ZSBidWZmZXINCj4gPiA+IDMpIHN0cmVhbSBvbg0KPiA+ID4gNCkgcS1idWYs
+IGRxLWJ1Zi4uLg0KPiA+ID4gNSkgc3RyZWFtIG9mZg0KPiA+ID4NCj4gPiA+IDYpIHNfZm10IC8q
+IHN0aWxsIGNhcHR1cmUgQCBqcGVnLCAyNTkyeDE5NDQqLw0KPiA+ID4gNykgcmVxdWVzdCBidWZm
+ZXIgKGJ1ZmZlciBjb3VudCA9IDMpDQo+ID4gPiA4KSBzYW1lIGFzIDMpLT41KS4uLg0KPiA+ID4N
+Cj4gPiA+IFRoZSBwb2ludCBpcyBpbiBzb2NfY2FtZXJhX3NfZm10X3ZpZF9jYXAoKSB7DQo+ID4g
+PiAgICAgICAgIGlmIChpY2QtPnZiX3ZpZHEuYnVmc1swXSkgew0KPiA+ID4gICAgICAgICAgICAg
+ICAgIGRldl9lcnIoJmljZC0+ZGV2LCAiU19GTVQgZGVuaWVkOiBxdWV1ZSBpbml0aWFsaXNlZFxu
+Iik7DQo+ID4gPiAgICAgICAgICAgICAgICAgcmV0ID0gLUVCVVNZOw0KPiA+ID4gICAgICAgICAg
+ICAgICAgIGdvdG8gdW5sb2NrOw0KPiA+ID4gICAgICAgICB9DQo+ID4gPiB9DQo+ID4gPiBXZSBk
+aWRuJ3QgZmluZCB2Yl92aWRxLmJ1ZnNbMF0gYmUgZnJlZSwgKGl0IGlzIGZyZWVkIGluDQo+ID4g
+PiB2aWRlb2J1Zl9tbWFwX2ZyZWUoKSwgYW5kIGluIF9fdmlkZW9idWZfbW1hcF9zZXR1cCwgYnV0
+IG5vIG9uZSBjYWxscw0KPiA+ID4gdmlkZW9idWZfbW1hcF9mcmVlKCksIGFuZCBpbiBfX3ZpZGVv
+YnVmX21tYXBfc2V0dXAgaXQgaXMgZnJlZWQgYXQgZmlyc3QNCj4gPiA+IGFuZCB0aGVuIGFsbG9j
+YXRlZCBzZXF1ZW50aWFsbHkpLCBzbyB3ZSBhbHdheXMgZmFpbCBhdCBjYWxsaW5nIHNfZm10Lg0K
+PiA+ID4gTXkgaWRlYSBpcyB0byBpbXBsZW1lbnQgc29jX2NhbWVyYV9yZXFidWZzKGJ1ZmZlciBj
+b3VudCA9IDApLCB0byBwcm92aWRlDQo+ID4gPiBhcHBsaWNhdGlvbiBvcHBvcnR1bml0eSB0byBm
+cmVlIHRoaXMgYnVmZmVyIG5vZGUsIHJlZmVyIHRvIHY0bDIgc3BlYywNCj4gPiA+IGh0dHA6Ly9s
+aW51eHR2Lm9yZy9kb3dubG9hZHMvdjRsLWR2Yi1hcGlzL3ZpZGlvYy1yZXFidWZzLmh0bWwNCj4g
+PiA+ICJBIGNvdW50IHZhbHVlIG9mIHplcm8gZnJlZXMgYWxsIGJ1ZmZlcnMsIGFmdGVyIGFib3J0
+aW5nIG9yIGZpbmlzaGluZw0KPiA+ID4gYW55IERNQSBpbiBwcm9ncmVzcywgYW4gaW1wbGljaXQg
+VklESU9DX1NUUkVBTU9GRi4iDQo+ID4NCj4gPiBDdXJyZW50bHkgYnVmZmVycyBhcmUgZnJlZWQg
+aW4gc29jLWNhbWVyYSB1cG9uIGNsb3NlKCkuIFllcywgSSBrbm93IGFib3V0DQo+ID4gdGhhdCBj
+bGF1c2UgaW4gdGhlIEFQSSBzcGVjLCBhbmQgSSBrbm93LCB0aGF0IGl0IGlzIHVuaW1wbGVtZW50
+ZWQgaW4NCj4gPiBzb2MtY2FtZXJhLiBEbyB5b3UgaGF2ZSBhIHJlYXNvbiB0byBwcmVmZXIgdGhh
+dCBvdmVyIGNsb3NlKClpbmcgYW5kDQo+ID4gcmUtb3BlbigpaW5nIHRoZSBkZXZpY2U/DQo+DQo+
+IEkgdGhpbmsgaXQgd291bGQgYmUgYSBnb29kIGlkZWEgdG8gbG9vayBpbnRvIGNvbnZlcnRpbmcg
+c29jX2NhbWVyYSB0byB0aGUNCj4gbmV3IHZpZGVvYnVmMiBmcmFtZXdvcmsgdGhhdCB3YXMganVz
+dCBtZXJnZWQuIEl0IGhhcyBtdWNoIGJldHRlciBzZW1hbnRpY3MNCj4gd2hlbiBpdCBjb21lcyB0
+byBhbGxvY2F0aW5nIGFuZCBmcmVlaW5nIHF1ZXVlcy4gWW91IGNhbiBhY3R1YWxseSB1bmRlcnN0
+YW5kDQo+IGl0LCBzb21ldGhpbmcgdGhhdCB5b3UgY2FuJ3Qgc2F5IGZvciB0aGUgb2xkIHZpZGVv
+YnVmLiBBbmQgdmlkZW9idWYyIGRvZXMNCj4gdGhlIHJpZ2h0IHRoaW5nIHdpdGggUkVRQlVGUygw
+KSBhcyB3ZWxsLg0KDQpRaW5nIFh1LCB5b3UgY291bGQgdHJ5IHZpZGVvYnVmMiBub3c6DQpodHRw
+Oi8vdGhyZWFkLmdtYW5lLm9yZy9nbWFuZS5saW51eC5kcml2ZXJzLnZpZGVvLWlucHV0LWluZnJh
+c3RydWN0dXJlLzI4NjU4DQoocGxlYXNlLCB1c2UgdjIgb2YgcGF0Y2hlcykuDQoNClRoYW5rcw0K
+R3Vlbm5hZGkNCg0KPg0KPiBSZWdhcmRzLA0KPg0KPiAgICAgICBIYW5zDQo+DQo+ID4NCj4gPiBU
+aGFua3MNCj4gPiBHdWVubmFkaQ0KPiA+DQo+ID4gPg0KPiA+ID4gV2hhdCBkbyB5b3UgdGhpbms/
+DQo+ID4gPg0KPiA+ID4gQW55IGlkZWFzIHdpbGwgYmUgYXBwcmVjaWF0ZWQhDQo+ID4gPiBUaGFu
+a3MhDQo+ID4gPiBRaW5nIFh1DQo+ID4gPg0KPiA+ID4gRW1haWw6IHFpbmd4QG1hcnZlbGwuY29t
+DQo+ID4gPiBBcHBsaWNhdGlvbiBQcm9jZXNzb3IgU3lzdGVtcyBFbmdpbmVlcmluZywNCj4gPiA+
+IE1hcnZlbGwgVGVjaG5vbG9neSBHcm91cCBMdGQuDQo+ID4gPg0KPiA+DQo+ID4gLS0tDQo+ID4g
+R3Vlbm5hZGkgTGlha2hvdmV0c2tpLCBQaC5ELg0KPiA+IEZyZWVsYW5jZSBPcGVuLVNvdXJjZSBT
+b2Z0d2FyZSBEZXZlbG9wZXINCj4gPiBodHRwOi8vd3d3Lm9wZW4tdGVjaG5vbG9neS5kZS8NCj4g
+PiAtLQ0KPiA+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1
+bnN1YnNjcmliZSBsaW51eC1tZWRpYSIgaW4NCj4gPiB0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8g
+bWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZw0KPiA+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0
+dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA0KPiA+DQo+DQo+IC0tDQo+
+IEhhbnMgVmVya3VpbCAtIHZpZGVvNGxpbnV4IGRldmVsb3BlciAtIHNwb25zb3JlZCBieSBDaXNj
+bw0KPg0KDQotLS0NCkd1ZW5uYWRpIExpYWtob3ZldHNraSwgUGguRC4NCkZyZWVsYW5jZSBPcGVu
+LVNvdXJjZSBTb2Z0d2FyZSBEZXZlbG9wZXINCmh0dHA6Ly93d3cub3Blbi10ZWNobm9sb2d5LmRl
+Lw0K
