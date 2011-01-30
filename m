@@ -1,42 +1,52 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:49656 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757028Ab1AMREf (ORCPT
+Received: from grimli.r00tworld.net ([83.169.44.195]:44680 "EHLO
+	mail.r00tworld.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752400Ab1A3KQH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Jan 2011 12:04:35 -0500
-Received: by eye27 with SMTP id 27so950599eye.19
-        for <linux-media@vger.kernel.org>; Thu, 13 Jan 2011 09:04:34 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <euouknkdsi5amcy6dha8ycx7.1294936482595@email.android.com>
-References: <euouknkdsi5amcy6dha8ycx7.1294936482595@email.android.com>
-Date: Thu, 13 Jan 2011 12:04:33 -0500
-Message-ID: <AANLkTi=_Wd-2Y86CGdabMeDGBTBmBFf1MToYbiYGyMUf@mail.gmail.com>
-Subject: Re: [PATCH 3/3] lirc_zilog: Remove use of deprecated struct
- i2c_adapter.id field
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: Jean Delvare <khali@linux-fr.org>, linux-media@vger.kernel.org,
-	Jarod Wilson <jarod@redhat.com>, Janne Grunau <j@jannau.net>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	Sun, 30 Jan 2011 05:16:07 -0500
+From: Mathias Krause <minipli@googlemail.com>
+To: linux-media@vger.kernel.org
+Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Mathias Krause <minipli@googlemail.com>
+Subject: [PATCH] [media] OMAP1: fix use after free
+Date: Sun, 30 Jan 2011 11:05:58 +0100
+Message-Id: <1296381958-15760-1-git-send-email-minipli@googlemail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, Jan 13, 2011 at 11:34 AM, Andy Walls <awalls@md.metrocast.net> wrote:
-> Devin,
->
-> You've seen the clock stretch with your I2C analyzer?
+Even though clk_put() is a no-op on most architectures it is not for
+some ARM implementations. To not fail on those, release the clock timer
+before freeing the surrounding structure.
 
-The Beagle I was using when I did the captures doesn't show clock
-stretch.  My "Logic" logic analyzer does, but I wasn't using that at
-the time.
+This bug was spotted by the semantic patch tool coccinelle using the
+script found at scripts/coccinelle/free/kfree.cocci.
 
-That said, I can say with some authority that the Zilog does put the
-bus into a busy state after certain operations (such as setting the
-send bit).
+More information about semantic patching is available at
+http://coccinelle.lip6.fr/
 
-Devin
+Signed-off-by: Mathias Krause <minipli@googlemail.com>
+---
+ drivers/media/video/omap1_camera.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/media/video/omap1_camera.c b/drivers/media/video/omap1_camera.c
+index 0a2fb2b..9ed1513 100644
+--- a/drivers/media/video/omap1_camera.c
++++ b/drivers/media/video/omap1_camera.c
+@@ -1664,10 +1664,10 @@ static int __exit omap1_cam_remove(struct platform_device *pdev)
+ 	res = pcdev->res;
+ 	release_mem_region(res->start, resource_size(res));
+ 
+-	kfree(pcdev);
+-
+ 	clk_put(pcdev->clk);
+ 
++	kfree(pcdev);
++
+ 	dev_info(&pdev->dev, "OMAP1 Camera Interface driver unloaded\n");
+ 
+ 	return 0;
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.5.6.5
+
