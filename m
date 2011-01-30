@@ -1,50 +1,41 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:43469 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757268Ab1AMRHg (ORCPT
+Received: from fallback3.mail.ru ([94.100.176.58]:48755 "EHLO
+	fallback3.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751746Ab1A3T0f (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Jan 2011 12:07:36 -0500
-Received: by ewy5 with SMTP id 5so991514ewy.19
-        for <linux-media@vger.kernel.org>; Thu, 13 Jan 2011 09:07:35 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <20110113174814.12c2ea5d@endymion.delvare>
-References: <euouknkdsi5amcy6dha8ycx7.1294936482595@email.android.com>
-	<20110113174814.12c2ea5d@endymion.delvare>
-Date: Thu, 13 Jan 2011 12:07:34 -0500
-Message-ID: <AANLkTim0Q8AxYZDCPZeV0+je6Us==yPFce3-zQ0ELh6e@mail.gmail.com>
-Subject: Re: [PATCH 3/3] lirc_zilog: Remove use of deprecated struct
- i2c_adapter.id field
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org,
-	Jarod Wilson <jarod@redhat.com>, Janne Grunau <j@jannau.net>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	Sun, 30 Jan 2011 14:26:35 -0500
+Received: from smtp7.mail.ru (smtp7.mail.ru [94.100.176.52])
+	by fallback3.mail.ru (mPOP.Fallback_MX) with ESMTP id 355AF544C657
+	for <linux-media@vger.kernel.org>; Sun, 30 Jan 2011 22:21:51 +0300 (MSK)
+Date: Sun, 30 Jan 2011 22:31:06 +0300
+From: Goga777 <goga777@bk.ru>
+To: william <kc@cobradevil.org>
+Cc: linux-media@vger.kernel.org
+Subject: Re: tevii s660 still not working properly, hardware donation
+Message-ID: <20110130223106.492dba42@bk.ru>
+In-Reply-To: <4CEFBE03.2090103@cobradevil.org>
+References: <4CEFBE03.2090103@cobradevil.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, Jan 13, 2011 at 11:48 AM, Jean Delvare <khali@linux-fr.org> wrote:
-> On Thu, 13 Jan 2011 11:34:42 -0500, Andy Walls wrote:
->> How should clock stretches by slaves be handled using i2c-algo-bit?
->
-> It is already handled. But hdpvr-i2c doesn't use i2c-algo-bit. I2C
-> support is done with USB commands instead. Maybe the hardware
-> implementation doesn't support clock stretching by slaves. Apparently
-> it doesn't support repeated start conditions either, so it wouldn't
-> surprise me.
+ try please this patch and patched firmware from vip100
+http://linuxdvb.org.ru/wbb/index.php?page=Thread&postID=19310#post19310
 
-The hardware implementation does support clock stretching, or else it
-wouldn't be working under Windows.  That said, it's possible that the
-driver for the i2c master isn't checking the proper bits to detect the
-clock stretch.  I haven't personally looked at the code for the i2c
-master, so I cannot say one way or the other.
-
-The Zilog is a pretty nasty beast, and for various reasons it is
-especially problematic on the HD-PVR due to some issues I cannot
-really get into on a public forum.
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+> I know you are mantaining the drivers for the tevii s660 usb.
+> After a few month testing/waiting i still cannot get it to work properly 
+> using the repo: http://mercurial.intuxication.org/hg/s2-liplianin.
+> 
+> My system intel atom 945dgclf and my laptop are hanging when i try to 
+> tune to a frequency.
+> The system load goes up not because of cpu or disk io and after 
+> disabling the dvb-usb-dw2102 driver and restarting vdr the system works 
+> fine with the nova hd card.
+> 
+> Do you have any idea what it could be or would you otherwise receive my 
+> device to test it? Remote access can also be arranged.
+> 
+> I'm out of ideas.
+> Any thoughts?
