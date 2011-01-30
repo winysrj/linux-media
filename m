@@ -1,80 +1,107 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:54219 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752624Ab1AXP2Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Jan 2011 10:28:24 -0500
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id p0OFSOsX008904
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 24 Jan 2011 10:28:24 -0500
-Received: from pedra (vpn-236-9.phx2.redhat.com [10.3.236.9])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p0OFJARu027064
-	for <linux-media@vger.kernel.org>; Mon, 24 Jan 2011 10:28:23 -0500
-Date: Mon, 24 Jan 2011 13:18:41 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 06/13] [media] opera1: Use multimedia keys instead of an
- app-specific mapping
-Message-ID: <20110124131841.2b572fcc@pedra>
-In-Reply-To: <cover.1295882104.git.mchehab@redhat.com>
-References: <cover.1295882104.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mailout-de.gmx.net ([213.165.64.22]:54831 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753804Ab1A3NDd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 30 Jan 2011 08:03:33 -0500
+Message-ID: <4D45619F.80306@gmx.de>
+Date: Sun, 30 Jan 2011 14:03:27 +0100
+From: David Ondracek <david.ondracek@gmx.de>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: AF9015 Problem
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This driver uses an app-specific keymap for one of the tables. This
-is wrong. Instead, use the standard keycodes.
+Hi there,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+I have a problem using my DIGITRADE DVB-T stick, which is marked as 
+fully supported in the wiki. It works fine for a while, but after some 
+time it crashes and I have to reboot and disconnect the stick to make it 
+work again (for a while)
 
-diff --git a/drivers/media/dvb/dvb-usb/opera1.c b/drivers/media/dvb/dvb-usb/opera1.c
-index 1f1b7d6..7e569f4 100644
---- a/drivers/media/dvb/dvb-usb/opera1.c
-+++ b/drivers/media/dvb/dvb-usb/opera1.c
-@@ -342,23 +342,22 @@ static struct rc_map_table rc_map_opera1_table[] = {
- 	{0x49b6, KEY_8},
- 	{0x05fa, KEY_9},
- 	{0x45ba, KEY_0},
--	{0x09f6, KEY_UP},	/*chanup */
--	{0x1be5, KEY_DOWN},	/*chandown */
--	{0x5da3, KEY_LEFT},	/*voldown */
--	{0x5fa1, KEY_RIGHT},	/*volup */
--	{0x07f8, KEY_SPACE},	/*tab */
--	{0x1fe1, KEY_ENTER},	/*play ok */
--	{0x1be4, KEY_Z},	/*zoom */
--	{0x59a6, KEY_M},	/*mute */
--	{0x5ba5, KEY_F},	/*tv/f */
--	{0x19e7, KEY_R},	/*rec */
--	{0x01fe, KEY_S},	/*Stop */
--	{0x03fd, KEY_P},	/*pause */
--	{0x03fc, KEY_W},	/*<- -> */
--	{0x07f9, KEY_C},	/*capture */
--	{0x47b9, KEY_Q},	/*exit */
--	{0x43bc, KEY_O},	/*power */
--
-+	{0x09f6, KEY_CHANNELUP},	/*chanup */
-+	{0x1be5, KEY_CHANNELDOWN},	/*chandown */
-+	{0x5da3, KEY_VOLUMEDOWN},	/*voldown */
-+	{0x5fa1, KEY_VOLUMEUP},		/*volup */
-+	{0x07f8, KEY_SPACE},		/*tab */
-+	{0x1fe1, KEY_OK},		/*play ok */
-+	{0x1be4, KEY_ZOOM},		/*zoom */
-+	{0x59a6, KEY_MUTE},		/*mute */
-+	{0x5ba5, KEY_RADIO},		/*tv/f */
-+	{0x19e7, KEY_RECORD},		/*rec */
-+	{0x01fe, KEY_STOP},		/*Stop */
-+	{0x03fd, KEY_PAUSE},		/*pause */
-+	{0x03fc, KEY_SCREEN},		/*<- -> */
-+	{0x07f9, KEY_CAMERA},		/*capture */
-+	{0x47b9, KEY_ESC},		/*exit */
-+	{0x43bc, KEY_POWER2},		/*power */
- };
- 
- static int opera1_rc_query(struct dvb_usb_device *dev, u32 * event, int *state)
--- 
-1.7.1
+dmesg | grep af9015 says:
 
+[   12.832866] dvb-usb: found a 'Afatech AF9015 DVB-T USB2.0 stick' in 
+cold state, will try to load a firmware
+[   13.059483] dvb-usb: downloading firmware from file 'dvb-usb-af9015.fw'
+[   13.133595] dvb-usb: found a 'Afatech AF9015 DVB-T USB2.0 stick' in 
+warm state.
+[   13.134316] DVB: registering new adapter (Afatech AF9015 DVB-T USB2.0 
+stick)
+[   13.837011] dvb-usb: Afatech AF9015 DVB-T USB2.0 stick successfully 
+initialized and connected.
+[   13.842692] usbcore: registered new interface driver dvb_usb_af9015
+[  854.135480] af9015: bulk message failed:-22 (8/-1)
+[  854.135488] af9015: bulk message failed:-22 (8/0)
+[  854.135493] af9015: bulk message failed:-22 (9/0)
+[  854.135498] af9015: bulk message failed:-22 (8/-30720)
+[  854.135503] af9015: bulk message failed:-22 (8/-30720)
+[  854.135508] af9015: bulk message failed:-22 (8/-1)
+[ 1080.430165]  [<ffffffffa0416051>] af9015_usb_device_exit+0x41/0x60 
+[dvb_usb_af9015]
+[ 1200.431386]  [<ffffffffa0416051>] af9015_usb_device_exit+0x41/0x60 
+[dvb_usb_af9015]
+[ 1320.431408]  [<ffffffffa0416051>] af9015_usb_device_exit+0x41/0x60 
+[dvb_usb_af9015]
+[ 1440.430306]  [<ffffffffa0416051>] af9015_usb_device_exit+0x41/0x60 
+[dvb_usb_af9015]
+[ 1560.431363]  [<ffffffffa0416051>] af9015_usb_device_exit+0x41/0x60 
+[dvb_usb_af9015]
+[ 1680.430227]  [<ffffffffa0416051>] af9015_usb_device_exit+0x41/0x60 
+[dvb_usb_af9015]
+[ 1800.430167]  [<ffffffffa0416051>] af9015_usb_device_exit+0x41/0x60 
+[dvb_usb_af9015]
+[ 1920.430438]  [<ffffffffa0416051>] af9015_usb_device_exit+0x41/0x60 
+[dvb_usb_af9015]
+[ 2040.431407]  [<ffffffffa0416051>] af9015_usb_device_exit+0x41/0x60 
+[dvb_usb_af9015]
+[ 2160.430155]  [<ffffffffa0416051>] af9015_usb_device_exit+0x41/0x60 
+[dvb_usb_af9015]
+[ 6541.809955] af9015: bulk message failed:-22 (8/-30720)
+[ 6573.722578] dvb-usb: Afatech AF9015 DVB-T USB2.0 stick successfully 
+deinitialized and disconnected.
+[ 6573.808899] usbcore: deregistering interface driver dvb_usb_af9015
+[ 6574.452270] dvb-usb: found a 'Afatech AF9015 DVB-T USB2.0 stick' in 
+warm state.
+[ 6574.452777] DVB: registering new adapter (Afatech AF9015 DVB-T USB2.0 
+stick)
+[ 6575.033328] dvb-usb: Afatech AF9015 DVB-T USB2.0 stick successfully 
+initialized and connected.
+[ 6575.043645] usbcore: registered new interface driver dvb_usb_af9015
+[73982.427778] af9015: bulk message failed:-22 (8/-1)
+[73982.427785] af9015: bulk message failed:-22 (8/0)
+[73982.427790] af9015: bulk message failed:-22 (9/0)
+[73982.427795] af9015: bulk message failed:-22 (8/-30720)
+[73982.427800] af9015: bulk message failed:-22 (8/-30720)
+[73982.427805] af9015: bulk message failed:-22 (8/-1)
+
+by looking at the dmesg, I found out a strange thing: an af9013 (yes, 
+THREE at the end) device is recognized and registred also. dmesg | grep 
+9013:
+
+[   13.187955] af9013: firmware version:4.95.0
+[   13.190955] DVB: registering adapter 0 frontend 0 (Afatech AF9013 
+DVB-T)...
+[  854.135485] af9013: I2C read failed reg:d417
+[  854.135490] af9013: I2C read failed reg:d417
+[  854.135500] af9013: I2C read failed reg:d417
+[  854.135505] af9013: I2C read failed reg:d417
+[  854.135510] af9013: I2C read failed reg:d730
+[ 6574.458711] af9013: firmware version:4.95.0
+[ 6574.463654] DVB: registering adapter 0 frontend 0 (Afatech AF9013 
+DVB-T)...
+[73982.427782] af9013: I2C read failed reg:d417
+[73982.427787] af9013: I2C read failed reg:d417
+[73982.427797] af9013: I2C read failed reg:d417
+[73982.427802] af9013: I2C read failed reg:d417
+[73982.427807] af9013: I2C read failed reg:d730
+
+is anyone running this device stable and/or have an idea what i could do 
+to get rid of the problem?
+
+thanks,
+David
 
