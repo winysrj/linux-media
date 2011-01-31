@@ -1,103 +1,93 @@
 Return-path: <mchehab@pedra>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:56296 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755606Ab1AKKr0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Jan 2011 05:47:26 -0500
-Received: by gyb11 with SMTP id 11so7683423gyb.19
-        for <linux-media@vger.kernel.org>; Tue, 11 Jan 2011 02:47:25 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <4D2AFC85.40709@redhat.com>
-References: <201101072053.37211@orion.escape-edv.de>
-	<AANLkTinj2NcOcVUPifsNcvbs=Mivwe89+hg8XLsCJnQ7@mail.gmail.com>
-	<201101072206.30323.hverkuil@xs4all.nl>
-	<AANLkTik0-n-KBrTQa4kjahLXyqLagMp+A77zcV3hVAx5@mail.gmail.com>
-	<4D2AFC85.40709@redhat.com>
-Date: Tue, 11 Jan 2011 21:47:25 +1100
-Message-ID: <AANLkTi=f-KBMROg1zWzUXyXoBUY3b=ksh8r=uSbbzoue@mail.gmail.com>
-Subject: Re: Debug code in HG repositories
-From: Vincent McIntyre <vincent.mcintyre@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from lo.gmane.org ([80.91.229.12]:50430 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755190Ab1AaJkJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 Jan 2011 04:40:09 -0500
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1PjqEv-0005TS-2s
+	for linux-media@vger.kernel.org; Mon, 31 Jan 2011 10:40:05 +0100
+Received: from 219-89-36-29.dialup.xtra.co.nz ([219.89.36.29])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 31 Jan 2011 10:40:05 +0100
+Received: from m by 219-89-36-29.dialup.xtra.co.nz with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 31 Jan 2011 10:40:05 +0100
+To: linux-media@vger.kernel.org
+From: Matt Vickers <m@vicke.rs>
+Subject: Re: DM1105: could not attach frontend 195d:1105
+Date: Mon, 31 Jan 2011 22:33:54 +1300
+Message-ID: <ii5vm9$r2g$1@dough.gmane.org>
+References: <4B7D83B2.4030709@online.no> <201003032105.06263.liplianin@me.by> <4B978D75.5080501@online.no> <201010231220.51387.liplianin@me.by>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <201010231220.51387.liplianin@me.by>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 1/10/11, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
-> Em 07-01-2011 23:02, Vincent McIntyre escreveu:
->> On 1/8/11, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>
->>> Have you tried Mauro's media_build tree? I had to use it today to test a
->>> driver from git on a 2.6.35 kernel. Works quite nicely. Perhaps we should
->>> promote this more. I could add backwards compatibility builds to my daily
->>> build script that uses this in order to check for which kernel versions
->>> this compiles if there is sufficient interest.
+On 23/10/2010 10:20 p.m., Igor M. Liplianin wrote:
+> В сообщении от 10 марта 2010 14:15:49 автор Hendrik Skarpeid написал:
+>> Igor M. Liplianin skrev:
+>>> On 3 марта 2010 18:42:42 Hendrik Skarpeid wrote:
+>>>> Igor M. Liplianin wrote:
+>>>>> Now to find GPIO's for LNB power control and ... watch TV :)
+>>>>
+>>>> Yep. No succesful tuning at the moment. There might also be an issue
+>>>> with the reset signal and writing to GPIOCTR, as the module at the
+>>>> moment loads succesfully only once.
+>>>> As far as I can make out, the LNB power control is probably GPIO 16 and
+>>>> 17, not sure which is which, and how they work.
+>>>> GPIO15 is wired to tuner #reset
 >>>
+>>> New patch to test
 >>
->> As an end-user I would be interested in seeing this added, since it
->> will allow faster detection of breakage in the older versions. For
->> instance building against 2.6.32 fails like this:
->>
->>   CC [M]  /home/vjm/git/clones/linuxtv.org/new_build/v4l/hdpvr-i2c.o
->> /home/vjm/git/clones/linuxtv.org/new_build/v4l/hdpvr-i2c.c: In
->> function 'hdpvr_new_i2c_ir':
->> /home/vjm/git/clones/linuxtv.org/new_build/v4l/hdpvr-i2c.c:62: error:
->> too many arguments to function 'i2c_new_probed_device'
->> make[4]: *** [/home/vjm/git/clones/linuxtv.org/new_build/v4l/hdpvr-i2c.o]
->> Error 1
->> make[3]: *** [_module_/home/vjm/git/clones/linuxtv.org/new_build/v4l]
->> Error 2
->> make[3]: Leaving directory
->> `/usr/src/linux-headers-2.6.32-26-ec297b-generic'
->> make[2]: *** [default] Error 2
->> make[2]: Leaving directory
->> `/home/vjm/git/clones/linuxtv.org/new_build/v4l'
->> make[1]: *** [all] Error 2
->> make[1]: Leaving directory `/home/vjm/git/clones/linuxtv.org/new_build'
->> make: *** [default] Error 2
->>
->> It's unclear that adding this would cause a lot of extra work; the
->> patches that need to be applied are quite few - a tribute to the
->> design work!
+>> I think the LNB voltage may be a little to high on my card, 14.5V and
+>> 20V. I would be a little more happy if they were 14 and 19, 13 and 18
+>> would be perfect.
+>> Anyways, as Igor pointet out, I don't have any signal from the LNB,
+>> checked with another tuner card. It's a quad LNB, and the other outputs
+>> are fine. Maybe it's' toasted from to high supply voltage! I little word
+>> of warning then.
+>> Anyways, here's my tweaked driver.
 >
-> That's weird. Here, it compiles fine against my 2.6.32 kernel, as there's a
-> patch that removes the extra parameter. I'll double check and add a fix
-> if I found something wrong.
+> Here is reworked patch for clear GPIO's handling.
+> It allows to support I2C on GPIO's and per board LNB control through GPIO's.
+> Also incuded support for Hendrik's card.
+> I think it is clear how to change and test GPIO's for LNB and other stuff now.
+> To Hendrik:
+> 	Not shure, but there is maybe GPIO for raise/down LNB voltage a little (~1v).
+> 	It is used for long coaxial lines to compensate voltage dropping.
+>
+> Signed-off-by: Igor M. Liplianin<liplianin@me.by>
 
-I think a couple of modules may have been missed;
-$ cd media_build
-$ grep -rl i2c_new_probed_device v4l | grep -v .o
-v4l/cx23885-i2c.c
-v4l/bttv-input.c
-v4l/cx88-input.c
-v4l/ivtv-i2c.c
-v4l/hdpvr-i2c.c
-v4l/v4l2-common.c
-v4l/cx18-i2c.c
-v4l/em28xx-cards.c
+Hi Igor,
 
-$ grep +++ backports/v2.6.35_i2c_new_probed_device.patch
-+++ b/drivers/media/video/bt8xx/bttv-input.c    Tue Oct 26 14:17:09 2010 -0200
-+++ b/drivers/media/video/cx18/cx18-i2c.c       Tue Oct 26 14:17:09 2010 -0200
-+++ b/drivers/media/video/cx23885/cx23885-i2c.c Tue Oct 26 14:17:09 2010 -0200
-+++ b/drivers/media/video/em28xx/em28xx-cards.c Tue Oct 26 14:17:09 2010 -0200
-+++ b/drivers/media/video/ivtv/ivtv-i2c.c       Tue Oct 26 14:17:09 2010 -0200
-+++ b/drivers/media/video/v4l2-common.c Tue Oct 26 14:17:09 2010 -0200
-+++ b/drivers/media/video/ivtv/ivtv-i2c.c       Tue Oct 26 23:18:52 2010 -0200
+I have a brandless DVB-S tv tuner card also, with a dm1105n chip. I was 
+getting the "DM1105: could not attach frontend 195d:1105" message with 
+the latest kernel also, but I applied this patch to the dm1105 module 
+and now the card's being recognised  (though is still listed as an 
+ethernet controller with lspci)
 
-which on the face of it suggests
-  btty-input.c
-  cx88-input.c
-  hdpvr-i2c.c
-need looking at.
+My dmesg output is:
 
-I get the same result whether building from a git clone of media-tree
-or via media_build/build.sh.
+dm1105 0000:01:05.0: PCI INT A -> GSI 17 (level, low) -> IRQ 17
+DVB: registering new adapter (dm1105)
+dm1105 0000:01:05.0: MAC 00:00:00:00:00:00
+DVB: registering adapter 0 frontend 0 (SL SI21XX DVB-S)...
+Registered IR keymap rc-dm1105-nec
+input: DVB on-card IR receiver as 
+/devices/pci0000:00/0000:00:1e.0/0000:01:05.0/rc/rc0/input6
+rc0: DVB on-card IR receiver as 
+/devices/pci0000:00/0000:00:1e.0/0000:01:05.0/rc/rc0
 
-I am building against ubuntu 2.6.32-26-generic aka 2.6.32.24+drm33.11, on i386.
-I am using just their kernel-headers package for the build. Usually it works ok.
+The card is one of these:
+http://www.hongsun.biz/ProView.asp?ID=90
 
-Cheers
-Vince
+Scanning doesn't appear to give me any results.  Should this be working? 
+  Anything I can do to test the card out for you?
+
+Cheers,
+Matt.
+
