@@ -1,100 +1,240 @@
-Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:52335 "EHLO mx1.redhat.com"
+Return-path: <mchehab@pedra>
+Received: from mx1.redhat.com ([209.132.183.28]:39883 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753449Ab1AFUAD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 6 Jan 2011 15:00:03 -0500
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id p06K03ax015169
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 6 Jan 2011 15:00:03 -0500
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>
-Subject: [PATCH 4/6] rc/imon: default to key mode instead of mouse mode
-Date: Thu,  6 Jan 2011 14:59:35 -0500
-Message-Id: <1294343977-31929-5-git-send-email-jarod@redhat.com>
-In-Reply-To: <1294343839-31784-1-git-send-email-jarod@redhat.com>
-References: <1294343839-31784-1-git-send-email-jarod@redhat.com>
+	id S1752968Ab1AaMar (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 Jan 2011 07:30:47 -0500
+Message-ID: <4D46AB6C.4050108@redhat.com>
+Date: Mon, 31 Jan 2011 10:30:36 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+CC: Linux Input <linux-input@vger.kernel.org>,
+	Jiri Kosina <jkosina@suse.cz>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] Input: switch completely over to the new versions of
+ get/setkeycode
+References: <20110131085640.GB30343@core.coreip.homeip.net>
+In-Reply-To: <20110131085640.GB30343@core.coreip.homeip.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-My initial thinking was that we should default to mouse mode, so people
-could use the mouse function to click on something on a login screen,
-but a lot of systems where a remote is useful automatically log in a
-user and launch a media center application, some of which hide the
-mouse, which can be confusing to users if they punch buttons on the
-remote and don't see any feedback. Plus, first and foremost, its a
-remote, so lets default to being a remote, and only toggle into mouse
-mode when the user explicitly asks for it. As a nice side-effect, this
-actually simplifies some of the code a fair bit...
+Em 31-01-2011 06:56, Dmitry Torokhov escreveu:
+> Input: switch completely over to the new versions of get/setkeycode
+> 
+> All users of old style get/setkeycode methids have been converted so
+> it is time to retire them.
+> 
+> Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+> ---
+> 
+> Jiri, Mauro,
+> 
+> There is not a good way to avoid crossing multiple subsystems but the
+> changes are minimal, so if you are OK with the patch I'd like to move it
+> through my tree for .39.
 
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/rc/imon.c |   18 ++++--------------
- 1 files changed, 4 insertions(+), 14 deletions(-)
+Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
-index 7034207..e7dc6b4 100644
---- a/drivers/media/rc/imon.c
-+++ b/drivers/media/rc/imon.c
-@@ -988,7 +988,6 @@ static int imon_ir_change_protocol(struct rc_dev *rc, u64 rc_type)
- 	int retval;
- 	struct imon_context *ictx = rc->priv;
- 	struct device *dev = ictx->dev;
--	bool pad_mouse;
- 	unsigned char ir_proto_packet[] = {
- 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x86 };
- 
-@@ -1000,29 +999,20 @@ static int imon_ir_change_protocol(struct rc_dev *rc, u64 rc_type)
- 	case RC_TYPE_RC6:
- 		dev_dbg(dev, "Configuring IR receiver for MCE protocol\n");
- 		ir_proto_packet[0] = 0x01;
--		pad_mouse = false;
- 		break;
- 	case RC_TYPE_UNKNOWN:
- 	case RC_TYPE_OTHER:
- 		dev_dbg(dev, "Configuring IR receiver for iMON protocol\n");
--		if (pad_stabilize && !nomouse)
--			pad_mouse = true;
--		else {
-+		if (!pad_stabilize)
- 			dev_dbg(dev, "PAD stabilize functionality disabled\n");
--			pad_mouse = false;
--		}
- 		/* ir_proto_packet[0] = 0x00; // already the default */
- 		rc_type = RC_TYPE_OTHER;
- 		break;
- 	default:
- 		dev_warn(dev, "Unsupported IR protocol specified, overriding "
- 			 "to iMON IR protocol\n");
--		if (pad_stabilize && !nomouse)
--			pad_mouse = true;
--		else {
-+		if (!pad_stabilize)
- 			dev_dbg(dev, "PAD stabilize functionality disabled\n");
--			pad_mouse = false;
--		}
- 		/* ir_proto_packet[0] = 0x00; // already the default */
- 		rc_type = RC_TYPE_OTHER;
- 		break;
-@@ -1035,7 +1025,7 @@ static int imon_ir_change_protocol(struct rc_dev *rc, u64 rc_type)
- 		goto out;
- 
- 	ictx->rc_type = rc_type;
--	ictx->pad_mouse = pad_mouse;
-+	ictx->pad_mouse = false;
- 
- out:
- 	return retval;
-@@ -1517,7 +1507,7 @@ static void imon_incoming_packet(struct imon_context *ictx,
- 			spin_unlock_irqrestore(&ictx->kc_lock, flags);
- 			return;
- 		} else {
--			ictx->pad_mouse = 0;
-+			ictx->pad_mouse = false;
- 			dev_dbg(dev, "mouse mode disabled, passing key value\n");
- 		}
- 	}
--- 
-1.7.3.4
+> 
+> Thanks!
+> 
+>  drivers/hid/hid-input.c                    |    4 +-
+>  drivers/input/input.c                      |   55 ++++------------------------
+>  drivers/input/misc/ati_remote2.c           |    4 +-
+>  drivers/input/sparse-keymap.c              |    4 +-
+>  drivers/media/dvb/dvb-usb/dvb-usb-remote.c |    4 +-
+>  drivers/media/rc/rc-main.c                 |    4 +-
+>  include/linux/input.h                      |   12 ++----
+>  7 files changed, 20 insertions(+), 67 deletions(-)
+> 
+> 
+> diff --git a/drivers/hid/hid-input.c b/drivers/hid/hid-input.c
+> index 7f552bf..ba2aeea 100644
+> --- a/drivers/hid/hid-input.c
+> +++ b/drivers/hid/hid-input.c
+> @@ -888,8 +888,8 @@ int hidinput_connect(struct hid_device *hid, unsigned int force)
+>  					hid->ll_driver->hidinput_input_event;
+>  				input_dev->open = hidinput_open;
+>  				input_dev->close = hidinput_close;
+> -				input_dev->setkeycode_new = hidinput_setkeycode;
+> -				input_dev->getkeycode_new = hidinput_getkeycode;
+> +				input_dev->setkeycode = hidinput_setkeycode;
+> +				input_dev->getkeycode = hidinput_getkeycode;
+>  
+>  				input_dev->name = hid->name;
+>  				input_dev->phys = hid->phys;
+> diff --git a/drivers/input/input.c b/drivers/input/input.c
+> index 11905b6..d6e8bd8 100644
+> --- a/drivers/input/input.c
+> +++ b/drivers/input/input.c
+> @@ -791,22 +791,9 @@ int input_get_keycode(struct input_dev *dev, struct input_keymap_entry *ke)
+>  	int retval;
+>  
+>  	spin_lock_irqsave(&dev->event_lock, flags);
+> -
+> -	if (dev->getkeycode) {
+> -		/*
+> -		 * Support for legacy drivers, that don't implement the new
+> -		 * ioctls
+> -		 */
+> -		u32 scancode = ke->index;
+> -
+> -		memcpy(ke->scancode, &scancode, sizeof(scancode));
+> -		ke->len = sizeof(scancode);
+> -		retval = dev->getkeycode(dev, scancode, &ke->keycode);
+> -	} else {
+> -		retval = dev->getkeycode_new(dev, ke);
+> -	}
+> -
+> +	retval = dev->getkeycode(dev, ke);
+>  	spin_unlock_irqrestore(&dev->event_lock, flags);
+> +
+>  	return retval;
+>  }
+>  EXPORT_SYMBOL(input_get_keycode);
+> @@ -831,35 +818,7 @@ int input_set_keycode(struct input_dev *dev,
+>  
+>  	spin_lock_irqsave(&dev->event_lock, flags);
+>  
+> -	if (dev->setkeycode) {
+> -		/*
+> -		 * Support for legacy drivers, that don't implement the new
+> -		 * ioctls
+> -		 */
+> -		unsigned int scancode;
+> -
+> -		retval = input_scancode_to_scalar(ke, &scancode);
+> -		if (retval)
+> -			goto out;
+> -
+> -		/*
+> -		 * We need to know the old scancode, in order to generate a
+> -		 * keyup effect, if the set operation happens successfully
+> -		 */
+> -		if (!dev->getkeycode) {
+> -			retval = -EINVAL;
+> -			goto out;
+> -		}
+> -
+> -		retval = dev->getkeycode(dev, scancode, &old_keycode);
+> -		if (retval)
+> -			goto out;
+> -
+> -		retval = dev->setkeycode(dev, scancode, ke->keycode);
+> -	} else {
+> -		retval = dev->setkeycode_new(dev, ke, &old_keycode);
+> -	}
+> -
+> +	retval = dev->setkeycode(dev, ke, &old_keycode);
+>  	if (retval)
+>  		goto out;
+>  
+> @@ -1846,11 +1805,11 @@ int input_register_device(struct input_dev *dev)
+>  		dev->rep[REP_PERIOD] = 33;
+>  	}
+>  
+> -	if (!dev->getkeycode && !dev->getkeycode_new)
+> -		dev->getkeycode_new = input_default_getkeycode;
+> +	if (!dev->getkeycode)
+> +		dev->getkeycode = input_default_getkeycode;
+>  
+> -	if (!dev->setkeycode && !dev->setkeycode_new)
+> -		dev->setkeycode_new = input_default_setkeycode;
+> +	if (!dev->setkeycode)
+> +		dev->setkeycode = input_default_setkeycode;
+>  
+>  	dev_set_name(&dev->dev, "input%ld",
+>  		     (unsigned long) atomic_inc_return(&input_no) - 1);
+> diff --git a/drivers/input/misc/ati_remote2.c b/drivers/input/misc/ati_remote2.c
+> index 0b0e9be..9ccdb82 100644
+> --- a/drivers/input/misc/ati_remote2.c
+> +++ b/drivers/input/misc/ati_remote2.c
+> @@ -612,8 +612,8 @@ static int ati_remote2_input_init(struct ati_remote2 *ar2)
+>  	idev->open = ati_remote2_open;
+>  	idev->close = ati_remote2_close;
+>  
+> -	idev->getkeycode_new = ati_remote2_getkeycode;
+> -	idev->setkeycode_new = ati_remote2_setkeycode;
+> +	idev->getkeycode = ati_remote2_getkeycode;
+> +	idev->setkeycode = ati_remote2_setkeycode;
+>  
+>  	idev->name = ar2->name;
+>  	idev->phys = ar2->phys;
+> diff --git a/drivers/input/sparse-keymap.c b/drivers/input/sparse-keymap.c
+> index 7729e54..337bf51 100644
+> --- a/drivers/input/sparse-keymap.c
+> +++ b/drivers/input/sparse-keymap.c
+> @@ -210,8 +210,8 @@ int sparse_keymap_setup(struct input_dev *dev,
+>  
+>  	dev->keycode = map;
+>  	dev->keycodemax = map_size;
+> -	dev->getkeycode_new = sparse_keymap_getkeycode;
+> -	dev->setkeycode_new = sparse_keymap_setkeycode;
+> +	dev->getkeycode = sparse_keymap_getkeycode;
+> +	dev->setkeycode = sparse_keymap_setkeycode;
+>  
+>  	return 0;
+>  
+> diff --git a/drivers/media/dvb/dvb-usb/dvb-usb-remote.c b/drivers/media/dvb/dvb-usb/dvb-usb-remote.c
+> index 347fbd4..b2b9415 100644
+> --- a/drivers/media/dvb/dvb-usb/dvb-usb-remote.c
+> +++ b/drivers/media/dvb/dvb-usb/dvb-usb-remote.c
+> @@ -198,8 +198,8 @@ static int legacy_dvb_usb_remote_init(struct dvb_usb_device *d)
+>  	d->input_dev = input_dev;
+>  	d->rc_dev = NULL;
+>  
+> -	input_dev->getkeycode_new = legacy_dvb_usb_getkeycode;
+> -	input_dev->setkeycode_new = legacy_dvb_usb_setkeycode;
+> +	input_dev->getkeycode = legacy_dvb_usb_getkeycode;
+> +	input_dev->setkeycode = legacy_dvb_usb_setkeycode;
+>  
+>  	/* set the bits for the keys */
+>  	deb_rc("key map size: %d\n", d->props.rc.legacy.rc_map_size);
+> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+> index 512a2f4..c376928 100644
+> --- a/drivers/media/rc/rc-main.c
+> +++ b/drivers/media/rc/rc-main.c
+> @@ -966,8 +966,8 @@ struct rc_dev *rc_allocate_device(void)
+>  		return NULL;
+>  	}
+>  
+> -	dev->input_dev->getkeycode_new = ir_getkeycode;
+> -	dev->input_dev->setkeycode_new = ir_setkeycode;
+> +	dev->input_dev->getkeycode = ir_getkeycode;
+> +	dev->input_dev->setkeycode = ir_setkeycode;
+>  	input_set_drvdata(dev->input_dev, dev);
+>  
+>  	spin_lock_init(&dev->rc_map.lock);
+> diff --git a/include/linux/input.h b/include/linux/input.h
+> index e428382..056ae8a 100644
+> --- a/include/linux/input.h
+> +++ b/include/linux/input.h
+> @@ -1154,8 +1154,6 @@ struct ff_effect {
+>   *	sparse keymaps. If not supplied default mechanism will be used.
+>   *	The method is being called while holding event_lock and thus must
+>   *	not sleep
+> - * @getkeycode_new: transition method
+> - * @setkeycode_new: transition method
+>   * @ff: force feedback structure associated with the device if device
+>   *	supports force feedback effects
+>   * @repeat_key: stores key code of the last key pressed; used to implement
+> @@ -1234,14 +1232,10 @@ struct input_dev {
+>  	void *keycode;
+>  
+>  	int (*setkeycode)(struct input_dev *dev,
+> -			  unsigned int scancode, unsigned int keycode);
+> +			  const struct input_keymap_entry *ke,
+> +			  unsigned int *old_keycode);
+>  	int (*getkeycode)(struct input_dev *dev,
+> -			  unsigned int scancode, unsigned int *keycode);
+> -	int (*setkeycode_new)(struct input_dev *dev,
+> -			      const struct input_keymap_entry *ke,
+> -			      unsigned int *old_keycode);
+> -	int (*getkeycode_new)(struct input_dev *dev,
+> -			      struct input_keymap_entry *ke);
+> +			  struct input_keymap_entry *ke);
+>  
+>  	struct ff_device *ff;
+>  
 
