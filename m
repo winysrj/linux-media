@@ -1,155 +1,36 @@
 Return-path: <mchehab@pedra>
-Received: from comal.ext.ti.com ([198.47.26.152]:55501 "EHLO comal.ext.ti.com"
+Received: from lo.gmane.org ([80.91.229.12]:52697 "EHLO lo.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751703Ab1ANNcD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Jan 2011 08:32:03 -0500
-From: Manjunath Hadli <manjunath.hadli@ti.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Kevin Hilman <khilman@deeprootsystems.com>
-Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: [PATCH v14 2/2] davinci vpbe: board specific additions
-Date: Fri, 14 Jan 2011 19:01:40 +0530
-Message-Id: <1295011900-1318-1-git-send-email-manjunath.hadli@ti.com>
+	id S1752920Ab1AaWkH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 Jan 2011 17:40:07 -0500
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1Pk2Pm-0006K8-3e
+	for linux-media@vger.kernel.org; Mon, 31 Jan 2011 23:40:06 +0100
+Received: from vodsl-9417.vo.lu ([85.93.203.201])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 31 Jan 2011 23:40:06 +0100
+Received: from steltek by vodsl-9417.vo.lu with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 31 Jan 2011 23:40:06 +0100
+To: linux-media@vger.kernel.org
+From: Michel Meyers <steltek@tcnnet.com>
+Subject: ds3000 broken in s2-liplianin?
+Date: Mon, 31 Jan 2011 18:40:38 +0000 (UTC)
+Message-ID: <loom.20110131T193732-431@post.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This patch implements tables for display timings,outputs and
-other board related functionalities.
+Hello,
 
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- arch/arm/mach-davinci/board-dm644x-evm.c |   84 ++++++++++++++++++++++++-----
- 1 files changed, 69 insertions(+), 15 deletions(-)
+Just wondering if anybody else has had issues with dw2102/ds3000 recently? 
+I just had two systems completely hang when I plugged in either my TeVii S660 or 
+my Terratec Cinergy S2 USB HD. (No error messages, complete system freeze.) The 
+fix seems to be to revert to Mercurial changeset 15364 / 414e0bbd99bf.
 
-diff --git a/arch/arm/mach-davinci/board-dm644x-evm.c b/arch/arm/mach-davinci/board-dm644x-evm.c
-index 0ca90b8..95ea13d 100644
---- a/arch/arm/mach-davinci/board-dm644x-evm.c
-+++ b/arch/arm/mach-davinci/board-dm644x-evm.c
-@@ -176,18 +176,6 @@ static struct platform_device davinci_evm_nandflash_device = {
- 	.resource	= davinci_evm_nandflash_resource,
- };
- 
--static u64 davinci_fb_dma_mask = DMA_BIT_MASK(32);
--
--static struct platform_device davinci_fb_device = {
--	.name		= "davincifb",
--	.id		= -1,
--	.dev = {
--		.dma_mask		= &davinci_fb_dma_mask,
--		.coherent_dma_mask      = DMA_BIT_MASK(32),
--	},
--	.num_resources = 0,
--};
--
- static struct tvp514x_platform_data tvp5146_pdata = {
- 	.clk_polarity = 0,
- 	.hs_polarity = 1,
-@@ -337,7 +325,6 @@ static struct pcf857x_platform_data pcf_data_u2 = {
- 	.teardown	= evm_led_teardown,
- };
- 
--
- /* U18 - A/V clock generator and user switch */
- 
- static int sw_gpio;
-@@ -404,7 +391,6 @@ static struct pcf857x_platform_data pcf_data_u18 = {
- 	.teardown	= evm_u18_teardown,
- };
- 
--
- /* U35 - various I/O signals used to manage USB, CF, ATA, etc */
- 
- static int
-@@ -616,8 +602,73 @@ static void __init evm_init_i2c(void)
- 	i2c_register_board_info(1, i2c_info, ARRAY_SIZE(i2c_info));
- }
- 
-+#define VENC_STD_ALL    (V4L2_STD_NTSC | V4L2_STD_PAL)
-+
-+/* venc standards timings */
-+static struct vpbe_enc_mode_info vbpe_enc_std_timings[] = {
-+	{"ntsc", VPBE_ENC_STD, {V4L2_STD_525_60}, 1, 720, 480,
-+	{11, 10}, {30000, 1001}, 0x79, 0, 0x10, 0, 0, 0, 0},
-+	{"pal", VPBE_ENC_STD, {V4L2_STD_625_50}, 1, 720, 576,
-+	{54, 59}, {25, 1}, 0x7E, 0, 0x16, 0, 0, 0, 0},
-+};
-+
-+/* venc dv preset timings */
-+static struct vpbe_enc_mode_info vbpe_enc_preset_timings[] = {
-+	{"480p59_94", VPBE_ENC_DV_PRESET, {V4L2_DV_480P59_94}, 0, 720, 480,
-+	{1, 1}, {5994, 100}, 0x80, 0, 0x20, 0, 0, 0, 0},
-+	{"576p50", VPBE_ENC_DV_PRESET, {V4L2_DV_576P50}, 0, 720, 576,
-+	{1, 1}, {50, 1}, 0x7E, 0, 0x30, 0, 0, 0, 0},
-+};
-+
-+/*
-+ * The outputs available from VPBE + encoders. Keep the order same
-+ * as that of encoders. First that from venc followed by that from
-+ * encoders. Index in the output refers to index on a particular encoder.
-+ * Driver uses this index to pass it to encoder when it supports more than
-+ * one output. Application uses index of the array to set an output.
-+ */
-+static struct vpbe_output dm644x_vpbe_outputs[] = {
-+	{
-+		.output = {
-+			.index = 0,
-+			.name = "Composite",
-+			.type = V4L2_OUTPUT_TYPE_ANALOG,
-+			.std = VENC_STD_ALL,
-+			.capabilities = V4L2_OUT_CAP_STD,
-+		},
-+		.subdev_name = VPBE_VENC_SUBDEV_NAME,
-+		.default_mode = "ntsc",
-+		.num_modes = ARRAY_SIZE(vbpe_enc_std_timings),
-+		.modes = vbpe_enc_std_timings,
-+	},
-+	{
-+		.output = {
-+			.index = 1,
-+			.name = "Component",
-+			.type = V4L2_OUTPUT_TYPE_ANALOG,
-+			.capabilities = V4L2_OUT_CAP_PRESETS,
-+		},
-+		.subdev_name = VPBE_VENC_SUBDEV_NAME,
-+		.default_mode = "480p59_94",
-+		.num_modes = ARRAY_SIZE(vbpe_enc_preset_timings),
-+		.modes = vbpe_enc_preset_timings,
-+	},
-+};
-+
-+static struct vpbe_display_config vpbe_display_cfg = {
-+	.module_name = "dm644x-vpbe-display",
-+	.i2c_adapter_id = 1,
-+	.osd = {
-+		.module_name = VPBE_OSD_SUBDEV_NAME,
-+	},
-+	.venc = {
-+		.module_name = VPBE_VENC_SUBDEV_NAME,
-+	},
-+	.num_outputs = ARRAY_SIZE(dm644x_vpbe_outputs),
-+	.outputs = dm644x_vpbe_outputs,
-+};
-+
- static struct platform_device *davinci_evm_devices[] __initdata = {
--	&davinci_fb_device,
- 	&rtc_dev,
- };
- 
-@@ -630,6 +681,9 @@ davinci_evm_map_io(void)
- {
- 	/* setup input configuration for VPFE input devices */
- 	dm644x_set_vpfe_config(&vpfe_cfg);
-+
-+	/* setup configuration for vpbe devices */
-+	dm644x_set_vpbe_display_config(&vpbe_display_cfg);
- 	dm644x_init();
- }
- 
--- 
-1.6.2.4
+- Michel
 
