@@ -1,55 +1,105 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:14869 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753930Ab1A1M5K (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:52471 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755160Ab1AaSCA convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Jan 2011 07:57:10 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from spt2.w1.samsung.com ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LFQ00JK5HB7AR80@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 28 Jan 2011 12:57:08 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LFQ00JR7HB7NR@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 28 Jan 2011 12:57:07 +0000 (GMT)
-Date: Fri, 28 Jan 2011 13:56:38 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 0/2] Videobuf2 hot fixes
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, pawel@osciak.com,
-	kyungmin.park@samsung.com
-Message-id: <1296219400-2582-1-git-send-email-m.szyprowski@samsung.com>
+	Mon, 31 Jan 2011 13:02:00 -0500
+Received: by fxm20 with SMTP id 20so5876677fxm.19
+        for <linux-media@vger.kernel.org>; Mon, 31 Jan 2011 10:01:59 -0800 (PST)
+From: "Igor M. Liplianin" <liplianin@me.by>
+To: Matt Vickers <m@vicke.rs>
+Subject: Re: DM1105: could not attach frontend 195d:1105
+Date: Mon, 31 Jan 2011 19:55:00 +0200
+Cc: linux-media@vger.kernel.org
+References: <4B7D83B2.4030709@online.no> <201010231220.51387.liplianin@me.by> <ii5vm9$r2g$1@dough.gmane.org>
+In-Reply-To: <ii5vm9$r2g$1@dough.gmane.org>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201101311955.01003.liplianin@me.by>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello!
+В сообщении от 31 января 2011 11:33:54 автор Matt Vickers написал:
+> On 23/10/2010 10:20 p.m., Igor M. Liplianin wrote:
+> > В сообщении от 10 марта 2010 14:15:49 автор Hendrik Skarpeid написал:
+> >> Igor M. Liplianin skrev:
+> >>> On 3 марта 2010 18:42:42 Hendrik Skarpeid wrote:
+> >>>> Igor M. Liplianin wrote:
+> >>>>> Now to find GPIO's for LNB power control and ... watch TV :)
+> >>>> 
+> >>>> Yep. No succesful tuning at the moment. There might also be an issue
+> >>>> with the reset signal and writing to GPIOCTR, as the module at the
+> >>>> moment loads succesfully only once.
+> >>>> As far as I can make out, the LNB power control is probably GPIO 16
+> >>>> and 17, not sure which is which, and how they work.
+> >>>> GPIO15 is wired to tuner #reset
+> >>> 
+> >>> New patch to test
+> >> 
+> >> I think the LNB voltage may be a little to high on my card, 14.5V and
+> >> 20V. I would be a little more happy if they were 14 and 19, 13 and 18
+> >> would be perfect.
+> >> Anyways, as Igor pointet out, I don't have any signal from the LNB,
+> >> checked with another tuner card. It's a quad LNB, and the other outputs
+> >> are fine. Maybe it's' toasted from to high supply voltage! I little word
+> >> of warning then.
+> >> Anyways, here's my tweaked driver.
+> > 
+> > Here is reworked patch for clear GPIO's handling.
+> > It allows to support I2C on GPIO's and per board LNB control through
+> > GPIO's. Also incuded support for Hendrik's card.
+> > I think it is clear how to change and test GPIO's for LNB and other stuff
+> > now.
+> > 
+> > To Hendrik:
+> > 	Not shure, but there is maybe GPIO for raise/down LNB voltage a little
+> > 	(~1v). It is used for long coaxial lines to compensate voltage
+> > 	dropping.
+> > 
+> > Signed-off-by: Igor M. Liplianin<liplianin@me.by>
+> 
+> Hi Igor,
+> 
+> I have a brandless DVB-S tv tuner card also, with a dm1105n chip. I was
+> getting the "DM1105: could not attach frontend 195d:1105" message with
+> the latest kernel also, but I applied this patch to the dm1105 module
+> and now the card's being recognised  (though is still listed as an
+> ethernet controller with lspci)
+> 
+> My dmesg output is:
+> 
+> dm1105 0000:01:05.0: PCI INT A -> GSI 17 (level, low) -> IRQ 17
+> DVB: registering new adapter (dm1105)
+> dm1105 0000:01:05.0: MAC 00:00:00:00:00:00
+> DVB: registering adapter 0 frontend 0 (SL SI21XX DVB-S)...
+> Registered IR keymap rc-dm1105-nec
+> input: DVB on-card IR receiver as
+> /devices/pci0000:00/0000:00:1e.0/0000:01:05.0/rc/rc0/input6
+> rc0: DVB on-card IR receiver as
+> /devices/pci0000:00/0000:00:1e.0/0000:01:05.0/rc/rc0
+> 
+> The card is one of these:
+> http://www.hongsun.biz/ProView.asp?ID=90
+> 
+> Scanning doesn't appear to give me any results.  Should this be working?
+>   Anything I can do to test the card out for you?
+> 
+> Cheers,
+> Matt.
+Hi Matt,
+Is there any label on tuner can?
+Have you a close look picture of PCB ?
 
-This is a small set of bugfixes for videobuf2 framework. It looks that
-even review done by 3 other developers can miss some minor bugs. I hope
-they can be applied to v2.6.38-rcX kernel series once vb2 finally gets
-into Linus tree.
-
-Best regards
---
-Marek Szyprowski
-Samsung Poland R&D Center
-
-
-Patch summary:
-
-Andrzej Pietrasiewicz (1):
-  v4l2: vb2-dma-sg: fix memory leak
-
-Marek Szyprowski (1):
-  v4l2: vb2: fix queue reallocation and REQBUFS(0) case
-
- drivers/media/video/videobuf2-core.c   |    9 ++++++++-
- drivers/media/video/videobuf2-dma-sg.c |    2 ++
- 2 files changed, 10 insertions(+), 1 deletions(-)
+Cheers,
+Igor.
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 -- 
-1.7.1.569.g6f426
-
+Igor M. Liplianin
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
