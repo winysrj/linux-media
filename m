@@ -1,69 +1,61 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:15713 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752599Ab1AJBdS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Jan 2011 20:33:18 -0500
-Message-ID: <4D2A61D9.1090807@redhat.com>
-Date: Sun, 09 Jan 2011 23:33:13 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:58821 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751434Ab1AaOqh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 Jan 2011 09:46:37 -0500
+Received: by wyb28 with SMTP id 28so5573805wyb.19
+        for <linux-media@vger.kernel.org>; Mon, 31 Jan 2011 06:46:36 -0800 (PST)
+Message-ID: <4D46CB46.7040604@gmail.com>
+Date: Mon, 31 Jan 2011 15:46:30 +0100
+From: =?ISO-8859-1?Q?Ludovic_BOU=C9?= <ludovic.boue@gmail.com>
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Jean-Francois Moine <moinejf@free.fr>
-Subject: Re: RFC: Move the deprecated et61x251 and sn9c102 to staging
-References: <201101012053.00372.hverkuil@xs4all.nl> <4D20A908.9020705@redhat.com> <4D20C4FB.9060906@redhat.com> <201101022113.01133.hverkuil@xs4all.nl> <4D29A3D6.6060307@redhat.com>
-In-Reply-To: <4D29A3D6.6060307@redhat.com>
+To: linux-media@vger.kernel.org
+Subject: Re: ngene & Satix-S2 dual problems
+References: <4D1753CF.9010205@gmail.com> <201012280857.35664@orion.escape-edv.de> <4D19D66D.4040108@gmail.com> <201012281601.06586@orion.escape-edv.de>
+In-Reply-To: <201012281601.06586@orion.escape-edv.de>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 09-01-2011 10:02, Hans de Goede escreveu:
+Hi Oliver,
+
+Are you planning to merge your ngene development repository to the
+V4L-DVB Upstream repository ?
+
+Ludovic,
+
+Le 28/12/2010 16:01, Oliver Endriss a écrit :
 > Hi,
-> 
-> On 01/02/2011 09:13 PM, Hans Verkuil wrote:
->> Hi Hans,
+>
+> On Tuesday 28 December 2010 13:22:05 Ludovic BOUÉ wrote:
+>> ...
+>> [  403.893231] LNBx2x attached on addr=a
+>> [  403.893323] stv6110x_attach: Attaching STV6110x
+>> [  403.893327] DVB: registering new adapter (nGene)
+>> [  403.893332] DVB: registering adapter 0 frontend 0 (STV090x
+>> Multistandard)...
+>> [  403.894359] LNBx2x attached on addr=8
+>> [  403.894451] stv6110x_attach: Attaching STV6110x
+>> [  403.894456] DVB: registering adapter 0 frontend 0 (STV090x
+>> Multistandard)...
 >>
->> On Sunday, January 02, 2011 19:33:31 Hans de Goede wrote:
-> 
-> <snip>
-> 
->>> So only 3 raw bayer + custom compression models supported by
->>> sn9c102 are not supported by gspca_sonixb, and all jpeg models
->>> are supported by gspca_sonixj. Porting the 3 remaining models
->>> over should be relatively easy, but I (I more or less maintain
->>> the sonixb driver) really need hardware access to ensure things
->>> stay working.
->>>
->>> Second correction, I was looking at an old tree and failed to
->>> notice that the zc0301 driver has already bitten the dust
->>> (good!).
+>> 14:13 root@telstar /home/lboue # ls /dev/dvb/adapter0/
+>> demux0  demux1  dvr0  dvr1  frontend0  frontend1  net0  net1
 >>
->> Thank you for your very helpful answer.
->>
->> Can you make a patch removing all the bogus usb IDs from these drivers?
-> 
-> I've managed to make some time to also sort out the sn9c1xx usb ids
-> situation.  I've just send a pull request which includes patches cleaning
-> things up. After this there are only 5 usb-ids left which will default to
-> sn9c102 when both are compiled in, and only 3 of those are not supported
-> by gspca.
+>> The is only the needed adapters but I think there is a errror about the
+>> frontend number. It should be
+>> DVB: registering adapter 0 frontend 1 (STV090x Multistandard)
+>> instead of: DVB: registering adapter 0 frontend 0 (STV090x Multistandard)
+> Confirmed. There is a harmless bug in dvb_core:
+> The message is printed before the frontend number has been assigned.
+> I will commit a fix for that later.
+>
+> CU
+> Oliver
+>
 
-Good!
-> 
-> So if we move the sn9c102 driver to staging we will loose support for
-> only 3 usb-ids. IOW I think it is time to move it to staging :)
+-- 
+Ludovic BOUÉ
 
-This would be a regression.
-
-> Note I can write a patch to add untested support for these 3 to the
-> sonixb driver, given my experience with adding support for the hv7131d
-> based on the sn9c102 code, that should be doable. But it will be
-> completely untested :(
-
-I think that the better would be to add support for it at gspca, but wait for
-some feedback before considering it working.
-
-Cheers,
-Mauro
