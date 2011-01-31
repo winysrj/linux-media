@@ -1,52 +1,51 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1131 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752574Ab1AHNhG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Jan 2011 08:37:06 -0500
-Received: from localhost.localdomain (43.80-203-71.nextgentel.com [80.203.71.43])
-	(authenticated bits=0)
-	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id p08Dalk8015112
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sat, 8 Jan 2011 14:37:04 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [RFCv3 PATCH 11/16] radio-mr800: Add priority support.
-Date: Sat,  8 Jan 2011 14:36:36 +0100
-Message-Id: <47980d0dd16de6c8a000a0b565719335f2948070.1294493428.git.hverkuil@xs4all.nl>
-In-Reply-To: <1294493801-17406-1-git-send-email-hverkuil@xs4all.nl>
-References: <1294493801-17406-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1d57787db3bd1a76d292bd80d91ba9e10c07af68.1294493427.git.hverkuil@xs4all.nl>
-References: <1d57787db3bd1a76d292bd80d91ba9e10c07af68.1294493427.git.hverkuil@xs4all.nl>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:35547 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752299Ab1AaRVf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 Jan 2011 12:21:35 -0500
+Date: Mon, 31 Jan 2011 09:21:27 -0800
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Jiri Kosina <jkosina@suse.cz>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Input <linux-input@vger.kernel.org>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] Input: switch completely over to the new versions of
+ get/setkeycode
+Message-ID: <20110131172127.GB31891@core.coreip.homeip.net>
+References: <20110131085640.GB30343@core.coreip.homeip.net>
+ <4D46AB6C.4050108@redhat.com>
+ <alpine.LNX.2.00.1101311332270.5725@pobox.suse.cz>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <alpine.LNX.2.00.1101311332270.5725@pobox.suse.cz>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/radio/radio-mr800.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+On Mon, Jan 31, 2011 at 01:32:43PM +0100, Jiri Kosina wrote:
+> On Mon, 31 Jan 2011, Mauro Carvalho Chehab wrote:
+> 
+> > > Input: switch completely over to the new versions of get/setkeycode
+> > > 
+> > > All users of old style get/setkeycode methids have been converted so
+> > > it is time to retire them.
+> > > 
+> > > Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+> > > ---
+> > > 
+> > > Jiri, Mauro,
+> > > 
+> > > There is not a good way to avoid crossing multiple subsystems but the
+> > > changes are minimal, so if you are OK with the patch I'd like to move it
+> > > through my tree for .39.
+> > 
+> > Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> 
+> Acked-by: Jiri Kosina <jkosina@suse.cz>
+> 
 
-diff --git a/drivers/media/radio/radio-mr800.c b/drivers/media/radio/radio-mr800.c
-index 3e2b3ae..b4879dd 100644
---- a/drivers/media/radio/radio-mr800.c
-+++ b/drivers/media/radio/radio-mr800.c
-@@ -63,6 +63,7 @@
- #include <linux/videodev2.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
-+#include <media/v4l2-fh.h>
- #include <linux/usb.h>
- #include <linux/version.h>	/* for KERNEL_VERSION MACRO */
- #include <linux/mutex.h>
-@@ -513,6 +514,8 @@ static int usb_amradio_resume(struct usb_interface *intf)
- static const struct v4l2_file_operations usb_amradio_fops = {
- 	.owner		= THIS_MODULE,
- 	.unlocked_ioctl	= video_ioctl2,
-+	.open		= v4l2_fh_open,
-+	.release	= v4l2_fh_release,
- };
- 
- static const struct v4l2_ioctl_ops usb_amradio_ioctl_ops = {
+Thanks guys.
+
 -- 
-1.7.0.4
-
+Dmitry
