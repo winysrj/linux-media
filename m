@@ -1,73 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:9128 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756747Ab1AMNWj (ORCPT
+Received: from mail-out.m-online.net ([212.18.0.10]:49614 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753736Ab1AaM5L (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Jan 2011 08:22:39 -0500
-Date: Thu, 13 Jan 2011 14:21:44 +0100
-From: Jean Delvare <khali@linux-fr.org>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
-	Janne Grunau <j@jannau.net>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH 3/3] lirc_zilog: Remove use of deprecated struct  
- i2c_adapter.id field
-Message-ID: <20110113142144.662d54e0@endymion.delvare>
-In-Reply-To: <1294274780.9672.93.camel@morgan.silverblock.net>
-References: <1293587067.3098.10.camel@localhost>
- <1293587390.3098.16.camel@localhost>
- <20110105154553.546998bf@endymion.delvare>
- <1294274780.9672.93.camel@morgan.silverblock.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Mon, 31 Jan 2011 07:57:11 -0500
+From: Anatolij Gustschin <agust@denx.de>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Markus Niebel <Markus.Niebel@tqs.de>
+Subject: [PATCH] v4l: mx3_camera.c: correct 'sizeimage' value reporting
+Date: Mon, 31 Jan 2011 13:58:01 +0100
+Message-Id: <1296478681-11119-1-git-send-email-agust@denx.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 05 Jan 2011 19:46:20 -0500, Andy Walls wrote:
-> If you look at more of the dumps, it appears that accesses to I2C
-> addresses 0x70 and 0x71 can be interleaved, so it looks like the
-> IR.ir_lock might not be needed.  Although looking further I see this:
-> 
->   2.035mS: 70 W 61 00 00 00   . . . 
->  10.887mS: 70 W 00 40   @ 
->  10.012mS: 70 W 00   
->     681uS: 70 r A0   
->     717uS: 70 W 00 80   . 
->  18.808mS: 70 W  -nak-  
->   1.393mS: 70 W  -nak-  
->   1.393mS: 70 W  -nak-  
->   1.396mS: 70 W  -nak-  
->   1.393mS: 70 W  -nak-  
->   1.393mS: 70 W  -nak- 
-> [...]
->   1.393mS: 70 W  -nak-  
->   1.477mS: 71 W  -nak-  
->   1.391mS: 71 W  -nak-  
->   1.393mS: 71 W  -nak-  
->   1.393mS: 71 W  -nak-  
->   1.391mS: 71 W  -nak-  
->   1.438mS: 71 W 00   
->     681uS: 71 r 00 00 00 00 00 00   . . . . . 
->  51.079mS: 70 W 00   
->     681uS: 70 r 80
-> 
-> Which seems to indicate that actions taken on the Transmit side of the
-> chip can cause it to go unresponsive for both Tx and Rx.  The "goto
-> done;" statement that was in lirc_zilog skips the code that deals with
-> those -nak- for the HD PVR.
+The 'pix->width' field may be updated in mx3_camera_set_fmt() to
+fulfill the IPU stride line alignment requirements. If this update
+takes place, the 'fmt.pix.sizeimage' field in the struct v4l2_format
+stucture returned by VIDIOC_S_FMT is wrong. We need to update the
+'pix->sizeimage' field in the mx3_camera_set_fmt() function to fix
+this issue.
 
-My bet is that register at 0x00 is a control register, and writing bit
-7 (value 0x80) makes the chip busy enough that it can't process I2C
-requests at the same time. The following naks would be until the
-chip is operational again.
+Signed-off-by: Anatolij Gustschin <agust@denx.de>
+---
+ drivers/media/video/mx3_camera.c |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
 
-In fact, the "waiting" code in lirc_zilog.c:send_code() makes a lot of
-sense, and I wouldn't skip it: if the device is busy, you don't want to
-return immediately, otherwise a subsequent request will fail. The
-failure documented for the HD PVR simply suggests that the wait loop
-isn't long enough. It is 20 * 50 ms currently, i.e. 1 second total,
-maybe this isn't sufficient. Have you ever tried a longer delay?
-
+diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
+index 7bcaaf7..6b0b25d 100644
+--- a/drivers/media/video/mx3_camera.c
++++ b/drivers/media/video/mx3_camera.c
+@@ -918,6 +918,12 @@ static int mx3_camera_set_fmt(struct soc_camera_device *icd,
+ 	pix->colorspace		= mf.colorspace;
+ 	icd->current_fmt	= xlate;
+ 
++	pix->bytesperline = soc_mbus_bytes_per_line(pix->width,
++						    xlate->host_fmt);
++	if (pix->bytesperline < 0)
++		return pix->bytesperline;
++	pix->sizeimage = pix->height * pix->bytesperline;
++
+ 	dev_dbg(icd->dev.parent, "Sensor set %dx%d\n", pix->width, pix->height);
+ 
+ 	return ret;
 -- 
-Jean Delvare
+1.7.1
+
