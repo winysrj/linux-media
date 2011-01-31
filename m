@@ -1,122 +1,74 @@
-Return-path: <mchehab@gaivota>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3635 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932179Ab1ACNyu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jan 2011 08:54:50 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Return-path: <mchehab@pedra>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:39199 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755087Ab1AaShm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 Jan 2011 13:37:42 -0500
+Received: by bwz15 with SMTP id 15so5529506bwz.19
+        for <linux-media@vger.kernel.org>; Mon, 31 Jan 2011 10:37:40 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <AANLkTikaHBXmf_EE7UwJNDwESYcdM8x=6eRukuNEPZ2c@mail.gmail.com>
+References: <AANLkTikaHBXmf_EE7UwJNDwESYcdM8x=6eRukuNEPZ2c@mail.gmail.com>
+Date: Mon, 31 Jan 2011 19:37:40 +0100
+Message-ID: <AANLkTikaNR28srMnQ0Ga1v6XzUai-Qz3Q1+fRdBi=nw-@mail.gmail.com>
+Subject: Re: Asus U3100 Mini Plus
+From: Michal Bojda <rexearth.mbojda@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: David Ellingsworth <david@identd.dyndns.org>
-Subject: [RFC PATCH 1/4] v4l2-device: add kref and a release function
-Date: Mon,  3 Jan 2011 14:54:29 +0100
-Message-Id: <adec9ffda2cd47023cde5d0beda01fc84bd867f6.1294062751.git.hverkuil@xs4all.nl>
-In-Reply-To: <1294062872-8312-1-git-send-email-hverkuil@xs4all.nl>
-References: <1294062872-8312-1-git-send-email-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-The video_device struct has proper ref counting and its release function
-will be called when the last user releases it. But no such support was
-available for struct v4l2_device. This made it hard to determine when a
-USB driver can release the device if it has multiple device nodes.
+Here are some specifications.
 
-With one device node it is easy of course, since when the device node is
-released, the whole device can be released.
+Chip : AF9035A
+Demodulator : AF9035B
+Tuner : FCI2580
 
-This patch adds refcounting to v4l2_device. When registering device nodes
-the v4l2_device refcount will be increased, when releasing device nodes
-it will be decreased. The (optional) release function will be called when
-the last device node was released.
+lsusb :
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/video/v4l2-dev.c    |    8 ++++++++
- drivers/media/video/v4l2-device.c |   15 +++++++++++++++
- include/media/v4l2-device.h       |   11 +++++++++++
- 3 files changed, 34 insertions(+), 0 deletions(-)
+Bus 002 Device 005: ID 045e:074f Microsoft Corp.
+Bus 002 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 001 Device 016: ID 0b05:1779 ASUSTek Computer, Inc.
+Bus 001 Device 004: ID 04f2:b033 Chicony Electronics Co., Ltd
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
 
-diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
-index 359e232..ff3aa90 100644
---- a/drivers/media/video/v4l2-dev.c
-+++ b/drivers/media/video/v4l2-dev.c
-@@ -143,6 +143,7 @@ static inline void video_put(struct video_device *vdev)
- static void v4l2_device_release(struct device *cd)
- {
- 	struct video_device *vdev = to_video_device(cd);
-+	struct v4l2_device *v4l2_dev = vdev->v4l2_dev;
- 
- 	mutex_lock(&videodev_lock);
- 	if (video_device[vdev->minor] != vdev) {
-@@ -169,6 +170,10 @@ static void v4l2_device_release(struct device *cd)
- 	/* Release video_device and perform other
- 	   cleanups as needed. */
- 	vdev->release(vdev);
-+
-+	/* Decrease v4l2_device refcount */
-+	if (v4l2_dev)
-+		v4l2_device_put(v4l2_dev);
- }
- 
- static struct class video_class = {
-@@ -581,6 +586,9 @@ static int __video_register_device(struct video_device *vdev, int type, int nr,
- 		printk(KERN_WARNING "%s: requested %s%d, got %s\n", __func__,
- 			name_base, nr, video_device_node_name(vdev));
- 
-+	/* Increase v4l2_device refcount */
-+	if (vdev->v4l2_dev)
-+		v4l2_device_get(vdev->v4l2_dev);
- 	/* Part 5: Activate this minor. The char device can now be used. */
- 	set_bit(V4L2_FL_REGISTERED, &vdev->flags);
- 	mutex_lock(&videodev_lock);
-diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
-index 7fe6f92..031ddbc 100644
---- a/drivers/media/video/v4l2-device.c
-+++ b/drivers/media/video/v4l2-device.c
-@@ -54,6 +54,21 @@ int v4l2_device_register(struct device *dev, struct v4l2_device *v4l2_dev)
- }
- EXPORT_SYMBOL_GPL(v4l2_device_register);
- 
-+static void v4l2_device_release(struct kref *ref)
-+{
-+	struct v4l2_device *v4l2_dev =
-+		container_of(ref, struct v4l2_device, ref);
-+
-+	if (v4l2_dev->release)
-+		v4l2_dev->release(v4l2_dev);
-+}
-+
-+int v4l2_device_put(struct v4l2_device *v4l2_dev)
-+{
-+	return kref_put(&v4l2_dev->ref, v4l2_device_release);
-+}
-+EXPORT_SYMBOL_GPL(v4l2_device_put);
-+
- int v4l2_device_set_name(struct v4l2_device *v4l2_dev, const char *basename,
- 						atomic_t *instance)
- {
-diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
-index b16f307..7279fa6 100644
---- a/include/media/v4l2-device.h
-+++ b/include/media/v4l2-device.h
-@@ -53,8 +53,19 @@ struct v4l2_device {
- 	struct v4l2_ctrl_handler *ctrl_handler;
- 	/* BKL replacement mutex. Temporary solution only. */
- 	struct mutex ioctl_lock;
-+	/* Keep track of the references to this struct. */
-+	struct kref ref;
-+	/* Release function that is called when the ref count goes to 0. */
-+	void (*release)(struct v4l2_device *v4l2_dev);
- };
- 
-+static inline void v4l2_device_get(struct v4l2_device *v4l2_dev)
-+{
-+	kref_get(&v4l2_dev->ref);
-+}
-+
-+int v4l2_device_put(struct v4l2_device *v4l2_dev);
-+
- /* Initialize v4l2_dev and make dev->driver_data point to v4l2_dev.
-    dev may be NULL in rare cases (ISA devices). In that case you
-    must fill in the v4l2_dev->name field before calling this function. */
+dmesg :
+
+[141187.393085] usb 1-1: new high speed USB device using ehci_hcd and address 16
+[141187.531276] usb 1-1: configuration #1 chosen from 1 choice
+[141187.538888] af9035: tuner ID:50 not supported, please report!
+[141187.543044] input: Afa Technologies Inc. AF9035A USB Device as
+/devices/pci0000:00/0000:00:04.1/usb1/1-1/1-1:1.1/input/input25
+[141187.543160] generic-usb 0003:0B05:1779.000F: input,hidraw1: USB
+HID v1.01 Keyboard [Afa Technologies Inc. AF9035A USB Device] on
+usb-0000:00:04.1-1/input1
+
+
+It looks that it is something with USBHID, but i didnt found any
+/etc/modprobe.d/usbhid.conf to change. Kernel version I got is
+2.6.32-28-generic-pae, Ubuntu 10.4.
+
+[141187.538888] af9035: tuner ID:50 not supported, please report!
+-----   I tried to make some changes, so this line is maybe my work.
+
+I will be glad for any help. Thanks.
+
+M. Bojda
+
+2011/1/30 Michal Bojda <rexearth.mbojda@gmail.com>:
+> Hello there,
+>
+> DVB-T card passed trough my hands. Asus U3100 Mini Plus. I was looking
+> trough the internet, to make it working, but still dont have succes.
+> Any1 met with this card and make it works ?
+>
+> Thanks, best regards M. Bojda
+>
+> --
+> Those who watches their backs, meet death from the front.
+>
+
+
+
 -- 
-1.7.0.4
-
+Those who watches their backs, meet death from the front.
