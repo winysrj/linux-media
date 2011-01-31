@@ -1,77 +1,120 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4993 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754318Ab1AKIVq (ORCPT
+Received: from bamako.nerim.net ([62.4.17.28]:63541 "EHLO bamako.nerim.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751950Ab1AaLQg convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Jan 2011 03:21:46 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [GIT PATCHES FOR 2.6.38] Implement core priority handling
-Date: Tue, 11 Jan 2011 09:21:36 +0100
-Cc: Andy Walls <awalls@md.metrocast.net>
+	Mon, 31 Jan 2011 06:16:36 -0500
+From: Thierry LELEGARD <tlelegard@logiways.com>
+To: Andreas Oberritter <obi@linuxtv.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: RE: [linux-media] API V3 vs S2API behavior difference in reading
+ tuning  parameters
+Date: Mon, 31 Jan 2011 11:09:23 +0000
+Message-ID: <BA2A2355403563449C28518F517A3C4805AB8958@titan.logiways-france.fr>
+Content-Language: fr-FR
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201101110921.36394.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This implements core support for priority handling. This is basically the same
-as my RFCv3 patch series, except without some of the driver changes (I want to
-do that for 2.6.39) and with the single fix to patch 05/16 I posted to the list.
+> From: Andreas Oberritter [mailto:obi@linuxtv.org]
+> Sent: Wednesday, January 19, 2011 7:12 PM
+> To: Thierry LELEGARD
+> Cc: linux-media@vger.kernel.org; Devin Heitmueller
+> Subject: Re: [linux-media] API V3 vs SAPI behavior difference in reading tuning
+> parameters
+> 
+> On 01/19/2011 06:03 PM, Thierry LELEGARD wrote:
+> > OK, then what? Is the S2API behavior (returning cached - but incorrect - tuning
+> > parameter values) satisfactory for everyone or shall we adapt S2API to mimic the
+> > API V3 behavior (return the actual tuning parameter values as automatically
+> > adjusted by the driver)?
+> 
+> To quote myself:
+> 
+> if that's still the case in Git (I didn't verify), then it should indeed
+> be changed to behave like v3 does. Would you mind to submit a patch, please?
+> 
+> I haven't heard any objections, so just go on if you want. Otherwise I
+> might prepare a patch once time permits.
+> 
+> Regards,
+> Andreas
 
-Currently the only drivers this affects are ivtv (which is the only user of
-v4l2_fh at the moment) and vivi.
+Sorry for the late follow-up due to busy projects.
 
-I will probably also adapt cx18 this weekend since as it stands now it is possible
-for a lower prio process to change controls for a higher prio process. To fix
-this requires core prio handling anyway, so let's get this in for 2.6.38 so
-people can start using it.
+Yes, the latest git suffers from the same problem. The values returned
+by FE_GET_PROPERTY (S2API) are sometimes wrong while the values returned
+by FE_GET_FRONTEND (API V3) are correct, or at least as correct as the
+driver can say.
 
-Regards,
+Looking at the code in dvb_frontend.c, the reasons are pretty obvious.
+FE_GET_PROPERTY directly returns cached values (at S2API level) while
+FE_GET_FRONTEND asks the driver to return values. When the application
+sends "auto" values (xxx_AUTO) or even wrong values that the driver is
+able to correct, FE_GET_PROPERTY returns the same auto or wrong values
+while FE_GET_FRONTEND returns the values that the driver has discovered
+or decided to apply.
 
-	Hans
+FE_GET_PROPERTY returning only cached values:
 
-The following changes since commit 04c3fafd933379fbc8b1fa55ea9b65281af416f7:
-  Hans Verkuil (1):
-        [media] vivi: convert to the control framework and add test controls
+static int dtv_property_process_get(struct dvb_frontend *fe,
+                                    struct dtv_property *tvp,
+                                    struct file *file)
+{
+        int r = 0;
 
-are available in the git repository at:
+        /* Allow the frontend to validate incoming properties */
+        if (fe->ops.get_property)
+                r = fe->ops.get_property(fe, tvp);
 
-  ssh://linuxtv.org/git/hverkuil/media_tree.git prio2
+        if (r < 0)
+                return r;
 
-Hans Verkuil (9):
-      v4l2_prio: move from v4l2-common to v4l2-dev.
-      v4l2: add v4l2_prio_state to v4l2_device and video_device
-      v4l2-fh: implement v4l2_priority support.
-      v4l2-fh: add v4l2_fh_open and v4l2_fh_release helper functions
-      v4l2-ioctl: add priority handling support.
-      v4l2-fh: add v4l2_fh_is_singular
-      ivtv: convert to core priority handling.
-      v4l2-framework.txt: improve v4l2_fh/priority documentation
-      vivi: add priority support
+        switch(tvp->cmd) {
+        case DTV_FREQUENCY:
+                tvp->u.data = fe->dtv_property_cache.frequency;
+                break;
+        case DTV_MODULATION:
+                tvp->u.data = fe->dtv_property_cache.modulation;
+                break;
+        case DTV_BANDWIDTH_HZ:
+                tvp->u.data = fe->dtv_property_cache.bandwidth_hz;
+                break;
+        ...etc...
 
- Documentation/video4linux/v4l2-framework.txt |  120 +++++++++++++++++++-------
- drivers/media/radio/radio-si4713.c           |    3 +-
- drivers/media/video/cx18/cx18-ioctl.c        |    3 +-
- drivers/media/video/davinci/vpfe_capture.c   |    2 +-
- drivers/media/video/ivtv/ivtv-driver.h       |    2 -
- drivers/media/video/ivtv/ivtv-fileops.c      |    2 -
- drivers/media/video/ivtv/ivtv-ioctl.c        |   59 ++++---------
- drivers/media/video/meye.c                   |    3 +-
- drivers/media/video/mxb.c                    |    3 +-
- drivers/media/video/v4l2-common.c            |   63 --------------
- drivers/media/video/v4l2-dev.c               |   70 +++++++++++++++
- drivers/media/video/v4l2-device.c            |    1 +
- drivers/media/video/v4l2-fh.c                |   46 ++++++++++
- drivers/media/video/v4l2-ioctl.c             |   64 ++++++++++++--
- drivers/media/video/vivi.c                   |   13 ++-
- include/media/v4l2-common.h                  |   15 ---
- include/media/v4l2-dev.h                     |   18 ++++
- include/media/v4l2-device.h                  |    3 +
- include/media/v4l2-fh.h                      |   29 ++++++
- include/media/v4l2-ioctl.h                   |    2 +-
- 20 files changed, 346 insertions(+), 175 deletions(-)
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+FE_GET_FRONTEND asking the driver to return its own values:
+
+static int dvb_frontend_ioctl_legacy(struct file *file,
+                        unsigned int cmd, void *parg)
+{
+    ...etc...
+        case FE_GET_FRONTEND:
+                if (fe->ops.get_frontend) {
+                        memcpy (parg, &fepriv->parameters, sizeof (struct dvb_frontend_parameters));
+                        err = fe->ops.get_frontend(fe, (struct dvb_frontend_parameters*) parg);
+                }
+                break;
+        ...etc...
+
+How to fix this?
+
+For legacy drivers, it is still possible to invoke driver's get_frontend
+to get the correct values in a struct dvb_frontend_parameters. But, for
+new drivers and new protocols for which some properties cannot be emulated
+in a struct dvb_frontend_parameters, I do not see any driver callback to
+"ask for the value of a property". The callback get_property seems to be
+here to "validate" the usage of a property in the driver's context. As you
+can see, dtv_property_process_get simply checks the returned value but
+ignore a possible update of the struct dtv_property. Moreover, I have
+checked the code of a few drivers implementing get_property and the
+general idea is usually simply "return 0".
+
+I do think that this problem is a functional regression from API V3 for
+most users. But I do not see an obvious and general way of fixing it.
+Any idea ?
+
+Best regards,
+-Thierry
