@@ -1,102 +1,99 @@
 Return-path: <mchehab@pedra>
-Received: from poczta.vectranet.pl ([88.156.64.179]:45809 "EHLO
-	poczta.vectranet.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752306Ab1BXQJj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Feb 2011 11:09:39 -0500
-Received: from [192.168.0.2] (088156142183.radom.vectranet.pl [88.156.142.183])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	(Authenticated sender: rafalm23@tkdami.net)
-	by poczta.vectranet.pl (Postfix) with ESMTP id 872D78993AA8
-	for <linux-media@vger.kernel.org>; Thu, 24 Feb 2011 17:09:37 +0100 (CET)
-Message-ID: <4D6682C2.10905@tkdami.net>
-Date: Thu, 24 Feb 2011 17:09:38 +0100
-From: "R.M." <rafalm23@tkdami.net>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:38207 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751020Ab1BAWlp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Feb 2011 17:41:45 -0500
+Received: by mail-fx0-f46.google.com with SMTP id 20so7348272fxm.19
+        for <linux-media@vger.kernel.org>; Tue, 01 Feb 2011 14:41:45 -0800 (PST)
+Subject: [PATCH 8/9 v2] ds3000: add carrier offset calculation
+To: mchehab@infradead.org, linux-media@vger.kernel.org
+From: "Igor M. Liplianin" <liplianin@me.by>
+Date: Wed, 2 Feb 2011 00:41:09 +0200
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Tevii s660 - DVB-S2 BER is always 0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201102020041.09392.liplianin@me.by>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
-I have tuner Tevii s660 DVB-S2 USB
+Signed-off-by: Igor M. Liplianin <liplianin@me.by>
+---
+ drivers/media/dvb/frontends/ds3000.c |   30 ++++++++++++++++++++++++++++--
+ 1 files changed, 28 insertions(+), 2 deletions(-)
 
-with DVB-S (QPSK) i have BER > 0 but
-with DVB-S2 (8PSK) i have BER = 0 (always)
+diff --git a/drivers/media/dvb/frontends/ds3000.c b/drivers/media/dvb/frontends/ds3000.c
+index b2ba5f4..e2037b5 100644
+--- a/drivers/media/dvb/frontends/ds3000.c
++++ b/drivers/media/dvb/frontends/ds3000.c
+@@ -948,6 +948,25 @@ static int ds3000_get_property(struct dvb_frontend *fe,
+ 	return 0;
+ }
+ 
++static int ds3000_set_carrier_offset(struct dvb_frontend *fe,
++					s32 carrier_offset_khz)
++{
++	struct ds3000_state *state = fe->demodulator_priv;
++	s32 tmp;
++
++	tmp = carrier_offset_khz;
++	tmp *= 65536;
++	tmp = (2 * tmp + DS3000_SAMPLE_RATE) / (2 * DS3000_SAMPLE_RATE);
++
++	if (tmp < 0)
++		tmp += 65536;
++
++	ds3000_writereg(state, 0x5f, tmp >> 8);
++	ds3000_writereg(state, 0x5e, tmp & 0xff);
++
++	return 0;
++}
++
+ static int ds3000_tune(struct dvb_frontend *fe,
+ 				struct dvb_frontend_parameters *p)
+ {
+@@ -955,7 +974,8 @@ static int ds3000_tune(struct dvb_frontend *fe,
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 
+ 	int i;
+-	u8 status, mlpf, mlpf_new, mlpf_max, mlpf_min, nlpf;
++	u8 status, mlpf, mlpf_new, mlpf_max, mlpf_min, nlpf, div4;
++	s32 offset_khz;
+ 	u16 value, ndiv;
+ 	u32 f3db;
+ 
+@@ -970,9 +990,12 @@ static int ds3000_tune(struct dvb_frontend *fe,
+ 	ds3000_tuner_writereg(state, 0x60, 0x79);
+ 	ds3000_tuner_writereg(state, 0x08, 0x01);
+ 	ds3000_tuner_writereg(state, 0x00, 0x01);
++	div4 = 0;
++
+ 	/* calculate and set freq divider */
+ 	if (p->frequency < 1146000) {
+ 		ds3000_tuner_writereg(state, 0x10, 0x11);
++		div4 = 1;
+ 		ndiv = ((p->frequency * (6 + 8) * 4) +
+ 				(DS3000_XTAL_FREQ / 2)) /
+ 				DS3000_XTAL_FREQ - 1024;
+@@ -1076,6 +1099,9 @@ static int ds3000_tune(struct dvb_frontend *fe,
+ 	ds3000_tuner_writereg(state, 0x50, 0x00);
+ 	msleep(60);
+ 
++	offset_khz = (ndiv - ndiv % 2 + 1024) * DS3000_XTAL_FREQ
++		/ (6 + 8) / (div4 + 1) / 2 - p->frequency;
++
+ 	/* ds3000 global reset */
+ 	ds3000_writereg(state, 0x07, 0x80);
+ 	ds3000_writereg(state, 0x07, 0x00);
+@@ -1179,7 +1205,7 @@ static int ds3000_tune(struct dvb_frontend *fe,
+ 	/* start ds3000 build-in uC */
+ 	ds3000_writereg(state, 0xb2, 0x00);
+ 
+-	/* TODO: calculate and set carrier offset */
++	ds3000_set_carrier_offset(fe, offset_khz);
+ 
+ 	for (i = 0; i < 30 ; i++) {
+ 		ds3000_read_status(fe, &status);
+-- 
+1.7.1
 
-this impossible because QPSK has better modulation and should have lower 
-BER, also on SD channels video is perfect, but on HD channels video is 
-not perfect
-
-please help, regards,
-R.M.
-
-reading channels from file '/home/rafal/.szap/channels.conf'
-zapping to 486 'TV POLONIA(CYFRA +)':
-delivery DVB-S, modulation QPSK
-sat 0, frequency 11488 MHz H, symbolrate 27500000, coderate auto, 
-rolloff 0.35
-vpid 0x00a0, apid 0x0050, sid 0x13ed
-using '/dev/dvb/adapter1/frontend0' and '/dev/dvb/adapter1/demux0'
-status 1f | signal cf08 | snr b838 | ber 00000002 | unc 0000000b | 
-FE_HAS_LOCK
-status 1f | signal cf08 | snr b838 | ber 00000009 | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal cf08 | snr b838 | ber 0000000e | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal cf08 | snr b838 | ber 0000000c | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal cf08 | snr b838 | ber 00000002 | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal cf08 | snr b838 | ber 0000000b | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal cf08 | snr b838 | ber 00000001 | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal cf08 | snr b838 | ber 0000000e | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal cf08 | snr b838 | ber 00000003 | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal cf08 | snr b838 | ber 00000005 | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal cf08 | snr b838 | ber 0000000a | unc 00000000 | 
-FE_HAS_LOCK
-
-
-reading channels from file '/home/rafal/.szap/channels.conf'
-zapping to 409 'CANAL+ SPORT HD(CYFRA +)':
-delivery DVB-S2, modulation 8PSK
-sat 0, frequency 11278 MHz V, symbolrate 27500000, coderate auto, 
-rolloff 0.35
-vpid 0x0169, apid 0x1fff, sid 0x32de
-using '/dev/dvb/adapter1/frontend0' and '/dev/dvb/adapter1/demux0'
-status 1f | signal cf08 | snr 7323 | ber 0000002c | unc 00000002 | 
-FE_HAS_LOCK
-status 1f | signal cf08 | snr 7323 | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal cf08 | snr 7323 | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal cf08 | snr 7323 | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal cf08 | snr 7323 | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal cf08 | snr 7323 | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal cf08 | snr 7323 | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal cf08 | snr 7323 | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal cf08 | snr 7323 | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal cf08 | snr 7323 | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal cf08 | snr 7323 | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal cf08 | snr 7323 | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal cf08 | snr 7323 | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal cf08 | snr 7323 | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
