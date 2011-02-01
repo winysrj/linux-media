@@ -1,80 +1,132 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:57088 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751758Ab1BSLfL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Feb 2011 06:35:11 -0500
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:38336 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750846Ab1BAFRb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Feb 2011 00:17:31 -0500
+Received: by pva4 with SMTP id 4so972677pva.19
+        for <linux-media@vger.kernel.org>; Mon, 31 Jan 2011 21:17:31 -0800 (PST)
+Message-ID: <4D47975F.3050206@vicke.rs>
+Date: Tue, 01 Feb 2011 18:17:19 +1300
+From: Matt Vickers <m@vicke.rs>
 MIME-Version: 1.0
-In-Reply-To: <4D5A6EEC.5000908@maxwell.research.nokia.com>
-References: <1297068547-10635-1-git-send-email-weber@corscience.de>
-	<4D5A6353.7040907@maxwell.research.nokia.com>
-	<20110215113717.GN2570@legolas.emea.dhcp.ti.com>
-	<4D5A672A.7040000@samsung.com>
-	<4D5A6874.1080705@corscience.de>
-	<20110215115349.GQ2570@legolas.emea.dhcp.ti.com>
-	<4D5A6EEC.5000908@maxwell.research.nokia.com>
-Date: Sat, 19 Feb 2011 13:35:09 +0200
-Message-ID: <AANLkTik+6fguqgH8Bpnpqo7Axmquy3caRMELTZVmuN1j@mail.gmail.com>
-Subject: Re: [PATCH resend] video: omap24xxcam: Fix compilation
-From: David Cohen <dacohen@gmail.com>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	balbi@ti.com
-Cc: Thomas Weber <weber@corscience.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-omap@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, Tejun Heo <tj@kernel.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: "Igor M. Liplianin" <liplianin@me.by>
+CC: linux-media@vger.kernel.org
+Subject: Re: DM1105: could not attach frontend 195d:1105
+References: <4B7D83B2.4030709@online.no> <201010231220.51387.liplianin@me.by> <ii5vm9$r2g$1@dough.gmane.org> <201101311955.01003.liplianin@me.by>
+In-Reply-To: <201101311955.01003.liplianin@me.by>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Sakari and Felipe,
-
-On Tue, Feb 15, 2011 at 2:17 PM, Sakari Ailus
-<sakari.ailus@maxwell.research.nokia.com> wrote:
-> Felipe Balbi wrote:
->> Hi,
->>
->> On Tue, Feb 15, 2011 at 12:50:12PM +0100, Thomas Weber wrote:
->>> Hello Felipe,
+On 1/02/2011 6:55 a.m., Igor M. Liplianin wrote:
+> В сообщении от 31 января 2011 11:33:54 автор Matt Vickers написал:
+>> On 23/10/2010 10:20 p.m., Igor M. Liplianin wrote:
+>>> В сообщении от 10 марта 2010 14:15:49 автор Hendrik Skarpeid написал:
+>>>> Igor M. Liplianin skrev:
+>>>>> On 3 марта 2010 18:42:42 Hendrik Skarpeid wrote:
+>>>>>> Igor M. Liplianin wrote:
+>>>>>>> Now to find GPIO's for LNB power control and ... watch TV :)
+>>>>>> Yep. No succesful tuning at the moment. There might also be an issue
+>>>>>> with the reset signal and writing to GPIOCTR, as the module at the
+>>>>>> moment loads succesfully only once.
+>>>>>> As far as I can make out, the LNB power control is probably GPIO 16
+>>>>>> and 17, not sure which is which, and how they work.
+>>>>>> GPIO15 is wired to tuner #reset
+>>>>> New patch to test
+>>>> I think the LNB voltage may be a little to high on my card, 14.5V and
+>>>> 20V. I would be a little more happy if they were 14 and 19, 13 and 18
+>>>> would be perfect.
+>>>> Anyways, as Igor pointet out, I don't have any signal from the LNB,
+>>>> checked with another tuner card. It's a quad LNB, and the other outputs
+>>>> are fine. Maybe it's' toasted from to high supply voltage! I little word
+>>>> of warning then.
+>>>> Anyways, here's my tweaked driver.
+>>> Here is reworked patch for clear GPIO's handling.
+>>> It allows to support I2C on GPIO's and per board LNB control through
+>>> GPIO's. Also incuded support for Hendrik's card.
+>>> I think it is clear how to change and test GPIO's for LNB and other stuff
+>>> now.
 >>>
->>> in include/linux/wait.h
+>>> To Hendrik:
+>>> 	Not shure, but there is maybe GPIO for raise/down LNB voltage a little
+>>> 	(~1v). It is used for long coaxial lines to compensate voltage
+>>> 	dropping.
 >>>
->>> #define wake_up(x)            __wake_up(x, TASK_NORMAL, 1, NULL)
+>>> Signed-off-by: Igor M. Liplianin<liplianin@me.by>
+>> Hi Igor,
 >>
->> aha, now I get it, so shouldn't the real fix be including <linux/sched.h>
->> on <linux/wait.h>, I mean, it's <linuux/wait.h> who uses a symbol
->> defined in <linux/sched.h>, right ?
-
-That's a tricky situation. linux/sched.h includes indirectly
-linux/completion.h which includes linux/wait.h.
-By including sched.h in wait.h, the side effect is completion.h will
-then include a blank wait.h file and trigger a compilation error every
-time wait.h is included by any file.
-
+>> I have a brandless DVB-S tv tuner card also, with a dm1105n chip. I was
+>> getting the "DM1105: could not attach frontend 195d:1105" message with
+>> the latest kernel also, but I applied this patch to the dm1105 module
+>> and now the card's being recognised  (though is still listed as an
+>> ethernet controller with lspci)
+>>
+>> My dmesg output is:
+>>
+>> dm1105 0000:01:05.0: PCI INT A ->  GSI 17 (level, low) ->  IRQ 17
+>> DVB: registering new adapter (dm1105)
+>> dm1105 0000:01:05.0: MAC 00:00:00:00:00:00
+>> DVB: registering adapter 0 frontend 0 (SL SI21XX DVB-S)...
+>> Registered IR keymap rc-dm1105-nec
+>> input: DVB on-card IR receiver as
+>> /devices/pci0000:00/0000:00:1e.0/0000:01:05.0/rc/rc0/input6
+>> rc0: DVB on-card IR receiver as
+>> /devices/pci0000:00/0000:00:1e.0/0000:01:05.0/rc/rc0
+>>
+>> The card is one of these:
+>> http://www.hongsun.biz/ProView.asp?ID=90
+>>
+>> Scanning doesn't appear to give me any results.  Should this be working?
+>>    Anything I can do to test the card out for you?
+>>
+>> Cheers,
+>> Matt.
+> Hi Matt,
+> Is there any label on tuner can?
+> Have you a close look picture of PCB ?
 >
-> Surprisingly many other files still don't seem to be affected. But this
-> is actually a better solution (to include sched.h in wait.h).
+> Cheers,
+> Igor.
 
-It does not affect all files include wait.h because TASK_* macros are
-used with #define statements only. So it has no effect unless some
-file tries to use a macro which used TASK_*. It seems the usual on
-kernel is to include both wait.h and sched.h when necessary.
-IMO your patch is fine.
+Hi Igor,
 
-Br,
+The label on the tuner can is SP1514LHb S1009, so I'm guessing this is a 
+near-identical card to the one that Paul was asking you about in January 
+of last year, e.g:
 
-David
+>  1: DVB-S
+>  5: 16cc
+>  1: Unsure, but it has an LNB in and an LNB out, so I guess it does have
+>  loop through?
+>  4: Si2109
+>  L: Si labs
+>  H: Horizontal
+>  b: Lead free
 
->
-> --
-> Sakari Ailus
-> sakari.ailus@maxwell.research.nokia.com
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
->
+Here are two images I took of the card:
+
+A view of the entire board:
+
+http://matt.vicke.rs/pics/pcb_full.jpg
+
+And here is a closer view of the board between the tuner and the dm1105n 
+chip.
+
+http://matt.vicke.rs/pics/pcb_detail.jpg
+
+With your patch and the card=4 parameter the card is recognised, and the 
+dvb device created. Scanning will run (I'm attempting to locate channels 
+on Optus D1, which I can successfully scan using a set top box, so the 
+dish is correctly aligned), but the card reports tuning failed on all of 
+the Optus D1 frequencies that I attempt. I also tried running w_scan but 
+had no success.
+
+Cheers,
+Matt.
+
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
