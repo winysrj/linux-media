@@ -1,83 +1,70 @@
 Return-path: <mchehab@pedra>
-Received: from eta-ori.net ([46.4.55.213]:59868 "EHLO orion.eta-ori.net"
+Received: from mx1.redhat.com ([209.132.183.28]:3474 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750708Ab1BAGLm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Feb 2011 01:11:42 -0500
-Received: from [10.0.0.158] (p5B06FF0E.dip.t-dialin.net [91.6.255.14])
-	by orion.eta-ori.net (Postfix) with ESMTPSA id 45DABB29A
-	for <linux-media@vger.kernel.org>; Tue,  1 Feb 2011 07:02:49 +0100 (CET)
-Message-ID: <4D47A209.4060805@impulze.org>
-Date: Tue, 01 Feb 2011 07:02:49 +0100
-From: Daniel Mierswa <impulze@impulze.org>
+	id S1751778Ab1BAWmD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Feb 2011 17:42:03 -0500
+Message-ID: <4D488C17.7040706@redhat.com>
+Date: Tue, 01 Feb 2011 20:41:27 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: [RFC PATCH] prevent building/installation of various utilities
-Content-Type: multipart/mixed;
- boundary="------------050805010804090901030105"
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Dmitry Butskoy <buc@odusz.so-cdu.ru>
+Subject: Re: Call for testers: V4L1 support dropped from xawtv - Was: Re:
+ Call for testers: V4L1 support dropped from tvtime
+References: <AANLkTim5xNN3rS7QuuhOjpRL=XN8Kuy-qoaABMe7dCZE@mail.gmail.com> <4D483044.4030303@redhat.com>
+In-Reply-To: <4D483044.4030303@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This is a multi-part message in MIME format.
---------------050805010804090901030105
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Em 01-02-2011 14:09, Mauro Carvalho Chehab escreveu:
+> Em 01-02-2011 12:51, Devin Heitmueller escreveu:
+>> I know this is the linux-media mailing list and not the tvtime mailing
+>> list, but it seems relevant given the overlap in the user base and the
+>> fact that these changes are specifically in response to recent events
+>> with v4l-dvb.
+>>
+>> I have modified the KernelLabs build of tvtime to no longer depend on V4L1.
+>>
+>> The tree can be found here:
+>>
+>> http://www.kernellabs.com/hg/~dheitmueller/tvtime
+>>
+>> More info including build instructions can be found here:
+>>
+>> http://www.kernellabs.com/blog
+> 
+> Let me take a ride at Devin's call for tests ;)
+> 
+> I've also dropped V4L1 support from xawtv3 a few days ago. It would be
+> wonderful if people could test it. The upstream git tree is at:
+> 	http://git.linuxtv.org/xawtv3.git
+> 
+> A tarball for the latest version is at:
+> 	http://linuxtv.org/downloads/xawtv/xawtv-3.99.rc1.tar.bz2
+> 
+> For those that use Fedora, there are some rpm available For FC14/FC15 at:
+> 	http://kojipkgs.fedoraproject.org/packages/xawtv/3.99.rc1/
+> 
+> There's just one know caveat that affects mostly webcam usage. Xawtv now has two 
+> V4L2 plugins, one with libv4l and another with just v4l2. Currently, there's no 
+> way to select between them. I need some time to do a research about it and write
+> a patch to address this issue.
 
-Heya, I wanted to provide a patch to have the ability to _not_ build
-and install various tools even if the requirements are met.
+Ok, I've added a patch fixing the libv4l issue, and released a -rc2 version of it.
 
--- 
-Mierswa, Daniel
+All patches that were found in Fedora for F14 are now upstream. There's just one
+patch at F15 that it is not upstream yet (a compilation breakage).
 
-If you still don't like it, that's ok: that's why I'm boss. I simply
-know better than you do.
-               --- Linus Torvalds, comp.os.linux.advocacy, 1996/07/22
+The new tarball is available at:
+	http://linuxtv.org/downloads/xawtv/
 
---------------050805010804090901030105
-Content-Type: text/plain;
- name="0001-make-compilation-installation-of-some-utils-configur.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename*0="0001-make-compilation-installation-of-some-utils-configur.pa";
- filename*1="tch"
+And the Fedora packages are at:
+	http://kojipkgs.fedoraproject.org/packages/xawtv/
 
->From 9e0771185011dedd3969dd084f0e2b9a2b23da27 Mon Sep 17 00:00:00 2001
-From: Daniel Mierswa <impulze@impulze.org>
-Date: Tue, 1 Feb 2011 05:38:55 +0100
-Subject: [PATCH] make compilation/installation of some utils configurable
+Dmitry is looking some patches at Debian to apply upstream. After having them applied,
+and getting some feedback, I'll release xawtv version 3.100.
 
----
- utils/Makefile |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
-
-diff --git a/utils/Makefile b/utils/Makefile
-index bcce0fe..25ff7c3 100644
---- a/utils/Makefile
-+++ b/utils/Makefile
-@@ -5,11 +5,14 @@ all install:
- 		$(MAKE) -C $$i $@ || exit 1; \
- 	done
- 
-+ifneq ($(USE_SYSFS_PATH),no)
- 	# Test if libsysfs is installed
- 	@-if [ -f /usr/include/sysfs/libsysfs.h ]; then \
- 		$(MAKE) -C v4l2-sysfs-path $@; \
- 	fi
-+endif
- 
-+ifneq ($(USE_QV4L2),no)
- 	# Test whether qmake is installed, and whether it is for qt4.
- 	@if which qmake-qt4 >/dev/null 2>&1; then \
- 		QMAKE=qmake-qt4; \
-@@ -24,6 +27,7 @@ all install:
- 			$(MAKE) -C qv4l2 -f Makefile.install $@; \
- 		fi \
- 	fi
-+endif
- 
- sync-with-kernel:
- 	$(MAKE) -C keytable $@
--- 
-1.7.3.5
-
-
---------------050805010804090901030105--
+Cheers,
+Mauro.
