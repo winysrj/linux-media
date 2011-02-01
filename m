@@ -1,63 +1,61 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.128.26]:47143 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754459Ab1BOL35 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Feb 2011 06:29:57 -0500
-Message-ID: <4D5A6353.7040907@maxwell.research.nokia.com>
-Date: Tue, 15 Feb 2011 13:28:19 +0200
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:38207 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751221Ab1BAWl3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Feb 2011 17:41:29 -0500
+Received: by mail-fx0-f46.google.com with SMTP id 20so7348272fxm.19
+        for <linux-media@vger.kernel.org>; Tue, 01 Feb 2011 14:41:28 -0800 (PST)
+Subject: [PATCH 4/9 v2] ds3000: loading firmware during demod init
+To: mchehab@infradead.org, linux-media@vger.kernel.org
+From: "Igor M. Liplianin" <liplianin@me.by>
+Date: Wed, 2 Feb 2011 00:40:36 +0200
 MIME-Version: 1.0
-To: Thomas Weber <weber@corscience.de>
-CC: linux-omap@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, Tejun Heo <tj@kernel.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH resend] video: omap24xxcam: Fix compilation
-References: <1297068547-10635-1-git-send-email-weber@corscience.de>
-In-Reply-To: <1297068547-10635-1-git-send-email-weber@corscience.de>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201102020040.36746.liplianin@me.by>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Thomas Weber wrote:
-> Add linux/sched.h because of missing declaration of TASK_NORMAL.
-> 
-> This patch fixes the following error:
-> 
-> drivers/media/video/omap24xxcam.c: In function
-> 'omap24xxcam_vbq_complete':
-> drivers/media/video/omap24xxcam.c:415: error: 'TASK_NORMAL' undeclared
-> (first use in this function)
-> drivers/media/video/omap24xxcam.c:415: error: (Each undeclared
-> identifier is reported only once
-> drivers/media/video/omap24xxcam.c:415: error: for each function it
-> appears in.)
-> 
-> Signed-off-by: Thomas Weber <weber@corscience.de>
+Speed up tuning, as firmware is not necessary to load every attempt to tune
 
-Thanks, Thomas!
+Signed-off-by: Igor M. Liplianin <liplianin@me.by>
+---
+ drivers/media/dvb/frontends/ds3000.c |   14 ++++++--------
+ 1 files changed, 6 insertions(+), 8 deletions(-)
 
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
-
-> ---
->  drivers/media/video/omap24xxcam.c |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/video/omap24xxcam.c b/drivers/media/video/omap24xxcam.c
-> index 0175527..f6626e8 100644
-> --- a/drivers/media/video/omap24xxcam.c
-> +++ b/drivers/media/video/omap24xxcam.c
-> @@ -36,6 +36,7 @@
->  #include <linux/clk.h>
->  #include <linux/io.h>
->  #include <linux/slab.h>
-> +#include <linux/sched.h>
->  
->  #include <media/v4l2-common.h>
->  #include <media/v4l2-ioctl.h>
-
-
+diff --git a/drivers/media/dvb/frontends/ds3000.c b/drivers/media/dvb/frontends/ds3000.c
+index 02ba759..3373890 100644
+--- a/drivers/media/dvb/frontends/ds3000.c
++++ b/drivers/media/dvb/frontends/ds3000.c
+@@ -1056,14 +1056,6 @@ static int ds3000_tune(struct dvb_frontend *fe,
+ 
+ 	dprintk("%s() ", __func__);
+ 
+-	/* Load the firmware if required */
+-	ret = ds3000_firmware_ondemand(fe);
+-	if (ret != 0) {
+-		printk(KERN_ERR "%s: Unable initialise the firmware\n",
+-								__func__);
+-		return ret;
+-	}
+-
+ 	state->dnxt.delivery = c->modulation;
+ 	state->dnxt.frequency = c->frequency;
+ 	state->dnxt.rolloff = 2; /* fixme */
+@@ -1353,6 +1345,12 @@ static int ds3000_initfe(struct dvb_frontend *fe)
+ 	ds3000_tuner_writereg(state, 0x42, 0x73);
+ 	ds3000_tuner_writereg(state, 0x05, 0x01);
+ 	ds3000_tuner_writereg(state, 0x62, 0xf5);
++	/* Load the firmware if required */
++	ret = ds3000_firmware_ondemand(fe);
++	if (ret != 0) {
++		printk(KERN_ERR "%s: Unable initialize firmware\n", __func__);
++		return ret;
++	}
+ 
+ 	return 0;
+ }
 -- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+1.7.1
+
