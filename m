@@ -1,85 +1,85 @@
 Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:45948 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750869Ab1BUQno convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Feb 2011 11:43:44 -0500
-Subject: Re: [PATCH v2 1/1] headers: fix circular dependency between
- linux/sched.h and linux/wait.h
-From: Peter Zijlstra <peterz@infradead.org>
-To: balbi@ti.com
-Cc: David Cohen <dacohen@gmail.com>, linux-kernel@vger.kernel.org,
-	mingo@elte.hu, linux-omap@vger.kernel.org,
-	linux-media@vger.kernel.org, Alexey Dobriyan <adobriyan@gmail.com>,
-	Oleg Nesterov <oleg@redhat.com>
-In-Reply-To: <20110221162939.GK23087@legolas.emea.dhcp.ti.com>
-References: <1298299131-17695-1-git-send-email-dacohen@gmail.com>
-	 <1298299131-17695-2-git-send-email-dacohen@gmail.com>
-	 <1298303677.24121.1.camel@twins>
-	 <AANLkTimOT6jNG3=TiRMJR0dgEQ6EHjcBPJ1ivCu3Wj5Q@mail.gmail.com>
-	 <1298305245.24121.7.camel@twins>
-	 <20110221162939.GK23087@legolas.emea.dhcp.ti.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Date: Mon, 21 Feb 2011 17:43:27 +0100
-Message-ID: <1298306607.24121.18.camel@twins>
-Mime-Version: 1.0
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:38207 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751020Ab1BAWlu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Feb 2011 17:41:50 -0500
+Received: by mail-fx0-f46.google.com with SMTP id 20so7348272fxm.19
+        for <linux-media@vger.kernel.org>; Tue, 01 Feb 2011 14:41:49 -0800 (PST)
+Subject: [PATCH 9/9 v2] ds3000: hardware tune algorithm
+To: mchehab@infradead.org, linux-media@vger.kernel.org
+From: "Igor M. Liplianin" <liplianin@me.by>
+Date: Wed, 2 Feb 2011 00:41:13 +0200
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201102020041.14110.liplianin@me.by>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, 2011-02-21 at 18:29 +0200, Felipe Balbi wrote:
-> Hi,
-> 
-> On Mon, Feb 21, 2011 at 05:20:45PM +0100, Peter Zijlstra wrote:
-> > > > I think Alexey already told you what you done wrong.
-> > > >
-> > > > Also, I really don't like the task_state.h header, it assumes a lot of
-> > > > things it doesn't include itself and only works because its using macros
-> > > > and not inlines at it probably should.
-> > > 
-> > > Like wait.h I'd say. The main issue is wait.h uses TASK_* macros but
-> > > cannot properly include sched.h as it would create a circular
-> > > dependency. So a file including wait.h is able to compile because the
-> > > dependency of sched.h relies on wake_up*() macros and it's not always
-> > > used.
-> > > We can still drop everything else from task_state.h but the TASK_*
-> > > macros and then the problem you just pointed out won't exist anymore.
-> > > What do you think about it?
-> > 
-> > I'd much rather see a real cleanup.. eg. remove the need for sched.h to
-> > include wait.h.
-> 
-> isn't that exactly what he's trying to achieve ? Moving TASK_* to its
-> own header is one approach, what other approach do you suggest ?
+Signed-off-by: Igor M. Liplianin <liplianin@me.by>
+---
+ drivers/media/dvb/frontends/ds3000.c |   18 ++++++++++++------
+ 1 files changed, 12 insertions(+), 6 deletions(-)
 
-No, he's making a bigger mess, and didn't I just make another
-suggestion?
+diff --git a/drivers/media/dvb/frontends/ds3000.c b/drivers/media/dvb/frontends/ds3000.c
+index e2037b5..3c6e08e 100644
+--- a/drivers/media/dvb/frontends/ds3000.c
++++ b/drivers/media/dvb/frontends/ds3000.c
+@@ -967,22 +967,21 @@ static int ds3000_set_carrier_offset(struct dvb_frontend *fe,
+ 	return 0;
+ }
+ 
+-static int ds3000_tune(struct dvb_frontend *fe,
++static int ds3000_set_frontend(struct dvb_frontend *fe,
+ 				struct dvb_frontend_parameters *p)
+ {
+ 	struct ds3000_state *state = fe->demodulator_priv;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 
+ 	int i;
+-	u8 status, mlpf, mlpf_new, mlpf_max, mlpf_min, nlpf, div4;
++	fe_status_t status;
++	u8 mlpf, mlpf_new, mlpf_max, mlpf_min, nlpf, div4;
+ 	s32 offset_khz;
+ 	u16 value, ndiv;
+ 	u32 f3db;
+ 
+ 	dprintk("%s() ", __func__);
+ 
+-	/* Reset status register */
+-	status = 0;
+ 	/* Tune */
+ 	/* unknown */
+ 	ds3000_tuner_writereg(state, 0x07, 0x02);
+@@ -1218,10 +1217,16 @@ static int ds3000_tune(struct dvb_frontend *fe,
+ 	return 1;
+ }
+ 
++static int ds3000_tune(struct dvb_frontend *fe,
++			struct dvb_frontend_parameters *p)
++{
++	return ds3000_set_frontend(fe, p);
++}
++
+ static enum dvbfe_algo ds3000_get_algo(struct dvb_frontend *fe)
+ {
+ 	dprintk("%s()\n", __func__);
+-	return DVBFE_ALGO_SW;
++	return DVBFE_ALGO_HW;
+ }
+ 
+ /*
+@@ -1296,7 +1301,8 @@ static struct dvb_frontend_ops ds3000_ops = {
+ 
+ 	.set_property = ds3000_set_property,
+ 	.get_property = ds3000_get_property,
+-	.set_frontend = ds3000_tune,
++	.set_frontend = ds3000_set_frontend,
++	.tune = ds3000_tune,
+ };
+ 
+ module_param(debug, int, 0644);
+-- 
+1.7.1
 
-> > afaict its needed because struct signal_struct and struct sighand_struct
-> > include a wait_queue_head_t. The inclusion seems to come through
-> 
-> yes.
-
-Is that a qualified statement that, yes, that is the only inclusion
-path?
-
-> > completion.h, but afaict we don't actually need to include completion.h
-> > because all we have is a pointer to a completion, which is perfectly
-> > fine with an incomplete type.
-> 
-> so maybe just dropping completion.h from sched.h would do it.
-
-No, that will result in non-compilation due to wait_queue_head_t usage.
-
-> > This all would suggest we move the signal bits into their own header
-> > (include/linux/signal.h already exists and seems inviting).
-> > 
-> > And then make sched.c include signal.h and completion.h.
-> 
-> you wouldn't prevent the underlying problem which is the need to include
-> sched.h whenever you include wait.h and use wake_up*()
-
-If you'd applied your brain for a second before hitting reply you'd have
-noticed that at this point you'd (likely) be able to include sched.h
-from wait.h. which is the right way about, you need to be able to
-schedule in order to build waitqueues.
