@@ -1,55 +1,509 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:55446 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754662Ab1BHQvb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Feb 2011 11:51:31 -0500
-Received: by wwa36 with SMTP id 36so6233367wwa.1
-        for <linux-media@vger.kernel.org>; Tue, 08 Feb 2011 08:51:30 -0800 (PST)
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:38207 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751221Ab1BAWl0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Feb 2011 17:41:26 -0500
+Received: by mail-fx0-f46.google.com with SMTP id 20so7348272fxm.19
+        for <linux-media@vger.kernel.org>; Tue, 01 Feb 2011 14:41:25 -0800 (PST)
+Subject: [PATCH 5/9 v2] ds3000: clean up in tune procedure
+To: mchehab@infradead.org, linux-media@vger.kernel.org
+From: "Igor M. Liplianin" <liplianin@me.by>
+Date: Wed, 2 Feb 2011 00:40:49 +0200
 MIME-Version: 1.0
-In-Reply-To: <20110208152525.GA47904@io.frii.com>
-References: <AANLkTin8Rjch6o7aU-9S9m8f5aBYVeSwxSaVhyEfM5q9@mail.gmail.com>
-	<20110206232800.GA83692@io.frii.com>
-	<AANLkTinMCTh-u-JgcNB3SsZ2yf+9DgNFGA6thF7S0K15@mail.gmail.com>
-	<6C78EB6E-7722-447F-833D-637DBB64CF61@dons.net.au>
-	<AANLkTinn1XHifYy+PZTaTLP87NAqCind35iO7CBmdU-c@mail.gmail.com>
-	<1297122870.2355.21.camel@localhost>
-	<20110208152525.GA47904@io.frii.com>
-Date: Tue, 8 Feb 2011 09:51:29 -0700
-Message-ID: <AANLkTinD2JVkxzMQt+LWXQ78UBKoSzYXkWG1hJ6d9T5s@mail.gmail.com>
-Subject: Re: Tuning channels with DViCO FusionHDTV7 Dual Express
-From: Dave Johansen <davejohansen@gmail.com>
-To: v4l-dvb Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201102020040.49656.liplianin@me.by>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, Feb 8, 2011 at 8:25 AM, Mark Zimmerman <markzimm@frii.com> wrote:
-> On Mon, Feb 07, 2011 at 06:54:30PM -0500, Andy Walls wrote:
->>
->> You perhaps could
->>
->> A. provide the smallest window of known good vs known bad kernel
->> versions.  Maybe someone with time and hardware can 'git bisect' the
->> issue down to the problem commit.  (I'm guessing this problem might be
->> specific to a particular 64 bit platform IOMMU type, given the bad
->> dma_ops pointer.)
->>
->
-> FYI: I am on the process of doing a git bisect (10 kernels to go) to
-> track down this problem:
->
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg25342.html
->
-> Which may or may not be related to the problem in this thread.
->
+Variable 'retune' does not make sense.
+Loop is not needed for only one try.
+Remove unnecessary dprintk's.
 
-I'm using Mythbuntu 10.10 x64, which I believe uses 2.6.35 but I will
-check tonight, so if the issue you're tracking down really is related
-to 2.6.36, then I imagine that my problem wouldn't be caused by what
-you're looking into. Plus, every time I've looked at dmesg the
-firmware has loaded properly, so I'm guessing I'm on 2.6.35 and being
-affected by a different issue.
+Signed-off-by: Igor M. Liplianin <liplianin@me.by>
+---
+ drivers/media/dvb/frontends/ds3000.c |  442 +++++++++++++++++-----------------
+ 1 files changed, 216 insertions(+), 226 deletions(-)
 
-Thanks for the heads up,
-Dave
+diff --git a/drivers/media/dvb/frontends/ds3000.c b/drivers/media/dvb/frontends/ds3000.c
+index 3373890..7c61936 100644
+--- a/drivers/media/dvb/frontends/ds3000.c
++++ b/drivers/media/dvb/frontends/ds3000.c
+@@ -1049,7 +1049,7 @@ static int ds3000_tune(struct dvb_frontend *fe,
+ 	struct ds3000_state *state = fe->demodulator_priv;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 
+-	int ret = 0, retune, i;
++	int ret = 0, i;
+ 	u8 status, mlpf, mlpf_new, mlpf_max, mlpf_min, nlpf;
+ 	u16 value, ndiv;
+ 	u32 f3db;
+@@ -1072,249 +1072,239 @@ static int ds3000_tune(struct dvb_frontend *fe,
+ 	/* discard the 'current' tuning parameters and prepare to tune */
+ 	ds3000_clone_params(fe);
+ 
+-	retune = 1;	/* try 1 times */
+-	dprintk("%s:   retune = %d\n", __func__, retune);
+-	dprintk("%s:   frequency   = %d\n", __func__, state->dcur.frequency);
+-	dprintk("%s:   symbol_rate = %d\n", __func__, state->dcur.symbol_rate);
+-	dprintk("%s:   FEC	 = %d \n", __func__,
+-		state->dcur.fec);
+-	dprintk("%s:   Inversion   = %d\n", __func__, state->dcur.inversion);
+-
+-	do {
+-		/* Reset status register */
+-		status = 0;
+-		/* Tune */
+-		/* unknown */
+-		ds3000_tuner_writereg(state, 0x07, 0x02);
+-		ds3000_tuner_writereg(state, 0x10, 0x00);
+-		ds3000_tuner_writereg(state, 0x60, 0x79);
+-		ds3000_tuner_writereg(state, 0x08, 0x01);
+-		ds3000_tuner_writereg(state, 0x00, 0x01);
+-		/* calculate and set freq divider */
+-		if (state->dcur.frequency < 1146000) {
+-			ds3000_tuner_writereg(state, 0x10, 0x11);
+-			ndiv = ((state->dcur.frequency * (6 + 8) * 4) +
+-					(DS3000_XTAL_FREQ / 2)) /
+-					DS3000_XTAL_FREQ - 1024;
+-		} else {
+-			ds3000_tuner_writereg(state, 0x10, 0x01);
+-			ndiv = ((state->dcur.frequency * (6 + 8) * 2) +
+-					(DS3000_XTAL_FREQ / 2)) /
+-					DS3000_XTAL_FREQ - 1024;
+-		}
++	/* Reset status register */
++	status = 0;
++	/* Tune */
++	/* unknown */
++	ds3000_tuner_writereg(state, 0x07, 0x02);
++	ds3000_tuner_writereg(state, 0x10, 0x00);
++	ds3000_tuner_writereg(state, 0x60, 0x79);
++	ds3000_tuner_writereg(state, 0x08, 0x01);
++	ds3000_tuner_writereg(state, 0x00, 0x01);
++	/* calculate and set freq divider */
++	if (state->dcur.frequency < 1146000) {
++		ds3000_tuner_writereg(state, 0x10, 0x11);
++		ndiv = ((state->dcur.frequency * (6 + 8) * 4) +
++				(DS3000_XTAL_FREQ / 2)) /
++				DS3000_XTAL_FREQ - 1024;
++	} else {
++		ds3000_tuner_writereg(state, 0x10, 0x01);
++		ndiv = ((state->dcur.frequency * (6 + 8) * 2) +
++				(DS3000_XTAL_FREQ / 2)) /
++				DS3000_XTAL_FREQ - 1024;
++	}
+ 
+-		ds3000_tuner_writereg(state, 0x01, (ndiv & 0x0f00) >> 8);
+-		ds3000_tuner_writereg(state, 0x02, ndiv & 0x00ff);
+-
+-		/* set pll */
+-		ds3000_tuner_writereg(state, 0x03, 0x06);
+-		ds3000_tuner_writereg(state, 0x51, 0x0f);
+-		ds3000_tuner_writereg(state, 0x51, 0x1f);
+-		ds3000_tuner_writereg(state, 0x50, 0x10);
+-		ds3000_tuner_writereg(state, 0x50, 0x00);
+-		msleep(5);
+-
+-		/* unknown */
+-		ds3000_tuner_writereg(state, 0x51, 0x17);
+-		ds3000_tuner_writereg(state, 0x51, 0x1f);
+-		ds3000_tuner_writereg(state, 0x50, 0x08);
+-		ds3000_tuner_writereg(state, 0x50, 0x00);
+-		msleep(5);
+-
+-		value = ds3000_tuner_readreg(state, 0x3d);
+-		value &= 0x0f;
+-		if ((value > 4) && (value < 15)) {
+-			value -= 3;
+-			if (value < 4)
+-				value = 4;
+-			value = ((value << 3) | 0x01) & 0x79;
+-		}
++	ds3000_tuner_writereg(state, 0x01, (ndiv & 0x0f00) >> 8);
++	ds3000_tuner_writereg(state, 0x02, ndiv & 0x00ff);
++
++	/* set pll */
++	ds3000_tuner_writereg(state, 0x03, 0x06);
++	ds3000_tuner_writereg(state, 0x51, 0x0f);
++	ds3000_tuner_writereg(state, 0x51, 0x1f);
++	ds3000_tuner_writereg(state, 0x50, 0x10);
++	ds3000_tuner_writereg(state, 0x50, 0x00);
++	msleep(5);
++
++	/* unknown */
++	ds3000_tuner_writereg(state, 0x51, 0x17);
++	ds3000_tuner_writereg(state, 0x51, 0x1f);
++	ds3000_tuner_writereg(state, 0x50, 0x08);
++	ds3000_tuner_writereg(state, 0x50, 0x00);
++	msleep(5);
++
++	value = ds3000_tuner_readreg(state, 0x3d);
++	value &= 0x0f;
++	if ((value > 4) && (value < 15)) {
++		value -= 3;
++		if (value < 4)
++			value = 4;
++		value = ((value << 3) | 0x01) & 0x79;
++	}
+ 
+-		ds3000_tuner_writereg(state, 0x60, value);
+-		ds3000_tuner_writereg(state, 0x51, 0x17);
+-		ds3000_tuner_writereg(state, 0x51, 0x1f);
+-		ds3000_tuner_writereg(state, 0x50, 0x08);
+-		ds3000_tuner_writereg(state, 0x50, 0x00);
+-
+-		/* set low-pass filter period */
+-		ds3000_tuner_writereg(state, 0x04, 0x2e);
+-		ds3000_tuner_writereg(state, 0x51, 0x1b);
+-		ds3000_tuner_writereg(state, 0x51, 0x1f);
+-		ds3000_tuner_writereg(state, 0x50, 0x04);
+-		ds3000_tuner_writereg(state, 0x50, 0x00);
+-		msleep(5);
+-
+-		f3db = ((state->dcur.symbol_rate / 1000) << 2) / 5 + 2000;
+-		if ((state->dcur.symbol_rate / 1000) < 5000)
+-			f3db += 3000;
+-		if (f3db < 7000)
+-			f3db = 7000;
+-		if (f3db > 40000)
+-			f3db = 40000;
+-
+-		/* set low-pass filter baseband */
+-		value = ds3000_tuner_readreg(state, 0x26);
+-		mlpf = 0x2e * 207 / ((value << 1) + 151);
+-		mlpf_max = mlpf * 135 / 100;
+-		mlpf_min = mlpf * 78 / 100;
+-		if (mlpf_max > 63)
+-			mlpf_max = 63;
+-
+-		/* rounded to the closest integer */
+-		nlpf = ((mlpf * f3db * 1000) + (2766 * DS3000_XTAL_FREQ / 2))
+-				/ (2766 * DS3000_XTAL_FREQ);
+-		if (nlpf > 23)
+-			nlpf = 23;
+-		if (nlpf < 1)
+-			nlpf = 1;
+-
+-		/* rounded to the closest integer */
++	ds3000_tuner_writereg(state, 0x60, value);
++	ds3000_tuner_writereg(state, 0x51, 0x17);
++	ds3000_tuner_writereg(state, 0x51, 0x1f);
++	ds3000_tuner_writereg(state, 0x50, 0x08);
++	ds3000_tuner_writereg(state, 0x50, 0x00);
++
++	/* set low-pass filter period */
++	ds3000_tuner_writereg(state, 0x04, 0x2e);
++	ds3000_tuner_writereg(state, 0x51, 0x1b);
++	ds3000_tuner_writereg(state, 0x51, 0x1f);
++	ds3000_tuner_writereg(state, 0x50, 0x04);
++	ds3000_tuner_writereg(state, 0x50, 0x00);
++	msleep(5);
++
++	f3db = ((state->dcur.symbol_rate / 1000) << 2) / 5 + 2000;
++	if ((state->dcur.symbol_rate / 1000) < 5000)
++		f3db += 3000;
++	if (f3db < 7000)
++		f3db = 7000;
++	if (f3db > 40000)
++		f3db = 40000;
++
++	/* set low-pass filter baseband */
++	value = ds3000_tuner_readreg(state, 0x26);
++	mlpf = 0x2e * 207 / ((value << 1) + 151);
++	mlpf_max = mlpf * 135 / 100;
++	mlpf_min = mlpf * 78 / 100;
++	if (mlpf_max > 63)
++		mlpf_max = 63;
++
++	/* rounded to the closest integer */
++	nlpf = ((mlpf * f3db * 1000) + (2766 * DS3000_XTAL_FREQ / 2))
++			/ (2766 * DS3000_XTAL_FREQ);
++	if (nlpf > 23)
++		nlpf = 23;
++	if (nlpf < 1)
++		nlpf = 1;
++
++	/* rounded to the closest integer */
++	mlpf_new = ((DS3000_XTAL_FREQ * nlpf * 2766) +
++			(1000 * f3db / 2)) / (1000 * f3db);
++
++	if (mlpf_new < mlpf_min) {
++		nlpf++;
+ 		mlpf_new = ((DS3000_XTAL_FREQ * nlpf * 2766) +
+ 				(1000 * f3db / 2)) / (1000 * f3db);
++	}
+ 
+-		if (mlpf_new < mlpf_min) {
+-			nlpf++;
+-			mlpf_new = ((DS3000_XTAL_FREQ * nlpf * 2766) +
+-					(1000 * f3db / 2)) / (1000 * f3db);
+-		}
++	if (mlpf_new > mlpf_max)
++		mlpf_new = mlpf_max;
++
++	ds3000_tuner_writereg(state, 0x04, mlpf_new);
++	ds3000_tuner_writereg(state, 0x06, nlpf);
++	ds3000_tuner_writereg(state, 0x51, 0x1b);
++	ds3000_tuner_writereg(state, 0x51, 0x1f);
++	ds3000_tuner_writereg(state, 0x50, 0x04);
++	ds3000_tuner_writereg(state, 0x50, 0x00);
++	msleep(5);
++
++	/* unknown */
++	ds3000_tuner_writereg(state, 0x51, 0x1e);
++	ds3000_tuner_writereg(state, 0x51, 0x1f);
++	ds3000_tuner_writereg(state, 0x50, 0x01);
++	ds3000_tuner_writereg(state, 0x50, 0x00);
++	msleep(60);
++
++	/* ds3000 global reset */
++	ds3000_writereg(state, 0x07, 0x80);
++	ds3000_writereg(state, 0x07, 0x00);
++	/* ds3000 build-in uC reset */
++	ds3000_writereg(state, 0xb2, 0x01);
++	/* ds3000 software reset */
++	ds3000_writereg(state, 0x00, 0x01);
++
++	switch (c->delivery_system) {
++	case SYS_DVBS:
++		/* initialise the demod in DVB-S mode */
++		for (i = 0; i < sizeof(ds3000_dvbs_init_tab); i += 2)
++			ds3000_writereg(state,
++				ds3000_dvbs_init_tab[i],
++				ds3000_dvbs_init_tab[i + 1]);
++		value = ds3000_readreg(state, 0xfe);
++		value &= 0xc0;
++		value |= 0x1b;
++		ds3000_writereg(state, 0xfe, value);
++		break;
++	case SYS_DVBS2:
++		/* initialise the demod in DVB-S2 mode */
++		for (i = 0; i < sizeof(ds3000_dvbs2_init_tab); i += 2)
++			ds3000_writereg(state,
++				ds3000_dvbs2_init_tab[i],
++				ds3000_dvbs2_init_tab[i + 1]);
++		ds3000_writereg(state, 0xfe, 0x98);
++		break;
++	default:
++		return 1;
++	}
+ 
+-		if (mlpf_new > mlpf_max)
+-			mlpf_new = mlpf_max;
+-
+-		ds3000_tuner_writereg(state, 0x04, mlpf_new);
+-		ds3000_tuner_writereg(state, 0x06, nlpf);
+-		ds3000_tuner_writereg(state, 0x51, 0x1b);
+-		ds3000_tuner_writereg(state, 0x51, 0x1f);
+-		ds3000_tuner_writereg(state, 0x50, 0x04);
+-		ds3000_tuner_writereg(state, 0x50, 0x00);
+-		msleep(5);
+-
+-		/* unknown */
+-		ds3000_tuner_writereg(state, 0x51, 0x1e);
+-		ds3000_tuner_writereg(state, 0x51, 0x1f);
+-		ds3000_tuner_writereg(state, 0x50, 0x01);
+-		ds3000_tuner_writereg(state, 0x50, 0x00);
+-		msleep(60);
+-
+-		/* ds3000 global reset */
+-		ds3000_writereg(state, 0x07, 0x80);
+-		ds3000_writereg(state, 0x07, 0x00);
+-		/* ds3000 build-in uC reset */
+-		ds3000_writereg(state, 0xb2, 0x01);
+-		/* ds3000 software reset */
+-		ds3000_writereg(state, 0x00, 0x01);
++	/* enable 27MHz clock output */
++	ds3000_writereg(state, 0x29, 0x80);
++	/* enable ac coupling */
++	ds3000_writereg(state, 0x25, 0x8a);
++
++	/* enhance symbol rate performance */
++	if ((state->dcur.symbol_rate / 1000) <= 5000) {
++		value = 29777 / (state->dcur.symbol_rate / 1000) + 1;
++		if (value % 2 != 0)
++			value++;
++		ds3000_writereg(state, 0xc3, 0x0d);
++		ds3000_writereg(state, 0xc8, value);
++		ds3000_writereg(state, 0xc4, 0x10);
++		ds3000_writereg(state, 0xc7, 0x0e);
++	} else if ((state->dcur.symbol_rate / 1000) <= 10000) {
++		value = 92166 / (state->dcur.symbol_rate / 1000) + 1;
++		if (value % 2 != 0)
++			value++;
++		ds3000_writereg(state, 0xc3, 0x07);
++		ds3000_writereg(state, 0xc8, value);
++		ds3000_writereg(state, 0xc4, 0x09);
++		ds3000_writereg(state, 0xc7, 0x12);
++	} else if ((state->dcur.symbol_rate / 1000) <= 20000) {
++		value = 64516 / (state->dcur.symbol_rate / 1000) + 1;
++		ds3000_writereg(state, 0xc3, value);
++		ds3000_writereg(state, 0xc8, 0x0e);
++		ds3000_writereg(state, 0xc4, 0x07);
++		ds3000_writereg(state, 0xc7, 0x18);
++	} else {
++		value = 129032 / (state->dcur.symbol_rate / 1000) + 1;
++		ds3000_writereg(state, 0xc3, value);
++		ds3000_writereg(state, 0xc8, 0x0a);
++		ds3000_writereg(state, 0xc4, 0x05);
++		ds3000_writereg(state, 0xc7, 0x24);
++	}
++
++	/* normalized symbol rate rounded to the closest integer */
++	value = (((state->dcur.symbol_rate / 1000) << 16) +
++			(DS3000_SAMPLE_RATE / 2)) / DS3000_SAMPLE_RATE;
++	ds3000_writereg(state, 0x61, value & 0x00ff);
++	ds3000_writereg(state, 0x62, (value & 0xff00) >> 8);
++
++	/* co-channel interference cancellation disabled */
++	ds3000_writereg(state, 0x56, 0x00);
++
++	/* equalizer disabled */
++	ds3000_writereg(state, 0x76, 0x00);
++
++	/*ds3000_writereg(state, 0x08, 0x03);
++	ds3000_writereg(state, 0xfd, 0x22);
++	ds3000_writereg(state, 0x08, 0x07);
++	ds3000_writereg(state, 0xfd, 0x42);
++	ds3000_writereg(state, 0x08, 0x07);*/
+ 
++	if (state->config->ci_mode) {
+ 		switch (c->delivery_system) {
+ 		case SYS_DVBS:
+-			/* initialise the demod in DVB-S mode */
+-			for (i = 0; i < sizeof(ds3000_dvbs_init_tab); i += 2)
+-				ds3000_writereg(state,
+-					ds3000_dvbs_init_tab[i],
+-					ds3000_dvbs_init_tab[i + 1]);
+-			value = ds3000_readreg(state, 0xfe);
+-			value &= 0xc0;
+-			value |= 0x1b;
+-			ds3000_writereg(state, 0xfe, value);
+-			break;
++		default:
++			ds3000_writereg(state, 0xfd, 0x80);
++		break;
+ 		case SYS_DVBS2:
+-			/* initialise the demod in DVB-S2 mode */
+-			for (i = 0; i < sizeof(ds3000_dvbs2_init_tab); i += 2)
+-				ds3000_writereg(state,
+-					ds3000_dvbs2_init_tab[i],
+-					ds3000_dvbs2_init_tab[i + 1]);
+-			ds3000_writereg(state, 0xfe, 0x98);
++			ds3000_writereg(state, 0xfd, 0x01);
+ 			break;
+-		default:
+-			return 1;
+ 		}
++	}
+ 
+-		/* enable 27MHz clock output */
+-		ds3000_writereg(state, 0x29, 0x80);
+-		/* enable ac coupling */
+-		ds3000_writereg(state, 0x25, 0x8a);
+-
+-		/* enhance symbol rate performance */
+-		if ((state->dcur.symbol_rate / 1000) <= 5000) {
+-			value = 29777 / (state->dcur.symbol_rate / 1000) + 1;
+-			if (value % 2 != 0)
+-				value++;
+-			ds3000_writereg(state, 0xc3, 0x0d);
+-			ds3000_writereg(state, 0xc8, value);
+-			ds3000_writereg(state, 0xc4, 0x10);
+-			ds3000_writereg(state, 0xc7, 0x0e);
+-		} else if ((state->dcur.symbol_rate / 1000) <= 10000) {
+-			value = 92166 / (state->dcur.symbol_rate / 1000) + 1;
+-			if (value % 2 != 0)
+-				value++;
+-			ds3000_writereg(state, 0xc3, 0x07);
+-			ds3000_writereg(state, 0xc8, value);
+-			ds3000_writereg(state, 0xc4, 0x09);
+-			ds3000_writereg(state, 0xc7, 0x12);
+-		} else if ((state->dcur.symbol_rate / 1000) <= 20000) {
+-			value = 64516 / (state->dcur.symbol_rate / 1000) + 1;
+-			ds3000_writereg(state, 0xc3, value);
+-			ds3000_writereg(state, 0xc8, 0x0e);
+-			ds3000_writereg(state, 0xc4, 0x07);
+-			ds3000_writereg(state, 0xc7, 0x18);
+-		} else {
+-			value = 129032 / (state->dcur.symbol_rate / 1000) + 1;
+-			ds3000_writereg(state, 0xc3, value);
+-			ds3000_writereg(state, 0xc8, 0x0a);
+-			ds3000_writereg(state, 0xc4, 0x05);
+-			ds3000_writereg(state, 0xc7, 0x24);
+-		}
++	/* ds3000 out of software reset */
++	ds3000_writereg(state, 0x00, 0x00);
++	/* start ds3000 build-in uC */
++	ds3000_writereg(state, 0xb2, 0x00);
+ 
+-		/* normalized symbol rate rounded to the closest integer */
+-		value = (((state->dcur.symbol_rate / 1000) << 16) +
+-				(DS3000_SAMPLE_RATE / 2)) / DS3000_SAMPLE_RATE;
+-		ds3000_writereg(state, 0x61, value & 0x00ff);
+-		ds3000_writereg(state, 0x62, (value & 0xff00) >> 8);
+-
+-		/* co-channel interference cancellation disabled */
+-		ds3000_writereg(state, 0x56, 0x00);
+-
+-		/* equalizer disabled */
+-		ds3000_writereg(state, 0x76, 0x00);
+-
+-		/*ds3000_writereg(state, 0x08, 0x03);
+-		ds3000_writereg(state, 0xfd, 0x22);
+-		ds3000_writereg(state, 0x08, 0x07);
+-		ds3000_writereg(state, 0xfd, 0x42);
+-		ds3000_writereg(state, 0x08, 0x07);*/
+-
+-		if (state->config->ci_mode) {
+-			switch (c->delivery_system) {
+-			case SYS_DVBS:
+-			default:
+-				ds3000_writereg(state, 0xfd, 0x80);
+-			break;
+-			case SYS_DVBS2:
+-				ds3000_writereg(state, 0xfd, 0x01);
+-				break;
+-			}
+-		}
++	/* TODO: calculate and set carrier offset */
+ 
+-		/* ds3000 out of software reset */
+-		ds3000_writereg(state, 0x00, 0x00);
+-		/* start ds3000 build-in uC */
+-		ds3000_writereg(state, 0xb2, 0x00);
+-
+-		/* TODO: calculate and set carrier offset */
+-
+-		/* wait before retrying */
+-		for (i = 0; i < 30 ; i++) {
+-			if (ds3000_is_tuned(fe)) {
+-				dprintk("%s: Tuned\n", __func__);
+-				ds3000_dump_registers(fe);
+-				goto tuned;
+-			}
+-			msleep(1);
++	/* wait before retrying */
++	for (i = 0; i < 30 ; i++) {
++		if (ds3000_is_tuned(fe)) {
++			dprintk("%s: Tuned\n", __func__);
++			ds3000_dump_registers(fe);
++			goto tuned;
+ 		}
++		msleep(1);
++	}
+ 
+-		dprintk("%s: Not tuned\n", __func__);
+-		ds3000_dump_registers(fe);
++	dprintk("%s: Not tuned\n", __func__);
++	ds3000_dump_registers(fe);
+ 
+-	} while (--retune);
+ 
+ tuned:
+ 	return ret;
+-- 
+1.7.1
+
