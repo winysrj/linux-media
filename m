@@ -1,63 +1,69 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40790 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751545Ab1BQNHv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Feb 2011 08:07:51 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: soc-camera: Benefits of soc-camera interface over specific char drivers that use Gstreamer lib
-Date: Thu, 17 Feb 2011 14:07:50 +0100
-Cc: Bhupesh SHARMA <bhupesh.sharma@st.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <D5ECB3C7A6F99444980976A8C6D896384DEE366DE6@EAPEX1MAIL1.st.com> <201102161444.01236.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1102161448260.20711@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1102161448260.20711@axis700.grange>
+Received: from mx1.redhat.com ([209.132.183.28]:1336 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752113Ab1BBMjd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 2 Feb 2011 07:39:33 -0500
+Message-ID: <4D495062.2070802@redhat.com>
+Date: Wed, 02 Feb 2011 10:38:58 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201102171407.51015.laurent.pinchart@ideasonboard.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+CC: Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for v2.6.38-rc5] V4L/DVB fixes
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Guennadi,
+Linus,
 
-On Wednesday 16 February 2011 14:49:51 Guennadi Liakhovetski wrote:
-> On Wed, 16 Feb 2011, Laurent Pinchart wrote:
-> > On Wednesday 16 February 2011 06:57:11 Bhupesh SHARMA wrote:
-> > > Hi Guennadi,
-> > > 
-> > > As I mentioned in one of my previous mails , we are developing a Camera
-> > > Host and Sensor driver for our ST specific SoC and considering using
-> > > the soc-camera framework for the same. One of our open-source
-> > > customers has raised a interesting case though:
-> > > 
-> > > It seems they have an existing solution (for another SoC) in which they
-> > > do not use V4L2 framework and instead use the Gstreamer with
-> > > framebuffer. They specifically wish us to implement a solution which
-> > > is compatible with ANDROID applications.
-> > > 
-> > > Could you please help us in deciding which approach is preferable in
-> > > terms of performance, maintenance and ease-of-design.
-> > 
-> > That's a difficult question that can't be answered without more details
-> > about your SoC. Could you share some documentation, such as a high-level
-> > block diagram of the video-related blocks in the SoC ?
-> 
-> Laurent, IIUC, the choice above referred not to soc-camera vs. plain v4l2,
-> but to v4l2 vs. original android-style video character device, which
-> doesn't seem so difficult to me;)
+Please pull from:
+  ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git media_fixes
 
-I assume that the Android video character device uses a proprietary API with 
-an OMX layer on top of it.
+For:
+	- some fixes on some Remote Controller drivers;
+	- some gspca/zc3xx fixes;
+	- a trivial one-line fix for saa7111 detection.
 
-I obviously think V4L2 is a better option than any proprietary 
-kernel/userspace interface. This being said, the complexity of the hardware 
-sometimes leads people to believe that a custom API would be better (or at 
-least easier to implement). I asked for more information about the hardware to 
-get a better picture on this.
+The following changes since commit 1bae4ce27c9c90344f23c65ea6966c50ffeae2f5:
 
--- 
-Regards,
+  Linux 2.6.38-rc2 (2011-01-21 19:01:34 -0800)
 
-Laurent Pinchart
+are available in the git repository at:
+  ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git media_fixes
+
+Jarod Wilson (8):
+      [media] rc/mce: add mappings for missing keys
+      [media] hdpvr: fix up i2c device registration
+      [media] lirc_zilog: z8 on usb doesn't like back-to-back i2c_master_send
+      [media] ir-kbd-i2c: improve remote behavior with z8 behind usb
+      [media] rc/ir-lirc-codec: add back debug spew
+      [media] rc: use time unit conversion macros correctly
+      [media] mceusb: really fix remaining keybounce issues
+      [media] rc/streamzap: fix reporting response times
+
+Jean-François Moine (3):
+      [media] gspca - zc3xx: Bad delay when given by a table
+      [media] gspca - zc3xx: Fix bad images with the sensor hv7131r
+      [media] gspca - zc3xx: Discard the partial frames
+
+Russell King (1):
+      [media] fix saa7111 non-detection
+
+ drivers/media/rc/ir-lirc-codec.c               |    6 +++-
+ drivers/media/rc/keymaps/rc-rc6-mce.c          |    6 ++++
+ drivers/media/rc/mceusb.c                      |    9 ++++--
+ drivers/media/rc/nuvoton-cir.c                 |    6 ++--
+ drivers/media/rc/streamzap.c                   |   14 ++++++----
+ drivers/media/video/gspca/zc3xx.c              |   31 +++++++++++++++++++---
+ drivers/media/video/hdpvr/hdpvr-core.c         |   24 +++++++++++++++---
+ drivers/media/video/hdpvr/hdpvr-i2c.c          |   30 ++++++++++++++--------
+ drivers/media/video/hdpvr/hdpvr.h              |    3 +-
+ drivers/media/video/ir-kbd-i2c.c               |   13 +++++++++
+ drivers/media/video/pvrusb2/pvrusb2-i2c-core.c |    1 -
+ drivers/media/video/saa7115.c                  |    2 +-
+ drivers/staging/lirc/lirc_zilog.c              |   32 +++++++++++++++++++----
+ 13 files changed, 135 insertions(+), 42 deletions(-)
+
