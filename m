@@ -1,101 +1,78 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:10078 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750934Ab1BOAyf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Feb 2011 19:54:35 -0500
-Subject: Re: cx23885-input.c does in fact use a workqueue....
-From: Andy Walls <awalls@md.metrocast.net>
-To: Tejun Heo <tj@kernel.org>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	stoth@kernellabs.com
-In-Reply-To: <20110214110339.GC18742@htj.dyndns.org>
-References: <1297647322.19186.61.camel@localhost>
-	 <20110214043355.GA28090@core.coreip.homeip.net>
-	 <20110214110339.GC18742@htj.dyndns.org>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 14 Feb 2011 19:54:36 -0500
-Message-ID: <1297731276.2394.19.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from moutng.kundenserver.de ([212.227.17.8]:60344 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752499Ab1BBUvE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Feb 2011 15:51:04 -0500
+Date: Wed, 2 Feb 2011 21:51:01 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+cc: Anatolij Gustschin <agust@denx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Markus Niebel <Markus.Niebel@tqs.de>
+Subject: Re: [PATCH] v4l: mx3_camera: fix NULL pointer dereference if debug
+ output enabled
+In-Reply-To: <Pine.LNX.4.64.1102021843030.20841@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1102022149280.20841@axis700.grange>
+References: <1296478181-10838-1-git-send-email-agust@denx.de>
+ <Pine.LNX.4.64.1102021843030.20841@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, 2011-02-14 at 12:03 +0100, Tejun Heo wrote:
-> Hello,
+On Wed, 2 Feb 2011, Guennadi Liakhovetski wrote:
+
+> On Mon, 31 Jan 2011, Anatolij Gustschin wrote:
 > 
-> On Sun, Feb 13, 2011 at 08:33:55PM -0800, Dmitry Torokhov wrote:
-> > > The cx23885 driver does in fact schedule work for IR input handling:
-> > > 
-> > > Here's where it is scheduled for CX23888 chips:
-> > > 
-> > > http://git.linuxtv.org/media_tree.git?a=blob;f=drivers/media/video/cx23885/cx23885-ir.c;h=7125247dd25558678c823ee3262675570c9aa630;hb=HEAD#l76
-> > > 
-> > > Here's where it is scheduled for CX23885 chips:
-> > > 
-> > > http://git.linuxtv.org/media_tree.git?a=blob;f=drivers/media/video/cx23885/cx23885-core.c;h=359882419b7f588b7c698dbcfb6a39ddb1603301;hb=HEAD#l1861
-> 
-> Ah, sorry about missing those.
-
-There's a lot of indirection in drivers under drivers/media/video so it
-doesn't surprise me when someone misses something.
-
-(BTW, I only checked cx23885 since I wrote the IR handling and added the
-work queue usage for IR that driver.)
-
-
-
-> > > So what should be done about the flush_scheduled_work()?  I think it
-> > > belongs there.
-> > > 
+> > Running with enabled debug output in the mx3_camera driver results
+> > in a kernel crash:
+> > ...
+> > mx3-camera mx3-camera.0: Providing format Bayer BGGR (sRGB) 8 bit using code 11
+> > Unable to handle kernel NULL pointer dereference at virtual address 00000004
+> > ...
 > > 
-> > Convert to using threaded irq?
-
-Too big of a regression testing job for me to take on at the moment.
-
-
-> Or
+> > Fix it by incrementing 'xlate' after usage.
+> > 
+> > Signed-off-by: Anatolij Gustschin <agust@denx.de>
+> > ---
+> >  drivers/media/video/mx3_camera.c |    2 +-
+> >  1 files changed, 1 insertions(+), 1 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
+> > index b9cb4a4..7bcaaf7 100644
+> > --- a/drivers/media/video/mx3_camera.c
+> > +++ b/drivers/media/video/mx3_camera.c
+> > @@ -734,9 +734,9 @@ static int mx3_camera_get_formats(struct soc_camera_device *icd, unsigned int id
+> >  	if (xlate) {
+> >  		xlate->host_fmt	= fmt;
+> >  		xlate->code	= code;
+> > -		xlate++;
+> >  		dev_dbg(dev, "Providing format %x in pass-through mode\n",
+> >  			xlate->host_fmt->fourcc);
+> > +		xlate++;
 > 
-> 1. Just flush the work items explicitly using flush_work_sync().
-
-That will do for now.
-
-> 2. Create a dedicated workqueue to serve as flushing domain.
-
-I have gotten reports of the IR Rx FIFO overflows for the CX23885 IR Rx
-unit (the I2C connected one).  I eventually should either set the Rx
-FIFO service interrupt watermark down from 4 measurments to 1
-measurment, or use a kthread_worker with some higher priority to respond
-to the IR Rx FIFO service interrupt. 
-
-
-
-> The first would look like the following.  Does this look correct?
-
-Yes, your patch below looks sane to me.
-
-Reviewed-by: Andy Walls <awalls@md.metrocast.net>
-
-Thanks,
-Andy
-
-> Thanks.
+> Let's take an even easier path:
 > 
-> diff --git a/drivers/media/video/cx23885/cx23885-input.c b/drivers/media/video/cx23885/cx23885-input.c
-> index 199b996..e27cedb 100644
-> --- a/drivers/media/video/cx23885/cx23885-input.c
-> +++ b/drivers/media/video/cx23885/cx23885-input.c
-> @@ -229,6 +229,9 @@ static void cx23885_input_ir_stop(struct cx23885_dev *dev)
->  		v4l2_subdev_call(dev->sd_ir, ir, rx_s_parameters, &params);
->  		v4l2_subdev_call(dev->sd_ir, ir, rx_g_parameters, &params);
->  	}
-> +	flush_work_sync(&dev->cx25840_work);
-> +	flush_work_sync(&dev->ir_rx_work);
-> +	flush_work_sync(&dev->ir_tx_work);
->  }
->  
->  static void cx23885_input_ir_close(struct rc_dev *rc)
+> -			xlate->host_fmt->fourcc);
+> +			fmt->fourcc);
+
+Ok, sorry, forget it - this entire patch is superseded by another one.
+
+Guennadi
+
+> 
+> 
+> >  	}
+> >  
+> >  	return formats;
+> > -- 
+> > 1.7.1
+> 
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski
 > 
 
-
+---
+Guennadi Liakhovetski
