@@ -1,50 +1,104 @@
 Return-path: <mchehab@pedra>
-Received: from kroah.org ([198.145.64.141]:59671 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754713Ab1BPVH2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Feb 2011 16:07:28 -0500
-Date: Wed, 16 Feb 2011 12:50:43 -0800
-From: Greg KH <greg@kroah.com>
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>, gregkh@suse.de,
-	stable@kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [stable] [PATCH 0/4] gspca fix backports for 2.6.36
-Message-ID: <20110216205043.GC5115@kroah.com>
-References: <20110106092836.14a0da68@gaivota>
- <20110106135640.57fd23b8@tele>
+Received: from e23smtp04.au.ibm.com ([202.81.31.146]:42952 "EHLO
+	e23smtp04.au.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752113Ab1BBMnp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Feb 2011 07:43:45 -0500
+Date: Wed, 2 Feb 2011 18:13:33 +0530
+From: Ankita Garg <ankita@in.ibm.com>
+To: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mel Gorman <mel@csn.ul.ie>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org
+Subject: Re: [PATCHv8 07/12] mm: cma: Contiguous Memory Allocator added
+Message-ID: <20110202124333.GB26396@in.ibm.com>
+Reply-To: Ankita Garg <ankita@in.ibm.com>
+References: <cover.1292443200.git.m.nazarewicz@samsung.com>
+ <eb8f43235c8ff2816ada7b56ffe371ea6140cae8.1292443200.git.m.nazarewicz@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20110106135640.57fd23b8@tele>
+In-Reply-To: <eb8f43235c8ff2816ada7b56ffe371ea6140cae8.1292443200.git.m.nazarewicz@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, Jan 06, 2011 at 01:56:40PM +0100, Jean-Francois Moine wrote:
-> On Thu, 6 Jan 2011 09:28:36 -0200
-> Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
-> 
-> > This patch series backport POWER INV fixes for sonixj sensors.
-> > 
-> > Jean,
-> > 
-> > I'm currently without any sensorj camera. Could you please test this
-> > backport? Greg already backported two patches of this series. Those
-> > patches should be applied after stable patches he sent yesterday
-> > (151/152 and 152/152). All patches are at the ML.
-> 
-> Hi Mauro,
-> 
-> I have no sonixj webcam and my contacts would not know how to test.
-> 
-> The patches seem fine to me. Anyway, if there is no error while
-> patching and compiling, they should work.
+Hi Michal,
 
-Oops, I see this now, sorry.
+On Wed, Dec 15, 2010 at 09:34:27PM +0100, Michal Nazarewicz wrote:
+> The Contiguous Memory Allocator is a set of functions that lets
+> one initialise a region of memory which then can be used to perform
+> allocations of contiguous memory chunks from.
+> 
+> CMA allows for creation of private and non-private contexts.
+> The former is reserved for CMA and no other kernel subsystem can
+> use it.  The latter allows for movable pages to be allocated within
+> CMA's managed memory so that it can be used for page cache when
+> CMA devices do not use it.
+> 
+> Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+> 
 
-.36 is now end-of-life, I suggest using .37 as these changes are all
-there.
+<snip>
 
-thanks,
+> +/************************* Initialise CMA *************************/
+> +
+> +unsigned long cma_reserve(unsigned long start, unsigned long size,
+> +			  unsigned long alignment)
+> +{
+> +	pr_debug("%s(%p+%p/%p)\n", __func__, (void *)start, (void *)size,
+> +		 (void *)alignment);
+> +
+> +	/* Sanity checks */
+> +	if (!size || (alignment & (alignment - 1)))
+> +		return (unsigned long)-EINVAL;
+> +
+> +	/* Sanitise input arguments */
+> +	start = PAGE_ALIGN(start);
+> +	size  = PAGE_ALIGN(size);
+> +	if (alignment < PAGE_SIZE)
+> +		alignment = PAGE_SIZE;
+> +
+> +	/* Reserve memory */
+> +	if (start) {
+> +		if (memblock_is_region_reserved(start, size) ||
+> +		    memblock_reserve(start, size) < 0)
+> +			return (unsigned long)-EBUSY;
+> +	} else {
+> +		/*
+> +		 * Use __memblock_alloc_base() since
+> +		 * memblock_alloc_base() panic()s.
+> +		 */
+> +		u64 addr = __memblock_alloc_base(size, alignment, 0);
+> +		if (!addr) {
+> +			return (unsigned long)-ENOMEM;
+> +		} else if (addr + size > ~(unsigned long)0) {
+> +			memblock_free(addr, size);
+> +			return (unsigned long)-EOVERFLOW;
+> +		} else {
+> +			start = addr;
+> +		}
+> +	}
+> +
 
-greg k-h
+Reserving the areas of memory belonging to CMA using memblock_reserve,
+would preclude that range from the zones, due to which it would not be
+available for buddy allocations right ?
+
+> +	return start;
+> +}
+> +
+> +
+
+-- 
+Regards,
+Ankita Garg (ankita@in.ibm.com)
+Linux Technology Center
+IBM India Systems & Technology Labs,
+Bangalore, India
