@@ -1,85 +1,152 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:37769 "EHLO
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:44676 "EHLO
 	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750823Ab1BZNj6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Feb 2011 08:39:58 -0500
-Received: by fxm17 with SMTP id 17so2554661fxm.19
-        for <linux-media@vger.kernel.org>; Sat, 26 Feb 2011 05:39:57 -0800 (PST)
-Message-ID: <4D6902AA.6060805@gmail.com>
-Date: Sat, 26 Feb 2011 14:39:54 +0100
-From: Sylwester Nawrocki <snjw23@gmail.com>
+	with ESMTP id S1754677Ab1BBSky convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Feb 2011 13:40:54 -0500
+Received: by fxm20 with SMTP id 20so287328fxm.19
+        for <linux-media@vger.kernel.org>; Wed, 02 Feb 2011 10:40:52 -0800 (PST)
+From: "Igor M. Liplianin" <liplianin@me.by>
+To: Matt Vickers <m@vicke.rs>
+Subject: Re: DM1105: could not attach frontend 195d:1105
+Date: Wed, 2 Feb 2011 20:39:33 +0200
+Cc: linux-media@vger.kernel.org
+References: <4B7D83B2.4030709@online.no> <201101311955.01003.liplianin@me.by> <4D47975F.3050206@vicke.rs>
+In-Reply-To: <4D47975F.3050206@vicke.rs>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kim HeungJun <riverful@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Stanimir Varbanov <svarbanov@mm-sol.com>
-Subject: Re: [RFC] snapshot mode, flash capabilities and control
-References: <Pine.LNX.4.64.1102240947230.15756@axis700.grange> <20110225135314.GF23853@valkosipuli.localdomain> <Pine.LNX.4.64.1102251708080.26361@axis700.grange> <201102261331.26681.hverkuil@xs4all.nl> <Pine.LNX.4.64.1102261350001.31455@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1102261350001.31455@axis700.grange>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201102022039.33684.liplianin@me.by>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 02/26/2011 02:03 PM, Guennadi Liakhovetski wrote:
-> On Sat, 26 Feb 2011, Hans Verkuil wrote:
+В сообщении от 1 февраля 2011 07:17:19 автор Matt Vickers написал:
+> On 1/02/2011 6:55 a.m., Igor M. Liplianin wrote:
+> > В сообщении от 31 января 2011 11:33:54 автор Matt Vickers написал:
+> >> On 23/10/2010 10:20 p.m., Igor M. Liplianin wrote:
+> >>> В сообщении от 10 марта 2010 14:15:49 автор Hendrik Skarpeid написал:
+> >>>> Igor M. Liplianin skrev:
+> >>>>> On 3 марта 2010 18:42:42 Hendrik Skarpeid wrote:
+> >>>>>> Igor M. Liplianin wrote:
+> >>>>>>> Now to find GPIO's for LNB power control and ... watch TV :)
+> >>>>>> 
+> >>>>>> Yep. No succesful tuning at the moment. There might also be an issue
+> >>>>>> with the reset signal and writing to GPIOCTR, as the module at the
+> >>>>>> moment loads succesfully only once.
+> >>>>>> As far as I can make out, the LNB power control is probably GPIO 16
+> >>>>>> and 17, not sure which is which, and how they work.
+> >>>>>> GPIO15 is wired to tuner #reset
+> >>>>> 
+> >>>>> New patch to test
+> >>>> 
+> >>>> I think the LNB voltage may be a little to high on my card, 14.5V and
+> >>>> 20V. I would be a little more happy if they were 14 and 19, 13 and 18
+> >>>> would be perfect.
+> >>>> Anyways, as Igor pointet out, I don't have any signal from the LNB,
+> >>>> checked with another tuner card. It's a quad LNB, and the other
+> >>>> outputs are fine. Maybe it's' toasted from to high supply voltage! I
+> >>>> little word of warning then.
+> >>>> Anyways, here's my tweaked driver.
+> >>> 
+> >>> Here is reworked patch for clear GPIO's handling.
+> >>> It allows to support I2C on GPIO's and per board LNB control through
+> >>> GPIO's. Also incuded support for Hendrik's card.
+> >>> I think it is clear how to change and test GPIO's for LNB and other
+> >>> stuff now.
+> >>> 
+> >>> To Hendrik:
+> >>> 	Not shure, but there is maybe GPIO for raise/down LNB voltage a little
+> >>> 	(~1v). It is used for long coaxial lines to compensate voltage
+> >>> 	dropping.
+> >>> 
+> >>> Signed-off-by: Igor M. Liplianin<liplianin@me.by>
+> >> 
+> >> Hi Igor,
+> >> 
+> >> I have a brandless DVB-S tv tuner card also, with a dm1105n chip. I was
+> >> getting the "DM1105: could not attach frontend 195d:1105" message with
+> >> the latest kernel also, but I applied this patch to the dm1105 module
+> >> and now the card's being recognised  (though is still listed as an
+> >> ethernet controller with lspci)
+> >> 
+> >> My dmesg output is:
+> >> 
+> >> dm1105 0000:01:05.0: PCI INT A ->  GSI 17 (level, low) ->  IRQ 17
+> >> DVB: registering new adapter (dm1105)
+> >> dm1105 0000:01:05.0: MAC 00:00:00:00:00:00
+> >> DVB: registering adapter 0 frontend 0 (SL SI21XX DVB-S)...
+> >> Registered IR keymap rc-dm1105-nec
+> >> input: DVB on-card IR receiver as
+> >> /devices/pci0000:00/0000:00:1e.0/0000:01:05.0/rc/rc0/input6
+> >> rc0: DVB on-card IR receiver as
+> >> /devices/pci0000:00/0000:00:1e.0/0000:01:05.0/rc/rc0
+> >> 
+> >> The card is one of these:
+> >> http://www.hongsun.biz/ProView.asp?ID=90
+> >> 
+> >> Scanning doesn't appear to give me any results.  Should this be working?
+> >> 
+> >>    Anything I can do to test the card out for you?
+> >> 
+> >> Cheers,
+> >> Matt.
+> > 
+> > Hi Matt,
+> > Is there any label on tuner can?
+> > Have you a close look picture of PCB ?
+> > 
+> > Cheers,
+> > Igor.
 > 
->> On Friday, February 25, 2011 18:08:07 Guennadi Liakhovetski wrote:
->>
->> <snip>
->>
->>>>> configure the sensor to react on an external trigger provided by the flash
->>>>> controller is needed, and that could be a control on the flash sub-device.
->>>>> What we would probably miss is a way to issue a STREAMON with a number of
->>>>> frames to capture. A new ioctl is probably needed there. Maybe that would be
->>>>> an opportunity to create a new stream-control ioctl that could replace
->>>>> STREAMON and STREAMOFF in the long term (we could extend the subdev s_stream
->>>>> operation, and easily map STREAMON and STREAMOFF to the new ioctl in
->>>>> video_ioctl2 internally).
->>>>
->>>> How would this be different from queueing n frames (in total; count
->>>> dequeueing, too) and issuing streamon? --- Except that when the last frame
->>>> is processed the pipeline could be stopped already before issuing STREAMOFF.
->>>> That does indeed have some benefits. Something else?
->>>
->>> Well, you usually see in your host driver, that the videobuffer queue is
->>> empty (no more free buffers are available), so, you stop streaming
->>> immediately too.
->>
->> This probably assumes that the host driver knows that this is a special queue?
->> Because in general drivers will simply keep capturing in the last buffer and not
->> release it to userspace until a new buffer is queued.
+> Hi Igor,
 > 
-> Yes, I know about this spec requirement, but I also know, that not all
-> drivers do that and not everyone is happy about that requirement:)
+> The label on the tuner can is SP1514LHb S1009, so I'm guessing this is a
+> near-identical card to the one that Paul was asking you about in January
+> 
+> of last year, e.g:
+> >  1: DVB-S
+> >  5: 16cc
+> >  1: Unsure, but it has an LNB in and an LNB out, so I guess it does have
+> >  loop through?
+> >  4: Si2109
+> >  L: Si labs
+> >  H: Horizontal
+> >  b: Lead free
+> 
+> Here are two images I took of the card:
+> 
+> A view of the entire board:
+> 
+> http://matt.vicke.rs/pics/pcb_full.jpg
+> 
+> And here is a closer view of the board between the tuner and the dm1105n
+> chip.
+> 
+> http://matt.vicke.rs/pics/pcb_detail.jpg
+> 
+> With your patch and the card=4 parameter the card is recognised, and the
+> dvb device created. Scanning will run (I'm attempting to locate channels
+> on Optus D1, which I can successfully scan using a set top box, so the
+> dish is correctly aligned), but the card reports tuning failed on all of
+> the Optus D1 frequencies that I attempt. I also tried running w_scan but
+> had no success.
+> 
+> Cheers,
+> Matt.
+Hi Matt,
 
-Right, similarly a v4l2 output device is not releasing the last buffer
-to userland and keeps sending its content until a new buffer is queued to the driver.
-But in case of capture device the requirement is a pain, since it only causes
-draining the power source, when from a user view the video capture is stopped.
-Also it limits a minimum number of buffers that could be used in preview pipeline.
+Did you read this post?
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg17269.html
+It seems the card needs some soldering :(
 
-In still capture mode (single shot) we might want to use only one buffer so adhering
-to the requirement would not allow this, would it?
+Cheers
+Igor
+> 
+> >> --
+> >> To unsubscribe from this list: send the line "unsubscribe linux-media"
+> >> in the body of a message to majordomo@vger.kernel.org
+> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-> 
->> That said, it wouldn't be hard to add some flag somewhere that puts a queue in
->> a 'stop streaming on last buffer capture' mode.
-> 
-> No, it wouldn't... But TBH this doesn't seem like the most elegant and
-> complete solution. Maybe we have to think a bit more about it - which
-> soncequences switching into the snapshot mode has on the host driver,
-> apart from stopping after N frames. So, this is one of the possibilities,
-> not sure if the best one.
-> 
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-
+-- 
+Igor M. Liplianin
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
