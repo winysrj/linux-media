@@ -1,74 +1,83 @@
 Return-path: <mchehab@pedra>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:54805 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752724Ab1BYGdU convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Feb 2011 01:33:20 -0500
-Received: by mail-vx0-f176.google.com with SMTP id 41so1351189vxc.7
-        for <linux-media@vger.kernel.org>; Thu, 24 Feb 2011 22:33:19 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1298578789.821.54.camel@deumeu>
-References: <AANLkTik=Yc9cb9r7Ro=evRoxd61KVE=8m7Z5+dNwDzVd@mail.gmail.com>
-	<AANLkTinDFMMDD-F-FsccCTvUvp6K3zewYsGT1BH9VP1F@mail.gmail.com>
-	<201102100847.15212.hverkuil@xs4all.nl>
-	<201102171448.09063.laurent.pinchart@ideasonboard.com>
-	<AANLkTikg0Oj6nq6h_1-d7AQ4NQr2UyMuSemyniYZBLu3@mail.gmail.com>
-	<1298578789.821.54.camel@deumeu>
-Date: Fri, 25 Feb 2011 00:33:19 -0600
-Message-ID: <AANLkTi=zdCb4dYPgiKhcK5Tximv5CQQOi6g5hmRzs2ie@mail.gmail.com>
-Subject: Re: [st-ericsson] v4l2 vs omx for camera
-From: "Clark, Rob" <rob@ti.com>
-To: Discussion of the development of and with GStreamer
-	<gstreamer-devel@lists.freedesktop.org>
-Cc: Edward Hervey <bilboed@gmail.com>,
-	"linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>,
-	Harald Gustafsson <harald.gustafsson@ericsson.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	ST-Ericsson LT Mailing List <st-ericsson@lists.linaro.org>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:10834 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754475Ab1BBXuZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 2 Feb 2011 18:50:25 -0500
+Subject: Re: [GIT PATCHES FOR 2.6.39] fix cx18 regression
+From: Andy Walls <awalls@md.metrocast.net>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+In-Reply-To: <4D46C36A.1040407@redhat.com>
+References: <201101260823.43809.hverkuil@xs4all.nl>
+	 <4D46C36A.1040407@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Wed, 02 Feb 2011 18:50:12 -0500
+Message-ID: <1296690612.2402.4.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, Feb 24, 2011 at 2:19 PM, Edward Hervey <bilboed@gmail.com> wrote:
->
->  What *needs* to be solved is an API for data allocation/passing at the
-> kernel level which v4l2,omx,X,GL,vdpau,vaapi,... can use and that
-> userspace (like GStreamer) can pass around, monitor and know about.
+On Mon, 2011-01-31 at 12:12 -0200, Mauro Carvalho Chehab wrote:
+> Em 26-01-2011 05:23, Hans Verkuil escreveu:
+> > Mauro, please get this upstream asap since this fix needs to go into 2.6.38
+> > as well.
+> > 
+> > Regards,
+> > 
+> > 	Hans
+> > 
+> > The following changes since commit e5fb95675639f064ca40df7ad319f1c380443999:
+> >   Hans Verkuil (1):
+> >         [media] vivi: fix compiler warning
+> > 
+> > are available in the git repository at:
+> > 
+> >   ssh://linuxtv.org/git/hverkuil/media_tree.git cx18-fix
+> > 
+> > Hans Verkuil (1):
+> >       cx18: fix kernel oops when setting MPEG control before capturing.
+> > 
+> >  drivers/media/video/cx18/cx18-driver.c |    1 +
+> >  1 files changed, 1 insertions(+), 0 deletions(-)
+> > 
+> 
+> I tried to apply it against 2.6.38-rc2, but it failed:
+> 
+>        	mutex_init(&cx->serialize_lock);
+>         mutex_init(&cx->gpio_lock);
+>         mutex_init(&cx->epu2apu_mb_lock);
+>        	mutex_init(&cx->epu2cpu_mb_lock);
+> 
+>         ret = cx18_create_in_workq(cx);
+> <<<<<<<
+> =======
+>        	cx->cxhdl.capabilities = CX2341X_CAP_HAS_TS | CX2341X_CAP_HAS_SLICED_VBI;
+>         cx->cxhdl.ops = &cx18_cxhdl_ops;
+>         cx->cxhdl.func = cx18_api_func;
+>         cx->cxhdl.priv = &cx->streams[CX18_ENC_STREAM_TYPE_MPG];
+>         ret = cx2341x_handler_init(&cx->cxhdl, 50);
+> >>>>>>>
+>         if (ret)
+>                 return ret;
+> 
+> Perhaps this change requires some patch delayed for .39?
 
-yes yes yes yes!!
+The bug was authored on 31 Dec 2010, but not comitted until 23 Jan 2011:
 
-vaapi/vdpau is half way there, as they cover sharing buffers with
-X/GL..  but sadly they ignore camera.  There are a few other
-inconveniences with vaapi and possibly vdpau.. at least we'd prefer to
-have an API the covered decoding config data like SPS/PPS and not just
-slice data since config data NALU's are already decoded by our
-accelerators..
+http://git.linuxtv.org/hverkuil/media_tree.git?a=commit;h=82f205b2f2a1deb1ab700a601ef48a4db4ca4f4e
 
->  That is a *massive* challenge on its own. The choice of using
-> GStreamer or not ... is what you want to do once that challenge is
-> solved.
->
->  Regards,
->
->    Edward
->
-> P.S. GStreamer for Android already works :
-> http://www.elinux.org/images/a/a4/Android_and_Gstreamer.ppt
->
+Kernel 2.6.38-rc2 appears to have a date one day prior: 22 Jan 2011:
 
-yeah, I'm aware of that.. someone please convince google to pick it up
-and drop stagefright so we can only worry about a single framework
-between android and linux  (and then I look forward to playing with
-pitivi on an android phone :-))
+http://git.linuxtv.org/hverkuil/media_tree.git?a=commit;h=1bae4ce27c9c90344f23c65ea6966c50ffeae2f5
 
-BR,
--R
+So the bug will be in whatever version comes out after 2.6.38-rc2
 
-> _______________________________________________
-> gstreamer-devel mailing list
-> gstreamer-devel@lists.freedesktop.org
-> http://lists.freedesktop.org/mailman/listinfo/gstreamer-devel
->
+Regards,
+Andy
+
+> Cheers,
+> Mauro
+
+
