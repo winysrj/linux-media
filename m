@@ -1,113 +1,93 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58153 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753784Ab1BNMU7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Feb 2011 07:20:59 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [PATCH v7 4/6] v4l: subdev: Uninline the v4l2_subdev_init function
-Date: Mon, 14 Feb 2011 13:20:57 +0100
-Message-Id: <1297686059-9622-5-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1297686059-9622-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1297686059-9622-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from LUNGE.MIT.EDU ([18.54.1.69]:40959 "EHLO lunge.queued.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755537Ab1BCELi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 2 Feb 2011 23:11:38 -0500
+Date: Wed, 2 Feb 2011 20:11:33 -0800
+From: Andres Salomon <dilinger@queued.net>
+To: Samuel Ortiz <sameo@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Matti Aaltonen <matti.j.aaltonen@nokia.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Liam Girdwood <lrg@slimlogic.co.uk>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: [PATCH 09/19] wl1273: mfd_cell is now implicitly available to
+ drivers
+Message-ID: <20110202201133.08dbd07e@queued.net>
+In-Reply-To: <20110202195417.228e2656@queued.net>
+References: <20110202195417.228e2656@queued.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The function isn't small or performance sensitive enough to be inlined.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+No need to explicitly set the cell's platform_data/data_size.
+
+In this case, move the various platform_data pointers
+to driver_data.  All of the clients which make use of it
+are also changed.
+
+Signed-off-by: Andres Salomon <dilinger@queued.net>
 ---
- drivers/media/video/v4l2-subdev.c |   41 +++++++++++++++++++++++++-----------
- include/media/v4l2-subdev.h       |   15 +-----------
- 2 files changed, 30 insertions(+), 26 deletions(-)
+ drivers/media/radio/radio-wl1273.c |    2 +-
+ drivers/mfd/wl1273-core.c          |    6 ++----
+ sound/soc/codecs/wl1273.c          |    2 +-
+ 3 files changed, 4 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-index 4014cb6..6cf7664 100644
---- a/drivers/media/video/v4l2-subdev.c
-+++ b/drivers/media/video/v4l2-subdev.c
-@@ -1,22 +1,23 @@
- /*
-- *  V4L2 subdevice support.
-+ * V4L2 sub-device
-  *
-- *  Copyright (C) 2010 Nokia Corporation
-+ * Copyright (C) 2010 Nokia Corporation
-  *
-- *  Contact: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+ * Contact: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+ *	    Sakari Ailus <sakari.ailus@iki.fi>
-  *
-- *  This program is free software; you can redistribute it and/or modify
-- *  it under the terms of the GNU General Public License as published by
-- *  the Free Software Foundation.
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-  *
-- *  This program is distributed in the hope that it will be useful,
-- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- *  GNU General Public License for more details.
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-  *
-- *  You should have received a copy of the GNU General Public License
-- *  along with this program; if not, write to the Free Software
-- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-  */
+diff --git a/drivers/media/radio/radio-wl1273.c b/drivers/media/radio/radio-wl1273.c
+index 7ecc8e6..ebb6eb5 100644
+--- a/drivers/media/radio/radio-wl1273.c
++++ b/drivers/media/radio/radio-wl1273.c
+@@ -2138,7 +2138,7 @@ static int wl1273_fm_radio_remove(struct platform_device *pdev)
  
- #include <linux/types.h>
-@@ -58,3 +59,17 @@ const struct v4l2_file_operations v4l2_subdev_fops = {
- 	.unlocked_ioctl = subdev_ioctl,
- 	.release = subdev_close,
- };
-+
-+void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
-+{
-+	INIT_LIST_HEAD(&sd->list);
-+	BUG_ON(!ops);
-+	sd->ops = ops;
-+	sd->v4l2_dev = NULL;
-+	sd->flags = 0;
-+	sd->name[0] = '\0';
-+	sd->grp_id = 0;
-+	sd->dev_priv = NULL;
-+	sd->host_priv = NULL;
-+}
-+EXPORT_SYMBOL(v4l2_subdev_init);
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 2f859d5..2e4bef47 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -485,19 +485,8 @@ static inline void *v4l2_get_subdev_hostdata(const struct v4l2_subdev *sd)
- 	return sd->host_priv;
- }
+ static int __devinit wl1273_fm_radio_probe(struct platform_device *pdev)
+ {
+-	struct wl1273_core **core = pdev->dev.platform_data;
++	struct wl1273_core **core = platform_get_drvdata(pdev);
+ 	struct wl1273_device *radio;
+ 	struct v4l2_ctrl *ctrl;
+ 	int r = 0;
+diff --git a/drivers/mfd/wl1273-core.c b/drivers/mfd/wl1273-core.c
+index d2ecc24..61ec252 100644
+--- a/drivers/mfd/wl1273-core.c
++++ b/drivers/mfd/wl1273-core.c
+@@ -79,8 +79,7 @@ static int __devinit wl1273_core_probe(struct i2c_client *client,
  
--static inline void v4l2_subdev_init(struct v4l2_subdev *sd,
--					const struct v4l2_subdev_ops *ops)
--{
--	INIT_LIST_HEAD(&sd->list);
--	BUG_ON(!ops);
--	sd->ops = ops;
--	sd->v4l2_dev = NULL;
--	sd->flags = 0;
--	sd->name[0] = '\0';
--	sd->grp_id = 0;
--	sd->dev_priv = NULL;
--	sd->host_priv = NULL;
--}
-+void v4l2_subdev_init(struct v4l2_subdev *sd,
-+		      const struct v4l2_subdev_ops *ops);
+ 	cell = &core->cells[children];
+ 	cell->name = "wl1273_fm_radio";
+-	cell->platform_data = &core;
+-	cell->data_size = sizeof(core);
++	cell->driver_data = &core;
+ 	children++;
  
- /* Call an ops of a v4l2_subdev, doing the right checks against
-    NULL pointers.
+ 	if (pdata->children & WL1273_CODEC_CHILD) {
+@@ -88,8 +87,7 @@ static int __devinit wl1273_core_probe(struct i2c_client *client,
+ 
+ 		dev_dbg(&client->dev, "%s: Have codec.\n", __func__);
+ 		cell->name = "wl1273-codec";
+-		cell->platform_data = &core;
+-		cell->data_size = sizeof(core);
++		cell->driver_data = &core;
+ 		children++;
+ 	}
+ 
+diff --git a/sound/soc/codecs/wl1273.c b/sound/soc/codecs/wl1273.c
+index 861b28f..0af2c2d 100644
+--- a/sound/soc/codecs/wl1273.c
++++ b/sound/soc/codecs/wl1273.c
+@@ -436,7 +436,7 @@ EXPORT_SYMBOL_GPL(wl1273_get_format);
+ 
+ static int wl1273_probe(struct snd_soc_codec *codec)
+ {
+-	struct wl1273_core **core = codec->dev->platform_data;
++	struct wl1273_core **core = dev_get_drvdata(codec->dev);
+ 	struct wl1273_priv *wl1273;
+ 	int r;
+ 
 -- 
-1.7.3.4
+1.7.2.3
 
