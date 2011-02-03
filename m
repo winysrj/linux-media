@@ -1,40 +1,99 @@
 Return-path: <mchehab@pedra>
-Received: from smtp101.rog.mail.re2.yahoo.com ([206.190.36.79]:35944 "HELO
-	smtp101.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1754857Ab1BMUFH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Feb 2011 15:05:07 -0500
-Message-ID: <4D583969.2050401@rogers.com>
-Date: Sun, 13 Feb 2011 15:04:57 -0500
-From: CityK <cityk@rogers.com>
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:3797 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752432Ab1BCHJw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Feb 2011 02:09:52 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Andy Walls <awalls@md.metrocast.net>
+Subject: Re: [GIT PATCHES FOR 2.6.39] fix cx18 regression
+Date: Thu, 3 Feb 2011 08:09:31 +0100
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+References: <201101260823.43809.hverkuil@xs4all.nl> <4D46C36A.1040407@redhat.com> <1296690612.2402.4.camel@localhost>
+In-Reply-To: <1296690612.2402.4.camel@localhost>
 MIME-Version: 1.0
-To: video4linux-list-owner@redhat.com,
-	Linux-media <linux-media@vger.kernel.org>
-Subject: the V4L mailing list is deprecated
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201102030809.31469.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello whomever at Redhat who is managing this list,
+On Thursday, February 03, 2011 00:50:12 Andy Walls wrote:
+> On Mon, 2011-01-31 at 12:12 -0200, Mauro Carvalho Chehab wrote:
+> > Em 26-01-2011 05:23, Hans Verkuil escreveu:
+> > > Mauro, please get this upstream asap since this fix needs to go into 2.6.38
+> > > as well.
+> > > 
+> > > Regards,
+> > > 
+> > > 	Hans
+> > > 
+> > > The following changes since commit e5fb95675639f064ca40df7ad319f1c380443999:
+> > >   Hans Verkuil (1):
+> > >         [media] vivi: fix compiler warning
+> > > 
+> > > are available in the git repository at:
+> > > 
+> > >   ssh://linuxtv.org/git/hverkuil/media_tree.git cx18-fix
+> > > 
+> > > Hans Verkuil (1):
+> > >       cx18: fix kernel oops when setting MPEG control before capturing.
+> > > 
+> > >  drivers/media/video/cx18/cx18-driver.c |    1 +
+> > >  1 files changed, 1 insertions(+), 0 deletions(-)
+> > > 
+> > 
+> > I tried to apply it against 2.6.38-rc2, but it failed:
+> > 
+> >        	mutex_init(&cx->serialize_lock);
+> >         mutex_init(&cx->gpio_lock);
+> >         mutex_init(&cx->epu2apu_mb_lock);
+> >        	mutex_init(&cx->epu2cpu_mb_lock);
+> > 
+> >         ret = cx18_create_in_workq(cx);
+> > <<<<<<<
+> > =======
+> >        	cx->cxhdl.capabilities = CX2341X_CAP_HAS_TS | CX2341X_CAP_HAS_SLICED_VBI;
+> >         cx->cxhdl.ops = &cx18_cxhdl_ops;
+> >         cx->cxhdl.func = cx18_api_func;
+> >         cx->cxhdl.priv = &cx->streams[CX18_ENC_STREAM_TYPE_MPG];
+> >         ret = cx2341x_handler_init(&cx->cxhdl, 50);
+> > >>>>>>>
+> >         if (ret)
+> >                 return ret;
+> > 
+> > Perhaps this change requires some patch delayed for .39?
+> 
+> The bug was authored on 31 Dec 2010, but not comitted until 23 Jan 2011:
+> 
+> http://git.linuxtv.org/hverkuil/media_tree.git?a=commit;h=82f205b2f2a1deb1ab700a601ef48a4db4ca4f4e
+> 
+> Kernel 2.6.38-rc2 appears to have a date one day prior: 22 Jan 2011:
+> 
+> http://git.linuxtv.org/hverkuil/media_tree.git?a=commit;h=1bae4ce27c9c90344f23c65ea6966c50ffeae2f5
+> 
+> So the bug will be in whatever version comes out after 2.6.38-rc2
 
-Its now been over two years since the Linux Media Mailing List was set 
-up and it, indeed, has become well established  
-(http://www.linuxtv.org/news.php?entry=2009-01-06.mchehab).   While most 
-V4L-DVB community participants have transitioned over to the LMML, 
-unfortunately, (likely from those unaware of the change) a fair number 
-of user messages are still getting posted to the now essentially 
-deprecated video4linux mailing list.  It is a diservice to those folks 
-to continue allowing messages to make it on to the v4l list, as most of 
-them will go unnoticed (as, as mentioned, most users in a position to 
-respond to the sender have already abandoned this list in favour of the 
-new LMML).
+I'll look at this tomorrow. It's been very busy for the past week and I haven't
+had time to look into this.
 
-Could we please effectively wind down the video4linux by the end of this 
-month  -- perhaps by way of setting up an auto notification response to 
-any future submitter to the video4linux mailing list that their message 
-should instead be sent to the LMML instead (perhaps even setting up a 
-courtesy redirect of their message to the LMML for them) ?
+It definitely doesn't require any other patches, but probably some new patch
+changed the order of some lines causing the patch to fail.
 
-Cheers
+Regards,
 
+	Hans
+
+> 
+> Regards,
+> Andy
+> 
+> > Cheers,
+> > Mauro
+> 
+> 
+> 
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
