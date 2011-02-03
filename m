@@ -1,68 +1,68 @@
 Return-path: <mchehab@pedra>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:38589 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753690Ab1BNMin (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:10614 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750799Ab1BCMXJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Feb 2011 07:38:43 -0500
-Date: Mon, 14 Feb 2011 14:38:38 +0200
-From: Felipe Balbi <balbi@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-Subject: Re: [PATCH v6 07/10] omap3isp: CCP2/CSI2 receivers
-Message-ID: <20110214123838.GA2549@legolas.emea.dhcp.ti.com>
-Reply-To: balbi@ti.com
-References: <1297686097-9804-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1297686097-9804-8-git-send-email-laurent.pinchart@ideasonboard.com>
+	Thu, 3 Feb 2011 07:23:09 -0500
+Date: Thu, 03 Feb 2011 07:23:10 -0500
+Subject: Re: [GIT PATCHES FOR 2.6.39] fix cx18 regression
+Message-ID: <p6hhfu9j40n1ytr3pexf6o6r.1296735790229@email.android.com>
+From: Andy Walls <awalls@md.metrocast.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1297686097-9804-8-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, Feb 14, 2011 at 01:21:34PM +0100, Laurent Pinchart wrote:
-> The OMAP3 ISP CCP2 and CSI2 receivers provide an interface to connect
-> serial MIPI sensors to the device.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> Signed-off-by: David Cohen <dacohen@gmail.com>
-> Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
-> Signed-off-by: Vimarsh Zutshi <vimarsh.zutshi@gmail.com>
-> Signed-off-by: Tuukka Toivonen <tuukkat76@gmail.com>
-> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
-> Signed-off-by: Antti Koskipaa <akoskipa@gmail.com>
-> Signed-off-by: Ivan T. Ivanov <iivanov@mm-sol.com>
-> Signed-off-by: RaniSuneela <r-m@ti.com>
-> Signed-off-by: Atanas Filipov <afilipov@mm-sol.com>
-> Signed-off-by: Gjorgji Rosikopulos <grosikopulos@mm-sol.com>
-> Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-> Signed-off-by: Nayden Kanchev <nkanchev@mm-sol.com>
-> Signed-off-by: Phil Carmody <ext-phil.2.carmody@nokia.com>
-> Signed-off-by: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
-> Signed-off-by: Dominic Curran <dcurran@ti.com>
-> Signed-off-by: Ilkka Myllyperkio <ilkka.myllyperkio@sofica.fi>
-> Signed-off-by: Pallavi Kulkarni <p-kulkarni@ti.com>
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+SGFucywKCldoYXQgSSB3YXMgdHJ5aW5nIHRvIHNheSB3YXMgdGhhdCBNYXVybyBzaG91bGQgaGF2
+ZSBvYnNlcnZlZCB0aGUgcGF0Y2ggZmFpbCB0byBhcHBseSB0byAyLjYuMzgtcmMyLiAgSXQgYXBw
+ZWFycyB0aGUgYnVnIGRpZCBub3QgZ2V0IGNvbW1pdGVkIHVudGlsIGEgZGF5IGFmdGVyIDIuNi4z
+OC1yYzIgd2FzIHRhZ2dlZC4KIApSLApBbmR5CgoKCkhhbnMgVmVya3VpbCA8aHZlcmt1aWxAeHM0
+YWxsLm5sPiB3cm90ZToKCj5PbiBUaHVyc2RheSwgRmVicnVhcnkgMDMsIDIwMTEgMDA6NTA6MTIg
+QW5keSBXYWxscyB3cm90ZToKPj4gT24gTW9uLCAyMDExLTAxLTMxIGF0IDEyOjEyIC0wMjAwLCBN
+YXVybyBDYXJ2YWxobyBDaGVoYWIgd3JvdGU6Cj4+ID4gRW0gMjYtMDEtMjAxMSAwNToyMywgSGFu
+cyBWZXJrdWlsIGVzY3JldmV1Ogo+PiA+ID4gTWF1cm8sIHBsZWFzZSBnZXQgdGhpcyB1cHN0cmVh
+bSBhc2FwIHNpbmNlIHRoaXMgZml4IG5lZWRzIHRvIGdvIGludG8gMi42LjM4Cj4+ID4gPiBhcyB3
+ZWxsLgo+PiA+ID4gCj4+ID4gPiBSZWdhcmRzLAo+PiA+ID4gCj4+ID4gPiAJSGFucwo+PiA+ID4g
+Cj4+ID4gPiBUaGUgZm9sbG93aW5nIGNoYW5nZXMgc2luY2UgY29tbWl0IGU1ZmI5NTY3NTYzOWYw
+NjRjYTQwZGY3YWQzMTlmMWMzODA0NDM5OTk6Cj4+ID4gPiAgIEhhbnMgVmVya3VpbCAoMSk6Cj4+
+ID4gPiAgICAgICAgIFttZWRpYV0gdml2aTogZml4IGNvbXBpbGVyIHdhcm5pbmcKPj4gPiA+IAo+
+PiA+ID4gYXJlIGF2YWlsYWJsZSBpbiB0aGUgZ2l0IHJlcG9zaXRvcnkgYXQ6Cj4+ID4gPiAKPj4g
+PiA+ICAgc3NoOi8vbGludXh0di5vcmcvZ2l0L2h2ZXJrdWlsL21lZGlhX3RyZWUuZ2l0IGN4MTgt
+Zml4Cj4+ID4gPiAKPj4gPiA+IEhhbnMgVmVya3VpbCAoMSk6Cj4+ID4gPiAgICAgICBjeDE4OiBm
+aXgga2VybmVsIG9vcHMgd2hlbiBzZXR0aW5nIE1QRUcgY29udHJvbCBiZWZvcmUgY2FwdHVyaW5n
+Lgo+PiA+ID4gCj4+ID4gPiAgZHJpdmVycy9tZWRpYS92aWRlby9jeDE4L2N4MTgtZHJpdmVyLmMg
+fCAgICAxICsKPj4gPiA+ICAxIGZpbGVzIGNoYW5nZWQsIDEgaW5zZXJ0aW9ucygrKSwgMCBkZWxl
+dGlvbnMoLSkKPj4gPiA+IAo+PiA+IAo+PiA+IEkgdHJpZWQgdG8gYXBwbHkgaXQgYWdhaW5zdCAy
+LjYuMzgtcmMyLCBidXQgaXQgZmFpbGVkOgo+PiA+IAo+PiA+ICAgICAgICAJbXV0ZXhfaW5pdCgm
+Y3gtPnNlcmlhbGl6ZV9sb2NrKTsKPj4gPiAgICAgICAgIG11dGV4X2luaXQoJmN4LT5ncGlvX2xv
+Y2spOwo+PiA+ICAgICAgICAgbXV0ZXhfaW5pdCgmY3gtPmVwdTJhcHVfbWJfbG9jayk7Cj4+ID4g
+ICAgICAgIAltdXRleF9pbml0KCZjeC0+ZXB1MmNwdV9tYl9sb2NrKTsKPj4gPiAKPj4gPiAgICAg
+ICAgIHJldCA9IGN4MThfY3JlYXRlX2luX3dvcmtxKGN4KTsKPj4gPiA8PDw8PDw8Cj4+ID4gPT09
+PT09PQo+PiA+ICAgICAgICAJY3gtPmN4aGRsLmNhcGFiaWxpdGllcyA9IENYMjM0MVhfQ0FQX0hB
+U19UUyB8IENYMjM0MVhfQ0FQX0hBU19TTElDRURfVkJJOwo+PiA+ICAgICAgICAgY3gtPmN4aGRs
+Lm9wcyA9ICZjeDE4X2N4aGRsX29wczsKPj4gPiAgICAgICAgIGN4LT5jeGhkbC5mdW5jID0gY3gx
+OF9hcGlfZnVuYzsKPj4gPiAgICAgICAgIGN4LT5jeGhkbC5wcml2ID0gJmN4LT5zdHJlYW1zW0NY
+MThfRU5DX1NUUkVBTV9UWVBFX01QR107Cj4+ID4gICAgICAgICByZXQgPSBjeDIzNDF4X2hhbmRs
+ZXJfaW5pdCgmY3gtPmN4aGRsLCA1MCk7Cj4+ID4gPj4+Pj4+Pgo+PiA+ICAgICAgICAgaWYgKHJl
+dCkKPj4gPiAgICAgICAgICAgICAgICAgcmV0dXJuIHJldDsKPj4gPiAKPj4gPiBQZXJoYXBzIHRo
+aXMgY2hhbmdlIHJlcXVpcmVzIHNvbWUgcGF0Y2ggZGVsYXllZCBmb3IgLjM5Pwo+PiAKPj4gVGhl
+IGJ1ZyB3YXMgYXV0aG9yZWQgb24gMzEgRGVjIDIwMTAsIGJ1dCBub3QgY29taXR0ZWQgdW50aWwg
+MjMgSmFuIDIwMTE6Cj4+IAo+PiBodHRwOi8vZ2l0LmxpbnV4dHYub3JnL2h2ZXJrdWlsL21lZGlh
+X3RyZWUuZ2l0P2E9Y29tbWl0O2g9ODJmMjA1YjJmMmExZGViMWFiNzAwYTYwMWVmNDhhNGRiNGNh
+NGY0ZQo+PiAKPj4gS2VybmVsIDIuNi4zOC1yYzIgYXBwZWFycyB0byBoYXZlIGEgZGF0ZSBvbmUg
+ZGF5IHByaW9yOiAyMiBKYW4gMjAxMToKPj4gCj4+IGh0dHA6Ly9naXQubGludXh0di5vcmcvaHZl
+cmt1aWwvbWVkaWFfdHJlZS5naXQ/YT1jb21taXQ7aD0xYmFlNGNlMjdjOWM5MDM0NGYyM2M2NWVh
+Njk2NmM1MGZmZWFlMmY1Cj4+IAo+PiBTbyB0aGUgYnVnIHdpbGwgYmUgaW4gd2hhdGV2ZXIgdmVy
+c2lvbiBjb21lcyBvdXQgYWZ0ZXIgMi42LjM4LXJjMgo+Cj5JJ2xsIGxvb2sgYXQgdGhpcyB0b21v
+cnJvdy4gSXQncyBiZWVuIHZlcnkgYnVzeSBmb3IgdGhlIHBhc3Qgd2VlayBhbmQgSSBoYXZlbid0
+Cj5oYWQgdGltZSB0byBsb29rIGludG8gdGhpcy4KPgo+SXQgZGVmaW5pdGVseSBkb2Vzbid0IHJl
+cXVpcmUgYW55IG90aGVyIHBhdGNoZXMsIGJ1dCBwcm9iYWJseSBzb21lIG5ldyBwYXRjaAo+Y2hh
+bmdlZCB0aGUgb3JkZXIgb2Ygc29tZSBsaW5lcyBjYXVzaW5nIHRoZSBwYXRjaCB0byBmYWlsLgo+
+Cj5SZWdhcmRzLAo+Cj4JSGFucwo+Cj4+IAo+PiBSZWdhcmRzLAo+PiBBbmR5Cj4+IAo+PiA+IENo
+ZWVycywKPj4gPiBNYXVybwo+PiAKPj4gCj4+IAo+Cj4tLSAKPkhhbnMgVmVya3VpbCAtIHZpZGVv
+NGxpbnV4IGRldmVsb3BlciAtIHNwb25zb3JlZCBieSBDaXNjbwo=
 
-CHECK: usleep_range is preferred over udelay; see Documentation/timers/timers-howto.txt
-+		udelay(10);
-CHECK: multiple assignments should be avoided
-#1552: FILE: drivers/media/video/omap3-isp/ispcsi2.c:212:
-+	ctx->ping_addr = ctx->pong_addr = addr;
-
-CHECK: usleep_range is preferred over udelay; see Documentation/timers/timers-howto.txt
-+			udelay(100);
-CHECK: usleep_range is preferred over udelay; see Documentation/timers/timers-howto.txt
-+		udelay(100);
-CHECK: usleep_range is preferred over udelay; see Documentation/timers/timers-howto.txt
-+		udelay(50);
-total: 0 errors, 0 warnings, 5 checks, 3074 lines checked
-
-/home/balbi/tst.diff has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
--- 
-balbi
