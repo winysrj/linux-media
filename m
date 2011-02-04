@@ -1,98 +1,94 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:11067 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754521Ab1BMR3K (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Feb 2011 12:29:10 -0500
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p1DHTA8X022923
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sun, 13 Feb 2011 12:29:10 -0500
-Received: from pedra (vpn-239-52.phx2.redhat.com [10.3.239.52])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p1DHT5kL015438
-	for <linux-media@vger.kernel.org>; Sun, 13 Feb 2011 12:29:09 -0500
-Date: Sun, 13 Feb 2011 15:28:57 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 5/5] [media] cx231xx: Add support for PV Xcapture USB
-Message-ID: <20110213152857.404da31f@pedra>
-In-Reply-To: <cover.1297617986.git.mchehab@redhat.com>
-References: <cover.1297617986.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from caiajhbdcaid.dreamhost.com ([208.97.132.83]:52891 "EHLO
+	homiemail-a18.g.dreamhost.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751643Ab1BDWdu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 Feb 2011 17:33:50 -0500
+Received: from homiemail-a18.g.dreamhost.com (localhost [127.0.0.1])
+	by homiemail-a18.g.dreamhost.com (Postfix) with ESMTP id B559C25006C
+	for <linux-media@vger.kernel.org>; Fri,  4 Feb 2011 14:33:49 -0800 (PST)
+Received: from [10.0.1.35] (s64-180-61-141.bc.hsia.telus.net [64.180.61.141])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	(Authenticated sender: neil@gumstix.com)
+	by homiemail-a18.g.dreamhost.com (Postfix) with ESMTPSA id 8A2F525006B
+	for <linux-media@vger.kernel.org>; Fri,  4 Feb 2011 14:33:49 -0800 (PST)
+Message-ID: <4D4C7ED2.4060600@gumstix.com>
+Date: Fri, 04 Feb 2011 14:33:54 -0800
+From: Neil MacMunn <neil@gumstix.com>
+MIME-Version: 1.0
+CC: linux-media@vger.kernel.org
+Subject: Re: omap3-isp segfault
+References: <4D4076C3.4080201@gumstix.com> <4D40CDB3.7090106@gumstix.com> <201101271328.05891.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201101271328.05891.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Adds support for Pixelviex Xcapture USB grabber device.
-This device has one composite and one s-video entry
-only, plus a button.
+Thanks Laurent.
 
-For now, the button is not supported.
+I've appended console output to the commands you've suggested.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+On 11-01-27 04:28 AM, Laurent Pinchart wrote:
+> Hi again,
+>
+> On Thursday 27 January 2011 02:43:15 Neil MacMunn wrote:
+>> Ok I solved the segfault problem by updating some of my v4l2 files
+>> (specifically v4l2-common.c). Now I only get nice sounding console
+>> messages.
+>>
+>>       Linux media interface: v0.10
+>>       Linux video capture interface: v2.00
+>>       omap3isp omap3isp: Revision 2.0 found
+>>       omap-iommu omap-iommu.0: isp: version 1.1
+>>       omap3isp omap3isp: hist: DMA channel = 4
+>>       mt9v032 3-005c: Probing MT9V032 at address 0x5c
+>>       omap3isp omap3isp: isp_set_xclk(): cam_xclka set to 28800000 Hz
+>>       omap3isp omap3isp: isp_set_xclk(): cam_xclka set to 0 Hz
+>>       mt9v032 3-005c: MT9V032 detected at address 0x5c
+>
+> As you're using an MT9V032 sensor, I can help you with the pipeline setup. You
+> can run the following commands to capture 5 raw images.
+>
+> ./media-ctl -r -l '"mt9v032 2-005c":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+Resetting all links to inactive
+Setting up link 16:0 -> 5:0 [1]
+Setting up link 5:1 -> 6:0 [1]
 
-diff --git a/drivers/media/video/cx231xx/cx231xx-cards.c b/drivers/media/video/cx231xx/cx231xx-cards.c
-index e04c955..6540b8d 100644
---- a/drivers/media/video/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/video/cx231xx/cx231xx-cards.c
-@@ -440,6 +440,35 @@ struct cx231xx_board cx231xx_boards[] = {
- 			.gpio = 0,
- 		} },
- 	},
-+	[CX231XX_BOARD_PV_XCAPTURE_USB] = {
-+		.name = "Pixelview Xcapture USB",
-+		.tuner_type = TUNER_ABSENT,
-+		.decoder = CX231XX_AVDECODER,
-+		.output_mode = OUT_MODE_VIP11,
-+		.demod_xfer_mode = 0,
-+		.ctl_pin_status_mask = 0xFFFFFFC4,
-+		.agc_analog_digital_select_gpio = 0x0c,
-+		.gpio_pin_status_mask = 0x4001000,
-+		.norm = V4L2_STD_NTSC,
-+		.no_alt_vanc = 1,
-+		.external_av = 1,
-+		.dont_use_port_3 = 1,
-+
-+		.input = {{
-+				.type = CX231XX_VMUX_COMPOSITE1,
-+				.vmux = CX231XX_VIN_2_1,
-+				.amux = CX231XX_AMUX_LINE_IN,
-+				.gpio = NULL,
-+			}, {
-+				.type = CX231XX_VMUX_SVIDEO,
-+				.vmux = CX231XX_VIN_1_1 |
-+					(CX231XX_VIN_1_2 << 8) |
-+					CX25840_SVIDEO_ON,
-+				.amux = CX231XX_AMUX_LINE_IN,
-+				.gpio = NULL,
-+			}
-+		},
-+	},
- };
- const unsigned int cx231xx_bcount = ARRAY_SIZE(cx231xx_boards);
- 
-@@ -469,6 +498,8 @@ struct usb_device_id cx231xx_id_table[] = {
- 	 .driver_info = CX231XX_BOARD_HAUPPAUGE_USBLIVE2},
- 	{USB_DEVICE_VER(USB_VID_PIXELVIEW, USB_PID_PIXELVIEW_SBTVD, 0x4000, 0x4001),
- 	 .driver_info = CX231XX_BOARD_PV_PLAYTV_USB_HYBRID},
-+	{USB_DEVICE(USB_VID_PIXELVIEW, 0x5014),
-+	 .driver_info = CX231XX_BOARD_PV_XCAPTURE_USB},
- 	{},
- };
- 
-diff --git a/drivers/media/video/cx231xx/cx231xx.h b/drivers/media/video/cx231xx/cx231xx.h
-index e1c222b..2d5ab0c 100644
---- a/drivers/media/video/cx231xx/cx231xx.h
-+++ b/drivers/media/video/cx231xx/cx231xx.h
-@@ -64,6 +64,7 @@
- #define CX231XX_BOARD_HAUPPAUGE_EXETER  8
- #define CX231XX_BOARD_HAUPPAUGE_USBLIVE2 9
- #define CX231XX_BOARD_PV_PLAYTV_USB_HYBRID 10
-+#define CX231XX_BOARD_PV_XCAPTURE_USB 11
- 
- /* Limits minimum and default number of buffers */
- #define CX231XX_MIN_BUF                 4
+> ./media-ctl -f '"mt9v032 2-005c":0[SGRBG10 752x480], "OMAP3 ISP CCDC":1[SGRBG10 752x480]'
+CCDC":1[SGRBG10 752x480]'
+Setting up format SGRBG10 752x480 on pad mt9v032 3-005c/0
+Format set: SGRBG10 752x480
+Setting up format SGRBG10 752x480 on pad OMAP3 ISP CCDC/0
+Format set: SGRBG10 752x480
+Setting up format SGRBG10 752x480 on pad OMAP3 ISP CCDC/1
+Format set: SGRBG10 752x480
+
+> ./yavta -p -f SGRBG10 -s 752x480 -n 4 --capture=5 --skip 4 -F $(./media-ctl -e "OMAP3 ISP CCDC output")
+$(./media-ctl -e "OMAP3 ISP CCDC output")
+Device /dev/video2 opened: OMAP3isp_video_pix_to_mbus: mbus->code=0x0000
+  ISP CCDC output (media).
+isp_video_mbus_to_pix: mbus->code=0x300A
+Video format set: width: 752 height: 480 buffer size: 721920
+Video format: BA10 (30314142) 752x480
+4 buffers requested.
+length: 721920 offset: 0
+Buffer 0 mapped at address 0x402e6000.
+length: 721920 offset: 724992
+Buffer 1 mapped at address 0x40427000.
+length: 721920 offset: 1449984
+Buffer 2 mapped at address 0x405bc000.
+length: 721920 offset: 2174976
+Buffer 3 mapped at address 0x40704000.
+Press enter to start capture
+
+isp_video_mbus_to_pix: mbus->code=0x300A
+
+And then it hangs. I'm trying to run a bt but I think mbus->code=0x0000 
+is the problem. Not sure where it stems from though. Thoughts?
+
 -- 
-1.7.1
-
+Neil
