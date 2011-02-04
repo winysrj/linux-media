@@ -1,99 +1,65 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58186 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754368Ab1BNMWB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Feb 2011 07:22:01 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [PATCH v6 10/10] omap3isp: Kconfig and Makefile
-Date: Mon, 14 Feb 2011 13:21:37 +0100
-Message-Id: <1297686097-9804-11-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1297686097-9804-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1297686097-9804-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:45776 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751009Ab1BDLA0 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 Feb 2011 06:00:26 -0500
+MIME-Version: 1.0
+In-Reply-To: <1295389936-3238-1-git-send-email-martin@neutronstar.dyndns.org>
+References: <1295389936-3238-1-git-send-email-martin@neutronstar.dyndns.org>
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Date: Fri, 4 Feb 2011 16:29:44 +0530
+Message-ID: <AANLkTi=8tsm+MumkYhDdefJO1ZQannthfVpaz3MEN26T@mail.gmail.com>
+Subject: Re: [PATCH RFC] arm: omap3evm: Add support for an MT9M032 based
+ camera board.
+To: Martin Hostettler <martin@neutronstar.dyndns.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Add the OMAP3 ISP driver to the kernel build system.
+On Wed, Jan 19, 2011 at 04:02, Martin Hostettler
+<martin@neutronstar.dyndns.org> wrote:
+> Adds board support for an MT9M032 based camera to omap3evm.
+>
+> Sigend-off-by: Martin Hostettler <martin@neutronstar.dyndns.org>
+> ---
+>  arch/arm/mach-omap2/Makefile                |    1 +
+>  arch/arm/mach-omap2/board-omap3evm-camera.c |  177 +++++++++++++++++++++++++++
+>  2 files changed, 178 insertions(+), 0 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/board-omap3evm-camera.c
+>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/Kconfig            |   13 +++++++++++++
- drivers/media/video/Makefile           |    2 ++
- drivers/media/video/omap3-isp/Makefile |   13 +++++++++++++
- include/linux/Kbuild                   |    1 +
- 4 files changed, 29 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/omap3-isp/Makefile
+<<snip>>
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index aa02160..9cf7153 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -718,6 +718,19 @@ config VIDEO_VIA_CAMERA
- 	   Chrome9 chipsets.  Currently only tested on OLPC xo-1.5 systems
- 	   with ov7670 sensors.
- 
-+config VIDEO_OMAP3
-+	tristate "OMAP 3 Camera support (EXPERIMENTAL)"
-+	select OMAP_IOMMU
-+	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && ARCH_OMAP3 && EXPERIMENTAL
-+	---help---
-+	  Driver for an OMAP 3 camera controller.
-+
-+config VIDEO_OMAP3_DEBUG
-+	bool "OMAP 3 Camera debug messages"
-+	depends on VIDEO_OMAP3
-+	---help---
-+	  Enable debug messages on OMAP 3 camera controller driver.
-+
- config SOC_CAMERA
- 	tristate "SoC camera support"
- 	depends on VIDEO_V4L2 && HAS_DMA && I2C
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index 35c774d..727b9a8 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -121,6 +121,8 @@ obj-$(CONFIG_VIDEO_CAFE_CCIC) += cafe_ccic.o
- 
- obj-$(CONFIG_VIDEO_VIA_CAMERA) += via-camera.o
- 
-+obj-$(CONFIG_VIDEO_OMAP3)	+= omap3-isp/
-+
- obj-$(CONFIG_USB_ZR364XX)       += zr364xx.o
- obj-$(CONFIG_USB_STKWEBCAM)     += stkwebcam.o
- 
-diff --git a/drivers/media/video/omap3-isp/Makefile b/drivers/media/video/omap3-isp/Makefile
-new file mode 100644
-index 0000000..b1b34477
---- /dev/null
-+++ b/drivers/media/video/omap3-isp/Makefile
-@@ -0,0 +1,13 @@
-+# Makefile for OMAP3 ISP driver
-+
-+ifdef CONFIG_VIDEO_OMAP3_DEBUG
-+EXTRA_CFLAGS += -DDEBUG
-+endif
-+
-+omap3-isp-objs += \
-+	isp.o ispqueue.o ispvideo.o \
-+	ispcsiphy.o ispccp2.o ispcsi2.o \
-+	ispccdc.o isppreview.o ispresizer.o \
-+	ispstat.o isph3a_aewb.o isph3a_af.o isphist.o
-+
-+obj-$(CONFIG_VIDEO_OMAP3) += omap3-isp.o
-diff --git a/include/linux/Kbuild b/include/linux/Kbuild
-index 19530c6..e879c1b 100644
---- a/include/linux/Kbuild
-+++ b/include/linux/Kbuild
-@@ -276,6 +276,7 @@ header-y += nfsacl.h
- header-y += nl80211.h
- header-y += nubus.h
- header-y += nvram.h
-+header-y += omap3isp.h
- header-y += omapfb.h
- header-y += oom.h
- header-y += param.h
--- 
-1.7.3.4
+> diff --git a/arch/arm/mach-omap2/board-omap3evm-camera.c b/arch/arm/mach-omap2/board-omap3evm-camera.c
+> new file mode 100644
+> index 0000000..ea82a49
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/board-omap3evm-camera.c
+> @@ -0,0 +1,177 @@
+> +/*
+> + * Copyright (C) 2010-2011 Lund Engineering
+> + * Contact: Gil Lund <gwlund@lundeng.com>
+> + * Author: Martin Hostettler <martin@neutronstar.dyndns.org>
+> + *
 
+It would be good to provide one line description of the file.
+
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+> + * 02110-1301 USA
+> + */
