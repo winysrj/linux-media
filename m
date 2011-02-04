@@ -1,27 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.22]:57335 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752490Ab1BQXlU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Feb 2011 18:41:20 -0500
-From: Malte Gell <malte.gell@gmx.de>
-To: linux-media@vger.kernel.org
-Subject: Re: Terratec Cinergy Hybrid stick
-Date: Fri, 18 Feb 2011 00:41:16 +0100
-References: <201102172103.34279.malte.gell@gmx.de>
-In-Reply-To: <201102172103.34279.malte.gell@gmx.de>
+Received: from smtp.nokia.com ([147.243.128.24]:26410 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751637Ab1BDMeN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 Feb 2011 07:34:13 -0500
+Message-ID: <4D4BF23A.1050800@maxwell.research.nokia.com>
+Date: Fri, 04 Feb 2011 14:34:02 +0200
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	alsa-devel@alsa-project.org, broonie@opensource.wolfsonmicro.com,
+	clemens@ladisch.de
+Subject: Re: [PATCH v8 05/12] media: Entity use count
+References: <1296131437-29954-1-git-send-email-laurent.pinchart@ideasonboard.com> <1296131437-29954-6-git-send-email-laurent.pinchart@ideasonboard.com> <201102041122.03886.hverkuil@xs4all.nl>
+In-Reply-To: <201102041122.03886.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Message-Id: <201102180041.16858.malte.gell@gmx.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-One more strange thing: Kernel 2.6.31 reports USB ID 0ccd:00a5 and with Kernel 
-2.6.38-rc the device has a different USB ID: 6000:0002
+Hi,
 
-What does that mean?
+And many thanks for the comments!
 
-Thanx
-Malte
+Hans Verkuil wrote:
+...
+>> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+>> index b82f824..114541a 100644
+>> --- a/include/media/media-entity.h
+>> +++ b/include/media/media-entity.h
+>> @@ -81,6 +81,8 @@ struct media_entity {
+>>  	struct media_pad *pads;		/* Pads array (num_pads elements) */
+>>  	struct media_link *links;	/* Links array (max_links elements)*/
+>>  
+>> +	int use_count;			/* Use count for the entity. */
+> 
+> Isn't unsigned better?
+
+Could be. The result, though, will be slightly more difficult checking
+for bad use count --- which always is a driver bug.
+
+me->use_count += change;
+WARN_ON(me->use_count < 0);
+
+we must do something like this:
+
+if (change < 0)
+	WARN_ON(me->use_count < (unsigned)-change);
+me->use_count += change;
+
+I'd perhaps also go with unsigned int; the choice for signed was made
+mainly since the above check and with signed int the check was more trivial.
+
+Regards,
+
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
