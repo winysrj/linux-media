@@ -1,72 +1,47 @@
 Return-path: <mchehab@pedra>
-Received: from mga02.intel.com ([134.134.136.20]:8893 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750898Ab1BIGbV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Feb 2011 01:31:21 -0500
-From: "Yang, Jianwei" <jianwei.yang@intel.com>
-To: "Wang, Wen W" <wen.w.wang@intel.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"umg-meego-handset-kernel@umglistsvr.jf.intel.com"
-	<umg-meego-handset-kernel@umglistsvr.jf.intel.com>
-CC: Jozef Kruger <jozef.kruger@siliconhive.com>
-Date: Wed, 9 Feb 2011 14:30:45 +0800
-Subject: RE: Memory allocation in Video4Linux
-Message-ID: <D5AB6E638E5A3E4B8F4406B113A5A19A32F923D8@shsmsx501.ccr.corp.intel.com>
-References: <D5AB6E638E5A3E4B8F4406B113A5A19A32F923C4@shsmsx501.ccr.corp.intel.com>
-In-Reply-To: <D5AB6E638E5A3E4B8F4406B113A5A19A32F923C4@shsmsx501.ccr.corp.intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:32973 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751535Ab1BDMXh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Feb 2011 07:23:37 -0500
+From: Vasiliy Kulikov <segoon@openwall.com>
+To: linux-kernel@vger.kernel.org
+Cc: security@kernel.org, Luca Risolia <luca.risolia@studio.unibo.it>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-usb@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCH 07/20] video: sn9c102: world-wirtable sysfs files
+Date: Fri,  4 Feb 2011 15:23:33 +0300
+Message-Id: <b560d7c146330b382b90d739a76d580ed4051d4e.1296818921.git.segoon@openwall.com>
+In-Reply-To: <cover.1296818921.git.segoon@openwall.com>
+References: <cover.1296818921.git.segoon@openwall.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Curious for the below, why it is a sum? Will you use all of format at the same time? 
+Don't allow everybody to change video settings.
 
-> 	1 RAW16: 2*14 = 28MB
-> 	1 qplane6: 6/4 * 14 = 21MB
-> 	1 yuv420_16: 2 * 1.5 * 14 = 42MB
-> 	1 yuv420: 1.5 * 14 = 21MB
-> 	1 yuv444: 3 * 14 = 42MB
-> 	total: 154MB.
+Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
+---
+ Compile tested only.
 
-> -----Original Message-----
-> From: umg-meego-handset-kernel-bounces@umglistsvr.jf.intel.com
-> [mailto:umg-meego-handset-kernel-bounces@umglistsvr.jf.intel.com] On
-> Behalf Of Wang, Wen W
-> Sent: Wednesday, February 09, 2011 2:23 PM
-> To: linux-media@vger.kernel.org; umg-meego-handset-
-> kernel@umglistsvr.jf.intel.com
-> Cc: Jozef Kruger
-> Subject: [Umg-meego-handset-kernel] Memory allocation in Video4Linux
-> 
-> Hi,
-> 
-> We are developing the image processor driver for Intel Medfield platform.
-> 
-> We have received some comments on memory management that we should use
-> standard Linux kernel interfaces for this, since we are doing everything
-> by ourselves including memory allocation (based on pages), page table
-> management, virtual address management and etc.
-> 
-> So can you please help give some advice or suggestion on using standard
-> kernel interface for memory management?
-> 
-> The processor has a MMU on-chip with same virtual address range as IA. The
-> processor will access system memory (read and write) through MMU and page
-> table. The memory consumption of the driver could be quite big especially
-> for high resolution (14MP) with certain features turned on.
-> For example: advanced ISP with XNR and yuv444 output, at 14MP this uses:
-> 	1 RAW16: 2*14 = 28MB
-> 	1 qplane6: 6/4 * 14 = 21MB
-> 	1 yuv420_16: 2 * 1.5 * 14 = 42MB
-> 	1 yuv420: 1.5 * 14 = 21MB
-> 	1 yuv444: 3 * 14 = 42MB
-> 	total: 154MB.
-> 
-> Thanks
-> Wen
-> _______________________________________________
-> Umg-meego-handset-kernel mailing list
-> Umg-meego-handset-kernel@umglistsvr.jf.intel.com
-> http://umglistsvr.jf.intel.com/mailman/listinfo/umg-meego-handset-kernel
+ drivers/media/video/sn9c102/sn9c102_core.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/video/sn9c102/sn9c102_core.c b/drivers/media/video/sn9c102/sn9c102_core.c
+index 84984f6..ce56a1c 100644
+--- a/drivers/media/video/sn9c102/sn9c102_core.c
++++ b/drivers/media/video/sn9c102/sn9c102_core.c
+@@ -1430,9 +1430,9 @@ static DEVICE_ATTR(i2c_reg, S_IRUGO | S_IWUSR,
+ 		   sn9c102_show_i2c_reg, sn9c102_store_i2c_reg);
+ static DEVICE_ATTR(i2c_val, S_IRUGO | S_IWUSR,
+ 		   sn9c102_show_i2c_val, sn9c102_store_i2c_val);
+-static DEVICE_ATTR(green, S_IWUGO, NULL, sn9c102_store_green);
+-static DEVICE_ATTR(blue, S_IWUGO, NULL, sn9c102_store_blue);
+-static DEVICE_ATTR(red, S_IWUGO, NULL, sn9c102_store_red);
++static DEVICE_ATTR(green, S_IWUSR, NULL, sn9c102_store_green);
++static DEVICE_ATTR(blue, S_IWUSR, NULL, sn9c102_store_blue);
++static DEVICE_ATTR(red, S_IWUSR, NULL, sn9c102_store_red);
+ static DEVICE_ATTR(frame_header, S_IRUGO, sn9c102_show_frame_header, NULL);
+ 
+ 
+-- 
+1.7.0.4
+
