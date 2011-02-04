@@ -1,113 +1,84 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:56263 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753507Ab1BNM3L convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Feb 2011 07:29:11 -0500
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:46590 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752697Ab1BDOAm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Feb 2011 09:00:42 -0500
+Date: Fri, 4 Feb 2011 17:00:33 +0300
+From: Vasiliy Kulikov <segoon@openwall.com>
+To: linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	socketcan-core@lists.berlios.de, netdev@vger.kernel.org,
+	platform-driver-x86@vger.kernel.org,
+	acpi4asus-user@lists.sourceforge.net, rtc-linux@googlegroups.com,
+	linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com,
+	linux-mtd@lists.infradead.org, security@kernel.org
+Subject: [PATCH 00/20] world-writable files in sysfs and debugfs
+Message-ID: <20110204140033.GA31184@albatros>
 MIME-Version: 1.0
-In-Reply-To: <AANLkTingOYyEs4ZZrcaV0NOhiuGzSpvkATPRFjhFMCmE@mail.gmail.com>
-References: <AANLkTinAYrGV1k357Bn8trtxafZDoYozG7LDcm3KNBSt@mail.gmail.com> <AANLkTingOYyEs4ZZrcaV0NOhiuGzSpvkATPRFjhFMCmE@mail.gmail.com>
-From: halli manjunatha <manjunatha_halli@ti.com>
-Date: Mon, 14 Feb 2011 17:58:48 +0530
-Message-ID: <AANLkTinQxwK_nVtJ2OOoQx8pTL_58cqoW4ZEE-utxbic@mail.gmail.com>
-Subject: Re: [GIT PULL] TI WL 128x FM V4L2 driver
-To: linux-media <linux-media@vger.kernel.org>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
+The search was made with trivial shell commands:
 
-V4L2 FM driver depend upon an underlying TI_ST driver which is the
-core transport driver.
-Updates to TI-ST driver happen on linux-next tree on kernel.org and
-are planned to be released in 2.6.39.
+find | xargs grep S_IWUGO
+find | xargs grep S_IWOTH
 
-Since your tree @
-[http://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git]
-lags behind the linux-next tree, the recent updates to TI-ST driver
-are missing on your tree.
+I didn't precisely investigate how exactly one may damage the
+system/hardware because of issues number, maybe the harm is very limited
+in case of some of these drivers.
 
-Unfortunately these would cause a build failure for the V4L2 driver,
-since the APIs have changed on the TI-ST driver.
-So, Please suggest on how to proceed to submit V4L2 driver ?
+One suspicious file is ./staging/speakup/speakup.h, but it explitly calls
+macros as world-writable.  I didn't check what speakup's world-writable
+files provide because it requires some knowledge about the hardware.
 
-Do I pull in the changes which have gone into linux-next on my clone
-of your tree ? So that during a GIT pull changes on linux-next for
-TI-ST driver also gets into your tree?
 
-Regards
-Manjunatha Halli
+Vasiliy Kulikov (20):
+  mach-omap2: mux: world-writable debugfs files
+  mach-omap2: pm: world-writable debugfs timer files
+  mach-omap2: smartreflex: world-writable debugfs voltage files
+  mach-ux500: mbox-db5500: world-writable sysfs fifo file
+  leds: lp5521: world-writable sysfs engine* files
+  leds: lp5523: world-writable engine* sysfs files
+  video: sn9c102: world-wirtable sysfs files
+  mfd: ab3100: world-writable debugfs *_priv files
+  mfd: ab3500: world-writable debugfs register-* files
+  mfd: ab8500: world-writable debugfs register-* files
+  misc: ep93xx_pwm: world-writable sysfs files
+  net: can: at91_can: world-writable sysfs files
+  net: can: janz-ican3: world-writable sysfs termination file
+  platform: x86: acer-wmi: world-writable sysfs threeg file
+  platform: x86: asus_acpi: world-writable procfs files
+  platform: x86: tc1100-wmi: world-writable sysfs wireless and jogdial files
+  rtc: rtc-ds1511: world-writable sysfs nvram file
+  scsi: aic94xx: world-writable sysfs update_bios file
+  scsi: iscsi: world-writable sysfs priv_sess file
+  fs: ubifs: world-writable debugfs dump_* files
 
-> On Tue, Jan 25, 2011 at 11:18 AM, halli manjunatha <manjunatha_halli@ti.com> wrote:
->>
->> Hi Mauro,
->>
->> Please pull the WL128x FM V4L2 driver from
->> http://dev.omapzoom.org/pub/scm/manju/L24x-btfm.git fm_v4l2_upstream
->>
->> This is TI WL128x FM V4L2 driver and it introduces ‘wl128x’ folder
->> under the ‘drivers/media/radio’. This driver enables support for FM RX
->> and TX for Texas Instrument's WL128x (also compatible with WL127x)
->> WiLink chip sets. The V4L2 FM driver can work in either Rx or Tx mode,
->> and V4L2 interfaces are provided for both.
->>
->> Texas Instrument's WL128x chip set packs BT, FM, GPS and WLAN in a
->> single die with BT, FM and GPS being interfaced over a single UART.
->> This driver works on top of the shared transport line discipline
->> driver. This driver can also be made use for the WL127x version of the
->> chip which packs BT, FM and WLAN only.
->>
->> This driver has been reviewed by various folks within TI and also in
->> Linux media community. The driver has been tested extensively on TI
->> platforms and we believe that it is ready for merge into mainline.
->>
->> The following changes since commit db309d3d54c2f721dd1176ce86c63b0381c0a258:
->>  Mauro Carvalho Chehab (1):
->>        [media] add support for Encore FM3
->>
->> are available in the git repository at:
->>
->>  http://dev.omapzoom.org/pub/scm/manju/L24x-btfm.git fm_v4l2_upstream
->>
->> Manjunatha Halli (7):
->>      drivers:media:radio: wl128x: FM Driver common header file
->>      drivers:media:radio: wl128x: FM Driver V4L2 sources
->>      drivers:media:radio: wl128x: FM Driver Common sources
->>      drivers:media:radio: wl128x: FM driver RX sources
->>      drivers:media:radio: wl128x: FM driver TX sources
->>      drivers:media:radio: wl128x: Kconfig & Makefile for wl128x driver
->>      drivers:media:radio: Update Kconfig and Makefile for wl128x FM driver
->>
->>  drivers/media/radio/Kconfig               |    3 +
->>  drivers/media/radio/Makefile              |    1 +
->>  drivers/media/radio/wl128x/Kconfig        |   17 +
->>  drivers/media/radio/wl128x/Makefile       |    6 +
->>  drivers/media/radio/wl128x/fmdrv.h        |  244 +++++
->>  drivers/media/radio/wl128x/fmdrv_common.c | 1677 +++++++++++++++++++++++++++++
->>  drivers/media/radio/wl128x/fmdrv_common.h |  402 +++++++
->>  drivers/media/radio/wl128x/fmdrv_rx.c     |  847 +++++++++++++++
->>  drivers/media/radio/wl128x/fmdrv_rx.h     |   59 +
->>  drivers/media/radio/wl128x/fmdrv_tx.c     |  425 ++++++++
->>  drivers/media/radio/wl128x/fmdrv_tx.h     |   37 +
->>  drivers/media/radio/wl128x/fmdrv_v4l2.c   |  580 ++++++++++
->>  drivers/media/radio/wl128x/fmdrv_v4l2.h   |   33 +
->>  13 files changed, 4331 insertions(+), 0 deletions(-)
->>  create mode 100644 drivers/media/radio/wl128x/Kconfig
->>  create mode 100644 drivers/media/radio/wl128x/Makefile
->>  create mode 100644 drivers/media/radio/wl128x/fmdrv.h
->>  create mode 100644 drivers/media/radio/wl128x/fmdrv_common.c
->>  create mode 100644 drivers/media/radio/wl128x/fmdrv_common.h
->>  create mode 100644 drivers/media/radio/wl128x/fmdrv_rx.c
->>  create mode 100644 drivers/media/radio/wl128x/fmdrv_rx.h
->>  create mode 100644 drivers/media/radio/wl128x/fmdrv_tx.c
->>  create mode 100644 drivers/media/radio/wl128x/fmdrv_tx.h
->>  create mode 100644 drivers/media/radio/wl128x/fmdrv_v4l2.c
->>  create mode 100644 drivers/media/radio/wl128x/fmdrv_v4l2.h
->>
->> --
->> Best Regards
->> Manjunatha Halli
->
+ arch/arm/mach-omap2/mux.c                  |    2 +-
+ arch/arm/mach-omap2/pm-debug.c             |    8 ++++----
+ arch/arm/mach-omap2/smartreflex.c          |    4 ++--
+ arch/arm/mach-ux500/mbox-db5500.c          |    2 +-
+ drivers/leds/leds-lp5521.c                 |   14 +++++++-------
+ drivers/leds/leds-lp5523.c                 |   20 ++++++++++----------
+ drivers/media/video/sn9c102/sn9c102_core.c |    6 +++---
+ drivers/mfd/ab3100-core.c                  |    4 ++--
+ drivers/mfd/ab3550-core.c                  |    6 +++---
+ drivers/mfd/ab8500-debugfs.c               |    6 +++---
+ drivers/misc/ep93xx_pwm.c                  |    6 +++---
+ drivers/net/can/at91_can.c                 |    2 +-
+ drivers/net/can/janz-ican3.c               |    2 +-
+ drivers/platform/x86/acer-wmi.c            |    2 +-
+ drivers/platform/x86/asus_acpi.c           |    8 +-------
+ drivers/platform/x86/tc1100-wmi.c          |    2 +-
+ drivers/rtc/rtc-ds1511.c                   |    2 +-
+ drivers/scsi/aic94xx/aic94xx_init.c        |    2 +-
+ drivers/scsi/scsi_transport_iscsi.c        |    2 +-
+ fs/ubifs/debug.c                           |    6 +++---
+ 20 files changed, 50 insertions(+), 56 deletions(-)
+
+--
+Vasiliy Kulikov
+http://www.openwall.com - bringing security into open computing environments
