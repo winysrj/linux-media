@@ -1,152 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.8]:55553 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752075Ab1BEQgr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Feb 2011 11:36:47 -0500
-Date: Sat, 5 Feb 2011 17:36:37 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Anatolij Gustschin <agust@denx.de>
-cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	Dan Williams <dan.j.williams@intel.com>,
-	Detlev Zundel <dzu@denx.de>,
-	Markus Niebel <Markus.Niebel@tqs.de>
-Subject: Re: [PATCH 2/2 v2] dma: ipu_idmac: do not lose valid received data
- in the irq handler
-In-Reply-To: <20110205143505.0b300a3a@wker>
-Message-ID: <Pine.LNX.4.64.1102051735270.11500@axis700.grange>
-References: <1296031789-1721-3-git-send-email-agust@denx.de>
- <1296476549-10421-1-git-send-email-agust@denx.de>
- <Pine.LNX.4.64.1102031104090.21719@axis700.grange> <20110205143505.0b300a3a@wker>
+Received: from casper.infradead.org ([85.118.1.10]:44263 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752149Ab1BDP3T (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Feb 2011 10:29:19 -0500
+Message-ID: <4D4C1B48.4040107@infradead.org>
+Date: Fri, 04 Feb 2011 13:29:12 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Vasiliy Kulikov <segoon@openwall.com>
+CC: linux-kernel@vger.kernel.org, security@kernel.org,
+	Luca Risolia <luca.risolia@studio.unibo.it>,
+	linux-usb@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 07/20] video: sn9c102: world-wirtable sysfs files
+References: <cover.1296818921.git.segoon@openwall.com> <b560d7c146330b382b90d739a76d580ed4051d4e.1296818921.git.segoon@openwall.com>
+In-Reply-To: <b560d7c146330b382b90d739a76d580ed4051d4e.1296818921.git.segoon@openwall.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sat, 5 Feb 2011, Anatolij Gustschin wrote:
+Em 04-02-2011 10:23, Vasiliy Kulikov escreveu:
+> Don't allow everybody to change video settings.
+> 
+> Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
+> ---
+>  Compile tested only.
+> 
+>  drivers/media/video/sn9c102/sn9c102_core.c |    6 +++---
+>  1 files changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/video/sn9c102/sn9c102_core.c b/drivers/media/video/sn9c102/sn9c102_core.c
+> index 84984f6..ce56a1c 100644
+> --- a/drivers/media/video/sn9c102/sn9c102_core.c
+> +++ b/drivers/media/video/sn9c102/sn9c102_core.c
+> @@ -1430,9 +1430,9 @@ static DEVICE_ATTR(i2c_reg, S_IRUGO | S_IWUSR,
+>  		   sn9c102_show_i2c_reg, sn9c102_store_i2c_reg);
+>  static DEVICE_ATTR(i2c_val, S_IRUGO | S_IWUSR,
+>  		   sn9c102_show_i2c_val, sn9c102_store_i2c_val);
+> -static DEVICE_ATTR(green, S_IWUGO, NULL, sn9c102_store_green);
+> -static DEVICE_ATTR(blue, S_IWUGO, NULL, sn9c102_store_blue);
+> -static DEVICE_ATTR(red, S_IWUGO, NULL, sn9c102_store_red);
+> +static DEVICE_ATTR(green, S_IWUSR, NULL, sn9c102_store_green);
+> +static DEVICE_ATTR(blue, S_IWUSR, NULL, sn9c102_store_blue);
+> +static DEVICE_ATTR(red, S_IWUSR, NULL, sn9c102_store_red);
+>  static DEVICE_ATTR(frame_header, S_IRUGO, sn9c102_show_frame_header, NULL);
 
-> Hi Guennadi,
-> 
-> On Thu, 3 Feb 2011 11:09:54 +0100 (CET)
-> Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> 
-> > Hi Anatolij
-> > 
-> > On Mon, 31 Jan 2011, Anatolij Gustschin wrote:
-> > 
-> > I'm afraid there seems to be a problem with your patch. I have no idea 
-> > what is causing it, but I'm just observing some wrong behaviour, that is 
-> > not there without it. Namely, I added a debug print to the IDMAC interrupt 
-> > handler
-> > 
-> >  	curbuf	= idmac_read_ipureg(&ipu_data, IPU_CHA_CUR_BUF);
-> >  	err	= idmac_read_ipureg(&ipu_data, IPU_INT_STAT_4);
-> >  
-> > +	printk(KERN_DEBUG "%s(): IDMAC irq %d, buf %d, current %d\n", __func__,
-> > +	       irq, ichan->active_buffer, (curbuf >> chan_id) & 1);
-> >  
-> >  	if (err & (1 << chan_id)) {
-> >  		idmac_write_ipureg(&ipu_data, 1 << chan_id, IPU_INT_STAT_4);
-> > 
-> > and without your patch I see buffer numbers correctly toggling all the 
-> > time like
-> > 
-> > idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> > idmac_interrupt(): IDMAC irq 177, buf 0, current 1
-> > idmac_interrupt(): IDMAC irq 177, buf 1, current 0
-> > idmac_interrupt(): IDMAC irq 177, buf 0, current 1
-> > idmac_interrupt(): IDMAC irq 177, buf 1, current 0
-> > idmac_interrupt(): IDMAC irq 177, buf 0, current 1
-> > ...
-> > 
-> > Yes, the first interrupt is different, that's where I'm dropping / 
-> > postponing it. With your patch only N (equal to the number of buffers 
-> > used, I think) first interrupts toggle, then always only one buffer is 
-> > used:
-> > 
-> > idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> > idmac_interrupt(): IDMAC irq 177, buf 1, current 1
-> > idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> > idmac_interrupt(): IDMAC irq 177, buf 1, current 1
-> > idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> > idmac_interrupt(): IDMAC irq 177, buf 1, current 1
-> > idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> > idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> > idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> > ...
-> > 
-> > Verified with both capture.c and mplayer. Could you, please, verify 
-> > whether you get the same behaviour and what the problem could be?
-> 
-> Now I did some further testing with idmac patch applied and with
-> added debug print in the IDMAC interrupt handler. There is no problem.
-> Testing with capture.c (4 buffers used as default) shows that buffer
-> numbers toggle correctly for all 100 captured frames:
-
-Hm, interesting, I'll have to look at my testing in more detail then 
-(once back from FOSDEM). Could you maybe try mplayer too?
-
-Thanks
-Guennadi
-
-> ...
-> mx3-camera mx3-camera.0: MX3 Camera driver attached to camera 0
-> idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> idmac_interrupt(): IDMAC irq 177, buf 1, current 1
-> idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> idmac_interrupt(): IDMAC irq 177, buf 1, current 1
-> idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> idmac_interrupt(): IDMAC irq 177, buf 1, current 1
-> ...
-> idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> idmac_interrupt(): IDMAC irq 177, buf 1, current 1
-> idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> idmac_interrupt(): IDMAC irq 177, buf 1, current 1
-> idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> idmac_interrupt(): IDMAC irq 177, buf 1, current 1
-> mx3-camera mx3-camera.0: MX3 Camera driver detached from camera 0
-> 
-> Also testing with my test application didn't show any problem.
-> When using more than 1 buffer (tested with 2, 3 and 4 queued
-> buffers) double buffering works as expected and frame numbers
-> toggle correctly. Capturing 30 frames produce:
-> 
-> mx3-camera mx3-camera.0: MX3 Camera driver attached to camera 0
-> idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> idmac_interrupt(): IDMAC irq 177, buf 1, current 1
-> idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> idmac_interrupt(): IDMAC irq 177, buf 1, current 1
-> idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> idmac_interrupt(): IDMAC irq 177, buf 1, current 1
-> idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> idmac_interrupt(): IDMAC irq 177, buf 1, current 1
-> idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> idmac_interrupt(): IDMAC irq 177, buf 1, current 1
-> idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> idmac_interrupt(): IDMAC irq 177, buf 1, current 1
-> idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> idmac_interrupt(): IDMAC irq 177, buf 1, current 1
-> idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> idmac_interrupt(): IDMAC irq 177, buf 1, current 1
-> idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> idmac_interrupt(): IDMAC irq 177, buf 1, current 1
-> idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> idmac_interrupt(): IDMAC irq 177, buf 1, current 1
-> idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> idmac_interrupt(): IDMAC irq 177, buf 1, current 1
-> idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> idmac_interrupt(): IDMAC irq 177, buf 1, current 1
-> idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> idmac_interrupt(): IDMAC irq 177, buf 1, current 1
-> idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> idmac_interrupt(): IDMAC irq 177, buf 1, current 1
-> idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> idmac_interrupt(): IDMAC irq 177, buf 1, current 1
-> mx3-camera mx3-camera.0: MX3 Camera driver detached from camera 0
-> 
-> Anatolij
-> 
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
