@@ -1,94 +1,278 @@
 Return-path: <mchehab@pedra>
-Received: from caiajhbdcaid.dreamhost.com ([208.97.132.83]:52891 "EHLO
-	homiemail-a18.g.dreamhost.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751643Ab1BDWdu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Feb 2011 17:33:50 -0500
-Received: from homiemail-a18.g.dreamhost.com (localhost [127.0.0.1])
-	by homiemail-a18.g.dreamhost.com (Postfix) with ESMTP id B559C25006C
-	for <linux-media@vger.kernel.org>; Fri,  4 Feb 2011 14:33:49 -0800 (PST)
-Received: from [10.0.1.35] (s64-180-61-141.bc.hsia.telus.net [64.180.61.141])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	(Authenticated sender: neil@gumstix.com)
-	by homiemail-a18.g.dreamhost.com (Postfix) with ESMTPSA id 8A2F525006B
-	for <linux-media@vger.kernel.org>; Fri,  4 Feb 2011 14:33:49 -0800 (PST)
-Message-ID: <4D4C7ED2.4060600@gumstix.com>
-Date: Fri, 04 Feb 2011 14:33:54 -0800
-From: Neil MacMunn <neil@gumstix.com>
+Received: from moutng.kundenserver.de ([212.227.126.171]:49288 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753968Ab1BDJhh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Feb 2011 04:37:37 -0500
+Date: Fri, 4 Feb 2011 10:37:33 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Markus Niebel <list-09_linux_media@tqsc.de>
+cc: Anatolij Gustschin <agust@denx.de>, linux-media@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	Dan Williams <dan.j.williams@intel.com>,
+	Detlev Zundel <dzu@denx.de>,
+	Markus Niebel <Markus.Niebel@tqs.de>
+Subject: Re: [PATCH 2/2 v2] dma: ipu_idmac: do not lose valid received data
+ in the irq handler
+In-Reply-To: <4D4BC4A7.2070905@tqsc.de>
+Message-ID: <Pine.LNX.4.64.1102041035250.14717@axis700.grange>
+References: <1296031789-1721-3-git-send-email-agust@denx.de>
+ <1296476549-10421-1-git-send-email-agust@denx.de>
+ <Pine.LNX.4.64.1102031104090.21719@axis700.grange> <4D4BC4A7.2070905@tqsc.de>
 MIME-Version: 1.0
-CC: linux-media@vger.kernel.org
-Subject: Re: omap3-isp segfault
-References: <4D4076C3.4080201@gumstix.com> <4D40CDB3.7090106@gumstix.com> <201101271328.05891.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201101271328.05891.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Thanks Laurent.
+Hi Markus
 
-I've appended console output to the commands you've suggested.
+On Fri, 4 Feb 2011, Markus Niebel wrote:
 
-On 11-01-27 04:28 AM, Laurent Pinchart wrote:
-> Hi again,
->
-> On Thursday 27 January 2011 02:43:15 Neil MacMunn wrote:
->> Ok I solved the segfault problem by updating some of my v4l2 files
->> (specifically v4l2-common.c). Now I only get nice sounding console
->> messages.
->>
->>       Linux media interface: v0.10
->>       Linux video capture interface: v2.00
->>       omap3isp omap3isp: Revision 2.0 found
->>       omap-iommu omap-iommu.0: isp: version 1.1
->>       omap3isp omap3isp: hist: DMA channel = 4
->>       mt9v032 3-005c: Probing MT9V032 at address 0x5c
->>       omap3isp omap3isp: isp_set_xclk(): cam_xclka set to 28800000 Hz
->>       omap3isp omap3isp: isp_set_xclk(): cam_xclka set to 0 Hz
->>       mt9v032 3-005c: MT9V032 detected at address 0x5c
->
-> As you're using an MT9V032 sensor, I can help you with the pipeline setup. You
-> can run the following commands to capture 5 raw images.
->
-> ./media-ctl -r -l '"mt9v032 2-005c":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
-ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
-Resetting all links to inactive
-Setting up link 16:0 -> 5:0 [1]
-Setting up link 5:1 -> 6:0 [1]
+> Hello Guennadi, hello Anatolij
+> 
+> I've tried that with my setup:
+> 
+> Hardware: i.MX35, special CCD camera over FPGA
+> Kernel: 2.6.34
+> 
+> patch v4l: soc-camera: start stream after queueing the buffers is applied and
+> our camera driver handles streamon / streamoff so that no sync signal / clock
+> is provided, when not streaming.
+> 
+> Our setup works with 4 buffers
+> 
+> What we see is as we would expect plus no difference with 1st buffer:
 
-> ./media-ctl -f '"mt9v032 2-005c":0[SGRBG10 752x480], "OMAP3 ISP CCDC":1[SGRBG10 752x480]'
-CCDC":1[SGRBG10 752x480]'
-Setting up format SGRBG10 752x480 on pad mt9v032 3-005c/0
-Format set: SGRBG10 752x480
-Setting up format SGRBG10 752x480 on pad OMAP3 ISP CCDC/0
-Format set: SGRBG10 752x480
-Setting up format SGRBG10 752x480 on pad OMAP3 ISP CCDC/1
-Format set: SGRBG10 752x480
+But you haven't applied the patch, that my reply was actually referring to 
+- the change to ipu_idmac.c? I think, that's the one, killing the 
+double-buffering. But thanks for testing the streamon patch too!
 
-> ./yavta -p -f SGRBG10 -s 752x480 -n 4 --capture=5 --skip 4 -F $(./media-ctl -e "OMAP3 ISP CCDC output")
-$(./media-ctl -e "OMAP3 ISP CCDC output")
-Device /dev/video2 opened: OMAP3isp_video_pix_to_mbus: mbus->code=0x0000
-  ISP CCDC output (media).
-isp_video_mbus_to_pix: mbus->code=0x300A
-Video format set: width: 752 height: 480 buffer size: 721920
-Video format: BA10 (30314142) 752x480
-4 buffers requested.
-length: 721920 offset: 0
-Buffer 0 mapped at address 0x402e6000.
-length: 721920 offset: 724992
-Buffer 1 mapped at address 0x40427000.
-length: 721920 offset: 1449984
-Buffer 2 mapped at address 0x405bc000.
-length: 721920 offset: 2174976
-Buffer 3 mapped at address 0x40704000.
-Press enter to start capture
+Thanks
+Guennadi
 
-isp_video_mbus_to_pix: mbus->code=0x300A
+> 
+> [  206.770000] i5ccdhb i5ccdhb.0: soc_i5ccdhb_s_stream - enable 1
+> [  207.350000] i5ccdhb i5ccdhb.0: i5ccdhb_streamon: fps (29.412)
+> [  207.370000] idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+> [  207.410000] idmac_interrupt(): IDMAC irq 177, buf 1, current 1
+> [  207.440000] idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+> [  207.470000] idmac_interrupt(): IDMAC irq 177, buf 1, current 1
+> [  207.540000] idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+> [  207.580000] idmac_interrupt(): IDMAC irq 177, buf 1, current 1
+> [  207.610000] idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+> [  207.650000] idmac_interrupt(): IDMAC irq 177, buf 1, current 1
+> [  207.680000] idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+> [  207.710000] idmac_interrupt(): IDMAC irq 177, buf 1, current 1
+> [  207.750000] idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+> [  207.780000] idmac_interrupt(): IDMAC irq 177, buf 1, current 1
+> ...
+> [  241.370000] idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+> [  241.410000] idmac_interrupt(): IDMAC irq 177, buf 1, current 1
+> [  241.440000] idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+> [  241.470000] idmac_interrupt(): IDMAC irq 177, buf 1, current 1
+> [  241.510000] idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+> [  241.540000] idmac_interrupt(): IDMAC irq 177, buf 1, current 1
+> [  241.580000] idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+> [  241.610000] idmac_interrupt(): IDMAC irq 177, buf 1, current 1
+> [  257.190000] i5ccdhb i5ccdhb.0: soc_i5ccdhb_s_stream - enable 0
+> 
+> 
+> 
+> Am 03.02.2011 11:09, schrieb Guennadi Liakhovetski:
+> > Hi Anatolij
+> > 
+> > On Mon, 31 Jan 2011, Anatolij Gustschin wrote:
+> > 
+> > I'm afraid there seems to be a problem with your patch. I have no idea
+> > what is causing it, but I'm just observing some wrong behaviour, that is
+> > not there without it. Namely, I added a debug print to the IDMAC interrupt
+> > handler
+> > 
+> >   	curbuf	= idmac_read_ipureg(&ipu_data, IPU_CHA_CUR_BUF);
+> >   	err	= idmac_read_ipureg(&ipu_data, IPU_INT_STAT_4);
+> > 
+> > +	printk(KERN_DEBUG "%s(): IDMAC irq %d, buf %d, current %d\n",
+> > __func__,
+> > +	       irq, ichan->active_buffer, (curbuf>>  chan_id)&  1);
+> > 
+> >   	if (err&  (1<<  chan_id)) {
+> >   		idmac_write_ipureg(&ipu_data, 1<<  chan_id, IPU_INT_STAT_4);
+> > 
+> > and without your patch I see buffer numbers correctly toggling all the
+> > time like
+> > 
+> > idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+> > idmac_interrupt(): IDMAC irq 177, buf 0, current 1
+> > idmac_interrupt(): IDMAC irq 177, buf 1, current 0
+> > idmac_interrupt(): IDMAC irq 177, buf 0, current 1
+> > idmac_interrupt(): IDMAC irq 177, buf 1, current 0
+> > idmac_interrupt(): IDMAC irq 177, buf 0, current 1
+> > ...
+> > 
+> > Yes, the first interrupt is different, that's where I'm dropping /
+> > postponing it. With your patch only N (equal to the number of buffers
+> > used, I think) first interrupts toggle, then always only one buffer is
+> > used:
+> > 
+> > idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+> > idmac_interrupt(): IDMAC irq 177, buf 1, current 1
+> > idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+> > idmac_interrupt(): IDMAC irq 177, buf 1, current 1
+> > idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+> > idmac_interrupt(): IDMAC irq 177, buf 1, current 1
+> > idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+> > idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+> > idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+> > ...
+> > 
+> > Verified with both capture.c and mplayer. Could you, please, verify
+> > whether you get the same behaviour and what the problem could be?
+> > 
+> > Thanks
+> > Guennadi
+> > 
+> > > Currently when two or more buffers are queued by the camera driver
+> > > and so the double buffering is enabled in the idmac, we lose one
+> > > frame comming from CSI since the reporting of arrival of the first
+> > > frame is deferred by the DMAIC_7_EOF interrupt handler and reporting
+> > > of the arrival of the last frame is not done at all. So when requesting
+> > > N frames from the image sensor we actually receive N - 1 frames in
+> > > user space.
+> > > 
+> > > The reason for this behaviour is that the DMAIC_7_EOF interrupt
+> > > handler misleadingly assumes that the CUR_BUF flag is pointing to the
+> > > buffer used by the IDMAC. Actually it is not the case since the
+> > > CUR_BUF flag will be flipped by the FSU when the FSU is sending the
+> > > <TASK>_NEW_FRM_RDY signal when new frame data is delivered by the CSI.
+> > > When sending this singal, FSU updates the DMA_CUR_BUF and the
+> > > DMA_BUFx_RDY flags: the DMA_CUR_BUF is flipped, the DMA_BUFx_RDY
+> > > is cleared, indicating that the frame data is beeing written by
+> > > the IDMAC to the pointed buffer. DMA_BUFx_RDY is supposed to be
+> > > set to the ready state again by the MCU, when it has handled the
+> > > received data. DMAIC_7_CUR_BUF flag won't be flipped here by the
+> > > IPU, so waiting for this event in the EOF interrupt handler is wrong.
+> > > Actually there is no spurious interrupt as described in the comments,
+> > > this is the valid DMAIC_7_EOF interrupt indicating reception of the
+> > > frame from CSI.
+> > > 
+> > > The patch removes code that waits for flipping of the DMAIC_7_CUR_BUF
+> > > flag in the DMAIC_7_EOF interrupt handler. As the comment in the
+> > > current code denotes, this waiting doesn't help anyway. As a result
+> > > of this removal the reporting of the first arrived frame is not
+> > > deferred to the time of arrival of the next frame and the drivers
+> > > software flag 'ichan->active_buffer' is in sync with DMAIC_7_CUR_BUF
+> > > flag, so the reception of all requested frames works.
+> > > 
+> > > This has been verified on the hardware which is triggering the
+> > > image sensor by the programmable state machine, allowing to
+> > > obtain exact number of frames. On this hardware we do not tolerate
+> > > losing frames.
+> > > 
+> > > This patch also removes resetting the DMA_BUFx_RDY flags of
+> > > all channels in ipu_disable_channel() since transfers on other
+> > > DMA channels might be triggered by other running tasks and the
+> > > buffers should always be ready for data sending or reception.
+> > > 
+> > > Signed-off-by: Anatolij Gustschin<agust@denx.de>
+> > > ---
+> > > v2:
+> > >      Revise the commit message to provide more and correct
+> > >      information about the observed problem and proposed fix
+> > > 
+> > >   drivers/dma/ipu/ipu_idmac.c |   50
+> > > -------------------------------------------
+> > >   1 files changed, 0 insertions(+), 50 deletions(-)
+> > > 
+> > > diff --git a/drivers/dma/ipu/ipu_idmac.c b/drivers/dma/ipu/ipu_idmac.c
+> > > index cb26ee9..c1a125e 100644
+> > > --- a/drivers/dma/ipu/ipu_idmac.c
+> > > +++ b/drivers/dma/ipu/ipu_idmac.c
+> > > @@ -1145,29 +1145,6 @@ static int ipu_disable_channel(struct idmac *idmac,
+> > > struct idmac_channel *ichan,
+> > >   	reg = idmac_read_icreg(ipu, IDMAC_CHA_EN);
+> > >   	idmac_write_icreg(ipu, reg&  ~chan_mask, IDMAC_CHA_EN);
+> > > 
+> > > -	/*
+> > > -	 * Problem (observed with channel DMAIC_7): after enabling the channel
+> > > -	 * and initialising buffers, there comes an interrupt with current
+> > > still
+> > > -	 * pointing at buffer 0, whereas it should use buffer 0 first and only
+> > > -	 * generate an interrupt when it is done, then current should already
+> > > -	 * point to buffer 1. This spurious interrupt also comes on channel
+> > > -	 * DMASDC_0. With DMAIC_7 normally, is we just leave the ISR after the
+> > > -	 * first interrupt, there comes the second with current correctly
+> > > -	 * pointing to buffer 1 this time. But sometimes this second interrupt
+> > > -	 * doesn't come and the channel hangs. Clearing BUFx_RDY when
+> > > disabling
+> > > -	 * the channel seems to prevent the channel from hanging, but it
+> > > doesn't
+> > > -	 * prevent the spurious interrupt. This might also be unsafe. Think
+> > > -	 * about the IDMAC controller trying to switch to a buffer, when we
+> > > -	 * clear the ready bit, and re-enable it a moment later.
+> > > -	 */
+> > > -	reg = idmac_read_ipureg(ipu, IPU_CHA_BUF0_RDY);
+> > > -	idmac_write_ipureg(ipu, 0, IPU_CHA_BUF0_RDY);
+> > > -	idmac_write_ipureg(ipu, reg&  ~(1UL<<  channel), IPU_CHA_BUF0_RDY);
+> > > -
+> > > -	reg = idmac_read_ipureg(ipu, IPU_CHA_BUF1_RDY);
+> > > -	idmac_write_ipureg(ipu, 0, IPU_CHA_BUF1_RDY);
+> > > -	idmac_write_ipureg(ipu, reg&  ~(1UL<<  channel), IPU_CHA_BUF1_RDY);
+> > > -
+> > >   	spin_unlock_irqrestore(&ipu->lock, flags);
+> > > 
+> > >   	return 0;
+> > > @@ -1246,33 +1223,6 @@ static irqreturn_t idmac_interrupt(int irq, void
+> > > *dev_id)
+> > > 
+> > >   	/* Other interrupts do not interfere with this channel */
+> > >   	spin_lock(&ichan->lock);
+> > > -	if (unlikely(chan_id != IDMAC_SDC_0&&  chan_id != IDMAC_SDC_1&&
+> > > -		     ((curbuf>>  chan_id)&  1) == ichan->active_buffer&&
+> > > -		     !list_is_last(ichan->queue.next,&ichan->queue))) {
+> > > -		int i = 100;
+> > > -
+> > > -		/* This doesn't help. See comment in ipu_disable_channel() */
+> > > -		while (--i) {
+> > > -			curbuf = idmac_read_ipureg(&ipu_data,
+> > > IPU_CHA_CUR_BUF);
+> > > -			if (((curbuf>>  chan_id)&  1) != ichan->active_buffer)
+> > > -				break;
+> > > -			cpu_relax();
+> > > -		}
+> > > -
+> > > -		if (!i) {
+> > > -			spin_unlock(&ichan->lock);
+> > > -			dev_dbg(dev,
+> > > -				"IRQ on active buffer on channel %x, active "
+> > > -				"%d, ready %x, %x, current %x!\n", chan_id,
+> > > -				ichan->active_buffer, ready0, ready1, curbuf);
+> > > -			return IRQ_NONE;
+> > > -		} else
+> > > -			dev_dbg(dev,
+> > > -				"Buffer deactivated on channel %x, active "
+> > > -				"%d, ready %x, %x, current %x, rest %d!\n",
+> > > chan_id,
+> > > -				ichan->active_buffer, ready0, ready1, curbuf,
+> > > i);
+> > > -	}
+> > > -
+> > >   	if (unlikely((ichan->active_buffer&&  (ready1>>  chan_id)&  1) ||
+> > >   		     (!ichan->active_buffer&&  (ready0>>  chan_id)&  1)
+> > >   		     )) {
+> > > --
+> > > 1.7.1
+> > > 
+> > 
+> > ---
+> > Guennadi Liakhovetski, Ph.D.
+> > Freelance Open-Source Software Developer
+> > http://www.open-technology.de/
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-And then it hangs. I'm trying to run a bt but I think mbus->code=0x0000 
-is the problem. Not sure where it stems from though. Thoughts?
-
--- 
-Neil
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
