@@ -1,161 +1,164 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:41807 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751661Ab1BEPpR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Feb 2011 10:45:17 -0500
-Received: by fxm20 with SMTP id 20so3442432fxm.19
-        for <linux-media@vger.kernel.org>; Sat, 05 Feb 2011 07:45:16 -0800 (PST)
-Message-ID: <4D4D7088.5080903@googlemail.com>
-Date: Sat, 05 Feb 2011 16:45:12 +0100
-From: Sven Barth <pascaldragon@googlemail.com>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2528 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750739Ab1BDLzz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Feb 2011 06:55:55 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v5 0/5] OMAP3 ISP driver
+Date: Fri, 4 Feb 2011 12:55:50 +0100
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com
+References: <1296131541-30092-1-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1296131541-30092-1-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: cx25840: probe crashes for cx25837 chip on 2.6.37
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201102041255.50253.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello together!
+On Thursday, January 27, 2011 13:32:16 Laurent Pinchart wrote:
+> Hi everybody,
+> 
+> Here's the fifth version of the OMAP3 ISP driver patches, updated to
+> 2.6.37 and the latest changes in the media controller and sub-device APIs.
 
-I was eager to test my patch for cx25840 that was included in 2.6.37, so 
-I've updated my system and plugged in my Grabster AV400. But this 
-resulted in a "kernel bug" printed to dmesg:
+Hmm, patch 5/5 is missing. It's probably too big.
 
-==== dmesg begin ====
+Anyway, I got the patch from your git tree and did a review. It's always hard
+to review over 21000 lines of driver code :-), so I limited myself to the V4L2
+API parts. I can't really comment on the OMAP3 specific parts anyway.
 
-usb 1-5: new high speed USB device using ehci_hcd and address 6
-Linux video capture interface: v2.00
-pvrusb2: Hardware description: Terratec Grabster AV400
-pvrusb2: **********
-pvrusb2: WARNING: Support for this device (Terratec Grabster AV400) is 
-experimental.
-pvrusb2: Important functionality might not be entirely working.
-pvrusb2: Please consider contacting the driver author to help with 
-further stabilization of the driver.
-pvrusb2: **********
-usb 1-5: USB disconnect, address 6
-usbcore: registered new interface driver pvrusb2
-pvrusb2: 20110116 (from www.isely.net):Hauppauge WinTV-PVR-USB2 MPEG2 
-Encoder/Tuner
-pvrusb2: Debug mask is 31 (0x1f)
-pvrusb2: Failed to submit write-control URB status=-19
-pvrusb2: Device being rendered inoperable
-pvrusb2: ***WARNING*** pvrusb2 device hardware appears to be jammed and 
-I can't clear it.
-pvrusb2: You might need to power cycle the pvrusb2 device in order to 
-recover.
-usb 1-5: new high speed USB device using ehci_hcd and address 7
-pvrusb2: Hardware description: Terratec Grabster AV400
-pvrusb2: **********
-pvrusb2: WARNING: Support for this device (Terratec Grabster AV400) is 
-experimental.
-pvrusb2: Important functionality might not be entirely working.
-pvrusb2: Please consider contacting the driver author to help with 
-further stabilization of the driver.
-pvrusb2: **********
-cx25840 6-0044: cx25837-3 found @ 0x88 (pvrusb2_a)
-------------[ cut here ]------------
-kernel BUG at drivers/media/video/v4l2-ctrls.c:1143!
-invalid opcode: 0000 [#1] PREEMPT SMP
-last sysfs file: 
-/sys/devices/pci0000:00/0000:00:02.2/usb1/1-5/i2c-6/6-0044/uevent
-CPU 1
-Modules linked in: cx25840 pvrusb2 dvb_core cx2341x v4l2_common videodev 
-v4l1_compat v4l2_compat_ioctl32 tveeprom ipv6 xfs exportfs ext2 radeon 
-snd_emu10k1 snd_intel8x0 ohci_hcd snd_rawmidi snd_ac97_codec ttm 
-drm_kms_helper ac97_bus snd_seq_dummy skge ehci_hcd snd_seq_oss 
-snd_seq_midi_event snd_seq snd_util_mem snd_seq_device snd_pcm_oss 
-snd_hwdep snd_mixer_oss snd_pcm snd_timer emu10k1_gp drm i2c_algo_bit 
-shpchp snd i2c_nforce2 soundcore usbcore processor pci_hotplug i2c_core 
-parport_pc snd_page_alloc floppy serio_raw button psmouse ns558 
-edac_core ppdev k8temp edac_mce_amd evdev sg analog lp gameport pcspkr 
-parport ext4 mbcache jbd2 crc16 sd_mod sr_mod cdrom sata_nv pata_acpi 
-sata_sil24 pata_amd libata scsi_mod raid1 md_mod
+The first issue I found was related to controls: it seems you set up control
+handlers for subdevs that don't have any controls. You can just leave
+sd->ctrl_handler to NULL in that case and you don't need to use a control handler
+at all.
 
-Pid: 2184, comm: pvrusb2-context Not tainted 2.6.37-ARCH #1 nForce/
-RIP: 0010:[<ffffffffa020b352>]  [<ffffffffa020b352>] 
-v4l2_ctrl_cluster+0x32/0x40 [videodev]
-RSP: 0018:ffff880033c61a30  EFLAGS: 00010246
-RAX: 0000000000000001 RBX: ffff880038065800 RCX: 0000000000000001
-RDX: 0000000000000000 RSI: ffff880039de1ee0 RDI: 0000000000000002
-RBP: ffff880033c61a30 R08: 2222222222222222 R09: 2222222222222222
-R10: 0000000000000000 R11: 0000000000000000 R12: ffff880039de1e78
-R13: 0000000000008373 R14: ffff880039de1e00 R15: 00000000000000ed
-FS:  00007f05b98a8700(0000) GS:ffff88003fd00000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-CR2: 00007fff6c8c5fe0 CR3: 000000003c89b000 CR4: 00000000000006e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-Process pvrusb2-context (pid: 2184, threadinfo ffff880033c60000, task 
-ffff88003f8ada30)
-Stack:
-  ffff880033c61aa0 ffffffffa0310b99 ffff880000000000 ffff88003c99e3fc
-  ffff880033c61ab0 ffffffff00000000 0000000000000200 ffff880039de1e08
-  ffff880033c61ac0 ffff880038065828 ffffffffa0318590 ffffffffa0318540
-Call Trace:
-  [<ffffffffa0310b99>] cx25840_probe+0x479/0x840 [cx25840]
-  [<ffffffffa0308694>] i2c_device_probe+0x94/0xd0 [i2c_core]
-  [<ffffffff812b0f0a>] ? driver_sysfs_add+0x7a/0xb0
-  [<ffffffff812b11e6>] driver_probe_device+0x96/0x1c0
-  [<ffffffff812b13b0>] ? __device_attach+0x0/0x60
-  [<ffffffff812b13fb>] __device_attach+0x4b/0x60
-  [<ffffffff812afdd4>] bus_for_each_drv+0x64/0x90
-  [<ffffffff812b107f>] device_attach+0x8f/0xb0
-  [<ffffffff812b0805>] bus_probe_device+0x25/0x40
-  [<ffffffff812ae574>] device_add+0x4e4/0x5c0
-  [<ffffffff812ba941>] ? pm_runtime_init+0xd1/0xe0
-  [<ffffffff812ae669>] device_register+0x19/0x20
-  [<ffffffffa03091d5>] i2c_new_device+0x145/0x250 [i2c_core]
-  [<ffffffffa00b77b6>] v4l2_i2c_new_subdev_board+0x96/0x240 [v4l2_common]
-  [<ffffffffa00b79e3>] v4l2_i2c_new_subdev_cfg+0x83/0xb0 [v4l2_common]
-  [<ffffffffa0363760>] ? pvr2_context_notify+0x0/0x10 [pvrusb2]
-  [<ffffffffa0363760>] ? pvr2_context_notify+0x0/0x10 [pvrusb2]
-  [<ffffffffa035b606>] pvr2_hdw_initialize+0x346/0x1060 [pvrusb2]
-  [<ffffffffa036394b>] pvr2_context_thread_func+0x9b/0x320 [pvrusb2]
-  [<ffffffffa03638b0>] ? pvr2_context_thread_func+0x0/0x320 [pvrusb2]
-  [<ffffffff81077db0>] ? autoremove_wake_function+0x0/0x40
-  [<ffffffff813a6dc2>] ? _raw_spin_unlock_irqrestore+0x32/0x40
-  [<ffffffffa03638b0>] ? pvr2_context_thread_func+0x0/0x320 [pvrusb2]
-  [<ffffffff81077826>] kthread+0x96/0xa0
-  [<ffffffff8100cd24>] kernel_thread_helper+0x4/0x10
-  [<ffffffff81077790>] ? kthread+0x0/0xa0
-  [<ffffffff8100cd20>] ? kernel_thread_helper+0x0/0x10
-Code: e5 74 28 31 c0 85 ff 74 20 48 63 d0 48 8d 14 d6 48 8b 0a 48 85 c9 
-74 0a 48 89 71 18 48 8b 12 89 7a 20 83 c0 01 39 f8 72 e0 c9 c3 <0f> 0b 
-66 66 66 2e 0f 1f 84 00 00 00 00 00 55 48 c7 c2 e0 ff 20
-RIP  [<ffffffffa020b352>] v4l2_ctrl_cluster+0x32/0x40 [videodev]
-  RSP <ffff880033c61a30>
----[ end trace f2fe4d11aa83a3aa ]---
+There is also no need to set the core ctrl ops:
 
-==== dmesg end ====
++       .queryctrl = v4l2_subdev_queryctrl,
++       .querymenu = v4l2_subdev_querymenu,
++       .g_ctrl = v4l2_subdev_g_ctrl,
++       .s_ctrl = v4l2_subdev_s_ctrl,
++       .g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
++       .try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
++       .s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
 
-I have pinpointed the problem to the following part of cx25840_probe in 
-cx25840-core.c:
+These are only necessary if the master driver doesn't use the control
+framework but called core.queryctrl directly. That shouldn't be the case
+for this driver.
 
-==== source begin =====
-         sd->ctrl_handler = &state->hdl;
-         if (state->hdl.error) {
-                 int err = state->hdl.error;
+What isn't clear to me is whether the /dev/videoX nodes should give access
+to the subdev controls as well. As far as I can see the ctrl_handler pointer
+of neither v4l2_device nor video_device is ever set, so that means that the
+controls are only accessible through /dev/v4l-subdevX.
 
-                 v4l2_ctrl_handler_free(&state->hdl);
-                 kfree(state);
-                 return err;
-         }
-         v4l2_ctrl_cluster(2, &state->volume); // <= here the crash occurs
-         v4l2_ctrl_handler_setup(&state->hdl);
-==== source end ====
+I'm not sure whether that is intentional or not.
 
-I have added a "if (!is_cx2583x(state))" check before the marked line 
-and now the probing (and my device) works. If this is the correct 
-solution for this problem I'll prepare a mail containing a patch. If not 
-feel free to propose a better solution.
+The other comment I have is regarding include/linux/omap3isp.h: both the
+ioctls and the events need to be documented there. A one-liner for each is
+probably enough. I also see that struct omap3isp_stat_data has a deprecated
+field: perhaps when creating the final pull request the time is right to
+remove it?
 
-Note: This is a regression as the module used to work in 2.6.35 together 
-with the AV400 (I haven't tested 2.6.36 though).
+Finally, I noticed that OMAP3 has its own implementation of videobuf. Are
+there plans to move to vb2?
 
 Regards,
-Sven
 
-PS: Is there a way to get the source file and line of a dmesg "kernel 
-bug" report?
+	Hans
+
+> 
+> You can find the patches in http://git.linuxtv.org/pinchartl/media.git as
+> usual (media-0005-omap3isp).
+> 
+> Laurent Pinchart (2):
+>   omap3: Add function to register omap3isp platform device structure
+>   OMAP3 ISP driver
+> 
+> Sergio Aguirre (2):
+>   omap3: Remove unusued ISP CBUFF resource
+>   omap2: Fix camera resources for multiomap
+> 
+> Tuukka Toivonen (1):
+>   ARM: OMAP3: Update Camera ISP definitions for OMAP3630
+> 
+>  arch/arm/mach-omap2/devices.c                |   64 +-
+>  arch/arm/mach-omap2/devices.h                |   17 +
+>  arch/arm/plat-omap/include/plat/omap34xx.h   |   16 +-
+>  drivers/media/video/Kconfig                  |   13 +
+>  drivers/media/video/Makefile                 |    2 +
+>  drivers/media/video/isp/Makefile             |   13 +
+>  drivers/media/video/isp/cfa_coef_table.h     |  601 +++++++
+>  drivers/media/video/isp/gamma_table.h        |   90 +
+>  drivers/media/video/isp/isp.c                | 2221 +++++++++++++++++++++++++
+>  drivers/media/video/isp/isp.h                |  427 +++++
+>  drivers/media/video/isp/ispccdc.c            | 2280 ++++++++++++++++++++++++++
+>  drivers/media/video/isp/ispccdc.h            |  223 +++
+>  drivers/media/video/isp/ispccp2.c            | 1189 ++++++++++++++
+>  drivers/media/video/isp/ispccp2.h            |  101 ++
+>  drivers/media/video/isp/ispcsi2.c            | 1332 +++++++++++++++
+>  drivers/media/video/isp/ispcsi2.h            |  169 ++
+>  drivers/media/video/isp/ispcsiphy.c          |  247 +++
+>  drivers/media/video/isp/ispcsiphy.h          |   74 +
+>  drivers/media/video/isp/isph3a.h             |  117 ++
+>  drivers/media/video/isp/isph3a_aewb.c        |  374 +++++
+>  drivers/media/video/isp/isph3a_af.c          |  429 +++++
+>  drivers/media/video/isp/isphist.c            |  520 ++++++
+>  drivers/media/video/isp/isphist.h            |   40 +
+>  drivers/media/video/isp/isppreview.c         | 2120 ++++++++++++++++++++++++
+>  drivers/media/video/isp/isppreview.h         |  214 +++
+>  drivers/media/video/isp/ispqueue.c           | 1136 +++++++++++++
+>  drivers/media/video/isp/ispqueue.h           |  185 +++
+>  drivers/media/video/isp/ispreg.h             | 1589 ++++++++++++++++++
+>  drivers/media/video/isp/ispresizer.c         | 1710 +++++++++++++++++++
+>  drivers/media/video/isp/ispresizer.h         |  150 ++
+>  drivers/media/video/isp/ispstat.c            | 1100 +++++++++++++
+>  drivers/media/video/isp/ispstat.h            |  169 ++
+>  drivers/media/video/isp/ispvideo.c           | 1264 ++++++++++++++
+>  drivers/media/video/isp/ispvideo.h           |  202 +++
+>  drivers/media/video/isp/luma_enhance_table.h |  154 ++
+>  drivers/media/video/isp/noise_filter_table.h |   90 +
+>  include/linux/Kbuild                         |    1 +
+>  include/linux/omap3isp.h                     |  631 +++++++
+>  38 files changed, 21246 insertions(+), 28 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/devices.h
+>  create mode 100644 drivers/media/video/isp/Makefile
+>  create mode 100644 drivers/media/video/isp/cfa_coef_table.h
+>  create mode 100644 drivers/media/video/isp/gamma_table.h
+>  create mode 100644 drivers/media/video/isp/isp.c
+>  create mode 100644 drivers/media/video/isp/isp.h
+>  create mode 100644 drivers/media/video/isp/ispccdc.c
+>  create mode 100644 drivers/media/video/isp/ispccdc.h
+>  create mode 100644 drivers/media/video/isp/ispccp2.c
+>  create mode 100644 drivers/media/video/isp/ispccp2.h
+>  create mode 100644 drivers/media/video/isp/ispcsi2.c
+>  create mode 100644 drivers/media/video/isp/ispcsi2.h
+>  create mode 100644 drivers/media/video/isp/ispcsiphy.c
+>  create mode 100644 drivers/media/video/isp/ispcsiphy.h
+>  create mode 100644 drivers/media/video/isp/isph3a.h
+>  create mode 100644 drivers/media/video/isp/isph3a_aewb.c
+>  create mode 100644 drivers/media/video/isp/isph3a_af.c
+>  create mode 100644 drivers/media/video/isp/isphist.c
+>  create mode 100644 drivers/media/video/isp/isphist.h
+>  create mode 100644 drivers/media/video/isp/isppreview.c
+>  create mode 100644 drivers/media/video/isp/isppreview.h
+>  create mode 100644 drivers/media/video/isp/ispqueue.c
+>  create mode 100644 drivers/media/video/isp/ispqueue.h
+>  create mode 100644 drivers/media/video/isp/ispreg.h
+>  create mode 100644 drivers/media/video/isp/ispresizer.c
+>  create mode 100644 drivers/media/video/isp/ispresizer.h
+>  create mode 100644 drivers/media/video/isp/ispstat.c
+>  create mode 100644 drivers/media/video/isp/ispstat.h
+>  create mode 100644 drivers/media/video/isp/ispvideo.c
+>  create mode 100644 drivers/media/video/isp/ispvideo.h
+>  create mode 100644 drivers/media/video/isp/luma_enhance_table.h
+>  create mode 100644 drivers/media/video/isp/noise_filter_table.h
+>  create mode 100644 include/linux/omap3isp.h
+> 
+> 
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
