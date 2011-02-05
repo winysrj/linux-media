@@ -1,102 +1,105 @@
 Return-path: <mchehab@pedra>
-Received: from mga03.intel.com ([143.182.124.21]:4081 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751512Ab1BIILX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Feb 2011 03:11:23 -0500
-From: "Wang, Wen W" <wen.w.wang@intel.com>
-To: Jonghun Han <jonghun.han@samsung.com>,
-	'Hans Verkuil' <hverkuil@xs4all.nl>,
-	'Jozef Kruger' <jozef.kruger@siliconhive.com>
-CC: "Kanigeri, Hari K" <hari.k.kanigeri@intel.com>,
-	"Iyer, Sundar" <sundar.iyer@intel.com>,
-	"Yang, Jianwei" <jianwei.yang@intel.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	=?utf-8?B?7KGw6rK97Zi4L1MvVyBTb2x1dGlvbuqwnOuwnO2MgChTLkxTSSkv?=
-	 =?utf-8?B?RTQo7ISg7J6EKS/sgrzshLHsoITsnpA=?=
-	<pullip.cho@samsung.com>
-Date: Wed, 9 Feb 2011 16:10:50 +0800
-Subject: RE: Memory allocation in Video4Linux
-Message-ID: <D5AB6E638E5A3E4B8F4406B113A5A19A32F924A2@shsmsx501.ccr.corp.intel.com>
-References: <D5AB6E638E5A3E4B8F4406B113A5A19A32F923C4@shsmsx501.ccr.corp.intel.com>
- <A787B2DEAF88474996451E847A0AFAB7F264B7A4@rrsmsx508.amr.corp.intel.com>
- <D5AB6E638E5A3E4B8F4406B113A5A19A32F92445@shsmsx501.ccr.corp.intel.com>
- <201102090851.41789.hverkuil@xs4all.nl>
- <001501cbc82f$1fac8850$5f0598f0$%han@samsung.com>
-In-Reply-To: <001501cbc82f$1fac8850$5f0598f0$%han@samsung.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:3238 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750792Ab1BENRb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Feb 2011 08:17:31 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [GIT PATCHES FOR 2.6.39] Remove se401, usbvideo, dabusb, firedtv-1394 and VIDIOC_OLD
+Date: Sat, 5 Feb 2011 14:17:22 +0100
+Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Deti Fliegl <deti@fliegl.de>
 MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201102051417.22874.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-SGkgSGFuLA0KDQpUaGFuayB5b3UgdmVyeSBtdWNoLiBJIHdpbGwgY2hlY2sgdGhlIGxpbmsuDQoN
-ClRoYW5rcw0KV2VuDQoNCj4tLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPkZyb206IEpvbmdo
-dW4gSGFuIFttYWlsdG86am9uZ2h1bi5oYW5Ac2Ftc3VuZy5jb21dDQo+U2VudDogMjAxMeW5tDLm
-nIg55pelIDE1OjU4DQo+VG86ICdIYW5zIFZlcmt1aWwnOyBXYW5nLCBXZW4gVzsgJ0pvemVmIEty
-dWdlcicNCj5DYzogS2FuaWdlcmksIEhhcmkgSzsgSXllciwgU3VuZGFyOyBZYW5nLCBKaWFud2Vp
-OyBsaW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmc7DQo+7KGw6rK97Zi4L1MvVyBTb2x1dGlvbuqw
-nOuwnO2MgChTLkxTSSkvRTQo7ISg7J6EKS/sgrzshLHsoITsnpANCj5TdWJqZWN0OiBSRTogTWVt
-b3J5IGFsbG9jYXRpb24gaW4gVmlkZW80TGludXgNCj4NCj4NCj5IaSwNCj4NCj5NYXliZSBWQ00g
-aXMgaGVscGZ1bCBmb3IgeW91LiBQbGVhc2UgcmVmZXIgdG8gdGhlIGZvbGxvd2luZyBVUkwuDQo+
-aHR0cDovL21hcmMuaW5mby8/bD1saW51eC1tbSZtPTEyOTI1NTk0MDMxOTIxNyZ3PTINCj4NCj5C
-ZXN0IHJlZ2FyZHMsDQo+DQo+CUpvbmdodW4gSGFuDQo+DQo+DQo+V2VkbmVzZGF5LCBGZWJydWFy
-eSAwOSwgMjAxMSA0OjUyIFBNIEhhbnMgVmVya3VpbCB3cm90ZToNCj4NCj4+IC0tLS0tT3JpZ2lu
-YWwgTWVzc2FnZS0tLS0tDQo+PiBGcm9tOiBsaW51eC1tZWRpYS1vd25lckB2Z2VyLmtlcm5lbC5v
-cmcgW21haWx0bzpsaW51eC1tZWRpYS0NCj4+IG93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVo
-YWxmIE9mIEhhbnMgVmVya3VpbA0KPj4gU2VudDogV2VkbmVzZGF5LCBGZWJydWFyeSAwOSwgMjAx
-MSA0OjUyIFBNDQo+PiBUbzogV2FuZywgV2VuIFc7IEpvemVmIEtydWdlcg0KPj4gQ2M6IEthbmln
-ZXJpLCBIYXJpIEs7IEl5ZXIsIFN1bmRhcjsgWWFuZywgSmlhbndlaTsgbGludXgtbWVkaWFAdmdl
-ci5rZXJuZWwub3JnDQo+PiBTdWJqZWN0OiBSZTogTWVtb3J5IGFsbG9jYXRpb24gaW4gVmlkZW80
-TGludXgNCj4+DQo+PiBPbiBXZWRuZXNkYXksIEZlYnJ1YXJ5IDA5LCAyMDExIDA4OjI3OjI3IFdh
-bmcsIFdlbiBXIHdyb3RlOg0KPj4gPiBIaSBIYXJpLA0KPj4gPg0KPj4gPiBZb3UgYXJlIHJpZ2h0
-LiBXaGF0IHdlIG5lZWQgaXMgdmlydHVhbCBhZGRyZXNzLg0KPj4gPg0KPj4gPiBDdXJyZW50bHkg
-d2UgYWxsb2MgcGFnZXMgKGFsbG9jX3BhZ2VzKCkpIGZvciBhbnkgcmVxdWVzdC4gU3RvcmUgdGhv
-c2UgcGFnZXMgZm9yDQo+PiBhbiBpbWFnZSBidWZmZXIgaW50byBhIGxpc3QuIFdlIGFsc28gbWFu
-YWdlIHRoZSB2aXJ0dWFsIGFkZHJlc3MgZm9yIElTUCBieSBvdXJzZWxmDQo+PiAodGhlIHJhbmdl
-IGZyb20gMCB0byA0R0IpIGFuZCB0aGUgcGFnZSB0YWJsZSBmb3Igb3VyIE1NVSB3aGljaCBpcyBp
-bmRlcGVuZGVudCB0bw0KPj4gc3lzdGVtIE1NVSBwYWdlIHRhYmxlLg0KPj4NCj4+IEFzc3VtaW5n
-IHlvdSBhcmUgdXNpbmcgdmlkZW80bGludXggZm9yIHRoaXMgZHJpdmVyLCB0aGVuIHlvdSBzaG91
-bGQgdGFrZSBhIGxvb2sgYXQNCj4+IHRoZSBuZXcgdmlkZW9idWYyIGZyYW1ld29yayB0aGF0IHdp
-bGwgYXBwZWFyIGluIDIuNi4zOS4gSXQgaXMgYWxyZWFkeSBpbiB0aGUgbWVkaWENCj4+IHRyZWUg
-KGh0dHA6Ly9naXQubGludXh0di5vcmcvbWVkaWFfdHJlZS5naXQsIHNlZSBpbmNsdWRlL21lZGlh
-L3ZpZGVvYnVmMi1jb3JlLmgpLg0KPj4NCj4+IEl0IGlzIG11Y2ggYmV0dGVyIHRoYW4gdGhlIG9s
-ZCB2aWRlb2J1ZiBmcmFtZXdvcmssIGFuZCBpbiBwYXJ0aWN1bGFyIGdpdmVzIHRoZSBkcml2ZXIN
-Cj4+IG11Y2ggbW9yZSBjb250cm9sIG9uIGhvdyBtZW1vcnkgaXMgYWxsb2NhdGVkIGFuZCB1c2Vk
-Lg0KPj4NCj4+IFJlZ2FyZHMsDQo+Pg0KPj4gCUhhbnMNCj4+DQo+PiA+DQo+PiA+IFRoYW5rcw0K
-Pj4gPiBXZW4NCj4+ID4NCj4+ID4gPi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+PiA+ID5G
-cm9tOiBLYW5pZ2VyaSwgSGFyaSBLDQo+PiA+ID5TZW50OiAyMDEx5bm0MuaciDnml6UgMTU6MjIN
-Cj4+ID4gPlRvOiBJeWVyLCBTdW5kYXI7IFdhbmcsIFdlbiBXOyBZYW5nLCBKaWFud2VpOw0KPj4g
-PiA+bGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnOw0KPj4gPiA+dW1nLW1lZWdvLWhhbmRzZXQt
-a2VybmVsQHVtZ2xpc3RzdnIuamYuaW50ZWwuY29tDQo+PiA+ID5DYzogSm96ZWYgS3J1Z2VyDQo+
-PiA+ID5TdWJqZWN0OiBSRTogTWVtb3J5IGFsbG9jYXRpb24gaW4gVmlkZW80TGludXgNCj4+ID4g
-Pg0KPj4gPiA+DQo+PiA+ID4NCj4+ID4gPj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4+
-ID4gPj4gRnJvbTogdW1nLW1lZWdvLWhhbmRzZXQta2VybmVsLWJvdW5jZXNAdW1nbGlzdHN2ci5q
-Zi5pbnRlbC5jb20NCj4+ID4gPj4gW21haWx0bzp1bWctbWVlZ28taGFuZHNldC1rZXJuZWwtYm91
-bmNlc0B1bWdsaXN0c3ZyLmpmLmludGVsLmNvbV0NCj4+ID4gPj4gT24gQmVoYWxmIE9mIEl5ZXIs
-IFN1bmRhcg0KPj4gPiA+PiBTZW50OiBXZWRuZXNkYXksIEZlYnJ1YXJ5IDA5LCAyMDExIDEyOjIw
-IFBNDQo+PiA+ID4+IFRvOiBXYW5nLCBXZW4gVzsgWWFuZywgSmlhbndlaTsgbGludXgtbWVkaWFA
-dmdlci5rZXJuZWwub3JnOw0KPj4gPiA+PiB1bWctbWVlZ28tIGhhbmRzZXQta2VybmVsQHVtZ2xp
-c3RzdnIuamYuaW50ZWwuY29tDQo+PiA+ID4+IENjOiBKb3plZiBLcnVnZXINCj4+ID4gPj4gU3Vi
-amVjdDogUmU6IFtVbWctbWVlZ28taGFuZHNldC1rZXJuZWxdIE1lbW9yeSBhbGxvY2F0aW9uIGlu
-DQo+PiA+ID4+IFZpZGVvNExpbnV4DQo+PiA+ID4+DQo+PiA+ID4+IEkgcmVtZW1iZXIgc29tZSBD
-b250aW5vdXMgTWVtb3J5IEFsbG9jYXRvciAoQ01BKSBiZWluZyBpdGVyYXRlZA0KPj4gPiA+PiBk
-b3duIGEgZmV3IHZlcnNpb25zIG9uIHNvbWUgbWFpbGluZyBsaXN0cz8gSUlSQywgaXQgaXMgYWxz
-byBmb3INCj4+ID4gPj4gbGFyZ2UgYnVmZmVycyBhbmQgbWFuYWdlbWVudCBmb3IgdmlkZW8gSVBz
-Lg0KPj4gPiA+DQo+PiA+ID5JIGJlbGlldmUgQ01BIGlzIGZvciBhbGxvY2F0aW5nIHBoeXNpY2Fs
-bHkgY29udGlndW91cyBtZW1vcnkgYW5kIGZyb20NCj4+ID4gPndoYXQgV2VuIG1lbnRpb25lZCBo
-ZSBhbHNvIG5lZWRzIHZpcnR1YWwgbWVtb3J5IG1hbmFnZW1lbnQsIHdoaWNoIHRoZQ0KPj4gPiA+
-SU9NTVUgd2lsbCBwcm92aWRlLiBQbGVhc2UgY2hlY2sgdGhlIG9wZW4gc291cmNlIGRpc2N1c3Np
-b24gb24gQ01BLA0KPj4gPiA+dGhlIGxhc3QgSSBoZWFyZCBDTUEgcHJvcG9zYWwgd2FzIHNob3Qg
-ZG93bi4NCj4+ID4gPlJlZmVyZW5jZTogaHR0cDovL3d3dy5zcGluaWNzLm5ldC9saXN0cy9saW51
-eC1tZWRpYS9tc2cyNjg3NS5odG1sDQo+PiA+ID4NCj4+ID4gPldlbiwgaG93IGFyZSB5b3UgY3Vy
-cmVudGx5IGFsbG9jYXRpbmcgcGh5c2ljYWwgbWVtb3J5ID8NCj4+ID4gPg0KPj4gPiA+DQo+PiA+
-ID5UaGFuayB5b3UsDQo+PiA+ID5CZXN0IHJlZ2FyZHMsDQo+PiA+ID5IYXJpDQo+PiA+ICDnv7Mg
-Lm4gICAgICslICDpgY3ojbsXIHcgIC5uICDkvJAge+eCs2cgIO6IlyAgbiBy4pagICAgICDjhKju
-hZMm772bIOWkuHrnvZANCj56Zu+8gg0KPj4gPiAg6LWZel/nkoEPIDordiDun6Ep5pK4DQo+PiA+
-DQo+PiA+DQo+Pg0KPj4gLS0NCj4+IEhhbnMgVmVya3VpbCAtIHZpZGVvNGxpbnV4IGRldmVsb3Bl
-ciAtIHNwb25zb3JlZCBieSBDaXNjbw0KPj4gLS0NCj4+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhp
-cyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1tZWRpYSIgaW4gdGhlIGJv
-ZHkNCj4+IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnIE1vcmUgbWFq
-b3Jkb21vIGluZm8gYXQNCj4+IGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8u
-aHRtbA0KDQo=
+(Second attempt: fixes a link issue with firedtv and adds removal of the old ioctls)
+
+This patch series removes the last V4L1 drivers (Yay!), the obsolete dabusb driver,
+the ieee1394-stack part of the firedtv driver (the IEEE1394 stack was removed in
+2.6.37), and the VIDIOC_*_OLD ioctls.
+
+Stefan, I went ahead with this since after further research I discovered that
+this driver hasn't been compiled at all since 2.6.37! The Kconfig had a
+dependency on IEEE1394, so when that config was removed, the driver no longer
+appeared in the config.
+
+I removed any remaining reference to IEEE1394 and changed the Kconfig dependency
+to FIREWIRE. At least it compiles again :-)
+
+Regards,
+
+        Hans
+
+The following changes since commit ffd14aab03dbb8bb1bac5284603835f94d833bd6:
+  Devin Heitmueller (1):
+        [media] au0828: fix VBI handling when in V4L2 streaming mode
+
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/hverkuil/media_tree.git v4l1
+
+Hans Verkuil (4):
+      se401/usbvideo: remove last V4L1 drivers
+      dabusb: remove obsolete driver
+      firedtv: remove dependency on the deleted ieee1394 stack.
+      v4l: removal of old, obsolete ioctls.
+
+ Documentation/feature-removal-schedule.txt |   36 -
+ drivers/media/dvb/Kconfig                  |    2 +-
+ drivers/media/dvb/firewire/Kconfig         |    8 +-
+ drivers/media/dvb/firewire/Makefile        |    5 +-
+ drivers/media/dvb/firewire/firedtv-1394.c  |  300 ----
+ drivers/media/dvb/firewire/firedtv-dvb.c   |    5 -
+ drivers/media/dvb/firewire/firedtv.h       |   14 -
+ drivers/media/video/v4l2-common.c          |    1 -
+ drivers/media/video/v4l2-compat-ioctl32.c  |   15 -
+ drivers/media/video/v4l2-ioctl.c           |   38 -
+ drivers/staging/Kconfig                    |    6 -
+ drivers/staging/Makefile                   |    3 -
+ drivers/staging/dabusb/Kconfig             |   14 -
+ drivers/staging/dabusb/Makefile            |    2 -
+ drivers/staging/dabusb/TODO                |    5 -
+ drivers/staging/dabusb/dabusb.c            |  914 ------------
+ drivers/staging/dabusb/dabusb.h            |   85 --
+ drivers/staging/easycap/easycap_ioctl.c    |    5 -
+ drivers/staging/se401/Kconfig              |   13 -
+ drivers/staging/se401/Makefile             |    1 -
+ drivers/staging/se401/TODO                 |    5 -
+ drivers/staging/se401/se401.c              | 1492 -------------------
+ drivers/staging/se401/se401.h              |  236 ---
+ drivers/staging/se401/videodev.h           |  318 ----
+ drivers/staging/usbvideo/Kconfig           |   15 -
+ drivers/staging/usbvideo/Makefile          |    2 -
+ drivers/staging/usbvideo/TODO              |    5 -
+ drivers/staging/usbvideo/usbvideo.c        | 2230 ----------------------------
+ drivers/staging/usbvideo/usbvideo.h        |  395 -----
+ drivers/staging/usbvideo/vicam.c           |  952 ------------
+ drivers/staging/usbvideo/videodev.h        |  318 ----
+ include/linux/videodev2.h                  |   10 -
+ 32 files changed, 3 insertions(+), 7447 deletions(-)
+ delete mode 100644 drivers/media/dvb/firewire/firedtv-1394.c
+ delete mode 100644 drivers/staging/dabusb/Kconfig
+ delete mode 100644 drivers/staging/dabusb/Makefile
+ delete mode 100644 drivers/staging/dabusb/TODO
+ delete mode 100644 drivers/staging/dabusb/dabusb.c
+ delete mode 100644 drivers/staging/dabusb/dabusb.h
+ delete mode 100644 drivers/staging/se401/Kconfig
+ delete mode 100644 drivers/staging/se401/Makefile
+ delete mode 100644 drivers/staging/se401/TODO
+ delete mode 100644 drivers/staging/se401/se401.c
+ delete mode 100644 drivers/staging/se401/se401.h
+ delete mode 100644 drivers/staging/se401/videodev.h
+ delete mode 100644 drivers/staging/usbvideo/Kconfig
+ delete mode 100644 drivers/staging/usbvideo/Makefile
+ delete mode 100644 drivers/staging/usbvideo/TODO
+ delete mode 100644 drivers/staging/usbvideo/usbvideo.c
+ delete mode 100644 drivers/staging/usbvideo/usbvideo.h
+ delete mode 100644 drivers/staging/usbvideo/vicam.c
+ delete mode 100644 drivers/staging/usbvideo/videodev.h
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
