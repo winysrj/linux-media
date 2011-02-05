@@ -1,54 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:47913 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932573Ab1BYRWw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Feb 2011 12:22:52 -0500
-Received: by pvg12 with SMTP id 12so284535pvg.19
-        for <linux-media@vger.kernel.org>; Fri, 25 Feb 2011 09:22:51 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1298578789.821.54.camel@deumeu>
-References: <AANLkTik=Yc9cb9r7Ro=evRoxd61KVE=8m7Z5+dNwDzVd@mail.gmail.com>
-	<AANLkTinDFMMDD-F-FsccCTvUvp6K3zewYsGT1BH9VP1F@mail.gmail.com>
-	<201102100847.15212.hverkuil@xs4all.nl>
-	<201102171448.09063.laurent.pinchart@ideasonboard.com>
-	<AANLkTikg0Oj6nq6h_1-d7AQ4NQr2UyMuSemyniYZBLu3@mail.gmail.com>
-	<1298578789.821.54.camel@deumeu>
-Date: Fri, 25 Feb 2011 18:22:51 +0100
-Message-ID: <AANLkTi=Twg-hzngyrpU_=o1yxQ3qVtiJf-Qhj--OubPu@mail.gmail.com>
-Subject: Re: [st-ericsson] v4l2 vs omx for camera
-From: Linus Walleij <linus.walleij@linaro.org>
-To: Edward Hervey <bilboed@gmail.com>, johan.mossberg.lml@gmail.com
-Cc: Discussion of the development of and with GStreamer
-	<gstreamer-devel@lists.freedesktop.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>,
-	Harald Gustafsson <harald.gustafsson@ericsson.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	ST-Ericsson LT Mailing List <st-ericsson@lists.linaro.org>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mail-out.m-online.net ([212.18.0.9]:53612 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752870Ab1BEUEP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Feb 2011 15:04:15 -0500
+Date: Sat, 5 Feb 2011 21:04:57 +0100
+From: Anatolij Gustschin <agust@denx.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Dan Williams <dan.j.williams@intel.com>,
+	Detlev Zundel <dzu@denx.de>,
+	Markus Niebel <Markus.Niebel@tqs.de>
+Subject: Re: [PATCH 2/2 v2] dma: ipu_idmac: do not lose valid received data
+ in the irq handler
+Message-ID: <20110205210457.7218ecdc@wker>
+In-Reply-To: <Pine.LNX.4.64.1102051735270.11500@axis700.grange>
+References: <1296031789-1721-3-git-send-email-agust@denx.de>
+	<1296476549-10421-1-git-send-email-agust@denx.de>
+	<Pine.LNX.4.64.1102031104090.21719@axis700.grange>
+	<20110205143505.0b300a3a@wker>
+	<Pine.LNX.4.64.1102051735270.11500@axis700.grange>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-2011/2/24 Edward Hervey <bilboed@gmail.com>:
+On Sat, 5 Feb 2011 17:36:37 +0100 (CET)
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+...
+> > > Verified with both capture.c and mplayer. Could you, please, verify 
+> > > whether you get the same behaviour and what the problem could be?
+> > 
+> > Now I did some further testing with idmac patch applied and with
+> > added debug print in the IDMAC interrupt handler. There is no problem.
+> > Testing with capture.c (4 buffers used as default) shows that buffer
+> > numbers toggle correctly for all 100 captured frames:
+> 
+> Hm, interesting, I'll have to look at my testing in more detail then 
+> (once back from FOSDEM). Could you maybe try mplayer too?
 
->  What *needs* to be solved is an API for data allocation/passing at the
-> kernel level which v4l2,omx,X,GL,vdpau,vaapi,... can use and that
-> userspace (like GStreamer) can pass around, monitor and know about.
+I can't try mplayer since I don't have mplayer setup for this.
+But looking at the mplayer source I don't see why it should
+behave differently. Depending on mode mplayer queues 2 or 6
+buffers. Testing with my test app with 6 queued buffers shows
+no issues, here the buffer numbers toggle correctly, too.
 
-I think the patches sent out from ST-Ericsson's Johan Mossberg to
-linux-mm for "HWMEM" (hardware memory) deals exactly with buffer
-passing, pinning of buffers and so on. The CMA (Contigous Memory
-Allocator) has been slightly modified to fit hand-in-glove with HWMEM,
-so CMA provides buffers, HWMEM pass them around.
-
-Johan, when you re-spin the HWMEM patchset, can you include
-linaro-dev and linux-media in the CC? I think there is *much* interest
-in this mechanism, people just don't know from the name what it
-really does. Maybe it should be called mediamem or something
-instead...
-
-Yours,
-Linus Walleij
+Anatolij
