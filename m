@@ -1,130 +1,71 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:48400 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754005Ab1BRLh2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Feb 2011 06:37:28 -0500
-Received: by bwz15 with SMTP id 15so620427bwz.19
-        for <linux-media@vger.kernel.org>; Fri, 18 Feb 2011 03:37:27 -0800 (PST)
-Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
-To: "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>
-Cc: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
-	"Mauro Carvalho Chehab" <mchehab@infradead.org>,
-	"Hans Verkuil" <hansverk@cisco.com>, "Qing Xu" <qingx@marvell.com>,
-	"Linux Media Mailing List" <linux-media@vger.kernel.org>,
-	"Neil Johnson" <realdealneil@gmail.com>,
-	"Robert Jarzmik" <robert.jarzmik@free.fr>,
-	"Uwe Taeubert" <u.taeubert@road.de>,
-	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	"Eino-Ville Talvala" <talvala@stanford.edu>
-Subject: Re: [RFD] frame-size switching: preview / single-shot use-case
-References: <4D5D9B57.3090809@gmail.com>
- <op.vq2lapd13l0zgt@mnazarewicz-glaptop>
- <201102181131.30920.laurent.pinchart@ideasonboard.com>
-Date: Fri, 18 Feb 2011 12:37:24 +0100
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3893 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751484Ab1BEOsp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Feb 2011 09:48:45 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Subject: Re: [GIT PATCHES FOR 2.6.39] Remove se401, usbvideo, dabusb, firedtv-1394 and VIDIOC_OLD
+Date: Sat, 5 Feb 2011 15:48:32 +0100
+Cc: linux-media@vger.kernel.org, Deti Fliegl <deti@fliegl.de>
+References: <201102051417.22874.hverkuil@xs4all.nl> <20110205152947.43375cb4@stein>
+In-Reply-To: <20110205152947.43375cb4@stein>
 MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-From: "Michal Nazarewicz" <mina86@mina86.com>
-Message-ID: <op.vq3jwls93l0zgt@mnazarewicz-glaptop>
-In-Reply-To: <201102181131.30920.laurent.pinchart@ideasonboard.com>
+Message-Id: <201102051548.32245.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Fri, 18 Feb 2011 11:31:30 +0100, Laurent Pinchart  
-<laurent.pinchart@ideasonboard.com> wrote:
+On Saturday, February 05, 2011 15:29:47 Stefan Richter wrote:
+> On Feb 05 Hans Verkuil wrote:
+> > (Second attempt: fixes a link issue with firedtv and adds removal of the old ioctls)
+> > 
+> > This patch series removes the last V4L1 drivers (Yay!), the obsolete dabusb driver,
+> > the ieee1394-stack part of the firedtv driver (the IEEE1394 stack was removed in
+> > 2.6.37), and the VIDIOC_*_OLD ioctls.
+> > 
+> > Stefan, I went ahead with this since after further research I discovered that
+> > this driver hasn't been compiled at all since 2.6.37! The Kconfig had a
+> > dependency on IEEE1394, so when that config was removed, the driver no longer
+> > appeared in the config.
+> > 
+> > I removed any remaining reference to IEEE1394 and changed the Kconfig dependency
+> > to FIREWIRE. At least it compiles again :-)
+> 
+> Thanks for doing the firedtv cleanup.  However, the effect should just be
+> that of dead code elimination.  Was there any build problem that I missed?
 
-> Hi Michal,
->
-> On Friday 18 February 2011 00:09:51 Michal Nazarewicz wrote:
->> >>> On Thu, 17 Feb 2011, Mauro Carvalho Chehab wrote:
->> >>>> There's an additional problem with that: assume that streaming is
->> >>>> happening, and a S_FMT changing the resolution was sent. There's
->> >>>> no way to warrant that the very next frame will have the new
->> >>>> resolution. So, a meta-data with the frame resolution (and format)
->> >>>> would be needed.
->> >>
->> >> Em 17-02-2011 17:26, Guennadi Liakhovetski escreveu:
->> >>> Sorry, we are not going to allow format changes during a running
->> >>> capture. You have to stop streaming, set new formats (possibly
->> >>> switch to another queue) and restart streaming.
->> >>>
->> >>> What am I missing?
->> >
->> > On Thu, 17 Feb 2011, Mauro Carvalho Chehab wrote:
->> >> If you're stopping the stream, the current API will work as-is.
->> >>
->> >> If all of your concerns is about reserving a bigger buffer queue, I
->> >> think that one of the reasons for the CMA allocator it for such  
->> usage.
->>
->> From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
->>
->> > Not just bigger, say, with our preview / still-shot example, we would
->> > have one queue with a larger number of small buffers for drop-free
->> > preview, and a small number of larger buffers for still images.
->>
->> Ie. waste memory? As in you have both those queues allocated but only
->> one is used at given time?
->
-> It's a trade-off between memory and speed. Preallocating still image  
-> capture
-> buffers will give you better snapshot performances, at the expense of  
-> memory.
->
-> The basic problems we have here is that taking snapshots is slow with the
-> current API if we need to stop capture, free buffers, change the format,
-> allocate new buffers (and perform cache management operations) and  
-> restart the
-> stream. To fix this we're considering a way to preallocate still image  
-> capture
-> buffers, but I'm open to proposals for other ways to solve the issue :-)
+You missed something, but it turns out not to be a build problem as such on
+closer inspection.
 
-What I'm trying to say is that it would be best if one could configure the
-device in such a way that switching between modes would not require the
-device to free buffers (even though in user space they could be  
-inaccessible).
+I got confused by this code in drivers/media/dvb/Kconfig:
 
+comment "Supported FireWire (IEEE 1394) Adapters"
+        depends on DVB_CORE && IEEE1394
+source "drivers/media/dvb/firewire/Kconfig"
 
-This is what I have in mind the usage would look like:
+Since the comment depends on IEEE1394 it disappeared once IEEE1394 was removed.
+So when I looked for this comment in the menu is was no longer there. But the
+actual driver still is, and I missed that.
 
-1. Open device
-		Kernel creates some control structures, the usual stuff.
-2. Initialize multi-format (specifying what formats user space will use).
-		Kernel calculates amount of memory needed for the most
-		demanding format and allocates it.
+So it was just the comment dependency that was wrong, not the driver itself.
 
-3. Set format (restricted to one of formats specified in step 2)
-		Kernel has memory already allocated, so it only needs to split
-		it to buffers needed in given format.
-4. Allocate buffers.
-		Kernel allocates memory needed for most demanding format
-		(calculated in step 2).
-		Once memory is allocated, splits it to buffers needed in
-		given format.
-5. Do the loop... queue, dequeue, all the usual stuff.
-		Kernel instructs device to handle buffers, the usual stuff.
-6. Free buffers.
-		Kernel space destroys the buffers needed for given format
-		but DOES NOT free memory.
+Sorry for the confusion.
 
-7. If not done, go to step 3.
+Regards,
 
-8. Finish multi-format mode.
-		Kernel actually frees the memory.
+	Hans
 
-9. Close the device.
-
-A V4L device driver could just ignore step 2 and 7 and work in the less  
-optimal
-mode.
-
-
-If I understand V4L2 correctly, the API does not allow for step 2 and 8.
-In theory, they could be merged with step 1 and 9 respectively, I don't
-know id that feasible though.
+> AFAICS, firedtv builds and works fine in mainline 2.6.37(-rc) and
+> 2.6.38(-rc).  From when I implemented the drivers/firewire/ backend of
+> firedtv, it should have been possible to build firedtv for a kernel with
+> one or both of drivers/{ieee1394,firewire}; controlled by whether
+> CONFIG_{IEEE1394,FIREWIRE} are defined or not.
+> 
+> I will have a look at your changes later.
+> 
 
 -- 
-Best regards,                                         _     _
-.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
-..o | Computer Science,  Michal "mina86" Nazarewicz    (o o)
-ooo +-----<email/xmpp: mnazarewicz@google.com>-----ooO--(_)--Ooo--
+Hans Verkuil - video4linux developer - sponsored by Cisco
