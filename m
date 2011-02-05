@@ -1,116 +1,138 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.gentoo.org ([140.211.166.183]:39429 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755737Ab1BQUqC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Feb 2011 15:46:02 -0500
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: Jesper Juhl <jj@chaosbits.net>
-Subject: Re: [Patch] Zarlink zl10036 DVB-S: Fix mem leak in zl10036_attach
-Date: Thu, 17 Feb 2011 21:45:51 +0100
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Dan Carpenter <error27@gmail.com>, Tejun Heo <tj@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <alpine.LNX.2.00.1102062128391.13593@swampdragon.chaosbits.net> <201102172054.12773.zzam@gentoo.org> <alpine.LNX.2.00.1102172130360.17697@swampdragon.chaosbits.net>
-In-Reply-To: <alpine.LNX.2.00.1102172130360.17697@swampdragon.chaosbits.net>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Received: from mail-out.m-online.net ([212.18.0.10]:54835 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751778Ab1BENe1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Feb 2011 08:34:27 -0500
+Date: Sat, 5 Feb 2011 14:35:05 +0100
+From: Anatolij Gustschin <agust@denx.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Dan Williams <dan.j.williams@intel.com>,
+	Detlev Zundel <dzu@denx.de>,
+	Markus Niebel <Markus.Niebel@tqs.de>
+Subject: Re: [PATCH 2/2 v2] dma: ipu_idmac: do not lose valid received data
+ in the irq handler
+Message-ID: <20110205143505.0b300a3a@wker>
+In-Reply-To: <Pine.LNX.4.64.1102031104090.21719@axis700.grange>
+References: <1296031789-1721-3-git-send-email-agust@denx.de>
+	<1296476549-10421-1-git-send-email-agust@denx.de>
+	<Pine.LNX.4.64.1102031104090.21719@axis700.grange>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201102172145.55258.zzam@gentoo.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thursday 17 February 2011, Jesper Juhl wrote:
-> On Thu, 17 Feb 2011, Matthias Schwarzott wrote:
-> > On Sunday 06 February 2011, Jesper Juhl wrote:
-> > > If the memory allocation to 'state' succeeds but we jump to the 'error'
-> > > label before 'state' is assigned to fe->tuner_priv, then the call to
-> > > 'zl10036_release(fe)' at the 'error:' label will not free 'state', but
-> > > only what was previously assigned to 'tuner_priv', thus leaking the
-> > > memory allocated to 'state'.
-> > > There are may ways to fix this, including assigning the allocated
-> > > memory directly to 'fe->tuner_priv', but I did not go for that since
-> > > the additional pointer derefs are more expensive than the local
-> > > variable, so I just added a 'kfree(state)' call. I guess the call to
-> > > 'zl10036_release' might not even be needed in this case, but I wasn't
-> > > sure, so I left it in.
-> > 
-> > Yeah, that call to zl10036_release can be completely eleminated.
-> > Another thing is: jumping to the error label only makes sense when memory
-> > was already allocated. So the jump in line 471 can be replaced by
-> > "return NULL",
-> > 
-> > as the other error handling before allocation:
-> >         if (NULL == config) {
-> >         
-> >                 printk(KERN_ERR "%s: no config specified", __func__);
-> >                 goto error;
-> >         
-> >         }
-> > 
-> > I suggest to improve the patch to clean the code up when changing that.
-> > 
-> > But I am fine with commiting this patch also if you do not want to change
-> > it.
-> 
-> Thank you for your feedback. It makes a lot of sense.
-> Changing it is not a problem :)
-> How about the updated patch below?
-> 
-Looks good.
+Hi Guennadi,
 
-@Mauro: Please apply.
+On Thu, 3 Feb 2011 11:09:54 +0100 (CET)
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
 
+> Hi Anatolij
 > 
-> If the memory allocation to 'state' succeeds but we jump to the 'error'
-> label before 'state' is assigned to fe->tuner_priv, then the call to
-> 'zl10036_release(fe)' at the 'error:' label will not free 'state', but
-> only what was previously assigned to 'tuner_priv', thus leaking the memory
-> allocated to 'state'.
-> This patch fixes the leak and also does not jump to 'error:' before mem
-> has been allocated but instead just returns. Also some small style
-> cleanups.
+> On Mon, 31 Jan 2011, Anatolij Gustschin wrote:
 > 
-> Signed-off-by: Jesper Juhl <jj@chaosbits.net>
+> I'm afraid there seems to be a problem with your patch. I have no idea 
+> what is causing it, but I'm just observing some wrong behaviour, that is 
+> not there without it. Namely, I added a debug print to the IDMAC interrupt 
+> handler
+> 
+>  	curbuf	= idmac_read_ipureg(&ipu_data, IPU_CHA_CUR_BUF);
+>  	err	= idmac_read_ipureg(&ipu_data, IPU_INT_STAT_4);
+>  
+> +	printk(KERN_DEBUG "%s(): IDMAC irq %d, buf %d, current %d\n", __func__,
+> +	       irq, ichan->active_buffer, (curbuf >> chan_id) & 1);
+>  
+>  	if (err & (1 << chan_id)) {
+>  		idmac_write_ipureg(&ipu_data, 1 << chan_id, IPU_INT_STAT_4);
+> 
+> and without your patch I see buffer numbers correctly toggling all the 
+> time like
+> 
+> idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+> idmac_interrupt(): IDMAC irq 177, buf 0, current 1
+> idmac_interrupt(): IDMAC irq 177, buf 1, current 0
+> idmac_interrupt(): IDMAC irq 177, buf 0, current 1
+> idmac_interrupt(): IDMAC irq 177, buf 1, current 0
+> idmac_interrupt(): IDMAC irq 177, buf 0, current 1
+> ...
+> 
+> Yes, the first interrupt is different, that's where I'm dropping / 
+> postponing it. With your patch only N (equal to the number of buffers 
+> used, I think) first interrupts toggle, then always only one buffer is 
+> used:
+> 
+> idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+> idmac_interrupt(): IDMAC irq 177, buf 1, current 1
+> idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+> idmac_interrupt(): IDMAC irq 177, buf 1, current 1
+> idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+> idmac_interrupt(): IDMAC irq 177, buf 1, current 1
+> idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+> idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+> idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+> ...
+> 
+> Verified with both capture.c and mplayer. Could you, please, verify 
+> whether you get the same behaviour and what the problem could be?
 
+Now I did some further testing with idmac patch applied and with
+added debug print in the IDMAC interrupt handler. There is no problem.
+Testing with capture.c (4 buffers used as default) shows that buffer
+numbers toggle correctly for all 100 captured frames:
+...
+mx3-camera mx3-camera.0: MX3 Camera driver attached to camera 0
+idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+idmac_interrupt(): IDMAC irq 177, buf 1, current 1
+idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+idmac_interrupt(): IDMAC irq 177, buf 1, current 1
+idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+idmac_interrupt(): IDMAC irq 177, buf 1, current 1
+...
+idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+idmac_interrupt(): IDMAC irq 177, buf 1, current 1
+idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+idmac_interrupt(): IDMAC irq 177, buf 1, current 1
+idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+idmac_interrupt(): IDMAC irq 177, buf 1, current 1
+mx3-camera mx3-camera.0: MX3 Camera driver detached from camera 0
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
-> ---
->  zl10036.c |   10 +++++-----
->  1 file changed, 5 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/media/dvb/frontends/zl10036.c
-> b/drivers/media/dvb/frontends/zl10036.c index 4627f49..81aa984 100644
-> --- a/drivers/media/dvb/frontends/zl10036.c
-> +++ b/drivers/media/dvb/frontends/zl10036.c
-> @@ -463,16 +463,16 @@ struct dvb_frontend *zl10036_attach(struct
-> dvb_frontend *fe, const struct zl10036_config *config,
->  				    struct i2c_adapter *i2c)
->  {
-> -	struct zl10036_state *state = NULL;
-> +	struct zl10036_state *state;
->  	int ret;
-> 
-> -	if (NULL == config) {
-> +	if (!config) {
->  		printk(KERN_ERR "%s: no config specified", __func__);
-> -		goto error;
-> +		return NULL;
->  	}
-> 
->  	state = kzalloc(sizeof(struct zl10036_state), GFP_KERNEL);
-> -	if (NULL == state)
-> +	if (!state)
->  		return NULL;
-> 
->  	state->config = config;
-> @@ -507,7 +507,7 @@ struct dvb_frontend *zl10036_attach(struct dvb_frontend
-> *fe, return fe;
-> 
->  error:
-> -	zl10036_release(fe);
-> +	kfree(state);
->  	return NULL;
->  }
->  EXPORT_SYMBOL(zl10036_attach);
+Also testing with my test application didn't show any problem.
+When using more than 1 buffer (tested with 2, 3 and 4 queued
+buffers) double buffering works as expected and frame numbers
+toggle correctly. Capturing 30 frames produce:
 
+mx3-camera mx3-camera.0: MX3 Camera driver attached to camera 0
+idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+idmac_interrupt(): IDMAC irq 177, buf 1, current 1
+idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+idmac_interrupt(): IDMAC irq 177, buf 1, current 1
+idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+idmac_interrupt(): IDMAC irq 177, buf 1, current 1
+idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+idmac_interrupt(): IDMAC irq 177, buf 1, current 1
+idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+idmac_interrupt(): IDMAC irq 177, buf 1, current 1
+idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+idmac_interrupt(): IDMAC irq 177, buf 1, current 1
+idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+idmac_interrupt(): IDMAC irq 177, buf 1, current 1
+idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+idmac_interrupt(): IDMAC irq 177, buf 1, current 1
+idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+idmac_interrupt(): IDMAC irq 177, buf 1, current 1
+idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+idmac_interrupt(): IDMAC irq 177, buf 1, current 1
+idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+idmac_interrupt(): IDMAC irq 177, buf 1, current 1
+idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+idmac_interrupt(): IDMAC irq 177, buf 1, current 1
+idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+idmac_interrupt(): IDMAC irq 177, buf 1, current 1
+idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+idmac_interrupt(): IDMAC irq 177, buf 1, current 1
+idmac_interrupt(): IDMAC irq 177, buf 0, current 0
+idmac_interrupt(): IDMAC irq 177, buf 1, current 1
+mx3-camera mx3-camera.0: MX3 Camera driver detached from camera 0
+
+Anatolij
