@@ -1,102 +1,157 @@
 Return-path: <mchehab@pedra>
-Received: from comal.ext.ti.com ([198.47.26.152]:39020 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753920Ab1BWQUi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Feb 2011 11:20:38 -0500
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hansverk@cisco.com>
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Stan <svarbanov@mm-sol.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Wed, 23 Feb 2011 10:20:17 -0600
-Subject: RE: [RFC/PATCH 0/1] New subdev sensor operation g_interface_parms
-Message-ID: <A24693684029E5489D1D202277BE894488C577A3@dlee02.ent.ti.com>
-References: <cover.1298368924.git.svarbanov@mm-sol.com>
- <201102231630.43759.laurent.pinchart@ideasonboard.com>
- <201102231702.57636.hansverk@cisco.com>
- <201102231714.41770.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201102231714.41770.laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:56737 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752352Ab1BECsp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Feb 2011 21:48:45 -0500
+Received: by ywo7 with SMTP id 7so900853ywo.19
+        for <linux-media@vger.kernel.org>; Fri, 04 Feb 2011 18:48:44 -0800 (PST)
 MIME-Version: 1.0
+Date: Sat, 5 Feb 2011 02:48:44 +0000
+Message-ID: <AANLkTi=1k6LP=4mMCDqQ_T-0cBk3yyciwDBFt6-NTh4a@mail.gmail.com>
+Subject: Osprey 540 Card
+From: Kieran Kunhya <kierank@ob-encoder.com>
+To: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=20cf305496377d18c6049b80095d
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+--20cf305496377d18c6049b80095d
+Content-Type: text/plain; charset=ISO-8859-1
 
-> -----Original Message-----
-> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> Sent: Wednesday, February 23, 2011 10:15 AM
-> To: Hans Verkuil
-> Cc: Aguirre, Sergio; Guennadi Liakhovetski; Hans Verkuil; Sylwester
-> Nawrocki; Stan; linux-media@vger.kernel.org
-> Subject: Re: [RFC/PATCH 0/1] New subdev sensor operation g_interface_parms
-> 
-> On Wednesday 23 February 2011 17:02:57 Hans Verkuil wrote:
-> > On Wednesday, February 23, 2011 16:30:42 Laurent Pinchart wrote:
-> > > On Wednesday 23 February 2011 15:06:49 Aguirre, Sergio wrote:
-> > > > <snip>
-> > > >
-> > > > > > The only static data I am concerned about are those that affect
-> > > > > > signal integrity.
-> > > > > >
-> > > > > > After thinking carefully about this I realized that there is
-> really
-> > > > > > only one setting that is relevant to that: the sampling edge.
-> The
-> > > > > > polarities do not matter in this.
-> > > >
-> > > > I respectfully disagree.
-> > >
-> > > So do I. Sampling edge is related to polarities, so you need to take
-> both
-> > > into account.
-> >
-> > When you switch polarity for data/field/hsync/vsync signals on a simple
-> bus
-> > you just invert whether a 1 bit is output as high or low voltage. So you
-> > just change the meaning of the bit. This does not matter for signal
-> > integrity, since you obviously have to be able to sample both low and
-> high
-> > voltages. It is *when* you sample that can have a major effect.
-> 
-> When you switch the polarity you will likely have to sample on the
-> opposite
-> edge. If, for signal integrity reasons, you can only sample on a given
-> edge,
-> you will want to use a fixed polarity and not negotiate it.
+(hopefully this ends up in the same thread)
 
-I guess this should be reason enough to decide this in platform data in the
-board file.
+The windows driver also can output information to dbgview.
+Is there anything of note in this log?
 
-> 
-> Given the very small number of parameters that are negotiated by soc-
-> camera at
-> the moment, I'm very much in favour of hardcoding all of them in platform
-> data
-> and just adding a g_interface_parms subdev operation.
+--20cf305496377d18c6049b80095d
+Content-Type: application/octet-stream; name="dbgview.log"
+Content-Disposition: attachment; filename="dbgview.log"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gjrxdslv0
 
-I'll second that.
-
-Negotiating all this adds unnecessary complexity, and just makes the code
-More prone to errors, and even probably causing hardware damage due to
-misconfiguration. It's better to keep this static and make the board config
-fully conscious of it.
-
-Regards,
-Sergio
-
-> 
-> > This might be different for differential clocks. I have no experience
-> with
-> > this, so I can't say anything sensible about that.
-> 
-> --
-> Regards,
-> 
-> Laurent Pinchart
+W1xcS0lFUkFOXQ0KMDAwMDAwNTIJNDEuMjM2OTQ5OTIJc3QgIHYwZjBjMCAgcnVuLT5wYXUgIDEs
+MCAgY2FwPTEsMCAgY2M9MCwwICBhdWQ9MCwwDQowMDAwMDA1Mwk0MS4zMTEzMDYwMAkgDQowMDAw
+MDA1NAk0MS4zMTEzMDYwMAl2LSAgKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+Kg0KMDAwMDAwNTUJNDEuMzExMzA5ODEJIA0KMDAwMDAwNTYJNDEuMzExMzA5ODEJdmMgIHYwZjBj
+MCAgY29uZmlnOg0KMDAwMDAwNTcJNDEuMzExMzEzNjMJIA0KMDAwMDAwNTgJNDEuMzExMzEzNjMJ
+di0gICAgdmVycz00LjQuMC41OSAgYm9hcmR0eXBlPTE4MihCNmgpDQowMDAwMDA1OQk0MS4zMTEz
+MTc0NAkgDQowMDAwMDA2MAk0MS4zMTEzMTc0NAl2LSAgICBkcnZjZmc9MDkwQTQwMDJoICBkdmNj
+Zmc9MDEwMDAwMDBoICBjbG9ja2NmZz0xMDAxaA0KMDAwMDAwNjEJNDEuMzExMzE3NDQJIA0KMDAw
+MDAwNjIJNDEuMzExMzE3NDQJdi0gICAgbGluZT0yICBsaW5ldHlwZT1zZGkgIHN0ZD0zDQowMDAw
+MDA2Mwk0MS4zMTEzMTc0NAkgDQowMDAwMDA2NAk0MS4zMTEzMTc0NAl2LSAgICByZWZtb2RlPTAg
+IG50c2N0b3A9MjMgIG50c2NuPTQ4MCAgd3NzcnE9MCAgd3NzcHJvcHJxPTANCjAwMDAwMDY1CTQx
+LjMxMTMyMTI2CSANCjAwMDAwMDY2CTQxLjMxMTMyMTI2CXYtICAgIHNzIGtleWVkPTAgIGVuYWJs
+ZWQ9MCAgZXZhbD0wICBuZmlsdGVycz0xDQowMDAwMDA2Nwk0MS4zMTEzMjUwNwkgDQowMDAwMDA2
+OAk0MS4zMTEzMjUwNwl2LSAgICBwb3N0PXllcyAgaGFsZj1ubyAgZGVpbGFjZT0wICBnYW1tYT0x
+MDANCjAwMDAwMDY5CTQxLjMxMTMyNTA3CSANCjAwMDAwMDcwCTQxLjMxMTMyNTA3CXYtICAgIHR5
+cGU9Y2FwICBuYnVmcz01MA0KMDAwMDAwNzEJNDEuMzExMzI4ODkJIA0KMDAwMDAwNzIJNDEuMzEx
+MzI4ODkJdi0gICAgY29sb3JmbXQ9aTQyMCgxMSkgIGRpcj0xICBodD01NzYgIHdkPTc2OCAgc3Ry
+aWRlPTc2OA0KMDAwMDAwNzMJNDEuMzExMzMyNzAJIA0KMDAwMDAwNzQJNDEuMzExMzMyNzAJdi0g
+ICAgY3JvcCAgdD0wICBiPTU3NiAgbD0wICByPTc2OA0KMDAwMDAwNzUJNDEuMzExMzMyNzAJIA0K
+MDAwMDAwNzYJNDEuMzExMzMyNzAJdi0gICAgZnJhbWUgaW50ZXJ2YWw9NDAwMDAwICAyNHA9MA0K
+MDAwMDAwNzcJNDEuMzExMzMyNzAJIA0KMDAwMDAwNzgJNDEuMzExMzMyNzAJdi0gICAgc2NoZWR1
+bGVyIHRpbWVzdGFtcHM9eWVzICBjbG9ja3R5cGU9c3lzDQowMDAwMDA3OQk0MS4zMTEzMzI3MAkg
+DQowMDAwMDA4MAk0MS4zMTEzMzI3MAl2LSAgKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKg0KMDAwMDAwODEJNDEuMzExMzM2NTIJdnMgIHYwZjBjMCAgc3RhdHM6DQowMDAwMDA4
+Mgk0MS4zMTEzMzY1MgkgDQowMDAwMDA4Mwk0MS4zMTEzMzY1Mgl2LSAgICBsYXRlbmN5IGRpc3Ry
+IG1zZWM6DQowMDAwMDA4NAk0MS4zMTEzMzY1Mgl2LSAgICB7DQowMDAwMDA4NQk0MS4zMTEzNDAz
+MwkgDQowMDAwMDA4Ngk0MS4zMTEzNDAzMwl2LSAgICAgICAwLjU6ICA3ODINCjAwMDAwMDg3CTQx
+LjMxMTM0MDMzCSANCjAwMDAwMDg4CTQxLjMxMTM0MDMzCXYtICAgICAgIDEuMDogIDc4DQowMDAw
+MDA4OQk0MS4zMTEzNDQxNQkgDQowMDAwMDA5MAk0MS4zMTEzNDQxNQl2LSAgICAgICAxLjU6ICA0
+Nw0KMDAwMDAwOTEJNDEuMzExMzQ0MTUJIA0KMDAwMDAwOTIJNDEuMzExMzQ0MTUJdi0gICAgICAg
+Mi4wOiAgMzQNCjAwMDAwMDkzCTQxLjMxMTM0Nzk2CSANCjAwMDAwMDk0CTQxLjMxMTM0Nzk2CXYt
+ICAgICAgIDIuNTogIDI4DQowMDAwMDA5NQk0MS4zMTEzNDc5NgkgDQowMDAwMDA5Ngk0MS4zMTEz
+NDc5Ngl2LSAgICAgICAzLjA6ICA0DQowMDAwMDA5Nwk0MS4zMTEzNDc5NgkgDQowMDAwMDA5OAk0
+MS4zMTEzNDc5Ngl2LSAgICAgICAzLjU6ICA3DQowMDAwMDA5OQk0MS4zMTEzNDc5NgkgDQowMDAw
+MDEwMAk0MS4zMTEzNDc5Ngl2LSAgICAgICA0LjA6ICAxOA0KMDAwMDAxMDEJNDEuMzExMzQ3OTYJ
+IA0KMDAwMDAxMDIJNDEuMzExMzUxNzgJdi0gICAgICAgNC41OiAgMTYNCjAwMDAwMTAzCTQxLjMx
+MTM1MTc4CSANCjAwMDAwMTA0CTQxLjMxMTM1MTc4CXYtICAgICAgIDUuMDogIDkNCjAwMDAwMTA1
+CTQxLjMxMTM1MTc4CSANCjAwMDAwMTA2CTQxLjMxMTM1MTc4CXYtICAgICAgIDUuNTogIDgNCjAw
+MDAwMTA3CTQxLjMxMTM1NTU5CSANCjAwMDAwMTA4CTQxLjMxMTM1NTU5CXYtICAgICAgIDYuMDog
+IDENCjAwMDAwMTA5CTQxLjMxMTM1NTU5CSANCjAwMDAwMTEwCTQxLjMxMTM1NTU5CXYtICAgIH0N
+CjAwMDAwMTExCTQxLjMxMTM1OTQxCSANCjAwMDAwMTEyCTQxLjMxMTM1OTQxCXYtICAgIGRwYyBh
+dmcxME09MTE4NzYzDQowMDAwMDExMwk0MS4zMTEzNTk0MQl2LSAgICB7DQowMDAwMDExNAk0MS4z
+MTEzNTk0MQkgDQowMDAwMDExNQk0MS4zMTEzNTk0MQl2LSAgICAgIDItMz0yDQowMDAwMDExNgk0
+MS4zMTEzNjMyMgkgDQowMDAwMDExNwk0MS4zMTEzNjMyMgl2LSAgICAgIDUtNj0xDQowMDAwMDEx
+OAk0MS4zMTEzNjMyMgkgDQowMDAwMDExOQk0MS4zMTEzNjMyMgl2LSAgICAgIDctOD0yDQowMDAw
+MDEyMAk0MS4zMTEzNjMyMgkgDQowMDAwMDEyMQk0MS4zMTEzNjMyMgl2LSAgICAgIDEwLTExPTQ5
+MA0KMDAwMDAxMjIJNDEuMzExMzYzMjIJIA0KMDAwMDAxMjMJNDEuMzExMzYzMjIJdi0gICAgICAx
+MS0xMj0yNDkNCjAwMDAwMTI0CTQxLjMxMTM2NzAzCSANCjAwMDAwMTI1CTQxLjMxMTM2NzAzCXYt
+ICAgICAgMTItMTM9NDUNCjAwMDAwMTI2CTQxLjMxMTM2NzAzCSANCjAwMDAwMTI3CTQxLjMxMTM2
+NzAzCXYtICAgICAgMTMtMTQ9MzENCjAwMDAwMTI4CTQxLjMxMTM3MDg1CSANCjAwMDAwMTI5CTQx
+LjMxMTM3MDg1CXYtICAgICAgMTQtMTU9MjA4DQowMDAwMDEzMAk0MS4zMTEzNzA4NQkgDQowMDAw
+MDEzMQk0MS4zMTEzNzA4NQl2LSAgICAgIDE1LTE2PTMNCjAwMDAwMTMyCTQxLjMxMTM3NDY2CSAN
+CjAwMDAwMTMzCTQxLjMxMTM3NDY2CXYtICAgICAgMTgtMTk9MQ0KMDAwMDAxMzQJNDEuMzExMzc0
+NjYJIA0KMDAwMDAxMzUJNDEuMzExMzc0NjYJdi0gICAgfQ0KMDAwMDAxMzYJNDEuMzExMzc4NDgJ
+IA0KMDAwMDAxMzcJNDEuMzExMzc4NDgJdi0gICAgbmRtYXM9MTAzMSAgc3lzYXZnKjEwMD0zOTk5
+NjQzOA0KMDAwMDAxMzgJNDEuMzExMzc4NDgJIA0KMDAwMDAxMzkJNDEuMzExMzc4NDgJdi0gICAg
+YXZkZWxheSBtc2VjPTAgIHZkbHkxME09MCAgYWRseT0xMCAgbWFyaz0wDQowMDAwMDE0MAk0MS4z
+MTEzODIyOQkgDQowMDAwMDE0MQk0MS4zMTEzODIyOQl2LSAgICBidWZzcGVlZD05OSAgZHVwPXll
+cw0KMDAwMDAxNDIJNDEuMzExMzgyMjkJIA0KMDAwMDAxNDMJNDEuMzExMzgyMjkJdi0gICAgbmRt
+YXM9MTAzMSAgdnByZXM9MTAyNyAgbnJlYWR5cz0xMDI5DQowMDAwMDE0NAk0MS4zMTEzODIyOQkg
+DQowMDAwMDE0NQk0MS4zMTEzODIyOQl2LSAgICBhY3R1YWwgZHVyPTQwOTU5OTIxOCAgbj0xMDI0
+ICBkZXY9LTc4MiAgcmF0ZTFrPTM5OTk5OTIzNg0KMDAwMDAxNDYJNDEuMzExMzg2MTEJIA0KMDAw
+MDAxNDcJNDEuMzExMzg2MTEJdi0gICAgZnJhbWVzY3VtPTEwMTggIGRyb3BzY3VtPTYgIGR1cHNj
+dW09MQ0KMDAwMDAxNDgJNDEuMzExMzg5OTIJIA0KMDAwMDAxNDkJNDEuMzExMzg5OTIJdi0gICAg
+ZnJhbWVzPTEwMTggICAgIGRyb3BzPTYgICAgIGR1cHM9MQ0KMDAwMDAxNTAJNDEuMzExMzg5OTIJ
+IA0KMDAwMDAxNTEJNDEuMzExMzg5OTIJdi0gICAgcHJvY3M9DQowMDAwMDE1Mgk0MS4zMTEzODk5
+MgkwICANCjAwMDAwMTUzCTQxLjMxMTM5Mzc0CTEwMzIgIA0KMDAwMDAxNTQJNDEuMzExMzkzNzQJ
+IA0KMDAwMDAxNTUJNDEuMzExMzkzNzQJdi0gICAgZmJ1cz0wICBmdHJndD0wICBmZHNyPTAgIHNl
+cXU9MCAgcGVuZD0wDQowMDAwMDE1Ngk0MS4zMTEzOTc1NQkgDQowMDAwMDE1Nwk0MS4zMTEzOTc1
+NQl2LSAgICBvdmVycnVuZnJhbWVzPTIwOSAgb3ZlcnJ1bnNhbXBsZXM9MTc4ODA3Nw0KMDAwMDAx
+NTgJNDEuMzExMzk3NTUJIA0KMDAwMDAxNTkJNDEuMzExMzk3NTUJdi0gICAgcnRuIGFuZCB0aW1l
+ciBtc2VjIGRpc3RyOg0KMDAwMDAxNjAJNDEuMzExMzk3NTUJdi0gICAgew0KMDAwMDAxNjEJNDEu
+MzExMzk3NTUJIA0KMDAwMDAxNjIJNDEuMzExMzk3NTUJdi0gICAgICA8IDA6ICAxODcgIDANCjAw
+MDAwMTYzCTQxLjMxMTQwMTM3CSANCjAwMDAwMTY0CTQxLjMxMTQwMTM3CXYtICAgICAgICAwOiAg
+NTg3ICAxMDI0DQowMDAwMDE2NQk0MS4zMTE0MDEzNwkgDQowMDAwMDE2Ngk0MS4zMTE0MDEzNwl2
+LSAgICAgICAgMTogIDgzICAwDQowMDAwMDE2Nwk0MS4zMTE0MDUxOAkgDQowMDAwMDE2OAk0MS4z
+MTE0MDUxOAl2LSAgICAgICAgMjogIDI0ICAwDQowMDAwMDE2OQk0MS4zMTE0MDUxOAkgDQowMDAw
+MDE3MAk0MS4zMTE0MDUxOAl2LSAgICAgICAgMzogIDMxICAwDQowMDAwMDE3MQk0MS4zMTE0MDkw
+MAkgDQowMDAwMDE3Mgk0MS4zMTE0MDkwMAl2LSAgICAgICAgNDogIDM4ICAwDQowMDAwMDE3Mwk0
+MS4zMTE0MDkwMAkgDQowMDAwMDE3NAk0MS4zMTE0MDkwMAl2LSAgICAgICAgNTogIDM1ICAwDQow
+MDAwMDE3NQk0MS4zMTE0MTI4MQkgDQowMDAwMDE3Ngk0MS4zMTE0MTI4MQl2LSAgICAgICAgNjog
+IDkgIDANCjAwMDAwMTc3CTQxLjMxMTQxMjgxCSANCjAwMDAwMTc4CTQxLjMxMTQxMjgxCXYtICAg
+ICAgICA3OiAgMTUgIDANCjAwMDAwMTc5CTQxLjMxMTQxMjgxCSANCjAwMDAwMTgwCTQxLjMxMTQx
+MjgxCXYtICAgICAgICA4OiAgNyAgMA0KMDAwMDAxODEJNDEuMzExNDEyODEJIA0KMDAwMDAxODIJ
+NDEuMzExNDEyODEJdi0gICAgICAgIDk6ICAxICAwDQowMDAwMDE4Mwk0MS4zMTE0MTY2MwkgDQow
+MDAwMDE4NAk0MS4zMTE0MTY2Mwl2LSAgICAgIDEwKzogIDEgIDANCjAwMDAwMTg1CTQxLjMxMTQx
+NjYzCSANCjAwMDAwMTg2CTQxLjMxMTQxNjYzCXYtICAgIH0NCjAwMDAwMTg3CTQxLjMxMTQyMDQ0
+CSANCjAwMDAwMTg4CTQxLjMxMTQyMDQ0CXYtICAgIG5vYnVmc2N1bT03ICBub2J1ZnM9NyAgZGlz
+dHINCjAwMDAwMTg5CTQxLjMxMTQyMDQ0CXYtICAgIHsNCjAwMDAwMTkwCTQxLjMxMTQyMDQ0CSAN
+CjAwMDAwMTkxCTQxLjMxMTQyMDQ0CXYtICAgICAgIDwxcz0xICA3DQowMDAwMDE5Mgk0MS4zMTE0
+MjA0NAkgDQowMDAwMDE5Mwk0MS4zMTE0MjQyNgl2LSAgICB9DQowMDAwMDE5NAk0MS4zMTE0MjQy
+NgkgDQowMDAwMDE5NQk0MS4zMTE0MjQyNgl2LSAgKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKg0KMDAwMDAxOTYJNDEuNDI1ODk5NTEJc3QgIHYwZjBjMCAgcGF1LT5hY3EgIDAs
+MCAgY2FwPTAsMCAgY2M9MCwwICBhdWQ9MCwwDQowMDAwMDE5Nwk0MS40MjY1ODYxNQlzdCAgdjAg
+ICAgICBhY3EtPnN0cCAgMCwwICBjYXA9MCwwICBjYz0wLDAgIGF1ZD0wLDANCjAwMDAwMTk4CTIx
+MC44ODkzODkwNAkqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqDQowMDAwMDE5OQkyMTAuODg5Mzg5MDQJ
+Kg0KMDAwMDAyMDAJMjEwLjg4OTM4OTA0CSogQSBkcml2ZXIgaXMgbWFwcGluZyBwaHlzaWNhbCBt
+ZW1vcnkgMDAwNjcwMDAtPjAwMDY3RkZGDQowMDAwMDIwMQkyMTAuODg5Mzg5MDQJKiB0aGF0IGl0
+IGRvZXMgbm90IG93bi4gIFRoaXMgY2FuIGNhdXNlIGludGVybmFsIENQVSBjb3JydXB0aW9uLg0K
+MDAwMDAyMDIJMjEwLjg4OTM4OTA0CSogQSBjaGVja2VkIGJ1aWxkIHdpbGwgc3RvcCBpbiB0aGUg
+a2VybmVsIGRlYnVnZ2VyDQowMDAwMDIwMwkyMTAuODg5Mzg5MDQJKiBzbyB0aGlzIHByb2JsZW0g
+Y2FuIGJlIGZ1bGx5IGRlYnVnZ2VkLg0KMDAwMDAyMDQJMjEwLjg4OTM4OTA0CSoNCjAwMDAwMjA1
+CTIxMC44ODkzODkwNAkqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqDQowMDAwMDIwNgkyMTAuODkxNzU0
+MTUJKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKg0KMDAwMDAyMDcJMjEwLjg5MTc1NDE1CSoNCjAwMDAw
+MjA4CTIxMC44OTE3NTQxNQkqIEEgZHJpdmVyIGlzIG1hcHBpbmcgcGh5c2ljYWwgbWVtb3J5IDAw
+MjA3MDAwLT4wMDIwN0ZGRg0KMDAwMDAyMDkJMjEwLjg5MTc1NDE1CSogdGhhdCBpdCBkb2VzIG5v
+dCBvd24uICBUaGlzIGNhbiBjYXVzZSBpbnRlcm5hbCBDUFUgY29ycnVwdGlvbi4NCjAwMDAwMjEw
+CTIxMC44OTE3NTQxNQkqIEEgY2hlY2tlZCBidWlsZCB3aWxsIHN0b3AgaW4gdGhlIGtlcm5lbCBk
+ZWJ1Z2dlcg0KMDAwMDAyMTEJMjEwLjg5MTc1NDE1CSogc28gdGhpcyBwcm9ibGVtIGNhbiBiZSBm
+dWxseSBkZWJ1Z2dlZC4NCjAwMDAwMjEyCTIxMC44OTE3NTQxNQkqDQowMDAwMDIxMwkyMTAuODkx
+NzU0MTUJKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKg0KMDAwMDAyMTQJMjEwLjk2MDY2Mjg0CSoqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioNCjAwMDAwMjE1CTIxMC45NjA2NjI4NAkqDQowMDAwMDIxNgkyMTAu
+OTYwNjYyODQJKiBBIGRyaXZlciBpcyBtYXBwaW5nIHBoeXNpY2FsIG1lbW9yeSAwMDY1QzAwMC0+
+MDA2NUNGRkYNCjAwMDAwMjE3CTIxMC45NjA2NjI4NAkqIHRoYXQgaXQgZG9lcyBub3Qgb3duLiAg
+VGhpcyBjYW4gY2F1c2UgaW50ZXJuYWwgQ1BVIGNvcnJ1cHRpb24uDQowMDAwMDIxOAkyMTAuOTYw
+NjYyODQJKiBBIGNoZWNrZWQgYnVpbGQgd2lsbCBzdG9wIGluIHRoZSBrZXJuZWwgZGVidWdnZXIN
+CjAwMDAwMjE5CTIxMC45NjA2NjI4NAkqIHNvIHRoaXMgcHJvYmxlbSBjYW4gYmUgZnVsbHkgZGVi
+dWdnZWQuDQowMDAwMDIyMAkyMTAuOTYwNjYyODQJKg0KMDAwMDAyMjEJMjEwLjk2MDY2Mjg0CSoq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioNCg==
+--20cf305496377d18c6049b80095d--
