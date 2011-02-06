@@ -1,61 +1,34 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:55998 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753651Ab1BHWRW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Feb 2011 17:17:22 -0500
-Received: by ewy5 with SMTP id 5so3334375ewy.19
-        for <linux-media@vger.kernel.org>; Tue, 08 Feb 2011 14:17:21 -0800 (PST)
+Received: from eta-ori.net ([46.4.55.213]:56962 "EHLO orion.eta-ori.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752722Ab1BFPCV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 6 Feb 2011 10:02:21 -0500
+Received: from [10.0.0.158] (p57911C4D.dip.t-dialin.net [87.145.28.77])
+	by orion.eta-ori.net (Postfix) with ESMTPSA id 47B932763
+	for <linux-media@vger.kernel.org>; Sun,  6 Feb 2011 16:02:15 +0100 (CET)
+Message-ID: <4D4EB81C.5060706@impulze.org>
+Date: Sun, 06 Feb 2011 16:02:52 +0100
+From: Daniel Mierswa <impulze@impulze.org>
 MIME-Version: 1.0
-In-Reply-To: <201102082305.24897.martin@pibbs.de>
-References: <201102082305.24897.martin@pibbs.de>
-Date: Tue, 8 Feb 2011 17:17:20 -0500
-Message-ID: <AANLkTinC7_-AXVq3eoo=G0rQBXzKqh-1tamVDY91BMsh@mail.gmail.com>
-Subject: Re: em28xx: board id [eb1a:2863 eMPIA Technology, Inc] Silver Crest
- VG2000 "USB 2.0 Video Grabber"
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Martin Seekatz <martin@pibbs.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH] prevent building/installation of various utilities
+References: <4D47A209.4060805@impulze.org>
+In-Reply-To: <4D47A209.4060805@impulze.org>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, Feb 8, 2011 at 5:05 PM, Martin Seekatz <martin@pibbs.de> wrote:
-> The vbi0 device is not working:
-> ERROR: Couldn't attach to DCOP server!
-> [0x10713a0] v4l2 demux error: device does not support mmap i/o
-> [0x10713a0] v4l2 demux error: device does not support mmap i/o
-> [0x1270260] v4l2 access error: device does not support mmap i/o
-> [0x1270260] v4l2 access error: device does not support mmap i/o
-> [0x7f91d000d660] main input error: open of `v4l2:///dev/vbi0' failed:
-> (null)
-
-VLC doesn't support VBI for any device (I have patches for VLC to add
-the support, but they have not been submitted upstream yet).
-
-> The audio device must be explicitly selected to watch video together
-> with sound.
-
-Correct.  This is how all V4L2 devices work.
-
-> The snapshot buttom shows no effect on operating.
-
-The snapshot button typically creates an input event associated with
-KEY_CAMERA.  Your application has to explicitly support it in order
-for it to be used.
-
-> Other video applications as motv show the video graphic, but without
-> sound.
-
-This is not surprising.  Most of the older analog tv applications were
-designed to have an audio output cable connecting the capture device
-to speakers, such that the audio is not routed through the PC.
-
-> I hope it helps to enhance the drivers for better support of this
-> products, or to advice me how to handle it with the actual sytem.
-
-Devin
+On 01.02.2011 07:02, Daniel Mierswa wrote:
+> Heya, I wanted to provide a patch to have the ability to _not_ build
+> and install various tools even if the requirements are met.
+any comments on this? seems rather trivial to decide if it's good to go
+or not :D
+wrong mailinglist or recipient perhaps?
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Mierswa, Daniel
+
+If you still don't like it, that's ok: that's why I'm boss. I simply
+know better than you do.
+               --- Linus Torvalds, comp.os.linux.advocacy, 1996/07/22
