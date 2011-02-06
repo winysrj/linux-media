@@ -1,85 +1,53 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:34520 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751911Ab1B0MmV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Feb 2011 07:42:21 -0500
-Received: by bwz15 with SMTP id 15so3039481bwz.19
-        for <linux-media@vger.kernel.org>; Sun, 27 Feb 2011 04:42:19 -0800 (PST)
-Subject: Re: Genuis Emessenger 310 webcam slow work with pac7302 in
- 2.6.37.1 kernel
-From: housegregory299 <housegregory299@gmail.com>
-To: linux-media@vger.kernel.org
-In-Reply-To: <1298810271.4400.43.camel@debian>
-References: <1298718695.2178.30.camel@debian> <4D693EB3.6080302@freemail.hu>
-	 <1298762810.2022.54.camel@debian>  <4D6A018E.7090404@freemail.hu>
-	 <1298810271.4400.43.camel@debian>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 27 Feb 2011 18:42:03 +0600
-Message-ID: <1298810523.4788.2.camel@debian>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:39954 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754067Ab1BFXIu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Feb 2011 18:08:50 -0500
+Received: by eye27 with SMTP id 27so2029279eye.19
+        for <linux-media@vger.kernel.org>; Sun, 06 Feb 2011 15:08:48 -0800 (PST)
+Message-ID: <4D4F29FD.9090505@gmail.com>
+Date: Mon, 07 Feb 2011 00:08:45 +0100
+From: Marc Coevoet <sintsixtus@gmail.com>
+MIME-Version: 1.0
+To: Dave Johansen <davejohansen@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: Tuning channels with DViCO FusionHDTV7 Dual Express
+References: <AANLkTin8Rjch6o7aU-9S9m8f5aBYVeSwxSaVhyEfM5q9@mail.gmail.com>
+In-Reply-To: <AANLkTin8Rjch6o7aU-9S9m8f5aBYVeSwxSaVhyEfM5q9@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-В Вск, 27/02/2011 в 18:37 +0600, housegregory299 пишет:
-> > As I understand the webcam was not working properly even using 2.6.32
-> > kernel.
-> 
-> Yes, this is so. But in near installed Windows 7 webcam also work slow
-> and picture quality is worse  than on Debian with 2.6.37. I think my
-> webcam very limited functionality. I have to keep both the kernels on my
-> system - 2.6.32 and 2.6.37 and switch between them on the need.  
-> 
-> > Are you using v4l2ucp for setting exposure value? This command is
-> > available
-> > from the v4l2ucp Debian package. Are the other controls working
-> > properly?
-> 
-> I use v4l2ucp from command line to saving and loading webcam's
-> customised parameters, (v4l2ucp -s .webcam and v4l2ucp -l .webcam)
-> but with other keys are not used. All parameters in Guvcview work fine
-> and properly, except Exposure. 
-> 
-> > Some more hints for the trying the "test images": make sure that
-> > v4l-utils
-> > Debian package is installed ("apt-get install v4l-utils" as root).
-> > Then
-> > you can use the command "v4l2-dbg --set-register=0x72 x" where "x" is
-> > any
-> > number between 0 and 15. This command has to be executed as root. To
-> > return
-> > to the normal operation just use the zero value for x. I'm not sure
-> > that
-> > these test patterns will work for your webcam model also, but it would
-> > be
-> > interesting to try.
-> 
-> command "v4l2-dbg --set-register=0x72 10 not help to me: With value 0
-> output are similar:
-> 
-> root@debian:/home/t800# v4l2-dbg --set-register=0x72 10
-> Failed to set register 0x00000072 value 0xa: Invalid argument
-> 
-> But i try setup my webcam with v4l-utils.
-> 
-> > The main problem is that the manufacturer of the chip which is
-> > included
-> > in your webcam neither released programming documentation nor
-> > implemented
-> > a standard protocol like USB Video Class. Without documentation open
-> > source
-> > projects can only use trial and error
-> > ( http://en.wikipedia.org/wiki/Trial_and_error ).
-> 
-> I understand, OK. So.. Which webcam is better suited for Linux systems -
-> UVC standard ? This is open? or closed? Sorry, if this question is wrong
-> - i don't know which webcam select for my Linux-system.
-> 
-> > I would strongly recommend to add the mailing list
-> > "linux-media@vger.kernel.org"
-> > in CC field, so more people can see this conversation. 
-> 
-> OK. I do it 
+Op 06-02-11 23:46, Dave Johansen schreef:
+> I am trying to resurrect my MythBuntu system with a DViCO FusionHDTV7
+> Dual Express. I had previously had some issues with trying to get
+> channels working in MythTV (
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg03846.html
+> ), but now it locks up with MythBuntu 10.10 when I scan for channels
+> in MythTV and also with the scan command line utility.
+>
+> Here's the output from scan:
+>
+> scan /usr/share/dvb/atsc/us-ATSC-
+> center-frequencies-8VSB
+> scanning us-ATSC-center-frequencies-8VSB
+> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+>>>> tune to: 189028615:8VSB
+> WARNING: filter timeout pid 0x0000
+> WARNING: filter timeout pid 0x1ffb
+>
+> Any ideas/suggestions on how I can get this to work?
+>
+
+I've had this kind of problems on a pc with mixed usb1.1 and usb2.0 ports.
+
+Put it on the usb2.0
+
+Marc
 
 
+-- 
+What's on Shortwave guide: choose an hour, go!
+http://shortwave.tk
+700+ Radio Stations on SW http://swstations.tk
+300+ languages on SW http://radiolanguages.tk
