@@ -1,55 +1,42 @@
 Return-path: <mchehab@pedra>
-Received: from mail-out.m-online.net ([212.18.0.10]:33184 "EHLO
-	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751954Ab1BGNBv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Feb 2011 08:01:51 -0500
-From: Detlev Zundel <dzu@denx.de>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Anatolij Gustschin <agust@denx.de>, linux-media@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	Dan Williams <dan.j.williams@intel.com>,
-	Markus Niebel <Markus.Niebel@tqs.de>
-Subject: Re: [PATCH 2/2 v2] dma: ipu_idmac: do not lose valid received data in the irq handler
-References: <1296031789-1721-3-git-send-email-agust@denx.de>
-	<1296476549-10421-1-git-send-email-agust@denx.de>
-	<Pine.LNX.4.64.1102031104090.21719@axis700.grange>
-	<20110205143505.0b300a3a@wker>
-	<Pine.LNX.4.64.1102051735270.11500@axis700.grange>
-	<20110205210457.7218ecdc@wker>
-	<Pine.LNX.4.64.1102071205570.29036@axis700.grange>
-	<20110207122147.4081f47d@wker>
-	<Pine.LNX.4.64.1102071232440.29036@axis700.grange>
-Date: Mon, 07 Feb 2011 14:01:48 +0100
-In-Reply-To: <Pine.LNX.4.64.1102071232440.29036@axis700.grange> (Guennadi
-	Liakhovetski's message of "Mon, 7 Feb 2011 12:35:44 +0100 (CET)")
-Message-ID: <m24o8g80cj.fsf@ohwell.denx.de>
+Received: from smtp01.frii.com ([216.17.135.167]:39637 "EHLO smtp01.frii.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754139Ab1BFX2B (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 6 Feb 2011 18:28:01 -0500
+Date: Sun, 6 Feb 2011 16:28:00 -0700
+From: Mark Zimmerman <markzimm@frii.com>
+To: Dave Johansen <davejohansen@gmail.com>
+Cc: v4l-dvb Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Tuning channels with DViCO FusionHDTV7 Dual Express
+Message-ID: <20110206232800.GA83692@io.frii.com>
+References: <AANLkTin8Rjch6o7aU-9S9m8f5aBYVeSwxSaVhyEfM5q9@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <AANLkTin8Rjch6o7aU-9S9m8f5aBYVeSwxSaVhyEfM5q9@mail.gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Guennadi,
+On Sun, Feb 06, 2011 at 03:46:59PM -0700, Dave Johansen wrote:
+> I am trying to resurrect my MythBuntu system with a DViCO FusionHDTV7
+> Dual Express. I had previously had some issues with trying to get
+> channels working in MythTV (
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg03846.html
+> ), but now it locks up with MythBuntu 10.10 when I scan for channels
+> in MythTV and also with the scan command line utility.
+> 
+> Here's the output from scan:
+> 
+> scan /usr/share/dvb/atsc/us-ATSC-
+> center-frequencies-8VSB
+> scanning us-ATSC-center-frequencies-8VSB
+> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> >>> tune to: 189028615:8VSB
+> WARNING: filter timeout pid 0x0000
+> WARNING: filter timeout pid 0x1ffb
+> 
+> Any ideas/suggestions on how I can get this to work?
 
->> How small are the frames in you test? What is the highest fps value in
->> your test?
->
-> QVGA, don't know fps exactly, pretty high, between 20 and 60fps, I think. 
-> Just try different frams sizes, go down to 64x48 or something.
+Check your dmesg to see if yout firmware loads.
 
-Is this a "real" usage scenario?  It feels that this is not what most
-users will do and it certainly is not relevant for our application.  
 
-Is it possible that if you are interested in such a scenario that you do
-the testing?  We have spent quite a lot of time to fix the driver for
-real (well full frame) capturing already and I am relucatant to spend
-more time for corner cases.  Maybe we should document this as "known
-limitations" of the setup?  What do you think?  I'll much rather have a
-driver working for real world scenarios than for marginal test cases.
-
-Thanks
-  Detlev
-
---
-DENX Software Engineering GmbH,      MD: Wolfgang Denk & Detlev Zundel
-HRB 165235 Munich,  Office: Kirchenstr.5, D-82194 Groebenzell, Germany
-Phone: (+49)-8142-66989-40 Fax: (+49)-8142-66989-80 Email: dzu@denx.de
