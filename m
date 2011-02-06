@@ -1,52 +1,71 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46860 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756185Ab1BKNGC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Feb 2011 08:06:02 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Michael Jones <michael.jones@matrix-vision.de>
-Subject: Re: [RFC] ISP lane shifter support
-Date: Fri, 11 Feb 2011 14:06:04 +0100
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-References: <4D394675.90304@matrix-vision.de> <Pine.LNX.4.64.1101262218090.6179@axis700.grange> <4D552685.4040406@matrix-vision.de>
-In-Reply-To: <4D552685.4040406@matrix-vision.de>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Received: from einhorn.in-berlin.de ([192.109.42.8]:50546 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752203Ab1BFLSO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Feb 2011 06:18:14 -0500
+Date: Sun, 6 Feb 2011 12:18:11 +0100
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Deti Fliegl <deti@fliegl.de>
+Subject: Re: [GIT PATCHES FOR 2.6.39] Remove se401, usbvideo, dabusb,
+ firedtv-1394 and VIDIOC_OLD
+Message-ID: <20110206121811.3f05c3b1@stein>
+In-Reply-To: <201102051417.22874.hverkuil@xs4all.nl>
+References: <201102051417.22874.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201102111406.05322.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Michael,
-
-On Friday 11 February 2011 13:07:33 Michael Jones wrote:
-> On 01/27/2011 12:46 AM, Guennadi Liakhovetski wrote:
-> > Looking at the "Data-Lane Shifter" table (12.27 in my datasheet, in the
-> > "Bridge-Lane Shifter" chapter), I think, the first two columns are fixed
-> > by the board design, right? So, our freedom lies only in one line there
-> > and is a single parameter - the shift value. The output shifter (VPIN) is
-> > independent from this one, but not unrelated. It seems logical to me to
-> > relate the former one to CCDC's input pad, and the latter one to CCDC's
-> > output pad. AFAIU, Laurent, your implementation in what concerns pad
-> > configuration is: let the user configure all interfaces independently,
-> > and first when we have to actually activate the pipeline (start
-> > streaming or configure video buffers) we can verify, whether all parts
-> > fit together.
+On Feb 05 Hans Verkuil wrote:
+> The following changes since commit ffd14aab03dbb8bb1bac5284603835f94d833bd6:
+>   Devin Heitmueller (1):
+>         [media] au0828: fix VBI handling when in V4L2 streaming mode
 > 
-> I would like to add this lane shifter support.  Would you like me to
-> implement it as Guennadi suggested- letting the user set all 3 CCDC pad
-> formats arbitrarily and postpone the consistency checks to streamon time?
+> are available in the git repository at:
+> 
+>   ssh://linuxtv.org/git/hverkuil/media_tree.git v4l1
+> 
+> Hans Verkuil (4):
+>       se401/usbvideo: remove last V4L1 drivers
+>       dabusb: remove obsolete driver
+>       firedtv: remove dependency on the deleted ieee1394 stack.
+>       v4l: removal of old, obsolete ioctls.
 
-I've discussed this with Sakari Ailus, and we would implement it with 
-different formats on the sensor output and the CCDC input. I'd like to get 
-Hans Verkuil's opinion.
+On commit f02c316436eef3baf349c489545edc7ade419ff6 "firedtv: remove
+dependency on the deleted ieee1394 stack.":
 
+The diff is correct and runtime-tested it.  But, as discussed, the
+changelog is wrong and the shortlog somewhat misleading.  I suggest
+something along the lines of:
+
+----8<----
+
+firedtv: remove obsolete ieee1394 backend code
+
+drivers/ieee1394/ has been removed in Linux 2.6.37.  The corresponding
+backend code in firedtv is no longer built in now and can be deleted.
+Firedtv continues to work with drivers/firewire/.
+
+Also, fix a Kconfig menu comment:  Removal of CONFIG_IEEE1394 made the
+"Supported FireWire (IEEE 1394) Adapters" comment disappear; bring it back
+with corrected dependency.
+
+---->8----
+
+A minor note:  firedtv-dvb.c::fdtv_init() can now be shortened further,
+and firedtv-fw.c::fdtv_fw_exit() can receive an __exit annotation.
+However, these changes can wait for (or will be superseded by) a subsequent
+simplification of firedtv which throws out the fdtv->backend abstraction.
+I tend to think that the three parts of firedtv-fw.c (asynchronous I/O,
+isochronous I/O, device probe/update/removal) can be moved into
+firedtv-avc.c, -fe.c, and -dvb.c.  I will post something.
+
+If you rewrite the changelog, you can add
+Reviewed-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
+if you like.
 -- 
-Regards,
-
-Laurent Pinchart
+Stefan Richter
+-=====-==-== --=- --==-
+http://arcgraph.de/sr/
