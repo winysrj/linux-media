@@ -1,61 +1,73 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:61656 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754662Ab1BHQjX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Feb 2011 11:39:23 -0500
-Received: by wyb28 with SMTP id 28so5898296wyb.19
-        for <linux-media@vger.kernel.org>; Tue, 08 Feb 2011 08:39:22 -0800 (PST)
+Received: from mx1.redhat.com ([209.132.183.28]:19837 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752555Ab1BGP53 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Feb 2011 10:57:29 -0500
+Message-ID: <4D501656.5000309@redhat.com>
+Date: Mon, 07 Feb 2011 13:57:10 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <1297122870.2355.21.camel@localhost>
-References: <AANLkTin8Rjch6o7aU-9S9m8f5aBYVeSwxSaVhyEfM5q9@mail.gmail.com>
-	<20110206232800.GA83692@io.frii.com>
-	<AANLkTinMCTh-u-JgcNB3SsZ2yf+9DgNFGA6thF7S0K15@mail.gmail.com>
-	<6C78EB6E-7722-447F-833D-637DBB64CF61@dons.net.au>
-	<AANLkTinn1XHifYy+PZTaTLP87NAqCind35iO7CBmdU-c@mail.gmail.com>
-	<1297122870.2355.21.camel@localhost>
-Date: Tue, 8 Feb 2011 09:39:21 -0700
-Message-ID: <AANLkTikwyL09v+KfNQ1Y3yOgjJy-XgjSuqg0at7tuU8K@mail.gmail.com>
-Subject: Re: Tuning channels with DViCO FusionHDTV7 Dual Express
-From: Dave Johansen <davejohansen@gmail.com>
-To: v4l-dvb Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: matti.j.aaltonen@nokia.com
+CC: Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	alsa-devel@alsa-project.org, lrg@slimlogic.co.uk,
+	hverkuil@xs4all.nl, sameo@linux.intel.com,
+	linux-media@vger.kernel.org
+Subject: Re: WL1273 FM Radio driver...
+References: <1297075922.15320.31.camel@masi.mnp.nokia.com>	 <4D4FDED0.7070008@redhat.com>	 <20110207120234.GE10564@opensource.wolfsonmicro.com>	 <4D4FEA03.7090109@redhat.com>	 <20110207131045.GG10564@opensource.wolfsonmicro.com>	 <4D4FF821.4010701@redhat.com> <1297087744.15320.56.camel@masi.mnp.nokia.com>
+In-Reply-To: <1297087744.15320.56.camel@masi.mnp.nokia.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, Feb 7, 2011 at 4:54 PM, Andy Walls <awalls@md.metrocast.net> wrote:
-> On Sun, 2011-02-06 at 22:18 -0700, Dave Johansen wrote:
->> On Sun, Feb 6, 2011 at 9:10 PM, Daniel O'Connor <darius@dons.net.au> wrote:
->> The error output happens after the scanning of 189028615:8VSB. No
->> additional output is added during or after it locks up at the warning
->> message that is displayed.
+Em 07-02-2011 12:09, Matti J. Aaltonen escreveu:
+> On Mon, 2011-02-07 at 11:48 -0200, ext Mauro Carvalho Chehab wrote:
+>> Em 07-02-2011 11:10, Mark Brown escreveu:
+>>> On Mon, Feb 07, 2011 at 10:48:03AM -0200, Mauro Carvalho Chehab wrote:
+>>>> Em 07-02-2011 10:02, Mark Brown escreveu:
+>>>>> On Mon, Feb 07, 2011 at 10:00:16AM -0200, Mauro Carvalho Chehab wrote:
+>>>
+>>>>>> the MFD part (for example, wl1273_fm_read_reg/wl1273_fm_write_cmd/wl1273_fm_write_data). 
+>>>>>> The logic that are related to control the radio (wl1273_fm_set_audio,  wl1273_fm_set_volume,
+>>>>>> etc) are not related to access the device via the MFD bus. They should be at
+>>>>>> the media part of the driver, where they belong.
+>>>
+>>>>> Those functions are being used by the audio driver.
+>>>
+>>>> Not sure if I understood your comments. Several media drivers have alsa drivers:
+>>>
+>>> There is an audio driver for this chip and it is using those functions.
 >>
->> Is there any additional information that I can provide to help debug this issue?
->
-> You perhaps could
->
-> A. provide the smallest window of known good vs known bad kernel
-> versions.  Maybe someone with time and hardware can 'git bisect' the
-> issue down to the problem commit.  (I'm guessing this problem might be
-> specific to a particular 64 bit platform IOMMU type, given the bad
-> dma_ops pointer.)
->
-> B. Try the latest drivers and/or bleeding edege kernel to see if the
-> problem has already been solved.  (Back up your current stuff first.)
->
-> Regards,
-> Andy
->
->> Thanks,
->> Dave
->
->
->
+>> Where are the other drivers that depend on it?
+> 
+> There's the MFD driver driver/mfd/wl1273-core.c, which is to offer the
+> (I2C) I/O functions to the child drivers:
+> drivers/media/radio/radio-wl1273.c and sound/soc/codecs/wl1273.c.
+> 
+> Both children depend on the MFD driver for I/O and the codec also
+> depends on the presence of the radio-wl1273 driver because without the
+> v4l2 part nothing can be done...
 
-Is there some sort of instructions out there on how to do this sort of
-testing to isolate where the problem started? Also, is it possible to
-do it in a virtual machine or something to that effect to make the
-deployment of the various systems easier?
+I think that the better would be to move the audio part (sound/soc/codecs/wl1273.c)
+as drivers/media/radio/wl1273/wl1273-alsa.c. Is there any problem on moving it, or
+the alsa driver is also tightly coupled on the rest of the sound/soc stuff?
 
-Thanks,
-Dave
+I remember that, in the past, there were someone that proposed to move /sound into
+/media/sound, and move some common stuff between them into /media/common.
+
+Btw, there are(where?) some problems between -alsa and -media subsystems: basically, 
+the audio core needs to be initialized before the drivers. However, this sometimes
+don't happen (I can't remember the exact situation - perhaps builtin compilations?),
+but we ended by needing to explicitly delaying the init of some drivers with:
+	late_initcall(saa7134_alsa_init); 
+To avoid some OOPS conditions.
+
+> 
+> Matti
+> 
+>>
+>> Mauro
+>>
+> 
+> 
+
