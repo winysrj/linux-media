@@ -1,82 +1,63 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:60834 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751038Ab1BTP1y convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Feb 2011 10:27:54 -0500
-Received: by ewy6 with SMTP id 6so107696ewy.19
-        for <linux-media@vger.kernel.org>; Sun, 20 Feb 2011 07:27:52 -0800 (PST)
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:64882 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754375Ab1BGDE4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Feb 2011 22:04:56 -0500
+Received: by wwa36 with SMTP id 36so4354014wwa.1
+        for <linux-media@vger.kernel.org>; Sun, 06 Feb 2011 19:04:55 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <AANLkTikNESFqYNT7Gu2vE4yMeDhCCSu0BkeRhEmVbR3y@mail.gmail.com>
-References: <AANLkTikNESFqYNT7Gu2vE4yMeDhCCSu0BkeRhEmVbR3y@mail.gmail.com>
-Date: Sun, 20 Feb 2011 10:27:51 -0500
-Message-ID: <AANLkTimeuemRVt9MEm5nwVi+6Rszx0-s1xVvrhi-yi5v@mail.gmail.com>
-Subject: Re: utv 330 : gadmei USB 2860 Device : No Audio
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Pranjal Pandey <pranjal8128@gmail.com>
-Cc: linux-media@vger.kernel.org
+In-Reply-To: <20110206232800.GA83692@io.frii.com>
+References: <AANLkTin8Rjch6o7aU-9S9m8f5aBYVeSwxSaVhyEfM5q9@mail.gmail.com>
+	<20110206232800.GA83692@io.frii.com>
+Date: Sun, 6 Feb 2011 20:04:54 -0700
+Message-ID: <AANLkTinMCTh-u-JgcNB3SsZ2yf+9DgNFGA6thF7S0K15@mail.gmail.com>
+Subject: Re: Tuning channels with DViCO FusionHDTV7 Dual Express
+From: Dave Johansen <davejohansen@gmail.com>
+To: v4l-dvb Mailing List <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello Pranjal,
-
-On Sun, Feb 20, 2011 at 10:13 AM, Pranjal Pandey <pranjal8128@gmail.com> wrote:
-> I am trying to use UTV 330 tv tuner card to watch tv on my laptop. I
-> am using Ubuntu 10.10 with 2.6.35 kernel. To play the tv i use
+On Sun, Feb 6, 2011 at 4:14 PM, Daniel O'Connor <darius@dons.net.au> wrote:
 >
-> tvtime -d /dev/video1
+> You could try the latest DVB drivers, although on my DViCo (which looks like the DVB-T version of yours) they aren't any better.
 >
-> Tvtime plays the video properly but there is no audio.
+> However the drivers in Ubuntu at least work for 1 tuner, if I try and use both in mythtv one tends to lock up after a while :-/
+
+I actually had the card working and tuning channels about 2 years ago
+with Ubuntu 08.10 and 09.04. From what I recall 08.10 required updated
+drivers but 09.04 didn't, so I'd imagine that it should at least be
+possible for it to work and possibly just out of the box. But do you
+think that has a high likelihood of success now?
+
+On Sun, Feb 6, 2011 at 4:28 PM, Mark Zimmerman <markzimm@frii.com> wrote:
+> On Sun, Feb 06, 2011 at 03:46:59PM -0700, Dave Johansen wrote:
+>> I am trying to resurrect my MythBuntu system with a DViCO FusionHDTV7
+>> Dual Express. I had previously had some issues with trying to get
+>> channels working in MythTV (
+>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg03846.html
+>> ), but now it locks up with MythBuntu 10.10 when I scan for channels
+>> in MythTV and also with the scan command line utility.
+>>
+>> Here's the output from scan:
+>>
+>> scan /usr/share/dvb/atsc/us-ATSC-
+>> center-frequencies-8VSB
+>> scanning us-ATSC-center-frequencies-8VSB
+>> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+>> >>> tune to: 189028615:8VSB
+>> WARNING: filter timeout pid 0x0000
+>> WARNING: filter timeout pid 0x1ffb
+>>
+>> Any ideas/suggestions on how I can get this to work?
 >
-> The output of dmesg is ::::
-<snip>
-> I have a lineout in the device. I have tried connecting earphone to
-> the lineout but there is no audio (seems like there is no signal). I
-> also used following with no improvements:
-> arecord -D hw:0,0 -c 2 -f S16_LE | aplay
+> Check your dmesg to see if yout firmware loads.
 >
-> From the dmesg output i can see a few things wrongly detected. First
-> it says that there is no audio on board but the device has a lineout
-> and hence some codec (on board audio).
-
-The em2860 based devices do not have the ability to provide audio over
-the USB.  Your only option is to connect the device's line out to your
-sound card.  If you're getting audio with Windows without hooking up
-that line out cable, then there is something very strange going on.
-
-> The second thing is   that the board i detected as "Gadmei UTV330+" and not as "Gadmei UTV330".
-
-The board name should not relevant in this case.  It's the same core
-hardware design and the vendor was too dumb to make it easy to
-identify the correct model for the board (for example, by giving them
-unique USB IDs).
-
-> The output of lsusb is:
-> Bus 002 Device 004: ID eb1a:2860 eMPIA Technology, Inc.
 >
-> I checked the driver files. In em28xx-cards.c "Gadmei UTV330+"
-> corresponds to "EM2861_BOARD_GADMEI_UTV330PLUS" but from lsusb i know
-> that the device is em2860 and not em2861.
+>
 
-Again, this doesn't matter.  There were no driver changes required to
-support the newer revision of the chip.
+I checked dmesg and the firmware loads. It doesn't appear to report
+any errors either.
 
-> I have also checked the device in windows and it works fine. Does
-> anyone has any clue whats wrong here. Any suggestions ? Has anyone
-> successfully used this card in linux ?
-
-What exactly is your experience with Windows?  Are you able to get
-audio without having to hook up the line-out to your sound card?
-
-You should also try the composite/s-video input instead of the tuner
-and see if you get audio.  If you do, then we know the problem is
-specific to the onboard tuner chip and not something with the em2860
-bridge.
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Thanks,
+Dave
