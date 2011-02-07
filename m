@@ -1,48 +1,103 @@
 Return-path: <mchehab@pedra>
-Received: from lo.gmane.org ([80.91.229.12]:58683 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754443Ab1BXNuG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Feb 2011 08:50:06 -0500
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1Psba0-0001PN-Aa
-	for linux-media@vger.kernel.org; Thu, 24 Feb 2011 14:50:04 +0100
-Received: from 228.31.17-93.rev.gaoland.net ([228.31.17-93.rev.gaoland.net])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Thu, 24 Feb 2011 14:50:04 +0100
-Received: from akue.loic by 228.31.17-93.rev.gaoland.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Thu, 24 Feb 2011 14:50:04 +0100
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4738 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752207Ab1BGHtF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Feb 2011 02:49:05 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-From: =?utf-8?b?TG/Dr2M=?= Akue <akue.loic@gmail.com>
-Subject: Re: omap3-isp: can't register subdev for new sensor driver mt9t001
-Date: Thu, 24 Feb 2011 13:41:23 +0000 (UTC)
-Message-ID: <loom.20110224T142616-389@post.gmane.org>
-References: <AANLkTincndvx154DXHgeNCnxe+KhtaH+tFUTfqXufFdp@mail.gmail.com> <AANLkTikVTgo48gfSUc9DyOhTCwSOuGS0gnjP6xTomor-@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Subject: [GIT PATCHES FOR 2.6.39] Remove se401, usbvideo, dabusb and firedtv-1394, fix for empress driver
+Date: Mon, 7 Feb 2011 08:48:51 +0100
+Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Deti Fliegl <deti@fliegl.de>,
+	Martin Dauskardt <martin.dauskardt@gmx.de>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201102070848.51729.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+This patch series removes the last V4L1 drivers (Yay!), the obsolete dabusb driver
+and the ieee1394-stack part of the firedtv driver (the IEEE1394 stack was
+removed in 2.6.37).
 
-Hello Bastian,
+The firedtv changes have been tested and reviewed by Stefan.
 
-As a newbie in kernel development, I'm facing the same issue about subdev
-registration. 
-I'm trying to capture some raw video from a SAA7113 connected to the ISP of an
-omap3530. May I please have your help with this problem?
+I also added a fix for the saa7134-empress driver that was reported by Martin.
 
-root@cm-t35:~# modprobe iommu
-[ 8409.776123] omap-iommu omap-iommu.0: isp registered
+Regards,
 
-root@cm-t35:~# modprobe omap3_isp
-[ 8451.821533] omap3isp omap3isp: Revision 2.0 found
-[ 8451.827056] omap-iommu omap-iommu.0: isp: version 1.1
-[ 8453.291992] isp_register_subdev_group: Unable to register subdev saa7113
+        Hans
 
-Regards 
+The following changes since commit ffd14aab03dbb8bb1bac5284603835f94d833bd6:
+  Devin Heitmueller (1):
+        [media] au0828: fix VBI handling when in V4L2 streaming mode
 
-Loïc Akue
+are available in the git repository at:
 
+  ssh://linuxtv.org/git/hverkuil/media_tree.git v4l1b
+
+Hans Verkuil (5):
+      se401/usbvideo: remove last V4L1 drivers
+      dabusb: remove obsolete driver
+      v4l: removal of old, obsolete ioctls.
+      firedtv: remove obsolete ieee1394 backend code
+      saa7134-empress: add missing MPEG controls
+
+ Documentation/feature-removal-schedule.txt    |   36 -
+ drivers/media/dvb/Kconfig                     |    2 +-
+ drivers/media/dvb/firewire/Kconfig            |    8 +-
+ drivers/media/dvb/firewire/Makefile           |    5 +-
+ drivers/media/dvb/firewire/firedtv-1394.c     |  300 ----
+ drivers/media/dvb/firewire/firedtv-dvb.c      |    5 -
+ drivers/media/dvb/firewire/firedtv.h          |   14 -
+ drivers/media/video/saa7134/saa7134-empress.c |    4 +
+ drivers/media/video/v4l2-common.c             |    1 -
+ drivers/media/video/v4l2-compat-ioctl32.c     |   15 -
+ drivers/media/video/v4l2-ioctl.c              |   38 -
+ drivers/staging/Kconfig                       |    6 -
+ drivers/staging/Makefile                      |    3 -
+ drivers/staging/dabusb/Kconfig                |   14 -
+ drivers/staging/dabusb/Makefile               |    2 -
+ drivers/staging/dabusb/TODO                   |    5 -
+ drivers/staging/dabusb/dabusb.c               |  914 ----------
+ drivers/staging/dabusb/dabusb.h               |   85 -
+ drivers/staging/easycap/easycap_ioctl.c       |    5 -
+ drivers/staging/se401/Kconfig                 |   13 -
+ drivers/staging/se401/Makefile                |    1 -
+ drivers/staging/se401/TODO                    |    5 -
+ drivers/staging/se401/se401.c                 | 1492 -----------------
+ drivers/staging/se401/se401.h                 |  236 ---
+ drivers/staging/se401/videodev.h              |  318 ----
+ drivers/staging/usbvideo/Kconfig              |   15 -
+ drivers/staging/usbvideo/Makefile             |    2 -
+ drivers/staging/usbvideo/TODO                 |    5 -
+ drivers/staging/usbvideo/usbvideo.c           | 2230 -------------------------
+ drivers/staging/usbvideo/usbvideo.h           |  395 -----
+ drivers/staging/usbvideo/vicam.c              |  952 -----------
+ drivers/staging/usbvideo/videodev.h           |  318 ----
+ include/linux/videodev2.h                     |   10 -
+ 33 files changed, 7 insertions(+), 7447 deletions(-)
+ delete mode 100644 drivers/media/dvb/firewire/firedtv-1394.c
+ delete mode 100644 drivers/staging/dabusb/Kconfig
+ delete mode 100644 drivers/staging/dabusb/Makefile
+ delete mode 100644 drivers/staging/dabusb/TODO
+ delete mode 100644 drivers/staging/dabusb/dabusb.c
+ delete mode 100644 drivers/staging/dabusb/dabusb.h
+ delete mode 100644 drivers/staging/se401/Kconfig
+ delete mode 100644 drivers/staging/se401/Makefile
+ delete mode 100644 drivers/staging/se401/TODO
+ delete mode 100644 drivers/staging/se401/se401.c
+ delete mode 100644 drivers/staging/se401/se401.h
+ delete mode 100644 drivers/staging/se401/videodev.h
+ delete mode 100644 drivers/staging/usbvideo/Kconfig
+ delete mode 100644 drivers/staging/usbvideo/Makefile
+ delete mode 100644 drivers/staging/usbvideo/TODO
+ delete mode 100644 drivers/staging/usbvideo/usbvideo.c
+ delete mode 100644 drivers/staging/usbvideo/usbvideo.h
+ delete mode 100644 drivers/staging/usbvideo/vicam.c
+ delete mode 100644 drivers/staging/usbvideo/videodev.h
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
