@@ -1,316 +1,120 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.samsung.com ([203.254.224.24]:50886 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752714Ab1BRLWi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Feb 2011 06:22:38 -0500
-Date: Fri, 18 Feb 2011 12:22:30 +0100
-From: Kamil Debski <k.debski@samsung.com>
-Subject: RE: [RFC/PATCH v6 3/4] MFC: Add MFC 5.1 V4L2 driver
-In-reply-to: <000301cbcf2e$223f9a70$66becf50$%oh@samsung.com>
-To: jaeryul.oh@samsung.com, linux-media@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, pawel@osciak.com,
-	kyungmin.park@samsung.com, kgene.kim@samsung.com
-Message-id: <007701cbcf5e$24bf3fa0$6e3dbee0$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: en-gb
-Content-transfer-encoding: 7BIT
-References: <1294417534-3856-1-git-send-email-k.debski@samsung.com>
- <1294417534-3856-4-git-send-email-k.debski@samsung.com>
- <000301cbcf2e$223f9a70$66becf50$%oh@samsung.com>
+Received: from smtpo17.poczta.onet.pl ([213.180.142.148]:44008 "EHLO
+	smtpo17.poczta.onet.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755126Ab1BGX1d convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Feb 2011 18:27:33 -0500
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+From: tomekbu@op.pl
+Cc: mchehab@redhat.com, dougsland@redhat.com
+To: linux-media@vger.kernel.org
+Date: Tue, 08 Feb 2011 00:27:30 +0100
+Message-Id: <16516113-42e1b2a09001189ca94b34ee8dae5151@pkn6.m5r2.onet>
+Subject: [PATCH] DVB-USB: Remote Control for TwinhanDTV StarBox DVB-S USB and
+	clones
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-> From: Jaeryul Oh [mailto:jaeryul.oh@samsung.com]
-> 
-> Kamil, I have a question about MFC state FINISHING & FINISHED as below.
+bug fix for Twinhan DTV StarBox USB2.0 DVB-S model no:7021 and clones
+remote control stuff will work now
+#kernel>=2.6.37 highly recommended
+Signed-off-by: Tomasz G. Burak tomekbu@op.pl
+---
+--- drivers/media/dvb/dvb-usb/vp702x.c.orig 2011-01-05 01:50:19.000000000 +0100
++++ drivers/media/dvb/dvb-usb/vp702x.c 2011-02-05 17:50:44.000 000000 +0100
+@@ -175,34 +175,81 @@ static int vp702x_streaming_ctrl(struct
 
-Hi Peter,
+/* keys for the enclosed remote control */
+static struct ir_scancode ir_codes_vp702x_table[] = {
+- { 0x0001, KEY_1 },
+- { 0x0002, KEY_2 },
++ { 0x004d, KEY_SCREEN }, /* Full screen */
++ { 0x0016, KEY_POWER2 }, /* Power */
++ { 0x0003, KEY_1 }, /* 1 */
++ { 0x0001, KEY_2 }, /* 2 */
++ { 0x0006, KEY_3 }, /* 3 */
++ { 0x0009, KEY_4 }, /* 4 */
++ { 0x001d, KEY_5 }, /* 5 */
++ { 0x001f, KEY_6 }, /* 6 */
++ { 0x000d, KEY_7 }, /* 6 */
++ { 0x0019, KEY_8 }, /* 7 */
++ { 0x001b, KEY_9 }, /* 8 */
++ { 0x0011, KEY_RECORD }, /* REC */
++ { 0x0015, KEY_0 }, /* 9 */
++ { 0x0017, KEY_FAVORITES }, /* Heart symbol - Favorite */
++ { 0x0040, KEY_REWIND }, /* Rewind */
++ { 0x0005, KEY_CHANNELUP }, /* CH+ */
++ { 0x0012, KEY_FASTFORWARD }, /* Forward */
++ { 0x000a, KEY_VOLUMEDOWN }, /* VOL- */
++ { 0x0014, KEY_PLAY }, /* Play */
++ { 0x001e, KEY_VOLUMEUP }, /* VOL+ */
++ { 0x000e, KEY_PREVIOUS }, /* Recall */
++ { 0x0002, KEY_CHANNELDOWN }, /* CH- */
++ { 0x001a, KEY_STOP }, /* Stop */
++ { 0x004c, KEY_PAUSE }, /* Time Shift - Pause */
++ { 0x0010, KEY_MUTE }, /* Mute */
++ { 0x000c, KEY_CANCEL }, /* Cancel */
++ { 0x0054, KEY_PRINT }, /* Capture */
++ { 0x0048, KEY_INFO }, /* Preview */
++ { 0x001c, KEY_EPG }, /* EPG */
++ { 0x0004, KEY_LIST }, /* RecordList */
++ { 0x0000, KEY_TAB }, /* Tab */
++ { 0x000f, KEY_TEXT }, /* Teletext */
++
++ { 0x0041, KEY_PREVIOUSSONG },
++ { 0x0042, KEY_NEXTSONG },
++ { 0x004b, KEY_UP },
++ { 0x0051, KEY_DOWN },
++ { 0x004e, KEY_LEFT },
++ { 0x0052, KEY_RIGHT },
++ { 0x004f, KEY_ENTER },
++ { 0x0054, KEY_AUDIO }, /* MTS - Switch to secondary audio. */
++ { 0x0013, KEY_CANCEL },
++ { 0x004a, KEY_CLEAR },
++ { 0x0043, KEY_SUBTITLE }, /* Subtitle/CC */
++ { 0x0008, KEY_VIDEO }, /* A/V */
++ { 0x0007, KEY_SLEEP }, /* Hibernate */
++ { 0x0045, KEY_ZOOM }, /* Zoom+ */
++ { 0x0018, KEY_RED},
++ { 0x0053, KEY_GREEN},
++ { 0x005e, KEY_YELLOW},
++ { 0x005f, KEY_BLUE}
+};
 
-I have answered your question below.
+-/* remote control stuff (does not work with my box) */
+static int vp702x_rc_query(struct dvb_usb_device *d, u32 *event, int
+*state)
+{
+u8 key[10];
+int i;
 
-> 
-> 
-> > -----Original Message-----
-> > From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> > owner@vger.kernel.org] On Behalf Of Kamil Debski
-> > Sent: Saturday, January 08, 2011 1:26 AM
-> > To: linux-media@vger.kernel.org; linux-samsung-soc@vger.kernel.org
-> > Cc: m.szyprowski@samsung.com; pawel@osciak.com;
-> kyungmin.park@samsung.com;
-> > k.debski@samsung.com; jaeryul.oh@samsung.com; kgene.kim@samsung.com
-> > Subject: [RFC/PATCH v6 3/4] MFC: Add MFC 5.1 V4L2 driver
-> >
-> > Multi Format Codec 5.1 is capable of handling a range of video codecs
-> > and this driver provides V4L2 interface for video decoding.
-> >
-> > Signed-off-by: Kamil Debski <k.debski@samsung.com>
-> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> > ---
-> >  drivers/media/video/Kconfig                  |    8 +
-> >  drivers/media/video/Makefile                 |    1 +
-> >  drivers/media/video/s5p-mfc/Makefile         |    3 +
-> >  drivers/media/video/s5p-mfc/regs-mfc5.h      |  335 +++++
-> >  drivers/media/video/s5p-mfc/s5p_mfc.c        | 2072
-> > ++++++++++++++++++++++++++
-> >  drivers/media/video/s5p-mfc/s5p_mfc_common.h |  224 +++
-> >  drivers/media/video/s5p-mfc/s5p_mfc_ctrls.h  |  173 +++
-> >  drivers/media/video/s5p-mfc/s5p_mfc_debug.h  |   47 +
-> >  drivers/media/video/s5p-mfc/s5p_mfc_intr.c   |   92 ++
-> >  drivers/media/video/s5p-mfc/s5p_mfc_intr.h   |   26 +
-> >  drivers/media/video/s5p-mfc/s5p_mfc_memory.h |   43 +
-> >  drivers/media/video/s5p-mfc/s5p_mfc_opr.c    |  885 +++++++++++
-> >  drivers/media/video/s5p-mfc/s5p_mfc_opr.h    |  160 ++
-> >  13 files changed, 4069 insertions(+), 0 deletions(-)
-> >  create mode 100644 drivers/media/video/s5p-mfc/Makefile
-> >  create mode 100644 drivers/media/video/s5p-mfc/regs-mfc5.h
-> >  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc.c
-> >  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_common.h
-> >  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_ctrls.h
-> >  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_debug.h
-> >  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_intr.c
-> >  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_intr.h
-> >  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_memory.h
-> >  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_opr.c
-> >  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_opr.h
-> >
-> 
-> Snipped...
-> > +/* Videobuf opts */
-> > +static struct vb2_ops s5p_mfc_qops = {
-> > +	.buf_queue = s5p_mfc_buf_queue,
-> > +	.queue_setup = s5p_mfc_queue_setup,
-> > +	.start_streaming = s5p_mfc_start_streaming,
-> > +	.buf_init = s5p_mfc_buf_init,
-> > +	.stop_streaming = s5p_mfc_stop_streaming,
-> > +	.wait_prepare = s5p_mfc_unlock,
-> > +	.wait_finish = s5p_mfc_lock,
-> > +};
-> > +
-> > +static void s5p_mfc_handle_frame_all_extracted(struct s5p_mfc_ctx
-> *ctx)
-> > +{
-> > +	struct s5p_mfc_dev *dev = ctx->dev;
-> > +	struct s5p_mfc_buf *dst_buf;
-> > +
-> > +	ctx->state = MFCINST_DEC_FINISHED;
-> > +	mfc_debug("Decided to finish\n");
-> > +	ctx->sequence++;
-> > +	while (!list_empty(&ctx->dst_queue)) {
-> > +		dst_buf = list_entry(ctx->dst_queue.next,
-> > +				     struct s5p_mfc_buf, list);
-> > +		mfc_debug("Cleaning up buffer: %d\n",
-> > +					  dst_buf->b->v4l2_buf.index);
-> > +		vb2_set_plane_payload(dst_buf->b, 0, 0);
-> > +		vb2_set_plane_payload(dst_buf->b, 1, 0);
-> > +		list_del(&dst_buf->list);
-> > +		ctx->dst_queue_cnt--;
-> > +		dst_buf->b->v4l2_buf.sequence = (ctx->sequence++);
-> > +		if (s5p_mfc_get_pic_time_top(ctx) ==
-> > +			s5p_mfc_get_pic_time_bottom(ctx))
-> > +			dst_buf->b->v4l2_buf.field = V4L2_FIELD_NONE;
-> > +		else
-> > +			dst_buf->b->v4l2_buf.field =
-> > +				V4L2_FIELD_INTERLACED;
-> > +		ctx->dec_dst_flag &= ~(1 << dst_buf->b->v4l2_buf.index);
-> > +		vb2_buffer_done(dst_buf->b, VB2_BUF_STATE_DONE);
-> > +		mfc_debug("Cleaned up buffer: %d\n",
-> > +			  dst_buf->b->v4l2_buf.index);
-> > +	}
-> > +	mfc_debug("After cleanup\n");
-> > +}
-> > +
-> > +static void s5p_mfc_handle_frame_new(struct s5p_mfc_ctx *ctx,
-> unsigned
-> > int err)
-> > +{
-> > +	struct s5p_mfc_dev *dev = ctx->dev;
-> > +	struct s5p_mfc_buf  *dst_buf;
-> > +	size_t dspl_y_addr = s5p_mfc_get_dspl_y_adr();
-> > +
-> > +	ctx->sequence++;
-> > +	/* If frame is same as previous then skip and do not dequeue */
-> > +	if (s5p_mfc_get_frame_type() ==  S5P_FIMV_DECODE_FRAME_SKIPPED)
-> > +		return;
-> > +	/* The MFC returns address of the buffer, now we have to
-> > +	 * check which videobuf does it correspond to */
-> > +	list_for_each_entry(dst_buf, &ctx->dst_queue, list) {
-> > +		mfc_debug("Listing: %d\n", dst_buf->b->v4l2_buf.index);
-> > +		/* Check if this is the buffer we're looking for */
-> > +		if (vb2_cma_plane_paddr(dst_buf->b, 0) == dspl_y_addr) {
-> > +			list_del(&dst_buf->list);
-> > +			ctx->dst_queue_cnt--;
-> > +			dst_buf->b->v4l2_buf.sequence = ctx->sequence;
-> > +			if (s5p_mfc_get_pic_time_top(ctx) ==
-> > +				s5p_mfc_get_pic_time_bottom(ctx))
-> > +				dst_buf->b->v4l2_buf.field =
-> V4L2_FIELD_NONE;
-> > +			else
-> > +				dst_buf->b->v4l2_buf.field =
-> > +						V4L2_FIELD_INTERLACED;
-> > +			vb2_set_plane_payload(dst_buf->b, 0, ctx-
-> >luma_size);
-> > +			vb2_set_plane_payload(dst_buf->b, 1, ctx-
-> >chroma_size);
-> > +			clear_bit(dst_buf->b->v4l2_buf.index,
-> > +						&ctx->dec_dst_flag);
-> > +			if (err) {
-> > +				vb2_buffer_done(dst_buf->b,
-> > +						VB2_BUF_STATE_ERROR);
-> > +			} else {
-> > +				vb2_buffer_done(dst_buf->b,
-> VB2_BUF_STATE_DONE);
-> > +			}
-> > +			break;
-> > +		}
-> > +	}
-> > +}
-> > +
-> > +/* Handle frame decoding interrupt */
-> > +static void s5p_mfc_handle_frame(struct s5p_mfc_ctx *ctx,
-> > +					unsigned int reason, unsigned int
-> err)
-> > +{
-> > +	struct s5p_mfc_dev *dev = ctx->dev;
-> > +	unsigned int dst_frame_status;
-> > +	struct s5p_mfc_buf *src_buf;
-> > +	unsigned long flags;
-> > +
-> > +	dst_frame_status = s5p_mfc_get_dspl_status()
-> > +				& S5P_FIMV_DEC_STATUS_DECODING_STATUS_MASK;
-> > +	mfc_debug("Frame Status: %x\n", dst_frame_status);
-> > +	spin_lock_irqsave(&dev->irqlock, flags);
-> > +	/* All frames remaining in the buffer have been extracted  */
-> > +	if (dst_frame_status == S5P_FIMV_DEC_STATUS_DECODING_EMPTY) {
-> > +		s5p_mfc_handle_frame_all_extracted(ctx);
-> > +	}
-> > +
-> > +	/* A frame has been decoded and is in the buffer  */
-> > +	if (dst_frame_status == S5P_FIMV_DEC_STATUS_DISPLAY_ONLY ||
-> > +	    dst_frame_status == S5P_FIMV_DEC_STATUS_DECODING_DISPLAY) {
-> > +		s5p_mfc_handle_frame_new(ctx, err);
-> > +	} else {
-> > +		mfc_debug("No frame decode.\n");
-> > +	}
-> > +	/* Mark source buffer as complete */
-> > +	if (dst_frame_status != S5P_FIMV_DEC_STATUS_DISPLAY_ONLY
-> > +		&& !list_empty(&ctx->src_queue)) {
-> > +		src_buf = list_entry(ctx->src_queue.next, struct
-> s5p_mfc_buf,
-> > +								list);
-> > +		mfc_debug("Packed PB test. Size:%d, prev offset: %ld, this
-> > run:"
-> > +			" %d\n", src_buf->b->v4l2_planes[0].bytesused,
-> > +			ctx->consumed_stream,
-> s5p_mfc_get_consumed_stream());
-> > +		ctx->consumed_stream += s5p_mfc_get_consumed_stream();
-> > +		if (s5p_mfc_get_frame_type() ==
-> > S5P_FIMV_DECODE_FRAME_P_FRAME
-> > +					&& ctx->consumed_stream <
-> > +					src_buf->b-
-> >v4l2_planes[0].bytesused) {
-> > +			/* Run MFC again on the same buffer */
-> > +			mfc_debug("Running again the same buffer.\n");
-> > +			s5p_mfc_set_dec_stream_buffer(ctx,
-> > +				src_buf->cookie.stream, ctx-
-> >consumed_stream,
-> > +				src_buf->b->v4l2_planes[0].bytesused -
-> > +							ctx-
-> >consumed_stream);
-> > +			dev->curr_ctx = ctx->num;
-> > +			s5p_mfc_clean_ctx_int_flags(ctx);
-> > +			spin_unlock_irqrestore(&dev->irqlock, flags);
-> > +			s5p_mfc_clear_int_flags();
-> > +			wake_up_ctx(ctx, reason, err);
-> > +			s5p_mfc_decode_one_frame(ctx, 0);
-> > +			return;
-> > +		} else {
-> > +			mfc_debug("MFC needs next buffer.\n");
-> > +			/* Advance to next buffer */
-> > +			if (src_buf->b->v4l2_planes[0].bytesused == 0) {
-> > +				mfc_debug("Setting ctx->state to
-> FINISHING\n");
-> > +				ctx->state = MFCINST_DEC_FINISHING;
-> > +			}
-> > +			ctx->consumed_stream = 0;
-> > +			list_del(&src_buf->list);
-> > +			ctx->src_queue_cnt--;
-> > +			vb2_buffer_done(src_buf->b, VB2_BUF_STATE_DONE);
-> > +		}
-> > +	}
-> > +	spin_unlock_irqrestore(&dev->irqlock, flags);
-> > +	mfc_debug("Assesing whether this context should be run
-> again.\n");
-> > +	if ((ctx->src_queue_cnt == 0 && ctx->state !=
-> MFCINST_DEC_FINISHING)
-> > +				    || ctx->dst_queue_cnt < ctx->dpb_count)
-> {
-> > +		mfc_debug("No need to run again.\n");
-> > +		clear_work_bit(ctx);
-> > +	}
-> > +	mfc_debug("After assesing whether this context should be run
-> > again.\n");
-> > +	s5p_mfc_clear_int_flags();
-> > +	wake_up_ctx(ctx, reason, err);
-> > +	if (test_and_clear_bit(0, &dev->hw_lock) == 0)
-> > +		BUG();
-> > +	s5p_mfc_try_run(dev);
-> > +}
-> > +
-> Basically, I understand that FINISHING state is starting point just
-> after
-> src
-> queue/dequeue is
-> finished. And state goes to the FINISHED right after all extracted.
-> But, you change state as a FINISHED at beginning of
-> s5p_mfc_handle_frame_all_extracted().
-> What about FINISHING state ?
-> if (src_buf->b->v4l2_planes[0].bytesused == 0) this condition meets
-> after
-> FINISHED state set
-> So, it is confusing if state change like (RUNNING -> FINISHING ->
-> FINISHED)
-> is
-> right.
+-/* remove the following return to enabled remote querying */
+- return 0;
+-
+vp702x_usb_in_op(d,READ_REMOTE_REQ,0,0,key,10);
 
-The state flow is as follows:
-1) The driver receives an src buffer with bytesused set to 0
-	State is changed from RUNNING to FINISHING.
-	At this point the command that is sent to MFC hw is
-	S5P_FIMV_CH_LAST_FRAME (aka LAST_SEQ).
-2) The driver dequeued remaining frames frame by frame.
-	State is FINISHING, S5P_FIMV_CH_LAST_FRAME commands are
-	sent and frames are dequeued in the interrupt handler.
-3) If DISPLAY_STATUS[2:0] = 3 (DPB is empty and decoding is finished)
- 	Then state is changed to FINISHED. This is the time when
-	s5p_mfc_handle_frame_all_extracted is called.
+- deb_rc("remote query key: %x %d\n",key[1],key[1]);
++ deb_rc("remote query key: %x %d\n",key[3],key[3]);
 
-I guess that the thing that bothers you is the place where state is set
-to FINISHING. This could be moved to s5p_mfc_run_dec_frame - maybe the code
-would be clearer. Anyway I think still it is ok, because the following code:
-
-if (src_buf->b->v4l2_planes[0].bytesused == 0) {
-	mfc_debug("Setting ctx->state to FINISHING\n");
-	ctx->state = MFCINST_DEC_FINISHING;
+if (key[1] == 0x44) {
+*state = REMOTE_NO_KEY_PRESSED;
+return 0;
 }
 
-Is run only if the following condition:
-
-if (dst_frame_status != S5P_FIMV_DEC_STATUS_DISPLAY_ONLY
-			&& !list_empty(&ctx->src_queue))
-
-is met.
-
-I hope I have answered your question.
-
-> Snipped...
-> 
-
-Bets regards,
---
-Kamil Debski
-Linux Platform Group
-Samsung Poland R&D Center
-
+- for (i = 0; i < ARRAY_SIZE(ir_codes_vp702x_table); i++)
+- if (rc5_custom(&ir_codes_vp702x_table[i]) == key[1]) {
+- *state = REMOTE_KEY_PRESSED;
+- *event = ir_codes_vp702x_table[i].keycode;
+- break;
+- }
++ if (key[2] == key[3] + key[4]) {
++ for (i = 0; i < ARRAY_SIZE(ir_codes_vp702x_table); i++)
++ if (rc5_data(&ir_codes_vp702x_table[i]) == key[3]) {
++ *state = REMOTE_KEY_PRESSED;
++ *event = ir_codes_vp702x_table[i].keycode;
++ break;
++ }
++ }
+return 0;
+} 
