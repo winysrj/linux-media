@@ -1,76 +1,76 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.samsung.com ([203.254.224.33]:18153 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756117Ab1BXLLE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Feb 2011 06:11:04 -0500
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Received: from epmmp2 (mailout3.samsung.com [203.254.224.33])
- by mailout3.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LH40092PBQIZG90@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Thu, 24 Feb 2011 19:56:42 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LH40023YBQICC@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 24 Feb 2011 19:56:42 +0900 (KST)
-Date: Thu, 24 Feb 2011 19:56:42 +0900
-From: "Kim, HeungJun" <riverful.kim@samsung.com>
-Subject: Re: [RFC PATCH 0/2] v4l2-ctrls: add new focus mode
-In-reply-to: <201102241149.48831.laurent.pinchart@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Reply-to: riverful.kim@samsung.com
-Message-id: <4D66396A.509@samsung.com>
-Content-transfer-encoding: 8BIT
-References: <4D6636B9.4020105@samsung.com>
- <201102241149.48831.laurent.pinchart@ideasonboard.com>
+Received: from moutng.kundenserver.de ([212.227.17.10]:59574 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752884Ab1BGOAo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Feb 2011 09:00:44 -0500
+Date: Mon, 7 Feb 2011 15:00:42 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Anatolij Gustschin <agust@denx.de>
+cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Dan Williams <dan.j.williams@intel.com>,
+	Detlev Zundel <dzu@denx.de>,
+	Markus Niebel <Markus.Niebel@tqs.de>
+Subject: Re: [PATCH 2/2 v2] dma: ipu_idmac: do not lose valid received data
+ in the irq handler
+In-Reply-To: <20110207144530.70d9dab1@wker>
+Message-ID: <Pine.LNX.4.64.1102071455170.29036@axis700.grange>
+References: <1296031789-1721-3-git-send-email-agust@denx.de>
+ <1296476549-10421-1-git-send-email-agust@denx.de>
+ <Pine.LNX.4.64.1102031104090.21719@axis700.grange> <20110205143505.0b300a3a@wker>
+ <Pine.LNX.4.64.1102051735270.11500@axis700.grange> <20110205210457.7218ecdc@wker>
+ <Pine.LNX.4.64.1102071205570.29036@axis700.grange> <20110207122147.4081f47d@wker>
+ <Pine.LNX.4.64.1102071232440.29036@axis700.grange> <20110207144530.70d9dab1@wker>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Laurent,
+On Mon, 7 Feb 2011, Anatolij Gustschin wrote:
 
-First, Thanks to reply.
-
-I commented below.
-
-2011-02-24 오후 7:49, Laurent Pinchart 쓴 글:
-> Hi,
+> On Mon, 7 Feb 2011 12:35:44 +0100 (CET)
+> Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
 > 
-> On Thursday 24 February 2011 11:45:13 Kim, HeungJun wrote:
->> Hello,
->>
->> I faced to the absence of the mode of v4l2 focus for a couple of years.
->> While dealing with some few morebile camera sensors, the focus modes
->> are needed more than the current v4l2 focus mode, like a Macro &
->> Continuous mode. The M-5MOLS camera sensor I dealt with, also support
->> these 2 modes. So, I'm going to suggest supports of more detailed
->> v4l2 focus mode.
->>
->> This RFC series of patch adds new auto focus modes, and documents it.
->>
->> The first changes the boolean type of V4L2_CID_FOCUS_AUTO to menu type,
->> and insert menus 4 enumerations:
->>
->> V4L2_FOCUS_AUTO,
->> V4L2_FOCUS_MACRO,
->> V4L2_FOCUS_MANUAL,
->> V4L2_FOCUS_CONTINUOUS
->>
->> The recent mobile camera sensors with ISP supports Macro & Continuous Auto
->> Focus aka CAF mode, of course normal AUTO mode, even Continuous mode.
+> > On Mon, 7 Feb 2011, Anatolij Gustschin wrote:
+> > 
+> > > On Mon, 7 Feb 2011 12:09:15 +0100 (CET)
+> > > Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> > > ...
+> > > > > I can't try mplayer since I don't have mplayer setup for this.
+> > > > > But looking at the mplayer source I don't see why it should
+> > > > > behave differently. Depending on mode mplayer queues 2 or 6
+> > > > > buffers. Testing with my test app with 6 queued buffers shows
+> > > > > no issues, here the buffer numbers toggle correctly, too.
+> > > > 
+> > > > Ok, I've done a couple more tests. With larger frames, and, therefore 
+> > > > lower fps - yes, with your patch buffers toggle correctly. Whereas in my 
+> > > > tests with smaller frames and higher fps either only one buffer is used, 
+> > > > or one is used much more often, than the other, e.g., 0 0 0 1 0 0 0 1 0... 
+> > > > Could you try to verify? Without your patch with any fps buffers toggle 
+> > > > consistently.
+> > > 
+> > > How small are the frames in you test? What is the highest fps value in
+> > > your test?
+> > 
+> > QVGA, don't know fps exactly, pretty high, between 20 and 60fps, I think. 
+> > Just try different frams sizes, go down to 64x48 or something.
 > 
-> I'm curious, what sensor are you referring to ?
-Yes. The Fujitsu M-5MO LS sensor supports these modes. And, actually NEC
-CE147 sensor also support Macro Focus mode, not includeing CAF mode.
+> Testing of 960x243 frames at 30 fps has been done during all my previous
+> tests. I didn't see any issues at 30 fps.
 
-The current Samsung Galaxy S phone use same sensor(M-5MO) too. 
-and these mobile phone's camera suport Macro Focus mode.
+Thanks for the clarification. You certainly realise, that your frame is 3 
+times as large as mine. Sorry for not mentioning this before, I do 
+appreciate your effort, and have a generally positive feeling at least 
+regarding your IDMAC patch, but I don't want to just trust my feeling, 
+that's why I tried to study the patch a bit more carefully. I also 
+understand that you don't have infinite time to dedicate to this work. 
+Neither do I. So, I will try as good as I can to try to find out the 
+reason for this behaviour, any help from your side is greatly appreciated. 
+But if we don't clarify this before the 2.6.39 merge window, I'm not sure, 
+whether it would be smart to commit the patch as is.
 
-
-Regards,
-Heungjun Kim
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
