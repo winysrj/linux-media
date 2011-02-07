@@ -1,35 +1,53 @@
 Return-path: <mchehab@pedra>
-Received: from skyboo.net ([82.160.187.4]:51516 "EHLO skyboo.net"
-	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753325Ab1B1LhH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Feb 2011 06:37:07 -0500
-Message-ID: <4D6B88DD.4040500@skyboo.net>
-Date: Mon, 28 Feb 2011 12:37:01 +0100
-From: Mariusz Bialonczyk <manio@skyboo.net>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: "Igor M. Liplianin" <liplianin@me.by>
-References: <4D3358C5.5080706@skyboo.net>
-In-Reply-To: <4D3358C5.5080706@skyboo.net>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Received: from xenotime.net ([72.52.115.56]:51397 "HELO xenotime.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751886Ab1BGQPX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Feb 2011 11:15:23 -0500
+Received: from chimera.site ([173.50.240.230]) by xenotime.net for <linux-media@vger.kernel.org>; Mon, 7 Feb 2011 08:15:15 -0800
+Date: Mon, 7 Feb 2011 08:15:13 -0800
+From: Randy Dunlap <rdunlap@xenotime.net>
+To: Thomas Weber <weber@corscience.de>
+Cc: linux-omap@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>, Tejun Heo <tj@kernel.org>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH resend] video: omap24xxcam: Fix compilation
+Message-Id: <20110207081513.90c299ed.rdunlap@xenotime.net>
+In-Reply-To: <1297068547-10635-1-git-send-email-weber@corscience.de>
+References: <1297068547-10635-1-git-send-email-weber@corscience.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Subject: Re: [PATCH] Prof 7301: switching frontend to stv090x, fixing "LOCK
- FAILED" issue
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 2011-01-16 21:44, Mariusz Bialonczyk wrote:
-> Fixing the very annoying tunning issue. When switching from DVB-S2 to DVB-S,
-> it often took minutes to have a lock.
- > [...]
-> The patch is changing the frontend from stv0900 to stv090x.
-> The card now works much more reliable. There is no problem with switching
-> from DVB-S2 to DVB-S, tunning works flawless.
+On Mon,  7 Feb 2011 09:49:07 +0100 Thomas Weber wrote:
 
-Igor, can I get your ACK on this patch?
+> Add linux/sched.h because of missing declaration of TASK_NORMAL.
+> 
+> This patch fixes the following error:
+> 
+> drivers/media/video/omap24xxcam.c: In function
+> 'omap24xxcam_vbq_complete':
+> drivers/media/video/omap24xxcam.c:415: error: 'TASK_NORMAL' undeclared
+> (first use in this function)
+> drivers/media/video/omap24xxcam.c:415: error: (Each undeclared
+> identifier is reported only once
+> drivers/media/video/omap24xxcam.c:415: error: for each function it
+> appears in.)
+> 
+> Signed-off-by: Thomas Weber <weber@corscience.de>
+> ---
+>  drivers/media/video/omap24xxcam.c |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
 
-regards,
--- 
-Mariusz Bialonczyk
-jabber/e-mail: manio@skyboo.net
-http://manio.skyboo.net
+Hi,
+
+Please use media: or multimedia: or media/video: in the subject line,
+not just video:.  video: traditionally is used for drivers/video/,
+not drivers/media/video.
+
+---
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
