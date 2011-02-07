@@ -1,82 +1,67 @@
 Return-path: <mchehab@pedra>
-Received: from unknown.interbgc.com ([213.240.235.226]:35035 "EHLO
-	extserv.mm-sol.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1751314Ab1BNLDj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Feb 2011 06:03:39 -0500
-From: Yordan Kamenov <ykamenov@mm-sol.com>
-To: hdegoede@redhat.com
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com,
-	Yordan Kamenov <ykamenov@mm-sol.com>
-Subject: [PATCH 0/1 v3] libv4l: Add plugin support
-Date: Mon, 14 Feb 2011 13:02:19 +0200
-Message-Id: <cover.1297680043.git.ykamenov@mm-sol.com>
+Received: from moutng.kundenserver.de ([212.227.126.171]:60590 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752527Ab1BGNfK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Feb 2011 08:35:10 -0500
+Date: Mon, 7 Feb 2011 14:35:04 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Detlev Zundel <dzu@denx.de>
+cc: Anatolij Gustschin <agust@denx.de>, linux-media@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	Dan Williams <dan.j.williams@intel.com>,
+	Markus Niebel <Markus.Niebel@tqs.de>
+Subject: Re: [PATCH 2/2 v2] dma: ipu_idmac: do not lose valid received data
+ in the irq handler
+In-Reply-To: <m24o8g80cj.fsf@ohwell.denx.de>
+Message-ID: <Pine.LNX.4.64.1102071428470.29036@axis700.grange>
+References: <1296031789-1721-3-git-send-email-agust@denx.de>
+ <1296476549-10421-1-git-send-email-agust@denx.de>
+ <Pine.LNX.4.64.1102031104090.21719@axis700.grange> <20110205143505.0b300a3a@wker>
+ <Pine.LNX.4.64.1102051735270.11500@axis700.grange> <20110205210457.7218ecdc@wker>
+ <Pine.LNX.4.64.1102071205570.29036@axis700.grange> <20110207122147.4081f47d@wker>
+ <Pine.LNX.4.64.1102071232440.29036@axis700.grange> <m24o8g80cj.fsf@ohwell.denx.de>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Hans,
+Hi Detlev
 
-here is third version of plugin support for libv4l2.
+On Mon, 7 Feb 2011, Detlev Zundel wrote:
 
-Changes in v3:
+> Hi Guennadi,
+> 
+> >> How small are the frames in you test? What is the highest fps value in
+> >> your test?
+> >
+> > QVGA, don't know fps exactly, pretty high, between 20 and 60fps, I think. 
+> > Just try different frams sizes, go down to 64x48 or something.
+> 
+> Is this a "real" usage scenario?  It feels that this is not what most
+> users will do and it certainly is not relevant for our application.  
 
-* Pass opened fd to the plugin instead of filename
-* Plugin private data is returned by init call and is passed as argument
-  in ioctl/read/close (remove libv4l2_set/get_plugindata functions)
-* Plugin do not handle mmap/munmap
+QVGA at 25 / 50 / 60 fps is _certainly_ very much a real-life scenario.
 
+> Is it possible that if you are interested in such a scenario that you do
+> the testing?  We have spent quite a lot of time to fix the driver for
+> real (well full frame) capturing already and I am relucatant to spend
+> more time for corner cases.  Maybe we should document this as "known
+> limitations" of the setup?  What do you think?  I'll much rather have a
+> driver working for real world scenarios than for marginal test cases.
 
+I am interested in avoiding regressions. In principle, this is a DMA 
+driver, which I am not maintaining. Dan asked for my ack, so, I tested it 
+and found an issue, which I would prefer to have resolved before 
+committing. Of course, I don't have a decisive voice in this matter, so, 
+the patch can also be merged without my ack. Otherwise - of course you 
+don't have to continue testing, I will try to look at the issue as the 
+time permits, and Dan will have to decide, whether he is prepared to 
+commit this patch in its present form, or he would prefer this issue to be 
+clarified.
 
---------------------------------------------------------------------------
-Changes in v2:
-
-* Remove calls of v4l2_plugin_foo functions in the beginning of coresponding
-  v4l2_foo functions and instead replace SYS_FOO calls.
-* Add to v4l2_dev_info device operation structure which can hold plugin
-  callbacks or dyrect syscall(SYS_foo, ...) calls.
-* Under libv4lconvert also replace SYS_FOO cals with device operations. This
-  required also to add dev_ops field to v4lconvert_data and v4lcontrol_data.
-
----------------------------------------------------------------------------
-v1:
-
-Here is initial version of plugin support for libv4l, based on your RFC.
-
-It is provided by functions v4l2_plugin_[open,close,etc]. When open() is
-called libv4l dlopens files in /usr/lib/libv4l/plugins 1 at a time and call
-open() callback passing through the applications parameters unmodified.
-If a plugin is relevant for the specified device node, it can indicate so by
-returning a value other then -1 (the actual file descriptor).
-
-As soon as a plugin returns another value then -1 plugin loading stops and
-information about it (fd and corresponding library handle) is stored.
-For each function v4l2_[ioctl,read,close,etc] is called corresponding
-v4l2_plugin_* function which looks if there is loaded plugin for that file
-and call it's callbacks. v4l2_plugin_* functions indicate by their first
-argument if plugin was used, and if it was not then v4l2_* functions proceed
-with their usual behavior.
-
-
-Yordan Kamenov (1):
-  libv4l: Add plugin support to libv4l
-
- lib/include/libv4l2-plugin.h                   |   36 ++++++
- lib/include/libv4lconvert.h                    |    5 +-
- lib/libv4l2/Makefile                           |    4 +-
- lib/libv4l2/libv4l2-priv.h                     |   10 ++
- lib/libv4l2/libv4l2.c                          |   90 ++++++++++----
- lib/libv4l2/v4l2-plugin.c                      |  160 ++++++++++++++++++++++++
- lib/libv4l2/v4l2convert.c                      |    9 --
- lib/libv4lconvert/control/libv4lcontrol-priv.h |    4 +
- lib/libv4lconvert/control/libv4lcontrol.c      |   35 ++++--
- lib/libv4lconvert/control/libv4lcontrol.h      |    5 +-
- lib/libv4lconvert/libv4lconvert-priv.h         |    2 +
- lib/libv4lconvert/libv4lconvert.c              |   34 ++++--
- 12 files changed, 333 insertions(+), 61 deletions(-)
- create mode 100644 lib/include/libv4l2-plugin.h
- create mode 100644 lib/libv4l2/v4l2-plugin.c
-
--- 
-1.7.3.1
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
