@@ -1,1103 +1,818 @@
 Return-path: <mchehab@pedra>
-Received: from hqemgate03.nvidia.com ([216.228.121.140]:9060 "EHLO
-	hqemgate03.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751169Ab1BQWPo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Feb 2011 17:15:44 -0500
-From: <achew@nvidia.com>
-To: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-CC: <mchehab@redhat.com>, <hverkuil@xs4all.nl>,
-	<g.liakhovetski@gmx.de>, Andrew Chew <achew@nvidia.com>
-Subject: [PATCH v4 1/1] [media] ov9740: Initial submit of OV9740 driver.
-Date: Thu, 17 Feb 2011 14:14:33 -0800
-Message-ID: <1297980873-18022-1-git-send-email-achew@nvidia.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:55454 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752640Ab1BHJam (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Feb 2011 04:30:42 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Tue, 08 Feb 2011 10:30:27 +0100
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCH 5/5] s5pc210: add s5p-tv to platform devices
+In-reply-to: <1297157427-14560-1-git-send-email-t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, t.stanislaws@samsung.com,
+	kyungmin.park@samsung.com
+Message-id: <1297157427-14560-6-git-send-email-t.stanislaws@samsung.com>
+References: <1297157427-14560-1-git-send-email-t.stanislaws@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Andrew Chew <achew@nvidia.com>
-
-This soc_camera driver is for Omnivision's OV9740 sensor.  This initial
-submission provides support for YUV422 output at 1280x720 (720p), which is
-the sensor's native resolution.  640x480 (VGA) is also supported, with
-cropping and scaling performed by the sensor's ISP.
-
-This driver is heavily based off of the existing OV9640 driver.
-
-Change-Id: Ie974475ce987588d87ff2e4ca720ac054f8adc0b
-Signed-off-by: Andrew Chew <achew@nvidia.com>
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Reviewed-by: Marek Szyprowski <m.szyprowski@samsung.com>
 ---
-Applied more suggestions from Guennadi Liakhovetski:
+ arch/arm/mach-s5pv310/Kconfig                   |    7 +
+ arch/arm/mach-s5pv310/Makefile                  |    1 +
+ arch/arm/mach-s5pv310/clock.c                   |  126 +++++++-
+ arch/arm/mach-s5pv310/dev-tv.c                  |  450 +++++++++++++++++++++++
+ arch/arm/mach-s5pv310/include/mach/irqs.h       |    4 +
+ arch/arm/mach-s5pv310/include/mach/map.h        |   26 ++
+ arch/arm/mach-s5pv310/include/mach/regs-clock.h |   15 +
+ arch/arm/plat-samsung/include/plat/devs.h       |    2 +
+ 8 files changed, 630 insertions(+), 1 deletions(-)
+ create mode 100644 arch/arm/mach-s5pv310/dev-tv.c
 
-Changed some dev_info prints to dev_dbg to reduce driver chattiness.
-Small modification in s_stream method for improved readability.
-Removed code parameter from ov9740_set_res().
-Fixed try_fmt method that I butchered due to my misunderstanding.
-
- drivers/media/video/Kconfig     |    6 +
- drivers/media/video/Makefile    |    1 +
- drivers/media/video/ov9740.c    | 1009 +++++++++++++++++++++++++++++++++++++++
- include/media/v4l2-chip-ident.h |    1 +
- 4 files changed, 1017 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/ov9740.c
-
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index d40a8fc..52b6271 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -837,6 +837,12 @@ config SOC_CAMERA_OV9640
+diff --git a/arch/arm/mach-s5pv310/Kconfig b/arch/arm/mach-s5pv310/Kconfig
+index 09c4c21..e62103b 100644
+--- a/arch/arm/mach-s5pv310/Kconfig
++++ b/arch/arm/mach-s5pv310/Kconfig
+@@ -20,6 +20,11 @@ config S5PV310_DEV_PD
  	help
- 	  This is a ov9640 camera driver
+ 	  Compile in platform device definitions for Power Domain
  
-+config SOC_CAMERA_OV9740
-+	tristate "ov9740 camera support"
-+	depends on SOC_CAMERA && I2C
++config S5PV310_DEV_TV
++	bool
 +	help
-+	  This is a ov9740 camera driver
++	  Compile in platform device definition for TV interface
 +
- config MX1_VIDEO
+ config S5PV310_SETUP_I2C1
  	bool
+ 	help
+@@ -102,6 +107,8 @@ config MACH_UNIVERSAL_C210
+ 	select S3C_DEV_HSMMC3
+ 	select S5PV310_SETUP_SDHCI
+ 	select S3C_DEV_I2C1
++	select S3C_DEV_I2C8
++	select S5PV310_DEV_TV
+ 	select S5PV310_SETUP_I2C1
+ 	help
+ 	  Machine support for Samsung Mobile Universal S5PC210 Reference
+diff --git a/arch/arm/mach-s5pv310/Makefile b/arch/arm/mach-s5pv310/Makefile
+index 036fb38..a234b80 100644
+--- a/arch/arm/mach-s5pv310/Makefile
++++ b/arch/arm/mach-s5pv310/Makefile
+@@ -32,6 +32,7 @@ obj-y					+= dev-audio.o
+ obj-$(CONFIG_S5PV310_DEV_PD)		+= dev-pd.o
+ obj-$(CONFIG_S5PV310_DEV_SYSMMU)	+= dev-sysmmu.o
  
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index 251b7ca..ac54652 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -79,6 +79,7 @@ obj-$(CONFIG_SOC_CAMERA_OV2640)		+= ov2640.o
- obj-$(CONFIG_SOC_CAMERA_OV6650)		+= ov6650.o
- obj-$(CONFIG_SOC_CAMERA_OV772X)		+= ov772x.o
- obj-$(CONFIG_SOC_CAMERA_OV9640)		+= ov9640.o
-+obj-$(CONFIG_SOC_CAMERA_OV9740)		+= ov9740.o
- obj-$(CONFIG_SOC_CAMERA_RJ54N1)		+= rj54n1cb0c.o
- obj-$(CONFIG_SOC_CAMERA_TW9910)		+= tw9910.o
++obj-$(CONFIG_S5PV310_DEV_TV)		+= dev-tv.o
+ obj-$(CONFIG_S5PV310_SETUP_I2C1)	+= setup-i2c1.o
+ obj-$(CONFIG_S5PV310_SETUP_I2C2)	+= setup-i2c2.o
+ obj-$(CONFIG_S5PV310_SETUP_I2C3)	+= setup-i2c3.o
+diff --git a/arch/arm/mach-s5pv310/clock.c b/arch/arm/mach-s5pv310/clock.c
+index 6161b54..5bca261 100644
+--- a/arch/arm/mach-s5pv310/clock.c
++++ b/arch/arm/mach-s5pv310/clock.c
+@@ -81,6 +81,11 @@ static int s5pv310_clksrc_mask_peril1_ctrl(struct clk *clk, int enable)
+ 	return s5p_gatectrl(S5P_CLKSRC_MASK_PERIL1, clk, enable);
+ }
  
-diff --git a/drivers/media/video/ov9740.c b/drivers/media/video/ov9740.c
++static int s5pv310_clksrc_mask_tv_ctrl(struct clk *clk, int enable)
++{
++	return s5p_gatectrl(S5P_CLKSRC_MASK_TV, clk, enable);
++}
++
+ static int s5pv310_clk_ip_cam_ctrl(struct clk *clk, int enable)
+ {
+ 	return s5p_gatectrl(S5P_CLKGATE_IP_CAM, clk, enable);
+@@ -116,6 +121,11 @@ static int s5pv310_clk_ip_perir_ctrl(struct clk *clk, int enable)
+ 	return s5p_gatectrl(S5P_CLKGATE_IP_PERIR, clk, enable);
+ }
+ 
++static int s5pv310_clk_ip_tv_ctrl(struct clk *clk, int enable)
++{
++	return s5p_gatectrl(S5P_CLKGATE_IP_TV, clk, enable);
++}
++
+ /* Core list of CMU_CPU side */
+ 
+ static struct clksrc_clk clk_mout_apll = {
+@@ -432,6 +442,26 @@ static struct clk init_clocks_off[] = {
+ 		.enable		= s5pv310_clk_ip_lcd1_ctrl,
+ 		.ctrlbit	= (1 << 0),
+ 	}, {
++		.name           = "dac",
++		.id             = -1,
++		.enable         = s5pv310_clk_ip_tv_ctrl,
++		.ctrlbit        = (1 << 2),
++	}, {
++		.name           = "mixer",
++		.id             = -1,
++		.enable         = s5pv310_clk_ip_tv_ctrl,
++		.ctrlbit        = (1 << 1),
++	}, {
++		.name           = "vp",
++		.id             = -1,
++		.enable         = s5pv310_clk_ip_tv_ctrl,
++		.ctrlbit        = (1 << 0),
++	}, {
++		.name           = "hdmi",
++		.id             = -1,
++		.enable         = s5pv310_clk_ip_tv_ctrl,
++		.ctrlbit        = (1 << 3),
++	}, {
+ 		.name		= "hsmmc",
+ 		.id		= 0,
+ 		.parent		= &clk_aclk_133.clk,
+@@ -697,6 +727,93 @@ static struct clksrc_sources clkset_mout_g2d = {
+ 	.nr_sources	= ARRAY_SIZE(clkset_mout_g2d_list),
+ };
+ 
++/* --------------------------------------
++ *         TV subsystem CLOCKS
++ * --------------------------------------
++ */
++
++static struct clk *clkset_sclk_dac_list[] = {
++	[0] = &clk_sclk_vpll.clk,
++	[1] = &clk_sclk_hdmiphy,
++};
++
++static struct clksrc_sources clkset_sclk_dac = {
++	.sources	= clkset_sclk_dac_list,
++	.nr_sources	= ARRAY_SIZE(clkset_sclk_dac_list),
++};
++
++static struct clksrc_clk clk_sclk_dac = {
++	.clk		= {
++		.name		= "sclk_dac",
++		.id		= -1,
++		.enable		= s5pv310_clksrc_mask_tv_ctrl,
++		.ctrlbit	= (1 << 8),
++	},
++	.sources = &clkset_sclk_dac,
++	.reg_src = { .reg = S5P_CLKSRC_TV, .shift = 8, .size = 1 },
++};
++
++static struct clksrc_clk clk_sclk_pixel  = {
++	.clk		= {
++		.name		= "sclk_pixel",
++		.id		= -1,
++		.parent = &clk_sclk_vpll.clk,
++	},
++	.reg_div = { .reg = S5P_CLKDIV_TV, .shift = 0, .size = 4 },
++};
++
++static struct clk *clkset_sclk_hdmi_list[] = {
++	[0] = &clk_sclk_pixel.clk,
++	[1] = &clk_sclk_hdmiphy,
++};
++
++static struct clksrc_sources clkset_sclk_hdmi = {
++	.sources	= clkset_sclk_hdmi_list,
++	.nr_sources	= ARRAY_SIZE(clkset_sclk_hdmi_list),
++};
++
++static struct clksrc_clk clk_sclk_hdmi = {
++	.clk		= {
++		.name		= "sclk_hdmi",
++		.id		= -1,
++		.enable		= s5pv310_clksrc_mask_tv_ctrl,
++		.ctrlbit	= (1 << 0),
++	},
++	.sources = &clkset_sclk_hdmi,
++	.reg_src = { .reg = S5P_CLKSRC_TV, .shift = 0, .size = 1 },
++};
++
++static struct clk *clkset_sclk_mixer_list[] = {
++	[0] = &clk_sclk_dac.clk,
++	[1] = &clk_sclk_hdmi.clk,
++};
++
++static struct clksrc_sources clkset_sclk_mixer = {
++	.sources	= clkset_sclk_mixer_list,
++	.nr_sources	= ARRAY_SIZE(clkset_sclk_mixer_list),
++};
++
++static struct clksrc_clk clk_sclk_mixer = {
++	.clk		= {
++		.name		= "sclk_mixer",
++		.id		= -1,
++		.enable		= s5pv310_clksrc_mask_tv_ctrl,
++		.ctrlbit	= (1 << 4),
++	},
++	.sources = &clkset_sclk_mixer,
++	.reg_src = { .reg = S5P_CLKSRC_TV, .shift = 4, .size = 1 },
++};
++
++static struct clksrc_clk *sclk_tv[] = {
++	&clk_sclk_dac,
++	&clk_sclk_pixel,
++	&clk_sclk_hdmi,
++	&clk_sclk_mixer,
++	NULL,
++};
++
++/* -------------------------------------------- */
++
+ static struct clksrc_clk clk_dout_mmc0 = {
+ 	.clk		= {
+ 		.name		= "dout_mmc0",
+@@ -1106,7 +1223,10 @@ void __init_or_cpufreq s5pv310_setup_clocks(void)
+ }
+ 
+ static struct clk *clks[] __initdata = {
+-	/* Nothing here yet */
++	&clk_sclk_hdmi27m,
++	&clk_sclk_hdmiphy,
++	&clk_sclk_usbphy0,
++	&clk_sclk_usbphy1,
+ };
+ 
+ void __init s5pv310_register_clocks(void)
+@@ -1118,6 +1238,10 @@ void __init s5pv310_register_clocks(void)
+ 	for (ptr = 0; ptr < ARRAY_SIZE(sysclks); ptr++)
+ 		s3c_register_clksrc(sysclks[ptr], 1);
+ 
++	/* register TV clocks */
++	for (ptr = 0; sclk_tv[ptr]; ++ptr)
++		s3c_register_clksrc(sclk_tv[ptr], 1);
++
+ 	s3c_register_clksrc(clksrcs, ARRAY_SIZE(clksrcs));
+ 	s3c_register_clocks(init_clocks, ARRAY_SIZE(init_clocks));
+ 
+diff --git a/arch/arm/mach-s5pv310/dev-tv.c b/arch/arm/mach-s5pv310/dev-tv.c
 new file mode 100644
-index 0000000..4d4ee4f
+index 0000000..b652c4c
 --- /dev/null
-+++ b/drivers/media/video/ov9740.c
-@@ -0,0 +1,1009 @@
-+/*
-+ * OmniVision OV9740 Camera Driver
++++ b/arch/arm/mach-s5pv310/dev-tv.c
+@@ -0,0 +1,450 @@
++/* linux/arch/arm/mach-s5pv310/dev-tv.c
 + *
-+ * Copyright (C) 2011 NVIDIA Corporation
++ * Copyright 20i10 Samsung Electronics
++ *      Tomasz Stanislawski <t.stanislaws@samsung.com>
 + *
-+ * Based on ov9640 camera driver.
++ * S5P series device definition for TV device
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
 + * published by the Free Software Foundation.
-+ */
++*/
 +
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/i2c.h>
-+#include <linux/slab.h>
-+#include <media/v4l2-chip-ident.h>
-+#include <media/soc_camera.h>
++#include "plat/tv.h"
 +
-+#define to_ov9740(sd)		container_of(sd, struct ov9740_priv, subdev)
++#include <mach/gpio.h>
++#include <plat/gpio-cfg.h>
++#include <mach/regs-clock.h>
++#include <mach/regs-pmu.h>
 +
-+/* General Status Registers */
-+#define OV9740_MODEL_ID_HI		0x0000
-+#define OV9740_MODEL_ID_LO		0x0001
-+#define OV9740_REVISION_NUMBER		0x0002
-+#define OV9740_MANUFACTURER_ID		0x0003
-+#define OV9740_SMIA_VERSION		0x0004
++#include <linux/kernel.h>
++#include <linux/string.h>
++#include <linux/platform_device.h>
++#include <linux/fb.h>
++#include <linux/gfp.h>
++#include <linux/dma-mapping.h>
++#include <linux/clk.h>
++#include <linux/regulator/consumer.h>
++#include <linux/delay.h>
 +
-+/* General Setup Registers */
-+#define OV9740_MODE_SELECT		0x0100
-+#define OV9740_IMAGE_ORT		0x0101
-+#define OV9740_SOFTWARE_RESET		0x0103
-+#define OV9740_GRP_PARAM_HOLD		0x0104
-+#define OV9740_MSK_CORRUP_FM		0x0105
++#include <mach/irqs.h>
++#include <mach/map.h>
 +
-+/* Timing Setting */
-+#define OV9740_FRM_LENGTH_LN_HI		0x0340 /* VTS */
-+#define OV9740_FRM_LENGTH_LN_LO		0x0341 /* VTS */
-+#define OV9740_LN_LENGTH_PCK_HI		0x0342 /* HTS */
-+#define OV9740_LN_LENGTH_PCK_LO		0x0343 /* HTS */
-+#define OV9740_X_ADDR_START_HI		0x0344
-+#define OV9740_X_ADDR_START_LO		0x0345
-+#define OV9740_Y_ADDR_START_HI		0x0346
-+#define OV9740_Y_ADDR_START_LO		0x0347
-+#define OV9740_X_ADDR_END_HI		0x0348
-+#define OV9740_X_ADDR_END_LO		0x0349
-+#define OV9740_Y_ADDR_END_HI		0x034A
-+#define OV9740_Y_ADDR_END_LO		0x034B
-+#define OV9740_X_OUTPUT_SIZE_HI		0x034C
-+#define OV9740_X_OUTPUT_SIZE_LO		0x034D
-+#define OV9740_Y_OUTPUT_SIZE_HI		0x034E
-+#define OV9740_Y_OUTPUT_SIZE_LO		0x034F
++#include <plat/devs.h>
++#include <plat/cpu.h>
 +
-+/* IO Control Registers */
-+#define OV9740_IO_CREL00		0x3002
-+#define OV9740_IO_CREL01		0x3004
-+#define OV9740_IO_CREL02		0x3005
-+#define OV9740_IO_OUTPUT_SEL01		0x3026
-+#define OV9740_IO_OUTPUT_SEL02		0x3027
++/* macro for setting registeres */
++#define SETREG(name, value, mask) \
++do { \
++	u32 reg = readl(name); \
++	reg &= ~mask; \
++	reg |= value; \
++	writel(reg, name); \
++	reg = readl(name); \
++	printk(KERN_DEBUG #name " <- %08x\n", reg); \
++} while (0)
 +
-+/* AWB Registers */
-+#define OV9740_AWB_MANUAL_CTRL		0x3406
++/* macro for debugging registeres */
++#define DBGREG(name) \
++do { \
++	u32 reg = readl(name); \
++	printk(KERN_DEBUG #name " <- %08x\n", reg); \
++} while (0)
 +
-+/* Analog Control Registers */
-+#define OV9740_ANALOG_CTRL01		0x3601
-+#define OV9740_ANALOG_CTRL02		0x3602
-+#define OV9740_ANALOG_CTRL03		0x3603
-+#define OV9740_ANALOG_CTRL04		0x3604
-+#define OV9740_ANALOG_CTRL10		0x3610
-+#define OV9740_ANALOG_CTRL12		0x3612
-+#define OV9740_ANALOG_CTRL20		0x3620
-+#define OV9740_ANALOG_CTRL21		0x3621
-+#define OV9740_ANALOG_CTRL22		0x3622
-+#define OV9740_ANALOG_CTRL30		0x3630
-+#define OV9740_ANALOG_CTRL31		0x3631
-+#define OV9740_ANALOG_CTRL32		0x3632
-+#define OV9740_ANALOG_CTRL33		0x3633
++static void dbg_plat_regs(void);
 +
-+/* Sensor Control */
-+#define OV9740_SENSOR_CTRL03		0x3703
-+#define OV9740_SENSOR_CTRL04		0x3704
-+#define OV9740_SENSOR_CTRL05		0x3705
-+#define OV9740_SENSOR_CTRL07		0x3707
++/* very simpler tv-power-domain support */
++static int tv_power_cnt;
 +
-+/* Timing Control */
-+#define OV9740_TIMING_CTRL17		0x3817
-+#define OV9740_TIMING_CTRL19		0x3819
-+#define OV9740_TIMING_CTRL33		0x3833
-+#define OV9740_TIMING_CTRL35		0x3835
++static void tv_power_get(void)
++{
++	if (++tv_power_cnt == 1) {
++		int tries;
++		printk(KERN_ERR "TV power domain on - start\n");
++		dbg_plat_regs();
++		SETREG(S5P_CLKGATE_BLOCK, 0x02, 0x02); /* keep here */
++		SETREG(S5P_CMU_CLKSTOP_TV_SYS_PWR, 1, 1);
++		SETREG(S5P_CMU_RESET_TV_SYS_PWR, 1, 1);
++		SETREG(S5P_TV_SYS_PWR, 7, 7);
++		/* power domain on sequence */
++		SETREG(S5P_TV_CONFIGURATION, 7, 7);
++		for (tries = 1000; tries; mdelay(1), tries--)
++			if ((readl(S5P_TV_STATUS) & 7) == 7)
++				break;
++		WARN(tries == 0, "failed to turn TV power domain on\n");
++		printk(KERN_ERR "TV power domain on - finish\n");
++		dbg_plat_regs();
++	}
++}
 +
-+/* Banding Filter */
-+#define OV9740_AEC_MAXEXPO_60_H		0x3A02
-+#define OV9740_AEC_MAXEXPO_60_L		0x3A03
-+#define OV9740_AEC_B50_STEP_HI		0x3A08
-+#define OV9740_AEC_B50_STEP_LO		0x3A09
-+#define OV9740_AEC_B60_STEP_HI		0x3A0A
-+#define OV9740_AEC_B60_STEP_LO		0x3A0B
-+#define OV9740_AEC_CTRL0D		0x3A0D
-+#define OV9740_AEC_CTRL0E		0x3A0E
-+#define OV9740_AEC_MAXEXPO_50_H		0x3A14
-+#define OV9740_AEC_MAXEXPO_50_L		0x3A15
++static void tv_power_put(void)
++{
++	if (--tv_power_cnt == 0) {
++		int tries;
++		printk(KERN_ERR "TV power domain off - start\n");
++		dbg_plat_regs();
++		SETREG(S5P_TV_CONFIGURATION, 0, 7);
++		for (tries = 1000; tries; mdelay(1), tries--)
++			if ((readl(S5P_TV_STATUS) & 7) == 0)
++				break;
++		WARN(tries == 0, "failed to turn TV power domain off\n");
++		SETREG(S5P_TV_SYS_PWR, 0, 7);
++		SETREG(S5P_CMU_RESET_TV_SYS_PWR, 0, 1);
++		SETREG(S5P_CMU_CLKSTOP_TV_SYS_PWR, 0, 1);
++		SETREG(S5P_CLKGATE_BLOCK, 0x00, 0x02); /* keep here */
++		printk(KERN_ERR "TV power domain off - finish\n");
++		dbg_plat_regs();
++	}
++}
 +
-+/* AEC/AGC Control */
-+#define OV9740_AEC_ENABLE		0x3503
-+#define OV9740_GAIN_CEILING_01		0x3A18
-+#define OV9740_GAIN_CEILING_02		0x3A19
-+#define OV9740_AEC_HI_THRESHOLD		0x3A11
-+#define OV9740_AEC_3A1A			0x3A1A
-+#define OV9740_AEC_CTRL1B_WPT2		0x3A1B
-+#define OV9740_AEC_CTRL0F_WPT		0x3A0F
-+#define OV9740_AEC_CTRL10_BPT		0x3A10
-+#define OV9740_AEC_CTRL1E_BPT2		0x3A1E
-+#define OV9740_AEC_LO_THRESHOLD		0x3A1F
-+
-+/* BLC Control */
-+#define OV9740_BLC_AUTO_ENABLE		0x4002
-+#define OV9740_BLC_MODE			0x4005
-+
-+/* VFIFO */
-+#define OV9740_VFIFO_READ_START_HI	0x4608
-+#define OV9740_VFIFO_READ_START_LO	0x4609
-+
-+/* DVP Control */
-+#define OV9740_DVP_VSYNC_CTRL02		0x4702
-+#define OV9740_DVP_VSYNC_MODE		0x4704
-+#define OV9740_DVP_VSYNC_CTRL06		0x4706
-+
-+/* PLL Setting */
-+#define OV9740_PLL_MODE_CTRL01		0x3104
-+#define OV9740_PRE_PLL_CLK_DIV		0x0305
-+#define OV9740_PLL_MULTIPLIER		0x0307
-+#define OV9740_VT_SYS_CLK_DIV		0x0303
-+#define OV9740_VT_PIX_CLK_DIV		0x0301
-+#define OV9740_PLL_CTRL3010		0x3010
-+#define OV9740_VFIFO_CTRL00		0x460E
-+
-+/* ISP Control */
-+#define OV9740_ISP_CTRL00		0x5000
-+#define OV9740_ISP_CTRL01		0x5001
-+#define OV9740_ISP_CTRL03		0x5003
-+#define OV9740_ISP_CTRL05		0x5005
-+#define OV9740_ISP_CTRL12		0x5012
-+#define OV9740_ISP_CTRL19		0x5019
-+#define OV9740_ISP_CTRL1A		0x501A
-+#define OV9740_ISP_CTRL1E		0x501E
-+#define OV9740_ISP_CTRL1F		0x501F
-+#define OV9740_ISP_CTRL20		0x5020
-+#define OV9740_ISP_CTRL21		0x5021
-+
-+/* AWB */
-+#define OV9740_AWB_CTRL00		0x5180
-+#define OV9740_AWB_CTRL01		0x5181
-+#define OV9740_AWB_CTRL02		0x5182
-+#define OV9740_AWB_CTRL03		0x5183
-+#define OV9740_AWB_ADV_CTRL01		0x5184
-+#define OV9740_AWB_ADV_CTRL02		0x5185
-+#define OV9740_AWB_ADV_CTRL03		0x5186
-+#define OV9740_AWB_ADV_CTRL04		0x5187
-+#define OV9740_AWB_ADV_CTRL05		0x5188
-+#define OV9740_AWB_ADV_CTRL06		0x5189
-+#define OV9740_AWB_ADV_CTRL07		0x518A
-+#define OV9740_AWB_ADV_CTRL08		0x518B
-+#define OV9740_AWB_ADV_CTRL09		0x518C
-+#define OV9740_AWB_ADV_CTRL10		0x518D
-+#define OV9740_AWB_ADV_CTRL11		0x518E
-+#define OV9740_AWB_CTRL0F		0x518F
-+#define OV9740_AWB_CTRL10		0x5190
-+#define OV9740_AWB_CTRL11		0x5191
-+#define OV9740_AWB_CTRL12		0x5192
-+#define OV9740_AWB_CTRL13		0x5193
-+#define OV9740_AWB_CTRL14		0x5194
-+
-+/* MIPI Control */
-+#define OV9740_MIPI_CTRL00		0x4800
-+#define OV9740_MIPI_3837		0x3837
-+#define OV9740_MIPI_CTRL01		0x4801
-+#define OV9740_MIPI_CTRL03		0x4803
-+#define OV9740_MIPI_CTRL05		0x4805
-+#define OV9740_VFIFO_RD_CTRL		0x4601
-+#define OV9740_MIPI_CTRL_3012		0x3012
-+#define OV9740_SC_CMMM_MIPI_CTR		0x3014
-+
-+/* supported resolutions */
-+enum {
-+	OV9740_VGA,
-+	OV9740_720P,
-+};
-+
-+struct ov9740_resolution {
-+	unsigned int width;
-+	unsigned int height;
-+};
-+
-+static struct ov9740_resolution ov9740_resolutions[] = {
-+	[OV9740_VGA] = {
-+		.width	= 640,
-+		.height	= 480,
++/* HDMI interface */
++static struct resource s5p_hdmi_resources[] = {
++	[0] = {
++		.start  = S5P_PA_HDMI,
++		.end    = S5P_PA_HDMI + S5P_SZ_HDMI - 1,
++		.flags  = IORESOURCE_MEM,
 +	},
-+	[OV9740_720P] = {
-+		.width	= 1280,
-+		.height	= 720,
++	[1] = {
++		.start  = IRQ_HDMI,
++		.end    = IRQ_HDMI,
++		.flags  = IORESOURCE_IRQ,
 +	},
 +};
 +
-+/* Misc. structures */
-+struct ov9740_reg {
-+	u16				reg;
-+	u8				val;
++static struct hdmi_platform_data hdmi_pdata;
++
++struct platform_device s5p_device_hdmi = {
++	.name           = "s5p-hdmi",
++	.id             = -1,
++	.num_resources  = ARRAY_SIZE(s5p_hdmi_resources),
++	.resource       = s5p_hdmi_resources,
++	.dev.platform_data = &hdmi_pdata,
 +};
++EXPORT_SYMBOL(s5p_device_hdmi);
 +
-+struct ov9740_priv {
-+	struct v4l2_subdev		subdev;
++static struct hdmi_plat_resource {
++	struct clk *hdmi;
++	struct clk *sclk_hdmi;
++	struct clk *sclk_pixel;
++	struct clk *sclk_hdmiphy;
++	struct regulator *ldo4;
++} hdmi_plat_resource;
 +
-+	int				ident;
-+	u16				model;
-+	u8				revision;
-+	u8				manid;
-+	u8				smiaver;
++static void hdmi_deinit(struct device *dev);
 +
-+	bool				flag_vflip;
-+	bool				flag_hflip;
-+};
-+
-+static const struct ov9740_reg ov9740_defaults[] = {
-+	/* Banding Filter */
-+	{ OV9740_AEC_B50_STEP_HI,	0x00 },
-+	{ OV9740_AEC_B50_STEP_LO,	0xe8 },
-+	{ OV9740_AEC_CTRL0E,		0x03 },
-+	{ OV9740_AEC_MAXEXPO_50_H,	0x15 },
-+	{ OV9740_AEC_MAXEXPO_50_L,	0xc6 },
-+	{ OV9740_AEC_B60_STEP_HI,	0x00 },
-+	{ OV9740_AEC_B60_STEP_LO,	0xc0 },
-+	{ OV9740_AEC_CTRL0D,		0x04 },
-+	{ OV9740_AEC_MAXEXPO_60_H,	0x18 },
-+	{ OV9740_AEC_MAXEXPO_60_L,	0x20 },
-+
-+	/* LC */
-+	{ 0x5842, 0x02 }, { 0x5843, 0x5e }, { 0x5844, 0x04 }, { 0x5845, 0x32 },
-+	{ 0x5846, 0x03 }, { 0x5847, 0x29 }, { 0x5848, 0x02 }, { 0x5849, 0xcc },
-+
-+	/* Un-documented OV9740 registers */
-+	{ 0x5800, 0x29 }, { 0x5801, 0x25 }, { 0x5802, 0x20 }, { 0x5803, 0x21 },
-+	{ 0x5804, 0x26 }, { 0x5805, 0x2e }, { 0x5806, 0x11 }, { 0x5807, 0x0c },
-+	{ 0x5808, 0x09 }, { 0x5809, 0x0a }, { 0x580A, 0x0e }, { 0x580B, 0x16 },
-+	{ 0x580C, 0x06 }, { 0x580D, 0x02 }, { 0x580E, 0x00 }, { 0x580F, 0x00 },
-+	{ 0x5810, 0x04 }, { 0x5811, 0x0a }, { 0x5812, 0x05 }, { 0x5813, 0x02 },
-+	{ 0x5814, 0x00 }, { 0x5815, 0x00 }, { 0x5816, 0x03 }, { 0x5817, 0x09 },
-+	{ 0x5818, 0x0f }, { 0x5819, 0x0a }, { 0x581A, 0x07 }, { 0x581B, 0x08 },
-+	{ 0x581C, 0x0b }, { 0x581D, 0x14 }, { 0x581E, 0x28 }, { 0x581F, 0x23 },
-+	{ 0x5820, 0x1d }, { 0x5821, 0x1e }, { 0x5822, 0x24 }, { 0x5823, 0x2a },
-+	{ 0x5824, 0x4f }, { 0x5825, 0x6f }, { 0x5826, 0x5f }, { 0x5827, 0x7f },
-+	{ 0x5828, 0x9f }, { 0x5829, 0x5f }, { 0x582A, 0x8f }, { 0x582B, 0x9e },
-+	{ 0x582C, 0x8f }, { 0x582D, 0x9f }, { 0x582E, 0x4f }, { 0x582F, 0x87 },
-+	{ 0x5830, 0x86 }, { 0x5831, 0x97 }, { 0x5832, 0xae }, { 0x5833, 0x3f },
-+	{ 0x5834, 0x8e }, { 0x5835, 0x7c }, { 0x5836, 0x7e }, { 0x5837, 0xaf },
-+	{ 0x5838, 0x8f }, { 0x5839, 0x8f }, { 0x583A, 0x9f }, { 0x583B, 0x7f },
-+	{ 0x583C, 0x5f },
-+
-+	/* Y Gamma */
-+	{ 0x5480, 0x07 }, { 0x5481, 0x18 }, { 0x5482, 0x2c }, { 0x5483, 0x4e },
-+	{ 0x5484, 0x5e }, { 0x5485, 0x6b }, { 0x5486, 0x77 }, { 0x5487, 0x82 },
-+	{ 0x5488, 0x8c }, { 0x5489, 0x95 }, { 0x548A, 0xa4 }, { 0x548B, 0xb1 },
-+	{ 0x548C, 0xc6 }, { 0x548D, 0xd8 }, { 0x548E, 0xe9 },
-+
-+	/* UV Gamma */
-+	{ 0x5490, 0x0f }, { 0x5491, 0xff }, { 0x5492, 0x0d }, { 0x5493, 0x05 },
-+	{ 0x5494, 0x07 }, { 0x5495, 0x1a }, { 0x5496, 0x04 }, { 0x5497, 0x01 },
-+	{ 0x5498, 0x03 }, { 0x5499, 0x53 }, { 0x549A, 0x02 }, { 0x549B, 0xeb },
-+	{ 0x549C, 0x02 }, { 0x549D, 0xa0 }, { 0x549E, 0x02 }, { 0x549F, 0x67 },
-+	{ 0x54A0, 0x02 }, { 0x54A1, 0x3b }, { 0x54A2, 0x02 }, { 0x54A3, 0x18 },
-+	{ 0x54A4, 0x01 }, { 0x54A5, 0xe7 }, { 0x54A6, 0x01 }, { 0x54A7, 0xc3 },
-+	{ 0x54A8, 0x01 }, { 0x54A9, 0x94 }, { 0x54AA, 0x01 }, { 0x54AB, 0x72 },
-+	{ 0x54AC, 0x01 }, { 0x54AD, 0x57 },
-+
-+	/* AWB */
-+	{ OV9740_AWB_CTRL00,		0xf0 },
-+	{ OV9740_AWB_CTRL01,		0x00 },
-+	{ OV9740_AWB_CTRL02,		0x41 },
-+	{ OV9740_AWB_CTRL03,		0x42 },
-+	{ OV9740_AWB_ADV_CTRL01,	0x8a },
-+	{ OV9740_AWB_ADV_CTRL02,	0x61 },
-+	{ OV9740_AWB_ADV_CTRL03,	0xce },
-+	{ OV9740_AWB_ADV_CTRL04,	0xa8 },
-+	{ OV9740_AWB_ADV_CTRL05,	0x17 },
-+	{ OV9740_AWB_ADV_CTRL06,	0x1f },
-+	{ OV9740_AWB_ADV_CTRL07,	0x27 },
-+	{ OV9740_AWB_ADV_CTRL08,	0x41 },
-+	{ OV9740_AWB_ADV_CTRL09,	0x34 },
-+	{ OV9740_AWB_ADV_CTRL10,	0xf0 },
-+	{ OV9740_AWB_ADV_CTRL11,	0x10 },
-+	{ OV9740_AWB_CTRL0F,		0xff },
-+	{ OV9740_AWB_CTRL10,		0x00 },
-+	{ OV9740_AWB_CTRL11,		0xff },
-+	{ OV9740_AWB_CTRL12,		0x00 },
-+	{ OV9740_AWB_CTRL13,		0xff },
-+	{ OV9740_AWB_CTRL14,		0x00 },
-+
-+	/* CIP */
-+	{ 0x530D, 0x12 },
-+
-+	/* CMX */
-+	{ 0x5380, 0x01 }, { 0x5381, 0x00 }, { 0x5382, 0x00 }, { 0x5383, 0x17 },
-+	{ 0x5384, 0x00 }, { 0x5385, 0x01 }, { 0x5386, 0x00 }, { 0x5387, 0x00 },
-+	{ 0x5388, 0x00 }, { 0x5389, 0xe0 }, { 0x538A, 0x00 }, { 0x538B, 0x20 },
-+	{ 0x538C, 0x00 }, { 0x538D, 0x00 }, { 0x538E, 0x00 }, { 0x538F, 0x16 },
-+	{ 0x5390, 0x00 }, { 0x5391, 0x9c }, { 0x5392, 0x00 }, { 0x5393, 0xa0 },
-+	{ 0x5394, 0x18 },
-+
-+	/* 50/60 Detection */
-+	{ 0x3C0A, 0x9c }, { 0x3C0B, 0x3f },
-+
-+	/* Output Select */
-+	{ OV9740_IO_OUTPUT_SEL01,	0x00 },
-+	{ OV9740_IO_OUTPUT_SEL02,	0x00 },
-+	{ OV9740_IO_CREL00,		0x00 },
-+	{ OV9740_IO_CREL01,		0x00 },
-+	{ OV9740_IO_CREL02,		0x00 },
-+
-+	/* AWB Control */
-+	{ OV9740_AWB_MANUAL_CTRL,	0x00 },
-+
-+	/* Analog Control */
-+	{ OV9740_ANALOG_CTRL03,		0xaa },
-+	{ OV9740_ANALOG_CTRL32,		0x2f },
-+	{ OV9740_ANALOG_CTRL20,		0x66 },
-+	{ OV9740_ANALOG_CTRL21,		0xc0 },
-+	{ OV9740_ANALOG_CTRL31,		0x52 },
-+	{ OV9740_ANALOG_CTRL33,		0x50 },
-+	{ OV9740_ANALOG_CTRL30,		0xca },
-+	{ OV9740_ANALOG_CTRL04,		0x0c },
-+	{ OV9740_ANALOG_CTRL01,		0x40 },
-+	{ OV9740_ANALOG_CTRL02,		0x16 },
-+	{ OV9740_ANALOG_CTRL10,		0xa1 },
-+	{ OV9740_ANALOG_CTRL12,		0x24 },
-+	{ OV9740_ANALOG_CTRL22,		0x9f },
-+
-+	/* Sensor Control */
-+	{ OV9740_SENSOR_CTRL03,		0x42 },
-+	{ OV9740_SENSOR_CTRL04,		0x10 },
-+	{ OV9740_SENSOR_CTRL05,		0x45 },
-+	{ OV9740_SENSOR_CTRL07,		0x14 },
-+
-+	/* Timing Control */
-+	{ OV9740_TIMING_CTRL33,		0x04 },
-+	{ OV9740_TIMING_CTRL35,		0x02 },
-+	{ OV9740_TIMING_CTRL19,		0x6e },
-+	{ OV9740_TIMING_CTRL17,		0x94 },
-+
-+	/* AEC/AGC Control */
-+	{ OV9740_AEC_ENABLE,		0x10 },
-+	{ OV9740_GAIN_CEILING_01,	0x00 },
-+	{ OV9740_GAIN_CEILING_02,	0x7f },
-+	{ OV9740_AEC_HI_THRESHOLD,	0xa0 },
-+	{ OV9740_AEC_3A1A,		0x05 },
-+	{ OV9740_AEC_CTRL1B_WPT2,	0x50 },
-+	{ OV9740_AEC_CTRL0F_WPT,	0x50 },
-+	{ OV9740_AEC_CTRL10_BPT,	0x4c },
-+	{ OV9740_AEC_CTRL1E_BPT2,	0x4c },
-+	{ OV9740_AEC_LO_THRESHOLD,	0x26 },
-+
-+	/* BLC Control */
-+	{ OV9740_BLC_AUTO_ENABLE,	0x45 },
-+	{ OV9740_BLC_MODE,		0x18 },
-+
-+	/* DVP Control */
-+	{ OV9740_DVP_VSYNC_CTRL02,	0x04 },
-+	{ OV9740_DVP_VSYNC_MODE,	0x00 },
-+	{ OV9740_DVP_VSYNC_CTRL06,	0x08 },
-+
-+	/* PLL Setting */
-+	{ OV9740_PLL_MODE_CTRL01,	0x20 },
-+	{ OV9740_PRE_PLL_CLK_DIV,	0x03 },
-+	{ OV9740_PLL_MULTIPLIER,	0x4c },
-+	{ OV9740_VT_SYS_CLK_DIV,	0x01 },
-+	{ OV9740_VT_PIX_CLK_DIV,	0x08 },
-+	{ OV9740_PLL_CTRL3010,		0x01 },
-+	{ OV9740_VFIFO_CTRL00,		0x82 },
-+
-+	/* Timing Setting */
-+	/* VTS */
-+	{ OV9740_FRM_LENGTH_LN_HI,	0x03 },
-+	{ OV9740_FRM_LENGTH_LN_LO,	0x07 },
-+	/* HTS */
-+	{ OV9740_LN_LENGTH_PCK_HI,	0x06 },
-+	{ OV9740_LN_LENGTH_PCK_LO,	0x62 },
-+
-+	/* MIPI Control */
-+	{ OV9740_MIPI_CTRL00,		0x44 },
-+	{ OV9740_MIPI_3837,		0x01 },
-+	{ OV9740_MIPI_CTRL01,		0x0f },
-+	{ OV9740_MIPI_CTRL03,		0x05 },
-+	{ OV9740_MIPI_CTRL05,		0x10 },
-+	{ OV9740_VFIFO_RD_CTRL,		0x16 },
-+	{ OV9740_MIPI_CTRL_3012,	0x70 },
-+	{ OV9740_SC_CMMM_MIPI_CTR,	0x01 },
-+};
-+
-+static const struct ov9740_reg ov9740_regs_vga[] = {
-+	{ OV9740_X_ADDR_START_HI,	0x00 },
-+	{ OV9740_X_ADDR_START_LO,	0xa0 },
-+	{ OV9740_Y_ADDR_START_HI,	0x00 },
-+	{ OV9740_Y_ADDR_START_LO,	0x00 },
-+	{ OV9740_X_ADDR_END_HI,		0x04 },
-+	{ OV9740_X_ADDR_END_LO,		0x63 },
-+	{ OV9740_Y_ADDR_END_HI,		0x02 },
-+	{ OV9740_Y_ADDR_END_LO,		0xd3 },
-+	{ OV9740_X_OUTPUT_SIZE_HI,	0x02 },
-+	{ OV9740_X_OUTPUT_SIZE_LO,	0x80 },
-+	{ OV9740_Y_OUTPUT_SIZE_HI,	0x01 },
-+	{ OV9740_Y_OUTPUT_SIZE_LO,	0xe0 },
-+	{ OV9740_ISP_CTRL1E,		0x03 },
-+	{ OV9740_ISP_CTRL1F,		0xc0 },
-+	{ OV9740_ISP_CTRL20,		0x02 },
-+	{ OV9740_ISP_CTRL21,		0xd0 },
-+	{ OV9740_VFIFO_READ_START_HI,	0x01 },
-+	{ OV9740_VFIFO_READ_START_LO,	0x40 },
-+	{ OV9740_ISP_CTRL00,		0xff },
-+	{ OV9740_ISP_CTRL01,		0xff },
-+	{ OV9740_ISP_CTRL03,		0xff },
-+};
-+
-+static const struct ov9740_reg ov9740_regs_720p[] = {
-+	{ OV9740_X_ADDR_START_HI,	0x00 },
-+	{ OV9740_X_ADDR_START_LO,	0x00 },
-+	{ OV9740_Y_ADDR_START_HI,	0x00 },
-+	{ OV9740_Y_ADDR_START_LO,	0x00 },
-+	{ OV9740_X_ADDR_END_HI,		0x05 },
-+	{ OV9740_X_ADDR_END_LO,		0x03 },
-+	{ OV9740_Y_ADDR_END_HI,		0x02 },
-+	{ OV9740_Y_ADDR_END_LO,		0xd3 },
-+	{ OV9740_X_OUTPUT_SIZE_HI,	0x05 },
-+	{ OV9740_X_OUTPUT_SIZE_LO,	0x00 },
-+	{ OV9740_Y_OUTPUT_SIZE_HI,	0x02 },
-+	{ OV9740_Y_OUTPUT_SIZE_LO,	0xd0 },
-+	{ OV9740_ISP_CTRL1E,		0x05 },
-+	{ OV9740_ISP_CTRL1F,		0x00 },
-+	{ OV9740_ISP_CTRL20,		0x02 },
-+	{ OV9740_ISP_CTRL21,		0xd0 },
-+	{ OV9740_VFIFO_READ_START_HI,	0x02 },
-+	{ OV9740_VFIFO_READ_START_LO,	0x30 },
-+	{ OV9740_ISP_CTRL00,		0xff },
-+	{ OV9740_ISP_CTRL01,		0xef },
-+	{ OV9740_ISP_CTRL03,		0xff },
-+};
-+
-+static enum v4l2_mbus_pixelcode ov9740_codes[] = {
-+	V4L2_MBUS_FMT_YUYV8_2X8,
-+};
-+
-+static const struct v4l2_queryctrl ov9740_controls[] = {
-+	{
-+		.id		= V4L2_CID_VFLIP,
-+		.type		= V4L2_CTRL_TYPE_BOOLEAN,
-+		.name		= "Flip Vertically",
-+		.minimum	= 0,
-+		.maximum	= 1,
-+		.step		= 1,
-+		.default_value	= 0,
-+	},
-+	{
-+		.id		= V4L2_CID_HFLIP,
-+		.type		= V4L2_CTRL_TYPE_BOOLEAN,
-+		.name		= "Flip Horizontally",
-+		.minimum	= 0,
-+		.maximum	= 1,
-+		.step		= 1,
-+		.default_value	= 0,
-+	},
-+};
-+
-+/* read a register */
-+static int ov9740_reg_read(struct i2c_client *client, u16 reg, u8 *val)
++static int hdmi_init(struct device *dev)
 +{
-+	int ret;
-+	struct i2c_msg msg[] = {
-+		{
-+			.addr	= client->addr,
-+			.flags	= 0,
-+			.len	= 2,
-+			.buf	= (u8 *)&reg,
-+		},
-+		{
-+			.addr	= client->addr,
-+			.flags	= I2C_M_RD,
-+			.len	= 1,
-+			.buf	= val,
-+		},
-+	};
++	struct hdmi_plat_resource *res = &hdmi_plat_resource;
++	dev_info(dev, "platform HDMI Init\n");
++	memset(res, 0, sizeof *res);
++	/* get clocks, power, and GPIOs */
++	gpio_request(S5PV310_GPX3(7), "hpd-plug");
++	gpio_request(S5PV310_GPE0(1), "hdmi-en");
 +
-+	reg = swab16(reg);
++	/* direct HPD to HDMI chip */
++	gpio_direction_input(S5PV310_GPX3(7));
++	s3c_gpio_cfgpin(S5PV310_GPX3(7), S3C_GPIO_SFN(0x3));
++	s3c_gpio_setpull(S5PV310_GPX3(7), S3C_GPIO_PULL_NONE);
 +
-+	ret = i2c_transfer(client->adapter, msg, 2);
-+	if (ret < 0) {
-+		dev_err(&client->dev, "Failed reading register 0x%04x!\n", reg);
-+		return ret;
++	/* move this names somewhere */
++	res->hdmi = clk_get(dev, "hdmi");
++	if (IS_ERR_OR_NULL(res->hdmi)) {
++		dev_err(dev, "failed to get clock 'hdmi'\n");
++		goto fail;
 +	}
++	res->sclk_hdmi = clk_get(dev, "sclk_hdmi");
++	if (IS_ERR_OR_NULL(res->sclk_hdmi)) {
++		dev_err(dev, "failed to get clock 'sclk_hdmi'\n");
++		goto fail;
++	}
++	res->sclk_pixel = clk_get(dev, "sclk_pixel");
++	if (IS_ERR_OR_NULL(res->sclk_pixel)) {
++		dev_err(dev, "failed to get clock 'sclk_pixel'\n");
++		goto fail;
++	}
++	res->sclk_hdmiphy = clk_get(dev, "sclk_hdmiphy");
++	if (IS_ERR_OR_NULL(res->sclk_hdmiphy)) {
++		dev_err(dev, "failed to get clock 'sclk_hdmiphy'\n");
++		goto fail;
++	}
++	res->ldo4 = regulator_get(dev, "vadc_3.3v_c210");
++	if (IS_ERR_OR_NULL(res->ldo4)) {
++		dev_err(dev, "failed to get regulator 'ldo4'\n");
++		goto fail;
++	}
++
++	/* use VPP as parent clock; HDMIPHY is not working yet */
++	clk_set_parent(res->sclk_hdmi, res->sclk_pixel);
++	/* regulator_enable(res->ldo4); */
++	tv_power_get();
++
++	dbg_plat_regs();
 +
 +	return 0;
++fail:
++	dev_err(dev, "platform HDMI Init - failed\n");
++	hdmi_deinit(dev);
++	return -ENODEV;
 +}
 +
-+/* write a register */
-+static int ov9740_reg_write(struct i2c_client *client, u16 reg, u8 val)
++static void hdmi_deinit(struct device *dev)
 +{
-+	struct i2c_msg msg;
-+	struct {
-+		u16 reg;
-+		u8 val;
-+	} __packed buf;
-+	int ret;
-+
-+	reg = swab16(reg);
-+
-+	buf.reg = reg;
-+	buf.val = val;
-+
-+	msg.addr	= client->addr;
-+	msg.flags	= 0;
-+	msg.len		= 3;
-+	msg.buf		= (u8 *)&buf;
-+
-+	ret = i2c_transfer(client->adapter, &msg, 1);
-+	if (ret < 0) {
-+		dev_err(&client->dev, "Failed writing register 0x%04x!\n", reg);
-+		return ret;
++	struct hdmi_plat_resource *res = &hdmi_plat_resource;
++	dev_info(dev, "platform HDMI Deinit\n");
++	/* put clocks, power, and GPIOs */
++	if (!IS_ERR_OR_NULL(res->ldo4)) {
++		tv_power_put();
++		/* regulator_disable(res->ldo4); */
++		regulator_put(res->ldo4);
 +	}
-+
-+	return 0;
++	if (!IS_ERR_OR_NULL(res->sclk_hdmiphy))
++		clk_put(res->sclk_hdmiphy);
++	if (!IS_ERR_OR_NULL(res->sclk_pixel))
++		clk_put(res->sclk_pixel);
++	if (!IS_ERR_OR_NULL(res->sclk_hdmi))
++		clk_put(res->sclk_hdmi);
++	if (!IS_ERR_OR_NULL(res->hdmi))
++		clk_put(res->hdmi);
++	memset(res, 0, sizeof *res);
++	gpio_free(S5PV310_GPE0(1));
++	gpio_free(S5PV310_GPX3(7));
 +}
 +
-+
-+/* Read a register, alter its bits, write it back */
-+static int ov9740_reg_rmw(struct i2c_client *client, u16 reg, u8 set, u8 unset)
++static int hdmi_power_setup(struct device *dev, int en)
 +{
-+	u8 val;
-+	int ret;
-+
-+	ret = ov9740_reg_read(client, reg, &val);
-+	if (ret < 0) {
-+		dev_err(&client->dev,
-+			"[Read]-Modify-Write of register %02x failed!\n", reg);
-+		return ret;
-+	}
-+
-+	val |= set;
-+	val &= ~unset;
-+
-+	ret = ov9740_reg_write(client, reg, val);
-+	if (ret < 0) {
-+		dev_err(&client->dev,
-+			"Read-Modify-[Write] of register %02x failed!\n", reg);
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+static int ov9740_reg_write_array(struct i2c_client *client,
-+				  const struct ov9740_reg *regarray,
-+				  int regarraylen)
-+{
-+	int i;
-+	int ret;
-+
-+	for (i = 0; i < regarraylen; i++) {
-+		ret = ov9740_reg_write(client,
-+				       regarray[i].reg, regarray[i].val);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+/* Start/Stop streaming from the device */
-+static int ov9740_s_stream(struct v4l2_subdev *sd, int enable)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct ov9740_priv *priv = to_ov9740(sd);
-+	int ret;
-+
-+	/* Program orientation register. */
-+	if (priv->flag_vflip)
-+		ret = ov9740_reg_rmw(client, OV9740_IMAGE_ORT, 0x2, 0);
-+	else
-+		ret = ov9740_reg_rmw(client, OV9740_IMAGE_ORT, 0, 0x2);
-+	if (ret < 0)
-+		return ret;
-+
-+	if (priv->flag_hflip)
-+		ret = ov9740_reg_rmw(client, OV9740_IMAGE_ORT, 0x1, 0);
-+	else
-+		ret = ov9740_reg_rmw(client, OV9740_IMAGE_ORT, 0, 0x1);
-+	if (ret < 0)
-+		return ret;
-+
-+	if (enable) {
-+		dev_dbg(&client->dev, "Enabling Streaming\n");
-+		/* Start Streaming */
-+		ret = ov9740_reg_write(client, OV9740_MODE_SELECT, 0x01);
-+
++	struct hdmi_plat_resource *res = &hdmi_plat_resource;
++	if (en) {
++		dev_info(dev, "HDMI power-on\n");
++		/* turn HDMI power on */
++		gpio_direction_output(S5PV310_GPE0(1), 1);
++		/* tv_power_get(); */
++		regulator_enable(res->ldo4);
++		/* turn clocks on */
++		clk_enable(res->hdmi);
++		clk_enable(res->sclk_hdmi);
++		/* power-on hdmi physical interface */
++		SETREG(S5P_HDMI_PHY_CONTROL, 1, 1);
 +	} else {
-+		dev_dbg(&client->dev, "Disabling Streaming\n");
-+		/* Software Reset */
-+		ret = ov9740_reg_write(client, OV9740_SOFTWARE_RESET, 0x01);
-+		if (!ret)
-+			/* Setting Streaming to Standby */
-+			ret = ov9740_reg_write(client, OV9740_MODE_SELECT,
-+					       0x00);
++		dev_info(dev, "HDMI power-off\n");
++		/* power-off hdmiphy */
++		SETREG(S5P_HDMI_PHY_CONTROL, 0, 1);
++		/* turn clocks off */
++		clk_disable(res->sclk_hdmi);
++		clk_disable(res->hdmi);
++		/* turn HDMI power off */
++		regulator_disable(res->ldo4);
++		/* tv_power_put(); */
++		gpio_direction_output(S5PV310_GPE0(1), 0);
 +	}
-+
-+	return ret;
-+}
-+
-+/* Alter bus settings on camera side */
-+static int ov9740_set_bus_param(struct soc_camera_device *icd,
-+				unsigned long flags)
-+{
++	dbg_plat_regs();
 +	return 0;
 +}
 +
-+/* Request bus settings on camera side */
-+static unsigned long ov9740_query_bus_param(struct soc_camera_device *icd)
++static int hdmi_stream_setup(struct device *dev, int en)
 +{
-+	struct soc_camera_link *icl = to_soc_camera_link(icd);
-+
-+	unsigned long flags = SOCAM_PCLK_SAMPLE_RISING | SOCAM_MASTER |
-+		SOCAM_VSYNC_ACTIVE_HIGH | SOCAM_HSYNC_ACTIVE_HIGH |
-+		SOCAM_DATA_ACTIVE_HIGH | SOCAM_DATAWIDTH_8;
-+
-+	return soc_camera_apply_sensor_flags(icl, flags);
-+}
-+
-+/* Get status of additional camera capabilities */
-+static int ov9740_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
-+{
-+	struct ov9740_priv *priv = to_ov9740(sd);
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_VFLIP:
-+		ctrl->value = priv->flag_vflip;
-+		break;
-+	case V4L2_CID_HFLIP:
-+		ctrl->value = priv->flag_hflip;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+/* Set status of additional camera capabilities */
-+static int ov9740_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
-+{
-+	struct ov9740_priv *priv = to_ov9740(sd);
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_VFLIP:
-+		priv->flag_vflip = ctrl->value;
-+		break;
-+	case V4L2_CID_HFLIP:
-+		priv->flag_hflip = ctrl->value;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+/* Get chip identification */
-+static int ov9740_g_chip_ident(struct v4l2_subdev *sd,
-+			       struct v4l2_dbg_chip_ident *id)
-+{
-+	struct ov9740_priv *priv = to_ov9740(sd);
-+
-+	id->ident = priv->ident;
-+	id->revision = priv->revision;
-+
-+	return 0;
-+}
-+
-+#ifdef CONFIG_VIDEO_ADV_DEBUG
-+static int ov9740_get_register(struct v4l2_subdev *sd,
-+			       struct v4l2_dbg_register *reg)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	int ret;
-+	u8 val;
-+
-+	if (reg->reg & ~0xffff)
-+		return -EINVAL;
-+
-+	reg->size = 2;
-+
-+	ret = ov9740_reg_read(client, reg->reg, &val);
-+	if (ret)
-+		return ret;
-+
-+	reg->val = (__u64)val;
-+
-+	return ret;
-+}
-+
-+static int ov9740_set_register(struct v4l2_subdev *sd,
-+			       struct v4l2_dbg_register *reg)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+
-+	if (reg->reg & ~0xffff || reg->val & ~0xff)
-+		return -EINVAL;
-+
-+	return ov9740_reg_write(client, reg->reg, reg->val);
-+}
-+#endif
-+
-+/* select nearest higher resolution for capture */
-+static void ov9740_res_roundup(u32 *width, u32 *height)
-+{
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(ov9740_resolutions); i++)
-+		if ((ov9740_resolutions[i].width >= *width) &&
-+		    (ov9740_resolutions[i].height >= *height)) {
-+			*width = ov9740_resolutions[i].width;
-+			*height = ov9740_resolutions[i].height;
-+			return;
-+		}
-+
-+	*width = ov9740_resolutions[OV9740_720P].width;
-+	*height = ov9740_resolutions[OV9740_720P].height;
-+}
-+
-+/* Setup registers according to resolution and color encoding */
-+static int ov9740_set_res(struct i2c_client *client, u32 width)
-+{
-+	int ret;
-+
-+	/* select register configuration for given resolution */
-+	if (width == ov9740_resolutions[OV9740_VGA].width) {
-+		dev_dbg(&client->dev, "Setting image size to 640x480\n");
-+		ret = ov9740_reg_write_array(client, ov9740_regs_vga,
-+					     ARRAY_SIZE(ov9740_regs_vga));
-+	} else if (width == ov9740_resolutions[OV9740_720P].width) {
-+		dev_dbg(&client->dev, "Setting image size to 1280x720\n");
-+		ret = ov9740_reg_write_array(client, ov9740_regs_720p,
-+					     ARRAY_SIZE(ov9740_regs_720p));
++	struct hdmi_plat_resource *res = &hdmi_plat_resource;
++	/* NOTE: assumed HDMI power is on */
++	if (en) {
++		dev_info(dev, "HDMI: stream on\n");
++		/* hdmiphy clock is used for HDMI in streaming mode */
++		clk_disable(res->sclk_hdmi);
++		clk_set_parent(res->sclk_hdmi, res->sclk_hdmiphy);
++		clk_enable(res->sclk_hdmi);
++		/* SETREG(S5P_CLKSRC_TV, 0x00000001, 0x00000001); */
 +	} else {
-+		dev_err(&client->dev, "Failed to select resolution!\n");
-+		return -EINVAL;
++		dev_info(dev, "HDMI: stream off\n");
++		/* pixel(vpll) clock is used for HDMI in config mode */
++		clk_disable(res->sclk_hdmi);
++		clk_set_parent(res->sclk_hdmi, res->sclk_pixel);
++		clk_enable(res->sclk_hdmi);
++		/* SETREG(S5P_CLKSRC_TV, 0x00000000, 0x00000001); */
 +	}
-+
-+	return ret;
-+}
-+
-+/* set the format we will capture in */
-+static int ov9740_s_fmt(struct v4l2_subdev *sd,
-+			struct v4l2_mbus_framefmt *mf)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	enum v4l2_colorspace cspace;
-+	enum v4l2_mbus_pixelcode code = mf->code;
-+	int ret;
-+
-+	ov9740_res_roundup(&mf->width, &mf->height);
-+
-+	switch (code) {
-+	case V4L2_MBUS_FMT_YUYV8_2X8:
-+		cspace = V4L2_COLORSPACE_SRGB;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	ret = ov9740_reg_write_array(client, ov9740_defaults,
-+				     ARRAY_SIZE(ov9740_defaults));
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = ov9740_set_res(client, mf->width);
-+	if (ret < 0)
-+		return ret;
-+
-+	mf->code	= code;
-+	mf->colorspace	= cspace;
-+
-+	return ret;
-+}
-+
-+static int ov9740_try_fmt(struct v4l2_subdev *sd,
-+			  struct v4l2_mbus_framefmt *mf)
-+{
-+	ov9740_res_roundup(&mf->width, &mf->height);
-+
-+	mf->field = V4L2_FIELD_NONE;
-+	mf->code = V4L2_MBUS_FMT_YUYV8_2X8;
-+	mf->colorspace = V4L2_COLORSPACE_SRGB;
-+
++	dbg_plat_regs();
 +	return 0;
 +}
 +
-+static int ov9740_enum_fmt(struct v4l2_subdev *sd, unsigned int index,
-+			   enum v4l2_mbus_pixelcode *code)
-+{
-+	if (index >= ARRAY_SIZE(ov9740_codes))
-+		return -EINVAL;
-+
-+	*code = ov9740_codes[index];
-+
-+	return 0;
-+}
-+
-+static int ov9740_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *a)
-+{
-+	a->bounds.left		= 0;
-+	a->bounds.top		= 0;
-+	a->bounds.width		= ov9740_resolutions[OV9740_720P].width;
-+	a->bounds.height	= ov9740_resolutions[OV9740_720P].height;
-+	a->defrect		= a->bounds;
-+	a->type			= V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	a->pixelaspect.numerator	= 1;
-+	a->pixelaspect.denominator	= 1;
-+
-+	return 0;
-+}
-+
-+static int ov9740_g_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
-+{
-+	a->c.left		= 0;
-+	a->c.top		= 0;
-+	a->c.width		= ov9740_resolutions[OV9740_720P].width;
-+	a->c.height		= ov9740_resolutions[OV9740_720P].height;
-+	a->type			= V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+
-+	return 0;
-+}
-+
-+static int ov9740_video_probe(struct soc_camera_device *icd,
-+			      struct i2c_client *client)
-+{
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct ov9740_priv *priv = to_ov9740(sd);
-+	u8 modelhi, modello;
-+	int ret;
-+
-+	/*
-+	 * We must have a parent by now. And it cannot be a wrong one.
-+	 * So this entire test is completely redundant.
-+	 */
-+	if (!icd->dev.parent ||
-+	    to_soc_camera_host(icd->dev.parent)->nr != icd->iface) {
-+		dev_err(&client->dev, "Parent missing or invalid!\n");
-+		ret = -ENODEV;
-+		goto err;
-+	}
-+
-+	/*
-+	 * check and show product ID and manufacturer ID
-+	 */
-+	ret = ov9740_reg_read(client, OV9740_MODEL_ID_HI, &modelhi);
-+	if (ret < 0)
-+		goto err;
-+
-+	ret = ov9740_reg_read(client, OV9740_MODEL_ID_LO, &modello);
-+	if (ret < 0)
-+		goto err;
-+
-+	priv->model = (modelhi << 8) | modello;
-+
-+	ret = ov9740_reg_read(client, OV9740_REVISION_NUMBER, &priv->revision);
-+	if (ret < 0)
-+		goto err;
-+
-+	ret = ov9740_reg_read(client, OV9740_MANUFACTURER_ID, &priv->manid);
-+	if (ret < 0)
-+		goto err;
-+
-+	ret = ov9740_reg_read(client, OV9740_SMIA_VERSION, &priv->smiaver);
-+	if (ret < 0)
-+		goto err;
-+
-+	if (priv->model != 0x9740) {
-+		ret = -ENODEV;
-+		goto err;
-+	}
-+
-+	priv->ident = V4L2_IDENT_OV9740;
-+
-+	dev_info(&client->dev, "ov9740 Model ID 0x%04x, Revision 0x%02x, "
-+		 "Manufacturer 0x%02x, SMIA Version 0x%02x\n",
-+		 priv->model, priv->revision, priv->manid, priv->smiaver);
-+
-+err:
-+	return ret;
-+}
-+
-+static struct soc_camera_ops ov9740_ops = {
-+	.set_bus_param		= ov9740_set_bus_param,
-+	.query_bus_param	= ov9740_query_bus_param,
-+	.controls		= ov9740_controls,
-+	.num_controls		= ARRAY_SIZE(ov9740_controls),
++static struct hdmi_platform_data hdmi_pdata = {
++	.init = hdmi_init,
++	.deinit = hdmi_deinit,
++	.power_setup = hdmi_power_setup,
++	.stream_setup = hdmi_stream_setup,
 +};
 +
-+static struct v4l2_subdev_core_ops ov9740_core_ops = {
-+	.g_ctrl			= ov9740_g_ctrl,
-+	.s_ctrl			= ov9740_s_ctrl,
-+	.g_chip_ident		= ov9740_g_chip_ident,
-+#ifdef CONFIG_VIDEO_ADV_DEBUG
-+	.g_register		= ov9740_get_register,
-+	.s_register		= ov9740_set_register,
-+#endif
-+
-+};
-+
-+static struct v4l2_subdev_video_ops ov9740_video_ops = {
-+	.s_stream		= ov9740_s_stream,
-+	.s_mbus_fmt		= ov9740_s_fmt,
-+	.try_mbus_fmt		= ov9740_try_fmt,
-+	.enum_mbus_fmt		= ov9740_enum_fmt,
-+	.cropcap		= ov9740_cropcap,
-+	.g_crop			= ov9740_g_crop,
-+};
-+
-+static struct v4l2_subdev_ops ov9740_subdev_ops = {
-+	.core			= &ov9740_core_ops,
-+	.video			= &ov9740_video_ops,
-+};
-+
-+/*
-+ * i2c_driver function
-+ */
-+static int ov9740_probe(struct i2c_client *client,
-+			const struct i2c_device_id *did)
-+{
-+	struct ov9740_priv *priv;
-+	struct soc_camera_device *icd	= client->dev.platform_data;
-+	struct soc_camera_link *icl;
-+	int ret;
-+
-+	if (!icd) {
-+		dev_err(&client->dev, "Missing soc-camera data!\n");
-+		return -EINVAL;
-+	}
-+
-+	icl = to_soc_camera_link(icd);
-+	if (!icl) {
-+		dev_err(&client->dev, "Missing platform_data for driver\n");
-+		return -EINVAL;
-+	}
-+
-+	priv = kzalloc(sizeof(struct ov9740_priv), GFP_KERNEL);
-+	if (!priv) {
-+		dev_err(&client->dev, "Failed to allocate private data!\n");
-+		return -ENOMEM;
-+	}
-+
-+	v4l2_i2c_subdev_init(&priv->subdev, client, &ov9740_subdev_ops);
-+
-+	icd->ops = &ov9740_ops;
-+
-+	ret = ov9740_video_probe(icd, client);
-+	if (ret < 0) {
-+		icd->ops = NULL;
-+		kfree(priv);
-+	}
-+
-+	return ret;
-+}
-+
-+static int ov9740_remove(struct i2c_client *client)
-+{
-+	struct ov9740_priv *priv = i2c_get_clientdata(client);
-+
-+	kfree(priv);
-+
-+	return 0;
-+}
-+
-+static const struct i2c_device_id ov9740_id[] = {
-+	{ "ov9740", 0 },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(i2c, ov9740_id);
-+
-+static struct i2c_driver ov9740_i2c_driver = {
-+	.driver = {
-+		.name = "ov9740",
++/* MIXER */
++static struct resource s5p_mixer_resources[] = {
++	[0] = {
++		.start  = S5P_PA_MIXER,
++		.end    = S5P_PA_MIXER + S5P_SZ_MIXER - 1,
++		.flags  = IORESOURCE_MEM,
++		.name	= "mxr"
 +	},
-+	.probe    = ov9740_probe,
-+	.remove   = ov9740_remove,
-+	.id_table = ov9740_id,
++	[1] = {
++		.start  = S5P_PA_VP,
++		.end    = S5P_PA_VP + S5P_SZ_VP - 1,
++		.flags  = IORESOURCE_MEM,
++		.name	= "vp"
++	},
++	[2] = {
++		.start  = IRQ_MIXER,
++		.end    = IRQ_MIXER,
++		.flags  = IORESOURCE_IRQ,
++		.name	= "irq"
++	},
 +};
 +
-+static int __init ov9740_module_init(void)
++static struct mxr_platform_data mxr_pdata;
++
++struct platform_device s5p_device_mixer = {
++	.name           = "s5p-mixer",
++	.id             = -1,
++	.num_resources  = ARRAY_SIZE(s5p_mixer_resources),
++	.resource       = s5p_mixer_resources,
++	.dev		= {
++		.coherent_dma_mask = DMA_BIT_MASK(32),
++		.dma_mask = &s5p_device_mixer.dev.coherent_dma_mask,
++		.platform_data = &mxr_pdata,
++	}
++};
++EXPORT_SYMBOL(s5p_device_mixer);
++
++static struct mxr_plat_resource {
++	struct clk *mixer;
++	struct clk *vp;
++	struct clk *sclk_mixer;
++	struct clk *sclk_hdmi;
++	struct clk *sclk_dac;
++	struct regulator *ldo4;
++} mxr_plat_resource;
++
++static void mxr_deinit(struct device *dev);
++
++static int mxr_init(struct device *dev)
 +{
-+	return i2c_add_driver(&ov9740_i2c_driver);
++	struct mxr_plat_resource *res = &mxr_plat_resource;
++	dev_info(dev, "platform Mixer Init\n");
++	res->mixer = clk_get(dev, "mixer");
++	if (IS_ERR_OR_NULL(res->mixer)) {
++		dev_err(dev, "failed to get clock 'mixer'\n");
++		goto fail;
++	}
++	res->vp = clk_get(dev, "vp");
++	if (IS_ERR_OR_NULL(res->vp)) {
++		dev_err(dev, "failed to get clock 'vp'\n");
++		goto fail;
++	}
++	res->sclk_mixer = clk_get(dev, "sclk_mixer");
++	if (IS_ERR_OR_NULL(res->sclk_mixer)) {
++		dev_err(dev, "failed to get clock 'sclk_mixer'\n");
++		goto fail;
++	}
++	res->sclk_hdmi = clk_get(dev, "sclk_hdmi");
++	if (IS_ERR_OR_NULL(res->sclk_hdmi)) {
++		dev_err(dev, "failed to get clock 'sclk_hdmi'\n");
++		goto fail;
++	}
++	res->sclk_dac = clk_get(dev, "sclk_dac");
++	if (IS_ERR_OR_NULL(res->sclk_dac)) {
++		dev_err(dev, "failed to get clock 'sclk_dac'\n");
++		goto fail;
++	}
++	res->ldo4 = regulator_get(dev, "vadc_3.3v_c210");
++	if (IS_ERR_OR_NULL(res->ldo4)) {
++		dev_err(dev, "failed to get regulator 'ldo4'\n");
++		goto fail;
++	}
++	/* regulator_enable(res->ldo4); */
++	tv_power_get();
++
++	/* XXX: fixed connetction between MIXER and HDMI */
++	clk_set_parent(res->sclk_mixer, res->sclk_hdmi);
++	dbg_plat_regs();
++	return 0;
++fail:
++	dev_err(dev, "platform Mixer Init - failed\n");
++	mxr_deinit(dev);
++	return -ENODEV;
 +}
 +
-+static void __exit ov9740_module_exit(void)
++static void mxr_deinit(struct device *dev)
 +{
-+	i2c_del_driver(&ov9740_i2c_driver);
++	struct mxr_plat_resource *res = &mxr_plat_resource;
++	dev_info(dev, "platform Mixer denit\n");
++	if (!IS_ERR_OR_NULL(res->ldo4)) {
++		tv_power_put();
++		/* regulator_disable(res->ldo4); */
++		regulator_put(res->ldo4);
++	}
++	if (!IS_ERR_OR_NULL(res->sclk_dac))
++		clk_put(res->sclk_dac);
++	if (!IS_ERR_OR_NULL(res->sclk_hdmi))
++		clk_put(res->sclk_hdmi);
++	if (!IS_ERR_OR_NULL(res->sclk_mixer))
++		clk_put(res->sclk_mixer);
++	if (!IS_ERR_OR_NULL(res->vp))
++		clk_put(res->vp);
++	if (!IS_ERR_OR_NULL(res->mixer))
++		clk_put(res->mixer);
++	memset(res, 0, sizeof *res);
 +}
 +
-+module_init(ov9740_module_init);
-+module_exit(ov9740_module_exit);
++static int mxr_power_setup(struct device *dev, int en)
++{
++	struct mxr_plat_resource *res = &mxr_plat_resource;
++	/* enable/disable clocks, power, and GPIOs */
++	if (en) {
++		dev_info(dev, "MIXER power-on\n");
++		/* turn MIXER power on */
++		/* tv_power_get(); */
++		regulator_enable(res->ldo4);
++		/* turn clocks on */
++		clk_enable(res->mixer);
++		clk_enable(res->vp);
++		clk_enable(res->sclk_mixer);
++		/* HDMI CEC (no support) */
++		/* SETREG(S5P_CLKGATE_IP_PERIR, ~0, 1 << 11); */
++		/* keep here */
++	} else {
++		dev_info(dev, "MIXER power-off\n");
++		/* turn clocks off */
++		clk_disable(res->sclk_mixer);
++		clk_disable(res->vp);
++		clk_disable(res->mixer);
++		/* turn MIXER power off */
++		regulator_disable(res->ldo4);
++		/* tv_power_put(); */
++	}
++	dbg_plat_regs();
++	return 0;
++}
 +
-+MODULE_DESCRIPTION("SoC Camera driver for OmniVision OV9740");
-+MODULE_AUTHOR("Andrew Chew <achew@nvidia.com>");
-+MODULE_LICENSE("GPL v2");
-diff --git a/include/media/v4l2-chip-ident.h b/include/media/v4l2-chip-ident.h
-index ff4a52c..b3edb67 100644
---- a/include/media/v4l2-chip-ident.h
-+++ b/include/media/v4l2-chip-ident.h
-@@ -75,6 +75,7 @@ enum {
- 	V4L2_IDENT_OV9640 = 257,
- 	V4L2_IDENT_OV6650 = 258,
- 	V4L2_IDENT_OV2640 = 259,
-+	V4L2_IDENT_OV9740 = 260,
++static struct mxr_platform_output output[] = {
++	{ .output_name = "S5P HDMI connector", .module_name = "s5p-hdmi" },
++};
++
++static struct mxr_platform_data mxr_pdata = {
++	.output = output,
++	.output_cnt = ARRAY_SIZE(output),
++	.init = mxr_init,
++	.deinit = mxr_deinit,
++	.power_setup = mxr_power_setup,
++};
++
++static void dbg_plat_regs(void)
++{
++	DBGREG(S5P_CLKSRC_TV);
++	DBGREG(S5P_CLKSRC_MASK_TV);
++	DBGREG(S5P_CLKGATE_IP_TV);
++	DBGREG(S5P_CLKGATE_IP_PERIL); /* remove (unknown?) */
++	DBGREG(S5P_CLKGATE_IP_PERIL); /* I2C HDMI (I2C8) remove */
++	DBGREG(S5P_CLKGATE_IP_PERIR); /* HDMI CEC remove (no support) */
++	DBGREG(S5P_CLKGATE_BLOCK); /* keep here */
++	DBGREG(S5P_CLKSRC_TOP0);
++	DBGREG(S5P_CLKSRC_TOP1);
++	DBGREG(S5P_HDMI_PHY_CONTROL);
++	DBGREG(S5P_CMU_CLKSTOP_TV_SYS_PWR);
++	DBGREG(S5P_CMU_RESET_TV_SYS_PWR);
++	DBGREG(S5P_TV_SYS_PWR);
++	DBGREG(S5P_TV_CONFIGURATION);
++	DBGREG(S5P_TV_STATUS);
++	DBGREG(S5P_CLKDIV_TV);
++}
+diff --git a/arch/arm/mach-s5pv310/include/mach/irqs.h b/arch/arm/mach-s5pv310/include/mach/irqs.h
+index 0ba778b..76cfe4d 100644
+--- a/arch/arm/mach-s5pv310/include/mach/irqs.h
++++ b/arch/arm/mach-s5pv310/include/mach/irqs.h
+@@ -116,6 +116,10 @@
  
- 	/* module saa7146: reserved range 300-309 */
- 	V4L2_IDENT_SAA7146 = 300,
+ #define IRQ_MCT_L1		COMBINER_IRQ(35, 3)
+ 
++/* Set the default NR_IRQS */
++#define IRQ_MIXER		COMBINER_IRQ(36, 0)
++#define IRQ_TVENC		COMBINER_IRQ(36, 1)
++
+ #define IRQ_EINT4		COMBINER_IRQ(37, 0)
+ #define IRQ_EINT5		COMBINER_IRQ(37, 1)
+ #define IRQ_EINT6		COMBINER_IRQ(37, 2)
+diff --git a/arch/arm/mach-s5pv310/include/mach/map.h b/arch/arm/mach-s5pv310/include/mach/map.h
+index 845b739..acc2a71 100644
+--- a/arch/arm/mach-s5pv310/include/mach/map.h
++++ b/arch/arm/mach-s5pv310/include/mach/map.h
+@@ -147,4 +147,30 @@
+ #define S5P_PA_MIPI_CSIS0		S5PV310_PA_MIPI_CSIS0
+ #define S5P_PA_MIPI_CSIS1		S5PV310_PA_MIPI_CSIS1
+ 
++/* CEC */
++#define S5PV210_PA_CEC		(0x100B0000)
++#define S5P_PA_CEC		S5PV210_PA_CEC
++#define S5P_SZ_CEC		SZ_4K
++
++/* TVOUT */
++#define S5PV210_PA_TVENC	(0x12C20000)
++#define S5P_PA_TVENC		S5PV210_PA_TVENC
++#define S5P_SZ_TVENC		SZ_64K
++
++#define S5PV210_PA_VP		(0x12C00000)
++#define S5P_PA_VP		S5PV210_PA_VP
++#define S5P_SZ_VP		SZ_64K
++
++#define S5PV210_PA_MIXER	(0x12C10000)
++#define S5P_PA_MIXER		S5PV210_PA_MIXER
++#define S5P_SZ_MIXER		SZ_64K
++
++#define S5PV210_PA_HDMI		(0x12D00000)
++#define S5P_PA_HDMI		S5PV210_PA_HDMI
++#define S5P_SZ_HDMI		SZ_1M
++
++#define S5PV210_I2C_HDMI_PHY	(0x138E0000)
++#define S5P_I2C_HDMI_PHY	S5PV210_I2C_HDMI_PHY
++#define S5P_I2C_HDMI_SZ_PHY	SZ_1K
++
+ #endif /* __ASM_ARCH_MAP_H */
+diff --git a/arch/arm/mach-s5pv310/include/mach/regs-clock.h b/arch/arm/mach-s5pv310/include/mach/regs-clock.h
+index b5c4ada..b1af66c 100644
+--- a/arch/arm/mach-s5pv310/include/mach/regs-clock.h
++++ b/arch/arm/mach-s5pv310/include/mach/regs-clock.h
+@@ -33,6 +33,7 @@
+ #define S5P_CLKSRC_TOP0			S5P_CLKREG(0x0C210)
+ #define S5P_CLKSRC_TOP1			S5P_CLKREG(0x0C214)
+ #define S5P_CLKSRC_CAM			S5P_CLKREG(0x0C220)
++#define S5P_CLKSRC_TV			S5P_CLKREG(0x0C224)
+ #define S5P_CLKSRC_IMAGE		S5P_CLKREG(0x0C230)
+ #define S5P_CLKSRC_LCD0			S5P_CLKREG(0x0C234)
+ #define S5P_CLKSRC_LCD1			S5P_CLKREG(0x0C238)
+@@ -42,6 +43,7 @@
+ 
+ #define S5P_CLKDIV_TOP			S5P_CLKREG(0x0C510)
+ #define S5P_CLKDIV_CAM			S5P_CLKREG(0x0C520)
++#define S5P_CLKDIV_TV			S5P_CLKREG(0x0C524)
+ #define S5P_CLKDIV_IMAGE		S5P_CLKREG(0x0C530)
+ #define S5P_CLKDIV_LCD0			S5P_CLKREG(0x0C534)
+ #define S5P_CLKDIV_LCD1			S5P_CLKREG(0x0C538)
+@@ -58,6 +60,7 @@
+ 
+ #define S5P_CLKSRC_MASK_TOP		S5P_CLKREG(0x0C310)
+ #define S5P_CLKSRC_MASK_CAM		S5P_CLKREG(0x0C320)
++#define S5P_CLKSRC_MASK_TV		S5P_CLKREG(0x0C324)
+ #define S5P_CLKSRC_MASK_LCD0		S5P_CLKREG(0x0C334)
+ #define S5P_CLKSRC_MASK_LCD1		S5P_CLKREG(0x0C338)
+ #define S5P_CLKSRC_MASK_FSYS		S5P_CLKREG(0x0C340)
+@@ -67,6 +70,7 @@
+ #define S5P_CLKDIV_STAT_TOP		S5P_CLKREG(0x0C610)
+ 
+ #define S5P_CLKGATE_IP_CAM		S5P_CLKREG(0x0C920)
++#define S5P_CLKGATE_IP_TV		S5P_CLKREG(0x0C924)
+ #define S5P_CLKGATE_IP_IMAGE		S5P_CLKREG(0x0C930)
+ #define S5P_CLKGATE_IP_LCD0		S5P_CLKREG(0x0C934)
+ #define S5P_CLKGATE_IP_LCD1		S5P_CLKREG(0x0C938)
+@@ -164,4 +168,15 @@
+ 
+ #define S5P_EPLL_CON			S5P_EPLL_CON0
+ 
++/* TVOUT related */
++#define S5P_TV_CONFIGURATION		S5P_PMUREG(0x03C20)
++#define S5P_TV_STATUS			S5P_PMUREG(0x03C24)
++#define S5P_TV_SYS_PWR			S5P_PMUREG(0x1384)
++#define S5P_CMU_CLKSTOP_TV_SYS_PWR	S5P_PMUREG(0x1144)
++#define S5P_CMU_RESET_TV_SYS_PWR	S5P_PMUREG(0x1164)
++
++#define S5P_HDMI_PHY_CONTROL		S5P_PMUREG(0x0700)
++#define S5P_CLKOUT_CMU_TOP		S5P_CLKREG(0x0CA00)
++#define S5P_PMU_DEBUG			S5P_PMUREG(0x0A00)
++
+ #endif /* __ASM_ARCH_REGS_CLOCK_H */
+diff --git a/arch/arm/plat-samsung/include/plat/devs.h b/arch/arm/plat-samsung/include/plat/devs.h
+index 6effbb4..a6b78d4 100644
+--- a/arch/arm/plat-samsung/include/plat/devs.h
++++ b/arch/arm/plat-samsung/include/plat/devs.h
+@@ -134,6 +134,8 @@ extern struct platform_device samsung_device_keypad;
+ extern struct platform_device s5p_device_fimc0;
+ extern struct platform_device s5p_device_fimc1;
+ extern struct platform_device s5p_device_fimc2;
++extern struct platform_device s5p_device_hdmi;
++extern struct platform_device s5p_device_mixer;
+ 
+ extern struct platform_device s5p_device_mipi_csis0;
+ extern struct platform_device s5p_device_mipi_csis1;
 -- 
-1.7.0.4
+1.7.3.5
 
