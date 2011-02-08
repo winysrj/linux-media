@@ -1,62 +1,38 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58186 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754106Ab1BNMVZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Feb 2011 07:21:25 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [PATCH v7 02/11] v4l: Replace enums with fixed-sized fields in public structure
-Date: Mon, 14 Feb 2011 13:21:15 +0100
-Message-Id: <1297686084-9715-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1297686084-9715-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1297686084-9715-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from smtp02.frii.com ([216.17.135.168]:53819 "EHLO smtp02.frii.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754903Ab1BHPZ0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Feb 2011 10:25:26 -0500
+Received: from io.frii.com (io.frii.com [216.17.222.1])
+	by smtp02.frii.com (FRII) with ESMTP id 2CD6AD9A2C
+	for <linux-media@vger.kernel.org>; Tue,  8 Feb 2011 08:25:26 -0700 (MST)
+Date: Tue, 8 Feb 2011 08:25:26 -0700
+From: Mark Zimmerman <markzimm@frii.com>
+To: v4l-dvb Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Tuning channels with DViCO FusionHDTV7 Dual Express
+Message-ID: <20110208152525.GA47904@io.frii.com>
+References: <AANLkTin8Rjch6o7aU-9S9m8f5aBYVeSwxSaVhyEfM5q9@mail.gmail.com> <20110206232800.GA83692@io.frii.com> <AANLkTinMCTh-u-JgcNB3SsZ2yf+9DgNFGA6thF7S0K15@mail.gmail.com> <6C78EB6E-7722-447F-833D-637DBB64CF61@dons.net.au> <AANLkTinn1XHifYy+PZTaTLP87NAqCind35iO7CBmdU-c@mail.gmail.com> <1297122870.2355.21.camel@localhost>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1297122870.2355.21.camel@localhost>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The v4l2_mbus_framefmt structure will be part of the public userspace
-API and used (albeit indirectly) as an ioctl argument. As such, its size
-must be fixed across userspace ABIs.
+On Mon, Feb 07, 2011 at 06:54:30PM -0500, Andy Walls wrote:
+> 
+> You perhaps could 
+> 
+> A. provide the smallest window of known good vs known bad kernel
+> versions.  Maybe someone with time and hardware can 'git bisect' the
+> issue down to the problem commit.  (I'm guessing this problem might be
+> specific to a particular 64 bit platform IOMMU type, given the bad
+> dma_ops pointer.)
+> 
 
-Replace the v4l2_field and v4l2_colorspace enums by __u32 fields and add
-padding for future enhancements.
+FYI: I am on the process of doing a git bisect (10 kernels to go) to
+track down this problem:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- include/linux/v4l2-mediabus.h |   17 +++++++++--------
- 1 files changed, 9 insertions(+), 8 deletions(-)
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg25342.html
 
-diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
-index a62cd64..feeb88c 100644
---- a/include/linux/v4l2-mediabus.h
-+++ b/include/linux/v4l2-mediabus.h
-@@ -63,16 +63,17 @@ enum v4l2_mbus_pixelcode {
-  * struct v4l2_mbus_framefmt - frame format on the media bus
-  * @width:	frame width
-  * @height:	frame height
-- * @code:	data format code
-- * @field:	used interlacing type
-- * @colorspace:	colorspace of the data
-+ * @code:	data format code (from enum v4l2_mbus_pixelcode)
-+ * @field:	used interlacing type (from enum v4l2_field)
-+ * @colorspace:	colorspace of the data (from enum v4l2_colorspace)
-  */
- struct v4l2_mbus_framefmt {
--	__u32				width;
--	__u32				height;
--	__u32				code;
--	enum v4l2_field			field;
--	enum v4l2_colorspace		colorspace;
-+	__u32			width;
-+	__u32			height;
-+	__u32			code;
-+	__u32			field;
-+	__u32			colorspace;
-+	__u32			reserved[7];
- };
- 
- #endif
--- 
-1.7.3.4
-
+Which may or may not be related to the problem in this thread. 
