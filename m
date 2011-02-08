@@ -1,47 +1,55 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.1.48]:63433 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751473Ab1BIH2R (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Feb 2011 02:28:17 -0500
-Subject: Re: [alsa-devel] WL1273 FM Radio driver...
-From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Reply-To: matti.j.aaltonen@nokia.com
-To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Cc: ext Mauro Carvalho Chehab <mchehab@redhat.com>,
-	alsa-devel@alsa-project.org, sameo@linux.intel.com,
-	ext Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	hverkuil@xs4all.nl, lrg@slimlogic.co.uk,
-	linux-media@vger.kernel.org
-In-Reply-To: <4D5109B3.60504@nokia.com>
-References: <1297075922.15320.31.camel@masi.mnp.nokia.com>
-	 <4D4FDED0.7070008@redhat.com>
-	 <20110207120234.GE10564@opensource.wolfsonmicro.com>
-	 <4D4FEA03.7090109@redhat.com>
-	 <20110207131045.GG10564@opensource.wolfsonmicro.com>
-	 <4D4FF821.4010701@redhat.com>
-	 <20110207135225.GJ10564@opensource.wolfsonmicro.com>
-	 <1297088242.15320.62.camel@masi.mnp.nokia.com>
-	 <4D501704.6060504@redhat.com>  <4D5109B3.60504@nokia.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 09 Feb 2011 09:27:32 +0200
-Message-ID: <1297236452.15320.74.camel@masi.mnp.nokia.com>
-Mime-Version: 1.0
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38634 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754212Ab1BHNfU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Feb 2011 08:35:20 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH v8 03/12] media: Entities, pads and links
+Date: Tue, 8 Feb 2011 14:35:14 +0100
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	alsa-devel@alsa-project.org,
+	sakari.ailus@maxwell.research.nokia.com,
+	broonie@opensource.wolfsonmicro.com, clemens@ladisch.de
+References: <1296131437-29954-1-git-send-email-laurent.pinchart@ideasonboard.com> <1296131437-29954-4-git-send-email-laurent.pinchart@ideasonboard.com> <201102041120.37541.hverkuil@xs4all.nl>
+In-Reply-To: <201102041120.37541.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201102081435.15911.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, 2011-02-08 at 11:15 +0200, Peter Ujfalusi 
+Hi Hans,
+
+On Friday 04 February 2011 11:20:37 Hans Verkuil wrote:
+> On Thursday, January 27, 2011 13:30:28 Laurent Pinchart wrote:
+
+<snip>
+
+> > +#define MEDIA_ENT_TYPE_SHIFT		16
+> > +#define MEDIA_ENT_TYPE_MASK		0x00ff0000
+> > +#define MEDIA_ENT_SUBTYPE_MASK		0x0000ffff
+> > +
+> > +#define MEDIA_ENT_T_DEVNODE		(1 << MEDIA_ENTITY_TYPE_SHIFT)
+> > +#define MEDIA_ENT_T_DEVNODE_V4L		(MEDIA_ENTITY_T_DEVNODE + 1)
+> > +#define MEDIA_ENT_T_DEVNODE_FB		(MEDIA_ENTITY_T_DEVNODE + 2)
+> > +#define MEDIA_ENT_T_DEVNODE_ALSA	(MEDIA_ENTITY_T_DEVNODE + 3)
+> > +#define MEDIA_ENT_T_DEVNODE_DVB		(MEDIA_ENTITY_T_DEVNODE + 4)
+> > +
+> > +#define MEDIA_ENT_T_V4L2_SUBDEV		(2 << MEDIA_ENTITY_TYPE_SHIFT)
+> > +#define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR	(MEDIA_ENTITY_T_V4L2_SUBDEV + 1)
+> > +#define MEDIA_ENT_T_V4L2_SUBDEV_FLASH	(MEDIA_ENTITY_T_V4L2_SUBDEV + 2)
+> > +#define MEDIA_ENT_T_V4L2_SUBDEV_LENS	(MEDIA_ENTITY_T_V4L2_SUBDEV + 3)
 > 
-> I have not looked deeply into the wl1273 datasheets, but I'm sure
-> there's a way to nicely divide the parts between the MFD, V4L, and ASoC.
-> 
+> MEDIA_ENTITY_? That should be MEDIA_ENT_. It looks like this was never
+> compiled...
 
-I don't think there's much to be moved between the sub-systems after
-moving the I2C communication to the MFD driver (which has almost been
-agreed on).
+Oops. I probably forgot to compile this intermediate patch (the end result is 
+correct though). I'll fix it.
 
-Cheers,
-Matti
+-- 
+Regards,
 
-
-
+Laurent Pinchart
