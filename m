@@ -1,59 +1,46 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:59529 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751486Ab1B0EHq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Feb 2011 23:07:46 -0500
-Subject: Re: Request clarification on videobuf irqlock and vb_lock usage
-From: Andy Walls <awalls@md.metrocast.net>
-To: Ben Collins <benmcollins13@gmail.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <022EECA1-5416-4173-B435-348531BB5049@gmail.com>
-References: <022EECA1-5416-4173-B435-348531BB5049@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 26 Feb 2011 23:08:02 -0500
-Message-ID: <1298779682.2423.10.camel@localhost>
-Mime-Version: 1.0
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57562 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754343Ab1BHNqp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Feb 2011 08:46:45 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [PATCH v8 03/12] media: Entities, pads and links
+Date: Tue, 8 Feb 2011 14:46:43 +0100
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	alsa-devel@alsa-project.org, broonie@opensource.wolfsonmicro.com,
+	clemens@ladisch.de
+References: <1296131437-29954-1-git-send-email-laurent.pinchart@ideasonboard.com> <1296131437-29954-4-git-send-email-laurent.pinchart@ideasonboard.com> <4D42A033.9030906@maxwell.research.nokia.com>
+In-Reply-To: <4D42A033.9030906@maxwell.research.nokia.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201102081446.43643.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sat, 2011-02-26 at 13:57 -0500, Ben Collins wrote:
-> I'm trying to cleanup some deadlocks and random crashed in my v4l2
-> driver (solo6x10) and I cannot find definitive documentation on that
-> clear usage of irqlock and vb_lock in a driver that uses videobuf.
+Hi Sakari,
 
-Here is the best documentation on videobuf(1) that I ever saw:
-http://git.linuxtv.org/media_tree.git?a=blob;f=Documentation/video4linux/videobuf;h=17a1f9abf260f39a44dee35bf7b72a0c66fd71fc;hb=df37e8479875c486d668fdf5bf65dba41422dd76
+On Friday 28 January 2011 11:53:39 Sakari Ailus wrote:
+> Hi Laurent,
+> 
+> Thanks for the patches!
+> 
+> I've got one comment that I should have made long time ago... Pads are
+> inputs or outputs... or: are they sinks or sources? I recall that it was
+> agreed on some occasion that sink and source are much less ambiguous and
+> they should be used instead.
+> 
+> So we'd have MEDIA_PAD_FL_{SINK,SOURCE}, for example. Currently the
+> source and documentation is using input/output and source/sink
+> interchangeably. I think sink and source should be used all the time.
+> 
+> What do you think?
 
-And here is the bad news about videobuf(1):
-http://linuxtv.org/downloads/presentations/summit_jun_2010/20100614-v4l2_summit-videobuf.pdf
+I think it makes sense. Hans ?
 
-
-Since videobuf2 in now in the bleeding edge kernel, you should look at
-using it:
-
-http://lwn.net/Articles/420512/
-
-http://linuxtv.org/downloads/presentations/summit_jun_2010/Videobuf_Helsinki_June2010.pdf
-
-
-Tonight, I've actually been xamining using videobuf2 for cx18 myself.
-
-
-> When and where should I be using either of these to ensure I work synchronously with the videobuf-core?
-
-Maybe the above briefs, that detail some of the problems with
-videobuf(1), can provide some details on the semantics of them.  IIRC,
-Pawel's brief highlighted that iolock was really overloaded.
-
+-- 
 Regards,
-Andy
 
-> --
-> Bluecherry: http://www.bluecherrydvr.com/
-> SwissDisk : http://www.swissdisk.com/
-> Ubuntu    : http://www.ubuntu.com/
-> My Blog   : http://ben-collins.blogspot.com/
-
-
+Laurent Pinchart
