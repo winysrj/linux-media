@@ -1,98 +1,51 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:55389 "EHLO mx1.redhat.com"
+Received: from smtp.nokia.com ([147.243.1.47]:19300 "EHLO mgw-sa01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751899Ab1B0K7K (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Feb 2011 05:59:10 -0500
-Message-ID: <4D6A2E73.6070806@redhat.com>
-Date: Sun, 27 Feb 2011 07:58:59 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1753280Ab1BHLDN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Feb 2011 06:03:13 -0500
+Message-ID: <4D5122CF.3010403@nokia.com>
+Date: Tue, 08 Feb 2011 13:02:39 +0200
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
 MIME-Version: 1.0
-To: halli manjunatha <manjunatha_halli@ti.com>
-CC: linux-media <linux-media@vger.kernel.org>,
-	linux-kernel <linux-kernel@vger.kernel.org>,
-	"Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Subject: Re: [GIT PULL] TI WL 128x FM V4L2 driver
-References: <AANLkTinAYrGV1k357Bn8trtxafZDoYozG7LDcm3KNBSt@mail.gmail.com>
-In-Reply-To: <AANLkTinAYrGV1k357Bn8trtxafZDoYozG7LDcm3KNBSt@mail.gmail.com>
-Content-Type: text/plain; charset=windows-1252
+To: "ext Bensaid, Selma" <selma.bensaid@intel.com>
+CC: ext Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>,
+	"sameo@linux.intel.com" <sameo@linux.intel.com>,
+	ext Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+	"matti.j.aaltonen@nokia.com" <matti.j.aaltonen@nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>
+Subject: Re: [alsa-devel] WL1273 FM Radio driver...
+References: <1297075922.15320.31.camel@masi.mnp.nokia.com>		<4D4FDED0.7070008@redhat.com>		<20110207120234.GE10564@opensource.wolfsonmicro.com>		<4D4FEA03.7090109@redhat.com>		<20110207131045.GG10564@opensource.wolfsonmicro.com>		<4D4FF821.4010701@redhat.com>		<20110207135225.GJ10564@opensource.wolfsonmicro.com>	<1297088242.15320.62.camel@masi.mnp.nokia.com>	<4D501704.6060504@redhat.com> <4D5109B3.60504@nokia.com> <2A84145621092446B6659B8A0F28E26F47010C29F1@irsmsx501.ger.corp.intel.com>
+In-Reply-To: <2A84145621092446B6659B8A0F28E26F47010C29F1@irsmsx501.ger.corp.intel.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 25-01-2011 03:48, halli manjunatha escreveu:
-> Hi Mauro,
-> 
-> Please pull the WL128x FM V4L2 driver from
-> http://dev.omapzoom.org/pub/scm/manju/L24x-btfm.git fm_v4l2_upstream
-> 
-> This is TI WL128x FM V4L2 driver and it introduces ‘wl128x’ folder
-> under the ‘drivers/media/radio’. This driver enables support for FM RX
-> and TX for Texas Instrument's WL128x (also compatible with WL127x)
-> WiLink chip sets. The V4L2 FM driver can work in either Rx or Tx mode,
-> and V4L2 interfaces are provided for both.
-> 
-> Texas Instrument's WL128x chip set packs BT, FM, GPS and WLAN in a
-> single die with BT, FM and GPS being interfaced over a single UART.
-> This driver works on top of the shared transport line discipline
-> driver. This driver can also be made use for the WL127x version of the
-> chip which packs BT, FM and WLAN only.
-> 
-> This driver has been reviewed by various folks within TI and also in
-> Linux media community. The driver has been tested extensively on TI
-> platforms and we believe that it is ready for merge into mainline.
+On 02/08/11 12:09, ext Bensaid, Selma wrote:
+> 2 Digital interfaces are possible for FM WL1273:
+> - the external connection: the I2S lines are used for the FM PCM samples
+> - the internal connection: the BT PCM interface is used for the FM PCM samples
 
-Applied, thanks.
+Yes, that is correct, I just did not wanted to go into details.
+Currently the ASoC codec driver only supports the BT/FM PCM interface.
+Adding the dedicated I2S interface for the FM radio should not be a big
+effort, we just need to add another dai to the codec driver, and connect
+that to the host processor.
+As I said before, we only implemented the BT/FM PCM interface support,
+since we do not have HW, where we could verify the dedicated FM I2S
+lines. But adding the support should not be a big deal IMHO (and can be
+done even without any means of testing it).
 
->From what I understood from your comments, this driver will also cover 
-wl127x chips. As such, it would be better to double check if all functionalities
-present at drivers/media/radio/radio-wl1273.c (assuming that wl1273 is covered)
-are also on the new driver, and, if not, merge the remaining ones and deprecate
-the wl1273-specific driver.
+> For both configuration we have a set of HCI commands to configure the FM audio 
+> path and one of my concerns is to know if the wl1273_codec should handle the audio path configuration 
+> and the switch between FM and BT SCO?
 
-Cheers,
-Mauro
-> 
-> The following changes since commit db309d3d54c2f721dd1176ce86c63b0381c0a258:
->   Mauro Carvalho Chehab (1):
->         [media] add support for Encore FM3
-> 
-> are available in the git repository at:
-> 
->   http://dev.omapzoom.org/pub/scm/manju/L24x-btfm.git fm_v4l2_upstream
-> 
-> Manjunatha Halli (7):
->       drivers:media:radio: wl128x: FM Driver common header file
->       drivers:media:radio: wl128x: FM Driver V4L2 sources
->       drivers:media:radio: wl128x: FM Driver Common sources
->       drivers:media:radio: wl128x: FM driver RX sources
->       drivers:media:radio: wl128x: FM driver TX sources
->       drivers:media:radio: wl128x: Kconfig & Makefile for wl128x driver
->       drivers:media:radio: Update Kconfig and Makefile for wl128x FM driver
-> 
->  drivers/media/radio/Kconfig               |    3 +
->  drivers/media/radio/Makefile              |    1 +
->  drivers/media/radio/wl128x/Kconfig        |   17 +
->  drivers/media/radio/wl128x/Makefile       |    6 +
->  drivers/media/radio/wl128x/fmdrv.h        |  244 +++++
->  drivers/media/radio/wl128x/fmdrv_common.c | 1677 +++++++++++++++++++++++++++++
->  drivers/media/radio/wl128x/fmdrv_common.h |  402 +++++++
->  drivers/media/radio/wl128x/fmdrv_rx.c     |  847 +++++++++++++++
->  drivers/media/radio/wl128x/fmdrv_rx.h     |   59 +
->  drivers/media/radio/wl128x/fmdrv_tx.c     |  425 ++++++++
->  drivers/media/radio/wl128x/fmdrv_tx.h     |   37 +
->  drivers/media/radio/wl128x/fmdrv_v4l2.c   |  580 ++++++++++
->  drivers/media/radio/wl128x/fmdrv_v4l2.h   |   33 +
->  13 files changed, 4331 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/media/radio/wl128x/Kconfig
->  create mode 100644 drivers/media/radio/wl128x/Makefile
->  create mode 100644 drivers/media/radio/wl128x/fmdrv.h
->  create mode 100644 drivers/media/radio/wl128x/fmdrv_common.c
->  create mode 100644 drivers/media/radio/wl128x/fmdrv_common.h
->  create mode 100644 drivers/media/radio/wl128x/fmdrv_rx.c
->  create mode 100644 drivers/media/radio/wl128x/fmdrv_rx.h
->  create mode 100644 drivers/media/radio/wl128x/fmdrv_tx.c
->  create mode 100644 drivers/media/radio/wl128x/fmdrv_tx.h
->  create mode 100644 drivers/media/radio/wl128x/fmdrv_v4l2.c
->  create mode 100644 drivers/media/radio/wl128x/fmdrv_v4l2.h
-> 
+It would be better if the codec could handle the configuration,
+depending on which DAI is in use. If we can send HCI commands from
+kernel, I think that would be the cleanest way.
 
+-- 
+Péter
