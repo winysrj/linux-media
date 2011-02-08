@@ -1,44 +1,66 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:37122 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751387Ab1BIWmQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Feb 2011 17:42:16 -0500
-Received: by eye27 with SMTP id 27so482420eye.19
-        for <linux-media@vger.kernel.org>; Wed, 09 Feb 2011 14:42:15 -0800 (PST)
+Received: from mga02.intel.com ([134.134.136.20]:47655 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754464Ab1BHNrK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Feb 2011 08:47:10 -0500
+From: "Bensaid, Selma" <selma.bensaid@intel.com>
+To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+CC: ext Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>,
+	"sameo@linux.intel.com" <sameo@linux.intel.com>,
+	ext Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+	"matti.j.aaltonen@nokia.com" <matti.j.aaltonen@nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>
+Date: Tue, 8 Feb 2011 13:47:03 +0000
+Subject: RE: [alsa-devel] WL1273 FM Radio driver...
+Message-ID: <2A84145621092446B6659B8A0F28E26F47010C2B07@irsmsx501.ger.corp.intel.com>
+References: <1297075922.15320.31.camel@masi.mnp.nokia.com>
+		<4D4FDED0.7070008@redhat.com>
+		<20110207120234.GE10564@opensource.wolfsonmicro.com>
+		<4D4FEA03.7090109@redhat.com>
+		<20110207131045.GG10564@opensource.wolfsonmicro.com>
+		<4D4FF821.4010701@redhat.com>
+		<20110207135225.GJ10564@opensource.wolfsonmicro.com>
+	<1297088242.15320.62.camel@masi.mnp.nokia.com>	<4D501704.6060504@redhat.com>
+ <4D5109B3.60504@nokia.com>
+ <2A84145621092446B6659B8A0F28E26F47010C29F1@irsmsx501.ger.corp.intel.com>
+ <4D5122CF.3010403@nokia.com>
+In-Reply-To: <4D5122CF.3010403@nokia.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="iso-8859-1"
 MIME-Version: 1.0
-In-Reply-To: <201102092336.20812.martin@pibbs.de>
-References: <201102082305.24897.martin@pibbs.de>
-	<201102092244.49176.martin@pibbs.de>
-	<AANLkTimPQJ6+uJ1kY=-HPmg0x1mouB_ZJmdAQxjQbwdg@mail.gmail.com>
-	<201102092336.20812.martin@pibbs.de>
-Date: Wed, 9 Feb 2011 17:42:15 -0500
-Message-ID: <AANLkTimST51rWpp9G3a6kds6eqM+dupWu=MyEJtTYZNs@mail.gmail.com>
-Subject: Re: em28xx: board id [eb1a:2863 eMPIA Technology, Inc] Silver Crest
- VG2000 "USB 2.0 Video Grabber"
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Martin Seekatz <martin@pibbs.de>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Feb 9, 2011 at 5:36 PM, Martin Seekatz <martin@pibbs.de> wrote:
-> Hello Devin,
->
-> I mean that list
-> http://www.kernel.org/doc/Documentation/video4linux/CARDLIST.em28xx
+> > For both configuration we have a set of HCI commands to configure the FM
+> audio
+> > path and one of my concerns is to know if the wl1273_codec should handle the
+> audio path configuration
+> > and the switch between FM and BT SCO?
+> 
+> It would be better if the codec could handle the configuration,
+> depending on which DAI is in use. If we can send HCI commands from
+> kernel, I think that would be the cleanest way.
+If we use the Combined Interface Mode (host controls both the BT and FM 
+radio via BT HCI) this could be possible. However, you use the Separate 
+Interface (FM controlled vi I2C). 
+Is there a plan to handle also the Combined Interface Mode for WL1273 FM Radio driver?
 
-It actually is there:
+Selma.
+> --
+> Péter
+---------------------------------------------------------------------
+Intel Corporation SAS (French simplified joint stock company)
+Registered headquarters: "Les Montalets"- 2, rue de Paris, 
+92196 Meudon Cedex, France
+Registration Number:  302 456 199 R.C.S. NANTERRE
+Capital: 4,572,000 Euros
 
-29 -> EM2860/TVP5150 Reference Design
+This e-mail and any attachments may contain confidential material for
+the sole use of the intended recipient(s). Any review or distribution
+by others is strictly prohibited. If you are not the intended
+recipient, please contact the sender and delete all copies.
 
-If the vendor did not build the hardware with its own unique USB ID
-(because they were lazy), the best we can do is refer to it by the
-above name (since we would not be able to distinguish between the
-Silvercrest and all the other clones).
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
