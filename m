@@ -1,65 +1,57 @@
 Return-path: <mchehab@pedra>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:45776 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751009Ab1BDLA0 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Feb 2011 06:00:26 -0500
+Received: from bay0-omc2-s11.bay0.hotmail.com ([65.54.190.86]:47753 "EHLO
+	bay0-omc2-s11.bay0.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752897Ab1BHWOM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Feb 2011 17:14:12 -0500
+Message-ID: <BAY147-w61F73D1C3A189E0E96FF53ABEA0@phx.gbl>
+From: =?utf-8?B?TWlndWVsIMOBbmdlbCBGZXJuw6FuZGV6?= <mianfel@hotmail.com>
+To: linux-media <linux-media@vger.kernel.org>
+Subject: =?utf-8?Q?FW:_New_TV?= =?utf-8?Q?713X_Remot?=
+ =?utf-8?B?ZSBDb250cm9s4oCP?=
+Date: Tue, 8 Feb 2011 23:14:11 +0100
+In-Reply-To: <BAY147-w974DEC06A00476125FCBFABEA0@phx.gbl>
+References: <BAY147-w352381C60DA0426A85893DAB250@phx.gbl>,<BAY147-w974DEC06A00476125FCBFABEA0@phx.gbl>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-In-Reply-To: <1295389936-3238-1-git-send-email-martin@neutronstar.dyndns.org>
-References: <1295389936-3238-1-git-send-email-martin@neutronstar.dyndns.org>
-From: "Varadarajan, Charulatha" <charu@ti.com>
-Date: Fri, 4 Feb 2011 16:29:44 +0530
-Message-ID: <AANLkTi=8tsm+MumkYhDdefJO1ZQannthfVpaz3MEN26T@mail.gmail.com>
-Subject: Re: [PATCH RFC] arm: omap3evm: Add support for an MT9M032 based
- camera board.
-To: Martin Hostettler <martin@neutronstar.dyndns.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Jan 19, 2011 at 04:02, Martin Hostettler
-<martin@neutronstar.dyndns.org> wrote:
-> Adds board support for an MT9M032 based camera to omap3evm.
->
-> Sigend-off-by: Martin Hostettler <martin@neutronstar.dyndns.org>
-> ---
->  arch/arm/mach-omap2/Makefile                |    1 +
->  arch/arm/mach-omap2/board-omap3evm-camera.c |  177 +++++++++++++++++++++++++++
->  2 files changed, 178 insertions(+), 0 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/board-omap3evm-camera.c
->
-
-<<snip>>
-
-> diff --git a/arch/arm/mach-omap2/board-omap3evm-camera.c b/arch/arm/mach-omap2/board-omap3evm-camera.c
-> new file mode 100644
-> index 0000000..ea82a49
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/board-omap3evm-camera.c
-> @@ -0,0 +1,177 @@
-> +/*
-> + * Copyright (C) 2010-2011 Lund Engineering
-> + * Contact: Gil Lund <gwlund@lundeng.com>
-> + * Author: Martin Hostettler <martin@neutronstar.dyndns.org>
-> + *
-
-It would be good to provide one line description of the file.
-
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> + * 02110-1301 USA
-> + */
+DQpIZWxsbyEgSSBuZWVkIGEgc21hbGwgaGVscC4NCg0KSSBoYXZlIGEgcmVtb3RlIGNvbnRyb2wg
+dGhhdCB3YXMgZGV0ZWN0ZWQgYnkga2VybmVsIHdpdGggdGhlIGhlbHAgb2YgImlyLWtiZC1pMmMi
+Lg0KQXQgbGVhc3QgaXQgd2FzIGluIFVidW50dSA5LjA0Lg0KDQpCdXQgbm93IGluIFVidW50dSAx
+MC4xMCBhbmQga2VybmVsIDIuNi4zNS0yNiBpdCBpc24ndCBkZXRlY3RlZC4gSSBsb2FkICJpci1r
+YmQtaTJjIg0KbW9kdWxlIGJ1dCBpdCBkb2Vzbid0IGdpdmUgYW55IG91dHB1dCB0byBkbWVzZyBh
+cyBiZWZvcmUuDQoNCkFueSBpZGVhPw0KDQoNCg0KPiBEYXRlOiBUdWUsIDMwIE5vdiAyMDEwIDEz
+OjUzOjEyICswMTAwDQo+IA0KPiANCj4gDQo+IEhlbGxvIQ0KPiANCj4gSSBoYXZlIGEgbmV3IHJl
+bW90ZSBjb250cm9sIHRvIGFkZCB0byB0aGUgbGlzdCBvZiByZW1vdGVzIHN1cHBvcnRlZCBieSBs
+aW51eC4gSXQncyBkZXRlY3RlZA0KPiBieSBrZXJuZWwgYW5kIGFsbW9zdCBydW5uaW5nLiBEVkIt
+VCBjYXJkIGFuZCBidW5kbGVkIHJlY2VpdmVyIHdvcmsgZmluZS4NCj4gwqANCj4gQnV0IEknbSBh
+IG5ld2JpZSBhbmQgSSB3b3VsZCBuZWVkIHNvbWUgaGVscCB3aXRoIG15IHJlbW90ZS4gSSdtIGFi
+b3V0IHRvIGZpbmQgdGhlIHNvbHV0aW9uIGJ1dA0KPiBJIGRvbid0IGtub3cgdGhlIG5leHQgc3Rl
+cCBvZiB0aGUgcHJvY2Vzcy4NCj4gwqANCj4gSGFyZHdhcmU6DQo+IFJlbW90ZTogVFY3MTNYDQo+
+IFRWLUNhcmQ6IENvbmNlcHRyb25pYyBDVFZDT01CT2kgKGRldGVjdGVkIGFzIFRldmlvbi9LV29y
+bGQgRFZCLVQgMjIwUkYpDQo+IFJlY2VpdmVyOiBidW5kbGVkIGluIHRoZSBUVi1DYXJkDQo+IFNv
+ZnR3YXJlOiBVYnVudHUgOS4wNA0KPiDCoA0KPiBkbWVzZzoNCj4gwqANCj4gW8KgwqDCoCA4Ljkz
+MjkxM10gc2FhNzEzMC8zNDogdjRsMiBkcml2ZXIgdmVyc2lvbiAwLjIuMTQgbG9hZGVkDQo+IFvC
+oMKgwqAgOC45MzM0ODhdIHNhYTcxMzQgMDAwMDowMTowNi4wOiBQQ0kgSU5UIEEgLT4gTGlua1tM
+TktBXSAtPiBHU0kgMTkgKGxldmVsLCBsb3cpIC0+IElSUSAxOQ0KPiBbwqDCoMKgIDguOTMzNDk0
+XSBzYWE3MTMzWzBdOiBmb3VuZCBhdCAwMDAwOjAxOjA2LjAsIHJldjogMjA5LCBpcnE6IDE5LCBs
+YXRlbmN5OiA2NCwgbW1pbzogMHhkZmZmZjgwMA0KPiBbwqDCoMKgIDguOTMzNDk5XSBzYWE3MTMz
+WzBdOiBzdWJzeXN0ZW06IDE3ZGU6NzIwMSwgYm9hcmQ6IFRldmlvbi9LV29ybGQgRFZCLVQgMjIw
+UkYgW2NhcmQ9ODgsYXV0b2RldGVjdGVkXQ0KLi4uDQo+IHN1ZG8gbW9kcHJvYmUgaXIta2JkLWky
+Yw0KPiBXQVJOSU5HOiBBbGwgY29uZmlnIGZpbGVzIG5lZWQgLmNvbmY6IC9ldGMvbW9kcHJvYmUu
+ZC9vc3MtY29tcGF0LCBpdCB3aWxsIGJlIGlnbm9yZWQgaW4gYSBmdXR1cmUgcmVsZWFzZS4NCj4g
+wqANCj4gVGhlIG91dHB1dCBpbiBkbWVzZyBpczoNCj4gW8KgIDM3NC40NDQ2OTVdIGlucHV0OiBp
+MmMgSVIgKEtOQyBPbmUpIGFzIC9kZXZpY2VzL3ZpcnR1YWwvaW5wdXQvaW5wdXQ2DQo+IFvCoCAz
+NzQuNDcyNjY2XSBpci1rYmQtaTJjOiBpMmMgSVIgKEtOQyBPbmUpIGRldGVjdGVkIGF0IGkyYy0w
+LzAtMDAzMC9pcjAgW3NhYTcxMzNbMF1dDQo+IMKgDQo+IEFuZCwgd2hhdCBpcyBtb3JlLiBPbmx5
+IHdoZW4gdGhlIG1vZHVsZSBpcyBsb2FkZWQsIGlmIEkgcHVzaCBzb21lIGJ1dHRvbnMgb2YgdGhl
+IHJlbW90ZSBJIGhhdmUgdGhpcw0KPiBvdXRwdXQgaW4gZG1lc2c6DQo+IFvCoCA0NTAuMjI4MDI5
+XSBpMmMgSVIgKEtOQyBPbmUpOiB1bmtub3duIGtleToga2V5PTB4MDMgcmF3PTB4MDMgZG93bj0x
+DQo+IFvCoCA0NTAuMjg4NTI2XSBpMmMgSVIgKEtOQyBPbmUpOiB1bmtub3duIGtleToga2V5PTB4
+MDMgcmF3PTB4MDMgZG93bj0wDQo+IFvCoCA0NTEuMjQ4NTM0XSBpMmMgSVIgKEtOQyBPbmUpOiB1
+bmtub3duIGtleToga2V5PTB4MDAgcmF3PTB4MDAgZG93bj0xDQo+IFvCoCA0NTEuMzA4MDI3XSBp
+MmMgSVIgKEtOQyBPbmUpOiB1bmtub3duIGtleToga2V5PTB4MDAgcmF3PTB4MDAgZG93bj0wDQo+
+IMKgDQoNCiAJCSAJICAgCQkgIA==
