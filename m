@@ -1,67 +1,107 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.8]:61278 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751319Ab1BQT0q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Feb 2011 14:26:46 -0500
-Date: Thu, 17 Feb 2011 20:26:11 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hansverk@cisco.com>, Qing Xu <qingx@marvell.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Neil Johnson <realdealneil@gmail.com>,
-	Robert Jarzmik <robert.jarzmik@free.fr>,
-	Uwe Taeubert <u.taeubert@road.de>,
-	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	Eino-Ville Talvala <talvala@stanford.edu>
-Subject: Re: [RFD] frame-size switching: preview / single-shot use-case
-In-Reply-To: <4D5D7141.4030101@infradead.org>
-Message-ID: <Pine.LNX.4.64.1102172020410.30692@axis700.grange>
-References: <Pine.LNX.4.64.1102151641490.16709@axis700.grange>
- <201102160949.04605.hansverk@cisco.com> <Pine.LNX.4.64.1102160954560.20711@axis700.grange>
- <201102161011.59830.laurent.pinchart@ideasonboard.com>
- <Pine.LNX.4.64.1102161033440.20711@axis700.grange> <4D5D7141.4030101@infradead.org>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:26463 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752618Ab1BHJah (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Feb 2011 04:30:37 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Tue, 08 Feb 2011 10:30:23 +0100
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCH 1/5] i2c-s3c2410: fix I2C dedicated for hdmiphy
+In-reply-to: <1297157427-14560-1-git-send-email-t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, t.stanislaws@samsung.com,
+	kyungmin.park@samsung.com
+Message-id: <1297157427-14560-2-git-send-email-t.stanislaws@samsung.com>
+References: <1297157427-14560-1-git-send-email-t.stanislaws@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro
+The I2C HDMIPHY dedicated controller has different timeout
+handling and reset conditions.
 
-Thanks for your comments.
-
-On Thu, 17 Feb 2011, Mauro Carvalho Chehab wrote:
-
-> Em 16-02-2011 08:35, Guennadi Liakhovetski escreveu:
-
-[snip]
-
-> > (2) cleanly separate setting video data format (S_FMT) from specifying the 
-> > allocated buffer size.
-> 
-> This would break existing applications. Too late for that, except if negotiated
-> with a "SETCAP" like approach.
-
-Sorry, don't see how my proposal from my last mail would change existing 
-applications. As long as no explicit buffer-queue management is performed, 
-no new queues are allocated, the driver will just implicitly allocate one 
-queue and use it. I.e., no change in behaviour.
-
-> There's an additional problem with that: assume that streaming is happening,
-> and a S_FMT changing the resolution was sent. There's no way to warrant that
-> the very next frame will have the new resolution. So, a meta-data with the
-> frame resolution (and format) would be needed.
-
-Sorry, we are not going to allow format changes during a running capture. 
-You have to stop streaming, set new formats (possibly switch to another 
-queue) and restart streaming.
-
-What am I missing?
-
-Thanks
-Guennadi
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/i2c/busses/i2c-s3c2410.c |   36 +++++++++++++++++++++++++++++++++++-
+ 1 files changed, 35 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/i2c/busses/i2c-s3c2410.c b/drivers/i2c/busses/i2c-s3c2410.c
+index 6c00c10..99cfe2f 100644
+--- a/drivers/i2c/busses/i2c-s3c2410.c
++++ b/drivers/i2c/busses/i2c-s3c2410.c
+@@ -54,6 +54,7 @@ enum s3c24xx_i2c_state {
+ enum s3c24xx_i2c_type {
+ 	TYPE_S3C2410,
+ 	TYPE_S3C2440,
++	TYPE_S3C2440_HDMIPHY,
+ };
+ 
+ struct s3c24xx_i2c {
+@@ -96,7 +97,21 @@ static inline int s3c24xx_i2c_is2440(struct s3c24xx_i2c *i2c)
+ 	enum s3c24xx_i2c_type type;
+ 
+ 	type = platform_get_device_id(pdev)->driver_data;
+-	return type == TYPE_S3C2440;
++	return type == TYPE_S3C2440 || type == TYPE_S3C2440_HDMIPHY;
++}
++
++/* s3c24xx_i2c_is2440_hdmiphy()
++ *
++ * return true is this is an s3c2440 dedicated for HDMIPHY interface
++*/
++
++static inline int s3c24xx_i2c_is2440_hdmiphy(struct s3c24xx_i2c *i2c)
++{
++	struct platform_device *pdev = to_platform_device(i2c->dev);
++	enum s3c24xx_i2c_type type;
++
++	type = platform_get_device_id(pdev)->driver_data;
++	return type == TYPE_S3C2440_HDMIPHY;
+ }
+ 
+ /* s3c24xx_i2c_master_complete
+@@ -461,6 +476,13 @@ static int s3c24xx_i2c_set_master(struct s3c24xx_i2c *i2c)
+ 	unsigned long iicstat;
+ 	int timeout = 400;
+ 
++	/* if hang-up of HDMIPHY occured reduce timeout
++	 * The controller will work after reset, so waiting
++	 * 400 ms will cause unneccessary system hangup
++	 */
++	if (s3c24xx_i2c_is2440_hdmiphy(i2c))
++		timeout = 10;
++
+ 	while (timeout-- > 0) {
+ 		iicstat = readl(i2c->regs + S3C2410_IICSTAT);
+ 
+@@ -470,6 +492,15 @@ static int s3c24xx_i2c_set_master(struct s3c24xx_i2c *i2c)
+ 		msleep(1);
+ 	}
+ 
++	/* hang-up of bus dedicated for HDMIPHY occured, resetting */
++	if (s3c24xx_i2c_is2440_hdmiphy(i2c)) {
++		writel(0, i2c->regs + S3C2410_IICCON);
++		writel(0, i2c->regs + S3C2410_IICSTAT);
++		writel(0, i2c->regs + S3C2410_IICDS);
++
++		return 0;
++	}
++
+ 	return -ETIMEDOUT;
+ }
+ 
+@@ -1009,6 +1040,9 @@ static struct platform_device_id s3c24xx_driver_ids[] = {
+ 	}, {
+ 		.name		= "s3c2440-i2c",
+ 		.driver_data	= TYPE_S3C2440,
++	}, {
++		.name		= "s3c2440-hdmiphy-i2c",
++		.driver_data	= TYPE_S3C2440_HDMIPHY,
+ 	}, { },
+ };
+ MODULE_DEVICE_TABLE(platform, s3c24xx_driver_ids);
+-- 
+1.7.3.5
+
