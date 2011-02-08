@@ -1,59 +1,97 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:35123 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755353Ab1BOUBX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Feb 2011 15:01:23 -0500
-Message-ID: <4D5ADB72.2050006@redhat.com>
-Date: Tue, 15 Feb 2011 18:00:50 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Tejun Heo <tj@kernel.org>
-CC: Andy Walls <awalls@md.metrocast.net>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	stoth@kernellabs.com
-Subject: Re: [PATCH] cx23885: restore flushes of cx23885_dev work items
-References: <1297647322.19186.61.camel@localhost> <20110214043355.GA28090@core.coreip.homeip.net> <20110214110339.GC18742@htj.dyndns.org> <1297731276.2394.19.camel@localhost> <20110215092012.GE3160@htj.dyndns.org>
-In-Reply-To: <20110215092012.GE3160@htj.dyndns.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.samsung.com ([203.254.224.34]:64179 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753180Ab1BHEE2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Feb 2011 23:04:28 -0500
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Received: from epmmp1 (mailout4.samsung.com [203.254.224.34])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LGA004575XX4XB0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 08 Feb 2011 13:03:33 +0900 (KST)
+Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
+ by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LGA001EY5XXMH@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 08 Feb 2011 13:03:33 +0900 (KST)
+Date: Tue, 08 Feb 2011 13:03:33 +0900
+From: "Kim, HeungJun" <riverful.kim@samsung.com>
+Subject: Re: [PATCH v4] Add support for M5MO-LS 8 Mega Pixel camera
+In-reply-to: <4D5067E4.2030709@gmail.com>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	s.nawrocki@samsung.com, kyungmin.park@samsung.com
+Reply-to: riverful.kim@samsung.com
+Message-id: <4D50C095.5060502@samsung.com>
+Content-transfer-encoding: 8BIT
+References: <1297079073-10916-1-git-send-email-riverful.kim@samsung.com>
+ <4D5067E4.2030709@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 15-02-2011 07:20, Tejun Heo escreveu:
-> Commit 8c71778c (media/video: don't use flush_scheduled_work())
-> dropped flush_scheduled_work() from cx23885_input_ir_stop()
-> incorrectly assuming that it didn't use any work item; however,
-> cx23885_dev makes use of three work items - cx25840_work and
-> ir_{r|t}x_work.
-> 
-> Make cx23885_input_ir_stop() sync flush all three work items before
-> returning.
-> 
-> Signed-off-by: Tejun Heo <tj@kernel.org>
-> Reported-by: Andy Walls <awalls@md.metrocast.net>
-> Reviewed-by: Andy Walls <awalls@md.metrocast.net>
-> Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+I've checked runnig checkpatch.pl, but I've not seen this message before.
+And I re-check the patch sent now, but it's not.
+Probably, It's issue between git send-email and our mail server setting.
 
-Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+I'll check once again, and resend.
 
-> ---
->  drivers/media/video/cx23885/cx23885-input.c |    3 +++
->  1 file changed, 3 insertions(+)
+Thanks let me know.
+
+Regards
+Heungjun Kim
+
+
+
+2011-02-08 오전 6:45, Sylwester Nawrocki 쓴 글:
+> Hi HeungJun,
 > 
-> diff --git a/drivers/media/video/cx23885/cx23885-input.c b/drivers/media/video/cx23885/cx23885-input.c
-> index 199b996..e27cedb 100644
-> --- a/drivers/media/video/cx23885/cx23885-input.c
-> +++ b/drivers/media/video/cx23885/cx23885-input.c
-> @@ -229,6 +229,9 @@ static void cx23885_input_ir_stop(struct cx23885_dev *dev)
->  		v4l2_subdev_call(dev->sd_ir, ir, rx_s_parameters, &params);
->  		v4l2_subdev_call(dev->sd_ir, ir, rx_g_parameters, &params);
->  	}
-> +	flush_work_sync(&dev->cx25840_work);
-> +	flush_work_sync(&dev->ir_rx_work);
-> +	flush_work_sync(&dev->ir_tx_work);
->  }
->  
->  static void cx23885_input_ir_close(struct rc_dev *rc)
+> On 02/07/2011 12:44 PM, Heungjun Kim wrote:
+>> Add I2C/V4L2 subdev driver for M5MO-LS camera sensor with integrated
+>> image processor.
+>>
+> 
+> There is something wrong with this patch. It looks like it got mangled by
+> the mailer. I can see some Korean characters in it and checkpatch.pl 
+> returns errors:
+> 
+> ERROR: patch seems to be corrupt (line wrapped?)
+> #122: FILE: drivers/media/video/Kconfig:747:
+> =20
+> 
+> ERROR: spaces required around that '=' (ctx:WxV)
+> #208: FILE: drivers/media/video/m5mols/m5mols.h:36:
+> +	I2C_8BIT	=3D 1,
+>  	        	^
+> 
+> ERROR: spaces required around that '=' (ctx:WxV)
+> #209: FILE: drivers/media/video/m5mols/m5mols.h:37:
+> +	I2C_16BIT	=3D 2,
+>  	         	^
+> 
+> ERROR: spaces required around that '=' (ctx:WxV)
+> #210: FILE: drivers/media/video/m5mols/m5mols.h:38:
+> +	I2C_32BIT	=3D 4,
+>  	         	^
+> ...
+> 
+> ERROR: spaces required around that '=' (ctx:WxV)
+> #1500: FILE: drivers/media/video/m5mols/m5mols_core.c:892:
+> +	.remove		=3D m5mols_remove,
+>  	       		^
+> 
+> ERROR: spaces required around that '=' (ctx:WxV)
+> #1501: FILE: drivers/media/video/m5mols/m5mols_core.c:893:
+> +	.id_table	=3D m5mols_id,
+>  	         	^
+> 
+> WARNING: please, no space before tabs
+> #1672: FILE: include/media/m5mols.h:23:
+> +* ^I^Ito be called after enabling and before disabling$
+> 
+> total: 344 errors, 6 warnings, 1514 lines checked
+> 
+> 
+> Regards,
+> Sylwester
+> 
 
