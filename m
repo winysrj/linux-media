@@ -1,80 +1,68 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:54818 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752535Ab1BWVxe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Feb 2011 16:53:34 -0500
-Subject: Re: Question on V4L2 S_STD call
-From: Andy Walls <awalls@md.metrocast.net>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-In-Reply-To: <AANLkTikqDACH2rVd6PBVr3eofnJP-UmD0bNDar9RDUoL@mail.gmail.com>
-References: <AANLkTikqDACH2rVd6PBVr3eofnJP-UmD0bNDar9RDUoL@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 23 Feb 2011 16:53:41 -0500
-Message-ID: <1298498021.2408.14.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:3360 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750997Ab1BIPvi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Feb 2011 10:51:38 -0500
+Message-ID: <4D52B7FA.7080606@redhat.com>
+Date: Wed, 09 Feb 2011 13:51:22 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Stefan Richter <stefanr@s5r6.in-berlin.de>
+CC: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: firedtv and removal of old IEEE1394 stack
+References: <201102031706.12714.hverkuil@xs4all.nl>	<20110205152122.3b566ef0@stein>	<20110205153215.03d55743@stein>	<4D5236E5.8060207@hoogenraad.net> <20110209142204.6eb445de@stein>
+In-Reply-To: <20110209142204.6eb445de@stein>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 2011-02-23 at 16:09 -0500, Devin Heitmueller wrote:
-> Hello there,
+Em 09-02-2011 11:22, Stefan Richter escreveu:
+> On Feb 09 Jan Hoogenraad wrote:
+>> For a problem description, and workaround, see:
+>>
+>> http://linuxtv.org/hg/~jhoogenraad/ubuntu-firedtv/
 > 
-> I was debugging some PAL issues with cx231xx, and noticed some
-> unexpected behavior with regards to selecting PAL standards.
+> Do you mean
+> http://linuxtv.org/hg/~jhoogenraad/ubuntu-firedtv/rev/c8e14191e48d
+> "Disable FIREDTV for debian/ubuntu distributions with bad header files"?
 > 
-> In particular, tvtime has an option for PAL which corresponds to the
-> underlying value "0xff".  This basically selects *any* PAL standard.
-> However, the cx231xx has code for setting up the DIF which basically
-> says:
+> I still don't see what the problem is.  If you have a kernel without
+> drivers/ieee1394/*, then you also must have a kernel .config without
+> CONFIG_IEEE1394.  Et voilà, firedtv builds fine (if CONFIG_FIREWIRE is y
+> or m).  So, please make sure that .config and kernel sources match.
 > 
-> if (standard & V4L2_STD_MN) {
->  ...
-> } else if ((standard == V4L2_STD_PAL_I) |
->                         (standard & V4L2_STD_PAL_D) |
-> 			(standard & V4L2_STD_SECAM)) {
->  ...
-> } else {
->   /* default PAL BG */
->   ...
-> }
-> 
-> As a result, if you have a PAL-B/G signal and select "PAL" in tvtime,
-> the test passes for PAL_I/PAL_D/SECAM since that matches the bitmask.
-> The result of course is garbage video.
-> 
-> So here is the question:
-> 
-> How are we expected to interpret an application asking for "PAL" in
-> cases when the driver needs a more specific video standard?
+> IOW the workaround c8e14191e48d addresses the wrong issue.  Don't disable
+> CONFIG_DVB_FIREDTV; just make sure that the dependency of
+> CONFIG_DVB_FIREDTV_IEEE1394 on CONFIG_IEEE1394 is taken into account, like
+> in the mainline kernel's build system.
 
-Notwithstanding any bugs in how the driver handles the flags, the
-specified behavior for drivers is pretty clear:
+The out-of-tree build system tries to match the CONFIG_foo symbols found on
+distros where this is possible, but sometimes the config symbol changes its
+name. So, the out-of-tree building system has also a per-kernel version list
+of drivers that need to be disabled with some older kernel versions (vanilla
+kernels), where the driver is known to not work or compile.
 
-http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-g-std.html
+The problem arises when a distro-patched kernel uses a newer version of a 
+core ABI and not providing backport support for the old ABI.
 
-"When the standard set is ambiguous drivers may return EINVAL or choose
-any of the requested standards."
+Ubuntu has a bad history of doing things like that. On some cases, their "devel" 
+kernel packages don't match some drivers shipped with it.
 
-If you don't have standard autodetection before the DIF, your
-safest bet is to have the driver return EINVAL, if you have flags 
-that don't all fall into one of the compound statements in the if()
-statement.
+For example, some (all?) versions of Ubuntu distribute the alsa headers at the
+kernel package that don't match the alsa core ABI found on it. So, if you 
+compile a kernel driver based on it, the driver won't work, as symbols won't
+match (to be worse, it generally compiles fine).
 
-In the situation where you already have the DIF set up to a particular
-standard, and that current standard matches one of the flags passed in,
-you could alternatively leave it set to the currently set standard.
+The firewire and alsa drivers compile and run fine on other distros like Fedora 
+and RHEL. I never tried with other distros, so I can't provide a more complete
+list, but I suspect that it will also work with Suse/Open Suse, as they also try
+to preserve ABI backports.
 
-Regards,
-Andy
+The only fix for it is to disable the compilation of such drivers for the 
+out-of-tree build if a broken distro kernel is detected. That's the approach 
+of Jan's patches.
 
-> I can obviously add code to tvtime in the long term to have the user
-> provide a more specific standard instead of "PAL", but since it is
-> supported in the V4L2 spec, I would like to understand what the
-> expected behavior should be in drivers.
-
-> Devin
-
-
-
+Cheers,
+Mauro.
