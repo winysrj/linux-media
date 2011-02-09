@@ -1,93 +1,107 @@
 Return-path: <mchehab@pedra>
-Received: from ns.mm-sol.com ([213.240.235.226]:54411 "EHLO extserv.mm-sol.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753677Ab1BVKjz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Feb 2011 05:39:55 -0500
-From: Stanimir Varbanov <svarbanov@mm-sol.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, g.liakhovetski@gmx.de,
-	saaguirre@ti.com, Stanimir Varbanov <svarbanov@mm-sol.com>
-Subject: [RFC/PATCH 1/1] v4l: Introduce sensor operation for getting interface configuration
-Date: Tue, 22 Feb 2011 12:31:53 +0200
-Message-Id: <fc5d1bbfedf641a7578aa6f9a4f556f829b61a1a.1298368924.git.svarbanov@mm-sol.com>
-In-Reply-To: <cover.1298368924.git.svarbanov@mm-sol.com>
-References: <cover.1298368924.git.svarbanov@mm-sol.com>
-In-Reply-To: <cover.1298368924.git.svarbanov@mm-sol.com>
-References: <cover.1298368924.git.svarbanov@mm-sol.com>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:51270 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750991Ab1BITBX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Feb 2011 14:01:23 -0500
+MIME-Version: 1.0
+In-Reply-To: <AANLkTimeYp=aJi40jH2Nwu25C_e1dJYxLXXXu-7zwZEp@mail.gmail.com>
+References: <1297157427-14560-1-git-send-email-t.stanislaws@samsung.com>
+ <201102081047.17840.hansverk@cisco.com> <AANLkTi=A=HiAvHojWP8HcFXpjXbZpq6UdHjOnWq-8jww@mail.gmail.com>
+ <1297205267.2423.24.camel@localhost> <AANLkTimeYp=aJi40jH2Nwu25C_e1dJYxLXXXu-7zwZEp@mail.gmail.com>
+From: Matt Turner <mattst88@gmail.com>
+Date: Wed, 9 Feb 2011 19:00:38 +0000
+Message-ID: <AANLkTim1_ba1gj25fGYua=mrya5q0twYO29enEhWxsod@mail.gmail.com>
+Subject: Re: [PATCH/RFC 0/5] HDMI driver for Samsung S5PV310 platform
+To: Hans Verkuil <hansverk@cisco.com>
+Cc: Andy Walls <awalls@md.metrocast.net>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	linux-samsung-soc@vger.kernel.org,
+	Maling list - DRI developers
+	<dri-devel@lists.freedesktop.org>,
+	Alex Deucher <alexdeucher@gmail.com>,
+	kyungmin.park@samsung.com, linux-media@vger.kernel.org,
+	m.szyprowski@samsung.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Introduce g_interface_parms sensor operation for getting sensor
-interface parameters. These parameters are needed from the host side
-to determine it's own configuration.
+On Wed, Feb 9, 2011 at 7:12 AM, Alex Deucher <alexdeucher@gmail.com> wrote:
+> On Tue, Feb 8, 2011 at 5:47 PM, Andy Walls <awalls@md.metrocast.net> wrote:
+>> On Tue, 2011-02-08 at 10:28 -0500, Alex Deucher wrote:
+>>> On Tue, Feb 8, 2011 at 4:47 AM, Hans Verkuil <hansverk@cisco.com> wrote:
+>>> > Just two quick notes. I'll try to do a full review this weekend.
+>>> >
+>>> > On Tuesday, February 08, 2011 10:30:22 Tomasz Stanislawski wrote:
+>>> >> ==============
+>>> >>  Introduction
+>>> >> ==============
+>>> >>
+>>> >> The purpose of this RFC is to discuss the driver for a TV output interface
+>>> >> available in upcoming Samsung SoC. The HW is able to generate digital and
+>>> >> analog signals. Current version of the driver supports only digital output.
+>>> >>
+>>> >> Internally the driver uses videobuf2 framework, and CMA memory allocator.
+>>> > Not
+>>> >> all of them are merged by now, but I decided to post the sources to start
+>>> >> discussion driver's design.
+>>
+>>> >
+>>> > Cisco (i.e. a few colleagues and myself) are working on this. We hope to post
+>>> > an RFC by the end of this month. We also have a proposal for CEC support in
+>>> > the pipeline.
+>>>
+>>> Any reason to not use the drm kms APIs for modesetting, display
+>>> configuration, and hotplug support?  We already have the
+>>> infrastructure in place for complex display configurations and
+>>> generating events for hotplug interrupts.  It would seem to make more
+>>> sense to me to fix any deficiencies in the KMS APIs than to spin a new
+>>> API.  Things like CEC would be a natural fit since a lot of desktop
+>>> GPUs support hdmi audio/3d/etc. and are already using kms.
+>>>
+>>> Alex
+>>
+>> I'll toss one out: lack of API documentation for driver or application
+>> developers to use.
+>>
+>>
+>> When I last looked at converting ivtvfb to use DRM, KMS, TTM, etc. (to
+>> possibly get rid of reliance on the ivtv X video driver
+>> http://dl.ivtvdriver.org/xf86-video-ivtv/ ), I found the documentation
+>> was really sparse.
+>>
+>> DRM had the most documentation under Documentation/DocBook/drm.tmpl, but
+>> the userland API wasn't fleshed out.  GEM was talked about a bit in
+>> there as well, IIRC.
+>>
+>> TTM documentation was essentially non-existant.
+>>
+>> I can't find any KMS documentation either.
+>>
+>> I recall having to read much of the drm code, and having to look at the
+>> radeon driver, just to tease out what the DRM ioctls needed to do.
+>>
+>> Am I missing a Documentation source for the APIs?
 
-Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
----
- include/media/v4l2-subdev.h |   42 ++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 42 insertions(+), 0 deletions(-)
+Yes,
 
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index b0316a7..4186cad 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -322,15 +322,57 @@ struct v4l2_subdev_vbi_ops {
- 	int (*s_sliced_fmt)(struct v4l2_subdev *sd, struct v4l2_sliced_vbi_format *fmt);
- };
- 
-+/* Which interface the sensor use to provide it's image data */
-+enum v4l2_subdev_sensor_iface {
-+	V4L2_SUBDEV_SENSOR_PARALLEL,
-+	V4L2_SUBDEV_SENSOR_SERIAL,
-+};
-+
-+/* Each interface could use the following modes */
-+/* Image sensor provides horizontal and vertical sync signals */
-+#define V4L2_SUBDEV_SENSOR_MODE_PARALLEL_SYNC	0
-+/* BT.656 interface. Embedded sync */
-+#define V4L2_SUBDEV_SENSOR_MODE_PARALLEL_ITU	1
-+/* MIPI CSI1 */
-+#define V4L2_SUBDEV_SENSOR_MODE_SERIAL_CSI1	2
-+/* MIPI CSI2 */
-+#define V4L2_SUBDEV_SENSOR_MODE_SERIAL_CSI2	3
-+
-+struct v4l2_subdev_sensor_serial_parms {
-+	unsigned char lanes;		/* number of lanes used */
-+	unsigned char channel;		/* virtual channel */
-+	unsigned int phy_rate;		/* output rate at CSI phy in bps */
-+	unsigned int pix_clk;		/* pixel clock in Hz */
-+};
-+
-+struct v4l2_subdev_sensor_parallel_parms {
-+	unsigned int pix_clk;		/* pixel clock in Hz */
-+};
-+
-+struct v4l2_subdev_sensor_interface_parms {
-+	enum v4l2_subdev_sensor_iface if_type;
-+	unsigned int if_mode;
-+	union {
-+		struct v4l2_subdev_sensor_serial_parms serial;
-+		struct v4l2_subdev_sensor_parallel_parms parallel;
-+	} parms;
-+};
-+
- /**
-  * struct v4l2_subdev_sensor_ops - v4l2-subdev sensor operations
-  * @g_skip_top_lines: number of lines at the top of the image to be skipped.
-  *		      This is needed for some sensors, which always corrupt
-  *		      several top lines of the output image, or which send their
-  *		      metadata in them.
-+ * @g_interface_parms: get sensor interface parameters. The sensor subdev should
-+ *		       fill this structure with current interface params. These
-+ *		       interface parameters are needed on host side to configure
-+ *		       it's own hardware receivers.
-  */
- struct v4l2_subdev_sensor_ops {
- 	int (*g_skip_top_lines)(struct v4l2_subdev *sd, u32 *lines);
-+	int (*g_interface_parms)(struct v4l2_subdev *sd,
-+			struct v4l2_subdev_sensor_interface_parms *parms);
- };
- 
- /*
--- 
-1.6.5
+My summer of code project's purpose was to create something of a
+tutorial for writing a KMS driver. The code, split out into something
+like 15 step-by-step patches, and accompanying documentation are
+available from Google's website.
 
+http://code.google.com/p/google-summer-of-code-2010-xorg/downloads/detail?name=Matt_Turner.tar.gz
+
+My repository (doesn't include the documentation) is available here:
+http://git.kernel.org/?p=linux/kernel/git/mattst88/glint.git;a=summary
+
+There's a 'rebased' branch that contains API changes required for the
+code to work with 2.6.37~.
+
+I hope it's useful to you.
+
+I can't image how the lack of documentation of an used and tested API
+could be a serious reason to write you own. That makes absolutely no
+sense to me, so I hope you'll decide to use KMS.
+
+Matt
