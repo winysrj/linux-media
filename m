@@ -1,45 +1,55 @@
 Return-path: <mchehab@pedra>
-Received: from rcsinet10.oracle.com ([148.87.113.121]:52075 "EHLO
-	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751402Ab1B0RwR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Feb 2011 12:52:17 -0500
-Date: Sun, 27 Feb 2011 09:51:54 -0800
-From: Randy Dunlap <randy.dunlap@oracle.com>
-To: linux-media@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>
-Cc: Mauro <mchehab@infradead.org>,
-	Matti Aaltonen <matti.j.aaltonen@nokia.com>
-Subject: [PATCH] media/radio/wl1273: fix build errors
-Message-Id: <20110227095154.2741d051.randy.dunlap@oracle.com>
+Received: from einhorn.in-berlin.de ([192.109.42.8]:40571 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754771Ab1BINWT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Feb 2011 08:22:19 -0500
+Date: Wed, 9 Feb 2011 14:22:04 +0100
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+To: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: firedtv and removal of old IEEE1394 stack
+Message-ID: <20110209142204.6eb445de@stein>
+In-Reply-To: <4D5236E5.8060207@hoogenraad.net>
+References: <201102031706.12714.hverkuil@xs4all.nl>
+	<20110205152122.3b566ef0@stein>
+	<20110205153215.03d55743@stein>
+	<4D5236E5.8060207@hoogenraad.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Randy Dunlap <randy.dunlap@oracle.com>
+On Feb 09 Jan Hoogenraad wrote:
+> For a problem description, and workaround, see:
+> 
+> http://linuxtv.org/hg/~jhoogenraad/ubuntu-firedtv/
 
-RADIO_WL1273 needs to make sure that the mfd core is built to avoid
-build errors:
+Do you mean
+http://linuxtv.org/hg/~jhoogenraad/ubuntu-firedtv/rev/c8e14191e48d
+"Disable FIREDTV for debian/ubuntu distributions with bad header files"?
 
-ERROR: "mfd_add_devices" [drivers/mfd/wl1273-core.ko] undefined!
-ERROR: "mfd_remove_devices" [drivers/mfd/wl1273-core.ko] undefined!
+I still don't see what the problem is.  If you have a kernel without
+drivers/ieee1394/*, then you also must have a kernel .config without
+CONFIG_IEEE1394.  Et voilà, firedtv builds fine (if CONFIG_FIREWIRE is y
+or m).  So, please make sure that .config and kernel sources match.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Matti Aaltonen <matti.j.aaltonen@nokia.com>
----
-(also needed in mainline)
+IOW the workaround c8e14191e48d addresses the wrong issue.  Don't disable
+CONFIG_DVB_FIREDTV; just make sure that the dependency of
+CONFIG_DVB_FIREDTV_IEEE1394 on CONFIG_IEEE1394 is taken into account, like
+in the mainline kernel's build system.
 
- drivers/media/radio/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+> and
+> 
+> https://bugs.launchpad.net/ubuntu/+source/linux-kernel-headers/+bug/134222
 
---- linux-next-20110223.orig/drivers/media/radio/Kconfig
-+++ linux-next-20110223/drivers/media/radio/Kconfig
-@@ -441,6 +441,7 @@ config RADIO_TIMBERDALE
- config RADIO_WL1273
- 	tristate "Texas Instruments WL1273 I2C FM Radio"
- 	depends on I2C && VIDEO_V4L2
-+	select MFD_CORE
- 	select MFD_WL1273_CORE
- 	select FW_LOADER
- 	---help---
+Well, if you move arbitrary drivers/*/*.h files somewhere else where they
+were never intended to be exported to, and supplant Kconfig by some
+homegrewn ad hoc configuration builder, then you are of course on your own.
+Still, my above comment on .config having to match the kernel sources
+applies just as well and fully describes the problem and its solution. :-)
+-- 
+Stefan Richter
+-=====-==-== --=- -=--=
+http://arcgraph.de/sr/
