@@ -1,71 +1,82 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:29148 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754831Ab1BNAQs (ORCPT
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:43363 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755919Ab1BIB50 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Feb 2011 19:16:48 -0500
-Subject: Re: [corrected get-bisect results]: DViCO FusionHDTV7 Dual Express
- I2C write failed
-From: Andy Walls <awalls@md.metrocast.net>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Mark Zimmerman <markzimm@frii.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <1297632410.2401.6.camel@localhost>
-References: <20101207190753.GA21666@io.frii.com>
-	 <20110212152954.GA20838@io.frii.com> <20110213144758.GA79915@io.frii.com>
-	 <AANLkTik5iYsS5UNQQv6OxTyC0X9nEYvsOEtA6mBLQ-Jq@mail.gmail.com>
-	 <20110213202644.GA15282@io.frii.com>  <1297632410.2401.6.camel@localhost>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 13 Feb 2011 19:16:54 -0500
-Message-ID: <1297642614.19186.38.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Tue, 8 Feb 2011 20:57:26 -0500
+From: Qing Xu <qingx@marvell.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Bhupesh SHARMA <bhupesh.sharma@st.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Tue, 8 Feb 2011 17:56:36 -0800
+Subject: RE: soc-camera: RGB888, RBG8888 and JPEG formats not supported in
+ v4l2_mbus_pixelcode
+Message-ID: <7BAC95F5A7E67643AAFB2C31BEE662D01404216C49@SC-VEXCH2.marvell.com>
+References: <D5ECB3C7A6F99444980976A8C6D896384DEE2BDCD0@EAPEX1MAIL1.st.com>
+ <Pine.LNX.4.64.1102040847330.14717@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1102040847330.14717@axis700.grange>
+Content-Language: en-US
+Content-Type: text/plain; charset="gb2312"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sun, 2011-02-13 at 16:26 -0500, Andy Walls wrote:
-> On Sun, 2011-02-13 at 13:26 -0700, Mark Zimmerman wrote:
-> > On Sun, Feb 13, 2011 at 09:52:25AM -0500, Devin Heitmueller wrote:
-> > > On Sun, Feb 13, 2011 at 9:47 AM, Mark Zimmerman <markzimm@frii.com> wrote:
-> > > > Clearly my previous bisection went astray; I think I have a more
-> > > > sensible result this time.
-> > > >
-> > > > qpc$ git bisect good
-> > > > 44835f197bf1e3f57464f23dfb239fef06cf89be is the first bad commit
-> > > > commit 44835f197bf1e3f57464f23dfb239fef06cf89be
-> > > > Author: Jean Delvare <khali@linux-fr.org>
-> > > > Date: ? Sun Jul 18 16:52:05 2010 -0300
-> > > >
-> > > > ? ?V4L/DVB: cx23885: Check for slave nack on all transactions
-> > > >
-> > > > ? ?Don't just check for nacks on zero-length transactions. Check on
-> > > > ? ?other transactions too.
-> > > 
-> > > This could be a combination of the xc5000 doing clock stretching and
-> > > the cx23885 i2c master not properly implementing clock stretch.  In
-> > > the past I've seen i2c masters broken in their handling of clock
-> > > stretching where they treat it as a NAK.
-> > > 
-> > > The xc5000 being one of the few devices that actually does i2c clock
-> > > stretching often exposes cases where it is improperly implemented in
-> > > the i2c master driver (I've had to fix this with several bridges).
-> > > 
-
-Devin,
-
-I just checked.  The CX23885 driver *is* setting up to allow slaves to
-stretch the clock.
-
-By analysis, I have confirmed that Jean's sugguested patch that I moved
-forward was wrong for the hardware's behavior.  When the cx23885 I2C
-routines decide to set the I2C_EXTEND flag (and maybe the I2C_NOSTOP
-flag), we most certainly should *not* be expecting an ACK from the
-particular hardware register.  The original commit should certainly be
-reverted.
-
-Checking for slave ACK/NAK will need to be done with a little more care;
-so for now, I'll settle for ignoring them.
-
-Regards,
-Andy
-
+WWVzLCB3ZSBoYXZlIHRoZSBzaW1pbGFyIEpQRUcgaXNzdWUsIEkgd2lsbCBjdXJyZW50bHkgcHJv
+dmlkZSB0aGUNCnBhdGNoIG9mIEpQRUcgZm9yIHJldmlldywgdGhhbmtzIQ0KDQotUWluZw0KDQot
+LS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KRnJvbTogR3Vlbm5hZGkgTGlha2hvdmV0c2tpIFtt
+YWlsdG86Zy5saWFraG92ZXRza2lAZ214LmRlXQ0KU2VudDogMjAxMcTqMtTCNMjVIDE2OjExDQpU
+bzogQmh1cGVzaCBTSEFSTUENCkNjOiBsaW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmc7IFFpbmcg
+WHUNClN1YmplY3Q6IFJlOiBzb2MtY2FtZXJhOiBSR0I4ODgsIFJCRzg4ODggYW5kIEpQRUcgZm9y
+bWF0cyBub3Qgc3VwcG9ydGVkIGluIHY0bDJfbWJ1c19waXhlbGNvZGUNCg0KSGkgQmh1cGVzaA0K
+DQpPbiBGcmksIDQgRmViIDIwMTEsIEJodXBlc2ggU0hBUk1BIHdyb3RlOg0KDQo+IEhpIEd1ZW5u
+YWRpLA0KPg0KPiBXZSBhcmUgZGV2ZWxvcGluZyBhIENhbWVyYSBIb3N0IGFuZCBTZW5zb3IgZHJp
+dmVyIGZvciBvdXIgU1Qgc3BlY2lmaWMgU29DIGFuZCBhcmUNCj4gdXNpbmcgdGhlIHNvYy1jYW1l
+cmEgZnJhbWV3b3JrIGZvciB0aGUgc2FtZS4gT3VyIENhbWVyYSBIb3N0IHN1cHBvcnRzIGEgbnVt
+YmVyIG9mDQo+IFlVViwgUkdCIGZvcm1hdHMgaW4gYWRkaXRpb24gdG8gSlBFRyBhbmQgTW9kZTND
+KGNvbG9yIGZpbGxlciBtb2RlKSBmb3JtYXRzLg0KPg0KPiAxLiBJIGhhdmUgYSBmZXcgcXVlc3Rp
+b25zIHJlZ2FyZGluZyB0aGUgcGl4ZWwgZm9ybWF0cyBzdXBwb3J0ZWQgaW4gZW51bSB2NGwyX21i
+dXNfcGl4ZWxjb2RlLg0KPiBXaGlsZSBmb3JtYXRzIGxpa2UgUkdCODg4IGFuZCBSR0I4ODg4IGFy
+ZSBzdXBwb3J0ZWQgYnkgVjRMMl9QSVhfRk1UXyogbWFjcm9zLCBJDQo+IGNvdWxkbid0IGZpbmQg
+Y29ycmVzcG9uZGluZyBzdXBwb3J0IGluIFY0TDJfTUJVU19GTVRfKiAuDQoNClRoZXkgc2hvdWxk
+IGJlIGFkZGVkIGFzIHJlcXVpcmVkLCB3ZSBkaWRuJ3QgYWltIGF0IGFkZGluZyBhbGwgcG9zc2li
+bGUNCmZvcm1hdHMgdG8gdGhlIGxpc3QsIGluc3RlYWQgd2Ugd2FudCB0byBhZGQgdGhlbSBncmFk
+dWFsbHkgb25lIGJ5IG9uZSBhcw0KdGhleSBnZXQgdXNlZCBieSBzcGVjaWZpYyBkcml2ZXJzLg0K
+DQo+IDIuIFNpbWlsYXIgaXMgdGhlIGNhc2UgZm9yIEpQRUcgZm9ybWF0LiBJIGNvdWxkIHNlZSBh
+IGRpc2N1c3Npb24gYmV0d2VlbiB5b3UgYW5kIFFpbmdYdSBmb3INCj4gYWRkaW5nIEpQRUcgc3Vw
+cG9ydCBpbiBzb2MtY2FtZXJhIGZyYW1ld29yayBoZXJlIGh0dHA6Ly93d3cuc3Bpbmljcy5uZXQv
+bGlzdHMvbGludXgtbWVkaWEvbXNnMjc5ODAuaHRtbA0KPiBDb3VsZCB5b3UgcGxlYXNlIGxldCBt
+ZSBrbm93IGlmIHRoZSBKUEVHIHN1cHBvcnQgaGFzIGFscmVhZHkgYmVlbiBhZGRlZCB0byB0aGUg
+c29jLWNhbWVyYSBmcmFtZXdvcmsgb3INCj4gYXJlIHRoZXJlIHBsYW5zIHRvIGFkZCB0aGUgc2Ft
+ZSBpbiBuZWFyIGZ1dHVyZS4NCg0KSXQgaGFzbid0IHlldCwgbWF5YmUgUWluZyAoQ0MnZWQpIGNv
+dWxkIHNlbmQgYSBwYXRjaCBmb3IgaXQgdG8gdGhlIGxpc3QgLQ0KSSB0aGluaywgd2UgYWdyZWVk
+IG9uIHRoZSB3YXkgaG93IGl0IHNob3VsZCBiZSBkb25lLCBzbywgaXQgc2hvdWxkIGJlDQpwcmV0
+dHkgZWFzeSBub3cuDQoNCj4gMy4gQWxzbyBwbGVhc2UgbGV0IG1lIGtub3cgd2hpY2ggZm9ybWF0
+cyBzaG91bGQgYmUgcmVwb3J0ZWQgYnkNCj4NCj4gc3RhdGljIGNvbnN0IHN0cnVjdCBzb2NfbWJ1
+c19waXhlbGZtdCBzdF9jYW1lcmFfZm9ybWF0c1tdDQo+DQo+IGluIHRoZSBjYW1lcmEgaG9zdCBk
+cml2ZXI/IEFyZSB0aGVzZSwgdGhlIHBpeGVsIGZvcm1hdHMgc3VwcG9ydGVkIGJ5Og0KPiAgICAg
+ICBhLiBDYW1lcmEgSG9zdA0KPiAgICAgICBiLiBDYW1lcmEgc2Vuc29yDQo+ICAgICAgIGMuIE9y
+IGZvcm1hdHMgc3VwcG9ydGVkIGJvdGggYnkgdGhlIEhvc3QgYW5kIFNlbnNvcg0KDQpJbiB0aGUg
+aG9zdCBkcml2ZXIgeW91IGNlcnRhaW5seSBrbm93IG5vdGhpbmcgYWJvdXQgc2Vuc29yIGZlYXR1
+cmVzIC0geW91cg0KaG9zdCBkcml2ZXIgc2hvdWxkIHdvcmsgd2l0aCAiYWxsIiBzZW5zb3IgZHJp
+dmVycy4gSW4gZXhpc3RpbmcgY2FtZXJhIGhvc3QNCmRyaXZlcnMgdGhlc2UgdGFibGVzIGFyZSB1
+c2VkIHRvIHNwZWNpZnkgcGl4ZWwgZm9ybWF0cywgdG8gd2hpY2gNCnRoZSBob3N0IGNvbnRyb2xs
+ZXIgY2FuIGNvbnZlcnQgc29tZSBvdGhlciBmb3JtYXRzIG9uIHRoZSBoYXJkd2FyZS4gRS5nLiwN
+CmluIHB4YV9jYW1lcmEuYyB5b3UgZmluZCBhIHRhYmxlIHB4YV9jYW1lcmFfZm9ybWF0c1tdIG9m
+IG9uZSBlbGVtZW50IGZvcg0KdGhlIFY0TDJfUElYX0ZNVF9ZVVY0MjJQIGZvcm1hdC4gSWYgeW91
+IGZ1cnRoZXIgbG9vayBpbnRvIHRoZQ0KcHhhX2NhbWVyYV9nZXRfZm9ybWF0cygpIGZ1bmN0aW9u
+IHlvdSBzZWUsIHRoYXQgd2hpbGUgZW51bWVyYXRpbmcgbWVkaWFidXMNCnBpeGVsIGNvZGVzIHdp
+dGggYSBjZXJ0YWluIGNsaWVudCAoZS5nLiwgYSBzZW5zb3IpLCBpZiB0aGUgY2xpZW50IHN1cHBv
+cnRzDQp0aGUgVjRMMl9NQlVTX0ZNVF9VWVZZOF8yWDggbWVkaWFidXMgZm9ybWF0LCB0aGUgaG9z
+dCByZWNvZ25pc2VzLCB0aGF0IGl0DQpzdXBwb3J0cyB0aGF0IGZvcm1hdCBuYXRpdmVseSBhbmQg
+YXBhcnQgZnJvbSBzZXJ2aW5nIGl0IHRvIHRoZSBhcHBsaWNhdGlvbg0KaW4gdGhlIHBhc3MtdGhy
+b3VnaCBtb2RlIHRvIHByb3ZpZGUgdGhlIFY0TDJfUElYX0ZNVF9VWVZZIGZvcm1hdCAoc2VlDQpk
+cml2ZXJzL21lZGlhL3ZpZGVvL3NvY19tZWRpYWJ1cy5jOjptYnVzX2ZtdFtdKSwgaXQgY2FuIGFs
+c28gY29udmVydCBpdCB0bw0KdGhlIHBsYW5hciBWNEwyX1BJWF9GTVRfWVVWNDIyUCBmb3JtYXQu
+IFNpbWlsYXJseSBpbg0Kc2hfbW9iaWxlX2NldV9jYW1lcmEuYzo6c2hfbW9iaWxlX2NldV9mb3Jt
+YXRzW10gLSBpZiB0aGUgY2xpZW50IHN1cHBvcnRzDQpvbmUgb2YgdGhlIGZvdXIgc3RhbmRhcmQg
+WVVWIDQ6MjoyIGZvcm1hdHMsIHRoZSBob3N0IGNhbiBhbHNvIGNvbnZlcnQgaXQNCnRvIGFueSBv
+ZiB0aGUgZm91ciBOVjEyIC8gTlYxNiBmb3JtYXRzIGZyb20gdGhlIHRhYmxlLg0KDQpUaGFua3MN
+Ckd1ZW5uYWRpDQotLS0NCkd1ZW5uYWRpIExpYWtob3ZldHNraSwgUGguRC4NCkZyZWVsYW5jZSBP
+cGVuLVNvdXJjZSBTb2Z0d2FyZSBEZXZlbG9wZXINCmh0dHA6Ly93d3cub3Blbi10ZWNobm9sb2d5
+LmRlLw0K
