@@ -1,45 +1,55 @@
 Return-path: <mchehab@pedra>
-Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:45550 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754752Ab1BOLx5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Feb 2011 06:53:57 -0500
-Date: Tue, 15 Feb 2011 13:53:49 +0200
-From: Felipe Balbi <balbi@ti.com>
-To: Thomas Weber <weber@corscience.de>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>, balbi@ti.com,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	linux-omap@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, Tejun Heo <tj@kernel.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH resend] video: omap24xxcam: Fix compilation
-Message-ID: <20110215115349.GQ2570@legolas.emea.dhcp.ti.com>
-Reply-To: balbi@ti.com
-References: <1297068547-10635-1-git-send-email-weber@corscience.de>
- <4D5A6353.7040907@maxwell.research.nokia.com>
- <20110215113717.GN2570@legolas.emea.dhcp.ti.com>
- <4D5A672A.7040000@samsung.com>
- <4D5A6874.1080705@corscience.de>
+Received: from mga14.intel.com ([143.182.124.37]:8933 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751162Ab1BIHWS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Feb 2011 02:22:18 -0500
+From: "Kanigeri, Hari K" <hari.k.kanigeri@intel.com>
+To: "Iyer, Sundar" <sundar.iyer@intel.com>,
+	"Wang, Wen W" <wen.w.wang@intel.com>,
+	"Yang, Jianwei" <jianwei.yang@intel.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"umg-meego-handset-kernel@umglistsvr.jf.intel.com"
+	<umg-meego-handset-kernel@umglistsvr.jf.intel.com>
+CC: Jozef Kruger <jozef.kruger@siliconhive.com>
+Date: Wed, 9 Feb 2011 00:22:12 -0700
+Subject: RE: Memory allocation in Video4Linux
+Message-ID: <A787B2DEAF88474996451E847A0AFAB7F264B7A4@rrsmsx508.amr.corp.intel.com>
+References: <D5AB6E638E5A3E4B8F4406B113A5A19A32F923C4@shsmsx501.ccr.corp.intel.com>
+	<D5AB6E638E5A3E4B8F4406B113A5A19A32F923D8@shsmsx501.ccr.corp.intel.com>
+	<D5AB6E638E5A3E4B8F4406B113A5A19A32F923DC@shsmsx501.ccr.corp.intel.com>
+ <C039722627B15F489AB215B00C0A3E6608B074BC74@bgsmsx501.gar.corp.intel.com>
+In-Reply-To: <C039722627B15F489AB215B00C0A3E6608B074BC74@bgsmsx501.gar.corp.intel.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4D5A6874.1080705@corscience.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
 
-On Tue, Feb 15, 2011 at 12:50:12PM +0100, Thomas Weber wrote:
-> Hello Felipe,
+
+> -----Original Message-----
+> From: umg-meego-handset-kernel-bounces@umglistsvr.jf.intel.com
+> [mailto:umg-meego-handset-kernel-bounces@umglistsvr.jf.intel.com] On
+> Behalf Of Iyer, Sundar
+> Sent: Wednesday, February 09, 2011 12:20 PM
+> To: Wang, Wen W; Yang, Jianwei; linux-media@vger.kernel.org; umg-meego-
+> handset-kernel@umglistsvr.jf.intel.com
+> Cc: Jozef Kruger
+> Subject: Re: [Umg-meego-handset-kernel] Memory allocation in
+> Video4Linux
 > 
-> in include/linux/wait.h
-> 
-> #define wake_up(x)            __wake_up(x, TASK_NORMAL, 1, NULL)
+> I remember some Continous Memory Allocator (CMA) being iterated down a
+> few versions on
+> some mailing lists? IIRC, it is also for large buffers and management
+> for video IPs.
 
-aha, now I get it, so shouldn't the real fix be including <linux/sched.h>
-on <linux/wait.h>, I mean, it's <linuux/wait.h> who uses a symbol
-defined in <linux/sched.h>, right ?
+I believe CMA is for allocating physically contiguous memory and from what Wen mentioned he also needs virtual memory management, which the IOMMU will provide. Please check the open source discussion on CMA, the last I heard CMA proposal was shot down.
+Reference: http://www.spinics.net/lists/linux-media/msg26875.html
 
--- 
-balbi
+Wen, how are you currently allocating physical memory ?
+
+
+Thank you,
+Best regards,
+Hari
