@@ -1,222 +1,83 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:61346 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756006Ab1BIBiI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Feb 2011 20:38:08 -0500
-Received: by bwz15 with SMTP id 15so458797bwz.19
-        for <linux-media@vger.kernel.org>; Tue, 08 Feb 2011 17:38:07 -0800 (PST)
-Message-ID: <4D51EFFB.90201@users.sourceforge.net>
-Date: Wed, 09 Feb 2011 02:38:03 +0100
-From: Lucian Muresan <lucianm@users.sourceforge.net>
+Received: from mga01.intel.com ([192.55.52.88]:51173 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751955Ab1BIHzl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Feb 2011 02:55:41 -0500
+From: "Wang, Wen W" <wen.w.wang@intel.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Jozef Kruger <jozef.kruger@siliconhive.com>
+CC: "Kanigeri, Hari K" <hari.k.kanigeri@intel.com>,
+	"Iyer, Sundar" <sundar.iyer@intel.com>,
+	"Yang, Jianwei" <jianwei.yang@intel.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Wed, 9 Feb 2011 15:55:06 +0800
+Subject: RE: Memory allocation in Video4Linux
+Message-ID: <D5AB6E638E5A3E4B8F4406B113A5A19A32F92475@shsmsx501.ccr.corp.intel.com>
+References: <D5AB6E638E5A3E4B8F4406B113A5A19A32F923C4@shsmsx501.ccr.corp.intel.com>
+ <A787B2DEAF88474996451E847A0AFAB7F264B7A4@rrsmsx508.amr.corp.intel.com>
+ <D5AB6E638E5A3E4B8F4406B113A5A19A32F92445@shsmsx501.ccr.corp.intel.com>
+ <201102090851.41789.hverkuil@xs4all.nl>
+In-Reply-To: <201102090851.41789.hverkuil@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Patrick Boettcher <pboettcher@kernellabs.com>,
-	Jarod Wilson <jarod@wilsonet.com>
-Subject: Re: MCEUSB: falsly claims mass storage device
-References: <201101091836.58104.pboettcher@kernellabs.com>
-In-Reply-To: <201101091836.58104.pboettcher@kernellabs.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 09.01.2011 18:36, Patrick Boettcher wrote:
-> Hi Jarod,
-> 
-> I'm using an MultiCard-reader which exposes itself like shown below.
-> 
-> It is falsly claimed by the mceusb-driver from (2.6.36 from debian-
-> experimental) . 
-
-
-Hi there,
-
-I also bought a similar Multi-Cardreader, which also comes with a MCE
-remote control. It seems that the Realtek chip inside (RTS5161 I've
-found in other posts on the net) can really do it all: flash card
-reader, CCID compatible smartcard reader and MCE remote, maybe that's
-why on some readers using it, the wrong module claim it, or on some,
-like mine, claim "too much"?
-
-My problem on a 2.6.38-rc2 kernel self-built on Gentoo is that the
-mceusb module registers 2 LIRC devices /dev/lirc0 and /dev/lirc1, as
-well as 2 input devices, and in that situation, the smartcard part of
-the reader is not usale by openct. Once I managed, after manually
-removing the mceusb module, to load it and have it register only one
-such device, and then openct-tool at least found a CCID-compatible
-reader, but somehow it only happened once. So there seem to be problems
-in the mceusb module with this chip... Is there currently someone
-working on this problem? Below, see the output of lsusb for my
-multi-reader/MCE RC...
-
-Best Regards,
-Lucian
-
-
-lsusb -v -d 0bda:0161
-
-Bus 001 Device 002: ID 0bda:0161 Realtek Semiconductor Corp. Mass
-Storage Device
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0
-  bDeviceProtocol         0
-  bMaxPacketSize0        64
-  idVendor           0x0bda Realtek Semiconductor Corp.
-  idProduct          0x0161 Mass Storage Device
-  bcdDevice           61.10
-  iManufacturer           1 Generic
-  iProduct                2 USB2.0-CRW
-  iSerial                 3 20070818000000000
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength          139
-    bNumInterfaces          3
-    bConfigurationValue     1
-    iConfiguration          4 CARD READER
-    bmAttributes         0xa0
-      (Bus Powered)
-      Remote Wakeup
-    MaxPower              500mA
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       0
-      bNumEndpoints           3
-      bInterfaceClass        11 Chip/SmartCard
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              6 Smart Card Reader Interface
-      ChipCard Interface Descriptor:
-        bLength                54
-        bDescriptorType        33
-        bcdCCID              1.10  (Warning: Only accurate for version 1.0)
-        nMaxSlotIndex           0
-        bVoltageSupport         7  5.0V 3.0V 1.8V
-        dwProtocols             3  T=0 T=1
-        dwDefaultClock       3750
-        dwMaxiumumClock      7500
-        bNumClockSupported      0
-        dwDataRate          10080 bps
-        dwMaxDataRate      312500 bps
-        bNumDataRatesSupp.      0
-        dwMaxIFSD             254
-        dwSyncProtocols  00000000
-        dwMechanical     00000000
-        dwFeatures       00010030
-          Auto clock change
-          Auto baud rate change
-          TPDU level exchange
-        dwMaxCCIDMsgLen       271
-        bClassGetResponse      00
-        bClassEnvelope         00
-        wlcdLayout           none
-        bPINSupport             0
-        bMaxCCIDBusySlots       1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0040  1x 64 bytes
-        bInterval               8
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x05  EP 5 OUT
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x86  EP 6 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        1
-      bAlternateSetting       0
-      bNumEndpoints           2
-      bInterfaceClass         8 Mass Storage
-      bInterfaceSubClass      6 SCSI
-      bInterfaceProtocol     80 Bulk (Zip)
-      iInterface              5 Bulk-In, Bulk-Out, Interface
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x01  EP 1 OUT
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        2
-      bAlternateSetting       0
-      bNumEndpoints           2
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass    255 Vendor Specific Subclass
-      bInterfaceProtocol    255 Vendor Specific Protocol
-      iInterface              7 eHome Infrared Receiver
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x07  EP 7 OUT
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0040  1x 64 bytes
-        bInterval               8
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x88  EP 8 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0040  1x 64 bytes
-        bInterval               8
-Device Qualifier (for other device speed):
-  bLength                10
-  bDescriptorType         6
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0
-  bDeviceProtocol         0
-  bMaxPacketSize0        64
-  bNumConfigurations      1
-Device Status:     0x0000
-  (Bus Powered)
+SGkgSGFucywNCg0KVGhhbmtzIGZvciB5b3VyIHBvaW50IGFuZCB2aWRlb2J1ZjIgaXMgYWxzbyB3
+aGF0IEkgd2FudCB0byB1c2UuDQoNCkJ1dCBzaW5jZSBvdXIgZGV2ZWxvcG1lbnQga2VybmVsIHZl
+cnNpb24gcmlnaHQgbm93IGlzIHN0aWxsIDIuNi4zNSwgSSBuZWVkIHRvIGZpbmQgd2F5IHRvIHdv
+cmsgd2l0aCBjdXJyZW50IHZpZGVvYnVmIGZyYW1ld29yay4NCg0KVGhhbmtzDQpXZW4NCg0KPi0t
+LS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+RnJvbTogSGFucyBWZXJrdWlsIFttYWlsdG86aHZl
+cmt1aWxAeHM0YWxsLm5sXQ0KPlNlbnQ6IDIwMTHlubQy5pyIOeaXpSAxNTo1Mg0KPlRvOiBXYW5n
+LCBXZW4gVzsgSm96ZWYgS3J1Z2VyDQo+Q2M6IEthbmlnZXJpLCBIYXJpIEs7IEl5ZXIsIFN1bmRh
+cjsgWWFuZywgSmlhbndlaTsgbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnDQo+U3ViamVjdDog
+UmU6IE1lbW9yeSBhbGxvY2F0aW9uIGluIFZpZGVvNExpbnV4DQo+DQo+T24gV2VkbmVzZGF5LCBG
+ZWJydWFyeSAwOSwgMjAxMSAwODoyNzoyNyBXYW5nLCBXZW4gVyB3cm90ZToNCj4+IEhpIEhhcmks
+DQo+Pg0KPj4gWW91IGFyZSByaWdodC4gV2hhdCB3ZSBuZWVkIGlzIHZpcnR1YWwgYWRkcmVzcy4N
+Cj4+DQo+PiBDdXJyZW50bHkgd2UgYWxsb2MgcGFnZXMgKGFsbG9jX3BhZ2VzKCkpIGZvciBhbnkg
+cmVxdWVzdC4gU3RvcmUgdGhvc2UgcGFnZXMgZm9yIGFuDQo+aW1hZ2UgYnVmZmVyIGludG8gYSBs
+aXN0LiBXZSBhbHNvIG1hbmFnZSB0aGUgdmlydHVhbCBhZGRyZXNzIGZvciBJU1AgYnkgb3Vyc2Vs
+ZiAodGhlDQo+cmFuZ2UgZnJvbSAwIHRvIDRHQikgYW5kIHRoZSBwYWdlIHRhYmxlIGZvciBvdXIg
+TU1VIHdoaWNoIGlzIGluZGVwZW5kZW50IHRvIHN5c3RlbQ0KPk1NVSBwYWdlIHRhYmxlLg0KPg0K
+PkFzc3VtaW5nIHlvdSBhcmUgdXNpbmcgdmlkZW80bGludXggZm9yIHRoaXMgZHJpdmVyLCB0aGVu
+IHlvdSBzaG91bGQgdGFrZSBhDQo+bG9vayBhdCB0aGUgbmV3IHZpZGVvYnVmMiBmcmFtZXdvcmsg
+dGhhdCB3aWxsIGFwcGVhciBpbiAyLjYuMzkuIEl0IGlzIGFscmVhZHkNCj5pbiB0aGUgbWVkaWEg
+dHJlZSAoaHR0cDovL2dpdC5saW51eHR2Lm9yZy9tZWRpYV90cmVlLmdpdCwgc2VlDQo+aW5jbHVk
+ZS9tZWRpYS92aWRlb2J1ZjItY29yZS5oKS4NCj4NCj5JdCBpcyBtdWNoIGJldHRlciB0aGFuIHRo
+ZSBvbGQgdmlkZW9idWYgZnJhbWV3b3JrLCBhbmQgaW4gcGFydGljdWxhciBnaXZlcw0KPnRoZSBk
+cml2ZXIgbXVjaCBtb3JlIGNvbnRyb2wgb24gaG93IG1lbW9yeSBpcyBhbGxvY2F0ZWQgYW5kIHVz
+ZWQuDQo+DQo+UmVnYXJkcywNCj4NCj4JSGFucw0KPg0KPj4NCj4+IFRoYW5rcw0KPj4gV2VuDQo+
+Pg0KPj4gPi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+PiA+RnJvbTogS2FuaWdlcmksIEhh
+cmkgSw0KPj4gPlNlbnQ6IDIwMTHlubQy5pyIOeaXpSAxNToyMg0KPj4gPlRvOiBJeWVyLCBTdW5k
+YXI7IFdhbmcsIFdlbiBXOyBZYW5nLCBKaWFud2VpOyBsaW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5v
+cmc7DQo+PiA+dW1nLW1lZWdvLWhhbmRzZXQta2VybmVsQHVtZ2xpc3RzdnIuamYuaW50ZWwuY29t
+DQo+PiA+Q2M6IEpvemVmIEtydWdlcg0KPj4gPlN1YmplY3Q6IFJFOiBNZW1vcnkgYWxsb2NhdGlv
+biBpbiBWaWRlbzRMaW51eA0KPj4gPg0KPj4gPg0KPj4gPg0KPj4gPj4gLS0tLS1PcmlnaW5hbCBN
+ZXNzYWdlLS0tLS0NCj4+ID4+IEZyb206IHVtZy1tZWVnby1oYW5kc2V0LWtlcm5lbC1ib3VuY2Vz
+QHVtZ2xpc3RzdnIuamYuaW50ZWwuY29tDQo+PiA+PiBbbWFpbHRvOnVtZy1tZWVnby1oYW5kc2V0
+LWtlcm5lbC1ib3VuY2VzQHVtZ2xpc3RzdnIuamYuaW50ZWwuY29tXSBPbg0KPj4gPj4gQmVoYWxm
+IE9mIEl5ZXIsIFN1bmRhcg0KPj4gPj4gU2VudDogV2VkbmVzZGF5LCBGZWJydWFyeSAwOSwgMjAx
+MSAxMjoyMCBQTQ0KPj4gPj4gVG86IFdhbmcsIFdlbiBXOyBZYW5nLCBKaWFud2VpOyBsaW51eC1t
+ZWRpYUB2Z2VyLmtlcm5lbC5vcmc7IHVtZy1tZWVnby0NCj4+ID4+IGhhbmRzZXQta2VybmVsQHVt
+Z2xpc3RzdnIuamYuaW50ZWwuY29tDQo+PiA+PiBDYzogSm96ZWYgS3J1Z2VyDQo+PiA+PiBTdWJq
+ZWN0OiBSZTogW1VtZy1tZWVnby1oYW5kc2V0LWtlcm5lbF0gTWVtb3J5IGFsbG9jYXRpb24gaW4N
+Cj4+ID4+IFZpZGVvNExpbnV4DQo+PiA+Pg0KPj4gPj4gSSByZW1lbWJlciBzb21lIENvbnRpbm91
+cyBNZW1vcnkgQWxsb2NhdG9yIChDTUEpIGJlaW5nIGl0ZXJhdGVkIGRvd24gYQ0KPj4gPj4gZmV3
+IHZlcnNpb25zIG9uDQo+PiA+PiBzb21lIG1haWxpbmcgbGlzdHM/IElJUkMsIGl0IGlzIGFsc28g
+Zm9yIGxhcmdlIGJ1ZmZlcnMgYW5kIG1hbmFnZW1lbnQNCj4+ID4+IGZvciB2aWRlbyBJUHMuDQo+
+PiA+DQo+PiA+SSBiZWxpZXZlIENNQSBpcyBmb3IgYWxsb2NhdGluZyBwaHlzaWNhbGx5IGNvbnRp
+Z3VvdXMgbWVtb3J5IGFuZCBmcm9tIHdoYXQgV2VuDQo+PiA+bWVudGlvbmVkIGhlIGFsc28gbmVl
+ZHMgdmlydHVhbCBtZW1vcnkgbWFuYWdlbWVudCwgd2hpY2ggdGhlIElPTU1VIHdpbGwNCj4+ID5w
+cm92aWRlLiBQbGVhc2UgY2hlY2sgdGhlIG9wZW4gc291cmNlIGRpc2N1c3Npb24gb24gQ01BLCB0
+aGUgbGFzdCBJIGhlYXJkIENNQQ0KPj4gPnByb3Bvc2FsIHdhcyBzaG90IGRvd24uDQo+PiA+UmVm
+ZXJlbmNlOiBodHRwOi8vd3d3LnNwaW5pY3MubmV0L2xpc3RzL2xpbnV4LW1lZGlhL21zZzI2ODc1
+Lmh0bWwNCj4+ID4NCj4+ID5XZW4sIGhvdyBhcmUgeW91IGN1cnJlbnRseSBhbGxvY2F0aW5nIHBo
+eXNpY2FsIG1lbW9yeSA/DQo+PiA+DQo+PiA+DQo+PiA+VGhhbmsgeW91LA0KPj4gPkJlc3QgcmVn
+YXJkcywNCj4+ID5IYXJpDQo+PiDvv73nv7Pvv70ubu+/ve+/ve+/ve+/ve+/vSsl77+977+96YGN
+6I27F++/vXfvv73vv70ubu+/ve+/veS8kO+/vXvngrNn77+977+97oiX77+977+9bu+/vXLilqDv
+v73vv73vv73vv73vv73jhKjuhZMm772b77+9DQo+5aS4eue9kO+/ve+/ve+/ve+/vXpm77yC77+9
+77+977+977+977+977+977+977+977+977+977+977+96LWZel/nkoEP77+9Oit277+97p+hKeaS
+uO+/vQ0KPj4NCj4+DQo+DQo+LS0NCj5IYW5zIFZlcmt1aWwgLSB2aWRlbzRsaW51eCBkZXZlbG9w
+ZXIgLSBzcG9uc29yZWQgYnkgQ2lzY28NCg==
