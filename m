@@ -1,65 +1,55 @@
 Return-path: <mchehab@pedra>
-Received: from mga01.intel.com ([192.55.52.88]:37961 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750906Ab1BIGdI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Feb 2011 01:33:08 -0500
-From: "Wang, Wen W" <wen.w.wang@intel.com>
-To: "Yang, Jianwei" <jianwei.yang@intel.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"umg-meego-handset-kernel@umglistsvr.jf.intel.com"
-	<umg-meego-handset-kernel@umglistsvr.jf.intel.com>
-CC: Jozef Kruger <jozef.kruger@siliconhive.com>
-Date: Wed, 9 Feb 2011 14:32:40 +0800
-Subject: RE: Memory allocation in Video4Linux
-Message-ID: <D5AB6E638E5A3E4B8F4406B113A5A19A32F923DC@shsmsx501.ccr.corp.intel.com>
-References: <D5AB6E638E5A3E4B8F4406B113A5A19A32F923C4@shsmsx501.ccr.corp.intel.com>
- <D5AB6E638E5A3E4B8F4406B113A5A19A32F923D8@shsmsx501.ccr.corp.intel.com>
-In-Reply-To: <D5AB6E638E5A3E4B8F4406B113A5A19A32F923D8@shsmsx501.ccr.corp.intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="gb2312"
-Content-Transfer-Encoding: base64
+Received: from rtp-iport-2.cisco.com ([64.102.122.149]:50488 "EHLO
+	rtp-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752686Ab1BIJc7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Feb 2011 04:32:59 -0500
+From: Hans Verkuil <hansverk@cisco.com>
+To: "device-drivers-devel@blackfin.uclinux.org"
+	<device-drivers-devel@blackfin.uclinux.org>,
+	linux-media@vger.kernel.org
+Subject: ANN: adv7604 (HDMI receiver) and ad9389b (HDMI transmitter) driver development
+Date: Wed, 9 Feb 2011 10:32:56 +0100
+Cc: Mats Randgaard <mats.randgaard@cisco.com>,
+	"Martin Bugge (marbugge)" <marbugge@cisco.com>
 MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201102091032.56528.hansverk@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-WWVzLiBTb21lIGFyZSBpbnRlcm5hbCBmcmFtZSBhbmQgeXV2NDQ0IGlzIHRoZSBvdXRwdXQuDQoN
-Cj4tLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPkZyb206IFlhbmcsIEppYW53ZWkNCj5TZW50
-OiAyMDExxOoy1MI5yNUgMTQ6MzENCj5UbzogV2FuZywgV2VuIFc7IGxpbnV4LW1lZGlhQHZnZXIu
-a2VybmVsLm9yZzsNCj51bWctbWVlZ28taGFuZHNldC1rZXJuZWxAdW1nbGlzdHN2ci5qZi5pbnRl
-bC5jb20NCj5DYzogSm96ZWYgS3J1Z2VyDQo+U3ViamVjdDogUkU6IE1lbW9yeSBhbGxvY2F0aW9u
-IGluIFZpZGVvNExpbnV4DQo+DQo+Q3VyaW91cyBmb3IgdGhlIGJlbG93LCB3aHkgaXQgaXMgYSBz
-dW0/IFdpbGwgeW91IHVzZSBhbGwgb2YgZm9ybWF0IGF0IHRoZSBzYW1lIHRpbWU/DQo+DQo+PiAJ
-MSBSQVcxNjogMioxNCA9IDI4TUINCj4+IAkxIHFwbGFuZTY6IDYvNCAqIDE0ID0gMjFNQg0KPj4g
-CTEgeXV2NDIwXzE2OiAyICogMS41ICogMTQgPSA0Mk1CDQo+PiAJMSB5dXY0MjA6IDEuNSAqIDE0
-ID0gMjFNQg0KPj4gCTEgeXV2NDQ0OiAzICogMTQgPSA0Mk1CDQo+PiAJdG90YWw6IDE1NE1CLg0K
-Pg0KPj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4+IEZyb206IHVtZy1tZWVnby1oYW5k
-c2V0LWtlcm5lbC1ib3VuY2VzQHVtZ2xpc3RzdnIuamYuaW50ZWwuY29tDQo+PiBbbWFpbHRvOnVt
-Zy1tZWVnby1oYW5kc2V0LWtlcm5lbC1ib3VuY2VzQHVtZ2xpc3RzdnIuamYuaW50ZWwuY29tXSBP
-bg0KPj4gQmVoYWxmIE9mIFdhbmcsIFdlbiBXDQo+PiBTZW50OiBXZWRuZXNkYXksIEZlYnJ1YXJ5
-IDA5LCAyMDExIDI6MjMgUE0NCj4+IFRvOiBsaW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmc7IHVt
-Zy1tZWVnby1oYW5kc2V0LQ0KPj4ga2VybmVsQHVtZ2xpc3RzdnIuamYuaW50ZWwuY29tDQo+PiBD
-YzogSm96ZWYgS3J1Z2VyDQo+PiBTdWJqZWN0OiBbVW1nLW1lZWdvLWhhbmRzZXQta2VybmVsXSBN
-ZW1vcnkgYWxsb2NhdGlvbiBpbiBWaWRlbzRMaW51eA0KPj4NCj4+IEhpLA0KPj4NCj4+IFdlIGFy
-ZSBkZXZlbG9waW5nIHRoZSBpbWFnZSBwcm9jZXNzb3IgZHJpdmVyIGZvciBJbnRlbCBNZWRmaWVs
-ZCBwbGF0Zm9ybS4NCj4+DQo+PiBXZSBoYXZlIHJlY2VpdmVkIHNvbWUgY29tbWVudHMgb24gbWVt
-b3J5IG1hbmFnZW1lbnQgdGhhdCB3ZSBzaG91bGQgdXNlDQo+PiBzdGFuZGFyZCBMaW51eCBrZXJu
-ZWwgaW50ZXJmYWNlcyBmb3IgdGhpcywgc2luY2Ugd2UgYXJlIGRvaW5nIGV2ZXJ5dGhpbmcNCj4+
-IGJ5IG91cnNlbHZlcyBpbmNsdWRpbmcgbWVtb3J5IGFsbG9jYXRpb24gKGJhc2VkIG9uIHBhZ2Vz
-KSwgcGFnZSB0YWJsZQ0KPj4gbWFuYWdlbWVudCwgdmlydHVhbCBhZGRyZXNzIG1hbmFnZW1lbnQg
-YW5kIGV0Yy4NCj4+DQo+PiBTbyBjYW4geW91IHBsZWFzZSBoZWxwIGdpdmUgc29tZSBhZHZpY2Ug
-b3Igc3VnZ2VzdGlvbiBvbiB1c2luZyBzdGFuZGFyZA0KPj4ga2VybmVsIGludGVyZmFjZSBmb3Ig
-bWVtb3J5IG1hbmFnZW1lbnQ/DQo+Pg0KPj4gVGhlIHByb2Nlc3NvciBoYXMgYSBNTVUgb24tY2hp
-cCB3aXRoIHNhbWUgdmlydHVhbCBhZGRyZXNzIHJhbmdlIGFzIElBLiBUaGUNCj4+IHByb2Nlc3Nv
-ciB3aWxsIGFjY2VzcyBzeXN0ZW0gbWVtb3J5IChyZWFkIGFuZCB3cml0ZSkgdGhyb3VnaCBNTVUg
-YW5kIHBhZ2UNCj4+IHRhYmxlLiBUaGUgbWVtb3J5IGNvbnN1bXB0aW9uIG9mIHRoZSBkcml2ZXIg
-Y291bGQgYmUgcXVpdGUgYmlnIGVzcGVjaWFsbHkNCj4+IGZvciBoaWdoIHJlc29sdXRpb24gKDE0
-TVApIHdpdGggY2VydGFpbiBmZWF0dXJlcyB0dXJuZWQgb24uDQo+PiBGb3IgZXhhbXBsZTogYWR2
-YW5jZWQgSVNQIHdpdGggWE5SIGFuZCB5dXY0NDQgb3V0cHV0LCBhdCAxNE1QIHRoaXMgdXNlczoN
-Cj4+IAkxIFJBVzE2OiAyKjE0ID0gMjhNQg0KPj4gCTEgcXBsYW5lNjogNi80ICogMTQgPSAyMU1C
-DQo+PiAJMSB5dXY0MjBfMTY6IDIgKiAxLjUgKiAxNCA9IDQyTUINCj4+IAkxIHl1djQyMDogMS41
-ICogMTQgPSAyMU1CDQo+PiAJMSB5dXY0NDQ6IDMgKiAxNCA9IDQyTUINCj4+IAl0b3RhbDogMTU0
-TUIuDQo+Pg0KPj4gVGhhbmtzDQo+PiBXZW4NCj4+IF9fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fDQo+PiBVbWctbWVlZ28taGFuZHNldC1rZXJuZWwgbWFpbGlu
-ZyBsaXN0DQo+PiBVbWctbWVlZ28taGFuZHNldC1rZXJuZWxAdW1nbGlzdHN2ci5qZi5pbnRlbC5j
-b20NCj4+IGh0dHA6Ly91bWdsaXN0c3ZyLmpmLmludGVsLmNvbS9tYWlsbWFuL2xpc3RpbmZvL3Vt
-Zy1tZWVnby1oYW5kc2V0LWtlcm5lbA0K
+Hi all,
+
+Cisco Systems Norway is developing adv7604 and ad9389b drivers with the goal 
+to include them into the linux kernel. More information on these devices can 
+be found here:
+
+adv7604: http://ez.analog.com/docs/DOC-1545
+ad9389b: http://ez.analog.com/docs/DOC-1741
+
+The initial source code is available here:
+
+http://git.linuxtv.org/hverkuil/cisco.git?a=shortlog;h=refs/heads/cobalt
+
+Besides the two Analog Devices drivers is also contains a 'cobalt' driver 
+which is a driver for a PCIe HDMI capture card (not for sale, I'm afraid) that 
+serves as an example of how to use the adv7604 driver in an actual driver.
+
+Both Analog Devices drivers need more clean up and probably need to made a bit 
+more general. More importantly, new video4linux APIs need to be proposed and 
+discussed to standardize some of the HDMI specific handling (EDID, hotplug, 
+format changes, info frames, CEC, etc.). I hope we can send out RFCs for this 
+by the end of this month. Also the analog input support for the adv7604 is 
+very limited at the moment. This will improve in the coming months.
+
+Some of this is already implemented in these drivers, but it uses custom 
+events and ioctls.
+
+These drivers do not intend to provide a full-featured implementation, 
+especially for the adv7604 the featureset is huge. But it works for our 
+hardware and it is a good starting point.
+
+Regards,
+
+	Hans Verkuil
