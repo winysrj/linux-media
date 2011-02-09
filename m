@@ -1,53 +1,37 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58187 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754126Ab1BNMV2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Feb 2011 07:21:28 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [PATCH v7 07/11] v4l: v4l2_subdev pad-level operations
-Date: Mon, 14 Feb 2011 13:21:20 +0100
-Message-Id: <1297686084-9715-8-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1297686084-9715-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1297686084-9715-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from DSL01.212.114.205.243.ip-pool.NEFkom.net ([212.114.205.243]:46869
+	"EHLO enzo.pibbs.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751305Ab1BIVow convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Feb 2011 16:44:52 -0500
+From: Martin Seekatz <martin@pibbs.de>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: em28xx: board id [eb1a:2863 eMPIA Technology, Inc] Silver Crest VG2000 "USB 2.0 Video Grabber"
+Date: Wed, 9 Feb 2011 22:44:48 +0100
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+References: <201102082305.24897.martin@pibbs.de> <AANLkTinC7_-AXVq3eoo=G0rQBXzKqh-1tamVDY91BMsh@mail.gmail.com>
+In-Reply-To: <AANLkTinC7_-AXVq3eoo=G0rQBXzKqh-1tamVDY91BMsh@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201102092244.49176.martin@pibbs.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Add a v4l2_subdev_pad_ops structure for the operations that need to be
-performed at the pad level such as format-related operations.
+Hi Devin,
 
-Pad format-related operations use v4l2_mbus_framefmt instead of
-v4l2_format.
+Model: Silver Crest VG2000  "USB 2.0 Video Grabber"
+Vendor/Product id: [eb1a:2863]
+Driver: em28xx
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- include/media/v4l2-subdev.h |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+I got your points and see that this device is now fully supportet.
 
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index ff42cc4..ce2f373 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -411,6 +411,9 @@ struct v4l2_subdev_ir_ops {
- 				struct v4l2_subdev_ir_parameters *params);
- };
- 
-+struct v4l2_subdev_pad_ops {
-+};
-+
- struct v4l2_subdev_ops {
- 	const struct v4l2_subdev_core_ops	*core;
- 	const struct v4l2_subdev_tuner_ops	*tuner;
-@@ -419,6 +422,7 @@ struct v4l2_subdev_ops {
- 	const struct v4l2_subdev_vbi_ops	*vbi;
- 	const struct v4l2_subdev_ir_ops		*ir;
- 	const struct v4l2_subdev_sensor_ops	*sensor;
-+	const struct v4l2_subdev_pad_ops	*pad;
- };
- 
- /*
+Will the kernel list be updated?
+
+Gruß
+Martin
+
 -- 
-1.7.3.4
-
+"Was ist der Unterschied zwischen Franken und Oberbayern?" -
+"Die Franken haben weniger Berge, aber dafür mehr Horizont."
