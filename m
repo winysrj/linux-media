@@ -1,67 +1,80 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:39163 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750824Ab1BIFlo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Feb 2011 00:41:44 -0500
-Received: by wyb28 with SMTP id 28so6542762wyb.19
-        for <linux-media@vger.kernel.org>; Tue, 08 Feb 2011 21:41:43 -0800 (PST)
+Received: from rtp-iport-2.cisco.com ([64.102.122.149]:60844 "EHLO
+	rtp-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752871Ab1BIJJN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Feb 2011 04:09:13 -0500
+From: Hans Verkuil <hansverk@cisco.com>
+To: Alex Deucher <alexdeucher@gmail.com>
+Subject: Re: [PATCH/RFC 0/5] HDMI driver for Samsung S5PV310 platform
+Date: Wed, 9 Feb 2011 09:59:29 +0100
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com
+References: <1297157427-14560-1-git-send-email-t.stanislaws@samsung.com> <201102081047.17840.hansverk@cisco.com> <AANLkTi=A=HiAvHojWP8HcFXpjXbZpq6UdHjOnWq-8jww@mail.gmail.com>
+In-Reply-To: <AANLkTi=A=HiAvHojWP8HcFXpjXbZpq6UdHjOnWq-8jww@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <AANLkTinD2JVkxzMQt+LWXQ78UBKoSzYXkWG1hJ6d9T5s@mail.gmail.com>
-References: <AANLkTin8Rjch6o7aU-9S9m8f5aBYVeSwxSaVhyEfM5q9@mail.gmail.com>
-	<20110206232800.GA83692@io.frii.com>
-	<AANLkTinMCTh-u-JgcNB3SsZ2yf+9DgNFGA6thF7S0K15@mail.gmail.com>
-	<6C78EB6E-7722-447F-833D-637DBB64CF61@dons.net.au>
-	<AANLkTinn1XHifYy+PZTaTLP87NAqCind35iO7CBmdU-c@mail.gmail.com>
-	<1297122870.2355.21.camel@localhost>
-	<20110208152525.GA47904@io.frii.com>
-	<AANLkTinD2JVkxzMQt+LWXQ78UBKoSzYXkWG1hJ6d9T5s@mail.gmail.com>
-Date: Tue, 8 Feb 2011 22:41:42 -0700
-Message-ID: <AANLkTinsb1x8zQz5+r39s1Y6pq2UuFdD5bF419c3RAps@mail.gmail.com>
-Subject: Re: Tuning channels with DViCO FusionHDTV7 Dual Express
-From: Dave Johansen <davejohansen@gmail.com>
-To: v4l-dvb Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201102090959.29732.hansverk@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, Feb 8, 2011 at 9:51 AM, Dave Johansen <davejohansen@gmail.com> wrote:
-> On Tue, Feb 8, 2011 at 8:25 AM, Mark Zimmerman <markzimm@frii.com> wrote:
->> On Mon, Feb 07, 2011 at 06:54:30PM -0500, Andy Walls wrote:
->>>
->>> You perhaps could
->>>
->>> A. provide the smallest window of known good vs known bad kernel
->>> versions.  Maybe someone with time and hardware can 'git bisect' the
->>> issue down to the problem commit.  (I'm guessing this problem might be
->>> specific to a particular 64 bit platform IOMMU type, given the bad
->>> dma_ops pointer.)
->>>
->>
->> FYI: I am on the process of doing a git bisect (10 kernels to go) to
->> track down this problem:
->>
->> http://www.mail-archive.com/linux-media@vger.kernel.org/msg25342.html
->>
->> Which may or may not be related to the problem in this thread.
->>
->
-> I'm using Mythbuntu 10.10 x64, which I believe uses 2.6.35 but I will
-> check tonight, so if the issue you're tracking down really is related
-> to 2.6.36, then I imagine that my problem wouldn't be caused by what
-> you're looking into. Plus, every time I've looked at dmesg the
-> firmware has loaded properly, so I'm guessing I'm on 2.6.35 and being
-> affected by a different issue.
->
-> Thanks for the heads up,
-> Dave
->
+On Tuesday, February 08, 2011 16:28:32 Alex Deucher wrote:
+> On Tue, Feb 8, 2011 at 4:47 AM, Hans Verkuil <hansverk@cisco.com> wrote:
 
-So I don't know how useful this is, but I tried Mythbuntu 10.10 x86
-and it works like a charm. So the issue appears to be isolated to the
-x64 build. If there's anything I can do to help figure out what the
-cause of this issue is in the x64 build, then please let me know and
-I'll do my best to help out.
+<snip>
 
-Thanks for all the help,
-Dave
+> >>   The driver supports an interrupt. It is used to detect plug/unplug 
+events
+> > in
+> >> kernel debugs.  The API for detection of such an events in V4L2 API is to 
+be
+> >> defined.
+> >
+> > Cisco (i.e. a few colleagues and myself) are working on this. We hope to 
+post
+> > an RFC by the end of this month. We also have a proposal for CEC support 
+in
+> > the pipeline.
+> 
+> Any reason to not use the drm kms APIs for modesetting, display
+> configuration, and hotplug support?  We already have the
+> infrastructure in place for complex display configurations and
+> generating events for hotplug interrupts.  It would seem to make more
+> sense to me to fix any deficiencies in the KMS APIs than to spin a new
+> API.  Things like CEC would be a natural fit since a lot of desktop
+> GPUs support hdmi audio/3d/etc. and are already using kms.
+
+There are various reasons for not going down that road. The most important one 
+is that mixing APIs is actually a bad idea. I've done that once in the past 
+and I've regretted ever since. The problem with doing that is that it is 
+pretty hard on applications who have to mix two different styles of API, 
+somehow know where to find the documentation for each and know that both APIs 
+can in fact be used on the same device.
+
+Now, if there was a lot of code that could be shared, then that might be 
+enough reason to go that way, but in practice there is very little overlap. 
+Take CEC: all the V4L API will do is to pass the CEC packets from kernel to 
+userspace and vice versa. There is no parsing at all. This is typically used 
+by embedded apps that want to do their own CEC processing.
+
+An exception might be a PCI(e) card with HDMI input/output that wants to 
+handle CEC internally. At that point we might look at sharing CEC parsing 
+code. A similar story is true for EDID handling.
+
+One area that might be nice to look at would be to share drivers for HDMI 
+receivers and transmitters. However, the infrastructure for such drivers is 
+wildly different between how it is used for GPUs versus V4L and has been for 
+10 years or so. I also suspect that most GPUs have there own HDMI internal 
+implementation so code sharing will probably be quite limited.
+
+So, no, there are no plans to share anything between the two (except perhaps 
+EDID and CEC parsing should that become relevant).
+
+Oh, and let me join Andy in saying that the drm/kms/whatever API documentation 
+*really* needs a lot of work.
+
+Regards,
+
+	Hans
