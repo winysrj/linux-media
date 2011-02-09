@@ -1,137 +1,135 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.9]:54449 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755126Ab1BPKf3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Feb 2011 05:35:29 -0500
-Date: Wed, 16 Feb 2011 11:35:25 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Hans Verkuil <hansverk@cisco.com>, Qing Xu <qingx@marvell.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Neil Johnson <realdealneil@gmail.com>,
-	Robert Jarzmik <robert.jarzmik@free.fr>,
-	Uwe Taeubert <u.taeubert@road.de>,
-	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	Eino-Ville Talvala <talvala@stanford.edu>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [RFD] frame-size switching: preview / single-shot use-case
-In-Reply-To: <201102161011.59830.laurent.pinchart@ideasonboard.com>
-Message-ID: <Pine.LNX.4.64.1102161033440.20711@axis700.grange>
-References: <Pine.LNX.4.64.1102151641490.16709@axis700.grange>
- <201102160949.04605.hansverk@cisco.com> <Pine.LNX.4.64.1102160954560.20711@axis700.grange>
- <201102161011.59830.laurent.pinchart@ideasonboard.com>
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4221 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751305Ab1BITnO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Feb 2011 14:43:14 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Matt Turner <mattst88@gmail.com>
+Subject: Re: [PATCH/RFC 0/5] HDMI driver for Samsung S5PV310 platform
+Date: Wed, 9 Feb 2011 20:43:01 +0100
+Cc: Hans Verkuil <hansverk@cisco.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	linux-samsung-soc@vger.kernel.org,
+	"Maling list - DRI developers" <dri-devel@lists.freedesktop.org>,
+	Alex Deucher <alexdeucher@gmail.com>,
+	kyungmin.park@samsung.com, linux-media@vger.kernel.org,
+	m.szyprowski@samsung.com
+References: <1297157427-14560-1-git-send-email-t.stanislaws@samsung.com> <AANLkTimeYp=aJi40jH2Nwu25C_e1dJYxLXXXu-7zwZEp@mail.gmail.com> <AANLkTim1_ba1gj25fGYua=mrya5q0twYO29enEhWxsod@mail.gmail.com>
+In-Reply-To: <AANLkTim1_ba1gj25fGYua=mrya5q0twYO29enEhWxsod@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201102092043.01437.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Laurent
-
-Thanks for commenting.
-
-On Wed, 16 Feb 2011, Laurent Pinchart wrote:
-
-> Hi Guennadi,
+On Wednesday, February 09, 2011 20:00:38 Matt Turner wrote:
+> On Wed, Feb 9, 2011 at 7:12 AM, Alex Deucher <alexdeucher@gmail.com> wrote:
+> > On Tue, Feb 8, 2011 at 5:47 PM, Andy Walls <awalls@md.metrocast.net> wrote:
+> >> On Tue, 2011-02-08 at 10:28 -0500, Alex Deucher wrote:
+> >>> On Tue, Feb 8, 2011 at 4:47 AM, Hans Verkuil <hansverk@cisco.com> wrote:
+> >>> > Just two quick notes. I'll try to do a full review this weekend.
+> >>> >
+> >>> > On Tuesday, February 08, 2011 10:30:22 Tomasz Stanislawski wrote:
+> >>> >> ==============
+> >>> >>  Introduction
+> >>> >> ==============
+> >>> >>
+> >>> >> The purpose of this RFC is to discuss the driver for a TV output interface
+> >>> >> available in upcoming Samsung SoC. The HW is able to generate digital and
+> >>> >> analog signals. Current version of the driver supports only digital output.
+> >>> >>
+> >>> >> Internally the driver uses videobuf2 framework, and CMA memory allocator.
+> >>> > Not
+> >>> >> all of them are merged by now, but I decided to post the sources to start
+> >>> >> discussion driver's design.
+> >>
+> >>> >
+> >>> > Cisco (i.e. a few colleagues and myself) are working on this. We hope to post
+> >>> > an RFC by the end of this month. We also have a proposal for CEC support in
+> >>> > the pipeline.
+> >>>
+> >>> Any reason to not use the drm kms APIs for modesetting, display
+> >>> configuration, and hotplug support?  We already have the
+> >>> infrastructure in place for complex display configurations and
+> >>> generating events for hotplug interrupts.  It would seem to make more
+> >>> sense to me to fix any deficiencies in the KMS APIs than to spin a new
+> >>> API.  Things like CEC would be a natural fit since a lot of desktop
+> >>> GPUs support hdmi audio/3d/etc. and are already using kms.
+> >>>
+> >>> Alex
+> >>
+> >> I'll toss one out: lack of API documentation for driver or application
+> >> developers to use.
+> >>
+> >>
+> >> When I last looked at converting ivtvfb to use DRM, KMS, TTM, etc. (to
+> >> possibly get rid of reliance on the ivtv X video driver
+> >> http://dl.ivtvdriver.org/xf86-video-ivtv/ ), I found the documentation
+> >> was really sparse.
+> >>
+> >> DRM had the most documentation under Documentation/DocBook/drm.tmpl, but
+> >> the userland API wasn't fleshed out.  GEM was talked about a bit in
+> >> there as well, IIRC.
+> >>
+> >> TTM documentation was essentially non-existant.
+> >>
+> >> I can't find any KMS documentation either.
+> >>
+> >> I recall having to read much of the drm code, and having to look at the
+> >> radeon driver, just to tease out what the DRM ioctls needed to do.
+> >>
+> >> Am I missing a Documentation source for the APIs?
 > 
-> On Wednesday 16 February 2011 10:02:18 Guennadi Liakhovetski wrote:
-> > On Wed, 16 Feb 2011, Hans Verkuil wrote:
-> > > On Wednesday, February 16, 2011 08:42:51 Guennadi Liakhovetski wrote:
-> > [snip]
+> Yes,
 > 
-> I definitely don't like solutions 1 and 2 either, so I'll only comment on 3.
+> My summer of code project's purpose was to create something of a
+> tutorial for writing a KMS driver. The code, split out into something
+> like 15 step-by-step patches, and accompanying documentation are
+> available from Google's website.
 > 
-> > > > > 3. Not liking either of the above, it seems we need yet a new API for
-> > > > > this... How about extending VIDIOC_REQBUFS with a videobuf queue
-> > > > > index, thus using up one of the remaining two 32-bit reserved
-> > > > > fields? Then we need one more ioctl() like VIDIOC_BUFQ_SELECT to
-> > > > > switch from one queue to another, after which setting frame format
-> > > > > and queuing and dequeuing buffers will affect this currently
-> > > > > selected queue. We could also keep REQBUFS as is and require
-> > > > > BUFQ_SELECT to be called before it for any queue except the default
-> > > > > 0.
-> > > 
-> > > What you really are doing here is creating the functionality of two video
-> > > nodes without actually making two nodes.
-> > > 
-> > > But from the point of view of the application it makes more sense to
-> > > actually have two video nodes. The only difference is that when one
-> > > starts streaming it pre-empts the other.
-> > 
-> > Well, I don't think I like it all that much... One reason - yes, two
-> > "independent" video device-nodes, which actually only can stream in turn
-> > seems somewhat counterintuitive to me, specifically, I don't think there
-> > is a way to tell the application about this. What if we have more than two
-> > video devices on the system? Or what if you need more than two video
-> > queues / formats? Or actually only one? The kernel doesn't know initially
-> > how many, this is a dynamic resource, not a fixed static interface, IMHO.
+> http://code.google.com/p/google-summer-of-code-2010-xorg/downloads/detail?name=Matt_Turner.tar.gz
+
+Nice!
+
+What I still don't understand is if and how this is controlled via userspace.
+
+Is there some documentation of the userspace API somewhere?
+
+> My repository (doesn't include the documentation) is available here:
+> http://git.kernel.org/?p=linux/kernel/git/mattst88/glint.git;a=summary
 > 
-> I agree with this, which is why I don't think two (or more) video nodes would 
-> be a good solution.
+> There's a 'rebased' branch that contains API changes required for the
+> code to work with 2.6.37~.
 > 
-> We've hit the exact same issue with the OMAP3 ISP driver. Our current solution 
-> is to allocate video buffer queues at the file handle level instead of the 
-> video node level. Applications can open the same video device twice and 
-> allocate buffers for the viewfinder on one of the instances and for still 
-> image capture on the other. When switching from viewfinder to still image 
-> capture, all it needs to do (beside obviously reconfiguring the media 
-> controller pipeline if required) is to issue VIDIOC_STREAMOFF on the 
-> viewfinder file handle and VIDIOC_STREAMON on the still capture file handle.
+> I hope it's useful to you.
 > 
-> One issue with this approach is that allocating buffers requires knowledge of 
-> the format and resolution. The driver traditionally computes the buffer size 
-> from the parameters set by VIDIOC_S_FMT. This would prevent an application 
-> opening the video node a second time and setting up buffers for still image 
-> capture a second time while the viewfinder is running, as the VIDIOC_S_FMT on 
-> the second file handle won't be allowed then.
-> 
-> Changes to the V4L2 spec would be needed to allow this to work properly.
+> I can't image how the lack of documentation of an used and tested API
+> could be a serious reason to write you own.
 
-The spec is actually saying about the S_FMT ioctl():
+That never was the main reason. It doesn't help, though.
 
-"On success the driver may program the hardware, allocate resources and 
-generally prepare for data exchange."
+> That makes absolutely no
+> sense to me, so I hope you'll decide to use KMS.
 
-- _may_ program the hardware. So, if we don't do that and instead only 
-verify the format and store it for future activation upon a call to 
-STREAMON we are not violating the spec, thus, no change is required. OTOH, 
-another spec sections "V4L2 close()" says:
+No, we won't. A GPU driver != a V4L driver. The primary purpose of a V4L2
+display driver is to output discrete frames from memory to some device. This
+may be a HDMI transmitter, a SDTV transmitter, a memory-to-memory codec, an
+FPGA, whatever. In other words, there is not necessarily a monitor on the other
+end. We have for some time now V4L2 APIs to set up video formats. The original
+ioctl was VIDIOC_G/S_STD to select PAL/NTSC/SECAM. The new ones are
+VIDIOC_G/S_DV_PRESETS which set up standard formats (1080p60, 720p60, etc) and
+DV_TIMINGS which can be used for custom bt.656/1120 digital video timings.
 
-"data format parameters, current input or output, control values or other 
-properties remain unchanged."
+Trying to mix KMS into the V4L2 API is just a recipe for disaster. Just think
+about what it would mean for DRM if DRM would use the V4L2 API for setting
+video modes. That would be a disaster as well.
 
-which is usually interpreted as "a sequence open(); ioctl(S_FMT); close(); 
-open(); ioctl(STREAMON);" _must_ use the format, set by the call to S_FMT, 
-which is not necessarily logical, if we adopt the per-file-descriptor 
-format / stream approach.
+Regards,
 
-I think, we have two options:
+	Hans
 
-(1) adopt Laurent's proposal of per-fd contexts, but that would require a 
-pretty heave modification of the spec - S_FMT is not kept across close() / 
-open() pair.
-
-(2) cleanly separate setting video data format (S_FMT) from specifying the 
-allocated buffer size.
-
-Of course, there are further possibilities, like my switching ioctl() 
-above, or we could extend the enum v4l2_priority with an extra application 
-priority, saying, that this file-descriptor can maintain a separate S_FMT 
-/ STREAMON thread, without immediately affecting other descriptors, but 
-this seems too obscure to me.
-
-My vote goes for (2) above, which is also what Laurent has mentioned here:
-
-> One 
-> possible direction would be to enhance the buffers allocation API to allow 
-> applications to set the buffer size. I've been thinking about this, and I 
-> believe this is where the "global buffers pool" API could come into play.
-
-I just wouldn't necessarily bind it to "global buffer pools."
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
