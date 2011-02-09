@@ -1,200 +1,126 @@
 Return-path: <mchehab@pedra>
-Received: from mx06.syd.iprimus.net.au ([210.50.76.235]:33444 "EHLO
-	mx06.syd.iprimus.net.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752346Ab1BVJFe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Feb 2011 04:05:34 -0500
-Message-Id: <e05367$6n6fju@smtp06.syd.iprimus.net.au>
-From: Mike Booth <mike_booth76@iprimus.com.au>
-To: linux-media@vger.kernel.org
-Subject: Re: v4l-utils-0.8.3 and KVDR
-Date: Tue, 22 Feb 2011 20:03:51 +1100
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:41684 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750801Ab1BIHM1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Feb 2011 02:12:27 -0500
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <1297205267.2423.24.camel@localhost>
+References: <1297157427-14560-1-git-send-email-t.stanislaws@samsung.com>
+	<201102081047.17840.hansverk@cisco.com>
+	<AANLkTi=A=HiAvHojWP8HcFXpjXbZpq6UdHjOnWq-8jww@mail.gmail.com>
+	<1297205267.2423.24.camel@localhost>
+Date: Wed, 9 Feb 2011 02:12:25 -0500
+Message-ID: <AANLkTimeYp=aJi40jH2Nwu25C_e1dJYxLXXXu-7zwZEp@mail.gmail.com>
+Subject: Re: [PATCH/RFC 0/5] HDMI driver for Samsung S5PV310 platform
+From: Alex Deucher <alexdeucher@gmail.com>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: Hans Verkuil <hansverk@cisco.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	Maling list - DRI developers
+	<dri-devel@lists.freedesktop.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-KVDR has a number of different parameters including
+On Tue, Feb 8, 2011 at 5:47 PM, Andy Walls <awalls@md.metrocast.net> wrote:
+> On Tue, 2011-02-08 at 10:28 -0500, Alex Deucher wrote:
+>> On Tue, Feb 8, 2011 at 4:47 AM, Hans Verkuil <hansverk@cisco.com> wrote:
+>> > Just two quick notes. I'll try to do a full review this weekend.
+>> >
+>> > On Tuesday, February 08, 2011 10:30:22 Tomasz Stanislawski wrote:
+>> >> ==============
+>> >>  Introduction
+>> >> ==============
+>> >>
+>> >> The purpose of this RFC is to discuss the driver for a TV output interface
+>> >> available in upcoming Samsung SoC. The HW is able to generate digital and
+>> >> analog signals. Current version of the driver supports only digital output.
+>> >>
+>> >> Internally the driver uses videobuf2 framework, and CMA memory allocator.
+>> > Not
+>> >> all of them are merged by now, but I decided to post the sources to start
+>> >> discussion driver's design.
+>
+>> >
+>> > Cisco (i.e. a few colleagues and myself) are working on this. We hope to post
+>> > an RFC by the end of this month. We also have a proposal for CEC support in
+>> > the pipeline.
+>>
+>> Any reason to not use the drm kms APIs for modesetting, display
+>> configuration, and hotplug support?  We already have the
+>> infrastructure in place for complex display configurations and
+>> generating events for hotplug interrupts.  It would seem to make more
+>> sense to me to fix any deficiencies in the KMS APIs than to spin a new
+>> API.  Things like CEC would be a natural fit since a lot of desktop
+>> GPUs support hdmi audio/3d/etc. and are already using kms.
+>>
+>> Alex
+>
+> I'll toss one out: lack of API documentation for driver or application
+> developers to use.
+>
+>
+> When I last looked at converting ivtvfb to use DRM, KMS, TTM, etc. (to
+> possibly get rid of reliance on the ivtv X video driver
+> http://dl.ivtvdriver.org/xf86-video-ivtv/ ), I found the documentation
+> was really sparse.
+>
+> DRM had the most documentation under Documentation/DocBook/drm.tmpl, but
+> the userland API wasn't fleshed out.  GEM was talked about a bit in
+> there as well, IIRC.
+>
+> TTM documentation was essentially non-existant.
+>
+> I can't find any KMS documentation either.
+>
+> I recall having to read much of the drm code, and having to look at the
+> radeon driver, just to tease out what the DRM ioctls needed to do.
+>
+> Am I missing a Documentation source for the APIs?
+>
 
--x                        force xv-mode on startup and disable overlay-mod
+Documentation is somewhat sparse compared to some other APIs.  Mostly
+inline kerneldoc comments in the core functions.  It would be nice to
+improve things.   The modesetting API is very similar to the xrandr
+API in the xserver.
 
--d                        dont switch modeline during xv
- with kernel 2.6.35 I run KVDR with -x as I have an NVIDIA graphics. Running 
-on 2.6.38 KVDR -x doesn't produce any log. The display appears and immediately 
-disappears although there is a process running.
+At the moment a device specific surface manager (Xorg ddx, or some
+other userspace lib) is required to use kms due to device specific
+requirements with respect to memory management and alignment for
+acceleration.  The kms modesetting ioctls are common across all kms
+drm drivers, but the memory management ioctls are device specific.
+GEM itself is an Intel-specific memory manager, although radeon uses
+similar ioctls.  TTM is used internally by radeon, nouveau, and svga
+for managing memory gpu accessible memory pools.  Drivers are free to
+use whatever memory manager they want; an existing one shared with a
+v4l or platform driver, TTM, or something new.  There is no generic
+userspace kms driver/lib although Dave and others have done some work
+to support that, but it's really hard to make a generic interface
+flexible enough to handle all the strange acceleration requirements of
+GPUs.  kms does however provide a legacy kernel fb interface.
 
-With KVDR -d I get a display window but no picture but the attached log is 
-produced. 
+While the documentation is not great, the modesetting API is solid and
+it would be nice to get more people involved and working on it (or at
+least looking at it) rather than starting something equivalent from
+scratch or implementing a device specific modesetting API.  If you
+have any questions about it, please ask on dri-devel (CCed).
 
-I hope this helps
+Alex
 
-
-Mike
-
-libv4l2: open: 4
-request == VIDIOC_G_FMT
-  pixelformat: BGR3 384x288
-  field: 0 bytesperline: 0 imagesize331776
-  colorspace: 0, priv: 0
-result == 0
-request == VIDIOC_ENUM_FMT
-  index: 0, description: RGB-8 (3-3-2)
-result == 0
-request == VIDIOC_TRY_FMT
-  pixelformat: RGB1 48x32
-  field: 3 bytesperline: 48 imagesize1536
-  colorspace: 0, priv: 0
-result == 0
-request == VIDIOC_TRY_FMT
-  pixelformat: RGB1 768x288
-  field: 3 bytesperline: 768 imagesize221184
-  colorspace: 0, priv: 0
-result == 0
-request == VIDIOC_ENUM_FMT
-  index: 1, description: RGB-16 (5/B-6/G-5/R)
-result == 0
-request == VIDIOC_TRY_FMT
-  pixelformat: RGBP 48x32
-  field: 3 bytesperline: 768 imagesize24576
-  colorspace: 0, priv: 0
-result == 0
-request == VIDIOC_TRY_FMT
-  pixelformat: RGBP 768x288
-  field: 3 bytesperline: 1536 imagesize442368
-  colorspace: 0, priv: 0
-result == 0
-request == VIDIOC_ENUM_FMT
-  index: 2, description: RGB-24 (B-G-R)
-result == 0
-request == VIDIOC_TRY_FMT
-  pixelformat: BGR3 48x32
-  field: 3 bytesperline: 1536 imagesize49152
-  colorspace: 0, priv: 0
-result == 0
-request == VIDIOC_TRY_FMT
-  pixelformat: BGR3 768x288
-  field: 3 bytesperline: 2304 imagesize663552
-  colorspace: 0, priv: 0
-result == 0
-request == VIDIOC_ENUM_FMT
-  index: 3, description: RGB-32 (B-G-R)
-result == 0
-request == VIDIOC_TRY_FMT
-  pixelformat: BGR4 48x32
-  field: 3 bytesperline: 2304 imagesize73728
-  colorspace: 0, priv: 0
-result == 0
-request == VIDIOC_TRY_FMT
-  pixelformat: BGR4 768x288
-  field: 3 bytesperline: 3072 imagesize884736
-  colorspace: 0, priv: 0
-result == 0
-request == VIDIOC_ENUM_FMT
-  index: 4, description: RGB-32 (R-G-B)
-result == 0
-request == VIDIOC_TRY_FMT
-  pixelformat: RGB4 48x32
-  field: 3 bytesperline: 3072 imagesize98304
-  colorspace: 0, priv: 0
-result == 0
-request == VIDIOC_TRY_FMT
-  pixelformat: RGB4 768x288
-  field: 3 bytesperline: 3072 imagesize884736
-  colorspace: 0, priv: 0
-result == 0
-request == VIDIOC_ENUM_FMT
-  index: 5, description: Greyscale-8
-result == 0
-request == VIDIOC_TRY_FMT
-  pixelformat: GREY 48x32
-  field: 3 bytesperline: 3072 imagesize98304
-  colorspace: 0, priv: 0
-result == 0
-request == VIDIOC_TRY_FMT
-  pixelformat: GREY 768x288
-  field: 3 bytesperline: 3072 imagesize884736
-  colorspace: 0, priv: 0
-result == 0
-request == VIDIOC_ENUM_FMT
-  index: 6, description: YUV 4:2:2 planar (Y-Cb-Cr)
-result == 0
-request == VIDIOC_TRY_FMT
-  pixelformat: 422P 48x32
-  field: 3 bytesperline: 3072 imagesize98304
-  colorspace: 0, priv: 0
-result == 0
-request == VIDIOC_TRY_FMT
-  pixelformat: 422P 768x288
-  field: 3 bytesperline: 3072 imagesize884736
-  colorspace: 0, priv: 0
-result == 0
-request == VIDIOC_ENUM_FMT
-  index: 7, description: YVU 4:2:0 planar (Y-Cb-Cr)
-result == 0
-request == VIDIOC_TRY_FMT
-  pixelformat: YV12 48x32
-  field: 3 bytesperline: 3072 imagesize98304
-  colorspace: 0, priv: 0
-result == 0
-request == VIDIOC_TRY_FMT
-  pixelformat: YV12 768x288
-  field: 3 bytesperline: 3072 imagesize884736
-  colorspace: 0, priv: 0
-result == 0
-request == VIDIOC_ENUM_FMT
-  index: 8, description: YUV 4:2:0 planar (Y-Cb-Cr)
-result == 0
-request == VIDIOC_TRY_FMT
-  pixelformat: YU12 48x32
-  field: 3 bytesperline: 3072 imagesize98304
-  colorspace: 0, priv: 0
-result == 0
-request == VIDIOC_TRY_FMT
-  pixelformat: YU12 768x288
-  field: 3 bytesperline: 3072 imagesize884736
-  colorspace: 0, priv: 0
-result == 0
-request == VIDIOC_ENUM_FMT
-  index: 9, description: YUV 4:2:2 (U-Y-V-Y)
-result == 0
-request == VIDIOC_TRY_FMT
-  pixelformat: UYVY 48x32
-  field: 3 bytesperline: 3072 imagesize98304
-  colorspace: 0, priv: 0
-result == 0
-request == VIDIOC_TRY_FMT
-  pixelformat: UYVY 768x288
-  field: 3 bytesperline: 3072 imagesize884736
-  colorspace: 0, priv: 0
-result == 0
-request == VIDIOC_ENUM_FMT
-  index: 10, description: RGB3
-result == 0
-request == VIDIOC_TRY_FMT
-  pixelformat: RGB3 48x32
-  field: 3 bytesperline: 144 imagesize4608
-  colorspace: 0, priv: 0
-result == 0
-request == VIDIOC_TRY_FMT
-  pixelformat: RGB3 768x288
-  field: 3 bytesperline: 2304 imagesize663552
-  colorspace: 0, priv: 0
-result == 0
-request == VIDIOC_ENUM_FMT
-  index: 11, description: 
-result == -1 (Invalid argument)
-request == VIDIOC_ENUMINPUT
-result == 0
-request == VIDIOC_ENUMSTD
-result == 0
-libv4l1: open: 4
-request == VIDIOC_QUERYCAP
-result == 0
-request == VIDIOC_G_FBUF
-result == 0
-request == VIDIOC_S_FBUF
-result == 0
-libv4l2: close: 4
-libv4l1: close: 4
-
+>
+>
+> For V4L2 and DVB on ther other hand, one can point to pretty verbose
+> documentation that application developers can use:
+>
+>        http://linuxtv.org/downloads/v4l-dvb-apis/
+>
+>
+>
+> Regards,
+> Andy
+>
+>
+>
