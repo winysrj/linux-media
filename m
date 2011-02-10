@@ -1,254 +1,44 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58187 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754116Ab1BNMV0 (ORCPT
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:55913 "EHLO
+	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754386Ab1BJLCI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Feb 2011 07:21:26 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [PATCH v7 05/11] v4l: Create v4l2 subdev file handle structure
-Date: Mon, 14 Feb 2011 13:21:18 +0100
-Message-Id: <1297686084-9715-6-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1297686084-9715-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1297686084-9715-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Thu, 10 Feb 2011 06:02:08 -0500
+Date: Thu, 10 Feb 2011 11:02:05 +0000
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+To: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Cc: "ext Bensaid, Selma" <selma.bensaid@intel.com>,
+	Peter Ujfalusi <peter.ujfalusi@nokia.com>,
+	ext Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>,
+	"sameo@linux.intel.com" <sameo@linux.intel.com>,
+	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>
+Subject: Re: [alsa-devel] WL1273 FM Radio driver...
+Message-ID: <20110210110205.GA28336@opensource.wolfsonmicro.com>
+References: <4D4FF821.4010701@redhat.com>
+ <20110207135225.GJ10564@opensource.wolfsonmicro.com>
+ <1297088242.15320.62.camel@masi.mnp.nokia.com>
+ <4D501704.6060504@redhat.com>
+ <4D5109B3.60504@nokia.com>
+ <2A84145621092446B6659B8A0F28E26F47010C29F1@irsmsx501.ger.corp.intel.com>
+ <4D5122CF.3010403@nokia.com>
+ <1297236165.15320.70.camel@masi.mnp.nokia.com>
+ <2A84145621092446B6659B8A0F28E26F4703CC3968@irsmsx501.ger.corp.intel.com>
+ <1297332223.15320.95.camel@masi.mnp.nokia.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1297332223.15320.95.camel@masi.mnp.nokia.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Stanimir Varbanov <svarbanov@mm-sol.com>
+On Thu, Feb 10, 2011 at 12:03:43PM +0200, Matti J. Aaltonen wrote:
 
-Used for storing subdev information per file handle and hold V4L2 file
-handle.
+> We know these messages, they are mentioned in the documentation and we
+> use them already, but we send them from the user space. The problem is
+> how to send the messages from the driver within the kernel.
 
-Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
-Signed-off-by: Antti Koskipaa <akoskipa@gmail.com>
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/Kconfig             |    9 ++++
- drivers/media/video/v4l2-subdev.c |   85 +++++++++++++++++++++++++------------
- include/media/v4l2-subdev.h       |   29 +++++++++++++
- 3 files changed, 96 insertions(+), 27 deletions(-)
-
-diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
-index 2466f2b..6995940 100644
---- a/drivers/media/Kconfig
-+++ b/drivers/media/Kconfig
-@@ -53,6 +53,15 @@ config VIDEO_V4L2_COMMON
- 	depends on (I2C || I2C=n) && VIDEO_DEV
- 	default (I2C || I2C=n) && VIDEO_DEV
- 
-+config VIDEO_V4L2_SUBDEV_API
-+	bool "V4L2 sub-device userspace API (EXPERIMENTAL)"
-+	depends on VIDEO_DEV && MEDIA_CONTROLLER && EXPERIMENTAL
-+	---help---
-+	  Enables the V4L2 sub-device pad-level userspace API used to configure
-+	  video format, size and frame rate between hardware blocks.
-+
-+	  This API is mostly used by camera interfaces in embedded platforms.
-+
- #
- # DVB Core
- #
-diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-index 29b7ddf..ebf7f97 100644
---- a/drivers/media/video/v4l2-subdev.c
-+++ b/drivers/media/video/v4l2-subdev.c
-@@ -31,36 +31,66 @@
- #include <media/v4l2-fh.h>
- #include <media/v4l2-event.h>
- 
-+static int subdev_fh_init(struct v4l2_subdev_fh *fh, struct v4l2_subdev *sd)
-+{
-+#if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
-+	/* Allocate try format and crop in the same memory block */
-+	fh->try_fmt = kzalloc((sizeof(*fh->try_fmt) + sizeof(*fh->try_crop))
-+			      * sd->entity.num_pads, GFP_KERNEL);
-+	if (fh->try_fmt == NULL)
-+		return -ENOMEM;
-+
-+	fh->try_crop = (struct v4l2_rect *)
-+		(fh->try_fmt + sd->entity.num_pads);
-+#endif
-+	return 0;
-+}
-+
-+static void subdev_fh_free(struct v4l2_subdev_fh *fh)
-+{
-+#if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
-+	kfree(fh->try_fmt);
-+	fh->try_fmt = NULL;
-+	fh->try_crop = NULL;
-+#endif
-+}
-+
- static int subdev_open(struct file *file)
- {
- 	struct video_device *vdev = video_devdata(file);
- 	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
-+	struct v4l2_subdev_fh *subdev_fh;
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	struct media_entity *entity;
- #endif
--	struct v4l2_fh *vfh = NULL;
- 	int ret;
- 
--	if (sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS) {
--		vfh = kzalloc(sizeof(*vfh), GFP_KERNEL);
--		if (vfh == NULL)
--			return -ENOMEM;
-+	subdev_fh = kzalloc(sizeof(*subdev_fh), GFP_KERNEL);
-+	if (subdev_fh == NULL)
-+		return -ENOMEM;
- 
--		ret = v4l2_fh_init(vfh, vdev);
--		if (ret)
--			goto err;
-+	ret = subdev_fh_init(subdev_fh, sd);
-+	if (ret) {
-+		kfree(subdev_fh);
-+		return ret;
-+	}
-+
-+	ret = v4l2_fh_init(&subdev_fh->vfh, vdev);
-+	if (ret)
-+		goto err;
- 
--		ret = v4l2_event_init(vfh);
-+	if (sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS) {
-+		ret = v4l2_event_init(&subdev_fh->vfh);
- 		if (ret)
- 			goto err;
- 
--		ret = v4l2_event_alloc(vfh, sd->nevents);
-+		ret = v4l2_event_alloc(&subdev_fh->vfh, sd->nevents);
- 		if (ret)
- 			goto err;
--
--		v4l2_fh_add(vfh);
--		file->private_data = vfh;
- 	}
-+
-+	v4l2_fh_add(&subdev_fh->vfh);
-+	file->private_data = &subdev_fh->vfh;
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	if (sd->v4l2_dev->mdev) {
- 		entity = media_entity_get(&sd->entity);
-@@ -70,14 +100,14 @@ static int subdev_open(struct file *file)
- 		}
- 	}
- #endif
-+
- 	return 0;
- 
- err:
--	if (vfh != NULL) {
--		v4l2_fh_del(vfh);
--		v4l2_fh_exit(vfh);
--		kfree(vfh);
--	}
-+	v4l2_fh_del(&subdev_fh->vfh);
-+	v4l2_fh_exit(&subdev_fh->vfh);
-+	subdev_fh_free(subdev_fh);
-+	kfree(subdev_fh);
- 
- 	return ret;
- }
-@@ -89,16 +119,17 @@ static int subdev_close(struct file *file)
- 	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
- #endif
- 	struct v4l2_fh *vfh = file->private_data;
-+	struct v4l2_subdev_fh *subdev_fh = to_v4l2_subdev_fh(vfh);
- 
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	if (sd->v4l2_dev->mdev)
- 		media_entity_put(&sd->entity);
- #endif
--	if (vfh != NULL) {
--		v4l2_fh_del(vfh);
--		v4l2_fh_exit(vfh);
--		kfree(vfh);
--	}
-+	v4l2_fh_del(vfh);
-+	v4l2_fh_exit(vfh);
-+	subdev_fh_free(subdev_fh);
-+	kfree(subdev_fh);
-+	file->private_data = NULL;
- 
- 	return 0;
- }
-@@ -107,7 +138,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- {
- 	struct video_device *vdev = video_devdata(file);
- 	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
--	struct v4l2_fh *fh = file->private_data;
-+	struct v4l2_fh *vfh = file->private_data;
- 
- 	switch (cmd) {
- 	case VIDIOC_QUERYCTRL:
-@@ -135,13 +166,13 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		if (!(sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS))
- 			return -ENOIOCTLCMD;
- 
--		return v4l2_event_dequeue(fh, arg, file->f_flags & O_NONBLOCK);
-+		return v4l2_event_dequeue(vfh, arg, file->f_flags & O_NONBLOCK);
- 
- 	case VIDIOC_SUBSCRIBE_EVENT:
--		return v4l2_subdev_call(sd, core, subscribe_event, fh, arg);
-+		return v4l2_subdev_call(sd, core, subscribe_event, vfh, arg);
- 
- 	case VIDIOC_UNSUBSCRIBE_EVENT:
--		return v4l2_subdev_call(sd, core, unsubscribe_event, fh, arg);
-+		return v4l2_subdev_call(sd, core, unsubscribe_event, vfh, arg);
- 
- 	default:
- 		return -ENOIOCTLCMD;
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index c37d6e4..d64438d 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -24,6 +24,7 @@
- #include <media/media-entity.h>
- #include <media/v4l2-common.h>
- #include <media/v4l2-dev.h>
-+#include <media/v4l2-fh.h>
- #include <media/v4l2-mediabus.h>
- 
- /* generic v4l2_device notify callback notification values */
-@@ -479,6 +480,34 @@ struct v4l2_subdev {
- #define vdev_to_v4l2_subdev(vdev) \
- 	container_of(vdev, struct v4l2_subdev, devnode)
- 
-+/*
-+ * Used for storing subdev information per file handle
-+ */
-+struct v4l2_subdev_fh {
-+	struct v4l2_fh vfh;
-+#if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
-+	struct v4l2_mbus_framefmt *try_fmt;
-+	struct v4l2_rect *try_crop;
-+#endif
-+};
-+
-+#define to_v4l2_subdev_fh(fh)	\
-+	container_of(fh, struct v4l2_subdev_fh, vfh)
-+
-+#if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
-+static inline struct v4l2_mbus_framefmt *
-+v4l2_subdev_get_try_format(struct v4l2_subdev_fh *fh, unsigned int pad)
-+{
-+	return &fh->try_fmt[pad];
-+}
-+
-+static inline struct v4l2_rect *
-+v4l2_subdev_get_try_crop(struct v4l2_subdev_fh *fh, unsigned int pad)
-+{
-+	return &fh->try_crop[pad];
-+}
-+#endif
-+
- extern const struct v4l2_file_operations v4l2_subdev_fops;
- 
- static inline void v4l2_set_subdevdata(struct v4l2_subdev *sd, void *p)
--- 
-1.7.3.4
-
+Set up a line discipline - it's not in principle that much different to
+what something like PPP is doing.
