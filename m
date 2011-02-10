@@ -1,44 +1,55 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:11193 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752555Ab1BGQAS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Feb 2011 11:00:18 -0500
-Message-ID: <4D501704.6060504@redhat.com>
-Date: Mon, 07 Feb 2011 14:00:04 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mx1.redhat.com (ext-mx14.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.19])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id p1AEVfc4032236
+	for <video4linux-list@redhat.com>; Thu, 10 Feb 2011 09:31:41 -0500
+Received: from ns.setelcom.org (ns.setelcom.org [195.230.2.69])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p1AEVUoc008808
+	for <video4linux-list@redhat.com>; Thu, 10 Feb 2011 09:31:30 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by ns.setelcom.org (Postfix) with ESMTP id 2BE4D29DD4
+	for <video4linux-list@redhat.com>; Thu, 10 Feb 2011 16:31:29 +0200 (EET)
+Received: from ns.setelcom.org ([127.0.0.1])
+	by localhost (ns.setelcom.org [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id AHiu3CnZpJya for <video4linux-list@redhat.com>;
+	Thu, 10 Feb 2011 16:31:28 +0200 (EET)
+Received: from [192.168.16.226] (setelcom.gcn.bg [93.155.252.130])
+	by ns.setelcom.org (Postfix) with ESMTP id B05C829DD3
+	for <video4linux-list@redhat.com>; Thu, 10 Feb 2011 16:31:28 +0200 (EET)
+Message-ID: <4D53F702.6010802@setelcom.org>
+Date: Thu, 10 Feb 2011 16:32:34 +0200
+From: "penio@setelcom.org" <penio@setelcom.org>
 MIME-Version: 1.0
-To: matti.j.aaltonen@nokia.com
-CC: ext Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	alsa-devel@alsa-project.org, lrg@slimlogic.co.uk,
-	hverkuil@xs4all.nl, sameo@linux.intel.com,
-	linux-media@vger.kernel.org
-Subject: Re: WL1273 FM Radio driver...
-References: <1297075922.15320.31.camel@masi.mnp.nokia.com>	 <4D4FDED0.7070008@redhat.com>	 <20110207120234.GE10564@opensource.wolfsonmicro.com>	 <4D4FEA03.7090109@redhat.com>	 <20110207131045.GG10564@opensource.wolfsonmicro.com>	 <4D4FF821.4010701@redhat.com>	 <20110207135225.GJ10564@opensource.wolfsonmicro.com> <1297088242.15320.62.camel@masi.mnp.nokia.com>
-In-Reply-To: <1297088242.15320.62.camel@masi.mnp.nokia.com>
-Content-Type: text/plain; charset=UTF-8
+To: video4linux-list@redhat.com
+Subject: Support to TT-budget S-1500b ?
+List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
+List-Post: <mailto:video4linux-list@redhat.com>
+List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
 Content-Transfer-Encoding: 7bit
-List-ID: <linux-media.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Errors-To: video4linux-list-bounces@redhat.com
 Sender: <mchehab@pedra>
+List-ID: <video4linux-list@redhat.com>
 
-Em 07-02-2011 12:17, Matti J. Aaltonen escreveu:
-> On Mon, 2011-02-07 at 13:52 +0000, ext Mark Brown wrote:
->> On Mon, Feb 07, 2011 at 11:48:17AM -0200, Mauro Carvalho Chehab wrote:
->>> Em 07-02-2011 11:10, Mark Brown escreveu:
->>
->>>> There is an audio driver for this chip and it is using those functions.
->>
->>> Where are the other drivers that depend on it?
->>
->> Nothing's been merged yet to my knowledge, Matti can comment on any
->> incoming boards which will use it (rx51?).
-> 
-> Yes, nothing's been merged yet. There are only dependencies between the
-> parts of this driver... I cannot comment on upcoming boards, I just hope
-> we could agree on a sensible structure for this thing.
+Hi!
+I bought PCI card  TT-budget S-1500 from dvbshop.net, but they send me 
+new modification TT-budget S-1500b. The difference is in tuner - new 
+code is BSBE1-D01A. The tuner itself is STB6000, but the QPSK 
+demodulator is STx0288.
+The card identify itself as:
+Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
+     Subsystem: Technotrend Systemtechnik GmbH Unknown device 101b
+Is there any plan to support this device?
 
-We don't need any brand names or specific details, but it would be good to 
-have an overview, in general lines, about the architecture, in order to help 
-you to map how this would fit. In particular, the architecturre of 
-things that are tightly coupled and can't be splitted by some bus abstraction.
+Thank you,
+Penio Slavchev
 
-Mauro.
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+https://www.redhat.com/mailman/listinfo/video4linux-list
