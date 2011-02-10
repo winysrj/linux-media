@@ -1,118 +1,86 @@
 Return-path: <mchehab@pedra>
-Received: from mailmxout5.mailmx.agnat.pl ([193.239.44.251]:40012 "EHLO
-	mailmxout.mailmx.agnat.pl" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754055Ab1BAO3d (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Feb 2011 09:29:33 -0500
-Message-ID: <18BE1662A1F04B6C8B39AA46440A3FBB@laptop2>
-From: "Janusz Uzycki" <janusz.uzycki@elproma.com.pl>
-To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
-Cc: <g.daniluk@elproma.com.pl>,
-	"Linux Media Mailing List" <linux-media@vger.kernel.org>
-References: <1E539FC23CF84B8A91428720570395E0@laptop2> <Pine.LNX.4.64.1101241720001.17567@axis700.grange> <AD14536027B946D6B4504D4F43E352A5@laptop2> <Pine.LNX.4.64.1101262045550.3989@axis700.grange> <F95361ABAE1D4A70A10790A798004482@laptop2> <Pine.LNX.4.64.1101271809030.8916@axis700.grange> <8026191608244DB98F002E983C866149@laptop2> <Pine.LNX.4.64.1102011420540.6673@axis700.grange>
-Subject: Re: SoC Camera driver and TV decoder
-Date: Tue, 1 Feb 2011 15:29:21 +0100
+Received: from mga03.intel.com ([143.182.124.21]:44909 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752139Ab1BJJgM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Feb 2011 04:36:12 -0500
+From: "Bensaid, Selma" <selma.bensaid@intel.com>
+To: "matti.j.aaltonen@nokia.com" <matti.j.aaltonen@nokia.com>,
+	Peter Ujfalusi <peter.ujfalusi@nokia.com>
+CC: ext Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>,
+	"sameo@linux.intel.com" <sameo@linux.intel.com>,
+	ext Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>
+Date: Thu, 10 Feb 2011 09:35:38 +0000
+Subject: RE: [alsa-devel] WL1273 FM Radio driver...
+Message-ID: <2A84145621092446B6659B8A0F28E26F4703CC3968@irsmsx501.ger.corp.intel.com>
+References: <1297075922.15320.31.camel@masi.mnp.nokia.com>
+	 <4D4FDED0.7070008@redhat.com>
+	 <20110207120234.GE10564@opensource.wolfsonmicro.com>
+	 <4D4FEA03.7090109@redhat.com>
+	 <20110207131045.GG10564@opensource.wolfsonmicro.com>
+	 <4D4FF821.4010701@redhat.com>
+	 <20110207135225.GJ10564@opensource.wolfsonmicro.com>
+	 <1297088242.15320.62.camel@masi.mnp.nokia.com>
+	 <4D501704.6060504@redhat.com> <4D5109B3.60504@nokia.com>
+	 <2A84145621092446B6659B8A0F28E26F47010C29F1@irsmsx501.ger.corp.intel.com>
+	 <4D5122CF.3010403@nokia.com> <1297236165.15320.70.camel@masi.mnp.nokia.com>
+In-Reply-To: <1297236165.15320.70.camel@masi.mnp.nokia.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="iso-8859-1";
-	reply-type=original
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: base64
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-camera 0-0: Probing 0-0
-sh_mobile_ceu sh_mobile_ceu.0: SuperH Mobile CEU driver attached to camera 0
-tvp5150 0-005d: chip found @ 0xba (i2c-sh_mobile)
-tvp5150 0-005d: tvp5150am1 detected.
-sh_mobile_ceu sh_mobile_ceu.0: SuperH Mobile CEU driver detached from camera 
-0
-
-There is no error 515 but the driver is still detached.
-drivers/media/video/sh_mobile_ceu_camera.c:
-sh_mobile_ceu_remove_device() is called /* Called with .video_lock held */
-static struct soc_camera_host_ops sh_mobile_ceu_host_ops = {
-        .owner          = THIS_MODULE,
-        .add            = sh_mobile_ceu_add_device,
-        .remove         = sh_mobile_ceu_remove_device,
-It seems sh_mobile_ceu_add_device() was failed.
-I will try to explore that.
-
-Janusz
-
------ Original Message ----- 
-From: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
-To: "Janusz Uzycki" <janusz.uzycki@elproma.com.pl>
-Cc: <g.daniluk@elproma.com.pl>; "Linux Media Mailing List" 
-<linux-media@vger.kernel.org>
-Sent: Tuesday, February 01, 2011 2:21 PM
-Subject: Re: SoC Camera driver and TV decoder
-
-
-> On Tue, 1 Feb 2011, Janusz Uzycki wrote:
->
->> include/linux/errno.h:#define ENOIOCTLCMD       515     /* No ioctl 
->> command */
->>
->> What did I forget below?
->> static const struct v4l2_subdev_video_ops tvp5150_video_ops = {
->>        .s_routing = tvp5150_s_routing,
->>
->>        /* SoC camera: */
->>        .s_stream       = tvp5150_s_stream,
->>        .g_mbus_fmt     = tvp5150_g_fmt,
->>        .s_mbus_fmt     = tvp5150_s_fmt,
->>        .try_mbus_fmt   = tvp5150_try_fmt,
->>        .enum_mbus_fmt  = tvp5150_enum_fmt,
->> /*      .cropcap        = tw9910_cropcap,
->>        .g_crop         = tw9910_g_crop,
->>        .s_crop         = tw9910_s_crop,*/
->> };
->>
->> cropcap/g_crop/s_cros are necessary? why and when?
->
-> cropcap and g_crop might be necessary - at least minimal static versions.
->
-> Thanks
-> Guennadi
->
->>
->> thanks
->> Janusz
->>
->>
->> > On Thu, 27 Jan 2011, Janusz Uzycki wrote:
->> >
->> > > Hello Guennadi again.
->> > >
->> > > I patched tvp5150.c according to tw9910 driver (without real cropping
->> > > support yet).
->> > > Unfortunately I got the messages:
->> > > camera 0-0: Probing 0-0
->> > > sh_mobile_ceu sh_mobile_ceu.0: SuperH Mobile CEU driver attached to 
->> > > camera
->> > > 0
->> > > tvp5150 0-005d: chip found @ 0xba (i2c-sh_mobile)
->> > > tvp5150 0-005d: tvp5150am1 detected.
->> >
->> > This looks good - i2c to the chip works!
->> >
->> > > sh_mobile_ceu sh_mobile_ceu.0: SuperH Mobile CEU driver detached from
->> > > camera 0
->> > > camera: probe of 0-0 failed with error -515
->> >
->> > This is strange, however - error code 515... Can you try to find out 
->> > where
->> > it is coming from?
->> >
->> > Thanks
->> > Guennadi
->> >
->>
->
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> 
+PiBPbiBUdWUsIDIwMTEtMDItMDggYXQgMTM6MDIgKzAyMDAsIFBldGVyIFVqZmFsdXNpIHdyb3Rl
+Og0KPiA+ID4gRm9yIGJvdGggY29uZmlndXJhdGlvbiB3ZSBoYXZlIGEgc2V0IG9mIEhDSSBjb21t
+YW5kcyB0byBjb25maWd1cmUgdGhlIEZNDQo+IGF1ZGlvDQo+ID4gPiBwYXRoIGFuZCBvbmUgb2Yg
+bXkgY29uY2VybnMgaXMgdG8ga25vdyBpZiB0aGUgd2wxMjczX2NvZGVjIHNob3VsZCBoYW5kbGUN
+Cj4gdGhlIGF1ZGlvIHBhdGggY29uZmlndXJhdGlvbg0KPiA+ID4gYW5kIHRoZSBzd2l0Y2ggYmV0
+d2VlbiBGTSBhbmQgQlQgU0NPPw0KPiA+DQo+ID4gSXQgd291bGQgYmUgYmV0dGVyIGlmIHRoZSBj
+b2RlYyBjb3VsZCBoYW5kbGUgdGhlIGNvbmZpZ3VyYXRpb24sDQo+ID4gZGVwZW5kaW5nIG9uIHdo
+aWNoIERBSSBpcyBpbiB1c2UuIElmIHdlIGNhbiBzZW5kIEhDSSBjb21tYW5kcyBmcm9tDQo+ID4g
+a2VybmVsLCBJIHRoaW5rIHRoYXQgd291bGQgYmUgdGhlIGNsZWFuZXN0IHdheS4NCj4gDQo+IFll
+cywgSSB3b3VsZCBoYXZlIGRvbmUganVzdCB0aGF0IC0gYW5kIHdlIHRhbGtlZCBhIGxvdCBhYm91
+dCBpdCBsb2NhbGx5DQo+IC0gaWYgSSBoYWQga25vd24gaG93IHRvIGRvIGl0LiBJIHN0YXJ0ZWQg
+dG8gd29yayBvbiBpdCBhbmQgYWxzbyB0YWxrZWQNCj4gdG8gc29tZSBCVCBwZW9wbGUgYnV0IGl0
+IGRpZG4ndCBzZWVtIGZlYXNpYmxlIGF0IHRoZSB0aW1lLiBBZHZpY2UNCj4gd2VsY29tZSBvZiBj
+b3Vyc2UuLi4NCj4gDQo+IENoZWVycywNCj4gTWF0dGkNCj4gDQpIaSwNCkJlbG93IHRoZSBzZXQg
+b2YgSENJIGNvbW1hbmRzIHRoYXQgd2UgaGF2ZSBpZGVudGlmaWVkIHRvIGNvbmZpZ3VyZSB0aGUg
+Rk0gYW5kIEJUIFNDTyBhdWRpbyBwYXRoczoNCi0JRXh0ZXJuYWwgQXVkaW8gQ29ubmVjdGlvbg0K
+CW8JU1RBUlQgQlQgU0NPIENvbm5lY3Rpb24NCgkJIyBCVCBhdWRpbyBQYXRoIFBDTSAgJiAgRk0g
+YXVkaW8gUGF0aCBJMlMNCgkJPiBoY2l0b29sIGNtZCAweDNGIDBYMTk1IEZGIEZGIEZGIEZGIEZG
+IEZGIEZGIEZGIDAxIDAyIEZGIDAwIDAwIDAwIDAwIA0KCQkjIEJUIEFVRElPIENvZGVjIENvbmZp
+Z3VyYXRpb246IE1BU1RFUg0KCQk+IGhjaXRvb2wgY21kIDB4M0YgMFgxMDYgMDAgMDMgMDAgNDAg
+MUYgMDAgMDAgMDEgMDAgMDAgMDAgMDAgMTAgMDAgMDIgMDAgMDAgMTAgMDAgMDIgMDAgMDEgMDAg
+MDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDANCg0KCW8JU1RPUCBCVCBTQ08gQ29ubmVjdGlvbg0K
+CQkjIEJUIEFVRElPIENvZGVjIENvbmZpZ3VyYXRpb246IFNMQVZFDQoJCT4gaGNpdG9vbCBjbWQg
+MHgzRiAwWDEwNiAwMCAwMyAwMSA0MCAxRiAwMCAwMCAwMSAwMCAwMCAwMCAwMCAxMCAwMCAwMiAw
+MCAwMCAxMCAwMCAwMiAwMCAwMSAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMA0KDQogDQot
+CUludGVybmFsIEF1ZGlvIENvbm5lY3Rpb24NCglvCVNUQVJUIEJUIFNDTyBDb25uZWN0aW9uDQoJ
+CSMgQlQgYXVkaW8gUGF0aCBQQ00gDQoJCSMgRk0gYXVkaW8gUGF0aCBOb25lDQoJCT4gaGNpdG9v
+bCBjbWQgMHgzRiAwWDE5NSAgRkYgRkYgRkYgRkYgRkYgRkYgRkYgRkYgMDEgMDAgRkYgMDAgMDAg
+MDAgMDAgDQoJCSMgQlQgQVVESU8gQ29kZWMgQ29uZmlndXJhdGlvbjogTUFTVEVSDQoJCT4gaGNp
+dG9vbCBjbWQgMHgzRiAwWDEwNiAwMCAwMyAwMCA0MCAxRiAwMCAwMCAwMSAwMCAwMCAwMCAwMCAx
+MCAwMCAwMiAwMCAwMCAxMCAwMCAwMiAwMCAwMSAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAw
+MA0KDQoJbwlTVE9QIEJUIFNDTyBDb25uZWN0aW9uDQoJCSMgQlQgYXVkaW8gUGF0aCBOb25lICYg
+Rk0gYXVkaW8gUGF0aCBOb25lDQoJCT4gaGNpdG9vbCBjbWQgMHgzRiAwWDE5NSAgRkYgRkYgRkYg
+RkYgRkYgRkYgRkYgRkYgMDAgMDAgRkYgMDAgMDAgMDAgMDAgDQoNCglvCUZNIEF1ZGlvIFBhdGgg
+Y29uZmlndXJhdGlvbg0KCQkjIEJUIGF1ZGlvIFBhdGggTm9uZSAgJiBGTSBhdWRpbyBQYXRoIFBD
+TQ0KCQk+IGhjaXRvb2wgY21kIDB4M0YgMFgxOTUgIEZGIEZGIEZGIEZGIEZGIEZGIEZGIEZGIDAw
+IDAxIEZGIDAwIDAwIDAwIDAwDQogDQpQbGVhc2Ugbm90ZSB0aGF0IHRoZSBCVCBTQ08gQ29kZWMg
+c2V0dGluZ3MgYXJlIHBsYXRmb3JtIHNwZWNpZmljLg0KU2VsbWEuDQoNCg0KDQotLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0KSW50ZWwgQ29ycG9yYXRpb24gU0FTIChGcmVuY2ggc2ltcGxpZmllZCBqb2ludCBzdG9jayBj
+b21wYW55KQpSZWdpc3RlcmVkIGhlYWRxdWFydGVyczogIkxlcyBNb250YWxldHMiLSAyLCBydWUg
+ZGUgUGFyaXMsIAo5MjE5NiBNZXVkb24gQ2VkZXgsIEZyYW5jZQpSZWdpc3RyYXRpb24gTnVtYmVy
+OiAgMzAyIDQ1NiAxOTkgUi5DLlMuIE5BTlRFUlJFCkNhcGl0YWw6IDQsNTcyLDAwMCBFdXJvcwoK
+VGhpcyBlLW1haWwgYW5kIGFueSBhdHRhY2htZW50cyBtYXkgY29udGFpbiBjb25maWRlbnRpYWwg
+bWF0ZXJpYWwgZm9yCnRoZSBzb2xlIHVzZSBvZiB0aGUgaW50ZW5kZWQgcmVjaXBpZW50KHMpLiBB
+bnkgcmV2aWV3IG9yIGRpc3RyaWJ1dGlvbgpieSBvdGhlcnMgaXMgc3RyaWN0bHkgcHJvaGliaXRl
+ZC4gSWYgeW91IGFyZSBub3QgdGhlIGludGVuZGVkCnJlY2lwaWVudCwgcGxlYXNlIGNvbnRhY3Qg
+dGhlIHNlbmRlciBhbmQgZGVsZXRlIGFsbCBjb3BpZXMuCg==
 
