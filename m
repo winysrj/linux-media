@@ -1,73 +1,71 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:38863 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755625Ab1BXOjf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Feb 2011 09:39:35 -0500
-Date: Thu, 24 Feb 2011 15:33:52 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 5/7] s5p-fimc: Add a platform data entry for MIPI-CSI data
-	alignment
-In-reply-to: <1298558034-10768-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	kgene.kim@samsung.com, s.nawrocki@samsung.com
-Message-id: <1298558034-10768-6-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1298558034-10768-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mga11.intel.com ([192.55.52.93]:17776 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753306Ab1BJJp4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Feb 2011 04:45:56 -0500
+From: "Wang, Wen W" <wen.w.wang@intel.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"Gao, Bin" <bin.gao@intel.com>
+CC: "Kanigeri, Hari K" <hari.k.kanigeri@intel.com>,
+	"Iyer, Sundar" <sundar.iyer@intel.com>,
+	"Yang, Jianwei" <jianwei.yang@intel.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"umg-meego-handset-kernel@umglistsvr.jf.intel.com"
+	<umg-meego-handset-kernel@umglistsvr.jf.intel.com>,
+	Jozef Kruger <jozef.kruger@siliconhive.com>,
+	"Zhang, Xiaolin" <xiaolin.zhang@intel.com>,
+	"Xie, Cindy" <cindy.xie@intel.com>
+Date: Thu, 10 Feb 2011 17:44:58 +0800
+Subject: RE: Memory allocation in Video4Linux
+Message-ID: <D5AB6E638E5A3E4B8F4406B113A5A19A32F929C2@shsmsx501.ccr.corp.intel.com>
+References: <D5AB6E638E5A3E4B8F4406B113A5A19A32F923C4@shsmsx501.ccr.corp.intel.com>
+ <D5AB6E638E5A3E4B8F4406B113A5A19A32F92445@shsmsx501.ccr.corp.intel.com>
+ <06F569D088CFBC4497658761DA003E13015636076A@rrsmsx505.amr.corp.intel.com>
+ <201102101029.13502.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201102101029.13502.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="gb2312"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Allow the MIPI-CSI data alignment to be defined in the board setup
-as it may be different across various camera sensors.
-
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-reg.c |    6 ++++--
- include/media/s5p_fimc.h                |    2 ++
- 2 files changed, 6 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/video/s5p-fimc/fimc-reg.c b/drivers/media/video/s5p-fimc/fimc-reg.c
-index 10684ae..4d929a3 100644
---- a/drivers/media/video/s5p-fimc/fimc-reg.c
-+++ b/drivers/media/video/s5p-fimc/fimc-reg.c
-@@ -665,10 +665,12 @@ int fimc_hw_set_camera_type(struct fimc_dev *fimc,
- 			    vid_cap->fmt.code);
- 			return -EINVAL;
- 		}
--		writel(tmp | (0x1 << 8), fimc->regs + S5P_CSIIMGFMT);
-+		tmp |= (cam->csi_data_align == 32) << 8;
-+
-+		writel(tmp, fimc->regs + S5P_CSIIMGFMT);
- 
- 	} else if (cam->bus_type == FIMC_ITU_601 ||
--		  cam->bus_type == FIMC_ITU_656) {
-+		   cam->bus_type == FIMC_ITU_656) {
- 		if (cam->mux_id == 0) /* ITU-A, ITU-B: 0, 1 */
- 			cfg |= S5P_CIGCTRL_SELCAM_ITU_A;
- 	} else if (cam->bus_type == FIMC_LCD_WB) {
-diff --git a/include/media/s5p_fimc.h b/include/media/s5p_fimc.h
-index 96cd6fc..94c9a00 100644
---- a/include/media/s5p_fimc.h
-+++ b/include/media/s5p_fimc.h
-@@ -33,6 +33,7 @@ struct i2c_board_info;
-  * @board_info: pointer to I2C subdevice's board info
-  * @clk_frequency: frequency of the clock the host interface provides to sensor
-  * @bus_type: determines bus type, MIPI, ITU-R BT.601 etc.
-+ * @csi_data_align: MIPI-CSI interface data alignment in bits
-  * @i2c_bus_num: i2c control bus id the sensor is attached to
-  * @mux_id: FIMC camera interface multiplexer index (separate for MIPI and ITU)
-  * @flags: flags defining bus signals polarity inversion (High by default)
-@@ -41,6 +42,7 @@ struct s5p_fimc_isp_info {
- 	struct i2c_board_info *board_info;
- 	unsigned long clk_frequency;
- 	enum cam_bus_type bus_type;
-+	u16 csi_data_align;
- 	u16 i2c_bus_num;
- 	u16 mux_id;
- 	u16 flags;
--- 
-1.7.4.1
+SGkgTGF1cmVudCwNCg0KWW91IG1ha2UgdGhpcyB2ZXJ5IGNsZWFyLCB0aGFuayB5b3UhDQoNClRo
+ZSBJU1Agb24gTWVkZmllbGQgZG8gaGF2ZSBpdHMgb3duIElPTU1VLiBBbmQgSSBhbHNvIHRoaW5r
+IGFuIElPTU1VIGxheWVyIGZvciBJU1AgaXMgbmVlZGVkLg0KDQpJJ20gbm90IHF1aXRlIHVuZGVy
+c3RhbmQgInVubGVzcyBoYXJkd2FyZSBkZXNpZ24gZG9lc24ndCBnaXZlIHlvdSBhIGNob2ljZSBh
+Ym91dCB0aGF0LCIuIENhbiB5b3UgZXhwbGFpbiBtb3JlIG9uIHRoYXQ/DQoNCkFsc28gcmVnYXJk
+aW5nIHRvIHRoZSBWQ01NIChWaXJ0dWFsIENvbnRpZ3VvdXMgTWVtb3J5IE1hbmFnZXIpIG9yIENN
+QSwgaXMgaXQgYWxzbyBhbiBvcHRpb24/DQoNClRoYW5rcw0KV2VuDQoNCj4tLS0tLU9yaWdpbmFs
+IE1lc3NhZ2UtLS0tLQ0KPkZyb206IExhdXJlbnQgUGluY2hhcnQgW21haWx0bzpsYXVyZW50LnBp
+bmNoYXJ0QGlkZWFzb25ib2FyZC5jb21dDQo+U2VudDogMjAxMcTqMtTCMTDI1SAxNzoyOQ0KPlRv
+OiBHYW8sIEJpbg0KPkNjOiBXYW5nLCBXZW4gVzsgS2FuaWdlcmksIEhhcmkgSzsgSXllciwgU3Vu
+ZGFyOyBZYW5nLCBKaWFud2VpOw0KPmxpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZzsgdW1nLW1l
+ZWdvLWhhbmRzZXQta2VybmVsQHVtZ2xpc3RzdnIuamYuaW50ZWwuY29tOw0KPkpvemVmIEtydWdl
+cg0KPlN1YmplY3Q6IFJlOiBNZW1vcnkgYWxsb2NhdGlvbiBpbiBWaWRlbzRMaW51eA0KPg0KPkhp
+IFdlbiwNCj4NCj5PbiBUaHVyc2RheSAxMCBGZWJydWFyeSAyMDExIDA4OjU5OjM4IEdhbywgQmlu
+IHdyb3RlOg0KPj4gUGVud2VsbCBoYXMgSU9NTVUgZmVhdHVyZT8NCj4+IEFzIGZhciBhcyBJIGtu
+b3cgb25seSBwYXJ0IG9mIEludGVsIHNlcnZlciBwcm9jZXNzb3JzIGhhdmUgdGhpcyBmZWF0dXJl
+DQo+PiB3aGljaCBpcyBkZXNpZ25lZCBvcmlnaW5hbGx5IGZvciBWVCh2aXJ0dWFsaXphdGlvbiB0
+ZWNobm9sb2d5KS4NCj4+DQo+PiBXZW4sDQo+PiBDYW4geW91IHJlZmVyIHRvIG90aGVyIElTUCBT
+b2MgZHJpdmVycyBhbmQgc2VlIGhvdyB0aGV5IGFyZSBkZWFsaW5nIHdpdGgNCj4+IHRoaXMgaXNz
+dWU/IEkgZG9uJ3QgdW5kZXJzdGFuZCB3aHkgeW91IG5lZWQgdG8gbWFuYWdlIE1NVSBpbnNpZGUg
+SVNQLCBJDQo+PiB0aGluayB0aGUgcmVhbCBwcm9ibGVtIGlzIGhvdyBjYW4gd2UgYWxsb2NhdGUg
+YSBsYXJnZSBudW1iZXIgb2YgbWVtb3J5DQo+PiBwYWdlcyBmcm9tIElBIHNpZGUgd2hlcmUgSVNQ
+IGNhbiBhY2Nlc3MgdG8gYnkgRE1BLiBBbnkgSVNQIGRvY3VtZW50IGNhbiBiZQ0KPj4gc2hhcmVk
+IHRvIGhlbHAgdXMgdW5kZXJzdGFuZCB3aGF0J3MgdGhlIHByb2JsZW0/DQo+DQo+SSBzZWNvbmQg
+dGhpcyByZXF1ZXN0LiBJdCdzIG5vdCB0b3RhbGx5IGNsZWFyIHRvIG1lIGZyb20gdGhpcyBtYWls
+IHRocmVhZA0KPndoZXRoZXIgeW91ciBJU1AgaGFzIGl0cyBvd24gTU1VICh3aGljaCB3b3VsZCB0
+aGVuIGJlIGNvbnNpZGVyZWQgYXMgYW4gSU9NTVUpLA0KPm9yIGFjY2Vzc2VzIHRoZSBzeXN0ZW0g
+bWVtb3J5IHRocm91Z2ggb3RoZXIgbWVhbnMgKGNvbnRpbnVvdXMgYnVmZmVycywNCj5zY2F0dGVy
+LWdhdGhlciBsaXN0cywgLi4uKS4NCj4NCj5JZiB0aGUgTWVkZmllbGQgSVNQIGluY2x1ZGVzIGFu
+IElPTU1VLCB0aGUgSU9NTVUgbGF5ZXIgaXMgcHJvYmFibHkgd2hhdCB5b3UNCj53YW50IHRvIHVz
+ZS4gTWVtb3J5IGNhbiB0aGVuIGJlIGFsbG9jYXRlZCB1c2luZyBhIHNpbXBsZSB2bWFsbG9jKCks
+IGFuZCBwYWdlcw0KPmNhbiBiZSBtYXBwZWQgdG8gdGhlIElTUCBtZW1vcnkgc3BhY2UgdXNpbmcg
+dGhlIElPTU1VLg0KPg0KPlBsZWFzZSBub3RlIHRoYXQsIHVubGVzcyB0aGUgSVNQIElPTU1VIGlz
+IGFscmVhZHkgc3VwcG9ydGVkIGJ5IHRoZSBMaW51eA0KPmtlcm5lbCwgeW91IHdpbGwgb2J2aW91
+c2x5IG5lZWQgdG8gaW1wbGVtZW50IGFuIElPTU1VIGRyaXZlciBmb3IgaXQuIFdoYXQgeW91DQo+
+c2hvdWxkbid0IGRvIGlzIHB1dCB0aGF0IGNvZGUgaW4gdGhlIElTUCBkcml2ZXIgKHVubGVzcyBo
+YXJkd2FyZSBkZXNpZ24NCj5kb2Vzbid0IGdpdmUgeW91IGEgY2hvaWNlIGFib3V0IHRoYXQsIGJ1
+dCBJIG5lZWQgdG8gc2VlIG1vcmUgZG9jdW1lbnRhdGlvbiB0bw0KPmFuc3dlciB0aGlzIHF1ZXN0
+aW9uKS4NCj4NCj4tLQ0KPlJlZ2FyZHMsDQo+DQo+TGF1cmVudCBQaW5jaGFydA0K
