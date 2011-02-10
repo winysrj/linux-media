@@ -1,54 +1,57 @@
 Return-path: <mchehab@pedra>
-Received: from mx2.redhat.com (ext-mx01.rdu.redhat.com [10.11.45.6])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id p1BHRPtQ025300
-	for <video4linux-list@redhat.com>; Fri, 11 Feb 2011 12:27:26 -0500
-Received: from smtpdeliver.argentina.com (smtpdeliver.argentina.com
-	[200.41.60.83])
-	by mx2.redhat.com (8.13.8/8.13.8) with ESMTP id p1BHRMx4009580
-	for <video4linux-list@redhat.com>; Fri, 11 Feb 2011 12:27:23 -0500
-Received: from localhost (antivirus-2.argentina.com [64.76.16.57])
-	by smtpdeliver.argentina.com (Postfix) with ESMTP id 25E1F13C4865
-	for <video4linux-list@redhat.com>; Fri, 11 Feb 2011 17:27:19 +0000 (UTC)
-Received: from smtp-x1.argentina.com ([64.76.16.38])
-	by localhost (mx1.argentina.com [64.76.16.57]) (amavisd-new, port 10024)
-	with LMTP id zLiGqZe3ANV2 for <video4linux-list@redhat.com>;
-	Fri, 11 Feb 2011 14:27:16 -0300 (ART)
-Received: from smtp-x1.argentina.com (smtp-x1.argentina.com [64.76.16.38])
-	by smtp-x1.argentina.com (Postfix) with ESMTP id 5303219D0001
-	for <video4linux-list@redhat.com>; Fri, 11 Feb 2011 14:20:26 -0300 (ART)
-Date: Fri, 11 Feb 2011 14:20:26 -0300
-To: video4linux-list@redhat.com
-From: =?ISO-8859-1?Q?Alfredo_Jes=FAs_Delaiti?= <alfredodelaiti@argentina.com>
-Subject: MyGica X8507 analog sound
-Message-ID: <a085711c5894648d235a5f7bb3e90d09@smtp-x1.argentina.com>
+Received: from mail.tu-berlin.de ([130.149.7.33])
+	by www.linuxtv.org with esmtp (Exim 4.69)
+	(envelope-from <penio@setelcom.org>) id 1PnXSL-0005TS-QT
+	for linux-dvb@linuxtv.org; Thu, 10 Feb 2011 15:25:14 +0100
+Received: from ns.setelcom.org ([195.230.2.69])
+	by mail.tu-berlin.de (exim-4.74/mailfrontend-b) with esmtps
+	[TLSv1:AES256-SHA:256] for <linux-dvb@linuxtv.org>
+	id 1PnXSL-0006Jj-6u; Thu, 10 Feb 2011 15:25:13 +0100
+Received: from localhost (localhost [127.0.0.1])
+	by ns.setelcom.org (Postfix) with ESMTP id 4111429DD4
+	for <linux-dvb@linuxtv.org>; Thu, 10 Feb 2011 16:24:43 +0200 (EET)
+Received: from ns.setelcom.org ([127.0.0.1])
+	by localhost (ns.setelcom.org [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id Z5OyGjIxeH-b for <linux-dvb@linuxtv.org>;
+	Thu, 10 Feb 2011 16:24:43 +0200 (EET)
+Received: from [192.168.16.226] (setelcom.gcn.bg [93.155.252.130])
+	by ns.setelcom.org (Postfix) with ESMTP id C45FF29DA4
+	for <linux-dvb@linuxtv.org>; Thu, 10 Feb 2011 16:24:42 +0200 (EET)
+Message-ID: <4D53F56C.6040503@setelcom.org>
+Date: Thu, 10 Feb 2011 16:25:48 +0200
+From: "penio@setelcom.org" <penio@setelcom.org>
 MIME-Version: 1.0
-List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
-List-Post: <mailto:video4linux-list@redhat.com>
-List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Support to TT-budget S-1500b ?
+Reply-To: linux-media@vger.kernel.org
+List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
+List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
+List-Post: <mailto:linux-dvb@linuxtv.org>
+List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
+List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
 Content-Transfer-Encoding: 7bit
-Errors-To: video4linux-list-bounces@redhat.com
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 Sender: <mchehab@pedra>
-List-ID: <video4linux-list@redhat.com>
+List-ID: <linux-dvb@linuxtv.org>
 
-Hi all
+Hi!
+I bought PCI card  TT-budget S-1500 from dvbshop.net, but they send me 
+new modification TT-budget S-1500b. The difference is in tuner - new 
+code is BSBE1-D01A. The tuner itself is STB6000, but the QPSK 
+demodulator is STx0288.
+The card identify itself as:
+Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
+     Subsystem: Technotrend Systemtechnik GmbH Unknown device 101b
+Is there any plan to support this device?
 
-Writing after a long time to return to help.
-I bought a new TV-card "MyGica X8507" if I set it up as DMB-TH Mygica X8506 "card 22" analog TV I can see but not hear.
-Can you help me to configure this card so I can listen?
-I hope that soon this support and can also see digital television.
+Thank you,
+Penio Slavchev
 
-Thanks in advance
-
-
-Alfredo
-
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
