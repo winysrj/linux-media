@@ -1,107 +1,96 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:51270 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750991Ab1BITBX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Feb 2011 14:01:23 -0500
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:56327 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753805Ab1BKRhT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Feb 2011 12:37:19 -0500
+Received: by fxm20 with SMTP id 20so2936356fxm.19
+        for <linux-media@vger.kernel.org>; Fri, 11 Feb 2011 09:37:18 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <AANLkTimeYp=aJi40jH2Nwu25C_e1dJYxLXXXu-7zwZEp@mail.gmail.com>
-References: <1297157427-14560-1-git-send-email-t.stanislaws@samsung.com>
- <201102081047.17840.hansverk@cisco.com> <AANLkTi=A=HiAvHojWP8HcFXpjXbZpq6UdHjOnWq-8jww@mail.gmail.com>
- <1297205267.2423.24.camel@localhost> <AANLkTimeYp=aJi40jH2Nwu25C_e1dJYxLXXXu-7zwZEp@mail.gmail.com>
-From: Matt Turner <mattst88@gmail.com>
-Date: Wed, 9 Feb 2011 19:00:38 +0000
-Message-ID: <AANLkTim1_ba1gj25fGYua=mrya5q0twYO29enEhWxsod@mail.gmail.com>
-Subject: Re: [PATCH/RFC 0/5] HDMI driver for Samsung S5PV310 platform
-To: Hans Verkuil <hansverk@cisco.com>
-Cc: Andy Walls <awalls@md.metrocast.net>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-samsung-soc@vger.kernel.org,
-	Maling list - DRI developers
-	<dri-devel@lists.freedesktop.org>,
-	Alex Deucher <alexdeucher@gmail.com>,
-	kyungmin.park@samsung.com, linux-media@vger.kernel.org,
-	m.szyprowski@samsung.com
+In-Reply-To: <20110211135425.6441a750@pedra>
+References: <20110211135425.6441a750@pedra>
+Date: Fri, 11 Feb 2011 12:37:16 -0500
+Message-ID: <AANLkTimWFVj-v3QOyTVhquQQKVy_PO+q3dkPmY6_UGJT@mail.gmail.com>
+Subject: Re: [PATCH 0/8] Port xf86-video-v4l driver to V4L2 version 2
+From: Alex Deucher <alexdeucher@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: "X.Org Devel List" <xorg-devel@lists.freedesktop.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Dmitry Butskoy <buc@odusz.so-cdu.ru>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Feb 9, 2011 at 7:12 AM, Alex Deucher <alexdeucher@gmail.com> wrote:
-> On Tue, Feb 8, 2011 at 5:47 PM, Andy Walls <awalls@md.metrocast.net> wrote:
->> On Tue, 2011-02-08 at 10:28 -0500, Alex Deucher wrote:
->>> On Tue, Feb 8, 2011 at 4:47 AM, Hans Verkuil <hansverk@cisco.com> wrote:
->>> > Just two quick notes. I'll try to do a full review this weekend.
->>> >
->>> > On Tuesday, February 08, 2011 10:30:22 Tomasz Stanislawski wrote:
->>> >> ==============
->>> >>  Introduction
->>> >> ==============
->>> >>
->>> >> The purpose of this RFC is to discuss the driver for a TV output interface
->>> >> available in upcoming Samsung SoC. The HW is able to generate digital and
->>> >> analog signals. Current version of the driver supports only digital output.
->>> >>
->>> >> Internally the driver uses videobuf2 framework, and CMA memory allocator.
->>> > Not
->>> >> all of them are merged by now, but I decided to post the sources to start
->>> >> discussion driver's design.
->>
->>> >
->>> > Cisco (i.e. a few colleagues and myself) are working on this. We hope to post
->>> > an RFC by the end of this month. We also have a proposal for CEC support in
->>> > the pipeline.
->>>
->>> Any reason to not use the drm kms APIs for modesetting, display
->>> configuration, and hotplug support?  We already have the
->>> infrastructure in place for complex display configurations and
->>> generating events for hotplug interrupts.  It would seem to make more
->>> sense to me to fix any deficiencies in the KMS APIs than to spin a new
->>> API.  Things like CEC would be a natural fit since a lot of desktop
->>> GPUs support hdmi audio/3d/etc. and are already using kms.
->>>
->>> Alex
->>
->> I'll toss one out: lack of API documentation for driver or application
->> developers to use.
->>
->>
->> When I last looked at converting ivtvfb to use DRM, KMS, TTM, etc. (to
->> possibly get rid of reliance on the ivtv X video driver
->> http://dl.ivtvdriver.org/xf86-video-ivtv/ ), I found the documentation
->> was really sparse.
->>
->> DRM had the most documentation under Documentation/DocBook/drm.tmpl, but
->> the userland API wasn't fleshed out.  GEM was talked about a bit in
->> there as well, IIRC.
->>
->> TTM documentation was essentially non-existant.
->>
->> I can't find any KMS documentation either.
->>
->> I recall having to read much of the drm code, and having to look at the
->> radeon driver, just to tease out what the DRM ioctls needed to do.
->>
->> Am I missing a Documentation source for the APIs?
+On Fri, Feb 11, 2011 at 10:54 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> This is the second version of my backport patches. To avoid spending
+> people's time on looking at lines that have only whitespace changes,
+> I broke the patch I submitted two days ago into two patches:
+> the first one with just the logical changes, and the second one with
+> just CodingStyle (whitespace) fixes.
 
-Yes,
+Mauro,  I don't think anyone has maintained or used the v4l module in
+ages.  You could be the new maintainer :)
+Or at least have commit rights.  Just follow the instructions here:
+http://www.freedesktop.org/wiki/AccountRequests
 
-My summer of code project's purpose was to create something of a
-tutorial for writing a KMS driver. The code, split out into something
-like 15 step-by-step patches, and accompanying documentation are
-available from Google's website.
+Alex
 
-http://code.google.com/p/google-summer-of-code-2010-xorg/downloads/detail?name=Matt_Turner.tar.gz
-
-My repository (doesn't include the documentation) is available here:
-http://git.kernel.org/?p=linux/kernel/git/mattst88/glint.git;a=summary
-
-There's a 'rebased' branch that contains API changes required for the
-code to work with 2.6.37~.
-
-I hope it's useful to you.
-
-I can't image how the lack of documentation of an used and tested API
-could be a serious reason to write you own. That makes absolutely no
-sense to me, so I hope you'll decide to use KMS.
-
-Matt
+>
+> Reworking on a driver with whitespace and identation problems is hard,
+> as it makes harder for people to work with the source code.
+>
+> So, the first two patches have basically the same content as the patch
+> I submitted earlier[1].
+>
+> [1] http://lists.x.org/archives/xorg-devel/2011-February/019042.html
+>
+> The fix patch I submited for xserver is still needed[2], otherwise
+> loading the v4l driver with a video driver that doesn't support overlay
+> will cause a server crash.
+>
+> [2] http://lists.x.org/archives/xorg-devel/2011-February/019048.html
+>
+> The remaining patches on this series fix some bugs found on the tests
+> I made with:
+>        1) a Nvidia FX5200 and the nv driver, and a bttv Encore FM board;
+>        2) a Nvidia 6600 and nouveau driver, and a Kworld SBTV-D board
+>          (to test it on an environment where Xv overlay is not available).
+> And by some tests made by Dmitry Butskoy with a bttv AVerMedia TVPhone98
+> board, with a Radeon RV100, using an old version of the Radeon driver.
+>
+> As I said before, the intention now is to port it to work with textured
+> video. Help is wanted to point us how to use a textured video from the
+> v4l driver.
+>
+> To make easier for people to test and review, the same patches are also
+> available on a git repository at:
+>        http://git.linuxtv.org/mchehab/xf86-video-v4l.git
+>
+> PS.: I'm c/c just this  message to the media devel ML, for people there
+>     to be aware of the changes. There's not much sense to submit the
+>     remaining patches there.
+>
+> Mauro Carvalho Chehab (8):
+>  Port xf86-video-v4l driver to V4L2
+>  Coding style Cleanup
+>  Use the fourcc header instead of redefining it inside the code
+>  Fix Get/Set Port Attribute logic
+>  Return BadMatch if a Port Attribute is not found
+>  Provide a more consistent message if FBUF fails
+>  Fix arguments for v4l_check_yuv
+>  Fix standard video size detection
+>
+>  src/v4l.c       | 1549 ++++++++++++++++++++++++++-------------------
+>  src/videodev.h  |  254 --------
+>  src/videodev2.h | 1929 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 2831 insertions(+), 901 deletions(-)
+>  delete mode 100644 src/videodev.h
+>  create mode 100644 src/videodev2.h
+>
+> _______________________________________________
+> xorg-devel@lists.x.org: X.Org development
+> Archives: http://lists.x.org/archives/xorg-devel
+> Info: http://lists.x.org/mailman/listinfo/xorg-devel
+>
