@@ -1,88 +1,64 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1342 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755180Ab1BXJug (ORCPT
+Received: from mail-yi0-f46.google.com ([209.85.218.46]:45668 "EHLO
+	mail-yi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932231Ab1BKCHk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Feb 2011 04:50:36 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: Re: [GIT PATCHES FOR 2.6.38] Implement core priority handling
-Date: Thu, 24 Feb 2011 10:50:27 +0100
-Cc: Andy Walls <awalls@md.metrocast.net>
-References: <201101110921.36394.hverkuil@xs4all.nl>
-In-Reply-To: <201101110921.36394.hverkuil@xs4all.nl>
+	Thu, 10 Feb 2011 21:07:40 -0500
+Received: by yib18 with SMTP id 18so878917yib.19
+        for <linux-media@vger.kernel.org>; Thu, 10 Feb 2011 18:07:39 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201102241050.27236.hverkuil@xs4all.nl>
+In-Reply-To: <201102101100.50667.laurent.pinchart@ideasonboard.com>
+References: <D5AB6E638E5A3E4B8F4406B113A5A19A32F923C4@shsmsx501.ccr.corp.intel.com>
+	<201102101029.13502.laurent.pinchart@ideasonboard.com>
+	<D5AB6E638E5A3E4B8F4406B113A5A19A32F929C2@shsmsx501.ccr.corp.intel.com>
+	<201102101100.50667.laurent.pinchart@ideasonboard.com>
+Date: Fri, 11 Feb 2011 11:07:38 +0900
+Message-ID: <AANLkTimveC0a6ww-ZQ0ijnyOOS6u2uxMsgmhay9mWWeD@mail.gmail.com>
+Subject: Re: Memory allocation in Video4Linux
+From: KyongHo Cho <pullip.cho@samsung.com>
+To: "Wang, Wen W" <wen.w.wang@intel.com>
+Cc: "Gao, Bin" <bin.gao@intel.com>,
+	"Kanigeri, Hari K" <hari.k.kanigeri@intel.com>,
+	"Iyer, Sundar" <sundar.iyer@intel.com>,
+	"Yang, Jianwei" <jianwei.yang@intel.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"umg-meego-handset-kernel@umglistsvr.jf.intel.com"
+	<umg-meego-handset-kernel@umglistsvr.jf.intel.com>,
+	Jozef Kruger <jozef.kruger@siliconhive.com>,
+	"Zhang, Xiaolin" <xiaolin.zhang@intel.com>,
+	"Xie, Cindy" <cindy.xie@intel.com>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This pull request is cancelled. I'm respinning this for 2.6.39.
+Hi Wen and Laurent,
 
-Regards,
+>
+>> Also regarding to the VCMM (Virtual Contiguous Memory Manager) or CMA, is
+>> it also an option?
+>
+> I'm not sure about VCMM, it seems to be an attempt to unify memory management
+> across IOMMUs and system MMU. I don't think you need to worry about it now,
+> IOMMU should be enough for your needs.
+>
+> CMA, as its name implies, is a contiguous memory allocator. As your ISP has an
+> IOMMU, you don't need to allocate contiguous memory, so CMA isn't useful for
+> your hardware.
+>
 
-	Hans
+VCM(aka. VCMM) is a virtual memory (device memory) allocator and
+manager when a system has multiple MMUs.
+Since physical memory allocation (and virtual memory allocation also)
+for processes by O/S is not suitable for peripheral devices,
+VCM separates allocating physical memory and virtual memory.
+It also gives you chances to override the default behavior of the allocators.
 
-On Tuesday, January 11, 2011 09:21:36 Hans Verkuil wrote:
-> This implements core support for priority handling. This is basically the same
-> as my RFCv3 patch series, except without some of the driver changes (I want to
-> do that for 2.6.39) and with the single fix to patch 05/16 I posted to the list.
-> 
-> Currently the only drivers this affects are ivtv (which is the only user of
-> v4l2_fh at the moment) and vivi.
-> 
-> I will probably also adapt cx18 this weekend since as it stands now it is possible
-> for a lower prio process to change controls for a higher prio process. To fix
-> this requires core prio handling anyway, so let's get this in for 2.6.38 so
-> people can start using it.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> The following changes since commit 04c3fafd933379fbc8b1fa55ea9b65281af416f7:
->   Hans Verkuil (1):
->         [media] vivi: convert to the control framework and add test controls
-> 
-> are available in the git repository at:
-> 
->   ssh://linuxtv.org/git/hverkuil/media_tree.git prio2
-> 
-> Hans Verkuil (9):
->       v4l2_prio: move from v4l2-common to v4l2-dev.
->       v4l2: add v4l2_prio_state to v4l2_device and video_device
->       v4l2-fh: implement v4l2_priority support.
->       v4l2-fh: add v4l2_fh_open and v4l2_fh_release helper functions
->       v4l2-ioctl: add priority handling support.
->       v4l2-fh: add v4l2_fh_is_singular
->       ivtv: convert to core priority handling.
->       v4l2-framework.txt: improve v4l2_fh/priority documentation
->       vivi: add priority support
-> 
->  Documentation/video4linux/v4l2-framework.txt |  120 +++++++++++++++++++-------
->  drivers/media/radio/radio-si4713.c           |    3 +-
->  drivers/media/video/cx18/cx18-ioctl.c        |    3 +-
->  drivers/media/video/davinci/vpfe_capture.c   |    2 +-
->  drivers/media/video/ivtv/ivtv-driver.h       |    2 -
->  drivers/media/video/ivtv/ivtv-fileops.c      |    2 -
->  drivers/media/video/ivtv/ivtv-ioctl.c        |   59 ++++---------
->  drivers/media/video/meye.c                   |    3 +-
->  drivers/media/video/mxb.c                    |    3 +-
->  drivers/media/video/v4l2-common.c            |   63 --------------
->  drivers/media/video/v4l2-dev.c               |   70 +++++++++++++++
->  drivers/media/video/v4l2-device.c            |    1 +
->  drivers/media/video/v4l2-fh.c                |   46 ++++++++++
->  drivers/media/video/v4l2-ioctl.c             |   64 ++++++++++++--
->  drivers/media/video/vivi.c                   |   13 ++-
->  include/media/v4l2-common.h                  |   15 ---
->  include/media/v4l2-dev.h                     |   18 ++++
->  include/media/v4l2-device.h                  |    3 +
->  include/media/v4l2-fh.h                      |   29 ++++++
->  include/media/v4l2-ioctl.h                   |    2 +-
->  20 files changed, 346 insertions(+), 175 deletions(-)
-> 
+If you concern about device memory management with IOMMU,
+I think VCM is one of good options even though a system has only one
+IOMMU to deal with.
 
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+It is not merged into the Linux kernel
+because applications of VCM is very restricted and just few people are
+interested in it.
+
+KyongHo.
