@@ -1,50 +1,41 @@
 Return-path: <mchehab@pedra>
-Received: from utm.netup.ru ([193.203.36.250]:39822 "EHLO utm.netup.ru"
+Received: from mx1.redhat.com ([209.132.183.28]:54395 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750921Ab1BNTHE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Feb 2011 14:07:04 -0500
-Message-ID: <4D597C71.5040100@netup.ru>
-Date: Mon, 14 Feb 2011 22:03:13 +0300
-From: Abylay Ospan <aospan@netup.ru>
+	id S1756787Ab1BKTWx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Feb 2011 14:22:53 -0500
+Message-ID: <4D558C69.2010109@redhat.com>
+Date: Fri, 11 Feb 2011 17:22:17 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"Igor M. Liplianin" <liplianin@me.by>
-Subject: [PATCH 1/1] Update stv0900 status when LOCK is missed
-Content-Type: text/plain; charset=KOI8-R; format=flowed
+To: Alex Deucher <alexdeucher@gmail.com>
+CC: "X.Org Devel List" <xorg-devel@lists.freedesktop.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Dmitry Butskoy <buc@odusz.so-cdu.ru>
+Subject: Re: [PATCH 0/8] Port xf86-video-v4l driver to V4L2 version 2
+References: <20110211135425.6441a750@pedra> <AANLkTimWFVj-v3QOyTVhquQQKVy_PO+q3dkPmY6_UGJT@mail.gmail.com>
+In-Reply-To: <AANLkTimWFVj-v3QOyTVhquQQKVy_PO+q3dkPmY6_UGJT@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Update stv0900 status when LOCK is missed
+Hi Alex,
 
-Signed-off-by: Abylay Ospan <aospan@netup.ru>
----
-  drivers/media/dvb/frontends/stv0900_core.c |    4 +++-
-  1 files changed, 3 insertions(+), 1 deletions(-)
+Em 11-02-2011 15:37, Alex Deucher escreveu:
+> On Fri, Feb 11, 2011 at 10:54 AM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+>> This is the second version of my backport patches. To avoid spending
+>> people's time on looking at lines that have only whitespace changes,
+>> I broke the patch I submitted two days ago into two patches:
+>> the first one with just the logical changes, and the second one with
+>> just CodingStyle (whitespace) fixes.
+> 
+> Mauro,  I don't think anyone has maintained or used the v4l module in
+> ages.  You could be the new maintainer :)
+> Or at least have commit rights.  Just follow the instructions here:
+> http://www.freedesktop.org/wiki/AccountRequests
 
-diff --git a/drivers/media/dvb/frontends/stv0900_core.c 
-b/drivers/media/dvb/frontends/stv0900_core.c
-index 4f5e7d3..34afcc6 100644
---- a/drivers/media/dvb/frontends/stv0900_core.c
-+++ b/drivers/media/dvb/frontends/stv0900_core.c
-@@ -1660,8 +1660,10 @@ static int stv0900_read_status(struct 
-dvb_frontend *fe, enum fe_status *status)
-                         | FE_HAS_VITERBI
-                         | FE_HAS_SYNC
-                         | FE_HAS_LOCK;
--       } else
-+       } else {
-+               *status = 0;
-                 dprintk("DEMOD LOCK FAIL\n");
-+       }
+Thanks for the tip! I've filled an account request there.
 
-         return 0;
-  }
--- 
-1.7.2.1.95.g3d045
-
--- 
-Abylai Ospan<aospan@netup.ru>
-NetUP Inc.
-
+Thanks!
+Mauro
