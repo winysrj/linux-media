@@ -1,151 +1,217 @@
 Return-path: <mchehab@pedra>
-Received: from ns.mm-sol.com ([213.240.235.226]:38419 "EHLO extserv.mm-sol.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754520Ab1BVPeq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Feb 2011 10:34:46 -0500
-Message-ID: <4D63D78E.3070000@mm-sol.com>
-Date: Tue, 22 Feb 2011 17:34:38 +0200
-From: Stan <svarbanov@mm-sol.com>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Hans Verkuil <hansverk@cisco.com>, linux-media@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com, saaguirre@ti.com
-Subject: Re: [RFC/PATCH 0/1] New subdev sensor operation g_interface_parms
-References: <cover.1298368924.git.svarbanov@mm-sol.com> <Pine.LNX.4.64.1102221215350.1380@axis700.grange> <201102221432.50847.hansverk@cisco.com> <Pine.LNX.4.64.1102221456590.1380@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1102221456590.1380@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:13725 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752438Ab1BLUsB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Feb 2011 15:48:01 -0500
+Subject: Re: [get-bisect results]: DViCO FusionHDTV7 Dual Express I2C write
+ failed
+From: Andy Walls <awalls@md.metrocast.net>
+To: Mark Zimmerman <markzimm@frii.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <20110212190504.GA43693@io.frii.com>
+References: <20101207190753.GA21666@io.frii.com>
+	 <20110212152954.GA20838@io.frii.com> <1297528048.2413.22.camel@localhost>
+	 <20110212163607.GA27853@io.frii.com> <1297529173.2413.32.camel@localhost>
+	 <20110212190504.GA43693@io.frii.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sat, 12 Feb 2011 15:48:07 -0500
+Message-ID: <1297543687.2413.41.camel@localhost>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
-
-Guennadi Liakhovetski wrote:
-> On Tue, 22 Feb 2011, Hans Verkuil wrote:
+On Sat, 2011-02-12 at 12:05 -0700, Mark Zimmerman wrote:
+> On Sat, Feb 12, 2011 at 11:46:13AM -0500, Andy Walls wrote:
+> > On Sat, 2011-02-12 at 09:36 -0700, Mark Zimmerman wrote:
+> > > On Sat, Feb 12, 2011 at 11:27:27AM -0500, Andy Walls wrote:
+> > > > On Sat, 2011-02-12 at 08:29 -0700, Mark Zimmerman wrote:
+> > > > > On Tue, Dec 07, 2010 at 12:07:53PM -0700, Mark Zimmerman wrote:
+> > > > > > Greetings:
+> > > > > > 
+> > > > > > I have a DViCO FusionHDTV7 Dual Express card that works with 2.6.35 but
+> > > > > > which fails to initialize with the latest 2.6.36 kernel. The firmware
+> > > > > > fails to load due to an i2c failure. A search of the archives indicates
+> > > > > > that this is not the first time this issue has occurred.
+> > > > > > 
+> > > > > > What can I do to help get this problem fixed?
+> > > > > > 
+> > > > > > Here is the dmesg from 2.6.35, for the two tuners: 
+> > > > > > 
+> > > > > > xc5000: waiting for firmware upload (dvb-fe-xc5000-1.6.114.fw)... 
+> > > > > > xc5000: firmware read 12401 bytes. 
+> > > > > > xc5000: firmware uploading... 
+> > > > > > xc5000: firmware upload complete... 
+> > > > > > xc5000: waiting for firmware upload (dvb-fe-xc5000-1.6.114.fw)... 
+> > > > > > xc5000: firmware read 12401 bytes. 
+> > > > > > xc5000: firmware uploading... 
+> > > > > > xc5000: firmware upload complete..
+> > > > > > 
+> > > > > > and here is what happens with 2.6.36: 
+> > > > > > 
+> > > > > > xc5000: waiting for firmware upload (dvb-fe-xc5000-1.6.114.fw)... 
+> > > > > > xc5000: firmware read 12401 bytes. 
+> > > > > > xc5000: firmware uploading... 
+> > > > > > xc5000: I2C write failed (len=3) 
+> > > > > > xc5000: firmware upload complete... 
+> > > > > > xc5000: Unable to initialise tuner 
+> > > > > > xc5000: waiting for firmware upload (dvb-fe-xc5000-1.6.114.fw)... 
+> > > > > > xc5000: firmware read 12401 bytes. 
+> > > > > > xc5000: firmware uploading... 
+> > > > > > xc5000: I2C write failed (len=3) 
+> > > > > > xc5000: firmware upload complete...
+> > > > > > 
+> > > > > 
+> > > > > I did a git bisect on this and finally reached the end of the line.
+> > > > > Here is what it said:
+> > > > > 
+> > > > > qpc$ git bisect bad
+> > > > > 82ce67bf262b3f47ecb5a0ca31cace8ac72b7c98 is the first bad commit
+> > > > > commit 82ce67bf262b3f47ecb5a0ca31cace8ac72b7c98
+> > > > > Author: Jarod Wilson <jarod@redhat.com>
+> > > > > Date:   Thu Jul 29 18:20:44 2010 -0300
+> > > > > 
+> > > > >     V4L/DVB: staging/lirc: fix non-CONFIG_MODULES build horkage
+> > > > >     
+> > > > >     Fix when CONFIG_MODULES is not enabled:
+> > > > >     
+> > > > >     drivers/staging/lirc/lirc_parallel.c:243: error: implicit declaration of function 'module_refcount'
+> > > > >     drivers/staging/lirc/lirc_it87.c:150: error: implicit declaration of function 'module_refcount'
+> > > > >     drivers/built-in.o: In function `it87_probe':
+> > > > >     lirc_it87.c:(.text+0x4079b0): undefined reference to `init_chrdev'
+> > > > >     lirc_it87.c:(.text+0x4079cc): undefined reference to `drop_chrdev'
+> > > > >     drivers/built-in.o: In function `lirc_it87_exit':
+> > > > >     lirc_it87.c:(.exit.text+0x38a5): undefined reference to `drop_chrdev'
+> > > > >     
+> > > > >     Its a quick hack and untested beyond building, since I don't have the
+> > > > >     hardware, but it should do the trick.
+> > > > >     
+> > > > >     Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+> > > > >     Signed-off-by: Jarod Wilson <jarod@redhat.com>
+> > > > >     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> > > > > 
+> > > > > :040000 040000 f645b46a07b7ff87a2c11ac9296a5ff56e89a0d0 49e50945ccf8e1c8567c049908890d2752443b72 M      drivers
+> > > > 
+> > > > Hmm.  git log --patch 82ce67bf262b3f47ecb5a0ca31cace8ac72b7c98 shows the
+> > > > commit is completely unrealted.
+> > > > 
+> > > > Please try and see if things are good or bad at commit
+> > > > 18a87becf85d50e7f3d547f1b7a75108b151374d:
+> > > > 
+> > > >         commit 18a87becf85d50e7f3d547f1b7a75108b151374d
+> > > >         Author: Jean Delvare <khali@linux-fr.org>
+> > > >         Date:   Sun Jul 18 17:05:17 2010 -0300
+> > > >         
+> > > >             V4L/DVB: cx23885: i2c_wait_done returns 0 or 1, don't check for < 0 return v
+> > > >             
+> > > >             Function i2c_wait_done() never returns negative values, so there is no
+> > > >             point in checking for them.
+> > > >             
+> > > >             Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> > > >             Signed-off-by: Andy Walls <awalls@md.metrocast.net>
+> > > >             Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> > > >         
+> > > > Which is the first commit, prior to the one you found, that seems to me
+> > > > to have any direct bearing to I2C transactions.
+> > > > 
+> > > > If that commit is good, then these commits in between would be my next
+> > > > likely suspects:
+> > > > e5514f104d875b3d28cbcd5d4f2b96ab2fca1e29
+> > > > dbe83a3b921328e12b2abe894fc692afba293d7f
+> > > > 
+> > > > Regards,
+> > > > Andy
+> > > > 
+> > > 
+> > > Sorry to require so much hand holding, but I am new to all of this git
+> > > gymnastics. Would you mind sending me the correct git command to get
+> > > to a specific commit?
+> > 
+> > It should just be
+> > 
+> > $ git checkout 18a87becf85d50e7f3d547f1b7a75108b151374d
+> > 
+> > or whatever the commit number git log shows you for the change I suspect
+> > is the problem.
+> > 
+> > 
+> > >  Also, do I need to do a bisect reset?
+> > 
+> > I wouldn't reset the git bisect yet.  If you test a commit and it is
+> > good, you will want to mark it with 'git bisect good <commit-hash>', and
+> > if it is bad, you will want to mark it with 'git bisect bad
+> > <commit-hash>'
 > 
->> On Tuesday, February 22, 2011 12:40:32 Guennadi Liakhovetski wrote:
->>> On Tue, 22 Feb 2011, Stanimir Varbanov wrote:
->>>
->>>> This RFC patch adds a new subdev sensor operation named g_interface_parms.
->>>> It is planned as a not mandatory operation and it is driver's developer
->>>> decision to use it or not.
->>>>
->>>> Please share your opinions and ideas.
->> Stanimir, thanks for the RFC. I think it is time that we create a good 
->> solution for this. This is currently the last remaining issue preventing soc-
->> camera subdevs from being used generally. (Control handling is also still 
->> special, but this is being worked on.)
->>
->>> Yes, I like the idea in principle (/me pulling his bullet-proof vest on), 
->> :-)
->>
->>> as some of you might guess, because I feel it's going away from the idea, 
->>> that I've been hard pressed to accept of hard-coding the media-bus 
->>> configuration and in the direction of direct communication of 
->>> bus-parameters between the (sub-)devices, e.g., a camera host and a camera 
->>> device in soc-camera terminology.
->>>
->>> But before reviewing the patch as such, I'd like to discuss the strategy, 
->>> that we want to pursue here - what exactly do we want to hard-code and 
->>> what we want to configure dynamically? As explained before, my preference 
->>> would be to only specify the absolute minimum in the platform data, i.e., 
->>> parameters that either are ambiguous or special for this platform. So, 
->>> once again, my approach to configure interface parameters like signal 
->>> polarities and edge sensitivity is:
->>>
->>> 1. if at least one side has a fixed value of the specific parameter, 
->>> usually no need to specify it in platform data. Example: sensor only 
->>> supports HSYNC active high, host supports both, normally "high" should be 
->>> selected.
->>>
->>> 2. as above, but there's an inverter on the board in the signal path. The 
->>> "invert" parameter must be specified in the platform data and the host 
->>> will configure itself to "low" and send "high" confirmed to the sensor.
->>>
->>> 3. both are configurable. In this case the platform data has to specify, 
->>> which polarity shall be used.
->>>
->>> This is simple, it is implemented, it has worked that way with no problem 
->>> for several years now.
->>>
->>> The configuration procedure in this case looks like:
->>>
->>> 1. host requests supported interface configurations from the client 
->>> (sensor)
->>>
->>> 2. host matches returned parameters against platform data and its own 
->>> capabilities
->>>
->>> 3. if no suitable configuration possible - error out
->>>
->>> 4. the single possible configuration is identified and sent to the sensor 
->>> back for its configuration
->>>
->>> This way we need one more method: s_interface_parms.
->>>
->>> Shortly talking to Laurent earlier today privately, he mentioned, that one 
->>> of the reasons for this move is to support dynamic bus reconfiguration, 
->>> e.g., the number of used CSI lanes. The same is useful for parallel 
->>> interfaces. E.g., I had to hack the omap3spi driver to capture only 8 
->>> (parallel) data lanes from the sensor, connected with all its 10 lanes to 
->>> get a format, easily supported by user-space applications. Ideally you 
->>> don't want to change anything in the code for this. If the user is 
->>> requesting the 10-bit format, all 10 lanes are used, if only 8 - the 
->>> interface is reconfigured accordingly.
->> I have no problems with dynamic bus reconfiguration as such. So if the host 
->> driver wants to do lane reconfiguration, then that's fine by me.
->>
->> When it comes to signal integrity (polarity, rising/falling edge), then I 
->> remain convinced that this should be set via platform data. This is not 
->> something that should be negotiated since this depends not only on the sensor 
->> and host devices, but also on the routing of the lines between them on the 
->> actual board, how much noise there is on those lines, the quality of the clock 
->> signal, etc. Not really an issue with PAL/NTSC type signals, but when you get 
->> to 1080p60 and up, then such things become much more important.
+> OK, I did a git checkout 18a87becf85d50e7f3d547f1b7a75108b151374d and
+> turned CONFIG_STAGING back on in .config and the kernel built fine.
+> The i2c problem is there, however.
 > 
+> I wonder if I should start over with a reset, then replay the good/bad
+> commands up to the last good one, then do git bisect bad 18a8... and
+> proceed from there. Does that make sense?
 
-I think this could be satisfied by Guennadi's approach because he use the
-platform data with preference.
+Well, looking at your git bisect log, the last known good declaration
+you made was:
 
-> I understand this, but my point is: forcing this parameters in the 
-> platform data doesn't give you any _practical_ enhancements, only 
-> _psychological_, meaning, that you think, that if these parameters are 
-> compulsory, programmers, writing board integration code, will be forced to 
-> think, what values to configure. Whereas if this is not compulsory, 
-> programmers will hope on automagic and things will break. So, this is 
-> purely psychological. And that's the whole question - fo we trust 
-> programmers, that they will anyway take care to set correct parameters, or 
-> do we not trust them and therefore want to punish everyone because of 
-> them. Besides, I'm pretty convinced, that even if those parameters will be 
-> compulsory, most programmers will anyway just copy-paste them from 
-> "similar" set ups...
-> 
+efce8ca3c5d8a35018f801d687396e1911cfc868 (July 29, 2010)
 
-Guennadi, IMO, to force peoples to __not__ thinking about the above parameter
-configurations you need to do generic functions in some place and force
-peoples to use them as mandatory rule. This will be the hard part :)
+which comes after
 
-In principle I agree with this bus negotiation.
+18a87becf85d50e7f3d547f1b7a75108b151374d (July 18, 2010)
 
- - So. let's start thinking how this could be fit to the subdev sensor
-operations.
- - howto isolate your current work into some common place and reuse it,
-even on platform part.
- - and is it possible.
+which you say just tested bad.  Also the previous one declared good,
+9895850b23886e030cd1e7241d5529a57e969c3d, happens after both of those.
+One or more of those declarations has to be incorrect.
 
-The discussion becomes very emotional and this is not a good adviser :)
+So there's either something not quite right with your build/install/test
+process or you're dealing with a bug that intermittently does not show
+symptoms.
 
-> Thanks
-> Guennadi
-> 
->> So these settings should not be negotiated, but set explicitly.
->>
->> It actually doesn't have to be done through platform data (although that makes 
->> the most sense), as long as it is explicitly set based on board-specific data.
->>
+So my recommendations:
 
-<snip>
+1. Turn CONFIG_STAGING off.  git bisect doesn't really care, but if the
+flaky drivers in there are causing problem with some kernel builds, then
+they are wasting your time - don't compile them.
 
--- 
-Best regards,
-Stan
+
+2. When using git bisect to make declarations:
+
+good means the *precise* symptoms that you care about do not manifest 
+bad  means the *precise* symptoms that you care about do manifest
+
+Don't use bad for "the kernel didn't build".  use git bisect skip for
+that case and git will try to pick another nearby commit.
+
+
+3. Make sure with every kernel iteration you rebuild all the kernel
+source and modules you have configured to be built, install the newly
+built modules and the newly built kernel, and reboot.  Not rebuilding
+everything you are installing may invalidate your testing.
+
+
+4. Yeah you'll probably need to restart the git bisect process with
+commits you have high confidence are known good and known bad.  For your
+I2C & XC5000 related problem you can limit git bisect to changes in: 
+
+	drivers/media include/media drivers/i2c include/linux/i2c*
+
+which might keep the number of iterations down.  'git help bisect' shows
+the manual page.  The command would look something like:
+
+$ git bisect start <bad-commit> <good-commit> -- drivers/media include/media drivers/i2c include/linux/i2c*
+
+Where <good-commit> is a commit hash or version tags that should have
+been before the <bad-commit> commit hash or version tag.  Note that git
+log outputs commits in reverse chronological order (newest first).
+
+5.  When testing each kernel iteration, try to test such that you
+hopefully avoid any "false good" indications caused by intermittent
+behavior of the bug.  I have no recommendation on what would constitute
+a thorough enough test.
+
+Regards,
+Andy
+
+
+
