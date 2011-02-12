@@ -1,104 +1,86 @@
 Return-path: <mchehab@pedra>
-Received: from e23smtp04.au.ibm.com ([202.81.31.146]:42952 "EHLO
-	e23smtp04.au.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752113Ab1BBMnp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Feb 2011 07:43:45 -0500
-Date: Wed, 2 Feb 2011 18:13:33 +0530
-From: Ankita Garg <ankita@in.ibm.com>
-To: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mel Gorman <mel@csn.ul.ie>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org
-Subject: Re: [PATCHv8 07/12] mm: cma: Contiguous Memory Allocator added
-Message-ID: <20110202124333.GB26396@in.ibm.com>
-Reply-To: Ankita Garg <ankita@in.ibm.com>
-References: <cover.1292443200.git.m.nazarewicz@samsung.com>
- <eb8f43235c8ff2816ada7b56ffe371ea6140cae8.1292443200.git.m.nazarewicz@samsung.com>
+Received: from smtp01.frii.com ([216.17.135.167]:53279 "EHLO smtp01.frii.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750881Ab1BLP3y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Feb 2011 10:29:54 -0500
+Date: Sat, 12 Feb 2011 08:29:54 -0700
+From: Mark Zimmerman <markzimm@frii.com>
+To: linux-media@vger.kernel.org
+Cc: Jarod Wilson <jarod@redhat.com>
+Subject: [get-bisect results]: DViCO FusionHDTV7 Dual Express I2C write
+	failed
+Message-ID: <20110212152954.GA20838@io.frii.com>
+References: <20101207190753.GA21666@io.frii.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <eb8f43235c8ff2816ada7b56ffe371ea6140cae8.1292443200.git.m.nazarewicz@samsung.com>
+In-Reply-To: <20101207190753.GA21666@io.frii.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Michal,
-
-On Wed, Dec 15, 2010 at 09:34:27PM +0100, Michal Nazarewicz wrote:
-> The Contiguous Memory Allocator is a set of functions that lets
-> one initialise a region of memory which then can be used to perform
-> allocations of contiguous memory chunks from.
+On Tue, Dec 07, 2010 at 12:07:53PM -0700, Mark Zimmerman wrote:
+> Greetings:
 > 
-> CMA allows for creation of private and non-private contexts.
-> The former is reserved for CMA and no other kernel subsystem can
-> use it.  The latter allows for movable pages to be allocated within
-> CMA's managed memory so that it can be used for page cache when
-> CMA devices do not use it.
+> I have a DViCO FusionHDTV7 Dual Express card that works with 2.6.35 but
+> which fails to initialize with the latest 2.6.36 kernel. The firmware
+> fails to load due to an i2c failure. A search of the archives indicates
+> that this is not the first time this issue has occurred.
 > 
-> Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
+> What can I do to help get this problem fixed?
+> 
+> Here is the dmesg from 2.6.35, for the two tuners: 
+> 
+> xc5000: waiting for firmware upload (dvb-fe-xc5000-1.6.114.fw)... 
+> xc5000: firmware read 12401 bytes. 
+> xc5000: firmware uploading... 
+> xc5000: firmware upload complete... 
+> xc5000: waiting for firmware upload (dvb-fe-xc5000-1.6.114.fw)... 
+> xc5000: firmware read 12401 bytes. 
+> xc5000: firmware uploading... 
+> xc5000: firmware upload complete..
+> 
+> and here is what happens with 2.6.36: 
+> 
+> xc5000: waiting for firmware upload (dvb-fe-xc5000-1.6.114.fw)... 
+> xc5000: firmware read 12401 bytes. 
+> xc5000: firmware uploading... 
+> xc5000: I2C write failed (len=3) 
+> xc5000: firmware upload complete... 
+> xc5000: Unable to initialise tuner 
+> xc5000: waiting for firmware upload (dvb-fe-xc5000-1.6.114.fw)... 
+> xc5000: firmware read 12401 bytes. 
+> xc5000: firmware uploading... 
+> xc5000: I2C write failed (len=3) 
+> xc5000: firmware upload complete...
 > 
 
-<snip>
+I did a git bisect on this and finally reached the end of the line.
+Here is what it said:
 
-> +/************************* Initialise CMA *************************/
-> +
-> +unsigned long cma_reserve(unsigned long start, unsigned long size,
-> +			  unsigned long alignment)
-> +{
-> +	pr_debug("%s(%p+%p/%p)\n", __func__, (void *)start, (void *)size,
-> +		 (void *)alignment);
-> +
-> +	/* Sanity checks */
-> +	if (!size || (alignment & (alignment - 1)))
-> +		return (unsigned long)-EINVAL;
-> +
-> +	/* Sanitise input arguments */
-> +	start = PAGE_ALIGN(start);
-> +	size  = PAGE_ALIGN(size);
-> +	if (alignment < PAGE_SIZE)
-> +		alignment = PAGE_SIZE;
-> +
-> +	/* Reserve memory */
-> +	if (start) {
-> +		if (memblock_is_region_reserved(start, size) ||
-> +		    memblock_reserve(start, size) < 0)
-> +			return (unsigned long)-EBUSY;
-> +	} else {
-> +		/*
-> +		 * Use __memblock_alloc_base() since
-> +		 * memblock_alloc_base() panic()s.
-> +		 */
-> +		u64 addr = __memblock_alloc_base(size, alignment, 0);
-> +		if (!addr) {
-> +			return (unsigned long)-ENOMEM;
-> +		} else if (addr + size > ~(unsigned long)0) {
-> +			memblock_free(addr, size);
-> +			return (unsigned long)-EOVERFLOW;
-> +		} else {
-> +			start = addr;
-> +		}
-> +	}
-> +
+qpc$ git bisect bad
+82ce67bf262b3f47ecb5a0ca31cace8ac72b7c98 is the first bad commit
+commit 82ce67bf262b3f47ecb5a0ca31cace8ac72b7c98
+Author: Jarod Wilson <jarod@redhat.com>
+Date:   Thu Jul 29 18:20:44 2010 -0300
 
-Reserving the areas of memory belonging to CMA using memblock_reserve,
-would preclude that range from the zones, due to which it would not be
-available for buddy allocations right ?
+    V4L/DVB: staging/lirc: fix non-CONFIG_MODULES build horkage
+    
+    Fix when CONFIG_MODULES is not enabled:
+    
+    drivers/staging/lirc/lirc_parallel.c:243: error: implicit declaration of function 'module_refcount'
+    drivers/staging/lirc/lirc_it87.c:150: error: implicit declaration of function 'module_refcount'
+    drivers/built-in.o: In function `it87_probe':
+    lirc_it87.c:(.text+0x4079b0): undefined reference to `init_chrdev'
+    lirc_it87.c:(.text+0x4079cc): undefined reference to `drop_chrdev'
+    drivers/built-in.o: In function `lirc_it87_exit':
+    lirc_it87.c:(.exit.text+0x38a5): undefined reference to `drop_chrdev'
+    
+    Its a quick hack and untested beyond building, since I don't have the
+    hardware, but it should do the trick.
+    
+    Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+    Signed-off-by: Jarod Wilson <jarod@redhat.com>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-> +	return start;
-> +}
-> +
-> +
+:040000 040000 f645b46a07b7ff87a2c11ac9296a5ff56e89a0d0 49e50945ccf8e1c8567c049908890d2752443b72 M      drivers
 
--- 
-Regards,
-Ankita Garg (ankita@in.ibm.com)
-Linux Technology Center
-IBM India Systems & Technology Labs,
-Bangalore, India
