@@ -1,433 +1,90 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58155 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752860Ab1BNMU7 (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:58080 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753014Ab1BLXeK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Feb 2011 07:20:59 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [PATCH v7 3/6] v4l: subdev: Add device node support
-Date: Mon, 14 Feb 2011 13:20:56 +0100
-Message-Id: <1297686059-9622-4-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1297686059-9622-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1297686059-9622-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Sat, 12 Feb 2011 18:34:10 -0500
+Subject: Re: PCTV USB2 PAL / adds loud hum to correct audio
+From: Andy Walls <awalls@md.metrocast.net>
+To: AW <arne_woerner@yahoo.com>
+Cc: linux-media@vger.kernel.org, dheitmueller@kernellabs.com
+In-Reply-To: <450670.60996.qm@web30306.mail.mud.yahoo.com>
+References: <713442.91420.qm@web30304.mail.mud.yahoo.com>
+	 <AANLkTinv7sWE+T1ORrr8MD6XRGQj8hG1sZw9UfjSGM-o@mail.gmail.com>
+	 <450670.60996.qm@web30306.mail.mud.yahoo.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sat, 12 Feb 2011 18:34:17 -0500
+Message-ID: <1297553657.2413.66.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Create a device node named subdevX for every registered subdev.
+On Sat, 2011-02-12 at 13:44 -0800, AW wrote:
+> Devin Heitmueller <dheitmueller@kernellabs.com> wrote:
+> > > When I use this command  simultaneously:
+> > > arecord -D front:CARD=PAL,DEV=0 -f S16_LE -c 2 -r 8000  /aux/tmp/bla.wav
+> > > I get correct audio with strong noise:
+> > > http://www.wgboome.de./bla.wav
+> > > (it is from input=1 for copyright  reasons... so there is silence plus 
+> noise)
+> > 
+> > The "-r" argument should  almost certainly be 48000, not 8000.
+> > 
+> Maybe...
+> That device is rather old...
+> And i didnt tell pactl anything about sample rate...
 
-As the device node is registered before the subdev core::s_config
-function is called, return -EGAIN on open until initialization
-completes.
+I find audio at 8 ksps very unusual for a TV capture device.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Vimarsh Zutshi <vimarsh.zutshi@gmail.com>
----
- Documentation/video4linux/v4l2-framework.txt |   16 +++++++
- drivers/media/video/Makefile                 |    2 +-
- drivers/media/video/v4l2-dev.c               |   27 +++++-------
- drivers/media/video/v4l2-device.c            |   37 ++++++++++++++++
- drivers/media/video/v4l2-ioctl.c             |    2 +-
- drivers/media/video/v4l2-subdev.c            |   60 ++++++++++++++++++++++++++
- include/media/v4l2-dev.h                     |   18 ++++++-
- include/media/v4l2-device.h                  |    6 +++
- include/media/v4l2-ioctl.h                   |    3 +
- include/media/v4l2-subdev.h                  |   14 +++++-
- 10 files changed, 162 insertions(+), 23 deletions(-)
- create mode 100644 drivers/media/video/v4l2-subdev.c
 
-diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
-index f22f35c..8b35871 100644
---- a/Documentation/video4linux/v4l2-framework.txt
-+++ b/Documentation/video4linux/v4l2-framework.txt
-@@ -319,6 +319,22 @@ controlled through GPIO pins. This distinction is only relevant when setting
- up the device, but once the subdev is registered it is completely transparent.
- 
- 
-+V4L2 sub-device userspace API
-+-----------------------------
-+
-+Beside exposing a kernel API through the v4l2_subdev_ops structure, V4L2
-+sub-devices can also be controlled directly by userspace applications.
-+
-+Device nodes named v4l-subdevX can be created in /dev to access sub-devices
-+directly. If a sub-device supports direct userspace configuration it must set
-+the V4L2_SUBDEV_FL_HAS_DEVNODE flag before being registered.
-+
-+After registering sub-devices, the v4l2_device driver can create device nodes
-+for all registered sub-devices marked with V4L2_SUBDEV_FL_HAS_DEVNODE by calling
-+v4l2_device_register_subdev_nodes(). Those device nodes will be automatically
-+removed when sub-devices are unregistered.
-+
-+
- I2C sub-device drivers
- ----------------------
- 
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index a509d31..35c774d 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -11,7 +11,7 @@ stkwebcam-objs	:=	stk-webcam.o stk-sensor.o
- omap2cam-objs	:=	omap24xxcam.o omap24xxcam-dma.o
- 
- videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o \
--			v4l2-event.o v4l2-ctrls.o
-+			v4l2-event.o v4l2-ctrls.o v4l2-subdev.o
- 
- # V4L2 core modules
- 
-diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
-index 341764a..abe04ef 100644
---- a/drivers/media/video/v4l2-dev.c
-+++ b/drivers/media/video/v4l2-dev.c
-@@ -408,13 +408,14 @@ static int get_index(struct video_device *vdev)
- }
- 
- /**
-- *	video_register_device - register video4linux devices
-+ *	__video_register_device - register video4linux devices
-  *	@vdev: video device structure we want to register
-  *	@type: type of device to register
-  *	@nr:   which device node number (0 == /dev/video0, 1 == /dev/video1, ...
-  *             -1 == first free)
-  *	@warn_if_nr_in_use: warn if the desired device node number
-  *	       was already in use and another number was chosen instead.
-+ *	@owner: module that owns the video device node
-  *
-  *	The registration code assigns minor numbers and device node numbers
-  *	based on the requested type and registers the new device node with
-@@ -435,9 +436,11 @@ static int get_index(struct video_device *vdev)
-  *	%VFL_TYPE_VBI - Vertical blank data (undecoded)
-  *
-  *	%VFL_TYPE_RADIO - A radio card
-+ *
-+ *	%VFL_TYPE_SUBDEV - A subdevice
-  */
--static int __video_register_device(struct video_device *vdev, int type, int nr,
--		int warn_if_nr_in_use)
-+int __video_register_device(struct video_device *vdev, int type, int nr,
-+		int warn_if_nr_in_use, struct module *owner)
- {
- 	int i = 0;
- 	int ret;
-@@ -469,6 +472,9 @@ static int __video_register_device(struct video_device *vdev, int type, int nr,
- 	case VFL_TYPE_RADIO:
- 		name_base = "radio";
- 		break;
-+	case VFL_TYPE_SUBDEV:
-+		name_base = "v4l-subdev";
-+		break;
- 	default:
- 		printk(KERN_ERR "%s called with unknown type: %d\n",
- 		       __func__, type);
-@@ -552,7 +558,7 @@ static int __video_register_device(struct video_device *vdev, int type, int nr,
- 		goto cleanup;
- 	}
- 	vdev->cdev->ops = &v4l2_fops;
--	vdev->cdev->owner = vdev->fops->owner;
-+	vdev->cdev->owner = owner;
- 	ret = cdev_add(vdev->cdev, MKDEV(VIDEO_MAJOR, vdev->minor), 1);
- 	if (ret < 0) {
- 		printk(KERN_ERR "%s: cdev_add failed\n", __func__);
-@@ -597,18 +603,7 @@ cleanup:
- 	vdev->minor = -1;
- 	return ret;
- }
--
--int video_register_device(struct video_device *vdev, int type, int nr)
--{
--	return __video_register_device(vdev, type, nr, 1);
--}
--EXPORT_SYMBOL(video_register_device);
--
--int video_register_device_no_warn(struct video_device *vdev, int type, int nr)
--{
--	return __video_register_device(vdev, type, nr, 0);
--}
--EXPORT_SYMBOL(video_register_device_no_warn);
-+EXPORT_SYMBOL(__video_register_device);
- 
- /**
-  *	video_unregister_device - unregister a video4linux device
-diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
-index ce64fe1..f0c77dd 100644
---- a/drivers/media/video/v4l2-device.c
-+++ b/drivers/media/video/v4l2-device.c
-@@ -124,16 +124,20 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
- 	/* Check for valid input */
- 	if (v4l2_dev == NULL || sd == NULL || !sd->name[0])
- 		return -EINVAL;
-+
- 	/* Warn if we apparently re-register a subdev */
- 	WARN_ON(sd->v4l2_dev != NULL);
-+
- 	if (!try_module_get(sd->owner))
- 		return -ENODEV;
-+
- 	sd->v4l2_dev = v4l2_dev;
- 	if (sd->internal_ops && sd->internal_ops->registered) {
- 		err = sd->internal_ops->registered(sd);
- 		if (err)
- 			return err;
- 	}
-+
- 	/* This just returns 0 if either of the two args is NULL */
- 	err = v4l2_ctrl_add_handler(v4l2_dev->ctrl_handler, sd->ctrl_handler);
- 	if (err) {
-@@ -141,24 +145,57 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
- 			sd->internal_ops->unregistered(sd);
- 		return err;
- 	}
-+
- 	spin_lock(&v4l2_dev->lock);
- 	list_add_tail(&sd->list, &v4l2_dev->subdevs);
- 	spin_unlock(&v4l2_dev->lock);
-+
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(v4l2_device_register_subdev);
- 
-+int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
-+{
-+	struct video_device *vdev;
-+	struct v4l2_subdev *sd;
-+	int err;
-+
-+	/* Register a device node for every subdev marked with the
-+	 * V4L2_SUBDEV_FL_HAS_DEVNODE flag.
-+	 */
-+	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
-+		if (!(sd->flags & V4L2_SUBDEV_FL_HAS_DEVNODE))
-+			continue;
-+
-+		vdev = &sd->devnode;
-+		strlcpy(vdev->name, sd->name, sizeof(vdev->name));
-+		vdev->parent = v4l2_dev->dev;
-+		vdev->fops = &v4l2_subdev_fops;
-+		vdev->release = video_device_release_empty;
-+		err = __video_register_device(vdev, VFL_TYPE_SUBDEV, -1, 1,
-+					      sd->owner);
-+		if (err < 0)
-+			return err;
-+	}
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_device_register_subdev_nodes);
-+
- void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
- {
- 	/* return if it isn't registered */
- 	if (sd == NULL || sd->v4l2_dev == NULL)
- 		return;
-+
- 	spin_lock(&sd->v4l2_dev->lock);
- 	list_del(&sd->list);
- 	spin_unlock(&sd->v4l2_dev->lock);
- 	if (sd->internal_ops && sd->internal_ops->unregistered)
- 		sd->internal_ops->unregistered(sd);
- 	sd->v4l2_dev = NULL;
-+
-+	video_unregister_device(&sd->devnode);
- 	module_put(sd->owner);
- }
- EXPORT_SYMBOL_GPL(v4l2_device_unregister_subdev);
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index e85eea0..c42b464 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -364,7 +364,7 @@ static unsigned long cmd_input_size(unsigned int cmd)
- 	}
- }
- 
--static long
-+long
- __video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
- 		v4l2_kioctl func)
- {
-diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-new file mode 100644
-index 0000000..4014cb6
---- /dev/null
-+++ b/drivers/media/video/v4l2-subdev.c
-@@ -0,0 +1,60 @@
-+/*
-+ *  V4L2 subdevice support.
-+ *
-+ *  Copyright (C) 2010 Nokia Corporation
-+ *
-+ *  Contact: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License
-+ *  along with this program; if not, write to the Free Software
-+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ */
-+
-+#include <linux/types.h>
-+#include <linux/ioctl.h>
-+#include <linux/videodev2.h>
-+
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-ioctl.h>
-+
-+static int subdev_open(struct file *file)
-+{
-+	return 0;
-+}
-+
-+static int subdev_close(struct file *file)
-+{
-+	return 0;
-+}
-+
-+static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
-+{
-+	switch (cmd) {
-+	default:
-+		return -ENOIOCTLCMD;
-+	}
-+
-+	return 0;
-+}
-+
-+static long subdev_ioctl(struct file *file, unsigned int cmd,
-+	unsigned long arg)
-+{
-+	return __video_usercopy(file, cmd, arg, subdev_do_ioctl);
-+}
-+
-+const struct v4l2_file_operations v4l2_subdev_fops = {
-+	.owner = THIS_MODULE,
-+	.open = subdev_open,
-+	.unlocked_ioctl = subdev_ioctl,
-+	.release = subdev_close,
-+};
-diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-index 15802a0..4fe6831 100644
---- a/include/media/v4l2-dev.h
-+++ b/include/media/v4l2-dev.h
-@@ -21,7 +21,8 @@
- #define VFL_TYPE_GRABBER	0
- #define VFL_TYPE_VBI		1
- #define VFL_TYPE_RADIO		2
--#define VFL_TYPE_MAX		3
-+#define VFL_TYPE_SUBDEV		3
-+#define VFL_TYPE_MAX		4
- 
- struct v4l2_ioctl_callbacks;
- struct video_device;
-@@ -102,15 +103,26 @@ struct video_device
- /* dev to video-device */
- #define to_video_device(cd) container_of(cd, struct video_device, dev)
- 
-+int __must_check __video_register_device(struct video_device *vdev, int type,
-+		int nr, int warn_if_nr_in_use, struct module *owner);
-+
- /* Register video devices. Note that if video_register_device fails,
-    the release() callback of the video_device structure is *not* called, so
-    the caller is responsible for freeing any data. Usually that means that
-    you call video_device_release() on failure. */
--int __must_check video_register_device(struct video_device *vdev, int type, int nr);
-+static inline int __must_check video_register_device(struct video_device *vdev,
-+		int type, int nr)
-+{
-+	return __video_register_device(vdev, type, nr, 1, vdev->fops->owner);
-+}
- 
- /* Same as video_register_device, but no warning is issued if the desired
-    device node number was already in use. */
--int __must_check video_register_device_no_warn(struct video_device *vdev, int type, int nr);
-+static inline int __must_check video_register_device_no_warn(
-+		struct video_device *vdev, int type, int nr)
-+{
-+	return __video_register_device(vdev, type, nr, 0, vdev->fops->owner);
-+}
- 
- /* Unregister video devices. Will do nothing if vdev == NULL or
-    video_is_registered() returns false. */
-diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
-index b16f307..78b11e5 100644
---- a/include/media/v4l2-device.h
-+++ b/include/media/v4l2-device.h
-@@ -96,6 +96,12 @@ int __must_check v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
-    wasn't registered. In that case it will do nothing. */
- void v4l2_device_unregister_subdev(struct v4l2_subdev *sd);
- 
-+/* Register device nodes for all subdev of the v4l2 device that are marked with
-+ * the V4L2_SUBDEV_FL_HAS_DEVNODE flag.
-+ */
-+int __must_check
-+v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev);
-+
- /* Iterate over all subdevs. */
- #define v4l2_device_for_each_subdev(sd, v4l2_dev)			\
- 	list_for_each_entry(sd, &(v4l2_dev)->subdevs, list)
-diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-index 67df375..241201c 100644
---- a/include/media/v4l2-ioctl.h
-+++ b/include/media/v4l2-ioctl.h
-@@ -300,6 +300,9 @@ extern long v4l2_compat_ioctl32(struct file *file, unsigned int cmd,
- typedef long (*v4l2_kioctl)(struct file *file,
- 		unsigned int cmd, void *arg);
- 
-+extern long __video_usercopy(struct file *file, unsigned int cmd,
-+				unsigned long arg, v4l2_kioctl func);
-+
- /* Include support for obsoleted stuff */
- extern long video_usercopy(struct file *file, unsigned int cmd,
- 				unsigned long arg, v4l2_kioctl func);
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 2f2dea2..2f859d5 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -22,6 +22,7 @@
- #define _V4L2_SUBDEV_H
- 
- #include <media/v4l2-common.h>
-+#include <media/v4l2-dev.h>
- #include <media/v4l2-mediabus.h>
- 
- /* generic v4l2_device notify callback notification values */
-@@ -429,9 +430,11 @@ struct v4l2_subdev_internal_ops {
- #define V4L2_SUBDEV_NAME_SIZE 32
- 
- /* Set this flag if this subdev is a i2c device. */
--#define V4L2_SUBDEV_FL_IS_I2C (1U << 0)
-+#define V4L2_SUBDEV_FL_IS_I2C			(1U << 0)
- /* Set this flag if this subdev is a spi device. */
--#define V4L2_SUBDEV_FL_IS_SPI (1U << 1)
-+#define V4L2_SUBDEV_FL_IS_SPI			(1U << 1)
-+/* Set this flag if this subdev needs a device node. */
-+#define V4L2_SUBDEV_FL_HAS_DEVNODE		(1U << 2)
- 
- /* Each instance of a subdev driver should create this struct, either
-    stand-alone or embedded in a larger struct.
-@@ -453,8 +456,15 @@ struct v4l2_subdev {
- 	/* pointer to private data */
- 	void *dev_priv;
- 	void *host_priv;
-+	/* subdev device node */
-+	struct video_device devnode;
- };
- 
-+#define vdev_to_v4l2_subdev(vdev) \
-+	container_of(vdev, struct v4l2_subdev, devnode)
-+
-+extern const struct v4l2_file_operations v4l2_subdev_fops;
-+
- static inline void v4l2_set_subdevdata(struct v4l2_subdev *sd, void *p)
- {
- 	sd->dev_priv = p;
--- 
-1.7.3.4
+> With the filter from the appendix the noise is gone...
+> But it feels like a dirty hack, because it would cut out (overly?) loud noise, 
+> 2...
+> 
+> My wild guess is, that the usbaudio driver injects some bad samples 
+> (0x8000..0x9000) every appr. 256 bytes...
+
+I looked at the data.  It is mostly hovering around 0, but you have
+bursts of very negative values periodically:
+
+(These values are shown as little endian, so swap the bytes to consider the value)
+
+0000630: faff fdff f9ff fbff 1080 1080 1080 1080  ................
+0000640: 1080 1080 faff fbff 1080 1080 8888 8888  ................
+0000650: 1080 1080 fbff fcff fbff fcff fdff fdff  ................
+...
+0002fe0: 0000 0000 0100 0100 ffff 0000 1080 1080  ................
+0002ff0: 1080 1080 1080 1080 1080 1080 1080 1080  ................
+0003000: 8888 8888 0100 0000 ffff ffff 0000 0000  ................
+
+0x8010 is -32752 and 0x8888 is -30584.
+
+The data set contains no large positive values (nothing in the range
+0x1000-0x7fff).
+
+The valuex 0x10 and 0x80 do remind me of the YUV values for black: Y =
+0x10, U = 0x80, V = 0x80.  Maybe some video data is getting thrown in
+with the audio?
+
+Regards,
+Andy
+
+> -Arne
+> 
+> appendix:
+> #include <stdint.h>
+> #include <unistd.h>
+> 
+> int main() {
+> uint16_t buf[1000000];
+> const int r = read(0,buf,sizeof(buf));
+> for (int i=0; i*sizeof(*buf)<r; i++) {
+> if (buf[i]/256>=0x80 && buf[i]/256<0x90) continue;
+> if (write(1,buf+i,2) != 2) break;
+> }
+> return 0;
+> }
+> 
+
 
