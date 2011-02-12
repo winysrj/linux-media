@@ -1,127 +1,148 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:51556 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932682Ab1BWW3Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Feb 2011 17:29:24 -0500
-Message-ID: <4D658A40.9050604@redhat.com>
-Date: Wed, 23 Feb 2011 19:29:20 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Question on V4L2 S_STD call
-References: <AANLkTikqDACH2rVd6PBVr3eofnJP-UmD0bNDar9RDUoL@mail.gmail.com>
-In-Reply-To: <AANLkTikqDACH2rVd6PBVr3eofnJP-UmD0bNDar9RDUoL@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:22873 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751040Ab1BLQqR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Feb 2011 11:46:17 -0500
+Subject: Re: [get-bisect results]: DViCO FusionHDTV7 Dual Express I2C write
+ failed
+From: Andy Walls <awalls@md.metrocast.net>
+To: Mark Zimmerman <markzimm@frii.com>
+Cc: linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>
+In-Reply-To: <20110212163607.GA27853@io.frii.com>
+References: <20101207190753.GA21666@io.frii.com>
+	 <20110212152954.GA20838@io.frii.com> <1297528048.2413.22.camel@localhost>
+	 <20110212163607.GA27853@io.frii.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sat, 12 Feb 2011 11:46:13 -0500
+Message-ID: <1297529173.2413.32.camel@localhost>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 23-02-2011 18:09, Devin Heitmueller escreveu:
-> Hello there,
+On Sat, 2011-02-12 at 09:36 -0700, Mark Zimmerman wrote:
+> On Sat, Feb 12, 2011 at 11:27:27AM -0500, Andy Walls wrote:
+> > On Sat, 2011-02-12 at 08:29 -0700, Mark Zimmerman wrote:
+> > > On Tue, Dec 07, 2010 at 12:07:53PM -0700, Mark Zimmerman wrote:
+> > > > Greetings:
+> > > > 
+> > > > I have a DViCO FusionHDTV7 Dual Express card that works with 2.6.35 but
+> > > > which fails to initialize with the latest 2.6.36 kernel. The firmware
+> > > > fails to load due to an i2c failure. A search of the archives indicates
+> > > > that this is not the first time this issue has occurred.
+> > > > 
+> > > > What can I do to help get this problem fixed?
+> > > > 
+> > > > Here is the dmesg from 2.6.35, for the two tuners: 
+> > > > 
+> > > > xc5000: waiting for firmware upload (dvb-fe-xc5000-1.6.114.fw)... 
+> > > > xc5000: firmware read 12401 bytes. 
+> > > > xc5000: firmware uploading... 
+> > > > xc5000: firmware upload complete... 
+> > > > xc5000: waiting for firmware upload (dvb-fe-xc5000-1.6.114.fw)... 
+> > > > xc5000: firmware read 12401 bytes. 
+> > > > xc5000: firmware uploading... 
+> > > > xc5000: firmware upload complete..
+> > > > 
+> > > > and here is what happens with 2.6.36: 
+> > > > 
+> > > > xc5000: waiting for firmware upload (dvb-fe-xc5000-1.6.114.fw)... 
+> > > > xc5000: firmware read 12401 bytes. 
+> > > > xc5000: firmware uploading... 
+> > > > xc5000: I2C write failed (len=3) 
+> > > > xc5000: firmware upload complete... 
+> > > > xc5000: Unable to initialise tuner 
+> > > > xc5000: waiting for firmware upload (dvb-fe-xc5000-1.6.114.fw)... 
+> > > > xc5000: firmware read 12401 bytes. 
+> > > > xc5000: firmware uploading... 
+> > > > xc5000: I2C write failed (len=3) 
+> > > > xc5000: firmware upload complete...
+> > > > 
+> > > 
+> > > I did a git bisect on this and finally reached the end of the line.
+> > > Here is what it said:
+> > > 
+> > > qpc$ git bisect bad
+> > > 82ce67bf262b3f47ecb5a0ca31cace8ac72b7c98 is the first bad commit
+> > > commit 82ce67bf262b3f47ecb5a0ca31cace8ac72b7c98
+> > > Author: Jarod Wilson <jarod@redhat.com>
+> > > Date:   Thu Jul 29 18:20:44 2010 -0300
+> > > 
+> > >     V4L/DVB: staging/lirc: fix non-CONFIG_MODULES build horkage
+> > >     
+> > >     Fix when CONFIG_MODULES is not enabled:
+> > >     
+> > >     drivers/staging/lirc/lirc_parallel.c:243: error: implicit declaration of function 'module_refcount'
+> > >     drivers/staging/lirc/lirc_it87.c:150: error: implicit declaration of function 'module_refcount'
+> > >     drivers/built-in.o: In function `it87_probe':
+> > >     lirc_it87.c:(.text+0x4079b0): undefined reference to `init_chrdev'
+> > >     lirc_it87.c:(.text+0x4079cc): undefined reference to `drop_chrdev'
+> > >     drivers/built-in.o: In function `lirc_it87_exit':
+> > >     lirc_it87.c:(.exit.text+0x38a5): undefined reference to `drop_chrdev'
+> > >     
+> > >     Its a quick hack and untested beyond building, since I don't have the
+> > >     hardware, but it should do the trick.
+> > >     
+> > >     Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+> > >     Signed-off-by: Jarod Wilson <jarod@redhat.com>
+> > >     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> > > 
+> > > :040000 040000 f645b46a07b7ff87a2c11ac9296a5ff56e89a0d0 49e50945ccf8e1c8567c049908890d2752443b72 M      drivers
+> > 
+> > Hmm.  git log --patch 82ce67bf262b3f47ecb5a0ca31cace8ac72b7c98 shows the
+> > commit is completely unrealted.
+> > 
+> > Please try and see if things are good or bad at commit
+> > 18a87becf85d50e7f3d547f1b7a75108b151374d:
+> > 
+> >         commit 18a87becf85d50e7f3d547f1b7a75108b151374d
+> >         Author: Jean Delvare <khali@linux-fr.org>
+> >         Date:   Sun Jul 18 17:05:17 2010 -0300
+> >         
+> >             V4L/DVB: cx23885: i2c_wait_done returns 0 or 1, don't check for < 0 return v
+> >             
+> >             Function i2c_wait_done() never returns negative values, so there is no
+> >             point in checking for them.
+> >             
+> >             Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> >             Signed-off-by: Andy Walls <awalls@md.metrocast.net>
+> >             Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> >         
+> > Which is the first commit, prior to the one you found, that seems to me
+> > to have any direct bearing to I2C transactions.
+> > 
+> > If that commit is good, then these commits in between would be my next
+> > likely suspects:
+> > e5514f104d875b3d28cbcd5d4f2b96ab2fca1e29
+> > dbe83a3b921328e12b2abe894fc692afba293d7f
+> > 
+> > Regards,
+> > Andy
+> > 
 > 
-> I was debugging some PAL issues with cx231xx, and noticed some
-> unexpected behavior with regards to selecting PAL standards.
-> 
-> In particular, tvtime has an option for PAL which corresponds to the
-> underlying value "0xff".  This basically selects *any* PAL standard.
+> Sorry to require so much hand holding, but I am new to all of this git
+> gymnastics. Would you mind sending me the correct git command to get
+> to a specific commit?
 
-Not all PAL standards. "Only" the european PAL standards (B/G/D/K/I/H):
+It should just be
 
-#define V4L2_STD_PAL		(V4L2_STD_PAL_BG	|\
-				 V4L2_STD_PAL_DK	|\
-				 V4L2_STD_PAL_H		|\
-				 V4L2_STD_PAL_I)
+$ git checkout 18a87becf85d50e7f3d547f1b7a75108b151374d
 
-PAL/M, PAL/N, PAL/Nc and PAL/60 are not part of it. This is the equivalent
-of the V4L1 definition for PAL (on V4L1, there was just PAL/NSTC/SECAM, and
-a hack, at bttv, for 4 more standards).
+or whatever the commit number git log shows you for the change I suspect
+is the problem.
 
-In a matter of fact, V4L2_STD_PAL is not a meaningful parameter, as
-it doesn't cover all PAL standards, and if user selects it, an unpredictable
-result may happen, as almost no driver is capable of auto-detecting all
-variants of the PAL standards. The same issue also happens, on some extend, 
-with V4L2_STD_SECAM and V4L2_STD_NTSC (the last case generally falls back
-to NTSC/M, so people in Asia will likely have problems).
 
-There's even a worse standard: V4L2_STD_ALL (yes, a few drivers handle it
-properly, for example, tvp5150 can use it for video).
+>  Also, do I need to do a bisect reset?
 
-Basically, there's just one way to make users happy with things like PAL:
-enable hardware auto-detection for all standards at the standard mask.
-Unfortunately, this is is generally not possible, due to hardware issues.
+I wouldn't reset the git bisect yet.  If you test a commit and it is
+good, you will want to mark it with 'git bisect good <commit-hash>', and
+if it is bad, you will want to mark it with 'git bisect bad
+<commit-hash>'
 
-The drivers should do things like:
+BTW, can you provide the output of 'git bisect log' ?
 
-if (standard == V4L2_STD_PAL_I) {
-	/* Select PAL/I standard */
-} else if (standard == V4L2_STD_PAL_N) {
-	/* Select PAL/N standard */
-} else if ((standard & V4L2_STD_MN) == V4L2_STD_MN) {
-	/* enable STD M/N autodetection */
-} else if ((standard & V4L2_STD_PAL && !(standard & ~V4L2_STD_PAL)) {
-	/* enable PAL autodetection for B/G/D/K/H/I */
-...
-} else {
-	/* enable autodetection for all supported standards */
-}
+Regards,
+Andy
 
-Testing first for restrict standards, then for more generic ones, adding
-autodetection code for them.
 
-> However, the cx231xx has code for setting up the DIF which basically
-> says:
-> 
-> if (standard & V4L2_STD_MN) {
->  ...
-> } else if ((standard == V4L2_STD_PAL_I) |
->                         (standard & V4L2_STD_PAL_D) |
-> 			(standard & V4L2_STD_SECAM)) {
->  ...
-> } else {
->   /* default PAL BG */
->   ...
-> }
-
-This doesn't soung wrong to me.
-
-> As a result, if you have a PAL-B/G signal and select "PAL" in tvtime,
-> the test passes for PAL_I/PAL_D/SECAM since that matches the bitmask.
-> The result of course is garbage video.
-
-Garbage on some Countries, good video and audio on others. People where
-PAL/D or PAL/I is the standard will be happy with this.
-
-> So here is the question:
-> 
-> How are we expected to interpret an application asking for "PAL" in
-> cases when the driver needs a more specific video standard?
-> 
-> I can obviously add code to tvtime in the long term to have the user
-> provide a more specific standard instead of "PAL", but since it is
-> supported in the V4L2 spec, I would like to understand what the
-> expected behavior should be in drivers.
-
-Basically, tvtime does the wrong thing with respect to video standards.
-
-The simplest fix is to enumerate the supported standards and to display
-them to the userspace, letting userspace to select a standard, allowing
-them to tell the driver what standard is needed, and not requiring a restart
-if the user changes the video standard, especially if the number of
-lines doesn't change.
-
-Another way would be to ask user where he lives and then tell the kernel
-driver to use the standards available on that Country only. This won't work
-100%, as the user may want to force to a specific standard anyway (for
-example, here, most STB's output signals in NTSC/M, but the broadcast and
-official standard is PAL/M). People with equipments like VCR/game consoles
-and other random stuff may also need to force it to PAL/60, NTSC/443, etc
-for the composite/svideo ports.
-
-What most drivers do is to first select the more specific standards,
-assuming that, if userspace is requesting a specific standard, this 
-should take precedence over the generic ones. If everything fails, go
-to the default PAL standards.
-
-Cheers,
-Mauro
