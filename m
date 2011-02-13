@@ -1,73 +1,110 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:19837 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:17897 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752555Ab1BGP53 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Feb 2011 10:57:29 -0500
-Message-ID: <4D501656.5000309@redhat.com>
-Date: Mon, 07 Feb 2011 13:57:10 -0200
+	id S1754521Ab1BMRcP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Feb 2011 12:32:15 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p1DHWFp0023846
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 13 Feb 2011 12:32:15 -0500
+Received: from pedra (vpn-239-52.phx2.redhat.com [10.3.239.52])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p1DHT5kO015438
+	for <linux-media@vger.kernel.org>; Sun, 13 Feb 2011 12:32:14 -0500
+Date: Sun, 13 Feb 2011 15:28:54 -0200
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: matti.j.aaltonen@nokia.com
-CC: Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	alsa-devel@alsa-project.org, lrg@slimlogic.co.uk,
-	hverkuil@xs4all.nl, sameo@linux.intel.com,
-	linux-media@vger.kernel.org
-Subject: Re: WL1273 FM Radio driver...
-References: <1297075922.15320.31.camel@masi.mnp.nokia.com>	 <4D4FDED0.7070008@redhat.com>	 <20110207120234.GE10564@opensource.wolfsonmicro.com>	 <4D4FEA03.7090109@redhat.com>	 <20110207131045.GG10564@opensource.wolfsonmicro.com>	 <4D4FF821.4010701@redhat.com> <1297087744.15320.56.camel@masi.mnp.nokia.com>
-In-Reply-To: <1297087744.15320.56.camel@masi.mnp.nokia.com>
-Content-Type: text/plain; charset=UTF-8
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 2/5] [media] cx231xx: Use a generic check for TUNER_XC5000
+Message-ID: <20110213152854.22573ce8@pedra>
+In-Reply-To: <cover.1297617986.git.mchehab@redhat.com>
+References: <cover.1297617986.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 07-02-2011 12:09, Matti J. Aaltonen escreveu:
-> On Mon, 2011-02-07 at 11:48 -0200, ext Mauro Carvalho Chehab wrote:
->> Em 07-02-2011 11:10, Mark Brown escreveu:
->>> On Mon, Feb 07, 2011 at 10:48:03AM -0200, Mauro Carvalho Chehab wrote:
->>>> Em 07-02-2011 10:02, Mark Brown escreveu:
->>>>> On Mon, Feb 07, 2011 at 10:00:16AM -0200, Mauro Carvalho Chehab wrote:
->>>
->>>>>> the MFD part (for example, wl1273_fm_read_reg/wl1273_fm_write_cmd/wl1273_fm_write_data). 
->>>>>> The logic that are related to control the radio (wl1273_fm_set_audio,  wl1273_fm_set_volume,
->>>>>> etc) are not related to access the device via the MFD bus. They should be at
->>>>>> the media part of the driver, where they belong.
->>>
->>>>> Those functions are being used by the audio driver.
->>>
->>>> Not sure if I understood your comments. Several media drivers have alsa drivers:
->>>
->>> There is an audio driver for this chip and it is using those functions.
->>
->> Where are the other drivers that depend on it?
-> 
-> There's the MFD driver driver/mfd/wl1273-core.c, which is to offer the
-> (I2C) I/O functions to the child drivers:
-> drivers/media/radio/radio-wl1273.c and sound/soc/codecs/wl1273.c.
-> 
-> Both children depend on the MFD driver for I/O and the codec also
-> depends on the presence of the radio-wl1273 driver because without the
-> v4l2 part nothing can be done...
+The check for xc5000 assumes that the tuner will always
+be using the same bus and will have the same address.
+As those are configurable via dev->board, it should use,
+instead, the values defined there.
 
-I think that the better would be to move the audio part (sound/soc/codecs/wl1273.c)
-as drivers/media/radio/wl1273/wl1273-alsa.c. Is there any problem on moving it, or
-the alsa driver is also tightly coupled on the rest of the sound/soc stuff?
+Also, a similar type of test will be needed by other
+tuners (for example, for TUNER_XC2028)
 
-I remember that, in the past, there were someone that proposed to move /sound into
-/media/sound, and move some common stuff between them into /media/common.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Btw, there are(where?) some problems between -alsa and -media subsystems: basically, 
-the audio core needs to be initialized before the drivers. However, this sometimes
-don't happen (I can't remember the exact situation - perhaps builtin compilations?),
-but we ended by needing to explicitly delaying the init of some drivers with:
-	late_initcall(saa7134_alsa_init); 
-To avoid some OOPS conditions.
+diff --git a/drivers/media/video/cx231xx/cx231xx-i2c.c b/drivers/media/video/cx231xx/cx231xx-i2c.c
+index 8356706..925f3a0 100644
+--- a/drivers/media/video/cx231xx/cx231xx-i2c.c
++++ b/drivers/media/video/cx231xx/cx231xx-i2c.c
+@@ -54,6 +54,21 @@ do {							\
+       } 						\
+ } while (0)
+ 
++static inline bool is_tuner(struct cx231xx *dev, struct cx231xx_i2c *bus,
++			const struct i2c_msg *msg, int tuner_type)
++{
++	if (bus->nr != dev->board.tuner_i2c_master)
++		return false;
++
++	if (msg->addr != dev->board.tuner_addr)
++		return false;
++
++	if (dev->tuner_type != tuner_type)
++		return false;
++
++	return true;
++}
++
+ /*
+  * cx231xx_i2c_send_bytes()
+  */
+@@ -71,9 +86,7 @@ int cx231xx_i2c_send_bytes(struct i2c_adapter *i2c_adap,
+ 	u16 saddr = 0;
+ 	u8 need_gpio = 0;
+ 
+-	if ((bus->nr == 1) && (msg->addr == 0x61)
+-	    && (dev->tuner_type == TUNER_XC5000)) {
+-
++	if (is_tuner(dev, bus, msg, TUNER_XC5000)) {
+ 		size = msg->len;
+ 
+ 		if (size == 2) {	/* register write sub addr */
+@@ -180,9 +193,7 @@ static int cx231xx_i2c_recv_bytes(struct i2c_adapter *i2c_adap,
+ 	u16 saddr = 0;
+ 	u8 need_gpio = 0;
+ 
+-	if ((bus->nr == 1) && (msg->addr == 0x61)
+-	    && dev->tuner_type == TUNER_XC5000) {
+-
++	if (is_tuner(dev, bus, msg, TUNER_XC5000)) {
+ 		if (msg->len == 2)
+ 			saddr = msg->buf[0] << 8 | msg->buf[1];
+ 		else if (msg->len == 1)
+@@ -274,9 +285,7 @@ static int cx231xx_i2c_recv_bytes_with_saddr(struct i2c_adapter *i2c_adap,
+ 	else if (msg1->len == 1)
+ 		saddr = msg1->buf[0];
+ 
+-	if ((bus->nr == 1) && (msg2->addr == 0x61)
+-	    && dev->tuner_type == TUNER_XC5000) {
+-
++	if (is_tuner(dev, bus, msg2, TUNER_XC5000)) {
+ 		if ((msg2->len < 16)) {
+ 
+ 			dprintk1(1,
+@@ -454,8 +463,8 @@ static char *i2c_devs[128] = {
+ 	[0x32 >> 1] = "GeminiIII",
+ 	[0x02 >> 1] = "Aquarius",
+ 	[0xa0 >> 1] = "eeprom",
+-	[0xc0 >> 1] = "tuner/XC3028",
+-	[0xc2 >> 1] = "tuner/XC5000",
++	[0xc0 >> 1] = "tuner",
++	[0xc2 >> 1] = "tuner",
+ };
+ 
+ /*
+-- 
+1.7.1
 
-> 
-> Matti
-> 
->>
->> Mauro
->>
-> 
-> 
 
