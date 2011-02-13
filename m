@@ -1,72 +1,82 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:58185 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754729Ab1B1UhD convert rfc822-to-8bit (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:29057 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755041Ab1BMV0o (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Feb 2011 15:37:03 -0500
-Received: by bwz15 with SMTP id 15so4029154bwz.19
-        for <linux-media@vger.kernel.org>; Mon, 28 Feb 2011 12:37:02 -0800 (PST)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: Mariusz Bialonczyk <manio@skyboo.net>
-Subject: Re: [PATCH] Prof 7301: switching frontend to stv090x, fixing "LOCK FAILED" issue
-Date: Mon, 28 Feb 2011 22:37:07 +0200
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-References: <4D3358C5.5080706@skyboo.net> <201102281901.50579.liplianin@me.by> <4D6BFB6A.1090404@skyboo.net>
-In-Reply-To: <4D6BFB6A.1090404@skyboo.net>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201102282237.07948.liplianin@me.by>
+	Sun, 13 Feb 2011 16:26:44 -0500
+Subject: Re: [corrected get-bisect results]: DViCO FusionHDTV7 Dual Express
+ I2C write failed
+From: Andy Walls <awalls@md.metrocast.net>
+To: Mark Zimmerman <markzimm@frii.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org
+In-Reply-To: <20110213202644.GA15282@io.frii.com>
+References: <20101207190753.GA21666@io.frii.com>
+	 <20110212152954.GA20838@io.frii.com> <20110213144758.GA79915@io.frii.com>
+	 <AANLkTik5iYsS5UNQQv6OxTyC0X9nEYvsOEtA6mBLQ-Jq@mail.gmail.com>
+	 <20110213202644.GA15282@io.frii.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sun, 13 Feb 2011 16:26:50 -0500
+Message-ID: <1297632410.2401.6.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-В сообщении от 28 февраля 2011 21:45:46 автор Mariusz Bialonczyk написал:
-> On 02/28/2011 06:01 PM, Igor M. Liplianin wrote:
-> > For those who ...
-> > He asked me to get rid of my driver. Why should I?
+On Sun, 2011-02-13 at 13:26 -0700, Mark Zimmerman wrote:
+> On Sun, Feb 13, 2011 at 09:52:25AM -0500, Devin Heitmueller wrote:
+> > On Sun, Feb 13, 2011 at 9:47 AM, Mark Zimmerman <markzimm@frii.com> wrote:
+> > > Clearly my previous bisection went astray; I think I have a more
+> > > sensible result this time.
+> > >
+> > > qpc$ git bisect good
+> > > 44835f197bf1e3f57464f23dfb239fef06cf89be is the first bad commit
+> > > commit 44835f197bf1e3f57464f23dfb239fef06cf89be
+> > > Author: Jean Delvare <khali@linux-fr.org>
+> > > Date: ? Sun Jul 18 16:52:05 2010 -0300
+> > >
+> > > ? ?V4L/DVB: cx23885: Check for slave nack on all transactions
+> > >
+> > > ? ?Don't just check for nacks on zero-length transactions. Check on
+> > > ? ?other transactions too.
+> > 
+> > This could be a combination of the xc5000 doing clock stretching and
+> > the cx23885 i2c master not properly implementing clock stretch.  In
+> > the past I've seen i2c masters broken in their handling of clock
+> > stretching where they treat it as a NAK.
+> > 
+> > The xc5000 being one of the few devices that actually does i2c clock
+> > stretching often exposes cases where it is improperly implemented in
+> > the i2c master driver (I've had to fix this with several bridges).
+> > 
 > 
-> Maybe because (now) your frontend has problems with tunning on this card?
-> I though that references are known for you:
-> 1.
-> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/24
-> 573 2.
-> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/25
-> 275 3. http://linuxdvb.org.ru/wbb/index.php?page=Thread&threadID=641
-> 
-> And to be more specific: I am not asking to get rid of your driver,
-> my patch doesn't touch your stv0900 implementation, it only change the
-> frontend for one particular card.
-> 
-> > I have 7301, test it myself and see nothing bad with stv0900.
-> 
-> If it is working for you - lucky you! But keep in mind that it it doesn't
-> mean that it is working for others. Have you tested it with my patch
-> applied? Besides it is not using your frontend, maybe it just *work*?
-> 
-> > Obviously, I better patch stv0900 then convert the driver to stv090x.
-> 
-> Sure, go ahead... I am only wondering why wasn't you so helpful when I was
-> trying to contact you and offer debugging help when I discovered the
-> problem after I started using this card. Your only response was:
-> "I know this issue. Your card is fine."
-> So now I resolved the problem myself and sent a working solution (tested
-> by some people - always with good results) and you disagree now.
-> 
-> I'm only hoping that a hardware *usability* will win over an ego!
-> 
-> regards,
-Sorry, I have nothing against you personally.
-I have excuses, but you not intresting, I think.
-Peace, friendship, chewing gum, like we use to say in my childhood :)
+> Thanks for your insight. I am looking at cx23885-i2c.c and there is no
+> clock stretching logic in i2c_slave_did_ack().  Would this be the
+> right place for it to be?  Can you point me to an example of another
+> driver that does it correctly?  I really don't know what I am doing...
 
-Switching to other driver not helps me, so be patient.
 
-I patched stv0900 and send pull request.
-Tested on Prof 7301, 7500, NetUP Dual DVB-S2, DVBWorld 2104 cards by myself.
-With all of that vendors I have good relationships.
+Mark,
 
--- 
-Igor M. Liplianin
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+You don't have much hope of getting that right without the CX23885
+datasheet.
+
+Let's just get the bad commit reverted and into 2.6.38, and fix what
+used to work for you.  Doing a git bisect is enough work for anyone.
+
+I'll do a patch to revert the commit and ask it to be pulled for
+2.6.38-rc-whatever.  I'll be sure to add a
+
+	Bisected-by: Mark Zimmerman <markzimm@frii.com>
+
+tag to the patch.  (The Linux Kernel devs understand the work involved
+to do a bisection.)
+
+
+Later, if I can work up a patch to deal with clock stretching properly,
+I may ask you to test.
+
+Regards,
+Andy
+
+
