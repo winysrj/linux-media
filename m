@@ -1,29 +1,35 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.samsung.com ([203.254.224.33]:18153 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755641Ab1BXLLD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Feb 2011 06:11:03 -0500
-Received: from epmmp1 (mailout3.samsung.com [203.254.224.33])
- by mailout3.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LH4009V1BD1ZK80@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Thu, 24 Feb 2011 19:48:37 +0900 (KST)
-Received: from DOKGENEKIM02 ([12.23.103.104])
- by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LH4004TABD1T9@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 24 Feb 2011 19:48:37 +0900 (KST)
-Date: Thu, 24 Feb 2011 19:48:33 +0900
-From: Kukjin Kim <kgene.kim@samsung.com>
-Subject: 
-To: linux-media@vger.kernel.org
-Message-id: <027901cbd410$64504ae0$2cf0e0a0$%kim@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: ko
-Content-transfer-encoding: 7BIT
+Received: from mx1.redhat.com ([209.132.183.28]:2322 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755041Ab1BMVpX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Feb 2011 16:45:23 -0500
+Message-ID: <4D5850EF.3040406@redhat.com>
+Date: Sun, 13 Feb 2011 19:45:19 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Steven Karatnyk <stevenkaratnyk@rogers.com>
+CC: Linux-media <linux-media@vger.kernel.org>, alexdeucher@gmail.com
+Subject: Re: [PATCH 0/8] Port xf86-video-v4l driver to V4L2 version 2
+References: <4D582DBD.5020806@rogers.com>
+In-Reply-To: <4D582DBD.5020806@rogers.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Subscribe linux-media
+Em 13-02-2011 17:15, Steven Karatnyk escreveu:
+> Note: I've added a news item to the main page regarding V4L1's removal from the kernel.  In addition, I've attempted to summarize what the video-v4l  module's purpose, as well as how to use it, by sewing together the info from a bunch of sources (such as Alex's, Mauro comments, etc etc)
+> 
+> - http://www.linuxtv.org/wiki/index.php/Main_Page
+> - http://www.linuxtv.org/wiki/index.php/Xf86-video-v4l
 
+Thank you for adding them to the wiki. The info there seems consistent.
+
+Currently, just some PCI devices implement the V4L2 overlay support,
+needed by the driver to work. I'll eventually implement other modes
+like mmap and userptr one day, but what I want to do first is to make
+it support the textured video. I'm not sure about the other apps, but
+xawtv works fine with the v4l driver.
+
+Cheers,
+Mauro
