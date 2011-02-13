@@ -1,65 +1,40 @@
 Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:49782 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750884Ab1BURGq convert rfc822-to-8bit (ORCPT
+Received: from smtp101.rog.mail.re2.yahoo.com ([206.190.36.79]:35944 "HELO
+	smtp101.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1754857Ab1BMUFH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Feb 2011 12:06:46 -0500
-Subject: Re: [PATCH v2 1/1] headers: fix circular dependency between
- linux/sched.h and linux/wait.h
-From: Peter Zijlstra <peterz@infradead.org>
-To: balbi@ti.com
-Cc: David Cohen <dacohen@gmail.com>, linux-kernel@vger.kernel.org,
-	mingo@elte.hu, linux-omap@vger.kernel.org,
-	linux-media@vger.kernel.org, Alexey Dobriyan <adobriyan@gmail.com>,
-	Oleg Nesterov <oleg@redhat.com>
-In-Reply-To: <20110221165443.GL23087@legolas.emea.dhcp.ti.com>
-References: <1298299131-17695-1-git-send-email-dacohen@gmail.com>
-	 <1298299131-17695-2-git-send-email-dacohen@gmail.com>
-	 <1298303677.24121.1.camel@twins>
-	 <AANLkTimOT6jNG3=TiRMJR0dgEQ6EHjcBPJ1ivCu3Wj5Q@mail.gmail.com>
-	 <1298305245.24121.7.camel@twins>
-	 <20110221162939.GK23087@legolas.emea.dhcp.ti.com>
-	 <1298306607.24121.18.camel@twins>
-	 <20110221165443.GL23087@legolas.emea.dhcp.ti.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Date: Mon, 21 Feb 2011 18:06:02 +0100
-Message-ID: <1298307962.24121.27.camel@twins>
-Mime-Version: 1.0
+	Sun, 13 Feb 2011 15:05:07 -0500
+Message-ID: <4D583969.2050401@rogers.com>
+Date: Sun, 13 Feb 2011 15:04:57 -0500
+From: CityK <cityk@rogers.com>
+MIME-Version: 1.0
+To: video4linux-list-owner@redhat.com,
+	Linux-media <linux-media@vger.kernel.org>
+Subject: the V4L mailing list is deprecated
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, 2011-02-21 at 18:54 +0200, Felipe Balbi wrote:
+Hello whomever at Redhat who is managing this list,
 
-> What you seem to have missed is that sched.h doesn't include wait.h, it
-> includes completion.h and completion.h needs wait.h due the
-> wait_queue_head_t it uses.
+Its now been over two years since the Linux Media Mailing List was set 
+up and it, indeed, has become well established  
+(http://www.linuxtv.org/news.php?entry=2009-01-06.mchehab).   While most 
+V4L-DVB community participants have transitioned over to the LMML, 
+unfortunately, (likely from those unaware of the change) a fair number 
+of user messages are still getting posted to the now essentially 
+deprecated video4linux mailing list.  It is a diservice to those folks 
+to continue allowing messages to make it on to the v4l list, as most of 
+them will go unnoticed (as, as mentioned, most users in a position to 
+respond to the sender have already abandoned this list in favour of the 
+new LMML).
 
-Yeah, so? sched.h doesn't need completion.h, but like with wait.h I'd
-argue the other way around, completion.h would want to include sched.h
+Could we please effectively wind down the video4linux by the end of this 
+month  -- perhaps by way of setting up an auto notification response to 
+any future submitter to the video4linux mailing list that their message 
+should instead be sent to the LMML instead (perhaps even setting up a 
+courtesy redirect of their message to the LMML for them) ?
 
-> If someone finds a cleaner way to drop that need, then I'm all for it as
-> my original suggestion to the original patch was to include sched.h in
-> wait.h, but it turned out that it's not possible due to the reasons
-> already explained.
-
-Feh,. I'm saying the proposed solution stinks and if you want to make
-things better you need to work on fixing whatever is in the way of
-including sched.h from wait.h.
-
-1) remove the inclusion of completion.h -- easy we can live with an
-incomplete type.
-
-2) move the other wait_queue_head_t users (signal_struct sighand_struct)
-out of sched.h
-
-3) ...
-
-4) profit!
-
-Just isolating the TASK_state bits isn't going to be enough, wait.h also
-wants wake_up goo and schedule*(), therefore either include sched.h from
-whatever .c file you're using wait.h bits or do the above cleanup.
-
-
+Cheers
 
