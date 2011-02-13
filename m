@@ -1,49 +1,56 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:53130 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752781Ab1BUSLi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Feb 2011 13:11:38 -0500
-Date: Mon, 21 Feb 2011 18:27:56 +0100
-From: Oleg Nesterov <oleg@redhat.com>
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: David Cohen <dacohen@gmail.com>, linux-kernel@vger.kernel.org,
-	mingo@elte.hu, linux-omap@vger.kernel.org,
-	linux-media@vger.kernel.org, Alexey Dobriyan <adobriyan@gmail.com>
-Subject: Re: [PATCH v2 1/1] headers: fix circular dependency between
-	linux/sched.h and linux/wait.h
-Message-ID: <20110221172756.GA27664@redhat.com>
-References: <1298299131-17695-1-git-send-email-dacohen@gmail.com> <1298299131-17695-2-git-send-email-dacohen@gmail.com> <1298303677.24121.1.camel@twins> <AANLkTimOT6jNG3=TiRMJR0dgEQ6EHjcBPJ1ivCu3Wj5Q@mail.gmail.com> <1298305245.24121.7.camel@twins> <20110221172103.GA26225@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20110221172103.GA26225@redhat.com>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:8143 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755029Ab1BMVfy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Feb 2011 16:35:54 -0500
+Subject: Re: radio tuner but no V4L2_CAP_RADIO ?
+From: Andy Walls <awalls@md.metrocast.net>
+To: Martin Dauskardt <martin.dauskardt@gmx.de>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <201102132039.07632.martin.dauskardt@gmx.de>
+References: <201102132039.07632.martin.dauskardt@gmx.de>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sun, 13 Feb 2011 16:35:56 -0500
+Message-ID: <1297632956.2401.11.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 02/21, Oleg Nesterov wrote:
->
-> On 02/21, Peter Zijlstra wrote:
-> >
-> > afaict its needed because struct signal_struct and struct sighand_struct
-> > include a wait_queue_head_t. The inclusion seems to come through
-> > completion.h, but afaict we don't actually need to include completion.h
-> > because all we have is a pointer to a completion, which is perfectly
-> > fine with an incomplete type.
-> >
-> > This all would suggest we move the signal bits into their own header
-> > (include/linux/signal.h already exists and seems inviting).
->
-> Agreed, sched.h contatins a lot of garbage, including the signal bits.
->
-> As for signal_struct in particular I am not really sure, it is just
-> misnamed. It is in fact "struct process" or "struct thread_group". But
-> dequeue_signal/etc should go into signal.h.
->
-> The only problem, it is not clear how to test such a change.
+On Sun, 2011-02-13 at 20:39 +0100, Martin Dauskardt wrote:
+> The following cards have a Multi Standard tuner with radio:
+> KNC One TV-Station DVR (saa7134) FMD1216MEX
+> HVR1300 (cx88-blackbird) Philips FMD1216ME
+> /dev/radio0 is present and working.
+> 
+> Both drivers do not report the radio when using VIDIOC_QUERYCAP.
+> 
+> Is this a bug, or is there no clear specification that a driver must report 
+> this?
 
-Ah. sched.h includes signal.h, the testing is not the problem.
+The V4L2 API spec is unclear on this subject in most places, but it is
+*very* clear here:
 
-So, we can (at least) safely move some declarations.
+http://linuxtv.org/downloads/v4l-dvb-apis/radio.html#id2682669
 
-Oleg.
+"Devices supporting the radio interface set the V4L2_CAP_RADIO and
+V4L2_CAP_TUNER or V4L2_CAP_MODULATOR flag in the capabilities field of
+struct v4l2_capability returned by the VIDIOC_QUERYCAP ioctl."
+
+Those drivers have bugs.
+
+Regards,
+Andy
+
+> Is there are any other way to check radio for support (besides trying to open 
+> a matching radio device) ?
+
+
+
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 
