@@ -1,57 +1,62 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:50848 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753974Ab1BOJUS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Feb 2011 04:20:18 -0500
-Date: Tue, 15 Feb 2011 10:20:12 +0100
-From: Tejun Heo <tj@kernel.org>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	stoth@kernellabs.com, Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH] cx23885: restore flushes of cx23885_dev work items
-Message-ID: <20110215092012.GE3160@htj.dyndns.org>
-References: <1297647322.19186.61.camel@localhost>
- <20110214043355.GA28090@core.coreip.homeip.net>
- <20110214110339.GC18742@htj.dyndns.org>
- <1297731276.2394.19.camel@localhost>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1297731276.2394.19.camel@localhost>
+Received: from mx1.redhat.com ([209.132.183.28]:1035 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754521Ab1BMRdQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Feb 2011 12:33:16 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p1DHXGJJ008295
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 13 Feb 2011 12:33:16 -0500
+Received: from pedra (vpn-239-52.phx2.redhat.com [10.3.239.52])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p1DHT5kP015438
+	for <linux-media@vger.kernel.org>; Sun, 13 Feb 2011 12:33:15 -0500
+Date: Sun, 13 Feb 2011 15:28:55 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 4/5] [media] cx231xx: Allow some boards to not use I2C port
+ 3
+Message-ID: <20110213152855.2c2d90c8@pedra>
+In-Reply-To: <cover.1297617986.git.mchehab@redhat.com>
+References: <cover.1297617986.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Commit 8c71778c (media/video: don't use flush_scheduled_work())
-dropped flush_scheduled_work() from cx23885_input_ir_stop()
-incorrectly assuming that it didn't use any work item; however,
-cx23885_dev makes use of three work items - cx25840_work and
-ir_{r|t}x_work.
+Some devices don't need to use it. So allow to just disable this logic.
+Having it enabled on some devices cause power management to complain,
+generating error -71.
 
-Make cx23885_input_ir_stop() sync flush all three work items before
-returning.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Reported-by: Andy Walls <awalls@md.metrocast.net>
-Reviewed-by: Andy Walls <awalls@md.metrocast.net>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/video/cx23885/cx23885-input.c |    3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/drivers/media/video/cx23885/cx23885-input.c b/drivers/media/video/cx23885/cx23885-input.c
-index 199b996..e27cedb 100644
---- a/drivers/media/video/cx23885/cx23885-input.c
-+++ b/drivers/media/video/cx23885/cx23885-input.c
-@@ -229,6 +229,9 @@ static void cx23885_input_ir_stop(struct cx23885_dev *dev)
- 		v4l2_subdev_call(dev->sd_ir, ir, rx_s_parameters, &params);
- 		v4l2_subdev_call(dev->sd_ir, ir, rx_g_parameters, &params);
- 	}
-+	flush_work_sync(&dev->cx25840_work);
-+	flush_work_sync(&dev->ir_rx_work);
-+	flush_work_sync(&dev->ir_tx_work);
- }
+diff --git a/drivers/media/video/cx231xx/cx231xx-avcore.c b/drivers/media/video/cx231xx/cx231xx-avcore.c
+index b80bccf..62843d3 100644
+--- a/drivers/media/video/cx231xx/cx231xx-avcore.c
++++ b/drivers/media/video/cx231xx/cx231xx-avcore.c
+@@ -1271,6 +1271,8 @@ int cx231xx_enable_i2c_port_3(struct cx231xx *dev, bool is_port_3)
+ 	int status = 0;
+ 	bool current_is_port_3;
  
- static void cx23885_input_ir_close(struct rc_dev *rc)
++	if (dev->board.dont_use_port_3)
++		is_port_3 = false;
+ 	status = cx231xx_read_ctrl_reg(dev, VRT_GET_REGISTER,
+ 				       PWR_CTL_EN, value, 4);
+ 	if (status < 0)
+diff --git a/drivers/media/video/cx231xx/cx231xx.h b/drivers/media/video/cx231xx/cx231xx.h
+index b72503d..e1c222b 100644
+--- a/drivers/media/video/cx231xx/cx231xx.h
++++ b/drivers/media/video/cx231xx/cx231xx.h
+@@ -357,6 +357,7 @@ struct cx231xx_board {
+ 	unsigned int valid:1;
+ 	unsigned int no_alt_vanc:1;
+ 	unsigned int external_av:1;
++	unsigned int dont_use_port_3:1;
+ 
+ 	unsigned char xclk, i2c_speed;
+ 
+-- 
+1.7.1
+
+
