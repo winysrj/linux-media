@@ -1,71 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.186]:61130 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752174Ab1BZNDz (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:61526 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750932Ab1BMPn5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Feb 2011 08:03:55 -0500
-Date: Sat, 26 Feb 2011 14:03:53 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kim HeungJun <riverful@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Stanimir Varbanov <svarbanov@mm-sol.com>
-Subject: Re: [RFC] snapshot mode, flash capabilities and control
-In-Reply-To: <201102261331.26681.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.1102261350001.31455@axis700.grange>
-References: <Pine.LNX.4.64.1102240947230.15756@axis700.grange>
- <20110225135314.GF23853@valkosipuli.localdomain> <Pine.LNX.4.64.1102251708080.26361@axis700.grange>
- <201102261331.26681.hverkuil@xs4all.nl>
+	Sun, 13 Feb 2011 10:43:57 -0500
+Received: by bwz15 with SMTP id 15so4731548bwz.19
+        for <linux-media@vger.kernel.org>; Sun, 13 Feb 2011 07:43:55 -0800 (PST)
+Date: Sun, 13 Feb 2011 16:43:35 +0100
+From: Richard <rz@linux-m68k.org>
+To: jamenson@bol.com.br
+Cc: linux-media@vger.kernel.org
+Subject: Re: Siano SMS1140 DVB Receiver on Debian 5.0 (Lenny)
+Message-ID: <20110213154335.GA5301@rz>
+References: <4d554a2295c4b_de09815034196@a2-winter4.tmail>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4d554a2295c4b_de09815034196@a2-winter4.tmail>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sat, 26 Feb 2011, Hans Verkuil wrote:
+On Fri, Feb 11, 2011 at 12:39:30PM -0200, jamenson@bol.com.br wrote:
 
-> On Friday, February 25, 2011 18:08:07 Guennadi Liakhovetski wrote:
+
+> As you can see, driver is not registering the devices. So I did registration:
+
+just curious, how did you do that?
+
 > 
-> <snip>
-> 
-> > > > configure the sensor to react on an external trigger provided by the flash 
-> > > > controller is needed, and that could be a control on the flash sub-device. 
-> > > > What we would probably miss is a way to issue a STREAMON with a number of 
-> > > > frames to capture. A new ioctl is probably needed there. Maybe that would be 
-> > > > an opportunity to create a new stream-control ioctl that could replace 
-> > > > STREAMON and STREAMOFF in the long term (we could extend the subdev s_stream 
-> > > > operation, and easily map STREAMON and STREAMOFF to the new ioctl in 
-> > > > video_ioctl2 internally).
-> > > 
-> > > How would this be different from queueing n frames (in total; count
-> > > dequeueing, too) and issuing streamon? --- Except that when the last frame
-> > > is processed the pipeline could be stopped already before issuing STREAMOFF.
-> > > That does indeed have some benefits. Something else?
-> > 
-> > Well, you usually see in your host driver, that the videobuffer queue is 
-> > empty (no more free buffers are available), so, you stop streaming 
-> > immediately too.
-> 
-> This probably assumes that the host driver knows that this is a special queue?
-> Because in general drivers will simply keep capturing in the last buffer and not
-> release it to userspace until a new buffer is queued.
+> I'm using kernel 2.6.37 (downloaded from kernel.org) with Debian GNU/Linux 5.0 (Lenny).
 
-Yes, I know about this spec requirement, but I also know, that not all 
-drivers do that and not everyone is happy about that requirement:)
+try different kernel versions, also sms and other modules support debug options - those
+are what I came across:
 
-> That said, it wouldn't be hard to add some flag somewhere that puts a queue in
-> a 'stop streaming on last buffer capture' mode.
+#options smsdvb debug=3
+#options smsusb debug=3
+#options dvb_frontend debug=1
+#options dvb_frontend dvbdev_debug=1
+#options smsmdtv debug=3
+#options dvb_core debug=1
+#options dvb_core dvbdev_debug=1
 
-No, it wouldn't... But TBH this doesn't seem like the most elegant and 
-complete solution. Maybe we have to think a bit more about it - which 
-soncequences switching into the snapshot mode has on the host driver, 
-apart from stopping after N frames. So, this is one of the possibilities, 
-not sure if the best one.
+Richard
 
-Thanks
-Guennadi
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Name and OpenPGP keys available from pgp key servers
+
