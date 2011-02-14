@@ -1,74 +1,234 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.1.47]:57031 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752952Ab1BIIsX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Feb 2011 03:48:23 -0500
-Subject: Re: WL1273 FM Radio driver...
-From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Reply-To: matti.j.aaltonen@nokia.com
-To: ext Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: ext Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	alsa-devel@alsa-project.org, lrg@slimlogic.co.uk,
-	hverkuil@xs4all.nl, sameo@linux.intel.com,
-	linux-media@vger.kernel.org
-In-Reply-To: <4D501704.6060504@redhat.com>
-References: <1297075922.15320.31.camel@masi.mnp.nokia.com>
-	 <4D4FDED0.7070008@redhat.com>
-	 <20110207120234.GE10564@opensource.wolfsonmicro.com>
-	 <4D4FEA03.7090109@redhat.com>
-	 <20110207131045.GG10564@opensource.wolfsonmicro.com>
-	 <4D4FF821.4010701@redhat.com>
-	 <20110207135225.GJ10564@opensource.wolfsonmicro.com>
-	 <1297088242.15320.62.camel@masi.mnp.nokia.com>
-	 <4D501704.6060504@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 09 Feb 2011 10:47:58 +0200
-Message-ID: <1297241278.15320.90.camel@masi.mnp.nokia.com>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58155 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753784Ab1BNMVA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Feb 2011 07:21:00 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [PATCH v7 6/6] v4l: subdev: Events support
+Date: Mon, 14 Feb 2011 13:20:59 +0100
+Message-Id: <1297686059-9622-7-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1297686059-9622-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1297686059-9622-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, 2011-02-07 at 14:00 -0200, ext Mauro Carvalho Chehab wrote:
-> Em 07-02-2011 12:17, Matti J. Aaltonen escreveu:
-> > On Mon, 2011-02-07 at 13:52 +0000, ext Mark Brown wrote:
-> >> On Mon, Feb 07, 2011 at 11:48:17AM -0200, Mauro Carvalho Chehab wrote:
-> >>> Em 07-02-2011 11:10, Mark Brown escreveu:
-> >>
-> >>>> There is an audio driver for this chip and it is using those functions.
-> >>
-> >>> Where are the other drivers that depend on it?
-> >>
-> >> Nothing's been merged yet to my knowledge, Matti can comment on any
-> >> incoming boards which will use it (rx51?).
-> > 
-> > Yes, nothing's been merged yet. There are only dependencies between the
-> > parts of this driver... I cannot comment on upcoming boards, I just hope
-> > we could agree on a sensible structure for this thing.
-> 
-> We don't need any brand names or specific details, but it would be good to 
-> have an overview, in general lines, about the architecture, in order to help 
-> you to map how this would fit. In particular, the architecturre of 
-> things that are tightly coupled and can't be splitted by some bus abstraction.
+From: Sakari Ailus <sakari.ailus@iki.fi>
 
-I understand what you are saying but obviously I cannot think like a
-sub-system maintainer:-) What I see here is a piece of hardware with
-lots of capabilities: FM RX and TX with analog and digital audio, I2C
-and UART control... 
+Provide v4l2_subdevs with v4l2_event support. Subdev drivers only need very
+little to support events.
 
-I would have thought that the goal is to make a driver that's as
-"general" as possible and to make it possible to use the chip in all
-kinds of architectures and scenarios.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: David Cohen <dacohen@gmail.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ Documentation/video4linux/v4l2-framework.txt |   18 ++++++
+ drivers/media/video/v4l2-subdev.c            |   78 +++++++++++++++++++++++++-
+ include/media/v4l2-subdev.h                  |   10 +++
+ 3 files changed, 105 insertions(+), 1 deletions(-)
 
-But we have been using the driver in principle in its current form. But
-if the interface to the users has to be split in a different way, I
-don't see that as a major problem. But on the other hand I can't see the
-ASoC / V4L2 division going away completely. The users won't probably
-care if we have MFD or not.
-
-Cheers,
-Matti
-
-> Mauro.
-
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index 1feecfc..eb84795 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -350,6 +350,24 @@ VIDIOC_TRY_EXT_CTRLS
+ 	controls can be also be accessed through one (or several) V4L2 device
+ 	nodes.
+ 
++VIDIOC_DQEVENT
++VIDIOC_SUBSCRIBE_EVENT
++VIDIOC_UNSUBSCRIBE_EVENT
++
++	The events ioctls are identical to the ones defined in V4L2. They
++	behave identically, with the only exception that they deal only with
++	events generated by the sub-device. Depending on the driver, those
++	events can also be reported by one (or several) V4L2 device nodes.
++
++	Sub-device drivers that want to use events need to set the
++	V4L2_SUBDEV_USES_EVENTS v4l2_subdev::flags and initialize
++	v4l2_subdev::nevents to events queue depth before registering the
++	sub-device. After registration events can be queued as usual on the
++	v4l2_subdev::devnode device node.
++
++	To properly support events, the poll() file operation is also
++	implemented.
++
+ 
+ I2C sub-device drivers
+ ----------------------
+diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+index 2fbc9cb..9374406 100644
+--- a/drivers/media/video/v4l2-subdev.c
++++ b/drivers/media/video/v4l2-subdev.c
+@@ -20,21 +20,66 @@
+  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  */
+ 
+-#include <linux/types.h>
+ #include <linux/ioctl.h>
++#include <linux/slab.h>
++#include <linux/types.h>
+ #include <linux/videodev2.h>
+ 
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
++#include <media/v4l2-fh.h>
++#include <media/v4l2-event.h>
+ 
+ static int subdev_open(struct file *file)
+ {
++	struct video_device *vdev = video_devdata(file);
++	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
++	struct v4l2_fh *vfh;
++	int ret;
++
++	if (sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS) {
++		vfh = kzalloc(sizeof(*vfh), GFP_KERNEL);
++		if (vfh == NULL)
++			return -ENOMEM;
++
++		ret = v4l2_fh_init(vfh, vdev);
++		if (ret)
++			goto err;
++
++		ret = v4l2_event_init(vfh);
++		if (ret)
++			goto err;
++
++		ret = v4l2_event_alloc(vfh, sd->nevents);
++		if (ret)
++			goto err;
++
++		v4l2_fh_add(vfh);
++		file->private_data = vfh;
++	}
++
+ 	return 0;
++
++err:
++	if (vfh != NULL) {
++		v4l2_fh_exit(vfh);
++		kfree(vfh);
++	}
++
++	return ret;
+ }
+ 
+ static int subdev_close(struct file *file)
+ {
++	struct v4l2_fh *vfh = file->private_data;
++
++	if (vfh != NULL) {
++		v4l2_fh_del(vfh);
++		v4l2_fh_exit(vfh);
++		kfree(vfh);
++	}
++
+ 	return 0;
+ }
+ 
+@@ -42,6 +87,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ {
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
++	struct v4l2_fh *fh = file->private_data;
+ 
+ 	switch (cmd) {
+ 	case VIDIOC_QUERYCTRL:
+@@ -65,6 +111,18 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 	case VIDIOC_TRY_EXT_CTRLS:
+ 		return v4l2_subdev_try_ext_ctrls(sd, arg);
+ 
++	case VIDIOC_DQEVENT:
++		if (!(sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS))
++			return -ENOIOCTLCMD;
++
++		return v4l2_event_dequeue(fh, arg, file->f_flags & O_NONBLOCK);
++
++	case VIDIOC_SUBSCRIBE_EVENT:
++		return v4l2_subdev_call(sd, core, subscribe_event, fh, arg);
++
++	case VIDIOC_UNSUBSCRIBE_EVENT:
++		return v4l2_subdev_call(sd, core, unsubscribe_event, fh, arg);
++
+ 	default:
+ 		return -ENOIOCTLCMD;
+ 	}
+@@ -78,11 +136,29 @@ static long subdev_ioctl(struct file *file, unsigned int cmd,
+ 	return __video_usercopy(file, cmd, arg, subdev_do_ioctl);
+ }
+ 
++static unsigned int subdev_poll(struct file *file, poll_table *wait)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
++	struct v4l2_fh *fh = file->private_data;
++
++	if (!(sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS))
++		return POLLERR;
++
++	poll_wait(file, &fh->events->wait, wait);
++
++	if (v4l2_event_pending(fh))
++		return POLLPRI;
++
++	return 0;
++}
++
+ const struct v4l2_file_operations v4l2_subdev_fops = {
+ 	.owner = THIS_MODULE,
+ 	.open = subdev_open,
+ 	.unlocked_ioctl = subdev_ioctl,
+ 	.release = subdev_close,
++	.poll = subdev_poll,
+ };
+ 
+ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 2e4bef47..3f4e0d1 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -37,6 +37,8 @@
+ 
+ struct v4l2_device;
+ struct v4l2_ctrl_handler;
++struct v4l2_event_subscription;
++struct v4l2_fh;
+ struct v4l2_subdev;
+ struct tuner_setup;
+ 
+@@ -161,6 +163,10 @@ struct v4l2_subdev_core_ops {
+ 	int (*s_power)(struct v4l2_subdev *sd, int on);
+ 	int (*interrupt_service_routine)(struct v4l2_subdev *sd,
+ 						u32 status, bool *handled);
++	int (*subscribe_event)(struct v4l2_subdev *sd, struct v4l2_fh *fh,
++			       struct v4l2_event_subscription *sub);
++	int (*unsubscribe_event)(struct v4l2_subdev *sd, struct v4l2_fh *fh,
++				 struct v4l2_event_subscription *sub);
+ };
+ 
+ /* s_mode: switch the tuner to a specific tuner mode. Replacement of s_radio.
+@@ -435,6 +441,8 @@ struct v4l2_subdev_internal_ops {
+ #define V4L2_SUBDEV_FL_IS_SPI			(1U << 1)
+ /* Set this flag if this subdev needs a device node. */
+ #define V4L2_SUBDEV_FL_HAS_DEVNODE		(1U << 2)
++/* Set this flag if this subdev generates events. */
++#define V4L2_SUBDEV_FL_HAS_EVENTS		(1U << 3)
+ 
+ /* Each instance of a subdev driver should create this struct, either
+    stand-alone or embedded in a larger struct.
+@@ -458,6 +466,8 @@ struct v4l2_subdev {
+ 	void *host_priv;
+ 	/* subdev device node */
+ 	struct video_device devnode;
++	/* number of events to be allocated on open */
++	unsigned int nevents;
+ };
+ 
+ #define vdev_to_v4l2_subdev(vdev) \
+-- 
+1.7.3.4
 
