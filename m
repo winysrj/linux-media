@@ -1,76 +1,254 @@
 Return-path: <mchehab@pedra>
-Received: from mailout4.samsung.com ([203.254.224.34]:30089 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755280Ab1BYMp6 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58187 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754116Ab1BNMV0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Feb 2011 07:45:58 -0500
-Received: from epmmp2 (mailout4.samsung.com [203.254.224.34])
- by mailout4.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LH60066ABGKF760@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Fri, 25 Feb 2011 21:45:56 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LH600DS2BGL7V@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Fri, 25 Feb 2011 21:45:57 +0900 (KST)
-Date: Fri, 25 Feb 2011 21:45:56 +0900
-From: "Kim, HeungJun" <riverful.kim@samsung.com>
-Subject: [RFC PATCH RESEND v2 0/3] v4l2-ctrls: add new focus mode
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
-Reply-to: riverful.kim@samsung.com
-Message-id: <4D67A484.7000801@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7BIT
+	Mon, 14 Feb 2011 07:21:26 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [PATCH v7 05/11] v4l: Create v4l2 subdev file handle structure
+Date: Mon, 14 Feb 2011 13:21:18 +0100
+Message-Id: <1297686084-9715-6-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1297686084-9715-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1297686084-9715-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+From: Stanimir Varbanov <svarbanov@mm-sol.com>
 
-Agenda
-======================================================================
-I faced to the absence of the mode of v4l2 focus for a couple of years.
-While dealing with some few morebile camera sensors, the focus modes
-are needed more than the current v4l2 focus mode, like a Macro &
-Continuous mode. The M-5MOLS camera sensor I dealt with, also support
-these 2 modes. So, I'm going to suggest supports of more detailed
-v4l2 focus mode.
+Used for storing subdev information per file handle and hold V4L2 file
+handle.
 
-Version
-======================================================================
-This is second version patch about auto focus mode.
-The second version changes are below:
-1. switch enumeration value between V4L2_FOCUS_AUTO and V4L2_FOCUS_MACRO,
-   for maintaing previous auto focus mode value.
-2. add documentations about the changes of auto focus mode.
+Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
+Signed-off-by: Antti Koskipaa <akoskipa@gmail.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/Kconfig             |    9 ++++
+ drivers/media/video/v4l2-subdev.c |   85 +++++++++++++++++++++++++------------
+ include/media/v4l2-subdev.h       |   29 +++++++++++++
+ 3 files changed, 96 insertions(+), 27 deletions(-)
 
-
-This RFC series of patch adds new auto focus modes, and documents it.
-
-The first patch the boolean type of V4L2_CID_FOCUS_AUTO to menu type,
-and insert menus 4 enumerations: 
-
-V4L2_FOCUS_MANUAL,
-V4L2_FOCUS_AUTO, 
-V4L2_FOCUS_MACRO,
-V4L2_FOCUS_CONTINUOUS
-
-The recent mobile camera sensors with ISP supports Macro & Continuous Auto
-Focus aka CAF mode, of course normal AUTO mode, even Continuous mode.
-Changing the type of V4L2_CID_FOCUS_MODE, is able to define more exact
-focusing mode of camera sensor.
-
-The second patch let the uvc driver using V4L2_CID_FOCUS_AUTO by
-boolean type, be able to use the type of menu.
-
-The third patch documentation about changes of the auto focus mode.
-
-Thanks for reading this, and I hope any ideas and any comments.
-
-Regards,
-Heungjun Kim
+diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+index 2466f2b..6995940 100644
+--- a/drivers/media/Kconfig
++++ b/drivers/media/Kconfig
+@@ -53,6 +53,15 @@ config VIDEO_V4L2_COMMON
+ 	depends on (I2C || I2C=n) && VIDEO_DEV
+ 	default (I2C || I2C=n) && VIDEO_DEV
+ 
++config VIDEO_V4L2_SUBDEV_API
++	bool "V4L2 sub-device userspace API (EXPERIMENTAL)"
++	depends on VIDEO_DEV && MEDIA_CONTROLLER && EXPERIMENTAL
++	---help---
++	  Enables the V4L2 sub-device pad-level userspace API used to configure
++	  video format, size and frame rate between hardware blocks.
++
++	  This API is mostly used by camera interfaces in embedded platforms.
++
+ #
+ # DVB Core
+ #
+diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+index 29b7ddf..ebf7f97 100644
+--- a/drivers/media/video/v4l2-subdev.c
++++ b/drivers/media/video/v4l2-subdev.c
+@@ -31,36 +31,66 @@
+ #include <media/v4l2-fh.h>
+ #include <media/v4l2-event.h>
+ 
++static int subdev_fh_init(struct v4l2_subdev_fh *fh, struct v4l2_subdev *sd)
++{
++#if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
++	/* Allocate try format and crop in the same memory block */
++	fh->try_fmt = kzalloc((sizeof(*fh->try_fmt) + sizeof(*fh->try_crop))
++			      * sd->entity.num_pads, GFP_KERNEL);
++	if (fh->try_fmt == NULL)
++		return -ENOMEM;
++
++	fh->try_crop = (struct v4l2_rect *)
++		(fh->try_fmt + sd->entity.num_pads);
++#endif
++	return 0;
++}
++
++static void subdev_fh_free(struct v4l2_subdev_fh *fh)
++{
++#if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
++	kfree(fh->try_fmt);
++	fh->try_fmt = NULL;
++	fh->try_crop = NULL;
++#endif
++}
++
+ static int subdev_open(struct file *file)
+ {
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
++	struct v4l2_subdev_fh *subdev_fh;
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 	struct media_entity *entity;
+ #endif
+-	struct v4l2_fh *vfh = NULL;
+ 	int ret;
+ 
+-	if (sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS) {
+-		vfh = kzalloc(sizeof(*vfh), GFP_KERNEL);
+-		if (vfh == NULL)
+-			return -ENOMEM;
++	subdev_fh = kzalloc(sizeof(*subdev_fh), GFP_KERNEL);
++	if (subdev_fh == NULL)
++		return -ENOMEM;
+ 
+-		ret = v4l2_fh_init(vfh, vdev);
+-		if (ret)
+-			goto err;
++	ret = subdev_fh_init(subdev_fh, sd);
++	if (ret) {
++		kfree(subdev_fh);
++		return ret;
++	}
++
++	ret = v4l2_fh_init(&subdev_fh->vfh, vdev);
++	if (ret)
++		goto err;
+ 
+-		ret = v4l2_event_init(vfh);
++	if (sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS) {
++		ret = v4l2_event_init(&subdev_fh->vfh);
+ 		if (ret)
+ 			goto err;
+ 
+-		ret = v4l2_event_alloc(vfh, sd->nevents);
++		ret = v4l2_event_alloc(&subdev_fh->vfh, sd->nevents);
+ 		if (ret)
+ 			goto err;
+-
+-		v4l2_fh_add(vfh);
+-		file->private_data = vfh;
+ 	}
++
++	v4l2_fh_add(&subdev_fh->vfh);
++	file->private_data = &subdev_fh->vfh;
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 	if (sd->v4l2_dev->mdev) {
+ 		entity = media_entity_get(&sd->entity);
+@@ -70,14 +100,14 @@ static int subdev_open(struct file *file)
+ 		}
+ 	}
+ #endif
++
+ 	return 0;
+ 
+ err:
+-	if (vfh != NULL) {
+-		v4l2_fh_del(vfh);
+-		v4l2_fh_exit(vfh);
+-		kfree(vfh);
+-	}
++	v4l2_fh_del(&subdev_fh->vfh);
++	v4l2_fh_exit(&subdev_fh->vfh);
++	subdev_fh_free(subdev_fh);
++	kfree(subdev_fh);
+ 
+ 	return ret;
+ }
+@@ -89,16 +119,17 @@ static int subdev_close(struct file *file)
+ 	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
+ #endif
+ 	struct v4l2_fh *vfh = file->private_data;
++	struct v4l2_subdev_fh *subdev_fh = to_v4l2_subdev_fh(vfh);
+ 
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 	if (sd->v4l2_dev->mdev)
+ 		media_entity_put(&sd->entity);
+ #endif
+-	if (vfh != NULL) {
+-		v4l2_fh_del(vfh);
+-		v4l2_fh_exit(vfh);
+-		kfree(vfh);
+-	}
++	v4l2_fh_del(vfh);
++	v4l2_fh_exit(vfh);
++	subdev_fh_free(subdev_fh);
++	kfree(subdev_fh);
++	file->private_data = NULL;
+ 
+ 	return 0;
+ }
+@@ -107,7 +138,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ {
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
+-	struct v4l2_fh *fh = file->private_data;
++	struct v4l2_fh *vfh = file->private_data;
+ 
+ 	switch (cmd) {
+ 	case VIDIOC_QUERYCTRL:
+@@ -135,13 +166,13 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 		if (!(sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS))
+ 			return -ENOIOCTLCMD;
+ 
+-		return v4l2_event_dequeue(fh, arg, file->f_flags & O_NONBLOCK);
++		return v4l2_event_dequeue(vfh, arg, file->f_flags & O_NONBLOCK);
+ 
+ 	case VIDIOC_SUBSCRIBE_EVENT:
+-		return v4l2_subdev_call(sd, core, subscribe_event, fh, arg);
++		return v4l2_subdev_call(sd, core, subscribe_event, vfh, arg);
+ 
+ 	case VIDIOC_UNSUBSCRIBE_EVENT:
+-		return v4l2_subdev_call(sd, core, unsubscribe_event, fh, arg);
++		return v4l2_subdev_call(sd, core, unsubscribe_event, vfh, arg);
+ 
+ 	default:
+ 		return -ENOIOCTLCMD;
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index c37d6e4..d64438d 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -24,6 +24,7 @@
+ #include <media/media-entity.h>
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-dev.h>
++#include <media/v4l2-fh.h>
+ #include <media/v4l2-mediabus.h>
+ 
+ /* generic v4l2_device notify callback notification values */
+@@ -479,6 +480,34 @@ struct v4l2_subdev {
+ #define vdev_to_v4l2_subdev(vdev) \
+ 	container_of(vdev, struct v4l2_subdev, devnode)
+ 
++/*
++ * Used for storing subdev information per file handle
++ */
++struct v4l2_subdev_fh {
++	struct v4l2_fh vfh;
++#if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
++	struct v4l2_mbus_framefmt *try_fmt;
++	struct v4l2_rect *try_crop;
++#endif
++};
++
++#define to_v4l2_subdev_fh(fh)	\
++	container_of(fh, struct v4l2_subdev_fh, vfh)
++
++#if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
++static inline struct v4l2_mbus_framefmt *
++v4l2_subdev_get_try_format(struct v4l2_subdev_fh *fh, unsigned int pad)
++{
++	return &fh->try_fmt[pad];
++}
++
++static inline struct v4l2_rect *
++v4l2_subdev_get_try_crop(struct v4l2_subdev_fh *fh, unsigned int pad)
++{
++	return &fh->try_crop[pad];
++}
++#endif
++
+ extern const struct v4l2_file_operations v4l2_subdev_fops;
+ 
+ static inline void v4l2_set_subdevdata(struct v4l2_subdev *sd, void *p)
+-- 
+1.7.3.4
 
