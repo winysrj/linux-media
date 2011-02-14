@@ -1,100 +1,105 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1053 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751195Ab1BVRHb (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:34257 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752990Ab1BNLfK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Feb 2011 12:07:31 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [Q] {enum,s,g}_input for subdev ops
-Date: Tue, 22 Feb 2011 18:07:15 +0100
-Cc: linux-media@vger.kernel.org
-References: <Pine.LNX.4.64.1102221612380.1380@axis700.grange> <ddc4d0fcf85526c5fc88594e100f192b.squirrel@webmail.xs4all.nl> <Pine.LNX.4.64.1102221733350.1380@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1102221733350.1380@axis700.grange>
+	Mon, 14 Feb 2011 06:35:10 -0500
+Received: by bwz15 with SMTP id 15so5360941bwz.19
+        for <linux-media@vger.kernel.org>; Mon, 14 Feb 2011 03:35:09 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201102221807.15647.hverkuil@xs4all.nl>
+Date: Mon, 14 Feb 2011 13:35:09 +0200
+Message-ID: <AANLkTik_PcJdKSE1+konisckfb-j05+yaUFuiG+CsRTQ@mail.gmail.com>
+Subject: No data from tuner over PCI bridge adapter (Cablestar HD 2 / mantis /
+ PEX 8112)
+From: Dennis Kurten <dennis.kurten@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tuesday, February 22, 2011 17:39:25 Guennadi Liakhovetski wrote:
-> On Tue, 22 Feb 2011, Hans Verkuil wrote:
-> 
-> > > Hi
-> > >
-> > > Any thoughts about the subj? Hasn't anyone run into a need to select
-> > > inputs on subdevices until now? Something like
-> > >
-> > > struct v4l2_subdev_video_ops {
-> > > 	...
-> > > 	int (*enum_input)(struct v4l2_subdev *sd, struct v4l2_input *inp);
-> > > 	int (*g_input)(struct v4l2_subdev *sd, unsigned int *i);
-> > > 	int (*s_input)(struct v4l2_subdev *sd, unsigned int i);
-> > 
-> > That's done through s_routing. Subdevices know nothing about inputs as
-> > shown to userspace.
-> > 
-> > If you want a test pattern, then the host driver needs to add a "Test
-> > Pattern" input and call s_routing with the correct values (specific to
-> > that subdev) to set it up.
-> 
-> Hm, maybe I misunderstood something, but if we understand "host" in the 
-> same way, then this doesn't seem very useful to me. What shall the host 
-> have to do with various sensor inputs? It cannot know, whether the sensor 
-> has a test-pattern "input" and if yes - how many of them. Many sensors 
-> have several such patterns, and, I think, some of them also have some 
-> parameters, like colour values, etc., which we don't have anything to map 
-> to. But even without that - some sensors have several test patterns, which 
-> they well might want to be able to switch between by presenting not just 
-> one but several test inputs. So, shouldn't we have some enum_routing or 
-> something for them?
+Hello,
 
-What you really want is to select a test pattern. A good solution would be
-to create a sensor menu control with all the test patterns it supports.
+This card (technisat cablestar hd 2 dvb-c) works fine when plugged
+into a native PCI slot.
+When I try it with a PCI-adapter I intend to use in mITX-builds there
+doesn't seem
+to be any data coming in through the tuner. The adapter is a
+transparent bridge (with a
+PEX 8112 chip) that goes into a 1xPCIe-slot and gets power through a
+4-pin molex.
+
+My guess is some kind of dma mapping incompatibility with the mantis
+driver (s2-liplianin).
+The card seems to  initialize correctly, but doesn't work when the
+tuner is put into action
+(scandvb timeouts, dvbtraffic yields nothing). For the record, I've
+tested the bridge with a
+firewire card and that works fine.
+
+Kernel is 2.6.32 (+the compiled drivers)
+
+lspci for the bridge and the card:
+--------------------------------------
+03:00.0 PCI bridge: PLX Technology, Inc. PEX8112 x1 Lane PCI
+Express-to-PCI Bridge (rev aa) (prog-if 00 [Normal decode])
+        Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
+ParErr- Stepping- SERR- FastB2B- DisINTx-
+        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort-
+<TAbort- <MAbort- >SERR- <PERR- INTx-
+        Latency: 0, Cache Line Size: 32 bytes
+        Bus: primary=03, secondary=04, subordinate=04, sec-latency=32
+        I/O behind bridge: 0000e000-0000efff
+        Memory behind bridge: fdd00000-fddfffff
+        Prefetchable memory behind bridge: fdc00000-fdcfffff
+        Secondary status: 66MHz+ FastB2B- ParErr- DEVSEL=medium
+>TAbort- <TAbort- <MAbort- <SERR- <PERR-
+        BridgeCtl: Parity- SERR- NoISA- VGA- MAbort- >Reset- FastB2B-
+                PriDiscTmr- SecDiscTmr- DiscTmrStat+ DiscTmrSERREn-
+        Capabilities: <access denied>
+        Kernel modules: shpchp
+
+04:00.0 Multimedia controller: Twinhan Technology Co. Ltd Mantis DTV
+PCI Bridge Controller [Ver 1.0] (rev 01)
+        Subsystem: Device 1ae4:0002
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
+ParErr- Stepping- SERR- FastB2B- DisINTx-
+        Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium
+>TAbort- <TAbort+ <MAbort- >SERR- <PERR- INTx-
+        Latency: 32 (2000ns min, 63750ns max)
+        Interrupt: pin A routed to IRQ 16
+        Region 0: Memory at fdcff000 (32-bit, prefetchable) [size=4K]
+        Kernel driver in use: Mantis
+        Kernel modules: mantis
+
+dmesg output with modules loaded:
+-----------------------------------------
+Mantis 0000:04:00.0: PCI INT A -> Link[APC7] -> GSI 16 (level, low) -> IRQ 16
+irq: 16, latency: 32
+ memory: 0xfdcff000, mmio: 0xffffc900031a0000
+found a VP-2040 PCI DVB-C device on (04:00.0),
+    Mantis Rev 1 [1ae4:0002], irq: 16, latency: 32
+    memory: 0xfdcff000, mmio: 0xffffc900031a0000
+    MAC Address=[00:08:c9:d0:46:b4]
+mantis_alloc_buffers (0): DMA=0x1bb90000 cpu=0xffff88001bb90000 size=65536
+mantis_alloc_buffers (0): RISC=0x1bbec000 cpu=0xffff88001bbec000 size=1000
+DVB: registering new adapter (Mantis dvb adapter)
+mantis_frontend_init (0): Probing for CU1216 (DVB-C)
+TDA10023: i2c-addr = 0x0c, id = 0x7d
+mantis_frontend_init (0): found Philips CU1216 DVB-C frontend (TDA10023) @ 0x0c
+mantis_frontend_init (0): Mantis DVB-C Philips CU1216 frontend attach success
+DVB: registering adapter 0 frontend 0 (Philips TDA10023 DVB-C)...
+mantis_ca_init (0): Registering EN50221 device
+mantis_ca_init (0): Registered EN50221 device
+mantis_hif_init (0): Adapter(0) Initializing Mantis Host Interface
+Registered IR keymap rc-vp2040
+input: Mantis VP-2040 IR Receiver as /devices/virtual/rc/rc4/input11
+rc4: Mantis VP-2040 IR Receiver as /devices/virtual/rc/rc4
+b2c2-flexcop: B2C2 FlexcopII/II(b)/III digital TV receiver chip loaded
+successfully
+
+
+I hear sometimes these bridges are not as transparent as they claim,
+any pointers on what to look for?
 
 Regards,
-
-	Hans
-
-> 
-> Feel free to re-add the ML to CC.
-> 
-> Thanks
-> Guennadi
-> 
-> > The saa7127 subdev does something like this (see include/media/saa7127.h).
-> > The ivtv host driver only selects this during firmware load, though. It's
-> > not mapped to a user input.
-> > 
-> > Regards,
-> > 
-> >      Hans
-> > 
-> > >
-> > > For example, we discussed implementing sensor test patterns as separate
-> > > inputs.
-> > >
-> > > Thanks
-> > > Guennadi
-> > > ---
-> > > Guennadi Liakhovetski, Ph.D.
-> > > Freelance Open-Source Software Developer
-> > > http://www.open-technology.de/
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > > the body of a message to majordomo@vger.kernel.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > >
-> > 
-> > 
-> 
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> 
-
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+Dennis
