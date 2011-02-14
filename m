@@ -1,145 +1,75 @@
 Return-path: <mchehab@pedra>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:9992 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751079Ab1BNMtW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Feb 2011 07:49:22 -0500
-From: Hans Verkuil <hansverk@cisco.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v9 00/12] Media controller (core and V4L2)
-Date: Mon, 14 Feb 2011 13:49:45 +0100
-Cc: linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	linux-kernel@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-References: <1297686067-9666-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1297686067-9666-1-git-send-email-laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+Received: from mx1.redhat.com ([209.132.183.28]:33559 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750880Ab1BNVEc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Feb 2011 16:04:32 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p1EL4VZ8012196
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 14 Feb 2011 16:04:31 -0500
+Received: from pedra (vpn-239-121.phx2.redhat.com [10.3.239.121])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p1EL3TG4012908
+	for <linux-media@vger.kernel.org>; Mon, 14 Feb 2011 16:04:31 -0500
+Date: Mon, 14 Feb 2011 19:03:12 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 04/14] [media] tuner-core: remove the legacy is_stereo()
+ call
+Message-ID: <20110214190312.1809b836@pedra>
+In-Reply-To: <cover.1297716906.git.mchehab@redhat.com>
+References: <cover.1297716906.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201102141349.45127.hansverk@cisco.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Here is my
+Nobody is using this legacy call. Just remove it.
 
-Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-for this patch series.
+diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.h b/drivers/media/dvb/dvb-core/dvb_frontend.h
+index f9f19be..3b86050 100644
+--- a/drivers/media/dvb/dvb-core/dvb_frontend.h
++++ b/drivers/media/dvb/dvb-core/dvb_frontend.h
+@@ -239,7 +239,6 @@ struct analog_demod_ops {
+ 	void (*set_params)(struct dvb_frontend *fe,
+ 			   struct analog_parameters *params);
+ 	int  (*has_signal)(struct dvb_frontend *fe);
+-	int  (*is_stereo)(struct dvb_frontend *fe);
+ 	int  (*get_afc)(struct dvb_frontend *fe);
+ 	void (*tuner_status)(struct dvb_frontend *fe);
+ 	void (*standby)(struct dvb_frontend *fe);
+diff --git a/drivers/media/video/tuner-core.c b/drivers/media/video/tuner-core.c
+index 6041c7d..912d8e8 100644
+--- a/drivers/media/video/tuner-core.c
++++ b/drivers/media/video/tuner-core.c
+@@ -682,9 +682,6 @@ static void tuner_status(struct dvb_frontend *fe)
+ 	if (analog_ops->has_signal)
+ 		tuner_info("Signal strength: %d\n",
+ 			   analog_ops->has_signal(fe));
+-	if (analog_ops->is_stereo)
+-		tuner_info("Stereo:          %s\n",
+-			   analog_ops->is_stereo(fe) ? "yes" : "no");
+ }
+ 
+ /* ---------------------------------------------------------------------- */
+@@ -861,13 +858,6 @@ static int tuner_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+ 			(tuner_status & TUNER_STATUS_STEREO) ?
+ 			V4L2_TUNER_SUB_STEREO :
+ 			V4L2_TUNER_SUB_MONO;
+-	} else {
+-		if (analog_ops->is_stereo) {
+-			vt->rxsubchans =
+-				analog_ops->is_stereo(&t->fe) ?
+-				V4L2_TUNER_SUB_STEREO :
+-				V4L2_TUNER_SUB_MONO;
+-		}
+ 	}
+ 	if (analog_ops->has_signal)
+ 		vt->signal = analog_ops->has_signal(&t->fe);
+-- 
+1.7.1
 
-Regards,
 
-	Hans
-
-On Monday, February 14, 2011 13:20:55 Laurent Pinchart wrote:
-> Hi everybody,
-> 
-> Here is the ninth version of the media controller core and V4L2 patches.
-> 
-> Quick reminder for those who missed the previous version. let me quote the
-> documentation (Documentation/DocBook/v4l/media-controller.xml).
-> 
-> "Discovering a [media] device internal topology, and configuring it at 
-runtime,
-> is one of the goals of the media controller API. To achieve this, hardware
-> devices are modelled as an oriented graph of building blocks called entities
-> connected through pads."
-> 
-> The code has been extensively reviewed by the V4L community, and this 
-version
-> is the first one to incorporate comments from the ALSA community (big thanks
-> to Mark Brown and Clemens Ladisch). Two issues are not fully addressed yet,
-> namely power management (I need to discuss this some more with the ALSA
-> developers to really understand their requirements) and entities type names.
-> I'm still posting this for review, as other developers have showed interest 
-in
-> commenting on the code.
-> 
-> I want to emphasize once again that the media controller API does not 
-replace
-> the V4L, DVB or ALSA APIs. It complements them.
-> 
-> The first user of the media controller API is the OMAP3 ISP driver. You can
-> find it (as well as these patches and other V4L-specific patches) in a git 
-tree
-> at http://git.linuxtv.org/pinchartl/media.git (media-0005-omap3isp branch). 
-The
-> OMAP3 ISP driver patches are regularly posted for review on the linux-media
-> list.
-> 
-> Laurent Pinchart (11):
->   media: Media device node support
->   media: Media device
->   media: Entities, pads and links
->   media: Entity use count
->   media: Media device information query
->   media: Entities, pads and links enumeration
->   media: Links setup
->   media: Pipelines and media streams
->   v4l: Add a media_device pointer to the v4l2_device structure
->   v4l: Make video_device inherit from media_entity
->   v4l: Make v4l2_subdev inherit from media_entity
-> 
-> Sakari Ailus (1):
->   media: Entity graph traversal
-> 
->  Documentation/ABI/testing/sysfs-bus-media          |    6 +
->  Documentation/DocBook/media-entities.tmpl          |   24 +
->  Documentation/DocBook/media.tmpl                   |    3 +
->  Documentation/DocBook/v4l/media-controller.xml     |   89 ++++
->  Documentation/DocBook/v4l/media-func-close.xml     |   59 +++
->  Documentation/DocBook/v4l/media-func-ioctl.xml     |  116 +++++
->  Documentation/DocBook/v4l/media-func-open.xml      |   94 ++++
->  .../DocBook/v4l/media-ioc-device-info.xml          |  133 +++++
->  .../DocBook/v4l/media-ioc-enum-entities.xml        |  308 +++++++++++
->  Documentation/DocBook/v4l/media-ioc-enum-links.xml |  207 ++++++++
->  Documentation/DocBook/v4l/media-ioc-setup-link.xml |   93 ++++
->  Documentation/media-framework.txt                  |  353 +++++++++++++
->  Documentation/video4linux/v4l2-framework.txt       |   72 +++-
->  drivers/media/Kconfig                              |   13 +
->  drivers/media/Makefile                             |    6 +
->  drivers/media/media-device.c                       |  382 ++++++++++++++
->  drivers/media/media-devnode.c                      |  321 ++++++++++++
->  drivers/media/media-entity.c                       |  536 
-++++++++++++++++++++
->  drivers/media/video/v4l2-dev.c                     |   49 ++-
->  drivers/media/video/v4l2-device.c                  |   49 ++-
->  drivers/media/video/v4l2-subdev.c                  |   28 +-
->  include/linux/Kbuild                               |    1 +
->  include/linux/media.h                              |  132 +++++
->  include/media/media-device.h                       |   95 ++++
->  include/media/media-devnode.h                      |   97 ++++
->  include/media/media-entity.h                       |  151 ++++++
->  include/media/v4l2-dev.h                           |    7 +
->  include/media/v4l2-device.h                        |    4 +
->  include/media/v4l2-subdev.h                        |    6 +
->  29 files changed, 3413 insertions(+), 21 deletions(-)
->  create mode 100644 Documentation/ABI/testing/sysfs-bus-media
->  create mode 100644 Documentation/DocBook/v4l/media-controller.xml
->  create mode 100644 Documentation/DocBook/v4l/media-func-close.xml
->  create mode 100644 Documentation/DocBook/v4l/media-func-ioctl.xml
->  create mode 100644 Documentation/DocBook/v4l/media-func-open.xml
->  create mode 100644 Documentation/DocBook/v4l/media-ioc-device-info.xml
->  create mode 100644 Documentation/DocBook/v4l/media-ioc-enum-entities.xml
->  create mode 100644 Documentation/DocBook/v4l/media-ioc-enum-links.xml
->  create mode 100644 Documentation/DocBook/v4l/media-ioc-setup-link.xml
->  create mode 100644 Documentation/media-framework.txt
->  create mode 100644 drivers/media/media-device.c
->  create mode 100644 drivers/media/media-devnode.c
->  create mode 100644 drivers/media/media-entity.c
->  create mode 100644 include/linux/media.h
->  create mode 100644 include/media/media-device.h
->  create mode 100644 include/media/media-devnode.h
->  create mode 100644 include/media/media-entity.h
-> 
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
