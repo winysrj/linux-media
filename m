@@ -1,100 +1,72 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58153 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753796Ab1BNMVA (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:35453 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754319Ab1BNPPM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Feb 2011 07:21:00 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [PATCH v7 5/6] v4l: subdev: Control ioctls support
-Date: Mon, 14 Feb 2011 13:20:58 +0100
-Message-Id: <1297686059-9622-6-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1297686059-9622-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1297686059-9622-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Mon, 14 Feb 2011 10:15:12 -0500
+MIME-Version: 1.0
+In-Reply-To: <20110214131829.GC2549@legolas.emea.dhcp.ti.com>
+References: <1297686097-9804-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	<1297686097-9804-4-git-send-email-laurent.pinchart@ideasonboard.com>
+	<20110214123430.GX2549@legolas.emea.dhcp.ti.com>
+	<201102141407.09449.laurent.pinchart@ideasonboard.com>
+	<20110214131829.GC2549@legolas.emea.dhcp.ti.com>
+Date: Mon, 14 Feb 2011 17:15:10 +0200
+Message-ID: <AANLkTikm3jHwCJnQTz4yRRRUj_ar6WgHLEerxEBDEO0g@mail.gmail.com>
+Subject: Re: [PATCH v6 03/10] omap3: Add function to register omap3isp
+ platform device structure
+From: David Cohen <dacohen@gmail.com>
+To: balbi@ti.com
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com
+Content-Type: text/plain; charset=UTF-8
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Pass the control-related ioctls to the subdev driver through the control
-framework.
+On Mon, Feb 14, 2011 at 3:18 PM, Felipe Balbi <balbi@ti.com> wrote:
+> Hi,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- Documentation/video4linux/v4l2-framework.txt |   16 ++++++++++++++++
- drivers/media/video/v4l2-subdev.c            |   25 +++++++++++++++++++++++++
- 2 files changed, 41 insertions(+), 0 deletions(-)
+Hi
 
-diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
-index 8b35871..1feecfc 100644
---- a/Documentation/video4linux/v4l2-framework.txt
-+++ b/Documentation/video4linux/v4l2-framework.txt
-@@ -334,6 +334,22 @@ for all registered sub-devices marked with V4L2_SUBDEV_FL_HAS_DEVNODE by calling
- v4l2_device_register_subdev_nodes(). Those device nodes will be automatically
- removed when sub-devices are unregistered.
- 
-+The device node handles a subset of the V4L2 API.
-+
-+VIDIOC_QUERYCTRL
-+VIDIOC_QUERYMENU
-+VIDIOC_G_CTRL
-+VIDIOC_S_CTRL
-+VIDIOC_G_EXT_CTRLS
-+VIDIOC_S_EXT_CTRLS
-+VIDIOC_TRY_EXT_CTRLS
-+
-+	The controls ioctls are identical to the ones defined in V4L2. They
-+	behave identically, with the only exception that they deal only with
-+	controls implemented in the sub-device. Depending on the driver, those
-+	controls can be also be accessed through one (or several) V4L2 device
-+	nodes.
-+
- 
- I2C sub-device drivers
- ----------------------
-diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-index 6cf7664..2fbc9cb 100644
---- a/drivers/media/video/v4l2-subdev.c
-+++ b/drivers/media/video/v4l2-subdev.c
-@@ -24,6 +24,7 @@
- #include <linux/ioctl.h>
- #include <linux/videodev2.h>
- 
-+#include <media/v4l2-ctrls.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
- 
-@@ -39,7 +40,31 @@ static int subdev_close(struct file *file)
- 
- static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- {
-+	struct video_device *vdev = video_devdata(file);
-+	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
-+
- 	switch (cmd) {
-+	case VIDIOC_QUERYCTRL:
-+		return v4l2_subdev_queryctrl(sd, arg);
-+
-+	case VIDIOC_QUERYMENU:
-+		return v4l2_subdev_querymenu(sd, arg);
-+
-+	case VIDIOC_G_CTRL:
-+		return v4l2_subdev_g_ctrl(sd, arg);
-+
-+	case VIDIOC_S_CTRL:
-+		return v4l2_subdev_s_ctrl(sd, arg);
-+
-+	case VIDIOC_G_EXT_CTRLS:
-+		return v4l2_subdev_g_ext_ctrls(sd, arg);
-+
-+	case VIDIOC_S_EXT_CTRLS:
-+		return v4l2_subdev_s_ext_ctrls(sd, arg);
-+
-+	case VIDIOC_TRY_EXT_CTRLS:
-+		return v4l2_subdev_try_ext_ctrls(sd, arg);
-+
- 	default:
- 		return -ENOIOCTLCMD;
- 	}
--- 
-1.7.3.4
+>
+> On Mon, Feb 14, 2011 at 02:07:08PM +0100, Laurent Pinchart wrote:
+>> > > diff --git a/arch/arm/mach-omap2/devices.h
+>> > > b/arch/arm/mach-omap2/devices.h new file mode 100644
+>> > > index 0000000..12ddb8a
+>> > > --- /dev/null
+>> > > +++ b/arch/arm/mach-omap2/devices.h
+>> > > @@ -0,0 +1,17 @@
+>> > > +/*
+>> > > + * arch/arm/mach-omap2/devices.h
+>> > > + *
+>> > > + * OMAP2 platform device setup/initialization
+>> > > + *
+>> > > + * This program is free software; you can redistribute it and/or modify
+>> > > + * it under the terms of the GNU General Public License as published by
+>> > > + * the Free Software Foundation; either version 2 of the License, or
+>> > > + * (at your option) any later version.
+>> > > + */
+>> > > +
+>> > > +#ifndef __ARCH_ARM_MACH_OMAP_DEVICES_H
+>> > > +#define __ARCH_ARM_MACH_OMAP_DEVICES_H
+>> > > +
+>> > > +int omap3_init_camera(void *pdata);
+>> >
+>> > missing extern ?
+>>
+>> Is that mandatory ? Many (most ?) headers in the kernel don't use the extern
+>> keyword when declaring functions.
+>
+> maybe not mandatory, worth checking what sparse would say though :-p
 
+sparse is not complaining.
+
+Br,
+
+David
+
+>
+> --
+> balbi
+> --
