@@ -1,83 +1,47 @@
 Return-path: <mchehab@pedra>
-Received: from mail.kapsi.fi ([217.30.184.167]:44087 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751498Ab1B0SyE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Feb 2011 13:54:04 -0500
-Message-ID: <4D6A9388.5030001@iki.fi>
-Date: Sun, 27 Feb 2011 20:10:16 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Vinicio Nocciolini <vnocciolini@mbigroup.it>
-CC: linux-media@vger.kernel.org
-Subject: Re: ec168-9295d36ab66e compiling error
-References: <4D666A3A.1090701@mbigroup.it>
-In-Reply-To: <4D666A3A.1090701@mbigroup.it>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58186 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754116Ab1BNMVo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Feb 2011 07:21:44 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [PATCH v2 0/6] Misc V4L2 patches for the OMAP3 ISP driver
+Date: Mon, 14 Feb 2011 13:21:24 +0100
+Message-Id: <1297686090-9762-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Dont use my, or anyone else, old HG trees. You should follow that
-http://www.linuxtv.org/wiki/index.php/How_to_install_DVB_device_drivers
+Hi everybody,
 
-Antti
+Here are six miscellaneous patches to the V4L2 core that are required by the
+OMAP3 ISP driver. They mostly add new format codes, as well as a new subdev
+sensor operation.
 
-On 02/24/2011 04:24 PM, Vinicio Nocciolini wrote:
-> Hi all
->
-> I have problem compiling the project
->
-> regards Vinicio
->
-> -----------------------------------------------------------------------------------------------------------
->
->
-> CC [M] /home/vinicio/Desktop/ec168-9295d36ab66e/v4l/vc032x.o
-> CC [M] /home/vinicio/Desktop/ec168-9295d36ab66e/v4l/zc3xx.o
-> CC [M] /home/vinicio/Desktop/ec168-9295d36ab66e/v4l/hdpvr-control.o
-> CC [M] /home/vinicio/Desktop/ec168-9295d36ab66e/v4l/hdpvr-core.o
-> CC [M] /home/vinicio/Desktop/ec168-9295d36ab66e/v4l/hdpvr-video.o
-> CC [M] /home/vinicio/Desktop/ec168-9295d36ab66e/v4l/hopper_cards.o
-> CC [M] /home/vinicio/Desktop/ec168-9295d36ab66e/v4l/hopper_vp3028.o
-> CC [M] /home/vinicio/Desktop/ec168-9295d36ab66e/v4l/ir-functions.o
-> CC [M] /home/vinicio/Desktop/ec168-9295d36ab66e/v4l/ir-keytable.o
-> /home/vinicio/Desktop/ec168-9295d36ab66e/v4l/ir-keytable.c: In function
-> '__ir_input_register':
-> /home/vinicio/Desktop/ec168-9295d36ab66e/v4l/ir-keytable.c:452:24:
-> warning: assignment from incompatible pointer type
-> /home/vinicio/Desktop/ec168-9295d36ab66e/v4l/ir-keytable.c:453:24:
-> warning: assignment from incompatible pointer type
-> CC [M] /home/vinicio/Desktop/ec168-9295d36ab66e/v4l/ir-sysfs.o
-> /home/vinicio/Desktop/ec168-9295d36ab66e/v4l/ir-sysfs.c: In function
-> 'ir_register_class':
-> /home/vinicio/Desktop/ec168-9295d36ab66e/v4l/ir-sysfs.c:268:23: error:
-> 'ir_raw_dev_type' undeclared (first use in this function)
-> /home/vinicio/Desktop/ec168-9295d36ab66e/v4l/ir-sysfs.c:268:23: note:
-> each undeclared identifier is reported only once for each function it
-> appears in
-> make[3]: *** [/home/vinicio/Desktop/ec168-9295d36ab66e/v4l/ir-sysfs.o]
-> Error 1
-> make[2]: *** [_module_/home/vinicio/Desktop/ec168-9295d36ab66e/v4l] Error 2
-> make[2]: Leaving directory `/usr/src/kernels/2.6.35.11-83.fc14.i686'
-> make[1]: *** [default] Error 2
-> make[1]: Leaving directory `/home/vinicio/Desktop/ec168-9295d36ab66e/v4l'
-> make: *** [all] Error 2
->
->
->
->
->
->
->
->
-> [vinicio@localhost ec168-9295d36ab66e]$ cat /etc/issue
-> Fedora release 14 (Laughlin)
-> Kernel \r on an \m (\l)
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at http://vger.kernel.org/majordomo-info.html
+The "v4l: Add subdev sensor g_skip_frames operation" patch has been discussed
+on the linux-media mailing list and acked.
 
+The patches are based on top of 2.6.38-rc4.
+
+Laurent Pinchart (6):
+  v4l: subdev: Generic ioctl support
+  v4l: Add subdev sensor g_skip_frames operation
+  v4l: Add 8-bit YUYV on 16-bit bus and SGRBG10 media bus pixel codes
+  v4l: Add remaining RAW10 patterns w DPCM pixel code variants
+  v4l: Add missing 12 bits bayer media bus formats
+  v4l: Add 12 bits bayer pixel formats
+
+ Documentation/DocBook/v4l/subdev-formats.xml |   51 ++++++++++++++++++++++++++
+ Documentation/video4linux/v4l2-framework.txt |    5 +++
+ drivers/media/video/v4l2-subdev.c            |    2 +-
+ include/linux/v4l2-mediabus.h                |   18 ++++++++-
+ include/linux/videodev2.h                    |    4 ++
+ include/media/v4l2-subdev.h                  |    4 ++
+ 6 files changed, 81 insertions(+), 3 deletions(-)
 
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
+
