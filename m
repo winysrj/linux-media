@@ -1,52 +1,46 @@
 Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:43972 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751279Ab1BXNta (ORCPT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:39946 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751314Ab1BNLL1 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Feb 2011 08:49:30 -0500
-Message-ID: <4D6661E4.6040505@infradead.org>
-Date: Thu, 24 Feb 2011 10:49:24 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+	Mon, 14 Feb 2011 06:11:27 -0500
+Received: by iyj8 with SMTP id 8so4686823iyj.19
+        for <linux-media@vger.kernel.org>; Mon, 14 Feb 2011 03:11:27 -0800 (PST)
 MIME-Version: 1.0
-To: Jiri Slaby <jslaby@suse.cz>
-CC: Jiri Slaby <jirislaby@gmail.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Patrick Boettcher <pboettcher@kernellabs.com>
-Subject: Re: [PATCH 1/1] DVB-USB: dib0700, fix oops with non-dib7000pc devices
-References: <1296930047-22689-1-git-send-email-jslaby@suse.cz> <4D664DE5.7020002@gmail.com> <4D6654B2.1080707@infradead.org> <4D665FFF.7050501@suse.cz>
-In-Reply-To: <4D665FFF.7050501@suse.cz>
-Content-Type: text/plain; charset=ISO-8859-2
-Content-Transfer-Encoding: 7bit
+Date: Mon, 14 Feb 2011 12:11:26 +0100
+Message-ID: <AANLkTi=1CFkBG=Ux+fY5ZP+WikRQ-rTqk75PVeSge-DG@mail.gmail.com>
+Subject: media-ctl and omap-isp kernel compatibility issue
+From: Bastian Hecht <hechtb@googlemail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 24-02-2011 10:41, Jiri Slaby escreveu:
-> On 02/24/2011 01:53 PM, Mauro Carvalho Chehab wrote:
->> Em 24-02-2011 09:24, Jiri Slaby escreveu:
->>> Hmm, could anybody pick it up?
->>>
->>> On 02/05/2011 07:20 PM, Jiri Slaby wrote:
->>>> These devices use different internal structures (dib7000m) and
->>>> dib7000p pid ctrl accesses invalid members causing kernel to die.
->>>>
->>>> Introduce pid control functions for dib7000m which operate on the
->>>> correct structure.
->>
->> Patrick (DibCom drivers maintainer) has proposed an alternate patch for it [1]
->> that properly address the issues:
->>
->> http://git.linuxtv.org/pb/media_tree.git?a=commitdiff;h=80a5f1fdc6beb496347cbb297f9c1458c8cb9f50
->>
->> [1] http://www.spinics.net/lists/linux-media/msg27890.html
->>
->> Could you please test it?
-> 
-> Yes, I will later.
-> 
-> Is there any reason why this is not in Linus' and stable trees and
-> mainly in linux/next already?
+Hello omap video stack hackers,
 
-Yes. I'm waiting for confirmation that this patch fixes the reported issue.
+some months ago I worked with the mt9p031 sensor from aptina.
+Unfortunately had to switch to another video chip and I try to achieve
+the same stage as with my old device.
+That means the new chip (OV5642) already is up, configured and sends
+data over the parallel bus.
 
-Cheers,
-Mauro
+I pulled the new media-ctl tool from
+git://git.ideasonboard.org/media-ctl.git and compiled it giving the
+headers from my kernel pull from
+git://gitorious.org/maemo-multimedia/omap3isp-rx51.git (devel)
+
+Some enums are undefined:
+media.c:47: error: ‘MEDIA_LINK_FLAG_ACTIVE’ undeclared
+media.c:289: error: ‘MEDIA_ENTITY_TYPE_NODE’ undeclared
+media.c:290: error: ‘MEDIA_ENTITY_TYPE_SUBDEV’ undeclared
+
+
+So what repos should I go for these days? Is
+git://gitorious.org/maemo-multimedia/omap3isp-rx51.git ok or should I
+switch to some other repo? Or is media-ctl just outdated?
+
+Thanks for help,
+
+
+ Bastian Hecht
