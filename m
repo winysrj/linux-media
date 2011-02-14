@@ -1,104 +1,166 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:52644 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752990Ab1BNLhV (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58187 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754108Ab1BNMVZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Feb 2011 06:37:21 -0500
-Received: by iwn9 with SMTP id 9so4700614iwn.19
-        for <linux-media@vger.kernel.org>; Mon, 14 Feb 2011 03:37:20 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <AANLkTim1beU2KZKyHJpjE=93nAyt8jXv8pEw4Y-ivGwJ@mail.gmail.com>
-References: <AANLkTim1beU2KZKyHJpjE=93nAyt8jXv8pEw4Y-ivGwJ@mail.gmail.com>
-Date: Mon, 14 Feb 2011 12:37:20 +0100
-Message-ID: <AANLkTikNpoBNDvUcEnHFyPGhRBjXLATVCKT3Y+2Y9rg7@mail.gmail.com>
-Subject: Re: [PATCH] Technisat AirStar TeleStick 2
-From: Lukas Max Fisch <lukas.fisch@googlemail.com>
+	Mon, 14 Feb 2011 07:21:25 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [PATCH v7 03/11] v4l: Rename V4L2_MBUS_FMT_GREY8_1X8 to V4L2_MBUS_FMT_Y8_1X8
+Date: Mon, 14 Feb 2011 13:21:16 +0100
+Message-Id: <1297686084-9715-4-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1297686084-9715-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1297686084-9715-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello list,
-this is a revised patch since &dib0700_usb_id_table[] must be 74 instead of 69!
-This patch works for me as you can see in the dmesg output:
+For consistency with the V4L2_MBUS_FMT_Y10_1X10 format.
 
-[  104.667079] dvb-usb: found a 'TechniSat AirStar TeleStick 2' in
-cold state, will try to load a firmware
-[  104.671587] dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.20.fw'
-[  104.872581] dib0700: firmware started successfully.
-[  105.375794] dvb-usb: found a 'TechniSat AirStar TeleStick 2' in warm state.
-[  105.375862] dvb-usb: will pass the complete MPEG2 transport stream
-to the software demuxer.
-[  105.375994] DVB: registering new adapter (TechniSat AirStar TeleStick 2)
-[  105.592015] DVB: registering adapter 0 frontend 0 (DiBcom 7000PC)...
-[  105.813997] DiB0070: successfully identified
-[  105.838542] Registered IR keymap rc-dib0700-rc5
-[  105.838707] input: IR-receiver inside an USB DVB receiver as
-/devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.2/rc/rc0/input14
-[  105.838776] rc0: IR-receiver inside an USB DVB receiver as
-/devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.2/rc/rc0
-[  105.839079] dvb-usb: schedule remote query interval to 50 msecs.
-[  105.839084] dvb-usb: TechniSat AirStar TeleStick 2 successfully
-initialized and connected.
-
-Mauro, please add it to 2.6.39 if possible.
-TODO: Add proper keymap for remote control.
-
-
-Add initial support for Technisat AirStar TeleStick 2.
-This patch is based on Veit Berwig's work.
-
-Signed-off-by: Lukas Fisch <lukas.fisch@gmail.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/dvb/dvb-usb/dib0700_devices.c |    7 ++++++-
- drivers/media/dvb/dvb-usb/dvb-usb-ids.h     |    1 +
- 2 files changed, 7 insertions(+), 1 deletions(-)
+ drivers/media/video/mt9m001.c        |    2 +-
+ drivers/media/video/mt9v022.c        |    4 ++--
+ drivers/media/video/ov6650.c         |   10 +++++-----
+ drivers/media/video/sh_mobile_csi2.c |    6 +++---
+ drivers/media/video/soc_mediabus.c   |    2 +-
+ include/linux/v4l2-mediabus.h        |    2 +-
+ 6 files changed, 13 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/media/dvb/dvb-usb/dib0700_devices.c
-b/drivers/media/dvb/dvb-usb/dib0700_devices.c
-index c6022af..d3dd09a 100644
---- a/drivers/media/dvb/dvb-usb/dib0700_devices.c
-+++ b/drivers/media/dvb/dvb-usb/dib0700_devices.c
-@@ -2784,6 +2784,7 @@ struct usb_device_id dib0700_usb_id_table[] = {
-       { USB_DEVICE(USB_VID_DIBCOM,    USB_PID_DIBCOM_NIM9090MD) },
-       { USB_DEVICE(USB_VID_DIBCOM,    USB_PID_DIBCOM_NIM7090) },
-       { USB_DEVICE(USB_VID_DIBCOM,    USB_PID_DIBCOM_TFE7090PVR) },
-+       { USB_DEVICE(USB_VID_TECHNISAT,
-USB_PID_TECHNISAT_AIRSTAR_TELESTICK_2) },
-       { 0 }           /* Terminating entry */
+diff --git a/drivers/media/video/mt9m001.c b/drivers/media/video/mt9m001.c
+index f7fc88d..e2bbd8c 100644
+--- a/drivers/media/video/mt9m001.c
++++ b/drivers/media/video/mt9m001.c
+@@ -79,7 +79,7 @@ static const struct mt9m001_datafmt mt9m001_colour_fmts[] = {
+ static const struct mt9m001_datafmt mt9m001_monochrome_fmts[] = {
+ 	/* Order important - see above */
+ 	{V4L2_MBUS_FMT_Y10_1X10, V4L2_COLORSPACE_JPEG},
+-	{V4L2_MBUS_FMT_GREY8_1X8, V4L2_COLORSPACE_JPEG},
++	{V4L2_MBUS_FMT_Y8_1X8, V4L2_COLORSPACE_JPEG},
  };
- MODULE_DEVICE_TABLE(usb, dib0700_usb_id_table);
-@@ -3393,7 +3394,7 @@ struct dvb_usb_device_properties dib0700_devices[] = {
-                       },
-               },
+ 
+ struct mt9m001 {
+diff --git a/drivers/media/video/mt9v022.c b/drivers/media/video/mt9v022.c
+index 6a784c8..e313d83 100644
+--- a/drivers/media/video/mt9v022.c
++++ b/drivers/media/video/mt9v022.c
+@@ -95,7 +95,7 @@ static const struct mt9v022_datafmt mt9v022_colour_fmts[] = {
+ static const struct mt9v022_datafmt mt9v022_monochrome_fmts[] = {
+ 	/* Order important - see above */
+ 	{V4L2_MBUS_FMT_Y10_1X10, V4L2_COLORSPACE_JPEG},
+-	{V4L2_MBUS_FMT_GREY8_1X8, V4L2_COLORSPACE_JPEG},
++	{V4L2_MBUS_FMT_Y8_1X8, V4L2_COLORSPACE_JPEG},
+ };
+ 
+ struct mt9v022 {
+@@ -392,7 +392,7 @@ static int mt9v022_s_fmt(struct v4l2_subdev *sd,
+ 	 * icd->try_fmt(), datawidth is from our supported format list
+ 	 */
+ 	switch (mf->code) {
+-	case V4L2_MBUS_FMT_GREY8_1X8:
++	case V4L2_MBUS_FMT_Y8_1X8:
+ 	case V4L2_MBUS_FMT_Y10_1X10:
+ 		if (mt9v022->model != V4L2_IDENT_MT9V022IX7ATM)
+ 			return -EINVAL;
+diff --git a/drivers/media/video/ov6650.c b/drivers/media/video/ov6650.c
+index cf93de9..fe8e3eb 100644
+--- a/drivers/media/video/ov6650.c
++++ b/drivers/media/video/ov6650.c
+@@ -207,7 +207,7 @@ static enum v4l2_mbus_pixelcode ov6650_codes[] = {
+ 	V4L2_MBUS_FMT_YVYU8_2X8,
+ 	V4L2_MBUS_FMT_VYUY8_2X8,
+ 	V4L2_MBUS_FMT_SBGGR8_1X8,
+-	V4L2_MBUS_FMT_GREY8_1X8,
++	V4L2_MBUS_FMT_Y8_1X8,
+ };
+ 
+ static const struct v4l2_queryctrl ov6650_controls[] = {
+@@ -800,7 +800,7 @@ static int ov6650_s_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *mf)
+ 
+ 	/* select color matrix configuration for given color encoding */
+ 	switch (code) {
+-	case V4L2_MBUS_FMT_GREY8_1X8:
++	case V4L2_MBUS_FMT_Y8_1X8:
+ 		dev_dbg(&client->dev, "pixel format GREY8_1X8\n");
+ 		coma_mask |= COMA_RGB | COMA_WORD_SWAP | COMA_BYTE_SWAP;
+ 		coma_set |= COMA_BW;
+@@ -846,7 +846,7 @@ static int ov6650_s_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *mf)
+ 	}
+ 	priv->code = code;
+ 
+-	if (code == V4L2_MBUS_FMT_GREY8_1X8 ||
++	if (code == V4L2_MBUS_FMT_Y8_1X8 ||
+ 			code == V4L2_MBUS_FMT_SBGGR8_1X8) {
+ 		coml_mask = COML_ONE_CHANNEL;
+ 		coml_set = 0;
+@@ -936,8 +936,8 @@ static int ov6650_try_fmt(struct v4l2_subdev *sd,
+ 
+ 	switch (mf->code) {
+ 	case V4L2_MBUS_FMT_Y10_1X10:
+-		mf->code = V4L2_MBUS_FMT_GREY8_1X8;
+-	case V4L2_MBUS_FMT_GREY8_1X8:
++		mf->code = V4L2_MBUS_FMT_Y8_1X8;
++	case V4L2_MBUS_FMT_Y8_1X8:
+ 	case V4L2_MBUS_FMT_YVYU8_2X8:
+ 	case V4L2_MBUS_FMT_YUYV8_2X8:
+ 	case V4L2_MBUS_FMT_VYUY8_2X8:
+diff --git a/drivers/media/video/sh_mobile_csi2.c b/drivers/media/video/sh_mobile_csi2.c
+index 84a6468..dd1b81b 100644
+--- a/drivers/media/video/sh_mobile_csi2.c
++++ b/drivers/media/video/sh_mobile_csi2.c
+@@ -56,7 +56,7 @@ static int sh_csi2_try_fmt(struct v4l2_subdev *sd,
+ 		switch (mf->code) {
+ 		case V4L2_MBUS_FMT_UYVY8_2X8:		/* YUV422 */
+ 		case V4L2_MBUS_FMT_YUYV8_1_5X8:		/* YUV420 */
+-		case V4L2_MBUS_FMT_GREY8_1X8:		/* RAW8 */
++		case V4L2_MBUS_FMT_Y8_1X8:		/* RAW8 */
+ 		case V4L2_MBUS_FMT_SBGGR8_1X8:
+ 		case V4L2_MBUS_FMT_SGRBG8_1X8:
+ 			break;
+@@ -67,7 +67,7 @@ static int sh_csi2_try_fmt(struct v4l2_subdev *sd,
+ 		break;
+ 	case SH_CSI2I:
+ 		switch (mf->code) {
+-		case V4L2_MBUS_FMT_GREY8_1X8:		/* RAW8 */
++		case V4L2_MBUS_FMT_Y8_1X8:		/* RAW8 */
+ 		case V4L2_MBUS_FMT_SBGGR8_1X8:
+ 		case V4L2_MBUS_FMT_SGRBG8_1X8:
+ 		case V4L2_MBUS_FMT_SBGGR10_1X10:	/* RAW10 */
+@@ -111,7 +111,7 @@ static int sh_csi2_s_fmt(struct v4l2_subdev *sd,
+ 	case V4L2_MBUS_FMT_RGB565_2X8_BE:
+ 		tmp |= 0x22;	/* RGB565 */
+ 		break;
+-	case V4L2_MBUS_FMT_GREY8_1X8:
++	case V4L2_MBUS_FMT_Y8_1X8:
+ 	case V4L2_MBUS_FMT_SBGGR8_1X8:
+ 	case V4L2_MBUS_FMT_SGRBG8_1X8:
+ 		tmp |= 0x2a;	/* RAW8 */
+diff --git a/drivers/media/video/soc_mediabus.c b/drivers/media/video/soc_mediabus.c
+index 9139121..d9c297d 100644
+--- a/drivers/media/video/soc_mediabus.c
++++ b/drivers/media/video/soc_mediabus.c
+@@ -88,7 +88,7 @@ static const struct soc_mbus_pixelfmt mbus_fmt[] = {
+ 		.packing		= SOC_MBUS_PACKING_EXTEND16,
+ 		.order			= SOC_MBUS_ORDER_LE,
+ 	},
+-	[MBUS_IDX(GREY8_1X8)] = {
++	[MBUS_IDX(Y8_1X8)] = {
+ 		.fourcc			= V4L2_PIX_FMT_GREY,
+ 		.name			= "Grey",
+ 		.bits_per_sample	= 8,
+diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
+index feeb88c..dc1d5c0 100644
+--- a/include/linux/v4l2-mediabus.h
++++ b/include/linux/v4l2-mediabus.h
+@@ -45,7 +45,7 @@ enum v4l2_mbus_pixelcode {
+ 	V4L2_MBUS_FMT_BGR565_2X8_BE,
+ 	V4L2_MBUS_FMT_SBGGR8_1X8,
+ 	V4L2_MBUS_FMT_SBGGR10_1X10,
+-	V4L2_MBUS_FMT_GREY8_1X8,
++	V4L2_MBUS_FMT_Y8_1X8,
+ 	V4L2_MBUS_FMT_Y10_1X10,
+ 	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE,
+ 	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE,
+-- 
+1.7.3.4
 
--               .num_device_descs = 2,
-+               .num_device_descs = 3,
-               .devices = {
-                       {   "DiBcom STK7770P reference design",
-                               { &dib0700_usb_id_table[59], NULL },
-@@ -3405,6 +3406,10 @@ struct dvb_usb_device_properties dib0700_devices[] = {
-                                       &dib0700_usb_id_table[60], NULL},
-                               { NULL },
-                       },
-+                       {   "TechniSat AirStar TeleStick 2",
-+                               { &dib0700_usb_id_table[74], NULL },
-+                               { NULL },
-+                       },
-               },
-
-               .rc.core = {
-diff --git a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
-b/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
-index b71540d..3a8b744 100644
---- a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
-+++ b/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
-@@ -317,5 +317,6 @@
- #define USB_PID_TERRATEC_DVBS2CI_V2                    0x10ac
- #define USB_PID_TECHNISAT_USB2_HDCI_V1                 0x0001
- #define USB_PID_TECHNISAT_USB2_HDCI_V2                 0x0002
-+#define USB_PID_TECHNISAT_AIRSTAR_TELESTICK_2          0x0004
- #define USB_PID_TECHNISAT_USB2_DVB_S2                  0x0500
- #endif
---
-1.7.2.3
