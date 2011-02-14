@@ -1,94 +1,52 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:57441 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754364Ab1BNNc3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Feb 2011 08:32:29 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: balbi@ti.com
-Subject: Re: [PATCH v6 07/10] omap3isp: CCP2/CSI2 receivers
-Date: Mon, 14 Feb 2011 14:32:31 +0100
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-References: <1297686097-9804-1-git-send-email-laurent.pinchart@ideasonboard.com> <1297686097-9804-8-git-send-email-laurent.pinchart@ideasonboard.com> <20110214123739.GZ2549@legolas.emea.dhcp.ti.com>
-In-Reply-To: <20110214123739.GZ2549@legolas.emea.dhcp.ti.com>
+Received: from mx1.redhat.com ([209.132.183.28]:58284 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751799Ab1BNTI6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Feb 2011 14:08:58 -0500
+Message-ID: <4D598080.2070100@redhat.com>
+Date: Mon, 14 Feb 2011 20:20:32 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Jean-Francois Moine <moinejf@free.fr>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] v4l-utils: Add the JPEG Lite decoding function
+References: <20110214133643.3c9d1454@tele>
+In-Reply-To: <20110214133643.3c9d1454@tele>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201102141432.32071.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Felipe,
+Hi,
 
-On Monday 14 February 2011 13:37:39 Felipe Balbi wrote:
-> On Mon, Feb 14, 2011 at 01:21:34PM +0100, Laurent Pinchart wrote:
-> > The OMAP3 ISP CCP2 and CSI2 receivers provide an interface to connect
-> > serial MIPI sensors to the device.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > Signed-off-by: David Cohen <dacohen@gmail.com>
-> > Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
-> > Signed-off-by: Vimarsh Zutshi <vimarsh.zutshi@gmail.com>
-> > Signed-off-by: Tuukka Toivonen <tuukkat76@gmail.com>
-> > Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
-> > Signed-off-by: Antti Koskipaa <akoskipa@gmail.com>
-> > Signed-off-by: Ivan T. Ivanov <iivanov@mm-sol.com>
-> > Signed-off-by: RaniSuneela <r-m@ti.com>
-> > Signed-off-by: Atanas Filipov <afilipov@mm-sol.com>
-> > Signed-off-by: Gjorgji Rosikopulos <grosikopulos@mm-sol.com>
-> > Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-> > Signed-off-by: Nayden Kanchev <nkanchev@mm-sol.com>
-> > Signed-off-by: Phil Carmody <ext-phil.2.carmody@nokia.com>
-> > Signed-off-by: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
-> > Signed-off-by: Dominic Curran <dcurran@ti.com>
-> > Signed-off-by: Ilkka Myllyperkio <ilkka.myllyperkio@sofica.fi>
-> > Signed-off-by: Pallavi Kulkarni <p-kulkarni@ti.com>
-> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> 
-> checkpatch still complains a bit about this one:
-> 
-> CHECK: struct mutex definition without comment
-> #1368: FILE: drivers/media/video/omap3-isp/ispqueue.h:157:
-> +	struct mutex lock;
-> 
-> CHECK: spinlock_t definition without comment
-> #1369: FILE: drivers/media/video/omap3-isp/ispqueue.h:158:
-> +	spinlock_t irqlock;
+On 02/14/2011 01:36 PM, Jean-Francois Moine wrote:
+> Hi Hans,
+>
+> JPEG Lite images are created by the DivIO nw80x chips.
+>
+> The gspca subdriver nw80x will be ready soon.
+>
+> Decoding to RGB24 and BGR24 are ok. Decoding to YUV420 and YVU420 are
+> not tested.
+>
 
-Those two have a kerneldoc comment in front of the structure definition.
+You're working on nw80x support? Cool! I've a cam with one of
+those chipsets lying around, it is a Dynalink 06be:d001. I'll definitely
+give the driver a try when it hits your git tree, or send it
+my way if you wanted it tested with this cam earlier.
 
-> WARNING: please, no space before tabs
-> #2723: FILE: drivers/media/video/omap3-isp/ispvideo.h:49:
-> + * ^Ibits. Identical to @code if the format is 10 bits wide or less.$
-> 
-> WARNING: please, no space before tabs
-> #2725: FILE: drivers/media/video/omap3-isp/ispvideo.h:51:
-> + * ^Iformat. Identical to @code if the format is not DPCM compressed.$
-> 
-> CHECK: spinlock_t definition without comment
-> #2762: FILE: drivers/media/video/omap3-isp/ispvideo.h:88:
-> +	spinlock_t lock;
-> 
-> CHECK: struct mutex definition without comment
-> #2823: FILE: drivers/media/video/omap3-isp/ispvideo.h:149:
-> +	struct mutex mutex;
-> 
-> CHECK: struct mutex definition without comment
-> #2840: FILE: drivers/media/video/omap3-isp/ispvideo.h:166:
-> +	struct mutex stream_lock;
-> 
-> total: 0 errors, 2 warnings, 5 checks, 2806 lines checked
-> 
-> /home/balbi/tst.diff has style problems, please review.  If any of these
-> errors are false positives report them to the maintainer, see
-> CHECKPATCH in MAINTAINERS.
-> 
-> does it make sense to fix those ?
+Now about the libv4l patch, unfortunately it cannot go in as is.
+The problem is that the code you derived it from seems to be GPL
+not LGPL (judging from the copyright header you put on top of it),
+and libv4l is LGPL, and has to be to to allow it to be used with
+for example skype and flash. The thing to do here is to try
+and contact the original author and get permission to relicense
+under the LGPL (version 2 or later). In the mean time the code
+can still go in but as an external helper, see for example the
+ov511 and ov518 decompression code. There is a generic external
+helper framework in libv4l, so the needed code changes should
+be minimal.
 
--- 
-Regards,
+Thanks & Regards,
 
-Laurent Pinchart
+Hans
