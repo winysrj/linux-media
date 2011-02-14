@@ -1,26 +1,370 @@
 Return-path: <mchehab@pedra>
-Received: from snt0-omc2-s14.snt0.hotmail.com ([65.55.90.89]:55940 "EHLO
-	snt0-omc2-s14.snt0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751370Ab1BUTvA convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Feb 2011 14:51:00 -0500
-Message-ID: <SNT130-w19196431C16F5C2568AE05ADD90@phx.gbl>
-From: Jamenson Ferreira Espindula de Almeida Melo
-	<jamensonespindula@hotmail.com>
-To: <linux-media@vger.kernel.org>
-Subject: Re: Re: Siano SMS1140 DVB Receiver on Debian 5.0 (Lenny)
-Date: Mon, 21 Feb 2011 19:44:46 +0000
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-MIME-Version: 1.0
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58187 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754223Ab1BNMVn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Feb 2011 07:21:43 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [PATCH v7 11/11] v4l: v4l2_subdev userspace crop API
+Date: Mon, 14 Feb 2011 13:21:24 +0100
+Message-Id: <1297686084-9715-12-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1297686084-9715-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1297686084-9715-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+From: Antti Koskipaa <akoskipa@gmail.com>
 
-Hi, Mauro! Thank you for your replying.
-I have had some success. I just reconfigured the kernel 2.6.37 and recompiled it. I figured out two things. First: when I compiled the Siano driver as a module, smsmdtv.ko is loaded when I attach the receiver but no adapter directory, no dvr, no demux and no frontend are created in /dev directory. Second: I compiled the Siano driver into the kernel and bingo: when I attach the receiver, frontend0, dvr0 and demux0 are created in /dev/dvb/adapter0 directory. No problem. Real problem is: scan, w_scan and dvbtune doesn't find any signal to scan, say "tunning failed". I figured out that receiver default mode is setup to DVB-T (mode 4 in smscoreapi.c) and because of that dvb_nova_12mhz_b0.inp is required.   Setting default mode to 6 in smscoreapi.c makes isdbt_nova_12mhz_b0.inp be required instead and it does make me sense to be the correct driver considering ISDB-T standard in Brazil.   Reading Siano's documentation I realized that ISDB-T standard only runs with SMS Host Libra
-ry, that is a proprietary subsystem of Siano Mobile Silicon and, actually, I am thinking receiver will only run if I use such a library.
+This patch adds the VIDIOC_SUBDEV_S_CROP and G_CROP ioctls to the
+userland API. CROPCAP is not implemented because it's redundant.
+
+Signed-off-by: Antti Koskipaa <akoskipa@gmail.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ Documentation/DocBook/media-entities.tmpl          |    4 +
+ Documentation/DocBook/v4l/dev-subdev.xml           |   33 ++++
+ Documentation/DocBook/v4l/v4l2.xml                 |    1 +
+ Documentation/DocBook/v4l/vidioc-subdev-g-crop.xml |  155 ++++++++++++++++++++
+ drivers/media/video/v4l2-subdev.c                  |   26 ++++
+ include/linux/v4l2-subdev.h                        |   15 ++
+ include/media/v4l2-subdev.h                        |    4 +
+ 7 files changed, 238 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/DocBook/v4l/vidioc-subdev-g-crop.xml
+
+diff --git a/Documentation/DocBook/media-entities.tmpl b/Documentation/DocBook/media-entities.tmpl
+index 4af3c2e..157d147 100644
+--- a/Documentation/DocBook/media-entities.tmpl
++++ b/Documentation/DocBook/media-entities.tmpl
+@@ -88,8 +88,10 @@
+ <!ENTITY VIDIOC-S-TUNER "<link linkend='vidioc-g-tuner'><constant>VIDIOC_S_TUNER</constant></link>">
+ <!ENTITY VIDIOC-SUBDEV-ENUM-FRAME-SIZE "<link linkend='vidioc-subdev-enum-frame-size'><constant>VIDIOC_SUBDEV_ENUM_FRAME_SIZE</constant></link>">
+ <!ENTITY VIDIOC-SUBDEV-ENUM-MBUS-CODE "<link linkend='vidioc-subdev-enum-mbus-code'><constant>VIDIOC_SUBDEV_ENUM_MBUS_CODE</constant></link>">
++<!ENTITY VIDIOC-SUBDEV-G-CROP "<link linkend='vidioc-subdev-g-crop'><constant>VIDIOC_SUBDEV_G_CROP</constant></link>">
+ <!ENTITY VIDIOC-SUBDEV-G-FMT "<link linkend='vidioc-subdev-g-fmt'><constant>VIDIOC_SUBDEV_G_FMT</constant></link>">
+ <!ENTITY VIDIOC-SUBDEV-G-FRAME-INTERVAL "<link linkend='vidioc-subdev-g-frame-interval'><constant>VIDIOC_SUBDEV_G_FRAME_INTERVAL</constant></link>">
++<!ENTITY VIDIOC-SUBDEV-S-CROP "<link linkend='vidioc-subdev-g-crop'><constant>VIDIOC_SUBDEV_S_CROP</constant></link>">
+ <!ENTITY VIDIOC-SUBDEV-S-FMT "<link linkend='vidioc-subdev-g-fmt'><constant>VIDIOC_SUBDEV_S_FMT</constant></link>">
+ <!ENTITY VIDIOC-SUBDEV-S-FRAME-INTERVAL "<link linkend='vidioc-subdev-g-frame-interval'><constant>VIDIOC_SUBDEV_S_FRAME_INTERVAL</constant></link>">
+ <!ENTITY VIDIOC-TRY-ENCODER-CMD "<link linkend='vidioc-encoder-cmd'><constant>VIDIOC_TRY_ENCODER_CMD</constant></link>">
+@@ -195,6 +197,7 @@
+ <!ENTITY v4l2-subdev-frame-interval "struct&nbsp;<link linkend='v4l2-subdev-frame-interval'>v4l2_subdev_frame_interval</link>">
+ <!ENTITY v4l2-subdev-frame-interval-enum "struct&nbsp;<link linkend='v4l2-subdev-frame-interval-enum'>v4l2_subdev_frame_interval_enum</link>">
+ <!ENTITY v4l2-subdev-frame-size-enum "struct&nbsp;<link linkend='v4l2-subdev-frame-size-enum'>v4l2_subdev_frame_size_enum</link>">
++<!ENTITY v4l2-subdev-crop "struct&nbsp;<link linkend='v4l2-subdev-crop'>v4l2_subdev_crop</link>">
+ <!ENTITY v4l2-subdev-format "struct&nbsp;<link linkend='v4l2-subdev-format'>v4l2_subdev_format</link>">
+ <!ENTITY v4l2-subdev-mbus-code-enum "struct&nbsp;<link linkend='v4l2-subdev-mbus-code-enum'>v4l2_subdev_mbus_code_enum</link>">
+ <!ENTITY v4l2-standard "struct&nbsp;<link linkend='v4l2-standard'>v4l2_standard</link>">
+@@ -333,6 +336,7 @@
+ <!ENTITY sub-subdev-enum-frame-size SYSTEM "v4l/vidioc-subdev-enum-frame-size.xml">
+ <!ENTITY sub-subdev-enum-mbus-code SYSTEM "v4l/vidioc-subdev-enum-mbus-code.xml">
+ <!ENTITY sub-subdev-formats SYSTEM "v4l/subdev-formats.xml">
++<!ENTITY sub-subdev-g-crop SYSTEM "v4l/vidioc-subdev-g-crop.xml">
+ <!ENTITY sub-subdev-g-fmt SYSTEM "v4l/vidioc-subdev-g-fmt.xml">
+ <!ENTITY sub-subdev-g-frame-interval SYSTEM "v4l/vidioc-subdev-g-frame-interval.xml">
+ <!ENTITY sub-capture-c SYSTEM "v4l/capture.c.xml">
+diff --git a/Documentation/DocBook/v4l/dev-subdev.xml b/Documentation/DocBook/v4l/dev-subdev.xml
+index fc62e65..e9eb8af 100644
+--- a/Documentation/DocBook/v4l/dev-subdev.xml
++++ b/Documentation/DocBook/v4l/dev-subdev.xml
+@@ -275,6 +275,39 @@
+       </para>
+     </section>
  
-Any more help?
++    <section>
++      <title>Cropping and scaling</title>
++
++      <para>Many sub-devices support cropping frames on their input or output
++      pads (or possible even on both). Cropping is used to select the area of
++      interest in an image, typically on a video sensor or video decoder. It can
++      also be used as part of digital zoom implementations to select the area of
++      the image that will be scaled up.</para>
++
++      <para>Crop settings are defined by a crop rectangle and represented in a
++      &v4l2-rect; by the coordinates of the top left corner and the rectangle
++      size. Both the coordinates and sizes are expressed in pixels.</para>
++
++      <para>The crop rectangle is retrieved and set using the
++      &VIDIOC-SUBDEV-G-CROP; and &VIDIOC-SUBDEV-S-CROP; ioctls. Like for pad
++      formats, drivers store try and active crop rectangles. The format
++      negotiation mechanism applies to crop settings as well.</para>
++
++      <para>On input pads, cropping is applied relatively to the current pad
++      format. The pad format represents the image size as received by the
++      sub-device from the previous block in the pipeline, and the crop rectangle
++      represents the sub-image that will be transmitted further inside the
++      sub-device for processing. The crop rectangle be entirely containted
++      inside the input image size.</para>
++
++      <para>Input crop rectangle are reset to their default value when the input
++      image format is modified. Drivers should use the input image size as the
++      crop rectangle default value, but hardware requirements may prevent this.
++      </para>
++
++      <para>Cropping behaviour on output pads is not defined.</para>
++
++    </section>
+   </section>
  
-Best regards. 		 	   		  
+   &sub-subdev-formats;
+diff --git a/Documentation/DocBook/v4l/v4l2.xml b/Documentation/DocBook/v4l/v4l2.xml
+index 8592720..29c3d74 100644
+--- a/Documentation/DocBook/v4l/v4l2.xml
++++ b/Documentation/DocBook/v4l/v4l2.xml
+@@ -482,6 +482,7 @@ and discussions on the V4L mailing list.</revremark>
+     &sub-subdev-enum-frame-interval;
+     &sub-subdev-enum-frame-size;
+     &sub-subdev-enum-mbus-code;
++    &sub-subdev-g-crop;
+     &sub-subdev-g-fmt;
+     &sub-subdev-g-frame-interval;
+     &sub-subscribe-event;
+diff --git a/Documentation/DocBook/v4l/vidioc-subdev-g-crop.xml b/Documentation/DocBook/v4l/vidioc-subdev-g-crop.xml
+new file mode 100644
+index 0000000..0619732
+--- /dev/null
++++ b/Documentation/DocBook/v4l/vidioc-subdev-g-crop.xml
+@@ -0,0 +1,155 @@
++<refentry id="vidioc-subdev-g-crop">
++  <refmeta>
++    <refentrytitle>ioctl VIDIOC_SUBDEV_G_CROP, VIDIOC_SUBDEV_S_CROP</refentrytitle>
++    &manvol;
++  </refmeta>
++
++  <refnamediv>
++    <refname>VIDIOC_SUBDEV_G_CROP</refname>
++    <refname>VIDIOC_SUBDEV_S_CROP</refname>
++    <refpurpose>Get or set the crop rectangle on a subdev pad</refpurpose>
++  </refnamediv>
++
++  <refsynopsisdiv>
++    <funcsynopsis>
++      <funcprototype>
++	<funcdef>int <function>ioctl</function></funcdef>
++	<paramdef>int <parameter>fd</parameter></paramdef>
++	<paramdef>int <parameter>request</parameter></paramdef>
++	<paramdef>struct v4l2_subdev_crop *<parameter>argp</parameter></paramdef>
++      </funcprototype>
++    </funcsynopsis>
++    <funcsynopsis>
++      <funcprototype>
++	<funcdef>int <function>ioctl</function></funcdef>
++	<paramdef>int <parameter>fd</parameter></paramdef>
++	<paramdef>int <parameter>request</parameter></paramdef>
++	<paramdef>const struct v4l2_subdev_crop *<parameter>argp</parameter></paramdef>
++      </funcprototype>
++    </funcsynopsis>
++  </refsynopsisdiv>
++
++  <refsect1>
++    <title>Arguments</title>
++
++    <variablelist>
++      <varlistentry>
++	<term><parameter>fd</parameter></term>
++	<listitem>
++	  <para>&fd;</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>request</parameter></term>
++	<listitem>
++	  <para>VIDIOC_SUBDEV_G_CROP, VIDIOC_SUBDEV_S_CROP</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>argp</parameter></term>
++	<listitem>
++	  <para></para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++
++  <refsect1>
++    <title>Description</title>
++
++    <note>
++      <title>Experimental</title>
++      <para>This is an <link linkend="experimental">experimental</link>
++      interface and may change in the future.</para>
++    </note>
++
++    <para>To retrieve the current crop rectangle applications set the
++    <structfield>pad</structfield> field of a &v4l2-subdev-crop; to the
++    desired pad number as reported by the media API and the
++    <structfield>which</structfield> field to
++    <constant>V4L2_SUBDEV_FORMAT_ACTIVE</constant>. They then call the
++    <constant>VIDIOC_SUBDEV_G_CROP</constant> ioctl with a pointer to this
++    structure. The driver fills the members of the <structfield>rect</structfield>
++    field or returns &EINVAL; if the input arguments are invalid, or if cropping
++    is not supported on the given pad.</para>
++
++    <para>To change the current crop rectangle applications set both the
++    <structfield>pad</structfield> and <structfield>which</structfield> fields
++    and all members of the <structfield>rect</structfield> field. They then call
++    the <constant>VIDIOC_SUBDEV_S_CROP</constant> ioctl with a pointer to this
++    structure. The driver verifies the requested crop rectangle, adjusts it
++    based on the hardware capabilities and configures the device. Upon return
++    the &v4l2-subdev-crop; contains the current format as would be returned
++    by a <constant>VIDIOC_SUBDEV_G_CROP</constant> call.</para>
++
++    <para>Applications can query the device capabilities by setting the
++    <structfield>which</structfield> to
++    <constant>V4L2_SUBDEV_FORMAT_TRY</constant>. When set, 'try' crop
++    rectangles are not applied to the device by the driver, but are mangled
++    exactly as active crop rectangles and stored in the sub-device file handle.
++    Two applications querying the same sub-device would thus not interact with
++    each other.</para>
++
++    <para>Drivers must not return an error solely because the requested crop
++    rectangle doesn't match the device capabilities. They must instead modify
++    the rectangle to match what the hardware can provide. The modified format
++    should be as close as possible to the original request.</para>
++
++    <table pgwide="1" frame="none" id="v4l2-subdev-crop">
++      <title>struct <structname>v4l2_subdev_crop</structname></title>
++      <tgroup cols="3">
++        &cs-str;
++	<tbody valign="top">
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>pad</structfield></entry>
++	    <entry>Pad number as reported by the media framework.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>which</structfield></entry>
++	    <entry>Crop rectangle to get or set, from
++	    &v4l2-subdev-format-whence;.</entry>
++	  </row>
++	  <row>
++	    <entry>&v4l2-rect;</entry>
++	    <entry><structfield>rect</structfield></entry>
++	    <entry>Crop rectangle boundaries, in pixels.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>reserved</structfield>[8]</entry>
++	    <entry>Reserved for future extensions. Applications and drivers must
++	    set the array to zero.</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++  </refsect1>
++
++  <refsect1>
++    &return-value;
++
++    <variablelist>
++      <varlistentry>
++	<term><errorcode>EBUSY</errorcode></term>
++	<listitem>
++	  <para>The crop rectangle can't be changed because the pad is currently
++	  busy. This can be caused, for instance, by an active video stream on
++	  the pad. The ioctl must not be retried without performing another
++	  action to fix the problem first. Only returned by
++	  <constant>VIDIOC_SUBDEV_S_CROP</constant></para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><errorcode>EINVAL</errorcode></term>
++	<listitem>
++	  <para>The &v4l2-subdev-crop; <structfield>pad</structfield>
++	  references a non-existing pad, the <structfield>which</structfield>
++	  field references a non-existing format, or cropping is not supported
++	  on the given subdev pad.</para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++</refentry>
+diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+index daceaac..b4c4640 100644
+--- a/drivers/media/video/v4l2-subdev.c
++++ b/drivers/media/video/v4l2-subdev.c
+@@ -213,6 +213,32 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 		return v4l2_subdev_call(sd, pad, set_fmt, subdev_fh, format);
+ 	}
+ 
++	case VIDIOC_SUBDEV_G_CROP: {
++		struct v4l2_subdev_crop *crop = arg;
++
++		if (crop->which != V4L2_SUBDEV_FORMAT_TRY &&
++		    crop->which != V4L2_SUBDEV_FORMAT_ACTIVE)
++			return -EINVAL;
++
++		if (crop->pad >= sd->entity.num_pads)
++			return -EINVAL;
++
++		return v4l2_subdev_call(sd, pad, get_crop, subdev_fh, crop);
++	}
++
++	case VIDIOC_SUBDEV_S_CROP: {
++		struct v4l2_subdev_crop *crop = arg;
++
++		if (crop->which != V4L2_SUBDEV_FORMAT_TRY &&
++		    crop->which != V4L2_SUBDEV_FORMAT_ACTIVE)
++			return -EINVAL;
++
++		if (crop->pad >= sd->entity.num_pads)
++			return -EINVAL;
++
++		return v4l2_subdev_call(sd, pad, set_crop, subdev_fh, crop);
++	}
++
+ 	case VIDIOC_SUBDEV_ENUM_MBUS_CODE: {
+ 		struct v4l2_subdev_mbus_code_enum *code = arg;
+ 
+diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
+index c55f9e9..ed29cbb 100644
+--- a/include/linux/v4l2-subdev.h
++++ b/include/linux/v4l2-subdev.h
+@@ -51,6 +51,19 @@ struct v4l2_subdev_format {
+ };
+ 
+ /**
++ * struct v4l2_subdev_crop - Pad-level crop settings
++ * @which: format type (from enum v4l2_subdev_format_whence)
++ * @pad: pad number, as reported by the media API
++ * @rect: pad crop rectangle boundaries
++ */
++struct v4l2_subdev_crop {
++	__u32 which;
++	__u32 pad;
++	struct v4l2_rect rect;
++	__u32 reserved[8];
++};
++
++/**
+  * struct v4l2_subdev_mbus_code_enum - Media bus format enumeration
+  * @pad: pad number, as reported by the media API
+  * @index: format index during enumeration
+@@ -122,5 +135,7 @@ struct v4l2_subdev_frame_interval_enum {
+ 			_IOWR('V', 74, struct v4l2_subdev_frame_size_enum)
+ #define VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL \
+ 			_IOWR('V', 75, struct v4l2_subdev_frame_interval_enum)
++#define VIDIOC_SUBDEV_G_CROP	_IOWR('V', 59, struct v4l2_subdev_crop)
++#define VIDIOC_SUBDEV_S_CROP	_IOWR('V', 60, struct v4l2_subdev_crop)
+ 
+ #endif
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 993e39f..b0ce124 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -429,6 +429,10 @@ struct v4l2_subdev_pad_ops {
+ 		       struct v4l2_subdev_format *format);
+ 	int (*set_fmt)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 		       struct v4l2_subdev_format *format);
++	int (*set_crop)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++		       struct v4l2_subdev_crop *crop);
++	int (*get_crop)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++		       struct v4l2_subdev_crop *crop);
+ };
+ 
+ struct v4l2_subdev_ops {
+-- 
+1.7.3.4
+
