@@ -1,104 +1,57 @@
 Return-path: <mchehab@pedra>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:56680 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752432Ab1BYGKk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Feb 2011 01:10:40 -0500
-Received: by mail-vx0-f176.google.com with SMTP id 41so1390126vxc.21
-        for <linux-media@vger.kernel.org>; Thu, 24 Feb 2011 22:10:39 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <201102241410.46042.laurent.pinchart@ideasonboard.com>
-References: <AANLkTik=Yc9cb9r7Ro=evRoxd61KVE=8m7Z5+dNwDzVd@mail.gmail.com>
-	<AANLkTinvDR9SAiBOVOxMXGANpSq8w22ObjPEbdaRcj3R@mail.gmail.com>
-	<201102241404.19275.hverkuil@xs4all.nl>
-	<201102241410.46042.laurent.pinchart@ideasonboard.com>
-Date: Fri, 25 Feb 2011 00:10:38 -0600
-Message-ID: <AANLkTinPCbgPwOxMYHD9+bnP-moswi-ymvnh1G0VTcLC@mail.gmail.com>
-Subject: Re: [st-ericsson] v4l2 vs omx for camera
-From: "Clark, Rob" <rob@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linus Walleij <linus.walleij@linaro.org>,
-	Sachin Gupta <sachin.gupta@linaro.org>,
-	Robert Fekete <robert.fekete@linaro.org>,
-	"linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>,
-	Harald Gustafsson <harald.gustafsson@ericsson.com>,
-	ST-Ericsson LT Mailing List <st-ericsson@lists.linaro.org>,
-	linux-media@vger.kernel.org, gstreamer-devel@lists.freedesktop.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mx1.redhat.com ([209.132.183.28]:40594 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750882Ab1BNVt7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Feb 2011 16:49:59 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p1ELnxs3007380
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 14 Feb 2011 16:49:59 -0500
+Received: from pedra (vpn-239-121.phx2.redhat.com [10.3.239.121])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p1ELnvgE030711
+	for <linux-media@vger.kernel.org>; Mon, 14 Feb 2011 16:49:58 -0500
+Date: Mon, 14 Feb 2011 19:49:43 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 01/14] [media] cx88: use unlocked_ioctl for cx88-video
+Message-ID: <20110214194943.5171fb1b@pedra>
+In-Reply-To: <cover.1297716906.git.mchehab@redhat.com>
+References: <cover.1297716906.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, Feb 24, 2011 at 7:10 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> On Thursday 24 February 2011 14:04:19 Hans Verkuil wrote:
->> On Thursday, February 24, 2011 13:29:56 Linus Walleij wrote:
->> > 2011/2/23 Sachin Gupta <sachin.gupta@linaro.org>:
->> > > The imaging coprocessor in today's platforms have a general purpose DSP
->> > > attached to it I have seen some work being done to use this DSP for
->> > > graphics/audio processing in case the camera use case is not being
->> > > tried or also if the camera usecases does not consume the full
->> > > bandwidth of this dsp.I am not sure how v4l2 would fit in such an
->> > > architecture,
->> >
->> > Earlier in this thread I discussed TI:s DSPbridge.
->> >
->> > In drivers/staging/tidspbridge
->> > http://omappedia.org/wiki/DSPBridge_Project
->> > you find the TI hackers happy at work with providing a DSP accelerator
->> > subsystem.
->> >
->> > Isn't it possible for a V4L2 component to use this interface (or
->> > something more evolved, generic) as backend for assorted DSP offloading?
->> >
->> > So using one kernel framework does not exclude using another one
->> > at the same time. Whereas something like DSPbridge will load firmware
->> > into DSP accelerators and provide control/datapath for that, this can
->> > in turn be used by some camera or codec which in turn presents a
->> > V4L2 or ALSA interface.
->>
->> Yes, something along those lines can be done.
->>
->> While normally V4L2 talks to hardware it is perfectly fine to talk to a DSP
->> instead.
->>
->> The hardest part will be to identify the missing V4L2 API pieces and design
->> and add them. I don't think the actual driver code will be particularly
->> hard. It should be nothing more than a thin front-end for the DSP. Of
->> course, that's just theory at the moment :-)
->>
->> The problem is that someone has to do the actual work for the initial
->> driver. And I expect that it will be a substantial amount of work. Future
->> drivers should be *much* easier, though.
->>
->> A good argument for doing this work is that this API can hide which parts
->> of the video subsystem are hardware and which are software. The
->> application really doesn't care how it is organized. What is done in
->> hardware on one SoC might be done on a DSP instead on another SoC. But the
->> end result is pretty much the same.
->
-> I think the biggest issue we will have here is that part of the inter-
-> processors communication stack lives in userspace in most recent SoCs (OMAP4
-> comes to mind for instance). This will make implementing a V4L2 driver that
-> relies on IPC difficult.
->
-> It's probably time to start seriously thinking about userspace
-> drivers/librairies/middlewares/frameworks/whatever, at least to clearly tell
-> chip vendors what the Linux community expects.
->
+cx88-video has locks. don't use the locked ioctl version, as
+it is not needed.
 
-I suspect more of the IPC framework needs to move down to the kernel..
-this is the only way I can see to move the virt->phys address
-translation to a trusted layer.  I'm not sure how others would feel
-about pushing more if the IPC stack down to the kernel, but at least
-it would make it easier for a v4l2 driver to leverage the
-coprocessors..
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-BR,
--R
+diff --git a/drivers/media/video/cx88/cx88-video.c b/drivers/media/video/cx88/cx88-video.c
+index 508dabb..e2fc455 100644
+--- a/drivers/media/video/cx88/cx88-video.c
++++ b/drivers/media/video/cx88/cx88-video.c
+@@ -1672,7 +1672,7 @@ static const struct v4l2_file_operations video_fops =
+ 	.read	       = video_read,
+ 	.poll          = video_poll,
+ 	.mmap	       = video_mmap,
+-	.ioctl	       = video_ioctl2,
++	.unlocked_ioctl = video_ioctl2,
+ };
+ 
+ static const struct v4l2_ioctl_ops video_ioctl_ops = {
+@@ -1722,7 +1722,7 @@ static const struct v4l2_file_operations radio_fops =
+ 	.owner         = THIS_MODULE,
+ 	.open          = video_open,
+ 	.release       = video_release,
+-	.ioctl         = video_ioctl2,
++	.unlocked_ioctl = video_ioctl2,
+ };
+ 
+ static const struct v4l2_ioctl_ops radio_ioctl_ops = {
+-- 
+1.7.1
 
-> --
-> Regards,
->
-> Laurent Pinchart
->
+
