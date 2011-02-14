@@ -1,47 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58186 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754123Ab1BNMVp (ORCPT
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:35363 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754311Ab1BNNSe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Feb 2011 07:21:45 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [PATCH v2 2/6] v4l: Add subdev sensor g_skip_frames operation
-Date: Mon, 14 Feb 2011 13:21:26 +0100
-Message-Id: <1297686090-9762-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1297686090-9762-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1297686090-9762-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Mon, 14 Feb 2011 08:18:34 -0500
+Date: Mon, 14 Feb 2011 15:18:29 +0200
+From: Felipe Balbi <balbi@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: balbi@ti.com, linux-media@vger.kernel.org,
+	linux-omap@vger.kernel.org, sakari.ailus@maxwell.research.nokia.com
+Subject: Re: [PATCH v6 03/10] omap3: Add function to register omap3isp
+ platform device structure
+Message-ID: <20110214131829.GC2549@legolas.emea.dhcp.ti.com>
+Reply-To: balbi@ti.com
+References: <1297686097-9804-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1297686097-9804-4-git-send-email-laurent.pinchart@ideasonboard.com>
+ <20110214123430.GX2549@legolas.emea.dhcp.ti.com>
+ <201102141407.09449.laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201102141407.09449.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Some buggy sensors generate corrupt frames when the stream is started.
-This new operation return the number of corrupt frames to skip when
-starting the stream.
+Hi,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- include/media/v4l2-subdev.h |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+On Mon, Feb 14, 2011 at 02:07:08PM +0100, Laurent Pinchart wrote:
+> > > diff --git a/arch/arm/mach-omap2/devices.h
+> > > b/arch/arm/mach-omap2/devices.h new file mode 100644
+> > > index 0000000..12ddb8a
+> > > --- /dev/null
+> > > +++ b/arch/arm/mach-omap2/devices.h
+> > > @@ -0,0 +1,17 @@
+> > > +/*
+> > > + * arch/arm/mach-omap2/devices.h
+> > > + *
+> > > + * OMAP2 platform device setup/initialization
+> > > + *
+> > > + * This program is free software; you can redistribute it and/or modify
+> > > + * it under the terms of the GNU General Public License as published by
+> > > + * the Free Software Foundation; either version 2 of the License, or
+> > > + * (at your option) any later version.
+> > > + */
+> > > +
+> > > +#ifndef __ARCH_ARM_MACH_OMAP_DEVICES_H
+> > > +#define __ARCH_ARM_MACH_OMAP_DEVICES_H
+> > > +
+> > > +int omap3_init_camera(void *pdata);
+> > 
+> > missing extern ?
+> 
+> Is that mandatory ? Many (most ?) headers in the kernel don't use the extern 
+> keyword when declaring functions.
 
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index b0ce124..79217ba 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -339,9 +339,13 @@ struct v4l2_subdev_vbi_ops {
-  *		      This is needed for some sensors, which always corrupt
-  *		      several top lines of the output image, or which send their
-  *		      metadata in them.
-+ * @g_skip_frames: number of frames to skip at stream start. This is needed for
-+ *		   buggy sensors that generate faulty frames when they are
-+ *		   turned on.
-  */
- struct v4l2_subdev_sensor_ops {
- 	int (*g_skip_top_lines)(struct v4l2_subdev *sd, u32 *lines);
-+	int (*g_skip_frames)(struct v4l2_subdev *sd, u32 *frames);
- };
- 
- /*
+maybe not mandatory, worth checking what sparse would say though :-p
+
 -- 
-1.7.3.4
-
+balbi
