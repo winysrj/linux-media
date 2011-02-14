@@ -1,127 +1,84 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:38824 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750714Ab1BLQ1b (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:61192 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753002Ab1BNLDp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Feb 2011 11:27:31 -0500
-Subject: Re: [get-bisect results]: DViCO FusionHDTV7 Dual Express I2C write
- failed
-From: Andy Walls <awalls@md.metrocast.net>
-To: Mark Zimmerman <markzimm@frii.com>
-Cc: linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>
-In-Reply-To: <20110212152954.GA20838@io.frii.com>
-References: <20101207190753.GA21666@io.frii.com>
-	 <20110212152954.GA20838@io.frii.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 12 Feb 2011 11:27:27 -0500
-Message-ID: <1297528048.2413.22.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Mon, 14 Feb 2011 06:03:45 -0500
+Date: Mon, 14 Feb 2011 12:03:39 +0100
+From: Tejun Heo <tj@kernel.org>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Andy Walls <awalls@md.metrocast.net>, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, stoth@kernellabs.com
+Subject: Re: cx23885-input.c does in fact use a workqueue....
+Message-ID: <20110214110339.GC18742@htj.dyndns.org>
+References: <1297647322.19186.61.camel@localhost>
+ <20110214043355.GA28090@core.coreip.homeip.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20110214043355.GA28090@core.coreip.homeip.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sat, 2011-02-12 at 08:29 -0700, Mark Zimmerman wrote:
-> On Tue, Dec 07, 2010 at 12:07:53PM -0700, Mark Zimmerman wrote:
-> > Greetings:
+Hello,
+
+On Sun, Feb 13, 2011 at 08:33:55PM -0800, Dmitry Torokhov wrote:
+> > The cx23885 driver does in fact schedule work for IR input handling:
 > > 
-> > I have a DViCO FusionHDTV7 Dual Express card that works with 2.6.35 but
-> > which fails to initialize with the latest 2.6.36 kernel. The firmware
-> > fails to load due to an i2c failure. A search of the archives indicates
-> > that this is not the first time this issue has occurred.
+> > Here's where it is scheduled for CX23888 chips:
 > > 
-> > What can I do to help get this problem fixed?
+> > http://git.linuxtv.org/media_tree.git?a=blob;f=drivers/media/video/cx23885/cx23885-ir.c;h=7125247dd25558678c823ee3262675570c9aa630;hb=HEAD#l76
 > > 
-> > Here is the dmesg from 2.6.35, for the two tuners: 
+> > Here's where it is scheduled for CX23885 chips:
 > > 
-> > xc5000: waiting for firmware upload (dvb-fe-xc5000-1.6.114.fw)... 
-> > xc5000: firmware read 12401 bytes. 
-> > xc5000: firmware uploading... 
-> > xc5000: firmware upload complete... 
-> > xc5000: waiting for firmware upload (dvb-fe-xc5000-1.6.114.fw)... 
-> > xc5000: firmware read 12401 bytes. 
-> > xc5000: firmware uploading... 
-> > xc5000: firmware upload complete..
+> > http://git.linuxtv.org/media_tree.git?a=blob;f=drivers/media/video/cx23885/cx23885-core.c;h=359882419b7f588b7c698dbcfb6a39ddb1603301;hb=HEAD#l1861
+
+Ah, sorry about missing those.
+
+> > The two different chips are handled slightly differently because
 > > 
-> > and here is what happens with 2.6.36: 
+> > a. the CX23888 IR unit is accessable via a PCI register block.  The IR
+> > IRQ can be acknowledged with direct PCI register accesses in an
+> > interrupt context, and the IR pulse FIFO serviced later in a workqueue
+> > context.
 > > 
-> > xc5000: waiting for firmware upload (dvb-fe-xc5000-1.6.114.fw)... 
-> > xc5000: firmware read 12401 bytes. 
-> > xc5000: firmware uploading... 
-> > xc5000: I2C write failed (len=3) 
-> > xc5000: firmware upload complete... 
-> > xc5000: Unable to initialise tuner 
-> > xc5000: waiting for firmware upload (dvb-fe-xc5000-1.6.114.fw)... 
-> > xc5000: firmware read 12401 bytes. 
-> > xc5000: firmware uploading... 
-> > xc5000: I2C write failed (len=3) 
-> > xc5000: firmware upload complete...
+> > b. the CX23885 IR unit is accessed over an I2C bus.  The CX23885 A/V IRQ
+> > has to be masked in an interrupt context (with PCI registers accesses).
+> > Then the CX23885 A/V unit's IR IRQ is ack'ed over I2C in a workqueue
+> > context and the IR pulse FIFO is also serviced over I2C in a workqueue
+> > context.
+> > 
+> > 
+> > So what should be done about the flush_scheduled_work()?  I think it
+> > belongs there.
 > > 
 > 
-> I did a git bisect on this and finally reached the end of the line.
-> Here is what it said:
-> 
-> qpc$ git bisect bad
-> 82ce67bf262b3f47ecb5a0ca31cace8ac72b7c98 is the first bad commit
-> commit 82ce67bf262b3f47ecb5a0ca31cace8ac72b7c98
-> Author: Jarod Wilson <jarod@redhat.com>
-> Date:   Thu Jul 29 18:20:44 2010 -0300
-> 
->     V4L/DVB: staging/lirc: fix non-CONFIG_MODULES build horkage
->     
->     Fix when CONFIG_MODULES is not enabled:
->     
->     drivers/staging/lirc/lirc_parallel.c:243: error: implicit declaration of function 'module_refcount'
->     drivers/staging/lirc/lirc_it87.c:150: error: implicit declaration of function 'module_refcount'
->     drivers/built-in.o: In function `it87_probe':
->     lirc_it87.c:(.text+0x4079b0): undefined reference to `init_chrdev'
->     lirc_it87.c:(.text+0x4079cc): undefined reference to `drop_chrdev'
->     drivers/built-in.o: In function `lirc_it87_exit':
->     lirc_it87.c:(.exit.text+0x38a5): undefined reference to `drop_chrdev'
->     
->     Its a quick hack and untested beyond building, since I don't have the
->     hardware, but it should do the trick.
->     
->     Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
->     Signed-off-by: Jarod Wilson <jarod@redhat.com>
->     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
-> :040000 040000 f645b46a07b7ff87a2c11ac9296a5ff56e89a0d0 49e50945ccf8e1c8567c049908890d2752443b72 M      drivers
+> Convert to using threaded irq?
 
-Hmm.  git log --patch 82ce67bf262b3f47ecb5a0ca31cace8ac72b7c98 shows the
-commit is completely unrealted.
+Or
 
-Please try and see if things are good or bad at commit
-18a87becf85d50e7f3d547f1b7a75108b151374d:
+1. Just flush the work items explicitly using flush_work_sync().
 
-        commit 18a87becf85d50e7f3d547f1b7a75108b151374d
-        Author: Jean Delvare <khali@linux-fr.org>
-        Date:   Sun Jul 18 17:05:17 2010 -0300
-        
-            V4L/DVB: cx23885: i2c_wait_done returns 0 or 1, don't check for < 0 return v
-            
-            Function i2c_wait_done() never returns negative values, so there is no
-            point in checking for them.
-            
-            Signed-off-by: Jean Delvare <khali@linux-fr.org>
-            Signed-off-by: Andy Walls <awalls@md.metrocast.net>
-            Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-        
-Which is the first commit, prior to the one you found, that seems to me
-to have any direct bearing to I2C transactions.
+2. Create a dedicated workqueue to serve as flushing domain.
 
-If that commit is good, then these commits in between would be my next
-likely suspects:
-e5514f104d875b3d28cbcd5d4f2b96ab2fca1e29
-dbe83a3b921328e12b2abe894fc692afba293d7f
+The first would look like the following.  Does this look correct?
 
-Regards,
-Andy
+Thanks.
 
+diff --git a/drivers/media/video/cx23885/cx23885-input.c b/drivers/media/video/cx23885/cx23885-input.c
+index 199b996..e27cedb 100644
+--- a/drivers/media/video/cx23885/cx23885-input.c
++++ b/drivers/media/video/cx23885/cx23885-input.c
+@@ -229,6 +229,9 @@ static void cx23885_input_ir_stop(struct cx23885_dev *dev)
+ 		v4l2_subdev_call(dev->sd_ir, ir, rx_s_parameters, &params);
+ 		v4l2_subdev_call(dev->sd_ir, ir, rx_g_parameters, &params);
+ 	}
++	flush_work_sync(&dev->cx25840_work);
++	flush_work_sync(&dev->ir_rx_work);
++	flush_work_sync(&dev->ir_tx_work);
+ }
+ 
+ static void cx23885_input_ir_close(struct rc_dev *rc)
 
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
+-- 
+tejun
