@@ -1,53 +1,109 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:55194 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754021Ab1BOJMp (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58186 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753855Ab1BNMV1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Feb 2011 04:12:45 -0500
-Date: Tue, 15 Feb 2011 10:12:39 +0100
-From: Tejun Heo <tj@kernel.org>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	stoth@kernellabs.com
-Subject: Re: cx23885-input.c does in fact use a workqueue....
-Message-ID: <20110215091239.GD3160@htj.dyndns.org>
-References: <1297647322.19186.61.camel@localhost>
- <20110214043355.GA28090@core.coreip.homeip.net>
- <20110214110339.GC18742@htj.dyndns.org>
- <1297731276.2394.19.camel@localhost>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1297731276.2394.19.camel@localhost>
+	Mon, 14 Feb 2011 07:21:27 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [PATCH v7 06/11] v4l: subdev: Add new file operations
+Date: Mon, 14 Feb 2011 13:21:19 +0100
+Message-Id: <1297686084-9715-7-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1297686084-9715-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1297686084-9715-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+V4L2 sub-devices store pad formats and crop settings in the file handle.
+To let drivers initialize those settings properly, add an open operation
+that is called when the subdev is opened as well as a corresponding
+close operation.
 
-On Mon, Feb 14, 2011 at 07:54:36PM -0500, Andy Walls wrote:
-> > 1. Just flush the work items explicitly using flush_work_sync().
-> 
-> That will do for now.
-> 
-> > 2. Create a dedicated workqueue to serve as flushing domain.
-> 
-> I have gotten reports of the IR Rx FIFO overflows for the CX23885 IR Rx
-> unit (the I2C connected one).  I eventually should either set the Rx
-> FIFO service interrupt watermark down from 4 measurments to 1
-> measurment, or use a kthread_worker with some higher priority to respond
-> to the IR Rx FIFO service interrupt. 
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/v4l2-subdev.c |   16 +++++++++++++---
+ include/media/v4l2-subdev.h       |    7 +++++++
+ 2 files changed, 20 insertions(+), 3 deletions(-)
 
-Hmmm... please consider playing with WQ_HIGHPRI before going forward
-with dedicated thread.
-
-> > The first would look like the following.  Does this look correct?
-> 
-> Yes, your patch below looks sane to me.
-> 
-> Reviewed-by: Andy Walls <awalls@md.metrocast.net>
-
-Thanks.  Will send patch with proper description soon.
-
+diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+index ebf7f97..cee7993 100644
+--- a/drivers/media/video/v4l2-subdev.c
++++ b/drivers/media/video/v4l2-subdev.c
+@@ -61,7 +61,7 @@ static int subdev_open(struct file *file)
+ 	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
+ 	struct v4l2_subdev_fh *subdev_fh;
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+-	struct media_entity *entity;
++	struct media_entity *entity = NULL;
+ #endif
+ 	int ret;
+ 
+@@ -101,9 +101,19 @@ static int subdev_open(struct file *file)
+ 	}
+ #endif
+ 
++	if (sd->internal_ops && sd->internal_ops->open) {
++		ret = sd->internal_ops->open(sd, subdev_fh);
++		if (ret < 0)
++			goto err;
++	}
++
+ 	return 0;
+ 
+ err:
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	if (entity)
++		media_entity_put(entity);
++#endif
+ 	v4l2_fh_del(&subdev_fh->vfh);
+ 	v4l2_fh_exit(&subdev_fh->vfh);
+ 	subdev_fh_free(subdev_fh);
+@@ -114,13 +124,13 @@ err:
+ 
+ static int subdev_close(struct file *file)
+ {
+-#if defined(CONFIG_MEDIA_CONTROLLER)
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
+-#endif
+ 	struct v4l2_fh *vfh = file->private_data;
+ 	struct v4l2_subdev_fh *subdev_fh = to_v4l2_subdev_fh(vfh);
+ 
++	if (sd->internal_ops && sd->internal_ops->close)
++		sd->internal_ops->close(sd, subdev_fh);
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 	if (sd->v4l2_dev->mdev)
+ 		media_entity_put(&sd->entity);
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index d64438d..ff42cc4 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -42,6 +42,7 @@ struct v4l2_ctrl_handler;
+ struct v4l2_event_subscription;
+ struct v4l2_fh;
+ struct v4l2_subdev;
++struct v4l2_subdev_fh;
+ struct tuner_setup;
+ 
+ /* decode_vbi_line */
+@@ -429,10 +430,16 @@ struct v4l2_subdev_ops {
+  *
+  * unregistered: called when this subdev is unregistered. When called the
+  *	v4l2_dev field is still set to the correct v4l2_device.
++ *
++ * open: called when the subdev device node is opened by an application.
++ *
++ * close: called when the subdev device node is closed.
+  */
+ struct v4l2_subdev_internal_ops {
+ 	int (*registered)(struct v4l2_subdev *sd);
+ 	void (*unregistered)(struct v4l2_subdev *sd);
++	int (*open)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh);
++	int (*close)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh);
+ };
+ 
+ #define V4L2_SUBDEV_NAME_SIZE 32
 -- 
-tejun
+1.7.3.4
+
