@@ -1,84 +1,92 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:45289 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57441 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755016Ab1BNNHG (ORCPT
+	with ESMTP id S1754364Ab1BNNc3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Feb 2011 08:07:06 -0500
+	Mon, 14 Feb 2011 08:32:29 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: balbi@ti.com
-Subject: Re: [PATCH v6 03/10] omap3: Add function to register omap3isp platform device structure
-Date: Mon, 14 Feb 2011 14:07:08 +0100
+Subject: Re: [PATCH v6 07/10] omap3isp: CCP2/CSI2 receivers
+Date: Mon, 14 Feb 2011 14:32:31 +0100
 Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
 	sakari.ailus@maxwell.research.nokia.com
-References: <1297686097-9804-1-git-send-email-laurent.pinchart@ideasonboard.com> <1297686097-9804-4-git-send-email-laurent.pinchart@ideasonboard.com> <20110214123430.GX2549@legolas.emea.dhcp.ti.com>
-In-Reply-To: <20110214123430.GX2549@legolas.emea.dhcp.ti.com>
+References: <1297686097-9804-1-git-send-email-laurent.pinchart@ideasonboard.com> <1297686097-9804-8-git-send-email-laurent.pinchart@ideasonboard.com> <20110214123739.GZ2549@legolas.emea.dhcp.ti.com>
+In-Reply-To: <20110214123739.GZ2549@legolas.emea.dhcp.ti.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201102141407.09449.laurent.pinchart@ideasonboard.com>
+Message-Id: <201102141432.32071.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
 Hi Felipe,
 
-On Monday 14 February 2011 13:34:30 Felipe Balbi wrote:
-> On Mon, Feb 14, 2011 at 01:21:30PM +0100, Laurent Pinchart wrote:
-> > diff --git a/arch/arm/mach-omap2/devices.c
-> > b/arch/arm/mach-omap2/devices.c index d389756..4cf48ea 100644
-> > --- a/arch/arm/mach-omap2/devices.c
-> > +++ b/arch/arm/mach-omap2/devices.c
-> > @@ -34,6 +34,8 @@
-
-[snip]
-
-> > +int omap3_init_camera(void *pdata)
-> >  {
-> > +	omap3isp_device.dev.platform_data = pdata;
-> > +	return platform_device_register(&omap3isp_device);
-> >  }
-> > -#endif
-> > +EXPORT_SYMBOL_GPL(omap3_init_camera);
+On Monday 14 February 2011 13:37:39 Felipe Balbi wrote:
+> On Mon, Feb 14, 2011 at 01:21:34PM +0100, Laurent Pinchart wrote:
+> > The OMAP3 ISP CCP2 and CSI2 receivers provide an interface to connect
+> > serial MIPI sensors to the device.
+> > 
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > Signed-off-by: David Cohen <dacohen@gmail.com>
+> > Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
+> > Signed-off-by: Vimarsh Zutshi <vimarsh.zutshi@gmail.com>
+> > Signed-off-by: Tuukka Toivonen <tuukkat76@gmail.com>
+> > Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+> > Signed-off-by: Antti Koskipaa <akoskipa@gmail.com>
+> > Signed-off-by: Ivan T. Ivanov <iivanov@mm-sol.com>
+> > Signed-off-by: RaniSuneela <r-m@ti.com>
+> > Signed-off-by: Atanas Filipov <afilipov@mm-sol.com>
+> > Signed-off-by: Gjorgji Rosikopulos <grosikopulos@mm-sol.com>
+> > Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> > Signed-off-by: Nayden Kanchev <nkanchev@mm-sol.com>
+> > Signed-off-by: Phil Carmody <ext-phil.2.carmody@nokia.com>
+> > Signed-off-by: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
+> > Signed-off-by: Dominic Curran <dcurran@ti.com>
+> > Signed-off-by: Ilkka Myllyperkio <ilkka.myllyperkio@sofica.fi>
+> > Signed-off-by: Pallavi Kulkarni <p-kulkarni@ti.com>
+> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 > 
-> if you EXPORT_SYMBOL_GPL() then also modules can poke with this, right ?
-> isn't it enough to just put an "extern int omap3_init_camera(void *);"
-> on a header ?
-
-It wasn't before as board code needed to be compiled as a module, but we've 
-fixed that. I'll remove the EXPORT_SYMBOL_GPL.
-
-> BTW, you know the correct type of the platform_data, so why not passing
-> the correct type instead of void * ?? Then, compile will help you if you
-> pass wrong type, right ?
-
-Agreed. I'll fix that.
-
-> > diff --git a/arch/arm/mach-omap2/devices.h
-> > b/arch/arm/mach-omap2/devices.h new file mode 100644
-> > index 0000000..12ddb8a
-> > --- /dev/null
-> > +++ b/arch/arm/mach-omap2/devices.h
-> > @@ -0,0 +1,17 @@
-> > +/*
-> > + * arch/arm/mach-omap2/devices.h
-> > + *
-> > + * OMAP2 platform device setup/initialization
-> > + *
-> > + * This program is free software; you can redistribute it and/or modify
-> > + * it under the terms of the GNU General Public License as published by
-> > + * the Free Software Foundation; either version 2 of the License, or
-> > + * (at your option) any later version.
-> > + */
-> > +
-> > +#ifndef __ARCH_ARM_MACH_OMAP_DEVICES_H
-> > +#define __ARCH_ARM_MACH_OMAP_DEVICES_H
-> > +
-> > +int omap3_init_camera(void *pdata);
+> checkpatch still complains a bit about this one:
 > 
-> missing extern ?
+> CHECK: struct mutex definition without comment
+> #1368: FILE: drivers/media/video/omap3-isp/ispqueue.h:157:
+> +	struct mutex lock;
+> 
+> CHECK: spinlock_t definition without comment
+> #1369: FILE: drivers/media/video/omap3-isp/ispqueue.h:158:
+> +	spinlock_t irqlock;
 
-Is that mandatory ? Many (most ?) headers in the kernel don't use the extern 
-keyword when declaring functions.
+Those two have a kerneldoc comment in front of the structure definition.
+
+> WARNING: please, no space before tabs
+> #2723: FILE: drivers/media/video/omap3-isp/ispvideo.h:49:
+> + * ^Ibits. Identical to @code if the format is 10 bits wide or less.$
+> 
+> WARNING: please, no space before tabs
+> #2725: FILE: drivers/media/video/omap3-isp/ispvideo.h:51:
+> + * ^Iformat. Identical to @code if the format is not DPCM compressed.$
+> 
+> CHECK: spinlock_t definition without comment
+> #2762: FILE: drivers/media/video/omap3-isp/ispvideo.h:88:
+> +	spinlock_t lock;
+> 
+> CHECK: struct mutex definition without comment
+> #2823: FILE: drivers/media/video/omap3-isp/ispvideo.h:149:
+> +	struct mutex mutex;
+> 
+> CHECK: struct mutex definition without comment
+> #2840: FILE: drivers/media/video/omap3-isp/ispvideo.h:166:
+> +	struct mutex stream_lock;
+> 
+> total: 0 errors, 2 warnings, 5 checks, 2806 lines checked
+> 
+> /home/balbi/tst.diff has style problems, please review.  If any of these
+> errors are false positives report them to the maintainer, see
+> CHECKPATCH in MAINTAINERS.
+> 
+> does it make sense to fix those ?
 
 -- 
 Regards,
