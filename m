@@ -1,94 +1,108 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:56743 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750952Ab1BSQFA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Feb 2011 11:05:00 -0500
-MIME-Version: 1.0
-In-Reply-To: <20110219150024.GA4487@legolas.emea.dhcp.ti.com>
-References: <1297068547-10635-1-git-send-email-weber@corscience.de>
-	<4D5A6353.7040907@maxwell.research.nokia.com>
-	<20110215113717.GN2570@legolas.emea.dhcp.ti.com>
-	<4D5A672A.7040000@samsung.com>
-	<4D5A6874.1080705@corscience.de>
-	<20110215115349.GQ2570@legolas.emea.dhcp.ti.com>
-	<4D5A6EEC.5000908@maxwell.research.nokia.com>
-	<AANLkTik+6fguqgH8Bpnpqo7Axmquy3caRMELTZVmuN1j@mail.gmail.com>
-	<20110219150024.GA4487@legolas.emea.dhcp.ti.com>
-Date: Sat, 19 Feb 2011 18:04:58 +0200
-Message-ID: <AANLkTik5dwNZrUxjgjKeAQOsp610d6y_TNGg1b5Vc5Zd@mail.gmail.com>
-Subject: Re: [PATCH resend] video: omap24xxcam: Fix compilation
-From: David Cohen <dacohen@gmail.com>
-To: balbi@ti.com
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Thomas Weber <weber@corscience.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-omap@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, Tejun Heo <tj@kernel.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Received: from mx1.redhat.com ([209.132.183.28]:18016 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750844Ab1BNVDb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Feb 2011 16:03:31 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p1EL3UEG026562
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 14 Feb 2011 16:03:30 -0500
+Received: from pedra (vpn-239-121.phx2.redhat.com [10.3.239.121])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p1EL3TG3012908
+	for <linux-media@vger.kernel.org>; Mon, 14 Feb 2011 16:03:29 -0500
+Date: Mon, 14 Feb 2011 19:03:11 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 03/14] [media] tuner-core: Remove V4L1/V4L2 API switch
+Message-ID: <20110214190311.545e34ba@pedra>
+In-Reply-To: <cover.1297716906.git.mchehab@redhat.com>
+References: <cover.1297716906.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sat, Feb 19, 2011 at 5:00 PM, Felipe Balbi <balbi@ti.com> wrote:
-> Hi,
->
-> On Sat, Feb 19, 2011 at 01:35:09PM +0200, David Cohen wrote:
->> >> aha, now I get it, so shouldn't the real fix be including <linux/sched.h>
->> >> on <linux/wait.h>, I mean, it's <linuux/wait.h> who uses a symbol
->> >> defined in <linux/sched.h>, right ?
->>
->> That's a tricky situation. linux/sched.h includes indirectly
->> linux/completion.h which includes linux/wait.h.
->
-> Ok, so the real problem is that there is circular dependency between
-> <linux/sched.h> and <linux/wait.h>
->
->> By including sched.h in wait.h, the side effect is completion.h will
->> then include a blank wait.h file and trigger a compilation error every
->> time wait.h is included by any file.
->
-> true, but the real problem is the circular dependency between those
-> files.
->
->> > Surprisingly many other files still don't seem to be affected. But this
->> > is actually a better solution (to include sched.h in wait.h).
->>
->> It does not affect all files include wait.h because TASK_* macros are
->> used with #define statements only. So it has no effect unless some
->> file tries to use a macro which used TASK_*. It seems the usual on
->> kernel is to include both wait.h and sched.h when necessary.
->> IMO your patch is fine.
->
-> I have to disagree. The fundamental problem is the circular dependency
-> between those two files:
->
-> sched.h uses wait_queue_head_t defined in wait.h
-> wait.h uses TASK_* defined in sched.h
->
-> So, IMO the real fix would be clear out the circular dependency. Maybe
-> introducing <linux/task.h> to define those TASK_* symbols and include
-> that on sched.h and wait.h
->
-> Just dig a quick and dirty to try it out and works like a charm
+V4L1 was removed. So, the code there is just dead code.
 
-We have 2 problems:
- - omap24xxcam compilation broken
- - circular dependency between sched.h and wait.h
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-To fix the broken compilation we can do what the rest of the kernel is
-doing, which is to include sched.h.
-Then, the circular dependency is fixed by some different approach
-which would probably change *all* current usage of TASK_*.
+diff --git a/drivers/media/video/tuner-core.c b/drivers/media/video/tuner-core.c
+index 1cec122..6041c7d 100644
+--- a/drivers/media/video/tuner-core.c
++++ b/drivers/media/video/tuner-core.c
+@@ -80,7 +80,6 @@ struct tuner {
+ 	struct i2c_client   *i2c;
+ 	struct v4l2_subdev  sd;
+ 	struct list_head    list;
+-	unsigned int        using_v4l2:1;
+ 
+ 	/* keep track of the current settings */
+ 	v4l2_std_id         std;
+@@ -717,19 +716,6 @@ static inline int set_mode(struct i2c_client *client, struct tuner *t, int mode,
+ 	return 0;
+ }
+ 
+-#define switch_v4l2()	if (!t->using_v4l2) \
+-			    tuner_dbg("switching to v4l2\n"); \
+-			t->using_v4l2 = 1;
+-
+-static inline int check_v4l2(struct tuner *t)
+-{
+-	/* bttv still uses both v4l1 and v4l2 calls to the tuner (v4l2 for
+-	   TV, v4l1 for radio), until that is fixed this code is disabled.
+-	   Otherwise the radio (v4l1) wouldn't tune after using the TV (v4l2)
+-	   first. */
+-	return 0;
+-}
+-
+ static int tuner_s_type_addr(struct v4l2_subdev *sd, struct tuner_setup *type)
+ {
+ 	struct tuner *t = to_tuner(sd);
+@@ -803,8 +789,6 @@ static int tuner_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
+ 	if (set_mode(client, t, V4L2_TUNER_ANALOG_TV, "s_std") == -EINVAL)
+ 		return 0;
+ 
+-	switch_v4l2();
+-
+ 	t->std = std;
+ 	tuner_fixup_std(t);
+ 	if (t->tv_freq)
+@@ -819,7 +803,6 @@ static int tuner_s_frequency(struct v4l2_subdev *sd, struct v4l2_frequency *f)
+ 
+ 	if (set_mode(client, t, f->type, "s_frequency") == -EINVAL)
+ 		return 0;
+-	switch_v4l2();
+ 	set_freq(client, f->frequency);
+ 
+ 	return 0;
+@@ -832,7 +815,6 @@ static int tuner_g_frequency(struct v4l2_subdev *sd, struct v4l2_frequency *f)
+ 
+ 	if (check_mode(t, "g_frequency") == -EINVAL)
+ 		return 0;
+-	switch_v4l2();
+ 	f->type = t->mode;
+ 	if (fe_tuner_ops->get_frequency) {
+ 		u32 abs_freq;
+@@ -856,7 +838,6 @@ static int tuner_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+ 
+ 	if (check_mode(t, "g_tuner") == -EINVAL)
+ 		return 0;
+-	switch_v4l2();
+ 
+ 	vt->type = t->mode;
+ 	if (analog_ops->get_afc)
+@@ -906,8 +887,6 @@ static int tuner_s_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+ 	if (check_mode(t, "s_tuner") == -EINVAL)
+ 		return 0;
+ 
+-	switch_v4l2();
+-
+ 	/* do nothing unless we're a radio tuner */
+ 	if (t->mode != V4L2_TUNER_RADIO)
+ 		return 0;
+-- 
+1.7.1
 
-IMO, there's no need to create a dependency between those issues.
 
-Br,
-
-David
-
->
-> --
-> balbi
->
