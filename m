@@ -1,161 +1,252 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.186]:62172 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753344Ab1B1LU7 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58169 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754071Ab1BNMVT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Feb 2011 06:20:59 -0500
-Date: Mon, 28 Feb 2011 12:20:52 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kim HeungJun <riverful@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Stanimir Varbanov <svarbanov@mm-sol.com>
-Subject: Re: [RFC] snapshot mode, flash capabilities and control
-In-Reply-To: <4D6ABB84.9090209@iki.fi>
-Message-ID: <Pine.LNX.4.64.1102272224190.6510@axis700.grange>
-References: <Pine.LNX.4.64.1102240947230.15756@axis700.grange>
- <Pine.LNX.4.64.1102241608090.18242@axis700.grange>
- <822C7F65-82D7-4513-BED4-B484163BEB3E@gmail.com>
- <201102251105.06026.laurent.pinchart@ideasonboard.com>
- <Pine.LNX.4.64.1102251119410.23338@axis700.grange> <4D67F9A7.9000106@maxwell.research.nokia.com>
- <Pine.LNX.4.64.1102252105060.26361@axis700.grange> <4D6ABB84.9090209@iki.fi>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Mon, 14 Feb 2011 07:21:19 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	linux-kernel@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [PATCH v9 12/12] v4l: Make v4l2_subdev inherit from media_entity
+Date: Mon, 14 Feb 2011 13:21:07 +0100
+Message-Id: <1297686067-9666-13-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1297686067-9666-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1297686067-9666-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sun, 27 Feb 2011, Sakari Ailus wrote:
+V4L2 subdevices are media entities. As such they need to inherit from
+(include) the media_entity structure.
 
-> Hi,
-> 
-> Guennadi Liakhovetski wrote:
-> > On Fri, 25 Feb 2011, Sakari Ailus wrote:
-> > 
-> > > Hi Guennadi,
-> > > 
-> > > Guennadi Liakhovetski wrote:
-> > > > In principle - yes, and yes, I do realise, that the couple of controls,
-> > > > that I've proposed only cover a very minor subset of the whole flash
-> > > > function palette. The purposes of my RFC were:
-> > > 
-> > > Why would there be a different interface for controlling the flash in
-> > > simple cases and more complex cases?
-> > 
-> > Sorry, not sure what you mean. Do you mean different APIs when the flash
-> > is controlled directly by the sensor and by an external controller? No, of
-> > course we need one API, but you either issue those ioctl()s to the sensor
-> > (sub)device, or to the dedicated flash (sub)device. If you mean my "minor
-> > subset" above, then I was trying to say, that this is a basis, that has to
-> > be extended, but not, that we will develop a new API for more complicated
-> > cases.
-> 
-> I think I misunderstood you originally, sorry. I should have properly read the
-> RFC. :-)
-> 
-> Your proposal of the flash mode is good, but what about software strobe (a
-> little more on that below)?
-> 
-> Also, what about making this a V4L2 control instead?
+When registering/unregistering the subdevice, the media entity is
+automatically registered/unregistered. The entity is acquired on device
+open and released on device close.
 
-These are two things, I think: first we have to decide which functions we 
-need, second - how to implement them. Sure, controls are also a 
-possibility.
-
-> The ADP1653 driver that
-> Laurent referred to implements flash control using V4L2 controls only.
-> 
-> A version of the driver is here:
-> 
-> <URL:http://gitorious.org/omap3camera/mainline/commit/a41027c857dfcbc268cf8d1c7c7d0ab8b6abac92>
-> 
-> It's not yet in mainline --- one reason for this is the lack of time to
-> discuss a proper API for the flash. :-)
-> 
-> ...
-> 
-> > > > > This doesn't solve the flash/capture synchronization problem though. I
-> > > > > don't
-> > > > > think we need a dedicated snapshot capture mode at the V4L2 level. A
-> > > > > way to
-> > > > > configure the sensor to react on an external trigger provided by the
-> > > > > flash
-> > > > > controller is needed, and that could be a control on the flash
-> > > > > sub-device.
-> > > > 
-> > > > Well... Sensors call this a "snapshot mode." I don't care that much how
-> > > > we
-> > > > _call_ it, but I do think, that we should be able to use it.
-> > > 
-> > > Some sensors and webcams might have that, but newer camera solutions
-> > > tend to contain a raw bayer sensor and and ISP. There is no concept of
-> > > snapsnot mode in these sensors.
-> > 
-> > Hm, I am not sure I understand, why sensors with DSPs in them should have
-> > no notion of a snapshot mode. Do they have no strobe / trigger pins? And
-> > no built in possibility to synchronize with a flash?
-> 
-> I was referring to ISPs such as the OMAP 3 ISP. Some hardware have a flash
-> strobe pin while some doesn't (such as the N900).
-
-Of course, if no flash is present, you don't have to support it;)
-
-> Still, even if the strobe pin is missing it should be possible to allow
-> strobing the flash by using software strobe (usually an I2C message).
-> 
-> I agree using a hardware strobe is much much better if it's available.
-
-Again - don't understand. Above (i2c message) you're referring to the 
-sensor. But I don't think toggling the flash on per-frame basis from 
-software via the sensor makes much sense. That way you could also just 
-wire your flash to a GPIO. The main advantage of a sensor-controlled flash 
-is, that is toggles the flash automatically, synchronised with its image 
-read-out. You would, however, toggle the flash manually, if you just 
-wanted to turn it on permanently (torch-mode).
-
-> > > > Hm, don't think only the "flash subdevice" has to know about this.
-> > > > First,
-> > > > you have to switch the sensor into that mode. Second, it might be either
-> > > > external trigger from the flash controller, or a programmed trigger and
-> > > > a
-> > > > flash strobe from the sensor to the flash (controller). Third, well, not
-> > > > quite sure, but doesn't the host have to know about the snapshot mode?
-> > > 
-> > > I do not favour adding use case type of functionality to interfaces that
-> > > do not necessarily need it. Would the concept of a snapshot be
-> > > parametrisable on V4L2 level?
-> > 
-> > I am open to this. I don't have a good idea of whether camera hosts have
-> > to know about the snapshot mode or not. It's open for discussion.
-> 
-> What functionality would the snapshot mode provide? Flash synchronisation?
-> Something else?
-
-Also pre-defined number of images, enabling of the trigger pin and trigger 
-i2c command. Just noticed - on mt9t031 and mt9v022 the snapshot mode also 
-enables externally controlled exposure...
-
-> I have to admit I don't know of any hardware which would recognise a concept
-> of "snapshot". Do you have a smart sensor which does this, for example? The
-> only hardware support for the flash use I know of is the flash strobe signal.
-
-Several Aptina / Micron sensors have such a mode, e.g., mt9p031, mt9t031, 
-mt9v022, mt9m001, also ov7725 from OmniVision (there it's called a "Single 
-frame" mode), and, I presume, many others. And no, those are not some 
-"smart" sensors, the ones from Aptina are pretty primitive Bayer / 
-monochrome cameras.
-
-> Flash synchronisation is indeed an issue, and how to tell that a given frame
-> has been exposed with flash. The use of flash is just one of the parameters
-> which would be nice to connect to frames, though.
-
-Hm, yes, that's something to think about too...
-
-Thanks
-Guennadi
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ Documentation/video4linux/v4l2-framework.txt |   23 ++++++++++++++++
+ drivers/media/video/v4l2-device.c            |   36 +++++++++++++++++++++++---
+ drivers/media/video/v4l2-subdev.c            |   28 ++++++++++++++++++-
+ include/media/v4l2-subdev.h                  |    6 ++++
+ 4 files changed, 87 insertions(+), 6 deletions(-)
+
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index 0627081..77d96f4 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -268,6 +268,26 @@ A sub-device driver initializes the v4l2_subdev struct using:
+ Afterwards you need to initialize subdev->name with a unique name and set the
+ module owner. This is done for you if you use the i2c helper functions.
+ 
++If integration with the media framework is needed, you must initialize the
++media_entity struct embedded in the v4l2_subdev struct (entity field) by
++calling media_entity_init():
++
++	struct media_pad *pads = &my_sd->pads;
++	int err;
++
++	err = media_entity_init(&sd->entity, npads, pads, 0);
++
++The pads array must have been previously initialized. There is no need to
++manually set the struct media_entity type and name fields, but the revision
++field must be initialized if needed.
++
++A reference to the entity will be automatically acquired/released when the
++subdev device node (if any) is opened/closed.
++
++Don't forget to cleanup the media entity before the sub-device is destroyed:
++
++	media_entity_cleanup(&sd->entity);
++
+ A device (bridge) driver needs to register the v4l2_subdev with the
+ v4l2_device:
+ 
+@@ -277,6 +297,9 @@ This can fail if the subdev module disappeared before it could be registered.
+ After this function was called successfully the subdev->dev field points to
+ the v4l2_device.
+ 
++If the v4l2_device parent device has a non-NULL mdev field, the sub-device
++entity will be automatically registered with the media device.
++
+ You can unregister a sub-device using:
+ 
+ 	v4l2_device_unregister_subdev(sd);
+diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
+index 0af46e4..259415b 100644
+--- a/drivers/media/video/v4l2-device.c
++++ b/drivers/media/video/v4l2-device.c
+@@ -118,8 +118,11 @@ void v4l2_device_unregister(struct v4l2_device *v4l2_dev)
+ EXPORT_SYMBOL_GPL(v4l2_device_unregister);
+ 
+ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+-						struct v4l2_subdev *sd)
++				struct v4l2_subdev *sd)
+ {
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	struct media_entity *entity = &sd->entity;
++#endif
+ 	int err;
+ 
+ 	/* Check for valid input */
+@@ -147,6 +150,19 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+ 		return err;
+ 	}
+ 
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	/* Register the entity. */
++	if (v4l2_dev->mdev) {
++		err = media_device_register_entity(v4l2_dev->mdev, entity);
++		if (err < 0) {
++			if (sd->internal_ops && sd->internal_ops->unregistered)
++				sd->internal_ops->unregistered(sd);
++			module_put(sd->owner);
++			return err;
++		}
++	}
++#endif
++
+ 	spin_lock(&v4l2_dev->lock);
+ 	list_add_tail(&sd->list, &v4l2_dev->subdevs);
+ 	spin_unlock(&v4l2_dev->lock);
+@@ -177,25 +193,37 @@ int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
+ 					      sd->owner);
+ 		if (err < 0)
+ 			return err;
++#if defined(CONFIG_MEDIA_CONTROLLER)
++		sd->entity.v4l.major = VIDEO_MAJOR;
++		sd->entity.v4l.minor = vdev->minor;
++#endif
+ 	}
+-
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(v4l2_device_register_subdev_nodes);
+ 
+ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
+ {
++	struct v4l2_device *v4l2_dev;
++
+ 	/* return if it isn't registered */
+ 	if (sd == NULL || sd->v4l2_dev == NULL)
+ 		return;
+ 
+-	spin_lock(&sd->v4l2_dev->lock);
++	v4l2_dev = sd->v4l2_dev;
++
++	spin_lock(&v4l2_dev->lock);
+ 	list_del(&sd->list);
+-	spin_unlock(&sd->v4l2_dev->lock);
++	spin_unlock(&v4l2_dev->lock);
++
+ 	if (sd->internal_ops && sd->internal_ops->unregistered)
+ 		sd->internal_ops->unregistered(sd);
+ 	sd->v4l2_dev = NULL;
+ 
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	if (v4l2_dev->mdev)
++		media_device_unregister_entity(&sd->entity);
++#endif
+ 	video_unregister_device(&sd->devnode);
+ 	module_put(sd->owner);
+ }
+diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+index 9374406..29b7ddf 100644
+--- a/drivers/media/video/v4l2-subdev.c
++++ b/drivers/media/video/v4l2-subdev.c
+@@ -35,7 +35,10 @@ static int subdev_open(struct file *file)
+ {
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
+-	struct v4l2_fh *vfh;
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	struct media_entity *entity;
++#endif
++	struct v4l2_fh *vfh = NULL;
+ 	int ret;
+ 
+ 	if (sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS) {
+@@ -58,11 +61,20 @@ static int subdev_open(struct file *file)
+ 		v4l2_fh_add(vfh);
+ 		file->private_data = vfh;
+ 	}
+-
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	if (sd->v4l2_dev->mdev) {
++		entity = media_entity_get(&sd->entity);
++		if (!entity) {
++			ret = -EBUSY;
++			goto err;
++		}
++	}
++#endif
+ 	return 0;
+ 
+ err:
+ 	if (vfh != NULL) {
++		v4l2_fh_del(vfh);
+ 		v4l2_fh_exit(vfh);
+ 		kfree(vfh);
+ 	}
+@@ -72,8 +84,16 @@ err:
+ 
+ static int subdev_close(struct file *file)
+ {
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	struct video_device *vdev = video_devdata(file);
++	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
++#endif
+ 	struct v4l2_fh *vfh = file->private_data;
+ 
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	if (sd->v4l2_dev->mdev)
++		media_entity_put(&sd->entity);
++#endif
+ 	if (vfh != NULL) {
+ 		v4l2_fh_del(vfh);
+ 		v4l2_fh_exit(vfh);
+@@ -172,5 +192,9 @@ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
+ 	sd->grp_id = 0;
+ 	sd->dev_priv = NULL;
+ 	sd->host_priv = NULL;
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	sd->entity.name = sd->name;
++	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV;
++#endif
+ }
+ EXPORT_SYMBOL(v4l2_subdev_init);
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 3f4e0d1..c37d6e4 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -21,6 +21,7 @@
+ #ifndef _V4L2_SUBDEV_H
+ #define _V4L2_SUBDEV_H
+ 
++#include <media/media-entity.h>
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-mediabus.h>
+@@ -448,6 +449,9 @@ struct v4l2_subdev_internal_ops {
+    stand-alone or embedded in a larger struct.
+  */
+ struct v4l2_subdev {
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	struct media_entity entity;
++#endif
+ 	struct list_head list;
+ 	struct module *owner;
+ 	u32 flags;
+@@ -470,6 +474,8 @@ struct v4l2_subdev {
+ 	unsigned int nevents;
+ };
+ 
++#define media_entity_to_v4l2_subdev(ent) \
++	container_of(ent, struct v4l2_subdev, entity)
+ #define vdev_to_v4l2_subdev(vdev) \
+ 	container_of(vdev, struct v4l2_subdev, devnode)
+ 
+-- 
+1.7.3.4
+
