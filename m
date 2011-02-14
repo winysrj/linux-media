@@ -1,50 +1,54 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:34033 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755307Ab1BUK26 (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:44559 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752767Ab1BNJ5l (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Feb 2011 05:28:58 -0500
-From: David Cohen <dacohen@gmail.com>
-To: linux-kernel@vger.kernel.org
-Cc: mingo@elte.hu, peterz@infradead.org, linux-omap@vger.kernel.org,
-	linux-media@vger.kernel.org, David Cohen <dacohen@gmail.com>
-Subject: [PATCH 0/1] Fix linux/wait.h header file
-Date: Mon, 21 Feb 2011 12:20:48 +0200
-Message-Id: <1298283649-24532-1-git-send-email-dacohen@gmail.com>
+	Mon, 14 Feb 2011 04:57:41 -0500
+Received: by fxm20 with SMTP id 20so4969521fxm.19
+        for <linux-media@vger.kernel.org>; Mon, 14 Feb 2011 01:57:40 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <Pine.LNX.4.64.1102071740380.31738@axis700.grange>
+References: <1296031789-1721-3-git-send-email-agust@denx.de>
+	<1296476549-10421-1-git-send-email-agust@denx.de>
+	<Pine.LNX.4.64.1102031104090.21719@axis700.grange>
+	<20110205143505.0b300a3a@wker>
+	<Pine.LNX.4.64.1102051735270.11500@axis700.grange>
+	<20110205210457.7218ecdc@wker>
+	<Pine.LNX.4.64.1102071205570.29036@axis700.grange>
+	<20110207122147.4081f47d@wker>
+	<Pine.LNX.4.64.1102071232440.29036@axis700.grange>
+	<20110207144530.70d9dab1@wker>
+	<Pine.LNX.4.64.1102071740380.31738@axis700.grange>
+Date: Mon, 14 Feb 2011 01:57:39 -0800
+Message-ID: <AANLkTinpP6hoy_cz7qb1+izjO6_LEeQDfVfVwB-QrRiu@mail.gmail.com>
+Subject: Re: [PATCH 2/2 v2] dma: ipu_idmac: do not lose valid received data in
+ the irq handler
+From: Dan Williams <dan.j.williams@intel.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Anatolij Gustschin <agust@denx.de>,
+	Markus Niebel <Markus.Niebel@tqs.de>,
+	Detlev Zundel <dzu@denx.de>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	"Koul, Vinod" <vinod.koul@intel.com>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+On Mon, Feb 7, 2011 at 8:49 AM, Guennadi Liakhovetski
+<g.liakhovetski@gmx.de> wrote:
+> Ok, I've found the reason. Buffer number repeats, when there is an
+> underrun, which is happening in my tests, when frames are arriving quickly
+> enough, but the user-space is not fast enough to process them, e.g., when
+> it is writing them to files over NFS or even just displaying on the LCD.
+> Without your patch these underruns happen just as well, they just don't
+> get recognised, because there's always one buffer delayed, so, the queue
+> is never empty.
+>
+> Dan, please add my
+>
+> Reviewed-(and-tested-)by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 
-OMAP2 camera driver compilation is broken due to problems on linux/wait.h header
-file:
+Thanks, applied v2.
 
-drivers/media/video/omap24xxcam.c: In function 'omap24xxcam_vbq_complete':
-drivers/media/video/omap24xxcam.c:414: error: 'TASK_NORMAL' undeclared (first use in this function)
-drivers/media/video/omap24xxcam.c:414: error: (Each undeclared identifier is reported only once
-drivers/media/video/omap24xxcam.c:414: error: for each function it appears in.)
-make[3]: *** [drivers/media/video/omap24xxcam.o] Error 1
-make[2]: *** [drivers/media/video] Error 2
-make[1]: *** [drivers/media] Error 2
-make: *** [drivers] Error 2
-
-This file defines macros wake_up*() which use TASK_* defined on linux/sched.h.
-But sched.h cannot be included on wait.h due to a circular dependency between
-both files. This patch fixes such compilation and the circular dependency
-problem.
-
-Br,
-
-David
----
-
-David Cohen (1):
-  headers: fix circular dependency between linux/sched.h and
-    linux/wait.h
-
- include/linux/sched.h      |   61 +-----------------------------------------
- include/linux/task_sched.h |   64 ++++++++++++++++++++++++++++++++++++++++++++
- include/linux/wait.h       |    1 +
- 3 files changed, 66 insertions(+), 60 deletions(-)
- create mode 100644 include/linux/task_sched.h
-
+--
+Dan
