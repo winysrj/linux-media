@@ -1,66 +1,193 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:47011 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751635Ab1B0Tk1 convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58172 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753959Ab1BNMVO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Feb 2011 14:40:27 -0500
-Received: by iyb26 with SMTP id 26so2322654iyb.19
-        for <linux-media@vger.kernel.org>; Sun, 27 Feb 2011 11:40:26 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <loom.20110224T142616-389@post.gmane.org>
-References: <AANLkTincndvx154DXHgeNCnxe+KhtaH+tFUTfqXufFdp@mail.gmail.com>
-	<AANLkTikVTgo48gfSUc9DyOhTCwSOuGS0gnjP6xTomor-@mail.gmail.com>
-	<loom.20110224T142616-389@post.gmane.org>
-Date: Sun, 27 Feb 2011 20:40:26 +0100
-Message-ID: <AANLkTikFk73n87XHbfVVT37mDBd-3jMSBg1j=SKQJr8_@mail.gmail.com>
-Subject: Re: omap3-isp: can't register subdev for new sensor driver mt9t001
-From: Bastian Hecht <hechtb@googlemail.com>
-To: =?ISO-8859-1?Q?Lo=EFc_Akue?= <akue.loic@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Mon, 14 Feb 2011 07:21:14 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	linux-kernel@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [PATCH v9 05/12] media: Entity use count
+Date: Mon, 14 Feb 2011 13:21:00 +0100
+Message-Id: <1297686067-9666-6-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1297686067-9666-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1297686067-9666-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+Due to the wide differences between drivers regarding power management
+needs, the media controller does not implement power management.
+However, the media_entity structure includes a use_count field that
+media drivers can use to track the number of users of every entity for
+power management needs.
 
-fail or success in registering these subdevs depend on the sensor code
-probe() function (at least I think so).
-When the isp already mentions your driver name saa7113 check your
-saa7113 driver code and see what can fail in the probe function and
-add some debug output. Probably the i2c communication doesn't work,
-but I do not know the code.
+The use_count field is owned by media drivers and must not be touched by
+entity drivers. Access to the field must be protected by the media
+device graph_mutex lock.
 
-good luck,
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ Documentation/media-framework.txt |   13 ++++++++++
+ drivers/media/media-device.c      |    1 +
+ drivers/media/media-entity.c      |   46 +++++++++++++++++++++++++++++++++++++
+ include/media/media-device.h      |    4 +++
+ include/media/media-entity.h      |    9 +++++++
+ 5 files changed, 73 insertions(+), 0 deletions(-)
 
- Bastian
+diff --git a/Documentation/media-framework.txt b/Documentation/media-framework.txt
+index ab17f33..78ae020 100644
+--- a/Documentation/media-framework.txt
++++ b/Documentation/media-framework.txt
+@@ -258,3 +258,16 @@ When the graph traversal is complete the function will return NULL.
+ 
+ Graph traversal can be interrupted at any moment. No cleanup function call is
+ required and the graph structure can be freed normally.
++
++
++Use count and power handling
++----------------------------
++
++Due to the wide differences between drivers regarding power management needs,
++the media controller does not implement power management. However, the
++media_entity structure includes a use_count field that media drivers can use to
++track the number of users of every entity for power management needs.
++
++The use_count field is owned by media drivers and must not be touched by entity
++drivers. Access to the field must be protected by the media device graph_mutex
++lock.
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index a36509a..d2bc809 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -73,6 +73,7 @@ int __must_check media_device_register(struct media_device *mdev)
+ 	mdev->entity_id = 1;
+ 	INIT_LIST_HEAD(&mdev->entities);
+ 	spin_lock_init(&mdev->lock);
++	mutex_init(&mdev->graph_mutex);
+ 
+ 	/* Register the device node. */
+ 	mdev->devnode.fops = &media_device_fops;
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index 166f2b5..3e7e2d5 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -23,6 +23,7 @@
+ #include <linux/module.h>
+ #include <linux/slab.h>
+ #include <media/media-entity.h>
++#include <media/media-device.h>
+ 
+ /**
+  * media_entity_init - Initialize a media entity
+@@ -196,6 +197,51 @@ media_entity_graph_walk_next(struct media_entity_graph *graph)
+ EXPORT_SYMBOL_GPL(media_entity_graph_walk_next);
+ 
+ /* -----------------------------------------------------------------------------
++ * Module use count
++ */
++
++/*
++ * media_entity_get - Get a reference to the parent module
++ * @entity: The entity
++ *
++ * Get a reference to the parent media device module.
++ *
++ * The function will return immediately if @entity is NULL.
++ *
++ * Return a pointer to the entity on success or NULL on failure.
++ */
++struct media_entity *media_entity_get(struct media_entity *entity)
++{
++	if (entity == NULL)
++		return NULL;
++
++	if (entity->parent->dev &&
++	    !try_module_get(entity->parent->dev->driver->owner))
++		return NULL;
++
++	return entity;
++}
++EXPORT_SYMBOL_GPL(media_entity_get);
++
++/*
++ * media_entity_put - Release the reference to the parent module
++ * @entity: The entity
++ *
++ * Release the reference count acquired by media_entity_get().
++ *
++ * The function will return immediately if @entity is NULL.
++ */
++void media_entity_put(struct media_entity *entity)
++{
++	if (entity == NULL)
++		return;
++
++	if (entity->parent->dev)
++		module_put(entity->parent->dev->driver->owner);
++}
++EXPORT_SYMBOL_GPL(media_entity_put);
++
++/* -----------------------------------------------------------------------------
+  * Links management
+  */
+ 
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index a8390fe..5d2bff4 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -25,6 +25,7 @@
+ 
+ #include <linux/device.h>
+ #include <linux/list.h>
++#include <linux/mutex.h>
+ #include <linux/spinlock.h>
+ 
+ #include <media/media-devnode.h>
+@@ -42,6 +43,7 @@
+  * @entity_id:	ID of the next entity to be registered
+  * @entities:	List of registered entities
+  * @lock:	Entities list lock
++ * @graph_mutex: Entities graph operation lock
+  *
+  * This structure represents an abstract high-level media device. It allows easy
+  * access to entities and provides basic media device-level support. The
+@@ -69,6 +71,8 @@ struct media_device {
+ 
+ 	/* Protects the entities list */
+ 	spinlock_t lock;
++	/* Serializes graph operations. */
++	struct mutex graph_mutex;
+ };
+ 
+ /* media_devnode to media_device */
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 28f61f6..a9b31d9 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -81,6 +81,12 @@ struct media_entity {
+ 	struct media_pad *pads;		/* Pads array (num_pads elements) */
+ 	struct media_link *links;	/* Links array (max_links elements)*/
+ 
++	/* Reference counts must never be negative, but are signed integers on
++	 * purpose: a simple WARN_ON(<0) check can be used to detect reference
++	 * count bugs that would make them negative.
++	 */
++	int use_count;			/* Use count for the entity. */
++
+ 	union {
+ 		/* Node specifications */
+ 		struct {
+@@ -129,6 +135,9 @@ void media_entity_cleanup(struct media_entity *entity);
+ int media_entity_create_link(struct media_entity *source, u16 source_pad,
+ 		struct media_entity *sink, u16 sink_pad, u32 flags);
+ 
++struct media_entity *media_entity_get(struct media_entity *entity);
++void media_entity_put(struct media_entity *entity);
++
+ void media_entity_graph_walk_start(struct media_entity_graph *graph,
+ 		struct media_entity *entity);
+ struct media_entity *
+-- 
+1.7.3.4
 
-
-
-
-2011/2/24 Loïc Akue <akue.loic@gmail.com>:
->
-> Hello Bastian,
->
-> As a newbie in kernel development, I'm facing the same issue about subdev
-> registration.
-> I'm trying to capture some raw video from a SAA7113 connected to the ISP of an
-> omap3530. May I please have your help with this problem?
->
-> root@cm-t35:~# modprobe iommu
-> [ 8409.776123] omap-iommu omap-iommu.0: isp registered
->
-> root@cm-t35:~# modprobe omap3_isp
-> [ 8451.821533] omap3isp omap3isp: Revision 2.0 found
-> [ 8451.827056] omap-iommu omap-iommu.0: isp: version 1.1
-> [ 8453.291992] isp_register_subdev_group: Unable to register subdev saa7113
->
-> Regards
->
-> Loïc Akue
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
