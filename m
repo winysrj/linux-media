@@ -1,45 +1,47 @@
 Return-path: <mchehab@pedra>
-Received: from ffm.saftware.de ([83.141.3.46]:39756 "EHLO ffm.saftware.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752312Ab1B1QJ7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Feb 2011 11:09:59 -0500
-Message-ID: <4D6BC8D4.3080001@linuxtv.org>
-Date: Mon, 28 Feb 2011 17:09:56 +0100
-From: Andreas Oberritter <obi@linuxtv.org>
-MIME-Version: 1.0
-To: "Igor M. Liplianin" <liplianin@me.by>
-CC: Mariusz Bialonczyk <manio@skyboo.net>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] Prof 7301: switching frontend to stv090x, fixing "LOCK
- FAILED" issue
-References: <4D3358C5.5080706@skyboo.net> <4D6B88DD.4040500@skyboo.net> <201102281741.26950.liplianin@me.by>
-In-Reply-To: <201102281741.26950.liplianin@me.by>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58187 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754307Ab1BNMVt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Feb 2011 07:21:49 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [PATCH v6 02/10] omap3: Remove unusued ISP CBUFF resource
+Date: Mon, 14 Feb 2011 13:21:29 +0100
+Message-Id: <1297686097-9804-3-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1297686097-9804-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1297686097-9804-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello Igor,
+From: Sergio Aguirre <saaguirre@ti.com>
 
-On 02/28/2011 04:41 PM, Igor M. Liplianin wrote:
-> В сообщении от 28 февраля 2011 13:37:01 автор Mariusz Bialonczyk написал:
->> On 2011-01-16 21:44, Mariusz Bialonczyk wrote:
->>> Fixing the very annoying tunning issue. When switching from DVB-S2 to
->>> DVB-S, it often took minutes to have a lock.
->>>
->>  > [...]
->>>
->>> The patch is changing the frontend from stv0900 to stv090x.
->>> The card now works much more reliable. There is no problem with switching
->>> from DVB-S2 to DVB-S, tunning works flawless.
->>
->> Igor, can I get your ACK on this patch?
->>
->> regards,
-> Never. 
-> Think first what you are asking for.
+The ISP CBUFF module isn't use, its resource isn't needed.
 
-for those who aren't involved in the development of these drivers, may I
-ask you what's the problem with this patch?
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/devices.c |    5 -----
+ 1 files changed, 0 insertions(+), 5 deletions(-)
 
-Regards,
-Andreas
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 95c69f9..d389756 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -69,11 +69,6 @@ static struct resource omap3isp_resources[] = {
+ 		.flags		= IORESOURCE_MEM,
+ 	},
+ 	{
+-		.start		= OMAP3430_ISP_CBUFF_BASE,
+-		.end		= OMAP3430_ISP_CBUFF_END,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	{
+ 		.start		= OMAP3430_ISP_CCP2_BASE,
+ 		.end		= OMAP3430_ISP_CCP2_END,
+ 		.flags		= IORESOURCE_MEM,
+-- 
+1.7.3.4
+
