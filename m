@@ -1,57 +1,145 @@
 Return-path: <mchehab@pedra>
-Received: from bay0-omc2-s11.bay0.hotmail.com ([65.54.190.86]:47753 "EHLO
-	bay0-omc2-s11.bay0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752897Ab1BHWOM (ORCPT
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:9992 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751079Ab1BNMtW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Feb 2011 17:14:12 -0500
-Message-ID: <BAY147-w61F73D1C3A189E0E96FF53ABEA0@phx.gbl>
-From: =?utf-8?B?TWlndWVsIMOBbmdlbCBGZXJuw6FuZGV6?= <mianfel@hotmail.com>
-To: linux-media <linux-media@vger.kernel.org>
-Subject: =?utf-8?Q?FW:_New_TV?= =?utf-8?Q?713X_Remot?=
- =?utf-8?B?ZSBDb250cm9s4oCP?=
-Date: Tue, 8 Feb 2011 23:14:11 +0100
-In-Reply-To: <BAY147-w974DEC06A00476125FCBFABEA0@phx.gbl>
-References: <BAY147-w352381C60DA0426A85893DAB250@phx.gbl>,<BAY147-w974DEC06A00476125FCBFABEA0@phx.gbl>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+	Mon, 14 Feb 2011 07:49:22 -0500
+From: Hans Verkuil <hansverk@cisco.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v9 00/12] Media controller (core and V4L2)
+Date: Mon, 14 Feb 2011 13:49:45 +0100
+Cc: linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	linux-kernel@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com
+References: <1297686067-9666-1-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1297686067-9666-1-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201102141349.45127.hansverk@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-DQpIZWxsbyEgSSBuZWVkIGEgc21hbGwgaGVscC4NCg0KSSBoYXZlIGEgcmVtb3RlIGNvbnRyb2wg
-dGhhdCB3YXMgZGV0ZWN0ZWQgYnkga2VybmVsIHdpdGggdGhlIGhlbHAgb2YgImlyLWtiZC1pMmMi
-Lg0KQXQgbGVhc3QgaXQgd2FzIGluIFVidW50dSA5LjA0Lg0KDQpCdXQgbm93IGluIFVidW50dSAx
-MC4xMCBhbmQga2VybmVsIDIuNi4zNS0yNiBpdCBpc24ndCBkZXRlY3RlZC4gSSBsb2FkICJpci1r
-YmQtaTJjIg0KbW9kdWxlIGJ1dCBpdCBkb2Vzbid0IGdpdmUgYW55IG91dHB1dCB0byBkbWVzZyBh
-cyBiZWZvcmUuDQoNCkFueSBpZGVhPw0KDQoNCg0KPiBEYXRlOiBUdWUsIDMwIE5vdiAyMDEwIDEz
-OjUzOjEyICswMTAwDQo+IA0KPiANCj4gDQo+IEhlbGxvIQ0KPiANCj4gSSBoYXZlIGEgbmV3IHJl
-bW90ZSBjb250cm9sIHRvIGFkZCB0byB0aGUgbGlzdCBvZiByZW1vdGVzIHN1cHBvcnRlZCBieSBs
-aW51eC4gSXQncyBkZXRlY3RlZA0KPiBieSBrZXJuZWwgYW5kIGFsbW9zdCBydW5uaW5nLiBEVkIt
-VCBjYXJkIGFuZCBidW5kbGVkIHJlY2VpdmVyIHdvcmsgZmluZS4NCj4gwqANCj4gQnV0IEknbSBh
-IG5ld2JpZSBhbmQgSSB3b3VsZCBuZWVkIHNvbWUgaGVscCB3aXRoIG15IHJlbW90ZS4gSSdtIGFi
-b3V0IHRvIGZpbmQgdGhlIHNvbHV0aW9uIGJ1dA0KPiBJIGRvbid0IGtub3cgdGhlIG5leHQgc3Rl
-cCBvZiB0aGUgcHJvY2Vzcy4NCj4gwqANCj4gSGFyZHdhcmU6DQo+IFJlbW90ZTogVFY3MTNYDQo+
-IFRWLUNhcmQ6IENvbmNlcHRyb25pYyBDVFZDT01CT2kgKGRldGVjdGVkIGFzIFRldmlvbi9LV29y
-bGQgRFZCLVQgMjIwUkYpDQo+IFJlY2VpdmVyOiBidW5kbGVkIGluIHRoZSBUVi1DYXJkDQo+IFNv
-ZnR3YXJlOiBVYnVudHUgOS4wNA0KPiDCoA0KPiBkbWVzZzoNCj4gwqANCj4gW8KgwqDCoCA4Ljkz
-MjkxM10gc2FhNzEzMC8zNDogdjRsMiBkcml2ZXIgdmVyc2lvbiAwLjIuMTQgbG9hZGVkDQo+IFvC
-oMKgwqAgOC45MzM0ODhdIHNhYTcxMzQgMDAwMDowMTowNi4wOiBQQ0kgSU5UIEEgLT4gTGlua1tM
-TktBXSAtPiBHU0kgMTkgKGxldmVsLCBsb3cpIC0+IElSUSAxOQ0KPiBbwqDCoMKgIDguOTMzNDk0
-XSBzYWE3MTMzWzBdOiBmb3VuZCBhdCAwMDAwOjAxOjA2LjAsIHJldjogMjA5LCBpcnE6IDE5LCBs
-YXRlbmN5OiA2NCwgbW1pbzogMHhkZmZmZjgwMA0KPiBbwqDCoMKgIDguOTMzNDk5XSBzYWE3MTMz
-WzBdOiBzdWJzeXN0ZW06IDE3ZGU6NzIwMSwgYm9hcmQ6IFRldmlvbi9LV29ybGQgRFZCLVQgMjIw
-UkYgW2NhcmQ9ODgsYXV0b2RldGVjdGVkXQ0KLi4uDQo+IHN1ZG8gbW9kcHJvYmUgaXIta2JkLWky
-Yw0KPiBXQVJOSU5HOiBBbGwgY29uZmlnIGZpbGVzIG5lZWQgLmNvbmY6IC9ldGMvbW9kcHJvYmUu
-ZC9vc3MtY29tcGF0LCBpdCB3aWxsIGJlIGlnbm9yZWQgaW4gYSBmdXR1cmUgcmVsZWFzZS4NCj4g
-wqANCj4gVGhlIG91dHB1dCBpbiBkbWVzZyBpczoNCj4gW8KgIDM3NC40NDQ2OTVdIGlucHV0OiBp
-MmMgSVIgKEtOQyBPbmUpIGFzIC9kZXZpY2VzL3ZpcnR1YWwvaW5wdXQvaW5wdXQ2DQo+IFvCoCAz
-NzQuNDcyNjY2XSBpci1rYmQtaTJjOiBpMmMgSVIgKEtOQyBPbmUpIGRldGVjdGVkIGF0IGkyYy0w
-LzAtMDAzMC9pcjAgW3NhYTcxMzNbMF1dDQo+IMKgDQo+IEFuZCwgd2hhdCBpcyBtb3JlLiBPbmx5
-IHdoZW4gdGhlIG1vZHVsZSBpcyBsb2FkZWQsIGlmIEkgcHVzaCBzb21lIGJ1dHRvbnMgb2YgdGhl
-IHJlbW90ZSBJIGhhdmUgdGhpcw0KPiBvdXRwdXQgaW4gZG1lc2c6DQo+IFvCoCA0NTAuMjI4MDI5
-XSBpMmMgSVIgKEtOQyBPbmUpOiB1bmtub3duIGtleToga2V5PTB4MDMgcmF3PTB4MDMgZG93bj0x
-DQo+IFvCoCA0NTAuMjg4NTI2XSBpMmMgSVIgKEtOQyBPbmUpOiB1bmtub3duIGtleToga2V5PTB4
-MDMgcmF3PTB4MDMgZG93bj0wDQo+IFvCoCA0NTEuMjQ4NTM0XSBpMmMgSVIgKEtOQyBPbmUpOiB1
-bmtub3duIGtleToga2V5PTB4MDAgcmF3PTB4MDAgZG93bj0xDQo+IFvCoCA0NTEuMzA4MDI3XSBp
-MmMgSVIgKEtOQyBPbmUpOiB1bmtub3duIGtleToga2V5PTB4MDAgcmF3PTB4MDAgZG93bj0wDQo+
-IMKgDQoNCiAJCSAJICAgCQkgIA==
+Here is my
+
+Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+
+for this patch series.
+
+Regards,
+
+	Hans
+
+On Monday, February 14, 2011 13:20:55 Laurent Pinchart wrote:
+> Hi everybody,
+> 
+> Here is the ninth version of the media controller core and V4L2 patches.
+> 
+> Quick reminder for those who missed the previous version. let me quote the
+> documentation (Documentation/DocBook/v4l/media-controller.xml).
+> 
+> "Discovering a [media] device internal topology, and configuring it at 
+runtime,
+> is one of the goals of the media controller API. To achieve this, hardware
+> devices are modelled as an oriented graph of building blocks called entities
+> connected through pads."
+> 
+> The code has been extensively reviewed by the V4L community, and this 
+version
+> is the first one to incorporate comments from the ALSA community (big thanks
+> to Mark Brown and Clemens Ladisch). Two issues are not fully addressed yet,
+> namely power management (I need to discuss this some more with the ALSA
+> developers to really understand their requirements) and entities type names.
+> I'm still posting this for review, as other developers have showed interest 
+in
+> commenting on the code.
+> 
+> I want to emphasize once again that the media controller API does not 
+replace
+> the V4L, DVB or ALSA APIs. It complements them.
+> 
+> The first user of the media controller API is the OMAP3 ISP driver. You can
+> find it (as well as these patches and other V4L-specific patches) in a git 
+tree
+> at http://git.linuxtv.org/pinchartl/media.git (media-0005-omap3isp branch). 
+The
+> OMAP3 ISP driver patches are regularly posted for review on the linux-media
+> list.
+> 
+> Laurent Pinchart (11):
+>   media: Media device node support
+>   media: Media device
+>   media: Entities, pads and links
+>   media: Entity use count
+>   media: Media device information query
+>   media: Entities, pads and links enumeration
+>   media: Links setup
+>   media: Pipelines and media streams
+>   v4l: Add a media_device pointer to the v4l2_device structure
+>   v4l: Make video_device inherit from media_entity
+>   v4l: Make v4l2_subdev inherit from media_entity
+> 
+> Sakari Ailus (1):
+>   media: Entity graph traversal
+> 
+>  Documentation/ABI/testing/sysfs-bus-media          |    6 +
+>  Documentation/DocBook/media-entities.tmpl          |   24 +
+>  Documentation/DocBook/media.tmpl                   |    3 +
+>  Documentation/DocBook/v4l/media-controller.xml     |   89 ++++
+>  Documentation/DocBook/v4l/media-func-close.xml     |   59 +++
+>  Documentation/DocBook/v4l/media-func-ioctl.xml     |  116 +++++
+>  Documentation/DocBook/v4l/media-func-open.xml      |   94 ++++
+>  .../DocBook/v4l/media-ioc-device-info.xml          |  133 +++++
+>  .../DocBook/v4l/media-ioc-enum-entities.xml        |  308 +++++++++++
+>  Documentation/DocBook/v4l/media-ioc-enum-links.xml |  207 ++++++++
+>  Documentation/DocBook/v4l/media-ioc-setup-link.xml |   93 ++++
+>  Documentation/media-framework.txt                  |  353 +++++++++++++
+>  Documentation/video4linux/v4l2-framework.txt       |   72 +++-
+>  drivers/media/Kconfig                              |   13 +
+>  drivers/media/Makefile                             |    6 +
+>  drivers/media/media-device.c                       |  382 ++++++++++++++
+>  drivers/media/media-devnode.c                      |  321 ++++++++++++
+>  drivers/media/media-entity.c                       |  536 
+++++++++++++++++++++
+>  drivers/media/video/v4l2-dev.c                     |   49 ++-
+>  drivers/media/video/v4l2-device.c                  |   49 ++-
+>  drivers/media/video/v4l2-subdev.c                  |   28 +-
+>  include/linux/Kbuild                               |    1 +
+>  include/linux/media.h                              |  132 +++++
+>  include/media/media-device.h                       |   95 ++++
+>  include/media/media-devnode.h                      |   97 ++++
+>  include/media/media-entity.h                       |  151 ++++++
+>  include/media/v4l2-dev.h                           |    7 +
+>  include/media/v4l2-device.h                        |    4 +
+>  include/media/v4l2-subdev.h                        |    6 +
+>  29 files changed, 3413 insertions(+), 21 deletions(-)
+>  create mode 100644 Documentation/ABI/testing/sysfs-bus-media
+>  create mode 100644 Documentation/DocBook/v4l/media-controller.xml
+>  create mode 100644 Documentation/DocBook/v4l/media-func-close.xml
+>  create mode 100644 Documentation/DocBook/v4l/media-func-ioctl.xml
+>  create mode 100644 Documentation/DocBook/v4l/media-func-open.xml
+>  create mode 100644 Documentation/DocBook/v4l/media-ioc-device-info.xml
+>  create mode 100644 Documentation/DocBook/v4l/media-ioc-enum-entities.xml
+>  create mode 100644 Documentation/DocBook/v4l/media-ioc-enum-links.xml
+>  create mode 100644 Documentation/DocBook/v4l/media-ioc-setup-link.xml
+>  create mode 100644 Documentation/media-framework.txt
+>  create mode 100644 drivers/media/media-device.c
+>  create mode 100644 drivers/media/media-devnode.c
+>  create mode 100644 drivers/media/media-entity.c
+>  create mode 100644 include/linux/media.h
+>  create mode 100644 include/media/media-device.h
+>  create mode 100644 include/media/media-devnode.h
+>  create mode 100644 include/media/media-entity.h
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
