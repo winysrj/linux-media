@@ -1,55 +1,100 @@
 Return-path: <mchehab@pedra>
-Received: from rtp-iport-2.cisco.com ([64.102.122.149]:50488 "EHLO
-	rtp-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752686Ab1BIJc7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Feb 2011 04:32:59 -0500
-From: Hans Verkuil <hansverk@cisco.com>
-To: "device-drivers-devel@blackfin.uclinux.org"
-	<device-drivers-devel@blackfin.uclinux.org>,
-	linux-media@vger.kernel.org
-Subject: ANN: adv7604 (HDMI receiver) and ad9389b (HDMI transmitter) driver development
-Date: Wed, 9 Feb 2011 10:32:56 +0100
-Cc: Mats Randgaard <mats.randgaard@cisco.com>,
-	"Martin Bugge (marbugge)" <marbugge@cisco.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201102091032.56528.hansverk@cisco.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58153 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753796Ab1BNMVA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Feb 2011 07:21:00 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [PATCH v7 5/6] v4l: subdev: Control ioctls support
+Date: Mon, 14 Feb 2011 13:20:58 +0100
+Message-Id: <1297686059-9622-6-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1297686059-9622-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1297686059-9622-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi all,
+Pass the control-related ioctls to the subdev driver through the control
+framework.
 
-Cisco Systems Norway is developing adv7604 and ad9389b drivers with the goal 
-to include them into the linux kernel. More information on these devices can 
-be found here:
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ Documentation/video4linux/v4l2-framework.txt |   16 ++++++++++++++++
+ drivers/media/video/v4l2-subdev.c            |   25 +++++++++++++++++++++++++
+ 2 files changed, 41 insertions(+), 0 deletions(-)
 
-adv7604: http://ez.analog.com/docs/DOC-1545
-ad9389b: http://ez.analog.com/docs/DOC-1741
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index 8b35871..1feecfc 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -334,6 +334,22 @@ for all registered sub-devices marked with V4L2_SUBDEV_FL_HAS_DEVNODE by calling
+ v4l2_device_register_subdev_nodes(). Those device nodes will be automatically
+ removed when sub-devices are unregistered.
+ 
++The device node handles a subset of the V4L2 API.
++
++VIDIOC_QUERYCTRL
++VIDIOC_QUERYMENU
++VIDIOC_G_CTRL
++VIDIOC_S_CTRL
++VIDIOC_G_EXT_CTRLS
++VIDIOC_S_EXT_CTRLS
++VIDIOC_TRY_EXT_CTRLS
++
++	The controls ioctls are identical to the ones defined in V4L2. They
++	behave identically, with the only exception that they deal only with
++	controls implemented in the sub-device. Depending on the driver, those
++	controls can be also be accessed through one (or several) V4L2 device
++	nodes.
++
+ 
+ I2C sub-device drivers
+ ----------------------
+diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+index 6cf7664..2fbc9cb 100644
+--- a/drivers/media/video/v4l2-subdev.c
++++ b/drivers/media/video/v4l2-subdev.c
+@@ -24,6 +24,7 @@
+ #include <linux/ioctl.h>
+ #include <linux/videodev2.h>
+ 
++#include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+ 
+@@ -39,7 +40,31 @@ static int subdev_close(struct file *file)
+ 
+ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ {
++	struct video_device *vdev = video_devdata(file);
++	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
++
+ 	switch (cmd) {
++	case VIDIOC_QUERYCTRL:
++		return v4l2_subdev_queryctrl(sd, arg);
++
++	case VIDIOC_QUERYMENU:
++		return v4l2_subdev_querymenu(sd, arg);
++
++	case VIDIOC_G_CTRL:
++		return v4l2_subdev_g_ctrl(sd, arg);
++
++	case VIDIOC_S_CTRL:
++		return v4l2_subdev_s_ctrl(sd, arg);
++
++	case VIDIOC_G_EXT_CTRLS:
++		return v4l2_subdev_g_ext_ctrls(sd, arg);
++
++	case VIDIOC_S_EXT_CTRLS:
++		return v4l2_subdev_s_ext_ctrls(sd, arg);
++
++	case VIDIOC_TRY_EXT_CTRLS:
++		return v4l2_subdev_try_ext_ctrls(sd, arg);
++
+ 	default:
+ 		return -ENOIOCTLCMD;
+ 	}
+-- 
+1.7.3.4
 
-The initial source code is available here:
-
-http://git.linuxtv.org/hverkuil/cisco.git?a=shortlog;h=refs/heads/cobalt
-
-Besides the two Analog Devices drivers is also contains a 'cobalt' driver 
-which is a driver for a PCIe HDMI capture card (not for sale, I'm afraid) that 
-serves as an example of how to use the adv7604 driver in an actual driver.
-
-Both Analog Devices drivers need more clean up and probably need to made a bit 
-more general. More importantly, new video4linux APIs need to be proposed and 
-discussed to standardize some of the HDMI specific handling (EDID, hotplug, 
-format changes, info frames, CEC, etc.). I hope we can send out RFCs for this 
-by the end of this month. Also the analog input support for the adv7604 is 
-very limited at the moment. This will improve in the coming months.
-
-Some of this is already implemented in these drivers, but it uses custom 
-events and ioctls.
-
-These drivers do not intend to provide a full-featured implementation, 
-especially for the adv7604 the featureset is huge. But it works for our 
-hardware and it is a good starting point.
-
-Regards,
-
-	Hans Verkuil
