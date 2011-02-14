@@ -1,86 +1,62 @@
 Return-path: <mchehab@pedra>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:44750 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751017Ab1BVM1Z (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:37975 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754172Ab1BNPLH convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Feb 2011 07:27:25 -0500
-From: Hans Verkuil <hansverk@cisco.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH 0/4] Some fixes for tuner, tvp5150 and em28xx
-Date: Tue, 22 Feb 2011 13:28:29 +0100
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <20110221231741.71a2149e@pedra> <201102220853.59343.hverkuil@xs4all.nl> <4D63A830.20805@redhat.com>
-In-Reply-To: <4D63A830.20805@redhat.com>
+	Mon, 14 Feb 2011 10:11:07 -0500
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201102221328.29691.hansverk@cisco.com>
+In-Reply-To: <201102141450.31975.laurent.pinchart@ideasonboard.com>
+References: <1297686097-9804-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	<201102141419.24953.laurent.pinchart@ideasonboard.com>
+	<20110214134116.GG2549@legolas.emea.dhcp.ti.com>
+	<201102141450.31975.laurent.pinchart@ideasonboard.com>
+Date: Mon, 14 Feb 2011 17:11:05 +0200
+Message-ID: <AANLkTin-vJuDUWeMOpQktnkHgTTXGxqm4+se1p90y1YT@mail.gmail.com>
+Subject: Re: [PATCH v6 04/10] omap2: Fix camera resources for multiomap
+From: David Cohen <dacohen@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: balbi@ti.com, linux-media@vger.kernel.org,
+	linux-omap@vger.kernel.org, sakari.ailus@maxwell.research.nokia.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tuesday, February 22, 2011 13:12:32 Mauro Carvalho Chehab wrote:
-> Em 22-02-2011 04:53, Hans Verkuil escreveu:
-> > Actually, v4l2-ctrl and qv4l2 handle 'holes' correctly. I think this is a
-> > different bug relating to the handling of V4L2_CTRL_FLAG_NEXT_CTRL. Can 
-you
-> > try this patch:
-> > 
-> > diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-
-ctrls.c
-> > index ef66d2a..15eda86 100644
-> > --- a/drivers/media/video/v4l2-ctrls.c
-> > +++ b/drivers/media/video/v4l2-ctrls.c
-> > @@ -1364,6 +1364,8 @@ EXPORT_SYMBOL(v4l2_queryctrl);
-> >  
-> >  int v4l2_subdev_queryctrl(struct v4l2_subdev *sd, struct v4l2_queryctrl 
-*qc)
-> >  {
-> > +	if (qc->id & V4L2_CTRL_FLAG_NEXT_CTRL)
-> > +		return -EINVAL;
-> >  	return v4l2_queryctrl(sd->ctrl_handler, qc);
-> 
-> Ok, this fixed the issue:
->                      brightness (int)  : min=0 max=255 step=1 default=128 
-value=128
->                        contrast (int)  : min=0 max=255 step=1 default=128 
-value=128
->                      saturation (int)  : min=0 max=255 step=1 default=128 
-value=128
->                             hue (int)  : min=-128 max=127 step=1 default=0 
-value=0
->                          volume (int)  : min=0 max=65535 step=655 
-default=58880 value=65500 flags=slider
->                         balance (int)  : min=0 max=65535 step=655 
-default=32768 value=32750 flags=slider
->                            bass (int)  : min=0 max=65535 step=655 
-default=32768 value=32750 flags=slider
->                          treble (int)  : min=0 max=65535 step=655 
-default=32768 value=32750 flags=slider
->                            mute (bool) : default=0 value=0
->                        loudness (bool) : default=0 value=0
-> 
-> Also, v4l2-compliance is now complaining less about it.
-> 
-> Control ioctls:
-> 		fail: does not support V4L2_CTRL_FLAG_NEXT_CTRL
-> 	test VIDIOC_QUERYCTRL/MENU: FAIL
-> 	test VIDIOC_G/S_CTRL: OK
-> 	test VIDIOC_G/S/TRY_EXT_CTRLS: Not Supported
-> 	Standard Controls: 0 Private Controls: 0
-> 
-> (yet, it is showing "standard controls = 0").
-> 
-> Could you provide your SOB to the above patch?
+On Mon, Feb 14, 2011 at 3:50 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Felipe,
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+Hello,
 
-> 
-> Thanks!
-> Mauro
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+>
+> On Monday 14 February 2011 14:41:16 Felipe Balbi wrote:
+>> On Mon, Feb 14, 2011 at 02:19:24PM +0100, Laurent Pinchart wrote:
+>> > On Monday 14 February 2011 13:35:59 Felipe Balbi wrote:
+>> > > On Mon, Feb 14, 2011 at 01:21:31PM +0100, Laurent Pinchart wrote:
+>> > > > diff --git a/arch/arm/mach-omap2/devices.c
+>> > > > b/arch/arm/mach-omap2/devices.c index 4cf48ea..5d844bd 100644
+>> > > > --- a/arch/arm/mach-omap2/devices.c
+>> > > > +++ b/arch/arm/mach-omap2/devices.c
+>> > > > @@ -38,7 +38,7 @@
+>> > > >
+>> > > >  #if defined(CONFIG_VIDEO_OMAP2) ||
+>> > > >  defined(CONFIG_VIDEO_OMAP2_MODULE)
+>> > > >
+>> > > > -static struct resource cam_resources[] = {
+>> > > > +static struct resource omap2cam_resources[] = {
+>> > >
+>> > > should this be __initdata ??
+>> >
+>> > The resources will be used when the OMAP3 ISP module is loaded. Won't
+>> > they be discared if marked as __initdata ?
+>>
+>> I believe driver core makes a copy of those, no ? not sure.
+>
+> Not that I know of, but I may be wrong.
+
+I don't think omap2cam_resources would be used at all.
+AFAIK, it belongs to omap2xxcam, isn't it? :)
+
+Br,
+
+David
