@@ -1,91 +1,99 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:53116 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754363Ab1BOLoq (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58186 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754368Ab1BNMWB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Feb 2011 06:44:46 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=ISO-8859-1
-Date: Tue, 15 Feb 2011 12:44:42 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH resend] video: omap24xxcam: Fix compilation
-In-reply-to: <20110215113717.GN2570@legolas.emea.dhcp.ti.com>
-To: balbi@ti.com
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Thomas Weber <weber@corscience.de>, linux-omap@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, Tejun Heo <tj@kernel.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Message-id: <4D5A672A.7040000@samsung.com>
-References: <1297068547-10635-1-git-send-email-weber@corscience.de>
- <4D5A6353.7040907@maxwell.research.nokia.com>
- <20110215113717.GN2570@legolas.emea.dhcp.ti.com>
+	Mon, 14 Feb 2011 07:22:01 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [PATCH v6 10/10] omap3isp: Kconfig and Makefile
+Date: Mon, 14 Feb 2011 13:21:37 +0100
+Message-Id: <1297686097-9804-11-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1297686097-9804-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1297686097-9804-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Felipe,
+Add the OMAP3 ISP driver to the kernel build system.
 
-On 02/15/2011 12:37 PM, Felipe Balbi wrote:
-> On Tue, Feb 15, 2011 at 01:28:19PM +0200, Sakari Ailus wrote:
->> Thomas Weber wrote:
->>> Add linux/sched.h because of missing declaration of TASK_NORMAL.
->>>
->>> This patch fixes the following error:
->>>
->>> drivers/media/video/omap24xxcam.c: In function
->>> 'omap24xxcam_vbq_complete':
->>> drivers/media/video/omap24xxcam.c:415: error: 'TASK_NORMAL' undeclared
->>> (first use in this function)
->>> drivers/media/video/omap24xxcam.c:415: error: (Each undeclared
->>> identifier is reported only once
->>> drivers/media/video/omap24xxcam.c:415: error: for each function it
->>> appears in.)
->>>
->>> Signed-off-by: Thomas Weber <weber@corscience.de>
->>
->> Thanks, Thomas!
-> 
-> Are we using the same tree ? I don't see anything related to TASK_* on
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/Kconfig            |   13 +++++++++++++
+ drivers/media/video/Makefile           |    2 ++
+ drivers/media/video/omap3-isp/Makefile |   13 +++++++++++++
+ include/linux/Kbuild                   |    1 +
+ 4 files changed, 29 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/omap3-isp/Makefile
 
-Please have a look at definition of macro wake_up. This where those
-TASK_* flags are used.
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index aa02160..9cf7153 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -718,6 +718,19 @@ config VIDEO_VIA_CAMERA
+ 	   Chrome9 chipsets.  Currently only tested on OLPC xo-1.5 systems
+ 	   with ov7670 sensors.
+ 
++config VIDEO_OMAP3
++	tristate "OMAP 3 Camera support (EXPERIMENTAL)"
++	select OMAP_IOMMU
++	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && ARCH_OMAP3 && EXPERIMENTAL
++	---help---
++	  Driver for an OMAP 3 camera controller.
++
++config VIDEO_OMAP3_DEBUG
++	bool "OMAP 3 Camera debug messages"
++	depends on VIDEO_OMAP3
++	---help---
++	  Enable debug messages on OMAP 3 camera controller driver.
++
+ config SOC_CAMERA
+ 	tristate "SoC camera support"
+ 	depends on VIDEO_V4L2 && HAS_DMA && I2C
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index 35c774d..727b9a8 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -121,6 +121,8 @@ obj-$(CONFIG_VIDEO_CAFE_CCIC) += cafe_ccic.o
+ 
+ obj-$(CONFIG_VIDEO_VIA_CAMERA) += via-camera.o
+ 
++obj-$(CONFIG_VIDEO_OMAP3)	+= omap3-isp/
++
+ obj-$(CONFIG_USB_ZR364XX)       += zr364xx.o
+ obj-$(CONFIG_USB_STKWEBCAM)     += stkwebcam.o
+ 
+diff --git a/drivers/media/video/omap3-isp/Makefile b/drivers/media/video/omap3-isp/Makefile
+new file mode 100644
+index 0000000..b1b34477
+--- /dev/null
++++ b/drivers/media/video/omap3-isp/Makefile
+@@ -0,0 +1,13 @@
++# Makefile for OMAP3 ISP driver
++
++ifdef CONFIG_VIDEO_OMAP3_DEBUG
++EXTRA_CFLAGS += -DDEBUG
++endif
++
++omap3-isp-objs += \
++	isp.o ispqueue.o ispvideo.o \
++	ispcsiphy.o ispccp2.o ispcsi2.o \
++	ispccdc.o isppreview.o ispresizer.o \
++	ispstat.o isph3a_aewb.o isph3a_af.o isphist.o
++
++obj-$(CONFIG_VIDEO_OMAP3) += omap3-isp.o
+diff --git a/include/linux/Kbuild b/include/linux/Kbuild
+index 19530c6..e879c1b 100644
+--- a/include/linux/Kbuild
++++ b/include/linux/Kbuild
+@@ -276,6 +276,7 @@ header-y += nfsacl.h
+ header-y += nl80211.h
+ header-y += nubus.h
+ header-y += nvram.h
++header-y += omap3isp.h
+ header-y += omapfb.h
+ header-y += oom.h
+ header-y += param.h
+-- 
+1.7.3.4
 
-> that function on today's mainline, here's a copy of the function:
-> 
->  387 static void omap24xxcam_vbq_complete(struct omap24xxcam_sgdma *sgdma,
->  388                                      u32 csr, void *arg)
->  389 {
->  390         struct omap24xxcam_device *cam =
->  391                 container_of(sgdma, struct omap24xxcam_device, sgdma);
->  392         struct omap24xxcam_fh *fh = cam->streaming->private_data;
->  393         struct videobuf_buffer *vb = (struct videobuf_buffer *)arg;
->  394         const u32 csr_error = CAMDMA_CSR_MISALIGNED_ERR
->  395                 | CAMDMA_CSR_SUPERVISOR_ERR | CAMDMA_CSR_SECURE_ERR
->  396                 | CAMDMA_CSR_TRANS_ERR | CAMDMA_CSR_DROP;
->  397         unsigned long flags;
->  398 
->  399         spin_lock_irqsave(&cam->core_enable_disable_lock, flags);
->  400         if (--cam->sgdma_in_queue == 0)
->  401                 omap24xxcam_core_disable(cam);
->  402         spin_unlock_irqrestore(&cam->core_enable_disable_lock, flags);
->  403 
->  404         do_gettimeofday(&vb->ts);
->  405         vb->field_count = atomic_add_return(2, &fh->field_count);
->  406         if (csr & csr_error) {
->  407                 vb->state = VIDEOBUF_ERROR;
->  408                 if (!atomic_read(&fh->cam->in_reset)) {
->  409                         dev_dbg(cam->dev, "resetting camera, csr 0x%x\n", csr);
->  410                         omap24xxcam_reset(cam);
->  411                 }
->  412         } else
->  413                 vb->state = VIDEOBUF_DONE;
->  414         wake_up(&vb->done);
->  415 }
-> 
-> see that line 415 is where the function ends. My head is
-> 795abaf1e4e188c4171e3cd3dbb11a9fcacaf505
-> 
-
-Cheers,
-Sylwester Nawrocki
