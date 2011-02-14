@@ -1,82 +1,50 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:37954 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751819Ab1B0VdO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Feb 2011 16:33:14 -0500
-Received: by bwz15 with SMTP id 15so3239334bwz.19
-        for <linux-media@vger.kernel.org>; Sun, 27 Feb 2011 13:33:13 -0800 (PST)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: Malcolm Priestley <tvboxspy@gmail.com>
-Subject: Re: dw2102.c: quadratic increment intended?
-Date: Sun, 27 Feb 2011 23:33:18 +0200
-Cc: linux-media@vger.kernel.org
-References: <4D6A6253.8020201@gmail.com> <201102272030.54781.liplianin@me.by> <1298840270.20694.16.camel@tvboxspy>
-In-Reply-To: <1298840270.20694.16.camel@tvboxspy>
+Received: from utm.netup.ru ([193.203.36.250]:39822 "EHLO utm.netup.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750921Ab1BNTHE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Feb 2011 14:07:04 -0500
+Message-ID: <4D597C71.5040100@netup.ru>
+Date: Mon, 14 Feb 2011 22:03:13 +0300
+From: Abylay Ospan <aospan@netup.ru>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201102272333.18193.liplianin@me.by>
+To: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"Igor M. Liplianin" <liplianin@me.by>
+Subject: [PATCH 1/1] Update stv0900 status when LOCK is missed
+Content-Type: text/plain; charset=KOI8-R; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-В сообщении от 27 февраля 2011 22:57:50 автор Malcolm Priestley написал:
-> On Sun, 2011-02-27 at 20:30 +0200, Igor M. Liplianin wrote:
-> > В сообщении от 27 февраля 2011 16:40:19 автор Török Edwin написал:
-> > > Hi,
-> > 
-> > Hi
-> > 
-> > > Please see http://llvm.org/bugs/show_bug.cgi?id=9259#c5, is the code
-> > > intended to do a quadratic increment there?
-> > > 
-> > > While looking at this, I wonder if this isn't also a bug in the
-> > > original
-> > > 
-> > > code:
-> > >         /* read stv0299 register */
-> > >         request = 0xb5;
-> > >         value = msg[0].buf[0];/* register */
-> > >         for (i = 0; i < msg[1].len; i++) {
-> > >         
-> > >             value = value + i;
-> > >             ret = dw2102_op_rw(d->udev, 0xb5,
-> > >             
-> > >                 value, buf6, 2, DW2102_READ_MSG);
-> > >             
-> > >             msg[1].buf[i] = buf6[0];
-> > >         
-> > >         }
-> > > 
-> > > I don't know anything about the hardware this driver is written for,
-> > > but is 'value' really intended to increment quadratically? That seems
-> > > suspicious. One
-> > > 
-> > > wonders if the following is what was intended:
-> > >         [...]
-> > >         for (i = 0; i < msg[1].len; i++) {
-> > >         
-> > >             ret = dw2102_op_rw(d->udev, 0xb5,
-> > >             
-> > >                 value + i, buf6, 2, DW2102_READ_MSG);
-> > >             
-> > >             msg[1].buf[i] = buf6[0];
-> > >         
-> > >         }
-> > 
-> > Accidentally, this didn't affect driver, as it reads registers by one
-> > register at one time. But it should be corrected.
-> 
-> stv0299, along with other stv02xx family members can read and write the
-> entire register map from the start register.
-You misundestood me. I spoke about driver features, not about stv0299 features.
-Except that, you are right.
+Update stv0900 status when LOCK is missed
 
-> 
-> However, there is a limitation, the buffer size of the I2C master
-> hardware.
+Signed-off-by: Abylay Ospan <aospan@netup.ru>
+---
+  drivers/media/dvb/frontends/stv0900_core.c |    4 +++-
+  1 files changed, 3 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/dvb/frontends/stv0900_core.c 
+b/drivers/media/dvb/frontends/stv0900_core.c
+index 4f5e7d3..34afcc6 100644
+--- a/drivers/media/dvb/frontends/stv0900_core.c
++++ b/drivers/media/dvb/frontends/stv0900_core.c
+@@ -1660,8 +1660,10 @@ static int stv0900_read_status(struct 
+dvb_frontend *fe, enum fe_status *status)
+                         | FE_HAS_VITERBI
+                         | FE_HAS_SYNC
+                         | FE_HAS_LOCK;
+-       } else
++       } else {
++               *status = 0;
+                 dprintk("DEMOD LOCK FAIL\n");
++       }
+
+         return 0;
+  }
+-- 
+1.7.2.1.95.g3d045
 
 -- 
-Igor M. Liplianin
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+Abylai Ospan<aospan@netup.ru>
+NetUP Inc.
+
