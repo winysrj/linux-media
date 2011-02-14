@@ -1,44 +1,114 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:58759 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752185Ab1BVCVy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Feb 2011 21:21:54 -0500
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p1M2LsLO029670
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 21 Feb 2011 21:21:54 -0500
-Received: from pedra (vpn-224-79.phx2.redhat.com [10.3.224.79])
-	by int-mx09.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p1M2HksX012926
-	for <linux-media@vger.kernel.org>; Mon, 21 Feb 2011 21:21:53 -0500
-Date: Mon, 21 Feb 2011 23:17:41 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 0/4] Some fixes for tuner, tvp5150 and em28xx
-Message-ID: <20110221231741.71a2149e@pedra>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58162 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753726Ab1BNMVK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Feb 2011 07:21:10 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	linux-kernel@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [PATCH v9 00/12] Media controller (core and V4L2)
+Date: Mon, 14 Feb 2011 13:20:55 +0100
+Message-Id: <1297686067-9666-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This series contain a minor cleanup for tuner and tvp5150, and two fixes
-for em28xx controls. Before the em28xx patches, s_ctrl were failing on
-qv4l2, because it were returning a positive value of 1 for some calls.
+Hi everybody,
 
-It also contains a fix for control get/set, as it will now check if the
-control exists before actually calling subdev for get/set.
+Here is the ninth version of the media controller core and V4L2 patches.
 
-Mauro Carvalho Chehab (4):
-  [media] tuner: Remove remaining usages of T_DIGITAL_TV
-  [media] tvp5150: device detection should be done only once
-  [media] em28xx: Fix return value for s_ctrl
-  [media] em28xx: properly handle subdev controls
+Quick reminder for those who missed the previous version. let me quote the
+documentation (Documentation/DocBook/v4l/media-controller.xml).
 
- drivers/media/common/tuners/tuner-xc2028.c |    8 ++--
- drivers/media/video/em28xx/em28xx-video.c  |   35 ++++++++++++++++++++---
- drivers/media/video/tvp5150.c              |   42 ++++++++++++++--------------
- drivers/staging/tm6000/tm6000-cards.c      |    2 -
- include/media/tuner.h                      |    2 +-
- 5 files changed, 56 insertions(+), 33 deletions(-)
+"Discovering a [media] device internal topology, and configuring it at runtime,
+is one of the goals of the media controller API. To achieve this, hardware
+devices are modelled as an oriented graph of building blocks called entities
+connected through pads."
+
+The code has been extensively reviewed by the V4L community, and this version
+is the first one to incorporate comments from the ALSA community (big thanks
+to Mark Brown and Clemens Ladisch). Two issues are not fully addressed yet,
+namely power management (I need to discuss this some more with the ALSA
+developers to really understand their requirements) and entities type names.
+I'm still posting this for review, as other developers have showed interest in
+commenting on the code.
+
+I want to emphasize once again that the media controller API does not replace
+the V4L, DVB or ALSA APIs. It complements them.
+
+The first user of the media controller API is the OMAP3 ISP driver. You can
+find it (as well as these patches and other V4L-specific patches) in a git tree
+at http://git.linuxtv.org/pinchartl/media.git (media-0005-omap3isp branch). The
+OMAP3 ISP driver patches are regularly posted for review on the linux-media
+list.
+
+Laurent Pinchart (11):
+  media: Media device node support
+  media: Media device
+  media: Entities, pads and links
+  media: Entity use count
+  media: Media device information query
+  media: Entities, pads and links enumeration
+  media: Links setup
+  media: Pipelines and media streams
+  v4l: Add a media_device pointer to the v4l2_device structure
+  v4l: Make video_device inherit from media_entity
+  v4l: Make v4l2_subdev inherit from media_entity
+
+Sakari Ailus (1):
+  media: Entity graph traversal
+
+ Documentation/ABI/testing/sysfs-bus-media          |    6 +
+ Documentation/DocBook/media-entities.tmpl          |   24 +
+ Documentation/DocBook/media.tmpl                   |    3 +
+ Documentation/DocBook/v4l/media-controller.xml     |   89 ++++
+ Documentation/DocBook/v4l/media-func-close.xml     |   59 +++
+ Documentation/DocBook/v4l/media-func-ioctl.xml     |  116 +++++
+ Documentation/DocBook/v4l/media-func-open.xml      |   94 ++++
+ .../DocBook/v4l/media-ioc-device-info.xml          |  133 +++++
+ .../DocBook/v4l/media-ioc-enum-entities.xml        |  308 +++++++++++
+ Documentation/DocBook/v4l/media-ioc-enum-links.xml |  207 ++++++++
+ Documentation/DocBook/v4l/media-ioc-setup-link.xml |   93 ++++
+ Documentation/media-framework.txt                  |  353 +++++++++++++
+ Documentation/video4linux/v4l2-framework.txt       |   72 +++-
+ drivers/media/Kconfig                              |   13 +
+ drivers/media/Makefile                             |    6 +
+ drivers/media/media-device.c                       |  382 ++++++++++++++
+ drivers/media/media-devnode.c                      |  321 ++++++++++++
+ drivers/media/media-entity.c                       |  536 ++++++++++++++++++++
+ drivers/media/video/v4l2-dev.c                     |   49 ++-
+ drivers/media/video/v4l2-device.c                  |   49 ++-
+ drivers/media/video/v4l2-subdev.c                  |   28 +-
+ include/linux/Kbuild                               |    1 +
+ include/linux/media.h                              |  132 +++++
+ include/media/media-device.h                       |   95 ++++
+ include/media/media-devnode.h                      |   97 ++++
+ include/media/media-entity.h                       |  151 ++++++
+ include/media/v4l2-dev.h                           |    7 +
+ include/media/v4l2-device.h                        |    4 +
+ include/media/v4l2-subdev.h                        |    6 +
+ 29 files changed, 3413 insertions(+), 21 deletions(-)
+ create mode 100644 Documentation/ABI/testing/sysfs-bus-media
+ create mode 100644 Documentation/DocBook/v4l/media-controller.xml
+ create mode 100644 Documentation/DocBook/v4l/media-func-close.xml
+ create mode 100644 Documentation/DocBook/v4l/media-func-ioctl.xml
+ create mode 100644 Documentation/DocBook/v4l/media-func-open.xml
+ create mode 100644 Documentation/DocBook/v4l/media-ioc-device-info.xml
+ create mode 100644 Documentation/DocBook/v4l/media-ioc-enum-entities.xml
+ create mode 100644 Documentation/DocBook/v4l/media-ioc-enum-links.xml
+ create mode 100644 Documentation/DocBook/v4l/media-ioc-setup-link.xml
+ create mode 100644 Documentation/media-framework.txt
+ create mode 100644 drivers/media/media-device.c
+ create mode 100644 drivers/media/media-devnode.c
+ create mode 100644 drivers/media/media-entity.c
+ create mode 100644 include/linux/media.h
+ create mode 100644 include/media/media-device.h
+ create mode 100644 include/media/media-devnode.h
+ create mode 100644 include/media/media-entity.h
+
+-- 
+Regards,
+
+Laurent Pinchart
 
