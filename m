@@ -1,28 +1,113 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:49163 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754817Ab1BXCJ0 (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:56263 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753507Ab1BNM3L convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Feb 2011 21:09:26 -0500
-Received: by eyx24 with SMTP id 24so25250eyx.19
-        for <linux-media@vger.kernel.org>; Wed, 23 Feb 2011 18:09:25 -0800 (PST)
+	Mon, 14 Feb 2011 07:29:11 -0500
 MIME-Version: 1.0
-Date: Thu, 24 Feb 2011 13:09:23 +1100
-Message-ID: <AANLkTikAz9oa7R7LXd2fTnCWxrfEhFivzN1X=_VwzHnB@mail.gmail.com>
-Subject: Suggested USB analog video capture devices?
-From: Adam Baxter <voltagex@voltagex.org>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+In-Reply-To: <AANLkTingOYyEs4ZZrcaV0NOhiuGzSpvkATPRFjhFMCmE@mail.gmail.com>
+References: <AANLkTinAYrGV1k357Bn8trtxafZDoYozG7LDcm3KNBSt@mail.gmail.com> <AANLkTingOYyEs4ZZrcaV0NOhiuGzSpvkATPRFjhFMCmE@mail.gmail.com>
+From: halli manjunatha <manjunatha_halli@ti.com>
+Date: Mon, 14 Feb 2011 17:58:48 +0530
+Message-ID: <AANLkTinQxwK_nVtJ2OOoQx8pTL_58cqoW4ZEE-utxbic@mail.gmail.com>
+Subject: Re: [GIT PULL] TI WL 128x FM V4L2 driver
+To: linux-media <linux-media@vger.kernel.org>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
-Are there any "100%" supported USB analog video capture devices for
-V4L2? I'd like to be sure before I buy a device. All I require is RCA
-and SVideo + onboard audio capture (i.e. no extra line in cable...)
+Hi Mauro,
 
-I'm in Australia so devices that can be found via www.staticice.com.au
-or ebay.com.au would be appreciated.
+V4L2 FM driver depend upon an underlying TI_ST driver which is the
+core transport driver.
+Updates to TI-ST driver happen on linux-next tree on kernel.org and
+are planned to be released in 2.6.39.
 
-Thanks,
-Adam Baxter
+Since your tree @
+[http://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git]
+lags behind the linux-next tree, the recent updates to TI-ST driver
+are missing on your tree.
+
+Unfortunately these would cause a build failure for the V4L2 driver,
+since the APIs have changed on the TI-ST driver.
+So, Please suggest on how to proceed to submit V4L2 driver ?
+
+Do I pull in the changes which have gone into linux-next on my clone
+of your tree ? So that during a GIT pull changes on linux-next for
+TI-ST driver also gets into your tree?
+
+Regards
+Manjunatha Halli
+
+> On Tue, Jan 25, 2011 at 11:18 AM, halli manjunatha <manjunatha_halli@ti.com> wrote:
+>>
+>> Hi Mauro,
+>>
+>> Please pull the WL128x FM V4L2 driver from
+>> http://dev.omapzoom.org/pub/scm/manju/L24x-btfm.git fm_v4l2_upstream
+>>
+>> This is TI WL128x FM V4L2 driver and it introduces ‘wl128x’ folder
+>> under the ‘drivers/media/radio’. This driver enables support for FM RX
+>> and TX for Texas Instrument's WL128x (also compatible with WL127x)
+>> WiLink chip sets. The V4L2 FM driver can work in either Rx or Tx mode,
+>> and V4L2 interfaces are provided for both.
+>>
+>> Texas Instrument's WL128x chip set packs BT, FM, GPS and WLAN in a
+>> single die with BT, FM and GPS being interfaced over a single UART.
+>> This driver works on top of the shared transport line discipline
+>> driver. This driver can also be made use for the WL127x version of the
+>> chip which packs BT, FM and WLAN only.
+>>
+>> This driver has been reviewed by various folks within TI and also in
+>> Linux media community. The driver has been tested extensively on TI
+>> platforms and we believe that it is ready for merge into mainline.
+>>
+>> The following changes since commit db309d3d54c2f721dd1176ce86c63b0381c0a258:
+>>  Mauro Carvalho Chehab (1):
+>>        [media] add support for Encore FM3
+>>
+>> are available in the git repository at:
+>>
+>>  http://dev.omapzoom.org/pub/scm/manju/L24x-btfm.git fm_v4l2_upstream
+>>
+>> Manjunatha Halli (7):
+>>      drivers:media:radio: wl128x: FM Driver common header file
+>>      drivers:media:radio: wl128x: FM Driver V4L2 sources
+>>      drivers:media:radio: wl128x: FM Driver Common sources
+>>      drivers:media:radio: wl128x: FM driver RX sources
+>>      drivers:media:radio: wl128x: FM driver TX sources
+>>      drivers:media:radio: wl128x: Kconfig & Makefile for wl128x driver
+>>      drivers:media:radio: Update Kconfig and Makefile for wl128x FM driver
+>>
+>>  drivers/media/radio/Kconfig               |    3 +
+>>  drivers/media/radio/Makefile              |    1 +
+>>  drivers/media/radio/wl128x/Kconfig        |   17 +
+>>  drivers/media/radio/wl128x/Makefile       |    6 +
+>>  drivers/media/radio/wl128x/fmdrv.h        |  244 +++++
+>>  drivers/media/radio/wl128x/fmdrv_common.c | 1677 +++++++++++++++++++++++++++++
+>>  drivers/media/radio/wl128x/fmdrv_common.h |  402 +++++++
+>>  drivers/media/radio/wl128x/fmdrv_rx.c     |  847 +++++++++++++++
+>>  drivers/media/radio/wl128x/fmdrv_rx.h     |   59 +
+>>  drivers/media/radio/wl128x/fmdrv_tx.c     |  425 ++++++++
+>>  drivers/media/radio/wl128x/fmdrv_tx.h     |   37 +
+>>  drivers/media/radio/wl128x/fmdrv_v4l2.c   |  580 ++++++++++
+>>  drivers/media/radio/wl128x/fmdrv_v4l2.h   |   33 +
+>>  13 files changed, 4331 insertions(+), 0 deletions(-)
+>>  create mode 100644 drivers/media/radio/wl128x/Kconfig
+>>  create mode 100644 drivers/media/radio/wl128x/Makefile
+>>  create mode 100644 drivers/media/radio/wl128x/fmdrv.h
+>>  create mode 100644 drivers/media/radio/wl128x/fmdrv_common.c
+>>  create mode 100644 drivers/media/radio/wl128x/fmdrv_common.h
+>>  create mode 100644 drivers/media/radio/wl128x/fmdrv_rx.c
+>>  create mode 100644 drivers/media/radio/wl128x/fmdrv_rx.h
+>>  create mode 100644 drivers/media/radio/wl128x/fmdrv_tx.c
+>>  create mode 100644 drivers/media/radio/wl128x/fmdrv_tx.h
+>>  create mode 100644 drivers/media/radio/wl128x/fmdrv_v4l2.c
+>>  create mode 100644 drivers/media/radio/wl128x/fmdrv_v4l2.h
+>>
+>> --
+>> Best Regards
+>> Manjunatha Halli
+>
