@@ -1,97 +1,96 @@
 Return-path: <mchehab@pedra>
-Received: from mailout4.samsung.com ([203.254.224.34]:64179 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753180Ab1BHEE2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Feb 2011 23:04:28 -0500
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Received: from epmmp1 (mailout4.samsung.com [203.254.224.34])
- by mailout4.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LGA004575XX4XB0@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Tue, 08 Feb 2011 13:03:33 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LGA001EY5XXMH@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 08 Feb 2011 13:03:33 +0900 (KST)
-Date: Tue, 08 Feb 2011 13:03:33 +0900
-From: "Kim, HeungJun" <riverful.kim@samsung.com>
-Subject: Re: [PATCH v4] Add support for M5MO-LS 8 Mega Pixel camera
-In-reply-to: <4D5067E4.2030709@gmail.com>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	s.nawrocki@samsung.com, kyungmin.park@samsung.com
-Reply-to: riverful.kim@samsung.com
-Message-id: <4D50C095.5060502@samsung.com>
-Content-transfer-encoding: 8BIT
-References: <1297079073-10916-1-git-send-email-riverful.kim@samsung.com>
- <4D5067E4.2030709@gmail.com>
+Received: from smtp02.frii.com ([216.17.135.168]:50569 "EHLO smtp02.frii.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755225Ab1BNAhr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Feb 2011 19:37:47 -0500
+Date: Sun, 13 Feb 2011 17:37:46 -0700
+From: Mark Zimmerman <markzimm@frii.com>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [corrected get-bisect results]: DViCO FusionHDTV7 Dual Express
+	I2C write failed
+Message-ID: <20110214003746.GA42201@io.frii.com>
+References: <20101207190753.GA21666@io.frii.com> <20110212152954.GA20838@io.frii.com> <20110213144758.GA79915@io.frii.com> <AANLkTik5iYsS5UNQQv6OxTyC0X9nEYvsOEtA6mBLQ-Jq@mail.gmail.com> <20110213202644.GA15282@io.frii.com> <1297632410.2401.6.camel@localhost>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1297632410.2401.6.camel@localhost>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-I've checked runnig checkpatch.pl, but I've not seen this message before.
-And I re-check the patch sent now, but it's not.
-Probably, It's issue between git send-email and our mail server setting.
+On Sun, Feb 13, 2011 at 04:26:50PM -0500, Andy Walls wrote:
+> On Sun, 2011-02-13 at 13:26 -0700, Mark Zimmerman wrote:
+> > On Sun, Feb 13, 2011 at 09:52:25AM -0500, Devin Heitmueller wrote:
+> > > On Sun, Feb 13, 2011 at 9:47 AM, Mark Zimmerman <markzimm@frii.com> wrote:
+> > > > Clearly my previous bisection went astray; I think I have a more
+> > > > sensible result this time.
+> > > >
+> > > > qpc$ git bisect good
+> > > > 44835f197bf1e3f57464f23dfb239fef06cf89be is the first bad commit
+> > > > commit 44835f197bf1e3f57464f23dfb239fef06cf89be
+> > > > Author: Jean Delvare <khali@linux-fr.org>
+> > > > Date: ? Sun Jul 18 16:52:05 2010 -0300
+> > > >
+> > > > ? ?V4L/DVB: cx23885: Check for slave nack on all transactions
+> > > >
+> > > > ? ?Don't just check for nacks on zero-length transactions. Check on
+> > > > ? ?other transactions too.
+> > > 
+> > > This could be a combination of the xc5000 doing clock stretching and
+> > > the cx23885 i2c master not properly implementing clock stretch.  In
+> > > the past I've seen i2c masters broken in their handling of clock
+> > > stretching where they treat it as a NAK.
+> > > 
+> > > The xc5000 being one of the few devices that actually does i2c clock
+> > > stretching often exposes cases where it is improperly implemented in
+> > > the i2c master driver (I've had to fix this with several bridges).
+> > > 
+> > 
+> > Thanks for your insight. I am looking at cx23885-i2c.c and there is no
+> > clock stretching logic in i2c_slave_did_ack().  Would this be the
+> > right place for it to be?  Can you point me to an example of another
+> > driver that does it correctly?  I really don't know what I am doing...
+> 
+> 
+> Mark,
+> 
+> You don't have much hope of getting that right without the CX23885
+> datasheet.
+> 
+> Let's just get the bad commit reverted and into 2.6.38, and fix what
+> used to work for you.  Doing a git bisect is enough work for anyone.
+> 
+> I'll do a patch to revert the commit and ask it to be pulled for
+> 2.6.38-rc-whatever.  I'll be sure to add a
+> 
+> 	Bisected-by: Mark Zimmerman <markzimm@frii.com>
+> 
+> tag to the patch.  (The Linux Kernel devs understand the work involved
+> to do a bisection.)
+> 
+> 
+> Later, if I can work up a patch to deal with clock stretching properly,
+> I may ask you to test.
+> 
+Thanks, that would be great. Meanwhile, I have built a 2.6.37 with the
+offending commit removed:
 
-I'll check once again, and resend.
+git bisect reset
+git checkout v2.6.37
+git revert 44835f197bf1e3f57464f23dfb239fef06cf89be
 
-Thanks let me know.
+and it seems to be working fine using both tuners:
 
-Regards
-Heungjun Kim
+xc5000: waiting for firmware upload (dvb-fe-xc5000-1.6.114.fw)...
+xc5000: firmware read 12401 bytes.
+xc5000: firmware uploading...
+xc5000: firmware upload complete...
+xc5000: waiting for firmware upload (dvb-fe-xc5000-1.6.114.fw)...
+xc5000: firmware read 12401 bytes.
+xc5000: firmware uploading...
+xc5000: firmware upload complete...
 
-
-
-2011-02-08 오전 6:45, Sylwester Nawrocki 쓴 글:
-> Hi HeungJun,
-> 
-> On 02/07/2011 12:44 PM, Heungjun Kim wrote:
->> Add I2C/V4L2 subdev driver for M5MO-LS camera sensor with integrated
->> image processor.
->>
-> 
-> There is something wrong with this patch. It looks like it got mangled by
-> the mailer. I can see some Korean characters in it and checkpatch.pl 
-> returns errors:
-> 
-> ERROR: patch seems to be corrupt (line wrapped?)
-> #122: FILE: drivers/media/video/Kconfig:747:
-> =20
-> 
-> ERROR: spaces required around that '=' (ctx:WxV)
-> #208: FILE: drivers/media/video/m5mols/m5mols.h:36:
-> +	I2C_8BIT	=3D 1,
->  	        	^
-> 
-> ERROR: spaces required around that '=' (ctx:WxV)
-> #209: FILE: drivers/media/video/m5mols/m5mols.h:37:
-> +	I2C_16BIT	=3D 2,
->  	         	^
-> 
-> ERROR: spaces required around that '=' (ctx:WxV)
-> #210: FILE: drivers/media/video/m5mols/m5mols.h:38:
-> +	I2C_32BIT	=3D 4,
->  	         	^
-> ...
-> 
-> ERROR: spaces required around that '=' (ctx:WxV)
-> #1500: FILE: drivers/media/video/m5mols/m5mols_core.c:892:
-> +	.remove		=3D m5mols_remove,
->  	       		^
-> 
-> ERROR: spaces required around that '=' (ctx:WxV)
-> #1501: FILE: drivers/media/video/m5mols/m5mols_core.c:893:
-> +	.id_table	=3D m5mols_id,
->  	         	^
-> 
-> WARNING: please, no space before tabs
-> #1672: FILE: include/media/m5mols.h:23:
-> +* ^I^Ito be called after enabling and before disabling$
-> 
-> total: 344 errors, 6 warnings, 1514 lines checked
-> 
-> 
-> Regards,
-> Sylwester
-> 
+Thanks again
+-- Mark
 
