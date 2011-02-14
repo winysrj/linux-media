@@ -1,103 +1,88 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58186 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754236Ab1BNMVu (ORCPT
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:35863 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753359Ab1BNMhp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Feb 2011 07:21:50 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [PATCH v6 03/10] omap3: Add function to register omap3isp platform device structure
-Date: Mon, 14 Feb 2011 13:21:30 +0100
-Message-Id: <1297686097-9804-4-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1297686097-9804-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Mon, 14 Feb 2011 07:37:45 -0500
+Date: Mon, 14 Feb 2011 14:37:39 +0200
+From: Felipe Balbi <balbi@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com
+Subject: Re: [PATCH v6 07/10] omap3isp: CCP2/CSI2 receivers
+Message-ID: <20110214123739.GZ2549@legolas.emea.dhcp.ti.com>
+Reply-To: balbi@ti.com
 References: <1297686097-9804-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1297686097-9804-8-git-send-email-laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1297686097-9804-8-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The omap3isp platform device requires platform data. Instead of
-registering the device in omap2_init_devices(), export an
-omap3_init_camera() function to fill the device structure with the
-platform data pointer and register the device.
+On Mon, Feb 14, 2011 at 01:21:34PM +0100, Laurent Pinchart wrote:
+> The OMAP3 ISP CCP2 and CSI2 receivers provide an interface to connect
+> serial MIPI sensors to the device.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> Signed-off-by: David Cohen <dacohen@gmail.com>
+> Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
+> Signed-off-by: Vimarsh Zutshi <vimarsh.zutshi@gmail.com>
+> Signed-off-by: Tuukka Toivonen <tuukkat76@gmail.com>
+> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+> Signed-off-by: Antti Koskipaa <akoskipa@gmail.com>
+> Signed-off-by: Ivan T. Ivanov <iivanov@mm-sol.com>
+> Signed-off-by: RaniSuneela <r-m@ti.com>
+> Signed-off-by: Atanas Filipov <afilipov@mm-sol.com>
+> Signed-off-by: Gjorgji Rosikopulos <grosikopulos@mm-sol.com>
+> Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> Signed-off-by: Nayden Kanchev <nkanchev@mm-sol.com>
+> Signed-off-by: Phil Carmody <ext-phil.2.carmody@nokia.com>
+> Signed-off-by: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
+> Signed-off-by: Dominic Curran <dcurran@ti.com>
+> Signed-off-by: Ilkka Myllyperkio <ilkka.myllyperkio@sofica.fi>
+> Signed-off-by: Pallavi Kulkarni <p-kulkarni@ti.com>
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/devices.c |   20 +++++++++++---------
- arch/arm/mach-omap2/devices.h |   17 +++++++++++++++++
- 2 files changed, 28 insertions(+), 9 deletions(-)
- create mode 100644 arch/arm/mach-omap2/devices.h
+checkpatch still complains a bit about this one:
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index d389756..4cf48ea 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -34,6 +34,8 @@
- #include "mux.h"
- #include "control.h"
- 
-+#include "devices.h"
-+
- #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
- 
- static struct resource cam_resources[] = {
-@@ -59,8 +61,11 @@ static inline void omap_init_camera(void)
- {
- 	platform_device_register(&omap_cam_device);
- }
--
--#elif defined(CONFIG_VIDEO_OMAP3) || defined(CONFIG_VIDEO_OMAP3_MODULE)
-+#else
-+static inline void omap_init_camera(void)
-+{
-+}
-+#endif
- 
- static struct resource omap3isp_resources[] = {
- 	{
-@@ -146,15 +151,12 @@ static struct platform_device omap3isp_device = {
- 	.resource	= omap3isp_resources,
- };
- 
--static inline void omap_init_camera(void)
--{
--	platform_device_register(&omap3isp_device);
--}
--#else
--static inline void omap_init_camera(void)
-+int omap3_init_camera(void *pdata)
- {
-+	omap3isp_device.dev.platform_data = pdata;
-+	return platform_device_register(&omap3isp_device);
- }
--#endif
-+EXPORT_SYMBOL_GPL(omap3_init_camera);
- 
- #if defined(CONFIG_OMAP_MBOX_FWK) || defined(CONFIG_OMAP_MBOX_FWK_MODULE)
- 
-diff --git a/arch/arm/mach-omap2/devices.h b/arch/arm/mach-omap2/devices.h
-new file mode 100644
-index 0000000..12ddb8a
---- /dev/null
-+++ b/arch/arm/mach-omap2/devices.h
-@@ -0,0 +1,17 @@
-+/*
-+ * arch/arm/mach-omap2/devices.h
-+ *
-+ * OMAP2 platform device setup/initialization
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#ifndef __ARCH_ARM_MACH_OMAP_DEVICES_H
-+#define __ARCH_ARM_MACH_OMAP_DEVICES_H
-+
-+int omap3_init_camera(void *pdata);
-+
-+#endif
+CHECK: struct mutex definition without comment
+#1368: FILE: drivers/media/video/omap3-isp/ispqueue.h:157:
++	struct mutex lock;
+
+CHECK: spinlock_t definition without comment
+#1369: FILE: drivers/media/video/omap3-isp/ispqueue.h:158:
++	spinlock_t irqlock;
+
+WARNING: please, no space before tabs
+#2723: FILE: drivers/media/video/omap3-isp/ispvideo.h:49:
++ * ^Ibits. Identical to @code if the format is 10 bits wide or less.$
+
+WARNING: please, no space before tabs
+#2725: FILE: drivers/media/video/omap3-isp/ispvideo.h:51:
++ * ^Iformat. Identical to @code if the format is not DPCM compressed.$
+
+CHECK: spinlock_t definition without comment
+#2762: FILE: drivers/media/video/omap3-isp/ispvideo.h:88:
++	spinlock_t lock;
+
+CHECK: struct mutex definition without comment
+#2823: FILE: drivers/media/video/omap3-isp/ispvideo.h:149:
++	struct mutex mutex;
+
+CHECK: struct mutex definition without comment
+#2840: FILE: drivers/media/video/omap3-isp/ispvideo.h:166:
++	struct mutex stream_lock;
+
+total: 0 errors, 2 warnings, 5 checks, 2806 lines checked
+
+/home/balbi/tst.diff has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+does it make sense to fix those ?
+
 -- 
-1.7.3.4
-
+balbi
