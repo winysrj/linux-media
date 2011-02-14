@@ -1,101 +1,217 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.9]:61773 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752048Ab1BQVNk (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58182 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753983Ab1BNMVW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Feb 2011 16:13:40 -0500
-Date: Thu, 17 Feb 2011 22:13:35 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hansverk@cisco.com>, Qing Xu <qingx@marvell.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Neil Johnson <realdealneil@gmail.com>,
-	Robert Jarzmik <robert.jarzmik@free.fr>,
-	Uwe Taeubert <u.taeubert@road.de>,
-	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	Eino-Ville Talvala <talvala@stanford.edu>
-Subject: Re: [RFD] frame-size switching: preview / single-shot use-case
-In-Reply-To: <4D5D893B.5090101@infradead.org>
-Message-ID: <Pine.LNX.4.64.1102172153470.1841@axis700.grange>
-References: <Pine.LNX.4.64.1102151641490.16709@axis700.grange>
- <201102160949.04605.hansverk@cisco.com> <Pine.LNX.4.64.1102160954560.20711@axis700.grange>
- <201102161011.59830.laurent.pinchart@ideasonboard.com>
- <Pine.LNX.4.64.1102161033440.20711@axis700.grange> <4D5D7141.4030101@infradead.org>
- <Pine.LNX.4.64.1102172020410.30692@axis700.grange> <4D5D893B.5090101@infradead.org>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Mon, 14 Feb 2011 07:21:22 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [PATCH v7 01/11] v4l: Move the media/v4l2-mediabus.h header to include/linux
+Date: Mon, 14 Feb 2011 13:21:14 +0100
+Message-Id: <1297686084-9715-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1297686084-9715-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1297686084-9715-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, 17 Feb 2011, Mauro Carvalho Chehab wrote:
+The header defines the v4l2_mbus_framefmt structure which will be used
+by the V4L2 subdevs userspace API.
 
-> Em 17-02-2011 17:26, Guennadi Liakhovetski escreveu:
-> > Hi Mauro
-> > 
-> > Thanks for your comments.
-> > 
-> > On Thu, 17 Feb 2011, Mauro Carvalho Chehab wrote:
-> > 
-> >> Em 16-02-2011 08:35, Guennadi Liakhovetski escreveu:
-> > 
-> > [snip]
-> > 
-> >>> (2) cleanly separate setting video data format (S_FMT) from specifying the 
-> >>> allocated buffer size.
-> >>
-> >> This would break existing applications. Too late for that, except if negotiated
-> >> with a "SETCAP" like approach.
-> > 
-> > Sorry, don't see how my proposal from my last mail would change existing 
-> > applications. As long as no explicit buffer-queue management is performed, 
-> > no new queues are allocated, the driver will just implicitly allocate one 
-> > queue and use it. I.e., no change in behaviour.
-> 
-> Using the same ioctl to explicitly or to implicitly allocating memory depending
-> on the context would make the API more complicated than it should be.
+Change the type of the v4l2_mbus_framefmt::code field to __u32, as enum
+sizes can differ between different ABIs on the same architectures.
 
-Sorry again, of course, we're adding new functionality, so, it may well 
-happen, that the API will become more complicated too. But that was not 
-the question. The question was - would it break any existing users? And it 
-looks like it wouldn't, at the same time giving new users the required 
-additional flexibility and functionality.
-
-> >> There's an additional problem with that: assume that streaming is happening,
-> >> and a S_FMT changing the resolution was sent. There's no way to warrant that
-> >> the very next frame will have the new resolution. So, a meta-data with the
-> >> frame resolution (and format) would be needed.
-> > 
-> > Sorry, we are not going to allow format changes during a running capture. 
-> > You have to stop streaming, set new formats (possibly switch to another 
-> > queue) and restart streaming.
-> 
-> > What am I missing?
-> 
-> If you're stopping the stream, the current API will work as-is.
-> 
-> If all of your concerns is about reserving a bigger buffer queue, I think that one
-> of the reasons for the CMA allocator it for such usage.
-
-Not just bigger, say, with our preview / still-shot example, we would have 
-one queue with a larger number of small buffers for drop-free preview, and 
-a small number of larger buffers for still images. Currently you would 
-have to allocate a large number of large buffers, which would waste 
-memory. Or you would have to reallocate the queue, losing time. AFAICS, 
-CMA doesn't manage our memory for us. It only provides an API to reserve 
-memory for various uses with various restrictions (alignment, etc.) and 
-use different allocators to obtain that memory. So, are you suggesting, 
-that with that in place, we would first allocate the preview queue from 
-this memory, then free it, when switching to snapshooting, allocate our 
-large-buffer queue from the _same_ memory, capture images, free and 
-allocate preview queue again? Would that be fast enough?
-
-In fact, it would be kind of smart to reuse the same memory for both 
-queues, but if we could do it without re-allocations?...
-
-Thanks
-Guennadi
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ include/linux/Kbuild          |    1 +
+ include/linux/v4l2-mediabus.h |   78 +++++++++++++++++++++++++++++++++++++++++
+ include/media/soc_mediabus.h  |    3 +-
+ include/media/v4l2-mediabus.h |   61 +-------------------------------
+ 4 files changed, 81 insertions(+), 62 deletions(-)
+ create mode 100644 include/linux/v4l2-mediabus.h
+
+diff --git a/include/linux/Kbuild b/include/linux/Kbuild
+index 06d18a7..0e74498 100644
+--- a/include/linux/Kbuild
++++ b/include/linux/Kbuild
+@@ -370,6 +370,7 @@ header-y += unistd.h
+ header-y += usbdevice_fs.h
+ header-y += utime.h
+ header-y += utsname.h
++header-y += v4l2-mediabus.h
+ header-y += veth.h
+ header-y += vhost.h
+ header-y += videodev2.h
+diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
+new file mode 100644
+index 0000000..a62cd64
+--- /dev/null
++++ b/include/linux/v4l2-mediabus.h
+@@ -0,0 +1,78 @@
++/*
++ * Media Bus API header
++ *
++ * Copyright (C) 2009, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef __LINUX_V4L2_MEDIABUS_H
++#define __LINUX_V4L2_MEDIABUS_H
++
++#include <linux/types.h>
++#include <linux/videodev2.h>
++
++/*
++ * These pixel codes uniquely identify data formats on the media bus. Mostly
++ * they correspond to similarly named V4L2_PIX_FMT_* formats, format 0 is
++ * reserved, V4L2_MBUS_FMT_FIXED shall be used by host-client pairs, where the
++ * data format is fixed. Additionally, "2X8" means that one pixel is transferred
++ * in two 8-bit samples, "BE" or "LE" specify in which order those samples are
++ * transferred over the bus: "LE" means that the least significant bits are
++ * transferred first, "BE" means that the most significant bits are transferred
++ * first, and "PADHI" and "PADLO" define which bits - low or high, in the
++ * incomplete high byte, are filled with padding bits.
++ */
++enum v4l2_mbus_pixelcode {
++	V4L2_MBUS_FMT_FIXED = 1,
++	V4L2_MBUS_FMT_YUYV8_2X8,
++	V4L2_MBUS_FMT_YVYU8_2X8,
++	V4L2_MBUS_FMT_UYVY8_2X8,
++	V4L2_MBUS_FMT_VYUY8_2X8,
++	V4L2_MBUS_FMT_YVYU10_2X10,
++	V4L2_MBUS_FMT_YUYV10_2X10,
++	V4L2_MBUS_FMT_YVYU10_1X20,
++	V4L2_MBUS_FMT_YUYV10_1X20,
++	V4L2_MBUS_FMT_RGB444_2X8_PADHI_LE,
++	V4L2_MBUS_FMT_RGB444_2X8_PADHI_BE,
++	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
++	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE,
++	V4L2_MBUS_FMT_RGB565_2X8_LE,
++	V4L2_MBUS_FMT_RGB565_2X8_BE,
++	V4L2_MBUS_FMT_BGR565_2X8_LE,
++	V4L2_MBUS_FMT_BGR565_2X8_BE,
++	V4L2_MBUS_FMT_SBGGR8_1X8,
++	V4L2_MBUS_FMT_SBGGR10_1X10,
++	V4L2_MBUS_FMT_GREY8_1X8,
++	V4L2_MBUS_FMT_Y10_1X10,
++	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE,
++	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE,
++	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
++	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
++	V4L2_MBUS_FMT_SGRBG8_1X8,
++	V4L2_MBUS_FMT_SBGGR12_1X12,
++	V4L2_MBUS_FMT_YUYV8_1_5X8,
++	V4L2_MBUS_FMT_YVYU8_1_5X8,
++	V4L2_MBUS_FMT_UYVY8_1_5X8,
++	V4L2_MBUS_FMT_VYUY8_1_5X8,
++};
++
++/**
++ * struct v4l2_mbus_framefmt - frame format on the media bus
++ * @width:	frame width
++ * @height:	frame height
++ * @code:	data format code
++ * @field:	used interlacing type
++ * @colorspace:	colorspace of the data
++ */
++struct v4l2_mbus_framefmt {
++	__u32				width;
++	__u32				height;
++	__u32				code;
++	enum v4l2_field			field;
++	enum v4l2_colorspace		colorspace;
++};
++
++#endif
+diff --git a/include/media/soc_mediabus.h b/include/media/soc_mediabus.h
+index 037cd7b..6243147 100644
+--- a/include/media/soc_mediabus.h
++++ b/include/media/soc_mediabus.h
+@@ -12,8 +12,7 @@
+ #define SOC_MEDIABUS_H
+ 
+ #include <linux/videodev2.h>
+-
+-#include <media/v4l2-mediabus.h>
++#include <linux/v4l2-mediabus.h>
+ 
+ /**
+  * enum soc_mbus_packing - data packing types on the media-bus
+diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
+index 8e65598..971c7fa 100644
+--- a/include/media/v4l2-mediabus.h
++++ b/include/media/v4l2-mediabus.h
+@@ -11,66 +11,7 @@
+ #ifndef V4L2_MEDIABUS_H
+ #define V4L2_MEDIABUS_H
+ 
+-/*
+- * These pixel codes uniquely identify data formats on the media bus. Mostly
+- * they correspond to similarly named V4L2_PIX_FMT_* formats, format 0 is
+- * reserved, V4L2_MBUS_FMT_FIXED shall be used by host-client pairs, where the
+- * data format is fixed. Additionally, "2X8" means that one pixel is transferred
+- * in two 8-bit samples, "BE" or "LE" specify in which order those samples are
+- * transferred over the bus: "LE" means that the least significant bits are
+- * transferred first, "BE" means that the most significant bits are transferred
+- * first, and "PADHI" and "PADLO" define which bits - low or high, in the
+- * incomplete high byte, are filled with padding bits.
+- */
+-enum v4l2_mbus_pixelcode {
+-	V4L2_MBUS_FMT_FIXED = 1,
+-	V4L2_MBUS_FMT_YUYV8_2X8,
+-	V4L2_MBUS_FMT_YVYU8_2X8,
+-	V4L2_MBUS_FMT_UYVY8_2X8,
+-	V4L2_MBUS_FMT_VYUY8_2X8,
+-	V4L2_MBUS_FMT_YVYU10_2X10,
+-	V4L2_MBUS_FMT_YUYV10_2X10,
+-	V4L2_MBUS_FMT_YVYU10_1X20,
+-	V4L2_MBUS_FMT_YUYV10_1X20,
+-	V4L2_MBUS_FMT_RGB444_2X8_PADHI_LE,
+-	V4L2_MBUS_FMT_RGB444_2X8_PADHI_BE,
+-	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
+-	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE,
+-	V4L2_MBUS_FMT_RGB565_2X8_LE,
+-	V4L2_MBUS_FMT_RGB565_2X8_BE,
+-	V4L2_MBUS_FMT_BGR565_2X8_LE,
+-	V4L2_MBUS_FMT_BGR565_2X8_BE,
+-	V4L2_MBUS_FMT_SBGGR8_1X8,
+-	V4L2_MBUS_FMT_SBGGR10_1X10,
+-	V4L2_MBUS_FMT_GREY8_1X8,
+-	V4L2_MBUS_FMT_Y10_1X10,
+-	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE,
+-	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE,
+-	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
+-	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
+-	V4L2_MBUS_FMT_SGRBG8_1X8,
+-	V4L2_MBUS_FMT_SBGGR12_1X12,
+-	V4L2_MBUS_FMT_YUYV8_1_5X8,
+-	V4L2_MBUS_FMT_YVYU8_1_5X8,
+-	V4L2_MBUS_FMT_UYVY8_1_5X8,
+-	V4L2_MBUS_FMT_VYUY8_1_5X8,
+-};
+-
+-/**
+- * struct v4l2_mbus_framefmt - frame format on the media bus
+- * @width:	frame width
+- * @height:	frame height
+- * @code:	data format code
+- * @field:	used interlacing type
+- * @colorspace:	colorspace of the data
+- */
+-struct v4l2_mbus_framefmt {
+-	__u32				width;
+-	__u32				height;
+-	enum v4l2_mbus_pixelcode	code;
+-	enum v4l2_field			field;
+-	enum v4l2_colorspace		colorspace;
+-};
++#include <linux/v4l2-mediabus.h>
+ 
+ static inline void v4l2_fill_pix_format(struct v4l2_pix_format *pix_fmt,
+ 				const struct v4l2_mbus_framefmt *mbus_fmt)
+-- 
+1.7.3.4
+
