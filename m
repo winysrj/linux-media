@@ -1,100 +1,65 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44886 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750970Ab1BZOpD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Feb 2011 09:45:03 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC/PATCH 0/1] New subdev sensor operation g_interface_parms
-Date: Sat, 26 Feb 2011 15:45:02 +0100
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Stan <svarbanov@mm-sol.com>, Hans Verkuil <hansverk@cisco.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	saaguirre@ti.com
-References: <cover.1298368924.git.svarbanov@mm-sol.com> <4D67F3AF.7060808@maxwell.research.nokia.com> <201102261350.12833.hverkuil@xs4all.nl>
-In-Reply-To: <201102261350.12833.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Received: from mx1.redhat.com ([209.132.183.28]:21349 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752507Ab1BNVLl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Feb 2011 16:11:41 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p1ELBf5m029342
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 14 Feb 2011 16:11:41 -0500
+Received: from pedra (vpn-239-121.phx2.redhat.com [10.3.239.121])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p1EL3TGB012908
+	for <linux-media@vger.kernel.org>; Mon, 14 Feb 2011 16:11:40 -0500
+Date: Mon, 14 Feb 2011 19:03:18 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 11/14] [media] tuner-core: Don't use a static var for
+ xc5000_cfg
+Message-ID: <20110214190318.423d6693@pedra>
+In-Reply-To: <cover.1297716906.git.mchehab@redhat.com>
+References: <cover.1297716906.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201102261545.03396.laurent.pinchart@ideasonboard.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Hans,
+A static var is evil, especially if a device has two boards with
+xc5000. Instead, just like the other drivers, use stack to store
+its config during setup.
 
-On Saturday 26 February 2011 13:50:12 Hans Verkuil wrote:
-> On Friday, February 25, 2011 19:23:43 Sakari Ailus wrote:
-> > Guennadi Liakhovetski wrote:
-> > > On Wed, 23 Feb 2011, Hans Verkuil wrote:
-> > >> On Tuesday, February 22, 2011 22:42:58 Sylwester Nawrocki wrote:
-> > >>> Clock values are often being rounded at runtime and do not always
-> > >>> reflect exactly the numbers fixed at compile time. And negotiation
-> > >>> could help to obtain exact values at both sensor and host side.
-> > >> 
-> > >> The only static data I am concerned about are those that affect signal
-> > >> integrity. After thinking carefully about this I realized that there
-> > >> is really only one setting that is relevant to that: the sampling
-> > >> edge. The polarities do not matter in this.
-> > > 
-> > > Ok, this is much better! I'm still not perfectly happy having to punish
-> > > all just for the sake of a couple of broken boards, but I can certainly
-> > > much better live with this, than with having to hard-code each and
-> > > every bit. Thanks, Hans!
-> > 
-> > How much punishing would actually take place without autonegotiation?
-> > How many boards do we have in total? I counted around 26 of
-> > soc_camera_link declarations under arch/. Are there more?
-> > 
-> > An example of hardware which does care about clock polarity is the
-> > N8[01]0. The parallel clock polarity is inverted since this actually
-> > does improve reliability. In an ideal hardware this likely wouldn't
-> > happen but sometimes the hardware is not exactly ideal. Both the sensor
-> > and the camera block support non-inverted and inverted clock signal.
-> > 
-> > So at the very least it should be possible to provide this information
-> > in the board code even if both ends share multiple common values for
-> > parameters.
-> > 
-> > There have been many comments on the dangers of the autonegotiation and
-> > I share those concerns. One of my main concerns is that it creates an
-> > unnecessary dependency from all the boards to the negotiation code, the
-> > behaviour of which may not change.
-> 
-> OK, let me summarize this and if there are no objections then Stan can
-> start implementing this.
-> 
-> 1) We need two subdev ops: one reports the bus config capabilities and one
-> that sets it up. Note that these ops should be core ops since this
-> functionality is relevant for both sensors and video receive/transmit
-> devices.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Could you elaborate on this ? Stan's original proposal is to report the subdev 
-configuration so that the host can configure itself at streamon time. Why do 
-we need an operation to setup the subdev ?
-
-> 2) The clock sampling edge and polarity should not be negotiated but must
-> be set from board code for both subdevs and host. In the future this might
-> even require a callback with the clock frequency as argument.
-> 
-> 3) We probably need a utility function that given the host and subdev
-> capabilities will return the required subdev/host settings.
-> 
-> 4) soc-camera should switch to these new ops.
-> 
-> Of course, we also need MIPI support in this API. The same considerations
-> apply to MIPI as to the parallel bus: settings that depend on the hardware
-> board design should come from board code, others can be negotiated. Since
-> I know next to nothing about MIPI I will leave that to the experts...
-> 
-> One thing I am not sure about is if we want separate ops for parallel bus
-> and MIPI, or if we merge them. I am leaning towards separate ops as I
-> think that might be easier to implement.
-
+diff --git a/drivers/media/video/tuner-core.c b/drivers/media/video/tuner-core.c
+index 70ff416..16939ca 100644
+--- a/drivers/media/video/tuner-core.c
++++ b/drivers/media/video/tuner-core.c
+@@ -66,7 +66,6 @@ module_param_string(ntsc, ntsc, sizeof(ntsc), 0644);
+  * Static vars
+  */
+ 
+-static struct xc5000_config xc5000_cfg;
+ static LIST_HEAD(tuner_list);
+ 
+ /*
+@@ -338,9 +337,12 @@ static void set_type(struct i2c_client *c, unsigned int type,
+ 		break;
+ 	case TUNER_XC5000:
+ 	{
+-		xc5000_cfg.i2c_address	  = t->i2c->addr;
+-		/* if_khz will be set when the digital dvb_attach() occurs */
+-		xc5000_cfg.if_khz	  = 0;
++		struct xc5000_config xc5000_cfg = {
++			.i2c_address = t->i2c->addr,
++			/* if_khz will be set at dvb_attach() */
++			.if_khz	  = 0,
++		};
++
+ 		if (!dvb_attach(xc5000_attach,
+ 				&t->fe, t->i2c->adapter, &xc5000_cfg))
+ 			goto attach_failed;
 -- 
-Regards,
+1.7.1
 
-Laurent Pinchart
+
