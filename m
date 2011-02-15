@@ -1,51 +1,62 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.23]:34705 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751196Ab1BOCAi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Feb 2011 21:00:38 -0500
-From: Oliver Endriss <o.endriss@gmx.de>
-Reply-To: linux-media@vger.kernel.org
-To: "Issa Gorissen" <flop.m@usa.net>
-Subject: Re: Sony CXD2099AR decryption failing
-Date: Tue, 15 Feb 2011 02:33:18 +0100
-Cc: linux-media@vger.kernel.org
-References: <362PBNqp43088S03.1297701775@web03.cms.usa.net>
-In-Reply-To: <362PBNqp43088S03.1297701775@web03.cms.usa.net>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Received: from mx1.redhat.com ([209.132.183.28]:61550 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751483Ab1BONev (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Feb 2011 08:34:51 -0500
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p1FDYppH008703
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 15 Feb 2011 08:34:51 -0500
+Received: from pedra (vpn-239-107.phx2.redhat.com [10.3.239.107])
+	by int-mx12.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p1FDXmP0005481
+	for <linux-media@vger.kernel.org>; Tue, 15 Feb 2011 08:34:50 -0500
+Date: Tue, 15 Feb 2011 11:33:37 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 0/4] Additional cleanups to tuner-core
+Message-ID: <20110215113337.42919870@pedra>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201102150233.18903@orion.escape-edv.de>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+Hans Verkuils gave me some feedback about the last series at the
+ML, and, due to that, I've added a few more cleanup patches at
+the series.
 
-On Monday 14 February 2011 17:42:55 Issa Gorissen wrote:
-> Hi,
-> 
-> I am having some trouble with the Sony CXD2099AR CI chip.
-> 
-> With a SMIT Viaccess CAM, I am not able to decrypt channels from the french
-> package Bis.TV on Hotbird 13E.
-> 
-> The CAM decrypts fine when inserted in a set top box.
-> 
-> The drivers running are those from the branch of Oliver.
-> System's running OpenSuse 11.3.
-> 
-> May someone with the knowledge of this chip get in touch with me ?
+Basically, he poined me two issues: 
 
-Could you please test, whether it works with the windows driver?
+- DIGITAL_TV is not used at tuner core;
+- tuner_lookup shouldn't touch at t->standby.
 
-CU
-Oliver
+This series cleans the code to address the above issues, and also
+do a few other cleanups to better document the code, without changing
+any functionality.
 
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
-Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
-----------------------------------------------------------------
+I also extended my tests with some other devices. The tuner-core was
+tested with:
+	- cx88: Pixelview Ultra Pro: A TNF analog tuner + tea5767;
+	- em28xx: WinTV USB2: an analog tuner with tda9887;
+	- em28xx: HVR950: xc2028 based tuner;
+	- cx231xx: Pixelview SBTVD Hybrid: tda18271 tuner.
+
+On all the tests, tuner-core behave well. So, I'm committing the entire
+tuner-core series of patches, for people to test them with other devices,
+but, based on my tests, I don't think that the changes would cause any
+regressions.
+
+Mauro Carvalho Chehab (4):
+  [media] tuner-core: remove usage of DIGITAL_TV
+  [media] tuner-core: Improve function documentation
+  [media] tuner-core: Rearrange some functions to better document
+  [media] tuner-core: Don't touch at standby during tuner_lookup
+
+ drivers/media/video/au0828/au0828-cards.c   |    3 +-
+ drivers/media/video/bt8xx/bttv-cards.c      |    2 +-
+ drivers/media/video/cx88/cx88-cards.c       |    4 +-
+ drivers/media/video/saa7134/saa7134-cards.c |    4 +-
+ drivers/media/video/tuner-core.c            |  310 ++++++++++++++++++---------
+ 5 files changed, 209 insertions(+), 114 deletions(-)
+
