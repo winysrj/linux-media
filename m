@@ -1,122 +1,91 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53779 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753444Ab1B1Kra (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:53116 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754363Ab1BOLoq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Feb 2011 05:47:30 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hansverk@cisco.com>
-Subject: Re: [RFC] snapshot mode, flash capabilities and control
-Date: Mon, 28 Feb 2011 11:47:39 +0100
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Kim HeungJun <riverful@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Stanimir Varbanov <svarbanov@mm-sol.com>
-References: <Pine.LNX.4.64.1102240947230.15756@axis700.grange> <201102281128.58488.laurent.pinchart@ideasonboard.com> <201102281140.31643.hansverk@cisco.com>
-In-Reply-To: <201102281140.31643.hansverk@cisco.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201102281147.39449.laurent.pinchart@ideasonboard.com>
+	Tue, 15 Feb 2011 06:44:46 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=ISO-8859-1
+Date: Tue, 15 Feb 2011 12:44:42 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH resend] video: omap24xxcam: Fix compilation
+In-reply-to: <20110215113717.GN2570@legolas.emea.dhcp.ti.com>
+To: balbi@ti.com
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Thomas Weber <weber@corscience.de>, linux-omap@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>, Tejun Heo <tj@kernel.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Message-id: <4D5A672A.7040000@samsung.com>
+References: <1297068547-10635-1-git-send-email-weber@corscience.de>
+ <4D5A6353.7040907@maxwell.research.nokia.com>
+ <20110215113717.GN2570@legolas.emea.dhcp.ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Monday 28 February 2011 11:40:31 Hans Verkuil wrote:
-> On Monday, February 28, 2011 11:28:58 Laurent Pinchart wrote:
-> > On Saturday 26 February 2011 14:56:18 Hans Verkuil wrote:
-> > > On Saturday, February 26, 2011 14:39:54 Sylwester Nawrocki wrote:
-> > > > On 02/26/2011 02:03 PM, Guennadi Liakhovetski wrote:
-> > > > > On Sat, 26 Feb 2011, Hans Verkuil wrote:
-> > > > >> On Friday, February 25, 2011 18:08:07 Guennadi Liakhovetski wrote:
+Hi Felipe,
 
-[snip]
-
-> > > > >>> Well, you usually see in your host driver, that the videobuffer
-> > > > >>> queue is empty (no more free buffers are available), so, you stop
-> > > > >>> streaming immediately too.
-> > > > >> 
-> > > > >> This probably assumes that the host driver knows that this is a
-> > > > >> special queue? Because in general drivers will simply keep
-> > > > >> capturing in the last buffer and not release it to userspace
-> > > > >> until a new buffer is queued.
-> > > > > 
-> > > > > Yes, I know about this spec requirement, but I also know, that not
-> > > > > all drivers do that and not everyone is happy about that
-> > > > > requirement:)
-> > > > 
-> > > > Right, similarly a v4l2 output device is not releasing the last
-> > > > buffer to userland and keeps sending its content until a new buffer
-> > > > is queued to the driver. But in case of capture device the requirement
-> > > > is a pain, since it only causes draining the power source, when from a
-> > > > user view the video capture is stopped. Also it limits a minimum
-> > > > number of buffers that could be used in preview pipeline.
-> > > 
-> > > No, we can't change this. We can of course add some setting that will
-> > > explicitly request different behavior.
-> > > 
-> > > The reason this is done this way comes from the traditional TV/webcam
-> > > viewing apps. If for some reason the app can't keep up with the capture
-> > > rate, then frames should just be dropped silently. All apps assume this
-> > > behavior. In a normal user environment this scenario is perfectly
-> > > normal (e.g. you use a webcam app, then do a CPU intensive make run).
-> > 
-> > Why couldn't drivers drop frames silently without a capture buffer ? If
-> > the hardware can be paused, the driver could just do that when the last
-> > buffer is given back to userspace, and resume the hardware when the next
-> > buffer is queued.
+On 02/15/2011 12:37 PM, Felipe Balbi wrote:
+> On Tue, Feb 15, 2011 at 01:28:19PM +0200, Sakari Ailus wrote:
+>> Thomas Weber wrote:
+>>> Add linux/sched.h because of missing declaration of TASK_NORMAL.
+>>>
+>>> This patch fixes the following error:
+>>>
+>>> drivers/media/video/omap24xxcam.c: In function
+>>> 'omap24xxcam_vbq_complete':
+>>> drivers/media/video/omap24xxcam.c:415: error: 'TASK_NORMAL' undeclared
+>>> (first use in this function)
+>>> drivers/media/video/omap24xxcam.c:415: error: (Each undeclared
+>>> identifier is reported only once
+>>> drivers/media/video/omap24xxcam.c:415: error: for each function it
+>>> appears in.)
+>>>
+>>> Signed-off-by: Thomas Weber <weber@corscience.de>
+>>
+>> Thanks, Thomas!
 > 
-> It was my understanding that the streaming would stop if no capture buffers
-> are available, requiring a VIDIOC_STREAMON to get it started again. Of
-> course, there is nothing wrong with stopping the hardware and restarting
-> it again when a new buffer becomes available if that can be done
-> efficiently enough. Just as long as userspace doesn't notice.
+> Are we using the same tree ? I don't see anything related to TASK_* on
+
+Please have a look at definition of macro wake_up. This where those
+TASK_* flags are used.
+
+> that function on today's mainline, here's a copy of the function:
 > 
-> Note that there are some problems with this anyway: often restarting DMA
-> requires resyncing to the video stream, which may lead to lost frames.
-
-You'll loose frames when you get a buffer underrun anyway :-)
-
-> Also, the framecounter in struct v4l2_buffer will probably have failed to
-> count the lost frames.
+>  387 static void omap24xxcam_vbq_complete(struct omap24xxcam_sgdma *sgdma,
+>  388                                      u32 csr, void *arg)
+>  389 {
+>  390         struct omap24xxcam_device *cam =
+>  391                 container_of(sgdma, struct omap24xxcam_device, sgdma);
+>  392         struct omap24xxcam_fh *fh = cam->streaming->private_data;
+>  393         struct videobuf_buffer *vb = (struct videobuf_buffer *)arg;
+>  394         const u32 csr_error = CAMDMA_CSR_MISALIGNED_ERR
+>  395                 | CAMDMA_CSR_SUPERVISOR_ERR | CAMDMA_CSR_SECURE_ERR
+>  396                 | CAMDMA_CSR_TRANS_ERR | CAMDMA_CSR_DROP;
+>  397         unsigned long flags;
+>  398 
+>  399         spin_lock_irqsave(&cam->core_enable_disable_lock, flags);
+>  400         if (--cam->sgdma_in_queue == 0)
+>  401                 omap24xxcam_core_disable(cam);
+>  402         spin_unlock_irqrestore(&cam->core_enable_disable_lock, flags);
+>  403 
+>  404         do_gettimeofday(&vb->ts);
+>  405         vb->field_count = atomic_add_return(2, &fh->field_count);
+>  406         if (csr & csr_error) {
+>  407                 vb->state = VIDEOBUF_ERROR;
+>  408                 if (!atomic_read(&fh->cam->in_reset)) {
+>  409                         dev_dbg(cam->dev, "resetting camera, csr 0x%x\n", csr);
+>  410                         omap24xxcam_reset(cam);
+>  411                 }
+>  412         } else
+>  413                 vb->state = VIDEOBUF_DONE;
+>  414         wake_up(&vb->done);
+>  415 }
 > 
-> In my opinion trying this might cause more problems than it solves.
-
-Whether drivers will hold on the last buffer and keep filling it again and 
-again until a new buffer is available, or stop the stream and resume it 
-transparently when a new buffer is queued, should probably be left as a choice 
-to the drivers. I'm in favour of the second option, but I understand that it 
-might be difficult to implement for some hardware. The spec should at least 
-not preclude it when efficient hardware support is available.
-
-> > > I agree that you might want different behavior in an embedded
-> > > environment, but that should be requested explicitly.
-> > > 
-> > > > In still capture mode (single shot) we might want to use only one
-> > > > buffer so adhering to the requirement would not allow this, would
-> > > > it?
-> > > 
-> > > That's one of the problems with still capture mode, yes.
-> > > 
-> > > I have not yet seen a proposal for this that I really like. Most are
-> > > too specific to this use-case (snapshot) and I'd like to see something
-> > > more general.
-> > 
-> > I don't think snapshot capture is *that* special. I don't expect most
-> > embedded SoCs to implement snapshot capture in hardware. What usually
-> > happens is that the hardware provides some support (like two independent
-> > video streams for instance, or the ability to capture a given number of
-> > frames) and the scheduling is performed in userspace. Good quality
-> > snapshot capture requires complex algorithms and involves several
-> > hardware pieces (ISP, flash controller, lens controller, ...), so it
-> > can't be implemented in the kernel.
+> see that line 415 is where the function ends. My head is
+> 795abaf1e4e188c4171e3cd3dbb11a9fcacaf505
 > 
-> I agree.
 
--- 
-Regards,
-
-Laurent Pinchart
+Cheers,
+Sylwester Nawrocki
