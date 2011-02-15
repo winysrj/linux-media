@@ -1,31 +1,44 @@
 Return-path: <mchehab@pedra>
-Received: from relay4.tee.gr ([212.70.194.197]:33837 "EHLO relay4.tee.gr"
+Received: from smtp.nokia.com ([147.243.1.47]:32762 "EHLO mgw-sa01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756152Ab1BCKU4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Feb 2011 05:20:56 -0500
-Message-ID: <9c68eeba4482bfbb660d69075de375ff.squirrel@webmail.tee.gr>
-Date: Wed, 2 Feb 2011 01:56:25 +0200
-Subject: Mutual Aid  Stash of Fortune
-From: "George" <3ktech@tee.gr>
-Reply-To: ivannickerson.claims@yahoo.com.hk
+	id S1754545Ab1BOMTo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Feb 2011 07:19:44 -0500
+Message-ID: <4D5A6EEC.5000908@maxwell.research.nokia.com>
+Date: Tue, 15 Feb 2011 14:17:48 +0200
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-Content-Type: text/plain;charset=UTF-8
-Content-Transfer-Encoding: 8bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+To: balbi@ti.com
+CC: Thomas Weber <weber@corscience.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-omap@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>, Tejun Heo <tj@kernel.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH resend] video: omap24xxcam: Fix compilation
+References: <1297068547-10635-1-git-send-email-weber@corscience.de> <4D5A6353.7040907@maxwell.research.nokia.com> <20110215113717.GN2570@legolas.emea.dhcp.ti.com> <4D5A672A.7040000@samsung.com> <4D5A6874.1080705@corscience.de> <20110215115349.GQ2570@legolas.emea.dhcp.ti.com>
+In-Reply-To: <20110215115349.GQ2570@legolas.emea.dhcp.ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Mutual Aid  Stash of Fortune
-Hi
-I would hold back certain information for security reasons for now until
-you have found time to visit the BBC website stated below to enable you
-have an insight into what I intend sharing with you.
+Felipe Balbi wrote:
+> Hi,
+> 
+> On Tue, Feb 15, 2011 at 12:50:12PM +0100, Thomas Weber wrote:
+>> Hello Felipe,
+>>
+>> in include/linux/wait.h
+>>
+>> #define wake_up(x)            __wake_up(x, TASK_NORMAL, 1, NULL)
+> 
+> aha, now I get it, so shouldn't the real fix be including <linux/sched.h>
+> on <linux/wait.h>, I mean, it's <linuux/wait.h> who uses a symbol
+> defined in <linux/sched.h>, right ?
 
-http://news.bbc.co.uk/2/hi/middle_east/2988455.stm
+Surprisingly many other files still don't seem to be affected. But this
+is actually a better solution (to include sched.h in wait.h).
 
-Get back to me having visited the above website with this email:
-ivannickerson.claims@yahoo.com.hk
-
-Best Regards
-A former member of the  3rd Infantry Division
-
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
