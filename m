@@ -1,1558 +1,667 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.samsung.com ([203.254.224.25]:57490 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752608Ab1BXGIO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Feb 2011 01:08:14 -0500
-Received: from epmmp1 (mailout2.samsung.com [203.254.224.25])
- by mailout2.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LH300EFIXPRXO60@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 24 Feb 2011 14:53:51 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LH300D0NXPRTO@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 24 Feb 2011 14:53:51 +0900 (KST)
-Date: Thu, 24 Feb 2011 14:53:50 +0900
-From: "Kim, HeungJun" <riverful.kim@samsung.com>
-Subject: [PATCH v5] Add support for M-5MOLS 8 Mega Pixel camera
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	riverful.kim@samsung.com
-Reply-to: riverful.kim@samsung.com
-Message-id: <4D65F26E.5050308@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7BIT
+Received: from smtp.nokia.com ([147.243.1.48]:53147 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752690Ab1BOIQG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Feb 2011 03:16:06 -0500
+From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+To: alsa-devel@alsa-project.org, broonie@opensource.wolfsonmicro.com,
+	lrg@slimlogic.co.uk, mchehab@redhat.com, hverkuil@xs4all.nl,
+	sameo@linux.intel.com, linux-media@vger.kernel.org
+Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Subject: [PATCH v19 1/3] MFD: WL1273 FM Radio: MFD driver for the FM radio.
+Date: Tue, 15 Feb 2011 10:13:44 +0200
+Message-Id: <1297757626-3281-2-git-send-email-matti.j.aaltonen@nokia.com>
+In-Reply-To: <1297757626-3281-1-git-send-email-matti.j.aaltonen@nokia.com>
+References: <1297757626-3281-1-git-send-email-matti.j.aaltonen@nokia.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Add I2C/V4L2 subdev driver for M-5MOLS camera sensor with integrated
-image signal processor.
+This is the core of the WL1273 FM radio driver, it connects
+the two child modules. The two child drivers are
+drivers/media/radio/radio-wl1273.c and sound/soc/codecs/wl1273.c.
 
-Signed-off-by: Heungjun Kim <riverful.kim@samsung.com>
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+The radio-wl1273 driver implements the V4L2 interface and communicates
+with the device. The ALSA codec offers digital audio, without it only
+analog audio is available.
 
+Signed-off-by: Matti J. Aaltonen <matti.j.aaltonen@nokia.com>
 ---
+ drivers/mfd/Kconfig             |   10 ++
+ drivers/mfd/Makefile            |    1 +
+ drivers/mfd/wl1273-core.c       |  295 +++++++++++++++++++++++++++++++++++++++
+ include/linux/mfd/wl1273-core.h |  291 ++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 597 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/mfd/wl1273-core.c
+ create mode 100644 include/linux/mfd/wl1273-core.h
 
-Hello,
-
-This is fifth version of M-5MOLS 8 Mega Pixel camera sensor.
-I missed one file at the just previous version fifth patch. I hope the previous
-one ignored, and I re-send the patch adding the missing file. And this patch
-would maintain as the same name, version and contents. 
-
-Sorry to make coufusing.
-
-The fifth version changes are below:
-1. remove dynmic regulator consumer name array
-2. rename M5MOLS to M-5MOLS in the comments. M-5MOLS is original name.
-3. remove unused type and register address definition
-4. fix some typos.
-
-The fourth version changes are below:
-1. combine splitted i2c_transfer functions to single I2C operation
-2. remove unneeded checking for control values
-3. fix some typos and code clean
-
-The third version changes are below:
-1. the method to writing register accordint to state value
-2. changing mdelay to usleep_range because of not hogging
-
-The second versions changes are below:
-1. remove I2C function macro, and use static inline for type-safe.
-2. use the v4l2 control framework documented at v4l2-control.txt.
-3. Add regulator enable/disable functions
-4. fix any coding problems
-
-The first version patch is here:
-http://www.spinics.net/lists/linux-media/msg26246.html
-
-This driver is tested on s5pc210 board using s5p-fimc driver.
-
-Thanks for any ideas.
-
-Regards,
-	Heungjun Kim
-	Samsung Electronics DMC R&D Center
----
- drivers/media/video/Kconfig                  |    2 +
- drivers/media/video/Makefile                 |    1 +
- drivers/media/video/m5mols/Kconfig           |    6 +
- drivers/media/video/m5mols/Makefile          |    3 +
- drivers/media/video/m5mols/m5mols.h          |  200 ++++++
- drivers/media/video/m5mols/m5mols_controls.c |  163 +++++
- drivers/media/video/m5mols/m5mols_core.c     |  882 ++++++++++++++++++++++++++
- drivers/media/video/m5mols/m5mols_reg.h      |  103 +++
- include/media/m5mols.h                       |   33 +
- 9 files changed, 1393 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/m5mols/Kconfig
- create mode 100644 drivers/media/video/m5mols/Makefile
- create mode 100644 drivers/media/video/m5mols/m5mols.h
- create mode 100644 drivers/media/video/m5mols/m5mols_controls.c
- create mode 100644 drivers/media/video/m5mols/m5mols_core.c
- create mode 100644 drivers/media/video/m5mols/m5mols_reg.h
- create mode 100644 include/media/m5mols.h
-
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index d40a8fc..6a03aad 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -746,6 +746,8 @@ config VIDEO_NOON010PC30
- 	---help---
- 	  This driver supports NOON010PC30 CIF camera from Siliconfile
+diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+index 3a1493b..7c2e6c3 100644
+--- a/drivers/mfd/Kconfig
++++ b/drivers/mfd/Kconfig
+@@ -606,6 +606,16 @@ config MFD_VX855
+ 	  VIA VX855/VX875 south bridge. You will need to enable the vx855_spi
+ 	  and/or vx855_gpio drivers for this to do anything useful.
  
-+source "drivers/media/video/m5mols/Kconfig"
++config MFD_WL1273_CORE
++	tristate "Support for TI WL1273 FM radio."
++	depends on I2C
++	select MFD_CORE
++	default n
++	help
++	  This is the core driver for the TI WL1273 FM radio. This MFD
++	  driver connects the radio-wl1273 V4L2 module and the wl1273
++	  audio codec.
 +
- config SOC_CAMERA
- 	tristate "SoC camera support"
- 	depends on VIDEO_V4L2 && HAS_DMA && I2C
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index 251b7ca..adb9361 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -68,6 +68,7 @@ obj-$(CONFIG_VIDEO_TVEEPROM) += tveeprom.o
- obj-$(CONFIG_VIDEO_MT9V011) += mt9v011.o
- obj-$(CONFIG_VIDEO_SR030PC30)	+= sr030pc30.o
- obj-$(CONFIG_VIDEO_NOON010PC30)	+= noon010pc30.o
-+obj-$(CONFIG_VIDEO_M5MOLS)	+= m5mols/
+ endif # MFD_SUPPORT
  
- obj-$(CONFIG_SOC_CAMERA_IMX074)		+= imx074.o
- obj-$(CONFIG_SOC_CAMERA_MT9M001)	+= mt9m001.o
-diff --git a/drivers/media/video/m5mols/Kconfig b/drivers/media/video/m5mols/Kconfig
+ menu "Multimedia Capabilities Port drivers"
+diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
+index f54b365..ae2f915 100644
+--- a/drivers/mfd/Makefile
++++ b/drivers/mfd/Makefile
+@@ -81,3 +81,4 @@ obj-$(CONFIG_MFD_JANZ_CMODIO)	+= janz-cmodio.o
+ obj-$(CONFIG_MFD_JZ4740_ADC)	+= jz4740-adc.o
+ obj-$(CONFIG_MFD_TPS6586X)	+= tps6586x.o
+ obj-$(CONFIG_MFD_VX855)		+= vx855.o
++obj-$(CONFIG_MFD_WL1273_CORE)	+= wl1273-core.o
+diff --git a/drivers/mfd/wl1273-core.c b/drivers/mfd/wl1273-core.c
 new file mode 100644
-index 0000000..a4ac129
+index 0000000..66e0ac9
 --- /dev/null
-+++ b/drivers/media/video/m5mols/Kconfig
-@@ -0,0 +1,6 @@
-+config VIDEO_M5MOLS
-+	tristate "Fujitsu M-5MOLS 8MP sensor support"
-+	depends on I2C && VIDEO_V4L2
-+	---help---
-+	  This driver supports Fujitsu M-5MOLS camera sensor with ISP
-+
-diff --git a/drivers/media/video/m5mols/Makefile b/drivers/media/video/m5mols/Makefile
-new file mode 100644
-index 0000000..b5d19bf
---- /dev/null
-+++ b/drivers/media/video/m5mols/Makefile
-@@ -0,0 +1,3 @@
-+m5mols-objs	:= m5mols_core.o m5mols_controls.o
-+
-+obj-$(CONFIG_VIDEO_M5MOLS)		+= m5mols.o
-diff --git a/drivers/media/video/m5mols/m5mols.h b/drivers/media/video/m5mols/m5mols.h
-new file mode 100644
-index 0000000..28ffd35
---- /dev/null
-+++ b/drivers/media/video/m5mols/m5mols.h
-@@ -0,0 +1,200 @@
++++ b/drivers/mfd/wl1273-core.c
+@@ -0,0 +1,295 @@
 +/*
-+ * Driver internal Header for M-5MOLS 8M Pixel camera sensor with ISP
++ * MFD driver for wl1273 FM radio and audio codec submodules.
 + *
-+ * Copyright (C) 2011 Samsung Electronics Co., Ltd
-+ * Author: HeungJun Kim, riverful.kim@samsung.com
-+ *
-+ * Copyright (C) 2009 Samsung Electronics Co., Ltd
-+ * Author: Dongsoo Nathaniel Kim, dongsoo45.kim@samsung.com
++ * Copyright (C) 2010 Nokia Corporation
++ * Author: Matti Aaltonen <matti.j.aaltonen@nokia.com>
 + *
 + * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ *
 + */
 +
-+#ifndef M5MOLS_H
-+#define M5MOLS_H
++#include <linux/mfd/wl1273-core.h>
++#include <linux/slab.h>
 +
-+#include <media/v4l2-subdev.h>
-+#include "m5mols_reg.h"
++#define DRIVER_DESC "WL1273 FM Radio Core"
 +
-+#define v4l2msg(fmt, arg...)	do {				\
-+	v4l2_dbg(1, m5mols_debug, &info->sd, fmt, ## arg);	\
-+} while (0)
-+
-+extern int m5mols_debug;
-+
-+enum m5mols_mode {
-+	MODE_SYSINIT,
-+	MODE_PARMSET,
-+	MODE_MONITOR,
-+	MODE_UNKNOWN,
++static struct i2c_device_id wl1273_driver_id_table[] = {
++	{ WL1273_FM_DRIVER_NAME, 0 },
++	{ }
 +};
++MODULE_DEVICE_TABLE(i2c, wl1273_driver_id_table);
 +
-+enum m5mols_i2c_size {
-+	I2C_8BIT	= 1,
-+	I2C_16BIT	= 2,
-+	I2C_32BIT	= 4,
-+	I2C_MAX		= 4,
-+};
 +
-+enum m5mols_fps {
-+	M5MOLS_FPS_AUTO	= 0,
-+	M5MOLS_FPS_10	= 10,
-+	M5MOLS_FPS_12	= 12,
-+	M5MOLS_FPS_15	= 15,
-+	M5MOLS_FPS_20	= 20,
-+	M5MOLS_FPS_21	= 21,
-+	M5MOLS_FPS_22	= 22,
-+	M5MOLS_FPS_23	= 23,
-+	M5MOLS_FPS_24	= 24,
-+	M5MOLS_FPS_30	= 30,
-+	M5MOLS_FPS_MAX	= M5MOLS_FPS_30,
-+};
-+
-+enum m5mols_res_type {
-+	M5MOLS_RES_MON,
-+	/* It's not supported below yet. */
-+	M5MOLS_RES_PREVIEW,
-+	M5MOLS_RES_THUMB,
-+	M5MOLS_RES_CAPTURE,
-+	M5MOLS_RES_UNKNOWN,
-+};
-+
-+struct m5mols_resolution {
-+	u8			value;
-+	enum m5mols_res_type	type;
-+	u16			width;
-+	u16			height;
-+};
-+
-+struct m5mols_format {
-+	enum v4l2_mbus_pixelcode code;
-+	enum v4l2_colorspace colorspace;
-+};
-+
-+struct m5mols_version {
-+	u8	ctm_code;	/* customer code */
-+	u8	pj_code;	/* project code */
-+	u16	fw;		/* firmware version */
-+	u16	hw;		/* hardware version */
-+	u16	parm;		/* parameter version */
-+	u16	awb;		/* AWB version */
-+};
-+
-+struct m5mols_info {
-+	const struct m5mols_platform_data	*pdata;
-+	struct v4l2_subdev		sd;
-+	struct v4l2_mbus_framefmt	fmt;
-+	struct v4l2_fract		tpf;
-+
-+	struct v4l2_ctrl_handler	handle;
-+	struct {
-+		/* support only AE of the Monitor Mode in this version */
-+		struct v4l2_ctrl	*autoexposure;
-+		struct v4l2_ctrl	*exposure;
-+	};
-+	struct v4l2_ctrl		*autowb;
-+	struct v4l2_ctrl		*colorfx;
-+	struct v4l2_ctrl		*saturation;
-+
-+	enum m5mols_mode		mode;
-+	enum m5mols_mode		mode_backup;
-+
-+	struct m5mols_version		ver;
-+	bool				power;
-+};
-+
-+/* control functions */
-+int m5mols_set_ctrl(struct v4l2_ctrl *ctrl);
-+
-+/* I2C functions - referenced by below I2C helper functions */
-+int m5mols_read_reg(struct v4l2_subdev *sd, enum m5mols_i2c_size size,
-+		u8 category, u8 cmd, u32 *val);
-+int m5mols_write_reg(struct v4l2_subdev *sd, enum m5mols_i2c_size size,
-+		u8 category, u8 cmd, u32 val);
-+int m5mols_check_busy(struct v4l2_subdev *sd,
-+		u8 category, u8 cmd, u32 value);
-+int m5mols_set_mode(struct v4l2_subdev *sd, enum m5mols_mode mode);
-+
-+/*
-+ * helper functions
-+ */
-+static inline struct m5mols_info *to_m5mols(struct v4l2_subdev *sd)
++static int wl1273_fm_read_reg(struct wl1273_core *core, u8 reg, u16 *value)
 +{
-+	return container_of(sd, struct m5mols_info, sd);
-+}
++	struct i2c_client *client = core->client;
++	u8 b[2];
++	int r;
 +
-+static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
-+{
-+	return &container_of(ctrl->handler, struct m5mols_info, handle)->sd;
-+}
-+
-+static inline bool is_streaming(struct v4l2_subdev *sd)
-+{
-+	struct m5mols_info *info = to_m5mols(sd);
-+	return info->mode == MODE_MONITOR;
-+}
-+
-+static inline bool is_powerup(struct v4l2_subdev *sd)
-+{
-+	struct m5mols_info *info = to_m5mols(sd);
-+	return info->power;
-+}
-+
-+static inline int __must_check i2c_w8_system(struct v4l2_subdev *sd,
-+		u8 cmd, u32 val)
-+{
-+	return m5mols_write_reg(sd, I2C_8BIT, CAT_SYSTEM, cmd, val);
-+}
-+
-+static inline int __must_check i2c_w8_param(struct v4l2_subdev *sd,
-+		u8 cmd, u32 val)
-+{
-+	return m5mols_write_reg(sd, I2C_8BIT, CAT_PARAM, cmd, val);
-+}
-+
-+static inline int __must_check i2c_w8_mon(struct v4l2_subdev *sd,
-+		u8 cmd, u32 val)
-+{
-+	return m5mols_write_reg(sd, I2C_8BIT, CAT_MONITOR, cmd, val);
-+}
-+
-+static inline int __must_check i2c_w8_ae(struct v4l2_subdev *sd,
-+		u8 cmd, u32 val)
-+{
-+	return m5mols_write_reg(sd, I2C_8BIT, CAT_AE, cmd, val);
-+}
-+
-+static inline int __must_check i2c_w16_ae(struct v4l2_subdev *sd,
-+		u8 cmd, u32 val)
-+{
-+	return m5mols_write_reg(sd, I2C_16BIT, CAT_AE, cmd, val);
-+}
-+
-+static inline int __must_check i2c_w8_wb(struct v4l2_subdev *sd,
-+		u8 cmd, u32 val)
-+{
-+	return m5mols_write_reg(sd, I2C_8BIT, CAT_WB, cmd, val);
-+}
-+
-+static inline int __must_check i2c_w8_flash(struct v4l2_subdev *sd,
-+		u8 cmd, u32 val)
-+{
-+	return m5mols_write_reg(sd, I2C_8BIT, CAT_FLASH, cmd, val);
-+}
-+
-+static inline int __must_check i2c_r8_system(struct v4l2_subdev *sd,
-+		u8 cmd, u32 *val)
-+{
-+	return m5mols_read_reg(sd, I2C_8BIT, CAT_SYSTEM, cmd, val);
-+}
-+
-+static inline int __must_check i2c_r16_ae(struct v4l2_subdev *sd,
-+		u8 cmd, u32 *val)
-+{
-+	return m5mols_read_reg(sd, I2C_16BIT, CAT_AE, cmd, val);
-+}
-+
-+#endif	/* M5MOLS_H */
-diff --git a/drivers/media/video/m5mols/m5mols_controls.c b/drivers/media/video/m5mols/m5mols_controls.c
-new file mode 100644
-index 0000000..9b36c29
---- /dev/null
-+++ b/drivers/media/video/m5mols/m5mols_controls.c
-@@ -0,0 +1,163 @@
-+/*
-+ * Controls for M-5MOLS 8M Pixel camera sensor with ISP
-+ *
-+ * Copyright (C) 2011 Samsung Electronics Co., Ltd
-+ * Author: HeungJun Kim, riverful.kim@samsung.com
-+ *
-+ * Copyright (C) 2009 Samsung Electronics Co., Ltd
-+ * Author: Dongsoo Nathaniel Kim, dongsoo45.kim@samsung.com
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <linux/i2c.h>
-+#include <linux/videodev2.h>
-+#include <media/v4l2-ctrls.h>
-+
-+#include "m5mols.h"
-+#include "m5mols_reg.h"
-+
-+static int m5mols_set_ae_lock(struct m5mols_info *info, bool lock)
-+{
-+	struct v4l2_subdev *sd = &info->sd;
-+
-+	return i2c_w8_ae(sd, CAT3_AE_LOCK, lock ? 0x0 : 0x1);
-+}
-+
-+static int m5mols_set_awb_lock(struct m5mols_info *info, bool lock)
-+{
-+	struct v4l2_subdev *sd = &info->sd;
-+
-+	return i2c_w8_wb(sd, CAT6_AWB_LOCK, lock ? 0x0 : 0x1);
-+}
-+
-+static int m5mols_wb_mode(struct m5mols_info *info, struct v4l2_ctrl *ctrl)
-+{
-+	struct v4l2_subdev *sd = &info->sd;
-+	static u8 m5mols_wb_auto[] = { 0x1, 0x2, };
-+	int ret;
-+
-+	ret = m5mols_set_awb_lock(info, false);
-+	if (!ret)
-+		ret = i2c_w8_wb(sd, CAT6_AWB_MODE, m5mols_wb_auto[ctrl->val]);
-+
-+	return ret;
-+}
-+
-+static int m5mols_exposure_mode(struct m5mols_info *info,
-+		struct v4l2_ctrl *ctrl)
-+{
-+	struct v4l2_subdev *sd = &info->sd;
-+	static u8 m5mols_ae_mode[] = {
-+		[V4L2_EXPOSURE_MANUAL]	= 0x00,	/* AE off */
-+		[V4L2_EXPOSURE_AUTO]	= 0x01,	/* Exposure all blocks */
-+	};
-+	int ret;
-+
-+	ret = m5mols_set_ae_lock(info, false);
-+	if (!ret)
-+		ret = i2c_w8_ae(sd, CAT3_AE_MODE, m5mols_ae_mode[ctrl->val]);
-+
-+	return ret;
-+}
-+
-+static int m5mols_exposure(struct m5mols_info *info)
-+{
-+	struct v4l2_subdev *sd = &info->sd;
-+
-+	return i2c_w16_ae(sd, CAT3_MANUAL_GAIN_MON, info->exposure->val);
-+}
-+
-+static int m5mols_set_saturation(struct m5mols_info *info,
-+		struct v4l2_ctrl *ctrl)
-+{
-+	struct v4l2_subdev *sd = &info->sd;
-+	static u8 m5mols_chroma_lvl[] = {
-+		0x1c, 0x3e, 0x5f, 0x80, 0xa1, 0xc2, 0xe4,
-+	};
-+	int ret;
-+
-+	ret = i2c_w8_mon(sd, CAT2_CHROMA_LVL, m5mols_chroma_lvl[ctrl->val]);
-+	if (!ret)
-+		ret = i2c_w8_mon(sd, CAT2_CHROMA_EN, true);
-+
-+	return ret;
-+}
-+
-+static int m5mols_set_colorfx(struct m5mols_info *info, struct v4l2_ctrl *ctrl)
-+{
-+	struct v4l2_subdev *sd = &info->sd;
-+	static u8 m5mols_effects_gamma[] = {	/* cat 1: Effects */
-+		[V4L2_COLORFX_NEGATIVE]		= 0x01,
-+		[V4L2_COLORFX_EMBOSS]		= 0x06,
-+		[V4L2_COLORFX_SKETCH]		= 0x07,
-+	};
-+	static u8 m5mols_cfixb_chroma[] = {	/* cat 2: Cr for effect */
-+		[V4L2_COLORFX_BW]		= 0x0,
-+		[V4L2_COLORFX_SEPIA]		= 0xd8,
-+		[V4L2_COLORFX_SKY_BLUE]		= 0x40,
-+		[V4L2_COLORFX_GRASS_GREEN]	= 0xe0,
-+	};
-+	static u8 m5mols_cfixr_chroma[] = {	/* cat 2: Cb for effect */
-+		[V4L2_COLORFX_BW]		= 0x0,
-+		[V4L2_COLORFX_SEPIA]		= 0x18,
-+		[V4L2_COLORFX_SKY_BLUE]		= 0x00,
-+		[V4L2_COLORFX_GRASS_GREEN]	= 0xe0,
-+	};
-+	int ret = -EINVAL;
-+
-+	switch (ctrl->val) {
-+	case V4L2_COLORFX_NONE:
-+		return i2c_w8_mon(sd, CAT2_COLOR_EFFECT, false);
-+	case V4L2_COLORFX_BW:		/* chroma: Gray */
-+	case V4L2_COLORFX_SEPIA:	/* chroma: Sepia */
-+	case V4L2_COLORFX_SKY_BLUE:	/* chroma: Blue */
-+	case V4L2_COLORFX_GRASS_GREEN:	/* chroma: Green */
-+		ret = i2c_w8_mon(sd, CAT2_CFIXB,
-+				m5mols_cfixb_chroma[ctrl->val]);
-+		if (!ret)
-+			ret = i2c_w8_mon(sd, CAT2_CFIXR,
-+					m5mols_cfixr_chroma[ctrl->val]);
-+		if (!ret)
-+			ret = i2c_w8_mon(sd, CAT2_COLOR_EFFECT, true);
-+		return ret;
-+	case V4L2_COLORFX_NEGATIVE:	/* gamma: Negative */
-+	case V4L2_COLORFX_EMBOSS:	/* gamma: Emboss */
-+	case V4L2_COLORFX_SKETCH:	/* gamma: Outline */
-+		ret = i2c_w8_param(sd, CAT1_EFFECT,
-+				m5mols_effects_gamma[ctrl->val]);
-+		if (!ret)
-+			ret = i2c_w8_mon(sd, CAT2_COLOR_EFFECT, true);
-+		return ret;
++	r = i2c_smbus_read_i2c_block_data(client, reg, sizeof(b), b);
++	if (r != 2) {
++		dev_err(&client->dev, "%s: Read: %d fails.\n", __func__, reg);
++		return -EREMOTEIO;
 +	}
 +
-+	return ret;
-+}
-+
-+int m5mols_set_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct v4l2_subdev *sd = to_sd(ctrl);
-+	struct m5mols_info *info = to_m5mols(sd);
-+	int ret;
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_EXPOSURE_AUTO:
-+		if (!ctrl->is_new)
-+			ctrl->val = V4L2_EXPOSURE_MANUAL;
-+		ret = m5mols_exposure_mode(info, ctrl);
-+		if (!ret && ctrl->val == V4L2_EXPOSURE_MANUAL)
-+			ret = m5mols_exposure(info);
-+		return ret;
-+	case V4L2_CID_AUTO_WHITE_BALANCE:
-+		return m5mols_wb_mode(info, ctrl);
-+	case V4L2_CID_SATURATION:
-+		return m5mols_set_saturation(info, ctrl);
-+	case V4L2_CID_COLORFX:
-+		return m5mols_set_colorfx(info, ctrl);
-+	}
-+
-+	return -EINVAL;
-+}
-diff --git a/drivers/media/video/m5mols/m5mols_core.c b/drivers/media/video/m5mols/m5mols_core.c
-new file mode 100644
-index 0000000..1188156
---- /dev/null
-+++ b/drivers/media/video/m5mols/m5mols_core.c
-@@ -0,0 +1,882 @@
-+/*
-+ * Driver for M-5MOLS 8M Pixel camera sensor with ISP
-+ *
-+ * Copyright (C) 2011 Samsung Electronics Co., Ltd
-+ * Author: HeungJun Kim, riverful.kim@samsung.com
-+ *
-+ * Copyright (C) 2009 Samsung Electronics Co., Ltd
-+ * Author: Dongsoo Nathaniel Kim, dongsoo45.kim@samsung.com
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <linux/i2c.h>
-+#include <linux/irq.h>
-+#include <linux/interrupt.h>
-+#include <linux/delay.h>
-+#include <linux/version.h>
-+#include <linux/gpio.h>
-+#include <linux/regulator/consumer.h>
-+
-+#include <linux/videodev2.h>
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-subdev.h>
-+#include <media/m5mols.h>
-+
-+#include "m5mols.h"
-+#include "m5mols_reg.h"
-+
-+int m5mols_debug;
-+
-+module_param(m5mols_debug, int, 0644);
-+
-+#define MOD_NAME		"M5MOLS"
-+#define M5MOLS_I2C_CHECK_RETRY	50
-+
-+/* M-5MOLS mode */
-+static u8 m5mols_reg_mode[] = {
-+	[MODE_SYSINIT]		= 0x00,
-+	[MODE_PARMSET]		= 0x01,
-+	[MODE_MONITOR]		= 0x02,
-+	[MODE_UNKNOWN]		= 0xff,
-+};
-+
-+/* M-5MOLS regulator consumer names */
-+/* The DEFAULT names of power are referenced with M-5MOLS datasheet. */
-+static struct regulator_bulk_data supplies[] = {
-+	{
-+		/* core power - 1.2v, generally at the M-5MOLS */
-+		.supply		= "core",
-+	}, {
-+		.supply		= "dig_18",	/* digital power 1 - 1.8v */
-+	}, {
-+		.supply		= "d_sensor",	/* sensor power 1 - 1.8v */
-+	}, {
-+		.supply		= "dig_28",	/* digital power 2 - 2.8v */
-+	}, {
-+		.supply		= "a_sensor",	/* analog power */
-+	}, {
-+		.supply		= "dig_12",	/* digital power 3 - 1.2v */
-+	},
-+};
-+
-+/* M-5MOLS default format (codes, sizes, preset values) */
-+static const struct v4l2_mbus_framefmt default_fmt = {
-+	.width		= 1920,
-+	.height		= 1080,
-+	.code		= V4L2_MBUS_FMT_VYUY8_2X8,
-+	.field		= V4L2_FIELD_NONE,
-+	.colorspace	= V4L2_COLORSPACE_JPEG,
-+};
-+
-+static const struct m5mols_format m5mols_formats[] = {
-+	{
-+		.code		= V4L2_MBUS_FMT_VYUY8_2X8,
-+		.colorspace	= V4L2_COLORSPACE_JPEG,
-+	},
-+};
-+
-+static const struct m5mols_resolution m5mols_resolutions[] = {
-+	/* monitor size */
-+	{ 0x01, M5MOLS_RES_MON, 128, 96 },	/* SUB-QCIF */
-+	{ 0x03, M5MOLS_RES_MON, 160, 120 },	/* QQVGA */
-+	{ 0x05, M5MOLS_RES_MON, 176, 144 },	/* QCIF */
-+	{ 0x06, M5MOLS_RES_MON, 176, 176 },	/* 176*176 */
-+	{ 0x08, M5MOLS_RES_MON, 240, 320 },	/* 1 QVGA */
-+	{ 0x09, M5MOLS_RES_MON, 320, 240 },	/* QVGA */
-+	{ 0x0c, M5MOLS_RES_MON, 240, 400 },	/* l WQVGA */
-+	{ 0x0d, M5MOLS_RES_MON, 400, 240 },	/* WQVGA */
-+	{ 0x0e, M5MOLS_RES_MON, 352, 288 },	/* CIF */
-+	{ 0x13, M5MOLS_RES_MON, 480, 360 },	/* 480*360 */
-+	{ 0x15, M5MOLS_RES_MON, 640, 360 },	/* qHD */
-+	{ 0x17, M5MOLS_RES_MON, 640, 480 },	/* VGA */
-+	{ 0x18, M5MOLS_RES_MON, 720, 480 },	/* 720x480 */
-+	{ 0x1a, M5MOLS_RES_MON, 800, 480 },	/* WVGA */
-+	{ 0x1f, M5MOLS_RES_MON, 800, 600 },	/* SVGA */
-+	{ 0x21, M5MOLS_RES_MON, 1280, 720 },	/* HD */
-+	{ 0x25, M5MOLS_RES_MON, 1920, 1080 },	/* 1080p */
-+	{ 0x29, M5MOLS_RES_MON, 3264, 2448 },	/* 8M (2.63fps@3264*2448) */
-+	{ 0x30, M5MOLS_RES_MON, 320, 240 },	/* 60fps for slow motion */
-+	{ 0x31, M5MOLS_RES_MON, 320, 240 },	/* 120fps for slow motion */
-+	{ 0x39, M5MOLS_RES_MON, 800, 602 },	/* AHS_MON debug */
-+};
-+
-+/* M-5MOLS default FPS */
-+static const struct v4l2_fract default_fps = {
-+	.numerator		= 1,
-+	.denominator		= M5MOLS_FPS_AUTO,
-+};
-+
-+static u8 m5mols_reg_fps[] = {
-+	[M5MOLS_FPS_AUTO]	= 0x01,
-+	[M5MOLS_FPS_10]		= 0x05,
-+	[M5MOLS_FPS_12]		= 0x04,
-+	[M5MOLS_FPS_15]		= 0x03,
-+	[M5MOLS_FPS_20]		= 0x08,
-+	[M5MOLS_FPS_21]		= 0x09,
-+	[M5MOLS_FPS_22]		= 0x0a,
-+	[M5MOLS_FPS_23]		= 0x0b,
-+	[M5MOLS_FPS_24]		= 0x07,
-+	[M5MOLS_FPS_30]		= 0x02,
-+};
-+
-+static u32 m5mols_swap_byte(u8 *data, enum m5mols_i2c_size size)
-+{
-+	if (size == I2C_8BIT)
-+		return *data;
-+	if (size == I2C_16BIT)
-+		return be16_to_cpu(*((u16 *)data));
-+	return be32_to_cpu(*((u32 *)data));
-+}
-+
-+/*
-+ * m5mols_read_reg/m5mols_write_reg - handle sensor's I2C communications.
-+ *
-+ * The I2C command packet of M-5MOLS is made up 3 kinds of I2C bytes(category,
-+ * command, bytes). Reference m5mols.h.
-+ *
-+ * The packet is needed 2, when M-5MOLS is read through I2C.
-+ * The packet is needed 1, when M-5MOLS is written through I2C.
-+ *
-+ * I2C packet common order(including both reading/writing)
-+ *   1st : size (data size + 4)
-+ *   2nd : READ/WRITE (R - 0x01, W - 0x02)
-+ *   3rd : Category
-+ *   4th : Command
-+ *
-+ * I2C packet order for READING operation
-+ *   5th : data real size for reading
-+ *   And, read another I2C packet again, until data size.
-+ *
-+ * I2C packet order for WRITING operation
-+ *   5th to 8th: an actual data to write
-+ */
-+
-+#define M5MOLS_BYTE_READ	0x01
-+#define M5MOLS_BYTE_WRITE	0x02
-+
-+int m5mols_read_reg(struct v4l2_subdev *sd,
-+		enum m5mols_i2c_size size,
-+		u8 category, u8 cmd, u32 *val)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct i2c_msg msg[2];
-+	u8 wbuf[5], rbuf[I2C_MAX + 1];
-+	int ret;
-+
-+	if (!client->adapter)
-+		return -ENODEV;
-+
-+	if (size != I2C_8BIT && size != I2C_16BIT && size != I2C_32BIT)
-+		return -EINVAL;
-+
-+	/* 1st I2C operation for writing category & command. */
-+	msg[0].addr = client->addr;
-+	msg[0].flags = 0;
-+	msg[0].len = 5;		/* 1(cmd size per bytes) + 4 */
-+	msg[0].buf = wbuf;
-+	wbuf[0] = 5;		/* same right above this */
-+	wbuf[1] = M5MOLS_BYTE_READ;
-+	wbuf[2] = category;
-+	wbuf[3] = cmd;
-+	wbuf[4] = size;
-+
-+	/* 2nd I2C operation for reading data. */
-+	msg[1].addr = client->addr;
-+	msg[1].flags = I2C_M_RD;
-+	msg[1].len = size + 1;
-+	msg[1].buf = rbuf;
-+
-+	ret = i2c_transfer(client->adapter, msg, 2);
-+	if (ret < 0) {
-+		dev_err(&client->dev, "failed READ[%d] at "
-+				"cat[%02x] cmd[%02x]\n",
-+				size, category, cmd);
-+		return ret;
-+	}
-+
-+	*val = m5mols_swap_byte(&rbuf[1], size);
-+
-+	usleep_range(15000, 20000);	/* must be for stabilization */
++	*value = (u16)b[0] << 8 | b[1];
 +
 +	return 0;
 +}
 +
-+int m5mols_write_reg(struct v4l2_subdev *sd,
-+		enum m5mols_i2c_size size,
-+		u8 category, u8 cmd, u32 val)
++static int wl1273_fm_write_cmd(struct wl1273_core *core, u8 cmd, u16 param)
 +{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct device *cdev = &client->dev;
-+	struct i2c_msg msg[1];
-+	u8 wbuf[I2C_MAX + 4];
-+	u32 *buf = (u32 *)&wbuf[4];
-+	int ret;
++	struct i2c_client *client = core->client;
++	u8 buf[] = { (param >> 8) & 0xff, param & 0xff };
++	int r;
 +
-+	if (!client->adapter)
-+		return -ENODEV;
-+
-+	if (size != I2C_8BIT && size != I2C_16BIT && size != I2C_32BIT) {
-+		dev_err(cdev, "Wrong data size\n");
-+		return -EINVAL;
++	r = i2c_smbus_write_i2c_block_data(client, cmd, sizeof(buf), buf);
++	if (r) {
++		dev_err(&client->dev, "%s: Cmd: %d fails.\n", __func__, cmd);
++		return r;
 +	}
-+
-+	msg->addr = client->addr;
-+	msg->flags = 0;
-+	msg->len = size + 4;
-+	msg->buf = wbuf;
-+	wbuf[0] = size + 4;
-+	wbuf[1] = M5MOLS_BYTE_WRITE;
-+	wbuf[2] = category;
-+	wbuf[3] = cmd;
-+
-+	*buf = m5mols_swap_byte((u8 *)&val, size);
-+
-+	ret = i2c_transfer(client->adapter, msg, 1);
-+	if (ret < 0) {
-+		dev_err(&client->dev, "failed WRITE[%d] at "
-+				"cat[%02x] cmd[%02x], ret %d\n",
-+				size, msg->buf[2], msg->buf[3], ret);
-+		return ret;
-+	}
-+
-+	usleep_range(15000, 20000);	/* must be for stabilization */
 +
 +	return 0;
 +}
 +
-+int m5mols_check_busy(struct v4l2_subdev *sd, u8 category, u8 cmd, u32 value)
++static int wl1273_fm_write_data(struct wl1273_core *core, u8 *data, u16 len)
 +{
-+	u32 busy, i;
-+	int ret;
++	struct i2c_client *client = core->client;
++	struct i2c_msg msg;
++	int r;
 +
-+	for (i = 0; i < M5MOLS_I2C_CHECK_RETRY; i++) {
-+		ret = m5mols_read_reg(sd, I2C_8BIT, category, cmd, &busy);
-+		if (ret < 0)
-+			return ret;
++	msg.addr = client->addr;
++	msg.flags = 0;
++	msg.buf = data;
++	msg.len = len;
 +
-+		if (busy == value)	/* bingo */
-+			return 0;
-+
-+		/* must be for stabilization */
-+		usleep_range(10000, 10000);
++	r = i2c_transfer(client->adapter, &msg, 1);
++	if (r != 1) {
++		dev_err(&client->dev, "%s: write error.\n", __func__);
++		return -EREMOTEIO;
 +	}
-+
-+	return -EBUSY;
-+}
-+
-+/*
-+ * m5mols_set_mode/backup/restore - change and set mode of M-5MOLS.
-+ *
-+ * This driver supports now only 3 modes(System, Monitor, Parameter).
-+ */
-+int m5mols_set_mode(struct v4l2_subdev *sd, enum m5mols_mode mode)
-+{
-+	struct m5mols_info *info = to_m5mols(sd);
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct device *cdev = &client->dev;
-+	const char *m5mols_str_mode[] = {
-+		"System initialization",
-+		"Parameter setting",
-+		"Monitor setting",
-+		"Unknown",
-+	};
-+	int ret = 0;
-+
-+	if (mode < MODE_SYSINIT || mode > MODE_UNKNOWN)
-+		return -EINVAL;
-+
-+	ret = i2c_w8_system(sd, CAT0_SYSMODE, m5mols_reg_mode[mode]);
-+	if (!ret)
-+		ret = m5mols_check_busy(sd, CAT_SYSTEM, CAT0_SYSMODE,
-+				m5mols_reg_mode[mode]);
-+	if (ret < 0)
-+		return ret;
-+
-+	info->mode = m5mols_reg_mode[mode];
-+	dev_dbg(cdev, " mode: %s\n", m5mols_str_mode[mode]);
-+
-+	return ret;
-+}
-+
-+static int m5mols_set_mode_backup(struct v4l2_subdev *sd,
-+		enum m5mols_mode mode)
-+{
-+	struct m5mols_info *info = to_m5mols(sd);
-+
-+	info->mode_backup = info->mode;
-+
-+	return m5mols_set_mode(sd, mode);
-+}
-+
-+static int m5mols_set_mode_restore(struct v4l2_subdev *sd)
-+{
-+	struct m5mols_info *info = to_m5mols(sd);
-+	int ret;
-+
-+	ret = m5mols_set_mode(sd, info->mode_backup);
-+	if (!ret)
-+		info->mode = info->mode_backup;
-+
-+	return ret;
-+}
-+
-+/*
-+ * get_version - get M-5MOLS sensor versions.
-+ */
-+static int get_version(struct v4l2_subdev *sd)
-+{
-+	struct m5mols_info *info = to_m5mols(sd);
-+	union {
-+		struct m5mols_version	ver;
-+		u8			bytes[10];
-+	} value;
-+	int ret, i;
-+
-+	for (i = CAT0_CUSTOMER_CODE; i <= CAT0_VERSION_AWB_L; i++) {
-+		ret = i2c_r8_system(sd, i, (u32 *)&value.bytes[i]);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	info->ver = value.ver;
-+
-+	info->ver.fw = be16_to_cpu(info->ver.fw);
-+	info->ver.hw = be16_to_cpu(info->ver.hw);
-+	info->ver.parm = be16_to_cpu(info->ver.parm);
-+	info->ver.awb = be16_to_cpu(info->ver.awb);
-+
-+	return ret;
-+}
-+
-+static void m5mols_show_version(struct v4l2_subdev *sd)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct device *dev = &client->dev;
-+	struct m5mols_info *info = to_m5mols(sd);
-+
-+	dev_info(dev, "customer code\t0x%02x\n", info->ver.ctm_code);
-+	dev_info(dev, "project code\t0x%02x\n", info->ver.pj_code);
-+	dev_info(dev, "firmware version\t0x%04x\n", info->ver.fw);
-+	dev_info(dev, "hardware version\t0x%04x\n", info->ver.hw);
-+	dev_info(dev, "parameter version\t0x%04x\n", info->ver.parm);
-+	dev_info(dev, "AWB version\t0x%04x\n", info->ver.awb);
-+}
-+
-+/*
-+ * get_res_preset - find out M-5MOLS register value from requested resolution.
-+ *
-+ * @width: requested width
-+ * @height: requested height
-+ * @type: requested type of each modes. It supports only monitor mode now.
-+ */
-+static int get_res_preset(struct v4l2_subdev *sd, u16 width, u16 height,
-+		enum m5mols_res_type type)
-+{
-+	struct m5mols_info *info = to_m5mols(sd);
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(m5mols_resolutions); i++) {
-+		if ((m5mols_resolutions[i].type == type) &&
-+			(m5mols_resolutions[i].width == width) &&
-+			(m5mols_resolutions[i].height == height))
-+			break;
-+	}
-+
-+	if (i >= ARRAY_SIZE(m5mols_resolutions)) {
-+		v4l2msg("no matching resolution\n");
-+		return -EINVAL;
-+	}
-+
-+	return m5mols_resolutions[i].value;
-+}
-+
-+/*
-+ * get_fps - calc & check FPS from v4l2_captureparm, if FPS is adequate, set.
-+ *
-+ * In M-5MOLS case, the denominator means FPS. The each value of numerator and
-+ * denominator should not be minus. If numerator is 0, it sets AUTO FPS. If
-+ * numerator is not 1, it recalculates denominator. After it checks, the
-+ * denominator is set to timeperframe.denominator, and used by FPS.
-+ */
-+static int get_fps(struct v4l2_subdev *sd,
-+		struct v4l2_captureparm *parm)
-+{
-+	int numerator = parm->timeperframe.numerator;
-+	int denominator = parm->timeperframe.denominator;
-+
-+	/* The denominator should be +, except 0. The numerator shoud be +. */
-+	if (numerator < 0 || denominator <= 0)
-+		return -EINVAL;
-+
-+	/* The numerator is 0, return auto fps. */
-+	if (numerator == 0) {
-+		parm->timeperframe.denominator = M5MOLS_FPS_AUTO;
-+		return 0;
-+	}
-+
-+	/* calc FPS(not time per frame) per 1 numerator */
-+	denominator = denominator / numerator;
-+
-+	if (denominator < M5MOLS_FPS_AUTO || denominator > M5MOLS_FPS_MAX)
-+		return -EINVAL;
-+
-+	if (!m5mols_reg_fps[denominator])
-+		return -EINVAL;
 +
 +	return 0;
 +}
-+
-+static int m5mols_g_mbus_fmt(struct v4l2_subdev *sd,
-+		struct v4l2_mbus_framefmt *ffmt)
-+{
-+	struct m5mols_info *info = to_m5mols(sd);
-+
-+	*ffmt = info->fmt;
-+
-+	return 0;
-+}
-+
-+static int m5mols_s_mbus_fmt(struct v4l2_subdev *sd,
-+		struct v4l2_mbus_framefmt *ffmt)
-+{
-+	struct m5mols_info *info = to_m5mols(sd);
-+	int size;
-+	int ret = -EINVAL;
-+
-+	size = get_res_preset(sd, ffmt->width, ffmt->height,
-+			M5MOLS_RES_MON);
-+	if (size < 0)
-+		return -EINVAL;
-+
-+	ret = m5mols_set_mode(sd, MODE_PARMSET);
-+	if (!ret)
-+		ret = i2c_w8_param(sd, CAT1_MONITOR_SIZE, (u8)size);
-+	if (!ret) {
-+		info->fmt = default_fmt;
-+		info->fmt.width = ffmt->width;
-+		info->fmt.height = ffmt->height;
-+
-+		*ffmt = info->fmt;
-+	}
-+
-+	return ret;
-+}
-+
-+static int m5mols_enum_mbus_fmt(struct v4l2_subdev *sd, unsigned int index,
-+			      enum v4l2_mbus_pixelcode *code)
-+{
-+	if (!code || index >= ARRAY_SIZE(m5mols_formats))
-+		return -EINVAL;
-+
-+	*code = m5mols_formats[index].code;
-+
-+	return 0;
-+}
-+
-+static int m5mols_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
-+{
-+	struct m5mols_info *info = to_m5mols(sd);
-+	struct v4l2_captureparm *cp = &parms->parm.capture;
-+
-+	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE &&
-+			parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
-+		return -EINVAL;
-+
-+	cp->capability = V4L2_CAP_TIMEPERFRAME;
-+	cp->timeperframe = info->tpf;
-+
-+	return 0;
-+}
-+
-+static int m5mols_s_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
-+{
-+	struct m5mols_info *info = to_m5mols(sd);
-+	struct v4l2_captureparm *cp = &parms->parm.capture;
-+	int ret = -EINVAL;
-+
-+	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE &&
-+			parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
-+		return -EINVAL;
-+
-+	ret = m5mols_set_mode_backup(sd, MODE_PARMSET);
-+	if (!ret)
-+		ret = get_fps(sd, cp);	/* set right FPS to denominator. */
-+	if (!ret)
-+		ret = i2c_w8_param(sd, CAT1_MONITOR_FPS,
-+				m5mols_reg_fps[cp->timeperframe.denominator]);
-+	if (!ret)
-+		ret = m5mols_set_mode_restore(sd);
-+	if (!ret) {
-+		cp->capability = V4L2_CAP_TIMEPERFRAME;
-+		info->tpf = cp->timeperframe;
-+	}
-+
-+	v4l2msg("denominator: %d / numerator: %d.\n",
-+		cp->timeperframe.denominator, cp->timeperframe.numerator);
-+
-+	return ret;
-+}
-+
-+static int m5mols_s_stream(struct v4l2_subdev *sd, int enable)
-+{
-+	if (enable) {
-+		if (!is_streaming(sd))
-+			return m5mols_set_mode(sd, MODE_MONITOR);
-+
-+		return -EINVAL;
-+	}
-+
-+	if (is_streaming(sd))
-+		return m5mols_set_mode(sd, MODE_PARMSET);
-+
-+	return -EINVAL;
-+}
-+
-+static const struct v4l2_subdev_video_ops m5mols_video_ops = {
-+	.g_mbus_fmt		= m5mols_g_mbus_fmt,
-+	.s_mbus_fmt		= m5mols_s_mbus_fmt,
-+	.enum_mbus_fmt		= m5mols_enum_mbus_fmt,
-+	.g_parm			= m5mols_g_parm,
-+	.s_parm			= m5mols_s_parm,
-+	.s_stream		= m5mols_s_stream,
-+};
-+
-+static int m5mols_s_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct v4l2_subdev *sd = to_sd(ctrl);
-+	int ret;
-+
-+	ret = m5mols_set_mode_backup(sd, MODE_PARMSET);
-+	if (!ret)
-+		ret = m5mols_set_ctrl(ctrl);
-+	if (!ret)
-+		ret = m5mols_set_mode_restore(sd);
-+
-+	return ret;
-+}
-+
-+static const struct v4l2_ctrl_ops m5mols_ctrl_ops = {
-+	.s_ctrl = m5mols_s_ctrl,
-+};
-+
-+/*
-+ * m5mols_sensor_power - handle sensor power up/down.
-+ *
-+ * @enable: If it is true, power up. If is not, power down.
-+ */
-+static int m5mols_sensor_power(struct m5mols_info *info, bool enable)
-+{
-+	struct v4l2_subdev *sd = &info->sd;
-+	struct i2c_client *c = v4l2_get_subdevdata(sd);
-+	int ret;
-+
-+	if (enable) {
-+		if (is_powerup(sd))
-+			return 0;
-+
-+		/* power-on additional power */
-+		if (info->pdata->set_power) {
-+			ret = info->pdata->set_power(&c->dev, 1);
-+			if (ret)
-+				return ret;
-+		}
-+
-+		ret = regulator_bulk_enable(ARRAY_SIZE(supplies), supplies);
-+		if (ret)
-+			return ret;
-+
-+		gpio_set_value(info->pdata->gpio_rst, info->pdata->enable_rst);
-+		usleep_range(1000, 1000);
-+
-+		info->power = true;
-+
-+	} else {
-+		if (!is_powerup(sd))
-+			return 0;
-+
-+		ret = regulator_bulk_disable(ARRAY_SIZE(supplies), supplies);
-+		if (ret)
-+			return ret;
-+
-+		/* power-off additional power */
-+		if (info->pdata->set_power) {
-+			ret = info->pdata->set_power(&c->dev, 0);
-+			if (ret)
-+				return ret;
-+		}
-+
-+		info->power = false;
-+
-+		gpio_set_value(info->pdata->gpio_rst, !info->pdata->enable_rst);
-+		usleep_range(1000, 1000);
-+	}
-+
-+	return ret;
-+}
-+
-+/*
-+ * m5mols_sensor_armboot - booting M-5MOLS internal ARM core-controller.
-+ *
-+ * It makes to ready M-5MOLS for I2C & MIPI interface. After M-5MOLS powers up,
-+ * it needed specific I2C command for booting internal ARM core. And then,
-+ * it must wait about least 500ms referenced by M-5MOLS datasheet.
-+ */
-+static int m5mols_sensor_armboot(struct v4l2_subdev *sd)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct m5mols_info *info = to_m5mols(sd);
-+	int ret;
-+
-+	ret = i2c_w8_flash(sd, CATF_CAM_START, true);
-+	if (!ret)
-+		return ret;
-+
-+	msleep(500);
-+	dev_dbg(&client->dev, "Success M-5MOLS ARM-Booting\n");
-+
-+	/* after ARM booting, the M-5MOLS state changed Parameter mode. */
-+	info->mode = MODE_PARMSET;
-+
-+	ret = get_version(sd);
-+	if (!ret)
-+		/* This value 0x02 changed the M-5MOSLS interface using MIPI.
-+		 * The M-5MOLS camera core supports Parallel interface, but
-+		 * it still not be testified in this driver. */
-+		ret = i2c_w8_param(sd, CAT1_DATA_INTERFACE, 0x02);
-+
-+	m5mols_show_version(sd);
-+
-+	return ret;
-+}
-+
-+/*
-+ * m5mols_init_controls - initialization using v4l2_ctrl.
-+ */
-+static int m5mols_init_controls(struct m5mols_info *info)
-+{
-+	struct v4l2_subdev *sd = &info->sd;
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	u16 max_ex_mon;
-+	int ret;
-+
-+	/* check minimum & maximum of M-5MOLS controls. This value varies with
-+	 * the M-5MOLS firmware. So, V4L2 control setting should be done after
-+	 * the state power-up and I2C communication enable. */
-+	ret = i2c_r16_ae(sd, CAT3_MAX_GAIN_MON, (u32 *)&max_ex_mon);
-+	if (!ret)
-+		return ret;
-+
-+	/* set the controls using v4l2 control frameworks */
-+	v4l2_ctrl_handler_init(&info->handle, 5);
-+
-+	info->colorfx = v4l2_ctrl_new_std_menu(&info->handle,
-+			&m5mols_ctrl_ops, V4L2_CID_COLORFX,
-+			9, 1, V4L2_COLORFX_NONE);
-+	info->autoexposure = v4l2_ctrl_new_std_menu(&info->handle,
-+			&m5mols_ctrl_ops, V4L2_CID_EXPOSURE_AUTO,
-+			1, 0, V4L2_EXPOSURE_AUTO);
-+	info->exposure = v4l2_ctrl_new_std(&info->handle,
-+			&m5mols_ctrl_ops, V4L2_CID_EXPOSURE,
-+			0, max_ex_mon, 1, (int)max_ex_mon/2);
-+	info->autowb = v4l2_ctrl_new_std(&info->handle,
-+			&m5mols_ctrl_ops, V4L2_CID_AUTO_WHITE_BALANCE,
-+			0, 1, 1, 1);
-+	info->saturation = v4l2_ctrl_new_std(&info->handle,
-+			&m5mols_ctrl_ops, V4L2_CID_SATURATION,
-+			0, 6, 1, 3);
-+
-+	sd->ctrl_handler = &info->handle;
-+	if (info->handle.error) {
-+		dev_err(&client->dev, "Failed to init controls, %d\n", ret);
-+		v4l2_ctrl_handler_free(&info->handle);
-+		return info->handle.error;
-+	}
-+
-+	v4l2_ctrl_cluster(2, &info->autoexposure);
-+	v4l2_ctrl_handler_setup(&info->handle);
-+
-+	return 0;
-+}
-+
-+/*
-+ * m5mols_setup_default - set default size & fps in the monitor mode.
-+ */
-+static int m5mols_setup_default(struct v4l2_subdev *sd)
-+{
-+	struct m5mols_info *info = to_m5mols(sd);
-+	int value;
-+	int ret = -EINVAL;
-+
-+	value = get_res_preset(sd, default_fmt.width, default_fmt.height,
-+			M5MOLS_RES_MON);
-+	if (value >= 0)
-+		ret = i2c_w8_param(sd, CAT1_MONITOR_SIZE, (u8)value);
-+	if (!ret)
-+		ret = i2c_w8_param(sd, CAT1_MONITOR_FPS,
-+			m5mols_reg_fps[default_fps.denominator]);
-+	if (!ret)
-+		ret = m5mols_init_controls(info);
-+	if (!ret) {
-+		info->fmt = default_fmt;
-+		info->tpf = default_fps;
-+
-+		ret = 0;
-+	}
-+
-+	return ret;
-+}
-+
-+static int m5mols_s_power(struct v4l2_subdev *sd, int on)
-+{
-+	struct m5mols_info *info = to_m5mols(sd);
-+	int ret;
-+
-+	if (on) {
-+		ret = m5mols_sensor_power(info, true);
-+		if (!ret)
-+			ret = m5mols_sensor_armboot(sd);
-+		if (!ret)
-+			ret = m5mols_setup_default(sd);
-+	} else {
-+		ret = m5mols_sensor_power(info, false);
-+	}
-+
-+	return ret;
-+}
-+
-+static int m5mols_log_status(struct v4l2_subdev *sd)
-+{
-+	struct m5mols_info *info = to_m5mols(sd);
-+
-+	v4l2_ctrl_handler_log_status(&info->handle, sd->name);
-+
-+	return 0;
-+}
-+
-+static const struct v4l2_subdev_core_ops m5mols_core_ops = {
-+	.s_power		= m5mols_s_power,
-+	.g_ctrl			= v4l2_subdev_g_ctrl,
-+	.s_ctrl			= v4l2_subdev_s_ctrl,
-+	.queryctrl		= v4l2_subdev_queryctrl,
-+	.querymenu		= v4l2_subdev_querymenu,
-+	.g_ext_ctrls		= v4l2_subdev_g_ext_ctrls,
-+	.try_ext_ctrls		= v4l2_subdev_try_ext_ctrls,
-+	.s_ext_ctrls		= v4l2_subdev_s_ext_ctrls,
-+	.log_status		= m5mols_log_status,
-+};
-+
-+static const struct v4l2_subdev_ops m5mols_ops = {
-+	.core	= &m5mols_core_ops,
-+	.video	= &m5mols_video_ops,
-+};
-+
-+static int m5mols_probe(struct i2c_client *client,
-+			 const struct i2c_device_id *id)
-+{
-+	const struct m5mols_platform_data *pdata =
-+		client->dev.platform_data;
-+	struct m5mols_info *info;
-+	struct v4l2_subdev *sd;
-+	int ret = 0;
-+
-+	if (!pdata) {
-+		dev_err(&client->dev, "No platform data\n");
-+		return -EIO;
-+	}
-+
-+	if (!gpio_is_valid(pdata->gpio_rst)) {
-+		dev_err(&client->dev, "No valid RST gpio pin.\n");
-+		return -EINVAL;
-+	}
-+
-+	info = kzalloc(sizeof(*info), GFP_KERNEL);
-+	if (!info) {
-+		dev_err(&client->dev, "Failed to allocate info\n");
-+		return -ENOMEM;
-+	}
-+
-+	/* The used things from platform data is gpio_rst, enable_rst, and
-+	 * set_power(). */
-+	info->pdata = pdata;
-+
-+	ret = gpio_request(info->pdata->gpio_rst, "M-5MOLS nRST");
-+	if (ret) {
-+		dev_err(&client->dev, "Failed to set gpio, %d\n", ret);
-+		goto out_gpio;
-+	}
-+
-+	gpio_direction_output(info->pdata->gpio_rst, !info->pdata->enable_rst);
-+
-+	ret = regulator_bulk_get(&client->dev, ARRAY_SIZE(supplies), supplies);
-+	if (ret) {
-+		dev_err(&client->dev, "Failed to get regulators, %d\n", ret);
-+		goto out_reg;
-+	}
-+
-+	sd = &info->sd;
-+	strlcpy(sd->name, MOD_NAME, sizeof(sd->name));
-+	v4l2_i2c_subdev_init(sd, client, &m5mols_ops);
-+
-+	return 0;
-+
-+out_reg:
-+	regulator_bulk_free(ARRAY_SIZE(supplies), supplies);
-+out_gpio:
-+	gpio_free(info->pdata->gpio_rst);
-+	kfree(info);
-+
-+	return ret;
-+}
-+
-+static int m5mols_remove(struct i2c_client *client)
-+{
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct m5mols_info *info = to_m5mols(sd);
-+
-+	v4l2_device_unregister_subdev(sd);
-+	v4l2_ctrl_handler_free(&info->handle);
-+
-+	regulator_bulk_free(ARRAY_SIZE(supplies), supplies);
-+	gpio_free(info->pdata->gpio_rst);
-+	kfree(info);
-+
-+	return 0;
-+}
-+
-+static const struct i2c_device_id m5mols_id[] = {
-+	{ MOD_NAME, 0 },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(i2c, m5mols_id);
-+
-+static struct i2c_driver m5mols_i2c_driver = {
-+	.driver = {
-+		.name	= MOD_NAME,
-+	},
-+	.probe		= m5mols_probe,
-+	.remove		= m5mols_remove,
-+	.id_table	= m5mols_id,
-+};
-+
-+static int __init m5mols_mod_init(void)
-+{
-+	return i2c_add_driver(&m5mols_i2c_driver);
-+}
-+
-+static void __exit m5mols_mod_exit(void)
-+{
-+	i2c_del_driver(&m5mols_i2c_driver);
-+}
-+
-+module_init(m5mols_mod_init);
-+module_exit(m5mols_mod_exit);
-+
-+MODULE_AUTHOR("HeungJun Kim <riverful.kim@samsung.com>");
-+MODULE_AUTHOR("Dongsoo Kim <dongsoo45.kim@samsung.com>");
-+MODULE_DESCRIPTION("Fujitsu M-5MOLS 8M Pixel camera sensor with ISP driver");
-+MODULE_LICENSE("GPL");
-diff --git a/drivers/media/video/m5mols/m5mols_reg.h b/drivers/media/video/m5mols/m5mols_reg.h
-new file mode 100644
-index 0000000..62c64af
---- /dev/null
-+++ b/drivers/media/video/m5mols/m5mols_reg.h
-@@ -0,0 +1,103 @@
-+/*
-+ * Register map for M-5MOLS 8M Pixel camera sensor with ISP
-+ *
-+ * Copyright (C) 2011 Samsung Electronics Co., Ltd
-+ * Author: HeungJun Kim, riverful.kim@samsung.com
-+ *
-+ * Copyright (C) 2009 Samsung Electronics Co., Ltd
-+ * Author: Dongsoo Nathaniel Kim, dongsoo45.kim@samsung.com
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#ifndef M5MOLS_REG_H
-+#define M5MOLS_REG_H
-+
-+/*
-+ * Category section register
-+ *
-+ * The category means a kind of command set. Including category section,
-+ * all defined categories in this version supports only, as you see below:
-+ */
-+#define CAT_SYSTEM		0x00
-+#define CAT_PARAM		0x01
-+#define CAT_MONITOR		0x02
-+#define CAT_AE			0x03
-+#define CAT_WB			0x06
-+#define CAT_FLASH		0x0f	/* related with FW, Verions, booting */
-+
-+/*
-+ * Category 0 - System
-+ *
-+ * This category supports FW version, managing mode, even interrupt.
-+ */
-+#define CAT0_CUSTOMER_CODE	0x00
-+#define CAT0_PJ_CODE		0x01
-+#define CAT0_VERSION_FW_H	0x02
-+#define CAT0_VERSION_FW_L	0x03
-+#define CAT0_VERSION_HW_H	0x04
-+#define CAT0_VERSION_HW_L	0x05
-+#define CAT0_VERSION_PARM_H	0x06
-+#define CAT0_VERSION_PARM_L	0x07
-+#define CAT0_VERSION_AWB_H	0x08
-+#define CAT0_VERSION_AWB_L	0x09
-+#define CAT0_SYSMODE		0x0b
-+
-+/*
-+ * category 1 - Parameter mode
-+ *
-+ * This category is dealing with almost camera vendor. In spite of that,
-+ * It's a register to be able to detailed value for whole camera syste.
-+ * The key parameter like a resolution, FPS, data interface connecting
-+ * with Mobile AP, even effects.
-+ */
-+#define CAT1_DATA_INTERFACE	0x00
-+#define CAT1_MONITOR_SIZE	0x01
-+#define CAT1_MONITOR_FPS	0x02
-+#define CAT1_EFFECT		0x0b
-+
-+/*
-+ * Category 2 - Monitor mode
-+ *
-+ * This category supports only monitoring mode. The monitoring mode means,
-+ * similar to preview. It supports like a YUYV format. At the capture mode,
-+ * it is handled like a JPEG & RAW formats.
-+ */
-+#define CAT2_CFIXB		0x09
-+#define CAT2_CFIXR		0x0a
-+#define CAT2_COLOR_EFFECT	0x0b
-+#define CAT2_CHROMA_LVL		0x0f
-+#define CAT2_CHROMA_EN		0x10
-+
-+/*
-+ * Category 3 - Auto Exposure
-+ *
-+ * Currently, it supports only gain value with monitor mode. This device
-+ * is able to support Shutter, Gain(similar with Aperture), Flicker, at
-+ * monitor mode & capture mode both.
-+ */
-+#define CAT3_AE_LOCK		0x00
-+#define CAT3_AE_MODE		0x01
-+#define CAT3_MANUAL_GAIN_MON	0x12
-+#define CAT3_MAX_GAIN_MON	0x1a
-+
-+/*
-+ * Category 6 - White Balance
-+ *
-+ * Currently, it supports only auto white balance.
-+ */
-+#define CAT6_AWB_LOCK		0x00
-+#define CAT6_AWB_MODE		0x02
-+
-+/*
-+ * Category F - Flash
-+ *
-+ * This mode provides functions about internal Flash works and System startup.
-+ */
-+#define CATF_CAM_START		0x12	/* It start internal ARM core booting
-+					 * after power-up */
-+
-+#endif	/* M5MOLS_REG_H */
-diff --git a/include/media/m5mols.h b/include/media/m5mols.h
-new file mode 100644
-index 0000000..c73af5e
---- /dev/null
-+++ b/include/media/m5mols.h
-@@ -0,0 +1,33 @@
-+/*
-+ * Driver for M-5MOLS 8M Pixel camera sensor with ISP
-+ *
-+ * Copyright (C) 2011 Samsung Electronics Co., Ltd
-+ * Author: HeungJun Kim, riverful.kim@samsung.com
-+ *
-+ * Copyright (C) 2009 Samsung Electronics Co., Ltd
-+ * Author: Dongsoo Nathaniel Kim, dongsoo45.kim@samsung.com
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#ifndef MEDIA_M5MOLS_H
-+#define MEDIA_M5MOLS_H
 +
 +/**
-+* struct m5mols_platform_data - platform data for M-5MOLS driver
-+* @gpio_rst:	GPIO driving the reset pin of M-5MOLS
-+* @enable_rst:	in the negative or positive, which value is enabled the reset
-+* @set_power:	an additional callback to a board setup code
-+*		to be called after enabling and before disabling
-+*		the sensor device supply regulators		
-+*/
-+struct m5mols_platform_data {
-+	int	gpio_rst;
-+	bool	enable_rst;
-+	int (*set_power)(struct device *dev, int on);
++ * wl1273_fm_set_audio() -	Set audio mode.
++ * @core:			A pointer to the device struct.
++ * @new_mode:			The new audio mode.
++ *
++ * Audio modes are WL1273_AUDIO_DIGITAL and WL1273_AUDIO_ANALOG.
++ */
++static int wl1273_fm_set_audio(struct wl1273_core *core, unsigned int new_mode)
++{
++	int r = 0;
++
++	if (core->mode == WL1273_MODE_OFF ||
++	    core->mode == WL1273_MODE_SUSPENDED)
++		return -EPERM;
++
++	if (core->mode == WL1273_MODE_RX && new_mode == WL1273_AUDIO_DIGITAL) {
++		r = wl1273_fm_write_cmd(core, WL1273_PCM_MODE_SET,
++					WL1273_PCM_DEF_MODE);
++		if (r)
++			goto out;
++
++		r = wl1273_fm_write_cmd(core, WL1273_I2S_MODE_CONFIG_SET,
++					core->i2s_mode);
++		if (r)
++			goto out;
++
++		r = wl1273_fm_write_cmd(core, WL1273_AUDIO_ENABLE,
++					WL1273_AUDIO_ENABLE_I2S);
++		if (r)
++			goto out;
++
++	} else if (core->mode == WL1273_MODE_RX &&
++		   new_mode == WL1273_AUDIO_ANALOG) {
++		r = wl1273_fm_write_cmd(core, WL1273_AUDIO_ENABLE,
++					WL1273_AUDIO_ENABLE_ANALOG);
++		if (r)
++			goto out;
++
++	} else if (core->mode == WL1273_MODE_TX &&
++		   new_mode == WL1273_AUDIO_DIGITAL) {
++		r = wl1273_fm_write_cmd(core, WL1273_I2S_MODE_CONFIG_SET,
++					core->i2s_mode);
++		if (r)
++			goto out;
++
++		r = wl1273_fm_write_cmd(core, WL1273_AUDIO_IO_SET,
++					WL1273_AUDIO_IO_SET_I2S);
++		if (r)
++			goto out;
++
++	} else if (core->mode == WL1273_MODE_TX &&
++		   new_mode == WL1273_AUDIO_ANALOG) {
++		r = wl1273_fm_write_cmd(core, WL1273_AUDIO_IO_SET,
++					WL1273_AUDIO_IO_SET_ANALOG);
++		if (r)
++			goto out;
++	}
++
++	core->audio_mode = new_mode;
++out:
++	return r;
++}
++
++/**
++ * wl1273_fm_set_volume() -	Set volume.
++ * @core:			A pointer to the device struct.
++ * @volume:			The new volume value.
++ */
++static int wl1273_fm_set_volume(struct wl1273_core *core, unsigned int volume)
++{
++	u16 val;
++	int r;
++
++	if (volume > WL1273_MAX_VOLUME)
++		return -EINVAL;
++
++	if (core->volume == volume)
++		return 0;
++
++	val = volume;
++	r = wl1273_fm_read_reg(core, WL1273_VOLUME_SET, &val);
++	if (r)
++		return r;
++
++	core->volume = volume;
++	return 0;
++}
++
++static int wl1273_core_remove(struct i2c_client *client)
++{
++	struct wl1273_core *core = i2c_get_clientdata(client);
++
++	dev_dbg(&client->dev, "%s\n", __func__);
++
++	mfd_remove_devices(&client->dev);
++	i2c_set_clientdata(client, NULL);
++	kfree(core);
++
++	return 0;
++}
++
++static int __devinit wl1273_core_probe(struct i2c_client *client,
++				       const struct i2c_device_id *id)
++{
++	struct wl1273_fm_platform_data *pdata = client->dev.platform_data;
++	struct wl1273_core *core;
++	struct mfd_cell *cell;
++	int children = 0;
++	int r = 0;
++
++	dev_dbg(&client->dev, "%s\n", __func__);
++
++	if (!pdata) {
++		dev_err(&client->dev, "No platform data.\n");
++		return -EINVAL;
++	}
++
++	if (!(pdata->children & WL1273_RADIO_CHILD)) {
++		dev_err(&client->dev, "Cannot function without radio child.\n");
++		return -EINVAL;
++	}
++
++	core = kzalloc(sizeof(*core), GFP_KERNEL);
++	if (!core)
++		return -ENOMEM;
++
++	core->pdata = pdata;
++	core->client = client;
++	mutex_init(&core->lock);
++
++	i2c_set_clientdata(client, core);
++
++	dev_dbg(&client->dev, "%s: Have V4L2.\n", __func__);
++
++	cell = &core->cells[children];
++	cell->name = "wl1273_fm_radio";
++	cell->platform_data = &core;
++	cell->data_size = sizeof(core);
++	children++;
++
++	core->read = wl1273_fm_read_reg;
++	core->write = wl1273_fm_write_cmd;
++	core->write_data = wl1273_fm_write_data;
++	core->set_audio = wl1273_fm_set_audio;
++	core->set_volume = wl1273_fm_set_volume;
++
++	if (pdata->children & WL1273_CODEC_CHILD) {
++		cell = &core->cells[children];
++
++		dev_dbg(&client->dev, "%s: Have codec.\n", __func__);
++		cell->name = "wl1273-codec";
++		cell->platform_data = &core;
++		cell->data_size = sizeof(core);
++		children++;
++	}
++
++	dev_dbg(&client->dev, "%s: number of children: %d.\n",
++		__func__, children);
++
++	r = mfd_add_devices(&client->dev, -1, core->cells,
++			    children, NULL, 0);
++	if (r)
++		goto err;
++
++	return 0;
++
++err:
++	i2c_set_clientdata(client, NULL);
++	pdata->free_resources();
++	kfree(core);
++
++	dev_dbg(&client->dev, "%s\n", __func__);
++
++	return r;
++}
++
++static struct i2c_driver wl1273_core_driver = {
++	.driver = {
++		.name = WL1273_FM_DRIVER_NAME,
++	},
++	.probe = wl1273_core_probe,
++	.id_table = wl1273_driver_id_table,
++	.remove = __devexit_p(wl1273_core_remove),
 +};
 +
-+#endif	/* MEDIA_M5MOLS_H */
++static int __init wl1273_core_init(void)
++{
++	int r;
++
++	r = i2c_add_driver(&wl1273_core_driver);
++	if (r) {
++		pr_err(WL1273_FM_DRIVER_NAME
++		       ": driver registration failed\n");
++		return r;
++	}
++
++	return r;
++}
++
++static void __exit wl1273_core_exit(void)
++{
++	i2c_del_driver(&wl1273_core_driver);
++}
++late_initcall(wl1273_core_init);
++module_exit(wl1273_core_exit);
++
++MODULE_AUTHOR("Matti Aaltonen <matti.j.aaltonen@nokia.com>");
++MODULE_DESCRIPTION(DRIVER_DESC);
++MODULE_LICENSE("GPL");
+diff --git a/include/linux/mfd/wl1273-core.h b/include/linux/mfd/wl1273-core.h
+new file mode 100644
+index 0000000..0b66d22
+--- /dev/null
++++ b/include/linux/mfd/wl1273-core.h
+@@ -0,0 +1,291 @@
++/*
++ * include/linux/mfd/wl1273-core.h
++ *
++ * Some definitions for the wl1273 radio receiver/transmitter chip.
++ *
++ * Copyright (C) 2010 Nokia Corporation
++ * Author: Matti J. Aaltonen <matti.j.aaltonen@nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ */
++
++#ifndef WL1273_CORE_H
++#define WL1273_CORE_H
++
++#include <linux/i2c.h>
++#include <linux/mfd/core.h>
++
++#define WL1273_FM_DRIVER_NAME	"wl1273-fm"
++#define RX71_FM_I2C_ADDR	0x22
++
++#define WL1273_STEREO_GET		0
++#define WL1273_RSSI_LVL_GET		1
++#define WL1273_IF_COUNT_GET		2
++#define WL1273_FLAG_GET			3
++#define WL1273_RDS_SYNC_GET		4
++#define WL1273_RDS_DATA_GET		5
++#define WL1273_FREQ_SET			10
++#define WL1273_AF_FREQ_SET		11
++#define WL1273_MOST_MODE_SET		12
++#define WL1273_MOST_BLEND_SET		13
++#define WL1273_DEMPH_MODE_SET		14
++#define WL1273_SEARCH_LVL_SET		15
++#define WL1273_BAND_SET			16
++#define WL1273_MUTE_STATUS_SET		17
++#define WL1273_RDS_PAUSE_LVL_SET	18
++#define WL1273_RDS_PAUSE_DUR_SET	19
++#define WL1273_RDS_MEM_SET		20
++#define WL1273_RDS_BLK_B_SET		21
++#define WL1273_RDS_MSK_B_SET		22
++#define WL1273_RDS_PI_MASK_SET		23
++#define WL1273_RDS_PI_SET		24
++#define WL1273_RDS_SYSTEM_SET		25
++#define WL1273_INT_MASK_SET		26
++#define WL1273_SEARCH_DIR_SET		27
++#define WL1273_VOLUME_SET		28
++#define WL1273_AUDIO_ENABLE		29
++#define WL1273_PCM_MODE_SET		30
++#define WL1273_I2S_MODE_CONFIG_SET	31
++#define WL1273_POWER_SET		32
++#define WL1273_INTX_CONFIG_SET		33
++#define WL1273_PULL_EN_SET		34
++#define WL1273_HILO_SET			35
++#define WL1273_SWITCH2FREF		36
++#define WL1273_FREQ_DRIFT_REPORT	37
++
++#define WL1273_PCE_GET			40
++#define WL1273_FIRM_VER_GET		41
++#define WL1273_ASIC_VER_GET		42
++#define WL1273_ASIC_ID_GET		43
++#define WL1273_MAN_ID_GET		44
++#define WL1273_TUNER_MODE_SET		45
++#define WL1273_STOP_SEARCH		46
++#define WL1273_RDS_CNTRL_SET		47
++
++#define WL1273_WRITE_HARDWARE_REG	100
++#define WL1273_CODE_DOWNLOAD		101
++#define WL1273_RESET			102
++
++#define WL1273_FM_POWER_MODE		254
++#define WL1273_FM_INTERRUPT		255
++
++/* Transmitter API */
++
++#define WL1273_CHANL_SET			55
++#define WL1273_SCAN_SPACING_SET			56
++#define WL1273_REF_SET				57
++#define WL1273_POWER_ENB_SET			90
++#define WL1273_POWER_ATT_SET			58
++#define WL1273_POWER_LEV_SET			59
++#define WL1273_AUDIO_DEV_SET			60
++#define WL1273_PILOT_DEV_SET			61
++#define WL1273_RDS_DEV_SET			62
++#define WL1273_PUPD_SET				91
++#define WL1273_AUDIO_IO_SET			63
++#define WL1273_PREMPH_SET			64
++#define WL1273_MONO_SET				66
++#define WL1273_MUTE				92
++#define WL1273_MPX_LMT_ENABLE			67
++#define WL1273_PI_SET				93
++#define WL1273_ECC_SET				69
++#define WL1273_PTY				70
++#define WL1273_AF				71
++#define WL1273_DISPLAY_MODE			74
++#define WL1273_RDS_REP_SET			77
++#define WL1273_RDS_CONFIG_DATA_SET		98
++#define WL1273_RDS_DATA_SET			99
++#define WL1273_RDS_DATA_ENB			94
++#define WL1273_TA_SET				78
++#define WL1273_TP_SET				79
++#define WL1273_DI_SET				80
++#define WL1273_MS_SET				81
++#define WL1273_PS_SCROLL_SPEED			82
++#define WL1273_TX_AUDIO_LEVEL_TEST		96
++#define WL1273_TX_AUDIO_LEVEL_TEST_THRESHOLD	73
++#define WL1273_TX_AUDIO_INPUT_LEVEL_RANGE_SET	54
++#define WL1273_RX_ANTENNA_SELECT		87
++#define WL1273_I2C_DEV_ADDR_SET			86
++#define WL1273_REF_ERR_CALIB_PARAM_SET		88
++#define WL1273_REF_ERR_CALIB_PERIODICITY_SET	89
++#define WL1273_SOC_INT_TRIGGER			52
++#define WL1273_SOC_AUDIO_PATH_SET		83
++#define WL1273_SOC_PCMI_OVERRIDE		84
++#define WL1273_SOC_I2S_OVERRIDE			85
++#define WL1273_RSSI_BLOCK_SCAN_FREQ_SET		95
++#define WL1273_RSSI_BLOCK_SCAN_START		97
++#define WL1273_RSSI_BLOCK_SCAN_DATA_GET		5
++#define WL1273_READ_FMANT_TUNE_VALUE		104
++
++#define WL1273_RDS_OFF		0
++#define WL1273_RDS_ON		1
++#define WL1273_RDS_RESET	2
++
++#define WL1273_AUDIO_DIGITAL	0
++#define WL1273_AUDIO_ANALOG	1
++
++#define WL1273_MODE_RX		BIT(0)
++#define WL1273_MODE_TX		BIT(1)
++#define WL1273_MODE_OFF		BIT(2)
++#define WL1273_MODE_SUSPENDED	BIT(3)
++
++#define WL1273_RADIO_CHILD	BIT(0)
++#define WL1273_CODEC_CHILD	BIT(1)
++
++#define WL1273_RX_MONO		1
++#define WL1273_RX_STEREO	0
++#define WL1273_TX_MONO		0
++#define WL1273_TX_STEREO	1
++
++#define WL1273_MAX_VOLUME	0xffff
++#define WL1273_DEFAULT_VOLUME	0x78b8
++
++/* I2S protocol, left channel first, data width 16 bits */
++#define WL1273_PCM_DEF_MODE		0x00
++
++/* Rx */
++#define WL1273_AUDIO_ENABLE_I2S		BIT(0)
++#define WL1273_AUDIO_ENABLE_ANALOG	BIT(1)
++
++/* Tx */
++#define WL1273_AUDIO_IO_SET_ANALOG	0
++#define WL1273_AUDIO_IO_SET_I2S		1
++
++#define WL1273_PUPD_SET_OFF		0x00
++#define WL1273_PUPD_SET_ON		0x01
++#define WL1273_PUPD_SET_RETENTION	0x10
++
++/* I2S mode */
++#define WL1273_IS2_WIDTH_32	0x0
++#define WL1273_IS2_WIDTH_40	0x1
++#define WL1273_IS2_WIDTH_22_23	0x2
++#define WL1273_IS2_WIDTH_23_22	0x3
++#define WL1273_IS2_WIDTH_48	0x4
++#define WL1273_IS2_WIDTH_50	0x5
++#define WL1273_IS2_WIDTH_60	0x6
++#define WL1273_IS2_WIDTH_64	0x7
++#define WL1273_IS2_WIDTH_80	0x8
++#define WL1273_IS2_WIDTH_96	0x9
++#define WL1273_IS2_WIDTH_128	0xa
++#define WL1273_IS2_WIDTH	0xf
++
++#define WL1273_IS2_FORMAT_STD	(0x0 << 4)
++#define WL1273_IS2_FORMAT_LEFT	(0x1 << 4)
++#define WL1273_IS2_FORMAT_RIGHT	(0x2 << 4)
++#define WL1273_IS2_FORMAT_USER	(0x3 << 4)
++
++#define WL1273_IS2_MASTER	(0x0 << 6)
++#define WL1273_IS2_SLAVEW	(0x1 << 6)
++
++#define WL1273_IS2_TRI_AFTER_SENDING	(0x0 << 7)
++#define WL1273_IS2_TRI_ALWAYS_ACTIVE	(0x1 << 7)
++
++#define WL1273_IS2_SDOWS_RR	(0x0 << 8)
++#define WL1273_IS2_SDOWS_RF	(0x1 << 8)
++#define WL1273_IS2_SDOWS_FR	(0x2 << 8)
++#define WL1273_IS2_SDOWS_FF	(0x3 << 8)
++
++#define WL1273_IS2_TRI_OPT	(0x0 << 10)
++#define WL1273_IS2_TRI_ALWAYS	(0x1 << 10)
++
++#define WL1273_IS2_RATE_48K	(0x0 << 12)
++#define WL1273_IS2_RATE_44_1K	(0x1 << 12)
++#define WL1273_IS2_RATE_32K	(0x2 << 12)
++#define WL1273_IS2_RATE_22_05K	(0x4 << 12)
++#define WL1273_IS2_RATE_16K	(0x5 << 12)
++#define WL1273_IS2_RATE_12K	(0x8 << 12)
++#define WL1273_IS2_RATE_11_025	(0x9 << 12)
++#define WL1273_IS2_RATE_8K	(0xa << 12)
++#define WL1273_IS2_RATE		(0xf << 12)
++
++#define WL1273_I2S_DEF_MODE	(WL1273_IS2_WIDTH_32 | \
++				 WL1273_IS2_FORMAT_STD | \
++				 WL1273_IS2_MASTER | \
++				 WL1273_IS2_TRI_AFTER_SENDING | \
++				 WL1273_IS2_SDOWS_RR | \
++				 WL1273_IS2_TRI_OPT | \
++				 WL1273_IS2_RATE_48K)
++
++#define SCHAR_MIN (-128)
++#define SCHAR_MAX 127
++
++#define WL1273_FR_EVENT			BIT(0)
++#define WL1273_BL_EVENT			BIT(1)
++#define WL1273_RDS_EVENT		BIT(2)
++#define WL1273_BBLK_EVENT		BIT(3)
++#define WL1273_LSYNC_EVENT		BIT(4)
++#define WL1273_LEV_EVENT		BIT(5)
++#define WL1273_IFFR_EVENT		BIT(6)
++#define WL1273_PI_EVENT			BIT(7)
++#define WL1273_PD_EVENT			BIT(8)
++#define WL1273_STIC_EVENT		BIT(9)
++#define WL1273_MAL_EVENT		BIT(10)
++#define WL1273_POW_ENB_EVENT		BIT(11)
++#define WL1273_SCAN_OVER_EVENT		BIT(12)
++#define WL1273_ERROR_EVENT		BIT(13)
++
++#define TUNER_MODE_STOP_SEARCH		0
++#define TUNER_MODE_PRESET		1
++#define TUNER_MODE_AUTO_SEEK		2
++#define TUNER_MODE_AF			3
++#define TUNER_MODE_AUTO_SEEK_PI		4
++#define TUNER_MODE_AUTO_SEEK_BULK	5
++
++#define RDS_BLOCK_SIZE	3
++
++struct wl1273_fm_platform_data {
++	int (*request_resources) (struct i2c_client *client);
++	void (*free_resources) (void);
++	void (*enable) (void);
++	void (*disable) (void);
++
++	u8 forbidden_modes;
++	unsigned int children;
++};
++
++#define WL1273_FM_CORE_CELLS	2
++
++#define WL1273_BAND_OTHER	0
++#define WL1273_BAND_JAPAN	1
++
++#define WL1273_BAND_JAPAN_LOW	76000
++#define WL1273_BAND_JAPAN_HIGH	90000
++#define WL1273_BAND_OTHER_LOW	87500
++#define WL1273_BAND_OTHER_HIGH	108000
++
++#define WL1273_BAND_TX_LOW	76000
++#define WL1273_BAND_TX_HIGH	108000
++
++struct wl1273_core {
++	struct mfd_cell cells[WL1273_FM_CORE_CELLS];
++	struct wl1273_fm_platform_data *pdata;
++
++	unsigned int mode;
++	unsigned int i2s_mode;
++	unsigned int volume;
++	unsigned int audio_mode;
++	unsigned int channel_number;
++	struct mutex lock; /* for serializing fm radio operations */
++
++	struct i2c_client *client;
++
++	int (*read)(struct wl1273_core *core, u8, u16 *);
++	int (*write)(struct wl1273_core *core, u8, u16);
++	int (*write_data)(struct wl1273_core *core, u8 *, u16);
++
++	int (*set_audio)(struct wl1273_core *core, unsigned int);
++	int (*set_volume)(struct wl1273_core *core, unsigned int);
++};
++
++#endif	/* ifndef WL1273_CORE_H */
 -- 
-1.7.0.4
+1.6.1.3
+
