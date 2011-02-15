@@ -1,64 +1,42 @@
 Return-path: <mchehab@pedra>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:2543 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752632Ab1B1KTw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Feb 2011 05:19:52 -0500
-From: Hans Verkuil <hansverk@cisco.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [st-ericsson] v4l2 vs omx for camera
-Date: Mon, 28 Feb 2011 11:21:52 +0100
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linus Walleij <linus.walleij@linaro.org>,
-	Edward Hervey <bilboed@gmail.com>,
-	johan.mossberg.lml@gmail.com,
-	Discussion of the development of and with GStreamer
-	<gstreamer-devel@lists.freedesktop.org>,
-	"linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>,
-	Harald Gustafsson <harald.gustafsson@ericsson.com>,
-	"ST-Ericsson LT Mailing List" <st-ericsson@lists.linaro.org>,
-	linux-media@vger.kernel.org
-References: <AANLkTik=Yc9cb9r7Ro=evRoxd61KVE=8m7Z5+dNwDzVd@mail.gmail.com> <201102261312.43125.hverkuil@xs4all.nl> <201102281111.47666.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201102281111.47666.laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:1462 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751518Ab1BPQ1y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Feb 2011 11:27:54 -0500
+Date: Tue, 15 Feb 2011 17:18:57 -0500
+From: Jarod Wilson <jarod@redhat.com>
+To: Fernando Laudares Camargos <fernando.laudares.camargos@gmail.com>
+Cc: video4linux-list@redhat.com, linux-media@vger.kernel.org
+Subject: Re: IR for remote control not working for Hauppauge WinTV-HVR-1150
+ (SAA7134)
+Message-ID: <20110215221857.GB3327@redhat.com>
+References: <AANLkTi=jkLGgZDH6XytL1MEE7w5SckZjXoGPhFSCo40b@mail.gmail.com>
+ <20110215220433.GA3327@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201102281121.52906.hansverk@cisco.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20110215220433.GA3327@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Monday, February 28, 2011 11:11:47 Laurent Pinchart wrote:
-> On Saturday 26 February 2011 13:12:42 Hans Verkuil wrote:
-> > On Friday, February 25, 2011 18:22:51 Linus Walleij wrote:
-> > > 2011/2/24 Edward Hervey <bilboed@gmail.com>:
-> > > >  What *needs* to be solved is an API for data allocation/passing at 
-the
-> > > > 
-> > > > kernel level which v4l2,omx,X,GL,vdpau,vaapi,... can use and that
-> > > > userspace (like GStreamer) can pass around, monitor and know about.
-> > > 
-> > > I think the patches sent out from ST-Ericsson's Johan Mossberg to
-> > > linux-mm for "HWMEM" (hardware memory) deals exactly with buffer
-> > > passing, pinning of buffers and so on. The CMA (Contigous Memory
-> > > Allocator) has been slightly modified to fit hand-in-glove with HWMEM,
-> > > so CMA provides buffers, HWMEM pass them around.
-> > > 
-> > > Johan, when you re-spin the HWMEM patchset, can you include
-> > > linaro-dev and linux-media in the CC?
-> > 
-> > Yes, please. This sounds promising and we at linux-media would very much
-> > like to take a look at this. I hope that the CMA + HWMEM combination is
-> > exactly what we need.
+On Tue, Feb 15, 2011 at 05:04:33PM -0500, Jarod Wilson wrote:
+> First off, video4linux-list is dead, you want linux-media (added to cc).
 > 
-> Once again let me restate what I've been telling for some time: CMA must be 
-> *optional*. Not all hardware need contiguous memory. I'll have a look at the 
-> next HWMEM version.
+> On Tue, Feb 15, 2011 at 06:27:29PM -0200, Fernando Laudares Camargos wrote:
+> > Hello,
+> > 
+> > I have a Hauppauge WinTV-HVR-1150 (model 67201) pci tv tuner working
+> > (video and audio) under Ubuntu 10.10 and kernel 2.6.35-25. But the IR
+> > sensor is not being detected and no input device is being created at
+> > /proc/bus/input.
 
-Yes, it is optional when you look at specific hardware. On a kernel level 
-however it is functionality that is required in order to support all the 
-hardware. There is little point in solving one issue and not the other.
+Reading over the code some more, I don't see dev->has_remote set for the
+HVR1150, so it appears the IR receiver on that hardware isn't actually yet
+supported, so the patch I was thinking of may not help here. I failed to
+notice the part where you said no input device was being created, that
+patch only mattered if you were getting an rc input device created.
 
-Regards,
+-- 
+Jarod Wilson
+jarod@redhat.com
 
-	Hans
