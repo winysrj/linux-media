@@ -1,186 +1,83 @@
 Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:50101 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753248Ab1BXMxO (ORCPT
+Received: from mailout-de.gmx.net ([213.165.64.23]:34734 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751995Ab1BOCAj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Feb 2011 07:53:14 -0500
-Message-ID: <4D6654B2.1080707@infradead.org>
-Date: Thu, 24 Feb 2011 09:53:06 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+	Mon, 14 Feb 2011 21:00:39 -0500
+From: Oliver Endriss <o.endriss@gmx.de>
+To: Dan Carpenter <error27@gmail.com>
+Subject: Re: [patch] [media] stv090x: handle allocation failures
+Date: Tue, 15 Feb 2011 03:00:17 +0100
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Manu Abraham <manu@linuxtv.org>,
+	Andreas Regel <andreas.regel@gmx.de>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+References: <20110207165650.GF4384@bicker>
+In-Reply-To: <20110207165650.GF4384@bicker>
 MIME-Version: 1.0
-To: Jiri Slaby <jirislaby@gmail.com>
-CC: Jiri Slaby <jslaby@suse.cz>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Patrick Boettcher <pboettcher@kernellabs.com>
-Subject: Re: [PATCH 1/1] DVB-USB: dib0700, fix oops with non-dib7000pc devices
-References: <1296930047-22689-1-git-send-email-jslaby@suse.cz> <4D664DE5.7020002@gmail.com>
-In-Reply-To: <4D664DE5.7020002@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-2
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201102150300.19650@orion.escape-edv.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 24-02-2011 09:24, Jiri Slaby escreveu:
-> Hmm, could anybody pick it up?
-> 
-> On 02/05/2011 07:20 PM, Jiri Slaby wrote:
->> These devices use different internal structures (dib7000m) and
->> dib7000p pid ctrl accesses invalid members causing kernel to die.
->>
->> Introduce pid control functions for dib7000m which operate on the
->> correct structure.
+On Monday 07 February 2011 17:56:50 Dan Carpenter wrote:
+> kmalloc() can fail so check whether state->internal is NULL.
+> append_internal() can return NULL on allocation failures so check that.
+> Also if we hit the error condition later in the function then there is
+> a memory leak and we need to call remove_dev() to fix it.
+> ...
 
-Patrick (DibCom drivers maintainer) has proposed an alternate patch for it [1]
-that properly address the issues:
+Thanks for the patch. See my comment below.
 
-http://git.linuxtv.org/pb/media_tree.git?a=commitdiff;h=80a5f1fdc6beb496347cbb297f9c1458c8cb9f50
+> --- a/drivers/media/dvb/frontends/stv090x.c
+> +++ b/drivers/media/dvb/frontends/stv090x.c
+> @@ -4783,7 +4783,13 @@ struct dvb_frontend *stv090x_attach(const struct stv090x_config *config,
+>  	} else {
+>  		state->internal = kmalloc(sizeof(struct stv090x_internal),
+>  					  GFP_KERNEL);
+> +		if (!state->internal)
+> +			goto error;
+>  		temp_int = append_internal(state->internal);
+> +		if (!temp_int) {
+> +			kfree(state->internal);
+> +			goto error;
+> +		}
+>  		state->internal->num_used = 1;
+>  		state->internal->mclk = 0;
+>  		state->internal->dev_ver = 0;
+> @@ -4796,7 +4802,7 @@ struct dvb_frontend *stv090x_attach(const struct stv090x_config *config,
+>  
+>  		if (stv090x_setup(&state->frontend) < 0) {
+>  			dprintk(FE_ERROR, 1, "Error setting up device");
+> -			goto error;
+> +			goto err_remove;
+>  		}
+>  	}
+>  
+> @@ -4811,6 +4817,8 @@ struct dvb_frontend *stv090x_attach(const struct stv090x_config *config,
+>  
+>  	return &state->frontend;
+>  
+> +err_remove:
+> +	remove_dev(state->internal);
 
-[1] http://www.spinics.net/lists/linux-media/msg27890.html
+AFAICS
+        kfree(state->internal);
+must be added here, as we allocated state->internal, state and temp_int.
 
-Could you please test it?
+>  error:
+>  	kfree(state);
+>  	return NULL;
 
+CU
+Oliver
 
->>
->> The oops it fixes:
->> BUG: unable to handle kernel NULL pointer dereference at 0000000000000012
->> IP: [<ffffffff813658a7>] i2c_transfer+0x17/0x140
->> PGD 13dcbb067 PUD 13e3c9067 PMD 0
->> Oops: 0000 [#1] PREEMPT SMP
->> ...
->> Modules linked in: ...
->> Pid: 3511, comm: kaffeine Tainted: G   M       2.6.34.8-0.1-desktop #1 NITU1/20023
->> RIP: 0010:[<ffffffff813658a7>]  [<ffffffff813658a7>] i2c_transfer+0x17/0x140
->> RSP: 0018:ffff88011ce59bc8  EFLAGS: 00010292
->> RAX: ffff88011ce59c38 RBX: 0000000000000002 RCX: 0000000000001cda
->> RDX: 0000000000000002 RSI: ffff88011ce59c18 RDI: 0000000000000002
->> ...
->> CR2: 0000000000000012 CR3: 000000011ce53000 CR4: 00000000000406e0
->> Process kaffeine (pid: 3511, threadinfo ffff88011ce58000, task ffff88009a40c700)
->> Stack:
->> ...
->> Call Trace:
->>  [<ffffffffa067a07f>] dib7000p_read_word+0x6f/0xd0 [dib7000p]
->>  [<ffffffffa067bfa2>] dib7000p_pid_filter_ctrl+0x42/0xb0 [dib7000p]
->>  [<ffffffffa0654221>] dvb_usb_ctrl_feed+0x151/0x170 [dvb_usb]
->>  [<ffffffffa062270b>] dmx_ts_feed_start_filtering+0x5b/0xe0 [dvb_core]
->> ...
->> Code: a6 f9 ff 48 83 c4 18 c3 66 66 66 2e 0f 1f 84 00 00 00 00 00 41 57 41 56 41 89 d6 41 55 49 89 f5 41 54 55 53 48 89 fb 48 83 ec 18 <48> 8b 47 10 48 83 38 00 0f 84 c8 00 00 00 65 48 8b 04 25 40 b5
->>
->> Signed-off-by: Jiri Slaby <jslaby@suse.cz>
->> ---
->>  drivers/media/dvb/dvb-usb/dib0700_devices.c |   18 +++++++++++++++++-
->>  drivers/media/dvb/frontends/dib7000m.c      |   19 +++++++++++++++++++
->>  drivers/media/dvb/frontends/dib7000m.h      |   16 ++++++++++++++++
->>  3 files changed, 52 insertions(+), 1 deletions(-)
->>
->> diff --git a/drivers/media/dvb/dvb-usb/dib0700_devices.c b/drivers/media/dvb/dvb-usb/dib0700_devices.c
->> index c6022af..23fe0c3 100644
->> --- a/drivers/media/dvb/dvb-usb/dib0700_devices.c
->> +++ b/drivers/media/dvb/dvb-usb/dib0700_devices.c
->> @@ -80,6 +80,9 @@ static struct dib3000mc_config bristol_dib3000mc_config[2] = {
->>  	}
->>  };
->>  
->> +static int stk70x0m_pid_filter(struct dvb_usb_adapter *adapter, int index, u16 pid, int onoff);
->> +static int stk70x0m_pid_filter_ctrl(struct dvb_usb_adapter *adapter, int onoff);
->> +
->>  static int bristol_frontend_attach(struct dvb_usb_adapter *adap)
->>  {
->>  	struct dib0700_state *st = adap->dev->priv;
->> @@ -686,8 +689,11 @@ static int stk7700p_frontend_attach(struct dvb_usb_adapter *adap)
->>  	if (dib7000pc_detection(&adap->dev->i2c_adap)) {
->>  		adap->fe = dvb_attach(dib7000p_attach, &adap->dev->i2c_adap, 18, &stk7700p_dib7000p_config);
->>  		st->is_dib7000pc = 1;
->> -	} else
->> +	} else {
->>  		adap->fe = dvb_attach(dib7000m_attach, &adap->dev->i2c_adap, 18, &stk7700p_dib7000m_config);
->> +		adap->props.pid_filter = stk70x0m_pid_filter;
->> +		adap->props.pid_filter_ctrl = stk70x0m_pid_filter_ctrl;
->> +	}
->>  
->>  	return adap->fe == NULL ? -ENODEV : 0;
->>  }
->> @@ -882,6 +888,16 @@ static int stk70x0p_pid_filter_ctrl(struct dvb_usb_adapter *adapter, int onoff)
->>      return dib7000p_pid_filter_ctrl(adapter->fe, onoff);
->>  }
->>  
->> +static int stk70x0m_pid_filter(struct dvb_usb_adapter *adapter, int index, u16 pid, int onoff)
->> +{
->> +	return dib7000m_pid_filter(adapter->fe, index, pid, onoff);
->> +}
->> +
->> +static int stk70x0m_pid_filter_ctrl(struct dvb_usb_adapter *adapter, int onoff)
->> +{
->> +	return dib7000m_pid_filter_ctrl(adapter->fe, onoff);
->> +}
->> +
->>  static struct dibx000_bandwidth_config dib7070_bw_config_12_mhz = {
->>  	60000, 15000,
->>  	1, 20, 3, 1, 0,
->> diff --git a/drivers/media/dvb/frontends/dib7000m.c b/drivers/media/dvb/frontends/dib7000m.c
->> index c7f5ccf..90d9411 100644
->> --- a/drivers/media/dvb/frontends/dib7000m.c
->> +++ b/drivers/media/dvb/frontends/dib7000m.c
->> @@ -1372,6 +1372,25 @@ error:
->>  }
->>  EXPORT_SYMBOL(dib7000m_attach);
->>  
->> +int dib7000m_pid_filter_ctrl(struct dvb_frontend *fe, u8 onoff)
->> +{
->> +	struct dib7000m_state *state = fe->demodulator_priv;
->> +	u16 val = dib7000m_read_word(state, 235) & 0xffef;
->> +	val |= (onoff & 0x1) << 4;
->> +	dprintk("PID filter enabled %d", onoff);
->> +	return dib7000m_write_word(state, 235, val);
->> +}
->> +EXPORT_SYMBOL(dib7000m_pid_filter_ctrl);
->> +
->> +int dib7000m_pid_filter(struct dvb_frontend *fe, u8 id, u16 pid, u8 onoff)
->> +{
->> +	struct dib7000m_state *state = fe->demodulator_priv;
->> +	dprintk("PID filter: index %x, PID %d, OnOff %d", id, pid, onoff);
->> +	return dib7000m_write_word(state, 241 + id,
->> +			onoff ? (1 << 13) | pid : 0);
->> +}
->> +EXPORT_SYMBOL(dib7000m_pid_filter);
->> +
->>  static struct dvb_frontend_ops dib7000m_ops = {
->>  	.info = {
->>  		.name = "DiBcom 7000MA/MB/PA/PB/MC",
->> diff --git a/drivers/media/dvb/frontends/dib7000m.h b/drivers/media/dvb/frontends/dib7000m.h
->> index 113819c..3353f5a 100644
->> --- a/drivers/media/dvb/frontends/dib7000m.h
->> +++ b/drivers/media/dvb/frontends/dib7000m.h
->> @@ -46,6 +46,8 @@ extern struct dvb_frontend *dib7000m_attach(struct i2c_adapter *i2c_adap,
->>  extern struct i2c_adapter *dib7000m_get_i2c_master(struct dvb_frontend *,
->>  						   enum dibx000_i2c_interface,
->>  						   int);
->> +extern int dib7000m_pid_filter(struct dvb_frontend *, u8 id, u16 pid, u8 onoff);
->> +extern int dib7000m_pid_filter_ctrl(struct dvb_frontend *fe, u8 onoff);
->>  #else
->>  static inline
->>  struct dvb_frontend *dib7000m_attach(struct i2c_adapter *i2c_adap,
->> @@ -63,6 +65,20 @@ struct i2c_adapter *dib7000m_get_i2c_master(struct dvb_frontend *demod,
->>  	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
->>  	return NULL;
->>  }
->> +
->> +static inline int dib7000m_pid_filter(struct dvb_frontend *fe, u8 id, u16 pid,
->> +		u8 onoff)
->> +{
->> +	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
->> +	return -ENODEV;
->> +}
->> +
->> +static inline int dib7000m_pid_filter_ctrl(struct dvb_frontend *fe,
->> +		uint8_t onoff)
->> +{
->> +	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
->> +	return -ENODEV;
->> +}
->>  #endif
->>  
->>  /* TODO
-> 
-> 
-
+-- 
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
+Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
+----------------------------------------------------------------
