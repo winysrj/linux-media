@@ -1,317 +1,101 @@
 Return-path: <mchehab@pedra>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:41650 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752548Ab1BVCoU convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Feb 2011 21:44:20 -0500
-Received: by mail-vx0-f176.google.com with SMTP id 41so1973603vxc.7
-        for <linux-media@vger.kernel.org>; Mon, 21 Feb 2011 18:44:19 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <AANLkTikg0Oj6nq6h_1-d7AQ4NQr2UyMuSemyniYZBLu3@mail.gmail.com>
-References: <AANLkTik=Yc9cb9r7Ro=evRoxd61KVE=8m7Z5+dNwDzVd@mail.gmail.com>
-	<AANLkTinDFMMDD-F-FsccCTvUvp6K3zewYsGT1BH9VP1F@mail.gmail.com>
-	<201102100847.15212.hverkuil@xs4all.nl>
-	<201102171448.09063.laurent.pinchart@ideasonboard.com>
-	<AANLkTikg0Oj6nq6h_1-d7AQ4NQr2UyMuSemyniYZBLu3@mail.gmail.com>
-Date: Mon, 21 Feb 2011 20:44:19 -0600
-Message-ID: <AANLkTik89=g4fR=wC2rkpBero2e-jDVhjmUVNzKKwNjF@mail.gmail.com>
-Subject: Re: [st-ericsson] v4l2 vs omx for camera
-From: "Clark, Rob" <rob@ti.com>
-To: Robert Fekete <robert.fekete@linaro.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>,
-	Harald Gustafsson <harald.gustafsson@ericsson.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	gstreamer-devel@lists.freedesktop.org,
-	ST-Ericsson LT Mailing List <st-ericsson@lists.linaro.org>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8BIT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:10078 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750934Ab1BOAyf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Feb 2011 19:54:35 -0500
+Subject: Re: cx23885-input.c does in fact use a workqueue....
+From: Andy Walls <awalls@md.metrocast.net>
+To: Tejun Heo <tj@kernel.org>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	stoth@kernellabs.com
+In-Reply-To: <20110214110339.GC18742@htj.dyndns.org>
+References: <1297647322.19186.61.camel@localhost>
+	 <20110214043355.GA28090@core.coreip.homeip.net>
+	 <20110214110339.GC18742@htj.dyndns.org>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 14 Feb 2011 19:54:36 -0500
+Message-ID: <1297731276.2394.19.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Fri, Feb 18, 2011 at 10:39 AM, Robert Fekete
-<robert.fekete@linaro.org> wrote:
-> Hi,
->
-> In order to expand this knowledge outside of Linaro I took the Liberty of
-> inviting both linux-media@vger.kernel.org and
-> gstreamer-devel@lists.freedesktop.org. For any newcomer I really recommend
-> to do some catch-up reading on
-> http://lists.linaro.org/pipermail/linaro-dev/2011-February/thread.html
-> ("v4l2 vs omx for camera" thread) before making any comments. And sign up
-> for Linaro-dev while you are at it :-)
->
-> To make a long story short:
-> Different vendors provide custom OpenMax solutions for say Camera/ISP. In
-> the Linux eco-system there is V4L2 doing much of this work already and is
-> evolving with mediacontroller as well. Then there is the integration in
-> Gstreamer...Which solution is the best way forward. Current discussions so
-> far puts V4L2 greatly in favor of OMX.
-> Please have in mind that OpenMAX as a concept is more like GStreamer in many
-> senses. The question is whether Camera drivers should have OMX or V4L2 as
-> the driver front end? This may perhaps apply to video codecs as well. Then
-> there is how to in best of ways make use of this in GStreamer in order to
-> achieve no copy highly efficient multimedia pipelines. Is gst-omx the way
-> forward?
+On Mon, 2011-02-14 at 12:03 +0100, Tejun Heo wrote:
+> Hello,
+> 
+> On Sun, Feb 13, 2011 at 08:33:55PM -0800, Dmitry Torokhov wrote:
+> > > The cx23885 driver does in fact schedule work for IR input handling:
+> > > 
+> > > Here's where it is scheduled for CX23888 chips:
+> > > 
+> > > http://git.linuxtv.org/media_tree.git?a=blob;f=drivers/media/video/cx23885/cx23885-ir.c;h=7125247dd25558678c823ee3262675570c9aa630;hb=HEAD#l76
+> > > 
+> > > Here's where it is scheduled for CX23885 chips:
+> > > 
+> > > http://git.linuxtv.org/media_tree.git?a=blob;f=drivers/media/video/cx23885/cx23885-core.c;h=359882419b7f588b7c698dbcfb6a39ddb1603301;hb=HEAD#l1861
+> 
+> Ah, sorry about missing those.
 
-just fwiw, there were some patches to make v4l2src work with userptr
-buffers in case the camera has an mmu and can handle any random
-non-physically-contiguous buffer..  so there is in theory no reason
-why a gst capture pipeline could not be zero copy and capture directly
-into buffers allocated from the display
+There's a lot of indirection in drivers under drivers/media/video so it
+doesn't surprise me when someone misses something.
 
-Certainly a more general way to allocate buffers that any of the hw
-blocks (display, imaging, video encoders/decoders, 3d/2d hw, etc)
-could use, and possibly share across-process for some zero copy DRI
-style rendering, would be nice.  Perhaps V4L2_MEMORY_GEM?
+(BTW, I only checked cx23885 since I wrote the IR handling and added the
+work queue usage for IR that driver.)
 
->
-> Let the discussion continue...
->
->
-> On 17 February 2011 14:48, Laurent Pinchart
-> <laurent.pinchart@ideasonboard.com> wrote:
->>
->> On Thursday 10 February 2011 08:47:15 Hans Verkuil wrote:
->> > On Thursday, February 10, 2011 08:17:31 Linus Walleij wrote:
->> > > On Wed, Feb 9, 2011 at 8:44 PM, Harald Gustafsson wrote:
->> > > > OMX main purpose is to handle multimedia hardware and offer an
->> > > > interface to that HW that looks identical indenpendent of the vendor
->> > > > delivering that hardware, much like the v4l2 or USB subsystems tries
->> > > > to
->> > > > do. And yes optimally it should be implemented in drivers/omx in
->> > > > Linux
->> > > > and a user space library on top of that.
->> > >
->> > > Thanks for clarifying this part, it was unclear to me. The reason
->> > > being
->> > > that it seems OMX does not imply userspace/kernelspace separation, and
->> > > I was thinking more of it as a userspace lib. Now my understanding is
->> > > that if e.g. OpenMAX defines a certain data structure, say for a PCM
->> > > frame or whatever, then that exact struct is supposed to be used by
->> > > the
->> > > kernelspace/userspace interface, and defined in the include file
->> > > exported
->> > > by the kernel.
->> > >
->> > > > It might be that some alignment also needs to be made between 4vl2
->> > > > and
->> > > > other OS's implementation, to ease developing drivers for many OSs
->> > > > (sorry I don't know these details, but you ST-E guys should know).
->> > >
->> > > The basic conflict I would say is that Linux has its own API+ABI,
->> > > which
->> > > is defined by V4L and ALSA through a community process without much
->> > > thought about any existing standard APIs. (In some cases also
->> > > predating
->> > > them.)
->> > >
->> > > > By the way IL is about to finalize version 1.2 of OpenMAX IL which
->> > > > is
->> > > > more than a years work of aligning all vendors and fixing unclear
->> > > > and
->> > > > buggy parts.
->> > >
->> > > I suspect that the basic problem with Khronos OpenMAX right now is
->> > > how to handle communities - for example the X consortium had
->> > > something like the same problem a while back, only member companies
->> > > could partake in the standard process, and they need of course to pay
->> > > an upfront fee for that, and the majority of these companies didn't
->> > > exactly send Linux community members to the meetings.
->> > >
->> > > And now all the companies who took part in OpenMAX somehow
->> > > end up having to do a lot of upfront community work if they want
->> > > to drive the API:s in a certain direction, discuss it again with the
->> > > V4L
->> > > and ALSA maintainers and so on. Which takes a lot of time and
->> > > patience with uncertain outcome, since this process is autonomous
->> > > from Khronos. Nobody seems to be doing this, I javen't seen a single
->> > > patch aimed at trying to unify the APIs so far. I don't know if it'd
->> > > be
->> > > welcome.
->> > >
->> > > This coupled with strict delivery deadlines and a marketing will
->> > > to state conformance to OpenMAX of course leads companies into
->> > > solutions breaking the Linux kernelspace API to be able to present
->> > > this.
->>
->> From my experience with OMX, one of the issues is that companies usually
->> extend the API to fullfill their platform's needs, without going through
->> any
->> standardization process. Coupled with the lack of open and free reference
->> implementation and test tools, this more or less means that OMX
->> implementations are not really compatible with eachother, making OMX-based
->> solution not better than proprietary solutions.
->>
->> > > Now I think we have a pretty clear view of the problem, I don't
->> > > know what could be done about it though :-/
->> >
->> > One option might be to create a OMX wrapper library around the V4L2 API.
->> > Something similar is already available for the old V4L1 API (now removed
->> > from the kernel) that allows apps that still speak V4L1 only to use the
->> > V4L2 API. This is done in the libv4l1 library. The various v4l libraries
->> > are maintained here: http://git.linuxtv.org/v4l-utils.git
->> >
->> > Adding a libomx might not be such a bad idea. Linaro might be the
->> > appropriate organization to look into this. Any missing pieces in V4L2
->> > needed to create a fully functioning omx API can be discussed and
->> > solved.
->> >
->> > Making this part of v4l-utils means that it is centrally maintained and
->> > automatically picked up by distros.
->> >
->> > It will certainly be a non-trivial exercise, but it is a one-time job
->> > that
->> > should solve a lot of problems. But someone has to do it...
->>
->> It's an option, but why would that be needed ? Again from my (probably
->> limited) OMX experience, platforms expose higher-level APIs to
->> applications,
->> implemented on top of OMX. If the OMX layer is itself implemented on top
->> of
->> V4L2, it would just be an extraneous useless internal layer that could
->> (should
->> ?) be removed completely.
->>
->
-> [Robert F]
-> This would be the case in a GStreamer driven multimedia, i.e. Implement
-> GStreamer elements using V4L2 directly(or camerabin using v4l2 directly).
-> Perhaps some vendors would provide a library in between as well but that
-> could be libv4l in that case. If someone would have an OpenMAX AL/IL media
-> framework an OMX component would make sense to have but in this case it
-> would be a thinner OMX component which in turn is implemented using V4L2.
-> But it might be that Khronos provides OS independent components that by
-> vendors gets implemented as the actual HW driver forgetting that there is a
-> big difference in the driver model of an RTOS system compared to
-> Linux(user/kernel space) or any OS...never mind.
->
 
-Not even different vendor's omx camera implementations are
-compatible.. there seems to be too much various in ISP architecture
-and features for this.
 
-Another point, and possibly the reason that TI went the OMX camera
-route, was that a userspace API made it possible to move the camera
-driver all to a co-processor (with advantages of reduced interrupt
-latency for SIMCOP processing, and a larger part of the code being OS
-independent)..  doing this in a kernel mode driver would have required
-even more of syslink in the kernel.
+> > > So what should be done about the flush_scheduled_work()?  I think it
+> > > belongs there.
+> > > 
+> > 
+> > Convert to using threaded irq?
 
-But maybe it would be nice to have a way to have sensor driver on the
-linux side, pipelined with hw and imaging drivers on a co-processor
-for various algorithms and filters with configuration all exposed to
-userspace thru MCF.. I'm not immediately sure how this would work, but
-it sounds nice at least ;-)
+Too big of a regression testing job for me to take on at the moment.
 
-> The question is if the Linux kernel and V4L2 is ready to incorporate several
-> HW(DSP, CPU, ISP, xxHW) in an imaging pipeline for instance. The reason
-> Embedded Vendors provide custom solutions is to implement low power non(or
-> minimal) CPU intervention pipelines where dedicated HW does the work most of
-> the time(like full screen Video Playback).
->
-> A common way of managing memory would of course also be necessary as well,
-> like hwmem(search for hwmem in Linux-mm) handles to pass buffers in between
-> different drivers and processes all the way from sources(camera, video
-> parser/decode) to sinks(display, hdmi, video encoders(record))
 
-(ahh, ok, you have some of the same thoughts as I do regarding sharing
-buffers between various drivers)
+> Or
+> 
+> 1. Just flush the work items explicitly using flush_work_sync().
 
-> Perhaps GStreamer experts would like to comment on the future plans ahead
-> for zero copying/IPC and low power HW use cases? Could Gstreamer adapt some
-> ideas from OMX IL making OMX IL obsolete?
+That will do for now.
 
-perhaps OMX should adapt some of the ideas from GStreamer ;-)
+> 2. Create a dedicated workqueue to serve as flushing domain.
 
-OpenMAX is missing some very obvious stuff to make it an API for
-portable applications like autoplugging, discovery of
-capabilities/formats supported, etc..  at least with gst I can drop in
-some hw specific plugins and have apps continue to work without code
-changes.
+I have gotten reports of the IR Rx FIFO overflows for the CX23885 IR Rx
+unit (the I2C connected one).  I eventually should either set the Rx
+FIFO service interrupt watermark down from 4 measurments to 1
+measurment, or use a kthread_worker with some higher priority to respond
+to the IR Rx FIFO service interrupt. 
 
-Anyways, it would be an easier argument to make if GStreamer was the
-one true framework across different OSs, or at least across linux and
-android.
 
-BR,
--R
 
-> Answering these questions could be
-> improved guidelines on what embedded device vendors in the future would
-> provide as hw-driver front-ends. OMX is just one of these. Perhaps we could
-> do better to fit and evolve the Linux eco-system?
->
->
->>
->> > Regarding using V4L to communicate with DSPs/other processors: that too
->> > could be something for Linaro to pick up: experiment with it for one
->> > particular board, see what (if anything) is needed to make this work. I
->> > expect it to be pretty easy, but again, nobody has actually done the
->> > initial work.
->>
->> The main issue with the V4L2 API compared with the OMX API is that V4L2 is
->> a
->> kernelspace/userspace API only, while OMX can live in userspace. When the
->> need
->> to communicate with other processors (CPUs, DSP, dedicated image
->> processing
->> hardware blocks, ...) arises, platforms usually ship with a thin kernel
->> layer
->> to handle low-level communication protocols, and a userspace OMX library
->> that
->> does the bulk of the work. We would need to be able to do something
->> similar
->> with V4L2.
->
-> [Robert F]
-> Ok, doesn.t mediacontroller/subdevices solve many of these issues?
->
->>
->> > Once you have an example driver, then it should be much easier for
->> > others
->> > to follow.
->> >
->> > As Linus said, companies are unlikely to start doing this by themselves,
->> > but it seems that this work would exactly fit the Linaro purpose. From
->> > the
->> > Linaro homepage:
->> >
->> > "Linaro™ brings together the open source community and the electronics
->> > industry to work on key projects, deliver great tools, reduce industry
->> > wide fragmentation and provide common foundations for Linux software
->> > distributions and stacks to land on."
->> >
->> > Spot on, I'd say :-)
->> >
->> > Just for the record, let me say again they the V4L2 community will be
->> > very
->> > happy to assist with this when it comes to extending/improving the V4L2
->> > API
->> > to make all this possible.
->>
->> The first step would probably be to decide what Linux needs. Then I'll
->> also be
->> happy to assist with the implementation phase :-)
->>
->> --
->> Regards,
->>
->> Laurent Pinchart
->>
->> _______________________________________________
->> linaro-dev mailing list
->> linaro-dev@lists.linaro.org
->> http://lists.linaro.org/mailman/listinfo/linaro-dev
->
-> BR
-> /Robert Fekete
->
->
-> _______________________________________________
-> linaro-dev mailing list
-> linaro-dev@lists.linaro.org
-> http://lists.linaro.org/mailman/listinfo/linaro-dev
->
->
+> The first would look like the following.  Does this look correct?
+
+Yes, your patch below looks sane to me.
+
+Reviewed-by: Andy Walls <awalls@md.metrocast.net>
+
+Thanks,
+Andy
+
+> Thanks.
+> 
+> diff --git a/drivers/media/video/cx23885/cx23885-input.c b/drivers/media/video/cx23885/cx23885-input.c
+> index 199b996..e27cedb 100644
+> --- a/drivers/media/video/cx23885/cx23885-input.c
+> +++ b/drivers/media/video/cx23885/cx23885-input.c
+> @@ -229,6 +229,9 @@ static void cx23885_input_ir_stop(struct cx23885_dev *dev)
+>  		v4l2_subdev_call(dev->sd_ir, ir, rx_s_parameters, &params);
+>  		v4l2_subdev_call(dev->sd_ir, ir, rx_g_parameters, &params);
+>  	}
+> +	flush_work_sync(&dev->cx25840_work);
+> +	flush_work_sync(&dev->ir_rx_work);
+> +	flush_work_sync(&dev->ir_tx_work);
+>  }
+>  
+>  static void cx23885_input_ir_close(struct rc_dev *rc)
+> 
+
+
