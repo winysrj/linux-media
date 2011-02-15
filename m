@@ -1,45 +1,66 @@
 Return-path: <mchehab@pedra>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:55131 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752955Ab1B1TpT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Feb 2011 14:45:19 -0500
-Received: by vxi39 with SMTP id 39so3463464vxi.19
-        for <linux-media@vger.kernel.org>; Mon, 28 Feb 2011 11:45:19 -0800 (PST)
+Received: from mx1.redhat.com ([209.132.183.28]:30065 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751875Ab1BPQ1y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Feb 2011 11:27:54 -0500
+Date: Tue, 15 Feb 2011 17:04:33 -0500
+From: Jarod Wilson <jarod@redhat.com>
+To: Fernando Laudares Camargos <fernando.laudares.camargos@gmail.com>
+Cc: video4linux-list@redhat.com, linux-media@vger.kernel.org
+Subject: Re: IR for remote control not working for Hauppauge WinTV-HVR-1150
+ (SAA7134)
+Message-ID: <20110215220433.GA3327@redhat.com>
+References: <AANLkTi=jkLGgZDH6XytL1MEE7w5SckZjXoGPhFSCo40b@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <201102281649.37619.malte.gell@gmx.de>
-References: <201102281649.37619.malte.gell@gmx.de>
-Date: Mon, 28 Feb 2011 20:39:30 +0100
-Message-ID: <AANLkTinn+hvZJrG0853JrrpbpoF+ZyQ47JFwLrt88sQz@mail.gmail.com>
-Subject: Re: Bulding az6007 module fails
-From: Torfinn Ingolfsen <tingox@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <AANLkTi=jkLGgZDH6XytL1MEE7w5SckZjXoGPhFSCo40b@mail.gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+First off, video4linux-list is dead, you want linux-media (added to cc).
 
-On Mon, Feb 28, 2011 at 4:49 PM, Malte Gell <malte.gell@gmx.de> wrote:
+On Tue, Feb 15, 2011 at 06:27:29PM -0200, Fernando Laudares Camargos wrote:
 > Hello,
->
-> Terratec has released sources for the AzureWave 6007 chipset at
-> http://linux.terratec.de/files/TERRATEC_H7_Linux.tar.gz
->
-> I have merged these sources into a 2.6.38-rc tree and tried to compile these
-> modules, but I get an error.
+> 
+> I have a Hauppauge WinTV-HVR-1150 (model 67201) pci tv tuner working
+> (video and audio) under Ubuntu 10.10 and kernel 2.6.35-25. But the IR
+> sensor is not being detected and no input device is being created at
+> /proc/bus/input.
+> 
+> I have tried to follow the information from Jarod Wilson and Mauro
+> Carvalho Chehab in https://bugzilla.redhat.com/show_bug.cgi?id=665870
+> (regarding Fedora 14) but couldn't resolve it myself.
+> 
+> I'm not a kernel/driver specialist but from looking at the code I've
+> noticed that *perphaps* the support for the HVR-1150 has not been
+> finished yet. Here are two examples that leaded to this observation
+> (IMHO):
+> 
+> drivers/media/video/saa7134/saa7134-cards.c
+> -------------------------------------------------------------------------------
+> (...)
+> int saa7134_board_init1(struct saa7134_dev *dev)
+> {
+> (...)
+>        case SAA7134_BOARD_HAUPPAUGE_HVR1150:           *NO
+> INSTRUCTIONS FOR THIS CASE*
 
-I tried that myself a while ago (note: I'm not very familiar with
-Linux drivers, so I might have done it wrong). Anyway, my effort is
-documented here:
-http://sites.google.com/site/tingox/asus_m2a-vm_hdmi_linux
+No. It falls through and uses the same config as the HVR1120. Similar case
+for all other instances you've referenced.
 
-Let us know if you
-a) get any help
-b) figure out a solution
+> I'm wondering if someone has the IR part of the HVR-1150 working under
+> F14 or other or could give me a hand on trying to make it work (I have
+> attached output from dmesg with the following saa7134 options set:
+> disable_ir=0 i2c_debug=1 i2c_scan=1 ir_debug=1
 
-Have a nice day.
+As noted in the bug, I think there's actually one more patch of Mauro's
+that isn't yet in the F14 kernel, that bug was updated as having the full
+fix in 2.6.35.11-83.fc14 erroneously.
+
+I'll try to address that soon.
+
 -- 
-Regards,
-Torfinn Ingolfsen,
-Norway
+Jarod Wilson
+jarod@redhat.com
+
