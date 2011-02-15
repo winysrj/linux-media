@@ -1,105 +1,67 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:3238 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750792Ab1BENRb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Feb 2011 08:17:31 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [GIT PATCHES FOR 2.6.39] Remove se401, usbvideo, dabusb, firedtv-1394 and VIDIOC_OLD
-Date: Sat, 5 Feb 2011 14:17:22 +0100
-Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Deti Fliegl <deti@fliegl.de>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201102051417.22874.hverkuil@xs4all.nl>
+Received: from cmsout02.mbox.net ([165.212.64.32]:44825 "EHLO
+	cmsout02.mbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752960Ab1BOKz2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Feb 2011 05:55:28 -0500
+Received: from cmsout02.mbox.net (co02-lo [127.0.0.1])
+	by cmsout02.mbox.net (Postfix) with ESMTP id A8A18134237
+	for <linux-media@vger.kernel.org>; Tue, 15 Feb 2011 10:55:27 +0000 (GMT)
+Date: Tue, 15 Feb 2011 11:55:24 +0100
+From: "Issa Gorissen" <flop.m@usa.net>
+To: <linux-media@vger.kernel.org>
+Subject: Re: Sony CXD2099AR decryption failing
+Mime-Version: 1.0
+Message-ID: <350PBok3y6288S02.1297767324@web02.cms.usa.net>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-(Second attempt: fixes a link issue with firedtv and adds removal of the old ioctls)
+Hi Oliver,
 
-This patch series removes the last V4L1 drivers (Yay!), the obsolete dabusb driver,
-the ieee1394-stack part of the firedtv driver (the IEEE1394 stack was removed in
-2.6.37), and the VIDIOC_*_OLD ioctls.
+Thx for your reply. This will be a bit hard. But I will give it a try. I will
+try to boot from a USB key with Windows on it.
 
-Stefan, I went ahead with this since after further research I discovered that
-this driver hasn't been compiled at all since 2.6.37! The Kconfig had a
-dependency on IEEE1394, so when that config was removed, the driver no longer
-appeared in the config.
+Any preferences for Windows ? XP, Vista or 7 ?
 
-I removed any remaining reference to IEEE1394 and changed the Kconfig dependency
-to FIREWIRE. At least it compiles again :-)
+--
+Issa
 
-Regards,
+------ Original Message ------
+Received: 04:04 AM CET, 02/15/2011
+From: Oliver Endriss <o.endriss@gmx.de>
+To: "Issa Gorissen" <flop.m@usa.net>Cc: linux-media@vger.kernel.org
+Subject: Re: Sony CXD2099AR decryption failing
 
-        Hans
+> Hello,
+> 
+> On Monday 14 February 2011 17:42:55 Issa Gorissen wrote:
+> > Hi,
+> > 
+> > I am having some trouble with the Sony CXD2099AR CI chip.
+> > 
+> > With a SMIT Viaccess CAM, I am not able to decrypt channels from the
+french
+> > package Bis.TV on Hotbird 13E.
+> > 
+> > The CAM decrypts fine when inserted in a set top box.
+> > 
+> > The drivers running are those from the branch of Oliver.
+> > System's running OpenSuse 11.3.
+> > 
+> > May someone with the knowledge of this chip get in touch with me ?
+> 
+> Could you please test, whether it works with the windows driver?
+> 
+> CU
+> Oliver
+> 
+> -- 
+> ----------------------------------------------------------------
+> VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+> 4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
+> Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
+> ----------------------------------------------------------------
 
-The following changes since commit ffd14aab03dbb8bb1bac5284603835f94d833bd6:
-  Devin Heitmueller (1):
-        [media] au0828: fix VBI handling when in V4L2 streaming mode
 
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/hverkuil/media_tree.git v4l1
-
-Hans Verkuil (4):
-      se401/usbvideo: remove last V4L1 drivers
-      dabusb: remove obsolete driver
-      firedtv: remove dependency on the deleted ieee1394 stack.
-      v4l: removal of old, obsolete ioctls.
-
- Documentation/feature-removal-schedule.txt |   36 -
- drivers/media/dvb/Kconfig                  |    2 +-
- drivers/media/dvb/firewire/Kconfig         |    8 +-
- drivers/media/dvb/firewire/Makefile        |    5 +-
- drivers/media/dvb/firewire/firedtv-1394.c  |  300 ----
- drivers/media/dvb/firewire/firedtv-dvb.c   |    5 -
- drivers/media/dvb/firewire/firedtv.h       |   14 -
- drivers/media/video/v4l2-common.c          |    1 -
- drivers/media/video/v4l2-compat-ioctl32.c  |   15 -
- drivers/media/video/v4l2-ioctl.c           |   38 -
- drivers/staging/Kconfig                    |    6 -
- drivers/staging/Makefile                   |    3 -
- drivers/staging/dabusb/Kconfig             |   14 -
- drivers/staging/dabusb/Makefile            |    2 -
- drivers/staging/dabusb/TODO                |    5 -
- drivers/staging/dabusb/dabusb.c            |  914 ------------
- drivers/staging/dabusb/dabusb.h            |   85 --
- drivers/staging/easycap/easycap_ioctl.c    |    5 -
- drivers/staging/se401/Kconfig              |   13 -
- drivers/staging/se401/Makefile             |    1 -
- drivers/staging/se401/TODO                 |    5 -
- drivers/staging/se401/se401.c              | 1492 -------------------
- drivers/staging/se401/se401.h              |  236 ---
- drivers/staging/se401/videodev.h           |  318 ----
- drivers/staging/usbvideo/Kconfig           |   15 -
- drivers/staging/usbvideo/Makefile          |    2 -
- drivers/staging/usbvideo/TODO              |    5 -
- drivers/staging/usbvideo/usbvideo.c        | 2230 ----------------------------
- drivers/staging/usbvideo/usbvideo.h        |  395 -----
- drivers/staging/usbvideo/vicam.c           |  952 ------------
- drivers/staging/usbvideo/videodev.h        |  318 ----
- include/linux/videodev2.h                  |   10 -
- 32 files changed, 3 insertions(+), 7447 deletions(-)
- delete mode 100644 drivers/media/dvb/firewire/firedtv-1394.c
- delete mode 100644 drivers/staging/dabusb/Kconfig
- delete mode 100644 drivers/staging/dabusb/Makefile
- delete mode 100644 drivers/staging/dabusb/TODO
- delete mode 100644 drivers/staging/dabusb/dabusb.c
- delete mode 100644 drivers/staging/dabusb/dabusb.h
- delete mode 100644 drivers/staging/se401/Kconfig
- delete mode 100644 drivers/staging/se401/Makefile
- delete mode 100644 drivers/staging/se401/TODO
- delete mode 100644 drivers/staging/se401/se401.c
- delete mode 100644 drivers/staging/se401/se401.h
- delete mode 100644 drivers/staging/se401/videodev.h
- delete mode 100644 drivers/staging/usbvideo/Kconfig
- delete mode 100644 drivers/staging/usbvideo/Makefile
- delete mode 100644 drivers/staging/usbvideo/TODO
- delete mode 100644 drivers/staging/usbvideo/usbvideo.c
- delete mode 100644 drivers/staging/usbvideo/usbvideo.h
- delete mode 100644 drivers/staging/usbvideo/vicam.c
- delete mode 100644 drivers/staging/usbvideo/videodev.h
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
