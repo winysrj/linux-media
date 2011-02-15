@@ -1,85 +1,66 @@
 Return-path: <mchehab@pedra>
-Received: from LUNGE.MIT.EDU ([18.54.1.69]:58281 "EHLO lunge.queued.net"
+Received: from mx1.redhat.com ([209.132.183.28]:23710 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755364Ab1BLCMc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Feb 2011 21:12:32 -0500
-Date: Fri, 11 Feb 2011 18:12:28 -0800
-From: Andres Salomon <dilinger@queued.net>
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: linux-kernel@vger.kernel.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Liam Girdwood <lrg@slimlogic.co.uk>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
-	"Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org
-Subject: [PATCH 10/17] wl1273: mfd_cell is now implicitly available to
- drivers
-Message-ID: <20110211181228.74a8cf5a@queued.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	id S1754770Ab1BOT1L (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Feb 2011 14:27:11 -0500
+Message-ID: <4D5AD451.2020102@redhat.com>
+Date: Tue, 15 Feb 2011 20:30:25 +0100
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Jean-Francois Moine <moinejf@free.fr>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] v4l-utils: Add the JPEG Lite decoding function
+References: <20110215102626.3e8e83d3@tele>
+In-Reply-To: <20110215102626.3e8e83d3@tele>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+Hi,
 
-The cell's platform_data is now accessed with a helper function;
-change clients to use that, and remove the now-unused data_size.
+On 02/15/2011 10:26 AM, Jean-Francois Moine wrote:
+> Hi Hans,
+>
+> I got the permission to relicense the JPEG Lite decoding to the LGPL.
+>
 
-Signed-off-by: Andres Salomon <dilinger@queued.net>
----
- drivers/media/radio/radio-wl1273.c |    2 +-
- drivers/mfd/wl1273-core.c          |    2 --
- sound/soc/codecs/wl1273.c          |    3 ++-
- 3 files changed, 3 insertions(+), 4 deletions(-)
+Ah, good, patch applied and pushed to git.
 
-diff --git a/drivers/media/radio/radio-wl1273.c b/drivers/media/radio/radio-wl1273.c
-index 7ecc8e6..4698eb0 100644
---- a/drivers/media/radio/radio-wl1273.c
-+++ b/drivers/media/radio/radio-wl1273.c
-@@ -2138,7 +2138,7 @@ static int wl1273_fm_radio_remove(struct platform_device *pdev)
- 
- static int __devinit wl1273_fm_radio_probe(struct platform_device *pdev)
- {
--	struct wl1273_core **core = pdev->dev.platform_data;
-+	struct wl1273_core **core = mfd_get_data(pdev);
- 	struct wl1273_device *radio;
- 	struct v4l2_ctrl *ctrl;
- 	int r = 0;
-diff --git a/drivers/mfd/wl1273-core.c b/drivers/mfd/wl1273-core.c
-index d2ecc24..703085e 100644
---- a/drivers/mfd/wl1273-core.c
-+++ b/drivers/mfd/wl1273-core.c
-@@ -80,7 +80,6 @@ static int __devinit wl1273_core_probe(struct i2c_client *client,
- 	cell = &core->cells[children];
- 	cell->name = "wl1273_fm_radio";
- 	cell->platform_data = &core;
--	cell->data_size = sizeof(core);
- 	children++;
- 
- 	if (pdata->children & WL1273_CODEC_CHILD) {
-@@ -89,7 +88,6 @@ static int __devinit wl1273_core_probe(struct i2c_client *client,
- 		dev_dbg(&client->dev, "%s: Have codec.\n", __func__);
- 		cell->name = "wl1273-codec";
- 		cell->platform_data = &core;
--		cell->data_size = sizeof(core);
- 		children++;
- 	}
- 
-diff --git a/sound/soc/codecs/wl1273.c b/sound/soc/codecs/wl1273.c
-index 861b28f..1ad0d5a 100644
---- a/sound/soc/codecs/wl1273.c
-+++ b/sound/soc/codecs/wl1273.c
-@@ -436,7 +436,8 @@ EXPORT_SYMBOL_GPL(wl1273_get_format);
- 
- static int wl1273_probe(struct snd_soc_codec *codec)
- {
--	struct wl1273_core **core = codec->dev->platform_data;
-+	struct wl1273_core **core =
-+			mfd_get_data(to_platform_device(codec->dev));
- 	struct wl1273_priv *wl1273;
- 	int r;
- 
--- 
-1.7.2.3
+> If you want to test the nw80x driver, get the gspca tarball from my web
+> page (2.12.12). I added your webcam which should directly work (p35u -
+> chip nw801).
 
+I've tested it and it works :) I also tested the JPGL -> YUV path.
+
+I did find 2 bugs, the "if (gspca_dev->curr_mode)" test in sd_start,
+needs to be inverted. In general it is a good idea to do a test
+on gspca_dev->width, rather then curr_mode IMHO, it is more
+readable and less error prone.
+
+Talking about readability, I also found the
+
+         if (sd->bridge == BRIDGE_NW800) {
+		...
+	} else {
+		...
+		if (sd->bridge == BRIDGE_NW802) {
+			...
+		} else {
+			...
+		}
+	}
+
+part in sd_init a bit hard to grok, can this be changed
+to a switch case on sd->bridge ?
+
+The other bug was a divide by zero -> kernel panic, in
+do_autogain when sd->ae_res == 0, note this was when I was
+messing around with the driver a bit (before I found the
+issue with the inverted curr_mode check), but I think this
+could happen in real life to depending on register values
+and we should protect against this.
+
+Regards,
+
+Hans
