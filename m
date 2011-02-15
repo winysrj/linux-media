@@ -1,68 +1,73 @@
 Return-path: <mchehab@pedra>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:14663 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752219Ab1BNIHU (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:65409 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753868Ab1BOKKb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Feb 2011 03:07:20 -0500
-Date: Mon, 14 Feb 2011 09:07:12 +0100
-From: Jean Delvare <khali@linux-fr.org>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: linux-media@vger.kernel.org,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Mark Zimmerman <markzimm@frii.com>,
-	Sven Barth <pascaldragon@googlemail.com>, stoth@kernellabs.com,
-	hverkuil@xs4all.nl
-Subject: Re: [GIT FIXES for 2.6.38] Fix cx23885 and cx25840 regressions
-Message-ID: <20110214090712.1c17818e@endymion.delvare>
-In-Reply-To: <1297647870.19186.69.camel@localhost>
-References: <1297647870.19186.69.camel@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Tue, 15 Feb 2011 05:10:31 -0500
+Date: Tue, 15 Feb 2011 13:10:08 +0300
+From: Dan Carpenter <error27@gmail.com>
+To: Oliver Endriss <o.endriss@gmx.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Manu Abraham <manu@linuxtv.org>,
+	Andreas Regel <andreas.regel@gmx.de>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [patch v2] [media] stv090x: handle allocation failures
+Message-ID: <20110215101008.GO4384@bicker>
+References: <20110207165650.GF4384@bicker>
+ <201102150300.19650@orion.escape-edv.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201102150300.19650@orion.escape-edv.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sun, 13 Feb 2011 20:44:30 -0500, Andy Walls wrote:
-> Mauro,
-> 
-> Please pull the following regression fixes (and related compiler squawk
-> fix) for 2.6.38.
-> 
-> Thanks go to Sven Barth for reporting the regression with the CX2583x
-> chips in cx25840 and providing a patch.
-> 
-> Thanks also go to Mark Zimmerman for climinb the git learning curve and
-> devoting the time perform a git bisect to isolate the cx23885
-> regression.
+kmalloc() can fail so check whether state->internal is NULL.
+append_internal() can return NULL on allocation failures so check that.
+Also if we hit the error condition later in the function then there is
+a memory leak and we need to call remove_dev() to fix it.
 
-Please add
+Also Oliver Endriss pointed out an additional leak that I missed in the
+first version of this patch.
 
-Cc: stable@kernel.org
+Signed-off-by: Dan Carpenter <error27@gmail.com>
+---
+v2:  Fix the leak Oliver noticed.
 
-to the signed-off-by section of patches which should be applied to
-stable kernel trees. That way you ensure they will actually make it to
-the stable trees.
-
-> The following changes since commit cf720fed25b8078ce0d6a10036dbf7a0baded679:
-> 
->   [media] add support for Encore FM3 (2011-01-19 16:42:42 -0200)
-> 
-> are available in the git repository at:
->   ssh://linuxtv.org/git/awalls/media_tree.git cx-fix-38
-> 
-> Andy Walls (2):
->       cx23885: Revert "Check for slave nack on all transactions"
-
-Thanks for fixing my mistakes!
-
->       cx23885: Remove unused 'err:' labels to quiet compiler warning
-> 
-> Sven Barth (1):
->       cx25840: fix probing of cx2583x chips
-> 
->  drivers/media/video/cx23885/cx23885-i2c.c  |   10 ----------
->  drivers/media/video/cx25840/cx25840-core.c |    3 ++-
->  2 files changed, 2 insertions(+), 11 deletions(-)
-
--- 
-Jean Delvare
+diff --git a/drivers/media/dvb/frontends/stv090x.c b/drivers/media/dvb/frontends/stv090x.c
+index d3362d0..41d0f0a 100644
+--- a/drivers/media/dvb/frontends/stv090x.c
++++ b/drivers/media/dvb/frontends/stv090x.c
+@@ -4783,7 +4783,13 @@ struct dvb_frontend *stv090x_attach(const struct stv090x_config *config,
+ 	} else {
+ 		state->internal = kmalloc(sizeof(struct stv090x_internal),
+ 					  GFP_KERNEL);
++		if (!state->internal)
++			goto error;
+ 		temp_int = append_internal(state->internal);
++		if (!temp_int) {
++			kfree(state->internal);
++			goto error;
++		}
+ 		state->internal->num_used = 1;
+ 		state->internal->mclk = 0;
+ 		state->internal->dev_ver = 0;
+@@ -4796,7 +4802,7 @@ struct dvb_frontend *stv090x_attach(const struct stv090x_config *config,
+ 
+ 		if (stv090x_setup(&state->frontend) < 0) {
+ 			dprintk(FE_ERROR, 1, "Error setting up device");
+-			goto error;
++			goto err_remove;
+ 		}
+ 	}
+ 
+@@ -4811,6 +4817,9 @@ struct dvb_frontend *stv090x_attach(const struct stv090x_config *config,
+ 
+ 	return &state->frontend;
+ 
++err_remove:
++	remove_dev(state->internal);
++	kfree(state->internal);
+ error:
+ 	kfree(state);
+ 	return NULL;
