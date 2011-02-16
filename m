@@ -1,51 +1,56 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.10]:57932 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757829Ab1BQTeV (ORCPT
+Received: from casper.infradead.org ([85.118.1.10]:33486 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753703Ab1BPRob (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Feb 2011 14:34:21 -0500
-Date: Thu, 17 Feb 2011 20:34:18 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Andrew Chew <AChew@nvidia.com>
-cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: soc-camera and videobuf2
-In-Reply-To: <643E69AA4436674C8F39DCC2C05F763816BD96CFB8@HQMAIL03.nvidia.com>
-Message-ID: <Pine.LNX.4.64.1102172031240.30692@axis700.grange>
-References: <643E69AA4436674C8F39DCC2C05F763816BD96CFB7@HQMAIL03.nvidia.com>
- <643E69AA4436674C8F39DCC2C05F763816BD96CFB8@HQMAIL03.nvidia.com>
+	Wed, 16 Feb 2011 12:44:31 -0500
+Message-ID: <4D5C0CDD.3060403@infradead.org>
+Date: Wed, 16 Feb 2011 15:43:57 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: VDR User <user.vdr@gmail.com>
+CC: Jarod Wilson <jarod@redhat.com>, Stephen Wilson <wilsons@start.ca>,
+	Andy Walls <awalls@md.metrocast.net>,
+	=?UTF-8?B?RGF2aWQgSMOkcmRlbWFu?= <david@hardeman.nu>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [media] rc: do not enable remote controller adapters
+ by default.
+References: <m3aahwa4ib.fsf@fibrous.localdomain>	<1297862209.2086.18.camel@morgan.silverblock.net>	<m3ei78j9s7.fsf@fibrous.localdomain>	<20110216152026.GA17102@redhat.com> <AANLkTikNKpo6aDVQVWC3FEiKFLv4JGFr=xPTC8Tu_2Sx@mail.gmail.com>
+In-Reply-To: <AANLkTikNKpo6aDVQVWC3FEiKFLv4JGFr=xPTC8Tu_2Sx@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 16 Feb 2011, Andrew Chew wrote:
-
-> Reposting.  Sorry for the rich text in my previous email.
+Em 16-02-2011 15:25, VDR User escreveu:
+> On Wed, Feb 16, 2011 at 7:20 AM, Jarod Wilson <jarod@redhat.com> wrote:
+>>> It is not a need.  I simply observed that after the IR_ to RC_ rename
+>>> there was another set of drivers being built which I did not ask for.
+>>
+>> So disable them. I think most people would rather have this support
+>> enabled so that remotes Just Work if a DTV card or stand-alone IR receiver
+>> is plugged in without having to hunt back through Kconfig options to
+>> figure out why it doesn't...
 > 
-> I'm looking at the videobuf2 stuff, and would like to use it because it 
-> solves a bunch of problems for me that were in videobuf (for example, 
-> I'm writing a variant of videobuf-dma-contig, and there's some private 
-> memory allocator state I needed to track, but the videobuf stuff didn't 
-> seem to let you do that).
+> Unfortunately _ALL_ the usb DVB devices are unavailable if you do not
+> enable IR_CORE "Infrared remote controller adapters" in v4l.  This is
+> a little annoying as the usb device I use doesn't even have IR
+> capabilities.  It doesn't seem like something that should be forced on
+> the user -- enable IR or you can't even compile the driver you need,
+> which doesn't even use IR.
 > 
-> But I'm also using soc_camera.  I was wondering if there's a time 
-> estimate for soc_camera to be converted over to the videobuf2 framework.
-> 
-> Also, are SoC camera host drivers expected to call the methods in the 
-> videobuf2 ops table directly (as in, vb2_ops->alloc())?  Or will there 
-> be wrappers around these in the future (the wrappers can take the 
-> videobuf2's alloc_ctx as a parameter and thereby figure out which method 
-> to call).
+> It's not the end of the world but I don't particularly appreciate the
+> enable-everything approach.  It would be nice to at least have the
+> option to trim the fat if you want.. Isn't that partially what Linux
+> is supposed to be about in the first place?
 
-Please, have a look at this thread:
+Unfortunately, the way almost all drivers/media/[video|dvb] was made,
+the IR (and input support on webcams) are tighted to the driver.
 
-http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/28782
+It would be possible to change it (and it is not that hard), but it requires 
+people with enough time and skills to go into each driver that can support IR, 
+split the IR code into a separate module and be sure that the driver will 
+compile and work with or without IR support.
 
-I plan to push soc-camera videobuf2 support for 2.6.39.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Cheers,
+Mauro
