@@ -1,73 +1,66 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:65409 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753868Ab1BOKKb (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:24532 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750726Ab1BPNQ1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Feb 2011 05:10:31 -0500
-Date: Tue, 15 Feb 2011 13:10:08 +0300
-From: Dan Carpenter <error27@gmail.com>
-To: Oliver Endriss <o.endriss@gmx.de>
+	Wed, 16 Feb 2011 08:16:27 -0500
+Subject: Re: [PATCH] [media] rc: do not enable remote controller adapters
+ by default.
+From: Andy Walls <awalls@md.metrocast.net>
+To: Stephen Wilson <wilsons@start.ca>
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Manu Abraham <manu@linuxtv.org>,
-	Andreas Regel <andreas.regel@gmx.de>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [patch v2] [media] stv090x: handle allocation failures
-Message-ID: <20110215101008.GO4384@bicker>
-References: <20110207165650.GF4384@bicker>
- <201102150300.19650@orion.escape-edv.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201102150300.19650@orion.escape-edv.de>
+	David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
+	Jarod Wilson <jarod@redhat.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+In-Reply-To: <m3aahwa4ib.fsf@fibrous.localdomain>
+References: <m3aahwa4ib.fsf@fibrous.localdomain>
+Content-Type: text/plain; charset="UTF-8"
+Date: Wed, 16 Feb 2011 08:16:49 -0500
+Message-ID: <1297862209.2086.18.camel@morgan.silverblock.net>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-kmalloc() can fail so check whether state->internal is NULL.
-append_internal() can return NULL on allocation failures so check that.
-Also if we hit the error condition later in the function then there is
-a memory leak and we need to call remove_dev() to fix it.
+On Wed, 2011-02-16 at 01:16 -0500, Stephen Wilson wrote:
+> Having the RC_CORE config default to INPUT is almost equivalent to
+> saying "yes".  Default to "no" instead.
+> 
+> Signed-off-by: Stephen Wilson <wilsons@start.ca>
 
-Also Oliver Endriss pointed out an additional leak that I missed in the
-first version of this patch.
+I don't particularly like this, if it discourages desktop distributions
+from building RC_CORE.  The whole point of RC_CORE in kernel was to have
+the remote controllers bundled with TV and DTV cards "just work" out of
+the box for end users.  Also the very popular MCE USB receiver device,
+shipped with Media Center PC setups, needs it too.
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
----
-v2:  Fix the leak Oliver noticed.
+Why exactly do you need it set to "No"?
 
-diff --git a/drivers/media/dvb/frontends/stv090x.c b/drivers/media/dvb/frontends/stv090x.c
-index d3362d0..41d0f0a 100644
---- a/drivers/media/dvb/frontends/stv090x.c
-+++ b/drivers/media/dvb/frontends/stv090x.c
-@@ -4783,7 +4783,13 @@ struct dvb_frontend *stv090x_attach(const struct stv090x_config *config,
- 	} else {
- 		state->internal = kmalloc(sizeof(struct stv090x_internal),
- 					  GFP_KERNEL);
-+		if (!state->internal)
-+			goto error;
- 		temp_int = append_internal(state->internal);
-+		if (!temp_int) {
-+			kfree(state->internal);
-+			goto error;
-+		}
- 		state->internal->num_used = 1;
- 		state->internal->mclk = 0;
- 		state->internal->dev_ver = 0;
-@@ -4796,7 +4802,7 @@ struct dvb_frontend *stv090x_attach(const struct stv090x_config *config,
- 
- 		if (stv090x_setup(&state->frontend) < 0) {
- 			dprintk(FE_ERROR, 1, "Error setting up device");
--			goto error;
-+			goto err_remove;
- 		}
- 	}
- 
-@@ -4811,6 +4817,9 @@ struct dvb_frontend *stv090x_attach(const struct stv090x_config *config,
- 
- 	return &state->frontend;
- 
-+err_remove:
-+	remove_dev(state->internal);
-+	kfree(state->internal);
- error:
- 	kfree(state);
- 	return NULL;
+Regards,
+Andy
+
+> ---
+>  drivers/media/rc/Kconfig |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+> index 3785162..8842843 100644
+> --- a/drivers/media/rc/Kconfig
+> +++ b/drivers/media/rc/Kconfig
+> @@ -1,7 +1,7 @@
+>  menuconfig RC_CORE
+>  	tristate "Remote Controller adapters"
+>  	depends on INPUT
+> -	default INPUT
+> +	default n
+>  	---help---
+>  	  Enable support for Remote Controllers on Linux. This is
+>  	  needed in order to support several video capture adapters.
+> --
+> 1.7.3.5
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
