@@ -1,112 +1,79 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3709 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753671Ab1BXMkW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Feb 2011 07:40:22 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [RFC] snapshot mode, flash capabilities and control
-Date: Thu, 24 Feb 2011 13:40:13 +0100
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <Pine.LNX.4.64.1102240947230.15756@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1102240947230.15756@axis700.grange>
+Received: from mout.perfora.net ([74.208.4.195]:60652 "EHLO mout.perfora.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752627Ab1BPRNt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Feb 2011 12:13:49 -0500
+From: Stephen Wilson <wilsons@start.ca>
+To: Jarod Wilson <jarod@redhat.com>
+Cc: Stephen Wilson <wilsons@start.ca>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	David =?utf-8?Q?H=C3=A4rdeman?= <david@hardeman.nu>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [media] rc: do not enable remote controller adapters by default.
+References: <m3aahwa4ib.fsf@fibrous.localdomain>
+	<1297862209.2086.18.camel@morgan.silverblock.net>
+	<m3ei78j9s7.fsf@fibrous.localdomain>
+	<20110216152026.GA17102@redhat.com>
+Date: Wed, 16 Feb 2011 12:13:29 -0500
+In-Reply-To: <20110216152026.GA17102@redhat.com> (Jarod Wilson's message of
+	"Wed, 16 Feb 2011 10:20:26 -0500")
+Message-ID: <m34o83kime.fsf@fibrous.localdomain>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201102241340.14060.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=us-ascii
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thursday, February 24, 2011 13:18:39 Guennadi Liakhovetski wrote:
-> Agenda.
-> =======
-> 
-> In a recent RFC [1] I proposed V4L2 API extensions to support fast switching
-> between multiple capture modes or data formats. However, this is not sufficient
-> to efficiently leverage snapshot capabilities of existing hardware - sensors and
-> SoCs, and to satisfy user-space needs, a few more functions have to be
-> implemented.
-> 
-> Snapshot and strobe / flash capabilities vary significantly between sensors.
-> Some of them only capture a single image upon trigger activation, some can
-> capture several images, readout and exposure capabilities vary too. Not all
-> sensors support a strobe signal, and those, that support it, also offer very
-> different options to select strobe beginning and duration. This proposal is
-> trying to select a minimum API, that can be reasonably supported by many
-> systems and provide a reasonable functionality set to the user.
-> 
-> Proposed implementation.
-> ========================
-> 
-> 1. Switch the interface into the snapshot mode. This is required in addition to
-> simply configuring the interface with a different format to activate hardware-
-> specific support for triggered single image capture. It is proposed to use the
-> VIDIOC_S_PARM ioctl() with a new V4L2_MODE_SNAPSHOT value for the
-> struct v4l2_captureparm::capturemode and ::capability fields. Further
-> hardware-specific details can be passed in ::extendedmode, ::readbuffers can be
-> used to specify the exact number of frames to be captured. Similarly,
-> VIDIOC_G_PARM shall return supported and current capture modes.
-> 
-> Many sensors provide the ability to trigger snapshot capture either from an
-> external source or from a control register. Usually, however, there is no
-> possibility to select the trigger source, either of them can be used at any
-> time.
+Jarod Wilson <jarod@redhat.com> writes:
 
-I'd rather see a new VIDIOC_G/S_SNAPSHOT ioctl then adding stuff to G/S_PARM.
-Those G/S_PARM ioctls should never have been added to V4L2 in the current form.
+> On Wed, Feb 16, 2011 at 10:09:44AM -0500, Stephen Wilson wrote:
+>> Andy Walls <awalls@md.metrocast.net> writes:
+>>
+>> > On Wed, 2011-02-16 at 01:16 -0500, Stephen Wilson wrote:
+>> >> Having the RC_CORE config default to INPUT is almost equivalent to
+>> >> saying "yes".  Default to "no" instead.
+>> >>
+>> >> Signed-off-by: Stephen Wilson <wilsons@start.ca>
+>> >
+>> > I don't particularly like this, if it discourages desktop distributions
+>> > from building RC_CORE.  The whole point of RC_CORE in kernel was to have
+>> > the remote controllers bundled with TV and DTV cards "just work" out of
+>> > the box for end users.  Also the very popular MCE USB receiver device,
+>> > shipped with Media Center PC setups, needs it too.
+>>
+>> A similar argument can be made for any particular feature or device that
+>> just works when the functionality is enabled :)
+>>
+>> > Why exactly do you need it set to "No"?
+>>
+>> It is not a need.  I simply observed that after the IR_ to RC_ rename
+>> there was another set of drivers being built which I did not ask for.
+>
+> So disable them. I think most people would rather have this support
+> enabled so that remotes Just Work if a DTV card or stand-alone IR receiver
+> is plugged in without having to hunt back through Kconfig options to
+> figure out why it doesn't...
+>
+>> It struck me as odd that because basic keyboard/mouse support was
+>> enabled I also got support for DTV card remote controls.
+>>
+>> I don't think there are any other driver subsystems enabling themselves
+>> based on something as generic as INPUT (as a dependency it is just fine,
+>> obviously).
+>>
+>> Overall, it just seems like the wrong setting to me.  Is there another
+>> predicate available that makes a bit more sense for RC_CORE other than
+>> INPUT?  Something related to the TV or DTV cards perhaps?
+>
+> No. As Andy said, there are stand-alone devices, such as the Windows Media
+> Center Ed. eHome Infrared Transceivers which are simply a usb device, no
+> direct relation to any TV devices. A fair number of systems these days are
+> also shipping with built-in CIR support by way of a sub-function on an LPC
+> SuperIO chip. Remotes can be used to control more than just changing
+> channels on a TV tuner card (think music player, video playback app
+> streaming content from somewhere on the network, etc).
 
-AFAIK the only usable field is timeperframe, all others are either not used at
-all or driver specific.
+OK.  No problem.  Thanks for for taking the time to explain!
 
-I am very much in favor of freezing the G/S_PARM ioctls.
-
-> 2. Specify a flash mode. Define new capture capabilities to be used with
-> struct v4l2_captureparm::capturemode:
-> 
-> V4L2_MODE_FLASH_SYNC	/* synchronise flash with image capture */
-> V4L2_MODE_FLASH_ON	/* turn on - "torch-mode" */
-> V4L2_MODE_FLASH_OFF	/* turn off */
-> 
-> Obviously, the above synchronous operation does not exactly define beginning and
-> duration of the strobe signal. It is proposed to leave the specific flash timing
-> configuration to the driver itself and, possibly, to driver-specific extended
-> mode flags.
-
-Isn't this something that can be done quite well with controls?
- 
-> 3. Add a sensor-subdev operation
-> 
-> 	int (*snapshot_trigger)(struct v4l2_subdev *sd)
-> 
-> to start capturing the next frame in the snapshot mode.
-
-You might need a 'count' argument if you want to have multiple frames in snapshot
-mode.
-
-Regards,
-
-	Hans
-
-> 
-> References.
-> ===========
-> 
-> [1] http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/29357
-> 
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
-
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+--
+steve
