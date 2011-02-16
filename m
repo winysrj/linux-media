@@ -1,78 +1,83 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.186]:56862 "EHLO
+Received: from moutng.kundenserver.de ([212.227.17.10]:60628 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755427Ab1BORdn (ORCPT
+	with ESMTP id S1752579Ab1BPJCa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Feb 2011 12:33:43 -0500
-Date: Tue, 15 Feb 2011 18:33:34 +0100 (CET)
+	Wed, 16 Feb 2011 04:02:30 -0500
+Date: Wed, 16 Feb 2011 10:02:18 +0100 (CET)
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Qing Xu <qingx@marvell.com>, Hans Verkuil <hverkuil@xs4all.nl>,
+To: Hans Verkuil <hansverk@cisco.com>
+cc: Qing Xu <qingx@marvell.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Neil Johnson <realdealneil@gmail.com>,
 	Robert Jarzmik <robert.jarzmik@free.fr>,
 	Uwe Taeubert <u.taeubert@road.de>,
 	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	Eino-Ville Talvala <talvala@stanford.edu>
-Subject: [RFD] frame-size switching: preview / single-shot use-case
-Message-ID: <Pine.LNX.4.64.1102151641490.16709@axis700.grange>
+	Eino-Ville Talvala <talvala@stanford.edu>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFD] frame-size switching: preview / single-shot use-case
+In-Reply-To: <201102160949.04605.hansverk@cisco.com>
+Message-ID: <Pine.LNX.4.64.1102160954560.20711@axis700.grange>
+References: <Pine.LNX.4.64.1102151641490.16709@axis700.grange>
+ <7BAC95F5A7E67643AAFB2C31BEE662D014042CB8F0@SC-VEXCH2.marvell.com>
+ <Pine.LNX.4.64.1102160829490.20711@axis700.grange> <201102160949.04605.hansverk@cisco.com>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi
+Hi Hans
 
-This topic has been slightly discussed several times [1] before, but there 
-has been no conclusion, nor I'm aware of any implementation, suitably 
-resolving this problem. I've added to CC all involved in earlier 
-discussions, that I managed to find.
+Thanks for looking at it!
 
-What seems a typical use-case to me is a system with a vewfinder or a 
-display, providing a live preview of the video data from a source, like a 
-camera, with a relatively low resolution, and a possibility to take 
-high-resolution still photos with a very short delay.
+On Wed, 16 Feb 2011, Hans Verkuil wrote:
 
-Currently this is pretty difficult to realise, e.g., with soc-camera 
-drivers you have to free the videobuf(2) queue, by either closing and 
-re-opening the interface, or by issuing an ioctl(VIDIOC_REQBUFS, 
-count=0) if your driver is already using videobuf2 and if this is really 
-working;), configure with a different resolution and re-allocate 
-videobuffers (or use different buffers, allocated per USERPTR). Another 
-possibility would be to allocate and use buffers large enough for still 
-photos, also for the preview, which would be wasteful, because one can 
-well need many more preview than still-shot buffers.
+> Hi Guennadi,
+> 
+> Here is my take on this:
+> 
+> On Wednesday, February 16, 2011 08:42:51 Guennadi Liakhovetski wrote:
 
-So, it seems to me, we could live with a better solution.
+[snip]
 
-1. We could use separate inputs for different capture modes and support 
-per-input videobuf queues. Advantage: no API changes required. 
-Disadvantages: confusing, especially, if a driver already exports multiple 
-inputs. The driver does not know, whether this mode is required or not, 
-always exporting 2 inputs for this purpose doesn't seem like a good idea. 
-Eventually, the user might want not 2, but 3 or more of such videobuf 
-queues.
+> > > 3. Not liking either of the above, it seems we need yet a new API for
+> > > this... How about extending VIDIOC_REQBUFS with a videobuf queue index,
+> > > thus using up one of the remaining two 32-bit reserved fields? Then we
+> > > need one more ioctl() like VIDIOC_BUFQ_SELECT to switch from one queue to
+> > > another, after which setting frame format and queuing and dequeuing
+> > > buffers will affect this currently selected queue. We could also keep
+> > > REQBUFS as is and require BUFQ_SELECT to be called before it for any queue
+> > > except the default 0.
+> 
+> What you really are doing here is creating the functionality of two video 
+> nodes without actually making two nodes.
+> 
+> But from the point of view of the application it makes more sense to actually
+> have two video nodes. The only difference is that when one starts streaming it
+> pre-empts the other.
 
-2. Use different IO methods, e.g., mmap() for preview and read() for still 
-shots. I'm just mentioning this possibility here, because it occurred in 
-one of previous threads, but I don't really like it either. What if you 
-want to use the same IO method for all? Etc.
+Well, I don't think I like it all that much... One reason - yes, two 
+"independent" video device-nodes, which actually only can stream in turn 
+seems somewhat counterintuitive to me, specifically, I don't think there 
+is a way to tell the application about this. What if we have more than two 
+video devices on the system? Or what if you need more than two video 
+queues / formats? Or actually only one? The kernel doesn't know initially 
+how many, this is a dynamic resource, not a fixed static interface, IMHO.
 
-3. Not liking either of the above, it seems we need yet a new API for 
-this... How about extending VIDIOC_REQBUFS with a videobuf queue index, 
-thus using up one of the remaining two 32-bit reserved fields? Then we 
-need one more ioctl() like VIDIOC_BUFQ_SELECT to switch from one queue to 
-another, after which setting frame format and queuing and dequeuing 
-buffers will affect this currently selected queue. We could also keep 
-REQBUFS as is and require BUFQ_SELECT to be called before it for any queue 
-except the default 0.
+> Of course, implementing this correctly will probably require some changes in 
+> videobuf2 to make it easy.
+> 
+> When it comes to the userspace API I wonder if we shouldn't add a 
+> VIDIOC_STREAM_FRAMES(u32 framecnt), which streams just 'framecnt' frames. I 
+> can imagine that it can be hard to stream just a single frame otherwise.
 
-Yes, I know, that some video sensors have a double register set for this 
-dual-format operation, so, for them it is natural to support two queues, 
-and drivers are certainly most welcome to use this feature for, say, the 
-first two queues. On other sensors and for any further queues switching 
-will have to be done in software.
-
-Ideas? Comments?
+Don't think you actually need to take just 1 frame for still photography. 
+As far as I understand, in many cases they anyway want to take several of 
+them to then be able to choose the best one or do some processing. 
+Regardless, maybe that ioctl() would make sense, but that's something 
+slightly different from what we're trying to figure out here. Yes, it is 
+also related to still photography, but it's addressing a different aspect 
+of it.
 
 Thanks
 Guennadi
