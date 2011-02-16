@@ -1,30 +1,25 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com (ext-mx12.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.17])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id p1HK6gvr003081
-	for <video4linux-list@redhat.com>; Thu, 17 Feb 2011 15:06:42 -0500
+Received: from mx1.redhat.com (ext-mx13.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.18])
+	by int-mx09.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP
+	id p1GMkj3C004658
+	for <video4linux-list@redhat.com>; Wed, 16 Feb 2011 17:46:45 -0500
 Received: from smtp2.sms.unimo.it (smtp2.sms.unimo.it [155.185.44.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p1HK6YU3022243
-	for <video4linux-list@redhat.com>; Thu, 17 Feb 2011 15:06:34 -0500
-Received: from mail-qw0-f51.google.com ([209.85.216.51]:32901)
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p1GMkZ9q028464
+	for <video4linux-list@redhat.com>; Wed, 16 Feb 2011 17:46:36 -0500
+Received: from mail-qw0-f51.google.com ([209.85.216.51]:43859)
 	by smtp2.sms.unimo.it with esmtps (TLS1.0:RSA_ARCFOUR_SHA1:16)
 	(Exim 4.69) (envelope-from <76466@studenti.unimore.it>)
-	id 1PqA7V-00024M-33
-	for video4linux-list@redhat.com; Thu, 17 Feb 2011 21:06:33 +0100
-Received: by qwb7 with SMTP id 7so2839840qwb.24
-	for <video4linux-list@redhat.com>; Thu, 17 Feb 2011 12:06:31 -0800 (PST)
+	id 1Ppq8n-0004Ze-Ha
+	for video4linux-list@redhat.com; Wed, 16 Feb 2011 23:46:33 +0100
+Received: by qwb7 with SMTP id 7so1874863qwb.24
+	for <video4linux-list@redhat.com>; Wed, 16 Feb 2011 14:46:32 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1102172029220.30692@axis700.grange>
-References: <AANLkTika03k=cppbejCHkuOT+Uq9ptVHZwYa80ubwLqT@mail.gmail.com>
-	<Pine.LNX.4.64.1102172029220.30692@axis700.grange>
-Date: Thu, 17 Feb 2011 21:06:13 +0100
-Message-ID: <AANLkTi=9hTp-s0UGKMNrTJOL0pzhnsunWkA6UwpobJE5@mail.gmail.com>
-Subject: Re: Kernel configuration for ov9655 on the PXA27x Quick Capture
-	Interface
+Date: Wed, 16 Feb 2011 23:46:31 +0100
+Message-ID: <AANLkTika03k=cppbejCHkuOT+Uq9ptVHZwYa80ubwLqT@mail.gmail.com>
+Subject: Kernel configuration for ov9655 on the PXA27x Quick Capture Interface
 From: Paolo Santinelli <paolo.santinelli@unimore.it>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: video4linux-list@redhat.com
+To: video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -38,50 +33,18 @@ Errors-To: video4linux-list-bounces@redhat.com
 Sender: <mchehab@pedra>
 List-ID: <video4linux-list@redhat.com>
 
-Hi Guennadi,
+Hi all,
 
-thank you for the information.
+I have an embedded smart camera equipped with an XScal-PXA270
+processor running Linux 2.6.37 and the OV9655 Image sensor connected
+on the PXA27x Quick Capture Interface.
 
-Can I use or adapt this patch:  https://patchwork.kernel.org/patch/16548/  ?
-
-I Could  use the code from the patch  to direct control the sensor
-register configuration and use the  PXA27x Quick Capture Interface to
-capture data by mean "soc_camera" and "pxa_camera" driver modules. But
-now when I try to load the soc_camera module i get this error:
-
-insmod soc_camera.ko
-insmod: cannot insert 'soc_camera.ko': No such device
-
-Please, could you give mi some tips and indication
+Please, what kernel module I have to select in order to use the Image senso=
+r ?
 
 Thanks
 
-Paolo
-
-2011/2/17 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
-> On Wed, 16 Feb 2011, Paolo Santinelli wrote:
->
->> Hi all,
->>
->> I have an embedded smart camera equipped with an XScal-PXA270
->> processor running Linux 2.6.37 and the OV9655 Image sensor connected
->> on the PXA27x Quick Capture Interface.
->>
->> Please, what kernel module I have to select in order to use the Image se=
-nsor ?
->
-> You need to write a new or adapt an existing driver for your ov9655
-> sensor, currently, there's no driver available to work with your pxa270.
->
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
->
-
-
+Paolo Santinelli
 
 -- =
 
