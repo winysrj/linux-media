@@ -1,62 +1,83 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.128.24]:58247 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752380Ab1BGOJ2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Feb 2011 09:09:28 -0500
-Subject: Re: WL1273 FM Radio driver...
-From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Reply-To: matti.j.aaltonen@nokia.com
-To: ext Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	alsa-devel@alsa-project.org, lrg@slimlogic.co.uk,
-	hverkuil@xs4all.nl, sameo@linux.intel.com,
-	linux-media@vger.kernel.org
-In-Reply-To: <4D4FF821.4010701@redhat.com>
-References: <1297075922.15320.31.camel@masi.mnp.nokia.com>
-	 <4D4FDED0.7070008@redhat.com>
-	 <20110207120234.GE10564@opensource.wolfsonmicro.com>
-	 <4D4FEA03.7090109@redhat.com>
-	 <20110207131045.GG10564@opensource.wolfsonmicro.com>
-	 <4D4FF821.4010701@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 07 Feb 2011 16:09:04 +0200
-Message-ID: <1297087744.15320.56.camel@masi.mnp.nokia.com>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from eu1sys200aog103.obsmtp.com ([207.126.144.115]:55094 "EHLO
+	eu1sys200aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755391Ab1BPOOX convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Feb 2011 09:14:23 -0500
+From: Bhupesh SHARMA <bhupesh.sharma@st.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Wed, 16 Feb 2011 21:57:12 +0800
+Subject: RE: soc-camera: Benefits of soc-camera interface over specific char
+ drivers that use Gstreamer lib
+Message-ID: <D5ECB3C7A6F99444980976A8C6D896384DEE3E9237@EAPEX1MAIL1.st.com>
+References: <D5ECB3C7A6F99444980976A8C6D896384DEE366DE6@EAPEX1MAIL1.st.com>
+ <201102161444.01236.laurent.pinchart@ideasonboard.com>
+ <Pine.LNX.4.64.1102161448260.20711@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1102161448260.20711@axis700.grange>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, 2011-02-07 at 11:48 -0200, ext Mauro Carvalho Chehab wrote:
-> Em 07-02-2011 11:10, Mark Brown escreveu:
-> > On Mon, Feb 07, 2011 at 10:48:03AM -0200, Mauro Carvalho Chehab wrote:
-> >> Em 07-02-2011 10:02, Mark Brown escreveu:
-> >>> On Mon, Feb 07, 2011 at 10:00:16AM -0200, Mauro Carvalho Chehab wrote:
-> > 
-> >>>> the MFD part (for example, wl1273_fm_read_reg/wl1273_fm_write_cmd/wl1273_fm_write_data). 
-> >>>> The logic that are related to control the radio (wl1273_fm_set_audio,  wl1273_fm_set_volume,
-> >>>> etc) are not related to access the device via the MFD bus. They should be at
-> >>>> the media part of the driver, where they belong.
-> > 
-> >>> Those functions are being used by the audio driver.
-> > 
-> >> Not sure if I understood your comments. Several media drivers have alsa drivers:
-> > 
-> > There is an audio driver for this chip and it is using those functions.
+
+
+> -----Original Message-----
+> From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
+> Sent: Wednesday, February 16, 2011 7:20 PM
+> To: Laurent Pinchart
+> Cc: Bhupesh SHARMA; linux-media@vger.kernel.org
+> Subject: Re: soc-camera: Benefits of soc-camera interface over specific
+> char drivers that use Gstreamer lib
 > 
-> Where are the other drivers that depend on it?
-
-There's the MFD driver driver/mfd/wl1273-core.c, which is to offer the
-(I2C) I/O functions to the child drivers:
-drivers/media/radio/radio-wl1273.c and sound/soc/codecs/wl1273.c.
-
-Both children depend on the MFD driver for I/O and the codec also
-depends on the presence of the radio-wl1273 driver because without the
-v4l2 part nothing can be done...
-
-Matti
-
+> On Wed, 16 Feb 2011, Laurent Pinchart wrote:
 > 
-> Mauro
+> > Hi Bhupesh,
+> >
+> > On Wednesday 16 February 2011 06:57:11 Bhupesh SHARMA wrote:
+> > > Hi Guennadi,
+> > >
+> > > As I mentioned in one of my previous mails , we are developing a
+> Camera
+> > > Host and Sensor driver for our ST specific SoC and considering
+> using the
+> > > soc-camera framework for the same. One of our open-source customers
+> has
+> > > raised a interesting case though:
+> > >
+> > > It seems they have an existing solution (for another SoC) in which
+> they do
+> > > not use V4L2 framework and instead use the Gstreamer with
+> framebuffer.
+> > > They specifically wish us to implement a solution which is
+> compatible with
+> > > ANDROID applications.
+> > >
+> > > Could you please help us in deciding which approach is preferable
+> in terms
+> > > of performance, maintenance and ease-of-design.
+> >
+> > That's a difficult question that can't be answered without more
+> details about
+> > your SoC. Could you share some documentation, such as a high-level
+> block
+> > diagram of the video-related blocks in the SoC ?
+> 
+> Laurent, IIUC, the choice above referred not to soc-camera vs. plain
+> v4l2,
+> but to v4l2 vs. original android-style video character device, which
+> doesn't seem so difficult to me;)
 > 
 
+That's correct Guennadi :)
+The choice I have to make is to between v4ls (soc-camera)
+vs. a specific video char driver written to support android-style applications.
 
+Also I am not sure about how gstreamer over framebuffer can interface with 
+such a design and the respective merits/demerits.
+
+Regards,
+Bhupesh
