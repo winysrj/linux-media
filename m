@@ -1,114 +1,169 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58162 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753726Ab1BNMVK (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.171]:49882 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751378Ab1BPHnC convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Feb 2011 07:21:10 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	linux-kernel@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [PATCH v9 00/12] Media controller (core and V4L2)
-Date: Mon, 14 Feb 2011 13:20:55 +0100
-Message-Id: <1297686067-9666-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Wed, 16 Feb 2011 02:43:02 -0500
+Date: Wed, 16 Feb 2011 08:42:51 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Qing Xu <qingx@marvell.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Neil Johnson <realdealneil@gmail.com>,
+	Robert Jarzmik <robert.jarzmik@free.fr>,
+	Uwe Taeubert <u.taeubert@road.de>,
+	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	Eino-Ville Talvala <talvala@stanford.edu>
+Subject: RE: [RFD] frame-size switching: preview / single-shot use-case
+In-Reply-To: <7BAC95F5A7E67643AAFB2C31BEE662D014042CB8F0@SC-VEXCH2.marvell.com>
+Message-ID: <Pine.LNX.4.64.1102160829490.20711@axis700.grange>
+References: <Pine.LNX.4.64.1102151641490.16709@axis700.grange>
+ <7BAC95F5A7E67643AAFB2C31BEE662D014042CB8F0@SC-VEXCH2.marvell.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi everybody,
+Hi,
 
-Here is the ninth version of the media controller core and V4L2 patches.
+On Tue, 15 Feb 2011, Qing Xu wrote:
 
-Quick reminder for those who missed the previous version. let me quote the
-documentation (Documentation/DocBook/v4l/media-controller.xml).
+Please, don't top-post and use a proper quoting.
 
-"Discovering a [media] device internal topology, and configuring it at runtime,
-is one of the goals of the media controller API. To achieve this, hardware
-devices are modelled as an oriented graph of building blocks called entities
-connected through pads."
+> Hi,
+> 
+> I have a question that why we must check "icf->vb_vidq.bufs[0]" in
+> s_fmt_vid_cap()? The application mainly calling sequence at switching
+> fmt could be like this:
+> streamoff
+> s_fmt_vid_cap
+> request_buf
+> qbuf...qbuf
+> streamon
+> qbuf/dqbuf
+> ...
+> The application should also aware that they are switching the fmt,
+> so they should release their buffer(per in usrptr method), and re-call
+> request-buf/qbuf, so based on this assumption, how about we check "bufs[0]"
+> in request_buf or qbuf according to the new fmt, if we find the buffer
+> size is not correct, then indicate error in request_buf or qbuf.
+> However,in s_fmt_vid_cap,
+> we only need to check whether streaming is on/off, if it is still on,
+> that means HW resource is not available or IO/buffer is in progress, then
+> we reject s_fmt. What do you think?
 
-The code has been extensively reviewed by the V4L community, and this version
-is the first one to incorporate comments from the ALSA community (big thanks
-to Mark Brown and Clemens Ladisch). Two issues are not fully addressed yet,
-namely power management (I need to discuss this some more with the ALSA
-developers to really understand their requirements) and entities type names.
-I'm still posting this for review, as other developers have showed interest in
-commenting on the code.
+Yes, that restriction is in a way more conservative, than it needs to be. 
+I did that to (a) simplify the design and implementation: that way you 
+don't have to worry about S_FMT calls in your drivers during a running 
+capture, and to (b) verify whether that can be a problem for anyone and to 
+hear from them;)
 
-I want to emphasize once again that the media controller API does not replace
-the V4L, DVB or ALSA APIs. It complements them.
+> For the idea 3, (what is the difference between idea 1 and 3?)
 
-The first user of the media controller API is the OMAP3 ISP driver. You can
-find it (as well as these patches and other V4L-specific patches) in a git tree
-at http://git.linuxtv.org/pinchartl/media.git (media-0005-omap3isp branch). The
-OMAP3 ISP driver patches are regularly posted for review on the linux-media
-list.
+(1) proposes to add multiple inputs to the video device, selectable per 
+VIDIOC_S_INPUT, (3) doesn't touch inputs and only proposes to add multiple 
+videobuf queues to devices, adding a special ioctl().
 
-Laurent Pinchart (11):
-  media: Media device node support
-  media: Media device
-  media: Entities, pads and links
-  media: Entity use count
-  media: Media device information query
-  media: Entities, pads and links enumeration
-  media: Links setup
-  media: Pipelines and media streams
-  v4l: Add a media_device pointer to the v4l2_device structure
-  v4l: Make video_device inherit from media_entity
-  v4l: Make v4l2_subdev inherit from media_entity
+> in our real usage cases of camera(our product is a phone),
+> we will set many formats, such as:
+> preview@VGA, photos@5M/3M/QVGA/QCIF..., video@1080p/720p/VGA/QVGA, if we
+> maintain each queue for each fmt, it seems that there are too many queues,
+> and, in this way, the application need to be changed, it should quite 
+> aware of VIDIOC_BUFQ_SELECT queue-id for each fmt, then it could 
+> allocate/release
+> the required buffer queue by new ioctl. Is my understanding correct?
 
-Sakari Ailus (1):
-  media: Entity graph traversal
+Of course, with case (3) from my original post, if you want to use those 
+multiple queues, you _have_ to modify your application. Same holds for (1) 
+and (2) too. As for too many queues - well, you can decide then. Maybe you 
+don't need a separate queue for each format, maybe you could use one queue 
+for several still-shot queues with similar buffer sizes and buffer 
+numbers. Or you don't need them all simultaneously, depending on your 
+use-case. If you have an interface, where the user only switches between 
+preview and still images, the still image format is usually fixed. To 
+select a different format the user has to go to some kind of a 
+configuration menu and select a different image format, right? Which would 
+be a good time to release the previous still image queue and allocate a 
+new one.
 
- Documentation/ABI/testing/sysfs-bus-media          |    6 +
- Documentation/DocBook/media-entities.tmpl          |   24 +
- Documentation/DocBook/media.tmpl                   |    3 +
- Documentation/DocBook/v4l/media-controller.xml     |   89 ++++
- Documentation/DocBook/v4l/media-func-close.xml     |   59 +++
- Documentation/DocBook/v4l/media-func-ioctl.xml     |  116 +++++
- Documentation/DocBook/v4l/media-func-open.xml      |   94 ++++
- .../DocBook/v4l/media-ioc-device-info.xml          |  133 +++++
- .../DocBook/v4l/media-ioc-enum-entities.xml        |  308 +++++++++++
- Documentation/DocBook/v4l/media-ioc-enum-links.xml |  207 ++++++++
- Documentation/DocBook/v4l/media-ioc-setup-link.xml |   93 ++++
- Documentation/media-framework.txt                  |  353 +++++++++++++
- Documentation/video4linux/v4l2-framework.txt       |   72 +++-
- drivers/media/Kconfig                              |   13 +
- drivers/media/Makefile                             |    6 +
- drivers/media/media-device.c                       |  382 ++++++++++++++
- drivers/media/media-devnode.c                      |  321 ++++++++++++
- drivers/media/media-entity.c                       |  536 ++++++++++++++++++++
- drivers/media/video/v4l2-dev.c                     |   49 ++-
- drivers/media/video/v4l2-device.c                  |   49 ++-
- drivers/media/video/v4l2-subdev.c                  |   28 +-
- include/linux/Kbuild                               |    1 +
- include/linux/media.h                              |  132 +++++
- include/media/media-device.h                       |   95 ++++
- include/media/media-devnode.h                      |   97 ++++
- include/media/media-entity.h                       |  151 ++++++
- include/media/v4l2-dev.h                           |    7 +
- include/media/v4l2-device.h                        |    4 +
- include/media/v4l2-subdev.h                        |    6 +
- 29 files changed, 3413 insertions(+), 21 deletions(-)
- create mode 100644 Documentation/ABI/testing/sysfs-bus-media
- create mode 100644 Documentation/DocBook/v4l/media-controller.xml
- create mode 100644 Documentation/DocBook/v4l/media-func-close.xml
- create mode 100644 Documentation/DocBook/v4l/media-func-ioctl.xml
- create mode 100644 Documentation/DocBook/v4l/media-func-open.xml
- create mode 100644 Documentation/DocBook/v4l/media-ioc-device-info.xml
- create mode 100644 Documentation/DocBook/v4l/media-ioc-enum-entities.xml
- create mode 100644 Documentation/DocBook/v4l/media-ioc-enum-links.xml
- create mode 100644 Documentation/DocBook/v4l/media-ioc-setup-link.xml
- create mode 100644 Documentation/media-framework.txt
- create mode 100644 drivers/media/media-device.c
- create mode 100644 drivers/media/media-devnode.c
- create mode 100644 drivers/media/media-entity.c
- create mode 100644 include/linux/media.h
- create mode 100644 include/media/media-device.h
- create mode 100644 include/media/media-devnode.h
- create mode 100644 include/media/media-entity.h
+Thanks
+Guennadi
 
--- 
-Regards,
+> 
+> Thanks!
+> -Qing
+> 
+> -----Original Message-----
+> From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
+> Sent: 2011Äê2ÔÂ16ÈÕ 1:34
+> To: Linux Media Mailing List
+> Cc: Qing Xu; Hans Verkuil; Neil Johnson; Robert Jarzmik; Uwe Taeubert; Karicheri, Muralidharan; Eino-Ville Talvala
+> Subject: [RFD] frame-size switching: preview / single-shot use-case
+> 
+> Hi
+> 
+> This topic has been slightly discussed several times [1] before, but there
+> has been no conclusion, nor I'm aware of any implementation, suitably
+> resolving this problem. I've added to CC all involved in earlier
+> discussions, that I managed to find.
+> 
+> What seems a typical use-case to me is a system with a vewfinder or a
+> display, providing a live preview of the video data from a source, like a
+> camera, with a relatively low resolution, and a possibility to take
+> high-resolution still photos with a very short delay.
+> 
+> Currently this is pretty difficult to realise, e.g., with soc-camera
+> drivers you have to free the videobuf(2) queue, by either closing and
+> re-opening the interface, or by issuing an ioctl(VIDIOC_REQBUFS,
+> count=0) if your driver is already using videobuf2 and if this is really
+> working;), configure with a different resolution and re-allocate
+> videobuffers (or use different buffers, allocated per USERPTR). Another
+> possibility would be to allocate and use buffers large enough for still
+> photos, also for the preview, which would be wasteful, because one can
+> well need many more preview than still-shot buffers.
+> 
+> So, it seems to me, we could live with a better solution.
+> 
+> 1. We could use separate inputs for different capture modes and support
+> per-input videobuf queues. Advantage: no API changes required.
+> Disadvantages: confusing, especially, if a driver already exports multiple
+> inputs. The driver does not know, whether this mode is required or not,
+> always exporting 2 inputs for this purpose doesn't seem like a good idea.
+> Eventually, the user might want not 2, but 3 or more of such videobuf
+> queues.
+> 
+> 2. Use different IO methods, e.g., mmap() for preview and read() for still
+> shots. I'm just mentioning this possibility here, because it occurred in
+> one of previous threads, but I don't really like it either. What if you
+> want to use the same IO method for all? Etc.
+> 
+> 3. Not liking either of the above, it seems we need yet a new API for
+> this... How about extending VIDIOC_REQBUFS with a videobuf queue index,
+> thus using up one of the remaining two 32-bit reserved fields? Then we
+> need one more ioctl() like VIDIOC_BUFQ_SELECT to switch from one queue to
+> another, after which setting frame format and queuing and dequeuing
+> buffers will affect this currently selected queue. We could also keep
+> REQBUFS as is and require BUFQ_SELECT to be called before it for any queue
+> except the default 0.
+> 
+> Yes, I know, that some video sensors have a double register set for this
+> dual-format operation, so, for them it is natural to support two queues,
+> and drivers are certainly most welcome to use this feature for, say, the
+> first two queues. On other sensors and for any further queues switching
+> will have to be done in software.
+> 
+> Ideas? Comments?
+> 
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> 
 
-Laurent Pinchart
-
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
