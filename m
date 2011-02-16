@@ -1,83 +1,55 @@
 Return-path: <mchehab@pedra>
-Received: from mga01.intel.com ([192.55.52.88]:51173 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751955Ab1BIHzl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Feb 2011 02:55:41 -0500
-From: "Wang, Wen W" <wen.w.wang@intel.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Jozef Kruger <jozef.kruger@siliconhive.com>
-CC: "Kanigeri, Hari K" <hari.k.kanigeri@intel.com>,
-	"Iyer, Sundar" <sundar.iyer@intel.com>,
-	"Yang, Jianwei" <jianwei.yang@intel.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Wed, 9 Feb 2011 15:55:06 +0800
-Subject: RE: Memory allocation in Video4Linux
-Message-ID: <D5AB6E638E5A3E4B8F4406B113A5A19A32F92475@shsmsx501.ccr.corp.intel.com>
-References: <D5AB6E638E5A3E4B8F4406B113A5A19A32F923C4@shsmsx501.ccr.corp.intel.com>
- <A787B2DEAF88474996451E847A0AFAB7F264B7A4@rrsmsx508.amr.corp.intel.com>
- <D5AB6E638E5A3E4B8F4406B113A5A19A32F92445@shsmsx501.ccr.corp.intel.com>
- <201102090851.41789.hverkuil@xs4all.nl>
-In-Reply-To: <201102090851.41789.hverkuil@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:44916 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751900Ab1BPQdo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Feb 2011 11:33:44 -0500
+Received: by ewy5 with SMTP id 5so524059ewy.19
+        for <linux-media@vger.kernel.org>; Wed, 16 Feb 2011 08:33:43 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <20110215221857.GB3327@redhat.com>
+References: <AANLkTi=jkLGgZDH6XytL1MEE7w5SckZjXoGPhFSCo40b@mail.gmail.com>
+	<20110215220433.GA3327@redhat.com>
+	<20110215221857.GB3327@redhat.com>
+Date: Wed, 16 Feb 2011 11:33:42 -0500
+Message-ID: <AANLkTinxCddEK2Ce3k42O3105fi8WqjzV3TDFqDO6WaR@mail.gmail.com>
+Subject: Re: IR for remote control not working for Hauppauge WinTV-HVR-1150 (SAA7134)
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Jarod Wilson <jarod@redhat.com>
+Cc: Fernando Laudares Camargos <fernando.laudares.camargos@gmail.com>,
+	video4linux-list@redhat.com, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-SGkgSGFucywNCg0KVGhhbmtzIGZvciB5b3VyIHBvaW50IGFuZCB2aWRlb2J1ZjIgaXMgYWxzbyB3
-aGF0IEkgd2FudCB0byB1c2UuDQoNCkJ1dCBzaW5jZSBvdXIgZGV2ZWxvcG1lbnQga2VybmVsIHZl
-cnNpb24gcmlnaHQgbm93IGlzIHN0aWxsIDIuNi4zNSwgSSBuZWVkIHRvIGZpbmQgd2F5IHRvIHdv
-cmsgd2l0aCBjdXJyZW50IHZpZGVvYnVmIGZyYW1ld29yay4NCg0KVGhhbmtzDQpXZW4NCg0KPi0t
-LS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+RnJvbTogSGFucyBWZXJrdWlsIFttYWlsdG86aHZl
-cmt1aWxAeHM0YWxsLm5sXQ0KPlNlbnQ6IDIwMTHlubQy5pyIOeaXpSAxNTo1Mg0KPlRvOiBXYW5n
-LCBXZW4gVzsgSm96ZWYgS3J1Z2VyDQo+Q2M6IEthbmlnZXJpLCBIYXJpIEs7IEl5ZXIsIFN1bmRh
-cjsgWWFuZywgSmlhbndlaTsgbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnDQo+U3ViamVjdDog
-UmU6IE1lbW9yeSBhbGxvY2F0aW9uIGluIFZpZGVvNExpbnV4DQo+DQo+T24gV2VkbmVzZGF5LCBG
-ZWJydWFyeSAwOSwgMjAxMSAwODoyNzoyNyBXYW5nLCBXZW4gVyB3cm90ZToNCj4+IEhpIEhhcmks
-DQo+Pg0KPj4gWW91IGFyZSByaWdodC4gV2hhdCB3ZSBuZWVkIGlzIHZpcnR1YWwgYWRkcmVzcy4N
-Cj4+DQo+PiBDdXJyZW50bHkgd2UgYWxsb2MgcGFnZXMgKGFsbG9jX3BhZ2VzKCkpIGZvciBhbnkg
-cmVxdWVzdC4gU3RvcmUgdGhvc2UgcGFnZXMgZm9yIGFuDQo+aW1hZ2UgYnVmZmVyIGludG8gYSBs
-aXN0LiBXZSBhbHNvIG1hbmFnZSB0aGUgdmlydHVhbCBhZGRyZXNzIGZvciBJU1AgYnkgb3Vyc2Vs
-ZiAodGhlDQo+cmFuZ2UgZnJvbSAwIHRvIDRHQikgYW5kIHRoZSBwYWdlIHRhYmxlIGZvciBvdXIg
-TU1VIHdoaWNoIGlzIGluZGVwZW5kZW50IHRvIHN5c3RlbQ0KPk1NVSBwYWdlIHRhYmxlLg0KPg0K
-PkFzc3VtaW5nIHlvdSBhcmUgdXNpbmcgdmlkZW80bGludXggZm9yIHRoaXMgZHJpdmVyLCB0aGVu
-IHlvdSBzaG91bGQgdGFrZSBhDQo+bG9vayBhdCB0aGUgbmV3IHZpZGVvYnVmMiBmcmFtZXdvcmsg
-dGhhdCB3aWxsIGFwcGVhciBpbiAyLjYuMzkuIEl0IGlzIGFscmVhZHkNCj5pbiB0aGUgbWVkaWEg
-dHJlZSAoaHR0cDovL2dpdC5saW51eHR2Lm9yZy9tZWRpYV90cmVlLmdpdCwgc2VlDQo+aW5jbHVk
-ZS9tZWRpYS92aWRlb2J1ZjItY29yZS5oKS4NCj4NCj5JdCBpcyBtdWNoIGJldHRlciB0aGFuIHRo
-ZSBvbGQgdmlkZW9idWYgZnJhbWV3b3JrLCBhbmQgaW4gcGFydGljdWxhciBnaXZlcw0KPnRoZSBk
-cml2ZXIgbXVjaCBtb3JlIGNvbnRyb2wgb24gaG93IG1lbW9yeSBpcyBhbGxvY2F0ZWQgYW5kIHVz
-ZWQuDQo+DQo+UmVnYXJkcywNCj4NCj4JSGFucw0KPg0KPj4NCj4+IFRoYW5rcw0KPj4gV2VuDQo+
-Pg0KPj4gPi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+PiA+RnJvbTogS2FuaWdlcmksIEhh
-cmkgSw0KPj4gPlNlbnQ6IDIwMTHlubQy5pyIOeaXpSAxNToyMg0KPj4gPlRvOiBJeWVyLCBTdW5k
-YXI7IFdhbmcsIFdlbiBXOyBZYW5nLCBKaWFud2VpOyBsaW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5v
-cmc7DQo+PiA+dW1nLW1lZWdvLWhhbmRzZXQta2VybmVsQHVtZ2xpc3RzdnIuamYuaW50ZWwuY29t
-DQo+PiA+Q2M6IEpvemVmIEtydWdlcg0KPj4gPlN1YmplY3Q6IFJFOiBNZW1vcnkgYWxsb2NhdGlv
-biBpbiBWaWRlbzRMaW51eA0KPj4gPg0KPj4gPg0KPj4gPg0KPj4gPj4gLS0tLS1PcmlnaW5hbCBN
-ZXNzYWdlLS0tLS0NCj4+ID4+IEZyb206IHVtZy1tZWVnby1oYW5kc2V0LWtlcm5lbC1ib3VuY2Vz
-QHVtZ2xpc3RzdnIuamYuaW50ZWwuY29tDQo+PiA+PiBbbWFpbHRvOnVtZy1tZWVnby1oYW5kc2V0
-LWtlcm5lbC1ib3VuY2VzQHVtZ2xpc3RzdnIuamYuaW50ZWwuY29tXSBPbg0KPj4gPj4gQmVoYWxm
-IE9mIEl5ZXIsIFN1bmRhcg0KPj4gPj4gU2VudDogV2VkbmVzZGF5LCBGZWJydWFyeSAwOSwgMjAx
-MSAxMjoyMCBQTQ0KPj4gPj4gVG86IFdhbmcsIFdlbiBXOyBZYW5nLCBKaWFud2VpOyBsaW51eC1t
-ZWRpYUB2Z2VyLmtlcm5lbC5vcmc7IHVtZy1tZWVnby0NCj4+ID4+IGhhbmRzZXQta2VybmVsQHVt
-Z2xpc3RzdnIuamYuaW50ZWwuY29tDQo+PiA+PiBDYzogSm96ZWYgS3J1Z2VyDQo+PiA+PiBTdWJq
-ZWN0OiBSZTogW1VtZy1tZWVnby1oYW5kc2V0LWtlcm5lbF0gTWVtb3J5IGFsbG9jYXRpb24gaW4N
-Cj4+ID4+IFZpZGVvNExpbnV4DQo+PiA+Pg0KPj4gPj4gSSByZW1lbWJlciBzb21lIENvbnRpbm91
-cyBNZW1vcnkgQWxsb2NhdG9yIChDTUEpIGJlaW5nIGl0ZXJhdGVkIGRvd24gYQ0KPj4gPj4gZmV3
-IHZlcnNpb25zIG9uDQo+PiA+PiBzb21lIG1haWxpbmcgbGlzdHM/IElJUkMsIGl0IGlzIGFsc28g
-Zm9yIGxhcmdlIGJ1ZmZlcnMgYW5kIG1hbmFnZW1lbnQNCj4+ID4+IGZvciB2aWRlbyBJUHMuDQo+
-PiA+DQo+PiA+SSBiZWxpZXZlIENNQSBpcyBmb3IgYWxsb2NhdGluZyBwaHlzaWNhbGx5IGNvbnRp
-Z3VvdXMgbWVtb3J5IGFuZCBmcm9tIHdoYXQgV2VuDQo+PiA+bWVudGlvbmVkIGhlIGFsc28gbmVl
-ZHMgdmlydHVhbCBtZW1vcnkgbWFuYWdlbWVudCwgd2hpY2ggdGhlIElPTU1VIHdpbGwNCj4+ID5w
-cm92aWRlLiBQbGVhc2UgY2hlY2sgdGhlIG9wZW4gc291cmNlIGRpc2N1c3Npb24gb24gQ01BLCB0
-aGUgbGFzdCBJIGhlYXJkIENNQQ0KPj4gPnByb3Bvc2FsIHdhcyBzaG90IGRvd24uDQo+PiA+UmVm
-ZXJlbmNlOiBodHRwOi8vd3d3LnNwaW5pY3MubmV0L2xpc3RzL2xpbnV4LW1lZGlhL21zZzI2ODc1
-Lmh0bWwNCj4+ID4NCj4+ID5XZW4sIGhvdyBhcmUgeW91IGN1cnJlbnRseSBhbGxvY2F0aW5nIHBo
-eXNpY2FsIG1lbW9yeSA/DQo+PiA+DQo+PiA+DQo+PiA+VGhhbmsgeW91LA0KPj4gPkJlc3QgcmVn
-YXJkcywNCj4+ID5IYXJpDQo+PiDvv73nv7Pvv70ubu+/ve+/ve+/ve+/ve+/vSsl77+977+96YGN
-6I27F++/vXfvv73vv70ubu+/ve+/veS8kO+/vXvngrNn77+977+97oiX77+977+9bu+/vXLilqDv
-v73vv73vv73vv73vv73jhKjuhZMm772b77+9DQo+5aS4eue9kO+/ve+/ve+/ve+/vXpm77yC77+9
-77+977+977+977+977+977+977+977+977+977+977+96LWZel/nkoEP77+9Oit277+97p+hKeaS
-uO+/vQ0KPj4NCj4+DQo+DQo+LS0NCj5IYW5zIFZlcmt1aWwgLSB2aWRlbzRsaW51eCBkZXZlbG9w
-ZXIgLSBzcG9uc29yZWQgYnkgQ2lzY28NCg==
+On Tue, Feb 15, 2011 at 5:18 PM, Jarod Wilson <jarod@redhat.com> wrote:
+> On Tue, Feb 15, 2011 at 05:04:33PM -0500, Jarod Wilson wrote:
+>> First off, video4linux-list is dead, you want linux-media (added to cc).
+>>
+>> On Tue, Feb 15, 2011 at 06:27:29PM -0200, Fernando Laudares Camargos wrote:
+>> > Hello,
+>> >
+>> > I have a Hauppauge WinTV-HVR-1150 (model 67201) pci tv tuner working
+>> > (video and audio) under Ubuntu 10.10 and kernel 2.6.35-25. But the IR
+>> > sensor is not being detected and no input device is being created at
+>> > /proc/bus/input.
+>
+> Reading over the code some more, I don't see dev->has_remote set for the
+> HVR1150, so it appears the IR receiver on that hardware isn't actually yet
+> supported, so the patch I was thinking of may not help here. I failed to
+> notice the part where you said no input device was being created, that
+> patch only mattered if you were getting an rc input device created.
+
+I looked at this a few months ago.  The IR isn't supported at all on
+that board.  It's basically an IR receiver diode tied directly
+directly to a GPIO, and it relies on interrupt edge timing to compute
+the codes.
+
+I played with it for a couple of hours and couldn't get it working.
+It needs some TLC from somebody who actually has the board.
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
