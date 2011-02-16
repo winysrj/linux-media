@@ -1,127 +1,67 @@
 Return-path: <mchehab@pedra>
-Received: from mailrelay.signet.nl ([217.21.241.31]:42686 "EHLO
-	mailrelay.signet.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753958Ab1BJKBz (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.10]:59021 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751510Ab1BPH3r (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Feb 2011 05:01:55 -0500
-Message-ID: <4D539D0E.2080102@siliconhive.com>
-Date: Thu, 10 Feb 2011 00:08:46 -0800
-From: Jozef Kruger <jozef.kruger@siliconhive.com>
+	Wed, 16 Feb 2011 02:29:47 -0500
+Date: Wed, 16 Feb 2011 08:29:44 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Bhupesh SHARMA <bhupesh.sharma@st.com>
+cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: soc-camera: Benefits of soc-camera interface over specific char
+ drivers that use Gstreamer lib
+In-Reply-To: <D5ECB3C7A6F99444980976A8C6D896384DEE366DE6@EAPEX1MAIL1.st.com>
+Message-ID: <Pine.LNX.4.64.1102160819530.20711@axis700.grange>
+References: <D5ECB3C7A6F99444980976A8C6D896384DEE366DE6@EAPEX1MAIL1.st.com>
 MIME-Version: 1.0
-To: "Gao, Bin" <bin.gao@intel.com>
-CC: "Wang, Wen W" <wen.w.wang@intel.com>,
-	"Kanigeri, Hari K" <hari.k.kanigeri@intel.com>,
-	"Iyer, Sundar" <sundar.iyer@intel.com>,
-	"Yang, Jianwei" <jianwei.yang@intel.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"umg-meego-handset-kernel@umglistsvr.jf.intel.com"
-	<umg-meego-handset-kernel@umglistsvr.jf.intel.com>
-Subject: Re: Memory allocation in Video4Linux
-References: <D5AB6E638E5A3E4B8F4406B113A5A19A32F923C4@shsmsx501.ccr.corp.intel.com>	<D5AB6E638E5A3E4B8F4406B113A5A19A32F923D8@shsmsx501.ccr.corp.intel.com>	<D5AB6E638E5A3E4B8F4406B113A5A19A32F923DC@shsmsx501.ccr.corp.intel.com>	<C039722627B15F489AB215B00C0A3E6608B074BC74@bgsmsx501.gar.corp.intel.com>	<A787B2DEAF88474996451E847A0AFAB7F264B7A4@rrsmsx508.amr.corp.intel.com> <D5AB6E638E5A3E4B8F4406B113A5A19A32F92445@shsmsx501.ccr.corp.intel.com> <06F569D088CFBC4497658761DA003E13015636076A@rrsmsx505.amr.corp.intel.com>
-In-Reply-To: <06F569D088CFBC4497658761DA003E13015636076A@rrsmsx505.amr.corp.intel.com>
-Content-Type: text/plain; charset="GB2312"
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Bin,
+Hi Bhupesh
 
-the ISP in Medfield has it's own MMU. This needs to be programmed.
+On Wed, 16 Feb 2011, Bhupesh SHARMA wrote:
 
-So in fact we have 2 problems:
-1. how to allocate large memory address space (allocating pages is not
-the problem).
-2. if we re-use OS functionality for this, we need to keep the ISP MMU
-up to date.
-This means it needs to be programmed with the L1 page table base address
-and the
-TLB needs to be flushed whenever something changes in the page tables.
+> Hi Guennadi,
+> 
+> As I mentioned in one of my previous mails , we are developing a Camera Host and
+> Sensor driver for our ST specific SoC and considering using the soc-camera framework
+> for the same. One of our open-source customers has raised a interesting case though:
+> 
+> It seems they have an existing solution (for another SoC) in which they do not use V4L2
+> framework and instead use the Gstreamer with framebuffer.
 
-I don't think you need any ISP specific documentation for this. The ISP
-MMU behaves the
-same as the IA MMU does.
+Don't see how gstreamer ("with framebuffer") can replace V4L2 source, I 
+only know a fbdev _sink_ plugin for gstreamer, and no framebuffer source 
+plugin. So, either this is a propriatory extension to gstreamer, or you 
+mean something different here.
 
-Best regards,
-Jozef
+> They specifically wish us to
+> implement a solution which is compatible with ANDROID applications.
 
-On 02/09/2011 11:59 PM, Gao, Bin wrote:
-> Penwell has IOMMU feature?
-> As far as I know only part of Intel server processors have this feature which is designed originally for VT(virtualization technology).
->
-> Wen,
-> Can you refer to other ISP Soc drivers and see how they are dealing with this issue?
-> I don't understand why you need to manage MMU inside ISP, I think the real problem is how can we allocate a large number of memory pages from IA side where ISP can access to by DMA.
-> Any ISP document can be shared to help us understand what's the problem?
->
-> -Bin
->
-> -----Original Message-----
-> From: umg-meego-handset-kernel-bounces@umglistsvr.jf.intel.com [mailto:umg-meego-handset-kernel-bounces@umglistsvr.jf.intel.com] On Behalf Of Wang, Wen W
-> Sent: Tuesday, February 08, 2011 11:27 PM
-> To: Kanigeri, Hari K; Iyer, Sundar; Yang, Jianwei; linux-media@vger.kernel.org; umg-meego-handset-kernel@umglistsvr.jf.intel.com
-> Cc: Jozef Kruger
-> Subject: Re: [Umg-meego-handset-kernel] Memory allocation in Video4Linux
->
-> Hi Hari,
->
-> You are right. What we need is virtual address.
->
-> Currently we alloc pages (alloc_pages()) for any request. Store those pages for an image buffer into a list. We also manage the virtual address for ISP by ourself (the range from 0 to 4GB) and the page table for our MMU which is independent to system MMU page table.
->
-> Thanks
-> Wen
->
->> -----Original Message-----
->> From: Kanigeri, Hari K
->> Sent: 2011Äê2ÔÂ9ÈÕ 15:22
->> To: Iyer, Sundar; Wang, Wen W; Yang, Jianwei; linux-media@vger.kernel.org;
->> umg-meego-handset-kernel@umglistsvr.jf.intel.com
->> Cc: Jozef Kruger
->> Subject: RE: Memory allocation in Video4Linux
->>
->>
->>
->>> -----Original Message-----
->>> From: umg-meego-handset-kernel-bounces@umglistsvr.jf.intel.com
->>> [mailto:umg-meego-handset-kernel-bounces@umglistsvr.jf.intel.com] On
->>> Behalf Of Iyer, Sundar
->>> Sent: Wednesday, February 09, 2011 12:20 PM
->>> To: Wang, Wen W; Yang, Jianwei; linux-media@vger.kernel.org; umg-meego-
->>> handset-kernel@umglistsvr.jf.intel.com
->>> Cc: Jozef Kruger
->>> Subject: Re: [Umg-meego-handset-kernel] Memory allocation in
->>> Video4Linux
->>>
->>> I remember some Continous Memory Allocator (CMA) being iterated down a
->>> few versions on
->>> some mailing lists? IIRC, it is also for large buffers and management
->>> for video IPs.
->> I believe CMA is for allocating physically contiguous memory and from what Wen
->> mentioned he also needs virtual memory management, which the IOMMU will
->> provide. Please check the open source discussion on CMA, the last I heard CMA
->> proposal was shot down.
->> Reference: http://www.spinics.net/lists/linux-media/msg26875.html
->>
->> Wen, how are you currently allocating physical memory ?
->>
->>
->> Thank you,
->> Best regards,
->> Hari
-> _______________________________________________
-> Umg-meego-handset-kernel mailing list
-> Umg-meego-handset-kernel@umglistsvr.jf.intel.com
-> http://umglistsvr.jf.intel.com/mailman/listinfo/umg-meego-handset-kernel
+AFAIU, android only specifies higher level Java application APIs, and it 
+doesn't specify what you use at the device-node level. I know, that first 
+(msm) android implementations didn't use V4L and used a custom character 
+device for video data, which is totally incompatible with the mainline 
+Linux.
 
--- 
-Jozef Kruger
-Senior Customer Solutions Architect
-Silicon Hive Inc.
-2025 Gateway Place, Suite 230
-San Jose, CA 95110
-phone: +1 408 512 2969
-cell:  +1 408 644 7533
-fax:   +1 408 437 6014
-jozef.kruger@siliconhive.com
-http://www.siliconhive.com
+> Could you please help us in deciding which approach is preferable in terms of
+> performance, maintenance and ease-of-design.
 
+Sorry, no, I have no idea about performance and ease of design, but it 
+might be related to maintenance: your choice is basically between a custom 
+character device, which only the specific android implementations know how 
+to use, and a standard V4L2 (not necessarily soc-camera) implementation, 
+which will immediately work for any Linux-based solution on your system. I 
+believe, there have already been android ports, using V4L2 for video 
+source, it is true, that some (mostly optional) android API calls don't 
+have direct analogs in V4L2, and, therefore, have so far to be emulated, 
+but I also think, there are a few users, that would be interested in 
+extending V4L2 to better support those android API calls.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
