@@ -1,49 +1,70 @@
 Return-path: <mchehab@pedra>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:47268 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752052Ab1BEOaM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Feb 2011 09:30:12 -0500
-Date: Sat, 5 Feb 2011 15:29:47 +0100
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Deti Fliegl <deti@fliegl.de>
-Subject: Re: [GIT PATCHES FOR 2.6.39] Remove se401, usbvideo, dabusb,
- firedtv-1394 and VIDIOC_OLD
-Message-ID: <20110205152947.43375cb4@stein>
-In-Reply-To: <201102051417.22874.hverkuil@xs4all.nl>
-References: <201102051417.22874.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from perceval.ideasonboard.com ([95.142.166.194]:40807 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751382Ab1BQNKb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Feb 2011 08:10:31 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Bhupesh SHARMA <bhupesh.sharma@st.com>
+Subject: Re: soc-camera: Benefits of soc-camera interface over specific char drivers that use Gstreamer lib
+Date: Thu, 17 Feb 2011 14:10:30 +0100
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <D5ECB3C7A6F99444980976A8C6D896384DEE366DE6@EAPEX1MAIL1.st.com> <Pine.LNX.4.64.1102161448260.20711@axis700.grange> <D5ECB3C7A6F99444980976A8C6D896384DEE3E9237@EAPEX1MAIL1.st.com>
+In-Reply-To: <D5ECB3C7A6F99444980976A8C6D896384DEE3E9237@EAPEX1MAIL1.st.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201102171410.30444.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Feb 05 Hans Verkuil wrote:
-> (Second attempt: fixes a link issue with firedtv and adds removal of the old ioctls)
-> 
-> This patch series removes the last V4L1 drivers (Yay!), the obsolete dabusb driver,
-> the ieee1394-stack part of the firedtv driver (the IEEE1394 stack was removed in
-> 2.6.37), and the VIDIOC_*_OLD ioctls.
-> 
-> Stefan, I went ahead with this since after further research I discovered that
-> this driver hasn't been compiled at all since 2.6.37! The Kconfig had a
-> dependency on IEEE1394, so when that config was removed, the driver no longer
-> appeared in the config.
-> 
-> I removed any remaining reference to IEEE1394 and changed the Kconfig dependency
-> to FIREWIRE. At least it compiles again :-)
+Hi Bhupesh,
 
-Thanks for doing the firedtv cleanup.  However, the effect should just be
-that of dead code elimination.  Was there any build problem that I missed?
+On Wednesday 16 February 2011 14:57:12 Bhupesh SHARMA wrote:
+> On Wednesday, February 16, 2011 7:20 PM Guennadi Liakhovetski wrote:
+> > On Wed, 16 Feb 2011, Laurent Pinchart wrote:
+> > > On Wednesday 16 February 2011 06:57:11 Bhupesh SHARMA wrote:
+> > > > Hi Guennadi,
+> > > > 
+> > > > As I mentioned in one of my previous mails , we are developing a
+> > > > Camera Host and Sensor driver for our ST specific SoC and considering
+> > > > using the soc-camera framework for the same. One of our open-source
+> > > > customers has raised a interesting case though:
+> > > > 
+> > > > It seems they have an existing solution (for another SoC) in which
+> > > > they do not use V4L2 framework and instead use the Gstreamer with
+> > > > framebuffer.
+> > > >
+> > > > They specifically wish us to implement a solution which is compatible
+> > > > with ANDROID applications.
+> > > > 
+> > > > Could you please help us in deciding which approach is preferable
+> > > > in terms of performance, maintenance and ease-of-design.
+> > > 
+> > > That's a difficult question that can't be answered without more details
+> > > about your SoC. Could you share some documentation, such as a high-level
+> > > block diagram of the video-related blocks in the SoC ?
+> > 
+> > Laurent, IIUC, the choice above referred not to soc-camera vs. plain
+> > v4l2, but to v4l2 vs. original android-style video character device, which
+> > doesn't seem so difficult to me;)
+> 
+> That's correct Guennadi :)
+> The choice I have to make is to between v4ls (soc-camera)
+> vs. a specific video char driver written to support android-style
+> applications.
+> 
+> Also I am not sure about how gstreamer over framebuffer can interface with
+> such a design and the respective merits/demerits.
 
-AFAICS, firedtv builds and works fine in mainline 2.6.37(-rc) and
-2.6.38(-rc).  From when I implemented the drivers/firewire/ backend of
-firedtv, it should have been possible to build firedtv for a kernel with
-one or both of drivers/{ieee1394,firewire}; controlled by whether
-CONFIG_{IEEE1394,FIREWIRE} are defined or not.
+GStreamer is often used on top of V4L2 devices. I'm not sure to understand 
+what GStreamer over framebuffer is supposed to mean here, as you're looking 
+for a solution for your camera driver, and the framebuffer API is used for 
+video output only, not video capture.
 
-I will have a look at your changes later.
 -- 
-Stefan Richter
--=====-==-== --=- --=-=
-http://arcgraph.de/sr/
+Regards,
+
+Laurent Pinchart
