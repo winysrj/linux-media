@@ -1,90 +1,80 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:58080 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753014Ab1BLXeK (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33321 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753515Ab1BQNVv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Feb 2011 18:34:10 -0500
-Subject: Re: PCTV USB2 PAL / adds loud hum to correct audio
-From: Andy Walls <awalls@md.metrocast.net>
-To: AW <arne_woerner@yahoo.com>
-Cc: linux-media@vger.kernel.org, dheitmueller@kernellabs.com
-In-Reply-To: <450670.60996.qm@web30306.mail.mud.yahoo.com>
-References: <713442.91420.qm@web30304.mail.mud.yahoo.com>
-	 <AANLkTinv7sWE+T1ORrr8MD6XRGQj8hG1sZw9UfjSGM-o@mail.gmail.com>
-	 <450670.60996.qm@web30306.mail.mud.yahoo.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 12 Feb 2011 18:34:17 -0500
-Message-ID: <1297553657.2413.66.camel@localhost>
-Mime-Version: 1.0
+	Thu, 17 Feb 2011 08:21:51 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Bhupesh SHARMA <bhupesh.sharma@st.com>
+Subject: Re: soc-camera: Benefits of soc-camera interface over specific char drivers that use Gstreamer lib
+Date: Thu, 17 Feb 2011 14:21:50 +0100
+Cc: "g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <D5ECB3C7A6F99444980976A8C6D896384DEE366DE6@EAPEX1MAIL1.st.com> <201102161444.01236.laurent.pinchart@ideasonboard.com> <D5ECB3C7A6F99444980976A8C6D896384DEE3E9234@EAPEX1MAIL1.st.com>
+In-Reply-To: <D5ECB3C7A6F99444980976A8C6D896384DEE3E9234@EAPEX1MAIL1.st.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201102171421.50480.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sat, 2011-02-12 at 13:44 -0800, AW wrote:
-> Devin Heitmueller <dheitmueller@kernellabs.com> wrote:
-> > > When I use this command  simultaneously:
-> > > arecord -D front:CARD=PAL,DEV=0 -f S16_LE -c 2 -r 8000  /aux/tmp/bla.wav
-> > > I get correct audio with strong noise:
-> > > http://www.wgboome.de./bla.wav
-> > > (it is from input=1 for copyright  reasons... so there is silence plus 
-> noise)
+Hi Bhupesh,
+
+On Wednesday 16 February 2011 14:54:02 Bhupesh SHARMA wrote:
+> On Wednesday, February 16, 2011 7:14 PM Laurent Pinchart wrote:
+> > On Wednesday 16 February 2011 06:57:11 Bhupesh SHARMA wrote:
+> > > Hi Guennadi,
+> > > 
+> > > As I mentioned in one of my previous mails , we are developing a
+> > > Camera Host and Sensor driver for our ST specific SoC and considering
+> > > using the soc-camera framework for the same. One of our open-source
+> > > customers has raised a interesting case though:
+> > > 
+> > > It seems they have an existing solution (for another SoC) in which
+> > > they do not use V4L2 framework and instead use the Gstreamer with
+> > > framebuffer.
+> > >
+> > > They specifically wish us to implement a solution which is compatible
+> > > with ANDROID applications.
+> > > 
+> > > Could you please help us in deciding which approach is preferable in
+> > > terms of performance, maintenance and ease-of-design.
 > > 
-> > The "-r" argument should  almost certainly be 48000, not 8000.
-> > 
-> Maybe...
-> That device is rather old...
-> And i didnt tell pactl anything about sample rate...
-
-I find audio at 8 ksps very unusual for a TV capture device.
-
-
-> With the filter from the appendix the noise is gone...
-> But it feels like a dirty hack, because it would cut out (overly?) loud noise, 
-> 2...
+> > That's a difficult question that can't be answered without more details
+> > about your SoC. Could you share some documentation, such as a high-level
+> > block diagram of the video-related blocks in the SoC ?
 > 
-> My wild guess is, that the usbaudio driver injects some bad samples 
-> (0x8000..0x9000) every appr. 256 bytes...
+> At the top-level the interface is very simple:
+> 
+> -----------------  8-bit data interface -------------------
+> | Camera sensor | <-------------------> | SoC (ARM Based) |
+> |               |                       |                 |
+> |               | I2C control Interface |                 |
+> |               | <-------------------> |                 |
+> |               |                       |                 |
+> |               | SYNC signals (HS/VS)  |                 |
+> |               | ------------------->  |                 |
+> |               |                       |                 |
+> |               | Pixel CLK             |                 |
+> |               | ------------------->  |                 |
+> |               |                       |                 |
+> |               | Sensor CLK            |                 |
+> |               | <-------------------  |                 |
+> -----------------                       -------------------
+> 
+> The SoC itself has a simple interface to transfer the data received via
+> system DMA and has buffer to store an incoming line data. Also one can
+> program the SoC logic to apply transformations on the input data.
 
-I looked at the data.  It is mostly hovering around 0, but you have
-bursts of very negative values periodically:
+If the SoC just writes incoming data to memory using DMA, a V4L2 driver should 
+be pretty easy to develop. If your SoC can capture images in different 
+formats, possible applying complex processing (such as scaling the image) and 
+supports memory-to-memory processing modes, you might need the media 
+controller API in addition to the V4L2 API.
 
-(These values are shown as little endian, so swap the bytes to consider the value)
-
-0000630: faff fdff f9ff fbff 1080 1080 1080 1080  ................
-0000640: 1080 1080 faff fbff 1080 1080 8888 8888  ................
-0000650: 1080 1080 fbff fcff fbff fcff fdff fdff  ................
-...
-0002fe0: 0000 0000 0100 0100 ffff 0000 1080 1080  ................
-0002ff0: 1080 1080 1080 1080 1080 1080 1080 1080  ................
-0003000: 8888 8888 0100 0000 ffff ffff 0000 0000  ................
-
-0x8010 is -32752 and 0x8888 is -30584.
-
-The data set contains no large positive values (nothing in the range
-0x1000-0x7fff).
-
-The valuex 0x10 and 0x80 do remind me of the YUV values for black: Y =
-0x10, U = 0x80, V = 0x80.  Maybe some video data is getting thrown in
-with the audio?
-
+-- 
 Regards,
-Andy
 
-> -Arne
-> 
-> appendix:
-> #include <stdint.h>
-> #include <unistd.h>
-> 
-> int main() {
-> uint16_t buf[1000000];
-> const int r = read(0,buf,sizeof(buf));
-> for (int i=0; i*sizeof(*buf)<r; i++) {
-> if (buf[i]/256>=0x80 && buf[i]/256<0x90) continue;
-> if (write(1,buf+i,2) != 2) break;
-> }
-> return 0;
-> }
-> 
-
-
+Laurent Pinchart
