@@ -1,91 +1,51 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:33573 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753772Ab1BHMPn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Feb 2011 07:15:43 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v5 0/5] OMAP3 ISP driver
-Date: Tue, 8 Feb 2011 13:15:37 +0100
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-References: <1296131541-30092-1-git-send-email-laurent.pinchart@ideasonboard.com> <201102041255.50253.hverkuil@xs4all.nl>
-In-Reply-To: <201102041255.50253.hverkuil@xs4all.nl>
+Received: from moutng.kundenserver.de ([212.227.17.10]:57932 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757829Ab1BQTeV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Feb 2011 14:34:21 -0500
+Date: Thu, 17 Feb 2011 20:34:18 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Andrew Chew <AChew@nvidia.com>
+cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: soc-camera and videobuf2
+In-Reply-To: <643E69AA4436674C8F39DCC2C05F763816BD96CFB8@HQMAIL03.nvidia.com>
+Message-ID: <Pine.LNX.4.64.1102172031240.30692@axis700.grange>
+References: <643E69AA4436674C8F39DCC2C05F763816BD96CFB7@HQMAIL03.nvidia.com>
+ <643E69AA4436674C8F39DCC2C05F763816BD96CFB8@HQMAIL03.nvidia.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201102081315.38314.laurent.pinchart@ideasonboard.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Hans,
+On Wed, 16 Feb 2011, Andrew Chew wrote:
 
-Thanks for the review.
-
-On Friday 04 February 2011 12:55:50 Hans Verkuil wrote:
-> On Thursday, January 27, 2011 13:32:16 Laurent Pinchart wrote:
-> > Hi everybody,
-> > 
-> > Here's the fifth version of the OMAP3 ISP driver patches, updated to
-> > 2.6.37 and the latest changes in the media controller and sub-device
-> > APIs.
+> Reposting.  Sorry for the rich text in my previous email.
 > 
-> Hmm, patch 5/5 is missing. It's probably too big.
-
-Yes it is. I forgot to mention that in the cover letter.
-
-> Anyway, I got the patch from your git tree and did a review. It's always
-> hard to review over 21000 lines of driver code :-), so I limited myself to
-> the V4L2 API parts. I can't really comment on the OMAP3 specific parts
-> anyway.
+> I'm looking at the videobuf2 stuff, and would like to use it because it 
+> solves a bunch of problems for me that were in videobuf (for example, 
+> I'm writing a variant of videobuf-dma-contig, and there's some private 
+> memory allocator state I needed to track, but the videobuf stuff didn't 
+> seem to let you do that).
 > 
-> The first issue I found was related to controls: it seems you set up
-> control handlers for subdevs that don't have any controls. You can just
-> leave sd->ctrl_handler to NULL in that case and you don't need to use a
-> control handler at all.
-
-OK. It was a leftover.
-
-> There is also no need to set the core ctrl ops:
+> But I'm also using soc_camera.  I was wondering if there's a time 
+> estimate for soc_camera to be converted over to the videobuf2 framework.
 > 
-> +       .queryctrl = v4l2_subdev_queryctrl,
-> +       .querymenu = v4l2_subdev_querymenu,
-> +       .g_ctrl = v4l2_subdev_g_ctrl,
-> +       .s_ctrl = v4l2_subdev_s_ctrl,
-> +       .g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
-> +       .try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
-> +       .s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
-> 
-> These are only necessary if the master driver doesn't use the control
-> framework but called core.queryctrl directly. That shouldn't be the case
-> for this driver.
+> Also, are SoC camera host drivers expected to call the methods in the 
+> videobuf2 ops table directly (as in, vb2_ops->alloc())?  Or will there 
+> be wrappers around these in the future (the wrappers can take the 
+> videobuf2's alloc_ctx as a parameter and thereby figure out which method 
+> to call).
 
-OK.
+Please, have a look at this thread:
 
-> What isn't clear to me is whether the /dev/videoX nodes should give access
-> to the subdev controls as well. As far as I can see the ctrl_handler
-> pointer of neither v4l2_device nor video_device is ever set, so that means
-> that the controls are only accessible through /dev/v4l-subdevX.
-> 
-> I'm not sure whether that is intentional or not.
+http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/28782
 
-It's intentional.
+I plan to push soc-camera videobuf2 support for 2.6.39.
 
-> The other comment I have is regarding include/linux/omap3isp.h: both the
-> ioctls and the events need to be documented there. A one-liner for each is
-> probably enough. I also see that struct omap3isp_stat_data has a deprecated
-> field: perhaps when creating the final pull request the time is right to
-> remove it?
-
-OK.
-
-> Finally, I noticed that OMAP3 has its own implementation of videobuf. Are
-> there plans to move to vb2?
-
-Yes, but not before 2.6.39 :-)
-
--- 
-Regards,
-
-Laurent Pinchart
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
