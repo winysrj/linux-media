@@ -1,62 +1,131 @@
 Return-path: <mchehab@pedra>
-Received: from outbound-queue-1.mail.thdo.gradwell.net ([212.11.70.34]:47972
-	"EHLO outbound-queue-1.mail.thdo.gradwell.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758320Ab1BKWqO convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Feb 2011 17:46:14 -0500
-Message-ID: <Sv75ntDxqbVNFwXa@echelon.upsilon.org.uk>
-Date: Fri, 11 Feb 2011 22:39:45 +0000
-To: linux-media@vger.kernel.org, skandalfo@gmail.com
-From: dave cunningham <news004@upsilon.org.uk>
-Subject: Re: AF9015 Problem
-References: <AANLkTinXYi6edyaQKec=oJ_DLf5AHeqyZd564mUArebt@mail.gmail.com>
- <AANLkTimfae4pU4R3Xk2Hji0syJH22qmC-fyd23OQh3nv@mail.gmail.com>
-In-Reply-To: <AANLkTimfae4pU4R3Xk2Hji0syJH22qmC-fyd23OQh3nv@mail.gmail.com>
+Received: from antispam02.maxim-ic.com ([205.153.101.183]:46606 "EHLO
+	antispam02.maxim-ic.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752050Ab1BQX3K (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Feb 2011 18:29:10 -0500
+Subject: Re: [PATCH RFC] uvcvideo: Add a mapping for H.264 payloads
+From: Stephan Lachowsky <stephan.lachowsky@maxim-ic.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-uvc-devel@lists.berlios.de" <linux-uvc-devel@lists.berlios.de>
+In-Reply-To: <201102171701.57759.laurent.pinchart@ideasonboard.com>
+References: <1296243538.17673.23.camel@svmlwks101>
+	 <201102171701.57759.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Thu, 17 Feb 2011 15:28:54 -0800
+Message-ID: <1297985334.2620.86.camel@svmlwks101>
 MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1;format=flowed
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-In message 
-<AANLkTimfae4pU4R3Xk2Hji0syJH22qmC-fyd23OQh3nv@mail.gmail.com>, Juan 
-Jesús García de Soria Lucena wrote
+Hi,
 
->El 30/01/2011 14:03, "David Ondracek" <david.ondracek@gmx.de> escribió:
->>
->> Hi there,
->
->Hi.
->
->> I have a problem using my DIGITRADE DVB-T stick, which is marked as 
->>fully supported in the wiki. It works fine for a while, but after some 
->>time it crashes and I have to reboot and disconnect the stick to make 
->>it work again (for a while)
->
->The same thing happens to me with two different af9015 tuner sticks,
->an Avermedia Volar Black and a dual KWorld DVB-T-USB 399U (which
->happens to have other problems too due to its dual nature not being
->completely supported).
->
->In the end, I had to look for a tuner stick with a different chip set
->(and that proved to be a challenge itself due to the apparent
->popularity of af9015 among manufacturers) so that my mythtv rig would
->be dependable.
->
+On Thu, 2011-02-17 at 08:01 -0800, Laurent Pinchart wrote:
+> HI Stephan,
+> 
+> Thanks for the patch, and sorry for the late reply.
+> 
+> On Friday 28 January 2011 20:38:58 Stephan Lachowsky wrote:
+> > Associate the H.264 GUID with an H.264 pixel format so that frame
+> > and stream based format descriptors with this GUID are recognized
+> > by the UVC video driver.
+> > ---
+> >  drivers/media/video/uvc/uvc_driver.c |    5 +++++
+> >  drivers/media/video/uvc/uvcvideo.h   |    3 +++
+> >  include/linux/videodev2.h            |    1 +
+> >  3 files changed, 9 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/uvc/uvc_driver.c
+> > b/drivers/media/video/uvc/uvc_driver.c index 6bcb9e1..a5a86ce 100644
+> > --- a/drivers/media/video/uvc/uvc_driver.c
+> > +++ b/drivers/media/video/uvc/uvc_driver.c
+> > @@ -108,6 +108,11 @@ static struct uvc_format_desc uvc_fmts[] = {
+> >  		.guid		= UVC_GUID_FORMAT_MPEG,
+> >  		.fcc		= V4L2_PIX_FMT_MPEG,
+> >  	},
+> > +	{
+> > +		.name		= "H.264",
+> > +		.guid		= UVC_GUID_FORMAT_H264,
+> > +		.fcc		= V4L2_PIX_FMT_H264,
+> > +	},
+> >  };
+> > 
+> >  /*
+> > ------------------------------------------------------------------------
+> > diff --git a/drivers/media/video/uvc/uvcvideo.h
+> > b/drivers/media/video/uvc/uvcvideo.h index e522f99..4f65ac6 100644
+> > --- a/drivers/media/video/uvc/uvcvideo.h
+> > +++ b/drivers/media/video/uvc/uvcvideo.h
+> > @@ -155,6 +155,9 @@ struct uvc_xu_control {
+> >  #define UVC_GUID_FORMAT_MPEG \
+> >  	{ 'M',  'P',  'E',  'G', 0x00, 0x00, 0x10, 0x00, \
+> >  	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
+> > +#define UVC_GUID_FORMAT_H264 \
+> > +	{ 'H',  '2',  '6',  '4', 0x00, 0x00, 0x10, 0x00, \
+> > +	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
+> > 
+> >  /*
+> > ------------------------------------------------------------------------ *
+> > Driver specific constants.
+> > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> > index 5f6f470..d3b5877 100644
+> > --- a/include/linux/videodev2.h
+> > +++ b/include/linux/videodev2.h
+> > @@ -341,6 +341,7 @@ struct v4l2_pix_format {
+> >  #define V4L2_PIX_FMT_JPEG     v4l2_fourcc('J', 'P', 'E', 'G') /* JFIF JPEG
+> >     */ #define V4L2_PIX_FMT_DV       v4l2_fourcc('d', 'v', 's', 'd') /*
+> > 1394          */ #define V4L2_PIX_FMT_MPEG     v4l2_fourcc('M', 'P', 'E',
+> > 'G') /* MPEG-1/2/4    */ +#define V4L2_PIX_FMT_H264     v4l2_fourcc('H',
+> > '2', '6', '4') /* H.264 Annex-B NAL Units */
+> 
+> I've discussed H.264 support with Hans Verkuil (CC'ed) some time ago, and his 
+> opinion was that we shouldn't use a new V4L2 format for it. H.264 is 
+> essentially an MPEG version, so drivers should use V4L2_PIX_FMT_MPEG and 
+> select the details using the MPEG CIDs.
+> 
+> Of course feel free to disagree with Hans and discuss the matter with him :-)
+> 
 
-Do you mind me asking what you ended up with?
+Well MPEG is a loaded acronym to throw around, it means many, many
+things in different contexts.  Saying H.264 is essentially an MPEG
+version is true, but putting something in a labelled drawer doesn't
+necessarily make it square (unless the drawer is square, structurally
+solid, smaller than the something, and the insertion is done with
+extreme prejudice).
 
-I've got similar problems with af9015. I have a Tevion stick that works 
-with the V4L HG tree and 4.65 firmware but locks up the machine with the 
-git tree and/or any other firmware version. I also have a KWorld 399U 
-which causes the machine to lock up with any firmware/driver version 
-I've tried.
+Let me throw a few points out for critique:
 
-Previous to these I had 3 WT-220U sticks running stable in an Epia 
-mythtv backend. I 'upgraded' the backend to an AMD system and all 3 
-started locking up the system - hence the move to af9015!
+      * There is a 1-1 mapping between between the contents of this UVC
+        stream, and what would be found inside an AVI container with the
+        same fourcc code... Why fight an existing defacto labelling?
+      * There is currently a straightforward correspondence between UVC
+        payload formats and v4l2 fourcc types... Why would you want to
+        add indirection through an overloaded fourcc type, increasing
+        the complexity for all parties involved?
+      * If you don't use the fourcc code to denote the payload format,
+        you lose the ability to enumerate supported formats generically.
+        You require interface users to understand MPEG CID, and use it
+        to sub-enumerate any formats considered MPEG -- which is an
+        arbitrary label in this context -- you wouldn't try to shim
+        Theora or WebM in this way, so why H.264?
+      * MPEG CID
+        (http://v4l2spec.bytesex.org/spec/x802.htm#MPEG-CONTROLS) does
+        not currently have defined controls beyond MPEG2 (No MPEG4 ASP,
+        no MPEG4 AVC)... configuring the minutiae of these codecs is
+        complex enough that they probably deserve their own extended
+        control classes.
 
-Regards,
--- 
-Dave Cunningham                                  dave at upsilon org uk
-                                                  PGP KEY ID: 0xA78636DC
+I'm quite persuadable by reason, and quite partial to wit; so do cc
+anyone else that will respond with insight (and/or humour).
+
+Stephan
+
+> >  /*  Vendor-specific formats   */
+> >  #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1 YUV
+> > */
+> 
+
+
