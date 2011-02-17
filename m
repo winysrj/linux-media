@@ -1,50 +1,43 @@
 Return-path: <mchehab@pedra>
-Received: from cain.gsoft.com.au ([203.31.81.10]:44353 "EHLO cain.gsoft.com.au"
+Received: from mx1.redhat.com ([209.132.183.28]:29450 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752002Ab1BFXPO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Feb 2011 18:15:14 -0500
-Subject: Re: Tuning channels with DViCO FusionHDTV7 Dual Express
-Mime-Version: 1.0 (Apple Message framework v1082)
-Content-Type: text/plain; charset=us-ascii
-From: "Daniel O'Connor" <darius@dons.net.au>
-In-Reply-To: <AANLkTin8Rjch6o7aU-9S9m8f5aBYVeSwxSaVhyEfM5q9@mail.gmail.com>
-Date: Mon, 7 Feb 2011 09:44:37 +1030
-Cc: v4l-dvb Mailing List <linux-media@vger.kernel.org>
-Content-Transfer-Encoding: 8BIT
-Message-Id: <13C07B8A-BF22-4863-8C91-590F8683B5E1@dons.net.au>
-References: <AANLkTin8Rjch6o7aU-9S9m8f5aBYVeSwxSaVhyEfM5q9@mail.gmail.com>
-To: Dave Johansen <davejohansen@gmail.com>
+	id S1754422Ab1BQKDa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Feb 2011 05:03:30 -0500
+Message-ID: <4D5CEF80.2050807@redhat.com>
+Date: Thu, 17 Feb 2011 10:50:56 +0100
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Jean-Francois Moine <moinejf@free.fr>,
+	Brian Johnson <brijohn@gmail.com>
+Subject: [GIT PATCHES FOR 2.6.39] gspca_sn9c20x fixes
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+Hi Mauro,
 
-On 07/02/2011, at 9:16, Dave Johansen wrote:
-> Here's the output from scan:
-> 
-> scan /usr/share/dvb/atsc/us-ATSC-
-> center-frequencies-8VSB
-> scanning us-ATSC-center-frequencies-8VSB
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
->>>> tune to: 189028615:8VSB
-> WARNING: filter timeout pid 0x0000
-> WARNING: filter timeout pid 0x1ffb
-> 
-> Any ideas/suggestions on how I can get this to work?
+Please pull from my gspca tree, for some gspca_sn9c20x fixes
+I've been doing.
 
-You could try the latest DVB drivers, although on my DViCo (which looks like the DVB-T version of yours) they aren't any better.
+The following changes since commit 5ed4bbdae09d207d141759e013a0f3c24ae76ecc:
 
-However the drivers in Ubuntu at least work for 1 tuner, if I try and use both in mythtv one tends to lock up after a while :-/
+   [media] tuner-core: Don't touch at standby during tuner_lookup (2011-02-15 10:31:01 -0200)
 
---
-Daniel O'Connor software and network engineer
-for Genesis Software - http://www.gsoft.com.au
-"The nice thing about standards is that there
-are so many of them to choose from."
-  -- Andrew Tanenbaum
-GPG Fingerprint - 5596 B766 97C0 0E94 4347 295E E593 DC20 7B3F CE8C
+are available in the git repository at:
+   git://linuxtv.org/hgoede/gspca.git gspca-for_v2.6.39
 
+Hans de Goede (5):
+       gspca_sn9c20x: Fix colored borders with ov7660 sensor
+       gspca_sn9c20x: Add hflip and vflip controls for the ov7660 sensor
+       gspca_sn9c20x: Add LED_REVERSE flag for 0c45:62bb
+       gspca_sn9c20x: Make buffers slightly larger for JPEG frames
+       gspca_sn9c20x: Add another MSI laptop to the sn9c20x upside down list
 
+  drivers/media/video/gspca/sn9c20x.c |   40 ++++++++++++++++++++++++++--------
+  1 files changed, 30 insertions(+), 10 deletions(-)
 
+Thanks,
 
-
-
+Hans
