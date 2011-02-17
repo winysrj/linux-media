@@ -1,50 +1,62 @@
 Return-path: <mchehab@pedra>
-Received: from skyboo.net ([82.160.187.4]:42740 "EHLO skyboo.net"
-	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752562Ab1B1WYr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Feb 2011 17:24:47 -0500
-Message-ID: <4D6C20A0.40705@skyboo.net>
-Date: Mon, 28 Feb 2011 23:24:32 +0100
-From: Mariusz Bialonczyk <manio@skyboo.net>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: "Igor M. Liplianin" <liplianin@me.by>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-References: <4D3358C5.5080706@skyboo.net> <201102281901.50579.liplianin@me.by> <4D6BFB6A.1090404@skyboo.net> <201102282237.07948.liplianin@me.by>
-In-Reply-To: <201102282237.07948.liplianin@me.by>
-Content-Type: text/plain; charset=UTF-8
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:48746 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750732Ab1BQFMG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Feb 2011 00:12:06 -0500
+Received: by eye27 with SMTP id 27so1209989eye.19
+        for <linux-media@vger.kernel.org>; Wed, 16 Feb 2011 21:12:04 -0800 (PST)
+Date: Thu, 17 Feb 2011 14:12:57 +0900
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: Stefan Ringel <stefan.ringel@arcor.de>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Felipe Sanches <juca@members.fsf.org>,
+	Bee Hock Goh <beehock@gmail.com>,
+	Luis Henrique Fagundes <lhfagundes@hacklab.com.br>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Jarod Wilson <jarod@redhat.com>
+Subject: tm6000 and radio
+Message-ID: <20110217141257.6d1b578b@glory.local>
+In-Reply-To: <4D388C44.7040500@arcor.de>
+References: <4CAD5A78.3070803@redhat.com>
+ <4CAF0602.6050002@redhat.com>
+ <20101012142856.2b4ee637@glory.local>
+ <4CB492D4.1000609@arcor.de>
+ <20101129174412.08f2001c@glory.local>
+ <4CF51C9E.6040600@arcor.de>
+ <20101201144704.43b58f2c@glory.local>
+ <4CF67AB9.6020006@arcor.de>
+ <20101202134128.615bbfa0@glory.local>
+ <4CF71CF6.7080603@redhat.com>
+ <20101206010934.55d07569@glory.local>
+ <4CFBF62D.7010301@arcor.de>
+ <20101206190230.2259d7ab@glory.local>
+ <4CFEA3D2.4050309@arcor.de>
+ <20101208125539.739e2ed2@glory.local>
+ <4CFFAD1E.7040004@arcor.de>
+ <20101214122325.5cdea67e@glory.local>
+ <4D079ADF.2000705@arcor.de>
+ <20101215164634.44846128@glory.local>
+ <4D08E43C.8080002@arcor.de>
+ <20101216183844.6258734e@glory.local>
+ <4D0A4883.20804@arcor.de>
+ <20101217104633.7c9d10d7@glory.local>
+ <4D0AF2A7.6080100@arcor.de>
+ <20101217160854.16a1f754@glory.local>
+ <4D0BFF4B.3060001@redhat.com>
+ <20110120150508.53c9b55e@glory.local>
+ <4D388C44.7040500@arcor.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Subject: Re: [PATCH] Prof 7301: switching frontend to stv090x, fixing "LOCK
- FAILED" issue
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 02/28/2011 09:37 PM, Igor M. Liplianin wrote:
-> Sorry, I have nothing against you personally.
-me too :)
+Hi All
 
-> I have excuses, but you not intresting, I think.
-> Peace, friendship, chewing gum, like we use to say in my childhood :)
-> 
-> Switching to other driver not helps me, so be patient.
-> 
-> I patched stv0900 and send pull request.
-I've tested it - and for the first sight it seems that it indeed
-solves the problem. Thank you :)
+Now I have working radio for our TV cards based on tm6000 and xc5000.
+TV works too.
 
-And about frontend: I think I found a solution which I hope will
-satisfy all of us. I think it would be great if user have
-an alternative option to use stv090x frontend anyway. I mean your
-frontend as default, but a module parameter which enables using
-stv090x instead of stv0900 (enabling what's is inside my patch).
-This will be a flexible solution which shouldn't harm anyone,
-but instead gives an option.
+After some time I'll send my changes for discuss here.
 
-Igor, Mauro, do you have objections against this solution?
-If you agree, then I'll try to prepare an RFC patch for that.
-
-regards,
--- 
-Mariusz Bialonczyk
-jabber/e-mail: manio@skyboo.net
-http://manio.skyboo.net
+With my best regards, Dmitry.
