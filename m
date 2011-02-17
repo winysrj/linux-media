@@ -1,76 +1,72 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.10]:59574 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752884Ab1BGOAo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Feb 2011 09:00:44 -0500
-Date: Mon, 7 Feb 2011 15:00:42 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Anatolij Gustschin <agust@denx.de>
-cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	Dan Williams <dan.j.williams@intel.com>,
-	Detlev Zundel <dzu@denx.de>,
-	Markus Niebel <Markus.Niebel@tqs.de>
-Subject: Re: [PATCH 2/2 v2] dma: ipu_idmac: do not lose valid received data
- in the irq handler
-In-Reply-To: <20110207144530.70d9dab1@wker>
-Message-ID: <Pine.LNX.4.64.1102071455170.29036@axis700.grange>
-References: <1296031789-1721-3-git-send-email-agust@denx.de>
- <1296476549-10421-1-git-send-email-agust@denx.de>
- <Pine.LNX.4.64.1102031104090.21719@axis700.grange> <20110205143505.0b300a3a@wker>
- <Pine.LNX.4.64.1102051735270.11500@axis700.grange> <20110205210457.7218ecdc@wker>
- <Pine.LNX.4.64.1102071205570.29036@axis700.grange> <20110207122147.4081f47d@wker>
- <Pine.LNX.4.64.1102071232440.29036@axis700.grange> <20110207144530.70d9dab1@wker>
+Received: from casper.infradead.org ([85.118.1.10]:38757 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757962Ab1BQUsE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Feb 2011 15:48:04 -0500
+Message-ID: <4D5D893B.5090101@infradead.org>
+Date: Thu, 17 Feb 2011 18:46:51 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hansverk@cisco.com>, Qing Xu <qingx@marvell.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Neil Johnson <realdealneil@gmail.com>,
+	Robert Jarzmik <robert.jarzmik@free.fr>,
+	Uwe Taeubert <u.taeubert@road.de>,
+	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	Eino-Ville Talvala <talvala@stanford.edu>
+Subject: Re: [RFD] frame-size switching: preview / single-shot use-case
+References: <Pine.LNX.4.64.1102151641490.16709@axis700.grange> <201102160949.04605.hansverk@cisco.com> <Pine.LNX.4.64.1102160954560.20711@axis700.grange> <201102161011.59830.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1102161033440.20711@axis700.grange> <4D5D7141.4030101@infradead.org> <Pine.LNX.4.64.1102172020410.30692@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1102172020410.30692@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, 7 Feb 2011, Anatolij Gustschin wrote:
-
-> On Mon, 7 Feb 2011 12:35:44 +0100 (CET)
-> Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+Em 17-02-2011 17:26, Guennadi Liakhovetski escreveu:
+> Hi Mauro
 > 
-> > On Mon, 7 Feb 2011, Anatolij Gustschin wrote:
-> > 
-> > > On Mon, 7 Feb 2011 12:09:15 +0100 (CET)
-> > > Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> > > ...
-> > > > > I can't try mplayer since I don't have mplayer setup for this.
-> > > > > But looking at the mplayer source I don't see why it should
-> > > > > behave differently. Depending on mode mplayer queues 2 or 6
-> > > > > buffers. Testing with my test app with 6 queued buffers shows
-> > > > > no issues, here the buffer numbers toggle correctly, too.
-> > > > 
-> > > > Ok, I've done a couple more tests. With larger frames, and, therefore 
-> > > > lower fps - yes, with your patch buffers toggle correctly. Whereas in my 
-> > > > tests with smaller frames and higher fps either only one buffer is used, 
-> > > > or one is used much more often, than the other, e.g., 0 0 0 1 0 0 0 1 0... 
-> > > > Could you try to verify? Without your patch with any fps buffers toggle 
-> > > > consistently.
-> > > 
-> > > How small are the frames in you test? What is the highest fps value in
-> > > your test?
-> > 
-> > QVGA, don't know fps exactly, pretty high, between 20 and 60fps, I think. 
-> > Just try different frams sizes, go down to 64x48 or something.
+> Thanks for your comments.
 > 
-> Testing of 960x243 frames at 30 fps has been done during all my previous
-> tests. I didn't see any issues at 30 fps.
+> On Thu, 17 Feb 2011, Mauro Carvalho Chehab wrote:
+> 
+>> Em 16-02-2011 08:35, Guennadi Liakhovetski escreveu:
+> 
+> [snip]
+> 
+>>> (2) cleanly separate setting video data format (S_FMT) from specifying the 
+>>> allocated buffer size.
+>>
+>> This would break existing applications. Too late for that, except if negotiated
+>> with a "SETCAP" like approach.
+> 
+> Sorry, don't see how my proposal from my last mail would change existing 
+> applications. As long as no explicit buffer-queue management is performed, 
+> no new queues are allocated, the driver will just implicitly allocate one 
+> queue and use it. I.e., no change in behaviour.
 
-Thanks for the clarification. You certainly realise, that your frame is 3 
-times as large as mine. Sorry for not mentioning this before, I do 
-appreciate your effort, and have a generally positive feeling at least 
-regarding your IDMAC patch, but I don't want to just trust my feeling, 
-that's why I tried to study the patch a bit more carefully. I also 
-understand that you don't have infinite time to dedicate to this work. 
-Neither do I. So, I will try as good as I can to try to find out the 
-reason for this behaviour, any help from your side is greatly appreciated. 
-But if we don't clarify this before the 2.6.39 merge window, I'm not sure, 
-whether it would be smart to commit the patch as is.
+Using the same ioctl to explicitly or to implicitly allocating memory depending
+on the context would make the API more complicated than it should be.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+>> There's an additional problem with that: assume that streaming is happening,
+>> and a S_FMT changing the resolution was sent. There's no way to warrant that
+>> the very next frame will have the new resolution. So, a meta-data with the
+>> frame resolution (and format) would be needed.
+> 
+> Sorry, we are not going to allow format changes during a running capture. 
+> You have to stop streaming, set new formats (possibly switch to another 
+> queue) and restart streaming.
+
+> What am I missing?
+
+If you're stopping the stream, the current API will work as-is.
+
+If all of your concerns is about reserving a bigger buffer queue, I think that one
+of the reasons for the CMA allocator it for such usage.
+
+Am I missing something?
+
+Cheers,
+Mauro
