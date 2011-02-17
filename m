@@ -1,86 +1,162 @@
 Return-path: <mchehab@pedra>
-Received: from mga03.intel.com ([143.182.124.21]:44909 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752139Ab1BJJgM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Feb 2011 04:36:12 -0500
-From: "Bensaid, Selma" <selma.bensaid@intel.com>
-To: "matti.j.aaltonen@nokia.com" <matti.j.aaltonen@nokia.com>,
-	Peter Ujfalusi <peter.ujfalusi@nokia.com>
-CC: ext Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>,
-	"sameo@linux.intel.com" <sameo@linux.intel.com>,
-	ext Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>
-Date: Thu, 10 Feb 2011 09:35:38 +0000
-Subject: RE: [alsa-devel] WL1273 FM Radio driver...
-Message-ID: <2A84145621092446B6659B8A0F28E26F4703CC3968@irsmsx501.ger.corp.intel.com>
-References: <1297075922.15320.31.camel@masi.mnp.nokia.com>
-	 <4D4FDED0.7070008@redhat.com>
-	 <20110207120234.GE10564@opensource.wolfsonmicro.com>
-	 <4D4FEA03.7090109@redhat.com>
-	 <20110207131045.GG10564@opensource.wolfsonmicro.com>
-	 <4D4FF821.4010701@redhat.com>
-	 <20110207135225.GJ10564@opensource.wolfsonmicro.com>
-	 <1297088242.15320.62.camel@masi.mnp.nokia.com>
-	 <4D501704.6060504@redhat.com> <4D5109B3.60504@nokia.com>
-	 <2A84145621092446B6659B8A0F28E26F47010C29F1@irsmsx501.ger.corp.intel.com>
-	 <4D5122CF.3010403@nokia.com> <1297236165.15320.70.camel@masi.mnp.nokia.com>
-In-Reply-To: <1297236165.15320.70.camel@masi.mnp.nokia.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
+Received: from casper.infradead.org ([85.118.1.10]:59582 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757679Ab1BQTEt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Feb 2011 14:04:49 -0500
+Message-ID: <4D5D7141.4030101@infradead.org>
+Date: Thu, 17 Feb 2011 17:04:33 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: base64
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hansverk@cisco.com>, Qing Xu <qingx@marvell.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Neil Johnson <realdealneil@gmail.com>,
+	Robert Jarzmik <robert.jarzmik@free.fr>,
+	Uwe Taeubert <u.taeubert@road.de>,
+	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	Eino-Ville Talvala <talvala@stanford.edu>
+Subject: Re: [RFD] frame-size switching: preview / single-shot use-case
+References: <Pine.LNX.4.64.1102151641490.16709@axis700.grange> <201102160949.04605.hansverk@cisco.com> <Pine.LNX.4.64.1102160954560.20711@axis700.grange> <201102161011.59830.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1102161033440.20711@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1102161033440.20711@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-PiBPbiBUdWUsIDIwMTEtMDItMDggYXQgMTM6MDIgKzAyMDAsIFBldGVyIFVqZmFsdXNpIHdyb3Rl
-Og0KPiA+ID4gRm9yIGJvdGggY29uZmlndXJhdGlvbiB3ZSBoYXZlIGEgc2V0IG9mIEhDSSBjb21t
-YW5kcyB0byBjb25maWd1cmUgdGhlIEZNDQo+IGF1ZGlvDQo+ID4gPiBwYXRoIGFuZCBvbmUgb2Yg
-bXkgY29uY2VybnMgaXMgdG8ga25vdyBpZiB0aGUgd2wxMjczX2NvZGVjIHNob3VsZCBoYW5kbGUN
-Cj4gdGhlIGF1ZGlvIHBhdGggY29uZmlndXJhdGlvbg0KPiA+ID4gYW5kIHRoZSBzd2l0Y2ggYmV0
-d2VlbiBGTSBhbmQgQlQgU0NPPw0KPiA+DQo+ID4gSXQgd291bGQgYmUgYmV0dGVyIGlmIHRoZSBj
-b2RlYyBjb3VsZCBoYW5kbGUgdGhlIGNvbmZpZ3VyYXRpb24sDQo+ID4gZGVwZW5kaW5nIG9uIHdo
-aWNoIERBSSBpcyBpbiB1c2UuIElmIHdlIGNhbiBzZW5kIEhDSSBjb21tYW5kcyBmcm9tDQo+ID4g
-a2VybmVsLCBJIHRoaW5rIHRoYXQgd291bGQgYmUgdGhlIGNsZWFuZXN0IHdheS4NCj4gDQo+IFll
-cywgSSB3b3VsZCBoYXZlIGRvbmUganVzdCB0aGF0IC0gYW5kIHdlIHRhbGtlZCBhIGxvdCBhYm91
-dCBpdCBsb2NhbGx5DQo+IC0gaWYgSSBoYWQga25vd24gaG93IHRvIGRvIGl0LiBJIHN0YXJ0ZWQg
-dG8gd29yayBvbiBpdCBhbmQgYWxzbyB0YWxrZWQNCj4gdG8gc29tZSBCVCBwZW9wbGUgYnV0IGl0
-IGRpZG4ndCBzZWVtIGZlYXNpYmxlIGF0IHRoZSB0aW1lLiBBZHZpY2UNCj4gd2VsY29tZSBvZiBj
-b3Vyc2UuLi4NCj4gDQo+IENoZWVycywNCj4gTWF0dGkNCj4gDQpIaSwNCkJlbG93IHRoZSBzZXQg
-b2YgSENJIGNvbW1hbmRzIHRoYXQgd2UgaGF2ZSBpZGVudGlmaWVkIHRvIGNvbmZpZ3VyZSB0aGUg
-Rk0gYW5kIEJUIFNDTyBhdWRpbyBwYXRoczoNCi0JRXh0ZXJuYWwgQXVkaW8gQ29ubmVjdGlvbg0K
-CW8JU1RBUlQgQlQgU0NPIENvbm5lY3Rpb24NCgkJIyBCVCBhdWRpbyBQYXRoIFBDTSAgJiAgRk0g
-YXVkaW8gUGF0aCBJMlMNCgkJPiBoY2l0b29sIGNtZCAweDNGIDBYMTk1IEZGIEZGIEZGIEZGIEZG
-IEZGIEZGIEZGIDAxIDAyIEZGIDAwIDAwIDAwIDAwIA0KCQkjIEJUIEFVRElPIENvZGVjIENvbmZp
-Z3VyYXRpb246IE1BU1RFUg0KCQk+IGhjaXRvb2wgY21kIDB4M0YgMFgxMDYgMDAgMDMgMDAgNDAg
-MUYgMDAgMDAgMDEgMDAgMDAgMDAgMDAgMTAgMDAgMDIgMDAgMDAgMTAgMDAgMDIgMDAgMDEgMDAg
-MDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDANCg0KCW8JU1RPUCBCVCBTQ08gQ29ubmVjdGlvbg0K
-CQkjIEJUIEFVRElPIENvZGVjIENvbmZpZ3VyYXRpb246IFNMQVZFDQoJCT4gaGNpdG9vbCBjbWQg
-MHgzRiAwWDEwNiAwMCAwMyAwMSA0MCAxRiAwMCAwMCAwMSAwMCAwMCAwMCAwMCAxMCAwMCAwMiAw
-MCAwMCAxMCAwMCAwMiAwMCAwMSAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMA0KDQogDQot
-CUludGVybmFsIEF1ZGlvIENvbm5lY3Rpb24NCglvCVNUQVJUIEJUIFNDTyBDb25uZWN0aW9uDQoJ
-CSMgQlQgYXVkaW8gUGF0aCBQQ00gDQoJCSMgRk0gYXVkaW8gUGF0aCBOb25lDQoJCT4gaGNpdG9v
-bCBjbWQgMHgzRiAwWDE5NSAgRkYgRkYgRkYgRkYgRkYgRkYgRkYgRkYgMDEgMDAgRkYgMDAgMDAg
-MDAgMDAgDQoJCSMgQlQgQVVESU8gQ29kZWMgQ29uZmlndXJhdGlvbjogTUFTVEVSDQoJCT4gaGNp
-dG9vbCBjbWQgMHgzRiAwWDEwNiAwMCAwMyAwMCA0MCAxRiAwMCAwMCAwMSAwMCAwMCAwMCAwMCAx
-MCAwMCAwMiAwMCAwMCAxMCAwMCAwMiAwMCAwMSAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAw
-MA0KDQoJbwlTVE9QIEJUIFNDTyBDb25uZWN0aW9uDQoJCSMgQlQgYXVkaW8gUGF0aCBOb25lICYg
-Rk0gYXVkaW8gUGF0aCBOb25lDQoJCT4gaGNpdG9vbCBjbWQgMHgzRiAwWDE5NSAgRkYgRkYgRkYg
-RkYgRkYgRkYgRkYgRkYgMDAgMDAgRkYgMDAgMDAgMDAgMDAgDQoNCglvCUZNIEF1ZGlvIFBhdGgg
-Y29uZmlndXJhdGlvbg0KCQkjIEJUIGF1ZGlvIFBhdGggTm9uZSAgJiBGTSBhdWRpbyBQYXRoIFBD
-TQ0KCQk+IGhjaXRvb2wgY21kIDB4M0YgMFgxOTUgIEZGIEZGIEZGIEZGIEZGIEZGIEZGIEZGIDAw
-IDAxIEZGIDAwIDAwIDAwIDAwDQogDQpQbGVhc2Ugbm90ZSB0aGF0IHRoZSBCVCBTQ08gQ29kZWMg
-c2V0dGluZ3MgYXJlIHBsYXRmb3JtIHNwZWNpZmljLg0KU2VsbWEuDQoNCg0KDQotLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0KSW50ZWwgQ29ycG9yYXRpb24gU0FTIChGcmVuY2ggc2ltcGxpZmllZCBqb2ludCBzdG9jayBj
-b21wYW55KQpSZWdpc3RlcmVkIGhlYWRxdWFydGVyczogIkxlcyBNb250YWxldHMiLSAyLCBydWUg
-ZGUgUGFyaXMsIAo5MjE5NiBNZXVkb24gQ2VkZXgsIEZyYW5jZQpSZWdpc3RyYXRpb24gTnVtYmVy
-OiAgMzAyIDQ1NiAxOTkgUi5DLlMuIE5BTlRFUlJFCkNhcGl0YWw6IDQsNTcyLDAwMCBFdXJvcwoK
-VGhpcyBlLW1haWwgYW5kIGFueSBhdHRhY2htZW50cyBtYXkgY29udGFpbiBjb25maWRlbnRpYWwg
-bWF0ZXJpYWwgZm9yCnRoZSBzb2xlIHVzZSBvZiB0aGUgaW50ZW5kZWQgcmVjaXBpZW50KHMpLiBB
-bnkgcmV2aWV3IG9yIGRpc3RyaWJ1dGlvbgpieSBvdGhlcnMgaXMgc3RyaWN0bHkgcHJvaGliaXRl
-ZC4gSWYgeW91IGFyZSBub3QgdGhlIGludGVuZGVkCnJlY2lwaWVudCwgcGxlYXNlIGNvbnRhY3Qg
-dGhlIHNlbmRlciBhbmQgZGVsZXRlIGFsbCBjb3BpZXMuCg==
+Em 16-02-2011 08:35, Guennadi Liakhovetski escreveu:
+>>>> But from the point of view of the application it makes more sense to
+>>>> actually have two video nodes. The only difference is that when one
+>>>> starts streaming it pre-empts the other.
+>>>
+>>> Well, I don't think I like it all that much... One reason - yes, two
+>>> "independent" video device-nodes, which actually only can stream in turn
+>>> seems somewhat counterintuitive to me, specifically, I don't think there
+>>> is a way to tell the application about this. What if we have more than two
+>>> video devices on the system? Or what if you need more than two video
+>>> queues / formats? Or actually only one? The kernel doesn't know initially
+>>> how many, this is a dynamic resource, not a fixed static interface, IMHO.
+>>
+>> I agree with this, which is why I don't think two (or more) video nodes would 
+>> be a good solution.
+
+I agree. Video nodes shouldn't be bind to an specific format. A device with 2
+video nodes should be able to retrieve images from two independent video sources.
+
+Unfortunately, ivtv driver was merged with the bad concept of one video node per
+different type of formats (partially my fault: I remember I commented about it at 
+the time it was submitted, but, as its merge took a long time, and there were 
+several other issues that were needed to be solved there, I ended by giving up 
+and letting it to come with this API non-compliance, hoping that a fix would
+happen at the next kernel release. Unfortunately, it was never fixed).
+
+>> We've hit the exact same issue with the OMAP3 ISP driver. Our current solution 
+>> is to allocate video buffer queues at the file handle level instead of the 
+>> video node level. Applications can open the same video device twice and 
+>> allocate buffers for the viewfinder on one of the instances and for still 
+>> image capture on the other. When switching from viewfinder to still image 
+>> capture, all it needs to do (beside obviously reconfiguring the media 
+>> controller pipeline if required) is to issue VIDIOC_STREAMOFF on the 
+>> viewfinder file handle and VIDIOC_STREAMON on the still capture file handle.
+
+This seems to be the proper way. solution (2) of using read()/mmap() is just
+an special case of per-file handle stream control, as applications that used 
+this approach in the past were, in fact, using two opens, one for read, and 
+another for mmap (to be clear, I'm not in favor of 2, I'm just saying that
+a per-file handle solution will allow (2) also).
+
+>> One issue with this approach is that allocating buffers requires knowledge of 
+>> the format and resolution. The driver traditionally computes the buffer size 
+>> from the parameters set by VIDIOC_S_FMT. This would prevent an application 
+>> opening the video node a second time and setting up buffers for still image 
+>> capture a second time while the viewfinder is running, as the VIDIOC_S_FMT on 
+>> the second file handle won't be allowed then.
+>>
+>> Changes to the V4L2 spec would be needed to allow this to work properly.
+> 
+> The spec is actually saying about the S_FMT ioctl():
+> 
+> "On success the driver may program the hardware, allocate resources and 
+> generally prepare for data exchange."
+> 
+> - _may_ program the hardware. So, if we don't do that and instead only 
+> verify the format and store it for future activation upon a call to 
+> STREAMON we are not violating the spec, thus, no change is required. OTOH, 
+> another spec sections "V4L2 close()" says:
+> 
+> "data format parameters, current input or output, control values or other 
+> properties remain unchanged."
+> 
+> which is usually interpreted as "a sequence open(); ioctl(S_FMT); close(); 
+> open(); ioctl(STREAMON);" _must_ use the format, set by the call to S_FMT, 
+> which is not necessarily logical, if we adopt the per-file-descriptor 
+> format / stream approach.
+
+Every time a "may" appears on a spec, we'll have troubles, as some drivers
+will follow the "may" and others won't follow. Changing the behaviour will 
+likely cause regressions, whatever direction is taken.
+
+One alternative would be to have a better way to negotiate features than what's
+provided by QUERYCAP. If we look for some protocols with a long life, like telnet, 
+they don't have a one-way to check/set capabilities. Instead, both parties should
+present their capabilities and the client need to negotiate what he wants.
+
+We could do something like:
+
+	ret = ioctl(fd, VIDIOC_QUERYCAP, &cap);
+	if  (cap.capabilities & CAN_PER_FD_FMT) {
+		setcap.capabilities |= SHOULD_PER_FD_FMT;
+		ret = ioctl(fd, VIDIOC_SETCAP, &setcap);
+	}
+
+To be sure that the kernel driver will behave fine. Yet, in this particular case,
+this would mean that drivers or core will need to handle both per-fd and per-node
+S_FMT & friends.
+
+
+> I think, we have two options:
+> 
+> (1) adopt Laurent's proposal of per-fd contexts, but that would require a 
+> pretty heave modification of the spec - S_FMT is not kept across close() / 
+> open() pair.
+
+Whatever done, we'll need to change the specs in a lot of places.
+
+> (2) cleanly separate setting video data format (S_FMT) from specifying the 
+> allocated buffer size.
+
+This would break existing applications. Too late for that, except if negotiated
+with a "SETCAP" like approach.
+
+There's an additional problem with that: assume that streaming is happening,
+and a S_FMT changing the resolution was sent. There's no way to warrant that
+the very next frame will have the new resolution. So, a meta-data with the
+frame resolution (and format) would be needed.
+
+> Of course, there are further possibilities, like my switching ioctl() 
+> above, or we could extend the enum v4l2_priority with an extra application 
+> priority, saying, that this file-descriptor can maintain a separate S_FMT 
+> / STREAMON thread, without immediately affecting other descriptors, but 
+> this seems too obscure to me.
+> 
+> My vote goes for (2) above, which is also what Laurent has mentioned here:
+> 
+>> One 
+>> possible direction would be to enhance the buffers allocation API to allow 
+>> applications to set the buffer size. I've been thinking about this, and I 
+>> believe this is where the "global buffers pool" API could come into play.
+> 
+> I just wouldn't necessarily bind it to "global buffer pools."
+> 
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
