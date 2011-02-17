@@ -1,77 +1,116 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1156 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750867Ab1BXNEZ (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:46606 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752213Ab1BQXJ4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Feb 2011 08:04:25 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [st-ericsson] v4l2 vs omx for camera
-Date: Thu, 24 Feb 2011 14:04:19 +0100
-Cc: Sachin Gupta <sachin.gupta@linaro.org>, "Clark, Rob" <rob@ti.com>,
-	Robert Fekete <robert.fekete@linaro.org>,
-	"linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>,
-	Harald Gustafsson <harald.gustafsson@ericsson.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"ST-Ericsson LT Mailing List" <st-ericsson@lists.linaro.org>,
-	linux-media@vger.kernel.org, gstreamer-devel@lists.freedesktop.org
-References: <AANLkTik=Yc9cb9r7Ro=evRoxd61KVE=8m7Z5+dNwDzVd@mail.gmail.com> <AANLkTin0GZxLqtPjNx9AEOPQKRkJ6hf2mXMOqp+LvNw0@mail.gmail.com> <AANLkTinvDR9SAiBOVOxMXGANpSq8w22ObjPEbdaRcj3R@mail.gmail.com>
-In-Reply-To: <AANLkTinvDR9SAiBOVOxMXGANpSq8w22ObjPEbdaRcj3R@mail.gmail.com>
+	Thu, 17 Feb 2011 18:09:56 -0500
+Received: by bwz15 with SMTP id 15so201609bwz.19
+        for <linux-media@vger.kernel.org>; Thu, 17 Feb 2011 15:09:54 -0800 (PST)
+Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
+To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
+	"Mauro Carvalho Chehab" <mchehab@infradead.org>
+Subject: Re: [RFD] frame-size switching: preview / single-shot use-case
+References: <4D5D9B57.3090809@gmail.com>
+Date: Fri, 18 Feb 2011 00:09:51 +0100
+Cc: "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
+	"Hans Verkuil" <hansverk@cisco.com>, "Qing Xu" <qingx@marvell.com>,
+	"Linux Media Mailing List" <linux-media@vger.kernel.org>,
+	"Neil Johnson" <realdealneil@gmail.com>,
+	"Robert Jarzmik" <robert.jarzmik@free.fr>,
+	"Uwe Taeubert" <u.taeubert@road.de>,
+	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	"Eino-Ville Talvala" <talvala@stanford.edu>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201102241404.19275.hverkuil@xs4all.nl>
+From: "Michal Nazarewicz" <mina86@mina86.com>
+Message-ID: <op.vq2lapd13l0zgt@mnazarewicz-glaptop>
+In-Reply-To: <4D5D9B57.3090809@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thursday, February 24, 2011 13:29:56 Linus Walleij wrote:
-> 2011/2/23 Sachin Gupta <sachin.gupta@linaro.org>:
-> 
-> > The imaging coprocessor in today's platforms have a general purpose DSP
-> > attached to it I have seen some work being done to use this DSP for
-> > graphics/audio processing in case the camera use case is not being tried or
-> > also if the camera usecases does not consume the full bandwidth of this
-> > dsp.I am not sure how v4l2 would fit in such an architecture,
-> 
-> Earlier in this thread I discussed TI:s DSPbridge.
-> 
-> In drivers/staging/tidspbridge
-> http://omappedia.org/wiki/DSPBridge_Project
-> you find the TI hackers happy at work with providing a DSP accelerator
-> subsystem.
-> 
-> Isn't it possible for a V4L2 component to use this interface (or something
-> more evolved, generic) as backend for assorted DSP offloading?
-> 
-> So using one kernel framework does not exclude using another one
-> at the same time. Whereas something like DSPbridge will load firmware
-> into DSP accelerators and provide control/datapath for that, this can
-> in turn be used by some camera or codec which in turn presents a
-> V4L2 or ALSA interface.
+>>> On Thu, 17 Feb 2011, Mauro Carvalho Chehab wrote:
+>>>> There's an additional problem with that: assume that streaming is  
+>>>> happening, and a S_FMT changing the resolution was sent. There's
+>>>> no way to warrant that the very next frame will have the new
+>>>> resolution. So, a meta-data with the frame resolution (and format)
+>>>> would be needed.
 
-Yes, something along those lines can be done.
+>> Em 17-02-2011 17:26, Guennadi Liakhovetski escreveu:
+>>> Sorry, we are not going to allow format changes during a running  
+>>> capture. You have to stop streaming, set new formats (possibly
+>>> switch to another queue) and restart streaming.
+>>>
+>>> What am I missing?
 
-While normally V4L2 talks to hardware it is perfectly fine to talk to a DSP
-instead.
+> On Thu, 17 Feb 2011, Mauro Carvalho Chehab wrote:
+>> If you're stopping the stream, the current API will work as-is.
+>>
+>> If all of your concerns is about reserving a bigger buffer queue, I  
+>> think that one of the reasons for the CMA allocator it for such usage.
 
-The hardest part will be to identify the missing V4L2 API pieces and design
-and add them. I don't think the actual driver code will be particularly hard.
-It should be nothing more than a thin front-end for the DSP. Of course, that's
-just theory at the moment :-)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> Not just bigger, say, with our preview / still-shot example, we would  
+> have one queue with a larger number of small buffers for drop-free
+> preview, and a small number of larger buffers for still images.
 
-The problem is that someone has to do the actual work for the initial driver.
-And I expect that it will be a substantial amount of work. Future drivers should
-be *much* easier, though.
+Ie. waste memory? As in you have both those queues allocated but only
+one is used at given time?
 
-A good argument for doing this work is that this API can hide which parts of
-the video subsystem are hardware and which are software. The application really
-doesn't care how it is organized. What is done in hardware on one SoC might be
-done on a DSP instead on another SoC. But the end result is pretty much the same.
+> Currently you would have to allocate a large number of large buffers,
+> which would waste memory. Or you would have to reallocate the queue,
+> losing time.
 
-Regards,
+> AFAICS, CMA doesn't manage our memory for us. It only provides an API
+> to reserve memory for various uses with various restrictions (alignment,
+> etc.) and use different allocators to obtain that memory.
 
-	Hans
+I'm not sure if I understand you here.  CMA has some API for reserving
+memory at boot time but it sure does manage this reserved memory, ie.
+when system is running you can allocate chunks of memory from this
+reserved block.
+
+Also note, that latest CMA uses only one allocator.
+
+> So, are you suggesting, that with that in place, we would
+> first allocate the preview queue from this memory, then free it, when
+> switching to snapshooting, allocate our large-buffer queue from the
+> _same_ memory, capture images, free and allocate preview queue again?
+> Would that be fast enough?
+
+If CMA is considered, the most important thing to note is that CMA may
+share memory with page allocator (so that other parts of the system can
+use it if CMA-compatible devices are not using it).  When CMA allocates
+memory chunk it may potentially need to migrate memory pages which may
+take so time (there is room for improvement, but still).
+
+Sharing can be disabled in which case allocation should be quite fast
+(the last CMA patchset uses a first-fit bitmap-based gen_allocator API
+but O(log n) best-fit algorithm can easily used instead).
+
+To sum things up, if sharing is disabled, CMA should be able to fulfil
+your requirements, however it may be undesirable as it wastes space.
+If sharing is enabled, on the other hand, the delay may potentially be
+noticeable.
+
+> In fact, it would be kind of smart to reuse the same memory for both
+> queues, but if we could do it without re-allocations?...
+
+What I would do is allocate a few big buffers and when needed divide them
+into smaller chunks (or even allocate one big block and later divide it in
+whatever way needed).  I'm not sure if such usage would map well to V4L2
+API.
+
+This usage is, as a matter of fact, supported by CMA.  You can allocate
+a big block and then run cma_create() on it to create a new CMA context.
+Using this context you can allocate a lot of small blocks, then free them
+all, to finally allocate few big blocks.
+
+Again, I'm not sure how it maps to V4L2 API.  If you can change formats  
+while
+retaining V4L device instance's state, this should be doable.
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+Best regards,                                         _     _
+.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
+..o | Computer Science,  Michal "mina86" Nazarewicz    (o o)
+ooo +-----<email/xmpp: mnazarewicz@google.com>-----ooO--(_)--Ooo--
