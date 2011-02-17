@@ -1,104 +1,49 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.samsung.com ([203.254.224.25]:60754 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932166Ab1BYMqF (ORCPT
+Received: from hqemgate04.nvidia.com ([216.228.121.35]:5699 "EHLO
+	hqemgate04.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751375Ab1BQX0U convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Feb 2011 07:46:05 -0500
-Received: from epmmp1 (mailout2.samsung.com [203.254.224.25])
- by mailout2.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LH6005EZBGRWB20@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Fri, 25 Feb 2011 21:46:04 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LH600EGOBGRJR@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 25 Feb 2011 21:46:03 +0900 (KST)
-Date: Fri, 25 Feb 2011 21:46:03 +0900
-From: "Kim, HeungJun" <riverful.kim@samsung.com>
-Subject: [RFC PATCH RESEND v2 3/3] v4l2-ctrls: document the changes about auto
- focus mode
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
-Reply-to: riverful.kim@samsung.com
-Message-id: <4D67A48B.6030700@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7BIT
+	Thu, 17 Feb 2011 18:26:20 -0500
+From: Andrew Chew <AChew@nvidia.com>
+To: 'Guennadi Liakhovetski' <g.liakhovetski@gmx.de>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"mchehab@redhat.com" <mchehab@redhat.com>,
+	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>
+Date: Thu, 17 Feb 2011 15:26:17 -0800
+Subject: RE: [PATCH v4 1/1] [media] ov9740: Initial submit of OV9740 driver.
+Message-ID: <643E69AA4436674C8F39DCC2C05F763816BD96CFC2@HQMAIL03.nvidia.com>
+References: <1297980873-18022-1-git-send-email-achew@nvidia.com>
+ <Pine.LNX.4.64.1102180022080.1841@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1102180022080.1841@axis700.grange>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Document about the type changes and the enumeration of the auto focus control.
+> This looks good now, thanks, I'll queue it for 2.6.39. Just 
+> one question:
+> 
+> On Thu, 17 Feb 2011, achew@nvidia.com wrote:
+> 
+> > From: Andrew Chew <achew@nvidia.com>
+> > 
+> > This soc_camera driver is for Omnivision's OV9740 sensor.  
+> This initial
+> > submission provides support for YUV422 output at 1280x720 
+> (720p), which is
+> > the sensor's native resolution.  640x480 (VGA) is also 
+> supported, with
+> > cropping and scaling performed by the sensor's ISP.
+> 
+> Didn't you mean to say just "scaling?" You're not 
+> implementing cropping. 
+> You could, certainly, fake scaling with cropping, but are you 
+> really using 
+> both to switch between 720p and VGA? No need for a v5, just 
+> tell me how to 
+> change the comment.
 
-Signed-off-by: Heungjun Kim <riverful.kim@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- Documentation/DocBook/v4l/controls.xml    |   31 +++++++++++++++++++++++++---
- Documentation/DocBook/v4l/videodev2.h.xml |    6 +++++
- 2 files changed, 33 insertions(+), 4 deletions(-)
-
-diff --git a/Documentation/DocBook/v4l/controls.xml b/Documentation/DocBook/v4l/controls.xml
-index 2fae3e8..889fa84 100644
---- a/Documentation/DocBook/v4l/controls.xml
-+++ b/Documentation/DocBook/v4l/controls.xml
-@@ -1801,12 +1801,35 @@ negative values towards infinity. This is a write-only control.</entry>
- 	  </row>
- 	  <row><entry></entry></row>
- 
--	  <row>
-+	  <row id="v4l2-focus-auto-type">
- 	    <entry spanname="id"><constant>V4L2_CID_FOCUS_AUTO</constant>&nbsp;</entry>
--	    <entry>boolean</entry>
-+	    <entry>enum&nbsp;v4l2_focus_auto_type</entry>
- 	  </row><row><entry spanname="descr">Enables automatic focus
--adjustments. The effect of manual focus adjustments while this feature
--is enabled is undefined, drivers should ignore such requests.</entry>
-+adjustments of the normal or macro or continuous(CAF) mode. The effect of
-+manual focus adjustments while this feature is enabled is undefined,
-+drivers should ignore such requests. Possible values are:</entry>
-+	  </row>
-+	  <row>
-+	    <entrytbl spanname="descr" cols="2">
-+	      <tbody valign="top">
-+		<row>
-+		  <entry><constant>V4L2_FOCUS_MANUAL</constant>&nbsp;</entry>
-+		  <entry>Manual focus mode.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_FOCUS_AUTO</constant>&nbsp;</entry>
-+		  <entry>Auto focus mode with normal operation.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_FOCUS_MACRO</constant>&nbsp;</entry>
-+		  <entry>Auto focus mode with macro operation.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_FOCUS_CONTINUOUS</constant>&nbsp;</entry>
-+		  <entry>Auto focus mode with continuous(CAF) operation.</entry>
-+		</row>
-+	      </tbody>
-+	    </entrytbl>
- 	  </row>
- 	  <row><entry></entry></row>
- 
-diff --git a/Documentation/DocBook/v4l/videodev2.h.xml b/Documentation/DocBook/v4l/videodev2.h.xml
-index 325b23b..ccf6c2b 100644
---- a/Documentation/DocBook/v4l/videodev2.h.xml
-+++ b/Documentation/DocBook/v4l/videodev2.h.xml
-@@ -1291,6 +1291,12 @@ enum  <link linkend="v4l2-exposure-auto-type">v4l2_exposure_auto_type</link> {
- #define V4L2_CID_FOCUS_ABSOLUTE                 (V4L2_CID_CAMERA_CLASS_BASE+10)
- #define V4L2_CID_FOCUS_RELATIVE                 (V4L2_CID_CAMERA_CLASS_BASE+11)
- #define V4L2_CID_FOCUS_AUTO                     (V4L2_CID_CAMERA_CLASS_BASE+12)
-+enum  <link linkend="v4l2-focus-auto-type">v4l2_exposure_auto_type</link> {
-+	V4L2_FOCUS_MANUAL = 0,
-+	V4L2_FOCUS_AUTO = 1,
-+	V4L2_FOCUS_MACRO = 2,
-+	V4L2_FOCUS_CONTINUOUS = 3
-+};
- 
- #define V4L2_CID_ZOOM_ABSOLUTE                  (V4L2_CID_CAMERA_CLASS_BASE+13)
- #define V4L2_CID_ZOOM_RELATIVE                  (V4L2_CID_CAMERA_CLASS_BASE+14)
--- 
-1.7.0.4
+There really is cropping.  The native resolution of the OV9740 sensor is a different aspect ratio than VGA.  To preserve the square pixels, first we crop both the left and right sides, and then scale down.
