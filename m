@@ -1,87 +1,33 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.1.48]:51673 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752961Ab1B1LDP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Feb 2011 06:03:15 -0500
-From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-To: alsa-devel@alsa-project.org, broonie@opensource.wolfsonmicro.com,
-	lrg@slimlogic.co.uk, mchehab@redhat.com, hverkuil@xs4all.nl,
-	sameo@linux.intel.com, linux-media@vger.kernel.org
-Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Subject: [PATCH v20 3/3] ASoC: WL1273 FM radio: Access I2C IO functions through pointers.
-Date: Mon, 28 Feb 2011 13:02:31 +0200
-Message-Id: <1298890951-23339-4-git-send-email-matti.j.aaltonen@nokia.com>
-In-Reply-To: <1298890951-23339-3-git-send-email-matti.j.aaltonen@nokia.com>
-References: <1298890951-23339-1-git-send-email-matti.j.aaltonen@nokia.com>
- <1298890951-23339-2-git-send-email-matti.j.aaltonen@nokia.com>
- <1298890951-23339-3-git-send-email-matti.j.aaltonen@nokia.com>
+Received: from hqemgate04.nvidia.com ([216.228.121.35]:5479 "EHLO
+	hqemgate04.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751392Ab1BQDMC convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Feb 2011 22:12:02 -0500
+From: Andrew Chew <AChew@nvidia.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Wed, 16 Feb 2011 19:12:00 -0800
+Subject: soc-camera and videobuf2
+Message-ID: <643E69AA4436674C8F39DCC2C05F763816BD96CFB8@HQMAIL03.nvidia.com>
+References: <643E69AA4436674C8F39DCC2C05F763816BD96CFB7@HQMAIL03.nvidia.com>
+In-Reply-To: <643E69AA4436674C8F39DCC2C05F763816BD96CFB7@HQMAIL03.nvidia.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-These changes are needed to keep up with the changes in the
-MFD core and V4L2 parts of the wl1273 FM radio driver.
+Reposting.  Sorry for the rich text in my previous email.
 
-Use function pointers instead of exported functions for I2C IO.
-Also move all preprocessor constants from the wl1273.h to
-include/linux/mfd/wl1273-core.h.
+I'm looking at the videobuf2 stuff, and would like to use it because it solves a bunch of problems for me that were in videobuf (for example, I'm writing a variant of videobuf-dma-contig, and there's some private memory allocator state I needed to track, but the videobuf stuff didn't seem to let you do that).
 
-Also update the year in the copyright statement.
+But I'm also using soc_camera.  I was wondering if there's a time estimate for soc_camera to be converted over to the videobuf2 framework.
 
-Signed-off-by: Matti J. Aaltonen <matti.j.aaltonen@nokia.com>
----
- sound/soc/codecs/Kconfig  |    2 +-
- sound/soc/codecs/wl1273.c |   11 ++++++++---
- 2 files changed, 9 insertions(+), 4 deletions(-)
-
-diff --git a/sound/soc/codecs/Kconfig b/sound/soc/codecs/Kconfig
-index c48b23c..9726d6e 100644
---- a/sound/soc/codecs/Kconfig
-+++ b/sound/soc/codecs/Kconfig
-@@ -44,7 +44,7 @@ config SND_SOC_ALL_CODECS
- 	select SND_SOC_TWL6040 if TWL4030_CORE
- 	select SND_SOC_UDA134X
- 	select SND_SOC_UDA1380 if I2C
--	select SND_SOC_WL1273 if RADIO_WL1273
-+	select SND_SOC_WL1273 if MFD_WL1273_CORE
- 	select SND_SOC_WM2000 if I2C
- 	select SND_SOC_WM8350 if MFD_WM8350
- 	select SND_SOC_WM8400 if MFD_WM8400
-diff --git a/sound/soc/codecs/wl1273.c b/sound/soc/codecs/wl1273.c
-index 861b28f..3c27fed 100644
---- a/sound/soc/codecs/wl1273.c
-+++ b/sound/soc/codecs/wl1273.c
-@@ -3,7 +3,7 @@
-  *
-  * Author:      Matti Aaltonen, <matti.j.aaltonen@nokia.com>
-  *
-- * Copyright:   (C) 2010 Nokia Corporation
-+ * Copyright:   (C) 2011 Nokia Corporation
-  *
-  * This program is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU General Public License
-@@ -179,7 +179,12 @@ static int snd_wl1273_get_audio_route(struct snd_kcontrol *kcontrol,
- 	return 0;
- }
- 
--static const char *wl1273_audio_route[] = { "Bt", "FmRx", "FmTx" };
-+/*
-+ * TODO: Implement the audio routing in the driver. Now this control
-+ * only indicates the setting that has been done elsewhere (in the user
-+ * space).
-+ */
-+static const char * const wl1273_audio_route[] = { "Bt", "FmRx", "FmTx" };
- 
- static int snd_wl1273_set_audio_route(struct snd_kcontrol *kcontrol,
- 				      struct snd_ctl_elem_value *ucontrol)
-@@ -239,7 +244,7 @@ static int snd_wl1273_fm_audio_put(struct snd_kcontrol *kcontrol,
- 	return 1;
- }
- 
--static const char *wl1273_audio_strings[] = { "Digital", "Analog" };
-+static const char * const wl1273_audio_strings[] = { "Digital", "Analog" };
- 
- static const struct soc_enum wl1273_audio_enum =
- 	SOC_ENUM_SINGLE_EXT(ARRAY_SIZE(wl1273_audio_strings),
--- 
-1.6.1.3
-
+Also, are SoC camera host drivers expected to call the methods in the videobuf2 ops table directly (as in, vb2_ops->alloc())?  Or will there be wrappers around these in the future (the wrappers can take the videobuf2's alloc_ctx as a parameter and thereby figure out which method to call).
+-----------------------------------------------------------------------------------
+This email message is for the sole use of the intended recipient(s) and may contain
+confidential information.  Any unauthorized review, use, disclosure or distribution
+is prohibited.  If you are not the intended recipient, please contact the sender by
+reply email and destroy all copies of the original message.
+-----------------------------------------------------------------------------------
