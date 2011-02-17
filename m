@@ -1,46 +1,42 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:39946 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751314Ab1BNLL1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Feb 2011 06:11:27 -0500
-Received: by iyj8 with SMTP id 8so4686823iyj.19
-        for <linux-media@vger.kernel.org>; Mon, 14 Feb 2011 03:11:27 -0800 (PST)
+Received: from mx1.redhat.com ([209.132.183.28]:24435 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751781Ab1BQU6r (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Feb 2011 15:58:47 -0500
+Message-ID: <4D5D8BFB.4070802@redhat.com>
+Date: Thu, 17 Feb 2011 18:58:35 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Date: Mon, 14 Feb 2011 12:11:26 +0100
-Message-ID: <AANLkTi=1CFkBG=Ux+fY5ZP+WikRQ-rTqk75PVeSge-DG@mail.gmail.com>
-Subject: media-ctl and omap-isp kernel compatibility issue
-From: Bastian Hecht <hechtb@googlemail.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8BIT
+To: Dmitri Belimov <d.belimov@gmail.com>
+CC: Stefan Ringel <stefan.ringel@arcor.de>,
+	Felipe Sanches <juca@members.fsf.org>,
+	Bee Hock Goh <beehock@gmail.com>,
+	Luis Henrique Fagundes <lhfagundes@hacklab.com.br>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Jarod Wilson <jarod@redhat.com>
+Subject: Re: tm6000 and radio
+References: <4CAD5A78.3070803@redhat.com> <4CAF0602.6050002@redhat.com> <20101012142856.2b4ee637@glory.local> <4CB492D4.1000609@arcor.de> <20101129174412.08f2001c@glory.local> <4CF51C9E.6040600@arcor.de> <20101201144704.43b58f2c@glory.local> <4CF67AB9.6020006@arcor.de> <20101202134128.615bbfa0@glory.local> <4CF71CF6.7080603@redhat.com> <20101206010934.55d07569@glory.local> <4CFBF62D.7010301@arcor.de> <20101206190230.2259d7ab@glory.local> <4CFEA3D2.4050309@arcor.de> <20101208125539.739e2ed2@glory.local> <4CFFAD1E.7040004@arcor.de> <20101214122325.5cdea67e@glory.local> <4D079ADF.2000705@arcor.de> <20101215164634.44846128@glory.local> <4D08E43C.8080002@arcor.de> <20101216183844.6258734e@glory.local> <4D0A4883.20804@arcor.de> <20101217104633.7c9d10d7@glory.local> <4D0AF2A7.6080100@arcor.de> <20101217160854.16a1f754@glory.local> <4D0BFF4B.3060001@redhat.com> <20110120150508.53c9b55e@glory.local> <4D388C44.7040500@arcor.de> <20110217141257.6d1b578b@glory.local>
+In-Reply-To: <20110217141257.6d1b578b@glory.local>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello omap video stack hackers,
+Em 17-02-2011 03:12, Dmitri Belimov escreveu:
+> Hi All
+> 
+> Now I have working radio for our TV cards based on tm6000 and xc5000.
+> TV works too.
 
-some months ago I worked with the mt9p031 sensor from aptina.
-Unfortunately had to switch to another video chip and I try to achieve
-the same stage as with my old device.
-That means the new chip (OV5642) already is up, configured and sends
-data over the parallel bus.
+Great news! I think that the only remaining issue is audio that still
+doesn't work with some audio standards. The last time I tested here,
+PAL/M didn't work.
+> 
+> After some time I'll send my changes for discuss here.
+> 
+> With my best regards, Dmitry.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-I pulled the new media-ctl tool from
-git://git.ideasonboard.org/media-ctl.git and compiled it giving the
-headers from my kernel pull from
-git://gitorious.org/maemo-multimedia/omap3isp-rx51.git (devel)
-
-Some enums are undefined:
-media.c:47: error: ‘MEDIA_LINK_FLAG_ACTIVE’ undeclared
-media.c:289: error: ‘MEDIA_ENTITY_TYPE_NODE’ undeclared
-media.c:290: error: ‘MEDIA_ENTITY_TYPE_SUBDEV’ undeclared
-
-
-So what repos should I go for these days? Is
-git://gitorious.org/maemo-multimedia/omap3isp-rx51.git ok or should I
-switch to some other repo? Or is media-ctl just outdated?
-
-Thanks for help,
-
-
- Bastian Hecht
