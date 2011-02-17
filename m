@@ -1,61 +1,33 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35942 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755083Ab1BNNTU (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:60050 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752020Ab1BQLqo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Feb 2011 08:19:20 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: balbi@ti.com
-Subject: Re: [PATCH v6 04/10] omap2: Fix camera resources for multiomap
-Date: Mon, 14 Feb 2011 14:19:24 +0100
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-References: <1297686097-9804-1-git-send-email-laurent.pinchart@ideasonboard.com> <1297686097-9804-5-git-send-email-laurent.pinchart@ideasonboard.com> <20110214123559.GY2549@legolas.emea.dhcp.ti.com>
-In-Reply-To: <20110214123559.GY2549@legolas.emea.dhcp.ti.com>
+	Thu, 17 Feb 2011 06:46:44 -0500
+Received: by fxm20 with SMTP id 20so2490168fxm.19
+        for <linux-media@vger.kernel.org>; Thu, 17 Feb 2011 03:46:43 -0800 (PST)
+Message-ID: <4D5D0AA0.3070505@users.sourceforge.net>
+Date: Thu, 17 Feb 2011 12:46:40 +0100
+From: Lucian Muresan <lucianm@users.sourceforge.net>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: MCEUSB: falsly claims mass storage device
+References: <201101091836.58104.pboettcher@kernellabs.com> <4D51EFFB.90201@users.sourceforge.net> <9C5EED67-B096-4C8C-8269-CDDCE24F92A7@wilsonet.com>
+In-Reply-To: <9C5EED67-B096-4C8C-8269-CDDCE24F92A7@wilsonet.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201102141419.24953.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Felipe,
+On 09.02.2011 06:19, Jarod Wilson wrote:
+[...]
+> Looks like bInterfaceNumber == 2 on this device. The patch to handle this
+> similar to the conexant polaris devices should be pretty trivial. I'll
+> try to get something together tomorrow.
 
-Thanks for the review.
+Hi,
 
-On Monday 14 February 2011 13:35:59 Felipe Balbi wrote:
-> On Mon, Feb 14, 2011 at 01:21:31PM +0100, Laurent Pinchart wrote:
-> > diff --git a/arch/arm/mach-omap2/devices.c
-> > b/arch/arm/mach-omap2/devices.c index 4cf48ea..5d844bd 100644
-> > --- a/arch/arm/mach-omap2/devices.c
-> > +++ b/arch/arm/mach-omap2/devices.c
-> > @@ -38,7 +38,7 @@
-> > 
-> >  #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
-> > 
-> > -static struct resource cam_resources[] = {
-> > +static struct resource omap2cam_resources[] = {
-> 
-> should this be __initdata ??
+any news on this one?
 
-The resources will be used when the OMAP3 ISP module is loaded. Won't they be 
-discared if marked as __initdata ?
-
-> > @@ -158,6 +149,14 @@ int omap3_init_camera(void *pdata)
-> > 
-> >  }
-> >  EXPORT_SYMBOL_GPL(omap3_init_camera);
-> > 
-> > +static inline void omap_init_camera(void)
-> 
-> why inline ? also, should this be marked __init ?
-
-I suppose because it was inline, so it has been kept as inline. The function 
-is used in a single place, so the compiler will probably auto-inline it. Is it 
-an issue to keep it as inline ?
-
--- 
 Regards,
-
-Laurent Pinchart
+Lucian
