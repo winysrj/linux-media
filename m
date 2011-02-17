@@ -1,53 +1,53 @@
 Return-path: <mchehab@pedra>
-Received: from xenotime.net ([72.52.115.56]:51397 "HELO xenotime.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751886Ab1BGQPX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Feb 2011 11:15:23 -0500
-Received: from chimera.site ([173.50.240.230]) by xenotime.net for <linux-media@vger.kernel.org>; Mon, 7 Feb 2011 08:15:15 -0800
-Date: Mon, 7 Feb 2011 08:15:13 -0800
-From: Randy Dunlap <rdunlap@xenotime.net>
-To: Thomas Weber <weber@corscience.de>
-Cc: linux-omap@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, Tejun Heo <tj@kernel.org>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH resend] video: omap24xxcam: Fix compilation
-Message-Id: <20110207081513.90c299ed.rdunlap@xenotime.net>
-In-Reply-To: <1297068547-10635-1-git-send-email-weber@corscience.de>
-References: <1297068547-10635-1-git-send-email-weber@corscience.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:49092 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752365Ab1BQJX6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Feb 2011 04:23:58 -0500
+Received: by fxm20 with SMTP id 20so2374739fxm.19
+        for <linux-media@vger.kernel.org>; Thu, 17 Feb 2011 01:23:57 -0800 (PST)
+Message-ID: <4D5CE929.4050102@gmail.com>
+Date: Thu, 17 Feb 2011 10:23:53 +0100
+From: poma <pomidorabelisima@gmail.com>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>,
+	andrew.williams@joratech.com, lindsay.mathieson@gmail.com,
+	skandalfo@gmail.com, news004@upsilon.org.uk
+Subject: Re: Afatech AF9015 & dual tuner - dual_mode B.R.O.K.E.N.
+References: <4D5B5FE2.5000302@gmail.com>
+In-Reply-To: <4D5B5FE2.5000302@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon,  7 Feb 2011 09:49:07 +0100 Thomas Weber wrote:
+poma wrote:
+> To num_adapters = 2, or num_adapters = 1: that is the question!
 
-> Add linux/sched.h because of missing declaration of TASK_NORMAL.
-> 
-> This patch fixes the following error:
-> 
-> drivers/media/video/omap24xxcam.c: In function
-> 'omap24xxcam_vbq_complete':
-> drivers/media/video/omap24xxcam.c:415: error: 'TASK_NORMAL' undeclared
-> (first use in this function)
-> drivers/media/video/omap24xxcam.c:415: error: (Each undeclared
-> identifier is reported only once
-> drivers/media/video/omap24xxcam.c:415: error: for each function it
-> appears in.)
-> 
-> Signed-off-by: Thomas Weber <weber@corscience.de>
-> ---
->  drivers/media/video/omap24xxcam.c |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
+In dual tuner mode, after a while device become unrensponsive,
+eventually after S5 aka 'Soft Off' system doesn't even boot!
+Didn't even mention all sorts of 'mumbo-jumbo' with S3 aka 'Suspend to RAM'.
+Antti, please consider adding 'dual_mode' parameter back.
 
-Hi,
+"dvb_usb_af9015 dual_mode=0"
 
-Please use media: or multimedia: or media/video: in the subject line,
-not just video:.  video: traditionally is used for drivers/video/,
-not drivers/media/video.
+Devices to consider:
 
----
-~Randy
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+Not Only TV/LifeView DUAL DVB-T USB LV52T
+(equivalent to TerraTec Cinergy T Stick Dual RC)
+Afatech AF9013/AF9015 & 2x MaxLinear MxL5007T
+http://www.notonlytv.net/p_lv52t.html
+
+KWorld USB Dual DVB-T TV Stick (DVB-T 399U)
+Afatech AF9013/AF9015 & 2x MaxLinear MxL5003S
+http://www.kworld-global.com/main/prod_in.aspx?mnuid=1248&modid=6&prodid=73
+
+DigitalNow TinyTwin DVB-T Receiver
+Afatech AF9013/AF9015 & 2x MaxLinear MxL5005S
+http://www.digitalnow.com.au/product_pages/TinyTwin.html
+
+http://www.spinics.net/lists/linux-dvb/msg31616.html
+http://www.spinics.net/lists/linux-dvb/msg31621.html
+
+rgds,
+poma
