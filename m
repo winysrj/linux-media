@@ -1,58 +1,95 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.187]:65461 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754275Ab1BVQ1w (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46817 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756794Ab1BQQCB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Feb 2011 11:27:52 -0500
-Date: Tue, 22 Feb 2011 17:27:47 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Stan <svarbanov@mm-sol.com>
-cc: Hans Verkuil <hansverk@cisco.com>, linux-media@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com, saaguirre@ti.com
-Subject: Re: [RFC/PATCH 0/1] New subdev sensor operation g_interface_parms
-In-Reply-To: <4D63D78E.3070000@mm-sol.com>
-Message-ID: <Pine.LNX.4.64.1102221719220.1380@axis700.grange>
-References: <cover.1298368924.git.svarbanov@mm-sol.com>
- <Pine.LNX.4.64.1102221215350.1380@axis700.grange> <201102221432.50847.hansverk@cisco.com>
- <Pine.LNX.4.64.1102221456590.1380@axis700.grange> <4D63D78E.3070000@mm-sol.com>
+	Thu, 17 Feb 2011 11:02:01 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Stephan Lachowsky <stephan.lachowsky@maxim-ic.com>
+Subject: Re: [PATCH RFC] uvcvideo: Add a mapping for H.264 payloads
+Date: Thu, 17 Feb 2011 17:01:56 +0100
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-uvc-devel@lists.berlios.de" <linux-uvc-devel@lists.berlios.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+References: <1296243538.17673.23.camel@svmlwks101>
+In-Reply-To: <1296243538.17673.23.camel@svmlwks101>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201102171701.57759.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, 22 Feb 2011, Stan wrote:
+HI Stephan,
 
-> In principle I agree with this bus negotiation.
+Thanks for the patch, and sorry for the late reply.
+
+On Friday 28 January 2011 20:38:58 Stephan Lachowsky wrote:
+> Associate the H.264 GUID with an H.264 pixel format so that frame
+> and stream based format descriptors with this GUID are recognized
+> by the UVC video driver.
+> ---
+>  drivers/media/video/uvc/uvc_driver.c |    5 +++++
+>  drivers/media/video/uvc/uvcvideo.h   |    3 +++
+>  include/linux/videodev2.h            |    1 +
+>  3 files changed, 9 insertions(+), 0 deletions(-)
 > 
->  - So. let's start thinking how this could be fit to the subdev sensor
-> operations.
-
-Well, I'm afraid not everyone is convinced yet, so, it is a bit early to 
-start designing interfaces;)
-
->  - howto isolate your current work into some common place and reuse it,
-> even on platform part.
->  - and is it possible.
+> diff --git a/drivers/media/video/uvc/uvc_driver.c
+> b/drivers/media/video/uvc/uvc_driver.c index 6bcb9e1..a5a86ce 100644
+> --- a/drivers/media/video/uvc/uvc_driver.c
+> +++ b/drivers/media/video/uvc/uvc_driver.c
+> @@ -108,6 +108,11 @@ static struct uvc_format_desc uvc_fmts[] = {
+>  		.guid		= UVC_GUID_FORMAT_MPEG,
+>  		.fcc		= V4L2_PIX_FMT_MPEG,
+>  	},
+> +	{
+> +		.name		= "H.264",
+> +		.guid		= UVC_GUID_FORMAT_H264,
+> +		.fcc		= V4L2_PIX_FMT_H264,
+> +	},
+>  };
 > 
-> The discussion becomes very emotional and this is not a good adviser :)
+>  /*
+> ------------------------------------------------------------------------
+> diff --git a/drivers/media/video/uvc/uvcvideo.h
+> b/drivers/media/video/uvc/uvcvideo.h index e522f99..4f65ac6 100644
+> --- a/drivers/media/video/uvc/uvcvideo.h
+> +++ b/drivers/media/video/uvc/uvcvideo.h
+> @@ -155,6 +155,9 @@ struct uvc_xu_control {
+>  #define UVC_GUID_FORMAT_MPEG \
+>  	{ 'M',  'P',  'E',  'G', 0x00, 0x00, 0x10, 0x00, \
+>  	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
+> +#define UVC_GUID_FORMAT_H264 \
+> +	{ 'H',  '2',  '6',  '4', 0x00, 0x00, 0x10, 0x00, \
+> +	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
+> 
+>  /*
+> ------------------------------------------------------------------------ *
+> Driver specific constants.
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index 5f6f470..d3b5877 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -341,6 +341,7 @@ struct v4l2_pix_format {
+>  #define V4L2_PIX_FMT_JPEG     v4l2_fourcc('J', 'P', 'E', 'G') /* JFIF JPEG
+>     */ #define V4L2_PIX_FMT_DV       v4l2_fourcc('d', 'v', 's', 'd') /*
+> 1394          */ #define V4L2_PIX_FMT_MPEG     v4l2_fourcc('M', 'P', 'E',
+> 'G') /* MPEG-1/2/4    */ +#define V4L2_PIX_FMT_H264     v4l2_fourcc('H',
+> '2', '6', '4') /* H.264 Annex-B NAL Units */
 
-No, no emotions at least on this side:) But it's also not technical, 
-unfortunately. I'm prepared to discuss technical benefits or drawbacks of 
-each of these approaches, but these arguments - can we trust programmers 
-or can we not? or will anyone at some time in the future break it or not? 
-Sorry, I am not a psychologist:) Personally, I would _exclusively_ 
-consider technical arguments. Of course, things like "clean and simple 
-APIs," "proper separation / layering" etc. are also important, but even 
-they already can become difficult to discuss and are already on the border 
-between technical issues and personal preferences... So, don't know, in 
-the end, I think, it will just come down to who is making decisions and 
-who is implementing them:) I just expressed my opinion, we don't have to 
-agree, eventually, the maintainer will decide whether to apply patches or 
-not:)
+I've discussed H.264 support with Hans Verkuil (CC'ed) some time ago, and his 
+opinion was that we shouldn't use a new V4L2 format for it. H.264 is 
+essentially an MPEG version, so drivers should use V4L2_PIX_FMT_MPEG and 
+select the details using the MPEG CIDs.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Of course feel free to disagree with Hans and discuss the matter with him :-)
+
+>  /*  Vendor-specific formats   */
+>  #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1 YUV
+> */
+
+-- 
+Regards,
+
+Laurent Pinchart
