@@ -1,44 +1,107 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:60994 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753604Ab1BXOjc (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.186]:54937 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751019Ab1BQUXL convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Feb 2011 09:39:32 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Thu, 24 Feb 2011 15:33:49 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 2/7] s5p-fimc: Prevent oops when i2c adapter is not available
-In-reply-to: <1298558034-10768-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	kgene.kim@samsung.com, s.nawrocki@samsung.com
-Message-id: <1298558034-10768-3-git-send-email-s.nawrocki@samsung.com>
-References: <1298558034-10768-1-git-send-email-s.nawrocki@samsung.com>
+	Thu, 17 Feb 2011 15:23:11 -0500
+Date: Thu, 17 Feb 2011 21:23:09 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Paolo Santinelli <paolo.santinelli@unimore.it>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Kernel configuration for ov9655 on the PXA27x Quick Capture
+ Interface
+In-Reply-To: <AANLkTi=9hTp-s0UGKMNrTJOL0pzhnsunWkA6UwpobJE5@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1102172111300.30692@axis700.grange>
+References: <AANLkTika03k=cppbejCHkuOT+Uq9ptVHZwYa80ubwLqT@mail.gmail.com>
+ <Pine.LNX.4.64.1102172029220.30692@axis700.grange>
+ <AANLkTi=9hTp-s0UGKMNrTJOL0pzhnsunWkA6UwpobJE5@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Prevent invalid pointer dereference on error path.
+(replaced the old mailing list address)
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+On Thu, 17 Feb 2011, Paolo Santinelli wrote:
+
+> Hi Guennadi,
+> 
+> thank you for the information.
+> 
+> Can I use or adapt this patch:  https://patchwork.kernel.org/patch/16548/  ?
+
+You'd have to port it to the current kernel, the patch is almost 2 years 
+old...
+
+> I Could  use the code from the patch  to direct control the sensor
+> register configuration and use the  PXA27x Quick Capture Interface to
+> capture data by mean "soc_camera" and "pxa_camera" driver modules. But
+> now when I try to load the soc_camera module i get this error:
+> 
+> insmod soc_camera.ko
+> insmod: cannot insert 'soc_camera.ko': No such device
+> 
+> Please, could you give mi some tips and indication
+
+No, all the drivers: soc-camera core, camera host driver (pxa_camera) and 
+a camera sensor driver (ov9655) have to work together. And their mutual 
+work is configured at the platform level. Sorry, I don't think, I can 
+guide you in detail through a complete v4l2-subdev / soc-camera driver 
+architecture. You can try to have a look at one of the multiple examples, 
+e.g.,
+
+arch/arm/mach-pxa/ezx.c (see a780_camera)
+drivers/media/video/mt9m111.c
+drivers/media/video/pxa_camera.c
+
+Good luck
+Guennadi
+
+> 
+> Thanks
+> 
+> Paolo
+> 
+> 2011/2/17 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+> > On Wed, 16 Feb 2011, Paolo Santinelli wrote:
+> >
+> >> Hi all,
+> >>
+> >> I have an embedded smart camera equipped with an XScal-PXA270
+> >> processor running Linux 2.6.37 and the OV9655 Image sensor connected
+> >> on the PXA27x Quick Capture Interface.
+> >>
+> >> Please, what kernel module I have to select in order to use the Image sensor ?
+> >
+> > You need to write a new or adapt an existing driver for your ov9655
+> > sensor, currently, there's no driver available to work with your pxa270.
+> >
+> > Thanks
+> > Guennadi
+> > ---
+> > Guennadi Liakhovetski, Ph.D.
+> > Freelance Open-Source Software Developer
+> > http://www.open-technology.de/
+> >
+> 
+> 
+> 
+> -- 
+> --------------------------------------------------
+> Paolo Santinelli
+> ImageLab Computer Vision and Pattern Recognition Lab
+> Dipartimento di Ingegneria dell'Informazione
+> Universita' di Modena e Reggio Emilia
+> via Vignolese 905/B, 41125, Modena, Italy
+> 
+> Cell. +39 3472953357,  Office +39 059 2056270, Fax +39 059 2056129
+> email:  <mailto:paolo.santinelli@unimore.it> paolo.santinelli@unimore.it
+> URL:  <http://imagelab.ing.unimo.it/> http://imagelab.ing.unimo.it
+> --------------------------------------------------
+> 
+
 ---
- drivers/media/video/s5p-fimc/fimc-capture.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index 10d6426..2d8002c 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -98,7 +98,7 @@ static int fimc_subdev_attach(struct fimc_dev *fimc, int index)
- 			continue;
- 
- 		sd = fimc_subdev_register(fimc, isp_info);
--		if (sd) {
-+		if (!IS_ERR_OR_NULL(sd)) {
- 			vid_cap->sd = sd;
- 			vid_cap->input_index = i;
- 
--- 
-1.7.4.1
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
