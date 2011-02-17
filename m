@@ -1,55 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.187]:50068 "EHLO
+Received: from moutng.kundenserver.de ([212.227.17.10]:55061 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752012Ab1BHITO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Feb 2011 03:19:14 -0500
-From: Thomas Weber <weber@corscience.de>
-To: linux-omap@vger.kernel.org
-Cc: Thomas Weber <weber@corscience.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, Tejun Heo <tj@kernel.org>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Randy Dunlap <rdunlap@xenotime.net>
-Subject: [PATCHv2] media/video: Fix compilation of omap24xxcam
-Date: Tue,  8 Feb 2011 09:18:21 +0100
-Message-Id: <1297153101-23680-1-git-send-email-weber@corscience.de>
+	with ESMTP id S1751375Ab1BQXUJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Feb 2011 18:20:09 -0500
+Date: Fri, 18 Feb 2011 00:20:06 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Anatolij Gustschin <agust@denx.de>
+Subject: Re: soc-camera: vb2 continued: mx3_camera
+In-Reply-To: <Pine.LNX.4.64.1102072238430.2023@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1102180018520.1841@axis700.grange>
+References: <Pine.LNX.4.64.1102041051030.14717@axis700.grange>
+ <Pine.LNX.4.64.1102072238430.2023@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Add linux/sched.h because of missing declaration of TASK_NORMAL.
+On Mon, 7 Feb 2011, Guennadi Liakhovetski wrote:
 
-This patch fixes the following error:
+> Hi
+> 
+> One more soc-camera host driver has been converted to videobuf2: 
+> mx3_camera for i.MX3* SoCs. I also added Anatolij's patches to the branch. 
+> Please, review / test. The branch is available at
+> 
+> git://linuxtv.org/gliakhovetski/v4l-dvb.git soc_camera-vb2
 
-drivers/media/video/omap24xxcam.c: In function
-'omap24xxcam_vbq_complete':
-drivers/media/video/omap24xxcam.c:415: error: 'TASK_NORMAL' undeclared
-(first use in this function)
-drivers/media/video/omap24xxcam.c:415: error: (Each undeclared
-identifier is reported only once
-drivers/media/video/omap24xxcam.c:415: error: for each function it
-appears in.)
+Two persons reported problems, when trying to directly clone the above 
+tree. The following worked for me:
 
-Signed-off-by: Thomas Weber <weber@corscience.de>
+git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
+cd linux-2.6/
+git remote add soc-camera git://linuxtv.org/gliakhovetski/v4l-dvb.git
+git remote update
+git checkout -b v4l-devel soc-camera/soc_camera-vb2
+
+Thanks
+Guennadi
 ---
-Changelog:
-	v2: Change subject line to media/video
-
- drivers/media/video/omap24xxcam.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/video/omap24xxcam.c b/drivers/media/video/omap24xxcam.c
-index 0175527..f6626e8 100644
---- a/drivers/media/video/omap24xxcam.c
-+++ b/drivers/media/video/omap24xxcam.c
-@@ -36,6 +36,7 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- #include <linux/slab.h>
-+#include <linux/sched.h>
- 
- #include <media/v4l2-common.h>
- #include <media/v4l2-ioctl.h>
--- 
-1.7.4.rc3
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
