@@ -1,66 +1,87 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38630 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:55985 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752706Ab1B1KdV (ORCPT
+	with ESMTP id S1752292Ab1BRM53 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Feb 2011 05:33:21 -0500
+	Fri, 18 Feb 2011 07:57:29 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hansverk@cisco.com>
-Subject: Re: [st-ericsson] v4l2 vs omx for camera
-Date: Mon, 28 Feb 2011 11:33:29 +0100
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linus Walleij <linus.walleij@linaro.org>,
-	Edward Hervey <bilboed@gmail.com>,
-	johan.mossberg.lml@gmail.com,
-	Discussion of the development of and with GStreamer
-	<gstreamer-devel@lists.freedesktop.org>,
-	"linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>,
-	Harald Gustafsson <harald.gustafsson@ericsson.com>,
-	"ST-Ericsson LT Mailing List" <st-ericsson@lists.linaro.org>,
-	linux-media@vger.kernel.org
-References: <AANLkTik=Yc9cb9r7Ro=evRoxd61KVE=8m7Z5+dNwDzVd@mail.gmail.com> <201102281111.47666.laurent.pinchart@ideasonboard.com> <201102281121.52906.hansverk@cisco.com>
-In-Reply-To: <201102281121.52906.hansverk@cisco.com>
+To: "Michal Nazarewicz" <mina86@mina86.com>
+Subject: Re: [RFD] frame-size switching: preview / single-shot use-case
+Date: Fri, 18 Feb 2011 13:57:25 +0100
+Cc: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
+	"Mauro Carvalho Chehab" <mchehab@infradead.org>,
+	"Hans Verkuil" <hansverk@cisco.com>, "Qing Xu" <qingx@marvell.com>,
+	"Linux Media Mailing List" <linux-media@vger.kernel.org>,
+	"Neil Johnson" <realdealneil@gmail.com>,
+	"Robert Jarzmik" <robert.jarzmik@free.fr>,
+	"Uwe Taeubert" <u.taeubert@road.de>,
+	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	"Eino-Ville Talvala" <talvala@stanford.edu>
+References: <4D5D9B57.3090809@gmail.com> <201102181131.30920.laurent.pinchart@ideasonboard.com> <op.vq3jwls93l0zgt@mnazarewicz-glaptop>
+In-Reply-To: <op.vq3jwls93l0zgt@mnazarewicz-glaptop>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201102281133.30204.laurent.pinchart@ideasonboard.com>
+Message-Id: <201102181357.26382.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Monday 28 February 2011 11:21:52 Hans Verkuil wrote:
-> On Monday, February 28, 2011 11:11:47 Laurent Pinchart wrote:
-> > On Saturday 26 February 2011 13:12:42 Hans Verkuil wrote:
-> > > On Friday, February 25, 2011 18:22:51 Linus Walleij wrote:
-> > > > 2011/2/24 Edward Hervey <bilboed@gmail.com>:
-> > > > >  What *needs* to be solved is an API for data allocation/passing at 
-> > > > > the kernel level which v4l2,omx,X,GL,vdpau,vaapi,... can use and
-> > > > > that userspace (like GStreamer) can pass around, monitor and know
-> > > > > about.
-> > > > 
-> > > > I think the patches sent out from ST-Ericsson's Johan Mossberg to
-> > > > linux-mm for "HWMEM" (hardware memory) deals exactly with buffer
-> > > > passing, pinning of buffers and so on. The CMA (Contigous Memory
-> > > > Allocator) has been slightly modified to fit hand-in-glove with
-> > > > HWMEM, so CMA provides buffers, HWMEM pass them around.
-> > > > 
-> > > > Johan, when you re-spin the HWMEM patchset, can you include
-> > > > linaro-dev and linux-media in the CC?
-> > > 
-> > > Yes, please. This sounds promising and we at linux-media would very
-> > > much like to take a look at this. I hope that the CMA + HWMEM
-> > > combination is exactly what we need.
-> > 
-> > Once again let me restate what I've been telling for some time: CMA must
-> > be *optional*. Not all hardware need contiguous memory. I'll have a look
-> > at the next HWMEM version.
-> 
-> Yes, it is optional when you look at specific hardware. On a kernel level
-> however it is functionality that is required in order to support all the
-> hardware. There is little point in solving one issue and not the other.
+Hi Michal,
 
-I agree. What I meant is that we need to make sure there's no HWMEM -> CMA 
-dependency.
+On Friday 18 February 2011 12:37:24 Michal Nazarewicz wrote:
+
+[snip]
+
+> What I'm trying to say is that it would be best if one could configure the
+> device in such a way that switching between modes would not require the
+> device to free buffers (even though in user space they could be
+> inaccessible).
+> 
+> 
+> This is what I have in mind the usage would look like:
+> 
+> 1. Open device
+> 		Kernel creates some control structures, the usual stuff.
+> 2. Initialize multi-format (specifying what formats user space will use).
+> 		Kernel calculates amount of memory needed for the most
+> 		demanding format and allocates it.
+
+Don't forget that applications can also use USERPTR. We need a low-latency 
+solution for that as well.
+
+> 3. Set format (restricted to one of formats specified in step 2)
+> 		Kernel has memory already allocated, so it only needs to split
+> 		it to buffers needed in given format.
+> 4. Allocate buffers.
+> 		Kernel allocates memory needed for most demanding format
+> 		(calculated in step 2).
+> 		Once memory is allocated, splits it to buffers needed in
+> 		given format.
+> 5. Do the loop... queue, dequeue, all the usual stuff.
+> 		Kernel instructs device to handle buffers, the usual stuff.
+
+When buffers are queued cache needs to be cleaned. This is an expensive 
+operation, and we need to be able to pre-queue (or at least pre-clean) 
+buffers.
+
+> 6. Free buffers.
+> 		Kernel space destroys the buffers needed for given format
+> 		but DOES NOT free memory.
+> 
+> 7. If not done, go to step 3.
+> 
+> 8. Finish multi-format mode.
+> 		Kernel actually frees the memory.
+> 
+> 9. Close the device.
+> 
+> A V4L device driver could just ignore step 2 and 7 and work in the less
+> optimal mode.
+> 
+> If I understand V4L2 correctly, the API does not allow for step 2 and 8.
+> In theory, they could be merged with step 1 and 9 respectively, I don't
+> know id that feasible though.
 
 -- 
 Regards,
