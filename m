@@ -1,64 +1,76 @@
 Return-path: <mchehab@pedra>
-Received: from rcsinet10.oracle.com ([148.87.113.121]:27892 "EHLO
-	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754421Ab1B1PYM (ORCPT
-	<rfc822;<linux-media@vger.kernel.org>>);
-	Mon, 28 Feb 2011 10:24:12 -0500
-Date: Mon, 28 Feb 2011 09:53:01 -0500
-From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-To: Jiri Slaby <jslaby@suse.cz>
-Cc: mchehab@infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, jirislaby@gmail.com
-Subject: Re: [PATCH v2 -resend#1 1/1] V4L: videobuf, don't use dma addr as
- physical
-Message-ID: <20110228145301.GC10846@dumpdata.com>
-References: <1298885822-10083-1-git-send-email-jslaby@suse.cz>
+Received: from moutng.kundenserver.de ([212.227.126.186]:51705 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756106Ab1BRINr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Feb 2011 03:13:47 -0500
+Date: Fri, 18 Feb 2011 09:13:45 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: linux-sh@vger.kernel.org
+Subject: [PATCH 4/4] V4l: sh_mobile_ceu_camera: fix cropping offset calculation
+In-Reply-To: <Pine.LNX.4.64.1102180857360.1851@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1102180911430.1851@axis700.grange>
+References: <Pine.LNX.4.64.1102180857360.1851@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1298885822-10083-1-git-send-email-jslaby@suse.cz>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, Feb 28, 2011 at 10:37:02AM +0100, Jiri Slaby wrote:
-> mem->dma_handle is a dma address obtained by dma_alloc_coherent which
-> needn't be a physical address in presence of IOMMU. So ensure we are
+Use the correct scales to calculate cropping offsets.
 
-Can you add a comment why you are fixing it? Is there a bug report for this?
-Under what conditions did you expose this fault?
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
-You also might want to mention that "needn't be a physical address as
-a hardware IOMMU can (and most likely) will return a bus address where
-physical != bus address."
+This one is unrelated to vb2, but it touches the same file.
 
-Otherwise you can stick 'Reviewed-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>'
-on it.
+ drivers/media/video/sh_mobile_ceu_camera.c |   12 ++++--------
+ 1 files changed, 4 insertions(+), 8 deletions(-)
 
-> remapping (remap_pfn_range) the right page in __videobuf_mmap_mapper
-> by using virt_to_phys(mem->vaddr) and not mem->dma_handle.
-> 
-> While at it, use PFN_DOWN instead of explicit shift.
-> 
-> Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-> ---
->  drivers/media/video/videobuf-dma-contig.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/videobuf-dma-contig.c b/drivers/media/video/videobuf-dma-contig.c
-> index c969111..19d3e4a 100644
-> --- a/drivers/media/video/videobuf-dma-contig.c
-> +++ b/drivers/media/video/videobuf-dma-contig.c
-> @@ -300,7 +300,7 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
->  
->  	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
->  	retval = remap_pfn_range(vma, vma->vm_start,
-> -				 mem->dma_handle >> PAGE_SHIFT,
-> +				 PFN_DOWN(virt_to_phys(mem->vaddr))
->  				 size, vma->vm_page_prot);
->  	if (retval) {
->  		dev_err(q->dev, "mmap: remap failed with error %d. ", retval);
-> -- 
-> 1.7.4.1
-> 
+diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
+index 325f50d..61f3701 100644
+--- a/drivers/media/video/sh_mobile_ceu_camera.c
++++ b/drivers/media/video/sh_mobile_ceu_camera.c
+@@ -1348,7 +1348,7 @@ static int sh_mobile_ceu_set_crop(struct soc_camera_device *icd,
+ 	struct device *dev = icd->dev.parent;
+ 	struct v4l2_mbus_framefmt mf;
+ 	unsigned int scale_cam_h, scale_cam_v, scale_ceu_h, scale_ceu_v,
+-		out_width, out_height, scale_h, scale_v;
++		out_width, out_height;
+ 	int interm_width, interm_height;
+ 	u32 capsr, cflcr;
+ 	int ret;
+@@ -1406,10 +1406,6 @@ static int sh_mobile_ceu_set_crop(struct soc_camera_device *icd,
+ 	scale_ceu_h	= calc_scale(interm_width, &out_width);
+ 	scale_ceu_v	= calc_scale(interm_height, &out_height);
+ 
+-	/* Calculate camera scales */
+-	scale_h		= calc_generic_scale(cam_rect->width, out_width);
+-	scale_v		= calc_generic_scale(cam_rect->height, out_height);
+-
+ 	dev_geo(dev, "5: CEU scales %u:%u\n", scale_ceu_h, scale_ceu_v);
+ 
+ 	/* Apply CEU scales. */
+@@ -1421,8 +1417,8 @@ static int sh_mobile_ceu_set_crop(struct soc_camera_device *icd,
+ 
+ 	icd->user_width	 = out_width;
+ 	icd->user_height = out_height;
+-	cam->ceu_left	 = scale_down(rect->left - cam_rect->left, scale_h) & ~1;
+-	cam->ceu_top	 = scale_down(rect->top - cam_rect->top, scale_v) & ~1;
++	cam->ceu_left	 = scale_down(rect->left - cam_rect->left, scale_cam_h) & ~1;
++	cam->ceu_top	 = scale_down(rect->top - cam_rect->top, scale_cam_v) & ~1;
+ 
+ 	/* 6. Use CEU cropping to crop to the new window. */
+ 	sh_mobile_ceu_set_rect(icd);
+@@ -1433,7 +1429,7 @@ static int sh_mobile_ceu_set_crop(struct soc_camera_device *icd,
+ 		icd->user_width, icd->user_height,
+ 		cam->ceu_left, cam->ceu_top);
+ 
+-	/* Restore capture */
++	/* Restore capture. The CE bit can be cleared by the hardware */
+ 	if (pcdev->active)
+ 		capsr |= 1;
+ 	capture_restore(pcdev, capsr);
+-- 
+1.7.2.3
+
