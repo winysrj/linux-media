@@ -1,82 +1,179 @@
 Return-path: <mchehab@pedra>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:43363 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755919Ab1BIB50 (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:13750 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758214Ab1BRBUj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Feb 2011 20:57:26 -0500
-From: Qing Xu <qingx@marvell.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Bhupesh SHARMA <bhupesh.sharma@st.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Tue, 8 Feb 2011 17:56:36 -0800
-Subject: RE: soc-camera: RGB888, RBG8888 and JPEG formats not supported in
- v4l2_mbus_pixelcode
-Message-ID: <7BAC95F5A7E67643AAFB2C31BEE662D01404216C49@SC-VEXCH2.marvell.com>
-References: <D5ECB3C7A6F99444980976A8C6D896384DEE2BDCD0@EAPEX1MAIL1.st.com>
- <Pine.LNX.4.64.1102040847330.14717@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1102040847330.14717@axis700.grange>
-Content-Language: en-US
-Content-Type: text/plain; charset="gb2312"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+	Thu, 17 Feb 2011 20:20:39 -0500
+Received: from [192.168.1.2] (d-216-36-28-191.cpe.metrocast.net [216.36.28.191])
+	(authenticated bits=0)
+	by mango.metrocast.net (8.13.8/8.13.8) with ESMTP id p1I1Kbss022104
+	for <linux-media@vger.kernel.org>; Fri, 18 Feb 2011 01:20:37 GMT
+Subject: [PATCH 11/13] lirc_zilog: Add locking of the i2c_clients when in
+ use
+From: Andy Walls <awalls@md.metrocast.net>
+To: linux-media@vger.kernel.org
+In-Reply-To: <1297991502.9399.16.camel@localhost>
+References: <1297991502.9399.16.camel@localhost>
+Content-Type: text/plain; charset="UTF-8"
+Date: Thu, 17 Feb 2011 20:20:50 -0500
+Message-ID: <1297992050.9399.27.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-WWVzLCB3ZSBoYXZlIHRoZSBzaW1pbGFyIEpQRUcgaXNzdWUsIEkgd2lsbCBjdXJyZW50bHkgcHJv
-dmlkZSB0aGUNCnBhdGNoIG9mIEpQRUcgZm9yIHJldmlldywgdGhhbmtzIQ0KDQotUWluZw0KDQot
-LS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KRnJvbTogR3Vlbm5hZGkgTGlha2hvdmV0c2tpIFtt
-YWlsdG86Zy5saWFraG92ZXRza2lAZ214LmRlXQ0KU2VudDogMjAxMcTqMtTCNMjVIDE2OjExDQpU
-bzogQmh1cGVzaCBTSEFSTUENCkNjOiBsaW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmc7IFFpbmcg
-WHUNClN1YmplY3Q6IFJlOiBzb2MtY2FtZXJhOiBSR0I4ODgsIFJCRzg4ODggYW5kIEpQRUcgZm9y
-bWF0cyBub3Qgc3VwcG9ydGVkIGluIHY0bDJfbWJ1c19waXhlbGNvZGUNCg0KSGkgQmh1cGVzaA0K
-DQpPbiBGcmksIDQgRmViIDIwMTEsIEJodXBlc2ggU0hBUk1BIHdyb3RlOg0KDQo+IEhpIEd1ZW5u
-YWRpLA0KPg0KPiBXZSBhcmUgZGV2ZWxvcGluZyBhIENhbWVyYSBIb3N0IGFuZCBTZW5zb3IgZHJp
-dmVyIGZvciBvdXIgU1Qgc3BlY2lmaWMgU29DIGFuZCBhcmUNCj4gdXNpbmcgdGhlIHNvYy1jYW1l
-cmEgZnJhbWV3b3JrIGZvciB0aGUgc2FtZS4gT3VyIENhbWVyYSBIb3N0IHN1cHBvcnRzIGEgbnVt
-YmVyIG9mDQo+IFlVViwgUkdCIGZvcm1hdHMgaW4gYWRkaXRpb24gdG8gSlBFRyBhbmQgTW9kZTND
-KGNvbG9yIGZpbGxlciBtb2RlKSBmb3JtYXRzLg0KPg0KPiAxLiBJIGhhdmUgYSBmZXcgcXVlc3Rp
-b25zIHJlZ2FyZGluZyB0aGUgcGl4ZWwgZm9ybWF0cyBzdXBwb3J0ZWQgaW4gZW51bSB2NGwyX21i
-dXNfcGl4ZWxjb2RlLg0KPiBXaGlsZSBmb3JtYXRzIGxpa2UgUkdCODg4IGFuZCBSR0I4ODg4IGFy
-ZSBzdXBwb3J0ZWQgYnkgVjRMMl9QSVhfRk1UXyogbWFjcm9zLCBJDQo+IGNvdWxkbid0IGZpbmQg
-Y29ycmVzcG9uZGluZyBzdXBwb3J0IGluIFY0TDJfTUJVU19GTVRfKiAuDQoNClRoZXkgc2hvdWxk
-IGJlIGFkZGVkIGFzIHJlcXVpcmVkLCB3ZSBkaWRuJ3QgYWltIGF0IGFkZGluZyBhbGwgcG9zc2li
-bGUNCmZvcm1hdHMgdG8gdGhlIGxpc3QsIGluc3RlYWQgd2Ugd2FudCB0byBhZGQgdGhlbSBncmFk
-dWFsbHkgb25lIGJ5IG9uZSBhcw0KdGhleSBnZXQgdXNlZCBieSBzcGVjaWZpYyBkcml2ZXJzLg0K
-DQo+IDIuIFNpbWlsYXIgaXMgdGhlIGNhc2UgZm9yIEpQRUcgZm9ybWF0LiBJIGNvdWxkIHNlZSBh
-IGRpc2N1c3Npb24gYmV0d2VlbiB5b3UgYW5kIFFpbmdYdSBmb3INCj4gYWRkaW5nIEpQRUcgc3Vw
-cG9ydCBpbiBzb2MtY2FtZXJhIGZyYW1ld29yayBoZXJlIGh0dHA6Ly93d3cuc3Bpbmljcy5uZXQv
-bGlzdHMvbGludXgtbWVkaWEvbXNnMjc5ODAuaHRtbA0KPiBDb3VsZCB5b3UgcGxlYXNlIGxldCBt
-ZSBrbm93IGlmIHRoZSBKUEVHIHN1cHBvcnQgaGFzIGFscmVhZHkgYmVlbiBhZGRlZCB0byB0aGUg
-c29jLWNhbWVyYSBmcmFtZXdvcmsgb3INCj4gYXJlIHRoZXJlIHBsYW5zIHRvIGFkZCB0aGUgc2Ft
-ZSBpbiBuZWFyIGZ1dHVyZS4NCg0KSXQgaGFzbid0IHlldCwgbWF5YmUgUWluZyAoQ0MnZWQpIGNv
-dWxkIHNlbmQgYSBwYXRjaCBmb3IgaXQgdG8gdGhlIGxpc3QgLQ0KSSB0aGluaywgd2UgYWdyZWVk
-IG9uIHRoZSB3YXkgaG93IGl0IHNob3VsZCBiZSBkb25lLCBzbywgaXQgc2hvdWxkIGJlDQpwcmV0
-dHkgZWFzeSBub3cuDQoNCj4gMy4gQWxzbyBwbGVhc2UgbGV0IG1lIGtub3cgd2hpY2ggZm9ybWF0
-cyBzaG91bGQgYmUgcmVwb3J0ZWQgYnkNCj4NCj4gc3RhdGljIGNvbnN0IHN0cnVjdCBzb2NfbWJ1
-c19waXhlbGZtdCBzdF9jYW1lcmFfZm9ybWF0c1tdDQo+DQo+IGluIHRoZSBjYW1lcmEgaG9zdCBk
-cml2ZXI/IEFyZSB0aGVzZSwgdGhlIHBpeGVsIGZvcm1hdHMgc3VwcG9ydGVkIGJ5Og0KPiAgICAg
-ICBhLiBDYW1lcmEgSG9zdA0KPiAgICAgICBiLiBDYW1lcmEgc2Vuc29yDQo+ICAgICAgIGMuIE9y
-IGZvcm1hdHMgc3VwcG9ydGVkIGJvdGggYnkgdGhlIEhvc3QgYW5kIFNlbnNvcg0KDQpJbiB0aGUg
-aG9zdCBkcml2ZXIgeW91IGNlcnRhaW5seSBrbm93IG5vdGhpbmcgYWJvdXQgc2Vuc29yIGZlYXR1
-cmVzIC0geW91cg0KaG9zdCBkcml2ZXIgc2hvdWxkIHdvcmsgd2l0aCAiYWxsIiBzZW5zb3IgZHJp
-dmVycy4gSW4gZXhpc3RpbmcgY2FtZXJhIGhvc3QNCmRyaXZlcnMgdGhlc2UgdGFibGVzIGFyZSB1
-c2VkIHRvIHNwZWNpZnkgcGl4ZWwgZm9ybWF0cywgdG8gd2hpY2gNCnRoZSBob3N0IGNvbnRyb2xs
-ZXIgY2FuIGNvbnZlcnQgc29tZSBvdGhlciBmb3JtYXRzIG9uIHRoZSBoYXJkd2FyZS4gRS5nLiwN
-CmluIHB4YV9jYW1lcmEuYyB5b3UgZmluZCBhIHRhYmxlIHB4YV9jYW1lcmFfZm9ybWF0c1tdIG9m
-IG9uZSBlbGVtZW50IGZvcg0KdGhlIFY0TDJfUElYX0ZNVF9ZVVY0MjJQIGZvcm1hdC4gSWYgeW91
-IGZ1cnRoZXIgbG9vayBpbnRvIHRoZQ0KcHhhX2NhbWVyYV9nZXRfZm9ybWF0cygpIGZ1bmN0aW9u
-IHlvdSBzZWUsIHRoYXQgd2hpbGUgZW51bWVyYXRpbmcgbWVkaWFidXMNCnBpeGVsIGNvZGVzIHdp
-dGggYSBjZXJ0YWluIGNsaWVudCAoZS5nLiwgYSBzZW5zb3IpLCBpZiB0aGUgY2xpZW50IHN1cHBv
-cnRzDQp0aGUgVjRMMl9NQlVTX0ZNVF9VWVZZOF8yWDggbWVkaWFidXMgZm9ybWF0LCB0aGUgaG9z
-dCByZWNvZ25pc2VzLCB0aGF0IGl0DQpzdXBwb3J0cyB0aGF0IGZvcm1hdCBuYXRpdmVseSBhbmQg
-YXBhcnQgZnJvbSBzZXJ2aW5nIGl0IHRvIHRoZSBhcHBsaWNhdGlvbg0KaW4gdGhlIHBhc3MtdGhy
-b3VnaCBtb2RlIHRvIHByb3ZpZGUgdGhlIFY0TDJfUElYX0ZNVF9VWVZZIGZvcm1hdCAoc2VlDQpk
-cml2ZXJzL21lZGlhL3ZpZGVvL3NvY19tZWRpYWJ1cy5jOjptYnVzX2ZtdFtdKSwgaXQgY2FuIGFs
-c28gY29udmVydCBpdCB0bw0KdGhlIHBsYW5hciBWNEwyX1BJWF9GTVRfWVVWNDIyUCBmb3JtYXQu
-IFNpbWlsYXJseSBpbg0Kc2hfbW9iaWxlX2NldV9jYW1lcmEuYzo6c2hfbW9iaWxlX2NldV9mb3Jt
-YXRzW10gLSBpZiB0aGUgY2xpZW50IHN1cHBvcnRzDQpvbmUgb2YgdGhlIGZvdXIgc3RhbmRhcmQg
-WVVWIDQ6MjoyIGZvcm1hdHMsIHRoZSBob3N0IGNhbiBhbHNvIGNvbnZlcnQgaXQNCnRvIGFueSBv
-ZiB0aGUgZm91ciBOVjEyIC8gTlYxNiBmb3JtYXRzIGZyb20gdGhlIHRhYmxlLg0KDQpUaGFua3MN
-Ckd1ZW5uYWRpDQotLS0NCkd1ZW5uYWRpIExpYWtob3ZldHNraSwgUGguRC4NCkZyZWVsYW5jZSBP
-cGVuLVNvdXJjZSBTb2Z0d2FyZSBEZXZlbG9wZXINCmh0dHA6Ly93d3cub3Blbi10ZWNobm9sb2d5
-LmRlLw0K
+ 
+Lock the i2c_client pointers and prevent i2c_client removal when
+lirc_zilog is perfoming a series of operations that require valid
+i2c_client pointers.
+
+Signed-off-by: Andy Walls <awalls@md.metrocast.net>
+---
+ drivers/staging/lirc/lirc_zilog.c |   41 +++++++++++++++++++++++++++++++++---
+ 1 files changed, 37 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/staging/lirc/lirc_zilog.c b/drivers/staging/lirc/lirc_zilog.c
+index 755cb39..a59d32d 100644
+--- a/drivers/staging/lirc/lirc_zilog.c
++++ b/drivers/staging/lirc/lirc_zilog.c
+@@ -70,7 +70,7 @@ struct IR_rx {
+ 	struct IR *ir;
+ 
+ 	/* RX device */
+-	/* FIXME mutex lock access to this pointer */
++	struct mutex client_lock;
+ 	struct i2c_client *c;
+ 
+ 	/* RX polling thread data */
+@@ -86,7 +86,7 @@ struct IR_tx {
+ 	struct IR *ir;
+ 
+ 	/* TX device */
+-	/* FIXME mutex lock access to this pointer */
++	struct mutex client_lock;
+ 	struct i2c_client *c;
+ 
+ 	/* TX additional actions needed */
+@@ -341,6 +341,14 @@ static int add_to_buf(struct IR *ir)
+ 	if (rx == NULL)
+ 		return -ENXIO;
+ 
++	/* Ensure our rx->c i2c_client remains valid for the duration */
++	mutex_lock(&rx->client_lock);
++	if (rx->c == NULL) {
++		mutex_unlock(&rx->client_lock);
++		put_ir_rx(rx, false);
++		return -ENXIO;
++	}
++
+ 	tx = get_ir_tx(ir);
+ 
+ 	/*
+@@ -442,6 +450,7 @@ static int add_to_buf(struct IR *ir)
+ 		ret = 0;
+ 	} while (!lirc_buffer_full(rbuf));
+ 
++	mutex_unlock(&rx->client_lock);
+ 	if (tx != NULL)
+ 		put_ir_tx(tx, false);
+ 	put_ir_rx(rx, false);
+@@ -1089,6 +1098,14 @@ static ssize_t write(struct file *filep, const char *buf, size_t n,
+ 	if (tx == NULL)
+ 		return -ENXIO;
+ 
++	/* Ensure our tx->c i2c_client remains valid for the duration */
++	mutex_lock(&tx->client_lock);
++	if (tx->c == NULL) {
++		mutex_unlock(&tx->client_lock);
++		put_ir_tx(tx, false);
++		return -ENXIO;
++	}
++
+ 	/* Lock i2c bus for the duration */
+ 	mutex_lock(&ir->ir_lock);
+ 
+@@ -1099,6 +1116,7 @@ static ssize_t write(struct file *filep, const char *buf, size_t n,
+ 
+ 		if (copy_from_user(&command, buf + i, sizeof(command))) {
+ 			mutex_unlock(&ir->ir_lock);
++			mutex_unlock(&tx->client_lock);
+ 			put_ir_tx(tx, false);
+ 			return -EFAULT;
+ 		}
+@@ -1109,6 +1127,7 @@ static ssize_t write(struct file *filep, const char *buf, size_t n,
+ 			ret = fw_load(tx);
+ 			if (ret != 0) {
+ 				mutex_unlock(&ir->ir_lock);
++				mutex_unlock(&tx->client_lock);
+ 				put_ir_tx(tx, false);
+ 				if (ret != -ENOMEM)
+ 					ret = -EIO;
+@@ -1126,6 +1145,7 @@ static ssize_t write(struct file *filep, const char *buf, size_t n,
+ 					    (unsigned)command & 0xFFFF);
+ 			if (ret == -EPROTO) {
+ 				mutex_unlock(&ir->ir_lock);
++				mutex_unlock(&tx->client_lock);
+ 				put_ir_tx(tx, false);
+ 				return ret;
+ 			}
+@@ -1144,6 +1164,7 @@ static ssize_t write(struct file *filep, const char *buf, size_t n,
+ 				zilog_error("unable to send to the IR chip "
+ 					    "after 3 resets, giving up\n");
+ 				mutex_unlock(&ir->ir_lock);
++				mutex_unlock(&tx->client_lock);
+ 				put_ir_tx(tx, false);
+ 				return ret;
+ 			}
+@@ -1158,6 +1179,8 @@ static ssize_t write(struct file *filep, const char *buf, size_t n,
+ 	/* Release i2c bus */
+ 	mutex_unlock(&ir->ir_lock);
+ 
++	mutex_unlock(&tx->client_lock);
++
+ 	/* Give back our struct IR_tx reference */
+ 	put_ir_tx(tx, false);
+ 
+@@ -1367,12 +1390,20 @@ static int ir_remove(struct i2c_client *client)
+ {
+ 	if (strncmp("ir_tx_z8", client->name, 8) == 0) {
+ 		struct IR_tx *tx = i2c_get_clientdata(client);
+-		if (tx != NULL)
++		if (tx != NULL) {
++			mutex_lock(&tx->client_lock);
++			tx->c = NULL;
++			mutex_unlock(&tx->client_lock);
+ 			put_ir_tx(tx, false);
++		}
+ 	} else if (strncmp("ir_rx_z8", client->name, 8) == 0) {
+ 		struct IR_rx *rx = i2c_get_clientdata(client);
+-		if (rx != NULL)
++		if (rx != NULL) {
++			mutex_lock(&rx->client_lock);
++			rx->c = NULL;
++			mutex_unlock(&rx->client_lock);
+ 			put_ir_rx(rx, false);
++		}
+ 	}
+ 	return 0;
+ }
+@@ -1474,6 +1505,7 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 		ir->tx = tx;
+ 
+ 		ir->l.features |= LIRC_CAN_SEND_PULSE;
++		mutex_init(&tx->client_lock);
+ 		tx->c = client;
+ 		tx->need_boot = 1;
+ 		tx->post_tx_ready_poll =
+@@ -1516,6 +1548,7 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 		ir->rx = rx;
+ 
+ 		ir->l.features |= LIRC_CAN_REC_LIRCCODE;
++		mutex_init(&rx->client_lock);
+ 		rx->c = client;
+ 		rx->hdpvr_data_fmt =
+ 			       (id->driver_data & ID_FLAG_HDPVR) ? true : false;
+-- 
+1.7.2.1
+
+
+
