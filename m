@@ -1,70 +1,73 @@
 Return-path: <mchehab@pedra>
-Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:45164 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752463Ab1BUHgr (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:18455 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754759Ab1BRBPr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Feb 2011 02:36:47 -0500
-Date: Mon, 21 Feb 2011 09:36:40 +0200
-From: Felipe Balbi <balbi@ti.com>
-To: David Cohen <dacohen@gmail.com>
-Cc: balbi@ti.com,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Thomas Weber <weber@corscience.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-omap@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, Tejun Heo <tj@kernel.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH resend] video: omap24xxcam: Fix compilation
-Message-ID: <20110221073640.GA3094@legolas.emea.dhcp.ti.com>
-Reply-To: balbi@ti.com
-References: <1297068547-10635-1-git-send-email-weber@corscience.de>
- <4D5A6353.7040907@maxwell.research.nokia.com>
- <20110215113717.GN2570@legolas.emea.dhcp.ti.com>
- <4D5A672A.7040000@samsung.com>
- <4D5A6874.1080705@corscience.de>
- <20110215115349.GQ2570@legolas.emea.dhcp.ti.com>
- <4D5A6EEC.5000908@maxwell.research.nokia.com>
- <AANLkTik+6fguqgH8Bpnpqo7Axmquy3caRMELTZVmuN1j@mail.gmail.com>
- <20110219150024.GA4487@legolas.emea.dhcp.ti.com>
- <AANLkTik5dwNZrUxjgjKeAQOsp610d6y_TNGg1b5Vc5Zd@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <AANLkTik5dwNZrUxjgjKeAQOsp610d6y_TNGg1b5Vc5Zd@mail.gmail.com>
+	Thu, 17 Feb 2011 20:15:47 -0500
+Received: from [192.168.1.2] (d-216-36-28-191.cpe.metrocast.net [216.36.28.191])
+	(authenticated bits=0)
+	by pear.metrocast.net (8.13.8/8.13.8) with ESMTP id p1I1FjlS025507
+	for <linux-media@vger.kernel.org>; Fri, 18 Feb 2011 01:15:46 GMT
+Subject: [PATCH 05/13] lirc_zilog: Use kernel standard methods for marking
+ device non-seekable
+From: Andy Walls <awalls@md.metrocast.net>
+To: linux-media@vger.kernel.org
+In-Reply-To: <1297991502.9399.16.camel@localhost>
+References: <1297991502.9399.16.camel@localhost>
+Content-Type: text/plain; charset="UTF-8"
+Date: Thu, 17 Feb 2011 20:15:58 -0500
+Message-ID: <1297991758.9399.21.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
 
-On Sat, Feb 19, 2011 at 06:04:58PM +0200, David Cohen wrote:
-> > I have to disagree. The fundamental problem is the circular dependency
-> > between those two files:
-> >
-> > sched.h uses wait_queue_head_t defined in wait.h
-> > wait.h uses TASK_* defined in sched.h
-> >
-> > So, IMO the real fix would be clear out the circular dependency. Maybe
-> > introducing <linux/task.h> to define those TASK_* symbols and include
-> > that on sched.h and wait.h
-> >
-> > Just dig a quick and dirty to try it out and works like a charm
-> 
-> We have 2 problems:
->  - omap24xxcam compilation broken
->  - circular dependency between sched.h and wait.h
-> 
-> To fix the broken compilation we can do what the rest of the kernel is
-> doing, which is to include sched.h.
-> Then, the circular dependency is fixed by some different approach
-> which would probably change *all* current usage of TASK_*.
+lirc_zilog had its own llseek stub that returned -ESPIPE.  Get rid of
+it and use the kernel's no_llseek() and nonseekable_open() functions
+instead.
 
-considering that 1 is caused by 2 I would fix 2.
+Signed-off-by: Andy Walls <awalls@md.metrocast.net>
+---
+ drivers/staging/lirc/lirc_zilog.c |    9 ++-------
+ 1 files changed, 2 insertions(+), 7 deletions(-)
 
-> IMO, there's no need to create a dependency between those issues.
-
-There's no dependency between them, it's just that the root cause for
-this problem is a circular dependency between wait.h and sched.h
-
+diff --git a/drivers/staging/lirc/lirc_zilog.c b/drivers/staging/lirc/lirc_zilog.c
+index c857b99..720ef67 100644
+--- a/drivers/staging/lirc/lirc_zilog.c
++++ b/drivers/staging/lirc/lirc_zilog.c
+@@ -712,12 +712,6 @@ static int tx_init(struct IR_tx *tx)
+ 	return 0;
+ }
+ 
+-/* do nothing stub to make LIRC happy */
+-static loff_t lseek(struct file *filep, loff_t offset, int orig)
+-{
+-	return -ESPIPE;
+-}
+-
+ /* copied from lirc_dev */
+ static ssize_t read(struct file *filep, char *outbuf, size_t n, loff_t *ppos)
+ {
+@@ -1099,6 +1093,7 @@ static int open(struct inode *node, struct file *filep)
+ 	/* stash our IR struct */
+ 	filep->private_data = ir;
+ 
++	nonseekable_open(node, filep);
+ 	return 0;
+ }
+ 
+@@ -1150,7 +1145,7 @@ static struct i2c_driver driver = {
+ 
+ static const struct file_operations lirc_fops = {
+ 	.owner		= THIS_MODULE,
+-	.llseek		= lseek,
++	.llseek		= no_llseek,
+ 	.read		= read,
+ 	.write		= write,
+ 	.poll		= poll,
 -- 
-balbi
+1.7.2.1
+
+
+
