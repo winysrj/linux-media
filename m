@@ -1,83 +1,115 @@
 Return-path: <mchehab@pedra>
-Received: from mga01.intel.com ([192.55.52.88]:2868 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750926Ab1BJH7l (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Feb 2011 02:59:41 -0500
-From: "Gao, Bin" <bin.gao@intel.com>
-To: "Wang, Wen W" <wen.w.wang@intel.com>,
-	"Kanigeri, Hari K" <hari.k.kanigeri@intel.com>,
-	"Iyer, Sundar" <sundar.iyer@intel.com>,
-	"Yang, Jianwei" <jianwei.yang@intel.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"umg-meego-handset-kernel@umglistsvr.jf.intel.com"
-	<umg-meego-handset-kernel@umglistsvr.jf.intel.com>
-CC: Jozef Kruger <jozef.kruger@siliconhive.com>
-Date: Thu, 10 Feb 2011 00:59:38 -0700
-Subject: RE: Memory allocation in Video4Linux
-Message-ID: <06F569D088CFBC4497658761DA003E13015636076A@rrsmsx505.amr.corp.intel.com>
-References: <D5AB6E638E5A3E4B8F4406B113A5A19A32F923C4@shsmsx501.ccr.corp.intel.com>
-	<D5AB6E638E5A3E4B8F4406B113A5A19A32F923D8@shsmsx501.ccr.corp.intel.com>
-	<D5AB6E638E5A3E4B8F4406B113A5A19A32F923DC@shsmsx501.ccr.corp.intel.com>
-	<C039722627B15F489AB215B00C0A3E6608B074BC74@bgsmsx501.gar.corp.intel.com>
-	<A787B2DEAF88474996451E847A0AFAB7F264B7A4@rrsmsx508.amr.corp.intel.com>
- <D5AB6E638E5A3E4B8F4406B113A5A19A32F92445@shsmsx501.ccr.corp.intel.com>
-In-Reply-To: <D5AB6E638E5A3E4B8F4406B113A5A19A32F92445@shsmsx501.ccr.corp.intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="gb2312"
-Content-Transfer-Encoding: base64
+Received: from perceval.ideasonboard.com ([95.142.166.194]:49039 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756671Ab1BRNV6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Feb 2011 08:21:58 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Michal Nazarewicz" <mina86@mina86.com>
+Subject: Re: [RFD] frame-size switching: preview / single-shot use-case
+Date: Fri, 18 Feb 2011 14:21:53 +0100
+Cc: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
+	"Mauro Carvalho Chehab" <mchehab@infradead.org>,
+	"Hans Verkuil" <hansverk@cisco.com>, "Qing Xu" <qingx@marvell.com>,
+	"Linux Media Mailing List" <linux-media@vger.kernel.org>,
+	"Neil Johnson" <realdealneil@gmail.com>,
+	"Robert Jarzmik" <robert.jarzmik@free.fr>,
+	"Uwe Taeubert" <u.taeubert@road.de>,
+	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	"Eino-Ville Talvala" <talvala@stanford.edu>
+References: <4D5D9B57.3090809@gmail.com> <201102181357.26382.laurent.pinchart@ideasonboard.com> <op.vq3om6es3l0zgt@mnazarewicz-glaptop>
+In-Reply-To: <op.vq3om6es3l0zgt@mnazarewicz-glaptop>
 MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201102181421.54063.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-UGVud2VsbCBoYXMgSU9NTVUgZmVhdHVyZT8NCkFzIGZhciBhcyBJIGtub3cgb25seSBwYXJ0IG9m
-IEludGVsIHNlcnZlciBwcm9jZXNzb3JzIGhhdmUgdGhpcyBmZWF0dXJlIHdoaWNoIGlzIGRlc2ln
-bmVkIG9yaWdpbmFsbHkgZm9yIFZUKHZpcnR1YWxpemF0aW9uIHRlY2hub2xvZ3kpLg0KDQpXZW4s
-DQpDYW4geW91IHJlZmVyIHRvIG90aGVyIElTUCBTb2MgZHJpdmVycyBhbmQgc2VlIGhvdyB0aGV5
-IGFyZSBkZWFsaW5nIHdpdGggdGhpcyBpc3N1ZT8NCkkgZG9uJ3QgdW5kZXJzdGFuZCB3aHkgeW91
-IG5lZWQgdG8gbWFuYWdlIE1NVSBpbnNpZGUgSVNQLCBJIHRoaW5rIHRoZSByZWFsIHByb2JsZW0g
-aXMgaG93IGNhbiB3ZSBhbGxvY2F0ZSBhIGxhcmdlIG51bWJlciBvZiBtZW1vcnkgcGFnZXMgZnJv
-bSBJQSBzaWRlIHdoZXJlIElTUCBjYW4gYWNjZXNzIHRvIGJ5IERNQS4NCkFueSBJU1AgZG9jdW1l
-bnQgY2FuIGJlIHNoYXJlZCB0byBoZWxwIHVzIHVuZGVyc3RhbmQgd2hhdCdzIHRoZSBwcm9ibGVt
-Pw0KDQotQmluDQoNCi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQpGcm9tOiB1bWctbWVlZ28t
-aGFuZHNldC1rZXJuZWwtYm91bmNlc0B1bWdsaXN0c3ZyLmpmLmludGVsLmNvbSBbbWFpbHRvOnVt
-Zy1tZWVnby1oYW5kc2V0LWtlcm5lbC1ib3VuY2VzQHVtZ2xpc3RzdnIuamYuaW50ZWwuY29tXSBP
-biBCZWhhbGYgT2YgV2FuZywgV2VuIFcNClNlbnQ6IFR1ZXNkYXksIEZlYnJ1YXJ5IDA4LCAyMDEx
-IDExOjI3IFBNDQpUbzogS2FuaWdlcmksIEhhcmkgSzsgSXllciwgU3VuZGFyOyBZYW5nLCBKaWFu
-d2VpOyBsaW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmc7IHVtZy1tZWVnby1oYW5kc2V0LWtlcm5l
-bEB1bWdsaXN0c3ZyLmpmLmludGVsLmNvbQ0KQ2M6IEpvemVmIEtydWdlcg0KU3ViamVjdDogUmU6
-IFtVbWctbWVlZ28taGFuZHNldC1rZXJuZWxdIE1lbW9yeSBhbGxvY2F0aW9uIGluIFZpZGVvNExp
-bnV4DQoNCkhpIEhhcmksDQoNCllvdSBhcmUgcmlnaHQuIFdoYXQgd2UgbmVlZCBpcyB2aXJ0dWFs
-IGFkZHJlc3MuDQoNCkN1cnJlbnRseSB3ZSBhbGxvYyBwYWdlcyAoYWxsb2NfcGFnZXMoKSkgZm9y
-IGFueSByZXF1ZXN0LiBTdG9yZSB0aG9zZSBwYWdlcyBmb3IgYW4gaW1hZ2UgYnVmZmVyIGludG8g
-YSBsaXN0LiBXZSBhbHNvIG1hbmFnZSB0aGUgdmlydHVhbCBhZGRyZXNzIGZvciBJU1AgYnkgb3Vy
-c2VsZiAodGhlIHJhbmdlIGZyb20gMCB0byA0R0IpIGFuZCB0aGUgcGFnZSB0YWJsZSBmb3Igb3Vy
-IE1NVSB3aGljaCBpcyBpbmRlcGVuZGVudCB0byBzeXN0ZW0gTU1VIHBhZ2UgdGFibGUuDQoNClRo
-YW5rcw0KV2VuDQoNCj4tLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPkZyb206IEthbmlnZXJp
-LCBIYXJpIEsNCj5TZW50OiAyMDExxOoy1MI5yNUgMTU6MjINCj5UbzogSXllciwgU3VuZGFyOyBX
-YW5nLCBXZW4gVzsgWWFuZywgSmlhbndlaTsgbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnOw0K
-PnVtZy1tZWVnby1oYW5kc2V0LWtlcm5lbEB1bWdsaXN0c3ZyLmpmLmludGVsLmNvbQ0KPkNjOiBK
-b3plZiBLcnVnZXINCj5TdWJqZWN0OiBSRTogTWVtb3J5IGFsbG9jYXRpb24gaW4gVmlkZW80TGlu
-dXgNCj4NCj4NCj4NCj4+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+PiBGcm9tOiB1bWct
-bWVlZ28taGFuZHNldC1rZXJuZWwtYm91bmNlc0B1bWdsaXN0c3ZyLmpmLmludGVsLmNvbQ0KPj4g
-W21haWx0bzp1bWctbWVlZ28taGFuZHNldC1rZXJuZWwtYm91bmNlc0B1bWdsaXN0c3ZyLmpmLmlu
-dGVsLmNvbV0gT24NCj4+IEJlaGFsZiBPZiBJeWVyLCBTdW5kYXINCj4+IFNlbnQ6IFdlZG5lc2Rh
-eSwgRmVicnVhcnkgMDksIDIwMTEgMTI6MjAgUE0NCj4+IFRvOiBXYW5nLCBXZW4gVzsgWWFuZywg
-SmlhbndlaTsgbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnOyB1bWctbWVlZ28tDQo+PiBoYW5k
-c2V0LWtlcm5lbEB1bWdsaXN0c3ZyLmpmLmludGVsLmNvbQ0KPj4gQ2M6IEpvemVmIEtydWdlcg0K
-Pj4gU3ViamVjdDogUmU6IFtVbWctbWVlZ28taGFuZHNldC1rZXJuZWxdIE1lbW9yeSBhbGxvY2F0
-aW9uIGluDQo+PiBWaWRlbzRMaW51eA0KPj4NCj4+IEkgcmVtZW1iZXIgc29tZSBDb250aW5vdXMg
-TWVtb3J5IEFsbG9jYXRvciAoQ01BKSBiZWluZyBpdGVyYXRlZCBkb3duIGENCj4+IGZldyB2ZXJz
-aW9ucyBvbg0KPj4gc29tZSBtYWlsaW5nIGxpc3RzPyBJSVJDLCBpdCBpcyBhbHNvIGZvciBsYXJn
-ZSBidWZmZXJzIGFuZCBtYW5hZ2VtZW50DQo+PiBmb3IgdmlkZW8gSVBzLg0KPg0KPkkgYmVsaWV2
-ZSBDTUEgaXMgZm9yIGFsbG9jYXRpbmcgcGh5c2ljYWxseSBjb250aWd1b3VzIG1lbW9yeSBhbmQg
-ZnJvbSB3aGF0IFdlbg0KPm1lbnRpb25lZCBoZSBhbHNvIG5lZWRzIHZpcnR1YWwgbWVtb3J5IG1h
-bmFnZW1lbnQsIHdoaWNoIHRoZSBJT01NVSB3aWxsDQo+cHJvdmlkZS4gUGxlYXNlIGNoZWNrIHRo
-ZSBvcGVuIHNvdXJjZSBkaXNjdXNzaW9uIG9uIENNQSwgdGhlIGxhc3QgSSBoZWFyZCBDTUENCj5w
-cm9wb3NhbCB3YXMgc2hvdCBkb3duLg0KPlJlZmVyZW5jZTogaHR0cDovL3d3dy5zcGluaWNzLm5l
-dC9saXN0cy9saW51eC1tZWRpYS9tc2cyNjg3NS5odG1sDQo+DQo+V2VuLCBob3cgYXJlIHlvdSBj
-dXJyZW50bHkgYWxsb2NhdGluZyBwaHlzaWNhbCBtZW1vcnkgPw0KPg0KPg0KPlRoYW5rIHlvdSwN
-Cj5CZXN0IHJlZ2FyZHMsDQo+SGFyaQ0KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX18NClVtZy1tZWVnby1oYW5kc2V0LWtlcm5lbCBtYWlsaW5nIGxpc3QNClVt
-Zy1tZWVnby1oYW5kc2V0LWtlcm5lbEB1bWdsaXN0c3ZyLmpmLmludGVsLmNvbQ0KaHR0cDovL3Vt
-Z2xpc3RzdnIuamYuaW50ZWwuY29tL21haWxtYW4vbGlzdGluZm8vdW1nLW1lZWdvLWhhbmRzZXQt
-a2VybmVsDQo=
+Hi Michal,
+
+On Friday 18 February 2011 14:19:44 Michal Nazarewicz wrote:
+> On Fri, 18 Feb 2011 13:57:25 +0100, Laurent Pinchart wrote:
+> > On Friday 18 February 2011 12:37:24 Michal Nazarewicz wrote:
+> > 
+> > [snip]
+> > 
+> >> What I'm trying to say is that it would be best if one could configure
+> >> the device in such a way that switching between modes would not require
+> >> the device to free buffers (even though in user space they could be
+> >> inaccessible).
+> >> 
+> >> 
+> >> This is what I have in mind the usage would look like:
+> >> 
+> >> 1. Open device
+> >> 
+> >> 		Kernel creates some control structures, the usual stuff.
+> >> 
+> >> 2. Initialize multi-format (specifying what formats user space will
+> >> use).
+> >> 
+> >> 		Kernel calculates amount of memory needed for the most
+> >> 		demanding format and allocates it.
+> > 
+> > Don't forget that applications can also use USERPTR. We need a
+> > low-latency solution for that as well.
+> 
+> That would probably work best if user provided one big buffer.  Again,
+> I don't know how this maps to V4L API.
+> 
+> >> 3. Set format (restricted to one of formats specified in step 2)
+> >> 
+> >> 		Kernel has memory already allocated, so it only needs to split
+> >> 		it to buffers needed in given format.
+> >> 
+> >> 4. Allocate buffers.
+> >> 
+> >> 		Kernel allocates memory needed for most demanding format
+> >> 		(calculated in step 2).
+> >> 		Once memory is allocated, splits it to buffers needed in
+> >> 		given format.
+> >> 
+> >> 5. Do the loop... queue, dequeue, all the usual stuff.
+> >> 
+> >> 		Kernel instructs device to handle buffers, the usual stuff.
+> > 
+> > When buffers are queued cache needs to be cleaned. This is an expensive
+> > operation, and we need to be able to pre-queue (or at least pre-clean)
+> > buffers.
+> 
+> Cache operations are always needed, aren't they?  Whatever you do, you
+> will always have to handle cache coherency (in one way or another) so
+> there's nothing we can do about it, or is there?
+
+To achieve low latency still image capture, you need to minimize the time 
+spent reconfiguring the device from viewfinder to still capture. Cache 
+cleaning is always needed, but you can prequeue buffers you can clean the 
+cache in advance, avoiding an extra delay when the user presses the still 
+image capture button.
+
+> >> 6. Free buffers.
+> >> 
+> >> 		Kernel space destroys the buffers needed for given format
+> >> 		but DOES NOT free memory.
+> >> 
+> >> 7. If not done, go to step 3.
+> >> 
+> >> 8. Finish multi-format mode.
+> >> 
+> >> 		Kernel actually frees the memory.
+> >> 
+> >> 9. Close the device.
+> >> 
+> >> A V4L device driver could just ignore step 2 and 7 and work in the less
+> >> optimal mode.
+> >> 
+> >> If I understand V4L2 correctly, the API does not allow for step 2 and 8.
+> >> In theory, they could be merged with step 1 and 9 respectively, I don't
+> >> know id that feasible though.
+
+-- 
+Regards,
+
+Laurent Pinchart
