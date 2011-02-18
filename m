@@ -1,47 +1,106 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42531 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751828Ab1BNM7X (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:45287 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754634Ab1BRNTs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Feb 2011 07:59:23 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: balbi@ti.com
-Subject: Re: [PATCH v6 02/10] omap3: Remove unusued ISP CBUFF resource
-Date: Mon, 14 Feb 2011 13:59:26 +0100
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-References: <1297686097-9804-1-git-send-email-laurent.pinchart@ideasonboard.com> <1297686097-9804-3-git-send-email-laurent.pinchart@ideasonboard.com> <20110214123106.GW2549@legolas.emea.dhcp.ti.com>
-In-Reply-To: <20110214123106.GW2549@legolas.emea.dhcp.ti.com>
+	Fri, 18 Feb 2011 08:19:48 -0500
+Received: by bwz15 with SMTP id 15so702040bwz.19
+        for <linux-media@vger.kernel.org>; Fri, 18 Feb 2011 05:19:46 -0800 (PST)
+Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
+To: "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>
+Cc: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
+	"Mauro Carvalho Chehab" <mchehab@infradead.org>,
+	"Hans Verkuil" <hansverk@cisco.com>, "Qing Xu" <qingx@marvell.com>,
+	"Linux Media Mailing List" <linux-media@vger.kernel.org>,
+	"Neil Johnson" <realdealneil@gmail.com>,
+	"Robert Jarzmik" <robert.jarzmik@free.fr>,
+	"Uwe Taeubert" <u.taeubert@road.de>,
+	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	"Eino-Ville Talvala" <talvala@stanford.edu>
+Subject: Re: [RFD] frame-size switching: preview / single-shot use-case
+References: <4D5D9B57.3090809@gmail.com>
+ <201102181131.30920.laurent.pinchart@ideasonboard.com>
+ <op.vq3jwls93l0zgt@mnazarewicz-glaptop>
+ <201102181357.26382.laurent.pinchart@ideasonboard.com>
+Date: Fri, 18 Feb 2011 14:19:44 +0100
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201102141359.27273.laurent.pinchart@ideasonboard.com>
+From: "Michal Nazarewicz" <mina86@mina86.com>
+Message-ID: <op.vq3om6es3l0zgt@mnazarewicz-glaptop>
+In-Reply-To: <201102181357.26382.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Felipe,
+On Fri, 18 Feb 2011 13:57:25 +0100, Laurent Pinchart  
+<laurent.pinchart@ideasonboard.com> wrote:
 
-On Monday 14 February 2011 13:31:06 Felipe Balbi wrote:
-> On Mon, Feb 14, 2011 at 01:21:29PM +0100, Laurent Pinchart wrote:
-> > From: Sergio Aguirre <saaguirre@ti.com>
-> > 
-> > The ISP CBUFF module isn't use, its resource isn't needed.
-> > 
-> > Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
-> > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > Acked-by: Tony Lindgren <tony@atomide.com>
-> 
-> it's unused but it's there right ? what's the problem in keeping it ?
-> maybe you'd like to add name for the resources as well, there are many
-> of them and keeping the order correct might be difficult. You can move
-> to platform_get_resource_byname() on drivers.
+> Hi Michal,
+>
+> On Friday 18 February 2011 12:37:24 Michal Nazarewicz wrote:
+>
+> [snip]
+>
+>> What I'm trying to say is that it would be best if one could configure  
+>> the device in such a way that switching between modes would not require
+>> the device to free buffers (even though in user space they could be
+>> inaccessible).
+>>
+>>
+>> This is what I have in mind the usage would look like:
+>>
+>> 1. Open device
+>> 		Kernel creates some control structures, the usual stuff.
+>> 2. Initialize multi-format (specifying what formats user space will  
+>> use).
+>> 		Kernel calculates amount of memory needed for the most
+>> 		demanding format and allocates it.
+>
+> Don't forget that applications can also use USERPTR. We need a  
+> low-latency solution for that as well.
 
-But if it's unused, why keep it ? :-) There are other resources present on the 
-chip (especially on older silicon versions) that are completely unused and 
-even undocumented. They're not defined either.
+That would probably work best if user provided one big buffer.  Again,
+I don't know how this maps to V4L API.
+
+>
+>> 3. Set format (restricted to one of formats specified in step 2)
+>> 		Kernel has memory already allocated, so it only needs to split
+>> 		it to buffers needed in given format.
+>> 4. Allocate buffers.
+>> 		Kernel allocates memory needed for most demanding format
+>> 		(calculated in step 2).
+>> 		Once memory is allocated, splits it to buffers needed in
+>> 		given format.
+>> 5. Do the loop... queue, dequeue, all the usual stuff.
+>> 		Kernel instructs device to handle buffers, the usual stuff.
+>
+> When buffers are queued cache needs to be cleaned. This is an expensive
+> operation, and we need to be able to pre-queue (or at least pre-clean)
+> buffers.
+
+Cache operations are always needed, aren't they?  Whatever you do, you
+will always have to handle cache coherency (in one way or another) so
+there's nothing we can do about it, or is there?
+
+>> 6. Free buffers.
+>> 		Kernel space destroys the buffers needed for given format
+>> 		but DOES NOT free memory.
+>>
+>> 7. If not done, go to step 3.
+>>
+>> 8. Finish multi-format mode.
+>> 		Kernel actually frees the memory.
+>>
+>> 9. Close the device.
+>>
+>> A V4L device driver could just ignore step 2 and 7 and work in the less
+>> optimal mode.
+>>
+>> If I understand V4L2 correctly, the API does not allow for step 2 and 8.
+>> In theory, they could be merged with step 1 and 9 respectively, I don't
+>> know id that feasible though.
 
 -- 
-Regards,
-
-Laurent Pinchart
+Best regards,                                         _     _
+.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
+..o | Computer Science,  Michal "mina86" Nazarewicz    (o o)
+ooo +-----<email/xmpp: mnazarewicz@google.com>-----ooO--(_)--Ooo--
