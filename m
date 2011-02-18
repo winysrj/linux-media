@@ -1,469 +1,97 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:59585 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753217Ab1BMBfP (ORCPT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:51740 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932100Ab1BRQwz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Feb 2011 20:35:15 -0500
-Received: by wwa36 with SMTP id 36so3814484wwa.1
-        for <linux-media@vger.kernel.org>; Sat, 12 Feb 2011 17:35:13 -0800 (PST)
-Subject: [PATCH 1/2] v180 - DM04/QQBOX added support for BS2F7HZ0194
- versions
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 13 Feb 2011 01:35:08 +0000
-Message-ID: <1297560908.24985.5.camel@tvboxspy>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Fri, 18 Feb 2011 11:52:55 -0500
+Received: by iyj8 with SMTP id 8so3691319iyj.19
+        for <linux-media@vger.kernel.org>; Fri, 18 Feb 2011 08:52:55 -0800 (PST)
+MIME-Version: 1.0
+Date: Fri, 18 Feb 2011 17:52:54 +0100
+Message-ID: <AANLkTikEXHBBia6pUnqGaamiJWczD2Zqf_DERYhhUjrC@mail.gmail.com>
+Subject: pinnacle 300i - unable to use antenna_pwr=1 on saa7134-dvb
+From: Antonio Orefice <aorefice77@gmail.com>
+To: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Old versions of these boxes have the BS2F7HZ0194 tuner module on
-both the LME2510 and LME2510C.
+Hi,
+I just got a pinnacle 300i i'd like to use to watch dvbt streams.
 
-Firmware dvb-usb-lme2510-s0194.fw  and/or dvb-usb-lme2510c-s0194.fw
-files are required.
+Under linux i get a very poor signal, picture/sound skips and is full
+of artifacts every few seconds, while in windows it works fine.
+Also, if i reboot (no shutdown) from windows to linux, it works good,
+so i think this has something to do with hardware
+settings/initialization.
 
-See Documentation/dvb/lmedm04.txt
+modinfo saa7134-dvb reports an "antenna_pwr" parameter which is
+supposed to give a gain to the signal, but if i set it and
+rmmod/modprobe saa7134-dvb or boot with that parameter, the module
+crashes:
 
-Patch 535181 is also required.
 
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
----
- drivers/media/dvb/dvb-usb/lmedm04.c |  230 ++++++++++++++++++++++++++---------
- 1 files changed, 170 insertions(+), 60 deletions(-)
+last sysfs file:
+/sys/devices/pci0000:00/0000:00:1e.0/0000:05:02.0/subsystem_device
+Modules linked in: saa7134_dvb cpufreq_userspace acpi_cpufreq
+freq_table mperf tun fuse snd_usb_audio snd_usbmidi_lib snd_rawmidi
+ext3 jbd saa7134_alsa nvidia(P) mt352 videobuf_dvb dvb_core
+snd_seq_dummy snd_seq_oss snd_seq_midi_event snd_seq snd_seq_device
+snd_hda_codec_realtek mt20xx snd_pcm_oss snd_mixer_oss tea5767 tda9887
+snd_hda_intel snd_hda_codec snd_hwdep snd_pcm snd_timer snd soundcore
+snd_page_alloc tda8290 ir_sony_decoder ir_jvc_decoder tuner
+ir_rc6_decoder usbhid hid ir_rc5_decoder ir_nec_decoder saa7134
+v4l2_common videodev v4l1_compat videobuf_dma_sg videobuf_core
+ir_common ir_core tveeprom asus_atk0110 i2c_i801 i2c_core parport_pc
+floppy sr_mod cdrom processor button thermal iTCO_wdt
+iTCO_vendor_support r8169 mii uhci_hcd ehci_hcd usbcore sg intel_agp
+agpgart evdev ppdev lp parport rtc_cmos rtc_core rtc_lib ext4 mbcache
+jbd2 crc16 pata_jmicron pata_acpi sd_mod ahci libahci libata scsi_mod
+[last unloaded: saa7134_dvb]
 
-diff --git a/drivers/media/dvb/dvb-usb/lmedm04.c b/drivers/media/dvb/dvb-usb/lmedm04.c
-index c58d3fc..cd26e7c 100644
---- a/drivers/media/dvb/dvb-usb/lmedm04.c
-+++ b/drivers/media/dvb/dvb-usb/lmedm04.c
-@@ -2,7 +2,9 @@
-  *
-  * DM04/QQBOX DVB-S USB BOX	LME2510C + SHARP:BS2F7HZ7395
-  *				LME2510C + LG TDQY-P001F
-+ *				LME2510C + BS2F7HZ0194
-  *				LME2510 + LG TDQY-P001F
-+ *				LME2510 + BS2F7HZ0194
-  *
-  * MVB7395 (LME2510C+SHARP:BS2F7HZ7395)
-  * SHARP:BS2F7HZ7395 = (STV0288+Sharp IX2505V)
-@@ -12,20 +14,22 @@
-  *
-  * MVB0001F (LME2510C+LGTDQT-P001F)
-  *
-+ * MV0194 (LME2510+SHARP:BS2F7HZ0194)
-+ * SHARP:BS2F7HZ0194 = (STV0299+IX2410)
-+ *
-+ * MVB0194 (LME2510C+SHARP0194)
-+ *
-  * For firmware see Documentation/dvb/lmedm04.txt
-  *
-  * I2C addresses:
-  * 0xd0 - STV0288	- Demodulator
-  * 0xc0 - Sharp IX2505V	- Tuner
-- * --or--
-+ * --
-  * 0x1c - TDA10086   - Demodulator
-  * 0xc0 - TDA8263    - Tuner
-- *
-- * ***Please Note***
-- *		There are other variants of the DM04
-- *		***NOT SUPPORTED***
-- *		MV0194 (LME2510+SHARP0194)
-- *		MVB0194 (LME2510C+SHARP0194)
-+ * --
-+ * 0xd0 - STV0299	- Demodulator
-+ * 0xc0 - IX2410	- Tuner
-  *
-  *
-  * VID = 3344  PID LME2510=1122 LME2510C=1120
-@@ -55,6 +59,9 @@
-  *
-  * QQbox suffers from noise on LNB voltage.
-  *
-+ *	LME2510: SHARP:BS2F7HZ0194(MV0194) cannot cold reset and share system
-+ * with other tuners. After a cold reset streaming will not start.
-+ *
-  *	PID functions have been removed from this driver version due to
-  * problems with different firmware and application versions.
-  */
-@@ -69,6 +76,9 @@
- #include "tda10086.h"
- #include "stv0288.h"
- #include "ix2505v.h"
-+#include "stv0299.h"
-+#include "dvb-pll.h"
-+#include "z0194a.h"
- 
- 
- 
-@@ -96,8 +106,11 @@ MODULE_PARM_DESC(firmware, "set default firmware 0=Sharp7395 1=LG");
- 
- 
- DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
-+
-+#define TUNER_DEFAULT	0x0
- #define TUNER_LG	0x1
- #define TUNER_S7395	0x2
-+#define TUNER_S0194	0x3
- 
- struct lme2510_state {
- 	u8 id;
-@@ -250,6 +263,7 @@ static void lme2510_int_response(struct urb *lme_urb)
- 				st->time_key = ibuf[7];
- 				break;
- 			case TUNER_S7395:
-+			case TUNER_S0194:
- 				/* Tweak for earlier firmware*/
- 				if (ibuf[1] == 0x03) {
- 					if (ibuf[2] > 1)
-@@ -365,6 +379,18 @@ static int lme2510_msg(struct dvb_usb_device *d,
- 					msleep(5);
- 			}
- 			break;
-+		case TUNER_S0194:
-+			if (wbuf[2] == 0xd0) {
-+				if (wbuf[3] == 0x1b) {
-+					st->signal_lock = rbuf[1];
-+					if ((st->stream_on & 1) &&
-+						(st->signal_lock & 0x8)) {
-+						lme2510_stream_restart(d);
-+						st->i2c_talk_onoff = 0;
-+					}
-+				}
-+			}
-+			break;
- 		default:
- 			break;
- 		}
-@@ -424,6 +450,34 @@ static int lme2510_msg(struct dvb_usb_device *d,
- 				break;
- 			}
- 			break;
-+		case TUNER_S0194:
-+			switch (wbuf[3]) {
-+			case 0x18:
-+				rbuf[0] = 0x55;
-+				rbuf[1] = (st->signal_level & 0x80)
-+						? 0 : (st->signal_level * 2);
-+				break;
-+			case 0x24:
-+				rbuf[0] = 0x55;
-+				rbuf[1] = st->signal_sn;
-+				break;
-+			case 0x1b:
-+				rbuf[0] = 0x55;
-+				rbuf[1] = st->signal_lock;
-+				break;
-+			case 0x19:
-+			case 0x25:
-+			case 0x1e:
-+			case 0x1d:
-+				rbuf[0] = 0x55;
-+				rbuf[1] = 0x00;
-+				break;
-+			default:
-+				lme2510_usb_talk(d, wbuf, wlen, rbuf, rlen);
-+				st->i2c_talk_onoff = 1;
-+				break;
-+			}
-+			break;
- 		default:
- 			break;
- 		}
-@@ -518,17 +572,14 @@ static int lme2510_identify_state(struct usb_device *udev,
- 		struct dvb_usb_device_description **desc,
- 		int *cold)
- {
--	if (lme2510_return_status(udev) == 0x44)
--		*cold = 1;
--	else
--		*cold = 0;
-+	*cold = 0;
- 	return 0;
- }
- 
- static int lme2510_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
- {
- 	struct lme2510_state *st = adap->dev->priv;
--	static u8 clear_reg_3[] =  LME_CLEAR_PID;
-+	static u8 clear_reg_3[] = LME_CLEAR_PID;
- 	static u8 rbuf[1];
- 	int ret = 0, rlen = sizeof(rbuf);
- 
-@@ -659,9 +710,6 @@ static int lme2510_download_firmware(struct usb_device *dev,
- 	return (ret < 0) ? -ENODEV : 0;
- }
- 
--/* Default firmware for LME2510C */
--char lme_firmware[50] = "dvb-usb-lme2510c-s7395.fw";
--
- static void lme_coldreset(struct usb_device *dev)
- {
- 	int ret = 0, len_in;
-@@ -679,49 +727,83 @@ static void lme_coldreset(struct usb_device *dev)
- static int lme_firmware_switch(struct usb_device *udev, int cold)
- {
- 	const struct firmware *fw = NULL;
--	char lme2510c_s7395[] = "dvb-usb-lme2510c-s7395.fw";
--	char lme2510c_lg[] = "dvb-usb-lme2510c-lg.fw";
--	char *firm_msg[] = {"Loading", "Switching to"};
--	int ret;
-+	const char fw_c_s7395[] = "dvb-usb-lme2510c-s7395.fw";
-+	const char fw_c_lg[] = "dvb-usb-lme2510c-lg.fw";
-+	const char fw_c_s0194[] = "dvb-usb-lme2510c-s0194.fw";
-+	const char fw_lg[] = "dvb-usb-lme2510-lg.fw";
-+	const char fw_s0194[] = "dvb-usb-lme2510-s0194.fw";
-+	const char *fw_lme;
-+	int ret, cold_fw;
- 
- 	cold = (cold > 0) ? (cold & 1) : 0;
- 
--	if (udev->descriptor.idProduct == 0x1122)
--		return 0;
-+	cold_fw = !cold;
- 
--	switch (dvb_usb_lme2510_firmware) {
--	case 0:
--	default:
--		memcpy(&lme_firmware, lme2510c_s7395, sizeof(lme2510c_s7395));
--		ret = request_firmware(&fw, lme_firmware, &udev->dev);
--		if (ret == 0) {
--			info("FRM %s S7395 Firmware", firm_msg[cold]);
-+	if (udev->descriptor.idProduct == 0x1122) {
-+		switch (dvb_usb_lme2510_firmware) {
-+		default:
-+			dvb_usb_lme2510_firmware = TUNER_S0194;
-+		case TUNER_S0194:
-+			fw_lme = fw_s0194;
-+			ret = request_firmware(&fw, fw_lme, &udev->dev);
-+			if (ret == 0) {
-+				cold = 0;/*lme2510-s0194 cannot cold reset*/
-+				break;
-+			}
-+			dvb_usb_lme2510_firmware = TUNER_LG;
-+		case TUNER_LG:
-+			fw_lme = fw_lg;
-+			ret = request_firmware(&fw, fw_lme, &udev->dev);
-+			if (ret == 0)
-+				break;
-+			info("FRM No Firmware Found - please install");
-+			dvb_usb_lme2510_firmware = TUNER_DEFAULT;
-+			cold = 0;
-+			cold_fw = 0;
- 			break;
- 		}
--		if (cold == 0)
--			dvb_usb_lme2510_firmware = 1;
--		else
-+	} else {
-+		switch (dvb_usb_lme2510_firmware) {
-+		default:
-+			dvb_usb_lme2510_firmware = TUNER_S7395;
-+		case TUNER_S7395:
-+			fw_lme = fw_c_s7395;
-+			ret = request_firmware(&fw, fw_lme, &udev->dev);
-+			if (ret == 0)
-+				break;
-+			dvb_usb_lme2510_firmware = TUNER_LG;
-+		case TUNER_LG:
-+			fw_lme = fw_c_lg;
-+			ret = request_firmware(&fw, fw_lme, &udev->dev);
-+			if (ret == 0)
-+				break;
-+			dvb_usb_lme2510_firmware = TUNER_S0194;
-+		case TUNER_S0194:
-+			fw_lme = fw_c_s0194;
-+			ret = request_firmware(&fw, fw_lme, &udev->dev);
-+			if (ret == 0)
-+				break;
-+			info("FRM No Firmware Found - please install");
-+			dvb_usb_lme2510_firmware = TUNER_DEFAULT;
- 			cold = 0;
--	case 1:
--		memcpy(&lme_firmware, lme2510c_lg, sizeof(lme2510c_lg));
--		ret = request_firmware(&fw, lme_firmware, &udev->dev);
--		if (ret == 0) {
--			info("FRM %s LG Firmware", firm_msg[cold]);
-+			cold_fw = 0;
- 			break;
- 		}
--		info("FRM No Firmware Found - please install");
--		dvb_usb_lme2510_firmware = 0;
--		cold = 0;
--		break;
- 	}
- 
--	release_firmware(fw);
-+	if (cold_fw) {
-+		info("FRM Loading %s file", fw_lme);
-+		ret = lme2510_download_firmware(udev, fw);
-+	}
- 
- 	if (cold) {
-+		info("FRM Changing to %s firmware", fw_lme);
- 		lme_coldreset(udev);
- 		return -ENODEV;
- 	}
- 
-+	release_firmware(fw);
-+
- 	return ret;
- }
- 
-@@ -759,6 +841,18 @@ static struct ix2505v_config lme_tuner = {
- 	.tuner_chargepump = 0x3,
- };
- 
-+static struct stv0299_config sharp_z0194_config = {
-+	.demod_address = 0xd0,
-+	.inittab = sharp_z0194a_inittab,
-+	.mclk = 88000000UL,
-+	.invert = 0,
-+	.skip_reinit = 0,
-+	.lock_output = STV0299_LOCKOUTPUT_1,
-+	.volt13_op0_op1 = STV0299_VOLT13_OP1,
-+	.min_delay_ms = 100,
-+	.set_symbol_rate = sharp_z0194a_set_symbol_rate,
-+};
-+
- static int dm04_lme2510_set_voltage(struct dvb_frontend *fe,
- 					fe_sec_voltage_t voltage)
- {
-@@ -794,7 +888,8 @@ static int lme_name(struct dvb_usb_adapter *adap)
- {
- 	struct lme2510_state *st = adap->dev->priv;
- 	const char *desc = adap->dev->desc->name;
--	char *fe_name[] = {"", " LG TDQY-P001F", " SHARP:BS2F7HZ7395"};
-+	char *fe_name[] = {"", " LG TDQY-P001F", " SHARP:BS2F7HZ7395",
-+				" SHARP:BS2F7HZ0194"};
- 	char *name = adap->fe->ops.info.name;
- 
- 	strlcpy(name, desc, 128);
-@@ -821,26 +916,40 @@ static int dm04_lme2510_frontend_attach(struct dvb_usb_adapter *adap)
- 		st->i2c_tuner_gate_r = 4;
- 		st->i2c_tuner_addr = 0xc0;
- 		st->tuner_config = TUNER_LG;
--		if (dvb_usb_lme2510_firmware != 1) {
--			dvb_usb_lme2510_firmware = 1;
-+		if (dvb_usb_lme2510_firmware != TUNER_LG) {
-+			dvb_usb_lme2510_firmware = TUNER_LG;
- 			ret = lme_firmware_switch(adap->dev->udev, 1);
--		} else /*stops LG/Sharp multi tuner problems*/
--			dvb_usb_lme2510_firmware = 0;
-+		}
-+		goto end;
-+	}
-+
-+	st->i2c_gate = 4;
-+	adap->fe = dvb_attach(stv0299_attach, &sharp_z0194_config,
-+			&adap->dev->i2c_adap);
-+	if (adap->fe) {
-+		info("FE Found Stv0299");
-+		st->i2c_tuner_gate_w = 4;
-+		st->i2c_tuner_gate_r = 5;
-+		st->i2c_tuner_addr = 0xc0;
-+		st->tuner_config = TUNER_S0194;
-+		if (dvb_usb_lme2510_firmware != TUNER_S0194) {
-+			dvb_usb_lme2510_firmware = TUNER_S0194;
-+			ret = lme_firmware_switch(adap->dev->udev, 1);
-+		}
- 		goto end;
- 	}
- 
- 	st->i2c_gate = 5;
- 	adap->fe = dvb_attach(stv0288_attach, &lme_config,
- 			&adap->dev->i2c_adap);
--
- 	if (adap->fe) {
- 		info("FE Found Stv0288");
- 		st->i2c_tuner_gate_w = 4;
- 		st->i2c_tuner_gate_r = 5;
- 		st->i2c_tuner_addr = 0xc0;
- 		st->tuner_config = TUNER_S7395;
--		if (dvb_usb_lme2510_firmware != 0) {
--			dvb_usb_lme2510_firmware = 0;
-+		if (dvb_usb_lme2510_firmware != TUNER_S7395) {
-+			dvb_usb_lme2510_firmware = TUNER_S7395;
- 			ret = lme_firmware_switch(adap->dev->udev, 1);
- 		}
- 	} else {
-@@ -848,6 +957,7 @@ static int dm04_lme2510_frontend_attach(struct dvb_usb_adapter *adap)
- 		return -ENODEV;
- 	}
- 
-+
- end:	if (ret) {
- 		kfree(adap->fe);
- 		adap->fe = NULL;
-@@ -856,14 +966,13 @@ end:	if (ret) {
- 
- 	adap->fe->ops.set_voltage = dm04_lme2510_set_voltage;
- 	ret = lme_name(adap);
--
- 	return ret;
- }
- 
- static int dm04_lme2510_tuner(struct dvb_usb_adapter *adap)
- {
- 	struct lme2510_state *st = adap->dev->priv;
--	char *tun_msg[] = {"", "TDA8263", "IX2505V"};
-+	char *tun_msg[] = {"", "TDA8263", "IX2505V", "DVB_PLL_OPERA"};
- 	int ret = 0;
- 
- 	switch (st->tuner_config) {
-@@ -877,6 +986,11 @@ static int dm04_lme2510_tuner(struct dvb_usb_adapter *adap)
- 			&adap->dev->i2c_adap))
- 			ret = st->tuner_config;
- 		break;
-+	case TUNER_S0194:
-+		if (dvb_attach(dvb_pll_attach , adap->fe, 0xc0,
-+			&adap->dev->i2c_adap, DVB_PLL_OPERA1))
-+			ret = st->tuner_config;
-+		break;
- 	default:
- 		break;
- 	}
-@@ -937,7 +1051,10 @@ static int lme2510_probe(struct usb_interface *intf,
- 		return -ENODEV;
- 	}
- 
--	lme_firmware_switch(udev, 0);
-+	if (lme2510_return_status(udev) == 0x44) {
-+		lme_firmware_switch(udev, 0);
-+		return -ENODEV;
-+	}
- 
- 	if (0 == dvb_usb_device_init(intf, &lme2510_properties,
- 				     THIS_MODULE, NULL, adapter_nr)) {
-@@ -965,10 +1082,6 @@ MODULE_DEVICE_TABLE(usb, lme2510_table);
- 
- static struct dvb_usb_device_properties lme2510_properties = {
- 	.caps = DVB_USB_IS_AN_I2C_ADAPTER,
--	.usb_ctrl = DEVICE_SPECIFIC,
--	.download_firmware = lme2510_download_firmware,
--	.firmware = "dvb-usb-lme2510-lg.fw",
--
- 	.size_of_priv = sizeof(struct lme2510_state),
- 	.num_adapters = 1,
- 	.adapter = {
-@@ -1005,9 +1118,6 @@ static struct dvb_usb_device_properties lme2510_properties = {
- 
- static struct dvb_usb_device_properties lme2510c_properties = {
- 	.caps = DVB_USB_IS_AN_I2C_ADAPTER,
--	.usb_ctrl = DEVICE_SPECIFIC,
--	.download_firmware = lme2510_download_firmware,
--	.firmware = (const char *)&lme_firmware,
- 	.size_of_priv = sizeof(struct lme2510_state),
- 	.num_adapters = 1,
- 	.adapter = {
-@@ -1110,5 +1220,5 @@ module_exit(lme2510_module_exit);
- 
- MODULE_AUTHOR("Malcolm Priestley <tvboxspy@gmail.com>");
- MODULE_DESCRIPTION("LME2510(C) DVB-S USB2.0");
--MODULE_VERSION("1.76");
-+MODULE_VERSION("1.80");
- MODULE_LICENSE("GPL");
--- 
-1.7.1
+Pid: 4470, comm: kdvb-ad-0-fe-0 Tainted: P            2.6.35-ARCH #1
+P5QL-ASUS-SE/System Product Name
+EIP: 0060:[<f872a0e7>] EFLAGS: 00010286 CPU: 1
+EIP is at mt352_pinnacle_tuner_set_params+0x1f7/0x276 [saa7134_dvb]
+EAX: f8e20c00 EBX: f623a03c ECX: 01480000 EDX: 0000684c
+ESI: f623a000 EDI: f623a03c EBP: f198bec0 ESP: f198be60
+ DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068
+Process kdvb-ad-0-fe-0 (pid: 4470, ti=f198a000 task=f1874500 task.ti=f198a000)
+Stack:
+ f198be78 c2903e3c c2903e68 c12f2740 f623a184 f244b404 00000000 00000003
+<0> 00002b20 c1002666 00000000 c2908140 f60f36c0 f198beb0 c1034d6a f1874500
+<0> 00000000 00000043 c2900002 f198beb0 f1007100 f244b004 f244b404 00008d36
+Call Trace:
+ [<c1002666>] ? __switch_to+0xb6/0x180
+ [<c1034d6a>] ? finish_task_switch+0x3a/0xa0
+ [<fa507346>] ? mt352_set_parameters+0x266/0x3c0 [mt352]
+ [<c1051eb6>] ? lock_timer_base.clone.26+0x26/0x50
+ [<fa4cc178>] ? dvb_frontend_swzigzag_autotune+0x108/0x270 [dvb_core]
+ [<fa4ccab9>] ? dvb_frontend_swzigzag+0x1c9/0x270 [dvb_core]
+ [<fa4cd67f>] ? dvb_frontend_thread+0x2cf/0x540 [dvb_core]
+ [<c103df8b>] ? default_wake_function+0xb/0x10
+ [<c105eb30>] ? autoremove_wake_function+0x0/0x40
+ [<fa4cd3b0>] ? dvb_frontend_thread+0x0/0x540 [dvb_core]
+ [<c105e71c>] ? kthread+0x6c/0x80
+ [<c105e6b0>] ? kthread+0x0/0x80
+ [<c1003d3e>] ? kernel_thread_helper+0x6/0x18
+Code: 60 25 a6 c8 8b 96 64 01 00 00 8b 82 b4 01 00 00 0d 00 00 00 10
+89 82 b4 01 00 00 b8 c6 a7 00 00 e8 3f 25 a6 c8 8b 86 64 01 00 00 <8b>
+98 d0 06 00 00 8b 3d 0c b9 72 f8 81 e3 00 00 00 08 85 ff 75
+EIP: [<f872a0e7>] mt352_pinnacle_tuner_set_params+0x1f7/0x276
+[saa7134_dvb] SS:ESP 0068:f198be60
+CR2: 00000000f8e212d0
+---[ end trace 3e593e27d37e843e ]---
 
+I read another similar issue on the list where it was suggested to try
+with newer v4l-dvb stuff, but more than a year ago.
+
+Reference here:
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg08616.html
+
+Can someone make some light on this issue?
+
+Thank you very much!
+
+--
+Antonio Orefice
