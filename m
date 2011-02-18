@@ -1,66 +1,107 @@
 Return-path: <mchehab@pedra>
-Received: from mga02.intel.com ([134.134.136.20]:47655 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754464Ab1BHNrK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Feb 2011 08:47:10 -0500
-From: "Bensaid, Selma" <selma.bensaid@intel.com>
-To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-CC: ext Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>,
-	"sameo@linux.intel.com" <sameo@linux.intel.com>,
-	ext Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
-	"matti.j.aaltonen@nokia.com" <matti.j.aaltonen@nokia.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>
-Date: Tue, 8 Feb 2011 13:47:03 +0000
-Subject: RE: [alsa-devel] WL1273 FM Radio driver...
-Message-ID: <2A84145621092446B6659B8A0F28E26F47010C2B07@irsmsx501.ger.corp.intel.com>
-References: <1297075922.15320.31.camel@masi.mnp.nokia.com>
-		<4D4FDED0.7070008@redhat.com>
-		<20110207120234.GE10564@opensource.wolfsonmicro.com>
-		<4D4FEA03.7090109@redhat.com>
-		<20110207131045.GG10564@opensource.wolfsonmicro.com>
-		<4D4FF821.4010701@redhat.com>
-		<20110207135225.GJ10564@opensource.wolfsonmicro.com>
-	<1297088242.15320.62.camel@masi.mnp.nokia.com>	<4D501704.6060504@redhat.com>
- <4D5109B3.60504@nokia.com>
- <2A84145621092446B6659B8A0F28E26F47010C29F1@irsmsx501.ger.corp.intel.com>
- <4D5122CF.3010403@nokia.com>
-In-Reply-To: <4D5122CF.3010403@nokia.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="iso-8859-1"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:57232 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757617Ab1BRBTH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Feb 2011 20:19:07 -0500
+Received: from [192.168.1.2] (d-216-36-28-191.cpe.metrocast.net [216.36.28.191])
+	(authenticated bits=0)
+	by mango.metrocast.net (8.13.8/8.13.8) with ESMTP id p1I1J1ca020589
+	for <linux-media@vger.kernel.org>; Fri, 18 Feb 2011 01:19:04 GMT
+Subject: [PATCH 09/13] lirc_zilog: Move constants from ir_probe() into the
+ lirc_driver template
+From: Andy Walls <awalls@md.metrocast.net>
+To: linux-media@vger.kernel.org
+In-Reply-To: <1297991502.9399.16.camel@localhost>
+References: <1297991502.9399.16.camel@localhost>
+Content-Type: text/plain; charset="UTF-8"
+Date: Thu, 17 Feb 2011 20:19:14 -0500
+Message-ID: <1297991954.9399.25.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-> > For both configuration we have a set of HCI commands to configure the FM
-> audio
-> > path and one of my concerns is to know if the wl1273_codec should handle the
-> audio path configuration
-> > and the switch between FM and BT SCO?
-> 
-> It would be better if the codec could handle the configuration,
-> depending on which DAI is in use. If we can send HCI commands from
-> kernel, I think that would be the cleanest way.
-If we use the Combined Interface Mode (host controls both the BT and FM 
-radio via BT HCI) this could be possible. However, you use the Separate 
-Interface (FM controlled vi I2C). 
-Is there a plan to handle also the Combined Interface Mode for WL1273 FM Radio driver?
 
-Selma.
-> --
-> Péter
----------------------------------------------------------------------
-Intel Corporation SAS (French simplified joint stock company)
-Registered headquarters: "Les Montalets"- 2, rue de Paris, 
-92196 Meudon Cedex, France
-Registration Number:  302 456 199 R.C.S. NANTERRE
-Capital: 4,572,000 Euros
+ir_probe() makes a number of constant assignments into the lirc_driver
+object after copying in a template.  Make better use of the template.
 
-This e-mail and any attachments may contain confidential material for
-the sole use of the intended recipient(s). Any review or distribution
-by others is strictly prohibited. If you are not the intended
-recipient, please contact the sender and delete all copies.
+Signed-off-by: Andy Walls <awalls@md.metrocast.net>
+---
+ drivers/staging/lirc/lirc_zilog.c |   27 +++++++++++++++------------
+ 1 files changed, 15 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/staging/lirc/lirc_zilog.c b/drivers/staging/lirc/lirc_zilog.c
+index a94b10a..8ab60e9 100644
+--- a/drivers/staging/lirc/lirc_zilog.c
++++ b/drivers/staging/lirc/lirc_zilog.c
+@@ -1116,13 +1116,6 @@ static int close(struct inode *node, struct file *filep)
+ 	return 0;
+ }
+ 
+-static struct lirc_driver lirc_template = {
+-	.name		= "lirc_zilog",
+-	.set_use_inc	= set_use_inc,
+-	.set_use_dec	= set_use_dec,
+-	.owner		= THIS_MODULE
+-};
+-
+ static int ir_remove(struct i2c_client *client);
+ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id);
+ 
+@@ -1161,6 +1154,19 @@ static const struct file_operations lirc_fops = {
+ 	.release	= close
+ };
+ 
++static struct lirc_driver lirc_template = {
++	.name		= "lirc_zilog",
++	.minor		= -1,
++	.code_length	= 13,
++	.buffer_size	= BUFLEN / 2,
++	.sample_rate	= 0, /* tell lirc_dev to not start its own kthread */
++	.chunk_size	= 2,
++	.set_use_inc	= set_use_inc,
++	.set_use_dec	= set_use_dec,
++	.fops		= &lirc_fops,
++	.owner		= THIS_MODULE,
++};
++
+ static void destroy_rx_kthread(struct IR_rx *rx)
+ {
+ 	/* end up polling thread */
+@@ -1292,14 +1298,9 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 		/* set lirc_dev stuff */
+ 		memcpy(&ir->l, &lirc_template, sizeof(struct lirc_driver));
+ 		ir->l.minor       = minor; /* module option */
+-		ir->l.code_length = 13;
+-		ir->l.chunk_size  = 2;
+-		ir->l.buffer_size = BUFLEN / 2;
+ 		ir->l.rbuf	  = &ir->rbuf;
+-		ir->l.fops	  = &lirc_fops;
+ 		ir->l.data	  = ir;
+ 		ir->l.dev         = &adap->dev;
+-		ir->l.sample_rate = 0;
+ 		ret = lirc_buffer_init(ir->l.rbuf,
+ 				       ir->l.chunk_size, ir->l.buffer_size);
+ 		if (ret)
+@@ -1314,6 +1315,7 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 			goto out_free_xx;
+ 		}
+ 
++		ir->l.features |= LIRC_CAN_SEND_PULSE;
+ 		ir->tx->c = client;
+ 		ir->tx->need_boot = 1;
+ 		ir->tx->post_tx_ready_poll =
+@@ -1326,6 +1328,7 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 			goto out_free_xx;
+ 		}
+ 
++		ir->l.features |= LIRC_CAN_REC_LIRCCODE;
+ 		ir->rx->c = client;
+ 		ir->rx->hdpvr_data_fmt =
+ 			       (id->driver_data & ID_FLAG_HDPVR) ? true : false;
+-- 
+1.7.2.1
+
+
 
