@@ -1,83 +1,69 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38014 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:49164 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753958Ab1BJKAz (ORCPT
+	with ESMTP id S1755157Ab1BRONw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Feb 2011 05:00:55 -0500
+	Fri, 18 Feb 2011 09:13:52 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Wang, Wen W" <wen.w.wang@intel.com>
-Subject: Re: Memory allocation in Video4Linux
-Date: Thu, 10 Feb 2011 11:00:49 +0100
-Cc: "Gao, Bin" <bin.gao@intel.com>,
-	"Kanigeri, Hari K" <hari.k.kanigeri@intel.com>,
-	"Iyer, Sundar" <sundar.iyer@intel.com>,
-	"Yang, Jianwei" <jianwei.yang@intel.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"umg-meego-handset-kernel@umglistsvr.jf.intel.com"
-	<umg-meego-handset-kernel@umglistsvr.jf.intel.com>,
-	Jozef Kruger <jozef.kruger@siliconhive.com>,
-	"Zhang, Xiaolin" <xiaolin.zhang@intel.com>,
-	"Xie, Cindy" <cindy.xie@intel.com>
-References: <D5AB6E638E5A3E4B8F4406B113A5A19A32F923C4@shsmsx501.ccr.corp.intel.com> <201102101029.13502.laurent.pinchart@ideasonboard.com> <D5AB6E638E5A3E4B8F4406B113A5A19A32F929C2@shsmsx501.ccr.corp.intel.com>
-In-Reply-To: <D5AB6E638E5A3E4B8F4406B113A5A19A32F929C2@shsmsx501.ccr.corp.intel.com>
+To: "Michal Nazarewicz" <mina86@mina86.com>
+Subject: Re: [RFD] frame-size switching: preview / single-shot use-case
+Date: Fri, 18 Feb 2011 15:13:48 +0100
+Cc: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
+	"Mauro Carvalho Chehab" <mchehab@infradead.org>,
+	"Hans Verkuil" <hansverk@cisco.com>, "Qing Xu" <qingx@marvell.com>,
+	"Linux Media Mailing List" <linux-media@vger.kernel.org>,
+	"Neil Johnson" <realdealneil@gmail.com>,
+	"Robert Jarzmik" <robert.jarzmik@free.fr>,
+	"Uwe Taeubert" <u.taeubert@road.de>,
+	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	"Eino-Ville Talvala" <talvala@stanford.edu>
+References: <4D5D9B57.3090809@gmail.com> <201102181421.54063.laurent.pinchart@ideasonboard.com> <op.vq3qrrv33l0zgt@mnazarewicz-glaptop>
+In-Reply-To: <op.vq3qrrv33l0zgt@mnazarewicz-glaptop>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="gb18030"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201102101100.50667.laurent.pinchart@ideasonboard.com>
+Message-Id: <201102181513.48978.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Wen,
+Hi Michal,
 
-On Thursday 10 February 2011 10:44:58 Wang, Wen W wrote:
-> Hi Laurent,
+On Friday 18 February 2011 15:05:42 Michal Nazarewicz wrote:
+> > On Friday 18 February 2011 14:19:44 Michal Nazarewicz wrote:
+> >> Cache operations are always needed, aren't they?  Whatever you do, you
+> >> will always have to handle cache coherency (in one way or another) so
+> >> there's nothing we can do about it, or is there?
 > 
-> You make this very clear, thank you!
+> On Fri, 18 Feb 2011 14:21:53 +0100, Laurent Pinchart wrote:
+> > To achieve low latency still image capture, you need to minimize the time
+> > spent reconfiguring the device from viewfinder to still capture. Cache
+> > cleaning is always needed, but you can prequeue buffers you can clean the
+> > cache in advance, avoiding an extra delay when the user presses the still
+> > image capture button.
 > 
-> The ISP on Medfield do have its own IOMMU. And I also think an IOMMU layer
-> for ISP is needed.
-> 
-> I'm not quite understand "unless hardware design doesn't give you a choice
-> about that,". Can you explain more on that?
+> If there is enough time to perform those operation while preview is shown
+> (ie. several frames pare second), why would there not be enough time to
+> perform those operations for still image capture?
 
-Basically, Linux aims for driver reusability. That means that separate pieces 
-of hardware, even when they are designed to work together, should be handled 
-by separate, indepedent drivers. This might make the initial development a bit 
-longer, as proper abstraction APIs need to be designed when they don't exist, 
-but it cuts down time to market later when a hardware block is reused in a 
-different silicon or board.
+For still image capture you want to minimize the shot-to-snapshot delay (delay 
+between the time when the user presses the shot button and the time when the 
+image is captured). Allocating memory for the buffers and prequeuing them 
+should thus be done before the user presses the shot button.
 
-A good example of that approach is I2C sensors. They're supported by drivers 
-that are completely independent of the ISP they are connected to, and use the 
-V4L2 subdev in-kernel API to communicate with the ISP in a hardware-indepedent 
-way.
+> If I understand you correctly, what you are describing is a situation where
+> one has set of buffers for preview and a buffer for still image laying
+> around waiting to be used, right?
 
-IOMMU is such an API. It lets you implement support for your particular IOMMU 
-in a self-contained drivers, which can then be used by device drivers (such as 
-the ISP driver).
+That's correct. That's what we currently do with the OMAP3 ISP.
 
-For this to work, the hardware needs to have at least some level of separation 
-between the different components. With I2C that's easy, the sensor can be 
-controlled completely indepedently from the ISP. With the ISP IOMMU, it would 
-more or less depend on how the registers are layed out in memory. If the ISP 
-IOMMU registers are grouped together and separated from the other ISP 
-registers, you should be fine. If they are mixed with ISP registers (an 
-hypotetical bad case would for instance be if the ISP IOMMU required you to 
-set bits in the TLB entries that describe the format of the video data stored 
-in a page), such an abstraction would be much more difficult to achieve, and 
-sometimes even impossible.
+> Such scheme will of course work, but I'm just suggesting to think of
+> a scheme where the unused buffer for still image is reused for preview
+> frames when preview is shown.
 
-> Also regarding to the VCMM (Virtual Contiguous Memory Manager) or CMA, is
-> it also an option?
-
-I'm not sure about VCMM, it seems to be an attempt to unify memory management 
-across IOMMUs and system MMU. I don't think you need to worry about it now, 
-IOMMU should be enough for your needs.
-
-CMA, as its name implies, is a contiguous memory allocator. As your ISP has an 
-IOMMU, you don't need to allocate contiguous memory, so CMA isn't useful for 
-your hardware.
+That will work as well, but it will increase the shot-to-snapshot delay as 
+cache management will need to be performed after the user presses the shot 
+button.
 
 -- 
 Regards,
