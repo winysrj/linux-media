@@ -1,88 +1,180 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58181 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753855Ab1BNMVV (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.186]:54171 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752854Ab1BRUxf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Feb 2011 07:21:21 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [PATCH v7 00/11] Sub-device pad-level operations
-Date: Mon, 14 Feb 2011 13:21:13 +0100
-Message-Id: <1297686084-9715-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Fri, 18 Feb 2011 15:53:35 -0500
+Date: Fri, 18 Feb 2011 21:53:32 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Juliano Valentini <juliano@pinaculo.com.br>
+cc: linux-media@vger.kernel.org
+Subject: Re: Leopardimaging SoC Camera
+In-Reply-To: <AANLkTindyMGE+LgtDR7kM-GDSmJO3SF98QYs+zAe04MD@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1102181331060.1851@axis700.grange>
+References: <AANLkTimMhMyz8E1K8__wGFC8xNeh5hVRyfOUfzsWYwiG@mail.gmail.com>
+ <Pine.LNX.4.64.1102081300510.1393@axis700.grange>
+ <AANLkTindyMGE+LgtDR7kM-GDSmJO3SF98QYs+zAe04MD@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi everybody,
+On Fri, 18 Feb 2011, Juliano Valentini wrote:
 
-Here's the seventh version of the sub-device pad-level operations patches.
-The patches are just rebased on top of 2.6.38-rc4.
+> Dears,
+> 
+> I'm trying to apply Guennadi's patch
+> (http://download.open-technology.de/BeagleBoard_xM-MT9P031/linux-2.6-omap3isp-bbxm-mt9p031.gitdiff)
+> to official 2.6.37.1 Kernel version.
 
-Antti Koskipaa (1):
-  v4l: v4l2_subdev userspace crop API
+No, this cannot work. That kernel patch requires media-controller and 
+omap3isp, so, it is based on the omap3isp branch of the development tree 
+by Laurent Pinchart:
 
-Laurent Pinchart (9):
-  v4l: Move the media/v4l2-mediabus.h header to include/linux
-  v4l: Replace enums with fixed-sized fields in public structure
-  v4l: Rename V4L2_MBUS_FMT_GREY8_1X8 to V4L2_MBUS_FMT_Y8_1X8
-  v4l: Group media bus pixel codes by types and sort them
-    alphabetically
-  v4l: subdev: Add new file operations
-  v4l: v4l2_subdev pad-level operations
-  v4l: v4l2_subdev userspace format API - documentation binary files
-  v4l: v4l2_subdev userspace format API
-  v4l: v4l2_subdev userspace frame interval API
+git://linuxtv.org/pinchartl/media.git
 
-Stanimir Varbanov (1):
-  v4l: Create v4l2 subdev file handle structure
+But that tree has been rebased since then, so, I wouldn't expect that 
+patch to apply cleanly, porting it to the current kernel would require a 
+non-zero development effort.
 
- Documentation/DocBook/Makefile                     |    5 +-
- Documentation/DocBook/media-entities.tmpl          |   26 +
- Documentation/DocBook/v4l/bayer.pdf                |  Bin 0 -> 12116 bytes
- Documentation/DocBook/v4l/bayer.png                |  Bin 0 -> 9725 bytes
- Documentation/DocBook/v4l/dev-subdev.xml           |  313 +++
- Documentation/DocBook/v4l/pipeline.pdf             |  Bin 0 -> 20276 bytes
- Documentation/DocBook/v4l/pipeline.png             |  Bin 0 -> 12130 bytes
- Documentation/DocBook/v4l/subdev-formats.xml       | 2416 ++++++++++++++++++++
- Documentation/DocBook/v4l/v4l2.xml                 |    7 +
- Documentation/DocBook/v4l/vidioc-streamon.xml      |    9 +
- .../v4l/vidioc-subdev-enum-frame-interval.xml      |  152 ++
- .../DocBook/v4l/vidioc-subdev-enum-frame-size.xml  |  154 ++
- .../DocBook/v4l/vidioc-subdev-enum-mbus-code.xml   |  119 +
- Documentation/DocBook/v4l/vidioc-subdev-g-crop.xml |  155 ++
- Documentation/DocBook/v4l/vidioc-subdev-g-fmt.xml  |  180 ++
- .../DocBook/v4l/vidioc-subdev-g-frame-interval.xml |  141 ++
- drivers/media/Kconfig                              |    9 +
- drivers/media/video/mt9m001.c                      |    2 +-
- drivers/media/video/mt9v022.c                      |    4 +-
- drivers/media/video/ov6650.c                       |   10 +-
- drivers/media/video/sh_mobile_csi2.c               |    6 +-
- drivers/media/video/soc_mediabus.c                 |    2 +-
- drivers/media/video/v4l2-subdev.c                  |  192 ++-
- include/linux/Kbuild                               |    2 +
- include/linux/v4l2-mediabus.h                      |   94 +
- include/linux/v4l2-subdev.h                        |  141 ++
- include/media/soc_mediabus.h                       |    3 +-
- include/media/v4l2-mediabus.h                      |   61 +-
- include/media/v4l2-subdev.h                        |   61 +
- 29 files changed, 4159 insertions(+), 105 deletions(-)
- create mode 100644 Documentation/DocBook/v4l/bayer.pdf
- create mode 100644 Documentation/DocBook/v4l/bayer.png
- create mode 100644 Documentation/DocBook/v4l/dev-subdev.xml
- create mode 100644 Documentation/DocBook/v4l/pipeline.pdf
- create mode 100644 Documentation/DocBook/v4l/pipeline.png
- create mode 100644 Documentation/DocBook/v4l/subdev-formats.xml
- create mode 100644 Documentation/DocBook/v4l/vidioc-subdev-enum-frame-interval.xml
- create mode 100644 Documentation/DocBook/v4l/vidioc-subdev-enum-frame-size.xml
- create mode 100644 Documentation/DocBook/v4l/vidioc-subdev-enum-mbus-code.xml
- create mode 100644 Documentation/DocBook/v4l/vidioc-subdev-g-crop.xml
- create mode 100644 Documentation/DocBook/v4l/vidioc-subdev-g-fmt.xml
- create mode 100644 Documentation/DocBook/v4l/vidioc-subdev-g-frame-interval.xml
- create mode 100644 include/linux/v4l2-mediabus.h
- create mode 100644 include/linux/v4l2-subdev.h
+> I suppose that kernel version is wrong or missing previous patches
+> (see result at the end).
+> I have to make it work:  MT9P031 SoC camera module on Beagleboard Xm.
+> Could somebody help me? Where/how can I get the right kernel version?
 
--- 
-Regards,
+I'll send you a tarball of those "old" patches off-list.
 
-Laurent Pinchart
+Thanks
+Guennadi
 
+> 
+> Kind regards,
+> 
+> Juliano Valentini
+> Mobile: +55 51 8161 8366
+> MSN: jvalentini@gmail.com
+> Skype: julianovalentini
+> 
+> 
+> On Tue, Feb 8, 2011 at 10:18 AM, Guennadi Liakhovetski
+> <g.liakhovetski@gmx.de> wrote:
+> > Dear Juliano
+> >
+> > On Tue, 8 Feb 2011, Juliano Valentini wrote:
+> >
+> >> Dear Dr. Guennadi!
+> >>
+> >> I'm a researcher at Advance Tecnologia Ltda. (www.pinaculo.com.br), from Brazil.
+> >> At the this time we are developing right now a solution for help low
+> >> vision and blind people. We are implementing a small embedded device
+> >> that converts photo information into audio through a system of
+> >> capture, OCR and then TTS(Text to Speech). We have chosen OMAP3530
+> >> platform and processor, we are using Ubuntu Linux as OS with the
+> >> newest Kernel version.
+> >
+> > Well, yes, as you've probably read elsewhere, I've got a kernel with
+> > drivers and user-space for exactly this hardware - beagleboard xM and
+> > LM-5M03 / MT9P031. A snapshot of my work is available at
+> > http://download.open-technology.de/BeagleBoard_xM-MT9P031/ including a
+> > plain-text description. Please, have a look, this is still very
+> > experimental, and the description is very scarce. Please, let me know, if
+> > you have any further question. But then, please, also CC
+> >
+> > Linux Media Mailing List <linux-media@vger.kernel.org>
+> >
+> > Thanks
+> > Guennadi
+> >
+> >>
+> >> Before our own hardware be ready I'm doing software and hardware tests
+> >> with a Beagleboard xM, very similar to our target hardware.
+> >>
+> >> So, I'm contacting you because we can't do work a SoC camera plugged
+> >> in the Beagleboard. I have connected the LM-5M03/MT9P031
+> >> (http://shop.leopardimaging.com/product.sc?productId=50&categoryId=7)
+> >> to the Beagleboard but the there is no a suitable kernel module to get
+> >> work with the V4L system.
+> >>
+> >> I saw you had written a driver for MT9T031 CMOS Image Sensor. It seems
+> >> to be very similar to the MT9P031...
+> >>
+> >> Can you help us to get things working by porting a suitable module to
+> >> our platform or simply suggesting another 5 mega pixel image sensor
+> >> ready to work on our SoC bus?
+> >>
+> >> Kind Regards
+> >>
+> >> Juliano Valentini
+> >> Mobile: +55 51 8161 8366
+> >> MSN: jvalentini@gmail.com
+> >> Skype: julianovalentini
+> >>
+> >
+> > ---
+> > Guennadi Liakhovetski, Ph.D.
+> > Freelance Open-Source Software Developer
+> > http://www.open-technology.de/
+> >
+> 
+> 
+> 
+> -----------
+> jvalentini@dev-vocalizer:~/vocalizer/beagleboard_xM/bzr/2.6-stable/KERNEL$
+> patch -p1 < linux-2.6-omap3isp-bbxm-mt9p031.gitdiff
+> patching file arch/arm/mach-omap2/Makefile
+> Hunk #1 succeeded at 131 (offset 13 lines).
+> patching file arch/arm/mach-omap2/board-omap3beagle-camera.c
+> patching file arch/arm/mach-omap2/board-omap3beagle.c
+> Hunk #1 succeeded at 367 (offset 97 lines).
+> Hunk #2 FAILED at 335.
+> Hunk #3 succeeded at 556 with fuzz 1 (offset 114 lines).
+> Hunk #4 succeeded at 723 (offset 135 lines).
+> 1 out of 4 hunks FAILED -- saving rejects to file
+> arch/arm/mach-omap2/board-omap3beagle.c.rej
+> patching file arch/arm/mach-omap2/devices.c
+> Hunk #1 succeeded at 124 (offset -25 lines).
+> patching file arch/arm/plat-omap/iommu.c
+> patching file arch/arm/plat-omap/omap-pm-noop.c
+> Hunk #1 succeeded at 84 (offset -4 lines).
+> patching file drivers/media/video/Kconfig
+> Hunk #1 succeeded at 321 with fuzz 2 (offset -8 lines).
+> patching file drivers/media/video/Makefile
+> Hunk #1 FAILED at 70.
+> 1 out of 1 hunk FAILED -- saving rejects to file
+> drivers/media/video/Makefile.rej
+> patching file drivers/media/video/isp/isp.c
+> Hunk #1 FAILED at 174.
+> Hunk #2 FAILED at 235.
+> 2 out of 2 hunks FAILED -- saving rejects to file
+> drivers/media/video/isp/isp.c.rej
+> patching file drivers/media/video/isp/isp.h
+> Hunk #1 FAILED at 133.
+> 1 out of 1 hunk FAILED -- saving rejects to file
+> drivers/media/video/isp/isp.h.rej
+> patching file drivers/media/video/isp/ispccdc.c
+> Hunk #1 FAILED at 47.
+> Hunk #2 FAILED at 1094.
+> Hunk #3 FAILED at 1111.
+> Hunk #4 FAILED at 1153.
+> Hunk #5 FAILED at 2198.
+> Hunk #6 FAILED at 2206.
+> 6 out of 6 hunks FAILED -- saving rejects to file
+> drivers/media/video/isp/ispccdc.c.rej
+> patching file drivers/media/video/isp/ispvideo.c
+> Hunk #1 FAILED at 225.
+> Hunk #2 FAILED at 259.
+> 2 out of 2 hunks FAILED -- saving rejects to file
+> drivers/media/video/isp/ispvideo.c.rej
+> patching file drivers/media/video/mt9p031.c
+> patching file drivers/media/video/mt9t031.c
+> patching file include/linux/usb/otg.h
+> patching file include/media/mt9p031.h
+> patching file include/media/v4l2-chip-ident.h
+> Hunk #1 succeeded at 292 (offset -1 lines).
+> -----------
+> 
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
