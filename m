@@ -1,106 +1,81 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.samsung.com ([203.254.224.25]:22728 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932319Ab1BYKgP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Feb 2011 05:36:15 -0500
-Received: from epmmp1 (mailout2.samsung.com [203.254.224.25])
- by mailout2.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LH600M095GE75E0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Fri, 25 Feb 2011 19:36:14 +0900 (KST)
-Received: from JONGHUNHA11 ([12.23.103.140])
- by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LH600C935GEIV@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 25 Feb 2011 19:36:14 +0900 (KST)
-Date: Fri, 25 Feb 2011 19:36:10 +0900
-From: Jonghun Han <jonghun.han@samsung.com>
-Subject: RE: Hello, how to control FrameBuffer device as v4l2 sub-device?
-In-reply-to: <015301cbd34b$22aa38a0$67fea9e0$%kang@samsung.com>
-To: sungchun.kang@samsung.com, linux-media@vger.kernel.org
-Message-id: <002a01cbd4d7$d3a03460$7ae09d20$%han@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-language: ko
-Content-transfer-encoding: 7BIT
-References: <015301cbd34b$22aa38a0$67fea9e0$%kang@samsung.com>
+Received: from LUNGE.MIT.EDU ([18.54.1.69]:51843 "EHLO lunge.queued.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755821Ab1BRDID (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Feb 2011 22:08:03 -0500
+From: Andres Salomon <dilinger@queued.net>
+To: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Liam Girdwood <lrg@slimlogic.co.uk>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: [PATCH 10/29] wl1273: mfd_cell is now implicitly available to drivers
+Date: Thu, 17 Feb 2011 19:07:17 -0800
+Message-Id: <1297998456-7615-11-git-send-email-dilinger@queued.net>
+In-Reply-To: <1297998456-7615-1-git-send-email-dilinger@queued.net>
+References: <1297998456-7615-1-git-send-email-dilinger@queued.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+The cell's platform_data is now accessed with a helper function;
+change clients to use that, and remove the now-unused data_size.
 
-Hi,
+Signed-off-by: Andres Salomon <dilinger@queued.net>
+---
+ drivers/media/radio/radio-wl1273.c |    2 +-
+ drivers/mfd/wl1273-core.c          |    2 --
+ sound/soc/codecs/wl1273.c          |    3 ++-
+ 3 files changed, 3 insertions(+), 4 deletions(-)
 
-There are two solutions. But it never looks nice.
-Does anyone have no idea ?
-
-
-1. Save the struct s3c_fb in the v4l2_subdev.priv like:
-In the s3cfb_probe:
-	v4l2_set_subdevdata(&sfb->sd, sfb);
-	platform_set_drvdata(pdev, &sfb->sd);
-
-In the s3cfb_remove:
-	struct v4l2_subdev *sd = platform_get_drvdata(pdev);
-	struct s3c_fb *sfb = sd->priv;
-
-In the s5p-fimc driver:
-	sd = dev_get_drvdata(dev);
--> This bothers s3cfb due to s5p-fimc driver.
-
-2. let sd locate top of the struct s3c_fb like:
-	struct s3c_fb {
-		struct v4l2_subdev      sd;
-		struct device           *dev;
--> and then don't save the sfb->sd in the platform driver data.
-It makes s3cfb driver use the platform driver data for its own purpose.
-But you can get the v4l2_subdev pointer in s5p-fimc driver using dev_get_drvdata.
-The reason how to get the pointer is that the address of v4l2_subdev is same with s3cfb's platform driver data.
-
-BRs,
-
-
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Sungchun Kang
-> Sent: Wednesday, February 23, 2011 8:17 PM
-> To: linux-media@vger.kernel.org
-> Subject: Hello, how to control FrameBuffer device as v4l2 sub-device?
-> 
-> FIMC is hardware function like csc, post, rotatin and so on.
-> It is necessary to send some data to FB from FIMC.
-> 
-> So, I have registered FB driver as v4l2 sub-device of FIMC.
-> ----------------
-> |  v4l2_device   |
->  ----------------
-> |   fimc-0       |----------------
-> |                |                |
->  ----------------              |
->         |                         |
-> ----------------         ----------------
-> |  v4l2_subdev   |       |  v4l2_subdeve   |
->  ----------------         ----------------
-> |     FB1        |       |     mipi-csi,   |
-> |     FB2        |       |      senor     |
->  ----------------         ----------------
-> And, it is controlled using platform_get_drvdata and platform_set_drvdata
-> between FIMC and FB drvier.
-> But, FB driver uses drvdata for its own purpose. If I set v4l2_subdev ptr like this :
-> platform_set_drvdata(pdev, &sfb->sd); // v4l2_subdev sd;
-> 
-> platform_device ptr is changed.
-> 
-> Because FB driver aleady set like this :
-> platform_set_drvdata(pdev, sfb);
-> 
-> So, I wonder how to control data between 2 hardware.
-> 
-> If you have some idea, pls reply.
-> 
-> BRs,
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in the body
-> of a message to majordomo@vger.kernel.org More majordomo info at
-> http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/media/radio/radio-wl1273.c b/drivers/media/radio/radio-wl1273.c
+index 7ecc8e6..4698eb0 100644
+--- a/drivers/media/radio/radio-wl1273.c
++++ b/drivers/media/radio/radio-wl1273.c
+@@ -2138,7 +2138,7 @@ static int wl1273_fm_radio_remove(struct platform_device *pdev)
+ 
+ static int __devinit wl1273_fm_radio_probe(struct platform_device *pdev)
+ {
+-	struct wl1273_core **core = pdev->dev.platform_data;
++	struct wl1273_core **core = mfd_get_data(pdev);
+ 	struct wl1273_device *radio;
+ 	struct v4l2_ctrl *ctrl;
+ 	int r = 0;
+diff --git a/drivers/mfd/wl1273-core.c b/drivers/mfd/wl1273-core.c
+index d2ecc24..703085e 100644
+--- a/drivers/mfd/wl1273-core.c
++++ b/drivers/mfd/wl1273-core.c
+@@ -80,7 +80,6 @@ static int __devinit wl1273_core_probe(struct i2c_client *client,
+ 	cell = &core->cells[children];
+ 	cell->name = "wl1273_fm_radio";
+ 	cell->platform_data = &core;
+-	cell->data_size = sizeof(core);
+ 	children++;
+ 
+ 	if (pdata->children & WL1273_CODEC_CHILD) {
+@@ -89,7 +88,6 @@ static int __devinit wl1273_core_probe(struct i2c_client *client,
+ 		dev_dbg(&client->dev, "%s: Have codec.\n", __func__);
+ 		cell->name = "wl1273-codec";
+ 		cell->platform_data = &core;
+-		cell->data_size = sizeof(core);
+ 		children++;
+ 	}
+ 
+diff --git a/sound/soc/codecs/wl1273.c b/sound/soc/codecs/wl1273.c
+index 861b28f..1ad0d5a 100644
+--- a/sound/soc/codecs/wl1273.c
++++ b/sound/soc/codecs/wl1273.c
+@@ -436,7 +436,8 @@ EXPORT_SYMBOL_GPL(wl1273_get_format);
+ 
+ static int wl1273_probe(struct snd_soc_codec *codec)
+ {
+-	struct wl1273_core **core = codec->dev->platform_data;
++	struct wl1273_core **core =
++			mfd_get_data(to_platform_device(codec->dev));
+ 	struct wl1273_priv *wl1273;
+ 	int r;
+ 
+-- 
+1.7.2.3
 
