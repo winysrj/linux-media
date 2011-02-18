@@ -1,68 +1,173 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4174 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750885Ab1BZNrN (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:60332 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751745Ab1BRK1O (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Feb 2011 08:47:13 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [st-ericsson] v4l2 vs omx for camera
-Date: Sat, 26 Feb 2011 14:47:04 +0100
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"Clark, Rob" <rob@ti.com>,
-	Robert Fekete <robert.fekete@linaro.org>,
-	"linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>,
-	Harald Gustafsson <harald.gustafsson@ericsson.com>,
-	gstreamer-devel@lists.freedesktop.org,
-	"ST-Ericsson LT Mailing List" <st-ericsson@lists.linaro.org>,
-	linux-media@vger.kernel.org
-References: <AANLkTik=Yc9cb9r7Ro=evRoxd61KVE=8m7Z5+dNwDzVd@mail.gmail.com> <201102241427.10988.laurent.pinchart@ideasonboard.com> <AANLkTikZ1Z=h4ZDmZ2sUizP328auoW=6CgTdf8vuqVDd@mail.gmail.com>
-In-Reply-To: <AANLkTikZ1Z=h4ZDmZ2sUizP328auoW=6CgTdf8vuqVDd@mail.gmail.com>
+	Fri, 18 Feb 2011 05:27:14 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [RFD] frame-size switching: preview / single-shot use-case
+Date: Fri, 18 Feb 2011 11:27:13 +0100
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hansverk@cisco.com>, Qing Xu <qingx@marvell.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Neil Johnson <realdealneil@gmail.com>,
+	Robert Jarzmik <robert.jarzmik@free.fr>,
+	Uwe Taeubert <u.taeubert@road.de>,
+	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	"Eino-Ville Talvala" <talvala@stanford.edu>
+References: <Pine.LNX.4.64.1102151641490.16709@axis700.grange> <Pine.LNX.4.64.1102161033440.20711@axis700.grange> <4D5D7141.4030101@infradead.org>
+In-Reply-To: <4D5D7141.4030101@infradead.org>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="utf-8"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201102261447.04378.hverkuil@xs4all.nl>
+Message-Id: <201102181127.14039.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Saturday, February 26, 2011 14:38:50 Felipe Contreras wrote:
-> On Thu, Feb 24, 2011 at 3:27 PM, Laurent Pinchart
-> <laurent.pinchart@ideasonboard.com> wrote:
-> >> > Perhaps GStreamer experts would like to comment on the future plans ahead
-> >> > for zero copying/IPC and low power HW use cases? Could Gstreamer adapt
-> >> > some ideas from OMX IL making OMX IL obsolete?
-> >>
-> >> perhaps OMX should adapt some of the ideas from GStreamer ;-)
-> >
-> > I'd very much like to see GStreamer (or something else, maybe lower level, but
-> > community-maintainted) replace OMX.
-> 
-> Yes, it would be great to have something that wraps all the hardware
-> acceleration and could have support for software codecs too, all in a
-> standard interface. It would also be great if this interface would be
-> used in the upper layers like GStreamer, VLC, etc. Kind of what OMX
-> was supposed to be, but open [1].
-> 
-> Oh wait, I'm describing FFmpeg :) (supports vl42, VA-API, VDPAU,
-> DirectX, and soon OMAP3 DSP)
-> 
-> Cheers.
-> 
-> [1] http://freedesktop.org/wiki/GstOpenMAX?action=AttachFile&do=get&target=gst-openmax.png
-> 
-> 
+Hi Mauro,
 
-Are there any gstreamer/linaro/etc core developers attending the ELC in San Francisco
-in April? I think it might be useful to get together before, during or after the
-conference and see if we can turn this discussion in something more concrete.
+On Thursday 17 February 2011 20:04:33 Mauro Carvalho Chehab wrote:
+> Em 16-02-2011 08:35, Guennadi Liakhovetski escreveu:
+> >>>> But from the point of view of the application it makes more sense to
+> >>>> actually have two video nodes. The only difference is that when one
+> >>>> starts streaming it pre-empts the other.
+> >>> 
+> >>> Well, I don't think I like it all that much... One reason - yes, two
+> >>> "independent" video device-nodes, which actually only can stream in
+> >>> turn seems somewhat counterintuitive to me, specifically, I don't
+> >>> think there is a way to tell the application about this. What if we
+> >>> have more than two video devices on the system? Or what if you need
+> >>> more than two video queues / formats? Or actually only one? The kernel
+> >>> doesn't know initially how many, this is a dynamic resource, not a
+> >>> fixed static interface, IMHO.
+> >> 
+> >> I agree with this, which is why I don't think two (or more) video nodes
+> >> would be a good solution.
+> 
+> I agree. Video nodes shouldn't be bind to an specific format. A device with
+> 2 video nodes should be able to retrieve images from two independent video
+> sources.
+> 
+> Unfortunately, ivtv driver was merged with the bad concept of one video
+> node per different type of formats (partially my fault: I remember I
+> commented about it at the time it was submitted, but, as its merge took a
+> long time, and there were several other issues that were needed to be
+> solved there, I ended by giving up and letting it to come with this API
+> non-compliance, hoping that a fix would happen at the next kernel release.
+> Unfortunately, it was never fixed).
+> 
+> >> We've hit the exact same issue with the OMAP3 ISP driver. Our current
+> >> solution is to allocate video buffer queues at the file handle level
+> >> instead of the video node level. Applications can open the same video
+> >> device twice and allocate buffers for the viewfinder on one of the
+> >> instances and for still image capture on the other. When switching from
+> >> viewfinder to still image capture, all it needs to do (beside obviously
+> >> reconfiguring the media controller pipeline if required) is to issue
+> >> VIDIOC_STREAMOFF on the viewfinder file handle and VIDIOC_STREAMON on
+> >> the still capture file handle.
+> 
+> This seems to be the proper way. solution (2) of using read()/mmap() is
+> just an special case of per-file handle stream control, as applications
+> that used this approach in the past were, in fact, using two opens, one
+> for read, and another for mmap (to be clear, I'm not in favor of 2, I'm
+> just saying that a per-file handle solution will allow (2) also).
+> 
+> >> One issue with this approach is that allocating buffers requires
+> >> knowledge of the format and resolution. The driver traditionally
+> >> computes the buffer size from the parameters set by VIDIOC_S_FMT. This
+> >> would prevent an application opening the video node a second time and
+> >> setting up buffers for still image capture a second time while the
+> >> viewfinder is running, as the VIDIOC_S_FMT on the second file handle
+> >> won't be allowed then.
+> >> 
+> >> Changes to the V4L2 spec would be needed to allow this to work properly.
+> > 
+> > The spec is actually saying about the S_FMT ioctl():
+> > 
+> > "On success the driver may program the hardware, allocate resources and
+> > generally prepare for data exchange."
+> > 
+> > - _may_ program the hardware. So, if we don't do that and instead only
+> > verify the format and store it for future activation upon a call to
+> > STREAMON we are not violating the spec, thus, no change is required.
+> > OTOH, another spec sections "V4L2 close()" says:
+> > 
+> > "data format parameters, current input or output, control values or other
+> > properties remain unchanged."
+> > 
+> > which is usually interpreted as "a sequence open(); ioctl(S_FMT);
+> > close(); open(); ioctl(STREAMON);" _must_ use the format, set by the
+> > call to S_FMT, which is not necessarily logical, if we adopt the
+> > per-file-descriptor format / stream approach.
+> 
+> Every time a "may" appears on a spec, we'll have troubles, as some drivers
+> will follow the "may" and others won't follow. Changing the behaviour will
+> likely cause regressions, whatever direction is taken.
+> 
+> One alternative would be to have a better way to negotiate features than
+> what's provided by QUERYCAP. If we look for some protocols with a long
+> life, like telnet, they don't have a one-way to check/set capabilities.
+> Instead, both parties should present their capabilities and the client
+> need to negotiate what he wants.
+> 
+> We could do something like:
+> 
+> 	ret = ioctl(fd, VIDIOC_QUERYCAP, &cap);
+> 	if  (cap.capabilities & CAN_PER_FD_FMT) {
+> 		setcap.capabilities |= SHOULD_PER_FD_FMT;
+> 		ret = ioctl(fd, VIDIOC_SETCAP, &setcap);
+> 	}
+> 
+> To be sure that the kernel driver will behave fine. Yet, in this particular
+> case, this would mean that drivers or core will need to handle both per-fd
+> and per-node S_FMT & friends.
+> 
+> > I think, we have two options:
+> > 
+> > (1) adopt Laurent's proposal of per-fd contexts, but that would require a
+> > pretty heave modification of the spec - S_FMT is not kept across close()
+> > / open() pair.
+> 
+> Whatever done, we'll need to change the specs in a lot of places.
+> 
+> > (2) cleanly separate setting video data format (S_FMT) from specifying
+> > the allocated buffer size.
+> 
+> This would break existing applications. Too late for that, except if
+> negotiated with a "SETCAP" like approach.
+> 
+> There's an additional problem with that: assume that streaming is
+> happening, and a S_FMT changing the resolution was sent. There's no way to
+> warrant that the very next frame will have the new resolution. So, a
+> meta-data with the frame resolution (and format) would be needed.
 
-It seems to me that there is an overall agreement of what should be done, but
-that we are far from anything concrete.
+It's a completely different topic, but per-frame metadata is something 
+interesting. When changing image tuning hardware parameters (such as white 
+balance for instance), applications can be very interested in knowing on which 
+frame the parameters got applied. Reporting the information to userspace is 
+only part of the challenge, being able to pin-point exact frames in the driver 
+is also an issue.
 
-Regards,
+> > Of course, there are further possibilities, like my switching ioctl()
+> > above, or we could extend the enum v4l2_priority with an extra
+> > application priority, saying, that this file-descriptor can maintain a
+> > separate S_FMT / STREAMON thread, without immediately affecting other
+> > descriptors, but this seems too obscure to me.
+> > 
+> > My vote goes for (2) above, which is also what Laurent has mentioned here:
+> >> One
+> >> possible direction would be to enhance the buffers allocation API to
+> >> allow applications to set the buffer size. I've been thinking about
+> >> this, and I believe this is where the "global buffers pool" API could
+> >> come into play.
+> > 
+> > I just wouldn't necessarily bind it to "global buffer pools."
 
-	Hans
+Maybe not "global", but I would bind it to at least "buffer pools".
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+Regards,
+
+Laurent Pinchart
