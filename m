@@ -1,60 +1,94 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58186 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754251Ab1BNMVq (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:11607 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758091Ab1BRBPJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Feb 2011 07:21:46 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Thu, 17 Feb 2011 20:15:09 -0500
+Received: from [192.168.1.2] (d-216-36-28-191.cpe.metrocast.net [216.36.28.191])
+	(authenticated bits=0)
+	by mango.metrocast.net (8.13.8/8.13.8) with ESMTP id p1I1F7kR017768
+	for <linux-media@vger.kernel.org>; Fri, 18 Feb 2011 01:15:08 GMT
+Subject: [PATCH 04/13] lirc_zilog: Convert the instance open count to an
+ atomic_t
+From: Andy Walls <awalls@md.metrocast.net>
 To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [PATCH v2 4/6] v4l: Add remaining RAW10 patterns w DPCM pixel code variants
-Date: Mon, 14 Feb 2011 13:21:28 +0100
-Message-Id: <1297686090-9762-5-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1297686090-9762-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1297686090-9762-1-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1297991502.9399.16.camel@localhost>
+References: <1297991502.9399.16.camel@localhost>
+Content-Type: text/plain; charset="UTF-8"
+Date: Thu, 17 Feb 2011 20:15:20 -0500
+Message-ID: <1297991720.9399.20.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This adds following formats:
-- V4L2_MBUS_FMT_SRGGB10_1X10
-- V4L2_MBUS_FMT_SGBRG10_1X10
-- V4L2_MBUS_FMT_SRGGB10_DPCM8_1X8
-- V4L2_MBUS_FMT_SGBRG10_DPCM8_1X8
-- V4L2_MBUS_FMT_SBGGR10_DPCM8_1X8
 
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+The open count is simply used for deciding if the Rx polling thread
+needs to poll the IR chip for userspace.  Simplify the manipulation
+of the open count by using an atomic_t and not requiring a lock
+The polling thread errantly didn't try to take the lock anyway.
+
+Signed-off-by: Andy Walls <awalls@md.metrocast.net>
 ---
- include/linux/v4l2-mediabus.h |    7 ++++++-
- 1 files changed, 6 insertions(+), 1 deletions(-)
+ drivers/staging/lirc/lirc_zilog.c |   15 +++++----------
+ 1 files changed, 5 insertions(+), 10 deletions(-)
 
-diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
-index c4caca3..5c64924 100644
---- a/include/linux/v4l2-mediabus.h
-+++ b/include/linux/v4l2-mediabus.h
-@@ -67,16 +67,21 @@ enum v4l2_mbus_pixelcode {
- 	V4L2_MBUS_FMT_YUYV10_1X20 = 0x200d,
- 	V4L2_MBUS_FMT_YVYU10_1X20 = 0x200e,
+diff --git a/drivers/staging/lirc/lirc_zilog.c b/drivers/staging/lirc/lirc_zilog.c
+index 39f7b53..c857b99 100644
+--- a/drivers/staging/lirc/lirc_zilog.c
++++ b/drivers/staging/lirc/lirc_zilog.c
+@@ -94,7 +94,7 @@ struct IR {
+ 	struct lirc_driver l;
  
--	/* Bayer - next is 0x300b */
-+	/* Bayer - next is 0x3010 */
- 	V4L2_MBUS_FMT_SBGGR8_1X8 = 0x3001,
- 	V4L2_MBUS_FMT_SGRBG8_1X8 = 0x3002,
-+	V4L2_MBUS_FMT_SBGGR10_DPCM8_1X8 = 0x300b,
-+	V4L2_MBUS_FMT_SGBRG10_DPCM8_1X8 = 0x300c,
- 	V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8 = 0x3009,
-+	V4L2_MBUS_FMT_SRGGB10_DPCM8_1X8 = 0x300d,
- 	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE = 0x3003,
- 	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE = 0x3004,
- 	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE = 0x3005,
- 	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE = 0x3006,
- 	V4L2_MBUS_FMT_SBGGR10_1X10 = 0x3007,
-+	V4L2_MBUS_FMT_SGBRG10_1X10 = 0x300e,
- 	V4L2_MBUS_FMT_SGRBG10_1X10 = 0x300a,
-+	V4L2_MBUS_FMT_SRGGB10_1X10 = 0x300f,
- 	V4L2_MBUS_FMT_SBGGR12_1X12 = 0x3008,
- };
+ 	struct mutex ir_lock;
+-	int open;
++	atomic_t open_count;
  
+ 	struct i2c_adapter *adapter;
+ 	struct IR_rx *rx;
+@@ -279,7 +279,7 @@ static int lirc_thread(void *arg)
+ 		set_current_state(TASK_INTERRUPTIBLE);
+ 
+ 		/* if device not opened, we can sleep half a second */
+-		if (!ir->open) {
++		if (atomic_read(&ir->open_count) == 0) {
+ 			schedule_timeout(HZ/2);
+ 			continue;
+ 		}
+@@ -1094,10 +1094,7 @@ static int open(struct inode *node, struct file *filep)
+ 	if (ir == NULL)
+ 		return -ENODEV;
+ 
+-	/* increment in use count */
+-	mutex_lock(&ir->ir_lock);
+-	++ir->open;
+-	mutex_unlock(&ir->ir_lock);
++	atomic_inc(&ir->open_count);
+ 
+ 	/* stash our IR struct */
+ 	filep->private_data = ir;
+@@ -1115,10 +1112,7 @@ static int close(struct inode *node, struct file *filep)
+ 		return -ENODEV;
+ 	}
+ 
+-	/* decrement in use count */
+-	mutex_lock(&ir->ir_lock);
+-	--ir->open;
+-	mutex_unlock(&ir->ir_lock);
++	atomic_dec(&ir->open_count);
+ 
+ 	return 0;
+ }
+@@ -1294,6 +1288,7 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 
+ 		ir->adapter = adap;
+ 		mutex_init(&ir->ir_lock);
++		atomic_set(&ir->open_count, 0);
+ 
+ 		/* set lirc_dev stuff */
+ 		memcpy(&ir->l, &lirc_template, sizeof(struct lirc_driver));
 -- 
-1.7.3.4
+1.7.2.1
+
+
 
