@@ -1,225 +1,151 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:47310 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753125Ab1BMV7t (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39512 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751745Ab1BRKgA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Feb 2011 16:59:49 -0500
-Message-ID: <4D585450.2050900@gmail.com>
-Date: Sun, 13 Feb 2011 22:59:44 +0100
-From: Sylwester Nawrocki <snjw23@gmail.com>
+	Fri, 18 Feb 2011 05:36:00 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Stephan Lachowsky <stephan.lachowsky@maxim-ic.com>
+Subject: Re: [PATCH RFC] uvcvideo: Add a mapping for H.264 payloads
+Date: Fri, 18 Feb 2011 11:36:02 +0100
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-uvc-devel@lists.berlios.de" <linux-uvc-devel@lists.berlios.de>
+References: <1296243538.17673.23.camel@svmlwks101> <201102171701.57759.laurent.pinchart@ideasonboard.com> <1297985334.2620.86.camel@svmlwks101>
+In-Reply-To: <1297985334.2620.86.camel@svmlwks101>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	alsa-devel@alsa-project.org, clemens@ladisch.de,
-	broonie@opensource.wolfsonmicro.com,
-	sakari.ailus@maxwell.research.nokia.com
-Subject: Re: [PATCH v8 07/12] media: Entities, pads and links enumeration
-References: <1296131437-29954-1-git-send-email-laurent.pinchart@ideasonboard.com> <1296131437-29954-8-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1296131437-29954-8-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201102181136.02404.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Laurent,
+Hi Stephan,
 
-Please see my little comment below..
-
-On 2011-01-27 13:30, Laurent Pinchart wrote:
-> Create the following two ioctls and implement them at the media device
-> level to enumerate entities, pads and links.
+On Friday 18 February 2011 00:28:54 Stephan Lachowsky wrote:
+> On Thu, 2011-02-17 at 08:01 -0800, Laurent Pinchart wrote:
+> > On Friday 28 January 2011 20:38:58 Stephan Lachowsky wrote:
+> > > Associate the H.264 GUID with an H.264 pixel format so that frame
+> > > and stream based format descriptors with this GUID are recognized
+> > > by the UVC video driver.
+> > > ---
+> > > 
+> > >  drivers/media/video/uvc/uvc_driver.c |    5 +++++
+> > >  drivers/media/video/uvc/uvcvideo.h   |    3 +++
+> > >  include/linux/videodev2.h            |    1 +
+> > >  3 files changed, 9 insertions(+), 0 deletions(-)
+> > > 
+> > > diff --git a/drivers/media/video/uvc/uvc_driver.c
+> > > b/drivers/media/video/uvc/uvc_driver.c index 6bcb9e1..a5a86ce 100644
+> > > --- a/drivers/media/video/uvc/uvc_driver.c
+> > > +++ b/drivers/media/video/uvc/uvc_driver.c
+> > > @@ -108,6 +108,11 @@ static struct uvc_format_desc uvc_fmts[] = {
+> > > 
+> > >  		.guid		= UVC_GUID_FORMAT_MPEG,
+> > >  		.fcc		= V4L2_PIX_FMT_MPEG,
+> > >  	
+> > >  	},
+> > > 
+> > > +	{
+> > > +		.name		= "H.264",
+> > > +		.guid		= UVC_GUID_FORMAT_H264,
+> > > +		.fcc		= V4L2_PIX_FMT_H264,
+> > > +	},
+> > > 
+> > >  };
+> > >  
+> > >  /*
+> > > 
+> > > -----------------------------------------------------------------------
+> > > - diff --git a/drivers/media/video/uvc/uvcvideo.h
+> > > b/drivers/media/video/uvc/uvcvideo.h index e522f99..4f65ac6 100644
+> > > --- a/drivers/media/video/uvc/uvcvideo.h
+> > > +++ b/drivers/media/video/uvc/uvcvideo.h
+> > > @@ -155,6 +155,9 @@ struct uvc_xu_control {
+> > > 
+> > >  #define UVC_GUID_FORMAT_MPEG \
+> > >  
+> > >  	{ 'M',  'P',  'E',  'G', 0x00, 0x00, 0x10, 0x00, \
+> > >  	
+> > >  	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
+> > > 
+> > > +#define UVC_GUID_FORMAT_H264 \
+> > > +	{ 'H',  '2',  '6',  '4', 0x00, 0x00, 0x10, 0x00, \
+> > > +	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
+> > > 
+> > >  /*
+> > > 
+> > > -----------------------------------------------------------------------
+> > > - * Driver specific constants.
+> > > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> > > index 5f6f470..d3b5877 100644
+> > > --- a/include/linux/videodev2.h
+> > > +++ b/include/linux/videodev2.h
+> > > @@ -341,6 +341,7 @@ struct v4l2_pix_format {
+> > > 
+> > >  #define V4L2_PIX_FMT_JPEG     v4l2_fourcc('J', 'P', 'E', 'G') /* JFIF
+> > >  JPEG
+> > >  
+> > >     */ #define V4L2_PIX_FMT_DV       v4l2_fourcc('d', 'v', 's', 'd') /*
+> > > 
+> > > 1394          */ #define V4L2_PIX_FMT_MPEG     v4l2_fourcc('M', 'P',
+> > > 'E', 'G') /* MPEG-1/2/4    */ +#define V4L2_PIX_FMT_H264    
+> > > v4l2_fourcc('H', '2', '6', '4') /* H.264 Annex-B NAL Units */
+> > 
+> > I've discussed H.264 support with Hans Verkuil (CC'ed) some time ago, and
+> > his opinion was that we shouldn't use a new V4L2 format for it. H.264 is
+> > essentially an MPEG version, so drivers should use V4L2_PIX_FMT_MPEG and
+> > select the details using the MPEG CIDs.
+> > 
+> > Of course feel free to disagree with Hans and discuss the matter with him
+> > :-)
 > 
-> - MEDIA_IOC_ENUM_ENTITIES: Enumerate entities and their properties
-> - MEDIA_IOC_ENUM_LINKS: Enumerate all pads and links for a given entity
+> Well MPEG is a loaded acronym to throw around, it means many, many
+> things in different contexts.  Saying H.264 is essentially an MPEG
+> version is true, but putting something in a labelled drawer doesn't
+> necessarily make it square (unless the drawer is square, structurally
+> solid, smaller than the something, and the insertion is done with
+> extreme prejudice).
 > 
-> Entity IDs can be non-contiguous. Userspace applications should
-> enumerate entities using the MEDIA_ENT_ID_FLAG_NEXT flag. When the flag
-> is set in the entity ID, the MEDIA_IOC_ENUM_ENTITIES will return the
-> next entity with an ID bigger than the requested one.
+> Let me throw a few points out for critique:
 > 
-> Only forward links that originate at one of the entity's source pads are
-> returned during the enumeration process.
+>       * There is a 1-1 mapping between between the contents of this UVC
+>         stream, and what would be found inside an AVI container with the
+>         same fourcc code... Why fight an existing defacto labelling?
+>       * There is currently a straightforward correspondence between UVC
+>         payload formats and v4l2 fourcc types... Why would you want to
+>         add indirection through an overloaded fourcc type, increasing
+>         the complexity for all parties involved?
+>       * If you don't use the fourcc code to denote the payload format,
+>         you lose the ability to enumerate supported formats generically.
+>         You require interface users to understand MPEG CID, and use it
+>         to sub-enumerate any formats considered MPEG -- which is an
+>         arbitrary label in this context -- you wouldn't try to shim
+>         Theora or WebM in this way, so why H.264?
+>       * MPEG CID
+>         (http://v4l2spec.bytesex.org/spec/x802.htm#MPEG-CONTROLS) does
+>         not currently have defined controls beyond MPEG2 (No MPEG4 ASP,
+>         no MPEG4 AVC)... configuring the minutiae of these codecs is
+>         complex enough that they probably deserve their own extended
+>         control classes.
 > 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-> ---
->  Documentation/DocBook/media-entities.tmpl          |    8 +
->  Documentation/DocBook/v4l/media-controller.xml     |    2 +
->  .../DocBook/v4l/media-ioc-device-info.xml          |    3 +-
->  .../DocBook/v4l/media-ioc-enum-entities.xml        |  308 ++++++++++++++++++++
->  Documentation/DocBook/v4l/media-ioc-enum-links.xml |  202 +++++++++++++
->  drivers/media/media-device.c                       |  123 ++++++++
->  include/linux/media.h                              |   85 ++++++
->  include/media/media-entity.h                       |   24 +--
->  8 files changed, 731 insertions(+), 24 deletions(-)
->  create mode 100644 Documentation/DocBook/v4l/media-ioc-enum-entities.xml
->  create mode 100644 Documentation/DocBook/v4l/media-ioc-enum-links.xml
-> 
-...
-> diff --git a/Documentation/DocBook/v4l/media-ioc-enum-links.xml b/Documentation/DocBook/v4l/media-ioc-enum-links.xml
-> new file mode 100644
-> index 0000000..daf0360
-> --- /dev/null
-> +++ b/Documentation/DocBook/v4l/media-ioc-enum-links.xml
-> @@ -0,0 +1,202 @@
-> +<refentry id="media-ioc-enum-links">
-> +  <refmeta>
-> +    <refentrytitle>ioctl MEDIA_IOC_ENUM_LINKS</refentrytitle>
-> +    &manvol;
-> +  </refmeta>
-> +
-> +  <refnamediv>
-> +    <refname>MEDIA_IOC_ENUM_LINKS</refname>
-> +    <refpurpose>Enumerate all pads and links for a given entity</refpurpose>
-> +  </refnamediv>
-> +
-> +  <refsynopsisdiv>
-> +    <funcsynopsis>
-> +      <funcprototype>
-> +	<funcdef>int <function>ioctl</function></funcdef>
-> +	<paramdef>int <parameter>fd</parameter></paramdef>
-> +	<paramdef>int <parameter>request</parameter></paramdef>
-> +	<paramdef>struct media_links_enum *<parameter>argp</parameter></paramdef>
-> +      </funcprototype>
-> +    </funcsynopsis>
-> +  </refsynopsisdiv>
-> +
-> +  <refsect1>
-> +    <title>Arguments</title>
-> +
-> +    <variablelist>
-> +      <varlistentry>
-> +	<term><parameter>fd</parameter></term>
-> +	<listitem>
-> +	  <para>File descriptor returned by
-> +	  <link linkend='media-func-open'><function>open()</function></link>.</para>
-> +	</listitem>
-> +      </varlistentry>
-> +      <varlistentry>
-> +	<term><parameter>request</parameter></term>
-> +	<listitem>
-> +	  <para>MEDIA_IOC_ENUM_LINKS</para>
-> +	</listitem>
-> +      </varlistentry>
-> +      <varlistentry>
-> +	<term><parameter>argp</parameter></term>
-> +	<listitem>
-> +	  <para></para>
-> +	</listitem>
-> +      </varlistentry>
-> +    </variablelist>
-> +  </refsect1>
-> +
-> +  <refsect1>
-> +    <title>Description</title>
-> +
-> +    <para>To enumerate pads and/or links for a given entity, applications set
-> +    the entity field of a &media-links-enum; structure and initialize the
-> +    &media-pad-desc; and &media-link-desc; structure arrays pointed by the
-> +    <structfield>pads</structfield> and <structfield>links</structfield> fields.
-> +    They then call the MEDIA_IOC_ENUM_LINKS ioctl with a pointer to this
-> +    structure.</para>
-> +    <para>If the <structfield>pads</structfield> field is not NULL, the driver
-> +    fills the <structfield>pads</structfield> array with information about the
-> +    entity's pads. The array must have enough room to store all the entity's
-> +    pads. The number of pads can be retrieved with the &MEDIA-IOC-ENUM-ENTITIES;
-> +    ioctl.</para>
-> +    <para>If the <structfield>links</structfield> field is not NULL, the driver
-> +    fills the <structfield>links</structfield> array with information about the
-> +    entity's outbound links. The array must have enough room to store all the
-> +    entity's outbound links. The number of outbound links can be retrieved with
-> +    the &MEDIA-IOC-ENUM-ENTITIES; ioctl.</para>
-> +    <para>Only forward links that originate at one of the entity's source pads
-> +    are returned during the enumeration process.</para>
-> +
-> +    <table pgwide="1" frame="none" id="media-links-enum">
-> +      <title>struct <structname>media_links_enum</structname></title>
-> +      <tgroup cols="3">
-> +        &cs-str;
-> +	<tbody valign="top">
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>entity</structfield></entry>
-> +	    <entry>Entity id, set by the application.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>struct &media-pad-desc;</entry>
-> +	    <entry>*<structfield>pads</structfield></entry>
-> +	    <entry>Pointer to a pads array allocated by the application. Ignored
-> +	    if NULL.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>struct &media-link-desc;</entry>
-> +	    <entry>*<structfield>links</structfield></entry>
-> +	    <entry>Pointer to a links array allocated by the application. Ignored
-> +	    if NULL.</entry>
-> +	  </row>
-> +	</tbody>
-> +      </tgroup>
-> +    </table>
-> +
-> +    <table pgwide="1" frame="none" id="media-pad-desc">
-> +      <title>struct <structname>media_pad_desc</structname></title>
-> +      <tgroup cols="3">
-> +        &cs-str;
-> +	<tbody valign="top">
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>entity</structfield></entry>
-> +	    <entry>ID of the entity this pad belongs to.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u16</entry>
-> +	    <entry><structfield>index</structfield></entry>
-> +	    <entry>0-based pad index.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>flags</structfield></entry>
-> +	    <entry>Pad flags, see <xref linkend="media-pad-flag" /> for more details.</entry>
-> +	  </row>
-> +	</tbody>
-> +      </tgroup>
-> +    </table>
-> +
-> +    <table frame="none" pgwide="1" id="media-pad-flag">
-> +      <title>Media pad flags</title>
-> +      <tgroup cols="2">
-> +        <colspec colname="c1"/>
-> +        <colspec colname="c2"/>
-> +	<tbody valign="top">
-> +	  <row>
-> +	    <entry><constant>MEDIA_PAD_FL_INPUT</constant></entry>
-> +	    <entry>Input pad, relative to the entity. Input pads sink data and
-> +	    are targets of links.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry><constant>MEDIA_PAD_FL_OUTPUT</constant></entry>
-> +	    <entry>Output pad, relative to the entity. Output pads source data
-> +	    and are origins of links.</entry>
-> +	  </row>
-> +	</tbody>
-> +      </tgroup>
-> +    </table>
-> +
-> +    <table pgwide="1" frame="none" id="media-link-desc">
-> +      <title>struct <structname>media_links_enum</structname></title>
+> I'm quite persuadable by reason, and quite partial to wit; so do cc
+> anyone else that will respond with insight (and/or humour).
 
-..the above line should perhaps be:
+One of the reason why MPEG support is implemented with a single fourcc in V4L2 
+is that defining a new fourcc for every MPEG flavour (or rather combination of 
+flavours) would lead to a very long list of fourccs.
 
-> +      <title>struct <structname>media_links_desc</structname></title>
+This being said, I have no strong opinion on whether we should define a new 
+H.264 fourcc or use the MPEG one with new MPEG4/H.264-specific MPEG controls. 
+Hans did when I talked to him about this topic a couple of months ago, so I'll 
+let him argue with you :-)
 
-as "struct media_links_desc" is described above.
+BTW, H.264 "elementary streams" comes in at least two flavours, one with start 
+codes and one without. Would you use two fourccs for that ?
 
-BTW, I was wondering how one makes use of the pads associated with
-a media entity of type other than MEDIA_ENT_T_V4L2_SUBDEV*,
-e.g. V4L2 device - MEDIA_ENT_T_DEVNODE_V4L.
-
-I guess new standard ioctls should be added for per pads operations
-at V4L2 device, similarly is it is done with v4l2-subdevs.
-Is this right?
-
-
+-- 
 Regards,
-Sylwester
 
+Laurent Pinchart
