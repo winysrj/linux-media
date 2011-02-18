@@ -1,58 +1,104 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.171]:60834 "EHLO
+Received: from moutng.kundenserver.de ([212.227.126.187]:58764 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753480Ab1BVOea (ORCPT
+	with ESMTP id S1753474Ab1BRINo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Feb 2011 09:34:30 -0500
-Date: Tue, 22 Feb 2011 15:34:03 +0100 (CET)
+	Fri, 18 Feb 2011 03:13:44 -0500
+Date: Fri, 18 Feb 2011 09:13:42 +0100 (CET)
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-cc: Hans Verkuil <hansverk@cisco.com>,
-	Stanimir Varbanov <svarbanov@mm-sol.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>
-Subject: RE: [RFC/PATCH 0/1] New subdev sensor operation g_interface_parms
-In-Reply-To: <A24693684029E5489D1D202277BE894488C56A9A@dlee02.ent.ti.com>
-Message-ID: <Pine.LNX.4.64.1102221515190.1380@axis700.grange>
-References: <cover.1298368924.git.svarbanov@mm-sol.com>
- <Pine.LNX.4.64.1102221215350.1380@axis700.grange> <201102221432.50847.hansverk@cisco.com>
- <A24693684029E5489D1D202277BE894488C56A9A@dlee02.ent.ti.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: linux-sh@vger.kernel.org
+Subject: [PATCH 3/4] V4L: sh_mobile_ceu_camera: fix videobuffer queue locking
+In-Reply-To: <Pine.LNX.4.64.1102180857360.1851@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1102180908110.1851@axis700.grange>
+References: <Pine.LNX.4.64.1102180857360.1851@axis700.grange>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, 22 Feb 2011, Aguirre, Sergio wrote:
+After the switch to videobuf2, videobuffer callbacks are called unlocked,
+therefore they have to protect their internal data themselves.
 
-> For example, at least OMAP3 & 4 has the following pin pairs:
-> 
-> CSI2_DX0, CSI2_DY0
-> CSI2_DX1, CSI2_DY1
-> CSI2_DX2, CSI2_DY2
-> CSI2_DX3, CSI2_DY3
-> CSI2_DX4, CSI2_DY4
-> 
-> So, what you do is that, you can control where do you want the clock,
-> where do you want each datalane pair, and also the pin polarity
-> (X: +, Y: -, or viceversa). And this is something that is static.
-> THIS I think should go in the host driver's platform data.
-
-I think, these are two different things: pin roles - yes, they are 
-SoC-specific and, probably, hard-wired. But once you've assigned roles, 
-you have to configure them - roles, functions, not pins. And that 
-configuration is no longer SoC specific, at least some of the parameters 
-are common to all such set ups - polarities and edges. So, you can use the 
-same set of parameters for them on different platforms.
-
-And yes - you have to be able to configure them dynamically. Consider two 
-sensors switching to the same host by means of some board logic. So, at 
-least there have to be multiple parameter sets to use, depending on the 
-connection topology.
-
-Thanks
-Guennadi
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+
+This one will be merged with https://patchwork.kernel.org/patch/516491/
+
+ drivers/media/video/sh_mobile_ceu_camera.c |   13 +++++++------
+ 1 files changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
+index 5a8d942..325f50d 100644
+--- a/drivers/media/video/sh_mobile_ceu_camera.c
++++ b/drivers/media/video/sh_mobile_ceu_camera.c
+@@ -100,8 +100,7 @@ struct sh_mobile_ceu_dev {
+ 	void __iomem *base;
+ 	unsigned long video_limit;
+ 
+-	/* lock used to protect videobuf */
+-	spinlock_t lock;
++	spinlock_t lock;		/* Protects video buffer lists */
+ 	struct list_head capture;
+ 	struct vb2_buffer *active;
+ 	struct vb2_alloc_ctx *alloc_ctx;
+@@ -375,17 +374,18 @@ static int sh_mobile_ceu_videobuf_prepare(struct vb2_buffer *vb)
+ 	return 0;
+ }
+ 
+-/* Called under spinlock_irqsave(&pcdev->lock, ...) */
+ static void sh_mobile_ceu_videobuf_queue(struct vb2_buffer *vb)
+ {
+ 	struct soc_camera_device *icd = container_of(vb->vb2_queue, struct soc_camera_device, vb2_vidq);
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+ 	struct sh_mobile_ceu_dev *pcdev = ici->priv;
+ 	struct sh_mobile_ceu_buffer *buf = to_ceu_vb(vb);
++	unsigned long flags;
+ 
+ 	dev_dbg(icd->dev.parent, "%s (vb=0x%p) 0x%p %lu\n", __func__,
+ 		vb, vb2_plane_vaddr(vb, 0), vb2_get_plane_payload(vb, 0));
+ 
++	spin_lock_irqsave(&pcdev->lock, flags);
+ 	list_add_tail(&buf->queue, &pcdev->capture);
+ 
+ 	if (!pcdev->active) {
+@@ -397,6 +397,7 @@ static void sh_mobile_ceu_videobuf_queue(struct vb2_buffer *vb)
+ 		pcdev->active = vb;
+ 		sh_mobile_ceu_capture(pcdev);
+ 	}
++	spin_unlock_irqrestore(&pcdev->lock, flags);
+ }
+ 
+ static void sh_mobile_ceu_videobuf_release(struct vb2_buffer *vb)
+@@ -442,10 +443,9 @@ static irqreturn_t sh_mobile_ceu_irq(int irq, void *data)
+ {
+ 	struct sh_mobile_ceu_dev *pcdev = data;
+ 	struct vb2_buffer *vb;
+-	unsigned long flags;
+ 	int ret;
+ 
+-	spin_lock_irqsave(&pcdev->lock, flags);
++	spin_lock(&pcdev->lock);
+ 
+ 	vb = pcdev->active;
+ 	if (!vb)
+@@ -469,7 +469,7 @@ static irqreturn_t sh_mobile_ceu_irq(int irq, void *data)
+ 	vb2_buffer_done(vb, ret < 0 ? VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
+ 
+ out:
+-	spin_unlock_irqrestore(&pcdev->lock, flags);
++	spin_unlock(&pcdev->lock);
+ 
+ 	return IRQ_HANDLED;
+ }
+@@ -669,6 +669,7 @@ static void capture_restore(struct sh_mobile_ceu_dev *pcdev, u32 capsr)
+ 		ceu_write(pcdev, CAPSR, capsr);
+ }
+ 
++/* Capture is not running, no interrupts, no locking needed */
+ static int sh_mobile_ceu_set_bus_param(struct soc_camera_device *icd,
+ 				       __u32 pixfmt)
+ {
+-- 
+1.7.2.3
+
