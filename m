@@ -1,104 +1,65 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.samsung.com ([203.254.224.33]:28064 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754651Ab1BYGVj (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:43411 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752544Ab1BRMgc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Feb 2011 01:21:39 -0500
-Received: from epmmp1 (mailout3.samsung.com [203.254.224.33])
- by mailout3.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LH500FWCTO1K760@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Fri, 25 Feb 2011 15:21:38 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LH500K5CTO1Q3@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 25 Feb 2011 15:21:37 +0900 (KST)
-Date: Fri, 25 Feb 2011 15:21:38 +0900
-From: "Kim, HeungJun" <riverful.kim@samsung.com>
-Subject: [RFC PATCH v2 3/3] v4l2-crls: document the changes about auto focus
- mode
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
-Reply-to: riverful.kim@samsung.com
-Message-id: <4D674A72.8030409@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7BIT
+	Fri, 18 Feb 2011 07:36:32 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [RFD] frame-size switching: preview / single-shot use-case
+Date: Fri, 18 Feb 2011 13:36:27 +0100
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hansverk@cisco.com>, Qing Xu <qingx@marvell.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Neil Johnson <realdealneil@gmail.com>,
+	Robert Jarzmik <robert.jarzmik@free.fr>,
+	Uwe Taeubert <u.taeubert@road.de>,
+	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	"Eino-Ville Talvala" <talvala@stanford.edu>
+References: <4D5D9B57.3090809@gmail.com> <201102181131.30920.laurent.pinchart@ideasonboard.com> <4D5E6708.9000500@infradead.org>
+In-Reply-To: <4D5E6708.9000500@infradead.org>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201102181336.28766.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Document about the type changes and the enumeration of the auto focus control.
+Hi Mauro,
 
-Signed-off-by: Heungjun Kim <riverful.kim@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- Documentation/DocBook/v4l/controls.xml    |   31 +++++++++++++++++++++++++---
- Documentation/DocBook/v4l/videodev2.h.xml |    6 +++++
- 2 files changed, 33 insertions(+), 4 deletions(-)
+On Friday 18 February 2011 13:33:12 Mauro Carvalho Chehab wrote:
+> Em 18-02-2011 08:31, Laurent Pinchart escreveu:
+> > It's a trade-off between memory and speed. Preallocating still image
+> > capture buffers will give you better snapshot performances, at the
+> > expense of memory.
+> > 
+> > The basic problems we have here is that taking snapshots is slow with the
+> > current API if we need to stop capture, free buffers, change the format,
+> > allocate new buffers (and perform cache management operations) and
+> > restart the stream. To fix this we're considering a way to preallocate
+> > still image capture buffers, but I'm open to proposals for other ways to
+> > solve the issue :-)
+> 
+> From the above operations, considering that CMA is used to reserve a
+> non-shared memory with enough space for the new buffer size/qtd, I don't
+> think that the most expensive operation would be to realloc the memory.
+> 
+> The logic to stop/start streaming seems to be the most consuming one, as
+> driver will need to wait for the current I/O operation to complete, and
+> this can take hundreds of milisseconds (the duration of one frame).
+> 
+> How much time would CMA need to free and re-allocate the buffers for, let's
+> say, something in the range of 1-10 MB, on a pre-allocated, non shared
+> memory space?
 
-diff --git a/Documentation/DocBook/v4l/controls.xml b/Documentation/DocBook/v4l/controls.xml
-index 2fae3e8..889fa84 100644
---- a/Documentation/DocBook/v4l/controls.xml
-+++ b/Documentation/DocBook/v4l/controls.xml
-@@ -1801,12 +1801,35 @@ negative values towards infinity. This is a write-only control.</entry>
- 	  </row>
- 	  <row><entry></entry></row>
- 
--	  <row>
-+	  <row id="v4l2-focus-auto-type">
- 	    <entry spanname="id"><constant>V4L2_CID_FOCUS_AUTO</constant>&nbsp;</entry>
--	    <entry>boolean</entry>
-+	    <entry>enum&nbsp;v4l2_focus_auto_type</entry>
- 	  </row><row><entry spanname="descr">Enables automatic focus
--adjustments. The effect of manual focus adjustments while this feature
--is enabled is undefined, drivers should ignore such requests.</entry>
-+adjustments of the normal or macro or continuous(CAF) mode. The effect of
-+manual focus adjustments while this feature is enabled is undefined,
-+drivers should ignore such requests. Possible values are:</entry>
-+	  </row>
-+	  <row>
-+	    <entrytbl spanname="descr" cols="2">
-+	      <tbody valign="top">
-+		<row>
-+		  <entry><constant>V4L2_FOCUS_MANUAL</constant>&nbsp;</entry>
-+		  <entry>Manual focus mode.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_FOCUS_AUTO</constant>&nbsp;</entry>
-+		  <entry>Auto focus mode with normal operation.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_FOCUS_MACRO</constant>&nbsp;</entry>
-+		  <entry>Auto focus mode with macro operation.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_FOCUS_CONTINUOUS</constant>&nbsp;</entry>
-+		  <entry>Auto focus mode with continuous(CAF) operation.</entry>
-+		</row>
-+	      </tbody>
-+	    </entrytbl>
- 	  </row>
- 	  <row><entry></entry></row>
- 
-diff --git a/Documentation/DocBook/v4l/videodev2.h.xml b/Documentation/DocBook/v4l/videodev2.h.xml
-index 325b23b..ccf6c2b 100644
---- a/Documentation/DocBook/v4l/videodev2.h.xml
-+++ b/Documentation/DocBook/v4l/videodev2.h.xml
-@@ -1291,6 +1291,12 @@ enum  <link linkend="v4l2-exposure-auto-type">v4l2_exposure_auto_type</link> {
- #define V4L2_CID_FOCUS_ABSOLUTE                 (V4L2_CID_CAMERA_CLASS_BASE+10)
- #define V4L2_CID_FOCUS_RELATIVE                 (V4L2_CID_CAMERA_CLASS_BASE+11)
- #define V4L2_CID_FOCUS_AUTO                     (V4L2_CID_CAMERA_CLASS_BASE+12)
-+enum  <link linkend="v4l2-focus-auto-type">v4l2_exposure_auto_type</link> {
-+	V4L2_FOCUS_MANUAL = 0,
-+	V4L2_FOCUS_AUTO = 1,
-+	V4L2_FOCUS_MACRO = 2,
-+	V4L2_FOCUS_CONTINUOUS = 3
-+};
- 
- #define V4L2_CID_ZOOM_ABSOLUTE                  (V4L2_CID_CAMERA_CLASS_BASE+13)
- #define V4L2_CID_ZOOM_RELATIVE                  (V4L2_CID_CAMERA_CLASS_BASE+14)
+CMA won't solve the problem, as not all drivers require continuous memory. The 
+OMAP3 ISP has an IOMMU, and two very time-consuming tasks are mapping the 
+memory to the IOMMU and cleaning the cache. This is why preallocation *and* 
+prequeuing is needed.
+
 -- 
-1.7.0.4
+Regards,
+
+Laurent Pinchart
