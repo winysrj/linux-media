@@ -1,38 +1,42 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:52762 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751293Ab1B0Vjo (ORCPT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:54899 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752643Ab1BSQg0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Feb 2011 16:39:44 -0500
-Received: by bwz15 with SMTP id 15so3241898bwz.19
-        for <linux-media@vger.kernel.org>; Sun, 27 Feb 2011 13:39:43 -0800 (PST)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: [GIT PATCHES FOR 2.6.39] dw2102 updates
-Date: Sun, 27 Feb 2011 23:39:49 +0200
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201102272339.49473.liplianin@me.by>
+	Sat, 19 Feb 2011 11:36:26 -0500
+Received: by eye27 with SMTP id 27so2314919eye.19
+        for <linux-media@vger.kernel.org>; Sat, 19 Feb 2011 08:36:25 -0800 (PST)
+From: David Cohen <dacohen@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@iki.fi, hverkuil@xs4all.nl
+Subject: [RFC/PATCH 0/1] Get rid of V4L2 internal device interface usage
+Date: Sat, 19 Feb 2011 18:35:46 +0200
+Message-Id: <1298133347-26796-1-git-send-email-dacohen@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The following changes since commit 9e650fdb12171a5a5839152863eaab9426984317:
+Hi,
 
-  [media] drivers:media:radio: Update Kconfig and Makefile for wl128x FM driver (2011-02-27 
-07:50:42 -0300)
+This is the first patch (set) version to remove V4L2 internal device interface.
+I have converted tcm825x VGA sensor to V4L2 sub device interface. I removed
+also some workarounds in the driver which doesn't fit anymore in its new
+interface.
 
-are available in the git repository at:
-  git://linuxtv.org/liplianin/media_tree.git dw2102
+TODO:
+ - Remove V4L2 int device interface from omap24xxcam driver.
+ - Define a new interface to handle xclk. OMAP3 ISP could be used as base.
+ - Use some base platform (probably N8X0) to add board code and test them.
+ - Remove V4L2 int device. :)
 
-Igor M. Liplianin (5):
-      dw2102: X3M TV SPC1400HD added.
-      dw2102: remove unnecessary delays for i2c transfer for some cards.
-      dw2102: i2c transfer corrected for some cards.
-      dw2102: i2c transfer corrected for yet another cards.
-      dw2102: prof 1100 corrected.
+Br,
 
- drivers/media/dvb/dvb-usb/dw2102.c |   47 +++++++++++++++++++++--------------
- 1 files changed, 28 insertions(+), 19 deletions(-)
+David
+---
+
+David Cohen (1):
+  tcm825x: convert driver to V4L2 sub device interface
+
+ drivers/media/video/tcm825x.c |  369 ++++++++++++-----------------------------
+ drivers/media/video/tcm825x.h |    6 +-
+ 2 files changed, 109 insertions(+), 266 deletions(-)
+
