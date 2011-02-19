@@ -1,74 +1,34 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52679 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753449Ab1B1KxV (ORCPT
+Received: from mailout-de.gmx.net ([213.165.64.23]:59123 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754450Ab1BSSxs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Feb 2011 05:53:21 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Jiri Slaby <jslaby@suse.cz>
-Subject: Re: [PATCH v2 -resend#1 1/1] V4L: videobuf, don't use dma addr as physical
-Date: Mon, 28 Feb 2011 11:53:30 +0100
-Cc: mchehab@infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, jirislaby@gmail.com,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-References: <1298885822-10083-1-git-send-email-jslaby@suse.cz>
-In-Reply-To: <1298885822-10083-1-git-send-email-jslaby@suse.cz>
+	Sat, 19 Feb 2011 13:53:48 -0500
+From: Martin Dauskardt <martin.dauskardt@gmx.de>
+To: linux-media@vger.kernel.org
+Subject: analogue tuners: radio volume much lower than TV volume
+Date: Sat, 19 Feb 2011 19:53:46 +0100
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-15"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201102281153.30585.laurent.pinchart@ideasonboard.com>
+Message-Id: <201102191953.46187.martin.dauskardt@gmx.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Jiri,
+My PVR350 (ivtv) and my PVRUSB2 Model 29034 (pvrusb2) have a much lower volume 
+when switching to radio. 
 
-On Monday 28 February 2011 10:37:02 Jiri Slaby wrote:
-> mem->dma_handle is a dma address obtained by dma_alloc_coherent which
-> needn't be a physical address in presence of IOMMU. So ensure we are
-> remapping (remap_pfn_range) the right page in __videobuf_mmap_mapper
-> by using virt_to_phys(mem->vaddr) and not mem->dma_handle.
+On the HVR1300 (cx88-blackbird, Philips FMD1216ME tuner) this is no problem; 
+radio has same volume level.
 
-Quoting arch/arm/include/asm/memory.h,
+The saa7134-based KNC One TV Station DVR (similar tuner: FMD1216MEX) has a 
+very low audio volume on radio, even lower than the ivtv/pvrusb2 devices. 
+Unfortunately it is not possible to set the volume. The radio device doesn't 
+support V4L2_CID_AUDIO_VOLUME, and performing the ioctl on the video device 
+causes a switch back to TV mode. 
 
-/*
- * These are *only* valid on the kernel direct mapped RAM memory.
- * Note: Drivers should NOT use these.  They are the wrong
- * translation for translating DMA addresses.  Use the driver
- * DMA support - see dma-mapping.h.
- */
-static inline unsigned long virt_to_phys(const volatile void *x)
-{
-        return __virt_to_phys((unsigned long)(x));
-}
-
-Why would you use physically contiguous memory if you have an IOMMU anyway ?
-
-> While at it, use PFN_DOWN instead of explicit shift.
-> 
-> Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-> ---
->  drivers/media/video/videobuf-dma-contig.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/videobuf-dma-contig.c
-> b/drivers/media/video/videobuf-dma-contig.c index c969111..19d3e4a 100644
-> --- a/drivers/media/video/videobuf-dma-contig.c
-> +++ b/drivers/media/video/videobuf-dma-contig.c
-> @@ -300,7 +300,7 @@ static int __videobuf_mmap_mapper(struct videobuf_queue
-> *q,
-> 
->  	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
->  	retval = remap_pfn_range(vma, vma->vm_start,
-> -				 mem->dma_handle >> PAGE_SHIFT,
-> +				 PFN_DOWN(virt_to_phys(mem->vaddr))
->  				 size, vma->vm_page_prot);
->  	if (retval) {
->  		dev_err(q->dev, "mmap: remap failed with error %d. ", retval);
-
--- 
-Regards,
-
-Laurent Pinchart
+Is there an explanation for this audio volume issue? Does it depend on the 
+tuner type?
+Should a driver internally sets a higher audio volume for radio mode, or is 
+this against the V4L2 api?
