@@ -1,63 +1,80 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58933 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754884Ab1BWQfH (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:57088 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751758Ab1BSLfL convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Feb 2011 11:35:07 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hansverk@cisco.com>
-Subject: Re: [RFC/PATCH 0/1] New subdev sensor operation g_interface_parms
-Date: Wed, 23 Feb 2011 17:35:15 +0100
-Cc: "Aguirre, Sergio" <saaguirre@ti.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Stan <svarbanov@mm-sol.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <cover.1298368924.git.svarbanov@mm-sol.com> <201102231714.41770.laurent.pinchart@ideasonboard.com> <201102231728.40075.hansverk@cisco.com>
-In-Reply-To: <201102231728.40075.hansverk@cisco.com>
+	Sat, 19 Feb 2011 06:35:11 -0500
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201102231735.15965.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <4D5A6EEC.5000908@maxwell.research.nokia.com>
+References: <1297068547-10635-1-git-send-email-weber@corscience.de>
+	<4D5A6353.7040907@maxwell.research.nokia.com>
+	<20110215113717.GN2570@legolas.emea.dhcp.ti.com>
+	<4D5A672A.7040000@samsung.com>
+	<4D5A6874.1080705@corscience.de>
+	<20110215115349.GQ2570@legolas.emea.dhcp.ti.com>
+	<4D5A6EEC.5000908@maxwell.research.nokia.com>
+Date: Sat, 19 Feb 2011 13:35:09 +0200
+Message-ID: <AANLkTik+6fguqgH8Bpnpqo7Axmquy3caRMELTZVmuN1j@mail.gmail.com>
+Subject: Re: [PATCH resend] video: omap24xxcam: Fix compilation
+From: David Cohen <dacohen@gmail.com>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	balbi@ti.com
+Cc: Thomas Weber <weber@corscience.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-omap@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>, Tejun Heo <tj@kernel.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wednesday 23 February 2011 17:28:39 Hans Verkuil wrote:
-> On Wednesday, February 23, 2011 17:14:41 Laurent Pinchart wrote:
-> > On Wednesday 23 February 2011 17:02:57 Hans Verkuil wrote:
+Hi Sakari and Felipe,
 
-[snip]
+On Tue, Feb 15, 2011 at 2:17 PM, Sakari Ailus
+<sakari.ailus@maxwell.research.nokia.com> wrote:
+> Felipe Balbi wrote:
+>> Hi,
+>>
+>> On Tue, Feb 15, 2011 at 12:50:12PM +0100, Thomas Weber wrote:
+>>> Hello Felipe,
+>>>
+>>> in include/linux/wait.h
+>>>
+>>> #define wake_up(x)            __wake_up(x, TASK_NORMAL, 1, NULL)
+>>
+>> aha, now I get it, so shouldn't the real fix be including <linux/sched.h>
+>> on <linux/wait.h>, I mean, it's <linuux/wait.h> who uses a symbol
+>> defined in <linux/sched.h>, right ?
 
-> > > When you switch polarity for data/field/hsync/vsync signals on a simple
-> > > bus you just invert whether a 1 bit is output as high or low voltage. So
-> > > you just change the meaning of the bit. This does not matter for
-> > > signal integrity, since you obviously have to be able to sample both
-> > > low and high voltages. It is *when* you sample that can have a major
-> > > effect.
-> > 
-> > When you switch the polarity you will likely have to sample on the
-> > opposite edge. If, for signal integrity reasons, you can only sample on
-> > a given edge, you will want to use a fixed polarity and not negotiate
-> > it.
-> 
-> You are confusing clock polarity (which is relevant) with data, field,
-> hsync and vsync polarities which just invert the meaning of those pins.
+That's a tricky situation. linux/sched.h includes indirectly
+linux/completion.h which includes linux/wait.h.
+By including sched.h in wait.h, the side effect is completion.h will
+then include a blank wait.h file and trigger a compilation error every
+time wait.h is included by any file.
 
-I was talking about clock polarity. Sorry for the confusion.
+>
+> Surprisingly many other files still don't seem to be affected. But this
+> is actually a better solution (to include sched.h in wait.h).
 
-> I wish I had a whiteboard to draw it, much easier to explain that way.
-> 
-> > Given the very small number of parameters that are negotiated by
-> > soc-camera at the moment, I'm very much in favour of hardcoding all of
-> > them in platform data and just adding a g_interface_parms subdev
-> > operation.
-> 
-> Just for the record: I have no problem with hardcoding these polarities.
-> After all, that was my original idea. But they can be negotiated as well.
+It does not affect all files include wait.h because TASK_* macros are
+used with #define statements only. So it has no effect unless some
+file tries to use a macro which used TASK_*. It seems the usual on
+kernel is to include both wait.h and sched.h when necessary.
+IMO your patch is fine.
 
--- 
-Regards,
+Br,
 
-Laurent Pinchart
+David
+
+>
+> --
+> Sakari Ailus
+> sakari.ailus@maxwell.research.nokia.com
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+>
