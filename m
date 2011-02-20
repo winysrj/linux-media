@@ -1,67 +1,70 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:51828 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753281Ab1BUMLn convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:1284 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751795Ab1BTIr2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Feb 2011 07:11:43 -0500
+	Sun, 20 Feb 2011 03:47:28 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: David Cohen <dacohen@gmail.com>
+Subject: Re: [RFC/PATCH 0/1] Get rid of V4L2 internal device interface usage
+Date: Sun, 20 Feb 2011 09:47:19 +0100
+Cc: linux-media@vger.kernel.org, sakari.ailus@iki.fi
+References: <1298133347-26796-1-git-send-email-dacohen@gmail.com>
+In-Reply-To: <1298133347-26796-1-git-send-email-dacohen@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <AANLkTimwvgLvpvndCqcd_okA2Kk4cu7z4bD3QXTdgWJW@mail.gmail.com>
-References: <1298283649-24532-1-git-send-email-dacohen@gmail.com>
-	<1298283649-24532-2-git-send-email-dacohen@gmail.com>
-	<AANLkTimwvgLvpvndCqcd_okA2Kk4cu7z4bD3QXTdgWJW@mail.gmail.com>
-Date: Mon, 21 Feb 2011 14:11:42 +0200
-Message-ID: <AANLkTi=kL1+qKys0ZCTRb_9GgzadS8Stbai+cR-KNoAU@mail.gmail.com>
-Subject: Re: [PATCH 1/1] headers: fix circular dependency between
- linux/sched.h and linux/wait.h
-From: David Cohen <dacohen@gmail.com>
-To: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: linux-kernel@vger.kernel.org, mingo@elte.hu, peterz@infradead.org,
-	linux-omap@vger.kernel.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201102200947.19706.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, Feb 21, 2011 at 1:05 PM, Alexey Dobriyan <adobriyan@gmail.com> wrote:
-> On Mon, Feb 21, 2011 at 12:20 PM, David Cohen <dacohen@gmail.com> wrote:
->> Currently sched.h and wait.h have circular dependency between both.
->> wait.h defines macros wake_up*() which use macros TASK_* defined by
->> sched.h. But as sched.h indirectly includes wait.h, such wait.h header
->> file can't include sched.h too. The side effect is when some file
->> includes wait.h and tries to use its wake_up*() macros, it's necessary
->> to include sched.h also.
->> This patch moves all TASK_* macros from linux/sched.h to a new header
->> file linux/task_sched.h. This way, both sched.h and wait.h can include
->> task_sched.h and fix the circular dependency. No need to include sched.h
->> anymore when wake_up*() macros are used.
->
-> Just include <linux/sched.h> in your driver.
+Hi David,
 
-Sounds a reasonable solution for me.
+On Saturday, February 19, 2011 17:35:46 David Cohen wrote:
+> Hi,
+> 
+> This is the first patch (set) version to remove V4L2 internal device interface.
+> I have converted tcm825x VGA sensor to V4L2 sub device interface. I removed
+> also some workarounds in the driver which doesn't fit anymore in its new
+> interface.
 
-> This include splitting in small pieces is troublesome as well.
+Very nice! It looks good. I noticed that you didn't convert it to the control
+framework yet, but after looking at the controls I think that it is probably
+better if I do that anyway. There are several private controls in this driver,
+and I will need to take a good look at those.
 
-But I disagree it's troublesome. It's transparent to everyone else.
-The only side effect is to not have to include sched.h when using a
-macro define on wait.h.
+> TODO:
+>  - Remove V4L2 int device interface from omap24xxcam driver.
+>  - Define a new interface to handle xclk. OMAP3 ISP could be used as base.
+>  - Use some base platform (probably N8X0) to add board code and test them.
+>  - Remove V4L2 int device. :)
 
->
-> Why are you moving TASK_COMM_LEN?
+It would be so nice to have that API removed :-)
 
-This one can be moved back to sched.h.
+Regards,
 
-Br,
+	Hans
 
-David
+> 
+> Br,
+> 
+> David
+> ---
+> 
+> David Cohen (1):
+>   tcm825x: convert driver to V4L2 sub device interface
+> 
+>  drivers/media/video/tcm825x.c |  369 ++++++++++++-----------------------------
+>  drivers/media/video/tcm825x.h |    6 +-
+>  2 files changed, 109 insertions(+), 266 deletions(-)
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
 
->
->>  include/linux/sched.h      |   61 +-----------------------------------------
->>  include/linux/task_sched.h |   64 ++++++++++++++++++++++++++++++++++++++++++++
->>  include/linux/wait.h       |    1 +
->>  3 files changed, 66 insertions(+), 60 deletions(-)
->>  create mode 100644 include/linux/task_sched.h
->
->> --- a/include/linux/sched.h
->> +++ b/include/linux/sched.h
->> +#include <linux/task_sched.h>
->
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
