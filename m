@@ -1,54 +1,82 @@
 Return-path: <mchehab@pedra>
-Received: from skyboo.net ([82.160.187.4]:38399 "EHLO skyboo.net"
-	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752852Ab1B1Tpz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Feb 2011 14:45:55 -0500
-Message-ID: <4D6BFB6A.1090404@skyboo.net>
-Date: Mon, 28 Feb 2011 20:45:46 +0100
-From: Mariusz Bialonczyk <manio@skyboo.net>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:60834 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751038Ab1BTP1y convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 Feb 2011 10:27:54 -0500
+Received: by ewy6 with SMTP id 6so107696ewy.19
+        for <linux-media@vger.kernel.org>; Sun, 20 Feb 2011 07:27:52 -0800 (PST)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: "Igor M. Liplianin" <liplianin@me.by>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-References: <4D3358C5.5080706@skyboo.net> <201102281741.26950.liplianin@me.by> <4D6BC8D4.3080001@linuxtv.org> <201102281901.50579.liplianin@me.by>
-In-Reply-To: <201102281901.50579.liplianin@me.by>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Subject: Re: [PATCH] Prof 7301: switching frontend to stv090x, fixing "LOCK
- FAILED" issue
+In-Reply-To: <AANLkTikNESFqYNT7Gu2vE4yMeDhCCSu0BkeRhEmVbR3y@mail.gmail.com>
+References: <AANLkTikNESFqYNT7Gu2vE4yMeDhCCSu0BkeRhEmVbR3y@mail.gmail.com>
+Date: Sun, 20 Feb 2011 10:27:51 -0500
+Message-ID: <AANLkTimeuemRVt9MEm5nwVi+6Rszx0-s1xVvrhi-yi5v@mail.gmail.com>
+Subject: Re: utv 330 : gadmei USB 2860 Device : No Audio
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Pranjal Pandey <pranjal8128@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 02/28/2011 06:01 PM, Igor M. Liplianin wrote:
-> For those who ...
-> He asked me to get rid of my driver. Why should I?
-Maybe because (now) your frontend has problems with tunning on this card?
-I though that references are known for you:
-1. http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/24573
-2. http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/25275
-3. http://linuxdvb.org.ru/wbb/index.php?page=Thread&threadID=641
+Hello Pranjal,
 
-And to be more specific: I am not asking to get rid of your driver,
-my patch doesn't touch your stv0900 implementation, it only change the
-frontend for one particular card.
+On Sun, Feb 20, 2011 at 10:13 AM, Pranjal Pandey <pranjal8128@gmail.com> wrote:
+> I am trying to use UTV 330 tv tuner card to watch tv on my laptop. I
+> am using Ubuntu 10.10 with 2.6.35 kernel. To play the tv i use
+>
+> tvtime -d /dev/video1
+>
+> Tvtime plays the video properly but there is no audio.
+>
+> The output of dmesg is ::::
+<snip>
+> I have a lineout in the device. I have tried connecting earphone to
+> the lineout but there is no audio (seems like there is no signal). I
+> also used following with no improvements:
+> arecord -D hw:0,0 -c 2 -f S16_LE | aplay
+>
+> From the dmesg output i can see a few things wrongly detected. First
+> it says that there is no audio on board but the device has a lineout
+> and hence some codec (on board audio).
 
-> I have 7301, test it myself and see nothing bad with stv0900.
-If it is working for you - lucky you! But keep in mind that it it doesn't
-mean that it is working for others. Have you tested it with my patch applied?
-Besides it is not using your frontend, maybe it just *work*?
+The em2860 based devices do not have the ability to provide audio over
+the USB.  Your only option is to connect the device's line out to your
+sound card.  If you're getting audio with Windows without hooking up
+that line out cable, then there is something very strange going on.
 
-> Obviously, I better patch stv0900 then convert the driver to stv090x.
-Sure, go ahead... I am only wondering why wasn't you so helpful when I was
-trying to contact you and offer debugging help when I discovered the problem
-after I started using this card. Your only response was:
-"I know this issue. Your card is fine."
-So now I resolved the problem myself and sent a working solution (tested
-by some people - always with good results) and you disagree now.
+> The second thing is   that the board i detected as "Gadmei UTV330+" and not as "Gadmei UTV330".
 
-I'm only hoping that a hardware *usability* will win over an ego!
+The board name should not relevant in this case.  It's the same core
+hardware design and the vendor was too dumb to make it easy to
+identify the correct model for the board (for example, by giving them
+unique USB IDs).
 
-regards,
+> The output of lsusb is:
+> Bus 002 Device 004: ID eb1a:2860 eMPIA Technology, Inc.
+>
+> I checked the driver files. In em28xx-cards.c "Gadmei UTV330+"
+> corresponds to "EM2861_BOARD_GADMEI_UTV330PLUS" but from lsusb i know
+> that the device is em2860 and not em2861.
+
+Again, this doesn't matter.  There were no driver changes required to
+support the newer revision of the chip.
+
+> I have also checked the device in windows and it works fine. Does
+> anyone has any clue whats wrong here. Any suggestions ? Has anyone
+> successfully used this card in linux ?
+
+What exactly is your experience with Windows?  Are you able to get
+audio without having to hook up the line-out to your sound card?
+
+You should also try the composite/s-video input instead of the tuner
+and see if you get audio.  If you do, then we know the problem is
+specific to the onboard tuner chip and not something with the em2860
+bridge.
+
+Devin
+
 -- 
-Mariusz Bialonczyk
-jabber/e-mail: manio@skyboo.net
-http://manio.skyboo.net
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
