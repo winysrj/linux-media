@@ -1,66 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:24532 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750726Ab1BPNQ1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Feb 2011 08:16:27 -0500
-Subject: Re: [PATCH] [media] rc: do not enable remote controller adapters
- by default.
-From: Andy Walls <awalls@md.metrocast.net>
-To: Stephen Wilson <wilsons@start.ca>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
-	Jarod Wilson <jarod@redhat.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-In-Reply-To: <m3aahwa4ib.fsf@fibrous.localdomain>
-References: <m3aahwa4ib.fsf@fibrous.localdomain>
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 16 Feb 2011 08:16:49 -0500
-Message-ID: <1297862209.2086.18.camel@morgan.silverblock.net>
-Mime-Version: 1.0
+Received: from mx1.redhat.com ([209.132.183.28]:37749 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751702Ab1BTIOa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 Feb 2011 03:14:30 -0500
+Message-ID: <4D60CD6D.6000607@redhat.com>
+Date: Sun, 20 Feb 2011 09:14:37 +0100
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Mike Booth <mike_booth76@iprimus.com.au>
+CC: linux-media@vger.kernel.org
+Subject: Re: v4l-utils-0.8.3 and KVDR
+References: <e05367$6mkr9m@smtp06.syd.iprimus.net.au>
+In-Reply-To: <e05367$6mkr9m@smtp06.syd.iprimus.net.au>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 2011-02-16 at 01:16 -0500, Stephen Wilson wrote:
-> Having the RC_CORE config default to INPUT is almost equivalent to
-> saying "yes".  Default to "no" instead.
-> 
-> Signed-off-by: Stephen Wilson <wilsons@start.ca>
+Hi,
 
-I don't particularly like this, if it discourages desktop distributions
-from building RC_CORE.  The whole point of RC_CORE in kernel was to have
-the remote controllers bundled with TV and DTV cards "just work" out of
-the box for end users.  Also the very popular MCE USB receiver device,
-shipped with Media Center PC setups, needs it too.
+On 02/20/2011 12:48 AM, Mike Booth wrote:
+> My understanding of the "wrappers"contained in this library is that v4l
+> applications should work with kernels from 2.6.36 onwards if the compat.so is
+> preloaded.
+>
+> I use KVDR for watching and controlling VDR on my TV.
+>
+> Xine and Xineliboutput or not options as they don't provide TV out and TV out
+> fronm the video card is also not an option because of where things are in the
+> house.
+>
+> KVDR fails with
+>
+>
+> Xv-VIDIOCGCAP: Invalid argument
+> Xv-VIDIOCGMBUF: Invalid argument
+>
+> works perfectly fine on linux-2.6.35
+>
+>
+> Anyone have any ideas
 
-Why exactly do you need it set to "No"?
+First of all make sure you load kdvr with the appropriote LD_PRELOAD, ie:
+LD_PRELOAD=/usr/lib/libv4l/v4l1compat.so kvdr
+
+If that does not help, do the following before launching kvdr:
+export LIBV4L1_LOG_FILENAME=/tmp/log
+
+So the total sequence of commands becomes:
+export LIBV4L1_LOG_FILENAME=/tmp/log
+LD_PRELOAD=/usr/lib/libv4l/v4l1compat.so kvdr
+
+Then do what ever you want to do and fails, and send another mail
+with /tmp/log attached.
 
 Regards,
-Andy
 
-> ---
->  drivers/media/rc/Kconfig |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-> index 3785162..8842843 100644
-> --- a/drivers/media/rc/Kconfig
-> +++ b/drivers/media/rc/Kconfig
-> @@ -1,7 +1,7 @@
->  menuconfig RC_CORE
->  	tristate "Remote Controller adapters"
->  	depends on INPUT
-> -	default INPUT
-> +	default n
->  	---help---
->  	  Enable support for Remote Controllers on Linux. This is
->  	  needed in order to support several video capture adapters.
-> --
-> 1.7.3.5
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Hans
 
