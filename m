@@ -1,126 +1,90 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:65196 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750788Ab1BQWLd (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:54899 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752082Ab1BTJfc convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Feb 2011 17:11:33 -0500
-Received: by fxm20 with SMTP id 20so3111973fxm.19
-        for <linux-media@vger.kernel.org>; Thu, 17 Feb 2011 14:11:32 -0800 (PST)
-Message-ID: <4D5D9D10.2060709@gmail.com>
-Date: Thu, 17 Feb 2011 23:11:28 +0100
-From: poma <pomidorabelisima@gmail.com>
+	Sun, 20 Feb 2011 04:35:32 -0500
+Received: by wyb38 with SMTP id 38so230979wyb.19
+        for <linux-media@vger.kernel.org>; Sun, 20 Feb 2011 01:35:31 -0800 (PST)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>,
-	andrew.williams@joratech.com, lindsay.mathieson@gmail.com,
-	skandalfo@gmail.com, news004@upsilon.org.uk
-Subject: Re: Afatech AF9015 & dual tuner - dual_mode B.R.O.K.E.N.
-References: <4D5B5FE2.5000302@gmail.com> <4D5CE929.4050102@gmail.com>
-In-Reply-To: <4D5CE929.4050102@gmail.com>
-Content-Type: multipart/mixed;
- boundary="------------040504060607060302010405"
+In-Reply-To: <201102200947.19706.hverkuil@xs4all.nl>
+References: <1298133347-26796-1-git-send-email-dacohen@gmail.com>
+	<201102200947.19706.hverkuil@xs4all.nl>
+Date: Sun, 20 Feb 2011 11:35:30 +0200
+Message-ID: <AANLkTi=cW5RDsRQ3AfMhuAM=FMSvnmvxngGMxZHc3M2K@mail.gmail.com>
+Subject: Re: [RFC/PATCH 0/1] Get rid of V4L2 internal device interface usage
+From: David Cohen <dacohen@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, sakari.ailus@iki.fi
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This is a multi-part message in MIME format.
---------------040504060607060302010405
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+On Sun, Feb 20, 2011 at 10:47 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Hi David,
 
-poma wrote:
-> poma wrote:
->> To num_adapters = 2, or num_adapters = 1: that is the question!
-> 
-> In dual tuner mode, after a while device become unrensponsive,
-> eventually after S5 aka 'Soft Off' system doesn't even boot!
-> Didn't even mention all sorts of 'mumbo-jumbo' with S3 aka 'Suspend to 
-> RAM'.
-> Antti, please consider adding 'dual_mode' parameter back.
-> 
-> "dvb_usb_af9015 dual_mode=0"
-> 
-> Devices to consider:
-> 
-> Not Only TV/LifeView DUAL DVB-T USB LV52T
-> (equivalent to TerraTec Cinergy T Stick Dual RC)
-> Afatech AF9013/AF9015 & 2x MaxLinear MxL5007T
-> http://www.notonlytv.net/p_lv52t.html
-> 
-> KWorld USB Dual DVB-T TV Stick (DVB-T 399U)
-> Afatech AF9013/AF9015 & 2x MaxLinear MxL5003S
-> http://www.kworld-global.com/main/prod_in.aspx?mnuid=1248&modid=6&prodid=73
-> 
-> DigitalNow TinyTwin DVB-T Receiver
-> Afatech AF9013/AF9015 & 2x MaxLinear MxL5005S
-> http://www.digitalnow.com.au/product_pages/TinyTwin.html
-> 
-> http://www.spinics.net/lists/linux-dvb/msg31616.html
-> http://www.spinics.net/lists/linux-dvb/msg31621.html
+Hi Hans,
 
-This patch restore dvb_usb_af9015 'dual mode' parameter - "disable dual 
-mode by default because it is buggy".
-Enabled mode:
-options dvb_usb_af9015 dual_mode=1
-in modprobe referent file.
+>
+> On Saturday, February 19, 2011 17:35:46 David Cohen wrote:
+>> Hi,
+>>
+>> This is the first patch (set) version to remove V4L2 internal device interface.
+>> I have converted tcm825x VGA sensor to V4L2 sub device interface. I removed
+>> also some workarounds in the driver which doesn't fit anymore in its new
+>> interface.
+>
+> Very nice! It looks good. I noticed that you didn't convert it to the control
+> framework yet, but after looking at the controls I think that it is probably
+> better if I do that anyway. There are several private controls in this driver,
+> and I will need to take a good look at those.
 
-..
---- a/linux/drivers/media/dvb/dvb-usb/af9015.c	2011-01-10 
-16:24:45.000000000 +0100
-+++ b/linux/drivers/media/dvb/dvb-usb/af9015.c	2011-02-17 
-21:58:42.099040739 +0100
-@@ -40,6 +40,9 @@
-  static int dvb_usb_af9015_remote;
-  module_param_named(remote, dvb_usb_af9015_remote, int, 0644);
-  MODULE_PARM_DESC(remote, "select remote");
-+static int dvb_usb_af9015_dual_mode;
-+module_param_named(dual_mode, dvb_usb_af9015_dual_mode, int, 0644);
-+MODULE_PARM_DESC(dual_mode, "enable dual mode");
-  DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+Yes, to port to control fw is not part of this task yet. IMO there are
+plenty of missing tasks to let the driver in a good shape and it may
+need a very good rework. For now I'm focusing in remove v4l2 internal
+interface.
 
-  static DEFINE_MUTEX(af9015_usb_mutex);
-@@ -841,6 +844,9 @@
-  		goto error;
-  	af9015_config.dual_mode = val;
-  	deb_info("%s: TS mode:%d\n", __func__, af9015_config.dual_mode);
-+	/* disable dual mode by default because it is buggy */
-+	if (!dvb_usb_af9015_dual_mode)
-+		af9015_config.dual_mode = 0;
+>
+>> TODO:
+>>  - Remove V4L2 int device interface from omap24xxcam driver.
+>>  - Define a new interface to handle xclk. OMAP3 ISP could be used as base.
+>>  - Use some base platform (probably N8X0) to add board code and test them.
+>>  - Remove V4L2 int device. :)
+>
+> It would be so nice to have that API removed :-)
 
-  	/* Set adapter0 buffer size according to USB port speed, adapter1 buffer
-  	   size can be static because it is enabled only USB2.0 */
-..
+Yes. :)
 
-rgds,
-poma
+Br,
 
+David
 
---------------040504060607060302010405
-Content-Type: text/x-patch;
- name="af9015.c_param-dual_mode.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="af9015.c_param-dual_mode.patch"
-
---- a/linux/drivers/media/dvb/dvb-usb/af9015.c	2011-01-10 16:24:45.000000000 +0100
-+++ b/linux/drivers/media/dvb/dvb-usb/af9015.c	2011-02-17 21:58:42.099040739 +0100
-@@ -40,6 +40,9 @@
- static int dvb_usb_af9015_remote;
- module_param_named(remote, dvb_usb_af9015_remote, int, 0644);
- MODULE_PARM_DESC(remote, "select remote");
-+static int dvb_usb_af9015_dual_mode;
-+module_param_named(dual_mode, dvb_usb_af9015_dual_mode, int, 0644);
-+MODULE_PARM_DESC(dual_mode, "enable dual mode");
- DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
- 
- static DEFINE_MUTEX(af9015_usb_mutex);
-@@ -841,6 +844,9 @@
- 		goto error;
- 	af9015_config.dual_mode = val;
- 	deb_info("%s: TS mode:%d\n", __func__, af9015_config.dual_mode);
-+	/* disable dual mode by default because it is buggy */
-+	if (!dvb_usb_af9015_dual_mode)
-+		af9015_config.dual_mode = 0;
- 
- 	/* Set adapter0 buffer size according to USB port speed, adapter1 buffer
- 	   size can be static because it is enabled only USB2.0 */
-
---------------040504060607060302010405--
+>
+> Regards,
+>
+>        Hans
+>
+>>
+>> Br,
+>>
+>> David
+>> ---
+>>
+>> David Cohen (1):
+>>   tcm825x: convert driver to V4L2 sub device interface
+>>
+>>  drivers/media/video/tcm825x.c |  369 ++++++++++++-----------------------------
+>>  drivers/media/video/tcm825x.h |    6 +-
+>>  2 files changed, 109 insertions(+), 266 deletions(-)
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>
+>
+> --
+> Hans Verkuil - video4linux developer - sponsored by Cisco
+>
