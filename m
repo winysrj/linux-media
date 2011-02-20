@@ -1,120 +1,123 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:57358 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751674Ab1B0U77 (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:50448 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753935Ab1BTPNU convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Feb 2011 15:59:59 -0500
-Message-ID: <4D6ABB84.9090209@iki.fi>
-Date: Sun, 27 Feb 2011 23:00:52 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Sun, 20 Feb 2011 10:13:20 -0500
+Received: by wwa36 with SMTP id 36so5310495wwa.1
+        for <linux-media@vger.kernel.org>; Sun, 20 Feb 2011 07:13:19 -0800 (PST)
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kim HeungJun <riverful@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Stanimir Varbanov <svarbanov@mm-sol.com>
-Subject: Re: [RFC] snapshot mode, flash capabilities and control
-References: <Pine.LNX.4.64.1102240947230.15756@axis700.grange> <Pine.LNX.4.64.1102241608090.18242@axis700.grange> <822C7F65-82D7-4513-BED4-B484163BEB3E@gmail.com> <201102251105.06026.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1102251119410.23338@axis700.grange> <4D67F9A7.9000106@maxwell.research.nokia.com> <Pine.LNX.4.64.1102252105060.26361@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1102252105060.26361@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Date: Sun, 20 Feb 2011 20:43:18 +0530
+Message-ID: <AANLkTikNESFqYNT7Gu2vE4yMeDhCCSu0BkeRhEmVbR3y@mail.gmail.com>
+Subject: utv 330 : gadmei USB 2860 Device : No Audio
+From: Pranjal Pandey <pranjal8128@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+I am trying to use UTV 330 tv tuner card to watch tv on my laptop. I
+am using Ubuntu 10.10 with 2.6.35 kernel. To play the tv i use
 
-Guennadi Liakhovetski wrote:
-> On Fri, 25 Feb 2011, Sakari Ailus wrote:
->
->> Hi Guennadi,
->>
->> Guennadi Liakhovetski wrote:
->>> In principle - yes, and yes, I do realise, that the couple of controls,
->>> that I've proposed only cover a very minor subset of the whole flash
->>> function palette. The purposes of my RFC were:
->>
->> Why would there be a different interface for controlling the flash in
->> simple cases and more complex cases?
->
-> Sorry, not sure what you mean. Do you mean different APIs when the flash
-> is controlled directly by the sensor and by an external controller? No, of
-> course we need one API, but you either issue those ioctl()s to the sensor
-> (sub)device, or to the dedicated flash (sub)device. If you mean my "minor
-> subset" above, then I was trying to say, that this is a basis, that has to
-> be extended, but not, that we will develop a new API for more complicated
-> cases.
+tvtime -d /dev/video1
 
-I think I misunderstood you originally, sorry. I should have properly 
-read the RFC. :-)
+Tvtime plays the video properly but there is no audio.
 
-Your proposal of the flash mode is good, but what about software strobe 
-(a little more on that below)?
+The output of dmesg is ::::
+[   93.500070] usb 2-1: new high speed USB device using ehci_hcd and address 4
+[   93.675250] em28xx: New device gadmei USB 2860 Device @ 480 Mbps
+(eb1a:2860, interface 0, class 0)
+[   93.675570] em28xx #0: chip ID is em2860
+[   93.838407] em28xx #0: i2c eeprom 00: 1a eb 67 95 1a eb 60 28 c0 00
+13 03 7a 22 6a 10
+[   93.838418] em28xx #0: i2c eeprom 10: 00 00 06 57 4e 03 00 00 00 00
+00 00 00 00 00 00
+[   93.838427] em28xx #0: i2c eeprom 20: 06 00 00 02 f0 10 01 00 4a 00
+00 00 5b 00 00 00
+[   93.838436] em28xx #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 01 01
+02 01 00 00 00 00
+[   93.838445] em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00
+[   93.838454] em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00
+[   93.838463] em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00
+10 03 67 00 61 00
+[   93.838471] em28xx #0: i2c eeprom 70: 64 00 6d 00 65 00 69 00 00 00
+22 03 55 00 53 00
+[   93.838480] em28xx #0: i2c eeprom 80: 42 00 20 00 32 00 38 00 36 00
+30 00 20 00 44 00
+[   93.838489] em28xx #0: i2c eeprom 90: 65 00 76 00 69 00 63 00 65 00
+00 00 00 00 00 00
+[   93.838498] em28xx #0: i2c eeprom a0: 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00
+[   93.838506] em28xx #0: i2c eeprom b0: 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00
+[   93.838515] em28xx #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00
+[   93.838524] em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00
+[   93.838533] em28xx #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00
+[   93.838541] em28xx #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00
+[   93.838551] em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0xaed2249a
+[   93.838553] em28xx #0: EEPROM info:
+[   93.838554] em28xx #0: No audio on board.
+[   93.838556] em28xx #0: 500mA max power
+[   93.838558] em28xx #0: Table at 0x06, strings=0x227a, 0x106a, 0x0000
+[   93.850527] em28xx #0: Identified as Unknown EM2750/28xx video
+grabber (card=1)
+[   93.864755] em28xx #0: found i2c device @ 0x4a [saa7113h]
+[   93.880884] em28xx #0: found i2c device @ 0xa0 [eeprom]
+[   93.886882] em28xx #0: found i2c device @ 0xc0 [tuner (analog)]
+[   93.898489] em28xx #0: Your board has no unique USB ID.
+[   93.898492] em28xx #0: A hint were successfully done, based on i2c
+devicelist hash.
+[   93.898495] em28xx #0: This method is not 100% failproof.
+[   93.898497] em28xx #0: If the board were missdetected, please email
+this log to:
+[   93.898499] em28xx #0:  V4L Mailing List  <linux-media@vger.kernel.org>
+[   93.898501] em28xx #0: Board detected as Gadmei UTV330+
+[   94.490583] saa7115 0-0025: saa7113 found (1f7113d0e100000) @ 0x4a
+(em28xx #0)
+[   95.677856] All bytes are equal. It is not a TEA5767
+[   95.678014] tuner 0-0060: chip found @ 0xc0 (em28xx #0)
+[   95.678616] tuner-simple 0-0060: creating new instance
+[   95.678623] tuner-simple 0-0060: type set to 69 (Tena TNF 5335 and
+similar models)
+[   95.730047] Registered IR keymap rc-gadmei-rm008z
+[   95.730198] input: em28xx IR (em28xx #0) as
+/devices/pci0000:00/0000:00:1d.7/usb2/2-1/rc/rc0/input15
+[   95.730304] rc0: em28xx IR (em28xx #0) as
+/devices/pci0000:00/0000:00:1d.7/usb2/2-1/rc/rc0
+[   95.750213] em28xx #0: Config register raw data: 0xc0
+[   95.830063] em28xx #0: v4l2 driver version 0.1.2
+[   96.650253] em28xx #0: V4L2 video device registered as video1
+[   96.650258] em28xx #0: V4L2 VBI device registered as vbi0
+[   96.650297] usbcore: registered new interface driver em28xx
+[   96.650301] em28xx driver loaded
 
-Also, what about making this a V4L2 control instead? The ADP1653 driver 
-that Laurent referred to implements flash control using V4L2 controls only.
+I have a lineout in the device. I have tried connecting earphone to
+the lineout but there is no audio (seems like there is no signal). I
+also used following with no improvements:
+arecord -D hw:0,0 -c 2 -f S16_LE | aplay
 
-A version of the driver is here:
+>From the dmesg output i can see a few things wrongly detected. First
+it says that there is no audio on board but the device has a lineout
+and hence some codec (on board audio). The second thing is   that the
+board i detected as "Gadmei UTV330+" and not as "Gadmei UTV330".
 
-<URL:http://gitorious.org/omap3camera/mainline/commit/a41027c857dfcbc268cf8d1c7c7d0ab8b6abac92>
+The output of lsusb is:
+Bus 002 Device 004: ID eb1a:2860 eMPIA Technology, Inc.
 
-It's not yet in mainline --- one reason for this is the lack of time to 
-discuss a proper API for the flash. :-)
+I checked the driver files. In em28xx-cards.c "Gadmei UTV330+"
+corresponds to "EM2861_BOARD_GADMEI_UTV330PLUS" but from lsusb i know
+that the device is em2860 and not em2861.
 
-...
+I have also checked the device in windows and it works fine. Does
+anyone has any clue whats wrong here. Any suggestions ? Has anyone
+successfully used this card in linux ?
 
->>>> This doesn't solve the flash/capture synchronization problem though. I don't
->>>> think we need a dedicated snapshot capture mode at the V4L2 level. A way to
->>>> configure the sensor to react on an external trigger provided by the flash
->>>> controller is needed, and that could be a control on the flash sub-device.
->>>
->>> Well... Sensors call this a "snapshot mode." I don't care that much how we
->>> _call_ it, but I do think, that we should be able to use it.
->>
->> Some sensors and webcams might have that, but newer camera solutions
->> tend to contain a raw bayer sensor and and ISP. There is no concept of
->> snapsnot mode in these sensors.
->
-> Hm, I am not sure I understand, why sensors with DSPs in them should have
-> no notion of a snapshot mode. Do they have no strobe / trigger pins? And
-> no built in possibility to synchronize with a flash?
-
-I was referring to ISPs such as the OMAP 3 ISP. Some hardware have a 
-flash strobe pin while some doesn't (such as the N900).
-
-Still, even if the strobe pin is missing it should be possible to allow 
-strobing the flash by using software strobe (usually an I2C message).
-
-I agree using a hardware strobe is much much better if it's available.
-
->>> Hm, don't think only the "flash subdevice" has to know about this. First,
->>> you have to switch the sensor into that mode. Second, it might be either
->>> external trigger from the flash controller, or a programmed trigger and a
->>> flash strobe from the sensor to the flash (controller). Third, well, not
->>> quite sure, but doesn't the host have to know about the snapshot mode?
->>
->> I do not favour adding use case type of functionality to interfaces that
->> do not necessarily need it. Would the concept of a snapshot be
->> parametrisable on V4L2 level?
->
-> I am open to this. I don't have a good idea of whether camera hosts have
-> to know about the snapshot mode or not. It's open for discussion.
-
-What functionality would the snapshot mode provide? Flash 
-synchronisation? Something else?
-
-I have to admit I don't know of any hardware which would recognise a 
-concept of "snapshot". Do you have a smart sensor which does this, for 
-example? The only hardware support for the flash use I know of is the 
-flash strobe signal.
-
-Flash synchronisation is indeed an issue, and how to tell that a given 
-frame has been exposed with flash. The use of flash is just one of the 
-parameters which would be nice to connect to frames, though.
-
-Regards,
-
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+Thanks
+Pranjal
