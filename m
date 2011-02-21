@@ -1,77 +1,70 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.samsung.com ([203.254.224.33]:42246 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750721Ab1B1FPi (ORCPT
+Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:45164 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752463Ab1BUHgr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Feb 2011 00:15:38 -0500
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Received: from epmmp2 (mailout3.samsung.com [203.254.224.33])
- by mailout3.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LHB008G8ALOY220@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Mon, 28 Feb 2011 14:15:24 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LHB004DUALONE@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 28 Feb 2011 14:15:24 +0900 (KST)
-Date: Mon, 28 Feb 2011 14:15:23 +0900
-From: "Kim, HeungJun" <riverful.kim@samsung.com>
-Subject: Re: [RFC PATCH RESEND v2 2/3] v4l2-ctrls: modify uvc driver to use new
- menu type of V4L2_CID_FOCUS_AUTO
-In-reply-to: <201102251358.29116.laurent.pinchart@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mon, 21 Feb 2011 02:36:47 -0500
+Date: Mon, 21 Feb 2011 09:36:40 +0200
+From: Felipe Balbi <balbi@ti.com>
+To: David Cohen <dacohen@gmail.com>
+Cc: balbi@ti.com,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Thomas Weber <weber@corscience.de>,
 	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
-Reply-to: riverful.kim@samsung.com
-Message-id: <4D6B2F6B.2080605@samsung.com>
-Content-transfer-encoding: 8BIT
-References: <4D67A489.2050808@samsung.com>
- <201102251358.29116.laurent.pinchart@ideasonboard.com>
+	linux-omap@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>, Tejun Heo <tj@kernel.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH resend] video: omap24xxcam: Fix compilation
+Message-ID: <20110221073640.GA3094@legolas.emea.dhcp.ti.com>
+Reply-To: balbi@ti.com
+References: <1297068547-10635-1-git-send-email-weber@corscience.de>
+ <4D5A6353.7040907@maxwell.research.nokia.com>
+ <20110215113717.GN2570@legolas.emea.dhcp.ti.com>
+ <4D5A672A.7040000@samsung.com>
+ <4D5A6874.1080705@corscience.de>
+ <20110215115349.GQ2570@legolas.emea.dhcp.ti.com>
+ <4D5A6EEC.5000908@maxwell.research.nokia.com>
+ <AANLkTik+6fguqgH8Bpnpqo7Axmquy3caRMELTZVmuN1j@mail.gmail.com>
+ <20110219150024.GA4487@legolas.emea.dhcp.ti.com>
+ <AANLkTik5dwNZrUxjgjKeAQOsp610d6y_TNGg1b5Vc5Zd@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <AANLkTik5dwNZrUxjgjKeAQOsp610d6y_TNGg1b5Vc5Zd@mail.gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Laurent,
+Hi,
 
-2011-02-25 오후 9:58, Laurent Pinchart 쓴 글:
-> Hi,
+On Sat, Feb 19, 2011 at 06:04:58PM +0200, David Cohen wrote:
+> > I have to disagree. The fundamental problem is the circular dependency
+> > between those two files:
+> >
+> > sched.h uses wait_queue_head_t defined in wait.h
+> > wait.h uses TASK_* defined in sched.h
+> >
+> > So, IMO the real fix would be clear out the circular dependency. Maybe
+> > introducing <linux/task.h> to define those TASK_* symbols and include
+> > that on sched.h and wait.h
+> >
+> > Just dig a quick and dirty to try it out and works like a charm
 > 
-> On Friday 25 February 2011 13:46:01 Kim, HeungJun wrote:
->> As following to change the boolean type of V4L2_CID_FOCUS_AUTO to menu
->> type, this uvc is modified the usage of V4L2_CID_FOCUS_AUTO.
->>
->> Signed-off-by: Heungjun Kim <riverful.kim@samsung.com>
->> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
->> ---
->>  drivers/media/video/uvc/uvc_ctrl.c |    9 ++++++++-
->>  1 files changed, 8 insertions(+), 1 deletions(-)
->>
->> diff --git a/drivers/media/video/uvc/uvc_ctrl.c
->> b/drivers/media/video/uvc/uvc_ctrl.c index 59f8a9a..b98b9f1 100644
->> --- a/drivers/media/video/uvc/uvc_ctrl.c
->> +++ b/drivers/media/video/uvc/uvc_ctrl.c
->> @@ -333,6 +333,11 @@ static struct uvc_menu_info exposure_auto_controls[] =
->> { { 8, "Aperture Priority Mode" },
->>  };
->>
->> +static struct uvc_menu_info focus_auto_controls[] = {
->> +	{ 1, "Auto Mode" },
->> +	{ 0, "Manual Mode" },
+> We have 2 problems:
+>  - omap24xxcam compilation broken
+>  - circular dependency between sched.h and wait.h
 > 
-> Now that manual focus has value 0 and auto focus value 1, the menu entries 
-> need to be the other way around.
-I don't really get it. My understanding is that your words are structure
-uvc_menu_info should be changed as fitted to focus menu type. right?
-But, I thinks they don't need to be changed, and I don't find wrong,
-I don't know how to fix what you telling me exactly.
+> To fix the broken compilation we can do what the rest of the kernel is
+> doing, which is to include sched.h.
+> Then, the circular dependency is fixed by some different approach
+> which would probably change *all* current usage of TASK_*.
 
-So, could you explain more details? Some examples helps to me.
+considering that 1 is caused by 2 I would fix 2.
 
-Sorry to bother if you are busy, but it's good for me your advice.
-I'll waiting.
+> IMO, there's no need to create a dependency between those issues.
 
-Thanks and Regards,
-Heungjun Kim
+There's no dependency between them, it's just that the root cause for
+this problem is a circular dependency between wait.h and sched.h
 
+-- 
+balbi
