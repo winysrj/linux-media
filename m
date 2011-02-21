@@ -1,173 +1,98 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:60332 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751745Ab1BRK1O (ORCPT
+Received: from cmsout02.mbox.net ([165.212.64.32]:35940 "EHLO
+	cmsout02.mbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752019Ab1BUIYR convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Feb 2011 05:27:14 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [RFD] frame-size switching: preview / single-shot use-case
-Date: Fri, 18 Feb 2011 11:27:13 +0100
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hansverk@cisco.com>, Qing Xu <qingx@marvell.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Neil Johnson <realdealneil@gmail.com>,
-	Robert Jarzmik <robert.jarzmik@free.fr>,
-	Uwe Taeubert <u.taeubert@road.de>,
-	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	"Eino-Ville Talvala" <talvala@stanford.edu>
-References: <Pine.LNX.4.64.1102151641490.16709@axis700.grange> <Pine.LNX.4.64.1102161033440.20711@axis700.grange> <4D5D7141.4030101@infradead.org>
-In-Reply-To: <4D5D7141.4030101@infradead.org>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201102181127.14039.laurent.pinchart@ideasonboard.com>
+	Mon, 21 Feb 2011 03:24:17 -0500
+Received: from cmsout02.mbox.net (co02-lo [127.0.0.1])
+	by cmsout02.mbox.net (Postfix) with ESMTP id 58CFA1341C5
+	for <linux-media@vger.kernel.org>; Mon, 21 Feb 2011 08:24:17 +0000 (GMT)
+Date: Mon, 21 Feb 2011 09:24:13 +0100
+From: "Issa Gorissen" <flop.m@usa.net>
+To: <linux-media@vger.kernel.org>
+Subject: Re: Sony CXD2099AR decryption failing
+Mime-Version: 1.0
+Message-ID: <862PBuiXN3440S01.1298276653@web01.cms.usa.net>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
+Hello Oliver,
 
-On Thursday 17 February 2011 20:04:33 Mauro Carvalho Chehab wrote:
-> Em 16-02-2011 08:35, Guennadi Liakhovetski escreveu:
-> >>>> But from the point of view of the application it makes more sense to
-> >>>> actually have two video nodes. The only difference is that when one
-> >>>> starts streaming it pre-empts the other.
-> >>> 
-> >>> Well, I don't think I like it all that much... One reason - yes, two
-> >>> "independent" video device-nodes, which actually only can stream in
-> >>> turn seems somewhat counterintuitive to me, specifically, I don't
-> >>> think there is a way to tell the application about this. What if we
-> >>> have more than two video devices on the system? Or what if you need
-> >>> more than two video queues / formats? Or actually only one? The kernel
-> >>> doesn't know initially how many, this is a dynamic resource, not a
-> >>> fixed static interface, IMHO.
-> >> 
-> >> I agree with this, which is why I don't think two (or more) video nodes
-> >> would be a good solution.
-> 
-> I agree. Video nodes shouldn't be bind to an specific format. A device with
-> 2 video nodes should be able to retrieve images from two independent video
-> sources.
-> 
-> Unfortunately, ivtv driver was merged with the bad concept of one video
-> node per different type of formats (partially my fault: I remember I
-> commented about it at the time it was submitted, but, as its merge took a
-> long time, and there were several other issues that were needed to be
-> solved there, I ended by giving up and letting it to come with this API
-> non-compliance, hoping that a fix would happen at the next kernel release.
-> Unfortunately, it was never fixed).
-> 
-> >> We've hit the exact same issue with the OMAP3 ISP driver. Our current
-> >> solution is to allocate video buffer queues at the file handle level
-> >> instead of the video node level. Applications can open the same video
-> >> device twice and allocate buffers for the viewfinder on one of the
-> >> instances and for still image capture on the other. When switching from
-> >> viewfinder to still image capture, all it needs to do (beside obviously
-> >> reconfiguring the media controller pipeline if required) is to issue
-> >> VIDIOC_STREAMOFF on the viewfinder file handle and VIDIOC_STREAMON on
-> >> the still capture file handle.
-> 
-> This seems to be the proper way. solution (2) of using read()/mmap() is
-> just an special case of per-file handle stream control, as applications
-> that used this approach in the past were, in fact, using two opens, one
-> for read, and another for mmap (to be clear, I'm not in favor of 2, I'm
-> just saying that a per-file handle solution will allow (2) also).
-> 
-> >> One issue with this approach is that allocating buffers requires
-> >> knowledge of the format and resolution. The driver traditionally
-> >> computes the buffer size from the parameters set by VIDIOC_S_FMT. This
-> >> would prevent an application opening the video node a second time and
-> >> setting up buffers for still image capture a second time while the
-> >> viewfinder is running, as the VIDIOC_S_FMT on the second file handle
-> >> won't be allowed then.
-> >> 
-> >> Changes to the V4L2 spec would be needed to allow this to work properly.
-> > 
-> > The spec is actually saying about the S_FMT ioctl():
-> > 
-> > "On success the driver may program the hardware, allocate resources and
-> > generally prepare for data exchange."
-> > 
-> > - _may_ program the hardware. So, if we don't do that and instead only
-> > verify the format and store it for future activation upon a call to
-> > STREAMON we are not violating the spec, thus, no change is required.
-> > OTOH, another spec sections "V4L2 close()" says:
-> > 
-> > "data format parameters, current input or output, control values or other
-> > properties remain unchanged."
-> > 
-> > which is usually interpreted as "a sequence open(); ioctl(S_FMT);
-> > close(); open(); ioctl(STREAMON);" _must_ use the format, set by the
-> > call to S_FMT, which is not necessarily logical, if we adopt the
-> > per-file-descriptor format / stream approach.
-> 
-> Every time a "may" appears on a spec, we'll have troubles, as some drivers
-> will follow the "may" and others won't follow. Changing the behaviour will
-> likely cause regressions, whatever direction is taken.
-> 
-> One alternative would be to have a better way to negotiate features than
-> what's provided by QUERYCAP. If we look for some protocols with a long
-> life, like telnet, they don't have a one-way to check/set capabilities.
-> Instead, both parties should present their capabilities and the client
-> need to negotiate what he wants.
-> 
-> We could do something like:
-> 
-> 	ret = ioctl(fd, VIDIOC_QUERYCAP, &cap);
-> 	if  (cap.capabilities & CAN_PER_FD_FMT) {
-> 		setcap.capabilities |= SHOULD_PER_FD_FMT;
-> 		ret = ioctl(fd, VIDIOC_SETCAP, &setcap);
-> 	}
-> 
-> To be sure that the kernel driver will behave fine. Yet, in this particular
-> case, this would mean that drivers or core will need to handle both per-fd
-> and per-node S_FMT & friends.
-> 
-> > I think, we have two options:
-> > 
-> > (1) adopt Laurent's proposal of per-fd contexts, but that would require a
-> > pretty heave modification of the spec - S_FMT is not kept across close()
-> > / open() pair.
-> 
-> Whatever done, we'll need to change the specs in a lot of places.
-> 
-> > (2) cleanly separate setting video data format (S_FMT) from specifying
-> > the allocated buffer size.
-> 
-> This would break existing applications. Too late for that, except if
-> negotiated with a "SETCAP" like approach.
-> 
-> There's an additional problem with that: assume that streaming is
-> happening, and a S_FMT changing the resolution was sent. There's no way to
-> warrant that the very next frame will have the new resolution. So, a
-> meta-data with the frame resolution (and format) would be needed.
+I've managed to run Win 7 on the computer. Tested the encrypted channels with
+WIndows Media Center and the DigitalDevices driver version 2.1.0.30. I cannot
+get the channels to show up. MCE shows an error stating that those channels
+are encrypted or there are no signals for them.
 
-It's a completely different topic, but per-frame metadata is something 
-interesting. When changing image tuning hardware parameters (such as white 
-balance for instance), applications can be very interested in knowing on which 
-frame the parameters got applied. Reporting the information to userspace is 
-only part of the challenge, being able to pin-point exact frames in the driver 
-is also an issue.
+FTA works.
 
-> > Of course, there are further possibilities, like my switching ioctl()
-> > above, or we could extend the enum v4l2_priority with an extra
-> > application priority, saying, that this file-descriptor can maintain a
-> > separate S_FMT / STREAMON thread, without immediately affecting other
-> > descriptors, but this seems too obscure to me.
+Any suggestion from here ?
+
+I've read on the digital devices FAQ that the SMIT viaccess CAM has been
+successfully tested...
+
+Thx
+--
+Issa
+
+------ Original Message ------
+Received: 11:55 AM CET, 02/15/2011
+From: "Issa Gorissen" <flop.m@usa.net>
+To: <linux-media@vger.kernel.org>
+Subject: Re: Sony CXD2099AR decryption failing
+
+> Hi Oliver,
+> 
+> Thx for your reply. This will be a bit hard. But I will give it a try. I
+will
+> try to boot from a USB key with Windows on it.
+> 
+> Any preferences for Windows ? XP, Vista or 7 ?
+> 
+> --
+> Issa
+> 
+> ------ Original Message ------
+> Received: 04:04 AM CET, 02/15/2011
+> From: Oliver Endriss <o.endriss@gmx.de>
+> To: "Issa Gorissen" <flop.m@usa.net>Cc: linux-media@vger.kernel.org
+> Subject: Re: Sony CXD2099AR decryption failing
+> 
+> > Hello,
 > > 
-> > My vote goes for (2) above, which is also what Laurent has mentioned here:
-> >> One
-> >> possible direction would be to enhance the buffers allocation API to
-> >> allow applications to set the buffer size. I've been thinking about
-> >> this, and I believe this is where the "global buffers pool" API could
-> >> come into play.
+> > On Monday 14 February 2011 17:42:55 Issa Gorissen wrote:
+> > > Hi,
+> > > 
+> > > I am having some trouble with the Sony CXD2099AR CI chip.
+> > > 
+> > > With a SMIT Viaccess CAM, I am not able to decrypt channels from the
+> french
+> > > package Bis.TV on Hotbird 13E.
+> > > 
+> > > The CAM decrypts fine when inserted in a set top box.
+> > > 
+> > > The drivers running are those from the branch of Oliver.
+> > > System's running OpenSuse 11.3.
+> > > 
+> > > May someone with the knowledge of this chip get in touch with me ?
 > > 
-> > I just wouldn't necessarily bind it to "global buffer pools."
+> > Could you please test, whether it works with the windows driver?
+> > 
+> > CU
+> > Oliver
+> > 
+> > -- 
+> > ----------------------------------------------------------------
+> > VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+> > 4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
+> > Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
+> > ----------------------------------------------------------------
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Maybe not "global", but I would bind it to at least "buffer pools".
 
--- 
-Regards,
-
-Laurent Pinchart
