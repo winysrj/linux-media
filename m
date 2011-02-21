@@ -1,99 +1,49 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:35338 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753221Ab1BANAe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Feb 2011 08:00:34 -0500
-Received: by bwz15 with SMTP id 15so6282929bwz.19
-        for <linux-media@vger.kernel.org>; Tue, 01 Feb 2011 05:00:33 -0800 (PST)
+Received: from mx1.redhat.com ([209.132.183.28]:53130 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752781Ab1BUSLi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Feb 2011 13:11:38 -0500
+Date: Mon, 21 Feb 2011 18:27:56 +0100
+From: Oleg Nesterov <oleg@redhat.com>
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: David Cohen <dacohen@gmail.com>, linux-kernel@vger.kernel.org,
+	mingo@elte.hu, linux-omap@vger.kernel.org,
+	linux-media@vger.kernel.org, Alexey Dobriyan <adobriyan@gmail.com>
+Subject: Re: [PATCH v2 1/1] headers: fix circular dependency between
+	linux/sched.h and linux/wait.h
+Message-ID: <20110221172756.GA27664@redhat.com>
+References: <1298299131-17695-1-git-send-email-dacohen@gmail.com> <1298299131-17695-2-git-send-email-dacohen@gmail.com> <1298303677.24121.1.camel@twins> <AANLkTimOT6jNG3=TiRMJR0dgEQ6EHjcBPJ1ivCu3Wj5Q@mail.gmail.com> <1298305245.24121.7.camel@twins> <20110221172103.GA26225@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <AANLkTikaNR28srMnQ0Ga1v6XzUai-Qz3Q1+fRdBi=nw-@mail.gmail.com>
-References: <AANLkTikaHBXmf_EE7UwJNDwESYcdM8x=6eRukuNEPZ2c@mail.gmail.com>
-	<AANLkTikaNR28srMnQ0Ga1v6XzUai-Qz3Q1+fRdBi=nw-@mail.gmail.com>
-Date: Tue, 1 Feb 2011 14:00:33 +0100
-Message-ID: <AANLkTimZGmmZiV-f-_Pq-+BdDWdr7kxhKUcPR6pSp42a@mail.gmail.com>
-Subject: Re: Asus U3100 Mini Plus
-From: Michal Bojda <rexearth.mbojda@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20110221172103.GA26225@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-WHat I have found on wiki and other sites, my last output looks that:
+On 02/21, Oleg Nesterov wrote:
+>
+> On 02/21, Peter Zijlstra wrote:
+> >
+> > afaict its needed because struct signal_struct and struct sighand_struct
+> > include a wait_queue_head_t. The inclusion seems to come through
+> > completion.h, but afaict we don't actually need to include completion.h
+> > because all we have is a pointer to a completion, which is perfectly
+> > fine with an incomplete type.
+> >
+> > This all would suggest we move the signal bits into their own header
+> > (include/linux/signal.h already exists and seems inviting).
+>
+> Agreed, sched.h contatins a lot of garbage, including the signal bits.
+>
+> As for signal_struct in particular I am not really sure, it is just
+> misnamed. It is in fact "struct process" or "struct thread_group". But
+> dequeue_signal/etc should go into signal.h.
+>
+> The only problem, it is not clear how to test such a change.
 
-[3583.869018] usb 1-1: new high speed USB device using ehci_hcd and address 3
-[ 3584.091259] usb 1-1: configuration #1 chosen from 1 choice
-[ 3584.098609]         DRIVER_RELEASE_VERSION : v2.0-1
-[ 3584.098737]         FW_RELEASE_VERSION     : v8_8_52_0
-[ 3584.098797]         API_RELEASE_VERSION    : 200.20081203.0
-[ 3584.148489] [Device_init] Error 1
-[ 3584.148568] dvb_usb_af903x: probe of 1-1:1.0 failed with error 9
-[ 3584.170852] input: Afa Technologies Inc. AF9035A USB Device as
-/devices/pci0000:00/0000:00:0b.0/usb1/1-1/1-1:1.1/input/input10
-[ 3584.175995] generic-usb 0003:0B05:1779.0006: input,hidraw1: USB HID
-v1.01 Keyboard [Afa Technologies Inc. AF9035A USB Device] on
-usb-0000:00:0b.0-1/input1
+Ah. sched.h includes signal.h, the testing is not the problem.
 
-Dont know what does those errors means, and I am again at freeze point.
+So, we can (at least) safely move some declarations.
 
-2011/1/31 Michal Bojda <rexearth.mbojda@gmail.com>:
-> Here are some specifications.
->
-> Chip : AF9035A
-> Demodulator : AF9035B
-> Tuner : FCI2580
->
-> lsusb :
->
-> Bus 002 Device 005: ID 045e:074f Microsoft Corp.
-> Bus 002 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-> Bus 001 Device 016: ID 0b05:1779 ASUSTek Computer, Inc.
-> Bus 001 Device 004: ID 04f2:b033 Chicony Electronics Co., Ltd
-> Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
->
-> dmesg :
->
-> [141187.393085] usb 1-1: new high speed USB device using ehci_hcd and address 16
-> [141187.531276] usb 1-1: configuration #1 chosen from 1 choice
-> [141187.538888] af9035: tuner ID:50 not supported, please report!
-> [141187.543044] input: Afa Technologies Inc. AF9035A USB Device as
-> /devices/pci0000:00/0000:00:04.1/usb1/1-1/1-1:1.1/input/input25
-> [141187.543160] generic-usb 0003:0B05:1779.000F: input,hidraw1: USB
-> HID v1.01 Keyboard [Afa Technologies Inc. AF9035A USB Device] on
-> usb-0000:00:04.1-1/input1
->
->
-> It looks that it is something with USBHID, but i didnt found any
-> /etc/modprobe.d/usbhid.conf to change. Kernel version I got is
-> 2.6.32-28-generic-pae, Ubuntu 10.4.
->
-> [141187.538888] af9035: tuner ID:50 not supported, please report!
-> -----   I tried to make some changes, so this line is maybe my work.
->
-> I will be glad for any help. Thanks.
->
-> M. Bojda
->
-> 2011/1/30 Michal Bojda <rexearth.mbojda@gmail.com>:
->> Hello there,
->>
->> DVB-T card passed trough my hands. Asus U3100 Mini Plus. I was looking
->> trough the internet, to make it working, but still dont have succes.
->> Any1 met with this card and make it works ?
->>
->> Thanks, best regards M. Bojda
->>
->> --
->> Those who watches their backs, meet death from the front.
->>
->
->
->
-> --
-> Those who watches their backs, meet death from the front.
->
+Oleg.
 
-
-
--- 
-Those who watches their backs, meet death from the front.
