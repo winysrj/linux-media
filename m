@@ -1,115 +1,43 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:38207 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751020Ab1BAWld (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Feb 2011 17:41:33 -0500
-Received: by mail-fx0-f46.google.com with SMTP id 20so7348272fxm.19
-        for <linux-media@vger.kernel.org>; Tue, 01 Feb 2011 14:41:33 -0800 (PST)
-Subject: [PATCH 6/9 v2] ds3000: yet clean up in tune procedure
-To: mchehab@infradead.org, linux-media@vger.kernel.org
-From: "Igor M. Liplianin" <liplianin@me.by>
-Date: Wed, 2 Feb 2011 00:40:57 +0200
+Received: from mx1.redhat.com ([209.132.183.28]:4361 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753141Ab1BUS7p (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Feb 2011 13:59:45 -0500
+Date: Mon, 21 Feb 2011 18:21:03 +0100
+From: Oleg Nesterov <oleg@redhat.com>
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: David Cohen <dacohen@gmail.com>, linux-kernel@vger.kernel.org,
+	mingo@elte.hu, linux-omap@vger.kernel.org,
+	linux-media@vger.kernel.org, Alexey Dobriyan <adobriyan@gmail.com>
+Subject: Re: [PATCH v2 1/1] headers: fix circular dependency between
+	linux/sched.h and linux/wait.h
+Message-ID: <20110221172103.GA26225@redhat.com>
+References: <1298299131-17695-1-git-send-email-dacohen@gmail.com> <1298299131-17695-2-git-send-email-dacohen@gmail.com> <1298303677.24121.1.camel@twins> <AANLkTimOT6jNG3=TiRMJR0dgEQ6EHjcBPJ1ivCu3Wj5Q@mail.gmail.com> <1298305245.24121.7.camel@twins>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201102020040.57353.liplianin@me.by>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1298305245.24121.7.camel@twins>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Remove a lot of debug messages and delays.
+On 02/21, Peter Zijlstra wrote:
+>
+> afaict its needed because struct signal_struct and struct sighand_struct
+> include a wait_queue_head_t. The inclusion seems to come through
+> completion.h, but afaict we don't actually need to include completion.h
+> because all we have is a pointer to a completion, which is perfectly
+> fine with an incomplete type.
+>
+> This all would suggest we move the signal bits into their own header
+> (include/linux/signal.h already exists and seems inviting).
 
-Signed-off-by: Igor M. Liplianin <liplianin@me.by>
----
- drivers/media/dvb/frontends/ds3000.c |   50 +++++-----------------------------
- 1 files changed, 7 insertions(+), 43 deletions(-)
+Agreed, sched.h contatins a lot of garbage, including the signal bits.
 
-diff --git a/drivers/media/dvb/frontends/ds3000.c b/drivers/media/dvb/frontends/ds3000.c
-index 7c61936..11f1aa2 100644
---- a/drivers/media/dvb/frontends/ds3000.c
-+++ b/drivers/media/dvb/frontends/ds3000.c
-@@ -536,25 +536,6 @@ static int ds3000_set_voltage(struct dvb_frontend *fe, fe_sec_voltage_t 
-voltage)
- 	return 0;
- }
- 
--static void ds3000_dump_registers(struct dvb_frontend *fe)
--{
--	struct ds3000_state *state = fe->demodulator_priv;
--	int x, y, reg = 0, val;
--
--	for (y = 0; y < 16; y++) {
--		dprintk("%s: %02x: ", __func__, y);
--		for (x = 0; x < 16; x++) {
--			reg = (y << 4) + x;
--			val = ds3000_readreg(state, reg);
--			if (x != 15)
--				dprintk("%02x ",  val);
--			else
--				dprintk("%02x\n", val);
--		}
--	}
--	dprintk("%s: -- DS3000 DUMP DONE --\n", __func__);
--}
--
- static int ds3000_read_status(struct dvb_frontend *fe, fe_status_t* status)
- {
- 	struct ds3000_state *state = fe->demodulator_priv;
-@@ -589,16 +570,6 @@ static int ds3000_read_status(struct dvb_frontend *fe, fe_status_t* status)
- 	return 0;
- }
- 
--#define FE_IS_TUNED (FE_HAS_SIGNAL + FE_HAS_LOCK)
--static int ds3000_is_tuned(struct dvb_frontend *fe)
--{
--	fe_status_t tunerstat;
--
--	ds3000_read_status(fe, &tunerstat);
--
--	return ((tunerstat & FE_IS_TUNED) == FE_IS_TUNED);
--}
--
- /* read DS3000 BER value */
- static int ds3000_read_ber(struct dvb_frontend *fe, u32* ber)
- {
-@@ -1049,7 +1020,7 @@ static int ds3000_tune(struct dvb_frontend *fe,
- 	struct ds3000_state *state = fe->demodulator_priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 
--	int ret = 0, i;
-+	int i;
- 	u8 status, mlpf, mlpf_new, mlpf_max, mlpf_min, nlpf;
- 	u16 value, ndiv;
- 	u32 f3db;
-@@ -1292,22 +1263,15 @@ static int ds3000_tune(struct dvb_frontend *fe,
- 
- 	/* TODO: calculate and set carrier offset */
- 
--	/* wait before retrying */
- 	for (i = 0; i < 30 ; i++) {
--		if (ds3000_is_tuned(fe)) {
--			dprintk("%s: Tuned\n", __func__);
--			ds3000_dump_registers(fe);
--			goto tuned;
--		}
--		msleep(1);
--	}
--
--	dprintk("%s: Not tuned\n", __func__);
--	ds3000_dump_registers(fe);
-+		ds3000_read_status(fe, &status);
-+		if (status && FE_HAS_LOCK)
-+			return 0;
- 
-+		msleep(10);
-+	}
- 
--tuned:
--	return ret;
-+	return 1;
- }
- 
- static enum dvbfe_algo ds3000_get_algo(struct dvb_frontend *fe)
--- 
-1.7.1
+As for signal_struct in particular I am not really sure, it is just
+misnamed. It is in fact "struct process" or "struct thread_group". But
+dequeue_signal/etc should go into signal.h.
+
+The only problem, it is not clear how to test such a change.
+
+Oleg.
 
