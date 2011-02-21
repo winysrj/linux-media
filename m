@@ -1,54 +1,26 @@
 Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:46626 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753544Ab1B1SUM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Feb 2011 13:20:12 -0500
-Message-ID: <4D6BE756.1090800@infradead.org>
-Date: Mon, 28 Feb 2011 15:20:06 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from snt0-omc2-s14.snt0.hotmail.com ([65.55.90.89]:55940 "EHLO
+	snt0-omc2-s14.snt0.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751370Ab1BUTvA convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Feb 2011 14:51:00 -0500
+Message-ID: <SNT130-w19196431C16F5C2568AE05ADD90@phx.gbl>
+From: Jamenson Ferreira Espindula de Almeida Melo
+	<jamensonespindula@hotmail.com>
+To: <linux-media@vger.kernel.org>
+Subject: Re: Re: Siano SMS1140 DVB Receiver on Debian 5.0 (Lenny)
+Date: Mon, 21 Feb 2011 19:44:46 +0000
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-To: Jiri Slaby <jslaby@suse.cz>
-CC: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	jirislaby@gmail.com
-Subject: Re: [PATCH v2 -resend#1 1/1] V4L: videobuf, don't use dma addr as
- physical
-References: <1298885822-10083-1-git-send-email-jslaby@suse.cz> <20110228145301.GC10846@dumpdata.com> <4D6BC3AE.903@suse.cz>
-In-Reply-To: <4D6BC3AE.903@suse.cz>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 28-02-2011 12:47, Jiri Slaby escreveu:
-> On 02/28/2011 03:53 PM, Konrad Rzeszutek Wilk wrote:
->> On Mon, Feb 28, 2011 at 10:37:02AM +0100, Jiri Slaby wrote:
->>> mem->dma_handle is a dma address obtained by dma_alloc_coherent which
->>> needn't be a physical address in presence of IOMMU. So ensure we are
->>
->> Can you add a comment why you are fixing it? Is there a bug report for this?
->> Under what conditions did you expose this fault?
-> 
-> No, by a just peer review when I was looking for something completely
-> different.
-> 
->> You also might want to mention that "needn't be a physical address as
->> a hardware IOMMU can (and most likely) will return a bus address where
->> physical != bus address."
-> 
-> Mauro, do you want me to resend this with such an udpate in the changelog?
 
-Having it properly documented is always a good idea, especially since a similar
-fix might be needed on other drivers that also need contiguous memory. While it
-currently is used only on devices embedded on hardware with no iommu, there are
-some x86 hardware that doesn't allow DMA scatter/gather.
-
-Btw, it may be worth to take a look at vb2 dma contig module, as it might have
-similar issues.
-
->> Otherwise you can stick 'Reviewed-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>'
->> on it.
-
-Cheers,
-Mauro
+Hi, Mauro! Thank you for your replying.
+I have had some success. I just reconfigured the kernel 2.6.37 and recompiled it. I figured out two things. First: when I compiled the Siano driver as a module, smsmdtv.ko is loaded when I attach the receiver but no adapter directory, no dvr, no demux and no frontend are created in /dev directory. Second: I compiled the Siano driver into the kernel and bingo: when I attach the receiver, frontend0, dvr0 and demux0 are created in /dev/dvb/adapter0 directory. No problem. Real problem is: scan, w_scan and dvbtune doesn't find any signal to scan, say "tunning failed". I figured out that receiver default mode is setup to DVB-T (mode 4 in smscoreapi.c) and because of that dvb_nova_12mhz_b0.inp is required.   Setting default mode to 6 in smscoreapi.c makes isdbt_nova_12mhz_b0.inp be required instead and it does make me sense to be the correct driver considering ISDB-T standard in Brazil.   Reading Siano's documentation I realized that ISDB-T standard only runs with SMS Host Libra
+ry, that is a proprietary subsystem of Siano Mobile Silicon and, actually, I am thinking receiver will only run if I use such a library.
+ 
+Any more help?
+ 
+Best regards. 		 	   		  
