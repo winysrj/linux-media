@@ -1,66 +1,26 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:30065 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751875Ab1BPQ1y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Feb 2011 11:27:54 -0500
-Date: Tue, 15 Feb 2011 17:04:33 -0500
-From: Jarod Wilson <jarod@redhat.com>
-To: Fernando Laudares Camargos <fernando.laudares.camargos@gmail.com>
-Cc: video4linux-list@redhat.com, linux-media@vger.kernel.org
-Subject: Re: IR for remote control not working for Hauppauge WinTV-HVR-1150
- (SAA7134)
-Message-ID: <20110215220433.GA3327@redhat.com>
-References: <AANLkTi=jkLGgZDH6XytL1MEE7w5SckZjXoGPhFSCo40b@mail.gmail.com>
+Received: from snt0-omc2-s14.snt0.hotmail.com ([65.55.90.89]:56407 "EHLO
+	snt0-omc2-s14.snt0.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752141Ab1BUTvS convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Feb 2011 14:51:18 -0500
+Message-ID: <SNT130-w33C1320E405E97531EE9D5ADD90@phx.gbl>
+From: Jamenson Ferreira Espindula de Almeida Melo
+	<jamensonespindula@hotmail.com>
+To: <linux-media@vger.kernel.org>
+Subject: Re: Re: Siano SMS1140 DVB Receiver on Debian 5.0 (Lenny)
+Date: Mon, 21 Feb 2011 19:51:18 +0000
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <AANLkTi=jkLGgZDH6XytL1MEE7w5SckZjXoGPhFSCo40b@mail.gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-First off, video4linux-list is dead, you want linux-media (added to cc).
 
-On Tue, Feb 15, 2011 at 06:27:29PM -0200, Fernando Laudares Camargos wrote:
-> Hello,
-> 
-> I have a Hauppauge WinTV-HVR-1150 (model 67201) pci tv tuner working
-> (video and audio) under Ubuntu 10.10 and kernel 2.6.35-25. But the IR
-> sensor is not being detected and no input device is being created at
-> /proc/bus/input.
-> 
-> I have tried to follow the information from Jarod Wilson and Mauro
-> Carvalho Chehab in https://bugzilla.redhat.com/show_bug.cgi?id=665870
-> (regarding Fedora 14) but couldn't resolve it myself.
-> 
-> I'm not a kernel/driver specialist but from looking at the code I've
-> noticed that *perphaps* the support for the HVR-1150 has not been
-> finished yet. Here are two examples that leaded to this observation
-> (IMHO):
-> 
-> drivers/media/video/saa7134/saa7134-cards.c
-> -------------------------------------------------------------------------------
-> (...)
-> int saa7134_board_init1(struct saa7134_dev *dev)
-> {
-> (...)
->        case SAA7134_BOARD_HAUPPAUGE_HVR1150:           *NO
-> INSTRUCTIONS FOR THIS CASE*
+Hi, Mauro! Thank you for your replying.
 
-No. It falls through and uses the same config as the HVR1120. Similar case
-for all other instances you've referenced.
+I have had some success. I just reconfigured the kernel 2.6.37 and recompiled it. I figured out two things. First: when I compiled the Siano driver as a module, smsmdtv.ko is loaded when I attach the receiver but no adapter directory, no dvr, no demux and no frontend are created in /dev directory. Second: I compiled the Siano driver into the kernel and bingo: when I attach the receiver, frontend0, dvr0 and demux0 are created in /dev/dvb/adapter0 directory. No problem. Real problem is: scan, w_scan and dvbtune doesn't find any signal to scan, say "tunning failed". I figured out that receiver default mode is setup to DVB-T (mode 4 in smscoreapi.c) and because of that dvb_nova_12mhz_b0.inp is required. Setting default mode to 6 in smscoreapi.c makes isdbt_nova_12mhz_b0.inp be required instead and it does make me sense to be the correct driver considering ISDB-T standard in Brazil. Reading Siano's documentation I realized that ISDB-T standard only runs with SMS Host Library, that is a proprietary subsystem of Siano Mobile Silicon and, actually, I am thinking receiver will only run if I use such a library.
 
-> I'm wondering if someone has the IR part of the HVR-1150 working under
-> F14 or other or could give me a hand on trying to make it work (I have
-> attached output from dmesg with the following saa7134 options set:
-> disable_ir=0 i2c_debug=1 i2c_scan=1 ir_debug=1
+Any more help?
 
-As noted in the bug, I think there's actually one more patch of Mauro's
-that isn't yet in the F14 kernel, that bug was updated as having the full
-fix in 2.6.35.11-83.fc14 erroneously.
-
-I'll try to address that soon.
-
--- 
-Jarod Wilson
-jarod@redhat.com
-
+Best regards. 		 	   		  
