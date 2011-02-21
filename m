@@ -1,86 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from smtp01.frii.com ([216.17.135.167]:53279 "EHLO smtp01.frii.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750881Ab1BLP3y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Feb 2011 10:29:54 -0500
-Date: Sat, 12 Feb 2011 08:29:54 -0700
-From: Mark Zimmerman <markzimm@frii.com>
-To: linux-media@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>
-Subject: [get-bisect results]: DViCO FusionHDTV7 Dual Express I2C write
-	failed
-Message-ID: <20110212152954.GA20838@io.frii.com>
-References: <20101207190753.GA21666@io.frii.com>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:53284 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751800Ab1BUQ3n (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Feb 2011 11:29:43 -0500
+Date: Mon, 21 Feb 2011 18:29:39 +0200
+From: Felipe Balbi <balbi@ti.com>
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: David Cohen <dacohen@gmail.com>, linux-kernel@vger.kernel.org,
+	mingo@elte.hu, linux-omap@vger.kernel.org,
+	linux-media@vger.kernel.org, Alexey Dobriyan <adobriyan@gmail.com>,
+	Oleg Nesterov <oleg@redhat.com>
+Subject: Re: [PATCH v2 1/1] headers: fix circular dependency between
+ linux/sched.h and linux/wait.h
+Message-ID: <20110221162939.GK23087@legolas.emea.dhcp.ti.com>
+Reply-To: balbi@ti.com
+References: <1298299131-17695-1-git-send-email-dacohen@gmail.com>
+ <1298299131-17695-2-git-send-email-dacohen@gmail.com>
+ <1298303677.24121.1.camel@twins>
+ <AANLkTimOT6jNG3=TiRMJR0dgEQ6EHjcBPJ1ivCu3Wj5Q@mail.gmail.com>
+ <1298305245.24121.7.camel@twins>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20101207190753.GA21666@io.frii.com>
+In-Reply-To: <1298305245.24121.7.camel@twins>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, Dec 07, 2010 at 12:07:53PM -0700, Mark Zimmerman wrote:
-> Greetings:
-> 
-> I have a DViCO FusionHDTV7 Dual Express card that works with 2.6.35 but
-> which fails to initialize with the latest 2.6.36 kernel. The firmware
-> fails to load due to an i2c failure. A search of the archives indicates
-> that this is not the first time this issue has occurred.
-> 
-> What can I do to help get this problem fixed?
-> 
-> Here is the dmesg from 2.6.35, for the two tuners: 
-> 
-> xc5000: waiting for firmware upload (dvb-fe-xc5000-1.6.114.fw)... 
-> xc5000: firmware read 12401 bytes. 
-> xc5000: firmware uploading... 
-> xc5000: firmware upload complete... 
-> xc5000: waiting for firmware upload (dvb-fe-xc5000-1.6.114.fw)... 
-> xc5000: firmware read 12401 bytes. 
-> xc5000: firmware uploading... 
-> xc5000: firmware upload complete..
-> 
-> and here is what happens with 2.6.36: 
-> 
-> xc5000: waiting for firmware upload (dvb-fe-xc5000-1.6.114.fw)... 
-> xc5000: firmware read 12401 bytes. 
-> xc5000: firmware uploading... 
-> xc5000: I2C write failed (len=3) 
-> xc5000: firmware upload complete... 
-> xc5000: Unable to initialise tuner 
-> xc5000: waiting for firmware upload (dvb-fe-xc5000-1.6.114.fw)... 
-> xc5000: firmware read 12401 bytes. 
-> xc5000: firmware uploading... 
-> xc5000: I2C write failed (len=3) 
-> xc5000: firmware upload complete...
-> 
+Hi,
 
-I did a git bisect on this and finally reached the end of the line.
-Here is what it said:
+On Mon, Feb 21, 2011 at 05:20:45PM +0100, Peter Zijlstra wrote:
+> > > I think Alexey already told you what you done wrong.
+> > >
+> > > Also, I really don't like the task_state.h header, it assumes a lot of
+> > > things it doesn't include itself and only works because its using macros
+> > > and not inlines at it probably should.
+> > 
+> > Like wait.h I'd say. The main issue is wait.h uses TASK_* macros but
+> > cannot properly include sched.h as it would create a circular
+> > dependency. So a file including wait.h is able to compile because the
+> > dependency of sched.h relies on wake_up*() macros and it's not always
+> > used.
+> > We can still drop everything else from task_state.h but the TASK_*
+> > macros and then the problem you just pointed out won't exist anymore.
+> > What do you think about it?
+> 
+> I'd much rather see a real cleanup.. eg. remove the need for sched.h to
+> include wait.h.
 
-qpc$ git bisect bad
-82ce67bf262b3f47ecb5a0ca31cace8ac72b7c98 is the first bad commit
-commit 82ce67bf262b3f47ecb5a0ca31cace8ac72b7c98
-Author: Jarod Wilson <jarod@redhat.com>
-Date:   Thu Jul 29 18:20:44 2010 -0300
+isn't that exactly what he's trying to achieve ? Moving TASK_* to its
+own header is one approach, what other approach do you suggest ?
 
-    V4L/DVB: staging/lirc: fix non-CONFIG_MODULES build horkage
-    
-    Fix when CONFIG_MODULES is not enabled:
-    
-    drivers/staging/lirc/lirc_parallel.c:243: error: implicit declaration of function 'module_refcount'
-    drivers/staging/lirc/lirc_it87.c:150: error: implicit declaration of function 'module_refcount'
-    drivers/built-in.o: In function `it87_probe':
-    lirc_it87.c:(.text+0x4079b0): undefined reference to `init_chrdev'
-    lirc_it87.c:(.text+0x4079cc): undefined reference to `drop_chrdev'
-    drivers/built-in.o: In function `lirc_it87_exit':
-    lirc_it87.c:(.exit.text+0x38a5): undefined reference to `drop_chrdev'
-    
-    Its a quick hack and untested beyond building, since I don't have the
-    hardware, but it should do the trick.
-    
-    Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
-    Signed-off-by: Jarod Wilson <jarod@redhat.com>
-    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> afaict its needed because struct signal_struct and struct sighand_struct
+> include a wait_queue_head_t. The inclusion seems to come through
 
-:040000 040000 f645b46a07b7ff87a2c11ac9296a5ff56e89a0d0 49e50945ccf8e1c8567c049908890d2752443b72 M      drivers
+yes.
 
+> completion.h, but afaict we don't actually need to include completion.h
+> because all we have is a pointer to a completion, which is perfectly
+> fine with an incomplete type.
+
+so maybe just dropping completion.h from sched.h would do it.
+
+> This all would suggest we move the signal bits into their own header
+> (include/linux/signal.h already exists and seems inviting).
+> 
+> And then make sched.c include signal.h and completion.h.
+
+you wouldn't prevent the underlying problem which is the need to include
+sched.h whenever you include wait.h and use wake_up*()
+
+-- 
+balbi
