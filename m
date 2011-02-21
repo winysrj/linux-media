@@ -1,77 +1,89 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:9549 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752901Ab1B1RWy (ORCPT
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:40653 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754636Ab1BUMVP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Feb 2011 12:22:54 -0500
-Received: from eu_spt1 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LHC0065E89KPQ@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 28 Feb 2011 17:22:32 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LHC00EDG89J0W@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 28 Feb 2011 17:22:31 +0000 (GMT)
-Date: Mon, 28 Feb 2011 17:54:51 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: V4L2 'brainstorming' meeting in Warsaw, March 2011
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <ADF13DA15EB3FE4FBA487CCC7BEFDF36190F532AED@bssrvexch01>
-MIME-version: 1.0
-Content-type: text/plain; charset=utf-8
-Content-language: en-US
-Content-transfer-encoding: base64
+	Mon, 21 Feb 2011 07:21:15 -0500
+Date: Mon, 21 Feb 2011 14:21:09 +0200
+From: Felipe Balbi <balbi@ti.com>
+To: David Cohen <dacohen@gmail.com>
+Cc: balbi@ti.com,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Thomas Weber <weber@corscience.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-omap@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>, Tejun Heo <tj@kernel.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH resend] video: omap24xxcam: Fix compilation
+Message-ID: <20110221122109.GA23087@legolas.emea.dhcp.ti.com>
+Reply-To: balbi@ti.com
+References: <20110215113717.GN2570@legolas.emea.dhcp.ti.com>
+ <4D5A672A.7040000@samsung.com>
+ <4D5A6874.1080705@corscience.de>
+ <20110215115349.GQ2570@legolas.emea.dhcp.ti.com>
+ <4D5A6EEC.5000908@maxwell.research.nokia.com>
+ <AANLkTik+6fguqgH8Bpnpqo7Axmquy3caRMELTZVmuN1j@mail.gmail.com>
+ <20110219150024.GA4487@legolas.emea.dhcp.ti.com>
+ <AANLkTik5dwNZrUxjgjKeAQOsp610d6y_TNGg1b5Vc5Zd@mail.gmail.com>
+ <20110221073640.GA3094@legolas.emea.dhcp.ti.com>
+ <AANLkTinf3Wj=nw_2Sx4r-VSsCH+=fzx-25hynH8hB0d9@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <AANLkTinf3Wj=nw_2Sx4r-VSsCH+=fzx-25hynH8hB0d9@mail.gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-SGVsbG8gZXZlcnlvbmUhDQoNClRoZSBpZGVhIG9mIHY0bDIgJ2JyYWluc3Rvcm1pbmcnIHNlc3Np
-b24gY2FtZSBvdXQgYWZ0ZXIgYSBmZXcgZGlzY3Vzc2lvbnMgb24gI3Y0bA0KSVJDIGNoYW5uZWwg
-YWJvdXQgdmFyaW91cyBSRkNzIGFuZCBwcm9wb3NhbHMgdGhhdCBoYXZlIGJlZW4gcG9zdGVkIHJl
-Y2VudGx5LiBJDQp3b3VsZCBsaWtlIHRvIGFubm91bmNlIHRoYXQgU2Ftc3VuZyBQb2xhbmQgUiZE
-IENlbnRlciAoU1BSQykgYWdyZWVkIHRvIHRha2UgYW4NCm9wcG9ydHVuaXR5IHRvIG9yZ2FuaXpl
-IHRoaXMgbWVldGluZy4gSSd2ZSBnb3QgYSByZXNlcnZhdGlvbiBmb3IgYSBjb25mZXJlbmNlDQpy
-b29tIGZvciAxNi0xOCBNYXJjaCAyMDExIGluIG91ciBvZmZpY2UuDQoNCkkgd291bGQgbGlrZSB0
-byBpbnZpdGUgYWxsIG9mIFlvdSBmb3IgdGhpcyBWNEwyICdicmFpbnN0b3JtaW5nJyBzZXNzaW9u
-Lg0KDQpJIGhvcGUgdGhhdCB0aGlzIGluaXRpYWwgbWVldGluZyBkYXRlIEkndmUgc2VsZWN0ZWQg
-d2lsbCBmaXQgdXMuIFdlIGhhdmUgMiBvbmx5DQp3ZWVrcyBmb3IgdGhlIHByZXBhcmF0aW9uLCBi
-dXQgSSBob3BlIHdlIHdpbGwgbWFuYWdlLiBJJ20gb3BlbiBmb3IgYW5vdGhlciBkYXRlDQphbmQg
-aWYgcmVxdWlyZWQgSSB3aWxsIGNoYW5nZSB0aGUgcmVzZXJ2YXRpb24uDQoNClRoZSBtZWV0aW5n
-IHdpbGwgbGFzdCAzIGRheXMgd2hhdCBnaXZlcyB1cyBhIGxvdCBvZiBwb3NzaWJpbGl0eSB0byBw
-cmVzZW50IHRoZQ0KaXNzdWVzIGFuZCBwcm9wb3NhbHMsIGRpc2N1c3MgdGhlbSBmdXJ0aGVyIGFu
-ZCB3b3JrIG91dCBhIHNvbHV0aW9uIHRoYXQgd2lsbCBiZQ0KYWNjZXB0ZWQgYnkgb3RoZXJzLg0K
-DQpGcm9tIFNQUkMgNCBkZXZlbG9wZXJzIHdpbGwgYXR0ZW5kIHRoaXMgbWVldGluZzogU3lsd2Vz
-dGVyIE5hd3JvY2tpIChzNXAtZmltYw0KYXV0aG9yKSwgS2FtaWwgRGVic2tpIChzNXAtbWZjIGF1
-dGhvciksIFRvbWFzeiBTdGFuaXNsYXdza2kgKHM1cC10diBhdXRob3IpIGFuZCBtZQ0KKHZpZGVv
-YnVmMiBjby1hdXRob3IgYW5kIGtlcm5lbCBsZWFkIGRldmVsb3BlciBpbiBTUFJDKS4NCg0KQSBx
-dWljayBzdW1tYXJ5IG9mIHRoZSBhYm92ZToNCg0KMS4gVHlwZSBvZiB0aGUgbWVldGluZzoNCiAg
-ICAgICAgVjRMMiAnYnJhaW5zdG9ybWluZycgbWluaS1zdW1taXQgOikNCg0KMi4gUGxhY2U6DQog
-ICAgICAgIFNhbXN1bmcgUG9sYW5kIFImRCBDZW50ZXINCiAgICAgICAgUG9sbmEgMTEgU3RyZWV0
-DQogICAgICAgIDAwLTYzMyBXYXJzYXcsIFBvbGFuZA0KDQozLiBEYXRlOg0KICAgICAgICAxNi0x
-OCBNYXJjaCAyMDExDQoNCjQuIEFnZW5kYQ0KICAgICAgICBUQkQsIGV2ZXJ5b25lIGlzIHdlbGNv
-bWVkIHRvIHB1dCBoaXMgaXRlbXMgaGVyZSA6KQ0KDQpJIHdpbGwgcG9zdCBzb21lIHRyYXZlbCBp
-bmZvcm1hdGlvbiB0b21vcnJvdy4gU1BSQyBvZmZpY2UgaXMgaW4gdGhlIGNlbnRlciBvZiBXYXJz
-YXcsDQp0aGVyZSBhcmUgYSBmZXcgaG90ZWxzIG5lYXJieS4gSSB3aWxsIGNoZWNrIGZvciBhIGZy
-ZWUgcm9vbXMgYW5kIEkgd2lsbCBtYWtlIGENCnJlY29tbWVuZGF0aW9uIHNvb24uIEkgaG9wZSB3
-ZSB3aWxsIG1lZXQgdG9nZXRoZXIgc29vbiENCg0KQmVzdCByZWdhcmRzDQotLQ0KTWFyZWsgU3p5
-cHJvd3NraQ0KU2Ftc3VuZyBQb2xhbmQgUiZEIENlbnRlcg0KDQoNCg0KVGhlIGFib3ZlIG1lc3Nh
-Z2UgaXMgaW50ZW5kZWQgc29sZWx5IGZvciB0aGUgbmFtZWQgYWRkcmVzc2VlIGFuZCBtYXkgY29u
-dGFpbiB0cmFkZSBzZWNyZXQsIGluZHVzdHJpYWwgdGVjaG5vbG9neSBvciBwcml2aWxlZ2VkIGFu
-ZCBjb25maWRlbnRpYWwgaW5mb3JtYXRpb24gb3RoZXJ3aXNlIHByb3RlY3RlZCB1bmRlciBhcHBs
-aWNhYmxlIGxhdy4gQW55IHVuYXV0aG9yaXplZCBkaXNzZW1pbmF0aW9uLCBkaXN0cmlidXRpb24s
-IGNvcHlpbmcgb3IgdXNlIG9mIHRoZSBpbmZvcm1hdGlvbiBjb250YWluZWQgaW4gdGhpcyBjb21t
-dW5pY2F0aW9uIGlzIHN0cmljdGx5IHByb2hpYml0ZWQuIElmIHlvdSBoYXZlIHJlY2VpdmVkIHRo
-aXMgY29tbXVuaWNhdGlvbiBpbiBlcnJvciwgcGxlYXNlIG5vdGlmeSBzZW5kZXIgYnkgZW1haWwg
-YW5kIGRlbGV0ZSB0aGlzIGNvbW11bmljYXRpb24gaW1tZWRpYXRlbHkuDQoNCg0KUG93ecW8c3ph
-IHdpYWRvbW/Fm8SHIHByemV6bmFjem9uYSBqZXN0IHd5xYLEhWN6bmllIGRsYSBhZHJlc2F0YSBu
-aW5pZWpzemVqIHdpYWRvbW/Fm2NpIGkgbW/FvGUgemF3aWVyYcSHIGluZm9ybWFjamUgYsSZZMSF
-Y2UgdGFqZW1uaWPEhSBoYW5kbG93xIUsIHRhamVtbmljxIUgcHJ6ZWRzacSZYmlvcnN0d2Egb3Jh
-eiBpbmZvcm1hY2plIG8gY2hhcmFrdGVyemUgcG91Zm55bSBjaHJvbmlvbmUgb2Jvd2nEhXp1asSF
-Y3ltaSBwcnplcGlzYW1pIHByYXdhLiBKYWtpZWtvbHdpZWsgbmlldXByYXduaW9uZSBpY2ggcm96
-cG93c3plY2huaWFuaWUsIGR5c3RyeWJ1Y2phLCBrb3Bpb3dhbmllIGx1YiB1xbx5Y2llIGluZm9y
-bWFjamkgemF3YXJ0eWNoIHcgcG93ecW8c3plaiB3aWFkb21vxZtjaSBqZXN0IHphYnJvbmlvbmUu
-IEplxZtsaSBvdHJ6eW1hxYJlxZsgcG93ecW8c3rEhSB3aWFkb21vxZvEhyBvbXnFgmtvd28sIHVw
-cnplam1pZSBwcm9zesSZIHBvaW5mb3JtdWogbyB0eW0gZmFrY2llIGRyb2fEhSBtYWlsb3fEhSBu
-YWRhd2PEmSB0ZWogd2lhZG9tb8WbY2kgb3JheiBuaWV6d8WCb2N6bmllIHVzdcWEIHBvd3nFvHN6
-xIUgd2lhZG9tb8WbxIcgemUgc3dvamVnbyBrb21wdXRlcmEuDQo=
+On Mon, Feb 21, 2011 at 02:09:07PM +0200, David Cohen wrote:
+> On Mon, Feb 21, 2011 at 9:36 AM, Felipe Balbi <balbi@ti.com> wrote:
+> > Hi,
+> >
+> > On Sat, Feb 19, 2011 at 06:04:58PM +0200, David Cohen wrote:
+> >> > I have to disagree. The fundamental problem is the circular dependency
+> >> > between those two files:
+> >> >
+> >> > sched.h uses wait_queue_head_t defined in wait.h
+> >> > wait.h uses TASK_* defined in sched.h
+> >> >
+> >> > So, IMO the real fix would be clear out the circular dependency. Maybe
+> >> > introducing <linux/task.h> to define those TASK_* symbols and include
+> >> > that on sched.h and wait.h
+> >> >
+> >> > Just dig a quick and dirty to try it out and works like a charm
+> >>
+> >> We have 2 problems:
+> >>  - omap24xxcam compilation broken
+> >>  - circular dependency between sched.h and wait.h
+> >>
+> >> To fix the broken compilation we can do what the rest of the kernel is
+> >> doing, which is to include sched.h.
+> >> Then, the circular dependency is fixed by some different approach
+> >> which would probably change *all* current usage of TASK_*.
+> >
+> > considering that 1 is caused by 2 I would fix 2.
+> >
+> >> IMO, there's no need to create a dependency between those issues.
+> >
+> > There's no dependency between them, it's just that the root cause for
+> > this problem is a circular dependency between wait.h and sched.h
+> 
+> I did a try to fix this circular dependency and the comment I got was
+> to include sched.h in omap24xxcam.c file:
+> http://marc.info/?l=linux-omap&m=129828637120270&w=2
+> 
+> I'm working to remove v4l2 internal device interface from omap24xxcam
+> and then I need this driver's compilation fixed.
+> The whole kernel is including sched.h when wake_up*() macro is used,
+> so this should be our first solution IMO.
+> As I said earlier, no need to make this compilation fix be dependent
+> of wait.h fix (if it's really going to be changed).
+> 
+> I think we should proceed with this patch.
+
+I would wait to hear from Ingo or Peter who are the maintainers for that
+part, but fine by me.
+
+-- 
+balbi
