@@ -1,155 +1,72 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.samsung.com ([203.254.224.25]:28685 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752734Ab1B1K0L (ORCPT
+Received: from casper.infradead.org ([85.118.1.10]:57644 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755950Ab1BUQVB convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Feb 2011 05:26:11 -0500
-Received: from epmmp1 (mailout2.samsung.com [203.254.224.25])
- by mailout2.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LHB00JEDOZKRX00@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 28 Feb 2011 19:26:08 +0900 (KST)
-Received: from AMDC159 ([106.116.37.153])
- by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LHB007ENOZBXZ@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 28 Feb 2011 19:26:08 +0900 (KST)
-Date: Mon, 28 Feb 2011 11:25:58 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [RFC/PATCH 1/2] v4l: videobuf2: Handle buf_queue errors
-In-reply-to: <1298830353-9797-2-git-send-email-laurent.pinchart@ideasonboard.com>
-To: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Cc: pawel@osciak.com, hverkuil@xs4all.nl,
-	'Marek Szyprowski' <m.szyprowski@samsung.com>
-Message-id: <004601cbd731$e61cfd60$b256f820$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <1298830353-9797-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1298830353-9797-2-git-send-email-laurent.pinchart@ideasonboard.com>
+	Mon, 21 Feb 2011 11:21:01 -0500
+Subject: Re: [PATCH v2 1/1] headers: fix circular dependency between
+ linux/sched.h and linux/wait.h
+From: Peter Zijlstra <peterz@infradead.org>
+To: David Cohen <dacohen@gmail.com>
+Cc: linux-kernel@vger.kernel.org, mingo@elte.hu,
+	linux-omap@vger.kernel.org, linux-media@vger.kernel.org,
+	Alexey Dobriyan <adobriyan@gmail.com>,
+	Oleg Nesterov <oleg@redhat.com>
+In-Reply-To: <AANLkTimOT6jNG3=TiRMJR0dgEQ6EHjcBPJ1ivCu3Wj5Q@mail.gmail.com>
+References: <1298299131-17695-1-git-send-email-dacohen@gmail.com>
+	 <1298299131-17695-2-git-send-email-dacohen@gmail.com>
+	 <1298303677.24121.1.camel@twins>
+	 <AANLkTimOT6jNG3=TiRMJR0dgEQ6EHjcBPJ1ivCu3Wj5Q@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Date: Mon, 21 Feb 2011 17:20:45 +0100
+Message-ID: <1298305245.24121.7.camel@twins>
+Mime-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+On Mon, 2011-02-21 at 18:03 +0200, David Cohen wrote:
+> On Mon, Feb 21, 2011 at 5:54 PM, Peter Zijlstra <peterz@infradead.org> wrote:
+> > On Mon, 2011-02-21 at 16:38 +0200, David Cohen wrote:
+> >> Currently sched.h and wait.h have circular dependency between both.
+> >> wait.h defines macros wake_up*() which use macros TASK_* defined by
+> >> sched.h. But as sched.h indirectly includes wait.h, such wait.h header
+> >> file can't include sched.h too. The side effect is when some file
+> >> includes wait.h and tries to use its wake_up*() macros, it's necessary
+> >> to include sched.h also.
+> >> This patch moves all TASK_* macros from linux/sched.h to a new header
+> >> file linux/task_state.h. This way, both sched.h and wait.h can include
+> >> task_state.h and fix the circular dependency. No need to include sched.h
+> >> anymore when wake_up*() macros are used.
+> >
+> > I think Alexey already told you what you done wrong.
+> >
+> > Also, I really don't like the task_state.h header, it assumes a lot of
+> > things it doesn't include itself and only works because its using macros
+> > and not inlines at it probably should.
+> 
+> Like wait.h I'd say. The main issue is wait.h uses TASK_* macros but
+> cannot properly include sched.h as it would create a circular
+> dependency. So a file including wait.h is able to compile because the
+> dependency of sched.h relies on wake_up*() macros and it's not always
+> used.
+> We can still drop everything else from task_state.h but the TASK_*
+> macros and then the problem you just pointed out won't exist anymore.
+> What do you think about it?
 
-On Sunday, February 27, 2011 7:13 PM Laurent Pinchart wrote:
+I'd much rather see a real cleanup.. eg. remove the need for sched.h to
+include wait.h.
 
-> videobuf2 expects drivers to check buffer in the buf_prepare operation
-> and to return success only if the buffer can queued without any issue.
-> 
-> For hot-pluggable devices, disconnection events need to be handled at
-> buf_queue time. Checking the disconnected flag and adding the buffer to
-> the driver queue need to be performed without releasing the driver
-> spinlock, otherwise race conditions can occur in which the driver could
-> still allow a buffer to be queued after the disconnected flag has been
-> set, resulting in a hang during the next DQBUF operation.
-> 
-> This problem can be solved either in the videobuf2 core or in the device
-> drivers. To avoid adding a spinlock to videobuf2, make buf_queue return
-> an int and handle buf_queue failures in videobuf2. Drivers must not
-> return an error in buf_queue if the condition leading to the error can
-> be caught in buf_prepare.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+afaict its needed because struct signal_struct and struct sighand_struct
+include a wait_queue_head_t. The inclusion seems to come through
+completion.h, but afaict we don't actually need to include completion.h
+because all we have is a pointer to a completion, which is perfectly
+fine with an incomplete type.
 
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+This all would suggest we move the signal bits into their own header
+(include/linux/signal.h already exists and seems inviting).
 
-We discussed how to solve the hot-plug issue and this is the solution I prefer.
+And then make sched.c include signal.h and completion.h.
 
-> ---
->  drivers/media/video/videobuf2-core.c |   32 ++++++++++++++++++++++++++------
->  include/media/videobuf2-core.h       |    2 +-
->  2 files changed, 27 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
-> index cc7ab0a..1d81536 100644
-> --- a/drivers/media/video/videobuf2-core.c
-> +++ b/drivers/media/video/videobuf2-core.c
-> @@ -798,13 +798,22 @@ static int __qbuf_mmap(struct vb2_buffer *vb, struct v4l2_buffer *b)
->  /**
->   * __enqueue_in_driver() - enqueue a vb2_buffer in driver for processing
->   */
-> -static void __enqueue_in_driver(struct vb2_buffer *vb)
-> +static int __enqueue_in_driver(struct vb2_buffer *vb)
->  {
->  	struct vb2_queue *q = vb->vb2_queue;
-> +	int ret;
-> 
->  	vb->state = VB2_BUF_STATE_ACTIVE;
->  	atomic_inc(&q->queued_count);
-> -	q->ops->buf_queue(vb);
-> +	ret = q->ops->buf_queue(vb);
-> +	if (ret == 0)
-> +		return 0;
-> +
-> +	vb->state = VB2_BUF_STATE_ERROR;
-> +	atomic_dec(&q->queued_count);
-> +	wake_up_all(&q->done_wq);
-> +
-> +	return ret;
->  }
-> 
->  /**
-> @@ -890,8 +899,13 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
->  	 * If already streaming, give the buffer to driver for processing.
->  	 * If not, the buffer will be given to driver on next streamon.
->  	 */
-> -	if (q->streaming)
-> -		__enqueue_in_driver(vb);
-> +	if (q->streaming) {
-> +		ret = __enqueue_in_driver(vb);
-> +		if (ret < 0) {
-> +			dprintk(1, "qbuf: buffer queue failed\n");
-> +			return ret;
-> +		}
-> +	}
-> 
->  	dprintk(1, "qbuf of buffer %d succeeded\n", vb->v4l2_buf.index);
->  	return 0;
-> @@ -1101,6 +1115,7 @@ EXPORT_SYMBOL_GPL(vb2_dqbuf);
->  int vb2_streamon(struct vb2_queue *q, enum v4l2_buf_type type)
->  {
->  	struct vb2_buffer *vb;
-> +	int ret;
-> 
->  	if (q->fileio) {
->  		dprintk(1, "streamon: file io in progress\n");
-> @@ -1139,8 +1154,13 @@ int vb2_streamon(struct vb2_queue *q, enum v4l2_buf_type type)
->  	 * If any buffers were queued before streamon,
->  	 * we can now pass them to driver for processing.
->  	 */
-> -	list_for_each_entry(vb, &q->queued_list, queued_entry)
-> -		__enqueue_in_driver(vb);
-> +	list_for_each_entry(vb, &q->queued_list, queued_entry) {
-> +		ret = __enqueue_in_driver(vb);
-> +		if (ret < 0) {
-> +			dprintk(1, "streamon: buffer queue failed\n");
-> +			return ret;
-> +		}
-> +	}
-> 
->  	dprintk(3, "Streamon successful\n");
->  	return 0;
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> index 597efe6..3a92f75 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -225,7 +225,7 @@ struct vb2_ops {
->  	int (*start_streaming)(struct vb2_queue *q);
->  	int (*stop_streaming)(struct vb2_queue *q);
-> 
-> -	void (*buf_queue)(struct vb2_buffer *vb);
-> +	int (*buf_queue)(struct vb2_buffer *vb);
->  };
-> 
->  /**
-> --
-> 1.7.3.4
-
-Best regards
---
-Marek Szyprowski
-Samsung Poland R&D Center
-
-
+But then, there might be a 'good' reason these signal bits live in
+sched.h and not on their own, but I wouldn't know..
