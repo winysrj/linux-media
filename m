@@ -1,49 +1,62 @@
 Return-path: <mchehab@pedra>
-Received: from swampdragon.chaosbits.net ([90.184.90.115]:22297 "EHLO
-	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753951Ab1BFUuS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Feb 2011 15:50:18 -0500
-Date: Sun, 6 Feb 2011 21:49:02 +0100 (CET)
-From: Jesper Juhl <jj@chaosbits.net>
-To: linux-kernel@vger.kernel.org
-cc: Holger Waechtler <holger@convergence.de>,
-	Felix Domke <tmbinc@elitedvb.net>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jean Delvare <khali@linux-fr.org>
-Subject: [PATCH] TTUSB DVB: ttusb_boot_dsp() needs to release_firmware() or
- it leaks memory.
-Message-ID: <alpine.LNX.2.00.1102062145160.13593@swampdragon.chaosbits.net>
+Received: from mail1.matrix-vision.com ([78.47.19.71]:56218 "EHLO
+	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755814Ab1BUOrb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Feb 2011 09:47:31 -0500
+Message-ID: <4D627B00.4090309@matrix-vision.de>
+Date: Mon, 21 Feb 2011 15:47:28 +0100
+From: Michael Jones <michael.jones@matrix-vision.de>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: link error w/ media-0006-sensors
+References: <4D35BC6D.1050801@matrix-vision.de> <201101190030.30161.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201101190030.30161.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-In drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c:ttusb_boot_dsp() we 
-need to call release_firmware(fw) before returning or we'll leak - no 
-matter if we succeed or fail.
+Hi Laurent,
 
-Signed-off-by: Jesper Juhl <jj@chaosbits.net>
----
- dvb-ttusb-budget.c |    1 +
- 1 file changed, 1 insertion(+)
+sorry to resurrect this from a month ago...
 
- compile tested only.
+I've continued to export omap_pm_set_min_bus_tput() to enable building
+the omap3-isp module, although Paul Wamsley's reply you referred to
+clearly indicates that this is the wrong approach.
 
-diff --git a/drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c b/drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c
-index 40625b2..cbe2f0d 100644
---- a/drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c
-+++ b/drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c
-@@ -334,6 +334,7 @@ static int ttusb_boot_dsp(struct ttusb *ttusb)
- 	err = ttusb_cmd(ttusb, b, 4, 0);
- 
-       done:
-+	release_firmware(fw);
- 	if (err) {
- 		dprintk("%s: usb_bulk_msg() failed, return value %i!\n",
- 			__func__, err);
+Aren't you also building omap3-isp as a module?  How are you guys
+getting around this?
 
--- 
-Jesper Juhl <jj@chaosbits.net>            http://www.chaosbits.net/
-Plain text mails only, please.
-Don't top-post http://www.catb.org/~esr/jargon/html/T/top-post.html
+-Michael
 
+On 01/19/2011 12:30 AM, Laurent Pinchart wrote:
+> Hi Michael,
+> 
+> On Tuesday 18 January 2011 17:14:37 Michael Jones wrote:
+>> Hi Laurent & Sakari,
+>>
+>> On Laurent's media-0006-sensors branch, when compiling with
+>> CONFIG_VIDEO_OMAP3=m, I got the following linking error:
+>>
+>> ERROR: "omap_pm_set_min_bus_tput" [drivers/media/video/isp/omap3-isp.ko]
+>> undefined!
+>>
+>> I can get rid of the error with the patch below. But as always, I
+>> wonder: Why didn't anybody else come across this error? Are you all
+>> compiling with VIDEO_OMAP3=y? Is there a config file somewhere I can see
+>> where someone is using that?
+>>
+>> And would anything be wrong with the patch below?
+> 
+> Martin Hostettler sent the same patch to linux-omap today ("[PATCH] OMAP: PM: 
+> Export omap_pm_set_min_bus_tput to modules"). See Please see Paul Wamsley's 
+> answer on the list.
+> 
+
+
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
