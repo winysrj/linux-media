@@ -1,51 +1,58 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:47572 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753215Ab1BXVhY (ORCPT
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:35359 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752270Ab1BUQyr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Feb 2011 16:37:24 -0500
-Received: by fxm17 with SMTP id 17so1024082fxm.19
-        for <linux-media@vger.kernel.org>; Thu, 24 Feb 2011 13:37:23 -0800 (PST)
-Subject: Re: [st-ericsson] v4l2 vs omx for camera
-From: Edward Hervey <bilboed@gmail.com>
-To: Discussion of the development of and with GStreamer
-	<gstreamer-devel@lists.freedesktop.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>,
-	Harald Gustafsson <harald.gustafsson@ericsson.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	ST-Ericsson LT Mailing List <st-ericsson@lists.linaro.org>,
-	linux-media@vger.kernel.org
-Date: Thu, 24 Feb 2011 22:36:37 +0100
-In-Reply-To: <1298578789.821.54.camel@deumeu>
-References: <AANLkTik=Yc9cb9r7Ro=evRoxd61KVE=8m7Z5+dNwDzVd@mail.gmail.com>
-	 <AANLkTinDFMMDD-F-FsccCTvUvp6K3zewYsGT1BH9VP1F@mail.gmail.com>
-	 <201102100847.15212.hverkuil@xs4all.nl>
-	 <201102171448.09063.laurent.pinchart@ideasonboard.com>
-	 <AANLkTikg0Oj6nq6h_1-d7AQ4NQr2UyMuSemyniYZBLu3@mail.gmail.com>
-	 <1298578789.821.54.camel@deumeu>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-ID: <1298583398.821.58.camel@deumeu>
-Mime-Version: 1.0
+	Mon, 21 Feb 2011 11:54:47 -0500
+Date: Mon, 21 Feb 2011 18:54:43 +0200
+From: Felipe Balbi <balbi@ti.com>
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: balbi@ti.com, David Cohen <dacohen@gmail.com>,
+	linux-kernel@vger.kernel.org, mingo@elte.hu,
+	linux-omap@vger.kernel.org, linux-media@vger.kernel.org,
+	Alexey Dobriyan <adobriyan@gmail.com>,
+	Oleg Nesterov <oleg@redhat.com>
+Subject: Re: [PATCH v2 1/1] headers: fix circular dependency between
+ linux/sched.h and linux/wait.h
+Message-ID: <20110221165443.GL23087@legolas.emea.dhcp.ti.com>
+Reply-To: balbi@ti.com
+References: <1298299131-17695-1-git-send-email-dacohen@gmail.com>
+ <1298299131-17695-2-git-send-email-dacohen@gmail.com>
+ <1298303677.24121.1.camel@twins>
+ <AANLkTimOT6jNG3=TiRMJR0dgEQ6EHjcBPJ1ivCu3Wj5Q@mail.gmail.com>
+ <1298305245.24121.7.camel@twins>
+ <20110221162939.GK23087@legolas.emea.dhcp.ti.com>
+ <1298306607.24121.18.camel@twins>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1298306607.24121.18.camel@twins>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, 2011-02-24 at 21:19 +0100, Edward Hervey wrote:
+Hi,
+
+On Mon, Feb 21, 2011 at 05:43:27PM +0100, Peter Zijlstra wrote:
+> > > And then make sched.c include signal.h and completion.h.
+> > 
+> > you wouldn't prevent the underlying problem which is the need to include
+> > sched.h whenever you include wait.h and use wake_up*()
 > 
->   Will GStreamer be as cpu/memory efficient as a pure OMX solution ?
-> No,
-> I seriously doubt we'll break down all the fundamental notions in
-> GStreamer to make it use 0 cpu when running some processing. 
+> If you'd applied your brain for a second before hitting reply you'd have
+> noticed that at this point you'd (likely) be able to include sched.h
+> from wait.h. which is the right way about, you need to be able to
+> schedule in order to build waitqueues.
 
-  I blame late night mails...
+someone's in a good mood today ;-)
 
-  I meant "Will GStreamer be capable of zero-cpu usage like OMX is
-capable in some situation". The answer still stands.
+What you seem to have missed is that sched.h doesn't include wait.h, it
+includes completion.h and completion.h needs wait.h due the
+wait_queue_head_t it uses.
 
-  But regarding memory usage, GStreamer can do zero-memcpy provided the
-underlying layers have a mechanism it can use.
+If someone finds a cleaner way to drop that need, then I'm all for it as
+my original suggestion to the original patch was to include sched.h in
+wait.h, but it turned out that it's not possible due to the reasons
+already explained.
 
-   Edward
-
-
+-- 
+balbi
