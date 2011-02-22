@@ -1,58 +1,86 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50924 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753116Ab1B1KLj (ORCPT
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:44750 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751017Ab1BVM1Z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Feb 2011 05:11:39 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [st-ericsson] v4l2 vs omx for camera
-Date: Mon, 28 Feb 2011 11:11:47 +0100
-Cc: Linus Walleij <linus.walleij@linaro.org>,
-	Edward Hervey <bilboed@gmail.com>,
-	johan.mossberg.lml@gmail.com,
-	Discussion of the development of and with GStreamer
-	<gstreamer-devel@lists.freedesktop.org>,
-	"linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>,
-	Harald Gustafsson <harald.gustafsson@ericsson.com>,
-	"ST-Ericsson LT Mailing List" <st-ericsson@lists.linaro.org>,
-	linux-media@vger.kernel.org
-References: <AANLkTik=Yc9cb9r7Ro=evRoxd61KVE=8m7Z5+dNwDzVd@mail.gmail.com> <AANLkTi=Twg-hzngyrpU_=o1yxQ3qVtiJf-Qhj--OubPu@mail.gmail.com> <201102261312.43125.hverkuil@xs4all.nl>
-In-Reply-To: <201102261312.43125.hverkuil@xs4all.nl>
+	Tue, 22 Feb 2011 07:27:25 -0500
+From: Hans Verkuil <hansverk@cisco.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH 0/4] Some fixes for tuner, tvp5150 and em28xx
+Date: Tue, 22 Feb 2011 13:28:29 +0100
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <20110221231741.71a2149e@pedra> <201102220853.59343.hverkuil@xs4all.nl> <4D63A830.20805@redhat.com>
+In-Reply-To: <4D63A830.20805@redhat.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201102281111.47666.laurent.pinchart@ideasonboard.com>
+Message-Id: <201102221328.29691.hansverk@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Saturday 26 February 2011 13:12:42 Hans Verkuil wrote:
-> On Friday, February 25, 2011 18:22:51 Linus Walleij wrote:
-> > 2011/2/24 Edward Hervey <bilboed@gmail.com>:
-> > >  What *needs* to be solved is an API for data allocation/passing at the
-> > > 
-> > > kernel level which v4l2,omx,X,GL,vdpau,vaapi,... can use and that
-> > > userspace (like GStreamer) can pass around, monitor and know about.
+On Tuesday, February 22, 2011 13:12:32 Mauro Carvalho Chehab wrote:
+> Em 22-02-2011 04:53, Hans Verkuil escreveu:
+> > Actually, v4l2-ctrl and qv4l2 handle 'holes' correctly. I think this is a
+> > different bug relating to the handling of V4L2_CTRL_FLAG_NEXT_CTRL. Can 
+you
+> > try this patch:
 > > 
-> > I think the patches sent out from ST-Ericsson's Johan Mossberg to
-> > linux-mm for "HWMEM" (hardware memory) deals exactly with buffer
-> > passing, pinning of buffers and so on. The CMA (Contigous Memory
-> > Allocator) has been slightly modified to fit hand-in-glove with HWMEM,
-> > so CMA provides buffers, HWMEM pass them around.
-> > 
-> > Johan, when you re-spin the HWMEM patchset, can you include
-> > linaro-dev and linux-media in the CC?
+> > diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-
+ctrls.c
+> > index ef66d2a..15eda86 100644
+> > --- a/drivers/media/video/v4l2-ctrls.c
+> > +++ b/drivers/media/video/v4l2-ctrls.c
+> > @@ -1364,6 +1364,8 @@ EXPORT_SYMBOL(v4l2_queryctrl);
+> >  
+> >  int v4l2_subdev_queryctrl(struct v4l2_subdev *sd, struct v4l2_queryctrl 
+*qc)
+> >  {
+> > +	if (qc->id & V4L2_CTRL_FLAG_NEXT_CTRL)
+> > +		return -EINVAL;
+> >  	return v4l2_queryctrl(sd->ctrl_handler, qc);
 > 
-> Yes, please. This sounds promising and we at linux-media would very much
-> like to take a look at this. I hope that the CMA + HWMEM combination is
-> exactly what we need.
+> Ok, this fixed the issue:
+>                      brightness (int)  : min=0 max=255 step=1 default=128 
+value=128
+>                        contrast (int)  : min=0 max=255 step=1 default=128 
+value=128
+>                      saturation (int)  : min=0 max=255 step=1 default=128 
+value=128
+>                             hue (int)  : min=-128 max=127 step=1 default=0 
+value=0
+>                          volume (int)  : min=0 max=65535 step=655 
+default=58880 value=65500 flags=slider
+>                         balance (int)  : min=0 max=65535 step=655 
+default=32768 value=32750 flags=slider
+>                            bass (int)  : min=0 max=65535 step=655 
+default=32768 value=32750 flags=slider
+>                          treble (int)  : min=0 max=65535 step=655 
+default=32768 value=32750 flags=slider
+>                            mute (bool) : default=0 value=0
+>                        loudness (bool) : default=0 value=0
+> 
+> Also, v4l2-compliance is now complaining less about it.
+> 
+> Control ioctls:
+> 		fail: does not support V4L2_CTRL_FLAG_NEXT_CTRL
+> 	test VIDIOC_QUERYCTRL/MENU: FAIL
+> 	test VIDIOC_G/S_CTRL: OK
+> 	test VIDIOC_G/S/TRY_EXT_CTRLS: Not Supported
+> 	Standard Controls: 0 Private Controls: 0
+> 
+> (yet, it is showing "standard controls = 0").
+> 
+> Could you provide your SOB to the above patch?
 
-Once again let me restate what I've been telling for some time: CMA must be 
-*optional*. Not all hardware need contiguous memory. I'll have a look at the 
-next HWMEM version.
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
 
--- 
-Regards,
-
-Laurent Pinchart
+> 
+> Thanks!
+> Mauro
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
