@@ -1,52 +1,110 @@
 Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:51864 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753646Ab1BRMd2 (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4609 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753841Ab1BVHyZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Feb 2011 07:33:28 -0500
-Message-ID: <4D5E6708.9000500@infradead.org>
-Date: Fri, 18 Feb 2011 10:33:12 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+	Tue, 22 Feb 2011 02:54:25 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH 0/4] Some fixes for tuner, tvp5150 and em28xx
+Date: Tue, 22 Feb 2011 08:53:59 +0100
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <20110221231741.71a2149e@pedra> <4D6324DB.5030801@redhat.com>
+In-Reply-To: <4D6324DB.5030801@redhat.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Michal Nazarewicz <mina86@mina86.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hansverk@cisco.com>, Qing Xu <qingx@marvell.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Neil Johnson <realdealneil@gmail.com>,
-	Robert Jarzmik <robert.jarzmik@free.fr>,
-	Uwe Taeubert <u.taeubert@road.de>,
-	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	Eino-Ville Talvala <talvala@stanford.edu>
-Subject: Re: [RFD] frame-size switching: preview / single-shot use-case
-References: <4D5D9B57.3090809@gmail.com> <op.vq2lapd13l0zgt@mnazarewicz-glaptop> <201102181131.30920.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201102181131.30920.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201102220853.59343.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 18-02-2011 08:31, Laurent Pinchart escreveu:
-> It's a trade-off between memory and speed. Preallocating still image capture 
-> buffers will give you better snapshot performances, at the expense of memory.
+On Tuesday, February 22, 2011 03:52:11 Mauro Carvalho Chehab wrote:
+> Em 21-02-2011 23:17, Mauro Carvalho Chehab escreveu:
+> > This series contain a minor cleanup for tuner and tvp5150, and two fixes
+> > for em28xx controls. Before the em28xx patches, s_ctrl were failing on
+> > qv4l2, because it were returning a positive value of 1 for some calls.
+> > 
+> > It also contains a fix for control get/set, as it will now check if the
+> > control exists before actually calling subdev for get/set.
+> > 
+> > Mauro Carvalho Chehab (4):
+> ...
+> >   [media] em28xx: Fix return value for s_ctrl
+> >   [media] em28xx: properly handle subdev controls
 > 
-> The basic problems we have here is that taking snapshots is slow with the 
-> current API if we need to stop capture, free buffers, change the format, 
-> allocate new buffers (and perform cache management operations) and restart the 
-> stream. To fix this we're considering a way to preallocate still image capture 
-> buffers, but I'm open to proposals for other ways to solve the issue :-)
+> Hans,
+> 
+> I discovered the issue with em28xx that I commented you on IRC.
+> 
+> There were, in fact, 3 issues. 
+> 
+> One is clearly a driver problem, corrected by "em28xx: properly
+> handle subdev controls".
+> 
+> The second one being partially qv4l2 and partially driver issue,
+> fixed by "em28xx: Fix return value for s_ctrl". Basically, V4L2
+> API and ioctl man page says that an error is indicated by -1 value,
+> being 0 or positive value a non-error. Well, qv4l2 understands a
+> positive value as -EBUSY. The driver were returning a non-standard
+> value of 1 for s_ctrl. I fixed the driver part.
+> 
+> The last issue is with v4l2-ctl and qv4l2. Also, the latest version
+> of xawtv had the same issue, probably due to some changes I did at
+> console/v4l-info.c.
+> 
+> What happens is that em28xx doesn't implement the control BASE+4,
+> due to one simple reason: it is not currently defined. The ctrl
+> loop were understanding the -EINVAL return of BASE+4 as the end of
+> the user controls. So, on xawtv, only the 3 image controls were
+> returned. I didn't dig into v4l2-ctl, but there, it doesn't show
+> the first 3 controls. It shows only the audio controls:
+> 
+>                          volume (int)  : min=0 max=65535 step=655 default=58880 value=58880 flags=slider
+>                         balance (int)  : min=0 max=65535 step=655 default=32768 value=32768 flags=slider
+>                            bass (int)  : min=0 max=65535 step=655 default=32768 value=32768 flags=slider
+>                          treble (int)  : min=0 max=65535 step=655 default=32768 value=32768 flags=slider
+>                            mute (bool) : default=0 value=0
+>                        loudness (bool) : default=0 value=0
+> 
+> The xawtv fix is at:
+> 	http://git.linuxtv.org/xawtv3.git?a=commitdiff;h=fda070af9cfd75b360db1339bde3c6d3c64ed627
+> 
+> A similar fix is needed for v4l2-ctl and qv4l2.
 
->From the above operations, considering that CMA is used to reserve a
-non-shared memory with enough space for the new buffer size/qtd, I don't
-think that the most expensive operation would be to realloc the memory.
+Actually, v4l2-ctrl and qv4l2 handle 'holes' correctly. I think this is a
+different bug relating to the handling of V4L2_CTRL_FLAG_NEXT_CTRL. Can you
+try this patch:
 
-The logic to stop/start streaming seems to be the most consuming one, as driver
-will need to wait for the current I/O operation to complete, and this can
-take hundreds of milisseconds (the duration of one frame).
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index ef66d2a..15eda86 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -1364,6 +1364,8 @@ EXPORT_SYMBOL(v4l2_queryctrl);
+ 
+ int v4l2_subdev_queryctrl(struct v4l2_subdev *sd, struct v4l2_queryctrl *qc)
+ {
++	if (qc->id & V4L2_CTRL_FLAG_NEXT_CTRL)
++		return -EINVAL;
+ 	return v4l2_queryctrl(sd->ctrl_handler, qc);
+ }
+ EXPORT_SYMBOL(v4l2_subdev_queryctrl);
 
-How much time would CMA need to free and re-allocate the buffers for, let's
-say, something in the range of 1-10 MB, on a pre-allocated, non shared memory
-space?
+v4l2-ctl and qv4l2 enumerate the controls using this flag, falling back to the
+old method if the flag isn't supported. The v4l2_subdev_queryctrl function will
+currently handle that flag, but for the controls of the subdev only. This isn't
+right, it should refuse this flag. Without this fix v4l2-ctl will only see the
+controls of the first subdev, which is exactly what you got. I never saw this
+bug because the HVR900 has just a single subdev.
 
-Cheers
-Mauro
+I also suspect that s_ctrl is wrong: can you test setting a video control? I
+think that v4l2_device_call_until_err will always return an error. I'm not sure
+if there is an easy fix for this other than converting em28xx to the control
+framework. I need to think about this.
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
