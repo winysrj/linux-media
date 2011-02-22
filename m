@@ -1,108 +1,63 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:38024 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754638Ab1BRBR3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Feb 2011 20:17:29 -0500
-Received: from [192.168.1.2] (d-216-36-28-191.cpe.metrocast.net [216.36.28.191])
-	(authenticated bits=0)
-	by pear.metrocast.net (8.13.8/8.13.8) with ESMTP id p1I1HRBw026865
-	for <linux-media@vger.kernel.org>; Fri, 18 Feb 2011 01:17:27 GMT
-Subject: [PATCH 07/13] lirc_zilog: Remove unneeded rx->buf_lock
-From: Andy Walls <awalls@md.metrocast.net>
-To: linux-media@vger.kernel.org
-In-Reply-To: <1297991502.9399.16.camel@localhost>
-References: <1297991502.9399.16.camel@localhost>
-Content-Type: text/plain; charset="UTF-8"
-Date: Thu, 17 Feb 2011 20:17:40 -0500
-Message-ID: <1297991860.9399.23.camel@localhost>
-Mime-Version: 1.0
+Received: from mx1.redhat.com ([209.132.183.28]:34841 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754195Ab1BVMMf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Feb 2011 07:12:35 -0500
+Message-ID: <4D63A830.20805@redhat.com>
+Date: Tue, 22 Feb 2011 09:12:32 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 0/4] Some fixes for tuner, tvp5150 and em28xx
+References: <20110221231741.71a2149e@pedra> <4D6324DB.5030801@redhat.com> <201102220853.59343.hverkuil@xs4all.nl>
+In-Reply-To: <201102220853.59343.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
- 
-Remove the rx->buf_lock that protected the rx->buf lirc_buffer.  The
-underlying operations on the objects within the lirc_buffer are already
-protected by spinlocks, or the objects are constant (e.g. chunk_size).
+Em 22-02-2011 04:53, Hans Verkuil escreveu:
+> Actually, v4l2-ctrl and qv4l2 handle 'holes' correctly. I think this is a
+> different bug relating to the handling of V4L2_CTRL_FLAG_NEXT_CTRL. Can you
+> try this patch:
+> 
+> diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+> index ef66d2a..15eda86 100644
+> --- a/drivers/media/video/v4l2-ctrls.c
+> +++ b/drivers/media/video/v4l2-ctrls.c
+> @@ -1364,6 +1364,8 @@ EXPORT_SYMBOL(v4l2_queryctrl);
+>  
+>  int v4l2_subdev_queryctrl(struct v4l2_subdev *sd, struct v4l2_queryctrl *qc)
+>  {
+> +	if (qc->id & V4L2_CTRL_FLAG_NEXT_CTRL)
+> +		return -EINVAL;
+>  	return v4l2_queryctrl(sd->ctrl_handler, qc);
 
-Signed-off-by: Andy Walls <awalls@md.metrocast.net>
----
- drivers/staging/lirc/lirc_zilog.c |   23 +++++++++--------------
- 1 files changed, 9 insertions(+), 14 deletions(-)
+Ok, this fixed the issue:
+                     brightness (int)  : min=0 max=255 step=1 default=128 value=128
+                       contrast (int)  : min=0 max=255 step=1 default=128 value=128
+                     saturation (int)  : min=0 max=255 step=1 default=128 value=128
+                            hue (int)  : min=-128 max=127 step=1 default=0 value=0
+                         volume (int)  : min=0 max=65535 step=655 default=58880 value=65500 flags=slider
+                        balance (int)  : min=0 max=65535 step=655 default=32768 value=32750 flags=slider
+                           bass (int)  : min=0 max=65535 step=655 default=32768 value=32750 flags=slider
+                         treble (int)  : min=0 max=65535 step=655 default=32768 value=32750 flags=slider
+                           mute (bool) : default=0 value=0
+                       loudness (bool) : default=0 value=0
 
-diff --git a/drivers/staging/lirc/lirc_zilog.c b/drivers/staging/lirc/lirc_zilog.c
-index dfa6a42..0f2fa58 100644
---- a/drivers/staging/lirc/lirc_zilog.c
-+++ b/drivers/staging/lirc/lirc_zilog.c
-@@ -67,9 +67,8 @@ struct IR_rx {
- 	/* RX device */
- 	struct i2c_client *c;
- 
--	/* RX device buffer & lock */
-+	/* RX device buffer */
- 	struct lirc_buffer buf;
--	struct mutex buf_lock;
- 
- 	/* RX polling thread data */
- 	struct task_struct *task;
-@@ -718,18 +717,15 @@ static ssize_t read(struct file *filep, char *outbuf, size_t n, loff_t *ppos)
- 	struct IR *ir = filep->private_data;
- 	struct IR_rx *rx = ir->rx;
- 	int ret = 0, written = 0;
-+	unsigned int m;
- 	DECLARE_WAITQUEUE(wait, current);
- 
- 	dprintk("read called\n");
- 	if (rx == NULL)
- 		return -ENODEV;
- 
--	if (mutex_lock_interruptible(&rx->buf_lock))
--		return -ERESTARTSYS;
--
- 	if (n % rx->buf.chunk_size) {
- 		dprintk("read result = -EINVAL\n");
--		mutex_unlock(&rx->buf_lock);
- 		return -EINVAL;
- 	}
- 
-@@ -767,19 +763,19 @@ static ssize_t read(struct file *filep, char *outbuf, size_t n, loff_t *ppos)
- 			set_current_state(TASK_INTERRUPTIBLE);
- 		} else {
- 			unsigned char buf[rx->buf.chunk_size];
--			lirc_buffer_read(&rx->buf, buf);
--			ret = copy_to_user((void *)outbuf+written, buf,
--					   rx->buf.chunk_size);
--			written += rx->buf.chunk_size;
-+			m = lirc_buffer_read(&rx->buf, buf);
-+			if (m == rx->buf.chunk_size) {
-+				ret = copy_to_user((void *)outbuf+written, buf,
-+						   rx->buf.chunk_size);
-+				written += rx->buf.chunk_size;
-+			}
- 		}
- 	}
- 
- 	remove_wait_queue(&rx->buf.wait_poll, &wait);
- 	set_current_state(TASK_RUNNING);
--	mutex_unlock(&rx->buf_lock);
- 
--	dprintk("read result = %s (%d)\n",
--		ret ? "-EFAULT" : "OK", ret);
-+	dprintk("read result = %d (%s)\n", ret, ret ? "Error" : "OK");
- 
- 	return ret ? ret : written;
- }
-@@ -1327,7 +1323,6 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 		if (ret)
- 			goto out_free_xx;
- 
--		mutex_init(&ir->rx->buf_lock);
- 		ir->rx->c = client;
- 		ir->rx->hdpvr_data_fmt =
- 			       (id->driver_data & ID_FLAG_HDPVR) ? true : false;
--- 
-1.7.2.1
+Also, v4l2-compliance is now complaining less about it.
 
+Control ioctls:
+		fail: does not support V4L2_CTRL_FLAG_NEXT_CTRL
+	test VIDIOC_QUERYCTRL/MENU: FAIL
+	test VIDIOC_G/S_CTRL: OK
+	test VIDIOC_G/S/TRY_EXT_CTRLS: Not Supported
+	Standard Controls: 0 Private Controls: 0
 
+(yet, it is showing "standard controls = 0").
 
+Could you provide your SOB to the above patch?
+
+Thanks!
+Mauro
