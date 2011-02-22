@@ -1,83 +1,39 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:28760 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754581Ab1BRBQm (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.8]:54069 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753871Ab1BVPQn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Feb 2011 20:16:42 -0500
-Received: from [192.168.1.2] (d-216-36-28-191.cpe.metrocast.net [216.36.28.191])
-	(authenticated bits=0)
-	by mango.metrocast.net (8.13.8/8.13.8) with ESMTP id p1I1Gdse018942
-	for <linux-media@vger.kernel.org>; Fri, 18 Feb 2011 01:16:39 GMT
-Subject: [PATCH 06/13] lirc_zilog: Don't acquire the rx->buf_lock in the
- poll() function
-From: Andy Walls <awalls@md.metrocast.net>
-To: linux-media@vger.kernel.org
-In-Reply-To: <1297991502.9399.16.camel@localhost>
-References: <1297991502.9399.16.camel@localhost>
-Content-Type: text/plain; charset="UTF-8"
-Date: Thu, 17 Feb 2011 20:16:52 -0500
-Message-ID: <1297991812.9399.22.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Tue, 22 Feb 2011 10:16:43 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by axis700.grange (Postfix) with ESMTP id 70CFB189B7F
+	for <linux-media@vger.kernel.org>; Tue, 22 Feb 2011 16:16:38 +0100 (CET)
+Date: Tue, 22 Feb 2011 16:16:38 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [Q] {enum,s,g}_input for subdev ops
+Message-ID: <Pine.LNX.4.64.1102221612380.1380@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+Hi
 
-There is no need to take the rx->buf_lock in the the poll() function
-as all the underling calls made on objects in the rx->buf lirc_buffer object
-are protected by spinlocks.
+Any thoughts about the subj? Hasn't anyone run into a need to select 
+inputs on subdevices until now? Something like
 
-Corrected a bad error return value in poll(): return POLLERR instead
-of -ENODEV.
+struct v4l2_subdev_video_ops {
+	...
+	int (*enum_input)(struct v4l2_subdev *sd, struct v4l2_input *inp);
+	int (*g_input)(struct v4l2_subdev *sd, unsigned int *i);
+	int (*s_input)(struct v4l2_subdev *sd, unsigned int i);
 
-Added some comments to poll() for when, in the future, I forget what
-poll() and poll_wait() are supposed to do.
+For example, we discussed implementing sensor test patterns as separate 
+inputs.
 
-Signed-off-by: Andy Walls <awalls@md.metrocast.net>
+Thanks
+Guennadi
 ---
- drivers/staging/lirc/lirc_zilog.c |   21 ++++++++++++++-------
- 1 files changed, 14 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/staging/lirc/lirc_zilog.c b/drivers/staging/lirc/lirc_zilog.c
-index 720ef67..dfa6a42 100644
---- a/drivers/staging/lirc/lirc_zilog.c
-+++ b/drivers/staging/lirc/lirc_zilog.c
-@@ -985,19 +985,26 @@ static unsigned int poll(struct file *filep, poll_table *wait)
- 	unsigned int ret;
- 
- 	dprintk("poll called\n");
--	if (rx == NULL)
--		return -ENODEV;
- 
--	mutex_lock(&rx->buf_lock);
-+	if (rx == NULL) {
-+		/*
-+		 * Revisit this, if our poll function ever reports writeable
-+		 * status for Tx
-+		 */
-+		dprintk("poll result = POLLERR\n");
-+		return POLLERR;
-+	}
- 
-+	/*
-+	 * Add our lirc_buffer's wait_queue to the poll_table. A wake up on
-+	 * that buffer's wait queue indicates we may have a new poll status.
-+	 */
- 	poll_wait(filep, &rx->buf.wait_poll, wait);
- 
--	dprintk("poll result = %s\n",
--		lirc_buffer_empty(&rx->buf) ? "0" : "POLLIN|POLLRDNORM");
--
-+	/* Indicate what ops could happen immediately without blocking */
- 	ret = lirc_buffer_empty(&rx->buf) ? 0 : (POLLIN|POLLRDNORM);
- 
--	mutex_unlock(&rx->buf_lock);
-+	dprintk("poll result = %s\n", ret ? "POLLIN|POLLRDNORM" : 0);
- 	return ret;
- }
- 
--- 
-1.7.2.1
-
-
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
