@@ -1,43 +1,44 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:29450 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754422Ab1BQKDa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Feb 2011 05:03:30 -0500
-Message-ID: <4D5CEF80.2050807@redhat.com>
-Date: Thu, 17 Feb 2011 10:50:56 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from moutng.kundenserver.de ([212.227.126.187]:61894 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753806Ab1BVPbC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Feb 2011 10:31:02 -0500
+Date: Tue, 22 Feb 2011 16:30:59 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hansverk@cisco.com>
+cc: Stanimir Varbanov <svarbanov@mm-sol.com>,
+	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	saaguirre@ti.com
+Subject: Re: [RFC/PATCH 0/1] New subdev sensor operation g_interface_parms
+In-Reply-To: <201102221617.55726.hansverk@cisco.com>
+Message-ID: <Pine.LNX.4.64.1102221628570.1380@axis700.grange>
+References: <cover.1298368924.git.svarbanov@mm-sol.com>
+ <201102221432.50847.hansverk@cisco.com> <Pine.LNX.4.64.1102221456590.1380@axis700.grange>
+ <201102221617.55726.hansverk@cisco.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Jean-Francois Moine <moinejf@free.fr>,
-	Brian Johnson <brijohn@gmail.com>
-Subject: [GIT PATCHES FOR 2.6.39] gspca_sn9c20x fixes
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
+On Tue, 22 Feb 2011, Hans Verkuil wrote:
 
-Please pull from my gspca tree, for some gspca_sn9c20x fixes
-I've been doing.
+> Secondly, if we rely on negotiations, then someone at some time might change 
+> things and suddenly the negotiation gives different results which may not work 
+> on some boards. And such bugs can be extremely hard to track down. So that is 
 
-The following changes since commit 5ed4bbdae09d207d141759e013a0f3c24ae76ecc:
+Sorry, there's always a chance, that someone breaks something. Always when 
+changing central algorithms you have to take care, that behaviour doesn't 
+change on existing configurations. Nothing new there.
 
-   [media] tuner-core: Don't touch at standby during tuner_lookup (2011-02-15 10:31:01 -0200)
+> why I don't want to rely on negotiations of these settings. People are free to 
+> copy and paste, though. I assume (and hope) that they will test before sending 
+> a patch, so if it works with the copy-and-pasted settings, then that's good 
+> enough for me.
 
-are available in the git repository at:
-   git://linuxtv.org/hgoede/gspca.git gspca-for_v2.6.39
-
-Hans de Goede (5):
-       gspca_sn9c20x: Fix colored borders with ov7660 sensor
-       gspca_sn9c20x: Add hflip and vflip controls for the ov7660 sensor
-       gspca_sn9c20x: Add LED_REVERSE flag for 0c45:62bb
-       gspca_sn9c20x: Make buffers slightly larger for JPEG frames
-       gspca_sn9c20x: Add another MSI laptop to the sn9c20x upside down list
-
-  drivers/media/video/gspca/sn9c20x.c |   40 ++++++++++++++++++++++++++--------
-  1 files changed, 30 insertions(+), 10 deletions(-)
-
-Thanks,
-
-Hans
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
