@@ -1,95 +1,116 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:43818 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753155Ab1B1LT3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Feb 2011 06:19:29 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hansverk@cisco.com>
-Subject: Re: [RFC] snapshot mode, flash capabilities and control
-Date: Mon, 28 Feb 2011 12:19:37 +0100
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Kim HeungJun <riverful@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Stanimir Varbanov <svarbanov@mm-sol.com>
-References: <Pine.LNX.4.64.1102240947230.15756@axis700.grange> <201102281207.34106.laurent.pinchart@ideasonboard.com> <201102281217.12538.hansverk@cisco.com>
-In-Reply-To: <201102281217.12538.hansverk@cisco.com>
+Received: from mx1.redhat.com ([209.132.183.28]:24350 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753274Ab1BVCfD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Feb 2011 21:35:03 -0500
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p1M2Z3RR018485
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 21 Feb 2011 21:35:03 -0500
+Received: from [10.3.224.79] (vpn-224-79.phx2.redhat.com [10.3.224.79])
+	by int-mx12.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p1M2Z1Ae016734
+	for <linux-media@vger.kernel.org>; Mon, 21 Feb 2011 21:35:02 -0500
+Message-ID: <4D6320D5.4060809@redhat.com>
+Date: Mon, 21 Feb 2011 23:35:01 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/4] [media] tuner: Remove remaining usages of T_DIGITAL_TV
+References: <cover.1298340861.git.mchehab@redhat.com> <20110221231737.518c1cc9@pedra>
+In-Reply-To: <20110221231737.518c1cc9@pedra>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201102281219.38266.laurent.pinchart@ideasonboard.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Monday 28 February 2011 12:17:12 Hans Verkuil wrote:
-> On Monday, February 28, 2011 12:07:33 Laurent Pinchart wrote:
-> > On Monday 28 February 2011 12:02:41 Guennadi Liakhovetski wrote:
-> > > On Mon, 28 Feb 2011, Hans Verkuil wrote:
-
-[snip]
-
-> > > > It was my understanding that the streaming would stop if no capture
-> > > > buffers are available, requiring a VIDIOC_STREAMON to get it started
-> > > > again. Of course, there is nothing wrong with stopping the hardware
-> > > > and restarting it again when a new buffer becomes available if that
-> > > > can be done efficiently enough. Just as long as userspace doesn't
-> > > > notice.
-> > > > 
-> > > > Note that there are some problems with this anyway: often restarting
-> > > > DMA requires resyncing to the video stream, which may lead to lost
-> > > > frames. Also, the framecounter in struct v4l2_buffer will probably
-> > > > have failed to count the lost frames.
-> > > > 
-> > > > In my opinion trying this might cause more problems than it solves.
-> > > 
-> > > So, do I understand it right, that currently there are drivers, that
-> > > overwrite the last buffers while waiting for a new one, and ones, that
-> > > stop capture for that time.
+Em 21-02-2011 23:17, Mauro Carvalho Chehab escreveu:
+> A few places used T_DIGITAL_TV internally. Remove the usage of this
+> obsolete mode mask.
 > 
-> Does anyone know which drivers stop capture if there are no buffers
-> available? I'm not aware of any.
-
-Do you mean stop capture in a way that requires an explicit VIDIOC_STREAMON ? 
-None that I'm aware of (and I think that would violate the spec). If you 
-instead mean pause capture and restart it on the next VIDIOC_QBUF, uvcvideo 
-(somehow) does that, and the OMAP3 ISP does as well.
-
-> > > None of them violate the spec, but the former will not work with the
-> > > "snapshot mode," and the latter will. Since we do not want / cannot
-> > > enforce either way, we do need a way to tell the driver to enter the
-> > > "snapshot mode" even if only to not overwrite the last buffer, right?
-
-[snip]
-
-> > > Right, but sensors do need it. It is not enough to just tell the sensor
-> > > - a per-frame flash is used and let the driver figure out, that it has
-> > > to switch to snapshot mode. The snapshot mode has other effects too,
-> > > e.g., on some sensors it enables the external trigger pin, which some
-> > > designs might want to use also without a flash. Maybe there are also
-> > > some other side effects of such snapshot modes on some other sensors,
-> > > that I'm not aware of.
-> > 
-> > This makes me wonder if we need a snapshot mode at all. Why should we tie
-> > flash, capture trigger (and other such options that you're not aware of
-> > yet :-)) together under a single high-level control (in the general sense,
-> > not to be strictly taken as a V4L2 CID) ? Wouldn't it be better to expose
-> > those features individually instead ? User might want to use the flash in
-> > video capture mode for a stroboscopic effect for instance.
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 > 
-> I think this is certainly a good initial approach.
-> 
-> Can someone make a list of things needed for flash/snapshot? So don't look
-> yet at the implementation, but just start a list of functionalities that
-> we need to support. I don't think I have seen that yet.
+> diff --git a/drivers/media/common/tuners/tuner-xc2028.c b/drivers/media/common/tuners/tuner-xc2028.c
+> index d95f3b2..efcbc3e 100644
+> --- a/drivers/media/common/tuners/tuner-xc2028.c
+> +++ b/drivers/media/common/tuners/tuner-xc2028.c
+> @@ -933,7 +933,7 @@ static int generic_set_freq(struct dvb_frontend *fe, u32 freq /* in HZ */,
+>  	 * that xc2028 will be in a safe state.
+>  	 * Maybe this might also be needed for DTV.
+>  	 */
+> -	if (new_mode == T_ANALOG_TV) {
+> +	if (new_mode == V4L2_TUNER_ANALOG_TV) {
+>  		rc = send_seq(priv, {0x00, 0x00});
+>  
+>  		/* Analog modes require offset = 0 */
+> @@ -1054,7 +1054,7 @@ static int xc2028_set_analog_freq(struct dvb_frontend *fe,
+>  		if (priv->ctrl.input1)
+>  			type |= INPUT1;
+>  		return generic_set_freq(fe, (625l * p->frequency) / 10,
+> -				T_RADIO, type, 0, 0);
+> +				V4L2_TUNER_RADIO, type, 0, 0);
+>  	}
+>  
+>  	/* if std is not defined, choose one */
+> @@ -1069,7 +1069,7 @@ static int xc2028_set_analog_freq(struct dvb_frontend *fe,
+>  	p->std |= parse_audio_std_option();
+>  
+>  	return generic_set_freq(fe, 62500l * p->frequency,
+> -				T_ANALOG_TV, type, p->std, 0);
+> +				V4L2_TUNER_ANALOG_TV, type, p->std, 0);
+>  }
+>  
+>  static int xc2028_set_params(struct dvb_frontend *fe,
+> @@ -1174,7 +1174,7 @@ static int xc2028_set_params(struct dvb_frontend *fe,
+>  	}
+>  
+>  	return generic_set_freq(fe, p->frequency,
+> -				T_DIGITAL_TV, type, 0, demod);
+> +				V4L2_TUNER_DIGITAL_TV, type, 0, demod);
+>  }
+>  
+>  static int xc2028_sleep(struct dvb_frontend *fe)
+> diff --git a/drivers/media/video/em28xx/em28xx-video.c b/drivers/media/video/em28xx/em28xx-video.c
+> index f34d524..b2e351c 100644
+> --- a/drivers/media/video/em28xx/em28xx-video.c
+> +++ b/drivers/media/video/em28xx/em28xx-video.c
+> @@ -2227,7 +2227,7 @@ em28xx_v4l2_read(struct file *filp, char __user *buf, size_t count,
+>  	 */
+>  
+>  	if (fh->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+> -		if (res_locked(dev, EM28XX_RESOURCE_VIDEO))
+> +		if (res_get(dev, EM28XX_RESOURCE_VIDEO))
+>  			return -EBUSY;
+>  
+>  		return videobuf_read_stream(&fh->vb_vidq, buf, count, pos, 0,
 
-That's the right approach. I'll ping people internally to see if we have such 
-a list already.
+This hunk obviously doesn't belong here. It were just part of a test I did. I'll discard
+it at the final version.
 
--- 
-Regards,
+> diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
+> index 455038b..22a2222 100644
+> --- a/drivers/staging/tm6000/tm6000-cards.c
+> +++ b/drivers/staging/tm6000/tm6000-cards.c
+> @@ -588,8 +588,6 @@ static void tm6000_config_tuner(struct tm6000_core *dev)
+>  	tun_setup.mode_mask = 0;
+>  	if (dev->caps.has_tuner)
+>  		tun_setup.mode_mask |= (T_ANALOG_TV | T_RADIO);
+> -	if (dev->caps.has_dvb)
+> -		tun_setup.mode_mask |= T_DIGITAL_TV;
+>  
+>  	switch (dev->tuner_type) {
+>  	case TUNER_XC2028:
+> diff --git a/include/media/tuner.h b/include/media/tuner.h
+> index 32dfd5f..963e334 100644
+> --- a/include/media/tuner.h
+> +++ b/include/media/tuner.h
+> @@ -161,7 +161,7 @@
+>  enum tuner_mode {
+>  	T_RADIO		= 1 << V4L2_TUNER_RADIO,
+>  	T_ANALOG_TV     = 1 << V4L2_TUNER_ANALOG_TV,
+> -	T_DIGITAL_TV    = 1 << V4L2_TUNER_DIGITAL_TV,
+> +	/* Don't need to map V4L2_TUNER_DIGITAL_TV, as tuner-core won't use it */
+>  };
+>  
+>  /* Older boards only had a single tuner device. Nowadays multiple tuner
 
-Laurent Pinchart
