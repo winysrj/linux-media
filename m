@@ -1,131 +1,141 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:56724 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753683Ab1BRBNi (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.8]:49467 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754108Ab1BVLkg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Feb 2011 20:13:38 -0500
-Received: from [192.168.1.2] (d-216-36-28-191.cpe.metrocast.net [216.36.28.191])
-	(authenticated bits=0)
-	by pear.metrocast.net (8.13.8/8.13.8) with ESMTP id p1I1DbpC023920
-	for <linux-media@vger.kernel.org>; Fri, 18 Feb 2011 01:13:37 GMT
-Subject: [PATCH 02/13] lirc_zilog: Remove broken, ineffective reference
- counting
-From: Andy Walls <awalls@md.metrocast.net>
-To: linux-media@vger.kernel.org
-In-Reply-To: <1297991502.9399.16.camel@localhost>
-References: <1297991502.9399.16.camel@localhost>
-Content-Type: text/plain; charset="UTF-8"
-Date: Thu, 17 Feb 2011 20:13:50 -0500
-Message-ID: <1297991630.9399.18.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Tue, 22 Feb 2011 06:40:36 -0500
+Date: Tue, 22 Feb 2011 12:40:32 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Stanimir Varbanov <svarbanov@mm-sol.com>
+cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	saaguirre@ti.com
+Subject: Re: [RFC/PATCH 0/1] New subdev sensor operation g_interface_parms
+In-Reply-To: <cover.1298368924.git.svarbanov@mm-sol.com>
+Message-ID: <Pine.LNX.4.64.1102221215350.1380@axis700.grange>
+References: <cover.1298368924.git.svarbanov@mm-sol.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+On Tue, 22 Feb 2011, Stanimir Varbanov wrote:
 
-The set_use_inc() and set_use_dec() functions tried to lock
-the underlying bridge driver device instance in memory by
-changing the use count on the device's i2c_clients.  This
-worked for PCI devices (ivtv, cx18, bttv).  It doesn't
-work for hot-pluggable usb devices (pvrusb2 and hdpvr).
-With usb device instances, the driver may get locked into
-memory, but the unplugged hardware is gone.
+> This RFC patch adds a new subdev sensor operation named g_interface_parms.
+> It is planned as a not mandatory operation and it is driver's developer
+> decision to use it or not.
+> 
+> Please share your opinions and ideas.
 
-The set_use_inc() set_use_dec() functions also tried to have
-lirc_zilog change its own module refernce count, which is
-racy and not guaranteed to work.  The lirc_dev module does
-actually perform proper module ref count manipulation on the
-lirc_zilog module, so there is need for lirc_zilog to
-attempt a buggy module get on itself anyway.
+Yes, I like the idea in principle (/me pulling his bullet-proof vest on), 
+as some of you might guess, because I feel it's going away from the idea, 
+that I've been hard pressed to accept of hard-coding the media-bus 
+configuration and in the direction of direct communication of 
+bus-parameters between the (sub-)devices, e.g., a camera host and a camera 
+device in soc-camera terminology.
 
-lirc_zilog also errantly called these functions on itself
-in open() and close(), but lirc_dev did that already too.
+But before reviewing the patch as such, I'd like to discuss the strategy, 
+that we want to pursue here - what exactly do we want to hard-code and 
+what we want to configure dynamically? As explained before, my preference 
+would be to only specify the absolute minimum in the platform data, i.e., 
+parameters that either are ambiguous or special for this platform. So, 
+once again, my approach to configure interface parameters like signal 
+polarities and edge sensitivity is:
 
-So let's just gut the bodies of the set_use_*() functions,
-and remove the extra calls to them from within lirc_zilog.
+1. if at least one side has a fixed value of the specific parameter, 
+usually no need to specify it in platform data. Example: sensor only 
+supports HSYNC active high, host supports both, normally "high" should be 
+selected.
 
-Proper reference counting of the struct IR, IR_rx, and IR_tx
-objects -- to handle the case when the underlying
-bttv, ivtv, cx18, hdpvr, or pvrusb2 bridge driver module or
-device instance goes away -- will be added in subsequent
-patches.
+2. as above, but there's an inverter on the board in the signal path. The 
+"invert" parameter must be specified in the platform data and the host 
+will configure itself to "low" and send "high" confirmed to the sensor.
 
-Signed-off-by: Andy Walls <awalls@md.metrocast.net>
+3. both are configurable. In this case the platform data has to specify, 
+which polarity shall be used.
+
+This is simple, it is implemented, it has worked that way with no problem 
+for several years now.
+
+The configuration procedure in this case looks like:
+
+1. host requests supported interface configurations from the client 
+(sensor)
+
+2. host matches returned parameters against platform data and its own 
+capabilities
+
+3. if no suitable configuration possible - error out
+
+4. the single possible configuration is identified and sent to the sensor 
+back for its configuration
+
+This way we need one more method: s_interface_parms.
+
+Shortly talking to Laurent earlier today privately, he mentioned, that one 
+of the reasons for this move is to support dynamic bus reconfiguration, 
+e.g., the number of used CSI lanes. The same is useful for parallel 
+interfaces. E.g., I had to hack the omap3spi driver to capture only 8 
+(parallel) data lanes from the sensor, connected with all its 10 lanes to 
+get a format, easily supported by user-space applications. Ideally you 
+don't want to change anything in the code for this. If the user is 
+requesting the 10-bit format, all 10 lanes are used, if only 8 - the 
+interface is reconfigured accordingly.
+
+Thanks
+Guennadi
+
+> ---
+> It tries to create a common API for getting the sensor interface type
+> - serial or parallel, modes and interface clocks. The interface clocks
+> then are used in the host side to calculate it's configuration, check
+> that the clocks are not beyond host limitations etc.
+> 
+> "phy_rate" in serial interface (CSI DDR clk) is used to calculate
+> the CSI2 PHY receiver timing parameters: ths_settle, ths_term,
+> clk_settle and clk_term.
+> 
+> As the "phy_rate" depends on current sensor mode (configuration of the
+> sensor's PLL and internal clock domains) it can be treated as dynamic
+> parameter and can vary (could be different for viewfinder and still 
+> capture), in this context g_interface_parms should be called after
+> s_fmt.
+> 
+> "pix_clk" for parallel interface reflects the current sensor pixel
+> clock. With this clock the image data is clocked out of the sensor.
+> 
+> "pix_clk" for serial interface reflects the current sensor pixel
+> clock at which image date is read from sensor matrix.
+> 
+> "lanes" for serial interface reflects the number of PHY lanes used from
+> the sensor to output image data. This should be known from the host
+> side before the streaming is started. For some sensor modes it's
+> enough to use one lane, for bigger resolutions two lanes and more
+> are used.
+> 
+> "channel" for serial interface is also needed from host side to
+> configure it's PHY receiver at particular virtual channel.
+> 
+> ---
+> Some background and inspiration.
+> 
+> - Currently in the OMAP3 ISP driver we use a set of platform data
+> callbacks to provide the above parameters and this comes to very
+> complicated platform code, driver implementation and unneeded 
+> sensor driver <-> host driver dependences. 
+> 
+> - In the present time we seeing growing count of sensor drivers and
+> host (bridge) drivers but without standard API's for communication.
+> Currently the subdev sensor operations have only one operation -
+> g_skip_top_lines.
+> 
+> Stanimir Varbanov (1):
+>   v4l: Introduce sensor operation for getting interface configuration
+> 
+>  include/media/v4l2-subdev.h |   42 ++++++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 42 insertions(+), 0 deletions(-)
+> 
+
 ---
- drivers/staging/lirc/lirc_zilog.c |   32 +-------------------------------
- 1 files changed, 1 insertions(+), 31 deletions(-)
-
-diff --git a/drivers/staging/lirc/lirc_zilog.c b/drivers/staging/lirc/lirc_zilog.c
-index 7389b77..3a91257 100644
---- a/drivers/staging/lirc/lirc_zilog.c
-+++ b/drivers/staging/lirc/lirc_zilog.c
-@@ -305,34 +305,12 @@ static int lirc_thread(void *arg)
- 
- static int set_use_inc(void *data)
- {
--	struct IR *ir = data;
--
--	if (ir->l.owner == NULL || try_module_get(ir->l.owner) == 0)
--		return -ENODEV;
--
--	/* lock bttv in memory while /dev/lirc is in use  */
--	/*
--	 * this is completely broken code. lirc_unregister_driver()
--	 * must be possible even when the device is open
--	 */
--	if (ir->rx != NULL)
--		i2c_use_client(ir->rx->c);
--	if (ir->tx != NULL)
--		i2c_use_client(ir->tx->c);
--
- 	return 0;
- }
- 
- static void set_use_dec(void *data)
- {
--	struct IR *ir = data;
--
--	if (ir->rx)
--		i2c_release_client(ir->rx->c);
--	if (ir->tx)
--		i2c_release_client(ir->tx->c);
--	if (ir->l.owner != NULL)
--		module_put(ir->l.owner);
-+	return;
- }
- 
- /* safe read of a uint32 (always network byte order) */
-@@ -1098,7 +1076,6 @@ static struct IR *find_ir_device_by_minor(unsigned int minor)
- static int open(struct inode *node, struct file *filep)
- {
- 	struct IR *ir;
--	int ret;
- 	unsigned int minor = MINOR(node->i_rdev);
- 
- 	/* find our IR struct */
-@@ -1112,12 +1089,6 @@ static int open(struct inode *node, struct file *filep)
- 	/* increment in use count */
- 	mutex_lock(&ir->ir_lock);
- 	++ir->open;
--	ret = set_use_inc(ir);
--	if (ret != 0) {
--		--ir->open;
--		mutex_unlock(&ir->ir_lock);
--		return ret;
--	}
- 	mutex_unlock(&ir->ir_lock);
- 
- 	/* stash our IR struct */
-@@ -1139,7 +1110,6 @@ static int close(struct inode *node, struct file *filep)
- 	/* decrement in use count */
- 	mutex_lock(&ir->ir_lock);
- 	--ir->open;
--	set_use_dec(ir);
- 	mutex_unlock(&ir->ir_lock);
- 
- 	return 0;
--- 
-1.7.2.1
-
-
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
