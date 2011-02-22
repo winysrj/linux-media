@@ -1,63 +1,43 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:34841 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:59841 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754195Ab1BVMMf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Feb 2011 07:12:35 -0500
-Message-ID: <4D63A830.20805@redhat.com>
-Date: Tue, 22 Feb 2011 09:12:32 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1753927Ab1BVKqg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Feb 2011 05:46:36 -0500
+Message-ID: <4D63941C.1060602@redhat.com>
+Date: Tue, 22 Feb 2011 11:46:52 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 0/4] Some fixes for tuner, tvp5150 and em28xx
-References: <20110221231741.71a2149e@pedra> <4D6324DB.5030801@redhat.com> <201102220853.59343.hverkuil@xs4all.nl>
-In-Reply-To: <201102220853.59343.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Mike Booth <mike_booth76@iprimus.com.au>
+CC: linux-media@vger.kernel.org
+Subject: Re: v4l-utils-0.8.3 and KVDR
+References: <e05367$6n6fju@smtp06.syd.iprimus.net.au>
+In-Reply-To: <e05367$6n6fju@smtp06.syd.iprimus.net.au>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 22-02-2011 04:53, Hans Verkuil escreveu:
-> Actually, v4l2-ctrl and qv4l2 handle 'holes' correctly. I think this is a
-> different bug relating to the handling of V4L2_CTRL_FLAG_NEXT_CTRL. Can you
-> try this patch:
-> 
-> diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-> index ef66d2a..15eda86 100644
-> --- a/drivers/media/video/v4l2-ctrls.c
-> +++ b/drivers/media/video/v4l2-ctrls.c
-> @@ -1364,6 +1364,8 @@ EXPORT_SYMBOL(v4l2_queryctrl);
->  
->  int v4l2_subdev_queryctrl(struct v4l2_subdev *sd, struct v4l2_queryctrl *qc)
->  {
-> +	if (qc->id & V4L2_CTRL_FLAG_NEXT_CTRL)
-> +		return -EINVAL;
->  	return v4l2_queryctrl(sd->ctrl_handler, qc);
+Hi,
 
-Ok, this fixed the issue:
-                     brightness (int)  : min=0 max=255 step=1 default=128 value=128
-                       contrast (int)  : min=0 max=255 step=1 default=128 value=128
-                     saturation (int)  : min=0 max=255 step=1 default=128 value=128
-                            hue (int)  : min=-128 max=127 step=1 default=0 value=0
-                         volume (int)  : min=0 max=65535 step=655 default=58880 value=65500 flags=slider
-                        balance (int)  : min=0 max=65535 step=655 default=32768 value=32750 flags=slider
-                           bass (int)  : min=0 max=65535 step=655 default=32768 value=32750 flags=slider
-                         treble (int)  : min=0 max=65535 step=655 default=32768 value=32750 flags=slider
-                           mute (bool) : default=0 value=0
-                       loudness (bool) : default=0 value=0
+On 02/22/2011 10:03 AM, Mike Booth wrote:
+> KVDR has a number of different parameters including
+>
+> -x                        force xv-mode on startup and disable overlay-mod
+>
+> -d                        dont switch modeline during xv
+>   with kernel 2.6.35 I run KVDR with -x as I have an NVIDIA graphics. Running
+> on 2.6.38 KVDR -x doesn't produce any log. The display appears and immediately
+> disappears although there is a process running.
+>
 
-Also, v4l2-compliance is now complaining less about it.
+So with 2.6.35 and v4l-utils-0.8.3 things work ? Then this is not a libv4l
+problem, as libv4l will no longer use the kernels v4l1 compat independent of
+the kernels version.
 
-Control ioctls:
-		fail: does not support V4L2_CTRL_FLAG_NEXT_CTRL
-	test VIDIOC_QUERYCTRL/MENU: FAIL
-	test VIDIOC_G/S_CTRL: OK
-	test VIDIOC_G/S/TRY_EXT_CTRLS: Not Supported
-	Standard Controls: 0 Private Controls: 0
+Also in the log I see nothing indicating this is a v4l1 app (I'm not familiar
+with kvdr), so I think something else may have changed in the new
+kernel causing your issue.
 
-(yet, it is showing "standard controls = 0").
+Regards,
 
-Could you provide your SOB to the above patch?
-
-Thanks!
-Mauro
+Hans
