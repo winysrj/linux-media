@@ -1,53 +1,93 @@
 Return-path: <mchehab@pedra>
-Received: from DSL01.212.114.205.243.ip-pool.NEFkom.net ([212.114.205.243]:57532
-	"EHLO enzo.pibbs.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750738Ab1BIXG6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Feb 2011 18:06:58 -0500
-From: Martin Seekatz <martin@pibbs.de>
+Received: from ns.mm-sol.com ([213.240.235.226]:54411 "EHLO extserv.mm-sol.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753677Ab1BVKjz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Feb 2011 05:39:55 -0500
+From: Stanimir Varbanov <svarbanov@mm-sol.com>
 To: linux-media@vger.kernel.org
-Subject: Re: em28xx: board id [eb1a:2863 eMPIA Technology, Inc] Silver Crest VG2000 "USB 2.0 Video Grabber"
-Date: Thu, 10 Feb 2011 00:06:54 +0100
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-References: <201102082305.24897.martin@pibbs.de> <201102092336.20812.martin@pibbs.de> <AANLkTimST51rWpp9G3a6kds6eqM+dupWu=MyEJtTYZNs@mail.gmail.com>
-In-Reply-To: <AANLkTimST51rWpp9G3a6kds6eqM+dupWu=MyEJtTYZNs@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201102100006.55133.martin@pibbs.de>
+Cc: laurent.pinchart@ideasonboard.com, g.liakhovetski@gmx.de,
+	saaguirre@ti.com, Stanimir Varbanov <svarbanov@mm-sol.com>
+Subject: [RFC/PATCH 1/1] v4l: Introduce sensor operation for getting interface configuration
+Date: Tue, 22 Feb 2011 12:31:53 +0200
+Message-Id: <fc5d1bbfedf641a7578aa6f9a4f556f829b61a1a.1298368924.git.svarbanov@mm-sol.com>
+In-Reply-To: <cover.1298368924.git.svarbanov@mm-sol.com>
+References: <cover.1298368924.git.svarbanov@mm-sol.com>
+In-Reply-To: <cover.1298368924.git.svarbanov@mm-sol.com>
+References: <cover.1298368924.git.svarbanov@mm-sol.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Am Mittwoch 09 Februar 2011 schrieb Devin Heitmueller:
-> On Wed, Feb 9, 2011 at 5:36 PM, Martin Seekatz <martin@pibbs.de> 
-wrote:
-> > Hello Devin,
-> > 
-> > I mean that list
-> > http://www.kernel.org/doc/Documentation/video4linux/CARDLIST.em28
-> > xx
-> 
-> It actually is there:
-> 
-> 29 -> EM2860/TVP5150 Reference Design
+Introduce g_interface_parms sensor operation for getting sensor
+interface parameters. These parameters are needed from the host side
+to determine it's own configuration.
 
-Yes, but the list refers to
- 1 -> Unknown EM2750/28xx video grabber        (em2820/em2840) 
-[eb1a:2710,eb1a:2820,eb1a:2821,eb1a:2860,eb1a:2861,eb1a:2862,eb1a:2863,eb1a:2870,eb1a:2881,eb1a:2883,eb1a:2868]
+Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
+---
+ include/media/v4l2-subdev.h |   42 ++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 42 insertions(+), 0 deletions(-)
 
-because of the usb-id: eb1a:2863
-
-> 
-> If the vendor did not build the hardware with its own unique USB ID
-> (because they were lazy), the best we can do is refer to it by the
-> above name (since we would not be able to distinguish between the
-> Silvercrest and all the other clones).
-
-For me it seams that this usb-id is unique.
-
-Martin
-
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index b0316a7..4186cad 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -322,15 +322,57 @@ struct v4l2_subdev_vbi_ops {
+ 	int (*s_sliced_fmt)(struct v4l2_subdev *sd, struct v4l2_sliced_vbi_format *fmt);
+ };
+ 
++/* Which interface the sensor use to provide it's image data */
++enum v4l2_subdev_sensor_iface {
++	V4L2_SUBDEV_SENSOR_PARALLEL,
++	V4L2_SUBDEV_SENSOR_SERIAL,
++};
++
++/* Each interface could use the following modes */
++/* Image sensor provides horizontal and vertical sync signals */
++#define V4L2_SUBDEV_SENSOR_MODE_PARALLEL_SYNC	0
++/* BT.656 interface. Embedded sync */
++#define V4L2_SUBDEV_SENSOR_MODE_PARALLEL_ITU	1
++/* MIPI CSI1 */
++#define V4L2_SUBDEV_SENSOR_MODE_SERIAL_CSI1	2
++/* MIPI CSI2 */
++#define V4L2_SUBDEV_SENSOR_MODE_SERIAL_CSI2	3
++
++struct v4l2_subdev_sensor_serial_parms {
++	unsigned char lanes;		/* number of lanes used */
++	unsigned char channel;		/* virtual channel */
++	unsigned int phy_rate;		/* output rate at CSI phy in bps */
++	unsigned int pix_clk;		/* pixel clock in Hz */
++};
++
++struct v4l2_subdev_sensor_parallel_parms {
++	unsigned int pix_clk;		/* pixel clock in Hz */
++};
++
++struct v4l2_subdev_sensor_interface_parms {
++	enum v4l2_subdev_sensor_iface if_type;
++	unsigned int if_mode;
++	union {
++		struct v4l2_subdev_sensor_serial_parms serial;
++		struct v4l2_subdev_sensor_parallel_parms parallel;
++	} parms;
++};
++
+ /**
+  * struct v4l2_subdev_sensor_ops - v4l2-subdev sensor operations
+  * @g_skip_top_lines: number of lines at the top of the image to be skipped.
+  *		      This is needed for some sensors, which always corrupt
+  *		      several top lines of the output image, or which send their
+  *		      metadata in them.
++ * @g_interface_parms: get sensor interface parameters. The sensor subdev should
++ *		       fill this structure with current interface params. These
++ *		       interface parameters are needed on host side to configure
++ *		       it's own hardware receivers.
+  */
+ struct v4l2_subdev_sensor_ops {
+ 	int (*g_skip_top_lines)(struct v4l2_subdev *sd, u32 *lines);
++	int (*g_interface_parms)(struct v4l2_subdev *sd,
++			struct v4l2_subdev_sensor_interface_parms *parms);
+ };
+ 
+ /*
 -- 
-"Was ist der Unterschied zwischen Franken und Oberbayern?" -
-"Die Franken haben weniger Berge, aber dafür mehr Horizont."
+1.6.5
+
