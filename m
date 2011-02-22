@@ -1,104 +1,70 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.187]:58764 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753474Ab1BRINo (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:35695 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754049Ab1BVPib (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Feb 2011 03:13:44 -0500
-Date: Fri, 18 Feb 2011 09:13:42 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: linux-sh@vger.kernel.org
-Subject: [PATCH 3/4] V4L: sh_mobile_ceu_camera: fix videobuffer queue locking
-In-Reply-To: <Pine.LNX.4.64.1102180857360.1851@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1102180908110.1851@axis700.grange>
-References: <Pine.LNX.4.64.1102180857360.1851@axis700.grange>
+	Tue, 22 Feb 2011 10:38:31 -0500
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <20110221172756.GA27664@redhat.com>
+References: <1298299131-17695-1-git-send-email-dacohen@gmail.com>
+	<1298299131-17695-2-git-send-email-dacohen@gmail.com>
+	<1298303677.24121.1.camel@twins>
+	<AANLkTimOT6jNG3=TiRMJR0dgEQ6EHjcBPJ1ivCu3Wj5Q@mail.gmail.com>
+	<1298305245.24121.7.camel@twins>
+	<20110221172103.GA26225@redhat.com>
+	<20110221172756.GA27664@redhat.com>
+Date: Tue, 22 Feb 2011 17:38:29 +0200
+Message-ID: <AANLkTi=f+XMp0r77jbuq44uz9TfaOttm==JXdt-6RXrh@mail.gmail.com>
+Subject: Re: [PATCH v2 1/1] headers: fix circular dependency between
+ linux/sched.h and linux/wait.h
+From: David Cohen <dacohen@gmail.com>
+To: Oleg Nesterov <oleg@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>,
+	linux-kernel@vger.kernel.org, mingo@elte.hu,
+	linux-omap@vger.kernel.org, linux-media@vger.kernel.org,
+	Alexey Dobriyan <adobriyan@gmail.com>
+Content-Type: text/plain; charset=UTF-8
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-After the switch to videobuf2, videobuffer callbacks are called unlocked,
-therefore they have to protect their internal data themselves.
+On Mon, Feb 21, 2011 at 7:27 PM, Oleg Nesterov <oleg@redhat.com> wrote:
+> On 02/21, Oleg Nesterov wrote:
+>>
+>> On 02/21, Peter Zijlstra wrote:
+>> >
+>> > afaict its needed because struct signal_struct and struct sighand_struct
+>> > include a wait_queue_head_t. The inclusion seems to come through
+>> > completion.h, but afaict we don't actually need to include completion.h
+>> > because all we have is a pointer to a completion, which is perfectly
+>> > fine with an incomplete type.
+>> >
+>> > This all would suggest we move the signal bits into their own header
+>> > (include/linux/signal.h already exists and seems inviting).
+>>
+>> Agreed, sched.h contatins a lot of garbage, including the signal bits.
+>>
+>> As for signal_struct in particular I am not really sure, it is just
+>> misnamed. It is in fact "struct process" or "struct thread_group". But
+>> dequeue_signal/etc should go into signal.h.
+>>
+>> The only problem, it is not clear how to test such a change.
+>
+> Ah. sched.h includes signal.h, the testing is not the problem.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+If sched.h includes signal.h and we move wait_queue_head_t users to
+signal.h, it means signal.h should include wait.h and then it is a
+problem to include sched.h in wait.h.
 
-This one will be merged with https://patchwork.kernel.org/patch/516491/
+>
+> So, we can (at least) safely move some declarations.
 
- drivers/media/video/sh_mobile_ceu_camera.c |   13 +++++++------
- 1 files changed, 7 insertions(+), 6 deletions(-)
+Safely, yes, but it won't solve the issue for TASK_* in wait.h.
 
-diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
-index 5a8d942..325f50d 100644
---- a/drivers/media/video/sh_mobile_ceu_camera.c
-+++ b/drivers/media/video/sh_mobile_ceu_camera.c
-@@ -100,8 +100,7 @@ struct sh_mobile_ceu_dev {
- 	void __iomem *base;
- 	unsigned long video_limit;
- 
--	/* lock used to protect videobuf */
--	spinlock_t lock;
-+	spinlock_t lock;		/* Protects video buffer lists */
- 	struct list_head capture;
- 	struct vb2_buffer *active;
- 	struct vb2_alloc_ctx *alloc_ctx;
-@@ -375,17 +374,18 @@ static int sh_mobile_ceu_videobuf_prepare(struct vb2_buffer *vb)
- 	return 0;
- }
- 
--/* Called under spinlock_irqsave(&pcdev->lock, ...) */
- static void sh_mobile_ceu_videobuf_queue(struct vb2_buffer *vb)
- {
- 	struct soc_camera_device *icd = container_of(vb->vb2_queue, struct soc_camera_device, vb2_vidq);
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
- 	struct sh_mobile_ceu_dev *pcdev = ici->priv;
- 	struct sh_mobile_ceu_buffer *buf = to_ceu_vb(vb);
-+	unsigned long flags;
- 
- 	dev_dbg(icd->dev.parent, "%s (vb=0x%p) 0x%p %lu\n", __func__,
- 		vb, vb2_plane_vaddr(vb, 0), vb2_get_plane_payload(vb, 0));
- 
-+	spin_lock_irqsave(&pcdev->lock, flags);
- 	list_add_tail(&buf->queue, &pcdev->capture);
- 
- 	if (!pcdev->active) {
-@@ -397,6 +397,7 @@ static void sh_mobile_ceu_videobuf_queue(struct vb2_buffer *vb)
- 		pcdev->active = vb;
- 		sh_mobile_ceu_capture(pcdev);
- 	}
-+	spin_unlock_irqrestore(&pcdev->lock, flags);
- }
- 
- static void sh_mobile_ceu_videobuf_release(struct vb2_buffer *vb)
-@@ -442,10 +443,9 @@ static irqreturn_t sh_mobile_ceu_irq(int irq, void *data)
- {
- 	struct sh_mobile_ceu_dev *pcdev = data;
- 	struct vb2_buffer *vb;
--	unsigned long flags;
- 	int ret;
- 
--	spin_lock_irqsave(&pcdev->lock, flags);
-+	spin_lock(&pcdev->lock);
- 
- 	vb = pcdev->active;
- 	if (!vb)
-@@ -469,7 +469,7 @@ static irqreturn_t sh_mobile_ceu_irq(int irq, void *data)
- 	vb2_buffer_done(vb, ret < 0 ? VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
- 
- out:
--	spin_unlock_irqrestore(&pcdev->lock, flags);
-+	spin_unlock(&pcdev->lock);
- 
- 	return IRQ_HANDLED;
- }
-@@ -669,6 +669,7 @@ static void capture_restore(struct sh_mobile_ceu_dev *pcdev, u32 capsr)
- 		ceu_write(pcdev, CAPSR, capsr);
- }
- 
-+/* Capture is not running, no interrupts, no locking needed */
- static int sh_mobile_ceu_set_bus_param(struct soc_camera_device *icd,
- 				       __u32 pixfmt)
- {
--- 
-1.7.2.3
+Br,
 
+David
+
+>
+> Oleg.
+>
+>
