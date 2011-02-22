@@ -1,64 +1,87 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:34568 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752330Ab1B0SM2 (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.171]:53604 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750930Ab1BVJ5u (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Feb 2011 13:12:28 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, m.szyprowski@samsung.com, hverkuil@xs4all.nl
-Subject: [RFC/PATCH 0/2] Convert uvcvideo to videobuf2
-Date: Sun, 27 Feb 2011 19:12:31 +0100
-Message-Id: <1298830353-9797-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Tue, 22 Feb 2011 04:57:50 -0500
+Date: Tue, 22 Feb 2011 10:57:44 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: linux-sh@vger.kernel.org,
+	Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+Subject: [PATCH 2/3] sh: switch ap325rxa to dynamically manage the platform
+ camera
+In-Reply-To: <Pine.LNX.4.64.1102221049240.1380@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1102221056430.1380@axis700.grange>
+References: <Pine.LNX.4.64.1102221049240.1380@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi everybody,
+Use soc_camera_platform helper functions to dynamically manage the
+camera device.
 
-Those two RFC patches convert the uvcvideo driver to videobuf2.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ arch/sh/boards/mach-ap325rxa/setup.c |   32 +++++++++++++-------------------
+ 1 files changed, 13 insertions(+), 19 deletions(-)
 
-The transition was pretty smooth, except for an issue with videobuf2 and
-hot-pluggable devices. When a hot-pluggable device is disconnected, all pending
-video buffers must be marked as erroneous and waiters must be woken up. Drivers
-(and/or videobuf2) must then not allow new buffers to be queued, otherwise
-applications would wait forever on VIDIOC_DQBUF (side note: maybe it's time for
-V4L2 to explictly state what should happen in that case, and what error codes
-must be returned).
-
-This isn't a big issue in itself, except that handling the disconnection event
-in QBUF introduces a race condition. Fixing it can only be done with the help
-of a spinlock which must be held across the disconnection check and the
-list_add_tail call in buf_queue. Unfortunately, buf_queue returns void, which
-prevents checking for the disconnection event there.
-
-There are multiple ways to solve this problem. the one I've implemented in this
-RFC modifies buf_queue to return an error code, and lets drivers implement
-buffers queue cancellation on disconnect. As this could be a tricky problem, a
-better solution might be to move disconnection handling inside videobuf2. The
-downside is that a new spinlock will be needed in videobuf2.
-
-Yet another solution would be to let QBUF succeed, but marking the buffer as
-erroneous and waking up userspace immediately. I don't like this though, as the
-error flag on buffers is meant to indicate transcient errors, and device
-disconnection is more on the fatal error side :-)
-
-Laurent Pinchart (2):
-  v4l: videobuf2: Handle buf_queue errors
-  uvcvideo: Use videobuf2
-
- drivers/media/video/uvc/Kconfig      |    1 +
- drivers/media/video/uvc/uvc_isight.c |   10 +-
- drivers/media/video/uvc/uvc_queue.c  |  494 ++++++++++------------------------
- drivers/media/video/uvc/uvc_v4l2.c   |   19 +--
- drivers/media/video/uvc/uvc_video.c  |   30 +-
- drivers/media/video/videobuf2-core.c |   32 ++-
- drivers/usb/gadget/uvc.h             |    2 +-
- include/linux/uvcvideo.h             |   37 ++--
- include/media/videobuf2-core.h       |    2 +-
- 9 files changed, 203 insertions(+), 424 deletions(-)
-
+diff --git a/arch/sh/boards/mach-ap325rxa/setup.c b/arch/sh/boards/mach-ap325rxa/setup.c
+index 3e5fc3b..33bfebc 100644
+--- a/arch/sh/boards/mach-ap325rxa/setup.c
++++ b/arch/sh/boards/mach-ap325rxa/setup.c
+@@ -343,37 +343,31 @@ static struct soc_camera_link camera_link = {
+ 	.priv		= &camera_info,
+ };
+ 
+-static void dummy_release(struct device *dev)
++static struct platform_device *camera_device;
++
++static void ap325rxa_camera_release(struct device *dev)
+ {
++	soc_camera_platform_release(&camera_device);
+ }
+ 
+-static struct platform_device camera_device = {
+-	.name		= "soc_camera_platform",
+-	.dev		= {
+-		.platform_data	= &camera_info,
+-		.release	= dummy_release,
+-	},
+-};
+-
+ static int ap325rxa_camera_add(struct soc_camera_link *icl,
+ 			       struct device *dev)
+ {
+-	if (icl != &camera_link || camera_probe() <= 0)
+-		return -ENODEV;
++	int ret = soc_camera_platform_add(icl, dev, &camera_device, &camera_link,
++					  ap325rxa_camera_release, 0);
++	if (ret < 0)
++		return ret;
+ 
+-	camera_info.dev = dev;
++	ret = camera_probe();
++	if (ret < 0)
++		soc_camera_platform_del(icl, camera_device, &camera_link);
+ 
+-	return platform_device_register(&camera_device);
++	return ret;
+ }
+ 
+ static void ap325rxa_camera_del(struct soc_camera_link *icl)
+ {
+-	if (icl != &camera_link)
+-		return;
+-
+-	platform_device_unregister(&camera_device);
+-	memset(&camera_device.dev.kobj, 0,
+-	       sizeof(camera_device.dev.kobj));
++	soc_camera_platform_del(icl, camera_device, &camera_link);
+ }
+ #endif /* CONFIG_I2C */
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.2.3
 
