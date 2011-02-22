@@ -1,79 +1,203 @@
 Return-path: <mchehab@pedra>
-Received: from mout.perfora.net ([74.208.4.195]:60652 "EHLO mout.perfora.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752627Ab1BPRNt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Feb 2011 12:13:49 -0500
-From: Stephen Wilson <wilsons@start.ca>
-To: Jarod Wilson <jarod@redhat.com>
-Cc: Stephen Wilson <wilsons@start.ca>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	David =?utf-8?Q?H=C3=A4rdeman?= <david@hardeman.nu>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] rc: do not enable remote controller adapters by default.
-References: <m3aahwa4ib.fsf@fibrous.localdomain>
-	<1297862209.2086.18.camel@morgan.silverblock.net>
-	<m3ei78j9s7.fsf@fibrous.localdomain>
-	<20110216152026.GA17102@redhat.com>
-Date: Wed, 16 Feb 2011 12:13:29 -0500
-In-Reply-To: <20110216152026.GA17102@redhat.com> (Jarod Wilson's message of
-	"Wed, 16 Feb 2011 10:20:26 -0500")
-Message-ID: <m34o83kime.fsf@fibrous.localdomain>
+Received: from moutng.kundenserver.de ([212.227.126.187]:51388 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753201Ab1BVOLx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Feb 2011 09:11:53 -0500
+Date: Tue, 22 Feb 2011 15:11:49 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hansverk@cisco.com>
+cc: Stanimir Varbanov <svarbanov@mm-sol.com>,
+	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	saaguirre@ti.com
+Subject: Re: [RFC/PATCH 0/1] New subdev sensor operation g_interface_parms
+In-Reply-To: <201102221432.50847.hansverk@cisco.com>
+Message-ID: <Pine.LNX.4.64.1102221456590.1380@axis700.grange>
+References: <cover.1298368924.git.svarbanov@mm-sol.com>
+ <Pine.LNX.4.64.1102221215350.1380@axis700.grange> <201102221432.50847.hansverk@cisco.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Jarod Wilson <jarod@redhat.com> writes:
+On Tue, 22 Feb 2011, Hans Verkuil wrote:
 
-> On Wed, Feb 16, 2011 at 10:09:44AM -0500, Stephen Wilson wrote:
->> Andy Walls <awalls@md.metrocast.net> writes:
->>
->> > On Wed, 2011-02-16 at 01:16 -0500, Stephen Wilson wrote:
->> >> Having the RC_CORE config default to INPUT is almost equivalent to
->> >> saying "yes".  Default to "no" instead.
->> >>
->> >> Signed-off-by: Stephen Wilson <wilsons@start.ca>
->> >
->> > I don't particularly like this, if it discourages desktop distributions
->> > from building RC_CORE.  The whole point of RC_CORE in kernel was to have
->> > the remote controllers bundled with TV and DTV cards "just work" out of
->> > the box for end users.  Also the very popular MCE USB receiver device,
->> > shipped with Media Center PC setups, needs it too.
->>
->> A similar argument can be made for any particular feature or device that
->> just works when the functionality is enabled :)
->>
->> > Why exactly do you need it set to "No"?
->>
->> It is not a need.  I simply observed that after the IR_ to RC_ rename
->> there was another set of drivers being built which I did not ask for.
->
-> So disable them. I think most people would rather have this support
-> enabled so that remotes Just Work if a DTV card or stand-alone IR receiver
-> is plugged in without having to hunt back through Kconfig options to
-> figure out why it doesn't...
->
->> It struck me as odd that because basic keyboard/mouse support was
->> enabled I also got support for DTV card remote controls.
->>
->> I don't think there are any other driver subsystems enabling themselves
->> based on something as generic as INPUT (as a dependency it is just fine,
->> obviously).
->>
->> Overall, it just seems like the wrong setting to me.  Is there another
->> predicate available that makes a bit more sense for RC_CORE other than
->> INPUT?  Something related to the TV or DTV cards perhaps?
->
-> No. As Andy said, there are stand-alone devices, such as the Windows Media
-> Center Ed. eHome Infrared Transceivers which are simply a usb device, no
-> direct relation to any TV devices. A fair number of systems these days are
-> also shipping with built-in CIR support by way of a sub-function on an LPC
-> SuperIO chip. Remotes can be used to control more than just changing
-> channels on a TV tuner card (think music player, video playback app
-> streaming content from somewhere on the network, etc).
+> On Tuesday, February 22, 2011 12:40:32 Guennadi Liakhovetski wrote:
+> > On Tue, 22 Feb 2011, Stanimir Varbanov wrote:
+> > 
+> > > This RFC patch adds a new subdev sensor operation named g_interface_parms.
+> > > It is planned as a not mandatory operation and it is driver's developer
+> > > decision to use it or not.
+> > > 
+> > > Please share your opinions and ideas.
+> 
+> Stanimir, thanks for the RFC. I think it is time that we create a good 
+> solution for this. This is currently the last remaining issue preventing soc-
+> camera subdevs from being used generally. (Control handling is also still 
+> special, but this is being worked on.)
+> 
+> > Yes, I like the idea in principle (/me pulling his bullet-proof vest on), 
+> 
+> :-)
+> 
+> > as some of you might guess, because I feel it's going away from the idea, 
+> > that I've been hard pressed to accept of hard-coding the media-bus 
+> > configuration and in the direction of direct communication of 
+> > bus-parameters between the (sub-)devices, e.g., a camera host and a camera 
+> > device in soc-camera terminology.
+> > 
+> > But before reviewing the patch as such, I'd like to discuss the strategy, 
+> > that we want to pursue here - what exactly do we want to hard-code and 
+> > what we want to configure dynamically? As explained before, my preference 
+> > would be to only specify the absolute minimum in the platform data, i.e., 
+> > parameters that either are ambiguous or special for this platform. So, 
+> > once again, my approach to configure interface parameters like signal 
+> > polarities and edge sensitivity is:
+> > 
+> > 1. if at least one side has a fixed value of the specific parameter, 
+> > usually no need to specify it in platform data. Example: sensor only 
+> > supports HSYNC active high, host supports both, normally "high" should be 
+> > selected.
+> > 
+> > 2. as above, but there's an inverter on the board in the signal path. The 
+> > "invert" parameter must be specified in the platform data and the host 
+> > will configure itself to "low" and send "high" confirmed to the sensor.
+> > 
+> > 3. both are configurable. In this case the platform data has to specify, 
+> > which polarity shall be used.
+> > 
+> > This is simple, it is implemented, it has worked that way with no problem 
+> > for several years now.
+> > 
+> > The configuration procedure in this case looks like:
+> > 
+> > 1. host requests supported interface configurations from the client 
+> > (sensor)
+> > 
+> > 2. host matches returned parameters against platform data and its own 
+> > capabilities
+> > 
+> > 3. if no suitable configuration possible - error out
+> > 
+> > 4. the single possible configuration is identified and sent to the sensor 
+> > back for its configuration
+> > 
+> > This way we need one more method: s_interface_parms.
+> > 
+> > Shortly talking to Laurent earlier today privately, he mentioned, that one 
+> > of the reasons for this move is to support dynamic bus reconfiguration, 
+> > e.g., the number of used CSI lanes. The same is useful for parallel 
+> > interfaces. E.g., I had to hack the omap3spi driver to capture only 8 
+> > (parallel) data lanes from the sensor, connected with all its 10 lanes to 
+> > get a format, easily supported by user-space applications. Ideally you 
+> > don't want to change anything in the code for this. If the user is 
+> > requesting the 10-bit format, all 10 lanes are used, if only 8 - the 
+> > interface is reconfigured accordingly.
+> 
+> I have no problems with dynamic bus reconfiguration as such. So if the host 
+> driver wants to do lane reconfiguration, then that's fine by me.
+> 
+> When it comes to signal integrity (polarity, rising/falling edge), then I 
+> remain convinced that this should be set via platform data. This is not 
+> something that should be negotiated since this depends not only on the sensor 
+> and host devices, but also on the routing of the lines between them on the 
+> actual board, how much noise there is on those lines, the quality of the clock 
+> signal, etc. Not really an issue with PAL/NTSC type signals, but when you get 
+> to 1080p60 and up, then such things become much more important.
 
-OK.  No problem.  Thanks for for taking the time to explain!
+I understand this, but my point is: forcing this parameters in the 
+platform data doesn't give you any _practical_ enhancements, only 
+_psychological_, meaning, that you think, that if these parameters are 
+compulsory, programmers, writing board integration code, will be forced to 
+think, what values to configure. Whereas if this is not compulsory, 
+programmers will hope on automagic and things will break. So, this is 
+purely psychological. And that's the whole question - fo we trust 
+programmers, that they will anyway take care to set correct parameters, or 
+do we not trust them and therefore want to punish everyone because of 
+them. Besides, I'm pretty convinced, that even if those parameters will be 
+compulsory, most programmers will anyway just copy-paste them from 
+"similar" set ups...
 
---
-steve
+Thanks
+Guennadi
+
+> So these settings should not be negotiated, but set explicitly.
+> 
+> It actually doesn't have to be done through platform data (although that makes 
+> the most sense), as long as it is explicitly set based on board-specific data.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> > 
+> > Thanks
+> > Guennadi
+> > 
+> > > ---
+> > > It tries to create a common API for getting the sensor interface type
+> > > - serial or parallel, modes and interface clocks. The interface clocks
+> > > then are used in the host side to calculate it's configuration, check
+> > > that the clocks are not beyond host limitations etc.
+> > > 
+> > > "phy_rate" in serial interface (CSI DDR clk) is used to calculate
+> > > the CSI2 PHY receiver timing parameters: ths_settle, ths_term,
+> > > clk_settle and clk_term.
+> > > 
+> > > As the "phy_rate" depends on current sensor mode (configuration of the
+> > > sensor's PLL and internal clock domains) it can be treated as dynamic
+> > > parameter and can vary (could be different for viewfinder and still 
+> > > capture), in this context g_interface_parms should be called after
+> > > s_fmt.
+> > > 
+> > > "pix_clk" for parallel interface reflects the current sensor pixel
+> > > clock. With this clock the image data is clocked out of the sensor.
+> > > 
+> > > "pix_clk" for serial interface reflects the current sensor pixel
+> > > clock at which image date is read from sensor matrix.
+> > > 
+> > > "lanes" for serial interface reflects the number of PHY lanes used from
+> > > the sensor to output image data. This should be known from the host
+> > > side before the streaming is started. For some sensor modes it's
+> > > enough to use one lane, for bigger resolutions two lanes and more
+> > > are used.
+> > > 
+> > > "channel" for serial interface is also needed from host side to
+> > > configure it's PHY receiver at particular virtual channel.
+> > > 
+> > > ---
+> > > Some background and inspiration.
+> > > 
+> > > - Currently in the OMAP3 ISP driver we use a set of platform data
+> > > callbacks to provide the above parameters and this comes to very
+> > > complicated platform code, driver implementation and unneeded 
+> > > sensor driver <-> host driver dependences. 
+> > > 
+> > > - In the present time we seeing growing count of sensor drivers and
+> > > host (bridge) drivers but without standard API's for communication.
+> > > Currently the subdev sensor operations have only one operation -
+> > > g_skip_top_lines.
+> > > 
+> > > Stanimir Varbanov (1):
+> > >   v4l: Introduce sensor operation for getting interface configuration
+> > > 
+> > >  include/media/v4l2-subdev.h |   42 
+> ++++++++++++++++++++++++++++++++++++++++++
+> > >  1 files changed, 42 insertions(+), 0 deletions(-)
+> > > 
+> > 
+> > ---
+> > Guennadi Liakhovetski, Ph.D.
+> > Freelance Open-Source Software Developer
+> > http://www.open-technology.de/
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> 
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
