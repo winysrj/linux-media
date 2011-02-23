@@ -1,66 +1,65 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.187]:60927 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752190Ab1BWOrF (ORCPT
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:33620 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754504Ab1BWWi4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Feb 2011 09:47:05 -0500
-Date: Wed, 23 Feb 2011 15:46:35 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hansverk@cisco.com>
-cc: "Aguirre, Sergio" <saaguirre@ti.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Stan <svarbanov@mm-sol.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC/PATCH 0/1] New subdev sensor operation g_interface_parms
-In-Reply-To: <201102231517.23055.hansverk@cisco.com>
-Message-ID: <Pine.LNX.4.64.1102231526510.11581@axis700.grange>
-References: <cover.1298368924.git.svarbanov@mm-sol.com>
- <Pine.LNX.4.64.1102231020330.8880@axis700.grange>
- <A24693684029E5489D1D202277BE894488C57571@dlee02.ent.ti.com>
- <201102231517.23055.hansverk@cisco.com>
+	Wed, 23 Feb 2011 17:38:56 -0500
+Received: by qyk7 with SMTP id 7so4364584qyk.19
+        for <linux-media@vger.kernel.org>; Wed, 23 Feb 2011 14:38:55 -0800 (PST)
+Message-ID: <4D658C78.2080907@gmail.com>
+Date: Wed, 23 Feb 2011 19:38:48 -0300
+From: Mauro Carvalho Chehab <maurochehab@gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Vivek Periaraj <vivek.periaraj@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Hauppauge WinTV USB 2
+References: <201102240116.18770.Vivek.Periaraj@gmail.com>	<AANLkTi=ipU6gqoQZ4T25ErCGapvoT-Q8vx+mriQj=tji@mail.gmail.com>	<201102240255.00946.Vivek.Periaraj@gmail.com> <AANLkTikNiEKZNVs1DGDvuLR0r+XTWLgi03nbk=272fqj@mail.gmail.com>
+In-Reply-To: <AANLkTikNiEKZNVs1DGDvuLR0r+XTWLgi03nbk=272fqj@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 23 Feb 2011, Hans Verkuil wrote:
+Em 23-02-2011 18:26, Devin Heitmueller escreveu:
+> On Wed, Feb 23, 2011 at 4:25 PM, Vivek Periaraj
+> <vivek.periaraj@gmail.com> wrote:
+>> Hi Devin,
+>>
+>> Thanks for the reply!
+>>
+>> Like you advised, I took the latest code and started building it as mentioned
+>> in this link --> http://linuxtv.org/wiki/index.php/Trident_TM6000 but getting
+>> this error:
 
-> On Wednesday, February 23, 2011 15:06:49 Aguirre, Sergio wrote:
-> > Guennadi and Hans,
-> > 
-> > <snip>
-> > 
-> > > > The only static data I am concerned about are those that affect signal
-> > > integrity.
-> > > > After thinking carefully about this I realized that there is really only
-> > > one
-> > > > setting that is relevant to that: the sampling edge. The polarities do
-> > > not
-> > > > matter in this.
-> > 
-> > I respectfully disagree.
-> > 
-> > AFAIK, There is not such thing as sampling edge configuration for MIPI
-> > Receivers, and the polarities DO matter, since it's a differential
-> > signal.
+The information at the wiki page for this device is outdated. Support is now upstream.
+
+Although I know that some Hauppauge devices are supported by tm6010, I'm not sure 
+if someone added the tm6010 USB ID's for The model you have to the tm6000 driver.
+
+>>
+>> /mnt/share1/Debian/Hauppauge/v4l-dvb/v4l/tm6000-core.c: In function
+>> 'tm6000_init_analog_mode':
+>> /mnt/share1/Debian/Hauppauge/v4l-dvb/v4l/tm6000-core.c:339: warning: ISO C90
+>> forbids mixed declarations and code
+>>  CC [M]  /mnt/share1/Debian/Hauppauge/v4l-dvb/v4l/tm6000-i2c.o
+>>  CC [M]  /mnt/share1/Debian/Hauppauge/v4l-dvb/v4l/tm6000-video.o
+>> /mnt/share1/Debian/Hauppauge/v4l-dvb/v4l/tm6000-video.c: In function
+>> 'tm6000_uninit_isoc':
+>> /mnt/share1/Debian/Hauppauge/v4l-dvb/v4l/tm6000-video.c:522: error: implicit
+>> declaration of function 'usb_free_coherent'
+>> /mnt/share1/Debian/Hauppauge/v4l-dvb/v4l/tm6000-video.c: In function
+>> 'tm6000_prepare_isoc':
+>> /mnt/share1/Debian/Hauppauge/v4l-dvb/v4l/tm6000-video.c:612: error: implicit
+>> declaration of function 'usb_alloc_coherent'
+> <snip>
 > 
-> The polarities do not matter for a standard parallel bus. I cannot speak for 
-> MIPI or CSI busses as I have no experience there. So if you say that 
-> polarities matter for MIPI, then for MIPI those should be specified statically 
-> as well.
+> Questions like this should be directed to the mailing list and not me
+> personally, where any number of people can help you out with basic
+> build problems.
+> 
+> Regards,
+> 
+> Devin
+> 
 
-Do I misunderstand? I interpreted Hans' proposal as: clock edge 
-sensitivity is critical mainly because of high frequency, at which the 
-signal integrity is harder to maintain, and therefore we cannot rely on 
-automagic. Whereas sync signals are much lower frequency, and therefore 
-any breakage would be easier to detect. I don't otherwise understand what 
-"polarities do not matter" mean - of course they do. What am I missing?
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
