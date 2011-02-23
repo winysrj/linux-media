@@ -1,77 +1,61 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:55681 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754742Ab1BHTvq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Feb 2011 14:51:46 -0500
-Received: by iwn9 with SMTP id 9so6101544iwn.19
-        for <linux-media@vger.kernel.org>; Tue, 08 Feb 2011 11:51:46 -0800 (PST)
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:43253 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932708Ab1BWV04 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Feb 2011 16:26:56 -0500
+Received: by eyx24 with SMTP id 24so1478531eyx.19
+        for <linux-media@vger.kernel.org>; Wed, 23 Feb 2011 13:26:55 -0800 (PST)
 MIME-Version: 1.0
-Date: Tue, 8 Feb 2011 20:51:45 +0100
-Message-ID: <AANLkTim1beU2KZKyHJpjE=93nAyt8jXv8pEw4Y-ivGwJ@mail.gmail.com>
-Subject: Re: [PATCH] Technisat AirStar TeleStick 2
-From: Lukas Max Fisch <lukas.fisch@googlemail.com>
-To: linux-media@vger.kernel.org
-Cc: Veit.Berwig@fimi.landsh.de
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <201102240255.00946.Vivek.Periaraj@gmail.com>
+References: <201102240116.18770.Vivek.Periaraj@gmail.com>
+	<AANLkTi=ipU6gqoQZ4T25ErCGapvoT-Q8vx+mriQj=tji@mail.gmail.com>
+	<201102240255.00946.Vivek.Periaraj@gmail.com>
+Date: Wed, 23 Feb 2011 16:26:54 -0500
+Message-ID: <AANLkTikNiEKZNVs1DGDvuLR0r+XTWLgi03nbk=272fqj@mail.gmail.com>
+Subject: Re: Hauppauge WinTV USB 2
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Vivek Periaraj <vivek.periaraj@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Based on staging 2.6.39.
+On Wed, Feb 23, 2011 at 4:25 PM, Vivek Periaraj
+<vivek.periaraj@gmail.com> wrote:
+> Hi Devin,
+>
+> Thanks for the reply!
+>
+> Like you advised, I took the latest code and started building it as mentioned
+> in this link --> http://linuxtv.org/wiki/index.php/Trident_TM6000 but getting
+> this error:
+>
+> /mnt/share1/Debian/Hauppauge/v4l-dvb/v4l/tm6000-core.c: In function
+> 'tm6000_init_analog_mode':
+> /mnt/share1/Debian/Hauppauge/v4l-dvb/v4l/tm6000-core.c:339: warning: ISO C90
+> forbids mixed declarations and code
+>  CC [M]  /mnt/share1/Debian/Hauppauge/v4l-dvb/v4l/tm6000-i2c.o
+>  CC [M]  /mnt/share1/Debian/Hauppauge/v4l-dvb/v4l/tm6000-video.o
+> /mnt/share1/Debian/Hauppauge/v4l-dvb/v4l/tm6000-video.c: In function
+> 'tm6000_uninit_isoc':
+> /mnt/share1/Debian/Hauppauge/v4l-dvb/v4l/tm6000-video.c:522: error: implicit
+> declaration of function 'usb_free_coherent'
+> /mnt/share1/Debian/Hauppauge/v4l-dvb/v4l/tm6000-video.c: In function
+> 'tm6000_prepare_isoc':
+> /mnt/share1/Debian/Hauppauge/v4l-dvb/v4l/tm6000-video.c:612: error: implicit
+> declaration of function 'usb_alloc_coherent'
+<snip>
 
+Questions like this should be directed to the mailing list and not me
+personally, where any number of people can help you out with basic
+build problems.
 
+Regards,
 
-This patch is based on Veit Berwig's work.
+Devin
 
-Signed-off-by: Lukas Fisch <lukas.fisch@gmail.com>
----
- drivers/media/dvb/dvb-usb/dib0700_devices.c |    7 ++++++-
- drivers/media/dvb/dvb-usb/dvb-usb-ids.h     |    1 +
- 2 files changed, 7 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/dvb/dvb-usb/dib0700_devices.c
-b/drivers/media/dvb/dvb-usb/dib0700_devices.c
-index c6022af..d3dd09a 100644
---- a/drivers/media/dvb/dvb-usb/dib0700_devices.c
-+++ b/drivers/media/dvb/dvb-usb/dib0700_devices.c
-@@ -2784,6 +2784,7 @@ struct usb_device_id dib0700_usb_id_table[] = {
- 	{ USB_DEVICE(USB_VID_DIBCOM,    USB_PID_DIBCOM_NIM9090MD) },
- 	{ USB_DEVICE(USB_VID_DIBCOM,    USB_PID_DIBCOM_NIM7090) },
- 	{ USB_DEVICE(USB_VID_DIBCOM,    USB_PID_DIBCOM_TFE7090PVR) },
-+	{ USB_DEVICE(USB_VID_TECHNISAT, USB_PID_TECHNISAT_AIRSTAR_TELESTICK_2) },
- 	{ 0 }		/* Terminating entry */
- };
- MODULE_DEVICE_TABLE(usb, dib0700_usb_id_table);
-@@ -3393,7 +3394,7 @@ struct dvb_usb_device_properties dib0700_devices[] = {
- 			},
- 		},
-
--		.num_device_descs = 2,
-+		.num_device_descs = 3,
- 		.devices = {
- 			{   "DiBcom STK7770P reference design",
- 				{ &dib0700_usb_id_table[59], NULL },
-@@ -3405,6 +3406,10 @@ struct dvb_usb_device_properties dib0700_devices[] = {
- 					&dib0700_usb_id_table[60], NULL},
- 				{ NULL },
- 			},
-+			{   "TechniSat AirStar TeleStick 2",
-+				{ &dib0700_usb_id_table[69], NULL },
-+				{ NULL },
-+			},
- 		},
-
- 		.rc.core = {
-diff --git a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
-b/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
-index b71540d..3a8b744 100644
---- a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
-+++ b/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
-@@ -317,5 +317,6 @@
- #define USB_PID_TERRATEC_DVBS2CI_V2			0x10ac
- #define USB_PID_TECHNISAT_USB2_HDCI_V1			0x0001
- #define USB_PID_TECHNISAT_USB2_HDCI_V2			0x0002
-+#define USB_PID_TECHNISAT_AIRSTAR_TELESTICK_2		0x0004
- #define USB_PID_TECHNISAT_USB2_DVB_S2			0x0500
- #endif
 -- 
-1.7.2.3
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
