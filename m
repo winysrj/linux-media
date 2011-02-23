@@ -1,54 +1,79 @@
 Return-path: <mchehab@pedra>
-Received: from bay0-omc1-s20.bay0.hotmail.com ([65.54.190.31]:17091 "EHLO
-	bay0-omc1-s20.bay0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751886Ab1BDUeo (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.186]:61026 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752810Ab1BWKOC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Feb 2011 15:34:44 -0500
-Message-ID: <4D4C6168.8010405@studio.unibo.it>
-Date: Fri, 4 Feb 2011 21:28:24 +0100
-From: Luca Risolia <luca.risolia@studio.unibo.it>
-Reply-To: <luca.risolia@studio.unibo.it>
+	Wed, 23 Feb 2011 05:14:02 -0500
+Date: Wed, 23 Feb 2011 11:13:57 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: linux-media@vger.kernel.org
+Subject: Re: [Q] {enum,s,g}_input for subdev ops
+In-Reply-To: <201102221807.15647.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1102231039060.10099@axis700.grange>
+References: <Pine.LNX.4.64.1102221612380.1380@axis700.grange>
+ <ddc4d0fcf85526c5fc88594e100f192b.squirrel@webmail.xs4all.nl>
+ <Pine.LNX.4.64.1102221733350.1380@axis700.grange> <201102221807.15647.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Vasiliy Kulikov <segoon@openwall.com>
-CC: <linux-kernel@vger.kernel.org>, <security@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 07/20] video: sn9c102: world-wirtable sysfs files
-References: <cover.1296818921.git.segoon@openwall.com> <b560d7c146330b382b90d739a76d580ed4051d4e.1296818921.git.segoon@openwall.com>
-In-Reply-To: <b560d7c146330b382b90d739a76d580ed4051d4e.1296818921.git.segoon@openwall.com>
-Content-Type: text/plain; charset="ISO-8859-15"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Thanks.
+On Tue, 22 Feb 2011, Hans Verkuil wrote:
 
-Acked-by: Luca Risolia <luca.risolia@studio.unibo.it>
+> On Tuesday, February 22, 2011 17:39:25 Guennadi Liakhovetski wrote:
+> > On Tue, 22 Feb 2011, Hans Verkuil wrote:
+> > 
+> > > > Hi
+> > > >
+> > > > Any thoughts about the subj? Hasn't anyone run into a need to select
+> > > > inputs on subdevices until now? Something like
+> > > >
+> > > > struct v4l2_subdev_video_ops {
+> > > > 	...
+> > > > 	int (*enum_input)(struct v4l2_subdev *sd, struct v4l2_input *inp);
+> > > > 	int (*g_input)(struct v4l2_subdev *sd, unsigned int *i);
+> > > > 	int (*s_input)(struct v4l2_subdev *sd, unsigned int i);
+> > > 
+> > > That's done through s_routing. Subdevices know nothing about inputs as
+> > > shown to userspace.
+> > > 
+> > > If you want a test pattern, then the host driver needs to add a "Test
+> > > Pattern" input and call s_routing with the correct values (specific to
+> > > that subdev) to set it up.
+> > 
+> > Hm, maybe I misunderstood something, but if we understand "host" in the 
+> > same way, then this doesn't seem very useful to me. What shall the host 
+> > have to do with various sensor inputs? It cannot know, whether the sensor 
+> > has a test-pattern "input" and if yes - how many of them. Many sensors 
+> > have several such patterns, and, I think, some of them also have some 
+> > parameters, like colour values, etc., which we don't have anything to map 
+> > to. But even without that - some sensors have several test patterns, which 
+> > they well might want to be able to switch between by presenting not just 
+> > one but several test inputs. So, shouldn't we have some enum_routing or 
+> > something for them?
+> 
+> What you really want is to select a test pattern. A good solution would be
+> to create a sensor menu control with all the test patterns it supports.
 
-Vasiliy Kulikov ha scritto:
-> Don't allow everybody to change video settings.
-> 
-> Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
-> ---
->  Compile tested only.
-> 
->  drivers/media/video/sn9c102/sn9c102_core.c |    6 +++---
->  1 files changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/video/sn9c102/sn9c102_core.c b/drivers/media/video/sn9c102/sn9c102_core.c
-> index 84984f6..ce56a1c 100644
-> --- a/drivers/media/video/sn9c102/sn9c102_core.c
-> +++ b/drivers/media/video/sn9c102/sn9c102_core.c
-> @@ -1430,9 +1430,9 @@ static DEVICE_ATTR(i2c_reg, S_IRUGO | S_IWUSR,
->  		   sn9c102_show_i2c_reg, sn9c102_store_i2c_reg);
->  static DEVICE_ATTR(i2c_val, S_IRUGO | S_IWUSR,
->  		   sn9c102_show_i2c_val, sn9c102_store_i2c_val);
-> -static DEVICE_ATTR(green, S_IWUGO, NULL, sn9c102_store_green);
-> -static DEVICE_ATTR(blue, S_IWUGO, NULL, sn9c102_store_blue);
-> -static DEVICE_ATTR(red, S_IWUGO, NULL, sn9c102_store_red);
-> +static DEVICE_ATTR(green, S_IWUSR, NULL, sn9c102_store_green);
-> +static DEVICE_ATTR(blue, S_IWUSR, NULL, sn9c102_store_blue);
-> +static DEVICE_ATTR(red, S_IWUSR, NULL, sn9c102_store_red);
->  static DEVICE_ATTR(frame_header, S_IRUGO, sn9c102_show_frame_header, NULL);
->  
->  
+Ok, thinking a bit further about it. Let's take mt9p031 as an example - a 
+pretty simple bayer-only sensor. The driver is not yet in the mainline, 
+but I'll be pushing something simple in the mainline soon. I just picked 
+it up as an example, because it has quite a few test modes.
+
+On the total it can generate 9 test patterns, including gradients, bars, 
+constant colour-field, etc. Apart from selecting a specific test pattern, 
+the RGB colour values and monochrome "intensity" values and bar widths can 
+be set for the colour-field and monochrome-bars test-patterns respectively.
+
+Using a control menu we can select one of the 9 test-modes. But do we also 
+want standard controls for colour values and bar widths? Or are they too 
+hardware-specific and too unimportant and can only be supported by private 
+controls?
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
