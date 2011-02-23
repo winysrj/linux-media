@@ -1,94 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:47620 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754652Ab1BPNrW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Feb 2011 08:47:22 -0500
-Message-ID: <4D5BD565.60604@redhat.com>
-Date: Wed, 16 Feb 2011 11:47:17 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from rtp-iport-2.cisco.com ([64.102.122.149]:8546 "EHLO
+	rtp-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932142Ab1BWJaX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Feb 2011 04:30:23 -0500
+From: Hans Verkuil <hansverk@cisco.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFC/PATCH 0/1] New subdev sensor operation g_interface_parms
+Date: Wed, 23 Feb 2011 10:31:34 +0100
+Cc: Sylwester Nawrocki <snjw23@gmail.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Stan <svarbanov@mm-sol.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	saaguirre@ti.com
+References: <cover.1298368924.git.svarbanov@mm-sol.com> <4D642DE2.3090705@gmail.com> <201102230910.43069.hverkuil@xs4all.nl>
+In-Reply-To: <201102230910.43069.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Andy Walls <awalls@md.metrocast.net>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/4] [media] tuner-core: remove usage of DIGITAL_TV
-References: <cover.1297776328.git.mchehab@redhat.com>	 <20110215113334.49ead2c2@pedra>	 <a0597677-0cba-48b0-97e6-df1fa46464b7@email.android.com>	 <4D5AD880.1050702@redhat.com> <1297860929.2086.3.camel@morgan.silverblock.net>
-In-Reply-To: <1297860929.2086.3.camel@morgan.silverblock.net>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201102231031.34362.hansverk@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 16-02-2011 10:55, Andy Walls escreveu:
-> On Tue, 2011-02-15 at 17:48 -0200, Mauro Carvalho Chehab wrote:
->> Em 15-02-2011 15:25, Andy Walls escreveu:
->>> Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
->>>
->>>> tuner-core has no business to do with digital TV. So, don't use
->>>> T_DIGITAL_TV on it, as it has no code to distinguish between
->>>> them, and nobody fills T_DIGITAL_TV right.
->>>>
->>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->>>>
-> 
->>>> diff --git a/drivers/media/video/tuner-core.c
->>>> b/drivers/media/video/tuner-core.c
->>>> index dcf03fa..5e1437c 100644
->>>> --- a/drivers/media/video/tuner-core.c
->>>> +++ b/drivers/media/video/tuner-core.c
-> 
->>>> @@ -596,7 +595,7 @@ static int tuner_probe(struct i2c_client *client,
->>>> 	   first found TV tuner. */
->>>> 	tuner_lookup(t->i2c->adapter, &radio, &tv);
->>>> 	if (tv == NULL) {
->>>> -		t->mode_mask = T_ANALOG_TV | T_DIGITAL_TV;
->>>> +		t->mode_mask = T_ANALOG_TV;
->>>> 		if (radio == NULL)
->>>> 			t->mode_mask |= T_RADIO;
->>>> 		tuner_dbg("Setting mode_mask to 0x%02x\n", t->mode_mask);
->>>> @@ -607,18 +606,15 @@ register_client:
->>>> 	/* Sets a default mode */
->>>> 	if (t->mode_mask & T_ANALOG_TV)
->>>> 		t->mode = V4L2_TUNER_ANALOG_TV;
->>>> -	else if (t->mode_mask & T_RADIO)
->>>> -		t->mode = V4L2_TUNER_RADIO;
->>>> 	else
->>>> -		t->mode = V4L2_TUNER_DIGITAL_TV;
->>>> +		t->mode = V4L2_TUNER_RADIO;
->                             ^^^^^^^^^^^^^^^^^^^^^
-> Mauro,
-> 
-> Here's where I saw a default being changed from DIGITAL_TV to RADIO.
-> Maybe it doesn't matter?
+On Wednesday, February 23, 2011 09:10:42 Hans Verkuil wrote:
+> Unfortunately, if a subdev is set to 'sample at rising edge', then that does
+> not necessarily mean that the host should sample at the same edge. Depending
+> on the clock line routing and the integrity of the clock signal the host may
+> actually have to sample on the other edge. And yes, I've seen this.
 
-Currently, there are just two mode_mask's: T_ANALOG_TV and T_RADIO. If it is not one, it is
-the other ;)
+It might be useful to give some background information regarding the sampling 
+edge problems.
 
-Well, in a matter of fact, I didn't drop T_DIGITAL_TV yet, just because it is used internally
-inside one driver, for its internal usage only:
+There are two main reasons why the sampling edge can be hardware dependent. 
+The first is if the data lines go through an amplifier or something similar 
+that will slightly delay the data lines compared to the clock signal. This can 
+shift the edge at which you have to sample.
 
-$ git grep T_DIGITAL_TV include/media
-include/media/tuner.h:    T_DIGITAL_TV    = 1 << V4L2_TUNER_DIGITAL_TV,
+Actually, this may even be dependent on the clock frequency. I have not seen 
+that in real life yet, but it might happen. This will complicate things even 
+more since in that case you need to make a callback function in the board code 
+that determines the sampling edge based on the clock frequency. I think we can 
+ignore that for now, but we do need to keep it in mind.
 
-$ git grep -B1 T_DIGITAL_TV drivers/media/ 
-drivers/media/common/tuners/tuner-xc2028.c-       return generic_set_freq(fe, p->frequency,
-drivers/media/common/tuners/tuner-xc2028.c:                               T_DIGITAL_TV, type, 0, demod);
+The other is the waveform of the clock. For relatively low frequencies this 
+will resemble a symmetrical square wave. But for higher frequencies this more 
+resembles the bottom waveform in this picture:
 
-As you see, the changes are simple, and the usage is pure internally:
+http://myweb.msoe.edu/williamstm/Images/Divider2.jpg
 
-drivers/media/common/tuners/tuner-xc2028.c:static int generic_set_freq(struct dvb_frontend *fe, u32 freq /* in HZ */,
-drivers/media/common/tuners/tuner-xc2028.c-                           enum tuner_mode new_mode,
---
-drivers/media/common/tuners/tuner-xc2028.c:               return generic_set_freq(fe, (625l * p->frequency) / 10,
-drivers/media/common/tuners/tuner-xc2028.c-                               T_RADIO, type, 0, 0);
---
-drivers/media/common/tuners/tuner-xc2028.c:       return generic_set_freq(fe, 62500l * p->frequency,
-drivers/media/common/tuners/tuner-xc2028.c-                               T_ANALOG_TV, type, p->std, 0);
---
-drivers/media/common/tuners/tuner-xc2028.c:       return generic_set_freq(fe, p->frequency,
-drivers/media/common/tuners/tuner-xc2028.c-                               T_DIGITAL_TV, type, 0, demod);
+This is asymmetric so depending on the slopes the sampling edge can make quite 
+a difference.
 
-I'll write a patch removing the latest usage of it (basically, replacing them by V4L2_TUNER_*).
+The higher the clock frequency, the more asymmetric the waveform will look.
 
-Of course, tests are more than welcome to be sure that those changes didn't cause any regression.
+Regards,
 
-Cheers,
-Mauro
+	Hans
