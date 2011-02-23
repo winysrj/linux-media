@@ -1,55 +1,106 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:38863 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755657Ab1BXOjd (ORCPT
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:58937 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754320Ab1BWQBz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Feb 2011 09:39:33 -0500
-Date: Thu, 24 Feb 2011 15:33:53 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 6/7] s5p-fimc: Use dynamic debug
-In-reply-to: <1298558034-10768-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	kgene.kim@samsung.com, s.nawrocki@samsung.com
-Message-id: <1298558034-10768-7-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1298558034-10768-1-git-send-email-s.nawrocki@samsung.com>
+	Wed, 23 Feb 2011 11:01:55 -0500
+From: Hans Verkuil <hansverk@cisco.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC/PATCH 0/1] New subdev sensor operation g_interface_parms
+Date: Wed, 23 Feb 2011 17:02:57 +0100
+Cc: "Aguirre, Sergio" <saaguirre@ti.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Stan <svarbanov@mm-sol.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <cover.1298368924.git.svarbanov@mm-sol.com> <A24693684029E5489D1D202277BE894488C57571@dlee02.ent.ti.com> <201102231630.43759.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201102231630.43759.laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201102231702.57636.hansverk@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Use pr_debug instead of printk so it is possible to control
-debug traces at runtime.
-E.g. to enable debug trace in file fimc-core.c use command:
-echo -n 'file fimc-core.c +p' > /sys/kernel/debug/dynamic_debug/control
-or
-echo -n 'file fimc-core.c -p' > /sys/kernel/debug/dynamic_debug/control
-to disable.
+On Wednesday, February 23, 2011 16:30:42 Laurent Pinchart wrote:
+> On Wednesday 23 February 2011 15:06:49 Aguirre, Sergio wrote:
+> > <snip>
+> > 
+> > > > The only static data I am concerned about are those that affect signal
+> > > > integrity.
+> > > 
+> > > > After thinking carefully about this I realized that there is really
+> > > > only one setting that is relevant to that: the sampling edge. The
+> > > > polarities do not matter in this.
+> > 
+> > I respectfully disagree.
+> 
+> So do I. Sampling edge is related to polarities, so you need to take both 
+into 
+> account.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-core.h |    6 +-----
- 1 files changed, 1 insertions(+), 5 deletions(-)
+When you switch polarity for data/field/hsync/vsync signals on a simple bus 
+you just invert whether a 1 bit is output as high or low voltage. So you just 
+change the meaning of the bit. This does not matter for signal integrity, 
+since you obviously have to be able to sample both low and high voltages. It 
+is *when* you sample that can have a major effect.
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
-index 41b1352..3beb1e5 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.h
-+++ b/drivers/media/video/s5p-fimc/fimc-core.h
-@@ -29,12 +29,8 @@
- #define err(fmt, args...) \
- 	printk(KERN_ERR "%s:%d: " fmt "\n", __func__, __LINE__, ##args)
- 
--#ifdef DEBUG
- #define dbg(fmt, args...) \
--	printk(KERN_DEBUG "%s:%d: " fmt "\n", __func__, __LINE__, ##args)
--#else
--#define dbg(fmt, args...)
--#endif
-+	pr_debug("%s:%d: " fmt "\n", __func__, __LINE__, ##args)
- 
- /* Time to wait for next frame VSYNC interrupt while stopping operation. */
- #define FIMC_SHUTDOWN_TIMEOUT	((100*HZ)/1000)
--- 
-1.7.4.1
+This might be different for differential clocks. I have no experience with 
+this, so I can't say anything sensible about that.
+
+Regards,
+
+	Hans
+
+> 
+> > AFAIK, There is not such thing as sampling edge configuration for MIPI
+> > Receivers, and the polarities DO matter, since it's a differential
+> > signal.
+> > 
+> > > Ok, this is much better! I'm still not perfectly happy having to punish
+> > > all just for the sake of a couple of broken boards, but I can certainly
+> > > much better live with this, than with having to hard-code each and every
+> > > bit. Thanks, Hans!
+> > > 
+> > > So, I think, we can proceed with this, let's see the code now, shall
+> > > we?;)
+> > > 
+> > > Currently soc-camera auto-configures the following parameters:
+> > > 
+> > > hsync polarity
+> > > vsync polarity
+> > > data polarity
+> > > master / slave mode
+> 
+> What do you mean by master/slave mode ?
+> 
+> > > data bus width
+> 
+> The data bus width can already be configured through the media bus format. 
+Do 
+> we need to set it explicitly ?
+> 
+> > > pixel clock polarity
+> > >
+> > > (see include/media/soc_camera.h::soc_camera_bus_param_compatible() and
+> > > drivers/media/video/soc_camera.c::soc_camera_apply_sensor_flags()).
+> > > Removing the pixclk polarity, the rest we can use as a basis for a new
+> > > subdev-based implementation.
+> > 
+> > Don't we need to move this out from soc_camera and make it available in
+> > v4l2_subdev ops? (I'm talking about both parallel and the "new" MIPI
+> > support)
+> > 
+> > That way both SoC_Camera, and Media Controller frameworks can use that.
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
