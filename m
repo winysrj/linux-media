@@ -1,36 +1,47 @@
 Return-path: <mchehab@pedra>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:34536 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752145Ab1BGN2X (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58948 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754992Ab1BWQg4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Feb 2011 08:28:23 -0500
-Date: Mon, 7 Feb 2011 13:28:21 +0000
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-To: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Cc: ext Mauro Carvalho Chehab <mchehab@redhat.com>,
-	alsa-devel@alsa-project.org, lrg@slimlogic.co.uk,
-	hverkuil@xs4all.nl, sameo@linux.intel.com,
-	linux-media@vger.kernel.org
-Subject: Re: WL1273 FM Radio driver...
-Message-ID: <20110207132821.GI10564@opensource.wolfsonmicro.com>
-References: <1297075922.15320.31.camel@masi.mnp.nokia.com>
- <4D4FDED0.7070008@redhat.com>
- <20110207120234.GE10564@opensource.wolfsonmicro.com>
- <4D4FEA03.7090109@redhat.com>
- <1297085233.15320.39.camel@masi.mnp.nokia.com>
+	Wed, 23 Feb 2011 11:36:56 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [RFC/PATCH 0/1] New subdev sensor operation g_interface_parms
+Date: Wed, 23 Feb 2011 17:37:06 +0100
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Stan <svarbanov@mm-sol.com>, Hans Verkuil <hansverk@cisco.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	saaguirre@ti.com
+References: <cover.1298368924.git.svarbanov@mm-sol.com> <201102230910.43069.hverkuil@xs4all.nl> <Pine.LNX.4.64.1102231020330.8880@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1102231020330.8880@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1297085233.15320.39.camel@masi.mnp.nokia.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201102231737.06421.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, Feb 07, 2011 at 03:27:12PM +0200, Matti J. Aaltonen wrote:
+Hi Guennadi,
 
-> So you are suggesting a more or less complete rewrite, so that I'd
-> create a directory like media/radio/wl1273 and then place there all of
-> the driver files: wl1273-radio.c, wl1273-alsa.c and maybe wl1273-core.c?
+On Wednesday 23 February 2011 10:31:21 Guennadi Liakhovetski wrote:
 
-Don't move the ASoC driver out of the ASoC code, it's a complete pain
-for maintaining it and only makes the problems with having to build v4l
-worse.
+[snip]
+
+> Currently soc-camera auto-configures the following parameters:
+> 
+> hsync polarity
+> vsync polarity
+> data polarity
+
+Data polarity ? Are there sensors that can invert the data polarity ?
+
+> master / slave mode
+> data bus width
+> pixel clock polarity
+
+-- 
+Regards,
+
+Laurent Pinchart
