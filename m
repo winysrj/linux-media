@@ -1,151 +1,163 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.171]:52454 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751377Ab1B1LDH (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:35580 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754581Ab1BWNAc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Feb 2011 06:03:07 -0500
-Date: Mon, 28 Feb 2011 12:02:41 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hansverk@cisco.com>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Kim HeungJun <riverful@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Stanimir Varbanov <svarbanov@mm-sol.com>
-Subject: Re: [RFC] snapshot mode, flash capabilities and control
-In-Reply-To: <201102281140.31643.hansverk@cisco.com>
-Message-ID: <Pine.LNX.4.64.1102281148310.11156@axis700.grange>
-References: <Pine.LNX.4.64.1102240947230.15756@axis700.grange>
- <201102261456.18736.hverkuil@xs4all.nl> <201102281128.58488.laurent.pinchart@ideasonboard.com>
- <201102281140.31643.hansverk@cisco.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Wed, 23 Feb 2011 08:00:32 -0500
+Subject: Re: No data from tuner over PCI bridge adapter (Cablestar HD 2 /
+ mantis / PEX 8112)
+From: Andy Walls <awalls@md.metrocast.net>
+To: Dennis Kurten <dennis.kurten@gmail.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <AANLkTiko3nTvcaNr73LmUuvmnk0_tr7BoRh-zYJ2a-nQ@mail.gmail.com>
+References: <AANLkTik_PcJdKSE1+konisckfb-j05+yaUFuiG+CsRTQ@mail.gmail.com>
+	 <1297735794.2394.88.camel@localhost>
+	 <AANLkTikcQw8+Xb1zFr75zxuG9P4p14egw=9HeN7kswAN@mail.gmail.com>
+	 <AANLkTiko3nTvcaNr73LmUuvmnk0_tr7BoRh-zYJ2a-nQ@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Wed, 23 Feb 2011 08:00:46 -0500
+Message-ID: <1298466046.2423.21.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, 28 Feb 2011, Hans Verkuil wrote:
-
-> On Monday, February 28, 2011 11:28:58 Laurent Pinchart wrote:
-> > Hi Hans,
-> > 
-> > On Saturday 26 February 2011 14:56:18 Hans Verkuil wrote:
-> > > On Saturday, February 26, 2011 14:39:54 Sylwester Nawrocki wrote:
-> > > > On 02/26/2011 02:03 PM, Guennadi Liakhovetski wrote:
-> > > > > On Sat, 26 Feb 2011, Hans Verkuil wrote:
-> > > > >> On Friday, February 25, 2011 18:08:07 Guennadi Liakhovetski wrote:
-> > > > >> 
-> > > > >> <snip>
-> > > > >> 
-> > > > >>>>> configure the sensor to react on an external trigger provided by
-> > > > >>>>> the flash controller is needed, and that could be a control on the
-> > > > >>>>> flash sub-device. What we would probably miss is a way to issue a
-> > > > >>>>> STREAMON with a number of frames to capture. A new ioctl is
-> > > > >>>>> probably needed there. Maybe that would be an opportunity to
-> > > > >>>>> create a new stream-control ioctl that could replace STREAMON and
-> > > > >>>>> STREAMOFF in the long term (we could extend the subdev s_stream
-> > > > >>>>> operation, and easily map STREAMON and STREAMOFF to the new ioctl
-> > > > >>>>> in video_ioctl2 internally).
-> > > > >>>> 
-> > > > >>>> How would this be different from queueing n frames (in total; count
-> > > > >>>> dequeueing, too) and issuing streamon? --- Except that when the 
-> last
-> > > > >>>> frame is processed the pipeline could be stopped already before
-> > > > >>>> issuing STREAMOFF. That does indeed have some benefits. Something
-> > > > >>>> else?
-> > > > >>> 
-> > > > >>> Well, you usually see in your host driver, that the videobuffer 
-> queue
-> > > > >>> is empty (no more free buffers are available), so, you stop
-> > > > >>> streaming immediately too.
-> > > > >> 
-> > > > >> This probably assumes that the host driver knows that this is a
-> > > > >> special queue? Because in general drivers will simply keep capturing
-> > > > >> in the last buffer and not release it to userspace until a new buffer
-> > > > >> is queued.
-> > > > > 
-> > > > > Yes, I know about this spec requirement, but I also know, that not all
-> > > > > drivers do that and not everyone is happy about that requirement:)
-> > > > 
-> > > > Right, similarly a v4l2 output device is not releasing the last buffer
-> > > > to userland and keeps sending its content until a new buffer is queued 
-> to
-> > > > the driver. But in case of capture device the requirement is a pain,
-> > > > since it only causes draining the power source, when from a user view
-> > > > the video capture is stopped. Also it limits a minimum number of buffers
-> > > > that could be used in preview pipeline.
-> > > 
-> > > No, we can't change this. We can of course add some setting that will
-> > > explicitly request different behavior.
-> > > 
-> > > The reason this is done this way comes from the traditional TV/webcam
-> > > viewing apps. If for some reason the app can't keep up with the capture
-> > > rate, then frames should just be dropped silently. All apps assume this
-> > > behavior. In a normal user environment this scenario is perfectly normal
-> > > (e.g. you use a webcam app, then do a CPU intensive make run).
-> > 
-> > Why couldn't drivers drop frames silently without a capture buffer ? If the 
-> > hardware can be paused, the driver could just do that when the last buffer 
-> is 
-> > given back to userspace, and resume the hardware when the next buffer is 
-> > queued.
+On Tue, 2011-02-22 at 14:34 +0200, Dennis Kurten wrote:
+> On Tue, Feb 15, 2011 at 4:23 PM, Dennis Kurten <dennis.kurten@gmail.com> wrote:
+> > Hello Andy, I've tried some of your suggestions, but no luck so far.
+> >
+> >
+> > On Tue, Feb 15, 2011 at 4:09 AM, Andy Walls <awalls@md.metrocast.net> wrote:
+> >> On Mon, 2011-02-14 at 13:35 +0200, Dennis Kurten wrote:
+> >>> Hello,
+> >>>
+> >>> This card (technisat cablestar hd 2 dvb-c) works fine when plugged
+> >>> into a native PCI slot. When I try it with a PCI-adapter I intend to use in
+> >>> mITX-builds there doesn't seem to be any data coming in through the
+> >>> tuner. The adapter is a transparent bridge (with a PEX 8112 chip) that
+> >>> goes into a 1xPCIe-slot and gets power through a 4-pin molex.
+> >>>
+> >>> [...]
+> >>>
+> >>> Kernel is 2.6.32 (+the compiled drivers)
 > 
-> It was my understanding that the streaming would stop if no capture buffers 
-> are available, requiring a VIDIOC_STREAMON to get it started again. Of course, 
-> there is nothing wrong with stopping the hardware and restarting it again when 
-> a new buffer becomes available if that can be done efficiently enough. Just as 
-> long as userspace doesn't notice.
 > 
-> Note that there are some problems with this anyway: often restarting DMA 
-> requires resyncing to the video stream, which may lead to lost frames. Also, 
-> the framecounter in struct v4l2_buffer will probably have failed to count the 
-> lost frames.
+> I have upgraded my system to 2.6.35 so now I'm using "vanilla drivers" but
+> the problem remains: Works fine in PCI - doesn't in PCIE behind adapter.
+
+Before you go too crazy throwing probes in your box, have you tested the
+PCIe adapter and Mantis device in Windows?
+
+
+> >>> [...]
+> >>>
+> >>>         Latency: 32 (2000ns min, 63750ns max)
+> >>>         Interrupt: pin A routed to IRQ 16
+> >>>         Region 0: Memory at fdcff000 (32-bit, prefetchable) [size=4K]
+> >>                                                ^^^^^^^^^^^^
+> >>
+> >> Heh, I always find it curious when I/O peripherials claim their register
+> >> space is prefetchable (the CX23416 does this as well).  If the chip is
+> >> designed right, it is valid though AFAICT.
+> >>
 > 
-> In my opinion trying this might cause more problems than it solves.
-
-So, do I understand it right, that currently there are drivers, that 
-overwrite the last buffers while waiting for a new one, and ones, that 
-stop capture for that time. None of them violate the spec, but the former 
-will not work with the "snapshot mode," and the latter will. Since we do 
-not want / cannot enforce either way, we do need a way to tell the driver 
-to enter the "snapshot mode" even if only to not overwrite the last 
-buffer, right?
-
-> > > I agree that you might want different behavior in an embedded environment,
-> > > but that should be requested explicitly.
-> > > 
-> > > > In still capture mode (single shot) we might want to use only one buffer
-> > > > so adhering to the requirement would not allow this, would it?
-> > > 
-> > > That's one of the problems with still capture mode, yes.
-> > > 
-> > > I have not yet seen a proposal for this that I really like. Most are too
-> > > specific to this use-case (snapshot) and I'd like to see something more
-> > > general.
-> > 
-> > I don't think snapshot capture is *that* special. I don't expect most 
-> embedded 
-> > SoCs to implement snapshot capture in hardware. What usually happens is that 
-> > the hardware provides some support (like two independent video streams for 
-> > instance, or the ability to capture a given number of frames) and the 
-> > scheduling is performed in userspace. Good quality snapshot capture requires 
-> > complex algorithms and involves several hardware pieces (ISP, flash 
-> > controller, lens controller, ...), so it can't be implemented in the kernel.
 > 
-> I agree.
+> And is there any point with prefetchable mechanisms if bus mastering
+> is employed?
 
-Right, but sensors do need it. It is not enough to just tell the sensor - 
-a per-frame flash is used and let the driver figure out, that it has to 
-switch to snapshot mode. The snapshot mode has other effects too, e.g., on 
-some sensors it enables the external trigger pin, which some designs might 
-want to use also without a flash. Maybe there are also some other side 
-effects of such snapshot modes on some other sensors, that I'm not aware 
-of.
+Yes.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+The Bus Mastering by the Mantis device is for when the device performs
+DMA transfers.
+
+The "command and control" by the Linux mantis driver to set up the
+transfers and check interrupt status are mastered by the CPU and PCI/e
+bridges.
+
+Problems would only arise if the device marked the region as
+prefetchable but didn't obey the conditions for doing so in the PCI
+specs (e.g. reads should not  have side effects, etc.).  I'm guessing
+that is unlikely to be the problem here.
+
+
+
+>  This is what the adapter reports:
+> 
+>         I/O behind bridge: 0000e000-0000efff
+>         Memory behind bridge: fdd00000-fddfffff
+>         Prefetchable memory behind bridge: fdc00000-fdcfffff
+> 
+> I'd have thought that the memory behind the bridge would include any
+> prefetchable segment. The tuner card happens to registers within that
+> "0xfdc"-segment too.
+
+That's right.  The bridge should report the aggregation of all the
+active regions and region types behind it.  The bridge needs to know
+this so it doesn't respond to address ranges some other bridge might be
+fronting for.
+
+Again everyuthing looks OK here.
+
+> 
+> > [...]
+> >
+> > from /cat/interrupts:
+> > -----------------------
+> >  16:       9751          0   IO-APIC-fasteoi   ahci, nvidia, Mantis
+> >
+> > [...]
+> 
+> 
+> The above shared interrupt assignment is the same for both cases. There
+> is however a difference how the interrupt link is set up:
+> 
+> Mantis 0000:05:06.0: PCI INT A -> Link[APC1] ... (<-- without bridge)
+>   vs.
+> Mantis 0000:04:00.0: PCI INT A -> Link[APC7] ... (<-- with bridge)
+> 
+> Don't know if the different APC# is of any significance here.
+
+
+I'm not sure what those Links are so I can't help there.
+
+
+My plan of attack, if this were my problem, would be to
+
+a) test the video card and PCIe adapetr in Windows to eliminate bad
+hardware.
+
+b) test a different PCI card, driver by a different Linux driver, and
+the PCIe adapter in Linux
+
+c) Based on those results investigate either the Mantis driver or the
+setup of the PCIe bridge.
+
+Sometimes there is some odd register in the PCIe bridge that needs to be
+tweaked.  The datasheet for the PEX8112 doesn't require an NDA, PLX just
+wants you to register to be a "member" to download it.
+
+	http://www.plxtech.com/products/expresslane/pex8112
+
+	http://www.plxtech.com/premium_services/
+
+I'm not sure what "membership" costs aside from storing a web-browser
+cookie, the possibility of rejection, and periodic calls from sales
+associates....
+
+d) I'd investigate the possibility of the nvidia or ahci driver claiming
+the interrupts from the Mantis device as theirs, thus preventing them
+from being sent to the mantis driver.
+
+e) Examin the PCI config space settings of the Mantis device (using
+lspci -vvvxxxx as root) to see the difference in the PCI configuration
+registers and then check the PCI sepc for what they mean.
+
+Good Luck.
+
+Regards,
+Andy
+
+> Regards,
+> Dennis
+
+
