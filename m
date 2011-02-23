@@ -1,53 +1,52 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.22]:36071 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751795Ab1B0OwE (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:35735 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753524Ab1BWLEg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Feb 2011 09:52:04 -0500
-From: Oliver Endriss <o.endriss@gmx.de>
-Reply-To: linux-media@vger.kernel.org
-To: Dan Carpenter <error27@gmail.com>
-Subject: Re: [patch v2] [media] stv090x: handle allocation failures
-Date: Sun, 27 Feb 2011 15:36:17 +0100
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Manu Abraham <manu@linuxtv.org>,
-	Andreas Regel <andreas.regel@gmx.de>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-References: <20110207165650.GF4384@bicker> <201102150300.19650@orion.escape-edv.de> <20110215101008.GO4384@bicker>
-In-Reply-To: <20110215101008.GO4384@bicker>
+	Wed, 23 Feb 2011 06:04:36 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [RFC/PATCH 0/1] New subdev sensor operation g_interface_parms
+Date: Wed, 23 Feb 2011 12:04:41 +0100
+Cc: Stanimir Varbanov <svarbanov@mm-sol.com>,
+	linux-media@vger.kernel.org, saaguirre@ti.com
+References: <cover.1298368924.git.svarbanov@mm-sol.com> <Pine.LNX.4.64.1102221215350.1380@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1102221215350.1380@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain;
+Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201102271536.18905@orion.escape-edv.de>
+Message-Id: <201102231204.42898.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tuesday 15 February 2011 11:10:08 Dan Carpenter wrote:
-> kmalloc() can fail so check whether state->internal is NULL.
-> append_internal() can return NULL on allocation failures so check that.
-> Also if we hit the error condition later in the function then there is
-> a memory leak and we need to call remove_dev() to fix it.
-> 
-> Also Oliver Endriss pointed out an additional leak that I missed in the
-> first version of this patch.
-> 
-> Signed-off-by: Dan Carpenter <error27@gmail.com>
-> ---
-> v2:  Fix the leak Oliver noticed.
-> 
-> diff --git a/drivers/media/dvb/frontends/stv090x.c b/drivers/media/dvb/frontends/stv090x.c
-> ...
+Hi Guennadi,
 
-Acked-by: Oliver Endriss <o.endriss@gmx.de>
+On Tuesday 22 February 2011 12:40:32 Guennadi Liakhovetski wrote:
+> On Tue, 22 Feb 2011, Stanimir Varbanov wrote:
+> > This RFC patch adds a new subdev sensor operation named
+> > g_interface_parms. It is planned as a not mandatory operation and it is
+> > driver's developer decision to use it or not.
+> > 
+> > Please share your opinions and ideas.
 
-CU
-Oliver
+[snip] (answering this in another e-mail)
+
+> Shortly talking to Laurent earlier today privately, he mentioned, that one
+> of the reasons for this move is to support dynamic bus reconfiguration,
+> e.g., the number of used CSI lanes. The same is useful for parallel
+> interfaces. E.g., I had to hack the omap3spi driver to capture only 8
+> (parallel) data lanes from the sensor, connected with all its 10 lanes to
+> get a format, easily supported by user-space applications. Ideally you
+> don't want to change anything in the code for this. If the user is
+> requesting the 10-bit format, all 10 lanes are used, if only 8 - the
+> interface is reconfigured accordingly.
+
+This should indeed be supported out-of-the-box. I'm waiting for Hans' opinion 
+on this, but the idea is that the user should configure a 10-bit format at the 
+sensor output and an 8-bit format at the CCDC input to capture 8-bit data.
 
 -- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
-Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
-----------------------------------------------------------------
+Regards,
+
+Laurent Pinchart
