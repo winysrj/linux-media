@@ -1,67 +1,42 @@
 Return-path: <mchehab@pedra>
-Received: from cmsout02.mbox.net ([165.212.64.32]:44825 "EHLO
-	cmsout02.mbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752960Ab1BOKz2 convert rfc822-to-8bit (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:62529 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755588Ab1BWUAt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Feb 2011 05:55:28 -0500
-Received: from cmsout02.mbox.net (co02-lo [127.0.0.1])
-	by cmsout02.mbox.net (Postfix) with ESMTP id A8A18134237
-	for <linux-media@vger.kernel.org>; Tue, 15 Feb 2011 10:55:27 +0000 (GMT)
-Date: Tue, 15 Feb 2011 11:55:24 +0100
-From: "Issa Gorissen" <flop.m@usa.net>
-To: <linux-media@vger.kernel.org>
-Subject: Re: Sony CXD2099AR decryption failing
-Mime-Version: 1.0
-Message-ID: <350PBok3y6288S02.1297767324@web02.cms.usa.net>
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+	Wed, 23 Feb 2011 15:00:49 -0500
+Received: by wwb39 with SMTP id 39so2028306wwb.1
+        for <linux-media@vger.kernel.org>; Wed, 23 Feb 2011 12:00:48 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <201102240116.18770.Vivek.Periaraj@gmail.com>
+References: <201102240116.18770.Vivek.Periaraj@gmail.com>
+Date: Wed, 23 Feb 2011 15:00:42 -0500
+Message-ID: <AANLkTi=ipU6gqoQZ4T25ErCGapvoT-Q8vx+mriQj=tji@mail.gmail.com>
+Subject: Re: Hauppauge WinTV USB 2
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Vivek Periaraj <vivek.periaraj@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Oliver,
+On Wed, Feb 23, 2011 at 2:46 PM, Vivek Periaraj
+<vivek.periaraj@gmail.com> wrote:
+> Hi Folks,
+>
+> I bought a new Hauppauge WinTV USB 2 tuner card and was hoping to use it in
+> linux. I specifically looked up to find whether this card is supported or not,
+> and I found that it's indeed supported by em28xx drivers.
 
-Thx for your reply. This will be a bit hard. But I will give it a try. I will
-try to boot from a USB key with Windows on it.
+The product with USB ID 2040:6610 is not an em28xx based device.  It
+is based on the tm6010 chip.  Unfortunately, the term "WinTV USB 2" is
+too generic.  You need to use the actual model number or USB ID to
+determine the status of support.
 
-Any preferences for Windows ? XP, Vista or 7 ?
+There has been ongoing work in the tm6010 driver.  You may wish to try
+the latest media_build and see if your device is working yet.
 
---
-Issa
+Devin
 
------- Original Message ------
-Received: 04:04 AM CET, 02/15/2011
-From: Oliver Endriss <o.endriss@gmx.de>
-To: "Issa Gorissen" <flop.m@usa.net>Cc: linux-media@vger.kernel.org
-Subject: Re: Sony CXD2099AR decryption failing
-
-> Hello,
-> 
-> On Monday 14 February 2011 17:42:55 Issa Gorissen wrote:
-> > Hi,
-> > 
-> > I am having some trouble with the Sony CXD2099AR CI chip.
-> > 
-> > With a SMIT Viaccess CAM, I am not able to decrypt channels from the
-french
-> > package Bis.TV on Hotbird 13E.
-> > 
-> > The CAM decrypts fine when inserted in a set top box.
-> > 
-> > The drivers running are those from the branch of Oliver.
-> > System's running OpenSuse 11.3.
-> > 
-> > May someone with the knowledge of this chip get in touch with me ?
-> 
-> Could you please test, whether it works with the windows driver?
-> 
-> CU
-> Oliver
-> 
-> -- 
-> ----------------------------------------------------------------
-> VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-> 4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
-> Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
-> ----------------------------------------------------------------
-
-
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
