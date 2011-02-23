@@ -1,65 +1,72 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:21349 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752507Ab1BNVLl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Feb 2011 16:11:41 -0500
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p1ELBf5m029342
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 14 Feb 2011 16:11:41 -0500
-Received: from pedra (vpn-239-121.phx2.redhat.com [10.3.239.121])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p1EL3TGB012908
-	for <linux-media@vger.kernel.org>; Mon, 14 Feb 2011 16:11:40 -0500
-Date: Mon, 14 Feb 2011 19:03:18 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 11/14] [media] tuner-core: Don't use a static var for
- xc5000_cfg
-Message-ID: <20110214190318.423d6693@pedra>
-In-Reply-To: <cover.1297716906.git.mchehab@redhat.com>
-References: <cover.1297716906.git.mchehab@redhat.com>
+Received: from stevekez.vm.bytemark.co.uk ([80.68.91.30]:33934 "EHLO
+	stevekerrison.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753380Ab1BWRwa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Feb 2011 12:52:30 -0500
+Subject: Re: PCTV nanoStick T2 in stock - Driver work?
+From: Steve Kerrison <steve@stevekerrison.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Nicolas Will <nico@youplala.net>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+In-Reply-To: <AANLkTimz43G5kEtjEFK9jxRg=hs5y_fwUdva7DbhcUoH@mail.gmail.com>
+References: <1298479744.2698.41.camel@acropora>
+	 <AANLkTimz43G5kEtjEFK9jxRg=hs5y_fwUdva7DbhcUoH@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Wed, 23 Feb 2011 17:45:43 +0000
+Message-ID: <1298483143.1967.482.camel@ares>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-A static var is evil, especially if a device has two boards with
-xc5000. Instead, just like the other drivers, use stack to store
-its config during setup.
+On Wed, 2011-02-23 at 12:07 -0500, Devin Heitmueller wrote:
+> On Wed, Feb 23, 2011 at 11:49 AM, Nicolas Will <nico@youplala.net> wrote:
+> > Hello
+> >
+> > The DVB-T2 USB stick appears to be in stock in the UK.
+> >
+> > Product page:
+> > http://www.pctvsystems.com/Products/ProductsEuropeAsia/Digitalproducts/PCTVnanoStickT2/tabid/248/language/en-GB/Default.aspx
+> >
+> > Play.com, Dabs and Amzon.co.uk list it as in stock.
+> >
+> > Is there any work started on a driver at this point?
+> >
+> > If no work has started, would a loan/donation of a stick help?
+> >
+> > What can be done to trigger/accelerate the provision of a driver?
+> 
+> Somebody would have to break down and reverse engineer the Sony T2
+> demod.  I saw something over in mythtv-users where somebody took a
+> unit apart and photographed it, and he's suggested that he's started
+> working on a driver.
+> 
+> http://stevekerrison.com/290e/index.html
+> 
+> Devin
+> 
+That would be me :)
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+I have indeed, but don't have much to speak of seeing as when I started
+I'd never touched Linux kernel-space driver development.
 
-diff --git a/drivers/media/video/tuner-core.c b/drivers/media/video/tuner-core.c
-index 70ff416..16939ca 100644
---- a/drivers/media/video/tuner-core.c
-+++ b/drivers/media/video/tuner-core.c
-@@ -66,7 +66,6 @@ module_param_string(ntsc, ntsc, sizeof(ntsc), 0644);
-  * Static vars
-  */
- 
--static struct xc5000_config xc5000_cfg;
- static LIST_HEAD(tuner_list);
- 
- /*
-@@ -338,9 +337,12 @@ static void set_type(struct i2c_client *c, unsigned int type,
- 		break;
- 	case TUNER_XC5000:
- 	{
--		xc5000_cfg.i2c_address	  = t->i2c->addr;
--		/* if_khz will be set when the digital dvb_attach() occurs */
--		xc5000_cfg.if_khz	  = 0;
-+		struct xc5000_config xc5000_cfg = {
-+			.i2c_address = t->i2c->addr,
-+			/* if_khz will be set at dvb_attach() */
-+			.if_khz	  = 0,
-+		};
-+
- 		if (!dvb_attach(xc5000_attach,
- 				&t->fe, t->i2c->adapter, &xc5000_cfg))
- 			goto attach_failed;
+At the moment I have hardware and usb data from myself and others. I'm
+hoping to publish some code that at least initialises the device with
+the Sony demod code stub'd so that I and whoever wants to join me, can
+attempt to get the demod to spit out some transport streams :)
+
+Donations won't get sony to give me the datasheet, so none requested
+right now.
+
+I actually have a free weekend coming up (a rare occurrence) in which I
+hope to make some further progress...
+
+Or the short answer: No hardware/donations needed, but things might take
+a while!
+
+Regards,
 -- 
-1.7.1
-
+Steve Kerrison MEng Hons.
+http://stevekerrison.com/ 
 
