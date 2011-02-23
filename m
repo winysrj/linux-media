@@ -1,197 +1,104 @@
 Return-path: <mchehab@pedra>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:22005 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755417Ab1BXOjd (ORCPT
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:18732 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751017Ab1BWK2i (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Feb 2011 09:39:33 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Thu, 24 Feb 2011 15:33:48 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 1/7] s5p-fimc: fix ISR and buffer handling for fimc-capture
-In-reply-to: <1298558034-10768-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	kgene.kim@samsung.com, s.nawrocki@samsung.com,
-	Sungchun Kang <sungchun.kang@samsung.com>
-Message-id: <1298558034-10768-2-git-send-email-s.nawrocki@samsung.com>
-References: <1298558034-10768-1-git-send-email-s.nawrocki@samsung.com>
+	Wed, 23 Feb 2011 05:28:38 -0500
+From: Hans Verkuil <hansverk@cisco.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [Q] {enum,s,g}_input for subdev ops
+Date: Wed, 23 Feb 2011 11:29:51 +0100
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+References: <Pine.LNX.4.64.1102221612380.1380@axis700.grange> <201102221807.15647.hverkuil@xs4all.nl> <Pine.LNX.4.64.1102231039060.10099@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1102231039060.10099@axis700.grange>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201102231129.51648.hansverk@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-In some cases fimc H/W did not stop although there were no output
-buffers available. So the capture deactivation interrupt routine
-is modified and the state of ST_CAPT_RUN is cleared only
-in the LAST-IRQ call.
+On Wednesday, February 23, 2011 11:13:57 Guennadi Liakhovetski wrote:
+> On Tue, 22 Feb 2011, Hans Verkuil wrote:
+> 
+> > On Tuesday, February 22, 2011 17:39:25 Guennadi Liakhovetski wrote:
+> > > On Tue, 22 Feb 2011, Hans Verkuil wrote:
+> > > 
+> > > > > Hi
+> > > > >
+> > > > > Any thoughts about the subj? Hasn't anyone run into a need to select
+> > > > > inputs on subdevices until now? Something like
+> > > > >
+> > > > > struct v4l2_subdev_video_ops {
+> > > > > 	...
+> > > > > 	int (*enum_input)(struct v4l2_subdev *sd, struct v4l2_input 
+*inp);
+> > > > > 	int (*g_input)(struct v4l2_subdev *sd, unsigned int *i);
+> > > > > 	int (*s_input)(struct v4l2_subdev *sd, unsigned int i);
+> > > > 
+> > > > That's done through s_routing. Subdevices know nothing about inputs as
+> > > > shown to userspace.
+> > > > 
+> > > > If you want a test pattern, then the host driver needs to add a "Test
+> > > > Pattern" input and call s_routing with the correct values (specific to
+> > > > that subdev) to set it up.
+> > > 
+> > > Hm, maybe I misunderstood something, but if we understand "host" in the 
+> > > same way, then this doesn't seem very useful to me. What shall the host 
+> > > have to do with various sensor inputs? It cannot know, whether the 
+sensor 
+> > > has a test-pattern "input" and if yes - how many of them. Many sensors 
+> > > have several such patterns, and, I think, some of them also have some 
+> > > parameters, like colour values, etc., which we don't have anything to 
+map 
+> > > to. But even without that - some sensors have several test patterns, 
+which 
+> > > they well might want to be able to switch between by presenting not just 
+> > > one but several test inputs. So, shouldn't we have some enum_routing or 
+> > > something for them?
+> > 
+> > What you really want is to select a test pattern. A good solution would be
+> > to create a sensor menu control with all the test patterns it supports.
+> 
+> Ok, thinking a bit further about it. Let's take mt9p031 as an example - a 
+> pretty simple bayer-only sensor. The driver is not yet in the mainline, 
+> but I'll be pushing something simple in the mainline soon. I just picked 
+> it up as an example, because it has quite a few test modes.
+> 
+> On the total it can generate 9 test patterns, including gradients, bars, 
+> constant colour-field, etc. Apart from selecting a specific test pattern, 
+> the RGB colour values and monochrome "intensity" values and bar widths can 
+> be set for the colour-field and monochrome-bars test-patterns respectively.
+> 
+> Using a control menu we can select one of the 9 test-modes. But do we also 
+> want standard controls for colour values and bar widths? Or are they too 
+> hardware-specific and too unimportant and can only be supported by private 
+> controls?
 
-After LAST-IRQ is generated, H/W pointer will be skipped by 1 frame.
-(reference by user manual) So, S/W pointer should be increased too.
+I think all test pattern controls would be prime candidates as subdev-specific 
+controls: they are hardware specific so it's difficult anyway to make them 
+generic controls and they are typically only used for debugging.
 
-Reviewed-by Jonghun Han <jonghun.han@samsung.com>
-Signed-off-by: Sungchun Kang <sungchun.kang@samsung.com>
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-capture.c |   65 +++++++++------------------
- drivers/media/video/s5p-fimc/fimc-core.c    |   22 ++++++---
- 2 files changed, 36 insertions(+), 51 deletions(-)
+But we can't do that until the MC code is merged. This also requires that the 
+subdev uses the control framework.
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index 5159cc8..10d6426 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -153,40 +153,6 @@ static int fimc_isp_subdev_init(struct fimc_dev *fimc, unsigned int index)
- 	return ret;
- }
- 
--/*
-- * At least one buffer on the pending_buf_q queue is required.
-- * Locking: The caller holds fimc->slock spinlock.
-- */
--int fimc_vid_cap_buf_queue(struct fimc_dev *fimc,
--			   struct fimc_vid_buffer *fimc_vb)
--{
--	struct fimc_vid_cap *cap = &fimc->vid_cap;
--	struct fimc_ctx *ctx = cap->ctx;
--	int ret = 0;
--
--	BUG_ON(!fimc || !fimc_vb);
--
--	ret = fimc_prepare_addr(ctx, &fimc_vb->vb, &ctx->d_frame,
--				&fimc_vb->paddr);
--	if (ret)
--		return ret;
--
--	if (test_bit(ST_CAPT_STREAM, &fimc->state)) {
--		fimc_pending_queue_add(cap, fimc_vb);
--	} else {
--		/* Setup the buffer directly for processing. */
--		int buf_id = (cap->reqbufs_count == 1) ? -1 : cap->buf_index;
--		fimc_hw_set_output_addr(fimc, &fimc_vb->paddr, buf_id);
--
--		fimc_vb->index = cap->buf_index;
--		active_queue_add(cap, fimc_vb);
--
--		if (++cap->buf_index >= FIMC_MAX_OUT_BUFS)
--			cap->buf_index = 0;
--	}
--	return ret;
--}
--
- static int fimc_stop_capture(struct fimc_dev *fimc)
- {
- 	unsigned long flags;
-@@ -239,6 +205,8 @@ static int start_streaming(struct vb2_queue *q)
- 	struct s5p_fimc_isp_info *isp_info;
- 	int ret;
- 
-+	fimc_hw_reset(fimc);
-+
- 	ret = v4l2_subdev_call(fimc->vid_cap.sd, video, s_stream, 1);
- 	if (ret && ret != -ENOIOCTLCMD)
- 		return ret;
-@@ -273,7 +241,7 @@ static int start_streaming(struct vb2_queue *q)
- 	INIT_LIST_HEAD(&fimc->vid_cap.active_buf_q);
- 	fimc->vid_cap.active_buf_cnt = 0;
- 	fimc->vid_cap.frame_count = 0;
--	fimc->vid_cap.buf_index = fimc_hw_get_frame_index(fimc);
-+	fimc->vid_cap.buf_index = 0;
- 
- 	set_bit(ST_CAPT_PEND, &fimc->state);
- 
-@@ -374,17 +342,28 @@ static void buffer_queue(struct vb2_buffer *vb)
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&fimc->slock, flags);
--	fimc_vid_cap_buf_queue(fimc, buf);
-+	fimc_prepare_addr(ctx, &buf->vb, &ctx->d_frame, &buf->paddr);
- 
--	dbg("active_buf_cnt: %d", fimc->vid_cap.active_buf_cnt);
- 
--	if (vid_cap->active_buf_cnt >= vid_cap->reqbufs_count ||
--	   vid_cap->active_buf_cnt >= FIMC_MAX_OUT_BUFS) {
--		if (!test_and_set_bit(ST_CAPT_STREAM, &fimc->state)) {
--			fimc_activate_capture(ctx);
--			dbg("");
--		}
-+	if (!test_bit(ST_CAPT_STREAM, &fimc->state)
-+	     && vid_cap->active_buf_cnt < FIMC_MAX_OUT_BUFS) {
-+		/* Setup the buffer directly for processing. */
-+		int buf_id = (vid_cap->reqbufs_count == 1) ? -1 :
-+				vid_cap->buf_index;
-+
-+		fimc_hw_set_output_addr(fimc, &buf->paddr, buf_id);
-+		buf->index = vid_cap->buf_index;
-+		active_queue_add(vid_cap, buf);
-+
-+		if (++vid_cap->buf_index >= FIMC_MAX_OUT_BUFS)
-+			vid_cap->buf_index = 0;
-+	} else {
-+		fimc_pending_queue_add(vid_cap, buf);
- 	}
-+
-+	if (!test_and_set_bit(ST_CAPT_STREAM, &fimc->state))
-+		fimc_activate_capture(ctx);
-+
- 	spin_unlock_irqrestore(&fimc->slock, flags);
- }
- 
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index cd8a300..461f1f2 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -327,7 +327,7 @@ static int stop_streaming(struct vb2_queue *q)
- static void fimc_capture_handler(struct fimc_dev *fimc)
- {
- 	struct fimc_vid_cap *cap = &fimc->vid_cap;
--	struct fimc_vid_buffer *v_buf = NULL;
-+	struct fimc_vid_buffer *v_buf;
- 
- 	if (!list_empty(&cap->active_buf_q)) {
- 		v_buf = active_queue_pop(cap);
-@@ -356,19 +356,23 @@ static void fimc_capture_handler(struct fimc_dev *fimc)
- 
- 		if (++cap->buf_index >= FIMC_MAX_OUT_BUFS)
- 			cap->buf_index = 0;
-+	}
- 
--	} else if (test_and_clear_bit(ST_CAPT_STREAM, &fimc->state) &&
--		   cap->active_buf_cnt <= 1) {
--		fimc_deactivate_capture(fimc);
-+	if (cap->active_buf_cnt == 0) {
-+		clear_bit(ST_CAPT_RUN, &fimc->state);
-+
-+		if (++cap->buf_index >= FIMC_MAX_OUT_BUFS)
-+			cap->buf_index = 0;
- 	}
- 
--	dbg("frame: %d, active_buf_cnt= %d",
-+	dbg("frame: %d, active_buf_cnt: %d",
- 	    fimc_hw_get_frame_index(fimc), cap->active_buf_cnt);
- }
- 
- static irqreturn_t fimc_isr(int irq, void *priv)
- {
- 	struct fimc_dev *fimc = priv;
-+	struct fimc_vid_cap *cap = &fimc->vid_cap;
- 
- 	BUG_ON(!fimc);
- 	fimc_hw_clear_irq(fimc);
-@@ -398,10 +402,12 @@ static irqreturn_t fimc_isr(int irq, void *priv)
- 
- 	if (test_bit(ST_CAPT_RUN, &fimc->state))
- 		fimc_capture_handler(fimc);
--
--	if (test_and_clear_bit(ST_CAPT_PEND, &fimc->state)) {
-+	else if (test_bit(ST_CAPT_PEND, &fimc->state))
- 		set_bit(ST_CAPT_RUN, &fimc->state);
--		wake_up(&fimc->irq_queue);
-+
-+	if (cap->active_buf_cnt == 1) {
-+		fimc_deactivate_capture(fimc);
-+		clear_bit(ST_CAPT_STREAM, &fimc->state);
- 	}
- 
- isr_unlock:
--- 
-1.7.4.1
+The MC code will hopefully be merged soon and I have worked on the control 
+framework patches for soc-camera, although those need more work.
+
+Regards,
+
+	Hans
+
+> 
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
