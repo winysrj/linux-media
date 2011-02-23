@@ -1,49 +1,177 @@
 Return-path: <mchehab@pedra>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:53094 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754969Ab1BURSW (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4073 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754174Ab1BWILR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Feb 2011 12:18:22 -0500
-Date: Mon, 21 Feb 2011 19:18:18 +0200
-From: Felipe Balbi <balbi@ti.com>
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: balbi@ti.com, David Cohen <dacohen@gmail.com>,
-	linux-kernel@vger.kernel.org, mingo@elte.hu,
-	linux-omap@vger.kernel.org, linux-media@vger.kernel.org,
-	Alexey Dobriyan <adobriyan@gmail.com>,
-	Oleg Nesterov <oleg@redhat.com>
-Subject: Re: [PATCH v2 1/1] headers: fix circular dependency between
- linux/sched.h and linux/wait.h
-Message-ID: <20110221171818.GN23087@legolas.emea.dhcp.ti.com>
-Reply-To: balbi@ti.com
-References: <1298299131-17695-1-git-send-email-dacohen@gmail.com>
- <1298299131-17695-2-git-send-email-dacohen@gmail.com>
- <1298303677.24121.1.camel@twins>
- <AANLkTimOT6jNG3=TiRMJR0dgEQ6EHjcBPJ1ivCu3Wj5Q@mail.gmail.com>
- <1298305245.24121.7.camel@twins>
- <20110221162939.GK23087@legolas.emea.dhcp.ti.com>
- <1298306607.24121.18.camel@twins>
- <20110221165443.GL23087@legolas.emea.dhcp.ti.com>
- <1298307962.24121.27.camel@twins>
+	Wed, 23 Feb 2011 03:11:17 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Subject: Re: [RFC/PATCH 0/1] New subdev sensor operation g_interface_parms
+Date: Wed, 23 Feb 2011 09:10:42 +0100
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Stan <svarbanov@mm-sol.com>, Hans Verkuil <hansverk@cisco.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	saaguirre@ti.com
+References: <cover.1298368924.git.svarbanov@mm-sol.com> <201102221800.49914.hverkuil@xs4all.nl> <4D642DE2.3090705@gmail.com>
+In-Reply-To: <4D642DE2.3090705@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1298307962.24121.27.camel@twins>
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201102230910.43069.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, Feb 21, 2011 at 06:06:02PM +0100, Peter Zijlstra wrote:
-> On Mon, 2011-02-21 at 18:54 +0200, Felipe Balbi wrote:
+On Tuesday, February 22, 2011 22:42:58 Sylwester Nawrocki wrote:
+> Hi everybody,
 > 
-> > What you seem to have missed is that sched.h doesn't include wait.h, it
-> > includes completion.h and completion.h needs wait.h due the
-> > wait_queue_head_t it uses.
+> On 02/22/2011 06:00 PM, Hans Verkuil wrote:
+> > On Tuesday, February 22, 2011 17:27:47 Guennadi Liakhovetski wrote:
+> >> On Tue, 22 Feb 2011, Stan wrote:
+> >>
+> >>> In principle I agree with this bus negotiation.
+> >>>
+> >>>   - So. let's start thinking how this could be fit to the subdev sensor
+> >>> operations.
+> >>
+> >> Well, I'm afraid not everyone is convinced yet, so, it is a bit early to
+> >> start designing interfaces;)
+> >>
+> >>>   - howto isolate your current work into some common place and reuse it,
+> >>> even on platform part.
+> >>>   - and is it possible.
+> >>>
+> >>> The discussion becomes very emotional and this is not a good adviser :)
+> >>
+> >> No, no emotions at least on this side:) But it's also not technical,
+> >> unfortunately. I'm prepared to discuss technical benefits or drawbacks of
+> >> each of these approaches, but these arguments - can we trust programmers
+> >> or can we not? or will anyone at some time in the future break it or not?
+> >> Sorry, I am not a psychologist:) Personally, I would _exclusively_
+> >> consider technical arguments. Of course, things like "clean and simple
+> >> APIs," "proper separation / layering" etc. are also important, but even
+> >> they already can become difficult to discuss and are already on the border
+> >> between technical issues and personal preferences... So, don't know, in
+> >> the end, I think, it will just come down to who is making decisions and
+> >> who is implementing them:) I just expressed my opinion, we don't have to
+> >> agree, eventually, the maintainer will decide whether to apply patches or
+> >> not:)
+> > 
+> > In my view at least it *is* a technical argument. It makes perfect sense to
+> > me from a technical point of view to put static, board-specific configuration
+> > in platform_data. I don't think there would have been much, if any, discussion
 > 
-> Yeah, so? sched.h doesn't need completion.h, but like with wait.h I'd
-> argue the other way around, completion.h would want to include sched.h
+> We should not be forgetting that there often will be two or more sets 
+> of platform_data. For sensor, MIPI interface, for the host interface driver.. 
+> By negotiating setups we could avoid situations when corresponding parameters
+> are not matched. That is not so meaningful benefit though. 
+>
+> Clock values are often being rounded at runtime and do not always reflect exactly
+> the numbers fixed at compile time. And negotiation could help to obtain exact
+> values at both sensor and host side.
 
-ok, now I get what you proposed. Still, we could have lived without the
-sarcasm, but that's not subject to patching.
+The only static data I am concerned about are those that affect signal integrity.
+After thinking carefully about this I realized that there is really only one
+setting that is relevant to that: the sampling edge. The polarities do not
+matter in this.
+
+Unfortunately, if a subdev is set to 'sample at rising edge', then that does
+not necessarily mean that the host should sample at the same edge. Depending
+on the clock line routing and the integrity of the clock signal the host may
+actually have to sample on the other edge. And yes, I've seen this.
+
+Anyway, this has been discussed to death already. I am very much opposed to
+negotiating the sampling edge. During the Helsinki meeting in June last year
+we decided to do this via platform data (see section 7 in the meeting
+minutes: http://www.linuxtv.org/news.php?entry=2010-06-22.mchehab).
+
+I will formally NACK attempts to negotiate this. Mauro is of course free to
+override me.
+
+Something simple like this for subdev platform_data might be enough:
+
+struct v4l2_bus_config {
+        /* 0 - sample at falling edge, 1 - sample at rising edge */
+        unsigned edge_pclock:1;
+        /* 0 - host should use the same sampling edge, 1 - host should use the
+           other sampling edge */
+        unsigned host_invert_edge_pclock:1;
+};
+
+The host can query the bus configuration and the subdev will return:
+
+	edge = host_invert_edge_pclock ? !edge_pclock : edge_pclock;
+
+We might want to add bits as well to describe whether polarities are inverted.
+
+This old RFC gives a good overview of the possible polarities:
+
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg09041.html
+
+Regards,
+
+	Hans
+
+> I personally like the Stanimir's proposal as the parameters to be negotiated
+> are pretty dynamic. Only the number of lanes could be problematic as not all
+> lanes might be routed across different boards. Perhaps we should consider specifying
+> an AUTO value for some negotiated parameters. Such as in case of an attribute that
+> need to be fixed on some boards or can be fully negotiated on others, a fixed
+> value or "auto" could be respectively set up in the host's platform_data. This could
+> be used to override some parameters in the host driver if needed.
+> 
+> IMHO, as long as we negotiate only dynamic parameters there should be no special
+> issues.
+> 
+> Regards,
+> Sylwester 
+> 
+> > about this if it wasn't for the fact that soc-camera doesn't do this but instead
+> > negotiates it. Obviously, it isn't a pleasant prospect having to change all that.
+> > 
+> > Normally this would be enough of an argument for me to just negotiate it. The
+> > reason that I don't want this in this particular case is that I know from
+> > personal experience that incorrect settings can be extremely hard to find.
+> > 
+> > I also think that there is a reasonable chance that such bugs can happen. Take
+> > a scenario like this: someone writes a new host driver. Initially there is only
+> > support for positive polarity and detection on the rising edge, because that's
+> > what the current board on which the driver was developed supports. This is quite
+> > typical for an initial version of a driver.
+> > 
+> > Later someone adds support for negative polarity and falling edge. Suddenly the
+> > polarity negotiation on the previous board results in negative instead of positive
+> > which was never tested. Now that board starts producing pixel errors every so
+> > often. And yes, this type of hardware problems do happen as I know from painful
+> > experience.
+> > 
+> > Problems like this are next to impossible to debug without the aid of an
+> > oscilloscope, so this isn't like most other bugs that are relatively easy to
+> > debug.
+> > 
+> > It is so much easier just to avoid this by putting it in platform data. It's
+> > simple, unambiguous and above all, unchanging.
+> > 
+> > Regards,
+> > 
+> > 	Hans
+> > 
+> >>
+> >> Thanks
+> >> Guennadi
+> >> ---
+> >> Guennadi Liakhovetski, Ph.D.
+> >> Freelance Open-Source Software Developer
+> >> http://www.open-technology.de/
+> >> --
+> >> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> >> the body of a message to majordomo@vger.kernel.org
+> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >>
+> > 
+> 
+> 
 
 -- 
-balbi
+Hans Verkuil - video4linux developer - sponsored by Cisco
