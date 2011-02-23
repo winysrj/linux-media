@@ -1,72 +1,123 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3650 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752135Ab1BDNTu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Feb 2011 08:19:50 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: [PATCH v8 05/12] media: Entity use count
-Date: Fri, 4 Feb 2011 14:19:19 +0100
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	alsa-devel@alsa-project.org, broonie@opensource.wolfsonmicro.com,
-	clemens@ladisch.de
-References: <1296131437-29954-1-git-send-email-laurent.pinchart@ideasonboard.com> <201102041122.03886.hverkuil@xs4all.nl> <4D4BF23A.1050800@maxwell.research.nokia.com>
-In-Reply-To: <4D4BF23A.1050800@maxwell.research.nokia.com>
+Received: from gelbbaer.kn-bremen.de ([78.46.108.116]:56378 "EHLO
+	smtp.kn-bremen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756082Ab1BWVwZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Feb 2011 16:52:25 -0500
+From: Juergen Lock <nox@jelal.kn-bremen.de>
+Date: Wed, 23 Feb 2011 22:40:39 +0100
+To: linux-media@vger.kernel.org
+Cc: steven.toth@me.com
+Subject: DVB header file license question
+Message-ID: <20110223214039.GA15646@triton8.kn-bremen.de>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201102041419.19916.hverkuil@xs4all.nl>
+Content-Type: multipart/mixed; boundary="lrZ03NoBR/3+SXJZ"
+Content-Disposition: inline
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Friday, February 04, 2011 13:34:02 Sakari Ailus wrote:
-> Hi,
-> 
-> And many thanks for the comments!
-> 
-> Hans Verkuil wrote:
-> ...
-> >> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> >> index b82f824..114541a 100644
-> >> --- a/include/media/media-entity.h
-> >> +++ b/include/media/media-entity.h
-> >> @@ -81,6 +81,8 @@ struct media_entity {
-> >>  	struct media_pad *pads;		/* Pads array (num_pads elements) */
-> >>  	struct media_link *links;	/* Links array (max_links elements)*/
-> >>  
-> >> +	int use_count;			/* Use count for the entity. */
-> > 
-> > Isn't unsigned better?
-> 
-> Could be. The result, though, will be slightly more difficult checking
-> for bad use count --- which always is a driver bug.
-> 
-> me->use_count += change;
-> WARN_ON(me->use_count < 0);
-> 
-> we must do something like this:
-> 
-> if (change < 0)
-> 	WARN_ON(me->use_count < (unsigned)-change);
-> me->use_count += change;
-> 
-> I'd perhaps also go with unsigned int; the choice for signed was made
-> mainly since the above check and with signed int the check was more trivial.
 
-I saw this WARN_ON as well. I think there is a good reason for that WARN_ON,
-but I think a comment in the header explaining why it is an int will be
-useful. If I trip over it, then others will as well :-)
+--lrZ03NoBR/3+SXJZ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Regards,
+Hi!
 
-	Hans
+ I hate license discussions as much as the next guy, but...  I have
+made patches to add DVB ioctl support to FreeBSD's Linux compatibility
+layer:
 
-> 
-> Regards,
-> 
-> 
+	http://people.freebsd.org/~nox/dvb/linux-dvb-2nd.patch
+	(for FreeBSD-current aka the head branch)
 
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+	http://people.freebsd.org/~nox/dvb/linux-dvb-2nd-8.patch
+	(for FreeBSD 8)
+
+and I was asked to request relicensing of the parts I took from
+<linux/dvb/frontend.h> under a BSD license.  That's
+src/sys/compat/linux/linux_dvb.h in the patches (also attached),
+basically I took the #define.s and structs for FE_[GS]ET_PROPERTY
+as those were the only ioctls needing 32/64 bit stuct size
+translations (other than some in osd.h and video.h that no drivers
+we use support.)
+
+ It seems those parts were authored by Steven Toth, so I added
+him to the Cc.
+
+ The same relicensing had been done for <linux/videodev.h> earlier
+(except that that file itself didn't have a license), and I see
+<linux/videodev2.h> is dual-licensed too, so I hope it can be done
+in this case too.
+
+ Thanx!
+	Juergen
+
+--lrZ03NoBR/3+SXJZ
+Content-Type: text/x-chdr; charset=us-ascii
+Content-Disposition: attachment; filename="linux_dvb.h"
+
+/*
+ * Extracted from <linux/dvb/frontend.h>, which is:
+ *
+ * Copyright (C) 2000 Marcus Metzler <marcus@convergence.de>
+ *		    Ralph  Metzler <ralph@convergence.de>
+ *		    Holger Waechtler <holger@convergence.de>
+ *		    Andre Draszik <ad@convergence.de>
+ *		    for convergence integrated media GmbH
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 2.1
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ */
+
+#ifndef __LINUX_DVB_H
+#define __LINUX_DVB_H
+
+#include <sys/types.h>
+
+struct dtv_property {
+	uint32_t cmd;
+	uint32_t reserved[3];
+	union {
+		uint32_t data;
+		struct {
+			uint8_t data[32];
+			uint32_t len;
+			uint32_t reserved1[3];
+			void *reserved2;
+		} buffer;
+	} u;
+	int result;
+} __attribute__ ((packed));
+
+/* num of properties cannot exceed DTV_IOCTL_MAX_MSGS per ioctl */
+#define DTV_IOCTL_MAX_MSGS 64
+
+struct dtv_properties {
+	uint32_t num;
+	struct dtv_property *props;
+};
+
+#define FE_SET_PROPERTY		   _IOW('o', 82, struct dtv_properties)
+/* 
+ * This is broken on linux as well but they workaround it in the driver.
+ * Since this is impossible to do on FreeBSD fix the header instead.
+ * Detailed and discussion :
+ * http://lists.freebsd.org/pipermail/freebsd-multimedia/2010-April/010958.html
+ */
+#define FE_GET_PROPERTY		   _IOW('o', 83, struct dtv_properties)
+
+#endif /*__LINUX_DVB_H*/
+
+--lrZ03NoBR/3+SXJZ--
