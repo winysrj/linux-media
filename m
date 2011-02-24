@@ -1,69 +1,79 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3132 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932427Ab1BYJyO (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:38863 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754769Ab1BXOje (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Feb 2011 04:54:14 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC PATCH v2 1/3] v4l2-ctrls: change the boolean type of V4L2_CID_FOCUS_AUTO to menu type
-Date: Fri, 25 Feb 2011 10:54:02 +0100
-Cc: riverful.kim@samsung.com,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
-References: <4D674A67.3000504@samsung.com> <201102251021.59847.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201102251021.59847.laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201102251054.02328.hverkuil@xs4all.nl>
+	Thu, 24 Feb 2011 09:39:34 -0500
+Date: Thu, 24 Feb 2011 15:33:54 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 7/7] s5p-fimc: Fix G_FMT ioctl handler
+In-reply-to: <1298558034-10768-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	kgene.kim@samsung.com, s.nawrocki@samsung.com
+Message-id: <1298558034-10768-8-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1298558034-10768-1-git-send-email-s.nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Friday, February 25, 2011 10:21:59 Laurent Pinchart wrote:
-> On Friday 25 February 2011 07:21:27 Kim, HeungJun wrote:
-> > Support more modes of autofocus, it changes the type of V4L2_CID_FOCUS_AUTO
-> > from boolean to menu. And it includes 4 kinds of enumeration types:
-> > 
-> > V4L2_FOCUS_AUTO, V4L2_FOCUS_MANUAL, V4L2_FOCUS_MACRO, V4L2_FOCUS_CONTINUOUS
-> > 
-> > Signed-off-by: Heungjun Kim <riverful.kim@samsung.com>
-> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> > ---
-> >  drivers/media/video/v4l2-ctrls.c |   11 ++++++++++-
-> >  include/linux/videodev2.h        |    6 ++++++
-> >  2 files changed, 16 insertions(+), 1 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/v4l2-ctrls.c
-> > b/drivers/media/video/v4l2-ctrls.c index 2412f08..0b1cce0 100644
-> > --- a/drivers/media/video/v4l2-ctrls.c
-> > +++ b/drivers/media/video/v4l2-ctrls.c
-> > @@ -197,6 +197,13 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
-> >  		"Aperture Priority Mode",
-> >  		NULL
-> >  	};
-> > +	static const char * const camera_focus_auto[] = {
-> > +		"Manual Mode",
-> > +		"Auto Mode",
-> > +		"Macro Mode",
-> > +		"Continuous Mode",
-> 
-> This might be nit-picking, but maybe the menu entries should be named "Manual 
-> Focus", "Auto Focus", "Macro Focus" and "Continuous Auto Focus". Hans ?
+Use pix_mp member of struct v4l2_format to return a format
+description rather than pix. Also fill in the plane_fmt array.
+This is a missing bit of conversion to the multiplanar API.
 
-Yes, that's better. Although I believe that it should be 'Macro Auto Focus',
-right?
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-fimc/fimc-core.c |   23 +++++++++++++++++++----
+ 1 files changed, 19 insertions(+), 4 deletions(-)
 
-But if we change this for 'focus' then we need to do the same for the auto
-exposure menu which currently also uses the term 'Mode'.
-
-Do you agree?
-
-Regards,
-
-	Hans
-
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+index 1ad9bc6..3e3b365 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.c
++++ b/drivers/media/video/s5p-fimc/fimc-core.c
+@@ -805,15 +805,29 @@ int fimc_vidioc_g_fmt_mplane(struct file *file, void *priv,
+ {
+ 	struct fimc_ctx *ctx = priv;
+ 	struct fimc_frame *frame;
++	struct v4l2_pix_format_mplane *pixm;
++	int i;
+ 
+ 	frame = ctx_get_frame(ctx, f->type);
+ 	if (IS_ERR(frame))
+ 		return PTR_ERR(frame);
+ 
+-	f->fmt.pix.width	= frame->width;
+-	f->fmt.pix.height	= frame->height;
+-	f->fmt.pix.field	= V4L2_FIELD_NONE;
+-	f->fmt.pix.pixelformat	= frame->fmt->fourcc;
++	pixm = &f->fmt.pix_mp;
++
++	pixm->width		= frame->width;
++	pixm->height		= frame->height;
++	pixm->field		= V4L2_FIELD_NONE;
++	pixm->pixelformat	= frame->fmt->fourcc;
++	pixm->colorspace	= V4L2_COLORSPACE_JPEG;
++	pixm->num_planes	= frame->fmt->memplanes;
++
++	for (i = 0; i < pixm->num_planes; ++i) {
++		pixm->plane_fmt[i].bytesperline = (frame->f_width *
++			frame->fmt->depth[i]) / 8;
++
++		pixm->plane_fmt[i].sizeimage =
++			pixm->plane_fmt[i].bytesperline * frame->height;
++	}
+ 
+ 	return 0;
+ }
+@@ -908,6 +922,7 @@ int fimc_vidioc_try_fmt_mplane(struct file *file, void *priv,
+ 		&pix->height, 8, variant->pix_limit->scaler_dis_w, mod_y, 0);
+ 
+ 	pix->num_planes = fmt->memplanes;
++	pix->colorspace	= V4L2_COLORSPACE_JPEG;
+ 
+ 	for (i = 0; i < pix->num_planes; ++i) {
+ 		int bpl = pix->plane_fmt[i].bytesperline;
 -- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+1.7.4.1
