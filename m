@@ -1,90 +1,186 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:54899 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752082Ab1BTJfc convert rfc822-to-8bit (ORCPT
+Received: from casper.infradead.org ([85.118.1.10]:50101 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753248Ab1BXMxO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Feb 2011 04:35:32 -0500
-Received: by wyb38 with SMTP id 38so230979wyb.19
-        for <linux-media@vger.kernel.org>; Sun, 20 Feb 2011 01:35:31 -0800 (PST)
+	Thu, 24 Feb 2011 07:53:14 -0500
+Message-ID: <4D6654B2.1080707@infradead.org>
+Date: Thu, 24 Feb 2011 09:53:06 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-In-Reply-To: <201102200947.19706.hverkuil@xs4all.nl>
-References: <1298133347-26796-1-git-send-email-dacohen@gmail.com>
-	<201102200947.19706.hverkuil@xs4all.nl>
-Date: Sun, 20 Feb 2011 11:35:30 +0200
-Message-ID: <AANLkTi=cW5RDsRQ3AfMhuAM=FMSvnmvxngGMxZHc3M2K@mail.gmail.com>
-Subject: Re: [RFC/PATCH 0/1] Get rid of V4L2 internal device interface usage
-From: David Cohen <dacohen@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, sakari.ailus@iki.fi
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: Jiri Slaby <jirislaby@gmail.com>
+CC: Jiri Slaby <jslaby@suse.cz>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Patrick Boettcher <pboettcher@kernellabs.com>
+Subject: Re: [PATCH 1/1] DVB-USB: dib0700, fix oops with non-dib7000pc devices
+References: <1296930047-22689-1-git-send-email-jslaby@suse.cz> <4D664DE5.7020002@gmail.com>
+In-Reply-To: <4D664DE5.7020002@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sun, Feb 20, 2011 at 10:47 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Hi David,
-
-Hi Hans,
-
->
-> On Saturday, February 19, 2011 17:35:46 David Cohen wrote:
->> Hi,
+Em 24-02-2011 09:24, Jiri Slaby escreveu:
+> Hmm, could anybody pick it up?
+> 
+> On 02/05/2011 07:20 PM, Jiri Slaby wrote:
+>> These devices use different internal structures (dib7000m) and
+>> dib7000p pid ctrl accesses invalid members causing kernel to die.
 >>
->> This is the first patch (set) version to remove V4L2 internal device interface.
->> I have converted tcm825x VGA sensor to V4L2 sub device interface. I removed
->> also some workarounds in the driver which doesn't fit anymore in its new
->> interface.
->
-> Very nice! It looks good. I noticed that you didn't convert it to the control
-> framework yet, but after looking at the controls I think that it is probably
-> better if I do that anyway. There are several private controls in this driver,
-> and I will need to take a good look at those.
+>> Introduce pid control functions for dib7000m which operate on the
+>> correct structure.
 
-Yes, to port to control fw is not part of this task yet. IMO there are
-plenty of missing tasks to let the driver in a good shape and it may
-need a very good rework. For now I'm focusing in remove v4l2 internal
-interface.
+Patrick (DibCom drivers maintainer) has proposed an alternate patch for it [1]
+that properly address the issues:
 
->
->> TODO:
->>  - Remove V4L2 int device interface from omap24xxcam driver.
->>  - Define a new interface to handle xclk. OMAP3 ISP could be used as base.
->>  - Use some base platform (probably N8X0) to add board code and test them.
->>  - Remove V4L2 int device. :)
->
-> It would be so nice to have that API removed :-)
+http://git.linuxtv.org/pb/media_tree.git?a=commitdiff;h=80a5f1fdc6beb496347cbb297f9c1458c8cb9f50
 
-Yes. :)
+[1] http://www.spinics.net/lists/linux-media/msg27890.html
 
-Br,
+Could you please test it?
 
-David
 
->
-> Regards,
->
->        Hans
->
 >>
->> Br,
+>> The oops it fixes:
+>> BUG: unable to handle kernel NULL pointer dereference at 0000000000000012
+>> IP: [<ffffffff813658a7>] i2c_transfer+0x17/0x140
+>> PGD 13dcbb067 PUD 13e3c9067 PMD 0
+>> Oops: 0000 [#1] PREEMPT SMP
+>> ...
+>> Modules linked in: ...
+>> Pid: 3511, comm: kaffeine Tainted: G   M       2.6.34.8-0.1-desktop #1 NITU1/20023
+>> RIP: 0010:[<ffffffff813658a7>]  [<ffffffff813658a7>] i2c_transfer+0x17/0x140
+>> RSP: 0018:ffff88011ce59bc8  EFLAGS: 00010292
+>> RAX: ffff88011ce59c38 RBX: 0000000000000002 RCX: 0000000000001cda
+>> RDX: 0000000000000002 RSI: ffff88011ce59c18 RDI: 0000000000000002
+>> ...
+>> CR2: 0000000000000012 CR3: 000000011ce53000 CR4: 00000000000406e0
+>> Process kaffeine (pid: 3511, threadinfo ffff88011ce58000, task ffff88009a40c700)
+>> Stack:
+>> ...
+>> Call Trace:
+>>  [<ffffffffa067a07f>] dib7000p_read_word+0x6f/0xd0 [dib7000p]
+>>  [<ffffffffa067bfa2>] dib7000p_pid_filter_ctrl+0x42/0xb0 [dib7000p]
+>>  [<ffffffffa0654221>] dvb_usb_ctrl_feed+0x151/0x170 [dvb_usb]
+>>  [<ffffffffa062270b>] dmx_ts_feed_start_filtering+0x5b/0xe0 [dvb_core]
+>> ...
+>> Code: a6 f9 ff 48 83 c4 18 c3 66 66 66 2e 0f 1f 84 00 00 00 00 00 41 57 41 56 41 89 d6 41 55 49 89 f5 41 54 55 53 48 89 fb 48 83 ec 18 <48> 8b 47 10 48 83 38 00 0f 84 c8 00 00 00 65 48 8b 04 25 40 b5
 >>
->> David
+>> Signed-off-by: Jiri Slaby <jslaby@suse.cz>
 >> ---
+>>  drivers/media/dvb/dvb-usb/dib0700_devices.c |   18 +++++++++++++++++-
+>>  drivers/media/dvb/frontends/dib7000m.c      |   19 +++++++++++++++++++
+>>  drivers/media/dvb/frontends/dib7000m.h      |   16 ++++++++++++++++
+>>  3 files changed, 52 insertions(+), 1 deletions(-)
 >>
->> David Cohen (1):
->>   tcm825x: convert driver to V4L2 sub device interface
->>
->>  drivers/media/video/tcm825x.c |  369 ++++++++++++-----------------------------
->>  drivers/media/video/tcm825x.h |    6 +-
->>  2 files changed, 109 insertions(+), 266 deletions(-)
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->>
->
-> --
-> Hans Verkuil - video4linux developer - sponsored by Cisco
->
+>> diff --git a/drivers/media/dvb/dvb-usb/dib0700_devices.c b/drivers/media/dvb/dvb-usb/dib0700_devices.c
+>> index c6022af..23fe0c3 100644
+>> --- a/drivers/media/dvb/dvb-usb/dib0700_devices.c
+>> +++ b/drivers/media/dvb/dvb-usb/dib0700_devices.c
+>> @@ -80,6 +80,9 @@ static struct dib3000mc_config bristol_dib3000mc_config[2] = {
+>>  	}
+>>  };
+>>  
+>> +static int stk70x0m_pid_filter(struct dvb_usb_adapter *adapter, int index, u16 pid, int onoff);
+>> +static int stk70x0m_pid_filter_ctrl(struct dvb_usb_adapter *adapter, int onoff);
+>> +
+>>  static int bristol_frontend_attach(struct dvb_usb_adapter *adap)
+>>  {
+>>  	struct dib0700_state *st = adap->dev->priv;
+>> @@ -686,8 +689,11 @@ static int stk7700p_frontend_attach(struct dvb_usb_adapter *adap)
+>>  	if (dib7000pc_detection(&adap->dev->i2c_adap)) {
+>>  		adap->fe = dvb_attach(dib7000p_attach, &adap->dev->i2c_adap, 18, &stk7700p_dib7000p_config);
+>>  		st->is_dib7000pc = 1;
+>> -	} else
+>> +	} else {
+>>  		adap->fe = dvb_attach(dib7000m_attach, &adap->dev->i2c_adap, 18, &stk7700p_dib7000m_config);
+>> +		adap->props.pid_filter = stk70x0m_pid_filter;
+>> +		adap->props.pid_filter_ctrl = stk70x0m_pid_filter_ctrl;
+>> +	}
+>>  
+>>  	return adap->fe == NULL ? -ENODEV : 0;
+>>  }
+>> @@ -882,6 +888,16 @@ static int stk70x0p_pid_filter_ctrl(struct dvb_usb_adapter *adapter, int onoff)
+>>      return dib7000p_pid_filter_ctrl(adapter->fe, onoff);
+>>  }
+>>  
+>> +static int stk70x0m_pid_filter(struct dvb_usb_adapter *adapter, int index, u16 pid, int onoff)
+>> +{
+>> +	return dib7000m_pid_filter(adapter->fe, index, pid, onoff);
+>> +}
+>> +
+>> +static int stk70x0m_pid_filter_ctrl(struct dvb_usb_adapter *adapter, int onoff)
+>> +{
+>> +	return dib7000m_pid_filter_ctrl(adapter->fe, onoff);
+>> +}
+>> +
+>>  static struct dibx000_bandwidth_config dib7070_bw_config_12_mhz = {
+>>  	60000, 15000,
+>>  	1, 20, 3, 1, 0,
+>> diff --git a/drivers/media/dvb/frontends/dib7000m.c b/drivers/media/dvb/frontends/dib7000m.c
+>> index c7f5ccf..90d9411 100644
+>> --- a/drivers/media/dvb/frontends/dib7000m.c
+>> +++ b/drivers/media/dvb/frontends/dib7000m.c
+>> @@ -1372,6 +1372,25 @@ error:
+>>  }
+>>  EXPORT_SYMBOL(dib7000m_attach);
+>>  
+>> +int dib7000m_pid_filter_ctrl(struct dvb_frontend *fe, u8 onoff)
+>> +{
+>> +	struct dib7000m_state *state = fe->demodulator_priv;
+>> +	u16 val = dib7000m_read_word(state, 235) & 0xffef;
+>> +	val |= (onoff & 0x1) << 4;
+>> +	dprintk("PID filter enabled %d", onoff);
+>> +	return dib7000m_write_word(state, 235, val);
+>> +}
+>> +EXPORT_SYMBOL(dib7000m_pid_filter_ctrl);
+>> +
+>> +int dib7000m_pid_filter(struct dvb_frontend *fe, u8 id, u16 pid, u8 onoff)
+>> +{
+>> +	struct dib7000m_state *state = fe->demodulator_priv;
+>> +	dprintk("PID filter: index %x, PID %d, OnOff %d", id, pid, onoff);
+>> +	return dib7000m_write_word(state, 241 + id,
+>> +			onoff ? (1 << 13) | pid : 0);
+>> +}
+>> +EXPORT_SYMBOL(dib7000m_pid_filter);
+>> +
+>>  static struct dvb_frontend_ops dib7000m_ops = {
+>>  	.info = {
+>>  		.name = "DiBcom 7000MA/MB/PA/PB/MC",
+>> diff --git a/drivers/media/dvb/frontends/dib7000m.h b/drivers/media/dvb/frontends/dib7000m.h
+>> index 113819c..3353f5a 100644
+>> --- a/drivers/media/dvb/frontends/dib7000m.h
+>> +++ b/drivers/media/dvb/frontends/dib7000m.h
+>> @@ -46,6 +46,8 @@ extern struct dvb_frontend *dib7000m_attach(struct i2c_adapter *i2c_adap,
+>>  extern struct i2c_adapter *dib7000m_get_i2c_master(struct dvb_frontend *,
+>>  						   enum dibx000_i2c_interface,
+>>  						   int);
+>> +extern int dib7000m_pid_filter(struct dvb_frontend *, u8 id, u16 pid, u8 onoff);
+>> +extern int dib7000m_pid_filter_ctrl(struct dvb_frontend *fe, u8 onoff);
+>>  #else
+>>  static inline
+>>  struct dvb_frontend *dib7000m_attach(struct i2c_adapter *i2c_adap,
+>> @@ -63,6 +65,20 @@ struct i2c_adapter *dib7000m_get_i2c_master(struct dvb_frontend *demod,
+>>  	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
+>>  	return NULL;
+>>  }
+>> +
+>> +static inline int dib7000m_pid_filter(struct dvb_frontend *fe, u8 id, u16 pid,
+>> +		u8 onoff)
+>> +{
+>> +	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
+>> +	return -ENODEV;
+>> +}
+>> +
+>> +static inline int dib7000m_pid_filter_ctrl(struct dvb_frontend *fe,
+>> +		uint8_t onoff)
+>> +{
+>> +	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
+>> +	return -ENODEV;
+>> +}
+>>  #endif
+>>  
+>>  /* TODO
+> 
+> 
+
