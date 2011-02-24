@@ -1,375 +1,51 @@
 Return-path: <mchehab@pedra>
-Received: from LUNGE.MIT.EDU ([18.54.1.69]:46732 "EHLO lunge.queued.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756047Ab1BLCKP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Feb 2011 21:10:15 -0500
-Date: Fri, 11 Feb 2011 18:10:06 -0800
-From: Andres Salomon <dilinger@queued.net>
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: linux-kernel@vger.kernel.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Peter Korsgaard <jacmet@sunsite.dk>, <khali@linux-fr.org>,
-	<ben-linux@fluff.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	David Brownell <dbrownell@users.sourceforge.net>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	"David S. Miller" <davem@davemloft.net>, linux-i2c@vger.kernel.org,
-	linux-media@vger.kernel.org, netdev@vger.kernel.org,
-	spi-devel-general@lists.sourceforge.net
-Subject: [PATCH 08/17] timberdale: mfd_cell is now implicitly available to
- drivers
-Message-ID: <20110211181006.70b88dc6@queued.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:57843 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751056Ab1BXVrm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Feb 2011 16:47:42 -0500
+Received: by vxi39 with SMTP id 39so860221vxi.19
+        for <linux-media@vger.kernel.org>; Thu, 24 Feb 2011 13:47:42 -0800 (PST)
+MIME-Version: 1.0
+From: Christian Gmeiner <christian.gmeiner@gmail.com>
+Date: Thu, 24 Feb 2011 22:47:21 +0100
+Message-ID: <AANLkTimN9Acw2hE3p8T6U6RxgXi1HRcypKB2Uqg8V7oa@mail.gmail.com>
+Subject: V4L2_CAP_VIDEO_OUTPUT and videobuf[1/2] & adv7175 mediabus
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+Hi all,
 
-The cell's platform_data is now accessed with a helper function;
-change clients to use that, and remove the now-unused data_size.
+I jumped into the cold water and I am trying to convert the
+dxr3/em8300 driver to the v4l2 api. I got some parts already working,
+but I think
+that the hardest parts are still missing. As you might think... yes I
+have some questions :)
 
-Note that the mfd's platform_data is marked __devinitdata.  This
-is still correct in all cases except for the timbgpio driver, whose
-remove hook has been changed to no longer reference the pdata.
+1) The dxr3 has a hardware fifo, which is used to play content. Can I
+reuse videbuf1 or videbuf2 to manage the fifo? Are these
+the frameworks designed to support output devices - write operation to
+the device?
 
-Signed-off-by: Andres Salomon <dilinger@queued.net>
----
- drivers/dma/timb_dma.c           |    2 +-
- drivers/gpio/timbgpio.c          |    5 ++---
- drivers/i2c/busses/i2c-ocores.c  |    2 +-
- drivers/i2c/busses/i2c-xiic.c    |    2 +-
- drivers/media/radio/radio-timb.c |    2 +-
- drivers/media/video/timblogiw.c  |    2 +-
- drivers/mfd/timberdale.c         |   27 ---------------------------
- drivers/net/ks8842.c             |    2 +-
- drivers/spi/xilinx_spi.c         |    2 +-
- 9 files changed, 9 insertions(+), 37 deletions(-)
+Here you can find the current fifo impl.
+https://github.com/austriancoder/v4l2-em8300/blob/master/modules/em8300_fifo.c
 
-diff --git a/drivers/dma/timb_dma.c b/drivers/dma/timb_dma.c
-index 3b88a4e..77bc4c2 100644
---- a/drivers/dma/timb_dma.c
-+++ b/drivers/dma/timb_dma.c
-@@ -684,7 +684,7 @@ static irqreturn_t td_irq(int irq, void *devid)
- 
- static int __devinit td_probe(struct platform_device *pdev)
- {
--	struct timb_dma_platform_data *pdata = pdev->dev.platform_data;
-+	struct timb_dma_platform_data *pdata = mfd_get_data(pdev);
- 	struct timb_dma *td;
- 	struct resource *iomem;
- 	int irq;
-diff --git a/drivers/gpio/timbgpio.c b/drivers/gpio/timbgpio.c
-index 58c8f30..63527b8 100644
---- a/drivers/gpio/timbgpio.c
-+++ b/drivers/gpio/timbgpio.c
-@@ -228,7 +228,7 @@ static int __devinit timbgpio_probe(struct platform_device *pdev)
- 	struct gpio_chip *gc;
- 	struct timbgpio *tgpio;
- 	struct resource *iomem;
--	struct timbgpio_platform_data *pdata = pdev->dev.platform_data;
-+	struct timbgpio_platform_data *pdata = mfd_get_data(pdev);
- 	int irq = platform_get_irq(pdev, 0);
- 
- 	if (!pdata || pdata->nr_pins > 32) {
-@@ -319,14 +319,13 @@ err_mem:
- static int __devexit timbgpio_remove(struct platform_device *pdev)
- {
- 	int err;
--	struct timbgpio_platform_data *pdata = pdev->dev.platform_data;
- 	struct timbgpio *tgpio = platform_get_drvdata(pdev);
- 	struct resource *iomem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	int irq = platform_get_irq(pdev, 0);
- 
- 	if (irq >= 0 && tgpio->irq_base > 0) {
- 		int i;
--		for (i = 0; i < pdata->nr_pins; i++) {
-+		for (i = 0; i < tgpio->gpio.ngpio; i++) {
- 			set_irq_chip(tgpio->irq_base + i, NULL);
- 			set_irq_chip_data(tgpio->irq_base + i, NULL);
- 		}
-diff --git a/drivers/i2c/busses/i2c-ocores.c b/drivers/i2c/busses/i2c-ocores.c
-index ef3bcb1..4b7dbc3 100644
---- a/drivers/i2c/busses/i2c-ocores.c
-+++ b/drivers/i2c/busses/i2c-ocores.c
-@@ -305,7 +305,7 @@ static int __devinit ocores_i2c_probe(struct platform_device *pdev)
- 		return -EIO;
- 	}
- 
--	pdata = pdev->dev.platform_data;
-+	pdata = mfd_get_data(pdev);
- 	if (pdata) {
- 		i2c->regstep = pdata->regstep;
- 		i2c->clock_khz = pdata->clock_khz;
-diff --git a/drivers/i2c/busses/i2c-xiic.c b/drivers/i2c/busses/i2c-xiic.c
-index a9c419e..f3299bb 100644
---- a/drivers/i2c/busses/i2c-xiic.c
-+++ b/drivers/i2c/busses/i2c-xiic.c
-@@ -704,7 +704,7 @@ static int __devinit xiic_i2c_probe(struct platform_device *pdev)
- 	if (irq < 0)
- 		goto resource_missing;
- 
--	pdata = (struct xiic_i2c_platform_data *) pdev->dev.platform_data;
-+	pdata = mfd_get_data(pdev);
- 	if (!pdata)
- 		return -EINVAL;
- 
-diff --git a/drivers/media/radio/radio-timb.c b/drivers/media/radio/radio-timb.c
-index a185610..d7ba57f 100644
---- a/drivers/media/radio/radio-timb.c
-+++ b/drivers/media/radio/radio-timb.c
-@@ -148,7 +148,7 @@ static const struct v4l2_file_operations timbradio_fops = {
- 
- static int __devinit timbradio_probe(struct platform_device *pdev)
- {
--	struct timb_radio_platform_data *pdata = pdev->dev.platform_data;
-+	struct timb_radio_platform_data *pdata = mfd_get_data(pdev);
- 	struct timbradio *tr;
- 	int err;
- 
-diff --git a/drivers/media/video/timblogiw.c b/drivers/media/video/timblogiw.c
-index fc611eb..5e9ca25 100644
---- a/drivers/media/video/timblogiw.c
-+++ b/drivers/media/video/timblogiw.c
-@@ -790,7 +790,7 @@ static int __devinit timblogiw_probe(struct platform_device *pdev)
- {
- 	int err;
- 	struct timblogiw *lw = NULL;
--	struct timb_video_platform_data *pdata = pdev->dev.platform_data;
-+	struct timb_video_platform_data *pdata = mfd_get_data(pdev);
- 
- 	if (!pdata) {
- 		dev_err(&pdev->dev, "No platform data\n");
-diff --git a/drivers/mfd/timberdale.c b/drivers/mfd/timberdale.c
-index 6ad8a7f..6353921 100644
---- a/drivers/mfd/timberdale.c
-+++ b/drivers/mfd/timberdale.c
-@@ -385,7 +385,6 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg0[] = {
- 		.num_resources = ARRAY_SIZE(timberdale_dma_resources),
- 		.resources = timberdale_dma_resources,
- 		.platform_data = &timb_dma_platform_data,
--		.data_size = sizeof(timb_dma_platform_data),
- 	},
- 	{
- 		.name = "timb-uart",
-@@ -397,42 +396,36 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg0[] = {
- 		.num_resources = ARRAY_SIZE(timberdale_xiic_resources),
- 		.resources = timberdale_xiic_resources,
- 		.platform_data = &timberdale_xiic_platform_data,
--		.data_size = sizeof(timberdale_xiic_platform_data),
- 	},
- 	{
- 		.name = "timb-gpio",
- 		.num_resources = ARRAY_SIZE(timberdale_gpio_resources),
- 		.resources = timberdale_gpio_resources,
- 		.platform_data = &timberdale_gpio_platform_data,
--		.data_size = sizeof(timberdale_gpio_platform_data),
- 	},
- 	{
- 		.name = "timb-video",
- 		.num_resources = ARRAY_SIZE(timberdale_video_resources),
- 		.resources = timberdale_video_resources,
- 		.platform_data = &timberdale_video_platform_data,
--		.data_size = sizeof(timberdale_video_platform_data),
- 	},
- 	{
- 		.name = "timb-radio",
- 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
- 		.resources = timberdale_radio_resources,
- 		.platform_data = &timberdale_radio_platform_data,
--		.data_size = sizeof(timberdale_radio_platform_data),
- 	},
- 	{
- 		.name = "xilinx_spi",
- 		.num_resources = ARRAY_SIZE(timberdale_spi_resources),
- 		.resources = timberdale_spi_resources,
- 		.platform_data = &timberdale_xspi_platform_data,
--		.data_size = sizeof(timberdale_xspi_platform_data),
- 	},
- 	{
- 		.name = "ks8842",
- 		.num_resources = ARRAY_SIZE(timberdale_eth_resources),
- 		.resources = timberdale_eth_resources,
- 		.platform_data = &timberdale_ks8842_platform_data,
--		.data_size = sizeof(timberdale_ks8842_platform_data)
- 	},
- };
- 
-@@ -442,7 +435,6 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg1[] = {
- 		.num_resources = ARRAY_SIZE(timberdale_dma_resources),
- 		.resources = timberdale_dma_resources,
- 		.platform_data = &timb_dma_platform_data,
--		.data_size = sizeof(timb_dma_platform_data),
- 	},
- 	{
- 		.name = "timb-uart",
-@@ -459,14 +451,12 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg1[] = {
- 		.num_resources = ARRAY_SIZE(timberdale_xiic_resources),
- 		.resources = timberdale_xiic_resources,
- 		.platform_data = &timberdale_xiic_platform_data,
--		.data_size = sizeof(timberdale_xiic_platform_data),
- 	},
- 	{
- 		.name = "timb-gpio",
- 		.num_resources = ARRAY_SIZE(timberdale_gpio_resources),
- 		.resources = timberdale_gpio_resources,
- 		.platform_data = &timberdale_gpio_platform_data,
--		.data_size = sizeof(timberdale_gpio_platform_data),
- 	},
- 	{
- 		.name = "timb-mlogicore",
-@@ -478,28 +468,24 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg1[] = {
- 		.num_resources = ARRAY_SIZE(timberdale_video_resources),
- 		.resources = timberdale_video_resources,
- 		.platform_data = &timberdale_video_platform_data,
--		.data_size = sizeof(timberdale_video_platform_data),
- 	},
- 	{
- 		.name = "timb-radio",
- 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
- 		.resources = timberdale_radio_resources,
- 		.platform_data = &timberdale_radio_platform_data,
--		.data_size = sizeof(timberdale_radio_platform_data),
- 	},
- 	{
- 		.name = "xilinx_spi",
- 		.num_resources = ARRAY_SIZE(timberdale_spi_resources),
- 		.resources = timberdale_spi_resources,
- 		.platform_data = &timberdale_xspi_platform_data,
--		.data_size = sizeof(timberdale_xspi_platform_data),
- 	},
- 	{
- 		.name = "ks8842",
- 		.num_resources = ARRAY_SIZE(timberdale_eth_resources),
- 		.resources = timberdale_eth_resources,
- 		.platform_data = &timberdale_ks8842_platform_data,
--		.data_size = sizeof(timberdale_ks8842_platform_data)
- 	},
- };
- 
-@@ -509,7 +495,6 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg2[] = {
- 		.num_resources = ARRAY_SIZE(timberdale_dma_resources),
- 		.resources = timberdale_dma_resources,
- 		.platform_data = &timb_dma_platform_data,
--		.data_size = sizeof(timb_dma_platform_data),
- 	},
- 	{
- 		.name = "timb-uart",
-@@ -521,35 +506,30 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg2[] = {
- 		.num_resources = ARRAY_SIZE(timberdale_xiic_resources),
- 		.resources = timberdale_xiic_resources,
- 		.platform_data = &timberdale_xiic_platform_data,
--		.data_size = sizeof(timberdale_xiic_platform_data),
- 	},
- 	{
- 		.name = "timb-gpio",
- 		.num_resources = ARRAY_SIZE(timberdale_gpio_resources),
- 		.resources = timberdale_gpio_resources,
- 		.platform_data = &timberdale_gpio_platform_data,
--		.data_size = sizeof(timberdale_gpio_platform_data),
- 	},
- 	{
- 		.name = "timb-video",
- 		.num_resources = ARRAY_SIZE(timberdale_video_resources),
- 		.resources = timberdale_video_resources,
- 		.platform_data = &timberdale_video_platform_data,
--		.data_size = sizeof(timberdale_video_platform_data),
- 	},
- 	{
- 		.name = "timb-radio",
- 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
- 		.resources = timberdale_radio_resources,
- 		.platform_data = &timberdale_radio_platform_data,
--		.data_size = sizeof(timberdale_radio_platform_data),
- 	},
- 	{
- 		.name = "xilinx_spi",
- 		.num_resources = ARRAY_SIZE(timberdale_spi_resources),
- 		.resources = timberdale_spi_resources,
- 		.platform_data = &timberdale_xspi_platform_data,
--		.data_size = sizeof(timberdale_xspi_platform_data),
- 	},
- };
- 
-@@ -559,7 +539,6 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg3[] = {
- 		.num_resources = ARRAY_SIZE(timberdale_dma_resources),
- 		.resources = timberdale_dma_resources,
- 		.platform_data = &timb_dma_platform_data,
--		.data_size = sizeof(timb_dma_platform_data),
- 	},
- 	{
- 		.name = "timb-uart",
-@@ -571,42 +550,36 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg3[] = {
- 		.num_resources = ARRAY_SIZE(timberdale_ocores_resources),
- 		.resources = timberdale_ocores_resources,
- 		.platform_data = &timberdale_ocores_platform_data,
--		.data_size = sizeof(timberdale_ocores_platform_data),
- 	},
- 	{
- 		.name = "timb-gpio",
- 		.num_resources = ARRAY_SIZE(timberdale_gpio_resources),
- 		.resources = timberdale_gpio_resources,
- 		.platform_data = &timberdale_gpio_platform_data,
--		.data_size = sizeof(timberdale_gpio_platform_data),
- 	},
- 	{
- 		.name = "timb-video",
- 		.num_resources = ARRAY_SIZE(timberdale_video_resources),
- 		.resources = timberdale_video_resources,
- 		.platform_data = &timberdale_video_platform_data,
--		.data_size = sizeof(timberdale_video_platform_data),
- 	},
- 	{
- 		.name = "timb-radio",
- 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
- 		.resources = timberdale_radio_resources,
- 		.platform_data = &timberdale_radio_platform_data,
--		.data_size = sizeof(timberdale_radio_platform_data),
- 	},
- 	{
- 		.name = "xilinx_spi",
- 		.num_resources = ARRAY_SIZE(timberdale_spi_resources),
- 		.resources = timberdale_spi_resources,
- 		.platform_data = &timberdale_xspi_platform_data,
--		.data_size = sizeof(timberdale_xspi_platform_data),
- 	},
- 	{
- 		.name = "ks8842",
- 		.num_resources = ARRAY_SIZE(timberdale_eth_resources),
- 		.resources = timberdale_eth_resources,
- 		.platform_data = &timberdale_ks8842_platform_data,
--		.data_size = sizeof(timberdale_ks8842_platform_data)
- 	},
- };
- 
-diff --git a/drivers/net/ks8842.c b/drivers/net/ks8842.c
-index 928b2b8..58e16b4 100644
---- a/drivers/net/ks8842.c
-+++ b/drivers/net/ks8842.c
-@@ -1145,7 +1145,7 @@ static int __devinit ks8842_probe(struct platform_device *pdev)
- 	struct resource *iomem;
- 	struct net_device *netdev;
- 	struct ks8842_adapter *adapter;
--	struct ks8842_platform_data *pdata = pdev->dev.platform_data;
-+	struct ks8842_platform_data *pdata = mfd_get_data(pdev);
- 	u16 id;
- 	unsigned i;
- 
-diff --git a/drivers/spi/xilinx_spi.c b/drivers/spi/xilinx_spi.c
-index 7adaef6..401d97d 100644
---- a/drivers/spi/xilinx_spi.c
-+++ b/drivers/spi/xilinx_spi.c
-@@ -474,7 +474,7 @@ static int __devinit xilinx_spi_probe(struct platform_device *dev)
- 	struct spi_master *master;
- 	u8 i;
- 
--	pdata = dev->dev.platform_data;
-+	pdata = mfd_get_data(dev);
- 	if (pdata) {
- 		num_cs = pdata->num_chipselect;
- 		little_endian = pdata->little_endian;
--- 
-1.7.2.3
+2) The adv7175 chip support to different input data types:
 
+Video Input Data Port Supports:
+CCIR-656 4:2:2 8-Bit Parallel Input Format
+4:2:2 16-Bit Parallel Input Format
+
+See http://dxr3.sourceforge.net/download/hardware/ADV7175A_6A.pdf for
+more details about the chip.
+
+Now I thought that I should use the v4l2-mediabus api for that, but I
+am not sure what pixel codes (V4L2_MBUS_FMT...)
+should be used for CCIR-656 4:2:2 8-Bit and CCIR-656 4:2:2 16-Bit.
+
+
+thanks
+--
+Christian Gmeiner, MSc
