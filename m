@@ -1,278 +1,517 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.171]:49288 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753968Ab1BDJhh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Feb 2011 04:37:37 -0500
-Date: Fri, 4 Feb 2011 10:37:33 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Markus Niebel <list-09_linux_media@tqsc.de>
-cc: Anatolij Gustschin <agust@denx.de>, linux-media@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	Dan Williams <dan.j.williams@intel.com>,
-	Detlev Zundel <dzu@denx.de>,
-	Markus Niebel <Markus.Niebel@tqs.de>
-Subject: Re: [PATCH 2/2 v2] dma: ipu_idmac: do not lose valid received data
- in the irq handler
-In-Reply-To: <4D4BC4A7.2070905@tqsc.de>
-Message-ID: <Pine.LNX.4.64.1102041035250.14717@axis700.grange>
-References: <1296031789-1721-3-git-send-email-agust@denx.de>
- <1296476549-10421-1-git-send-email-agust@denx.de>
- <Pine.LNX.4.64.1102031104090.21719@axis700.grange> <4D4BC4A7.2070905@tqsc.de>
+Received: from casper.infradead.org ([85.118.1.10]:48925 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755851Ab1BXTEV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Feb 2011 14:04:21 -0500
+Message-ID: <4D66ABAF.5020908@infradead.org>
+Date: Thu, 24 Feb 2011 16:04:15 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: "Igor M. Liplianin" <liplianin@me.by>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 5/9 v2] ds3000: clean up in tune procedure
+References: <201102020040.49656.liplianin@me.by>
+In-Reply-To: <201102020040.49656.liplianin@me.by>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Markus
+Hi Igor,
 
-On Fri, 4 Feb 2011, Markus Niebel wrote:
+Em 01-02-2011 20:40, Igor M. Liplianin escreveu:
+> Variable 'retune' does not make sense.
+> Loop is not needed for only one try.
+> Remove unnecessary dprintk's.
+> 
+> Signed-off-by: Igor M. Liplianin <liplianin@me.by>
 
-> Hello Guennadi, hello Anatolij
-> 
-> I've tried that with my setup:
-> 
-> Hardware: i.MX35, special CCD camera over FPGA
-> Kernel: 2.6.34
-> 
-> patch v4l: soc-camera: start stream after queueing the buffers is applied and
-> our camera driver handles streamon / streamoff so that no sync signal / clock
-> is provided, when not streaming.
-> 
-> Our setup works with 4 buffers
-> 
-> What we see is as we would expect plus no difference with 1st buffer:
+This patch didn't apply. Please fix and resend.
 
-But you haven't applied the patch, that my reply was actually referring to 
-- the change to ipu_idmac.c? I think, that's the one, killing the 
-double-buffering. But thanks for testing the streamon patch too!
+Thanks!
+Mauro.
 
-Thanks
-Guennadi
+> ---
+>  drivers/media/dvb/frontends/ds3000.c |  442 +++++++++++++++++-----------------
+>  1 files changed, 216 insertions(+), 226 deletions(-)
+> 
+> diff --git a/drivers/media/dvb/frontends/ds3000.c b/drivers/media/dvb/frontends/ds3000.c
+> index 3373890..7c61936 100644
+> --- a/drivers/media/dvb/frontends/ds3000.c
+> +++ b/drivers/media/dvb/frontends/ds3000.c
+> @@ -1049,7 +1049,7 @@ static int ds3000_tune(struct dvb_frontend *fe,
+>  	struct ds3000_state *state = fe->demodulator_priv;
+>  	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+>  
+> -	int ret = 0, retune, i;
+> +	int ret = 0, i;
+>  	u8 status, mlpf, mlpf_new, mlpf_max, mlpf_min, nlpf;
+>  	u16 value, ndiv;
+>  	u32 f3db;
+> @@ -1072,249 +1072,239 @@ static int ds3000_tune(struct dvb_frontend *fe,
+>  	/* discard the 'current' tuning parameters and prepare to tune */
+>  	ds3000_clone_params(fe);
+>  
+> -	retune = 1;	/* try 1 times */
+> -	dprintk("%s:   retune = %d\n", __func__, retune);
+> -	dprintk("%s:   frequency   = %d\n", __func__, state->dcur.frequency);
+> -	dprintk("%s:   symbol_rate = %d\n", __func__, state->dcur.symbol_rate);
+> -	dprintk("%s:   FEC	 = %d \n", __func__,
+> -		state->dcur.fec);
+> -	dprintk("%s:   Inversion   = %d\n", __func__, state->dcur.inversion);
+> -
+> -	do {
+> -		/* Reset status register */
+> -		status = 0;
+> -		/* Tune */
+> -		/* unknown */
+> -		ds3000_tuner_writereg(state, 0x07, 0x02);
+> -		ds3000_tuner_writereg(state, 0x10, 0x00);
+> -		ds3000_tuner_writereg(state, 0x60, 0x79);
+> -		ds3000_tuner_writereg(state, 0x08, 0x01);
+> -		ds3000_tuner_writereg(state, 0x00, 0x01);
+> -		/* calculate and set freq divider */
+> -		if (state->dcur.frequency < 1146000) {
+> -			ds3000_tuner_writereg(state, 0x10, 0x11);
+> -			ndiv = ((state->dcur.frequency * (6 + 8) * 4) +
+> -					(DS3000_XTAL_FREQ / 2)) /
+> -					DS3000_XTAL_FREQ - 1024;
+> -		} else {
+> -			ds3000_tuner_writereg(state, 0x10, 0x01);
+> -			ndiv = ((state->dcur.frequency * (6 + 8) * 2) +
+> -					(DS3000_XTAL_FREQ / 2)) /
+> -					DS3000_XTAL_FREQ - 1024;
+> -		}
+> +	/* Reset status register */
+> +	status = 0;
+> +	/* Tune */
+> +	/* unknown */
+> +	ds3000_tuner_writereg(state, 0x07, 0x02);
+> +	ds3000_tuner_writereg(state, 0x10, 0x00);
+> +	ds3000_tuner_writereg(state, 0x60, 0x79);
+> +	ds3000_tuner_writereg(state, 0x08, 0x01);
+> +	ds3000_tuner_writereg(state, 0x00, 0x01);
+> +	/* calculate and set freq divider */
+> +	if (state->dcur.frequency < 1146000) {
+> +		ds3000_tuner_writereg(state, 0x10, 0x11);
+> +		ndiv = ((state->dcur.frequency * (6 + 8) * 4) +
+> +				(DS3000_XTAL_FREQ / 2)) /
+> +				DS3000_XTAL_FREQ - 1024;
+> +	} else {
+> +		ds3000_tuner_writereg(state, 0x10, 0x01);
+> +		ndiv = ((state->dcur.frequency * (6 + 8) * 2) +
+> +				(DS3000_XTAL_FREQ / 2)) /
+> +				DS3000_XTAL_FREQ - 1024;
+> +	}
+>  
+> -		ds3000_tuner_writereg(state, 0x01, (ndiv & 0x0f00) >> 8);
+> -		ds3000_tuner_writereg(state, 0x02, ndiv & 0x00ff);
+> -
+> -		/* set pll */
+> -		ds3000_tuner_writereg(state, 0x03, 0x06);
+> -		ds3000_tuner_writereg(state, 0x51, 0x0f);
+> -		ds3000_tuner_writereg(state, 0x51, 0x1f);
+> -		ds3000_tuner_writereg(state, 0x50, 0x10);
+> -		ds3000_tuner_writereg(state, 0x50, 0x00);
+> -		msleep(5);
+> -
+> -		/* unknown */
+> -		ds3000_tuner_writereg(state, 0x51, 0x17);
+> -		ds3000_tuner_writereg(state, 0x51, 0x1f);
+> -		ds3000_tuner_writereg(state, 0x50, 0x08);
+> -		ds3000_tuner_writereg(state, 0x50, 0x00);
+> -		msleep(5);
+> -
+> -		value = ds3000_tuner_readreg(state, 0x3d);
+> -		value &= 0x0f;
+> -		if ((value > 4) && (value < 15)) {
+> -			value -= 3;
+> -			if (value < 4)
+> -				value = 4;
+> -			value = ((value << 3) | 0x01) & 0x79;
+> -		}
+> +	ds3000_tuner_writereg(state, 0x01, (ndiv & 0x0f00) >> 8);
+> +	ds3000_tuner_writereg(state, 0x02, ndiv & 0x00ff);
+> +
+> +	/* set pll */
+> +	ds3000_tuner_writereg(state, 0x03, 0x06);
+> +	ds3000_tuner_writereg(state, 0x51, 0x0f);
+> +	ds3000_tuner_writereg(state, 0x51, 0x1f);
+> +	ds3000_tuner_writereg(state, 0x50, 0x10);
+> +	ds3000_tuner_writereg(state, 0x50, 0x00);
+> +	msleep(5);
+> +
+> +	/* unknown */
+> +	ds3000_tuner_writereg(state, 0x51, 0x17);
+> +	ds3000_tuner_writereg(state, 0x51, 0x1f);
+> +	ds3000_tuner_writereg(state, 0x50, 0x08);
+> +	ds3000_tuner_writereg(state, 0x50, 0x00);
+> +	msleep(5);
+> +
+> +	value = ds3000_tuner_readreg(state, 0x3d);
+> +	value &= 0x0f;
+> +	if ((value > 4) && (value < 15)) {
+> +		value -= 3;
+> +		if (value < 4)
+> +			value = 4;
+> +		value = ((value << 3) | 0x01) & 0x79;
+> +	}
+>  
+> -		ds3000_tuner_writereg(state, 0x60, value);
+> -		ds3000_tuner_writereg(state, 0x51, 0x17);
+> -		ds3000_tuner_writereg(state, 0x51, 0x1f);
+> -		ds3000_tuner_writereg(state, 0x50, 0x08);
+> -		ds3000_tuner_writereg(state, 0x50, 0x00);
+> -
+> -		/* set low-pass filter period */
+> -		ds3000_tuner_writereg(state, 0x04, 0x2e);
+> -		ds3000_tuner_writereg(state, 0x51, 0x1b);
+> -		ds3000_tuner_writereg(state, 0x51, 0x1f);
+> -		ds3000_tuner_writereg(state, 0x50, 0x04);
+> -		ds3000_tuner_writereg(state, 0x50, 0x00);
+> -		msleep(5);
+> -
+> -		f3db = ((state->dcur.symbol_rate / 1000) << 2) / 5 + 2000;
+> -		if ((state->dcur.symbol_rate / 1000) < 5000)
+> -			f3db += 3000;
+> -		if (f3db < 7000)
+> -			f3db = 7000;
+> -		if (f3db > 40000)
+> -			f3db = 40000;
+> -
+> -		/* set low-pass filter baseband */
+> -		value = ds3000_tuner_readreg(state, 0x26);
+> -		mlpf = 0x2e * 207 / ((value << 1) + 151);
+> -		mlpf_max = mlpf * 135 / 100;
+> -		mlpf_min = mlpf * 78 / 100;
+> -		if (mlpf_max > 63)
+> -			mlpf_max = 63;
+> -
+> -		/* rounded to the closest integer */
+> -		nlpf = ((mlpf * f3db * 1000) + (2766 * DS3000_XTAL_FREQ / 2))
+> -				/ (2766 * DS3000_XTAL_FREQ);
+> -		if (nlpf > 23)
+> -			nlpf = 23;
+> -		if (nlpf < 1)
+> -			nlpf = 1;
+> -
+> -		/* rounded to the closest integer */
+> +	ds3000_tuner_writereg(state, 0x60, value);
+> +	ds3000_tuner_writereg(state, 0x51, 0x17);
+> +	ds3000_tuner_writereg(state, 0x51, 0x1f);
+> +	ds3000_tuner_writereg(state, 0x50, 0x08);
+> +	ds3000_tuner_writereg(state, 0x50, 0x00);
+> +
+> +	/* set low-pass filter period */
+> +	ds3000_tuner_writereg(state, 0x04, 0x2e);
+> +	ds3000_tuner_writereg(state, 0x51, 0x1b);
+> +	ds3000_tuner_writereg(state, 0x51, 0x1f);
+> +	ds3000_tuner_writereg(state, 0x50, 0x04);
+> +	ds3000_tuner_writereg(state, 0x50, 0x00);
+> +	msleep(5);
+> +
+> +	f3db = ((state->dcur.symbol_rate / 1000) << 2) / 5 + 2000;
+> +	if ((state->dcur.symbol_rate / 1000) < 5000)
+> +		f3db += 3000;
+> +	if (f3db < 7000)
+> +		f3db = 7000;
+> +	if (f3db > 40000)
+> +		f3db = 40000;
+> +
+> +	/* set low-pass filter baseband */
+> +	value = ds3000_tuner_readreg(state, 0x26);
+> +	mlpf = 0x2e * 207 / ((value << 1) + 151);
+> +	mlpf_max = mlpf * 135 / 100;
+> +	mlpf_min = mlpf * 78 / 100;
+> +	if (mlpf_max > 63)
+> +		mlpf_max = 63;
+> +
+> +	/* rounded to the closest integer */
+> +	nlpf = ((mlpf * f3db * 1000) + (2766 * DS3000_XTAL_FREQ / 2))
+> +			/ (2766 * DS3000_XTAL_FREQ);
+> +	if (nlpf > 23)
+> +		nlpf = 23;
+> +	if (nlpf < 1)
+> +		nlpf = 1;
+> +
+> +	/* rounded to the closest integer */
+> +	mlpf_new = ((DS3000_XTAL_FREQ * nlpf * 2766) +
+> +			(1000 * f3db / 2)) / (1000 * f3db);
+> +
+> +	if (mlpf_new < mlpf_min) {
+> +		nlpf++;
+>  		mlpf_new = ((DS3000_XTAL_FREQ * nlpf * 2766) +
+>  				(1000 * f3db / 2)) / (1000 * f3db);
+> +	}
+>  
+> -		if (mlpf_new < mlpf_min) {
+> -			nlpf++;
+> -			mlpf_new = ((DS3000_XTAL_FREQ * nlpf * 2766) +
+> -					(1000 * f3db / 2)) / (1000 * f3db);
+> -		}
+> +	if (mlpf_new > mlpf_max)
+> +		mlpf_new = mlpf_max;
+> +
+> +	ds3000_tuner_writereg(state, 0x04, mlpf_new);
+> +	ds3000_tuner_writereg(state, 0x06, nlpf);
+> +	ds3000_tuner_writereg(state, 0x51, 0x1b);
+> +	ds3000_tuner_writereg(state, 0x51, 0x1f);
+> +	ds3000_tuner_writereg(state, 0x50, 0x04);
+> +	ds3000_tuner_writereg(state, 0x50, 0x00);
+> +	msleep(5);
+> +
+> +	/* unknown */
+> +	ds3000_tuner_writereg(state, 0x51, 0x1e);
+> +	ds3000_tuner_writereg(state, 0x51, 0x1f);
+> +	ds3000_tuner_writereg(state, 0x50, 0x01);
+> +	ds3000_tuner_writereg(state, 0x50, 0x00);
+> +	msleep(60);
+> +
+> +	/* ds3000 global reset */
+> +	ds3000_writereg(state, 0x07, 0x80);
+> +	ds3000_writereg(state, 0x07, 0x00);
+> +	/* ds3000 build-in uC reset */
+> +	ds3000_writereg(state, 0xb2, 0x01);
+> +	/* ds3000 software reset */
+> +	ds3000_writereg(state, 0x00, 0x01);
+> +
+> +	switch (c->delivery_system) {
+> +	case SYS_DVBS:
+> +		/* initialise the demod in DVB-S mode */
+> +		for (i = 0; i < sizeof(ds3000_dvbs_init_tab); i += 2)
+> +			ds3000_writereg(state,
+> +				ds3000_dvbs_init_tab[i],
+> +				ds3000_dvbs_init_tab[i + 1]);
+> +		value = ds3000_readreg(state, 0xfe);
+> +		value &= 0xc0;
+> +		value |= 0x1b;
+> +		ds3000_writereg(state, 0xfe, value);
+> +		break;
+> +	case SYS_DVBS2:
+> +		/* initialise the demod in DVB-S2 mode */
+> +		for (i = 0; i < sizeof(ds3000_dvbs2_init_tab); i += 2)
+> +			ds3000_writereg(state,
+> +				ds3000_dvbs2_init_tab[i],
+> +				ds3000_dvbs2_init_tab[i + 1]);
+> +		ds3000_writereg(state, 0xfe, 0x98);
+> +		break;
+> +	default:
+> +		return 1;
+> +	}
+>  
+> -		if (mlpf_new > mlpf_max)
+> -			mlpf_new = mlpf_max;
+> -
+> -		ds3000_tuner_writereg(state, 0x04, mlpf_new);
+> -		ds3000_tuner_writereg(state, 0x06, nlpf);
+> -		ds3000_tuner_writereg(state, 0x51, 0x1b);
+> -		ds3000_tuner_writereg(state, 0x51, 0x1f);
+> -		ds3000_tuner_writereg(state, 0x50, 0x04);
+> -		ds3000_tuner_writereg(state, 0x50, 0x00);
+> -		msleep(5);
+> -
+> -		/* unknown */
+> -		ds3000_tuner_writereg(state, 0x51, 0x1e);
+> -		ds3000_tuner_writereg(state, 0x51, 0x1f);
+> -		ds3000_tuner_writereg(state, 0x50, 0x01);
+> -		ds3000_tuner_writereg(state, 0x50, 0x00);
+> -		msleep(60);
+> -
+> -		/* ds3000 global reset */
+> -		ds3000_writereg(state, 0x07, 0x80);
+> -		ds3000_writereg(state, 0x07, 0x00);
+> -		/* ds3000 build-in uC reset */
+> -		ds3000_writereg(state, 0xb2, 0x01);
+> -		/* ds3000 software reset */
+> -		ds3000_writereg(state, 0x00, 0x01);
+> +	/* enable 27MHz clock output */
+> +	ds3000_writereg(state, 0x29, 0x80);
+> +	/* enable ac coupling */
+> +	ds3000_writereg(state, 0x25, 0x8a);
+> +
+> +	/* enhance symbol rate performance */
+> +	if ((state->dcur.symbol_rate / 1000) <= 5000) {
+> +		value = 29777 / (state->dcur.symbol_rate / 1000) + 1;
+> +		if (value % 2 != 0)
+> +			value++;
+> +		ds3000_writereg(state, 0xc3, 0x0d);
+> +		ds3000_writereg(state, 0xc8, value);
+> +		ds3000_writereg(state, 0xc4, 0x10);
+> +		ds3000_writereg(state, 0xc7, 0x0e);
+> +	} else if ((state->dcur.symbol_rate / 1000) <= 10000) {
+> +		value = 92166 / (state->dcur.symbol_rate / 1000) + 1;
+> +		if (value % 2 != 0)
+> +			value++;
+> +		ds3000_writereg(state, 0xc3, 0x07);
+> +		ds3000_writereg(state, 0xc8, value);
+> +		ds3000_writereg(state, 0xc4, 0x09);
+> +		ds3000_writereg(state, 0xc7, 0x12);
+> +	} else if ((state->dcur.symbol_rate / 1000) <= 20000) {
+> +		value = 64516 / (state->dcur.symbol_rate / 1000) + 1;
+> +		ds3000_writereg(state, 0xc3, value);
+> +		ds3000_writereg(state, 0xc8, 0x0e);
+> +		ds3000_writereg(state, 0xc4, 0x07);
+> +		ds3000_writereg(state, 0xc7, 0x18);
+> +	} else {
+> +		value = 129032 / (state->dcur.symbol_rate / 1000) + 1;
+> +		ds3000_writereg(state, 0xc3, value);
+> +		ds3000_writereg(state, 0xc8, 0x0a);
+> +		ds3000_writereg(state, 0xc4, 0x05);
+> +		ds3000_writereg(state, 0xc7, 0x24);
+> +	}
+> +
+> +	/* normalized symbol rate rounded to the closest integer */
+> +	value = (((state->dcur.symbol_rate / 1000) << 16) +
+> +			(DS3000_SAMPLE_RATE / 2)) / DS3000_SAMPLE_RATE;
+> +	ds3000_writereg(state, 0x61, value & 0x00ff);
+> +	ds3000_writereg(state, 0x62, (value & 0xff00) >> 8);
+> +
+> +	/* co-channel interference cancellation disabled */
+> +	ds3000_writereg(state, 0x56, 0x00);
+> +
+> +	/* equalizer disabled */
+> +	ds3000_writereg(state, 0x76, 0x00);
+> +
+> +	/*ds3000_writereg(state, 0x08, 0x03);
+> +	ds3000_writereg(state, 0xfd, 0x22);
+> +	ds3000_writereg(state, 0x08, 0x07);
+> +	ds3000_writereg(state, 0xfd, 0x42);
+> +	ds3000_writereg(state, 0x08, 0x07);*/
+>  
+> +	if (state->config->ci_mode) {
+>  		switch (c->delivery_system) {
+>  		case SYS_DVBS:
+> -			/* initialise the demod in DVB-S mode */
+> -			for (i = 0; i < sizeof(ds3000_dvbs_init_tab); i += 2)
+> -				ds3000_writereg(state,
+> -					ds3000_dvbs_init_tab[i],
+> -					ds3000_dvbs_init_tab[i + 1]);
+> -			value = ds3000_readreg(state, 0xfe);
+> -			value &= 0xc0;
+> -			value |= 0x1b;
+> -			ds3000_writereg(state, 0xfe, value);
+> -			break;
+> +		default:
+> +			ds3000_writereg(state, 0xfd, 0x80);
+> +		break;
+>  		case SYS_DVBS2:
+> -			/* initialise the demod in DVB-S2 mode */
+> -			for (i = 0; i < sizeof(ds3000_dvbs2_init_tab); i += 2)
+> -				ds3000_writereg(state,
+> -					ds3000_dvbs2_init_tab[i],
+> -					ds3000_dvbs2_init_tab[i + 1]);
+> -			ds3000_writereg(state, 0xfe, 0x98);
+> +			ds3000_writereg(state, 0xfd, 0x01);
+>  			break;
+> -		default:
+> -			return 1;
+>  		}
+> +	}
+>  
+> -		/* enable 27MHz clock output */
+> -		ds3000_writereg(state, 0x29, 0x80);
+> -		/* enable ac coupling */
+> -		ds3000_writereg(state, 0x25, 0x8a);
+> -
+> -		/* enhance symbol rate performance */
+> -		if ((state->dcur.symbol_rate / 1000) <= 5000) {
+> -			value = 29777 / (state->dcur.symbol_rate / 1000) + 1;
+> -			if (value % 2 != 0)
+> -				value++;
+> -			ds3000_writereg(state, 0xc3, 0x0d);
+> -			ds3000_writereg(state, 0xc8, value);
+> -			ds3000_writereg(state, 0xc4, 0x10);
+> -			ds3000_writereg(state, 0xc7, 0x0e);
+> -		} else if ((state->dcur.symbol_rate / 1000) <= 10000) {
+> -			value = 92166 / (state->dcur.symbol_rate / 1000) + 1;
+> -			if (value % 2 != 0)
+> -				value++;
+> -			ds3000_writereg(state, 0xc3, 0x07);
+> -			ds3000_writereg(state, 0xc8, value);
+> -			ds3000_writereg(state, 0xc4, 0x09);
+> -			ds3000_writereg(state, 0xc7, 0x12);
+> -		} else if ((state->dcur.symbol_rate / 1000) <= 20000) {
+> -			value = 64516 / (state->dcur.symbol_rate / 1000) + 1;
+> -			ds3000_writereg(state, 0xc3, value);
+> -			ds3000_writereg(state, 0xc8, 0x0e);
+> -			ds3000_writereg(state, 0xc4, 0x07);
+> -			ds3000_writereg(state, 0xc7, 0x18);
+> -		} else {
+> -			value = 129032 / (state->dcur.symbol_rate / 1000) + 1;
+> -			ds3000_writereg(state, 0xc3, value);
+> -			ds3000_writereg(state, 0xc8, 0x0a);
+> -			ds3000_writereg(state, 0xc4, 0x05);
+> -			ds3000_writereg(state, 0xc7, 0x24);
+> -		}
+> +	/* ds3000 out of software reset */
+> +	ds3000_writereg(state, 0x00, 0x00);
+> +	/* start ds3000 build-in uC */
+> +	ds3000_writereg(state, 0xb2, 0x00);
+>  
+> -		/* normalized symbol rate rounded to the closest integer */
+> -		value = (((state->dcur.symbol_rate / 1000) << 16) +
+> -				(DS3000_SAMPLE_RATE / 2)) / DS3000_SAMPLE_RATE;
+> -		ds3000_writereg(state, 0x61, value & 0x00ff);
+> -		ds3000_writereg(state, 0x62, (value & 0xff00) >> 8);
+> -
+> -		/* co-channel interference cancellation disabled */
+> -		ds3000_writereg(state, 0x56, 0x00);
+> -
+> -		/* equalizer disabled */
+> -		ds3000_writereg(state, 0x76, 0x00);
+> -
+> -		/*ds3000_writereg(state, 0x08, 0x03);
+> -		ds3000_writereg(state, 0xfd, 0x22);
+> -		ds3000_writereg(state, 0x08, 0x07);
+> -		ds3000_writereg(state, 0xfd, 0x42);
+> -		ds3000_writereg(state, 0x08, 0x07);*/
+> -
+> -		if (state->config->ci_mode) {
+> -			switch (c->delivery_system) {
+> -			case SYS_DVBS:
+> -			default:
+> -				ds3000_writereg(state, 0xfd, 0x80);
+> -			break;
+> -			case SYS_DVBS2:
+> -				ds3000_writereg(state, 0xfd, 0x01);
+> -				break;
+> -			}
+> -		}
+> +	/* TODO: calculate and set carrier offset */
+>  
+> -		/* ds3000 out of software reset */
+> -		ds3000_writereg(state, 0x00, 0x00);
+> -		/* start ds3000 build-in uC */
+> -		ds3000_writereg(state, 0xb2, 0x00);
+> -
+> -		/* TODO: calculate and set carrier offset */
+> -
+> -		/* wait before retrying */
+> -		for (i = 0; i < 30 ; i++) {
+> -			if (ds3000_is_tuned(fe)) {
+> -				dprintk("%s: Tuned\n", __func__);
+> -				ds3000_dump_registers(fe);
+> -				goto tuned;
+> -			}
+> -			msleep(1);
+> +	/* wait before retrying */
+> +	for (i = 0; i < 30 ; i++) {
+> +		if (ds3000_is_tuned(fe)) {
+> +			dprintk("%s: Tuned\n", __func__);
+> +			ds3000_dump_registers(fe);
+> +			goto tuned;
+>  		}
+> +		msleep(1);
+> +	}
+>  
+> -		dprintk("%s: Not tuned\n", __func__);
+> -		ds3000_dump_registers(fe);
+> +	dprintk("%s: Not tuned\n", __func__);
+> +	ds3000_dump_registers(fe);
+>  
+> -	} while (--retune);
+>  
+>  tuned:
+>  	return ret;
 
-> 
-> [  206.770000] i5ccdhb i5ccdhb.0: soc_i5ccdhb_s_stream - enable 1
-> [  207.350000] i5ccdhb i5ccdhb.0: i5ccdhb_streamon: fps (29.412)
-> [  207.370000] idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> [  207.410000] idmac_interrupt(): IDMAC irq 177, buf 1, current 1
-> [  207.440000] idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> [  207.470000] idmac_interrupt(): IDMAC irq 177, buf 1, current 1
-> [  207.540000] idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> [  207.580000] idmac_interrupt(): IDMAC irq 177, buf 1, current 1
-> [  207.610000] idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> [  207.650000] idmac_interrupt(): IDMAC irq 177, buf 1, current 1
-> [  207.680000] idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> [  207.710000] idmac_interrupt(): IDMAC irq 177, buf 1, current 1
-> [  207.750000] idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> [  207.780000] idmac_interrupt(): IDMAC irq 177, buf 1, current 1
-> ...
-> [  241.370000] idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> [  241.410000] idmac_interrupt(): IDMAC irq 177, buf 1, current 1
-> [  241.440000] idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> [  241.470000] idmac_interrupt(): IDMAC irq 177, buf 1, current 1
-> [  241.510000] idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> [  241.540000] idmac_interrupt(): IDMAC irq 177, buf 1, current 1
-> [  241.580000] idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> [  241.610000] idmac_interrupt(): IDMAC irq 177, buf 1, current 1
-> [  257.190000] i5ccdhb i5ccdhb.0: soc_i5ccdhb_s_stream - enable 0
-> 
-> 
-> 
-> Am 03.02.2011 11:09, schrieb Guennadi Liakhovetski:
-> > Hi Anatolij
-> > 
-> > On Mon, 31 Jan 2011, Anatolij Gustschin wrote:
-> > 
-> > I'm afraid there seems to be a problem with your patch. I have no idea
-> > what is causing it, but I'm just observing some wrong behaviour, that is
-> > not there without it. Namely, I added a debug print to the IDMAC interrupt
-> > handler
-> > 
-> >   	curbuf	= idmac_read_ipureg(&ipu_data, IPU_CHA_CUR_BUF);
-> >   	err	= idmac_read_ipureg(&ipu_data, IPU_INT_STAT_4);
-> > 
-> > +	printk(KERN_DEBUG "%s(): IDMAC irq %d, buf %d, current %d\n",
-> > __func__,
-> > +	       irq, ichan->active_buffer, (curbuf>>  chan_id)&  1);
-> > 
-> >   	if (err&  (1<<  chan_id)) {
-> >   		idmac_write_ipureg(&ipu_data, 1<<  chan_id, IPU_INT_STAT_4);
-> > 
-> > and without your patch I see buffer numbers correctly toggling all the
-> > time like
-> > 
-> > idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> > idmac_interrupt(): IDMAC irq 177, buf 0, current 1
-> > idmac_interrupt(): IDMAC irq 177, buf 1, current 0
-> > idmac_interrupt(): IDMAC irq 177, buf 0, current 1
-> > idmac_interrupt(): IDMAC irq 177, buf 1, current 0
-> > idmac_interrupt(): IDMAC irq 177, buf 0, current 1
-> > ...
-> > 
-> > Yes, the first interrupt is different, that's where I'm dropping /
-> > postponing it. With your patch only N (equal to the number of buffers
-> > used, I think) first interrupts toggle, then always only one buffer is
-> > used:
-> > 
-> > idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> > idmac_interrupt(): IDMAC irq 177, buf 1, current 1
-> > idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> > idmac_interrupt(): IDMAC irq 177, buf 1, current 1
-> > idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> > idmac_interrupt(): IDMAC irq 177, buf 1, current 1
-> > idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> > idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> > idmac_interrupt(): IDMAC irq 177, buf 0, current 0
-> > ...
-> > 
-> > Verified with both capture.c and mplayer. Could you, please, verify
-> > whether you get the same behaviour and what the problem could be?
-> > 
-> > Thanks
-> > Guennadi
-> > 
-> > > Currently when two or more buffers are queued by the camera driver
-> > > and so the double buffering is enabled in the idmac, we lose one
-> > > frame comming from CSI since the reporting of arrival of the first
-> > > frame is deferred by the DMAIC_7_EOF interrupt handler and reporting
-> > > of the arrival of the last frame is not done at all. So when requesting
-> > > N frames from the image sensor we actually receive N - 1 frames in
-> > > user space.
-> > > 
-> > > The reason for this behaviour is that the DMAIC_7_EOF interrupt
-> > > handler misleadingly assumes that the CUR_BUF flag is pointing to the
-> > > buffer used by the IDMAC. Actually it is not the case since the
-> > > CUR_BUF flag will be flipped by the FSU when the FSU is sending the
-> > > <TASK>_NEW_FRM_RDY signal when new frame data is delivered by the CSI.
-> > > When sending this singal, FSU updates the DMA_CUR_BUF and the
-> > > DMA_BUFx_RDY flags: the DMA_CUR_BUF is flipped, the DMA_BUFx_RDY
-> > > is cleared, indicating that the frame data is beeing written by
-> > > the IDMAC to the pointed buffer. DMA_BUFx_RDY is supposed to be
-> > > set to the ready state again by the MCU, when it has handled the
-> > > received data. DMAIC_7_CUR_BUF flag won't be flipped here by the
-> > > IPU, so waiting for this event in the EOF interrupt handler is wrong.
-> > > Actually there is no spurious interrupt as described in the comments,
-> > > this is the valid DMAIC_7_EOF interrupt indicating reception of the
-> > > frame from CSI.
-> > > 
-> > > The patch removes code that waits for flipping of the DMAIC_7_CUR_BUF
-> > > flag in the DMAIC_7_EOF interrupt handler. As the comment in the
-> > > current code denotes, this waiting doesn't help anyway. As a result
-> > > of this removal the reporting of the first arrived frame is not
-> > > deferred to the time of arrival of the next frame and the drivers
-> > > software flag 'ichan->active_buffer' is in sync with DMAIC_7_CUR_BUF
-> > > flag, so the reception of all requested frames works.
-> > > 
-> > > This has been verified on the hardware which is triggering the
-> > > image sensor by the programmable state machine, allowing to
-> > > obtain exact number of frames. On this hardware we do not tolerate
-> > > losing frames.
-> > > 
-> > > This patch also removes resetting the DMA_BUFx_RDY flags of
-> > > all channels in ipu_disable_channel() since transfers on other
-> > > DMA channels might be triggered by other running tasks and the
-> > > buffers should always be ready for data sending or reception.
-> > > 
-> > > Signed-off-by: Anatolij Gustschin<agust@denx.de>
-> > > ---
-> > > v2:
-> > >      Revise the commit message to provide more and correct
-> > >      information about the observed problem and proposed fix
-> > > 
-> > >   drivers/dma/ipu/ipu_idmac.c |   50
-> > > -------------------------------------------
-> > >   1 files changed, 0 insertions(+), 50 deletions(-)
-> > > 
-> > > diff --git a/drivers/dma/ipu/ipu_idmac.c b/drivers/dma/ipu/ipu_idmac.c
-> > > index cb26ee9..c1a125e 100644
-> > > --- a/drivers/dma/ipu/ipu_idmac.c
-> > > +++ b/drivers/dma/ipu/ipu_idmac.c
-> > > @@ -1145,29 +1145,6 @@ static int ipu_disable_channel(struct idmac *idmac,
-> > > struct idmac_channel *ichan,
-> > >   	reg = idmac_read_icreg(ipu, IDMAC_CHA_EN);
-> > >   	idmac_write_icreg(ipu, reg&  ~chan_mask, IDMAC_CHA_EN);
-> > > 
-> > > -	/*
-> > > -	 * Problem (observed with channel DMAIC_7): after enabling the channel
-> > > -	 * and initialising buffers, there comes an interrupt with current
-> > > still
-> > > -	 * pointing at buffer 0, whereas it should use buffer 0 first and only
-> > > -	 * generate an interrupt when it is done, then current should already
-> > > -	 * point to buffer 1. This spurious interrupt also comes on channel
-> > > -	 * DMASDC_0. With DMAIC_7 normally, is we just leave the ISR after the
-> > > -	 * first interrupt, there comes the second with current correctly
-> > > -	 * pointing to buffer 1 this time. But sometimes this second interrupt
-> > > -	 * doesn't come and the channel hangs. Clearing BUFx_RDY when
-> > > disabling
-> > > -	 * the channel seems to prevent the channel from hanging, but it
-> > > doesn't
-> > > -	 * prevent the spurious interrupt. This might also be unsafe. Think
-> > > -	 * about the IDMAC controller trying to switch to a buffer, when we
-> > > -	 * clear the ready bit, and re-enable it a moment later.
-> > > -	 */
-> > > -	reg = idmac_read_ipureg(ipu, IPU_CHA_BUF0_RDY);
-> > > -	idmac_write_ipureg(ipu, 0, IPU_CHA_BUF0_RDY);
-> > > -	idmac_write_ipureg(ipu, reg&  ~(1UL<<  channel), IPU_CHA_BUF0_RDY);
-> > > -
-> > > -	reg = idmac_read_ipureg(ipu, IPU_CHA_BUF1_RDY);
-> > > -	idmac_write_ipureg(ipu, 0, IPU_CHA_BUF1_RDY);
-> > > -	idmac_write_ipureg(ipu, reg&  ~(1UL<<  channel), IPU_CHA_BUF1_RDY);
-> > > -
-> > >   	spin_unlock_irqrestore(&ipu->lock, flags);
-> > > 
-> > >   	return 0;
-> > > @@ -1246,33 +1223,6 @@ static irqreturn_t idmac_interrupt(int irq, void
-> > > *dev_id)
-> > > 
-> > >   	/* Other interrupts do not interfere with this channel */
-> > >   	spin_lock(&ichan->lock);
-> > > -	if (unlikely(chan_id != IDMAC_SDC_0&&  chan_id != IDMAC_SDC_1&&
-> > > -		     ((curbuf>>  chan_id)&  1) == ichan->active_buffer&&
-> > > -		     !list_is_last(ichan->queue.next,&ichan->queue))) {
-> > > -		int i = 100;
-> > > -
-> > > -		/* This doesn't help. See comment in ipu_disable_channel() */
-> > > -		while (--i) {
-> > > -			curbuf = idmac_read_ipureg(&ipu_data,
-> > > IPU_CHA_CUR_BUF);
-> > > -			if (((curbuf>>  chan_id)&  1) != ichan->active_buffer)
-> > > -				break;
-> > > -			cpu_relax();
-> > > -		}
-> > > -
-> > > -		if (!i) {
-> > > -			spin_unlock(&ichan->lock);
-> > > -			dev_dbg(dev,
-> > > -				"IRQ on active buffer on channel %x, active "
-> > > -				"%d, ready %x, %x, current %x!\n", chan_id,
-> > > -				ichan->active_buffer, ready0, ready1, curbuf);
-> > > -			return IRQ_NONE;
-> > > -		} else
-> > > -			dev_dbg(dev,
-> > > -				"Buffer deactivated on channel %x, active "
-> > > -				"%d, ready %x, %x, current %x, rest %d!\n",
-> > > chan_id,
-> > > -				ichan->active_buffer, ready0, ready1, curbuf,
-> > > i);
-> > > -	}
-> > > -
-> > >   	if (unlikely((ichan->active_buffer&&  (ready1>>  chan_id)&  1) ||
-> > >   		     (!ichan->active_buffer&&  (ready0>>  chan_id)&  1)
-> > >   		     )) {
-> > > --
-> > > 1.7.1
-> > > 
-> > 
-> > ---
-> > Guennadi Liakhovetski, Ph.D.
-> > Freelance Open-Source Software Developer
-> > http://www.open-technology.de/
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
