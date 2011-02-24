@@ -1,85 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58187 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754249Ab1BNMVu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Feb 2011 07:21:50 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [PATCH v6 04/10] omap2: Fix camera resources for multiomap
-Date: Mon, 14 Feb 2011 13:21:31 +0100
-Message-Id: <1297686097-9804-5-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1297686097-9804-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1297686097-9804-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from lo.gmane.org ([80.91.229.12]:58683 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754443Ab1BXNuG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Feb 2011 08:50:06 -0500
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1Psba0-0001PN-Aa
+	for linux-media@vger.kernel.org; Thu, 24 Feb 2011 14:50:04 +0100
+Received: from 228.31.17-93.rev.gaoland.net ([228.31.17-93.rev.gaoland.net])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 24 Feb 2011 14:50:04 +0100
+Received: from akue.loic by 228.31.17-93.rev.gaoland.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 24 Feb 2011 14:50:04 +0100
+To: linux-media@vger.kernel.org
+From: =?utf-8?b?TG/Dr2M=?= Akue <akue.loic@gmail.com>
+Subject: Re: omap3-isp: can't register subdev for new sensor driver mt9t001
+Date: Thu, 24 Feb 2011 13:41:23 +0000 (UTC)
+Message-ID: <loom.20110224T142616-389@post.gmane.org>
+References: <AANLkTincndvx154DXHgeNCnxe+KhtaH+tFUTfqXufFdp@mail.gmail.com> <AANLkTikVTgo48gfSUc9DyOhTCwSOuGS0gnjP6xTomor-@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Sergio Aguirre <saaguirre@ti.com>
 
-Make sure the kernel can be compiled with both OMAP2 and OMAP3 camera
-support linked in, and give public symbols proper omap2/omap3 prefixes.
+Hello Bastian,
 
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/devices.c |   25 ++++++++++++-------------
- 1 files changed, 12 insertions(+), 13 deletions(-)
+As a newbie in kernel development, I'm facing the same issue about subdev
+registration. 
+I'm trying to capture some raw video from a SAA7113 connected to the ISP of an
+omap3530. May I please have your help with this problem?
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 4cf48ea..5d844bd 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -38,7 +38,7 @@
- 
- #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
- 
--static struct resource cam_resources[] = {
-+static struct resource omap2cam_resources[] = {
- 	{
- 		.start		= OMAP24XX_CAMERA_BASE,
- 		.end		= OMAP24XX_CAMERA_BASE + 0xfff,
-@@ -50,21 +50,12 @@ static struct resource cam_resources[] = {
- 	}
- };
- 
--static struct platform_device omap_cam_device = {
-+static struct platform_device omap2cam_device = {
- 	.name		= "omap24xxcam",
- 	.id		= -1,
--	.num_resources	= ARRAY_SIZE(cam_resources),
--	.resource	= cam_resources,
-+	.num_resources	= ARRAY_SIZE(omap2cam_resources),
-+	.resource	= omap2cam_resources,
- };
--
--static inline void omap_init_camera(void)
--{
--	platform_device_register(&omap_cam_device);
--}
--#else
--static inline void omap_init_camera(void)
--{
--}
- #endif
- 
- static struct resource omap3isp_resources[] = {
-@@ -158,6 +149,14 @@ int omap3_init_camera(void *pdata)
- }
- EXPORT_SYMBOL_GPL(omap3_init_camera);
- 
-+static inline void omap_init_camera(void)
-+{
-+#if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
-+	if (cpu_is_omap24xx())
-+		platform_device_register(&omap2cam_device);
-+#endif
-+}
-+
- #if defined(CONFIG_OMAP_MBOX_FWK) || defined(CONFIG_OMAP_MBOX_FWK_MODULE)
- 
- #define MBOX_REG_SIZE   0x120
--- 
-1.7.3.4
+root@cm-t35:~# modprobe iommu
+[ 8409.776123] omap-iommu omap-iommu.0: isp registered
+
+root@cm-t35:~# modprobe omap3_isp
+[ 8451.821533] omap3isp omap3isp: Revision 2.0 found
+[ 8451.827056] omap-iommu omap-iommu.0: isp: version 1.1
+[ 8453.291992] isp_register_subdev_group: Unable to register subdev saa7113
+
+Regards 
+
+Loïc Akue
 
