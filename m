@@ -1,68 +1,63 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:10614 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750799Ab1BCMXJ (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46572 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755598Ab1BXKtp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Feb 2011 07:23:09 -0500
-Date: Thu, 03 Feb 2011 07:23:10 -0500
-Subject: Re: [GIT PATCHES FOR 2.6.39] fix cx18 regression
-Message-ID: <p6hhfu9j40n1ytr3pexf6o6r.1296735790229@email.android.com>
-From: Andy Walls <awalls@md.metrocast.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
+	Thu, 24 Feb 2011 05:49:45 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: riverful.kim@samsung.com
+Subject: Re: [RFC PATCH 0/2] v4l2-ctrls: add new focus mode
+Date: Thu, 24 Feb 2011 11:49:48 +0100
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+References: <4D6636B9.4020105@samsung.com>
+In-Reply-To: <4D6636B9.4020105@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201102241149.48831.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-SGFucywKCldoYXQgSSB3YXMgdHJ5aW5nIHRvIHNheSB3YXMgdGhhdCBNYXVybyBzaG91bGQgaGF2
-ZSBvYnNlcnZlZCB0aGUgcGF0Y2ggZmFpbCB0byBhcHBseSB0byAyLjYuMzgtcmMyLiAgSXQgYXBw
-ZWFycyB0aGUgYnVnIGRpZCBub3QgZ2V0IGNvbW1pdGVkIHVudGlsIGEgZGF5IGFmdGVyIDIuNi4z
-OC1yYzIgd2FzIHRhZ2dlZC4KIApSLApBbmR5CgoKCkhhbnMgVmVya3VpbCA8aHZlcmt1aWxAeHM0
-YWxsLm5sPiB3cm90ZToKCj5PbiBUaHVyc2RheSwgRmVicnVhcnkgMDMsIDIwMTEgMDA6NTA6MTIg
-QW5keSBXYWxscyB3cm90ZToKPj4gT24gTW9uLCAyMDExLTAxLTMxIGF0IDEyOjEyIC0wMjAwLCBN
-YXVybyBDYXJ2YWxobyBDaGVoYWIgd3JvdGU6Cj4+ID4gRW0gMjYtMDEtMjAxMSAwNToyMywgSGFu
-cyBWZXJrdWlsIGVzY3JldmV1Ogo+PiA+ID4gTWF1cm8sIHBsZWFzZSBnZXQgdGhpcyB1cHN0cmVh
-bSBhc2FwIHNpbmNlIHRoaXMgZml4IG5lZWRzIHRvIGdvIGludG8gMi42LjM4Cj4+ID4gPiBhcyB3
-ZWxsLgo+PiA+ID4gCj4+ID4gPiBSZWdhcmRzLAo+PiA+ID4gCj4+ID4gPiAJSGFucwo+PiA+ID4g
-Cj4+ID4gPiBUaGUgZm9sbG93aW5nIGNoYW5nZXMgc2luY2UgY29tbWl0IGU1ZmI5NTY3NTYzOWYw
-NjRjYTQwZGY3YWQzMTlmMWMzODA0NDM5OTk6Cj4+ID4gPiAgIEhhbnMgVmVya3VpbCAoMSk6Cj4+
-ID4gPiAgICAgICAgIFttZWRpYV0gdml2aTogZml4IGNvbXBpbGVyIHdhcm5pbmcKPj4gPiA+IAo+
-PiA+ID4gYXJlIGF2YWlsYWJsZSBpbiB0aGUgZ2l0IHJlcG9zaXRvcnkgYXQ6Cj4+ID4gPiAKPj4g
-PiA+ICAgc3NoOi8vbGludXh0di5vcmcvZ2l0L2h2ZXJrdWlsL21lZGlhX3RyZWUuZ2l0IGN4MTgt
-Zml4Cj4+ID4gPiAKPj4gPiA+IEhhbnMgVmVya3VpbCAoMSk6Cj4+ID4gPiAgICAgICBjeDE4OiBm
-aXgga2VybmVsIG9vcHMgd2hlbiBzZXR0aW5nIE1QRUcgY29udHJvbCBiZWZvcmUgY2FwdHVyaW5n
-Lgo+PiA+ID4gCj4+ID4gPiAgZHJpdmVycy9tZWRpYS92aWRlby9jeDE4L2N4MTgtZHJpdmVyLmMg
-fCAgICAxICsKPj4gPiA+ICAxIGZpbGVzIGNoYW5nZWQsIDEgaW5zZXJ0aW9ucygrKSwgMCBkZWxl
-dGlvbnMoLSkKPj4gPiA+IAo+PiA+IAo+PiA+IEkgdHJpZWQgdG8gYXBwbHkgaXQgYWdhaW5zdCAy
-LjYuMzgtcmMyLCBidXQgaXQgZmFpbGVkOgo+PiA+IAo+PiA+ICAgICAgICAJbXV0ZXhfaW5pdCgm
-Y3gtPnNlcmlhbGl6ZV9sb2NrKTsKPj4gPiAgICAgICAgIG11dGV4X2luaXQoJmN4LT5ncGlvX2xv
-Y2spOwo+PiA+ICAgICAgICAgbXV0ZXhfaW5pdCgmY3gtPmVwdTJhcHVfbWJfbG9jayk7Cj4+ID4g
-ICAgICAgIAltdXRleF9pbml0KCZjeC0+ZXB1MmNwdV9tYl9sb2NrKTsKPj4gPiAKPj4gPiAgICAg
-ICAgIHJldCA9IGN4MThfY3JlYXRlX2luX3dvcmtxKGN4KTsKPj4gPiA8PDw8PDw8Cj4+ID4gPT09
-PT09PQo+PiA+ICAgICAgICAJY3gtPmN4aGRsLmNhcGFiaWxpdGllcyA9IENYMjM0MVhfQ0FQX0hB
-U19UUyB8IENYMjM0MVhfQ0FQX0hBU19TTElDRURfVkJJOwo+PiA+ICAgICAgICAgY3gtPmN4aGRs
-Lm9wcyA9ICZjeDE4X2N4aGRsX29wczsKPj4gPiAgICAgICAgIGN4LT5jeGhkbC5mdW5jID0gY3gx
-OF9hcGlfZnVuYzsKPj4gPiAgICAgICAgIGN4LT5jeGhkbC5wcml2ID0gJmN4LT5zdHJlYW1zW0NY
-MThfRU5DX1NUUkVBTV9UWVBFX01QR107Cj4+ID4gICAgICAgICByZXQgPSBjeDIzNDF4X2hhbmRs
-ZXJfaW5pdCgmY3gtPmN4aGRsLCA1MCk7Cj4+ID4gPj4+Pj4+Pgo+PiA+ICAgICAgICAgaWYgKHJl
-dCkKPj4gPiAgICAgICAgICAgICAgICAgcmV0dXJuIHJldDsKPj4gPiAKPj4gPiBQZXJoYXBzIHRo
-aXMgY2hhbmdlIHJlcXVpcmVzIHNvbWUgcGF0Y2ggZGVsYXllZCBmb3IgLjM5Pwo+PiAKPj4gVGhl
-IGJ1ZyB3YXMgYXV0aG9yZWQgb24gMzEgRGVjIDIwMTAsIGJ1dCBub3QgY29taXR0ZWQgdW50aWwg
-MjMgSmFuIDIwMTE6Cj4+IAo+PiBodHRwOi8vZ2l0LmxpbnV4dHYub3JnL2h2ZXJrdWlsL21lZGlh
-X3RyZWUuZ2l0P2E9Y29tbWl0O2g9ODJmMjA1YjJmMmExZGViMWFiNzAwYTYwMWVmNDhhNGRiNGNh
-NGY0ZQo+PiAKPj4gS2VybmVsIDIuNi4zOC1yYzIgYXBwZWFycyB0byBoYXZlIGEgZGF0ZSBvbmUg
-ZGF5IHByaW9yOiAyMiBKYW4gMjAxMToKPj4gCj4+IGh0dHA6Ly9naXQubGludXh0di5vcmcvaHZl
-cmt1aWwvbWVkaWFfdHJlZS5naXQ/YT1jb21taXQ7aD0xYmFlNGNlMjdjOWM5MDM0NGYyM2M2NWVh
-Njk2NmM1MGZmZWFlMmY1Cj4+IAo+PiBTbyB0aGUgYnVnIHdpbGwgYmUgaW4gd2hhdGV2ZXIgdmVy
-c2lvbiBjb21lcyBvdXQgYWZ0ZXIgMi42LjM4LXJjMgo+Cj5JJ2xsIGxvb2sgYXQgdGhpcyB0b21v
-cnJvdy4gSXQncyBiZWVuIHZlcnkgYnVzeSBmb3IgdGhlIHBhc3Qgd2VlayBhbmQgSSBoYXZlbid0
-Cj5oYWQgdGltZSB0byBsb29rIGludG8gdGhpcy4KPgo+SXQgZGVmaW5pdGVseSBkb2Vzbid0IHJl
-cXVpcmUgYW55IG90aGVyIHBhdGNoZXMsIGJ1dCBwcm9iYWJseSBzb21lIG5ldyBwYXRjaAo+Y2hh
-bmdlZCB0aGUgb3JkZXIgb2Ygc29tZSBsaW5lcyBjYXVzaW5nIHRoZSBwYXRjaCB0byBmYWlsLgo+
-Cj5SZWdhcmRzLAo+Cj4JSGFucwo+Cj4+IAo+PiBSZWdhcmRzLAo+PiBBbmR5Cj4+IAo+PiA+IENo
-ZWVycywKPj4gPiBNYXVybwo+PiAKPj4gCj4+IAo+Cj4tLSAKPkhhbnMgVmVya3VpbCAtIHZpZGVv
-NGxpbnV4IGRldmVsb3BlciAtIHNwb25zb3JlZCBieSBDaXNjbwo=
+Hi,
 
+On Thursday 24 February 2011 11:45:13 Kim, HeungJun wrote:
+> Hello,
+> 
+> I faced to the absence of the mode of v4l2 focus for a couple of years.
+> While dealing with some few morebile camera sensors, the focus modes
+> are needed more than the current v4l2 focus mode, like a Macro &
+> Continuous mode. The M-5MOLS camera sensor I dealt with, also support
+> these 2 modes. So, I'm going to suggest supports of more detailed
+> v4l2 focus mode.
+> 
+> This RFC series of patch adds new auto focus modes, and documents it.
+> 
+> The first changes the boolean type of V4L2_CID_FOCUS_AUTO to menu type,
+> and insert menus 4 enumerations:
+> 
+> V4L2_FOCUS_AUTO,
+> V4L2_FOCUS_MACRO,
+> V4L2_FOCUS_MANUAL,
+> V4L2_FOCUS_CONTINUOUS
+> 
+> The recent mobile camera sensors with ISP supports Macro & Continuous Auto
+> Focus aka CAF mode, of course normal AUTO mode, even Continuous mode.
+
+I'm curious, what sensor are you referring to ?
+
+> Changing the type of V4L2_CID_FOCUS_MODE, is able to define more exact
+> focusing mode of camera sensor.
+> 
+> The second changes let the previous drivers using V4L2_CID_FOCUS_AUTO by
+> boolean type be able to use the type of menu.
+> 
+> Thanks for reading this, and I hope any ideas and any comments.
+
+-- 
+Regards,
+
+Laurent Pinchart
