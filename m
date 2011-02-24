@@ -1,101 +1,55 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56218 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753572Ab1BHMCK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Feb 2011 07:02:10 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: martin@neutronstar.dyndns.org
-Subject: Re: [PATCH] v4l: Add driver for Micron MT9M032 camera sensor
-Date: Tue, 8 Feb 2011 13:02:05 +0100
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:62471 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756508Ab1BXUZl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Feb 2011 15:25:41 -0500
+Received: by bwz15 with SMTP id 15so1399600bwz.19
+        for <linux-media@vger.kernel.org>; Thu, 24 Feb 2011 12:25:39 -0800 (PST)
+From: "Igor M. Liplianin" <liplianin@me.by>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH 5/9 v2] ds3000: clean up in tune procedure
+Date: Thu, 24 Feb 2011 22:25:35 +0200
 Cc: linux-media@vger.kernel.org
-References: <1295389122-30325-1-git-send-email-martin@neutronstar.dyndns.org> <201101241232.12633.laurent.pinchart@ideasonboard.com> <20110124204539.GA16733@neutronstar.dyndns.org>
-In-Reply-To: <20110124204539.GA16733@neutronstar.dyndns.org>
+References: <201102020040.49656.liplianin@me.by> <4D66ABAF.5020908@infradead.org> <4D66AD51.6090608@redhat.com>
+In-Reply-To: <4D66AD51.6090608@redhat.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201102081302.05627.laurent.pinchart@ideasonboard.com>
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201102242225.35913.liplianin@me.by>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Martin,
-
-On Monday 24 January 2011 21:45:39 martin@neutronstar.dyndns.org wrote:
-> On Mon, Jan 24, 2011 at 12:32:12PM +0100, Laurent Pinchart wrote:
-> > On Thursday 20 January 2011 23:56:07 martin@neutronstar.dyndns.org wrote:
-
-[snip]
-
-> > > >> +#define OFFSET_UNCHANGED	0xFFFFFFFF
-> > > >> +static int mt9m032_set_pad_geom(struct mt9m032 *sensor,
-> > > >> +				struct v4l2_subdev_fh *fh,
-> > > >> +				u32 which, u32 pad,
-> > > >> +				s32 top, s32 left, s32 width, s32 height)
-> > > >> +{
-> > > >> +	struct v4l2_mbus_framefmt tmp_format;
-> > > >> +	struct v4l2_rect tmp_crop;
-> > > >> +	struct v4l2_mbus_framefmt *format;
-> > > >> +	struct v4l2_rect *crop;
-> > > >> +
-> > > >> +	if (pad != 0)
-> > > >> +		return -EINVAL;
-> > > >> +
-> > > >> +	format = __mt9m032_get_pad_format(sensor, fh, which);
-> > > >> +	crop = __mt9m032_get_pad_crop(sensor, fh, which);
-> > > >> +	if (!format || !crop)
-> > > >> +		return -EINVAL;
-> > > >> +	if (which == V4L2_SUBDEV_FORMAT_ACTIVE) {
-> > > >> +		tmp_crop = *crop;
-> > > >> +		tmp_format = *format;
-> > > >> +		format = &tmp_format;
-> > > >> +		crop = &tmp_crop;
-> > > >> +	}
-> > > >> +
-> > > >> +	if (top != OFFSET_UNCHANGED)
-> > > >> +		crop->top = top & ~0x1;
-> > > >> +	if (left != OFFSET_UNCHANGED)
-> > > >> +		crop->left = left;
-> > > >> +	crop->height = height;
-> > > >> +	crop->width = width & ~1;
-> > > >> +
-> > > >> +	format->height = crop->height;
-> > > >> +	format->width = crop->width;
-> > > > 
-> > > > This looks very weird to me. If your sensor doesn't include a scaler,
-> > > > it should support a single fixed format. Crop will then be used to
-> > > > select the crop rectangle. You're mixing the two for no obvious
-> > > > reason.
-> > > 
-> > > I think i have to have both size and crop writable. So i wrote the code
-> > > to just have format width/height and crop width/height to be equal at
-> > > all times. So actually almost all code for crop setting and format are
-> > > shared.
-> > > 
-> > > As you wrote in your recent mail this api isn't really intuitive and
-> > > i'm not really sure what's the right thing to do thus i just copied
-> > > the semantics from an existing driver with similar capable hardware.
-> > > 
-> > > This code works nicely and media-ctl needs to be able to set the size
-> > > so that's the most logical i could come up with...
+В сообщении от 24 февраля 2011 21:11:13 автор Mauro Carvalho Chehab написал:
+> Em 24-02-2011 16:04, Mauro Carvalho Chehab escreveu:
+> > Hi Igor,
 > > 
-> > See
-> > http://git.linuxtv.org/pinchartl/media.git?a=commitdiff;h=10affb3c5e0c8ae
-> > 74461c1b6a4ca6ed5251c27d8 for crop/format implementation for a sensor
-> > that supports cropping and binning.
+> > Em 01-02-2011 20:40, Igor M. Liplianin escreveu:
+> >> Variable 'retune' does not make sense.
+> >> Loop is not needed for only one try.
+> >> Remove unnecessary dprintk's.
+> >> 
+> >> Signed-off-by: Igor M. Liplianin <liplianin@me.by>
+> > 
+> > This patch didn't apply. Please fix and resend.
 > 
-> You basically say the set_format should just force the width and height of
-> the format to the croping rect's width and height if the sensor doesn't
-> support binning? That would of course be easy to implement.
+> PS.: I won't try to apply patches 7, 8 and 9, as they are all related to
+> tune changes. They'll probably fail to apply, and, even if not failing or
+> if I fix the conflicts, they may be breaking the driver. So, please put
+> them on your next patch series.
+> 
+> thanks!
+> Mauro
+Hi Mauro,
 
-Yes, that's how I think it should be implemented.
+Will do tonight.
 
-> Btw, i noticed MT9T001 does the register writes on crop->which ==
-> V4L2_SUBDEV_FORMAT_TRY in mt9t001_set_crop... Looks like a tiny bug.
+BTW, Why did you dropp/miss dw2102 patches?
+They was sent before ds3000 series.
 
-I saw the bug a couple of weeks ago, I've fixed it and I'll push a new version 
-when I'll have time to clean the code a little bit.
+Thank you in advance.
 
 -- 
-Regards,
-
-Laurent Pinchart
+Igor M. Liplianin
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
