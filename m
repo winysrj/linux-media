@@ -1,76 +1,77 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.samsung.com ([203.254.224.33]:27806 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752619Ab1BYGVW (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1156 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750867Ab1BXNEZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Feb 2011 01:21:22 -0500
-Received: from epmmp1 (mailout3.samsung.com [203.254.224.33])
- by mailout3.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LH500DLDTNL4870@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Fri, 25 Feb 2011 15:21:21 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LH500MKVTNKA4@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 25 Feb 2011 15:21:20 +0900 (KST)
-Date: Fri, 25 Feb 2011 15:21:21 +0900
-From: "Kim, HeungJun" <riverful.kim@samsung.com>
-Subject: [RFC PATCH v2 0/3] v4l2-ctrls: add new focus mode
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Thu, 24 Feb 2011 08:04:25 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [st-ericsson] v4l2 vs omx for camera
+Date: Thu, 24 Feb 2011 14:04:19 +0100
+Cc: Sachin Gupta <sachin.gupta@linaro.org>, "Clark, Rob" <rob@ti.com>,
+	Robert Fekete <robert.fekete@linaro.org>,
+	"linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>,
+	Harald Gustafsson <harald.gustafsson@ericsson.com>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
-Reply-to: riverful.kim@samsung.com
-Message-id: <4D674A61.9030905@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7BIT
+	"ST-Ericsson LT Mailing List" <st-ericsson@lists.linaro.org>,
+	linux-media@vger.kernel.org, gstreamer-devel@lists.freedesktop.org
+References: <AANLkTik=Yc9cb9r7Ro=evRoxd61KVE=8m7Z5+dNwDzVd@mail.gmail.com> <AANLkTin0GZxLqtPjNx9AEOPQKRkJ6hf2mXMOqp+LvNw0@mail.gmail.com> <AANLkTinvDR9SAiBOVOxMXGANpSq8w22ObjPEbdaRcj3R@mail.gmail.com>
+In-Reply-To: <AANLkTinvDR9SAiBOVOxMXGANpSq8w22ObjPEbdaRcj3R@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201102241404.19275.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+On Thursday, February 24, 2011 13:29:56 Linus Walleij wrote:
+> 2011/2/23 Sachin Gupta <sachin.gupta@linaro.org>:
+> 
+> > The imaging coprocessor in today's platforms have a general purpose DSP
+> > attached to it I have seen some work being done to use this DSP for
+> > graphics/audio processing in case the camera use case is not being tried or
+> > also if the camera usecases does not consume the full bandwidth of this
+> > dsp.I am not sure how v4l2 would fit in such an architecture,
+> 
+> Earlier in this thread I discussed TI:s DSPbridge.
+> 
+> In drivers/staging/tidspbridge
+> http://omappedia.org/wiki/DSPBridge_Project
+> you find the TI hackers happy at work with providing a DSP accelerator
+> subsystem.
+> 
+> Isn't it possible for a V4L2 component to use this interface (or something
+> more evolved, generic) as backend for assorted DSP offloading?
+> 
+> So using one kernel framework does not exclude using another one
+> at the same time. Whereas something like DSPbridge will load firmware
+> into DSP accelerators and provide control/datapath for that, this can
+> in turn be used by some camera or codec which in turn presents a
+> V4L2 or ALSA interface.
 
-Agenda
-======================================================================
-I faced to the absence of the mode of v4l2 focus for a couple of years.
-While dealing with some few morebile camera sensors, the focus modes
-are needed more than the current v4l2 focus mode, like a Macro &
-Continuous mode. The M-5MOLS camera sensor I dealt with, also support
-these 2 modes. So, I'm going to suggest supports of more detailed
-v4l2 focus mode.
+Yes, something along those lines can be done.
 
-Version
-======================================================================
-This is second version patch about auto focus mode.
-The second version changes are below:
-1. switch enumeration value between V4L2_FOCUS_AUTO and V4L2_FOCUS_MACRO,
-   for maintaing previous auto focus mode value.
-2. add documentations about the changes of auto focus mode.
+While normally V4L2 talks to hardware it is perfectly fine to talk to a DSP
+instead.
 
+The hardest part will be to identify the missing V4L2 API pieces and design
+and add them. I don't think the actual driver code will be particularly hard.
+It should be nothing more than a thin front-end for the DSP. Of course, that's
+just theory at the moment :-)
 
-This RFC series of patch adds new auto focus modes, and documents it.
+The problem is that someone has to do the actual work for the initial driver.
+And I expect that it will be a substantial amount of work. Future drivers should
+be *much* easier, though.
 
-The first patch the boolean type of V4L2_CID_FOCUS_AUTO to menu type,
-and insert menus 4 enumerations: 
-
-V4L2_FOCUS_MANUAL,
-V4L2_FOCUS_AUTO, 
-V4L2_FOCUS_MACRO,
-V4L2_FOCUS_CONTINUOUS
-
-The recent mobile camera sensors with ISP supports Macro & Continuous Auto
-Focus aka CAF mode, of course normal AUTO mode, even Continuous mode.
-Changing the type of V4L2_CID_FOCUS_MODE, is able to define more exact
-focusing mode of camera sensor.
-
-The second patch let the previous drivers using V4L2_CID_FOCUS_AUTO by
-boolean type be able to use the type of menu.
-
-The third patch documentation about changes of the auto focus mode.
-
-Thanks for reading this, and I hope any ideas and any comments.
+A good argument for doing this work is that this API can hide which parts of
+the video subsystem are hardware and which are software. The application really
+doesn't care how it is organized. What is done in hardware on one SoC might be
+done on a DSP instead on another SoC. But the end result is pretty much the same.
 
 Regards,
-Heungjun Kim
 
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
