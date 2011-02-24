@@ -1,67 +1,62 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.171]:60590 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752527Ab1BGNfK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Feb 2011 08:35:10 -0500
-Date: Mon, 7 Feb 2011 14:35:04 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Detlev Zundel <dzu@denx.de>
-cc: Anatolij Gustschin <agust@denx.de>, linux-media@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	Dan Williams <dan.j.williams@intel.com>,
-	Markus Niebel <Markus.Niebel@tqs.de>
-Subject: Re: [PATCH 2/2 v2] dma: ipu_idmac: do not lose valid received data
- in the irq handler
-In-Reply-To: <m24o8g80cj.fsf@ohwell.denx.de>
-Message-ID: <Pine.LNX.4.64.1102071428470.29036@axis700.grange>
-References: <1296031789-1721-3-git-send-email-agust@denx.de>
- <1296476549-10421-1-git-send-email-agust@denx.de>
- <Pine.LNX.4.64.1102031104090.21719@axis700.grange> <20110205143505.0b300a3a@wker>
- <Pine.LNX.4.64.1102051735270.11500@axis700.grange> <20110205210457.7218ecdc@wker>
- <Pine.LNX.4.64.1102071205570.29036@axis700.grange> <20110207122147.4081f47d@wker>
- <Pine.LNX.4.64.1102071232440.29036@axis700.grange> <m24o8g80cj.fsf@ohwell.denx.de>
+Received: from mx1.redhat.com ([209.132.183.28]:24962 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756388Ab1BXXdp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Feb 2011 18:33:45 -0500
+Message-ID: <4D66EAD5.70603@redhat.com>
+Date: Thu, 24 Feb 2011 20:33:41 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: "Igor M. Liplianin" <liplianin@me.by>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 5/9 v2] ds3000: clean up in tune procedure
+References: <201102020040.49656.liplianin@me.by> <4D66ABAF.5020908@infradead.org> <4D66AD51.6090608@redhat.com> <201102242225.35913.liplianin@me.by>
+In-Reply-To: <201102242225.35913.liplianin@me.by>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Detlev
-
-On Mon, 7 Feb 2011, Detlev Zundel wrote:
-
-> Hi Guennadi,
+Em 24-02-2011 17:25, Igor M. Liplianin escreveu:
+> В сообщении от 24 февраля 2011 21:11:13 автор Mauro Carvalho Chehab написал:
+>> Em 24-02-2011 16:04, Mauro Carvalho Chehab escreveu:
+>>> Hi Igor,
+>>>
+>>> Em 01-02-2011 20:40, Igor M. Liplianin escreveu:
+>>>> Variable 'retune' does not make sense.
+>>>> Loop is not needed for only one try.
+>>>> Remove unnecessary dprintk's.
+>>>>
+>>>> Signed-off-by: Igor M. Liplianin <liplianin@me.by>
+>>>
+>>> This patch didn't apply. Please fix and resend.
+>>
+>> PS.: I won't try to apply patches 7, 8 and 9, as they are all related to
+>> tune changes. They'll probably fail to apply, and, even if not failing or
+>> if I fix the conflicts, they may be breaking the driver. So, please put
+>> them on your next patch series.
+>>
+>> thanks!
+>> Mauro
+> Hi Mauro,
 > 
-> >> How small are the frames in you test? What is the highest fps value in
-> >> your test?
-> >
-> > QVGA, don't know fps exactly, pretty high, between 20 and 60fps, I think. 
-> > Just try different frams sizes, go down to 64x48 or something.
-> 
-> Is this a "real" usage scenario?  It feels that this is not what most
-> users will do and it certainly is not relevant for our application.  
+> Will do tonight.
 
-QVGA at 25 / 50 / 60 fps is _certainly_ very much a real-life scenario.
+OK.
 
-> Is it possible that if you are interested in such a scenario that you do
-> the testing?  We have spent quite a lot of time to fix the driver for
-> real (well full frame) capturing already and I am relucatant to spend
-> more time for corner cases.  Maybe we should document this as "known
-> limitations" of the setup?  What do you think?  I'll much rather have a
-> driver working for real world scenarios than for marginal test cases.
+> BTW, Why did you dropp/miss dw2102 patches?
+> They was sent before ds3000 series.
 
-I am interested in avoiding regressions. In principle, this is a DMA 
-driver, which I am not maintaining. Dan asked for my ack, so, I tested it 
-and found an issue, which I would prefer to have resolved before 
-committing. Of course, I don't have a decisive voice in this matter, so, 
-the patch can also be merged without my ack. Otherwise - of course you 
-don't have to continue testing, I will try to look at the issue as the 
-time permits, and Dan will have to decide, whether he is prepared to 
-commit this patch in its present form, or he would prefer this issue to be 
-clarified.
+I probably missed, or they are still on my queue. While in general I apply
+patches in order, sometimes I reorder them, trying to merge first the more
+trivial ones (or the ones that I had already analyzed, like the altera ones). 
+Please take a look at Patchwork. If they're there, then I'll probably be 
+handling until the weekend. Otherwise, just re-send them to me.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+That's said, it is probably a good idea if you could have a git repository
+somewhere to send me patches. Git works better when there are lots of
+patches, so, works better for driver maintainers. If you want, I may
+create you an account at LinuxTV (or you may host it on any other place).
+
+Thanks,
+Mauro
