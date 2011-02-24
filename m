@@ -1,87 +1,59 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.samsung.com ([203.254.224.25]:18309 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932510Ab1BYK0x (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:39404 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756518Ab1BXU1L convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Feb 2011 05:26:53 -0500
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Received: from epmmp1 (mailout2.samsung.com [203.254.224.25])
- by mailout2.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LH600L0U50SUGD0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Fri, 25 Feb 2011 19:26:52 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LH600BJN50R2L@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 25 Feb 2011 19:26:52 +0900 (KST)
-Date: Fri, 25 Feb 2011 19:26:51 +0900
-From: "Kim, HeungJun" <riverful.kim@samsung.com>
-Subject: Re: [RFC PATCH v2 1/3] v4l2-ctrls: change the boolean type of
- V4L2_CID_FOCUS_AUTO to menu type
-In-reply-to: <201102251054.02328.hverkuil@xs4all.nl>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
-Reply-to: riverful.kim@samsung.com
-Message-id: <4D6783EB.5050302@samsung.com>
-Content-transfer-encoding: 8BIT
-References: <4D674A67.3000504@samsung.com>
- <201102251021.59847.laurent.pinchart@ideasonboard.com>
- <201102251054.02328.hverkuil@xs4all.nl>
+	Thu, 24 Feb 2011 15:27:11 -0500
+Received: by bwz15 with SMTP id 15so1401066bwz.19
+        for <linux-media@vger.kernel.org>; Thu, 24 Feb 2011 12:27:10 -0800 (PST)
+From: "Igor M. Liplianin" <liplianin@me.by>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH 5/9 v2] ds3000: clean up in tune procedure
+Date: Thu, 24 Feb 2011 22:27:07 +0200
+Cc: linux-media@vger.kernel.org
+References: <201102020040.49656.liplianin@me.by> <4D66AD51.6090608@redhat.com> <201102242225.35913.liplianin@me.by>
+In-Reply-To: <201102242225.35913.liplianin@me.by>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201102242227.07515.liplianin@me.by>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hans, and Laurent,
-
-2011-02-25 오후 6:54, Hans Verkuil 쓴 글:
-> On Friday, February 25, 2011 10:21:59 Laurent Pinchart wrote:
->> On Friday 25 February 2011 07:21:27 Kim, HeungJun wrote:
->>> Support more modes of autofocus, it changes the type of V4L2_CID_FOCUS_AUTO
->>> from boolean to menu. And it includes 4 kinds of enumeration types:
->>>
->>> V4L2_FOCUS_AUTO, V4L2_FOCUS_MANUAL, V4L2_FOCUS_MACRO, V4L2_FOCUS_CONTINUOUS
->>>
->>> Signed-off-by: Heungjun Kim <riverful.kim@samsung.com>
->>> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
->>> ---
->>>  drivers/media/video/v4l2-ctrls.c |   11 ++++++++++-
->>>  include/linux/videodev2.h        |    6 ++++++
->>>  2 files changed, 16 insertions(+), 1 deletions(-)
->>>
->>> diff --git a/drivers/media/video/v4l2-ctrls.c
->>> b/drivers/media/video/v4l2-ctrls.c index 2412f08..0b1cce0 100644
->>> --- a/drivers/media/video/v4l2-ctrls.c
->>> +++ b/drivers/media/video/v4l2-ctrls.c
->>> @@ -197,6 +197,13 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
->>>  		"Aperture Priority Mode",
->>>  		NULL
->>>  	};
->>> +	static const char * const camera_focus_auto[] = {
->>> +		"Manual Mode",
->>> +		"Auto Mode",
->>> +		"Macro Mode",
->>> +		"Continuous Mode",
->>
->> This might be nit-picking, but maybe the menu entries should be named "Manual 
->> Focus", "Auto Focus", "Macro Focus" and "Continuous Auto Focus". Hans ?
+В сообщении от 24 февраля 2011 22:25:35 автор Igor M. Liplianin написал:
+> В сообщении от 24 февраля 2011 21:11:13 автор Mauro Carvalho Chehab написал:
+> > Em 24-02-2011 16:04, Mauro Carvalho Chehab escreveu:
+> > > Hi Igor,
+> > > 
+> > > Em 01-02-2011 20:40, Igor M. Liplianin escreveu:
+> > >> Variable 'retune' does not make sense.
+> > >> Loop is not needed for only one try.
+> > >> Remove unnecessary dprintk's.
+> > >> 
+> > >> Signed-off-by: Igor M. Liplianin <liplianin@me.by>
+> > > 
+> > > This patch didn't apply. Please fix and resend.
+> > 
+> > PS.: I won't try to apply patches 7, 8 and 9, as they are all related to
+> > tune changes. They'll probably fail to apply, and, even if not failing or
+> > if I fix the conflicts, they may be breaking the driver. So, please put
+> > them on your next patch series.
+> > 
+> > thanks!
+> > Mauro
 > 
-> Yes, that's better. Although I believe that it should be 'Macro Auto Focus',
-> right?
+> Hi Mauro,
 > 
-> But if we change this for 'focus' then we need to do the same for the auto
-> exposure menu which currently also uses the term 'Mode'.
+> Will do tonight.
 > 
-> Do you agree?
+> BTW, Why did you dropp/miss dw2102 patches?
+> They was sent before ds3000 series.
+Do I must resend them?
 
-Although listenning Laurent's opinion first, if my opinion is asked, I agree
-using term 'Focus', and agree using term 'Exposure' (is it right??) at the
-exposure auto control, too.
+> 
+> Thank you in advance.
 
-If the name is decided, and came to the conclusion, I would modify to maintain
-the term 'Focus' in the focus control name.
-
-Regards,
-Heungjun Kim
+-- 
+Igor M. Liplianin
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
