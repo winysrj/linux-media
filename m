@@ -1,53 +1,95 @@
 Return-path: <mchehab@pedra>
-Received: from mail1.matrix-vision.com ([78.47.19.71]:42891 "EHLO
-	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753065Ab1BKMHf (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:44414 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755446Ab1BXO1e (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Feb 2011 07:07:35 -0500
-Message-ID: <4D552685.4040406@matrix-vision.de>
-Date: Fri, 11 Feb 2011 13:07:33 +0100
-From: Michael Jones <michael.jones@matrix-vision.de>
+	Thu, 24 Feb 2011 09:27:34 -0500
+References: <9AA38BEC-4364-4F45-968B-E33BA5098C34@mattjan.us> <201101252229.35418.hverkuil@xs4all.nl> <4D666116.70605@redhat.com> <201102241451.30452.hverkuil@xs4all.nl>
+In-Reply-To: <201102241451.30452.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [RFC] ISP lane shifter support
-References: <4D394675.90304@matrix-vision.de> <201101242045.24561.laurent.pinchart@ideasonboard.com> <4D3E939A.5020100@matrix-vision.de> <201101251020.22804.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1101262218090.6179@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1101262218090.6179@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Subject: Re: oops cx2341x control handler
+From: Andy Walls <awalls@md.metrocast.net>
+Date: Thu, 24 Feb 2011 09:27:17 -0500
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Matt Janus <hello@mattjan.us>, linux-media@vger.kernel.org
+Message-ID: <90e0bfe3-57b6-4c65-8e2d-a18bd08b4459@email.android.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Laurent,
+Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
-On 01/27/2011 12:46 AM, Guennadi Liakhovetski wrote:
+>On Thursday, February 24, 2011 14:45:58 Mauro Carvalho Chehab wrote:
+>> Em 25-01-2011 19:29, Hans Verkuil escreveu:
+>> > Hi Matt,
+>> > 
+>> > On Tuesday, January 25, 2011 03:10:38 Matt Janus wrote:
+>> >> A quick test with mplayer didn't error, when i tried to use mythtv
+>the driver crashed and resulted in this:
+>> > 
+>> > I could reproduce this and the fix is below. Please test!
+>> 
+>> What's the status of this patch? Should it be applied or not?
+>
+>Absolutely! It's a nasty bug.
+>
+>Regards,
+>
+>	Hans
+>
+>> 
+>> Cheers,
+>> Mauro
+>> > 
+>> > Regards,
+>> > 
+>> > 	Hans
+>> > 
+>> > From 6b7c84508e915f26a9b701ef2f5fa0b92ca62f2f Mon Sep 17 00:00:00
+>2001
+>> > Message-Id:
+><6b7c84508e915f26a9b701ef2f5fa0b92ca62f2f.1295990866.git.hverkuil@xs4all.nl>
+>> > From: Hans Verkuil <hverkuil@xs4all.nl>
+>> > Date: Tue, 25 Jan 2011 22:25:39 +0100
+>> > Subject: [PATCH] cx18: fix kernel oops when setting MPEG control
+>before capturing.
+>> > 
+>> > The cxhdl->priv field was not set initially, only after capturing
+>started.
+>> > 
+>> > Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+>> > ---
+>> >  drivers/media/video/cx18/cx18-driver.c |    1 +
+>> >  1 files changed, 1 insertions(+), 0 deletions(-)
+>> > 
+>> > diff --git a/drivers/media/video/cx18/cx18-driver.c
+>b/drivers/media/video/cx18/cx18-driver.c
+>> > index 869690b..877e201 100644
+>> > --- a/drivers/media/video/cx18/cx18-driver.c
+>> > +++ b/drivers/media/video/cx18/cx18-driver.c
+>> > @@ -713,6 +713,7 @@ static int __devinit cx18_init_struct1(struct
+>cx18 *cx)
+>> >  	cx->cxhdl.capabilities = CX2341X_CAP_HAS_TS |
+>CX2341X_CAP_HAS_SLICED_VBI;
+>> >  	cx->cxhdl.ops = &cx18_cxhdl_ops;
+>> >  	cx->cxhdl.func = cx18_api_func;
+>> > +	cx->cxhdl.priv = &cx->streams[CX18_ENC_STREAM_TYPE_MPG];
+>> >  	ret = cx2341x_handler_init(&cx->cxhdl, 50);
+>> >  	if (ret)
+>> >  		return ret;
+>> 
+>> 
+>
+>-- 
+>Hans Verkuil - video4linux developer - sponsored by Cisco
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-media"
+>in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-> Looking at the "Data-Lane Shifter" table (12.27 in my datasheet, in the 
-> "Bridge-Lane Shifter" chapter), I think, the first two columns are fixed 
-> by the board design, right? So, our freedom lies only in one line there 
-> and is a single parameter - the shift value. The output shifter (VPIN) is 
-> independent from this one, but not unrelated. It seems logical to me to 
-> relate the former one to CCDC's input pad, and the latter one to CCDC's 
-> output pad. AFAIU, Laurent, your implementation in what concerns pad 
-> configuration is: let the user configure all interfaces independently, and 
-> first when we have to actually activate the pipeline (start streaming or 
-> configure video buffers) we can verify, whether all parts fit together. 
+Acked-by: Andy Walls <awalls@md.metrocast.net>
 
-I would like to add this lane shifter support.  Would you like me to
-implement it as Guennadi suggested- letting the user set all 3 CCDC pad
-formats arbitrarily and postpone the consistency checks to streamon time?
-
-> So, why don't we stay consistent and do the same here? Give the user both 
-> parameters and see how clever they were in the end;) I also think, if we 
-> later decide to add some consistency checks, we can always do it.
-> 
-> Thanks
-> Guennadi
-
-Thanks,
-Michael
-
-MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
-Registergericht: Amtsgericht Stuttgart, HRB 271090
-Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
