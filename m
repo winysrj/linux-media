@@ -1,169 +1,61 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:3027 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754551Ab1BDKU6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Feb 2011 05:20:58 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v8 03/12] media: Entities, pads and links
-Date: Fri, 4 Feb 2011 11:20:37 +0100
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	alsa-devel@alsa-project.org,
-	sakari.ailus@maxwell.research.nokia.com,
-	broonie@opensource.wolfsonmicro.com, clemens@ladisch.de
-References: <1296131437-29954-1-git-send-email-laurent.pinchart@ideasonboard.com> <1296131437-29954-4-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1296131437-29954-4-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:52019 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750900Ab1BXM36 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Feb 2011 07:29:58 -0500
+Received: by iwn34 with SMTP id 34so264657iwn.19
+        for <linux-media@vger.kernel.org>; Thu, 24 Feb 2011 04:29:58 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201102041120.37541.hverkuil@xs4all.nl>
+In-Reply-To: <AANLkTin0GZxLqtPjNx9AEOPQKRkJ6hf2mXMOqp+LvNw0@mail.gmail.com>
+References: <AANLkTik=Yc9cb9r7Ro=evRoxd61KVE=8m7Z5+dNwDzVd@mail.gmail.com>
+	<AANLkTinDFMMDD-F-FsccCTvUvp6K3zewYsGT1BH9VP1F@mail.gmail.com>
+	<201102100847.15212.hverkuil@xs4all.nl>
+	<201102171448.09063.laurent.pinchart@ideasonboard.com>
+	<AANLkTikg0Oj6nq6h_1-d7AQ4NQr2UyMuSemyniYZBLu3@mail.gmail.com>
+	<AANLkTik89=g4fR=wC2rkpBero2e-jDVhjmUVNzKKwNjF@mail.gmail.com>
+	<AANLkTin0GZxLqtPjNx9AEOPQKRkJ6hf2mXMOqp+LvNw0@mail.gmail.com>
+Date: Thu, 24 Feb 2011 13:29:56 +0100
+Message-ID: <AANLkTinvDR9SAiBOVOxMXGANpSq8w22ObjPEbdaRcj3R@mail.gmail.com>
+Subject: Re: [st-ericsson] v4l2 vs omx for camera
+From: Linus Walleij <linus.walleij@linaro.org>
+To: Sachin Gupta <sachin.gupta@linaro.org>
+Cc: "Clark, Rob" <rob@ti.com>,
+	Robert Fekete <robert.fekete@linaro.org>,
+	"linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>,
+	Harald Gustafsson <harald.gustafsson@ericsson.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	ST-Ericsson LT Mailing List <st-ericsson@lists.linaro.org>,
+	linux-media@vger.kernel.org, gstreamer-devel@lists.freedesktop.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thursday, January 27, 2011 13:30:28 Laurent Pinchart wrote:
+2011/2/23 Sachin Gupta <sachin.gupta@linaro.org>:
 
-<snip>
+> The imaging coprocessor in today's platforms have a general purpose DSP
+> attached to it I have seen some work being done to use this DSP for
+> graphics/audio processing in case the camera use case is not being tried or
+> also if the camera usecases does not consume the full bandwidth of this
+> dsp.I am not sure how v4l2 would fit in such an architecture,
 
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> new file mode 100644
-> index 0000000..7cf9135
-> --- /dev/null
-> +++ b/include/media/media-entity.h
-> @@ -0,0 +1,122 @@
-> +/*
-> + * Media entity
-> + *
-> + * Copyright (C) 2010 Nokia Corporation
-> + *
-> + * Contacts: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> + *	     Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-> + */
-> +
-> +#ifndef _MEDIA_ENTITY_H
-> +#define _MEDIA_ENTITY_H
-> +
-> +#include <linux/list.h>
-> +
-> +#define MEDIA_ENT_TYPE_SHIFT		16
-> +#define MEDIA_ENT_TYPE_MASK		0x00ff0000
-> +#define MEDIA_ENT_SUBTYPE_MASK		0x0000ffff
-> +
-> +#define MEDIA_ENT_T_DEVNODE		(1 << MEDIA_ENTITY_TYPE_SHIFT)
-> +#define MEDIA_ENT_T_DEVNODE_V4L		(MEDIA_ENTITY_T_DEVNODE + 1)
-> +#define MEDIA_ENT_T_DEVNODE_FB		(MEDIA_ENTITY_T_DEVNODE + 2)
-> +#define MEDIA_ENT_T_DEVNODE_ALSA	(MEDIA_ENTITY_T_DEVNODE + 3)
-> +#define MEDIA_ENT_T_DEVNODE_DVB		(MEDIA_ENTITY_T_DEVNODE + 4)
-> +
-> +#define MEDIA_ENT_T_V4L2_SUBDEV		(2 << MEDIA_ENTITY_TYPE_SHIFT)
-> +#define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR	(MEDIA_ENTITY_T_V4L2_SUBDEV + 1)
-> +#define MEDIA_ENT_T_V4L2_SUBDEV_FLASH	(MEDIA_ENTITY_T_V4L2_SUBDEV + 2)
-> +#define MEDIA_ENT_T_V4L2_SUBDEV_LENS	(MEDIA_ENTITY_T_V4L2_SUBDEV + 3)
+Earlier in this thread I discussed TI:s DSPbridge.
 
-MEDIA_ENTITY_? That should be MEDIA_ENT_. It looks like this was never compiled...
+In drivers/staging/tidspbridge
+http://omappedia.org/wiki/DSPBridge_Project
+you find the TI hackers happy at work with providing a DSP accelerator
+subsystem.
 
-BTW, I like the new names :-)
+Isn't it possible for a V4L2 component to use this interface (or something
+more evolved, generic) as backend for assorted DSP offloading?
 
+So using one kernel framework does not exclude using another one
+at the same time. Whereas something like DSPbridge will load firmware
+into DSP accelerators and provide control/datapath for that, this can
+in turn be used by some camera or codec which in turn presents a
+V4L2 or ALSA interface.
 
-> +
-> +#define MEDIA_ENT_FL_DEFAULT		(1 << 0)
-> +
-> +#define MEDIA_LNK_FL_ENABLED		(1 << 0)
-> +#define MEDIA_LNK_FL_IMMUTABLE		(1 << 1)
-> +
-> +#define MEDIA_PAD_FL_INPUT		(1 << 0)
-> +#define MEDIA_PAD_FL_OUTPUT		(1 << 1)
-> +
-> +struct media_link {
-> +	struct media_pad *source;	/* Source pad */
-> +	struct media_pad *sink;		/* Sink pad  */
-> +	struct media_link *reverse;	/* Link in the reverse direction */
-> +	unsigned long flags;		/* Link flags (MEDIA_LNK_FL_*) */
-> +};
-> +
-> +struct media_pad {
-> +	struct media_entity *entity;	/* Entity this pad belongs to */
-> +	u16 index;			/* Pad index in the entity pads array */
-> +	unsigned long flags;		/* Pad flags (MEDIA_PAD_FL_*) */
-> +};
-> +
-> +struct media_entity {
-> +	struct list_head list;
-> +	struct media_device *parent;	/* Media device this entity belongs to*/
-> +	u32 id;				/* Entity ID, unique in the parent media
-> +					 * device context */
-> +	const char *name;		/* Entity name */
-> +	u32 type;			/* Entity type (MEDIA_ENT_T_*) */
-> +	u32 revision;			/* Entity revision, driver specific */
-> +	unsigned long flags;		/* Entity flags (MEDIA_ENT_FL_*) */
-> +	u32 group_id;			/* Entity group ID */
-> +
-> +	u16 num_pads;			/* Number of input and output pads */
-> +	u16 num_links;			/* Number of existing links, both
-> +					 * enabled and disabled */
-> +	u16 num_backlinks;		/* Number of backlinks */
-> +	u16 max_links;			/* Maximum number of links */
-> +
-> +	struct media_pad *pads;		/* Pads array (num_pads elements) */
-> +	struct media_link *links;	/* Links array (max_links elements)*/
-> +
-> +	union {
-> +		/* Node specifications */
-> +		struct {
-> +			u32 major;
-> +			u32 minor;
-> +		} v4l;
-> +		struct {
-> +			u32 major;
-> +			u32 minor;
-> +		} fb;
-> +		struct {
-> +			u32 card;
-> +			u32 device;
-> +			u32 subdevice;
-> +		} alsa;
-> +		int dvb;
-> +
-> +		/* Sub-device specifications */
-> +		/* Nothing needed yet */
-> +	};
-> +};
-> +
-> +static inline u32 media_entity_type(struct media_entity *entity)
-> +{
-> +	return entity->type & MEDIA_ENT_TYPE_MASK;
-> +}
-> +
-> +static inline u32 media_entity_subtype(struct media_entity *entity)
-> +{
-> +	return entity->type & MEDIA_ENT_SUBTYPE_MASK;
-> +}
-> +
-> +int media_entity_init(struct media_entity *entity, u16 num_pads,
-> +		struct media_pad *pads, u16 extra_links);
-> +void media_entity_cleanup(struct media_entity *entity);
-> +int media_entity_create_link(struct media_entity *source, u16 source_pad,
-> +		struct media_entity *sink, u16 sink_pad, u32 flags);
-> +
-> +#endif
-> 
-
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+Yours,
+Linus Walleij
