@@ -1,98 +1,130 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:54569 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753032Ab1BVCUx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Feb 2011 21:20:53 -0500
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p1M2Kqig015641
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 21 Feb 2011 21:20:52 -0500
-Received: from pedra (vpn-224-79.phx2.redhat.com [10.3.224.79])
-	by int-mx09.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p1M2HksW012926
-	for <linux-media@vger.kernel.org>; Mon, 21 Feb 2011 21:20:51 -0500
-Date: Mon, 21 Feb 2011 23:17:40 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 4/4] [media] em28xx: properly handle subdev controls
-Message-ID: <20110221231740.66317ca6@pedra>
-In-Reply-To: <cover.1298340861.git.mchehab@redhat.com>
-References: <cover.1298340861.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mailout1.samsung.com ([203.254.224.24]:27525 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754888Ab1BXLE7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Feb 2011 06:04:59 -0500
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Received: from epmmp2 (mailout1.samsung.com [203.254.224.24])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LH4005UGC4AMI40@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 24 Feb 2011 20:04:58 +0900 (KST)
+Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
+ by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LH40017UC4ATY@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 24 Feb 2011 20:04:58 +0900 (KST)
+Date: Thu, 24 Feb 2011 20:04:58 +0900
+From: "Kim, HeungJun" <riverful.kim@samsung.com>
+Subject: Re: [RFC PATCH 1/2] v4l2-ctrls: change the boolean type of
+ V4L2_CID_FOCUS_AUTO to menu type
+In-reply-to: <201102241159.18508.hverkuil@xs4all.nl>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
+Reply-to: riverful.kim@samsung.com
+Message-id: <4D663B5A.6080204@samsung.com>
+Content-transfer-encoding: 8BIT
+References: <4D6636C2.5090600@samsung.com>
+ <201102241159.18508.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Subdev controls return codes are evil, as they return -EINVAL to mean
-both unsupported and invalid arguments. Due to that, we need to use a
-trick to identify what controls are supported by a subdev.
+Hi Hans,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Thanks for reviewing, and I'll send another version including Docbook documents.
 
-diff --git a/drivers/media/video/em28xx/em28xx-video.c b/drivers/media/video/em28xx/em28xx-video.c
-index 19b8284..23e7742 100644
---- a/drivers/media/video/em28xx/em28xx-video.c
-+++ b/drivers/media/video/em28xx/em28xx-video.c
-@@ -1387,6 +1387,27 @@ static int vidioc_queryctrl(struct file *file, void *priv,
- 		return -EINVAL;
- }
- 
-+/*
-+ * FIXME: This is an indirect way to check if a control exists at a
-+ * subdev. Instead of that hack, maybe the better would be to change all
-+ * subdevs to return -ENOIOCTLCMD, if an ioctl is not supported.
-+ */
-+static int check_subdev_ctrl(struct em28xx *dev, int id)
-+{
-+	struct v4l2_queryctrl qc;
-+
-+	memset(&qc, 0, sizeof(qc));
-+	qc.id = id;
-+
-+	/* enumerate V4L2 device controls */
-+	v4l2_device_call_all(&dev->v4l2_dev, 0, core, queryctrl, &qc);
-+
-+	if (qc.type)
-+		return 0;
-+	else
-+		return -EINVAL;
-+}
-+
- static int vidioc_g_ctrl(struct file *file, void *priv,
- 				struct v4l2_control *ctrl)
- {
-@@ -1399,7 +1420,6 @@ static int vidioc_g_ctrl(struct file *file, void *priv,
- 		return rc;
- 	rc = 0;
- 
--
- 	/* Set an AC97 control */
- 	if (dev->audio_mode.ac97 != EM28XX_NO_AC97)
- 		rc = ac97_get_ctrl(dev, ctrl);
-@@ -1408,6 +1428,9 @@ static int vidioc_g_ctrl(struct file *file, void *priv,
- 
- 	/* It were not an AC97 control. Sends it to the v4l2 dev interface */
- 	if (rc == 1) {
-+		if (check_subdev_ctrl(dev, ctrl->id))
-+			return -EINVAL;
-+
- 		v4l2_device_call_all(&dev->v4l2_dev, 0, core, g_ctrl, ctrl);
- 		rc = 0;
- 	}
-@@ -1434,8 +1457,10 @@ static int vidioc_s_ctrl(struct file *file, void *priv,
- 
- 	/* It isn't an AC97 control. Sends it to the v4l2 dev interface */
- 	if (rc == 1) {
--		rc = v4l2_device_call_until_err(&dev->v4l2_dev, 0, core, s_ctrl, ctrl);
--
-+		rc = check_subdev_ctrl(dev, ctrl->id);
-+		if (!rc)
-+			v4l2_device_call_all(&dev->v4l2_dev, 0,
-+					     core, s_ctrl, ctrl);
- 		/*
- 		 * In the case of non-AC97 volume controls, we still need
- 		 * to do some setups at em28xx, in order to mute/unmute
--- 
-1.7.1
+Regards,
+Heungjun Kim
+
+
+2011-02-24 오후 7:59, Hans Verkuil 쓴 글:
+> On Thursday, February 24, 2011 11:45:22 Kim, HeungJun wrote:
+>> For support more modes of autofocus, it changes the type of V4L2_CID_FOCUS_AUTO
+>> from boolean to menu. And it includes 4 kinds of enumeration types:
+>>
+>> V4L2_FOCUS_AUTO, V4L2_FOCUS_MANUAL, V4L2_FOCUS_MACRO, V4L2_FOCUS_CONTINUOUS
+>>
+>> Signed-off-by: Heungjun Kim <riverful.kim@samsung.com>
+>> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+>> ---
+>>  drivers/media/video/v4l2-ctrls.c |   11 ++++++++++-
+>>  include/linux/videodev2.h        |    6 ++++++
+>>  2 files changed, 16 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+>> index 2412f08..5c48d49 100644
+>> --- a/drivers/media/video/v4l2-ctrls.c
+>> +++ b/drivers/media/video/v4l2-ctrls.c
+>> @@ -197,6 +197,13 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+>>  		"Aperture Priority Mode",
+>>  		NULL
+>>  	};
+>> +	static const char * const camera_focus_auto[] = {
+>> +		"Auto Mode",
+>> +		"Manual Mode",
+>> +		"Macro Mode",
+>> +		"Continuous Mode",
+>> +		NULL
+>> +	};
+>>  	static const char * const colorfx[] = {
+>>  		"None",
+>>  		"Black & White",
+>> @@ -252,6 +259,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+>>  		return camera_power_line_frequency;
+>>  	case V4L2_CID_EXPOSURE_AUTO:
+>>  		return camera_exposure_auto;
+>> +	case V4L2_CID_FOCUS_AUTO:
+>> +		return camera_focus_auto;
+>>  	case V4L2_CID_COLORFX:
+>>  		return colorfx;
+>>  	case V4L2_CID_TUNE_PREEMPHASIS:
+>> @@ -416,7 +425,6 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+>>  	case V4L2_CID_MPEG_VIDEO_GOP_CLOSURE:
+>>  	case V4L2_CID_MPEG_VIDEO_PULLDOWN:
+>>  	case V4L2_CID_EXPOSURE_AUTO_PRIORITY:
+>> -	case V4L2_CID_FOCUS_AUTO:
+>>  	case V4L2_CID_PRIVACY:
+>>  	case V4L2_CID_AUDIO_LIMITER_ENABLED:
+>>  	case V4L2_CID_AUDIO_COMPRESSION_ENABLED:
+>> @@ -450,6 +458,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+>>  	case V4L2_CID_MPEG_STREAM_TYPE:
+>>  	case V4L2_CID_MPEG_STREAM_VBI_FMT:
+>>  	case V4L2_CID_EXPOSURE_AUTO:
+>> +	case V4L2_CID_FOCUS_AUTO:
+>>  	case V4L2_CID_COLORFX:
+>>  	case V4L2_CID_TUNE_PREEMPHASIS:
+>>  		*type = V4L2_CTRL_TYPE_MENU;
+>> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+>> index 5122b26..dda3e37 100644
+>> --- a/include/linux/videodev2.h
+>> +++ b/include/linux/videodev2.h
+>> @@ -1374,6 +1374,12 @@ enum  v4l2_exposure_auto_type {
+>>  #define V4L2_CID_FOCUS_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+10)
+>>  #define V4L2_CID_FOCUS_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+11)
+>>  #define V4L2_CID_FOCUS_AUTO			(V4L2_CID_CAMERA_CLASS_BASE+12)
+>> +enum  v4l2_focus_auto_type {
+>> +	V4L2_FOCUS_AUTO = 0,
+>> +	V4L2_FOCUS_MANUAL = 1,
+> 
+> Currently this is a boolean, so 0 means manual and 1 means auto. Let's keep
+> that order. So FOCUS_AUTO should be 1 and FOCUS_MANUAL should be 0.
+> 
+> The documentation of this control must also be updated in the V4L2 DocBook.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+>> +	V4L2_FOCUS_MACRO = 2,
+>> +	V4L2_FOCUS_CONTINUOUS = 3
+>> +};
+>>  
+>>  #define V4L2_CID_ZOOM_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+13)
+>>  #define V4L2_CID_ZOOM_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+14)
+>>
+> 
 
