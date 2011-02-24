@@ -1,121 +1,55 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58187 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754288Ab1BNMVs (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:38863 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755657Ab1BXOjd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Feb 2011 07:21:48 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [PATCH v6 00/10] OMAP3 ISP driver
-Date: Mon, 14 Feb 2011 13:21:27 +0100
-Message-Id: <1297686097-9804-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Thu, 24 Feb 2011 09:39:33 -0500
+Date: Thu, 24 Feb 2011 15:33:53 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 6/7] s5p-fimc: Use dynamic debug
+In-reply-to: <1298558034-10768-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	kgene.kim@samsung.com, s.nawrocki@samsung.com
+Message-id: <1298558034-10768-7-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1298558034-10768-1-git-send-email-s.nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi everybody,
+Use pr_debug instead of printk so it is possible to control
+debug traces at runtime.
+E.g. to enable debug trace in file fimc-core.c use command:
+echo -n 'file fimc-core.c +p' > /sys/kernel/debug/dynamic_debug/control
+or
+echo -n 'file fimc-core.c -p' > /sys/kernel/debug/dynamic_debug/control
+to disable.
 
-Here's the sixth version of the OMAP3 ISP driver patches, updated to
-2.6.38-rc4 and the latest changes in the media controller and sub-device APIs.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-fimc/fimc-core.h |    6 +-----
+ 1 files changed, 1 insertions(+), 5 deletions(-)
 
-You can find the patches in http://git.linuxtv.org/pinchartl/media.git as
-usual (media-0005-omap3isp).
-
-David Cohen (1):
-  omap3isp: Statistics
-
-Laurent Pinchart (5):
-  omap3: Add function to register omap3isp platform device structure
-  omap3isp: Video devices and buffers queue
-  omap3isp: CCP2/CSI2 receivers
-  omap3isp: CCDC, preview engine and resizer
-  omap3isp: Kconfig and Makefile
-
-Sakari Ailus (1):
-  omap3isp: OMAP3 ISP core
-
-Sergio Aguirre (2):
-  omap3: Remove unusued ISP CBUFF resource
-  omap2: Fix camera resources for multiomap
-
-Tuukka Toivonen (1):
-  ARM: OMAP3: Update Camera ISP definitions for OMAP3630
-
- arch/arm/mach-omap2/devices.c                      |   64 +-
- arch/arm/mach-omap2/devices.h                      |   17 +
- arch/arm/plat-omap/include/plat/omap34xx.h         |   16 +-
- drivers/media/video/Kconfig                        |   13 +
- drivers/media/video/Makefile                       |    2 +
- drivers/media/video/omap3-isp/Makefile             |   13 +
- drivers/media/video/omap3-isp/cfa_coef_table.h     |   61 +
- drivers/media/video/omap3-isp/gamma_table.h        |   90 +
- drivers/media/video/omap3-isp/isp.c                | 2220 +++++++++++++++++++
- drivers/media/video/omap3-isp/isp.h                |  427 ++++
- drivers/media/video/omap3-isp/ispccdc.c            | 2268 ++++++++++++++++++++
- drivers/media/video/omap3-isp/ispccdc.h            |  219 ++
- drivers/media/video/omap3-isp/ispccp2.c            | 1173 ++++++++++
- drivers/media/video/omap3-isp/ispccp2.h            |   98 +
- drivers/media/video/omap3-isp/ispcsi2.c            | 1316 ++++++++++++
- drivers/media/video/omap3-isp/ispcsi2.h            |  166 ++
- drivers/media/video/omap3-isp/ispcsiphy.c          |  247 +++
- drivers/media/video/omap3-isp/ispcsiphy.h          |   74 +
- drivers/media/video/omap3-isp/isph3a.h             |  117 +
- drivers/media/video/omap3-isp/isph3a_aewb.c        |  374 ++++
- drivers/media/video/omap3-isp/isph3a_af.c          |  429 ++++
- drivers/media/video/omap3-isp/isphist.c            |  520 +++++
- drivers/media/video/omap3-isp/isphist.h            |   40 +
- drivers/media/video/omap3-isp/isppreview.c         | 2113 ++++++++++++++++++
- drivers/media/video/omap3-isp/isppreview.h         |  214 ++
- drivers/media/video/omap3-isp/ispqueue.c           | 1153 ++++++++++
- drivers/media/video/omap3-isp/ispqueue.h           |  187 ++
- drivers/media/video/omap3-isp/ispreg.h             | 1589 ++++++++++++++
- drivers/media/video/omap3-isp/ispresizer.c         | 1693 +++++++++++++++
- drivers/media/video/omap3-isp/ispresizer.h         |  147 ++
- drivers/media/video/omap3-isp/ispstat.c            | 1092 ++++++++++
- drivers/media/video/omap3-isp/ispstat.h            |  169 ++
- drivers/media/video/omap3-isp/ispvideo.c           | 1264 +++++++++++
- drivers/media/video/omap3-isp/ispvideo.h           |  202 ++
- drivers/media/video/omap3-isp/luma_enhance_table.h |   42 +
- drivers/media/video/omap3-isp/noise_filter_table.h |   30 +
- include/linux/Kbuild                               |    1 +
- include/linux/omap3isp.h                           |  646 ++++++
- 38 files changed, 20478 insertions(+), 28 deletions(-)
- create mode 100644 arch/arm/mach-omap2/devices.h
- create mode 100644 drivers/media/video/omap3-isp/Makefile
- create mode 100644 drivers/media/video/omap3-isp/cfa_coef_table.h
- create mode 100644 drivers/media/video/omap3-isp/gamma_table.h
- create mode 100644 drivers/media/video/omap3-isp/isp.c
- create mode 100644 drivers/media/video/omap3-isp/isp.h
- create mode 100644 drivers/media/video/omap3-isp/ispccdc.c
- create mode 100644 drivers/media/video/omap3-isp/ispccdc.h
- create mode 100644 drivers/media/video/omap3-isp/ispccp2.c
- create mode 100644 drivers/media/video/omap3-isp/ispccp2.h
- create mode 100644 drivers/media/video/omap3-isp/ispcsi2.c
- create mode 100644 drivers/media/video/omap3-isp/ispcsi2.h
- create mode 100644 drivers/media/video/omap3-isp/ispcsiphy.c
- create mode 100644 drivers/media/video/omap3-isp/ispcsiphy.h
- create mode 100644 drivers/media/video/omap3-isp/isph3a.h
- create mode 100644 drivers/media/video/omap3-isp/isph3a_aewb.c
- create mode 100644 drivers/media/video/omap3-isp/isph3a_af.c
- create mode 100644 drivers/media/video/omap3-isp/isphist.c
- create mode 100644 drivers/media/video/omap3-isp/isphist.h
- create mode 100644 drivers/media/video/omap3-isp/isppreview.c
- create mode 100644 drivers/media/video/omap3-isp/isppreview.h
- create mode 100644 drivers/media/video/omap3-isp/ispqueue.c
- create mode 100644 drivers/media/video/omap3-isp/ispqueue.h
- create mode 100644 drivers/media/video/omap3-isp/ispreg.h
- create mode 100644 drivers/media/video/omap3-isp/ispresizer.c
- create mode 100644 drivers/media/video/omap3-isp/ispresizer.h
- create mode 100644 drivers/media/video/omap3-isp/ispstat.c
- create mode 100644 drivers/media/video/omap3-isp/ispstat.h
- create mode 100644 drivers/media/video/omap3-isp/ispvideo.c
- create mode 100644 drivers/media/video/omap3-isp/ispvideo.h
- create mode 100644 drivers/media/video/omap3-isp/luma_enhance_table.h
- create mode 100644 drivers/media/video/omap3-isp/noise_filter_table.h
- create mode 100644 include/linux/omap3isp.h
-
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
+index 41b1352..3beb1e5 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.h
++++ b/drivers/media/video/s5p-fimc/fimc-core.h
+@@ -29,12 +29,8 @@
+ #define err(fmt, args...) \
+ 	printk(KERN_ERR "%s:%d: " fmt "\n", __func__, __LINE__, ##args)
+ 
+-#ifdef DEBUG
+ #define dbg(fmt, args...) \
+-	printk(KERN_DEBUG "%s:%d: " fmt "\n", __func__, __LINE__, ##args)
+-#else
+-#define dbg(fmt, args...)
+-#endif
++	pr_debug("%s:%d: " fmt "\n", __func__, __LINE__, ##args)
+ 
+ /* Time to wait for next frame VSYNC interrupt while stopping operation. */
+ #define FIMC_SHUTDOWN_TIMEOUT	((100*HZ)/1000)
 -- 
-Regards,
-
-Laurent Pinchart
-
+1.7.4.1
