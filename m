@@ -1,49 +1,61 @@
 Return-path: <mchehab@pedra>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:62392 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750840Ab1BULFw convert rfc822-to-8bit (ORCPT
+Received: from cmsout01.mbox.net ([165.212.64.31]:56445 "EHLO
+	cmsout01.mbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753815Ab1BXKab convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Feb 2011 06:05:52 -0500
-MIME-Version: 1.0
-In-Reply-To: <1298283649-24532-2-git-send-email-dacohen@gmail.com>
-References: <1298283649-24532-1-git-send-email-dacohen@gmail.com>
-	<1298283649-24532-2-git-send-email-dacohen@gmail.com>
-Date: Mon, 21 Feb 2011 13:05:51 +0200
-Message-ID: <AANLkTimwvgLvpvndCqcd_okA2Kk4cu7z4bD3QXTdgWJW@mail.gmail.com>
-Subject: Re: [PATCH 1/1] headers: fix circular dependency between
- linux/sched.h and linux/wait.h
-From: Alexey Dobriyan <adobriyan@gmail.com>
-To: David Cohen <dacohen@gmail.com>
-Cc: linux-kernel@vger.kernel.org, mingo@elte.hu, peterz@infradead.org,
-	linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+	Thu, 24 Feb 2011 05:30:31 -0500
+Date: Thu, 24 Feb 2011 11:30:27 +0100
+From: "Issa Gorissen" <flop.m@usa.net>
+To: <linux-media@vger.kernel.org>
+Subject: Re: Sony CXD2099AR decryption failing
+CC: <o.endriss@gmx.de>
+Mime-Version: 1.0
+Message-ID: <752PBXkdb2464S02.1298543427@web02.cms.usa.net>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, Feb 21, 2011 at 12:20 PM, David Cohen <dacohen@gmail.com> wrote:
-> Currently sched.h and wait.h have circular dependency between both.
-> wait.h defines macros wake_up*() which use macros TASK_* defined by
-> sched.h. But as sched.h indirectly includes wait.h, such wait.h header
-> file can't include sched.h too. The side effect is when some file
-> includes wait.h and tries to use its wake_up*() macros, it's necessary
-> to include sched.h also.
-> This patch moves all TASK_* macros from linux/sched.h to a new header
-> file linux/task_sched.h. This way, both sched.h and wait.h can include
-> task_sched.h and fix the circular dependency. No need to include sched.h
-> anymore when wake_up*() macros are used.
+Hi Oliver,
 
-Just include <linux/sched.h> in your driver.
-This include splitting in small pieces is troublesome as well.
+I have managed to make a test under Windows. It worked.
 
-Why are you moving TASK_COMM_LEN?
+I only managed to watch France 2 with BIS.TV card and SMIT Viaccess CAM with
+MediaPortal 1.2.0 Alpha.
 
->  include/linux/sched.h      |   61 +-----------------------------------------
->  include/linux/task_sched.h |   64 ++++++++++++++++++++++++++++++++++++++++++++
->  include/linux/wait.h       |    1 +
->  3 files changed, 66 insertions(+), 60 deletions(-)
->  create mode 100644 include/linux/task_sched.h
+What's the next step, shall I do another test ?
 
-> --- a/include/linux/sched.h
-> +++ b/include/linux/sched.h
-> +#include <linux/task_sched.h>
+
+Support from DD tells me this
+
+> Name: 	Manfred Völkel
+> 
+> Message:
+> 
+> Hello Issa
+> 
+> The SMIT Viaccess has originally been testet with a SRG card. After
+restesting now i
+> have indeed found a problem with the BIS Card and the SMIT Viaccess module.
+> This combination does not work reliable with MTD. It however works in single
+transponder
+> mode, which is the only mode currently supported with Linux (until someone
+writes 
+> plugins for VDR etc tu remux). Please assign only one tuner to the CI and
+also configure
+> WMC with only one tuner and retest. This worked here.
+> 
+> My BIS card's serial starts with 400 00 xxx
+> 
+> The SMIT Viaccess:
+>
+> Hardware Version 1.3.0(221)
+> Loader Version: 4.2.3 seq:2
+> Software version: 1.6.1(166)m2
+> UA: 000 000 000 000
+> STB identifier: FFFFFFFF.
+> ACS Version: 463-2.1.2.11
+>
+> Gruß
+> DD-Guru
+
