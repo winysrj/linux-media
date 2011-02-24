@@ -1,64 +1,98 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:55899 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754748Ab1B1UkH convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:49886 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755687Ab1BXOvv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Feb 2011 15:40:07 -0500
-Received: by bwz15 with SMTP id 15so4031872bwz.19
-        for <linux-media@vger.kernel.org>; Mon, 28 Feb 2011 12:40:06 -0800 (PST)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: Mariusz Bialonczyk <manio@skyboo.net>
-Subject: Re: [PATCH] Prof 7301: switching frontend to stv090x, fixing "LOCK FAILED" issue
-Date: Mon, 28 Feb 2011 22:40:12 +0200
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-References: <4D3358C5.5080706@skyboo.net> <201102281901.50579.liplianin@me.by> <4D6BFB6A.1090404@skyboo.net>
-In-Reply-To: <4D6BFB6A.1090404@skyboo.net>
+	Thu, 24 Feb 2011 09:51:51 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kyungmin Park <kmpark@infradead.org>
+Subject: Re: [st-ericsson] v4l2 vs omx for camera
+Date: Thu, 24 Feb 2011 15:51:47 +0100
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, "Clark, Rob" <rob@ti.com>,
+	Robert Fekete <robert.fekete@linaro.org>,
+	"linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>,
+	Harald Gustafsson <harald.gustafsson@ericsson.com>,
+	gstreamer-devel@lists.freedesktop.org,
+	"ST-Ericsson LT Mailing List" <st-ericsson@lists.linaro.org>,
+	linux-media@vger.kernel.org
+References: <AANLkTik=Yc9cb9r7Ro=evRoxd61KVE=8m7Z5+dNwDzVd@mail.gmail.com> <201102241417.12586.hverkuil@xs4all.nl> <AANLkTikG7EGcNV=h1vs-LKMT0Vw6_4jwvSeYtAW4Hy6f@mail.gmail.com>
+In-Reply-To: <AANLkTikG7EGcNV=h1vs-LKMT0Vw6_4jwvSeYtAW4Hy6f@mail.gmail.com>
 MIME-Version: 1.0
+Message-Id: <201102241551.47535.laurent.pinchart@ideasonboard.com>
 Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201102282240.12955.liplianin@me.by>
+  charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-В сообщении от 28 февраля 2011 21:45:46 автор Mariusz Bialonczyk написал:
-> On 02/28/2011 06:01 PM, Igor M. Liplianin wrote:
-> > For those who ...
-> > He asked me to get rid of my driver. Why should I?
+Hi,
+
+On Thursday 24 February 2011 15:48:20 Kyungmin Park wrote:
+> On Thu, Feb 24, 2011 at 10:17 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> > On Tuesday, February 22, 2011 03:44:19 Clark, Rob wrote:
+> >> On Fri, Feb 18, 2011 at 10:39 AM, Robert Fekete wrote:
+> >> > Hi,
+> >> > 
+> >> > In order to expand this knowledge outside of Linaro I took the Liberty
+> >> > of inviting both linux-media@vger.kernel.org and
+> >> > gstreamer-devel@lists.freedesktop.org. For any newcomer I really
+> >> > recommend to do some catch-up reading on
+> >> > http://lists.linaro.org/pipermail/linaro-dev/2011-February/thread.html
+> >> > ("v4l2 vs omx for camera" thread) before making any comments. And sign
+> >> > up for Linaro-dev while you are at it :-)
+> >> > 
+> >> > To make a long story short:
+> >> > Different vendors provide custom OpenMax solutions for say Camera/ISP.
+> >> > In the Linux eco-system there is V4L2 doing much of this work already
+> >> > and is evolving with mediacontroller as well. Then there is the
+> >> > integration in Gstreamer...Which solution is the best way forward.
+> >> > Current discussions so far puts V4L2 greatly in favor of OMX.
+> >> > Please have in mind that OpenMAX as a concept is more like GStreamer
+> >> > in many senses. The question is whether Camera drivers should have
+> >> > OMX or V4L2 as the driver front end? This may perhaps apply to video
+> >> > codecs as well. Then there is how to in best of ways make use of this
+> >> > in GStreamer in order to achieve no copy highly efficient multimedia
+> >> > pipelines. Is gst-omx the way forward?
+> >> 
+> >> just fwiw, there were some patches to make v4l2src work with userptr
+> >> buffers in case the camera has an mmu and can handle any random
+> >> non-physically-contiguous buffer..  so there is in theory no reason
+> >> why a gst capture pipeline could not be zero copy and capture directly
+> >> into buffers allocated from the display
+> > 
+> > V4L2 also allows userspace to pass pointers to contiguous physical
+> > memory. On TI systems this memory is usually obtained via the
+> > out-of-tree cmem module.
+> > 
+> >> Certainly a more general way to allocate buffers that any of the hw
+> >> blocks (display, imaging, video encoders/decoders, 3d/2d hw, etc)
+> >> could use, and possibly share across-process for some zero copy DRI
+> >> style rendering, would be nice.  Perhaps V4L2_MEMORY_GEM?
+> > 
+> > There are two parts to this: first of all you need a way to allocate
+> > large buffers. The CMA patch series is available (but not yet merged)
+> > that does this. I'm not sure of the latest status of this series.
 > 
-> Maybe because (now) your frontend has problems with tunning on this card?
-> I though that references are known for you:
-> 1.
-> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/24
-> 573 2.
-> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/25
-> 275 3. http://linuxdvb.org.ru/wbb/index.php?page=Thread&threadID=641
+> Still ARM maintainer doesn't agree these patches since it's not solve
+> the ARM memory different attribute mapping problem.
+> but try to send the CMA v9 patch soon.
 > 
-> And to be more specific: I am not asking to get rid of your driver,
-> my patch doesn't touch your stv0900 implementation, it only change the
-> frontend for one particular card.
+> We need really require the physical memory management module. Each
+> chip vendors use the their own implementations.
+> Our approach called it as CMA, others called it as cmem, carveout,
+> hwmon and so on.
 > 
-> > I have 7301, test it myself and see nothing bad with stv0900.
-> 
-> If it is working for you - lucky you! But keep in mind that it it doesn't
-> mean that it is working for others. Have you tested it with my patch
-> applied? Besides it is not using your frontend, maybe it just *work*?
-> 
-> > Obviously, I better patch stv0900 then convert the driver to stv090x.
-> 
-> Sure, go ahead... I am only wondering why wasn't you so helpful when I was
-> trying to contact you and offer debugging help when I discovered the
-> problem after I started using this card. Your only response was:
-> "I know this issue. Your card is fine."
-> So now I resolved the problem myself and sent a working solution (tested
-> by some people - always with good results) and you disagree now.
-> 
-> I'm only hoping that a hardware *usability* will win over an ego!
-> 
-> regards,
-http://git.linuxtv.org/liplianin/media_tree.git?a=shortlog;h=refs/heads/dual_dvb_t_c_ci_rf
+> I think Laurent's approaches is similar one.
+
+Just for the record, my global buffers pool RFC didn't try to solve the 
+contiguous memory allocation problem. It aimed at providing drivers (and 
+applications) with an API to allocate and use buffers. How the memory is 
+allocated is outside the scope of the global buffers pool, CMA makes perfect 
+sense for that.
+
+> We will try it again to merge CMA.
 
 -- 
-Igor M. Liplianin
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+Regards,
+
+Laurent Pinchart
