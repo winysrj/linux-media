@@ -1,90 +1,197 @@
 Return-path: <mchehab@pedra>
-Received: from eu1sys200aog102.obsmtp.com ([207.126.144.113]:32801 "EHLO
-	eu1sys200aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751736Ab1BPOOV convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Feb 2011 09:14:21 -0500
-From: Bhupesh SHARMA <bhupesh.sharma@st.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Wed, 16 Feb 2011 21:54:02 +0800
-Subject: RE: soc-camera: Benefits of soc-camera interface over specific char
- drivers that use Gstreamer lib
-Message-ID: <D5ECB3C7A6F99444980976A8C6D896384DEE3E9234@EAPEX1MAIL1.st.com>
-References: <D5ECB3C7A6F99444980976A8C6D896384DEE366DE6@EAPEX1MAIL1.st.com>
- <201102161444.01236.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201102161444.01236.laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:22005 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755417Ab1BXOjd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Feb 2011 09:39:33 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Thu, 24 Feb 2011 15:33:48 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 1/7] s5p-fimc: fix ISR and buffer handling for fimc-capture
+In-reply-to: <1298558034-10768-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	kgene.kim@samsung.com, s.nawrocki@samsung.com,
+	Sungchun Kang <sungchun.kang@samsung.com>
+Message-id: <1298558034-10768-2-git-send-email-s.nawrocki@samsung.com>
+References: <1298558034-10768-1-git-send-email-s.nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Laurent,
+In some cases fimc H/W did not stop although there were no output
+buffers available. So the capture deactivation interrupt routine
+is modified and the state of ST_CAPT_RUN is cleared only
+in the LAST-IRQ call.
 
-> -----Original Message-----
-> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> Sent: Wednesday, February 16, 2011 7:14 PM
-> To: Bhupesh SHARMA
-> Cc: g.liakhovetski@gmx.de; linux-media@vger.kernel.org
-> Subject: Re: soc-camera: Benefits of soc-camera interface over specific
-> char drivers that use Gstreamer lib
-> 
-> Hi Bhupesh,
-> 
-> On Wednesday 16 February 2011 06:57:11 Bhupesh SHARMA wrote:
-> > Hi Guennadi,
-> >
-> > As I mentioned in one of my previous mails , we are developing a
-> Camera
-> > Host and Sensor driver for our ST specific SoC and considering using
-> the
-> > soc-camera framework for the same. One of our open-source customers
-> has
-> > raised a interesting case though:
-> >
-> > It seems they have an existing solution (for another SoC) in which
-> they do
-> > not use V4L2 framework and instead use the Gstreamer with
-> framebuffer.
-> > They specifically wish us to implement a solution which is compatible
-> with
-> > ANDROID applications.
-> >
-> > Could you please help us in deciding which approach is preferable in
-> terms
-> > of performance, maintenance and ease-of-design.
-> 
-> That's a difficult question that can't be answered without more details
-> about
-> your SoC. Could you share some documentation, such as a high-level
-> block
-> diagram of the video-related blocks in the SoC ?
-> 
+After LAST-IRQ is generated, H/W pointer will be skipped by 1 frame.
+(reference by user manual) So, S/W pointer should be increased too.
 
-At the top-level the interface is very simple:
+Reviewed-by Jonghun Han <jonghun.han@samsung.com>
+Signed-off-by: Sungchun Kang <sungchun.kang@samsung.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ drivers/media/video/s5p-fimc/fimc-capture.c |   65 +++++++++------------------
+ drivers/media/video/s5p-fimc/fimc-core.c    |   22 ++++++---
+ 2 files changed, 36 insertions(+), 51 deletions(-)
 
-----------------  8-bit data interface  ------------
-|Camera sensor |  <-------------------> | SoC (ARM Based)
-|              |				    |		   |
-|		   |	I2C control Interface |		   |
-|	         |	<-------------------> |		   |
-|              |				    |		   |
-|		   |	SYNC signals (HSYNC, VSYNC)	   |
-|	         |	------------------->  |		   |
-|              |				    |		   |
-|		   |	Pixel CLK		    |          |
-|	         |	------------------->  |		   |
-|              |				    |		   |
-|		   |	Sensor CLK		    |          |
-|	         |	<-------------------  |		   |
-----------------				    ------------
-
-The SoC itself has a simple interface to transfer the data received via system DMA and has buffer to store
-an incoming line data. Also one can program the SoC logic to apply transformations on the input data.
-
-Hope this helps.
-Regards,
-Bhupesh
+diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+index 5159cc8..10d6426 100644
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c
++++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -153,40 +153,6 @@ static int fimc_isp_subdev_init(struct fimc_dev *fimc, unsigned int index)
+ 	return ret;
+ }
+ 
+-/*
+- * At least one buffer on the pending_buf_q queue is required.
+- * Locking: The caller holds fimc->slock spinlock.
+- */
+-int fimc_vid_cap_buf_queue(struct fimc_dev *fimc,
+-			   struct fimc_vid_buffer *fimc_vb)
+-{
+-	struct fimc_vid_cap *cap = &fimc->vid_cap;
+-	struct fimc_ctx *ctx = cap->ctx;
+-	int ret = 0;
+-
+-	BUG_ON(!fimc || !fimc_vb);
+-
+-	ret = fimc_prepare_addr(ctx, &fimc_vb->vb, &ctx->d_frame,
+-				&fimc_vb->paddr);
+-	if (ret)
+-		return ret;
+-
+-	if (test_bit(ST_CAPT_STREAM, &fimc->state)) {
+-		fimc_pending_queue_add(cap, fimc_vb);
+-	} else {
+-		/* Setup the buffer directly for processing. */
+-		int buf_id = (cap->reqbufs_count == 1) ? -1 : cap->buf_index;
+-		fimc_hw_set_output_addr(fimc, &fimc_vb->paddr, buf_id);
+-
+-		fimc_vb->index = cap->buf_index;
+-		active_queue_add(cap, fimc_vb);
+-
+-		if (++cap->buf_index >= FIMC_MAX_OUT_BUFS)
+-			cap->buf_index = 0;
+-	}
+-	return ret;
+-}
+-
+ static int fimc_stop_capture(struct fimc_dev *fimc)
+ {
+ 	unsigned long flags;
+@@ -239,6 +205,8 @@ static int start_streaming(struct vb2_queue *q)
+ 	struct s5p_fimc_isp_info *isp_info;
+ 	int ret;
+ 
++	fimc_hw_reset(fimc);
++
+ 	ret = v4l2_subdev_call(fimc->vid_cap.sd, video, s_stream, 1);
+ 	if (ret && ret != -ENOIOCTLCMD)
+ 		return ret;
+@@ -273,7 +241,7 @@ static int start_streaming(struct vb2_queue *q)
+ 	INIT_LIST_HEAD(&fimc->vid_cap.active_buf_q);
+ 	fimc->vid_cap.active_buf_cnt = 0;
+ 	fimc->vid_cap.frame_count = 0;
+-	fimc->vid_cap.buf_index = fimc_hw_get_frame_index(fimc);
++	fimc->vid_cap.buf_index = 0;
+ 
+ 	set_bit(ST_CAPT_PEND, &fimc->state);
+ 
+@@ -374,17 +342,28 @@ static void buffer_queue(struct vb2_buffer *vb)
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&fimc->slock, flags);
+-	fimc_vid_cap_buf_queue(fimc, buf);
++	fimc_prepare_addr(ctx, &buf->vb, &ctx->d_frame, &buf->paddr);
+ 
+-	dbg("active_buf_cnt: %d", fimc->vid_cap.active_buf_cnt);
+ 
+-	if (vid_cap->active_buf_cnt >= vid_cap->reqbufs_count ||
+-	   vid_cap->active_buf_cnt >= FIMC_MAX_OUT_BUFS) {
+-		if (!test_and_set_bit(ST_CAPT_STREAM, &fimc->state)) {
+-			fimc_activate_capture(ctx);
+-			dbg("");
+-		}
++	if (!test_bit(ST_CAPT_STREAM, &fimc->state)
++	     && vid_cap->active_buf_cnt < FIMC_MAX_OUT_BUFS) {
++		/* Setup the buffer directly for processing. */
++		int buf_id = (vid_cap->reqbufs_count == 1) ? -1 :
++				vid_cap->buf_index;
++
++		fimc_hw_set_output_addr(fimc, &buf->paddr, buf_id);
++		buf->index = vid_cap->buf_index;
++		active_queue_add(vid_cap, buf);
++
++		if (++vid_cap->buf_index >= FIMC_MAX_OUT_BUFS)
++			vid_cap->buf_index = 0;
++	} else {
++		fimc_pending_queue_add(vid_cap, buf);
+ 	}
++
++	if (!test_and_set_bit(ST_CAPT_STREAM, &fimc->state))
++		fimc_activate_capture(ctx);
++
+ 	spin_unlock_irqrestore(&fimc->slock, flags);
+ }
+ 
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+index cd8a300..461f1f2 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.c
++++ b/drivers/media/video/s5p-fimc/fimc-core.c
+@@ -327,7 +327,7 @@ static int stop_streaming(struct vb2_queue *q)
+ static void fimc_capture_handler(struct fimc_dev *fimc)
+ {
+ 	struct fimc_vid_cap *cap = &fimc->vid_cap;
+-	struct fimc_vid_buffer *v_buf = NULL;
++	struct fimc_vid_buffer *v_buf;
+ 
+ 	if (!list_empty(&cap->active_buf_q)) {
+ 		v_buf = active_queue_pop(cap);
+@@ -356,19 +356,23 @@ static void fimc_capture_handler(struct fimc_dev *fimc)
+ 
+ 		if (++cap->buf_index >= FIMC_MAX_OUT_BUFS)
+ 			cap->buf_index = 0;
++	}
+ 
+-	} else if (test_and_clear_bit(ST_CAPT_STREAM, &fimc->state) &&
+-		   cap->active_buf_cnt <= 1) {
+-		fimc_deactivate_capture(fimc);
++	if (cap->active_buf_cnt == 0) {
++		clear_bit(ST_CAPT_RUN, &fimc->state);
++
++		if (++cap->buf_index >= FIMC_MAX_OUT_BUFS)
++			cap->buf_index = 0;
+ 	}
+ 
+-	dbg("frame: %d, active_buf_cnt= %d",
++	dbg("frame: %d, active_buf_cnt: %d",
+ 	    fimc_hw_get_frame_index(fimc), cap->active_buf_cnt);
+ }
+ 
+ static irqreturn_t fimc_isr(int irq, void *priv)
+ {
+ 	struct fimc_dev *fimc = priv;
++	struct fimc_vid_cap *cap = &fimc->vid_cap;
+ 
+ 	BUG_ON(!fimc);
+ 	fimc_hw_clear_irq(fimc);
+@@ -398,10 +402,12 @@ static irqreturn_t fimc_isr(int irq, void *priv)
+ 
+ 	if (test_bit(ST_CAPT_RUN, &fimc->state))
+ 		fimc_capture_handler(fimc);
+-
+-	if (test_and_clear_bit(ST_CAPT_PEND, &fimc->state)) {
++	else if (test_bit(ST_CAPT_PEND, &fimc->state))
+ 		set_bit(ST_CAPT_RUN, &fimc->state);
+-		wake_up(&fimc->irq_queue);
++
++	if (cap->active_buf_cnt == 1) {
++		fimc_deactivate_capture(fimc);
++		clear_bit(ST_CAPT_STREAM, &fimc->state);
+ 	}
+ 
+ isr_unlock:
+-- 
+1.7.4.1
