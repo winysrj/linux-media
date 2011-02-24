@@ -1,61 +1,73 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:52019 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750900Ab1BXM36 convert rfc822-to-8bit (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:38863 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755625Ab1BXOjf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Feb 2011 07:29:58 -0500
-Received: by iwn34 with SMTP id 34so264657iwn.19
-        for <linux-media@vger.kernel.org>; Thu, 24 Feb 2011 04:29:58 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <AANLkTin0GZxLqtPjNx9AEOPQKRkJ6hf2mXMOqp+LvNw0@mail.gmail.com>
-References: <AANLkTik=Yc9cb9r7Ro=evRoxd61KVE=8m7Z5+dNwDzVd@mail.gmail.com>
-	<AANLkTinDFMMDD-F-FsccCTvUvp6K3zewYsGT1BH9VP1F@mail.gmail.com>
-	<201102100847.15212.hverkuil@xs4all.nl>
-	<201102171448.09063.laurent.pinchart@ideasonboard.com>
-	<AANLkTikg0Oj6nq6h_1-d7AQ4NQr2UyMuSemyniYZBLu3@mail.gmail.com>
-	<AANLkTik89=g4fR=wC2rkpBero2e-jDVhjmUVNzKKwNjF@mail.gmail.com>
-	<AANLkTin0GZxLqtPjNx9AEOPQKRkJ6hf2mXMOqp+LvNw0@mail.gmail.com>
-Date: Thu, 24 Feb 2011 13:29:56 +0100
-Message-ID: <AANLkTinvDR9SAiBOVOxMXGANpSq8w22ObjPEbdaRcj3R@mail.gmail.com>
-Subject: Re: [st-ericsson] v4l2 vs omx for camera
-From: Linus Walleij <linus.walleij@linaro.org>
-To: Sachin Gupta <sachin.gupta@linaro.org>
-Cc: "Clark, Rob" <rob@ti.com>,
-	Robert Fekete <robert.fekete@linaro.org>,
-	"linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>,
-	Harald Gustafsson <harald.gustafsson@ericsson.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	ST-Ericsson LT Mailing List <st-ericsson@lists.linaro.org>,
-	linux-media@vger.kernel.org, gstreamer-devel@lists.freedesktop.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Thu, 24 Feb 2011 09:39:35 -0500
+Date: Thu, 24 Feb 2011 15:33:52 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 5/7] s5p-fimc: Add a platform data entry for MIPI-CSI data
+	alignment
+In-reply-to: <1298558034-10768-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	kgene.kim@samsung.com, s.nawrocki@samsung.com
+Message-id: <1298558034-10768-6-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1298558034-10768-1-git-send-email-s.nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-2011/2/23 Sachin Gupta <sachin.gupta@linaro.org>:
+Allow the MIPI-CSI data alignment to be defined in the board setup
+as it may be different across various camera sensors.
 
-> The imaging coprocessor in today's platforms have a general purpose DSP
-> attached to it I have seen some work being done to use this DSP for
-> graphics/audio processing in case the camera use case is not being tried or
-> also if the camera usecases does not consume the full bandwidth of this
-> dsp.I am not sure how v4l2 would fit in such an architecture,
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-fimc/fimc-reg.c |    6 ++++--
+ include/media/s5p_fimc.h                |    2 ++
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-Earlier in this thread I discussed TI:s DSPbridge.
-
-In drivers/staging/tidspbridge
-http://omappedia.org/wiki/DSPBridge_Project
-you find the TI hackers happy at work with providing a DSP accelerator
-subsystem.
-
-Isn't it possible for a V4L2 component to use this interface (or something
-more evolved, generic) as backend for assorted DSP offloading?
-
-So using one kernel framework does not exclude using another one
-at the same time. Whereas something like DSPbridge will load firmware
-into DSP accelerators and provide control/datapath for that, this can
-in turn be used by some camera or codec which in turn presents a
-V4L2 or ALSA interface.
-
-Yours,
-Linus Walleij
+diff --git a/drivers/media/video/s5p-fimc/fimc-reg.c b/drivers/media/video/s5p-fimc/fimc-reg.c
+index 10684ae..4d929a3 100644
+--- a/drivers/media/video/s5p-fimc/fimc-reg.c
++++ b/drivers/media/video/s5p-fimc/fimc-reg.c
+@@ -665,10 +665,12 @@ int fimc_hw_set_camera_type(struct fimc_dev *fimc,
+ 			    vid_cap->fmt.code);
+ 			return -EINVAL;
+ 		}
+-		writel(tmp | (0x1 << 8), fimc->regs + S5P_CSIIMGFMT);
++		tmp |= (cam->csi_data_align == 32) << 8;
++
++		writel(tmp, fimc->regs + S5P_CSIIMGFMT);
+ 
+ 	} else if (cam->bus_type == FIMC_ITU_601 ||
+-		  cam->bus_type == FIMC_ITU_656) {
++		   cam->bus_type == FIMC_ITU_656) {
+ 		if (cam->mux_id == 0) /* ITU-A, ITU-B: 0, 1 */
+ 			cfg |= S5P_CIGCTRL_SELCAM_ITU_A;
+ 	} else if (cam->bus_type == FIMC_LCD_WB) {
+diff --git a/include/media/s5p_fimc.h b/include/media/s5p_fimc.h
+index 96cd6fc..94c9a00 100644
+--- a/include/media/s5p_fimc.h
++++ b/include/media/s5p_fimc.h
+@@ -33,6 +33,7 @@ struct i2c_board_info;
+  * @board_info: pointer to I2C subdevice's board info
+  * @clk_frequency: frequency of the clock the host interface provides to sensor
+  * @bus_type: determines bus type, MIPI, ITU-R BT.601 etc.
++ * @csi_data_align: MIPI-CSI interface data alignment in bits
+  * @i2c_bus_num: i2c control bus id the sensor is attached to
+  * @mux_id: FIMC camera interface multiplexer index (separate for MIPI and ITU)
+  * @flags: flags defining bus signals polarity inversion (High by default)
+@@ -41,6 +42,7 @@ struct s5p_fimc_isp_info {
+ 	struct i2c_board_info *board_info;
+ 	unsigned long clk_frequency;
+ 	enum cam_bus_type bus_type;
++	u16 csi_data_align;
+ 	u16 i2c_bus_num;
+ 	u16 mux_id;
+ 	u16 flags;
+-- 
+1.7.4.1
