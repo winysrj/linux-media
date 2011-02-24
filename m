@@ -1,86 +1,109 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:39650 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751911Ab1B0Mlk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Feb 2011 07:41:40 -0500
-Received: by bwz15 with SMTP id 15so3039299bwz.19
-        for <linux-media@vger.kernel.org>; Sun, 27 Feb 2011 04:41:39 -0800 (PST)
-Subject: Re: Genuis Emessenger 310 webcam slow work with pac7302 in
- 2.6.37.1 kernel
-From: housegregory299 <housegregory299@gmail.com>
-To: linux-media@vger.kernel.org
-In-Reply-To: <1298762810.2022.54.camel@debian>
-References: <1298718695.2178.30.camel@debian> <4D693EB3.6080302@freemail.hu>
-	 <1298762810.2022.54.camel@debian>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 27 Feb 2011 18:41:21 +0600
-Message-ID: <1298810481.4788.0.camel@debian>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from ns.mm-sol.com ([213.240.235.226]:33313 "EHLO extserv.mm-sol.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755598Ab1BXJp2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Feb 2011 04:45:28 -0500
+Message-ID: <4D6628AF.4040401@mm-sol.com>
+Date: Thu, 24 Feb 2011 11:45:19 +0200
+From: Stanimir Varbanov <svarbanov@mm-sol.com>
+MIME-Version: 1.0
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hansverk@cisco.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [RFC/PATCH 0/1] New subdev sensor operation g_interface_parms
+References: <cover.1298368924.git.svarbanov@mm-sol.com> <201102231630.43759.laurent.pinchart@ideasonboard.com> <201102231702.57636.hansverk@cisco.com> <201102231714.41770.laurent.pinchart@ideasonboard.com> <A24693684029E5489D1D202277BE894488C577A3@dlee02.ent.ti.com> <Pine.LNX.4.64.1102231729280.11581@axis700.grange> <A24693684029E5489D1D202277BE894488D6F9F5@dlee02.ent.ti.com>
+In-Reply-To: <A24693684029E5489D1D202277BE894488D6F9F5@dlee02.ent.ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-В Вск, 27/02/2011 в 05:26 +0600, housegregory299 пишет:
-> Hello! Thanks for answer to me.
-> Outputs from these commands: 
+Hi,
+
+<snip>
+>> Sorry, I accept different opinions, and in the end only one of the two
+>> possibilities will be implemented, and either way it'll all work in the
+>> end, but, I don't buy either of these arguments.
 > 
-> root@debian:/home/t800# cat /proc/version
-> Linux version 2.6.37-1-amd64 (Debian 2.6.37-1) (ben@decadent.org.uk)
-> (gcc version 4.4.5 (Debian 4.4.5-10) ) #1 SMP Tue Feb 15 17:43:38 UTC
-> 2011
+>> Complexity - the code is
+>> already there, it is working, it is simple, it has not broken since it has
+>> been implemented. I had it hard-coded in the beginning and I went over to
+>> negotiation and never regretted it.
 > 
-> dpkg -l libv4l-0 :
-> ii  libv4l-0       0.8.0-1        Collection of video4linux support
-> libraries
+> First of all, it seems that this discussion is heavily parallel i/f
+> oriented, and soc_camera focused, and it's just not like that.
 > 
-> root@debian:/home/t800# dpkg -l |grep linux-image
-> ii  linux-image-2.6-amd64                 2.6.32+29
-> Linux 2.6 for 64-bit PCs (meta-package)
-> ii  linux-image-2.6.32-5-amd64            2.6.32-30
-> Linux 2.6.32 for 64-bit PCs
-> ii  linux-image-2.6.37-1-amd64            2.6.37-1
-> Linux 2.6.37 for 64-bit PCs
+
+yes, it seems that is correct. My patch just get back on host side some
+sensor dynamic parameters and it doesn't pretending for any negotiation.
+
+> Now, _just_ for soc_camera framework, yeah... it works and it's there, but
+> still not providing a solution for other v4l2_subdev users (like Media
+> Controller).
 > 
-> dmesg output: No Errors 
-> [    5.497771] gspca: v2.10.0 registered
-> [    5.575635] gspca: probing 093a:2624
-> [    5.579935] input: pac7302
-> as /devices/pci0000:00/0000:00:1d.3/usb5/5-2/input/input6
-> [    5.580056] gspca: video0 created
-> [    5.580084] usbcore: registered new interface driver pac7302
-> [    5.658209] usbcore: registered new interface driver snd-usb-audio
+
+I already start looking into soc_camera code, but I'm so confused. :(
+
+> Complexity comes only when trying to make this truly generic, and avoid
+> fragmentation of solutions (1 for soc, 1 for MC), plus adding support for
+> serial (MIPI) interfaces
 > 
-> Frame rate not depend on the content of image, but in 2.6.32 kernel is
-> depend on Exposure, i set up the webcam through the program  guvcview,
-> (in 2.6.32) and lowered Exposure value to 0% and freezes disappeared,
-> and will be OK. But the colors were a bit distorted and blurred.
-> In the 2.6.37.1 (Installed from Sid Repository) colors are better on
-> image, but I can not lower the value Exposure to reduce freezes, but
-> increase this value is impossible without freezes or slow frame rate. 
+> Now, also, the patch originally proposed by Stan doesn't actually deal with
+> putting polarities as part of the interface parameters, which is something
+> you're currently negotiating in soc_camera framework, again, just for
+> parallel interfaces.
 > 
-> Therefore, I usually lower them parameter to configure. Earlier this
-> helps. But not with the new kernel. I also tried ubuntu 10.10 with
-> 2.6.35.xx stock kernel and freezes there be similar.
-> Webcam's image normally visible in Cheese, skype and Kopete.
-> Thank you for tips, 
-> I'll definitely try them.  It is a pity that it happened, in the new
-> kernel has many improvements to my PC
+> Now, just for the sake of clarifying my understanding, I guess what you're
+> saying is to make sensor driver expose all possible polarities and physical
+> details configurable, and make the platform data limit the actual options due to the physical layout.
 > 
-> My PC's quick specs:
-> Gigabyte G31M-ES2L Motherboard
-> CPU: Intel Dualcore 2.93 GHz 
-> 4 GB Ram 
-> Realtek HD alc883 audio integrated
-> GPU: ATI Radeon HD 4650 (1024 mb) GDDR2 PC-e x16 by Gigabyte
+> For example, if in my board A, I have:
 > 
-> In Debian/Ubuntu distros all devices work fine - without any problem
-> except webcam. 
+> 	- OV5640 sensor driver, which supports both Parallel and CSI2
+>         Interfaces (with up to 2 datalanes)
+> 	- Rx subdev (or host) driver(s) which support Parallel, CSI2-A and
+>         CSI2-B interfaces (with 2 and 1 datalanes respectively).
 > 
-> Translating partially done by Google Translator and 
+
+If the sensor is physically connected as parallel and serial the board
+code should dictates the preferred interface, IMO. Or ...
+
+> I should specify in my boardfile integration details, such as the
+> sensor is actually wired to the CSI2-B I/f, so make the sensor
+> negotiate with the other side of the bus and enable CSI2 i/f with
+> given details, like just use 1 datalane, and match datalane
+> position/polarity.
 > 
-> I'll understand a little English =) 
+> Am I understanding right?
 > 
->  
+>> Hardware damage - if this were the case, I'd probably be surrounded only
+>> by bricks. How configuring a wrong hsync polarity can damage your
+>> hardware?
+> 
+> Ok, I'll regret my statement on this one. I guess I was a bit too dramatic
+> to point out consequences of HW mismatches. Nevermind this.
+> 
+
+:)
+
+> Regards,
+> Sergio
+> 
+>> Thanks
+>> Guennadi
+>> ---
+>> Guennadi Liakhovetski, Ph.D.
+>> Freelance Open-Source Software Developer
+>> http://www.open-technology.de/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
+-- 
+Best regards,
+Stan
