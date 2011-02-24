@@ -1,53 +1,44 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:53406 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752693Ab1BCXi1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Feb 2011 18:38:27 -0500
-Received: by ewy5 with SMTP id 5so1037579ewy.19
-        for <linux-media@vger.kernel.org>; Thu, 03 Feb 2011 15:38:26 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <AANLkTik3Fh6Q7LJZafwstpyEOgydBkJ=R83rLyK7pzV8@mail.gmail.com>
-References: <AANLkTimmvf++nF=mzHHQJ0-aMc2=aYJnwo-hYto75Mpc@mail.gmail.com>
-	<AANLkTik3Fh6Q7LJZafwstpyEOgydBkJ=R83rLyK7pzV8@mail.gmail.com>
-Date: Thu, 3 Feb 2011 18:38:25 -0500
-Message-ID: <AANLkTikyiS5_pkP_ALu3ogDioF+uqdA2D4H00Vz8iQsX@mail.gmail.com>
-Subject: Re: [PATCH RESEND] Fix bug in au0828 VBI streaming
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:60994 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753604Ab1BXOjc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Feb 2011 09:39:32 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Thu, 24 Feb 2011 15:33:49 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 2/7] s5p-fimc: Prevent oops when i2c adapter is not available
+In-reply-to: <1298558034-10768-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	kgene.kim@samsung.com, s.nawrocki@samsung.com
+Message-id: <1298558034-10768-3-git-send-email-s.nawrocki@samsung.com>
+References: <1298558034-10768-1-git-send-email-s.nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Feb 2, 2011 at 8:58 AM, Devin Heitmueller
-<dheitmueller@kernellabs.com> wrote:
-> On Sun, Jan 23, 2011 at 5:12 PM, Devin Heitmueller
-> <dheitmueller@kernellabs.com> wrote:
->> Attached is a patch for a V4L2 spec violation with regards to the
->> au0828 not working in streaming mode.
->>
->> This was just an oversight on my part when I did the original VBI
->> support for this bridge, as libzvbi was silently falling back to using
->> the read() interface.
->
-> Mauro,
->
-> Where are we at with this patch.  It's trivial and VBI is broken in
-> V4L2 streaming mode without it.
+Prevent invalid pointer dereference on error path.
 
-Mauro,
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-fimc/fimc-capture.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-I see this has been committed for 2.6.39.  Given the trivial nature,
-can we get it in there for 2.6.38 as well?  It's a bugfix and the
-au0828 VBI support is new to 2.6.38.  If it doesn't go in, then the
-VBI support will be present but broken for a full release cycle.  This
-could definitely cause problems for existing applications that now
-detect the presence of VBI support, but then break when they try to
-use it.
-
-Devin
-
+diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+index 10d6426..2d8002c 100644
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c
++++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -98,7 +98,7 @@ static int fimc_subdev_attach(struct fimc_dev *fimc, int index)
+ 			continue;
+ 
+ 		sd = fimc_subdev_register(fimc, isp_info);
+-		if (sd) {
++		if (!IS_ERR_OR_NULL(sd)) {
+ 			vid_cap->sd = sd;
+ 			vid_cap->input_index = i;
+ 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.7.4.1
