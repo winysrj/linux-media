@@ -1,41 +1,96 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:48118 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755755Ab1BJE4h (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Feb 2011 23:56:37 -0500
-Received: by mail-ww0-f44.google.com with SMTP id 36so997018wwa.1
-        for <linux-media@vger.kernel.org>; Wed, 09 Feb 2011 20:56:36 -0800 (PST)
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:64016 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756434Ab1BXXgp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Feb 2011 18:36:45 -0500
 MIME-Version: 1.0
-From: Pawel Osciak <pawel@osciak.com>
-Date: Wed, 9 Feb 2011 20:56:16 -0800
-Message-ID: <AANLkTi=anEpevAYyufzj11-rE2DJqYWpRpDP-kK2XjHe@mail.gmail.com>
-Subject: [GIT PATCHES for 2.6.39] Remove compatibility layer from multi-planar
- API documentation
-To: LMML <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+In-Reply-To: <20110221122109.GA23087@legolas.emea.dhcp.ti.com>
+References: <20110215113717.GN2570@legolas.emea.dhcp.ti.com>
+	<4D5A672A.7040000@samsung.com>
+	<4D5A6874.1080705@corscience.de>
+	<20110215115349.GQ2570@legolas.emea.dhcp.ti.com>
+	<4D5A6EEC.5000908@maxwell.research.nokia.com>
+	<AANLkTik+6fguqgH8Bpnpqo7Axmquy3caRMELTZVmuN1j@mail.gmail.com>
+	<20110219150024.GA4487@legolas.emea.dhcp.ti.com>
+	<AANLkTik5dwNZrUxjgjKeAQOsp610d6y_TNGg1b5Vc5Zd@mail.gmail.com>
+	<20110221073640.GA3094@legolas.emea.dhcp.ti.com>
+	<AANLkTinf3Wj=nw_2Sx4r-VSsCH+=fzx-25hynH8hB0d9@mail.gmail.com>
+	<20110221122109.GA23087@legolas.emea.dhcp.ti.com>
+Date: Fri, 25 Feb 2011 01:36:44 +0200
+Message-ID: <AANLkTi=4L38=_a4hFyWqBZL1-CPDyp8t3GfW-M1u8wJF@mail.gmail.com>
+Subject: Re: [PATCH resend] video: omap24xxcam: Fix compilation
+From: David Cohen <dacohen@gmail.com>
+To: balbi@ti.com
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Thomas Weber <weber@corscience.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-omap@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>, Tejun Heo <tj@kernel.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
-This removes compatibility layer documentation from DocBook
-documentation of multi-planar extensions, as we discussed and decided
-to drop it from 2.6.39.
+On Mon, Feb 21, 2011 at 2:21 PM, Felipe Balbi <balbi@ti.com> wrote:
+> On Mon, Feb 21, 2011 at 02:09:07PM +0200, David Cohen wrote:
+>> On Mon, Feb 21, 2011 at 9:36 AM, Felipe Balbi <balbi@ti.com> wrote:
+>> > Hi,
+>> >
+>> > On Sat, Feb 19, 2011 at 06:04:58PM +0200, David Cohen wrote:
+>> >> > I have to disagree. The fundamental problem is the circular dependency
+>> >> > between those two files:
+>> >> >
+>> >> > sched.h uses wait_queue_head_t defined in wait.h
+>> >> > wait.h uses TASK_* defined in sched.h
+>> >> >
+>> >> > So, IMO the real fix would be clear out the circular dependency. Maybe
+>> >> > introducing <linux/task.h> to define those TASK_* symbols and include
+>> >> > that on sched.h and wait.h
+>> >> >
+>> >> > Just dig a quick and dirty to try it out and works like a charm
+>> >>
+>> >> We have 2 problems:
+>> >>  - omap24xxcam compilation broken
+>> >>  - circular dependency between sched.h and wait.h
+>> >>
+>> >> To fix the broken compilation we can do what the rest of the kernel is
+>> >> doing, which is to include sched.h.
+>> >> Then, the circular dependency is fixed by some different approach
+>> >> which would probably change *all* current usage of TASK_*.
+>> >
+>> > considering that 1 is caused by 2 I would fix 2.
+>> >
+>> >> IMO, there's no need to create a dependency between those issues.
+>> >
+>> > There's no dependency between them, it's just that the root cause for
+>> > this problem is a circular dependency between wait.h and sched.h
+>>
+>> I did a try to fix this circular dependency and the comment I got was
+>> to include sched.h in omap24xxcam.c file:
+>> http://marc.info/?l=linux-omap&m=129828637120270&w=2
+>>
+>> I'm working to remove v4l2 internal device interface from omap24xxcam
+>> and then I need this driver's compilation fixed.
+>> The whole kernel is including sched.h when wake_up*() macro is used,
+>> so this should be our first solution IMO.
+>> As I said earlier, no need to make this compilation fix be dependent
+>> of wait.h fix (if it's really going to be changed).
+>>
+>> I think we should proceed with this patch.
+>
+> I would wait to hear from Ingo or Peter who are the maintainers for that
+> part, but fine by me.
 
-The following changes since commit ffd14aab03dbb8bb1bac5284603835f94d833bd6:
+How about to proceed with this patch?
 
-  [media] au0828: fix VBI handling when in V4L2 streaming mode
-(2011-02-02 12:06:14 -0200)
+Regards,
 
-are available in the git repository at:
-  ssh://linuxtv.org/git/posciak/media_tree.git staging/for_v2.6.39
+David
 
-Pawel Osciak (1):
-      [media] Remove compatibility layer from multi-planar API documentation
-
- Documentation/DocBook/v4l/planar-apis.xml     |   35 +++++-------------------
- Documentation/DocBook/v4l/vidioc-querycap.xml |   22 +++++++--------
- 2 files changed, 18 insertions(+), 39 deletions(-)
-
--- 
-Best regards,
-Pawel Osciak
+>
+> --
+> balbi
+>
