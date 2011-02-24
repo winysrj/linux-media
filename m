@@ -1,41 +1,63 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:36727 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755585Ab1BJEtl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Feb 2011 23:49:41 -0500
-Received: by wyb28 with SMTP id 28so949152wyb.19
-        for <linux-media@vger.kernel.org>; Wed, 09 Feb 2011 20:49:40 -0800 (PST)
-MIME-Version: 1.0
-From: Pawel Osciak <pawel@osciak.com>
-Date: Wed, 9 Feb 2011 20:49:19 -0800
-Message-ID: <AANLkTi=YTyf=wTHz9L7XMf9APR=nOjawYARVMP9Y70Am@mail.gmail.com>
-Subject: [GIT FIXES for 2.6.38] Fix double free of video_device in mem2mem_testdev
-To: LMML <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mailout4.samsung.com ([203.254.224.34]:53714 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752813Ab1BXKpP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Feb 2011 05:45:15 -0500
+Received: from epmmp1 (mailout4.samsung.com [203.254.224.34])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LH400052B7DX310@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 24 Feb 2011 19:45:13 +0900 (KST)
+Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
+ by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LH40041LB7DT9@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 24 Feb 2011 19:45:13 +0900 (KST)
+Date: Thu, 24 Feb 2011 19:45:13 +0900
+From: "Kim, HeungJun" <riverful.kim@samsung.com>
+Subject: [RFC PATCH 0/2] v4l2-ctrls: add new focus mode
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Reply-to: riverful.kim@samsung.com
+Message-id: <4D6636B9.4020105@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
-please pull this fix for mem2mem_testdev, which should solve a bug
-reported by Roland Kletzing a while ago.
+Hello,
 
+I faced to the absence of the mode of v4l2 focus for a couple of years.
+While dealing with some few morebile camera sensors, the focus modes
+are needed more than the current v4l2 focus mode, like a Macro &
+Continuous mode. The M-5MOLS camera sensor I dealt with, also support
+these 2 modes. So, I'm going to suggest supports of more detailed
+v4l2 focus mode.
+ 
+This RFC series of patch adds new auto focus modes, and documents it.
 
-The following changes since commit d3d373e0e3f51f335d8c722dd1340ab812fdf94b:
+The first changes the boolean type of V4L2_CID_FOCUS_AUTO to menu type,
+and insert menus 4 enumerations: 
 
- Merge git://git.kernel.org/pub/scm/linux/kernel/git/rusty/linux-2.6-for-linus
-(2011-02-09 11:51:40 -0800)
+V4L2_FOCUS_AUTO, 
+V4L2_FOCUS_MACRO, 
+V4L2_FOCUS_MANUAL, 
+V4L2_FOCUS_CONTINUOUS
 
-are available in the git repository at:
+The recent mobile camera sensors with ISP supports Macro & Continuous Auto
+Focus aka CAF mode, of course normal AUTO mode, even Continuous mode.
+Changing the type of V4L2_CID_FOCUS_MODE, is able to define more exact
+focusing mode of camera sensor.
 
- ssh://linuxtv.org/git/posciak/media_tree.git staging/for_v2.6.38rc
+The second changes let the previous drivers using V4L2_CID_FOCUS_AUTO by
+boolean type be able to use the type of menu.
 
-Pawel Osciak (1):
-     [media] Fix double free of video_device in mem2mem_testdev
+Thanks for reading this, and I hope any ideas and any comments.
 
-drivers/media/video/mem2mem_testdev.c |    1 -
-1 files changed, 0 insertions(+), 1 deletions(-)
+Regards,
+Heungjun Kim
 
---
-Thanks,
-Pawel Osciak
