@@ -1,56 +1,63 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:54674 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932105Ab1BZAyt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Feb 2011 19:54:49 -0500
-Subject: Re: [PATCH 06/21]drivers:media:cx23418.h remove one to many l's in
- the word.
-From: Andy Walls <awalls@md.metrocast.net>
-To: "Justin P. Mattock" <justinmattock@gmail.com>
-Cc: trivial@kernel.org, mchehab@infradead.org,
-	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-In-Reply-To: <1298614277-3649-1-git-send-email-justinmattock@gmail.com>
-References: <1298614277-3649-1-git-send-email-justinmattock@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Fri, 25 Feb 2011 19:51:18 -0500
-Message-ID: <1298681478.2709.24.camel@localhost>
-Mime-Version: 1.0
+Received: from mx1.redhat.com ([209.132.183.28]:47647 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752565Ab1BXNqL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Feb 2011 08:46:11 -0500
+Message-ID: <4D666116.70605@redhat.com>
+Date: Thu, 24 Feb 2011 10:45:58 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Matt Janus <hello@mattjan.us>, linux-media@vger.kernel.org,
+	Andy Walls <awalls@md.metrocast.net>
+Subject: Re: oops cx2341x control handler
+References: <9AA38BEC-4364-4F45-968B-E33BA5098C34@mattjan.us> <201101252229.35418.hverkuil@xs4all.nl>
+In-Reply-To: <201101252229.35418.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, 2011-02-24 at 22:11 -0800, Justin P. Mattock wrote:
-> The patch below removes an extra "l" in the word.
+Em 25-01-2011 19:29, Hans Verkuil escreveu:
+> Hi Matt,
 > 
-> Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
+> On Tuesday, January 25, 2011 03:10:38 Matt Janus wrote:
+>> A quick test with mplayer didn't error, when i tried to use mythtv the driver crashed and resulted in this:
 > 
+> I could reproduce this and the fix is below. Please test!
+
+What's the status of this patch? Should it be applied or not?
+
+Cheers,
+Mauro
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> From 6b7c84508e915f26a9b701ef2f5fa0b92ca62f2f Mon Sep 17 00:00:00 2001
+> Message-Id: <6b7c84508e915f26a9b701ef2f5fa0b92ca62f2f.1295990866.git.hverkuil@xs4all.nl>
+> From: Hans Verkuil <hverkuil@xs4all.nl>
+> Date: Tue, 25 Jan 2011 22:25:39 +0100
+> Subject: [PATCH] cx18: fix kernel oops when setting MPEG control before capturing.
+> 
+> The cxhdl->priv field was not set initially, only after capturing started.
+> 
+> Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
 > ---
->  drivers/media/video/cx18/cx23418.h |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
+>  drivers/media/video/cx18/cx18-driver.c |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
 > 
-> diff --git a/drivers/media/video/cx18/cx23418.h b/drivers/media/video/cx18/cx23418.h
-> index 7e40035..935f557 100644
-> --- a/drivers/media/video/cx18/cx23418.h
-> +++ b/drivers/media/video/cx18/cx23418.h
-> @@ -477,7 +477,7 @@
->  /* The are no buffers ready. Try again soon! */
->  #define CXERR_NODATA_AGAIN      0x00001E
->  
-> -/* The stream is stopping. Function not alllowed now! */
-> +/* The stream is stopping. Function not allowed now! */
-
-If the spelling mistake is worthy of a fix, why isn't the egregious
-grammar mistake also worth fixing?
-
-Also, those aren't the only spelling and grammar mistakes in comments in
-that file.
-
--Andy
-
->  #define CXERR_STOPPING_STATUS   0x00001F
->  
->  /* Trying to access hardware when the power is turned OFF */
-
+> diff --git a/drivers/media/video/cx18/cx18-driver.c b/drivers/media/video/cx18/cx18-driver.c
+> index 869690b..877e201 100644
+> --- a/drivers/media/video/cx18/cx18-driver.c
+> +++ b/drivers/media/video/cx18/cx18-driver.c
+> @@ -713,6 +713,7 @@ static int __devinit cx18_init_struct1(struct cx18 *cx)
+>  	cx->cxhdl.capabilities = CX2341X_CAP_HAS_TS | CX2341X_CAP_HAS_SLICED_VBI;
+>  	cx->cxhdl.ops = &cx18_cxhdl_ops;
+>  	cx->cxhdl.func = cx18_api_func;
+> +	cx->cxhdl.priv = &cx->streams[CX18_ENC_STREAM_TYPE_MPG];
+>  	ret = cx2341x_handler_init(&cx->cxhdl, 50);
+>  	if (ret)
+>  		return ret;
 
