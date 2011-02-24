@@ -1,49 +1,77 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:56538 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932124Ab1BWRHO (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4114 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750867Ab1BXNvy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Feb 2011 12:07:14 -0500
-Received: by eyx24 with SMTP id 24so1367822eyx.19
-        for <linux-media@vger.kernel.org>; Wed, 23 Feb 2011 09:07:12 -0800 (PST)
+	Thu, 24 Feb 2011 08:51:54 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: oops cx2341x control handler
+Date: Thu, 24 Feb 2011 14:51:30 +0100
+Cc: Matt Janus <hello@mattjan.us>, linux-media@vger.kernel.org,
+	Andy Walls <awalls@md.metrocast.net>
+References: <9AA38BEC-4364-4F45-968B-E33BA5098C34@mattjan.us> <201101252229.35418.hverkuil@xs4all.nl> <4D666116.70605@redhat.com>
+In-Reply-To: <4D666116.70605@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <1298479744.2698.41.camel@acropora>
-References: <1298479744.2698.41.camel@acropora>
-Date: Wed, 23 Feb 2011 12:07:12 -0500
-Message-ID: <AANLkTimz43G5kEtjEFK9jxRg=hs5y_fwUdva7DbhcUoH@mail.gmail.com>
-Subject: Re: PCTV nanoStick T2 in stock - Driver work?
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Nicolas Will <nico@youplala.net>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201102241451.30452.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Feb 23, 2011 at 11:49 AM, Nicolas Will <nico@youplala.net> wrote:
-> Hello
->
-> The DVB-T2 USB stick appears to be in stock in the UK.
->
-> Product page:
-> http://www.pctvsystems.com/Products/ProductsEuropeAsia/Digitalproducts/PCTVnanoStickT2/tabid/248/language/en-GB/Default.aspx
->
-> Play.com, Dabs and Amzon.co.uk list it as in stock.
->
-> Is there any work started on a driver at this point?
->
-> If no work has started, would a loan/donation of a stick help?
->
-> What can be done to trigger/accelerate the provision of a driver?
+On Thursday, February 24, 2011 14:45:58 Mauro Carvalho Chehab wrote:
+> Em 25-01-2011 19:29, Hans Verkuil escreveu:
+> > Hi Matt,
+> > 
+> > On Tuesday, January 25, 2011 03:10:38 Matt Janus wrote:
+> >> A quick test with mplayer didn't error, when i tried to use mythtv the driver crashed and resulted in this:
+> > 
+> > I could reproduce this and the fix is below. Please test!
+> 
+> What's the status of this patch? Should it be applied or not?
 
-Somebody would have to break down and reverse engineer the Sony T2
-demod.  I saw something over in mythtv-users where somebody took a
-unit apart and photographed it, and he's suggested that he's started
-working on a driver.
+Absolutely! It's a nasty bug.
 
-http://stevekerrison.com/290e/index.html
+Regards,
 
-Devin
+	Hans
+
+> 
+> Cheers,
+> Mauro
+> > 
+> > Regards,
+> > 
+> > 	Hans
+> > 
+> > From 6b7c84508e915f26a9b701ef2f5fa0b92ca62f2f Mon Sep 17 00:00:00 2001
+> > Message-Id: <6b7c84508e915f26a9b701ef2f5fa0b92ca62f2f.1295990866.git.hverkuil@xs4all.nl>
+> > From: Hans Verkuil <hverkuil@xs4all.nl>
+> > Date: Tue, 25 Jan 2011 22:25:39 +0100
+> > Subject: [PATCH] cx18: fix kernel oops when setting MPEG control before capturing.
+> > 
+> > The cxhdl->priv field was not set initially, only after capturing started.
+> > 
+> > Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+> > ---
+> >  drivers/media/video/cx18/cx18-driver.c |    1 +
+> >  1 files changed, 1 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/cx18/cx18-driver.c b/drivers/media/video/cx18/cx18-driver.c
+> > index 869690b..877e201 100644
+> > --- a/drivers/media/video/cx18/cx18-driver.c
+> > +++ b/drivers/media/video/cx18/cx18-driver.c
+> > @@ -713,6 +713,7 @@ static int __devinit cx18_init_struct1(struct cx18 *cx)
+> >  	cx->cxhdl.capabilities = CX2341X_CAP_HAS_TS | CX2341X_CAP_HAS_SLICED_VBI;
+> >  	cx->cxhdl.ops = &cx18_cxhdl_ops;
+> >  	cx->cxhdl.func = cx18_api_func;
+> > +	cx->cxhdl.priv = &cx->streams[CX18_ENC_STREAM_TYPE_MPG];
+> >  	ret = cx2341x_handler_init(&cx->cxhdl, 50);
+> >  	if (ret)
+> >  		return ret;
+> 
+> 
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Hans Verkuil - video4linux developer - sponsored by Cisco
