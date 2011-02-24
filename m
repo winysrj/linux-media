@@ -1,74 +1,87 @@
 Return-path: <mchehab@pedra>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:53284 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751800Ab1BUQ3n (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57505 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751190Ab1BXNKr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Feb 2011 11:29:43 -0500
-Date: Mon, 21 Feb 2011 18:29:39 +0200
-From: Felipe Balbi <balbi@ti.com>
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: David Cohen <dacohen@gmail.com>, linux-kernel@vger.kernel.org,
-	mingo@elte.hu, linux-omap@vger.kernel.org,
-	linux-media@vger.kernel.org, Alexey Dobriyan <adobriyan@gmail.com>,
-	Oleg Nesterov <oleg@redhat.com>
-Subject: Re: [PATCH v2 1/1] headers: fix circular dependency between
- linux/sched.h and linux/wait.h
-Message-ID: <20110221162939.GK23087@legolas.emea.dhcp.ti.com>
-Reply-To: balbi@ti.com
-References: <1298299131-17695-1-git-send-email-dacohen@gmail.com>
- <1298299131-17695-2-git-send-email-dacohen@gmail.com>
- <1298303677.24121.1.camel@twins>
- <AANLkTimOT6jNG3=TiRMJR0dgEQ6EHjcBPJ1ivCu3Wj5Q@mail.gmail.com>
- <1298305245.24121.7.camel@twins>
+	Thu, 24 Feb 2011 08:10:47 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [st-ericsson] v4l2 vs omx for camera
+Date: Thu, 24 Feb 2011 14:10:45 +0100
+Cc: Linus Walleij <linus.walleij@linaro.org>,
+	Sachin Gupta <sachin.gupta@linaro.org>,
+	"Clark, Rob" <rob@ti.com>,
+	Robert Fekete <robert.fekete@linaro.org>,
+	"linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>,
+	Harald Gustafsson <harald.gustafsson@ericsson.com>,
+	"ST-Ericsson LT Mailing List" <st-ericsson@lists.linaro.org>,
+	linux-media@vger.kernel.org, gstreamer-devel@lists.freedesktop.org
+References: <AANLkTik=Yc9cb9r7Ro=evRoxd61KVE=8m7Z5+dNwDzVd@mail.gmail.com> <AANLkTinvDR9SAiBOVOxMXGANpSq8w22ObjPEbdaRcj3R@mail.gmail.com> <201102241404.19275.hverkuil@xs4all.nl>
+In-Reply-To: <201102241404.19275.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1298305245.24121.7.camel@twins>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201102241410.46042.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
-
-On Mon, Feb 21, 2011 at 05:20:45PM +0100, Peter Zijlstra wrote:
-> > > I think Alexey already told you what you done wrong.
-> > >
-> > > Also, I really don't like the task_state.h header, it assumes a lot of
-> > > things it doesn't include itself and only works because its using macros
-> > > and not inlines at it probably should.
+On Thursday 24 February 2011 14:04:19 Hans Verkuil wrote:
+> On Thursday, February 24, 2011 13:29:56 Linus Walleij wrote:
+> > 2011/2/23 Sachin Gupta <sachin.gupta@linaro.org>:
+> > > The imaging coprocessor in today's platforms have a general purpose DSP
+> > > attached to it I have seen some work being done to use this DSP for
+> > > graphics/audio processing in case the camera use case is not being
+> > > tried or also if the camera usecases does not consume the full
+> > > bandwidth of this dsp.I am not sure how v4l2 would fit in such an
+> > > architecture,
 > > 
-> > Like wait.h I'd say. The main issue is wait.h uses TASK_* macros but
-> > cannot properly include sched.h as it would create a circular
-> > dependency. So a file including wait.h is able to compile because the
-> > dependency of sched.h relies on wake_up*() macros and it's not always
-> > used.
-> > We can still drop everything else from task_state.h but the TASK_*
-> > macros and then the problem you just pointed out won't exist anymore.
-> > What do you think about it?
+> > Earlier in this thread I discussed TI:s DSPbridge.
+> > 
+> > In drivers/staging/tidspbridge
+> > http://omappedia.org/wiki/DSPBridge_Project
+> > you find the TI hackers happy at work with providing a DSP accelerator
+> > subsystem.
+> > 
+> > Isn't it possible for a V4L2 component to use this interface (or
+> > something more evolved, generic) as backend for assorted DSP offloading?
+> > 
+> > So using one kernel framework does not exclude using another one
+> > at the same time. Whereas something like DSPbridge will load firmware
+> > into DSP accelerators and provide control/datapath for that, this can
+> > in turn be used by some camera or codec which in turn presents a
+> > V4L2 or ALSA interface.
 > 
-> I'd much rather see a real cleanup.. eg. remove the need for sched.h to
-> include wait.h.
-
-isn't that exactly what he's trying to achieve ? Moving TASK_* to its
-own header is one approach, what other approach do you suggest ?
-
-> afaict its needed because struct signal_struct and struct sighand_struct
-> include a wait_queue_head_t. The inclusion seems to come through
-
-yes.
-
-> completion.h, but afaict we don't actually need to include completion.h
-> because all we have is a pointer to a completion, which is perfectly
-> fine with an incomplete type.
-
-so maybe just dropping completion.h from sched.h would do it.
-
-> This all would suggest we move the signal bits into their own header
-> (include/linux/signal.h already exists and seems inviting).
+> Yes, something along those lines can be done.
 > 
-> And then make sched.c include signal.h and completion.h.
+> While normally V4L2 talks to hardware it is perfectly fine to talk to a DSP
+> instead.
+> 
+> The hardest part will be to identify the missing V4L2 API pieces and design
+> and add them. I don't think the actual driver code will be particularly
+> hard. It should be nothing more than a thin front-end for the DSP. Of
+> course, that's just theory at the moment :-)
+> 
+> The problem is that someone has to do the actual work for the initial
+> driver. And I expect that it will be a substantial amount of work. Future
+> drivers should be *much* easier, though.
+> 
+> A good argument for doing this work is that this API can hide which parts
+> of the video subsystem are hardware and which are software. The
+> application really doesn't care how it is organized. What is done in
+> hardware on one SoC might be done on a DSP instead on another SoC. But the
+> end result is pretty much the same.
 
-you wouldn't prevent the underlying problem which is the need to include
-sched.h whenever you include wait.h and use wake_up*()
+I think the biggest issue we will have here is that part of the inter-
+processors communication stack lives in userspace in most recent SoCs (OMAP4 
+comes to mind for instance). This will make implementing a V4L2 driver that 
+relies on IPC difficult.
+
+It's probably time to start seriously thinking about userspace 
+drivers/librairies/middlewares/frameworks/whatever, at least to clearly tell 
+chip vendors what the Linux community expects.
 
 -- 
-balbi
+Regards,
+
+Laurent Pinchart
