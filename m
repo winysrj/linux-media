@@ -1,68 +1,70 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:49985 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755325Ab1BNBfb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Feb 2011 20:35:31 -0500
-Subject: cx23885-input.c does in fact use a workqueue....
-From: Andy Walls <awalls@md.metrocast.net>
-To: Tejun Heo <tj@kernel.org>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	stoth@kernellabs.com
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 13 Feb 2011 20:35:22 -0500
-Message-ID: <1297647322.19186.61.camel@localhost>
-Mime-Version: 1.0
+Received: from smtp.nokia.com ([147.243.128.26]:62678 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932428Ab1BYSXz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Feb 2011 13:23:55 -0500
+Message-ID: <4D67F3AF.7060808@maxwell.research.nokia.com>
+Date: Fri, 25 Feb 2011 20:23:43 +0200
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+MIME-Version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Stan <svarbanov@mm-sol.com>, Hans Verkuil <hansverk@cisco.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	saaguirre@ti.com
+Subject: Re: [RFC/PATCH 0/1] New subdev sensor operation g_interface_parms
+References: <cover.1298368924.git.svarbanov@mm-sol.com> <201102221800.49914.hverkuil@xs4all.nl> <4D642DE2.3090705@gmail.com> <201102230910.43069.hverkuil@xs4all.nl> <Pine.LNX.4.64.1102231020330.8880@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1102231020330.8880@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Tejun,
+Hi Guennadi and others,
 
-I just noticed this commit:
+Apologies for the late reply...
 
-commit 8c71778cbf2c8beaefaa2dee5478aa0622d96682
-Author: Tejun Heo <tj@kernel.org>
-Date:   Fri Dec 24 16:14:20 2010 +0100
+Guennadi Liakhovetski wrote:
+> On Wed, 23 Feb 2011, Hans Verkuil wrote:
+> 
+>> On Tuesday, February 22, 2011 22:42:58 Sylwester Nawrocki wrote:
+>>> Clock values are often being rounded at runtime and do not always reflect exactly
+>>> the numbers fixed at compile time. And negotiation could help to obtain exact
+>>> values at both sensor and host side.
+>>
+>> The only static data I am concerned about are those that affect signal integrity.
+>> After thinking carefully about this I realized that there is really only one
+>> setting that is relevant to that: the sampling edge. The polarities do not
+>> matter in this.
+> 
+> Ok, this is much better! I'm still not perfectly happy having to punish 
+> all just for the sake of a couple of broken boards, but I can certainly 
+> much better live with this, than with having to hard-code each and every 
+> bit. Thanks, Hans!
 
-    media/video: don't use flush_scheduled_work()
-    
-    This patch converts the remaining users of flush_scheduled_work() in
-    media/video.
-    
-    * bttv-input.c and cx23885-input.c don't use workqueue at all.  No
-      need to flush.
-[...]
+How much punishing would actually take place without autonegotiation?
+How many boards do we have in total? I counted around 26 of
+soc_camera_link declarations under arch/. Are there more?
 
+An example of hardware which does care about clock polarity is the
+N8[01]0. The parallel clock polarity is inverted since this actually
+does improve reliability. In an ideal hardware this likely wouldn't
+happen but sometimes the hardware is not exactly ideal. Both the sensor
+and the camera block support non-inverted and inverted clock signal.
 
-The cx23885 driver does in fact schedule work for IR input handling:
+So at the very least it should be possible to provide this information
+in the board code even if both ends share multiple common values for
+parameters.
 
-Here's where it is scheduled for CX23888 chips:
-
-http://git.linuxtv.org/media_tree.git?a=blob;f=drivers/media/video/cx23885/cx23885-ir.c;h=7125247dd25558678c823ee3262675570c9aa630;hb=HEAD#l76
-
-Here's where it is scheduled for CX23885 chips:
-
-http://git.linuxtv.org/media_tree.git?a=blob;f=drivers/media/video/cx23885/cx23885-core.c;h=359882419b7f588b7c698dbcfb6a39ddb1603301;hb=HEAD#l1861
-
-
-The two different chips are handled slightly differently because
-
-a. the CX23888 IR unit is accessable via a PCI register block.  The IR
-IRQ can be acknowledged with direct PCI register accesses in an
-interrupt context, and the IR pulse FIFO serviced later in a workqueue
-context.
-
-b. the CX23885 IR unit is accessed over an I2C bus.  The CX23885 A/V IRQ
-has to be masked in an interrupt context (with PCI registers accesses).
-Then the CX23885 A/V unit's IR IRQ is ack'ed over I2C in a workqueue
-context and the IR pulse FIFO is also serviced over I2C in a workqueue
-context.
-
-
-So what should be done about the flush_scheduled_work()?  I think it
-belongs there.
+There have been many comments on the dangers of the autonegotiation and
+I share those concerns. One of my main concerns is that it creates an
+unnecessary dependency from all the boards to the negotiation code, the
+behaviour of which may not change.
 
 Regards,
-Andy
 
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
