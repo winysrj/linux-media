@@ -1,243 +1,116 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58169 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753923Ab1BNMVN (ORCPT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:51888 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753792Ab1BYOCQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Feb 2011 07:21:13 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	linux-kernel@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [PATCH v9 04/12] media: Entity graph traversal
-Date: Mon, 14 Feb 2011 13:20:59 +0100
-Message-Id: <1297686067-9666-5-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1297686067-9666-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1297686067-9666-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Fri, 25 Feb 2011 09:02:16 -0500
+Date: Fri, 25 Feb 2011 15:53:15 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Kim HeungJun <riverful@gmail.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Stanimir Varbanov <svarbanov@mm-sol.com>
+Subject: Re: [RFC] snapshot mode, flash capabilities and control
+Message-ID: <20110225135314.GF23853@valkosipuli.localdomain>
+References: <Pine.LNX.4.64.1102240947230.15756@axis700.grange>
+ <Pine.LNX.4.64.1102241608090.18242@axis700.grange>
+ <822C7F65-82D7-4513-BED4-B484163BEB3E@gmail.com>
+ <201102251105.06026.laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201102251105.06026.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Sakari Ailus <sakari.ailus@iki.fi>
+On Fri, Feb 25, 2011 at 11:05:05AM +0100, Laurent Pinchart wrote:
+> Hi,
 
-Add media entity graph traversal. The traversal follows enabled links by
-depth first. Traversing graph backwards is prevented by comparing the next
-possible entity in the graph with the previous one. Multiply connected
-graphs are thus not supported.
+Hi,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Vimarsh Zutshi <vimarsh.zutshi@gmail.com>
----
- Documentation/media-framework.txt |   42 +++++++++++++
- drivers/media/media-entity.c      |  115 +++++++++++++++++++++++++++++++++++++
- include/media/media-entity.h      |   15 +++++
- 3 files changed, 172 insertions(+), 0 deletions(-)
+> On Thursday 24 February 2011 18:57:22 Kim HeungJun wrote:
+> > Hi Guennadi,
+> > 
+> > I think, it's maybe a good suggestion for current trend! ( I'm not sure
+> > this express *trend* is right :))
+> > 
+> > But, the flash or strobe control connected with sensor can be controlled by
+> > user application directly, not in the sensor subdev device. For example,
+> > let's think that there is a Flash light application. Its function is just
+> > power-up LED. So, in this case, if the flash control mechanism should be
+> > used *only* in the V4L2 API belonging through S/G_PARM, this mechanism
+> > might be a little complicated, nevertheless it's possible to control
+> > led/strobe using S/G_PARM. I mean that we must check the camera must be in
+> > the capture state or not, or another setting (like a FPS) should be
+> > checked. Namely, for powering up LED, the more procedure is needed.
+> > 
+> > Also, we can think another case. Generally, the LED/STROBE/FLASH is
+> > connected with camera sensor directly, but another case can be existed
+> > that LED connected with Processor by controlling GPIO. So, In this case,
+> > using LED framework look more better I guess, and then user application
+> > access LED frame sysfs node eaisly.
+> 
+> The flash is usually handled by a dedicated I2C flash controller (such as the 
+> ADP1653 used in the N900 - http://www.analog.com/static/imported-
+> files/data_sheets/ADP1653.pdf), which is in that case mapped to a v4l2_subdev. 
+> Simpler solutions of course exist, such as GPIO LEDs or LEDs connected 
+> directly to the sensor. We need an API that can support all those hardware 
+> options.
+> 
+> Let's also not forget that, in addition to the flash LEDs itself, devices 
+> often feature an indicator LED (a small low-power red LED used to indicate 
+> that video capture is ongoing). The flash LEDs can also be used during video 
+> capture, and in focus assist mode (pre-flashing also comes to mind).
+> 
+> In addition to the modes, flash controllers can generate strobe signals or 
+> react on them. Durations are programmable, as well as current limits, and 
+> sometimes PWM/current source mode selection. The device can usually detect 
+> faults (such as over-current or over-temperature faults) that need to be 
+> reported to the user. And we haven't even discussed Xenon flashes.
+> 
+> Given the wide variety of parameters, I think it would make sense to use V4L2 
+> controls on the sub-device directly. If the flash LEDs are connected directly 
+> to the sensor, controls on the sensor sub-device can be used to select the 
+> flash parameters.
+> 
+> This doesn't solve the flash/capture synchronization problem though. I don't 
+> think we need a dedicated snapshot capture mode at the V4L2 level. A way to 
 
-diff --git a/Documentation/media-framework.txt b/Documentation/media-framework.txt
-index 0257bad..ab17f33 100644
---- a/Documentation/media-framework.txt
-+++ b/Documentation/media-framework.txt
-@@ -216,3 +216,45 @@ Links have flags that describe the link capabilities and state.
- 	modified at runtime. If MEDIA_LNK_FL_IMMUTABLE is set, then
- 	MEDIA_LNK_FL_ENABLED must also be set since an immutable link is always
- 	enabled.
-+
-+
-+Graph traversal
-+---------------
-+
-+The media framework provides APIs to iterate over entities in a graph.
-+
-+To iterate over all entities belonging to a media device, drivers can use the
-+media_device_for_each_entity macro, defined in include/media/media-device.h.
-+
-+	struct media_entity *entity;
-+
-+	media_device_for_each_entity(entity, mdev) {
-+		/* entity will point to each entity in turn */
-+		...
-+	}
-+
-+Drivers might also need to iterate over all entities in a graph that can be
-+reached only through enabled links starting at a given entity. The media
-+framework provides a depth-first graph traversal API for that purpose.
-+
-+Note that graphs with cycles (whether directed or undirected) are *NOT*
-+supported by the graph traversal API. To prevent infinite loops, the graph
-+traversal code limits the maximum depth to MEDIA_ENTITY_ENUM_MAX_DEPTH,
-+currently defined as 16.
-+
-+Drivers initiate a graph traversal by calling
-+
-+	media_entity_graph_walk_start(struct media_entity_graph *graph,
-+				      struct media_entity *entity);
-+
-+The graph structure, provided by the caller, is initialized to start graph
-+traversal at the given entity.
-+
-+Drivers can then retrieve the next entity by calling
-+
-+	media_entity_graph_walk_next(struct media_entity_graph *graph);
-+
-+When the graph traversal is complete the function will return NULL.
-+
-+Graph traversal can be interrupted at any moment. No cleanup function call is
-+required and the graph structure can be freed normally.
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 5c31df9..166f2b5 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -84,6 +84,121 @@ media_entity_cleanup(struct media_entity *entity)
- }
- EXPORT_SYMBOL_GPL(media_entity_cleanup);
- 
-+/* -----------------------------------------------------------------------------
-+ * Graph traversal
-+ */
-+
-+static struct media_entity *
-+media_entity_other(struct media_entity *entity, struct media_link *link)
-+{
-+	if (link->source->entity == entity)
-+		return link->sink->entity;
-+	else
-+		return link->source->entity;
-+}
-+
-+/* push an entity to traversal stack */
-+static void stack_push(struct media_entity_graph *graph,
-+		       struct media_entity *entity)
-+{
-+	if (graph->top == MEDIA_ENTITY_ENUM_MAX_DEPTH - 1) {
-+		WARN_ON(1);
-+		return;
-+	}
-+	graph->top++;
-+	graph->stack[graph->top].link = 0;
-+	graph->stack[graph->top].entity = entity;
-+}
-+
-+static struct media_entity *stack_pop(struct media_entity_graph *graph)
-+{
-+	struct media_entity *entity;
-+
-+	entity = graph->stack[graph->top].entity;
-+	graph->top--;
-+
-+	return entity;
-+}
-+
-+#define stack_peek(en)	((en)->stack[(en)->top - 1].entity)
-+#define link_top(en)	((en)->stack[(en)->top].link)
-+#define stack_top(en)	((en)->stack[(en)->top].entity)
-+
-+/**
-+ * media_entity_graph_walk_start - Start walking the media graph at a given entity
-+ * @graph: Media graph structure that will be used to walk the graph
-+ * @entity: Starting entity
-+ *
-+ * This function initializes the graph traversal structure to walk the entities
-+ * graph starting at the given entity. The traversal structure must not be
-+ * modified by the caller during graph traversal. When done the structure can
-+ * safely be freed.
-+ */
-+void media_entity_graph_walk_start(struct media_entity_graph *graph,
-+				   struct media_entity *entity)
-+{
-+	graph->top = 0;
-+	graph->stack[graph->top].entity = NULL;
-+	stack_push(graph, entity);
-+}
-+EXPORT_SYMBOL_GPL(media_entity_graph_walk_start);
-+
-+/**
-+ * media_entity_graph_walk_next - Get the next entity in the graph
-+ * @graph: Media graph structure
-+ *
-+ * Perform a depth-first traversal of the given media entities graph.
-+ *
-+ * The graph structure must have been previously initialized with a call to
-+ * media_entity_graph_walk_start().
-+ *
-+ * Return the next entity in the graph or NULL if the whole graph have been
-+ * traversed.
-+ */
-+struct media_entity *
-+media_entity_graph_walk_next(struct media_entity_graph *graph)
-+{
-+	if (stack_top(graph) == NULL)
-+		return NULL;
-+
-+	/*
-+	 * Depth first search. Push entity to stack and continue from
-+	 * top of the stack until no more entities on the level can be
-+	 * found.
-+	 */
-+	while (link_top(graph) < stack_top(graph)->num_links) {
-+		struct media_entity *entity = stack_top(graph);
-+		struct media_link *link = &entity->links[link_top(graph)];
-+		struct media_entity *next;
-+
-+		/* The link is not enabled so we do not follow. */
-+		if (!(link->flags & MEDIA_LNK_FL_ENABLED)) {
-+			link_top(graph)++;
-+			continue;
-+		}
-+
-+		/* Get the entity in the other end of the link . */
-+		next = media_entity_other(entity, link);
-+
-+		/* Was it the entity we came here from? */
-+		if (next == stack_peek(graph)) {
-+			link_top(graph)++;
-+			continue;
-+		}
-+
-+		/* Push the new entity to stack and start over. */
-+		link_top(graph)++;
-+		stack_push(graph, next);
-+	}
-+
-+	return stack_pop(graph);
-+}
-+EXPORT_SYMBOL_GPL(media_entity_graph_walk_next);
-+
-+/* -----------------------------------------------------------------------------
-+ * Links management
-+ */
-+
- static struct media_link *media_entity_add_link(struct media_entity *entity)
- {
- 	if (entity->num_links >= entity->max_links) {
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index f6c856c..28f61f6 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -113,10 +113,25 @@ static inline u32 media_entity_subtype(struct media_entity *entity)
- 	return entity->type & MEDIA_ENT_SUBTYPE_MASK;
- }
- 
-+#define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
-+
-+struct media_entity_graph {
-+	struct {
-+		struct media_entity *entity;
-+		int link;
-+	} stack[MEDIA_ENTITY_ENUM_MAX_DEPTH];
-+	int top;
-+};
-+
- int media_entity_init(struct media_entity *entity, u16 num_pads,
- 		struct media_pad *pads, u16 extra_links);
- void media_entity_cleanup(struct media_entity *entity);
- int media_entity_create_link(struct media_entity *source, u16 source_pad,
- 		struct media_entity *sink, u16 sink_pad, u32 flags);
- 
-+void media_entity_graph_walk_start(struct media_entity_graph *graph,
-+		struct media_entity *entity);
-+struct media_entity *
-+media_entity_graph_walk_next(struct media_entity_graph *graph);
-+
- #endif
+I agree with that. Flash synchronisation is just one of the many parameters
+that would benefit from frame level synchronisation. Exposure time, gain
+etc. are also such. The sensors provide varying level of hardware support
+for all these.
+
+Flash and indicator power setting can be included to the list of controls
+above.
+
+One more thing that suggests the flash control should be available as a
+separate subdev is to support the use of flash in torch mode without
+performing streaming at all. The power management of the camera is
+preferrably optimised for speed so that the camera related devices need not
+to be power cycled when using it. If the flash interface is available on a
+subdev separately the flash can also be easily powered separately without
+making this a special case --- the rest of the camera related devices (ISP,
+lens and sensor) should stay powered off.
+
+> configure the sensor to react on an external trigger provided by the flash 
+> controller is needed, and that could be a control on the flash sub-device. 
+> What we would probably miss is a way to issue a STREAMON with a number of 
+> frames to capture. A new ioctl is probably needed there. Maybe that would be 
+> an opportunity to create a new stream-control ioctl that could replace 
+> STREAMON and STREAMOFF in the long term (we could extend the subdev s_stream 
+> operation, and easily map STREAMON and STREAMOFF to the new ioctl in 
+> video_ioctl2 internally).
+
+How would this be different from queueing n frames (in total; count
+dequeueing, too) and issuing streamon? --- Except that when the last frame
+is processed the pipeline could be stopped already before issuing STREAMOFF.
+That does indeed have some benefits. Something else?
+
+Regards,
+
 -- 
-1.7.3.4
-
+Sakari Ailus
+sakari dot ailus at iki dot fi
