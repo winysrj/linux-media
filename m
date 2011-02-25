@@ -1,177 +1,104 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4073 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754174Ab1BWILR (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:60754 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932166Ab1BYMqF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Feb 2011 03:11:17 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Subject: Re: [RFC/PATCH 0/1] New subdev sensor operation g_interface_parms
-Date: Wed, 23 Feb 2011 09:10:42 +0100
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Stan <svarbanov@mm-sol.com>, Hans Verkuil <hansverk@cisco.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Fri, 25 Feb 2011 07:46:05 -0500
+Received: from epmmp1 (mailout2.samsung.com [203.254.224.25])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LH6005EZBGRWB20@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 25 Feb 2011 21:46:04 +0900 (KST)
+Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
+ by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LH600EGOBGRJR@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 25 Feb 2011 21:46:03 +0900 (KST)
+Date: Fri, 25 Feb 2011 21:46:03 +0900
+From: "Kim, HeungJun" <riverful.kim@samsung.com>
+Subject: [RFC PATCH RESEND v2 3/3] v4l2-ctrls: document the changes about auto
+ focus mode
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	saaguirre@ti.com
-References: <cover.1298368924.git.svarbanov@mm-sol.com> <201102221800.49914.hverkuil@xs4all.nl> <4D642DE2.3090705@gmail.com>
-In-Reply-To: <4D642DE2.3090705@gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201102230910.43069.hverkuil@xs4all.nl>
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
+Reply-to: riverful.kim@samsung.com
+Message-id: <4D67A48B.6030700@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tuesday, February 22, 2011 22:42:58 Sylwester Nawrocki wrote:
-> Hi everybody,
-> 
-> On 02/22/2011 06:00 PM, Hans Verkuil wrote:
-> > On Tuesday, February 22, 2011 17:27:47 Guennadi Liakhovetski wrote:
-> >> On Tue, 22 Feb 2011, Stan wrote:
-> >>
-> >>> In principle I agree with this bus negotiation.
-> >>>
-> >>>   - So. let's start thinking how this could be fit to the subdev sensor
-> >>> operations.
-> >>
-> >> Well, I'm afraid not everyone is convinced yet, so, it is a bit early to
-> >> start designing interfaces;)
-> >>
-> >>>   - howto isolate your current work into some common place and reuse it,
-> >>> even on platform part.
-> >>>   - and is it possible.
-> >>>
-> >>> The discussion becomes very emotional and this is not a good adviser :)
-> >>
-> >> No, no emotions at least on this side:) But it's also not technical,
-> >> unfortunately. I'm prepared to discuss technical benefits or drawbacks of
-> >> each of these approaches, but these arguments - can we trust programmers
-> >> or can we not? or will anyone at some time in the future break it or not?
-> >> Sorry, I am not a psychologist:) Personally, I would _exclusively_
-> >> consider technical arguments. Of course, things like "clean and simple
-> >> APIs," "proper separation / layering" etc. are also important, but even
-> >> they already can become difficult to discuss and are already on the border
-> >> between technical issues and personal preferences... So, don't know, in
-> >> the end, I think, it will just come down to who is making decisions and
-> >> who is implementing them:) I just expressed my opinion, we don't have to
-> >> agree, eventually, the maintainer will decide whether to apply patches or
-> >> not:)
-> > 
-> > In my view at least it *is* a technical argument. It makes perfect sense to
-> > me from a technical point of view to put static, board-specific configuration
-> > in platform_data. I don't think there would have been much, if any, discussion
-> 
-> We should not be forgetting that there often will be two or more sets 
-> of platform_data. For sensor, MIPI interface, for the host interface driver.. 
-> By negotiating setups we could avoid situations when corresponding parameters
-> are not matched. That is not so meaningful benefit though. 
->
-> Clock values are often being rounded at runtime and do not always reflect exactly
-> the numbers fixed at compile time. And negotiation could help to obtain exact
-> values at both sensor and host side.
+Document about the type changes and the enumeration of the auto focus control.
 
-The only static data I am concerned about are those that affect signal integrity.
-After thinking carefully about this I realized that there is really only one
-setting that is relevant to that: the sampling edge. The polarities do not
-matter in this.
+Signed-off-by: Heungjun Kim <riverful.kim@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ Documentation/DocBook/v4l/controls.xml    |   31 +++++++++++++++++++++++++---
+ Documentation/DocBook/v4l/videodev2.h.xml |    6 +++++
+ 2 files changed, 33 insertions(+), 4 deletions(-)
 
-Unfortunately, if a subdev is set to 'sample at rising edge', then that does
-not necessarily mean that the host should sample at the same edge. Depending
-on the clock line routing and the integrity of the clock signal the host may
-actually have to sample on the other edge. And yes, I've seen this.
-
-Anyway, this has been discussed to death already. I am very much opposed to
-negotiating the sampling edge. During the Helsinki meeting in June last year
-we decided to do this via platform data (see section 7 in the meeting
-minutes: http://www.linuxtv.org/news.php?entry=2010-06-22.mchehab).
-
-I will formally NACK attempts to negotiate this. Mauro is of course free to
-override me.
-
-Something simple like this for subdev platform_data might be enough:
-
-struct v4l2_bus_config {
-        /* 0 - sample at falling edge, 1 - sample at rising edge */
-        unsigned edge_pclock:1;
-        /* 0 - host should use the same sampling edge, 1 - host should use the
-           other sampling edge */
-        unsigned host_invert_edge_pclock:1;
-};
-
-The host can query the bus configuration and the subdev will return:
-
-	edge = host_invert_edge_pclock ? !edge_pclock : edge_pclock;
-
-We might want to add bits as well to describe whether polarities are inverted.
-
-This old RFC gives a good overview of the possible polarities:
-
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg09041.html
-
-Regards,
-
-	Hans
-
-> I personally like the Stanimir's proposal as the parameters to be negotiated
-> are pretty dynamic. Only the number of lanes could be problematic as not all
-> lanes might be routed across different boards. Perhaps we should consider specifying
-> an AUTO value for some negotiated parameters. Such as in case of an attribute that
-> need to be fixed on some boards or can be fully negotiated on others, a fixed
-> value or "auto" could be respectively set up in the host's platform_data. This could
-> be used to override some parameters in the host driver if needed.
-> 
-> IMHO, as long as we negotiate only dynamic parameters there should be no special
-> issues.
-> 
-> Regards,
-> Sylwester 
-> 
-> > about this if it wasn't for the fact that soc-camera doesn't do this but instead
-> > negotiates it. Obviously, it isn't a pleasant prospect having to change all that.
-> > 
-> > Normally this would be enough of an argument for me to just negotiate it. The
-> > reason that I don't want this in this particular case is that I know from
-> > personal experience that incorrect settings can be extremely hard to find.
-> > 
-> > I also think that there is a reasonable chance that such bugs can happen. Take
-> > a scenario like this: someone writes a new host driver. Initially there is only
-> > support for positive polarity and detection on the rising edge, because that's
-> > what the current board on which the driver was developed supports. This is quite
-> > typical for an initial version of a driver.
-> > 
-> > Later someone adds support for negative polarity and falling edge. Suddenly the
-> > polarity negotiation on the previous board results in negative instead of positive
-> > which was never tested. Now that board starts producing pixel errors every so
-> > often. And yes, this type of hardware problems do happen as I know from painful
-> > experience.
-> > 
-> > Problems like this are next to impossible to debug without the aid of an
-> > oscilloscope, so this isn't like most other bugs that are relatively easy to
-> > debug.
-> > 
-> > It is so much easier just to avoid this by putting it in platform data. It's
-> > simple, unambiguous and above all, unchanging.
-> > 
-> > Regards,
-> > 
-> > 	Hans
-> > 
-> >>
-> >> Thanks
-> >> Guennadi
-> >> ---
-> >> Guennadi Liakhovetski, Ph.D.
-> >> Freelance Open-Source Software Developer
-> >> http://www.open-technology.de/
-> >> --
-> >> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> >> the body of a message to majordomo@vger.kernel.org
-> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >>
-> > 
-> 
-> 
-
+diff --git a/Documentation/DocBook/v4l/controls.xml b/Documentation/DocBook/v4l/controls.xml
+index 2fae3e8..889fa84 100644
+--- a/Documentation/DocBook/v4l/controls.xml
++++ b/Documentation/DocBook/v4l/controls.xml
+@@ -1801,12 +1801,35 @@ negative values towards infinity. This is a write-only control.</entry>
+ 	  </row>
+ 	  <row><entry></entry></row>
+ 
+-	  <row>
++	  <row id="v4l2-focus-auto-type">
+ 	    <entry spanname="id"><constant>V4L2_CID_FOCUS_AUTO</constant>&nbsp;</entry>
+-	    <entry>boolean</entry>
++	    <entry>enum&nbsp;v4l2_focus_auto_type</entry>
+ 	  </row><row><entry spanname="descr">Enables automatic focus
+-adjustments. The effect of manual focus adjustments while this feature
+-is enabled is undefined, drivers should ignore such requests.</entry>
++adjustments of the normal or macro or continuous(CAF) mode. The effect of
++manual focus adjustments while this feature is enabled is undefined,
++drivers should ignore such requests. Possible values are:</entry>
++	  </row>
++	  <row>
++	    <entrytbl spanname="descr" cols="2">
++	      <tbody valign="top">
++		<row>
++		  <entry><constant>V4L2_FOCUS_MANUAL</constant>&nbsp;</entry>
++		  <entry>Manual focus mode.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_FOCUS_AUTO</constant>&nbsp;</entry>
++		  <entry>Auto focus mode with normal operation.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_FOCUS_MACRO</constant>&nbsp;</entry>
++		  <entry>Auto focus mode with macro operation.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_FOCUS_CONTINUOUS</constant>&nbsp;</entry>
++		  <entry>Auto focus mode with continuous(CAF) operation.</entry>
++		</row>
++	      </tbody>
++	    </entrytbl>
+ 	  </row>
+ 	  <row><entry></entry></row>
+ 
+diff --git a/Documentation/DocBook/v4l/videodev2.h.xml b/Documentation/DocBook/v4l/videodev2.h.xml
+index 325b23b..ccf6c2b 100644
+--- a/Documentation/DocBook/v4l/videodev2.h.xml
++++ b/Documentation/DocBook/v4l/videodev2.h.xml
+@@ -1291,6 +1291,12 @@ enum  <link linkend="v4l2-exposure-auto-type">v4l2_exposure_auto_type</link> {
+ #define V4L2_CID_FOCUS_ABSOLUTE                 (V4L2_CID_CAMERA_CLASS_BASE+10)
+ #define V4L2_CID_FOCUS_RELATIVE                 (V4L2_CID_CAMERA_CLASS_BASE+11)
+ #define V4L2_CID_FOCUS_AUTO                     (V4L2_CID_CAMERA_CLASS_BASE+12)
++enum  <link linkend="v4l2-focus-auto-type">v4l2_exposure_auto_type</link> {
++	V4L2_FOCUS_MANUAL = 0,
++	V4L2_FOCUS_AUTO = 1,
++	V4L2_FOCUS_MACRO = 2,
++	V4L2_FOCUS_CONTINUOUS = 3
++};
+ 
+ #define V4L2_CID_ZOOM_ABSOLUTE                  (V4L2_CID_CAMERA_CLASS_BASE+13)
+ #define V4L2_CID_ZOOM_RELATIVE                  (V4L2_CID_CAMERA_CLASS_BASE+14)
 -- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+1.7.0.4
