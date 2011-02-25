@@ -1,89 +1,63 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:12179 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750880Ab1BNVNn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Feb 2011 16:13:43 -0500
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p1ELDhLL014706
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 14 Feb 2011 16:13:43 -0500
-Received: from pedra (vpn-239-121.phx2.redhat.com [10.3.239.121])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p1EL3TGD012908
-	for <linux-media@vger.kernel.org>; Mon, 14 Feb 2011 16:13:42 -0500
-Date: Mon, 14 Feb 2011 19:03:20 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 02/14] [media] cx88: Don't allow opening a device while it
- is not ready
-Message-ID: <20110214190320.288e9b34@pedra>
-In-Reply-To: <cover.1297716906.git.mchehab@redhat.com>
-References: <cover.1297716906.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:63738 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932527Ab1BYOmD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Feb 2011 09:42:03 -0500
+Received: by yxs7 with SMTP id 7so746105yxs.19
+        for <linux-media@vger.kernel.org>; Fri, 25 Feb 2011 06:42:02 -0800 (PST)
+From: Ivan Nazarenko <ivan.nazarenko@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: MT9P031 camera
+Date: Fri, 25 Feb 2011 11:41:56 -0300
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Message-Id: <201102251141.56933.ivan.nazarenko@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-After registering the cdev, it would be possible do have an open on it.
-In a matter of fact, some versions of udev do this. So, move registration
-to the end and protect it with a mutex.
+Dear Dr. Guennadi.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+I have similar set-up as Mr. Valentini - a Beagleboard XM + leopard imaging 
+mt0p031 camera.
 
-diff --git a/drivers/media/video/cx88/cx88-video.c b/drivers/media/video/cx88/cx88-video.c
-index e2fc455..f814886 100644
---- a/drivers/media/video/cx88/cx88-video.c
-+++ b/drivers/media/video/cx88/cx88-video.c
-@@ -1882,6 +1882,15 @@ static int __devinit cx8800_initdev(struct pci_dev *pci_dev,
- 		request_module("ir-kbd-i2c");
- 	}
- 
-+	/* Sets device info at pci_dev */
-+	pci_set_drvdata(pci_dev, dev);
-+
-+	/* initial device configuration */
-+	mutex_lock(&core->lock);
-+	cx88_set_tvnorm(core, core->tvnorm);
-+	init_controls(core);
-+	cx88_video_mux(core, 0);
-+
- 	/* register v4l devices */
- 	dev->video_dev = cx88_vdev_init(core,dev->pci,
- 					&cx8800_video_template,"video");
-@@ -1923,16 +1932,6 @@ static int __devinit cx8800_initdev(struct pci_dev *pci_dev,
- 		       core->name, video_device_node_name(dev->radio_dev));
- 	}
- 
--	/* everything worked */
--	pci_set_drvdata(pci_dev,dev);
--
--	/* initial device configuration */
--	mutex_lock(&core->lock);
--	cx88_set_tvnorm(core,core->tvnorm);
--	init_controls(core);
--	cx88_video_mux(core,0);
--	mutex_unlock(&core->lock);
--
- 	/* start tvaudio thread */
- 	if (core->board.tuner_type != TUNER_ABSENT) {
- 		core->kthread = kthread_run(cx88_audio_thread, core, "cx88 tvaudio");
-@@ -1942,11 +1941,14 @@ static int __devinit cx8800_initdev(struct pci_dev *pci_dev,
- 			       core->name, err);
- 		}
- 	}
-+	mutex_unlock(&core->lock);
-+
- 	return 0;
- 
- fail_unreg:
- 	cx8800_unregister_video(dev);
- 	free_irq(pci_dev->irq, dev);
-+	mutex_unlock(&core->lock);
- fail_core:
- 	cx88_core_put(core,dev->pci);
- fail_free:
--- 
-1.7.1
+Could you send me those patches too?
+
+Regards,
+
+Ivan
 
 
+
+> On Fri, 18 Feb 2011, Juliano Valentini wrote:
+> 
+> > Dears,
+> > 
+> > I'm trying to apply Guennadi's patch
+> > (http://download.open-technology.de/BeagleBoard_xM-MT9P031/linux-2.6-
+omap3isp-bbxm-mt9p031.gitdiff)
+> > to official 2.6.37.1 Kernel version.
+> 
+> No, this cannot work. That kernel patch requires media-controller and 
+> omap3isp, so, it is based on the omap3isp branch of the development tree 
+> by Laurent Pinchart:
+> 
+> git://linuxtv.org/pinchartl/media.git
+> 
+> But that tree has been rebased since then, so, I wouldn't expect that 
+> patch to apply cleanly, porting it to the current kernel would require a 
+> non-zero development effort.
+> 
+> > I suppose that kernel version is wrong or missing previous patches
+> > (see result at the end).
+> > I have to make it work:  MT9P031 SoC camera module on Beagleboard Xm.
+> > Could somebody help me? Where/how can I get the right kernel version?
+> 
+> I'll send you a tarball of those "old" patches off-list.
+> 
+> Thanks
+> Guennadi
+> 
