@@ -1,106 +1,58 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.samsung.com ([203.254.224.24]:19534 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755010Ab1BXKpX (ORCPT
+Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:48228 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751645Ab1BYGsy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Feb 2011 05:45:23 -0500
-Received: from epmmp1 (mailout1.samsung.com [203.254.224.24])
- by mailout1.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LH4005Z8B7MMI30@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 24 Feb 2011 19:45:22 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LH4004ETB7MOB@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 24 Feb 2011 19:45:22 +0900 (KST)
-Date: Thu, 24 Feb 2011 19:45:22 +0900
-From: "Kim, HeungJun" <riverful.kim@samsung.com>
-Subject: [RFC PATCH 1/2] v4l2-ctrls: change the boolean type of
- V4L2_CID_FOCUS_AUTO to menu type
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Fri, 25 Feb 2011 01:48:54 -0500
+Received: by mail-vx0-f180.google.com with SMTP id 38so1422592vxc.11
+        for <linux-media@vger.kernel.org>; Thu, 24 Feb 2011 22:48:53 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <201102241417.12586.hverkuil@xs4all.nl>
+References: <AANLkTik=Yc9cb9r7Ro=evRoxd61KVE=8m7Z5+dNwDzVd@mail.gmail.com>
+	<AANLkTikg0Oj6nq6h_1-d7AQ4NQr2UyMuSemyniYZBLu3@mail.gmail.com>
+	<AANLkTik89=g4fR=wC2rkpBero2e-jDVhjmUVNzKKwNjF@mail.gmail.com>
+	<201102241417.12586.hverkuil@xs4all.nl>
+Date: Fri, 25 Feb 2011 00:48:53 -0600
+Message-ID: <AANLkTinSKfnvZ0wpGkyChJ6uBxpaW4qzs+W4ebXbmEpP@mail.gmail.com>
+Subject: Re: [st-ericsson] v4l2 vs omx for camera
+From: "Clark, Rob" <rob@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Robert Fekete <robert.fekete@linaro.org>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
-Reply-to: riverful.kim@samsung.com
-Message-id: <4D6636C2.5090600@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7BIT
+	"linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>,
+	Harald Gustafsson <harald.gustafsson@ericsson.com>,
+	gstreamer-devel@lists.freedesktop.org,
+	ST-Ericsson LT Mailing List <st-ericsson@lists.linaro.org>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-For support more modes of autofocus, it changes the type of V4L2_CID_FOCUS_AUTO
-from boolean to menu. And it includes 4 kinds of enumeration types:
+On Thu, Feb 24, 2011 at 7:17 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> There are two parts to this: first of all you need a way to allocate large
+> buffers. The CMA patch series is available (but not yet merged) that does this.
+> I'm not sure of the latest status of this series.
+>
+> The other part is that everyone can use and share these buffers. There isn't
+> anything for this yet. We have discussed this in the past and we need something
+> generic for this that all subsystems can use. It's not a good idea to tie this
+> to any specific framework like GEM. Instead any subsystem should be able to use
+> the same subsystem-independent buffer pool API.
 
-V4L2_FOCUS_AUTO, V4L2_FOCUS_MANUAL, V4L2_FOCUS_MACRO, V4L2_FOCUS_CONTINUOUS
+yeah, doesn't need to be GEM.. but should at least inter-operate so we
+can share buffers with the display/gpu..
 
-Signed-off-by: Heungjun Kim <riverful.kim@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/v4l2-ctrls.c |   11 ++++++++++-
- include/linux/videodev2.h        |    6 ++++++
- 2 files changed, 16 insertions(+), 1 deletions(-)
+[snip]
+>> But maybe it would be nice to have a way to have sensor driver on the
+>> linux side, pipelined with hw and imaging drivers on a co-processor
+>> for various algorithms and filters with configuration all exposed to
+>> userspace thru MCF.. I'm not immediately sure how this would work, but
+>> it sounds nice at least ;-)
+>
+> MCF? What does that stand for?
+>
 
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 2412f08..5c48d49 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -197,6 +197,13 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		"Aperture Priority Mode",
- 		NULL
- 	};
-+	static const char * const camera_focus_auto[] = {
-+		"Auto Mode",
-+		"Manual Mode",
-+		"Macro Mode",
-+		"Continuous Mode",
-+		NULL
-+	};
- 	static const char * const colorfx[] = {
- 		"None",
- 		"Black & White",
-@@ -252,6 +259,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		return camera_power_line_frequency;
- 	case V4L2_CID_EXPOSURE_AUTO:
- 		return camera_exposure_auto;
-+	case V4L2_CID_FOCUS_AUTO:
-+		return camera_focus_auto;
- 	case V4L2_CID_COLORFX:
- 		return colorfx;
- 	case V4L2_CID_TUNE_PREEMPHASIS:
-@@ -416,7 +425,6 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_MPEG_VIDEO_GOP_CLOSURE:
- 	case V4L2_CID_MPEG_VIDEO_PULLDOWN:
- 	case V4L2_CID_EXPOSURE_AUTO_PRIORITY:
--	case V4L2_CID_FOCUS_AUTO:
- 	case V4L2_CID_PRIVACY:
- 	case V4L2_CID_AUDIO_LIMITER_ENABLED:
- 	case V4L2_CID_AUDIO_COMPRESSION_ENABLED:
-@@ -450,6 +458,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_MPEG_STREAM_TYPE:
- 	case V4L2_CID_MPEG_STREAM_VBI_FMT:
- 	case V4L2_CID_EXPOSURE_AUTO:
-+	case V4L2_CID_FOCUS_AUTO:
- 	case V4L2_CID_COLORFX:
- 	case V4L2_CID_TUNE_PREEMPHASIS:
- 		*type = V4L2_CTRL_TYPE_MENU;
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 5122b26..dda3e37 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1374,6 +1374,12 @@ enum  v4l2_exposure_auto_type {
- #define V4L2_CID_FOCUS_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+10)
- #define V4L2_CID_FOCUS_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+11)
- #define V4L2_CID_FOCUS_AUTO			(V4L2_CID_CAMERA_CLASS_BASE+12)
-+enum  v4l2_focus_auto_type {
-+	V4L2_FOCUS_AUTO = 0,
-+	V4L2_FOCUS_MANUAL = 1,
-+	V4L2_FOCUS_MACRO = 2,
-+	V4L2_FOCUS_CONTINUOUS = 3
-+};
- 
- #define V4L2_CID_ZOOM_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+13)
- #define V4L2_CID_ZOOM_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+14)
--- 
-1.7.0.4
+sorry, v4l2 media controller framework
+
+BR,
+-R
