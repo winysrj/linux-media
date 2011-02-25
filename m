@@ -1,116 +1,107 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:24350 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753274Ab1BVCfD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Feb 2011 21:35:03 -0500
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p1M2Z3RR018485
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 21 Feb 2011 21:35:03 -0500
-Received: from [10.3.224.79] (vpn-224-79.phx2.redhat.com [10.3.224.79])
-	by int-mx12.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p1M2Z1Ae016734
-	for <linux-media@vger.kernel.org>; Mon, 21 Feb 2011 21:35:02 -0500
-Message-ID: <4D6320D5.4060809@redhat.com>
-Date: Mon, 21 Feb 2011 23:35:01 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/4] [media] tuner: Remove remaining usages of T_DIGITAL_TV
-References: <cover.1298340861.git.mchehab@redhat.com> <20110221231737.518c1cc9@pedra>
-In-Reply-To: <20110221231737.518c1cc9@pedra>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mailout2.samsung.com ([203.254.224.25]:26061 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752136Ab1BYGWL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Feb 2011 01:22:11 -0500
+Received: from epmmp1 (mailout2.samsung.com [203.254.224.25])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LH500GWKTNQ6WA0@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 25 Feb 2011 15:21:26 +0900 (KST)
+Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
+ by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LH500MM3TNQA4@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 25 Feb 2011 15:21:26 +0900 (KST)
+Date: Fri, 25 Feb 2011 15:21:27 +0900
+From: "Kim, HeungJun" <riverful.kim@samsung.com>
+Subject: [RFC PATCH v2 1/3] v4l2-ctrls: change the boolean type of
+ V4L2_CID_FOCUS_AUTO to menu type
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
+Reply-to: riverful.kim@samsung.com
+Message-id: <4D674A67.3000504@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 21-02-2011 23:17, Mauro Carvalho Chehab escreveu:
-> A few places used T_DIGITAL_TV internally. Remove the usage of this
-> obsolete mode mask.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
-> diff --git a/drivers/media/common/tuners/tuner-xc2028.c b/drivers/media/common/tuners/tuner-xc2028.c
-> index d95f3b2..efcbc3e 100644
-> --- a/drivers/media/common/tuners/tuner-xc2028.c
-> +++ b/drivers/media/common/tuners/tuner-xc2028.c
-> @@ -933,7 +933,7 @@ static int generic_set_freq(struct dvb_frontend *fe, u32 freq /* in HZ */,
->  	 * that xc2028 will be in a safe state.
->  	 * Maybe this might also be needed for DTV.
->  	 */
-> -	if (new_mode == T_ANALOG_TV) {
-> +	if (new_mode == V4L2_TUNER_ANALOG_TV) {
->  		rc = send_seq(priv, {0x00, 0x00});
->  
->  		/* Analog modes require offset = 0 */
-> @@ -1054,7 +1054,7 @@ static int xc2028_set_analog_freq(struct dvb_frontend *fe,
->  		if (priv->ctrl.input1)
->  			type |= INPUT1;
->  		return generic_set_freq(fe, (625l * p->frequency) / 10,
-> -				T_RADIO, type, 0, 0);
-> +				V4L2_TUNER_RADIO, type, 0, 0);
->  	}
->  
->  	/* if std is not defined, choose one */
-> @@ -1069,7 +1069,7 @@ static int xc2028_set_analog_freq(struct dvb_frontend *fe,
->  	p->std |= parse_audio_std_option();
->  
->  	return generic_set_freq(fe, 62500l * p->frequency,
-> -				T_ANALOG_TV, type, p->std, 0);
-> +				V4L2_TUNER_ANALOG_TV, type, p->std, 0);
->  }
->  
->  static int xc2028_set_params(struct dvb_frontend *fe,
-> @@ -1174,7 +1174,7 @@ static int xc2028_set_params(struct dvb_frontend *fe,
->  	}
->  
->  	return generic_set_freq(fe, p->frequency,
-> -				T_DIGITAL_TV, type, 0, demod);
-> +				V4L2_TUNER_DIGITAL_TV, type, 0, demod);
->  }
->  
->  static int xc2028_sleep(struct dvb_frontend *fe)
-> diff --git a/drivers/media/video/em28xx/em28xx-video.c b/drivers/media/video/em28xx/em28xx-video.c
-> index f34d524..b2e351c 100644
-> --- a/drivers/media/video/em28xx/em28xx-video.c
-> +++ b/drivers/media/video/em28xx/em28xx-video.c
-> @@ -2227,7 +2227,7 @@ em28xx_v4l2_read(struct file *filp, char __user *buf, size_t count,
->  	 */
->  
->  	if (fh->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
-> -		if (res_locked(dev, EM28XX_RESOURCE_VIDEO))
-> +		if (res_get(dev, EM28XX_RESOURCE_VIDEO))
->  			return -EBUSY;
->  
->  		return videobuf_read_stream(&fh->vb_vidq, buf, count, pos, 0,
+Support more modes of autofocus, it changes the type of V4L2_CID_FOCUS_AUTO
+from boolean to menu. And it includes 4 kinds of enumeration types:
 
-This hunk obviously doesn't belong here. It were just part of a test I did. I'll discard
-it at the final version.
+V4L2_FOCUS_AUTO, V4L2_FOCUS_MANUAL, V4L2_FOCUS_MACRO, V4L2_FOCUS_CONTINUOUS
 
-> diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
-> index 455038b..22a2222 100644
-> --- a/drivers/staging/tm6000/tm6000-cards.c
-> +++ b/drivers/staging/tm6000/tm6000-cards.c
-> @@ -588,8 +588,6 @@ static void tm6000_config_tuner(struct tm6000_core *dev)
->  	tun_setup.mode_mask = 0;
->  	if (dev->caps.has_tuner)
->  		tun_setup.mode_mask |= (T_ANALOG_TV | T_RADIO);
-> -	if (dev->caps.has_dvb)
-> -		tun_setup.mode_mask |= T_DIGITAL_TV;
->  
->  	switch (dev->tuner_type) {
->  	case TUNER_XC2028:
-> diff --git a/include/media/tuner.h b/include/media/tuner.h
-> index 32dfd5f..963e334 100644
-> --- a/include/media/tuner.h
-> +++ b/include/media/tuner.h
-> @@ -161,7 +161,7 @@
->  enum tuner_mode {
->  	T_RADIO		= 1 << V4L2_TUNER_RADIO,
->  	T_ANALOG_TV     = 1 << V4L2_TUNER_ANALOG_TV,
-> -	T_DIGITAL_TV    = 1 << V4L2_TUNER_DIGITAL_TV,
-> +	/* Don't need to map V4L2_TUNER_DIGITAL_TV, as tuner-core won't use it */
->  };
->  
->  /* Older boards only had a single tuner device. Nowadays multiple tuner
+Signed-off-by: Heungjun Kim <riverful.kim@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/v4l2-ctrls.c |   11 ++++++++++-
+ include/linux/videodev2.h        |    6 ++++++
+ 2 files changed, 16 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index 2412f08..0b1cce0 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -197,6 +197,13 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		"Aperture Priority Mode",
+ 		NULL
+ 	};
++	static const char * const camera_focus_auto[] = {
++		"Manual Mode",
++		"Auto Mode",
++		"Macro Mode",
++		"Continuous Mode",
++		NULL
++	};
+ 	static const char * const colorfx[] = {
+ 		"None",
+ 		"Black & White",
+@@ -252,6 +259,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		return camera_power_line_frequency;
+ 	case V4L2_CID_EXPOSURE_AUTO:
+ 		return camera_exposure_auto;
++	case V4L2_CID_FOCUS_AUTO:
++		return camera_focus_auto;
+ 	case V4L2_CID_COLORFX:
+ 		return colorfx;
+ 	case V4L2_CID_TUNE_PREEMPHASIS:
+@@ -416,7 +425,6 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_MPEG_VIDEO_GOP_CLOSURE:
+ 	case V4L2_CID_MPEG_VIDEO_PULLDOWN:
+ 	case V4L2_CID_EXPOSURE_AUTO_PRIORITY:
+-	case V4L2_CID_FOCUS_AUTO:
+ 	case V4L2_CID_PRIVACY:
+ 	case V4L2_CID_AUDIO_LIMITER_ENABLED:
+ 	case V4L2_CID_AUDIO_COMPRESSION_ENABLED:
+@@ -450,6 +458,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_MPEG_STREAM_TYPE:
+ 	case V4L2_CID_MPEG_STREAM_VBI_FMT:
+ 	case V4L2_CID_EXPOSURE_AUTO:
++	case V4L2_CID_FOCUS_AUTO:
+ 	case V4L2_CID_COLORFX:
+ 	case V4L2_CID_TUNE_PREEMPHASIS:
+ 		*type = V4L2_CTRL_TYPE_MENU;
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index a94c4d5..959d59e 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1374,6 +1374,12 @@ enum  v4l2_exposure_auto_type {
+ #define V4L2_CID_FOCUS_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+10)
+ #define V4L2_CID_FOCUS_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+11)
+ #define V4L2_CID_FOCUS_AUTO			(V4L2_CID_CAMERA_CLASS_BASE+12)
++enum  v4l2_focus_auto_type {
++	V4L2_FOCUS_MANUAL = 0,
++	V4L2_FOCUS_AUTO = 1,
++	V4L2_FOCUS_MACRO = 2,
++	V4L2_FOCUS_CONTINUOUS = 3
++};
+ 
+ #define V4L2_CID_ZOOM_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+13)
+ #define V4L2_CID_ZOOM_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+14)
+-- 
+1.7.0.4
 
