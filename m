@@ -1,82 +1,89 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:29057 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755041Ab1BMV0o (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Feb 2011 16:26:44 -0500
-Subject: Re: [corrected get-bisect results]: DViCO FusionHDTV7 Dual Express
- I2C write failed
-From: Andy Walls <awalls@md.metrocast.net>
-To: Mark Zimmerman <markzimm@frii.com>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org
-In-Reply-To: <20110213202644.GA15282@io.frii.com>
-References: <20101207190753.GA21666@io.frii.com>
-	 <20110212152954.GA20838@io.frii.com> <20110213144758.GA79915@io.frii.com>
-	 <AANLkTik5iYsS5UNQQv6OxTyC0X9nEYvsOEtA6mBLQ-Jq@mail.gmail.com>
-	 <20110213202644.GA15282@io.frii.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 13 Feb 2011 16:26:50 -0500
-Message-ID: <1297632410.2401.6.camel@localhost>
-Mime-Version: 1.0
+Received: from smtp.nokia.com ([147.243.128.26]:55546 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755794Ab1BYSt0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Feb 2011 13:49:26 -0500
+Message-ID: <4D67F9A7.9000106@maxwell.research.nokia.com>
+Date: Fri, 25 Feb 2011 20:49:11 +0200
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+MIME-Version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Kim HeungJun <riverful@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Stanimir Varbanov <svarbanov@mm-sol.com>
+Subject: Re: [RFC] snapshot mode, flash capabilities and control
+References: <Pine.LNX.4.64.1102240947230.15756@axis700.grange> <Pine.LNX.4.64.1102241608090.18242@axis700.grange> <822C7F65-82D7-4513-BED4-B484163BEB3E@gmail.com> <201102251105.06026.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1102251119410.23338@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1102251119410.23338@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sun, 2011-02-13 at 13:26 -0700, Mark Zimmerman wrote:
-> On Sun, Feb 13, 2011 at 09:52:25AM -0500, Devin Heitmueller wrote:
-> > On Sun, Feb 13, 2011 at 9:47 AM, Mark Zimmerman <markzimm@frii.com> wrote:
-> > > Clearly my previous bisection went astray; I think I have a more
-> > > sensible result this time.
-> > >
-> > > qpc$ git bisect good
-> > > 44835f197bf1e3f57464f23dfb239fef06cf89be is the first bad commit
-> > > commit 44835f197bf1e3f57464f23dfb239fef06cf89be
-> > > Author: Jean Delvare <khali@linux-fr.org>
-> > > Date: ? Sun Jul 18 16:52:05 2010 -0300
-> > >
-> > > ? ?V4L/DVB: cx23885: Check for slave nack on all transactions
-> > >
-> > > ? ?Don't just check for nacks on zero-length transactions. Check on
-> > > ? ?other transactions too.
-> > 
-> > This could be a combination of the xc5000 doing clock stretching and
-> > the cx23885 i2c master not properly implementing clock stretch.  In
-> > the past I've seen i2c masters broken in their handling of clock
-> > stretching where they treat it as a NAK.
-> > 
-> > The xc5000 being one of the few devices that actually does i2c clock
-> > stretching often exposes cases where it is improperly implemented in
-> > the i2c master driver (I've had to fix this with several bridges).
-> > 
+Hi Guennadi,
+
+Guennadi Liakhovetski wrote:
+> In principle - yes, and yes, I do realise, that the couple of controls, 
+> that I've proposed only cover a very minor subset of the whole flash 
+> function palette. The purposes of my RFC were:
+
+Why would there be a different interface for controlling the flash in
+simple cases and more complex cases?
+
+As far as I see it, the way the flash is accessed should be the same in
+both cases --- if more complex functionality is required that would be
+implemented in using additional ways (controls, for example).
+
+The drivers should use sane defaults for controls like power and length.
+I assume things like mode (strobe/continuous) is fairly standard
+functionality.
+
+> 1. get things started in the snapshot / flash direction;)
+> 2. get access to dedicated snapshot / flash registers, present on many 
+> sensors and SoCs
+> 3. get at least the very basic snapshot / flash functions, common to most 
+> hardware implementations, but trying to make it future-proof for further 
+> extensions
+> 4. get a basis for a future detailed discussion
 > 
-> Thanks for your insight. I am looking at cx23885-i2c.c and there is no
-> clock stretching logic in i2c_slave_did_ack().  Would this be the
-> right place for it to be?  Can you point me to an example of another
-> driver that does it correctly?  I really don't know what I am doing...
+>> Let's also not forget that, in addition to the flash LEDs itself, devices 
+>> often feature an indicator LED (a small low-power red LED used to indicate 
+>> that video capture is ongoing).
+> 
+> Well, this one doesn't seem too special to me? Wouldn't it suffice to just 
+> toggle it from user-space on streamon / streamoff?
 
+And what if you want to use the led unconnected to the streaming state? :-)
 
-Mark,
+>> This doesn't solve the flash/capture synchronization problem though. I don't 
+>> think we need a dedicated snapshot capture mode at the V4L2 level. A way to 
+>> configure the sensor to react on an external trigger provided by the flash 
+>> controller is needed, and that could be a control on the flash sub-device. 
+> 
+> Well... Sensors call this a "snapshot mode." I don't care that much how we 
+> _call_ it, but I do think, that we should be able to use it.
 
-You don't have much hope of getting that right without the CX23885
-datasheet.
+Some sensors and webcams might have that, but newer camera solutions
+tend to contain a raw bayer sensor and and ISP. There is no concept of
+snapsnot mode in these sensors.
 
-Let's just get the bad commit reverted and into 2.6.38, and fix what
-used to work for you.  Doing a git bisect is enough work for anyone.
+> Hm, don't think only the "flash subdevice" has to know about this. First, 
+> you have to switch the sensor into that mode. Second, it might be either 
+> external trigger from the flash controller, or a programmed trigger and a 
+> flash strobe from the sensor to the flash (controller). Third, well, not 
+> quite sure, but doesn't the host have to know about the snapshot mode? 
 
-I'll do a patch to revert the commit and ask it to be pulled for
-2.6.38-rc-whatever.  I'll be sure to add a
+I do not favour adding use case type of functionality to interfaces that
+do not necessarily need it. Would the concept of a snapshot be
+parametrisable on V4L2 level?
 
-	Bisected-by: Mark Zimmerman <markzimm@frii.com>
+Otherwise we may end adding interfaces for use case specific things. The
+use cases vary a lot more than the individual features that are required
+to implement them, suggesting it's relatively easy to add redundant
+functionality to the API.
 
-tag to the patch.  (The Linux Kernel devs understand the work involved
-to do a bisection.)
-
-
-Later, if I can work up a patch to deal with clock stretching properly,
-I may ask you to test.
-
-Regards,
-Andy
-
-
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
