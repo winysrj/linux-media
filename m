@@ -1,81 +1,94 @@
 Return-path: <mchehab@pedra>
-Received: from LUNGE.MIT.EDU ([18.54.1.69]:51843 "EHLO lunge.queued.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755821Ab1BRDID (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Feb 2011 22:08:03 -0500
-From: Andres Salomon <dilinger@queued.net>
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Liam Girdwood <lrg@slimlogic.co.uk>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org
-Subject: [PATCH 10/29] wl1273: mfd_cell is now implicitly available to drivers
-Date: Thu, 17 Feb 2011 19:07:17 -0800
-Message-Id: <1297998456-7615-11-git-send-email-dilinger@queued.net>
-In-Reply-To: <1297998456-7615-1-git-send-email-dilinger@queued.net>
-References: <1297998456-7615-1-git-send-email-dilinger@queued.net>
+Received: from mailout1.samsung.com ([203.254.224.24]:16558 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932404Ab1BYKSp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Feb 2011 05:18:45 -0500
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Received: from epmmp1 (mailout1.samsung.com [203.254.224.24])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LH600E994N7B130@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 25 Feb 2011 19:18:43 +0900 (KST)
+Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
+ by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LH6009224N7RX@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 25 Feb 2011 19:18:43 +0900 (KST)
+Date: Fri, 25 Feb 2011 19:18:43 +0900
+From: "Kim, HeungJun" <riverful.kim@samsung.com>
+Subject: Re: [RFC PATCH v2 2/3] v4l2-ctrls: modify uvc driver to use new menu
+ type of V4L2_CID_FOCUS_AUTO
+In-reply-to: <201102251020.59615.laurent.pinchart@ideasonboard.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
+Reply-to: riverful.kim@samsung.com
+Message-id: <4D678203.3080105@samsung.com>
+Content-transfer-encoding: 8BIT
+References: <4D674A6C.8000401@samsung.com>
+ <201102251020.59615.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The cell's platform_data is now accessed with a helper function;
-change clients to use that, and remove the now-unused data_size.
+Hi Laurent,
 
-Signed-off-by: Andres Salomon <dilinger@queued.net>
----
- drivers/media/radio/radio-wl1273.c |    2 +-
- drivers/mfd/wl1273-core.c          |    2 --
- sound/soc/codecs/wl1273.c          |    3 ++-
- 3 files changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/radio/radio-wl1273.c b/drivers/media/radio/radio-wl1273.c
-index 7ecc8e6..4698eb0 100644
---- a/drivers/media/radio/radio-wl1273.c
-+++ b/drivers/media/radio/radio-wl1273.c
-@@ -2138,7 +2138,7 @@ static int wl1273_fm_radio_remove(struct platform_device *pdev)
- 
- static int __devinit wl1273_fm_radio_probe(struct platform_device *pdev)
- {
--	struct wl1273_core **core = pdev->dev.platform_data;
-+	struct wl1273_core **core = mfd_get_data(pdev);
- 	struct wl1273_device *radio;
- 	struct v4l2_ctrl *ctrl;
- 	int r = 0;
-diff --git a/drivers/mfd/wl1273-core.c b/drivers/mfd/wl1273-core.c
-index d2ecc24..703085e 100644
---- a/drivers/mfd/wl1273-core.c
-+++ b/drivers/mfd/wl1273-core.c
-@@ -80,7 +80,6 @@ static int __devinit wl1273_core_probe(struct i2c_client *client,
- 	cell = &core->cells[children];
- 	cell->name = "wl1273_fm_radio";
- 	cell->platform_data = &core;
--	cell->data_size = sizeof(core);
- 	children++;
- 
- 	if (pdata->children & WL1273_CODEC_CHILD) {
-@@ -89,7 +88,6 @@ static int __devinit wl1273_core_probe(struct i2c_client *client,
- 		dev_dbg(&client->dev, "%s: Have codec.\n", __func__);
- 		cell->name = "wl1273-codec";
- 		cell->platform_data = &core;
--		cell->data_size = sizeof(core);
- 		children++;
- 	}
- 
-diff --git a/sound/soc/codecs/wl1273.c b/sound/soc/codecs/wl1273.c
-index 861b28f..1ad0d5a 100644
---- a/sound/soc/codecs/wl1273.c
-+++ b/sound/soc/codecs/wl1273.c
-@@ -436,7 +436,8 @@ EXPORT_SYMBOL_GPL(wl1273_get_format);
- 
- static int wl1273_probe(struct snd_soc_codec *codec)
- {
--	struct wl1273_core **core = codec->dev->platform_data;
-+	struct wl1273_core **core =
-+			mfd_get_data(to_platform_device(codec->dev));
- 	struct wl1273_priv *wl1273;
- 	int r;
- 
--- 
-1.7.2.3
+2011-02-25 오후 6:20, Laurent Pinchart 쓴 글:
+> On Friday 25 February 2011 07:21:32 Kim, HeungJun wrote:
+>> As following to change the boolean type of V4L2_CID_FOCUS_AUTO to menu
+>> type, this uvc is modified the usage of V4L2_CID_FOCUS_AUTO.
+>>
+>> Signed-off-by: Heungjun Kim <riverful.kim@samsung.com>
+>> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+>> ---
+>>  drivers/media/video/uvc/uvc_ctrl.c |   13 ++++++++++---
+>>  1 files changed, 10 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/media/video/uvc/uvc_ctrl.c
+>> b/drivers/media/video/uvc/uvc_ctrl.c index 59f8a9a..795fd3f 100644
+>> --- a/drivers/media/video/uvc/uvc_ctrl.c
+>> +++ b/drivers/media/video/uvc/uvc_ctrl.c
+>> @@ -333,6 +333,11 @@ static struct uvc_menu_info exposure_auto_controls[] =
+>> { { 8, "Aperture Priority Mode" },
+>>  };
+>>
+>> +static struct uvc_menu_info focus_auto_controls[] = {
+>> +	{ 2, "Auto Mode" },
+>> +	{ 1, "Manual Mode" },
+> 
+> According to the UVC spec, this should be 0 for manual mode and 1 for auto 
+> mode.
+OK, I'll modify this values depends on below my question......
 
+> 
+>> +};
+>> +
+>>  static __s32 uvc_ctrl_get_zoom(struct uvc_control_mapping *mapping,
+>>  	__u8 query, const __u8 *data)
+>>  {
+>> @@ -558,10 +563,12 @@ static struct uvc_control_mapping uvc_ctrl_mappings[]
+>> = { .name		= "Focus, Auto",
+>>  		.entity		= UVC_GUID_UVC_CAMERA,
+>>  		.selector	= UVC_CT_FOCUS_AUTO_CONTROL,
+>> -		.size		= 1,
+>> +		.size		= 2,
+> 
+> Why do you change the control size ?
+> 
+>>  		.offset		= 0,
+>> -		.v4l2_type	= V4L2_CTRL_TYPE_BOOLEAN,
+>> -		.data_type	= UVC_CTRL_DATA_TYPE_BOOLEAN,
+>> +		.v4l2_type	= V4L2_CTRL_TYPE_MENU,
+>> +		.data_type	= UVC_CTRL_DATA_TYPE_BITMASK,
+> 
+> The UVC control is still a boolean.
+You're saying that, the control size should be 1 because it's right to maintain the boolean type,
+So, then, the uvc driver dosen't needed to be changed. is it right?
+
+Thanks for the reviews, and I'll wait answer.
+
+Regards,
+Heungjun KIm
