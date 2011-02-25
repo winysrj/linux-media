@@ -1,70 +1,42 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58226 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752577Ab1B1SLz (ORCPT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:34432 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751823Ab1BYGLg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Feb 2011 13:11:55 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: V4L2 'brainstorming' meeting in Warsaw, March 2011
-Date: Mon, 28 Feb 2011 19:12:00 +0100
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <ADF13DA15EB3FE4FBA487CCC7BEFDF36190F532AF3@bssrvexch01> <201102281903.39708.hverkuil@xs4all.nl>
-In-Reply-To: <201102281903.39708.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201102281912.01542.laurent.pinchart@ideasonboard.com>
+	Fri, 25 Feb 2011 01:11:36 -0500
+From: "Justin P. Mattock" <justinmattock@gmail.com>
+To: trivial@kernel.org
+Cc: awalls@md.metrocast.net, mchehab@infradead.org,
+	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	"Justin P. Mattock" <justinmattock@gmail.com>
+Subject: [PATCH 06/21]drivers:media:cx23418.h remove one to many l's in the word.
+Date: Thu, 24 Feb 2011 22:11:17 -0800
+Message-Id: <1298614277-3649-1-git-send-email-justinmattock@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Monday 28 February 2011 19:03:39 Hans Verkuil wrote:
-> On Monday, February 28, 2011 18:11:47 Marek Szyprowski wrote:
+The patch below removes an extra "l" in the word.
 
-[snip]
+Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
 
-> > 4. Agenda
-> > 
-> >         TBD, everyone is welcomed to put his items here :)
-> 
-> In no particular order:
-> 
-> 1) pipeline configuration, cropping and scaling:
-> 
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg27956.html
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg26630.html
-> 
-> 2) HDMI API support
-> 
-> Some hotplug/CEC code can be found here:
-> 
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg28549.html
-> 
-> but Cisco will soon post RFCs on this topic as well.
-> 
-> 3) Snapshot functionality.
-> 
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg28192.html
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg28490.html
-> 
-> If we finish quicker than expected, then we can also look at this:
-> 
-> - use of V4L2 as a frontend for SW/DSP codecs
+---
+ drivers/media/video/cx18/cx23418.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-In still no particular order:
-
- - Muxed formats (H.264 inside MJPEG)
- - H.264
- - Buffers pool
- - Entity information ioctl
- - Userspace drivers (OMX)
- - Sensor blanking/pixel-clock/frame-rate settings (including 
-enumeration/discovery)
- - GL/ES in V4L2 devices
-
+diff --git a/drivers/media/video/cx18/cx23418.h b/drivers/media/video/cx18/cx23418.h
+index 7e40035..935f557 100644
+--- a/drivers/media/video/cx18/cx23418.h
++++ b/drivers/media/video/cx18/cx23418.h
+@@ -477,7 +477,7 @@
+ /* The are no buffers ready. Try again soon! */
+ #define CXERR_NODATA_AGAIN      0x00001E
+ 
+-/* The stream is stopping. Function not alllowed now! */
++/* The stream is stopping. Function not allowed now! */
+ #define CXERR_STOPPING_STATUS   0x00001F
+ 
+ /* Trying to access hardware when the power is turned OFF */
 -- 
-Regards,
+1.7.4.1
 
-Laurent Pinchart
