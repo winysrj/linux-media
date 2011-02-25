@@ -1,57 +1,106 @@
 Return-path: <mchehab@pedra>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:35717 "EHLO smtp5-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750820Ab1BJRFF convert rfc822-to-8bit (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:30146 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932137Ab1BYMqB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Feb 2011 12:05:05 -0500
-Received: from tele (unknown [82.245.201.222])
-	by smtp5-g21.free.fr (Postfix) with ESMTP id 5FE14D481C2
-	for <linux-media@vger.kernel.org>; Thu, 10 Feb 2011 18:04:58 +0100 (CET)
-Date: Thu, 10 Feb 2011 18:08:38 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: linux-media@vger.kernel.org
-Subject: [GIT PATCHES FOR 2.6.39] gspca for_v2.6.39
-Message-ID: <20110210180838.04d597f2@tele>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Fri, 25 Feb 2011 07:46:01 -0500
+Received: from epmmp1 (mailout4.samsung.com [203.254.224.34])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LH600931BGO3U50@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 25 Feb 2011 21:46:00 +0900 (KST)
+Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
+ by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LH600ECIBGOQZ@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 25 Feb 2011 21:46:00 +0900 (KST)
+Date: Fri, 25 Feb 2011 21:45:59 +0900
+From: "Kim, HeungJun" <riverful.kim@samsung.com>
+Subject: [RFC PATCH RESEND v2 1/3] v4l2-ctrls: change the boolean type of
+ V4L2_CID_FOCUS_AUTO to menu type
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
+Reply-to: riverful.kim@samsung.com
+Message-id: <4D67A487.8010701@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The following changes since commit
-6148a47ac3872092d4bc4888838bec6dff16654d:
+Support more modes of autofocus, it changes the type of V4L2_CID_FOCUS_AUTO
+from boolean to menu. And it includes 4 kinds of enumeration types:
 
-  Merge branch 'rc-fixes' of git://git.kernel.org/pub/scm/linux/kernel/git/mmarek/kbuild-2.6 (2011-02-09 16:56:33 -0800)
+V4L2_FOCUS_AUTO, V4L2_FOCUS_MANUAL, V4L2_FOCUS_MACRO, V4L2_FOCUS_CONTINUOUS
 
-are available in the git repository at:
+Signed-off-by: Heungjun Kim <riverful.kim@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/v4l2-ctrls.c |   11 ++++++++++-
+ include/linux/videodev2.h        |    6 ++++++
+ 2 files changed, 16 insertions(+), 1 deletions(-)
 
-  git://linuxtv.org/jfrancois/gspca.git for_v2.6.39
-
-Jean-François Moine (16):
-      gspca - sonixj: Move the avg lum computation to a separate function
-      gspca - sonixj: Better scanning of isochronous packets
-      gspca - sonixj: Have the same JPEG quality for encoding and decoding
-      gspca - sonixj: Update the JPEG quality for best image transfer
-      gspca - sonixj: Fix start sequence of sensor mt9v111
-      gspca - sonixj: Adjust autogain for sensor mt9v111
-      gspca - sonixj: Simplify GPIO setting when audio present
-      gspca - sonixj: Same init for all bridges but the sn9c102p
-      gspca - sonixj: Set both pins for infrared of mt9v111 webcams
-      gspca - sonixj, zc3xx: Let some bandwidth for audio when USB 1.1
-      gspca - ov534: Use the new control mechanism
-      gspca - ov534: Add the webcam 06f8:3002 and sensor ov767x
-      gspca - ov534: Add saturation control for ov767x
-      gspca - sonixj: The pin S_PWR_DN is inverted for sensor mi0360
-      gspca - ov519: Add the sensor ov2610ae
-      gspca - ov519: Add the 800x600 resolution for sensors ov2610/2610ae
-
- Documentation/video4linux/gspca.txt |    1 +
- drivers/media/video/gspca/ov519.c   |   90 +++-
- drivers/media/video/gspca/ov534.c   |  980 +++++++++++++++++++++--------------
- drivers/media/video/gspca/sonixj.c  |  353 ++++++++-----
- drivers/media/video/gspca/zc3xx.c   |    4 +
- 5 files changed, 912 insertions(+), 516 deletions(-)
-
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index 2412f08..da4aa7a 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -197,6 +197,13 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		"Aperture Priority Mode",
+ 		NULL
+ 	};
++	static const char * const camera_focus_auto[] = {
++		"Manual Focus",
++		"Normal Auto Focus",
++		"Macro Auto Focus",
++		"Continuous Auto Focus",
++		NULL
++	};
+ 	static const char * const colorfx[] = {
+ 		"None",
+ 		"Black & White",
+@@ -252,6 +259,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		return camera_power_line_frequency;
+ 	case V4L2_CID_EXPOSURE_AUTO:
+ 		return camera_exposure_auto;
++	case V4L2_CID_FOCUS_AUTO:
++		return camera_focus_auto;
+ 	case V4L2_CID_COLORFX:
+ 		return colorfx;
+ 	case V4L2_CID_TUNE_PREEMPHASIS:
+@@ -416,7 +425,6 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_MPEG_VIDEO_GOP_CLOSURE:
+ 	case V4L2_CID_MPEG_VIDEO_PULLDOWN:
+ 	case V4L2_CID_EXPOSURE_AUTO_PRIORITY:
+-	case V4L2_CID_FOCUS_AUTO:
+ 	case V4L2_CID_PRIVACY:
+ 	case V4L2_CID_AUDIO_LIMITER_ENABLED:
+ 	case V4L2_CID_AUDIO_COMPRESSION_ENABLED:
+@@ -450,6 +458,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_MPEG_STREAM_TYPE:
+ 	case V4L2_CID_MPEG_STREAM_VBI_FMT:
+ 	case V4L2_CID_EXPOSURE_AUTO:
++	case V4L2_CID_FOCUS_AUTO:
+ 	case V4L2_CID_COLORFX:
+ 	case V4L2_CID_TUNE_PREEMPHASIS:
+ 		*type = V4L2_CTRL_TYPE_MENU;
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index a94c4d5..959d59e 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1374,6 +1374,12 @@ enum  v4l2_exposure_auto_type {
+ #define V4L2_CID_FOCUS_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+10)
+ #define V4L2_CID_FOCUS_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+11)
+ #define V4L2_CID_FOCUS_AUTO			(V4L2_CID_CAMERA_CLASS_BASE+12)
++enum  v4l2_focus_auto_type {
++	V4L2_FOCUS_MANUAL = 0,
++	V4L2_FOCUS_AUTO = 1,
++	V4L2_FOCUS_MACRO = 2,
++	V4L2_FOCUS_CONTINUOUS = 3
++};
+ 
+ #define V4L2_CID_ZOOM_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+13)
+ #define V4L2_CID_ZOOM_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+14)
 -- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+1.7.0.4
