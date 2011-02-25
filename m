@@ -1,48 +1,57 @@
 Return-path: <mchehab@pedra>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:40480 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753567Ab1BUMaz (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4684 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751222Ab1BYMrd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Feb 2011 07:30:55 -0500
-Date: Mon, 21 Feb 2011 14:30:49 +0200
-From: Felipe Balbi <balbi@ti.com>
-To: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: David Cohen <dacohen@gmail.com>, linux-kernel@vger.kernel.org,
-	mingo@elte.hu, peterz@infradead.org, linux-omap@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1] headers: fix circular dependency between
- linux/sched.h and linux/wait.h
-Message-ID: <20110221123049.GC23087@legolas.emea.dhcp.ti.com>
-Reply-To: balbi@ti.com
-References: <1298283649-24532-1-git-send-email-dacohen@gmail.com>
- <1298283649-24532-2-git-send-email-dacohen@gmail.com>
- <AANLkTimwvgLvpvndCqcd_okA2Kk4cu7z4bD3QXTdgWJW@mail.gmail.com>
+	Fri, 25 Feb 2011 07:47:33 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Brandon Jenkins <bcjenkins@tvwhere.com>
+Subject: Re: Hauppauge Colossus Support
+Date: Fri, 25 Feb 2011 13:47:28 +0100
+Cc: linux-media@vger.kernel.org
+References: <AANLkTi=kQn3oP3OwwcBPPuTbYWPZeVsgZf_fXajdJ8ZM@mail.gmail.com>
+In-Reply-To: <AANLkTi=kQn3oP3OwwcBPPuTbYWPZeVsgZf_fXajdJ8ZM@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <AANLkTimwvgLvpvndCqcd_okA2Kk4cu7z4bD3QXTdgWJW@mail.gmail.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201102251347.28409.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, Feb 21, 2011 at 01:05:51PM +0200, Alexey Dobriyan wrote:
-> On Mon, Feb 21, 2011 at 12:20 PM, David Cohen <dacohen@gmail.com> wrote:
-> > Currently sched.h and wait.h have circular dependency between both.
-> > wait.h defines macros wake_up*() which use macros TASK_* defined by
-> > sched.h. But as sched.h indirectly includes wait.h, such wait.h header
-> > file can't include sched.h too. The side effect is when some file
-> > includes wait.h and tries to use its wake_up*() macros, it's necessary
-> > to include sched.h also.
-> > This patch moves all TASK_* macros from linux/sched.h to a new header
-> > file linux/task_sched.h. This way, both sched.h and wait.h can include
-> > task_sched.h and fix the circular dependency. No need to include sched.h
-> > anymore when wake_up*() macros are used.
+On Friday, February 25, 2011 12:53:20 Brandon Jenkins wrote:
+> Greetings all,
 > 
-> Just include <linux/sched.h> in your driver.
-> This include splitting in small pieces is troublesome as well.
+> My search of the list turned up nothing on planned support for the
+> Colossus in Linux. Hauppauge has begun shipping the card, and I have
+> one being shipped today which I am willing to loan to a developer if
+> it would help.
+> 
+> Here's a few links on the components:
+> http://www.vixs.com/briefs/XCode_3111_v2.pdf
+> http://www.analog.com/en/analog-to-digital-converters/video-decoders/adv7441a/products/product.html
 
-so, simply to call wake_up*() we need to know everything there is to
-know about the scheduler ? I rather have the split done and kill the
-circular dependency. What does Mingo and Peter think about this ?
+An initial driver for the ADV7604 was posted recently. Cisco is working on this.
+The ADV7441 is quite similar in many respects to the ADV7604, so that should help.
+In fact, it might well be that the same driver can support both models, but without
+a careful comparison of the datasheets I cannot be certain.
+
+Regards,
+
+	Hans
+
+> http://www.missingremote.com/sites/default/files/imagepicker/629/DSCN2261.jpg
+> http://hauppauge.com/site/products/data_colossus.html
+> 
+> Thanks in advance!
+> 
+> Brandon
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
 
 -- 
-balbi
+Hans Verkuil - video4linux developer - sponsored by Cisco
