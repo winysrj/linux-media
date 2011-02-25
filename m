@@ -1,42 +1,35 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:62529 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755588Ab1BWUAt (ORCPT
+Received: from cmsout02.mbox.net ([165.212.64.32]:35448 "EHLO
+	cmsout02.mbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932432Ab1BYKsH convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Feb 2011 15:00:49 -0500
-Received: by wwb39 with SMTP id 39so2028306wwb.1
-        for <linux-media@vger.kernel.org>; Wed, 23 Feb 2011 12:00:48 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <201102240116.18770.Vivek.Periaraj@gmail.com>
-References: <201102240116.18770.Vivek.Periaraj@gmail.com>
-Date: Wed, 23 Feb 2011 15:00:42 -0500
-Message-ID: <AANLkTi=ipU6gqoQZ4T25ErCGapvoT-Q8vx+mriQj=tji@mail.gmail.com>
-Subject: Re: Hauppauge WinTV USB 2
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Vivek Periaraj <vivek.periaraj@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Fri, 25 Feb 2011 05:48:07 -0500
+Received: from cmsout02.mbox.net (co02-lo [127.0.0.1])
+	by cmsout02.mbox.net (Postfix) with ESMTP id D012313433F
+	for <linux-media@vger.kernel.org>; Fri, 25 Feb 2011 10:48:06 +0000 (GMT)
+Date: Fri, 25 Feb 2011 11:48:03 +0100
+From: "Issa Gorissen" <flop.m@usa.net>
+To: <linux-media@vger.kernel.org>
+Subject: Re: Sony CXD2099AR decryption failing
+Mime-Version: 1.0
+Message-ID: <554PBykvD4176S03.1298630883@web03.cms.usa.net>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Feb 23, 2011 at 2:46 PM, Vivek Periaraj
-<vivek.periaraj@gmail.com> wrote:
-> Hi Folks,
->
-> I bought a new Hauppauge WinTV USB 2 tuner card and was hoping to use it in
-> linux. I specifically looked up to find whether this card is supported or not,
-> and I found that it's indeed supported by em28xx drivers.
+Follow up on the trouble with Digital Devices DuoFlex S2, CI, SMIT Viaccess
+CAM and Bis.tv card.
 
-The product with USB ID 2040:6610 is not an em28xx based device.  It
-is based on the tm6010 chip.  Unfortunately, the term "WinTV USB 2" is
-too generic.  You need to use the actual model number or USB ID to
-determine the status of support.
+The whole combination works under Windows 7 with Media Center. I have been
+able to watch and change channels I'm entitled to in the Bis.TV package. Only
+condition was to disable CI for tuner no 2. If the CI is activated for tuner 1
+and tuner 2, Media Center will not be able to change the channels.
 
-There has been ongoing work in the tm6010 driver.  You may wish to try
-the latest media_build and see if your device is working yet.
+Anything I can do to make progress for this issue under linux ?
 
-Devin
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Thx
+--
+Issa
+
