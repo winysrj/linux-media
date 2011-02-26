@@ -1,60 +1,116 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2357 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752062Ab1BZMbf (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.187]:56376 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751227Ab1BZNOg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Feb 2011 07:31:35 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [RFC] snapshot mode, flash capabilities and control
-Date: Sat, 26 Feb 2011 13:31:26 +0100
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Sat, 26 Feb 2011 08:14:36 -0500
+Date: Sat, 26 Feb 2011 14:14:29 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Stan <svarbanov@mm-sol.com>, Hans Verkuil <hansverk@cisco.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kim HeungJun <riverful@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Stanimir Varbanov <svarbanov@mm-sol.com>
-References: <Pine.LNX.4.64.1102240947230.15756@axis700.grange> <20110225135314.GF23853@valkosipuli.localdomain> <Pine.LNX.4.64.1102251708080.26361@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1102251708080.26361@axis700.grange>
+	saaguirre@ti.com
+Subject: Re: [RFC/PATCH 0/1] New subdev sensor operation g_interface_parms
+In-Reply-To: <201102261350.12833.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1102261405330.31455@axis700.grange>
+References: <cover.1298368924.git.svarbanov@mm-sol.com>
+ <Pine.LNX.4.64.1102231020330.8880@axis700.grange> <4D67F3AF.7060808@maxwell.research.nokia.com>
+ <201102261350.12833.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201102261331.26681.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Friday, February 25, 2011 18:08:07 Guennadi Liakhovetski wrote:
+On Sat, 26 Feb 2011, Hans Verkuil wrote:
 
-<snip>
-
-> > > configure the sensor to react on an external trigger provided by the flash 
-> > > controller is needed, and that could be a control on the flash sub-device. 
-> > > What we would probably miss is a way to issue a STREAMON with a number of 
-> > > frames to capture. A new ioctl is probably needed there. Maybe that would be 
-> > > an opportunity to create a new stream-control ioctl that could replace 
-> > > STREAMON and STREAMOFF in the long term (we could extend the subdev s_stream 
-> > > operation, and easily map STREAMON and STREAMOFF to the new ioctl in 
-> > > video_ioctl2 internally).
+> On Friday, February 25, 2011 19:23:43 Sakari Ailus wrote:
+> > Hi Guennadi and others,
 > > 
-> > How would this be different from queueing n frames (in total; count
-> > dequeueing, too) and issuing streamon? --- Except that when the last frame
-> > is processed the pipeline could be stopped already before issuing STREAMOFF.
-> > That does indeed have some benefits. Something else?
+> > Apologies for the late reply...
+> > 
+> > Guennadi Liakhovetski wrote:
+> > > On Wed, 23 Feb 2011, Hans Verkuil wrote:
+> > > 
+> > >> On Tuesday, February 22, 2011 22:42:58 Sylwester Nawrocki wrote:
+> > >>> Clock values are often being rounded at runtime and do not always reflect exactly
+> > >>> the numbers fixed at compile time. And negotiation could help to obtain exact
+> > >>> values at both sensor and host side.
+> > >>
+> > >> The only static data I am concerned about are those that affect signal integrity.
+> > >> After thinking carefully about this I realized that there is really only one
+> > >> setting that is relevant to that: the sampling edge. The polarities do not
+> > >> matter in this.
+> > > 
+> > > Ok, this is much better! I'm still not perfectly happy having to punish 
+> > > all just for the sake of a couple of broken boards, but I can certainly 
+> > > much better live with this, than with having to hard-code each and every 
+> > > bit. Thanks, Hans!
+> > 
+> > How much punishing would actually take place without autonegotiation?
+> > How many boards do we have in total? I counted around 26 of
+> > soc_camera_link declarations under arch/. Are there more?
+> > 
+> > An example of hardware which does care about clock polarity is the
+> > N8[01]0. The parallel clock polarity is inverted since this actually
+> > does improve reliability. In an ideal hardware this likely wouldn't
+> > happen but sometimes the hardware is not exactly ideal. Both the sensor
+> > and the camera block support non-inverted and inverted clock signal.
+> > 
+> > So at the very least it should be possible to provide this information
+> > in the board code even if both ends share multiple common values for
+> > parameters.
+> > 
+> > There have been many comments on the dangers of the autonegotiation and
+> > I share those concerns. One of my main concerns is that it creates an
+> > unnecessary dependency from all the boards to the negotiation code, the
+> > behaviour of which may not change.
+
+Sorry, didn't want to comment on this... But to me this sounds like a void 
+argument... Yes, there are _many_ inter-dependencies in the kernel, and if 
+you break code something will stop working... What's new about it??? But 
+no, I do not want to continue this discussion endlessly...
+
+> OK, let me summarize this and if there are no objections then Stan can start
+> implementing this.
 > 
-> Well, you usually see in your host driver, that the videobuffer queue is 
-> empty (no more free buffers are available), so, you stop streaming 
-> immediately too.
+> 1) We need two subdev ops: one reports the bus config capabilities and one that
+> sets it up. Note that these ops should be core ops since this functionality is
+> relevant for both sensors and video receive/transmit devices.
+> 
+> 2) The clock sampling edge and polarity should not be negotiated but must be set
+> from board code for both subdevs and host. In the future this might even require
+> a callback with the clock frequency as argument.
+> 
+> 3) We probably need a utility function that given the host and subdev capabilities
+> will return the required subdev/host settings.
+> 
+> 4) soc-camera should switch to these new ops.
 
-This probably assumes that the host driver knows that this is a special queue?
-Because in general drivers will simply keep capturing in the last buffer and not
-release it to userspace until a new buffer is queued.
+...remains only to find, who will do this;)
 
-That said, it wouldn't be hard to add some flag somewhere that puts a queue in
-a 'stop streaming on last buffer capture' mode.
+So, I'm in minority here, if we don't count all those X systems, 
+successfully using soc-camera with its evil auto-negotiation. If you just 
+decide to do this and push the changes - sure, there's nothing I can do 
+against this. But if you decide to postpone a final decision on this until 
+we meet personally and will not have to circulate the same arguments 100 
+times - just because the delay is shorter - maybe we can find a solution, 
+that will keep everyone happy.
 
-Regards,
+> Of course, we also need MIPI support in this API. The same considerations apply to
+> MIPI as to the parallel bus: settings that depend on the hardware board design
+> should come from board code, others can be negotiated. Since I know next to nothing
+> about MIPI I will leave that to the experts...
+> 
+> One thing I am not sure about is if we want separate ops for parallel bus and MIPI,
+> or if we merge them. I am leaning towards separate ops as I think that might be
+> easier to implement.
 
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
