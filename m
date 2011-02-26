@@ -1,209 +1,99 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:46626 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754981Ab1BIRz3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Feb 2011 12:55:29 -0500
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1118 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752156Ab1BZMuU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 26 Feb 2011 07:50:20 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [RFC/PATCH 0/1] New subdev sensor operation g_interface_parms
+Date: Sat, 26 Feb 2011 13:50:12 +0100
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Stan <svarbanov@mm-sol.com>, Hans Verkuil <hansverk@cisco.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	saaguirre@ti.com
+References: <cover.1298368924.git.svarbanov@mm-sol.com> <Pine.LNX.4.64.1102231020330.8880@axis700.grange> <4D67F3AF.7060808@maxwell.research.nokia.com>
+In-Reply-To: <4D67F3AF.7060808@maxwell.research.nokia.com>
 MIME-Version: 1.0
-In-Reply-To: <201102090959.29732.hansverk@cisco.com>
-References: <1297157427-14560-1-git-send-email-t.stanislaws@samsung.com>
-	<201102081047.17840.hansverk@cisco.com>
-	<AANLkTi=A=HiAvHojWP8HcFXpjXbZpq6UdHjOnWq-8jww@mail.gmail.com>
-	<201102090959.29732.hansverk@cisco.com>
-Date: Wed, 9 Feb 2011 12:55:27 -0500
-Message-ID: <AANLkTi=0-GWXGHLOAf5vvx6bL=wjYpSMF=Z5Q=jLzE06@mail.gmail.com>
-Subject: Re: [PATCH/RFC 0/5] HDMI driver for Samsung S5PV310 platform
-From: Alex Deucher <alexdeucher@gmail.com>
-To: Hans Verkuil <hansverk@cisco.com>
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	Maling list - DRI developers
-	<dri-devel@lists.freedesktop.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201102261350.12833.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Feb 9, 2011 at 3:59 AM, Hans Verkuil <hansverk@cisco.com> wrote:
-> On Tuesday, February 08, 2011 16:28:32 Alex Deucher wrote:
->> On Tue, Feb 8, 2011 at 4:47 AM, Hans Verkuil <hansverk@cisco.com> wrote:
->
-> <snip>
->
->> >>   The driver supports an interrupt. It is used to detect plug/unplug
-> events
->> > in
->> >> kernel debugs.  The API for detection of such an events in V4L2 API is to
-> be
->> >> defined.
->> >
->> > Cisco (i.e. a few colleagues and myself) are working on this. We hope to
-> post
->> > an RFC by the end of this month. We also have a proposal for CEC support
-> in
->> > the pipeline.
->>
->> Any reason to not use the drm kms APIs for modesetting, display
->> configuration, and hotplug support?  We already have the
->> infrastructure in place for complex display configurations and
->> generating events for hotplug interrupts.  It would seem to make more
->> sense to me to fix any deficiencies in the KMS APIs than to spin a new
->> API.  Things like CEC would be a natural fit since a lot of desktop
->> GPUs support hdmi audio/3d/etc. and are already using kms.
->
-> There are various reasons for not going down that road. The most important one
-> is that mixing APIs is actually a bad idea. I've done that once in the past
-> and I've regretted ever since. The problem with doing that is that it is
-> pretty hard on applications who have to mix two different styles of API,
-> somehow know where to find the documentation for each and know that both APIs
-> can in fact be used on the same device.
->
-> Now, if there was a lot of code that could be shared, then that might be
-> enough reason to go that way, but in practice there is very little overlap.
-> Take CEC: all the V4L API will do is to pass the CEC packets from kernel to
-> userspace and vice versa. There is no parsing at all. This is typically used
-> by embedded apps that want to do their own CEC processing.
->
-> An exception might be a PCI(e) card with HDMI input/output that wants to
-> handle CEC internally. At that point we might look at sharing CEC parsing
-> code. A similar story is true for EDID handling.
->
-> One area that might be nice to look at would be to share drivers for HDMI
-> receivers and transmitters. However, the infrastructure for such drivers is
-> wildly different between how it is used for GPUs versus V4L and has been for
-> 10 years or so. I also suspect that most GPUs have there own HDMI internal
-> implementation so code sharing will probably be quite limited.
->
+On Friday, February 25, 2011 19:23:43 Sakari Ailus wrote:
+> Hi Guennadi and others,
+> 
+> Apologies for the late reply...
+> 
+> Guennadi Liakhovetski wrote:
+> > On Wed, 23 Feb 2011, Hans Verkuil wrote:
+> > 
+> >> On Tuesday, February 22, 2011 22:42:58 Sylwester Nawrocki wrote:
+> >>> Clock values are often being rounded at runtime and do not always reflect exactly
+> >>> the numbers fixed at compile time. And negotiation could help to obtain exact
+> >>> values at both sensor and host side.
+> >>
+> >> The only static data I am concerned about are those that affect signal integrity.
+> >> After thinking carefully about this I realized that there is really only one
+> >> setting that is relevant to that: the sampling edge. The polarities do not
+> >> matter in this.
+> > 
+> > Ok, this is much better! I'm still not perfectly happy having to punish 
+> > all just for the sake of a couple of broken boards, but I can certainly 
+> > much better live with this, than with having to hard-code each and every 
+> > bit. Thanks, Hans!
+> 
+> How much punishing would actually take place without autonegotiation?
+> How many boards do we have in total? I counted around 26 of
+> soc_camera_link declarations under arch/. Are there more?
+> 
+> An example of hardware which does care about clock polarity is the
+> N8[01]0. The parallel clock polarity is inverted since this actually
+> does improve reliability. In an ideal hardware this likely wouldn't
+> happen but sometimes the hardware is not exactly ideal. Both the sensor
+> and the camera block support non-inverted and inverted clock signal.
+> 
+> So at the very least it should be possible to provide this information
+> in the board code even if both ends share multiple common values for
+> parameters.
+> 
+> There have been many comments on the dangers of the autonegotiation and
+> I share those concerns. One of my main concerns is that it creates an
+> unnecessary dependency from all the boards to the negotiation code, the
+> behaviour of which may not change.
 
-You don't need to worry about the rest of the 3D and acceleration
-stuff to use the kms modesetting API.  For video output, you have a
-timing generator, an encoder that translates a bitstream into
-voltages, and an connector that you plug into a monitor.  Additionally
-you may want to read an edid or generate a hotplug event and use some
-modeline handling helpers.  The kms api provides core modesetting code
-and a set of modesetting driver callbacks for crtcs, encoders, and
-connectors.  The hardware implementations will vary, but modesetting
-is the same.  From drm_crtc_helper.h:
+OK, let me summarize this and if there are no objections then Stan can start
+implementing this.
 
-The driver provides the following callbacks for the crtc.  The crtc
-loosely refers to the part of the display pipe that generates timing
-and framebuffer scanout position.
+1) We need two subdev ops: one reports the bus config capabilities and one that
+sets it up. Note that these ops should be core ops since this functionality is
+relevant for both sensors and video receive/transmit devices.
 
-struct drm_crtc_helper_funcs {
-        /*
-         * Control power levels on the CRTC.  If the mode passed in is
-         * unsupported, the provider must use the next lowest power
-level.
-         */
-        void (*dpms)(struct drm_crtc *crtc, int mode);
-        void (*prepare)(struct drm_crtc *crtc);
-        void (*commit)(struct drm_crtc *crtc);
+2) The clock sampling edge and polarity should not be negotiated but must be set
+from board code for both subdevs and host. In the future this might even require
+a callback with the clock frequency as argument.
 
-        /* Provider can fixup or change mode timings before modeset occurs */
-        bool (*mode_fixup)(struct drm_crtc *crtc,
-                           struct drm_display_mode *mode,
-                           struct drm_display_mode *adjusted_mode);
-        /* Actually set the mode */
-        int (*mode_set)(struct drm_crtc *crtc, struct drm_display_mode *mode,
-                        struct drm_display_mode *adjusted_mode, int x, int y,
-                        struct drm_framebuffer *old_fb);
+3) We probably need a utility function that given the host and subdev capabilities
+will return the required subdev/host settings.
 
-        /* Move the crtc on the current fb to the given position *optional* */
-        int (*mode_set_base)(struct drm_crtc *crtc, int x, int y,
-                             struct drm_framebuffer *old_fb);
-        int (*mode_set_base_atomic)(struct drm_crtc *crtc,
-                                    struct drm_framebuffer *fb, int x, int y,
-                                    enum mode_set_atomic);
+4) soc-camera should switch to these new ops.
 
-        /* reload the current crtc LUT */
-        void (*load_lut)(struct drm_crtc *crtc);
+Of course, we also need MIPI support in this API. The same considerations apply to
+MIPI as to the parallel bus: settings that depend on the hardware board design
+should come from board code, others can be negotiated. Since I know next to nothing
+about MIPI I will leave that to the experts...
 
-        /* disable crtc when not in use - more explicit than dpms off */
-        void (*disable)(struct drm_crtc *crtc);
-};
+One thing I am not sure about is if we want separate ops for parallel bus and MIPI,
+or if we merge them. I am leaning towards separate ops as I think that might be
+easier to implement.
 
-encoders take the bitstream from the crtc and convert it into a set of
-voltages understood by the monitor, e.g., TMDS or LVDS encoders.  The
-callbacks follow a similar pattern to crtcs.
+Regards,
 
-struct drm_encoder_helper_funcs {
-        void (*dpms)(struct drm_encoder *encoder, int mode);
-        void (*save)(struct drm_encoder *encoder);
-        void (*restore)(struct drm_encoder *encoder);
+	Hans
 
-	bool (*mode_fixup)(struct drm_encoder *encoder,
-                           struct drm_display_mode *mode,
-                           struct drm_display_mode *adjusted_mode);
-        void (*prepare)(struct drm_encoder *encoder);
-        void (*commit)(struct drm_encoder *encoder);
-	void (*mode_set)(struct drm_encoder *encoder,
-                         struct drm_display_mode *mode,
-                         struct drm_display_mode *adjusted_mode);
-        struct drm_crtc *(*get_crtc)(struct drm_encoder *encoder);
- 	/* detect for DAC style encoders */
-        enum drm_connector_status (*detect)(struct drm_encoder *encoder,
-                                            struct drm_connector *connector);
-        /* disable encoder when not in use - more explicit than dpms off */
-        void (*disable)(struct drm_encoder *encoder);
-};
-
-
-And finally connectors.  These are the actual physical connectors on
-the board (DVI-I, HDMI-A, VGA, S-video, etc.).  Things like ddc lines
-are generally tied to a connector so functions relevant to getting
-modelines are associated with connectors.
-
-struct drm_connector_helper_funcs {
-        int (*get_modes)(struct drm_connector *connector);
-        int (*mode_valid)(struct drm_connector *connector,
-                          struct drm_display_mode *mode);
-        struct drm_encoder *(*best_encoder)(struct drm_connector *connector);
-};
-
-See drm_crtc_helper.c to see how the callbacks are used.  The code can
-handle crtcs that can be routed to different encoders dynamically or
-crtcs that are hardcoded to specific encoders.  Additionally, it can
-handle encoders that are shared between multiple connectors (e.g., a
-DAC shared between VGA and S-video), or multiple encoders tied to a
-single connector (e.g., DAC and TMDS encoders tied to a single DVI-I
-connector).
-
-Let's look at two scenarios where you want a system to display an
-interactive RGB desktop and provide video capture and video output.
-You'd need to use different sets of APIs depending on what hardware
-you use:
-
-1. SoC with an LVDS panel and HDMI output and a capture unit
-2. PC with a GPU with an LVDS panel and an HDMI output and a capture unit.
-
-As I understand it, to use the scenario 1 would use the following:
-
-- LVDS uses some new v4l interface or a hacked up kernel fb interface
-to support multiple displays
-- HDMI uses some new v4l interface or a hacked up kernel fb interface
-to support multiple displays
-- capture unit uses V4L
-
-Scenario 2 would use:
-
-- LVDS uses KMS API
-- HDMI uses KMS API
-- capture unit uses V4L
-
-Why not use KMS?  A modesetting API is a huge amount of work.  I
-haven't seen anything in these SoC platforms that makes them so
-radically different that they need their own API.  If there are any,
-we'd love to hear about them so they can be addressed.
-
-Alex
-
-> So, no, there are no plans to share anything between the two (except perhaps
-> EDID and CEC parsing should that become relevant).
->
-> Oh, and let me join Andy in saying that the drm/kms/whatever API documentation
-> *really* needs a lot of work.
->
-> Regards,
->
->        Hans
->
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
