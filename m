@@ -1,113 +1,78 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58186 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754297Ab1BNMVs (ORCPT
+Received: from mail-gw0-f51.google.com ([74.125.83.51]:39268 "EHLO
+	mail-gw0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751007Ab1BZOOz convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Feb 2011 07:21:48 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [PATCH v6 01/10] ARM: OMAP3: Update Camera ISP definitions for OMAP3630
-Date: Mon, 14 Feb 2011 13:21:28 +0100
-Message-Id: <1297686097-9804-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1297686097-9804-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1297686097-9804-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Sat, 26 Feb 2011 09:14:55 -0500
+Received: by gwb15 with SMTP id 15so1608766gwb.10
+        for <linux-media@vger.kernel.org>; Sat, 26 Feb 2011 06:14:54 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <AANLkTi=Twg-hzngyrpU_=o1yxQ3qVtiJf-Qhj--OubPu@mail.gmail.com>
+References: <AANLkTik=Yc9cb9r7Ro=evRoxd61KVE=8m7Z5+dNwDzVd@mail.gmail.com>
+	<AANLkTinDFMMDD-F-FsccCTvUvp6K3zewYsGT1BH9VP1F@mail.gmail.com>
+	<201102100847.15212.hverkuil@xs4all.nl>
+	<201102171448.09063.laurent.pinchart@ideasonboard.com>
+	<AANLkTikg0Oj6nq6h_1-d7AQ4NQr2UyMuSemyniYZBLu3@mail.gmail.com>
+	<1298578789.821.54.camel@deumeu>
+	<AANLkTi=Twg-hzngyrpU_=o1yxQ3qVtiJf-Qhj--OubPu@mail.gmail.com>
+Date: Sat, 26 Feb 2011 23:14:54 +0900
+Message-ID: <AANLkTini7xuQ2kcrWbfGSUomdoPkLLJiik2soer8SL+X@mail.gmail.com>
+Subject: Re: [st-ericsson] v4l2 vs omx for camera
+From: Kyungmin Park <kmpark@infradead.org>
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Edward Hervey <bilboed@gmail.com>, johan.mossberg.lml@gmail.com,
+	Discussion of the development of and with GStreamer
+	<gstreamer-devel@lists.freedesktop.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>,
+	Harald Gustafsson <harald.gustafsson@ericsson.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	ST-Ericsson LT Mailing List <st-ericsson@lists.linaro.org>,
+	linux-media@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Tuukka Toivonen <tuukkat76@gmail.com>
+On Sat, Feb 26, 2011 at 2:22 AM, Linus Walleij <linus.walleij@linaro.org> wrote:
+> 2011/2/24 Edward Hervey <bilboed@gmail.com>:
+>
+>>  What *needs* to be solved is an API for data allocation/passing at the
+>> kernel level which v4l2,omx,X,GL,vdpau,vaapi,... can use and that
+>> userspace (like GStreamer) can pass around, monitor and know about.
+>
+> I think the patches sent out from ST-Ericsson's Johan Mossberg to
+> linux-mm for "HWMEM" (hardware memory) deals exactly with buffer
+> passing, pinning of buffers and so on. The CMA (Contigous Memory
+> Allocator) has been slightly modified to fit hand-in-glove with HWMEM,
+> so CMA provides buffers, HWMEM pass them around.
+>
+> Johan, when you re-spin the HWMEM patchset, can you include
+> linaro-dev and linux-media in the CC? I think there is *much* interest
+> in this mechanism, people just don't know from the name what it
+> really does. Maybe it should be called mediamem or something
+> instead...
 
-Add new/changed base address definitions and resources for
-OMAP3630 ISP.
+To Marek,
 
-The OMAP3430 CSI2PHY block is same as the OMAP3630 CSIPHY2
-block. But the later name is chosen as it gives more symmetry
-to the names.
+Can you also update the CMA status and plan?
 
-Signed-off-by: Tuukka Toivonen <tuukkat76@gmail.com>
-Signed-off-by: Vimarsh Zutshi <vimarsh.zutshi@gmail.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/devices.c              |   28 ++++++++++++++++++++++++----
- arch/arm/plat-omap/include/plat/omap34xx.h |   16 ++++++++++++----
- 2 files changed, 36 insertions(+), 8 deletions(-)
+The important thing is still Russell don't agree the CMA since it's
+not solve the ARM different memory attribute mapping issue. Of course
+there's no way to solve the ARM issue.
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 2c9c912..95c69f9 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -109,13 +109,33 @@ static struct resource omap3isp_resources[] = {
- 		.flags		= IORESOURCE_MEM,
- 	},
- 	{
--		.start		= OMAP3430_ISP_CSI2A_BASE,
--		.end		= OMAP3430_ISP_CSI2A_END,
-+		.start		= OMAP3430_ISP_CSI2A_REGS1_BASE,
-+		.end		= OMAP3430_ISP_CSI2A_REGS1_END,
- 		.flags		= IORESOURCE_MEM,
- 	},
- 	{
--		.start		= OMAP3430_ISP_CSI2PHY_BASE,
--		.end		= OMAP3430_ISP_CSI2PHY_END,
-+		.start		= OMAP3430_ISP_CSIPHY2_BASE,
-+		.end		= OMAP3430_ISP_CSIPHY2_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3630_ISP_CSI2A_REGS2_BASE,
-+		.end		= OMAP3630_ISP_CSI2A_REGS2_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3630_ISP_CSI2C_REGS1_BASE,
-+		.end		= OMAP3630_ISP_CSI2C_REGS1_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3630_ISP_CSIPHY1_BASE,
-+		.end		= OMAP3630_ISP_CSIPHY1_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3630_ISP_CSI2C_REGS2_BASE,
-+		.end		= OMAP3630_ISP_CSI2C_REGS2_END,
- 		.flags		= IORESOURCE_MEM,
- 	},
- 	{
-diff --git a/arch/arm/plat-omap/include/plat/omap34xx.h b/arch/arm/plat-omap/include/plat/omap34xx.h
-index 98fc8b4..b9e8588 100644
---- a/arch/arm/plat-omap/include/plat/omap34xx.h
-+++ b/arch/arm/plat-omap/include/plat/omap34xx.h
-@@ -56,8 +56,12 @@
- #define OMAP3430_ISP_RESZ_BASE		(OMAP3430_ISP_BASE + 0x1000)
- #define OMAP3430_ISP_SBL_BASE		(OMAP3430_ISP_BASE + 0x1200)
- #define OMAP3430_ISP_MMU_BASE		(OMAP3430_ISP_BASE + 0x1400)
--#define OMAP3430_ISP_CSI2A_BASE		(OMAP3430_ISP_BASE + 0x1800)
--#define OMAP3430_ISP_CSI2PHY_BASE	(OMAP3430_ISP_BASE + 0x1970)
-+#define OMAP3430_ISP_CSI2A_REGS1_BASE	(OMAP3430_ISP_BASE + 0x1800)
-+#define OMAP3430_ISP_CSIPHY2_BASE	(OMAP3430_ISP_BASE + 0x1970)
-+#define OMAP3630_ISP_CSI2A_REGS2_BASE	(OMAP3430_ISP_BASE + 0x19C0)
-+#define OMAP3630_ISP_CSI2C_REGS1_BASE	(OMAP3430_ISP_BASE + 0x1C00)
-+#define OMAP3630_ISP_CSIPHY1_BASE	(OMAP3430_ISP_BASE + 0x1D70)
-+#define OMAP3630_ISP_CSI2C_REGS2_BASE	(OMAP3430_ISP_BASE + 0x1DC0)
- 
- #define OMAP3430_ISP_END		(OMAP3430_ISP_BASE         + 0x06F)
- #define OMAP3430_ISP_CBUFF_END		(OMAP3430_ISP_CBUFF_BASE   + 0x077)
-@@ -69,8 +73,12 @@
- #define OMAP3430_ISP_RESZ_END		(OMAP3430_ISP_RESZ_BASE    + 0x0AB)
- #define OMAP3430_ISP_SBL_END		(OMAP3430_ISP_SBL_BASE     + 0x0FB)
- #define OMAP3430_ISP_MMU_END		(OMAP3430_ISP_MMU_BASE     + 0x06F)
--#define OMAP3430_ISP_CSI2A_END		(OMAP3430_ISP_CSI2A_BASE   + 0x16F)
--#define OMAP3430_ISP_CSI2PHY_END	(OMAP3430_ISP_CSI2PHY_BASE + 0x007)
-+#define OMAP3430_ISP_CSI2A_REGS1_END	(OMAP3430_ISP_CSI2A_REGS1_BASE + 0x16F)
-+#define OMAP3430_ISP_CSIPHY2_END	(OMAP3430_ISP_CSIPHY2_BASE + 0x00B)
-+#define OMAP3630_ISP_CSI2A_REGS2_END	(OMAP3630_ISP_CSI2A_REGS2_BASE + 0x3F)
-+#define OMAP3630_ISP_CSI2C_REGS1_END	(OMAP3630_ISP_CSI2C_REGS1_BASE + 0x16F)
-+#define OMAP3630_ISP_CSIPHY1_END	(OMAP3630_ISP_CSIPHY1_BASE + 0x00B)
-+#define OMAP3630_ISP_CSI2C_REGS2_END	(OMAP3630_ISP_CSI2C_REGS2_BASE + 0x3F)
- 
- #define OMAP34XX_HSUSB_OTG_BASE	(L4_34XX_BASE + 0xAB000)
- #define OMAP34XX_USBTLL_BASE	(L4_34XX_BASE + 0x62000)
--- 
-1.7.3.4
+We really need the memory solution for multimedia.
 
+Thank you,
+Kyungmin Park
+
+
+>
+> Yours,
+> Linus Walleij
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
