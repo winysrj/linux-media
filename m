@@ -1,72 +1,71 @@
 Return-path: <mchehab@pedra>
-Received: from antispam01.maxim-ic.com ([205.153.101.182]:57431 "EHLO
-	antispam01.maxim-ic.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751556Ab1BSA5d convert rfc822-to-8bit (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.186]:61130 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752174Ab1BZNDz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Feb 2011 19:57:33 -0500
-From: Stephan Lachowsky <stephan.lachowsky@maxim-ic.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-uvc-devel@lists.berlios.de" <linux-uvc-devel@lists.berlios.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Date: Fri, 18 Feb 2011 16:57:25 -0800
-Subject: Re: [PATCH RFC] uvcvideo: Add support for MPEG-2 TS payload
-Message-ID: <1DE7EE94-2763-483E-8064-BE554A635544@maxim-ic.com>
-References: <1296243305.17673.20.camel@svmlwks101>
- <201102171703.17164.laurent.pinchart@ideasonboard.com>
- <1297963118.2620.36.camel@svmlwks101>
- <201102181156.09061.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201102181156.09061.laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Sat, 26 Feb 2011 08:03:55 -0500
+Date: Sat, 26 Feb 2011 14:03:53 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Kim HeungJun <riverful@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Stanimir Varbanov <svarbanov@mm-sol.com>
+Subject: Re: [RFC] snapshot mode, flash capabilities and control
+In-Reply-To: <201102261331.26681.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1102261350001.31455@axis700.grange>
+References: <Pine.LNX.4.64.1102240947230.15756@axis700.grange>
+ <20110225135314.GF23853@valkosipuli.localdomain> <Pine.LNX.4.64.1102251708080.26361@axis700.grange>
+ <201102261331.26681.hverkuil@xs4all.nl>
 MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Laurent,
+On Sat, 26 Feb 2011, Hans Verkuil wrote:
 
-On Feb 18, 2011, at 2:56 AM, Laurent Pinchart wrote:
-
-> Hi Stephan,
+> On Friday, February 25, 2011 18:08:07 Guennadi Liakhovetski wrote:
 > 
-> On Thursday 17 February 2011 18:18:38 Stephan Lachowsky wrote:
->> On Thu, 2011-02-17 at 08:03 -0800, Laurent Pinchart wrote:
->>> On Friday 28 January 2011 20:35:05 Stephan Lachowsky wrote:
->>>> Parse the UVC 1.0 and UVC 1.1 VS_FORMAT_MPEG2TS descriptors.
->>>> This a stream based format, so we generate a dummy frame descriptor
->>>> with a dummy frame interval range.
->>> 
->>> Thanks for the patch, and sorry for the late reply.
->> 
->> No worries, just glad to have the moss knocked off the stone.
->> 
->>> Don't you also need to implement support for the V4L2 MPEG CIDs ? I would
->>> expect the driver to support at least the controls used to select the
->>> MPEG format (MPEG2, TS), even if they're hardcoded to MPEG2-TS.
->> 
->> That would be possible, for the stream type there is your choice of
->> MPEG2-TS so that is trivial. There are a very limited set of
->> standardized controls that can be mapped: wKeyFrameRate, wPFrameRate,
->> wCompQuality from the VS probe/commit (GOP size, B frames, bitrate).
->> 
->> Since these controls are optional in the spec, and an overly simplistic
->> projection of the encoder's actual configuration space, device
->> manufactures (typically) choose instead to use custom XUs that expose
->> richer more representative ones.
->> 
->> Given this state of affairs, I think it would be prudent to blindly
->> forward the data stream (Which is all, in essence, this patch enables)
->> leaving the configuration to userspace.
->> 
->> I'm not suggesting we preclude adding XU -> MPEG2 CID mappings into
->> uvcvideo later, just that as is this is a valuable step forward.
+> <snip>
 > 
-> I agree with this, but I would still implement support for the 
-> V4L2_CID_MPEG_STREAM_TYPE control. MPEG applications expect it to be 
-> supported.
+> > > > configure the sensor to react on an external trigger provided by the flash 
+> > > > controller is needed, and that could be a control on the flash sub-device. 
+> > > > What we would probably miss is a way to issue a STREAMON with a number of 
+> > > > frames to capture. A new ioctl is probably needed there. Maybe that would be 
+> > > > an opportunity to create a new stream-control ioctl that could replace 
+> > > > STREAMON and STREAMOFF in the long term (we could extend the subdev s_stream 
+> > > > operation, and easily map STREAMON and STREAMOFF to the new ioctl in 
+> > > > video_ioctl2 internally).
+> > > 
+> > > How would this be different from queueing n frames (in total; count
+> > > dequeueing, too) and issuing streamon? --- Except that when the last frame
+> > > is processed the pipeline could be stopped already before issuing STREAMOFF.
+> > > That does indeed have some benefits. Something else?
+> > 
+> > Well, you usually see in your host driver, that the videobuffer queue is 
+> > empty (no more free buffers are available), so, you stop streaming 
+> > immediately too.
 > 
+> This probably assumes that the host driver knows that this is a special queue?
+> Because in general drivers will simply keep capturing in the last buffer and not
+> release it to userspace until a new buffer is queued.
 
-Ok, this is reasonable: expect another patch for the control next week.
+Yes, I know about this spec requirement, but I also know, that not all 
+drivers do that and not everyone is happy about that requirement:)
 
-Stephan
+> That said, it wouldn't be hard to add some flag somewhere that puts a queue in
+> a 'stop streaming on last buffer capture' mode.
+
+No, it wouldn't... But TBH this doesn't seem like the most elegant and 
+complete solution. Maybe we have to think a bit more about it - which 
+soncequences switching into the snapshot mode has on the host driver, 
+apart from stopping after N frames. So, this is one of the possibilities, 
+not sure if the best one.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
