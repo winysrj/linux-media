@@ -1,135 +1,88 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:57021 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753020Ab1BQQDR (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:41658 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750725Ab1BZNNC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Feb 2011 11:03:17 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Stephan Lachowsky <stephan.lachowsky@maxim-ic.com>
-Subject: Re: [PATCH RFC] uvcvideo: Add support for MPEG-2 TS payload
-Date: Thu, 17 Feb 2011 17:03:16 +0100
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-uvc-devel@lists.berlios.de" <linux-uvc-devel@lists.berlios.de>
-References: <1296243305.17673.20.camel@svmlwks101>
-In-Reply-To: <1296243305.17673.20.camel@svmlwks101>
+	Sat, 26 Feb 2011 08:13:02 -0500
+Received: by fxm17 with SMTP id 17so2544401fxm.19
+        for <linux-media@vger.kernel.org>; Sat, 26 Feb 2011 05:13:01 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201102171703.17164.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <AANLkTikg0Oj6nq6h_1-d7AQ4NQr2UyMuSemyniYZBLu3@mail.gmail.com>
+References: <AANLkTik=Yc9cb9r7Ro=evRoxd61KVE=8m7Z5+dNwDzVd@mail.gmail.com>
+	<AANLkTinDFMMDD-F-FsccCTvUvp6K3zewYsGT1BH9VP1F@mail.gmail.com>
+	<201102100847.15212.hverkuil@xs4all.nl>
+	<201102171448.09063.laurent.pinchart@ideasonboard.com>
+	<AANLkTikg0Oj6nq6h_1-d7AQ4NQr2UyMuSemyniYZBLu3@mail.gmail.com>
+Date: Sat, 26 Feb 2011 15:13:01 +0200
+Message-ID: <AANLkTi=OC28M2eAyMWRsAjdZsxDTfh=H7kdk9GDbaF2p@mail.gmail.com>
+Subject: Re: [st-ericsson] v4l2 vs omx for camera
+From: Felipe Contreras <felipe.contreras@gmail.com>
+To: Discussion of the development of and with GStreamer
+	<gstreamer-devel@lists.freedesktop.org>
+Cc: Robert Fekete <robert.fekete@linaro.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>,
+	Harald Gustafsson <harald.gustafsson@ericsson.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	ST-Ericsson LT Mailing List <st-ericsson@lists.linaro.org>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Stephan,
+Hi,
 
-On Friday 28 January 2011 20:35:05 Stephan Lachowsky wrote:
-> Parse the UVC 1.0 and UVC 1.1 VS_FORMAT_MPEG2TS descriptors.
-> This a stream based format, so we generate a dummy frame descriptor
-> with a dummy frame interval range.
+On Fri, Feb 18, 2011 at 6:39 PM, Robert Fekete <robert.fekete@linaro.org> wrote:
+> To make a long story short:
+> Different vendors provide custom OpenMax solutions for say Camera/ISP. In
+> the Linux eco-system there is V4L2 doing much of this work already and is
+> evolving with mediacontroller as well. Then there is the integration in
+> Gstreamer...Which solution is the best way forward. Current discussions so
+> far puts V4L2 greatly in favor of OMX.
+> Please have in mind that OpenMAX as a concept is more like GStreamer in many
+> senses. The question is whether Camera drivers should have OMX or V4L2 as
+> the driver front end? This may perhaps apply to video codecs as well. Then
+> there is how to in best of ways make use of this in GStreamer in order to
+> achieve no copy highly efficient multimedia pipelines. Is gst-omx the way
+> forward?
+>
+> Let the discussion continue...
 
-Thanks for the patch, and sorry for the late reply.
+We are talking about 3 different layers here which don't necessarily
+overlap. You could have a v4l2 driver, which is wrapped in an OpenMAX
+IL library, which is wrapped again by gst-openmax. Each layer is
+different. The problem here is the OMX layer, which is often
+ill-conceived.
 
-Don't you also need to implement support for the V4L2 MPEG CIDs ? I would 
-expect the driver to support at least the controls used to select the MPEG 
-format (MPEG2, TS), even if they're hardcoded to MPEG2-TS.
+First of all, you have to remember that whatever OMX is supposed to
+provide, that doesn't apply to camera; you can argue that there's some
+value in audio/video encoding/decoding, as the interfaces are very
+simple and easy to standardize, but that's not the case with camera. I
+haven't worked with OMX camera interfaces, but AFAIK it's very
+incomplete and vendors have to implement their own interfaces, which
+defeats the purpose of OMX. So OMX provides nothing in the camera
+case.
 
-> ---
->  drivers/media/video/uvc/uvc_driver.c |   41
-> ++++++++++++++++++++++++++++++++++ drivers/media/video/uvc/uvcvideo.h   | 
->   3 ++
->  2 files changed, 44 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/video/uvc/uvc_driver.c
-> b/drivers/media/video/uvc/uvc_driver.c index a1e9dfb..6bcb9e1 100644
-> --- a/drivers/media/video/uvc/uvc_driver.c
-> +++ b/drivers/media/video/uvc/uvc_driver.c
-> @@ -103,6 +103,11 @@ static struct uvc_format_desc uvc_fmts[] = {
->  		.guid		= UVC_GUID_FORMAT_BY8,
->  		.fcc		= V4L2_PIX_FMT_SBGGR8,
->  	},
-> +	{
-> +		.name		= "MPEG2 TS",
-> +		.guid		= UVC_GUID_FORMAT_MPEG,
-> +		.fcc		= V4L2_PIX_FMT_MPEG,
-> +	},
->  };
-> 
->  /*
-> ------------------------------------------------------------------------
-> @@ -398,6 +403,33 @@ static int uvc_parse_format(struct uvc_device *dev,
-> break;
-> 
->  	case UVC_VS_FORMAT_MPEG2TS:
-> +		n = dev->uvc_version >= 0x0110 ? 23 : 7;
-> +		if (buflen < n) {
-> +			uvc_trace(UVC_TRACE_DESCR, "device %d videostreaming "
-> +			       "interface %d FORMAT error\n",
-> +			       dev->udev->devnum,
-> +			       alts->desc.bInterfaceNumber);
-> +			return -EINVAL;
-> +		}
-> +
-> +		strlcpy(format->name, "MPEG2 TS", sizeof format->name);
-> +		format->fcc = V4L2_PIX_FMT_MPEG;
-> +		format->flags = UVC_FMT_FLAG_COMPRESSED | UVC_FMT_FLAG_STREAM;
-> +		format->bpp = 0;
-> +		ftype = 0;
-> +
-> +		/* Create a dummy frame descriptor. */
-> +		frame = &format->frame[0];
-> +		memset(&format->frame[0], 0, sizeof format->frame[0]);
-> +		frame->bFrameIntervalType = 0;
-> +		frame->dwDefaultFrameInterval = 1;
-> +		frame->dwFrameInterval = *intervals;
-> +		*(*intervals)++ = 1;
-> +		*(*intervals)++ = 10000000;
-> +		*(*intervals)++ = 1;
-> +		format->nframes = 1;
-> +		break;
-> +
->  	case UVC_VS_FORMAT_STREAM_BASED:
->  		/* Not supported yet. */
->  	default:
-> @@ -673,6 +705,14 @@ static int uvc_parse_streaming(struct uvc_device *dev,
->  			break;
-> 
->  		case UVC_VS_FORMAT_MPEG2TS:
-> +			/* MPEG2TS format has no frame descriptor. We will create a
-> +			 * dummy frame descriptor with a dummy frame interval range.
-> +			 */
-> +			nformats++;
-> +			nframes++;
-> +			nintervals += 3;
-> +			break;
-> +
->  		case UVC_VS_FORMAT_STREAM_BASED:
->  			uvc_trace(UVC_TRACE_DESCR, "device %d videostreaming "
->  				"interface %d FORMAT %u is not supported.\n",
-> @@ -724,6 +764,7 @@ static int uvc_parse_streaming(struct uvc_device *dev,
->  		switch (buffer[2]) {
->  		case UVC_VS_FORMAT_UNCOMPRESSED:
->  		case UVC_VS_FORMAT_MJPEG:
-> +		case UVC_VS_FORMAT_MPEG2TS:
->  		case UVC_VS_FORMAT_DV:
->  		case UVC_VS_FORMAT_FRAME_BASED:
->  			format->frame = frame;
-> diff --git a/drivers/media/video/uvc/uvcvideo.h
-> b/drivers/media/video/uvc/uvcvideo.h index 45f01e7..e522f99 100644
-> --- a/drivers/media/video/uvc/uvcvideo.h
-> +++ b/drivers/media/video/uvc/uvcvideo.h
-> @@ -152,6 +152,9 @@ struct uvc_xu_control {
->  #define UVC_GUID_FORMAT_BY8 \
->  	{ 'B',  'Y',  '8',  ' ', 0x00, 0x00, 0x10, 0x00, \
->  	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-> +#define UVC_GUID_FORMAT_MPEG \
-> +	{ 'M',  'P',  'E',  'G', 0x00, 0x00, 0x10, 0x00, \
-> +	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-> 
->  /*
-> ------------------------------------------------------------------------ *
-> Driver specific constants.
+Secondly, there's no OMX kernel interface. You still need something
+between kernel to user-space, the only established interface is v4l2.
+So, even if you choose OMX in user-space, the sensible choice in
+kernel-space is v4l2, otherwise you would end up with some custom
+interface which is never good.
+
+And third, as Laurent already pointed out; OpenMAX is _not_ open. The
+community has no say in what happens, everything is decided by a
+consortium, you need to pay money to be in it, to access their
+bugzilla, to subscribe to their mailing lists, and to get access to
+their conformance test.
+
+If you forget all the marketing mumbo jumbo about OMX, at the of the
+day what is provided is a bunch of headers (and a document explaining
+how to use them). We (the linux community) can come up with a bunch of
+headers too, in fact, we already do much more than that with v4l2, the
+only part missing is encoders/decoders, which if needed could be added
+very easily (Samsung already does AFAIK). Right?
+
+Cheers.
 
 -- 
-Regards,
-
-Laurent Pinchart
+Felipe Contreras
