@@ -1,73 +1,57 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:18455 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754759Ab1BRBPr (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:57547 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750887Ab1BZNix (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Feb 2011 20:15:47 -0500
-Received: from [192.168.1.2] (d-216-36-28-191.cpe.metrocast.net [216.36.28.191])
-	(authenticated bits=0)
-	by pear.metrocast.net (8.13.8/8.13.8) with ESMTP id p1I1FjlS025507
-	for <linux-media@vger.kernel.org>; Fri, 18 Feb 2011 01:15:46 GMT
-Subject: [PATCH 05/13] lirc_zilog: Use kernel standard methods for marking
- device non-seekable
-From: Andy Walls <awalls@md.metrocast.net>
-To: linux-media@vger.kernel.org
-In-Reply-To: <1297991502.9399.16.camel@localhost>
-References: <1297991502.9399.16.camel@localhost>
-Content-Type: text/plain; charset="UTF-8"
-Date: Thu, 17 Feb 2011 20:15:58 -0500
-Message-ID: <1297991758.9399.21.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Sat, 26 Feb 2011 08:38:53 -0500
+Received: by fxm17 with SMTP id 17so2554231fxm.19
+        for <linux-media@vger.kernel.org>; Sat, 26 Feb 2011 05:38:52 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <201102241427.10988.laurent.pinchart@ideasonboard.com>
+References: <AANLkTik=Yc9cb9r7Ro=evRoxd61KVE=8m7Z5+dNwDzVd@mail.gmail.com>
+	<AANLkTikg0Oj6nq6h_1-d7AQ4NQr2UyMuSemyniYZBLu3@mail.gmail.com>
+	<AANLkTik89=g4fR=wC2rkpBero2e-jDVhjmUVNzKKwNjF@mail.gmail.com>
+	<201102241427.10988.laurent.pinchart@ideasonboard.com>
+Date: Sat, 26 Feb 2011 15:38:50 +0200
+Message-ID: <AANLkTikZ1Z=h4ZDmZ2sUizP328auoW=6CgTdf8vuqVDd@mail.gmail.com>
+Subject: Re: [st-ericsson] v4l2 vs omx for camera
+From: Felipe Contreras <felipe.contreras@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: "Clark, Rob" <rob@ti.com>,
+	Robert Fekete <robert.fekete@linaro.org>,
+	"linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>,
+	Harald Gustafsson <harald.gustafsson@ericsson.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	gstreamer-devel@lists.freedesktop.org,
+	ST-Ericsson LT Mailing List <st-ericsson@lists.linaro.org>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+On Thu, Feb 24, 2011 at 3:27 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+>> > Perhaps GStreamer experts would like to comment on the future plans ahead
+>> > for zero copying/IPC and low power HW use cases? Could Gstreamer adapt
+>> > some ideas from OMX IL making OMX IL obsolete?
+>>
+>> perhaps OMX should adapt some of the ideas from GStreamer ;-)
+>
+> I'd very much like to see GStreamer (or something else, maybe lower level, but
+> community-maintainted) replace OMX.
 
-lirc_zilog had its own llseek stub that returned -ESPIPE.  Get rid of
-it and use the kernel's no_llseek() and nonseekable_open() functions
-instead.
+Yes, it would be great to have something that wraps all the hardware
+acceleration and could have support for software codecs too, all in a
+standard interface. It would also be great if this interface would be
+used in the upper layers like GStreamer, VLC, etc. Kind of what OMX
+was supposed to be, but open [1].
 
-Signed-off-by: Andy Walls <awalls@md.metrocast.net>
----
- drivers/staging/lirc/lirc_zilog.c |    9 ++-------
- 1 files changed, 2 insertions(+), 7 deletions(-)
+Oh wait, I'm describing FFmpeg :) (supports vl42, VA-API, VDPAU,
+DirectX, and soon OMAP3 DSP)
 
-diff --git a/drivers/staging/lirc/lirc_zilog.c b/drivers/staging/lirc/lirc_zilog.c
-index c857b99..720ef67 100644
---- a/drivers/staging/lirc/lirc_zilog.c
-+++ b/drivers/staging/lirc/lirc_zilog.c
-@@ -712,12 +712,6 @@ static int tx_init(struct IR_tx *tx)
- 	return 0;
- }
- 
--/* do nothing stub to make LIRC happy */
--static loff_t lseek(struct file *filep, loff_t offset, int orig)
--{
--	return -ESPIPE;
--}
--
- /* copied from lirc_dev */
- static ssize_t read(struct file *filep, char *outbuf, size_t n, loff_t *ppos)
- {
-@@ -1099,6 +1093,7 @@ static int open(struct inode *node, struct file *filep)
- 	/* stash our IR struct */
- 	filep->private_data = ir;
- 
-+	nonseekable_open(node, filep);
- 	return 0;
- }
- 
-@@ -1150,7 +1145,7 @@ static struct i2c_driver driver = {
- 
- static const struct file_operations lirc_fops = {
- 	.owner		= THIS_MODULE,
--	.llseek		= lseek,
-+	.llseek		= no_llseek,
- 	.read		= read,
- 	.write		= write,
- 	.poll		= poll,
+Cheers.
+
+[1] http://freedesktop.org/wiki/GstOpenMAX?action=AttachFile&do=get&target=gst-openmax.png
+
 -- 
-1.7.2.1
-
-
-
+Felipe Contreras
