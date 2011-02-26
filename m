@@ -1,115 +1,81 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:49039 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756671Ab1BRNV6 (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:64234 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751335Ab1BZP0e (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Feb 2011 08:21:58 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Michal Nazarewicz" <mina86@mina86.com>
-Subject: Re: [RFD] frame-size switching: preview / single-shot use-case
-Date: Fri, 18 Feb 2011 14:21:53 +0100
-Cc: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
-	"Mauro Carvalho Chehab" <mchehab@infradead.org>,
-	"Hans Verkuil" <hansverk@cisco.com>, "Qing Xu" <qingx@marvell.com>,
-	"Linux Media Mailing List" <linux-media@vger.kernel.org>,
-	"Neil Johnson" <realdealneil@gmail.com>,
-	"Robert Jarzmik" <robert.jarzmik@free.fr>,
-	"Uwe Taeubert" <u.taeubert@road.de>,
-	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	"Eino-Ville Talvala" <talvala@stanford.edu>
-References: <4D5D9B57.3090809@gmail.com> <201102181357.26382.laurent.pinchart@ideasonboard.com> <op.vq3om6es3l0zgt@mnazarewicz-glaptop>
-In-Reply-To: <op.vq3om6es3l0zgt@mnazarewicz-glaptop>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+	Sat, 26 Feb 2011 10:26:34 -0500
+Received: by wwb22 with SMTP id 22so1494403wwb.1
+        for <linux-media@vger.kernel.org>; Sat, 26 Feb 2011 07:26:33 -0800 (PST)
+Subject: Re: [st-ericsson] v4l2 vs omx for camera
+From: Edward Hervey <bilboed@gmail.com>
+To: Discussion of the development of and with GStreamer
+	<gstreamer-devel@lists.freedesktop.org>
+Cc: Felipe Contreras <felipe.contreras@gmail.com>,
+	"linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>,
+	Harald Gustafsson <harald.gustafsson@ericsson.com>,
+	Robert Fekete <robert.fekete@linaro.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"Clark, Rob" <rob@ti.com>,
+	ST-Ericsson LT Mailing List <st-ericsson@lists.linaro.org>,
+	linux-media@vger.kernel.org
+Date: Sat, 26 Feb 2011 16:26:26 +0100
+In-Reply-To: <201102261447.04378.hverkuil@xs4all.nl>
+References: <AANLkTik=Yc9cb9r7Ro=evRoxd61KVE=8m7Z5+dNwDzVd@mail.gmail.com>
+	 <201102241427.10988.laurent.pinchart@ideasonboard.com>
+	 <AANLkTikZ1Z=h4ZDmZ2sUizP328auoW=6CgTdf8vuqVDd@mail.gmail.com>
+	 <201102261447.04378.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201102181421.54063.laurent.pinchart@ideasonboard.com>
+Message-ID: <1298733988.2449.4.camel@deumeu>
+Mime-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Michal,
-
-On Friday 18 February 2011 14:19:44 Michal Nazarewicz wrote:
-> On Fri, 18 Feb 2011 13:57:25 +0100, Laurent Pinchart wrote:
-> > On Friday 18 February 2011 12:37:24 Michal Nazarewicz wrote:
+On Sat, 2011-02-26 at 14:47 +0100, Hans Verkuil wrote:
+> On Saturday, February 26, 2011 14:38:50 Felipe Contreras wrote:
+> > On Thu, Feb 24, 2011 at 3:27 PM, Laurent Pinchart
+> > <laurent.pinchart@ideasonboard.com> wrote:
+> > >> > Perhaps GStreamer experts would like to comment on the future plans ahead
+> > >> > for zero copying/IPC and low power HW use cases? Could Gstreamer adapt
+> > >> > some ideas from OMX IL making OMX IL obsolete?
+> > >>
+> > >> perhaps OMX should adapt some of the ideas from GStreamer ;-)
+> > >
+> > > I'd very much like to see GStreamer (or something else, maybe lower level, but
+> > > community-maintainted) replace OMX.
 > > 
-> > [snip]
+> > Yes, it would be great to have something that wraps all the hardware
+> > acceleration and could have support for software codecs too, all in a
+> > standard interface. It would also be great if this interface would be
+> > used in the upper layers like GStreamer, VLC, etc. Kind of what OMX
+> > was supposed to be, but open [1].
 > > 
-> >> What I'm trying to say is that it would be best if one could configure
-> >> the device in such a way that switching between modes would not require
-> >> the device to free buffers (even though in user space they could be
-> >> inaccessible).
-> >> 
-> >> 
-> >> This is what I have in mind the usage would look like:
-> >> 
-> >> 1. Open device
-> >> 
-> >> 		Kernel creates some control structures, the usual stuff.
-> >> 
-> >> 2. Initialize multi-format (specifying what formats user space will
-> >> use).
-> >> 
-> >> 		Kernel calculates amount of memory needed for the most
-> >> 		demanding format and allocates it.
+> > Oh wait, I'm describing FFmpeg :) (supports vl42, VA-API, VDPAU,
+> > DirectX, and soon OMAP3 DSP)
 > > 
-> > Don't forget that applications can also use USERPTR. We need a
-> > low-latency solution for that as well.
+> > Cheers.
+> > 
+> > [1] http://freedesktop.org/wiki/GstOpenMAX?action=AttachFile&do=get&target=gst-openmax.png
+> > 
+> > 
 > 
-> That would probably work best if user provided one big buffer.  Again,
-> I don't know how this maps to V4L API.
+> Are there any gstreamer/linaro/etc core developers attending the ELC in San Francisco
+> in April? I think it might be useful to get together before, during or after the
+> conference and see if we can turn this discussion in something more concrete.
 > 
-> >> 3. Set format (restricted to one of formats specified in step 2)
-> >> 
-> >> 		Kernel has memory already allocated, so it only needs to split
-> >> 		it to buffers needed in given format.
-> >> 
-> >> 4. Allocate buffers.
-> >> 
-> >> 		Kernel allocates memory needed for most demanding format
-> >> 		(calculated in step 2).
-> >> 		Once memory is allocated, splits it to buffers needed in
-> >> 		given format.
-> >> 
-> >> 5. Do the loop... queue, dequeue, all the usual stuff.
-> >> 
-> >> 		Kernel instructs device to handle buffers, the usual stuff.
-> > 
-> > When buffers are queued cache needs to be cleaned. This is an expensive
-> > operation, and we need to be able to pre-queue (or at least pre-clean)
-> > buffers.
+> It seems to me that there is an overall agreement of what should be done, but
+> that we are far from anything concrete.
 > 
-> Cache operations are always needed, aren't they?  Whatever you do, you
-> will always have to handle cache coherency (in one way or another) so
-> there's nothing we can do about it, or is there?
 
-To achieve low latency still image capture, you need to minimize the time 
-spent reconfiguring the device from viewfinder to still capture. Cache 
-cleaning is always needed, but you can prequeue buffers you can clean the 
-cache in advance, avoiding an extra delay when the user presses the still 
-image capture button.
+  I will be there and this was definitely a topic I intended to talk
+about.
+  See you there.
 
-> >> 6. Free buffers.
-> >> 
-> >> 		Kernel space destroys the buffers needed for given format
-> >> 		but DOES NOT free memory.
-> >> 
-> >> 7. If not done, go to step 3.
-> >> 
-> >> 8. Finish multi-format mode.
-> >> 
-> >> 		Kernel actually frees the memory.
-> >> 
-> >> 9. Close the device.
-> >> 
-> >> A V4L device driver could just ignore step 2 and 7 and work in the less
-> >> optimal mode.
-> >> 
-> >> If I understand V4L2 correctly, the API does not allow for step 2 and 8.
-> >> In theory, they could be merged with step 1 and 9 respectively, I don't
-> >> know id that feasible though.
+     Edward
 
--- 
-Regards,
+> Regards,
+> 
+> 	Hans
+> 
 
-Laurent Pinchart
+
