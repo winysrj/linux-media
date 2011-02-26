@@ -1,51 +1,46 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:57837 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753116Ab1B1KPF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Feb 2011 05:15:05 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [st-ericsson] v4l2 vs omx for camera
-Date: Mon, 28 Feb 2011 11:15:13 +0100
-Cc: linaro-dev@lists.linaro.org, Edward Hervey <bilboed@gmail.com>,
-	Discussion of the development of and with GStreamer
-	<gstreamer-devel@lists.freedesktop.org>,
-	Harald Gustafsson <harald.gustafsson@ericsson.com>,
-	Felipe Contreras <felipe.contreras@gmail.com>,
-	"ST-Ericsson LT Mailing List" <st-ericsson@lists.linaro.org>,
-	linux-media@vger.kernel.org
-References: <AANLkTik=Yc9cb9r7Ro=evRoxd61KVE=8m7Z5+dNwDzVd@mail.gmail.com> <1298733988.2449.4.camel@deumeu> <201102272049.37647.arnd@arndb.de>
-In-Reply-To: <201102272049.37647.arnd@arndb.de>
+Received: from web30307.mail.mud.yahoo.com ([209.191.69.69]:25992 "HELO
+	web30307.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751766Ab1BZKoJ convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 26 Feb 2011 05:44:09 -0500
+Message-ID: <95999.51952.qm@web30307.mail.mud.yahoo.com>
+References: <980251.92504.qm@web30302.mail.mud.yahoo.com> <1298716431.18744.0.camel@localhost>
+Date: Sat, 26 Feb 2011 02:44:07 -0800 (PST)
+From: AW <arne_woerner@yahoo.com>
+Subject: Re: WinTV HVR-900 (usb 2040:6500) (model 65008) / no audio but clicking noise
+To: linux-media@vger.kernel.org
+In-Reply-To: <1298716431.18744.0.camel@localhost>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201102281115.14101.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sunday 27 February 2011 20:49:37 Arnd Bergmann wrote:
-> On Saturday 26 February 2011, Edward Hervey wrote:
-> > > Are there any gstreamer/linaro/etc core developers attending the ELC in
-> > > San Francisco in April? I think it might be useful to get together
-> > > before, during or after the conference and see if we can turn this
-> > > discussion in something more concrete.
-> > > 
-> > > It seems to me that there is an overall agreement of what should be
-> > > done, but that we are far from anything concrete.
-> > > 
-> > I will be there and this was definitely a topic I intended to talk about.
-> > 
-> > See you there.
-> 
-> I'll also be there. Should we organize an official BOF session for this and
-> invite more people?
+yesterday i wrote:
+> Now I  bought a Hauppauge WinTV HVR-900 (USB, DVB-T/analog Hybrid).
+>
 
-Any chance of an IRC backchannel and a live audio/video stream for those of us 
-who won't be there ?
+today i found that i have quite good DVB-T connectivity...
+but sometimes there r too many errors...
 
--- 
-Regards,
+so i m still interested in analog tv...
 
-Laurent Pinchart
+after some rebooting and
+after i dropped a lot of firmware files from 
+http://konstantin.filtschew.de/v4l-firmware/firmware_v3.tgz into /lib/firmware 
+(in addition to xc3028-v27.fw)
+i can hear the analog audio,
+but from time to time there is still this strong clicking noise...
+example: http://www.wgboome.de./20110226,hvr.mpg (i blurred the picture due to 
+copyright considerations...)...
+
+could it be that i use the wrong amux?
+i found that theory here (but i dont know if i can just change the kernel 
+module):
+http://www.freak-search.com/de/thread/332374/linux-dvb_em28xx-audio_hvr-900_b3c0_id_20406502_hauppa
+
+
+-arne
+
+
