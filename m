@@ -1,58 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.10]:55184 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754424Ab1BWPwq (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2357 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752062Ab1BZMbf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Feb 2011 10:52:46 -0500
-Date: Wed, 23 Feb 2011 16:52:40 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: "Aguirre, Sergio" <saaguirre@ti.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Stan <svarbanov@mm-sol.com>, Hans Verkuil <hansverk@cisco.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [RFC/PATCH 0/1] New subdev sensor operation g_interface_parms
-In-Reply-To: <201102231630.43759.laurent.pinchart@ideasonboard.com>
-Message-ID: <Pine.LNX.4.64.1102231635320.11581@axis700.grange>
-References: <cover.1298368924.git.svarbanov@mm-sol.com>
- <Pine.LNX.4.64.1102231020330.8880@axis700.grange>
- <A24693684029E5489D1D202277BE894488C57571@dlee02.ent.ti.com>
- <201102231630.43759.laurent.pinchart@ideasonboard.com>
+	Sat, 26 Feb 2011 07:31:35 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [RFC] snapshot mode, flash capabilities and control
+Date: Sat, 26 Feb 2011 13:31:26 +0100
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Kim HeungJun <riverful@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Stanimir Varbanov <svarbanov@mm-sol.com>
+References: <Pine.LNX.4.64.1102240947230.15756@axis700.grange> <20110225135314.GF23853@valkosipuli.localdomain> <Pine.LNX.4.64.1102251708080.26361@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1102251708080.26361@axis700.grange>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201102261331.26681.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 23 Feb 2011, Laurent Pinchart wrote:
+On Friday, February 25, 2011 18:08:07 Guennadi Liakhovetski wrote:
 
-> > > Currently soc-camera auto-configures the following parameters:
-> > > 
-> > > hsync polarity
-> > > vsync polarity
-> > > data polarity
-> > > master / slave mode
+<snip>
+
+> > > configure the sensor to react on an external trigger provided by the flash 
+> > > controller is needed, and that could be a control on the flash sub-device. 
+> > > What we would probably miss is a way to issue a STREAMON with a number of 
+> > > frames to capture. A new ioctl is probably needed there. Maybe that would be 
+> > > an opportunity to create a new stream-control ioctl that could replace 
+> > > STREAMON and STREAMOFF in the long term (we could extend the subdev s_stream 
+> > > operation, and easily map STREAMON and STREAMOFF to the new ioctl in 
+> > > video_ioctl2 internally).
+> > 
+> > How would this be different from queueing n frames (in total; count
+> > dequeueing, too) and issuing streamon? --- Except that when the last frame
+> > is processed the pipeline could be stopped already before issuing STREAMOFF.
+> > That does indeed have some benefits. Something else?
 > 
-> What do you mean by master/slave mode ?
+> Well, you usually see in your host driver, that the videobuffer queue is 
+> empty (no more free buffers are available), so, you stop streaming 
+> immediately too.
 
-Many datasheets define a slave mode, in which the sensor is receiving the 
-sync signals and the pixel clock from the host and is only driving the 
-data lanes.
+This probably assumes that the host driver knows that this is a special queue?
+Because in general drivers will simply keep capturing in the last buffer and not
+release it to userspace until a new buffer is queued.
 
-> > > data bus width
-> 
-> The data bus width can already be configured through the media bus format. Do 
-> we need to set it explicitly ?
+That said, it wouldn't be hard to add some flag somewhere that puts a queue in
+a 'stop streaming on last buffer capture' mode.
 
-Maybe we'd have to think about it more, but I think, we need it: Bus 
-width, specified by media bus formats tells you how the data can be 
-sampled on the bus. Whereas the above parameter tells you, how the devices 
-are physically connected. With one and the same physical connection you 
-can get several data formats, e.g., by using shifters, like on omap3.
+Regards,
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
