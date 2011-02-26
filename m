@@ -1,112 +1,111 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:60122 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754213Ab1BTR61 convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2008 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751123Ab1BZN4W (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Feb 2011 12:58:27 -0500
-Received: by wwa36 with SMTP id 36so5387719wwa.1
-        for <linux-media@vger.kernel.org>; Sun, 20 Feb 2011 09:58:25 -0800 (PST)
+	Sat, 26 Feb 2011 08:56:22 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Subject: Re: [RFC] snapshot mode, flash capabilities and control
+Date: Sat, 26 Feb 2011 14:56:18 +0100
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Kim HeungJun <riverful@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Stanimir Varbanov <svarbanov@mm-sol.com>
+References: <Pine.LNX.4.64.1102240947230.15756@axis700.grange> <Pine.LNX.4.64.1102261350001.31455@axis700.grange> <4D6902AA.6060805@gmail.com>
+In-Reply-To: <4D6902AA.6060805@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <AANLkTimeuemRVt9MEm5nwVi+6Rszx0-s1xVvrhi-yi5v@mail.gmail.com>
-References: <AANLkTikNESFqYNT7Gu2vE4yMeDhCCSu0BkeRhEmVbR3y@mail.gmail.com>
-	<AANLkTimeuemRVt9MEm5nwVi+6Rszx0-s1xVvrhi-yi5v@mail.gmail.com>
-Date: Sun, 20 Feb 2011 23:28:24 +0530
-Message-ID: <AANLkTi=GXx3iFxQ21fabjmG4scG4j8He=bUQYLyCPO-t@mail.gmail.com>
-Subject: Re: utv 330 : gadmei USB 2860 Device : No Audio
-From: Pranjal Pandey <pranjal8128@gmail.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201102261456.18736.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Thanks Devin for a quick reply.
+On Saturday, February 26, 2011 14:39:54 Sylwester Nawrocki wrote:
+> On 02/26/2011 02:03 PM, Guennadi Liakhovetski wrote:
+> > On Sat, 26 Feb 2011, Hans Verkuil wrote:
+> > 
+> >> On Friday, February 25, 2011 18:08:07 Guennadi Liakhovetski wrote:
+> >>
+> >> <snip>
+> >>
+> >>>>> configure the sensor to react on an external trigger provided by the flash
+> >>>>> controller is needed, and that could be a control on the flash sub-device.
+> >>>>> What we would probably miss is a way to issue a STREAMON with a number of
+> >>>>> frames to capture. A new ioctl is probably needed there. Maybe that would be
+> >>>>> an opportunity to create a new stream-control ioctl that could replace
+> >>>>> STREAMON and STREAMOFF in the long term (we could extend the subdev s_stream
+> >>>>> operation, and easily map STREAMON and STREAMOFF to the new ioctl in
+> >>>>> video_ioctl2 internally).
+> >>>>
+> >>>> How would this be different from queueing n frames (in total; count
+> >>>> dequeueing, too) and issuing streamon? --- Except that when the last frame
+> >>>> is processed the pipeline could be stopped already before issuing STREAMOFF.
+> >>>> That does indeed have some benefits. Something else?
+> >>>
+> >>> Well, you usually see in your host driver, that the videobuffer queue is
+> >>> empty (no more free buffers are available), so, you stop streaming
+> >>> immediately too.
+> >>
+> >> This probably assumes that the host driver knows that this is a special queue?
+> >> Because in general drivers will simply keep capturing in the last buffer and not
+> >> release it to userspace until a new buffer is queued.
+> > 
+> > Yes, I know about this spec requirement, but I also know, that not all
+> > drivers do that and not everyone is happy about that requirement:)
+> 
+> Right, similarly a v4l2 output device is not releasing the last buffer
+> to userland and keeps sending its content until a new buffer is queued to the driver.
+> But in case of capture device the requirement is a pain, since it only causes
+> draining the power source, when from a user view the video capture is stopped.
+> Also it limits a minimum number of buffers that could be used in preview pipeline.
 
-I guess I didn't convey the windows behavior properly in last mail.
-Whats happening in windows is that I get the audio on the line out of
-the card and I can directly connect it the speakers input. I can also
-connect the line-out  to the sound card's line-in and get the sound.
-I get the audio as long as the tv tuner software is active.
+No, we can't change this. We can of course add some setting that will explicitly
+request different behavior.
 
-In Ubuntu however, when I start tvtime there is no signal produced
-from the line-out of the tuner card.
+The reason this is done this way comes from the traditional TV/webcam viewing apps.
+If for some reason the app can't keep up with the capture rate, then frames should
+just be dropped silently. All apps assume this behavior. In a normal user environment
+this scenario is perfectly normal (e.g. you use a webcam app, then do a CPU
+intensive make run).
 
-Even if the card does not have audio over usb, there should still be
-somethings to be done by the driver to enable audio on the line-out of
-the card. I am saying this because the audio does not come from the
-line-out of the card all the time, it comes (in windows) only when the
-video is being accessed. So the player or the driver should enable
-(may be by writing some register etc) this feature during playback.
+I agree that you might want different behavior in an embedded environment, but
+that should be requested explicitly.
 
-Also, shouldn't the driver detect the card as one with some on board
-audio rather than "No audio on board"??
+> In still capture mode (single shot) we might want to use only one buffer so adhering
+> to the requirement would not allow this, would it?
 
-Thanks
-Pranjal
+That's one of the problems with still capture mode, yes.
 
+I have not yet seen a proposal for this that I really like. Most are too specific
+to this use-case (snapshot) and I'd like to see something more general.
 
+Regards,
 
-On Sun, Feb 20, 2011 at 8:57 PM, Devin Heitmueller
-<dheitmueller@kernellabs.com> wrote:
-> Hello Pranjal,
->
-> On Sun, Feb 20, 2011 at 10:13 AM, Pranjal Pandey <pranjal8128@gmail.com> wrote:
->> I am trying to use UTV 330 tv tuner card to watch tv on my laptop. I
->> am using Ubuntu 10.10 with 2.6.35 kernel. To play the tv i use
->>
->> tvtime -d /dev/video1
->>
->> Tvtime plays the video properly but there is no audio.
->>
->> The output of dmesg is ::::
-> <snip>
->> I have a lineout in the device. I have tried connecting earphone to
->> the lineout but there is no audio (seems like there is no signal). I
->> also used following with no improvements:
->> arecord -D hw:0,0 -c 2 -f S16_LE | aplay
->>
->> From the dmesg output i can see a few things wrongly detected. First
->> it says that there is no audio on board but the device has a lineout
->> and hence some codec (on board audio).
->
-> The em2860 based devices do not have the ability to provide audio over
-> the USB.  Your only option is to connect the device's line out to your
-> sound card.  If you're getting audio with Windows without hooking up
-> that line out cable, then there is something very strange going on.
->
->> The second thing is   that the board i detected as "Gadmei UTV330+" and not as "Gadmei UTV330".
->
-> The board name should not relevant in this case.  It's the same core
-> hardware design and the vendor was too dumb to make it easy to
-> identify the correct model for the board (for example, by giving them
-> unique USB IDs).
->
->> The output of lsusb is:
->> Bus 002 Device 004: ID eb1a:2860 eMPIA Technology, Inc.
->>
->> I checked the driver files. In em28xx-cards.c "Gadmei UTV330+"
->> corresponds to "EM2861_BOARD_GADMEI_UTV330PLUS" but from lsusb i know
->> that the device is em2860 and not em2861.
->
-> Again, this doesn't matter.  There were no driver changes required to
-> support the newer revision of the chip.
->
->> I have also checked the device in windows and it works fine. Does
->> anyone has any clue whats wrong here. Any suggestions ? Has anyone
->> successfully used this card in linux ?
->
-> What exactly is your experience with Windows?  Are you able to get
-> audio without having to hook up the line-out to your sound card?
->
-> You should also try the composite/s-video input instead of the tuner
-> and see if you get audio.  If you do, then we know the problem is
-> specific to the onboard tuner chip and not something with the em2860
-> bridge.
->
-> Devin
->
-> --
-> Devin J. Heitmueller - Kernel Labs
-> http://www.kernellabs.com
->
+	Hans
+
+> 
+> > 
+> >> That said, it wouldn't be hard to add some flag somewhere that puts a queue in
+> >> a 'stop streaming on last buffer capture' mode.
+> > 
+> > No, it wouldn't... But TBH this doesn't seem like the most elegant and
+> > complete solution. Maybe we have to think a bit more about it - which
+> > soncequences switching into the snapshot mode has on the host driver,
+> > apart from stopping after N frames. So, this is one of the possibilities,
+> > not sure if the best one.
+> > 
+> > Thanks
+> > Guennadi
+> > ---
+> > Guennadi Liakhovetski, Ph.D.
+> > Freelance Open-Source Software Developer
+> > http://www.open-technology.de/
+> 
+> 
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
