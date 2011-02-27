@@ -1,63 +1,85 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.187]:49367 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752956Ab1BPQZO (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:34520 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751911Ab1B0MmV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Feb 2011 11:25:14 -0500
-Date: Wed, 16 Feb 2011 17:25:09 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [Query] Soc_camera: Passing MIPI bus physical link details
-In-Reply-To: <A24693684029E5489D1D202277BE894486B1D3BC@dlee02.ent.ti.com>
-Message-ID: <Pine.LNX.4.64.1102161720010.20711@axis700.grange>
-References: <A24693684029E5489D1D202277BE894486B1D3BC@dlee02.ent.ti.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Sun, 27 Feb 2011 07:42:21 -0500
+Received: by bwz15 with SMTP id 15so3039481bwz.19
+        for <linux-media@vger.kernel.org>; Sun, 27 Feb 2011 04:42:19 -0800 (PST)
+Subject: Re: Genuis Emessenger 310 webcam slow work with pac7302 in
+ 2.6.37.1 kernel
+From: housegregory299 <housegregory299@gmail.com>
+To: linux-media@vger.kernel.org
+In-Reply-To: <1298810271.4400.43.camel@debian>
+References: <1298718695.2178.30.camel@debian> <4D693EB3.6080302@freemail.hu>
+	 <1298762810.2022.54.camel@debian>  <4D6A018E.7090404@freemail.hu>
+	 <1298810271.4400.43.camel@debian>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sun, 27 Feb 2011 18:42:03 +0600
+Message-ID: <1298810523.4788.2.camel@debian>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Sergio
-
-On Wed, 16 Feb 2011, Aguirre, Sergio wrote:
-
-> Hi Guennadi,
+В Вск, 27/02/2011 в 18:37 +0600, housegregory299 пишет:
+> > As I understand the webcam was not working properly even using 2.6.32
+> > kernel.
 > 
-> I have been working internally in a private 2.6.35.7 kernel with the TI OMAP4
-> platform, and as I have a very simple camera support driver (It just enables a
-> CSI2 Rx Interface), i decided to go for a soc-camera host implementation.
+> Yes, this is so. But in near installed Windows 7 webcam also work slow
+> and picture quality is worse  than on Debian with 2.6.37. I think my
+> webcam very limited functionality. I have to keep both the kernels on my
+> system - 2.6.32 and 2.6.37 and switch between them on the need.  
 > 
-> Now, I see that there is a set_bus_param callback function for host drivers,
-> which if i understand correctly, it tries to negotiate the bus parameters
-> between the host and the client.
+> > Are you using v4l2ucp for setting exposure value? This command is
+> > available
+> > from the v4l2ucp Debian package. Are the other controls working
+> > properly?
 > 
-> But what i notice is that this seems to be mostly oriented towards a parallel
-> interface, as most of the things won't make much sense in MIPI CSI2 spec
-> (HSYNC_ACTIVE_HIGH, DATAWIDTH_x, etc.)
-
-Please, have a look at this thread:
-
-http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/27609/focus=28195
-
-> I was wondering what's the best way to be able to tell to the host driver
-> MIPI specific details such as, how many datalanes the interface is using, and
-> the MIPI Clk speed in which the sensor will be transmitting the data.
+> I use v4l2ucp from command line to saving and loading webcam's
+> customised parameters, (v4l2ucp -s .webcam and v4l2ucp -l .webcam)
+> but with other keys are not used. All parameters in Guvcview work fine
+> and properly, except Exposure. 
 > 
-> Does it make sense to expand this inside the [query/set]_bus_param APIs? or
-> Will it be better to implement a new v4l2_subdev_sensor_ops entry, something
-> like g_mipi_params?
+> > Some more hints for the trying the "test images": make sure that
+> > v4l-utils
+> > Debian package is installed ("apt-get install v4l-utils" as root).
+> > Then
+> > you can use the command "v4l2-dbg --set-register=0x72 x" where "x" is
+> > any
+> > number between 0 and 15. This command has to be executed as root. To
+> > return
+> > to the normal operation just use the zero value for x. I'm not sure
+> > that
+> > these test patterns will work for your webcam model also, but it would
+> > be
+> > interesting to try.
+> 
+> command "v4l2-dbg --set-register=0x72 10 not help to me: With value 0
+> output are similar:
+> 
+> root@debian:/home/t800# v4l2-dbg --set-register=0x72 10
+> Failed to set register 0x00000072 value 0xa: Invalid argument
+> 
+> But i try setup my webcam with v4l-utils.
+> 
+> > The main problem is that the manufacturer of the chip which is
+> > included
+> > in your webcam neither released programming documentation nor
+> > implemented
+> > a standard protocol like USB Video Class. Without documentation open
+> > source
+> > projects can only use trial and error
+> > ( http://en.wikipedia.org/wiki/Trial_and_error ).
+> 
+> I understand, OK. So.. Which webcam is better suited for Linux systems -
+> UVC standard ? This is open? or closed? Sorry, if this question is wrong
+> - i don't know which webcam select for my Linux-system.
+> 
+> > I would strongly recommend to add the mailing list
+> > "linux-media@vger.kernel.org"
+> > in CC field, so more people can see this conversation. 
+> 
+> OK. I do it 
 
-Don't think we want to add this to subdev sensor-ops. Currently, AFAICS, 
-there is no support in v4l2_subdev_*_ops for bus parameter configuration, 
-and we don't want to start adding them chaotically without a general 
-concept in place.
 
-Please, have a look at the above thread, if after that you still have 
-questions, please, ask again.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
