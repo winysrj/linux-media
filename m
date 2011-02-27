@@ -1,49 +1,53 @@
 Return-path: <mchehab@pedra>
-Received: from hqemgate04.nvidia.com ([216.228.121.35]:5699 "EHLO
-	hqemgate04.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751375Ab1BQX0U convert rfc822-to-8bit (ORCPT
+Received: from mailout-de.gmx.net ([213.165.64.22]:36071 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751795Ab1B0OwE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Feb 2011 18:26:20 -0500
-From: Andrew Chew <AChew@nvidia.com>
-To: 'Guennadi Liakhovetski' <g.liakhovetski@gmx.de>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"mchehab@redhat.com" <mchehab@redhat.com>,
-	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>
-Date: Thu, 17 Feb 2011 15:26:17 -0800
-Subject: RE: [PATCH v4 1/1] [media] ov9740: Initial submit of OV9740 driver.
-Message-ID: <643E69AA4436674C8F39DCC2C05F763816BD96CFC2@HQMAIL03.nvidia.com>
-References: <1297980873-18022-1-git-send-email-achew@nvidia.com>
- <Pine.LNX.4.64.1102180022080.1841@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1102180022080.1841@axis700.grange>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Sun, 27 Feb 2011 09:52:04 -0500
+From: Oliver Endriss <o.endriss@gmx.de>
+Reply-To: linux-media@vger.kernel.org
+To: Dan Carpenter <error27@gmail.com>
+Subject: Re: [patch v2] [media] stv090x: handle allocation failures
+Date: Sun, 27 Feb 2011 15:36:17 +0100
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Manu Abraham <manu@linuxtv.org>,
+	Andreas Regel <andreas.regel@gmx.de>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+References: <20110207165650.GF4384@bicker> <201102150300.19650@orion.escape-edv.de> <20110215101008.GO4384@bicker>
+In-Reply-To: <20110215101008.GO4384@bicker>
 MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201102271536.18905@orion.escape-edv.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-> This looks good now, thanks, I'll queue it for 2.6.39. Just 
-> one question:
+On Tuesday 15 February 2011 11:10:08 Dan Carpenter wrote:
+> kmalloc() can fail so check whether state->internal is NULL.
+> append_internal() can return NULL on allocation failures so check that.
+> Also if we hit the error condition later in the function then there is
+> a memory leak and we need to call remove_dev() to fix it.
 > 
-> On Thu, 17 Feb 2011, achew@nvidia.com wrote:
+> Also Oliver Endriss pointed out an additional leak that I missed in the
+> first version of this patch.
 > 
-> > From: Andrew Chew <achew@nvidia.com>
-> > 
-> > This soc_camera driver is for Omnivision's OV9740 sensor.  
-> This initial
-> > submission provides support for YUV422 output at 1280x720 
-> (720p), which is
-> > the sensor's native resolution.  640x480 (VGA) is also 
-> supported, with
-> > cropping and scaling performed by the sensor's ISP.
+> Signed-off-by: Dan Carpenter <error27@gmail.com>
+> ---
+> v2:  Fix the leak Oliver noticed.
 > 
-> Didn't you mean to say just "scaling?" You're not 
-> implementing cropping. 
-> You could, certainly, fake scaling with cropping, but are you 
-> really using 
-> both to switch between 720p and VGA? No need for a v5, just 
-> tell me how to 
-> change the comment.
+> diff --git a/drivers/media/dvb/frontends/stv090x.c b/drivers/media/dvb/frontends/stv090x.c
+> ...
 
-There really is cropping.  The native resolution of the OV9740 sensor is a different aspect ratio than VGA.  To preserve the square pixels, first we crop both the left and right sides, and then scale down.
+Acked-by: Oliver Endriss <o.endriss@gmx.de>
+
+CU
+Oliver
+
+-- 
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
+Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
+----------------------------------------------------------------
