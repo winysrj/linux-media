@@ -1,77 +1,120 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:8921 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753871Ab1B1RLy (ORCPT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:57358 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751674Ab1B0U77 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Feb 2011 12:11:54 -0500
-Received: from spt2.w1.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LHC006ZG7RPPQ@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 28 Feb 2011 17:11:50 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LHC00CN57RP2G@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 28 Feb 2011 17:11:49 +0000 (GMT)
-Date: Mon, 28 Feb 2011 18:11:47 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: V4L2 'brainstorming' meeting in Warsaw, March 2011
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <ADF13DA15EB3FE4FBA487CCC7BEFDF36190F532AF3@bssrvexch01>
-MIME-version: 1.0
-Content-type: text/plain; charset=utf-8
-Content-language: en-US
-Content-transfer-encoding: base64
+	Sun, 27 Feb 2011 15:59:59 -0500
+Message-ID: <4D6ABB84.9090209@iki.fi>
+Date: Sun, 27 Feb 2011 23:00:52 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+MIME-Version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Kim HeungJun <riverful@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Stanimir Varbanov <svarbanov@mm-sol.com>
+Subject: Re: [RFC] snapshot mode, flash capabilities and control
+References: <Pine.LNX.4.64.1102240947230.15756@axis700.grange> <Pine.LNX.4.64.1102241608090.18242@axis700.grange> <822C7F65-82D7-4513-BED4-B484163BEB3E@gmail.com> <201102251105.06026.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1102251119410.23338@axis700.grange> <4D67F9A7.9000106@maxwell.research.nokia.com> <Pine.LNX.4.64.1102252105060.26361@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1102252105060.26361@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-SGVsbG8gZXZlcnlvbmUhDQoNClRoZSBpZGVhIG9mIHY0bDIgJ2JyYWluc3Rvcm1pbmcnIHNlc3Np
-b24gY2FtZSBvdXQgYWZ0ZXIgYSBmZXcgZGlzY3Vzc2lvbnMgb24gI3Y0bA0KSVJDIGNoYW5uZWwg
-YWJvdXQgdmFyaW91cyBSRkNzIGFuZCBwcm9wb3NhbHMgdGhhdCBoYXZlIGJlZW4gcG9zdGVkIHJl
-Y2VudGx5LiBJDQp3b3VsZCBsaWtlIHRvIGFubm91bmNlIHRoYXQgU2Ftc3VuZyBQb2xhbmQgUiZE
-IENlbnRlciAoU1BSQykgYWdyZWVkIHRvIHRha2UgYW4NCm9wcG9ydHVuaXR5IHRvIG9yZ2FuaXpl
-IHRoaXMgbWVldGluZy4gSSd2ZSBnb3QgYSByZXNlcnZhdGlvbiBmb3IgYSBjb25mZXJlbmNlDQpy
-b29tIGZvciAxNi0xOCBNYXJjaCAyMDExIGluIG91ciBvZmZpY2UuDQoNCkkgd291bGQgbGlrZSB0
-byBpbnZpdGUgYWxsIG9mIFlvdSBmb3IgdGhpcyBWNEwyICdicmFpbnN0b3JtaW5nJyBzZXNzaW9u
-Lg0KDQpJIGhvcGUgdGhhdCB0aGlzIGluaXRpYWwgbWVldGluZyBkYXRlIEkndmUgc2VsZWN0ZWQg
-d2lsbCBmaXQgdXMuIFdlIGhhdmUgMiBvbmx5DQp3ZWVrcyBmb3IgdGhlIHByZXBhcmF0aW9uLCBi
-dXQgSSBob3BlIHdlIHdpbGwgbWFuYWdlLiBJJ20gb3BlbiBmb3IgYW5vdGhlciBkYXRlDQphbmQg
-aWYgcmVxdWlyZWQgSSB3aWxsIGNoYW5nZSB0aGUgcmVzZXJ2YXRpb24uDQoNClRoZSBtZWV0aW5n
-IHdpbGwgbGFzdCAzIGRheXMgd2hhdCBnaXZlcyB1cyBhIGxvdCBvZiBwb3NzaWJpbGl0eSB0byBw
-cmVzZW50IHRoZQ0KaXNzdWVzIGFuZCBwcm9wb3NhbHMsIGRpc2N1c3MgdGhlbSBmdXJ0aGVyIGFu
-ZCB3b3JrIG91dCBhIHNvbHV0aW9uIHRoYXQgd2lsbCBiZQ0KYWNjZXB0ZWQgYnkgb3RoZXJzLg0K
-DQpGcm9tIFNQUkMgNCBkZXZlbG9wZXJzIHdpbGwgYXR0ZW5kIHRoaXMgbWVldGluZzogU3lsd2Vz
-dGVyIE5hd3JvY2tpIChzNXAtZmltYw0KYXV0aG9yKSwgS2FtaWwgRGVic2tpIChzNXAtbWZjIGF1
-dGhvciksIFRvbWFzeiBTdGFuaXNsYXdza2kgKHM1cC10diBhdXRob3IpIGFuZCBtZQ0KKHZpZGVv
-YnVmMiBjby1hdXRob3IgYW5kIGtlcm5lbCBsZWFkIGRldmVsb3BlciBpbiBTUFJDKS4NCg0KQSBx
-dWljayBzdW1tYXJ5IG9mIHRoZSBhYm92ZToNCg0KMS4gVHlwZSBvZiB0aGUgbWVldGluZzoNCiAg
-ICAgICAgVjRMMiAnYnJhaW5zdG9ybWluZycgbWluaS1zdW1taXQgOikNCg0KMi4gUGxhY2U6DQog
-ICAgICAgIFNhbXN1bmcgUG9sYW5kIFImRCBDZW50ZXINCiAgICAgICAgUG9sbmEgMTEgU3RyZWV0
-DQogICAgICAgIDAwLTYzMyBXYXJzYXcsIFBvbGFuZA0KDQozLiBEYXRlOg0KICAgICAgICAxNi0x
-OCBNYXJjaCAyMDExDQoNCjQuIEFnZW5kYQ0KICAgICAgICBUQkQsIGV2ZXJ5b25lIGlzIHdlbGNv
-bWVkIHRvIHB1dCBoaXMgaXRlbXMgaGVyZSA6KQ0KDQpJIHdpbGwgcG9zdCBzb21lIHRyYXZlbCBp
-bmZvcm1hdGlvbiB0b21vcnJvdy4gU1BSQyBvZmZpY2UgaXMgaW4gdGhlIGNlbnRlciBvZiBXYXJz
-YXcsDQp0aGVyZSBhcmUgYSBmZXcgaG90ZWxzIG5lYXJieS4gSSB3aWxsIGNoZWNrIGZvciBhIGZy
-ZWUgcm9vbXMgYW5kIEkgd2lsbCBtYWtlIGENCnJlY29tbWVuZGF0aW9uIHNvb24uIEkgaG9wZSB3
-ZSB3aWxsIG1lZXQgdG9nZXRoZXIgc29vbiENCg0KQmVzdCByZWdhcmRzDQotLQ0KTWFyZWsgU3p5
-cHJvd3NraQ0KU2Ftc3VuZyBQb2xhbmQgUiZEIENlbnRlcg0KDQpUaGUgYWJvdmUgbWVzc2FnZSBp
-cyBpbnRlbmRlZCBzb2xlbHkgZm9yIHRoZSBuYW1lZCBhZGRyZXNzZWUgYW5kIG1heSBjb250YWlu
-IHRyYWRlIHNlY3JldCwgaW5kdXN0cmlhbCB0ZWNobm9sb2d5IG9yIHByaXZpbGVnZWQgYW5kIGNv
-bmZpZGVudGlhbCBpbmZvcm1hdGlvbiBvdGhlcndpc2UgcHJvdGVjdGVkIHVuZGVyIGFwcGxpY2Fi
-bGUgbGF3LiBBbnkgdW5hdXRob3JpemVkIGRpc3NlbWluYXRpb24sIGRpc3RyaWJ1dGlvbiwgY29w
-eWluZyBvciB1c2Ugb2YgdGhlIGluZm9ybWF0aW9uIGNvbnRhaW5lZCBpbiB0aGlzIGNvbW11bmlj
-YXRpb24gaXMgc3RyaWN0bHkgcHJvaGliaXRlZC4gSWYgeW91IGhhdmUgcmVjZWl2ZWQgdGhpcyBj
-b21tdW5pY2F0aW9uIGluIGVycm9yLCBwbGVhc2Ugbm90aWZ5IHNlbmRlciBieSBlbWFpbCBhbmQg
-ZGVsZXRlIHRoaXMgY29tbXVuaWNhdGlvbiBpbW1lZGlhdGVseS4NCg0KDQpQb3d5xbxzemEgd2lh
-ZG9tb8WbxIcgcHJ6ZXpuYWN6b25hIGplc3Qgd3nFgsSFY3puaWUgZGxhIGFkcmVzYXRhIG5pbmll
-anN6ZWogd2lhZG9tb8WbY2kgaSBtb8W8ZSB6YXdpZXJhxIcgaW5mb3JtYWNqZSBixJlkxIVjZSB0
-YWplbW5pY8SFIGhhbmRsb3fEhSwgdGFqZW1uaWPEhSBwcnplZHNpxJliaW9yc3R3YSBvcmF6IGlu
-Zm9ybWFjamUgbyBjaGFyYWt0ZXJ6ZSBwb3VmbnltIGNocm9uaW9uZSBvYm93acSFenVqxIVjeW1p
-IHByemVwaXNhbWkgcHJhd2EuIEpha2lla29sd2llayBuaWV1cHJhd25pb25lIGljaCByb3pwb3dz
-emVjaG5pYW5pZSwgZHlzdHJ5YnVjamEsIGtvcGlvd2FuaWUgbHViIHXFvHljaWUgaW5mb3JtYWNq
-aSB6YXdhcnR5Y2ggdyBwb3d5xbxzemVqIHdpYWRvbW/Fm2NpIGplc3QgemFicm9uaW9uZS4gSmXF
-m2xpIG90cnp5bWHFgmXFmyBwb3d5xbxzesSFIHdpYWRvbW/Fm8SHIG9tecWCa293bywgdXByemVq
-bWllIHByb3N6xJkgcG9pbmZvcm11aiBvIHR5bSBmYWtjaWUgZHJvZ8SFIG1haWxvd8SFIG5hZGF3
-Y8SZIHRlaiB3aWFkb21vxZtjaSBvcmF6IG5pZXp3xYJvY3puaWUgdXN1xYQgcG93ecW8c3rEhSB3
-aWFkb21vxZvEhyB6ZSBzd29qZWdvIGtvbXB1dGVyYS4NCg==
+Hi,
+
+Guennadi Liakhovetski wrote:
+> On Fri, 25 Feb 2011, Sakari Ailus wrote:
+>
+>> Hi Guennadi,
+>>
+>> Guennadi Liakhovetski wrote:
+>>> In principle - yes, and yes, I do realise, that the couple of controls,
+>>> that I've proposed only cover a very minor subset of the whole flash
+>>> function palette. The purposes of my RFC were:
+>>
+>> Why would there be a different interface for controlling the flash in
+>> simple cases and more complex cases?
+>
+> Sorry, not sure what you mean. Do you mean different APIs when the flash
+> is controlled directly by the sensor and by an external controller? No, of
+> course we need one API, but you either issue those ioctl()s to the sensor
+> (sub)device, or to the dedicated flash (sub)device. If you mean my "minor
+> subset" above, then I was trying to say, that this is a basis, that has to
+> be extended, but not, that we will develop a new API for more complicated
+> cases.
+
+I think I misunderstood you originally, sorry. I should have properly 
+read the RFC. :-)
+
+Your proposal of the flash mode is good, but what about software strobe 
+(a little more on that below)?
+
+Also, what about making this a V4L2 control instead? The ADP1653 driver 
+that Laurent referred to implements flash control using V4L2 controls only.
+
+A version of the driver is here:
+
+<URL:http://gitorious.org/omap3camera/mainline/commit/a41027c857dfcbc268cf8d1c7c7d0ab8b6abac92>
+
+It's not yet in mainline --- one reason for this is the lack of time to 
+discuss a proper API for the flash. :-)
+
+...
+
+>>>> This doesn't solve the flash/capture synchronization problem though. I don't
+>>>> think we need a dedicated snapshot capture mode at the V4L2 level. A way to
+>>>> configure the sensor to react on an external trigger provided by the flash
+>>>> controller is needed, and that could be a control on the flash sub-device.
+>>>
+>>> Well... Sensors call this a "snapshot mode." I don't care that much how we
+>>> _call_ it, but I do think, that we should be able to use it.
+>>
+>> Some sensors and webcams might have that, but newer camera solutions
+>> tend to contain a raw bayer sensor and and ISP. There is no concept of
+>> snapsnot mode in these sensors.
+>
+> Hm, I am not sure I understand, why sensors with DSPs in them should have
+> no notion of a snapshot mode. Do they have no strobe / trigger pins? And
+> no built in possibility to synchronize with a flash?
+
+I was referring to ISPs such as the OMAP 3 ISP. Some hardware have a 
+flash strobe pin while some doesn't (such as the N900).
+
+Still, even if the strobe pin is missing it should be possible to allow 
+strobing the flash by using software strobe (usually an I2C message).
+
+I agree using a hardware strobe is much much better if it's available.
+
+>>> Hm, don't think only the "flash subdevice" has to know about this. First,
+>>> you have to switch the sensor into that mode. Second, it might be either
+>>> external trigger from the flash controller, or a programmed trigger and a
+>>> flash strobe from the sensor to the flash (controller). Third, well, not
+>>> quite sure, but doesn't the host have to know about the snapshot mode?
+>>
+>> I do not favour adding use case type of functionality to interfaces that
+>> do not necessarily need it. Would the concept of a snapshot be
+>> parametrisable on V4L2 level?
+>
+> I am open to this. I don't have a good idea of whether camera hosts have
+> to know about the snapshot mode or not. It's open for discussion.
+
+What functionality would the snapshot mode provide? Flash 
+synchronisation? Something else?
+
+I have to admit I don't know of any hardware which would recognise a 
+concept of "snapshot". Do you have a smart sensor which does this, for 
+example? The only hardware support for the flash use I know of is the 
+flash strobe signal.
+
+Flash synchronisation is indeed an issue, and how to tell that a given 
+frame has been exposed with flash. The use of flash is just one of the 
+parameters which would be nice to connect to frames, though.
+
+Regards,
+
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
