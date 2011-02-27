@@ -1,56 +1,82 @@
 Return-path: <mchehab@pedra>
-Received: from swampdragon.chaosbits.net ([90.184.90.115]:22038 "EHLO
-	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753006Ab1BFUfG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Feb 2011 15:35:06 -0500
-Date: Sun, 6 Feb 2011 21:33:50 +0100 (CET)
-From: Jesper Juhl <jj@chaosbits.net>
-To: linux-kernel@vger.kernel.org
-cc: linux-media@vger.kernel.org, Dan Carpenter <error27@gmail.com>,
-	Tejun Heo <tj@kernel.org>,
-	Matthias Schwarzott <zzam@gentoo.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [Patch] Zarlink zl10036 DVB-S: Fix mem leak in zl10036_attach
-Message-ID: <alpine.LNX.2.00.1102062128391.13593@swampdragon.chaosbits.net>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:37954 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751819Ab1B0VdO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 27 Feb 2011 16:33:14 -0500
+Received: by bwz15 with SMTP id 15so3239334bwz.19
+        for <linux-media@vger.kernel.org>; Sun, 27 Feb 2011 13:33:13 -0800 (PST)
+From: "Igor M. Liplianin" <liplianin@me.by>
+To: Malcolm Priestley <tvboxspy@gmail.com>
+Subject: Re: dw2102.c: quadratic increment intended?
+Date: Sun, 27 Feb 2011 23:33:18 +0200
+Cc: linux-media@vger.kernel.org
+References: <4D6A6253.8020201@gmail.com> <201102272030.54781.liplianin@me.by> <1298840270.20694.16.camel@tvboxspy>
+In-Reply-To: <1298840270.20694.16.camel@tvboxspy>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201102272333.18193.liplianin@me.by>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-If the memory allocation to 'state' succeeds but we jump to the 'error' 
-label before 'state' is assigned to fe->tuner_priv, then the call to 
-'zl10036_release(fe)' at the 'error:' label will not free 'state', but 
-only what was previously assigned to 'tuner_priv', thus leaking the memory 
-allocated to 'state'.
-There are may ways to fix this, including assigning the allocated memory 
-directly to 'fe->tuner_priv', but I did not go for that since the 
-additional pointer derefs are more expensive than the local variable, so I 
-just added a 'kfree(state)' call. I guess the call to 'zl10036_release' 
-might not even be needed in this case, but I wasn't sure, so I left it in.
+В сообщении от 27 февраля 2011 22:57:50 автор Malcolm Priestley написал:
+> On Sun, 2011-02-27 at 20:30 +0200, Igor M. Liplianin wrote:
+> > В сообщении от 27 февраля 2011 16:40:19 автор Török Edwin написал:
+> > > Hi,
+> > 
+> > Hi
+> > 
+> > > Please see http://llvm.org/bugs/show_bug.cgi?id=9259#c5, is the code
+> > > intended to do a quadratic increment there?
+> > > 
+> > > While looking at this, I wonder if this isn't also a bug in the
+> > > original
+> > > 
+> > > code:
+> > >         /* read stv0299 register */
+> > >         request = 0xb5;
+> > >         value = msg[0].buf[0];/* register */
+> > >         for (i = 0; i < msg[1].len; i++) {
+> > >         
+> > >             value = value + i;
+> > >             ret = dw2102_op_rw(d->udev, 0xb5,
+> > >             
+> > >                 value, buf6, 2, DW2102_READ_MSG);
+> > >             
+> > >             msg[1].buf[i] = buf6[0];
+> > >         
+> > >         }
+> > > 
+> > > I don't know anything about the hardware this driver is written for,
+> > > but is 'value' really intended to increment quadratically? That seems
+> > > suspicious. One
+> > > 
+> > > wonders if the following is what was intended:
+> > >         [...]
+> > >         for (i = 0; i < msg[1].len; i++) {
+> > >         
+> > >             ret = dw2102_op_rw(d->udev, 0xb5,
+> > >             
+> > >                 value + i, buf6, 2, DW2102_READ_MSG);
+> > >             
+> > >             msg[1].buf[i] = buf6[0];
+> > >         
+> > >         }
+> > 
+> > Accidentally, this didn't affect driver, as it reads registers by one
+> > register at one time. But it should be corrected.
+> 
+> stv0299, along with other stv02xx family members can read and write the
+> entire register map from the start register.
+You misundestood me. I spoke about driver features, not about stv0299 features.
+Except that, you are right.
 
-Signed-off-by: Jesper Juhl <jj@chaosbits.net>
----
- zl10036.c |    1 +
- 1 file changed, 1 insertion(+)
-
- compile tested only.
-
-diff --git a/drivers/media/dvb/frontends/zl10036.c b/drivers/media/dvb/frontends/zl10036.c
-index 4627f49..b4fb8e8 100644
---- a/drivers/media/dvb/frontends/zl10036.c
-+++ b/drivers/media/dvb/frontends/zl10036.c
-@@ -508,6 +508,7 @@ struct dvb_frontend *zl10036_attach(struct dvb_frontend *fe,
- 
- error:
- 	zl10036_release(fe);
-+	kfree(state);
- 	return NULL;
- }
- EXPORT_SYMBOL(zl10036_attach);
-
+> 
+> However, there is a limitation, the buffer size of the I2C master
+> hardware.
 
 -- 
-Jesper Juhl <jj@chaosbits.net>            http://www.chaosbits.net/
-Plain text mails only, please.
-Don't top-post http://www.catb.org/~esr/jargon/html/T/top-post.html
-
+Igor M. Liplianin
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
