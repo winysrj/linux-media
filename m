@@ -1,61 +1,83 @@
 Return-path: <mchehab@pedra>
-Received: from mga14.intel.com ([143.182.124.37]:11963 "EHLO mga14.intel.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:44087 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755262Ab1BCAhx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Feb 2011 19:37:53 -0500
-Date: Thu, 3 Feb 2011 01:37:49 +0100
-From: Samuel Ortiz <sameo@linux.intel.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>,
-	alsa-devel@alsa-project.org, broonie@opensource.wolfsonmicro.com,
-	lrg@slimlogic.co.uk, hverkuil@xs4all.nl,
-	linux-media@vger.kernel.org
-Subject: Re: WL1273 FM Radio driver...
-Message-ID: <20110203003748.GH25448@sortiz-mobl>
-References: <1295363063.25951.67.camel@masi.mnp.nokia.com>
- <20110130232358.GD2565@sortiz-mobl>
- <4D4979A5.1020000@redhat.com>
+	id S1751498Ab1B0SyE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 27 Feb 2011 13:54:04 -0500
+Message-ID: <4D6A9388.5030001@iki.fi>
+Date: Sun, 27 Feb 2011 20:10:16 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <4D4979A5.1020000@redhat.com>
+To: Vinicio Nocciolini <vnocciolini@mbigroup.it>
+CC: linux-media@vger.kernel.org
+Subject: Re: ec168-9295d36ab66e compiling error
+References: <4D666A3A.1090701@mbigroup.it>
+In-Reply-To: <4D666A3A.1090701@mbigroup.it>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
+Dont use my, or anyone else, old HG trees. You should follow that
+http://www.linuxtv.org/wiki/index.php/How_to_install_DVB_device_drivers
 
-On Wed, Feb 02, 2011 at 01:35:01PM -0200, Mauro Carvalho Chehab wrote:
-> Em 30-01-2011 21:23, Samuel Ortiz escreveu:
-> > Hi Matti,
-> > 
-> > On Tue, Jan 18, 2011 at 05:04:23PM +0200, Matti J. Aaltonen wrote:
-> >> Hello
-> >>
-> >> I have been trying to get the WL1273 FM radio driver into the kernel for
-> >> some time. It has been kind of difficult, one of the reasons is that I
-> >> didn't realize I should have tried to involve all relevant maintainers
-> >> to the discussion form the beginning (AsoC, Media and MFD). At Mark's
-> >> suggestion I'm trying to reopen the discussion now.
-> >>
-> >> The driver consists of an MFD core and two child drivers (the audio
-> >> codec and the V4L2 driver). And the question is mainly about the role of
-> >> the MFD driver: the original design had the IO functions in the core.
-> >> Currently the core is practically empty mainly because Mauro very
-> >> strongly wanted to have “everything” in the V4L2 driver.
-> > What was Mauro main concerns with having the IO part in the core ?
-> > A lot of MFD drivers are going that path already.
-> 
-> My concerns is that the V4L2-specific part of the code should be at drivers/media.
-> I prefer that the specific MFD I/O part to be at drivers/mfd, just like
-> the other drivers.
-Agreed, but it seems that's not the case currently. Would you be ok with Matti
-refactoring those 2 drivers a bit so that the actual core I/O parts should be
-handled by the MFD driver ?
+Antti
 
-Cheers,
-Samuel.
+On 02/24/2011 04:24 PM, Vinicio Nocciolini wrote:
+> Hi all
+>
+> I have problem compiling the project
+>
+> regards Vinicio
+>
+> -----------------------------------------------------------------------------------------------------------
+>
+>
+> CC [M] /home/vinicio/Desktop/ec168-9295d36ab66e/v4l/vc032x.o
+> CC [M] /home/vinicio/Desktop/ec168-9295d36ab66e/v4l/zc3xx.o
+> CC [M] /home/vinicio/Desktop/ec168-9295d36ab66e/v4l/hdpvr-control.o
+> CC [M] /home/vinicio/Desktop/ec168-9295d36ab66e/v4l/hdpvr-core.o
+> CC [M] /home/vinicio/Desktop/ec168-9295d36ab66e/v4l/hdpvr-video.o
+> CC [M] /home/vinicio/Desktop/ec168-9295d36ab66e/v4l/hopper_cards.o
+> CC [M] /home/vinicio/Desktop/ec168-9295d36ab66e/v4l/hopper_vp3028.o
+> CC [M] /home/vinicio/Desktop/ec168-9295d36ab66e/v4l/ir-functions.o
+> CC [M] /home/vinicio/Desktop/ec168-9295d36ab66e/v4l/ir-keytable.o
+> /home/vinicio/Desktop/ec168-9295d36ab66e/v4l/ir-keytable.c: In function
+> '__ir_input_register':
+> /home/vinicio/Desktop/ec168-9295d36ab66e/v4l/ir-keytable.c:452:24:
+> warning: assignment from incompatible pointer type
+> /home/vinicio/Desktop/ec168-9295d36ab66e/v4l/ir-keytable.c:453:24:
+> warning: assignment from incompatible pointer type
+> CC [M] /home/vinicio/Desktop/ec168-9295d36ab66e/v4l/ir-sysfs.o
+> /home/vinicio/Desktop/ec168-9295d36ab66e/v4l/ir-sysfs.c: In function
+> 'ir_register_class':
+> /home/vinicio/Desktop/ec168-9295d36ab66e/v4l/ir-sysfs.c:268:23: error:
+> 'ir_raw_dev_type' undeclared (first use in this function)
+> /home/vinicio/Desktop/ec168-9295d36ab66e/v4l/ir-sysfs.c:268:23: note:
+> each undeclared identifier is reported only once for each function it
+> appears in
+> make[3]: *** [/home/vinicio/Desktop/ec168-9295d36ab66e/v4l/ir-sysfs.o]
+> Error 1
+> make[2]: *** [_module_/home/vinicio/Desktop/ec168-9295d36ab66e/v4l] Error 2
+> make[2]: Leaving directory `/usr/src/kernels/2.6.35.11-83.fc14.i686'
+> make[1]: *** [default] Error 2
+> make[1]: Leaving directory `/home/vinicio/Desktop/ec168-9295d36ab66e/v4l'
+> make: *** [all] Error 2
+>
+>
+>
+>
+>
+>
+>
+>
+> [vinicio@localhost ec168-9295d36ab66e]$ cat /etc/issue
+> Fedora release 14 (Laughlin)
+> Kernel \r on an \m (\l)
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at http://vger.kernel.org/majordomo-info.html
+
 
 -- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+http://palosaari.fi/
