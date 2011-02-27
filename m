@@ -1,34 +1,41 @@
 Return-path: <mchehab@pedra>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:53553 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754445Ab1BBPvv (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:36672 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751696Ab1B0RiP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Feb 2011 10:51:51 -0500
-Date: Wed, 2 Feb 2011 15:51:49 +0000
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>,
-	"Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>,
-	alsa-devel@alsa-project.org, lrg@slimlogic.co.uk,
-	hverkuil@xs4all.nl, linux-media@vger.kernel.org
-Subject: Re: WL1273 FM Radio driver...
-Message-ID: <20110202155148.GS12743@opensource.wolfsonmicro.com>
-References: <1295363063.25951.67.camel@masi.mnp.nokia.com>
- <20110130232358.GD2565@sortiz-mobl>
- <4D4979A5.1020000@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4D4979A5.1020000@redhat.com>
+	Sun, 27 Feb 2011 12:38:15 -0500
+Received: from localhost.localdomain (unknown [91.178.64.100])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 848A035995
+	for <linux-media@vger.kernel.org>; Sun, 27 Feb 2011 17:38:14 +0000 (UTC)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] v4l: videobuf2: Typo fix
+Date: Sun, 27 Feb 2011 18:38:19 +0100
+Message-Id: <1298828299-9615-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Feb 02, 2011 at 01:35:01PM -0200, Mauro Carvalho Chehab wrote:
+vb2_get_plane_payload() gets the bytesused field for a plane, it doesn't
+set it.
 
-[Reflowed into 80 columns.]
-> My concerns is that the V4L2-specific part of the code should be at
-> drivers/media.  I prefer that the specific MFD I/O part to be at
-> drivers/mfd, just like the other drivers.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ include/media/videobuf2-core.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Currently that's not the case - the I/O functionality is not in any
-meaningful sense included in the MFD, it's provided by the V4L portion.
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 0d71fc5..597efe6 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -351,7 +351,7 @@ static inline void vb2_set_plane_payload(struct vb2_buffer *vb,
+ }
+ 
+ /**
+- * vb2_get_plane_payload() - set bytesused for the plane plane_no
++ * vb2_get_plane_payload() - get bytesused for the plane plane_no
+  * @vb:		buffer for which plane payload should be set
+  * @plane_no:	plane number for which payload should be set
+  * @size:	payload in bytes
+-- 
+1.7.3.4
+
