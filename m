@@ -1,99 +1,72 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1118 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752156Ab1BZMuU (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:53202 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750822Ab1B0Rfy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Feb 2011 07:50:20 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: [RFC/PATCH 0/1] New subdev sensor operation g_interface_parms
-Date: Sat, 26 Feb 2011 13:50:12 +0100
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Stan <svarbanov@mm-sol.com>, Hans Verkuil <hansverk@cisco.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	saaguirre@ti.com
-References: <cover.1298368924.git.svarbanov@mm-sol.com> <Pine.LNX.4.64.1102231020330.8880@axis700.grange> <4D67F3AF.7060808@maxwell.research.nokia.com>
-In-Reply-To: <4D67F3AF.7060808@maxwell.research.nokia.com>
+	Sun, 27 Feb 2011 12:35:54 -0500
+Received: from lancelot.localnet (unknown [91.178.64.100])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 046ED35995
+	for <linux-media@vger.kernel.org>; Sun, 27 Feb 2011 17:35:54 +0000 (UTC)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PATCHES FOR 2.6.39] Make the UVC API public (and bug fixes)
+Date: Sun, 27 Feb 2011 18:36:01 +0100
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201102261350.12833.hverkuil@xs4all.nl>
+Message-Id: <201102271836.01888.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Friday, February 25, 2011 19:23:43 Sakari Ailus wrote:
-> Hi Guennadi and others,
-> 
-> Apologies for the late reply...
-> 
-> Guennadi Liakhovetski wrote:
-> > On Wed, 23 Feb 2011, Hans Verkuil wrote:
-> > 
-> >> On Tuesday, February 22, 2011 22:42:58 Sylwester Nawrocki wrote:
-> >>> Clock values are often being rounded at runtime and do not always reflect exactly
-> >>> the numbers fixed at compile time. And negotiation could help to obtain exact
-> >>> values at both sensor and host side.
-> >>
-> >> The only static data I am concerned about are those that affect signal integrity.
-> >> After thinking carefully about this I realized that there is really only one
-> >> setting that is relevant to that: the sampling edge. The polarities do not
-> >> matter in this.
-> > 
-> > Ok, this is much better! I'm still not perfectly happy having to punish 
-> > all just for the sake of a couple of broken boards, but I can certainly 
-> > much better live with this, than with having to hard-code each and every 
-> > bit. Thanks, Hans!
-> 
-> How much punishing would actually take place without autonegotiation?
-> How many boards do we have in total? I counted around 26 of
-> soc_camera_link declarations under arch/. Are there more?
-> 
-> An example of hardware which does care about clock polarity is the
-> N8[01]0. The parallel clock polarity is inverted since this actually
-> does improve reliability. In an ideal hardware this likely wouldn't
-> happen but sometimes the hardware is not exactly ideal. Both the sensor
-> and the camera block support non-inverted and inverted clock signal.
-> 
-> So at the very least it should be possible to provide this information
-> in the board code even if both ends share multiple common values for
-> parameters.
-> 
-> There have been many comments on the dangers of the autonegotiation and
-> I share those concerns. One of my main concerns is that it creates an
-> unnecessary dependency from all the boards to the negotiation code, the
-> behaviour of which may not change.
+Hi Mauro,
 
-OK, let me summarize this and if there are no objections then Stan can start
-implementing this.
+These patches move the uvcvideo.h header file from drivers/media/video/uvc
+to include/linux, making the UVC API public.
 
-1) We need two subdev ops: one reports the bus config capabilities and one that
-sets it up. Note that these ops should be core ops since this functionality is
-relevant for both sensors and video receive/transmit devices.
+Martin Rubli has committed support for the public API to libwebcam, so
+userspace support is up to date.
 
-2) The clock sampling edge and polarity should not be negotiated but must be set
-from board code for both subdevs and host. In the future this might even require
-a callback with the clock frequency as argument.
+The following changes since commit 9e650fdb12171a5a5839152863eaab9426984317:
 
-3) We probably need a utility function that given the host and subdev capabilities
-will return the required subdev/host settings.
+  [media] drivers:media:radio: Update Kconfig and Makefile for wl128x FM driver (2011-02-27 07:50:42 -0300)
 
-4) soc-camera should switch to these new ops.
+are available in the git repository at:
+  git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo-next
 
-Of course, we also need MIPI support in this API. The same considerations apply to
-MIPI as to the parallel bus: settings that depend on the hardware board design
-should come from board code, others can be negotiated. Since I know next to nothing
-about MIPI I will leave that to the experts...
+Laurent Pinchart (6):
+      uvcvideo: Deprecate UVCIOC_CTRL_{ADD,MAP_OLD,GET,SET}
+      uvcvideo: Rename UVC_CONTROL_* flags to UVC_CTRL_FLAG_*
+      uvcvideo: Include linux/types.h in uvcvideo.h
+      uvcvideo: Move uvcvideo.h to include/linux
+      uvcvideo: Fix descriptor parsing for video output devices
+      v4l: videobuf2: Typo fix
 
-One thing I am not sure about is if we want separate ops for parallel bus and MIPI,
-or if we merge them. I am leaning towards separate ops as I think that might be
-easier to implement.
+Martin Rubli (2):
+      uvcvideo: Add UVCIOC_CTRL_QUERY ioctl
+      uvcvideo: Add driver documentation
 
-Regards,
+Stephan Lachowsky (1):
+      uvcvideo: Fix uvc_fixup_video_ctrl() format search
 
-	Hans
+ Documentation/feature-removal-schedule.txt         |   23 ++
+ Documentation/ioctl/ioctl-number.txt               |    2 +-
+ Documentation/video4linux/uvcvideo.txt             |  239 ++++++++++++++
+ drivers/media/video/uvc/uvc_ctrl.c                 |  334 ++++++++++++--------
+ drivers/media/video/uvc/uvc_driver.c               |   11 +-
+ drivers/media/video/uvc/uvc_isight.c               |    3 +-
+ drivers/media/video/uvc/uvc_queue.c                |    3 +-
+ drivers/media/video/uvc/uvc_status.c               |    3 +-
+ drivers/media/video/uvc/uvc_v4l2.c                 |   45 +++-
+ drivers/media/video/uvc/uvc_video.c                |   17 +-
+ include/linux/Kbuild                               |    1 +
+ .../media/video/uvc => include/linux}/uvcvideo.h   |   43 ++-
+ include/media/videobuf2-core.h                     |    2 +-
+ 13 files changed, 550 insertions(+), 176 deletions(-)
+ create mode 100644 Documentation/video4linux/uvcvideo.txt
+ rename {drivers/media/video/uvc => include/linux}/uvcvideo.h (95%)
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+Regards,
+
+Laurent Pinchart
