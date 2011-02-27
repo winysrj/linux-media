@@ -1,111 +1,98 @@
 Return-path: <mchehab@pedra>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:39931 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752601Ab1BWLEC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Feb 2011 06:04:02 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=UTF-8
-Received: from spt2.w1.samsung.com ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LH200I4ZHENP190@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 23 Feb 2011 11:03:59 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LH200HUNHEM43@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 23 Feb 2011 11:03:58 +0000 (GMT)
-Date: Wed, 23 Feb 2011 12:03:57 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: SAMSUNG: any example code for soc_camera, tv output,  etc...?
-In-reply-to: <9fibsi$eahr36@out1.ip07ir2.opaltelecom.net>
-To: Nick Pelling <nickpelling@nanodome.com>
-Cc: linux-arm-kernel@lists.infradead.org,
-	=?UTF-8?B?5L2Z6LCo5pm6?= <yujinzhi123@gmail.com>,
-	kgene.kim@samsung.com, ben-linux@fluff.org, inki.dae@samsung.com,
-	kyungmin.park@samsung.com, m.szyprowski@samsung.com,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Message-id: <4D64E99D.10208@samsung.com>
-References: <20110211161626.GA31356@n2100.arm.linux.org.uk>
- <E1Pnvhv-0002yp-A0@rmk-PC.arm.linux.org.uk>
- <017901cbce9b$7b405ee0$71c11ca0$%kim@samsung.com>
- <20110217140621.GC24989@n2100.arm.linux.org.uk>
- <01b001cbcef7$3e7f5f90$bb7e1eb0$%kim@samsung.com>
- <9f2nkr$9lh756@out1.ip04ir2.opaltelecom.net>
- <AANLkTin0PR3VQLruade+w6GbCMoW9pXy4Kvn-sBZ+LBM@mail.gmail.com>
- <9fibsi$eahr36@out1.ip07ir2.opaltelecom.net>
+Received: from mx1.redhat.com ([209.132.183.28]:55389 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751899Ab1B0K7K (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 27 Feb 2011 05:59:10 -0500
+Message-ID: <4D6A2E73.6070806@redhat.com>
+Date: Sun, 27 Feb 2011 07:58:59 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: halli manjunatha <manjunatha_halli@ti.com>
+CC: linux-media <linux-media@vger.kernel.org>,
+	linux-kernel <linux-kernel@vger.kernel.org>,
+	"Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Subject: Re: [GIT PULL] TI WL 128x FM V4L2 driver
+References: <AANLkTinAYrGV1k357Bn8trtxafZDoYozG7LDcm3KNBSt@mail.gmail.com>
+In-Reply-To: <AANLkTinAYrGV1k357Bn8trtxafZDoYozG7LDcm3KNBSt@mail.gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Nick,
-
-On 02/22/2011 11:54 PM, Nick Pelling wrote:
-> Hi yujinzhi,
+Em 25-01-2011 03:48, halli manjunatha escreveu:
+> Hi Mauro,
 > 
-> At 22:00 22/02/2011 +0800, =?GB2312?B?0+C999bH?= wrote:
->> I have port a embeded linux system on my board based on EP9315, with
->> support for usb video capture device, V4L2. Do you need V4L2 based on
->> usb video capture device or other video/FM/AM controller on your
->> board? If conveniently, can you provide more details about your
->> project?
+> Please pull the WL128x FM V4L2 driver from
+> http://dev.omapzoom.org/pub/scm/manju/L24x-btfm.git fm_v4l2_upstream
 > 
-> It's a tiny S5PC100 board with an Aptina MT9M131 (1.3MP) sensor and video out
-> for some security camera projects I'm working on. I've just brought up another
-> embedded V4L2-based Linux camera, so V4L2 would be nice - in fact, there's
-> already some Samsung s5p fimc code checked into the main tree, but it's far
-> from clear (to me, at least) how to go about integrating image sensors with
-> that to get V4L2 working.
-
-Currently there is no a board in mainstream kernel that would have essential
-S5P SoC multimedia device drivers hooked into it. I expect first reference
-board with complete camera support to appear in kernel 2.6.39-rc1.
-
-The bad news is that your sensor driver is compatible with the soc_camera
-framework whereas s5p fimc driver exports a regular V4L2 video capture node.
-And they won't work together out of the box. You might want to look at
-noon010pc30 and sr010pc30 sensor drivers, those were tested with s5p fimc.
-All you have to do is to define an instance of struct s5p_fimc_isp_info
-and set it with s3c_set_platdata helper function in your board file.
-For more details please check file include/media/s5p_fimc.h
-
-There are ongoing efforts to make soc_camera sensors work with not soc_camera
-host driver. But I'm really not sure about the schedule.
-
-S5PC100 has no IOMMU and its multimedia devices require physically contiguous
-memory. We have been developing the Contiguous Memory Allocator (CMA)
-to efficiently manage system memory among graphics devices.
-Unfortunately due to some memory remapping constraints in newer
-ARM architectures, emerging during development, the CMA is still not
-in mainline kernel.
-You can still use the videobuf2 dma-contig allocator with s5p fimc as it done
-in mainline kernel but it is not realiable on long running system.
-
-Another solution would be to use physically contiguous memory reserved
-by other device, e.g. framebuffer and pass it as USERPTR memory to the
-camera driver.
-
-You can find latest Samsung System LSI linux kernel development tree at
-http://git.kernel.org/?p=linux/kernel/git/kki_ap/linux-2.6-samsung.git
-
-For most recent status of the S5P SoC graphics drivers you might want
-to follow posting on linux-media ML (http://linuxtv.org/lists.php).
-
->> You MUST need the datasheet of S5PC100 on your board, and other
->> peripheral device's datasheet, like dm9000 ethernet controller if not
->> integrated in SoC, and schematic diagrams of your board.
+> This is TI WL128x FM V4L2 driver and it introduces ‘wl128x’ folder
+> under the ‘drivers/media/radio’. This driver enables support for FM RX
+> and TX for Texas Instrument's WL128x (also compatible with WL127x)
+> WiLink chip sets. The V4L2 FM driver can work in either Rx or Tx mode,
+> and V4L2 interfaces are provided for both.
 > 
-> Hardware datasheets I have plenty of, it's the supporting documentation on the
-> s3c fb / s5p fimc devices / v4l2 host stuff that I'm missing. Not a lot in the
-> Documentation/arm/Samsung* directories, for example. :-(
-
-s3c-fb IMO is not different from other frambuffers. For basic setup you might
-want to look at arch/arm/mach-s5pv210/mach-goni.c
-
-Regards,
--- 
-Sylwester Nawrocki
-Samsung Poland R&D Center
-
+> Texas Instrument's WL128x chip set packs BT, FM, GPS and WLAN in a
+> single die with BT, FM and GPS being interfaced over a single UART.
+> This driver works on top of the shared transport line discipline
+> driver. This driver can also be made use for the WL127x version of the
+> chip which packs BT, FM and WLAN only.
 > 
-> Cheers, ....Nick Pelling....
+> This driver has been reviewed by various folks within TI and also in
+> Linux media community. The driver has been tested extensively on TI
+> platforms and we believe that it is ready for merge into mainline.
+
+Applied, thanks.
+
+>From what I understood from your comments, this driver will also cover 
+wl127x chips. As such, it would be better to double check if all functionalities
+present at drivers/media/radio/radio-wl1273.c (assuming that wl1273 is covered)
+are also on the new driver, and, if not, merge the remaining ones and deprecate
+the wl1273-specific driver.
+
+Cheers,
+Mauro
 > 
+> The following changes since commit db309d3d54c2f721dd1176ce86c63b0381c0a258:
+>   Mauro Carvalho Chehab (1):
+>         [media] add support for Encore FM3
+> 
+> are available in the git repository at:
+> 
+>   http://dev.omapzoom.org/pub/scm/manju/L24x-btfm.git fm_v4l2_upstream
+> 
+> Manjunatha Halli (7):
+>       drivers:media:radio: wl128x: FM Driver common header file
+>       drivers:media:radio: wl128x: FM Driver V4L2 sources
+>       drivers:media:radio: wl128x: FM Driver Common sources
+>       drivers:media:radio: wl128x: FM driver RX sources
+>       drivers:media:radio: wl128x: FM driver TX sources
+>       drivers:media:radio: wl128x: Kconfig & Makefile for wl128x driver
+>       drivers:media:radio: Update Kconfig and Makefile for wl128x FM driver
+> 
+>  drivers/media/radio/Kconfig               |    3 +
+>  drivers/media/radio/Makefile              |    1 +
+>  drivers/media/radio/wl128x/Kconfig        |   17 +
+>  drivers/media/radio/wl128x/Makefile       |    6 +
+>  drivers/media/radio/wl128x/fmdrv.h        |  244 +++++
+>  drivers/media/radio/wl128x/fmdrv_common.c | 1677 +++++++++++++++++++++++++++++
+>  drivers/media/radio/wl128x/fmdrv_common.h |  402 +++++++
+>  drivers/media/radio/wl128x/fmdrv_rx.c     |  847 +++++++++++++++
+>  drivers/media/radio/wl128x/fmdrv_rx.h     |   59 +
+>  drivers/media/radio/wl128x/fmdrv_tx.c     |  425 ++++++++
+>  drivers/media/radio/wl128x/fmdrv_tx.h     |   37 +
+>  drivers/media/radio/wl128x/fmdrv_v4l2.c   |  580 ++++++++++
+>  drivers/media/radio/wl128x/fmdrv_v4l2.h   |   33 +
+>  13 files changed, 4331 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/media/radio/wl128x/Kconfig
+>  create mode 100644 drivers/media/radio/wl128x/Makefile
+>  create mode 100644 drivers/media/radio/wl128x/fmdrv.h
+>  create mode 100644 drivers/media/radio/wl128x/fmdrv_common.c
+>  create mode 100644 drivers/media/radio/wl128x/fmdrv_common.h
+>  create mode 100644 drivers/media/radio/wl128x/fmdrv_rx.c
+>  create mode 100644 drivers/media/radio/wl128x/fmdrv_rx.h
+>  create mode 100644 drivers/media/radio/wl128x/fmdrv_tx.c
+>  create mode 100644 drivers/media/radio/wl128x/fmdrv_tx.h
+>  create mode 100644 drivers/media/radio/wl128x/fmdrv_v4l2.c
+>  create mode 100644 drivers/media/radio/wl128x/fmdrv_v4l2.h
+> 
+
