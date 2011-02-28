@@ -1,104 +1,132 @@
 Return-path: <mchehab@pedra>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:18732 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751017Ab1BWK2i (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:33953 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754040Ab1B1NOs convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Feb 2011 05:28:38 -0500
-From: Hans Verkuil <hansverk@cisco.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [Q] {enum,s,g}_input for subdev ops
-Date: Wed, 23 Feb 2011 11:29:51 +0100
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-References: <Pine.LNX.4.64.1102221612380.1380@axis700.grange> <201102221807.15647.hverkuil@xs4all.nl> <Pine.LNX.4.64.1102231039060.10099@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1102231039060.10099@axis700.grange>
+	Mon, 28 Feb 2011 08:14:48 -0500
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201102231129.51648.hansverk@cisco.com>
+In-Reply-To: <4D6A2E73.6070806@redhat.com>
+References: <AANLkTinAYrGV1k357Bn8trtxafZDoYozG7LDcm3KNBSt@mail.gmail.com> <4D6A2E73.6070806@redhat.com>
+From: halli manjunatha <manjunatha_halli@ti.com>
+Date: Mon, 28 Feb 2011 18:42:34 +0530
+Message-ID: <AANLkTikfyVfxUX3LXnpOPZWNmG7zSpDY9itn+BHxhdo6@mail.gmail.com>
+Subject: Re: [GIT PULL] TI WL 128x FM V4L2 driver
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	linux-kernel <linux-kernel@vger.kernel.org>,
+	"Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wednesday, February 23, 2011 11:13:57 Guennadi Liakhovetski wrote:
-> On Tue, 22 Feb 2011, Hans Verkuil wrote:
-> 
-> > On Tuesday, February 22, 2011 17:39:25 Guennadi Liakhovetski wrote:
-> > > On Tue, 22 Feb 2011, Hans Verkuil wrote:
-> > > 
-> > > > > Hi
-> > > > >
-> > > > > Any thoughts about the subj? Hasn't anyone run into a need to select
-> > > > > inputs on subdevices until now? Something like
-> > > > >
-> > > > > struct v4l2_subdev_video_ops {
-> > > > > 	...
-> > > > > 	int (*enum_input)(struct v4l2_subdev *sd, struct v4l2_input 
-*inp);
-> > > > > 	int (*g_input)(struct v4l2_subdev *sd, unsigned int *i);
-> > > > > 	int (*s_input)(struct v4l2_subdev *sd, unsigned int i);
-> > > > 
-> > > > That's done through s_routing. Subdevices know nothing about inputs as
-> > > > shown to userspace.
-> > > > 
-> > > > If you want a test pattern, then the host driver needs to add a "Test
-> > > > Pattern" input and call s_routing with the correct values (specific to
-> > > > that subdev) to set it up.
-> > > 
-> > > Hm, maybe I misunderstood something, but if we understand "host" in the 
-> > > same way, then this doesn't seem very useful to me. What shall the host 
-> > > have to do with various sensor inputs? It cannot know, whether the 
-sensor 
-> > > has a test-pattern "input" and if yes - how many of them. Many sensors 
-> > > have several such patterns, and, I think, some of them also have some 
-> > > parameters, like colour values, etc., which we don't have anything to 
-map 
-> > > to. But even without that - some sensors have several test patterns, 
-which 
-> > > they well might want to be able to switch between by presenting not just 
-> > > one but several test inputs. So, shouldn't we have some enum_routing or 
-> > > something for them?
-> > 
-> > What you really want is to select a test pattern. A good solution would be
-> > to create a sensor menu control with all the test patterns it supports.
-> 
-> Ok, thinking a bit further about it. Let's take mt9p031 as an example - a 
-> pretty simple bayer-only sensor. The driver is not yet in the mainline, 
-> but I'll be pushing something simple in the mainline soon. I just picked 
-> it up as an example, because it has quite a few test modes.
-> 
-> On the total it can generate 9 test patterns, including gradients, bars, 
-> constant colour-field, etc. Apart from selecting a specific test pattern, 
-> the RGB colour values and monochrome "intensity" values and bar widths can 
-> be set for the colour-field and monochrome-bars test-patterns respectively.
-> 
-> Using a control menu we can select one of the 9 test-modes. But do we also 
-> want standard controls for colour values and bar widths? Or are they too 
-> hardware-specific and too unimportant and can only be supported by private 
-> controls?
+On Sun, Feb 27, 2011 at 4:28 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+>
+> Em 25-01-2011 03:48, halli manjunatha escreveu:
+> > Hi Mauro,
+> >
+> > Please pull the WL128x FM V4L2 driver from
+> > http://dev.omapzoom.org/pub/scm/manju/L24x-btfm.git fm_v4l2_upstream
+> >
+> > This is TI WL128x FM V4L2 driver and it introduces ‘wl128x’ folder
+> > under the ‘drivers/media/radio’. This driver enables support for FM RX
+> > and TX for Texas Instrument's WL128x (also compatible with WL127x)
+> > WiLink chip sets. The V4L2 FM driver can work in either Rx or Tx mode,
+> > and V4L2 interfaces are provided for both.
+> >
+> > Texas Instrument's WL128x chip set packs BT, FM, GPS and WLAN in a
+> > single die with BT, FM and GPS being interfaced over a single UART.
+> > This driver works on top of the shared transport line discipline
+> > driver. This driver can also be made use for the WL127x version of the
+> > chip which packs BT, FM and WLAN only.
+> >
+> > This driver has been reviewed by various folks within TI and also in
+> > Linux media community. The driver has been tested extensively on TI
+> > platforms and we believe that it is ready for merge into mainline.
+>
+> Applied, thanks.
+>
+> From what I understood from your comments, this driver will also cover
+> wl127x chips. As such, it would be better to double check if all functionalities
+> present at drivers/media/radio/radio-wl1273.c (assuming that wl1273 is covered)
+> are also on the new driver, and, if not, merge the remaining ones and deprecate
+> the wl1273-specific driver.
+>
+> Cheers,
+> Mauro
 
-I think all test pattern controls would be prime candidates as subdev-specific 
-controls: they are hardware specific so it's difficult anyway to make them 
-generic controls and they are typically only used for debugging.
+Yes, this driver supports all the functionalities which are supported
+by radio-wl1273.c [But our driver is on UART while wl1273 is based on
+i2c..]
 
-But we can't do that until the MC code is merged. This also requires that the 
-subdev uses the control framework.
+NOTE: V4L2 FM driver depend upon an underlying TI_ST driver which is
+the core transport driver [based on UART, it is a ldisc driver]
 
-The MC code will hopefully be merged soon and I have worked on the control 
-framework patches for soc-camera, although those need more work.
+Updates to TI-ST driver happen on linux-next tree on kernel.org and
+are planned to be released in 2.6.39.
 
-Regards,
+Since your tree
+@[http://git.linuxtv.org/media_tree.git?a=shortlog;h=refs/heads/staging/for_v2.6.39]
 
-	Hans
+lags behind the linux-next tree, the recent updates to TI-ST driver
+are missing on your tree.
 
-> 
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
+Unfortunately these would cause a build failure for the V4L2 driver,
+since the APIs have changed on the TI-ST driver.
+
+
+So, I will provide you one patch to make the present driver to work
+with latest ST driver once your tree moves to 2.6.38-rc6+ kernel.
+
+Regards
+Manju
+> >
+> > The following changes since commit db309d3d54c2f721dd1176ce86c63b0381c0a258:
+> >   Mauro Carvalho Chehab (1):
+> >         [media] add support for Encore FM3
+> >
+> > are available in the git repository at:
+> >
+> >   http://dev.omapzoom.org/pub/scm/manju/L24x-btfm.git fm_v4l2_upstream
+> >
+> > Manjunatha Halli (7):
+> >       drivers:media:radio: wl128x: FM Driver common header file
+> >       drivers:media:radio: wl128x: FM Driver V4L2 sources
+> >       drivers:media:radio: wl128x: FM Driver Common sources
+> >       drivers:media:radio: wl128x: FM driver RX sources
+> >       drivers:media:radio: wl128x: FM driver TX sources
+> >       drivers:media:radio: wl128x: Kconfig & Makefile for wl128x driver
+> >       drivers:media:radio: Update Kconfig and Makefile for wl128x FM driver
+> >
+> >  drivers/media/radio/Kconfig               |    3 +
+> >  drivers/media/radio/Makefile              |    1 +
+> >  drivers/media/radio/wl128x/Kconfig        |   17 +
+> >  drivers/media/radio/wl128x/Makefile       |    6 +
+> >  drivers/media/radio/wl128x/fmdrv.h        |  244 +++++
+> >  drivers/media/radio/wl128x/fmdrv_common.c | 1677 +++++++++++++++++++++++++++++
+> >  drivers/media/radio/wl128x/fmdrv_common.h |  402 +++++++
+> >  drivers/media/radio/wl128x/fmdrv_rx.c     |  847 +++++++++++++++
+> >  drivers/media/radio/wl128x/fmdrv_rx.h     |   59 +
+> >  drivers/media/radio/wl128x/fmdrv_tx.c     |  425 ++++++++
+> >  drivers/media/radio/wl128x/fmdrv_tx.h     |   37 +
+> >  drivers/media/radio/wl128x/fmdrv_v4l2.c   |  580 ++++++++++
+> >  drivers/media/radio/wl128x/fmdrv_v4l2.h   |   33 +
+> >  13 files changed, 4331 insertions(+), 0 deletions(-)
+> >  create mode 100644 drivers/media/radio/wl128x/Kconfig
+> >  create mode 100644 drivers/media/radio/wl128x/Makefile
+> >  create mode 100644 drivers/media/radio/wl128x/fmdrv.h
+> >  create mode 100644 drivers/media/radio/wl128x/fmdrv_common.c
+> >  create mode 100644 drivers/media/radio/wl128x/fmdrv_common.h
+> >  create mode 100644 drivers/media/radio/wl128x/fmdrv_rx.c
+> >  create mode 100644 drivers/media/radio/wl128x/fmdrv_rx.h
+> >  create mode 100644 drivers/media/radio/wl128x/fmdrv_tx.c
+> >  create mode 100644 drivers/media/radio/wl128x/fmdrv_tx.h
+> >  create mode 100644 drivers/media/radio/wl128x/fmdrv_v4l2.c
+> >  create mode 100644 drivers/media/radio/wl128x/fmdrv_v4l2.h
+> >
+>
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-media" in
 > the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
