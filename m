@@ -1,49 +1,51 @@
 Return-path: <mchehab@pedra>
-Received: from mga01.intel.com ([192.55.52.88]:36732 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751833Ab1B1AN1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Feb 2011 19:13:27 -0500
-Date: Mon, 28 Feb 2011 01:13:24 +0100
-From: Samuel Ortiz <sameo@linux.intel.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>,
-	alsa-devel@alsa-project.org, broonie@opensource.wolfsonmicro.com,
-	lrg@slimlogic.co.uk, hverkuil@xs4all.nl,
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57837 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753116Ab1B1KPF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Feb 2011 05:15:05 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [st-ericsson] v4l2 vs omx for camera
+Date: Mon, 28 Feb 2011 11:15:13 +0100
+Cc: linaro-dev@lists.linaro.org, Edward Hervey <bilboed@gmail.com>,
+	Discussion of the development of and with GStreamer
+	<gstreamer-devel@lists.freedesktop.org>,
+	Harald Gustafsson <harald.gustafsson@ericsson.com>,
+	Felipe Contreras <felipe.contreras@gmail.com>,
+	"ST-Ericsson LT Mailing List" <st-ericsson@lists.linaro.org>,
 	linux-media@vger.kernel.org
-Subject: Re: [PATCH v19 0/3] TI Wl1273 FM radio driver.
-Message-ID: <20110228001323.GB2749@sortiz-mobl>
-References: <1297757626-3281-1-git-send-email-matti.j.aaltonen@nokia.com>
- <4D5ADB38.4070600@redhat.com>
+References: <AANLkTik=Yc9cb9r7Ro=evRoxd61KVE=8m7Z5+dNwDzVd@mail.gmail.com> <1298733988.2449.4.camel@deumeu> <201102272049.37647.arnd@arndb.de>
+In-Reply-To: <201102272049.37647.arnd@arndb.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4D5ADB38.4070600@redhat.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201102281115.14101.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
-
-On Tue, Feb 15, 2011 at 05:59:52PM -0200, Mauro Carvalho Chehab wrote:
-> Em 15-02-2011 06:13, Matti J. Aaltonen escreveu:
-> > Hello.
+On Sunday 27 February 2011 20:49:37 Arnd Bergmann wrote:
+> On Saturday 26 February 2011, Edward Hervey wrote:
+> > > Are there any gstreamer/linaro/etc core developers attending the ELC in
+> > > San Francisco in April? I think it might be useful to get together
+> > > before, during or after the conference and see if we can turn this
+> > > discussion in something more concrete.
+> > > 
+> > > It seems to me that there is an overall agreement of what should be
+> > > done, but that we are far from anything concrete.
+> > > 
+> > I will be there and this was definitely a topic I intended to talk about.
 > > 
-> > Now I've refactored the code so that the I2C I/O functions are in the 
-> > MFD core. Also now the codec can be compiled without compiling the V4L2
-> > driver.
-> > 
-> > I haven't implemented the audio routing (yet), but I've added a TODO
-> > comment about it in the codec file.
+> > See you there.
 > 
-> Matti,
-> 
-> It looks ok on my eyes. As most of the changes is at the V4L part, it is
-> probably better to merge this patch via my tree.
-I'm fine with that, yes. I'll add my Acked-by once Matti has fixed the minor
-issues I found.
+> I'll also be there. Should we organize an official BOF session for this and
+> invite more people?
 
-Cheers,
-Samuel.
+Any chance of an IRC backchannel and a live audio/video stream for those of us 
+who won't be there ?
 
 -- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+Regards,
+
+Laurent Pinchart
