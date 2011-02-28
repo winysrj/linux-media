@@ -1,120 +1,77 @@
 Return-path: <mchehab@pedra>
-Received: from smtpo17.poczta.onet.pl ([213.180.142.148]:44008 "EHLO
-	smtpo17.poczta.onet.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755126Ab1BGX1d convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Feb 2011 18:27:33 -0500
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-From: tomekbu@op.pl
-Cc: mchehab@redhat.com, dougsland@redhat.com
-To: linux-media@vger.kernel.org
-Date: Tue, 08 Feb 2011 00:27:30 +0100
-Message-Id: <16516113-42e1b2a09001189ca94b34ee8dae5151@pkn6.m5r2.onet>
-Subject: [PATCH] DVB-USB: Remote Control for TwinhanDTV StarBox DVB-S USB and
-	clones
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:9549 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752901Ab1B1RWy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Feb 2011 12:22:54 -0500
+Received: from eu_spt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LHC0065E89KPQ@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 28 Feb 2011 17:22:32 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LHC00EDG89J0W@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 28 Feb 2011 17:22:31 +0000 (GMT)
+Date: Mon, 28 Feb 2011 17:54:51 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: V4L2 'brainstorming' meeting in Warsaw, March 2011
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <ADF13DA15EB3FE4FBA487CCC7BEFDF36190F532AED@bssrvexch01>
+MIME-version: 1.0
+Content-type: text/plain; charset=utf-8
+Content-language: en-US
+Content-transfer-encoding: base64
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-bug fix for Twinhan DTV StarBox USB2.0 DVB-S model no:7021 and clones
-remote control stuff will work now
-#kernel>=2.6.37 highly recommended
-Signed-off-by: Tomasz G. Burak tomekbu@op.pl
----
---- drivers/media/dvb/dvb-usb/vp702x.c.orig 2011-01-05 01:50:19.000000000 +0100
-+++ drivers/media/dvb/dvb-usb/vp702x.c 2011-02-05 17:50:44.000 000000 +0100
-@@ -175,34 +175,81 @@ static int vp702x_streaming_ctrl(struct
-
-/* keys for the enclosed remote control */
-static struct ir_scancode ir_codes_vp702x_table[] = {
-- { 0x0001, KEY_1 },
-- { 0x0002, KEY_2 },
-+ { 0x004d, KEY_SCREEN }, /* Full screen */
-+ { 0x0016, KEY_POWER2 }, /* Power */
-+ { 0x0003, KEY_1 }, /* 1 */
-+ { 0x0001, KEY_2 }, /* 2 */
-+ { 0x0006, KEY_3 }, /* 3 */
-+ { 0x0009, KEY_4 }, /* 4 */
-+ { 0x001d, KEY_5 }, /* 5 */
-+ { 0x001f, KEY_6 }, /* 6 */
-+ { 0x000d, KEY_7 }, /* 6 */
-+ { 0x0019, KEY_8 }, /* 7 */
-+ { 0x001b, KEY_9 }, /* 8 */
-+ { 0x0011, KEY_RECORD }, /* REC */
-+ { 0x0015, KEY_0 }, /* 9 */
-+ { 0x0017, KEY_FAVORITES }, /* Heart symbol - Favorite */
-+ { 0x0040, KEY_REWIND }, /* Rewind */
-+ { 0x0005, KEY_CHANNELUP }, /* CH+ */
-+ { 0x0012, KEY_FASTFORWARD }, /* Forward */
-+ { 0x000a, KEY_VOLUMEDOWN }, /* VOL- */
-+ { 0x0014, KEY_PLAY }, /* Play */
-+ { 0x001e, KEY_VOLUMEUP }, /* VOL+ */
-+ { 0x000e, KEY_PREVIOUS }, /* Recall */
-+ { 0x0002, KEY_CHANNELDOWN }, /* CH- */
-+ { 0x001a, KEY_STOP }, /* Stop */
-+ { 0x004c, KEY_PAUSE }, /* Time Shift - Pause */
-+ { 0x0010, KEY_MUTE }, /* Mute */
-+ { 0x000c, KEY_CANCEL }, /* Cancel */
-+ { 0x0054, KEY_PRINT }, /* Capture */
-+ { 0x0048, KEY_INFO }, /* Preview */
-+ { 0x001c, KEY_EPG }, /* EPG */
-+ { 0x0004, KEY_LIST }, /* RecordList */
-+ { 0x0000, KEY_TAB }, /* Tab */
-+ { 0x000f, KEY_TEXT }, /* Teletext */
-+
-+ { 0x0041, KEY_PREVIOUSSONG },
-+ { 0x0042, KEY_NEXTSONG },
-+ { 0x004b, KEY_UP },
-+ { 0x0051, KEY_DOWN },
-+ { 0x004e, KEY_LEFT },
-+ { 0x0052, KEY_RIGHT },
-+ { 0x004f, KEY_ENTER },
-+ { 0x0054, KEY_AUDIO }, /* MTS - Switch to secondary audio. */
-+ { 0x0013, KEY_CANCEL },
-+ { 0x004a, KEY_CLEAR },
-+ { 0x0043, KEY_SUBTITLE }, /* Subtitle/CC */
-+ { 0x0008, KEY_VIDEO }, /* A/V */
-+ { 0x0007, KEY_SLEEP }, /* Hibernate */
-+ { 0x0045, KEY_ZOOM }, /* Zoom+ */
-+ { 0x0018, KEY_RED},
-+ { 0x0053, KEY_GREEN},
-+ { 0x005e, KEY_YELLOW},
-+ { 0x005f, KEY_BLUE}
-};
-
--/* remote control stuff (does not work with my box) */
-static int vp702x_rc_query(struct dvb_usb_device *d, u32 *event, int
-*state)
-{
-u8 key[10];
-int i;
-
--/* remove the following return to enabled remote querying */
-- return 0;
--
-vp702x_usb_in_op(d,READ_REMOTE_REQ,0,0,key,10);
-
-- deb_rc("remote query key: %x %d\n",key[1],key[1]);
-+ deb_rc("remote query key: %x %d\n",key[3],key[3]);
-
-if (key[1] == 0x44) {
-*state = REMOTE_NO_KEY_PRESSED;
-return 0;
-}
-
-- for (i = 0; i < ARRAY_SIZE(ir_codes_vp702x_table); i++)
-- if (rc5_custom(&ir_codes_vp702x_table[i]) == key[1]) {
-- *state = REMOTE_KEY_PRESSED;
-- *event = ir_codes_vp702x_table[i].keycode;
-- break;
-- }
-+ if (key[2] == key[3] + key[4]) {
-+ for (i = 0; i < ARRAY_SIZE(ir_codes_vp702x_table); i++)
-+ if (rc5_data(&ir_codes_vp702x_table[i]) == key[3]) {
-+ *state = REMOTE_KEY_PRESSED;
-+ *event = ir_codes_vp702x_table[i].keycode;
-+ break;
-+ }
-+ }
-return 0;
-} 
+SGVsbG8gZXZlcnlvbmUhDQoNClRoZSBpZGVhIG9mIHY0bDIgJ2JyYWluc3Rvcm1pbmcnIHNlc3Np
+b24gY2FtZSBvdXQgYWZ0ZXIgYSBmZXcgZGlzY3Vzc2lvbnMgb24gI3Y0bA0KSVJDIGNoYW5uZWwg
+YWJvdXQgdmFyaW91cyBSRkNzIGFuZCBwcm9wb3NhbHMgdGhhdCBoYXZlIGJlZW4gcG9zdGVkIHJl
+Y2VudGx5LiBJDQp3b3VsZCBsaWtlIHRvIGFubm91bmNlIHRoYXQgU2Ftc3VuZyBQb2xhbmQgUiZE
+IENlbnRlciAoU1BSQykgYWdyZWVkIHRvIHRha2UgYW4NCm9wcG9ydHVuaXR5IHRvIG9yZ2FuaXpl
+IHRoaXMgbWVldGluZy4gSSd2ZSBnb3QgYSByZXNlcnZhdGlvbiBmb3IgYSBjb25mZXJlbmNlDQpy
+b29tIGZvciAxNi0xOCBNYXJjaCAyMDExIGluIG91ciBvZmZpY2UuDQoNCkkgd291bGQgbGlrZSB0
+byBpbnZpdGUgYWxsIG9mIFlvdSBmb3IgdGhpcyBWNEwyICdicmFpbnN0b3JtaW5nJyBzZXNzaW9u
+Lg0KDQpJIGhvcGUgdGhhdCB0aGlzIGluaXRpYWwgbWVldGluZyBkYXRlIEkndmUgc2VsZWN0ZWQg
+d2lsbCBmaXQgdXMuIFdlIGhhdmUgMiBvbmx5DQp3ZWVrcyBmb3IgdGhlIHByZXBhcmF0aW9uLCBi
+dXQgSSBob3BlIHdlIHdpbGwgbWFuYWdlLiBJJ20gb3BlbiBmb3IgYW5vdGhlciBkYXRlDQphbmQg
+aWYgcmVxdWlyZWQgSSB3aWxsIGNoYW5nZSB0aGUgcmVzZXJ2YXRpb24uDQoNClRoZSBtZWV0aW5n
+IHdpbGwgbGFzdCAzIGRheXMgd2hhdCBnaXZlcyB1cyBhIGxvdCBvZiBwb3NzaWJpbGl0eSB0byBw
+cmVzZW50IHRoZQ0KaXNzdWVzIGFuZCBwcm9wb3NhbHMsIGRpc2N1c3MgdGhlbSBmdXJ0aGVyIGFu
+ZCB3b3JrIG91dCBhIHNvbHV0aW9uIHRoYXQgd2lsbCBiZQ0KYWNjZXB0ZWQgYnkgb3RoZXJzLg0K
+DQpGcm9tIFNQUkMgNCBkZXZlbG9wZXJzIHdpbGwgYXR0ZW5kIHRoaXMgbWVldGluZzogU3lsd2Vz
+dGVyIE5hd3JvY2tpIChzNXAtZmltYw0KYXV0aG9yKSwgS2FtaWwgRGVic2tpIChzNXAtbWZjIGF1
+dGhvciksIFRvbWFzeiBTdGFuaXNsYXdza2kgKHM1cC10diBhdXRob3IpIGFuZCBtZQ0KKHZpZGVv
+YnVmMiBjby1hdXRob3IgYW5kIGtlcm5lbCBsZWFkIGRldmVsb3BlciBpbiBTUFJDKS4NCg0KQSBx
+dWljayBzdW1tYXJ5IG9mIHRoZSBhYm92ZToNCg0KMS4gVHlwZSBvZiB0aGUgbWVldGluZzoNCiAg
+ICAgICAgVjRMMiAnYnJhaW5zdG9ybWluZycgbWluaS1zdW1taXQgOikNCg0KMi4gUGxhY2U6DQog
+ICAgICAgIFNhbXN1bmcgUG9sYW5kIFImRCBDZW50ZXINCiAgICAgICAgUG9sbmEgMTEgU3RyZWV0
+DQogICAgICAgIDAwLTYzMyBXYXJzYXcsIFBvbGFuZA0KDQozLiBEYXRlOg0KICAgICAgICAxNi0x
+OCBNYXJjaCAyMDExDQoNCjQuIEFnZW5kYQ0KICAgICAgICBUQkQsIGV2ZXJ5b25lIGlzIHdlbGNv
+bWVkIHRvIHB1dCBoaXMgaXRlbXMgaGVyZSA6KQ0KDQpJIHdpbGwgcG9zdCBzb21lIHRyYXZlbCBp
+bmZvcm1hdGlvbiB0b21vcnJvdy4gU1BSQyBvZmZpY2UgaXMgaW4gdGhlIGNlbnRlciBvZiBXYXJz
+YXcsDQp0aGVyZSBhcmUgYSBmZXcgaG90ZWxzIG5lYXJieS4gSSB3aWxsIGNoZWNrIGZvciBhIGZy
+ZWUgcm9vbXMgYW5kIEkgd2lsbCBtYWtlIGENCnJlY29tbWVuZGF0aW9uIHNvb24uIEkgaG9wZSB3
+ZSB3aWxsIG1lZXQgdG9nZXRoZXIgc29vbiENCg0KQmVzdCByZWdhcmRzDQotLQ0KTWFyZWsgU3p5
+cHJvd3NraQ0KU2Ftc3VuZyBQb2xhbmQgUiZEIENlbnRlcg0KDQoNCg0KVGhlIGFib3ZlIG1lc3Nh
+Z2UgaXMgaW50ZW5kZWQgc29sZWx5IGZvciB0aGUgbmFtZWQgYWRkcmVzc2VlIGFuZCBtYXkgY29u
+dGFpbiB0cmFkZSBzZWNyZXQsIGluZHVzdHJpYWwgdGVjaG5vbG9neSBvciBwcml2aWxlZ2VkIGFu
+ZCBjb25maWRlbnRpYWwgaW5mb3JtYXRpb24gb3RoZXJ3aXNlIHByb3RlY3RlZCB1bmRlciBhcHBs
+aWNhYmxlIGxhdy4gQW55IHVuYXV0aG9yaXplZCBkaXNzZW1pbmF0aW9uLCBkaXN0cmlidXRpb24s
+IGNvcHlpbmcgb3IgdXNlIG9mIHRoZSBpbmZvcm1hdGlvbiBjb250YWluZWQgaW4gdGhpcyBjb21t
+dW5pY2F0aW9uIGlzIHN0cmljdGx5IHByb2hpYml0ZWQuIElmIHlvdSBoYXZlIHJlY2VpdmVkIHRo
+aXMgY29tbXVuaWNhdGlvbiBpbiBlcnJvciwgcGxlYXNlIG5vdGlmeSBzZW5kZXIgYnkgZW1haWwg
+YW5kIGRlbGV0ZSB0aGlzIGNvbW11bmljYXRpb24gaW1tZWRpYXRlbHkuDQoNCg0KUG93ecW8c3ph
+IHdpYWRvbW/Fm8SHIHByemV6bmFjem9uYSBqZXN0IHd5xYLEhWN6bmllIGRsYSBhZHJlc2F0YSBu
+aW5pZWpzemVqIHdpYWRvbW/Fm2NpIGkgbW/FvGUgemF3aWVyYcSHIGluZm9ybWFjamUgYsSZZMSF
+Y2UgdGFqZW1uaWPEhSBoYW5kbG93xIUsIHRhamVtbmljxIUgcHJ6ZWRzacSZYmlvcnN0d2Egb3Jh
+eiBpbmZvcm1hY2plIG8gY2hhcmFrdGVyemUgcG91Zm55bSBjaHJvbmlvbmUgb2Jvd2nEhXp1asSF
+Y3ltaSBwcnplcGlzYW1pIHByYXdhLiBKYWtpZWtvbHdpZWsgbmlldXByYXduaW9uZSBpY2ggcm96
+cG93c3plY2huaWFuaWUsIGR5c3RyeWJ1Y2phLCBrb3Bpb3dhbmllIGx1YiB1xbx5Y2llIGluZm9y
+bWFjamkgemF3YXJ0eWNoIHcgcG93ecW8c3plaiB3aWFkb21vxZtjaSBqZXN0IHphYnJvbmlvbmUu
+IEplxZtsaSBvdHJ6eW1hxYJlxZsgcG93ecW8c3rEhSB3aWFkb21vxZvEhyBvbXnFgmtvd28sIHVw
+cnplam1pZSBwcm9zesSZIHBvaW5mb3JtdWogbyB0eW0gZmFrY2llIGRyb2fEhSBtYWlsb3fEhSBu
+YWRhd2PEmSB0ZWogd2lhZG9tb8WbY2kgb3JheiBuaWV6d8WCb2N6bmllIHVzdcWEIHBvd3nFvHN6
+xIUgd2lhZG9tb8WbxIcgemUgc3dvamVnbyBrb21wdXRlcmEuDQo=
