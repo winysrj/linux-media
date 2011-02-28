@@ -1,97 +1,95 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.8]:58808 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754524Ab1BOLu6 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:43818 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753155Ab1B1LT3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Feb 2011 06:50:58 -0500
-Message-ID: <4D5A6874.1080705@corscience.de>
-Date: Tue, 15 Feb 2011 12:50:12 +0100
-From: Thomas Weber <weber@corscience.de>
+	Mon, 28 Feb 2011 06:19:29 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hansverk@cisco.com>
+Subject: Re: [RFC] snapshot mode, flash capabilities and control
+Date: Mon, 28 Feb 2011 12:19:37 +0100
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Kim HeungJun <riverful@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Stanimir Varbanov <svarbanov@mm-sol.com>
+References: <Pine.LNX.4.64.1102240947230.15756@axis700.grange> <201102281207.34106.laurent.pinchart@ideasonboard.com> <201102281217.12538.hansverk@cisco.com>
+In-Reply-To: <201102281217.12538.hansverk@cisco.com>
 MIME-Version: 1.0
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-CC: balbi@ti.com,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	linux-omap@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, Tejun Heo <tj@kernel.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH resend] video: omap24xxcam: Fix compilation
-References: <1297068547-10635-1-git-send-email-weber@corscience.de> <4D5A6353.7040907@maxwell.research.nokia.com> <20110215113717.GN2570@legolas.emea.dhcp.ti.com> <4D5A672A.7040000@samsung.com>
-In-Reply-To: <4D5A672A.7040000@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201102281219.38266.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Am 15.02.2011 12:44, schrieb Sylwester Nawrocki:
-> Hi Felipe,
->
-> On 02/15/2011 12:37 PM, Felipe Balbi wrote:
->> On Tue, Feb 15, 2011 at 01:28:19PM +0200, Sakari Ailus wrote:
->>> Thomas Weber wrote:
->>>> Add linux/sched.h because of missing declaration of TASK_NORMAL.
->>>>
->>>> This patch fixes the following error:
->>>>
->>>> drivers/media/video/omap24xxcam.c: In function
->>>> 'omap24xxcam_vbq_complete':
->>>> drivers/media/video/omap24xxcam.c:415: error: 'TASK_NORMAL' undeclared
->>>> (first use in this function)
->>>> drivers/media/video/omap24xxcam.c:415: error: (Each undeclared
->>>> identifier is reported only once
->>>> drivers/media/video/omap24xxcam.c:415: error: for each function it
->>>> appears in.)
->>>>
->>>> Signed-off-by: Thomas Weber <weber@corscience.de>
->>> Thanks, Thomas!
->> Are we using the same tree ? I don't see anything related to TASK_* on
-> Please have a look at definition of macro wake_up. This where those
-> TASK_* flags are used.
->
->> that function on today's mainline, here's a copy of the function:
->>
->>  387 static void omap24xxcam_vbq_complete(struct omap24xxcam_sgdma *sgdma,
->>  388                                      u32 csr, void *arg)
->>  389 {
->>  390         struct omap24xxcam_device *cam =
->>  391                 container_of(sgdma, struct omap24xxcam_device, sgdma);
->>  392         struct omap24xxcam_fh *fh = cam->streaming->private_data;
->>  393         struct videobuf_buffer *vb = (struct videobuf_buffer *)arg;
->>  394         const u32 csr_error = CAMDMA_CSR_MISALIGNED_ERR
->>  395                 | CAMDMA_CSR_SUPERVISOR_ERR | CAMDMA_CSR_SECURE_ERR
->>  396                 | CAMDMA_CSR_TRANS_ERR | CAMDMA_CSR_DROP;
->>  397         unsigned long flags;
->>  398 
->>  399         spin_lock_irqsave(&cam->core_enable_disable_lock, flags);
->>  400         if (--cam->sgdma_in_queue == 0)
->>  401                 omap24xxcam_core_disable(cam);
->>  402         spin_unlock_irqrestore(&cam->core_enable_disable_lock, flags);
->>  403 
->>  404         do_gettimeofday(&vb->ts);
->>  405         vb->field_count = atomic_add_return(2, &fh->field_count);
->>  406         if (csr & csr_error) {
->>  407                 vb->state = VIDEOBUF_ERROR;
->>  408                 if (!atomic_read(&fh->cam->in_reset)) {
->>  409                         dev_dbg(cam->dev, "resetting camera, csr 0x%x\n", csr);
->>  410                         omap24xxcam_reset(cam);
->>  411                 }
->>  412         } else
->>  413                 vb->state = VIDEOBUF_DONE;
->>  414         wake_up(&vb->done);
->>  415 }
->>
->> see that line 415 is where the function ends. My head is
->> 795abaf1e4e188c4171e3cd3dbb11a9fcacaf505
->>
-> Cheers,
-> Sylwester Nawrocki
-> --
+On Monday 28 February 2011 12:17:12 Hans Verkuil wrote:
+> On Monday, February 28, 2011 12:07:33 Laurent Pinchart wrote:
+> > On Monday 28 February 2011 12:02:41 Guennadi Liakhovetski wrote:
+> > > On Mon, 28 Feb 2011, Hans Verkuil wrote:
 
-Hello Felipe,
+[snip]
 
-in include/linux/wait.h
+> > > > It was my understanding that the streaming would stop if no capture
+> > > > buffers are available, requiring a VIDIOC_STREAMON to get it started
+> > > > again. Of course, there is nothing wrong with stopping the hardware
+> > > > and restarting it again when a new buffer becomes available if that
+> > > > can be done efficiently enough. Just as long as userspace doesn't
+> > > > notice.
+> > > > 
+> > > > Note that there are some problems with this anyway: often restarting
+> > > > DMA requires resyncing to the video stream, which may lead to lost
+> > > > frames. Also, the framecounter in struct v4l2_buffer will probably
+> > > > have failed to count the lost frames.
+> > > > 
+> > > > In my opinion trying this might cause more problems than it solves.
+> > > 
+> > > So, do I understand it right, that currently there are drivers, that
+> > > overwrite the last buffers while waiting for a new one, and ones, that
+> > > stop capture for that time.
+> 
+> Does anyone know which drivers stop capture if there are no buffers
+> available? I'm not aware of any.
 
-#define wake_up(x)            __wake_up(x, TASK_NORMAL, 1, NULL)
+Do you mean stop capture in a way that requires an explicit VIDIOC_STREAMON ? 
+None that I'm aware of (and I think that would violate the spec). If you 
+instead mean pause capture and restart it on the next VIDIOC_QBUF, uvcvideo 
+(somehow) does that, and the OMAP3 ISP does as well.
 
+> > > None of them violate the spec, but the former will not work with the
+> > > "snapshot mode," and the latter will. Since we do not want / cannot
+> > > enforce either way, we do need a way to tell the driver to enter the
+> > > "snapshot mode" even if only to not overwrite the last buffer, right?
+
+[snip]
+
+> > > Right, but sensors do need it. It is not enough to just tell the sensor
+> > > - a per-frame flash is used and let the driver figure out, that it has
+> > > to switch to snapshot mode. The snapshot mode has other effects too,
+> > > e.g., on some sensors it enables the external trigger pin, which some
+> > > designs might want to use also without a flash. Maybe there are also
+> > > some other side effects of such snapshot modes on some other sensors,
+> > > that I'm not aware of.
+> > 
+> > This makes me wonder if we need a snapshot mode at all. Why should we tie
+> > flash, capture trigger (and other such options that you're not aware of
+> > yet :-)) together under a single high-level control (in the general sense,
+> > not to be strictly taken as a V4L2 CID) ? Wouldn't it be better to expose
+> > those features individually instead ? User might want to use the flash in
+> > video capture mode for a stroboscopic effect for instance.
+> 
+> I think this is certainly a good initial approach.
+> 
+> Can someone make a list of things needed for flash/snapshot? So don't look
+> yet at the implementation, but just start a list of functionalities that
+> we need to support. I don't think I have seen that yet.
+
+That's the right approach. I'll ping people internally to see if we have such 
+a list already.
+
+-- 
 Regards,
-Thomas
+
+Laurent Pinchart
