@@ -1,84 +1,122 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:61192 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753002Ab1BNLDp (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:53779 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753444Ab1B1Kra (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Feb 2011 06:03:45 -0500
-Date: Mon, 14 Feb 2011 12:03:39 +0100
-From: Tejun Heo <tj@kernel.org>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Andy Walls <awalls@md.metrocast.net>, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, stoth@kernellabs.com
-Subject: Re: cx23885-input.c does in fact use a workqueue....
-Message-ID: <20110214110339.GC18742@htj.dyndns.org>
-References: <1297647322.19186.61.camel@localhost>
- <20110214043355.GA28090@core.coreip.homeip.net>
+	Mon, 28 Feb 2011 05:47:30 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hansverk@cisco.com>
+Subject: Re: [RFC] snapshot mode, flash capabilities and control
+Date: Mon, 28 Feb 2011 11:47:39 +0100
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Kim HeungJun <riverful@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Stanimir Varbanov <svarbanov@mm-sol.com>
+References: <Pine.LNX.4.64.1102240947230.15756@axis700.grange> <201102281128.58488.laurent.pinchart@ideasonboard.com> <201102281140.31643.hansverk@cisco.com>
+In-Reply-To: <201102281140.31643.hansverk@cisco.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20110214043355.GA28090@core.coreip.homeip.net>
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201102281147.39449.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+On Monday 28 February 2011 11:40:31 Hans Verkuil wrote:
+> On Monday, February 28, 2011 11:28:58 Laurent Pinchart wrote:
+> > On Saturday 26 February 2011 14:56:18 Hans Verkuil wrote:
+> > > On Saturday, February 26, 2011 14:39:54 Sylwester Nawrocki wrote:
+> > > > On 02/26/2011 02:03 PM, Guennadi Liakhovetski wrote:
+> > > > > On Sat, 26 Feb 2011, Hans Verkuil wrote:
+> > > > >> On Friday, February 25, 2011 18:08:07 Guennadi Liakhovetski wrote:
 
-On Sun, Feb 13, 2011 at 08:33:55PM -0800, Dmitry Torokhov wrote:
-> > The cx23885 driver does in fact schedule work for IR input handling:
-> > 
-> > Here's where it is scheduled for CX23888 chips:
-> > 
-> > http://git.linuxtv.org/media_tree.git?a=blob;f=drivers/media/video/cx23885/cx23885-ir.c;h=7125247dd25558678c823ee3262675570c9aa630;hb=HEAD#l76
-> > 
-> > Here's where it is scheduled for CX23885 chips:
-> > 
-> > http://git.linuxtv.org/media_tree.git?a=blob;f=drivers/media/video/cx23885/cx23885-core.c;h=359882419b7f588b7c698dbcfb6a39ddb1603301;hb=HEAD#l1861
+[snip]
 
-Ah, sorry about missing those.
-
-> > The two different chips are handled slightly differently because
+> > > > >>> Well, you usually see in your host driver, that the videobuffer
+> > > > >>> queue is empty (no more free buffers are available), so, you stop
+> > > > >>> streaming immediately too.
+> > > > >> 
+> > > > >> This probably assumes that the host driver knows that this is a
+> > > > >> special queue? Because in general drivers will simply keep
+> > > > >> capturing in the last buffer and not release it to userspace
+> > > > >> until a new buffer is queued.
+> > > > > 
+> > > > > Yes, I know about this spec requirement, but I also know, that not
+> > > > > all drivers do that and not everyone is happy about that
+> > > > > requirement:)
+> > > > 
+> > > > Right, similarly a v4l2 output device is not releasing the last
+> > > > buffer to userland and keeps sending its content until a new buffer
+> > > > is queued to the driver. But in case of capture device the requirement
+> > > > is a pain, since it only causes draining the power source, when from a
+> > > > user view the video capture is stopped. Also it limits a minimum
+> > > > number of buffers that could be used in preview pipeline.
+> > > 
+> > > No, we can't change this. We can of course add some setting that will
+> > > explicitly request different behavior.
+> > > 
+> > > The reason this is done this way comes from the traditional TV/webcam
+> > > viewing apps. If for some reason the app can't keep up with the capture
+> > > rate, then frames should just be dropped silently. All apps assume this
+> > > behavior. In a normal user environment this scenario is perfectly
+> > > normal (e.g. you use a webcam app, then do a CPU intensive make run).
 > > 
-> > a. the CX23888 IR unit is accessable via a PCI register block.  The IR
-> > IRQ can be acknowledged with direct PCI register accesses in an
-> > interrupt context, and the IR pulse FIFO serviced later in a workqueue
-> > context.
-> > 
-> > b. the CX23885 IR unit is accessed over an I2C bus.  The CX23885 A/V IRQ
-> > has to be masked in an interrupt context (with PCI registers accesses).
-> > Then the CX23885 A/V unit's IR IRQ is ack'ed over I2C in a workqueue
-> > context and the IR pulse FIFO is also serviced over I2C in a workqueue
-> > context.
-> > 
-> > 
-> > So what should be done about the flush_scheduled_work()?  I think it
-> > belongs there.
-> > 
+> > Why couldn't drivers drop frames silently without a capture buffer ? If
+> > the hardware can be paused, the driver could just do that when the last
+> > buffer is given back to userspace, and resume the hardware when the next
+> > buffer is queued.
 > 
-> Convert to using threaded irq?
+> It was my understanding that the streaming would stop if no capture buffers
+> are available, requiring a VIDIOC_STREAMON to get it started again. Of
+> course, there is nothing wrong with stopping the hardware and restarting
+> it again when a new buffer becomes available if that can be done
+> efficiently enough. Just as long as userspace doesn't notice.
+> 
+> Note that there are some problems with this anyway: often restarting DMA
+> requires resyncing to the video stream, which may lead to lost frames.
 
-Or
+You'll loose frames when you get a buffer underrun anyway :-)
 
-1. Just flush the work items explicitly using flush_work_sync().
+> Also, the framecounter in struct v4l2_buffer will probably have failed to
+> count the lost frames.
+> 
+> In my opinion trying this might cause more problems than it solves.
 
-2. Create a dedicated workqueue to serve as flushing domain.
+Whether drivers will hold on the last buffer and keep filling it again and 
+again until a new buffer is available, or stop the stream and resume it 
+transparently when a new buffer is queued, should probably be left as a choice 
+to the drivers. I'm in favour of the second option, but I understand that it 
+might be difficult to implement for some hardware. The spec should at least 
+not preclude it when efficient hardware support is available.
 
-The first would look like the following.  Does this look correct?
-
-Thanks.
-
-diff --git a/drivers/media/video/cx23885/cx23885-input.c b/drivers/media/video/cx23885/cx23885-input.c
-index 199b996..e27cedb 100644
---- a/drivers/media/video/cx23885/cx23885-input.c
-+++ b/drivers/media/video/cx23885/cx23885-input.c
-@@ -229,6 +229,9 @@ static void cx23885_input_ir_stop(struct cx23885_dev *dev)
- 		v4l2_subdev_call(dev->sd_ir, ir, rx_s_parameters, &params);
- 		v4l2_subdev_call(dev->sd_ir, ir, rx_g_parameters, &params);
- 	}
-+	flush_work_sync(&dev->cx25840_work);
-+	flush_work_sync(&dev->ir_rx_work);
-+	flush_work_sync(&dev->ir_tx_work);
- }
- 
- static void cx23885_input_ir_close(struct rc_dev *rc)
+> > > I agree that you might want different behavior in an embedded
+> > > environment, but that should be requested explicitly.
+> > > 
+> > > > In still capture mode (single shot) we might want to use only one
+> > > > buffer so adhering to the requirement would not allow this, would
+> > > > it?
+> > > 
+> > > That's one of the problems with still capture mode, yes.
+> > > 
+> > > I have not yet seen a proposal for this that I really like. Most are
+> > > too specific to this use-case (snapshot) and I'd like to see something
+> > > more general.
+> > 
+> > I don't think snapshot capture is *that* special. I don't expect most
+> > embedded SoCs to implement snapshot capture in hardware. What usually
+> > happens is that the hardware provides some support (like two independent
+> > video streams for instance, or the ability to capture a given number of
+> > frames) and the scheduling is performed in userspace. Good quality
+> > snapshot capture requires complex algorithms and involves several
+> > hardware pieces (ISP, flash controller, lens controller, ...), so it
+> > can't be implemented in the kernel.
+> 
+> I agree.
 
 -- 
-tejun
+Regards,
+
+Laurent Pinchart
