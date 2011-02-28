@@ -1,62 +1,41 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:46938 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755190Ab1B1RBp convert rfc822-to-8bit (ORCPT
+Received: from gate2.ipvision.dk ([217.195.186.4]:37366 "EHLO
+	gate2.ipvision.dk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752849Ab1B1QEt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Feb 2011 12:01:45 -0500
-Received: by bwz15 with SMTP id 15so3827745bwz.19
-        for <linux-media@vger.kernel.org>; Mon, 28 Feb 2011 09:01:43 -0800 (PST)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: Andreas Oberritter <obi@linuxtv.org>
-Subject: Re: [PATCH] Prof 7301: switching frontend to stv090x, fixing "LOCK FAILED" issue
-Date: Mon, 28 Feb 2011 19:01:50 +0200
-Cc: Mariusz Bialonczyk <manio@skyboo.net>, linux-media@vger.kernel.org
-References: <4D3358C5.5080706@skyboo.net> <201102281741.26950.liplianin@me.by> <4D6BC8D4.3080001@linuxtv.org>
-In-Reply-To: <4D6BC8D4.3080001@linuxtv.org>
+	Mon, 28 Feb 2011 11:04:49 -0500
+From: Benny Amorsen <benny+usenet@amorsen.dk>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Malte Gell <malte.gell@gmx.de>, linux-media@vger.kernel.org
+Subject: Re: Well supported USB DVB-C device?
+References: <201102280102.17852.malte.gell@gmx.de> <4D6AEC35.8000202@iki.fi>
+Date: Mon, 28 Feb 2011 16:51:13 +0100
+In-Reply-To: <4D6AEC35.8000202@iki.fi> (Antti Palosaari's message of "Mon, 28
+	Feb 2011 02:28:37 +0200")
+Message-ID: <m3pqqcyx72.fsf@ursa.amorsen.dk>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201102281901.50579.liplianin@me.by>
+Content-Type: text/plain; charset=us-ascii
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-В сообщении от 28 февраля 2011 18:09:56 автор Andreas Oberritter написал:
-> Hello Igor,
-> 
-> On 02/28/2011 04:41 PM, Igor M. Liplianin wrote:
-> > В сообщении от 28 февраля 2011 13:37:01 автор Mariusz Bialonczyk написал:
-> >> On 2011-01-16 21:44, Mariusz Bialonczyk wrote:
-> >>> Fixing the very annoying tunning issue. When switching from DVB-S2 to
-> >>> DVB-S, it often took minutes to have a lock.
-> >>> 
-> >>  > [...]
-> >>> 
-> >>> The patch is changing the frontend from stv0900 to stv090x.
-> >>> The card now works much more reliable. There is no problem with
-> >>> switching from DVB-S2 to DVB-S, tunning works flawless.
-> >> 
-> >> Igor, can I get your ACK on this patch?
-> >> 
-> >> regards,
-> > 
-> > Never.
-> > Think first what you are asking for.
-> 
-> for those who aren't involved in the development of these drivers, may I
-> ask you what's the problem with this patch?
-For those who ...
-He asked me to get rid of my driver. Why should I?
-I have 7301, test it myself and see nothing bad with stv0900.
-Obviously, I better patch stv0900 then convert the driver to stv090x.
-And if you ask something then be prepaired to not be given smth.
+Antti Palosaari <crope@iki.fi> writes:
 
-Best Regards
-Igor
-> 
-> Regards,
-> Andreas
+> On 02/28/2011 02:02 AM, Malte Gell wrote:
+>> is there a DVB-C device with USB that is well supported by a recent kernel
+>> (2.6.38)?
+>
+> Anysee E30 C Plus is supported as far as I know.
 
--- 
-Igor M. Liplianin
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+I can confirm that. The only downside so far is that it seems to need a
+lot of hand-holding by the CPU, which in turn leads to increased power
+consumption.
+
+> Note that new revision of Anysee E30 Combo Plus is no longer supported
+> since they changed to new NXP silicon tuner. E30 Combo Plus and E30 C
+> Plus are different devices.
+
+Ouch. I really wish vendors would stop using the same name for different
+devices.
+
+
+/Benny
