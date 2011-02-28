@@ -1,53 +1,71 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:45065 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753902Ab1BWWHZ (ORCPT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:59257 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754124Ab1B1PHl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Feb 2011 17:07:25 -0500
-Received: by eyx24 with SMTP id 24so1489663eyx.19
-        for <linux-media@vger.kernel.org>; Wed, 23 Feb 2011 14:07:24 -0800 (PST)
+	Mon, 28 Feb 2011 10:07:41 -0500
+Date: Mon, 28 Feb 2011 17:07:37 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hansverk@cisco.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Kim HeungJun <riverful@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Stanimir Varbanov <svarbanov@mm-sol.com>
+Subject: Re: [RFC] snapshot mode, flash capabilities and control
+Message-ID: <20110228150737.GC25250@valkosipuli.localdomain>
+References: <Pine.LNX.4.64.1102240947230.15756@axis700.grange>
+ <201102281140.31643.hansverk@cisco.com>
+ <Pine.LNX.4.64.1102281148310.11156@axis700.grange>
+ <201102281207.34106.laurent.pinchart@ideasonboard.com>
+ <Pine.LNX.4.64.1102281220590.11156@axis700.grange>
+ <20110228120304.GA25250@valkosipuli.localdomain>
+ <Pine.LNX.4.64.1102281312380.11156@axis700.grange>
 MIME-Version: 1.0
-In-Reply-To: <1298498021.2408.14.camel@localhost>
-References: <AANLkTikqDACH2rVd6PBVr3eofnJP-UmD0bNDar9RDUoL@mail.gmail.com>
-	<1298498021.2408.14.camel@localhost>
-Date: Wed, 23 Feb 2011 17:07:24 -0500
-Message-ID: <AANLkTingvqS5gYxG5DX4c6kYGGffMpSaFuNyxXqP5oZX@mail.gmail.com>
-Subject: Re: Question on V4L2 S_STD call
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.1102281312380.11156@axis700.grange>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Feb 23, 2011 at 4:53 PM, Andy Walls <awalls@md.metrocast.net> wrote:
-> "When the standard set is ambiguous drivers may return EINVAL or choose
-> any of the requested standards."
+On Mon, Feb 28, 2011 at 01:44:25PM +0100, Guennadi Liakhovetski wrote:
+> On Mon, 28 Feb 2011, Sakari Ailus wrote:
+> 
+> > On Mon, Feb 28, 2011 at 12:37:06PM +0100, Guennadi Liakhovetski wrote:
+> > > So, you'd also need a separate control for external exposure, there are 
+> > > also sensors, that can be configured to different shutter / exposure / 
+> > > readout sequence controlling... No, we don't have to support all that 
+> > > variety, but we have to be aware of it, while making decisions;)
+> > 
+> > Hi Guennadi,
+> > 
+> > Do you mean that there are sensors that can synchronise these parameters at
+> > frame level, or how? There are use cases for that but it doesn't limit to
+> > still capture.
+> 
+> No, sorry, I don't mean exposure value, by "external exposure" I meant the 
+> EXPOSURE pin. But in fact, as I see now, it is just another name for the 
+> TRIGGER pin:( But what we do have on some sensors, e.g., on MT9T031.
 
-Returning -EINVAL is really not desired behavior.
+The partial datasheet of that sensor I was able to find in Aptina website
+suggests there are separate trigger and strobe pins. Trigger is another name
+for global reset which can be performed over the I2C as well, also on that
+sensor.
 
-> If you don't have standard autodetection before the DIF, your
-> safest bet is to have the driver return EINVAL, if you have flags
-> that don't all fall into one of the compound statements in the if()
-> statement.
+> On mt9t031 they distinguish between the beginning of the shutter sequence, 
+> the exposure and the read sequence, and depending on a parameter they 
+> decide which signals to use to start which action.
 
-This can be a bit tricky since setting the standard typically comes
-before the tuning request.  Think of initial startup:  the device
-isn't tuned at all.  You get the S_STD call, but you can't do
-autodetect because you're not tuned to the target frequency yet.  I
-suppose you could reconfigure the DIF after the S_FREQ call, but then
-you will probably have to make the driver wait long enough to get a
-tuning lock (or have some sort of deferred handler code which polls
-for the tuning lock and configured the DIF after the lock is
-achieved).
+The global reset and mechanical shutter control is exclusively related to
+operation with mechanical shutter as far as I know. This is essentially
+extra hardware to enhance one use case a little.
 
-Admittedly I haven't yet dug into how other drivers do this, so I
-figured I would ask around first.  Also, I'm not really sure what sort
-of standard autodetection capabilities there are in the Polaris (I
-should probably talk to the guy who did the DIF work on the cx23885).
+What about newer sensors; do they support this kind of functionality?
 
-Devin
+Regards,
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Sakari Ailus
+sakari dot ailus at iki dot fi
