@@ -1,44 +1,64 @@
 Return-path: <mchehab@pedra>
-Received: from emh04.mail.saunalahti.fi ([62.142.5.110]:58516 "EHLO
-	emh04.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753955Ab1BMKkP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Feb 2011 05:40:15 -0500
-From: =?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org,
-	=?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
-Subject: [PATCH] Fix sysfs rc protocol lookup for rc-5-sz
-Date: Sun, 13 Feb 2011 12:29:15 +0200
-Message-Id: <1297592955-19860-1-git-send-email-a.seppala@gmail.com>
+Received: from rcsinet10.oracle.com ([148.87.113.121]:27892 "EHLO
+	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754421Ab1B1PYM (ORCPT
+	<rfc822;<linux-media@vger.kernel.org>>);
+	Mon, 28 Feb 2011 10:24:12 -0500
+Date: Mon, 28 Feb 2011 09:53:01 -0500
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+To: Jiri Slaby <jslaby@suse.cz>
+Cc: mchehab@infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, jirislaby@gmail.com
+Subject: Re: [PATCH v2 -resend#1 1/1] V4L: videobuf, don't use dma addr as
+ physical
+Message-ID: <20110228145301.GC10846@dumpdata.com>
+References: <1298885822-10083-1-git-send-email-jslaby@suse.cz>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1298885822-10083-1-git-send-email-jslaby@suse.cz>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-With the current matching rules the lookup for rc protocol named rc-5-sz matches with "rc-5" before finding "rc-5-sz". Thus one is able to never enable/disable the rc-5-sz protocol via sysfs.
+On Mon, Feb 28, 2011 at 10:37:02AM +0100, Jiri Slaby wrote:
+> mem->dma_handle is a dma address obtained by dma_alloc_coherent which
+> needn't be a physical address in presence of IOMMU. So ensure we are
 
-Fix the lookup to require an exact match which allows the manipulation of sz protocol.
+Can you add a comment why you are fixing it? Is there a bug report for this?
+Under what conditions did you expose this fault?
 
-Signed-off-by: Antti Seppälä <a.seppala@gmail.com>
----
- drivers/media/rc/rc-main.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+You also might want to mention that "needn't be a physical address as
+a hardware IOMMU can (and most likely) will return a bus address where
+physical != bus address."
 
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 512a2f4..5b4422e 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -850,7 +850,7 @@ static ssize_t store_protocols(struct device *device,
- 			count++;
- 		} else {
- 			for (i = 0; i < ARRAY_SIZE(proto_names); i++) {
--				if (!strncasecmp(tmp, proto_names[i].name, strlen(proto_names[i].name))) {
-+				if (!strcasecmp(tmp, proto_names[i].name)) {
- 					tmp += strlen(proto_names[i].name);
- 					mask = proto_names[i].type;
- 					break;
--- 
-1.7.3.4
+Otherwise you can stick 'Reviewed-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>'
+on it.
 
+> remapping (remap_pfn_range) the right page in __videobuf_mmap_mapper
+> by using virt_to_phys(mem->vaddr) and not mem->dma_handle.
+> 
+> While at it, use PFN_DOWN instead of explicit shift.
+> 
+> Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+> Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+> ---
+>  drivers/media/video/videobuf-dma-contig.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/videobuf-dma-contig.c b/drivers/media/video/videobuf-dma-contig.c
+> index c969111..19d3e4a 100644
+> --- a/drivers/media/video/videobuf-dma-contig.c
+> +++ b/drivers/media/video/videobuf-dma-contig.c
+> @@ -300,7 +300,7 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
+>  
+>  	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+>  	retval = remap_pfn_range(vma, vma->vm_start,
+> -				 mem->dma_handle >> PAGE_SHIFT,
+> +				 PFN_DOWN(virt_to_phys(mem->vaddr))
+>  				 size, vma->vm_page_prot);
+>  	if (retval) {
+>  		dev_err(q->dev, "mmap: remap failed with error %d. ", retval);
+> -- 
+> 1.7.4.1
+> 
