@@ -1,122 +1,248 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1426 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754303Ab1BDKcJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Feb 2011 05:32:09 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v6 06/11] v4l: subdev: Add a new file operations class
-Date: Fri, 4 Feb 2011 11:31:52 +0100
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-References: <1296131456-30000-1-git-send-email-laurent.pinchart@ideasonboard.com> <1296131456-30000-7-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1296131456-30000-7-git-send-email-laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201102041131.52913.hverkuil@xs4all.nl>
+Received: from smtp.nokia.com ([147.243.1.48]:51672 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752950Ab1B1LDP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Feb 2011 06:03:15 -0500
+From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+To: alsa-devel@alsa-project.org, broonie@opensource.wolfsonmicro.com,
+	lrg@slimlogic.co.uk, mchehab@redhat.com, hverkuil@xs4all.nl,
+	sameo@linux.intel.com, linux-media@vger.kernel.org
+Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Subject: [PATCH v20 1/3] MFD: Wl1273 FM radio core: Add I2C IO functions.
+Date: Mon, 28 Feb 2011 13:02:29 +0200
+Message-Id: <1298890951-23339-2-git-send-email-matti.j.aaltonen@nokia.com>
+In-Reply-To: <1298890951-23339-1-git-send-email-matti.j.aaltonen@nokia.com>
+References: <1298890951-23339-1-git-send-email-matti.j.aaltonen@nokia.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thursday, January 27, 2011 13:30:51 Laurent Pinchart wrote:
-> V4L2 sub-devices store pad formats and crop settings in the file handle.
-> To let drivers initialize those settings properly, add a file::open
-> operation that is called when the subdev is opened as well as a
-> corresponding file::close operation.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/video/v4l2-subdev.c |   13 ++++++++++---
->  include/media/v4l2-subdev.h       |   10 ++++++++++
->  2 files changed, 20 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-> index 15449fc..0f904e2 100644
-> --- a/drivers/media/video/v4l2-subdev.c
-> +++ b/drivers/media/video/v4l2-subdev.c
-> @@ -61,7 +61,7 @@ static int subdev_open(struct file *file)
->  	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
->  	struct v4l2_subdev_fh *subdev_fh;
->  #if defined(CONFIG_MEDIA_CONTROLLER)
-> -	struct media_entity *entity;
-> +	struct media_entity *entity = NULL;
->  #endif
->  	int ret;
->  
-> @@ -104,9 +104,17 @@ static int subdev_open(struct file *file)
->  	}
->  #endif
->  
-> +	ret = v4l2_subdev_call(sd, file, open, subdev_fh);
-> +	if (ret < 0 && ret != -ENOIOCTLCMD)
-> +		goto err;
-> +
->  	return 0;
->  
->  err:
-> +#if defined(CONFIG_MEDIA_CONTROLLER)
-> +	if (entity)
-> +		media_entity_put(entity);
-> +#endif
->  	v4l2_fh_del(&subdev_fh->vfh);
->  	v4l2_fh_exit(&subdev_fh->vfh);
->  	subdev_fh_free(subdev_fh);
-> @@ -117,13 +125,12 @@ err:
->  
->  static int subdev_close(struct file *file)
->  {
-> -#if defined(CONFIG_MEDIA_CONTROLLER)
->  	struct video_device *vdev = video_devdata(file);
->  	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
-> -#endif
->  	struct v4l2_fh *vfh = file->private_data;
->  	struct v4l2_subdev_fh *subdev_fh = to_v4l2_subdev_fh(vfh);
->  
-> +	v4l2_subdev_call(sd, file, close, subdev_fh);
->  #if defined(CONFIG_MEDIA_CONTROLLER)
->  	if (sd->v4l2_dev->mdev)
->  		media_entity_put(&sd->entity);
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index f8704ff..af704df 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -175,6 +175,15 @@ struct v4l2_subdev_core_ops {
->  				 struct v4l2_event_subscription *sub);
->  };
->  
-> +/* open: called when the subdev device node is opened by an application.
-> +
-> +   close: called when the subdev device node is close.
+Add I2C IO functions.
+Change the IO operation from read to write in wl1273_fm_set_volume.
+Update the year of the copyright statement.
+Remove two unnecessary calls to i2c_set_clientdata.
 
-is close -> is closed
+Signed-off-by: Matti J. Aaltonen <matti.j.aaltonen@nokia.com>
+---
+ drivers/mfd/Kconfig             |    2 +-
+ drivers/mfd/wl1273-core.c       |  149 ++++++++++++++++++++++++++++++++++++++-
+ include/linux/mfd/wl1273-core.h |    2 +
+ 3 files changed, 149 insertions(+), 4 deletions(-)
 
-> + */
-> +struct v4l2_subdev_file_ops {
-> +	int (*open)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh);
-> +	int (*close)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh);
-> +};
-> +
->  /* s_mode: switch the tuner to a specific tuner mode. Replacement of s_radio.
->  
->     s_radio: v4l device was opened in Radio mode, to be replaced by s_mode.
-> @@ -416,6 +425,7 @@ struct v4l2_subdev_ir_ops {
->  
->  struct v4l2_subdev_ops {
->  	const struct v4l2_subdev_core_ops	*core;
-> +	const struct v4l2_subdev_file_ops	*file;
-
-This shouldn't be part of this struct, this should be part of struct v4l2_subdev.
-These ops must *not* be called by master drivers, so they don't belong here.
-
->  	const struct v4l2_subdev_tuner_ops	*tuner;
->  	const struct v4l2_subdev_audio_ops	*audio;
->  	const struct v4l2_subdev_video_ops	*video;
-> 
-
-Regards,
-
-	Hans
-
+diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+index fd01836..9db079b 100644
+--- a/drivers/mfd/Kconfig
++++ b/drivers/mfd/Kconfig
+@@ -615,7 +615,7 @@ config MFD_VX855
+ 	  and/or vx855_gpio drivers for this to do anything useful.
+ 
+ config MFD_WL1273_CORE
+-	tristate
++	tristate "Support for TI WL1273 FM radio."
+ 	depends on I2C
+ 	select MFD_CORE
+ 	default n
+diff --git a/drivers/mfd/wl1273-core.c b/drivers/mfd/wl1273-core.c
+index d2ecc24..4025a4b 100644
+--- a/drivers/mfd/wl1273-core.c
++++ b/drivers/mfd/wl1273-core.c
+@@ -1,7 +1,7 @@
+ /*
+  * MFD driver for wl1273 FM radio and audio codec submodules.
+  *
+- * Copyright (C) 2010 Nokia Corporation
++ * Copyright (C) 2011 Nokia Corporation
+  * Author: Matti Aaltonen <matti.j.aaltonen@nokia.com>
+  *
+  * This program is free software; you can redistribute it and/or modify
+@@ -31,6 +31,145 @@ static struct i2c_device_id wl1273_driver_id_table[] = {
+ };
+ MODULE_DEVICE_TABLE(i2c, wl1273_driver_id_table);
+ 
++static int wl1273_fm_read_reg(struct wl1273_core *core, u8 reg, u16 *value)
++{
++	struct i2c_client *client = core->client;
++	u8 b[2];
++	int r;
++
++	r = i2c_smbus_read_i2c_block_data(client, reg, sizeof(b), b);
++	if (r != 2) {
++		dev_err(&client->dev, "%s: Read: %d fails.\n", __func__, reg);
++		return -EREMOTEIO;
++	}
++
++	*value = (u16)b[0] << 8 | b[1];
++
++	return 0;
++}
++
++static int wl1273_fm_write_cmd(struct wl1273_core *core, u8 cmd, u16 param)
++{
++	struct i2c_client *client = core->client;
++	u8 buf[] = { (param >> 8) & 0xff, param & 0xff };
++	int r;
++
++	r = i2c_smbus_write_i2c_block_data(client, cmd, sizeof(buf), buf);
++	if (r) {
++		dev_err(&client->dev, "%s: Cmd: %d fails.\n", __func__, cmd);
++		return r;
++	}
++
++	return 0;
++}
++
++static int wl1273_fm_write_data(struct wl1273_core *core, u8 *data, u16 len)
++{
++	struct i2c_client *client = core->client;
++	struct i2c_msg msg;
++	int r;
++
++	msg.addr = client->addr;
++	msg.flags = 0;
++	msg.buf = data;
++	msg.len = len;
++
++	r = i2c_transfer(client->adapter, &msg, 1);
++	if (r != 1) {
++		dev_err(&client->dev, "%s: write error.\n", __func__);
++		return -EREMOTEIO;
++	}
++
++	return 0;
++}
++
++/**
++ * wl1273_fm_set_audio() -	Set audio mode.
++ * @core:			A pointer to the device struct.
++ * @new_mode:			The new audio mode.
++ *
++ * Audio modes are WL1273_AUDIO_DIGITAL and WL1273_AUDIO_ANALOG.
++ */
++static int wl1273_fm_set_audio(struct wl1273_core *core, unsigned int new_mode)
++{
++	int r = 0;
++
++	if (core->mode == WL1273_MODE_OFF ||
++	    core->mode == WL1273_MODE_SUSPENDED)
++		return -EPERM;
++
++	if (core->mode == WL1273_MODE_RX && new_mode == WL1273_AUDIO_DIGITAL) {
++		r = wl1273_fm_write_cmd(core, WL1273_PCM_MODE_SET,
++					WL1273_PCM_DEF_MODE);
++		if (r)
++			goto out;
++
++		r = wl1273_fm_write_cmd(core, WL1273_I2S_MODE_CONFIG_SET,
++					core->i2s_mode);
++		if (r)
++			goto out;
++
++		r = wl1273_fm_write_cmd(core, WL1273_AUDIO_ENABLE,
++					WL1273_AUDIO_ENABLE_I2S);
++		if (r)
++			goto out;
++
++	} else if (core->mode == WL1273_MODE_RX &&
++		   new_mode == WL1273_AUDIO_ANALOG) {
++		r = wl1273_fm_write_cmd(core, WL1273_AUDIO_ENABLE,
++					WL1273_AUDIO_ENABLE_ANALOG);
++		if (r)
++			goto out;
++
++	} else if (core->mode == WL1273_MODE_TX &&
++		   new_mode == WL1273_AUDIO_DIGITAL) {
++		r = wl1273_fm_write_cmd(core, WL1273_I2S_MODE_CONFIG_SET,
++					core->i2s_mode);
++		if (r)
++			goto out;
++
++		r = wl1273_fm_write_cmd(core, WL1273_AUDIO_IO_SET,
++					WL1273_AUDIO_IO_SET_I2S);
++		if (r)
++			goto out;
++
++	} else if (core->mode == WL1273_MODE_TX &&
++		   new_mode == WL1273_AUDIO_ANALOG) {
++		r = wl1273_fm_write_cmd(core, WL1273_AUDIO_IO_SET,
++					WL1273_AUDIO_IO_SET_ANALOG);
++		if (r)
++			goto out;
++	}
++
++	core->audio_mode = new_mode;
++out:
++	return r;
++}
++
++/**
++ * wl1273_fm_set_volume() -	Set volume.
++ * @core:			A pointer to the device struct.
++ * @volume:			The new volume value.
++ */
++static int wl1273_fm_set_volume(struct wl1273_core *core, unsigned int volume)
++{
++	u16 val;
++	int r;
++
++	if (volume > WL1273_MAX_VOLUME)
++		return -EINVAL;
++
++	if (core->volume == volume)
++		return 0;
++
++	r = wl1273_fm_write_cmd(core, WL1273_VOLUME_SET, volume);
++	if (r)
++		return r;
++
++	core->volume = volume;
++	return 0;
++}
++
+ static int wl1273_core_remove(struct i2c_client *client)
+ {
+ 	struct wl1273_core *core = i2c_get_clientdata(client);
+@@ -38,7 +177,6 @@ static int wl1273_core_remove(struct i2c_client *client)
+ 	dev_dbg(&client->dev, "%s\n", __func__);
+ 
+ 	mfd_remove_devices(&client->dev);
+-	i2c_set_clientdata(client, NULL);
+ 	kfree(core);
+ 
+ 	return 0;
+@@ -83,6 +221,12 @@ static int __devinit wl1273_core_probe(struct i2c_client *client,
+ 	cell->data_size = sizeof(core);
+ 	children++;
+ 
++	core->read = wl1273_fm_read_reg;
++	core->write = wl1273_fm_write_cmd;
++	core->write_data = wl1273_fm_write_data;
++	core->set_audio = wl1273_fm_set_audio;
++	core->set_volume = wl1273_fm_set_volume;
++
+ 	if (pdata->children & WL1273_CODEC_CHILD) {
+ 		cell = &core->cells[children];
+ 
+@@ -104,7 +248,6 @@ static int __devinit wl1273_core_probe(struct i2c_client *client,
+ 	return 0;
+ 
+ err:
+-	i2c_set_clientdata(client, NULL);
+ 	pdata->free_resources();
+ 	kfree(core);
+ 
+diff --git a/include/linux/mfd/wl1273-core.h b/include/linux/mfd/wl1273-core.h
+index 9787293..db2f3f4 100644
+--- a/include/linux/mfd/wl1273-core.h
++++ b/include/linux/mfd/wl1273-core.h
+@@ -280,7 +280,9 @@ struct wl1273_core {
+ 
+ 	struct i2c_client *client;
+ 
++	int (*read)(struct wl1273_core *core, u8, u16 *);
+ 	int (*write)(struct wl1273_core *core, u8, u16);
++	int (*write_data)(struct wl1273_core *core, u8 *, u16);
+ 	int (*set_audio)(struct wl1273_core *core, unsigned int);
+ 	int (*set_volume)(struct wl1273_core *core, unsigned int);
+ };
 -- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+1.6.1.3
+
