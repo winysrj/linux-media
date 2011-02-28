@@ -1,29 +1,141 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1569 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751753Ab1BENCX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Feb 2011 08:02:23 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: Re: [GIT PATCHES FOR 2.6.39] Remove se401, usbvideo, dabusb and firedtv-1394
-Date: Sat, 5 Feb 2011 14:02:12 +0100
-Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Deti Fliegl <deti@fliegl.de>
-References: <201102051353.11695.hverkuil@xs4all.nl>
-In-Reply-To: <201102051353.11695.hverkuil@xs4all.nl>
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:48559 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752831Ab1B1Kt1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Feb 2011 05:49:27 -0500
+From: Hans Verkuil <hansverk@cisco.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC] snapshot mode, flash capabilities and control
+Date: Mon, 28 Feb 2011 11:40:31 +0100
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Kim HeungJun <riverful@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Stanimir Varbanov <svarbanov@mm-sol.com>
+References: <Pine.LNX.4.64.1102240947230.15756@axis700.grange> <201102261456.18736.hverkuil@xs4all.nl> <201102281128.58488.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201102281128.58488.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201102051402.12145.hverkuil@xs4all.nl>
+Message-Id: <201102281140.31643.hansverk@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Ignore this, I was too quick and I have to fix a linking issue first.
+On Monday, February 28, 2011 11:28:58 Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> On Saturday 26 February 2011 14:56:18 Hans Verkuil wrote:
+> > On Saturday, February 26, 2011 14:39:54 Sylwester Nawrocki wrote:
+> > > On 02/26/2011 02:03 PM, Guennadi Liakhovetski wrote:
+> > > > On Sat, 26 Feb 2011, Hans Verkuil wrote:
+> > > >> On Friday, February 25, 2011 18:08:07 Guennadi Liakhovetski wrote:
+> > > >> 
+> > > >> <snip>
+> > > >> 
+> > > >>>>> configure the sensor to react on an external trigger provided by
+> > > >>>>> the flash controller is needed, and that could be a control on the
+> > > >>>>> flash sub-device. What we would probably miss is a way to issue a
+> > > >>>>> STREAMON with a number of frames to capture. A new ioctl is
+> > > >>>>> probably needed there. Maybe that would be an opportunity to
+> > > >>>>> create a new stream-control ioctl that could replace STREAMON and
+> > > >>>>> STREAMOFF in the long term (we could extend the subdev s_stream
+> > > >>>>> operation, and easily map STREAMON and STREAMOFF to the new ioctl
+> > > >>>>> in video_ioctl2 internally).
+> > > >>>> 
+> > > >>>> How would this be different from queueing n frames (in total; count
+> > > >>>> dequeueing, too) and issuing streamon? --- Except that when the 
+last
+> > > >>>> frame is processed the pipeline could be stopped already before
+> > > >>>> issuing STREAMOFF. That does indeed have some benefits. Something
+> > > >>>> else?
+> > > >>> 
+> > > >>> Well, you usually see in your host driver, that the videobuffer 
+queue
+> > > >>> is empty (no more free buffers are available), so, you stop
+> > > >>> streaming immediately too.
+> > > >> 
+> > > >> This probably assumes that the host driver knows that this is a
+> > > >> special queue? Because in general drivers will simply keep capturing
+> > > >> in the last buffer and not release it to userspace until a new buffer
+> > > >> is queued.
+> > > > 
+> > > > Yes, I know about this spec requirement, but I also know, that not all
+> > > > drivers do that and not everyone is happy about that requirement:)
+> > > 
+> > > Right, similarly a v4l2 output device is not releasing the last buffer
+> > > to userland and keeps sending its content until a new buffer is queued 
+to
+> > > the driver. But in case of capture device the requirement is a pain,
+> > > since it only causes draining the power source, when from a user view
+> > > the video capture is stopped. Also it limits a minimum number of buffers
+> > > that could be used in preview pipeline.
+> > 
+> > No, we can't change this. We can of course add some setting that will
+> > explicitly request different behavior.
+> > 
+> > The reason this is done this way comes from the traditional TV/webcam
+> > viewing apps. If for some reason the app can't keep up with the capture
+> > rate, then frames should just be dropped silently. All apps assume this
+> > behavior. In a normal user environment this scenario is perfectly normal
+> > (e.g. you use a webcam app, then do a CPU intensive make run).
+> 
+> Why couldn't drivers drop frames silently without a capture buffer ? If the 
+> hardware can be paused, the driver could just do that when the last buffer 
+is 
+> given back to userspace, and resume the hardware when the next buffer is 
+> queued.
+
+It was my understanding that the streaming would stop if no capture buffers 
+are available, requiring a VIDIOC_STREAMON to get it started again. Of course, 
+there is nothing wrong with stopping the hardware and restarting it again when 
+a new buffer becomes available if that can be done efficiently enough. Just as 
+long as userspace doesn't notice.
+
+Note that there are some problems with this anyway: often restarting DMA 
+requires resyncing to the video stream, which may lead to lost frames. Also, 
+the framecounter in struct v4l2_buffer will probably have failed to count the 
+lost frames.
+
+In my opinion trying this might cause more problems than it solves.
+
+> > I agree that you might want different behavior in an embedded environment,
+> > but that should be requested explicitly.
+> > 
+> > > In still capture mode (single shot) we might want to use only one buffer
+> > > so adhering to the requirement would not allow this, would it?
+> > 
+> > That's one of the problems with still capture mode, yes.
+> > 
+> > I have not yet seen a proposal for this that I really like. Most are too
+> > specific to this use-case (snapshot) and I'd like to see something more
+> > general.
+> 
+> I don't think snapshot capture is *that* special. I don't expect most 
+embedded 
+> SoCs to implement snapshot capture in hardware. What usually happens is that 
+> the hardware provides some support (like two independent video streams for 
+> instance, or the ability to capture a given number of frames) and the 
+> scheduling is performed in userspace. Good quality snapshot capture requires 
+> complex algorithms and involves several hardware pieces (ISP, flash 
+> controller, lens controller, ...), so it can't be implemented in the kernel.
+
+I agree.
 
 Regards,
 
 	Hans
 
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
