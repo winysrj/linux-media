@@ -1,68 +1,44 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:3360 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750997Ab1BIPvi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Feb 2011 10:51:38 -0500
-Message-ID: <4D52B7FA.7080606@redhat.com>
-Date: Wed, 09 Feb 2011 13:51:22 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Stefan Richter <stefanr@s5r6.in-berlin.de>
-CC: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: firedtv and removal of old IEEE1394 stack
-References: <201102031706.12714.hverkuil@xs4all.nl>	<20110205152122.3b566ef0@stein>	<20110205153215.03d55743@stein>	<4D5236E5.8060207@hoogenraad.net> <20110209142204.6eb445de@stein>
-In-Reply-To: <20110209142204.6eb445de@stein>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:61812 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752098Ab1B1WeS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Feb 2011 17:34:18 -0500
+Received: by fxm17 with SMTP id 17so4260910fxm.19
+        for <linux-media@vger.kernel.org>; Mon, 28 Feb 2011 14:34:17 -0800 (PST)
+References: <201101091836.58104.pboettcher@kernellabs.com> <4D51EFFB.90201@users.sourceforge.net> <9C5EED67-B096-4C8C-8269-CDDCE24F92A7@wilsonet.com> <4D5D0AA0.3070505@users.sourceforge.net>
+In-Reply-To: <4D5D0AA0.3070505@users.sourceforge.net>
+Mime-Version: 1.0 (Apple Message framework v1082)
+Content-Type: text/plain; charset=us-ascii
+Message-Id: <AEF55519-A61C-411D-AF9D-9E4ED269694F@wilsonet.com>
+Content-Transfer-Encoding: 7bit
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Jarod Wilson <jarod@wilsonet.com>
+Subject: Re: MCEUSB: falsly claims mass storage device
+Date: Mon, 28 Feb 2011 17:34:30 -0500
+To: Lucian Muresan <lucianm@users.sourceforge.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 09-02-2011 11:22, Stefan Richter escreveu:
-> On Feb 09 Jan Hoogenraad wrote:
->> For a problem description, and workaround, see:
->>
->> http://linuxtv.org/hg/~jhoogenraad/ubuntu-firedtv/
+On Feb 17, 2011, at 6:46 AM, Lucian Muresan wrote:
+
+> On 09.02.2011 06:19, Jarod Wilson wrote:
+> [...]
+>> Looks like bInterfaceNumber == 2 on this device. The patch to handle this
+>> similar to the conexant polaris devices should be pretty trivial. I'll
+>> try to get something together tomorrow.
 > 
-> Do you mean
-> http://linuxtv.org/hg/~jhoogenraad/ubuntu-firedtv/rev/c8e14191e48d
-> "Disable FIREDTV for debian/ubuntu distributions with bad header files"?
+> Hi,
 > 
-> I still don't see what the problem is.  If you have a kernel without
-> drivers/ieee1394/*, then you also must have a kernel .config without
-> CONFIG_IEEE1394.  Et voilà, firedtv builds fine (if CONFIG_FIREWIRE is y
-> or m).  So, please make sure that .config and kernel sources match.
-> 
-> IOW the workaround c8e14191e48d addresses the wrong issue.  Don't disable
-> CONFIG_DVB_FIREDTV; just make sure that the dependency of
-> CONFIG_DVB_FIREDTV_IEEE1394 on CONFIG_IEEE1394 is taken into account, like
-> in the mainline kernel's build system.
+> any news on this one?
 
-The out-of-tree build system tries to match the CONFIG_foo symbols found on
-distros where this is possible, but sometimes the config symbol changes its
-name. So, the out-of-tree building system has also a per-kernel version list
-of drivers that need to be disabled with some older kernel versions (vanilla
-kernels), where the driver is known to not work or compile.
+I suck, but I have a patch in my local tree now. Need to build and
+quickly test it to make sure it doesn't break the devices I've got,
+then I'll get it posted.
 
-The problem arises when a distro-patched kernel uses a newer version of a 
-core ABI and not providing backport support for the old ABI.
+-- 
+Jarod Wilson
+jarod@wilsonet.com
 
-Ubuntu has a bad history of doing things like that. On some cases, their "devel" 
-kernel packages don't match some drivers shipped with it.
 
-For example, some (all?) versions of Ubuntu distribute the alsa headers at the
-kernel package that don't match the alsa core ABI found on it. So, if you 
-compile a kernel driver based on it, the driver won't work, as symbols won't
-match (to be worse, it generally compiles fine).
 
-The firewire and alsa drivers compile and run fine on other distros like Fedora 
-and RHEL. I never tried with other distros, so I can't provide a more complete
-list, but I suspect that it will also work with Suse/Open Suse, as they also try
-to preserve ABI backports.
-
-The only fix for it is to disable the compilation of such drivers for the 
-out-of-tree build if a broken distro kernel is detected. That's the approach 
-of Jan's patches.
-
-Cheers,
-Mauro.
