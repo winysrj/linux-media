@@ -1,56 +1,62 @@
 Return-path: <mchehab@pedra>
-Received: from rtp-iport-1.cisco.com ([64.102.122.148]:24829 "EHLO
-	rtp-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753175Ab1B1KMa (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.8]:50857 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753915Ab1B1Moc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Feb 2011 05:12:30 -0500
-From: Hans Verkuil <hansverk@cisco.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [st-ericsson] v4l2 vs omx for camera
-Date: Mon, 28 Feb 2011 11:14:27 +0100
-Cc: linaro-dev@lists.linaro.org, Edward Hervey <bilboed@gmail.com>,
-	Discussion of the development of and with GStreamer
-	<gstreamer-devel@lists.freedesktop.org>,
-	Harald Gustafsson <harald.gustafsson@ericsson.com>,
-	Felipe Contreras <felipe.contreras@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"ST-Ericsson LT Mailing List" <st-ericsson@lists.linaro.org>,
-	linux-media@vger.kernel.org
-References: <AANLkTik=Yc9cb9r7Ro=evRoxd61KVE=8m7Z5+dNwDzVd@mail.gmail.com> <1298733988.2449.4.camel@deumeu> <201102272049.37647.arnd@arndb.de>
-In-Reply-To: <201102272049.37647.arnd@arndb.de>
+	Mon, 28 Feb 2011 07:44:32 -0500
+Date: Mon, 28 Feb 2011 13:44:25 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hansverk@cisco.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Kim HeungJun <riverful@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Stanimir Varbanov <svarbanov@mm-sol.com>
+Subject: Re: [RFC] snapshot mode, flash capabilities and control
+In-Reply-To: <20110228120304.GA25250@valkosipuli.localdomain>
+Message-ID: <Pine.LNX.4.64.1102281312380.11156@axis700.grange>
+References: <Pine.LNX.4.64.1102240947230.15756@axis700.grange>
+ <201102281140.31643.hansverk@cisco.com> <Pine.LNX.4.64.1102281148310.11156@axis700.grange>
+ <201102281207.34106.laurent.pinchart@ideasonboard.com>
+ <Pine.LNX.4.64.1102281220590.11156@axis700.grange>
+ <20110228120304.GA25250@valkosipuli.localdomain>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201102281114.27692.hansverk@cisco.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sunday, February 27, 2011 20:49:37 Arnd Bergmann wrote:
-> On Saturday 26 February 2011, Edward Hervey wrote:
-> > > 
-> > > Are there any gstreamer/linaro/etc core developers attending the ELC in 
-San Francisco
-> > > in April? I think it might be useful to get together before, during or 
-after the
-> > > conference and see if we can turn this discussion in something more 
-concrete.
-> > > 
-> > > It seems to me that there is an overall agreement of what should be 
-done, but
-> > > that we are far from anything concrete.
-> > > 
-> > 
-> >   I will be there and this was definitely a topic I intended to talk
-> > about.
-> >   See you there.
+On Mon, 28 Feb 2011, Sakari Ailus wrote:
+
+> On Mon, Feb 28, 2011 at 12:37:06PM +0100, Guennadi Liakhovetski wrote:
+> > So, you'd also need a separate control for external exposure, there are 
+> > also sensors, that can be configured to different shutter / exposure / 
+> > readout sequence controlling... No, we don't have to support all that 
+> > variety, but we have to be aware of it, while making decisions;)
 > 
-> I'll also be there. Should we organize an official BOF session for this and
-> invite more people?
+> Hi Guennadi,
+> 
+> Do you mean that there are sensors that can synchronise these parameters at
+> frame level, or how? There are use cases for that but it doesn't limit to
+> still capture.
 
-I think that is an excellent idea. Do you want to organize that? (Always the
-penalty for suggesting this first :-) )
+No, sorry, I don't mean exposure value, by "external exposure" I meant the 
+EXPOSURE pin. But in fact, as I see now, it is just another name for the 
+TRIGGER pin:( But what we do have on some sensors, e.g., on MT9T031.
 
-Regards,
+On mt9t031 they distinguish between the beginning of the shutter sequence, 
+the exposure and the read sequence, and depending on a parameter they 
+decide which signals to use to start which action.
 
-	Hans
+> Are there any public datasheets that you know of on these?
+
+I think, I just searched for mt9t031 and found a datasheet somewhere in 
+the wild...
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
