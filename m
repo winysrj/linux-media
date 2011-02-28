@@ -1,25 +1,20 @@
 Return-path: <mchehab@pedra>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <jean.bruenn@ip-minds.de>) id 1PsHAG-0002JB-RL
-	for linux-dvb@linuxtv.org; Wed, 23 Feb 2011 17:02:10 +0100
-Received: from alia.ip-minds.de ([84.201.38.2])
-	by mail.tu-berlin.de (exim-4.74/mailfrontend-a) with esmtp
-	for <linux-dvb@linuxtv.org>
-	id 1PsHAC-0006sO-Aa; Wed, 23 Feb 2011 17:02:08 +0100
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by alia.ip-minds.de (Postfix) with ESMTP id 3685B66B0EA
-	for <linux-dvb@linuxtv.org>; Wed, 23 Feb 2011 17:02:23 +0100 (CET)
-Received: from alia.ip-minds.de ([127.0.0.1])
-	by localhost (alia.ip-minds.de [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id NrYOrKgJiC59 for <linux-dvb@linuxtv.org>;
-	Wed, 23 Feb 2011 17:02:23 +0100 (CET)
-To: <linux-dvb@linuxtv.org>
+	(envelope-from <thomas.amland@gmail.com>) id 1Pu4e5-0006WX-Ag
+	for linux-dvb@linuxtv.org; Mon, 28 Feb 2011 16:04:21 +0100
+Received: from mail-gw0-f41.google.com ([74.125.83.41])
+	by mail.tu-berlin.de (exim-4.74/mailfrontend-c) with esmtps
+	[TLSv1:RC4-SHA:128] for <linux-dvb@linuxtv.org>
+	id 1Pu4e4-0007Yk-3L; Mon, 28 Feb 2011 16:04:21 +0100
+Received: by gwaa12 with SMTP id a12so2150402gwa.28
+	for <linux-dvb@linuxtv.org>; Mon, 28 Feb 2011 07:04:17 -0800 (PST)
 MIME-Version: 1.0
-Date: Wed, 23 Feb 2011 17:02:22 +0100
-From: <jean.bruenn@ip-minds.de>
-Message-ID: <a8fa184f23be2c90023a3ecf7d6b2017@localhost>
-Subject: [linux-dvb] =?utf-8?q?WinTV_1400_broken_with_recent_versions=3F?=
+From: Thomas Amland <thomas.amland@gmail.com>
+Date: Mon, 28 Feb 2011 16:03:56 +0100
+Message-ID: <AANLkTinVMonRUKR3H4vriRtqafGOfP3osFmMMaV9x77r@mail.gmail.com>
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] scan file norway, bergen
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -28,49 +23,59 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1004218529=="
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 Sender: <mchehab@pedra>
 List-ID: <linux-dvb@linuxtv.org>
 
+--===============1004218529==
+Content-Type: multipart/alternative; boundary=001636eee4064fecc5049d58fe41
 
-Hey,
+--001636eee4064fecc5049d58fe41
+Content-Type: text/plain; charset=ISO-8859-1
 
-is this driver going to be fixed anytime soon? It was working fine ago a
-half year/year.
+Created with w_scan, frequencies from http://www.ntv.no/dekningskart, and
+confirmed with scan.
 
-lspci:
-06:00.0 Multimedia video controller: Conexant Systems, Inc. CX23885 PCI
-Video and Audio Decoder (rev 02)
+# Norway, Bergen
+# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+ T 570000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO
+T 618000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO
+T 650000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO
+T 698000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO
+ T 730000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO
 
-uname -a:
-Linux lyra 2.6.37.1 #1 SMP PREEMPT Tue Feb 22 13:22:59 CET 2011 x86_64
-x86_64 x86_64 GNU/Linux
+--001636eee4064fecc5049d58fe41
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-dmesg:
-xc2028 1-0064: i2c output error: rc = -6 (should be 64)
-xc2028 1-0064: -6 returned from send
-xc2028 1-0064: Error -22 while loading base firmware
-xc2028 1-0064: Loading firmware for type=BASE F8MHZ (3), id
-0000000000000000.
-xc2028 1-0064: i2c output error: rc = -6 (should be 64)
-xc2028 1-0064: -6 returned from send
-xc2028 1-0064: Error -22 while loading base firmware
-xc2028 1-0064: Loading firmware for type=BASE F8MHZ (3), id
-0000000000000000.
-xc2028 1-0064: i2c output error: rc = -6 (should be 64)
-xc2028 1-0064: -6 returned from send
-xc2028 1-0064: Error -22 while loading base firmware
+<div>Created with w_scan, frequencies from <a href=3D"http://www.ntv.no/dek=
+ningskart">http://www.ntv.no/dekningskart</a>, and confirmed with scan.<br>=
+<br></div><div># Norway, Bergen</div><div># T freq bw fec_hi fec_lo mod tra=
+nsmission-mode guard-interval hierarchy<br>
 
-nothing works - if i do scan it finds nothing and those messages appear on
-dmesg. if i try to watch with the channels.conf from my other pc i can play
-nothing, all i get is those messages above.
+</div>
+<div>T 570000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO<br></div><div>T 6180000=
+00 8MHz AUTO AUTO AUTO AUTO AUTO AUTO<br></div><div>T 650000000 8MHz AUTO A=
+UTO AUTO AUTO AUTO AUTO<br></div><div>T 698000000 8MHz AUTO AUTO AUTO AUTO =
+AUTO AUTO<br>
 
-Jean
+</div>
+<div>T 730000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO<br></div><div><br></div=
+>
+
+--001636eee4064fecc5049d58fe41--
+
+
+--===============1004218529==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1004218529==--
