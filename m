@@ -1,95 +1,47 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:44414 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755446Ab1BXO1e (ORCPT
+Received: from mail.pripojeni.net ([217.66.174.14]:52197 "EHLO
+	smtp.pripojeni.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752384Ab1B1JhO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Feb 2011 09:27:34 -0500
-References: <9AA38BEC-4364-4F45-968B-E33BA5098C34@mattjan.us> <201101252229.35418.hverkuil@xs4all.nl> <4D666116.70605@redhat.com> <201102241451.30452.hverkuil@xs4all.nl>
-In-Reply-To: <201102241451.30452.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: oops cx2341x control handler
-From: Andy Walls <awalls@md.metrocast.net>
-Date: Thu, 24 Feb 2011 09:27:17 -0500
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Matt Janus <hello@mattjan.us>, linux-media@vger.kernel.org
-Message-ID: <90e0bfe3-57b6-4c65-8e2d-a18bd08b4459@email.android.com>
+	Mon, 28 Feb 2011 04:37:14 -0500
+From: Jiri Slaby <jslaby@suse.cz>
+To: mchehab@infradead.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	jirislaby@gmail.com, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Subject: [PATCH v2 -resend#1 1/1] V4L: videobuf, don't use dma addr as physical
+Date: Mon, 28 Feb 2011 10:37:02 +0100
+Message-Id: <1298885822-10083-1-git-send-email-jslaby@suse.cz>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hans Verkuil <hverkuil@xs4all.nl> wrote:
+mem->dma_handle is a dma address obtained by dma_alloc_coherent which
+needn't be a physical address in presence of IOMMU. So ensure we are
+remapping (remap_pfn_range) the right page in __videobuf_mmap_mapper
+by using virt_to_phys(mem->vaddr) and not mem->dma_handle.
 
->On Thursday, February 24, 2011 14:45:58 Mauro Carvalho Chehab wrote:
->> Em 25-01-2011 19:29, Hans Verkuil escreveu:
->> > Hi Matt,
->> > 
->> > On Tuesday, January 25, 2011 03:10:38 Matt Janus wrote:
->> >> A quick test with mplayer didn't error, when i tried to use mythtv
->the driver crashed and resulted in this:
->> > 
->> > I could reproduce this and the fix is below. Please test!
->> 
->> What's the status of this patch? Should it be applied or not?
->
->Absolutely! It's a nasty bug.
->
->Regards,
->
->	Hans
->
->> 
->> Cheers,
->> Mauro
->> > 
->> > Regards,
->> > 
->> > 	Hans
->> > 
->> > From 6b7c84508e915f26a9b701ef2f5fa0b92ca62f2f Mon Sep 17 00:00:00
->2001
->> > Message-Id:
-><6b7c84508e915f26a9b701ef2f5fa0b92ca62f2f.1295990866.git.hverkuil@xs4all.nl>
->> > From: Hans Verkuil <hverkuil@xs4all.nl>
->> > Date: Tue, 25 Jan 2011 22:25:39 +0100
->> > Subject: [PATCH] cx18: fix kernel oops when setting MPEG control
->before capturing.
->> > 
->> > The cxhdl->priv field was not set initially, only after capturing
->started.
->> > 
->> > Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
->> > ---
->> >  drivers/media/video/cx18/cx18-driver.c |    1 +
->> >  1 files changed, 1 insertions(+), 0 deletions(-)
->> > 
->> > diff --git a/drivers/media/video/cx18/cx18-driver.c
->b/drivers/media/video/cx18/cx18-driver.c
->> > index 869690b..877e201 100644
->> > --- a/drivers/media/video/cx18/cx18-driver.c
->> > +++ b/drivers/media/video/cx18/cx18-driver.c
->> > @@ -713,6 +713,7 @@ static int __devinit cx18_init_struct1(struct
->cx18 *cx)
->> >  	cx->cxhdl.capabilities = CX2341X_CAP_HAS_TS |
->CX2341X_CAP_HAS_SLICED_VBI;
->> >  	cx->cxhdl.ops = &cx18_cxhdl_ops;
->> >  	cx->cxhdl.func = cx18_api_func;
->> > +	cx->cxhdl.priv = &cx->streams[CX18_ENC_STREAM_TYPE_MPG];
->> >  	ret = cx2341x_handler_init(&cx->cxhdl, 50);
->> >  	if (ret)
->> >  		return ret;
->> 
->> 
->
->-- 
->Hans Verkuil - video4linux developer - sponsored by Cisco
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media"
->in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+While at it, use PFN_DOWN instead of explicit shift.
 
-Acked-by: Andy Walls <awalls@md.metrocast.net>
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+---
+ drivers/media/video/videobuf-dma-contig.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/video/videobuf-dma-contig.c b/drivers/media/video/videobuf-dma-contig.c
+index c969111..19d3e4a 100644
+--- a/drivers/media/video/videobuf-dma-contig.c
++++ b/drivers/media/video/videobuf-dma-contig.c
+@@ -300,7 +300,7 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
+ 
+ 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+ 	retval = remap_pfn_range(vma, vma->vm_start,
+-				 mem->dma_handle >> PAGE_SHIFT,
++				 PFN_DOWN(virt_to_phys(mem->vaddr))
+ 				 size, vma->vm_page_prot);
+ 	if (retval) {
+ 		dev_err(q->dev, "mmap: remap failed with error %d. ", retval);
+-- 
+1.7.4.1
+
 
