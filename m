@@ -1,132 +1,68 @@
 Return-path: <mchehab@pedra>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:38336 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750846Ab1BAFRb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Feb 2011 00:17:31 -0500
-Received: by pva4 with SMTP id 4so972677pva.19
-        for <linux-media@vger.kernel.org>; Mon, 31 Jan 2011 21:17:31 -0800 (PST)
-Message-ID: <4D47975F.3050206@vicke.rs>
-Date: Tue, 01 Feb 2011 18:17:19 +1300
-From: Matt Vickers <m@vicke.rs>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38630 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752706Ab1B1KdV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Feb 2011 05:33:21 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hansverk@cisco.com>
+Subject: Re: [st-ericsson] v4l2 vs omx for camera
+Date: Mon, 28 Feb 2011 11:33:29 +0100
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linus Walleij <linus.walleij@linaro.org>,
+	Edward Hervey <bilboed@gmail.com>,
+	johan.mossberg.lml@gmail.com,
+	Discussion of the development of and with GStreamer
+	<gstreamer-devel@lists.freedesktop.org>,
+	"linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>,
+	Harald Gustafsson <harald.gustafsson@ericsson.com>,
+	"ST-Ericsson LT Mailing List" <st-ericsson@lists.linaro.org>,
+	linux-media@vger.kernel.org
+References: <AANLkTik=Yc9cb9r7Ro=evRoxd61KVE=8m7Z5+dNwDzVd@mail.gmail.com> <201102281111.47666.laurent.pinchart@ideasonboard.com> <201102281121.52906.hansverk@cisco.com>
+In-Reply-To: <201102281121.52906.hansverk@cisco.com>
 MIME-Version: 1.0
-To: "Igor M. Liplianin" <liplianin@me.by>
-CC: linux-media@vger.kernel.org
-Subject: Re: DM1105: could not attach frontend 195d:1105
-References: <4B7D83B2.4030709@online.no> <201010231220.51387.liplianin@me.by> <ii5vm9$r2g$1@dough.gmane.org> <201101311955.01003.liplianin@me.by>
-In-Reply-To: <201101311955.01003.liplianin@me.by>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201102281133.30204.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 1/02/2011 6:55 a.m., Igor M. Liplianin wrote:
-> В сообщении от 31 января 2011 11:33:54 автор Matt Vickers написал:
->> On 23/10/2010 10:20 p.m., Igor M. Liplianin wrote:
->>> В сообщении от 10 марта 2010 14:15:49 автор Hendrik Skarpeid написал:
->>>> Igor M. Liplianin skrev:
->>>>> On 3 марта 2010 18:42:42 Hendrik Skarpeid wrote:
->>>>>> Igor M. Liplianin wrote:
->>>>>>> Now to find GPIO's for LNB power control and ... watch TV :)
->>>>>> Yep. No succesful tuning at the moment. There might also be an issue
->>>>>> with the reset signal and writing to GPIOCTR, as the module at the
->>>>>> moment loads succesfully only once.
->>>>>> As far as I can make out, the LNB power control is probably GPIO 16
->>>>>> and 17, not sure which is which, and how they work.
->>>>>> GPIO15 is wired to tuner #reset
->>>>> New patch to test
->>>> I think the LNB voltage may be a little to high on my card, 14.5V and
->>>> 20V. I would be a little more happy if they were 14 and 19, 13 and 18
->>>> would be perfect.
->>>> Anyways, as Igor pointet out, I don't have any signal from the LNB,
->>>> checked with another tuner card. It's a quad LNB, and the other outputs
->>>> are fine. Maybe it's' toasted from to high supply voltage! I little word
->>>> of warning then.
->>>> Anyways, here's my tweaked driver.
->>> Here is reworked patch for clear GPIO's handling.
->>> It allows to support I2C on GPIO's and per board LNB control through
->>> GPIO's. Also incuded support for Hendrik's card.
->>> I think it is clear how to change and test GPIO's for LNB and other stuff
->>> now.
->>>
->>> To Hendrik:
->>> 	Not shure, but there is maybe GPIO for raise/down LNB voltage a little
->>> 	(~1v). It is used for long coaxial lines to compensate voltage
->>> 	dropping.
->>>
->>> Signed-off-by: Igor M. Liplianin<liplianin@me.by>
->> Hi Igor,
->>
->> I have a brandless DVB-S tv tuner card also, with a dm1105n chip. I was
->> getting the "DM1105: could not attach frontend 195d:1105" message with
->> the latest kernel also, but I applied this patch to the dm1105 module
->> and now the card's being recognised  (though is still listed as an
->> ethernet controller with lspci)
->>
->> My dmesg output is:
->>
->> dm1105 0000:01:05.0: PCI INT A ->  GSI 17 (level, low) ->  IRQ 17
->> DVB: registering new adapter (dm1105)
->> dm1105 0000:01:05.0: MAC 00:00:00:00:00:00
->> DVB: registering adapter 0 frontend 0 (SL SI21XX DVB-S)...
->> Registered IR keymap rc-dm1105-nec
->> input: DVB on-card IR receiver as
->> /devices/pci0000:00/0000:00:1e.0/0000:01:05.0/rc/rc0/input6
->> rc0: DVB on-card IR receiver as
->> /devices/pci0000:00/0000:00:1e.0/0000:01:05.0/rc/rc0
->>
->> The card is one of these:
->> http://www.hongsun.biz/ProView.asp?ID=90
->>
->> Scanning doesn't appear to give me any results.  Should this be working?
->>    Anything I can do to test the card out for you?
->>
->> Cheers,
->> Matt.
-> Hi Matt,
-> Is there any label on tuner can?
-> Have you a close look picture of PCB ?
->
-> Cheers,
-> Igor.
+On Monday 28 February 2011 11:21:52 Hans Verkuil wrote:
+> On Monday, February 28, 2011 11:11:47 Laurent Pinchart wrote:
+> > On Saturday 26 February 2011 13:12:42 Hans Verkuil wrote:
+> > > On Friday, February 25, 2011 18:22:51 Linus Walleij wrote:
+> > > > 2011/2/24 Edward Hervey <bilboed@gmail.com>:
+> > > > >  What *needs* to be solved is an API for data allocation/passing at 
+> > > > > the kernel level which v4l2,omx,X,GL,vdpau,vaapi,... can use and
+> > > > > that userspace (like GStreamer) can pass around, monitor and know
+> > > > > about.
+> > > > 
+> > > > I think the patches sent out from ST-Ericsson's Johan Mossberg to
+> > > > linux-mm for "HWMEM" (hardware memory) deals exactly with buffer
+> > > > passing, pinning of buffers and so on. The CMA (Contigous Memory
+> > > > Allocator) has been slightly modified to fit hand-in-glove with
+> > > > HWMEM, so CMA provides buffers, HWMEM pass them around.
+> > > > 
+> > > > Johan, when you re-spin the HWMEM patchset, can you include
+> > > > linaro-dev and linux-media in the CC?
+> > > 
+> > > Yes, please. This sounds promising and we at linux-media would very
+> > > much like to take a look at this. I hope that the CMA + HWMEM
+> > > combination is exactly what we need.
+> > 
+> > Once again let me restate what I've been telling for some time: CMA must
+> > be *optional*. Not all hardware need contiguous memory. I'll have a look
+> > at the next HWMEM version.
+> 
+> Yes, it is optional when you look at specific hardware. On a kernel level
+> however it is functionality that is required in order to support all the
+> hardware. There is little point in solving one issue and not the other.
 
-Hi Igor,
+I agree. What I meant is that we need to make sure there's no HWMEM -> CMA 
+dependency.
 
-The label on the tuner can is SP1514LHb S1009, so I'm guessing this is a 
-near-identical card to the one that Paul was asking you about in January 
-of last year, e.g:
+-- 
+Regards,
 
->  1: DVB-S
->  5: 16cc
->  1: Unsure, but it has an LNB in and an LNB out, so I guess it does have
->  loop through?
->  4: Si2109
->  L: Si labs
->  H: Horizontal
->  b: Lead free
-
-Here are two images I took of the card:
-
-A view of the entire board:
-
-http://matt.vicke.rs/pics/pcb_full.jpg
-
-And here is a closer view of the board between the tuner and the dm1105n 
-chip.
-
-http://matt.vicke.rs/pics/pcb_detail.jpg
-
-With your patch and the card=4 parameter the card is recognised, and the 
-dvb device created. Scanning will run (I'm attempting to locate channels 
-on Optus D1, which I can successfully scan using a set top box, so the 
-dish is correctly aligned), but the card reports tuning failed on all of 
-the Optus D1 frequencies that I attempt. I also tried running w_scan but 
-had no success.
-
-Cheers,
-Matt.
-
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Laurent Pinchart
