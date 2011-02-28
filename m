@@ -1,60 +1,44 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.128.24]:18610 "EHLO mgw-da01.nokia.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:53249 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753177Ab1BGKwb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Feb 2011 05:52:31 -0500
-Subject: Re: WL1273 FM Radio driver...
-From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Reply-To: matti.j.aaltonen@nokia.com
-To: alsa-devel@alsa-project.org, broonie@opensource.wolfsonmicro.com,
-	lrg@slimlogic.co.uk, mchehab@redhat.com, hverkuil@xs4all.nl,
-	sameo@linux.intel.com, linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 07 Feb 2011 12:52:02 +0200
-Message-ID: <1297075922.15320.31.camel@masi.mnp.nokia.com>
-Mime-Version: 1.0
+	id S1753162Ab1B1Kue (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Feb 2011 05:50:34 -0500
+Message-ID: <4D6B7DF7.7060302@iki.fi>
+Date: Mon, 28 Feb 2011 12:50:31 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Magnus Alm <magnus.alm@gmail.com>
+CC: Malte Gell <malte.gell@gmx.de>, linux-media@vger.kernel.org
+Subject: Re: Well supported USB DVB-C device?
+References: <201102280102.17852.malte.gell@gmx.de>	<4D6AEC35.8000202@iki.fi> <AANLkTi=+ZhMqHc9kVRQfp3qZ3qeiDWrvHAnEHtdhhZyG@mail.gmail.com>
+In-Reply-To: <AANLkTi=+ZhMqHc9kVRQfp3qZ3qeiDWrvHAnEHtdhhZyG@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello.
-
-Mark Brown wrote:
-> On Wed, Feb 02, 2011 at 01:35:01PM -0200, Mauro 
-> Carvalho Chehab wrote:
+On 02/28/2011 11:49 AM, Magnus Alm wrote:
+> 2011/2/28 Antti Palosaari<crope@iki.fi>
 >
-> [Reflowed into 80 columns.]
->> My concerns is that the V4L2-specific part of the code should be at
->> drivers/media.  I prefer that the specific MFD I/O part to be at
->> drivers/mfd, just like the other drivers.
->
-> Currently that's not the case - the I/O functionality is not in any
-> meaningful sense included in the MFD, it's provided by the V4L portion.
+>> On 02/28/2011 02:02 AM, Malte Gell wrote:
+>>
+>>> is there a DVB-C device with USB that is well supported by a recent kernel
+>>> (2.6.38)?
+>>>
+>>
+>> Anysee E30 C Plus is supported as far as I know.
+>>
+> It works fine, besides the card reader.
 
-I've been away for two and a half weeks so I haven't been able to
-comment...
+Yes it is working as E30 Combo Plus was too. The aim was try to say that 
+you never know when chipset changes and it stops working. Anyhow, I am 
+not currently aware that, I am that driver author.
 
-But before I start to make changes, I'd still like to ask for a comment
-on my original plan, which was to have the I/O functions in the MFD
-driver and also have there things like interrupt handling etc.
-
-My vision was that the MFD part would have the application logic and the
-child drivers would be just true interfaces to the core functionality,
-because I kind of saw the children to be of equal importance and because
-the codec and the v4l2 driver share some controls like for example the
-volume control. 
-
-If you'd care to take a look an earlier version of the MFD driver here:
-
-http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/23602/match=aaltonen
-
-So the question is if I put only the I/O stuff into the MFD driver or
-can I have the other application logic there as well?
-
-Thanks,
-Matti
+Card reader is not supported in any of the Anysee models.
 
 
+Antti
 
 
-
+-- 
+http://palosaari.fi/
