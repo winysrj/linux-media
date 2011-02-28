@@ -1,164 +1,66 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2528 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750739Ab1BDLzz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Feb 2011 06:55:55 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from moutng.kundenserver.de ([212.227.126.187]:64847 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753519Ab1B1LhY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Feb 2011 06:37:24 -0500
+Date: Mon, 28 Feb 2011 12:37:06 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v5 0/5] OMAP3 ISP driver
-Date: Fri, 4 Feb 2011 12:55:50 +0100
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-References: <1296131541-30092-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1296131541-30092-1-git-send-email-laurent.pinchart@ideasonboard.com>
+cc: Hans Verkuil <hansverk@cisco.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Kim HeungJun <riverful@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Stanimir Varbanov <svarbanov@mm-sol.com>
+Subject: Re: [RFC] snapshot mode, flash capabilities and control
+In-Reply-To: <201102281207.34106.laurent.pinchart@ideasonboard.com>
+Message-ID: <Pine.LNX.4.64.1102281220590.11156@axis700.grange>
+References: <Pine.LNX.4.64.1102240947230.15756@axis700.grange>
+ <201102281140.31643.hansverk@cisco.com> <Pine.LNX.4.64.1102281148310.11156@axis700.grange>
+ <201102281207.34106.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201102041255.50253.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thursday, January 27, 2011 13:32:16 Laurent Pinchart wrote:
-> Hi everybody,
+On Mon, 28 Feb 2011, Laurent Pinchart wrote:
+
+> > > > I don't think snapshot capture is *that* special. I don't expect most
+> > > > embedded SoCs to implement snapshot capture in hardware. What usually
+> > > > happens is that the hardware provides some support (like two independent
+> > > > video streams for instance, or the ability to capture a given number of
+> > > > frames) and the scheduling is performed in userspace. Good quality
+> > > > snapshot capture requires complex algorithms and involves several
+> > > > hardware pieces (ISP, flash controller, lens controller, ...), so it
+> > > > can't be implemented in the kernel.
+> > > 
+> > > I agree.
+> > 
+> > Right, but sensors do need it. It is not enough to just tell the sensor -
+> > a per-frame flash is used and let the driver figure out, that it has to
+> > switch to snapshot mode. The snapshot mode has other effects too, e.g., on
+> > some sensors it enables the external trigger pin, which some designs might
+> > want to use also without a flash. Maybe there are also some other side
+> > effects of such snapshot modes on some other sensors, that I'm not aware
+> > of.
 > 
-> Here's the fifth version of the OMAP3 ISP driver patches, updated to
-> 2.6.37 and the latest changes in the media controller and sub-device APIs.
+> This makes me wonder if we need a snapshot mode at all. Why should we tie 
+> flash, capture trigger (and other such options that you're not aware of yet 
+> :-)) together under a single high-level control (in the general sense, not to 
+> be strictly taken as a V4L2 CID) ? Wouldn't it be better to expose those 
+> features individually instead ? User might want to use the flash in video 
+> capture mode for a stroboscopic effect for instance.
 
-Hmm, patch 5/5 is missing. It's probably too big.
+So, you'd also need a separate control for external exposure, there are 
+also sensors, that can be configured to different shutter / exposure / 
+readout sequence controlling... No, we don't have to support all that 
+variety, but we have to be aware of it, while making decisions;)
 
-Anyway, I got the patch from your git tree and did a review. It's always hard
-to review over 21000 lines of driver code :-), so I limited myself to the V4L2
-API parts. I can't really comment on the OMAP3 specific parts anyway.
-
-The first issue I found was related to controls: it seems you set up control
-handlers for subdevs that don't have any controls. You can just leave
-sd->ctrl_handler to NULL in that case and you don't need to use a control handler
-at all.
-
-There is also no need to set the core ctrl ops:
-
-+       .queryctrl = v4l2_subdev_queryctrl,
-+       .querymenu = v4l2_subdev_querymenu,
-+       .g_ctrl = v4l2_subdev_g_ctrl,
-+       .s_ctrl = v4l2_subdev_s_ctrl,
-+       .g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
-+       .try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
-+       .s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
-
-These are only necessary if the master driver doesn't use the control
-framework but called core.queryctrl directly. That shouldn't be the case
-for this driver.
-
-What isn't clear to me is whether the /dev/videoX nodes should give access
-to the subdev controls as well. As far as I can see the ctrl_handler pointer
-of neither v4l2_device nor video_device is ever set, so that means that the
-controls are only accessible through /dev/v4l-subdevX.
-
-I'm not sure whether that is intentional or not.
-
-The other comment I have is regarding include/linux/omap3isp.h: both the
-ioctls and the events need to be documented there. A one-liner for each is
-probably enough. I also see that struct omap3isp_stat_data has a deprecated
-field: perhaps when creating the final pull request the time is right to
-remove it?
-
-Finally, I noticed that OMAP3 has its own implementation of videobuf. Are
-there plans to move to vb2?
-
-Regards,
-
-	Hans
-
-> 
-> You can find the patches in http://git.linuxtv.org/pinchartl/media.git as
-> usual (media-0005-omap3isp).
-> 
-> Laurent Pinchart (2):
->   omap3: Add function to register omap3isp platform device structure
->   OMAP3 ISP driver
-> 
-> Sergio Aguirre (2):
->   omap3: Remove unusued ISP CBUFF resource
->   omap2: Fix camera resources for multiomap
-> 
-> Tuukka Toivonen (1):
->   ARM: OMAP3: Update Camera ISP definitions for OMAP3630
-> 
->  arch/arm/mach-omap2/devices.c                |   64 +-
->  arch/arm/mach-omap2/devices.h                |   17 +
->  arch/arm/plat-omap/include/plat/omap34xx.h   |   16 +-
->  drivers/media/video/Kconfig                  |   13 +
->  drivers/media/video/Makefile                 |    2 +
->  drivers/media/video/isp/Makefile             |   13 +
->  drivers/media/video/isp/cfa_coef_table.h     |  601 +++++++
->  drivers/media/video/isp/gamma_table.h        |   90 +
->  drivers/media/video/isp/isp.c                | 2221 +++++++++++++++++++++++++
->  drivers/media/video/isp/isp.h                |  427 +++++
->  drivers/media/video/isp/ispccdc.c            | 2280 ++++++++++++++++++++++++++
->  drivers/media/video/isp/ispccdc.h            |  223 +++
->  drivers/media/video/isp/ispccp2.c            | 1189 ++++++++++++++
->  drivers/media/video/isp/ispccp2.h            |  101 ++
->  drivers/media/video/isp/ispcsi2.c            | 1332 +++++++++++++++
->  drivers/media/video/isp/ispcsi2.h            |  169 ++
->  drivers/media/video/isp/ispcsiphy.c          |  247 +++
->  drivers/media/video/isp/ispcsiphy.h          |   74 +
->  drivers/media/video/isp/isph3a.h             |  117 ++
->  drivers/media/video/isp/isph3a_aewb.c        |  374 +++++
->  drivers/media/video/isp/isph3a_af.c          |  429 +++++
->  drivers/media/video/isp/isphist.c            |  520 ++++++
->  drivers/media/video/isp/isphist.h            |   40 +
->  drivers/media/video/isp/isppreview.c         | 2120 ++++++++++++++++++++++++
->  drivers/media/video/isp/isppreview.h         |  214 +++
->  drivers/media/video/isp/ispqueue.c           | 1136 +++++++++++++
->  drivers/media/video/isp/ispqueue.h           |  185 +++
->  drivers/media/video/isp/ispreg.h             | 1589 ++++++++++++++++++
->  drivers/media/video/isp/ispresizer.c         | 1710 +++++++++++++++++++
->  drivers/media/video/isp/ispresizer.h         |  150 ++
->  drivers/media/video/isp/ispstat.c            | 1100 +++++++++++++
->  drivers/media/video/isp/ispstat.h            |  169 ++
->  drivers/media/video/isp/ispvideo.c           | 1264 ++++++++++++++
->  drivers/media/video/isp/ispvideo.h           |  202 +++
->  drivers/media/video/isp/luma_enhance_table.h |  154 ++
->  drivers/media/video/isp/noise_filter_table.h |   90 +
->  include/linux/Kbuild                         |    1 +
->  include/linux/omap3isp.h                     |  631 +++++++
->  38 files changed, 21246 insertions(+), 28 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/devices.h
->  create mode 100644 drivers/media/video/isp/Makefile
->  create mode 100644 drivers/media/video/isp/cfa_coef_table.h
->  create mode 100644 drivers/media/video/isp/gamma_table.h
->  create mode 100644 drivers/media/video/isp/isp.c
->  create mode 100644 drivers/media/video/isp/isp.h
->  create mode 100644 drivers/media/video/isp/ispccdc.c
->  create mode 100644 drivers/media/video/isp/ispccdc.h
->  create mode 100644 drivers/media/video/isp/ispccp2.c
->  create mode 100644 drivers/media/video/isp/ispccp2.h
->  create mode 100644 drivers/media/video/isp/ispcsi2.c
->  create mode 100644 drivers/media/video/isp/ispcsi2.h
->  create mode 100644 drivers/media/video/isp/ispcsiphy.c
->  create mode 100644 drivers/media/video/isp/ispcsiphy.h
->  create mode 100644 drivers/media/video/isp/isph3a.h
->  create mode 100644 drivers/media/video/isp/isph3a_aewb.c
->  create mode 100644 drivers/media/video/isp/isph3a_af.c
->  create mode 100644 drivers/media/video/isp/isphist.c
->  create mode 100644 drivers/media/video/isp/isphist.h
->  create mode 100644 drivers/media/video/isp/isppreview.c
->  create mode 100644 drivers/media/video/isp/isppreview.h
->  create mode 100644 drivers/media/video/isp/ispqueue.c
->  create mode 100644 drivers/media/video/isp/ispqueue.h
->  create mode 100644 drivers/media/video/isp/ispreg.h
->  create mode 100644 drivers/media/video/isp/ispresizer.c
->  create mode 100644 drivers/media/video/isp/ispresizer.h
->  create mode 100644 drivers/media/video/isp/ispstat.c
->  create mode 100644 drivers/media/video/isp/ispstat.h
->  create mode 100644 drivers/media/video/isp/ispvideo.c
->  create mode 100644 drivers/media/video/isp/ispvideo.h
->  create mode 100644 drivers/media/video/isp/luma_enhance_table.h
->  create mode 100644 drivers/media/video/isp/noise_filter_table.h
->  create mode 100644 include/linux/omap3isp.h
-> 
-> 
-
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
