@@ -1,44 +1,40 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:54836 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752921Ab1BNLwv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Feb 2011 06:52:51 -0500
-References: <1297647870.19186.69.camel@localhost> <20110214090712.1c17818e@endymion.delvare>
-In-Reply-To: <20110214090712.1c17818e@endymion.delvare>
+Received: from mga11.intel.com ([192.55.52.93]:42177 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755187Ab1B1Qu1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Feb 2011 11:50:27 -0500
+Date: Mon, 28 Feb 2011 17:50:24 +0100
+From: Samuel Ortiz <sameo@linux.intel.com>
+To: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Cc: alsa-devel@alsa-project.org, broonie@opensource.wolfsonmicro.com,
+	lrg@slimlogic.co.uk, mchehab@redhat.com, hverkuil@xs4all.nl,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v20 1/3] MFD: Wl1273 FM radio core: Add I2C IO
+ functions.
+Message-ID: <20110228165023.GD5263@sortiz-mobl>
+References: <1298890951-23339-1-git-send-email-matti.j.aaltonen@nokia.com>
+ <1298890951-23339-2-git-send-email-matti.j.aaltonen@nokia.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: [GIT FIXES for 2.6.38] Fix cx23885 and cx25840 regressions
-From: Andy Walls <awalls@md.metrocast.net>
-Date: Mon, 14 Feb 2011 06:52:47 -0500
-To: Jean Delvare <khali@linux-fr.org>
-CC: linux-media@vger.kernel.org,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Mark Zimmerman <markzimm@frii.com>,
-	Sven Barth <pascaldragon@googlemail.com>, stoth@kernellabs.com,
-	hverkuil@xs4all.nl
-Message-ID: <8976763d-c799-4c4d-a2ed-8560df756ebc@email.android.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1298890951-23339-2-git-send-email-matti.j.aaltonen@nokia.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Jean Delvare <khali@linux-fr.org> wrote:
+Hi Matti,
 
+On Mon, Feb 28, 2011 at 01:02:29PM +0200, Matti J. Aaltonen wrote:
+> Add I2C IO functions.
+> Change the IO operation from read to write in wl1273_fm_set_volume.
+> Update the year of the copyright statement.
+> Remove two unnecessary calls to i2c_set_clientdata.
+Provided that you add a changelog relevant to the patch itself, and not to the
+v1->v2 diff:
+Acked-by: Samuel Ortiz <sameo@linux.intel.com>
 
- 
->> Andy Walls (2):
->>       cx23885: Revert "Check for slave nack on all transactions"
->
->Thanks for fixing my mistakes!
->
+Cheers,
+Samuel.
 
-Jean,
-
-No problem.
-
-I was the one who actually asked for your patch to go in without checking the hardware behavior carefully.  So I jointly own the mistake.  :)  I'll shoulder some of the blame. 
-
-Regards,
-Andy
-
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
