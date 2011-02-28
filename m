@@ -1,112 +1,46 @@
 Return-path: <mchehab@pedra>
-Received: from queueout02-winn.ispmail.ntl.com ([81.103.221.56]:44959 "EHLO
-	queueout02-winn.ispmail.ntl.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758012Ab1BKVq3 (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:39802 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754345Ab1B1PsC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Feb 2011 16:46:29 -0500
-From: Daniel Drake <dsd@laptop.org>
-To: mchehab@infradead.org
-Cc: linux-media@vger.kernel.org
-Cc: corbet@lwn.net
-Cc: dilinger@queued.net
-Subject: [PATCH] via-camera: Add suspend/resume support
-Message-Id: <20110211211502.D6D8E9D401D@zog.reactivated.net>
-Date: Fri, 11 Feb 2011 21:15:02 +0000 (GMT)
+	Mon, 28 Feb 2011 10:48:02 -0500
+Message-ID: <4D6BC3AE.903@suse.cz>
+Date: Mon, 28 Feb 2011 16:47:58 +0100
+From: Jiri Slaby <jslaby@suse.cz>
+MIME-Version: 1.0
+To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+CC: mchehab@infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, jirislaby@gmail.com
+Subject: Re: [PATCH v2 -resend#1 1/1] V4L: videobuf, don't use dma addr as
+ physical
+References: <1298885822-10083-1-git-send-email-jslaby@suse.cz> <20110228145301.GC10846@dumpdata.com>
+In-Reply-To: <20110228145301.GC10846@dumpdata.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Add suspend/resume support to the via-camera driver, so that the video
-continues streaming over a suspend-resume cycle.
+On 02/28/2011 03:53 PM, Konrad Rzeszutek Wilk wrote:
+> On Mon, Feb 28, 2011 at 10:37:02AM +0100, Jiri Slaby wrote:
+>> mem->dma_handle is a dma address obtained by dma_alloc_coherent which
+>> needn't be a physical address in presence of IOMMU. So ensure we are
+> 
+> Can you add a comment why you are fixing it? Is there a bug report for this?
+> Under what conditions did you expose this fault?
 
-Originally implemented by Jon Corbet.
+No, by a just peer review when I was looking for something completely
+different.
 
-Signed-off-by: Daniel Drake <dsd@laptop.org>
----
- drivers/media/video/via-camera.c |   64 ++++++++++++++++++++++++++++++++++++++
- 1 files changed, 64 insertions(+), 0 deletions(-)
+> You also might want to mention that "needn't be a physical address as
+> a hardware IOMMU can (and most likely) will return a bus address where
+> physical != bus address."
 
-diff --git a/drivers/media/video/via-camera.c b/drivers/media/video/via-camera.c
-index 2f973cd..f307e5f 100644
---- a/drivers/media/video/via-camera.c
-+++ b/drivers/media/video/via-camera.c
-@@ -1246,6 +1246,62 @@ static const struct v4l2_ioctl_ops viacam_ioctl_ops = {
- /*
-  * Power management.
-  */
-+#ifdef CONFIG_PM
-+
-+static int viacam_suspend(void *priv)
-+{
-+	struct via_camera *cam = priv;
-+	enum viacam_opstate state = cam->opstate;
-+
-+	if (cam->opstate != S_IDLE) {
-+		viacam_stop_engine(cam);
-+		cam->opstate = state; /* So resume restarts */
-+	}
-+
-+	return 0;
-+}
-+
-+static int viacam_resume(void *priv)
-+{
-+	struct via_camera *cam = priv;
-+	int ret = 0;
-+
-+	/*
-+	 * Get back to a reasonable operating state.
-+	 */
-+	via_write_reg_mask(VIASR, 0x78, 0, 0x80);
-+	via_write_reg_mask(VIASR, 0x1e, 0xc0, 0xc0);
-+	viacam_int_disable(cam);
-+	set_bit(CF_CONFIG_NEEDED, &cam->flags);
-+	/*
-+	 * Make sure the sensor's power state is correct
-+	 */
-+	if (cam->users > 0)
-+		via_sensor_power_up(cam);
-+	else
-+		via_sensor_power_down(cam);
-+	/*
-+	 * If it was operating, try to restart it.
-+	 */
-+	if (cam->opstate != S_IDLE) {
-+		mutex_lock(&cam->lock);
-+		ret = viacam_configure_sensor(cam);
-+		if (! ret)
-+			ret = viacam_config_controller(cam);
-+		mutex_unlock(&cam->lock);
-+		if (! ret)
-+			viacam_start_engine(cam);
-+	}
-+
-+	return ret;
-+}
-+
-+static struct viafb_pm_hooks viacam_pm_hooks = {
-+	.suspend = viacam_suspend,
-+	.resume = viacam_resume
-+};
-+
-+#endif /* CONFIG_PM */
- 
- /*
-  * Setup stuff.
-@@ -1369,6 +1425,14 @@ static __devinit int viacam_probe(struct platform_device *pdev)
- 		goto out_irq;
- 	video_set_drvdata(&cam->vdev, cam);
- 
-+#ifdef CONFIG_PM
-+	/*
-+	 * Hook into PM events
-+	 */
-+	viacam_pm_hooks.private = cam;
-+	viafb_pm_register(&viacam_pm_hooks);
-+#endif
-+
- 	/* Power the sensor down until somebody opens the device */
- 	via_sensor_power_down(cam);
- 	return 0;
+Mauro, do you want me to resend this with such an udpate in the changelog?
+
+> Otherwise you can stick 'Reviewed-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>'
+> on it.
+
+thanks,
 -- 
-1.7.4
-
+js
+suse labs
