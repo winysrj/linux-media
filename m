@@ -1,65 +1,77 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.187]:62675 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754351Ab1BDKJr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Feb 2011 05:09:47 -0500
-Date: Fri, 4 Feb 2011 11:09:40 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: soc-camera: experimental git trees, please review / test
-Message-ID: <Pine.LNX.4.64.1102041051030.14717@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:8921 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753871Ab1B1RLy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Feb 2011 12:11:54 -0500
+Received: from spt2.w1.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LHC006ZG7RPPQ@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 28 Feb 2011 17:11:50 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LHC00CN57RP2G@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 28 Feb 2011 17:11:49 +0000 (GMT)
+Date: Mon, 28 Feb 2011 18:11:47 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: V4L2 'brainstorming' meeting in Warsaw, March 2011
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <ADF13DA15EB3FE4FBA487CCC7BEFDF36190F532AF3@bssrvexch01>
+MIME-version: 1.0
+Content-type: text/plain; charset=utf-8
+Content-language: en-US
+Content-transfer-encoding: base64
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi all
-
-I've pushed 2 branches to my git repository at 
-http://linuxtv.org/git/gliakhovetski/v4l-dvb.git - soc_camera-vb2 and 
-devel-2.6.39. As is easy to guess from the names, the former one contains 
-patches for the videobuf2 support by soc_camera and the latter one 
-contains patches queued for 2.6.39.
-
-The videobuf2 branch contains just the 3 patches I posted before: 
-http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/28658 
-and is meant to encourage users and developers to test the already ported 
-to vb2 sh_mobile_ceu_camera driver and to port further camera host 
-drivers.
-
-The devel-2.6.39 branch accumulates a few patches, I've collected so far. 
-Its purpose is to let submitters verify, whether they agree with how I 
-pushes their patches, occasionally slightly modified, and whether I've 
-lost any patches without commenting back, why I'm not applying it in its 
-latest form. There is also one patch in the set, that can have impact on 
-all soc_camera users:
-
-commit 5c39a57a8b50f72e5d2020a0c6b5c3433f2397fc
-Author: Anatolij Gustschin <agust@denx.de>
-
-    V4L: soc-camera: start stream after queueing the buffers
-
-I've tested it on i.MX31, SuperH, PXA270, would be nice to also have it 
-tested on other soc-camera platforms. My concern is, that with this patch 
-we change the order, in which the host and the client(s) drivers start 
-streaming. Specifically, before this patch we first started streaming on 
-the client, e.g., on an i2c sensor, upon which it would start sending 
-frames. After that we start the host driver, so it has valid data 
-immediately available and can immediately start capturing it. After this 
-patch, we first start the host driver and _trust_ it to sit and wait until 
-we also start the client. If, however, for some reason some hosts will 
-start capturing immediately, they will capture invalid data. So, unless 
-someone can concince me, that no sane video set up will ever do this, I'd 
-like this to be explicitly tested on as many platforms as possible.
-
-Enjoy;)
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+SGVsbG8gZXZlcnlvbmUhDQoNClRoZSBpZGVhIG9mIHY0bDIgJ2JyYWluc3Rvcm1pbmcnIHNlc3Np
+b24gY2FtZSBvdXQgYWZ0ZXIgYSBmZXcgZGlzY3Vzc2lvbnMgb24gI3Y0bA0KSVJDIGNoYW5uZWwg
+YWJvdXQgdmFyaW91cyBSRkNzIGFuZCBwcm9wb3NhbHMgdGhhdCBoYXZlIGJlZW4gcG9zdGVkIHJl
+Y2VudGx5LiBJDQp3b3VsZCBsaWtlIHRvIGFubm91bmNlIHRoYXQgU2Ftc3VuZyBQb2xhbmQgUiZE
+IENlbnRlciAoU1BSQykgYWdyZWVkIHRvIHRha2UgYW4NCm9wcG9ydHVuaXR5IHRvIG9yZ2FuaXpl
+IHRoaXMgbWVldGluZy4gSSd2ZSBnb3QgYSByZXNlcnZhdGlvbiBmb3IgYSBjb25mZXJlbmNlDQpy
+b29tIGZvciAxNi0xOCBNYXJjaCAyMDExIGluIG91ciBvZmZpY2UuDQoNCkkgd291bGQgbGlrZSB0
+byBpbnZpdGUgYWxsIG9mIFlvdSBmb3IgdGhpcyBWNEwyICdicmFpbnN0b3JtaW5nJyBzZXNzaW9u
+Lg0KDQpJIGhvcGUgdGhhdCB0aGlzIGluaXRpYWwgbWVldGluZyBkYXRlIEkndmUgc2VsZWN0ZWQg
+d2lsbCBmaXQgdXMuIFdlIGhhdmUgMiBvbmx5DQp3ZWVrcyBmb3IgdGhlIHByZXBhcmF0aW9uLCBi
+dXQgSSBob3BlIHdlIHdpbGwgbWFuYWdlLiBJJ20gb3BlbiBmb3IgYW5vdGhlciBkYXRlDQphbmQg
+aWYgcmVxdWlyZWQgSSB3aWxsIGNoYW5nZSB0aGUgcmVzZXJ2YXRpb24uDQoNClRoZSBtZWV0aW5n
+IHdpbGwgbGFzdCAzIGRheXMgd2hhdCBnaXZlcyB1cyBhIGxvdCBvZiBwb3NzaWJpbGl0eSB0byBw
+cmVzZW50IHRoZQ0KaXNzdWVzIGFuZCBwcm9wb3NhbHMsIGRpc2N1c3MgdGhlbSBmdXJ0aGVyIGFu
+ZCB3b3JrIG91dCBhIHNvbHV0aW9uIHRoYXQgd2lsbCBiZQ0KYWNjZXB0ZWQgYnkgb3RoZXJzLg0K
+DQpGcm9tIFNQUkMgNCBkZXZlbG9wZXJzIHdpbGwgYXR0ZW5kIHRoaXMgbWVldGluZzogU3lsd2Vz
+dGVyIE5hd3JvY2tpIChzNXAtZmltYw0KYXV0aG9yKSwgS2FtaWwgRGVic2tpIChzNXAtbWZjIGF1
+dGhvciksIFRvbWFzeiBTdGFuaXNsYXdza2kgKHM1cC10diBhdXRob3IpIGFuZCBtZQ0KKHZpZGVv
+YnVmMiBjby1hdXRob3IgYW5kIGtlcm5lbCBsZWFkIGRldmVsb3BlciBpbiBTUFJDKS4NCg0KQSBx
+dWljayBzdW1tYXJ5IG9mIHRoZSBhYm92ZToNCg0KMS4gVHlwZSBvZiB0aGUgbWVldGluZzoNCiAg
+ICAgICAgVjRMMiAnYnJhaW5zdG9ybWluZycgbWluaS1zdW1taXQgOikNCg0KMi4gUGxhY2U6DQog
+ICAgICAgIFNhbXN1bmcgUG9sYW5kIFImRCBDZW50ZXINCiAgICAgICAgUG9sbmEgMTEgU3RyZWV0
+DQogICAgICAgIDAwLTYzMyBXYXJzYXcsIFBvbGFuZA0KDQozLiBEYXRlOg0KICAgICAgICAxNi0x
+OCBNYXJjaCAyMDExDQoNCjQuIEFnZW5kYQ0KICAgICAgICBUQkQsIGV2ZXJ5b25lIGlzIHdlbGNv
+bWVkIHRvIHB1dCBoaXMgaXRlbXMgaGVyZSA6KQ0KDQpJIHdpbGwgcG9zdCBzb21lIHRyYXZlbCBp
+bmZvcm1hdGlvbiB0b21vcnJvdy4gU1BSQyBvZmZpY2UgaXMgaW4gdGhlIGNlbnRlciBvZiBXYXJz
+YXcsDQp0aGVyZSBhcmUgYSBmZXcgaG90ZWxzIG5lYXJieS4gSSB3aWxsIGNoZWNrIGZvciBhIGZy
+ZWUgcm9vbXMgYW5kIEkgd2lsbCBtYWtlIGENCnJlY29tbWVuZGF0aW9uIHNvb24uIEkgaG9wZSB3
+ZSB3aWxsIG1lZXQgdG9nZXRoZXIgc29vbiENCg0KQmVzdCByZWdhcmRzDQotLQ0KTWFyZWsgU3p5
+cHJvd3NraQ0KU2Ftc3VuZyBQb2xhbmQgUiZEIENlbnRlcg0KDQpUaGUgYWJvdmUgbWVzc2FnZSBp
+cyBpbnRlbmRlZCBzb2xlbHkgZm9yIHRoZSBuYW1lZCBhZGRyZXNzZWUgYW5kIG1heSBjb250YWlu
+IHRyYWRlIHNlY3JldCwgaW5kdXN0cmlhbCB0ZWNobm9sb2d5IG9yIHByaXZpbGVnZWQgYW5kIGNv
+bmZpZGVudGlhbCBpbmZvcm1hdGlvbiBvdGhlcndpc2UgcHJvdGVjdGVkIHVuZGVyIGFwcGxpY2Fi
+bGUgbGF3LiBBbnkgdW5hdXRob3JpemVkIGRpc3NlbWluYXRpb24sIGRpc3RyaWJ1dGlvbiwgY29w
+eWluZyBvciB1c2Ugb2YgdGhlIGluZm9ybWF0aW9uIGNvbnRhaW5lZCBpbiB0aGlzIGNvbW11bmlj
+YXRpb24gaXMgc3RyaWN0bHkgcHJvaGliaXRlZC4gSWYgeW91IGhhdmUgcmVjZWl2ZWQgdGhpcyBj
+b21tdW5pY2F0aW9uIGluIGVycm9yLCBwbGVhc2Ugbm90aWZ5IHNlbmRlciBieSBlbWFpbCBhbmQg
+ZGVsZXRlIHRoaXMgY29tbXVuaWNhdGlvbiBpbW1lZGlhdGVseS4NCg0KDQpQb3d5xbxzemEgd2lh
+ZG9tb8WbxIcgcHJ6ZXpuYWN6b25hIGplc3Qgd3nFgsSFY3puaWUgZGxhIGFkcmVzYXRhIG5pbmll
+anN6ZWogd2lhZG9tb8WbY2kgaSBtb8W8ZSB6YXdpZXJhxIcgaW5mb3JtYWNqZSBixJlkxIVjZSB0
+YWplbW5pY8SFIGhhbmRsb3fEhSwgdGFqZW1uaWPEhSBwcnplZHNpxJliaW9yc3R3YSBvcmF6IGlu
+Zm9ybWFjamUgbyBjaGFyYWt0ZXJ6ZSBwb3VmbnltIGNocm9uaW9uZSBvYm93acSFenVqxIVjeW1p
+IHByemVwaXNhbWkgcHJhd2EuIEpha2lla29sd2llayBuaWV1cHJhd25pb25lIGljaCByb3pwb3dz
+emVjaG5pYW5pZSwgZHlzdHJ5YnVjamEsIGtvcGlvd2FuaWUgbHViIHXFvHljaWUgaW5mb3JtYWNq
+aSB6YXdhcnR5Y2ggdyBwb3d5xbxzemVqIHdpYWRvbW/Fm2NpIGplc3QgemFicm9uaW9uZS4gSmXF
+m2xpIG90cnp5bWHFgmXFmyBwb3d5xbxzesSFIHdpYWRvbW/Fm8SHIG9tecWCa293bywgdXByemVq
+bWllIHByb3N6xJkgcG9pbmZvcm11aiBvIHR5bSBmYWtjaWUgZHJvZ8SFIG1haWxvd8SFIG5hZGF3
+Y8SZIHRlaiB3aWFkb21vxZtjaSBvcmF6IG5pZXp3xYJvY3puaWUgdXN1xYQgcG93ecW8c3rEhSB3
+aWFkb21vxZvEhyB6ZSBzd29qZWdvIGtvbXB1dGVyYS4NCg==
