@@ -1,56 +1,91 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.8]:64861 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753886Ab1BGLfv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Feb 2011 06:35:51 -0500
-Date: Mon, 7 Feb 2011 12:35:44 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Anatolij Gustschin <agust@denx.de>
-cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	Dan Williams <dan.j.williams@intel.com>,
-	Detlev Zundel <dzu@denx.de>,
-	Markus Niebel <Markus.Niebel@tqs.de>
-Subject: Re: [PATCH 2/2 v2] dma: ipu_idmac: do not lose valid received data
- in the irq handler
-In-Reply-To: <20110207122147.4081f47d@wker>
-Message-ID: <Pine.LNX.4.64.1102071232440.29036@axis700.grange>
-References: <1296031789-1721-3-git-send-email-agust@denx.de>
- <1296476549-10421-1-git-send-email-agust@denx.de>
- <Pine.LNX.4.64.1102031104090.21719@axis700.grange> <20110205143505.0b300a3a@wker>
- <Pine.LNX.4.64.1102051735270.11500@axis700.grange> <20110205210457.7218ecdc@wker>
- <Pine.LNX.4.64.1102071205570.29036@axis700.grange> <20110207122147.4081f47d@wker>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:55201 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754487Ab1B1PHt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Feb 2011 10:07:49 -0500
+Message-ID: <4D6BBA3F.2000205@suse.cz>
+Date: Mon, 28 Feb 2011 16:07:43 +0100
+From: Jiri Slaby <jslaby@suse.cz>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: mchehab@infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, jirislaby@gmail.com,
+	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Subject: Re: [PATCH v2 -resend#1 1/1] V4L: videobuf, don't use dma addr as
+ physical
+References: <1298885822-10083-1-git-send-email-jslaby@suse.cz> <201102281153.30585.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201102281153.30585.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, 7 Feb 2011, Anatolij Gustschin wrote:
-
-> On Mon, 7 Feb 2011 12:09:15 +0100 (CET)
-> Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> ...
-> > > I can't try mplayer since I don't have mplayer setup for this.
-> > > But looking at the mplayer source I don't see why it should
-> > > behave differently. Depending on mode mplayer queues 2 or 6
-> > > buffers. Testing with my test app with 6 queued buffers shows
-> > > no issues, here the buffer numbers toggle correctly, too.
-> > 
-> > Ok, I've done a couple more tests. With larger frames, and, therefore 
-> > lower fps - yes, with your patch buffers toggle correctly. Whereas in my 
-> > tests with smaller frames and higher fps either only one buffer is used, 
-> > or one is used much more often, than the other, e.g., 0 0 0 1 0 0 0 1 0... 
-> > Could you try to verify? Without your patch with any fps buffers toggle 
-> > consistently.
+On 02/28/2011 11:53 AM, Laurent Pinchart wrote:
+> On Monday 28 February 2011 10:37:02 Jiri Slaby wrote:
+>> mem->dma_handle is a dma address obtained by dma_alloc_coherent which
+>> needn't be a physical address in presence of IOMMU. So ensure we are
+>> remapping (remap_pfn_range) the right page in __videobuf_mmap_mapper
+>> by using virt_to_phys(mem->vaddr) and not mem->dma_handle.
 > 
-> How small are the frames in you test? What is the highest fps value in
-> your test?
+> Quoting arch/arm/include/asm/memory.h,
+> 
+> /*
+>  * These are *only* valid on the kernel direct mapped RAM memory.
 
-QVGA, don't know fps exactly, pretty high, between 20 and 60fps, I think. 
-Just try different frams sizes, go down to 64x48 or something.
+Which the DMA allocation shall be.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+>  * Note: Drivers should NOT use these. 
+
+This is weird.
+
+> They are the wrong
+>  * translation for translating DMA addresses.  Use the driver
+>  * DMA support - see dma-mapping.h.
+
+Yes, ACK, and vice versa. DMA addresses cannot be used as physical ones.
+
+>  */
+> static inline unsigned long virt_to_phys(const volatile void *x)
+> {
+>         return __virt_to_phys((unsigned long)(x));
+> }
+> 
+> Why would you use physically contiguous memory if you have an IOMMU anyway ?
+
+Sorry, what? When IOMMU is used, dma_alloc_* functions may return "tags"
+as a DMA address, not a physical address. So using these DMA "addresses"
+directly (e.g. in remap_pfn_range) is a bug.
+
+Maybe there is a better way to convert a kernel address of the DMA
+mapping into a physical frame, but I'm not aware of any...
+
+>> While at it, use PFN_DOWN instead of explicit shift.
+>>
+>> Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+>> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+>> Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+>> ---
+>>  drivers/media/video/videobuf-dma-contig.c |    2 +-
+>>  1 files changed, 1 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/drivers/media/video/videobuf-dma-contig.c
+>> b/drivers/media/video/videobuf-dma-contig.c index c969111..19d3e4a 100644
+>> --- a/drivers/media/video/videobuf-dma-contig.c
+>> +++ b/drivers/media/video/videobuf-dma-contig.c
+>> @@ -300,7 +300,7 @@ static int __videobuf_mmap_mapper(struct videobuf_queue
+>> *q,
+>>
+>>  	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+>>  	retval = remap_pfn_range(vma, vma->vm_start,
+>> -				 mem->dma_handle >> PAGE_SHIFT,
+>> +				 PFN_DOWN(virt_to_phys(mem->vaddr))
+>>  				 size, vma->vm_page_prot);
+>>  	if (retval) {
+>>  		dev_err(q->dev, "mmap: remap failed with error %d. ", retval);
+> 
+
+regards,
+-- 
+js
+suse labs
