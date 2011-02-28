@@ -1,84 +1,87 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:59134 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751341Ab1BZGFL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Feb 2011 01:05:11 -0500
-Subject: [UPDATED] [GIT FIXES for 2.6.38] Fix cx23885 and cx25840
- regressions, fix ivtv DMA error handling, and add new cx18 board profile.
-From: Andy Walls <awalls@md.metrocast.net>
-To: linux-media@vger.kernel.org
-Cc: Jean Delvare <khali@linux-fr.org>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Mark Zimmerman <markzimm@frii.com>,
-	Sven Barth <pascaldragon@googlemail.com>, stoth@kernellabs.com,
-	hverkuil@xs4all.nl, Michael <mike@rsy.com>,
-	Pete <pete-ivtv@ziiz.us>
-In-Reply-To: <1297647870.19186.69.camel@localhost>
-References: <1297647870.19186.69.camel@localhost>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 26 Feb 2011 01:05:14 -0500
-Message-ID: <1298700314.2709.38.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from smtp.nokia.com ([147.243.1.48]:51673 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752961Ab1B1LDP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Feb 2011 06:03:15 -0500
+From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+To: alsa-devel@alsa-project.org, broonie@opensource.wolfsonmicro.com,
+	lrg@slimlogic.co.uk, mchehab@redhat.com, hverkuil@xs4all.nl,
+	sameo@linux.intel.com, linux-media@vger.kernel.org
+Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Subject: [PATCH v20 3/3] ASoC: WL1273 FM radio: Access I2C IO functions through pointers.
+Date: Mon, 28 Feb 2011 13:02:31 +0200
+Message-Id: <1298890951-23339-4-git-send-email-matti.j.aaltonen@nokia.com>
+In-Reply-To: <1298890951-23339-3-git-send-email-matti.j.aaltonen@nokia.com>
+References: <1298890951-23339-1-git-send-email-matti.j.aaltonen@nokia.com>
+ <1298890951-23339-2-git-send-email-matti.j.aaltonen@nokia.com>
+ <1298890951-23339-3-git-send-email-matti.j.aaltonen@nokia.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Mauro,
+These changes are needed to keep up with the changes in the
+MFD core and V4L2 parts of the wl1273 FM radio driver.
 
-Please pull the following fixes for 2.6.38.  This is a resend of my
-original pull request with two additional patches.
+Use function pointers instead of exported functions for I2C IO.
+Also move all preprocessor constants from the wl1273.h to
+include/linux/mfd/wl1273-core.h.
 
-Thanks go to Sven Barth for reporting the regression with the CX2583x
-chips in cx25840 and providing a patch.
+Also update the year in the copyright statement.
 
-Thanks also go to Mark Zimmerman for climing the git learning curve and
-devoting the time perform a git bisect to isolate the cx23885
-regression.
+Signed-off-by: Matti J. Aaltonen <matti.j.aaltonen@nokia.com>
+---
+ sound/soc/codecs/Kconfig  |    2 +-
+ sound/soc/codecs/wl1273.c |   11 ++++++++---
+ 2 files changed, 9 insertions(+), 4 deletions(-)
 
-Thanks go to Michael for perform some excellent reasoning and working up
-a patch to correct a long standing problem with the way the ivtv driver
-deals with certain DMA Errors.  Thanks also go to Pete for testing
-Mike's patch.  (I have altered Michael's original patch slightly, to
-clear status errors only when it should be safe to do so without hanging
-the DMA engine.)
-
-Thanks to Devin and Hauppauge for adding a new board profile for the
-latest HVR-1600 designs having a different DTV tuner and demodulator.
-
-I think that's everyone...
-
-Regards,
-Andy
-
-The following changes since commit cf720fed25b8078ce0d6a10036dbf7a0baded679:
-
-  [media] add support for Encore FM3 (2011-01-19 16:42:42 -0200)
-
-are available in the git repository at:
-  ssh://linuxtv.org/git/awalls/media_tree.git cx-fix-38
-
-Andy Walls (2):
-      cx23885: Revert "Check for slave nack on all transactions"
-      cx23885: Remove unused 'err:' labels to quiet compiler warning
-
-Devin Heitmueller (1):
-      cx18: Add support for Hauppauge HVR-1600 models with s5h1411
-
-Michael (1):
-      ivtv: Fix corrective action taken upon DMA ERR interrupt to avoid hang
-
-Sven Barth (1):
-      cx25840: fix probing of cx2583x chips
-
- drivers/media/video/cx18/cx18-cards.c      |   50 +++++++++++++++++++++++-
- drivers/media/video/cx18/cx18-driver.c     |   25 +++++++++++-
- drivers/media/video/cx18/cx18-driver.h     |    3 +-
- drivers/media/video/cx18/cx18-dvb.c        |   38 ++++++++++++++++++
- drivers/media/video/cx23885/cx23885-i2c.c  |   10 -----
- drivers/media/video/cx25840/cx25840-core.c |    3 +-
- drivers/media/video/ivtv/ivtv-irq.c        |   58 ++++++++++++++++++++++++---
- 7 files changed, 165 insertions(+), 22 deletions(-)
-
-
+diff --git a/sound/soc/codecs/Kconfig b/sound/soc/codecs/Kconfig
+index c48b23c..9726d6e 100644
+--- a/sound/soc/codecs/Kconfig
++++ b/sound/soc/codecs/Kconfig
+@@ -44,7 +44,7 @@ config SND_SOC_ALL_CODECS
+ 	select SND_SOC_TWL6040 if TWL4030_CORE
+ 	select SND_SOC_UDA134X
+ 	select SND_SOC_UDA1380 if I2C
+-	select SND_SOC_WL1273 if RADIO_WL1273
++	select SND_SOC_WL1273 if MFD_WL1273_CORE
+ 	select SND_SOC_WM2000 if I2C
+ 	select SND_SOC_WM8350 if MFD_WM8350
+ 	select SND_SOC_WM8400 if MFD_WM8400
+diff --git a/sound/soc/codecs/wl1273.c b/sound/soc/codecs/wl1273.c
+index 861b28f..3c27fed 100644
+--- a/sound/soc/codecs/wl1273.c
++++ b/sound/soc/codecs/wl1273.c
+@@ -3,7 +3,7 @@
+  *
+  * Author:      Matti Aaltonen, <matti.j.aaltonen@nokia.com>
+  *
+- * Copyright:   (C) 2010 Nokia Corporation
++ * Copyright:   (C) 2011 Nokia Corporation
+  *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+@@ -179,7 +179,12 @@ static int snd_wl1273_get_audio_route(struct snd_kcontrol *kcontrol,
+ 	return 0;
+ }
+ 
+-static const char *wl1273_audio_route[] = { "Bt", "FmRx", "FmTx" };
++/*
++ * TODO: Implement the audio routing in the driver. Now this control
++ * only indicates the setting that has been done elsewhere (in the user
++ * space).
++ */
++static const char * const wl1273_audio_route[] = { "Bt", "FmRx", "FmTx" };
+ 
+ static int snd_wl1273_set_audio_route(struct snd_kcontrol *kcontrol,
+ 				      struct snd_ctl_elem_value *ucontrol)
+@@ -239,7 +244,7 @@ static int snd_wl1273_fm_audio_put(struct snd_kcontrol *kcontrol,
+ 	return 1;
+ }
+ 
+-static const char *wl1273_audio_strings[] = { "Digital", "Analog" };
++static const char * const wl1273_audio_strings[] = { "Digital", "Analog" };
+ 
+ static const struct soc_enum wl1273_audio_enum =
+ 	SOC_ENUM_SINGLE_EXT(ARRAY_SIZE(wl1273_audio_strings),
+-- 
+1.6.1.3
 
