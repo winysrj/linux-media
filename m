@@ -1,104 +1,115 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2788 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753144Ab1CLKBo (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:44194 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754229Ab1CAExz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Mar 2011 05:01:44 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [GIT PATCHES FOR 2.6.39] Core prio support and global release callback
-Date: Sat, 12 Mar 2011 11:01:23 +0100
-Cc: Andy Walls <awalls@md.metrocast.net>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201103121101.23464.hverkuil@xs4all.nl>
+	Mon, 28 Feb 2011 23:53:55 -0500
+Received: by bwz15 with SMTP id 15so4293310bwz.19
+        for <linux-media@vger.kernel.org>; Mon, 28 Feb 2011 20:53:54 -0800 (PST)
+Date: Tue, 1 Mar 2011 13:55:11 +0900
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] tm6000: add audio conf for new cards
+Message-ID: <20110301135511.6dc0ab2b@glory.local>
+In-Reply-To: <4D5D8BFB.4070802@redhat.com>
+References: <4CAD5A78.3070803@redhat.com>
+ <4CB492D4.1000609@arcor.de>
+ <20101129174412.08f2001c@glory.local>
+ <4CF51C9E.6040600@arcor.de>
+ <20101201144704.43b58f2c@glory.local>
+ <4CF67AB9.6020006@arcor.de>
+ <20101202134128.615bbfa0@glory.local>
+ <4CF71CF6.7080603@redhat.com>
+ <20101206010934.55d07569@glory.local>
+ <4CFBF62D.7010301@arcor.de>
+ <20101206190230.2259d7ab@glory.local>
+ <4CFEA3D2.4050309@arcor.de>
+ <20101208125539.739e2ed2@glory.local>
+ <4CFFAD1E.7040004@arcor.de>
+ <20101214122325.5cdea67e@glory.local>
+ <4D079ADF.2000705@arcor.de>
+ <20101215164634.44846128@glory.local>
+ <4D08E43C.8080002@arcor.de>
+ <20101216183844.6258734e@glory.local>
+ <4D0A4883.20804@arcor.de>
+ <20101217104633.7c9d10d7@glory.local>
+ <4D0AF2A7.6080100@arcor.de>
+ <20101217160854.16a1f754@glory.local>
+ <4D0BFF4B.3060001@redhat.com>
+ <20110120150508.53c9b55e@glory.local>
+ <4D388C44.7040500@arcor.de>
+ <20110217141257.6d1b578b@glory.local>
+ <4D5D8BFB.4070802@redhat.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="MP_/Ybs11CK9Iqo=0X9DG0JxhiO"
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro!
+--MP_/Ybs11CK9Iqo=0X9DG0JxhiO
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-This changeset adds core support for VIDIOC_S/G_PRIORITY and adds a release
-callback to struct v4l2_device.
+Hi
 
-vivi and cx18 are modified to use the core prio support and dsbr100 was
-changed to use the release callback and unlocked_ioctl.
+Add configuration of an audio for our new TV cards.
 
-I fixed a few related ivtv problems as well.
+diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
+index a356ba7..88144a1 100644
+--- a/drivers/staging/tm6000/tm6000-cards.c
++++ b/drivers/staging/tm6000/tm6000-cards.c
+@@ -324,6 +324,8 @@ struct tm6000_board tm6000_boards[] = {
+ 		.tuner_addr   = 0xc2 >> 1,
+ 		.demod_addr   = 0x1e >> 1,
+ 		.type         = TM6010,
++		.avideo       = TM6000_AIP_SIF1,
++		.aradio       = TM6000_AIP_LINE1,
+ 		.caps = {
+ 			.has_tuner    = 1,
+ 			.has_dvb      = 1,
+@@ -341,6 +343,8 @@ struct tm6000_board tm6000_boards[] = {
+ 		.tuner_type   = TUNER_XC5000,
+ 		.tuner_addr   = 0xc2 >> 1,
+ 		.type         = TM6010,
++		.avideo       = TM6000_AIP_SIF1,
++		.aradio       = TM6000_AIP_LINE1,
+ 		.caps = {
+ 			.has_tuner    = 1,
+ 			.has_dvb      = 0,
 
-Tested with cx18, ivtv, vivi and bttv.
+Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
 
-We don't have hardware for the DSB-R100, so those changed are untested.
+With my best regards, Dmitry.
 
-There is one on its way to me, so I should be able to verify it in 2-3
-weeks.
+--MP_/Ybs11CK9Iqo=0X9DG0JxhiO
+Content-Type: text/x-patch
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=tm6000_lite_audio.diff
 
-The core prio support makes vivi fully pass v4l2-compliance (and it's the
-first driver to do so :-) ). It is also required to have the control
-framework honor the priority ioctls. Without this file descriptors with a
-lower prio could still change controls.
+diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
+index a356ba7..88144a1 100644
+--- a/drivers/staging/tm6000/tm6000-cards.c
++++ b/drivers/staging/tm6000/tm6000-cards.c
+@@ -324,6 +324,8 @@ struct tm6000_board tm6000_boards[] = {
+ 		.tuner_addr   = 0xc2 >> 1,
+ 		.demod_addr   = 0x1e >> 1,
+ 		.type         = TM6010,
++		.avideo       = TM6000_AIP_SIF1,
++		.aradio       = TM6000_AIP_LINE1,
+ 		.caps = {
+ 			.has_tuner    = 1,
+ 			.has_dvb      = 1,
+@@ -341,6 +343,8 @@ struct tm6000_board tm6000_boards[] = {
+ 		.tuner_type   = TUNER_XC5000,
+ 		.tuner_addr   = 0xc2 >> 1,
+ 		.type         = TM6010,
++		.avideo       = TM6000_AIP_SIF1,
++		.aradio       = TM6000_AIP_LINE1,
+ 		.caps = {
+ 			.has_tuner    = 1,
+ 			.has_dvb      = 0,
 
-Note that the prio core support only kicks in for drivers that use struct
-v4l2_fh and do not set vidioc_s_priority in the ioctl_ops.
+Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
 
-Regards,
-
-	Hans
-
-The following changes since commit 41f3becb7bef489f9e8c35284dd88a1ff59b190c:
-
-  [media] V4L DocBook: update V4L2 version (2011-03-11 18:09:02 -0300)
-
-are available in the git repository at:
-  ssh://linuxtv.org/git/hverkuil/media_tree.git core
-
-Hans Verkuil (17):
-      v4l2_prio: move from v4l2-common to v4l2-dev.
-      v4l2: add v4l2_prio_state to v4l2_device and video_device
-      v4l2-fh: implement v4l2_priority support.
-      v4l2-fh: add v4l2_fh_open and v4l2_fh_release helper functions
-      v4l2-fh: add v4l2_fh_is_singular
-      v4l2-ioctl: add priority handling support.
-      ivtv: convert to core priority handling.
-      v4l2-framework.txt: improve v4l2_fh/priority documentation
-      cx18: use v4l2_fh as preparation for adding core priority support.
-      cx18: use core priority handling
-      v4l2-device: add kref and a release function
-      v4l2-framework.txt: document new v4l2_device release() callback
-      dsbr100: convert to unlocked_ioctl
-      dsbr100: ensure correct disconnect sequence.
-      vivi: convert to core priority handling.
-      ivtv: add missing v4l2_fh_exit.
-      ivtv: replace ugly casts with a proper container_of.
-
- Documentation/video4linux/v4l2-framework.txt |  135 ++++++++++++++++------
- drivers/media/radio/dsbr100.c                |  128 ++++++---------------
- drivers/media/radio/radio-si4713.c           |    3 +-
- drivers/media/video/cpia2/cpia2_v4l.c        |    3 +-
- drivers/media/video/cx18/cx18-driver.h       |   14 ++-
- drivers/media/video/cx18/cx18-fileops.c      |   20 ++-
- drivers/media/video/cx18/cx18-ioctl.c        |  128 ++++++---------------
- drivers/media/video/davinci/vpfe_capture.c   |    2 +-
- drivers/media/video/ivtv/ivtv-driver.h       |    2 -
- drivers/media/video/ivtv/ivtv-fileops.c      |    3 +-
- drivers/media/video/ivtv/ivtv-ioctl.c        |  159 +++++++++++---------------
- drivers/media/video/meye.c                   |    3 +-
- drivers/media/video/mxb.c                    |    3 +-
- drivers/media/video/pwc/pwc-v4l.c            |    3 +-
- drivers/media/video/v4l2-common.c            |   63 ----------
- drivers/media/video/v4l2-dev.c               |   80 +++++++++++++
- drivers/media/video/v4l2-device.c            |   17 +++
- drivers/media/video/v4l2-fh.c                |   46 ++++++++
- drivers/media/video/v4l2-ioctl.c             |   64 +++++++++-
- drivers/media/video/vivi.c                   |   17 +--
- include/media/v4l2-common.h                  |   15 ---
- include/media/v4l2-dev.h                     |   18 +++
- include/media/v4l2-device.h                  |   14 +++
- include/media/v4l2-fh.h                      |   29 +++++
- include/media/v4l2-ioctl.h                   |    2 +-
- 25 files changed, 546 insertions(+), 425 deletions(-)
-
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+--MP_/Ybs11CK9Iqo=0X9DG0JxhiO--
