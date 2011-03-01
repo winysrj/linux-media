@@ -1,83 +1,139 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:32033 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752518Ab1CFNdB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 6 Mar 2011 08:33:01 -0500
-Message-ID: <4D738CFC.40301@redhat.com>
-Date: Sun, 06 Mar 2011 10:32:44 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1628 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753902Ab1CARbx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Mar 2011 12:31:53 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Martin Bugge (marbugge)" <marbugge@cisco.com>
+Subject: Re: [RFC] HDMI-CEC proposal
+Date: Tue, 1 Mar 2011 18:31:41 +0100
+Cc: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org
+References: <4D6CC36B.50009@cisco.com> <1298987251.3311.32.camel@morgan.silverblock.net> <4D6D09C9.5040608@cisco.com>
+In-Reply-To: <4D6D09C9.5040608@cisco.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Sylwester Nawrocki <snjw23@gmail.com>,
-	David Cohen <dacohen@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	alsa-devel@alsa-project.org,
-	Sakari Ailus <sakari.ailus@retiisi.org.uk>,
-	Pawel Osciak <pawel@osciak.com>
-Subject: Re: [GIT PULL FOR 2.6.39] Media controller and OMAP3 ISP driver
-References: <201102171606.58540.laurent.pinchart@ideasonboard.com> <4D72C5F0.6090209@gmail.com> <4D736844.50703@redhat.com> <201103061238.42784.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201103061238.42784.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201103011831.42023.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 06-03-2011 08:38, Laurent Pinchart escreveu:
-> Hi Mauro,
+On Tuesday, March 01, 2011 15:59:21 Martin Bugge (marbugge) wrote:
+> On 03/01/2011 02:47 PM, Andy Walls wrote:
+> > On Tue, 2011-03-01 at 10:59 +0100, Martin Bugge (marbugge) wrote:
+> >    
+> >> Author: Martin Bugge<marbugge@cisco.com>
+> >> Date:  Tue, 1 March 2010
+> >> ======================
+> >>
+> >> This is a proposal for adding a Consumer Electronic Control (CEC) API to
+> >> V4L2.
+> >> This document describes the changes and new ioctls needed.
+> >>
+> >> Version 1.0 (This is first version)
+> >>
+> >> Background
+> >> ==========
+> >> CEC is a protocol that provides high-level control functions between
+> >> various audiovisual products.
+> >> It is an optional supplement to the High-Definition Multimedia Interface
+> >> Specification (HDMI).
+> >> Physical layer is a one-wire bidirectional serial bus that uses the
+> >> industry-standard AV.link protocol.
+> >>
+> >> In short: CEC uses pin 13 on the HDMI connector to transmit and receive
+> >> small data-packets
+> >>             (maximum 16 bytes including a 1 byte header) at low data
+> >> rates (~400 bits/s).
+> >>
+> >> A CEC device may have any of 15 logical addresses (0 - 14).
+> >> (address 15 is broadcast and some addresses are reserved)
+> >>
+> >>
+> >> References
+> >> ==========
+> >> [1] High-Definition Multimedia Interface Specification version 1.3a,
+> >>       Supplement 1 Consumer Electronic Control (CEC).
+> >>       http://www.hdmi.org/manufacturer/specification.aspx
+> >>
+> >> [2]
+> >> http://www.hdmi.org/pdf/whitepaper/DesigningCECintoYourNextHDMIProduct.pdf
+> >>      
+> >
+> > Hi Martin,
+> >
+> > After reading the whitepaper, and the the general purpose nature of your
+> > proposed API calls, I'm wondering if a socket interface wouldn't be
+> > appropriate.
+> >
+> > The CEC bus seems to be designed as a network.  A broadcast medium, with
+> > multiport devices (switches), physical (MAC) addresses in dotted decimal
+> > notation (1.0.0.0), dynamic logical address assignment, arbitration
+> > (Media Access Control), etc.  The whitepaper even suggests OSI layers,
+> > using the term PHY in a few places.
+> >
+> >
+> > A network interface could be implemented something like what is done for
+> > SLIP in figure 2 here (compare with figure 1):
+> >
+> > 	http://www.linux.it/~rubini/docs/serial/serial.html
+> >
+> >
+> > Using that diagram as a guide, a socket interface would need a CEC tty
+> > line discipline, CEC network device, and code to hook the CEC serial
+> > device to the tty layer.  Multiple CEC serial devices would show up as
+> > multiple network interfaces.
+> >
+> > Once a network device is available, user-space could then use AF_PACKET
+> > sockets.  If CEC's layers are standardized enough, a new address family
+> > could be added to the kernel, I guess.
+> >
+> > Of course, all that is a lot of work.  Since Cisco should have some
+> > networking experts hanging around, maybe it wouldn't be too hard. ;)
+> >
+> >
+> > Regards,
+> > Andy
+> >    
 > 
-> On Sunday 06 March 2011 11:56:04 Mauro Carvalho Chehab wrote:
->> Em 05-03-2011 20:23, Sylwester Nawrocki escreveu:
->>
->> A somewhat unrelated question that occurred to me today: what happens when
->> a format change happens while streaming?
->>
->> Considering that some formats need more bits than others, this could lead
->> into buffer overflows, either internally at the device or externally, on
->> bridges that just forward whatever it receives to the DMA buffers (there
->> are some that just does that). I didn't see anything inside the mc code
->> preventing such condition to happen, and probably implementing it won't be
->> an easy job. So, one alternative would be to require some special CAPS if
->> userspace tries to set the mbus format directly, or to recommend userspace
->> to create media controller nodes with 0600 permission.
+> Hi Andy and thank you.
 > 
-> That's not really a media controller issue. Whether formats can be changed 
-> during streaming is a driver decision. The OMAP3 ISP driver won't allow 
-> formats to be changed during streaming. If the hardware allows for such format 
-> changes, drivers can implement support for that and make sure that no buffer 
-> overflow will occur.
+> I agree its always nice to strive for a generic solution, but I don't 
+> think I'm able to
+> get hold of the resources required.
+> 
+> In CEC the physical address is determined by the edid information from 
+> the HDMI sink,
+> or for the HDMI sink its HDMI port number.
+> 
+> While the logical address describes the type of device, TV, Recorder, 
+> Tuner, etc.
+> 
+>  From that point of view I do think that the CEC protocol is closly 
+> connected to the HDMI connector,
+> such that it belongs together with a video device.
+> 
+> But I will ask my "mentor" for advice.
 
-Such issues is caused by having two API's that allow format changes, one that
-does it device-based, and another one doing it subdev-based.
+Yes, CEC has a physical address which obtained from the EDID. It is generated
+via the EDID. It has nothing to do with network addresses. Instead it is a
+generated unique identifier. CEC also has logical addresses which is a really
+a 'Device Type Identifier' for want of a better name. See CEC Table 5 in the
+1.3a HDMI spec.
 
-Ok, drivers can implementing locks to prevent such troubles, but, without
-the core providing a reliable mechanism, it is hard to implement a
-correct lock. 
+When I read through it I couldn't help wondering what to do if I have more than
+three playback devices or recording devices. Or more than one TV, for that matter.
 
-For example, let's suppose that some driver is using mt9m111 subdev (I just picked 
-one random sensor that supports lots of MBUS formats). There's nothing
-there preventing a subdev call for it to change mbus format while streaming.
-Worse than that, the sensor driver has no way to block it, as it doesn't
-know that the bridge driver is streaming or not.
+It also seems that the tree of connected devices can't be more than 4 or 5 levels,
+if I understand section 8.7.2 (Physical Address Discovery) correctly.
 
-The code at subdev_do_ioctl() is just:
+As I mentioned in my reply to Mauro, CEC most closely resembles RDS in that the
+hardware/kernel part is trivial, but parsing and correctly handling it is a lot
+more complicated and ideal for a userspace library.
 
-case VIDIOC_SUBDEV_S_FMT: {
-        struct v4l2_subdev_format *format = arg;
+Regards,
 
-        if (format->which != V4L2_SUBDEV_FORMAT_TRY &&
-            format->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-                return -EINVAL;
+	Hans
 
-        if (format->pad >= sd->entity.num_pads)
-                return -EINVAL;
- 
-        return v4l2_subdev_call(sd, pad, set_fmt, subdev_fh, format);
-}
-
-So, mc core won't be preventing it.
-
-So, I can't see how such subdev request would be implementing a logic to
-return -EBUSY on those cases.
-
-Mauro.
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
