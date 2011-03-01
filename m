@@ -1,98 +1,101 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3738 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754161Ab1C2Tjb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Mar 2011 15:39:31 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Ondrej Zary <linux@rainbow-software.org>
-Subject: Re: [RFC PATCH 1/3] tea575x-tuner: various improvements
-Date: Tue, 29 Mar 2011 21:39:04 +0200
-Cc: "Takashi Iwai" <tiwai@suse.de>, jirislaby@gmail.com,
-	alsa-devel@alsa-project.org,
-	"Kernel development list" <linux-kernel@vger.kernel.org>,
-	linux-media@vger.kernel.org
-References: <201103121919.05657.linux@rainbow-software.org> <201103261119.31897.hverkuil@xs4all.nl> <201103292125.58561.linux@rainbow-software.org>
-In-Reply-To: <201103292125.58561.linux@rainbow-software.org>
+Received: from rtp-iport-2.cisco.com ([64.102.122.149]:8458 "EHLO
+	rtp-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753307Ab1CAKXu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Mar 2011 05:23:50 -0500
+From: Hans Verkuil <hansverk@cisco.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: V4L2 'brainstorming' meeting in Warsaw, March 2011
+Date: Tue, 1 Mar 2011 11:25:58 +0100
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+References: <ADF13DA15EB3FE4FBA487CCC7BEFDF36190F532AF3@bssrvexch01>
+In-Reply-To: <ADF13DA15EB3FE4FBA487CCC7BEFDF36190F532AF3@bssrvexch01>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201103292139.04798.hverkuil@xs4all.nl>
+Message-Id: <201103011125.58183.hansverk@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tuesday, March 29, 2011 21:25:55 Ondrej Zary wrote:
-> On Saturday 26 March 2011 11:19:31 Hans Verkuil wrote:
-> > On Friday, March 25, 2011 22:40:12 Ondrej Zary wrote:
-> > > On Tuesday 22 March 2011 20:02:30 Hans Verkuil wrote:
-> > > > BTW, can you run the v4l2-compliance utility for the two boards that
-> > > > use this radio tuner?
-> > > >
-> > > > This utility is part of the v4l-utils repository
-> > > > (http://git.linuxtv.org/v4l-utils.git).
-> > > >
-> > > > Run as 'v4l2-compliance -r /dev/radioX -v2'.
-> > > >
-> > > > I'm sure there will be some errors/warnings (warnings regarding
-> > > > G/S_PRIORITY are to be expected). But I can use it to make a patch for
-> > > > 2.6.40 that fixes any issues.
-> > >
-> > > The output is the same for both fm801 and es1968 (see below). Seems that
-> > > there are 4 errors:
-> > >  1. multiple-open does not work
-> > >  2. something bad with s_frequency
-> > >  3. input functions are present
-> > >  4. no extended controls
-> >
-> > Thanks for testing! Some comments are below...
-> >
-> > > Running on 2.6.38
-> > >
-> > > Driver Info:
-> > > 	Driver name   : tea575x-tuner
-> > > 	Card type     : TEA5757
-> > > 	Bus info      : PCI
-> > > 	Driver version: 0.0.2
-> > > 	Capabilities  : 0x00050000
-> > > 		Tuner
-> > > 		Radio
-> > >
-> > > Compliance test for device /dev/radio0 (not using libv4l2):
-> > >
-> > > Required ioctls:
-> > > 	test VIDIOC_QUERYCAP: OK
-> > >
-> > > Allow for multiple opens:
-> > > 	test second radio open: FAIL
-> >
-> > I will fix this. Once 2.6.39-rc1 is released I can make a patch fixing
-> > this.
-> >
-> > > Debug ioctls:
-> > > 	test VIDIOC_DBG_G_CHIP_IDENT: Not Supported
-> > > 	test VIDIOC_DBG_G/S_REGISTER: Not Supported
-> > > 	test VIDIOC_LOG_STATUS: Not Supported
-> > >
-> > > Input ioctls:
-> > > 	test VIDIOC_G/S_TUNER: OK
-> > > 		fail: set rangehigh+1 frequency did not return EINVAL
-> > > 	test VIDIOC_G/S_FREQUENCY: FAIL
-> >
-> > Hmm, S_FREQUENCY apparently fails to check for valid frequency values.
-> > Can you take a quick look at the code?
-> 
-> The driver code is OK. But there is a bug in v4l2-test-input-output.cpp at 
-> line 214:
-> if (ret)
-> 	return fail("set rangehigh+1 frequency did not return EINVAL\n");
-> 
-> There should be "if (ret != EINVAL)" instead of "if (ret)".
+Hi all!
 
-Grrr. I hate it when test code has bugs :-)
+On Monday, February 28, 2011 18:11:47 Marek Szyprowski wrote:
+> Hello everyone!
+> 
+> The idea of v4l2 'brainstorming' session came out after a few discussions on 
+#v4l
+> IRC channel about various RFCs and proposals that have been posted recently. 
+I
+> would like to announce that Samsung Poland R&D Center (SPRC) agreed to take 
+an
+> opportunity to organize this meeting. I've got a reservation for a 
+conference
+> room for 16-18 March 2011 in our office.
+> 
+> I would like to invite all of You for this V4L2 'brainstorming' session.
+> 
+> I hope that this initial meeting date I've selected will fit us. We have 2 
+only
+> weeks for the preparation, but I hope we will manage. I'm open for another 
+date
+> and if required I will change the reservation.
+> 
+> The meeting will last 3 days what gives us a lot of possibility to present 
+the
+> issues and proposals, discuss them further and work out a solution that will 
+be
+> accepted by others.
+> 
+> From SPRC 4 developers will attend this meeting: Sylwester Nawrocki (s5p-
+fimc
+> author), Kamil Debski (s5p-mfc author), Tomasz Stanislawski (s5p-tv author) 
+and me
+> (videobuf2 co-author and kernel lead developer in SPRC).
+> 
+> A quick summary of the above:
+> 
+> 1. Type of the meeting:
+>         V4L2 'brainstorming' mini-summit :)
+> 
+> 2. Place:
+>         Samsung Poland R&D Center
+>         Polna 11 Street
+>         00-633 Warsaw, Poland
+> 
+> 3. Date:
+>         16-18 March 2011
+> 
+> 4. Agenda
+>         TBD, everyone is welcomed to put his items here :)
+> 
+> I will post some travel information tomorrow. SPRC office is in the center 
+of Warsaw,
+> there are a few hotels nearby. I will check for a free rooms and I will make 
+a
+> recommendation soon. I hope we will meet together soon!
 
-Thanks for finding this. I've fixed it in the code and pushed it to the v4l-utils
-repository.
+Just to let you all know that I will be handling the agenda. I'll prepare a 
+first version of it this weekend and the final one next weekend.
+
+The basic outline is the same as during previous meetings: the first day we go 
+through all the agenda points and make sure everyone understands the problem. 
+Smaller issues will be discussed and decided, more complex issues are just 
+discussed.
+
+The second day we go in depth into the complex issues and try to come up with 
+ideas that might work. The last day we translate the all agenda items into 
+actions.
+
+This approach worked well in the past and it ensures that we end up with 
+something concrete. Also note that this is a brainstorm meeting, so the final 
+decisions will have to be taken on the mailinglist.
+
+Those who have a vested interest in an agenda item should be prepared to 
+explain it and if necessary have a presentation ready.
+
+There is a lot of ground to cover, so we should try to avoid wasting too much 
+time :-)
 
 Regards,
 
