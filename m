@@ -1,354 +1,256 @@
 Return-path: <mchehab@pedra>
-Received: from ist.d-labs.de ([213.239.218.44]:47638 "EHLO mx01.d-labs.de"
+Received: from mx1.redhat.com ([209.132.183.28]:2235 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755715Ab1COIx2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Mar 2011 04:53:28 -0400
-From: Florian Mickler <florian@mickler.org>
-To: mchehab@infradead.org
-Cc: oliver@neukum.org, jwjstone@fastmail.fm,
-	Florian Mickler <florian@mickler.org>,
-	linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 01/16] [media] dib0700: get rid of on-stack dma buffers
-Date: Tue, 15 Mar 2011 09:43:33 +0100
-Message-Id: <1300178655-24832-1-git-send-email-florian@mickler.org>
-In-Reply-To: <20110315093632.5fc9fb77@schatten.dmk.lab>
-References: <20110315093632.5fc9fb77@schatten.dmk.lab>
+	id S1752559Ab1CANTR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Mar 2011 08:19:17 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p21DJHXM013429
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 1 Mar 2011 08:19:17 -0500
+Received: from pedra (vpn-225-140.phx2.redhat.com [10.3.225.140])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p21DIEb7025546
+	for <linux-media@vger.kernel.org>; Tue, 1 Mar 2011 08:19:16 -0500
+Date: Tue, 1 Mar 2011 10:17:58 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 2/3] [media] videodev2.h.xml: Update to reflect videodev2.h
+ changes
+Message-ID: <20110301101758.34c37a01@pedra>
+In-Reply-To: <cover.1298985234.git.mchehab@redhat.com>
+References: <cover.1298985234.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-usb_control_msg initiates (and waits for completion of) a dma transfer using
-the supplied buffer. That buffer thus has to be seperately allocated on
-the heap.
+A few changes happened at videodev2.h:
+	- Addition of multiplane API;
+	- removal of VIDIOC_*_OLD ioctls;
+	- a few more video standards.
 
-In lib/dma_debug.c the function check_for_stack even warns about it:
-	WARNING: at lib/dma-debug.c:866 check_for_stack
+Update the file to reflect the latest changes.
 
-Note: This change is tested to compile only, as I don't have the hardware.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Reference: https://bugzilla.kernel.org/show_bug.cgi?id=15977.
-Reported-by: Zdenek Kabelac <zdenek.kabelac@gmail.com>
-Signed-off-by: Florian Mickler <florian@mickler.org>
-
-[v2: use preallocated buffer; fix sizeof in one case]
-[v3: use seperate kmalloc mapping for the preallocation,
-     dont ignore errors in probe codepaths  ]
-[v4: minor style nit: functions opening brace goes onto it's own line ]
----
- drivers/media/dvb/dvb-usb/dib0700.h      |    5 +-
- drivers/media/dvb/dvb-usb/dib0700_core.c |  120 ++++++++++++++++++++++++------
- 2 files changed, 99 insertions(+), 26 deletions(-)
-
-diff --git a/drivers/media/dvb/dvb-usb/dib0700.h b/drivers/media/dvb/dvb-usb/dib0700.h
-index 3537d65..99a1485 100644
---- a/drivers/media/dvb/dvb-usb/dib0700.h
-+++ b/drivers/media/dvb/dvb-usb/dib0700.h
-@@ -45,8 +45,9 @@ struct dib0700_state {
- 	u8 is_dib7000pc;
- 	u8 fw_use_new_i2c_api;
- 	u8 disable_streaming_master_mode;
--    u32 fw_version;
--    u32 nb_packet_buffer_size;
-+	u32 fw_version;
-+	u32 nb_packet_buffer_size;
-+	u8 *buf;
+diff --git a/Documentation/DocBook/v4l/videodev2.h.xml b/Documentation/DocBook/v4l/videodev2.h.xml
+index 325b23b..2b796a2 100644
+--- a/Documentation/DocBook/v4l/videodev2.h.xml
++++ b/Documentation/DocBook/v4l/videodev2.h.xml
+@@ -71,6 +71,7 @@
+  * Moved from videodev.h
+  */
+ #define VIDEO_MAX_FRAME               32
++#define VIDEO_MAX_PLANES               8
+ 
+ #ifndef __KERNEL__
+ 
+@@ -158,9 +159,23 @@ enum <link linkend="v4l2-buf-type">v4l2_buf_type</link> {
+         /* Experimental */
+         V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY = 8,
+ #endif
++        V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE = 9,
++        V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE  = 10,
+         V4L2_BUF_TYPE_PRIVATE              = 0x80,
  };
  
- extern int dib0700_get_version(struct dvb_usb_device *d, u32 *hwversion,
-diff --git a/drivers/media/dvb/dvb-usb/dib0700_core.c b/drivers/media/dvb/dvb-usb/dib0700_core.c
-index 98ffb40..1c19b73 100644
---- a/drivers/media/dvb/dvb-usb/dib0700_core.c
-+++ b/drivers/media/dvb/dvb-usb/dib0700_core.c
-@@ -27,11 +27,17 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
- int dib0700_get_version(struct dvb_usb_device *d, u32 *hwversion,
- 			u32 *romversion, u32 *ramversion, u32 *fwtype)
- {
--	u8 b[16];
--	int ret = usb_control_msg(d->udev, usb_rcvctrlpipe(d->udev, 0),
-+	int ret;
-+	u8 *b;
++#define V4L2_TYPE_IS_MULTIPLANAR(type)                  \
++        ((type) == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE   \
++         || (type) == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
 +
-+	b = kmalloc(16, GFP_KERNEL);
-+	if (!b)
-+		return -ENOMEM;
++#define V4L2_TYPE_IS_OUTPUT(type)                               \
++        ((type) == V4L2_BUF_TYPE_VIDEO_OUTPUT                   \
++         || (type) == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE         \
++         || (type) == V4L2_BUF_TYPE_VIDEO_OVERLAY               \
++         || (type) == V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY        \
++         || (type) == V4L2_BUF_TYPE_VBI_OUTPUT                  \
++         || (type) == V4L2_BUF_TYPE_SLICED_VBI_OUTPUT)
 +
-+	ret = usb_control_msg(d->udev, usb_rcvctrlpipe(d->udev, 0),
- 				  REQUEST_GET_VERSION,
- 				  USB_TYPE_VENDOR | USB_DIR_IN, 0, 0,
--				  b, sizeof(b), USB_CTRL_GET_TIMEOUT);
-+				  b, 16, USB_CTRL_GET_TIMEOUT);
- 	if (hwversion != NULL)
- 		*hwversion  = (b[0] << 24)  | (b[1] << 16)  | (b[2] << 8)  | b[3];
- 	if (romversion != NULL)
-@@ -40,6 +46,8 @@ int dib0700_get_version(struct dvb_usb_device *d, u32 *hwversion,
- 		*ramversion = (b[8] << 24)  | (b[9] << 16)  | (b[10] << 8) | b[11];
- 	if (fwtype != NULL)
- 		*fwtype     = (b[12] << 24) | (b[13] << 16) | (b[14] << 8) | b[15];
+ enum <link linkend="v4l2-tuner-type">v4l2_tuner_type</link> {
+         V4L2_TUNER_RADIO             = 1,
+         V4L2_TUNER_ANALOG_TV         = 2,
+@@ -246,6 +261,11 @@ struct <link linkend="v4l2-capability">v4l2_capability</link> {
+ #define V4L2_CAP_HW_FREQ_SEEK           0x00000400  /* Can do hardware frequency seek  */
+ #define V4L2_CAP_RDS_OUTPUT             0x00000800  /* Is an RDS encoder */
+ 
++/* Is a video capture device that supports multiplanar formats */
++#define V4L2_CAP_VIDEO_CAPTURE_MPLANE   0x00001000
++/* Is a video output device that supports multiplanar formats */
++#define V4L2_CAP_VIDEO_OUTPUT_MPLANE    0x00002000
 +
-+	kfree(b);
- 	return ret;
- }
+ #define V4L2_CAP_TUNER                  0x00010000  /* has a tuner */
+ #define V4L2_CAP_AUDIO                  0x00020000  /* has audio support */
+ #define V4L2_CAP_RADIO                  0x00040000  /* is a radio device */
+@@ -320,6 +340,13 @@ struct <link linkend="v4l2-pix-format">v4l2_pix_format</link> {
+ #define <link linkend="V4L2-PIX-FMT-NV16">V4L2_PIX_FMT_NV16</link>    v4l2_fourcc('N', 'V', '1', '6') /* 16  Y/CbCr 4:2:2  */
+ #define <link linkend="V4L2-PIX-FMT-NV61">V4L2_PIX_FMT_NV61</link>    v4l2_fourcc('N', 'V', '6', '1') /* 16  Y/CrCb 4:2:2  */
  
-@@ -101,8 +109,19 @@ int dib0700_ctrl_rd(struct dvb_usb_device *d, u8 *tx, u8 txlen, u8 *rx, u8 rxlen
- 
- int dib0700_set_gpio(struct dvb_usb_device *d, enum dib07x0_gpios gpio, u8 gpio_dir, u8 gpio_val)
- {
--	u8 buf[3] = { REQUEST_SET_GPIO, gpio, ((gpio_dir & 0x01) << 7) | ((gpio_val & 0x01) << 6) };
--	return dib0700_ctrl_wr(d, buf, sizeof(buf));
-+	s16 ret;
-+	u8 *buf = kmalloc(3, GFP_KERNEL);
-+	if (!buf)
-+		return -ENOMEM;
++/* two non contiguous planes - one Y, one Cr + Cb interleaved  */
++#define <link linkend="V4L2-PIX-FMT-NV12M">V4L2_PIX_FMT_NV12M</link>   v4l2_fourcc('N', 'M', '1', '2') /* 12  Y/CbCr 4:2:0  */
++#define <link linkend="V4L2-PIX-FMT-NV12MT">V4L2_PIX_FMT_NV12MT</link>  v4l2_fourcc('T', 'M', '1', '2') /* 12  Y/CbCr 4:2:0 64x32 macroblocks */
 +
-+	buf[0] = REQUEST_SET_GPIO;
-+	buf[1] = gpio;
-+	buf[2] = ((gpio_dir & 0x01) << 7) | ((gpio_val & 0x01) << 6);
++/* three non contiguous planes - Y, Cb, Cr */
++#define <link linkend="V4L2-PIX-FMT-YUV420M">V4L2_PIX_FMT_YUV420M</link> v4l2_fourcc('Y', 'M', '1', '2') /* 12  YUV420 planar */
 +
-+	ret = dib0700_ctrl_wr(d, buf, 3);
-+
-+	kfree(buf);
-+	return ret;
- }
- 
- static int dib0700_set_usb_xfer_len(struct dvb_usb_device *d, u16 nb_ts_packets)
-@@ -137,11 +156,12 @@ static int dib0700_i2c_xfer_new(struct i2c_adapter *adap, struct i2c_msg *msg,
- 	   properly support i2c read calls not preceded by a write */
- 
- 	struct dvb_usb_device *d = i2c_get_adapdata(adap);
-+	struct dib0700_state *st = d->priv;
- 	uint8_t bus_mode = 1;  /* 0=eeprom bus, 1=frontend bus */
- 	uint8_t gen_mode = 0; /* 0=master i2c, 1=gpio i2c */
- 	uint8_t en_start = 0;
- 	uint8_t en_stop = 0;
--	uint8_t buf[255]; /* TBV: malloc ? */
-+	uint8_t *buf = st->buf;
- 	int result, i;
- 
- 	/* Ensure nobody else hits the i2c bus while we're sending our
-@@ -221,6 +241,7 @@ static int dib0700_i2c_xfer_new(struct i2c_adapter *adap, struct i2c_msg *msg,
- 		}
- 	}
- 	mutex_unlock(&d->i2c_mutex);
-+
- 	return i;
- }
- 
-@@ -231,8 +252,9 @@ static int dib0700_i2c_xfer_legacy(struct i2c_adapter *adap,
- 				   struct i2c_msg *msg, int num)
- {
- 	struct dvb_usb_device *d = i2c_get_adapdata(adap);
-+	struct dib0700_state *st = d->priv;
- 	int i,len;
--	u8 buf[255];
-+	u8 *buf = st->buf;
- 
- 	if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
- 		return -EAGAIN;
-@@ -264,8 +286,8 @@ static int dib0700_i2c_xfer_legacy(struct i2c_adapter *adap,
- 				break;
- 		}
- 	}
--
- 	mutex_unlock(&d->i2c_mutex);
-+
- 	return i;
- }
- 
-@@ -297,15 +319,23 @@ struct i2c_algorithm dib0700_i2c_algo = {
- int dib0700_identify_state(struct usb_device *udev, struct dvb_usb_device_properties *props,
- 			struct dvb_usb_device_description **desc, int *cold)
- {
--	u8 b[16];
--	s16 ret = usb_control_msg(udev, usb_rcvctrlpipe(udev,0),
-+	s16 ret;
-+	u8 *b;
-+
-+	b = kmalloc(16, GFP_KERNEL);
-+	if (!b)
-+		return	-ENOMEM;
-+
-+
-+	ret = usb_control_msg(udev, usb_rcvctrlpipe(udev, 0),
- 		REQUEST_GET_VERSION, USB_TYPE_VENDOR | USB_DIR_IN, 0, 0, b, 16, USB_CTRL_GET_TIMEOUT);
- 
- 	deb_info("FW GET_VERSION length: %d\n",ret);
- 
- 	*cold = ret <= 0;
--
- 	deb_info("cold: %d\n", *cold);
-+
-+	kfree(b);
- 	return 0;
- }
- 
-@@ -313,7 +343,13 @@ static int dib0700_set_clock(struct dvb_usb_device *d, u8 en_pll,
- 	u8 pll_src, u8 pll_range, u8 clock_gpio3, u16 pll_prediv,
- 	u16 pll_loopdiv, u16 free_div, u16 dsuScaler)
- {
--	u8 b[10];
-+	s16 ret;
-+	u8 *b;
-+
-+	b = kmalloc(10, GFP_KERNEL);
-+	if (!b)
-+		return -ENOMEM;
-+
- 	b[0] = REQUEST_SET_CLOCK;
- 	b[1] = (en_pll << 7) | (pll_src << 6) | (pll_range << 5) | (clock_gpio3 << 4);
- 	b[2] = (pll_prediv >> 8)  & 0xff; // MSB
-@@ -325,7 +361,10 @@ static int dib0700_set_clock(struct dvb_usb_device *d, u8 en_pll,
- 	b[8] = (dsuScaler >> 8)   & 0xff; // MSB
- 	b[9] =  dsuScaler         & 0xff; // LSB
- 
--	return dib0700_ctrl_wr(d, b, 10);
-+	ret = dib0700_ctrl_wr(d, b, 10);
-+
-+	kfree(b);
-+	return ret;
- }
- 
- int dib0700_ctrl_clock(struct dvb_usb_device *d, u32 clk_MHz, u8 clock_out_gp3)
-@@ -361,11 +400,14 @@ int dib0700_download_firmware(struct usb_device *udev, const struct firmware *fw
- {
- 	struct hexline hx;
- 	int pos = 0, ret, act_len, i, adap_num;
--	u8 b[16];
-+	u8 *b;
- 	u32 fw_version;
--
- 	u8 buf[260];
- 
-+	b = kmalloc(16, GFP_KERNEL);
-+	if (!b)
-+		return -ENOMEM;
-+
- 	while ((ret = dvb_usb_get_hexline(fw, &hx, &pos)) > 0) {
- 		deb_fwdata("writing to address 0x%08x (buffer: 0x%02x %02x)\n",
- 				hx.addr, hx.len, hx.chk);
-@@ -386,7 +428,7 @@ int dib0700_download_firmware(struct usb_device *udev, const struct firmware *fw
- 
- 		if (ret < 0) {
- 			err("firmware download failed at %d with %d",pos,ret);
--			return ret;
-+			goto out;
- 		}
- 	}
- 
-@@ -407,7 +449,7 @@ int dib0700_download_firmware(struct usb_device *udev, const struct firmware *fw
- 	usb_control_msg(udev, usb_rcvctrlpipe(udev, 0),
- 				  REQUEST_GET_VERSION,
- 				  USB_TYPE_VENDOR | USB_DIR_IN, 0, 0,
--				  b, sizeof(b), USB_CTRL_GET_TIMEOUT);
-+				  b, 16, USB_CTRL_GET_TIMEOUT);
- 	fw_version = (b[8] << 24) | (b[9] << 16) | (b[10] << 8) | b[11];
- 
- 	/* set the buffer size - DVB-USB is allocating URB buffers
-@@ -426,16 +468,21 @@ int dib0700_download_firmware(struct usb_device *udev, const struct firmware *fw
- 			}
- 		}
- 	}
--
-+out:
-+	kfree(b);
- 	return ret;
- }
- 
- int dib0700_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
- {
- 	struct dib0700_state *st = adap->dev->priv;
--	u8 b[4];
-+	u8 *b;
- 	int ret;
- 
-+	b = kmalloc(4, GFP_KERNEL);
-+	if (!b)
-+		return -ENOMEM;
-+
- 	if ((onoff != 0) && (st->fw_version >= 0x10201)) {
- 		/* for firmware later than 1.20.1,
- 		 * the USB xfer length can be set  */
-@@ -443,7 +490,7 @@ int dib0700_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
- 			st->nb_packet_buffer_size);
- 		if (ret < 0) {
- 			deb_info("can not set the USB xfer len\n");
--			return ret;
-+			goto out;
- 		}
- 	}
- 
-@@ -468,7 +515,10 @@ int dib0700_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
- 
- 	deb_info("data for streaming: %x %x\n", b[1], b[2]);
- 
--	return dib0700_ctrl_wr(adap->dev, b, 4);
-+	ret = dib0700_ctrl_wr(adap->dev, b, 4);
-+out:
-+	kfree(b);
-+	return ret;
- }
- 
- int dib0700_change_protocol(struct rc_dev *rc, u64 rc_type)
-@@ -650,6 +700,7 @@ static int dib0700_probe(struct usb_interface *intf,
- 		const struct usb_device_id *id)
- {
- 	int i;
-+	int ret;
- 	struct dvb_usb_device *dev;
- 
- 	for (i = 0; i < dib0700_device_count; i++)
-@@ -658,8 +709,10 @@ static int dib0700_probe(struct usb_interface *intf,
- 			struct dib0700_state *st = dev->priv;
- 			u32 hwversion, romversion, fw_version, fwtype;
- 
--			dib0700_get_version(dev, &hwversion, &romversion,
-+			ret = dib0700_get_version(dev, &hwversion, &romversion,
- 				&fw_version, &fwtype);
-+			if (ret < 0)
-+				goto out;
- 
- 			deb_info("Firmware version: %x, %d, 0x%x, %d\n",
- 				hwversion, romversion, fw_version, fwtype);
-@@ -673,18 +726,37 @@ static int dib0700_probe(struct usb_interface *intf,
- 			else
- 				dev->props.rc.core.bulk_mode = false;
- 
--			dib0700_rc_setup(dev);
-+			ret = dib0700_rc_setup(dev);
-+			if (ret)
-+				goto out;
-+
-+			st->buf = kmalloc(255, GFP_KERNEL);
-+			if (!st->buf) {
-+				ret = -ENOMEM;
-+				goto out;
-+			}
- 
- 			return 0;
-+out:
-+			dvb_usb_device_exit(intf);
-+			return ret;
- 		}
- 
- 	return -ENODEV;
- }
- 
-+static void dib0700_disconnect(struct usb_interface *intf)
-+{
-+	struct dvb_usb_device *d = usb_get_intfdata(intf);
-+	struct dib0700_state *st = d->priv;
-+	kfree(st->buf);
-+	dvb_usb_device_exit(intf);
-+}
-+
- static struct usb_driver dib0700_driver = {
- 	.name       = "dvb_usb_dib0700",
- 	.probe      = dib0700_probe,
--	.disconnect = dvb_usb_device_exit,
-+	.disconnect = dib0700_disconnect,
- 	.id_table   = dib0700_usb_id_table,
+ /* Bayer formats - see http://www.siliconimaging.com/RGB%20Bayer.htm */
+ #define <link linkend="V4L2-PIX-FMT-SBGGR8">V4L2_PIX_FMT_SBGGR8</link>  v4l2_fourcc('B', 'A', '8', '1') /*  8  BGBG.. GRGR.. */
+ #define <link linkend="V4L2-PIX-FMT-SGBRG8">V4L2_PIX_FMT_SGBRG8</link>  v4l2_fourcc('G', 'B', 'R', 'G') /*  8  GBGB.. RGRG.. */
+@@ -518,6 +545,62 @@ struct <link linkend="v4l2-requestbuffers">v4l2_requestbuffers</link> {
+         __u32                   reserved[2];
  };
  
++/**
++ * struct <link linkend="v4l2-plane">v4l2_plane</link> - plane info for multi-planar buffers
++ * @bytesused:          number of bytes occupied by data in the plane (payload)
++ * @length:             size of this plane (NOT the payload) in bytes
++ * @mem_offset:         when memory in the associated struct <link linkend="v4l2-buffer">v4l2_buffer</link> is
++ *                      V4L2_MEMORY_MMAP, equals the offset from the start of
++ *                      the device memory for this plane (or is a "cookie" that
++ *                      should be passed to mmap() called on the video node)
++ * @userptr:            when memory is V4L2_MEMORY_USERPTR, a userspace pointer
++ *                      pointing to this plane
++ * @data_offset:        offset in the plane to the start of data; usually 0,
++ *                      unless there is a header in front of the data
++ *
++ * Multi-planar buffers consist of one or more planes, e.g. an YCbCr buffer
++ * with two planes can have one plane for Y, and another for interleaved CbCr
++ * components. Each plane can reside in a separate memory buffer, or even in
++ * a completely separate memory node (e.g. in embedded devices).
++ */
++struct <link linkend="v4l2-plane">v4l2_plane</link> {
++        __u32                   bytesused;
++        __u32                   length;
++        union {
++                __u32           mem_offset;
++                unsigned long   userptr;
++        } m;
++        __u32                   data_offset;
++        __u32                   reserved[11];
++};
++
++/**
++ * struct <link linkend="v4l2-buffer">v4l2_buffer</link> - video buffer info
++ * @index:      id number of the buffer
++ * @type:       buffer type (type == *_MPLANE for multiplanar buffers)
++ * @bytesused:  number of bytes occupied by data in the buffer (payload);
++ *              unused (set to 0) for multiplanar buffers
++ * @flags:      buffer informational flags
++ * @field:      field order of the image in the buffer
++ * @timestamp:  frame timestamp
++ * @timecode:   frame timecode
++ * @sequence:   sequence count of this frame
++ * @memory:     the method, in which the actual video data is passed
++ * @offset:     for non-multiplanar buffers with memory == V4L2_MEMORY_MMAP;
++ *              offset from the start of the device memory for this plane,
++ *              (or a "cookie" that should be passed to mmap() as offset)
++ * @userptr:    for non-multiplanar buffers with memory == V4L2_MEMORY_USERPTR;
++ *              a userspace pointer pointing to this buffer
++ * @planes:     for multiplanar buffers; userspace pointer to the array of plane
++ *              info structs for this buffer
++ * @length:     size in bytes of the buffer (NOT its payload) for single-plane
++ *              buffers (when type != *_MPLANE); number of elements in the
++ *              planes array for multi-plane buffers
++ * @input:      input number from which the video data has has been captured
++ *
++ * Contains data exchanged by application and driver using one of the Streaming
++ * I/O methods.
++ */
+ struct <link linkend="v4l2-buffer">v4l2_buffer</link> {
+         __u32                   index;
+         enum <link linkend="v4l2-buf-type">v4l2_buf_type</link>      type;
+@@ -533,6 +616,7 @@ struct <link linkend="v4l2-buffer">v4l2_buffer</link> {
+         union {
+                 __u32           offset;
+                 unsigned long   userptr;
++                struct <link linkend="v4l2-plane">v4l2_plane</link> *planes;
+         } m;
+         __u32                   length;
+         __u32                   input;
+@@ -1623,12 +1707,56 @@ struct <link linkend="v4l2-mpeg-vbi-fmt-ivtv">v4l2_mpeg_vbi_fmt_ivtv</link> {
+  *      A G G R E G A T E   S T R U C T U R E S
+  */
+ 
+-/*      Stream data format
++/**
++ * struct <link linkend="v4l2-plane-pix-format">v4l2_plane_pix_format</link> - additional, per-plane format definition
++ * @sizeimage:          maximum size in bytes required for data, for which
++ *                      this plane will be used
++ * @bytesperline:       distance in bytes between the leftmost pixels in two
++ *                      adjacent lines
++ */
++struct <link linkend="v4l2-plane-pix-format">v4l2_plane_pix_format</link> {
++        __u32           sizeimage;
++        __u16           bytesperline;
++        __u16           reserved[7];
++} __attribute__ ((packed));
++
++/**
++ * struct <link linkend="v4l2-pix-format-mplane">v4l2_pix_format_mplane</link> - multiplanar format definition
++ * @width:              image width in pixels
++ * @height:             image height in pixels
++ * @pixelformat:        little endian four character code (fourcc)
++ * @field:              field order (for interlaced video)
++ * @colorspace:         supplemental to pixelformat
++ * @plane_fmt:          per-plane information
++ * @num_planes:         number of planes for this format
++ */
++struct <link linkend="v4l2-pix-format-mplane">v4l2_pix_format_mplane</link> {
++        __u32                           width;
++        __u32                           height;
++        __u32                           pixelformat;
++        enum <link linkend="v4l2-field">v4l2_field</link>                 field;
++        enum <link linkend="v4l2-colorspace">v4l2_colorspace</link>            colorspace;
++
++        struct <link linkend="v4l2-plane-pix-format">v4l2_plane_pix_format</link>    plane_fmt[VIDEO_MAX_PLANES];
++        __u8                            num_planes;
++        __u8                            reserved[11];
++} __attribute__ ((packed));
++
++/**
++ * struct <link linkend="v4l2-format">v4l2_format</link> - stream data format
++ * @type:       type of the data stream
++ * @pix:        definition of an image format
++ * @pix_mp:     definition of a multiplanar image format
++ * @win:        definition of an overlaid image
++ * @vbi:        raw VBI capture or output parameters
++ * @sliced:     sliced VBI capture or output parameters
++ * @raw_data:   placeholder for future extensions and custom formats
+  */
+ struct <link linkend="v4l2-format">v4l2_format</link> {
+         enum <link linkend="v4l2-buf-type">v4l2_buf_type</link> type;
+         union {
+                 struct <link linkend="v4l2-pix-format">v4l2_pix_format</link>          pix;     /* V4L2_BUF_TYPE_VIDEO_CAPTURE */
++                struct <link linkend="v4l2-pix-format-mplane">v4l2_pix_format_mplane</link>   pix_mp;  /* V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE */
+                 struct <link linkend="v4l2-window">v4l2_window</link>              win;     /* V4L2_BUF_TYPE_VIDEO_OVERLAY */
+                 struct <link linkend="v4l2-vbi-format">v4l2_vbi_format</link>          vbi;     /* V4L2_BUF_TYPE_VBI_CAPTURE */
+                 struct <link linkend="v4l2-sliced-vbi-format">v4l2_sliced_vbi_format</link>   sliced;  /* V4L2_BUF_TYPE_SLICED_VBI_CAPTURE */
+@@ -1636,7 +1764,6 @@ struct <link linkend="v4l2-format">v4l2_format</link> {
+         } fmt;
+ };
+ 
+-
+ /*      Stream type-dependent parameters
+  */
+ struct <link linkend="v4l2-streamparm">v4l2_streamparm</link> {
+@@ -1809,16 +1936,6 @@ struct <link linkend="v4l2-dbg-chip-ident">v4l2_dbg_chip_ident</link> {
+ /* Reminder: when adding new ioctls please add support for them to
+    drivers/media/video/v4l2-compat-ioctl32.c as well! */
+ 
+-#ifdef __OLD_VIDIOC_
+-/* for compatibility, will go away some day */
+-#define VIDIOC_OVERLAY_OLD      _IOWR('V', 14, int)
+-#define VIDIOC_S_PARM_OLD        _IOW('V', 22, struct <link linkend="v4l2-streamparm">v4l2_streamparm</link>)
+-#define VIDIOC_S_CTRL_OLD        _IOW('V', 28, struct <link linkend="v4l2-control">v4l2_control</link>)
+-#define VIDIOC_G_AUDIO_OLD      _IOWR('V', 33, struct <link linkend="v4l2-audio">v4l2_audio</link>)
+-#define VIDIOC_G_AUDOUT_OLD     _IOWR('V', 49, struct <link linkend="v4l2-audioout">v4l2_audioout</link>)
+-#define VIDIOC_CROPCAP_OLD       _IOR('V', 58, struct <link linkend="v4l2-cropcap">v4l2_cropcap</link>)
+-#endif
+-
+ #define BASE_VIDIOC_PRIVATE     192             /* 192-255 are private */
+ 
+ #endif /* __LINUX_VIDEODEV2_H */
 -- 
-1.7.4.rc3
+1.7.1
+
 
