@@ -1,56 +1,79 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:59952 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751849Ab1CTXq4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Mar 2011 19:46:56 -0400
-Received: by wya21 with SMTP id 21so5317869wya.19
-        for <linux-media@vger.kernel.org>; Sun, 20 Mar 2011 16:46:54 -0700 (PDT)
+Received: from emh06.mail.saunalahti.fi ([62.142.5.116]:57031 "EHLO
+	emh06.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752466Ab1CASLf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Mar 2011 13:11:35 -0500
+Message-ID: <4D6D3464.2030602@kolumbus.fi>
+Date: Tue, 01 Mar 2011 20:01:08 +0200
+From: Marko Ristola <marko.ristola@kolumbus.fi>
 MIME-Version: 1.0
-From: Pawel Osciak <pawel@osciak.com>
-Date: Sun, 20 Mar 2011 16:46:33 -0700
-Message-ID: <AANLkTikyYNdm9StQoM6cb-vVpnk0O1CM8MR4QP006pr4@mail.gmail.com>
-Subject: [GIT PULL for 2.6.39] videobuf2 fixes, docbook fix and update e-mail address
-To: LMML <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Jonas Hanschke <jonas.hanschke@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Remote control not working for Terratec Cinergy C (2.6.37 Mantis
+ driver)
+References: <AANLkTinfJiCpMOTx4-mc6jW3Bpe_3qduLYpqvRi8U+ga@mail.gmail.com>
+In-Reply-To: <AANLkTinfJiCpMOTx4-mc6jW3Bpe_3qduLYpqvRi8U+ga@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
-Please pull the below patches, which include minor vb2 fixes, a
-docbook change as mplanes were added in .39 not .38 and my e-mail
-address update. Thanks!
+28.02.2011 19:26, Jonas Hanschke kirjoitti:
+> Hi,
+>
+> despite lots of time spent tinkering around and looking for help on
+> the web, I've had no success in getting to work the remote control of
+> my DVB-C card.
+>
+> It is a Terratec Cinergy C:
+> http://linuxtv.org/wiki/index.php/TerraTec_Cinergy_C_DVB-C
+>
+> and am using the Mantis driver. Since it was merged into the kernel
+> tree in 2.6.33, watching TV works without patches, but the remote
+> control does not, although it is supposed to be supported, according
+> to the link above.
+>
+> Kernel is a vanilla 2.6.37.2 with custom configuration on an old AMD
+> Athlon XP machine, running debian Squeeze.
+>
+>
+> When I modprobe the Mantis driver, the following IR-modules are pulled
+> in automagically:
+> ir_lirc_codec
+> lirc_dev
+> ir_core
+>
+> However, no input device is created during module loading. dmesg output:
+> Mantis 0000:01:0a.0: PCI INT A ->  Link[APC1] ->  GSI 16 (level, high) ->  IRQ 16
+> DVB: registering new adapter (Mantis DVB adapter)
+> IR LIRC bridge handler initialized
+> DVB: registering adapter 0 frontend 0 (Philips TDA10023 DVB-C)...
+>
+> Am I missing some additional modules? Are there any dependencies on
+> other kernel config options that are not handled automatically by make
+> menuconf?
+>
+> If additional information is needed, I will be happy to provide it.
+> However, I am not sure what is useful and what is not and did not want
+> to bloat this message.
 
+Before merging into v4l-dvb, doing modprobe mantis was enough.
+I don't know how it should work with recent kernels.
+I haven't seen remote control working lately.
 
-The following changes since commit 41f3becb7bef489f9e8c35284dd88a1ff59b190c:
+Turning mantis module debug options on gives some information
+what is happening into /var/log/messages.
 
-  [media] V4L DocBook: update V4L2 version (2011-03-11 18:09:02 -0300)
+Regards,
+Marko Ristola
 
-are available in the git repository at:
-  ssh://linuxtv.org/git/posciak/media_tree.git staging/for_v2.6.39
+>
+> Thanks in advance,
+>
+> Jonas
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-Pawel Osciak (4):
-      [media] Make 2.6.39 not 2.6.38 the version when Multi-planar API was added
-      Update Pawel Osciak's e-mail address.
-      [media] vb2: vb2_poll() fix return values for file I/O mode
-      [media] vb2: Handle return value from start_streaming callback
-
- Documentation/DocBook/v4l/compat.xml       |   13 ++++---------
- Documentation/DocBook/v4l/v4l2.xml         |   13 ++-----------
- drivers/media/video/mem2mem_testdev.c      |    4 ++--
- drivers/media/video/v4l2-mem2mem.c         |    4 ++--
- drivers/media/video/videobuf2-core.c       |   21 +++++++++++++--------
- drivers/media/video/videobuf2-dma-contig.c |    4 ++--
- drivers/media/video/videobuf2-memops.c     |    4 ++--
- drivers/media/video/videobuf2-vmalloc.c    |    4 ++--
- include/media/v4l2-mem2mem.h               |    2 +-
- include/media/videobuf2-core.h             |    2 +-
- include/media/videobuf2-dma-contig.h       |    2 +-
- include/media/videobuf2-memops.h           |    2 +-
- include/media/videobuf2-vmalloc.h          |    2 +-
- 13 files changed, 34 insertions(+), 43 deletions(-)
-
-
--- 
-Best regards,
-Pawel Osciak
