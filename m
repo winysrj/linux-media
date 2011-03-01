@@ -1,214 +1,185 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.samsung.com ([203.254.224.33]:32394 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750816Ab1CIFYP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Mar 2011 00:24:15 -0500
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Received: from epmmp1 (mailout3.samsung.com [203.254.224.33])
- by mailout3.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LHR00BHQYZYZP90@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Wed, 09 Mar 2011 14:23:58 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LHR00KY0YZYBN@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 09 Mar 2011 14:23:58 +0900 (KST)
-Date: Wed, 09 Mar 2011 14:23:58 +0900
-From: "Kim, HeungJun" <riverful.kim@samsung.com>
-Subject: Re: [RFC PATCH RESEND v2 3/3] v4l2-ctrls: document the changes about
- auto focus mode
-In-reply-to: <4D76B6F6.4070100@gmail.com>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Cc: Kim HeungJun <riverful@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"???/Mobile S/W Platform Lab(DMC?)/E4(??)/????"
-	<sw0312.kim@samsung.com>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
-Reply-to: riverful.kim@samsung.com
-Message-id: <4D770EEE.8060902@samsung.com>
-Content-transfer-encoding: 8BIT
-References: <4D6EFA02.4080105@samsung.com>
- <201103031424.41611.laurent.pinchart@ideasonboard.com>
- <C4036AEF-AD3A-44E3-A285-CAF7AAA20460@gmail.com>
- <201103031622.16641.laurent.pinchart@ideasonboard.com>
- <4D76B6F6.4070100@gmail.com>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:48436 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752583Ab1CARww convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Mar 2011 12:52:52 -0500
+Received: by fxm17 with SMTP id 17so5054303fxm.19
+        for <linux-media@vger.kernel.org>; Tue, 01 Mar 2011 09:52:51 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <4D6CC36B.50009@cisco.com>
+References: <4D6CC36B.50009@cisco.com>
+Date: Tue, 1 Mar 2011 12:52:28 -0500
+Message-ID: <AANLkTikS6AkBprfiDrW+M83YpUBjm_o3cfNJhcpzCM9N@mail.gmail.com>
+Subject: Re: [RFC] HDMI-CEC proposal
+From: Alex Deucher <alexdeucher@gmail.com>
+To: "Martin Bugge (marbugge)" <marbugge@cisco.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Sylwester, 
+On Tue, Mar 1, 2011 at 4:59 AM, Martin Bugge (marbugge)
+<marbugge@cisco.com> wrote:
+> Author: Martin Bugge <marbugge@cisco.com>
+> Date:  Tue, 1 March 2010
+> ======================
+>
+> This is a proposal for adding a Consumer Electronic Control (CEC) API to
+> V4L2.
+> This document describes the changes and new ioctls needed.
+>
+> Version 1.0 (This is first version)
+>
+> Background
+> ==========
+> CEC is a protocol that provides high-level control functions between various
+> audiovisual products.
+> It is an optional supplement to the High-Definition Multimedia Interface
+> Specification (HDMI).
+> Physical layer is a one-wire bidirectional serial bus that uses the
+> industry-standard AV.link protocol.
+>
+> In short: CEC uses pin 13 on the HDMI connector to transmit and receive
+> small data-packets
+>          (maximum 16 bytes including a 1 byte header) at low data rates
+> (~400 bits/s).
+>
+> A CEC device may have any of 15 logical addresses (0 - 14).
+> (address 15 is broadcast and some addresses are reserved)
+>
 
-2011-03-09 ì˜¤ì „ 8:08, Sylwester Nawrocki ì“´ ê¸€:
-> Hi HeungJun,
-> 
-> On 03/03/2011 04:22 PM, Laurent Pinchart wrote:
->> Hi,
->>
->> On Thursday 03 March 2011 15:34:36 Kim HeungJun wrote:
->>> 2011. 3. 3., ì˜¤í›„ 10:24, Laurent Pinchart ìž‘ì„±:
->>>> On Thursday 03 March 2011 14:17:10 Kim HeungJun wrote:
->>>>> 2011. 3. 3., ì˜¤í›„ 7:08, Laurent Pinchart ìž‘ì„±:
->>>>>> On Thursday 03 March 2011 03:16:34 Kim, HeungJun wrote:
->>>>>>> Document about the type changes and the enumeration of the auto focus
->>>>>>> control.
->>>>>>>
->>>>>>> Signed-off-by: Heungjun Kim<riverful.kim@samsung.com>
->>>>>>> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
->>>>>>> ---
->>>>>>> Documentation/DocBook/v4l/controls.xml    |   31
->>>>>>> +++++++++++++++++++++++++--- Documentation/DocBook/v4l/videodev2.h.xml
->>>>>>> | 6 +++++
->>>>>>> 2 files changed, 33 insertions(+), 4 deletions(-)
->>>>>>>
->>>>>>> diff --git a/Documentation/DocBook/v4l/controls.xml
->>>>>>> b/Documentation/DocBook/v4l/controls.xml index 2fae3e8..889fa84 100644
->>>>>>> --- a/Documentation/DocBook/v4l/controls.xml
->>>>>>> +++ b/Documentation/DocBook/v4l/controls.xml
->>>>>>> @@ -1801,12 +1801,35 @@ negative values towards infinity. This is a
->>>>>>> write-only control.</entry>  </row>
->>>>>>>
->>>>>>> 	<row><entry></entry></row>
->>>>>>>
->>>>>>> -	<row>
->>>>>>> +	<row id="v4l2-focus-auto-type">
->>>>>>>
->>>>>>> 	<entry
->>>>>>>
->>>>>>> spanname="id"><constant>V4L2_CID_FOCUS_AUTO</constant>&nbsp;</entry>  -
->>>>>>> <entry>boolean</entry>
->>>>>>> +	<entry>enum&nbsp;v4l2_focus_auto_type</entry>
->>>>>>>
->>>>>>> 	</row><row><entry spanname="descr">Enables automatic focus
->>>>>>>
->>>>>>> -adjustments. The effect of manual focus adjustments while this
->>>>>>> feature -is enabled is undefined, drivers should ignore such
->>>>>>> requests.</entry>  +adjustments of the normal or macro or
->>>>>>> continuous(CAF) mode. The effect of +manual focus adjustments while
->>>>>>> this feature is enabled is undefined, +drivers should ignore such
->>>>>>> requests. Possible values are:</entry>  +	</row>
->>>>>>> +	<row>
->>>>>>> +	<entrytbl spanname="descr" cols="2">
->>>>>>> +	<tbody valign="top">
->>>>>>> +		<row>
->>>>>>> +		<entry><constant>V4L2_FOCUS_MANUAL</constant>&nbsp;</entry>
->>>>>>> +		<entry>Manual focus mode.</entry>
->>>>>>> +		</row>
->>>>>>> +		<row>
->>>>>>> +		<entry><constant>V4L2_FOCUS_AUTO</constant>&nbsp;</entry>
->>>>>>> +		<entry>Auto focus mode with normal operation.</entry>
->>>>>>> +		</row>
->>>>>>> +		<row>
->>>>>>> +		<entry><constant>V4L2_FOCUS_MACRO</constant>&nbsp;</entry>
->>>>>>> +		<entry>Auto focus mode with macro operation.</entry>
->>>>>>> +		</row>
->>>>>>> +		<row>
->>>>>>> +		<entry><constant>V4L2_FOCUS_CONTINUOUS</constant>&nbsp;</entry>
->>>>>>> +		<entry>Auto focus mode with continuous(CAF) operation.</entry>
->>>>>>
->>>>>> I should have asked this sooner, but what's the difference between
->>>>>> normal AF and continuous AF ?
->>>>>
->>>>> Let's assume that the whole focus process(of course the sensor-internal
->>>>> process automatically) is below : 1) pointing the object focussed
->>>>>
->>>>>     : mostly this is possible to be a middle spot, or pre-given orient x
->>>>>     :&  y set from register.
->>>>>
->>>>>     (The mode using given orient x&  y, may be defined V4L2_FOCUS_TOUCH
->>>>>     or
->>>>>
->>>>> whatever, but I know touch auto focus suggestion is determined nothing
->>>>> so far, because of that, after this I will suggest to discuss about it
->>>>> one more.) 2) starting and completing the move of the motor to control
->>>>> lens, using the focusing internal algorithm 3) check whether the lens
->>>>> position is proper or not, using the focusing internal algorithm, too.
->>>>> (If the position is not proper, the image may looks defocused)
->>>>>
->>>>> In the Normal AF mode, the sensor do the whole focusing process once,
->>>>> and after completing to move lens, even though the sensor failed
->>>>> focusing process. On the other hand, the sensor repeats 1~3 in the
->>>>> Continuous AF mode periodically, regardless of success of failure.
->>>>
->>>> OK, that was my understanding as well. How will that work with the
->>>> proposed focus menu control ? Don't you need a button control for normal
->>>> auto-focus ?
->>>
->>> You mean that the normal auto-focus control type should be a button, right?
->>> For now, in our case the user application assumes that such modes(normal,
->>> MACRO, CAF, TOUCH or oriented mode, or something) are already ready in the
->>> driver. So, I did't need the normal auto-focus is a button type.
->>>
->>> But, IMHO, the focus control of camera is right to follow the next
->>> procedure, 1) choosing the modes as I said upper. (because, the camera
->>> dose not have one more focus mode.) 2) adjusting the value of the mode set
->>> right before.
->>> 3) doing the action of the mode.
->>>
->>> 1) is the same call the control V4L2_AUTO_FOCUS of menu type.
->>> 2), 3) is the same call the control dedicated focus control. Currently, the
->>> focus control excepting manual is not needed another control. If touch
->>> mode are needed, we can add another enum value, e.g. V4L2_FOCUS_ORIENT.
->>> and add another dedicated control, e.g., V4L2_CID_FOCUS_ORIENT_X,
->>> V4L2_CID_FOCUS_ORIENT_Y.
->>>
->>> I think this as I use digital camera. We normally follow such procedure,
->>> using the digital camera.
->>>
->>> If I get your words wrongly, give me some clue :)
->>
->> What happens when the user selects the V4L2_FOCUS_AUTO menu entry ? Will the
->> camera start a one-shot auto-focus algorithm ? In that case, if the user is
->> not happy with the result and wants to perform a new auto-focus, how will that
->> be possible ? The V4L2_CID_FOCUS_AUTO control will already be in
->> V4L2_FOCUS_AUTO mode.
->>
-> 
-> IIUC normally in digital cameras the shutter button is being pressed half way
-> to start operation in the selected focus mode. Having only your new menu control
-> I'm not sure how we do re-focus on a new object after V4L2_FOCUS_AUTO menu entry
-> is selected.
-> Do we need to switch to V4L2_FOCUS_MANUAL and then back to V4L2_FOCUS_AUTO 
-> to achieve this? Could you explain again please?
-There is a gap using the type of GUI button on screen or real button, especially when
-we're discussing about digital camera. The managing real button implies more having
-possibility than dealing with GUI button. The real button makes the cpu recognize
-event using interrupt or polling whatever, and then, if it's ok, the userapplication
-let the v4l2-framework handle this event how to control camera. But, it can be changed.
-Another input methods exist possibly. 
+It would be nice if this was not tied to v4l as we'll start seeing CEC
+support show in GPUs soon as well.
 
-In other words, the real user press/re-press the *real* button is input event side,
-not v4l2 side, I think.
+Alex
 
-If the users(real camera user, not user application) press the button, and then 
-the camera do the focus. When the users see unfocused images, they press the butten
-one more time for another re-focusing, at that time they must detach the button,
-and the camera(device) can check this event.
-If detaching recognized, digital camera userland can do V4L2_FOCUS_MANUAL or
-some stuff as the camera needed.
-
-For doing this more precisely, the userapp can get the feedback of the focus
-status, because the full focusing time goes about 3~4 seconds, and the focus
-status depends on how to determine the next control and preparing for user
-application. But, I have not find proper things yet, and IMHO, for doing as
-your words, we can get the feedback first. For now, we can call control just
-twice to do the focus, although it's not a perfect focusing job.
-
-If we start to think the focus feedback, we must check more thing we expected.
-For examples, preventing the stop or being slow while focusing in the preview,
-and the methods getting the status for generic API, and when the sensor notifies
-the status of focus, etc. But, sooner, this will be need I think.
-
-Let me know another opinions. :)
-
-> 
+>
+> References
+> ==========
+> [1] High-Definition Multimedia Interface Specification version 1.3a,
+>    Supplement 1 Consumer Electronic Control (CEC).
+>    http://www.hdmi.org/manufacturer/specification.aspx
+>
+> [2]
+> http://www.hdmi.org/pdf/whitepaper/DesigningCECintoYourNextHDMIProduct.pdf
+>
+>
+> Proposed solution
+> =================
+>
+> Two new ioctls:
+>    VIDIOC_CEC_CAP (read)
+>    VIDIOC_CEC_CMD (read/write)
+>
+> VIDIOC_CEC_CAP:
+> ---------------
+>
+> struct vl2_cec_cap {
+>       __u32 logicaldevices;
+>       __u32 reserved[7];
+> };
+>
+> The capability ioctl will return the number of logical devices/addresses
+> which can be
+> simultaneously supported on this HW.
+>    0:       This HW don't support CEC.
+>    1 -> 14: This HW supports n logical devices simultaneously.
+>
+> VIDIOC_CEC_CMD:
+> ---------------
+>
+> struct v4l2_cec_cmd {
+>    __u32 cmd;
+>    __u32 reserved[7];
+>    union {
+>        struct {
+>            __u32 index;
+>            __u32 enable;
+>            __u32 addr;
+>        } conf;
+>        struct {
+>            __u32 len;
+>            __u8  msg[16];
+>            __u32 status;
+>        } data;
+>        __u32 raw[8];
+>    };
+> };
+>
+> Alternatively the data struct could be:
+>        struct {
+>            __u8  initiator;
+>            __u8  destination;
+>            __u8  len;
+>            __u8  msg[15];
+>            __u32 status;
+>        } data;
+>
+> Commands:
+>
+> #define V4L2_CEC_CMD_CONF  (1)
+> #define V4L2_CEC_CMD_TX    (2)
+> #define V4L2_CEC_CMD_RX    (3)
+>
+> Tx status field:
+>
+> #define V4L2_CEC_STAT_TX_OK            (0)
+> #define V4L2_CEC_STAT_TX_ARB_LOST      (1)
+> #define V4L2_CEC_STAT_TX_RETRY_TIMEOUT (2)
+>
+> The command ioctl is used both for configuration and to receive/transmit
+> data.
+>
+> * The configuration command must be done for each logical device address
+>  which is to be enabled on this HW. Maximum number of logical devices
+>  is found with the capability ioctl.
+>    conf:
+>         index:  0 -> number_of_logical_devices-1
+>         enable: true/false
+>         addr:   logical address
+>
+>  By default all logical devices are disabled.
+>
+> * Tx/Rx command
+>    data:
+>         len:    length of message (data + header)
+>         msg:    the raw CEC message received/transmitted
+>         status: when the driver is in blocking mode it gives the result for
+> transmit.
+>
+> Events
+> ------
+>
+> In the case of non-blocking mode the driver will issue the following events:
+>
+> V4L2_EVENT_CEC_TX
+> V4L2_EVENT_CEC_RX
+>
+> V4L2_EVENT_CEC_TX
+> -----------------
+>  * transmit is complete with the following status:
+> Add an additional struct to the struct v4l2_event
+>
+> struct v4l2_event_cec_tx {
+>       __u32 status;
+> }
+>
+> V4L2_EVENT_CEC_RX
+> -----------------
+>  * received a complete message
+>
+>
+> Comments ?
+>
+>           Martin Bugge
+>
 > --
-> Regards, 
-> Sylwester Nawrocki
-> 
-> 
-
-Thanks,
-Heungjun Kim
+> Martin Bugge - Tandberg (now a part of Cisco)
+> --
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
