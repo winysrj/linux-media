@@ -1,46 +1,49 @@
 Return-path: <mchehab@pedra>
-Received: from cmsout01.mbox.net ([165.212.64.31]:33980 "EHLO
-	cmsout01.mbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751757Ab1CPWHg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Mar 2011 18:07:36 -0400
-Received: from cmsout01.mbox.net (cmsout01-lo [127.0.0.1])
-	by cmsout01.mbox.net (Postfix) with ESMTP id 3127A2ACB15
-	for <linux-media@vger.kernel.org>; Wed, 16 Mar 2011 22:07:35 +0000 (GMT)
-Message-ID: <4D81348D.2070803@usa.net>
-Date: Wed, 16 Mar 2011 23:07:09 +0100
-From: Issa Gorissen <flop.m@usa.net>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: [PATCH] Ngene cam device name
-References: <alpine.LNX.2.00.1103101608030.9782@hp8540w.home> <4D7A97BB.4020704@gmail.com> <4D7B7524.2050108@linuxtv.org> <201103130042.49199@orion.escape-edv.de> <4D7CA0CC.8090308@gmail.com>
-In-Reply-To: <4D7CA0CC.8090308@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:46323 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756799Ab1CAQOP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Mar 2011 11:14:15 -0500
+Received: by qyg14 with SMTP id 14so4488915qyg.19
+        for <linux-media@vger.kernel.org>; Tue, 01 Mar 2011 08:14:14 -0800 (PST)
+References: <201101091836.58104.pboettcher@kernellabs.com> <4D51EFFB.90201@users.sourceforge.net> <9C5EED67-B096-4C8C-8269-CDDCE24F92A7@wilsonet.com> <4D5D0AA0.3070505@users.sourceforge.net> <AEF55519-A61C-411D-AF9D-9E4ED269694F@wilsonet.com>
+In-Reply-To: <AEF55519-A61C-411D-AF9D-9E4ED269694F@wilsonet.com>
+Mime-Version: 1.0 (Apple Message framework v1082)
+Content-Type: text/plain; charset=us-ascii
+Message-Id: <8DF79112-88D7-48DF-AEC9-BB074ABE2F7D@wilsonet.com>
 Content-Transfer-Encoding: 7bit
+Cc: Lucian Muresan <lucianm@users.sourceforge.net>
+From: Jarod Wilson <jarod@wilsonet.com>
+Subject: Re: MCEUSB: falsly claims mass storage device
+Date: Tue, 1 Mar 2011 11:14:27 -0500
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 13/03/11 11:47, Martin Vidovic wrote:
->>
->> Btw, we should choose a more meaningful name for 'camX'.
->> I would prefer something like cainoutX or caioX or cinoutX or cioX.
->>   
->
->
-> I agree, camX could be misleading since it's not necessarily a CAM
-> application.
->
-> According to EN 50221 the two interfaces are named Command Interface
-> (for caX)
-> and Transport Stream Interface (for camX). Then maybe 'tsiX' would be
-> an appropriate
-> name?
->
-> Anyway, 'cioX' sounds good too.
+On Feb 28, 2011, at 5:34 PM, Jarod Wilson wrote:
 
-I'll prepare the patch with caio (for conditional access I/O) if all
-agrees on it. tsi is a good candidate as it perfectly matches the
-standard specification, but then, ca should have been ci...
+> On Feb 17, 2011, at 6:46 AM, Lucian Muresan wrote:
+> 
+>> On 09.02.2011 06:19, Jarod Wilson wrote:
+>> [...]
+>>> Looks like bInterfaceNumber == 2 on this device. The patch to handle this
+>>> similar to the conexant polaris devices should be pretty trivial. I'll
+>>> try to get something together tomorrow.
+>> 
+>> Hi,
+>> 
+>> any news on this one?
+> 
+> I suck, but I have a patch in my local tree now. Need to build and
+> quickly test it to make sure it doesn't break the devices I've got,
+> then I'll get it posted.
 
---
-Issa
+Patch is posted.
+
+https://patchwork.kernel.org/patch/599711/
+
+-- 
+Jarod Wilson
+jarod@wilsonet.com
+
+
+
