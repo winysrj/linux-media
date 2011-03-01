@@ -1,67 +1,213 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:57857 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755416Ab1CVUyp (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:49642 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753358Ab1CANrX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Mar 2011 16:54:45 -0400
-Received: by wwa36 with SMTP id 36so9331198wwa.1
-        for <linux-media@vger.kernel.org>; Tue, 22 Mar 2011 13:54:44 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4D8888F7.6010903@t-online.de>
-References: <4D87AB0F.4040908@t-online.de>
-	<20110321131602.36d146b1.rdunlap@xenotime.net>
-	<AANLkTik22=YE-2W4AtO9w_kVm=oro_YM7hJ52Rj83Fmt@mail.gmail.com>
-	<4D8888F7.6010903@t-online.de>
-Date: Wed, 23 Mar 2011 02:24:44 +0530
-Message-ID: <AANLkTimDww0692UN-HYfatcK5WFouPQYtZz0BF1EGR0Q@mail.gmail.com>
-Subject: Re: S2-3200 switching-timeouts on 2.6.38
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Rico Tzschichholz <ricotz@t-online.de>
-Cc: Randy Dunlap <rdunlap@xenotime.net>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Tue, 1 Mar 2011 08:47:23 -0500
+Subject: Re: [RFC] HDMI-CEC proposal
+From: Andy Walls <awalls@md.metrocast.net>
+To: "Martin Bugge (marbugge)" <marbugge@cisco.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+In-Reply-To: <4D6CC36B.50009@cisco.com>
+References: <4D6CC36B.50009@cisco.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Tue, 01 Mar 2011 08:47:31 -0500
+Message-ID: <1298987251.3311.32.camel@morgan.silverblock.net>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello Rico,
+On Tue, 2011-03-01 at 10:59 +0100, Martin Bugge (marbugge) wrote:
+> Author: Martin Bugge <marbugge@cisco.com>
+> Date:  Tue, 1 March 2010
+> ======================
+> 
+> This is a proposal for adding a Consumer Electronic Control (CEC) API to 
+> V4L2.
+> This document describes the changes and new ioctls needed.
+> 
+> Version 1.0 (This is first version)
+> 
+> Background
+> ==========
+> CEC is a protocol that provides high-level control functions between 
+> various audiovisual products.
+> It is an optional supplement to the High-Definition Multimedia Interface 
+> Specification (HDMI).
+> Physical layer is a one-wire bidirectional serial bus that uses the 
+> industry-standard AV.link protocol.
+> 
+> In short: CEC uses pin 13 on the HDMI connector to transmit and receive 
+> small data-packets
+>            (maximum 16 bytes including a 1 byte header) at low data 
+> rates (~400 bits/s).
+> 
+> A CEC device may have any of 15 logical addresses (0 - 14).
+> (address 15 is broadcast and some addresses are reserved)
+> 
+> 
+> References
+> ==========
+> [1] High-Definition Multimedia Interface Specification version 1.3a,
+>      Supplement 1 Consumer Electronic Control (CEC).
+>      http://www.hdmi.org/manufacturer/specification.aspx
+> 
+> [2] 
+> http://www.hdmi.org/pdf/whitepaper/DesigningCECintoYourNextHDMIProduct.pdf
 
-On Tue, Mar 22, 2011 at 5:03 PM, Rico Tzschichholz <ricotz@t-online.de> wrote:
-> Hello Manu,
->
->> Actually, quite a lot of effort was put in to get that part right. It
->> does the reverse thing that's to be done.
->> The revamped version is here [1] If the issue persists still, then it
->> needs to be investigated further.
->>
->> [1] http://www.mail-archive.com/linuxtv-commits@linuxtv.org/msg09214.html
->
-> I am not sure how this is related to stb6100?
->
-> Does that mean the current stb0899 patch [2] isnt ready to be proposed
-> for 2.6.39 yet? Or does the stb6100 patch has a better design to solve
-> this issue which should be adapted for stb0899 then?
-> I was hoping to see it included before the merge window is closed again.
->
-> [2] https://patchwork.kernel.org/patch/244201/
+
+Hi Martin,
+
+After reading the whitepaper, and the the general purpose nature of your
+proposed API calls, I'm wondering if a socket interface wouldn't be
+appropriate.
+
+The CEC bus seems to be designed as a network.  A broadcast medium, with
+multiport devices (switches), physical (MAC) addresses in dotted decimal
+notation (1.0.0.0), dynamic logical address assignment, arbitration
+(Media Access Control), etc.  The whitepaper even suggests OSI layers,
+using the term PHY in a few places.
 
 
-stb0899 is a channel decoder (or demodulator in other words) while the
-stb6100 is a
-tuner which provides I-Q components to the demod.
+A network interface could be implemented something like what is done for
+SLIP in figure 2 here (compare with figure 1):
 
-When a tuner locks to a transponder, in the spectrum in the absence of
-a signal, it will be contain White (Gaussian) noise. In such a case
-the demod has a hard time to lock to the signal. In this particular
-case, we had a bit of luck additionally, ie we  found a case where the
-stb0899 demodulator functioned perfectly well with another tuner, but
-with the same hardware configuration. This helped in narrowing the bug
-to the tuner and hence the fix.
+	http://www.linux.it/~rubini/docs/serial/serial.html
 
-The one in patchwork, does modify the step size but that doesn't
-reduce the white noise, which is something like a lucky dip. (similar
-to what Bjorn pointed out in another post.) I am not really sure
-whether modifying the step size of any benefit/disadvantage, but need
-to do some research on that aspect.
 
-Best Regards,
-Manu
-]
+Using that diagram as a guide, a socket interface would need a CEC tty
+line discipline, CEC network device, and code to hook the CEC serial
+device to the tty layer.  Multiple CEC serial devices would show up as
+multiple network interfaces.
+
+Once a network device is available, user-space could then use AF_PACKET
+sockets.  If CEC's layers are standardized enough, a new address family
+could be added to the kernel, I guess.
+
+Of course, all that is a lot of work.  Since Cisco should have some
+networking experts hanging around, maybe it wouldn't be too hard. ;)
+
+
+Regards,
+Andy
+
+> Proposed solution
+> =================
+> 
+> Two new ioctls:
+>      VIDIOC_CEC_CAP (read)
+>      VIDIOC_CEC_CMD (read/write)
+> 
+> VIDIOC_CEC_CAP:
+> ---------------
+> 
+> struct vl2_cec_cap {
+>         __u32 logicaldevices;
+>         __u32 reserved[7];
+> };
+> 
+> The capability ioctl will return the number of logical devices/addresses 
+> which can be
+> simultaneously supported on this HW.
+>      0:       This HW don't support CEC.
+>      1 -> 14: This HW supports n logical devices simultaneously.
+> 
+> VIDIOC_CEC_CMD:
+> ---------------
+> 
+> struct v4l2_cec_cmd {
+>      __u32 cmd;
+>      __u32 reserved[7];
+>      union {
+>          struct {
+>              __u32 index;
+>              __u32 enable;
+>              __u32 addr;
+>          } conf;
+>          struct {
+>              __u32 len;
+>              __u8  msg[16];
+>              __u32 status;
+>          } data;
+>          __u32 raw[8];
+>      };
+> };
+> 
+> Alternatively the data struct could be:
+>          struct {
+>              __u8  initiator;
+>              __u8  destination;
+>              __u8  len;
+>              __u8  msg[15];
+>              __u32 status;
+>          } data;
+> 
+> Commands:
+> 
+> #define V4L2_CEC_CMD_CONF  (1)
+> #define V4L2_CEC_CMD_TX    (2)
+> #define V4L2_CEC_CMD_RX    (3)
+> 
+> Tx status field:
+> 
+> #define V4L2_CEC_STAT_TX_OK            (0)
+> #define V4L2_CEC_STAT_TX_ARB_LOST      (1)
+> #define V4L2_CEC_STAT_TX_RETRY_TIMEOUT (2)
+> 
+> The command ioctl is used both for configuration and to receive/transmit 
+> data.
+> 
+> * The configuration command must be done for each logical device address
+>    which is to be enabled on this HW. Maximum number of logical devices
+>    is found with the capability ioctl.
+>      conf:
+>           index:  0 -> number_of_logical_devices-1
+>           enable: true/false
+>           addr:   logical address
+> 
+>    By default all logical devices are disabled.
+> 
+> * Tx/Rx command
+>      data:
+>           len:    length of message (data + header)
+>           msg:    the raw CEC message received/transmitted
+>           status: when the driver is in blocking mode it gives the 
+> result for transmit.
+> 
+> Events
+> ------
+> 
+> In the case of non-blocking mode the driver will issue the following events:
+> 
+> V4L2_EVENT_CEC_TX
+> V4L2_EVENT_CEC_RX
+> 
+> V4L2_EVENT_CEC_TX
+> -----------------
+>   * transmit is complete with the following status:
+> Add an additional struct to the struct v4l2_event
+> 
+> struct v4l2_event_cec_tx {
+>         __u32 status;
+> }
+> 
+> V4L2_EVENT_CEC_RX
+> -----------------
+>   * received a complete message
+> 
+> 
+> Comments ?
+> 
+>             Martin Bugge
+> 
+> --
+> Martin Bugge - Tandberg (now a part of Cisco)
+> --
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
