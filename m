@@ -1,209 +1,136 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:64643 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757142Ab1CST2s (ORCPT
+Received: from smarthost.TechFak.Uni-Bielefeld.DE ([129.70.137.17]:37557 "EHLO
+	smarthost.TechFak.Uni-Bielefeld.DE" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752848Ab1CAJR2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Mar 2011 15:28:48 -0400
-Received: by wya21 with SMTP id 21so4758294wya.19
-        for <linux-media@vger.kernel.org>; Sat, 19 Mar 2011 12:28:47 -0700 (PDT)
-Message-ID: <4D8503EC.6040103@gmail.com>
-Date: Sat, 19 Mar 2011 20:28:44 +0100
-From: Sylwester Nawrocki <snjw23@gmail.com>
+	Tue, 1 Mar 2011 04:17:28 -0500
+Message-ID: <4D6CB747.60306@cit-ec.uni-bielefeld.de>
+Date: Tue, 01 Mar 2011 10:07:19 +0100
+From: Stefan Herbrechtsmeier <sherbrec@cit-ec.uni-bielefeld.de>
 MIME-Version: 1.0
-To: Kim HeungJun <riverful@gmail.com>
-CC: "Kim, Heungjun" <riverful.kim@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Add support for M-5MOLS 8 Mega Pixel camera
-References: <1300282723-31536-1-git-send-email-riverful.kim@samsung.com> <4D84B183.7020709@gmail.com> <3985908C-2E67-4274-AA8F-E5F70745DED7@gmail.com>
-In-Reply-To: <3985908C-2E67-4274-AA8F-E5F70745DED7@gmail.com>
-Content-Type: text/plain; charset=UTF-8
+To: Paolo Santinelli <paolo.santinelli@unimore.it>
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Kernel configuration for ov9655 on the PXA27x Quick Capture Interface
+References: <AANLkTika03k=cppbejCHkuOT+Uq9ptVHZwYa80ubwLqT@mail.gmail.com>	<Pine.LNX.4.64.1102172029220.30692@axis700.grange>	<AANLkTi=9hTp-s0UGKMNrTJOL0pzhnsunWkA6UwpobJE5@mail.gmail.com>	<Pine.LNX.4.64.1102172111300.30692@axis700.grange> <AANLkTi=K3G=be3b3hH-dFetHoFeeiWsSZuK8+Vi6zq9V@mail.gmail.com>
+In-Reply-To: <AANLkTi=K3G=be3b3hH-dFetHoFeeiWsSZuK8+Vi6zq9V@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 03/19/2011 04:11 PM, Kim HeungJun wrote:
-> Hi Sylwester,
-> 
-> Thanks for the reviews. :)
-> 
-> 2011. 3. 19., Ïò§ÌõÑ 10:37, Sylwester Nawrocki ÏûëÏÑ±:
-> 
->> Hi HeungJun,
->>
->> On 03/16/2011 02:38 PM, Kim, Heungjun wrote:
->>> Add I2C/V4L2 subdev driver for M-5MOLS camera sensor with integrated
->>> image signal processor.
->>>
->>> Signed-off-by: Heungjun Kim<riverful.kim@samsung.com>
->>> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
->>> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
->>> ---
->>>
->>> Hi Hans and everyone,
->>>
->>> This is sixth version of M-5MOLS 8 Mega Pixel camera sensor. And, if you see
->>
->> Would be good to indicate the version in the subject too.
->>
->>> previous version, you can find at:
->>> http://www.spinics.net/lists/linux-media/msg29350.html
->>>
->>> This driver patch is fixed several times, and the important issues is almost
->>> corrected. And, I hope that this is the last version one merged for 2.6.39.
->>> I look forward to be reviewed one more time.
->>>
->>> The summary of this version's feature is belows:
->>>
->>> 1. Add focus control
->>> 	: I've suggest menu type focus control, but I agreed this version is
->>> 	not yet the level accepted. So, I did not use focus control which
->>> 	I suggest.
->>> 	The M-5MOLS focus routine takes some time to execute. But, the user
->>> 	application calling v4l2 control, should not hanged while streaming
->>> 	using q/dqbuf. So, I use workqueue. I want to discuss the focus
->>> 	subject on mailnglist next time.
->>>
->>> 2. Add irq routine
->>> 	: M-5MOLS can issues using GPIO pin, and I insert the basic routine
->>> 	of irq. This version handles only the Auto focus interrupt source.
->>> 	It shows only lens focusing status, don't any action now.
->>>
->>> 3. Speed-up whole I2C operation
->>> 	: I've tested several times for decreasing the stabilization time
->>> 	while I2C communication, and I have find proper time. Of course,
->>> 	it's more faster than previous version.
->>
->> That sounds good. Do you think the delays before I2C read/write could
->> be avoided in some (if not all) cases by using some status registers
->> polling?
-> I don't understand literally. Could you explain more detailed with some examples?
-> My understanding is that it might be an issues or problem when getting some
-> status registers with polling it. is it right?
+Hi Paolo,
 
-My concern is that we might not need an extra delay between consecutive 
-read or write operations in every case. Possibly it would be enough
-to read the status of some operations instead. But that just what I suspect.
+Am 17.02.2011 22:13, schrieb Paolo Santinelli:
+> Does exist an older kernel version that I can patch (
+> https://patchwork.kernel.org/patch/16548/) in order to use the ov9655
+> sensor ?
+you can find updated patches in my openembedded overlay.
+http://git.berlios.de/cgi-bin/gitweb.cgi?p=openrobotix;a=tree;f=recipes/linux
 
-> 
->>
->>>
->>> 4. Let streamon() be called once at the streamming
->>> 	: It might be an issue, videobuf2 framework calls streamon when
->>> 	qbuf() for enqueueing. It means, the driver's streamon() function
->>
->> No, that's not really the case. At last videobuf2 buf_queue op might be
->> called in response to VIDIOC_STREAMON. Certainly there must be some bug
->> in the host driver if subdev's s_stream is being called repeatedly.
->
-> Ah, it's good news. I seemed to use some little old version of vb2.
-> Then, I would try to merge new vb2 on our branch, and I need some help on that.
-> I'll contact you. After that, I test new vb2 merged on our branch and chech if there
-> is not any issues, I'll correct to use just enable variable not using is_streaming(),
-> and also correct comments.
+The ov9655 is part of my linux-bebot.patch.
 
-Sorry, I confused you. Instead of "at last" I should have used "at most".
-I think it's the host driver, not vb2 issue. I'll take care of that.
-It doesn't bother to do an additional checking though, but your comments
-should be slightly changed.
-
-> 
-> Actually, that has happened low frame rate issues on M-5MOLS, I had have headache
-> cause of this some weeks, and it's the suspects. :D
-> It's my fault not to use newer version.
-> So, letting me know this new version is very happy for me.
-> 
->>
->>> 	might be callled continuously if there is no proper handling in the
->>> 	subdev driver, and low the framerate by adding unneeded I2C operation.
->>> 	The M-5MOLS sensor needs command one time for streaming. If commands
->>> 	once, this sensor streams continuously, and this version handles it.
->>>
->>> 5. Update FW
->>> 	: It's a little tricky. Originally, the v4l2 frame provide load_fw(),
->>> 	but, there is the occasion which should do in openning the videonode,
->>> 	and it's the same occasion with us. So, if it's not wrong or it makes
->>> 	any problem, we hope to insert m5mols_update_fw() with weak attribute.
->>> 	And, I'm sorry that the fw updating code is confidential. unserstand
->>> 	by favor, plz.
->>>
->>> And, as always, this driver is tested on s5pc210 board using s5p-fimc driver.
->>>
->>> I'll wait for reviewing.
->>>
->>> Thanks and Regards,
->>> 	Heungjun Kim
->>> 	Samsung Electronics DMC R&D Center
->>>
->>>   drivers/media/video/Kconfig                  |    2 +
->>>   drivers/media/video/Makefile                 |    1 +
->>>   drivers/media/video/m5mols/Kconfig           |    5 +
->>>   drivers/media/video/m5mols/Makefile          |    3 +
->>>   drivers/media/video/m5mols/m5mols.h          |  251 ++++++
->>>   drivers/media/video/m5mols/m5mols_controls.c |  213 +++++
->>>   drivers/media/video/m5mols/m5mols_core.c     | 1062 ++++++++++++++++++++++++++
->>>   drivers/media/video/m5mols/m5mols_reg.h      |  218 ++++++
->>>   include/media/m5mols.h                       |   35 +
->>>   9 files changed, 1790 insertions(+), 0 deletions(-)
->>>   create mode 100644 drivers/media/video/m5mols/Kconfig
->>>   create mode 100644 drivers/media/video/m5mols/Makefile
->>>   create mode 100644 drivers/media/video/m5mols/m5mols.h
->>>   create mode 100644 drivers/media/video/m5mols/m5mols_controls.c
->>>   create mode 100644 drivers/media/video/m5mols/m5mols_core.c
->>>   create mode 100644 drivers/media/video/m5mols/m5mols_reg.h
->>>   create mode 100644 include/media/m5mols.h
->>>
->> ...
->>
->>> +/*
->>> + * m5mols_sensor_armboot() - booting M-5MOLS internal ARM core-controller.
->>> + *
->>> + * It makes to ready M-5MOLS for I2C&   MIPI interface. After it's powered up,
->>> + * it activates if it gets armboot command for I2C interface. After getting
->>> + * cmd, it must wait about least 520ms referenced by M-5MOLS datasheet.
->>> + */
->>> +static int m5mols_sensor_armboot(struct v4l2_subdev *sd)
->>> +{
->>> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
->>> +	u32 reg;
->>> +	int ret;
->>> +
->>> +	/* ARM(M-5MOLS core) booting */
->>> +	ret = i2c_w8_flash(sd, CATF_CAM_START, true);
->>> +	if (ret<   0)
->>> +		return ret;
->>> +
->>> +	msleep(520);
->>
->> Don't you consider using a waitqueue and a relevant interrupt
->> generated by the ISP when it has completed booting?
->> This would allow to decrease the delay to an optimal minimum.
-> I didn't yet consider it. But, it looks good option. I would try this at the next version. :)
-
-Thanks.
-
-> 
-> And, but it seems relevant or not, how to think about changing to probe all sensors
-> when video node (exactly fimc) being opened by user application?
-
-Currently only the first sensor from the list, passed as platform data,
-is initialized when the video device is opened, to make sure the capture
-device is usable.
-
-> I means, as you know, the most sensors has booting delay time, including even
-> noonxxxxxxx&  srxxxxxx sensor series. But, we can choose the calling to probe sensor
-> be made of workqueue() in the fimc. If doing as this, it can be possible not to wait
-> probing previous sensor. So, What about your opinion?
-
-Yeah, sounds like a good idea. Possibly that could save us some 100...200ms
-in cases when the applications do not want to use the first sensor.
-I'll consider that when converting FIMC to the media device.
-
---
 Regards,
-Sylwester
+     Stefan
 
+> Paolo
+>
+> 2011/2/17 Guennadi Liakhovetski<g.liakhovetski@gmx.de>:
+>> (replaced the old mailing list address)
+>>
+>> On Thu, 17 Feb 2011, Paolo Santinelli wrote:
+>>
+>>> Hi Guennadi,
+>>>
+>>> thank you for the information.
+>>>
+>>> Can I use or adapt this patch:  https://patchwork.kernel.org/patch/16548/  ?
+>> You'd have to port it to the current kernel, the patch is almost 2 years
+>> old...
+>>
+>>> I Could  use the code from the patch  to direct control the sensor
+>>> register configuration and use the  PXA27x Quick Capture Interface to
+>>> capture data by mean "soc_camera" and "pxa_camera" driver modules. But
+>>> now when I try to load the soc_camera module i get this error:
+>>>
+>>> insmod soc_camera.ko
+>>> insmod: cannot insert 'soc_camera.ko': No such device
+>>>
+>>> Please, could you give mi some tips and indication
+>> No, all the drivers: soc-camera core, camera host driver (pxa_camera) and
+>> a camera sensor driver (ov9655) have to work together. And their mutual
+>> work is configured at the platform level. Sorry, I don't think, I can
+>> guide you in detail through a complete v4l2-subdev / soc-camera driver
+>> architecture. You can try to have a look at one of the multiple examples,
+>> e.g.,
+>>
+>> arch/arm/mach-pxa/ezx.c (see a780_camera)
+>> drivers/media/video/mt9m111.c
+>> drivers/media/video/pxa_camera.c
+>>
+>> Good luck
+>> Guennadi
+>>
+>>> Thanks
+>>>
+>>> Paolo
+>>>
+>>> 2011/2/17 Guennadi Liakhovetski<g.liakhovetski@gmx.de>:
+>>>> On Wed, 16 Feb 2011, Paolo Santinelli wrote:
+>>>>
+>>>>> Hi all,
+>>>>>
+>>>>> I have an embedded smart camera equipped with an XScal-PXA270
+>>>>> processor running Linux 2.6.37 and the OV9655 Image sensor connected
+>>>>> on the PXA27x Quick Capture Interface.
+>>>>>
+>>>>> Please, what kernel module I have to select in order to use the Image sensor ?
+>>>> You need to write a new or adapt an existing driver for your ov9655
+>>>> sensor, currently, there's no driver available to work with your pxa270.
+>>>>
+>>>> Thanks
+>>>> Guennadi
+>>>> ---
+>>>> Guennadi Liakhovetski, Ph.D.
+>>>> Freelance Open-Source Software Developer
+>>>> http://www.open-technology.de/
+>>>>
+>>>
+>>>
+>>> --
+>>> --------------------------------------------------
+>>> Paolo Santinelli
+>>> ImageLab Computer Vision and Pattern Recognition Lab
+>>> Dipartimento di Ingegneria dell'Informazione
+>>> Universita' di Modena e Reggio Emilia
+>>> via Vignolese 905/B, 41125, Modena, Italy
+>>>
+>>> Cell. +39 3472953357,  Office +39 059 2056270, Fax +39 059 2056129
+>>> email:<mailto:paolo.santinelli@unimore.it>  paolo.santinelli@unimore.it
+>>> URL:<http://imagelab.ing.unimo.it/>  http://imagelab.ing.unimo.it
+>>> --------------------------------------------------
+>>>
+>> ---
+>> Guennadi Liakhovetski, Ph.D.
+>> Freelance Open-Source Software Developer
+>> http://www.open-technology.de/
+>>
+>
+>
+
+
+-- 
+Dipl.-Ing. Stefan Herbrechtsmeier
+
+Universit‰t Bielefeld
+AG Kognitronik&  Sensorik
+Exzellenzcluster Cognitive Interaction Technology (CITEC)
+Universit‰tsstraﬂe 21-23
+D-33615 Bielefeld (Germany)
+
+office : M6-117
+phone  : +49 521-106-67370
+fax    : +49 521-106-12348
+mailto : sherbrec@cit-ec.uni-bielefeld.de
+www    : http://www.ks.cit-ec.uni-bielefeld.de/
 
