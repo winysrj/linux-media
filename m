@@ -1,54 +1,85 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:42401 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752773Ab1CPNLJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Mar 2011 09:11:09 -0400
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48344 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755882Ab1CAKJ5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Mar 2011 05:09:57 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Bhupesh SHARMA <bhupesh.sharma@st.com>
+Subject: Re: isp or soc-camera for image co-processors
+Date: Tue, 1 Mar 2011 11:10:05 +0100
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <D5ECB3C7A6F99444980976A8C6D896384DEFA5983D@EAPEX1MAIL1.st.com> <201103011041.03424.laurent.pinchart@ideasonboard.com> <D5ECB3C7A6F99444980976A8C6D896384DEFA598FC@EAPEX1MAIL1.st.com>
+In-Reply-To: <D5ECB3C7A6F99444980976A8C6D896384DEFA598FC@EAPEX1MAIL1.st.com>
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1102221057040.1380@axis700.grange>
-References: <Pine.LNX.4.64.1102221049240.1380@axis700.grange>
-	<Pine.LNX.4.64.1102221057040.1380@axis700.grange>
-Date: Wed, 16 Mar 2011 22:11:07 +0900
-Message-ID: <AANLkTikA0QDCLNSrM3FGobEzBBh9hcP_ZpyC+4YPSbx7@mail.gmail.com>
-Subject: Re: [PATCH 3/3] ARM: switch mackerel to dynamically manage the
- platform camera
-From: Magnus Damm <magnus.damm@gmail.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-sh@vger.kernel.org,
-	Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201103011110.06258.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, Feb 22, 2011 at 6:57 PM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> Use soc_camera_platform helper functions to dynamically manage the
-> camera device.
->
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> ---
->  arch/arm/mach-shmobile/board-mackerel.c |   28 +++++++---------------------
->  1 files changed, 7 insertions(+), 21 deletions(-)
+Hi Bhupesh,
 
-Hi Guennadi,
+On Tuesday 01 March 2011 10:46:36 Bhupesh SHARMA wrote:
+> On Tuesday, March 01, 2011 3:11 PM Laurent Pinchart wrote: 
+> > On Tuesday 01 March 2011 08:25:12 Bhupesh SHARMA wrote:
+> > > Hi Guennadi and Laurent,
+> > > 
+> > > We are now evaluating another ST platform that supports a image
+> > > co-processor between the camera sensor and the camera host (SoC).
+> > > 
+> > > The simple architecture diagram will be similar to one shown below
+> > > (for the sake of simplicity I show only a single sensor. At least
+> > 
+> > > two sensors can be supported by the co-processor):
+> > [snip] (as the ascii-art looks more like a Picasso painting with the
+> > quote
+> > characters)
+> :
+> :(
+> 
+> Despite my efforts to align it properly :)
 
-Thanks for your work on this. The soc_camera_platform interface has
-become much much nicer with these patches.
+Try to configure your mailer to use spaces instead of tabs, or to make tabs 8 
+spaces wide. It should then look good. Replies will usually mess the diagrams 
+up though.
 
-I just tested patch 1/3 and patch 3/3 on my Mackerel board.
-Unfortunately I get this printout on the console:
+> > > The co-processor supports a video progressing logic engine capable of
+> > > performing a variety of operations like image recovery, cropping,
+> > > scaling, gamma correction etc.
+> > > 
+> > > Now, evaluating the framework available for supporting for the camera
+> > > host, sensor and co-processor, I am wondering whether soc-camera(v4l2)
+> > > can support this complex design or something similar to the ISP driver
+> > > written for OMAP is the way forward.
+> > 
+> > I think this can be a good candidate for the media controller API. It
+> > depends on how complex the co-processor is and what kind of processing it
+> > performs. I suppose there's no public datasheet.
+> > 
+> > You will probably need to enhance subdev registration, as I'm not aware
+> > of any existing use case such as yours where a chain of subdevs unknown to
+> > the host controller is connected to the host controller input.
+> 
+> Could you please give me some documentation links for media controller API.
 
-sh_mobile_ceu sh_mobile_ceu.0: SuperH Mobile CEU driver attached to camera 0
-soc_camera_platform soc_camera_platform.0: Platform has not set
-soc_camera_device pointer!
-soc_camera_platform: probe of soc_camera_platform.0 failed with error -22
-sh_mobile_ceu sh_mobile_ceu.0: SuperH Mobile CEU driver detached from camera 0
+The media controller documentation is part of the V4L2 kernel documentation. 
+You can find a compiled copy at http://www.ideasonboard.org/media/media/
 
-Without these two patches everything work just fine. Any ideas on how
-to fix it? I'd be happy to test V2. =)
+The in-kernel API is documented in the kernel sources, in Documentation/media-
+framework.txt
 
-Thanks,
+> Are there are reference drivers that I can use for my study?
 
-/ magnus
+The OMAP3 ISP driver.
+
+> Unfortunately the data-sheet of the co-processor cannot be made public
+> as of yet.
+
+Can you publish a block diagram of the co-processor internals ?
+
+-- 
+Regards,
+
+Laurent Pinchart
