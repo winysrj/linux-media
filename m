@@ -1,102 +1,81 @@
 Return-path: <mchehab@pedra>
-Received: from rtp-iport-2.cisco.com ([64.102.122.149]:8458 "EHLO
-	rtp-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753307Ab1CAKXu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Mar 2011 05:23:50 -0500
-From: Hans Verkuil <hansverk@cisco.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: V4L2 'brainstorming' meeting in Warsaw, March 2011
-Date: Tue, 1 Mar 2011 11:25:58 +0100
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-References: <ADF13DA15EB3FE4FBA487CCC7BEFDF36190F532AF3@bssrvexch01>
-In-Reply-To: <ADF13DA15EB3FE4FBA487CCC7BEFDF36190F532AF3@bssrvexch01>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201103011125.58183.hansverk@cisco.com>
+Received: from mx1.redhat.com ([209.132.183.28]:39024 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756436Ab1CAPiy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Mar 2011 10:38:54 -0500
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p21FcsB2013459
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 1 Mar 2011 10:38:54 -0500
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Jarod Wilson <jarod@redhat.com>
+Subject: [PATCH] tda829x: fix regression in probe functions
+Date: Tue,  1 Mar 2011 10:38:48 -0500
+Message-Id: <1298993928-26876-1-git-send-email-jarod@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi all!
+In commit 567aba0b7997dad5fe3fb4aeb174ee9018df8c5b, the probe address
+for tda8290_probe and tda8295_probe was hard-coded to 0x4b, which is the
+default i2c address for those devices, but its possible for the device
+to be at an alternate address, 0x42, which is the case for the HVR-1950.
+If we probe the wrong address, probe fails and we have a non-working
+device. We have the actual address passed into the function by way of
+i2c_props, we just need to use it. Also fix up some copy/paste comment
+issues and streamline debug spew a touch. Verified to restore my
+HVR-1950 to full working order.
 
-On Monday, February 28, 2011 18:11:47 Marek Szyprowski wrote:
-> Hello everyone!
-> 
-> The idea of v4l2 'brainstorming' session came out after a few discussions on 
-#v4l
-> IRC channel about various RFCs and proposals that have been posted recently. 
-I
-> would like to announce that Samsung Poland R&D Center (SPRC) agreed to take 
-an
-> opportunity to organize this meeting. I've got a reservation for a 
-conference
-> room for 16-18 March 2011 in our office.
-> 
-> I would like to invite all of You for this V4L2 'brainstorming' session.
-> 
-> I hope that this initial meeting date I've selected will fit us. We have 2 
-only
-> weeks for the preparation, but I hope we will manage. I'm open for another 
-date
-> and if required I will change the reservation.
-> 
-> The meeting will last 3 days what gives us a lot of possibility to present 
-the
-> issues and proposals, discuss them further and work out a solution that will 
-be
-> accepted by others.
-> 
-> From SPRC 4 developers will attend this meeting: Sylwester Nawrocki (s5p-
-fimc
-> author), Kamil Debski (s5p-mfc author), Tomasz Stanislawski (s5p-tv author) 
-and me
-> (videobuf2 co-author and kernel lead developer in SPRC).
-> 
-> A quick summary of the above:
-> 
-> 1. Type of the meeting:
->         V4L2 'brainstorming' mini-summit :)
-> 
-> 2. Place:
->         Samsung Poland R&D Center
->         Polna 11 Street
->         00-633 Warsaw, Poland
-> 
-> 3. Date:
->         16-18 March 2011
-> 
-> 4. Agenda
->         TBD, everyone is welcomed to put his items here :)
-> 
-> I will post some travel information tomorrow. SPRC office is in the center 
-of Warsaw,
-> there are a few hotels nearby. I will check for a free rooms and I will make 
-a
-> recommendation soon. I hope we will meet together soon!
+Special thanks to Ken Bass for reporting the issue in the first place,
+and to both he and Gary Buhrmaster for aiding in debugging and analysis
+of the problem.
 
-Just to let you all know that I will be handling the agenda. I'll prepare a 
-first version of it this weekend and the final one next weekend.
+Reported-by: Ken Bass <kbass@kenbass.com>
+Tested-by: Jarod Wilson <jarod@redhat.com>
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
+---
+ drivers/media/common/tuners/tda8290.c |   14 +++++++-------
+ 1 files changed, 7 insertions(+), 7 deletions(-)
 
-The basic outline is the same as during previous meetings: the first day we go 
-through all the agenda points and make sure everyone understands the problem. 
-Smaller issues will be discussed and decided, more complex issues are just 
-discussed.
+diff --git a/drivers/media/common/tuners/tda8290.c b/drivers/media/common/tuners/tda8290.c
+index bc6a677..8c48521 100644
+--- a/drivers/media/common/tuners/tda8290.c
++++ b/drivers/media/common/tuners/tda8290.c
+@@ -658,13 +658,13 @@ static int tda8290_probe(struct tuner_i2c_props *i2c_props)
+ #define TDA8290_ID 0x89
+ 	u8 reg = 0x1f, id;
+ 	struct i2c_msg msg_read[] = {
+-		{ .addr = 0x4b, .flags = 0, .len = 1, .buf = &reg },
+-		{ .addr = 0x4b, .flags = I2C_M_RD, .len = 1, .buf = &id },
++		{ .addr = i2c_props->addr, .flags = 0, .len = 1, .buf = &reg },
++		{ .addr = i2c_props->addr, .flags = I2C_M_RD, .len = 1, .buf = &id },
+ 	};
+ 
+ 	/* detect tda8290 */
+ 	if (i2c_transfer(i2c_props->adap, msg_read, 2) != 2) {
+-		printk(KERN_WARNING "%s: tda8290 couldn't read register 0x%02x\n",
++		printk(KERN_WARNING "%s: couldn't read register 0x%02x\n",
+ 			       __func__, reg);
+ 		return -ENODEV;
+ 	}
+@@ -685,13 +685,13 @@ static int tda8295_probe(struct tuner_i2c_props *i2c_props)
+ #define TDA8295C2_ID 0x8b
+ 	u8 reg = 0x2f, id;
+ 	struct i2c_msg msg_read[] = {
+-		{ .addr = 0x4b, .flags = 0, .len = 1, .buf = &reg },
+-		{ .addr = 0x4b, .flags = I2C_M_RD, .len = 1, .buf = &id },
++		{ .addr = i2c_props->addr, .flags = 0, .len = 1, .buf = &reg },
++		{ .addr = i2c_props->addr, .flags = I2C_M_RD, .len = 1, .buf = &id },
+ 	};
+ 
+-	/* detect tda8290 */
++	/* detect tda8295 */
+ 	if (i2c_transfer(i2c_props->adap, msg_read, 2) != 2) {
+-		printk(KERN_WARNING "%s: tda8290 couldn't read register 0x%02x\n",
++		printk(KERN_WARNING "%s: couldn't read register 0x%02x\n",
+ 			       __func__, reg);
+ 		return -ENODEV;
+ 	}
+-- 
+1.7.1
 
-The second day we go in depth into the complex issues and try to come up with 
-ideas that might work. The last day we translate the all agenda items into 
-actions.
-
-This approach worked well in the past and it ensures that we end up with 
-something concrete. Also note that this is a brainstorm meeting, so the final 
-decisions will have to be taken on the mailinglist.
-
-Those who have a vested interest in an agenda item should be prepared to 
-explain it and if necessary have a presentation ready.
-
-There is a lot of ground to cover, so we should try to avoid wasting too much 
-time :-)
-
-Regards,
-
-	Hans
