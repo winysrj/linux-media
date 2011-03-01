@@ -1,34 +1,87 @@
 Return-path: <mchehab@pedra>
-Received: from alia.ip-minds.de ([84.201.38.2]:46468 "EHLO alia.ip-minds.de"
+Received: from smtp.nokia.com ([147.243.128.24]:47121 "EHLO mgw-da01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751147Ab1CKX3u (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Mar 2011 18:29:50 -0500
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by alia.ip-minds.de (Postfix) with ESMTP id 9B29466A08C
-	for <linux-media@vger.kernel.org>; Sat, 12 Mar 2011 00:30:04 +0100 (CET)
-Received: from alia.ip-minds.de ([127.0.0.1])
-	by localhost (alia.ip-minds.de [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id JoBn4NdHsm4f for <linux-media@vger.kernel.org>;
-	Sat, 12 Mar 2011 00:30:04 +0100 (CET)
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: WinTV 1400 broken with recent =?UTF-8?Q?versions=3F?=
-MIME-Version: 1.0
-Date: Sat, 12 Mar 2011 00:30:03 +0100
-From: <jean.bruenn@ip-minds.de>
-In-Reply-To: <AANLkTimqGxS6OYNarqQwZNxFk+rccPn40UcK+6Oo72SC@mail.gmail.com>
-References: <20110309175231.16446e92.jean.bruenn@ip-minds.de> <76A39CFB-2838-4AD7-B353-49971F9F7DFF@wilsonet.com> <ba12e998349efa465be466a4d7f9d43f@localhost> <3AF3951C-11F6-48E4-A0EE-85179B013AFC@wilsonet.com> <81E0AF02-0837-4DF8-BFEA-94A654FFF471@wilsonet.com> <af7d57a1bb478c0edac4cd7afdfd6f41@localhost> <AANLkTimqGxS6OYNarqQwZNxFk+rccPn40UcK+6Oo72SC@mail.gmail.com>
-Message-ID: <3934d121118af31f8708589189a42b95@localhost>
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset=UTF-8
+	id S1752548Ab1CANL1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Mar 2011 08:11:27 -0500
+From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+To: alsa-devel@alsa-project.org, broonie@opensource.wolfsonmicro.com,
+	lrg@slimlogic.co.uk, mchehab@redhat.com, hverkuil@xs4all.nl,
+	sameo@linux.intel.com, linux-media@vger.kernel.org
+Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Subject: [PATCH v22 3/3] ASoC: WL1273 FM radio: Access I2C IO functions through pointers.
+Date: Tue,  1 Mar 2011 15:10:37 +0200
+Message-Id: <1298985037-2714-4-git-send-email-matti.j.aaltonen@nokia.com>
+In-Reply-To: <1298985037-2714-3-git-send-email-matti.j.aaltonen@nokia.com>
+References: <1298985037-2714-1-git-send-email-matti.j.aaltonen@nokia.com>
+ <1298985037-2714-2-git-send-email-matti.j.aaltonen@nokia.com>
+ <1298985037-2714-3-git-send-email-matti.j.aaltonen@nokia.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+These changes are needed to keep up with the changes in the
+MFD core and V4L2 parts of the wl1273 FM radio driver.
 
-> Doesn't seem weird to me at all.  This is a pretty uncommon card, so
-> it is entirely possible that many revisions could go by without
-> someone noticing a regression.  I know for example that the HVR-1500Q
-> (the US version of that board) was broken for months and nobody
-> noticed.
+Use function pointers instead of exported functions for I2C IO.
+Also move all preprocessor constants from the wl1273.h to
+include/linux/mfd/wl1273-core.h.
 
-Well. How was it solved at the hvr-1500q? :) Any other information i
-could provide maybe? 
+Also update the year in the copyright statement.
+
+Signed-off-by: Matti J. Aaltonen <matti.j.aaltonen@nokia.com>
+---
+ sound/soc/codecs/Kconfig  |    2 +-
+ sound/soc/codecs/wl1273.c |   11 ++++++++---
+ 2 files changed, 9 insertions(+), 4 deletions(-)
+
+diff --git a/sound/soc/codecs/Kconfig b/sound/soc/codecs/Kconfig
+index c48b23c..9726d6e 100644
+--- a/sound/soc/codecs/Kconfig
++++ b/sound/soc/codecs/Kconfig
+@@ -44,7 +44,7 @@ config SND_SOC_ALL_CODECS
+ 	select SND_SOC_TWL6040 if TWL4030_CORE
+ 	select SND_SOC_UDA134X
+ 	select SND_SOC_UDA1380 if I2C
+-	select SND_SOC_WL1273 if RADIO_WL1273
++	select SND_SOC_WL1273 if MFD_WL1273_CORE
+ 	select SND_SOC_WM2000 if I2C
+ 	select SND_SOC_WM8350 if MFD_WM8350
+ 	select SND_SOC_WM8400 if MFD_WM8400
+diff --git a/sound/soc/codecs/wl1273.c b/sound/soc/codecs/wl1273.c
+index 861b28f..5836201 100644
+--- a/sound/soc/codecs/wl1273.c
++++ b/sound/soc/codecs/wl1273.c
+@@ -3,7 +3,7 @@
+  *
+  * Author:      Matti Aaltonen, <matti.j.aaltonen@nokia.com>
+  *
+- * Copyright:   (C) 2010 Nokia Corporation
++ * Copyright:   (C) 2010, 2011 Nokia Corporation
+  *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+@@ -179,7 +179,12 @@ static int snd_wl1273_get_audio_route(struct snd_kcontrol *kcontrol,
+ 	return 0;
+ }
+ 
+-static const char *wl1273_audio_route[] = { "Bt", "FmRx", "FmTx" };
++/*
++ * TODO: Implement the audio routing in the driver. Now this control
++ * only indicates the setting that has been done elsewhere (in the user
++ * space).
++ */
++static const char * const wl1273_audio_route[] = { "Bt", "FmRx", "FmTx" };
+ 
+ static int snd_wl1273_set_audio_route(struct snd_kcontrol *kcontrol,
+ 				      struct snd_ctl_elem_value *ucontrol)
+@@ -239,7 +244,7 @@ static int snd_wl1273_fm_audio_put(struct snd_kcontrol *kcontrol,
+ 	return 1;
+ }
+ 
+-static const char *wl1273_audio_strings[] = { "Digital", "Analog" };
++static const char * const wl1273_audio_strings[] = { "Digital", "Analog" };
+ 
+ static const struct soc_enum wl1273_audio_enum =
+ 	SOC_ENUM_SINGLE_EXT(ARRAY_SIZE(wl1273_audio_strings),
+-- 
+1.6.1.3
+
