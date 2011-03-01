@@ -1,37 +1,62 @@
 Return-path: <mchehab@pedra>
-Received: from jabba.london.02.net ([82.132.130.169]:51636 "EHLO mail.o2.co.uk"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755636Ab1CBSUZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Mar 2011 13:20:25 -0500
-Received: from tiber.centauri (188.222.111.86) by mail.o2.co.uk (8.5.119.05) (authenticated as ahoughton2005@o2.co.uk)
-        id 4C63A9A336ACCA33 for linux-media@vger.kernel.org; Wed, 2 Mar 2011 18:14:09 +0000
-Received: from [127.0.0.1] (helo=realh.co.uk)
-	by tiber.centauri with esmtp (Exim 4.74)
-	(envelope-from <h@realh.co.uk>)
-	id 1PuqYo-0004wU-Hb
-	for linux-media@vger.kernel.org; Wed, 02 Mar 2011 18:14:06 +0000
-Date: Wed, 2 Mar 2011 18:14:04 +0000
-From: Tony Houghton <h@realh.co.uk>
-To: <linux-media@vger.kernel.org>
-Subject: Hauppauge "grey" remote not working in recent kernels
-Message-ID: <20110302181404.6406a3d2@realh.co.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from smtp.nokia.com ([147.243.128.24]:47111 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750924Ab1CANL1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Mar 2011 08:11:27 -0500
+From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+To: alsa-devel@alsa-project.org, broonie@opensource.wolfsonmicro.com,
+	lrg@slimlogic.co.uk, mchehab@redhat.com, hverkuil@xs4all.nl,
+	sameo@linux.intel.com, linux-media@vger.kernel.org
+Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Subject: [PATCH v22 0/3] ASoC/MFD/V4L2: WL1273 FM Radio Driver
+Date: Tue,  1 Mar 2011 15:10:34 +0200
+Message-Id: <1298985037-2714-1-git-send-email-matti.j.aaltonen@nokia.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Since upgrading my kernel from 2.6.32 to 2.6.37 in Debian my DVB remote
-control no longer works. The card is a Hauppauge Nova-T PCI with the
-"grey" remote. It uses the saa7146, tda1004x, budget_ci and budget_core
-modules (but it doesn't actually have a CI).
+Hello.
 
-There used to be a patch for the budget_ci driver to support this model
-of remote because the driver's key mappings were incorrect, but that
-patch was no longer necessary from about Linux 2.6.20 onwards. Has there
-been a regression or is there a new problem?
+Thanks for the comment Mark.
 
-FWIW I have two cards which used the saa7146, but the other one is DVB-S
-and doesn't have a remote. The one with the remote is adapter1 and the
-one without is adapter0. Could that have anything to do with the
-problem?
+On Tue, 2011-03-01 at 11:54 +0000, ext Mark Brown wrote:
+On Tue, Mar 01, 2011 at 10:00:50AM +0200, Matti J. Aaltonen wrote:
+> > These changes are needed to keep up with the changes in the
+> > MFD core and V4L2 parts of the wl1273 FM radio driver.
+> > 
+> > Use function pointers instead of exported functions for I2C IO.
+> > Also move all preprocessor constants from the wl1273.h to
+> > include/linux/mfd/wl1273-core.h.
+> > 
+> > Also update the year in the copyright statement.
+> 
+> It's not actually doing that:
+> 
+> > - * Copyright:   (C) 2010 Nokia Corporation
+> > + * Copyright:   (C) 2011 Nokia Corporation
+> 
+> It's replacing it - portions are still 2010.
+
+Kept also the year 2010 on the copyright line.
+ 
+> Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+ 
+
+On Tue, 2011-03-01 at 12:43 +0100, ext Samuel Ortiz wrote:
+> Acked-by: Samuel Ortiz <sameo@linux.intel.com>
+
+Cheers,
+Matti
+
+Matti J. Aaltonen (3):
+  MFD: WL1273 FM Radio: MFD driver for the FM radio.
+  V4L2: WL1273 FM Radio: TI WL1273 FM radio driver
+  ASoC: WL1273 FM radio: Access I2C IO functions through pointers.
+
+ drivers/media/radio/radio-wl1273.c |  360 +++++++++++-------------------------
+ drivers/mfd/Kconfig                |    2 +-
+ drivers/mfd/wl1273-core.c          |  149 +++++++++++++++-
+ include/linux/mfd/wl1273-core.h    |    2 +
+ sound/soc/codecs/Kconfig           |    2 +-
+ sound/soc/codecs/wl1273.c          |   11 +-
+ 6 files changed, 264 insertions(+), 262 deletions(-)
+
