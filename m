@@ -1,34 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from mailrelay1.uni-rostock.de ([139.30.8.201]:55367 "EHLO
-	mailrelay1.uni-rostock.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755061Ab1CYUCD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Mar 2011 16:02:03 -0400
-Message-ID: <4D8CF36C.7080309@uni-rostock.de>
-Date: Fri, 25 Mar 2011 20:56:28 +0100
-From: Paul Franke <paul.franke@uni-rostock.de>
-MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: S2-3200 switching-timeouts on 2.6.38
-References: <4D8CAE2C.2030301@uni-rostock.de> <AANLkTimy=QymYhYM3tknCP-Qh7X_y1AjJ0TK2axZ5UmV@mail.gmail.com>
-In-Reply-To: <AANLkTimy=QymYhYM3tknCP-Qh7X_y1AjJ0TK2axZ5UmV@mail.gmail.com>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.samsung.com ([203.254.224.24]:30200 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751011Ab1CAKkp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Mar 2011 05:40:45 -0500
+Received: from epmmp1 (mailout1.samsung.com [203.254.224.24])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LHD00FROKBV6F30@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 01 Mar 2011 19:40:43 +0900 (KST)
+Received: from AMDC159 ([106.116.37.153])
+ by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LHD00E9OKBKBB@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 01 Mar 2011 19:40:43 +0900 (KST)
+Date: Tue, 01 Mar 2011 11:40:31 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: V4L2 'brainstorming' meeting in Warsaw, March 2011
+In-reply-to: <ADF13DA15EB3FE4FBA487CCC7BEFDF36190F532AED@bssrvexch01>
+To: linux-media@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <000001cbd7fd$1868a500$4939ef00$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=utf-8
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <ADF13DA15EB3FE4FBA487CCC7BEFDF36190F532AED@bssrvexch01>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
- > Can you guys, (who seem to really need the said patch) please provide
- > me the STB0899 chipset version on your card ?
+Hello again!
 
-Sure. For a TechniSat SkyStar HD 2 (1ae4:0003)...
+As I promised I've prepared some additional travel information.
 
- > C6L STB0899 VQ940KDA12 22 9BS VQ MLT 22 012
- > C2L STB0899 VQ636DSK    22 09C  VQ MLT 22 656
- > C1L STB0899 VQ608FSD    22 OPD VQ MLT 22 628
+I would like to recommend Polonia Palace Hotel. It is located in the center of Warsaw,
+quite near Samsung office. I've checked and they have free rooms for the 13-20 period
+(I've assumed 3 days of 'brainstorming' and weekend for sightseeing). You can book
+rooms online on their webpage: http://www.poloniapalace.com/
 
-STB0899 VQ719RZM 22 OPO VQ MLT 22 815     001
+Getting to Warsaw should be quite easy. I assume that everyone will come by plane.
+There is only one airport in the Warsaw (Warsaw Chopin Airport - 'WAW' airport code)
+which is located about 10km from the city center. The easiest way to the city center
+is to take taxi. It should cost about 40-50 PLN (10-12 euro).
 
-Thanks and best regards
+To get to the Samsung Office you can make a 10-15 minutes' walk or take a subway (it is
+only 1 stop from 'Metro Centrum' station to 'Metro Politechnika' station).
 
-Paul
+I've prepared a map with Samsung Office, Hotel Polonia and Airport: 
+http://tinyurl.com/4tubbyu
+
+If you decide to stay a bit longer in Warsaw, I recommend to check sightseeing
+information from the Palace Hotel: http://www.poloniapalace.com/discover-warsaw-en.html
+>From the city center it is quite near to most sightseeing attractions (like Old Town,
+Palace of Culture and Science, Nowy Swiat street).
+
+Best regards
+--
+Marek Szyprowski
+Samsung Poland R&D Center
+
+
