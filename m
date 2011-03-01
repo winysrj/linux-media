@@ -1,87 +1,176 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2004 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752690Ab1CELwt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Mar 2011 06:52:49 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from sj-iport-1.cisco.com ([171.71.176.70]:40091 "EHLO
+	sj-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756738Ab1CAPrs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Mar 2011 10:47:48 -0500
+From: Hans Verkuil <hansverk@cisco.com>
 To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [GIT PULL FOR 2.6.39] Media controller and OMAP3 ISP driver
-Date: Sat, 5 Mar 2011 12:52:12 +0100
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	alsa-devel@alsa-project.org,
-	Sakari Ailus <sakari.ailus@retiisi.org.uk>,
-	Pawel Osciak <pawel@osciak.com>
-References: <201102171606.58540.laurent.pinchart@ideasonboard.com> <201103031125.06419.laurent.pinchart@ideasonboard.com> <4D71471D.6060808@redhat.com>
-In-Reply-To: <4D71471D.6060808@redhat.com>
+Subject: Re: [RFC] HDMI-CEC proposal
+Date: Tue, 1 Mar 2011 16:49:58 +0100
+Cc: "Martin Bugge (marbugge)" <marbugge@cisco.com>,
+	linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Jarod Wilson <jarod@redhat.com>
+References: <4D6CC36B.50009@cisco.com> <201103011538.51844.hansverk@cisco.com> <4D6D0EB9.60903@redhat.com>
+In-Reply-To: <4D6D0EB9.60903@redhat.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201103051252.12342.hverkuil@xs4all.nl>
+Message-Id: <201103011649.58110.hansverk@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Friday, March 04, 2011 21:10:05 Mauro Carvalho Chehab wrote:
-> Em 03-03-2011 07:25, Laurent Pinchart escreveu:
+On Tuesday, March 01, 2011 16:20:25 Mauro Carvalho Chehab wrote:
+> Em 01-03-2011 11:38, Hans Verkuil escreveu:
 > > Hi Mauro,
 > > 
-> > The following changes since commit 88a763df226facb74fdb254563e30e9efb64275c:
+> > On Tuesday, March 01, 2011 13:28:35 Mauro Carvalho Chehab wrote:
+> >> Hi Martin,
+> >>
+> >> Em 01-03-2011 06:59, Martin Bugge (marbugge) escreveu:
+> >>> Author: Martin Bugge <marbugge@cisco.com>
+> >>> Date:  Tue, 1 March 2010
+> >>> ======================
+> >>>
+> >>> This is a proposal for adding a Consumer Electronic Control (CEC) API to 
+> > V4L2.
+> >>> This document describes the changes and new ioctls needed.
+> >>>
+> >>> Version 1.0 (This is first version)
+> >>>
+> >>> Background
+> >>> ==========
+> >>> CEC is a protocol that provides high-level control functions between 
+> > various audiovisual products.
+> >>> It is an optional supplement to the High-Definition Multimedia Interface 
+> > Specification (HDMI).
+> >>> Physical layer is a one-wire bidirectional serial bus that uses the 
+> > industry-standard AV.link protocol.
+> >>>
+> >>> In short: CEC uses pin 13 on the HDMI connector to transmit and receive 
+> > small data-packets
+> >>>           (maximum 16 bytes including a 1 byte header) at low data rates 
+> > (~400 bits/s).
+> >>>
+> >>> A CEC device may have any of 15 logical addresses (0 - 14).
+> >>> (address 15 is broadcast and some addresses are reserved)
+> >>>
+> >>>
+> >>> References
+> >>> ==========
+> >>> [1] High-Definition Multimedia Interface Specification version 1.3a,
+> >>>     Supplement 1 Consumer Electronic Control (CEC).
+> >>>     http://www.hdmi.org/manufacturer/specification.aspx
+> >>>
+> >>> [2] 
+> > http://www.hdmi.org/pdf/whitepaper/DesigningCECintoYourNextHDMIProduct.pdf
+> >>>
+> >>>
+> >>> Proposed solution
+> >>> =================
+> >>>
+> >>> Two new ioctls:
+> >>>     VIDIOC_CEC_CAP (read)
+> >>>     VIDIOC_CEC_CMD (read/write)
+> >>
+> >> How this proposal will interact with RC core? The way I see it, HDMI-CEC 
+is 
+> > just a way to get/send
+> >> Remote Controller data, and should be interacting with the proper Kernel 
+> > subsystems, e. g.,
+> >> with Remote Controller and input/event subsystems.
 > > 
-> >   [media] dw2102: prof 1100 corrected (2011-03-02 16:56:54 -0300)
+> > I knew you were going to mention this :-)
 > > 
-> > are available in the git repository at:
-> >   git://linuxtv.org/pinchartl/media.git media-2.6.39-0005-omap3isp
+> > Actually, while CEC does support IR commands, this is only a very small 
+part 
+> > of the standard. Routing IR commands to the IR core is possible to do, 
+> > although it is not in this initial version. Should this be needed, then a 
+flag 
+> > can be created that tells V4L to route IR commands to the IR core.
 > > 
-> > The branch has been rebased on top of the latest for_v2.6.39 branch, with the
-> > v4l2-ioctl.c conflict resolved.
+> > This should be optional, though, because if you are a repeater you do not 
+want 
+> > to pass such IR commands to the IR core, instead you want to retransmit 
+them 
+> > to a CEC output.
 > > 
-> > Antti Koskipaa (1):
-> >       v4l: v4l2_subdev userspace crop API
+> >>
+> >> I don't think we need two ioctls for that, as RC capabilities are already 
+> > exported via
+> >> sysfs, and we have two interfaces already for receiving events 
+(input/event 
+> > and lirc).
+> >> For sending, lirc interface might be used, but it is currently focused 
+only 
+> > on sending
+> >> raw pulse/space sequences. So, we'll need to add some capability there 
+for 
+> > IR/CEC TX.
+> >> I had a few discussions about that with Jarod, but we didn't write yet an 
+> > interface for it.
 > > 
-> > David Cohen (1):
-> >       omap3isp: Statistics
+> > Again, CEC != IR. All you need is a simple API to be able to send and 
+receive 
+> > CEC packets and a libcec that you can use to do the topology discovery and 
+> > send/receive the commands. You don't want nor need that in the kernel.
 > > 
-> > Laurent Pinchart (36):
-> >       v4l: Share code between video_usercopy and video_ioctl2
-> >       v4l: subdev: Don't require core operations
-> >       v4l: subdev: Add device node support
-> >       v4l: subdev: Uninline the v4l2_subdev_init function
-> >       v4l: subdev: Control ioctls support
-> >       media: Media device node support
-> >       media: Media device
-> >       media: Entities, pads and links
-> >       media: Entity use count
-> >       media: Media device information query
-> >       media: Entities, pads and links enumeration
-> >       media: Links setup
-> >       media: Pipelines and media streams
-> >       v4l: Add a media_device pointer to the v4l2_device structure
-> >       v4l: Make video_device inherit from media_entity
-> >       v4l: Make v4l2_subdev inherit from media_entity
-> >       v4l: Move the media/v4l2-mediabus.h header to include/linux
-> >       v4l: Replace enums with fixed-sized fields in public structure
-> >       v4l: Rename V4L2_MBUS_FMT_GREY8_1X8 to V4L2_MBUS_FMT_Y8_1X8
-> >       v4l: Group media bus pixel codes by types and sort them alphabetically
+> > The only place where routing things to the IR core is useful is when 
+someone 
+> > points a remote at a TV (for example), which then passes it over CEC to 
+your 
+> > device which is not a repeater but can actually handle the remote command.
+> > 
+> > This is a future extension, though.
 > 
-> The presence of those mediabus names against the traditional fourcc codes
-> at the API adds some mess to the media controller. Not sure how to solve,
-> but maybe the best way is to add a table at the V4L2 API associating each
-> media bus format to the corresponding V4L2 fourcc codes.
+> There are two separate things when dealing with CEC: the low-level kernel
+> implementation of a bus for connecting with CEC devices, and userspace APIs
+> for using its features.
+> 
+> If you were needing it only internally inside the kernel, there's no need 
+for 
+> new ioctl's. So, your proposal seems to add a raw interface for it, and do 
+> all the work in userspace.
+> 
+> An alternative approach, that it is the way most Kernel API's do is to 
+write/use
+> higher userspace APIs, abstracting the hardware internals. V4L, DVB and RC, 
+input/event,
+> vfs, tty, etc are good examples of how we do APIs in Linux. We should only 
+go 
+> to a raw API if the high-level ones won't work. 
 
-You can't do that in general. Only for specific hardware platforms. If you
-could do it, then we would have never bothered creating these mediabus fourccs.
+What high-level API? There isn't much high-level about CEC. It's a very 
+simplistic standard. Each packet has a source and destination address (0-14 
+which you can choose yourself), an optional command with an optional payload. 
+You can put in pretty much what you want since you can make custom commands as 
+well.
 
-How a mediabus fourcc translates to a pixelcode (== memory format) depends
-entirely on the hardware capabilities (mostly that of the DMA engine).
+You also assume that you can handle packets at a high level. But you can't, 
+because what you want to do with packets depends very much on what device you 
+are: TV, recorder, set-top, CEC switch, etc.
 
-A generic V4L2 application will never use mediabus fourcc codes. It's only used
-by drivers and applications written specifically for that hardware and using
-/dev/v4l-subdevX devices.
+> Also, a raw-level implementation of CEC may/will interfere on higher level
+> interfaces. For example, assuming that we have both raw and RC interfaces 
+using 
+> HDMI-CIC, a raw access on one process during a RC reception or transmit 
+could 
+> interfere on another process using the high-level interface for RC (as a raw
+> access to a block device may actually corrupt data). So, raw interfaces are
+> evil, and generally require CAP_SYS_ADMIN.
+
+??? If we add a flag that causes the IR commands to go to the IR core, then 
+they will obviously not appear on the normal CEC interface.
+
+> So, I think we should first discuss what are the needs, and then discuss how
+> to implement them.
+
+Well, the need is to receive and transmit CEC packets. And this is a possible 
+implementation.
+
+Don't give CEC too much status: CEC is a very simplistic, stupid and very low 
+bandwidth protocol. It is even simpler than RDS.
 
 Regards,
 
 	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
