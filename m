@@ -1,150 +1,200 @@
 Return-path: <mchehab@pedra>
-Received: from moh2-ve2.go2.pl ([193.17.41.200]:43590 "EHLO moh2-ve2.go2.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751581Ab1CURaj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Mar 2011 13:30:39 -0400
-Received: from moh2-ve2.go2.pl (unknown [10.0.0.200])
-	by moh2-ve2.go2.pl (Postfix) with ESMTP id 92B4CB00118
-	for <linux-media@vger.kernel.org>; Mon, 21 Mar 2011 18:30:30 +0100 (CET)
-Received: from unknown (unknown [10.0.0.74])
-	by moh2-ve2.go2.pl (Postfix) with SMTP
-	for <linux-media@vger.kernel.org>; Mon, 21 Mar 2011 18:30:28 +0100 (CET)
-Message-ID: <4D878B33.2020307@tlen.pl>
-Date: Mon, 21 Mar 2011 18:30:27 +0100
-From: Wojciech Myrda <vojcek@tlen.pl>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:34921 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753195Ab1CAKyL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Mar 2011 05:54:11 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Pawel Osciak <pawel@osciak.com>
+Subject: Re: [RFC/PATCH 1/2] v4l: videobuf2: Handle buf_queue errors
+Date: Tue, 1 Mar 2011 11:54:19 +0100
+Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	hverkuil@xs4all.nl
+References: <1298830353-9797-1-git-send-email-laurent.pinchart@ideasonboard.com> <1298830353-9797-2-git-send-email-laurent.pinchart@ideasonboard.com> <AANLkTimx+MBg4qPHzubOCrAe7vDsic8_ot99NOxOWDHD@mail.gmail.com>
+In-Reply-To: <AANLkTimx+MBg4qPHzubOCrAe7vDsic8_ot99NOxOWDHD@mail.gmail.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: Prof_Revolution_DVB-S2_8000_PCI-E & Linux Kernel 2.6.38-rc8-next-20110314
-References: <4D86566B.9090803@tlen.pl>
-In-Reply-To: <4D86566B.9090803@tlen.pl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201103011154.19883.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-W dniu 20.03.2011 20:32, Wojciech Myrda pisze:
-> Hi all,
-> 
-> I have purchased Prof_Revolution_DVB-S2_8000_PCI-E which is listed on
-> the wiki
-> http://linuxtv.org/wiki/index.php/Prof_Revolution_DVB-S2_8000_PCI-E as
-> not yet suppoorted, however I found out there is some work ongoing on
-> the driver for that card as the producer make the folowing patch
-> http://www.proftuners.com/sites/default/files/prof8000_0.patch available
-> on their website http://www.prof-tuners.pl/download8000.html This patch
-> would not apply agaist the recent Linux Kernel 2.6.38-rc8-next-20110314
-> so I did a few quick fixes that moved few lines (patch in the
-> attachment). Now that it all applies like it should it fails with the
-> following error
-> 
-> 
->   CC [M]  kernel/configs.o
->   CC [M]  drivers/media/video/cx23885/cx23885-cards.o
->   CC [M]  drivers/media/video/cx23885/cx23885-video.o
->   CC [M]  drivers/media/video/cx23885/cx23885-vbi.o
->   CC [M]  drivers/media/video/cx23885/cx23885-core.o
-> drivers/media/video/cx23885/altera-ci.h:71:12: warning:
-> ‘altera_ci_tuner_reset’ defined but not used [-Wunused-function]
->   CC [M]  drivers/media/video/cx23885/cx23885-i2c.o
->   CC [M]  drivers/media/video/cx23885/cx23885-dvb.o
-> drivers/media/video/cx23885/cx23885-dvb.c:505:15: error: variable
-> ‘prof_8000_stb6100_config’ has initializer but incomplete type
-> drivers/media/video/cx23885/cx23885-dvb.c:506:2: error: unknown field
-> ‘tuner_address’ specified in initializer
-> drivers/media/video/cx23885/cx23885-dvb.c:506:2: warning: excess
-> elements in struct initializer [enabled by default]
-> drivers/media/video/cx23885/cx23885-dvb.c:506:2: warning: (near
-> initialization for ‘prof_8000_stb6100_config’) [enabled by default]
-> drivers/media/video/cx23885/cx23885-dvb.c:507:2: error: unknown field
-> ‘refclock’ specified in initializer
-> drivers/media/video/cx23885/cx23885-dvb.c:507:2: warning: excess
-> elements in struct initializer [enabled by default]
-> drivers/media/video/cx23885/cx23885-dvb.c:507:2: warning: (near
-> initialization for ‘prof_8000_stb6100_config’) [enabled by default]
-> drivers/media/video/cx23885/cx23885-dvb.c: In function ‘dvb_register’:
-> drivers/media/video/cx23885/cx23885-dvb.c:1134:8: error:
-> ‘stb6100_attach’ undeclared (first use in this function)
-> drivers/media/video/cx23885/cx23885-dvb.c:1134:8: note: each undeclared
-> identifier is reported only once for each function it appears in
-> drivers/media/video/cx23885/cx23885-dvb.c:1134:8: error: called object
-> ‘__a’ is not a function
-> drivers/media/video/cx23885/cx23885-dvb.c:1138:32: error:
-> ‘stb6100_set_freq’ undeclared (first use in this function)
-> drivers/media/video/cx23885/cx23885-dvb.c:1139:32: error:
-> ‘stb6100_get_freq’ undeclared (first use in this function)
-> drivers/media/video/cx23885/cx23885-dvb.c:1140:32: error:
-> ‘stb6100_set_bandw’ undeclared (first use in this function)
-> drivers/media/video/cx23885/cx23885-dvb.c:1141:32: error:
-> ‘stb6100_get_bandw’ undeclared (first use in this function)
-> drivers/media/video/cx23885/cx23885-dvb.c: At top level:
-> drivers/media/video/cx23885/altera-ci.h:71:12: warning:
-> ‘altera_ci_tuner_reset’ defined but not used [-Wunused-function]
-> make[4]: *** [drivers/media/video/cx23885/cx23885-dvb.o] Error 1
-> make[3]: *** [drivers/media/video/cx23885] Error 2
-> make[2]: *** [drivers/media/video] Error 2
-> make[1]: *** [drivers/media] Error 2
-> make: *** [drivers] Error 2
-> 
-> Please help in making it work as my Kung Fu ends here
-> 
-> Regards,
-> Wojciech
-> 
+Hi Pawel,
 
-It turns ot that revised patch not only applies cleanly but compiles as
-well agaist Linux Kernel 2.6.38-rc8-next-20110321. Looking at dmesg
-everything is recognized properly as well. Do you guys think if it is
-possible to include it into the tree?
+On Monday 28 February 2011 16:44:38 Pawel Osciak wrote:
+> Hi Laurent,
+> A few questions from me below. I feel we need to talk about this
+> change a bit more, it introduces some recovery and consistency
+> problems, unless I'm missing something.
+> 
+> On Sun, Feb 27, 2011 at 10:12, Laurent Pinchart wrote:
+> > videobuf2 expects drivers to check buffer in the buf_prepare operation
+> > and to return success only if the buffer can queued without any issue.
+> > 
+> > For hot-pluggable devices, disconnection events need to be handled at
+> > buf_queue time. Checking the disconnected flag and adding the buffer to
+> > the driver queue need to be performed without releasing the driver
+> > spinlock, otherwise race conditions can occur in which the driver could
+> > still allow a buffer to be queued after the disconnected flag has been
+> > set, resulting in a hang during the next DQBUF operation.
+> > 
+> > This problem can be solved either in the videobuf2 core or in the device
+> > drivers. To avoid adding a spinlock to videobuf2, make buf_queue return
+> > an int and handle buf_queue failures in videobuf2. Drivers must not
+> > return an error in buf_queue if the condition leading to the error can
+> > be caught in buf_prepare.
+> > 
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> >  drivers/media/video/videobuf2-core.c |   32
+> > ++++++++++++++++++++++++++------ include/media/videobuf2-core.h       |
+> >    2 +-
+> >  2 files changed, 27 insertions(+), 7 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/videobuf2-core.c
+> > b/drivers/media/video/videobuf2-core.c index cc7ab0a..1d81536 100644
+> > --- a/drivers/media/video/videobuf2-core.c
+> > +++ b/drivers/media/video/videobuf2-core.c
+> > @@ -798,13 +798,22 @@ static int __qbuf_mmap(struct vb2_buffer *vb,
+> > struct v4l2_buffer *b) /**
+> >  * __enqueue_in_driver() - enqueue a vb2_buffer in driver for processing
+> >  */
+> > -static void __enqueue_in_driver(struct vb2_buffer *vb)
+> > +static int __enqueue_in_driver(struct vb2_buffer *vb)
+> >  {
+> >        struct vb2_queue *q = vb->vb2_queue;
+> > +       int ret;
+> > 
+> >        vb->state = VB2_BUF_STATE_ACTIVE;
+> >        atomic_inc(&q->queued_count);
+> > -       q->ops->buf_queue(vb);
+> > +       ret = q->ops->buf_queue(vb);
+> > +       if (ret == 0)
+> > +               return 0;
+> > +
+> > +       vb->state = VB2_BUF_STATE_ERROR;
+> > +       atomic_dec(&q->queued_count);
+> > +       wake_up_all(&q->done_wq);
+> > +
+> > +       return ret;
+> 
+> Unless I am missing something, when this happens for an n-th buffer,
+> we wake up all, but only one buffer will have the ERROR state, all the
+> other will be in QUEUED state. This will mess up return values from
+> dqbuf (if this happens on streamon) for other buffers, they will have
+> their V4L2_BUF_FLAG_QUEUED set after dqbuf. Also, returning 0 from
+> DQBUF and the V4L2_BUF_FLAG_ERROR for the failed buffer suggests that
+> streaming may continue.
 
-mediapc linux-2.6.38 # cat ../dvb/prof8000_1.patch |patch -E -p2
-(Stripping trailing CRs from patch.)
-patching file drivers/media/video/cx23885/cx23885-cards.c
-Hunk #1 succeeded at 183 (offset 14 lines).
-Hunk #2 succeeded at 445 (offset 53 lines).
-Hunk #3 succeeded at 932 (offset 111 lines).
-Hunk #4 succeeded at 1297 (offset 245 lines).
-(Stripping trailing CRs from patch.)
-patching file drivers/media/video/cx23885/cx23885-dvb.c
-Hunk #1 succeeded at 46 (offset -1 lines).
-(Stripping trailing CRs from patch.)
-patching file drivers/media/video/cx23885/cx23885.h
-mediapc linux-2.6.38 # make
-  CHK     include/linux/version.h
-  CHK     include/generated/utsrelease.h
-  CALL    scripts/checksyscalls.sh
-  CHK     include/generated/compile.h
-  CC [M]  drivers/media/video/cx23885/cx23885-cards.o
-  CC [M]  drivers/media/video/cx23885/cx23885-video.o
-  CC [M]  drivers/media/video/cx23885/cx23885-vbi.o
-  CC [M]  drivers/media/video/cx23885/cx23885-core.o
-drivers/media/video/cx23885/altera-ci.h:71:12: warning:
-‘altera_ci_tuner_reset’ defined but not used [-Wunused-function]
-  CC [M]  drivers/media/video/cx23885/cx23885-i2c.o
-  CC [M]  drivers/media/video/cx23885/cx23885-dvb.o
-drivers/media/video/cx23885/altera-ci.h:71:12: warning:
-‘altera_ci_tuner_reset’ defined but not used [-Wunused-function]
-  CC [M]  drivers/media/video/cx23885/cx23885-417.o
-  CC [M]  drivers/media/video/cx23885/cx23885-ioctl.o
-  CC [M]  drivers/media/video/cx23885/cx23885-ir.o
-  CC [M]  drivers/media/video/cx23885/cx23885-av.o
-  CC [M]  drivers/media/video/cx23885/cx23885-input.o
-  CC [M]  drivers/media/video/cx23885/cx23888-ir.o
-drivers/media/video/cx23885/cx23888-ir.c: In function
-‘pulse_clocks_to_clock_divider’:
-drivers/media/video/cx23885/cx23888-ir.c:334:6: warning: variable ‘rem’
-set but not used [-Wunused-but-set-variable]
-  CC [M]  drivers/media/video/cx23885/netup-init.o
-  CC [M]  drivers/media/video/cx23885/cimax2.o
-  CC [M]  drivers/media/video/cx23885/netup-eeprom.o
-  CC [M]  drivers/media/video/cx23885/cx23885-f300.o
-  LD [M]  drivers/media/video/cx23885/cx23885.o
-Kernel: arch/x86/boot/bzImage is ready  (#1)
-  Building modules, stage 2.
-  MODPOST 697 modules
-WARNING: modpost: Found 3 section mismatch(es).
-To see full details build your kernel with:
-'make CONFIG_DEBUG_SECTION_MISMATCH=y'
-  LD [M]  drivers/media/video/cx23885/cx23885.ko
+Actually not quite, as the driver is expected to mark all buffers as erroneous 
+and wake up userspace when the disconnection event is received. Subsequent 
+calls to VIDIOC_QBUF (or VIDIOC_STREAMON) need to return an error. I'm not 
+sure if we need to wake up userspace then, as applications shouldn't sleep on 
+VIDIOC_DQBUF or select() after VIDIOC_QBUF or VIDIOC_STREAMON returned an 
+error.
 
+> So how do we recover from this disconnection event? What is the
+> general idea? If buf_queue fails, can we restart from some point (i.e.
+> reuse the buffers later) or do we have to clean up completely (i.e.
+> deallocate, etc.)? Right now we are staying in an undefined state.
+> If we cannot recover, we shouldn't be setting V4L2_BUF_FLAG_ERROR, but
+> returning a stronger error instead and maybe clean up the rest, which
+> is not waited for somehow. If we can recover on the other hand, we
+> shouldn't be probably waking up all sleepers or at least giving them
+> meaningful errors.
+
+I think a disconnection is pretty fatal. If the user unplugs the webcam, 
+there's not much that can be done anymore. Userspace needs to be woken up with 
+all buffers marked as erroneous, and the next QBUF call needs to return an 
+error without queuing any buffer. We need to define the expected behaviour in 
+the V4L2 spec, so that applications can rely on it and implement it properly. 
+I would also like to handle this inside videobuf2 if possible (something like 
+vb2_disconnect() ?) to ensure that all drivers behave correctly, but I'm not 
+sure if that will be possible without messing locking up.
+
+> >  }
+> >  /**
+> > @@ -890,8 +899,13 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer
+> > *b) * If already streaming, give the buffer to driver for processing. *
+> > If not, the buffer will be given to driver on next streamon. */
+> > -       if (q->streaming)
+> > -               __enqueue_in_driver(vb);
+> > +       if (q->streaming) {
+> > +               ret = __enqueue_in_driver(vb);
+> > +               if (ret < 0) {
+> > +                       dprintk(1, "qbuf: buffer queue failed\n");
+> > +                       return ret;
+> > +               }
+> > +       }
+> 
+> What errors can be allowed to be returned from driver here? EIO? Also,
+> isn't returning an error here to userspace suggesting that qbuf didn't
+> happen? But it actually did happen, we put the buffer onto vb2 list
+> and set it state to QUEUED. From the point of view of vb2, the buffer
+> is on its queue, but the userspace may not think so.
+
+You're right, that's an issue. The buffer shouldn't be queued at all.
+
+Regarding error codes, I would return -ENXIO (No such device or address - 
+POSIX.1) to tell that the device has been disconnected. -ENODEV is misleading, 
+it's short description is "No such device", but it means that the device 
+doesn't support the requested operation.
+
+> >        dprintk(1, "qbuf of buffer %d succeeded\n", vb->v4l2_buf.index);
+> >        return 0;
+> > @@ -1101,6 +1115,7 @@ EXPORT_SYMBOL_GPL(vb2_dqbuf);
+> >  int vb2_streamon(struct vb2_queue *q, enum v4l2_buf_type type)
+> >  {
+> >        struct vb2_buffer *vb;
+> > +       int ret;
+> > 
+> >        if (q->fileio) {
+> >                dprintk(1, "streamon: file io in progress\n");
+> > @@ -1139,8 +1154,13 @@ int vb2_streamon(struct vb2_queue *q, enum
+> > v4l2_buf_type type) * If any buffers were queued before streamon,
+> >         * we can now pass them to driver for processing.
+> >         */
+> > -       list_for_each_entry(vb, &q->queued_list, queued_entry)
+> > -               __enqueue_in_driver(vb);
+> > +       list_for_each_entry(vb, &q->queued_list, queued_entry) {
+> > +               ret = __enqueue_in_driver(vb);
+> > +               if (ret < 0) {
+> > +                       dprintk(1, "streamon: buffer queue failed\n");
+> > +                       return ret;
+> > +               }
+> > +       }
+> 
+> We need to add new return values from streamon to the API if we want
+> to return errors here. We'd need to keep them in sync in API with
+> return values from qbuf as well. Maybe we need to add EIO to return
+> values from streamon. Is there any other error the driver might want
+> to return from buf_queue? ENOMEM?
+
+I don't think we should allow anything else than -ENXIO (or -EIO, depending on 
+which error we select to mean that the device has been disconnected). Memory 
+should be allocated in buf_prepare if needed, not in buf_queue.
+
+> >        dprintk(3, "Streamon successful\n");
+> >        return 0;
+> > diff --git a/include/media/videobuf2-core.h
+> > b/include/media/videobuf2-core.h index 597efe6..3a92f75 100644
+> > --- a/include/media/videobuf2-core.h
+> > +++ b/include/media/videobuf2-core.h
+> > @@ -225,7 +225,7 @@ struct vb2_ops {
+> >        int (*start_streaming)(struct vb2_queue *q);
+> >        int (*stop_streaming)(struct vb2_queue *q);
+> > 
+> > -       void (*buf_queue)(struct vb2_buffer *vb);
+> > +       int (*buf_queue)(struct vb2_buffer *vb);
+> >  };
+> 
+> This of course will require an update in documentation above. As we
+> are returning buf_queue return values to userspace directly, drivers
+> need to be careful what they return.
+
+Right.
+
+-- 
 Regards,
-Wojciech
+
+Laurent Pinchart
