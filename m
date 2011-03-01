@@ -1,128 +1,140 @@
 Return-path: <mchehab@pedra>
-Received: from ist.d-labs.de ([213.239.218.44]:52770 "EHLO mx01.d-labs.de"
+Received: from mx1.redhat.com ([209.132.183.28]:37002 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754237Ab1CUVDU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Mar 2011 17:03:20 -0400
-Date: Mon, 21 Mar 2011 22:03:15 +0100
-From: Florian Mickler <florian@mickler.org>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: mchehab@infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, js@linuxtv.org, tskd2@yahoo.co.jp,
-	liplianin@me.by, g.marco@freenet.de, aet@rasterburn.org,
-	pb@linuxtv.org, mkrufky@linuxtv.org, nick@nick-andrew.net,
-	max@veneto.com, janne-dvb@grunau.be,
-	Oliver Neukum <oliver@neukum.org>,
-	"Greg Kroah-Hartman" <greg@kroah.com>,
-	"Rafael J. Wysocki" <rjw@sisk.pl>,
-	Joerg Roedel <joerg.roedel@amd.com>,
-	James Bottomley <James.Bottomley@HansenPartnership.com>
-Subject: Re: [PATCH 0/6] get rid of on-stack dma buffers
-Message-ID: <20110321220315.7545a61a@schatten.dmk.lab>
-In-Reply-To: <a08d026a-d4c3-4ee5-b01a-d561f755b1ec@email.android.com>
-References: <1300732426-18958-1-git-send-email-florian@mickler.org>
-	<a08d026a-d4c3-4ee5-b01a-d561f755b1ec@email.android.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	id S1753047Ab1CAPU3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Mar 2011 10:20:29 -0500
+Message-ID: <4D6D0EB9.60903@redhat.com>
+Date: Tue, 01 Mar 2011 12:20:25 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hansverk@cisco.com>
+CC: "Martin Bugge (marbugge)" <marbugge@cisco.com>,
+	linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Jarod Wilson <jarod@redhat.com>
+Subject: Re: [RFC] HDMI-CEC proposal
+References: <4D6CC36B.50009@cisco.com> <4D6CE673.2050608@redhat.com> <201103011538.51844.hansverk@cisco.com>
+In-Reply-To: <201103011538.51844.hansverk@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, 21 Mar 2011 15:26:43 -0400
-Andy Walls <awalls@md.metrocast.net> wrote:
-
-> Florian Mickler <florian@mickler.org> wrote:
+Em 01-03-2011 11:38, Hans Verkuil escreveu:
+> Hi Mauro,
 > 
-> >Hi all!
-> >
-> >These patches get rid of on-stack dma buffers for some of the dvb-usb
-> >drivers. 
-> >I do not own the hardware, so these are only compile tested. I would 
-> >appreciate testing and review.
-> >They were previously sent to the list, but some error on my side
-> >prevented (some of?) them from beeing delivered to all parties (the
-> >lists).
-> >
-> >These changes are motivated by 
-> >https://bugzilla.kernel.org/show_bug.cgi?id=15977 .
-> >
-> >The patches which got tested already were submitted to Mauro (and
-> >lkml/linux-media) yesterday seperately. Those fix this same issue for
-> >ec168,
-> >ce6230, au6610 and lmedm04. 
-> >
-> >A fix for vp702x has been submitted seperately for review on the list.
-> >I have
-> >similiar fixes like the vp702x-fix for dib0700 (overlooked some
-> >on-stack
-> >buffers in there in my original submission as well) and gp8psk, but I
-> >am
-> >holding them back 'till I got time to recheck those and getting some
-> >feedback
-> >on vp702x.
-> >
-> >Please review and test.
-> >
-> >Regards,
-> >Flo
-> >
-> >Florian Mickler (6):
-> >  [media] a800: get rid of on-stack dma buffers
-> >  [media v2] vp7045: get rid of on-stack dma buffers
-> >  [media] friio: get rid of on-stack dma buffers
-> >  [media] dw2102: get rid of on-stack dma buffer
-> >  [media] m920x: get rid of on-stack dma buffers
-> >  [media] opera1: get rid of on-stack dma buffer
-> >
-> > drivers/media/dvb/dvb-usb/a800.c   |   17 ++++++++++---
-> > drivers/media/dvb/dvb-usb/dw2102.c |   10 ++++++-
-> > drivers/media/dvb/dvb-usb/friio.c  |   23 ++++++++++++++---
-> > drivers/media/dvb/dvb-usb/m920x.c  |   33 ++++++++++++++++--------
-> > drivers/media/dvb/dvb-usb/opera1.c |   31 +++++++++++++++--------
-> >drivers/media/dvb/dvb-usb/vp7045.c |   47
-> >++++++++++++++++++++++++++----------
-> > 6 files changed, 116 insertions(+), 45 deletions(-)
-> >
-> >-- 
-> >1.7.4.1
-> >
-> >--
-> >To unsubscribe from this list: send the line "unsubscribe linux-media"
-> >in
-> >the body of a message to majordomo@vger.kernel.org
-> >More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> On Tuesday, March 01, 2011 13:28:35 Mauro Carvalho Chehab wrote:
+>> Hi Martin,
+>>
+>> Em 01-03-2011 06:59, Martin Bugge (marbugge) escreveu:
+>>> Author: Martin Bugge <marbugge@cisco.com>
+>>> Date:  Tue, 1 March 2010
+>>> ======================
+>>>
+>>> This is a proposal for adding a Consumer Electronic Control (CEC) API to 
+> V4L2.
+>>> This document describes the changes and new ioctls needed.
+>>>
+>>> Version 1.0 (This is first version)
+>>>
+>>> Background
+>>> ==========
+>>> CEC is a protocol that provides high-level control functions between 
+> various audiovisual products.
+>>> It is an optional supplement to the High-Definition Multimedia Interface 
+> Specification (HDMI).
+>>> Physical layer is a one-wire bidirectional serial bus that uses the 
+> industry-standard AV.link protocol.
+>>>
+>>> In short: CEC uses pin 13 on the HDMI connector to transmit and receive 
+> small data-packets
+>>>           (maximum 16 bytes including a 1 byte header) at low data rates 
+> (~400 bits/s).
+>>>
+>>> A CEC device may have any of 15 logical addresses (0 - 14).
+>>> (address 15 is broadcast and some addresses are reserved)
+>>>
+>>>
+>>> References
+>>> ==========
+>>> [1] High-Definition Multimedia Interface Specification version 1.3a,
+>>>     Supplement 1 Consumer Electronic Control (CEC).
+>>>     http://www.hdmi.org/manufacturer/specification.aspx
+>>>
+>>> [2] 
+> http://www.hdmi.org/pdf/whitepaper/DesigningCECintoYourNextHDMIProduct.pdf
+>>>
+>>>
+>>> Proposed solution
+>>> =================
+>>>
+>>> Two new ioctls:
+>>>     VIDIOC_CEC_CAP (read)
+>>>     VIDIOC_CEC_CMD (read/write)
+>>
+>> How this proposal will interact with RC core? The way I see it, HDMI-CEC is 
+> just a way to get/send
+>> Remote Controller data, and should be interacting with the proper Kernel 
+> subsystems, e. g.,
+>> with Remote Controller and input/event subsystems.
 > 
-
-> Florian,
+> I knew you were going to mention this :-)
 > 
-> For all of these, what happens when the USB call times out and you kfree() the buffer?  Can the USB DMA actually complete after this kfree(), possibly corrupting space that has been reallocated off the heap, since the kfree()?
+> Actually, while CEC does support IR commands, this is only a very small part 
+> of the standard. Routing IR commands to the IR core is possible to do, 
+> although it is not in this initial version. Should this be needed, then a flag 
+> can be created that tells V4L to route IR commands to the IR core.
 > 
-> This is the scenario for which I assume allocating off the stack is bad.  
+> This should be optional, though, because if you are a repeater you do not want 
+> to pass such IR commands to the IR core, instead you want to retransmit them 
+> to a CEC output.
 > 
-> Do these changes simply make corruption less noticable since heap gets corrupted vs stack?
+>>
+>> I don't think we need two ioctls for that, as RC capabilities are already 
+> exported via
+>> sysfs, and we have two interfaces already for receiving events (input/event 
+> and lirc).
+>> For sending, lirc interface might be used, but it is currently focused only 
+> on sending
+>> raw pulse/space sequences. So, we'll need to add some capability there for 
+> IR/CEC TX.
+>> I had a few discussions about that with Jarod, but we didn't write yet an 
+> interface for it.
 > 
-> Regards,
-> Andy
+> Again, CEC != IR. All you need is a simple API to be able to send and receive 
+> CEC packets and a libcec that you can use to do the topology discovery and 
+> send/receive the commands. You don't want nor need that in the kernel.
+> 
+> The only place where routing things to the IR core is useful is when someone 
+> points a remote at a TV (for example), which then passes it over CEC to your 
+> device which is not a repeater but can actually handle the remote command.
+> 
+> This is a future extension, though.
 
-To be blunt, I'm not shure I fully understand the requirements myself.
-But as far as I grasped it, the main problem is that we need memory
-which the processor can see as soon as the device has scribbled upon
-it. (think caches and the like)
+There are two separate things when dealing with CEC: the low-level kernel
+implementation of a bus for connecting with CEC devices, and userspace APIs
+for using its features.
 
-Somewhere down the line, the buffer to usb_control_msg get's to be
-a parameter to dma_map_single which is described as part of
-the DMA API in Documentation/DMA-API.txt 
+If you were needing it only internally inside the kernel, there's no need for 
+new ioctl's. So, your proposal seems to add a raw interface for it, and do 
+all the work in userspace.
 
-The main point I filter out from that is that the memory has to begin
-exactly at a cache line boundary... 
+An alternative approach, that it is the way most Kernel API's do is to write/use
+higher userspace APIs, abstracting the hardware internals. V4L, DVB and RC, input/event,
+vfs, tty, etc are good examples of how we do APIs in Linux. We should only go 
+to a raw API if the high-level ones won't work. 
 
-I guess (not verified), that the dma api takes sufficient precautions
-to abort the dma transfer if a timeout happens.  So freeing _should_
-not be an issue. (At least, I would expect big fat warnings everywhere
-if that were the case)
+Also, a raw-level implementation of CEC may/will interfere on higher level
+interfaces. For example, assuming that we have both raw and RC interfaces using 
+HDMI-CIC, a raw access on one process during a RC reception or transmit could 
+interfere on another process using the high-level interface for RC (as a raw
+access to a block device may actually corrupt data). So, raw interfaces are
+evil, and generally require CAP_SYS_ADMIN.
 
-I cc'd some people that hopefully will correct me if I'm wrong...
+So, I think we should first discuss what are the needs, and then discuss how
+to implement them.
 
-regards,
-Flo
+Cheers,
+Mauro.
+
 
 
