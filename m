@@ -1,71 +1,70 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:49075 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751263Ab1CXRFg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Mar 2011 13:05:36 -0400
-Received: by ewy4 with SMTP id 4so135192ewy.19
-        for <linux-media@vger.kernel.org>; Thu, 24 Mar 2011 10:05:35 -0700 (PDT)
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:60059 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755671Ab1CAIWb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Mar 2011 03:22:31 -0500
+Message-ID: <4D6CACC2.7010307@gmail.com>
+Date: Tue, 01 Mar 2011 09:22:26 +0100
+From: Jiri Slaby <jirislaby@gmail.com>
 MIME-Version: 1.0
-Date: Thu, 24 Mar 2011 13:05:35 -0400
-Message-ID: <AANLkTi=hppcpARY1DOOJwK7kyKPe+2Q415jt8dNh8Z=-@mail.gmail.com>
-Subject: [GIT PULL] HVR-900 R2 and PCTV 330e DVB support
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Jiri Slaby <jslaby@suse.cz>
+CC: mchehab@infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Subject: Re: [PATCH v2 1/1] V4L: videobuf, don't use dma addr as physical
+References: <1298967701-11889-1-git-send-email-jslaby@suse.cz>
+In-Reply-To: <1298967701-11889-1-git-send-email-jslaby@suse.cz>
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This patch series finally merges in Ralph Metzler's drx-d driver and
-brings up the PCTV 330e and
-HVR-900R2.  The patches have been tested for quite some time by users
-on the Kernel Labs blog,
-and they have been quite happy with them.
+On 03/01/2011 09:21 AM, Jiri Slaby wrote:
+> mem->dma_handle is a dma address obtained by dma_alloc_coherent which
+> needn't be a physical address as a hardware IOMMU can (and most
+> likely will) return a bus address where physical != bus address. So
+> ensure we are remapping (remap_pfn_range) the right page in
+> __videobuf_mmap_mapper by using virt_to_phys(mem->vaddr) and not
+> mem->dma_handle.
+> 
+> While at it, use PFN_DOWN instead of explicit shift to obtain a frame
+> number.
+> 
+> This was discovered by a random review of the code when looking for
+> something completely different. I'm not aware of any bug reports for
+> this.
+> 
+> However it is a bug because many v4l drivers use this layer and have
+> no idea whether IOMMU is in the system and running or not.
+> 
+> Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+> Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 
-The firmware required can be found here:
+Ah, this is rather:
+Acked-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 
-http://kernellabs.com/firmware/drxd/
-
-The following changes since commit 41f3becb7bef489f9e8c35284dd88a1ff59b190c:
-
-  [media] V4L DocBook: update V4L2 version (2011-03-11 18:09:02 -0300)
-
-are available in the git repository at:
-  git://sol.kernellabs.com/dheitmueller/drx.git drxd
-
-Devin Heitmueller (12):
-      drx: add initial drx-d driver
-      drxd: add driver to Makefile and Kconfig
-      drxd: provide ability to control rs byte
-      em28xx: enable support for the drx-d on the HVR-900 R2
-      drxd: provide ability to disable the i2c gate control function
-      em28xx: fix GPIO problem with HVR-900R2 getting out of sync with drx-d
-      em28xx: include model number for PCTV 330e
-      em28xx: add digital support for PCTV 330e
-      drxd: move firmware to binary blob
-      em28xx: remove "not validated" flag for PCTV 330e
-      em28xx: add remote control support for PCTV 330e
-      drxd: Run lindent across sources
-
- Documentation/video4linux/CARDLIST.em28xx   |    2 +-
- drivers/media/dvb/frontends/Kconfig         |   11 +
- drivers/media/dvb/frontends/Makefile        |    2 +
- drivers/media/dvb/frontends/drxd.h          |   61 +
- drivers/media/dvb/frontends/drxd_firm.c     |  929 ++
- drivers/media/dvb/frontends/drxd_firm.h     |  118 +
- drivers/media/dvb/frontends/drxd_hard.c     | 2806 ++++++
- drivers/media/dvb/frontends/drxd_map_firm.h |12694 +++++++++++++++++++++++++++
- drivers/media/video/em28xx/em28xx-cards.c   |   21 +-
- drivers/media/video/em28xx/em28xx-dvb.c     |   22 +-
- drivers/media/video/em28xx/em28xx.h         |    2 +-
- 11 files changed, 16649 insertions(+), 19 deletions(-)
- create mode 100644 drivers/media/dvb/frontends/drxd.h
- create mode 100644 drivers/media/dvb/frontends/drxd_firm.c
- create mode 100644 drivers/media/dvb/frontends/drxd_firm.h
- create mode 100644 drivers/media/dvb/frontends/drxd_hard.c
- create mode 100644 drivers/media/dvb/frontends/drxd_map_firm.h
+> ---
+> 
+> This is a version with updated changelog.
+> 
+>  drivers/media/video/videobuf-dma-contig.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/videobuf-dma-contig.c b/drivers/media/video/videobuf-dma-contig.c
+> index c969111..19d3e4a 100644
+> --- a/drivers/media/video/videobuf-dma-contig.c
+> +++ b/drivers/media/video/videobuf-dma-contig.c
+> @@ -300,7 +300,7 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
+>  
+>  	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+>  	retval = remap_pfn_range(vma, vma->vm_start,
+> -				 mem->dma_handle >> PAGE_SHIFT,
+> +				 PFN_DOWN(virt_to_phys(mem->vaddr))
+>  				 size, vma->vm_page_prot);
+>  	if (retval) {
+>  		dev_err(q->dev, "mmap: remap failed with error %d. ", retval);
 
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+js
