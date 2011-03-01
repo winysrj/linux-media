@@ -1,85 +1,251 @@
 Return-path: <mchehab@pedra>
-Received: from bar.sig21.net ([80.81.252.164]:55705 "EHLO bar.sig21.net"
+Received: from smtp.nokia.com ([147.243.128.24]:47120 "EHLO mgw-da01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753524Ab1CVNRs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Mar 2011 09:17:48 -0400
-Date: Tue, 22 Mar 2011 13:33:11 +0100
-From: Johannes Stezenbach <js@linuxtv.org>
-To: Jiri Kosina <jkosina@suse.cz>
-Cc: Florian Mickler <florian@mickler.org>,
-	Andy Walls <awalls@md.metrocast.net>, mchehab@infradead.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	tskd2@yahoo.co.jp, liplianin@me.by, g.marco@freenet.de,
-	aet@rasterburn.org, pb@linuxtv.org, mkrufky@linuxtv.org,
-	nick@nick-andrew.net, max@veneto.com, janne-dvb@grunau.be,
-	Oliver Neukum <oliver@neukum.org>,
-	Greg Kroah-Hartman <greg@kroah.com>,
-	"Rafael J. Wysocki" <rjw@sisk.pl>,
-	Joerg Roedel <joerg.roedel@amd.com>,
-	James Bottomley <James.Bottomley@HansenPartnership.com>
-Subject: Re: [PATCH 0/6] get rid of on-stack dma buffers
-Message-ID: <20110322123311.GA24812@linuxtv.org>
-References: <1300732426-18958-1-git-send-email-florian@mickler.org>
- <a08d026a-d4c3-4ee5-b01a-d561f755b1ec@email.android.com>
- <20110321220315.7545a61a@schatten.dmk.lab>
- <alpine.LRH.2.00.1103221157510.8710@twin.jikos.cz>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <alpine.LRH.2.00.1103221157510.8710@twin.jikos.cz>
+	id S1752350Ab1CANL1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Mar 2011 08:11:27 -0500
+From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+To: alsa-devel@alsa-project.org, broonie@opensource.wolfsonmicro.com,
+	lrg@slimlogic.co.uk, mchehab@redhat.com, hverkuil@xs4all.nl,
+	sameo@linux.intel.com, linux-media@vger.kernel.org
+Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Subject: [PATCH v22 1/3] MFD: WL1273 FM Radio: MFD driver for the FM radio.
+Date: Tue,  1 Mar 2011 15:10:35 +0200
+Message-Id: <1298985037-2714-2-git-send-email-matti.j.aaltonen@nokia.com>
+In-Reply-To: <1298985037-2714-1-git-send-email-matti.j.aaltonen@nokia.com>
+References: <1298985037-2714-1-git-send-email-matti.j.aaltonen@nokia.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, Mar 22, 2011 at 11:59:32AM +0100, Jiri Kosina wrote:
-> On Mon, 21 Mar 2011, Florian Mickler wrote:
-> 
-> > To be blunt, I'm not shure I fully understand the requirements myself. 
-> > But as far as I grasped it, the main problem is that we need memory 
-> > which the processor can see as soon as the device has scribbled upon it. 
-> > (think caches and the like)
-> > 
-> > Somewhere down the line, the buffer to usb_control_msg get's to be a 
-> > parameter to dma_map_single which is described as part of the DMA API in 
-> > Documentation/DMA-API.txt
-> > 
-> > The main point I filter out from that is that the memory has to begin
-> > exactly at a cache line boundary... 
-> > 
-> > I guess (not verified), that the dma api takes sufficient precautions to 
-> > abort the dma transfer if a timeout happens.  So freeing _should_ not be 
-> > an issue. (At least, I would expect big fat warnings everywhere if that 
-> > were the case)
-> > 
-> > I cc'd some people that hopefully will correct me if I'm wrong...
-> 
-> It all boils down to making sure that you don't free the memory which is 
-> used as target of DMA transfer.
-> 
-> This is very likely to hit you when DMA memory region is on stack, but 
-> blindly just converting this to kmalloc()/kfree() isn't any better if you 
-> don't make sure that all the DMA transfers have been finished and device 
-> will not be making any more to that particular memory region.
+This is the core of the WL1273 FM radio driver, it connects
+the two child modules. The two child drivers are
+drivers/media/radio/radio-wl1273.c and sound/soc/codecs/wl1273.c.
 
-I think it is important that one cache line is not shared between
-a DMA buffer and other objects, especially on architectures where
-cache coherency is managed in software (ARM, MIPS etc.).  If you
-use kmalloc() for the DMA buffer that is guaranteed.
-(E.g. DMA API will do writeback/invalidate before the DMA starts, but
-if the CPU accesses a variable which is next to the buffer
-while DMA is still pending then the whole cacheline is read back into
-the cache.  If the CPU is then trying to read the DMA buffer after
-the DMA finished it will see stale data from the cache.  You lose.)
+The radio-wl1273 driver implements the V4L2 interface and communicates
+with the device. The ALSA codec offers digital audio, without it only
+analog audio is available.
 
-It depends on the device doing DMA if it needs special alignment.
-If you meet its alignment requirements, and wait for the end of the DMA before
-returning, and make sure the buffer does not share cache lines with
-neighbouring objects on the stack, then you can use DMA buffers on
-stack.  In practice it's simpler and much less error prone to use kmalloc().
+Signed-off-by: Matti J. Aaltonen <matti.j.aaltonen@nokia.com>
+---
+ drivers/mfd/Kconfig             |    2 +-
+ drivers/mfd/wl1273-core.c       |  149 ++++++++++++++++++++++++++++++++++++++-
+ include/linux/mfd/wl1273-core.h |    2 +
+ 3 files changed, 149 insertions(+), 4 deletions(-)
 
-Regarding usb_control_msg(), since it is a synchronous API which
-waits for the end of the transfer I'm relatively sure there is no
-DMA pending when it returns, even if it aborts with timeout or any
-other error code.
+diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+index fd01836..9db079b 100644
+--- a/drivers/mfd/Kconfig
++++ b/drivers/mfd/Kconfig
+@@ -615,7 +615,7 @@ config MFD_VX855
+ 	  and/or vx855_gpio drivers for this to do anything useful.
+ 
+ config MFD_WL1273_CORE
+-	tristate
++	tristate "Support for TI WL1273 FM radio."
+ 	depends on I2C
+ 	select MFD_CORE
+ 	default n
+diff --git a/drivers/mfd/wl1273-core.c b/drivers/mfd/wl1273-core.c
+index d2ecc24..4025a4b 100644
+--- a/drivers/mfd/wl1273-core.c
++++ b/drivers/mfd/wl1273-core.c
+@@ -1,7 +1,7 @@
+ /*
+  * MFD driver for wl1273 FM radio and audio codec submodules.
+  *
+- * Copyright (C) 2010 Nokia Corporation
++ * Copyright (C) 2011 Nokia Corporation
+  * Author: Matti Aaltonen <matti.j.aaltonen@nokia.com>
+  *
+  * This program is free software; you can redistribute it and/or modify
+@@ -31,6 +31,145 @@ static struct i2c_device_id wl1273_driver_id_table[] = {
+ };
+ MODULE_DEVICE_TABLE(i2c, wl1273_driver_id_table);
+ 
++static int wl1273_fm_read_reg(struct wl1273_core *core, u8 reg, u16 *value)
++{
++	struct i2c_client *client = core->client;
++	u8 b[2];
++	int r;
++
++	r = i2c_smbus_read_i2c_block_data(client, reg, sizeof(b), b);
++	if (r != 2) {
++		dev_err(&client->dev, "%s: Read: %d fails.\n", __func__, reg);
++		return -EREMOTEIO;
++	}
++
++	*value = (u16)b[0] << 8 | b[1];
++
++	return 0;
++}
++
++static int wl1273_fm_write_cmd(struct wl1273_core *core, u8 cmd, u16 param)
++{
++	struct i2c_client *client = core->client;
++	u8 buf[] = { (param >> 8) & 0xff, param & 0xff };
++	int r;
++
++	r = i2c_smbus_write_i2c_block_data(client, cmd, sizeof(buf), buf);
++	if (r) {
++		dev_err(&client->dev, "%s: Cmd: %d fails.\n", __func__, cmd);
++		return r;
++	}
++
++	return 0;
++}
++
++static int wl1273_fm_write_data(struct wl1273_core *core, u8 *data, u16 len)
++{
++	struct i2c_client *client = core->client;
++	struct i2c_msg msg;
++	int r;
++
++	msg.addr = client->addr;
++	msg.flags = 0;
++	msg.buf = data;
++	msg.len = len;
++
++	r = i2c_transfer(client->adapter, &msg, 1);
++	if (r != 1) {
++		dev_err(&client->dev, "%s: write error.\n", __func__);
++		return -EREMOTEIO;
++	}
++
++	return 0;
++}
++
++/**
++ * wl1273_fm_set_audio() -	Set audio mode.
++ * @core:			A pointer to the device struct.
++ * @new_mode:			The new audio mode.
++ *
++ * Audio modes are WL1273_AUDIO_DIGITAL and WL1273_AUDIO_ANALOG.
++ */
++static int wl1273_fm_set_audio(struct wl1273_core *core, unsigned int new_mode)
++{
++	int r = 0;
++
++	if (core->mode == WL1273_MODE_OFF ||
++	    core->mode == WL1273_MODE_SUSPENDED)
++		return -EPERM;
++
++	if (core->mode == WL1273_MODE_RX && new_mode == WL1273_AUDIO_DIGITAL) {
++		r = wl1273_fm_write_cmd(core, WL1273_PCM_MODE_SET,
++					WL1273_PCM_DEF_MODE);
++		if (r)
++			goto out;
++
++		r = wl1273_fm_write_cmd(core, WL1273_I2S_MODE_CONFIG_SET,
++					core->i2s_mode);
++		if (r)
++			goto out;
++
++		r = wl1273_fm_write_cmd(core, WL1273_AUDIO_ENABLE,
++					WL1273_AUDIO_ENABLE_I2S);
++		if (r)
++			goto out;
++
++	} else if (core->mode == WL1273_MODE_RX &&
++		   new_mode == WL1273_AUDIO_ANALOG) {
++		r = wl1273_fm_write_cmd(core, WL1273_AUDIO_ENABLE,
++					WL1273_AUDIO_ENABLE_ANALOG);
++		if (r)
++			goto out;
++
++	} else if (core->mode == WL1273_MODE_TX &&
++		   new_mode == WL1273_AUDIO_DIGITAL) {
++		r = wl1273_fm_write_cmd(core, WL1273_I2S_MODE_CONFIG_SET,
++					core->i2s_mode);
++		if (r)
++			goto out;
++
++		r = wl1273_fm_write_cmd(core, WL1273_AUDIO_IO_SET,
++					WL1273_AUDIO_IO_SET_I2S);
++		if (r)
++			goto out;
++
++	} else if (core->mode == WL1273_MODE_TX &&
++		   new_mode == WL1273_AUDIO_ANALOG) {
++		r = wl1273_fm_write_cmd(core, WL1273_AUDIO_IO_SET,
++					WL1273_AUDIO_IO_SET_ANALOG);
++		if (r)
++			goto out;
++	}
++
++	core->audio_mode = new_mode;
++out:
++	return r;
++}
++
++/**
++ * wl1273_fm_set_volume() -	Set volume.
++ * @core:			A pointer to the device struct.
++ * @volume:			The new volume value.
++ */
++static int wl1273_fm_set_volume(struct wl1273_core *core, unsigned int volume)
++{
++	u16 val;
++	int r;
++
++	if (volume > WL1273_MAX_VOLUME)
++		return -EINVAL;
++
++	if (core->volume == volume)
++		return 0;
++
++	r = wl1273_fm_write_cmd(core, WL1273_VOLUME_SET, volume);
++	if (r)
++		return r;
++
++	core->volume = volume;
++	return 0;
++}
++
+ static int wl1273_core_remove(struct i2c_client *client)
+ {
+ 	struct wl1273_core *core = i2c_get_clientdata(client);
+@@ -38,7 +177,6 @@ static int wl1273_core_remove(struct i2c_client *client)
+ 	dev_dbg(&client->dev, "%s\n", __func__);
+ 
+ 	mfd_remove_devices(&client->dev);
+-	i2c_set_clientdata(client, NULL);
+ 	kfree(core);
+ 
+ 	return 0;
+@@ -83,6 +221,12 @@ static int __devinit wl1273_core_probe(struct i2c_client *client,
+ 	cell->data_size = sizeof(core);
+ 	children++;
+ 
++	core->read = wl1273_fm_read_reg;
++	core->write = wl1273_fm_write_cmd;
++	core->write_data = wl1273_fm_write_data;
++	core->set_audio = wl1273_fm_set_audio;
++	core->set_volume = wl1273_fm_set_volume;
++
+ 	if (pdata->children & WL1273_CODEC_CHILD) {
+ 		cell = &core->cells[children];
+ 
+@@ -104,7 +248,6 @@ static int __devinit wl1273_core_probe(struct i2c_client *client,
+ 	return 0;
+ 
+ err:
+-	i2c_set_clientdata(client, NULL);
+ 	pdata->free_resources();
+ 	kfree(core);
+ 
+diff --git a/include/linux/mfd/wl1273-core.h b/include/linux/mfd/wl1273-core.h
+index 9787293..db2f3f4 100644
+--- a/include/linux/mfd/wl1273-core.h
++++ b/include/linux/mfd/wl1273-core.h
+@@ -280,7 +280,9 @@ struct wl1273_core {
+ 
+ 	struct i2c_client *client;
+ 
++	int (*read)(struct wl1273_core *core, u8, u16 *);
+ 	int (*write)(struct wl1273_core *core, u8, u16);
++	int (*write_data)(struct wl1273_core *core, u8 *, u16);
+ 	int (*set_audio)(struct wl1273_core *core, unsigned int);
+ 	int (*set_volume)(struct wl1273_core *core, unsigned int);
+ };
+-- 
+1.6.1.3
 
-
-Johannes
