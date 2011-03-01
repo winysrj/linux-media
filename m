@@ -1,54 +1,168 @@
 Return-path: <mchehab@pedra>
-Received: from cmsout02.mbox.net ([165.212.64.32]:60007 "EHLO
-	cmsout02.mbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753015Ab1CJP3k (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Mar 2011 10:29:40 -0500
-Date: Thu, 10 Mar 2011 16:29:21 +0100 (CET)
-From: Issa Gorissen <flop.m@usa.net>
-To: linux-media@vger.kernel.org
-cc: rjkm@metzlerbros.de
-Subject: [PATCH] Ngene cam device name
-Message-ID: <alpine.LNX.2.00.1103101608030.9782@hp8540w.home>
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:10838 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755948Ab1CAJ7J (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Mar 2011 04:59:09 -0500
+Message-ID: <4D6CC36B.50009@cisco.com>
+Date: Tue, 01 Mar 2011 10:59:07 +0100
+From: "Martin Bugge (marbugge)" <marbugge@cisco.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: linux-media@vger.kernel.org
+CC: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC] HDMI-CEC proposal
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-As the cxd20099 driver is in staging due to abuse of the sec0 device, this
-patch renames it to cam0. The sec0 device is not in use and can be removed
+Author: Martin Bugge <marbugge@cisco.com>
+Date:  Tue, 1 March 2010
+======================
 
-Signed-off-by: Issa Gorissen <flop.m@usa.net>
----
- drivers/media/dvb/dvb-core/dvbdev.h  |    2 +-
- drivers/media/dvb/ngene/ngene-core.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+This is a proposal for adding a Consumer Electronic Control (CEC) API to 
+V4L2.
+This document describes the changes and new ioctls needed.
 
-diff --git a/drivers/media/dvb/dvb-core/dvbdev.h 
-b/drivers/media/dvb/dvb-core/dvbdev.h
-index fcc6ae9..dcac27d 100644
---- a/drivers/media/dvb/dvb-core/dvbdev.h
-+++ b/drivers/media/dvb/dvb-core/dvbdev.h
-@@ -40,7 +40,7 @@
- 
- #define DVB_DEVICE_VIDEO      0
- #define DVB_DEVICE_AUDIO      1
--#define DVB_DEVICE_SEC        2
-+#define DVB_DEVICE_CAM        2
- #define DVB_DEVICE_FRONTEND   3
- #define DVB_DEVICE_DEMUX      4
- #define DVB_DEVICE_DVR        5
-diff --git a/drivers/media/dvb/ngene/ngene-core.c 
-b/drivers/media/dvb/ngene/ngene-core.c
-index 175a0f6..6be2d7c 100644
---- a/drivers/media/dvb/ngene/ngene-core.c
-+++ b/drivers/media/dvb/ngene/ngene-core.c
-@@ -1523,7 +1523,7 @@ static int init_channel(struct ngene_channel *chan)
-                set_transfer(&chan->dev->channel[2], 1);
-                dvb_register_device(adapter, &chan->ci_dev,
-                                    &ngene_dvbdev_ci, (void *) chan,
--                                   DVB_DEVICE_SEC);
-+                                   DVB_DEVICE_CAM);
-                if (!chan->ci_dev)
-                        goto err;
-        }
+Version 1.0 (This is first version)
+
+Background
+==========
+CEC is a protocol that provides high-level control functions between 
+various audiovisual products.
+It is an optional supplement to the High-Definition Multimedia Interface 
+Specification (HDMI).
+Physical layer is a one-wire bidirectional serial bus that uses the 
+industry-standard AV.link protocol.
+
+In short: CEC uses pin 13 on the HDMI connector to transmit and receive 
+small data-packets
+           (maximum 16 bytes including a 1 byte header) at low data 
+rates (~400 bits/s).
+
+A CEC device may have any of 15 logical addresses (0 - 14).
+(address 15 is broadcast and some addresses are reserved)
+
+
+References
+==========
+[1] High-Definition Multimedia Interface Specification version 1.3a,
+     Supplement 1 Consumer Electronic Control (CEC).
+     http://www.hdmi.org/manufacturer/specification.aspx
+
+[2] 
+http://www.hdmi.org/pdf/whitepaper/DesigningCECintoYourNextHDMIProduct.pdf
+
+
+Proposed solution
+=================
+
+Two new ioctls:
+     VIDIOC_CEC_CAP (read)
+     VIDIOC_CEC_CMD (read/write)
+
+VIDIOC_CEC_CAP:
+---------------
+
+struct vl2_cec_cap {
+        __u32 logicaldevices;
+        __u32 reserved[7];
+};
+
+The capability ioctl will return the number of logical devices/addresses 
+which can be
+simultaneously supported on this HW.
+     0:       This HW don't support CEC.
+     1 -> 14: This HW supports n logical devices simultaneously.
+
+VIDIOC_CEC_CMD:
+---------------
+
+struct v4l2_cec_cmd {
+     __u32 cmd;
+     __u32 reserved[7];
+     union {
+         struct {
+             __u32 index;
+             __u32 enable;
+             __u32 addr;
+         } conf;
+         struct {
+             __u32 len;
+             __u8  msg[16];
+             __u32 status;
+         } data;
+         __u32 raw[8];
+     };
+};
+
+Alternatively the data struct could be:
+         struct {
+             __u8  initiator;
+             __u8  destination;
+             __u8  len;
+             __u8  msg[15];
+             __u32 status;
+         } data;
+
+Commands:
+
+#define V4L2_CEC_CMD_CONF  (1)
+#define V4L2_CEC_CMD_TX    (2)
+#define V4L2_CEC_CMD_RX    (3)
+
+Tx status field:
+
+#define V4L2_CEC_STAT_TX_OK            (0)
+#define V4L2_CEC_STAT_TX_ARB_LOST      (1)
+#define V4L2_CEC_STAT_TX_RETRY_TIMEOUT (2)
+
+The command ioctl is used both for configuration and to receive/transmit 
+data.
+
+* The configuration command must be done for each logical device address
+   which is to be enabled on this HW. Maximum number of logical devices
+   is found with the capability ioctl.
+     conf:
+          index:  0 -> number_of_logical_devices-1
+          enable: true/false
+          addr:   logical address
+
+   By default all logical devices are disabled.
+
+* Tx/Rx command
+     data:
+          len:    length of message (data + header)
+          msg:    the raw CEC message received/transmitted
+          status: when the driver is in blocking mode it gives the 
+result for transmit.
+
+Events
+------
+
+In the case of non-blocking mode the driver will issue the following events:
+
+V4L2_EVENT_CEC_TX
+V4L2_EVENT_CEC_RX
+
+V4L2_EVENT_CEC_TX
+-----------------
+  * transmit is complete with the following status:
+Add an additional struct to the struct v4l2_event
+
+struct v4l2_event_cec_tx {
+        __u32 status;
+}
+
+V4L2_EVENT_CEC_RX
+-----------------
+  * received a complete message
+
+
+Comments ?
+
+            Martin Bugge
+
+--
+Martin Bugge - Tandberg (now a part of Cisco)
+--
+
