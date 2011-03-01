@@ -1,121 +1,46 @@
 Return-path: <mchehab@pedra>
-Received: from mailout4.samsung.com ([203.254.224.34]:55478 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752417Ab1CKPjT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Mar 2011 10:39:19 -0500
-Date: Fri, 11 Mar 2011 16:39:01 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [PATCH 3/7] ARM: Samsung: update/rewrite Samsung SYSMMU (IOMMU)
- driver
-In-reply-to: <201103111615.01829.arnd@arndb.de>
-To: 'Arnd Bergmann' <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	k.debski@samsung.com, kgene.kim@samsung.com,
-	kyungmin.park@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	=?ks_c_5601-1987?B?J7TrwM6x4ic=?= <inki.dae@samsung.com>,
-	=?ks_c_5601-1987?B?J7Ctuc6x1Cc=?= <mk7.kang@samsung.com>,
-	'KyongHo Cho' <pullip.cho@samsung.com>,
-	linux-kernel@vger.kernel.org
-Message-id: <000201cbe002$768d9de0$63a8d9a0$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ks_c_5601-1987
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <1299229274-9753-4-git-send-email-m.szyprowski@samsung.com>
- <201103111507.59825.arnd@arndb.de>
- <000101cbdffb$e1844b00$a48ce100$%szyprowski@samsung.com>
- <201103111615.01829.arnd@arndb.de>
+Received: from mail1.matrix-vision.com ([78.47.19.71]:49375 "EHLO
+	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755237Ab1CAQlE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Mar 2011 11:41:04 -0500
+Message-ID: <4D6D219D.7020605@matrix-vision.de>
+Date: Tue, 01 Mar 2011 17:41:01 +0100
+From: Michael Jones <michael.jones@matrix-vision.de>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: omap3isp cache error when unloading
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+Hi all,
 
-On Friday, March 11, 2011 4:15 PM Arnd Bergmann wrote:
+I get a warning about a cache error with the following steps:
 
-> On Friday 11 March 2011, Marek Szyprowski wrote:
-> > On Friday, March 11, 2011 3:08 PM Arnd Bergmann wrote:
-> >
-> > > On Friday 11 March 2011, Marek Szyprowski wrote:
-> > > > > The iommu API is not really meant to be KVM specific, it's just that the
-> > > > > in-tree users are basically limited to KVM at the moment. Another user that
-> > > > > is coming up soon is the vmio device driver that can be used to transparently
-> > > > > pass devices to user space. The idea behind the IOMMU API is that you can
-> > > > > map arbitrary bus addresses to physical memory addresses, but it does not
-> > > > > deal with allocating the bus addresses or providing buffer management such
-> > > > > as cache flushes.
-> > > >
-> > > > Yea, I've noticed this and this basically what we expect from iommu driver.
-> > > > However the iommu.h API requires a separate call to map each single memory page.
-> > > > This is quite ineffective approach and imho the API need to be extended to allow
-> > > > mapping of the arbitrary set of pages.
-> > >
-> > > We can always discuss extensions to the existing infrastructure, adding
-> > > an interface for mapping an array of page pointers in the iommu API
-> > > sounds like a good idea.
-> >
-> > We will investigate this API further. From the first sight it looks it won't take
-> > much work to port/rewrite our driver to fit into iommu.h API.
-> 
-> Ok, sounds good.
-> 
-> > > I also think that we should not really have separate iommu and dma-mapping
-> > > interfaces, but rather have a portable way to define an iommu so that it
-> > > can be used through the dma-mapping interfaces. I'm not asking you to
-> > > do that as a prerequisite to merging your driver, but it may be good to
-> > > keep in mind that the current situation is still lacking and that any
-> > > suggestion for improving this as part of your work to support the
-> > > samsung IOMMU is welcome.
-> >
-> > Well creating a portable iommu framework and merging it with dma-mapping interface
-> > looks like a much harder (and time consuming) task. There is definitely a need for
-> > it. I hope that it can be developed incrementally starting from the current iommu.h
-> > and dma-mapping.h interfaces.
-> 
-> Yes, that is the idea. Maybe we should add it to the list things that the
-> Linaro kernel working group can target for the November release?
-> 
-> > Please note that there might be some subtle differences
-> > in the hardware that such framework must be aware. The first obvious one is the
-> > hardware design. Some platform has central iommu unit, other (like Samsung Exynos4)
-> > has a separate iommu unit per each device driver (this is still a simplification,
-> > because a video codec device has 2 memory interfaces and 2 iommu units). Currently
-> > I probably have not enough knowledge to predict the other possible issues that need
-> > to be taken into account in the portable and generic iommu/dma-mapping frame-work.
-> 
-> The dma-mapping API can deal well with one IOMMU per device, but would
-> need some tricks to work with one device that has two separate IOMMUs.
+0. load omap3-isp
+1. set up media broken media pipeline. (e.g. set different formats on
+opposite ends of a link, as will be the case for using the lane shifter)
+2. try to capture images.  isp_video_streamon() returns -EPIPE from the
+failed isp_video_validate_pipeline() call.
+3. unload omap3-isp module
 
-We need to investigate the internals of dma-mapping API first. Right now I know too
-little in this area.
- 
-> I'm not very familar with the iommu API, but in the common KVM scenario,
-> you need one IOMMU per device, so it should handle that just fine as well.
+then I get the following from kmem_cache_destroy():
 
-Well, afair there are also systems with one central iommu module, which is shared 
-between devices. I have no idea how such model will fit into the dma-mapping API.
- 
-> > > Note that the ARM implementation of the dma-mapping.h interface currently
-> > > does not support IOMMUs, but that could be changed by wrapping it
-> > > using the include/asm-generic/dma-mapping-common.h infrastructure.
-> >
-> > ARM dma-mapping framework also requires some additional research for better DMA
-> > support (there are still issues with multiple mappings to be resolved).
-> 
-> You mean mapping the same memory into multiple devices, or a different problem?
+slab error in kmem_cache_destroy(): cache `iovm_area_cache': Can't free all objects
+[<c0040318>] (unwind_backtrace+0x0/0xec) from [<c00bfe14>] (kmem_cache_destroy+0x88/0xf4)
+[<c00bfe14>] (kmem_cache_destroy+0x88/0xf4) from [<c00861f8>] (sys_delete_module+0x1c4/0x230)
+[<c00861f8>] (sys_delete_module+0x1c4/0x230) from [<c003b680>] (ret_fast_syscall+0x0/0x30)
 
-Mapping the same memory area multiple times with different cache settings is not
-legal on ARMv7+ systems. Currently the problems might caused by the low-memory
-kernel linear mapping and second mapping created for example by dma_alloc_coherent()
-function.
+Then, when reloading the module:
+SLAB: cache with size 32 has lost its name
 
-Best regards
---
-Marek Szyprowski
-Samsung Poland R&D Center
+Can somebody else confirm that they also observe this behavior?
 
+-Michael
 
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
