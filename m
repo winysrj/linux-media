@@ -1,39 +1,38 @@
 Return-path: <mchehab@pedra>
-Received: from mo-p00-ob.rzone.de ([81.169.146.160]:26598 "EHLO
-	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751916Ab1C1AoS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Mar 2011 20:44:18 -0400
-Received: from metzlerbros.de
-	(ip-62-143-72-211.unitymediagroup.de [62.143.72.211])
-	by post.strato.de (klopstock mo59) (RZmta 25.8)
-	with ESMTPA id g058f0n2RN4DJS for <linux-media@vger.kernel.org>;
-	Mon, 28 Mar 2011 02:44:14 +0200 (MEST)
-Received: from rjkm by morden with local (Exim 4.71 #1 (Debian))
-	id 1Q40Z4-0003Ru-IJ
-	for <linux-media@vger.kernel.org>; Mon, 28 Mar 2011 02:44:14 +0200
-From: Ralph Metzler <rjkm@metzlerbros.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Received: from mx1.redhat.com ([209.132.183.28]:46005 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753139Ab1CANVU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Mar 2011 08:21:20 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p21DLKtY015168
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 1 Mar 2011 08:21:20 -0500
+Received: from pedra (vpn-225-140.phx2.redhat.com [10.3.225.140])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p21DIEb9025546
+	for <linux-media@vger.kernel.org>; Tue, 1 Mar 2011 08:21:19 -0500
+Date: Tue, 1 Mar 2011 10:18:00 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 0/3] Fix the remaining VIDIOC_*_OLD bits
+Message-ID: <20110301101800.2775bfff@pedra>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-ID: <19855.55774.192407.326483@morden.metzler>
-Date: Mon, 28 Mar 2011 02:44:14 +0200
-To: linux-media@vger.kernel.org
-Subject: Re: [PATCH] Ngene cam device name
-In-Reply-To: <4D7B8A07.70602@linuxtv.org>
-References: <777PcLohh6368S03.1299940473@web03.cms.usa.net>
-	<4D7B8A07.70602@linuxtv.org>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+The VIDIOC_*_OLD ioctls passed away, but there are still some places
+that thinks that they're still alive. Tell them about the death of
+those legacy stuff.
 
-since I just saw cxd2099 appear in staging in the latest git kernel, a
-simple question which has been pointed out to me before:
+Mauro Carvalho Chehab (3):
+  matrox: Remove legacy VIDIOC_*_OLD ioctls
+  [media] videodev2.h.xml: Update to reflect videodev2.h changes
+  [media] DocBook: Document the removal of the old VIDIOC_*_OLD ioctls
 
-Why is cxd2099.c in staging regarding the device name question?
-It has nothing to do with the naming.
+ Documentation/DocBook/v4l/compat.xml      |   20 +++--
+ Documentation/DocBook/v4l/videodev2.h.xml |  141 ++++++++++++++++++++++++++---
+ drivers/video/matrox/matroxfb_base.c      |    3 -
+ 3 files changed, 143 insertions(+), 21 deletions(-)
 
-
-Regards,
-Ralph
