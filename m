@@ -1,69 +1,45 @@
 Return-path: <mchehab@pedra>
-Received: from cantor.suse.de ([195.135.220.2]:41379 "EHLO mx1.suse.de"
+Received: from smtp.nokia.com ([147.243.128.24]:49264 "EHLO mgw-da01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754964Ab1COOZ4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Mar 2011 10:25:56 -0400
-Subject: Re: [Security] [PATCH 00/20] world-writable files in sysfs and
- debugfs
-From: James Bottomley <James.Bottomley@suse.de>
-To: Greg KH <greg@kroah.com>
-Cc: Vasiliy Kulikov <segoon@openwall.com>, security@kernel.org,
-	acpi4asus-user@lists.sourceforge.net, linux-scsi@vger.kernel.org,
-	rtc-linux@googlegroups.com, linux-usb@vger.kernel.org,
-	linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org,
-	open-iscsi@googlegroups.com, linux-omap@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-In-Reply-To: <20110315141859.GA19442@kroah.com>
-References: <cover.1296818921.git.segoon@openwall.com>
-	 <AANLkTikE-A=Fe-yRrN0opWwJGQ0f4uOzkyB3XCcEUrFE@mail.gmail.com>
-	 <1300155965.5665.15.camel@mulgrave.site> <20110315030956.GA2234@kroah.com>
-	 <1300189828.4017.2.camel@mulgrave.site>  <20110315141859.GA19442@kroah.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Tue, 15 Mar 2011 10:25:51 -0400
-Message-ID: <1300199151.7744.12.camel@mulgrave.site>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	id S1753251Ab1CAIBa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Mar 2011 03:01:30 -0500
+From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+To: alsa-devel@alsa-project.org, broonie@opensource.wolfsonmicro.com,
+	lrg@slimlogic.co.uk, mchehab@redhat.com, hverkuil@xs4all.nl,
+	sameo@linux.intel.com, linux-media@vger.kernel.org
+Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Subject: [PATCH v21 0/3] ASoC/MFD/V4L2: WL1273 FM Radio Driver
+Date: Tue,  1 Mar 2011 10:00:47 +0200
+Message-Id: <1298966450-31814-1-git-send-email-matti.j.aaltonen@nokia.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, 2011-03-15 at 07:18 -0700, Greg KH wrote:
-> On Tue, Mar 15, 2011 at 07:50:28AM -0400, James Bottomley wrote:
-> > On Mon, 2011-03-14 at 20:09 -0700, Greg KH wrote:
-> > > There are no capability checks on sysfs files right now, so these all
-> > > need to be fixed.
-> > 
-> > That statement is true but irrelevant, isn't it?  There can't be
-> > capabilities within sysfs files because the system that does them has no
-> > idea what the capabilities would be.  If there were capabilities checks,
-> > they'd have to be in the implementing routines.
-> 
-> Ah, you are correct, sorry for the misunderstanding.
-> 
-> > I think the questions are twofold:
-> > 
-> >      1. Did anyone actually check for capabilities before assuming world
-> >         writeable files were wrong?
-> 
-> I do not think so as the majority (i.e. all the ones that I looked at)
-> did no such checks.
+Hi.
 
-OK, as long as someone checked, I'm happy.
+And thanks for the comment.
 
-> >      2. Even if there aren't any capabilities checks in the implementing
-> >         routines, should there be (are we going the separated
-> >         capabilities route vs the monolithic root route)?
-> 
-> I think the general consensus is that we go the monolithic root route
-> for sysfs files in that we do not allow them to be world writable.
-> 
-> Do you have any exceptions that you know of that do these checks?
+Samuel wrote:
+>> Remove two unnecessary calls to i2c_set_clientdata.
+>Provided that you add a changelog relevant to the patch itself, and not to the
+>v1->v2 diff:
 
-Heh, I didn't call our security vacillations a dizzying ride for
-nothing.  I know the goal once was to try to run a distro without root
-daemons (which is what required the capabilities stuff).  I'm actually
-trying to avoid the issue ... I just want to make sure that people who
-care aren't all moving in different directions.
+Replaced the incremental changelog stuff with the original descriptions.
 
-James
+>Acked-by: Samuel Ortiz <sameo@linux.intel.com>
 
+Cheers,
+Matti
+
+Matti J. Aaltonen (3):
+  MFD: WL1273 FM Radio: MFD driver for the FM radio.
+  V4L2: WL1273 FM Radio: TI WL1273 FM radio driver
+  ASoC: WL1273 FM radio: Access I2C IO functions through pointers.
+
+ drivers/media/radio/radio-wl1273.c |  360 +++++++++++-------------------------
+ drivers/mfd/Kconfig                |    2 +-
+ drivers/mfd/wl1273-core.c          |  149 +++++++++++++++-
+ include/linux/mfd/wl1273-core.h    |    2 +
+ sound/soc/codecs/Kconfig           |    2 +-
+ sound/soc/codecs/wl1273.c          |   11 +-
+ 6 files changed, 264 insertions(+), 262 deletions(-)
 
