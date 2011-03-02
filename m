@@ -1,92 +1,104 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:60263 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752200Ab1CECQv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2011 21:16:51 -0500
-Received: by iyb26 with SMTP id 26so2411942iyb.19
-        for <linux-media@vger.kernel.org>; Fri, 04 Mar 2011 18:16:51 -0800 (PST)
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:53165 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755939Ab1CBJMR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Mar 2011 04:12:17 -0500
+Received: by qyg14 with SMTP id 14so5127920qyg.19
+        for <linux-media@vger.kernel.org>; Wed, 02 Mar 2011 01:12:16 -0800 (PST)
 MIME-Version: 1.0
-Date: Sat, 5 Mar 2011 03:16:51 +0100
-Message-ID: <AANLkTimexhCMBSd7UNr1gizgbnarwS9kucZC0nWSBJxX@mail.gmail.com>
-Subject: [PATCH] DVB-APPS: azap gets -p argument
-From: Christian Ulrich <chrulri@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=90e6ba6e82ae0395dc049db2dbe4
+In-Reply-To: <4D6D3464.2030602@kolumbus.fi>
+References: <AANLkTinfJiCpMOTx4-mc6jW3Bpe_3qduLYpqvRi8U+ga@mail.gmail.com>
+	<4D6D3464.2030602@kolumbus.fi>
+Date: Wed, 2 Mar 2011 10:12:14 +0100
+Message-ID: <AANLkTik-YJ_TpWgwD2Nw1R4HUgixEL1mAYgwD_GZLDsc@mail.gmail.com>
+Subject: Re: Remote control not working for Terratec Cinergy C (2.6.37 Mantis driver)
+From: Jonas Hanschke <jonas.hanschke@gmail.com>
+To: Marko Ristola <marko.ristola@kolumbus.fi>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
---90e6ba6e82ae0395dc049db2dbe4
-Content-Type: text/plain; charset=ISO-8859-1
+Thanks for answering, Marko.
 
-Hey there,
+And sorry for asking a maybe stupid question - how do I turn on the
+debug output?
+There is no such option in make menuconfig, and modinfo -p mantis only returns:
+verbose:verbose startup messages, default is 1 (yes)
 
-I've written a patch against the latest version of azap in the hg
-repository during the work of my Archos Gen8 DVB-T / ATSC project.
+In general, should the remote control appear as an input device (like
+it used to with the old, not-merged mantis driver) or is it possible
+that the approach has changed to an LIRC-driver where no input device
+is created?
 
-Details of patch:
-- add -p argument from tzap to azap
-- thus ts streaming to dvr0 includes the pat/pmt
+Also: your mail suggests that support may just be broken in the
+mainline kernel. In that case the info from the DVB wiki would just be
+incorrect and I would be looking for a solution that does not exist -
+is that just a hunch or do you acutally know it's not working?
 
-Best regards,
-Chris
+Jonas
 
---90e6ba6e82ae0395dc049db2dbe4
-Content-Type: application/octet-stream; name="azap_patpmt.patch"
-Content-Disposition: attachment; filename="azap_patpmt.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gkvwfwpt0
-
-LS0tIGxpbnV4dHYtZHZiLWFwcHMvdXRpbC9zemFwL2F6YXAuYy5vcmlnCTIwMTEtMDMtMDQgMTE6
-NDM6MDAuMTMzNzU3MDAxICswMTAwCisrKyBsaW51eHR2LWR2Yi1hcHBzL3V0aWwvc3phcC9hemFw
-LmMJMjAxMS0wMy0wNSAwMjoxNTozMS4yODk3NTY0NDMgKzAxMDAKQEAgLTE3MSw3ICsxNzEsNyBA
-QAogCiAKIGludCBwYXJzZShjb25zdCBjaGFyICpmbmFtZSwgY29uc3QgY2hhciAqY2hhbm5lbCwK
-LQkgIHN0cnVjdCBkdmJfZnJvbnRlbmRfcGFyYW1ldGVycyAqZnJvbnRlbmQsIGludCAqdnBpZCwg
-aW50ICphcGlkKQorCSAgc3RydWN0IGR2Yl9mcm9udGVuZF9wYXJhbWV0ZXJzICpmcm9udGVuZCwg
-aW50ICp2cGlkLCBpbnQgKmFwaWQsIGludCAqc2lkKQogewogCWludCBmZDsKIAlpbnQgZXJyOwpA
-QCAtMjA0LDYgKzIwNCw5IEBACiAJaWYgKChlcnIgPSB0cnlfcGFyc2VfaW50KGZkLCBhcGlkLCAi
-QXVkaW8gUElEIikpKQogCQlyZXR1cm4gLTY7CiAKKwlpZiAoKGVyciA9IHRyeV9wYXJzZV9pbnQo
-ZmQsIHNpZCwgIlNlcnZpY2UgSUQiKSkpCisJCXJldHVybiAtNzsKKwogCWNsb3NlKGZkKTsKIAog
-CXJldHVybiAwOwpAQCAtMjY2LDcgKzI2OSw3IEBACiB9CiAKIAotc3RhdGljIGNvbnN0IGNoYXIg
-KnVzYWdlID0gIlxudXNhZ2U6ICVzIFstYSBhZGFwdGVyX251bV0gWy1mIGZyb250ZW5kX2lkXSBb
-LWQgZGVtdXhfaWRdIFstYyBjb25mX2ZpbGVdIFstcl0gPGNoYW5uZWwgbmFtZT5cblxuIjsKK3N0
-YXRpYyBjb25zdCBjaGFyICp1c2FnZSA9ICJcbnVzYWdlOiAlcyBbLWEgYWRhcHRlcl9udW1dIFst
-ZiBmcm9udGVuZF9pZF0gWy1kIGRlbXV4X2lkXSBbLWMgY29uZl9maWxlXSBbLXJdIFstcF0gPGNo
-YW5uZWwgbmFtZT5cblxuIjsKIAogCiBpbnQgbWFpbihpbnQgYXJnYywgY2hhciAqKmFyZ3YpCkBA
-IC0yNzYsMTEgKzI3OSwxMyBAQAogCWNoYXIgKmNvbmZuYW1lID0gTlVMTDsKIAljaGFyICpjaGFu
-bmVsID0gTlVMTDsKIAlpbnQgYWRhcHRlciA9IDAsIGZyb250ZW5kID0gMCwgZGVtdXggPSAwLCBk
-dnIgPSAwOwotCWludCB2cGlkLCBhcGlkOworCWludCB2cGlkLCBhcGlkLCBzaWQsIHBtdHBpZCA9
-IDA7CisJaW50IHBhdF9mZCwgcG10X2ZkOwogCWludCBmcm9udGVuZF9mZCwgYXVkaW9fZmQsIHZp
-ZGVvX2ZkOwogCWludCBvcHQ7CisJaW50IHJlY19wc2kgPSAwOwogCi0Jd2hpbGUgKChvcHQgPSBn
-ZXRvcHQoYXJnYywgYXJndiwgImhybjphOmY6ZDpjOiIpKSAhPSAtMSkgeworCXdoaWxlICgob3B0
-ID0gZ2V0b3B0KGFyZ2MsIGFyZ3YsICJocnBuOmE6ZjpkOmM6IikpICE9IC0xKSB7CiAJCXN3aXRj
-aCAob3B0KSB7CiAJCWNhc2UgJ2EnOgogCQkJYWRhcHRlciA9IHN0cnRvdWwob3B0YXJnLCBOVUxM
-LCAwKTsKQEAgLTI5NCw2ICsyOTksOSBAQAogCQljYXNlICdyJzoKIAkJCWR2ciA9IDE7CiAJCQli
-cmVhazsKKwkJY2FzZSAncCc6CisJCQlyZWNfcHNpID0gMTsKKwkJCWJyZWFrOwogCQljYXNlICdj
-JzoKIAkJCWNvbmZuYW1lID0gb3B0YXJnOwogCQkJYnJlYWs7CkBAIC0zMzMsNyArMzQxLDcgQEAK
-IAogCW1lbXNldCgmZnJvbnRlbmRfcGFyYW0sIDAsIHNpemVvZihzdHJ1Y3QgZHZiX2Zyb250ZW5k
-X3BhcmFtZXRlcnMpKTsKIAotCWlmIChwYXJzZSAoY29uZm5hbWUsIGNoYW5uZWwsICZmcm9udGVu
-ZF9wYXJhbSwgJnZwaWQsICZhcGlkKSkKKwlpZiAocGFyc2UgKGNvbmZuYW1lLCBjaGFubmVsLCAm
-ZnJvbnRlbmRfcGFyYW0sICZ2cGlkLCAmYXBpZCwgJnNpZCkpCiAJCXJldHVybiAtMTsKIAogCWlm
-ICgoZnJvbnRlbmRfZmQgPSBvcGVuKEZST05URU5EX0RFViwgT19SRFdSKSkgPCAwKSB7CkBAIC0z
-NDQsNiArMzUyLDI5IEBACiAJaWYgKHNldHVwX2Zyb250ZW5kIChmcm9udGVuZF9mZCwgJmZyb250
-ZW5kX3BhcmFtKSA8IDApCiAJCXJldHVybiAtMTsKIAorCisgICAgICAgIGlmIChyZWNfcHNpKSB7
-CisgICAgICAgICAgICBwbXRwaWQgPSBnZXRfcG10X3BpZChERU1VWF9ERVYsIHNpZCk7CisgICAg
-ICAgICAgICBpZiAocG10cGlkIDw9IDApIHsKKyAgICAgICAgICAgICAgICBmcHJpbnRmKHN0ZGVy
-ciwiY291bGRuJ3QgZmluZCBwbXQtcGlkIGZvciBzaWQgJTA0eFxuIixzaWQpOworICAgICAgICAg
-ICAgICAgIHJldHVybiAtMTsKKyAgICAgICAgICAgIH0KKworICAgICAgICAgICAgaWYgKChwYXRf
-ZmQgPSBvcGVuKERFTVVYX0RFViwgT19SRFdSKSkgPCAwKSB7CisgICAgICAgICAgICAgICAgcGVy
-cm9yKCJvcGVuaW5nIHBhdCBkZW11eCBmYWlsZWQiKTsKKyAgICAgICAgICAgICAgICByZXR1cm4g
-LTE7CisgICAgICAgICAgICB9CisgICAgICAgICAgICBpZiAoc2V0X3Blc2ZpbHRlcihwYXRfZmQs
-IDAsIERNWF9QRVNfT1RIRVIsIGR2cikgPCAwKQorICAgICAgICAgICAgICAgIHJldHVybiAtMTsK
-KworICAgICAgICAgICAgaWYgKChwbXRfZmQgPSBvcGVuKERFTVVYX0RFViwgT19SRFdSKSkgPCAw
-KSB7CisgICAgICAgICAgICAgICAgcGVycm9yKCJvcGVuaW5nIHBtdCBkZW11eCBmYWlsZWQiKTsK
-KyAgICAgICAgICAgICAgICByZXR1cm4gLTE7CisgICAgICAgICAgICB9CisgICAgICAgICAgICBp
-ZiAoc2V0X3Blc2ZpbHRlcihwbXRfZmQsIHBtdHBpZCwgRE1YX1BFU19PVEhFUiwgZHZyKSA8IDAp
-CisgICAgICAgICAgICAgICAgcmV0dXJuIC0xOworICAgICAgICB9CisKICAgICAgICAgaWYgKCh2
-aWRlb19mZCA9IG9wZW4oREVNVVhfREVWLCBPX1JEV1IpKSA8IDApIHsKICAgICAgICAgICAgICAg
-ICBQRVJST1IoImZhaWxlZCBvcGVuaW5nICclcyciLCBERU1VWF9ERVYpOwogICAgICAgICAgICAg
-ICAgIHJldHVybiAtMTsKQEAgLTM2Myw2ICszOTQsOCBAQAogCiAJY2hlY2tfZnJvbnRlbmQgKGZy
-b250ZW5kX2ZkKTsKIAorICAgICAgICBjbG9zZSAocGF0X2ZkKTsKKyAgICAgICAgY2xvc2UgKHBt
-dF9mZCk7CiAJY2xvc2UgKGF1ZGlvX2ZkKTsKIAljbG9zZSAodmlkZW9fZmQpOwogCWNsb3NlIChm
-cm9udGVuZF9mZCk7Cg==
---90e6ba6e82ae0395dc049db2dbe4--
+2011/3/1 Marko Ristola <marko.ristola@kolumbus.fi>:
+> 28.02.2011 19:26, Jonas Hanschke kirjoitti:
+>>
+>> Hi,
+>>
+>> despite lots of time spent tinkering around and looking for help on
+>> the web, I've had no success in getting to work the remote control of
+>> my DVB-C card.
+>>
+>> It is a Terratec Cinergy C:
+>> http://linuxtv.org/wiki/index.php/TerraTec_Cinergy_C_DVB-C
+>>
+>> and am using the Mantis driver. Since it was merged into the kernel
+>> tree in 2.6.33, watching TV works without patches, but the remote
+>> control does not, although it is supposed to be supported, according
+>> to the link above.
+>>
+>> Kernel is a vanilla 2.6.37.2 with custom configuration on an old AMD
+>> Athlon XP machine, running debian Squeeze.
+>>
+>>
+>> When I modprobe the Mantis driver, the following IR-modules are pulled
+>> in automagically:
+>> ir_lirc_codec
+>> lirc_dev
+>> ir_core
+>>
+>> However, no input device is created during module loading. dmesg output:
+>> Mantis 0000:01:0a.0: PCI INT A ->  Link[APC1] ->  GSI 16 (level, high) ->
+>>  IRQ 16
+>> DVB: registering new adapter (Mantis DVB adapter)
+>> IR LIRC bridge handler initialized
+>> DVB: registering adapter 0 frontend 0 (Philips TDA10023 DVB-C)...
+>>
+>> Am I missing some additional modules? Are there any dependencies on
+>> other kernel config options that are not handled automatically by make
+>> menuconf?
+>>
+>> If additional information is needed, I will be happy to provide it.
+>> However, I am not sure what is useful and what is not and did not want
+>> to bloat this message.
+>
+> Before merging into v4l-dvb, doing modprobe mantis was enough.
+> I don't know how it should work with recent kernels.
+> I haven't seen remote control working lately.
+>
+> Turning mantis module debug options on gives some information
+> what is happening into /var/log/messages.
+>
+> Regards,
+> Marko Ristola
+>
+>>
+>> Thanks in advance,
+>>
+>> Jonas
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
+>
