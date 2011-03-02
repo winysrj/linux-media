@@ -1,66 +1,100 @@
 Return-path: <mchehab@pedra>
-Received: from ffm.saftware.de ([83.141.3.46]:44703 "EHLO ffm.saftware.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752140Ab1CLO6T (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Mar 2011 09:58:19 -0500
-Message-ID: <4D7B8A07.70602@linuxtv.org>
-Date: Sat, 12 Mar 2011 15:58:15 +0100
-From: Andreas Oberritter <obi@linuxtv.org>
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1302 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756436Ab1CBSTk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Mar 2011 13:19:40 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [RFC] snapshot mode, flash capabilities and control
+Date: Wed, 2 Mar 2011 19:19:29 +0100
+Cc: Hans Verkuil <hansverk@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Kim HeungJun <riverful@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Stanimir Varbanov <svarbanov@mm-sol.com>
+References: <Pine.LNX.4.64.1102240947230.15756@axis700.grange> <Pine.LNX.4.64.1102282340480.17525@axis700.grange> <Pine.LNX.4.64.1103021841140.29360@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1103021841140.29360@axis700.grange>
 MIME-Version: 1.0
-To: Issa Gorissen <flop.m@usa.net>
-CC: Ralph Metzler <rjkm@metzlerbros.de>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] Ngene cam device name
-References: <777PcLohh6368S03.1299940473@web03.cms.usa.net>
-In-Reply-To: <777PcLohh6368S03.1299940473@web03.cms.usa.net>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201103021919.30003.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 03/12/2011 03:34 PM, Issa Gorissen wrote:
-> From: Ralph Metzler <rjkm@metzlerbros.de>
->> Andreas Oberritter writes:
->>  > > Unless you want to move the writing to/reading from the CI module into
->>  > > ioctls of the ci device you need another node. 
->>  > > Even nicer would be having the control messages moved to ioctls and
-> the
->>  > > TS IO in read/write of ci, but this would break the old interface.
->>  > 
->>  > It's possible to keep compatibility. Just add ioctls to get and set the
->>  > interface version. Default to the current version, not supporting TS
->>  > I/O. If the version is set to e.g. 1, switch from the current interface
->>  > to the new one, using ioctls for control messages.
->>
->> A possibility, but also requires rewrites in existing software like
-> libdvben50221.
->> Right now you can e.g. tune with /dev/dvb/adapter0/frontend0, point an
-> unchanged
->> libdvben50221 to /dev/dvb/adapter1/ci0 (separate adapter since it can even
->> be on a different card) and pipe all PIDs of cam_pmt of the program
->> you are watching through /dev/dvb/adapter1/sec0(cam0) and it is decoded.
-
-Obviously, adapting libdvben50221 would be the first thing to do for an
-enhanced CI API. Probably not a big deal.
-
-> This is KISS compliant by the way.
+On Wednesday, March 02, 2011 18:51:43 Guennadi Liakhovetski wrote:
+> ...Just occurred to me:
 > 
-> Andreas, please explain what *really* bothers you with this architecture
-> choice of having a new node, leaving the current API as is.
+> On Mon, 28 Feb 2011, Guennadi Liakhovetski wrote:
+> 
+> > On Mon, 28 Feb 2011, Guennadi Liakhovetski wrote:
+> > 
+> > > On Mon, 28 Feb 2011, Hans Verkuil wrote:
+> > > 
+> > > > Does anyone know which drivers stop capture if there are no buffers available? 
+> > > > I'm not aware of any.
+> > > 
+> > > Many soc-camera hosts do that.
+> > > 
+> > > > I think this is certainly a good initial approach.
+> > > > 
+> > > > Can someone make a list of things needed for flash/snapshot? So don't look yet 
+> > > > at the implementation, but just start a list of functionalities that we need 
+> > > > to support. I don't think I have seen that yet.
+> > > 
+> > > These are not the features, that we _have_ to implement, these are just 
+> > > the ones, that are related to the snapshot mode:
+> > > 
+> > > * flash strobe (provided, we do not want to control its timing from 
+> > > 	generic controls, and leave that to "reasonable defaults" or to 
+> > > 	private controls)
+> 
+> Wouldn't it be a good idea to also export an LED (drivers/leds/) API from 
+> our flash implementation? At least for applications like torch. Downside: 
+> the LED API itself is not advanced enough for all our uses, and exporting 
+> two interfaces to the same device is usually a bad idea. Still, 
+> conceptually it seems to be a good fit.
 
-I'm not against adding a new node if its behaviour is well defined and
-documented and if it integrates well into the existing API.
+I believe we discussed LEDs before (during a discussion about adding illuminator
+controls). I think the preference was to export LEDs as V4L controls.
 
-> You might find that adding a new node is lazy, but there are advantages:
-> - current API isn't broken, namely, ca devices are still used for the control
-> messages, nothing more;
+In general I am no fan of exporting multiple interfaces. It only leads to double
+maintenance and I see no noticable advantage to userspace, only confusion.
 
-"nothing more" is wrong, as ca devices are used for descramblers, too.
-
-> - for applications using the DVB API, it is also easier to debug while reading
-> the code, in my opinion, because of the usage of two distinct devices (ca /
-> cam) instead of one (ca / ioctls);
-
-That's just a matter of taste.
+Just my 2 cents.
 
 Regards,
-Andreas
+
+	Hans
+
+> 
+> Thanks
+> Guennadi
+> 
+> > > * trigger pin / command
+> > > * external exposure
+> > > * exposure mode (ERS, GRR,...)
+> > > * use "trigger" or "shutter" for readout
+> > > * number of frames to capture
+> > 
+> > Add
+> > 
+> > * multiple videobuffer queues
+> > 
+> > to the list
+> 
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
