@@ -1,67 +1,37 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4299 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754216Ab1CLSxS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Mar 2011 13:53:18 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Ondrej Zary <linux@rainbow-software.org>
-Subject: Re: radio-maestro broken (conflicts with snd-es1968)
-Date: Sat, 12 Mar 2011 19:52:39 +0100
-Cc: linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	Kernel development list <linux-kernel@vger.kernel.org>,
-	jirislaby@gmail.com
-References: <201103121919.05657.linux@rainbow-software.org>
-In-Reply-To: <201103121919.05657.linux@rainbow-software.org>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Received: from jabba.london.02.net ([82.132.130.169]:51636 "EHLO mail.o2.co.uk"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755636Ab1CBSUZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 2 Mar 2011 13:20:25 -0500
+Received: from tiber.centauri (188.222.111.86) by mail.o2.co.uk (8.5.119.05) (authenticated as ahoughton2005@o2.co.uk)
+        id 4C63A9A336ACCA33 for linux-media@vger.kernel.org; Wed, 2 Mar 2011 18:14:09 +0000
+Received: from [127.0.0.1] (helo=realh.co.uk)
+	by tiber.centauri with esmtp (Exim 4.74)
+	(envelope-from <h@realh.co.uk>)
+	id 1PuqYo-0004wU-Hb
+	for linux-media@vger.kernel.org; Wed, 02 Mar 2011 18:14:06 +0000
+Date: Wed, 2 Mar 2011 18:14:04 +0000
+From: Tony Houghton <h@realh.co.uk>
+To: <linux-media@vger.kernel.org>
+Subject: Hauppauge "grey" remote not working in recent kernels
+Message-ID: <20110302181404.6406a3d2@realh.co.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201103121952.39850.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Saturday, March 12, 2011 19:19:00 Ondrej Zary wrote:
-> Hello,
-> the radio-maestro driver is badly broken. It's intended to drive the radio on 
-> MediaForte ESS Maestro-based sound cards with integrated radio (like 
-> SF64-PCE2-04). But it conflicts with snd_es1968, ALSA driver for the sound 
-> chip itself.
-> 
-> If one driver is loaded, the other one does not work - because a driver is 
-> already registered for the PCI device (there is only one). This was probably 
-> broken by conversion of PCI probing in 2006: 
-> ttp://lkml.org/lkml/2005/12/31/93
-> 
-> How to fix it properly? Include radio functionality in snd-es1968 and delete 
-> radio-maestro?
+Since upgrading my kernel from 2.6.32 to 2.6.37 in Debian my DVB remote
+control no longer works. The card is a Hauppauge Nova-T PCI with the
+"grey" remote. It uses the saa7146, tda1004x, budget_ci and budget_core
+modules (but it doesn't actually have a CI).
 
-Interesting. I don't know anyone among the video4linux developers who has
-this hardware, so the radio-maestro driver hasn't been tested in at least
-6 or 7 years.
+There used to be a patch for the budget_ci driver to support this model
+of remote because the driver's key mappings were incorrect, but that
+patch was no longer necessary from about Linux 2.6.20 onwards. Has there
+been a regression or is there a new problem?
 
-The proper fix would be to do it like the fm801.c alsa driver does: have
-the radio functionality as an i2c driver. In fact, it would not surprise
-me at all if you could use the tea575x-tuner.c driver (in sound/i2c/other)
-for the es1968 and delete the radio-maestro altogether.
-
-Both are for the tea575x tuner, although radio-maestro seems to have better
-support for the g_tuner operation. It doesn't seem difficult to add that to
-tea575x-tuner.c.
-
-The fm801 code for driving the tea575x is pretty horrible and it should be
-possible to improve that. I suspect that those read/write/mute functions
-really belong in tea575x-tuner.c and that only the low-level gpio actions
-need to be in the fm801/es1968 drivers.
-
-Hope this helps.
-
-Regards,
-
-	Hans
-
-BTW: if anyone has spare hardware for testing the radio-maestro/tea575x-tuner,
-then I'm interested.
-
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+FWIW I have two cards which used the saa7146, but the other one is DVB-S
+and doesn't have a remote. The one with the remote is adapter1 and the
+one without is adapter0. Could that have anything to do with the
+problem?
