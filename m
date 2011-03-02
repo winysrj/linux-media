@@ -1,61 +1,52 @@
 Return-path: <mchehab@pedra>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:18407 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755969Ab1CWNgS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Mar 2011 09:36:18 -0400
-Date: Wed, 23 Mar 2011 14:35:57 +0100
-From: Jean Delvare <khali@linux-fr.org>
-To: LMML <linux-media@vger.kernel.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] zoran: Drop unused module parameters encoder and decoder
-Message-ID: <20110323143557.40ad9df7@endymion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:38805 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757934Ab1CBWaQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Mar 2011 17:30:16 -0500
+Received: by qyg14 with SMTP id 14so504522qyg.19
+        for <linux-media@vger.kernel.org>; Wed, 02 Mar 2011 14:30:15 -0800 (PST)
+References: <20110302181404.6406a3d2@realh.co.uk> <3A464BCE-1E30-48D3-B275-99815E1A8983@wilsonet.com> <20110302204610.464785f5@toddler>
+In-Reply-To: <20110302204610.464785f5@toddler>
+Mime-Version: 1.0 (Apple Message framework v1082)
+Content-Type: text/plain; charset=us-ascii
+Message-Id: <CC82695C-F23E-4569-AAF8-091372D2FFE9@wilsonet.com>
 Content-Transfer-Encoding: 7bit
+Cc: <linux-media@vger.kernel.org>
+From: Jarod Wilson <jarod@wilsonet.com>
+Subject: Re: Hauppauge "grey" remote not working in recent kernels
+Date: Wed, 2 Mar 2011 17:30:29 -0500
+To: Tony Houghton <h@realh.co.uk>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The ability to force the encoder or decoder chip was broken by commit
-0ab6e1c38d80ab586e3a1ca9e71844131d9f51dc in February 2009. As nobody
-complained for over 2 years, I take it that these parameters were no
-longer used so we can simply drop them.
+On Mar 2, 2011, at 3:46 PM, Tony Houghton wrote:
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
----
- Documentation/video4linux/Zoran        |    1 -
- drivers/media/video/zoran/zoran_card.c |    8 --------
- 2 files changed, 9 deletions(-)
+> On Wed, 2 Mar 2011 13:39:32 -0500
+> Jarod Wilson <jarod@wilsonet.com> wrote:
+> 
+>> On Mar 2, 2011, at 1:14 PM, Tony Houghton wrote:
+>> 
+>>> Since upgrading my kernel from 2.6.32 to 2.6.37 in Debian my DVB
+>>> remote control no longer works. The card is a Hauppauge Nova-T PCI
+>>> with the "grey" remote. It uses the saa7146, tda1004x, budget_ci
+>>> and budget_core modules (but it doesn't actually have a CI).
+>> 
+>> There's a pending patchset for ir-kbd-i2c and the hauppauge key tables
+>> that should get you back in working order.
+> 
+> OK, thanks. Is it possible to download the patch(es) and apply it to a
+> current kernel or is that a bit complicated?
 
---- linux-2.6.39-rc0.orig/Documentation/video4linux/Zoran	2011-03-23 10:34:22.000000000 +0100
-+++ linux-2.6.39-rc0/Documentation/video4linux/Zoran	2011-03-23 13:21:22.000000000 +0100
-@@ -130,7 +130,6 @@ Card number: 4
- 
- Note: No module for the mse3000 is available yet
- Note: No module for the vpx3224 is available yet
--Note: use encoder=X or decoder=X for non-default i2c chips
- 
- ===========================
- 
---- linux-2.6.39-rc0.orig/drivers/media/video/zoran/zoran_card.c	2011-03-21 17:46:15.000000000 +0100
-+++ linux-2.6.39-rc0/drivers/media/video/zoran/zoran_card.c	2011-03-23 13:21:22.000000000 +0100
-@@ -64,14 +64,6 @@ static int card[BUZ_MAX] = { [0 ... (BUZ
- module_param_array(card, int, NULL, 0444);
- MODULE_PARM_DESC(card, "Card type");
- 
--static int encoder[BUZ_MAX] = { [0 ... (BUZ_MAX-1)] = -1 };
--module_param_array(encoder, int, NULL, 0444);
--MODULE_PARM_DESC(encoder, "Video encoder chip");
--
--static int decoder[BUZ_MAX] = { [0 ... (BUZ_MAX-1)] = -1 };
--module_param_array(decoder, int, NULL, 0444);
--MODULE_PARM_DESC(decoder, "Video decoder chip");
--
- /*
-    The video mem address of the video card.
-    The driver has a little database for some videocards
+Not sure how doable it is, don't recall if they're dependent on other
+changes going into 2.6.38 or not. The patches are still in the
+linux-media patchwork db (I'm actually merging and testing them in my
+own tree tonight or tomorrow).
 
+https://patchwork.kernel.org/project/linux-media/list/
 
 -- 
-Jean Delvare
+Jarod Wilson
+jarod@wilsonet.com
+
+
+
