@@ -1,93 +1,97 @@
 Return-path: <mchehab@pedra>
-Received: from mail1-out1.atlantis.sk ([80.94.52.55]:40869 "EHLO
-	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753364Ab1C2T0G (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Mar 2011 15:26:06 -0400
-From: Ondrej Zary <linux@rainbow-software.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC PATCH 1/3] tea575x-tuner: various improvements
-Date: Tue, 29 Mar 2011 21:25:55 +0200
-Cc: "Takashi Iwai" <tiwai@suse.de>, jirislaby@gmail.com,
-	alsa-devel@alsa-project.org,
-	"Kernel development list" <linux-kernel@vger.kernel.org>,
-	linux-media@vger.kernel.org
-References: <201103121919.05657.linux@rainbow-software.org> <201103252240.16051.linux@rainbow-software.org> <201103261119.31897.hverkuil@xs4all.nl>
-In-Reply-To: <201103261119.31897.hverkuil@xs4all.nl>
+Received: from slow3-v.mail.gandi.net ([217.70.178.89]:48732 "EHLO
+	slow3-v.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752168Ab1CBReg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Mar 2011 12:34:36 -0500
+Received: from relay2-d.mail.gandi.net (relay2-d.mail.gandi.net [217.70.183.194])
+	by slow3-v.mail.gandi.net (Postfix) with ESMTP id E1D473853B
+	for <linux-media@vger.kernel.org>; Wed,  2 Mar 2011 18:34:34 +0100 (CET)
+From: =?iso-8859-1?Q?S=E9bastien_RAILLARD_=28COEXSI=29?= <sr@coexsi.fr>
+To: "'Ralph Metzler'" <rjkm@metzlerbros.de>,
+	"'Issa Gorissen'" <flop.m@usa.net>
+Cc: <linux-media@vger.kernel.org>
+References: <369PBbkEv0304S02.1298889107@web02.cms.usa.net> <19820.61059.315710.559958@morden.metzler>
+In-Reply-To: <19820.61059.315710.559958@morden.metzler>
+Subject: RE: Sony CXD2099AR support
+Date: Wed, 2 Mar 2011 18:33:42 +0100
+Message-ID: <009101cbd8ff$fa4d2150$eee763f0$@coexsi.fr>
 MIME-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201103292125.58561.linux@rainbow-software.org>
+Content-Language: fr
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Saturday 26 March 2011 11:19:31 Hans Verkuil wrote:
-> On Friday, March 25, 2011 22:40:12 Ondrej Zary wrote:
-> > On Tuesday 22 March 2011 20:02:30 Hans Verkuil wrote:
-> > > BTW, can you run the v4l2-compliance utility for the two boards that
-> > > use this radio tuner?
-> > >
-> > > This utility is part of the v4l-utils repository
-> > > (http://git.linuxtv.org/v4l-utils.git).
-> > >
-> > > Run as 'v4l2-compliance -r /dev/radioX -v2'.
-> > >
-> > > I'm sure there will be some errors/warnings (warnings regarding
-> > > G/S_PRIORITY are to be expected). But I can use it to make a patch for
-> > > 2.6.40 that fixes any issues.
-> >
-> > The output is the same for both fm801 and es1968 (see below). Seems that
-> > there are 4 errors:
-> >  1. multiple-open does not work
-> >  2. something bad with s_frequency
-> >  3. input functions are present
-> >  4. no extended controls
->
-> Thanks for testing! Some comments are below...
->
-> > Running on 2.6.38
-> >
-> > Driver Info:
-> > 	Driver name   : tea575x-tuner
-> > 	Card type     : TEA5757
-> > 	Bus info      : PCI
-> > 	Driver version: 0.0.2
-> > 	Capabilities  : 0x00050000
-> > 		Tuner
-> > 		Radio
-> >
-> > Compliance test for device /dev/radio0 (not using libv4l2):
-> >
-> > Required ioctls:
-> > 	test VIDIOC_QUERYCAP: OK
-> >
-> > Allow for multiple opens:
-> > 	test second radio open: FAIL
->
-> I will fix this. Once 2.6.39-rc1 is released I can make a patch fixing
-> this.
->
-> > Debug ioctls:
-> > 	test VIDIOC_DBG_G_CHIP_IDENT: Not Supported
-> > 	test VIDIOC_DBG_G/S_REGISTER: Not Supported
-> > 	test VIDIOC_LOG_STATUS: Not Supported
-> >
-> > Input ioctls:
-> > 	test VIDIOC_G/S_TUNER: OK
-> > 		fail: set rangehigh+1 frequency did not return EINVAL
-> > 	test VIDIOC_G/S_FREQUENCY: FAIL
->
-> Hmm, S_FREQUENCY apparently fails to check for valid frequency values.
-> Can you take a quick look at the code?
 
-The driver code is OK. But there is a bug in v4l2-test-input-output.cpp at 
-line 214:
-if (ret)
-	return fail("set rangehigh+1 frequency did not return EINVAL\n");
 
-There should be "if (ret != EINVAL)" instead of "if (ret)".
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Ralph Metzler
+> Sent: mardi 1 mars 2011 14:03
+> To: Issa Gorissen
+> Cc: linux-media@vger.kernel.org
+> Subject: Sony CXD2099AR support
+> 
+> Issa Gorissen writes:
+>  > I have read that this CI chip driver is in staging because some
+> questions on  > how to handle it are still not answered.
+>  >
+>  > I volunteer to handle this one. I'm a regular java developer, but I'm
+> willing  > to put effort in learning linux drivers writing.
+>  >
+>  > So Ralph, can you give me some pointers on where the discussion
+> should resume  > ?
+>  >
+> 
+> AFAIR, the only problem was that the old "sec"-Device name was abused. I
+> do not see a problem in just adding a "cam" or whatever device in dvb-
+> core and use that.
+> Or just rename "sec" since it is no longer used.
+> 
+> Regarding the interface I think it should just remain being like a pipe.
+> Using the dvr and demux devices for this just adds overhead.
+> 
 
--- 
-Ondrej Zary
+Dear all,
+
+I'm looking for a while the work done on the nGene driver and especially the
+CI driver.
+For sure, this new kind of card add a lot of flexibility as the CI is
+completely independent.
+
+I wondering if a parameter can be added to the driver in order to make the
+card working like a classic one:
+
+- Having the tuner#1 working with the CAM the classic way:
+
+  * Keep the frontend0 device as it is for controlling the tuning parameters
+
+  * Create the ca0 and sec0 devices attached to the CI like it is done now
+
+  * Send the full TS stream from the demodulator unfiltered to the CI
+interface (CAM usually need full TS stream for working correctly - The Multi
+Transponder Decrypt advertised has a risky future with all the new
+protections planed for smartcard and CAM). Is this can be done directly in
+the APB7202 chip or all data has first to be retrieved by the kernel before
+being send back to the CI trough sec0?
+
+  * Create the dvr0 and demux0 devices for the sec0 output
+
+- Having the tuner#2 working without the CAM, with its demux1, dvr1,
+frontend1 devices
+
+It may help to keep compatibility with existent DVB applications.
+What do you think?
+
+Best regards,
+Sebastien.
+
+> 
+> -Ralph
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media"
+> in the body of a message to majordomo@vger.kernel.org More majordomo
+> info at  http://vger.kernel.org/majordomo-info.html
+
