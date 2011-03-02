@@ -1,64 +1,40 @@
 Return-path: <mchehab@pedra>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:48461 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755863Ab1CNMrv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Mar 2011 08:47:51 -0400
-Date: Mon, 14 Mar 2011 12:46:52 +0000
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: KyongHo Cho <pullip.cho@samsung.com>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	k.debski@samsung.com, linux-samsung-soc@vger.kernel.org,
-	=?utf-8?B?6rCV66+86rec?= <mk7.kang@samsung.com>,
-	linux-kernel@vger.kernel.org,
-	=?utf-8?B?64yA7J246riw?= <inki.dae@samsung.com>,
-	kyungmin.park@samsung.com, kgene.kim@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/7] ARM: Samsung: update/rewrite Samsung SYSMMU
-	(IOMMU) driver
-Message-ID: <20110314124652.GF26085@n2100.arm.linux.org.uk>
-References: <1299229274-9753-4-git-send-email-m.szyprowski@samsung.com> <201103111615.01829.arnd@arndb.de> <000201cbe002$768d9de0$63a8d9a0$%szyprowski@samsung.com> <201103111700.17373.arnd@arndb.de> <AANLkTimagS1vBXEYjXQDx=OGhTRm=n0yO4n+kHTAqBOz@mail.gmail.com>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:41807 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756534Ab1CBKJo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Mar 2011 05:09:44 -0500
+Received: by bwz15 with SMTP id 15so6895bwz.19
+        for <linux-media@vger.kernel.org>; Wed, 02 Mar 2011 02:09:43 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <AANLkTimagS1vBXEYjXQDx=OGhTRm=n0yO4n+kHTAqBOz@mail.gmail.com>
+Date: Wed, 2 Mar 2011 11:09:43 +0100
+Message-ID: <AANLkTin7TdZ5_1TERmZ6ZHzNirHKc_KkxLDpPeruRAAg@mail.gmail.com>
+Subject: Remote controller AsusU3100Mini plus
+From: Michal Bojda <rexearth.mbojda@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, Mar 14, 2011 at 09:37:51PM +0900, KyongHo Cho wrote:
-> I have also noticed that dma_map_single/page/sg() can map physical
-> memory into an arbitrary device address region.
-> But it is not enough solution for various kinds of IOMMUs.
-> As Kukjin Kim addressed, we need to support larger page size than 4KB
-> because we can reduce TLB miss when we have larger page size.
-> 
-> Our IOMMU(system mmu) supports all page size of ARM architecture
-> including 16MB, 1MB, 64KB and 4KB.
-> Since the largest size supported by buddy system of 32-bit architecture is 4MB,
-> our system support all page sizes except 16MB.
-> We proved that larger page size is helpful for DMA performance
-> significantly (more than 10%, approximately).
-> Big page size is not a problem for peripheral devices
-> because their address space is not suffer from external fragmentation.
+Hello there,
 
-1. dma_map_single() et.al. is used for mapping *system* *RAM* for devices
-   using whatever is necessary.  It must not be used for trying to setup
-   arbitary other mappings.
+I am trying figure how to make this remote controller working. I tried
+LIRC, but on the website isnt this card in supported controllers.
+After apt-getting lirc and depencies. controller isnt reacting. At
+least how he should be. If I open terminal, and trying to push
+buttons, my PC starts to make interesting sounds :) And after that,
+even my keaboard isnt working how it is supposed to. So I dont think
+this is the right way. Maybe some kind of reprogramming? Or someone
+got config file for it ?
 
-2. It doesn't matter where the memory for dma_map_single() et.al. comes
-   from provided the virtual address is a valid system RAM address or
-   the struct page * is a valid struct page in the memory map (iow, you
-   can't create this yourself.)
+I will be glad for any help, posting image found on google. I know its
+not DVB-T card I am writing, but controller looks same. Just for
+imagination.
 
-3. In the case of an IOMMU, the DMA API does not limit you to only using
-   4K pages to setup the IOMMU mappings.  You can use whatever you like
-   provided the hardware can cope with it.  You can coalesce several
-   existing entries together provided you track what you're doing and can
-   undo what's been done when the mapping is no longer required.
+I thanks once more for any reply.
 
-So really there's no reason not to use 64K, 1M and 16M IOMMU entries if
-that's the size of buffer which has been passed to the DMA API.
+Best regards M. Bojda
+
+http://www.waroengkom.com/product/TV%20TUNER%20MYC-U3000%20HYBRID.png
+
+-- 
+Those who watches their backs, meet death from the front.
