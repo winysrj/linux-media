@@ -1,73 +1,113 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:40807 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758699Ab1CCVTn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2011 16:19:43 -0500
-Received: by qyg14 with SMTP id 14so1430893qyg.19
-        for <linux-media@vger.kernel.org>; Thu, 03 Mar 2011 13:19:43 -0800 (PST)
-References: <20110302181404.6406a3d2@realh.co.uk> <3A464BCE-1E30-48D3-B275-99815E1A8983@wilsonet.com> <20110302204610.464785f5@toddler> <CC82695C-F23E-4569-AAF8-091372D2FFE9@wilsonet.com> <20110303174055.553a8791@realh.co.uk>
-In-Reply-To: <20110303174055.553a8791@realh.co.uk>
-Mime-Version: 1.0 (Apple Message framework v1082)
-Content-Type: text/plain; charset=us-ascii
-Message-Id: <95E7EC17-4C7C-45E2-A37E-1A2FA0D0EFBC@wilsonet.com>
-Content-Transfer-Encoding: 8BIT
-Cc: <linux-media@vger.kernel.org>
-From: Jarod Wilson <jarod@wilsonet.com>
-Subject: Re: Hauppauge "grey" remote not working in recent kernels
-Date: Thu, 3 Mar 2011 16:19:54 -0500
-To: Tony Houghton <h@realh.co.uk>
+Received: from mailout4.samsung.com ([203.254.224.34]:54022 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750695Ab1CCHJw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2011 02:09:52 -0500
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Received: from epmmp2 (mailout4.samsung.com [203.254.224.34])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LHG00DZOZWEN270@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 03 Mar 2011 16:09:50 +0900 (KST)
+Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
+ by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LHG003DRZWEFI@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 03 Mar 2011 16:09:50 +0900 (KST)
+Date: Thu, 03 Mar 2011 16:09:50 +0900
+From: "Kim, HeungJun" <riverful.kim@samsung.com>
+Subject: Re: [RFC] snapshot mode, flash capabilities and control
+In-reply-to: <Pine.LNX.4.64.1102240947230.15756@axis700.grange>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Reply-to: riverful.kim@samsung.com
+Message-id: <4D6F3EBE.6070404@samsung.com>
+Content-transfer-encoding: 8BIT
+References: <Pine.LNX.4.64.1102240947230.15756@axis700.grange>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mar 3, 2011, at 12:40 PM, Tony Houghton wrote:
+Hi Guennadi,
 
-> On Wed, 2 Mar 2011 17:30:29 -0500
-> Jarod Wilson <jarod@wilsonet.com> wrote:
+I have another question about capture, not related with exact this topic.
+
+Dose the sensor which you use make EXIF information in itself while capturing??
+
+If it is right, how to deliver EXIF information from v4l2(subdev or media driver)
+to userapplication?
+
+Regards,
+Heungjun Kim
+
+
+
+2011-02-24 오후 9:18, Guennadi Liakhovetski 쓴 글:
+> Agenda.
+> =======
 > 
->> On Mar 2, 2011, at 3:46 PM, Tony Houghton wrote:
->> 
->>> On Wed, 2 Mar 2011 13:39:32 -0500
->>> Jarod Wilson <jarod@wilsonet.com> wrote:
->>> 
->>>> There's a pending patchset for ir-kbd-i2c and the hauppauge key tables
->>>> that should get you back in working order.
->>> 
->>> OK, thanks. Is it possible to download the patch(es) and apply it to a
->>> current kernel or is that a bit complicated?
->> 
->> Not sure how doable it is, don't recall if they're dependent on other
->> changes going into 2.6.38 or not. The patches are still in the
->> linux-media patchwork db (I'm actually merging and testing them in my
->> own tree tonight or tomorrow).
->> 
->> https://patchwork.kernel.org/project/linux-media/list/
+> In a recent RFC [1] I proposed V4L2 API extensions to support fast switching
+> between multiple capture modes or data formats. However, this is not sufficient
+> to efficiently leverage snapshot capabilities of existing hardware - sensors and
+> SoCs, and to satisfy user-space needs, a few more functions have to be
+> implemented.
 > 
-> Thanks. I think I'll have to leave it to the experts. I tried applying
-> all the patches from Mauro Carvalho Chehab's set of 13, using the guide
-> at <http://wiki.debian.org/HowToRebuildAnOfficialDebianKernelPackage>
-> but the guide is slightly out of date and I'm not sure if I even got the
-> patches applied. If they did apply they din't work :-(.
+> Snapshot and strobe / flash capabilities vary significantly between sensors.
+> Some of them only capture a single image upon trigger activation, some can
+> capture several images, readout and exposure capabilities vary too. Not all
+> sensors support a strobe signal, and those, that support it, also offer very
+> different options to select strobe beginning and duration. This proposal is
+> trying to select a minimum API, that can be reasonably supported by many
+> systems and provide a reasonable functionality set to the user.
 > 
-> On top of that the patches won't apply to 2.6.37 and there doesn't seem
-> to be a way to build a linux-kbuild deb for pre-release kernels, so I
-> can't easily build an nvidia module and nouveau fails to get the correct
-> resolutions on the target system :-(.
-
-
-Another option:
-
-You could build just the latest v4l/dvb drivers with those patch added,
-atop your running kernel, using the media_build system.
-
-http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
-
-Also, note that there's actually a patch 14 also (there are two patches
-in patchwork with the same 13/13 title, but one is a follow-on 14th
-patch that you'd also need).
-
--- 
-Jarod Wilson
-jarod@wilsonet.com
-
-
+> Proposed implementation.
+> ========================
+> 
+> 1. Switch the interface into the snapshot mode. This is required in addition to
+> simply configuring the interface with a different format to activate hardware-
+> specific support for triggered single image capture. It is proposed to use the
+> VIDIOC_S_PARM ioctl() with a new V4L2_MODE_SNAPSHOT value for the
+> struct v4l2_captureparm::capturemode and ::capability fields. Further
+> hardware-specific details can be passed in ::extendedmode, ::readbuffers can be
+> used to specify the exact number of frames to be captured. Similarly,
+> VIDIOC_G_PARM shall return supported and current capture modes.
+> 
+> Many sensors provide the ability to trigger snapshot capture either from an
+> external source or from a control register. Usually, however, there is no
+> possibility to select the trigger source, either of them can be used at any
+> time.
+> 
+> 2. Specify a flash mode. Define new capture capabilities to be used with
+> struct v4l2_captureparm::capturemode:
+> 
+> V4L2_MODE_FLASH_SYNC	/* synchronise flash with image capture */
+> V4L2_MODE_FLASH_ON	/* turn on - "torch-mode" */
+> V4L2_MODE_FLASH_OFF	/* turn off */
+> 
+> Obviously, the above synchronous operation does not exactly define beginning and
+> duration of the strobe signal. It is proposed to leave the specific flash timing
+> configuration to the driver itself and, possibly, to driver-specific extended
+> mode flags.
+> 
+> 3. Add a sensor-subdev operation
+> 
+> 	int (*snapshot_trigger)(struct v4l2_subdev *sd)
+> 
+> to start capturing the next frame in the snapshot mode.
+> 
+> References.
+> ===========
+> 
+> [1] http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/29357
+> 
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
