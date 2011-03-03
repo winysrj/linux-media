@@ -1,74 +1,72 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:38995 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754031Ab1CDJSX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2011 04:18:23 -0500
-Received: by qwd7 with SMTP id 7so1515893qwd.19
-        for <linux-media@vger.kernel.org>; Fri, 04 Mar 2011 01:18:22 -0800 (PST)
+Received: from relay1-d.mail.gandi.net ([217.70.183.193]:49615 "EHLO
+	relay1-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754035Ab1CCQL2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2011 11:11:28 -0500
+Received: from mfilter8-d.gandi.net (mfilter8-d.gandi.net [217.70.178.34])
+	by relay1-d.mail.gandi.net (Postfix) with ESMTP id F18812552F9
+	for <linux-media@vger.kernel.org>; Thu,  3 Mar 2011 17:11:26 +0100 (CET)
+Received: from relay1-d.mail.gandi.net ([217.70.183.193])
+	by mfilter8-d.gandi.net (mfilter8-d.gandi.net [217.70.178.34]) (amavisd-new, port 10024)
+	with ESMTP id bJK37jOQMCHA for <linux-media@vger.kernel.org>;
+	Thu,  3 Mar 2011 17:11:25 +0100 (CET)
+Received: from WIN7PC (ALyon-157-1-213-100.w109-213.abo.wanadoo.fr [109.213.188.100])
+	(Authenticated sender: sr@coexsi.fr)
+	by relay1-d.mail.gandi.net (Postfix) with ESMTPSA id 794942552FD
+	for <linux-media@vger.kernel.org>; Thu,  3 Mar 2011 17:11:25 +0100 (CET)
+From: =?iso-8859-1?Q?S=E9bastien_RAILLARD_=28COEXSI=29?= <sr@coexsi.fr>
+To: "'Linux Media Mailing List'" <linux-media@vger.kernel.org>
+References: <009f01cbd770$50208a90$f0619fb0$@coexsi.fr>
+In-Reply-To: <009f01cbd770$50208a90$f0619fb0$@coexsi.fr>
+Subject: RE: [PATCH] DVB : add option to dump PDU exchanged with CAM in dvb_core
+Date: Thu, 3 Mar 2011 17:11:29 +0100
+Message-ID: <008101cbd9bd$a8380100$f8a80300$@coexsi.fr>
 MIME-Version: 1.0
-In-Reply-To: <AANLkTim3=qq_NHzxOKEQzi21MPmhDdYvHNxpHDHr4O96@mail.gmail.com>
-References: <ADF13DA15EB3FE4FBA487CCC7BEFDF36190F532AED@bssrvexch01>
-	<000001cbd7fd$1868a500$4939ef00$%szyprowski@samsung.com>
-	<000001cbd825$1954f9a0$4bfeece0$%szyprowski@samsung.com>
-	<AANLkTim3=qq_NHzxOKEQzi21MPmhDdYvHNxpHDHr4O96@mail.gmail.com>
-Date: Fri, 4 Mar 2011 10:18:21 +0100
-Message-ID: <AANLkTi=7ehCPRJZQLt8YhteQCJDqKhWmQXiV3yf2Tm+O@mail.gmail.com>
-Subject: Re: V4L2 'brainstorming' meeting in Warsaw, March 2011
-From: Robert Fekete <robert.fekete@linaro.org>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-media@vger.kernel.org, willy.poisson@stericsson.com
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: 8BIT
+Content-Language: fr
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
- Hi,
 
- I would gladly join this meeting but unfortunately I cannot attend. On the
- other hand I am glad to present that Willy Poisson from ST-Ericsson can
- join. Willy will mainly focus on Camera/imaging parts in which we believe
- V4L2 may fit very well.
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Sébastien RAILLARD (COEXSI)
+> Sent: lundi 28 février 2011 18:53
+> To: Linux Media Mailing List
+> Subject: [PATCH] DVB : add option to dump PDU exchanged with CAM in
+> dvb_core
+> 
+> Dear all,
+> 
+> Here is a patch for the dvb_core module, you'll find it attached to this
+> message.
+> 
+> It's adding a new module integer parameter called "cam_dump_pdu" that
+> can have the following values:
+> - 0 (by default): don't dump PDU (do nothing)
+> - 1: Dump all PDU written and read on device through the syscall
+> functions.
+> The PDU are dumped in segments of 16 bytes maximum written in
+> hexadecimal.
+> - 2: like value 1 but remove the commonly used PDU for polling
+> (generating a lot of "noise" in the logs)
+> 
+> The goal of dumping PDU exchanged with CAM is to help debugging userland
+> applications and libraries.
 
+I have to add that the PDU dumped are the "TPDU" (Transport Protocol Data
+Units), the 2nd level of the stack.
+The first level of PDU, the "LPDU" (Link Protocol Data Unit) fragments, are
+reassembled by the dvb_core module and are not exposed to the applications.
 
- Some comments:
+Anyone interested by this option?
 
- Regarding OGL/ES in V4L2 I do not quite get the connection. As long as there
- is a common system memory handle...like hwmem any buffer dequeued from a
- camera or video decoder automatically slips into GLES...right. Of course the
- GL hw driver must also be aware of hwmem and accept the bufferformat used.
+> 
+> This is my first patch submission, so I may have made some errors
+> regarding the submission rules.
+> 
+> Best regards,
+> Sebastien.
 
- Regarding HDMI API: We have some thoughts here as well...I'll get back to
- you.
-
- Regarding Buffer Pool: As you already know hwmem is one proposal but we are
- moving more towards GEM(since it's there already) with hwmem style though
- with CMA at the bottom....I'll get back to you on this matter as well.
-
- Have a nice meeting in Warsaw!
-
- BR
- /Robert Fekete
- (robert.fekete@stericsson.com)
-
-
-> On 1 March 2011 16:26, Marek Szyprowski <m.szyprowski@samsung.com> wrote:
->>
->> Hello once more,
->>
->> After some discussion on #v4l irc channel, I would like to inform that the
->> meeting
->> date has been fixed to my initial proposition: 3 days from 16 to 18 March
->> 2011.
->>
->> Best regards
->> --
->> Marek Szyprowski
->> Samsung Poland R&D Center
->>
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
