@@ -1,90 +1,105 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.9]:58669 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753134Ab1CUKrM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Mar 2011 06:47:12 -0400
-Date: Mon, 21 Mar 2011 11:47:09 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Pawel Osciak <pawel@osciak.com>
-cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	hverkuil@xs4all.nl
-Subject: Re: [PATCH 2/2] [media] videobuf2-dma-contig: make cookie() return
- a pointer to dma_addr_t
-In-Reply-To: <1300109904-3991-2-git-send-email-pawel@osciak.com>
-Message-ID: <Pine.LNX.4.64.1103211139560.21013@axis700.grange>
-References: <1300109904-3991-1-git-send-email-pawel@osciak.com>
- <1300109904-3991-2-git-send-email-pawel@osciak.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mailout4.samsung.com ([203.254.224.34]:48596 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757736Ab1CCCQ6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Mar 2011 21:16:58 -0500
+Received: from epmmp1 (mailout4.samsung.com [203.254.224.34])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LHG002XJMBMWC50@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 03 Mar 2011 11:16:34 +0900 (KST)
+Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
+ by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LHG000ZUMBMH5@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 03 Mar 2011 11:16:34 +0900 (KST)
+Date: Thu, 03 Mar 2011 11:16:34 +0900
+From: "Kim, HeungJun" <riverful.kim@samsung.com>
+Subject: [RFC PATCH RESEND v2 3/3] v4l2-ctrls: document the changes about auto
+ focus mode
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"???/Mobile S/W Platform Lab(DMC?)/E4(??)/????"
+	<sw0312.kim@samsung.com>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
+Reply-to: riverful.kim@samsung.com
+Message-id: <4D6EFA02.4080105@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, 14 Mar 2011, Pawel Osciak wrote:
+Document about the type changes and the enumeration of the auto focus control.
 
-> dma_addr_t may not fit into void* on some architectures. To be safe, make
-> vb2_dma_contig_cookie() return a pointer to dma_addr_t and dereference it
-> in vb2_dma_contig_plane_paddr() back to dma_addr_t.
-> 
-> Signed-off-by: Pawel Osciak <pawel@osciak.com>
-> Reported-by: Hans Verkuil <hverkuil@xs4all.nl>
-
-Right, it is correct, that this patch is submitted as "2/2" with 
-"sh_mobile_ceu_camera: Do not call vb2's mem_ops directly" being "1/2." 
-The only slight difficulty is, that this patch should go directly to 
-Mauro or via some vb2 tree, if one exists, whereas "1/2" I would normally 
-take via my tree. Hence the question: should I take them both via my tree, 
-or should I only take "1/2" and we take care to merge this one after it? 
-Assuming, there are no objections against this one.
-
-Thanks
-Guennadi
-
-> ---
->  drivers/media/video/videobuf2-dma-contig.c |    2 +-
->  include/media/videobuf2-dma-contig.h       |    9 ++++++---
->  2 files changed, 7 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
-> index 90495b7..58205d5 100644
-> --- a/drivers/media/video/videobuf2-dma-contig.c
-> +++ b/drivers/media/video/videobuf2-dma-contig.c
-> @@ -78,7 +78,7 @@ static void *vb2_dma_contig_cookie(void *buf_priv)
->  {
->  	struct vb2_dc_buf *buf = buf_priv;
->  
-> -	return (void *)buf->paddr;
-> +	return &buf->paddr;
->  }
->  
->  static void *vb2_dma_contig_vaddr(void *buf_priv)
-> diff --git a/include/media/videobuf2-dma-contig.h b/include/media/videobuf2-dma-contig.h
-> index 1d6188d..7e6c68b 100644
-> --- a/include/media/videobuf2-dma-contig.h
-> +++ b/include/media/videobuf2-dma-contig.h
-> @@ -14,11 +14,14 @@
->  #define _MEDIA_VIDEOBUF2_DMA_COHERENT_H
->  
->  #include <media/videobuf2-core.h>
-> +#include <linux/dma-mapping.h>
->  
-> -static inline unsigned long vb2_dma_contig_plane_paddr(
-> -		struct vb2_buffer *vb, unsigned int plane_no)
-> +static inline dma_addr_t
-> +vb2_dma_contig_plane_paddr(struct vb2_buffer *vb, unsigned int plane_no)
->  {
-> -	return (unsigned long)vb2_plane_cookie(vb, plane_no);
-> +	dma_addr_t *paddr = vb2_plane_cookie(vb, plane_no);
-> +
-> +	return *paddr;
->  }
->  
->  void *vb2_dma_contig_init_ctx(struct device *dev);
-> -- 
-> 1.7.4.1
-> 
-
+Signed-off-by: Heungjun Kim <riverful.kim@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ Documentation/DocBook/v4l/controls.xml    |   31 +++++++++++++++++++++++++---
+ Documentation/DocBook/v4l/videodev2.h.xml |    6 +++++
+ 2 files changed, 33 insertions(+), 4 deletions(-)
+
+diff --git a/Documentation/DocBook/v4l/controls.xml b/Documentation/DocBook/v4l/controls.xml
+index 2fae3e8..889fa84 100644
+--- a/Documentation/DocBook/v4l/controls.xml
++++ b/Documentation/DocBook/v4l/controls.xml
+@@ -1801,12 +1801,35 @@ negative values towards infinity. This is a write-only control.</entry>
+ 	  </row>
+ 	  <row><entry></entry></row>
+ 
+-	  <row>
++	  <row id="v4l2-focus-auto-type">
+ 	    <entry spanname="id"><constant>V4L2_CID_FOCUS_AUTO</constant>&nbsp;</entry>
+-	    <entry>boolean</entry>
++	    <entry>enum&nbsp;v4l2_focus_auto_type</entry>
+ 	  </row><row><entry spanname="descr">Enables automatic focus
+-adjustments. The effect of manual focus adjustments while this feature
+-is enabled is undefined, drivers should ignore such requests.</entry>
++adjustments of the normal or macro or continuous(CAF) mode. The effect of
++manual focus adjustments while this feature is enabled is undefined,
++drivers should ignore such requests. Possible values are:</entry>
++	  </row>
++	  <row>
++	    <entrytbl spanname="descr" cols="2">
++	      <tbody valign="top">
++		<row>
++		  <entry><constant>V4L2_FOCUS_MANUAL</constant>&nbsp;</entry>
++		  <entry>Manual focus mode.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_FOCUS_AUTO</constant>&nbsp;</entry>
++		  <entry>Auto focus mode with normal operation.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_FOCUS_MACRO</constant>&nbsp;</entry>
++		  <entry>Auto focus mode with macro operation.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_FOCUS_CONTINUOUS</constant>&nbsp;</entry>
++		  <entry>Auto focus mode with continuous(CAF) operation.</entry>
++		</row>
++	      </tbody>
++	    </entrytbl>
+ 	  </row>
+ 	  <row><entry></entry></row>
+ 
+diff --git a/Documentation/DocBook/v4l/videodev2.h.xml b/Documentation/DocBook/v4l/videodev2.h.xml
+index 325b23b..ccf6c2b 100644
+--- a/Documentation/DocBook/v4l/videodev2.h.xml
++++ b/Documentation/DocBook/v4l/videodev2.h.xml
+@@ -1291,6 +1291,12 @@ enum  <link linkend="v4l2-exposure-auto-type">v4l2_exposure_auto_type</link> {
+ #define V4L2_CID_FOCUS_ABSOLUTE                 (V4L2_CID_CAMERA_CLASS_BASE+10)
+ #define V4L2_CID_FOCUS_RELATIVE                 (V4L2_CID_CAMERA_CLASS_BASE+11)
+ #define V4L2_CID_FOCUS_AUTO                     (V4L2_CID_CAMERA_CLASS_BASE+12)
++enum  <link linkend="v4l2-focus-auto-type">v4l2_exposure_auto_type</link> {
++	V4L2_FOCUS_MANUAL = 0,
++	V4L2_FOCUS_AUTO = 1,
++	V4L2_FOCUS_MACRO = 2,
++	V4L2_FOCUS_CONTINUOUS = 3
++};
+ 
+ #define V4L2_CID_ZOOM_ABSOLUTE                  (V4L2_CID_CAMERA_CLASS_BASE+13)
+ #define V4L2_CID_ZOOM_RELATIVE                  (V4L2_CID_CAMERA_CLASS_BASE+14)
+-- 
+1.7.0.4
