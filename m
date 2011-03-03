@@ -1,94 +1,73 @@
 Return-path: <mchehab@pedra>
-Received: from ns.mm-sol.com ([213.240.235.226]:54247 "EHLO extserv.mm-sol.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751927Ab1CJNrY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Mar 2011 08:47:24 -0500
-Message-ID: <4D78D634.70901@mm-sol.com>
-Date: Thu, 10 Mar 2011 15:46:28 +0200
-From: Yordan Kamenov <ykamenov@mm-sol.com>
-MIME-Version: 1.0
-To: hdegoede@redhat.com
-CC: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-Subject: Re: [PATCH 0/1 v3] libv4l: Add plugin support
-References: <cover.1297680043.git.ykamenov@mm-sol.com>
-In-Reply-To: <cover.1297680043.git.ykamenov@mm-sol.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:40807 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758699Ab1CCVTn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2011 16:19:43 -0500
+Received: by qyg14 with SMTP id 14so1430893qyg.19
+        for <linux-media@vger.kernel.org>; Thu, 03 Mar 2011 13:19:43 -0800 (PST)
+References: <20110302181404.6406a3d2@realh.co.uk> <3A464BCE-1E30-48D3-B275-99815E1A8983@wilsonet.com> <20110302204610.464785f5@toddler> <CC82695C-F23E-4569-AAF8-091372D2FFE9@wilsonet.com> <20110303174055.553a8791@realh.co.uk>
+In-Reply-To: <20110303174055.553a8791@realh.co.uk>
+Mime-Version: 1.0 (Apple Message framework v1082)
+Content-Type: text/plain; charset=us-ascii
+Message-Id: <95E7EC17-4C7C-45E2-A37E-1A2FA0D0EFBC@wilsonet.com>
+Content-Transfer-Encoding: 8BIT
+Cc: <linux-media@vger.kernel.org>
+From: Jarod Wilson <jarod@wilsonet.com>
+Subject: Re: Hauppauge "grey" remote not working in recent kernels
+Date: Thu, 3 Mar 2011 16:19:54 -0500
+To: Tony Houghton <h@realh.co.uk>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Hans,
+On Mar 3, 2011, at 12:40 PM, Tony Houghton wrote:
 
-any comments on that?
+> On Wed, 2 Mar 2011 17:30:29 -0500
+> Jarod Wilson <jarod@wilsonet.com> wrote:
+> 
+>> On Mar 2, 2011, at 3:46 PM, Tony Houghton wrote:
+>> 
+>>> On Wed, 2 Mar 2011 13:39:32 -0500
+>>> Jarod Wilson <jarod@wilsonet.com> wrote:
+>>> 
+>>>> There's a pending patchset for ir-kbd-i2c and the hauppauge key tables
+>>>> that should get you back in working order.
+>>> 
+>>> OK, thanks. Is it possible to download the patch(es) and apply it to a
+>>> current kernel or is that a bit complicated?
+>> 
+>> Not sure how doable it is, don't recall if they're dependent on other
+>> changes going into 2.6.38 or not. The patches are still in the
+>> linux-media patchwork db (I'm actually merging and testing them in my
+>> own tree tonight or tomorrow).
+>> 
+>> https://patchwork.kernel.org/project/linux-media/list/
+> 
+> Thanks. I think I'll have to leave it to the experts. I tried applying
+> all the patches from Mauro Carvalho Chehab's set of 13, using the guide
+> at <http://wiki.debian.org/HowToRebuildAnOfficialDebianKernelPackage>
+> but the guide is slightly out of date and I'm not sure if I even got the
+> patches applied. If they did apply they din't work :-(.
+> 
+> On top of that the patches won't apply to 2.6.37 and there doesn't seem
+> to be a way to build a linux-kbuild deb for pre-release kernels, so I
+> can't easily build an nvidia module and nouveau fails to get the correct
+> resolutions on the target system :-(.
 
-Regards
-Yordan
+
+Another option:
+
+You could build just the latest v4l/dvb drivers with those patch added,
+atop your running kernel, using the media_build system.
+
+http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
+
+Also, note that there's actually a patch 14 also (there are two patches
+in patchwork with the same 13/13 title, but one is a follow-on 14th
+patch that you'd also need).
+
+-- 
+Jarod Wilson
+jarod@wilsonet.com
 
 
-
-Yordan Kamenov wrote:
-> Hi Hans,
->
-> here is third version of plugin support for libv4l2.
->
-> Changes in v3:
->
-> * Pass opened fd to the plugin instead of filename
-> * Plugin private data is returned by init call and is passed as argument
->   in ioctl/read/close (remove libv4l2_set/get_plugindata functions)
-> * Plugin do not handle mmap/munmap
->
->
->
-> --------------------------------------------------------------------------
-> Changes in v2:
->
-> * Remove calls of v4l2_plugin_foo functions in the beginning of coresponding
->   v4l2_foo functions and instead replace SYS_FOO calls.
-> * Add to v4l2_dev_info device operation structure which can hold plugin
->   callbacks or dyrect syscall(SYS_foo, ...) calls.
-> * Under libv4lconvert also replace SYS_FOO cals with device operations. This
->   required also to add dev_ops field to v4lconvert_data and v4lcontrol_data.
->
-> ---------------------------------------------------------------------------
-> v1:
->
-> Here is initial version of plugin support for libv4l, based on your RFC.
->
-> It is provided by functions v4l2_plugin_[open,close,etc]. When open() is
-> called libv4l dlopens files in /usr/lib/libv4l/plugins 1 at a time and call
-> open() callback passing through the applications parameters unmodified.
-> If a plugin is relevant for the specified device node, it can indicate so by
-> returning a value other then -1 (the actual file descriptor).
->
-> As soon as a plugin returns another value then -1 plugin loading stops and
-> information about it (fd and corresponding library handle) is stored.
-> For each function v4l2_[ioctl,read,close,etc] is called corresponding
-> v4l2_plugin_* function which looks if there is loaded plugin for that file
-> and call it's callbacks. v4l2_plugin_* functions indicate by their first
-> argument if plugin was used, and if it was not then v4l2_* functions proceed
-> with their usual behavior.
->
->
-> Yordan Kamenov (1):
->   libv4l: Add plugin support to libv4l
->
->  lib/include/libv4l2-plugin.h                   |   36 ++++++
->  lib/include/libv4lconvert.h                    |    5 +-
->  lib/libv4l2/Makefile                           |    4 +-
->  lib/libv4l2/libv4l2-priv.h                     |   10 ++
->  lib/libv4l2/libv4l2.c                          |   90 ++++++++++----
->  lib/libv4l2/v4l2-plugin.c                      |  160 ++++++++++++++++++++++++
->  lib/libv4l2/v4l2convert.c                      |    9 --
->  lib/libv4lconvert/control/libv4lcontrol-priv.h |    4 +
->  lib/libv4lconvert/control/libv4lcontrol.c      |   35 ++++--
->  lib/libv4lconvert/control/libv4lcontrol.h      |    5 +-
->  lib/libv4lconvert/libv4lconvert-priv.h         |    2 +
->  lib/libv4lconvert/libv4lconvert.c              |   34 ++++--
->  12 files changed, 333 insertions(+), 61 deletions(-)
->  create mode 100644 lib/include/libv4l2-plugin.h
->  create mode 100644 lib/libv4l2/v4l2-plugin.c
->
->   
 
