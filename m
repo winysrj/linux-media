@@ -1,113 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52930 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58472 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754812Ab1C3Ny1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Mar 2011 09:54:27 -0400
+	with ESMTP id S1751731Ab1CCKPn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2011 05:15:43 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: [RFC] V4L2 API for flash devices
-Date: Wed, 30 Mar 2011 15:54:46 +0200
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Nayden Kanchev <nkanchev@mm-sol.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Cohen David Abraham <david.cohen@nokia.com>
-References: <4D90854C.2000802@maxwell.research.nokia.com> <201103301134.14798.laurent.pinchart@ideasonboard.com> <4D930E92.70302@maxwell.research.nokia.com>
-In-Reply-To: <4D930E92.70302@maxwell.research.nokia.com>
+To: "W.P." <laurentp@wp.pl>
+Subject: Re: Big ptoblem with small webcam
+Date: Thu, 3 Mar 2011 11:15:56 +0100
+Cc: linux-media@vger.kernel.org
+References: <4D6E68D1.6050209@wp.pl>
+In-Reply-To: <4D6E68D1.6050209@wp.pl>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201103301554.47092.laurent.pinchart@ideasonboard.com>
+Message-Id: <201103031115.56619.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wednesday 30 March 2011 13:05:54 Sakari Ailus wrote:
-> Laurent Pinchart wrote:
-> > Hi Sakari,
+On Wednesday 02 March 2011 16:57:05 W.P. wrote:
+> Hi there,
+> I just got an Creative VGA (640x480) USB Live Webcam, VF0520.
 > 
-> Hi Laurent,
-> 
-> Thanks for the comments!
-> 
-> > On Monday 28 March 2011 14:55:40 Sakari Ailus wrote:
-> > 
-> > [snip]
-> > 
-> >> 	V4L2_CID_FLASH_STROBE_MODE (menu; LED)
-> >> 
-> >> Use hardware or software strobe. If hardware strobe is selected, the
-> >> flash controller is a slave in the system where the sensor produces the
-> >> strobe signal to the flash.
-> >> 
-> >> In this case the flash controller setup is limited to programming strobe
-> >> timeout and power (LED flash) and the sensor controls the timing and
-> >> length of the strobe.
-> >> 
-> >> enum v4l2_flash_strobe_mode {
-> >> 
-> >> 	V4L2_FLASH_STROBE_MODE_SOFTWARE,
-> >> 	V4L2_FLASH_STROBE_MODE_EXT_STROBE,
-> >> 
-> >> };
-> > 
-> > [snip]
-> > 
-> >> 	V4L2_CID_FLASH_LED_MODE (menu; LED)
-> >> 
-> >> enum v4l2_flash_led_mode {
-> >> 
-> >> 	V4L2_FLASH_LED_MODE_FLASH = 1,
-> >> 	V4L2_FLASH_LED_MODE_TORCH,
-> >> 
-> >> };
-> > 
-> > Thinking about this some more, shouldn't we combine the two controls ?
-> > They are basically used to configure how the flash LED is controlled:
-> > manually (torch mode), automatically by the flash controller (software
-> > strobe mode) or automatically by an external component (external strobe
-> > mode).
-> 
-> That's a good question.
-> 
-> The adp1653 supports also additional control (not implemented in the
-> driver, though) that affect hardware strobe length. Based on register
-> setting, the led will be on after strobe either until the timeout
-> expires, or until the strobe signal is high.
->
-> Should this be also part of the same control, or a different one?
+> lsusb (partial):
 
-That can be controlled by a duration control. If the duration is 0, the flash 
-is lit for the duration of the external strobe, otherwise it's lit for the 
-programmed duration.
+Could you send me the complete lsusb output ?
 
+> Bus 003 Device 007: ID 041e:406c Creative Technology, Ltd
+> Device Descriptor:
+>   bLength                18
+>   bDescriptorType         1
+>   bcdUSB               2.00
+>   bDeviceClass          239 Miscellaneous Device
+>   bDeviceSubClass         2 ?
+>   bDeviceProtocol         1 Interface Association
+>   bMaxPacketSize0        64
+>   idVendor           0x041e Creative Technology, Ltd
+>   idProduct          0x406c
+>   bcdDevice           10.19
+>   iManufacturer           1 Creative Labs
+>   iProduct                3 VF0520 Live! Cam Sync
+>   iSerial                 0
+>   bNumConfigurations      1
 > 
-> Even without this, we'd have:
+> lsmod | grep vid:
+> uvcvideo               50184  0
+> compat_ioctl32          5120  1 uvcvideo
+> videodev               32000  1 uvcvideo
+> v4l1_compat            15876  2 uvcvideo,videodev
 > 
-> V4L2_FLASH_MODE_OFF
-> V4L2_FLASH_MODE_TORCH
-> V4L2_FLASH_MODE_SOFTWARE_STROBE
-> V4L2_FLASH_MODE_EXTERNAL_STROBE
+> uname -a (kernel from Fedora 10):
+> [root@laurent-home ~]# uname -a
+> Linux laurent-home 2.6.27.5-117.fc10.i686 #1 SMP Tue Nov 18 12:19:59 EST
+> 2008 i686 athlon i386 GNU/Linux
 > 
-> Additionally, this might be
+> Problem: device nodes are created, but NO video in gmplayer, tvtime
+> complains: can't open /dev/video0.
 > 
-> V4L2_FLASH_MODE_EXTERNAL_STROBE_EDGE
+> Only trace in syslog is:
 > 
-> It's true that these are mutually exclusive.
+> Mar  2 16:26:56 laurent-home kernel: uvcvideo: Failed to submit URB 0
+> (-28).
 > 
-> I think this is about whether we want to specify the operation of the
-> flash explicitly here or allow extending the interface later on when new
-> hardware is available by adding new controls. There are upsides and
-> downsides in each approach.
+> Webcam is connected to VIA USB 2.0 controller through a USB 2.0 hub.
 > 
-> There could be additional differentiating factors to the functionalty
-> later on, like the torch/video light differentiation that some hardware
-> does --- who knows based on what?
+> What is strange, two days ago I tried apparently the same (model VFxxxx)
+> with SUCCESS.
+> Device seems working in Windoze (Ekiga).
 > 
-> I perhaps wouldn't combine the controls. What do you think?
-
-I'm not sure yet :-)
+> What should I check/ do?
 
 -- 
 Regards,
