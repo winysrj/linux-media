@@ -1,180 +1,346 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.samsung.com ([203.254.224.24]:35393 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751030Ab1CKGyx (ORCPT
+Received: from snt0-omc2-s21.snt0.hotmail.com ([65.55.90.96]:4306 "EHLO
+	snt0-omc2-s21.snt0.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758536Ab1CCOUq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Mar 2011 01:54:53 -0500
-Received: from epmmp2 (mailout1.samsung.com [203.254.224.24])
- by mailout1.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LHV002I9SJE19D0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 11 Mar 2011 15:54:50 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LHV00IINSJED5@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Fri, 11 Mar 2011 15:54:51 +0900 (KST)
-Date: Fri, 11 Mar 2011 15:54:46 +0900
-From: Joonyoung Shim <jy0922.shim@samsung.com>
-Subject: [PATCH 1/3] radio-si470x: support seek and tune interrupt enable
-To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, tobias.lorenz@gmx.net,
-	kyungmin.park@samsung.com
-Message-id: <1299826488-20506-1-git-send-email-jy0922.shim@samsung.com>
-Content-transfer-encoding: 7BIT
+	Thu, 3 Mar 2011 09:20:46 -0500
+Message-ID: <SNT129-W18D3517697F0391DCBD43FE5C30@phx.gbl>
+Content-Type: multipart/mixed;
+	boundary="_36065531-bb62-4dde-b87f-03949d319137_"
+From: Peter Tilley <peter_tilley13@hotmail.com>
+To: <linux-media@vger.kernel.org>
+Subject: USB DVB-T too much signal?
+Date: Thu, 3 Mar 2011 14:14:35 +0000
+In-Reply-To: <SNT129-W5526DA8CE9536349513448E5C30@phx.gbl>
+References: <SNT129-W5526DA8CE9536349513448E5C30@phx.gbl>
+MIME-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Currently we use busy waiting to seek and tune, it can replace to
-interrupt way. SI470X I2C driver supports interrupt way to week and tune
-via this patch.
+--_36065531-bb62-4dde-b87f-03949d319137_
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Joonyoung Shim <jy0922.shim@samsung.com>
----
- drivers/media/radio/si470x/radio-si470x-common.c |   60 +++++++++++++++-------
- drivers/media/radio/si470x/radio-si470x-i2c.c    |   17 +++++-
- drivers/media/radio/si470x/radio-si470x.h        |    3 +
- 3 files changed, 60 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/media/radio/si470x/radio-si470x-common.c b/drivers/media/radio/si470x/radio-si470x-common.c
-index 60c176f..0a5d83d 100644
---- a/drivers/media/radio/si470x/radio-si470x-common.c
-+++ b/drivers/media/radio/si470x/radio-si470x-common.c
-@@ -174,15 +174,27 @@ static int si470x_set_chan(struct si470x_device *radio, unsigned short chan)
- 	if (retval < 0)
- 		goto done;
- 
--	/* wait till tune operation has completed */
--	timeout = jiffies + msecs_to_jiffies(tune_timeout);
--	do {
--		retval = si470x_get_register(radio, STATUSRSSI);
--		if (retval < 0)
--			goto stop;
--		timed_out = time_after(jiffies, timeout);
--	} while (((radio->registers[STATUSRSSI] & STATUSRSSI_STC) == 0) &&
--		(!timed_out));
-+	/* currently I2C driver only uses interrupt way to tune */
-+	if (radio->stci_enabled) {
-+		INIT_COMPLETION(radio->completion);
-+
-+		/* wait till tune operation has completed */
-+		retval = wait_for_completion_timeout(&radio->completion,
-+				msecs_to_jiffies(tune_timeout));
-+		if (!retval)
-+			timed_out = true;
-+	} else {
-+		/* wait till tune operation has completed */
-+		timeout = jiffies + msecs_to_jiffies(tune_timeout);
-+		do {
-+			retval = si470x_get_register(radio, STATUSRSSI);
-+			if (retval < 0)
-+				goto stop;
-+			timed_out = time_after(jiffies, timeout);
-+		} while (((radio->registers[STATUSRSSI] & STATUSRSSI_STC) == 0)
-+				&& (!timed_out));
-+	}
-+
- 	if ((radio->registers[STATUSRSSI] & STATUSRSSI_STC) == 0)
- 		dev_warn(&radio->videodev->dev, "tune does not complete\n");
- 	if (timed_out)
-@@ -310,15 +322,27 @@ static int si470x_set_seek(struct si470x_device *radio,
- 	if (retval < 0)
- 		goto done;
- 
--	/* wait till seek operation has completed */
--	timeout = jiffies + msecs_to_jiffies(seek_timeout);
--	do {
--		retval = si470x_get_register(radio, STATUSRSSI);
--		if (retval < 0)
--			goto stop;
--		timed_out = time_after(jiffies, timeout);
--	} while (((radio->registers[STATUSRSSI] & STATUSRSSI_STC) == 0) &&
--		(!timed_out));
-+	/* currently I2C driver only uses interrupt way to seek */
-+	if (radio->stci_enabled) {
-+		INIT_COMPLETION(radio->completion);
-+
-+		/* wait till seek operation has completed */
-+		retval = wait_for_completion_timeout(&radio->completion,
-+				msecs_to_jiffies(seek_timeout));
-+		if (!retval)
-+			timed_out = true;
-+	} else {
-+		/* wait till seek operation has completed */
-+		timeout = jiffies + msecs_to_jiffies(seek_timeout);
-+		do {
-+			retval = si470x_get_register(radio, STATUSRSSI);
-+			if (retval < 0)
-+				goto stop;
-+			timed_out = time_after(jiffies, timeout);
-+		} while (((radio->registers[STATUSRSSI] & STATUSRSSI_STC) == 0)
-+				&& (!timed_out));
-+	}
-+
- 	if ((radio->registers[STATUSRSSI] & STATUSRSSI_STC) == 0)
- 		dev_warn(&radio->videodev->dev, "seek does not complete\n");
- 	if (radio->registers[STATUSRSSI] & STATUSRSSI_SF)
-diff --git a/drivers/media/radio/si470x/radio-si470x-i2c.c b/drivers/media/radio/si470x/radio-si470x-i2c.c
-index 4ce541a..81b0a1a 100644
---- a/drivers/media/radio/si470x/radio-si470x-i2c.c
-+++ b/drivers/media/radio/si470x/radio-si470x-i2c.c
-@@ -197,8 +197,9 @@ int si470x_fops_open(struct file *file)
- 		if (retval < 0)
- 			goto done;
- 
--		/* enable RDS interrupt */
-+		/* enable RDS / STC interrupt */
- 		radio->registers[SYSCONFIG1] |= SYSCONFIG1_RDSIEN;
-+		radio->registers[SYSCONFIG1] |= SYSCONFIG1_STCIEN;
- 		radio->registers[SYSCONFIG1] &= ~SYSCONFIG1_GPIO2;
- 		radio->registers[SYSCONFIG1] |= 0x1 << 2;
- 		retval = si470x_set_register(radio, SYSCONFIG1);
-@@ -274,12 +275,20 @@ static void si470x_i2c_interrupt_work(struct work_struct *work)
- 	unsigned char tmpbuf[3];
- 	int retval = 0;
- 
-+	/* check Seek/Tune Complete */
-+	retval = si470x_get_register(radio, STATUSRSSI);
-+	if (retval < 0)
-+		return;
-+
-+	if (radio->registers[STATUSRSSI] & STATUSRSSI_STC)
-+		complete(&radio->completion);
-+
- 	/* safety checks */
- 	if ((radio->registers[SYSCONFIG1] & SYSCONFIG1_RDS) == 0)
- 		return;
- 
- 	/* Update RDS registers */
--	for (regnr = 0; regnr < RDS_REGISTER_NUM; regnr++) {
-+	for (regnr = 1; regnr < RDS_REGISTER_NUM; regnr++) {
- 		retval = si470x_get_register(radio, STATUSRSSI + regnr);
- 		if (retval < 0)
- 			return;
-@@ -441,6 +450,10 @@ static int __devinit si470x_i2c_probe(struct i2c_client *client,
- 	radio->rd_index = 0;
- 	init_waitqueue_head(&radio->read_queue);
- 
-+	/* mark Seek/Tune Complete Interrupt enabled */
-+	radio->stci_enabled = true;
-+	init_completion(&radio->completion);
-+
- 	retval = request_irq(client->irq, si470x_i2c_interrupt,
- 			IRQF_TRIGGER_FALLING, DRIVER_NAME, radio);
- 	if (retval) {
-diff --git a/drivers/media/radio/si470x/radio-si470x.h b/drivers/media/radio/si470x/radio-si470x.h
-index 4a4e908..9ef6716 100644
---- a/drivers/media/radio/si470x/radio-si470x.h
-+++ b/drivers/media/radio/si470x/radio-si470x.h
-@@ -158,6 +158,9 @@ struct si470x_device {
- 	unsigned int rd_index;
- 	unsigned int wr_index;
- 
-+	struct completion completion;
-+	bool stci_enabled;		/* Seek/Tune Complete Interrupt */
-+
- #if defined(CONFIG_USB_SI470X) || defined(CONFIG_USB_SI470X_MODULE)
- 	/* reference to USB and video device */
- 	struct usb_device *usbdev;
--- 
-1.7.0.4
 
+I have a USB DVB-T dual digital TV reciver which has the branding Kaiser Ba=
+as KBA 01004 on it. The device consists of a pair of DIBCOM DIB7000Ps and a=
+ pair of Microtune MT2266F tuners to provide dual tuner functionality. The =
+USB device identities are 1164:1e8c which has been seen before in a range o=
+f devices and seems to have been supported by the V4L drivers for a while. =
+I am using it with kernel version 2.6.35 (Ubuntu 10.10) The device is recog=
+nised ok and successfully loads the 1.20 release firmware. On the surface c=
+hecks of syslog=2C etc everything seems to be ok. However used under Linux =
+it demonstrates issues which do not appear when used with Windows.
+
+That is=2C when used with an external antenna=2C etc on Windows the unit fu=
+nctions fine whereas when used with Linux and using the DVButils scan=2C w_=
+scan and tzap I am able to successfully tune only 1 out of 6 stations. Coin=
+cidently that station is the only one tranmitting with QPSK whereas all the=
+ others are using 64QAM. I live in an area with good signal level and I get=
+ the feeling that maybe the Linux agc implementation is not all it should b=
+e as you will see from the attached tzap screen dumps I have lots of signal=
+=2C low SNR but high BER which is causing me to not get viterbi on any stat=
+ion using 64QAM. I can receive the local community tv station which is usin=
+g QPSK. I have a hunch that maybe the frontend is being overdriven and the =
+Linux agc implementation is not driving down the input signal. With QPSK be=
+ing a more robust transmission mode in comparison to 64QAM=2C I suspect I a=
+m getting away with the high signal level and also the community TV station=
+ transmits with lower power and therefore is probably not hitting the front=
+ end with quite as much signal in the first place anyway.
+
+I do not believe this is a firmware issue as in addition to using the 1.20 =
+firmware I have also complied and used Hans-Frieder Vogt's firmware extract=
+ion tool to pull the firmware out of the windows driver this uses and after=
+ after renaming it to replace the existing 1.2 firmware the same issues rem=
+ain. The attached channels.conf file was constructed by hand as neither sca=
+n or W_scan were able to create entries for ither than C31. They would just=
+ time out for other stations.
+
+Does anyone have any suggestions or comment on my thoughts and how the agc =
+is implemented? I was thinking I would probably have to tweak the settings =
+for this device in dib0700_devices.c
+
+The other issue I have is that to make sure that I had the latest and great=
+est drivers and tried to rebuild them from the latest git using the basic a=
+pproach at http://linuxtv.org/wiki/index.php/How_to_Obtain=2C_Build_and_Ins=
+tall_V4L-DVB_Device_Drivers The problem I found was that when I ran the bui=
+ld script it ran for a while and then came back and complained I was missin=
+g some source files. See attachment.
+
+If anyone has any pointers on this they would be greatly appreciated.
+
+Regards
+Pete 		 	   		  =
+
+--_36065531-bb62-4dde-b87f-03949d319137_
+Content-Type: text/plain
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="build.txt"
+
+cGV0ZXJAR2FyYWdlMjp+L21lZGlhX2J1aWxkJCAuL2J1aWxkLnNoDQoqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioNCiogVGhpcyBzY3Jp
+cHQgd2lsbCBkb3dubG9hZCB0aGUgbGF0ZXN0IHRhcmJhbGwgYW5kIGJ1aWxkIGl0Kg0KKiBBc3N1
+bWluZyB0aGF0IHlvdXIga2VybmVsIGlzIGNvbXBhdGlibGUgd2l0aCB0aGUgbGF0ZXN0ICAqDQoq
+IGRyaXZlcnMuIElmIG5vdCwgeW91J2xsIG5lZWQgdG8gYWRkIHNvbWUgZXh0cmEgYmFja3BvcnRz
+LCoNCiogLi9iYWNrcG9ydHMvPGtlcm5lbD4gZGlyZWN0b3J5LiAgICAgICAgICAgICAgICAgICAg
+ICAgICAgKg0KKiBJdCB3aWxsIGFsc28gdXBkYXRlIHRoaXMgdHJlZSB0byBiZSBzdXJlIHRoYXQg
+YWxsIGNvbXBhdCAqDQoqIGJpdHMgYXJlIHRoZXJlLCB0byBhdm9pZCBjb21waWxhdGlvbiBmYWls
+dXJlcyAgICAgICAgICAgICoNCioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKg0KDQpOb3RlOiByZXF1aXJlcyBnaXQvcGVybC9tYWtlL2dj
+Yy9wYXRjaC9wZXJsLURpZ2VzdC1TSEExL3BhdGNodXRpbHMgcGFja2FnZXMgdG8gd29yaw0KZ2l0
+IHB1bGwgZ2l0Oi8vbGludXh0di5vcmcvbWVkaWFfYnVpbGQuZ2l0IG1hc3Rlcg0KRnJvbSBnaXQ6
+Ly9saW51eHR2Lm9yZy9tZWRpYV9idWlsZA0KICogYnJhbmNoICAgICAgICAgICAgbWFzdGVyICAg
+ICAtPiBGRVRDSF9IRUFEDQpBbHJlYWR5IHVwLXRvLWRhdGUuDQptYWtlIC1DIGxpbnV4LyBkb3du
+bG9hZA0KbWFrZTogRW50ZXJpbmcgZGlyZWN0b3J5IGAvaG9tZS9wZXRlci9tZWRpYV9idWlsZC9s
+aW51eCcNCndnZXQgaHR0cDovL2xpbnV4dHYub3JnL2Rvd25sb2Fkcy9kcml2ZXJzL2xpbnV4LW1l
+ZGlhLUxBVEVTVC50YXIuYnoyLm1kNSAtTyBsaW51eC1tZWRpYS50YXIuYnoyLm1kNS50bXANCi0t
+MjAxMS0wMy0wMyAxOTowNToyMS0tICBodHRwOi8vbGludXh0di5vcmcvZG93bmxvYWRzL2RyaXZl
+cnMvbGludXgtbWVkaWEtTEFURVNULnRhci5iejIubWQ1DQpSZXNvbHZpbmcgbGludXh0di5vcmcu
+Li4gMTMwLjE0OS44MC4yNDgNCkNvbm5lY3RpbmcgdG8gbGludXh0di5vcmd8MTMwLjE0OS44MC4y
+NDh8OjgwLi4uIGNvbm5lY3RlZC4NCkhUVFAgcmVxdWVzdCBzZW50LCBhd2FpdGluZyByZXNwb25z
+ZS4uLiAyMDAgT0sNCkxlbmd0aDogOTMgW2FwcGxpY2F0aW9uL3gtYnppcDJdDQpTYXZpbmcgdG86
+IGBsaW51eC1tZWRpYS50YXIuYnoyLm1kNS50bXAnDQoNCjEwMCVbPT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT5dIDkzICAgICAgICAgIC0t
+Li1LL3MgICBpbiAwcyAgICAgIA0KDQoyMDExLTAzLTAzIDE5OjA1OjIyICg1LjM2IE1CL3MpIC0g
+YGxpbnV4LW1lZGlhLnRhci5iejIubWQ1LnRtcCcgc2F2ZWQgWzkzLzkzXQ0KDQotLTIwMTEtMDMt
+MDMgMTk6MDU6MjItLSAgaHR0cDovL2xpbnV4dHYub3JnL2Rvd25sb2Fkcy9kcml2ZXJzL2xpbnV4
+LW1lZGlhLUxBVEVTVC50YXIuYnoyDQpSZXNvbHZpbmcgbGludXh0di5vcmcuLi4gMTMwLjE0OS44
+MC4yNDgNCkNvbm5lY3RpbmcgdG8gbGludXh0di5vcmd8MTMwLjE0OS44MC4yNDh8OjgwLi4uIGNv
+bm5lY3RlZC4NCkhUVFAgcmVxdWVzdCBzZW50LCBhd2FpdGluZyByZXNwb25zZS4uLiAyMDAgT0sN
+Ckxlbmd0aDogMzU3MzcxMSAoMy40TSkgW2FwcGxpY2F0aW9uL3gtYnppcDJdDQpTYXZpbmcgdG86
+IGBsaW51eC1tZWRpYS50YXIuYnoyJw0KDQoxMDAlWz09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0+XSAzLDU3Myw3MTEgICAgNTQxSy9zICAg
+aW4gOC41cyAgICANCg0KMjAxMS0wMy0wMyAxOTowNTozMiAoNDExIEtCL3MpIC0gYGxpbnV4LW1l
+ZGlhLnRhci5iejInIHNhdmVkIFszNTczNzExLzM1NzM3MTFdDQoNCm1ha2U6IExlYXZpbmcgZGly
+ZWN0b3J5IGAvaG9tZS9wZXRlci9tZWRpYV9idWlsZC9saW51eCcNCm1ha2UgLUMgbGludXgvIHVu
+dGFyDQptYWtlOiBFbnRlcmluZyBkaXJlY3RvcnkgYC9ob21lL3BldGVyL21lZGlhX2J1aWxkL2xp
+bnV4Jw0KdGFyIHhmaiBsaW51eC1tZWRpYS50YXIuYnoyDQpybSAtZiAucGF0Y2hlc19hcHBsaWVk
+DQptYWtlOiBMZWF2aW5nIGRpcmVjdG9yeSBgL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQvbGludXgn
+DQptYWtlDQptYWtlIC1DIC9ob21lL3BldGVyL21lZGlhX2J1aWxkL3Y0bCANCm1ha2VbMV06IEVu
+dGVyaW5nIGRpcmVjdG9yeSBgL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQvdjRsJw0Kc2NyaXB0cy9t
+YWtlX21ha2VmaWxlLnBsDQptYWtlWzJdOiBFbnRlcmluZyBkaXJlY3RvcnkgYC9ob21lL3BldGVy
+L21lZGlhX2J1aWxkL2xpbnV4Jw0KQXBwbHlpbmcgcGF0Y2hlcyBmb3Iga2VybmVsIHYyLjYuMzUN
+CnBhdGNoIC1zIC1mIC1OIC1wMSAtaSAuLi9iYWNrcG9ydHMvdjIuNi4zN19kb250X3VzZV9hbGxv
+Y19vcmRlcmVkX3dvcmtxdWV1ZS5wYXRjaA0KcGF0Y2ggLXMgLWYgLU4gLXAxIC1pIC4uL2JhY2tw
+b3J0cy92Mi42LjM2X2lucHV0X2dldGtleWNvZGUucGF0Y2gNCnBhdGNoIC1zIC1mIC1OIC1wMSAt
+aSAuLi9iYWNrcG9ydHMvdjIuNi4zNV92bV9wcmV2LnBhdGNoDQpwYXRjaCAtcyAtZiAtTiAtcDEg
+LWkgLi4vYmFja3BvcnRzL3YyLjYuMzVfZmlyZWR0dl9oYW5kbGVfZmNwLnBhdGNoDQpwYXRjaCAt
+cyAtZiAtTiAtcDEgLWkgLi4vYmFja3BvcnRzL3YyLjYuMzVfaTJjX25ld19wcm9iZWRfZGV2aWNl
+LnBhdGNoDQpwYXRjaCAtcyAtZiAtTiAtcDEgLWkgLi4vYmFja3BvcnRzL3YyLjYuMzVfd29ya19o
+YW5kbGVyLnBhdGNoDQptYWtlWzJdOiBMZWF2aW5nIGRpcmVjdG9yeSBgL2hvbWUvcGV0ZXIvbWVk
+aWFfYnVpbGQvbGludXgnDQouL3NjcmlwdHMvbWFrZV9rY29uZmlnLnBsIC9saWIvbW9kdWxlcy8y
+LjYuMzUtMjUtZ2VuZXJpYy9idWlsZCAvbGliL21vZHVsZXMvMi42LjM1LTI1LWdlbmVyaWMvYnVp
+bGQNClByZXBhcmluZyB0byBjb21waWxlIGZvciBrZXJuZWwgdmVyc2lvbiAyLjYuMzUNCg0KKioq
+V0FSTklORzoqKiogWW91IGRvIG5vdCBoYXZlIHRoZSBmdWxsIGtlcm5lbCBzb3VyY2VzIGluc3Rh
+bGxlZC4NClRoaXMgZG9lcyBub3QgcHJldmVudCB5b3UgZnJvbSBidWlsZGluZyB0aGUgdjRsLWR2
+YiB0cmVlIGlmIHlvdSBoYXZlIHRoZQ0Ka2VybmVsIGhlYWRlcnMsIGJ1dCB0aGUgZnVsbCBrZXJu
+ZWwgc291cmNlIG1heSBiZSByZXF1aXJlZCBpbiBvcmRlciB0byB1c2UNCm1ha2UgbWVudWNvbmZp
+ZyAvIHhjb25maWcgLyBxY29uZmlnLg0KSWYgeW91IGFyZSBleHBlcmllbmNpbmcgcHJvYmxlbXMg
+YnVpbGRpbmcgdGhlIHY0bC1kdmIgdHJlZSwgcGxlYXNlIHRyeQ0KYnVpbGRpbmcgYWdhaW5zdCBh
+IHZhbmlsbGEga2VybmVsIGJlZm9yZSByZXBvcnRpbmcgYSBidWcuDQoNClZhbmlsbGEga2VybmVs
+cyBhcmUgYXZhaWxhYmxlIGF0IGh0dHA6Ly9rZXJuZWwub3JnLg0KT24gbW9zdCBkaXN0cm9zLCB0
+aGlzIHdpbGwgY29tcGlsZSBhIG5ld2x5IGRvd25sb2FkZWQga2VybmVsOg0KDQpjcCAvYm9vdC9j
+b25maWctYHVuYW1lIC1yYCA8eW91ciBrZXJuZWwgZGlyPi8uY29uZmlnDQpjZCA8eW91ciBrZXJu
+ZWwgZGlyPg0KbWFrZSBhbGwgbW9kdWxlc19pbnN0YWxsIGluc3RhbGwNCg0KUGxlYXNlIHNlZSB5
+b3VyIGRpc3RybydzIHdlYiBzaXRlIGZvciBpbnN0cnVjdGlvbnMgdG8gYnVpbGQgYSBuZXcga2Vy
+bmVsLg0KDQpXQVJOSU5HOiBUaGlzIGlzIHRoZSBWNEwvRFZCIGJhY2twb3J0IHRyZWUsIHdpdGgg
+ZXhwZXJpbWVudGFsIGRyaXZlcnMNCgkgYmFja3BvcnRlZCB0byBydW4gb24gbGVnYWN5IGtlcm5l
+bHMgZnJvbSB0aGUgZGV2ZWxvcG1lbnQgdHJlZSBhdDoNCgkJaHR0cDovL2dpdC5saW51eHR2Lm9y
+Zy9tZWRpYS10cmVlLmdpdC4NCgkgSXQgaXMgZ2VuZXJhbGx5IHNhZmUgdG8gdXNlIGl0IGZvciB0
+ZXN0aW5nIGEgbmV3IGRyaXZlciBvcg0KCSBmZWF0dXJlLCBidXQgaXRzIHVzYWdlIG9uIHByb2R1
+Y3Rpb24gZW52aXJvbm1lbnRzIGlzIHJpc2t5Lg0KCSBEb24ndCB1c2UgaXQgaW4gcHJvZHVjdGlv
+bi4gWW91J3ZlIGJlZW4gd2FybmVkLg0KVklERU9fVklBX0NBTUVSQTogUmVxdWlyZXMgYXQgbGVh
+c3Qga2VybmVsIDIuNi4zNw0KLi9zY3JpcHRzL21ha2VfbXljb25maWcucGwNCm1ha2VbMV06IExl
+YXZpbmcgZGlyZWN0b3J5IGAvaG9tZS9wZXRlci9tZWRpYV9idWlsZC92NGwnDQptYWtlWzFdOiBF
+bnRlcmluZyBkaXJlY3RvcnkgYC9ob21lL3BldGVyL21lZGlhX2J1aWxkL3Y0bCcNCnBlcmwgc2Ny
+aXB0cy9tYWtlX2NvbmZpZ19jb21wYXQucGwgL2xpYi9tb2R1bGVzLzIuNi4zNS0yNS1nZW5lcmlj
+L2J1aWxkIC4vLm15Y29uZmlnIC4vY29uZmlnLWNvbXBhdC5oDQpjcmVhdGluZyBzeW1ib2xpYyBs
+aW5rcy4uLg0KbWFrZSAtQyBmaXJtd2FyZSBwcmVwDQptYWtlWzJdOiBFbnRlcmluZyBkaXJlY3Rv
+cnkgYC9ob21lL3BldGVyL21lZGlhX2J1aWxkL3Y0bC9maXJtd2FyZScNCm1ha2VbMl06IExlYXZp
+bmcgZGlyZWN0b3J5IGAvaG9tZS9wZXRlci9tZWRpYV9idWlsZC92NGwvZmlybXdhcmUnDQptYWtl
+IC1DIGZpcm13YXJlDQptYWtlWzJdOiBFbnRlcmluZyBkaXJlY3RvcnkgYC9ob21lL3BldGVyL21l
+ZGlhX2J1aWxkL3Y0bC9maXJtd2FyZScNCm1ha2VbMl06IE5vdGhpbmcgdG8gYmUgZG9uZSBmb3Ig
+YGRlZmF1bHQnLg0KbWFrZVsyXTogTGVhdmluZyBkaXJlY3RvcnkgYC9ob21lL3BldGVyL21lZGlh
+X2J1aWxkL3Y0bC9maXJtd2FyZScNCktlcm5lbCBidWlsZCBkaXJlY3RvcnkgaXMgL2xpYi9tb2R1
+bGVzLzIuNi4zNS0yNS1nZW5lcmljL2J1aWxkDQptYWtlIC1DIC4uL2xpbnV4IGFwcGx5X3BhdGNo
+ZXMNCm1ha2VbMl06IEVudGVyaW5nIGRpcmVjdG9yeSBgL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQv
+bGludXgnDQpQYXRjaGVzIGZvciB2Mi42LjM1IGFscmVhZHkgYXBwbGllZC4NCm1ha2VbMl06IExl
+YXZpbmcgZGlyZWN0b3J5IGAvaG9tZS9wZXRlci9tZWRpYV9idWlsZC9saW51eCcNCm1ha2UgLUMg
+L2xpYi9tb2R1bGVzLzIuNi4zNS0yNS1nZW5lcmljL2J1aWxkIFNVQkRJUlM9L2hvbWUvcGV0ZXIv
+bWVkaWFfYnVpbGQvdjRsICBtb2R1bGVzDQptYWtlWzJdOiBFbnRlcmluZyBkaXJlY3RvcnkgYC91
+c3Ivc3JjL2xpbnV4LWhlYWRlcnMtMi42LjM1LTI1LWdlbmVyaWMnDQogIENDIFtNXSAgL2hvbWUv
+cGV0ZXIvbWVkaWFfYnVpbGQvdjRsL3R1bmVyLXhjMjAyOC5vDQogIENDIFtNXSAgL2hvbWUvcGV0
+ZXIvbWVkaWFfYnVpbGQvdjRsL3R1bmVyLXNpbXBsZS5vDQogIENDIFtNXSAgL2hvbWUvcGV0ZXIv
+bWVkaWFfYnVpbGQvdjRsL3R1bmVyLXR5cGVzLm8NCiAgQ0MgW01dICAvaG9tZS9wZXRlci9tZWRp
+YV9idWlsZC92NGwvbXQyMHh4Lm8NCiAgQ0MgW01dICAvaG9tZS9wZXRlci9tZWRpYV9idWlsZC92
+NGwvdGRhODI5MC5vDQogIENDIFtNXSAgL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQvdjRsL3RlYTU3
+Njcubw0KICBDQyBbTV0gIC9ob21lL3BldGVyL21lZGlhX2J1aWxkL3Y0bC90ZWE1NzYxLm8NCiAg
+Q0MgW01dICAvaG9tZS9wZXRlci9tZWRpYV9idWlsZC92NGwvdGRhOTg4Ny5vDQogIENDIFtNXSAg
+L2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQvdjRsL3RkYTgyN3gubw0KICBDQyBbTV0gIC9ob21lL3Bl
+dGVyL21lZGlhX2J1aWxkL3Y0bC9hdTA4MjgtY29yZS5vDQogIENDIFtNXSAgL2hvbWUvcGV0ZXIv
+bWVkaWFfYnVpbGQvdjRsL2F1MDgyOC1pMmMubw0KICBDQyBbTV0gIC9ob21lL3BldGVyL21lZGlh
+X2J1aWxkL3Y0bC9hdTA4MjgtY2FyZHMubw0KICBDQyBbTV0gIC9ob21lL3BldGVyL21lZGlhX2J1
+aWxkL3Y0bC9hdTA4MjgtZHZiLm8NCiAgQ0MgW01dICAvaG9tZS9wZXRlci9tZWRpYV9idWlsZC92
+NGwvYXUwODI4LXZpZGVvLm8NCiAgQ0MgW01dICAvaG9tZS9wZXRlci9tZWRpYV9idWlsZC92NGwv
+YXUwODI4LXZiaS5vDQogIENDIFtNXSAgL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQvdjRsL2F1ODUy
+Ml9kaWcubw0KICBDQyBbTV0gIC9ob21lL3BldGVyL21lZGlhX2J1aWxkL3Y0bC9hdTg1MjJfZGVj
+b2Rlci5vDQogIENDIFtNXSAgL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQvdjRsL2ZsZXhjb3AtcGNp
+Lm8NCiAgQ0MgW01dICAvaG9tZS9wZXRlci9tZWRpYV9idWlsZC92NGwvZmxleGNvcC11c2Iubw0K
+ICBDQyBbTV0gIC9ob21lL3BldGVyL21lZGlhX2J1aWxkL3Y0bC9mbGV4Y29wLm8NCiAgQ0MgW01d
+ICAvaG9tZS9wZXRlci9tZWRpYV9idWlsZC92NGwvZmxleGNvcC1mZS10dW5lci5vDQogIENDIFtN
+XSAgL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQvdjRsL2ZsZXhjb3AtaTJjLm8NCiAgQ0MgW01dICAv
+aG9tZS9wZXRlci9tZWRpYV9idWlsZC92NGwvZmxleGNvcC1zcmFtLm8NCiAgQ0MgW01dICAvaG9t
+ZS9wZXRlci9tZWRpYV9idWlsZC92NGwvZmxleGNvcC1lZXByb20ubw0KICBDQyBbTV0gIC9ob21l
+L3BldGVyL21lZGlhX2J1aWxkL3Y0bC9mbGV4Y29wLW1pc2Mubw0KICBDQyBbTV0gIC9ob21lL3Bl
+dGVyL21lZGlhX2J1aWxkL3Y0bC9mbGV4Y29wLWh3LWZpbHRlci5vDQogIENDIFtNXSAgL2hvbWUv
+cGV0ZXIvbWVkaWFfYnVpbGQvdjRsL2ZsZXhjb3AtZG1hLm8NCiAgQ0MgW01dICAvaG9tZS9wZXRl
+ci9tZWRpYV9idWlsZC92NGwvYnR0di1kcml2ZXIubw0KICBDQyBbTV0gIC9ob21lL3BldGVyL21l
+ZGlhX2J1aWxkL3Y0bC9idHR2LWNhcmRzLm8NCiAgQ0MgW01dICAvaG9tZS9wZXRlci9tZWRpYV9i
+dWlsZC92NGwvYnR0di1pZi5vDQogIENDIFtNXSAgL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQvdjRs
+L2J0dHYtcmlzYy5vDQogIENDIFtNXSAgL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQvdjRsL2J0dHYt
+dmJpLm8NCiAgQ0MgW01dICAvaG9tZS9wZXRlci9tZWRpYV9idWlsZC92NGwvYnR0di1pMmMubw0K
+ICBDQyBbTV0gIC9ob21lL3BldGVyL21lZGlhX2J1aWxkL3Y0bC9idHR2LWdwaW8ubw0KICBDQyBb
+TV0gIC9ob21lL3BldGVyL21lZGlhX2J1aWxkL3Y0bC9idHR2LWlucHV0Lm8NCiAgQ0MgW01dICAv
+aG9tZS9wZXRlci9tZWRpYV9idWlsZC92NGwvYnR0di1hdWRpby1ob29rLm8NCiAgQ0MgW01dICAv
+aG9tZS9wZXRlci9tZWRpYV9idWlsZC92NGwvY3BpYTJfdjRsLm8NCiAgQ0MgW01dICAvaG9tZS9w
+ZXRlci9tZWRpYV9idWlsZC92NGwvY3BpYTJfdXNiLm8NCiAgQ0MgW01dICAvaG9tZS9wZXRlci9t
+ZWRpYV9idWlsZC92NGwvY3BpYTJfY29yZS5vDQogIENDIFtNXSAgL2hvbWUvcGV0ZXIvbWVkaWFf
+YnVpbGQvdjRsL2N4MTgtYWxzYS1tYWluLm8NCiAgQ0MgW01dICAvaG9tZS9wZXRlci9tZWRpYV9i
+dWlsZC92NGwvY3gxOC1hbHNhLXBjbS5vDQogIENDIFtNXSAgL2hvbWUvcGV0ZXIvbWVkaWFfYnVp
+bGQvdjRsL2N4MTgtZHJpdmVyLm8NCiAgQ0MgW01dICAvaG9tZS9wZXRlci9tZWRpYV9idWlsZC92
+NGwvY3gxOC1jYXJkcy5vDQogIENDIFtNXSAgL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQvdjRsL2N4
+MTgtaTJjLm8NCiAgQ0MgW01dICAvaG9tZS9wZXRlci9tZWRpYV9idWlsZC92NGwvY3gxOC1maXJt
+d2FyZS5vDQogIENDIFtNXSAgL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQvdjRsL2N4MTgtZ3Bpby5v
+DQogIENDIFtNXSAgL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQvdjRsL2N4MTgtcXVldWUubw0KICBD
+QyBbTV0gIC9ob21lL3BldGVyL21lZGlhX2J1aWxkL3Y0bC9jeDE4LXN0cmVhbXMubw0KICBDQyBb
+TV0gIC9ob21lL3BldGVyL21lZGlhX2J1aWxkL3Y0bC9jeDE4LWZpbGVvcHMubw0KICBDQyBbTV0g
+IC9ob21lL3BldGVyL21lZGlhX2J1aWxkL3Y0bC9jeDE4LWlvY3RsLm8NCiAgQ0MgW01dICAvaG9t
+ZS9wZXRlci9tZWRpYV9idWlsZC92NGwvY3gxOC1jb250cm9scy5vDQogIENDIFtNXSAgL2hvbWUv
+cGV0ZXIvbWVkaWFfYnVpbGQvdjRsL2N4MTgtbWFpbGJveC5vDQogIENDIFtNXSAgL2hvbWUvcGV0
+ZXIvbWVkaWFfYnVpbGQvdjRsL2N4MTgtdmJpLm8NCiAgQ0MgW01dICAvaG9tZS9wZXRlci9tZWRp
+YV9idWlsZC92NGwvY3gxOC1hdWRpby5vDQogIENDIFtNXSAgL2hvbWUvcGV0ZXIvbWVkaWFfYnVp
+bGQvdjRsL2N4MTgtdmlkZW8ubw0KICBDQyBbTV0gIC9ob21lL3BldGVyL21lZGlhX2J1aWxkL3Y0
+bC9jeDE4LWlycS5vDQogIENDIFtNXSAgL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQvdjRsL2N4MTgt
+YXYtY29yZS5vDQogIENDIFtNXSAgL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQvdjRsL2N4MTgtYXYt
+YXVkaW8ubw0KICBDQyBbTV0gIC9ob21lL3BldGVyL21lZGlhX2J1aWxkL3Y0bC9jeDE4LWF2LWZp
+cm13YXJlLm8NCiAgQ0MgW01dICAvaG9tZS9wZXRlci9tZWRpYV9idWlsZC92NGwvY3gxOC1hdi12
+Ymkubw0KICBDQyBbTV0gIC9ob21lL3BldGVyL21lZGlhX2J1aWxkL3Y0bC9jeDE4LXNjYi5vDQog
+IENDIFtNXSAgL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQvdjRsL2N4MTgtZHZiLm8NCiAgQ0MgW01d
+ICAvaG9tZS9wZXRlci9tZWRpYV9idWlsZC92NGwvY3gxOC1pby5vDQogIENDIFtNXSAgL2hvbWUv
+cGV0ZXIvbWVkaWFfYnVpbGQvdjRsL2N4MjMxeHgtYXVkaW8ubw0KICBDQyBbTV0gIC9ob21lL3Bl
+dGVyL21lZGlhX2J1aWxkL3Y0bC9jeDIzMXh4LXZpZGVvLm8NCiAgQ0MgW01dICAvaG9tZS9wZXRl
+ci9tZWRpYV9idWlsZC92NGwvY3gyMzF4eC1pMmMubw0KICBDQyBbTV0gIC9ob21lL3BldGVyL21l
+ZGlhX2J1aWxkL3Y0bC9jeDIzMXh4LWNhcmRzLm8NCiAgQ0MgW01dICAvaG9tZS9wZXRlci9tZWRp
+YV9idWlsZC92NGwvY3gyMzF4eC1jb3JlLm8NCiAgQ0MgW01dICAvaG9tZS9wZXRlci9tZWRpYV9i
+dWlsZC92NGwvY3gyMzF4eC1hdmNvcmUubw0KICBDQyBbTV0gIC9ob21lL3BldGVyL21lZGlhX2J1
+aWxkL3Y0bC9jeDIzMXh4LTQxNy5vDQogIENDIFtNXSAgL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQv
+djRsL2N4MjMxeHgtcGNiLWNmZy5vDQogIENDIFtNXSAgL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQv
+djRsL2N4MjMxeHgtdmJpLm8NCiAgQ0MgW01dICAvaG9tZS9wZXRlci9tZWRpYV9idWlsZC92NGwv
+Y3gyMzF4eC1pbnB1dC5vDQogIENDIFtNXSAgL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQvdjRsL2N4
+MjM4ODUtY2FyZHMubw0KL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQvdjRsL2N4MjM4ODUtY2FyZHMu
+YzoyODogZmF0YWwgZXJyb3I6IHN0YWdpbmcvYWx0ZXJhLmg6IE5vIHN1Y2ggZmlsZSBvciBkaXJl
+Y3RvcnkNCmNvbXBpbGF0aW9uIHRlcm1pbmF0ZWQuDQptYWtlWzNdOiAqKiogWy9ob21lL3BldGVy
+L21lZGlhX2J1aWxkL3Y0bC9jeDIzODg1LWNhcmRzLm9dIEVycm9yIDENCm1ha2VbMl06ICoqKiBb
+X21vZHVsZV8vaG9tZS9wZXRlci9tZWRpYV9idWlsZC92NGxdIEVycm9yIDINCm1ha2VbMl06IExl
+YXZpbmcgZGlyZWN0b3J5IGAvdXNyL3NyYy9saW51eC1oZWFkZXJzLTIuNi4zNS0yNS1nZW5lcmlj
+Jw0KbWFrZVsxXTogKioqIFtkZWZhdWx0XSBFcnJvciAyDQptYWtlWzFdOiBMZWF2aW5nIGRpcmVj
+dG9yeSBgL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQvdjRsJw0KbWFrZTogKioqIFthbGxdIEVycm9y
+IDINCioqKiBFUlJPUi4gQWJvcnRpbmcgKioqDQpwZXRlckBHYXJhZ2UyOn4vbWVkaWFfYnVpbGQk
+
+--_36065531-bb62-4dde-b87f-03949d319137_
+Content-Type: text/plain
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="channels.conf.txt"
+
+U0JTIE9ORTo1MzY2MjUwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzdfTUhaOkZFQ18yXzM6
+RkVDXzFfMjpRQU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV84OkhJ
+RVJBUkNIWV9OT05FOjE2MTo4MTo3ODUNClNCUyBUV086NTM2NjI1MDAwOklOVkVSU0lPTl9BVVRP
+OkJBTkRXSURUSF83X01IWjpGRUNfMl8zOkZFQ18xXzI6UUFNXzY0OlRSQU5TTUlTU0lPTl9NT0RF
+XzhLOkdVQVJEX0lOVEVSVkFMXzFfODpISUVSQVJDSFlfTk9ORToxNjI6ODM6Nzg2DQpTQlMgMzo1
+MzY2MjUwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzdfTUhaOkZFQ18yXzM6RkVDXzFfMjpR
+QU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV84OkhJRVJBUkNIWV9O
+T05FOjE2MTo4MTo3ODcNClNCUyA0OjUzNjYyNTAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhf
+N19NSFo6RkVDXzJfMzpGRUNfMV8yOlFBTV82NDpUUkFOU01JU1NJT05fTU9ERV84SzpHVUFSRF9J
+TlRFUlZBTF8xXzg6SElFUkFSQ0hZX05PTkU6MTYxOjgxOjc4OA0KU0JTIEhEOjUzNjYyNTAwMDpJ
+TlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfN19NSFo6RkVDXzJfMzpGRUNfMV8yOlFBTV82NDpUUkFO
+U01JU1NJT05fTU9ERV84SzpHVUFSRF9JTlRFUlZBTF8xXzg6SElFUkFSQ0hZX05PTkU6MTAyOjEw
+Mzo3ODkNClNCUyBSYWRpbyAxOjUzNjYyNTAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfN19N
+SFo6RkVDXzJfMzpGRUNfMV8yOlFBTV82NDpUUkFOU01JU1NJT05fTU9ERV84SzpHVUFSRF9JTlRF
+UlZBTF8xXzg6SElFUkFSQ0hZX05PTkU6MDoyMDE6Nzk4DQpTQlMgUmFkaW8gMjo1MzY2MjUwMDA6
+SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzdfTUhaOkZFQ18yXzM6RkVDXzFfMjpRQU1fNjQ6VFJB
+TlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV84OkhJRVJBUkNIWV9OT05FOjA6MjAy
+Ojc5OQ==
+
+--_36065531-bb62-4dde-b87f-03949d319137_
+Content-Type: text/plain
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="tzap.txt"
+
+cGV0ZXJAR2FyYWdlMjp+Ly50emFwJCB0emFwIGMzMQ0KdXNpbmcgJy9kZXYvZHZiL2FkYXB0ZXIw
+L2Zyb250ZW5kMCcgYW5kICcvZGV2L2R2Yi9hZGFwdGVyMC9kZW11eDAnDQpyZWFkaW5nIGNoYW5u
+ZWxzIGZyb20gZmlsZSAnL2hvbWUvcGV0ZXIvLnR6YXAvY2hhbm5lbHMuY29uZicNCnR1bmluZyB0
+byA1NTc2MjUwMDAgSHoNCnZpZGVvIHBpZCAweDAwNjUsIGF1ZGlvIHBpZCAweDAwNjYNCnN0YXR1
+cyAwZSB8IHNpZ25hbCBmZmZmIHwgc25yIDAwNmEgfCBiZXIgMDAxZmZmZmYgfCB1bmMgMDAwMDAw
+MDAgfCANCnN0YXR1cyAxZSB8IHNpZ25hbCBmZmZmIHwgc25yIDAwMzEgfCBiZXIgMDAwMDAwMDAg
+fCB1bmMgMDAwMDAwMDAgfCBGRV9IQVNfTE9DSw0Kc3RhdHVzIDFlIHwgc2lnbmFsIGZmZmYgfCBz
+bnIgMDA3YiB8IGJlciAwMDAwMDAwMCB8IHVuYyAwMDAwMDAwMCB8IEZFX0hBU19MT0NLDQpzdGF0
+dXMgMWUgfCBzaWduYWwgZmZmZiB8IHNuciAwMDQwIHwgYmVyIDAwMDAwMDAwIHwgdW5jIDAwMDAw
+MDAwIHwgRkVfSEFTX0xPQ0sNCnN0YXR1cyAxZSB8IHNpZ25hbCBmZmZmIHwgc25yIDAwMjcgfCBi
+ZXIgMDAwMDAwMDAgfCB1bmMgMDAwMDAwMDAgfCBGRV9IQVNfTE9DSw0KDQoNCnBldGVyQEdhcmFn
+ZTI6fi8udHphcCQgdHphcCAiU0JTIERpZ2l0YWwgMSINCnVzaW5nICcvZGV2L2R2Yi9hZGFwdGVy
+MC9mcm9udGVuZDAnIGFuZCAnL2Rldi9kdmIvYWRhcHRlcjAvZGVtdXgwJw0KcmVhZGluZyBjaGFu
+bmVscyBmcm9tIGZpbGUgJy9ob21lL3BldGVyLy50emFwL2NoYW5uZWxzLmNvbmYnDQp0dW5pbmcg
+dG8gNTM2NjI1MDAwIEh6DQp2aWRlbyBwaWQgMHgwMGExLCBhdWRpbyBwaWQgMHgwMDUxDQpzdGF0
+dXMgMDIgfCBzaWduYWwgZmZmZiB8IHNuciAwMDJiIHwgYmVyIDAwMWZmZmZmIHwgdW5jIDAwMDAw
+MDAwIHwgDQpzdGF0dXMgMWEgfCBzaWduYWwgZmZmZiB8IHNuciAwMDI0IHwgYmVyIDAwMWZmZmZm
+IHwgdW5jIDAwMDAwMDAwIHwgRkVfSEFTX0xPQ0sNCnN0YXR1cyAxYSB8IHNpZ25hbCBmZmZmIHwg
+c25yIDAwMjAgfCBiZXIgMDAxZmZmZmYgfCB1bmMgMDAwMDAwMDAgfCBGRV9IQVNfTE9DSw0Kc3Rh
+dHVzIDFhIHwgc2lnbmFsIGZmZmYgfCBzbnIgMDAxOSB8IGJlciAwMDFmZmZmZiB8IHVuYyAwMDAw
+MDAwOSB8IEZFX0hBU19MT0NLDQoNCg0KcGV0ZXJAR2FyYWdlMjp+Ly50emFwJCB0emFwICJUZW4g
+RGlnaXRhbCAxIg0KdXNpbmcgJy9kZXYvZHZiL2FkYXB0ZXIwL2Zyb250ZW5kMCcgYW5kICcvZGV2
+L2R2Yi9hZGFwdGVyMC9kZW11eDAnDQpyZWFkaW5nIGNoYW5uZWxzIGZyb20gZmlsZSAnL2hvbWUv
+cGV0ZXIvLnR6YXAvY2hhbm5lbHMuY29uZicNCnR1bmluZyB0byAyMTk1MDAwMDAgSHoNCnZpZGVv
+IHBpZCAweDAyMDAsIGF1ZGlvIHBpZCAweDAyOGENCnN0YXR1cyAwMiB8IHNpZ25hbCBmZmZmIHwg
+c25yIDAwMWMgfCBiZXIgMDAxZmZmZmYgfCB1bmMgMDAwMDAwMDAgfCANCnN0YXR1cyAxYSB8IHNp
+Z25hbCBmZmZmIHwgc25yIDAwMTcgfCBiZXIgMDAxZmZmZmYgfCB1bmMgMDAwMDAwMGIgfCBGRV9I
+QVNfTE9DSw0Kc3RhdHVzIDFhIHwgc2lnbmFsIGZmZmYgfCBzbnIgMDAwZSB8IGJlciAwMDFmZmZm
+ZiB8IHVuYyAwMDAwMDAwMCB8IEZFX0hBU19MT0NLDQpzdGF0dXMgMWEgfCBzaWduYWwgZmZmZiB8
+IHNuciAwMDA4IHwgYmVyIDAwMWZmZmZmIHwgdW5jIDAwMDAwMDAwIHwgRkVfSEFTX0xPQ0sNCnN0
+YXR1cyAxYSB8IHNpZ25hbCBmZmZmIHwgc25yIDAwMDYgfCBiZXIgMDAxZmZmZmYgfCB1bmMgMDAw
+MDAwMDAgfCBGRV9IQVNfTE9DSw0KDQoNCnBldGVyQEdhcmFnZTI6fi8udHphcCQgdHphcCAiTmlu
+ZSBEaWdpdGFsIg0KdXNpbmcgJy9kZXYvZHZiL2FkYXB0ZXIwL2Zyb250ZW5kMCcgYW5kICcvZGV2
+L2R2Yi9hZGFwdGVyMC9kZW11eDAnDQpyZWFkaW5nIGNoYW5uZWxzIGZyb20gZmlsZSAnL2hvbWUv
+cGV0ZXIvLnR6YXAvY2hhbm5lbHMuY29uZicNCnR1bmluZyB0byAxOTE2MjUwMDAgSHoNCnZpZGVv
+IHBpZCAweDAyMDcsIGF1ZGlvIHBpZCAweDAyZDANCnN0YXR1cyAwMiB8IHNpZ25hbCBmZmZmIHwg
+c25yIDAwMTIgfCBiZXIgMDAxZmZmZmYgfCB1bmMgMDAwMDAwMDAgfCANCnN0YXR1cyAxYSB8IHNp
+Z25hbCBmZmZmIHwgc25yIDAwMTIgfCBiZXIgMDAxZmZmZmYgfCB1bmMgMDAwMDAwMDAgfCBGRV9I
+QVNfTE9DSw0Kc3RhdHVzIDFhIHwgc2lnbmFsIGZmZmYgfCBzbnIgMDAwZCB8IGJlciAwMDFmZmZm
+ZiB8IHVuYyAwMDAwMDAwMCB8IEZFX0hBU19MT0NLDQpzdGF0dXMgMWEgfCBzaWduYWwgZmZmZiB8
+IHNuciAwMDA5IHwgYmVyIDAwMWZmZmZmIHwgdW5jIDAwMDAwMDAwIHwgRkVfSEFTX0xPQ0sNCnN0
+YXR1cyAxYSB8IHNpZ25hbCBmZmZmIHwgc25yIDAwMDYgfCBiZXIgMDAxZmZmZmYgfCB1bmMgMDAw
+MDAwMDAgfCBGRV9IQVNfTE9DSw0Kc3RhdHVzIDFhIHwgc2lnbmFsIGZmZmYgfCBzbnIgMDAwNCB8
+IGJlciAwMDFmZmZmZiB8IHVuYyAwMDAwMDAwMCB8IEZFX0hBU19MT0NLDQoNCg0KDQpwZXRlckBH
+YXJhZ2UyOn4vLnR6YXAkIHR6YXAgIjcgRGlnaXRhbCINCnVzaW5nICcvZGV2L2R2Yi9hZGFwdGVy
+MC9mcm9udGVuZDAnIGFuZCAnL2Rldi9kdmIvYWRhcHRlcjAvZGVtdXgwJw0KcmVhZGluZyBjaGFu
+bmVscyBmcm9tIGZpbGUgJy9ob21lL3BldGVyLy50emFwL2NoYW5uZWxzLmNvbmYnDQp0dW5pbmcg
+dG8gMTc3NTAwMDAwIEh6DQp2aWRlbyBwaWQgMHgwMzAxLCBhdWRpbyBwaWQgMHgwMzAyDQpzdGF0
+dXMgMGEgfCBzaWduYWwgZmZmZiB8IHNuciAwMDFjIHwgYmVyIDAwMWZmZmZmIHwgdW5jIDAwMDAw
+MDAwIHwgDQpzdGF0dXMgMWEgfCBzaWduYWwgZmZmZiB8IHNuciAwMDE3IHwgYmVyIDAwMWZmZmZm
+IHwgdW5jIDAwMDAwMDAwIHwgRkVfSEFTX0xPQ0sNCnN0YXR1cyAxYSB8IHNpZ25hbCBmZmZmIHwg
+c25yIDAwMTAgfCBiZXIgMDAxZmZmZmYgfCB1bmMgMDAwMDAwMDggfCBGRV9IQVNfTE9DSw0Kc3Rh
+dHVzIDFhIHwgc2lnbmFsIGZmZmYgfCBzbnIgMDAwZiB8IGJlciAwMDFmZmZmZiB8IHVuYyAwMDAw
+MDAwMCB8IEZFX0hBU19MT0NLDQpzdGF0dXMgMWEgfCBzaWduYWwgZmZmZiB8IHNuciAwMDBlIHwg
+YmVyIDAwMWZmZmZmIHwgdW5jIDAwMDAwMDAwIHwgRkVfSEFTX0xPQ0sNCg0KDQpwZXRlckBHYXJh
+Z2UyOn4vLnR6YXAkIHR6YXAgIkFCQyBIRFRWIg0KdXNpbmcgJy9kZXYvZHZiL2FkYXB0ZXIwL2Zy
+b250ZW5kMCcgYW5kICcvZGV2L2R2Yi9hZGFwdGVyMC9kZW11eDAnDQpyZWFkaW5nIGNoYW5uZWxz
+IGZyb20gZmlsZSAnL2hvbWUvcGV0ZXIvLnR6YXAvY2hhbm5lbHMuY29uZicNCnR1bmluZyB0byAy
+MjY1MDAwMDAgSHoNCnZpZGVvIHBpZCAweDA5MGEsIGF1ZGlvIHBpZCAweDAwMDANCnN0YXR1cyAw
+YSB8IHNpZ25hbCBmZmZmIHwgc25yIDAwMWMgfCBiZXIgMDAxZmZmZmYgfCB1bmMgMDAwMDAwMDAg
+fCANCnN0YXR1cyAxYSB8IHNpZ25hbCBmZmZmIHwgc25yIDAwMGYgfCBiZXIgMDAxZmZmZmYgfCB1
+bmMgMDAwMDAwMDAgfCBGRV9IQVNfTE9DSw0Kc3RhdHVzIDFhIHwgc2lnbmFsIGZmZmYgfCBzbnIg
+MDAwOCB8IGJlciAwMDFmZmZmZiB8IHVuYyAwMDAwMDAwMCB8IEZFX0hBU19MT0NLDQpzdGF0dXMg
+MWEgfCBzaWduYWwgZmZmZiB8IHNuciAwMDA4IHwgYmVyIDAwMWZmZmZmIHwgdW5jIDAwMDAwMDAw
+IHwgRkVfSEFTX0xPQ0sNCg0K
+
+--_36065531-bb62-4dde-b87f-03949d319137_--
