@@ -1,100 +1,113 @@
 Return-path: <mchehab@pedra>
-Received: from knetgate.kensnet.org ([80.168.136.138]:57987 "EHLO
-	knetgate.kensnet.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753675Ab1CPTDD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Mar 2011 15:03:03 -0400
-Received: from [172.16.0.164] ([172.16.0.164])
-	(authenticated bits=0)
-	by knetgate.kensnet.org (8.13.8/8.13.8) with ESMTP id p2GIhpG4009630
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 16 Mar 2011 18:43:51 GMT
-Message-ID: <4D8104E7.70607@kensnet.org>
-Date: Wed, 16 Mar 2011 18:43:51 +0000
-From: Ken Smith <kens@kensnet.org>
-Reply-To: kens@kensnet.org
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58087 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756557Ab1CCKJv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2011 05:09:51 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: riverful.kim@samsung.com
+Subject: Re: [RFC PATCH RESEND v2 3/3] v4l2-ctrls: document the changes about auto focus mode
+Date: Thu, 3 Mar 2011 11:08:39 +0100
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"???/Mobile S/W Platform Lab(DMC?)/E4(??)/????"
+	<sw0312.kim@samsung.com>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
+References: <4D6EFA02.4080105@samsung.com>
+In-Reply-To: <4D6EFA02.4080105@samsung.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Compro VideoMate S350
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201103031108.46219.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+Hi,
 
-First post to this list, but not new to Linux.
+On Thursday 03 March 2011 03:16:34 Kim, HeungJun wrote:
+> Document about the type changes and the enumeration of the auto focus
+> control.
+> 
+> Signed-off-by: Heungjun Kim <riverful.kim@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  Documentation/DocBook/v4l/controls.xml    |   31
+> +++++++++++++++++++++++++--- Documentation/DocBook/v4l/videodev2.h.xml |  
+>  6 +++++
+>  2 files changed, 33 insertions(+), 4 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/v4l/controls.xml
+> b/Documentation/DocBook/v4l/controls.xml index 2fae3e8..889fa84 100644
+> --- a/Documentation/DocBook/v4l/controls.xml
+> +++ b/Documentation/DocBook/v4l/controls.xml
+> @@ -1801,12 +1801,35 @@ negative values towards infinity. This is a
+> write-only control.</entry> </row>
+>  	  <row><entry></entry></row>
+> 
+> -	  <row>
+> +	  <row id="v4l2-focus-auto-type">
+>  	    <entry
+> spanname="id"><constant>V4L2_CID_FOCUS_AUTO</constant>&nbsp;</entry> -	   
+> <entry>boolean</entry>
+> +	    <entry>enum&nbsp;v4l2_focus_auto_type</entry>
+>  	  </row><row><entry spanname="descr">Enables automatic focus
+> -adjustments. The effect of manual focus adjustments while this feature
+> -is enabled is undefined, drivers should ignore such requests.</entry>
+> +adjustments of the normal or macro or continuous(CAF) mode. The effect of
+> +manual focus adjustments while this feature is enabled is undefined,
+> +drivers should ignore such requests. Possible values are:</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entrytbl spanname="descr" cols="2">
+> +	      <tbody valign="top">
+> +		<row>
+> +		  <entry><constant>V4L2_FOCUS_MANUAL</constant>&nbsp;</entry>
+> +		  <entry>Manual focus mode.</entry>
+> +		</row>
+> +		<row>
+> +		  <entry><constant>V4L2_FOCUS_AUTO</constant>&nbsp;</entry>
+> +		  <entry>Auto focus mode with normal operation.</entry>
+> +		</row>
+> +		<row>
+> +		  <entry><constant>V4L2_FOCUS_MACRO</constant>&nbsp;</entry>
+> +		  <entry>Auto focus mode with macro operation.</entry>
+> +		</row>
+> +		<row>
+> +		  <entry><constant>V4L2_FOCUS_CONTINUOUS</constant>&nbsp;</entry>
+> +		  <entry>Auto focus mode with continuous(CAF) operation.</entry>
 
-I'm trying to get a Compro VideoMate S350 card to work in a 32bit Centos 
-5.5 system that also has a Hauppauge WinTV-NOVA-T-500 that uses the 
-dvb-usb-dib0700.ko kernel module as its driver. The Nova-T appears to be 
-working.
+I should have asked this sooner, but what's the difference between normal AF 
+and continuous AF ?
 
-I've used the v4l source RPM from ATRPMS to build an RPM of the v4l 
-package. The RPM I compiled/built is called 
-video4linux-kmdl-2.6.18-194.32.1.el5.centos.plus-20090907-93.RHL5.i386.rpm
-
-The build runs fine without issue.
-
-When I try to load the driver for the Compro with
-
-modprobe -v saa7134 card=169
-
-I get
-
-
-insmod 
-/lib/modules/2.6.18-194.32.1.el5.centos.plus/kernel/drivers/media/video/video-buf.ko 
-
-WARNING: Error inserting video_buf 
-(/lib/modules/2.6.18-194.32.1.el5.centos.plus/kernel/drivers/media/video/video-buf.ko): 
-Invalid module format
-WARNING: Error inserting videobuf_dma_sg 
-(/lib/modules/2.6.18-194.32.1.el5.centos.plus/updates/drivers/media/video/videobuf-dma-sg.ko): 
-Unknown symbol in module, or unknown parameter (see dmesg)
-WARNING: Error inserting v4l1_compat 
-(/lib/modules/2.6.18-194.32.1.el5.centos.plus/updates/drivers/media/video/v4l1-compat.ko): 
-Unknown symbol in module, or unknown parameter (see dmesg)
-WARNING: Error inserting videodev 
-(/lib/modules/2.6.18-194.32.1.el5.centos.plus/updates/drivers/media/video/videodev.ko): 
-Unknown symbol in module, or unknown parameter (see dmesg)
-WARNING: Error inserting v4l2_common 
-(/lib/modules/2.6.18-194.32.1.el5.centos.plus/updates/drivers/media/video/v4l2-common.ko): 
-Unknown symbol in module, or unknown parameter (see dmesg)
-WARNING: Error inserting ir_common 
-(/lib/modules/2.6.18-194.32.1.el5.centos.plus/updates/drivers/media/common/ir-common.ko): 
-Unknown symbol in module, or unknown parameter (see dmesg)
-FATAL: Error inserting saa7134 
-(/lib/modules/2.6.18-194.32.1.el5.centos.plus/updates/drivers/media/video/saa7134/saa7134.ko): 
-Unknown symbol in module, or unknown parameter (see dmesg)
-
-
-The line referred to in /var/log/messages is
-
-  kernel: video_buf: exports duplicate symbol videobuf_mmap_mapper 
-(owned by videobuf_core)
-
-I know that the centos.plus distribution includes some (if not all of) 
-the v4l modules, so I tried my build of v4l with the plain Centos kernel 
-build. The Nova T also runs fine, but I still get the error
-
-insmod 
-/lib/modules/2.6.18-194.32.1.el5/kernel/drivers/media/video/video-buf.ko
-WARNING: Error inserting video_buf 
-(/lib/modules/2.6.18-194.32.1.el5/kernel/drivers/media/video/video-buf.ko): 
-Invalid module format
-
-I'm sure I have missed something obvious, I'd appreciate any suggestions.
-
-Thanks
-
-Ken
-
-
-
-
+> +		</row>
+> +	      </tbody>
+> +	    </entrytbl>
+>  	  </row>
+>  	  <row><entry></entry></row>
+> 
+> diff --git a/Documentation/DocBook/v4l/videodev2.h.xml
+> b/Documentation/DocBook/v4l/videodev2.h.xml index 325b23b..ccf6c2b 100644
+> --- a/Documentation/DocBook/v4l/videodev2.h.xml
+> +++ b/Documentation/DocBook/v4l/videodev2.h.xml
+> @@ -1291,6 +1291,12 @@ enum  <link
+> linkend="v4l2-exposure-auto-type">v4l2_exposure_auto_type</link> { #define
+> V4L2_CID_FOCUS_ABSOLUTE                 (V4L2_CID_CAMERA_CLASS_BASE+10)
+> #define V4L2_CID_FOCUS_RELATIVE                
+> (V4L2_CID_CAMERA_CLASS_BASE+11) #define V4L2_CID_FOCUS_AUTO               
+>      (V4L2_CID_CAMERA_CLASS_BASE+12) +enum  <link
+> linkend="v4l2-focus-auto-type">v4l2_exposure_auto_type</link> {
+> +	V4L2_FOCUS_MANUAL = 0,
+> +	V4L2_FOCUS_AUTO = 1,
+> +	V4L2_FOCUS_MACRO = 2,
+> +	V4L2_FOCUS_CONTINUOUS = 3
+> +};
+> 
+>  #define V4L2_CID_ZOOM_ABSOLUTE                 
+> (V4L2_CID_CAMERA_CLASS_BASE+13) #define V4L2_CID_ZOOM_RELATIVE            
+>      (V4L2_CID_CAMERA_CLASS_BASE+14)
 
 -- 
-This message has been scanned for viruses and
-dangerous content by MailScanner, and is
-believed to be clean.
+Regards,
 
+Laurent Pinchart
