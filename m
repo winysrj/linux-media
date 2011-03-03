@@ -1,47 +1,59 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.23]:36901 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752424Ab1CTUpO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Mar 2011 16:45:14 -0400
-From: Jochen Reinwand <Jochen.Reinwand@gmx.de>
-To: =?utf-8?q?Andr=C3=A9_Weidemann?= <Andre.Weidemann@web.de>
-Subject: Re: Remote control TechnoTrend TT-connect S2-3650 CI
-Date: Sun, 20 Mar 2011 21:45:11 +0100
-Cc: linux-media@vger.kernel.org
-References: <201103191940.20876.Jochen.Reinwand@gmx.de> <4D85005A.4080101@web.de>
-In-Reply-To: <4D85005A.4080101@web.de>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:33184 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751928Ab1CCNbQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2011 08:31:16 -0500
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: linux-arm-kernel@lists.infradead.org
+Cc: Sascha Hauer <s.hauer@pengutronix.de>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 1/6] media/video i.MX: use IMX_HAVE_PLATFORM_* macros
+Date: Thu,  3 Mar 2011 14:30:55 +0100
+Message-Id: <1299159060-9289-2-git-send-email-s.hauer@pengutronix.de>
+In-Reply-To: <1299159060-9289-1-git-send-email-s.hauer@pengutronix.de>
+References: <1299159060-9289-1-git-send-email-s.hauer@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-Message-Id: <201103202145.11493.Jochen.Reinwand@gmx.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi André,
+The i.MX architecture provides IMX_HAVE_PLATFORM_* macros to signal
+that a selected SoC supports a certain hardware. Use them instead of
+depending on ARCH_* directly.
 
-Thanks for the help! I already fixed the problem! By accident...
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+Acked-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+Cc: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ drivers/media/video/Kconfig |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-On Saturday 19 March 2011, André Weidemann wrote:
-> I don't think that this is a hardware problem. I think it is related to
-> the driver. When I added support for the S2-3650CI to Dominik Kuhlen's
-> code for the PC-TV452e, I used the RC-code function "pctv452e_rc_query"
-> for the S2-3650CI. I ran into this problem back then and thought that
-> setting .rc_interval to 500 would "fix" the problem good enough.
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index aa02160..6f869ed 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -814,7 +814,7 @@ config MX1_VIDEO
+ 
+ config VIDEO_MX1
+ 	tristate "i.MX1/i.MXL CMOS Sensor Interface driver"
+-	depends on VIDEO_DEV && ARCH_MX1 && SOC_CAMERA
++	depends on VIDEO_DEV && SOC_CAMERA && IMX_HAVE_PLATFORM_MX1_CAMERA
+ 	select FIQ
+ 	select VIDEOBUF_DMA_CONTIG
+ 	select MX1_VIDEO
+@@ -872,7 +872,7 @@ config VIDEO_MX2_HOSTSUPPORT
+ 
+ config VIDEO_MX2
+ 	tristate "i.MX27/i.MX25 Camera Sensor Interface driver"
+-	depends on VIDEO_DEV && SOC_CAMERA && (MACH_MX27 || ARCH_MX25)
++	depends on VIDEO_DEV && SOC_CAMERA && IMX_HAVE_PLATFORM_MX2_CAMERA
+ 	select VIDEOBUF_DMA_CONTIG
+ 	select VIDEO_MX2_HOSTSUPPORT
+ 	---help---
+-- 
+1.7.2.3
 
-My first idea was simple: Set it to 1000. Better a slow remote control than  
-double key presses. But the double key press events remained.
-So I was planning to do some more debugging.
-But my next idea was: If I get double events anyway, I can also speed up the 
-remote by setting .rc_interval to 250. After setting it, everything was faster 
-and ...  the double events disappeared!!! Of course, I did some further tests 
-and found out that setting .rc_interval to 50 is also working perfectly! No 
-double key press events so far and the remote is reacting really quick.
-
-I don't really understand why this is fixing the issue...
-Does it make sense to put this into the official repo? Or is it too dangerous? 
-It's possibly breaking things for others...
-
-Regards
-Jochen
