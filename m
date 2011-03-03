@@ -1,94 +1,157 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:36908 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752031Ab1CNMhw (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:33199 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758269Ab1CCN4D (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Mar 2011 08:37:52 -0400
-MIME-Version: 1.0
-In-Reply-To: <201103111700.17373.arnd@arndb.de>
-References: <1299229274-9753-4-git-send-email-m.szyprowski@samsung.com>
-	<201103111615.01829.arnd@arndb.de>
-	<000201cbe002$768d9de0$63a8d9a0$%szyprowski@samsung.com>
-	<201103111700.17373.arnd@arndb.de>
-Date: Mon, 14 Mar 2011 21:37:51 +0900
-Message-ID: <AANLkTimagS1vBXEYjXQDx=OGhTRm=n0yO4n+kHTAqBOz@mail.gmail.com>
-Subject: Re: [PATCH 3/7] ARM: Samsung: update/rewrite Samsung SYSMMU (IOMMU) driver
-From: KyongHo Cho <pullip.cho@samsung.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	k.debski@samsung.com, kgene.kim@samsung.com,
-	kyungmin.park@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	=?EUC-KR?B?tOvAzrHi?= <inki.dae@samsung.com>,
-	=?EUC-KR?B?sK25zrHU?= <mk7.kang@samsung.com>,
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Thu, 3 Mar 2011 08:56:03 -0500
+Subject: Re: [RFC] snapshot mode, flash capabilities and control
+From: Andy Walls <awalls@md.metrocast.net>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hansverk@cisco.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Kim HeungJun <riverful@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Stanimir Varbanov <svarbanov@mm-sol.com>
+In-Reply-To: <201103031250.10495.laurent.pinchart@ideasonboard.com>
+References: <Pine.LNX.4.64.1102240947230.15756@axis700.grange>
+	 <201103021919.30003.hverkuil@xs4all.nl>
+	 <1299114300.22292.21.camel@localhost>
+	 <201103031250.10495.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Thu, 03 Mar 2011 08:56:25 -0500
+Message-ID: <1299160585.2037.59.camel@morgan.silverblock.net>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-2011/3/12 Arnd Bergmann <arnd@arndb.de>:
-> On Friday 11 March 2011, Marek Szyprowski wrote:
->> > > > does not support IOMMUs, but that could be changed by wrapping it
->> > > > using the include/asm-generic/dma-mapping-common.h infrastructure.
->> > >
->> > > ARM dma-mapping framework also requires some additional research for better DMA
->> > > support (there are still issues with multiple mappings to be resolved).
->> >
->> > You mean mapping the same memory into multiple devices, or a different problem?
->>
->> Mapping the same memory area multiple times with different cache settings is not
->> legal on ARMv7+ systems. Currently the problems might caused by the low-memory
->> kernel linear mapping and second mapping created for example by dma_alloc_coherent()
->> function.
->
-> Yes, I know this problem, but I don't think the case you describe is a serious
-> limitation (there are more interesting cases, though): dma_map_single() etc
-> will create additional *bus* addresses for a physical address, not additional
-> virtual addresses.
->
-> dma_alloc_coherent should allocate memory that is not also mapped cached,
-> which is what I thought we do correctly.
+On Thu, 2011-03-03 at 12:50 +0100, Laurent Pinchart wrote:
+> Hi Andy,
+> 
+> On Thursday 03 March 2011 02:05:00 Andy Walls wrote:
+> > On Wed, 2011-03-02 at 19:19 +0100, Hans Verkuil wrote:
+> > > On Wednesday, March 02, 2011 18:51:43 Guennadi Liakhovetski wrote:
+> > > > ...Just occurred to me:
+> > > > 
+> > > > On Mon, 28 Feb 2011, Guennadi Liakhovetski wrote:
+> > > > > On Mon, 28 Feb 2011, Guennadi Liakhovetski wrote:
+> > > > > > On Mon, 28 Feb 2011, Hans Verkuil wrote:
+> > > > > > 
+> > > > > > These are not the features, that we _have_ to implement, these are
+> > > > > > just the ones, that are related to the snapshot mode:
+> > > > > > 
+> > > > > > * flash strobe (provided, we do not want to control its timing from
+> > > > > > 
+> > > > > > 	generic controls, and leave that to "reasonable defaults" or to
+> > > > > > 	private controls)
+> > 
+> > I consider a flash strobe to be an illuminator.  I modifies the subject
+> > matter to be captured in the image.
+> > 
+> > > > Wouldn't it be a good idea to also export an LED (drivers/leds/) API
+> > > > from our flash implementation? At least for applications like torch.
+> > > > Downside: the LED API itself is not advanced enough for all our uses,
+> > > > and exporting two interfaces to the same device is usually a bad idea.
+> > > > Still, conceptually it seems to be a good fit.
+> > > 
+> > > I believe we discussed LEDs before (during a discussion about adding
+> > > illuminator controls). I think the preference was to export LEDs as V4L
+> > > controls.
+> > 
+> > That is certainly my preference, especially for LED's integrated into
+> > what the end user considers a discrete, consumer electronics device:
+> > e.g. a USB connected webcam or microscope.
+> > 
+> > I cannot imagine a real use-case repurposing the flash strobe of a
+> > camera purposes other than subject matter illumination.  (Inducing
+> > seizures?  An intrusion detection systems alarm that doesn't use the
+> > camera to which the flash is connected?)
+> > 
+> > For laptop frame integrated webcam LEDs, I can understand the desire to
+> > perhaps co-opt the LED for some other indicator purpose.  A WLAN NIC
+> > traffic indicator was suggested previously.
+> > 
+> > Does anyone know of any example where it could possibly make sense to
+> > repurpose the LED of a discrete external camera or capture device for
+> > some indication other than the camera/capture function?  (I consider
+> > both extisngishing the LED for lighting purposes, and manipulating the
+> > LED for the purpose of deception of the actual state of the
+> > camera/capture function, still related to the camera function.)
 
-I have also noticed that dma_map_single/page/sg() can map physical
-memory into an arbitrary device address region.
-But it is not enough solution for various kinds of IOMMUs.
-As Kukjin Kim addressed, we need to support larger page size than 4KB
-because we can reduce TLB miss when we have larger page size.
+Hi Laurent,
 
-Our IOMMU(system mmu) supports all page size of ARM architecture
-including 16MB, 1MB, 64KB and 4KB.
-Since the largest size supported by buddy system of 32-bit architecture is 4MB,
-our system support all page sizes except 16MB.
-We proved that larger page size is helpful for DMA performance
-significantly (more than 10%, approximately).
-Big page size is not a problem for peripheral devices
-because their address space is not suffer from external fragmentation.
+> What about using the flash LED on a cellphone as a torch ?
 
-Thanks to Arnd, I never knew about include/linux/iommu.h
+Yes, it could be the case that the flash LED is used as a flashlight
+(American English for "torch").
 
-Similar to dma-mappings.h, however, It is not enough for our
-requirements even though it allows private data to be stored in
-iommu_domain for platform-specific requirements.
+I use the LCD screen myself:
+http://socialnmobile.blogspot.com/2009/06/android-app-color-flashlight-flashlight.html 
 
-I think we can consider another solution for the various requirements.
-I think one of the most possible solutions is VCMM.
-Or we can enhance include/linux/iommu.h with reference of VCMM.
 
-You can find the most recent VCMM submitted at
-http://marc.info/?l=linux-kernel&m=129255948319341&w=2
 
-It looks somewhat complex but includes most of required features for
-various IOMMUs
-which will not be easily solved by include/linux/iommu.h
+With embedded platforms, like a mobile phone, are the LEDs really tied
+to the camera device: controlled by the GPIOs from the camera bridge
+chip or sensor chip?  Or are they more general purpose peripherals, not
+necessarily tied to the camera?
 
-You can find VCMM core in
-http://git.kernel.org/?p=linux/kernel/git/kki_ap/linux-2.6-samsung.git;a=blob;f=mm/vcm.c;h=9fff0106ec0078fad1488308305c8486adbed9c0;hb=refs/heads/2.6.36-samsung
+On mobile phone platforms, I'm assuming the manufacturers are in a much
+better position to take care of any discovery and association problems.
+Given the controlled nature of the hardware and deployed OS, I assume
+they use platform-configuration information and abstraction layers to
+handle the problem for all applications.
 
-and platform specific implementation of VCMM in
-http://git.kernel.org/?p=linux/kernel/git/kki_ap/linux-2.6-samsung.git;a=blob;f=arch/arm/plat-s5p/s5p-vcm.c;h=7498c800aef8b01082e1b1c3ea0f66cefe3c85a1;hb=refs/heads/2.6.36-samsung
+Desktop and laptop machines normally don't have such vendor support.
+Nor is the hardware configuration fixed as it is on a mobile phone.
 
-Cho KyongHo.
+
+Now to go way beyond your answer:
+
+Since it is relatively easy to add an LED interface to a driver,
+
+	http://linuxtv.org/hg/~awalls/qx3/
+
+we could just let V4L2 devices that can be on embedded platform
+implement the LED API, while V4L2 devices that are computer peripherals
+implement the V4L2 control API.
+
+IMO the answer need not be a choice between the V4L2 API or the LED API.
+Why not either or both, given the two domains of embedded vs. computer
+peripheral?
+
+
+My prototype changes for the QX3 microscope implemented both the V4L2
+Control API and the LED API for the illuminators.
+
+Like all sysfs interfaces, the names I chose for the LED API sysfs nodes
+were mostly arbitrary, but followed the guidelines in the LED API
+document.  They showed up in sysfs like this:
+
+
+        /sys/class/leds/video0:white:illuminator0
+
+        /sys/class/leds/video0:white:illuminator0/device/video4linux/video0
+
+        /sys/class/video4linux/video0/device/leds/video0:white:illuminator0
+     
+	/sys/bus/pci/devices/0000:00:12.0/usb3/3-2/3-2:1.0/leds/video0:white:illuminator0
+
+        /sys/bus/pci/devices/0000:00:12.0/usb3/3-2/3-2:1.0/video4linux/video0
+
+and similar results for video0:white:illuminator1.
+
+I don't know who is going to write applications that hunt those down,
+just to figure out if the video device even has an LED, what type of LED
+it is, or how to set the timing parameters for a flash LED.
+
+Given that the driver can arbitrarily choose the name of the LEDs in
+sysfs; and also provide additional, driver-specific, custom control
+nodes is sysfs; I really think the LED API is a dead-end for desktop
+video and camera applications.
+
+Regards,
+Andy
+
