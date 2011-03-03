@@ -1,77 +1,65 @@
 Return-path: <mchehab@pedra>
-Received: from ist.d-labs.de ([213.239.218.44]:44302 "EHLO mx01.d-labs.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751609Ab1CUKTa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Mar 2011 06:19:30 -0400
-From: Florian Mickler <florian@mickler.org>
-To: mchehab@infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	pb@linuxtv.org, Florian Mickler <florian@mickler.org>
-Subject: [PATCH 1/9] [media] vp702x: cleanup: whitespace and indentation
-Date: Mon, 21 Mar 2011 11:19:06 +0100
-Message-Id: <1300702754-16376-2-git-send-email-florian@mickler.org>
-In-Reply-To: <1300702754-16376-1-git-send-email-florian@mickler.org>
-References: <1300702754-16376-1-git-send-email-florian@mickler.org>
+Received: from stevekez.vm.bytemark.co.uk ([80.68.91.30]:36552 "EHLO
+	stevekerrison.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751786Ab1CCQP4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2011 11:15:56 -0500
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by stevekerrison.com (Postfix) with ESMTP id 45A3816405
+	for <linux-media@vger.kernel.org>; Thu,  3 Mar 2011 16:15:55 +0000 (GMT)
+Received: from stevekerrison.com ([127.0.0.1])
+	by localhost (stevekez.vm.bytemark.co.uk [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id 8wpHkCw2jtHr for <linux-media@vger.kernel.org>;
+	Thu,  3 Mar 2011 16:15:49 +0000 (GMT)
+Received: from [192.168.1.19] (94-193-106-123.zone7.bethere.co.uk [94.193.106.123])
+	(Authenticated sender: steve@stevekerrison.com)
+	by stevekerrison.com (Postfix) with ESMTPSA id 2F57D163E5
+	for <linux-media@vger.kernel.org>; Thu,  3 Mar 2011 16:15:49 +0000 (GMT)
+Subject: Re: em28xx: dvb lock bug on re-plug of device?
+From: Steve Kerrison <steve@stevekerrison.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+In-Reply-To: <AANLkTikkz74O96-CPZXOGiXFhcck6dXge8NRknxXTfQy@mail.gmail.com>
+References: <1299168093.2864.14.camel@ares>
+	 <AANLkTikkz74O96-CPZXOGiXFhcck6dXge8NRknxXTfQy@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Thu, 03 Mar 2011 16:15:48 +0000
+Message-ID: <1299168948.2864.19.camel@ares>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Some whitespace, one linebreak and one unneded variable
-initialization...
+Re-sending due to HTML accident.
 
-Signed-off-by: Florian Mickler <florian@mickler.org>
----
- drivers/media/dvb/dvb-usb/vp702x.c |   23 ++++++++++++-----------
- 1 files changed, 12 insertions(+), 11 deletions(-)
+Thank you Devin, that is useful to know. It means I can have some
+confidence in the problem not being caused by my actions. I will focus
+my efforts on getting the device working in spite of this, but might
+have a chance to look into this bug thereafter.
 
-diff --git a/drivers/media/dvb/dvb-usb/vp702x.c b/drivers/media/dvb/dvb-usb/vp702x.c
-index 7890e75..4c9939f 100644
---- a/drivers/media/dvb/dvb-usb/vp702x.c
-+++ b/drivers/media/dvb/dvb-usb/vp702x.c
-@@ -36,14 +36,14 @@ struct vp702x_device_state {
- /* check for mutex FIXME */
- int vp702x_usb_in_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8 *b, int blen)
- {
--	int ret = -1;
-+	int ret;
- 
--		ret = usb_control_msg(d->udev,
--			usb_rcvctrlpipe(d->udev,0),
--			req,
--			USB_TYPE_VENDOR | USB_DIR_IN,
--			value,index,b,blen,
--			2000);
-+	ret = usb_control_msg(d->udev,
-+		usb_rcvctrlpipe(d->udev, 0),
-+		req,
-+		USB_TYPE_VENDOR | USB_DIR_IN,
-+		value, index, b, blen,
-+		2000);
- 
- 	if (ret < 0) {
- 		warn("usb in operation failed. (%d)", ret);
-@@ -221,7 +221,8 @@ static int vp702x_frontend_attach(struct dvb_usb_adapter *adap)
- 
- 	vp702x_usb_out_op(adap->dev, SET_TUNER_POWER_REQ, 0, 7, NULL, 0);
- 
--	if (vp702x_usb_inout_cmd(adap->dev, GET_SYSTEM_STRING, NULL, 0, buf, 10, 10))
-+	if (vp702x_usb_inout_cmd(adap->dev, GET_SYSTEM_STRING, NULL, 0,
-+				   buf, 10, 10))
- 		return -EIO;
- 
- 	buf[9] = '\0';
-@@ -307,9 +308,9 @@ static struct dvb_usb_device_properties vp702x_properties = {
- /* usb specific object needed to register this driver with the usb subsystem */
- static struct usb_driver vp702x_usb_driver = {
- 	.name		= "dvb_usb_vp702x",
--	.probe 		= vp702x_usb_probe,
--	.disconnect = dvb_usb_device_exit,
--	.id_table 	= vp702x_usb_table,
-+	.probe		= vp702x_usb_probe,
-+	.disconnect	= dvb_usb_device_exit,
-+	.id_table	= vp702x_usb_table,
- };
- 
- /* module stuff */
+Regards,
 -- 
-1.7.4.1
+Steve Kerrison MEng Hons.
+http://www.stevekerrison.com/ 
+
+On Thu, 2011-03-03 at 11:07 -0500, Devin Heitmueller wrote:
+> On Thu, Mar 3, 2011 at 11:01 AM, Steve Kerrison <steve@stevekerrison.com> wrote:
+> > Hi all,
+> >
+> > I wonder if Devin/Mauro could help me with something as I've run into a
+> > problem developing a driver for the PCTV 290e?
+> >
+> > First plug of the device works fine, em28xx and em28xx_dvb are loaded.
+> > However, if I disconnect and then re-plug the device, the em28xx_dvb
+> > module will hang in dvb_init() where it performs mutex_lock(&dev->lock);
+> 
+> Hi Steve,
+> 
+> I saw this too and brought it to Mauro's attention some months ago
+> (because I believed strongly it was related to locking changes).  It
+> looks like he never did anything to address it though (and I've been
+> working on other bridges so haven't had any time to dig into it).
+> 
+> So, for what it's worth, I can confirm the problem that you are experiencing.
+> 
+> Devin
+> 
 
