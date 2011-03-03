@@ -1,68 +1,170 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:15363 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751979Ab1CDT0G (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Mar 2011 14:26:06 -0500
-Message-ID: <4D713CBD.7030405@redhat.com>
-Date: Fri, 04 Mar 2011 16:25:49 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	alsa-devel@alsa-project.org,
-	Sakari Ailus <sakari.ailus@retiisi.org.uk>,
-	Pawel Osciak <pawel@osciak.com>
-Subject: Re: [GIT PULL FOR 2.6.39] Media controller and OMAP3 ISP driver
-References: <201102171606.58540.laurent.pinchart@ideasonboard.com> <4D6EA4EB.9070607@redhat.com> <201103031125.06419.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201103031125.06419.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from queueout04-winn.ispmail.ntl.com ([81.103.221.58]:58516 "EHLO
+	queueout04-winn.ispmail.ntl.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758263Ab1CCV34 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Mar 2011 16:29:56 -0500
+From: Daniel Drake <dsd@laptop.org>
+To: mchehab@infradead.org
+Cc: linux-media@vger.kernel.org
+Cc: corbet@lwn.net
+Cc: dilinger@queued.net
+Subject: [PATCH] via-camera: Fix OLPC serial check
+Message-Id: <20110303190331.E8ED79D401D@zog.reactivated.net>
+Date: Thu,  3 Mar 2011 19:03:31 +0000 (GMT)
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 03-03-2011 07:25, Laurent Pinchart escreveu:
-> Hi Mauro,
-> 
-> The following changes since commit 88a763df226facb74fdb254563e30e9efb64275c:
-> 
->   [media] dw2102: prof 1100 corrected (2011-03-02 16:56:54 -0300)
-> 
-> are available in the git repository at:
->   git://linuxtv.org/pinchartl/media.git media-2.6.39-0005-omap3isp
-> 
-> The branch has been rebased on top of the latest for_v2.6.39 branch, with the
-> v4l2-ioctl.c conflict resolved.
-> 
-> Antti Koskipaa (1):
->       v4l: v4l2_subdev userspace crop API
-> 
-> David Cohen (1):
->       omap3isp: Statistics
-> 
-> Laurent Pinchart (36):
->       v4l: Share code between video_usercopy and video_ioctl2
->       v4l: subdev: Don't require core operations
->       v4l: subdev: Add device node support
->       v4l: subdev: Uninline the v4l2_subdev_init function
->       v4l: subdev: Control ioctls support
->       media: Media device node support
->       media: Media device
->       media: Entities, pads and links
->       media: Entity use count
->       media: Media device information query
+The code that checks the OLPC serial port is never built at the moment,
+because CONFIG_OLPC_XO_1_5 doesn't exist and probably won't be added.
 
-Hi Laurent,
+Fix it so that it gets compiled in, only executes on OLPC laptops, and
+move the check into the probe routine.
 
-You're using 'M' for the media control ioctl's, but I'm not seeing any patch
-adding that range to the ioctl-number:
-	Documentation/ioctl/ioctl-number.txt
+The compiler is smart enough to eliminate this code when CONFIG_OLPC=n
+(due to machine_is_olpc() always returning false).
 
-In particular, according with the text, 'M' is used by several other drivers,
-including audio, with doesn't sounds like a good idea to me.
+Signed-off-by: Daniel Drake <dsd@laptop.org>
+---
+ drivers/media/video/via-camera.c |   83 +++++++++++++++++---------------------
+ 1 files changed, 37 insertions(+), 46 deletions(-)
 
-So, please send me a patch, at the end of the series, reserving an unused range 
-for the media controller and replacing the ioctl numbers that you've already
-added to the new ioctl group.
+diff --git a/drivers/media/video/via-camera.c b/drivers/media/video/via-camera.c
+index 2f973cd..4f19edc 100644
+--- a/drivers/media/video/via-camera.c
++++ b/drivers/media/video/via-camera.c
+@@ -25,6 +25,7 @@
+ #include <linux/via-core.h>
+ #include <linux/via-gpio.h>
+ #include <linux/via_i2c.h>
++#include <asm/olpc.h>
+ 
+ #include "via-camera.h"
+ 
+@@ -38,14 +39,12 @@ MODULE_PARM_DESC(flip_image,
+ 		"If set, the sensor will be instructed to flip the image "
+ 		"vertically.");
+ 
+-#ifdef CONFIG_OLPC_XO_1_5
+ static int override_serial;
+ module_param(override_serial, bool, 0444);
+ MODULE_PARM_DESC(override_serial,
+ 		"The camera driver will normally refuse to load if "
+ 		"the XO 1.5 serial port is enabled.  Set this option "
+-		"to force the issue.");
+-#endif
++		"to force-enable the camera.");
+ 
+ /*
+  * Basic window sizes.
+@@ -1261,6 +1260,37 @@ static struct video_device viacam_v4l_template = {
+ 	.release	= video_device_release_empty, /* Check this */
+ };
+ 
++/*
++ * The OLPC folks put the serial port on the same pin as
++ * the camera.	They also get grumpy if we break the
++ * serial port and keep them from using it.  So we have
++ * to check the serial enable bit and not step on it.
++ */
++#define VIACAM_SERIAL_DEVFN 0x88
++#define VIACAM_SERIAL_CREG 0x46
++#define VIACAM_SERIAL_BIT 0x40
++
++static __devinit bool viacam_serial_is_enabled(void)
++{
++	struct pci_bus *pbus = pci_find_bus(0, 0);
++	u8 cbyte;
++
++	pci_bus_read_config_byte(pbus, VIACAM_SERIAL_DEVFN,
++			VIACAM_SERIAL_CREG, &cbyte);
++	if ((cbyte & VIACAM_SERIAL_BIT) == 0)
++		return false; /* Not enabled */
++	if (override_serial == 0) {
++		printk(KERN_NOTICE "Via camera: serial port is enabled, " \
++				"refusing to load.\n");
++		printk(KERN_NOTICE "Specify override_serial=1 to force " \
++				"module loading.\n");
++		return true;
++	}
++	printk(KERN_NOTICE "Via camera: overriding serial port\n");
++	pci_bus_write_config_byte(pbus, VIACAM_SERIAL_DEVFN,
++			VIACAM_SERIAL_CREG, cbyte & ~VIACAM_SERIAL_BIT);
++	return false;
++}
+ 
+ static __devinit int viacam_probe(struct platform_device *pdev)
+ {
+@@ -1292,6 +1322,10 @@ static __devinit int viacam_probe(struct platform_device *pdev)
+ 		printk(KERN_ERR "viacam: No I/O memory, so no pictures\n");
+ 		return -ENOMEM;
+ 	}
++
++	if (machine_is_olpc() && viacam_serial_is_enabled())
++		return -EBUSY;
++
+ 	/*
+ 	 * Basic structure initialization.
+ 	 */
+@@ -1395,7 +1429,6 @@ static __devexit int viacam_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
+-
+ static struct platform_driver viacam_driver = {
+ 	.driver = {
+ 		.name = "viafb-camera",
+@@ -1404,50 +1437,8 @@ static struct platform_driver viacam_driver = {
+ 	.remove = viacam_remove,
+ };
+ 
+-
+-#ifdef CONFIG_OLPC_XO_1_5
+-/*
+- * The OLPC folks put the serial port on the same pin as
+- * the camera.	They also get grumpy if we break the
+- * serial port and keep them from using it.  So we have
+- * to check the serial enable bit and not step on it.
+- */
+-#define VIACAM_SERIAL_DEVFN 0x88
+-#define VIACAM_SERIAL_CREG 0x46
+-#define VIACAM_SERIAL_BIT 0x40
+-
+-static __devinit int viacam_check_serial_port(void)
+-{
+-	struct pci_bus *pbus = pci_find_bus(0, 0);
+-	u8 cbyte;
+-
+-	pci_bus_read_config_byte(pbus, VIACAM_SERIAL_DEVFN,
+-			VIACAM_SERIAL_CREG, &cbyte);
+-	if ((cbyte & VIACAM_SERIAL_BIT) == 0)
+-		return 0; /* Not enabled */
+-	if (override_serial == 0) {
+-		printk(KERN_NOTICE "Via camera: serial port is enabled, " \
+-				"refusing to load.\n");
+-		printk(KERN_NOTICE "Specify override_serial=1 to force " \
+-				"module loading.\n");
+-		return -EBUSY;
+-	}
+-	printk(KERN_NOTICE "Via camera: overriding serial port\n");
+-	pci_bus_write_config_byte(pbus, VIACAM_SERIAL_DEVFN,
+-			VIACAM_SERIAL_CREG, cbyte & ~VIACAM_SERIAL_BIT);
+-	return 0;
+-}
+-#endif
+-
+-
+-
+-
+ static int viacam_init(void)
+ {
+-#ifdef CONFIG_OLPC_XO_1_5
+-	if (viacam_check_serial_port())
+-		return -EBUSY;
+-#endif
+ 	return platform_driver_register(&viacam_driver);
+ }
+ module_init(viacam_init);
+-- 
+1.7.4
 
-Thanks!
-Mauro
