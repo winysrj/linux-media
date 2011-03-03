@@ -1,100 +1,49 @@
 Return-path: <mchehab@pedra>
-Received: from cmsout02.mbox.net ([165.212.64.32]:41356 "EHLO
-	cmsout02.mbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753092Ab1CKSdK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Mar 2011 13:33:10 -0500
-Date: Fri, 11 Mar 2011 19:33:05 +0100
-From: "Issa Gorissen" <flop.m@usa.net>
-To: Andreas Oberritter <obi@linuxtv.org>
-Subject: Re: [PATCH] Ngene cam device name
-CC: <linux-media@vger.kernel.org>, <rjkm@metzlerbros.de>
-Mime-Version: 1.0
-Message-ID: <419PcksGF8800S02.1299868385@web02.cms.usa.net>
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:45217 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758451Ab1CCSoO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2011 13:44:14 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: =?iso-8859-15?q?Lo=EFc_Akue?= <akue.loic@gmail.com>
+Subject: Re: Demande de support V4L2
+Date: Thu, 3 Mar 2011 19:44:20 +0100
+Cc: linux-media@vger.kernel.org
+References: <AANLkTinK1MvhNtAKpSwMARZhLNrW+FGLwd9KMcbdwOCa@mail.gmail.com> <201103031838.45988.laurent.pinchart@ideasonboard.com> <AANLkTim_z4NBeuG_s-OzY-JkfbH8pxG2d-ag8i-muDjV@mail.gmail.com>
+In-Reply-To: <AANLkTim_z4NBeuG_s-OzY-JkfbH8pxG2d-ag8i-muDjV@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201103031944.20744.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Andreas Oberritter <obi@linuxtv.org>
-To: Issa Gorissen <flop.m@usa.net>Cc: linux-media@vger.kernel.org,
-rjkm@metzlerbros.de
-Subject: Re: [PATCH] Ngene cam device name
+Hi Loïc,
 
-> On 03/10/2011 04:29 PM, Issa Gorissen wrote:
-> > As the cxd20099 driver is in staging due to abuse of the sec0 device,
-this
-> > patch renames it to cam0. The sec0 device is not in use and can be
-removed
+On Thursday 03 March 2011 18:51:21 Loïc Akue wrote:
+> Thanks you for the reply,
 > 
-> That doesn't solve anything. Besides, your patch doesn't even do what
-> you describe.
+> I already tried to contact the mailing list, but I didn't get the help
+> expected =s I get I just be patient, and keep on trying.
 > 
-> Wouldn't it be possible to extend the current CA API? If not, shouldn't
-> a new API be created that covers both old and new requirements?
-> 
-> It's rather unintuitive that some CAMs appear as ca0, while others as cam0.
-> 
-> If it was that easy to fix, it wouldn't be in staging today.
-> 
-> Regards,
-> Andreas
+> So, according to your answer, the CCDC should be able to provide some YUV
+> data, that I can get on the /dev/video2 node, using the yavta application.
+> Correct me if I'm wrong.
 
+The CCDC is able to handle both YUV and raw Bayer data. YUV data can be saved 
+to memory through the CCDC output video node or forwarded to the resizer. Raw 
+Bayer data can be saved to memory or forwarded to the preview engine.
 
-Yes indeed, this patch is missing the update of dnames arrays in dvbdev.c
+YUV support for the CCDC module is not implemented yet in the ISP driver. The 
+CCDC to resizer link hasn't been tested.
 
-Now, according to Mauro comments, he has put this code into staging because of
-the usage of sec0 name for a cam device.
+8-bit grey data is supported by the ISP driver. It's currently considered by 
+the CCDC as raw Bayer data. As the CCDC doesn't perform Bayer to YUV 
+conversion, you can save 8-bit grey data to memory at the CCDC output. 
+Forwarding 8-bit grey data to the preview engine will work but will produce 
+weird results as the preview engine will process it as raw Bayer data.
 
-Please comment on Oliver's explanations from this thread
+-- 
+Regards,
 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg26901.html
-
-
-Thx
---
-Issa
-
-
-> 
-> > Signed-off-by: Issa Gorissen <flop.m@usa.net>
-> > ---
-> >  drivers/media/dvb/dvb-core/dvbdev.h  |    2 +-
-> >  drivers/media/dvb/ngene/ngene-core.c |    2 +-
-> >  2 files changed, 2 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/media/dvb/dvb-core/dvbdev.h 
-> > b/drivers/media/dvb/dvb-core/dvbdev.h
-> > index fcc6ae9..dcac27d 100644
-> > --- a/drivers/media/dvb/dvb-core/dvbdev.h
-> > +++ b/drivers/media/dvb/dvb-core/dvbdev.h
-> > @@ -40,7 +40,7 @@
-> >  
-> >  #define DVB_DEVICE_VIDEO      0
-> >  #define DVB_DEVICE_AUDIO      1
-> > -#define DVB_DEVICE_SEC        2
-> > +#define DVB_DEVICE_CAM        2
-> >  #define DVB_DEVICE_FRONTEND   3
-> >  #define DVB_DEVICE_DEMUX      4
-> >  #define DVB_DEVICE_DVR        5
-> > diff --git a/drivers/media/dvb/ngene/ngene-core.c 
-> > b/drivers/media/dvb/ngene/ngene-core.c
-> > index 175a0f6..6be2d7c 100644
-> > --- a/drivers/media/dvb/ngene/ngene-core.c
-> > +++ b/drivers/media/dvb/ngene/ngene-core.c
-> > @@ -1523,7 +1523,7 @@ static int init_channel(struct ngene_channel *chan)
-> >                 set_transfer(&chan->dev->channel[2], 1);
-> >                 dvb_register_device(adapter, &chan->ci_dev,
-> >                                     &ngene_dvbdev_ci, (void *) chan,
-> > -                                   DVB_DEVICE_SEC);
-> > +                                   DVB_DEVICE_CAM);
-> >                 if (!chan->ci_dev)
-> >                         goto err;
-> >         }
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
-
+Laurent Pinchart
