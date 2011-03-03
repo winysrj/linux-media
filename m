@@ -1,48 +1,72 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:47786 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753194Ab1CJQ1p (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Mar 2011 11:27:45 -0500
-Received: by qyg14 with SMTP id 14so1590671qyg.19
-        for <linux-media@vger.kernel.org>; Thu, 10 Mar 2011 08:27:44 -0800 (PST)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58094 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753135Ab1CCKKd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2011 05:10:33 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: riverful.kim@samsung.com
+Subject: Re: [RFC PATCH RESEND v2 2/3] v4l2-ctrls: modify uvc driver to use new menu type of V4L2_CID_FOCUS_AUTO
+Date: Thu, 3 Mar 2011 11:10:43 +0100
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"???/Mobile S/W Platform Lab(DMC?)/E4(??)/????"
+	<sw0312.kim@samsung.com>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
+References: <4D6EFA00.80009@samsung.com>
+In-Reply-To: <4D6EFA00.80009@samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <20110310170221.2bc8c2b8@borg.bxl.tuxicoman.be>
-References: <201102280102.17852.malte.gell@gmx.de>
-	<4D6AEC35.8000202@iki.fi>
-	<20110310170221.2bc8c2b8@borg.bxl.tuxicoman.be>
-Date: Thu, 10 Mar 2011 17:27:44 +0100
-Message-ID: <AANLkTin_EOL1SmOJnqSUhVEVAzZs85Z=xV1fJu0KUBj+@mail.gmail.com>
-Subject: Re: Well supported USB DVB-C device?
-From: Markus Rechberger <mrechberger@gmail.com>
-To: Guy Martin <gmsoft@tuxicoman.be>
-Cc: Antti Palosaari <crope@iki.fi>, Malte Gell <malte.gell@gmx.de>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201103031110.44920.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, Mar 10, 2011 at 5:02 PM, Guy Martin <gmsoft@tuxicoman.be> wrote:
-> On Mon, 28 Feb 2011 02:28:37 +0200
-> Antti Palosaari <crope@iki.fi> wrote:
->
->>
->> I am not sure which is status of TT CT-3650, it could be other one
->> which is working.
->>
->
-> The CT-3650 works well. I belive everything works (CI, IR) but DVB-T is
-> not yet implemented on that one.
->
+On Thursday 03 March 2011 03:16:32 Kim, HeungJun wrote:
+> As following to change the boolean type of V4L2_CID_FOCUS_AUTO to menu
+> type, this uvc is modified the usage of V4L2_CID_FOCUS_AUTO, maintaining
+> v4l2 menu index.
+> 
+> Signed-off-by: Heungjun Kim <riverful.kim@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 
-without AC Adapter Sundtek MediaTV Pro (DVB-C, DVB-T, AnalogTV,
-FM-Radio, Composite, S-Video) / Digital Home (DVB-C, DVB-T only),
-supported from Linux 2.6.15 - (any newer System). Full standby after
-15 seconds inactivity. Also supported across many different
-Architectures.
-Driver installation should not take longer than 10 seconds on just
-about any system.
-Some multimedia distributions already ship direct support for it.
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-BR,
-Markus
+> ---
+>  drivers/media/video/uvc/uvc_ctrl.c |    9 ++++++++-
+>  1 files changed, 8 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/uvc/uvc_ctrl.c
+> b/drivers/media/video/uvc/uvc_ctrl.c index 59f8a9a..064827f 100644
+> --- a/drivers/media/video/uvc/uvc_ctrl.c
+> +++ b/drivers/media/video/uvc/uvc_ctrl.c
+> @@ -333,6 +333,11 @@ static struct uvc_menu_info exposure_auto_controls[] =
+> { { 8, "Aperture Priority Mode" },
+>  };
+> 
+> +static struct uvc_menu_info focus_auto_controls[] = {
+> +	{ 0, "Manual Mode" },
+> +	{ 1, "Auto Mode" },
+> +};
+> +
+>  static __s32 uvc_ctrl_get_zoom(struct uvc_control_mapping *mapping,
+>  	__u8 query, const __u8 *data)
+>  {
+> @@ -560,8 +565,10 @@ static struct uvc_control_mapping uvc_ctrl_mappings[]
+> = { .selector	= UVC_CT_FOCUS_AUTO_CONTROL,
+>  		.size		= 1,
+>  		.offset		= 0,
+> -		.v4l2_type	= V4L2_CTRL_TYPE_BOOLEAN,
+> +		.v4l2_type	= V4L2_CTRL_TYPE_MENU,
+>  		.data_type	= UVC_CTRL_DATA_TYPE_BOOLEAN,
+> +		.menu_info	= focus_auto_controls,
+> +		.menu_count	= ARRAY_SIZE(focus_auto_controls),
+>  	},
+>  	{
+>  		.id		= V4L2_CID_IRIS_ABSOLUTE,
+
+-- 
+Regards,
+
+Laurent Pinchart
