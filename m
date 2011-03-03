@@ -1,76 +1,106 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.171]:53606 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933242Ab1CYIcx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Mar 2011 04:32:53 -0400
-Date: Fri, 25 Mar 2011 09:32:49 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Pawel Osciak <pawel@osciak.com>
-Subject: [PATCH] V4L: mx3_camera: implement .stop_streaming()
-Message-ID: <Pine.LNX.4.64.1103250932210.22824@axis700.grange>
+Received: from mail1.matrix-vision.com ([78.47.19.71]:46085 "EHLO
+	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754035Ab1CCQG0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2011 11:06:26 -0500
+Message-ID: <4D6FBC7F.1080500@matrix-vision.de>
+Date: Thu, 03 Mar 2011 17:06:23 +0100
+From: Michael Jones <michael.jones@matrix-vision.de>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	fernando.lugo@ti.com
+CC: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-omap@vger.kernel.org, Hiroshi.DOYU@nokia.com
+Subject: Re: omap3isp cache error when unloading
+References: <4D6D219D.7020605@matrix-vision.de> <201103022018.23446.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201103022018.23446.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The .stop_streaming() videobuf2 operation has to be implemented to
-guarantee, that video buffers are not written to after a STREAMOFF.
+On 03/02/2011 08:18 PM, Laurent Pinchart wrote:
+> Hi Michael,
+> 
+> On Tuesday 01 March 2011 17:41:01 Michael Jones wrote:
+>> Hi all,
+>>
+>> I get a warning about a cache error with the following steps:
+>>
+>> 0. load omap3-isp
+>> 1. set up media broken media pipeline. (e.g. set different formats on
+>> opposite ends of a link, as will be the case for using the lane shifter)
+>> 2. try to capture images.  isp_video_streamon() returns -EPIPE from the
+>> failed isp_video_validate_pipeline() call.
+>> 3. unload omap3-isp module
+>>
+>> then I get the following from kmem_cache_destroy():
+>>
+>> slab error in kmem_cache_destroy(): cache `iovm_area_cache': Can't free all
+>> objects [<c0040318>] (unwind_backtrace+0x0/0xec) from [<c00bfe14>]
+>> (kmem_cache_destroy+0x88/0xf4) [<c00bfe14>] (kmem_cache_destroy+0x88/0xf4)
+>> from [<c00861f8>] (sys_delete_module+0x1c4/0x230) [<c00861f8>]
+>> (sys_delete_module+0x1c4/0x230) from [<c003b680>]
+>> (ret_fast_syscall+0x0/0x30)
+>>
+>> Then, when reloading the module:
+>> SLAB: cache with size 32 has lost its name
+>>
+>> Can somebody else confirm that they also observe this behavior?
+> 
+> I can't reproduce that (tried both 2.6.32 and 2.6.37). Could you give me some 
+> more details about your exact test procedure (such as how you configure the 
+> pipeline) ?
+> 
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Sorry, I should've mentioned: I'm using your media-0005-omap3isp branch
+based on 2.6.38-rc5.  I didn't have the problem with 2.6.37, either.
+It's actually not related to mis-configuring the ISP pipeline like I
+thought at first- it also happens after I have successfully captured images.
+
+I've since tracked down the problem, although I don't understand the
+cache management well enough to be sure it's a proper fix, so hopefully
+some new recipients on this can make suggestions/comments.
+
+The patch below solves the problem, which modifies a commit by Fernando
+Guzman Lugo from December.
+
+-Michael
+
+>From db35fb8edca2a4f8fd37197d77fd58676cb1dcac Mon Sep 17 00:00:00 2001
+From: Michael Jones <michael.jones@matrix-vision.de>
+Date: Thu, 3 Mar 2011 16:50:39 +0100
+Subject: [PATCH] fix iovmm slab cache error on module unload
+
+modify "OMAP: iommu: create new api to set valid da range"
+
+This modifies commit c7f4ab26e3bcdaeb3e19ec658e3ad9092f1a6ceb.
 ---
- drivers/media/video/mx3_camera.c |   30 ++++++++++++++++++++++++++++++
- 1 files changed, 30 insertions(+), 0 deletions(-)
+ arch/arm/plat-omap/iovmm.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
-index 502e2a4..8630c0c 100644
---- a/drivers/media/video/mx3_camera.c
-+++ b/drivers/media/video/mx3_camera.c
-@@ -400,6 +400,35 @@ static int mx3_videobuf_init(struct vb2_buffer *vb)
- 	return 0;
- }
+diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
+index 6dc1296..2fba6f1 100644
+--- a/arch/arm/plat-omap/iovmm.c
++++ b/arch/arm/plat-omap/iovmm.c
+@@ -280,7 +280,10 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
+ 	alignement = PAGE_SIZE;
  
-+static int mx3_stop_streaming(struct vb2_queue *q)
-+{
-+	struct soc_camera_device *icd = soc_camera_from_vb2q(q);
-+	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
-+	struct mx3_camera_dev *mx3_cam = ici->priv;
-+	struct idmac_channel *ichan = mx3_cam->idmac_channel[0];
-+	struct dma_chan *chan;
-+	struct mx3_camera_buffer *buf, *tmp;
-+	unsigned long flags;
-+
-+	if (ichan) {
-+		chan = &ichan->dma_chan;
-+		chan->device->device_control(chan, DMA_TERMINATE_ALL, 0);
-+	}
-+
-+	spin_lock_irqsave(&mx3_cam->lock, flags);
-+
-+	mx3_cam->active = NULL;
-+
-+	list_for_each_entry_safe(buf, tmp, &mx3_cam->capture, queue) {
-+		buf->state = CSI_BUF_NEEDS_INIT;
-+		list_del_init(&buf->queue);
-+	}
-+
-+	spin_unlock_irqrestore(&mx3_cam->lock, flags);
-+
-+	return 0;
-+}
-+
- static struct vb2_ops mx3_videobuf_ops = {
- 	.queue_setup	= mx3_videobuf_setup,
- 	.buf_prepare	= mx3_videobuf_prepare,
-@@ -408,6 +437,7 @@ static struct vb2_ops mx3_videobuf_ops = {
- 	.buf_init	= mx3_videobuf_init,
- 	.wait_prepare	= soc_camera_unlock,
- 	.wait_finish	= soc_camera_lock,
-+	.stop_streaming	= mx3_stop_streaming,
- };
+ 	if (flags & IOVMF_DA_ANON) {
+-		start = obj->da_start;
++		/*
++		 * Reserve the first page for NULL
++		 */
++		start = obj->da_start + PAGE_SIZE;
  
- static int mx3_camera_init_videobuf(struct vb2_queue *q,
+ 		if (flags & IOVMF_LINEAR)
+ 			alignement = iopgsz_max(bytes);
 -- 
-1.7.2.5
+1.7.4.1
 
+
+
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
