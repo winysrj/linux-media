@@ -1,84 +1,120 @@
 Return-path: <mchehab@pedra>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:37143 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752342Ab1COKNL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Mar 2011 06:13:11 -0400
-Date: Tue, 15 Mar 2011 09:53:41 +0000
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: daeinki <inki.dae@samsung.com>
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	k.debski@samsung.com, linux-samsung-soc@vger.kernel.org,
-	Arnd Bergmann <arnd@arndb.de>,
-	=?utf-8?B?6rCV66+86rec?= <mk7.kang@samsung.com>,
+Received: from mailout2.samsung.com ([203.254.224.25]:50296 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759891Ab1CDS4n (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2011 13:56:43 -0500
+Date: Fri, 04 Mar 2011 19:56:35 +0100
+From: Kamil Debski <k.debski@samsung.com>
+Subject: RE: [RFC/PATCH v7 1/5] Changes in include/linux/videodev2.h for MFC 5.1
+In-reply-to: <201103041738.43558.laurent.pinchart@ideasonboard.com>
+To: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
 	Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
-	kgene.kim@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	InKi Dae <daeinki@gmail.com>,
-	KyongHo Cho <pullip.cho@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/7] ARM: Samsung: update/rewrite Samsung SYSMMU (IOMMU)
-	driver
-Message-ID: <20110315095341.GD3921@n2100.arm.linux.org.uk>
-References: <1299229274-9753-4-git-send-email-m.szyprowski@samsung.com> <201103111615.01829.arnd@arndb.de> <000201cbe002$768d9de0$63a8d9a0$%szyprowski@samsung.com> <201103111700.17373.arnd@arndb.de> <AANLkTimagS1vBXEYjXQDx=OGhTRm=n0yO4n+kHTAqBOz@mail.gmail.com> <20110314124652.GF26085@n2100.arm.linux.org.uk> <AANLkTinzBvkcB111UZd2rJ9raaXkh2TqmTw5Y+4WFd48@mail.gmail.com> <20110315083515.GA3921@n2100.arm.linux.org.uk> <4D7F32B2.6020905@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <4D7F32B2.6020905@samsung.com>
+	kyungmin.park@samsung.com, jaeryul.oh@samsung.com,
+	kgene.kim@samsung.com
+Message-id: <005801cbda9d$e5ad94b0$b108be10$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-language: en-gb
+Content-transfer-encoding: 7BIT
+References: <1299237982-31687-1-git-send-email-k.debski@samsung.com>
+ <1299237982-31687-2-git-send-email-k.debski@samsung.com>
+ <201103041738.43558.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, Mar 15, 2011 at 06:34:42PM +0900, daeinki wrote:
-> Russell King - ARM Linux 쓴 글:
->> On Tue, Mar 15, 2011 at 10:45:50AM +0900, InKi Dae wrote:
->>> 2011/3/14 Russell King - ARM Linux <linux@arm.linux.org.uk>:
->>>> On Mon, Mar 14, 2011 at 09:37:51PM +0900, KyongHo Cho wrote:
->>>>> I have also noticed that dma_map_single/page/sg() can map physical
->>>>> memory into an arbitrary device address region.
->>>>> But it is not enough solution for various kinds of IOMMUs.
->>>>> As Kukjin Kim addressed, we need to support larger page size than 4KB
->>>>> because we can reduce TLB miss when we have larger page size.
->>>>>
->>>>> Our IOMMU(system mmu) supports all page size of ARM architecture
->>>>> including 16MB, 1MB, 64KB and 4KB.
->>>>> Since the largest size supported by buddy system of 32-bit architecture is 4MB,
->>>>> our system support all page sizes except 16MB.
->>>>> We proved that larger page size is helpful for DMA performance
->>>>> significantly (more than 10%, approximately).
->>>>> Big page size is not a problem for peripheral devices
->>>>> because their address space is not suffer from external fragmentation.
->>>> 1. dma_map_single() et.al. is used for mapping *system* *RAM* for devices
->>>>   using whatever is necessary.  It must not be used for trying to setup
->>>>   arbitary other mappings.
->>>>
->>>> 2. It doesn't matter where the memory for dma_map_single() et.al. comes
->>>>   from provided the virtual address is a valid system RAM address or
->>>>   the struct page * is a valid struct page in the memory map (iow, you
->>>>   can't create this yourself.)
->>> You mean that we cannot have arbitrary virtual address mapping for
->>> iommu based device?
->>
->> No.  I mean exactly what I said - I'm talking about the DMA API in the
->> above two points.  The implication is that you can not create arbitary
->> mappings of non-system RAM with the DMA API.
->>
-> sorry but I couldn't understand exactly what you said. could you give me  
-> your answer one more time?
-> does non-system RAM mean reserved memory regions? if not, is it  
-> arbitrary virtual address space that isn't kernel or user virtual  
-> address space and is the space for iommu based deivce?
+Hi,
 
-For dma_map_single(dev, addr, size, dir), basically:
+> -----Original Message-----
+> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
+> Sent: 04 March 2011 17:39
+> To: Kamil Debski
+> Cc: linux-media@vger.kernel.org; linux-samsung-soc@vger.kernel.org;
+> m.szyprowski@samsung.com; kyungmin.park@samsung.com;
+> jaeryul.oh@samsung.com; kgene.kim@samsung.com
+> Subject: Re: [RFC/PATCH v7 1/5] Changes in include/linux/videodev2.h
+> for MFC 5.1
+> 
+> On Friday 04 March 2011 12:26:18 Kamil Debski wrote:
+> > This patch adds fourcc values for compressed video stream formats and
+> > V4L2_CTRL_CLASS_CODEC. Also adds controls used by MFC 5.1 driver.
+> >
+> > Signed-off-by: Kamil Debski <k.debski@samsung.com>
+> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> > ---
+> >  include/linux/videodev2.h |   39
+> +++++++++++++++++++++++++++++++++++++++
+> >  1 files changed, 39 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> > index a94c4d5..a48a42e 100644
+> > --- a/include/linux/videodev2.h
+> > +++ b/include/linux/videodev2.h
+> > @@ -369,6 +369,19 @@ struct v4l2_pix_format {
+> >  #define V4L2_PIX_FMT_DV       v4l2_fourcc('d', 'v', 's', 'd') /*
+> 1394 */
+> >  #define V4L2_PIX_FMT_MPEG     v4l2_fourcc('M', 'P', 'E', 'G') /*
+> MPEG-1/2/4 */
+> >
+> > +#define V4L2_PIX_FMT_H264     v4l2_fourcc('H', '2', '6', '4') /*
+> H264 */
+> > +#define V4L2_PIX_FMT_H263     v4l2_fourcc('H', '2', '6', '3') /*
+> H263 */
+> > +#define V4L2_PIX_FMT_MPEG12   v4l2_fourcc('M', 'P', '1', '2') /*
+> MPEG-1/2  */
+> > +#define V4L2_PIX_FMT_MPEG4    v4l2_fourcc('M', 'P', 'G', '4') /*
+> MPEG-4  */
+> > +#define V4L2_PIX_FMT_DIVX     v4l2_fourcc('D', 'I', 'V', 'X') /*
+> DivX  */
+> > +#define V4L2_PIX_FMT_DIVX3    v4l2_fourcc('D', 'I', 'V', '3') /*
+> DivX 3.11 */
+> > +#define V4L2_PIX_FMT_DIVX4    v4l2_fourcc('D', 'I', 'V', '4') /*
+> DivX 4.12 */
+> > +#define V4L2_PIX_FMT_DIVX500  v4l2_fourcc('D', 'X', '5', '2') /*
+> DivX 5.00 - 5.02 */
+> > +#define V4L2_PIX_FMT_DIVX503  v4l2_fourcc('D', 'X', '5', '3') /*
+> DivX 5.03 - x */
+> > +#define V4L2_PIX_FMT_XVID     v4l2_fourcc('X', 'V', 'I', 'D') /*
+> Xvid */
+> > +#define V4L2_PIX_FMT_VC1      v4l2_fourcc('V', 'C', '1', 'A') /* VC-
+> 1 */
+> > +#define V4L2_PIX_FMT_VC1_RCV  v4l2_fourcc('V', 'C', '1', 'R') /* VC-
+> 1 RCV */
+> > +
+> 
+> Hans, you mentioned some time ago that you were against ading H.264 or
+> MPEG4
+> fourccs, and that drivers should use the MPEG controls instead. Could
+> you
+> clarify your current position on this ?
 
-	for (a = addr; a < addr + size; a += PAGE_SIZE)
-		BUG_ON(!virt_addr_valid(a));
+If I remember correct there was no clear conclusion on this. I hope we can
+discuss this
+during the upcoming meeting. 
 
-For dma_map_page(dev, page, offset, size, dir), 'page' must be something
-obtained from one of the page-based kernel allocators (so either refering
-to a page in the *existing* lowmem or highmem memory) _and_ you must not
-use offset/size to then point at something outside that.
+Have you got an alternative suggestion to using fourccs?
 
-So, if you take something out of the kernel's knowledge of what is memory,
-you can't then use the DMA API with it.
+The existing MPEG controls won't cover all the functions and parameters that
+are
+used by video codecs. The controls that are in this patch are the ones
+related to
+decoding, there is even more for encoding.
+
+Yesterday I have been talking with Hans on the IRC channel about the control
+for
+quantization parameters and he has suggested to use different for MPEG4,
+H263 and H264.
+Personally I'd like to have a common one, as the QP meaning is the same in
+those 3
+cases, the difference is the range of the value.
+So I think that this still is a subject that could use more discussion as
+there are
+a few ideas.
+
+Best regards,
+
+-- 
+Kamil Debski
+Linux Platform Group
+Samsung Poland R&D Center
+
