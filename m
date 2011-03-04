@@ -1,193 +1,157 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4396 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751466Ab1CEPUm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Mar 2011 10:20:42 -0500
-Received: from tschai.localnet (105.84-48-119.nextgentel.com [84.48.119.105])
-	(authenticated bits=0)
-	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id p25FKb7w078368
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sat, 5 Mar 2011 16:20:41 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [ANN] First draft of the agenda for the Warsaw meeting
-Date: Sat, 5 Mar 2011 16:20:31 +0100
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:62722 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760195Ab1CDVhy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2011 16:37:54 -0500
+Received: by wyg36 with SMTP id 36so2529524wyg.19
+        for <linux-media@vger.kernel.org>; Fri, 04 Mar 2011 13:37:53 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201103051620.31840.hverkuil@xs4all.nl>
+Date: Fri, 4 Mar 2011 21:37:53 +0000
+Message-ID: <AANLkTi=rcfL_pku9hhx68C_Fb_76KsW2Yy+Oys10a7+4@mail.gmail.com>
+Subject: [patch] Fix AF9015 Dual tuner i2c write failures
+From: Andrew de Quincey <adq_dvb@lidskialf.net>
+To: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=00151759366c5e3570049daef5ba
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi all!
+--00151759366c5e3570049daef5ba
+Content-Type: text/plain; charset=ISO-8859-1
 
-Here is the first draft of the agenda for the Warsaw meeting. Next weekend
-I'll prepare the final version.
+Hi, this has been annoying me for some time, so this evening I fixed
+it. If you use one of the above dual tuner devices (e.g. KWorld 399U),
+you get random tuning failures and i2c errors reported in dmesg such
+as:
 
-Please let me know any changes to/errors in the attendee list!
+af9013: I2C read failed reg:d607
+af9015: command failed:1
+mxl5005s I2C write failed
+af9015: command failed:1
+mxl5005s I2C write failed
+af9015: command failed:2
+af9013: I2C read failed reg:d607
+af9015: command failed:2
+af9013: I2C read failed reg:d607
 
-I tried to order the agenda so we start gently (I hope!) and mix large and
-small items.
+Looking at the large comment in dvb-usb/af9015.c/af9015_i2c_xfer() it
+seems the dual demods/tuners have the same i2c addresses and are
+switched by an i2c gate. Since the two show up as separate DVB
+devices, and there is no synchronisation of i2c accesses, its fairly
+obvious the problem is because both tuners are being written to at the
+same time, which is mucking up the i2c gate. I tested this with two
+scripts on my development machine:
 
-I tried to name the main 'proponents' or 'stakeholders' for each item. Let
-me know if I am missing someone.
+while [ 1 ];
+do
+        scan -a 0 /usr/share/dvb/dvb-t/uk-Craigkelly
+done
 
-For each item I added links to mailinglist discussions. I'm sure I'm missing
-links, so please let me know and I'll add it to the final agenda.
+AND
 
-If there are items missing, let me know as well. Although I suspect there
-won't be time for anything complicated.
-
-	Hans
-
-
-Draft Agenda for V4L2 brainstorm meeting in Warsaw, March 16-18 2011.
-=====================================================================
-
-Purpose of the meeting: to brainstorm about current V4L2 API limitations
-with regards to required functionality. Ideally the results of the meeting
-are actual solutions to these problems, but at the very least we should
-have a concensus of what direction to take and who will continue working
-on each problem. The hope is that this meeting will save us endless email
-and irc discussions.
-
-It is *not* a summit meeting, so any conclusions need to be discussed and
-approved on the mailinglist.
-
-The basic outline is the same as during previous meetings: the first day we
-go through all the agenda points and make sure everyone understands the
-problem. Smaller issues will be discussed and decided, more complex issues
-are just discussed.
-
-The second day we go in depth into the complex issues and try to come up with
-ideas that might work. The last day we translate the all agenda items into
-actions.
-
-This approach worked well in the past and it ensures that we end up with
-something concrete.
-
-Those who have a vested interest in an agenda item should be prepared to
-explain their take on it and if necessary have a presentation ready.
-
-Besides the main agenda I also added a few items falling under the category
-'if time permits'.
-
-Attendees:
-
-Samsung Poland R&D Center:
-  Kamil Debski
-  Sylwester Nawrocki
-  Tomasz Stanislawski
-  Marek Szyprowski (Organizer)
-
-Cisco Systems Norway:
-  Martin Bugge
-  Hans Verkuil (Chair)
-
-Nokia:
-  Sakari Ailus
-
-Ideas On Board:
-  Laurent Pinchart
-
-ST-Ericsson:
-  Willy Poisson
-
-Samsung Korea (is this correct?):
-  Jonghun Han
-  Jaeryul Oh
-
-Freelance:
-  Guennadi Liakhovetski
+while [ 1 ];
+do
+        scan -a 1 /usr/share/dvb/dvb-t/uk-Craigkelly
+done
 
 
-Agenda:
+If I run only one at a time, it works perfectly. Run two, and I start
+to see errors.
 
-1) Compressed format API for MPEG, H.264, etc. Also need to discuss what to
-   do with weird 'H.264 inside MJPEG' muxed formats.
-   (Hans, Laurent, Samsung)
+Adding a "bus lock" to af9015_i2c_xfer() will not work as demod/tuner
+accesses will take multiple i2c transactions.
 
-2) Subdev architecture enhancements:
-	- Acquiring subdevs from other devices using subdev pool
-	  http://www.mail-archive.com/linux-media@vger.kernel.org/msg21831.html
-	- Introducing subdev hierarchy. Below there is a link to driver using it:
-	  http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/28885/focus=28890
-   (Tomasz)
+Therefore, the following patch overrides the dvb_frontend_ops
+functions to add a per-device lock around them: only one frontend can
+now use the i2c bus at a time. Testing with the scripts above shows
+this has eliminated the errors.
 
-3) Entity information ioctl
+Signed-off-by: Andrew de Quincey <adq_dvb@lidskialf.net>
 
-   (Laurent)
+--00151759366c5e3570049daef5ba
+Content-Type: text/x-patch; charset=US-ASCII; name="af9015-fix-dual-tuner-v1.patch"
+Content-Disposition: attachment; filename="af9015-fix-dual-tuner-v1.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gkvmk2w52
 
-4) Pipeline configuration, cropping and scaling:
-
-   http://www.mail-archive.com/linux-media@vger.kernel.org/msg27956.html
-   http://www.mail-archive.com/linux-media@vger.kernel.org/msg26630.html
-
-   (Everyone)
-
-5) HDMI receiver/transmitter API support
-
-   Some hotplug/CEC code can be found here:
-
-   http://www.mail-archive.com/linux-media@vger.kernel.org/msg28549.html
-
-   CEC RFC from Cisco Systems Norway:
-
-   http://www.mail-archive.com/linux-media@vger.kernel.org/msg28735.html
-
-   (Martin, Hans, Samsung, ST-Ericsson)
-
-6) Sensor/Flash/Snapshot functionality.
-
-   http://www.mail-archive.com/linux-media@vger.kernel.org/msg28192.html
-   http://www.mail-archive.com/linux-media@vger.kernel.org/msg28490.html
-
-   - Sensor blanking/pixel-clock/frame-rate settings (including 
-     enumeration/discovery)
-
-   - Multiple video buffer queues per device (currently implemented in the
-     OMAP 3 ISP driver in non-standard way).
-
-   - Synchronising parameters (e.g. exposure time and gain) on given
-     frames. Some sensors support this on hardware. There are many use cases
-     which benefit from this, for example this one:
-
-     <URL:http://fcam.garage.maemo.org/>
-
-   - Flash synchronisation (might fall under the above topic).
-
-   - Frame metadata. It is important for the control algorithms (exposure,
-     white balance, for example), to know which sensor settings have been
-     used to expose a given frame. Many sensors do support this. Do we want
-     to parse this in the kernel or does it belong to user space? The
-     metadata formats are mostly sensor dependent.
-
-   (Everyone)
-
-
-Items 4 and 6 are 'the big ones'. Past experience indicates that we can't go
-through all items on the first day and so I expect that item 6 (and perhaps
-even 5) will have to move to the second day.
-
-
-If time permits, then we can also look at these items:
-
-A) Buffer Pool (HWMEM, GEM, CMA)
-   (ST-Ericsson, Samsung)
-
-B) Use of V4L2 as a frontend for SW/DSP codecs
-   (Laurent)
-
-The reason I put these items here is that I think that these are not quite as
-urgent as the others, and given that we only have three days we have to make
-a choice. I also think that these items are probably worth a full three-day
-meeting all by themselves.
-
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+ZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvYWY5MDE1LmMgYi9kcml2ZXJz
+L21lZGlhL2R2Yi9kdmItdXNiL2FmOTAxNS5jCmluZGV4IDMxYzBhMGUuLjc0MGQ5NjkgMTAwNjQ0
+Ci0tLSBhL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvYWY5MDE1LmMKKysrIGIvZHJpdmVycy9t
+ZWRpYS9kdmIvZHZiLXVzYi9hZjkwMTUuYwpAQCAtMTA4Myw2ICsxMDgzLDEwNCBAQCBzdGF0aWMg
+aW50IGFmOTAxNV9pMmNfaW5pdChzdHJ1Y3QgZHZiX3VzYl9kZXZpY2UgKmQpCiAJcmV0dXJuIHJl
+dDsKIH0KIAorc3RhdGljIGludCBhZjkwMTVfbG9ja19zZXRfZnJvbnRlbmQoc3RydWN0IGR2Yl9m
+cm9udGVuZCogZmUsIHN0cnVjdCBkdmJfZnJvbnRlbmRfcGFyYW1ldGVycyogcGFyYW1zKQorewor
+CWludCByZXN1bHQ7CisJc3RydWN0IGR2Yl91c2JfYWRhcHRlciAqYWRhcCA9IGZlLT5kdmItPnBy
+aXY7CisJc3RydWN0IGFmOTAxNV9zdGF0ZSAqc3RhdGUgPSBhZGFwLT5kZXYtPnByaXY7CisKKwlp
+ZiAobXV0ZXhfbG9ja19pbnRlcnJ1cHRpYmxlKCZhZGFwLT5kZXYtPnVzYl9tdXRleCkpCisJCXJl
+dHVybiAtRUFHQUlOOworCisJcmVzdWx0ID0gc3RhdGUtPmZlX29wc1thZGFwLT5pZF0uc2V0X2Zy
+b250ZW5kKGZlLCBwYXJhbXMpOworCW11dGV4X3VubG9jaygmYWRhcC0+ZGV2LT51c2JfbXV0ZXgp
+OworCXJldHVybiByZXN1bHQ7Cit9CisgICAgICAgICAgICAgICAgCitzdGF0aWMgaW50IGFmOTAx
+NV9sb2NrX2dldF9mcm9udGVuZChzdHJ1Y3QgZHZiX2Zyb250ZW5kKiBmZSwgc3RydWN0IGR2Yl9m
+cm9udGVuZF9wYXJhbWV0ZXJzKiBwYXJhbXMpCit7CisJaW50IHJlc3VsdDsKKwlzdHJ1Y3QgZHZi
+X3VzYl9hZGFwdGVyICphZGFwID0gZmUtPmR2Yi0+cHJpdjsKKwlzdHJ1Y3QgYWY5MDE1X3N0YXRl
+ICpzdGF0ZSA9IGFkYXAtPmRldi0+cHJpdjsKKworCWlmIChtdXRleF9sb2NrX2ludGVycnVwdGli
+bGUoJmFkYXAtPmRldi0+dXNiX211dGV4KSkKKwkJcmV0dXJuIC1FQUdBSU47CisKKwlyZXN1bHQg
+PSBzdGF0ZS0+ZmVfb3BzW2FkYXAtPmlkXS5nZXRfZnJvbnRlbmQoZmUsIHBhcmFtcyk7CisJbXV0
+ZXhfdW5sb2NrKCZhZGFwLT5kZXYtPnVzYl9tdXRleCk7CisJcmV0dXJuIHJlc3VsdDsKK30KKyAg
+ICAgICAgICAgICAgICAgICAgICAgIAorc3RhdGljIGludCBhZjkwMTVfbG9ja19yZWFkX3N0YXR1
+cyhzdHJ1Y3QgZHZiX2Zyb250ZW5kKiBmZSwgZmVfc3RhdHVzX3QqIHN0YXR1cykKK3sKKwlpbnQg
+cmVzdWx0OworCXN0cnVjdCBkdmJfdXNiX2FkYXB0ZXIgKmFkYXAgPSBmZS0+ZHZiLT5wcml2Owor
+CXN0cnVjdCBhZjkwMTVfc3RhdGUgKnN0YXRlID0gYWRhcC0+ZGV2LT5wcml2OworCisJaWYgKG11
+dGV4X2xvY2tfaW50ZXJydXB0aWJsZSgmYWRhcC0+ZGV2LT51c2JfbXV0ZXgpKQorCQlyZXR1cm4g
+LUVBR0FJTjsKKworCXJlc3VsdCA9IHN0YXRlLT5mZV9vcHNbYWRhcC0+aWRdLnJlYWRfc3RhdHVz
+KGZlLCBzdGF0dXMpOworCW11dGV4X3VubG9jaygmYWRhcC0+ZGV2LT51c2JfbXV0ZXgpOworCXJl
+dHVybiByZXN1bHQ7Cit9CisKK3N0YXRpYyBpbnQgYWY5MDE1X2xvY2tfcmVhZF9iZXIoc3RydWN0
+IGR2Yl9mcm9udGVuZCogZmUsIHUzMiogYmVyKQoreworCWludCByZXN1bHQ7CisJc3RydWN0IGR2
+Yl91c2JfYWRhcHRlciAqYWRhcCA9IGZlLT5kdmItPnByaXY7CisJc3RydWN0IGFmOTAxNV9zdGF0
+ZSAqc3RhdGUgPSBhZGFwLT5kZXYtPnByaXY7CisKKwlpZiAobXV0ZXhfbG9ja19pbnRlcnJ1cHRp
+YmxlKCZhZGFwLT5kZXYtPnVzYl9tdXRleCkpCisJCXJldHVybiAtRUFHQUlOOworCisJcmVzdWx0
+ID0gc3RhdGUtPmZlX29wc1thZGFwLT5pZF0ucmVhZF9iZXIoZmUsIGJlcik7CisJbXV0ZXhfdW5s
+b2NrKCZhZGFwLT5kZXYtPnVzYl9tdXRleCk7CisJcmV0dXJuIHJlc3VsdDsKK30KKworc3RhdGlj
+IGludCBhZjkwMTVfbG9ja19yZWFkX3NpZ25hbF9zdHJlbmd0aChzdHJ1Y3QgZHZiX2Zyb250ZW5k
+KiBmZSwgdTE2KiBzdHJlbmd0aCkKK3sKKwlpbnQgcmVzdWx0OworCXN0cnVjdCBkdmJfdXNiX2Fk
+YXB0ZXIgKmFkYXAgPSBmZS0+ZHZiLT5wcml2OworCXN0cnVjdCBhZjkwMTVfc3RhdGUgKnN0YXRl
+ID0gYWRhcC0+ZGV2LT5wcml2OworCisJaWYgKG11dGV4X2xvY2tfaW50ZXJydXB0aWJsZSgmYWRh
+cC0+ZGV2LT51c2JfbXV0ZXgpKQorCQlyZXR1cm4gLUVBR0FJTjsKKworCXJlc3VsdCA9IHN0YXRl
+LT5mZV9vcHNbYWRhcC0+aWRdLnJlYWRfc2lnbmFsX3N0cmVuZ3RoKGZlLCBzdHJlbmd0aCk7CisJ
+bXV0ZXhfdW5sb2NrKCZhZGFwLT5kZXYtPnVzYl9tdXRleCk7CisJcmV0dXJuIHJlc3VsdDsKK30K
+Kworc3RhdGljIGludCBhZjkwMTVfbG9ja19yZWFkX3NucihzdHJ1Y3QgZHZiX2Zyb250ZW5kKiBm
+ZSwgdTE2KiBzbnIpCit7CisJaW50IHJlc3VsdDsKKwlzdHJ1Y3QgZHZiX3VzYl9hZGFwdGVyICph
+ZGFwID0gZmUtPmR2Yi0+cHJpdjsKKwlzdHJ1Y3QgYWY5MDE1X3N0YXRlICpzdGF0ZSA9IGFkYXAt
+PmRldi0+cHJpdjsKKworCWlmIChtdXRleF9sb2NrX2ludGVycnVwdGlibGUoJmFkYXAtPmRldi0+
+dXNiX211dGV4KSkKKwkJcmV0dXJuIC1FQUdBSU47CisKKwlyZXN1bHQgPSBzdGF0ZS0+ZmVfb3Bz
+W2FkYXAtPmlkXS5yZWFkX3NucihmZSwgc25yKTsKKwltdXRleF91bmxvY2soJmFkYXAtPmRldi0+
+dXNiX211dGV4KTsKKwlyZXR1cm4gcmVzdWx0OworfQorCitzdGF0aWMgaW50IGFmOTAxNV9sb2Nr
+X3JlYWRfdWNibG9ja3Moc3RydWN0IGR2Yl9mcm9udGVuZCogZmUsIHUzMiogdWNibG9ja3MpCit7
+CisJaW50IHJlc3VsdDsKKwlzdHJ1Y3QgZHZiX3VzYl9hZGFwdGVyICphZGFwID0gZmUtPmR2Yi0+
+cHJpdjsKKwlzdHJ1Y3QgYWY5MDE1X3N0YXRlICpzdGF0ZSA9IGFkYXAtPmRldi0+cHJpdjsKKwor
+CWlmIChtdXRleF9sb2NrX2ludGVycnVwdGlibGUoJmFkYXAtPmRldi0+dXNiX211dGV4KSkKKwkJ
+cmV0dXJuIC1FQUdBSU47CisKKwlyZXN1bHQgPSBzdGF0ZS0+ZmVfb3BzW2FkYXAtPmlkXS5yZWFk
+X3VjYmxvY2tzKGZlLCB1Y2Jsb2Nrcyk7CisJbXV0ZXhfdW5sb2NrKCZhZGFwLT5kZXYtPnVzYl9t
+dXRleCk7CisJcmV0dXJuIHJlc3VsdDsKK30KKwogc3RhdGljIGludCBhZjkwMTVfYWY5MDEzX2Zy
+b250ZW5kX2F0dGFjaChzdHJ1Y3QgZHZiX3VzYl9hZGFwdGVyICphZGFwKQogewogCWludCByZXQ7
+CkBAIC0xMTE2LDYgKzEyMTQsMjIgQEAgc3RhdGljIGludCBhZjkwMTVfYWY5MDEzX2Zyb250ZW5k
+X2F0dGFjaChzdHJ1Y3QgZHZiX3VzYl9hZGFwdGVyICphZGFwKQogCS8qIGF0dGFjaCBkZW1vZHVs
+YXRvciAqLwogCWFkYXAtPmZlID0gZHZiX2F0dGFjaChhZjkwMTNfYXR0YWNoLCAmYWY5MDE1X2Fm
+OTAxM19jb25maWdbYWRhcC0+aWRdLAogCQlpMmNfYWRhcCk7CisJCQorCW1lbWNweSgmc3RhdGUt
+PmZlX29wc1thZGFwLT5pZF0sICZhZGFwLT5mZS0+b3BzLCBzaXplb2Yoc3RydWN0IGR2Yl9mcm9u
+dGVuZF9vcHMpKTsKKwlpZiAoYWRhcC0+ZmUtPm9wcy5zZXRfZnJvbnRlbmQpCisJCWFkYXAtPmZl
+LT5vcHMuc2V0X2Zyb250ZW5kID0gYWY5MDE1X2xvY2tfc2V0X2Zyb250ZW5kOworCWlmIChhZGFw
+LT5mZS0+b3BzLmdldF9mcm9udGVuZCkKKwkJYWRhcC0+ZmUtPm9wcy5nZXRfZnJvbnRlbmQgPSBh
+ZjkwMTVfbG9ja19nZXRfZnJvbnRlbmQ7CisJaWYgKGFkYXAtPmZlLT5vcHMucmVhZF9zdGF0dXMp
+CisJCWFkYXAtPmZlLT5vcHMucmVhZF9zdGF0dXMgPSBhZjkwMTVfbG9ja19yZWFkX3N0YXR1czsK
+KwlpZiAoYWRhcC0+ZmUtPm9wcy5yZWFkX2JlcikKKwkJYWRhcC0+ZmUtPm9wcy5yZWFkX2JlciA9
+IGFmOTAxNV9sb2NrX3JlYWRfYmVyOworCWlmIChhZGFwLT5mZS0+b3BzLnJlYWRfc2lnbmFsX3N0
+cmVuZ3RoKQorCQlhZGFwLT5mZS0+b3BzLnJlYWRfc2lnbmFsX3N0cmVuZ3RoID0gYWY5MDE1X2xv
+Y2tfcmVhZF9zaWduYWxfc3RyZW5ndGg7CisJaWYgKGFkYXAtPmZlLT5vcHMucmVhZF9zbnIpCisJ
+CWFkYXAtPmZlLT5vcHMucmVhZF9zbnIgPSBhZjkwMTVfbG9ja19yZWFkX3NucjsKKwlpZiAoYWRh
+cC0+ZmUtPm9wcy5yZWFkX3VjYmxvY2tzKQorCQlhZGFwLT5mZS0+b3BzLnJlYWRfdWNibG9ja3Mg
+PSBhZjkwMTVfbG9ja19yZWFkX3VjYmxvY2tzOwogCiAJcmV0dXJuIGFkYXAtPmZlID09IE5VTEwg
+PyAtRU5PREVWIDogMDsKIH0KZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2Iv
+YWY5MDE1LmggYi9kcml2ZXJzL21lZGlhL2R2Yi9kdmItdXNiL2FmOTAxNS5oCmluZGV4IGYyMGNm
+YTYuLjc1OWJiM2YgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvYWY5MDE1
+LmgKKysrIGIvZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9hZjkwMTUuaApAQCAtMTAyLDYgKzEw
+Miw3IEBAIHN0cnVjdCBhZjkwMTVfc3RhdGUgewogCXN0cnVjdCBpMmNfYWRhcHRlciBpMmNfYWRh
+cDsgLyogSTJDIGFkYXB0ZXIgZm9yIDJuZCBGRSAqLwogCXU4IHJjX3JlcGVhdDsKIAl1MzIgcmNf
+a2V5Y29kZTsKKwlzdHJ1Y3QgZHZiX2Zyb250ZW5kX29wcyBmZV9vcHNbMl07CiB9OwogCiBzdHJ1
+Y3QgYWY5MDE1X2NvbmZpZyB7Cg==
+--00151759366c5e3570049daef5ba--
