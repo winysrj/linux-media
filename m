@@ -1,69 +1,77 @@
 Return-path: <mchehab@pedra>
-Received: from mail1.matrix-vision.com ([78.47.19.71]:47477 "EHLO
-	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751770Ab1CKIF7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Mar 2011 03:05:59 -0500
-From: Michael Jones <michael.jones@matrix-vision.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH v3 0/4] OMAP3-ISP lane shifter support
-Date: Fri, 11 Mar 2011 09:05:45 +0100
-Message-Id: <1299830749-7269-1-git-send-email-michael.jones@matrix-vision.de>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:41132 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758463Ab1CDNM1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2011 08:12:27 -0500
+MIME-Version: 1.0
+In-Reply-To: <4D6FBC7F.1080500@matrix-vision.de>
+References: <4D6D219D.7020605@matrix-vision.de>
+	<201103022018.23446.laurent.pinchart@ideasonboard.com>
+	<4D6FBC7F.1080500@matrix-vision.de>
+Date: Fri, 4 Mar 2011 15:12:26 +0200
+Message-ID: <AANLkTikAKy=CzTqEv-UGBQ1EavqmCStPNFZ5vs7vH5VK@mail.gmail.com>
+Subject: Re: omap3isp cache error when unloading
+From: David Cohen <dacohen@gmail.com>
+To: Michael Jones <michael.jones@matrix-vision.de>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	fernando.lugo@ti.com,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-omap@vger.kernel.org, Hiroshi.DOYU@nokia.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Add support for the ISP's lane shifter.  To use the shifter, set different
-pixel formats at each end of the link at the CCDC input.
+Hi,
 
-This has only been tested shifting Y12 and SBGGR12 from a parallel sensor to Y8
-and SBGGR8 (respectively) at the CCDC input.  Support has also been added for
-other formats and other shifting values, but is untested.  Shifting data coming
-from one of the serial sensor interfaces (CSI2a, etc) is also untested.
+[snip]
 
-As before, ccdc_try_format() does not check that the format at its input is
-compatible with the format coming from the sensor interface. This consistency
-check is first done when activating the pipeline.
+> Sorry, I should've mentioned: I'm using your media-0005-omap3isp branch
+> based on 2.6.38-rc5.  I didn't have the problem with 2.6.37, either.
+> It's actually not related to mis-configuring the ISP pipeline like I
+> thought at first- it also happens after I have successfully captured images.
+>
+> I've since tracked down the problem, although I don't understand the
+> cache management well enough to be sure it's a proper fix, so hopefully
+> some new recipients on this can make suggestions/comments.
+>
+> The patch below solves the problem, which modifies a commit by Fernando
+> Guzman Lugo from December.
+>
+> -Michael
+>
+> From db35fb8edca2a4f8fd37197d77fd58676cb1dcac Mon Sep 17 00:00:00 2001
+> From: Michael Jones <michael.jones@matrix-vision.de>
+> Date: Thu, 3 Mar 2011 16:50:39 +0100
+> Subject: [PATCH] fix iovmm slab cache error on module unload
+>
+> modify "OMAP: iommu: create new api to set valid da range"
+>
+> This modifies commit c7f4ab26e3bcdaeb3e19ec658e3ad9092f1a6ceb.
+> ---
+>  arch/arm/plat-omap/iovmm.c |    5 ++++-
+>  1 files changed, 4 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
+> index 6dc1296..2fba6f1 100644
+> --- a/arch/arm/plat-omap/iovmm.c
+> +++ b/arch/arm/plat-omap/iovmm.c
+> @@ -280,7 +280,10 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
+>        alignement = PAGE_SIZE;
+>
+>        if (flags & IOVMF_DA_ANON) {
+> -               start = obj->da_start;
+> +               /*
+> +                * Reserve the first page for NULL
+> +                */
+> +               start = obj->da_start + PAGE_SIZE;
 
-These patches apply to Laurent's media-0005-omap3isp branch, based on 2.6.38-rc5
+IMO if obj->da_start != 0, no need to add PAGE_SIZE. Otherwise, it
+does make sense to correct wrong obj->da_start == 0. Another thing is
+this piece of code is using alignement (alignment) variable instead of
+PAGE_SIZE (which is the same value).
 
-Changes since v2:
--new formats are also added to Documentation/DocBook/v4l/
--reintroduce .data_lane_shift for sensors whose LSB is not aligned with
- sensor interfaces's LSB.
--style changes according to feedback
+Br,
 
-Changes since v1:
--added support for remaining 8-bit Bayer formats (SGBRG8_1X8 & SRGGB8_1X8)
--moved omap3isp_is_shiftable() from isp.c to ispvideo.c and return bool
--moved 'shift' calculation from omap3isp_configure_bridge() to ccdc_configure()
--added 'shift' arg to omap3isp_configure_bridge()
--misc minor changes according to feedback (removed unnecessary tests, etc.)
-
-Michael Jones (4):
-  v4l: add V4L2_PIX_FMT_Y12 format
-  media: add 8-bit bayer formats and Y12
-  omap3isp: ccdc: support Y10/12, 8-bit bayer fmts
-  omap3isp: lane shifter support
-
- Documentation/DocBook/v4l/pixfmt-y12.xml     |   79 +++++++++++++++++++
- Documentation/DocBook/v4l/subdev-formats.xml |   59 ++++++++++++++
- drivers/media/video/omap3-isp/isp.c          |    7 +-
- drivers/media/video/omap3-isp/isp.h          |    5 +-
- drivers/media/video/omap3-isp/ispccdc.c      |   33 +++++++-
- drivers/media/video/omap3-isp/ispvideo.c     |  108 ++++++++++++++++++++++----
- drivers/media/video/omap3-isp/ispvideo.h     |    3 +
- include/linux/v4l2-mediabus.h                |    7 +-
- include/linux/videodev2.h                    |    1 +
- 9 files changed, 276 insertions(+), 26 deletions(-)
- create mode 100644 Documentation/DocBook/v4l/pixfmt-y12.xml
-
--- 
-1.7.4.1
-
-
-MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
-Registergericht: Amtsgericht Stuttgart, HRB 271090
-Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
+David
