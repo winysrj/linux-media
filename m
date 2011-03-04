@@ -1,59 +1,75 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:35393 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756932Ab1CRUUt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Mar 2011 16:20:49 -0400
-Received: by fxm17 with SMTP id 17so4060002fxm.19
-        for <linux-media@vger.kernel.org>; Fri, 18 Mar 2011 13:20:48 -0700 (PDT)
-Message-ID: <4D83BE9B.6080600@gmail.com>
-Date: Fri, 18 Mar 2011 21:20:43 +0100
-From: Martin Vidovic <xtronom@gmail.com>
-MIME-Version: 1.0
-To: Issa Gorissen <flop.m@usa.net>
-CC: linux-media@vger.kernel.org, o.endriss@gmx.de
-Subject: Re: [PATCH] Ngene cam device name
-References: <alpine.LNX.2.00.1103101608030.9782@hp8540w.home> <4D7A97BB.4020704@gmail.com> <4D7B7524.2050108@linuxtv.org> <201103130042.49199@orion.escape-edv.de> <4D7CA0CC.8090308@gmail.com> <4D81348D.2070803@usa.net>
-In-Reply-To: <4D81348D.2070803@usa.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:34130 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759241Ab1CDKxM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2011 05:53:12 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=ISO-8859-1
+Date: Fri, 04 Mar 2011 11:53:09 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [GIT PULL FOR 2.6.39] s5p-fimc driver and videobuf2 fixes
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-samsung-soc@vger.kernel.org
+Message-id: <4D70C495.5000200@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Issa Gorissen wrote:
-> On 13/03/11 11:47, Martin Vidovic wrote:
->   
->>> Btw, we should choose a more meaningful name for 'camX'.
->>> I would prefer something like cainoutX or caioX or cinoutX or cioX.
->>>   
->>>       
->> I agree, camX could be misleading since it's not necessarily a CAM
->> application.
->>
->> According to EN 50221 the two interfaces are named Command Interface
->> (for caX)
->> and Transport Stream Interface (for camX). Then maybe 'tsiX' would be
->> an appropriate
->> name?
->>
->> Anyway, 'cioX' sounds good too.
->>     
->
-> I'll prepare the patch with caio (for conditional access I/O) if all
-> agrees on it. tsi is a good candidate as it perfectly matches the
-> standard specification, but then, ca should have been ci...
->
-> --
-> Issa
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->   
-Fine with me, as long as the name is stable.
+Hi Mauro,
 
-However, these issues still bother me:
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg29022.html
+please pull the following change set, it's a couple of s5p-fimc driver
+fixes and updates after conversion to videobuf2. There are also two small
+corrections for the videobuf2 and documentation for NV12MT format.
+
+
+The following changes since commit 548b491f5a3221e26c0b08dece18fdc62930fe5e:
+
+  [media] media/radio/wl1273: fix build errors (2011-02-27 21:36:52 -0300)
+
+are available in the git repository at:
+  git://git.infradead.org/users/kmpark/linux-2.6-samsung s5p_fimc_for_mauro
+
+Andrzej Pietrasiewicz (1):
+      v4l2: vb2-dma-sg: fix memory leak
+
+Kamil Debski (1):
+      v4l: Documentation for the NV12MT format
+
+Marek Szyprowski (1):
+      v4l2: vb2: fix queue reallocation and REQBUFS(0) case
+
+Sungchun Kang (1):
+      s5p-fimc: fix ISR and buffer handling for fimc-capture
+
+Sylwester Nawrocki (6):
+      s5p-fimc: Prevent oops when i2c adapter is not available
+      s5p-fimc: Prevent hanging on device close and fix the locking
+      s5p-fimc: Allow defining number of sensors at runtime
+      s5p-fimc: Add a platform data entry for MIPI-CSI data alignment
+      s5p-fimc: Use dynamic debug
+      s5p-fimc: Fix G_FMT ioctl handler
+
+ Documentation/DocBook/media-entities.tmpl    |    1 +
+ Documentation/DocBook/v4l/nv12mt.gif         |  Bin 0 -> 2108 bytes
+ Documentation/DocBook/v4l/nv12mt_example.gif |  Bin 0 -> 6858 bytes
+ Documentation/DocBook/v4l/pixfmt-nv12mt.xml  |   74 +++++++
+ Documentation/DocBook/v4l/pixfmt.xml         |    1 +
+ drivers/media/video/s5p-fimc/fimc-capture.c  |   99 ++++------
+ drivers/media/video/s5p-fimc/fimc-core.c     |  266 ++++++++++++++------------
+ drivers/media/video/s5p-fimc/fimc-core.h     |   50 ++++--
+ drivers/media/video/s5p-fimc/fimc-reg.c      |    6 +-
+ drivers/media/video/videobuf2-core.c         |    9 +-
+ drivers/media/video/videobuf2-dma-sg.c       |    2 +
+ include/media/s5p_fimc.h                     |    9 +-
+ 12 files changed, 307 insertions(+), 210 deletions(-)
+ create mode 100644 Documentation/DocBook/v4l/nv12mt.gif
+ create mode 100644 Documentation/DocBook/v4l/nv12mt_example.gif
+ create mode 100644 Documentation/DocBook/v4l/pixfmt-nv12mt.xml
 
 Regards,
-Martin
+Sylwester
+
+-- 
+Sylwester Nawrocki
+Samsung Poland R&D Center
