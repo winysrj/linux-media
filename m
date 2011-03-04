@@ -1,81 +1,116 @@
 Return-path: <mchehab@pedra>
-Received: from smtp205.alice.it ([82.57.200.101]:57825 "EHLO smtp205.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752063Ab1CKLQM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Mar 2011 06:16:12 -0500
-Date: Fri, 11 Mar 2011 12:15:45 +0100
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: Michael Jones <michael.jones@matrix-vision.de>
+Received: from mail-ww0-f42.google.com ([74.125.82.42]:56927 "EHLO
+	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759662Ab1CDQts convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2011 11:49:48 -0500
+MIME-Version: 1.0
+In-Reply-To: <AANLkTinSJpjPXWHWduLbRSmb=La3sv82ufwgsq-uR7S2@mail.gmail.com>
+References: <4D6D219D.7020605@matrix-vision.de>
+	<201103022018.23446.laurent.pinchart@ideasonboard.com>
+	<4D6FBC7F.1080500@matrix-vision.de>
+	<AANLkTikAKy=CzTqEv-UGBQ1EavqmCStPNFZ5vs7vH5VK@mail.gmail.com>
+	<4D70F985.8030902@matrix-vision.de>
+	<AANLkTinSJpjPXWHWduLbRSmb=La3sv82ufwgsq-uR7S2@mail.gmail.com>
+Date: Fri, 4 Mar 2011 18:49:46 +0200
+Message-ID: <AANLkTi=8Sss-5xfgPmgx=J_T__=hrC1rQU-xBOdKC8Ve@mail.gmail.com>
+Subject: Re: omap3isp cache error when unloading
+From: David Cohen <dacohen@gmail.com>
+To: Michael Jones <michael.jones@matrix-vision.de>,
+	Hiroshi.DOYU@nokia.com
 Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org,
+	fernando.lugo@ti.com,
 	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v3 1/4] v4l: add V4L2_PIX_FMT_Y12 format
-Message-Id: <20110311121545.ddd50947.ospite@studenti.unina.it>
-In-Reply-To: <4D79ED80.3070508@matrix-vision.de>
-References: <1299830749-7269-1-git-send-email-michael.jones@matrix-vision.de>
-	<1299830749-7269-2-git-send-email-michael.jones@matrix-vision.de>
-	<20110311102100.b6faa55a.ospite@studenti.unina.it>
-	<4D79ED80.3070508@matrix-vision.de>
-Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Fri__11_Mar_2011_12_15_45_+0100_K3N5MRAncLcsZJpn"
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
---Signature=_Fri__11_Mar_2011_12_15_45_+0100_K3N5MRAncLcsZJpn
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+[snip]
 
-On Fri, 11 Mar 2011 10:38:08 +0100
-Michael Jones <michael.jones@matrix-vision.de> wrote:
+>> From 2712f2fd087ca782e964c912c7f1973e7d84f2b7 Mon Sep 17 00:00:00 2001
+>> From: Michael Jones <michael.jones@matrix-vision.de>
+>> Date: Fri, 4 Mar 2011 15:09:48 +0100
+>> Subject: [PATCH] omap: iovmm: disallow mapping NULL address
+>>
+>> commit c7f4ab26e3bcdaeb3e19ec658e3ad9092f1a6ceb allowed mapping
+>> the NULL address if da_start==0, which would then not get unmapped.
+>> Disallow this again.  And spell variable 'alignment' correctly.
+>>
+>> Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
+>> ---
+>>  arch/arm/plat-omap/iovmm.c |   16 ++++++++++------
+>>  1 files changed, 10 insertions(+), 6 deletions(-)
+>>
+>> diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
+>> index 6dc1296..11c9b76 100644
+>> --- a/arch/arm/plat-omap/iovmm.c
+>> +++ b/arch/arm/plat-omap/iovmm.c
+>> @@ -271,20 +271,24 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
+>>                                           size_t bytes, u32 flags)
+>>  {
+>>        struct iovm_struct *new, *tmp;
+>> -       u32 start, prev_end, alignement;
+>> +       u32 start, prev_end, alignment;
+>>
+>>        if (!obj || !bytes)
+>>                return ERR_PTR(-EINVAL);
+>>
+>>        start = da;
+>> -       alignement = PAGE_SIZE;
+>> +       alignment = PAGE_SIZE;
+>>
+>>        if (flags & IOVMF_DA_ANON) {
+>> -               start = obj->da_start;
+>> +               /* Don't map address 0 */
+>> +               if (obj->da_start)
+>> +                       start = obj->da_start;
+>> +               else
+>> +                       start = obj->da_start + alignment;
+>
+> It seems to be fine for me now. Let's see what Hiroshi says.
 
-> On 03/11/2011 10:21 AM, Antonio Ospite wrote:
-> > Hi Michael,
-> >=20
-> > are you going to release also Y12 conversion routines for libv4lconvert?
-> >=20
-> > Regards,
-> >    Antonio
-> >=20
->=20
-> Hi Antonio,
->=20
-> As I am neither a user nor developer of libv4lconvert, I am not planning
-> on adding Y12 conversion routines there.  Hopefully somebody else will
-> step up.  Maybe you?
->=20
-
-I asked just for curiosity as I don't have any device producing this
-Y12 format, however I _might_ play with it if you can provide some Y12
-(or Y10) raw frames. I am playing with some compressed variant of Y10
-and I am exploring different ways to add support for those formats to
-libv4l.
+Sorry, I'm afraid I changed my mind after take a look into the driver. :)
+Try to correct obj->da_start in the functions iommu_set_da_range() and
+omap_iommu_probe(). That should be the correct way. Your patch doesn't
+fix this situation when IOVMF_DA_ANON isn't set.
+After obj->da_start is correctly set, your current patch is non longer required.
 
 Regards,
-   Antonio
 
---=20
-Antonio Ospite
-http://ao2.it
+David
 
-PGP public key ID: 0x4553B001
-
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
-
---Signature=_Fri__11_Mar_2011_12_15_45_+0100_K3N5MRAncLcsZJpn
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEARECAAYFAk16BGEACgkQ5xr2akVTsAFUpQCeJYtO1lgr2QyOVWVRN/Jis1j/
-zV8An0VkXzj1LaqwnCh0NIevf+JUt+C/
-=m9oH
------END PGP SIGNATURE-----
-
---Signature=_Fri__11_Mar_2011_12_15_45_+0100_K3N5MRAncLcsZJpn--
+>
+> Regards,
+>
+> David
+>
+>>
+>>                if (flags & IOVMF_LINEAR)
+>> -                       alignement = iopgsz_max(bytes);
+>> -               start = roundup(start, alignement);
+>> +                       alignment = iopgsz_max(bytes);
+>> +               start = roundup(start, alignment);
+>>        } else if (start < obj->da_start || start > obj->da_end ||
+>>                                        obj->da_end - start < bytes) {
+>>                return ERR_PTR(-EINVAL);
+>> @@ -304,7 +308,7 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
+>>                        goto found;
+>>
+>>                if (tmp->da_end >= start && flags & IOVMF_DA_ANON)
+>> -                       start = roundup(tmp->da_end + 1, alignement);
+>> +                       start = roundup(tmp->da_end + 1, alignment);
+>>
+>>                prev_end = tmp->da_end;
+>>        }
+>> --
+>> 1.7.4.1
+>>
+>>
+>>
+>> MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+>> Registergericht: Amtsgericht Stuttgart, HRB 271090
+>> Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
+>>
+>
