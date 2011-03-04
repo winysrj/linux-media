@@ -1,105 +1,95 @@
 Return-path: <mchehab@pedra>
-Received: from mail-yi0-f46.google.com ([209.85.218.46]:61486 "EHLO
-	mail-yi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750931Ab1CCNRV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2011 08:17:21 -0500
-Received: by yia27 with SMTP id 27so359520yia.19
-        for <linux-media@vger.kernel.org>; Thu, 03 Mar 2011 05:17:20 -0800 (PST)
-Subject: Re: [RFC PATCH RESEND v2 3/3] v4l2-ctrls: document the changes about auto focus mode
-Mime-Version: 1.0 (Apple Message framework v1082)
-Content-Type: text/plain; charset=euc-kr
-From: Kim HeungJun <riverful@gmail.com>
-In-Reply-To: <201103031108.46219.laurent.pinchart@ideasonboard.com>
-Date: Thu, 3 Mar 2011 22:17:10 +0900
-Cc: Kim HeungJun <riverful@gmail.com>, riverful.kim@samsung.com,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"???/Mobile S/W Platform Lab(DMC?)/E4(??)/????"
-	<sw0312.kim@samsung.com>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
-Content-Transfer-Encoding: 8BIT
-Message-Id: <C35D1DB1-9F7A-42C2-9801-66B2BD8AA3CE@gmail.com>
-References: <4D6EFA02.4080105@samsung.com> <201103031108.46219.laurent.pinchart@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:51423 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759071Ab1CDL0j (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2011 06:26:39 -0500
+Date: Fri, 04 Mar 2011 12:26:18 +0100
+From: Kamil Debski <k.debski@samsung.com>
+Subject: [RFC/PATCH v7 1/5] Changes in include/linux/videodev2.h for MFC 5.1
+In-reply-to: <1299237982-31687-1-git-send-email-k.debski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	k.debski@samsung.com, jaeryul.oh@samsung.com, kgene.kim@samsung.com
+Message-id: <1299237982-31687-2-git-send-email-k.debski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1299237982-31687-1-git-send-email-k.debski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi, 
+This patch adds fourcc values for compressed video stream formats and
+V4L2_CTRL_CLASS_CODEC. Also adds controls used by MFC 5.1 driver.
 
-2011. 3. 3., 오후 7:08, Laurent Pinchart 작성:
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ include/linux/videodev2.h |   39 +++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 39 insertions(+), 0 deletions(-)
 
-> Hi,
-> 
-> On Thursday 03 March 2011 03:16:34 Kim, HeungJun wrote:
->> Document about the type changes and the enumeration of the auto focus
->> control.
->> 
->> Signed-off-by: Heungjun Kim <riverful.kim@samsung.com>
->> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
->> ---
->> Documentation/DocBook/v4l/controls.xml    |   31
->> +++++++++++++++++++++++++--- Documentation/DocBook/v4l/videodev2.h.xml |  
->> 6 +++++
->> 2 files changed, 33 insertions(+), 4 deletions(-)
->> 
->> diff --git a/Documentation/DocBook/v4l/controls.xml
->> b/Documentation/DocBook/v4l/controls.xml index 2fae3e8..889fa84 100644
->> --- a/Documentation/DocBook/v4l/controls.xml
->> +++ b/Documentation/DocBook/v4l/controls.xml
->> @@ -1801,12 +1801,35 @@ negative values towards infinity. This is a
->> write-only control.</entry> </row>
->> 	  <row><entry></entry></row>
->> 
->> -	  <row>
->> +	  <row id="v4l2-focus-auto-type">
->> 	    <entry
->> spanname="id"><constant>V4L2_CID_FOCUS_AUTO</constant>&nbsp;</entry> -	   
->> <entry>boolean</entry>
->> +	    <entry>enum&nbsp;v4l2_focus_auto_type</entry>
->> 	  </row><row><entry spanname="descr">Enables automatic focus
->> -adjustments. The effect of manual focus adjustments while this feature
->> -is enabled is undefined, drivers should ignore such requests.</entry>
->> +adjustments of the normal or macro or continuous(CAF) mode. The effect of
->> +manual focus adjustments while this feature is enabled is undefined,
->> +drivers should ignore such requests. Possible values are:</entry>
->> +	  </row>
->> +	  <row>
->> +	    <entrytbl spanname="descr" cols="2">
->> +	      <tbody valign="top">
->> +		<row>
->> +		  <entry><constant>V4L2_FOCUS_MANUAL</constant>&nbsp;</entry>
->> +		  <entry>Manual focus mode.</entry>
->> +		</row>
->> +		<row>
->> +		  <entry><constant>V4L2_FOCUS_AUTO</constant>&nbsp;</entry>
->> +		  <entry>Auto focus mode with normal operation.</entry>
->> +		</row>
->> +		<row>
->> +		  <entry><constant>V4L2_FOCUS_MACRO</constant>&nbsp;</entry>
->> +		  <entry>Auto focus mode with macro operation.</entry>
->> +		</row>
->> +		<row>
->> +		  <entry><constant>V4L2_FOCUS_CONTINUOUS</constant>&nbsp;</entry>
->> +		  <entry>Auto focus mode with continuous(CAF) operation.</entry>
-> 
-> I should have asked this sooner, but what's the difference between normal AF 
-> and continuous AF ?
-
-Let's assume that the whole focus process(of course the sensor-internal process automatically) is below : 
-1) pointing the object focussed
-    : mostly this is possible to be a middle spot, or pre-given orient x & y set from register.
-    (The mode using given orient x & y, may be defined V4L2_FOCUS_TOUCH or whatever,
-     but I know touch auto focus suggestion is determined nothing so far,
-     because of that, after this I will suggest to discuss about it one more.) 
-2) starting and completing the move of the motor to control lens, using the focusing internal algorithm
-3) check whether the lens position is proper or not, using the focusing internal algorithm, too.
-     (If the position is not proper, the image may looks defocused)
-
-In the Normal AF mode, the sensor do the whole focusing process once, and after completing to move lens,
-even though the sensor failed focusing process. On the other hand, the sensor repeats 1~3 in the Continuous
-AF mode periodically, regardless of success of failure.
-
-Regards,
-Heungjun Kim
-
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index a94c4d5..a48a42e 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -369,6 +369,19 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_DV       v4l2_fourcc('d', 'v', 's', 'd') /* 1394          */
+ #define V4L2_PIX_FMT_MPEG     v4l2_fourcc('M', 'P', 'E', 'G') /* MPEG-1/2/4    */
+ 
++#define V4L2_PIX_FMT_H264     v4l2_fourcc('H', '2', '6', '4') /* H264    */
++#define V4L2_PIX_FMT_H263     v4l2_fourcc('H', '2', '6', '3') /* H263    */
++#define V4L2_PIX_FMT_MPEG12   v4l2_fourcc('M', 'P', '1', '2') /* MPEG-1/2  */
++#define V4L2_PIX_FMT_MPEG4    v4l2_fourcc('M', 'P', 'G', '4') /* MPEG-4  */
++#define V4L2_PIX_FMT_DIVX     v4l2_fourcc('D', 'I', 'V', 'X') /* DivX  */
++#define V4L2_PIX_FMT_DIVX3    v4l2_fourcc('D', 'I', 'V', '3') /* DivX 3.11  */
++#define V4L2_PIX_FMT_DIVX4    v4l2_fourcc('D', 'I', 'V', '4') /* DivX 4.12  */
++#define V4L2_PIX_FMT_DIVX500    v4l2_fourcc('D', 'X', '5', '2') /* DivX 5.00 - 5.02  */
++#define V4L2_PIX_FMT_DIVX503    v4l2_fourcc('D', 'X', '5', '3') /* DivX 5.03 - x  */
++#define V4L2_PIX_FMT_XVID     v4l2_fourcc('X', 'V', 'I', 'D') /* Xvid */
++#define V4L2_PIX_FMT_VC1      v4l2_fourcc('V', 'C', '1', 'A') /* VC-1 */
++#define V4L2_PIX_FMT_VC1_RCV      v4l2_fourcc('V', 'C', '1', 'R') /* VC-1 RCV */
++
+ /*  Vendor-specific formats   */
+ #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1 YUV */
+ #define V4L2_PIX_FMT_WNVA     v4l2_fourcc('W', 'N', 'V', 'A') /* Winnov hw compress */
+@@ -1016,6 +1029,7 @@ struct v4l2_ext_controls {
+ #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls */
+ #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
+ #define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
++#define V4L2_CTRL_CLASS_CODEC 0x009c0000	/* Codec control class */
+ 
+ #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
+ #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
+@@ -1349,6 +1363,31 @@ enum v4l2_mpeg_cx2341x_video_median_filter_type {
+ #define V4L2_CID_MPEG_CX2341X_VIDEO_CHROMA_MEDIAN_FILTER_TOP 	(V4L2_CID_MPEG_CX2341X_BASE+10)
+ #define V4L2_CID_MPEG_CX2341X_STREAM_INSERT_NAV_PACKETS 	(V4L2_CID_MPEG_CX2341X_BASE+11)
+ 
++/* For codecs */
++
++#define V4L2_CID_CODEC_BASE 			(V4L2_CTRL_CLASS_CODEC | 0x900)
++#define V4L2_CID_CODEC_CLASS 			(V4L2_CTRL_CLASS_CODEC | 1)
++
++/* For both decoding and encoding */
++
++/* For encoding */
++#define V4L2_CID_CODEC_LOOP_FILTER_H264		(V4L2_CID_CODEC_BASE + 1)
++enum v4l2_cid_codec_loop_filter_h264 {
++	V4L2_CID_CODEC_LOOP_FILTER_H264_ENABLE = 0,
++	V4L2_CID_CODEC_LOOP_FILTER_H264_DISABLE = 1,
++	V4L2_CID_CODEC_LOOP_FILTER_H264_DISABLE_AT_BOUNDARY = 2,
++};
++
++/* For decoding */
++
++#define V4L2_CID_CODEC_LOOP_FILTER_MPEG4_ENABLE	(V4L2_CID_CODEC_BASE + 2)
++#define V4L2_CID_CODEC_DISPLAY_DELAY		(V4L2_CID_CODEC_BASE + 3)
++#define V4L2_CID_CODEC_DISPLAY_DELAY_ENABLE	(V4L2_CID_CODEC_BASE + 4)
++#define V4L2_CID_CODEC_MIN_REQ_BUFS_OUT		(V4L2_CID_CODEC_BASE + 5)
++#define V4L2_CID_CODEC_MIN_REQ_BUFS_CAP		(V4L2_CID_CODEC_BASE + 6)
++#define V4L2_CID_CODEC_SLICE_INTERFACE		(V4L2_CID_CODEC_BASE + 7)
++#define V4L2_CID_CODEC_PACKED_PB		(V4L2_CID_CODEC_BASE + 8)
++
+ /*  Camera class control IDs */
+ #define V4L2_CID_CAMERA_CLASS_BASE 	(V4L2_CTRL_CLASS_CAMERA | 0x900)
+ #define V4L2_CID_CAMERA_CLASS 		(V4L2_CTRL_CLASS_CAMERA | 1)
+-- 
+1.6.3.3
