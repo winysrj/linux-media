@@ -1,60 +1,92 @@
 Return-path: <mchehab@pedra>
-Received: from alia.ip-minds.de ([84.201.38.2]:54129 "EHLO alia.ip-minds.de"
+Received: from smtp.nokia.com ([147.243.128.26]:25967 "EHLO mgw-da02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751736Ab1CMLE3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Mar 2011 07:04:29 -0400
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by alia.ip-minds.de (Postfix) with ESMTP id AD14066AFB2
-	for <linux-media@vger.kernel.org>; Sun, 13 Mar 2011 12:04:49 +0100 (CET)
-Received: from alia.ip-minds.de ([127.0.0.1])
-	by localhost (alia.ip-minds.de [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id hxIkFukvyRv2 for <linux-media@vger.kernel.org>;
-	Sun, 13 Mar 2011 12:04:49 +0100 (CET)
-Received: from localhost (pD9E1A3D9.dip.t-dialin.net [217.225.163.217])
-	by alia.ip-minds.de (Postfix) with ESMTPA id 5092766A08C
-	for <linux-media@vger.kernel.org>; Sun, 13 Mar 2011 12:04:49 +0100 (CET)
-Date: Sun, 13 Mar 2011 13:04:26 +0100
-From: Jean-Michel Bruenn <jean.bruenn@ip-minds.de>
-To: linux-media@vger.kernel.org
-Subject: Re: WinTV 1400 broken with recent versions?
-Message-Id: <20110313130426.c3c53baf.jean.bruenn@ip-minds.de>
-In-Reply-To: <AANLkTikZ4KFSrzj6cJhbST9DWVcDqgQ6Y8R3we9614Bo@mail.gmail.com>
-References: <20110309175231.16446e92.jean.bruenn@ip-minds.de>
-	<76A39CFB-2838-4AD7-B353-49971F9F7DFF@wilsonet.com>
-	<ba12e998349efa465be466a4d7f9d43f@localhost>
-	<3AF3951C-11F6-48E4-A0EE-85179B013AFC@wilsonet.com>
-	<81E0AF02-0837-4DF8-BFEA-94A654FFF471@wilsonet.com>
-	<af7d57a1bb478c0edac4cd7afdfd6f41@localhost>
-	<AANLkTimqGxS6OYNarqQwZNxFk+rccPn40UcK+6Oo72SC@mail.gmail.com>
-	<3934d121118af31f8708589189a42b95@localhost>
-	<AANLkTikYjaeXnhA3iP+kxjpA-NU4QQw-_YhRFf4U=30a@mail.gmail.com>
-	<3DAC424F-1318-4E9D-B1E6-949ABE9E3CBB@wilsonet.com>
-	<20110313032208.ab1b6488.jean.bruenn@ip-minds.de>
-	<AANLkTikZ4KFSrzj6cJhbST9DWVcDqgQ6Y8R3we9614Bo@mail.gmail.com>
+	id S1759144Ab1CDKJz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 Mar 2011 05:09:55 -0500
+Date: Fri, 04 Mar 2011 12:07:36 +0200 (EET)
+Message-Id: <20110304.120736.177982315275204354.Hiroshi.DOYU@nokia.com>
+To: sakari.ailus@maxwell.research.nokia.com
+Cc: michael.jones@matrix-vision.de, laurent.pinchart@ideasonboard.com,
+	fernando.lugo@ti.com, linux-media@vger.kernel.org,
+	linux-omap@vger.kernel.org, david.cohen@nokia.com
+Subject: Re: omap3isp cache error when unloading
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+In-Reply-To: <4D7096EE.8090105@maxwell.research.nokia.com>
+References: <201103022018.23446.laurent.pinchart@ideasonboard.com>
+	<4D6FBC7F.1080500@matrix-vision.de>
+	<4D7096EE.8090105@maxwell.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-> It means the i2c bus failed to get an ACK back when talking to the
-> xc3028.  It could be a number of different things:
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: omap3isp cache error when unloading
+Date: Fri, 4 Mar 2011 09:38:22 +0200
+
+> Hi Michael,
 > 
-> * broken cx23885 i2c master implementation
-> * bug in the xc3028 driver
-> * screwed up GPIOs causing the xc3028 to be held in reset
-> * i2c bus wedged
-
-Ah. Thanks. Now i know what to search for.
-
-> > Also, nobody has any idea what i could try (except for what
-> > i already did, including reverting patches and downgrading the kernel)?
+> Michael Jones wrote:
+>> On 03/02/2011 08:18 PM, Laurent Pinchart wrote:
+>>> Hi Michael,
+>>>
+>>> On Tuesday 01 March 2011 17:41:01 Michael Jones wrote:
+>>>> Hi all,
+>>>>
+>>>> I get a warning about a cache error with the following steps:
+>>>>
+>>>> 0. load omap3-isp
+>>>> 1. set up media broken media pipeline. (e.g. set different formats on
+>>>> opposite ends of a link, as will be the case for using the lane shifter)
+>>>> 2. try to capture images.  isp_video_streamon() returns -EPIPE from the
+>>>> failed isp_video_validate_pipeline() call.
+>>>> 3. unload omap3-isp module
+>>>>
+>>>> then I get the following from kmem_cache_destroy():
+>>>>
+>>>> slab error in kmem_cache_destroy(): cache `iovm_area_cache': Can't free all
+>>>> objects [<c0040318>] (unwind_backtrace+0x0/0xec) from [<c00bfe14>]
+>>>> (kmem_cache_destroy+0x88/0xf4) [<c00bfe14>] (kmem_cache_destroy+0x88/0xf4)
+>>>> from [<c00861f8>] (sys_delete_module+0x1c4/0x230) [<c00861f8>]
+>>>> (sys_delete_module+0x1c4/0x230) from [<c003b680>]
+>>>> (ret_fast_syscall+0x0/0x30)
+>>>>
+>>>> Then, when reloading the module:
+>>>> SLAB: cache with size 32 has lost its name
+>>>>
+>>>> Can somebody else confirm that they also observe this behavior?
+>>>
+>>> I can't reproduce that (tried both 2.6.32 and 2.6.37). Could you give me some 
+>>> more details about your exact test procedure (such as how you configure the 
+>>> pipeline) ?
+>>>
+>> 
+>> Sorry, I should've mentioned: I'm using your media-0005-omap3isp branch
+>> based on 2.6.38-rc5.  I didn't have the problem with 2.6.37, either.
+>> It's actually not related to mis-configuring the ISP pipeline like I
+>> thought at first- it also happens after I have successfully captured images.
+>> 
+>> I've since tracked down the problem, although I don't understand the
+>> cache management well enough to be sure it's a proper fix, so hopefully
+>> some new recipients on this can make suggestions/comments.
+>> 
+>> The patch below solves the problem, which modifies a commit by Fernando
+>> Guzman Lugo from December.
 > 
-> If you're knowledgeable enough to downgrade the kernel, then your best
-> bet is to learn how to use git bisect so you can identify exactly
-> which patch introduced the regression.
+> Thanks for the patch.
+> 
+> It looks like this patch from Fernando, perhaps unintentionally, also
+> makes the first page mappable so the NULL address is also valid. The
+> NULL address isn't considered valid by the ISP driver which thus does
+> not iommu_vunmap() the NULL address.
+> 
+> Hiroshi, David, what do you think? I think the patch is correct so it
+> could be applied with description changed to mention it disallows
+> mapping the first page again.
+>
+> Or is there a reason to allow mapping the first page automatically? I
+> personally don't see any.
 
-Yup, started to try that yesterday, however, going back from today to
-2008 will take some time. I'll let you know if i made any progress.
-
-Thanks so far.
+I think that was done "unintentionally". The invalid first page may be
+quite reasonable generally.
