@@ -1,50 +1,77 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.samsung.com ([203.254.224.24]:22826 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755429Ab1CVIt1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Mar 2011 04:49:27 -0400
-Received: from epmmp2 (mailout1.samsung.com [203.254.224.24])
- by mailout1.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LIG00DOOB6CFF10@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 22 Mar 2011 17:49:24 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LIG00KMCB6DWE@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 22 Mar 2011 17:49:25 +0900 (KST)
-Date: Tue, 22 Mar 2011 17:49:24 +0900
-From: "Kim, HeungJun" <riverful.kim@samsung.com>
-Subject: [RFC PATCH v3 0/2] v4l2-ctrls: add auto focus mode and controls
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
-Reply-to: riverful.kim@samsung.com
-Message-id: <4D886294.5060300@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7BIT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50462 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752228Ab1CDPqF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2011 10:46:05 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Michael Jones <michael.jones@matrix-vision.de>
+Subject: Re: [PATCH 3/4] omap3isp: ccdc: support Y10, Y12, SGRBG8, SBGGR8
+Date: Fri, 4 Mar 2011 16:46:20 +0100
+Cc: linux-media@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+References: <1299229084-8335-1-git-send-email-michael.jones@matrix-vision.de> <1299229084-8335-4-git-send-email-michael.jones@matrix-vision.de>
+In-Reply-To: <1299229084-8335-4-git-send-email-michael.jones@matrix-vision.de>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201103041646.20563.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+Hi Michael,
 
-This is third version of RFC patch series about adding auto focus mode
-and controls. The patch of the previous version bring about the issue
-to be able to execute only once, not repeatedly. Because the each modes
-are defined by menu type. To solve this, we add the new control of
-choosing focus mode, and if doing repeatedly, it's alright that you
-determine the focus mode and change the value of V4L2_CID_FOCUS_AUTO.
+Thanks for the patch.
 
-In the case of new added rectangle mode, these each controls belongs to
-4 new controls, can make to point by the form of rectangle. These 4 new
-each control values mean left x coordinate, top y coordinate,
-width x length, height y length. It's similar to structure v4l2_rect.
+On Friday 04 March 2011 09:58:03 Michael Jones wrote:
+> Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
+> ---
+>  drivers/media/video/omap3-isp/ispccdc.c  |    4 ++++
+>  drivers/media/video/omap3-isp/ispvideo.c |    8 ++++++++
+>  2 files changed, 12 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap3-isp/ispccdc.c
+> b/drivers/media/video/omap3-isp/ispccdc.c index e4d04ce..166115d 100644
+> --- a/drivers/media/video/omap3-isp/ispccdc.c
+> +++ b/drivers/media/video/omap3-isp/ispccdc.c
+> @@ -43,6 +43,10 @@ __ccdc_get_format(struct isp_ccdc_device *ccdc, struct
+> v4l2_subdev_fh *fh,
+> 
+>  static const unsigned int ccdc_fmts[] = {
+>  	V4L2_MBUS_FMT_Y8_1X8,
+> +	V4L2_MBUS_FMT_Y10_1X10,
+> +	V4L2_MBUS_FMT_Y12_1X12,
+> +	V4L2_MBUS_FMT_SGRBG8_1X8,
+> +	V4L2_MBUS_FMT_SBGGR8_1X8,
 
-You can find previous threads about this:
-http://www.spinics.net/lists/linux-media/msg29446.html
+While you're at it, what about SGBRG8_1X8 and SRGGB8_1X8 (here and in 
+ispvideo.c) ?
 
-Thanks and Regards,
-Heungjun Kim
+>  	V4L2_MBUS_FMT_SGRBG10_1X10,
+>  	V4L2_MBUS_FMT_SRGGB10_1X10,
+>  	V4L2_MBUS_FMT_SBGGR10_1X10,
+> diff --git a/drivers/media/video/omap3-isp/ispvideo.c
+> b/drivers/media/video/omap3-isp/ispvideo.c index f16d787..c406043 100644
+> --- a/drivers/media/video/omap3-isp/ispvideo.c
+> +++ b/drivers/media/video/omap3-isp/ispvideo.c
+> @@ -48,6 +48,14 @@
+>  static struct isp_format_info formats[] = {
+>  	{ V4L2_MBUS_FMT_Y8_1X8, V4L2_MBUS_FMT_Y8_1X8,
+>  	  V4L2_MBUS_FMT_Y8_1X8, V4L2_PIX_FMT_GREY, 8, },
+> +	{ V4L2_MBUS_FMT_Y10_1X10, V4L2_MBUS_FMT_Y10_1X10,
+> +	  V4L2_MBUS_FMT_Y10_1X10, V4L2_PIX_FMT_Y10, 10, },
+> +	{ V4L2_MBUS_FMT_Y12_1X12, V4L2_MBUS_FMT_Y10_1X10,
+> +	  V4L2_MBUS_FMT_Y12_1X12, V4L2_PIX_FMT_Y12, 12, },
+> +	{ V4L2_MBUS_FMT_SBGGR8_1X8, V4L2_MBUS_FMT_SBGGR8_1X8,
+> +	  V4L2_MBUS_FMT_SBGGR8_1X8, V4L2_PIX_FMT_SBGGR8, 8, },
+> +	{ V4L2_MBUS_FMT_SGRBG8_1X8, V4L2_MBUS_FMT_SGRBG8_1X8,
+> +	  V4L2_MBUS_FMT_SGRBG8_1X8, V4L2_PIX_FMT_SGRBG8, 8, },
+>  	{ V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8, V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8,
+>  	  V4L2_MBUS_FMT_SGRBG10_1X10, V4L2_PIX_FMT_SGRBG10DPCM8, 8, },
+>  	{ V4L2_MBUS_FMT_SBGGR10_1X10, V4L2_MBUS_FMT_SBGGR10_1X10,
+
+-- 
+Regards,
+
+Laurent Pinchart
