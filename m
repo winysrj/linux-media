@@ -1,187 +1,87 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:54085 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751685Ab1CXKfH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Mar 2011 06:35:07 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Daniel Lundborg" <Daniel.Lundborg@prevas.se>
-Subject: Re: SV: OMAP3 isp single-shot
-Date: Thu, 24 Mar 2011 11:35:04 +0100
-Cc: "Sakari Ailus" <sakari.ailus@maxwell.research.nokia.com>,
-	linux-media@vger.kernel.org
-References: <loom.20110323T141429-496@post.gmane.org> <4D8B00FA.1090008@maxwell.research.nokia.com> <CA7B7D6C54015B459601D68441548157C5A3AE@prevas1.prevas.se>
-In-Reply-To: <CA7B7D6C54015B459601D68441548157C5A3AE@prevas1.prevas.se>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:58836 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751877Ab1CDXL5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2011 18:11:57 -0500
+Received: by wwb22 with SMTP id 22so3306463wwb.1
+        for <linux-media@vger.kernel.org>; Fri, 04 Mar 2011 15:11:55 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201103241135.06025.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <4D716ECA.4060900@iki.fi>
+References: <AANLkTi=rcfL_pku9hhx68C_Fb_76KsW2Yy+Oys10a7+4@mail.gmail.com>
+	<4D7163FD.9030604@iki.fi>
+	<AANLkTimjC99zhJ=huHZiGgbENCoyHy5KT87iujjTT8w3@mail.gmail.com>
+	<4D716ECA.4060900@iki.fi>
+Date: Fri, 4 Mar 2011 23:11:55 +0000
+Message-ID: <AANLkTimHa6XFwhvpLbhtRm7Vee-jYPkHpx+D8L2=+vQb@mail.gmail.com>
+Subject: Re: [patch] Fix AF9015 Dual tuner i2c write failures
+From: Andrew de Quincey <adq_dvb@lidskialf.net>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Daniel,
+On 4 March 2011 22:59, Antti Palosaari <crope@iki.fi> wrote:
+> On 03/05/2011 12:44 AM, Andrew de Quincey wrote:
+>>>>
+>>>> Adding a "bus lock" to af9015_i2c_xfer() will not work as demod/tuner
+>>>> accesses will take multiple i2c transactions.
+>>>>
+>>>> Therefore, the following patch overrides the dvb_frontend_ops
+>>>> functions to add a per-device lock around them: only one frontend can
+>>>> now use the i2c bus at a time. Testing with the scripts above shows
+>>>> this has eliminated the errors.
+>>>
+>>> This have annoyed me too, but since it does not broken functionality much
+>>> I
+>>> haven't put much effort for fixing it. I like that fix since it is in
+>>> AF9015
+>>> driver where it logically belongs to. But it looks still rather complex.
+>>> I
+>>> see you have also considered "bus lock" to af9015_i2c_xfer() which could
+>>> be
+>>> much smaller in code size (that's I have tried to implement long time
+>>> back).
+>>>
+>>> I would like to ask if it possible to check I2C gate open / close inside
+>>> af9015_i2c_xfer() and lock according that? Something like:
+>>
+>> Hmm, I did think about that, but I felt overriding the functions was
+>> just cleaner: I felt it was more obvious what it was doing. Doing
+>> exactly this sort of tweaking was one of the main reasons we added
+>> that function overriding feature.
+>>
+>> I don't like the idea of returning "error locked by FE" since that'll
+>> mean the tuning will randomly fail sometimes in a way visible to
+>> userspace (unless we change the core dvb_frontend code), which was one
+>> of the things I was trying to avoid. Unless, of course, I've
+>> misunderstood your proposal.
+>
+> Not returning error, but waiting in lock like that:
+> if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
+>  return -EAGAIN;
 
-On Thursday 24 March 2011 11:26:01 Daniel Lundborg wrote:
-> > Daniel Lundborg wrote:
-> > >
-> > > I am successfully using the gumstix overo board together with a camera
-> > > sensor Aptina MT9V034 with the kernel 2.6.35 and patches from
-> > > http://git.linuxtv.org/pinchartl/media.git (isp6).
-> > 
-> > Which branch did you use?
-> 
-> I am using the media-2.6.35-0006-sensors branch which could be found
-> just a couple of weeks ago. It has the mt9v032 sensor in it. My mt9v034
-> driver is based on the mt9v032 code.
+Ah k, sorry
 
-Now that the OMAP3 ISP driver is on its way to mainline, I've reorganized the 
-repository. You can use the media-2.6.38-0002-sensors branch for 2.6.38.
+>> However, looking at the code again, I realise it is possible to
+>> simplify it. Since its only the demod gates that cause a problem, we
+>> only /actually/ need to lock the get_frontend() and set_frontend()
+>> calls.
+>
+> I don't understand why .get_frontend() causes problem, since it does not
+> access tuner at all. It only reads demod registers. The main problem is
+> (like schema in af9015.c shows) that there is two tuners on same I2C bus
+> using same address. And demod gate is only way to open access for desired
+> tuner only.
 
-> > > I can use the media-ctl program and yavta to take pictures in continous
-> > > streaming mode.
-> > > 
-> > > media-ctl -r -l '"mt9034 3-0048":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP
-> > > CCDC":1->"OMAP3 ISP CCDC output":0[1]'
-> > > media-ctl -f '"mt9v034 3-0048":0[SGRBG10 752x480], "OMAP3 ISP
-> > > CCDC":1[SGRBG10 752x480]
-> > > 
-> > > and then:
-> > > 
-> > > yavta -f SGRBG10 -s 752x480 -n 1 --capture=1 -F /dev/video2
-> > > 
-> > > Is there a way to set the ISP in single shot mode?
-> > 
-> > Single shot for the ISP is the same as to queue just one buffer. I assume
-> > the single shot mode is something that the sensor supports?
-> > 
-> > > I have tested setting the mt9v034 in snapshot mode and manually trigger
-> > > the camera, but the ISP does not send a picture. Is there a way to solve
-> > > this with the current OMAP3 isp code?
-> > 
-> > Do you get any errors, or you just don't get any video buffers?
-> 
-> This is the output from yavta when I put the sensor in streaming mode:
-> 
-> root@overo:~/yavta# ./yavta -f SGRBG10 -s 752x480 -n 1 --capture=1 -F
-> /dev/video2
-> 
-> Device /dev/video2 opened: OMAP3 ISP CCDC output (media).
-> Video format set: width: 752 height: 480 buffer size: 721920
-> Video format: BA10 (30314142) 752x480
-> 1 buffers requested.
-> length: 721920 offset: 0
-> Buffer 0 mapped at address 0x4014d000.
-> 0 (0) [-] 0 721920 bytes 65877.098848 1300958239.111966 0.001 fps
-> Captured 1 frames in 0.000062 seconds (16129.032258 fps,
-> 11643870967.741936 B/s).
-> 1 buffers released.
-> 
-> And the output when putting the sensor in snapshot mode:
-> 
-> root@overo:~/yavta# ./yavta -f SGRBG10 -s 752x480 -n 1 --capture=1 -F
-> /dev/video2
-> 
-> Device /dev/video2 opened: OMAP3 ISP CCDC output (media).
-> Video format set: width: 752 height: 480 buffer size: 721920
-> Video format: BA10 (30314142) 752x480
-> 1 buffers requested.
-> length: 721920 offset: 0
-> Buffer 0 mapped at address 0x4014d000.
-> 
-> And it freezes. I can stop yavta with CTRL+C.
+AFAIR /some/ tuner code accesses the tuner hardware to read the exact
+tuned frequency back on a get_frontend(); was just being extra
+paranoid :)
 
-Have you tried to trigger the sensor multiple times in a row ?
+> You should block traffic based of tuner not demod. And I think those
+> callbacks which are needed for override are tuner driver callbacks. Consider
+> situation device goes it v4l-core calls same time both tuner .sleep() ==
+> problem.
 
-> To put the sensor in snapshot/shutter mode I set the ext_trig = 1 in the
-> platform_data structure in my board file.
-> 
-> struct mt9v034_platform_data {
-> 	unsigned int clk_pol:1;
-> 	unsigned int ext_trig:1;
-> 
-> 	void (*set_clock)(struct v4l2_subdev *subdev, unsigned int rate);
-> };
-> 
-> And in the s_stream I set the chip_control register for the MT9V034
-> sensor to:
-> 
-> static int mt9v034_s_stream(struct v4l2_subdev *subdev, int enable)
-> {
->   struct mt9v034 *mt9v034 = to_mt9v034(subdev);
->   const u16 chip_clear = mt9v034->pdata->ext_trig? 0x0100 : 0;
->   const u16 chip_set = mt9v034->pdata->ext_trig? 0x18 :
-> MT9V034_CHIP_CONTROL_MASTER_MODE | MT9V034_CHIP_CONTROL_DOUT_ENABLE |
-> MT9V034_CHIP_CONTROL_SEQUENTIAL;
->   struct i2c_client *client = v4l2_get_subdevdata(subdev);
->   struct v4l2_mbus_framefmt *format = &mt9v034->format;
->   struct v4l2_rect *crop = &mt9v034->crop;
->   unsigned int hratio;
->   unsigned int vratio;
->   int ret;
-> 
->   if (!enable) {
->     ret = mt9v034_set_chip_control(mt9v034, chip_clear, chip_set);
->     if (ret < 0)
->       return ret;
-> 
->     return __mt9v034_set_power(mt9v034, 0);
->   }
-> 
->   ret = __mt9v034_set_power(mt9v034, 1);
->   if (ret < 0)
->     return ret;
-> 
->   /* Configure the window size and row/column bin */
->   hratio = DIV_ROUND_CLOSEST(crop->width, format->width);
->   vratio = DIV_ROUND_CLOSEST(crop->height, format->height);
-> 
->   ret = mt9v034_write(client, MT9V034_READ_MODE,
->         (hratio - 1) << MT9V034_READ_MODE_ROW_BIN_SHIFT |
->         (vratio - 1) << MT9V034_READ_MODE_COLUMN_BIN_SHIFT);
->   if (ret < 0)
->     return ret;
-> 
->   ret = mt9v034_write(client, MT9V034_COLUMN_START, crop->left);
->   if (ret < 0)
->     return ret;
-> 
->   ret = mt9v034_write(client, MT9V034_ROW_START, crop->top);
->   if (ret < 0)
->     return ret;
-> 
->   ret = mt9v034_write(client, MT9V034_WINDOW_WIDTH, crop->width);
->   if (ret < 0)
->     return ret;
-> 
->   ret = mt9v034_write(client, MT9V034_WINDOW_HEIGHT, crop->height);
->   if (ret < 0)
->     return ret;
-> 
->   /* Disable the noise correction algorithm and restore the controls. */
->   ret  = mt9v034_write(client, MT9V034_ROW_NOISE_CORR_CONTROL, 0);
->   if (ret < 0)
->     return ret;
-> 
->   v4l2_ctrl_handler_setup(&mt9v034->ctrls);
-> 
->   ret = mt9v034_set_chip_control(mt9v034, chip_clear, chip_set);
-> 
->   return ret;
-> }
-> 
-> I can see on the oscilloscope that the sensor is sending something when
-> I trigger it, but no picture is received..
-
-"something" is a bit vague, can you check the hsync/vsync signals and make 
-sure they're identical in both modes ?
-
-> > As the sensor works in streaming mode, are you sure it outputs the image
-> > of correct size in the single shot mode?
-> 
-> The sensor has the same output in streaming and single shot mode.
-
--- 
-Regards,
-
-Laurent Pinchart
+Hmm, yeah, you're right, let me have another look tomorrow.
