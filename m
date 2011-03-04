@@ -1,55 +1,59 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.samsung.com ([203.254.224.33]:30942 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750904Ab1CJLiV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Mar 2011 06:38:21 -0500
-Received: from epmmp2 (mailout3.samsung.com [203.254.224.33])
- by mailout3.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LHU00FE5AZV3K10@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Thu, 10 Mar 2011 20:38:19 +0900 (KST)
-Received: from AMDC159 ([106.116.37.153])
- by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LHU00463AZGT8@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 10 Mar 2011 20:38:19 +0900 (KST)
-Date: Thu, 10 Mar 2011 12:38:03 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: V4L2 'brainstorming' meeting in Warsaw, March 2011
-In-reply-to: <AANLkTi=tOEikHi-c_0KYN8Sp9sguGB5Wd4dagvs72QFc@mail.gmail.com>
-To: 'Palmax Maverick' <palmax@gmail.com>
-Cc: "'Martin Bugge (marbugge)'" <marbugge@cisco.com>,
-	'Jaeryul Oh' <jaeryul.oh@samsung.com>,
-	'Laurent Pinchart' <laurent.pinchart@skynet.be>,
-	'Sakari Ailus' <sakari.ailus@maxwell.research.nokia.com>,
-	sw0312.kim@samsung.com,
-	'Guennadi Liakhovetski' <g.liakhovetski@gmx.de>,
-	'Willy POISSON' <willy.poisson@stericsson.com>,
-	hverkuil@xs4all.nl, 'Jonghun Han' <jonghun.han@samsung.com>,
+Received: from mail1.matrix-vision.com ([78.47.19.71]:42353 "EHLO
+	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753655Ab1CDI6i (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2011 03:58:38 -0500
+From: Michael Jones <michael.jones@matrix-vision.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	linux-media@vger.kernel.org
-Message-id: <000101cbdf17$a1a15da0$e4e418e0$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <AANLkTi=tOEikHi-c_0KYN8Sp9sguGB5Wd4dagvs72QFc@mail.gmail.com>
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 2/4] media: add 8-bit bayer formats and Y12
+Date: Fri,  4 Mar 2011 09:58:02 +0100
+Message-Id: <1299229084-8335-3-git-send-email-michael.jones@matrix-vision.de>
+In-Reply-To: <1299229084-8335-1-git-send-email-michael.jones@matrix-vision.de>
+References: <1299229084-8335-1-git-send-email-michael.jones@matrix-vision.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
 
-On Tuesday, March 08, 2011 2:54 PM Palmax Maverick wrote:
+Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
+---
+ include/linux/v4l2-mediabus.h |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
 
-> Will you record it? Or will you stream it? Out will you do both things?
-> It could be interesting for all users of this mail group :)
+diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
+index 7054a7a..46caecd 100644
+--- a/include/linux/v4l2-mediabus.h
++++ b/include/linux/v4l2-mediabus.h
+@@ -47,8 +47,9 @@ enum v4l2_mbus_pixelcode {
+ 	V4L2_MBUS_FMT_RGB565_2X8_BE = 0x1007,
+ 	V4L2_MBUS_FMT_RGB565_2X8_LE = 0x1008,
+ 
+-	/* YUV (including grey) - next is 0x2013 */
++	/* YUV (including grey) - next is 0x2014 */
+ 	V4L2_MBUS_FMT_Y8_1X8 = 0x2001,
++	V4L2_MBUS_FMT_Y12_1X12 = 0x2013,
+ 	V4L2_MBUS_FMT_UYVY8_1_5X8 = 0x2002,
+ 	V4L2_MBUS_FMT_VYUY8_1_5X8 = 0x2003,
+ 	V4L2_MBUS_FMT_YUYV8_1_5X8 = 0x2004,
+@@ -67,9 +68,11 @@ enum v4l2_mbus_pixelcode {
+ 	V4L2_MBUS_FMT_YUYV10_1X20 = 0x200d,
+ 	V4L2_MBUS_FMT_YVYU10_1X20 = 0x200e,
+ 
+-	/* Bayer - next is 0x3013 */
++	/* Bayer - next is 0x3015 */
+ 	V4L2_MBUS_FMT_SBGGR8_1X8 = 0x3001,
++	V4L2_MBUS_FMT_SGBRG8_1X8 = 0x3013,
+ 	V4L2_MBUS_FMT_SGRBG8_1X8 = 0x3002,
++	V4L2_MBUS_FMT_SRGGB8_1X8 = 0x3014,
+ 	V4L2_MBUS_FMT_SBGGR10_DPCM8_1X8 = 0x300b,
+ 	V4L2_MBUS_FMT_SGBRG10_DPCM8_1X8 = 0x300c,
+ 	V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8 = 0x3009,
+-- 
+1.7.4.1
 
-I'm really sorry, but we have no possibility to stream the meeting. We will
-definitely post a detailed report from the session and the conclusions will
-be discussed also on mailing list.
 
-Best regards
---
-Marek Szyprowski
-Samsung Poland R&D Center
-
-
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
