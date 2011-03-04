@@ -1,62 +1,70 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.128.24]:47111 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750924Ab1CANL1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Mar 2011 08:11:27 -0500
-From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-To: alsa-devel@alsa-project.org, broonie@opensource.wolfsonmicro.com,
-	lrg@slimlogic.co.uk, mchehab@redhat.com, hverkuil@xs4all.nl,
-	sameo@linux.intel.com, linux-media@vger.kernel.org
-Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Subject: [PATCH v22 0/3] ASoC/MFD/V4L2: WL1273 FM Radio Driver
-Date: Tue,  1 Mar 2011 15:10:34 +0200
-Message-Id: <1298985037-2714-1-git-send-email-matti.j.aaltonen@nokia.com>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:64666 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759326Ab1CDL0n (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2011 06:26:43 -0500
+Date: Fri, 04 Mar 2011 12:26:21 +0100
+From: Kamil Debski <k.debski@samsung.com>
+Subject: [RFC/PATCH v7 4/5] s5pv310: Enable MFC on universal_c210 board
+In-reply-to: <1299237982-31687-1-git-send-email-k.debski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	k.debski@samsung.com, jaeryul.oh@samsung.com, kgene.kim@samsung.com
+Message-id: <1299237982-31687-5-git-send-email-k.debski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1299237982-31687-1-git-send-email-k.debski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello.
+This patch enables MFC 5.1 on the universal_c210 board. Multi Format
+Codec 5.1 is capable of handling a range of video codecs.
 
-Thanks for the comment Mark.
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ arch/arm/mach-s5pv310/Kconfig               |    1 +
+ arch/arm/mach-s5pv310/mach-universal_c210.c |    8 ++++++++
+ 2 files changed, 9 insertions(+), 0 deletions(-)
 
-On Tue, 2011-03-01 at 11:54 +0000, ext Mark Brown wrote:
-On Tue, Mar 01, 2011 at 10:00:50AM +0200, Matti J. Aaltonen wrote:
-> > These changes are needed to keep up with the changes in the
-> > MFD core and V4L2 parts of the wl1273 FM radio driver.
-> > 
-> > Use function pointers instead of exported functions for I2C IO.
-> > Also move all preprocessor constants from the wl1273.h to
-> > include/linux/mfd/wl1273-core.h.
-> > 
-> > Also update the year in the copyright statement.
-> 
-> It's not actually doing that:
-> 
-> > - * Copyright:   (C) 2010 Nokia Corporation
-> > + * Copyright:   (C) 2011 Nokia Corporation
-> 
-> It's replacing it - portions are still 2010.
-
-Kept also the year 2010 on the copyright line.
+diff --git a/arch/arm/mach-s5pv310/Kconfig b/arch/arm/mach-s5pv310/Kconfig
+index c850086..6f83817 100644
+--- a/arch/arm/mach-s5pv310/Kconfig
++++ b/arch/arm/mach-s5pv310/Kconfig
+@@ -107,6 +107,7 @@ config MACH_UNIVERSAL_C210
+ 	select S5PV310_SETUP_SDHCI
+ 	select S3C_DEV_I2C1
+ 	select S3C_DEV_I2C5
++	select S5P_DEV_MFC
+ 	select S5PV310_DEV_PD
+ 	select S5PV310_DEV_SYSMMU
+ 	select S5PV310_SETUP_I2C1
+diff --git a/arch/arm/mach-s5pv310/mach-universal_c210.c b/arch/arm/mach-s5pv310/mach-universal_c210.c
+index f153895..ce88262 100644
+--- a/arch/arm/mach-s5pv310/mach-universal_c210.c
++++ b/arch/arm/mach-s5pv310/mach-universal_c210.c
+@@ -827,6 +827,10 @@ static struct platform_device *universal_devices[] __initdata = {
+ 	&s5pv310_device_sysmmu[S5P_SYSMMU_FIMC1],
+ 	&s5pv310_device_sysmmu[S5P_SYSMMU_FIMC2],
+ 	&s5pv310_device_sysmmu[S5P_SYSMMU_FIMC3],
++	&s5p_device_mfc,
++	&s5pv310_device_pd[PD_MFC],
++	&s5pv310_device_sysmmu[S5P_SYSMMU_MFC_L],
++	&s5pv310_device_sysmmu[S5P_SYSMMU_MFC_R],
  
-> Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+ 	/* Universal Devices */
+ 	&universal_gpio_keys,
+@@ -862,6 +866,10 @@ static void __init universal_machine_init(void)
+ 	s5pv310_device_sysmmu[S5P_SYSMMU_FIMC1].dev.parent = &s5pv310_device_pd[PD_CAM].dev;
+ 	s5pv310_device_sysmmu[S5P_SYSMMU_FIMC2].dev.parent = &s5pv310_device_pd[PD_CAM].dev;
+ 	s5pv310_device_sysmmu[S5P_SYSMMU_FIMC3].dev.parent = &s5pv310_device_pd[PD_CAM].dev;
++	
++	s5p_device_mfc.dev.parent = &s5pv310_device_pd[PD_MFC].dev;
++	s5pv310_device_sysmmu[S5P_SYSMMU_MFC_L].dev.parent = &s5pv310_device_pd[PD_MFC].dev;
++	s5pv310_device_sysmmu[S5P_SYSMMU_MFC_R].dev.parent = &s5pv310_device_pd[PD_MFC].dev;
+ }
  
-
-On Tue, 2011-03-01 at 12:43 +0100, ext Samuel Ortiz wrote:
-> Acked-by: Samuel Ortiz <sameo@linux.intel.com>
-
-Cheers,
-Matti
-
-Matti J. Aaltonen (3):
-  MFD: WL1273 FM Radio: MFD driver for the FM radio.
-  V4L2: WL1273 FM Radio: TI WL1273 FM radio driver
-  ASoC: WL1273 FM radio: Access I2C IO functions through pointers.
-
- drivers/media/radio/radio-wl1273.c |  360 +++++++++++-------------------------
- drivers/mfd/Kconfig                |    2 +-
- drivers/mfd/wl1273-core.c          |  149 +++++++++++++++-
- include/linux/mfd/wl1273-core.h    |    2 +
- sound/soc/codecs/Kconfig           |    2 +-
- sound/soc/codecs/wl1273.c          |   11 +-
- 6 files changed, 264 insertions(+), 262 deletions(-)
-
+ MACHINE_START(UNIVERSAL_C210, "UNIVERSAL_C210")
+-- 
+1.6.3.3
