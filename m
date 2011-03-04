@@ -1,267 +1,130 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4265 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752524Ab1CELo6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Mar 2011 06:44:58 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Abhilash Kesavan <a.kesavan@samsung.com>
-Subject: Re: [PATCH/RFC 0/5] [media] s5p-tvout: Add S5P TVOUT driver
-Date: Sat, 5 Mar 2011 12:44:40 +0100
-Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Ilho Lee <ilho215.lee@samsung.com>
-References: <1298620413-24182-1-git-send-email-a.kesavan@samsung.com>
-In-Reply-To: <1298620413-24182-1-git-send-email-a.kesavan@samsung.com>
+Received: from mx3.wp.pl ([212.77.101.7]:20732 "EHLO mx3.wp.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752084Ab1CDK5I (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 Mar 2011 05:57:08 -0500
+Received: from dnt237.neoplus.adsl.tpnet.pl (HELO [192.168.2.5]) (laurentp@[83.24.101.237])
+          (envelope-sender <laurentp@wp.pl>)
+          by smtp.wp.pl (WP-SMTPD) with AES256-SHA encrypted SMTP
+          for <linux-media@vger.kernel.org>; 4 Mar 2011 11:57:05 +0100
+Message-ID: <4D70C581.1090600@wp.pl>
+Date: Fri, 04 Mar 2011 11:57:05 +0100
+From: "W.P." <laurentp@wp.pl>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201103051244.40228.hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [partially solved] Re: Big ptoblem with small webcam
+References: <4D6E68D1.6050209@wp.pl> <201103031114.39286.laurent.pinchart@ideasonboard.com> <4D6FB394.8020908@wp.pl>
+In-Reply-To: <4D6FB394.8020908@wp.pl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi!
+Użytkownik W.P. napisał:
+> Użytkownik Laurent Pinchart napisał:
+>   
+>> Hi,
+>>
+>> On Wednesday 02 March 2011 16:57:05 W.P. wrote:
+>>   
+>>     
+>>> Hi there,
+>>> I just got an Creative VGA (640x480) USB Live Webcam, VF0520.
+>>>
+>>> lsusb (partial):
+>>>
+>>> Bus 003 Device 007: ID 041e:406c Creative Technology, Ltd
+>>> Device Descriptor:
+>>>   bLength                18
+>>>   bDescriptorType         1
+>>>   bcdUSB               2.00
+>>>   bDeviceClass          239 Miscellaneous Device
+>>>   bDeviceSubClass         2 ?
+>>>   bDeviceProtocol         1 Interface Association
+>>>   bMaxPacketSize0        64
+>>>   idVendor           0x041e Creative Technology, Ltd
+>>>   idProduct          0x406c
+>>>   bcdDevice           10.19
+>>>   iManufacturer           1 Creative Labs
+>>>   iProduct                3 VF0520 Live! Cam Sync
+>>>   iSerial                 0
+>>>   bNumConfigurations      1
+>>>
+>>> lsmod | grep vid:
+>>> uvcvideo               50184  0
+>>> compat_ioctl32          5120  1 uvcvideo
+>>> videodev               32000  1 uvcvideo
+>>> v4l1_compat            15876  2 uvcvideo,videodev
+>>>
+>>> uname -a (kernel from Fedora 10):
+>>> [root@laurent-home ~]# uname -a
+>>> Linux laurent-home 2.6.27.5-117.fc10.i686 #1 SMP Tue Nov 18 12:19:59 EST
+>>> 2008 i686 athlon i386 GNU/Linux
+>>>
+>>> Problem: device nodes are created, but NO video in gmplayer, tvtime
+>>> complains: can't open /dev/video0.
+>>>
+>>> Only trace in syslog is:
+>>>
+>>> Mar  2 16:26:56 laurent-home kernel: uvcvideo: Failed to submit URB 0
+>>> (-28).
+>>>     
+>>>       
+>> This means the webcam requires more USB bandwidth than available. Another 
+>> device probably uses USB bandwidth (it could be another webcam, an audio 
+>> device, ...).
+>>
+>>   
+>>     
+> It is the only USB 2.0 device connected (rest are keyboard, mouse, 2x
+> PL2303 converters, BT, and WiFi (unused). But what is strange: it seems
+> device runs in 1.1 mode:
+>
+> Mar  3 15:54:46 laurent-home kernel: usb 3-1.4: new full speed USB
+> device using
+>  uhci_hcd and address 24
+> Mar  3 15:54:47 laurent-home kernel: usb 3-1.4: *not running at top
+> speed*; conne
+> ct to a high speed hub
+> Mar  3 15:54:47 laurent-home kernel: usb 3-1.4: configuration #1 chosen
+> from 1
+> choice
+> Mar  3 15:54:47 laurent-home kernel: uvcvideo: Found UVC 1.00 device
+> VF0520 Liv
+> e! Cam Sync (041e:406c)
+> Mar  3 15:54:47 laurent-home kernel: uvcvideo: Found a valid video chain
+> (1 ->
+> 2).
+> Mar  3 15:54:47 laurent-home kernel: input: VF0520 Live! Cam Sync as
+> /devices/p
+> ci0000:00/0000:00:0b.1/usb3/3-1/3-1.4/3-1.4:1.0/input/input19
+> Mar  3 15:54:47 laurent-home kernel: usb 3-1.4: New USB device found,
+> idVendor=
+> 041e, idProduct=406c
+> Mar  3 15:54:47 laurent-home kernel: usb 3-1.4: New USB device strings:
+> Mfr=1,
+> Product=3, SerialNumber=0
+> Mar  3 15:54:47 laurent-home kernel: usb 3-1.4: Product: VF0520 Live!
+> Cam Sync
+> Mar  3 15:54:47 laurent-home kernel: usb 3-1.4: Manufacturer: Creative Labs
+>
+> But I have tested it with 2 hubs on different controller ports, same.
+>   
+>>> Webcam is connected to VIA USB 2.0 controller through a USB 2.0 hub.
+>>>
+>>> What is strange, two days ago I tried apparently the same (model VFxxxx)
+>>> with SUCCESS.
+>>> Device seems working in Windoze (Ekiga).
+>>>
+>>> What should I check/ do?
+>>>     
+>>>       
+> Only switching OS (for test) and it works. WTF?
+>
+>   
+Connecting to controller directly -> detected as high speed and works.
+Again, question is WTF?
 
-Sorry for not replying earlier. To be honest, there is not much I can say yet.
+> W.P.
+>   
 
-The main new part in this driver is the HDMI/CEC support. And that is one of
-the topics of the upcoming Warsaw brainstorm meeting (several of your Samsung
-colleagues will be attending).
-
-An RFC for CEC support has been posted last week and hopefully we (Cisco Systems
-Norway) can get a HDMI RFC posted as well in time for the meeting.
-
-The main difference of our approach to HDMI is that we integrate it in V4L2
-rather than creating new device nodes. Once the media controller is in we also
-have per-subdevice nodes in /dev which we want to utilize for the HDMI and CEC
-APIs.
-
-Functionality-wise the CEC RFC is effectively identical to your implementation.
-
-Regards,
-
-	Hans
-
-On Friday, February 25, 2011 08:53:28 Abhilash Kesavan wrote:
-> This patch-set adds support for TV-OUT interface in the EXYNOS4 series of SoCs.
-> TVOUT includes the HDMI interface, analog TV interface, mixer and video
-> processor. This is a full-featured driver providing the following:
-> 
-> 1) HDMI Support
-> 2) Analog Support
-> 3) Mixer Support
-> 4) Video Processor Support
-> 5) Hotplug Detect Support
-> 6) HDCP Support
-> 7) CEC Support
-> 8) I2S/SPDIF Support
-> 
-> The driver is under development and needs major modifications, as mentioned
-> later in the TODO section, to conform to open source standards. Please have
-> a look at the driver design and offer any suggestions/comments.
-> 
-> 
-> I) HARDWARE
-> 
-> Video processor is responsible for video scaling, de-interlacing, and video post
-> processing of TVOUT data path. It reads reconstructed YCbCr video sequences from
-> DRAM, processes the sequence, and sends it to mixer on-the-fly. Input to VP is
-> NV12 and NV21 (Linear and tiled) format while the output to the mixer is YUV444.
-> 
-> Mixer overlaps or blends input data such as graphic, video, background and sends
-> the resulting data to the HDMI or analog TV interface. Along with the YUV444 in-
-> put from VP interface, the mixer can receive two RGB inputs. It allows for  layer
-> blending, alpha blending, chroma key, scaling etc.
-> 
-> HDMI interface supports 1.3 Tx subsystem V1.0 comprising an HDMI Tx core with
-> I2S input interface, CEC block, and HDCP key block. It receives YUV444 or RGB888
-> data from the mixer and converts it into HDMI packets. Supports a variety of
-> video formats varying from 480p to 1080p.
-> 
-> Analog TV interface supports ITU-R BT 470 and EIA-770 compliant analog TV
-> signals with 1 channel 10bit DAC. Supports PAL-m@60Hz, PAL-60@60Hz, NTSC@60Hz,
-> NTSC-443@60Hz, PAL@50Hz, PAL-n@50Hz and (M)NTSC@60Hz formats for composite
-> output.
-> 
-> 
-> II) S/W DESIGN
-> 
-> ===============================================================================
->         -----------------------------------------------------------------------
->                                         VFS
->         -----------------------------------------------------------------------
-> KERNEL       |                               |
->              V                               V
->         ----------                       --------            ------------------
->         V4L2 STACK                       FB STACK            Linux Driver Model
->         ----------                       --------            ------------------
->              |                               |                        |
-> =============+===============================+========================+========
->              |                               |                        |
->              |                               |          +-------------|
->              |                               |          |             |
->              V                               V          V             |
->       +---------------------------------------------------------------+-------+
->       |                                                               |       |
->       |                                                               |       |
->       | ------------    -------------   -----------                   |       |
->       |  Video Ctrl  -- Graphics Ctrl -- TVOUT I/F                    |       |
->       | ------------    -------------   -----------                   V       |
->       |      |               |             |    |__________       ----------- |
->       |      |               |             |               |       HPD Driver |
->       |      V               V             V               V        (GPIO)    |
->       | -----------     -----------   -----------   -----------   ----------- |
->       |     VP I/F       Mixer I/F     Analog I/F    HDMI I/F                 |
->       | -----------     -----------   -----------   -----------               |
->       |      |               |               |         |   |                  |
-> DEVICE|      |               |               |         |   |_______________   |
-> DRIVER|      |               |               |         |           |       |  |
->       |      |               |               |         |           V       V  |
->       |      |               |               |         |         -----  ------|
->       |      |               |               |         |          CEC    HDCP |
->       |      |               |               |         |         -----  ------|
->       |      |               |               |         |___________|_______|  |
->       |      |               |               |                                |
->       +------+---------------+---------------+--------------------------------+
->              |               |               |         |
->              |               |               |         |
-> =============+===============+===============+=================================
->              |               |               |         |
->              V               V               V         |
->         -----------     -----------     -----------    |         --------
->             VP     ---->   Mixer   ----> TV Encoder ---+-------->   DAC
->         -----------     -----------  |  -----------    |         --------
->                                      |                 |
-> HARDWARE                             |                 V
->                                      |           ----------      --------
->                                      +----------> HDMI Link  --> HDMI PHY
->                                                  ----------      --------
-> ===============================================================================
-> Description:
-> 1) S5P TVOUT driver is devided into control layer and interface layer. interface
-> layer accesses hardware register in TVOUT subsystem like video processor, mixer,
-> hdmi and sdo. and control layer controls each hardware IPs and communicates with
-> other control modules.
-> 2) S5P TVOUT driver is composed of 3 kinds of drivers logically.
-> 	- Video driver controls video processor and follows V4L2 interface
-> 	- Graphic driver controls mixer and follows framebuffer interface
-> 	- TV interface driver selects hdmi or analog TV interface and follows V4L2
-> 	  interface
-> 3) HPD(Hot-Plug Detection) driver is used for HDMI interface. It generates event
-> when plugging or unplugging HDMI cable.
-> 
-> 4) CEC(Consumer Electronic Control) driver is also used for HDMI interface.
-> It can send signals like turning on/off from source to sink device.
-> 
-> III) CODE STRUCTURE
-> 
->  +---------------------+	+--------------------------+
->  |API 		       |	|Platform Drivers	   |
->  |    s5p_tvout_v4l2.c |	|          s5p_tvout.c	   |
->  |    s5p_tvout_fb.c   |	|          s5p_tvout_hpd.c |
->  +---------------------+ 	|          s5p_tvout_cec.c |
-> 				+--------------------------+
-> 
->  +-----------------------+	+----------------------------+
->  |CONTROL CLASS	 	 |	|COMMON			     |
->  |	s5p_vp_ctrl.c    |	|     s5p_tvout_common_lib.c |
->  |	s5p_mixer_ctrl.c |	+----------------------------+
->  |	s5p_tvif_ctrl.c  |
->  +-----------------------+
-> 
->  +-----------------------------------------------------------+
->  |HARDWARE INTERFACE					     |
->  |	vp.c   mixer.c   cec.c   hdcp.c   hdmi.c   sdo.c     |
->  +-----------------------------------------------------------+
-> 
-> 
-> Notes:
-> 1) A hw_if interface sub-directory has been created to collect all the
-> APIs for accessing each of the IPs like VP, Mixer and HDMI. The sdo.c
-> file contains functions for TV Encoder + DAC.
-> 2) The common library provides common memory allocator and run-time PM
-> APIs.
-> 3) V4L2 callbacks for the s5p_tvout driver and fb registration & initi-
-> alization has been implemented in the two API files.
-> 4) TV-OUT interface component has 3 classes. (tvif, hdmi, sdo)
-> 	- tvif ctrl class: controls hdmi and sdo ctrl class.
-> 	- hdmi ctrl class: contrls hdmi hardware by using hw_if/hdmi.c
-> 	- sdo  ctrl class: contrls sdo hardware by using hw_if/sdo.c
-> 
->                        +-----------------+
->                        | tvif ctrl class |
->                        +-----------------+
->                               |   |
->                    +----------+   +----------+             ctrl class layer
->                    |                         |
->                    V                         V
->           +-----------------+       +-----------------+
->           | sdo ctrl class  |       | hdmi ctrl class |
->           +-----------------+       +-----------------+
->                    |                         |
->     ---------------+-------------------------+------------------------------
->                    V                         V
->           +-----------------+       +-----------------+
->           |   hw_if/sdo.c   |       |   hw_if/hdmi.c  |         hw_if layer
->           +-----------------+       +-----------------+
->                    |                         |
->     ---------------+-------------------------+------------------------------
->                    V                         V
->           +-----------------+       +-----------------+
->           |   sdo hardware  |       |   hdmi hardware |          Hardware
->           +-----------------+       +-----------------+
-> 
-> 
-> IV) APPLICATION FLOW
-> 
-> a) open "/dev/video14" node.
-> b) query device capabilities VIDIOC_QUERYCAP
-> c) set output device standard VIDIOC_S_STD
-> d) set output device VIDIOC_S_OUTPUT
-> e) Use CEC (if output is HDMI)
-> f) Enable/Disable HDCP
-> g) open "/dev/fb10" node.
-> h) configure attributes of graphics layer using fb such as pixel format,
-> window position, window size etc. FBIOPUT_VSCREENINFO
-> i) turn on the window FBIOBLANK_UNBLANK
-> j) open "/dev/video21" (overlay) node.
-> k) set source video plane parameters VIDIOC_S_FMT.
-> l) set source video data information VIDIOC_S_CROP
-> m) set destination (video plane of mixer) information VIDIOC_S_FBUF
-> n) set destination video overlay format VIDIO_S_FMT
-> o) start overlay VIDIOC_OVERLAY
-> 
-> 
-> V) MISCELLANEOUS
-> 
-> a) The driver has undergone HDMI compliance tests and has been verfied to be
-> HDMI 1.3 compliant.
-> b) The driver uses the framebuffer interface on mixer's graphic layer to 
-> support many customer requirements like a Xdriver.
-> c) All of the following video formats are supported by the HDMI driver: 480p@
-> 59.94Hz/60Hz, 576p@50Hz, 720p@50Hz/59.94Hz/60Hz, 1080i@50Hz/59.94Hz/60Hz,
-> 1080p@30Hz, 1080p@60Hz.
-> d) Support 1 video layer and 2 graphics layers, and blending of all 3 layers.
-> 
-> 
-> VI) TODO
-> 
-> a) Use the newer videobuf2 framework for buffer management.
-> b) Modify the tvout_fb code to be more in line with the framebuffer stack.
-> 
-> * NOTE: The arch/mach specific header files Will be added later.
-> 
-> [PATCH 1/5] [media] s5p-tvout: Add TVOUT core driver for S5P SoCs
-> [PATCH 2/5] [media] s5p-tvout: Add Graphic layer control for S5P TVOUT driver
-> [PATCH 3/5] [media] s5p-tvout: Add TVOUT interface control for S5P TVOUT driver
-> [PATCH 4/5] [media] s5p-tvout: Add CEC driver for S5P TVOUT
-> [PATCH 5/5] [media] s5p-tvout: Add HPD driver for S5P TVOUT
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
-
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
