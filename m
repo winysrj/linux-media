@@ -1,35 +1,71 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:55383 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753063Ab1CHMqP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Mar 2011 07:46:15 -0500
-From: David Cohen <dacohen@gmail.com>
-To: Hiroshi.DOYU@nokia.com
-Cc: linux-omap@vger.kernel.org, fernando.lugo@ti.com,
-	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@maxwell.research.nokia.com,
-	David Cohen <dacohen@gmail.com>
-Subject: [PATCH 0/3] omap: iovmm: Fix IOVMM check for fixed 'da'
-Date: Tue,  8 Mar 2011 14:46:02 +0200
-Message-Id: <1299588365-2749-1-git-send-email-dacohen@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:33896 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932520Ab1CDW7Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 Mar 2011 17:59:24 -0500
+Message-ID: <4D716ECA.4060900@iki.fi>
+Date: Sat, 05 Mar 2011 00:59:22 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Andrew de Quincey <adq_dvb@lidskialf.net>
+CC: linux-media@vger.kernel.org
+Subject: Re: [patch] Fix AF9015 Dual tuner i2c write failures
+References: <AANLkTi=rcfL_pku9hhx68C_Fb_76KsW2Yy+Oys10a7+4@mail.gmail.com>	<4D7163FD.9030604@iki.fi> <AANLkTimjC99zhJ=huHZiGgbENCoyHy5KT87iujjTT8w3@mail.gmail.com>
+In-Reply-To: <AANLkTimjC99zhJ=huHZiGgbENCoyHy5KT87iujjTT8w3@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-IOVMM driver checks input 'da == 0' when mapping address to determine whether
-user wants fixed 'da' or not. At the same time, it doesn't disallow address
-0x0 to be used, what creates an ambiguous situation. This patch set moves
-fixed 'da' check to the input flags.
-It also fixes da_start value for ISP IOMMU instance.
+On 03/05/2011 12:44 AM, Andrew de Quincey wrote:
+>>> Adding a "bus lock" to af9015_i2c_xfer() will not work as demod/tuner
+>>> accesses will take multiple i2c transactions.
+>>>
+>>> Therefore, the following patch overrides the dvb_frontend_ops
+>>> functions to add a per-device lock around them: only one frontend can
+>>> now use the i2c bus at a time. Testing with the scripts above shows
+>>> this has eliminated the errors.
+>>
+>> This have annoyed me too, but since it does not broken functionality much I
+>> haven't put much effort for fixing it. I like that fix since it is in AF9015
+>> driver where it logically belongs to. But it looks still rather complex. I
+>> see you have also considered "bus lock" to af9015_i2c_xfer() which could be
+>> much smaller in code size (that's I have tried to implement long time back).
+>>
+>> I would like to ask if it possible to check I2C gate open / close inside
+>> af9015_i2c_xfer() and lock according that? Something like:
+>
+> Hmm, I did think about that, but I felt overriding the functions was
+> just cleaner: I felt it was more obvious what it was doing. Doing
+> exactly this sort of tweaking was one of the main reasons we added
+> that function overriding feature.
+>
+> I don't like the idea of returning "error locked by FE" since that'll
+> mean the tuning will randomly fail sometimes in a way visible to
+> userspace (unless we change the core dvb_frontend code), which was one
+> of the things I was trying to avoid. Unless, of course, I've
+> misunderstood your proposal.
 
-David Cohen (2):
-  omap3: change ISP's IOMMU da_start address
-  omap: iovmm: don't check 'da' to set IOVMF_DA_FIXED/IOVMF_DA_ANON
-    flags
+Not returning error, but waiting in lock like that:
+if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
+   return -EAGAIN;
 
-Michael Jones (1):
-  omap: iovmm: disallow mapping NULL address
+> However, looking at the code again, I realise it is possible to
+> simplify it. Since its only the demod gates that cause a problem, we
+> only /actually/ need to lock the get_frontend() and set_frontend()
+> calls.
 
- arch/arm/mach-omap2/omap-iommu.c |    2 +-
- arch/arm/plat-omap/iovmm.c       |   28 ++++++++++++++++++----------
- 2 files changed, 19 insertions(+), 11 deletions(-)
+I don't understand why .get_frontend() causes problem, since it does not 
+access tuner at all. It only reads demod registers. The main problem is 
+(like schema in af9015.c shows) that there is two tuners on same I2C bus 
+using same address. And demod gate is only way to open access for 
+desired tuner only.
 
+You should block traffic based of tuner not demod. And I think those 
+callbacks which are needed for override are tuner driver callbacks. 
+Consider situation device goes it v4l-core calls same time both tuner 
+.sleep() == problem.
+
+Antti
+-- 
+http://palosaari.fi/
