@@ -1,195 +1,220 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2394 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759071Ab1CDJrW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2011 04:47:22 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] v4l2-ctrls: Add transaction support
-Date: Fri, 4 Mar 2011 10:47:11 +0100
-Cc: linux-media@vger.kernel.org
-References: <1299165213-14014-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1299165213-14014-1-git-send-email-laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201103041047.11882.hverkuil@xs4all.nl>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:37628 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759288Ab1CDL0k (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2011 06:26:40 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Fri, 04 Mar 2011 12:26:19 +0100
+From: Kamil Debski <k.debski@samsung.com>
+Subject: [RFC/PATCH v7 2/5] MFC: Add MFC 5.1 driver to plat-s5p
+In-reply-to: <1299237982-31687-1-git-send-email-k.debski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	k.debski@samsung.com, jaeryul.oh@samsung.com, kgene.kim@samsung.com
+Message-id: <1299237982-31687-3-git-send-email-k.debski@samsung.com>
+References: <1299237982-31687-1-git-send-email-k.debski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Laurent,
+This patch adds platform support for Multi Format Codec 5.1.
+MFC 5.1 is capable of handling a range of video codecs and this driver
+provides V4L2 interface for video decoding.
 
-I'm afraid this approach won't work. See below for the details.
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ arch/arm/mach-s5pv310/clock.c                   |   28 ++++++++++++-
+ arch/arm/mach-s5pv310/include/mach/map.h        |    2 +
+ arch/arm/mach-s5pv310/include/mach/regs-clock.h |    3 +
+ arch/arm/plat-s5p/Kconfig                       |    5 ++
+ arch/arm/plat-s5p/Makefile                      |    2 +-
+ arch/arm/plat-s5p/dev-mfc.c                     |   49 +++++++++++++++++++++++
+ arch/arm/plat-samsung/include/plat/devs.h       |    1 +
+ 7 files changed, 88 insertions(+), 2 deletions(-)
+ create mode 100644 arch/arm/plat-s5p/dev-mfc.c
 
-On Thursday, March 03, 2011 16:13:33 Laurent Pinchart wrote:
-> Some hardware supports controls transactions. For instance, the MT9T001
-> sensor can optionally shadow registers that influence the output image,
-> allowing the host to explicitly control the shadow process.
-> 
-> To support such hardware, drivers need to be notified when a control
-> transation is about to start and when it has finished. Add begin() and
-> commit() callback functions to the v4l2_ctrl_handler structure to
-> support such notifications.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/video/v4l2-ctrls.c |   42 +++++++++++++++++++++++++++++++++++--
->  include/media/v4l2-ctrls.h       |    8 +++++++
->  2 files changed, 47 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-> index 2412f08..d0e6265 100644
-> --- a/drivers/media/video/v4l2-ctrls.c
-> +++ b/drivers/media/video/v4l2-ctrls.c
-> @@ -1264,13 +1264,22 @@ EXPORT_SYMBOL(v4l2_ctrl_handler_log_status);
->  int v4l2_ctrl_handler_setup(struct v4l2_ctrl_handler *hdl)
->  {
->  	struct v4l2_ctrl *ctrl;
-> +	unsigned int count = 0;
->  	int ret = 0;
->  
->  	if (hdl == NULL)
->  		return 0;
->  	mutex_lock(&hdl->lock);
-> -	list_for_each_entry(ctrl, &hdl->ctrls, node)
-> +	list_for_each_entry(ctrl, &hdl->ctrls, node) {
->  		ctrl->done = false;
-> +		count++;
-> +	}
-> +
-> +	if (hdl->begin) {
-> +		ret = hdl->begin(hdl, count == 1);
-
-Note that count can be 0! In any case, rather then adding a counter you can
-use list_empty() and list_is_singular().
-
-> +		if (ret)
-> +			goto done;
-> +	}
->  
->  	list_for_each_entry(ctrl, &hdl->ctrls, node) {
->  		struct v4l2_ctrl *master = ctrl->cluster[0];
-> @@ -1298,6 +1307,11 @@ int v4l2_ctrl_handler_setup(struct v4l2_ctrl_handler *hdl)
->  			if (master->cluster[i])
->  				master->cluster[i]->done = true;
->  	}
-> +
-> +	if (hdl->commit)
-> +		hdl->commit(hdl, ret != 0);
-> +
-> +done:
-
-I understand that you assume that all controls registered to a handler can
-be used in a transaction. But isn't it possible that only a subset of the controls
-is shadowed? And so only certain controls can be in a transaction?
-
->  	mutex_unlock(&hdl->lock);
->  	return ret;
->  }
-> @@ -1717,6 +1731,12 @@ static int try_or_set_ext_ctrls(struct v4l2_ctrl_handler *hdl,
->  			return -EBUSY;
->  	}
->  
-> +	if (set && hdl->begin) {
-> +		ret = hdl->begin(hdl, cs->count == 1);
-> +		if (ret)
-> +			return ret;
-> +	}
-> +
-
-You are assuming that all controls here are owned by the given control handler.
-That's not necessarily the case though as a control handler can inherit controls
-from another handler. So the cs array is an array of controls where each control
-can be owned by a different handler.
-
->  	for (i = 0; !ret && i < cs->count; i++) {
->  		struct v4l2_ctrl *ctrl = helpers[i].ctrl;
->  		struct v4l2_ctrl *master = ctrl->cluster[0];
-> @@ -1747,6 +1767,10 @@ static int try_or_set_ext_ctrls(struct v4l2_ctrl_handler *hdl,
->  		v4l2_ctrl_unlock(ctrl);
->  		cluster_done(i, cs, helpers);
->  	}
-> +
-> +	if (set && hdl->commit)
-> +		hdl->commit(hdl, ret == 0);
-> +
-
-If you rollback a transaction, then you also have a problem: if some of the
-controls of the transaction succeeded then try_or_set_control_cluster() will
-have set the current control value to the new value (since the 'set' succeeded).
-
-But if you rollback the transaction, then that means that the old value isn't
-restored for such controls.
-
-I don't see an easy solution for that offhand.
-
-I really wonder whether you are not reinventing the control cluster here.
-
-If you put all shadowed controls in a cluster, then it will behave exactly the
-same as a transaction.
-
-Yes, that might mean that all controls of a subdev are in a single cluster.
-But so what? That's the way to atomically handle controls that in some manner
-are related.
-
-Regards,
-
-	Hans
-
->  	return ret;
->  }
->  
-> @@ -1842,8 +1866,20 @@ static int set_ctrl(struct v4l2_ctrl *ctrl, s32 *val)
->  	ctrl->val = *val;
->  	ctrl->is_new = 1;
->  	ret = try_or_set_control_cluster(master, false);
-> -	if (!ret)
-> -		ret = try_or_set_control_cluster(master, true);
-> +	if (ret)
-> +		goto done;
-> +
-> +	if (master->handler->begin) {
-> +		ret = master->handler->begin(master->handler, true);
-> +		if (ret)
-> +			goto done;
-> +	}
-> +
-> +	ret = try_or_set_control_cluster(master, true);
-> +	if (master->handler->commit)
-> +		master->handler->commit(master->handler, ret != 0);
-> +
-> +done:
->  	*val = ctrl->cur.val;
->  	v4l2_ctrl_unlock(ctrl);
->  	return ret;
-> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-> index 97d0638..29acffc 100644
-> --- a/include/media/v4l2-ctrls.h
-> +++ b/include/media/v4l2-ctrls.h
-> @@ -157,6 +157,12 @@ struct v4l2_ctrl_ref {
->    * @buckets:	Buckets for the hashing. Allows for quick control lookup.
->    * @nr_of_buckets: Total number of buckets in the array.
->    * @error:	The error code of the first failed control addition.
-> +  * @begin:	Begin a control set transaction. Called before the first control
-> +  *		in a group is set. The single argument is true if the group
-> +  *		contains a single control, and false otherwise.
-> +  * @commit:	End a control set transaction. Called after the last control
-> +  * 		in a group is set. The rollback argument is true if an error
-> +  * 		occured when setting the controls, and false otherwise.
->    */
->  struct v4l2_ctrl_handler {
->  	struct mutex lock;
-> @@ -166,6 +172,8 @@ struct v4l2_ctrl_handler {
->  	struct v4l2_ctrl_ref **buckets;
->  	u16 nr_of_buckets;
->  	int error;
-> +	int (*begin)(struct v4l2_ctrl_handler *hdl, bool single);
-> +	void (*commit)(struct v4l2_ctrl_handler *hdl, bool rollback);
->  };
->  
->  /** struct v4l2_ctrl_config - Control configuration structure.
-> 
-
+diff --git a/arch/arm/mach-s5pv310/clock.c b/arch/arm/mach-s5pv310/clock.c
+index f142b8c..d28fa6f 100644
+--- a/arch/arm/mach-s5pv310/clock.c
++++ b/arch/arm/mach-s5pv310/clock.c
+@@ -523,6 +523,11 @@ static struct clk init_clocks_off[] = {
+ 		.enable		= s5pv310_clk_ip_lcd1_ctrl,
+ 		.ctrlbit	= (1 << 0),
+ 	}, {
++		.name           = "mfc",
++		.id             = -1,
++		.enable         = s5pv310_clk_ip_mfc_ctrl,
++		.ctrlbit        = (1 << 0),
++	}, {
+ 		.name		= "hsmmc",
+ 		.id		= 0,
+ 		.parent		= &clk_aclk_133.clk,
+@@ -734,6 +739,18 @@ static struct clksrc_sources clkset_group = {
+ 	.nr_sources	= ARRAY_SIZE(clkset_group_list),
+ };
+ 
++static struct clk *clkset_group1_list[] = {
++	[0] = &clk_mout_mpll.clk,
++	[1] = &clk_sclk_apll.clk,
++	[2] = &clk_mout_epll.clk,
++	[3] = &clk_sclk_vpll.clk,
++};
++
++static struct clksrc_sources clkset_group1 = {
++	.sources        = clkset_group1_list,
++	.nr_sources     = ARRAY_SIZE(clkset_group1_list),
++};
++
+ static struct clk *clkset_mout_g2d0_list[] = {
+ 	[0] = &clk_mout_mpll.clk,
+ 	[1] = &clk_sclk_apll.clk,
+@@ -1076,7 +1093,16 @@ static struct clksrc_clk clksrcs[] = {
+ 			.ctrlbit	= (1 << 16),
+ 		},
+ 		.reg_div = { .reg = S5P_CLKDIV_FSYS3, .shift = 8, .size = 8 },
+-	}
++	}, {
++		.clk            = {
++			.name           = "sclk_mfc",
++			.id             = -1,
++		},
++		.sources = &clkset_group1,
++		.reg_src = { .reg = S5P_CLKSRC_MFC, .shift = 8, .size = 1 },
++		.reg_div = { .reg = S5P_CLKDIV_MFC, .shift = 0, .size = 4 },
++	},
++
+ };
+ 
+ /* Clock initialization code */
+diff --git a/arch/arm/mach-s5pv310/include/mach/map.h b/arch/arm/mach-s5pv310/include/mach/map.h
+index 0db3a47..576ba55 100644
+--- a/arch/arm/mach-s5pv310/include/mach/map.h
++++ b/arch/arm/mach-s5pv310/include/mach/map.h
+@@ -29,6 +29,7 @@
+ #define S5PV310_PA_FIMC1		0x11810000
+ #define S5PV310_PA_FIMC2		0x11820000
+ #define S5PV310_PA_FIMC3		0x11830000
++#define S5PV310_PA_MFC			0x13400000
+ #define S5PV310_PA_I2S0			0x03830000
+ #define S5PV310_PA_I2S1			0xE3100000
+ #define S5PV310_PA_I2S2			0xE2A00000
+@@ -129,6 +130,7 @@
+ #define S5P_PA_FIMC1			S5PV310_PA_FIMC1
+ #define S5P_PA_FIMC2			S5PV310_PA_FIMC2
+ #define S5P_PA_FIMC3			S5PV310_PA_FIMC3
++#define S5P_PA_MFC			S5PV310_PA_MFC
+ #define S5P_PA_ONENAND			S5PC210_PA_ONENAND
+ #define S5P_PA_ONENAND_DMA		S5PC210_PA_ONENAND_DMA
+ #define S5P_PA_SDRAM			S5PV310_PA_SDRAM
+diff --git a/arch/arm/mach-s5pv310/include/mach/regs-clock.h b/arch/arm/mach-s5pv310/include/mach/regs-clock.h
+index 9ef5f0c..f6b8181 100644
+--- a/arch/arm/mach-s5pv310/include/mach/regs-clock.h
++++ b/arch/arm/mach-s5pv310/include/mach/regs-clock.h
+@@ -176,4 +176,7 @@
+ 
+ #define S5P_EPLL_CON			S5P_EPLL_CON0
+ 
++/* MFC related */
++#define S5P_CLKSRC_MFC			S5P_CLKREG(0x0C228)
++#define S5P_CLKDIV_MFC			S5P_CLKREG(0x0C528)
+ #endif /* __ASM_ARCH_REGS_CLOCK_H */
+diff --git a/arch/arm/plat-s5p/Kconfig b/arch/arm/plat-s5p/Kconfig
+index 4166964..ea9032e 100644
+--- a/arch/arm/plat-s5p/Kconfig
++++ b/arch/arm/plat-s5p/Kconfig
+@@ -5,6 +5,11 @@
+ #
+ # Licensed under GPLv2
+ 
++config S5P_DEV_MFC
++	bool
++	help
++	  Compile in platform device definitions for MFC 
++	  
+ config PLAT_S5P
+ 	bool
+ 	depends on (ARCH_S5P64X0 || ARCH_S5P6442 || ARCH_S5PC100 || ARCH_S5PV210 || ARCH_S5PV310)
+diff --git a/arch/arm/plat-s5p/Makefile b/arch/arm/plat-s5p/Makefile
+index cfcd1db..54e330d 100644
+--- a/arch/arm/plat-s5p/Makefile
++++ b/arch/arm/plat-s5p/Makefile
+@@ -24,7 +24,7 @@ obj-$(CONFIG_SUSPEND)		+= pm.o
+ obj-$(CONFIG_SUSPEND)		+= irq-pm.o
+ 
+ # devices
+-
++obj-$(CONFIG_S5P_DEV_MFC)	+= dev-mfc.o
+ obj-$(CONFIG_S5P_DEV_FIMC0)	+= dev-fimc0.o
+ obj-$(CONFIG_S5P_DEV_FIMC1)	+= dev-fimc1.o
+ obj-$(CONFIG_S5P_DEV_FIMC2)	+= dev-fimc2.o
+diff --git a/arch/arm/plat-s5p/dev-mfc.c b/arch/arm/plat-s5p/dev-mfc.c
+new file mode 100644
+index 0000000..0dfcb1a
+--- /dev/null
++++ b/arch/arm/plat-s5p/dev-mfc.c
+@@ -0,0 +1,49 @@
++/* linux/arch/arm/plat-s5p/dev-mfc.c
++ *
++ * Copyright (c) 2010 Samsung Electronics
++ *
++ * Base S5P MFC 5.1 resource and device definitions
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++
++#include <linux/kernel.h>
++#include <linux/interrupt.h>
++#include <linux/platform_device.h>
++#include <linux/dma-mapping.h>
++#include <linux/ioport.h>
++
++#include <mach/map.h>
++#include <plat/devs.h>
++#include <plat/irqs.h>
++
++static struct resource s5p_mfc_resource[] = {
++	[0] = {
++		.start  = S5P_PA_MFC,
++		.end    = S5P_PA_MFC + SZ_64K - 1,
++		.flags  = IORESOURCE_MEM,
++	},
++	[1] = {
++		.start  = IRQ_MFC,
++		.end    = IRQ_MFC,
++		.flags  = IORESOURCE_IRQ,
++	}
++};
++
++static u64 s5p_mfc_dma_mask = DMA_BIT_MASK(32);
++
++struct platform_device s5p_device_mfc = {
++	.name          = "s5p-mfc",
++	.id            = -1,
++	.num_resources = ARRAY_SIZE(s5p_mfc_resource),
++	.resource      = s5p_mfc_resource,
++	.dev		= {
++		.dma_mask		= &s5p_mfc_dma_mask,
++		.coherent_dma_mask	= DMA_BIT_MASK(32),
++	},
++};
++
++EXPORT_SYMBOL(s5p_device_mfc);
+diff --git a/arch/arm/plat-samsung/include/plat/devs.h b/arch/arm/plat-samsung/include/plat/devs.h
+index 9f42dee..6a869b8 100644
+--- a/arch/arm/plat-samsung/include/plat/devs.h
++++ b/arch/arm/plat-samsung/include/plat/devs.h
+@@ -135,6 +135,7 @@ extern struct platform_device s5p_device_fimc1;
+ extern struct platform_device s5p_device_fimc2;
+ extern struct platform_device s5p_device_fimc3;
+ 
++extern struct platform_device s5p_device_mfc;
+ extern struct platform_device s5p_device_mipi_csis0;
+ extern struct platform_device s5p_device_mipi_csis1;
+ 
 -- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+1.6.3.3
