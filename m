@@ -1,136 +1,109 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.22]:33992 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752180Ab1C2UL5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Mar 2011 16:11:57 -0400
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="utf-8"
-Date: Tue, 29 Mar 2011 22:11:52 +0200
-From: handygewinnspiel@gmx.de
-In-Reply-To: <4D90D78F.7050308@redhat.com>
-Message-ID: <20110329201152.282620@gmx.net>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:63854 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751877Ab1CEBvK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2011 20:51:10 -0500
+Received: by wyg36 with SMTP id 36so2687222wyg.19
+        for <linux-media@vger.kernel.org>; Fri, 04 Mar 2011 17:51:09 -0800 (PST)
 MIME-Version: 1.0
-References: <4D909B59.9040809@redhat.com> <20110328172045.64750@gmx.net>
- <4D90D78F.7050308@redhat.com>
-Subject: Re: [w_scan PATCH] Add Brazil support on w_scan
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <AANLkTik9cSnAFWNdTUv3NNU3K2SoeECDO2036Htx-OAi@mail.gmail.com>
+References: <AANLkTi=rcfL_pku9hhx68C_Fb_76KsW2Yy+Oys10a7+4@mail.gmail.com>
+	<4D7163FD.9030604@iki.fi>
+	<AANLkTimjC99zhJ=huHZiGgbENCoyHy5KT87iujjTT8w3@mail.gmail.com>
+	<4D716ECA.4060900@iki.fi>
+	<AANLkTimHa6XFwhvpLbhtRm7Vee-jYPkHpx+D8L2=+vQb@mail.gmail.com>
+	<AANLkTik9cSnAFWNdTUv3NNU3K2SoeECDO2036Htx-OAi@mail.gmail.com>
+Date: Sat, 5 Mar 2011 01:51:08 +0000
+Message-ID: <AANLkTi=e-cAzMWZSHvKR8Yx+0MqcY_Ewf4z1gDyZfCeo@mail.gmail.com>
+Subject: Re: [patch] Fix AF9015 Dual tuner i2c write failures
+From: adq <adq@lidskialf.net>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-> Em 28-03-2011 14:20, handygewinnspiel@gmx.de escreveu:
-> > Hi Mauro,
-> > 
-> >> This patch adds support for both ISDB-T and DVB-C @6MHz used in
-> >> Brazil, and adds a new bit rate of 5.2170 MSymbol/s, found on QAM256
-> >> transmissions at some Brazilian cable operators.
-> > 
-> > Good. :)
-> > 
-> >> While here, fix compilation with kernels 2.6.39 and later, where the
-> >> old V4L1 API were removed (so, linux/videodev.h doesn't exist anymore).
-> >> This is needed to compile it on Fedora 15 beta.
-> > 
-> > videodev.h should have never been in there. Was already reported and
-> will be removed instead.
-> > 
-> >> @@ -1985,6 +1986,10 @@
-> >>  		dvbc_symbolrate_min=dvbc_symbolrate_max=0;
-> >>  		break;
-> >>  	case FE_QAM:
-> >> +		// 6MHz DVB-C uses lower symbol rates
-> >> +		if (freq_step(channel, this_channellist) == 6000000) {
-> >> +			dvbc_symbolrate_min=dvbc_symbolrate_max=17;
-> >> +		}
-> >>  		break;
-> >>  	case FE_QPSK:
-> >>  		// channel means here: transponder,
-> > 
-> > This one causes me headache, because this one has side-effects to all
-> other DVB-C cases using 6MHz bandwidth.
-> > Are there *any cases* around, where some country may use DVB-C with
-> symbolrates other than 5.217Mbit/s?
-> 
-> If you take a look at EN 300 429[1], The DVB-C roll-off factor (alpha) is
-> defined as 0.15.
-> 
-> 	[1] EN 300 429 V1.2.1 (1998-04), chapter 9, page 16, and table B.1
-> 
-> So, the amount of the needed bandwidth (e. g. the Nyquist cut-off
-> frequency) is given by:
->   Bw = Symbol_rate * (1 + 0.15)
-> 
-> E. g. the maximum symbol rate is given by:
-> 
-> 	Symbol_rate(6MHz) = 6000000/1.15 = 5217391.30434782608695652173
-> 	Symbol_rate(7MHz) = 7000000/1.15 = 6086956.52173913043478260869
-> 	Symbol_rate(8MHz) = 8000000/1.15 = 6956521.73913043478260869565
-> 
-> As you see, for Countries using 6MHz bandwidth, the maximum value is about
-> 5.127 Mbauds.
-> With the current w_scan logic of assuming 6.9 or 6.875 Mbauds by default
-> for DVB-C, 
-> w_scan will never find any channel, if the channel bandwidth fits into a
-> 6MHz (or 7MHz)
-> channel spacing.
-> 
-> So, the above change won't cause regressions, although it could be
-> improved.
+On 5 March 2011 01:43, adq <adq@lidskialf.net> wrote:
+> On 4 March 2011 23:11, Andrew de Quincey <adq_dvb@lidskialf.net> wrote:
+>> On 4 March 2011 22:59, Antti Palosaari <crope@iki.fi> wrote:
+>>> On 03/05/2011 12:44 AM, Andrew de Quincey wrote:
+>>>>>>
+>>>>>> Adding a "bus lock" to af9015_i2c_xfer() will not work as demod/tuner
+>>>>>> accesses will take multiple i2c transactions.
+>>>>>>
+>>>>>> Therefore, the following patch overrides the dvb_frontend_ops
+>>>>>> functions to add a per-device lock around them: only one frontend can
+>>>>>> now use the i2c bus at a time. Testing with the scripts above shows
+>>>>>> this has eliminated the errors.
+>>>>>
+>>>>> This have annoyed me too, but since it does not broken functionality much
+>>>>> I
+>>>>> haven't put much effort for fixing it. I like that fix since it is in
+>>>>> AF9015
+>>>>> driver where it logically belongs to. But it looks still rather complex.
+>>>>> I
+>>>>> see you have also considered "bus lock" to af9015_i2c_xfer() which could
+>>>>> be
+>>>>> much smaller in code size (that's I have tried to implement long time
+>>>>> back).
+>>>>>
+>>>>> I would like to ask if it possible to check I2C gate open / close inside
+>>>>> af9015_i2c_xfer() and lock according that? Something like:
+>>>>
+>>>> Hmm, I did think about that, but I felt overriding the functions was
+>>>> just cleaner: I felt it was more obvious what it was doing. Doing
+>>>> exactly this sort of tweaking was one of the main reasons we added
+>>>> that function overriding feature.
+>>>>
+>>>> I don't like the idea of returning "error locked by FE" since that'll
+>>>> mean the tuning will randomly fail sometimes in a way visible to
+>>>> userspace (unless we change the core dvb_frontend code), which was one
+>>>> of the things I was trying to avoid. Unless, of course, I've
+>>>> misunderstood your proposal.
+>>>
+>>> Not returning error, but waiting in lock like that:
+>>> if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
+>>>  return -EAGAIN;
+>>
+>> Ah k, sorry
+>>
+>>>> However, looking at the code again, I realise it is possible to
+>>>> simplify it. Since its only the demod gates that cause a problem, we
+>>>> only /actually/ need to lock the get_frontend() and set_frontend()
+>>>> calls.
+>>>
+>>> I don't understand why .get_frontend() causes problem, since it does not
+>>> access tuner at all. It only reads demod registers. The main problem is
+>>> (like schema in af9015.c shows) that there is two tuners on same I2C bus
+>>> using same address. And demod gate is only way to open access for desired
+>>> tuner only.
+>>
+>> AFAIR /some/ tuner code accesses the tuner hardware to read the exact
+>> tuned frequency back on a get_frontend(); was just being extra
+>> paranoid :)
+>>
+>>> You should block traffic based of tuner not demod. And I think those
+>>> callbacks which are needed for override are tuner driver callbacks. Consider
+>>> situation device goes it v4l-core calls same time both tuner .sleep() ==
+>>> problem.
+>>
+>> Hmm, yeah, you're right, let me have another look tomorrow.
+>>
+>
+> Hi, must admit I misunderstood your diagram originally, I thought it
+> was the demods AND the tuners that had the same i2c addresses.
+>
+> As you say though. its just the tuners, so adding the locking into the
+> gate ctrl as you suggested makes perfect sense. Attached is v3
+> implementing this; it seems to be working fine here.
+>
 
+Unfortunately even with this fix, I'm still seeing the problem I was
+trying to fix to begin with.
 
-
-If w_scan assumes that every 6MHz cable network, also outside Brazil, will use it's maximum theoretical symbol rate *only* like your patch was implemented, it will probably fail as well, because in practice lower values are used.
-
-Your patch disabled the looping through different symbol rates for any 6MHz network; therefore i was asking.
-
-So I changed it now to scan any srate for 6MHz networks, but skip over those which are unsupported by bandwidth limitation.
-
-
-> 
-> IMHO, a different logic could be used instead, if the user doesn't use the
-> -S parameter, like:
-> 
-> int dvbc_symbolrate[] = {
-> 	7000000,
-> 	6956500,		/* Max Symbol rate for 8 MHz channel bandwidth */
-> 	6956000,
-> 	6952000,
-> 	6950000,
-> 	6900000,
-> 	6875000,
-> 	6811000,
-> 	6790000,
-> 	6250000,
-> 	6111000,
-> 
-> 	/* Weird: I would expect 6086 or 6086.5 here, as the max rate for 7MHz
-> spacing */
-> 			
-> 	5900000,		/* Require at least 7 MHz channel bandwidth */
-> 	5483000,
-> 	5217000,		/* Max Symbol rate for 6 MHz channel bandwidth */
-> 	5156000,
-> 	5000000,
-> 	4000000,
-> 	3450000,
-> };
-> 
-> for (i = 0; i < ARRAY_SIZE(dvbc_symbolrate)) {
-> 	if (freq_step(channel, this_channellist) / 1.15 > dvbc_symbolrate[i])
-> 		next;
-> 
-> 	/* Scan channel */
-> ...
-> }
-> 
-
-Doesnt look reasonable, since every DVB-C scan would take easily several hours this way.
-
-Sorting into groups makes sense, one per bandwidth, but with the widely used first for each group is better. And still limit to common used srates -> done.
-
-
-So, it's included now, but i changed the whole stuff a little. 
--- 
-GMX DSL Doppel-Flat ab 19,99 Euro/mtl.! Jetzt mit 
-gratis Handy-Flat! http://portal.gmx.net/de/go/dsl
+Although I no longer get any i2c errors (or *any* reported errors),
+after a bit, one of the frontends just.. stops working. All attempts
+to tune it fail. I can even unload and reload the driver module, and
+its stuck in the same state, indicating its a problem with the
+hardware. :(
