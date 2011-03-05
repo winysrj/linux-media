@@ -1,252 +1,192 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:22339 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759315Ab1CDJBc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2011 04:01:32 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Fri, 04 Mar 2011 10:01:13 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 6/7] s5p-fimc: Add support for vb2-s5p-iommu allocator
-In-reply-to: <1299229274-9753-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	kgene.kim@samsung.com, andrzej.p@samsung.com,
-	t.stanislaws@samsung.com, s.nawrocki@samsung.com,
-	k.debski@samsung.com
-Message-id: <1299229274-9753-7-git-send-email-m.szyprowski@samsung.com>
-References: <1299229274-9753-1-git-send-email-m.szyprowski@samsung.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:48297 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751896Ab1CEAkk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2011 19:40:40 -0500
+Received: by wyg36 with SMTP id 36so2636263wyg.19
+        for <linux-media@vger.kernel.org>; Fri, 04 Mar 2011 16:40:39 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <4D717A86.5050003@redhat.com>
+References: <201102171606.58540.laurent.pinchart@ideasonboard.com>
+	<4D7164C6.9080503@redhat.com>
+	<AANLkTi=p6S0CYv6=E51LHJprp1AZpd+ZymiVywaaUWOy@mail.gmail.com>
+	<4D716B15.6090609@redhat.com>
+	<AANLkTi=2S2FUJmafdgz--ujKLXdyBZ4DVz1nbFzkU2DL@mail.gmail.com>
+	<4D717A86.5050003@redhat.com>
+Date: Sat, 5 Mar 2011 02:40:38 +0200
+Message-ID: <AANLkTinTdNCRzGeAf_3r09Yz6H3d5MVjRMP-05Uidod_@mail.gmail.com>
+Subject: Re: [GIT PULL FOR 2.6.39] Media controller and OMAP3 ISP driver
+From: David Cohen <dacohen@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	alsa-devel@alsa-project.org,
+	Sakari Ailus <sakari.ailus@retiisi.org.uk>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This patch adds support for videobuf2-s5p-iommu allocator to s5p-fimc
-driver. This allocator is selected only on systems that contains support
-for S5P SYSMMU module. Otherwise the standard videobuf2-dma-contig is
-used.
+On Sat, Mar 5, 2011 at 1:49 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Em 04-03-2011 19:49, David Cohen escreveu:
+>> On Sat, Mar 5, 2011 at 12:43 AM, Mauro Carvalho Chehab
+>> <mchehab@redhat.com> wrote:
+>>> Em 04-03-2011 19:33, David Cohen escreveu:
+>>>> Hi Mauro,
+>>>>
+>>>> On Sat, Mar 5, 2011 at 12:16 AM, Mauro Carvalho Chehab
+>>>> <mchehab@redhat.com> wrote:
+>>>>> Hi Laurent,
+>>>>>
+>>>>> Em 17-02-2011 13:06, Laurent Pinchart escreveu:
+>>>>>> Hi Mauro,
+>>>>>>
+>>>>>> The following changes since commit 85e2efbb1db9a18d218006706d6e4fbeb0216213:
+>>>>>>
+>>>>>>   Linux 2.6.38-rc5 (2011-02-15 19:23:45 -0800)
+>>>>>>
+>>>>>> are available in the git repository at:
+>>>>>>   git://linuxtv.org/pinchartl/media.git media-0005-omap3isp
+>>>>>
+>>>>> I've added the patches that looked ok on my eyes at:
+>>>>>
+>>>>> http://git.linuxtv.org/mchehab/experimental.git?a=shortlog;h=refs/heads/media_controller
+>>>>>
+>>>>> There are just a few small adjustments on a few of them, as I've commented.
+>>>>> I prefer if you do them on separate patches, to save my work of not needing
+>>>>> to review the entire series again.
+>>>>>
+>>>>> The ones still pending on my quilt tree are:
+>>>>>
+>>>>> 0030-v4l-subdev-Generic-ioctl-support.patch
+>>>>> 0040-omap3isp-OMAP3-ISP-core.patch
+>>>>> 0041-omap3isp-Video-devices-and-buffers-queue.patch
+>>>>> 0042-omap3isp-CCP2-CSI2-receivers.patch
+>>>>> 0043-omap3isp-CCDC-preview-engine-and-resizer.patch
+>>>>> 0044-omap3isp-Statistics.patch
+>>>>> 0045-omap3isp-Kconfig-and-Makefile.patch
+>>>>> 0046-omap3isp-Add-set-performance-callback-in-isp-platfor.patch
+>>>>>
+>>>>> with the following diffstat:
+>>>>>
+>>>>>  Documentation/video4linux/v4l2-framework.txt       |    5 +
+>>>>>  MAINTAINERS                                        |    6 +
+>>>>>  drivers/media/video/Kconfig                        |   13 +
+>>>>>  drivers/media/video/Makefile                       |    2 +
+>>>>>  drivers/media/video/omap3-isp/Makefile             |   13 +
+>>>>>  drivers/media/video/omap3-isp/cfa_coef_table.h     |   61 +
+>>>>>  drivers/media/video/omap3-isp/gamma_table.h        |   90 +
+>>>>>  drivers/media/video/omap3-isp/isp.c                | 2220 +++++++++++++++++++
+>>>>>  drivers/media/video/omap3-isp/isp.h                |  428 ++++
+>>>>>  drivers/media/video/omap3-isp/ispccdc.c            | 2268 ++++++++++++++++++++
+>>>>>  drivers/media/video/omap3-isp/ispccdc.h            |  219 ++
+>>>>>  drivers/media/video/omap3-isp/ispccp2.c            | 1173 ++++++++++
+>>>>>  drivers/media/video/omap3-isp/ispccp2.h            |   98 +
+>>>>>  drivers/media/video/omap3-isp/ispcsi2.c            | 1317 ++++++++++++
+>>>>>  drivers/media/video/omap3-isp/ispcsi2.h            |  166 ++
+>>>>>  drivers/media/video/omap3-isp/ispcsiphy.c          |  247 +++
+>>>>>  drivers/media/video/omap3-isp/ispcsiphy.h          |   74 +
+>>>>>  drivers/media/video/omap3-isp/isph3a.h             |  117 +
+>>>>>  drivers/media/video/omap3-isp/isph3a_aewb.c        |  374 ++++
+>>>>>  drivers/media/video/omap3-isp/isph3a_af.c          |  429 ++++
+>>>>>  drivers/media/video/omap3-isp/isphist.c            |  520 +++++
+>>>>>  drivers/media/video/omap3-isp/isphist.h            |   40 +
+>>>>>  drivers/media/video/omap3-isp/isppreview.c         | 2113 ++++++++++++++++++
+>>>>>  drivers/media/video/omap3-isp/isppreview.h         |  214 ++
+>>>>>  drivers/media/video/omap3-isp/ispqueue.c           | 1153 ++++++++++
+>>>>>  drivers/media/video/omap3-isp/ispqueue.h           |  187 ++
+>>>>>  drivers/media/video/omap3-isp/ispreg.h             | 1589 ++++++++++++++
+>>>>>  drivers/media/video/omap3-isp/ispresizer.c         | 1693 +++++++++++++++
+>>>>>  drivers/media/video/omap3-isp/ispresizer.h         |  147 ++
+>>>>>  drivers/media/video/omap3-isp/ispstat.c            | 1092 ++++++++++
+>>>>>  drivers/media/video/omap3-isp/ispstat.h            |  169 ++
+>>>>>  drivers/media/video/omap3-isp/ispvideo.c           | 1255 +++++++++++
+>>>>>  drivers/media/video/omap3-isp/ispvideo.h           |  202 ++
+>>>>>  drivers/media/video/omap3-isp/luma_enhance_table.h |   42 +
+>>>>>  drivers/media/video/omap3-isp/noise_filter_table.h |   30 +
+>>>>>  drivers/media/video/v4l2-subdev.c                  |    2 +-
+>>>>>  drivers/media/video/videobuf-dma-contig.c          |    2 +-
+>>>>>  include/linux/Kbuild                               |    1 +
+>>>>>  38 files changed, 19769 insertions(+), 2 deletions(-)
+>>>>>
+>>>>> I used quilt for all patches, except for the one patch with some gifs, where I did a
+>>>>> git cherry-pick. So, the imported patches should be ok. Of course, it doesn't hurt
+>>>>> do double check.
+>>>>>
+>>>>> The main issue with the omap3isp is due to the presence of private ioctl's that
+>>>>> I don't have a clear idea about what they are really doing.
+>>>>>
+>>>>> I couldn't see any documentation about them on a very quick look. While I suspect
+>>>>> that they are used only for 3A, I have no means of being sure about that.
+>>>>>
+>>>>> Also, as I've said several times, while I don't like, I have nothing against
+>>>>> having some ioctls that would be used by a vendor to implement their own 3A software
+>>>>> algorithms that he may need to hide for some reason or have any patents applied to
+>>>>> the algorithm, but only if:
+>>>>>        1) such algorithms are implemented on userspace;
+>>>>
+>>>> Yes.
+>>>>
+>>>>>        2) the userspace API used by them is fully documented, in order
+>>>>> to allow that someone else with enough motivation and spare time may
+>>>>> want to implement his own algorithm (including an open-source one);
+>>>>
+>>>> The API is pretty close to what is found on public OMAP3 TRM. I'd say
+>>>> it's almost to fill registers through a userspace API.
+>>>
+>>> Ok, so a simple patch adding a txt file documenting those private ioctls
+>>> to Documentation/video4linux explaining how to use them and pointing to
+>>> OMAP3 TRM documentation is enough.
+>>
+>> Ok. I'll provide a patch for it.
+>
+> Ok, thanks.
+>>
+>>>
+>>>>>        3) there are no patents denying or charging for the usage and/or
+>>>>> distribution/redistribution of the Kernel with the provided kernel driver;
+>>>>
+>>>> I'd say there's no patent / charge for usage or redistribution. But
+>>>> that's lawyer stuff. :/
+>>>>
+>>>>>        4) if the device works with a reasonable quality without them
+>>>>> (by reasonable I mean like a cheap webcam, where libv4l could use his
+>>>>> set of 3A algorithms to provide a good quality).
+>>>>
+>>>> It depends on the sensor as well, but in general should work with a
+>>>> reasonable quality without using statistic modules.
+>>>>
+>>>>>
+>>>>> Assuming that all those private ioctl's are really for 3A, it is ok for me
+>>>>> to accept such ioctls after being sure that the above applies. I'm not sure
+>>>>> how to check (4), as, while I have 2 omap boards here (a Beagleboard and a
+>>>>> gumstix), none of them have any sensor.
+>>>>
+>>>> The private ioctl are used mostly on statistic modules (3A and
+>>>> Histogram). But it's used for CCDC and Preview modules configuration
+>>>> too.
+>>>
+>>> The issue here is: what if no CCDC and no Preview initialization ever happen?
+>>
+>> Currently the driver does not support such situation. Either all
+>> modules successfully initialize or ISP driver doesn't probe correctly.
+>
+> I'm not sure if I understood (or if you understood my question ;) )
+>
+> What I'm asking is: what happens if the private ioctl's for CCDC and Preview
+> initialization are never called (or any other private/subdev ioctl)?
+> The device will work or not?
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/Kconfig                 |    3 +-
- drivers/media/video/s5p-fimc/fimc-capture.c |    4 +-
- drivers/media/video/s5p-fimc/fimc-core.c    |   22 ++++---
- drivers/media/video/s5p-fimc/fimc-mem.h     |   87 +++++++++++++++++++++++++++
- 4 files changed, 104 insertions(+), 12 deletions(-)
- create mode 100644 drivers/media/video/s5p-fimc/fimc-mem.h
+It seems I misunderstood you question for the first time. The answer
+is yes. Some functionalities will be disabled and others initialized
+with valid default values.
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 9806505..12fb325 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -1018,7 +1018,8 @@ config VIDEO_MEM2MEM_TESTDEV
- config  VIDEO_SAMSUNG_S5P_FIMC
- 	tristate "Samsung S5P FIMC (video postprocessor) driver"
- 	depends on VIDEO_DEV && VIDEO_V4L2 && PLAT_S5P
--	select VIDEOBUF2_DMA_CONTIG
-+	select VIDEOBUF2_S5P_IOMMU if S5P_SYSTEM_MMU
-+	select VIDEOBUF2_DMA_CONTIG if !S5P_SYSTEM_MMU
- 	select V4L2_MEM2MEM_DEV
- 	help
- 	  This is a v4l2 driver for the S5P camera interface
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index f8d7de5..6819908 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -29,8 +29,8 @@
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-mem2mem.h>
- #include <media/videobuf2-core.h>
--#include <media/videobuf2-dma-contig.h>
- 
-+#include "fimc-mem.h"
- #include "fimc-core.h"
- 
- static struct v4l2_subdev *fimc_subdev_register(struct fimc_dev *fimc,
-@@ -881,7 +881,7 @@ int fimc_register_capture_device(struct fimc_dev *fimc)
- 	q->io_modes = VB2_MMAP | VB2_USERPTR;
- 	q->drv_priv = fimc->vid_cap.ctx;
- 	q->ops = &fimc_capture_qops;
--	q->mem_ops = &vb2_dma_contig_memops;
-+	q->mem_ops = &fimc_vb2_allocator_memops;
- 	q->buf_struct_size = sizeof(struct fimc_vid_buffer);
- 
- 	vb2_queue_init(q);
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index c92dbdb..f06aaea 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -27,8 +27,8 @@
- #include <linux/clk.h>
- #include <media/v4l2-ioctl.h>
- #include <media/videobuf2-core.h>
--#include <media/videobuf2-dma-contig.h>
- 
-+#include "fimc-mem.h"
- #include "fimc-core.h"
- 
- static char *fimc_clocks[MAX_FIMC_CLOCKS] = {
-@@ -458,7 +458,7 @@ int fimc_prepare_addr(struct fimc_ctx *ctx, struct vb2_buffer *vb,
- 	dbg("memplanes= %d, colplanes= %d, pix_size= %d",
- 		frame->fmt->memplanes, frame->fmt->colplanes, pix_size);
- 
--	paddr->y = vb2_dma_contig_plane_paddr(vb, 0);
-+	paddr->y = fimc_vb2_plane_addr(vb, 0);
- 
- 	if (frame->fmt->memplanes == 1) {
- 		switch (frame->fmt->colplanes) {
-@@ -486,10 +486,10 @@ int fimc_prepare_addr(struct fimc_ctx *ctx, struct vb2_buffer *vb,
- 		}
- 	} else {
- 		if (frame->fmt->memplanes >= 2)
--			paddr->cb = vb2_dma_contig_plane_paddr(vb, 1);
-+			paddr->cb = fimc_vb2_plane_addr(vb, 1);
- 
- 		if (frame->fmt->memplanes == 3)
--			paddr->cr = vb2_dma_contig_plane_paddr(vb, 2);
-+			paddr->cr = fimc_vb2_plane_addr(vb, 2);
- 	}
- 
- 	dbg("PHYS_ADDR: y= 0x%X  cb= 0x%X cr= 0x%X ret= %d",
-@@ -1375,7 +1375,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 	src_vq->io_modes = VB2_MMAP | VB2_USERPTR;
- 	src_vq->drv_priv = ctx;
- 	src_vq->ops = &fimc_qops;
--	src_vq->mem_ops = &vb2_dma_contig_memops;
-+	src_vq->mem_ops = &fimc_vb2_allocator_memops;
- 	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
- 
- 	ret = vb2_queue_init(src_vq);
-@@ -1387,7 +1387,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 	dst_vq->io_modes = VB2_MMAP | VB2_USERPTR;
- 	dst_vq->drv_priv = ctx;
- 	dst_vq->ops = &fimc_qops;
--	dst_vq->mem_ops = &vb2_dma_contig_memops;
-+	dst_vq->mem_ops = &fimc_vb2_allocator_memops;
- 	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
- 
- 	return vb2_queue_init(dst_vq);
-@@ -1685,12 +1685,15 @@ static int fimc_probe(struct platform_device *pdev)
- 		goto err_clk;
- 	}
- 
--	/* Initialize contiguous memory allocator */
--	fimc->alloc_ctx = vb2_dma_contig_init_ctx(&fimc->pdev->dev);
-+	/* Initialize memory allocator */
-+	fimc->alloc_ctx = fimc_vb2_allocator_init(pdev);
- 	if (IS_ERR(fimc->alloc_ctx)) {
- 		ret = PTR_ERR(fimc->alloc_ctx);
- 		goto err_irq;
- 	}
-+	ret = fimc_vb2_allocator_enable(fimc->alloc_ctx);
-+	if (ret)
-+		goto err_irq;
- 
- 	ret = fimc_register_m2m_device(fimc);
- 	if (ret)
-@@ -1747,7 +1750,8 @@ static int __devexit fimc_remove(struct platform_device *pdev)
- 
- 	fimc_clk_release(fimc);
- 
--	vb2_dma_contig_cleanup_ctx(fimc->alloc_ctx);
-+	fimc_vb2_allocator_disable(fimc->alloc_ctx);
-+	fimc_vb2_allocator_cleanup(fimc->alloc_ctx);
- 
- 	pm_runtime_disable(&pdev->dev);
- 
-diff --git a/drivers/media/video/s5p-fimc/fimc-mem.h b/drivers/media/video/s5p-fimc/fimc-mem.h
-new file mode 100644
-index 0000000..9ac9bc6
---- /dev/null
-+++ b/drivers/media/video/s5p-fimc/fimc-mem.h
-@@ -0,0 +1,87 @@
-+/*
-+ * Copyright (c) 2011 Samsung Electronics
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef FIMC_MEM_H_
-+#define FIMC_MEM_H_
-+
-+/*
-+ * fimc-mem.h is the interface for videbuf2 allocator. It is a proxy
-+ * to real allocator depending on system capabilities.
-+ * 1. on S5PC100 & S5PV210/S5PC110 systems vb2-dma-contig is used
-+ * 2. on S5PV310/S5PC210 systems vb2-s5p-iommu allocator is selected.
-+ *
-+ */
-+
-+#ifdef CONFIG_S5P_SYSTEM_MMU
-+
-+#include <media/videobuf2-s5p-iommu.h>
-+
-+#define fimc_vb2_allocator_memops vb2_s5p_iommu_memops
-+
-+static inline void *fimc_vb2_allocator_init(struct platform_device *pdev)
-+{
-+	struct vb2_s5p_iommu_request iommu_req;
-+	memset(&iommu_req, 0, sizeof(iommu_req));
-+	iommu_req.ip = S5P_SYSMMU_FIMC0 + pdev->id;
-+	return vb2_s5p_iommu_init(&pdev->dev, &iommu_req);
-+}
-+
-+static inline void fimc_vb2_allocator_cleanup(void *alloc_ctx)
-+{
-+	return vb2_s5p_iommu_cleanup(alloc_ctx);
-+}
-+
-+static inline unsigned long fimc_vb2_plane_addr(struct vb2_buffer *b, int n)
-+{
-+	return vb2_s5p_iommu_plane_addr(b, n);
-+}
-+
-+static inline int fimc_vb2_allocator_enable(void *alloc_ctx)
-+{
-+	return vb2_s5p_iommu_enable(alloc_ctx);
-+}
-+
-+static inline int fimc_vb2_allocator_disable(void *alloc_ctx)
-+{
-+	return vb2_s5p_iommu_disable(alloc_ctx);
-+}
-+
-+#else	/* use vb2-dma-contig allocator */
-+
-+#include <media/videobuf2-dma-contig.h>
-+
-+#define fimc_vb2_allocator_memops vb2_dma_contig_memops
-+
-+static inline void *fimc_vb2_allocator_init(struct platform_device *pdev)
-+{
-+	return vb2_dma_contig_init_ctx(&pdev->dev);
-+}
-+
-+static inline void fimc_vb2_allocator_cleanup(void *alloc_ctx)
-+{
-+	vb2_dma_contig_cleanup_ctx(alloc_ctx);
-+}
-+
-+static inline unsigned long fimc_vb2_plane_addr(struct vb2_buffer *b, int n)
-+{
-+	return vb2_dma_contig_plane_paddr(b, n);
-+}
-+
-+static inline int fimc_vb2_allocator_enable(void *alloc_ctx)
-+{
-+	return 0;
-+}
-+
-+static inline int fimc_vb2_allocator_disable(void *alloc_ctx)
-+{
-+	return 0;
-+}
-+
-+#endif
-+
-+#endif /* FIMC_CORE_H_ */
--- 
-1.7.1.569.g6f426
+Br,
+
+David
+
+>
+> Cheers,
+> Mauro
+>
