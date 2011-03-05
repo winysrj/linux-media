@@ -1,48 +1,38 @@
 Return-path: <mchehab@pedra>
-Received: from mail1.matrix-vision.com ([78.47.19.71]:37100 "EHLO
-	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751277Ab1C3GjO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Mar 2011 02:39:14 -0400
-Message-ID: <4D92D010.2080601@matrix-vision.de>
-Date: Wed, 30 Mar 2011 08:39:12 +0200
-From: Michael Jones <michael.jones@matrix-vision.de>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:51166 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752864Ab1CENAa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Mar 2011 08:00:30 -0500
+Received: by fxm17 with SMTP id 17so2926645fxm.19
+        for <linux-media@vger.kernel.org>; Sat, 05 Mar 2011 05:00:29 -0800 (PST)
+From: "Igor M. Liplianin" <liplianin@me.by>
+To: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [GIT PATCHES FOR 2.6.39] cx23885, altera-ci, stv0367: uncorrected blocks counter and other fixes
+Date: Sat, 5 Mar 2011 15:00:38 +0200
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: [PATCH v4 0/4] omap3isp: lane shifter support
-References: <1301386749-17497-1-git-send-email-michael.jones@matrix-vision.de> <201103292140.34967.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201103292140.34967.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201103051500.38525.liplianin@me.by>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Laurent,
+The following changes since commit 88a763df226facb74fdb254563e30e9efb64275c:
 
-On 03/29/2011 09:40 PM, Laurent Pinchart wrote:
-> Hi Michael,
-> 
-> Thanks for the patches. I've applied them to my tree 
-> (http://git.linuxtv.org/pinchartl/media.git?a=shortlog;h=refs/heads/media-
-> next-0001-omap3isp) with modified commit messages.
+  [media] dw2102: prof 1100 corrected (2011-03-02 16:56:54 -0300)
 
-thanks.
+are available in the git repository at:
+  git://linuxtv.org/liplianin/media_tree.git dual_dvb_t_c_ci_rf-1
 
-> Could you please check them and let me know if they're ok ?
+Abylay Ospan (5):
+      cx23885: Altera FPGA CI interface reworked.
+      stv0367: change default value for AGC register.
+      stv0367: implement uncorrected blocks counter.
+      Fix CI code for NetUP Dual DVB-T/C CI RF card
+      Force xc5000 firmware loading for NetUP Dual DVB-T/C CI RF card
 
-The commit messages look fine to me.
-
-> 
-> The next time you submit patches, please include a commit message body in 
-> addition to the subject line.
-> 
-
-Will do.
-
--Michael
-
-MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
-Registergericht: Amtsgericht Stuttgart, HRB 271090
-Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
+ drivers/media/dvb/frontends/stv0367.c     |   24 +++++++++++++++++++++---
+ drivers/media/video/cx23885/altera-ci.c   |   14 ++++++++++----
+ drivers/media/video/cx23885/cx23885-dvb.c |   23 +++++++++++++----------
+ 3 files changed, 44 insertions(+), 17 deletions(-)
