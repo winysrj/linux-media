@@ -1,238 +1,107 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1503 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751869Ab1C2G6j (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:38050 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753314Ab1CEV7P (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Mar 2011 02:58:39 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [PATCH 0/2] V4L: Extended crop/compose API
-Date: Tue, 29 Mar 2011 08:58:16 +0200
-Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com
-References: <1301325596-18166-1-git-send-email-t.stanislaws@samsung.com>
-In-Reply-To: <1301325596-18166-1-git-send-email-t.stanislaws@samsung.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+	Sat, 5 Mar 2011 16:59:15 -0500
+Subject: Re: BUG at mm/mmap.c:2309 when cx18.ko and cx18-alsa.ko loaded
+From: Andy Walls <awalls@md.metrocast.net>
+To: linux-kernel@vger.kernel.org
+Cc: akpm@linux-foundation.org, David Miller <davem@davemloft.net>,
+	linux-media@vger.kernel.org,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Hugh Dickins <hughd@google.com>,
+	Hugh Dickins <hugh@veritas.com>
+In-Reply-To: <1299204400.2812.35.camel@localhost>
+References: <1299204400.2812.35.camel@localhost>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sat, 05 Mar 2011 16:59:25 -0500
+Message-ID: <1299362366.2570.27.camel@localhost>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Message-Id: <201103290858.16138.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Monday, March 28, 2011 17:19:54 Tomasz Stanislawski wrote:
-> Hello everyone,
+On Thu, 2011-03-03 at 21:06 -0500, Andy Walls wrote:
+> Hi,
 > 
-> This patch-set introduces new ioctls to V4L2 API. The new method for
-> configuration of cropping and composition is presented.
+> I got a BUG when loading the cx18.ko module (which in turn requests the
+> cx18-alsa.ko module) on a kernel built from this repository
 > 
-> There is some confusion in understanding of a cropping in current version of
-> V4L2. For CAPTURE devices cropping refers to choosing only a part of input
-> data stream and processing it and storing it in a memory buffer. The buffer is
-> fully filled by data. It is not possible to choose only a part of a buffer for
-> being updated by hardware.
+> 	http://git.linuxtv.org/media_tree.git staging/for_v2.6.39
 > 
-> In case of OUTPUT devices, the whole content of a buffer is passed by hardware
-> to output display. Cropping means selecting only a part of an output
-> display/signal. It is not possible to choose only a part for a memory buffer
-> to be processed.
-> 
-> The overmentioned flaws in cropping API were discussed in post:
-> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/28945
-> 
-> A solution was proposed during brainstorming session in Warsaw.
+> which I beleive is based on 2.6.38-rc2.
 
-I don't have time right now to review this RFC in-depth, but one thing that
-needs more attention is the relationship between these new ioctls and CROPCAP.
+[snip]
 
-And also how this relates to analog inputs (I don't think analog outputs make
-any sense). And would a COMPOSECAP ioctl make sense?
+> So here is my transcription of a fuzzy digital photo of the screen:
+> 
+> kernel BUG at /home/andy/cx18dev/git/media_tree/mm/mmap.c:2309!
+> invalid opcode: 0000 [#1] SMP
+> last sysfs file: /sys/module/snd_pcm/initstate
+> Modules linked in: tda9887 tda8290 mxl5005s s5h1409 tuner_simple ...
+> ...
+> Pid: 2580, comm: udevd Not tainted 2.6.38-rc2-cx18-vb2-proto+
+> RIP: 0010:[<ffffffff810eb50b>]  [<ffffffff810eb50b>] exit_mmap+0x10f/0x11e
+> RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0020000000000000
+> RDX: 0000000000160011 RSI: ffffea____c42___ RDI: 0000000000000202
+> RBP: ffff____18c1f_58 R08: ffff____________ R09: 0000000000000004
+> R10: ffff_______bb_38 R11: 0000000000000000 R12: ffff____344a6680
+> R13: 00007fff22______ R14: ffff____________ R15: 0000000000000001
+> ...
+> CR2: 0000000000000000 ...
+> ....
+> Process udevd (pid: 25__, threadinfo ffff________, ...
+> Stack:
+>  000000000000015e ffff00003bc0e1d0 0000000000000246 ....
+> .....
+> Call Trace:
+> ... mmput+0x63/0xcf
+> ... exit_mm+0x132/0x13f
+> ... do_exit+0x238/0x749
+> ... ? __dequeue_signal+0xfa/0x12f
+> ... do_group_exit+0x7d/0xa5
+> ... get_signal_to_deliver+0x371/0x395
+> ... do_signal+0x72/0x692
+> ... ? do_page_fault+0x24a/0x391
+> ... ? printk+0x41/0x47
+> ... ? sigprocmask+0xa3/0xcd
+> ... do_notify_resume+0x2c/0x64
+> ... retint_signal+0x48/0x8c
+> 
+> Code: ff ff 48 8b 7d d8 4c 89 ea 31 f6 e8 3e fe ff ff 48 89 df e8 78 fe
+> ff ff 48 85 c0 48 89 c3 75 f0 49 83 bc 24 e0 00 00 00 00 74 04 <0f> 0b
+> eb fe 48 83 c4 18 5b 41 5c 41 5d c9 c3 55 48 89 e5 41 57
+> RIP  [<ffffffff810eb50b>] exit_mmap+0x10f/0x11e
+>  RSP <ffff880018c1fc28>
+> general protection fault: 0000 [#2] SMP
+> last sysfs file: /sys/devices/virtual/sound/card2/uevent
+> CPU 1
+> Modules linked in: cx18-alsa tda9887 tda8290 mxl5005s s5h1409
+> tuner_simple tuner_types cs5345 tuner cx18 dvb_core cx2341x v4l2_common
+> videodev v4l2_compat_ioctl32
 
-> 
-> 1. Data structures.
-> 
-> The structure v4l2_crop used by current API lacks any place for further
-> extensions. Therefore new structure is proposed.
-> 
-> struct v4l2_selection {
-> 	u32 type;
-> 	struct v4l2_rect r;
-> 	u32 flags;
-> 	u32 reserved[10];
-> };
-> 
-> Where,
-> type	 - type of buffer queue: V4L2_BUF_TYPE_VIDEO_CAPTURE,
->            V4L2_BUF_TYPE_VIDEO_OUTPUT, etc.
-> r	 - selection rectangle
-> flags	 - control over coordinates adjustments
-> reserved - place for further extensions, adjust struct size to 64 bytes
-> 
-> At first, the distinction between cropping and composing was stated. The
-> cropping operation means choosing only part of input data bounding it by a
-> cropping rectangle.  All other data must be discarded.  On the other hand,
-> composing means pasting processed data into rectangular part of data sink. The
-> sink may be output device, user buffer, etc.
-> 
-> 2. Crop/Compose ioctl.
-> Four new ioctls would be added to V4L2.
-> 
-> Name
-> 	VIDIOC_S_EXTCROP - set cropping rectangle on an input of a device
-> 
-> Synopsis
-> 	int ioctl(fd, VIDIOC_S_EXTCROP, struct v4l2_selection *s)
-> 
-> Description:
-> 	The ioctl is used to configure:
-> 	- for input devices, a part of input data that is processed in hardware
-> 	- for output devices, a part of a data buffer to be passed to hardware
-> 	  Drivers may adjust a cropping area. The adjustment can be controlled
->           by v4l2_selection::flags.  Please refer to Hints section.
-> 	- an adjusted crop rectangle is returned in v4l2_selection::r
-> 
-> Return value
-> 	On success 0 is returned, on error -1 and the errno variable is set
->         appropriately:
-> 	ERANGE - failed to find a rectangle that satisfy all constraints
-> 	EINVAL - incorrect buffer type, cropping not supported
-> 
-> -----------------------------------------------------------------
-> 
-> Name
-> 	VIDIOC_G_EXTCROP - get cropping rectangle on an input of a device
-> 
-> Synopsis
-> 	int ioctl(fd, VIDIOC_G_EXTCROP, struct v4l2_selection *s)
-> 
-> Description:
-> 	The ioctl is used to query:
-> 	- for input devices, a part of input data that is processed in hardware
-> 	- for output devices, a part of data buffer to be passed to hardware
-> 
-> Return value
-> 	On success 0 is returned, on error -1 and the errno variable is set
->         appropriately:
-> 	EINVAL - incorrect buffer type, cropping not supported
-> 
-> -----------------------------------------------------------------
-> 
-> Name
-> 	VIDIOC_S_COMPOSE - set destination rectangle on an output of a device
-> 
-> Synopsis
-> 	int ioctl(fd, VIDIOC_S_COMPOSE, struct v4l2_selection *s)
-> 
-> Description:
-> 	The ioctl is used to configure:
-> 	- for input devices, a part of a data buffer that is filled by hardware
-> 	- for output devices, a area on output device where image is inserted
-> 	Drivers may adjust a composing area. The adjustment can be controlled
->         by v4l2_selection::flags. Please refer to Hints section.
-> 	- an adjusted composing rectangle is returned in v4l2_selection::r
-> 
-> Return value
-> 	On success 0 is returned, on error -1 and the errno variable is set
->         appropriately:
-> 	ERANGE - failed to find a rectangle that satisfy all constraints
-> 	EINVAL - incorrect buffer type, composing not supported
-> 
-> -----------------------------------------------------------------
-> 
-> Name
-> 	VIDIOC_G_COMPOSE - get destination rectangle on an output of a device
-> 
-> Synopsis
-> 	int ioctl(fd, VIDIOC_G_COMPOSE, struct v4l2_selection *s)
-> 
-> Description:
-> 	The ioctl is used to query:
-> 	- for input devices, a part of a data buffer that is filled by hardware
-> 	- for output devices, a area on output device where image is inserted
-> 
-> Return value
-> 	On success 0 is returned, on error -1 and the errno variable is set
->         appropriately:
-> 	EINVAL - incorrect buffer type, composing not supported
-> 
-> 
-> 3. Hints
-> 
-> The v4l2_selection::flags field is used to give a driver a hint about
-> coordinate adjustments.  Below one can find the proposition of adjustment
-> flags. The syntax is V4L2_SEL_{name}_{LE/GE}, where {name} refer to a field in
-> struct v4l2_rect. The LE is abbreviation from "lesser or equal".  It prevents
-> the driver form increasing a parameter. In similar fashion GE means "greater or
-> equal" and it disallows decreasing. Combining LE and GE flags prevents the
-> driver from any adjustments of parameters.  In such a manner, setting flags
-> field to zero would give a driver a free hand in coordinate adjustment.
-> 
-> #define V4L2_SEL_WIDTH_GE	0x00000001
-> #define V4L2_SEL_WIDTH_LE	0x00000002
-> #define V4L2_SEL_HEIGHT_GE	0x00000004
-> #define V4L2_SEL_HEIGHT_LE	0x00000008
-> #define V4L2_SEL_LEFT_GE	0x00000010
-> #define V4L2_SEL_LEFT_LE	0x00000020
-> #define V4L2_SEL_TOP_GE		0x00000040
-> #define V4L2_SEL_TOP_LE		0x00000080
 
-Wouldn't you also need similar flags for RIGHT and BOTTOM?
+I'm dumping all my previous assumtpions about this BUG.  After a bit of
+reading, all I can say is that it's a page table deallocation problem at
+process exit.  After all the page table deallocations on exit,
+mm->nr_ptes is still > 0, and that's a bad thing.
+
+It apparently happened in a child udevd exiting shortly after cx18.ko
+loaded.  The cx18 driver allocating large amounts kernel memory for DMA
+buffers upon load may be related to triggering the problem, but I doubt
+it is a root cause of the BUG.
+
+
+This monsterous thread from 5 years ago is somewhat enlightening:
+
+	http://lkml.indiana.edu/hypermail/linux/kernel/0503.2/1680.html
+	http://lkml.indiana.edu/hypermail/linux/kernel/0503.2/1787.html
+
+so it gives me a place to start looking for the problem.
+
+Any advice on what data to collect is appreciated.
 
 Regards,
+Andy
 
-	Hans
-
-> 
-> #define V4L2_SEL_WIDTH_FIXED	0x00000003
-> #define V4L2_SEL_HEIGHT_FIXED	0x0000000c
-> #define V4L2_SEL_LEFT_FIXED	0x00000030
-> #define V4L2_SEL_TOP_FIXED	0x000000c0
-> 
-> #define V4L2_SEL_FIXED		0x000000ff
-> 
-> The hint flags may be useful in a following scenario.  There is a sensor with a
-> face detection functionality. An application receives information about a
-> position of a face on sensor array. Assume that the camera pipeline is capable
-> of an image scaling. The application is capable of obtaining a location of a
-> face using V4L2 controls. The task it to grab only part of image that contains
-> a face, and store it to a framebuffer at a fixed window. Therefore following
-> constrains have to be satisfied:
-> - the rectangle that contains a face must lay inside cropping area
-> - hardware is allowed only to access area inside window on the framebuffer
-> 
-> Both constraints could be satisfied with two ioctl calls.
-> - VIDIOC_EXTCROP with flags field equal to
->   V4L2_SEL_TOP_FIXED | V4L2_SEL_LEFT_FIXED |
->   V4L2_SEL_WIDTH_GE | V4L2_SEL_HEIGHT_GE.
-> - VIDIOC_COMPOSE with flags field equal to
->   V4L2_SEL_TOP_FIXED | V4L2_SEL_LEFT_FIXED |
->   V4L2_SEL_WIDTH_LE | V4L2_SEL_HEIGHT_LE
-> 
-> Feel free to add a new flag if necessary.
-> 
-> 4. Possible improvements and extensions.
-> - combine composing and cropping ioctl into a single ioctl
-> - add subpixel resolution
->  * hardware is often capable of subpixel processing. The ioctl triple
->    S_EXTCROP, S_SCALE, S_COMPOSE can be converted to S_EXTCROP and S_COMPOSE
->    pair if a subpixel resolution is supported
-> 
-> 
-> What it your opinion about proposed solutions?
-> 
-> Looking for a reply,
-> 
-> Best regards,
-> Tomasz Stanislawski
-> 
-> Tomasz Stanislawski (2):
->   v4l: add support for extended crop/compose API
->   v4l: simulate old crop API using extcrop/compose
-> 
->  drivers/media/video/v4l2-compat-ioctl32.c |    4 +
->  drivers/media/video/v4l2-ioctl.c          |  102 +++++++++++++++++++++++++++--
->  include/linux/videodev2.h                 |   30 +++++++++
->  include/media/v4l2-ioctl.h                |    8 ++
->  4 files changed, 137 insertions(+), 7 deletions(-)
-> 
-> 
