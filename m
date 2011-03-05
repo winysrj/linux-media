@@ -1,93 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:59275 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754877Ab1CHUeW convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Mar 2011 15:34:22 -0500
+Received: from perceval.ideasonboard.com ([95.142.166.194]:40699 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752795Ab1CENCV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Mar 2011 08:02:21 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [GIT PULL FOR 2.6.39] Media controller and OMAP3 ISP driver
+Date: Sat, 5 Mar 2011 14:02:33 +0100
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	alsa-devel@alsa-project.org,
+	Sakari Ailus <sakari.ailus@retiisi.org.uk>,
+	Pawel Osciak <pawel@osciak.com>
+References: <201102171606.58540.laurent.pinchart@ideasonboard.com> <201103031125.06419.laurent.pinchart@ideasonboard.com> <4D713CBD.7030405@redhat.com>
+In-Reply-To: <4D713CBD.7030405@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <1299615316-17512-2-git-send-email-dacohen@gmail.com>
-References: <1299615316-17512-1-git-send-email-dacohen@gmail.com>
-	<1299615316-17512-2-git-send-email-dacohen@gmail.com>
-Date: Tue, 8 Mar 2011 14:31:58 -0600
-Message-ID: <AANLkTintZ6vphJqM54SxFeKtk=6CuDQJTUpk-7jFRDeA@mail.gmail.com>
-Subject: Re: [PATCH v2 1/3] omap: iovmm: disallow mapping NULL address when
- IOVMF_DA_ANON is set
-From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-To: David Cohen <dacohen@gmail.com>
-Cc: Hiroshi.DOYU@nokia.com, linux-omap@vger.kernel.org,
-	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@maxwell.research.nokia.com,
-	Michael Jones <michael.jones@matrix-vision.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201103051402.34416.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, Mar 8, 2011 at 2:15 PM, David Cohen <dacohen@gmail.com> wrote:
-> From: Michael Jones <michael.jones@matrix-vision.de>
->
-> commit c7f4ab26e3bcdaeb3e19ec658e3ad9092f1a6ceb allowed mapping the NULL
-> address if da_start==0, which would then not get unmapped. Disallow
-> this again if IOVMF_DA_ANON is set. And spell variable 'alignment'
-> correctly.
->
-> Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
-> ---
->  arch/arm/plat-omap/iovmm.c |   16 ++++++++++------
->  1 files changed, 10 insertions(+), 6 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
-> index 6dc1296..e5f8341 100644
-> --- a/arch/arm/plat-omap/iovmm.c
-> +++ b/arch/arm/plat-omap/iovmm.c
-> @@ -271,20 +271,24 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
->                                           size_t bytes, u32 flags)
->  {
->        struct iovm_struct *new, *tmp;
-> -       u32 start, prev_end, alignement;
-> +       u32 start, prev_end, alignment;
->
->        if (!obj || !bytes)
->                return ERR_PTR(-EINVAL);
->
->        start = da;
-> -       alignement = PAGE_SIZE;
-> +       alignment = PAGE_SIZE;
->
->        if (flags & IOVMF_DA_ANON) {
-> -               start = obj->da_start;
-> +               /* Don't map address 0 */
-> +               if (obj->da_start)
-> +                       start = obj->da_start;
-> +               else
-> +                       start = alignment;
+Hi Mauro,
 
-looks good to me, just a nitpick comment, that would look better
+Thanks for the review. Let me address all your concerns in a single mail.
 
-                  start = (obj->da_start) ? obj->da_start : alignment;
+- ioctl numbers
 
+I'll send you a patch that reserves a range in Documentation/ioctl/ioctl-
+number.txt and update include/linux/media.h accordingly.
+
+- private ioctls
+
+As already explained by David, the private ioctls are used to control advanced 
+device features that can't be handled by V4L2 controls at the moment (such as 
+setting a gamma correction table). Using those ioctls is not mandatory, and 
+the device will work correctly without them (albeit with a non optimal image 
+quality).
+
+David said he will submit a patch to document the ioctls.
+
+- media bus formats
+
+As Hans explained, there's no 1:1 relationship between media bus formats and 
+pixel formats.
+
+- FOURCC and media bus codes documentation
+
+I forgot to document some of them. I'll send a new patch that adds the missing 
+documentation.
+
+
+Is there any other issue I need to address ? My understanding is that there's 
+no need to rebase the existing patches, is that correct ?
+
+-- 
 Regards,
-Fernando.
 
->
->                if (flags & IOVMF_LINEAR)
-> -                       alignement = iopgsz_max(bytes);
-> -               start = roundup(start, alignement);
-> +                       alignment = iopgsz_max(bytes);
-> +               start = roundup(start, alignment);
->        } else if (start < obj->da_start || start > obj->da_end ||
->                                        obj->da_end - start < bytes) {
->                return ERR_PTR(-EINVAL);
-> @@ -304,7 +308,7 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
->                        goto found;
->
->                if (tmp->da_end >= start && flags & IOVMF_DA_ANON)
-> -                       start = roundup(tmp->da_end + 1, alignement);
-> +                       start = roundup(tmp->da_end + 1, alignment);
->
->                prev_end = tmp->da_end;
->        }
-> --
-> 1.7.0.4
->
->
+Laurent Pinchart
