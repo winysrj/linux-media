@@ -1,81 +1,93 @@
 Return-path: <mchehab@pedra>
-Received: from ist.d-labs.de ([213.239.218.44]:47603 "EHLO mx01.d-labs.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755007Ab1COIx0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Mar 2011 04:53:26 -0400
-From: Florian Mickler <florian@mickler.org>
-To: mchehab@infradead.org
-Cc: oliver@neukum.org, jwjstone@fastmail.fm,
-	Florian Mickler <florian@mickler.org>,
-	linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 06/16] [media] ce6230: get rid of on-stack dma buffer
-Date: Tue, 15 Mar 2011 09:43:38 +0100
-Message-Id: <1300178655-24832-6-git-send-email-florian@mickler.org>
-In-Reply-To: <1300178655-24832-1-git-send-email-florian@mickler.org>
-References: <20110315093632.5fc9fb77@schatten.dmk.lab>
- <1300178655-24832-1-git-send-email-florian@mickler.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:49296 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752312Ab1CEVCY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Mar 2011 16:02:24 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: V4L2 'brainstorming' meeting in Warsaw, March 2011
+Date: Sat, 5 Mar 2011 22:02:42 +0100
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <ADF13DA15EB3FE4FBA487CCC7BEFDF36190F532AF3@bssrvexch01> <201102281912.01542.laurent.pinchart@ideasonboard.com> <201103051702.14048.hverkuil@xs4all.nl>
+In-Reply-To: <201103051702.14048.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201103052202.42817.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-usb_control_msg initiates (and waits for completion of) a dma transfer using
-the supplied buffer. That buffer thus has to be seperately allocated on
-the heap.
+Hi Hans,
 
-In lib/dma_debug.c the function check_for_stack even warns about it:
-	WARNING: at lib/dma-debug.c:866 check_for_stack
+On Saturday 05 March 2011 17:02:13 Hans Verkuil wrote:
+> On Monday, February 28, 2011 19:12:00 Laurent Pinchart wrote:
+> > On Monday 28 February 2011 19:03:39 Hans Verkuil wrote:
+> > > On Monday, February 28, 2011 18:11:47 Marek Szyprowski wrote:
+> > [snip]
+> > 
+> > > > 4. Agenda
+> > > > 
+> > > >         TBD, everyone is welcomed to put his items here :)
+> > > 
+> > > In no particular order:
+> > > 
+> > > 1) pipeline configuration, cropping and scaling:
+> > > 
+> > > http://www.mail-archive.com/linux-media@vger.kernel.org/msg27956.html
+> > > http://www.mail-archive.com/linux-media@vger.kernel.org/msg26630.html
+> > > 
+> > > 2) HDMI API support
+> > > 
+> > > Some hotplug/CEC code can be found here:
+> > > 
+> > > http://www.mail-archive.com/linux-media@vger.kernel.org/msg28549.html
+> > > 
+> > > but Cisco will soon post RFCs on this topic as well.
+> > > 
+> > > 3) Snapshot functionality.
+> > > 
+> > > http://www.mail-archive.com/linux-media@vger.kernel.org/msg28192.html
+> > > http://www.mail-archive.com/linux-media@vger.kernel.org/msg28490.html
+> > > 
+> > > If we finish quicker than expected, then we can also look at this:
+> > > 
+> > > - use of V4L2 as a frontend for SW/DSP codecs
+> > 
+> > In still no particular order:
+> >  - Muxed formats (H.264 inside MJPEG)
+> >  - H.264
+> >  - Buffers pool
+> >  - Entity information ioctl
+> 
+> Can you elaborate on this one?
 
-Note: This change is tested to compile only, as I don't have the hardware.
+Some drivers (namely the uvcvideo driver) will need to report driver-specific 
+information about each entity (the UVC entity GUID, the UVC controls it 
+supports, ...). We need an API for that.
 
-Signed-off-by: Florian Mickler <florian@mickler.org>
----
- drivers/media/dvb/dvb-usb/ce6230.c |   11 +++++++++--
- 1 files changed, 9 insertions(+), 2 deletions(-)
+> >  - Userspace drivers (OMX)
+> 
+> And this one?
 
-diff --git a/drivers/media/dvb/dvb-usb/ce6230.c b/drivers/media/dvb/dvb-usb/ce6230.c
-index 3df2045..6d1a304 100644
---- a/drivers/media/dvb/dvb-usb/ce6230.c
-+++ b/drivers/media/dvb/dvb-usb/ce6230.c
-@@ -39,7 +39,7 @@ static int ce6230_rw_udev(struct usb_device *udev, struct req_t *req)
- 	u8 requesttype;
- 	u16 value;
- 	u16 index;
--	u8 buf[req->data_len];
-+	u8 *buf;
- 
- 	request = req->cmd;
- 	value = req->value;
-@@ -62,6 +62,12 @@ static int ce6230_rw_udev(struct usb_device *udev, struct req_t *req)
- 		goto error;
- 	}
- 
-+	buf = kmalloc(req->data_len, GFP_KERNEL);
-+	if (!buf) {
-+		ret = -ENOMEM;
-+		goto error;
-+	}
-+
- 	if (requesttype == (USB_TYPE_VENDOR | USB_DIR_OUT)) {
- 		/* write */
- 		memcpy(buf, req->data, req->data_len);
-@@ -74,7 +80,7 @@ static int ce6230_rw_udev(struct usb_device *udev, struct req_t *req)
- 	msleep(1); /* avoid I2C errors */
- 
- 	ret = usb_control_msg(udev, pipe, request, requesttype, value, index,
--				buf, sizeof(buf), CE6230_USB_TIMEOUT);
-+				buf, req->data_len, CE6230_USB_TIMEOUT);
- 
- 	ce6230_debug_dump(request, requesttype, value, index, buf,
- 		req->data_len, deb_xfer);
-@@ -88,6 +94,7 @@ static int ce6230_rw_udev(struct usb_device *udev, struct req_t *req)
- 	if (!ret && requesttype == (USB_TYPE_VENDOR | USB_DIR_IN))
- 		memcpy(req->data, buf, req->data_len);
- 
-+	kfree(buf);
- error:
- 	return ret;
- }
+This is a follow-up of the "v4l2 vs omx for camera" discussion. I'd like to 
+discuss whether we need an API for userspace drivers, like OMX has.
+
+> >  - Sensor blanking/pixel-clock/frame-rate settings (including
+> > 
+> > enumeration/discovery)
+> > 
+> >  - GL/ES in V4L2 devices
+> 
+> And this one?
+
+Devices are becoming hybrid. GPUs are supported through DRM and OpenGL 
+(OpenGL/ES is embedded devices), and video output with V4L2. What about a 
+video output device with OpenGL/ES capabilities ? We'll need to think about it 
+at some point.
+
 -- 
-1.7.4.rc3
+Regards,
 
+Laurent Pinchart
