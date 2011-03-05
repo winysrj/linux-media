@@ -1,63 +1,104 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.samsung.com ([203.254.224.33]:17670 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751834Ab1CDJ7X (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2011 04:59:23 -0500
-Received: from epmmp1 (mailout3.samsung.com [203.254.224.33])
- by mailout3.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LHJ006GF15AQ0C0@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Fri, 04 Mar 2011 18:31:58 +0900 (KST)
-Received: from DOJAERYULOH01 ([12.23.103.241])
- by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LHJ004RK15ALS@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 04 Mar 2011 18:31:58 +0900 (KST)
-Date: Fri, 04 Mar 2011 18:31:53 +0900
-From: Jaeryul Oh <jaeryul.oh@samsung.com>
-Subject: RE: V4L2 'brainstorming' meeting in Warsaw, March 2011
-In-reply-to: <000001cbd825$1954f9a0$4bfeece0$%szyprowski@samsung.com>
-To: 'Marek Szyprowski' <m.szyprowski@samsung.com>,
-	linux-media@vger.kernel.org
-Reply-to: jaeryul.oh@samsung.com
-Message-id: <00c701cbda4f$0275b090$076111b0$%oh@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=utf-8
-Content-language: ko
-Content-transfer-encoding: 7BIT
-References: <ADF13DA15EB3FE4FBA487CCC7BEFDF36190F532AED@bssrvexch01>
- <000001cbd7fd$1868a500$4939ef00$%szyprowski@samsung.com>
- <000001cbd825$1954f9a0$4bfeece0$%szyprowski@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:47012 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751140Ab1CEJ4d (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 5 Mar 2011 04:56:33 -0500
+Message-ID: <4D7208CF.6020505@iki.fi>
+Date: Sat, 05 Mar 2011 11:56:31 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: adq <adq@lidskialf.net>
+CC: linux-media@vger.kernel.org
+Subject: Re: [patch] Fix AF9015 Dual tuner i2c write failures
+References: <AANLkTi=rcfL_pku9hhx68C_Fb_76KsW2Yy+Oys10a7+4@mail.gmail.com>	<4D7163FD.9030604@iki.fi>	<AANLkTimjC99zhJ=huHZiGgbENCoyHy5KT87iujjTT8w3@mail.gmail.com>	<4D716ECA.4060900@iki.fi>	<AANLkTimHa6XFwhvpLbhtRm7Vee-jYPkHpx+D8L2=+vQb@mail.gmail.com>	<AANLkTik9cSnAFWNdTUv3NNU3K2SoeECDO2036Htx-OAi@mail.gmail.com> <AANLkTi=e-cAzMWZSHvKR8Yx+0MqcY_Ewf4z1gDyZfCeo@mail.gmail.com>
+In-Reply-To: <AANLkTi=e-cAzMWZSHvKR8Yx+0MqcY_Ewf4z1gDyZfCeo@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi, Marek
+On 03/05/2011 03:51 AM, adq wrote:
+>> As you say though. its just the tuners, so adding the locking into the
+>> gate ctrl as you suggested makes perfect sense. Attached is v3
+>> implementing this; it seems to be working fine here.
+>>
+>
+> Unfortunately even with this fix, I'm still seeing the problem I was
+> trying to fix to begin with.
+>
+> Although I no longer get any i2c errors (or *any* reported errors),
+> after a bit, one of the frontends just.. stops working. All attempts
+> to tune it fail. I can even unload and reload the driver module, and
+> its stuck in the same state, indicating its a problem with the
+> hardware. :(
 
-Jonghun Han & I will participate in that meeting.
-We are preparing for some topic that we want to talk with participants.
-I'll let you know about the agenda soon.
+How easily you can re-produce this? Does it work using your first patch?
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Marek Szyprowski
-> Sent: Wednesday, March 02, 2011 12:27 AM
-> To: Marek Szyprowski; linux-media@vger.kernel.org
-> Subject: RE: V4L2 'brainstorming' meeting in Warsaw, March 2011
-> 
-> Hello once more,
-> 
-> After some discussion on #v4l irc channel, I would like to inform that the
-> meeting
-> date has been fixed to my initial proposition: 3 days from 16 to 18 March
-> 2011.
-> 
-> Best regards
-> --
-> Marek Szyprowski
-> Samsung Poland R&D Center
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Could try some changes for GPIOs, LEDs are not important but tuner 
+GPIOs? Here is instructions how GPIOs should be done:
 
+FE0 START
+FE0 READ EEPROM
+FE0 GPIO RESET and ENABLE FE1?
+// set_gpio(0, 3);
+// msleep(40)
+// set_gpio(0, 7);
+FE0 DOWNLOAD FW
+FE0 enable POWER LED ???
+// wr_reg(0xd734,  upper nibble 3)
+
+FE1 set power management (0xd731)
+
+FE0 tuner OFF
+// set_gpio(3, 7);
+FE0 LOCK LED OFF
+
+FE1 tuner OFF
+// set_gpio(0, 7);
+FE1 LOCK LED OFF
+*** DEVICE is NOW IN SLEEP ***
+
+*** TUNE REQ for FE1 **
+FE1 tuner ON
+// set_gpio(0, b);
+FE1 LOCK LED ON
+*** now streaming **
+FE1 tuner OFF
+// set_gpio(0, 7);
+FE1 LOCK LED OFF
+*** DEVICE is NOW IN SLEEP ***
+
+*** TUNE REQ for FE0 **
+FE0 tuner ON
+// set_gpio(3, b);
+FE0 LOCK LED ON
+*** now streaming **
+FE0 tuner OFF
+// set_gpio(3, 7);
+FE0 LOCK LED OFF
+*** DEVICE is NOW IN SLEEP ***
+
+Also configure some power management for FE1, write register 0xd731 
+value 0x47. Do that in af9013_init() before OFSM init (since it changes 
+some bits in same register).
+
+And this is list of used GPIOs, it is my latest understanding. I have 
+ensured many of those by just testing.
+
+AF9015 GPIO0 AF9013 reset
+AF9015 GPIO1 NC (note: on MC44S803 device tuner reset)
+AF9015 GPIO2 NC
+AF9015 GPIO3 TUNER
+AF9015 GPIO_LOCK1 LOCK LED
+AF9015 GPIO_LOCK2 POWER LED (not sure, I don't have any device having 
+power LED, but it looks like it could be)
+
+AF9013 GPIO0 TUNER
+AF9013 GPIO1 NC
+AF9013 GPIO2 LOCK LED
+AF9013 GPIO3 HW power down?
+AF9013 GPIO_LOCK1 LOCK LED
+AF9013 GPIO_LOCK2 NC
+
+-- 
+http://palosaari.fi/
