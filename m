@@ -1,157 +1,87 @@
 Return-path: <mchehab@pedra>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46946 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752832Ab1CNN44 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Mar 2011 09:56:56 -0400
-From: Manjunath Hadli <manjunath.hadli@ti.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Kevin Hilman <khilman@deeprootsystems.com>,
-	LAK <linux-arm-kernel@lists.infradead.org>,
-	Sekhar Nori <nsekhar@ti.com>
-Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: [PATCH 4/7] davinci: dm644x: change vpfe capture structure variables for consistency
-Date: Mon, 14 Mar 2011 19:26:35 +0530
-Message-Id: <1300110995-16489-1-git-send-email-manjunath.hadli@ti.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:54842 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751983Ab1CFLxN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Mar 2011 06:53:13 -0500
+Received: by wyg36 with SMTP id 36so3426571wyg.19
+        for <linux-media@vger.kernel.org>; Sun, 06 Mar 2011 03:53:12 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20110305164309.1796daad@grobi>
+References: <4D31A520.2050703@helmutauer.de>
+	<4D333AF2.8070806@redhat.com>
+	<20110305164309.1796daad@grobi>
+Date: Sun, 6 Mar 2011 17:23:11 +0530
+Message-ID: <AANLkTi=2fN-qWN9zovwGwcNqfA0ogA1u3KCr7oD9CZMg@mail.gmail.com>
+Subject: Re: Patches an media build tree
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Steffen Barszus <steffenbpunkt@googlemail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Helmut Auer <vdr@helmutauer.de>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-change the vpfe capture related configuration structure variables from
-<config> to dm644xevm_<config> to make it consistent with the rest of
-the file.
+Hi Steffen,
 
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
----
- arch/arm/mach-davinci/board-dm644x-evm.c |   24 ++++++++++++------------
- arch/arm/mach-davinci/dm644x.c           |   12 ++++++------
- 2 files changed, 18 insertions(+), 18 deletions(-)
+On Sat, Mar 5, 2011 at 9:13 PM, Steffen Barszus
+<steffenbpunkt@googlemail.com> wrote:
+> On Sun, 16 Jan 2011 16:37:38 -0200
+> Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+>
+>> Em 15-01-2011 11:46, Helmut Auer escreveu:
+>> > Hello List
+>> >
+>> > How long does it usually take til patches are integrated into the
+>> > media build tree ( after posting these here ) ? I'm just wondering
+>> > because I miss some patches posted here.
+>>
+>> It takes as much it needs for the driver maintainer to look into it,
+>> and for me to have time to handle them.
+>>
+>> The pending patches are always at:
+>>
+>>       https://patchwork.kernel.org/project/linux-media/list/
+>>
+>> Please note that, by default, Patchwork filters the patches to
+>> display only the ones marked as New or Under Review. If you want to
+>> see all patches, you need to change the state filter to show all
+>> patches:
+>> https://patchwork.kernel.org/project/linux-media/list/?state=*
+>>
+>> If the patch you're waiting are marked as Under Review, you should
+>> ping the driver maintainer, as I'm waiting for his review. If it is
+>> new, that means that I didn't have time yet to dig into it.
+>
+> Can you please check these patches ?
+> What is missing ? Something to be corrected ?
+>
+> What happens to orphaned drivers ? Manu are you still working on this ?
+>
+> Manu , Mauro please comment ! Thanks !
+>
+> Avoid unnecessary data copying inside dvb_dmx_swfilter_204() function
+>        2010-08-07      Marko Ristola           Under Review
+> Refactor Mantis DMA transfer to deliver 16Kb TS data per interrupt
+>        2010-08-07      Marko Ristola           Under Review
 
-diff --git a/arch/arm/mach-davinci/board-dm644x-evm.c b/arch/arm/mach-davinci/board-dm644x-evm.c
-index 0ca90b8..6919f28 100644
---- a/arch/arm/mach-davinci/board-dm644x-evm.c
-+++ b/arch/arm/mach-davinci/board-dm644x-evm.c
-@@ -188,7 +188,7 @@ static struct platform_device davinci_fb_device = {
- 	.num_resources = 0,
- };
- 
--static struct tvp514x_platform_data tvp5146_pdata = {
-+static struct tvp514x_platform_data dm644xevm_tvp5146_pdata = {
- 	.clk_polarity = 0,
- 	.hs_polarity = 1,
- 	.vs_polarity = 1
-@@ -196,7 +196,7 @@ static struct tvp514x_platform_data tvp5146_pdata = {
- 
- #define TVP514X_STD_ALL	(V4L2_STD_NTSC | V4L2_STD_PAL)
- /* Inputs available at the TVP5146 */
--static struct v4l2_input tvp5146_inputs[] = {
-+static struct v4l2_input dm644xevm_tvp5146_inputs[] = {
- 	{
- 		.index = 0,
- 		.name = "Composite",
-@@ -216,7 +216,7 @@ static struct v4l2_input tvp5146_inputs[] = {
-  * ouput that goes to vpfe. There is a one to one correspondence
-  * with tvp5146_inputs
-  */
--static struct vpfe_route tvp5146_routes[] = {
-+static struct vpfe_route dm644xevm_tvp5146_routes[] = {
- 	{
- 		.input = INPUT_CVBS_VI2B,
- 		.output = OUTPUT_10BIT_422_EMBEDDED_SYNC,
-@@ -227,13 +227,13 @@ static struct vpfe_route tvp5146_routes[] = {
- 	},
- };
- 
--static struct vpfe_subdev_info vpfe_sub_devs[] = {
-+static struct vpfe_subdev_info dm644xevm_vpfe_sub_devs[] = {
- 	{
- 		.name = "tvp5146",
- 		.grp_id = 0,
--		.num_inputs = ARRAY_SIZE(tvp5146_inputs),
--		.inputs = tvp5146_inputs,
--		.routes = tvp5146_routes,
-+		.num_inputs = ARRAY_SIZE(dm644xevm_tvp5146_inputs),
-+		.inputs = dm644xevm_tvp5146_inputs,
-+		.routes = dm644xevm_tvp5146_routes,
- 		.can_route = 1,
- 		.ccdc_if_params = {
- 			.if_type = VPFE_BT656,
-@@ -242,15 +242,15 @@ static struct vpfe_subdev_info vpfe_sub_devs[] = {
- 		},
- 		.board_info = {
- 			I2C_BOARD_INFO("tvp5146", 0x5d),
--			.platform_data = &tvp5146_pdata,
-+			.platform_data = &dm644xevm_tvp5146_pdata,
- 		},
- 	},
- };
- 
--static struct vpfe_config vpfe_cfg = {
--	.num_subdevs = ARRAY_SIZE(vpfe_sub_devs),
-+static struct vpfe_config dm644xevm_capture_cfg = {
-+	.num_subdevs = ARRAY_SIZE(dm644xevm_vpfe_sub_devs),
- 	.i2c_adapter_id = 1,
--	.sub_devs = vpfe_sub_devs,
-+	.sub_devs = dm644xevm_vpfe_sub_devs,
- 	.card_name = "DM6446 EVM",
- 	.ccdc = "DM6446 CCDC",
- };
-@@ -629,7 +629,7 @@ static void __init
- davinci_evm_map_io(void)
- {
- 	/* setup input configuration for VPFE input devices */
--	dm644x_set_vpfe_config(&vpfe_cfg);
-+	dm644x_set_vpfe_config(&dm644xevm_capture_cfg);
- 	dm644x_init();
- }
- 
-diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
-index 73e74d0..8ff5d5f 100644
---- a/arch/arm/mach-davinci/dm644x.c
-+++ b/arch/arm/mach-davinci/dm644x.c
-@@ -606,7 +606,7 @@ static struct platform_device dm644x_vpss_device = {
- 	.resource		= dm644x_vpss_resources,
- };
- 
--static struct resource vpfe_resources[] = {
-+static struct resource dm644x_vpfe_resources[] = {
- 	{
- 		.start          = IRQ_VDINT0,
- 		.end            = IRQ_VDINT0,
-@@ -640,11 +640,11 @@ static struct platform_device dm644x_ccdc_dev = {
- 	},
- };
- 
--static struct platform_device vpfe_capture_dev = {
-+static struct platform_device dm644x_vpfe_dev = {
- 	.name		= CAPTURE_DRV_NAME,
- 	.id		= -1,
--	.num_resources	= ARRAY_SIZE(vpfe_resources),
--	.resource	= vpfe_resources,
-+	.num_resources	= ARRAY_SIZE(dm644x_vpfe_resources),
-+	.resource	= dm644x_vpfe_resources,
- 	.dev = {
- 		.dma_mask		= &vpfe_capture_dma_mask,
- 		.coherent_dma_mask	= DMA_BIT_MASK(32),
-@@ -653,7 +653,7 @@ static struct platform_device vpfe_capture_dev = {
- 
- void dm644x_set_vpfe_config(struct vpfe_config *cfg)
- {
--	vpfe_capture_dev.dev.platform_data = cfg;
-+	dm644x_vpfe_dev.dev.platform_data = cfg;
- }
- 
- /*----------------------------------------------------------------------*/
-@@ -801,7 +801,7 @@ static int __init dm644x_init_devices(void)
- 
- 	platform_device_register(&dm644x_vpss_device);
- 	platform_device_register(&dm644x_ccdc_dev);
--	platform_device_register(&vpfe_capture_dev);
-+	platform_device_register(&dm644x_vpfe_dev);
- 
- 	return 0;
- }
--- 
-1.6.2.4
 
+I had tried this patch a while back, but due to some reason it was
+causing a complete freeze at my side: it could have been due to a
+different version of the bridge or so, But it wasn't really easy on my
+side to ascertain that. That time looking at the patch it wasn't easy
+to identify the reason as well. I need to retry the same again, with a
+cooler head as to see what happens.
+
+
+> [v2] V4L/DVB: faster DVB-S lock for mantis cards using stb0899 demod
+>        2010-10-10      Tuxoholic               Under Review
+>
+
+I was under the assumption that this issue was fixed in the right way,
+with the fix being applied to the stb6100 driver sometime back. Was
+your test with that fix in ?
+
+
+Best Regards,
+Manu
