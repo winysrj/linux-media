@@ -1,57 +1,42 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:56337 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751281Ab1CHH6k (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Mar 2011 02:58:40 -0500
-Received: by fxm17 with SMTP id 17so4869433fxm.19
-        for <linux-media@vger.kernel.org>; Mon, 07 Mar 2011 23:58:39 -0800 (PST)
-Date: Tue, 8 Mar 2011 08:51:07 +0100
-From: Steffen Barszus <steffenbpunkt@googlemail.com>
-To: Scott <igetmyemailhere@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Compiling v4l fatal error: linux/ti_wilink_st.h: No such file
- or directory
-Message-ID: <20110308085107.7bcb52ef@grobi>
-In-Reply-To: <FBB75E3F-418B-470F-8169-25CC3AFBA73F@gmail.com>
-References: <AANLkTikJPTMGirPOVmcH-Wit-0B8BC8cqEbCMj=nLc+b@mail.gmail.com>
-	<864FEDC7-B235-4878-AE6B-77E2A62D1ED9@wilsonet.com>
-	<FBB75E3F-418B-470F-8169-25CC3AFBA73F@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from smtp-out002.kontent.com ([81.88.40.216]:38111 "EHLO
+	smtp-out002.kontent.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751096Ab1CFQn5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Mar 2011 11:43:57 -0500
+From: Oliver Neukum <oliver@neukum.org>
+To: Florian Mickler <florian@mickler.org>
+Subject: Re: [PATCH] [media] dib0700: get rid of on-stack dma buffers
+Date: Sun, 6 Mar 2011 17:44:15 +0100
+Cc: mchehab@infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	"Greg Kroah-Hartman" <greg@kroah.com>,
+	"Rafael J. Wysocki" <rjw@sisk.pl>,
+	Maciej Rutecki <maciej.rutecki@gmail.com>
+References: <1299410212-24897-1-git-send-email-florian@mickler.org> <201103061606.38846.oliver@neukum.org> <20110306164521.2a88a155@schatten.dmk.lab>
+In-Reply-To: <20110306164521.2a88a155@schatten.dmk.lab>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201103061744.15946.oliver@neukum.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, 7 Mar 2011 17:22:39 -0600
-Scott <igetmyemailhere@gmail.com> wrote:
+Am Sonntag, 6. März 2011, 16:45:21 schrieb Florian Mickler:
 
-> 
->   Same problem.  I purged both  linux-headers-2.6.35-27-generic,
-> linux-source-2.6.35, then reinstalled them, and did an apt-get
-> update/upgrade.  I then deleted media_build and ran...
+> Hm.. allocating the buffer
+> in the probe routine and deallocating it in the usb_driver disconnect
+> callback should work?
 
-linux-headers should be enough, no need for linux-source, and you need
-never both IMHO.
+Yes.
+ 
+> How come that it must be a seperate kmalloc buffer? Is it some aligning
+> that kmalloc garantees? 
 
-> git clone git://linuxtv.org/media_build.git
-> cd media_build
-> ./build.sh
-> Compile breaks
-> vi vrl/.config changed CONFIG_DVB_FIREDTV=m to =n
+On some CPUs DMA affects on main CPU, not the CPU caches. You
+need to synchronize the cache before you start DMA and must not touch
+the buffer until DMA is finished. This applies with a certain granularity
+that kmalloc respects. The ugly details are in Documentation.
 
-should not be necessary anymore, at least its not needed here. 
-
-> ./build.sh
-
-You might want to try my dkms package - not sure if it works on
-maverick (its build on/for lucid) - but in theory it should (except
-if the number of modules differs for different kernel). 
-If not you get atleast the latest source which compiles fine here. 
-
-https://launchpad.net/~yavdr/+archive/testing-vdr/+packages?field.name_filter=v4l-dvb-dkms&field.status_filter=published&field.series_filter=
-
-Just uploaded new version with media_build and media_tree as of now. 
-
-Let me know if it works.
-
-Steffen
+	Regards
+		Oliver
