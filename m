@@ -1,84 +1,55 @@
 Return-path: <mchehab@pedra>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:50461 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755578Ab1CHRpl convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Mar 2011 12:45:41 -0500
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:60787 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751741Ab1CFNI0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Mar 2011 08:08:26 -0500
+Received: by wwb22 with SMTP id 22so4246564wwb.1
+        for <linux-media@vger.kernel.org>; Sun, 06 Mar 2011 05:08:25 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <4D75F343.8090505@maxwell.research.nokia.com>
-References: <4D6D219D.7020605@matrix-vision.de>
-	<201103022018.23446.laurent.pinchart@ideasonboard.com>
-	<4D6FBC7F.1080500@matrix-vision.de>
-	<AANLkTikAKy=CzTqEv-UGBQ1EavqmCStPNFZ5vs7vH5VK@mail.gmail.com>
-	<4D70F985.8030902@matrix-vision.de>
-	<AANLkTinSJpjPXWHWduLbRSmb=La3sv82ufwgsq-uR7S2@mail.gmail.com>
-	<AANLkTi=8Sss-5xfgPmgx=J_T__=hrC1rQU-xBOdKC8Ve@mail.gmail.com>
-	<4D74D94F.7040702@matrix-vision.de>
-	<AANLkTikokA2hGMYA3vfBOxa0jPr0tjbLfYW603+zicry@mail.gmail.com>
-	<AANLkTikzAjUrec+c6zcSCx6auaR9QvbWwwTbXpGYuOoZ@mail.gmail.com>
-	<AANLkTi=KncNfW0NEEoV+mrT_Ft2j-c=rQG=qbeR6tLQK@mail.gmail.com>
-	<4D75F343.8090505@maxwell.research.nokia.com>
-Date: Tue, 8 Mar 2011 11:45:35 -0600
-Message-ID: <AANLkTinp2nxKSGkvXtxAe6s+URYiOYEVMmTDkdk9PAPN@mail.gmail.com>
-Subject: Re: [PATCH] omap: iommu: disallow mapping NULL address
-From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Cc: David Cohen <dacohen@gmail.com>,
-	Michael Jones <michael.jones@matrix-vision.de>,
-	Hiroshi.DOYU@nokia.com,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-omap@vger.kernel.org
+In-Reply-To: <4D738664.1020200@iki.fi>
+References: <AANLkTi=rcfL_pku9hhx68C_Fb_76KsW2Yy+Oys10a7+4@mail.gmail.com>
+	<4D7163FD.9030604@iki.fi>
+	<AANLkTimjC99zhJ=huHZiGgbENCoyHy5KT87iujjTT8w3@mail.gmail.com>
+	<4D716ECA.4060900@iki.fi>
+	<AANLkTimHa6XFwhvpLbhtRm7Vee-jYPkHpx+D8L2=+vQb@mail.gmail.com>
+	<AANLkTik9cSnAFWNdTUv3NNU3K2SoeECDO2036Htx-OAi@mail.gmail.com>
+	<AANLkTi=e-cAzMWZSHvKR8Yx+0MqcY_Ewf4z1gDyZfCeo@mail.gmail.com>
+	<AANLkTi=YMtTbgwxNA1O6zp03OoeGKJvn8oYDB9kHjti1@mail.gmail.com>
+	<AANLkTimDSwR06nRxNv9x11_dDdaSBzD-En4N8ameDe1Y@mail.gmail.com>
+	<AANLkTimWRDk+iGPzuXarmpr0w9W4aS4Be=xpBPkMipdC@mail.gmail.com>
+	<AANLkTi=7NupG4-X=iFM25pJHwzfkp3ZvEvxJUBexYtsd@mail.gmail.com>
+	<4D738664.1020200@iki.fi>
+Date: Sun, 6 Mar 2011 13:08:25 +0000
+Message-ID: <AANLkTi=1Rn86nifhDfonQUBou+sfh4RrgRxcfCMeU59e@mail.gmail.com>
+Subject: Re: [patch] Fix AF9015 Dual tuner i2c write failures
+From: adq <adq@lidskialf.net>
+To: Antti Palosaari <crope@iki.fi>
+Cc: =?ISO-8859-1?Q?Juan_Jes=FAs_Garc=EDa_de_Soria_Lucena?=
+	<skandalfo@gmail.com>, linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, Mar 8, 2011 at 3:13 AM, Sakari Ailus
-<sakari.ailus@maxwell.research.nokia.com> wrote:
-> Guzman Lugo, Fernando wrote:
->> On Mon, Mar 7, 2011 at 1:19 PM, David Cohen <dacohen@gmail.com> wrote:
->>> On Mon, Mar 7, 2011 at 9:17 PM, Guzman Lugo, Fernando
->>> <fernando.lugo@ti.com> wrote:
->>>> On Mon, Mar 7, 2011 at 7:10 AM, Michael Jones
->>>> <michael.jones@matrix-vision.de> wrote:
->>>>> From e7dbe4c4b64eb114f9b0804d6af3a3ca0e78acc8 Mon Sep 17 00:00:00 2001
->>>>> From: Michael Jones <michael.jones@matrix-vision.de>
->>>>> Date: Mon, 7 Mar 2011 13:36:15 +0100
->>>>> Subject: [PATCH] omap: iommu: disallow mapping NULL address
->>>>>
->>>>> commit c7f4ab26e3bcdaeb3e19ec658e3ad9092f1a6ceb allowed mapping
->>>>> the NULL address if da_start==0.  Force da_start to exclude the
->>>>> first page.
->>>>
->>>> what about devices that uses page 0? ipu after reset always starts
->>>> from 0x00000000 how could we map that address??
->>>
->>> from 0x0? The driver sees da == 0 as error. May I ask you why do you want it?
+2011/3/6 Antti Palosaari <crope@iki.fi>:
+> On 03/06/2011 02:24 PM, adq wrote:
 >>
->> unlike DSP that you can load a register with the addres the DSP will
->> boot, IPU core always starts from address 0x00000000, so if you take
->> IPU out of reset it will try to access address 0x0 if not map it,
->> there will be a mmu fault.
+>> Another issue I've noticed just now: The UCBLOCKS measure isn't reset:
+>> it seems to be an accumulative counter, which isn't correct from the
+>> DVB API (if I remember correctly).
+>>
+>> This explains why tvheadend's "quallity" measure gradually tends to 0,
+>> since it is assuming UCBLOCKS is non-accumulative.
 >
-> I think the driver for IPU (what is it, btw.?) must map the NULL address
-> explicitly. It cannot rely on automatic allocation of the NULL address
-> by the iommu even if it was the first allocation.
+> 2.2.7 FE READ UNCORRECTED BLOCKS DESCRIPTION
+> This ioctl call returns the number of uncorrected blocks detected by the
+> device driver during its lifetime. For meaningful measurements, the
+> incrementin block count during a specific time interval should be
+> calculated. For this command, read-only access to the device is sufficient.
+> Note that the counter will wrap to zero after its maximum count has been
+> reached.
 
-IPU = imaging processor unit (Cortex-M3 on omap4).
+(this time to the list as well)
 
-yeah, we should rely on that, so we will need to pass IOVMF_DA_FIXED
-flag, what ideally always be success because it is the first map after
-getting iommu handle. In this moment it is mapped direcctly using
-iommu.c and other layer upon that, but it would be nice be able to use
-iovmm in the future.
+Hah! Sorry, its been a while :)
 
-Regards,
-Fernando.
-
-
->
-> --
-> Sakari Ailus
-> sakari.ailus@maxwell.research.nokia.com
->
+In that case, I need to look at the tvheadend source.
