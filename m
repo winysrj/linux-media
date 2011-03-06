@@ -1,48 +1,64 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:48907 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753984Ab1CBSjU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Mar 2011 13:39:20 -0500
-Received: by qyg14 with SMTP id 14so311714qyg.19
-        for <linux-media@vger.kernel.org>; Wed, 02 Mar 2011 10:39:19 -0800 (PST)
-References: <20110302181404.6406a3d2@realh.co.uk>
-In-Reply-To: <20110302181404.6406a3d2@realh.co.uk>
-Mime-Version: 1.0 (Apple Message framework v1082)
-Content-Type: text/plain; charset=us-ascii
-Message-Id: <3A464BCE-1E30-48D3-B275-99815E1A8983@wilsonet.com>
+Received: from mailout-de.gmx.net ([213.165.64.23]:35566 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752607Ab1CFVTp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Mar 2011 16:19:45 -0500
+From: "Hans-Frieder Vogt" <hfvogt@gmx.net>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 2/2] v4l-utils: change keymap to better reflect key names on imon_mce remote
+Date: Sun, 6 Mar 2011 22:19:41 +0100
+Cc: mchehab@infradead.org
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: <linux-media@vger.kernel.org>
-From: Jarod Wilson <jarod@wilsonet.com>
-Subject: Re: Hauppauge "grey" remote not working in recent kernels
-Date: Wed, 2 Mar 2011 13:39:32 -0500
-To: Tony Houghton <h@realh.co.uk>
+Message-Id: <201103062219.41753.hfvogt@gmx.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mar 2, 2011, at 1:14 PM, Tony Houghton wrote:
+v4l-utils: the key definitions in the imon_mce keymap do not currently reflect
+well the names printed on the remote:
+key on remote is named "back", but keymap uses "exit",
+key on remote is named "Teletext", but keymap uses "subtitle"
+In addition, I think that "menu" is rather representative to the key
+named "DVD menu" than just "DVD"
+Please change the keymap as proposed in my patch. It applies on top of
+my patch 1/2 as of today which removes doublicates in the imon_mce keymap.
 
-> Since upgrading my kernel from 2.6.32 to 2.6.37 in Debian my DVB remote
-> control no longer works. The card is a Hauppauge Nova-T PCI with the
-> "grey" remote. It uses the saa7146, tda1004x, budget_ci and budget_core
-> modules (but it doesn't actually have a CI).
-> 
-> There used to be a patch for the budget_ci driver to support this model
-> of remote because the driver's key mappings were incorrect, but that
-> patch was no longer necessary from about Linux 2.6.20 onwards. Has there
-> been a regression or is there a new problem?
-> 
-> FWIW I have two cards which used the saa7146, but the other one is DVB-S
-> and doesn't have a remote. The one with the remote is adapter1 and the
-> one without is adapter0. Could that have anything to do with the
-> problem?
+Signed-off-by: Hans-Frieder Vogt <hfvogt@gmx.net>
 
-There's a pending patchset for ir-kbd-i2c and the hauppauge key tables
-that should get you back in working order.
+ imon_mce |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
+--- a/utils/keytable/rc_keymaps/imon_mce	2011-03-06 21:47:10.527674607 
++0100
++++ b/utils/keytable/rc_keymaps/imon_mce	2011-03-06 19:26:06.263297972 +0100
+@@ -18,7 +18,7 @@
+ 0x800ff40b KEY_ENTER
+ 0x02000028 KEY_OK
+ 0x800ff422 KEY_OK
+-0x0200002a KEY_EXIT
++0x0200002a KEY_BACK
+ 0x800ff423 KEY_EXIT
+ 0x02000029 KEY_DELETE
+ 0x800ff40a KEY_DELETE
+@@ -56,7 +56,7 @@
+ 0x800ff448 KEY_PVR
+ 0x800ff449 KEY_CAMERA
+ 0x800ff44a KEY_VIDEO
+-0x800ff424 KEY_DVD
++0x800ff424 KEY_MENU
+ 0x800ff425 KEY_TUNER
+ 0x800ff450 KEY_RADIO
+ 0x800ff44c KEY_LANGUAGE
+@@ -70,7 +70,7 @@
+ 0x800ff41d KEY_BLUE
+ 0x800ff40f KEY_INFO
+ 0x800ff426 KEY_EPG
+-0x800ff45a KEY_SUBTITLE
++0x800ff45a KEY_TEXT
+ 0x800ff44d KEY_TITLE
+ 0x800ff40c KEY_POWER
+ 0x800ff40d KEY_LEFTMETA
 
--- 
-Jarod Wilson
-jarod@wilsonet.com
-
-
-
+Hans-Frieder Vogt                       e-mail: hfvogt <at> gmx .dot. net
