@@ -1,96 +1,83 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:59407 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752468Ab1CUT1w (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Mar 2011 15:27:52 -0400
-References: <1300732426-18958-1-git-send-email-florian@mickler.org>
-In-Reply-To: <1300732426-18958-1-git-send-email-florian@mickler.org>
+Received: from mx1.redhat.com ([209.132.183.28]:32033 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752518Ab1CFNdB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 6 Mar 2011 08:33:01 -0500
+Message-ID: <4D738CFC.40301@redhat.com>
+Date: Sun, 06 Mar 2011 10:32:44 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH 0/6] get rid of on-stack dma buffers
-From: Andy Walls <awalls@md.metrocast.net>
-Date: Mon, 21 Mar 2011 15:26:43 -0400
-To: Florian Mickler <florian@mickler.org>, mchehab@infradead.org
-CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	js@linuxtv.org, tskd2@yahoo.co.jp, liplianin@me.by,
-	g.marco@freenet.de, aet@rasterburn.org, pb@linuxtv.org,
-	mkrufky@linuxtv.org, nick@nick-andrew.net, max@veneto.com,
-	janne-dvb@grunau.be
-Message-ID: <a08d026a-d4c3-4ee5-b01a-d561f755b1ec@email.android.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Sylwester Nawrocki <snjw23@gmail.com>,
+	David Cohen <dacohen@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	alsa-devel@alsa-project.org,
+	Sakari Ailus <sakari.ailus@retiisi.org.uk>,
+	Pawel Osciak <pawel@osciak.com>
+Subject: Re: [GIT PULL FOR 2.6.39] Media controller and OMAP3 ISP driver
+References: <201102171606.58540.laurent.pinchart@ideasonboard.com> <4D72C5F0.6090209@gmail.com> <4D736844.50703@redhat.com> <201103061238.42784.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201103061238.42784.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Florian Mickler <florian@mickler.org> wrote:
+Em 06-03-2011 08:38, Laurent Pinchart escreveu:
+> Hi Mauro,
+> 
+> On Sunday 06 March 2011 11:56:04 Mauro Carvalho Chehab wrote:
+>> Em 05-03-2011 20:23, Sylwester Nawrocki escreveu:
+>>
+>> A somewhat unrelated question that occurred to me today: what happens when
+>> a format change happens while streaming?
+>>
+>> Considering that some formats need more bits than others, this could lead
+>> into buffer overflows, either internally at the device or externally, on
+>> bridges that just forward whatever it receives to the DMA buffers (there
+>> are some that just does that). I didn't see anything inside the mc code
+>> preventing such condition to happen, and probably implementing it won't be
+>> an easy job. So, one alternative would be to require some special CAPS if
+>> userspace tries to set the mbus format directly, or to recommend userspace
+>> to create media controller nodes with 0600 permission.
+> 
+> That's not really a media controller issue. Whether formats can be changed 
+> during streaming is a driver decision. The OMAP3 ISP driver won't allow 
+> formats to be changed during streaming. If the hardware allows for such format 
+> changes, drivers can implement support for that and make sure that no buffer 
+> overflow will occur.
 
->Hi all!
->
->These patches get rid of on-stack dma buffers for some of the dvb-usb
->drivers. 
->I do not own the hardware, so these are only compile tested. I would 
->appreciate testing and review.
->They were previously sent to the list, but some error on my side
->prevented (some of?) them from beeing delivered to all parties (the
->lists).
->
->These changes are motivated by 
->https://bugzilla.kernel.org/show_bug.cgi?id=15977 .
->
->The patches which got tested already were submitted to Mauro (and
->lkml/linux-media) yesterday seperately. Those fix this same issue for
->ec168,
->ce6230, au6610 and lmedm04. 
->
->A fix for vp702x has been submitted seperately for review on the list.
->I have
->similiar fixes like the vp702x-fix for dib0700 (overlooked some
->on-stack
->buffers in there in my original submission as well) and gp8psk, but I
->am
->holding them back 'till I got time to recheck those and getting some
->feedback
->on vp702x.
->
->Please review and test.
->
->Regards,
->Flo
->
->Florian Mickler (6):
->  [media] a800: get rid of on-stack dma buffers
->  [media v2] vp7045: get rid of on-stack dma buffers
->  [media] friio: get rid of on-stack dma buffers
->  [media] dw2102: get rid of on-stack dma buffer
->  [media] m920x: get rid of on-stack dma buffers
->  [media] opera1: get rid of on-stack dma buffer
->
-> drivers/media/dvb/dvb-usb/a800.c   |   17 ++++++++++---
-> drivers/media/dvb/dvb-usb/dw2102.c |   10 ++++++-
-> drivers/media/dvb/dvb-usb/friio.c  |   23 ++++++++++++++---
-> drivers/media/dvb/dvb-usb/m920x.c  |   33 ++++++++++++++++--------
-> drivers/media/dvb/dvb-usb/opera1.c |   31 +++++++++++++++--------
->drivers/media/dvb/dvb-usb/vp7045.c |   47
->++++++++++++++++++++++++++----------
-> 6 files changed, 116 insertions(+), 45 deletions(-)
->
->-- 
->1.7.4.1
->
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media"
->in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Such issues is caused by having two API's that allow format changes, one that
+does it device-based, and another one doing it subdev-based.
 
-Florian,
+Ok, drivers can implementing locks to prevent such troubles, but, without
+the core providing a reliable mechanism, it is hard to implement a
+correct lock. 
 
-For all of these, what happens when the USB call times out and you kfree() the buffer?  Can the USB DMA actually complete after this kfree(), possibly corrupting space that has been reallocated off the heap, since the kfree()?
+For example, let's suppose that some driver is using mt9m111 subdev (I just picked 
+one random sensor that supports lots of MBUS formats). There's nothing
+there preventing a subdev call for it to change mbus format while streaming.
+Worse than that, the sensor driver has no way to block it, as it doesn't
+know that the bridge driver is streaming or not.
 
-This is the scenario for which I assume allocating off the stack is bad.  
+The code at subdev_do_ioctl() is just:
 
-Do these changes simply make corruption less noticable since heap gets corrupted vs stack?
+case VIDIOC_SUBDEV_S_FMT: {
+        struct v4l2_subdev_format *format = arg;
 
-Regards,
-Andy
+        if (format->which != V4L2_SUBDEV_FORMAT_TRY &&
+            format->which != V4L2_SUBDEV_FORMAT_ACTIVE)
+                return -EINVAL;
+
+        if (format->pad >= sd->entity.num_pads)
+                return -EINVAL;
+ 
+        return v4l2_subdev_call(sd, pad, set_fmt, subdev_fh, format);
+}
+
+So, mc core won't be preventing it.
+
+So, I can't see how such subdev request would be implementing a logic to
+return -EBUSY on those cases.
+
+Mauro.
