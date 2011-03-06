@@ -1,56 +1,68 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:37460 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752548Ab1CANSQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Mar 2011 08:18:16 -0500
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p21DIGlI030232
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 1 Mar 2011 08:18:16 -0500
-Received: from pedra (vpn-225-140.phx2.redhat.com [10.3.225.140])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p21DIEb6025546
-	for <linux-media@vger.kernel.org>; Tue, 1 Mar 2011 08:18:15 -0500
-Date: Tue, 1 Mar 2011 10:17:57 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 1/3] matrox: Remove legacy VIDIOC_*_OLD ioctls
-Message-ID: <20110301101757.6ad68480@pedra>
-In-Reply-To: <cover.1298985234.git.mchehab@redhat.com>
-References: <cover.1298985234.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4423 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755095Ab1CFMxj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Mar 2011 07:53:39 -0500
+Received: from tschai.localnet (105.84-48-119.nextgentel.com [84.48.119.105])
+	(authenticated bits=0)
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id p26CrXvr048679
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sun, 6 Mar 2011 13:53:38 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: Re: [GIT PATCHES FOR 2.6.39] Fix compile error/warnings
+Date: Sun, 6 Mar 2011 13:53:33 +0100
+References: <201103061343.32705.hverkuil@xs4all.nl>
+In-Reply-To: <201103061343.32705.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Message-Id: <201103061353.33472.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Those ioctls were produced by the wrong arguments for _IO macros,
-and were replaced by fixed versions on an early 2.6 kernel.
+On Sunday, March 06, 2011 13:43:32 Hans Verkuil wrote:
+> A bunch of trivial compile fixes for 2.6.39.
+> 
+> Regards,
+> 
+> 	Hans
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Added one more:
 
-diff --git a/drivers/video/matrox/matroxfb_base.c b/drivers/video/matrox/matroxfb_base.c
-index a082deb..8c9dbac 100644
---- a/drivers/video/matrox/matroxfb_base.c
-+++ b/drivers/video/matrox/matroxfb_base.c
-@@ -101,8 +101,6 @@
- 
- #include <linux/version.h>
- 
--#define __OLD_VIDIOC_
--
- #include "matroxfb_base.h"
- #include "matroxfb_misc.h"
- #include "matroxfb_accel.h"
-@@ -1152,7 +1150,6 @@ static int matroxfb_ioctl(struct fb_info *info,
- 					return -EFAULT;
- 				return err;
- 			}
--		case VIDIOC_S_CTRL_OLD:
- 		case VIDIOC_S_CTRL:
- 			{
- 				struct v4l2_control ctrl;
+	altera-ci.h: add missing inline
+
+Regards,
+
+	Hans
+
+> 
+> The following changes since commit 88a763df226facb74fdb254563e30e9efb64275c:
+> 
+>   [media] dw2102: prof 1100 corrected (2011-03-02 16:56:54 -0300)
+> 
+> are available in the git repository at:
+>   ssh://linuxtv.org/git/hverkuil/media_tree.git fixes
+> 
+> Hans Verkuil (6):
+>       tuner-xc2028.c: fix compile warning
+>       stv0367.c: fix compiler warning
+>       altera-ci.c: fix compiler warnings
+>       fmdrv_common.c: fix compiler warning
+>       cx88-alsa: fix compiler warning
+>       mantis_pci.c: fix ARM compile error.
+> 
+>  drivers/media/common/tuners/tuner-xc2028.c |    4 ++--
+>  drivers/media/dvb/frontends/stv0367.c      |    2 +-
+>  drivers/media/dvb/mantis/mantis_pci.c      |    1 +
+>  drivers/media/radio/wl128x/fmdrv_common.c  |    4 ++--
+>  drivers/media/video/cx23885/altera-ci.c    |    8 ++++----
+>  drivers/media/video/cx88/cx88-alsa.c       |    2 +-
+>  6 files changed, 11 insertions(+), 10 deletions(-)
+> 
+> 
+
 -- 
-1.7.1
-
-
+Hans Verkuil - video4linux developer - sponsored by Cisco
