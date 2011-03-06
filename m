@@ -1,157 +1,294 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:28268 "EHLO mx1.redhat.com"
+Received: from ist.d-labs.de ([213.239.218.44]:44991 "EHLO mx01.d-labs.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934098Ab1CXUEd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Mar 2011 16:04:33 -0400
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p2OK4VkF023020
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 24 Mar 2011 16:04:31 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>
-Subject: [PATCH 1/2] rc: add tivo/nero liquidtv keymap
-Date: Thu, 24 Mar 2011 16:04:24 -0400
-Message-Id: <1300997065-4085-1-git-send-email-jarod@redhat.com>
+	id S1750742Ab1CFOqK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 6 Mar 2011 09:46:10 -0500
+From: Florian Mickler <florian@mickler.org>
+To: mchehab@infradead.org
+Cc: Florian Mickler <florian@mickler.org>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Greg Kroah-Hartman <greg@kroah.com>,
+	"Rafael J. Wysocki" <rjw@sisk.pl>,
+	Maciej Rutecki <maciej.rutecki@gmail.com>,
+	Oliver Neukum <oliver@neukum.org>,
+	Jack Stone <jwjstone@fastmail.fm>
+Subject: [PATCH 1/3 v2] [media] dib0700: get rid of on-stack dma buffers
+Date: Sun,  6 Mar 2011 15:45:14 +0100
+Message-Id: <1299422716-29461-1-git-send-email-florian@mickler.org>
+In-Reply-To: <20110306153805.001011a9@schatten.dmk.lab>
+References: <20110306153805.001011a9@schatten.dmk.lab>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/rc/keymaps/Makefile  |    1 +
- drivers/media/rc/keymaps/rc-tivo.c |   98 ++++++++++++++++++++++++++++++++++++
- include/media/rc-map.h             |    1 +
- 3 files changed, 100 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/rc/keymaps/rc-tivo.c
+This should fix warnings seen by some:
+	WARNING: at lib/dma-debug.c:866 check_for_stack
 
-diff --git a/drivers/media/rc/keymaps/Makefile b/drivers/media/rc/keymaps/Makefile
-index 85cac7d..b57fc83 100644
---- a/drivers/media/rc/keymaps/Makefile
-+++ b/drivers/media/rc/keymaps/Makefile
-@@ -77,6 +77,7 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
- 			rc-terratec-slim.o \
- 			rc-terratec-slim-2.o \
- 			rc-tevii-nec.o \
-+			rc-tivo.o \
- 			rc-total-media-in-hand.o \
- 			rc-trekstor.o \
- 			rc-tt-1500.o \
-diff --git a/drivers/media/rc/keymaps/rc-tivo.c b/drivers/media/rc/keymaps/rc-tivo.c
-new file mode 100644
-index 0000000..98ad085
---- /dev/null
-+++ b/drivers/media/rc/keymaps/rc-tivo.c
-@@ -0,0 +1,98 @@
-+/* rc-tivo.c - Keytable for TiVo remotes
-+ *
-+ * Copyright (c) 2011 by Jarod Wilson <jarod@redhat.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
+Fixes: https://bugzilla.kernel.org/show_bug.cgi?id=15977.
+Reported-by: Zdenek Kabelac <zdenek.kabelac@gmail.com>
+Signed-off-by: Florian Mickler <florian@mickler.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: linux-media@vger.kernel.org
+CC: linux-kernel@vger.kernel.org
+CC: Greg Kroah-Hartman <greg@kroah.com>
+CC: Rafael J. Wysocki <rjw@sisk.pl>
+CC: Maciej Rutecki <maciej.rutecki@gmail.com>
+CC: Oliver Neukum <oliver@neukum.org>
+CC: Jack Stone <jwjstone@fastmail.fm>
+
+[v2: use preallocated buffer where the mutex is held; fix sizeof in one case]
+---
+ drivers/media/dvb/dvb-usb/dib0700.h      |    5 +-
+ drivers/media/dvb/dvb-usb/dib0700_core.c |   92 +++++++++++++++++++++++-------
+ 2 files changed, 74 insertions(+), 23 deletions(-)
+
+diff --git a/drivers/media/dvb/dvb-usb/dib0700.h b/drivers/media/dvb/dvb-usb/dib0700.h
+index 3537d65..1401e7d 100644
+--- a/drivers/media/dvb/dvb-usb/dib0700.h
++++ b/drivers/media/dvb/dvb-usb/dib0700.h
+@@ -45,8 +45,9 @@ struct dib0700_state {
+ 	u8 is_dib7000pc;
+ 	u8 fw_use_new_i2c_api;
+ 	u8 disable_streaming_master_mode;
+-    u32 fw_version;
+-    u32 nb_packet_buffer_size;
++	u32 fw_version;
++	u32 nb_packet_buffer_size;
++	u8 buf[255];
+ };
+ 
+ extern int dib0700_get_version(struct dvb_usb_device *d, u32 *hwversion,
+diff --git a/drivers/media/dvb/dvb-usb/dib0700_core.c b/drivers/media/dvb/dvb-usb/dib0700_core.c
+index 98ffb40..028ed87 100644
+--- a/drivers/media/dvb/dvb-usb/dib0700_core.c
++++ b/drivers/media/dvb/dvb-usb/dib0700_core.c
+@@ -27,11 +27,17 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+ int dib0700_get_version(struct dvb_usb_device *d, u32 *hwversion,
+ 			u32 *romversion, u32 *ramversion, u32 *fwtype)
+ {
+-	u8 b[16];
+-	int ret = usb_control_msg(d->udev, usb_rcvctrlpipe(d->udev, 0),
++	int ret;
++	u8 *b;
 +
-+#include <media/rc-map.h>
++	b = kmalloc(16, GFP_KERNEL);
++	if (!b)
++		return -ENOMEM;
 +
-+/*
-+ * Initial mapping is for the TiVo remote included in the Nero LiquidTV bundle,
-+ * which also ships with a TiVo-branded IR transceiver, supported by the mceusb
-+ * driver. Note that the remote uses an NEC-ish protocol, but instead of having
-+ * a command/not_command pair, it has a vendor ID of 0xa10c, but some keys, the
-+ * NEC extended checksums do pass, so the table presently has the intended
-+ * values and the checksum-passed versions for those keys.
-+ */
-+static struct rc_map_table tivo[] = {
-+	{ 0xa10c900f, KEY_MEDIA },	/* TiVo Button */
-+	{ 0xa10c0807, KEY_POWER2 },	/* TV Power */
-+	{ 0xa10c8807, KEY_TV },		/* Live TV/Swap */
-+	{ 0xa10c2c03, KEY_VIDEO_NEXT },	/* TV Input */
-+	{ 0xa10cc807, KEY_INFO },
-+	{ 0xa10cfa05, KEY_CYCLEWINDOWS }, /* Window */
-+	{ 0x0085305f, KEY_CYCLEWINDOWS },
-+	{ 0xa10c6c03, KEY_EPG },	/* Guide */
++	ret = usb_control_msg(d->udev, usb_rcvctrlpipe(d->udev, 0),
+ 				  REQUEST_GET_VERSION,
+ 				  USB_TYPE_VENDOR | USB_DIR_IN, 0, 0,
+-				  b, sizeof(b), USB_CTRL_GET_TIMEOUT);
++				  b, 16, USB_CTRL_GET_TIMEOUT);
+ 	if (hwversion != NULL)
+ 		*hwversion  = (b[0] << 24)  | (b[1] << 16)  | (b[2] << 8)  | b[3];
+ 	if (romversion != NULL)
+@@ -40,6 +46,8 @@ int dib0700_get_version(struct dvb_usb_device *d, u32 *hwversion,
+ 		*ramversion = (b[8] << 24)  | (b[9] << 16)  | (b[10] << 8) | b[11];
+ 	if (fwtype != NULL)
+ 		*fwtype     = (b[12] << 24) | (b[13] << 16) | (b[14] << 8) | b[15];
 +
-+	{ 0xa10c2807, KEY_UP },
-+	{ 0xa10c6807, KEY_DOWN },
-+	{ 0xa10ce807, KEY_LEFT },
-+	{ 0xa10ca807, KEY_RIGHT },
++	kfree(b);
+ 	return ret;
+ }
+ 
+@@ -101,8 +109,19 @@ int dib0700_ctrl_rd(struct dvb_usb_device *d, u8 *tx, u8 txlen, u8 *rx, u8 rxlen
+ 
+ int dib0700_set_gpio(struct dvb_usb_device *d, enum dib07x0_gpios gpio, u8 gpio_dir, u8 gpio_val)
+ {
+-	u8 buf[3] = { REQUEST_SET_GPIO, gpio, ((gpio_dir & 0x01) << 7) | ((gpio_val & 0x01) << 6) };
+-	return dib0700_ctrl_wr(d, buf, sizeof(buf));
++	s16 ret;
++	u8 *buf = kmalloc(3, GFP_KERNEL);
++	if (!buf)
++		return -ENOMEM;
 +
-+	{ 0xa10c1807, KEY_SCROLLDOWN },	/* Red Thumbs Down */
-+	{ 0xa10c9807, KEY_SELECT },
-+	{ 0xa10c5807, KEY_SCROLLUP },	/* Green Thumbs Up */
++	buf[0] = REQUEST_SET_GPIO;
++	buf[1] = gpio;
++	buf[2] = ((gpio_dir & 0x01) << 7) | ((gpio_val & 0x01) << 6);
 +
-+	{ 0xa10c3807, KEY_VOLUMEUP },
-+	{ 0xa10cb807, KEY_VOLUMEDOWN },
-+	{ 0xa10cd807, KEY_MUTE },
-+	{ 0xa10c040b, KEY_RECORD },
-+	{ 0xa10c7807, KEY_CHANNELUP },
-+	{ 0xa10cf807, KEY_CHANNELDOWN },
-+	{ 0x0085301f, KEY_CHANNELDOWN },
++	ret = dib0700_ctrl_wr(d, buf, 3);
 +
-+	{ 0xa10c840b, KEY_PLAY },
-+	{ 0xa10cc40b, KEY_PAUSE },
-+	{ 0xa10ca40b, KEY_SLOW },
-+	{ 0xa10c440b, KEY_REWIND },
-+	{ 0xa10c240b, KEY_FASTFORWARD },
-+	{ 0xa10c640b, KEY_PREVIOUS },
-+	{ 0xa10ce40b, KEY_NEXT },	/* ->| */
++	kfree(buf);
++	return ret;
+ }
+ 
+ static int dib0700_set_usb_xfer_len(struct dvb_usb_device *d, u16 nb_ts_packets)
+@@ -137,11 +156,12 @@ static int dib0700_i2c_xfer_new(struct i2c_adapter *adap, struct i2c_msg *msg,
+ 	   properly support i2c read calls not preceded by a write */
+ 
+ 	struct dvb_usb_device *d = i2c_get_adapdata(adap);
++	struct dib0700_state *st = d->priv;
+ 	uint8_t bus_mode = 1;  /* 0=eeprom bus, 1=frontend bus */
+ 	uint8_t gen_mode = 0; /* 0=master i2c, 1=gpio i2c */
+ 	uint8_t en_start = 0;
+ 	uint8_t en_stop = 0;
+-	uint8_t buf[255]; /* TBV: malloc ? */
++	uint8_t *buf = st->buf;
+ 	int result, i;
+ 
+ 	/* Ensure nobody else hits the i2c bus while we're sending our
+@@ -221,6 +241,7 @@ static int dib0700_i2c_xfer_new(struct i2c_adapter *adap, struct i2c_msg *msg,
+ 		}
+ 	}
+ 	mutex_unlock(&d->i2c_mutex);
 +
-+	{ 0xa10c220d, KEY_ZOOM },	/* Aspect */
-+	{ 0xa10c120d, KEY_STOP },
-+	{ 0xa10c520d, KEY_DVD },	/* DVD Menu */
+ 	return i;
+ }
+ 
+@@ -231,8 +252,9 @@ static int dib0700_i2c_xfer_legacy(struct i2c_adapter *adap,
+ 				   struct i2c_msg *msg, int num)
+ {
+ 	struct dvb_usb_device *d = i2c_get_adapdata(adap);
++	struct dib0700_state *st = d->priv;
+ 	int i,len;
+-	u8 buf[255];
++	u8 *buf = st->buf;
+ 
+ 	if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
+ 		return -EAGAIN;
+@@ -264,8 +286,8 @@ static int dib0700_i2c_xfer_legacy(struct i2c_adapter *adap,
+ 				break;
+ 		}
+ 	}
+-
+ 	mutex_unlock(&d->i2c_mutex);
 +
-+	{ 0xa10c140b, KEY_NUMERIC_1 },
-+	{ 0xa10c940b, KEY_NUMERIC_2 },
-+	{ 0xa10c540b, KEY_NUMERIC_3 },
-+	{ 0xa10cd40b, KEY_NUMERIC_4 },
-+	{ 0xa10c340b, KEY_NUMERIC_5 },
-+	{ 0xa10cb40b, KEY_NUMERIC_6 },
-+	{ 0xa10c740b, KEY_NUMERIC_7 },
-+	{ 0xa10cf40b, KEY_NUMERIC_8 },
-+	{ 0x0085302f, KEY_NUMERIC_8 },
-+	{ 0xa10c0c03, KEY_NUMERIC_9 },
-+	{ 0xa10c8c03, KEY_NUMERIC_0 },
-+	{ 0xa10ccc03, KEY_ENTER },
-+	{ 0xa10c4c03, KEY_CLEAR },
-+};
+ 	return i;
+ }
+ 
+@@ -297,15 +319,23 @@ struct i2c_algorithm dib0700_i2c_algo = {
+ int dib0700_identify_state(struct usb_device *udev, struct dvb_usb_device_properties *props,
+ 			struct dvb_usb_device_description **desc, int *cold)
+ {
+-	u8 b[16];
+-	s16 ret = usb_control_msg(udev, usb_rcvctrlpipe(udev,0),
++	s16 ret;
++	u8 *b;
 +
-+static struct rc_map_list tivo_map = {
-+	.map = {
-+		.scan    = tivo,
-+		.size    = ARRAY_SIZE(tivo),
-+		.rc_type = RC_TYPE_NEC,
-+		.name    = RC_MAP_TIVO,
-+	}
-+};
++	b = kmalloc(16, GFP_KERNEL);
++	if (!b)
++		return	-ENOMEM;
 +
-+static int __init init_rc_map_tivo(void)
-+{
-+	return rc_map_register(&tivo_map);
-+}
 +
-+static void __exit exit_rc_map_tivo(void)
-+{
-+	rc_map_unregister(&tivo_map);
-+}
++	ret = usb_control_msg(udev, usb_rcvctrlpipe(udev, 0),
+ 		REQUEST_GET_VERSION, USB_TYPE_VENDOR | USB_DIR_IN, 0, 0, b, 16, USB_CTRL_GET_TIMEOUT);
+ 
+ 	deb_info("FW GET_VERSION length: %d\n",ret);
+ 
+ 	*cold = ret <= 0;
+-
+ 	deb_info("cold: %d\n", *cold);
 +
-+module_init(init_rc_map_tivo)
-+module_exit(exit_rc_map_tivo)
++	kfree(b);
+ 	return 0;
+ }
+ 
+@@ -313,7 +343,13 @@ static int dib0700_set_clock(struct dvb_usb_device *d, u8 en_pll,
+ 	u8 pll_src, u8 pll_range, u8 clock_gpio3, u16 pll_prediv,
+ 	u16 pll_loopdiv, u16 free_div, u16 dsuScaler)
+ {
+-	u8 b[10];
++	s16 ret;
++	u8 *b;
 +
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Jarod Wilson <jarod@redhat.com>");
-diff --git a/include/media/rc-map.h b/include/media/rc-map.h
-index 9184751..4e1409e 100644
---- a/include/media/rc-map.h
-+++ b/include/media/rc-map.h
-@@ -136,6 +136,7 @@ void rc_map_init(void);
- #define RC_MAP_TERRATEC_SLIM             "rc-terratec-slim"
- #define RC_MAP_TERRATEC_SLIM_2           "rc-terratec-slim-2"
- #define RC_MAP_TEVII_NEC                 "rc-tevii-nec"
-+#define RC_MAP_TIVO                      "rc-tivo"
- #define RC_MAP_TOTAL_MEDIA_IN_HAND       "rc-total-media-in-hand"
- #define RC_MAP_TREKSTOR                  "rc-trekstor"
- #define RC_MAP_TT_1500                   "rc-tt-1500"
++	b = kmalloc(10, GFP_KERNEL);
++	if (!b)
++		return -ENOMEM;
++
+ 	b[0] = REQUEST_SET_CLOCK;
+ 	b[1] = (en_pll << 7) | (pll_src << 6) | (pll_range << 5) | (clock_gpio3 << 4);
+ 	b[2] = (pll_prediv >> 8)  & 0xff; // MSB
+@@ -325,7 +361,10 @@ static int dib0700_set_clock(struct dvb_usb_device *d, u8 en_pll,
+ 	b[8] = (dsuScaler >> 8)   & 0xff; // MSB
+ 	b[9] =  dsuScaler         & 0xff; // LSB
+ 
+-	return dib0700_ctrl_wr(d, b, 10);
++	ret = dib0700_ctrl_wr(d, b, 10);
++
++	kfree(b);
++	return ret;
+ }
+ 
+ int dib0700_ctrl_clock(struct dvb_usb_device *d, u32 clk_MHz, u8 clock_out_gp3)
+@@ -361,11 +400,14 @@ int dib0700_download_firmware(struct usb_device *udev, const struct firmware *fw
+ {
+ 	struct hexline hx;
+ 	int pos = 0, ret, act_len, i, adap_num;
+-	u8 b[16];
++	u8 *b;
+ 	u32 fw_version;
+-
+ 	u8 buf[260];
+ 
++	b = kmalloc(16, GFP_KERNEL);
++	if (!b)
++		return -ENOMEM;
++
+ 	while ((ret = dvb_usb_get_hexline(fw, &hx, &pos)) > 0) {
+ 		deb_fwdata("writing to address 0x%08x (buffer: 0x%02x %02x)\n",
+ 				hx.addr, hx.len, hx.chk);
+@@ -386,7 +428,7 @@ int dib0700_download_firmware(struct usb_device *udev, const struct firmware *fw
+ 
+ 		if (ret < 0) {
+ 			err("firmware download failed at %d with %d",pos,ret);
+-			return ret;
++			goto out;
+ 		}
+ 	}
+ 
+@@ -407,7 +449,7 @@ int dib0700_download_firmware(struct usb_device *udev, const struct firmware *fw
+ 	usb_control_msg(udev, usb_rcvctrlpipe(udev, 0),
+ 				  REQUEST_GET_VERSION,
+ 				  USB_TYPE_VENDOR | USB_DIR_IN, 0, 0,
+-				  b, sizeof(b), USB_CTRL_GET_TIMEOUT);
++				  b, 16, USB_CTRL_GET_TIMEOUT);
+ 	fw_version = (b[8] << 24) | (b[9] << 16) | (b[10] << 8) | b[11];
+ 
+ 	/* set the buffer size - DVB-USB is allocating URB buffers
+@@ -426,16 +468,21 @@ int dib0700_download_firmware(struct usb_device *udev, const struct firmware *fw
+ 			}
+ 		}
+ 	}
+-
++out:
++	kfree(b);
+ 	return ret;
+ }
+ 
+ int dib0700_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
+ {
+ 	struct dib0700_state *st = adap->dev->priv;
+-	u8 b[4];
++	u8 *b;
+ 	int ret;
+ 
++	b = kmalloc(4, GFP_KERNEL);
++	if (!b)
++		return -ENOMEM;
++
+ 	if ((onoff != 0) && (st->fw_version >= 0x10201)) {
+ 		/* for firmware later than 1.20.1,
+ 		 * the USB xfer length can be set  */
+@@ -443,7 +490,7 @@ int dib0700_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
+ 			st->nb_packet_buffer_size);
+ 		if (ret < 0) {
+ 			deb_info("can not set the USB xfer len\n");
+-			return ret;
++			goto out;
+ 		}
+ 	}
+ 
+@@ -468,7 +515,10 @@ int dib0700_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
+ 
+ 	deb_info("data for streaming: %x %x\n", b[1], b[2]);
+ 
+-	return dib0700_ctrl_wr(adap->dev, b, 4);
++	ret = dib0700_ctrl_wr(adap->dev, b, 4);
++out:
++	kfree(b);
++	return ret;
+ }
+ 
+ int dib0700_change_protocol(struct rc_dev *rc, u64 rc_type)
 -- 
-1.7.1
+1.7.4.rc3
 
