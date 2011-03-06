@@ -1,82 +1,49 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:44754 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753581Ab1CaVRz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Mar 2011 17:17:55 -0400
-Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
-To: "Dave Hansen" <dave@linux.vnet.ibm.com>
-Cc: "Marek Szyprowski" <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-mm@kvack.org, "Kyungmin Park" <kyungmin.park@samsung.com>,
-	"Andrew Morton" <akpm@linux-foundation.org>,
-	"KAMEZAWA Hiroyuki" <kamezawa.hiroyu@jp.fujitsu.com>,
-	"Ankita Garg" <ankita@in.ibm.com>,
-	"Daniel Walker" <dwalker@codeaurora.org>,
-	"Johan MOSSBERG" <johan.xx.mossberg@stericsson.com>,
-	"Mel Gorman" <mel@csn.ul.ie>, "Pawel Osciak" <pawel@osciak.com>
-Subject: Re: [PATCH 05/12] mm: alloc_contig_range() added
-References: <1301577368-16095-1-git-send-email-m.szyprowski@samsung.com>
- <1301577368-16095-6-git-send-email-m.szyprowski@samsung.com>
- <1301587361.31087.1040.camel@nimitz> <op.vs7umufd3l0zgt@mnazarewicz-glaptop>
- <1301603322.31087.1196.camel@nimitz>
-Date: Thu, 31 Mar 2011 23:17:51 +0200
+Received: from bear.ext.ti.com ([192.94.94.41]:60628 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752119Ab1CFEtN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Mar 2011 23:49:13 -0500
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p264nDjV009305
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 5 Mar 2011 22:49:13 -0600
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id p264nD6X001925
+	for <linux-media@vger.kernel.org>; Sat, 5 Mar 2011 22:49:13 -0600 (CST)
+Received: from dsbe71.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p264nDXX029102
+	for <linux-media@vger.kernel.org>; Sat, 5 Mar 2011 22:49:13 -0600 (CST)
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Sat, 5 Mar 2011 22:49:13 -0600
+Subject: [Query] What is the best way to handle V4L2_PIX_FMT_NV12 buffers?
+Message-ID: <A24693684029E5489D1D202277BE89448861F7E6@dlee02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-From: "Michal Nazarewicz" <mina86@mina86.com>
-Message-ID: <op.vs7731po3l0zgt@mnazarewicz-glaptop>
-In-Reply-To: <1301603322.31087.1196.camel@nimitz>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, 31 Mar 2011 22:28:42 +0200, Dave Hansen <dave@linux.vnet.ibm.com>  
-wrote:
+Hi,
 
-> On Thu, 2011-03-31 at 18:26 +0200, Michal Nazarewicz wrote:
->> > On Thu, 2011-03-31 at 15:16 +0200, Marek Szyprowski wrote:
->> >> +       ret = 0;
->> >> +       while (!PageBuddy(pfn_to_page(start & (~0UL << ret))))
->> >> +               if (WARN_ON(++ret >= MAX_ORDER))
->> >> +                       return -EINVAL;
->>
->> On Thu, 31 Mar 2011 18:02:41 +0200, Dave Hansen wrote:
->> > Holy cow, that's dense.  Is there really no more straightforward way  
->> to
->> > do that?
->>
->> Which part exactly is dense?  What would be qualify as a more
->> straightforward way?
->
-> I'm still not 100% sure what it's trying to do.  It looks like it
-> attempts to check all of "start"'s buddy pages.
+I was curious in how to handle properly buffers of pixelformat V4L2_PIX_FMT_NV12.
 
-No.  I'm going up through parents.  This is because even though start
-falls in a free block (ie. one that page allocator tracks), the actual
-page that is in buddy system is larger then start and this loop looks
-for beginning of that page.
+I see that the standard convention for determining a bytesize of an image buffer is:
 
-> int order;
-> for (order = 0; order <= MAX_ORDER; order++) {
-> 	unsigned long buddy_pfn = find_buddy(start, order);
-> 	struct page *buddy = pfn_to_page(buddy_pfn);
-> 	if (PageBuddy(buddy)
-> 		break;
-> 	WARN();
-> 	return -EINVAL;
-> }
+bytesperline * height
 
-The WARN() and return would have to be outside of the loop and, as I
-described, instead of find_buddy() something like find_parent() would
-have to be used.
+However, for NV12 case, the bytes per line is equal to the width, _but_ the actual buffer size is:
 
-> I'm wondering also if you can share some code with __rmqueue().
+For the Y buffer: width * height
+For the UV buffer: width * (height / 2)
+Total size = width * (height + height / 2)
 
-Doubtful since start does not (have to) point to a page that is tracked
-by page allocator but a page inside such a page.
+Which I think renders the bytesperline * height formula not valid for this case.
 
--- 
-Best regards,                                         _     _
-.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
-..o | Computer Science,  Michal "mina86" Nazarewicz    (o o)
-ooo +-----<email/xmpp: mnazarewicz@google.com>-----ooO--(_)--Ooo--
+Any ideas how this should be properly handled?
+
+NOTE: See here for more details: http://www.fourcc.org/yuv.php#NV12
+
+Regards,
+Sergio
