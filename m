@@ -1,217 +1,136 @@
 Return-path: <mchehab@pedra>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:22671 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757529Ab1CaNQX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Mar 2011 09:16:23 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Thu, 31 Mar 2011 15:16:01 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 05/12] mm: alloc_contig_range() added
-In-reply-to: <1301577368-16095-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-mm@kvack.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
-	Mel Gorman <mel@csn.ul.ie>, Pawel Osciak <pawel@osciak.com>
-Message-id: <1301577368-16095-6-git-send-email-m.szyprowski@samsung.com>
-References: <1301577368-16095-1-git-send-email-m.szyprowski@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:37646 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751822Ab1CFK4Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 6 Mar 2011 05:56:24 -0500
+Message-ID: <4D736844.50703@redhat.com>
+Date: Sun, 06 Mar 2011 07:56:04 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Sylwester Nawrocki <snjw23@gmail.com>
+CC: David Cohen <dacohen@gmail.com>, Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	alsa-devel@alsa-project.org,
+	Sakari Ailus <sakari.ailus@retiisi.org.uk>,
+	Pawel Osciak <pawel@osciak.com>
+Subject: Re: [GIT PULL FOR 2.6.39] Media controller and OMAP3 ISP driver
+References: <201102171606.58540.laurent.pinchart@ideasonboard.com>	<201103031125.06419.laurent.pinchart@ideasonboard.com>	<4D71471D.6060808@redhat.com>	<201103051252.12342.hverkuil@xs4all.nl> <AANLkTi=SS3CBkKUdovU33SQi=s9gNprZszKaMrkRGqGy@mail.gmail.com> <4D7248B4.9090003@gmail.com> <4D727D6E.2070602@redhat.com> <4D72C5F0.6090209@gmail.com>
+In-Reply-To: <4D72C5F0.6090209@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Em 05-03-2011 20:23, Sylwester Nawrocki escreveu:
+> Hi Mauro,
+> 
+> On 03/05/2011 07:14 PM, Mauro Carvalho Chehab wrote:
+>> Em 05-03-2011 11:29, Sylwester Nawrocki escreveu:
+>>> Hi David,
+>>>
+>>> On 03/05/2011 02:04 PM, David Cohen wrote:
+>>>> Hi Hans,
+>>>>
+>>>> On Sat, Mar 5, 2011 at 1:52 PM, Hans Verkuil<hverkuil@xs4all.nl>   wrote:
+>>>>> On Friday, March 04, 2011 21:10:05 Mauro Carvalho Chehab wrote:
+>>>>>> Em 03-03-2011 07:25, Laurent Pinchart escreveu:
+>>> ...
+>>>>>>>         v4l: Group media bus pixel codes by types and sort them alphabetically
+>>>>>>
+>>>>>> The presence of those mediabus names against the traditional fourcc codes
+>>>>>> at the API adds some mess to the media controller. Not sure how to solve,
+>>>>>> but maybe the best way is to add a table at the V4L2 API associating each
+>>>>>> media bus format to the corresponding V4L2 fourcc codes.
+>>>>>
+>>>>> You can't do that in general. Only for specific hardware platforms. If you
+>>>>> could do it, then we would have never bothered creating these mediabus fourccs.
+>>>>>
+>>>>> How a mediabus fourcc translates to a pixelcode (== memory format) depends
+>>>>> entirely on the hardware capabilities (mostly that of the DMA engine).
+>>>>
+>>>> May I ask you one question here? (not entirely related to this patch set).
+>>>> Why pixelcode != mediabus fourcc?
+>>>> e.g. OMAP2 camera driver talks to sensor through subdev interface and
+>>>> sets its own output pixelformat depending on sensor's mediabus fourcc.
+>>>> So it needs a translation table mbus_pixelcode ->   pixelformat. Why
+>>>> can't it be pixelformat ->   pixelformat ?
+>>>>
+>>>
+>>> Let me try to explain, struct v4l2_mbus_framefmt::code (pixelcode)
+>>> describes how data is transfered/sampled on the camera parallel or serial bus.
+>>> It defines bus width, data alignment and how many data samples form a single
+>>> pixel.
+>>>
+>>> struct v4l2_pix_format::pixelformat (fourcc) on the other hand describes how
+>>> the image data is stored in memory.
+>>>
+>>> As Hans pointed out there is not always a 1:1 correspondence, e.g.
+>>
+>> The relation may not be 1:1 but they are related.
+>>
+>> It should be documented somehow how those are related, otherwise, the API
+>> will be obscure.
+> 
+> Yeah, I agree this is a good point now when the media bus formats have become
+> public. Perhaps by a misunderstanding I just thought it is all more about some
+> utility functions in the v4l core rather than the documentation.
 
-This commit adds the alloc_contig_range() function which tries
-to allecate given range of pages.  It tries to migrate all
-already allocated pages that fall in the range thus freeing them.
-Once all pages in the range are freed they are removed from the
-buddy system thus allocated for the caller to use.
-
-Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-CC: Michal Nazarewicz <mina86@mina86.com>
----
- include/linux/page-isolation.h |    2 +
- mm/page_alloc.c                |  144 ++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 146 insertions(+), 0 deletions(-)
-
-diff --git a/include/linux/page-isolation.h b/include/linux/page-isolation.h
-index f1417ed..c5d1a7c 100644
---- a/include/linux/page-isolation.h
-+++ b/include/linux/page-isolation.h
-@@ -34,6 +34,8 @@ extern int set_migratetype_isolate(struct page *page);
- extern void unset_migratetype_isolate(struct page *page);
- extern unsigned long alloc_contig_freed_pages(unsigned long start,
- 					      unsigned long end, gfp_t flag);
-+extern int alloc_contig_range(unsigned long start, unsigned long end,
-+			      gfp_t flags);
- extern void free_contig_pages(struct page *page, int nr_pages);
+Yes, now you got my point. 
  
- /*
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 11f8bcb..0a270a5 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -5583,6 +5583,150 @@ unsigned long alloc_contig_freed_pages(unsigned long start, unsigned long end,
- 	return pfn;
- }
- 
-+static unsigned long pfn_to_maxpage(unsigned long pfn)
-+{
-+	return pfn & ~(MAX_ORDER_NR_PAGES - 1);
-+}
-+
-+static unsigned long pfn_to_maxpage_up(unsigned long pfn)
-+{
-+	return ALIGN(pfn, MAX_ORDER_NR_PAGES);
-+}
-+
-+#define MIGRATION_RETRY	5
-+static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
-+{
-+	int migration_failed = 0, ret;
-+	unsigned long pfn = start;
-+
-+	/*
-+	 * Some code "borrowed" from KAMEZAWA Hiroyuki's
-+	 * __alloc_contig_pages().
-+	 */
-+
-+	for (;;) {
-+		pfn = scan_lru_pages(pfn, end);
-+		if (!pfn || pfn >= end)
-+			break;
-+
-+		ret = do_migrate_range(pfn, end);
-+		if (!ret) {
-+			migration_failed = 0;
-+		} else if (ret != -EBUSY
-+			|| ++migration_failed >= MIGRATION_RETRY) {
-+			return ret;
-+		} else {
-+			/* There are unstable pages.on pagevec. */
-+			lru_add_drain_all();
-+			/*
-+			 * there may be pages on pcplist before
-+			 * we mark the range as ISOLATED.
-+			 */
-+			drain_all_pages();
-+		}
-+		cond_resched();
-+	}
-+
-+	if (!migration_failed) {
-+		/* drop all pages in pagevec and pcp list */
-+		lru_add_drain_all();
-+		drain_all_pages();
-+	}
-+
-+	/* Make sure all pages are isolated */
-+	if (WARN_ON(test_pages_isolated(start, end)))
-+		return -EBUSY;
-+
-+	return 0;
-+}
-+
-+/**
-+ * alloc_contig_range() -- tries to allocate given range of pages
-+ * @start:	start PFN to allocate
-+ * @end:	one-past-the-last PFN to allocate
-+ * @flags:	flags passed to alloc_contig_freed_pages().
-+ *
-+ * The PFN range does not have to be pageblock or MAX_ORDER_NR_PAGES
-+ * aligned, hovewer it's callers responsibility to guarantee that we
-+ * are the only thread that changes migrate type of pageblocks the
-+ * pages fall in.
-+ *
-+ * Returns zero on success or negative error code.  On success all
-+ * pages which PFN is in (start, end) are allocated for the caller and
-+ * need to be freed with free_contig_pages().
-+ */
-+int alloc_contig_range(unsigned long start, unsigned long end,
-+		       gfp_t flags)
-+{
-+	unsigned long _start, _end;
-+	int ret;
-+
-+	/*
-+	 * What we do here is we mark all pageblocks in range as
-+	 * MIGRATE_ISOLATE.  Because of the way page allocator work, we
-+	 * align the range to MAX_ORDER pages so that page allocator
-+	 * won't try to merge buddies from different pageblocks and
-+	 * change MIGRATE_ISOLATE to some other migration type.
-+	 *
-+	 * Once the pageblocks are marked as MIGRATE_ISOLATE, we
-+	 * migrate the pages from an unaligned range (ie. pages that
-+	 * we are interested in).  This will put all the pages in
-+	 * range back to page allocator as MIGRATE_ISOLATE.
-+	 *
-+	 * When this is done, we take the pages in range from page
-+	 * allocator removing them from the buddy system.  This way
-+	 * page allocator will never consider using them.
-+	 *
-+	 * This lets us mark the pageblocks back as
-+	 * MIGRATE_CMA/MIGRATE_MOVABLE so that free pages in the
-+	 * MAX_ORDER aligned range but not in the unaligned, original
-+	 * range are put back to page allocator so that buddy can use
-+	 * them.
-+	 */
-+
-+	ret = start_isolate_page_range(pfn_to_maxpage(start),
-+				       pfn_to_maxpage_up(end));
-+	if (ret)
-+		goto done;
-+
-+	ret = __alloc_contig_migrate_range(start, end);
-+	if (ret)
-+		goto done;
-+
-+	/*
-+	 * Pages from [start, end) are within a MAX_ORDER_NR_PAGES
-+	 * aligned blocks that are marked as MIGRATE_ISOLATE.  What's
-+	 * more, all pages in [start, end) are free in page allocator.
-+	 * What we are going to do is to allocate all pages from
-+	 * [start, end) (that is remove them from page allocater).
-+	 *
-+	 * The only problem is that pages at the beginning and at the
-+	 * end of interesting range may be not aligned with pages that
-+	 * page allocator holds, ie. they can be part of higher order
-+	 * pages.  Because of this, we reserve the bigger range and
-+	 * once this is done free the pages we are not interested in.
-+	 */
-+
-+	ret = 0;
-+	while (!PageBuddy(pfn_to_page(start & (~0UL << ret))))
-+		if (WARN_ON(++ret >= MAX_ORDER))
-+			return -EINVAL;
-+
-+	_start = start & (~0UL << ret);
-+	_end   = alloc_contig_freed_pages(_start, end, flag);
-+
-+	/* Free head and tail (if any) */
-+	if (start != _start)
-+		free_contig_pages(pfn_to_page(_start), start - _start);
-+	if (end != _end)
-+		free_contig_pages(pfn_to_page(end), _end - end);
-+
-+	ret = 0;
-+done:
-+	undo_isolate_page_range(pfn_to_maxpage(start), pfn_to_maxpage_up(end));
-+	return ret;
-+}
-+
- void free_contig_pages(struct page *page, int nr_pages)
- {
- 	for (; nr_pages; --nr_pages, ++page)
--- 
-1.7.1.569.g6f426
+>>
+>> Of course, the output format may be different than the internal formats,
+>> since some bridges have format converters.
+>>
+>>>
+>>> 1. Both V4L2_MBUS_FMT_YUYV8_1x16 and V4L2_MBUS_FMT_YUYV8_2x8 may being
+>>> translating to V4L2_PIX_FMT_YUYV fourcc,
+>>
+>> Ok, so there is a relationship between them.
+>>
+>>> 2. Or the DMA engine in the camera host interface might be capable of
+>>> converting single V4L2_MBUS_FMT_RGB555 pixelcode to V4L2_PIX_FMT_RGB555
+>>> and V4L2_PIX_FMT_RGB565 fourcc's. So the user can choose any of them they
+>>> seem most suitable and the hardware takes care of the conversion.
+>>
+>> No. You can't create an additional bit. if V4L2_MBUS_FMT_RGB555 provides 5
+>> bits for all color channels, the only corresponding format is V4L2_PIX_FMT_RGB555,
+>> as there's no way to get 6 bits for green, if the hardware sampled it with
+>> 5 bits. Ok, some bridge may fill with 0 an "extra" bit for green, but this
+>> is the bridge doing a format conversion.
+>>
+>> In general, for all RGB formats, a mapping between MBUS_FMT_RGBxxx and the
+>> corresponding fourcc formats could be mapped on two formats only:
+>> V4L2_PIX_FMT_RGBxxx or V4L2_PIX_FMT_BGRxxx.
+> 
+> OK, that might not have been a good example, of one mbus pixel code to many
+> fourccs relationship. 
+> There will be always conversion between media bus pixelcode and fourccs 
+> as they are in completely different domains. And the method of conversion 
+> from media bus formats may be an intrinsic property of a bridge, changing
+> across various bridges, e.g. different endianness may be used.
+> 
+> So I think in general it is good to clearly specify the relationships 
+> in the API but we need to be aware of varying "correlation ratio" across 
+> the formats and that we should perhaps operate on ranges rather than single
+> formats. Perhaps the API should provide guidelines of which formats should
+> be used when to obtain best results.
+
+It makes sense to operate in ranges are you're proposing.
+
+A somewhat unrelated question that occurred to me today: what happens when a 
+format change happens while streaming? 
+
+Considering that some formats need more bits than others, this could lead into 
+buffer overflows, either internally at the device or externally, on bridges 
+that just forward whatever it receives to the DMA buffers (there are some that 
+just does that). I didn't see anything inside the mc code preventing such
+condition to happen, and probably implementing it won't be an easy job. So,
+one alternative would be to require some special CAPS if userspace tries to
+set the mbus format directly, or to recommend userspace to create media
+controller nodes with 0600 permission.
+
+Comments?
+
+Thanks,
+Mauro.
