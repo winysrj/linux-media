@@ -1,136 +1,212 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4955 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751261Ab1CEOCp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Mar 2011 09:02:45 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: David Cohen <dacohen@gmail.com>
-Subject: Re: [GIT PULL FOR 2.6.39] Media controller and OMAP3 ISP driver
-Date: Sat, 5 Mar 2011 15:02:11 +0100
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	alsa-devel@alsa-project.org,
-	Sakari Ailus <sakari.ailus@retiisi.org.uk>,
-	Pawel Osciak <pawel@osciak.com>
-References: <201102171606.58540.laurent.pinchart@ideasonboard.com> <201103051252.12342.hverkuil@xs4all.nl> <AANLkTi=SS3CBkKUdovU33SQi=s9gNprZszKaMrkRGqGy@mail.gmail.com>
-In-Reply-To: <AANLkTi=SS3CBkKUdovU33SQi=s9gNprZszKaMrkRGqGy@mail.gmail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:37106 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753405Ab1CFR3V (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Mar 2011 12:29:21 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: Re: [RFC] davinci: vpfe: mdia controller implementation for capture
+Date: Sun, 6 Mar 2011 18:29:40 +0100
+Cc: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+References: <1299425765-14004-1-git-send-email-manjunath.hadli@ti.com>
+In-Reply-To: <1299425765-14004-1-git-send-email-manjunath.hadli@ti.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="utf-8"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201103051502.11472.hverkuil@xs4all.nl>
+Message-Id: <201103061829.40535.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Saturday, March 05, 2011 14:04:21 David Cohen wrote:
-> Hi Hans,
+Hi Manjunath,
+
+On Sunday 06 March 2011 16:36:05 Manjunath Hadli wrote:
+> Introduction
+> ------------
+> This is the proposal of the initial version of design and implementation 
+> of the Davinci family (dm644x,dm355,dm365)VPFE (Video Port Front End)
+> drivers using Media Controloler , the initial version which supports
+> the following:
+> 1) dm365 vpfe
+> 2) ccdc,previewer,resizer,h3a,af blocks
+> 3) supports only continuous mode and not on-the-fly
+> 4) supports user pointer exchange and memory mapped modes for buffer
+> allocation
 > 
-> On Sat, Mar 5, 2011 at 1:52 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > On Friday, March 04, 2011 21:10:05 Mauro Carvalho Chehab wrote:
-> >> Em 03-03-2011 07:25, Laurent Pinchart escreveu:
-> >> > Hi Mauro,
-> >> >
-> >> > The following changes since commit 88a763df226facb74fdb254563e30e9efb64275c:
-> >> >
-> >> >   [media] dw2102: prof 1100 corrected (2011-03-02 16:56:54 -0300)
-> >> >
-> >> > are available in the git repository at:
-> >> >   git://linuxtv.org/pinchartl/media.git media-2.6.39-0005-omap3isp
-> >> >
-> >> > The branch has been rebased on top of the latest for_v2.6.39 branch, with the
-> >> > v4l2-ioctl.c conflict resolved.
-> >> >
-> >> > Antti Koskipaa (1):
-> >> >       v4l: v4l2_subdev userspace crop API
-> >> >
-> >> > David Cohen (1):
-> >> >       omap3isp: Statistics
-> >> >
-> >> > Laurent Pinchart (36):
-> >> >       v4l: Share code between video_usercopy and video_ioctl2
-> >> >       v4l: subdev: Don't require core operations
-> >> >       v4l: subdev: Add device node support
-> >> >       v4l: subdev: Uninline the v4l2_subdev_init function
-> >> >       v4l: subdev: Control ioctls support
-> >> >       media: Media device node support
-> >> >       media: Media device
-> >> >       media: Entities, pads and links
-> >> >       media: Entity use count
-> >> >       media: Media device information query
-> >> >       media: Entities, pads and links enumeration
-> >> >       media: Links setup
-> >> >       media: Pipelines and media streams
-> >> >       v4l: Add a media_device pointer to the v4l2_device structure
-> >> >       v4l: Make video_device inherit from media_entity
-> >> >       v4l: Make v4l2_subdev inherit from media_entity
-> >> >       v4l: Move the media/v4l2-mediabus.h header to include/linux
-> >> >       v4l: Replace enums with fixed-sized fields in public structure
-> >> >       v4l: Rename V4L2_MBUS_FMT_GREY8_1X8 to V4L2_MBUS_FMT_Y8_1X8
-> >> >       v4l: Group media bus pixel codes by types and sort them alphabetically
-> >>
-> >> The presence of those mediabus names against the traditional fourcc codes
-> >> at the API adds some mess to the media controller. Not sure how to solve,
-> >> but maybe the best way is to add a table at the V4L2 API associating each
-> >> media bus format to the corresponding V4L2 fourcc codes.
-> >
-> > You can't do that in general. Only for specific hardware platforms. If you
-> > could do it, then we would have never bothered creating these mediabus fourccs.
-> >
-> > How a mediabus fourcc translates to a pixelcode (== memory format) depends
-> > entirely on the hardware capabilities (mostly that of the DMA engine).
+> This driver bases its design on Laurent Pinchart's Media Controller Design
+> whose patches for Media Controller and subdev enhancements form the base.
+> The driver also takes copious elements taken from Laurent Pinchart and
+> others' OMAP ISP driver based on Media Controller. So thank you all the
+> people who are responsible for the Media Controller and the OMAP ISP
+> driver.
+
+You're welcome :-)
+
+> Also, the core functionality of the driver comes from the arago vpfe
+> capture driver of which the CCDC capture was based on V4L2, with other
+> drivers like Previwer, Resizer and other being individual character
+> drivers.
+
+The CCDC, preview and resizer modules look very similar to their OMAP3 
+counterparts. I think we should aim at sharing code between the drivers. It's 
+hard enough to develop, review and maintain one driver, let's not duplicate 
+the effort.
+
+> The current driver caters to dm6446,dm355 and dm365 of which the current
+> implementation works for dm365. The three VPFE IPs have some common
+> elements in terms of some highe level functionality but there are
+> differences in terms of register definitions and some core blocks.
 > 
-> May I ask you one question here? (not entirely related to this patch set).
-> Why pixelcode != mediabus fourcc?
-> e.g. OMAP2 camera driver talks to sensor through subdev interface and
-> sets its own output pixelformat depending on sensor's mediabus fourcc.
-
-The media bus deals with how pixels are transferred over a physical bus.
-For example 10-bit RGB samples. But how those samples end up in memory
-is quite a different story: depending on the (DMA) hardware this might
-end up as a 24-bit RGB format (8 bits per sample), or a multi-planar format
-where one plane has the top 8 bits and another plane the lower 2 bits, or
-it might go through a built-in colorspace convertor, and let's not forget
-the endianness issues you get once you DMA into memory.
-
-So mediabus formats are quite different from memory formats. In certain
-simple cases the mapping may be straightforward, but not in the general case.
-
-In a nutshell: mediabus deals with how two devices stream media over a bus
-between one another, whereas pixelformats deal with how the media is encoded
-in memory.
-
-Hope this helps.
-
-Regards,
-
-	Hans
-
-> So it needs a translation table mbus_pixelcode -> pixelformat. Why
-> can't it be pixelformat -> pixelformat ?
+> The individual specifications for each of these can be found here:
+> dm6446 vpfe: http://www.ti.com/litv/pdf/sprue38h
+> dm355  vpfe: http://www.ti.com/litv/pdf/spruf71a
+> dm365  vpfe: http://www.ti.com/litv/pdf/sprufg8c
 > 
-> Regards,
+> The initial version of the  driver implementation can be found here:
 > 
-> David
+> http://git.linuxtv.org/mhadli/v4l-dvb-davinci_devices.git?a=shortlog;h=refs
+> /heads/mc_release
 > 
-> >
-> > A generic V4L2 application will never use mediabus fourcc codes. It's only used
-> > by drivers and applications written specifically for that hardware and using
-> > /dev/v4l-subdevX devices.
-> >
-> > Regards,
-> >
-> >        Hans
-> >
-> > --
-> > Hans Verkuil - video4linux developer - sponsored by Cisco
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
+> Driver Design: Main entities
+> ----------------------------
+> The hardware modules for dm355,dm365 are mainly ipipe, ipipeif,isif. These
+> hardware modules are generically exposed to the user level in the for of
+> dm6446 style modules. Mainly -
+> ccdc, previewer, resizer in addition to the other histogram and
+> auto color/white balance correction and auto focus modules.
+> 
+> 1)MT9P031 sensor  module for RAW capture
+> 2)TVP7002 decoder module for HD inputs
+> 3)TVP514x decoder module for SD inputs
+> 4)CCDC capture module
+> 5)Previewer Module for Bayer to YUV conversion
+> 6)Resizer Module for scaling
 > 
 > 
+> Connection for on-the-fly capture
+> ---------------------------------
+> Mt9P031 ------>CCDC--->Previewer(optional)--->Resizer(optional)--->Video
+> 
+> TVP7002 ---
+> 
+> TV514x  ---
+> 
+> File Organisation
+> -----------------
+> 
+> main driver files
+> ----------------
+> drivers/media/video/davinci/vpfe_capture.c
+> include/media/davinci/vpfe_capture.h
+> 
+> Instantiatiation of the v4l2 device, media device and all  subdevs from
+> here.
+> 
+> video Interface files
+> ---------------------
+> drivers/media/video/davinci/vpfe_video.c
+> include/media/davinci/vpfe_video.h
+> 
+> Implements all the v4l2 video operations with a generic implementation for
+> continuous and one shot mode.
+> 
+> subdev interface files
+> ----------------------
+> These file implement the subdev interface functionality for
+> each of the subdev entities - mainly the entry points and their
+> implementations in a IP generic way.
+> 
+> drivers/media/video/davinci/vpfe_ccdc.c
+> drivers/media/video/davinci/vpfe_previewer.c
+> drivers/media/video/davinci/vpfe_resizer.c
+> drivers/media/video/davinci/vpfe_af.c
+> drivers/media/video/davinci/vpfe_aew.c
+> drivers/media/video/tvp514x.c
+> drivers/media/video/tvp7002.c
+> drivers/media/video/ths7353.c
+> 
+> include/media/davinci/vpfe_ccdc.h
+> include/media/davinci/vpfe_previewer.h
+> include/media/davinci/vpfe_resizer.h
+> include/media/davinci/vpfe_af.h
+> include/media/davinci/vpfe_aew.h
+> include/media/tvp514x.h
+> drivers/media/video/tvp514x_regs.h
+> include/media/tvp7002.h
+> drivers/media/video/tvp7002_reg.h
+> 
+> core implementation files
+> -------------------------
+> These provide a core implementation routines for ccdc, ipipeif,
+> ipipe,aew, af, resizer hardware modules.
+> 
+> drivers/char/imp_common.c
+> drivers/media/video/davinci/dm365_ccdc.c
+> drivers/media/video/davinci/dm355_ccdc.c
+> drivers/media/video/davinci/dm644x_ccdc.c
+> drivers/char/dm355_ipipe.c
+> drivers/char/dm355_ipipe_hw.c
+> drivers/char/dm355_def_para.c
+> drivers/char/dm365_ipipe.c
+> drivers/char/dm365_def_para.c
+> drivers/char/dm365_ipipe_hw.c
+> drivers/char/dm6446_imp.c
+> drivers/char/davinci_resizer_hw.c
+> drivers/char/dm3xx_ipipe.c
+> drivers/media/video/davinci/dm365_aew.c
+> drivers/media/video/davinci/dm365_af.c
+> drivers/media/video/davinci/dm365_a3_hw.c
+> drivers/media/video/davinci/dm355_aew.c
+> drivers/media/video/davinci/dm355_af.c
+> drivers/media/video/davinci/dm355_aew_hw.c
+> drivers/media/video/davinci/dm355_af_hw.c
+> 
+> include/media/davinci/imp_common.h
+> include/media/davinci/dm365_ccdc.h
+> include/media/davinci/dm355_ccdc.h
+> include/media/davinci/dm644x_ccdc.h
+> include/media/davinci/dm355_ipipe.h
+> include/media/davinci/dm365_ipipe.h
+> include/media/davinci/imp_hw_if.h
+> include/media/davinci/dm3xx_ipipe.h
+> include/media/davinci/dm365_aew.h
+> include/media/davinci/dm365_af.h
+> include/media/davinci/dm365_a3_hw.h
+> include/media/davinci/dm355_aew.h
+> include/media/davinci/dm355_af.h
+> include/media/davinci/dm355_aew_hw.h
+> include/media/davinci/dm355_af_hw.h
+> include/media/davinci/vpfe_types.h
+> 
+> drivers/media/video/davinci/dm365_ccdc_regs.h
+> drivers/media/video/davinci/dm355_ccdc_regs.h
+> drivers/media/video/davinci/dm644x_ccdc_regs.h
+> drivers/media/video/davinci/ccdc_hw_device.h
+> drivers/char/dm355_ipipe_hw.h
+> drivers/char/dm355_def_para.h
+> drivers/char/dm365_def_para.h
+> drivers/char/dm365_ipipe_hw.h
+> drivers/char/davinci_resizer_hw.h
+> 
+> TODOs:
+> ======
+> 1. Single shot implementation for previewer and resizer.
+> 2. Seperation of v4l2 video related structures and routines to aid single
+> shot implementation.
+> 3. Support NV12 format
+> 4. Move the files from char folder to drivers/media/video along with
+> headers
+
+Why are the drivers in drivers/char for ?
+
+> 5. Make the aew and af headers common between dm355 and dm365.
+> 6. Enable dm355 and dm6446 functionality by making appropriate platform
+> changes
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+Regards,
+
+Laurent Pinchart
