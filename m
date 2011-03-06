@@ -1,68 +1,65 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:45044 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752453Ab1CURok (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Mar 2011 13:44:40 -0400
-Message-ID: <4D878E84.2020801@redhat.com>
-Date: Mon, 21 Mar 2011 14:44:36 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: goffa72@gmail.com
-CC: linux-media@vger.kernel.org
-Subject: Re: Leadtek Winfast 1800H FM Tuner
-References: <4D8550A3.5010604@aapt.net.au> <4D85B871.3010201@iki.fi> <4D8726C5.2090403@gmail.com> <4D8737EB.9070006@aapt.net.au>
-In-Reply-To: <4D8737EB.9070006@aapt.net.au>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:43756 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752308Ab1CFEA1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Mar 2011 23:00:27 -0500
+Received: by qyk7 with SMTP id 7so1193366qyk.19
+        for <linux-media@vger.kernel.org>; Sat, 05 Mar 2011 20:00:26 -0800 (PST)
+Subject: Re: [PATCH 0/13] lirc_zilog: Ref-counting and locking cleanup
+Mime-Version: 1.0 (Apple Message framework v1082)
+Content-Type: text/plain; charset=us-ascii
+From: Jarod Wilson <jarod@wilsonet.com>
+In-Reply-To: <1297991502.9399.16.camel@localhost>
+Date: Sat, 5 Mar 2011 23:00:22 -0500
+Cc: linux-media@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Message-Id: <4BC877EC-56F4-4ED6-8410-183712C8FAF8@wilsonet.com>
+References: <1297991502.9399.16.camel@localhost>
+To: Andy Walls <awalls@md.metrocast.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 21-03-2011 08:35, Andrew Goff escreveu:
-> On Mon 21-Mar-2011 9:21 PM, Mauro Carvalho Chehab wrote:
->> Em 20-03-2011 05:18, Antti Palosaari escreveu:
->>> On 03/20/2011 02:56 AM, Andrew Goff wrote:
->>>> Hi, I hope someone may be able to help me solve a problem or point me in
->>>> the right direction.
->>>>
->>>> I have been using a Leadtek Winfast DTV1800H card (﻿Xceive xc3028 tuner)
->>>> for a while now without any issues (DTV & Radio have been working well),
->>>> I recently decided to get another tuner card, Leadtek Winfast DTV2000DS
->>>> (Tuner: NXP TDA18211, but detected as TDA18271 by V4L drivers, Chipset:
->>>> AF9015 + AF9013 ) and had to compile and install the V4L drivers to get
->>>> it working. Now DTV on both cards work well but there is a problem with
->>>> the radio tuner on the 1800H card.
->>>>
->>>> After installing the more recent V4L drivers the radio frequency is
->>>> 2.7MHz out, so if I want to listen to 104.9 I need to tune the radio to
->>>> 107.6. Now I could just change all my preset stations but I can not
->>>> listen to my preferred stations as I need to set the frequency above
->>>> 108MHz.
->>> I think there is something wrong with the FM tuner (xc3028?) or other chipset drivers used for DTV1800H. No relations to the af9015, af9013 or tda18271. tda18211 is same chip as tda18271 but only DVB-T included. If DTV1800H does not contain tda18211 or tda18271 problem cannot be either that.
->> Yes, the problem is likely at xc3028. It has to do frequency shift for some
->> DVB standards, and the shift is dependent on what firmware is loaded.
->>
->> So, you need to enable load tuner-xc2028 with debug=1, and provide us the
->> dmesg.
->>
->> Mauro.
->>
-> Hi Mauro
+On Feb 17, 2011, at 8:11 PM, Andy Walls wrote:
+
+> The following 13 patches are a substantial rework of lirc_zilog
+> reference counting, object allocation and deallocation, and object
+> locking.
 > 
-> To do this do I just add the line
+> With these changes, devices can now disappear out from under lircd +
+> lirc_dev + lirc_zilog with no adverse effects.  I tested this with irw +
+> lircd + lirc_dev + lirc_zilog + cx18 + HVR-1600.  I could unload the
+> cx18 driver without any oops or application crashes.  When I reloaded
+> the cx18 driver, irw started receiving RX button presses again, and
+> irsend worked without a problem (and I didn't even need to restart
+> lircd!).
 > 
-> options tuner-xc2028 debug=1
+> The ref counting fixes aren't finished as lirc_zilog itself can still be
+> unloaded by the user when it shouldn't be, but a hot unplug of an
+> HD-PVR, PVR-USB2, or HVR-1950 isn't going to trigger that.
 > 
-> to the /etc/modules file.
+> These changes are base off of Jarod Wilson's git repo
 > 
-> From my current dmesg file looks like the firmware is version 2.7.
-> 
-> xc2028 1-0061: Loading 80 firmware images from xc3028-v27.fw, type: xc2028 firmware, ver 2.7
+> 	http://git.linuxtv.org/jarod/linux-2.6-ir.git for-2.6.38 (IIRC)
+
+As discussed on irc Friday, after figuring out an issue with trying to
+test these using media_build against a 2.6.32 kernel, both the hdpvr
+and hvr-1950 still function with these patches, and now you can even
+hot-unplug them with lirc_zilog loaded and the system doesn't blow up.
+
+Also gave a cursory read over all the code changes, didn't see anything
+jump out that looked out of sorts, aside from the few minor fixlets we
+also discussed. I'll just fix those locally in what I merge into the
+tree I'm prepping with a variety of IR-related fixes for 2.6.39 to have
+Mauro pull.
+
+So for the set:
+
+Acked-by: Jarod Wilson <jarod@redhat.com>
 
 
-There are about 60 firmwares that are grouped inside xc3028-v27.fw. Please
-post the complete dmesg. We also need to know what version of the driver
-you were using when the driver used to work and what you're using when it
-broke.
+-- 
+Jarod Wilson
+jarod@wilsonet.com
 
-Thanks
-Mauro.
+
+
