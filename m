@@ -1,62 +1,69 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:37376 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754011Ab1CVAcz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Mar 2011 20:32:55 -0400
-Received: by wwa36 with SMTP id 36so8134736wwa.1
-        for <linux-media@vger.kernel.org>; Mon, 21 Mar 2011 17:32:54 -0700 (PDT)
-Subject: Re: [PATCH 1/2] v180 - DM04/QQBOX added support for BS2F7HZ0194
- versions
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <4D87EAA7.2040803@redhat.com>
-References: <1297560908.24985.5.camel@tvboxspy>
-	 <4D87EAA7.2040803@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Tue, 22 Mar 2011 00:32:48 +0000
-Message-ID: <1300753968.15997.4.camel@localhost>
+Received: from ist.d-labs.de ([213.239.218.44]:40899 "EHLO mx01.d-labs.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752559Ab1CFOim convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Mar 2011 09:38:42 -0500
+Date: Sun, 6 Mar 2011 15:38:05 +0100
+From: Florian Mickler <florian@mickler.org>
+To: Oliver Neukum <oliver@neukum.org>
+Cc: mchehab@infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	"Greg Kroah-Hartman" <greg@kroah.com>,
+	"Rafael J. Wysocki" <rjw@sisk.pl>,
+	Maciej Rutecki <maciej.rutecki@gmail.com>
+Subject: Re: [PATCH] [media] dib0700: get rid of on-stack dma buffers
+Message-ID: <20110306153805.001011a9@schatten.dmk.lab>
+In-Reply-To: <201103061306.10045.oliver@neukum.org>
+References: <1299410212-24897-1-git-send-email-florian@mickler.org>
+	<201103061306.10045.oliver@neukum.org>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, 2011-03-21 at 21:17 -0300, Mauro Carvalho Chehab wrote:
-> Em 12-02-2011 23:35, Malcolm Priestley escreveu:
-> > Old versions of these boxes have the BS2F7HZ0194 tuner module on
-> > both the LME2510 and LME2510C.
+On Sun, 6 Mar 2011 13:06:09 +0100
+Oliver Neukum <oliver@neukum.org> wrote:
+
+> Am Sonntag, 6. März 2011, 12:16:52 schrieb Florian Mickler:
+> > This should fix warnings seen by some:
+> > 	WARNING: at lib/dma-debug.c:866 check_for_stack
 > > 
-> > Firmware dvb-usb-lme2510-s0194.fw  and/or dvb-usb-lme2510c-s0194.fw
-> > files are required.
-> > 
-> > See Documentation/dvb/lmedm04.txt
-> > 
-> > Patch 535181 is also required.
-> > 
-> > Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+> > Fixes: https://bugzilla.kernel.org/show_bug.cgi?id=15977.
+> > Reported-by: Zdenek Kabelac <zdenek.kabelac@gmail.com>
+> > Signed-off-by: Florian Mickler <florian@mickler.org>
+> > CC: Mauro Carvalho Chehab <mchehab@infradead.org>
+> > CC: linux-media@vger.kernel.org
+> > CC: linux-kernel@vger.kernel.org
+> > CC: Greg Kroah-Hartman <greg@kroah.com>
+> > CC: Rafael J. Wysocki <rjw@sisk.pl>
+> > CC: Maciej Rutecki <maciej.rutecki@gmail.com>
 > > ---
+> > 
+> > Please take a look at it, as I do not do that much kernel hacking
+> > and don't wanna brake anybodys computer... :)
+> > 
+> > From my point of view this should _not_ go to stable even though it would
+> > be applicable. But if someone feels strongly about that and can
+> > take responsibility for that change...
 > 
-> > @@ -1110,5 +1220,5 @@ module_exit(lme2510_module_exit);
-> >  
-> >  MODULE_AUTHOR("Malcolm Priestley <tvboxspy@gmail.com>");
-> >  MODULE_DESCRIPTION("LME2510(C) DVB-S USB2.0");
-> > -MODULE_VERSION("1.76");
-> > +MODULE_VERSION("1.80");
-> >  MODULE_LICENSE("GPL");
+> The patch looks good and is needed in stable.
+> It could be improved by using a buffer allocated once in the places
+> you hold a mutex anyway.
 > 
-> 
-> There were a merge conflict on this patch. The version we have was 1.75.
-> 
-> Maybe some patch got missed?
+> 	Regards
+> 		Oliver
 
-1.76 relates to remote control patches.
+Ok, I now put a buffer member in the priv dib0700_state which gets
+allocated on the heap. 
 
-https://patchwork.kernel.org/patch/499391/
-https://patchwork.kernel.org/patch/499401/
+My patch introduces a new error condition in the dib0700_identify_state
+callback which gets not checked for in dvb_usb_find_device... 
+Should we worry?
 
-Regards
+Same for dib0700_get_version in the probe callback...
+But there, there was already the possibility of usb_control_msg
+returning an error...
 
-Malcolm
-
-
+Regards,
+Flo
