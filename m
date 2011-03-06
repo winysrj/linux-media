@@ -1,38 +1,58 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:32315 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934117Ab1CXUFN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Mar 2011 16:05:13 -0400
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p2OK5CId031293
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 24 Mar 2011 16:05:13 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>
-Subject: [PATCH] drx397xD: remove unused DEBUG define
-Date: Thu, 24 Mar 2011 16:05:08 -0400
-Message-Id: <1300997108-4199-1-git-send-email-jarod@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42725 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751406Ab1CFKR0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Mar 2011 05:17:26 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@retiisi.org.uk>
+Subject: Re: [GIT PULL FOR 2.6.39] Media controller and OMAP3 ISP driver
+Date: Sun, 6 Mar 2011 11:17:42 +0100
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	alsa-devel@alsa-project.org
+References: <201102171606.58540.laurent.pinchart@ideasonboard.com> <4D73472A.60702@retiisi.org.uk>
+In-Reply-To: <4D73472A.60702@retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201103061117.42896.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/dvb/frontends/drx397xD.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+Hi Sakari,
 
-diff --git a/drivers/media/dvb/frontends/drx397xD.c b/drivers/media/dvb/frontends/drx397xD.c
-index a05007c..235ac72 100644
---- a/drivers/media/dvb/frontends/drx397xD.c
-+++ b/drivers/media/dvb/frontends/drx397xD.c
-@@ -17,7 +17,6 @@
-  * along with this program; If not, see <http://www.gnu.org/licenses/>.
-  */
- 
--#define DEBUG			/* uncomment if you want debugging output */
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/moduleparam.h>
+On Sunday 06 March 2011 09:34:50 Sakari Ailus wrote:
+> Hi Laurent,
+> 
+> Many thanks for the pull req!
+> 
+> On Thu, Feb 17, 2011 at 04:06:58PM +0100, Laurent Pinchart wrote:
+> ...
+> 
+> >  drivers/media/video/omap3-isp/ispresizer.c         | 1693 ++++++++++++++
+> >  drivers/media/video/omap3-isp/ispresizer.h         |  147 ++
+> >  drivers/media/video/omap3-isp/ispstat.c            | 1092 +++++++++
+> >  drivers/media/video/omap3-isp/ispstat.h            |  169 ++
+> >  drivers/media/video/omap3-isp/ispvideo.c           | 1264 ++++++++++
+> >  drivers/media/video/omap3-isp/ispvideo.h           |  202 ++
+> >  drivers/media/video/omap3-isp/luma_enhance_table.h |   42 +
+> >  drivers/media/video/omap3-isp/noise_filter_table.h |   30 +
+> 
+> ...
+> 
+> >  include/linux/Kbuild                               |    4 +
+> >  include/linux/media.h                              |  132 ++
+> >  include/linux/omap3isp.h                           |  646 +++++
+> 
+> What about renaming the directory omap3isp for the sake of consistency?
+> The header file is called omap3isp.h and omap3isp is the prefix used in
+> the driver for exported symbols.
+
+I'm fine with both. If Mauro prefers omap3-isp, I can update the patches.
+
+> My apologies for not bringing this up earlier.
+
 -- 
-1.7.1
+Regards,
 
+Laurent Pinchart
