@@ -1,65 +1,183 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.128.26]:61818 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751131Ab1CPRGO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Mar 2011 13:06:14 -0400
-Message-ID: <4D80EE74.3040703@maxwell.research.nokia.com>
-Date: Wed, 16 Mar 2011 19:08:04 +0200
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Michael Jones <michael.jones@matrix-vision.de>,
-	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v3 4/4] omap3isp: lane shifter support
-References: <1299830749-7269-1-git-send-email-michael.jones@matrix-vision.de> <1299830749-7269-5-git-send-email-michael.jones@matrix-vision.de> <4D80DAF1.3040002@maxwell.research.nokia.com> <201103161727.43838.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201103161727.43838.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from devils.ext.ti.com ([198.47.26.153]:46236 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751184Ab1CFPg3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Mar 2011 10:36:29 -0500
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent <laurent.pinchart@ideasonboard.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [RFC] davinci: vpfe: mdia controller implementation for capture
+Date: Sun,  6 Mar 2011 21:06:05 +0530
+Message-Id: <1299425765-14004-1-git-send-email-manjunath.hadli@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Laurent Pinchart wrote:
-> Hi Sakari,
 
-Hi Laurent and Michael!
+Introduction
+------------
+This is the proposal of the initial version of design and implementation  of
+the Davinci family (dm644x,dm355,dm365)VPFE (Video Port Front End) drivers
+using Media Controloler , the initial version which supports
+the following:
+1) dm365 vpfe
+2) ccdc,previewer,resizer,h3a,af blocks
+3) supports only continuous mode and not on-the-fly
+4) supports user pointer exchange and memory mapped modes for buffer allocation
 
-...
->>> +	return in_info->bpp - out_info->bpp + additional_shift <= 6;
->>
->> Currently there are no formats that would behave badly in this check?
->> Perhaps it'd be good idea to take that into consideration. The shift
->> that can be done is even.
-> 
-> I've asked Michael to remove the check because we have no misbehaving formats 
-> :-) Do you think we need to add a check back ?
+This driver bases its design on Laurent Pinchart's Media Controller Design
+whose patches for Media Controller and subdev enhancements form the base.
+The driver also takes copious elements taken from Laurent Pinchart and
+others' OMAP ISP driver based on Media Controller. So thank you all the
+people who are responsible for the Media Controller and the OMAP ISP driver.
 
-I think it would be helpful in debugging if someone decides to attach a
-sensor which supports a shift of non-even bits (8 and 9 bits, for
-example). In any case an invalid configuration is possible in such case,
-and I don't think that should be allowed, should it?
+Also, the core functionality of the driver comes from the arago vpfe capture
+driver of which the CCDC capture was based on V4L2, with other drivers like
+Previwer, Resizer and other being individual character drivers.
 
->>> @@ -247,6 +296,7 @@ static int isp_video_validate_pipeline(struct
->>> isp_pipeline *pipe)
->>>
->>>  		return -EPIPE;
->>>  	
->>>  	while (1) {
->>>
->>> +		unsigned int link_has_shifter;
->>
->> link_has_shifter is only used in one place. Would it be cleaner to test
->> below if it's the CCDC? A comment there could be nice, too.
-> 
-> I would like that better as well, but between the line where link_has_shifter 
-> is set and the line where it is checked, the subdev variable changes so we 
-> can't just check subdev == &isp->isp_ccdc.subdev there.
+The current driver caters to dm6446,dm355 and dm365 of which the current
+implementation works for dm365. The three VPFE IPs have some common elements
+in terms of some highe level functionality but there are differences in terms
+of register definitions and some core blocks.
 
-That's definitely valid. I take my comment back. The variable could be
-called is_ccdc, though, since only the CCDC has that feature. No need to
-generalise. :-)
+The individual specifications for each of these can be found here:
+dm6446 vpfe: http://www.ti.com/litv/pdf/sprue38h
+dm355  vpfe: http://www.ti.com/litv/pdf/spruf71a
+dm365  vpfe: http://www.ti.com/litv/pdf/sprufg8c
 
-Cheers,
+The initial version of the  driver implementation can be found here:
 
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+http://git.linuxtv.org/mhadli/v4l-dvb-davinci_devices.git?a=shortlog;h=refs/heads/mc_release
+
+Driver Design: Main entities
+----------------------------
+The hardware modules for dm355,dm365 are mainly ipipe, ipipeif,isif. These
+hardware modules are generically exposed to the user level in the for of
+dm6446 style modules. Mainly -
+ccdc, previewer, resizer in addition to the other histogram and
+auto color/white balance correction and auto focus modules.
+
+1)MT9P031 sensor  module for RAW capture
+2)TVP7002 decoder module for HD inputs
+3)TVP514x decoder module for SD inputs
+4)CCDC capture module
+5)Previewer Module for Bayer to YUV conversion
+6)Resizer Module for scaling
+
+
+Connection for on-the-fly capture
+---------------------------------
+Mt9P031 ------>CCDC--->Previewer(optional)--->Resizer(optional)--->Video
+	   |
+TVP7002 ---
+	   |
+TV514x  ---
+
+File Organisation
+-----------------
+
+main driver files
+----------------
+drivers/media/video/davinci/vpfe_capture.c
+include/media/davinci/vpfe_capture.h
+
+Instantiatiation of the v4l2 device, media device and all  subdevs from here.
+
+video Interface files
+---------------------
+drivers/media/video/davinci/vpfe_video.c
+include/media/davinci/vpfe_video.h
+
+Implements all the v4l2 video operations with a generic implementation for
+continuous and one shot mode.
+
+subdev interface files
+----------------------
+These file implement the subdev interface functionality for
+each of the subdev entities - mainly the entry points and their implementations
+in a IP generic way.
+
+drivers/media/video/davinci/vpfe_ccdc.c
+drivers/media/video/davinci/vpfe_previewer.c
+drivers/media/video/davinci/vpfe_resizer.c
+drivers/media/video/davinci/vpfe_af.c
+drivers/media/video/davinci/vpfe_aew.c
+drivers/media/video/tvp514x.c
+drivers/media/video/tvp7002.c
+drivers/media/video/ths7353.c
+
+include/media/davinci/vpfe_ccdc.h
+include/media/davinci/vpfe_previewer.h
+include/media/davinci/vpfe_resizer.h
+include/media/davinci/vpfe_af.h
+include/media/davinci/vpfe_aew.h
+include/media/tvp514x.h
+drivers/media/video/tvp514x_regs.h
+include/media/tvp7002.h
+drivers/media/video/tvp7002_reg.h
+
+core implementation files
+-------------------------
+These provide a core implementation routines for ccdc, ipipeif,
+ipipe,aew, af, resizer hardware modules.
+
+drivers/char/imp_common.c
+drivers/media/video/davinci/dm365_ccdc.c
+drivers/media/video/davinci/dm355_ccdc.c
+drivers/media/video/davinci/dm644x_ccdc.c
+drivers/char/dm355_ipipe.c
+drivers/char/dm355_ipipe_hw.c
+drivers/char/dm355_def_para.c
+drivers/char/dm365_ipipe.c
+drivers/char/dm365_def_para.c
+drivers/char/dm365_ipipe_hw.c
+drivers/char/dm6446_imp.c
+drivers/char/davinci_resizer_hw.c
+drivers/char/dm3xx_ipipe.c
+drivers/media/video/davinci/dm365_aew.c
+drivers/media/video/davinci/dm365_af.c
+drivers/media/video/davinci/dm365_a3_hw.c
+drivers/media/video/davinci/dm355_aew.c
+drivers/media/video/davinci/dm355_af.c
+drivers/media/video/davinci/dm355_aew_hw.c
+drivers/media/video/davinci/dm355_af_hw.c
+
+include/media/davinci/imp_common.h
+include/media/davinci/dm365_ccdc.h
+include/media/davinci/dm355_ccdc.h
+include/media/davinci/dm644x_ccdc.h
+include/media/davinci/dm355_ipipe.h
+include/media/davinci/dm365_ipipe.h
+include/media/davinci/imp_hw_if.h
+include/media/davinci/dm3xx_ipipe.h
+include/media/davinci/dm365_aew.h
+include/media/davinci/dm365_af.h
+include/media/davinci/dm365_a3_hw.h
+include/media/davinci/dm355_aew.h
+include/media/davinci/dm355_af.h
+include/media/davinci/dm355_aew_hw.h
+include/media/davinci/dm355_af_hw.h
+include/media/davinci/vpfe_types.h
+
+drivers/media/video/davinci/dm365_ccdc_regs.h
+drivers/media/video/davinci/dm355_ccdc_regs.h
+drivers/media/video/davinci/dm644x_ccdc_regs.h
+drivers/media/video/davinci/ccdc_hw_device.h
+drivers/char/dm355_ipipe_hw.h
+drivers/char/dm355_def_para.h
+drivers/char/dm365_def_para.h
+drivers/char/dm365_ipipe_hw.h
+drivers/char/davinci_resizer_hw.h
+
+TODOs:
+======
+1. Single shot implementation for previewer and resizer.
+2. Seperation of v4l2 video related structures and routines to aid single shot
+implementation.
+3. Support NV12 format
+4. Move the files from char folder to drivers/media/video along with headers
+5. Make the aew and af headers common between dm355 and dm365.
+6. Enable dm355 and dm6446 functionality by making appropriate platform changes
