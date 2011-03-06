@@ -1,87 +1,94 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:56462 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750775Ab1CKKIj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Mar 2011 05:08:39 -0500
-Received: from spt2.w1.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LHW001BJ1ICPD@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 11 Mar 2011 10:08:37 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LHW00GMW1IB8A@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 11 Mar 2011 10:08:35 +0000 (GMT)
-Date: Fri, 11 Mar 2011 11:08:35 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [GIT PULL FOR 2.6.39] videobuf2 and s5p fimc driver fixes
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Message-id: <4D79F4A3.5090900@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7BIT
+Received: from moutng.kundenserver.de ([212.227.17.9]:57783 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753417Ab1CFTNx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Mar 2011 14:13:53 -0500
+Date: Sun, 6 Mar 2011 20:13:49 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Andy Walls <awalls@md.metrocast.net>
+cc: "Aguirre, Sergio" <saaguirre@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [Query] What is the best way to handle V4L2_PIX_FMT_NV12 buffers?
+In-Reply-To: <1299434124.2310.12.camel@localhost>
+Message-ID: <Pine.LNX.4.64.1103062008350.27091@axis700.grange>
+References: <A24693684029E5489D1D202277BE89448861F7E6@dlee02.ent.ti.com>
+ <1299434124.2310.12.camel@localhost>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
+On Sun, 6 Mar 2011, Andy Walls wrote:
 
-please pull from
-	git://git.infradead.org/users/kmpark/linux-2.6-samsung for-mauro
+> On Sat, 2011-03-05 at 22:49 -0600, Aguirre, Sergio wrote:
+> > Hi,
+> > 
+> > I was curious in how to handle properly buffers of pixelformat V4L2_PIX_FMT_NV12.
+> > 
+> > I see that the standard convention for determining a bytesize of an image buffer is:
+> > 
+> > bytesperline * height
+> > 
+> > However, for NV12 case, the bytes per line is equal to the width, _but_ the actual buffer size is:
+> > 
+> > For the Y buffer: width * height
+> > For the UV buffer: width * (height / 2)
+> > Total size = width * (height + height / 2)
+> > 
+> > Which I think renders the bytesperline * height formula not valid for this case.
+> > 
+> > Any ideas how this should be properly handled?
+> 
+> For the HM12 macroblock format:
+> 
+> http://git.linuxtv.org/media_tree.git?a=blob;f=Documentation/video4linux/cx2341x/README.hm12;h=b36148ea07501bdac37ae74b31cc258150f75a81;hb=staging/for_v2.6.39
+> 
+> ivtv and cx18 do this in cx18-ioctl.c and ivtv-ioctl.c:
+> 
+> ...
+> 	if (id->type == xxxx_ENC_STREAM_TYPE_YUV) {
+>                 pixfmt->pixelformat = V4L2_PIX_FMT_HM12;
+>                 /* YUV size is (Y=(h*720) + UV=(h*(720/2))) */
+>                 pixfmt->sizeimage = pixfmt->height * 720 * 3 / 2;
+>                 pixfmt->bytesperline = 720;
+> 	}
+> ...
 
-for a couple of videobuf2 and s5p fimc driver fixes and updates.
-Included is also the missing Docbook documentation for NV12MT format.
+Yep, the height * width formula is in no way "standard" or "compulsory" - 
+that's exactly the reason why this calculation is left to the individual 
+drivers. You can also look at sh_mobile_ceu_camera.c, which also supports 
+this format, and effectively also calculates height * width * 3 / 2.
 
+Thanks
+Guennadi
 
-The following changes since commit 88a763df226facb74fdb254563e30e9efb64275c:
+> 
+> Note that the wdith is fixed at 720 because the CX2341x chips always
+> build HM12 planes assuming a width of 720, even though it isn't going to
+> actually fill in the off-sceen pixels for widths less than 720.
+> 
+> 
+> Note that "pixfmt->height * 3 / 2" is just "(height + height / 2)".
+> 
+> It's not a definitive answer; only an example of what two drivers do for
+> a very uncommon macroblock format.
+> 
+> Regards,
+> Andy
+> 
+> > NOTE: See here for more details: http://www.fourcc.org/yuv.php#NV12
+> > 
+> > Regards,
+> > Sergio--
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-  [media] dw2102: prof 1100 corrected (2011-03-02 16:56:54 -0300)
-
-are available in the git repository at:
-  git://git.infradead.org/users/kmpark/linux-2.6-samsung for-mauro
-
-Andrzej Pietrasiewicz (2):
-      v4l2: vb2-dma-sg: fix memory leak
-      v4l2: vb2-dma-sg: fix potential security hole
-
-Kamil Debski (1):
-      v4l: Documentation for the NV12MT format
-
-Marek Szyprowski (3):
-      v4l2: vb2: fix queue reallocation and REQBUFS(0) case
-      v4l2: vb2: one more fix for REQBUFS()
-      v4l2: vb2: simplify __vb2_queue_free function
-
-Sungchun Kang (1):
-      s5p-fimc: fix ISR and buffer handling for fimc-capture
-
-Sylwester Nawrocki (6):
-      s5p-fimc: Prevent oops when i2c adapter is not available
-      s5p-fimc: Prevent hanging on device close and fix the locking
-      s5p-fimc: Allow defining number of sensors at runtime
-      s5p-fimc: Add a platform data entry for MIPI-CSI data alignment
-      s5p-fimc: Use dynamic debug
-      s5p-fimc: Fix G_FMT ioctl handler
-
- Documentation/DocBook/media-entities.tmpl    |    1 +
- Documentation/DocBook/v4l/nv12mt.gif         |  Bin 0 -> 2108 bytes
- Documentation/DocBook/v4l/nv12mt_example.gif |  Bin 0 -> 6858 bytes
- Documentation/DocBook/v4l/pixfmt-nv12mt.xml  |   74 +++++++
- Documentation/DocBook/v4l/pixfmt.xml         |    1 +
- drivers/media/video/s5p-fimc/fimc-capture.c  |  104 ++++------
- drivers/media/video/s5p-fimc/fimc-core.c     |  279 ++++++++++++++------------
- drivers/media/video/s5p-fimc/fimc-core.h     |   50 ++++--
- drivers/media/video/s5p-fimc/fimc-reg.c      |    6 +-
- drivers/media/video/videobuf2-core.c         |   24 ++-
- drivers/media/video/videobuf2-dma-sg.c       |    4 +-
- include/media/s5p_fimc.h                     |    9 +-
- 12 files changed, 329 insertions(+), 223 deletions(-)
- create mode 100644 Documentation/DocBook/v4l/nv12mt.gif
- create mode 100644 Documentation/DocBook/v4l/nv12mt_example.gif
- create mode 100644 Documentation/DocBook/v4l/pixfmt-nv12mt.xml
-
-Best regards,
--- 
-Sylwester Nawrocki
-Samsung Poland R&D Center
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
