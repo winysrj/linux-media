@@ -1,91 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.samsung.com ([203.254.224.33]:30572 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753604Ab1CKMfn (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:57612 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752592Ab1CFRzD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Mar 2011 07:35:43 -0500
-Date: Fri, 11 Mar 2011 13:35:21 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [PATCH 3/7] ARM: Samsung: update/rewrite Samsung SYSMMU (IOMMU)
- driver
-In-reply-to: <201103111250.51252.arnd@arndb.de>
-To: 'Arnd Bergmann' <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	k.debski@samsung.com, kgene.kim@samsung.com,
-	kyungmin.park@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	=?ks_c_5601-1987?B?J7TrwM6x4ic=?= <inki.dae@samsung.com>,
-	=?ks_c_5601-1987?B?J7Ctuc6x1Cc=?= <mk7.kang@samsung.com>,
-	'KyongHo Cho' <pullip.cho@samsung.com>,
-	linux-kernel@vger.kernel.org,
-	'Marek Szyprowski' <m.szyprowski@samsung.com>
-Message-id: <000001cbdfe8$ce444b20$6acce160$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ks_c_5601-1987
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <1299229274-9753-4-git-send-email-m.szyprowski@samsung.com>
- <201103101552.15536.arnd@arndb.de>
- <002101cbdfcb$5c657820$15306860$%szyprowski@samsung.com>
- <201103111250.51252.arnd@arndb.de>
+	Sun, 6 Mar 2011 12:55:03 -0500
+Subject: Re: [Query] What is the best way to handle V4L2_PIX_FMT_NV12
+ buffers?
+From: Andy Walls <awalls@md.metrocast.net>
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+In-Reply-To: <A24693684029E5489D1D202277BE89448861F7E6@dlee02.ent.ti.com>
+References: <A24693684029E5489D1D202277BE89448861F7E6@dlee02.ent.ti.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sun, 06 Mar 2011 12:55:24 -0500
+Message-ID: <1299434124.2310.12.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
-
-On Friday, March 11, 2011 12:51 PM Arnd Bergmann wrote:
-
-> On Friday 11 March 2011, Marek Szyprowski wrote:
-> >
-> > We followed the style of iommu API for other mainline ARM platforms (both OMAP and MSM
-> > also have custom API for their iommu modules). I've briefly checked include/linux/iommu.h
-> > API and I've noticed that it has been designed mainly for KVM support. There is also
-> > include/linux/intel-iommu.h interface, but I it is very specific to intel gfx chips.
+On Sat, 2011-03-05 at 22:49 -0600, Aguirre, Sergio wrote:
+> Hi,
 > 
-> The MSM code actually uses the generic iommu.h code, using register_iommu, so
-> the drivers can use the regular iommu_map.
+> I was curious in how to handle properly buffers of pixelformat V4L2_PIX_FMT_NV12.
 > 
-> I believe the omap code predates the iommu API, and should really be changed
-> to use that. At least it was added before I started reviewing the code.
+> I see that the standard convention for determining a bytesize of an image buffer is:
 > 
-> The iommu API is not really meant to be KVM specific, it's just that the
-> in-tree users are basically limited to KVM at the moment. Another user that
-> is coming up soon is the vmio device driver that can be used to transparently
-> pass devices to user space. The idea behind the IOMMU API is that you can
-> map arbitrary bus addresses to physical memory addresses, but it does not
-> deal with allocating the bus addresses or providing buffer management such
-> as cache flushes.
+> bytesperline * height
+> 
+> However, for NV12 case, the bytes per line is equal to the width, _but_ the actual buffer size is:
+> 
+> For the Y buffer: width * height
+> For the UV buffer: width * (height / 2)
+> Total size = width * (height + height / 2)
+> 
+> Which I think renders the bytesperline * height formula not valid for this case.
+> 
+> Any ideas how this should be properly handled?
 
-Yea, I've noticed this and this basically what we expect from iommu driver. 
-However the iommu.h API requires a separate call to map each single memory page.
-This is quite ineffective approach and imho the API need to be extended to allow
-mapping of the arbitrary set of pages.
+For the HM12 macroblock format:
 
-> > Is there any example how include/linux/dma-mapping.h interface can be used for iommu
-> > mappings?
-> 
-> The dma-mapping API is the normal interface that you should use for IOMMUs
-> that sit between DMA devices and kernel memory. The idea is that you
-> completely abstract the concept of an IOMMU so the device driver uses
-> the same code for talking to a device with an IOMMU and another device with
-> a linear mapping or an swiotlb bounce buffer.
-> 
-> This means that the user of the dma-mapping API does not get to choose the
-> bus addresses, but instead you use the API to get a bus address for a
-> chunk of memory, and then you can pass that address to a device.
-> 
-> See arch/powerpc/kernel/iommu.c and arch/x86/kernel/amd_iommu.c for common
-> examples of how this is implemented. The latter one actually implements
-> both the iommu_ops for iommu.h and dma_map_ops for dma-mapping.h.
+http://git.linuxtv.org/media_tree.git?a=blob;f=Documentation/video4linux/cx2341x/README.hm12;h=b36148ea07501bdac37ae74b31cc258150f75a81;hb=staging/for_v2.6.39
 
-Thanks for your comments! We will check how is it suitable for our case.
+ivtv and cx18 do this in cx18-ioctl.c and ivtv-ioctl.c:
 
-Best regards
---
-Marek Szyprowski
-Samsung Poland R&D Center
+...
+	if (id->type == xxxx_ENC_STREAM_TYPE_YUV) {
+                pixfmt->pixelformat = V4L2_PIX_FMT_HM12;
+                /* YUV size is (Y=(h*720) + UV=(h*(720/2))) */
+                pixfmt->sizeimage = pixfmt->height * 720 * 3 / 2;
+                pixfmt->bytesperline = 720;
+	}
+...
+
+Note that the wdith is fixed at 720 because the CX2341x chips always
+build HM12 planes assuming a width of 720, even though it isn't going to
+actually fill in the off-sceen pixels for widths less than 720.
+
+
+Note that "pixfmt->height * 3 / 2" is just "(height + height / 2)".
+
+It's not a definitive answer; only an example of what two drivers do for
+a very uncommon macroblock format.
+
+Regards,
+Andy
+
+> NOTE: See here for more details: http://www.fourcc.org/yuv.php#NV12
+> 
+> Regards,
+> Sergio--
 
 
