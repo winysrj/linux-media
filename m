@@ -1,113 +1,356 @@
 Return-path: <mchehab@pedra>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45649 "EHLO arroyo.ext.ti.com"
+Received: from ist.d-labs.de ([213.239.218.44]:46811 "EHLO mx01.d-labs.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753420Ab1CHNHD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Mar 2011 08:07:03 -0500
-Message-ID: <4D7629F4.6010802@ti.com>
-Date: Tue, 8 Mar 2011 07:07:00 -0600
-From: Sergio Aguirre <saaguirre@ti.com>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] v4l: soc-camera: Store negotiated buffer settings
-References: <1299545388-717-1-git-send-email-saaguirre@ti.com> <Pine.LNX.4.64.1103080818240.3903@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1103080818240.3903@axis700.grange>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1753649Ab1CFRtI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 6 Mar 2011 12:49:08 -0500
+From: Florian Mickler <florian@mickler.org>
+To: mchehab@infradead.org
+Cc: Florian Mickler <florian@mickler.org>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Greg Kroah-Hartman <greg@kroah.com>,
+	"Rafael J. Wysocki" <rjw@sisk.pl>,
+	Maciej Rutecki <maciej.rutecki@gmail.com>,
+	Oliver Neukum <oliver@neukum.org>,
+	Jack Stone <jwjstone@fastmail.fm>
+Subject: [PATCH 1/2 v3] [media] dib0700: get rid of on-stack dma buffers
+Date: Sun,  6 Mar 2011 18:47:56 +0100
+Message-Id: <1299433677-8269-1-git-send-email-florian@mickler.org>
+In-Reply-To: <201103061744.15946.oliver@neukum.org>
+References: <201103061744.15946.oliver@neukum.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Guennadi,
+This should fix warnings seen by some:
+	WARNING: at lib/dma-debug.c:866 check_for_stack
 
-On 03/08/2011 01:19 AM, Guennadi Liakhovetski wrote:
-> On Mon, 7 Mar 2011, Sergio Aguirre wrote:
->
->> This fixes the problem in which a host driver
->> sets a personalized sizeimage or bytesperline field,
->> and gets ignored when doing G_FMT.
->
-> Can you tell what that personalised value is? Is it not covered by
-> soc_mbus_bytes_per_line()? Maybe something like a JPEG format?
+Fixes: https://bugzilla.kernel.org/show_bug.cgi?id=15977.
+Reported-by: Zdenek Kabelac <zdenek.kabelac@gmail.com>
+Signed-off-by: Florian Mickler <florian@mickler.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: linux-media@vger.kernel.org
+CC: linux-kernel@vger.kernel.org
+CC: Greg Kroah-Hartman <greg@kroah.com>
+CC: Rafael J. Wysocki <rjw@sisk.pl>
+CC: Maciej Rutecki <maciej.rutecki@gmail.com>
+CC: Oliver Neukum <oliver@neukum.org>
+CC: Jack Stone <jwjstone@fastmail.fm>
 
-In my case, my omap4_camera driver requires to have a bytesperline which 
-is a multiple of 32, and sometimes (depending on the internal HW blocks 
-used) a page aligned byte offset between lines.
+---
+[v2: use preallocated buffer; fix sizeof in one case]
+[v3: use seperate kmalloc mapping for the preallocation,
+     dont ignore errors in probe codepaths  ]
 
-For example, I want to use such configuration that, for an NV12 buffer, 
-I require a 4K offset between lines, so the vaues are:
+ drivers/media/dvb/dvb-usb/dib0700.h      |    5 +-
+ drivers/media/dvb/dvb-usb/dib0700_core.c |  119 ++++++++++++++++++++++++------
+ 2 files changed, 98 insertions(+), 26 deletions(-)
 
-pix->bytesperline = PAGE_SIZE;
-pix->sizeimage = pix->bytesperline * height * 3 / 2;
-
-Which I filled in TRY_FMT/S_FMT ioctl calls.
-
-So, next time a driver tries a G_FMT, it currently gets recalculated by
-a prefixed table (which comes from soc_mbus_bytes_per_line), which won't 
-give me what i had set before. And it will also recalculate a size image 
-based on this wrong bytesperline * height, which is also wrong, (lacks 
-the * 3 / 2 for NV12).
-
-Regards,
-Sergio
-
->
-> Thanks
-> Guennadi
->
->>
->> Signed-off-by: Sergio Aguirre<saaguirre@ti.com>
->> ---
->>   drivers/media/video/soc_camera.c |    9 ++++-----
->>   include/media/soc_camera.h       |    2 ++
->>   2 files changed, 6 insertions(+), 5 deletions(-)
->>
->> diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
->> index a66811b..59dc71d 100644
->> --- a/drivers/media/video/soc_camera.c
->> +++ b/drivers/media/video/soc_camera.c
->> @@ -363,6 +363,8 @@ static int soc_camera_set_fmt(struct soc_camera_device *icd,
->>   	icd->user_width		= pix->width;
->>   	icd->user_height	= pix->height;
->>   	icd->colorspace		= pix->colorspace;
->> +	icd->bytesperline	= pix->bytesperline;
->> +	icd->sizeimage		= pix->sizeimage;
->>   	icd->vb_vidq.field	=
->>   		icd->field	= pix->field;
->>
->> @@ -608,12 +610,9 @@ static int soc_camera_g_fmt_vid_cap(struct file *file, void *priv,
->>   	pix->height		= icd->user_height;
->>   	pix->field		= icd->vb_vidq.field;
->>   	pix->pixelformat	= icd->current_fmt->host_fmt->fourcc;
->> -	pix->bytesperline	= soc_mbus_bytes_per_line(pix->width,
->> -						icd->current_fmt->host_fmt);
->> +	pix->bytesperline	= icd->bytesperline;
->>   	pix->colorspace		= icd->colorspace;
->> -	if (pix->bytesperline<  0)
->> -		return pix->bytesperline;
->> -	pix->sizeimage		= pix->height * pix->bytesperline;
->> +	pix->sizeimage		= icd->sizeimage;
->>   	dev_dbg(&icd->dev, "current_fmt->fourcc: 0x%08x\n",
->>   		icd->current_fmt->host_fmt->fourcc);
->>   	return 0;
->> diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
->> index 9386db8..de81370 100644
->> --- a/include/media/soc_camera.h
->> +++ b/include/media/soc_camera.h
->> @@ -30,6 +30,8 @@ struct soc_camera_device {
->>   	s32 user_width;
->>   	s32 user_height;
->>   	enum v4l2_colorspace colorspace;
->> +	__u32 bytesperline;	/* for padding, zero if unused */
->> +	__u32 sizeimage;
->>   	unsigned char iface;		/* Host number */
->>   	unsigned char devnum;		/* Device number per host */
->>   	struct soc_camera_sense *sense;	/* See comment in struct definition */
->> --
->> 1.7.1
->>
->
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
+diff --git a/drivers/media/dvb/dvb-usb/dib0700.h b/drivers/media/dvb/dvb-usb/dib0700.h
+index 3537d65..99a1485 100644
+--- a/drivers/media/dvb/dvb-usb/dib0700.h
++++ b/drivers/media/dvb/dvb-usb/dib0700.h
+@@ -45,8 +45,9 @@ struct dib0700_state {
+ 	u8 is_dib7000pc;
+ 	u8 fw_use_new_i2c_api;
+ 	u8 disable_streaming_master_mode;
+-    u32 fw_version;
+-    u32 nb_packet_buffer_size;
++	u32 fw_version;
++	u32 nb_packet_buffer_size;
++	u8 *buf;
+ };
+ 
+ extern int dib0700_get_version(struct dvb_usb_device *d, u32 *hwversion,
+diff --git a/drivers/media/dvb/dvb-usb/dib0700_core.c b/drivers/media/dvb/dvb-usb/dib0700_core.c
+index 98ffb40..0b04cb6 100644
+--- a/drivers/media/dvb/dvb-usb/dib0700_core.c
++++ b/drivers/media/dvb/dvb-usb/dib0700_core.c
+@@ -27,11 +27,17 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+ int dib0700_get_version(struct dvb_usb_device *d, u32 *hwversion,
+ 			u32 *romversion, u32 *ramversion, u32 *fwtype)
+ {
+-	u8 b[16];
+-	int ret = usb_control_msg(d->udev, usb_rcvctrlpipe(d->udev, 0),
++	int ret;
++	u8 *b;
++
++	b = kmalloc(16, GFP_KERNEL);
++	if (!b)
++		return -ENOMEM;
++
++	ret = usb_control_msg(d->udev, usb_rcvctrlpipe(d->udev, 0),
+ 				  REQUEST_GET_VERSION,
+ 				  USB_TYPE_VENDOR | USB_DIR_IN, 0, 0,
+-				  b, sizeof(b), USB_CTRL_GET_TIMEOUT);
++				  b, 16, USB_CTRL_GET_TIMEOUT);
+ 	if (hwversion != NULL)
+ 		*hwversion  = (b[0] << 24)  | (b[1] << 16)  | (b[2] << 8)  | b[3];
+ 	if (romversion != NULL)
+@@ -40,6 +46,8 @@ int dib0700_get_version(struct dvb_usb_device *d, u32 *hwversion,
+ 		*ramversion = (b[8] << 24)  | (b[9] << 16)  | (b[10] << 8) | b[11];
+ 	if (fwtype != NULL)
+ 		*fwtype     = (b[12] << 24) | (b[13] << 16) | (b[14] << 8) | b[15];
++
++	kfree(b);
+ 	return ret;
+ }
+ 
+@@ -101,8 +109,19 @@ int dib0700_ctrl_rd(struct dvb_usb_device *d, u8 *tx, u8 txlen, u8 *rx, u8 rxlen
+ 
+ int dib0700_set_gpio(struct dvb_usb_device *d, enum dib07x0_gpios gpio, u8 gpio_dir, u8 gpio_val)
+ {
+-	u8 buf[3] = { REQUEST_SET_GPIO, gpio, ((gpio_dir & 0x01) << 7) | ((gpio_val & 0x01) << 6) };
+-	return dib0700_ctrl_wr(d, buf, sizeof(buf));
++	s16 ret;
++	u8 *buf = kmalloc(3, GFP_KERNEL);
++	if (!buf)
++		return -ENOMEM;
++
++	buf[0] = REQUEST_SET_GPIO;
++	buf[1] = gpio;
++	buf[2] = ((gpio_dir & 0x01) << 7) | ((gpio_val & 0x01) << 6);
++
++	ret = dib0700_ctrl_wr(d, buf, 3);
++
++	kfree(buf);
++	return ret;
+ }
+ 
+ static int dib0700_set_usb_xfer_len(struct dvb_usb_device *d, u16 nb_ts_packets)
+@@ -137,11 +156,12 @@ static int dib0700_i2c_xfer_new(struct i2c_adapter *adap, struct i2c_msg *msg,
+ 	   properly support i2c read calls not preceded by a write */
+ 
+ 	struct dvb_usb_device *d = i2c_get_adapdata(adap);
++	struct dib0700_state *st = d->priv;
+ 	uint8_t bus_mode = 1;  /* 0=eeprom bus, 1=frontend bus */
+ 	uint8_t gen_mode = 0; /* 0=master i2c, 1=gpio i2c */
+ 	uint8_t en_start = 0;
+ 	uint8_t en_stop = 0;
+-	uint8_t buf[255]; /* TBV: malloc ? */
++	uint8_t *buf = st->buf;
+ 	int result, i;
+ 
+ 	/* Ensure nobody else hits the i2c bus while we're sending our
+@@ -221,6 +241,7 @@ static int dib0700_i2c_xfer_new(struct i2c_adapter *adap, struct i2c_msg *msg,
+ 		}
+ 	}
+ 	mutex_unlock(&d->i2c_mutex);
++
+ 	return i;
+ }
+ 
+@@ -231,8 +252,9 @@ static int dib0700_i2c_xfer_legacy(struct i2c_adapter *adap,
+ 				   struct i2c_msg *msg, int num)
+ {
+ 	struct dvb_usb_device *d = i2c_get_adapdata(adap);
++	struct dib0700_state *st = d->priv;
+ 	int i,len;
+-	u8 buf[255];
++	u8 *buf = st->buf;
+ 
+ 	if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
+ 		return -EAGAIN;
+@@ -264,8 +286,8 @@ static int dib0700_i2c_xfer_legacy(struct i2c_adapter *adap,
+ 				break;
+ 		}
+ 	}
+-
+ 	mutex_unlock(&d->i2c_mutex);
++
+ 	return i;
+ }
+ 
+@@ -297,15 +319,23 @@ struct i2c_algorithm dib0700_i2c_algo = {
+ int dib0700_identify_state(struct usb_device *udev, struct dvb_usb_device_properties *props,
+ 			struct dvb_usb_device_description **desc, int *cold)
+ {
+-	u8 b[16];
+-	s16 ret = usb_control_msg(udev, usb_rcvctrlpipe(udev,0),
++	s16 ret;
++	u8 *b;
++
++	b = kmalloc(16, GFP_KERNEL);
++	if (!b)
++		return	-ENOMEM;
++
++
++	ret = usb_control_msg(udev, usb_rcvctrlpipe(udev, 0),
+ 		REQUEST_GET_VERSION, USB_TYPE_VENDOR | USB_DIR_IN, 0, 0, b, 16, USB_CTRL_GET_TIMEOUT);
+ 
+ 	deb_info("FW GET_VERSION length: %d\n",ret);
+ 
+ 	*cold = ret <= 0;
+-
+ 	deb_info("cold: %d\n", *cold);
++
++	kfree(b);
+ 	return 0;
+ }
+ 
+@@ -313,7 +343,13 @@ static int dib0700_set_clock(struct dvb_usb_device *d, u8 en_pll,
+ 	u8 pll_src, u8 pll_range, u8 clock_gpio3, u16 pll_prediv,
+ 	u16 pll_loopdiv, u16 free_div, u16 dsuScaler)
+ {
+-	u8 b[10];
++	s16 ret;
++	u8 *b;
++
++	b = kmalloc(10, GFP_KERNEL);
++	if (!b)
++		return -ENOMEM;
++
+ 	b[0] = REQUEST_SET_CLOCK;
+ 	b[1] = (en_pll << 7) | (pll_src << 6) | (pll_range << 5) | (clock_gpio3 << 4);
+ 	b[2] = (pll_prediv >> 8)  & 0xff; // MSB
+@@ -325,7 +361,10 @@ static int dib0700_set_clock(struct dvb_usb_device *d, u8 en_pll,
+ 	b[8] = (dsuScaler >> 8)   & 0xff; // MSB
+ 	b[9] =  dsuScaler         & 0xff; // LSB
+ 
+-	return dib0700_ctrl_wr(d, b, 10);
++	ret = dib0700_ctrl_wr(d, b, 10);
++
++	kfree(b);
++	return ret;
+ }
+ 
+ int dib0700_ctrl_clock(struct dvb_usb_device *d, u32 clk_MHz, u8 clock_out_gp3)
+@@ -361,11 +400,14 @@ int dib0700_download_firmware(struct usb_device *udev, const struct firmware *fw
+ {
+ 	struct hexline hx;
+ 	int pos = 0, ret, act_len, i, adap_num;
+-	u8 b[16];
++	u8 *b;
+ 	u32 fw_version;
+-
+ 	u8 buf[260];
+ 
++	b = kmalloc(16, GFP_KERNEL);
++	if (!b)
++		return -ENOMEM;
++
+ 	while ((ret = dvb_usb_get_hexline(fw, &hx, &pos)) > 0) {
+ 		deb_fwdata("writing to address 0x%08x (buffer: 0x%02x %02x)\n",
+ 				hx.addr, hx.len, hx.chk);
+@@ -386,7 +428,7 @@ int dib0700_download_firmware(struct usb_device *udev, const struct firmware *fw
+ 
+ 		if (ret < 0) {
+ 			err("firmware download failed at %d with %d",pos,ret);
+-			return ret;
++			goto out;
+ 		}
+ 	}
+ 
+@@ -407,7 +449,7 @@ int dib0700_download_firmware(struct usb_device *udev, const struct firmware *fw
+ 	usb_control_msg(udev, usb_rcvctrlpipe(udev, 0),
+ 				  REQUEST_GET_VERSION,
+ 				  USB_TYPE_VENDOR | USB_DIR_IN, 0, 0,
+-				  b, sizeof(b), USB_CTRL_GET_TIMEOUT);
++				  b, 16, USB_CTRL_GET_TIMEOUT);
+ 	fw_version = (b[8] << 24) | (b[9] << 16) | (b[10] << 8) | b[11];
+ 
+ 	/* set the buffer size - DVB-USB is allocating URB buffers
+@@ -426,16 +468,21 @@ int dib0700_download_firmware(struct usb_device *udev, const struct firmware *fw
+ 			}
+ 		}
+ 	}
+-
++out:
++	kfree(b);
+ 	return ret;
+ }
+ 
+ int dib0700_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
+ {
+ 	struct dib0700_state *st = adap->dev->priv;
+-	u8 b[4];
++	u8 *b;
+ 	int ret;
+ 
++	b = kmalloc(4, GFP_KERNEL);
++	if (!b)
++		return -ENOMEM;
++
+ 	if ((onoff != 0) && (st->fw_version >= 0x10201)) {
+ 		/* for firmware later than 1.20.1,
+ 		 * the USB xfer length can be set  */
+@@ -443,7 +490,7 @@ int dib0700_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
+ 			st->nb_packet_buffer_size);
+ 		if (ret < 0) {
+ 			deb_info("can not set the USB xfer len\n");
+-			return ret;
++			goto out;
+ 		}
+ 	}
+ 
+@@ -468,7 +515,10 @@ int dib0700_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
+ 
+ 	deb_info("data for streaming: %x %x\n", b[1], b[2]);
+ 
+-	return dib0700_ctrl_wr(adap->dev, b, 4);
++	ret = dib0700_ctrl_wr(adap->dev, b, 4);
++out:
++	kfree(b);
++	return ret;
+ }
+ 
+ int dib0700_change_protocol(struct rc_dev *rc, u64 rc_type)
+@@ -650,6 +700,7 @@ static int dib0700_probe(struct usb_interface *intf,
+ 		const struct usb_device_id *id)
+ {
+ 	int i;
++	int ret;
+ 	struct dvb_usb_device *dev;
+ 
+ 	for (i = 0; i < dib0700_device_count; i++)
+@@ -658,8 +709,10 @@ static int dib0700_probe(struct usb_interface *intf,
+ 			struct dib0700_state *st = dev->priv;
+ 			u32 hwversion, romversion, fw_version, fwtype;
+ 
+-			dib0700_get_version(dev, &hwversion, &romversion,
++			ret = dib0700_get_version(dev, &hwversion, &romversion,
+ 				&fw_version, &fwtype);
++			if (ret < 0)
++				goto out;
+ 
+ 			deb_info("Firmware version: %x, %d, 0x%x, %d\n",
+ 				hwversion, romversion, fw_version, fwtype);
+@@ -673,18 +726,36 @@ static int dib0700_probe(struct usb_interface *intf,
+ 			else
+ 				dev->props.rc.core.bulk_mode = false;
+ 
+-			dib0700_rc_setup(dev);
++			ret = dib0700_rc_setup(dev);
++			if (ret)
++				goto out;
++
++			st->buf = kmalloc(255, GFP_KERNEL);
++			if (!st->buf) {
++				ret = -ENOMEM;
++				goto out;
++			}
+ 
+ 			return 0;
++out:
++			dvb_usb_device_exit(intf);
++			return ret;
+ 		}
+ 
+ 	return -ENODEV;
+ }
+ 
++static void dib0700_disconnect(struct usb_interface *intf) {
++	struct dvb_usb_device *d = usb_get_intfdata(intf);
++	struct dib0700_state *st = d->priv;
++	kfree(st->buf);
++	dvb_usb_device_exit(intf);
++}
++
+ static struct usb_driver dib0700_driver = {
+ 	.name       = "dvb_usb_dib0700",
+ 	.probe      = dib0700_probe,
+-	.disconnect = dvb_usb_device_exit,
++	.disconnect = dib0700_disconnect,
+ 	.id_table   = dib0700_usb_id_table,
+ };
+ 
+-- 
+1.7.4.rc3
 
