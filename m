@@ -1,86 +1,53 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:62694 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751088Ab1CYPu2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Mar 2011 11:50:28 -0400
-Message-ID: <4D8CB9C0.1000005@redhat.com>
-Date: Fri, 25 Mar 2011 12:50:24 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46704 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751930Ab1CFLiX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Mar 2011 06:38:23 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [GIT PULL FOR 2.6.39] Media controller and OMAP3 ISP driver
+Date: Sun, 6 Mar 2011 12:38:42 +0100
+Cc: Sylwester Nawrocki <snjw23@gmail.com>,
+	David Cohen <dacohen@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	alsa-devel@alsa-project.org,
+	Sakari Ailus <sakari.ailus@retiisi.org.uk>,
+	Pawel Osciak <pawel@osciak.com>
+References: <201102171606.58540.laurent.pinchart@ideasonboard.com> <4D72C5F0.6090209@gmail.com> <4D736844.50703@redhat.com>
+In-Reply-To: <4D736844.50703@redhat.com>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL] HVR-900 R2 and PCTV 330e DVB support
-References: <AANLkTi=hppcpARY1DOOJwK7kyKPe+2Q415jt8dNh8Z=-@mail.gmail.com>
-In-Reply-To: <AANLkTi=hppcpARY1DOOJwK7kyKPe+2Q415jt8dNh8Z=-@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201103061238.42784.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Devin,
+Hi Mauro,
 
-Em 24-03-2011 14:05, Devin Heitmueller escreveu:
-> This patch series finally merges in Ralph Metzler's drx-d driver and
-> brings up the PCTV 330e and
-> HVR-900R2.  The patches have been tested for quite some time by users
-> on the Kernel Labs blog,
-> and they have been quite happy with them.
+On Sunday 06 March 2011 11:56:04 Mauro Carvalho Chehab wrote:
+> Em 05-03-2011 20:23, Sylwester Nawrocki escreveu:
+>
+> A somewhat unrelated question that occurred to me today: what happens when
+> a format change happens while streaming?
 > 
-> The firmware required can be found here:
-> 
-> http://kernellabs.com/firmware/drxd/
-> 
-> The following changes since commit 41f3becb7bef489f9e8c35284dd88a1ff59b190c:
-> 
->   [media] V4L DocBook: update V4L2 version (2011-03-11 18:09:02 -0300)
-> 
-> are available in the git repository at:
->   git://sol.kernellabs.com/dheitmueller/drx.git drxd
-> 
-> Devin Heitmueller (12):
->       drx: add initial drx-d driver
->       drxd: add driver to Makefile and Kconfig
->       drxd: provide ability to control rs byte
->       em28xx: enable support for the drx-d on the HVR-900 R2
->       drxd: provide ability to disable the i2c gate control function
->       em28xx: fix GPIO problem with HVR-900R2 getting out of sync with drx-d
->       em28xx: include model number for PCTV 330e
->       em28xx: add digital support for PCTV 330e
->       drxd: move firmware to binary blob
->       em28xx: remove "not validated" flag for PCTV 330e
->       em28xx: add remote control support for PCTV 330e
->       drxd: Run lindent across sources
+> Considering that some formats need more bits than others, this could lead
+> into buffer overflows, either internally at the device or externally, on
+> bridges that just forward whatever it receives to the DMA buffers (there
+> are some that just does that). I didn't see anything inside the mc code
+> preventing such condition to happen, and probably implementing it won't be
+> an easy job. So, one alternative would be to require some special CAPS if
+> userspace tries to set the mbus format directly, or to recommend userspace
+> to create media controller nodes with 0600 permission.
 
-Still lots of CodingStyle issues, but they could be easily cleaned by a few scripting.
-I've cleaned them and added at my experimental tree:
-	http://git.linuxtv.org/mchehab/experimental.git?a=shortlog;h=refs/heads/drxd
+That's not really a media controller issue. Whether formats can be changed 
+during streaming is a driver decision. The OMAP3 ISP driver won't allow 
+formats to be changed during streaming. If the hardware allows for such format 
+changes, drivers can implement support for that and make sure that no buffer 
+overflow will occur.
 
-It compiles fine, and I don't think that any of the changes would break DRX-D, but, in
-any case, it would be great if you could double check.
+-- 
+Regards,
 
-I noticed just one issue with the drxd driver: it is still using a semaphore instead
-of a mutex:
-
-+       struct semaphore mutex;
-...
-+static int HI_CfgCommand(struct drxd_state *state)
-+{
-+       int status = 0;
-+
-+       down(&state->mutex);
-
-It should be doing:
-
-	s/struct semaphore/struct mutex/
-	s/down/mutex_lock/
-	s/up/mutex_unlock/
-	s/sema_init/mutex_init/
-
-at the places it occur.
-
-I've added a patch for it at the end of the series.
-
-Could you please double check if everything is ok, for me to move this upstream?
-
-Thanks!
-Mauro
+Laurent Pinchart
