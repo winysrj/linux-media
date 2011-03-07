@@ -1,69 +1,158 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:49755 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:37000 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754669Ab1CHTXi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Mar 2011 14:23:38 -0500
+	with ESMTP id S1751044Ab1CGNpw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Mar 2011 08:45:52 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Andy Walls <awalls@md.metrocast.net>
-Subject: Re: Yet another memory provider: can linaro organize a meeting?
-Date: Tue, 8 Mar 2011 20:23:57 +0100
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linaro-dev@lists.linaro.org,
-	linux-media@vger.kernel.org, Jonghun Han <jonghun.han@samsung.com>
-References: <201103080913.59231.hverkuil@xs4all.nl> <201103081652.20561.laurent.pinchart@ideasonboard.com> <1299611565.24699.12.camel@morgan.silverblock.net>
-In-Reply-To: <1299611565.24699.12.camel@morgan.silverblock.net>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [GIT PULL FOR 2.6.39] Media controller and OMAP3 ISP driver
+Date: Mon, 7 Mar 2011 14:46:12 +0100
+Cc: Hans Verkuil <hansverk@cisco.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	David Cohen <dacohen@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	alsa-devel@alsa-project.org,
+	Sakari Ailus <sakari.ailus@retiisi.org.uk>,
+	Pawel Osciak <pawel@osciak.com>
+References: <201102171606.58540.laurent.pinchart@ideasonboard.com> <201103071302.49323.hansverk@cisco.com> <4D74D6E4.8080501@redhat.com>
+In-Reply-To: <4D74D6E4.8080501@redhat.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201103082023.58437.laurent.pinchart@ideasonboard.com>
+Message-Id: <201103071446.12960.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Andy,
+Hi Mauro,
 
-On Tuesday 08 March 2011 20:12:45 Andy Walls wrote:
-> On Tue, 2011-03-08 at 16:52 +0100, Laurent Pinchart wrote:
-> 
-> [snip]
-> 
-> > > > It really shouldn't be that hard to get everyone involved together
-> > > > and settle on a single solution (either based on an existing
-> > > > proposal or create a 'the best of' vendor-neutral solution).
-> > > 
-> > > "Single" might be making the problem impossibly hard to solve well.
-> > > One-size-fits-all solutions have a tendency to fall short on meeting
-> > > someone's critical requirement.  I will agree that "less than n", for
-> > > some small n, is certainly desirable.
-> > > 
-> > > The memory allocators and managers are ideally satisfying the
-> > > requirements imposed by device hardware, what userspace applications
-> > > are expected to do with the buffers, and system performance.  (And
-> > > maybe the platform architecture, I/O bus, and dedicated video memory?)
+On Monday 07 March 2011 14:00:20 Mauro Carvalho Chehab wrote:
+> Em 07-03-2011 09:02, Hans Verkuil escreveu:
+> > On Monday, March 07, 2011 12:50:28 Mauro Carvalho Chehab wrote:
+> >> Em 06-03-2011 14:21, Laurent Pinchart escreveu:
+> >> > On Sunday 06 March 2011 14:32:44 Mauro Carvalho Chehab wrote:
+> >> >> Em 06-03-2011 08:38, Laurent Pinchart escreveu:
+> >> >>> On Sunday 06 March 2011 11:56:04 Mauro Carvalho Chehab wrote:
+> >> >>>> Em 05-03-2011 20:23, Sylwester Nawrocki escreveu:
+> >> >>>> 
+> >> >>>> A somewhat unrelated question that occurred to me today: what
+> >> >>>> happens when a format change happens while streaming?
+> >> >>>> 
+> >> >>>> Considering that some formats need more bits than others, this could
+> >> >>>> lead into buffer overflows, either internally at the device or
+> >> >>>> externally, on bridges that just forward whatever it receives to the
+> >> >>>> DMA buffers (there are some that just does that). I didn't see
+> >> >>>> anything inside the mc code preventing such condition to happen, and
+> >> >>>> probably implementing it won't be an easy job. So, one alternative
+> >> >>>> would be to require some special CAPS if userspace tries to set the
+> >> >>>> mbus format directly, or to recommend userspace to create media
+> >> >>>> controller nodes with 0600 permission.
+> >> >>> 
+> >> >>> That's not really a media controller issue. Whether formats can be
+> >> >>> changed during streaming is a driver decision. The OMAP3 ISP driver
+> >> >>> won't allow formats to be changed during streaming. If the hardware
+> >> >>> allows for such format changes, drivers can implement support for
+> >> >>> that and make sure that no buffer overflow will occur.
+> >> >> 
+> >> >> Such issues is caused by having two API's that allow format changes,
+> >> >> one that does it device-based, and another one doing it subdev-based.
+> >> >> 
+> >> >> Ok, drivers can implementing locks to prevent such troubles, but,
+> >> >> without the core providing a reliable mechanism, it is hard to
+> >> >> implement a correct lock.
+> >> >> 
+> >> >> For example, let's suppose that some driver is using mt9m111 subdev
+> >> >> (I just picked one random sensor that supports lots of MBUS formats).
+> >> >> There's nothing there preventing a subdev call for it to change mbus
+> >> >> format while streaming. Worse than that, the sensor driver has no way
+> >> >> to block it, as it doesn't know that the bridge driver is streaming or
+> >> >> not.
+> >> >> 
+> >> >> The code at subdev_do_ioctl() is just:
+> >> >> 
+> >> >> case VIDIOC_SUBDEV_S_FMT: {
+> >> >> struct v4l2_subdev_format *format = arg;
+> >> >> 
+> >> >> if (format->which != V4L2_SUBDEV_FORMAT_TRY &&
+> >> >> format->which != V4L2_SUBDEV_FORMAT_ACTIVE)
+> >> >> return -EINVAL;
+> >> >> 
+> >> >> if (format->pad >= sd->entity.num_pads)
+> >> >> return -EINVAL;
+> >> >> 
+> >> >> return v4l2_subdev_call(sd, pad, set_fmt, subdev_fh, format);
+> >> >> }
+> >> >> 
+> >> >> So, mc core won't be preventing it.
+> >> >> 
+> >> >> So, I can't see how such subdev request would be implementing a logic
+> >> >> to return -EBUSY on those cases.
+> >> > 
+> >> > Drivers can use the media_device graph_mutex to serialize format and
+> >> > stream management calls. A finer grain locking mechanism implemented in
+> >> > the core might be better, but we're not stuck without a solution at the
+> >> > moment.
 > > 
-> > In the embedded world, a very common use case is to capture video data
-> > from an ISP (V4L2+MC), process it in a DSP (V4L2+M2M, tidspbridge, ...)
-> > and display it on the GPU (OpenGL/ES). We need to be able to share a
-> > data buffer between the ISP and the DSP, and another buffer between the
-> > DSP and the GPU. If processing is not required, sharing a data buffer
-> > between the ISP and the GPU is required. Achieving zero-copy requires a
-> > single memory management solution used by the ISP, the DSP and the GPU.
+> > Am I missing something here? Isn't it as simple as remembering whether
+> > the subdev is in streaming mode (s_stream(1) was called) or not? When
+> > streaming any attempt to change the format should return an error (unless
+> > the hardware can handle it, of course).
+> > 
+> > This is the same as for the 'regular' V4L2 API.
 > 
-> Ah.  I guess I misunderstood what was meant by "memory provider" to some
-> extent.
+> Not all subdevs implement s_stream, and I suspect that not all bridge
+> drivers calls it. The random example I've looked didn't implement
+> (mt9m111.c), but even some that implements it (like mt9m001.c) currently
+> don't store the stream status or use it to prevent a format change.
+
+Those drivers don't implement subdev pad-level operations, so they won't work 
+with the media controller anyway. They will need to be fixed, and locking can 
+then be implemented.
+
+> At the moment we open the possibility to directly access the subdev,
+> developers might think that all they need to use the new API is to enable
+> the subdev to create subdev nodes (btw, the first mc patch series were
+> enabling it by default). However, opening subdev access without address
+> such issues will lead into a security breach, as buffer overflows will
+> happen if hardware can't handle format changes in the middle of a
+> streaming [1].
 > 
-> So what I read is a common way of providing in kernel persistent buffers
-> (buffer objects? buffer entities?) for drivers and userspace
-> applications to pass around by reference (no copies).  Userspace may or
-> may not want to see the contents of the buffer objects.
+> Also, a lock there will only work if properly implemented at the bridge
+> driver, as a bridge driver that implement the media controller should
+> implement something like the following sequence (at VIDIOC_REQBUFS):
+> 
+> 	lock_format_changes_at_subdev();			/* step 1 */
+> 	get_subdev_formats();					/* step 2 */
+> 	program_bridge_to follow_subdev_format_and_s_fmt();	/* step 3 */
+> 	reserve_memory();					/* step 4 */
+> 	start_streaming();					/* step 5 */
+> 
+> 
+> In the above, s_stream should be called at the step 1, and not at step 5,
+> as, otherwise, a race condition will happen, if a MBUS format change
+> happens between step 1 and 5.
 
-Exactly. How that memory is allocated in irrelevant here, and we can have 
-several different allocators as long as the buffer objects can be managed 
-through a single API. That API will probably have to expose buffer properties 
-related to allocation, in order for all components in the system to verify 
-that the buffers are suitable for their needs, but the allocation process 
-itself is irrelevant.
+s_stream should be called at step 5, but media_entity_pipeline_start() should 
+be called at step 1. Subdev drivers can then check the media_entity 
+stream_count field (protected by the media_device graph_mutex lock) and refuse 
+to change formats if the stream count is > 0. This is explained in 
+Documentation/media-framework.txt, and the OMAP3 ISP driver implements this.
 
-> So I understand now why a single solution is desirable.
+Sensor drivers will obviously need to be fixed, but that's not a real issue as 
+they won't work with the OMAP3 ISP as-is anyway.
+
+> [1] Btw, is there any hardware that supports a random change at the input
+> format provided by a subdevice without any need of reconfiguring anything,
+> and keeping providing the same output format? It seems doubtful for me, as
+> hardware would need to have a format auto-detection logic, and some
+> changes are impossible to track (for example, changing chroma order from
+> YUYV to YVYU or from RGB to BGR can't be auto-detected). Perhaps the
+> better would be to just block such changes while streaming.
+
+I think it makes sense to just prevent those changes, especially as we have no 
+real use case for such dynamic reconfiguration. Let's not try to over-engineer 
+a solution that nobody will use.
 
 -- 
 Regards,
