@@ -1,59 +1,56 @@
 Return-path: <mchehab@pedra>
-Received: from ist.d-labs.de ([213.239.218.44]:47648 "EHLO mx01.d-labs.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755752Ab1COIx2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Mar 2011 04:53:28 -0400
-From: Florian Mickler <florian@mickler.org>
-To: mchehab@infradead.org
-Cc: oliver@neukum.org, jwjstone@fastmail.fm,
-	Florian Mickler <florian@mickler.org>,
-	linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, Malcolm Priestley <tvboxspy@gmail.com>
-Subject: [PATCH 11/16] [media] lmedm04: correct indentation
-Date: Tue, 15 Mar 2011 09:43:43 +0100
-Message-Id: <1300178655-24832-11-git-send-email-florian@mickler.org>
-In-Reply-To: <1300178655-24832-1-git-send-email-florian@mickler.org>
-References: <20110315093632.5fc9fb77@schatten.dmk.lab>
- <1300178655-24832-1-git-send-email-florian@mickler.org>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:62186 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753551Ab1CGTBB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Mar 2011 14:01:01 -0500
+Received: by ywj3 with SMTP id 3so1712762ywj.19
+        for <linux-media@vger.kernel.org>; Mon, 07 Mar 2011 11:01:00 -0800 (PST)
+MIME-Version: 1.0
+Date: Mon, 7 Mar 2011 13:01:00 -0600
+Message-ID: <AANLkTikJPTMGirPOVmcH-Wit-0B8BC8cqEbCMj=nLc+b@mail.gmail.com>
+Subject: Compiling v4l fatal error: linux/ti_wilink_st.h: No such file or directory
+From: Me <mapsmehere@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This should not change anything except whitespace.
+ I had MythTV .23 up and running fine on Mythbuntu 10.10 and then
+hosed it.  I reinstalled it, and since then I can't get the drivers
+for my Haupphauge 2250 to compile on kernel 2.6.35-22-generic.  When I
+figured it out last time I put it in a text file.  Heres what I have
+done.  I have since updated to MythTV .24 and the problem persists.
 
-Signed-off-by: Florian Mickler <florian@mickler.org>
----
- drivers/media/dvb/dvb-usb/lmedm04.c |   16 ++++++++--------
- 1 files changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/dvb/dvb-usb/lmedm04.c b/drivers/media/dvb/dvb-usb/lmedm04.c
-index 9eea418..0a3e88f 100644
---- a/drivers/media/dvb/dvb-usb/lmedm04.c
-+++ b/drivers/media/dvb/dvb-usb/lmedm04.c
-@@ -626,15 +626,15 @@ static int lme2510_download_firmware(struct usb_device *dev,
- 				data[0] = i | 0x80;
- 				dlen = (u8)(end - j)-1;
- 			}
--		data[1] = dlen;
--		memcpy(&data[2], fw_data, dlen+1);
--		wlen = (u8) dlen + 4;
--		data[wlen-1] = check_sum(fw_data, dlen+1);
--		deb_info(1, "Data S=%02x:E=%02x CS= %02x", data[3],
-+			data[1] = dlen;
-+			memcpy(&data[2], fw_data, dlen+1);
-+			wlen = (u8) dlen + 4;
-+			data[wlen-1] = check_sum(fw_data, dlen+1);
-+			deb_info(1, "Data S=%02x:E=%02x CS= %02x", data[3],
- 				data[dlen+2], data[dlen+3]);
--		ret |= lme2510_bulk_write(dev, data,  wlen, 1);
--		ret |= lme2510_bulk_read(dev, data, len_in , 1);
--		ret |= (data[0] == 0x88) ? 0 : -1;
-+			ret |= lme2510_bulk_write(dev, data,  wlen, 1);
-+			ret |= lme2510_bulk_read(dev, data, len_in , 1);
-+			ret |= (data[0] == 0x88) ? 0 : -1;
- 		}
- 	}
- 
--- 
-1.7.4.rc3
+wget http://www.steventoth.net/linux/hvr22xx/22xxdrv_27086.zip
+wget http://www.steventoth.net/linux/hvr22xx/HVR-12x0-14x0-17x0_1_25_25271_WHQL.zip
+wget http://www.steventoth.net/linux/hvr22xx/extract.sh
+sh extract.sh
+sudo cp *fw /lib/firmware
 
+git clone git://linuxtv.org/media_build.git
+cd media_build
+./build.sh
+sudo make install
+
+The first time it breaks, this is expected.  I edit v4l/.config and
+change CONFIG_DVB_FIREDTV=m to CONFIG_DVB_FIREDTV=n
+
+I compile again, and it should work.  But it breaks.  Heres the message I get.
+
+make[2]: Leaving directory `/path/media_build/linux'
+make -C /lib/modules/2.6.35-22-generic/build
+SUBDIRS=/path/media_build/v4l  modules
+make[2]: Entering directory `/usr/src/linux-headers-2.6.35-22-generic'
+ CC [M]  /path/media_build/v4l/fmdrv_common.o
+/path/media_build/v4l/fmdrv_common.c:41: fatal error:
+linux/ti_wilink_st.h: No such file or directory
+compilation terminated.
+make[3]: *** [/path/media_build/v4l/fmdrv_common.o] Error 1
+make[2]: *** [_module_/path/media_build/v4l] Error 2
+make[2]: Leaving directory `/usr/src/linux-headers-2.6.35-22-generic'
+make[1]: *** [default] Error 2
+make[1]: Leaving directory `/path/media_build/v4l'
+make: *** [all] Error 2
+
+Why does it break?  Thanks.
