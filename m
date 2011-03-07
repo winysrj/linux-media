@@ -1,251 +1,64 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.128.24]:49262 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752893Ab1CAIBa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Mar 2011 03:01:30 -0500
-From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-To: alsa-devel@alsa-project.org, broonie@opensource.wolfsonmicro.com,
-	lrg@slimlogic.co.uk, mchehab@redhat.com, hverkuil@xs4all.nl,
-	sameo@linux.intel.com, linux-media@vger.kernel.org
-Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Subject: [PATCH v21 1/3] MFD: WL1273 FM Radio: MFD driver for the FM radio.
-Date: Tue,  1 Mar 2011 10:00:48 +0200
-Message-Id: <1298966450-31814-2-git-send-email-matti.j.aaltonen@nokia.com>
-In-Reply-To: <1298966450-31814-1-git-send-email-matti.j.aaltonen@nokia.com>
-References: <1298966450-31814-1-git-send-email-matti.j.aaltonen@nokia.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42565 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752008Ab1CGVTs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Mar 2011 16:19:48 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: David Cohen <dacohen@gmail.com>
+Subject: Re: [PATCH] omap: iommu: disallow mapping NULL address
+Date: Mon, 7 Mar 2011 22:19:32 +0100
+Cc: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>,
+	Hiroshi.DOYU@nokia.com,
+	Michael Jones <michael.jones@matrix-vision.de>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-omap@vger.kernel.org
+References: <4D6D219D.7020605@matrix-vision.de> <AANLkTi=KncNfW0NEEoV+mrT_Ft2j-c=rQG=qbeR6tLQK@mail.gmail.com> <AANLkTimac512Gu0_vyPjThvNxXHsXTRD73B0d1bHnnAg@mail.gmail.com>
+In-Reply-To: <AANLkTimac512Gu0_vyPjThvNxXHsXTRD73B0d1bHnnAg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201103072219.32938.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This is the core of the WL1273 FM radio driver, it connects
-the two child modules. The two child drivers are
-drivers/media/radio/radio-wl1273.c and sound/soc/codecs/wl1273.c.
+Hi David,
 
-The radio-wl1273 driver implements the V4L2 interface and communicates
-with the device. The ALSA codec offers digital audio, without it only
-analog audio is available.
+On Monday 07 March 2011 20:41:21 David Cohen wrote:
+> On Mon, Mar 7, 2011 at 9:25 PM, Guzman Lugo, Fernando wrote:
+> > On Mon, Mar 7, 2011 at 1:19 PM, David Cohen wrote:
+> >> On Mon, Mar 7, 2011 at 9:17 PM, Guzman Lugo, Fernando wrote:
+> >>> On Mon, Mar 7, 2011 at 7:10 AM, Michael Jones wrote:
+> >>>> From e7dbe4c4b64eb114f9b0804d6af3a3ca0e78acc8 Mon Sep 17 00:00:00 2001
+> >>>> From: Michael Jones <michael.jones@matrix-vision.de>
+> >>>> Date: Mon, 7 Mar 2011 13:36:15 +0100
+> >>>> Subject: [PATCH] omap: iommu: disallow mapping NULL address
+> >>>> 
+> >>>> commit c7f4ab26e3bcdaeb3e19ec658e3ad9092f1a6ceb allowed mapping
+> >>>> the NULL address if da_start==0.  Force da_start to exclude the
+> >>>> first page.
+> >>> 
+> >>> what about devices that uses page 0? ipu after reset always starts
+> >>> from 0x00000000 how could we map that address??
+> >> 
+> >> from 0x0? The driver sees da == 0 as error. May I ask you why do you
+> >> want it?
+> > 
+> > unlike DSP that you can load a register with the addres the DSP will
+> > boot, IPU core always starts from address 0x00000000, so if you take
+> > IPU out of reset it will try to access address 0x0 if not map it,
+> > there will be a mmu fault.
+> 
+> Hm. Looks like the iommu should not restrict any da. The valid da
+> range should rely only on pdata.
+> Michael, what about just update ISP's da_start on omap-iommu.c file?
+> Set it to 0x1000.
 
-Signed-off-by: Matti J. Aaltonen <matti.j.aaltonen@nokia.com>
----
- drivers/mfd/Kconfig             |    2 +-
- drivers/mfd/wl1273-core.c       |  149 ++++++++++++++++++++++++++++++++++++++-
- include/linux/mfd/wl1273-core.h |    2 +
- 3 files changed, 149 insertions(+), 4 deletions(-)
+What about patching the OMAP3 ISP driver to use a non-zero value (maybe -1) as 
+an invalid/freed pointer ?
 
-diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-index fd01836..9db079b 100644
---- a/drivers/mfd/Kconfig
-+++ b/drivers/mfd/Kconfig
-@@ -615,7 +615,7 @@ config MFD_VX855
- 	  and/or vx855_gpio drivers for this to do anything useful.
- 
- config MFD_WL1273_CORE
--	tristate
-+	tristate "Support for TI WL1273 FM radio."
- 	depends on I2C
- 	select MFD_CORE
- 	default n
-diff --git a/drivers/mfd/wl1273-core.c b/drivers/mfd/wl1273-core.c
-index d2ecc24..4025a4b 100644
---- a/drivers/mfd/wl1273-core.c
-+++ b/drivers/mfd/wl1273-core.c
-@@ -1,7 +1,7 @@
- /*
-  * MFD driver for wl1273 FM radio and audio codec submodules.
-  *
-- * Copyright (C) 2010 Nokia Corporation
-+ * Copyright (C) 2011 Nokia Corporation
-  * Author: Matti Aaltonen <matti.j.aaltonen@nokia.com>
-  *
-  * This program is free software; you can redistribute it and/or modify
-@@ -31,6 +31,145 @@ static struct i2c_device_id wl1273_driver_id_table[] = {
- };
- MODULE_DEVICE_TABLE(i2c, wl1273_driver_id_table);
- 
-+static int wl1273_fm_read_reg(struct wl1273_core *core, u8 reg, u16 *value)
-+{
-+	struct i2c_client *client = core->client;
-+	u8 b[2];
-+	int r;
-+
-+	r = i2c_smbus_read_i2c_block_data(client, reg, sizeof(b), b);
-+	if (r != 2) {
-+		dev_err(&client->dev, "%s: Read: %d fails.\n", __func__, reg);
-+		return -EREMOTEIO;
-+	}
-+
-+	*value = (u16)b[0] << 8 | b[1];
-+
-+	return 0;
-+}
-+
-+static int wl1273_fm_write_cmd(struct wl1273_core *core, u8 cmd, u16 param)
-+{
-+	struct i2c_client *client = core->client;
-+	u8 buf[] = { (param >> 8) & 0xff, param & 0xff };
-+	int r;
-+
-+	r = i2c_smbus_write_i2c_block_data(client, cmd, sizeof(buf), buf);
-+	if (r) {
-+		dev_err(&client->dev, "%s: Cmd: %d fails.\n", __func__, cmd);
-+		return r;
-+	}
-+
-+	return 0;
-+}
-+
-+static int wl1273_fm_write_data(struct wl1273_core *core, u8 *data, u16 len)
-+{
-+	struct i2c_client *client = core->client;
-+	struct i2c_msg msg;
-+	int r;
-+
-+	msg.addr = client->addr;
-+	msg.flags = 0;
-+	msg.buf = data;
-+	msg.len = len;
-+
-+	r = i2c_transfer(client->adapter, &msg, 1);
-+	if (r != 1) {
-+		dev_err(&client->dev, "%s: write error.\n", __func__);
-+		return -EREMOTEIO;
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-+ * wl1273_fm_set_audio() -	Set audio mode.
-+ * @core:			A pointer to the device struct.
-+ * @new_mode:			The new audio mode.
-+ *
-+ * Audio modes are WL1273_AUDIO_DIGITAL and WL1273_AUDIO_ANALOG.
-+ */
-+static int wl1273_fm_set_audio(struct wl1273_core *core, unsigned int new_mode)
-+{
-+	int r = 0;
-+
-+	if (core->mode == WL1273_MODE_OFF ||
-+	    core->mode == WL1273_MODE_SUSPENDED)
-+		return -EPERM;
-+
-+	if (core->mode == WL1273_MODE_RX && new_mode == WL1273_AUDIO_DIGITAL) {
-+		r = wl1273_fm_write_cmd(core, WL1273_PCM_MODE_SET,
-+					WL1273_PCM_DEF_MODE);
-+		if (r)
-+			goto out;
-+
-+		r = wl1273_fm_write_cmd(core, WL1273_I2S_MODE_CONFIG_SET,
-+					core->i2s_mode);
-+		if (r)
-+			goto out;
-+
-+		r = wl1273_fm_write_cmd(core, WL1273_AUDIO_ENABLE,
-+					WL1273_AUDIO_ENABLE_I2S);
-+		if (r)
-+			goto out;
-+
-+	} else if (core->mode == WL1273_MODE_RX &&
-+		   new_mode == WL1273_AUDIO_ANALOG) {
-+		r = wl1273_fm_write_cmd(core, WL1273_AUDIO_ENABLE,
-+					WL1273_AUDIO_ENABLE_ANALOG);
-+		if (r)
-+			goto out;
-+
-+	} else if (core->mode == WL1273_MODE_TX &&
-+		   new_mode == WL1273_AUDIO_DIGITAL) {
-+		r = wl1273_fm_write_cmd(core, WL1273_I2S_MODE_CONFIG_SET,
-+					core->i2s_mode);
-+		if (r)
-+			goto out;
-+
-+		r = wl1273_fm_write_cmd(core, WL1273_AUDIO_IO_SET,
-+					WL1273_AUDIO_IO_SET_I2S);
-+		if (r)
-+			goto out;
-+
-+	} else if (core->mode == WL1273_MODE_TX &&
-+		   new_mode == WL1273_AUDIO_ANALOG) {
-+		r = wl1273_fm_write_cmd(core, WL1273_AUDIO_IO_SET,
-+					WL1273_AUDIO_IO_SET_ANALOG);
-+		if (r)
-+			goto out;
-+	}
-+
-+	core->audio_mode = new_mode;
-+out:
-+	return r;
-+}
-+
-+/**
-+ * wl1273_fm_set_volume() -	Set volume.
-+ * @core:			A pointer to the device struct.
-+ * @volume:			The new volume value.
-+ */
-+static int wl1273_fm_set_volume(struct wl1273_core *core, unsigned int volume)
-+{
-+	u16 val;
-+	int r;
-+
-+	if (volume > WL1273_MAX_VOLUME)
-+		return -EINVAL;
-+
-+	if (core->volume == volume)
-+		return 0;
-+
-+	r = wl1273_fm_write_cmd(core, WL1273_VOLUME_SET, volume);
-+	if (r)
-+		return r;
-+
-+	core->volume = volume;
-+	return 0;
-+}
-+
- static int wl1273_core_remove(struct i2c_client *client)
- {
- 	struct wl1273_core *core = i2c_get_clientdata(client);
-@@ -38,7 +177,6 @@ static int wl1273_core_remove(struct i2c_client *client)
- 	dev_dbg(&client->dev, "%s\n", __func__);
- 
- 	mfd_remove_devices(&client->dev);
--	i2c_set_clientdata(client, NULL);
- 	kfree(core);
- 
- 	return 0;
-@@ -83,6 +221,12 @@ static int __devinit wl1273_core_probe(struct i2c_client *client,
- 	cell->data_size = sizeof(core);
- 	children++;
- 
-+	core->read = wl1273_fm_read_reg;
-+	core->write = wl1273_fm_write_cmd;
-+	core->write_data = wl1273_fm_write_data;
-+	core->set_audio = wl1273_fm_set_audio;
-+	core->set_volume = wl1273_fm_set_volume;
-+
- 	if (pdata->children & WL1273_CODEC_CHILD) {
- 		cell = &core->cells[children];
- 
-@@ -104,7 +248,6 @@ static int __devinit wl1273_core_probe(struct i2c_client *client,
- 	return 0;
- 
- err:
--	i2c_set_clientdata(client, NULL);
- 	pdata->free_resources();
- 	kfree(core);
- 
-diff --git a/include/linux/mfd/wl1273-core.h b/include/linux/mfd/wl1273-core.h
-index 9787293..db2f3f4 100644
---- a/include/linux/mfd/wl1273-core.h
-+++ b/include/linux/mfd/wl1273-core.h
-@@ -280,7 +280,9 @@ struct wl1273_core {
- 
- 	struct i2c_client *client;
- 
-+	int (*read)(struct wl1273_core *core, u8, u16 *);
- 	int (*write)(struct wl1273_core *core, u8, u16);
-+	int (*write_data)(struct wl1273_core *core, u8 *, u16);
- 	int (*set_audio)(struct wl1273_core *core, unsigned int);
- 	int (*set_volume)(struct wl1273_core *core, unsigned int);
- };
 -- 
-1.6.1.3
+Regards,
 
+Laurent Pinchart
