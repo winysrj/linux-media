@@ -1,50 +1,110 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:57285 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753301Ab1CKVwN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Mar 2011 16:52:13 -0500
-Received: by fxm17 with SMTP id 17so1426248fxm.19
-        for <linux-media@vger.kernel.org>; Fri, 11 Mar 2011 13:52:12 -0800 (PST)
-Message-ID: <4D7A97BB.4020704@gmail.com>
-Date: Fri, 11 Mar 2011 22:44:27 +0100
-From: Martin Vidovic <xtronom@gmail.com>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:45659 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755302Ab1CGTZ6 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Mar 2011 14:25:58 -0500
 MIME-Version: 1.0
-To: obi@linuxtv.org
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] Ngene cam device name
-References: <alpine.LNX.2.00.1103101608030.9782@hp8540w.home> <4D7A452C.7020700@linuxtv.org>
-In-Reply-To: <4D7A452C.7020700@linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <AANLkTikzAjUrec+c6zcSCx6auaR9QvbWwwTbXpGYuOoZ@mail.gmail.com>
+References: <4D6D219D.7020605@matrix-vision.de>
+	<201103022018.23446.laurent.pinchart@ideasonboard.com>
+	<4D6FBC7F.1080500@matrix-vision.de>
+	<AANLkTikAKy=CzTqEv-UGBQ1EavqmCStPNFZ5vs7vH5VK@mail.gmail.com>
+	<4D70F985.8030902@matrix-vision.de>
+	<AANLkTinSJpjPXWHWduLbRSmb=La3sv82ufwgsq-uR7S2@mail.gmail.com>
+	<AANLkTi=8Sss-5xfgPmgx=J_T__=hrC1rQU-xBOdKC8Ve@mail.gmail.com>
+	<4D74D94F.7040702@matrix-vision.de>
+	<AANLkTikokA2hGMYA3vfBOxa0jPr0tjbLfYW603+zicry@mail.gmail.com>
+	<AANLkTikzAjUrec+c6zcSCx6auaR9QvbWwwTbXpGYuOoZ@mail.gmail.com>
+Date: Mon, 7 Mar 2011 13:25:57 -0600
+Message-ID: <AANLkTi=KncNfW0NEEoV+mrT_Ft2j-c=rQG=qbeR6tLQK@mail.gmail.com>
+Subject: Re: [PATCH] omap: iommu: disallow mapping NULL address
+From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+To: David Cohen <dacohen@gmail.com>
+Cc: Michael Jones <michael.jones@matrix-vision.de>,
+	Hiroshi.DOYU@nokia.com,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Andreas Oberritter wrote:
-> On 03/10/2011 04:29 PM, Issa Gorissen wrote:
->   
->> As the cxd20099 driver is in staging due to abuse of the sec0 device, this
->> patch renames it to cam0. The sec0 device is not in use and can be removed
->>     
+On Mon, Mar 7, 2011 at 1:19 PM, David Cohen <dacohen@gmail.com> wrote:
+> On Mon, Mar 7, 2011 at 9:17 PM, Guzman Lugo, Fernando
+> <fernando.lugo@ti.com> wrote:
+>> On Mon, Mar 7, 2011 at 7:10 AM, Michael Jones
+>> <michael.jones@matrix-vision.de> wrote:
+>>> From e7dbe4c4b64eb114f9b0804d6af3a3ca0e78acc8 Mon Sep 17 00:00:00 2001
+>>> From: Michael Jones <michael.jones@matrix-vision.de>
+>>> Date: Mon, 7 Mar 2011 13:36:15 +0100
+>>> Subject: [PATCH] omap: iommu: disallow mapping NULL address
+>>>
+>>> commit c7f4ab26e3bcdaeb3e19ec658e3ad9092f1a6ceb allowed mapping
+>>> the NULL address if da_start==0.  Force da_start to exclude the
+>>> first page.
+>>
+>> what about devices that uses page 0? ipu after reset always starts
+>> from 0x00000000 how could we map that address??
 >
-> That doesn't solve anything. Besides, your patch doesn't even do what
-> you describe.
->
-> Wouldn't it be possible to extend the current CA API? If not, shouldn't
-> a new API be created that covers both old and new requirements?
->
-> It's rather unintuitive that some CAMs appear as ca0, while others as cam0.
->   
-Ngene CI appears as both ca0 and cam0 (or sec0). The ca0 node is used
-as usual, to setup the CAM. The cam0 (or sec0) node is used to read/write
-transport stream. To me it  looks like an extension of the current API.
+> from 0x0? The driver sees da == 0 as error. May I ask you why do you want it?
 
-The sec name needs changing obviously, but there seem to be some other
-problems too.
-> If it was that easy to fix, it wouldn't be in staging today.
->
-> Regards,
-> Andreas
->   
+unlike DSP that you can load a register with the addres the DSP will
+boot, IPU core always starts from address 0x00000000, so if you take
+IPU out of reset it will try to access address 0x0 if not map it,
+there will be a mmu fault.
+
 Regards,
-Martin
+Fernando.
+
+>
+> Br,
+>
+> David
+>
+>>
+>> Regards,
+>> Fernando.
+>>
+>>>
+>>> Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
+>>> ---
+>>>  arch/arm/plat-omap/iommu.c |    6 ++++--
+>>>  1 files changed, 4 insertions(+), 2 deletions(-)
+>>>
+>>> diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
+>>> index 5990ea6..dcb5513 100644
+>>> --- a/arch/arm/plat-omap/iommu.c
+>>> +++ b/arch/arm/plat-omap/iommu.c
+>>> @@ -850,7 +850,7 @@ int iommu_set_da_range(struct iommu *obj, u32 start, u32 end)
+>>>        if (end < start || !PAGE_ALIGN(start | end))
+>>>                return -EINVAL;
+>>>
+>>> -       obj->da_start = start;
+>>> +       obj->da_start = max(start, (u32)PAGE_SIZE);
+>>>        obj->da_end = end;
+>>>
+>>>        return 0;
+>>> @@ -950,7 +950,9 @@ static int __devinit omap_iommu_probe(struct platform_device *pdev)
+>>>        obj->name = pdata->name;
+>>>        obj->dev = &pdev->dev;
+>>>        obj->ctx = (void *)obj + sizeof(*obj);
+>>> -       obj->da_start = pdata->da_start;
+>>> +
+>>> +       /* reserve the first page for NULL */
+>>> +       obj->da_start = max(pdata->da_start, (u32)PAGE_SIZE);
+>>>        obj->da_end = pdata->da_end;
+>>>
+>>>        mutex_init(&obj->iommu_lock);
+>>> --
+>>> 1.7.4.1
+>>>
+>>>
+>>> MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+>>> Registergericht: Amtsgericht Stuttgart, HRB 271090
+>>> Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
+>>>
+>>
+>
