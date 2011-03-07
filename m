@@ -1,411 +1,68 @@
 Return-path: <mchehab@pedra>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:22671 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757557Ab1CaNQ1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Mar 2011 09:16:27 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Thu, 31 Mar 2011 15:16:05 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 09/12] mm: MIGRATE_CMA support added to CMA
-In-reply-to: <1301577368-16095-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-mm@kvack.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
-	Mel Gorman <mel@csn.ul.ie>, Pawel Osciak <pawel@osciak.com>
-Message-id: <1301577368-16095-10-git-send-email-m.szyprowski@samsung.com>
-References: <1301577368-16095-1-git-send-email-m.szyprowski@samsung.com>
+Received: from stevekez.vm.bytemark.co.uk ([80.68.91.30]:40044 "EHLO
+	stevekerrison.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755477Ab1CGJwD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Mar 2011 04:52:03 -0500
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by stevekerrison.com (Postfix) with ESMTP id 0183B162F4
+	for <linux-media@vger.kernel.org>; Mon,  7 Mar 2011 09:52:02 +0000 (GMT)
+Received: from stevekerrison.com ([127.0.0.1])
+	by localhost (stevekez.vm.bytemark.co.uk [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id kS0oNjcm0qJZ for <linux-media@vger.kernel.org>;
+	Mon,  7 Mar 2011 09:52:00 +0000 (GMT)
+Received: from [10.0.96.131] (unknown [195.26.247.141])
+	(Authenticated sender: steve@stevekerrison.com)
+	by stevekerrison.com (Postfix) with ESMTPSA id 6B058162B8
+	for <linux-media@vger.kernel.org>; Mon,  7 Mar 2011 09:52:00 +0000 (GMT)
+Subject: i2c_gate_ctrl question
+From: Steve Kerrison <steve@stevekerrison.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 07 Mar 2011 09:52:00 +0000
+Message-ID: <1299491520.2189.10.camel@ares>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Hi media men & women,
 
-This commit adds MIGRATE_CMA migratetype support to the CMA.
-The advantage is that an (almost) arbitrary memory range can
-be marked as MIGRATE_CMA which may not be the case with
-ZONE_MOVABLE.
+I have a question regarding the cxd2820r I'm working on with a couple of
+other people.
 
-Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-CC: Michal Nazarewicz <mina86@mina86.com>
----
- include/linux/cma.h |   58 +++++++++++++++---
- mm/cma.c            |  167 ++++++++++++++++++++++++++++++++++++++++++++------
- 2 files changed, 197 insertions(+), 28 deletions(-)
+In my naivety I implemented i2c gate control for the device (to access
+the tuner behind it) as a separate i2c device that did the passthrough.
+Now that I realise this, it would make sense to use the gate_ctrl
+features.
 
-diff --git a/include/linux/cma.h b/include/linux/cma.h
-index e9575fd..8952531 100644
---- a/include/linux/cma.h
-+++ b/include/linux/cma.h
-@@ -71,9 +71,14 @@
-  *   a platform/machine specific function.  For the former CMA
-  *   provides the following functions:
-  *
-+ *     cma_init_migratetype()
-  *     cma_reserve()
-  *     cma_create()
-  *
-+ *   The first one initialises a portion of reserved memory so that it
-+ *   can be used with CMA.  The second first tries to reserve memory
-+ *   (using memblock) and then initialise it.
-+ *
-  *   The cma_reserve() function must be called when memblock is still
-  *   operational and reserving memory with it is still possible.  On
-  *   ARM platform the "reserve" machine callback is a perfect place to
-@@ -93,21 +98,56 @@ struct cma;
- /* Contiguous Memory chunk */
- struct cm;
- 
-+#ifdef CONFIG_MIGRATE_CMA
-+
-+/**
-+ * cma_init_migratetype() - initialises range of physical memory to be used
-+ *		with CMA context.
-+ * @start:	start address of the memory range in bytes.
-+ * @size:	size of the memory range in bytes.
-+ *
-+ * The range must be MAX_ORDER_NR_PAGES aligned and it must have been
-+ * already reserved (eg. with memblock).
-+ *
-+ * The actual initialisation is deferred until subsys initcalls are
-+ * evaluated (unless this has already happened).
-+ *
-+ * Returns zero on success or negative error.
-+ */
-+int cma_init_migratetype(unsigned long start, unsigned long end);
-+
-+#else
-+
-+static inline int cma_init_migratetype(unsigned long start, unsigned long end)
-+{
-+	(void)start; (void)end;
-+	return -EOPNOTSUPP;
-+}
-+
-+#endif
-+
- /**
-  * cma_reserve() - reserves memory.
-  * @start:	start address of the memory range in bytes hint; if unsure
-  *		pass zero.
-  * @size:	size of the memory to reserve in bytes.
-  * @alignment:	desired alignment in bytes (must be power of two or zero).
-+ * @init_migratetype:	whether to initialise pageblocks.
-+ *
-+ * It will use memblock to allocate memory.  If @init_migratetype is
-+ * true, the function will also call cma_init_migratetype() on
-+ * reserved region so that a non-private CMA context can be created on
-+ * given range.
-  *
-- * It will use memblock to allocate memory.  @start and @size will be
-- * aligned to PAGE_SIZE.
-+ * @start and @size will be aligned to PAGE_SIZE if @init_migratetype
-+ * is false or to (MAX_ORDER_NR_PAGES << PAGE_SHIFT) if
-+ * @init_migratetype is true.
-  *
-  * Returns reserved's area physical address or value that yields true
-  * when checked with IS_ERR_VALUE().
-  */
- unsigned long cma_reserve(unsigned long start, unsigned long size,
--			  unsigned long alignment);
-+			  unsigned long alignment, _Bool init_migratetype);
- 
- /**
-  * cma_create() - creates a CMA context.
-@@ -118,12 +158,14 @@ unsigned long cma_reserve(unsigned long start, unsigned long size,
-  *
-  * The range must be page aligned.  Different contexts cannot overlap.
-  *
-- * Unless @private is true the memory range must lay in ZONE_MOVABLE.
-- * If @private is true no underlaying memory checking is done and
-- * during allocation no pages migration will be performed - it is
-- * assumed that the memory is reserved and only CMA manages it.
-+ * Unless @private is true the memory range must either lay in
-+ * ZONE_MOVABLE or must have been initialised with
-+ * cma_init_migratetype() function.  If @private is true no
-+ * underlaying memory checking is done and during allocation no pages
-+ * migration will be performed - it is assumed that the memory is
-+ * reserved and only CMA manages it.
-  *
-- * @start and @size must be page and @min_alignment alignment.
-+ * @start and @size must be page and @min_alignment aligned.
-  * @min_alignment specifies the minimal alignment that user will be
-  * able to request through cm_alloc() function.  In most cases one
-  * will probably pass zero as @min_alignment but if the CMA context
-diff --git a/mm/cma.c b/mm/cma.c
-index f212920..ded91cab 100644
---- a/mm/cma.c
-+++ b/mm/cma.c
-@@ -57,21 +57,132 @@ static unsigned long phys_to_pfn(phys_addr_t phys)
- 
- /************************* Initialise CMA *************************/
- 
-+#ifdef CONFIG_MIGRATE_CMA
-+
-+static struct cma_grabbed {
-+	unsigned long start;
-+	unsigned long size;
-+} cma_grabbed[8] __initdata;
-+static unsigned cma_grabbed_count __initdata;
-+
-+#ifdef CONFIG_DEBUG_VM
-+
-+static int __cma_give_back(unsigned long start, unsigned long size)
-+{
-+	unsigned long pfn = phys_to_pfn(start);
-+	unsigned i = size >> PAGE_SHIFT;
-+	struct zone *zone;
-+
-+	pr_debug("%s(%p+%p)\n", __func__, (void *)start, (void *)size);
-+
-+	VM_BUG_ON(!pfn_valid(pfn));
-+	zone = page_zone(pfn_to_page(pfn));
-+
-+	do {
-+		VM_BUG_ON(!pfn_valid(pfn));
-+		VM_BUG_ON(page_zone(pfn_to_page(pfn)) != zone);
-+		if (!(pfn & (pageblock_nr_pages - 1)))
-+			__free_pageblock_cma(pfn_to_page(pfn));
-+		++pfn;
-+		++totalram_pages;
-+	} while (--i);
-+
-+	return 0;
-+}
-+
-+#else
-+
-+static int __cma_give_back(unsigned long start, unsigned long size)
-+{
-+	unsigned i = size >> (PAGE_SHIFT + pageblock_order);
-+	struct page *p = phys_to_page(start);
-+
-+	pr_debug("%s(%p+%p)\n", __func__, (void *)start, (void *)size);
-+
-+	do {
-+		__free_pageblock_cma(p);
-+		p += pageblock_nr_pages;
-+		totalram_pages += pageblock_nr_pages;
-+	} while (--i);
-+
-+	return 0;
-+}
-+
-+#endif
-+
-+static int __init __cma_queue_give_back(unsigned long start, unsigned long size)
-+{
-+	if (cma_grabbed_count == ARRAY_SIZE(cma_grabbed))
-+		return -ENOSPC;
-+
-+	cma_grabbed[cma_grabbed_count].start = start;
-+	cma_grabbed[cma_grabbed_count].size  = size;
-+	++cma_grabbed_count;
-+	return 0;
-+}
-+
-+static int (*cma_give_back)(unsigned long start, unsigned long size) =
-+	__cma_queue_give_back;
-+
-+static int __init cma_give_back_queued(void)
-+{
-+	struct cma_grabbed *r = cma_grabbed;
-+	unsigned i = cma_grabbed_count;
-+
-+	pr_debug("%s(): will give %u range(s)\n", __func__, i);
-+
-+	cma_give_back = __cma_give_back;
-+
-+	for (; i; --i, ++r)
-+		__cma_give_back(r->start, r->size);
-+
-+	return 0;
-+}
-+subsys_initcall(cma_give_back_queued);
-+
-+int __ref cma_init_migratetype(unsigned long start, unsigned long size)
-+{
-+	pr_debug("%s(%p+%p)\n", __func__, (void *)start, (void *)size);
-+
-+	if (!size)
-+		return -EINVAL;
-+	if ((start | size) & ((MAX_ORDER_NR_PAGES << PAGE_SHIFT) - 1))
-+		return -EINVAL;
-+	if (start + size < start)
-+		return -EOVERFLOW;
-+
-+	return cma_give_back(start, size);
-+}
-+
-+#endif
-+
- unsigned long cma_reserve(unsigned long start, unsigned long size,
--			  unsigned long alignment)
-+			  unsigned long alignment, bool init_migratetype)
- {
- 	pr_debug("%s(%p+%p/%p)\n", __func__, (void *)start, (void *)size,
- 		 (void *)alignment);
- 
-+#ifndef CONFIG_MIGRATE_CMA
-+	if (init_migratetype)
-+		return -EOPNOTSUPP;
-+#endif
-+
- 	/* Sanity checks */
- 	if (!size || (alignment & (alignment - 1)))
- 		return (unsigned long)-EINVAL;
- 
- 	/* Sanitise input arguments */
--	start = PAGE_ALIGN(start);
--	size  = PAGE_ALIGN(size);
--	if (alignment < PAGE_SIZE)
--		alignment = PAGE_SIZE;
-+	if (init_migratetype) {
-+		start = ALIGN(start, MAX_ORDER_NR_PAGES << PAGE_SHIFT);
-+		size  = ALIGN(size , MAX_ORDER_NR_PAGES << PAGE_SHIFT);
-+		if (alignment < (MAX_ORDER_NR_PAGES << PAGE_SHIFT))
-+			alignment = MAX_ORDER_NR_PAGES << PAGE_SHIFT;
-+	} else {
-+		start = PAGE_ALIGN(start);
-+		size  = PAGE_ALIGN(size);
-+		if (alignment < PAGE_SIZE)
-+			alignment = PAGE_SIZE;
-+	}
- 
- 	/* Reserve memory */
- 	if (start) {
-@@ -94,6 +205,15 @@ unsigned long cma_reserve(unsigned long start, unsigned long size,
- 		}
- 	}
- 
-+	/* CMA Initialise */
-+	if (init_migratetype) {
-+		int ret = cma_init_migratetype(start, size);
-+		if (ret < 0) {
-+			memblock_free(start, size);
-+			return ret;
-+		}
-+	}
-+
- 	return start;
- }
- 
-@@ -101,12 +221,13 @@ unsigned long cma_reserve(unsigned long start, unsigned long size,
- /************************** CMA context ***************************/
- 
- struct cma {
--	bool migrate;
-+	int migratetype;
- 	struct gen_pool *pool;
- };
- 
- static int __cma_check_range(unsigned long start, unsigned long size)
- {
-+	int migratetype = MIGRATE_MOVABLE;
- 	unsigned long pfn, count;
- 	struct page *page;
- 	struct zone *zone;
-@@ -115,8 +236,13 @@ static int __cma_check_range(unsigned long start, unsigned long size)
- 	if (WARN_ON(!pfn_valid(start)))
- 		return -EINVAL;
- 
-+#ifdef CONFIG_MIGRATE_CMA
-+	if (page_zonenum(pfn_to_page(start)) != ZONE_MOVABLE)
-+		migratetype = MIGRATE_CMA;
-+#else
- 	if (WARN_ON(page_zonenum(pfn_to_page(start)) != ZONE_MOVABLE))
- 		return -EINVAL;
-+#endif
- 
- 	/* First check if all pages are valid and in the same zone */
- 	zone  = page_zone(pfn_to_page(start));
-@@ -134,20 +260,20 @@ static int __cma_check_range(unsigned long start, unsigned long size)
- 	page  = pfn_to_page(start);
- 	count = (pfn - start) >> PAGE_SHIFT;
- 	do {
--		if (WARN_ON(get_pageblock_migratetype(page) != MIGRATE_MOVABLE))
-+		if (WARN_ON(get_pageblock_migratetype(page) != migratetype))
- 			return -EINVAL;
- 		page += pageblock_nr_pages;
- 	} while (--count);
- 
--	return 0;
-+	return migratetype;
- }
- 
- struct cma *cma_create(unsigned long start, unsigned long size,
- 		       unsigned long min_alignment, bool private)
- {
- 	struct gen_pool *pool;
-+	int migratetype, ret;
- 	struct cma *cma;
--	int ret;
- 
- 	pr_debug("%s(%p+%p)\n", __func__, (void *)start, (void *)size);
- 
-@@ -162,10 +288,12 @@ struct cma *cma_create(unsigned long start, unsigned long size,
- 	if (start + size < start)
- 		return ERR_PTR(-EOVERFLOW);
- 
--	if (!private) {
--		ret = __cma_check_range(start, size);
--		if (ret < 0)
--			return ERR_PTR(ret);
-+	if (private) {
-+		migratetype = 0;
-+	} else {
-+		migratetype = __cma_check_range(start, size);
-+		if (migratetype < 0)
-+			return ERR_PTR(migratetype);
- 	}
- 
- 	cma = kmalloc(sizeof *cma, GFP_KERNEL);
-@@ -182,7 +310,7 @@ struct cma *cma_create(unsigned long start, unsigned long size,
- 	if (unlikely(ret))
- 		goto error2;
- 
--	cma->migrate = !private;
-+	cma->migratetype = migratetype;
- 	cma->pool = pool;
- 
- 	pr_debug("%s: returning <%p>\n", __func__, (void *)cma);
-@@ -238,13 +366,12 @@ struct cm *cm_alloc(struct cma *cma, unsigned long size,
- 	if (!start)
- 		goto error1;
- 
--	if (cma->migrate) {
-+	if (cma->migratetype) {
- 		unsigned long pfn = phys_to_pfn(start);
--		ret = alloc_contig_range(pfn, pfn + (size >> PAGE_SHIFT), 0);
--		if (ret) {
--			pr_info("cma allocation failed\n");
-+		ret = alloc_contig_range(pfn, pfn + (size >> PAGE_SHIFT),
-+					 0, cma->migratetype);
-+		if (ret)
- 			goto error2;
--		}
- 	}
- 
- 	mutex_unlock(&cma_mutex);
-@@ -277,7 +404,7 @@ void cm_free(struct cm *cm)
- 	mutex_lock(&cma_mutex);
- 
- 	gen_pool_free(cm->cma->pool, cm->phys, cm->size);
--	if (cm->cma->migrate)
-+	if (cm->cma->migratetype)
- 		free_contig_pages(phys_to_page(cm->phys),
- 				  cm->size >> PAGE_SHIFT);
- 
+However, picking apart the USB data it looks as though the way the
+cxd2820r implements "gate control" isn't immediately compatible with the
+implementation seen in other devices.
+
+Example, and I2C send to the tuner at (addr << 1) of:
+{ xx, xx, ..., xx}
+
+becomes a write to (demod_addr << 1) of :
+{ 09, (addr << 1) | flags, xx, xx, ..., xx}
+
+And an i2c receive is implemented to a receive from the demod address,
+not from the tuner address.
+
+So, unless there are open and close gate commands that aren't apparent
+from the snoop, or there's something I've missed, all i2c transfers to
+the tuner have to be mangled - sorry I mean encapsulated - prior to
+sending. To my understanding this doesn't fit in with the gate_ctrl
+implementation for i2c.
+
+I haven't had time to examine all other gate control implementations in
+the media modules, so if anyone knows any good examples that might work
+in a similar way, I'd appreciate the tip-off. Otherwise, would there be
+any objections to my implementation of a dummy i2c device that does the
+encapsulation?
+
+Regards,
 -- 
-1.7.1.569.g6f426
+Steve Kerrison MEng Hons.
+http://www.stevekerrison.com/ 
+
+
