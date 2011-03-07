@@ -1,46 +1,69 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:62387 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756993Ab1CIJRm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Mar 2011 04:17:42 -0500
-From: David Cohen <dacohen@gmail.com>
-To: Hiroshi.DOYU@nokia.com
-Cc: linux-omap@vger.kernel.org, linux-media@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com,
-	sakari.ailus@maxwell.research.nokia.com, fernando.lugo@ti.com,
-	David Cohen <dacohen@gmail.com>
-Subject: [PATCH v3 0/2] omap: iovmm: Fix IOVMM check for fixed 'da'
-Date: Wed,  9 Mar 2011 11:17:31 +0200
-Message-Id: <1299662253-29817-1-git-send-email-dacohen@gmail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50654 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751070Ab1CGNiH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Mar 2011 08:38:07 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [GIT PULL FOR 2.6.39] Media controller and OMAP3 ISP driver
+Date: Mon, 7 Mar 2011 14:38:24 +0100
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	alsa-devel@alsa-project.org,
+	Sakari Ailus <sakari.ailus@retiisi.org.uk>,
+	Pawel Osciak <pawel@osciak.com>
+References: <201102171606.58540.laurent.pinchart@ideasonboard.com> <201103052148.06603.laurent.pinchart@ideasonboard.com> <4D74C82A.9050406@redhat.com>
+In-Reply-To: <4D74C82A.9050406@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Message-Id: <201103071438.25685.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+Hi Mauro,
 
-Previous patch 2/3 was dropped in this new version. Patch 1 was updated
-according to a comment it got.
+On Monday 07 March 2011 12:57:30 Mauro Carvalho Chehab wrote:
+> Em 05-03-2011 17:48, Laurent Pinchart escreveu:
 
----
-IOVMM driver checks input 'da == 0' when mapping address to determine whether
-user wants fixed 'da' or not. At the same time, it doesn't disallow address
-0x0 to be used, what creates an ambiguous situation. This patch set moves
-fixed 'da' check to the input flags.
+[snip]
 
-Br,
+> Added both patches and folded them as requested, and added the remaining
+> patches after my review. The new tree is at:
+> 
+> http://git.linuxtv.org/mchehab/experimental.git?a=shortlog;h=refs/heads/med
+> ia_controller
+> 
+> The pending issues for merging it to the main devel branch are:
+> 	- omap3isp private control description;
 
-David Cohen
----
+Still working on that, I expect to send it this evening.
 
-David Cohen (1):
-  omap: iovmm: don't check 'da' to set IOVMF_DA_FIXED flag
+> 	- a chapter describing how *MBUS* and fourcc formats are related;
 
-Michael Jones (1):
-  omap: iovmm: disallow mapping NULL address when IOVMF_DA_ANON is set
+This still needs to be discussed, there's no agreement on that yet.
 
- arch/arm/plat-omap/include/plat/iovmm.h |    2 --
- arch/arm/plat-omap/iovmm.c              |   27 ++++++++++++---------------
- 2 files changed, 12 insertions(+), 17 deletions(-)
+> 	- a description about how to lock between MBUS/fourcc get/set format;
+
+>From Documentation/media-framework.txt:
+
+"If other operations need to be disallowed on streaming entities (such as
+changing entities configuration parameters) drivers can explictly check the
+media_entity stream_count field to find out if an entity is streaming. This
+operation must be done with the media_device graph_mutex held."
+
+So it's already there :-) And the media_entity_pipeline_start() function makes 
+it easy to implement in bridge driver.
+
+> 	- a renaming patch to make directory name and file names consistent.
+
+Done. I've pushed the modified patches to the media-2.6.39-0005-omap3isp 
+branch.
+
+The media-2.6.39-0004-v4l-misc branch has also been rebased to squash the 
+format documentation patches as you did in your tree. There's no need to pull 
+anything from it.
 
 -- 
-1.7.4.1
+Regards,
 
+Laurent Pinchart
