@@ -1,62 +1,67 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44181 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755945Ab1CBLFe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Mar 2011 06:05:34 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: isp or soc-camera for image co-processors
-Date: Wed, 2 Mar 2011 12:05:46 +0100
-Cc: Bhupesh SHARMA <bhupesh.sharma@st.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <D5ECB3C7A6F99444980976A8C6D896384DEFA5983D@EAPEX1MAIL1.st.com> <D5ECB3C7A6F99444980976A8C6D896384DEFA5998E@EAPEX1MAIL1.st.com> <4D6E2233.6090602@maxwell.research.nokia.com>
-In-Reply-To: <4D6E2233.6090602@maxwell.research.nokia.com>
+Received: from moutng.kundenserver.de ([212.227.17.9]:54928 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755392Ab1CGV3S (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Mar 2011 16:29:18 -0500
+Date: Mon, 7 Mar 2011 22:29:16 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sergio Aguirre <saaguirre@ti.com>
+cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [Query][soc_camera] How to handle hosts w/color conversion built
+ in?
+In-Reply-To: <4D754BD3.7090204@ti.com>
+Message-ID: <Pine.LNX.4.64.1103072224460.29543@axis700.grange>
+References: <4D75430E.8070001@ti.com> <Pine.LNX.4.64.1103072202070.29543@axis700.grange>
+ <4D754BD3.7090204@ti.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201103021205.46432.laurent.pinchart@ideasonboard.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Sakari,
+On Mon, 7 Mar 2011, Sergio Aguirre wrote:
 
-On Wednesday 02 March 2011 11:55:47 Sakari Ailus wrote:
-> Bhupesh SHARMA wrote:
+> > Of course, this is supported. See sh_mobile_ceu.c, mx3_camera, pxa_camera,
+> > omap1_camera. Just search for the format array defined with "static const
+> > struct soc_mbus_pixelfmt" and see how it is used. Feel free to ask again,
+> > if you have more questions.
+> 
+> Ahh... OK. I understand now :)
+> 
+> So, you basically first determine the count of sensor formats, by looping
+> through enum_mbus_fmt in the sensor, and with every call to get_formats with
+> the index range, you can return 2 or more formats.
 
-[snip]
+Actually 0 or more. Usually you return 1 if you just support the sensor 
+format in pass-through mode. If you return more, that usually means, that 
+in addition to pass-through you can also convert that sensor format to 
+some other format.
 
-> >>> Are there are reference drivers that I can use for my study?
-> >> 
-> >> The OMAP3 ISP driver.
+> In my case, when the sensor supports YUYV, I'll return 2 and update the xlate
+> array with 2 entries, instead of just one, is that right?
+
+Right - because you can pass YUYV 1-to-1 and also convert it to nv12.
+
+Thanks
+Guennadi
+
+> Sorry for the noise, and thanks for the patience :)
+> 
+> I've been focusing more on the actual HW functionality, rather than the clean
+> design. But now it's time to clean things up and prepare for upstreaming :)
+> 
+> Regards,
+> Sergio
+> 
 > > 
-> > Thanks, I will go through the same.
+> > Thanks
+> > Guennadi
+> > ---
+> > Guennadi Liakhovetski, Ph.D.
+> > Freelance Open-Source Software Developer
+> > http://www.open-technology.de/
 > 
-> The major difference in this to OMAP 3 is that the OMAP 3 does have
-> access to host side memory but the co-processor doesn't --- as it's a
-> CSI-2 link.
-> 
-> Additional CSI-2 receiver (and a driver for it) is required on the host
-> side. This receiver likely is not dependent on the co-processor so the
-> driver shouldn't be either.
-> 
-> For example, using this co-processor should well be possible with the
-> OMAP 3 ISP, in theory at least. What would be needed in this case is...
-> support for multiple complex Media device drivers under a single Media
-> device --- both drivers would be accessible through the same media device.
-> 
-> The co-processor would mostly look like a sensor for the OMAP 3 ISP
-> driver. Its internal topology would be more complex, though.
-> 
-> Just a few ideas; what do you think of this? :-)
 
-Hierachical subdevs is something that will be discussed during the next V4L2 
-brainstorming meeting. We will need hierachical entities support in the Media 
-Controller as well. This should help in this case, the co-processor entity 
-will be made of several sub-entities.
-
--- 
-Regards,
-
-Laurent Pinchart
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
