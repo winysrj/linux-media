@@ -1,120 +1,86 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1834 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750981Ab1CNJ7w (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Mar 2011 05:59:52 -0400
-Message-ID: <df650e295afbf5651be743e58b06eb5b.squirrel@webmail.xs4all.nl>
-In-Reply-To: <s5hei6ahvtu.wl%tiwai@suse.de>
-References: <201103121919.05657.linux@rainbow-software.org>
-    <201103121952.39850.hverkuil@xs4all.nl>
-    <s5hei6ahvtu.wl%tiwai@suse.de>
-Date: Mon, 14 Mar 2011 10:59:47 +0100
-Subject: Re: [alsa-devel] radio-maestro broken (conflicts with snd-es1968)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Takashi Iwai" <tiwai@suse.de>
-Cc: "Ondrej Zary" <linux@rainbow-software.org>, jirislaby@gmail.com,
-	alsa-devel@alsa-project.org,
-	"Kernel development list" <linux-kernel@vger.kernel.org>,
-	linux-media@vger.kernel.org
+Received: from mail-ww0-f42.google.com ([74.125.82.42]:59332 "EHLO
+	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754753Ab1CHTvZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Mar 2011 14:51:25 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+In-Reply-To: <AANLkTik9H1H5AfWX-aAh7+7Ghx0i0ADLT6sq4FtG8c1e@mail.gmail.com>
+References: <1299588365-2749-1-git-send-email-dacohen@gmail.com>
+	<1299588365-2749-4-git-send-email-dacohen@gmail.com>
+	<AANLkTikvUah8LPXCeV4Opi09DJ4ZoHAc2xUVTcDhNK=Q@mail.gmail.com>
+	<20110308.200901.212929907269368357.Hiroshi.DOYU@nokia.com>
+	<AANLkTi=E+9sjGEpCmHPFLFRGTQujDv8747Jf8=ukU1hC@mail.gmail.com>
+	<AANLkTikmWdQZZJHTmJsDTrSX434pKfpqJWZ6RWGB7ec6@mail.gmail.com>
+	<AANLkTimcSRB+AS=UEAtfc6D=BYWB7Nedj3LQyCnG4bVf@mail.gmail.com>
+	<AANLkTik9H1H5AfWX-aAh7+7Ghx0i0ADLT6sq4FtG8c1e@mail.gmail.com>
+Date: Tue, 8 Mar 2011 21:51:23 +0200
+Message-ID: <AANLkTik7m6AoxmWT-PcCvuKTCWHTfwXk0O5UquXM15iG@mail.gmail.com>
+Subject: Re: [PATCH 3/3] omap: iovmm: don't check 'da' to set
+ IOVMF_DA_FIXED/IOVMF_DA_ANON flags
+From: David Cohen <dacohen@gmail.com>
+To: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-omap@vger.kernel.org,
+	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@maxwell.research.nokia.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-> At Sat, 12 Mar 2011 19:52:39 +0100,
-> Hans Verkuil wrote:
->>
->> On Saturday, March 12, 2011 19:19:00 Ondrej Zary wrote:
->> > Hello,
->> > the radio-maestro driver is badly broken. It's intended to drive the
->> radio on
->> > MediaForte ESS Maestro-based sound cards with integrated radio (like
->> > SF64-PCE2-04). But it conflicts with snd_es1968, ALSA driver for the
->> sound
->> > chip itself.
->> >
->> > If one driver is loaded, the other one does not work - because a
->> driver is
->> > already registered for the PCI device (there is only one). This was
->> probably
->> > broken by conversion of PCI probing in 2006:
->> > ttp://lkml.org/lkml/2005/12/31/93
->> >
->> > How to fix it properly? Include radio functionality in snd-es1968 and
->> delete
->> > radio-maestro?
->>
->> Interesting. I don't know anyone among the video4linux developers who
->> has
->> this hardware, so the radio-maestro driver hasn't been tested in at
->> least
->> 6 or 7 years.
->>
->> The proper fix would be to do it like the fm801.c alsa driver does: have
->> the radio functionality as an i2c driver. In fact, it would not surprise
->> me at all if you could use the tea575x-tuner.c driver (in
->> sound/i2c/other)
->> for the es1968 and delete the radio-maestro altogether.
+On Tue, Mar 8, 2011 at 9:46 PM, David Cohen <dacohen@gmail.com> wrote:
+> [snip]
 >
-> I guess simply porting radio-maestro codes into snd-es1968 would work
-> without much hustles, and it's a bit safe way to go for now; smaller
-> changes have less chance for breakage, and as little people seem using
-> this driver, it'd be better to take a safer option, IMO.
-
-I assume someone has hardware since someone reported this breakage. So try
-to use tuner-tea575x for the es1968. It shouldn't be too difficult.
-Additional cleanup should probably wait until we find a tester for the
-fm801 as well.
-
-I don't like the idea to duplicate code.
-
-Regards,
-
-      Hans
-
-> If we have active testers for both devices, it's nicer to go forward
-> to clean-up works indeed, though.
+>>>>>>> -       flags |= (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
+>>>>>>> +       if (~flags & IOVMF_DA_FIXED)
+>>>>>>> +               flags |= IOVMF_DA_ANON;
+>>>>>>
+>>>>>> could we use only one? both are mutual exclusive, what happen if flag
+>>>>>> is IOVMF_DA_FIXED | IOVMF_DA_ANON? so, I suggest to get rid of
+>>>>>> IOVMF_DA_ANON.
+>>>>>
+>>>>> Then, what about introducing some MACRO? Better names?
+>>>>>
+>>>>> #define set_iovmf_da_anon(flags)
+>>>>> #define set_iovmf_da_fix(flags)
+>>>>> #define set_iovmf_mmio(flags)
+>>>>
+>>>> will they be used by the users?
+>>>>
+>>>> I think people are more used to use
+>>>>
+>>>> iommu_vmap(obj, da, sgt, IOVMF_MMIO | IOVMF_DA_ANON);
+>>>
+>>> I'd be happier with this approach, instead of the macros. :)
+>>> It's intuitive and very common on kernel.
+>>>
+>>>>
+>>>> than
+>>>>
+>>>> set_iovmf_da_anon(flags)
+>>>> set_iovmf_mmio(flags)
+>>>> iommu_vmap(obj, da, sgt, flags);
+>>>>
+>>>> I don't have problem with the change, but I think how it is now is ok,
+>>>> just that we don't we two bits to handle anon/fixed da, it can be
+>>>> managed it only 1 bit (one flag), or is there a issue?
+>>>
+>>> We can exclude IOVMF_DA_ANON and stick with IOVMF_DA_FIXED only.
+>>> I can resend my patch if we agree it's OK.
+>>
+>> sounds perfect to me.
 >
->
-> thanks,
->
-> Takashi
->
->> Both are for the tea575x tuner, although radio-maestro seems to have
->> better
->> support for the g_tuner operation. It doesn't seem difficult to add that
->> to
->> tea575x-tuner.c.
->>
->> The fm801 code for driving the tea575x is pretty horrible and it should
->> be
->> possible to improve that. I suspect that those read/write/mute functions
->> really belong in tea575x-tuner.c and that only the low-level gpio
->> actions
->> need to be in the fm801/es1968 drivers.
->>
->> Hope this helps.
->>
->> Regards,
->>
->> 	Hans
->>
->> BTW: if anyone has spare hardware for testing the
->> radio-maestro/tea575x-tuner,
->> then I'm interested.
->>
->> --
->> Hans Verkuil - video4linux developer - sponsored by Cisco
->> _______________________________________________
->> Alsa-devel mailing list
->> Alsa-devel@alsa-project.org
->> http://mailman.alsa-project.org/mailman/listinfo/alsa-devel
->>
->
+> Not sure indeed if this change fits to this same patch. Looks like a
+> 4th patch sounds better.
 
+Indeed not. :)
+A new set is coming soon.
 
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+Br,
 
+David
+
+>
+> Br,
+>
+> David Cohen
+>
