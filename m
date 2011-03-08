@@ -1,70 +1,136 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:64666 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759326Ab1CDL0n (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2011 06:26:43 -0500
-Date: Fri, 04 Mar 2011 12:26:21 +0100
-From: Kamil Debski <k.debski@samsung.com>
-Subject: [RFC/PATCH v7 4/5] s5pv310: Enable MFC on universal_c210 board
-In-reply-to: <1299237982-31687-1-git-send-email-k.debski@samsung.com>
+Received: from ganesha.gnumonks.org ([213.95.27.120]:54822 "EHLO
+	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754088Ab1CHHJ2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Mar 2011 02:09:28 -0500
+From: Jonghun Han <jonghun.han@samsung.com>
 To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	k.debski@samsung.com, jaeryul.oh@samsung.com, kgene.kim@samsung.com
-Message-id: <1299237982-31687-5-git-send-email-k.debski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1299237982-31687-1-git-send-email-k.debski@samsung.com>
+Cc: kgene.kim@samsung.com
+Subject: [RFC 0/1] v4l: videobuf2: Add Exynos devices based allocator, named SDVMM
+Date: Tue,  8 Mar 2011 15:47:44 +0900
+Message-Id: <1299566865-5499-1-git-send-email-jonghun.han@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This patch enables MFC 5.1 on the universal_c210 board. Multi Format
-Codec 5.1 is capable of handling a range of video codecs.
+==================
+Introduction
+==================
+The purpose of this RFC is to discuss the vb2-allocator
+for multimedia devices available in upcoming Samsung SoC Exynos.
+Not all of them are merged or submitted by now,
+but I decided to post this for starting discussion about buffer management.
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- arch/arm/mach-s5pv310/Kconfig               |    1 +
- arch/arm/mach-s5pv310/mach-universal_c210.c |    8 ++++++++
- 2 files changed, 9 insertions(+), 0 deletions(-)
+vb2-sdvmm is an allocator using SDVMM.
+The SDVMM is not a implementation itself.
+It is the name of solution which integrates UMP, VCM, CMA and SYS.MMU.
 
-diff --git a/arch/arm/mach-s5pv310/Kconfig b/arch/arm/mach-s5pv310/Kconfig
-index c850086..6f83817 100644
---- a/arch/arm/mach-s5pv310/Kconfig
-+++ b/arch/arm/mach-s5pv310/Kconfig
-@@ -107,6 +107,7 @@ config MACH_UNIVERSAL_C210
- 	select S5PV310_SETUP_SDHCI
- 	select S3C_DEV_I2C1
- 	select S3C_DEV_I2C5
-+	select S5P_DEV_MFC
- 	select S5PV310_DEV_PD
- 	select S5PV310_DEV_SYSMMU
- 	select S5PV310_SETUP_I2C1
-diff --git a/arch/arm/mach-s5pv310/mach-universal_c210.c b/arch/arm/mach-s5pv310/mach-universal_c210.c
-index f153895..ce88262 100644
---- a/arch/arm/mach-s5pv310/mach-universal_c210.c
-+++ b/arch/arm/mach-s5pv310/mach-universal_c210.c
-@@ -827,6 +827,10 @@ static struct platform_device *universal_devices[] __initdata = {
- 	&s5pv310_device_sysmmu[S5P_SYSMMU_FIMC1],
- 	&s5pv310_device_sysmmu[S5P_SYSMMU_FIMC2],
- 	&s5pv310_device_sysmmu[S5P_SYSMMU_FIMC3],
-+	&s5p_device_mfc,
-+	&s5pv310_device_pd[PD_MFC],
-+	&s5pv310_device_sysmmu[S5P_SYSMMU_MFC_L],
-+	&s5pv310_device_sysmmu[S5P_SYSMMU_MFC_R],
- 
- 	/* Universal Devices */
- 	&universal_gpio_keys,
-@@ -862,6 +866,10 @@ static void __init universal_machine_init(void)
- 	s5pv310_device_sysmmu[S5P_SYSMMU_FIMC1].dev.parent = &s5pv310_device_pd[PD_CAM].dev;
- 	s5pv310_device_sysmmu[S5P_SYSMMU_FIMC2].dev.parent = &s5pv310_device_pd[PD_CAM].dev;
- 	s5pv310_device_sysmmu[S5P_SYSMMU_FIMC3].dev.parent = &s5pv310_device_pd[PD_CAM].dev;
-+	
-+	s5p_device_mfc.dev.parent = &s5pv310_device_pd[PD_MFC].dev;
-+	s5pv310_device_sysmmu[S5P_SYSMMU_MFC_L].dev.parent = &s5pv310_device_pd[PD_MFC].dev;
-+	s5pv310_device_sysmmu[S5P_SYSMMU_MFC_R].dev.parent = &s5pv310_device_pd[PD_MFC].dev;
- }
- 
- MACHINE_START(UNIVERSAL_C210, "UNIVERSAL_C210")
--- 
-1.6.3.3
+The main purposes of Shared Device Virtual Memory Management(aka SDVMM) are:
+1. Inter-process buffer sharing using UMP
+2. Device virtual memory management using VCM and SYS.MMU(aka IOMMU)
+3. Contiguous memory allocation support using CMA
+
+==================
+Related patchset
+==================
+1. UMP (Unified Memory Provider)
+- The UMP is an auxiliary component which enables memory to be shared
+  across different applications, drivers and hardware components.
+- http://blogs.arm.com/multimedia/249-making-the-mali-gpu-device-driver-open-source/page__cid__133__show__newcomment/
+- Suggested by ARM, Not submitted yet.
+
+2. VCM (Virtual Contiguous Memory framework)
+- The VCM is a framework to deal with multiple IOMMUs in a system
+  with intuitive and abstract objects
+- Submitted by Michal Nazarewicz @Samsung-SPRC
+- Also submitted by KyongHo Cho @Samsung-SYS.LSI
+- http://article.gmane.org/gmane.linux.kernel.mm/56912/match=vcm
+
+3. CMA (Contiguous Memory Allocator)
+- The Contiguous Memory Allocator (CMA) is a framework, which allows
+  setting up a machine-specific configuration for physically-contiguous
+  memory management. Memory for devices is then allocated according
+  to that configuration.
+- http://lwn.net/Articles/396702/
+- http://www.spinics.net/lists/linux-media/msg26486.html
+- Submitted by Michal Nazarewicz @Samsung-SPRC
+
+4. SYS.MMU
+- System mmu supports address transition from virtual address
+  to physical address.
+- http://thread.gmane.org/gmane.linux.kernel.samsung-soc/3909
+- Submitted by Sangbeom Kim
+- Merged by Kukjin Kim, ARM/S5P ARM ARCHITECTURES maintainer.
+
+==================
+How to use
+==================
++-------------------------------+  SecureId   +---------------------------+
+|           Converter           | <---------- |          Renderer         |
++-------------------------------+             +---------------------------+
+   ^        |       |        ^                   ^          ^
+   |        |  UVA  |        |                   |          |
+  UVA       |       |       UVA               SecureId      |
+   |        |       |        |                   |          |
++-----+     |       |     +-----+             +-----+    UVA by mmap
+| UMP |     |       |     | UMP |             | UMP |       |
+| Lib |     |       |     | Lib |             | Lib |       |
++-----+     |       |     +-----+             +-----+       |
+   |        |       |        |                   |          |      user space
+-----------------------------------------------------------------------------
+   |        |       |        |                   |          |    kernel space
+   |        v       v        |                   |          |
+   |      +-----------+      |                   |    +----------+
+   |      | s5p-fimc  |      |                   |    |  s3c-fb  |
+   |      +-----------+      |                   |    +----------+
+   |        |       |        |                   |      ^   |
++-----+   +-----------+   +-----+             +-----+   |   |
+| Ump |<->|    vb2    |<->| Ump |             | Ump |<--+   |
+| Drv |   |   sdvmm   |   | Drv |             | Drv |       |
++-----+   +-----------+   +-----+             +-----+       |
+            |       |                                       |
++-------------------------------+             +---------------------------+
+|              VCM              |             |            VCM            |
++-------------------------------+             +---------------------------+
+            |       |                                       |
+            |       |                         +---------------------------+
+            |       |                         |            CMA            |
+            |       |                         +---------------------------+
+            |  DVA  |                                       |
+            |       |                                       |
++-------------------------------+                           |
+|            SYS.MMU            |                           |
++-------------------------------+                           PA
+            |       |                                       |
+            v       v                                       v
+          +-----------+                               +-----------+
+          |   FIMC    |                               |   FIMD    |
+          +-----------+                               +-----------+
+
+Basic flow
+- Output interface for source
+1. Allocate discontiguous memory using UMP
+2. Get User Virtual Address(aka UVA)
+3. Send the UVA to the src(Output interface) buffer of the M2M device.
+
+- Capture interface for destination
+1. Getting the UVA from the FB driver by mmap.
+2. Get SecureID matched with FB UVA
+3. Send a SecureID to Converter process
+   SecureID is an unique cookie for the buffer over the process.
+4. Converter process gets the UVA using SecureID from UMP Lib.
+5. Sned the UVA to the dst(Capture interface) buffer of the M2M device.
+
+- QBUF
+1. UVA is sent to VB2.
+2. vb2_sdvmm_get_userptr is called.
+3. SDVMM finds the SecureID using UVA from UMP.
+4. SDVMM finds Device Virtual Address(aka DVA) using SecureID.
+   DVA is the virtual address, managed by VCM.
+   The address space is only for devices which have own SYS.MMU.
+
+- fimc_dma_run, the callback function of device_run in m2m framework.
+1. driver get the DVA from vb2-sdvmm.
+2. set the DVA to SFR
+3. device access the physical address via SYS.MMU.
+   SYS.MMU translate DVA to PA
+
