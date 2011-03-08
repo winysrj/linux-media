@@ -1,48 +1,134 @@
 Return-path: <mchehab@pedra>
-Received: from nm24-vm1.bullet.mail.ne1.yahoo.com ([98.138.90.45]:29163 "HELO
-	nm24-vm1.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1755420Ab1CCBRf convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Mar 2011 20:17:35 -0500
-Message-ID: <476051.14353.qm@web120018.mail.ne1.yahoo.com>
-Date: Wed, 2 Mar 2011 17:17:32 -0800 (PST)
-From: Diani Kabori <dianikabori0@gmail.com>
-Reply-To: d.kabori@gmail.com
-Subject: HELLO MY FRIEND
-To: undisclosed recipients:;
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:48929 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756179Ab1CHUPi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Mar 2011 15:15:38 -0500
+From: David Cohen <dacohen@gmail.com>
+To: Hiroshi.DOYU@nokia.com
+Cc: linux-omap@vger.kernel.org, fernando.lugo@ti.com,
+	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@maxwell.research.nokia.com,
+	David Cohen <dacohen@gmail.com>
+Subject: [PATCH v2 3/3] omap: iovmm: don't check 'da' to set IOVMF_DA_FIXED flag
+Date: Tue,  8 Mar 2011 22:15:16 +0200
+Message-Id: <1299615316-17512-4-git-send-email-dacohen@gmail.com>
+In-Reply-To: <1299615316-17512-1-git-send-email-dacohen@gmail.com>
+References: <1299615316-17512-1-git-send-email-dacohen@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-For your kind attention 
-Could you please consider helping me to relocate this sum of Ten Million five hundred thousand dollars (us$10.5m) to your Country for establishing an industry in your country. 
- 
-This fund was deposited in our bank by Mr. Paul Louis Halley from France who died in a plane crash in 2003 TBM 700 aircraft on 6 December with his wife and the whole crew on board. 
- 
-Without a (heir) hence the money is floating and if I do not remit this money out urgently it will be forfeited for nothing and the big guns at the herms of administration at the bank will share this fund amongst themselves as it has been done if no trace of heir to such fund is found. 
- 
-We have tried to contact his family to come forward for claims but could not succeed. 
- 
- 
-Click here (http://newswww.bbc.net.uk/2/hi/uk_news/england/oxfordshire/4537663.stm 
-I will give you all vital information concerning the France citizen and the $10.5m in our custody so that you will contact my bank for them to release the money to you as the next of kin to the deceased person. 
- 
-You will have to establish contact with the bank while i will guide you on the steps to follow till the transfer of this fund reaches to you and your account. 
- 
-As one of the bank directors, I will play a role to make sure that the fund is released to you. 
- 
-This is a legitimate transaction and you will be compensated with 40% for your assistance for presenting yourself as the next of kin and account to receive this fund in your country. If you are interested please write back for more clarifications. 
- 
-I will know that actually you are ready to be my partner and then I will have to send to you a draft application form which you are to fill and apply for the release of the fund to your account in your desired country. 
-Mrs Diani Kabori. 
- 
- 
- 
- 
- 
+Currently IOVMM driver sets IOVMF_DA_FIXED/IOVMF_DA_ANON flags according
+to input 'da' address when mapping memory:
+da == 0: IOVMF_DA_ANON
+da != 0: IOVMF_DA_FIXED
 
+It prevents IOMMU to map first page with fixed 'da'. To avoid such
+issue, IOVMM will not automatically set IOVMF_DA_FIXED. It should now
+come from the user throught 'flags' parameter when mapping memory.
+As IOVMF_DA_ANON and IOVMF_DA_FIXED are mutually exclusive, IOVMF_DA_ANON
+can be removed. The driver will now check internally if IOVMF_DA_FIXED
+is set or not.
 
+Signed-off-by: David Cohen <dacohen@gmail.com>
+---
+ arch/arm/plat-omap/include/plat/iovmm.h |    2 --
+ arch/arm/plat-omap/iovmm.c              |   14 +++++---------
+ 2 files changed, 5 insertions(+), 11 deletions(-)
 
-      
+diff --git a/arch/arm/plat-omap/include/plat/iovmm.h b/arch/arm/plat-omap/include/plat/iovmm.h
+index bdc7ce5..32a2f6c 100644
+--- a/arch/arm/plat-omap/include/plat/iovmm.h
++++ b/arch/arm/plat-omap/include/plat/iovmm.h
+@@ -71,8 +71,6 @@ struct iovm_struct {
+ #define IOVMF_LINEAR_MASK	(3 << (2 + IOVMF_SW_SHIFT))
+ 
+ #define IOVMF_DA_FIXED		(1 << (4 + IOVMF_SW_SHIFT))
+-#define IOVMF_DA_ANON		(2 << (4 + IOVMF_SW_SHIFT))
+-#define IOVMF_DA_MASK		(3 << (4 + IOVMF_SW_SHIFT))
+ 
+ 
+ extern struct iovm_struct *find_iovm_area(struct iommu *obj, u32 da);
+diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
+index e5f8341..894489c 100644
+--- a/arch/arm/plat-omap/iovmm.c
++++ b/arch/arm/plat-omap/iovmm.c
+@@ -279,7 +279,7 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
+ 	start = da;
+ 	alignment = PAGE_SIZE;
+ 
+-	if (flags & IOVMF_DA_ANON) {
++	if (~flags & IOVMF_DA_FIXED) {
+ 		/* Don't map address 0 */
+ 		if (obj->da_start)
+ 			start = obj->da_start;
+@@ -307,7 +307,7 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
+ 		if (tmp->da_start > start && (tmp->da_start - start) >= bytes)
+ 			goto found;
+ 
+-		if (tmp->da_end >= start && flags & IOVMF_DA_ANON)
++		if (tmp->da_end >= start && ~flags & IOVMF_DA_FIXED)
+ 			start = roundup(tmp->da_end + 1, alignment);
+ 
+ 		prev_end = tmp->da_end;
+@@ -654,7 +654,6 @@ u32 iommu_vmap(struct iommu *obj, u32 da, const struct sg_table *sgt,
+ 	flags &= IOVMF_HW_MASK;
+ 	flags |= IOVMF_DISCONT;
+ 	flags |= IOVMF_MMIO;
+-	flags |= (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
+ 
+ 	da = __iommu_vmap(obj, da, sgt, va, bytes, flags);
+ 	if (IS_ERR_VALUE(da))
+@@ -694,7 +693,7 @@ EXPORT_SYMBOL_GPL(iommu_vunmap);
+  * @flags:	iovma and page property
+  *
+  * Allocate @bytes linearly and creates 1-n-1 mapping and returns
+- * @da again, which might be adjusted if 'IOVMF_DA_ANON' is set.
++ * @da again, which might be adjusted if 'IOVMF_DA_FIXED' is not set.
+  */
+ u32 iommu_vmalloc(struct iommu *obj, u32 da, size_t bytes, u32 flags)
+ {
+@@ -713,7 +712,6 @@ u32 iommu_vmalloc(struct iommu *obj, u32 da, size_t bytes, u32 flags)
+ 	flags &= IOVMF_HW_MASK;
+ 	flags |= IOVMF_DISCONT;
+ 	flags |= IOVMF_ALLOC;
+-	flags |= (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
+ 
+ 	sgt = sgtable_alloc(bytes, flags, da, 0);
+ 	if (IS_ERR(sgt)) {
+@@ -784,7 +782,7 @@ static u32 __iommu_kmap(struct iommu *obj, u32 da, u32 pa, void *va,
+  * @flags:	iovma and page property
+  *
+  * Creates 1-1-1 mapping and returns @da again, which can be
+- * adjusted if 'IOVMF_DA_ANON' is set.
++ * adjusted if 'IOVMF_DA_FIXED' is not set.
+  */
+ u32 iommu_kmap(struct iommu *obj, u32 da, u32 pa, size_t bytes,
+ 		 u32 flags)
+@@ -803,7 +801,6 @@ u32 iommu_kmap(struct iommu *obj, u32 da, u32 pa, size_t bytes,
+ 	flags &= IOVMF_HW_MASK;
+ 	flags |= IOVMF_LINEAR;
+ 	flags |= IOVMF_MMIO;
+-	flags |= (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
+ 
+ 	da = __iommu_kmap(obj, da, pa, va, bytes, flags);
+ 	if (IS_ERR_VALUE(da))
+@@ -842,7 +839,7 @@ EXPORT_SYMBOL_GPL(iommu_kunmap);
+  * @flags:	iovma and page property
+  *
+  * Allocate @bytes linearly and creates 1-1-1 mapping and returns
+- * @da again, which might be adjusted if 'IOVMF_DA_ANON' is set.
++ * @da again, which might be adjusted if 'IOVMF_DA_FIXED' is not set.
+  */
+ u32 iommu_kmalloc(struct iommu *obj, u32 da, size_t bytes, u32 flags)
+ {
+@@ -862,7 +859,6 @@ u32 iommu_kmalloc(struct iommu *obj, u32 da, size_t bytes, u32 flags)
+ 	flags &= IOVMF_HW_MASK;
+ 	flags |= IOVMF_LINEAR;
+ 	flags |= IOVMF_ALLOC;
+-	flags |= (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
+ 
+ 	da = __iommu_kmap(obj, da, pa, va, bytes, flags);
+ 	if (IS_ERR_VALUE(da))
+-- 
+1.7.0.4
+
