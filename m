@@ -1,104 +1,93 @@
 Return-path: <mchehab@pedra>
-Received: from mail.kapsi.fi ([217.30.184.167]:47012 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751140Ab1CEJ4d (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 5 Mar 2011 04:56:33 -0500
-Message-ID: <4D7208CF.6020505@iki.fi>
-Date: Sat, 05 Mar 2011 11:56:31 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:59275 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754877Ab1CHUeW convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Mar 2011 15:34:22 -0500
 MIME-Version: 1.0
-To: adq <adq@lidskialf.net>
-CC: linux-media@vger.kernel.org
-Subject: Re: [patch] Fix AF9015 Dual tuner i2c write failures
-References: <AANLkTi=rcfL_pku9hhx68C_Fb_76KsW2Yy+Oys10a7+4@mail.gmail.com>	<4D7163FD.9030604@iki.fi>	<AANLkTimjC99zhJ=huHZiGgbENCoyHy5KT87iujjTT8w3@mail.gmail.com>	<4D716ECA.4060900@iki.fi>	<AANLkTimHa6XFwhvpLbhtRm7Vee-jYPkHpx+D8L2=+vQb@mail.gmail.com>	<AANLkTik9cSnAFWNdTUv3NNU3K2SoeECDO2036Htx-OAi@mail.gmail.com> <AANLkTi=e-cAzMWZSHvKR8Yx+0MqcY_Ewf4z1gDyZfCeo@mail.gmail.com>
-In-Reply-To: <AANLkTi=e-cAzMWZSHvKR8Yx+0MqcY_Ewf4z1gDyZfCeo@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1299615316-17512-2-git-send-email-dacohen@gmail.com>
+References: <1299615316-17512-1-git-send-email-dacohen@gmail.com>
+	<1299615316-17512-2-git-send-email-dacohen@gmail.com>
+Date: Tue, 8 Mar 2011 14:31:58 -0600
+Message-ID: <AANLkTintZ6vphJqM54SxFeKtk=6CuDQJTUpk-7jFRDeA@mail.gmail.com>
+Subject: Re: [PATCH v2 1/3] omap: iovmm: disallow mapping NULL address when
+ IOVMF_DA_ANON is set
+From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+To: David Cohen <dacohen@gmail.com>
+Cc: Hiroshi.DOYU@nokia.com, linux-omap@vger.kernel.org,
+	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@maxwell.research.nokia.com,
+	Michael Jones <michael.jones@matrix-vision.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 03/05/2011 03:51 AM, adq wrote:
->> As you say though. its just the tuners, so adding the locking into the
->> gate ctrl as you suggested makes perfect sense. Attached is v3
->> implementing this; it seems to be working fine here.
->>
+On Tue, Mar 8, 2011 at 2:15 PM, David Cohen <dacohen@gmail.com> wrote:
+> From: Michael Jones <michael.jones@matrix-vision.de>
 >
-> Unfortunately even with this fix, I'm still seeing the problem I was
-> trying to fix to begin with.
+> commit c7f4ab26e3bcdaeb3e19ec658e3ad9092f1a6ceb allowed mapping the NULL
+> address if da_start==0, which would then not get unmapped. Disallow
+> this again if IOVMF_DA_ANON is set. And spell variable 'alignment'
+> correctly.
 >
-> Although I no longer get any i2c errors (or *any* reported errors),
-> after a bit, one of the frontends just.. stops working. All attempts
-> to tune it fail. I can even unload and reload the driver module, and
-> its stuck in the same state, indicating its a problem with the
-> hardware. :(
+> Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
+> ---
+>  arch/arm/plat-omap/iovmm.c |   16 ++++++++++------
+>  1 files changed, 10 insertions(+), 6 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
+> index 6dc1296..e5f8341 100644
+> --- a/arch/arm/plat-omap/iovmm.c
+> +++ b/arch/arm/plat-omap/iovmm.c
+> @@ -271,20 +271,24 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
+>                                           size_t bytes, u32 flags)
+>  {
+>        struct iovm_struct *new, *tmp;
+> -       u32 start, prev_end, alignement;
+> +       u32 start, prev_end, alignment;
+>
+>        if (!obj || !bytes)
+>                return ERR_PTR(-EINVAL);
+>
+>        start = da;
+> -       alignement = PAGE_SIZE;
+> +       alignment = PAGE_SIZE;
+>
+>        if (flags & IOVMF_DA_ANON) {
+> -               start = obj->da_start;
+> +               /* Don't map address 0 */
+> +               if (obj->da_start)
+> +                       start = obj->da_start;
+> +               else
+> +                       start = alignment;
 
-How easily you can re-produce this? Does it work using your first patch?
+looks good to me, just a nitpick comment, that would look better
 
-Could try some changes for GPIOs, LEDs are not important but tuner 
-GPIOs? Here is instructions how GPIOs should be done:
+                  start = (obj->da_start) ? obj->da_start : alignment;
 
-FE0 START
-FE0 READ EEPROM
-FE0 GPIO RESET and ENABLE FE1?
-// set_gpio(0, 3);
-// msleep(40)
-// set_gpio(0, 7);
-FE0 DOWNLOAD FW
-FE0 enable POWER LED ???
-// wr_reg(0xd734,  upper nibble 3)
+Regards,
+Fernando.
 
-FE1 set power management (0xd731)
-
-FE0 tuner OFF
-// set_gpio(3, 7);
-FE0 LOCK LED OFF
-
-FE1 tuner OFF
-// set_gpio(0, 7);
-FE1 LOCK LED OFF
-*** DEVICE is NOW IN SLEEP ***
-
-*** TUNE REQ for FE1 **
-FE1 tuner ON
-// set_gpio(0, b);
-FE1 LOCK LED ON
-*** now streaming **
-FE1 tuner OFF
-// set_gpio(0, 7);
-FE1 LOCK LED OFF
-*** DEVICE is NOW IN SLEEP ***
-
-*** TUNE REQ for FE0 **
-FE0 tuner ON
-// set_gpio(3, b);
-FE0 LOCK LED ON
-*** now streaming **
-FE0 tuner OFF
-// set_gpio(3, 7);
-FE0 LOCK LED OFF
-*** DEVICE is NOW IN SLEEP ***
-
-Also configure some power management for FE1, write register 0xd731 
-value 0x47. Do that in af9013_init() before OFSM init (since it changes 
-some bits in same register).
-
-And this is list of used GPIOs, it is my latest understanding. I have 
-ensured many of those by just testing.
-
-AF9015 GPIO0 AF9013 reset
-AF9015 GPIO1 NC (note: on MC44S803 device tuner reset)
-AF9015 GPIO2 NC
-AF9015 GPIO3 TUNER
-AF9015 GPIO_LOCK1 LOCK LED
-AF9015 GPIO_LOCK2 POWER LED (not sure, I don't have any device having 
-power LED, but it looks like it could be)
-
-AF9013 GPIO0 TUNER
-AF9013 GPIO1 NC
-AF9013 GPIO2 LOCK LED
-AF9013 GPIO3 HW power down?
-AF9013 GPIO_LOCK1 LOCK LED
-AF9013 GPIO_LOCK2 NC
-
--- 
-http://palosaari.fi/
+>
+>                if (flags & IOVMF_LINEAR)
+> -                       alignement = iopgsz_max(bytes);
+> -               start = roundup(start, alignement);
+> +                       alignment = iopgsz_max(bytes);
+> +               start = roundup(start, alignment);
+>        } else if (start < obj->da_start || start > obj->da_end ||
+>                                        obj->da_end - start < bytes) {
+>                return ERR_PTR(-EINVAL);
+> @@ -304,7 +308,7 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
+>                        goto found;
+>
+>                if (tmp->da_end >= start && flags & IOVMF_DA_ANON)
+> -                       start = roundup(tmp->da_end + 1, alignement);
+> +                       start = roundup(tmp->da_end + 1, alignment);
+>
+>                prev_end = tmp->da_end;
+>        }
+> --
+> 1.7.0.4
+>
+>
