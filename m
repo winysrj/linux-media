@@ -1,135 +1,216 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:46276 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752257Ab1CHUHL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Mar 2011 15:07:11 -0500
-MIME-Version: 1.0
-In-Reply-To: <AANLkTim6rGp54i9cT0FMoRniiF4umKK5+agOSkfKvZAT@mail.gmail.com>
-References: <1299588365-2749-1-git-send-email-dacohen@gmail.com>
-	<1299588365-2749-2-git-send-email-dacohen@gmail.com>
-	<AANLkTikkUYFuhH-b2vKX8jVoT18wH_+WPzGbfFNWQK6K@mail.gmail.com>
-	<AANLkTikH=oYFOuvvG2y4yj=6UUnPCyEtq8AMc9bF9VrH@mail.gmail.com>
-	<AANLkTim6rGp54i9cT0FMoRniiF4umKK5+agOSkfKvZAT@mail.gmail.com>
-Date: Tue, 8 Mar 2011 22:07:09 +0200
-Message-ID: <AANLkTim2R1VPDYUff+1PFpdsxYYNM8G3FrzSsYgShe74@mail.gmail.com>
-Subject: Re: [PATCH 1/3] omap: iovmm: disallow mapping NULL address
-From: David Cohen <dacohen@gmail.com>
-To: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-Cc: Hiroshi.DOYU@nokia.com, linux-omap@vger.kernel.org,
-	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@maxwell.research.nokia.com,
-	Michael Jones <michael.jones@matrix-vision.de>
-Content-Type: text/plain; charset=UTF-8
+Received: from comal.ext.ti.com ([198.47.26.152]:59994 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751214Ab1CHFoU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Mar 2011 00:44:20 -0500
+From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
+To: "'Laurent Pinchart'" <laurent.pinchart@ideasonboard.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>
+Date: Tue, 8 Mar 2011 11:13:59 +0530
+Subject: RE: [RFC] davinci: vpfe: mdia controller implementation for capture
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024BCEF727@dbde02.ent.ti.com>
+In-Reply-To: <201103061829.40535.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, Mar 8, 2011 at 9:53 PM, Guzman Lugo, Fernando
-<fernando.lugo@ti.com> wrote:
-> On Tue, Mar 8, 2011 at 1:06 PM, David Cohen <dacohen@gmail.com> wrote:
->> On Tue, Mar 8, 2011 at 8:06 PM, Guzman Lugo, Fernando
->> <fernando.lugo@ti.com> wrote:
->>> On Tue, Mar 8, 2011 at 6:46 AM, David Cohen <dacohen@gmail.com> wrote:
->>>> From: Michael Jones <michael.jones@matrix-vision.de>
->>>>
->>>> commit c7f4ab26e3bcdaeb3e19ec658e3ad9092f1a6ceb allowed mapping
->>>> the NULL address if da_start==0, which would then not get unmapped.
->>>> Disallow this again.  And spell variable 'alignment' correctly.
->>>>
->>>> Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
->>>> ---
->>>>  arch/arm/plat-omap/iovmm.c |   16 ++++++++++------
->>>>  1 files changed, 10 insertions(+), 6 deletions(-)
->>>>
->>>> diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
->>>> index 6dc1296..11c9b76 100644
->>>> --- a/arch/arm/plat-omap/iovmm.c
->>>> +++ b/arch/arm/plat-omap/iovmm.c
->>>> @@ -271,20 +271,24 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
->>>>                                           size_t bytes, u32 flags)
->>>>  {
->>>>        struct iovm_struct *new, *tmp;
->>>> -       u32 start, prev_end, alignement;
->>>> +       u32 start, prev_end, alignment;
->>>>
->>>>        if (!obj || !bytes)
->>>>                return ERR_PTR(-EINVAL);
->>>>
->>>>        start = da;
->>>> -       alignement = PAGE_SIZE;
->>>> +       alignment = PAGE_SIZE;
->>>>
->>>>        if (flags & IOVMF_DA_ANON) {
->>>> -               start = obj->da_start;
->>>> +               /* Don't map address 0 */
->>>> +               if (obj->da_start)
->>>> +                       start = obj->da_start;
->>>> +               else
->>>> +                       start = obj->da_start + alignment;
->>>
->>> else part obj->da_star is always 0, so why not?
->>> start = alignment;
->>
->> The patch is not from me, but I can fix it if Michael agrees.
->>
->>>
->>> so, why I understand, it now it is possible mapp address 0x0 only if
->>> IOVMF_DA_ANON is not set, right? maybe that would be mention in the
->>> patch.
->>
->> Indeed address 0x0 was never meant to be mapped. The mentioned commit
->> on the patch's description did that without noticing. But the new
->> change is documented in the code by the comment "Don't map address 0"
->
-> yeah, but it only applies when "flags & IOVMF_DA_ANON", So if I use
-> IOVMF_DA_FIXED and da_start == 0, I will be able to map some area
-> which starts from address 0x0, right?  if so, that looks good to me
-> and the description should mention that if is disallowing mapping
-> address 0x0 when IOVMF_DA_ANON is used.
-
-Yes, that's the case. I will update the comment. I hope Michael does
-not complain about the changes. :)
-
-Br,
-
-David
-
->
+On Sun, Mar 06, 2011 at 22:59:40, Laurent Pinchart wrote:
+> Hi Manjunath,
+> 
+> On Sunday 06 March 2011 16:36:05 Manjunath Hadli wrote:
+> > Introduction
+> > ------------
+> > This is the proposal of the initial version of design and 
+> > implementation of the Davinci family (dm644x,dm355,dm365)VPFE (Video 
+> > Port Front End) drivers using Media Controloler , the initial version 
+> > which supports the following:
+> > 1) dm365 vpfe
+> > 2) ccdc,previewer,resizer,h3a,af blocks
+> > 3) supports only continuous mode and not on-the-fly
+> > 4) supports user pointer exchange and memory mapped modes for buffer 
+> > allocation
+> > 
+> > This driver bases its design on Laurent Pinchart's Media Controller 
+> > Design whose patches for Media Controller and subdev enhancements form the base.
+> > The driver also takes copious elements taken from Laurent Pinchart and 
+> > others' OMAP ISP driver based on Media Controller. So thank you all 
+> > the people who are responsible for the Media Controller and the OMAP 
+> > ISP driver.
+> 
+> You're welcome :-)
+> 
+> > Also, the core functionality of the driver comes from the arago vpfe 
+> > capture driver of which the CCDC capture was based on V4L2, with other 
+> > drivers like Previwer, Resizer and other being individual character 
+> > drivers.
+> 
+> The CCDC, preview and resizer modules look very similar to their OMAP3 counterparts. I think we should aim at sharing code between the drivers. It's hard enough to develop, review and maintain one driver, let's not duplicate the effort.
+Laurent, the modules in DM365 and DM355 are based on ISIF (for image capture) IPIPEIF, IPIPE and these modules are very different from that of their OMAP3 counterparts both in terms of hardware features, implementation and registers. The naming is done as CCDC, Previewer and Resizer only because to make it simple in understanding and making it comfortable for the API users of DM644X. I am aware of the discussion you and Vaibhav had, where he mentioned your point to make these drivers similar, and after
+Poring through the specs in detail we concluded that the approach can be the same but code-re-use is be minimal. So, we have derived the top level approach from you while the core implementation of hardware programming comes from arago.
+> 
+> > The current driver caters to dm6446,dm355 and dm365 of which the 
+> > current implementation works for dm365. The three VPFE IPs have some 
+> > common elements in terms of some highe level functionality but there 
+> > are differences in terms of register definitions and some core blocks.
+> > 
+> > The individual specifications for each of these can be found here:
+> > dm6446 vpfe: http://www.ti.com/litv/pdf/sprue38h
+> > dm355  vpfe: http://www.ti.com/litv/pdf/spruf71a
+> > dm365  vpfe: http://www.ti.com/litv/pdf/sprufg8c
+> > 
+> > The initial version of the  driver implementation can be found here:
+> > 
+> > http://git.linuxtv.org/mhadli/v4l-dvb-davinci_devices.git?a=shortlog;h
+> > =refs
+> > /heads/mc_release
+> > 
+> > Driver Design: Main entities
+> > ----------------------------
+> > The hardware modules for dm355,dm365 are mainly ipipe, ipipeif,isif. 
+> > These hardware modules are generically exposed to the user level in 
+> > the for of
+> > dm6446 style modules. Mainly -
+> > ccdc, previewer, resizer in addition to the other histogram and auto 
+> > color/white balance correction and auto focus modules.
+> > 
+> > 1)MT9P031 sensor  module for RAW capture
+> > 2)TVP7002 decoder module for HD inputs 3)TVP514x decoder module for SD 
+> > inputs 4)CCDC capture module 5)Previewer Module for Bayer to YUV 
+> > conversion 6)Resizer Module for scaling
+> > 
+> > 
+> > Connection for on-the-fly capture
+> > ---------------------------------
+> > Mt9P031 
+> > ------>CCDC--->Previewer(optional)--->Resizer(optional)--->Video
+> > 
+> > TVP7002 ---
+> > 
+> > TV514x  ---
+> > 
+> > File Organisation
+> > -----------------
+> > 
+> > main driver files
+> > ----------------
+> > drivers/media/video/davinci/vpfe_capture.c
+> > include/media/davinci/vpfe_capture.h
+> > 
+> > Instantiatiation of the v4l2 device, media device and all  subdevs 
+> > from here.
+> > 
+> > video Interface files
+> > ---------------------
+> > drivers/media/video/davinci/vpfe_video.c
+> > include/media/davinci/vpfe_video.h
+> > 
+> > Implements all the v4l2 video operations with a generic implementation 
+> > for continuous and one shot mode.
+> > 
+> > subdev interface files
+> > ----------------------
+> > These file implement the subdev interface functionality for each of 
+> > the subdev entities - mainly the entry points and their 
+> > implementations in a IP generic way.
+> > 
+> > drivers/media/video/davinci/vpfe_ccdc.c
+> > drivers/media/video/davinci/vpfe_previewer.c
+> > drivers/media/video/davinci/vpfe_resizer.c
+> > drivers/media/video/davinci/vpfe_af.c
+> > drivers/media/video/davinci/vpfe_aew.c
+> > drivers/media/video/tvp514x.c
+> > drivers/media/video/tvp7002.c
+> > drivers/media/video/ths7353.c
+> > 
+> > include/media/davinci/vpfe_ccdc.h
+> > include/media/davinci/vpfe_previewer.h
+> > include/media/davinci/vpfe_resizer.h
+> > include/media/davinci/vpfe_af.h
+> > include/media/davinci/vpfe_aew.h
+> > include/media/tvp514x.h
+> > drivers/media/video/tvp514x_regs.h
+> > include/media/tvp7002.h
+> > drivers/media/video/tvp7002_reg.h
+> > 
+> > core implementation files
+> > -------------------------
+> > These provide a core implementation routines for ccdc, ipipeif, 
+> > ipipe,aew, af, resizer hardware modules.
+> > 
+> > drivers/char/imp_common.c
+> > drivers/media/video/davinci/dm365_ccdc.c
+> > drivers/media/video/davinci/dm355_ccdc.c
+> > drivers/media/video/davinci/dm644x_ccdc.c
+> > drivers/char/dm355_ipipe.c
+> > drivers/char/dm355_ipipe_hw.c
+> > drivers/char/dm355_def_para.c
+> > drivers/char/dm365_ipipe.c
+> > drivers/char/dm365_def_para.c
+> > drivers/char/dm365_ipipe_hw.c
+> > drivers/char/dm6446_imp.c
+> > drivers/char/davinci_resizer_hw.c
+> > drivers/char/dm3xx_ipipe.c
+> > drivers/media/video/davinci/dm365_aew.c
+> > drivers/media/video/davinci/dm365_af.c
+> > drivers/media/video/davinci/dm365_a3_hw.c
+> > drivers/media/video/davinci/dm355_aew.c
+> > drivers/media/video/davinci/dm355_af.c
+> > drivers/media/video/davinci/dm355_aew_hw.c
+> > drivers/media/video/davinci/dm355_af_hw.c
+> > 
+> > include/media/davinci/imp_common.h
+> > include/media/davinci/dm365_ccdc.h
+> > include/media/davinci/dm355_ccdc.h
+> > include/media/davinci/dm644x_ccdc.h
+> > include/media/davinci/dm355_ipipe.h
+> > include/media/davinci/dm365_ipipe.h
+> > include/media/davinci/imp_hw_if.h
+> > include/media/davinci/dm3xx_ipipe.h
+> > include/media/davinci/dm365_aew.h
+> > include/media/davinci/dm365_af.h
+> > include/media/davinci/dm365_a3_hw.h
+> > include/media/davinci/dm355_aew.h
+> > include/media/davinci/dm355_af.h
+> > include/media/davinci/dm355_aew_hw.h
+> > include/media/davinci/dm355_af_hw.h
+> > include/media/davinci/vpfe_types.h
+> > 
+> > drivers/media/video/davinci/dm365_ccdc_regs.h
+> > drivers/media/video/davinci/dm355_ccdc_regs.h
+> > drivers/media/video/davinci/dm644x_ccdc_regs.h
+> > drivers/media/video/davinci/ccdc_hw_device.h
+> > drivers/char/dm355_ipipe_hw.h
+> > drivers/char/dm355_def_para.h
+> > drivers/char/dm365_def_para.h
+> > drivers/char/dm365_ipipe_hw.h
+> > drivers/char/davinci_resizer_hw.h
+> > 
+> > TODOs:
+> > ======
+> > 1. Single shot implementation for previewer and resizer.
+> > 2. Seperation of v4l2 video related structures and routines to aid 
+> > single shot implementation.
+> > 3. Support NV12 format
+> > 4. Move the files from char folder to drivers/media/video along with 
+> > headers
+> 
+> Why are the drivers in drivers/char for ?
+This is WIP where some of the files are in char dir from arago implementation. You can see item 4 in the TODO list where this movement is pending.
+> 
+> > 5. Make the aew and af headers common between dm355 and dm365.
+> > 6. Enable dm355 and dm6446 functionality by making appropriate 
+> > platform changes
+> 
+> --
 > Regards,
-> Fernando.
->
->> and it's also mentioned on the patch description. Is it OK for you?
->>
->> Regards,
->>
->> David Cohen
->>
->>>
->>> Regards,
->>> Fernando.
->>>
->>>>
->>>>                if (flags & IOVMF_LINEAR)
->>>> -                       alignement = iopgsz_max(bytes);
->>>> -               start = roundup(start, alignement);
->>>> +                       alignment = iopgsz_max(bytes);
->>>> +               start = roundup(start, alignment);
->>>>        } else if (start < obj->da_start || start > obj->da_end ||
->>>>                                        obj->da_end - start < bytes) {
->>>>                return ERR_PTR(-EINVAL);
->>>> @@ -304,7 +308,7 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
->>>>                        goto found;
->>>>
->>>>                if (tmp->da_end >= start && flags & IOVMF_DA_ANON)
->>>> -                       start = roundup(tmp->da_end + 1, alignement);
->>>> +                       start = roundup(tmp->da_end + 1, alignment);
->>>>
->>>>                prev_end = tmp->da_end;
->>>>        }
->>>> --
->>>> 1.7.0.4
->>>>
->>>>
->>>
->>
->
+> 
+> Laurent Pinchart
+> 
+
