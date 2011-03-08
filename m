@@ -1,68 +1,66 @@
 Return-path: <mchehab@pedra>
-Received: from stevekez.vm.bytemark.co.uk ([80.68.91.30]:40044 "EHLO
-	stevekerrison.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755477Ab1CGJwD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Mar 2011 04:52:03 -0500
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by stevekerrison.com (Postfix) with ESMTP id 0183B162F4
-	for <linux-media@vger.kernel.org>; Mon,  7 Mar 2011 09:52:02 +0000 (GMT)
-Received: from stevekerrison.com ([127.0.0.1])
-	by localhost (stevekez.vm.bytemark.co.uk [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id kS0oNjcm0qJZ for <linux-media@vger.kernel.org>;
-	Mon,  7 Mar 2011 09:52:00 +0000 (GMT)
-Received: from [10.0.96.131] (unknown [195.26.247.141])
-	(Authenticated sender: steve@stevekerrison.com)
-	by stevekerrison.com (Postfix) with ESMTPSA id 6B058162B8
-	for <linux-media@vger.kernel.org>; Mon,  7 Mar 2011 09:52:00 +0000 (GMT)
-Subject: i2c_gate_ctrl question
-From: Steve Kerrison <steve@stevekerrison.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 07 Mar 2011 09:52:00 +0000
-Message-ID: <1299491520.2189.10.camel@ares>
+Received: from smtp.nokia.com ([147.243.1.48]:19919 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751712Ab1CHSLZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Mar 2011 13:11:25 -0500
+Date: Tue, 08 Mar 2011 20:09:01 +0200 (EET)
+Message-Id: <20110308.200901.212929907269368357.Hiroshi.DOYU@nokia.com>
+To: fernando.lugo@ti.com
+Cc: dacohen@gmail.com, linux-omap@vger.kernel.org,
+	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@maxwell.research.nokia.com
+Subject: Re: [PATCH 3/3] omap: iovmm: don't check 'da' to set
+ IOVMF_DA_FIXED/IOVMF_DA_ANON flags
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+In-Reply-To: <AANLkTikvUah8LPXCeV4Opi09DJ4ZoHAc2xUVTcDhNK=Q@mail.gmail.com>
+References: <1299588365-2749-1-git-send-email-dacohen@gmail.com>
+	<1299588365-2749-4-git-send-email-dacohen@gmail.com>
+	<AANLkTikvUah8LPXCeV4Opi09DJ4ZoHAc2xUVTcDhNK=Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi media men & women,
+From: "ext Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Subject: Re: [PATCH 3/3] omap: iovmm: don't check 'da' to set IOVMF_DA_FIXED/IOVMF_DA_ANON flags
+Date: Tue, 8 Mar 2011 11:59:43 -0600
 
-I have a question regarding the cxd2820r I'm working on with a couple of
-other people.
+> On Tue, Mar 8, 2011 at 6:46 AM, David Cohen <dacohen@gmail.com> wrote:
+>> Currently IOVMM driver sets IOVMF_DA_FIXED/IOVMF_DA_ANON flags according
+>> to input 'da' address when mapping memory:
+>> da == 0: IOVMF_DA_ANON
+>> da != 0: IOVMF_DA_FIXED
+>>
+>> It prevents IOMMU to map first page with fixed 'da'. To avoid such
+>> issue, IOVMM will not automatically set IOVMF_DA_FIXED. It should now
+>> come from the user. IOVMF_DA_ANON will be automatically set if
+>> IOVMF_DA_FIXED isn't set.
+>>
+>> Signed-off-by: David Cohen <dacohen@gmail.com>
+>> ---
+>>  arch/arm/plat-omap/iovmm.c |   12 ++++++++----
+>>  1 files changed, 8 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
+>> index 11c9b76..dde9cb0 100644
+>> --- a/arch/arm/plat-omap/iovmm.c
+>> +++ b/arch/arm/plat-omap/iovmm.c
+>> @@ -654,7 +654,8 @@ u32 iommu_vmap(struct iommu *obj, u32 da, const struct sg_table *sgt,
+>>        flags &= IOVMF_HW_MASK;
+>>        flags |= IOVMF_DISCONT;
+>>        flags |= IOVMF_MMIO;
+>> -       flags |= (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
+>> +       if (~flags & IOVMF_DA_FIXED)
+>> +               flags |= IOVMF_DA_ANON;
+> 
+> could we use only one? both are mutual exclusive, what happen if flag
+> is IOVMF_DA_FIXED | IOVMF_DA_ANON? so, I suggest to get rid of
+> IOVMF_DA_ANON.
 
-In my naivety I implemented i2c gate control for the device (to access
-the tuner behind it) as a separate i2c device that did the passthrough.
-Now that I realise this, it would make sense to use the gate_ctrl
-features.
+Then, what about introducing some MACRO? Better names?
 
-However, picking apart the USB data it looks as though the way the
-cxd2820r implements "gate control" isn't immediately compatible with the
-implementation seen in other devices.
-
-Example, and I2C send to the tuner at (addr << 1) of:
-{ xx, xx, ..., xx}
-
-becomes a write to (demod_addr << 1) of :
-{ 09, (addr << 1) | flags, xx, xx, ..., xx}
-
-And an i2c receive is implemented to a receive from the demod address,
-not from the tuner address.
-
-So, unless there are open and close gate commands that aren't apparent
-from the snoop, or there's something I've missed, all i2c transfers to
-the tuner have to be mangled - sorry I mean encapsulated - prior to
-sending. To my understanding this doesn't fit in with the gate_ctrl
-implementation for i2c.
-
-I haven't had time to examine all other gate control implementations in
-the media modules, so if anyone knows any good examples that might work
-in a similar way, I'd appreciate the tip-off. Otherwise, would there be
-any objections to my implementation of a dummy i2c device that does the
-encapsulation?
-
-Regards,
--- 
-Steve Kerrison MEng Hons.
-http://www.stevekerrison.com/ 
-
-
+#define set_iovmf_da_anon(flags)
+#define set_iovmf_da_fix(flags)
+#define set_iovmf_mmio(flags)
+......
