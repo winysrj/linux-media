@@ -1,106 +1,171 @@
 Return-path: <mchehab@pedra>
-Received: from mail1.matrix-vision.com ([78.47.19.71]:46085 "EHLO
-	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754035Ab1CCQG0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2011 11:06:26 -0500
-Message-ID: <4D6FBC7F.1080500@matrix-vision.de>
-Date: Thu, 03 Mar 2011 17:06:23 +0100
-From: Michael Jones <michael.jones@matrix-vision.de>
+Received: from mail-ww0-f42.google.com ([74.125.82.42]:59034 "EHLO
+	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752433Ab1CHKFv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Mar 2011 05:05:51 -0500
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	fernando.lugo@ti.com
-CC: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-omap@vger.kernel.org, Hiroshi.DOYU@nokia.com
-Subject: Re: omap3isp cache error when unloading
-References: <4D6D219D.7020605@matrix-vision.de> <201103022018.23446.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201103022018.23446.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <001301cbdd74$1044a4b0$30cdee10$%szyprowski@samsung.com>
+References: <1299229274-9753-1-git-send-email-m.szyprowski@samsung.com>
+	<03ab01cbdd62$739550d0$5abff270$%kim@samsung.com>
+	<001301cbdd74$1044a4b0$30cdee10$%szyprowski@samsung.com>
+Date: Tue, 8 Mar 2011 19:05:50 +0900
+Message-ID: <AANLkTin9Lj8cR2cTfz5s72c=rJaNy5ia866+gT1tNnpA@mail.gmail.com>
+Subject: Re: [PATCH/RFC 0/7] Samsung IOMMU videobuf2 allocator and s5p-fimc update
+From: InKi Dae <daeinki@gmail.com>
+To: Kukjin Kim <kgene.kim@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	k.debski@samsung.com, =?EUC-KR?B?sK25zrHU?= <mk7.kang@samsung.com>,
+	=?EUC-KR?B?wMzAz8ijL1MvVyBTb2x1dGlvbrCzud/GwChTLkxTSSkvRTUow6XA0ykvu++8usD8?=
+	 =?EUC-KR?B?wNo=?= <ilho215.lee@samsung.com>,
+	=?EUC-KR?B?tOvAzrHi?= <inki.dae@samsung.com>,
+	kyungmin.park@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	=?EUC-KR?B?wbaw5sijL1MvVyBTb2x1dGlvbrCzud/GwChTLkxTSSkvRTQovLHA0ykvu++8usD8?=
+	 =?EUC-KR?B?wNo=?= <pullip.cho@samsung.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 03/02/2011 08:18 PM, Laurent Pinchart wrote:
-> Hi Michael,
-> 
-> On Tuesday 01 March 2011 17:41:01 Michael Jones wrote:
->> Hi all,
+Hello, Mr. Kukjin.
+
+
+2011/3/8 Marek Szyprowski <m.szyprowski@samsung.com>:
+> Hello,
+>
+> On Tuesday, March 08, 2011 8:29 AM Kukjin Kim wrote:
+>
+>> Hello,
 >>
->> I get a warning about a cache error with the following steps:
+>> There are comments for your System MMU driver below.
+>
+> Please take into account that this was an initial version of our SYSMMU
+> driver to start the discussion, so there were a few minor problems left.
+> Thanks for pointing them out btw. :)
+>
+>
+>> It's good that System MMU has functionality of mapping but System MMU have
+>> to use other mapping of virtual memory allocator.
+>
+you mean that other page sizes such as large, small page and so on
+should be supported in mapping also? otherwise use 64k not 4k page?
+
+> Could you elaborate on this? I'm not sure I understand right your problem.
+>
+> SYSMMU driver is a low-level driver for the SYSMMU module. The driver should
+> provide all the basic functionality that is (or might be) hardware dependent.
+> Creating a mapping is one of such elementary functionalities. Sysmmu client
+> (let it be videobuf2-s5p-iommu, vcmm, maybe even other driver directly)
+> should not need to know the format of page descriptors or the way they are
+> arranged in the memory. The sysmmu should provide low level functions to create
+> and remove a mapping. Managing a virtual space is something that MIGHT be client
+> dependent and should be left to the client.
+>
+> This design allows for different approaches to coexist. Videobuf2-s5p-iommu
+> client will manage the virtual space with gen_alloc framework, while vcmm will
+> use its own methods.
+>
+> It would be great if one decide to unify iommu interfaces across the kernel,
+> but this will be a long road. We need to start from something simple (platform
+> private) and working first.
+>
+>> And would be better to change sysmmu_list to use array of defined in
+>> s5p_sysmmu_ip enumeration, so that can get enhancement of memory space
+>> usage, speed, and readability of codes.
+>
+> Yes, the list can be simplified to an array, but this is really a minor issue.
+>
+>> TLB replacement policy does not need to use LRU. Of course, current System
+>> MMU also needs it. I think, the round robin is enough, because to access
+>> memory has no temporal locality and to make LRU need to access to System
+>> MMU register one more. The reset value is round robin.
+>
+> Well, the best possibility is to allow sysmmu clients to decide which policy
+> should be used. For some devices (I'm thinking of MFC) LRU policy might give
+> a little speedup.
+>
+>> In the setting of SHARED page table in s5p_sysmmu_control_locked, get the
+>> page table base address of ARM core from cp15 register now. But current->mm-
+>> >pgd is better for more compatibility.
+>
+> Right, this way the pgd table pointer can be acquired in a more system friendly
+> way.
+>
+>> When it make page table with PRIVATE page table methods, the size of the
+>> structure to manage the second page table is quite big. It is much better
+>> rather that to make slab with cache size of 1KB.
+>
+> Yes, our initial driver uses directly 4KB pages to manage 4 consecutive second
+> page tables. However usually the allocations of client devices will be few but
+> quite large each. So most of pages used to hold second level page tables will
+> be effectively reused.
+>
+> You are right however that the approach with a slab with 1KB units will
+> result in code that is cleaner and easier to understand.
+>
+>> Besides, the page mapping implementation is not safe in your System MMU
+>> driver. Because only first one confirms primary page table entry, when it
+>> assigns four second page tables consecutively at a time.
+>
+> That's a direct result of the 4-second-level-at-once method of allocating
+> second level pages, but this can be cleaned by using 1KB with slab.
+>
+>> The System MMU driver cannot apply runtime pm by oneself with calling
+>> pm_runtime_put_sync(). The reason is because a device with System MMU can
+>> on/off power. I think just clock gating is enough. However, I can't find
+>> clock enable/disable in your driver.
+>
+> Clock is enabled in probe() and disabled in remove(). pm_runtime_get/put_sync()
+> only increases/decreases use count of a respective power domain, so the actual
+> device driver also has to call pm_runtime_get/put. Calling pm_runtime_put_sync()
+> will not shut down the power if the sysmmu client driver has called
+> pm_runtime_get() without pm_runtime_put(). I see no problems here. Could you
+> elaborate your issue?
+>
 >>
->> 0. load omap3-isp
->> 1. set up media broken media pipeline. (e.g. set different formats on
->> opposite ends of a link, as will be the case for using the lane shifter)
->> 2. try to capture images.  isp_video_streamon() returns -EPIPE from the
->> failed isp_video_validate_pipeline() call.
->> 3. unload omap3-isp module
->>
->> then I get the following from kmem_cache_destroy():
->>
->> slab error in kmem_cache_destroy(): cache `iovm_area_cache': Can't free all
->> objects [<c0040318>] (unwind_backtrace+0x0/0xec) from [<c00bfe14>]
->> (kmem_cache_destroy+0x88/0xf4) [<c00bfe14>] (kmem_cache_destroy+0x88/0xf4)
->> from [<c00861f8>] (sys_delete_module+0x1c4/0x230) [<c00861f8>]
->> (sys_delete_module+0x1c4/0x230) from [<c003b680>]
->> (ret_fast_syscall+0x0/0x30)
->>
->> Then, when reloading the module:
->> SLAB: cache with size 32 has lost its name
->>
->> Can somebody else confirm that they also observe this behavior?
-> 
-> I can't reproduce that (tried both 2.6.32 and 2.6.37). Could you give me some 
-> more details about your exact test procedure (such as how you configure the 
-> pipeline) ?
-> 
-
-Sorry, I should've mentioned: I'm using your media-0005-omap3isp branch
-based on 2.6.38-rc5.  I didn't have the problem with 2.6.37, either.
-It's actually not related to mis-configuring the ISP pipeline like I
-thought at first- it also happens after I have successfully captured images.
-
-I've since tracked down the problem, although I don't understand the
-cache management well enough to be sure it's a proper fix, so hopefully
-some new recipients on this can make suggestions/comments.
-
-The patch below solves the problem, which modifies a commit by Fernando
-Guzman Lugo from December.
-
--Michael
-
->From db35fb8edca2a4f8fd37197d77fd58676cb1dcac Mon Sep 17 00:00:00 2001
-From: Michael Jones <michael.jones@matrix-vision.de>
-Date: Thu, 3 Mar 2011 16:50:39 +0100
-Subject: [PATCH] fix iovmm slab cache error on module unload
-
-modify "OMAP: iommu: create new api to set valid da range"
-
-This modifies commit c7f4ab26e3bcdaeb3e19ec658e3ad9092f1a6ceb.
----
- arch/arm/plat-omap/iovmm.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
-index 6dc1296..2fba6f1 100644
---- a/arch/arm/plat-omap/iovmm.c
-+++ b/arch/arm/plat-omap/iovmm.c
-@@ -280,7 +280,10 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
- 	alignement = PAGE_SIZE;
- 
- 	if (flags & IOVMF_DA_ANON) {
--		start = obj->da_start;
-+		/*
-+		 * Reserve the first page for NULL
-+		 */
-+		start = obj->da_start + PAGE_SIZE;
- 
- 		if (flags & IOVMF_LINEAR)
- 			alignement = iopgsz_max(bytes);
--- 
-1.7.4.1
-
-
-
-MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
-Registergericht: Amtsgericht Stuttgart, HRB 271090
-Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
+>> By PRIVATE page table method, each system MMU comes to have a page table
+>> only for oneself. In this case, the problem is that each MFC System MMU L
+>> and R having another page table.
+>
+> Yes, true. This is consequence of the MFC hardware design and the fact that
+> it has 2 AXI master interfaces and 2 SYSMMU controllers. Each of them have to
+> be configured separately. Each of them has a separate virtual driver's address
+> space. Such configuration is used by the MFC driver posted in v7 patch series.
+>
+>> In your System MMU driver, the page size is always 4KB crucially. This says
+>> TLB thrashing and produces a result to lose a TLB hit rate. It is a big
+>> problem with the device such as rotator which does not do sequential access
+>> especially.
+>
+> The page size is set to 4KB, because Linux kernel uses 4KB pages by default.
+> Once support for other page size is available in the kernel, then sysmmu can be
+> extended also.
+>
+>> And the IRQ handler just outputs only a message. It should be implemented
+>> in call back function to be able to handle from each device driver.
+>
+> This was only for debugging purpose, but you are right that the sysmmu API in
+> this area need to be extended.
+>
+>> When it sets System MMU in SHARED page table, kernel virtual memory is
+>> broken by a method such as s5p_sysmmu_map_area()
+>
+> Yes, there should be a check added to prevent messing with ARM pgd in SHARED
+> mode.
+>
+> Best regards
+> --
+> Marek Szyprowski
+> Samsung Poland R&D Center
+>
+>
+>
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+>
