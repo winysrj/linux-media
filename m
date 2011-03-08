@@ -1,37 +1,96 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1483 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751338Ab1CVTDy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Mar 2011 15:03:54 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Ondrej Zary <linux@rainbow-software.org>
-Subject: Re: [RFC PATCH 4/3] remove radio-maestro
-Date: Tue, 22 Mar 2011 20:03:27 +0100
-Cc: "Takashi Iwai" <tiwai@suse.de>, jirislaby@gmail.com,
-	alsa-devel@alsa-project.org,
-	"Kernel development list" <linux-kernel@vger.kernel.org>,
-	linux-media@vger.kernel.org
-References: <201103121919.05657.linux@rainbow-software.org> <33b29bfb135fbe2ddcba88d342d67526.squirrel@webmail.xs4all.nl> <201103191723.52732.linux@rainbow-software.org>
-In-Reply-To: <201103191723.52732.linux@rainbow-software.org>
+Received: from moutng.kundenserver.de ([212.227.17.10]:65267 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752245Ab1CHHSF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Mar 2011 02:18:05 -0500
+Date: Tue, 8 Mar 2011 08:17:56 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sergio Aguirre <saaguirre@ti.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>, pawel@osciak.com
+Subject: Re: [PATCH] V4L: soc-camera: Add support for custom host mmap
+In-Reply-To: <1299545691-917-1-git-send-email-saaguirre@ti.com>
+Message-ID: <Pine.LNX.4.64.1103080809120.3903@axis700.grange>
+References: <1299545691-917-1-git-send-email-saaguirre@ti.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201103222003.27131.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Saturday, March 19, 2011 17:23:47 Ondrej Zary wrote:
-> Remove broken radio-maestro driver as the radio functionality is now
-> integrated in the es1968 driver.
+Hi Sergio
+
+On Mon, 7 Mar 2011, Sergio Aguirre wrote:
+
+> This helps redirect mmap calls to custom memory managers which
+> already have preallocated space to use by the device.
 > 
-> Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+> Otherwise, device might not support the allocation attempted
+> generically by videobuf.
+> 
+> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+> ---
+>  drivers/media/video/soc_camera.c |    7 ++++++-
+>  include/media/soc_camera.h       |    2 ++
+>  2 files changed, 8 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+> index 59dc71d..d361ba0 100644
+> --- a/drivers/media/video/soc_camera.c
+> +++ b/drivers/media/video/soc_camera.c
+> @@ -512,6 +512,7 @@ static ssize_t soc_camera_read(struct file *file, char __user *buf,
+>  static int soc_camera_mmap(struct file *file, struct vm_area_struct *vma)
+>  {
+>  	struct soc_camera_device *icd = file->private_data;
+> +	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
 
-Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+This doesn't seem to be needed
 
-Also for patches 2 & 3 :-)
+>  	int err;
+>  
+>  	dev_dbg(&icd->dev, "mmap called, vma=0x%08lx\n", (unsigned long)vma);
+> @@ -519,7 +520,11 @@ static int soc_camera_mmap(struct file *file, struct vm_area_struct *vma)
+>  	if (icd->streamer != file)
+>  		return -EBUSY;
+>  
+> -	err = videobuf_mmap_mapper(&icd->vb_vidq, vma);
+> +	/* Check for an interface custom mmaper */
 
-Regards,
+mmapper - double 'p'
 
-	Hans
+> +	if (ici->ops->mmap)
+> +		err = ici->ops->mmap(&icd->vb_vidq, icd, vma);
+> +	else
+> +		err = videobuf_mmap_mapper(&icd->vb_vidq, vma);
+
+You're patching an old version of soc-camera. Please use a current one 
+with support for videobuf2. Further, wouldn't it be possible for you to 
+just replace the videobuf mmap_mapper() (videobuf2 q->mem_ops->mmap()) 
+method? I am not sure how possible this is, maybe one of videobuf2 experts 
+could help us? BTW, you really should be using the videobuf2 API.
+
+>  
+>  	dev_dbg(&icd->dev, "vma start=0x%08lx, size=%ld, ret=%d\n",
+>  		(unsigned long)vma->vm_start,
+> diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+> index de81370..11350c2 100644
+> --- a/include/media/soc_camera.h
+> +++ b/include/media/soc_camera.h
+> @@ -87,6 +87,8 @@ struct soc_camera_host_ops {
+>  	int (*set_ctrl)(struct soc_camera_device *, struct v4l2_control *);
+>  	int (*get_parm)(struct soc_camera_device *, struct v4l2_streamparm *);
+>  	int (*set_parm)(struct soc_camera_device *, struct v4l2_streamparm *);
+> +	int (*mmap)(struct videobuf_queue *, struct soc_camera_device *,
+> +		     struct vm_area_struct *);
+>  	unsigned int (*poll)(struct file *, poll_table *);
+>  	const struct v4l2_queryctrl *controls;
+>  	int num_controls;
+> -- 
+> 1.7.1
+> 
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
