@@ -1,49 +1,57 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:46323 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756799Ab1CAQOP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Mar 2011 11:14:15 -0500
-Received: by qyg14 with SMTP id 14so4488915qyg.19
-        for <linux-media@vger.kernel.org>; Tue, 01 Mar 2011 08:14:14 -0800 (PST)
-References: <201101091836.58104.pboettcher@kernellabs.com> <4D51EFFB.90201@users.sourceforge.net> <9C5EED67-B096-4C8C-8269-CDDCE24F92A7@wilsonet.com> <4D5D0AA0.3070505@users.sourceforge.net> <AEF55519-A61C-411D-AF9D-9E4ED269694F@wilsonet.com>
-In-Reply-To: <AEF55519-A61C-411D-AF9D-9E4ED269694F@wilsonet.com>
-Mime-Version: 1.0 (Apple Message framework v1082)
-Content-Type: text/plain; charset=us-ascii
-Message-Id: <8DF79112-88D7-48DF-AEC9-BB074ABE2F7D@wilsonet.com>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:56337 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751281Ab1CHH6k (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Mar 2011 02:58:40 -0500
+Received: by fxm17 with SMTP id 17so4869433fxm.19
+        for <linux-media@vger.kernel.org>; Mon, 07 Mar 2011 23:58:39 -0800 (PST)
+Date: Tue, 8 Mar 2011 08:51:07 +0100
+From: Steffen Barszus <steffenbpunkt@googlemail.com>
+To: Scott <igetmyemailhere@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Compiling v4l fatal error: linux/ti_wilink_st.h: No such file
+ or directory
+Message-ID: <20110308085107.7bcb52ef@grobi>
+In-Reply-To: <FBB75E3F-418B-470F-8169-25CC3AFBA73F@gmail.com>
+References: <AANLkTikJPTMGirPOVmcH-Wit-0B8BC8cqEbCMj=nLc+b@mail.gmail.com>
+	<864FEDC7-B235-4878-AE6B-77E2A62D1ED9@wilsonet.com>
+	<FBB75E3F-418B-470F-8169-25CC3AFBA73F@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: Lucian Muresan <lucianm@users.sourceforge.net>
-From: Jarod Wilson <jarod@wilsonet.com>
-Subject: Re: MCEUSB: falsly claims mass storage device
-Date: Tue, 1 Mar 2011 11:14:27 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Feb 28, 2011, at 5:34 PM, Jarod Wilson wrote:
+On Mon, 7 Mar 2011 17:22:39 -0600
+Scott <igetmyemailhere@gmail.com> wrote:
 
-> On Feb 17, 2011, at 6:46 AM, Lucian Muresan wrote:
 > 
->> On 09.02.2011 06:19, Jarod Wilson wrote:
->> [...]
->>> Looks like bInterfaceNumber == 2 on this device. The patch to handle this
->>> similar to the conexant polaris devices should be pretty trivial. I'll
->>> try to get something together tomorrow.
->> 
->> Hi,
->> 
->> any news on this one?
-> 
-> I suck, but I have a patch in my local tree now. Need to build and
-> quickly test it to make sure it doesn't break the devices I've got,
-> then I'll get it posted.
+>   Same problem.  I purged both  linux-headers-2.6.35-27-generic,
+> linux-source-2.6.35, then reinstalled them, and did an apt-get
+> update/upgrade.  I then deleted media_build and ran...
 
-Patch is posted.
+linux-headers should be enough, no need for linux-source, and you need
+never both IMHO.
 
-https://patchwork.kernel.org/patch/599711/
+> git clone git://linuxtv.org/media_build.git
+> cd media_build
+> ./build.sh
+> Compile breaks
+> vi vrl/.config changed CONFIG_DVB_FIREDTV=m to =n
 
--- 
-Jarod Wilson
-jarod@wilsonet.com
+should not be necessary anymore, at least its not needed here. 
 
+> ./build.sh
 
+You might want to try my dkms package - not sure if it works on
+maverick (its build on/for lucid) - but in theory it should (except
+if the number of modules differs for different kernel). 
+If not you get atleast the latest source which compiles fine here. 
 
+https://launchpad.net/~yavdr/+archive/testing-vdr/+packages?field.name_filter=v4l-dvb-dkms&field.status_filter=published&field.series_filter=
+
+Just uploaded new version with media_build and media_tree as of now. 
+
+Let me know if it works.
+
+Steffen
