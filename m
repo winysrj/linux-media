@@ -1,65 +1,56 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:49042 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752053Ab1CVKDe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Mar 2011 06:03:34 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: Yet another memory provider: can linaro organize a meeting?
-Date: Tue, 22 Mar 2011 11:03:50 +0100
-Cc: Kyungmin Park <kmpark@infradead.org>, Li Li <eggonlea@gmail.com>,
-	Alex Deucher <alexdeucher@gmail.com>,
-	Robert Fekete <robert.fekete@linaro.org>,
-	Jonghun Han <jonghun.han@samsung.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	linaro-dev@lists.linaro.org, linux-media@vger.kernel.org
-References: <201103080913.59231.hverkuil@xs4all.nl> <AANLkTi=tqMHNQs=-R2rUpD_RZvGJSPUFY8uS6Rz1jCEM@mail.gmail.com> <201103211903.38494.hverkuil@xs4all.nl>
-In-Reply-To: <201103211903.38494.hverkuil@xs4all.nl>
+Received: from smtp.nokia.com ([147.243.128.24]:53202 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751756Ab1CHJOH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Mar 2011 04:14:07 -0500
+Message-ID: <4D75F343.8090505@maxwell.research.nokia.com>
+Date: Tue, 08 Mar 2011 11:13:39 +0200
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+CC: David Cohen <dacohen@gmail.com>,
+	Michael Jones <michael.jones@matrix-vision.de>,
+	Hiroshi.DOYU@nokia.com,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-omap@vger.kernel.org
+Subject: Re: [PATCH] omap: iommu: disallow mapping NULL address
+References: <4D6D219D.7020605@matrix-vision.de>	<201103022018.23446.laurent.pinchart@ideasonboard.com>	<4D6FBC7F.1080500@matrix-vision.de>	<AANLkTikAKy=CzTqEv-UGBQ1EavqmCStPNFZ5vs7vH5VK@mail.gmail.com>	<4D70F985.8030902@matrix-vision.de>	<AANLkTinSJpjPXWHWduLbRSmb=La3sv82ufwgsq-uR7S2@mail.gmail.com>	<AANLkTi=8Sss-5xfgPmgx=J_T__=hrC1rQU-xBOdKC8Ve@mail.gmail.com>	<4D74D94F.7040702@matrix-vision.de>	<AANLkTikokA2hGMYA3vfBOxa0jPr0tjbLfYW603+zicry@mail.gmail.com>	<AANLkTikzAjUrec+c6zcSCx6auaR9QvbWwwTbXpGYuOoZ@mail.gmail.com> <AANLkTi=KncNfW0NEEoV+mrT_Ft2j-c=rQG=qbeR6tLQK@mail.gmail.com>
+In-Reply-To: <AANLkTi=KncNfW0NEEoV+mrT_Ft2j-c=rQG=qbeR6tLQK@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201103221103.50412.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Monday 21 March 2011 19:03:38 Hans Verkuil wrote:
-> On Wednesday, March 16, 2011 09:14:54 Kyungmin Park wrote:
-> > Rough schedules.
-> > 
-> > 1. Warsaw meetings (3/16~3/18): mostly v4l2 person and some SoC vendors
-> > 
-> >   Make a consensence at media developers. and share the information.
-> >   Please note that it's v4l2 brainstorming meeting. so memory management
-> >   is not the main issue.
+Guzman Lugo, Fernando wrote:
+> On Mon, Mar 7, 2011 at 1:19 PM, David Cohen <dacohen@gmail.com> wrote:
+>> On Mon, Mar 7, 2011 at 9:17 PM, Guzman Lugo, Fernando
+>> <fernando.lugo@ti.com> wrote:
+>>> On Mon, Mar 7, 2011 at 7:10 AM, Michael Jones
+>>> <michael.jones@matrix-vision.de> wrote:
+>>>> From e7dbe4c4b64eb114f9b0804d6af3a3ca0e78acc8 Mon Sep 17 00:00:00 2001
+>>>> From: Michael Jones <michael.jones@matrix-vision.de>
+>>>> Date: Mon, 7 Mar 2011 13:36:15 +0100
+>>>> Subject: [PATCH] omap: iommu: disallow mapping NULL address
+>>>>
+>>>> commit c7f4ab26e3bcdaeb3e19ec658e3ad9092f1a6ceb allowed mapping
+>>>> the NULL address if da_start==0.  Force da_start to exclude the
+>>>> first page.
+>>>
+>>> what about devices that uses page 0? ipu after reset always starts
+>>> from 0x00000000 how could we map that address??
+>>
+>> from 0x0? The driver sees da == 0 as error. May I ask you why do you want it?
 > 
-> I have asked all participants to the meeting to try and assemble
-> requirements for their hardware in the next week.
-> 
-> > 2. ELC (4/11~4/13): DRM, DRI and v4l2 person.
-> > 
-> >   Discuss GEM/TTM is acceptable for non-X86 system and find out the which
-> >   modules are acceptable.
-> >   We studied the GEM for our environment. but it's too huge and not much
-> >   benefit for us since current frameworks are enough.
-> >   The missing is that no generic memory passing mechanism. We need the
-> >   generic memory passing interface. that's all.
-> 
-> Who will be there? Is there a BoF or something similar organized?
-> 
-> > 3. Linaro (5/9~5/13): ARM, SoC vendors and v4l2 persons.
-> > 
-> >   I hope several person are anticipated and made a small step for final
-> >   goal.
-> 
-> I should be able to join, at least for the part related to buffer pools and
-> related topics.
+> unlike DSP that you can load a register with the addres the DSP will
+> boot, IPU core always starts from address 0x00000000, so if you take
+> IPU out of reset it will try to access address 0x0 if not map it,
+> there will be a mmu fault.
 
-Same for me. I might not join for the whole week, so it would be nice if we 
-could draft an agenda in the near future.
+I think the driver for IPU (what is it, btw.?) must map the NULL address
+explicitly. It cannot rely on automatic allocation of the NULL address
+by the iommu even if it was the first allocation.
 
 -- 
-Regards,
-
-Laurent Pinchart
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
