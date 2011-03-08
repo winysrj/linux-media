@@ -1,90 +1,113 @@
 Return-path: <mchehab@pedra>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37205 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45649 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751240Ab1CJRJ6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Mar 2011 12:09:58 -0500
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	javier Martin <javier.martin@vista-silicon.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Date: Thu, 10 Mar 2011 22:39:42 +0530
-Subject: RE: mt9p031 support for Beagleboard.
-Message-ID: <19F8576C6E063C45BE387C64729E739404E1F52AB5@dbde02.ent.ti.com>
-References: <AANLkTi=8iEa4ZXvh1SqL8XdHuB2YcDAxXAqouJA2JriV@mail.gmail.com>
- <201103101701.19396.laurent.pinchart@ideasonboard.com>
- <19F8576C6E063C45BE387C64729E739404E1F52AA2@dbde02.ent.ti.com>
- <201103101741.41403.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201103101741.41403.laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	id S1753420Ab1CHNHD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Mar 2011 08:07:03 -0500
+Message-ID: <4D7629F4.6010802@ti.com>
+Date: Tue, 8 Mar 2011 07:07:00 -0600
+From: Sergio Aguirre <saaguirre@ti.com>
 MIME-Version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] v4l: soc-camera: Store negotiated buffer settings
+References: <1299545388-717-1-git-send-email-saaguirre@ti.com> <Pine.LNX.4.64.1103080818240.3903@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1103080818240.3903@axis700.grange>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+Hi Guennadi,
 
-> -----Original Message-----
-> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> Sent: Thursday, March 10, 2011 10:12 PM
-> To: Hiremath, Vaibhav
-> Cc: Guennadi Liakhovetski; javier Martin; Linux Media Mailing List; Mauro
-> Carvalho Chehab
-> Subject: Re: mt9p031 support for Beagleboard.
-> 
-> Hi Vaibhav,
-> 
-> On Thursday 10 March 2011 17:23:52 Hiremath, Vaibhav wrote:
-> > On Thursday, March 10, 2011 9:31 PM Laurent Pinchart wrote: > > On
-> Thursday
-> 10 March 2011 16:47:46 Hiremath, Vaibhav wrote:
-> > > > On Thursday, March 10, 2011 9:14 PM Laurent Pinchart wrote:
-<snip>
-> >
-> > BeagleXM supports set of parallel sensors (MT9V113, MT9P031, MT9T111,
-> > etc...),  out of this I believe reset gpio, regulator and data channel
-> > path enable part is going to be common between all of the sensors.
-> >
-> > The things which will be different would be, especially clock
-> configuration
-> > and i2c address. I2C address is going to be very crucial and need some
-> > thinking, since there are sensors with same I2C address.
-> 
-> I2C addresses, signals polarities and data lane shifting will need to be
-> configured.
-> 
-> > I guess I am still not following you completely (must be missing
-> > something), would you mind help me to understand your concern here.
-> 
-> Those parameters all need to be provided by board code. You can't push a
-> patch
-> that adds hardcoded support for the MT9P031 to the board-omap3beagled.c
-> file
-> upstream, as not all Beagleboards will have an MT9P031 sensor connected
-> (or
-> even any sensor at all). How can we push the code upstream and still make
-> it
-> configurable enough ?
-> 
-[Hiremath, Vaibhav] I don't think some of these parameters we can make configurable, for example, platform_data for sensor, it has to be sensor specific. I2C address, it has to be sensor dependent, etc...
+On 03/08/2011 01:19 AM, Guennadi Liakhovetski wrote:
+> On Mon, 7 Mar 2011, Sergio Aguirre wrote:
+>
+>> This fixes the problem in which a host driver
+>> sets a personalized sizeimage or bytesperline field,
+>> and gets ignored when doing G_FMT.
+>
+> Can you tell what that personalised value is? Is it not covered by
+> soc_mbus_bytes_per_line()? Maybe something like a JPEG format?
 
-Also, I am quite not sure how can we make things configurable based on presence of daughter card here. If we do not have daughter card connected to board, enumeration will fail.
+In my case, my omap4_camera driver requires to have a bytesperline which 
+is a multiple of 32, and sometimes (depending on the internal HW blocks 
+used) a page aligned byte offset between lines.
 
-> > [By next week I should be able to make all my changes public (into my
-> Arago
-> > repo) for reference]
-> 
-> There are too many repositories with code lying around. We should try to
-> coordinate our efforts.
-> 
-[Hiremath, Vaibhav] I agree with you.
+For example, I want to use such configuration that, for an NV12 buffer, 
+I require a 4K offset between lines, so the vaues are:
 
-Thanks,
-Vaibhav
+pix->bytesperline = PAGE_SIZE;
+pix->sizeimage = pix->bytesperline * height * 3 / 2;
 
-> --
-> Regards,
-> 
-> Laurent Pinchart
+Which I filled in TRY_FMT/S_FMT ioctl calls.
+
+So, next time a driver tries a G_FMT, it currently gets recalculated by
+a prefixed table (which comes from soc_mbus_bytes_per_line), which won't 
+give me what i had set before. And it will also recalculate a size image 
+based on this wrong bytesperline * height, which is also wrong, (lacks 
+the * 3 / 2 for NV12).
+
+Regards,
+Sergio
+
+>
+> Thanks
+> Guennadi
+>
+>>
+>> Signed-off-by: Sergio Aguirre<saaguirre@ti.com>
+>> ---
+>>   drivers/media/video/soc_camera.c |    9 ++++-----
+>>   include/media/soc_camera.h       |    2 ++
+>>   2 files changed, 6 insertions(+), 5 deletions(-)
+>>
+>> diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+>> index a66811b..59dc71d 100644
+>> --- a/drivers/media/video/soc_camera.c
+>> +++ b/drivers/media/video/soc_camera.c
+>> @@ -363,6 +363,8 @@ static int soc_camera_set_fmt(struct soc_camera_device *icd,
+>>   	icd->user_width		= pix->width;
+>>   	icd->user_height	= pix->height;
+>>   	icd->colorspace		= pix->colorspace;
+>> +	icd->bytesperline	= pix->bytesperline;
+>> +	icd->sizeimage		= pix->sizeimage;
+>>   	icd->vb_vidq.field	=
+>>   		icd->field	= pix->field;
+>>
+>> @@ -608,12 +610,9 @@ static int soc_camera_g_fmt_vid_cap(struct file *file, void *priv,
+>>   	pix->height		= icd->user_height;
+>>   	pix->field		= icd->vb_vidq.field;
+>>   	pix->pixelformat	= icd->current_fmt->host_fmt->fourcc;
+>> -	pix->bytesperline	= soc_mbus_bytes_per_line(pix->width,
+>> -						icd->current_fmt->host_fmt);
+>> +	pix->bytesperline	= icd->bytesperline;
+>>   	pix->colorspace		= icd->colorspace;
+>> -	if (pix->bytesperline<  0)
+>> -		return pix->bytesperline;
+>> -	pix->sizeimage		= pix->height * pix->bytesperline;
+>> +	pix->sizeimage		= icd->sizeimage;
+>>   	dev_dbg(&icd->dev, "current_fmt->fourcc: 0x%08x\n",
+>>   		icd->current_fmt->host_fmt->fourcc);
+>>   	return 0;
+>> diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+>> index 9386db8..de81370 100644
+>> --- a/include/media/soc_camera.h
+>> +++ b/include/media/soc_camera.h
+>> @@ -30,6 +30,8 @@ struct soc_camera_device {
+>>   	s32 user_width;
+>>   	s32 user_height;
+>>   	enum v4l2_colorspace colorspace;
+>> +	__u32 bytesperline;	/* for padding, zero if unused */
+>> +	__u32 sizeimage;
+>>   	unsigned char iface;		/* Host number */
+>>   	unsigned char devnum;		/* Device number per host */
+>>   	struct soc_camera_sense *sense;	/* See comment in struct definition */
+>> --
+>> 1.7.1
+>>
+>
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+
