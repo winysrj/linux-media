@@ -1,151 +1,85 @@
 Return-path: <mchehab@pedra>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53146 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751800Ab1CKQkc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Mar 2011 11:40:32 -0500
-Message-ID: <4D7A507C.7070602@ti.com>
-Date: Fri, 11 Mar 2011 10:40:28 -0600
-From: Sergio Aguirre <saaguirre@ti.com>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] v4l: soc-camera: Store negotiated buffer settings
-References: <1299545388-717-1-git-send-email-saaguirre@ti.com> <Pine.LNX.4.64.1103080818240.3903@axis700.grange> <4D7629F4.6010802@ti.com> <Pine.LNX.4.64.1103111629430.26572@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1103111629430.26572@axis700.grange>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:16240 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753611Ab1CHQgf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Mar 2011 11:36:35 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=ISO-8859-1
+Date: Tue, 08 Mar 2011 17:36:31 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [GIT PULL FOR 2.6.39] s5p-fimc driver and videobuf2 fixes
+In-reply-to: <4D70C495.5000200@samsung.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	linux-samsung-soc@vger.kernel.org
+Message-id: <4D765B0F.8090803@samsung.com>
+References: <4D70C495.5000200@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Guennadi,
+Mauro,
 
-On 03/11/2011 10:36 AM, Guennadi Liakhovetski wrote:
-> On Tue, 8 Mar 2011, Sergio Aguirre wrote:
->
->> Hi Guennadi,
->>
->> On 03/08/2011 01:19 AM, Guennadi Liakhovetski wrote:
->>> On Mon, 7 Mar 2011, Sergio Aguirre wrote:
->>>
->>>> This fixes the problem in which a host driver
->>>> sets a personalized sizeimage or bytesperline field,
->>>> and gets ignored when doing G_FMT.
->>>
->>> Can you tell what that personalised value is? Is it not covered by
->>> soc_mbus_bytes_per_line()? Maybe something like a JPEG format?
->>
->> In my case, my omap4_camera driver requires to have a bytesperline which is a
->> multiple of 32, and sometimes (depending on the internal HW blocks used) a
->> page aligned byte offset between lines.
->>
->> For example, I want to use such configuration that, for an NV12 buffer, I
->> require a 4K offset between lines, so the vaues are:
->>
->> pix->bytesperline = PAGE_SIZE;
->> pix->sizeimage = pix->bytesperline * height * 3 / 2;
->>
->> Which I filled in TRY_FMT/S_FMT ioctl calls.
->
-> Ok, I think, I agree with this. Until now we didn't have drivers, that
-> wanted to pad data. Even the pxa270 driver adjusts the frame format (see
-> pxa_camera.c::pxa_camera_try_fmt() and the call to v4l_bound_align_image()
-> there in the YUV422P case) to avoid padding, even though that's a
-> different kind of padding - between planes. So, if line padding - as in
-> your case - is indeed needed, I agree, that the correct way to support
-> that is to implement driver-specific bytesperline and sizeimage
-> calculations and, logically, those values should be used in
-> soc_camera_g_fmt_vid_cap().
->
-> I'll just change your patch a bit - I'll use "u32" types instead of
-> "__u32" - this is a kernel internal struct and we don't need user-space
-> exported types.
-
-Ok, thanks.
-
-You're right about u32 type... my bad.
-
-So, I'll change that, rebase to:
-
-git://linuxtv.org/media_tree.git	staging/for_v2.6.39
-
-And resubmit for review. No problem.
+please ignore the below pull request. I've found some issues in s5p-fimc
+patches so I want to fix this and resent the pull request. 
+My apologies for the hassle.
 
 Regards,
-Sergio
+Sylwester
 
->
-> Thanks
-> Guennadi
->
->> So, next time a driver tries a G_FMT, it currently gets recalculated by
->> a prefixed table (which comes from soc_mbus_bytes_per_line), which won't give
->> me what i had set before. And it will also recalculate a size image based on
->> this wrong bytesperline * height, which is also wrong, (lacks the * 3 / 2 for
->> NV12).
->>
->> Regards,
->> Sergio
->>
->>>
->>> Thanks
->>> Guennadi
->>>
->>>>
->>>> Signed-off-by: Sergio Aguirre<saaguirre@ti.com>
->>>> ---
->>>>    drivers/media/video/soc_camera.c |    9 ++++-----
->>>>    include/media/soc_camera.h       |    2 ++
->>>>    2 files changed, 6 insertions(+), 5 deletions(-)
->>>>
->>>> diff --git a/drivers/media/video/soc_camera.c
->>>> b/drivers/media/video/soc_camera.c
->>>> index a66811b..59dc71d 100644
->>>> --- a/drivers/media/video/soc_camera.c
->>>> +++ b/drivers/media/video/soc_camera.c
->>>> @@ -363,6 +363,8 @@ static int soc_camera_set_fmt(struct soc_camera_device
->>>> *icd,
->>>>    	icd->user_width		= pix->width;
->>>>    	icd->user_height	= pix->height;
->>>>    	icd->colorspace		= pix->colorspace;
->>>> +	icd->bytesperline	= pix->bytesperline;
->>>> +	icd->sizeimage		= pix->sizeimage;
->>>>    	icd->vb_vidq.field	=
->>>>    		icd->field	= pix->field;
->>>>
->>>> @@ -608,12 +610,9 @@ static int soc_camera_g_fmt_vid_cap(struct file
->>>> *file, void *priv,
->>>>    	pix->height		= icd->user_height;
->>>>    	pix->field		= icd->vb_vidq.field;
->>>>    	pix->pixelformat	= icd->current_fmt->host_fmt->fourcc;
->>>> -	pix->bytesperline	= soc_mbus_bytes_per_line(pix->width,
->>>> -						icd->current_fmt->host_fmt);
->>>> +	pix->bytesperline	= icd->bytesperline;
->>>>    	pix->colorspace		= icd->colorspace;
->>>> -	if (pix->bytesperline<   0)
->>>> -		return pix->bytesperline;
->>>> -	pix->sizeimage		= pix->height * pix->bytesperline;
->>>> +	pix->sizeimage		= icd->sizeimage;
->>>>    	dev_dbg(&icd->dev, "current_fmt->fourcc: 0x%08x\n",
->>>>    		icd->current_fmt->host_fmt->fourcc);
->>>>    	return 0;
->>>> diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
->>>> index 9386db8..de81370 100644
->>>> --- a/include/media/soc_camera.h
->>>> +++ b/include/media/soc_camera.h
->>>> @@ -30,6 +30,8 @@ struct soc_camera_device {
->>>>    	s32 user_width;
->>>>    	s32 user_height;
->>>>    	enum v4l2_colorspace colorspace;
->>>> +	__u32 bytesperline;	/* for padding, zero if unused */
->>>> +	__u32 sizeimage;
->>>>    	unsigned char iface;		/* Host number */
->>>>    	unsigned char devnum;		/* Device number per host */
->>>>    	struct soc_camera_sense *sense;	/* See comment in struct definition */
->>>> --
->>>> 1.7.1
->
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
+On 03/04/2011 11:53 AM, Sylwester Nawrocki wrote:
+> Hi Mauro,
+> 
+> please pull the following change set, it's a couple of s5p-fimc driver
+> fixes and updates after conversion to videobuf2. There are also two small
+> corrections for the videobuf2 and documentation for NV12MT format.
+> 
+> 
+> The following changes since commit 548b491f5a3221e26c0b08dece18fdc62930fe5e:
+> 
+>   [media] media/radio/wl1273: fix build errors (2011-02-27 21:36:52 -0300)
+> 
+> are available in the git repository at:
+>   git://git.infradead.org/users/kmpark/linux-2.6-samsung s5p_fimc_for_mauro
+> 
+> Andrzej Pietrasiewicz (1):
+>       v4l2: vb2-dma-sg: fix memory leak
+> 
+> Kamil Debski (1):
+>       v4l: Documentation for the NV12MT format
+> 
+> Marek Szyprowski (1):
+>       v4l2: vb2: fix queue reallocation and REQBUFS(0) case
+> 
+> Sungchun Kang (1):
+>       s5p-fimc: fix ISR and buffer handling for fimc-capture
+> 
+> Sylwester Nawrocki (6):
+>       s5p-fimc: Prevent oops when i2c adapter is not available
+>       s5p-fimc: Prevent hanging on device close and fix the locking
+>       s5p-fimc: Allow defining number of sensors at runtime
+>       s5p-fimc: Add a platform data entry for MIPI-CSI data alignment
+>       s5p-fimc: Use dynamic debug
+>       s5p-fimc: Fix G_FMT ioctl handler
+> 
+>  Documentation/DocBook/media-entities.tmpl    |    1 +
+>  Documentation/DocBook/v4l/nv12mt.gif         |  Bin 0 -> 2108 bytes
+>  Documentation/DocBook/v4l/nv12mt_example.gif |  Bin 0 -> 6858 bytes
+>  Documentation/DocBook/v4l/pixfmt-nv12mt.xml  |   74 +++++++
+>  Documentation/DocBook/v4l/pixfmt.xml         |    1 +
+>  drivers/media/video/s5p-fimc/fimc-capture.c  |   99 ++++------
+>  drivers/media/video/s5p-fimc/fimc-core.c     |  266 ++++++++++++++------------
+>  drivers/media/video/s5p-fimc/fimc-core.h     |   50 ++++--
+>  drivers/media/video/s5p-fimc/fimc-reg.c      |    6 +-
+>  drivers/media/video/videobuf2-core.c         |    9 +-
+>  drivers/media/video/videobuf2-dma-sg.c       |    2 +
+>  include/media/s5p_fimc.h                     |    9 +-
+>  12 files changed, 307 insertions(+), 210 deletions(-)
+>  create mode 100644 Documentation/DocBook/v4l/nv12mt.gif
+>  create mode 100644 Documentation/DocBook/v4l/nv12mt_example.gif
+>  create mode 100644 Documentation/DocBook/v4l/pixfmt-nv12mt.xml
+> 
 
+-- 
+Sylwester Nawrocki
+Samsung Poland R&D Center
