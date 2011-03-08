@@ -1,52 +1,94 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51350 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752789Ab1C3HsD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Mar 2011 03:48:03 -0400
-Received: from localhost.localdomain (77.162-65-87.adsl-dyn.isp.belgacom.be [87.65.162.77])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id C375B35B86
-	for <linux-media@vger.kernel.org>; Wed, 30 Mar 2011 07:48:01 +0000 (UTC)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] v4l: Release module if subdev registration fails
-Date: Wed, 30 Mar 2011 09:48:21 +0200
-Message-Id: <1301471301-8946-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:60036 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752849Ab1CHSGZ convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Mar 2011 13:06:25 -0500
+MIME-Version: 1.0
+In-Reply-To: <1299588365-2749-2-git-send-email-dacohen@gmail.com>
+References: <1299588365-2749-1-git-send-email-dacohen@gmail.com>
+	<1299588365-2749-2-git-send-email-dacohen@gmail.com>
+Date: Tue, 8 Mar 2011 12:06:18 -0600
+Message-ID: <AANLkTikkUYFuhH-b2vKX8jVoT18wH_+WPzGbfFNWQK6K@mail.gmail.com>
+Subject: Re: [PATCH 1/3] omap: iovmm: disallow mapping NULL address
+From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+To: David Cohen <dacohen@gmail.com>
+Cc: Hiroshi.DOYU@nokia.com, linux-omap@vger.kernel.org,
+	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@maxwell.research.nokia.com,
+	Michael Jones <michael.jones@matrix-vision.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-If v4l2_device_register_subdev() fails, the reference to the subdev
-module taken by the function isn't released. Fix this.
+On Tue, Mar 8, 2011 at 6:46 AM, David Cohen <dacohen@gmail.com> wrote:
+> From: Michael Jones <michael.jones@matrix-vision.de>
+>
+> commit c7f4ab26e3bcdaeb3e19ec658e3ad9092f1a6ceb allowed mapping
+> the NULL address if da_start==0, which would then not get unmapped.
+> Disallow this again.  And spell variable 'alignment' correctly.
+>
+> Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
+> ---
+>  arch/arm/plat-omap/iovmm.c |   16 ++++++++++------
+>  1 files changed, 10 insertions(+), 6 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
+> index 6dc1296..11c9b76 100644
+> --- a/arch/arm/plat-omap/iovmm.c
+> +++ b/arch/arm/plat-omap/iovmm.c
+> @@ -271,20 +271,24 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
+>                                           size_t bytes, u32 flags)
+>  {
+>        struct iovm_struct *new, *tmp;
+> -       u32 start, prev_end, alignement;
+> +       u32 start, prev_end, alignment;
+>
+>        if (!obj || !bytes)
+>                return ERR_PTR(-EINVAL);
+>
+>        start = da;
+> -       alignement = PAGE_SIZE;
+> +       alignment = PAGE_SIZE;
+>
+>        if (flags & IOVMF_DA_ANON) {
+> -               start = obj->da_start;
+> +               /* Don't map address 0 */
+> +               if (obj->da_start)
+> +                       start = obj->da_start;
+> +               else
+> +                       start = obj->da_start + alignment;
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/v4l2-device.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
+else part obj->da_star is always 0, so why not?
+start = alignment;
 
-diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
-index 5aeaf87..4aae501 100644
---- a/drivers/media/video/v4l2-device.c
-+++ b/drivers/media/video/v4l2-device.c
-@@ -155,8 +155,10 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
- 	sd->v4l2_dev = v4l2_dev;
- 	if (sd->internal_ops && sd->internal_ops->registered) {
- 		err = sd->internal_ops->registered(sd);
--		if (err)
-+		if (err) {
-+			module_put(sd->owner);
- 			return err;
-+		}
- 	}
- 
- 	/* This just returns 0 if either of the two args is NULL */
-@@ -164,6 +166,7 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
- 	if (err) {
- 		if (sd->internal_ops && sd->internal_ops->unregistered)
- 			sd->internal_ops->unregistered(sd);
-+		module_put(sd->owner);
- 		return err;
- 	}
- 
--- 
-1.7.3.4
+so, why I understand, it now it is possible mapp address 0x0 only if
+IOVMF_DA_ANON is not set, right? maybe that would be mention in the
+patch.
 
+Regards,
+Fernando.
+
+>
+>                if (flags & IOVMF_LINEAR)
+> -                       alignement = iopgsz_max(bytes);
+> -               start = roundup(start, alignement);
+> +                       alignment = iopgsz_max(bytes);
+> +               start = roundup(start, alignment);
+>        } else if (start < obj->da_start || start > obj->da_end ||
+>                                        obj->da_end - start < bytes) {
+>                return ERR_PTR(-EINVAL);
+> @@ -304,7 +308,7 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
+>                        goto found;
+>
+>                if (tmp->da_end >= start && flags & IOVMF_DA_ANON)
+> -                       start = roundup(tmp->da_end + 1, alignement);
+> +                       start = roundup(tmp->da_end + 1, alignment);
+>
+>                prev_end = tmp->da_end;
+>        }
+> --
+> 1.7.0.4
+>
+>
