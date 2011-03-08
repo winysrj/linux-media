@@ -1,59 +1,31 @@
 Return-path: <mchehab@pedra>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:52690 "EHLO
-	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932267Ab1CINox (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Mar 2011 08:44:53 -0500
-From: Jeongtae Park <jtp.park@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: k.debski@samsung.com, jaeryul.oh@samsung.com,
-	kgene.kim@samsung.com, ben-linux@fluff.org,
-	jonghun.han@samsung.com, Jeongtae Park <jtp.park@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH v2 7/8] ARM: S5PV310: Add MFC v5.1 platform device support for SMDKC210
-Date: Wed,  9 Mar 2011 22:16:06 +0900
-Message-Id: <1299676567-14194-8-git-send-email-jtp.park@samsung.com>
-In-Reply-To: <1299676567-14194-1-git-send-email-jtp.park@samsung.com>
-References: <1299676567-14194-1-git-send-email-jtp.park@samsung.com>
+Received: from web30303.mail.mud.yahoo.com ([209.191.69.65]:39392 "HELO
+	web30303.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1755231Ab1CHR16 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Mar 2011 12:27:58 -0500
+Message-ID: <907496.46974.qm@web30303.mail.mud.yahoo.com>
+Date: Tue, 8 Mar 2011 09:27:56 -0800 (PST)
+From: AW <arne_woerner@yahoo.com>
+Subject: Re: WinTV HVR-900 (usb 2040:6500) (model 65008) / no audio but clicking noise
+To: linux-media@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This patch adds MFC v5.1 platform device support for SMDKC210.
+hi!
 
-Reviewed-by: Peter Oh <jaeryul.oh@samsung.com>
-Signed-off-by: Jeongtae Park <jtp.park@samsung.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Kamil Debski <k.debski@samsung.com>
----
- arch/arm/mach-s5pv310/Kconfig         |    1 +
- arch/arm/mach-s5pv310/mach-smdkc210.c |    3 +++
- 2 files changed, 4 insertions(+), 0 deletions(-)
+i was able to find an antenna position/orientation that allows good quality for 
+7 stations with SNR above 0x78... *wag tail*
+up to 4 stations with just one stick at the same time... *w00t*
 
-diff --git a/arch/arm/mach-s5pv310/Kconfig b/arch/arm/mach-s5pv310/Kconfig
-index 09c4c21..c87d7b4 100644
---- a/arch/arm/mach-s5pv310/Kconfig
-+++ b/arch/arm/mach-s5pv310/Kconfig
-@@ -89,6 +89,7 @@ config MACH_SMDKC210
- 	select S5PV310_SETUP_I2C1
- 	select S5PV310_SETUP_SDHCI
- 	select S5PV310_DEV_SYSMMU
-+	select S5P_DEV_MFC
- 	help
- 	  Machine support for Samsung SMDKC210
- 	  S5PC210(MCP) is one of package option of S5PV310
-diff --git a/arch/arm/mach-s5pv310/mach-smdkc210.c b/arch/arm/mach-s5pv310/mach-smdkc210.c
-index d9cab02..86bd10d 100644
---- a/arch/arm/mach-s5pv310/mach-smdkc210.c
-+++ b/arch/arm/mach-s5pv310/mach-smdkc210.c
-@@ -166,6 +166,9 @@ static struct platform_device *smdkc210_devices[] __initdata = {
- 	&s5pv310_device_sysmmu,
- 	&samsung_asoc_dma,
- 	&smdkc210_smsc911x,
-+#ifdef CONFIG_VIDEO_SAMSUNG_S5P_MFC
-+	&s5p_device_mfc,
-+#endif
- };
- 
- static void __init smdkc210_smsc911x_init(void)
--- 
-1.7.1
+so it is not as urgent as before that the analog audio part works...
+
+thx...
+
+bye
+arne
+
 
