@@ -1,336 +1,84 @@
 Return-path: <mchehab@pedra>
-Received: from mail1.matrix-vision.com ([78.47.19.71]:36065 "EHLO
-	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751257Ab1C2IUG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Mar 2011 04:20:06 -0400
-From: Michael Jones <michael.jones@matrix-vision.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: [PATCH v4 4/4] omap3isp: lane shifter support
-Date: Tue, 29 Mar 2011 10:19:09 +0200
-Message-Id: <1301386749-17497-5-git-send-email-michael.jones@matrix-vision.de>
-In-Reply-To: <1301386749-17497-1-git-send-email-michael.jones@matrix-vision.de>
-References: <1301386749-17497-1-git-send-email-michael.jones@matrix-vision.de>
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:50461 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755578Ab1CHRpl convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Mar 2011 12:45:41 -0500
+MIME-Version: 1.0
+In-Reply-To: <4D75F343.8090505@maxwell.research.nokia.com>
+References: <4D6D219D.7020605@matrix-vision.de>
+	<201103022018.23446.laurent.pinchart@ideasonboard.com>
+	<4D6FBC7F.1080500@matrix-vision.de>
+	<AANLkTikAKy=CzTqEv-UGBQ1EavqmCStPNFZ5vs7vH5VK@mail.gmail.com>
+	<4D70F985.8030902@matrix-vision.de>
+	<AANLkTinSJpjPXWHWduLbRSmb=La3sv82ufwgsq-uR7S2@mail.gmail.com>
+	<AANLkTi=8Sss-5xfgPmgx=J_T__=hrC1rQU-xBOdKC8Ve@mail.gmail.com>
+	<4D74D94F.7040702@matrix-vision.de>
+	<AANLkTikokA2hGMYA3vfBOxa0jPr0tjbLfYW603+zicry@mail.gmail.com>
+	<AANLkTikzAjUrec+c6zcSCx6auaR9QvbWwwTbXpGYuOoZ@mail.gmail.com>
+	<AANLkTi=KncNfW0NEEoV+mrT_Ft2j-c=rQG=qbeR6tLQK@mail.gmail.com>
+	<4D75F343.8090505@maxwell.research.nokia.com>
+Date: Tue, 8 Mar 2011 11:45:35 -0600
+Message-ID: <AANLkTinp2nxKSGkvXtxAe6s+URYiOYEVMmTDkdk9PAPN@mail.gmail.com>
+Subject: Re: [PATCH] omap: iommu: disallow mapping NULL address
+From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Cc: David Cohen <dacohen@gmail.com>,
+	Michael Jones <michael.jones@matrix-vision.de>,
+	Hiroshi.DOYU@nokia.com,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-To use the lane shifter, set different pixel formats at each end of
-the link at the CCDC input.
+On Tue, Mar 8, 2011 at 3:13 AM, Sakari Ailus
+<sakari.ailus@maxwell.research.nokia.com> wrote:
+> Guzman Lugo, Fernando wrote:
+>> On Mon, Mar 7, 2011 at 1:19 PM, David Cohen <dacohen@gmail.com> wrote:
+>>> On Mon, Mar 7, 2011 at 9:17 PM, Guzman Lugo, Fernando
+>>> <fernando.lugo@ti.com> wrote:
+>>>> On Mon, Mar 7, 2011 at 7:10 AM, Michael Jones
+>>>> <michael.jones@matrix-vision.de> wrote:
+>>>>> From e7dbe4c4b64eb114f9b0804d6af3a3ca0e78acc8 Mon Sep 17 00:00:00 2001
+>>>>> From: Michael Jones <michael.jones@matrix-vision.de>
+>>>>> Date: Mon, 7 Mar 2011 13:36:15 +0100
+>>>>> Subject: [PATCH] omap: iommu: disallow mapping NULL address
+>>>>>
+>>>>> commit c7f4ab26e3bcdaeb3e19ec658e3ad9092f1a6ceb allowed mapping
+>>>>> the NULL address if da_start==0.  Force da_start to exclude the
+>>>>> first page.
+>>>>
+>>>> what about devices that uses page 0? ipu after reset always starts
+>>>> from 0x00000000 how could we map that address??
+>>>
+>>> from 0x0? The driver sees da == 0 as error. May I ask you why do you want it?
+>>
+>> unlike DSP that you can load a register with the addres the DSP will
+>> boot, IPU core always starts from address 0x00000000, so if you take
+>> IPU out of reset it will try to access address 0x0 if not map it,
+>> there will be a mmu fault.
+>
+> I think the driver for IPU (what is it, btw.?) must map the NULL address
+> explicitly. It cannot rely on automatic allocation of the NULL address
+> by the iommu even if it was the first allocation.
 
-Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
----
- drivers/media/video/omap3isp/isp.c      |    7 ++-
- drivers/media/video/omap3isp/isp.h      |    5 +-
- drivers/media/video/omap3isp/ispccdc.c  |   27 ++++++--
- drivers/media/video/omap3isp/ispvideo.c |  108 +++++++++++++++++++++++++------
- drivers/media/video/omap3isp/ispvideo.h |    3 +
- 5 files changed, 120 insertions(+), 30 deletions(-)
+IPU = imaging processor unit (Cortex-M3 on omap4).
 
-diff --git a/drivers/media/video/omap3isp/isp.c b/drivers/media/video/omap3isp/isp.c
-index f46b481..5d97c58 100644
---- a/drivers/media/video/omap3isp/isp.c
-+++ b/drivers/media/video/omap3isp/isp.c
-@@ -285,7 +285,8 @@ static void isp_power_settings(struct isp_device *isp, int idle)
-  */
- void omap3isp_configure_bridge(struct isp_device *isp,
- 			       enum ccdc_input_entity input,
--			       const struct isp_parallel_platform_data *pdata)
-+			       const struct isp_parallel_platform_data *pdata,
-+			       unsigned int shift)
- {
- 	u32 ispctrl_val;
- 
-@@ -298,9 +299,9 @@ void omap3isp_configure_bridge(struct isp_device *isp,
- 	switch (input) {
- 	case CCDC_INPUT_PARALLEL:
- 		ispctrl_val |= ISPCTRL_PAR_SER_CLK_SEL_PARALLEL;
--		ispctrl_val |= pdata->data_lane_shift << ISPCTRL_SHIFT_SHIFT;
- 		ispctrl_val |= pdata->clk_pol << ISPCTRL_PAR_CLK_POL_SHIFT;
- 		ispctrl_val |= pdata->bridge << ISPCTRL_PAR_BRIDGE_SHIFT;
-+		shift += pdata->data_lane_shift*2;
- 		break;
- 
- 	case CCDC_INPUT_CSI2A:
-@@ -319,6 +320,8 @@ void omap3isp_configure_bridge(struct isp_device *isp,
- 		return;
- 	}
- 
-+	ispctrl_val |= ((shift/2) << ISPCTRL_SHIFT_SHIFT) & ISPCTRL_SHIFT_MASK;
-+
- 	ispctrl_val &= ~ISPCTRL_SYNC_DETECT_MASK;
- 	ispctrl_val |= ISPCTRL_SYNC_DETECT_VSRISE;
- 
-diff --git a/drivers/media/video/omap3isp/isp.h b/drivers/media/video/omap3isp/isp.h
-index dcf5004..84d6442 100644
---- a/drivers/media/video/omap3isp/isp.h
-+++ b/drivers/media/video/omap3isp/isp.h
-@@ -133,7 +133,6 @@ struct isp_reg {
- 
- /**
-  * struct isp_parallel_platform_data - Parallel interface platform data
-- * @width: Parallel bus width in bits (8, 10, 11 or 12)
-  * @data_lane_shift: Data lane shifter
-  *		0 - CAMEXT[13:0] -> CAM[13:0]
-  *		1 - CAMEXT[13:2] -> CAM[11:0]
-@@ -147,7 +146,6 @@ struct isp_reg {
-  *		ISPCTRL_PAR_BRIDGE_BENDIAN - Big endian
-  */
- struct isp_parallel_platform_data {
--	unsigned int width;
- 	unsigned int data_lane_shift:2;
- 	unsigned int clk_pol:1;
- 	unsigned int bridge:4;
-@@ -326,7 +324,8 @@ int omap3isp_pipeline_set_stream(struct isp_pipeline *pipe,
- 				 enum isp_pipeline_stream_state state);
- void omap3isp_configure_bridge(struct isp_device *isp,
- 			       enum ccdc_input_entity input,
--			       const struct isp_parallel_platform_data *pdata);
-+			       const struct isp_parallel_platform_data *pdata,
-+			       unsigned int shift);
- 
- #define ISP_XCLK_NONE			-1
- #define ISP_XCLK_A			0
-diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
-index 651b47b..af20cd0 100644
---- a/drivers/media/video/omap3isp/ispccdc.c
-+++ b/drivers/media/video/omap3isp/ispccdc.c
-@@ -1120,21 +1120,38 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
- 	struct isp_parallel_platform_data *pdata = NULL;
- 	struct v4l2_subdev *sensor;
- 	struct v4l2_mbus_framefmt *format;
-+	const struct isp_format_info *fmt_info;
-+	struct v4l2_subdev_format fmt_src;
-+	unsigned int depth_out = 0;
-+	unsigned int depth_in = 0;
- 	struct media_pad *pad;
- 	unsigned long flags;
-+	unsigned int shift;
- 	u32 syn_mode;
- 	u32 ccdc_pattern;
- 
--	if (ccdc->input == CCDC_INPUT_PARALLEL) {
--		pad = media_entity_remote_source(&ccdc->pads[CCDC_PAD_SINK]);
--		sensor = media_entity_to_v4l2_subdev(pad->entity);
-+	pad = media_entity_remote_source(&ccdc->pads[CCDC_PAD_SINK]);
-+	sensor = media_entity_to_v4l2_subdev(pad->entity);
-+	if (ccdc->input == CCDC_INPUT_PARALLEL)
- 		pdata = &((struct isp_v4l2_subdevs_group *)sensor->host_priv)
- 			->bus.parallel;
-+
-+	/* Compute shift value for lane shifter to configure the bridge. */
-+	fmt_src.pad = pad->index;
-+	fmt_src.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-+	if (!v4l2_subdev_call(sensor, pad, get_fmt, NULL, &fmt_src)) {
-+		fmt_info = omap3isp_video_format_info(fmt_src.format.code);
-+		depth_in = fmt_info->bpp;
- 	}
- 
--	omap3isp_configure_bridge(isp, ccdc->input, pdata);
-+	fmt_info = omap3isp_video_format_info
-+		(isp->isp_ccdc.formats[CCDC_PAD_SINK].code);
-+	depth_out = fmt_info->bpp;
-+
-+	shift = depth_in - depth_out;
-+	omap3isp_configure_bridge(isp, ccdc->input, pdata, shift);
- 
--	ccdc->syncif.datsz = pdata ? pdata->width : 10;
-+	ccdc->syncif.datsz = depth_out;
- 	ccdc_config_sync_if(ccdc, &ccdc->syncif);
- 
- 	/* CCDC_PAD_SINK */
-diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
-index e2ec9b0..edee04e 100644
---- a/drivers/media/video/omap3isp/ispvideo.c
-+++ b/drivers/media/video/omap3isp/ispvideo.c
-@@ -47,41 +47,59 @@
- 
- static struct isp_format_info formats[] = {
- 	{ V4L2_MBUS_FMT_Y8_1X8, V4L2_MBUS_FMT_Y8_1X8,
--	  V4L2_MBUS_FMT_Y8_1X8, V4L2_PIX_FMT_GREY, 8, },
-+	  V4L2_MBUS_FMT_Y8_1X8, V4L2_MBUS_FMT_Y8_1X8,
-+	  V4L2_PIX_FMT_GREY, 8, },
- 	{ V4L2_MBUS_FMT_Y10_1X10, V4L2_MBUS_FMT_Y10_1X10,
--	  V4L2_MBUS_FMT_Y10_1X10, V4L2_PIX_FMT_Y10, 10, },
-+	  V4L2_MBUS_FMT_Y10_1X10, V4L2_MBUS_FMT_Y8_1X8,
-+	  V4L2_PIX_FMT_Y10, 10, },
- 	{ V4L2_MBUS_FMT_Y12_1X12, V4L2_MBUS_FMT_Y10_1X10,
--	  V4L2_MBUS_FMT_Y12_1X12, V4L2_PIX_FMT_Y12, 12, },
-+	  V4L2_MBUS_FMT_Y12_1X12, V4L2_MBUS_FMT_Y8_1X8,
-+	  V4L2_PIX_FMT_Y12, 12, },
- 	{ V4L2_MBUS_FMT_SBGGR8_1X8, V4L2_MBUS_FMT_SBGGR8_1X8,
--	  V4L2_MBUS_FMT_SBGGR8_1X8, V4L2_PIX_FMT_SBGGR8, 8, },
-+	  V4L2_MBUS_FMT_SBGGR8_1X8, V4L2_MBUS_FMT_SBGGR8_1X8,
-+	  V4L2_PIX_FMT_SBGGR8, 8, },
- 	{ V4L2_MBUS_FMT_SGBRG8_1X8, V4L2_MBUS_FMT_SGBRG8_1X8,
--	  V4L2_MBUS_FMT_SGBRG8_1X8, V4L2_PIX_FMT_SGBRG8, 8, },
-+	  V4L2_MBUS_FMT_SGBRG8_1X8, V4L2_MBUS_FMT_SGBRG8_1X8,
-+	  V4L2_PIX_FMT_SGBRG8, 8, },
- 	{ V4L2_MBUS_FMT_SGRBG8_1X8, V4L2_MBUS_FMT_SGRBG8_1X8,
--	  V4L2_MBUS_FMT_SGRBG8_1X8, V4L2_PIX_FMT_SGRBG8, 8, },
-+	  V4L2_MBUS_FMT_SGRBG8_1X8, V4L2_MBUS_FMT_SGRBG8_1X8,
-+	  V4L2_PIX_FMT_SGRBG8, 8, },
- 	{ V4L2_MBUS_FMT_SRGGB8_1X8, V4L2_MBUS_FMT_SRGGB8_1X8,
--	  V4L2_MBUS_FMT_SRGGB8_1X8, V4L2_PIX_FMT_SRGGB8, 8, },
-+	  V4L2_MBUS_FMT_SRGGB8_1X8, V4L2_MBUS_FMT_SRGGB8_1X8,
-+	  V4L2_PIX_FMT_SRGGB8, 8, },
- 	{ V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8, V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8,
--	  V4L2_MBUS_FMT_SGRBG10_1X10, V4L2_PIX_FMT_SGRBG10DPCM8, 8, },
-+	  V4L2_MBUS_FMT_SGRBG10_1X10, 0,
-+	  V4L2_PIX_FMT_SGRBG10DPCM8, 8, },
- 	{ V4L2_MBUS_FMT_SBGGR10_1X10, V4L2_MBUS_FMT_SBGGR10_1X10,
--	  V4L2_MBUS_FMT_SBGGR10_1X10, V4L2_PIX_FMT_SBGGR10, 10, },
-+	  V4L2_MBUS_FMT_SBGGR10_1X10, V4L2_MBUS_FMT_SBGGR8_1X8,
-+	  V4L2_PIX_FMT_SBGGR10, 10, },
- 	{ V4L2_MBUS_FMT_SGBRG10_1X10, V4L2_MBUS_FMT_SGBRG10_1X10,
--	  V4L2_MBUS_FMT_SGBRG10_1X10, V4L2_PIX_FMT_SGBRG10, 10, },
-+	  V4L2_MBUS_FMT_SGBRG10_1X10, V4L2_MBUS_FMT_SGBRG8_1X8,
-+	  V4L2_PIX_FMT_SGBRG10, 10, },
- 	{ V4L2_MBUS_FMT_SGRBG10_1X10, V4L2_MBUS_FMT_SGRBG10_1X10,
--	  V4L2_MBUS_FMT_SGRBG10_1X10, V4L2_PIX_FMT_SGRBG10, 10, },
-+	  V4L2_MBUS_FMT_SGRBG10_1X10, V4L2_MBUS_FMT_SGRBG8_1X8,
-+	  V4L2_PIX_FMT_SGRBG10, 10, },
- 	{ V4L2_MBUS_FMT_SRGGB10_1X10, V4L2_MBUS_FMT_SRGGB10_1X10,
--	  V4L2_MBUS_FMT_SRGGB10_1X10, V4L2_PIX_FMT_SRGGB10, 10, },
-+	  V4L2_MBUS_FMT_SRGGB10_1X10, V4L2_MBUS_FMT_SRGGB8_1X8,
-+	  V4L2_PIX_FMT_SRGGB10, 10, },
- 	{ V4L2_MBUS_FMT_SBGGR12_1X12, V4L2_MBUS_FMT_SBGGR10_1X10,
--	  V4L2_MBUS_FMT_SBGGR12_1X12, V4L2_PIX_FMT_SBGGR12, 12, },
-+	  V4L2_MBUS_FMT_SBGGR12_1X12, V4L2_MBUS_FMT_SBGGR8_1X8,
-+	  V4L2_PIX_FMT_SBGGR12, 12, },
- 	{ V4L2_MBUS_FMT_SGBRG12_1X12, V4L2_MBUS_FMT_SGBRG10_1X10,
--	  V4L2_MBUS_FMT_SGBRG12_1X12, V4L2_PIX_FMT_SGBRG12, 12, },
-+	  V4L2_MBUS_FMT_SGBRG12_1X12, V4L2_MBUS_FMT_SGBRG8_1X8,
-+	  V4L2_PIX_FMT_SGBRG12, 12, },
- 	{ V4L2_MBUS_FMT_SGRBG12_1X12, V4L2_MBUS_FMT_SGRBG10_1X10,
--	  V4L2_MBUS_FMT_SGRBG12_1X12, V4L2_PIX_FMT_SGRBG12, 12, },
-+	  V4L2_MBUS_FMT_SGRBG12_1X12, V4L2_MBUS_FMT_SGRBG8_1X8,
-+	  V4L2_PIX_FMT_SGRBG12, 12, },
- 	{ V4L2_MBUS_FMT_SRGGB12_1X12, V4L2_MBUS_FMT_SRGGB10_1X10,
--	  V4L2_MBUS_FMT_SRGGB12_1X12, V4L2_PIX_FMT_SRGGB12, 12, },
-+	  V4L2_MBUS_FMT_SRGGB12_1X12, V4L2_MBUS_FMT_SRGGB8_1X8,
-+	  V4L2_PIX_FMT_SRGGB12, 12, },
- 	{ V4L2_MBUS_FMT_UYVY8_1X16, V4L2_MBUS_FMT_UYVY8_1X16,
--	  V4L2_MBUS_FMT_UYVY8_1X16, V4L2_PIX_FMT_UYVY, 16, },
-+	  V4L2_MBUS_FMT_UYVY8_1X16, 0,
-+	  V4L2_PIX_FMT_UYVY, 16, },
- 	{ V4L2_MBUS_FMT_YUYV8_1X16, V4L2_MBUS_FMT_YUYV8_1X16,
--	  V4L2_MBUS_FMT_YUYV8_1X16, V4L2_PIX_FMT_YUYV, 16, },
-+	  V4L2_MBUS_FMT_YUYV8_1X16, 0,
-+	  V4L2_PIX_FMT_YUYV, 16, },
- };
- 
- const struct isp_format_info *
-@@ -98,6 +116,37 @@ omap3isp_video_format_info(enum v4l2_mbus_pixelcode code)
- }
- 
- /*
-+ * Decide whether desired output pixel code can be obtained with
-+ * the lane shifter by shifting the input pixel code.
-+ * @in: input pixelcode to shifter
-+ * @out: output pixelcode from shifter
-+ * @additional_shift: # of bits the sensor's LSB is offset from CAMEXT[0]
-+ *
-+ * return true if the combination is possible
-+ * return false otherwise
-+ */
-+static bool isp_video_is_shiftable(enum v4l2_mbus_pixelcode in,
-+		enum v4l2_mbus_pixelcode out,
-+		unsigned int additional_shift)
-+{
-+	const struct isp_format_info *in_info, *out_info;
-+
-+	if (in == out)
-+		return true;
-+
-+	in_info = omap3isp_video_format_info(in);
-+	out_info = omap3isp_video_format_info(out);
-+
-+	if ((in_info->flavor == 0) || (out_info->flavor == 0))
-+		return false;
-+
-+	if (in_info->flavor != out_info->flavor)
-+		return false;
-+
-+	return in_info->bpp - out_info->bpp + additional_shift <= 6;
-+}
-+
-+/*
-  * isp_video_mbus_to_pix - Convert v4l2_mbus_framefmt to v4l2_pix_format
-  * @video: ISP video instance
-  * @mbus: v4l2_mbus_framefmt format (input)
-@@ -248,6 +297,7 @@ static int isp_video_validate_pipeline(struct isp_pipeline *pipe)
- 		return -EPIPE;
- 
- 	while (1) {
-+		unsigned int shifter_link;
- 		/* Retrieve the sink format */
- 		pad = &subdev->entity.pads[0];
- 		if (!(pad->flags & MEDIA_PAD_FL_SINK))
-@@ -276,6 +326,10 @@ static int isp_video_validate_pipeline(struct isp_pipeline *pipe)
- 				return -ENOSPC;
- 		}
- 
-+		/* If sink pad is on CCDC, the link has the lane shifter
-+		 * in the middle of it. */
-+		shifter_link = subdev == &isp->isp_ccdc.subdev;
-+
- 		/* Retrieve the source format */
- 		pad = media_entity_remote_source(pad);
- 		if (pad == NULL ||
-@@ -291,10 +345,24 @@ static int isp_video_validate_pipeline(struct isp_pipeline *pipe)
- 			return -EPIPE;
- 
- 		/* Check if the two ends match */
--		if (fmt_source.format.code != fmt_sink.format.code ||
--		    fmt_source.format.width != fmt_sink.format.width ||
-+		if (fmt_source.format.width != fmt_sink.format.width ||
- 		    fmt_source.format.height != fmt_sink.format.height)
- 			return -EPIPE;
-+
-+		if (shifter_link) {
-+			unsigned int parallel_shift = 0;
-+			if (isp->isp_ccdc.input == CCDC_INPUT_PARALLEL) {
-+				struct isp_parallel_platform_data *pdata =
-+					&((struct isp_v4l2_subdevs_group *)
-+					      subdev->host_priv)->bus.parallel;
-+				parallel_shift = pdata->data_lane_shift * 2;
-+			}
-+			if (!isp_video_is_shiftable(fmt_source.format.code,
-+						fmt_sink.format.code,
-+						parallel_shift))
-+				return -EPIPE;
-+		} else if (fmt_source.format.code != fmt_sink.format.code)
-+			return -EPIPE;
- 	}
- 
- 	return 0;
-diff --git a/drivers/media/video/omap3isp/ispvideo.h b/drivers/media/video/omap3isp/ispvideo.h
-index 524a1ac..911bea6 100644
---- a/drivers/media/video/omap3isp/ispvideo.h
-+++ b/drivers/media/video/omap3isp/ispvideo.h
-@@ -49,6 +49,8 @@ struct v4l2_pix_format;
-  *	bits. Identical to @code if the format is 10 bits wide or less.
-  * @uncompressed: V4L2 media bus format code for the corresponding uncompressed
-  *	format. Identical to @code if the format is not DPCM compressed.
-+ * @flavor: V4L2 media bus format code for the same pixel layout but
-+ *	shifted to be 8 bits per pixel. =0 if format is not shiftable.
-  * @pixelformat: V4L2 pixel format FCC identifier
-  * @bpp: Bits per pixel
-  */
-@@ -56,6 +58,7 @@ struct isp_format_info {
- 	enum v4l2_mbus_pixelcode code;
- 	enum v4l2_mbus_pixelcode truncated;
- 	enum v4l2_mbus_pixelcode uncompressed;
-+	enum v4l2_mbus_pixelcode flavor;
- 	u32 pixelformat;
- 	unsigned int bpp;
- };
--- 
-1.7.4.2
+yeah, we should rely on that, so we will need to pass IOVMF_DA_FIXED
+flag, what ideally always be success because it is the first map after
+getting iommu handle. In this moment it is mapped direcctly using
+iommu.c and other layer upon that, but it would be nice be able to use
+iovmm in the future.
+
+Regards,
+Fernando.
 
 
-MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
-Registergericht: Amtsgericht Stuttgart, HRB 271090
-Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
+>
+> --
+> Sakari Ailus
+> sakari.ailus@maxwell.research.nokia.com
+>
