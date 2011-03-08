@@ -1,72 +1,55 @@
 Return-path: <mchehab@pedra>
-Received: from mail.kapsi.fi ([217.30.184.167]:52016 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932498Ab1CDWNV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Mar 2011 17:13:21 -0500
-Message-ID: <4D7163FD.9030604@iki.fi>
-Date: Sat, 05 Mar 2011 00:13:17 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2535 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754848Ab1CHIOO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Mar 2011 03:14:14 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linaro-dev@lists.linaro.org
+Subject: Yet another memory provider: can linaro organize a meeting?
+Date: Tue, 8 Mar 2011 09:13:59 +0100
+Cc: linux-media@vger.kernel.org, Jonghun Han <jonghun.han@samsung.com>
 MIME-Version: 1.0
-To: Andrew de Quincey <adq_dvb@lidskialf.net>
-CC: linux-media@vger.kernel.org
-Subject: Re: [patch] Fix AF9015 Dual tuner i2c write failures
-References: <AANLkTi=rcfL_pku9hhx68C_Fb_76KsW2Yy+Oys10a7+4@mail.gmail.com>
-In-Reply-To: <AANLkTi=rcfL_pku9hhx68C_Fb_76KsW2Yy+Oys10a7+4@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201103080913.59231.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Wow, thanks!
+Hi all,
 
-On 03/04/2011 11:37 PM, Andrew de Quincey wrote:
-> Hi, this has been annoying me for some time, so this evening I fixed
-> it. If you use one of the above dual tuner devices (e.g. KWorld 399U),
-> you get random tuning failures and i2c errors reported in dmesg such
-> as:
-[...]
-> Adding a "bus lock" to af9015_i2c_xfer() will not work as demod/tuner
-> accesses will take multiple i2c transactions.
->
-> Therefore, the following patch overrides the dvb_frontend_ops
-> functions to add a per-device lock around them: only one frontend can
-> now use the i2c bus at a time. Testing with the scripts above shows
-> this has eliminated the errors.
+We had a discussion yesterday regarding ways in which linaro can assist
+V4L2 development. One topic was that of sorting out memory providers like
+GEM and HWMEM.
 
-This have annoyed me too, but since it does not broken functionality 
-much I haven't put much effort for fixing it. I like that fix since it 
-is in AF9015 driver where it logically belongs to. But it looks still 
-rather complex. I see you have also considered "bus lock" to 
-af9015_i2c_xfer() which could be much smaller in code size (that's I 
-have tried to implement long time back).
+Today I learned of yet another one: UMP from ARM.
 
-I would like to ask if it possible to check I2C gate open / close inside 
-af9015_i2c_xfer() and lock according that? Something like:
+http://blogs.arm.com/multimedia/249-making-the-mali-gpu-device-driver-open-source/page__cid__133__show__newcomment/
 
-typical command sequence:
- >> FE0 open gate
- >> FE0 write reg
- >> FE0 close gate
- >> FE1 open gate
- >> FE1 read reg
- >> FE1 close gate
+This is getting out of hand. I think that organizing a meeting to solve this
+mess should be on the top of the list. Companies keep on solving the same
+problem time and again and since none of it enters the mainline kernel any
+driver using it is also impossible to upstream.
 
-if (locked == YES)
-   if (locked_by != caller FE)
-     return error locked by other FE
-   else (locked_by == caller FE)
-     allow reg access
-     if (gate close req)
-       locked = NO
-       locked_by = NONE
-else (locked == NO)
-   locked = YES
-   locked_by = caller FE
-   allow reg access
+All these memory-related modules have the same purpose: make it possible to
+allocate/reserve large amounts of memory and share it between different
+subsystems (primarily framebuffer, GPU and V4L).
 
-Do you see it possible?
+It really shouldn't be that hard to get everyone involved together and settle
+on a single solution (either based on an existing proposal or create a 'the
+best of' vendor-neutral solution).
 
-thanks
-Antti
+I am currently aware of the following solutions floating around the net
+that all solve different parts of the problem:
+
+In the kernel: GEM and TTM.
+Out-of-tree: HWMEM, UMP, CMA, VCM, CMEM, PMEM.
+
+I'm sure that last list is incomplete.
+
+Regards,
+
+	Hans
+
 -- 
-http://palosaari.fi/
+Hans Verkuil - video4linux developer - sponsored by Cisco
