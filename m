@@ -1,41 +1,116 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-outbound-1.vmware.com ([65.115.85.69]:51017 "EHLO
-	smtp-outbound-1.vmware.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751212Ab1CYDEo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Mar 2011 23:04:44 -0400
-Date: Thu, 24 Mar 2011 20:04:17 -0700
-From: Micah Elizabeth Scott <micah@vmware.com>
-To: Paul Bolle <pebolle@tiscali.nl>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Greg KH <greg@kroah.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	USB list <linux-usb@vger.kernel.org>
-Subject: Re: [ANNOUNCE] usbmon capture and parser script
-Message-ID: <20110325030417.GA14251@vmware.com>
-References: <4D8102A9.9080202@redhat.com>
- <20110316194758.GA32557@kroah.com>
- <1300306845.1954.7.camel@t41.thuisdomein>
- <4D81F4B3.4000004@redhat.com>
- <1300468899.1844.17.camel@t41.thuisdomein>
- <20110325025401.GA14110@vmware.com>
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:33078 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754877Ab1CHTdm convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Mar 2011 14:33:42 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20110325025401.GA14110@vmware.com>
+In-Reply-To: <AANLkTikmWdQZZJHTmJsDTrSX434pKfpqJWZ6RWGB7ec6@mail.gmail.com>
+References: <1299588365-2749-1-git-send-email-dacohen@gmail.com>
+	<1299588365-2749-4-git-send-email-dacohen@gmail.com>
+	<AANLkTikvUah8LPXCeV4Opi09DJ4ZoHAc2xUVTcDhNK=Q@mail.gmail.com>
+	<20110308.200901.212929907269368357.Hiroshi.DOYU@nokia.com>
+	<AANLkTi=E+9sjGEpCmHPFLFRGTQujDv8747Jf8=ukU1hC@mail.gmail.com>
+	<AANLkTikmWdQZZJHTmJsDTrSX434pKfpqJWZ6RWGB7ec6@mail.gmail.com>
+Date: Tue, 8 Mar 2011 13:33:36 -0600
+Message-ID: <AANLkTimcSRB+AS=UEAtfc6D=BYWB7Nedj3LQyCnG4bVf@mail.gmail.com>
+Subject: Re: [PATCH 3/3] omap: iovmm: don't check 'da' to set
+ IOVMF_DA_FIXED/IOVMF_DA_ANON flags
+From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+To: David Cohen <dacohen@gmail.com>
+Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-omap@vger.kernel.org,
+	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@maxwell.research.nokia.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, Mar 24, 2011 at 07:54:01PM -0700, Micah Elizabeth Scott wrote:
-> Paul Bolle contributed usbmon log support.
+On Tue, Mar 8, 2011 at 12:57 PM, David Cohen <dacohen@gmail.com> wrote:
+> Hi Hiroshi, Fernando,
+>
+> On Tue, Mar 8, 2011 at 8:53 PM, Guzman Lugo, Fernando
+> <fernando.lugo@ti.com> wrote:
+>> On Tue, Mar 8, 2011 at 12:09 PM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> wrote:
+>>> From: "ext Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+>>> Subject: Re: [PATCH 3/3] omap: iovmm: don't check 'da' to set IOVMF_DA_FIXED/IOVMF_DA_ANON flags
+>>> Date: Tue, 8 Mar 2011 11:59:43 -0600
+>>>
+>>>> On Tue, Mar 8, 2011 at 6:46 AM, David Cohen <dacohen@gmail.com> wrote:
+>>>>> Currently IOVMM driver sets IOVMF_DA_FIXED/IOVMF_DA_ANON flags according
+>>>>> to input 'da' address when mapping memory:
+>>>>> da == 0: IOVMF_DA_ANON
+>>>>> da != 0: IOVMF_DA_FIXED
+>>>>>
+>>>>> It prevents IOMMU to map first page with fixed 'da'. To avoid such
+>>>>> issue, IOVMM will not automatically set IOVMF_DA_FIXED. It should now
+>>>>> come from the user. IOVMF_DA_ANON will be automatically set if
+>>>>> IOVMF_DA_FIXED isn't set.
+>>>>>
+>>>>> Signed-off-by: David Cohen <dacohen@gmail.com>
+>>>>> ---
+>>>>>  arch/arm/plat-omap/iovmm.c |   12 ++++++++----
+>>>>>  1 files changed, 8 insertions(+), 4 deletions(-)
+>>>>>
+>>>>> diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
+>>>>> index 11c9b76..dde9cb0 100644
+>>>>> --- a/arch/arm/plat-omap/iovmm.c
+>>>>> +++ b/arch/arm/plat-omap/iovmm.c
+>>>>> @@ -654,7 +654,8 @@ u32 iommu_vmap(struct iommu *obj, u32 da, const struct sg_table *sgt,
+>>>>>        flags &= IOVMF_HW_MASK;
+>>>>>        flags |= IOVMF_DISCONT;
+>>>>>        flags |= IOVMF_MMIO;
+>>>>> -       flags |= (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
+>>>>> +       if (~flags & IOVMF_DA_FIXED)
+>>>>> +               flags |= IOVMF_DA_ANON;
+>>>>
+>>>> could we use only one? both are mutual exclusive, what happen if flag
+>>>> is IOVMF_DA_FIXED | IOVMF_DA_ANON? so, I suggest to get rid of
+>>>> IOVMF_DA_ANON.
+>>>
+>>> Then, what about introducing some MACRO? Better names?
+>>>
+>>> #define set_iovmf_da_anon(flags)
+>>> #define set_iovmf_da_fix(flags)
+>>> #define set_iovmf_mmio(flags)
+>>
+>> will they be used by the users?
+>>
+>> I think people are more used to use
+>>
+>> iommu_vmap(obj, da, sgt, IOVMF_MMIO | IOVMF_DA_ANON);
+>
+> I'd be happier with this approach, instead of the macros. :)
+> It's intuitive and very common on kernel.
+>
+>>
+>> than
+>>
+>> set_iovmf_da_anon(flags)
+>> set_iovmf_mmio(flags)
+>> iommu_vmap(obj, da, sgt, flags);
+>>
+>> I don't have problem with the change, but I think how it is now is ok,
+>> just that we don't we two bits to handle anon/fixed da, it can be
+>> managed it only 1 bit (one flag), or is there a issue?
+>
+> We can exclude IOVMF_DA_ANON and stick with IOVMF_DA_FIXED only.
+> I can resend my patch if we agree it's OK.
 
-I guess I must be too tired to write email without making mistakes tonight...
+sounds perfect to me.
 
-As Paul said, the usbmon support was by Christoph Zimmermann. Paul had
-a number of other contributions, including a handful of cleanups to
-the usbmon code.
+Regards,
+Fernando.
 
-Sorry guys.
-
---beth
+>
+> Regards,
+>
+> David
+>
+>>
+>> Regards,
+>> Fernando.
+>>> ......
+>>>
+>>
+>
