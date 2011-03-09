@@ -1,52 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.22]:52546 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753093Ab1CONu1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Mar 2011 09:50:27 -0400
-From: Oliver Endriss <o.endriss@gmx.de>
-To: Janne Grunau <j@jannau.net>
-Subject: Re: [PATCH] DVB-APPS: azap gets -p argument
-Date: Tue, 15 Mar 2011 14:50:05 +0100
-Cc: Christian Ulrich <chrulri@gmail.com>, linux-media@vger.kernel.org
-References: <AANLkTimexhCMBSd7UNr1gizgbnarwS9kucZC0nWSBJxX@mail.gmail.com> <AANLkTingP4tLViGTMvKeBM4XNj-cRZtqECh4WjLgZM40@mail.gmail.com> <20110315123258.GA6570@aniel>
-In-Reply-To: <20110315123258.GA6570@aniel>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201103151450.08708@orion.escape-edv.de>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:46631 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757075Ab1CIJRp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Mar 2011 04:17:45 -0500
+From: David Cohen <dacohen@gmail.com>
+To: Hiroshi.DOYU@nokia.com
+Cc: linux-omap@vger.kernel.org, linux-media@vger.kernel.org,
+	laurent.pinchart@ideasonboard.com,
+	sakari.ailus@maxwell.research.nokia.com, fernando.lugo@ti.com,
+	Michael Jones <michael.jones@matrix-vision.de>
+Subject: [PATCH v3 1/2] omap: iovmm: disallow mapping NULL address when IOVMF_DA_ANON is set
+Date: Wed,  9 Mar 2011 11:17:32 +0200
+Message-Id: <1299662253-29817-2-git-send-email-dacohen@gmail.com>
+In-Reply-To: <1299662253-29817-1-git-send-email-dacohen@gmail.com>
+References: <1299662253-29817-1-git-send-email-dacohen@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tuesday 15 March 2011 13:32:58 Janne Grunau wrote:
-> On Tue, Mar 15, 2011 at 01:23:40PM +0100, Christian Ulrich wrote:
-> > Hi, thank you for your feedback.
-> > 
-> > Indeed, I never used -r alone, but only with -p.
-> > So with your patch, [acst]zap -r will be the same as -rp. That looks good to me.
-> 
-> well, azap not yet. iirc I implemented -p for azap but it was never
-> applied since nobody tested it. see attached patch for [cst]zap
+From: Michael Jones <michael.jones@matrix-vision.de>
 
-NAK.
+commit c7f4ab26e3bcdaeb3e19ec658e3ad9092f1a6ceb allowed mapping the NULL
+address if da_start==0, which would then not get unmapped. Disallow
+this again if IOVMF_DA_ANON is set. And spell variable 'alignment'
+correctly.
 
-The PAT/PMT from the stream does not describe the dvr stream correctly.
+Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
+---
+ arch/arm/plat-omap/iovmm.c |   13 +++++++------
+ 1 files changed, 7 insertions(+), 6 deletions(-)
 
-The dvr device provides *some* PIDs of the transponder, while the
-PAT/PMT reference *all* programs of the transponder.
-
-For correct results the PAT/PMT has to be re-created.
-
-The separate -p option seems acceptable - as a debug feature.
-
-CU
-Oliver
-
+diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
+index 6dc1296..ea7eab9 100644
+--- a/arch/arm/plat-omap/iovmm.c
++++ b/arch/arm/plat-omap/iovmm.c
+@@ -271,20 +271,21 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
+ 					   size_t bytes, u32 flags)
+ {
+ 	struct iovm_struct *new, *tmp;
+-	u32 start, prev_end, alignement;
++	u32 start, prev_end, alignment;
+ 
+ 	if (!obj || !bytes)
+ 		return ERR_PTR(-EINVAL);
+ 
+ 	start = da;
+-	alignement = PAGE_SIZE;
++	alignment = PAGE_SIZE;
+ 
+ 	if (flags & IOVMF_DA_ANON) {
+-		start = obj->da_start;
++		/* Don't map address 0 */
++		start = obj->da_start ? obj->da_start : alignment;
+ 
+ 		if (flags & IOVMF_LINEAR)
+-			alignement = iopgsz_max(bytes);
+-		start = roundup(start, alignement);
++			alignment = iopgsz_max(bytes);
++		start = roundup(start, alignment);
+ 	} else if (start < obj->da_start || start > obj->da_end ||
+ 					obj->da_end - start < bytes) {
+ 		return ERR_PTR(-EINVAL);
+@@ -304,7 +305,7 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
+ 			goto found;
+ 
+ 		if (tmp->da_end >= start && flags & IOVMF_DA_ANON)
+-			start = roundup(tmp->da_end + 1, alignement);
++			start = roundup(tmp->da_end + 1, alignment);
+ 
+ 		prev_end = tmp->da_end;
+ 	}
 -- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
-Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
-----------------------------------------------------------------
+1.7.4.1
+
