@@ -1,58 +1,57 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.9]:63160 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751272Ab1CNQWN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Mar 2011 12:22:13 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH 2/7] davinci: eliminate use of IO_ADDRESS() on sysmod
-Date: Mon, 14 Mar 2011 17:21:51 +0100
-Cc: Manjunath Hadli <manjunath.hadli@ti.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Kevin Hilman <khilman@deeprootsystems.com>,
-	Sekhar Nori <nsekhar@ti.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-References: <1300110947-16229-1-git-send-email-manjunath.hadli@ti.com>
-In-Reply-To: <1300110947-16229-1-git-send-email-manjunath.hadli@ti.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Received: from alia.ip-minds.de ([84.201.38.2]:59400 "EHLO alia.ip-minds.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757067Ab1CIPwf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Mar 2011 10:52:35 -0500
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by alia.ip-minds.de (Postfix) with ESMTP id 1ACC866B1B9
+	for <linux-media@vger.kernel.org>; Wed,  9 Mar 2011 16:52:39 +0100 (CET)
+Received: from alia.ip-minds.de ([127.0.0.1])
+	by localhost (alia.ip-minds.de [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id JBgv3evZQx+I for <linux-media@vger.kernel.org>;
+	Wed,  9 Mar 2011 16:52:39 +0100 (CET)
+Received: from localhost (pD9E1A4FA.dip.t-dialin.net [217.225.164.250])
+	by alia.ip-minds.de (Postfix) with ESMTPA id AEB3466B1B6
+	for <linux-media@vger.kernel.org>; Wed,  9 Mar 2011 16:52:38 +0100 (CET)
+Date: Wed, 9 Mar 2011 17:52:31 +0100
+From: Jean-Michel Bruenn <jean.bruenn@ip-minds.de>
+To: linux-media@vger.kernel.org
+Subject: WinTV 1400 broken with recent versions?
+Message-Id: <20110309175231.16446e92.jean.bruenn@ip-minds.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201103141721.52033.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Monday 14 March 2011, Manjunath Hadli wrote:
-> Current devices.c file has a number of instances where
-> IO_ADDRESS() is used for system module register
-> access. Eliminate this in favor of a ioremap()
-> based access.
-> 
-> Consequent to this, a new global pointer davinci_sysmodbase
-> has been introduced which gets initialized during
-> the initialization of each relevant SoC
-> 
-> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Hey,
 
-The change looks good, it's definitely a step in the right
-direction.
+is this driver going to be fixed anytime soon? It was working fine ago a
+half year/year.
 
-Acked-by: Arnd Bergmann <arnd@arndb.de>
+lspci:
+06:00.0 Multimedia video controller: Conexant Systems, Inc. CX23885 PCI
+Video and Audio Decoder (rev 02)
 
+uname -a:
+Linux lyra 2.6.37.1 #1 SMP PREEMPT Tue Feb 22 13:22:59 CET 2011 x86_64
+x86_64 x86_64 GNU/Linux
 
-I think you can go even further:
+dmesg:
+xc2028 1-0064: i2c output error: rc = -6 (should be 64)
+xc2028 1-0064: -6 returned from send
+xc2028 1-0064: Error -22 while loading base firmware
+xc2028 1-0064: Loading firmware for type=BASE F8MHZ (3), id
+0000000000000000.
+xc2028 1-0064: i2c output error: rc = -6 (should be 64)
+xc2028 1-0064: -6 returned from send
+xc2028 1-0064: Error -22 while loading base firmware
+xc2028 1-0064: Loading firmware for type=BASE F8MHZ (3), id
+0000000000000000.
+xc2028 1-0064: i2c output error: rc = -6 (should be 64)
+xc2028 1-0064: -6 returned from send
+xc2028 1-0064: Error -22 while loading base firmware
 
-* A straightforward change would be to move davinci_sysmodbase
-  into a local variable of the davinci_setup_mmc function,
-  which I believe is the only user. Then you can ioremap
-  and iounmap it directly there.
-
-* If you need to access sysmod in multiple places, a nicer
-  way would be to make the virtual address pointer static,
-  and export the accessor functions for it, rather than
-  having a global pointer.
-
-	Arnd
+nothing works - if i do scan it finds nothing and those messages appear on
+dmesg. if i try to watch with the channels.conf from my other pc i can play
+nothing, all i get is those messages above.
