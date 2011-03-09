@@ -1,20 +1,23 @@
 Return-path: <mchehab@pedra>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <tem4uk@gmail.com>) id 1Q3U6s-0003mo-Dn
-	for linux-dvb@linuxtv.org; Sat, 26 Mar 2011 15:05:22 +0100
-Received: from mail-iy0-f182.google.com ([209.85.210.182])
-	by mail.tu-berlin.de (exim-4.75/mailfrontend-3) with esmtps
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1PxKtI-0003d4-Ju
+	for linux-dvb@linuxtv.org; Wed, 09 Mar 2011 16:01:33 +0100
+Received: from mail-ey0-f182.google.com ([209.85.215.182])
+	by mail.tu-berlin.de (exim-4.74/mailfrontend-c) with esmtps
 	[TLSv1:RC4-SHA:128] for <linux-dvb@linuxtv.org>
-	id 1Q3U6r-0007OB-Fm; Sat, 26 Mar 2011 15:04:58 +0100
-Received: by iyj12 with SMTP id 12so2689280iyj.41
-	for <linux-dvb@linuxtv.org>; Sat, 26 Mar 2011 07:04:55 -0700 (PDT)
+	id 1PxKtI-0001Sy-3R; Wed, 09 Mar 2011 16:01:32 +0100
+Received: by eyg7 with SMTP id 7so188901eyg.41
+	for <linux-dvb@linuxtv.org>; Wed, 09 Mar 2011 07:01:30 -0800 (PST)
+Date: Wed, 9 Mar 2011 16:01:24 +0100 (CET)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: =?UTF-8?Q?Pascal_J=C3=BCrgens?= <lists.pascal.juergens@googlemail.com>
+In-Reply-To: <DB7182D0-F83D-459A-8706-40E67D0ABD06@googlemail.com>
+Message-ID: <alpine.DEB.2.01.1103091520560.27893@localhost.localdomain>
+References: <DB7182D0-F83D-459A-8706-40E67D0ABD06@googlemail.com>
 MIME-Version: 1.0
-Date: Sat, 26 Mar 2011 17:04:54 +0300
-Message-ID: <BANLkTi==ug032HXM7hdVjGMd-sOj+0QdQw@mail.gmail.com>
-From: Aleksandrov Artyom <tema@tem4uk.ru>
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] YUAN STK7700D support (1164:3EDC)
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Simultaneous recordings from one frontend
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -23,272 +26,88 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1488476137=="
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 Sender: <mchehab@pedra>
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1488476137==
-Content-Type: multipart/alternative; boundary=001636e0b90beaa935049f6331a1
-
---001636e0b90beaa935049f6331a1
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-
-Hello,
-
-I have Asus eeetop ET2010AGT with this card:
-
-Bus 002 Device 002: ID 1164:3edc YUAN High-Tech Development Co., Ltd
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0
-  bDeviceProtocol         0
-  bMaxPacketSize0        64
-  idVendor           0x1164 YUAN High-Tech Development Co., Ltd
-  idProduct          0x3edc
-  bcdDevice            1.00
-  iManufacturer           1 YUANRD
-  iProduct                2 STK7700D
-  iSerial                 3 0000000001
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength           46
-    bNumInterfaces          1
-    bConfigurationValue     1
-    iConfiguration          0
-    bmAttributes         0xa0
-      (Bus Powered)
-      Remote Wakeup
-    MaxPower              500mA
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       0
-      bNumEndpoints           4
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x01  EP 1 OUT
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               1
-Device Qualifier (for other device speed):
-  bLength                10
-  bDescriptorType         6
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0
-  bDeviceProtocol         0
-  bMaxPacketSize0        64
-  bNumConfigurations      1
-Device Status:     0x0000
-  (Bus Powered)
-
-
-I don`t find any info on wiki, so hope to find answer in maillist. It`s rea=
-l
-to make this card work?
-I use 2.6.35-28 (ubuntu 10.10).
-
-At now dvb_usb_dib0700 not find any card
-~# dmesg | grep dvb
-[    7.185061] usbcore: registered new interface driver dvb_usb_dib0700
-
-=3D(
-
-Thanks for answer!
-
-
------
-Best regards, Artyom
-=D0=A1 =D1=83=D0=B2=D0=B0=D0=B6=D0=B5=D0=BD=D0=B8=D0=B5=D0=BC, =D0=90=D1=80=
-=D1=82=D1=91=D0=BC.
-
---001636e0b90beaa935049f6331a1
-Content-Type: text/html; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-
-<div><meta http-equiv=3D"content-type" content=3D"text/html; charset=3Dutf-=
-8"><pre style=3D"font-family: &#39;Times New Roman&#39;; font-size: medium;=
- word-wrap: break-word; white-space: pre-wrap; ">Hello, </pre><pre style=3D=
-"font-family: &#39;Times New Roman&#39;; font-size: medium; word-wrap: brea=
-k-word; white-space: pre-wrap; ">
-I have Asus eeetop ET2010AGT with this card:</pre><pre style=3D"word-wrap: =
-break-word; "><font class=3D"Apple-style-span" size=3D"3"><span class=3D"Ap=
-ple-style-span" style=3D"white-space: pre-wrap;">Bus 002 Device 002: ID 116=
-4:3edc YUAN High-Tech Development Co., Ltd=20
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0=20
-  bDeviceProtocol         0=20
-  bMaxPacketSize0        64
-  idVendor           0x1164 YUAN High-Tech Development Co., Ltd
-  idProduct          0x3edc=20
-  bcdDevice            1.00
-  iManufacturer           1 YUANRD
-  iProduct                2 STK7700D
-  iSerial                 3 0000000001
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength           46
-    bNumInterfaces          1
-    bConfigurationValue     1
-    iConfiguration          0=20
-    bmAttributes         0xa0
-      (Bus Powered)
-      Remote Wakeup
-    MaxPower              500mA
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       0
-      bNumEndpoints           4
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0=20
-      bInterfaceProtocol      0=20
-      iInterface              0=20
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x01  EP 1 OUT
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               1
-Device Qualifier (for other device speed):
-  bLength                10
-  bDescriptorType         6
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0=20
-  bDeviceProtocol         0=20
-  bMaxPacketSize0        64
-  bNumConfigurations      1
-Device Status:     0x0000
-  (Bus Powered)</span></font><span class=3D"Apple-style-span" style=3D"font=
--family: &#39;Times New Roman&#39;; white-space: pre-wrap; font-size: mediu=
-m; ">
-</span></pre><div style=3D"font-family: &#39;Times New Roman&#39;; font-siz=
-e: medium; "><span class=3D"Apple-style-span" style=3D"font-family: arial; =
-font-size: small; "><br></span></div><div style=3D"font-family: &#39;Times =
-New Roman&#39;; font-size: medium; ">
-<span class=3D"Apple-style-span" style=3D"font-family: arial; font-size: sm=
-all; ">I don`t find any info on wiki, so hope to find answer in maillist. I=
-t`s real to make this card work?</span></div><div style=3D"font-family: &#3=
-9;Times New Roman&#39;; font-size: medium; ">
-<span class=3D"Apple-style-span" style=3D"font-family: arial; font-size: sm=
-all; ">I use=C2=A02.6.35-28 (ubuntu 10.10).</span></div><div style=3D"font-=
-family: &#39;Times New Roman&#39;; font-size: medium; "><span class=3D"Appl=
-e-style-span" style=3D"font-family: arial; font-size: small; "><br>
-</span></div><div>At now=C2=A0dvb_usb_dib0700 not find any card=C2=A0<br><d=
-iv>~# dmesg | grep dvb</div><div>[ =C2=A0 =C2=A07.185061] usbcore: register=
-ed new interface driver dvb_usb_dib0700</div></div><div><br></div><div>=3D(=
-</div><div><br></div>
-<div>Thanks for answer!</div><div><br></div><div style=3D"font-family: &#39=
-;Times New Roman&#39;; font-size: medium; "><span class=3D"Apple-style-span=
-" style=3D"font-family: arial; font-size: small; "><br></span></div><div st=
-yle=3D"font-family: &#39;Times New Roman&#39;; font-size: medium; ">
-<span class=3D"Apple-style-span" style=3D"font-family: arial; font-size: sm=
-all; ">-----</span></div><div style=3D"font-family: &#39;Times New Roman&#3=
-9;; font-size: medium; "><span class=3D"Apple-style-span" style=3D"font-fam=
-ily: arial; font-size: small; ">Best regards, Artyom</span></div>
-</div>=D0=A1 =D1=83=D0=B2=D0=B0=D0=B6=D0=B5=D0=BD=D0=B8=D0=B5=D0=BC, =D0=90=
-=D1=80=D1=82=D1=91=D0=BC.<br>
-
---001636e0b90beaa935049f6331a1--
-
-
---===============1488476137==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1488476137==--
+T24gV2VkIChXZWRuZXNkYXkpIDA5Lk1hciAoTWFyY2gpIDIwMTEsIDE0OjQxLCAgUGFzY2FsIErD
+vHJnZW5zIHdyb3RlOgoKPiBTVU1NQVJZOiBXaGF0J3MgdGhlIGJlc3QgYXZhaWxhYmxlIHRvb2wg
+Zm9yIGRlbXVsdGlwbGV4aW5nIGludG8gCj4gbXVsdGlwbGUgc2ltdWx0YW5lb3VzIHJlY29yZGlu
+Z3MgKGZpbGVzKT8KClF1ZXN0aW9uIC0tIGNhbiB5b3UgY2xhcmlmeSB0aGlzIC0tIGRvIHlvdSB3
+YW50IHRvIHJlY29yZCB0d28Kc2ltdWx0YW5lb3VzIHByb2dyYW1tZXMgZnJvbSBvbmUgZGV2aWNl
+LCBzYXksIGYncmluc3RhbmNlIHR3bwpCQkMgcmFkaW8gc2hvd3MgZnJvbSBvbmUgY29tbW9uIHRy
+YW5zcG9uZGVyL211bHRpcGxleCBmb3IgdGhlCnNha2Ugb2YgZWZmaWNpZW5jeSwgYnV0IHdoaWNo
+IHJ1biB3aXRoIG92ZXJsYXBwaW5nIHRpbWVzLCBvcgphcmUgeW91IHdhbnRpbmcgdG8gcmVjb3Jk
+IGEgc2luZ2xlIHRyYW5zcG9ydCBzdHJlYW0gb3Igb3RoZXIKcGVybXV0YXRpb24gdGhlcmVvZiAo
+UFMsIEVTLCByYXcgcGF5bG9hZCBkYXRhKSBvZiBvbmUgc2luZ2xlCnByb2dyYW1tZSBpbnRvIG92
+ZXJsYXBwaW5nIGZpbGVzLCBub3QgdW5saWtlIGp1Z2dsaW5nIGZsb3BwaWVzPwoKCj4gSSdtIGxv
+b2tpbmcgZm9yIGEgd2F5IHRvIHJlY29yZCBhIFRTIHRvIG92ZXJsYXBwaW5nIGZpbGVzIChpZSwg
+Cj4gZmlsZXMyIHNob3VsZCBzdGFydCA1IG1pbnV0ZXMgYmVmb3JlIGZpbGUxIGVuZHMpLiBUaGlz
+IG1lYW5zIAo+IHRoYXQgdHdvIHJlYWRlcnMgbmVlZCB0byBhY2Nlc3MgdGhlIGNhcmQgYXQgb25j
+ZS4gQXMgZmFyIGFzIEkgCj4gY2FuIHRlbGwgZnJvbSBwYXN0IGRpc2N1c3Npb25zIFsxXSwgdGhp
+cyBpcyBub3QgYSBmZWF0dXJlIHRoYXQncyAKPiBjdXJyZW50bHkgcHJlc2VudCBvciBwbGFubmVk
+IGluIHRoZSBrZXJuZWwuCgpJZiB0aGVzZSB3b3VsZCBiZSB0d28gZGlzdGluY3QgcHJvZ3JhbW1l
+cywgSSdkIHBvaW50IHlvdSBpbiB0aGUKZGlyZWN0aW9uIG9mIHdoYXQgSSB0aGluayBpcyBjYWxs
+ZWQgU3VwZXJEZW11eGVyLiAgQWgsIEkgZG8gaGF2ZQppdHMgc291cmNlIGhhbmR5OiAgc3VwZXJf
+ZGVtdXgtMC4zIG9mIHdoaWNoIEkgcnVuIGEgc2xpZ2h0bHkgCmhhY2tlZCAyMDA1IHZpbnRhZ2Ug
+dG8gc3BsaXQgb3V0IGEgaGFsZiBkb3plbiBvdmVybGFwcGluZyByYWRpbwpzaG93cyBpbnRvIHNl
+cGFyYXRlIG1wMiBmaWxlcy4KCkZvciBvdmVybGFwcGluZyBmaWxlcyAocHJvZ3JhbW1lcz8pIEkg
+d291bGQgc3VnZ2VzdCBqdXN0IHVzaW5nCmB0ZWUnIG9yIGEgc2ltaWxhcmx5LWluZmx1ZW5jZWQg
+dXRpbGl0eSBhbmQgaWYgeW91IGNhbiwgYWNjZXB0CnRoZSB3YXN0ZSBvdXRzaWRlIG9mIG92ZXJs
+YXBwaW5nIHByb2dyYW1tZXMuCgpGb3IgbXVsdGlwbGUgYWNjZXNzIHRvIGEgc2luZ2xlIHN0cmVh
+bSwgSSd2ZSBoYWQgZ3JlYXQgc3VjY2Vzcwpmb3Igd2hhdCBJIGRvIHdpdGggVURQIG11bHRpY2Fz
+dCBvdmVyIGEgcmVsaWFibGUgcGh5c2ljYWwgbWVkaXVtLgpCdXQgdGhlcmUgSSdtIG9ubHkgY2Fy
+aW5nIGFib3V0IHRoZSBzaW1wbGUgcGF5bG9hZCBhbmQgbm90IHRoZQpsZWFzdCBhYm91dCBhbnkg
+b2YgdGhlIGFkZGVkIFRyYW5zcG9ydCBTdHJlYW0gaW5mb3JtYXRpb24uCgoKCgo+IC0gQWRhbSBD
+aGFycmV0dCdzIGR2YnN0cmVhbWVyIFsyXSBzZWVtcyB0byBydW4gYSBzb3J0LW9mIAo+IHJpbmdi
+dWZmZXIgYW5kIGNhbiBvdXRwdXQgdG8gc3RyZWFtcyBhbmQgZmlsZXMuIEhvd2V2ZXIsIGl0J3Mg
+Cj4gbm90IGFsbCB0b28gc3RhYmxlLCBlc3BlY2lhbGx5IHdoZW4gdXNpbmcgdGhlIHJlbW90ZSBj
+b250cm9sIAo+IHByb3RvY29sLgoKRm9yIGFsbCBhY2Nlc3MgdG8gbXkgZnJvbnRlbmRzIHRvIGdl
+dCBhIFRyYW5zcG9ydCBTdHJlYW0sIEkgcmVseSAKb24KL21lZGlhL3NlcnZlci9ob21lL2JlZXIv
+YmluL2R2YnN0cmVhbTogYnJva2VuIHN5bWJvbGljIGxpbmsgdG8gCmAvdXNyL2xvY2FsL3NyYy9k
+dmJ0b29scy9kdmJzdHJlYW0vZHZic3RyZWFtCndoaWNoIEknbSBub3Qgc3VyZSBpZiBpdCdzIGlk
+ZW50aWNhbCAtLSBhbmQgYWdhaW4sIGxpa2VseSB0byBoYXZlCnN1ZmZlcmVkIGEgZmV3IG1pbm9y
+IGhhY2tzIGhlcmUuICBJIGJlbGlldmUgaXQgd29ya3Mgd2VsbCBmb3IgbWUKdGhlIGZldyB0aW1l
+cyBJJ3ZlIHRlc3RlZCBtdWx0aWNhc3Qgc3RyZWFtaW5nIGJlZm9yZSBzZXR0bGluZyBvbgpzdHJp
+cHBpbmcgb3V0IGp1c3QgdGhlIHBheWxvYWQgZmlyc3QuCgpCdXQgYXMgeW91IG1heSBndWVzcyBJ
+J20gdXNpbmcgZXNzZW50aWFsbHkgYSBzZXJ2ZXIgZm9yIGV2ZXJ5dGhpbmcKdGhhdCBJIHdvbid0
+IGJlIHNlZWluZyB1c2VyIHN0YWJpbGl0eSBwcm9ibGVtcyB5b3UgbWF5IGhhdmUuCgoKPiAtIHRo
+ZSBSVFAgc3RyZWFtaW5nIGFwcHMgKGR2Ymxhc3QsIG11bXVkdmIsIGR2YnllbGwgZXRjLikgYXJl
+IAo+IGRlc2lnbmVkIHRvIGFsbG93IG11bHRpcGxlIGxpc3RlbmVycy4gVGhlIGlkZWFsIHNvbHV0
+aW9uIHdvdWxkIAo+IGJlIHNvbWV0aGluZyBsaWtlIGFuIGludGVyZmFjZS1sb2NhbCBpcHY2IG11
+bHRpY2FzdCAobXVtdWR2YiAKPiByZWNvbW1lbmRzIHVzaW5nIGEgVFRMIG9mIDAgdG8gcHJldmVu
+dCBwYWNrZXRzIGZyb20gZXhpdGluZyB0aGUgCj4gbWFjaGluZSwgYnV0IHRoYXQgc2VlbXMgbGlr
+ZSBhIGNsdWRnZSkuIFNhZGx5LCBJIGhhdmVuJ3QgZ290dGVuIAo+IHRoYXQgdG8gd29yayBbNF0u
+CgpCZWNhdXNlIEkgb25seSBjYXJlIGFib3V0IHRoZSBtdWx0aWNhc3QgcGF5bG9hZCwgSSd2ZSB1
+c2VkIGEKdmVyc2lvbiwgYWdhaW4gcGVyaGFwcyBzbGlnaHRseSBoYWNrZWQsIG9mCm1hc3QtMC4y
+LjIvc3JjL21hc3RfcmF3Y2FzdCAgIC1wIE1QQQp3aGljaCBhZ2FpbiBtYXkgYmUgdW5zdWl0YWJs
+ZSBmb3IgeW91ciBuZWVkcyAtLSBvdmVyIElQdjQgZm9yCm5vdy4gIEkgaGF2ZSBubyB3b3JyaWVz
+IGFib3V0IHRoZSBzdHJlYW0gZ2V0dGluZyBvdXQgb2YgdGhlIGxvY2FsCm5ldHdvcmssIGJlY2F1
+c2UgdGhlcmUncyBubyByb3V0aW5nIGhlcmUgdG8gc2VuZCBpdCBhbnl3aGVyZSB0aGF0CnNwZWFr
+cyBtdWx0aWNhc3QsIHN1cHBvcnQgZm9yIHdoaWNoIEkndmUgZm91bmQgbGVzcyB0aGFuIGlkZWFs
+LgoKCgo+IEFkZGl0aW9uYWxseSwgSSB3YXNuJ3QgYWJsZSB0byBjb25zdW1lIGEgcmVndWxhciBp
+cHY0IG11bHRpY2FzdCAKPiB3aXRoIHR3byBpbnN0YW5jZXMgb2YgbXBsYXllciAtIHRoZSBmaXJz
+dCBvbmUgd29ya2VkLCB0aGUgc2Vjb25kIAo+IG9uZSBjb3VsZG4ndCBhY2Nlc3MgdGhlIHVybC4K
+CkkndmUgaGFkIHRvIHJlbHkgb24gYHZsYycgd2hpY2ggcGxheXMgbXkgYXVkaW8tb25seSBzdHJl
+YW0gYXMgCnNpbXBsZSBSVFAgcGVyZmVjdGx5LCBldmVuIG9uIHZpc2l0aW5nICdkb3plIG1hY2hp
+bmVzLiAgRm9yCnNjcmlwdGVkIHNlcnZlciB1c2UgSSByZWx5IG9uIHNvbWV0aGluZyBlbHNlLgoK
+Tm93IHRoYXQgSSB0aGluayBvZiBpdCwgSSBkaWQgdGVzdCBzaW1wbGVyIHN0cmVhbWluZyBvZiBt
+b3JlCnRoYW4ganVzdCBvbmUgcGFydCBvZiBhIG1vcmUgY29tcGxleCBzdHJlYW0sIGhhZCBoYWQg
+c3VjY2VzcyBpbgpkaWZmZXJlbnRpYXRpbmcgdGhlIGRpZmZlcmVudCBwYXJ0cyBvZiB0aGUgc3Ry
+ZWFtIHdpdGggYG1wbGF5ZXInCnNvIGRlc3BpdGUgbXkgZmFpbGluZyBtZW1vcnksIEkgY2FuIGFk
+bWl0IHRvIGRvaW5nIHRvLgoKQW5vdGhlciB0aGluZyB0byBub3RlIGlzIHRoYXQgcGVyaGFwcyBz
+b21lIHV0aWxpdGllcyBtYXkgd2FudAp0byBzcGVhayBvdmVyIGEgcmV0dXJuIGNoYW5uZWwgLS0g
+SSBzZWUgcG9ydCA1MDAzIGJlZm9yZSBJIGhhY2tlZAp0aGF0IHVzZWxlc3MgZmVlZGJhY2sgYXdh
+eSwgdG8gcHJ1bmUgdG8gdGhlIGJhcmUgbWluaW11bSBvbiBteQphbmNpZW50IGxvdy1iYW5kd2lk
+dGggZXRoZXJuZXQsIGFsdGhvdWdoIEkgY2FuJ3QgaW1hZ2luZSBob3cgYQp1dGlsaXR5IHdvdWxk
+IGRlcGVuZCB1cG9uIHRoaXMgaW4gbXkgc2l0dWF0aW9uLgoKCkhvcGUgdGhpcyBpcyBoZWxwZnVs
+LCBzb21laG93LiAgQXMgSSBzYXkgd2l0aG91dCBhIGJldHRlciAobW9yZQpzcGVjaWZpYykgZXhh
+bXBsZSBvZiB3aGF0IHlvdSdyZSB0cnlpbmcgdG8gZG8sIEkgY2FuJ3QgdGVsbCBpZgpJJ20gbGVh
+ZGluZyB5b3UgYXN0cmF5IHRoYW5rcyB0byBzaW1wbGUgbWlzdW5kZXJzdGFuZGluZy4uLgoKCnRo
+YW5rcywKYmFycnkgYm91d3NtYQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX18KbGludXgtZHZiIHVzZXJzIG1haWxpbmcgbGlzdApGb3IgVjRML0RWQiBkZXZl
+bG9wbWVudCwgcGxlYXNlIHVzZSBpbnN0ZWFkIGxpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZwps
+aW51eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxt
+YW4vbGlzdGluZm8vbGludXgtZHZi
