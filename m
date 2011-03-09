@@ -1,60 +1,59 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.22]:47580 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752584Ab1CLXnM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Mar 2011 18:43:12 -0500
-From: Oliver Endriss <o.endriss@gmx.de>
-Reply-To: linux-media@vger.kernel.org
-To: Andreas Oberritter <obi@linuxtv.org>
-Subject: Re: [PATCH] Ngene cam device name
-Date: Sun, 13 Mar 2011 00:42:48 +0100
-Cc: Martin Vidovic <xtronom@gmail.com>, linux-media@vger.kernel.org
-References: <alpine.LNX.2.00.1103101608030.9782@hp8540w.home> <4D7A97BB.4020704@gmail.com> <4D7B7524.2050108@linuxtv.org>
-In-Reply-To: <4D7B7524.2050108@linuxtv.org>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201103130042.49199@orion.escape-edv.de>
+Received: from mail1.matrix-vision.com ([78.47.19.71]:37540 "EHLO
+	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752253Ab1CIQH7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Mar 2011 11:07:59 -0500
+From: Michael Jones <michael.jones@matrix-vision.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH v2 0/4] OMAP3-ISP lane shifter support
+Date: Wed,  9 Mar 2011 17:07:39 +0100
+Message-Id: <1299686863-20701-1-git-send-email-michael.jones@matrix-vision.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+Add support for the ISP's lane shifter.  To use the shifter, set different
+pixel formats at each end of the link at the CCDC input.
 
-On Saturday 12 March 2011 14:29:08 Andreas Oberritter wrote:
-> On 03/11/2011 10:44 PM, Martin Vidovic wrote:
-> > Andreas Oberritter wrote:
-> >> It's rather unintuitive that some CAMs appear as ca0, while others as
-> >> cam0.
-> >>   
-> > Ngene CI appears as both ca0 and cam0 (or sec0). The ca0 node is used
-> > as usual, to setup the CAM. The cam0 (or sec0) node is used to read/write
-> > transport stream. To me it  looks like an extension of the current API.
-> 
-> I see. This raises another problem. How to find out, which ca device
-> cam0 relates to, in case there are more ca devices than cam devices?
+This has only been tested shifting Y12 and SBGGR12 from a parallel sensor to Y8
+and SBGGR8 (respectively) at the CCDC input.  Support has also been added for
+other formats and other shifting values, but is untested.  Shifting data coming
+from one of the serial sensor interfaces (CSI2a, etc) is also untested.
 
-Hm, I do not see a problem here. The API extension is simple:
+As before, ccdc_try_format() does not check that the format at its input is
+compatible with the format coming from the sensor interface. This consistency
+check is first done when activating the pipeline.
 
-(1) camX is optional. If camX exists, it is tied to caX.
+These patches apply to Laurent's media-0005-omap3isp branch, based on 2.6.38-rc5
 
-(2) If there is no camX, the CI/CAM operates in 'legacy mode'.
+Changes since v1:
+-added support for remaining 8-bit Bayer formats (SGBRG8_1X8 & SRGGB8_1X8)
+-moved omap3isp_is_shiftable() from isp.c to ispvideo.c and return bool
+-moved 'shift' calculation from omap3isp_configure_bridge() to ccdc_configure()
+-added 'shift' arg to omap3isp_configure_bridge()
+-misc minor changes according to feedback (removed unnecessary tests, etc.)
 
-(3) If camX exists, the encrypted transport stream of the CI/CAM is sent
-    through camX, and the decrypted stream is received from camX.
-    caX behaves the same way as in (2).
+Michael Jones (4):
+  v4l: add V4L2_PIX_FMT_Y12 format
+  media: add 8-bit bayer formats and Y12
+  omap3isp: ccdc: support Y10/12, 8-bit bayer fmts
+  omap3isp: lane shifter support
 
-Btw, we should choose a more meaningful name for 'camX'.
-I would prefer something like cainoutX or caioX or cinoutX or cioX.
-
-CU
-Oliver
+ drivers/media/video/omap3-isp/isp.c      |    6 +-
+ drivers/media/video/omap3-isp/isp.h      |    5 +-
+ drivers/media/video/omap3-isp/ispccdc.c  |   32 +++++++++-
+ drivers/media/video/omap3-isp/ispvideo.c |   97 +++++++++++++++++++++++++----
+ drivers/media/video/omap3-isp/ispvideo.h |    3 +
+ include/linux/v4l2-mediabus.h            |    7 ++-
+ include/linux/videodev2.h                |    1 +
+ 7 files changed, 126 insertions(+), 25 deletions(-)
 
 -- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
-Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
-----------------------------------------------------------------
+1.7.4.1
+
+
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
