@@ -1,170 +1,256 @@
 Return-path: <mchehab@pedra>
-Received: from queueout04-winn.ispmail.ntl.com ([81.103.221.58]:58516 "EHLO
-	queueout04-winn.ispmail.ntl.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758263Ab1CCV34 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Mar 2011 16:29:56 -0500
-From: Daniel Drake <dsd@laptop.org>
-To: mchehab@infradead.org
-Cc: linux-media@vger.kernel.org
-Cc: corbet@lwn.net
-Cc: dilinger@queued.net
-Subject: [PATCH] via-camera: Fix OLPC serial check
-Message-Id: <20110303190331.E8ED79D401D@zog.reactivated.net>
-Date: Thu,  3 Mar 2011 19:03:31 +0000 (GMT)
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:61477 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932113Ab1CIMK7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Mar 2011 07:10:59 -0500
+MIME-Version: 1.0
+In-Reply-To: <000a01cbde51$a3c05800$eb410800$%kim@samsung.com>
+References: <1299253314-10065-1-git-send-email-t.stanislaws@samsung.com>
+	<1299253314-10065-3-git-send-email-t.stanislaws@samsung.com>
+	<000a01cbde51$a3c05800$eb410800$%kim@samsung.com>
+Date: Wed, 9 Mar 2011 21:10:57 +0900
+Message-ID: <AANLkTikAPkVJ_xM7dKNiNxE1=0=81s=OLv-v8XC=3NUh@mail.gmail.com>
+Subject: Re: [PATCH 2/6] universal: i2c: add I2C controller 8 (HDMIPHY)
+From: Kyungmin Park <kyungmin.park@samsung.com>
+To: Kukjin Kim <kgene.kim@samsung.com>
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	m.szyprowski@samsung.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The code that checks the OLPC serial port is never built at the moment,
-because CONFIG_OLPC_XO_1_5 doesn't exist and probably won't be added.
+On Wed, Mar 9, 2011 at 9:00 PM, Kukjin Kim <kgene.kim@samsung.com> wrote:
+> Tomasz Stanislawski wrote:
+>>
+>> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+>> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+>> ---
+>>  arch/arm/mach-s5pv310/clock.c             |    6 +++
+>>  arch/arm/mach-s5pv310/include/mach/irqs.h |    4 ++
+>>  arch/arm/mach-s5pv310/include/mach/map.h  |    1 +
+>>  arch/arm/plat-samsung/Kconfig             |    5 ++
+>>  arch/arm/plat-samsung/Makefile            |    1 +
+>>  arch/arm/plat-samsung/dev-i2c8.c          |   68
+>> +++++++++++++++++++++++++++++
+>>  arch/arm/plat-samsung/include/plat/devs.h |    1 +
+>>  arch/arm/plat-samsung/include/plat/iic.h  |    1 +
+>>  8 files changed, 87 insertions(+), 0 deletions(-)
+>>  create mode 100644 arch/arm/plat-samsung/dev-i2c8.c
+>>
+>> diff --git a/arch/arm/mach-s5pv310/clock.c b/arch/arm/mach-s5pv310/clock.c
+>> index d28fa6f..465beb9 100644
+>> --- a/arch/arm/mach-s5pv310/clock.c
+>> +++ b/arch/arm/mach-s5pv310/clock.c
+>> @@ -685,6 +685,12 @@ static struct clk init_clocks_off[] = {
+>>               .parent         = &clk_aclk_100.clk,
+>>               .enable         = s5pv310_clk_ip_peril_ctrl,
+>>               .ctrlbit        = (1 << 13),
+>> +     }, {
+>> +             .name           = "i2c",
+>> +             .id             = 8,
+>> +             .parent         = &clk_aclk_100.clk,
+>> +             .enable         = s5pv310_clk_ip_peril_ctrl,
+>> +             .ctrlbit        = (1 << 14),
+>>       },
+>>  };
+>>
+>> diff --git a/arch/arm/mach-s5pv310/include/mach/irqs.h b/arch/arm/mach-
+>> s5pv310/include/mach/irqs.h
+>> index f6b99c6..f7ddc98 100644
+>> --- a/arch/arm/mach-s5pv310/include/mach/irqs.h
+>> +++ b/arch/arm/mach-s5pv310/include/mach/irqs.h
+>> @@ -77,6 +77,9 @@
+>>  #define IRQ_PDMA0            COMBINER_IRQ(21, 0)
+>>  #define IRQ_PDMA1            COMBINER_IRQ(21, 1)
+>>
+>> +#define IRQ_HDMI             COMBINER_IRQ(16, 0)
+>> +#define IRQ_HDMI_I2C         COMBINER_IRQ(16, 1)
+>> +
+>>  #define IRQ_TIMER0_VIC               COMBINER_IRQ(22, 0)
+>>  #define IRQ_TIMER1_VIC               COMBINER_IRQ(22, 1)
+>>  #define IRQ_TIMER2_VIC               COMBINER_IRQ(22, 2)
+>> @@ -100,6 +103,7 @@
+>>  #define IRQ_IIC5             COMBINER_IRQ(27, 5)
+>>  #define IRQ_IIC6             COMBINER_IRQ(27, 6)
+>>  #define IRQ_IIC7             COMBINER_IRQ(27, 7)
+>> +#define IRQ_IIC8             IRQ_HDMI_I2C
+>>
+>>  #define IRQ_HSMMC0           COMBINER_IRQ(29, 0)
+>>  #define IRQ_HSMMC1           COMBINER_IRQ(29, 1)
+>> diff --git a/arch/arm/mach-s5pv310/include/mach/map.h b/arch/arm/mach-
+>> s5pv310/include/mach/map.h
+>> index 576ba55..0aa0171 100644
+>> --- a/arch/arm/mach-s5pv310/include/mach/map.h
+>> +++ b/arch/arm/mach-s5pv310/include/mach/map.h
+>> @@ -120,6 +120,7 @@
+>>  #define S3C_PA_IIC5                  S5PV310_PA_IIC(5)
+>>  #define S3C_PA_IIC6                  S5PV310_PA_IIC(6)
+>>  #define S3C_PA_IIC7                  S5PV310_PA_IIC(7)
+>> +#define S3C_PA_IIC8                  S5PV310_PA_IIC(8)
+>>  #define S3C_PA_RTC                   S5PV310_PA_RTC
+>>  #define S3C_PA_WDT                   S5PV310_PA_WATCHDOG
+>>
+>> diff --git a/arch/arm/plat-samsung/Kconfig b/arch/arm/plat-samsung/Kconfig
+>> index 32be05c..dd1fd15 100644
+>> --- a/arch/arm/plat-samsung/Kconfig
+>> +++ b/arch/arm/plat-samsung/Kconfig
+>> @@ -211,6 +211,11 @@ config S3C_DEV_I2C7
+>>       help
+>>         Compile in platform device definition for I2C controller 7
+>>
+>> +config S3C_DEV_I2C8
+>> +     bool
+>> +     help
+>> +       Compile in platform device definitions for I2C channel 8 (HDMIPHY)
+>> +
+>>  config S3C_DEV_FB
+>>       bool
+>>       help
+>> diff --git a/arch/arm/plat-samsung/Makefile
+> b/arch/arm/plat-samsung/Makefile
+>> index 7e92457..826ae4f 100644
+>> --- a/arch/arm/plat-samsung/Makefile
+>> +++ b/arch/arm/plat-samsung/Makefile
+>> @@ -46,6 +46,7 @@ obj-$(CONFIG_S3C_DEV_I2C4)  += dev-i2c4.o
+>>  obj-$(CONFIG_S3C_DEV_I2C5)   += dev-i2c5.o
+>>  obj-$(CONFIG_S3C_DEV_I2C6)   += dev-i2c6.o
+>>  obj-$(CONFIG_S3C_DEV_I2C7)   += dev-i2c7.o
+>> +obj-$(CONFIG_S3C_DEV_I2C8)   += dev-i2c8.o
+>>  obj-$(CONFIG_S3C_DEV_FB)     += dev-fb.o
+>>  obj-y                                += dev-uart.o
+>>  obj-$(CONFIG_S3C_DEV_USB_HOST)       += dev-usb.o
+>> diff --git a/arch/arm/plat-samsung/dev-i2c8.c b/arch/arm/plat-samsung/dev-
+>> i2c8.c
+>> new file mode 100644
+>> index 0000000..8edba7f
+>> --- /dev/null
+>> +++ b/arch/arm/plat-samsung/dev-i2c8.c
+>> @@ -0,0 +1,68 @@
+>> +/* linux/arch/arm/plat-samsung/dev-i2c7.c
+>> + *
+>> + * Copyright (c) 2010 Samsung Electronics Co., Ltd.
+>> + *           http://www.samsung.com/
+>> + *
+>> + * S3C series device definition for i2c device 8
+>> + *
+>> + * Based on plat-samsung/dev-i2c8.c
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License version 2 as
+>> + * published by the Free Software Foundation.
+>> +*/
+>> +
+>> +#include <linux/gfp.h>
+>> +#include <linux/kernel.h>
+>> +#include <linux/string.h>
+>> +#include <linux/platform_device.h>
+>> +
+>> +#include <mach/irqs.h>
+>> +#include <mach/map.h>
+>> +
+>> +#include <plat/regs-iic.h>
+>> +#include <plat/iic.h>
+>> +#include <plat/devs.h>
+>> +#include <plat/cpu.h>
+>> +
+>> +static struct resource s3c_i2c_resource[] = {
+>> +     [0] = {
+>> +             .start = S3C_PA_IIC8,
+>> +             .end   = S3C_PA_IIC8 + SZ_4K - 1,
+>> +             .flags = IORESOURCE_MEM,
+>> +     },
+>> +     [1] = {
+>> +             .start = IRQ_IIC8,
+>> +             .end   = IRQ_IIC8,
+>> +             .flags = IORESOURCE_IRQ,
+>> +     },
+>> +};
+>> +
+>> +struct platform_device s3c_device_i2c8 = {
+>> +     .name             = "s3c2440-hdmiphy-i2c",
+>> +     .id               = 8,
+>> +     .num_resources    = ARRAY_SIZE(s3c_i2c_resource),
+>> +     .resource         = s3c_i2c_resource,
+>> +};
+>> +
+>> +static struct s3c2410_platform_i2c default_i2c_data8 __initdata = {
+>> +     .flags          = 0,
+>> +     .bus_num        = 8,
+>> +     .slave_addr     = 0x10,
+>> +     .frequency      = 400*1000,
+>> +     .sda_delay      = 100,
+>> +};
+>> +
+>> +void __init s3c_i2c8_set_platdata(struct s3c2410_platform_i2c *pd)
+>> +{
+>> +     struct s3c2410_platform_i2c *npd;
+>> +
+>> +     if (!pd)
+>> +             pd = &default_i2c_data8;
+>> +
+>> +     npd = kmemdup(pd, sizeof(struct s3c2410_platform_i2c), GFP_KERNEL);
+>> +     if (!npd)
+>> +             printk(KERN_ERR "%s: no memory for platform data\n",
+> __func__);
+>> +
+>> +     s3c_device_i2c8.dev.platform_data = npd;
+>> +}
+>> diff --git a/arch/arm/plat-samsung/include/plat/devs.h b/arch/arm/plat-
+>> samsung/include/plat/devs.h
+>> index 6a869b8..f14709c 100644
+>> --- a/arch/arm/plat-samsung/include/plat/devs.h
+>> +++ b/arch/arm/plat-samsung/include/plat/devs.h
+>> @@ -53,6 +53,7 @@ extern struct platform_device s3c_device_i2c4;
+>>  extern struct platform_device s3c_device_i2c5;
+>>  extern struct platform_device s3c_device_i2c6;
+>>  extern struct platform_device s3c_device_i2c7;
+>> +extern struct platform_device s3c_device_i2c8;
+>>  extern struct platform_device s3c_device_rtc;
+>>  extern struct platform_device s3c_device_adc;
+>>  extern struct platform_device s3c_device_sdi;
+>> diff --git a/arch/arm/plat-samsung/include/plat/iic.h b/arch/arm/plat-
+>> samsung/include/plat/iic.h
+>> index 1543da8..dd0d728 100644
+>> --- a/arch/arm/plat-samsung/include/plat/iic.h
+>> +++ b/arch/arm/plat-samsung/include/plat/iic.h
+>> @@ -60,6 +60,7 @@ extern void s3c_i2c4_set_platdata(struct
+>> s3c2410_platform_i2c *i2c);
+>>  extern void s3c_i2c5_set_platdata(struct s3c2410_platform_i2c *i2c);
+>>  extern void s3c_i2c6_set_platdata(struct s3c2410_platform_i2c *i2c);
+>>  extern void s3c_i2c7_set_platdata(struct s3c2410_platform_i2c *i2c);
+>> +extern void s3c_i2c8_set_platdata(struct s3c2410_platform_i2c *i2c);
+>>
+>>  /* defined by architecture to configure gpio */
+>>  extern void s3c_i2c0_cfg_gpio(struct platform_device *dev);
+>> --
+>> 1.7.1.569.g6f426
+>
+> Basically, EXYNOS4 can't support I2C channel 8 for general purpose.
+> Yeah, it is dedicated to HDMI..it means we can't use i2c8 stuff...
+>
+> (As a note, I2C interface for HDMI PHY is internally connected.)
 
-Fix it so that it gets compiled in, only executes on OLPC laptops, and
-move the check into the probe routine.
+Please give the specific and proper comments/review instead of general comment.
+so what's the proper name? i2c-hdmi? or others?
 
-The compiler is smart enough to eliminate this code when CONFIG_OLPC=n
-(due to machine_is_olpc() always returning false).
+Yes, it will be not a proper name, i2c8. Some time later new chip
+supports more than 7 I2Cs. then it will be conflict with i2c8.
+But we can't predict the when this chip comes.
 
-Signed-off-by: Daniel Drake <dsd@laptop.org>
----
- drivers/media/video/via-camera.c |   83 +++++++++++++++++---------------------
- 1 files changed, 37 insertions(+), 46 deletions(-)
-
-diff --git a/drivers/media/video/via-camera.c b/drivers/media/video/via-camera.c
-index 2f973cd..4f19edc 100644
---- a/drivers/media/video/via-camera.c
-+++ b/drivers/media/video/via-camera.c
-@@ -25,6 +25,7 @@
- #include <linux/via-core.h>
- #include <linux/via-gpio.h>
- #include <linux/via_i2c.h>
-+#include <asm/olpc.h>
- 
- #include "via-camera.h"
- 
-@@ -38,14 +39,12 @@ MODULE_PARM_DESC(flip_image,
- 		"If set, the sensor will be instructed to flip the image "
- 		"vertically.");
- 
--#ifdef CONFIG_OLPC_XO_1_5
- static int override_serial;
- module_param(override_serial, bool, 0444);
- MODULE_PARM_DESC(override_serial,
- 		"The camera driver will normally refuse to load if "
- 		"the XO 1.5 serial port is enabled.  Set this option "
--		"to force the issue.");
--#endif
-+		"to force-enable the camera.");
- 
- /*
-  * Basic window sizes.
-@@ -1261,6 +1260,37 @@ static struct video_device viacam_v4l_template = {
- 	.release	= video_device_release_empty, /* Check this */
- };
- 
-+/*
-+ * The OLPC folks put the serial port on the same pin as
-+ * the camera.	They also get grumpy if we break the
-+ * serial port and keep them from using it.  So we have
-+ * to check the serial enable bit and not step on it.
-+ */
-+#define VIACAM_SERIAL_DEVFN 0x88
-+#define VIACAM_SERIAL_CREG 0x46
-+#define VIACAM_SERIAL_BIT 0x40
-+
-+static __devinit bool viacam_serial_is_enabled(void)
-+{
-+	struct pci_bus *pbus = pci_find_bus(0, 0);
-+	u8 cbyte;
-+
-+	pci_bus_read_config_byte(pbus, VIACAM_SERIAL_DEVFN,
-+			VIACAM_SERIAL_CREG, &cbyte);
-+	if ((cbyte & VIACAM_SERIAL_BIT) == 0)
-+		return false; /* Not enabled */
-+	if (override_serial == 0) {
-+		printk(KERN_NOTICE "Via camera: serial port is enabled, " \
-+				"refusing to load.\n");
-+		printk(KERN_NOTICE "Specify override_serial=1 to force " \
-+				"module loading.\n");
-+		return true;
-+	}
-+	printk(KERN_NOTICE "Via camera: overriding serial port\n");
-+	pci_bus_write_config_byte(pbus, VIACAM_SERIAL_DEVFN,
-+			VIACAM_SERIAL_CREG, cbyte & ~VIACAM_SERIAL_BIT);
-+	return false;
-+}
- 
- static __devinit int viacam_probe(struct platform_device *pdev)
- {
-@@ -1292,6 +1322,10 @@ static __devinit int viacam_probe(struct platform_device *pdev)
- 		printk(KERN_ERR "viacam: No I/O memory, so no pictures\n");
- 		return -ENOMEM;
- 	}
-+
-+	if (machine_is_olpc() && viacam_serial_is_enabled())
-+		return -EBUSY;
-+
- 	/*
- 	 * Basic structure initialization.
- 	 */
-@@ -1395,7 +1429,6 @@ static __devexit int viacam_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
--
- static struct platform_driver viacam_driver = {
- 	.driver = {
- 		.name = "viafb-camera",
-@@ -1404,50 +1437,8 @@ static struct platform_driver viacam_driver = {
- 	.remove = viacam_remove,
- };
- 
--
--#ifdef CONFIG_OLPC_XO_1_5
--/*
-- * The OLPC folks put the serial port on the same pin as
-- * the camera.	They also get grumpy if we break the
-- * serial port and keep them from using it.  So we have
-- * to check the serial enable bit and not step on it.
-- */
--#define VIACAM_SERIAL_DEVFN 0x88
--#define VIACAM_SERIAL_CREG 0x46
--#define VIACAM_SERIAL_BIT 0x40
--
--static __devinit int viacam_check_serial_port(void)
--{
--	struct pci_bus *pbus = pci_find_bus(0, 0);
--	u8 cbyte;
--
--	pci_bus_read_config_byte(pbus, VIACAM_SERIAL_DEVFN,
--			VIACAM_SERIAL_CREG, &cbyte);
--	if ((cbyte & VIACAM_SERIAL_BIT) == 0)
--		return 0; /* Not enabled */
--	if (override_serial == 0) {
--		printk(KERN_NOTICE "Via camera: serial port is enabled, " \
--				"refusing to load.\n");
--		printk(KERN_NOTICE "Specify override_serial=1 to force " \
--				"module loading.\n");
--		return -EBUSY;
--	}
--	printk(KERN_NOTICE "Via camera: overriding serial port\n");
--	pci_bus_write_config_byte(pbus, VIACAM_SERIAL_DEVFN,
--			VIACAM_SERIAL_CREG, cbyte & ~VIACAM_SERIAL_BIT);
--	return 0;
--}
--#endif
--
--
--
--
- static int viacam_init(void)
- {
--#ifdef CONFIG_OLPC_XO_1_5
--	if (viacam_check_serial_port())
--		return -EBUSY;
--#endif
- 	return platform_driver_register(&viacam_driver);
- }
- module_init(viacam_init);
--- 
-1.7.4
-
+Kyungmin Park
+>
+> Thanks.
+>
+> Best regards,
+> Kgene.
+> --
+> Kukjin Kim <kgene.kim@samsung.com>, Senior Engineer,
+> SW Solution Development Team, Samsung Electronics Co., Ltd.
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-samsung-soc" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
