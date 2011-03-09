@@ -1,119 +1,85 @@
 Return-path: <mchehab@pedra>
-Received: from mx3.wp.pl ([212.77.101.7]:42863 "EHLO mx3.wp.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758220Ab1CCP2Z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Mar 2011 10:28:25 -0500
-Received: from dnt237.neoplus.adsl.tpnet.pl (HELO [192.168.2.5]) (laurentp@[83.24.101.237])
-          (envelope-sender <laurentp@wp.pl>)
-          by smtp.wp.pl (WP-SMTPD) with AES256-SHA encrypted SMTP
-          for <linux-media@vger.kernel.org>; 3 Mar 2011 16:28:22 +0100
-Message-ID: <4D6FB394.8020908@wp.pl>
-Date: Thu, 03 Mar 2011 16:28:20 +0100
-From: "W.P." <laurentp@wp.pl>
+Received: from eu1sys200aog103.obsmtp.com ([207.126.144.115]:52110 "EHLO
+	eu1sys200aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932224Ab1CIMTU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Mar 2011 07:19:20 -0500
+From: <johan.xx.mossberg@stericsson.com>
+To: <johan.xx.mossberg@stericsson.com>, <linux-mm@kvack.org>,
+	<linaro-dev@lists.linaro.org>, <linux-media@vger.kernel.org>
+Cc: <gstreamer-devel@lists.freedesktop.org>, <m.nazarewicz@samsung.com>
+Subject: [PATCHv2 0/3] hwmem: Hardware memory driver
+Date: Wed, 9 Mar 2011 13:18:50 +0100
+Message-ID: <1299673133-26464-1-git-send-email-johan.xx.mossberg@stericsson.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: Big ptoblem with small webcam
-References: <4D6E68D1.6050209@wp.pl> <201103031114.39286.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201103031114.39286.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Użytkownik Laurent Pinchart napisał:
-> Hi,
->
-> On Wednesday 02 March 2011 16:57:05 W.P. wrote:
->   
->> Hi there,
->> I just got an Creative VGA (640x480) USB Live Webcam, VF0520.
->>
->> lsusb (partial):
->>
->> Bus 003 Device 007: ID 041e:406c Creative Technology, Ltd
->> Device Descriptor:
->>   bLength                18
->>   bDescriptorType         1
->>   bcdUSB               2.00
->>   bDeviceClass          239 Miscellaneous Device
->>   bDeviceSubClass         2 ?
->>   bDeviceProtocol         1 Interface Association
->>   bMaxPacketSize0        64
->>   idVendor           0x041e Creative Technology, Ltd
->>   idProduct          0x406c
->>   bcdDevice           10.19
->>   iManufacturer           1 Creative Labs
->>   iProduct                3 VF0520 Live! Cam Sync
->>   iSerial                 0
->>   bNumConfigurations      1
->>
->> lsmod | grep vid:
->> uvcvideo               50184  0
->> compat_ioctl32          5120  1 uvcvideo
->> videodev               32000  1 uvcvideo
->> v4l1_compat            15876  2 uvcvideo,videodev
->>
->> uname -a (kernel from Fedora 10):
->> [root@laurent-home ~]# uname -a
->> Linux laurent-home 2.6.27.5-117.fc10.i686 #1 SMP Tue Nov 18 12:19:59 EST
->> 2008 i686 athlon i386 GNU/Linux
->>
->> Problem: device nodes are created, but NO video in gmplayer, tvtime
->> complains: can't open /dev/video0.
->>
->> Only trace in syslog is:
->>
->> Mar  2 16:26:56 laurent-home kernel: uvcvideo: Failed to submit URB 0
->> (-28).
->>     
->
-> This means the webcam requires more USB bandwidth than available. Another 
-> device probably uses USB bandwidth (it could be another webcam, an audio 
-> device, ...).
->
->   
-It is the only USB 2.0 device connected (rest are keyboard, mouse, 2x
-PL2303 converters, BT, and WiFi (unused). But what is strange: it seems
-device runs in 1.1 mode:
+Hello everyone, 
 
-Mar  3 15:54:46 laurent-home kernel: usb 3-1.4: new full speed USB
-device using
- uhci_hcd and address 24
-Mar  3 15:54:47 laurent-home kernel: usb 3-1.4: *not running at top
-speed*; conne
-ct to a high speed hub
-Mar  3 15:54:47 laurent-home kernel: usb 3-1.4: configuration #1 chosen
-from 1
-choice
-Mar  3 15:54:47 laurent-home kernel: uvcvideo: Found UVC 1.00 device
-VF0520 Liv
-e! Cam Sync (041e:406c)
-Mar  3 15:54:47 laurent-home kernel: uvcvideo: Found a valid video chain
-(1 ->
-2).
-Mar  3 15:54:47 laurent-home kernel: input: VF0520 Live! Cam Sync as
-/devices/p
-ci0000:00/0000:00:0b.1/usb3/3-1/3-1.4/3-1.4:1.0/input/input19
-Mar  3 15:54:47 laurent-home kernel: usb 3-1.4: New USB device found,
-idVendor=
-041e, idProduct=406c
-Mar  3 15:54:47 laurent-home kernel: usb 3-1.4: New USB device strings:
-Mfr=1,
-Product=3, SerialNumber=0
-Mar  3 15:54:47 laurent-home kernel: usb 3-1.4: Product: VF0520 Live!
-Cam Sync
-Mar  3 15:54:47 laurent-home kernel: usb 3-1.4: Manufacturer: Creative Labs
+The following patchset implements a "hardware memory driver". The
+main purpose of hwmem is:
 
-But I have tested it with 2 hubs on different controller ports, same.
->> Webcam is connected to VIA USB 2.0 controller through a USB 2.0 hub.
->>
->> What is strange, two days ago I tried apparently the same (model VFxxxx)
->> with SUCCESS.
->> Device seems working in Windoze (Ekiga).
->>
->> What should I check/ do?
->>     
-Only switching OS (for test) and it works. WTF?
+* To allocate buffers suitable for use with hardware. Currently
+this means contiguous buffers.
+* To synchronize the caches for the allocated buffers. This is
+achieved by keeping track of when the CPU uses a buffer and when
+other hardware uses the buffer, when we switch from CPU to other
+hardware or vice versa the caches are synchronized.
+* To handle sharing of allocated buffers between processes i.e.
+import, export.
 
-W.P.
+Hwmem is available both through a user space API and through a
+kernel API.
+
+Here at ST-Ericsson we use hwmem for graphics buffers. Graphics
+buffers need to be contiguous due to our hardware, are passed
+between processes (usually application and window manager)and are
+part of usecases where performance is top priority so we can't
+afford to synchronize the caches unecessarily.
+
+Additions in v2:
+* Bugfixes
+* Added the possibility to map hwmem buffers in the kernel through
+hwmem_kmap/kunmap
+* Moved mach specific stuff to mach.
+
+Best regards
+Johan Mossberg
+Consultant at ST-Ericsson
+
+Johan Mossberg (3):
+  hwmem: Add hwmem (part 1)
+  hwmem: Add hwmem (part 2)
+  hwmem: Add hwmem to ux500
+
+ arch/arm/mach-ux500/Makefile               |    2 +-
+ arch/arm/mach-ux500/board-mop500.c         |    1 +
+ arch/arm/mach-ux500/dcache.c               |  266 +++++++++
+ arch/arm/mach-ux500/devices.c              |   31 ++
+ arch/arm/mach-ux500/include/mach/dcache.h  |   26 +
+ arch/arm/mach-ux500/include/mach/devices.h |    1 +
+ drivers/misc/Kconfig                       |    1 +
+ drivers/misc/Makefile                      |    1 +
+ drivers/misc/hwmem/Kconfig                 |    7 +
+ drivers/misc/hwmem/Makefile                |    3 +
+ drivers/misc/hwmem/cache_handler.c         |  510 ++++++++++++++++++
+ drivers/misc/hwmem/cache_handler.h         |   61 +++
+ drivers/misc/hwmem/hwmem-ioctl.c           |  455 ++++++++++++++++
+ drivers/misc/hwmem/hwmem-main.c            |  799 ++++++++++++++++++++++++++++
+ include/linux/hwmem.h                      |  536 +++++++++++++++++++
+ 15 files changed, 2699 insertions(+), 1 deletions(-)
+ create mode 100644 arch/arm/mach-ux500/dcache.c
+ create mode 100644 arch/arm/mach-ux500/include/mach/dcache.h
+ create mode 100644 drivers/misc/hwmem/Kconfig
+ create mode 100644 drivers/misc/hwmem/Makefile
+ create mode 100644 drivers/misc/hwmem/cache_handler.c
+ create mode 100644 drivers/misc/hwmem/cache_handler.h
+ create mode 100644 drivers/misc/hwmem/hwmem-ioctl.c
+ create mode 100644 drivers/misc/hwmem/hwmem-main.c
+ create mode 100644 include/linux/hwmem.h
+
+-- 
+1.7.4.1
 
