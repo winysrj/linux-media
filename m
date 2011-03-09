@@ -1,91 +1,59 @@
 Return-path: <mchehab@pedra>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:60020 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756694Ab1CGXWr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Mar 2011 18:22:47 -0500
-Received: by ywj3 with SMTP id 3so1786541ywj.19
-        for <linux-media@vger.kernel.org>; Mon, 07 Mar 2011 15:22:44 -0800 (PST)
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Apple Message framework v1082)
-Subject: Re: Compiling v4l fatal error: linux/ti_wilink_st.h: No such file or directory
-From: Scott <igetmyemailhere@gmail.com>
-In-Reply-To: <864FEDC7-B235-4878-AE6B-77E2A62D1ED9@wilsonet.com>
-Date: Mon, 7 Mar 2011 17:22:39 -0600
-Content-Transfer-Encoding: 8BIT
-Message-Id: <FBB75E3F-418B-470F-8169-25CC3AFBA73F@gmail.com>
-References: <AANLkTikJPTMGirPOVmcH-Wit-0B8BC8cqEbCMj=nLc+b@mail.gmail.com> <864FEDC7-B235-4878-AE6B-77E2A62D1ED9@wilsonet.com>
-To: linux-media@vger.kernel.org
+Received: from mail1.matrix-vision.com ([78.47.19.71]:37554 "EHLO
+	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752345Ab1CIQIP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Mar 2011 11:08:15 -0500
+From: Michael Jones <michael.jones@matrix-vision.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH v2 2/4] media: add 8-bit bayer formats and Y12
+Date: Wed,  9 Mar 2011 17:07:41 +0100
+Message-Id: <1299686863-20701-3-git-send-email-michael.jones@matrix-vision.de>
+In-Reply-To: <1299686863-20701-1-git-send-email-michael.jones@matrix-vision.de>
+References: <1299686863-20701-1-git-send-email-michael.jones@matrix-vision.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ include/linux/v4l2-mediabus.h |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
 
-  Same problem.  I purged both  linux-headers-2.6.35-27-generic,
-linux-source-2.6.35, then reinstalled them, and did an apt-get
-update/upgrade.  I then deleted media_build and ran...
+diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
+index 7054a7a..46caecd 100644
+--- a/include/linux/v4l2-mediabus.h
++++ b/include/linux/v4l2-mediabus.h
+@@ -47,8 +47,9 @@ enum v4l2_mbus_pixelcode {
+ 	V4L2_MBUS_FMT_RGB565_2X8_BE = 0x1007,
+ 	V4L2_MBUS_FMT_RGB565_2X8_LE = 0x1008,
+ 
+-	/* YUV (including grey) - next is 0x2013 */
++	/* YUV (including grey) - next is 0x2014 */
+ 	V4L2_MBUS_FMT_Y8_1X8 = 0x2001,
++	V4L2_MBUS_FMT_Y12_1X12 = 0x2013,
+ 	V4L2_MBUS_FMT_UYVY8_1_5X8 = 0x2002,
+ 	V4L2_MBUS_FMT_VYUY8_1_5X8 = 0x2003,
+ 	V4L2_MBUS_FMT_YUYV8_1_5X8 = 0x2004,
+@@ -67,9 +68,11 @@ enum v4l2_mbus_pixelcode {
+ 	V4L2_MBUS_FMT_YUYV10_1X20 = 0x200d,
+ 	V4L2_MBUS_FMT_YVYU10_1X20 = 0x200e,
+ 
+-	/* Bayer - next is 0x3013 */
++	/* Bayer - next is 0x3015 */
+ 	V4L2_MBUS_FMT_SBGGR8_1X8 = 0x3001,
++	V4L2_MBUS_FMT_SGBRG8_1X8 = 0x3013,
+ 	V4L2_MBUS_FMT_SGRBG8_1X8 = 0x3002,
++	V4L2_MBUS_FMT_SRGGB8_1X8 = 0x3014,
+ 	V4L2_MBUS_FMT_SBGGR10_DPCM8_1X8 = 0x300b,
+ 	V4L2_MBUS_FMT_SGBRG10_DPCM8_1X8 = 0x300c,
+ 	V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8 = 0x3009,
+-- 
+1.7.4.1
 
-git clone git://linuxtv.org/media_build.git
-cd media_build
-./build.sh
-Compile breaks
-vi vrl/.config changed CONFIG_DVB_FIREDTV=m to =n
-./build.sh
 
-...same problem.  Did I miss anything?
-
-On Mar 7, 2011, at 3:57 PM, Jarod Wilson wrote:
-
-> On Mar 7, 2011, at 2:01 PM, Me wrote:
-> 
->> I had MythTV .23 up and running fine on Mythbuntu 10.10 and then
->> hosed it.  I reinstalled it, and since then I can't get the drivers
->> for my Haupphauge 2250 to compile on kernel 2.6.35-22-generic.  When I
->> figured it out last time I put it in a text file.  Heres what I have
->> done.  I have since updated to MythTV .24 and the problem persists.
->> 
->> 
->> wget http://www.steventoth.net/linux/hvr22xx/22xxdrv_27086.zip
->> wget http://www.steventoth.net/linux/hvr22xx/HVR-12x0-14x0-17x0_1_25_25271_WHQL.zip
->> wget http://www.steventoth.net/linux/hvr22xx/extract.sh
->> sh extract.sh
->> sudo cp *fw /lib/firmware
->> 
->> git clone git://linuxtv.org/media_build.git
->> cd media_build
->> ./build.sh
->> sudo make install
->> 
->> The first time it breaks, this is expected.  I edit v4l/.config and
->> change CONFIG_DVB_FIREDTV=m to CONFIG_DVB_FIREDTV=n
->> 
->> I compile again, and it should work.  But it breaks.  Heres the message I get.
->> 
->> make[2]: Leaving directory `/path/media_build/linux'
->> make -C /lib/modules/2.6.35-22-generic/build
->> SUBDIRS=/path/media_build/v4l  modules
->> make[2]: Entering directory `/usr/src/linux-headers-2.6.35-22-generic'
->> CC [M]  /path/media_build/v4l/fmdrv_common.o
->> /path/media_build/v4l/fmdrv_common.c:41: fatal error:
->> linux/ti_wilink_st.h: No such file or directory
->> compilation terminated.
->> make[3]: *** [/path/media_build/v4l/fmdrv_common.o] Error 1
->> make[2]: *** [_module_/path/media_build/v4l] Error 2
->> make[2]: Leaving directory `/usr/src/linux-headers-2.6.35-22-generic'
->> make[1]: *** [default] Error 2
->> make[1]: Leaving directory `/path/media_build/v4l'
->> make: *** [all] Error 2
->> 
->> Why does it break?  Thanks.
-> 
-> Hans Verkuil pushed the fix for this to the media_build tree this
-> morning. From looking at it, you'll need to get a fresh tarfile
-> in linux/.
-> 
-> http://git.linuxtv.org/media_build.git?a=commitdiff;h=bb1da6b26bc9d44182ec0cfd9ed2b0e04e3cbec0
-> 
-> -- 
-> Jarod Wilson
-> jarod@wilsonet.com
-> 
-> 
-> 
-
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
