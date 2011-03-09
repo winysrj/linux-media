@@ -1,1778 +1,304 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:24303 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753528Ab1CPUPG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Mar 2011 16:15:06 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: "Juan J. Garcia de Soria" <skandalfo@gmail.com>,
-	Jarod Wilson <jarod@redhat.com>
-Subject: [PATCH 2/2] lirc: remove staging lirc_it87 and lirc_ite8709 drivers
-Date: Wed, 16 Mar 2011 16:14:53 -0400
-Message-Id: <1300306493-18921-2-git-send-email-jarod@redhat.com>
-In-Reply-To: <1300306493-18921-1-git-send-email-jarod@redhat.com>
-References: <1300306493-18921-1-git-send-email-jarod@redhat.com>
+Received: from ganesha.gnumonks.org ([213.95.27.120]:52691 "EHLO
+	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932268Ab1CINoy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Mar 2011 08:44:54 -0500
+From: Jeongtae Park <jtp.park@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: k.debski@samsung.com, jaeryul.oh@samsung.com,
+	kgene.kim@samsung.com, ben-linux@fluff.org, jonghun.han@samsung.com
+Subject: [PATCH v2 0/8] MFC 5.1 driver for S5PV310 (+encoder)
+Date: Wed,  9 Mar 2011 22:15:59 +0900
+Message-Id: <1299676567-14194-1-git-send-email-jtp.park@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Juan J. Garcia de Soria <skandalfo@gmail.com>
+Hello,
 
-Remove older drivers lirc_it87 and lirc_ite8709 from the LIRC staging area,
-since they're now superceded by ite-cir.
+This patch series is the sencond version of the MFC 5.1 driver based on
+Kmail's nice work (Version 6). All of Kmail's features not incldue yet,
+but I hope it will be merge for few months with co-work.
+Current driver support H.264, H.263, MPEG4 encoding and use DMA pool
+allocator. I tried to use V4L2 control framework but some contorls of
+MFC need to handle per-buffer level. I will make-up some ideas for it soon.
 
-Signed-off-by: Juan J. Garcia de Soria <skandalfo@gmail.com>
-Tested-by: Stephan Raue <stephan@openelec.tv>
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/staging/lirc/Kconfig        |   12 -
- drivers/staging/lirc/Makefile       |    2 -
- drivers/staging/lirc/lirc_it87.c    | 1027 -----------------------------------
- drivers/staging/lirc/lirc_it87.h    |  116 ----
- drivers/staging/lirc/lirc_ite8709.c |  542 ------------------
- 5 files changed, 0 insertions(+), 1699 deletions(-)
- delete mode 100644 drivers/staging/lirc/lirc_it87.c
- delete mode 100644 drivers/staging/lirc/lirc_it87.h
- delete mode 100644 drivers/staging/lirc/lirc_ite8709.c
+Most contents of cover letter are same previous Kamil's submmition. I just
+added encoding related items to the original one.
 
-diff --git a/drivers/staging/lirc/Kconfig b/drivers/staging/lirc/Kconfig
-index cdaff59..526ec0f 100644
---- a/drivers/staging/lirc/Kconfig
-+++ b/drivers/staging/lirc/Kconfig
-@@ -32,18 +32,6 @@ config LIRC_IMON
- 
- 	  Current generation iMON devices use the input layer imon driver.
- 
--config LIRC_IT87
--	tristate "ITE IT87XX CIR Port Receiver"
--	depends on LIRC && PNP
--	help
--	  Driver for the ITE IT87xx IR Receiver
--
--config LIRC_ITE8709
--	tristate "ITE8709 CIR Port Receiver"
--	depends on LIRC && PNP
--	help
--	  Driver for the ITE8709 IR Receiver
--
- config LIRC_PARALLEL
- 	tristate "Homebrew Parallel Port Receiver"
- 	depends on LIRC && PARPORT
-diff --git a/drivers/staging/lirc/Makefile b/drivers/staging/lirc/Makefile
-index 94af218..d76b0fa 100644
---- a/drivers/staging/lirc/Makefile
-+++ b/drivers/staging/lirc/Makefile
-@@ -6,8 +6,6 @@
- obj-$(CONFIG_LIRC_BT829)	+= lirc_bt829.o
- obj-$(CONFIG_LIRC_IGORPLUGUSB)	+= lirc_igorplugusb.o
- obj-$(CONFIG_LIRC_IMON)		+= lirc_imon.o
--obj-$(CONFIG_LIRC_IT87)		+= lirc_it87.o
--obj-$(CONFIG_LIRC_ITE8709)	+= lirc_ite8709.o
- obj-$(CONFIG_LIRC_PARALLEL)	+= lirc_parallel.o
- obj-$(CONFIG_LIRC_SASEM)	+= lirc_sasem.o
- obj-$(CONFIG_LIRC_SERIAL)	+= lirc_serial.o
-diff --git a/drivers/staging/lirc/lirc_it87.c b/drivers/staging/lirc/lirc_it87.c
-deleted file mode 100644
-index 5938616..0000000
---- a/drivers/staging/lirc/lirc_it87.c
-+++ /dev/null
-@@ -1,1027 +0,0 @@
--/*
-- * LIRC driver for ITE IT8712/IT8705 CIR port
-- *
-- * Copyright (C) 2001 Hans-Gunter Lutke Uphues <hg_lu@web.de>
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License as
-- * published by the Free Software Foundation; either version 2 of the
-- * License, or (at your option) any later version.
-- *
-- * This program is distributed in the hope that it will be useful, but
-- * WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-- * General Public License for more details.
--
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
-- * USA
-- *
-- * ITE IT8705 and IT8712(not tested) and IT8720 CIR-port support for lirc based
-- * via cut and paste from lirc_sir.c (C) 2000 Milan Pikula
-- *
-- * Attention: Sendmode only tested with debugging logs
-- *
-- * 2001/02/27 Christoph Bartelmus <lirc@bartelmus.de> :
-- *   reimplemented read function
-- * 2005/06/05 Andrew Calkin implemented support for Asus Digimatrix,
-- *   based on work of the following member of the Outertrack Digimatrix
-- *   Forum: Art103 <r_tay@hotmail.com>
-- * 2009/12/24 James Edwards <jimbo-lirc@edwardsclan.net> implemeted support
-- *   for ITE8704/ITE8718, on my machine, the DSDT reports 8704, but the
-- *   chip identifies as 18.
-- */
--
--#include <linux/module.h>
--#include <linux/sched.h>
--#include <linux/errno.h>
--#include <linux/signal.h>
--#include <linux/fs.h>
--#include <linux/interrupt.h>
--#include <linux/ioport.h>
--#include <linux/kernel.h>
--#include <linux/time.h>
--#include <linux/string.h>
--#include <linux/types.h>
--#include <linux/wait.h>
--#include <linux/mm.h>
--#include <linux/delay.h>
--#include <linux/poll.h>
--#include <asm/system.h>
--#include <linux/io.h>
--#include <linux/irq.h>
--#include <linux/fcntl.h>
--
--#include <linux/timer.h>
--#include <linux/pnp.h>
--
--#include <media/lirc.h>
--#include <media/lirc_dev.h>
--
--#include "lirc_it87.h"
--
--#ifdef LIRC_IT87_DIGIMATRIX
--static int digimatrix = 1;
--static int it87_freq = 36; /* kHz */
--static int irq = 9;
--#else
--static int digimatrix;
--static int it87_freq = 38; /* kHz */
--static int irq = IT87_CIR_DEFAULT_IRQ;
--#endif
--
--static unsigned long it87_bits_in_byte_out;
--static unsigned long it87_send_counter;
--static unsigned char it87_RXEN_mask = IT87_CIR_RCR_RXEN;
--
--#define RBUF_LEN 1024
--
--#define LIRC_DRIVER_NAME "lirc_it87"
--
--/* timeout for sequences in jiffies (=5/100s) */
--/* must be longer than TIME_CONST */
--#define IT87_TIMEOUT	(HZ*5/100)
--
--/* module parameters */
--static int debug;
--#define dprintk(fmt, args...)					\
--	do {							\
--		if (debug)					\
--			printk(KERN_DEBUG LIRC_DRIVER_NAME ": "	\
--			       fmt, ## args);			\
--	} while (0)
--
--static int io = IT87_CIR_DEFAULT_IOBASE;
--/* receiver demodulator default: off */
--static int it87_enable_demodulator;
--
--static int timer_enabled;
--static DEFINE_SPINLOCK(timer_lock);
--static struct timer_list timerlist;
--/* time of last signal change detected */
--static struct timeval last_tv = {0, 0};
--/* time of last UART data ready interrupt */
--static struct timeval last_intr_tv = {0, 0};
--static int last_value;
--
--static DECLARE_WAIT_QUEUE_HEAD(lirc_read_queue);
--
--static DEFINE_SPINLOCK(hardware_lock);
--static DEFINE_SPINLOCK(dev_lock);
--static bool device_open;
--
--static int rx_buf[RBUF_LEN];
--unsigned int rx_tail, rx_head;
--
--static struct pnp_driver it87_pnp_driver;
--
--/* SECTION: Prototypes */
--
--/* Communication with user-space */
--static int lirc_open(struct inode *inode, struct file *file);
--static int lirc_close(struct inode *inode, struct file *file);
--static unsigned int lirc_poll(struct file *file, poll_table *wait);
--static ssize_t lirc_read(struct file *file, char *buf,
--			 size_t count, loff_t *ppos);
--static ssize_t lirc_write(struct file *file, const char *buf,
--			  size_t n, loff_t *pos);
--static long lirc_ioctl(struct file *filep, unsigned int cmd, unsigned long arg);
--static void add_read_queue(int flag, unsigned long val);
--static int init_chrdev(void);
--static void drop_chrdev(void);
--/* Hardware */
--static irqreturn_t it87_interrupt(int irq, void *dev_id);
--static void send_space(unsigned long len);
--static void send_pulse(unsigned long len);
--static void init_send(void);
--static void terminate_send(unsigned long len);
--static int init_hardware(void);
--static void drop_hardware(void);
--/* Initialisation */
--static int init_port(void);
--static void drop_port(void);
--
--
--/* SECTION: Communication with user-space */
--
--static int lirc_open(struct inode *inode, struct file *file)
--{
--	spin_lock(&dev_lock);
--	if (device_open) {
--		spin_unlock(&dev_lock);
--		return -EBUSY;
--	}
--	device_open = true;
--	spin_unlock(&dev_lock);
--	return 0;
--}
--
--
--static int lirc_close(struct inode *inode, struct file *file)
--{
--	spin_lock(&dev_lock);
--	device_open = false;
--	spin_unlock(&dev_lock);
--	return 0;
--}
--
--
--static unsigned int lirc_poll(struct file *file, poll_table *wait)
--{
--	poll_wait(file, &lirc_read_queue, wait);
--	if (rx_head != rx_tail)
--		return POLLIN | POLLRDNORM;
--	return 0;
--}
--
--
--static ssize_t lirc_read(struct file *file, char *buf,
--			 size_t count, loff_t *ppos)
--{
--	int n = 0;
--	int retval = 0;
--
--	while (n < count) {
--		if (file->f_flags & O_NONBLOCK && rx_head == rx_tail) {
--			retval = -EAGAIN;
--			break;
--		}
--		retval = wait_event_interruptible(lirc_read_queue,
--						  rx_head != rx_tail);
--		if (retval)
--			break;
--
--		if (copy_to_user((void *) buf + n, (void *) (rx_buf + rx_head),
--				 sizeof(int))) {
--			retval = -EFAULT;
--			break;
--		}
--		rx_head = (rx_head + 1) & (RBUF_LEN - 1);
--		n += sizeof(int);
--	}
--	if (n)
--		return n;
--	return retval;
--}
--
--
--static ssize_t lirc_write(struct file *file, const char *buf,
--			  size_t n, loff_t *pos)
--{
--	int i = 0;
--	int *tx_buf;
--
--	if (n % sizeof(int))
--		return -EINVAL;
--	tx_buf = memdup_user(buf, n);
--	if (IS_ERR(tx_buf))
--		return PTR_ERR(tx_buf);
--	n /= sizeof(int);
--	init_send();
--	while (1) {
--		if (i >= n)
--			break;
--		if (tx_buf[i])
--			send_pulse(tx_buf[i]);
--		i++;
--		if (i >= n)
--			break;
--		if (tx_buf[i])
--			send_space(tx_buf[i]);
--		i++;
--	}
--	terminate_send(tx_buf[i - 1]);
--	kfree(tx_buf);
--	return n;
--}
--
--
--static long lirc_ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
--{
--	int retval = 0;
--	__u32 value = 0;
--	unsigned long hw_flags;
--
--	if (cmd == LIRC_GET_FEATURES)
--		value = LIRC_CAN_SEND_PULSE |
--			LIRC_CAN_SET_SEND_CARRIER |
--			LIRC_CAN_REC_MODE2;
--	else if (cmd == LIRC_GET_SEND_MODE)
--		value = LIRC_MODE_PULSE;
--	else if (cmd == LIRC_GET_REC_MODE)
--		value = LIRC_MODE_MODE2;
--
--	switch (cmd) {
--	case LIRC_GET_FEATURES:
--	case LIRC_GET_SEND_MODE:
--	case LIRC_GET_REC_MODE:
--		retval = put_user(value, (__u32 *) arg);
--		break;
--
--	case LIRC_SET_SEND_MODE:
--	case LIRC_SET_REC_MODE:
--		retval = get_user(value, (__u32 *) arg);
--		break;
--
--	case LIRC_SET_SEND_CARRIER:
--		retval = get_user(value, (__u32 *) arg);
--		if (retval)
--			return retval;
--		value /= 1000;
--		if (value > IT87_CIR_FREQ_MAX ||
--		    value < IT87_CIR_FREQ_MIN)
--			return -EINVAL;
--
--		it87_freq = value;
--
--		spin_lock_irqsave(&hardware_lock, hw_flags);
--		outb(((inb(io + IT87_CIR_TCR2) & IT87_CIR_TCR2_TXMPW) |
--		      (it87_freq - IT87_CIR_FREQ_MIN) << 3),
--		      io + IT87_CIR_TCR2);
--		spin_unlock_irqrestore(&hardware_lock, hw_flags);
--		dprintk("demodulation frequency: %d kHz\n", it87_freq);
--
--		break;
--
--	default:
--		retval = -EINVAL;
--	}
--
--	if (retval)
--		return retval;
--
--	if (cmd == LIRC_SET_REC_MODE) {
--		if (value != LIRC_MODE_MODE2)
--			retval = -ENOSYS;
--	} else if (cmd == LIRC_SET_SEND_MODE) {
--		if (value != LIRC_MODE_PULSE)
--			retval = -ENOSYS;
--	}
--	return retval;
--}
--
--static void add_read_queue(int flag, unsigned long val)
--{
--	unsigned int new_rx_tail;
--	int newval;
--
--	dprintk("add flag %d with val %lu\n", flag, val);
--
--	newval = val & PULSE_MASK;
--
--	/*
--	 * statistically, pulses are ~TIME_CONST/2 too long. we could
--	 * maybe make this more exact, but this is good enough
--	 */
--	if (flag) {
--		/* pulse */
--		if (newval > TIME_CONST / 2)
--			newval -= TIME_CONST / 2;
--		else /* should not ever happen */
--			newval = 1;
--		newval |= PULSE_BIT;
--	} else
--		newval += TIME_CONST / 2;
--	new_rx_tail = (rx_tail + 1) & (RBUF_LEN - 1);
--	if (new_rx_tail == rx_head) {
--		dprintk("Buffer overrun.\n");
--		return;
--	}
--	rx_buf[rx_tail] = newval;
--	rx_tail = new_rx_tail;
--	wake_up_interruptible(&lirc_read_queue);
--}
--
--
--static const struct file_operations lirc_fops = {
--	.owner		= THIS_MODULE,
--	.read		= lirc_read,
--	.write		= lirc_write,
--	.poll		= lirc_poll,
--	.unlocked_ioctl	= lirc_ioctl,
--#ifdef CONFIG_COMPAT
--	.compat_ioctl	= lirc_ioctl,
--#endif
--	.open		= lirc_open,
--	.release	= lirc_close,
--	.llseek		= noop_llseek,
--};
--
--static int set_use_inc(void *data)
--{
--       return 0;
--}
--
--static void set_use_dec(void *data)
--{
--}
--
--static struct lirc_driver driver = {
--       .name		= LIRC_DRIVER_NAME,
--       .minor		= -1,
--       .code_length	= 1,
--       .sample_rate	= 0,
--       .data		= NULL,
--       .add_to_buf	= NULL,
--       .set_use_inc	= set_use_inc,
--       .set_use_dec	= set_use_dec,
--       .fops		= &lirc_fops,
--       .dev		= NULL,
--       .owner		= THIS_MODULE,
--};
--
--
--static int init_chrdev(void)
--{
--	driver.minor = lirc_register_driver(&driver);
--
--	if (driver.minor < 0) {
--		printk(KERN_ERR LIRC_DRIVER_NAME ": init_chrdev() failed.\n");
--		return -EIO;
--	}
--	return 0;
--}
--
--
--static void drop_chrdev(void)
--{
--	lirc_unregister_driver(driver.minor);
--}
--
--
--/* SECTION: Hardware */
--static long delta(struct timeval *tv1, struct timeval *tv2)
--{
--	unsigned long deltv;
--
--	deltv = tv2->tv_sec - tv1->tv_sec;
--	if (deltv > 15)
--		deltv = 0xFFFFFF;
--	else
--		deltv = deltv*1000000 + tv2->tv_usec - tv1->tv_usec;
--	return deltv;
--}
--
--static void it87_timeout(unsigned long data)
--{
--	unsigned long flags;
--
--	/* avoid interference with interrupt */
--	spin_lock_irqsave(&timer_lock, flags);
--
--	if (digimatrix) {
--		/* We have timed out. Disable the RX mechanism. */
--
--		outb((inb(io + IT87_CIR_RCR) & ~IT87_CIR_RCR_RXEN) |
--		     IT87_CIR_RCR_RXACT, io + IT87_CIR_RCR);
--		if (it87_RXEN_mask)
--			outb(inb(io + IT87_CIR_RCR) | IT87_CIR_RCR_RXEN,
--			     io + IT87_CIR_RCR);
--		dprintk(" TIMEOUT\n");
--		timer_enabled = 0;
--
--		/* fifo clear */
--		outb(inb(io + IT87_CIR_TCR1) | IT87_CIR_TCR1_FIFOCLR,
--		     io+IT87_CIR_TCR1);
--
--	} else {
--		/*
--		 * if last received signal was a pulse, but receiving stopped
--		 * within the 9 bit frame, we need to finish this pulse and
--		 * simulate a signal change to from pulse to space. Otherwise
--		 * upper layers will receive two sequences next time.
--		 */
--
--		if (last_value) {
--			unsigned long pulse_end;
--
--			/* determine 'virtual' pulse end: */
--			pulse_end = delta(&last_tv, &last_intr_tv);
--			dprintk("timeout add %d for %lu usec\n",
--				last_value, pulse_end);
--			add_read_queue(last_value, pulse_end);
--			last_value = 0;
--			last_tv = last_intr_tv;
--		}
--	}
--	spin_unlock_irqrestore(&timer_lock, flags);
--}
--
--static irqreturn_t it87_interrupt(int irq, void *dev_id)
--{
--	unsigned char data;
--	struct timeval curr_tv;
--	static unsigned long deltv;
--	unsigned long deltintrtv;
--	unsigned long flags, hw_flags;
--	int iir, lsr;
--	int fifo = 0;
--	static char lastbit;
--	char bit;
--
--	/* Bit duration in microseconds */
--	const unsigned long bit_duration = 1000000ul /
--		(115200 / IT87_CIR_BAUDRATE_DIVISOR);
--
--
--	iir = inb(io + IT87_CIR_IIR);
--
--	switch (iir & IT87_CIR_IIR_IID) {
--	case 0x4:
--	case 0x6:
--		lsr = inb(io + IT87_CIR_RSR) & (IT87_CIR_RSR_RXFTO |
--						IT87_CIR_RSR_RXFBC);
--		fifo = lsr & IT87_CIR_RSR_RXFBC;
--		dprintk("iir: 0x%x fifo: 0x%x\n", iir, lsr);
--
--		/* avoid interference with timer */
--		spin_lock_irqsave(&timer_lock, flags);
--		spin_lock_irqsave(&hardware_lock, hw_flags);
--		if (digimatrix) {
--			static unsigned long acc_pulse;
--			static unsigned long acc_space;
--
--			do {
--				data = inb(io + IT87_CIR_DR);
--				data = ~data;
--				fifo--;
--				if (data != 0x00) {
--					if (timer_enabled)
--						del_timer(&timerlist);
--					/*
--					 * start timer for end of
--					 * sequence detection
--					 */
--					timerlist.expires = jiffies +
--							    IT87_TIMEOUT;
--					add_timer(&timerlist);
--					timer_enabled = 1;
--				}
--				/* Loop through */
--				for (bit = 0; bit < 8; ++bit) {
--					if ((data >> bit) & 1) {
--						++acc_pulse;
--						if (lastbit == 0) {
--							add_read_queue(0,
--								acc_space *
--								 bit_duration);
--							acc_space = 0;
--						}
--					} else {
--						++acc_space;
--						if (lastbit == 1) {
--							add_read_queue(1,
--								acc_pulse *
--								 bit_duration);
--							acc_pulse = 0;
--						}
--					}
--					lastbit = (data >> bit) & 1;
--				}
--
--			} while (fifo != 0);
--		} else { /* Normal Operation */
--			do {
--				del_timer(&timerlist);
--				data = inb(io + IT87_CIR_DR);
--
--				dprintk("data=%02x\n", data);
--				do_gettimeofday(&curr_tv);
--				deltv = delta(&last_tv, &curr_tv);
--				deltintrtv = delta(&last_intr_tv, &curr_tv);
--
--				dprintk("t %lu , d %d\n",
--					deltintrtv, (int)data);
--
--				/*
--				 * if nothing came in last 2 cycles,
--				 * it was gap
--				 */
--				if (deltintrtv > TIME_CONST * 2) {
--					if (last_value) {
--						dprintk("GAP\n");
--
--						/* simulate signal change */
--						add_read_queue(last_value,
--							       deltv -
--							       deltintrtv);
--						last_value = 0;
--						last_tv.tv_sec =
--							last_intr_tv.tv_sec;
--						last_tv.tv_usec =
--							last_intr_tv.tv_usec;
--						deltv = deltintrtv;
--					}
--				}
--				data = 1;
--				if (data ^ last_value) {
--					/*
--					 * deltintrtv > 2*TIME_CONST,
--					 * remember ? the other case is
--					 * timeout
--					 */
--					add_read_queue(last_value,
--						       deltv-TIME_CONST);
--					last_value = data;
--					last_tv = curr_tv;
--					if (last_tv.tv_usec >= TIME_CONST)
--						last_tv.tv_usec -= TIME_CONST;
--					else {
--						last_tv.tv_sec--;
--						last_tv.tv_usec += 1000000 -
--							TIME_CONST;
--					}
--				}
--				last_intr_tv = curr_tv;
--				if (data) {
--					/*
--					 * start timer for end of
--					 * sequence detection
--					 */
--					timerlist.expires =
--						jiffies + IT87_TIMEOUT;
--					add_timer(&timerlist);
--				}
--				outb((inb(io + IT87_CIR_RCR) &
--				     ~IT87_CIR_RCR_RXEN) |
--				     IT87_CIR_RCR_RXACT,
--				     io + IT87_CIR_RCR);
--				if (it87_RXEN_mask)
--					outb(inb(io + IT87_CIR_RCR) |
--					     IT87_CIR_RCR_RXEN,
--					     io + IT87_CIR_RCR);
--				fifo--;
--			} while (fifo != 0);
--		}
--		spin_unlock_irqrestore(&hardware_lock, hw_flags);
--		spin_unlock_irqrestore(&timer_lock, flags);
--
--		return IRQ_RETVAL(IRQ_HANDLED);
--
--	default:
--		/* not our irq */
--		dprintk("unknown IRQ (shouldn't happen) !!\n");
--		return IRQ_RETVAL(IRQ_NONE);
--	}
--}
--
--
--static void send_it87(unsigned long len, unsigned long stime,
--		      unsigned char send_byte, unsigned int count_bits)
--{
--	long count = len / stime;
--	long time_left = 0;
--	static unsigned char byte_out;
--	unsigned long hw_flags;
--
--	dprintk("%s: len=%ld, sb=%d\n", __func__, len, send_byte);
--
--	time_left = (long)len - (long)count * (long)stime;
--	count += ((2 * time_left) / stime);
--	while (count) {
--		long i = 0;
--		for (i = 0; i < count_bits; i++) {
--			byte_out = (byte_out << 1) | (send_byte & 1);
--			it87_bits_in_byte_out++;
--		}
--		if (it87_bits_in_byte_out == 8) {
--			dprintk("out=0x%x, tsr_txfbc: 0x%x\n",
--				byte_out,
--				inb(io + IT87_CIR_TSR) &
--				IT87_CIR_TSR_TXFBC);
--
--			while ((inb(io + IT87_CIR_TSR) &
--				IT87_CIR_TSR_TXFBC) >= IT87_CIR_FIFO_SIZE)
--				;
--
--			spin_lock_irqsave(&hardware_lock, hw_flags);
--			outb(byte_out, io + IT87_CIR_DR);
--			spin_unlock_irqrestore(&hardware_lock, hw_flags);
--
--			it87_bits_in_byte_out = 0;
--			it87_send_counter++;
--			byte_out = 0;
--		}
--		count--;
--	}
--}
--
--
--/*TODO: maybe exchange space and pulse because it8705 only modulates 0-bits */
--
--static void send_space(unsigned long len)
--{
--	send_it87(len, TIME_CONST, IT87_CIR_SPACE, IT87_CIR_BAUDRATE_DIVISOR);
--}
--
--static void send_pulse(unsigned long len)
--{
--	send_it87(len, TIME_CONST, IT87_CIR_PULSE, IT87_CIR_BAUDRATE_DIVISOR);
--}
--
--
--static void init_send()
--{
--	unsigned long flags;
--
--	spin_lock_irqsave(&hardware_lock, flags);
--	/* RXEN=0: receiver disable */
--	it87_RXEN_mask = 0;
--	outb(inb(io + IT87_CIR_RCR) & ~IT87_CIR_RCR_RXEN,
--	     io + IT87_CIR_RCR);
--	spin_unlock_irqrestore(&hardware_lock, flags);
--	it87_bits_in_byte_out = 0;
--	it87_send_counter = 0;
--}
--
--
--static void terminate_send(unsigned long len)
--{
--	unsigned long flags;
--	unsigned long last = 0;
--
--	last = it87_send_counter;
--	/* make sure all necessary data has been sent */
--	while (last == it87_send_counter)
--		send_space(len);
--	/* wait until all data sent */
--	while ((inb(io + IT87_CIR_TSR) & IT87_CIR_TSR_TXFBC) != 0)
--		;
--	/* then re-enable receiver */
--	spin_lock_irqsave(&hardware_lock, flags);
--	it87_RXEN_mask = IT87_CIR_RCR_RXEN;
--	outb(inb(io + IT87_CIR_RCR) | IT87_CIR_RCR_RXEN,
--	     io + IT87_CIR_RCR);
--	spin_unlock_irqrestore(&hardware_lock, flags);
--}
--
--
--static int init_hardware(void)
--{
--	unsigned long flags;
--	unsigned char it87_rcr = 0;
--
--	spin_lock_irqsave(&hardware_lock, flags);
--	/* init cir-port */
--	/* enable r/w-access to Baudrate-Register */
--	outb(IT87_CIR_IER_BR, io + IT87_CIR_IER);
--	outb(IT87_CIR_BAUDRATE_DIVISOR % 0x100, io+IT87_CIR_BDLR);
--	outb(IT87_CIR_BAUDRATE_DIVISOR / 0x100, io+IT87_CIR_BDHR);
--	/* Baudrate Register off, define IRQs: Input only */
--	if (digimatrix) {
--		outb(IT87_CIR_IER_IEC | IT87_CIR_IER_RFOIE, io + IT87_CIR_IER);
--		/* RX: HCFS=0, RXDCR = 001b (33,75..38,25 kHz), RXEN=1 */
--	} else {
--		outb(IT87_CIR_IER_IEC | IT87_CIR_IER_RDAIE, io + IT87_CIR_IER);
--		/* RX: HCFS=0, RXDCR = 001b (35,6..40,3 kHz), RXEN=1 */
--	}
--	it87_rcr = (IT87_CIR_RCR_RXEN & it87_RXEN_mask) | 0x1;
--	if (it87_enable_demodulator)
--		it87_rcr |= IT87_CIR_RCR_RXEND;
--	outb(it87_rcr, io + IT87_CIR_RCR);
--	if (digimatrix) {
--		/* Set FIFO depth to 1 byte, and disable TX */
--		outb(inb(io + IT87_CIR_TCR1) |  0x00,
--		     io + IT87_CIR_TCR1);
--
--		/*
--		 * TX: it87_freq (36kHz), 'reserved' sensitivity
--		 * setting (0x00)
--		 */
--		outb(((it87_freq - IT87_CIR_FREQ_MIN) << 3) | 0x00,
--		     io + IT87_CIR_TCR2);
--	} else {
--		/* TX: 38kHz, 13,3us (pulse-width) */
--		outb(((it87_freq - IT87_CIR_FREQ_MIN) << 3) | 0x06,
--		     io + IT87_CIR_TCR2);
--	}
--	spin_unlock_irqrestore(&hardware_lock, flags);
--	return 0;
--}
--
--
--static void drop_hardware(void)
--{
--	unsigned long flags;
--
--	spin_lock_irqsave(&hardware_lock, flags);
--	disable_irq(irq);
--	/* receiver disable */
--	it87_RXEN_mask = 0;
--	outb(0x1, io + IT87_CIR_RCR);
--	/* turn off irqs */
--	outb(0, io + IT87_CIR_IER);
--	/* fifo clear */
--	outb(IT87_CIR_TCR1_FIFOCLR, io+IT87_CIR_TCR1);
--	/* reset */
--	outb(IT87_CIR_IER_RESET, io+IT87_CIR_IER);
--	enable_irq(irq);
--	spin_unlock_irqrestore(&hardware_lock, flags);
--}
--
--
--static unsigned char it87_read(unsigned char port)
--{
--	outb(port, IT87_ADRPORT);
--	return inb(IT87_DATAPORT);
--}
--
--
--static void it87_write(unsigned char port, unsigned char data)
--{
--	outb(port, IT87_ADRPORT);
--	outb(data, IT87_DATAPORT);
--}
--
--
--/* SECTION: Initialisation */
--
--static int init_port(void)
--{
--	unsigned long hw_flags;
--	int retval = 0;
--
--	unsigned char init_bytes[4] = IT87_INIT;
--	unsigned char it87_chipid = 0;
--	unsigned char ldn = 0;
--	unsigned int  it87_io = 0;
--	unsigned int  it87_irq = 0;
--
--	/* Enter MB PnP Mode */
--	outb(init_bytes[0], IT87_ADRPORT);
--	outb(init_bytes[1], IT87_ADRPORT);
--	outb(init_bytes[2], IT87_ADRPORT);
--	outb(init_bytes[3], IT87_ADRPORT);
--
--	/* 8712 or 8705 ? */
--	it87_chipid = it87_read(IT87_CHIP_ID1);
--	if (it87_chipid != 0x87) {
--		retval = -ENXIO;
--		return retval;
--	}
--	it87_chipid = it87_read(IT87_CHIP_ID2);
--	if ((it87_chipid != 0x05) &&
--		(it87_chipid != 0x12) &&
--		(it87_chipid != 0x18) &&
--		(it87_chipid != 0x20)) {
--		printk(KERN_INFO LIRC_DRIVER_NAME
--		       ": no IT8704/05/12/18/20 found (claimed IT87%02x), "
--		       "exiting..\n", it87_chipid);
--		retval = -ENXIO;
--		return retval;
--	}
--	printk(KERN_INFO LIRC_DRIVER_NAME
--	       ": found IT87%02x.\n",
--	       it87_chipid);
--
--	/* get I/O-Port and IRQ */
--	if (it87_chipid == 0x12 || it87_chipid == 0x18)
--		ldn = IT8712_CIR_LDN;
--	else
--		ldn = IT8705_CIR_LDN;
--	it87_write(IT87_LDN, ldn);
--
--	it87_io = it87_read(IT87_CIR_BASE_MSB) * 256 +
--		  it87_read(IT87_CIR_BASE_LSB);
--	if (it87_io == 0) {
--		if (io == 0)
--			io = IT87_CIR_DEFAULT_IOBASE;
--		printk(KERN_INFO LIRC_DRIVER_NAME
--		       ": set default io 0x%x\n",
--		       io);
--		it87_write(IT87_CIR_BASE_MSB, io / 0x100);
--		it87_write(IT87_CIR_BASE_LSB, io % 0x100);
--	} else
--		io = it87_io;
--
--	it87_irq = it87_read(IT87_CIR_IRQ);
--	if (digimatrix || it87_irq == 0) {
--		if (irq == 0)
--			irq = IT87_CIR_DEFAULT_IRQ;
--		printk(KERN_INFO LIRC_DRIVER_NAME
--		       ": set default irq 0x%x\n",
--		       irq);
--		it87_write(IT87_CIR_IRQ, irq);
--	} else
--		irq = it87_irq;
--
--	spin_lock_irqsave(&hardware_lock, hw_flags);
--	/* reset */
--	outb(IT87_CIR_IER_RESET, io+IT87_CIR_IER);
--	/* fifo clear */
--	outb(IT87_CIR_TCR1_FIFOCLR |
--	     /*	     IT87_CIR_TCR1_ILE | */
--	     IT87_CIR_TCR1_TXRLE |
--	     IT87_CIR_TCR1_TXENDF, io+IT87_CIR_TCR1);
--	spin_unlock_irqrestore(&hardware_lock, hw_flags);
--
--	/* get I/O port access and IRQ line */
--	if (request_region(io, 8, LIRC_DRIVER_NAME) == NULL) {
--		printk(KERN_ERR LIRC_DRIVER_NAME
--		       ": i/o port 0x%.4x already in use.\n", io);
--		/* Leaving MB PnP Mode */
--		it87_write(IT87_CFGCTRL, 0x2);
--		return -EBUSY;
--	}
--
--	/* activate CIR-Device */
--	it87_write(IT87_CIR_ACT, 0x1);
--
--	/* Leaving MB PnP Mode */
--	it87_write(IT87_CFGCTRL, 0x2);
--
--	retval = request_irq(irq, it87_interrupt, 0 /*IRQF_DISABLED*/,
--			     LIRC_DRIVER_NAME, NULL);
--	if (retval < 0) {
--		printk(KERN_ERR LIRC_DRIVER_NAME
--		       ": IRQ %d already in use.\n",
--		       irq);
--		release_region(io, 8);
--		return retval;
--	}
--
--	printk(KERN_INFO LIRC_DRIVER_NAME
--	       ": I/O port 0x%.4x, IRQ %d.\n", io, irq);
--
--	init_timer(&timerlist);
--	timerlist.function = it87_timeout;
--	timerlist.data = 0xabadcafe;
--
--	return 0;
--}
--
--
--static void drop_port(void)
--{
--#if 0
--	unsigned char init_bytes[4] = IT87_INIT;
--
--	/* Enter MB PnP Mode */
--	outb(init_bytes[0], IT87_ADRPORT);
--	outb(init_bytes[1], IT87_ADRPORT);
--	outb(init_bytes[2], IT87_ADRPORT);
--	outb(init_bytes[3], IT87_ADRPORT);
--
--	/* deactivate CIR-Device */
--	it87_write(IT87_CIR_ACT, 0x0);
--
--	/* Leaving MB PnP Mode */
--	it87_write(IT87_CFGCTRL, 0x2);
--#endif
--
--	del_timer_sync(&timerlist);
--	free_irq(irq, NULL);
--	release_region(io, 8);
--}
--
--
--static int init_lirc_it87(void)
--{
--	int retval;
--
--	init_waitqueue_head(&lirc_read_queue);
--	retval = init_port();
--	if (retval < 0)
--		return retval;
--	init_hardware();
--	printk(KERN_INFO LIRC_DRIVER_NAME ": Installed.\n");
--	return 0;
--}
--
--static int it87_probe(struct pnp_dev *pnp_dev,
--		      const struct pnp_device_id *dev_id)
--{
--	int retval;
--
--	driver.dev = &pnp_dev->dev;
--
--	retval = init_chrdev();
--	if (retval < 0)
--		return retval;
--
--	retval = init_lirc_it87();
--	if (retval)
--		goto init_lirc_it87_failed;
--
--	return 0;
--
--init_lirc_it87_failed:
--	drop_chrdev();
--
--	return retval;
--}
--
--static int __init lirc_it87_init(void)
--{
--	return pnp_register_driver(&it87_pnp_driver);
--}
--
--
--static void __exit lirc_it87_exit(void)
--{
--	drop_hardware();
--	drop_chrdev();
--	drop_port();
--	pnp_unregister_driver(&it87_pnp_driver);
--	printk(KERN_INFO LIRC_DRIVER_NAME ": Uninstalled.\n");
--}
--
--/* SECTION: PNP for ITE8704/13/18 */
--
--static const struct pnp_device_id pnp_dev_table[] = {
--	{"ITE8704", 0},
--	{"ITE8713", 0},
--	{}
--};
--
--MODULE_DEVICE_TABLE(pnp, pnp_dev_table);
--
--static struct pnp_driver it87_pnp_driver = {
--	.name           = LIRC_DRIVER_NAME,
--	.id_table       = pnp_dev_table,
--	.probe		= it87_probe,
--};
--
--module_init(lirc_it87_init);
--module_exit(lirc_it87_exit);
--
--MODULE_DESCRIPTION("LIRC driver for ITE IT8704/05/12/18/20 CIR port");
--MODULE_AUTHOR("Hans-Gunter Lutke Uphues");
--MODULE_LICENSE("GPL");
--
--module_param(io, int, S_IRUGO);
--MODULE_PARM_DESC(io, "I/O base address (default: 0x310)");
--
--module_param(irq, int, S_IRUGO);
--#ifdef LIRC_IT87_DIGIMATRIX
--MODULE_PARM_DESC(irq, "Interrupt (1,3-12) (default: 9)");
--#else
--MODULE_PARM_DESC(irq, "Interrupt (1,3-12) (default: 7)");
--#endif
--
--module_param(it87_enable_demodulator, bool, S_IRUGO);
--MODULE_PARM_DESC(it87_enable_demodulator,
--		 "Receiver demodulator enable/disable (1/0), default: 0");
--
--module_param(debug, bool, S_IRUGO | S_IWUSR);
--MODULE_PARM_DESC(debug, "Enable debugging messages");
--
--module_param(digimatrix, bool, S_IRUGO | S_IWUSR);
--#ifdef LIRC_IT87_DIGIMATRIX
--MODULE_PARM_DESC(digimatrix,
--	"Asus Digimatrix it87 compat. enable/disable (1/0), default: 1");
--#else
--MODULE_PARM_DESC(digimatrix,
--	"Asus Digimatrix it87 compat. enable/disable (1/0), default: 0");
--#endif
--
--
--module_param(it87_freq, int, S_IRUGO);
--#ifdef LIRC_IT87_DIGIMATRIX
--MODULE_PARM_DESC(it87_freq,
--    "Carrier demodulator frequency (kHz), (default: 36)");
--#else
--MODULE_PARM_DESC(it87_freq,
--    "Carrier demodulator frequency (kHz), (default: 38)");
--#endif
-diff --git a/drivers/staging/lirc/lirc_it87.h b/drivers/staging/lirc/lirc_it87.h
-deleted file mode 100644
-index cf021c8..0000000
---- a/drivers/staging/lirc/lirc_it87.h
-+++ /dev/null
-@@ -1,116 +0,0 @@
--/* lirc_it87.h */
--/* SECTION: Definitions */
--
--/********************************* ITE IT87xx ************************/
--
--/* based on the following documentation from ITE:
--   a) IT8712F Preliminary CIR Programming Guide V0.1
--   b) IT8705F Simple LPC I/O Preliminary Specification V0.3
--   c) IT8712F EC-LPC I/O Preliminary Specification V0.5
--*/
--
--/* IT8712/05 Ports: */
--#define IT87_ADRPORT      0x2e
--#define IT87_DATAPORT     0x2f
--#define IT87_INIT         {0x87, 0x01, 0x55, 0x55}
--
--/* alternate Ports: */
--/*
--#define IT87_ADRPORT      0x4e
--#define IT87_DATAPORT     0x4f
--#define IT87_INIT         {0x87, 0x01, 0x55, 0xaa}
-- */
--
--/* IT8712/05 Registers */
--#define IT87_CFGCTRL      0x2
--#define IT87_LDN          0x7
--#define IT87_CHIP_ID1     0x20
--#define IT87_CHIP_ID2     0x21
--#define IT87_CFG_VERSION  0x22
--#define IT87_SWSUSPEND    0x23
--
--#define IT8712_CIR_LDN    0xa
--#define IT8705_CIR_LDN    0x7
--
--/* CIR Configuration Registers: */
--#define IT87_CIR_ACT      0x30
--#define IT87_CIR_BASE_MSB 0x60
--#define IT87_CIR_BASE_LSB 0x61
--#define IT87_CIR_IRQ      0x70
--#define IT87_CIR_CONFIG   0xf0
--
--/* List of IT87_CIR registers: offset to BaseAddr */
--#define IT87_CIR_DR   0
--#define IT87_CIR_IER  1
--#define IT87_CIR_RCR  2
--#define IT87_CIR_TCR1 3
--#define IT87_CIR_TCR2 4
--#define IT87_CIR_TSR  5
--#define IT87_CIR_RSR  6
--#define IT87_CIR_BDLR 5
--#define IT87_CIR_BDHR 6
--#define IT87_CIR_IIR  7
--
--/* Bit Definition */
--/* IER: */
--#define IT87_CIR_IER_TM_EN   0x80
--#define IT87_CIR_IER_RESEVED 0x40
--#define IT87_CIR_IER_RESET   0x20
--#define IT87_CIR_IER_BR      0x10
--#define IT87_CIR_IER_IEC     0x8
--#define IT87_CIR_IER_RFOIE   0x4
--#define IT87_CIR_IER_RDAIE   0x2
--#define IT87_CIR_IER_TLDLIE  0x1
--
--/* RCR: */
--#define IT87_CIR_RCR_RDWOS  0x80
--#define IT87_CIR_RCR_HCFS   0x40
--#define IT87_CIR_RCR_RXEN   0x20
--#define IT87_CIR_RCR_RXEND  0x10
--#define IT87_CIR_RCR_RXACT  0x8
--#define IT87_CIR_RCR_RXDCR  0x7
--
--/* TCR1: */
--#define IT87_CIR_TCR1_FIFOCLR 0x80
--#define IT87_CIR_TCR1_ILE     0x40
--#define IT87_CIR_TCR1_FIFOTL  0x30
--#define IT87_CIR_TCR1_TXRLE   0x8
--#define IT87_CIR_TCR1_TXENDF  0x4
--#define IT87_CIR_TCR1_TXMPM   0x3
--
--/* TCR2: */
--#define IT87_CIR_TCR2_CFQ   0xf8
--#define IT87_CIR_TCR2_TXMPW 0x7
--
--/* TSR: */
--#define IT87_CIR_TSR_RESERVED 0xc0
--#define IT87_CIR_TSR_TXFBC    0x3f
--
--/* RSR: */
--#define IT87_CIR_RSR_RXFTO    0x80
--#define IT87_CIR_RSR_RESERVED 0x40
--#define IT87_CIR_RSR_RXFBC    0x3f
--
--/* IIR: */
--#define IT87_CIR_IIR_RESERVED 0xf8
--#define IT87_CIR_IIR_IID      0x6
--#define IT87_CIR_IIR_IIP      0x1
--
--/* TM: */
--#define IT87_CIR_TM_IL_SEL    0x80
--#define IT87_CIR_TM_RESERVED  0x40
--#define IT87_CIR_TM_TM_REG    0x3f
--
--#define IT87_CIR_FIFO_SIZE 32
--
--/* Baudratedivisor for IT87: power of 2: only 1,2,4 or 8) */
--#define IT87_CIR_BAUDRATE_DIVISOR 0x1
--#define IT87_CIR_DEFAULT_IOBASE 0x310
--#define IT87_CIR_DEFAULT_IRQ    0x7
--#define IT87_CIR_SPACE 0x00
--#define IT87_CIR_PULSE 0xff
--#define IT87_CIR_FREQ_MIN 27
--#define IT87_CIR_FREQ_MAX 58
--#define TIME_CONST (IT87_CIR_BAUDRATE_DIVISOR * 8000000ul / 115200ul)
--
--/********************************* ITE IT87xx ************************/
-diff --git a/drivers/staging/lirc/lirc_ite8709.c b/drivers/staging/lirc/lirc_ite8709.c
-deleted file mode 100644
-index cb20cfd..0000000
---- a/drivers/staging/lirc/lirc_ite8709.c
-+++ /dev/null
-@@ -1,542 +0,0 @@
--/*
-- * LIRC driver for ITE8709 CIR port
-- *
-- * Copyright (C) 2008 Grégory Lardière <spmf2004-lirc@yahoo.fr>
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License as
-- * published by the Free Software Foundation; either version 2 of the
-- * License, or (at your option) any later version.
-- *
-- * This program is distributed in the hope that it will be useful, but
-- * WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-- * General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
-- * USA
-- */
--
--#include <linux/module.h>
--#include <linux/interrupt.h>
--#include <linux/sched.h>
--#include <linux/delay.h>
--#include <linux/pnp.h>
--#include <linux/io.h>
--
--#include <media/lirc.h>
--#include <media/lirc_dev.h>
--
--#define LIRC_DRIVER_NAME "lirc_ite8709"
--
--#define BUF_CHUNK_SIZE	sizeof(int)
--#define BUF_SIZE	(128*BUF_CHUNK_SIZE)
--
--/*
-- * The ITE8709 device seems to be the combination of IT8512 superIO chip and
-- * a specific firmware running on the IT8512's embedded micro-controller.
-- * In addition of the embedded micro-controller, the IT8512 chip contains a
-- * CIR module and several other modules. A few modules are directly accessible
-- * by the host CPU, but most of them are only accessible by the
-- * micro-controller. The CIR module is only accessible by the micro-controller.
-- * The battery-backed SRAM module is accessible by the host CPU and the
-- * micro-controller. So one of the MC's firmware role is to act as a bridge
-- * between the host CPU and the CIR module. The firmware implements a kind of
-- * communication protocol using the SRAM module as a shared memory. The IT8512
-- * specification is publicly available on ITE's web site, but the communication
-- * protocol is not, so it was reverse-engineered.
-- */
--
--/* ITE8709 Registers addresses and values (reverse-engineered) */
--#define ITE8709_MODE		0x1a
--#define ITE8709_REG_ADR		0x1b
--#define ITE8709_REG_VAL		0x1c
--#define ITE8709_IIR		0x1e  /* Interrupt identification register */
--#define ITE8709_RFSR		0x1f  /* Receiver FIFO status register */
--#define ITE8709_FIFO_START	0x20
--
--#define ITE8709_MODE_READY	0X00
--#define ITE8709_MODE_WRITE	0X01
--#define ITE8709_MODE_READ	0X02
--#define ITE8709_IIR_RDAI	0x02  /* Receiver data available interrupt */
--#define ITE8709_IIR_RFOI	0x04  /* Receiver FIFO overrun interrupt */
--#define ITE8709_RFSR_MASK	0x3f  /* FIFO byte count mask */
--
--/*
-- * IT8512 CIR-module registers addresses and values
-- * (from IT8512 E/F specification v0.4.1)
-- */
--#define IT8512_REG_MSTCR	0x01  /* Master control register */
--#define IT8512_REG_IER		0x02  /* Interrupt enable register */
--#define IT8512_REG_CFR		0x04  /* Carrier frequency register */
--#define IT8512_REG_RCR		0x05  /* Receive control register */
--#define IT8512_REG_BDLR		0x08  /* Baud rate divisor low byte register */
--#define IT8512_REG_BDHR		0x09  /* Baud rate divisor high byte register */
--
--#define IT8512_MSTCR_RESET	0x01  /* Reset registers to default value */
--#define IT8512_MSTCR_FIFOCLR	0x02  /* Clear FIFO */
--#define IT8512_MSTCR_FIFOTL_7	0x04  /* FIFO threshold level : 7 */
--#define IT8512_MSTCR_FIFOTL_25	0x0c  /* FIFO threshold level : 25 */
--#define IT8512_IER_RDAIE	0x02  /* Enable data interrupt request */
--#define IT8512_IER_RFOIE	0x04  /* Enable FIFO overrun interrupt req */
--#define IT8512_IER_IEC		0x80  /* Enable interrupt request */
--#define IT8512_CFR_CF_36KHZ	0x09  /* Carrier freq : low speed, 36kHz */
--#define IT8512_RCR_RXDCR_1	0x01  /* Demodulation carrier range : 1 */
--#define IT8512_RCR_RXACT	0x08  /* Receiver active */
--#define IT8512_RCR_RXEN		0x80  /* Receiver enable */
--#define IT8512_BDR_6		6     /* Baud rate divisor : 6 */
--
--/* Actual values used by this driver */
--#define CFG_FIFOTL	IT8512_MSTCR_FIFOTL_25
--#define CFG_CR_FREQ	IT8512_CFR_CF_36KHZ
--#define CFG_DCR		IT8512_RCR_RXDCR_1
--#define CFG_BDR		IT8512_BDR_6
--#define CFG_TIMEOUT	100000 /* Rearm interrupt when a space is > 100 ms */
--
--static int debug;
--
--struct ite8709_device {
--	int use_count;
--	int io;
--	int irq;
--	spinlock_t hardware_lock;
--	__u64 acc_pulse;
--	__u64 acc_space;
--	char lastbit;
--	struct timeval last_tv;
--	struct lirc_driver driver;
--	struct tasklet_struct tasklet;
--	char force_rearm;
--	char rearmed;
--	char device_busy;
--};
--
--#define dprintk(fmt, args...)					\
--	do {							\
--		if (debug)					\
--			printk(KERN_DEBUG LIRC_DRIVER_NAME ": "	\
--				fmt, ## args);			\
--	} while (0)
--
--
--static unsigned char ite8709_read(struct ite8709_device *dev,
--					unsigned char port)
--{
--	outb(port, dev->io);
--	return inb(dev->io+1);
--}
--
--static void ite8709_write(struct ite8709_device *dev, unsigned char port,
--				unsigned char data)
--{
--	outb(port, dev->io);
--	outb(data, dev->io+1);
--}
--
--static void ite8709_wait_device(struct ite8709_device *dev)
--{
--	int i = 0;
--	/*
--	 * loop until device tells it's ready to continue
--	 * iterations count is usually ~750 but can sometimes achieve 13000
--	 */
--	for (i = 0; i < 15000; i++) {
--		udelay(2);
--		if (ite8709_read(dev, ITE8709_MODE) == ITE8709_MODE_READY)
--			break;
--	}
--}
--
--static void ite8709_write_register(struct ite8709_device *dev,
--				unsigned char reg_adr, unsigned char reg_value)
--{
--	ite8709_wait_device(dev);
--
--	ite8709_write(dev, ITE8709_REG_VAL, reg_value);
--	ite8709_write(dev, ITE8709_REG_ADR, reg_adr);
--	ite8709_write(dev, ITE8709_MODE, ITE8709_MODE_WRITE);
--}
--
--static void ite8709_init_hardware(struct ite8709_device *dev)
--{
--	spin_lock_irq(&dev->hardware_lock);
--	dev->device_busy = 1;
--	spin_unlock_irq(&dev->hardware_lock);
--
--	ite8709_write_register(dev, IT8512_REG_BDHR, (CFG_BDR >> 8) & 0xff);
--	ite8709_write_register(dev, IT8512_REG_BDLR, CFG_BDR & 0xff);
--	ite8709_write_register(dev, IT8512_REG_CFR, CFG_CR_FREQ);
--	ite8709_write_register(dev, IT8512_REG_IER,
--			IT8512_IER_IEC | IT8512_IER_RFOIE | IT8512_IER_RDAIE);
--	ite8709_write_register(dev, IT8512_REG_RCR, CFG_DCR);
--	ite8709_write_register(dev, IT8512_REG_MSTCR,
--					CFG_FIFOTL | IT8512_MSTCR_FIFOCLR);
--	ite8709_write_register(dev, IT8512_REG_RCR,
--				IT8512_RCR_RXEN | IT8512_RCR_RXACT | CFG_DCR);
--
--	spin_lock_irq(&dev->hardware_lock);
--	dev->device_busy = 0;
--	spin_unlock_irq(&dev->hardware_lock);
--
--	tasklet_enable(&dev->tasklet);
--}
--
--static void ite8709_drop_hardware(struct ite8709_device *dev)
--{
--	tasklet_disable(&dev->tasklet);
--
--	spin_lock_irq(&dev->hardware_lock);
--	dev->device_busy = 1;
--	spin_unlock_irq(&dev->hardware_lock);
--
--	ite8709_write_register(dev, IT8512_REG_RCR, 0);
--	ite8709_write_register(dev, IT8512_REG_MSTCR,
--				IT8512_MSTCR_RESET | IT8512_MSTCR_FIFOCLR);
--
--	spin_lock_irq(&dev->hardware_lock);
--	dev->device_busy = 0;
--	spin_unlock_irq(&dev->hardware_lock);
--}
--
--static int ite8709_set_use_inc(void *data)
--{
--	struct ite8709_device *dev;
--	dev = data;
--	if (dev->use_count == 0)
--		ite8709_init_hardware(dev);
--	dev->use_count++;
--	return 0;
--}
--
--static void ite8709_set_use_dec(void *data)
--{
--	struct ite8709_device *dev;
--	dev = data;
--	dev->use_count--;
--	if (dev->use_count == 0)
--		ite8709_drop_hardware(dev);
--}
--
--static void ite8709_add_read_queue(struct ite8709_device *dev, int flag,
--				   __u64 val)
--{
--	int value;
--
--	dprintk("add a %llu usec %s\n", val, flag ? "pulse" : "space");
--
--	value = (val > PULSE_MASK) ? PULSE_MASK : val;
--	if (flag)
--		value |= PULSE_BIT;
--
--	if (!lirc_buffer_full(dev->driver.rbuf)) {
--		lirc_buffer_write(dev->driver.rbuf, (void *) &value);
--		wake_up(&dev->driver.rbuf->wait_poll);
--	}
--}
--
--static irqreturn_t ite8709_interrupt(int irq, void *dev_id)
--{
--	unsigned char data;
--	int iir, rfsr, i;
--	int fifo = 0;
--	char bit;
--	struct timeval curr_tv;
--
--	/* Bit duration in microseconds */
--	const unsigned long bit_duration = 1000000ul / (115200 / CFG_BDR);
--
--	struct ite8709_device *dev;
--	dev = dev_id;
--
--	/*
--	 * If device is busy, we simply discard data because we are in one of
--	 * these two cases : shutting down or rearming the device, so this
--	 * doesn't really matter and this avoids waiting too long in IRQ ctx
--	 */
--	spin_lock(&dev->hardware_lock);
--	if (dev->device_busy) {
--		spin_unlock(&dev->hardware_lock);
--		return IRQ_RETVAL(IRQ_HANDLED);
--	}
--
--	iir = ite8709_read(dev, ITE8709_IIR);
--
--	switch (iir) {
--	case ITE8709_IIR_RFOI:
--		dprintk("fifo overrun, scheduling forced rearm just in case\n");
--		dev->force_rearm = 1;
--		tasklet_schedule(&dev->tasklet);
--		spin_unlock(&dev->hardware_lock);
--		return IRQ_RETVAL(IRQ_HANDLED);
--
--	case ITE8709_IIR_RDAI:
--		rfsr = ite8709_read(dev, ITE8709_RFSR);
--		fifo = rfsr & ITE8709_RFSR_MASK;
--		if (fifo > 32)
--			fifo = 32;
--		dprintk("iir: 0x%x rfsr: 0x%x fifo: %d\n", iir, rfsr, fifo);
--
--		if (dev->rearmed) {
--			do_gettimeofday(&curr_tv);
--			dev->acc_space += 1000000ull
--				* (curr_tv.tv_sec - dev->last_tv.tv_sec)
--				+ (curr_tv.tv_usec - dev->last_tv.tv_usec);
--			dev->rearmed = 0;
--		}
--		for (i = 0; i < fifo; i++) {
--			data = ite8709_read(dev, i+ITE8709_FIFO_START);
--			data = ~data;
--			/* Loop through */
--			for (bit = 0; bit < 8; ++bit) {
--				if ((data >> bit) & 1) {
--					dev->acc_pulse += bit_duration;
--					if (dev->lastbit == 0) {
--						ite8709_add_read_queue(dev, 0,
--							dev->acc_space);
--						dev->acc_space = 0;
--					}
--				} else {
--					dev->acc_space += bit_duration;
--					if (dev->lastbit == 1) {
--						ite8709_add_read_queue(dev, 1,
--							dev->acc_pulse);
--						dev->acc_pulse = 0;
--					}
--				}
--				dev->lastbit = (data >> bit) & 1;
--			}
--		}
--		ite8709_write(dev, ITE8709_RFSR, 0);
--
--		if (dev->acc_space > CFG_TIMEOUT) {
--			dprintk("scheduling rearm IRQ\n");
--			do_gettimeofday(&dev->last_tv);
--			dev->force_rearm = 0;
--			tasklet_schedule(&dev->tasklet);
--		}
--
--		spin_unlock(&dev->hardware_lock);
--		return IRQ_RETVAL(IRQ_HANDLED);
--
--	default:
--		/* not our irq */
--		dprintk("unknown IRQ (shouldn't happen) !!\n");
--		spin_unlock(&dev->hardware_lock);
--		return IRQ_RETVAL(IRQ_NONE);
--	}
--}
--
--static void ite8709_rearm_irq(unsigned long data)
--{
--	struct ite8709_device *dev;
--	unsigned long flags;
--	dev = (struct ite8709_device *) data;
--
--	spin_lock_irqsave(&dev->hardware_lock, flags);
--	dev->device_busy = 1;
--	spin_unlock_irqrestore(&dev->hardware_lock, flags);
--
--	if (dev->force_rearm || dev->acc_space > CFG_TIMEOUT) {
--		dprintk("rearming IRQ\n");
--		ite8709_write_register(dev, IT8512_REG_RCR,
--						IT8512_RCR_RXACT | CFG_DCR);
--		ite8709_write_register(dev, IT8512_REG_MSTCR,
--					CFG_FIFOTL | IT8512_MSTCR_FIFOCLR);
--		ite8709_write_register(dev, IT8512_REG_RCR,
--				IT8512_RCR_RXEN | IT8512_RCR_RXACT | CFG_DCR);
--		if (!dev->force_rearm)
--			dev->rearmed = 1;
--		dev->force_rearm = 0;
--	}
--
--	spin_lock_irqsave(&dev->hardware_lock, flags);
--	dev->device_busy = 0;
--	spin_unlock_irqrestore(&dev->hardware_lock, flags);
--}
--
--static int ite8709_cleanup(struct ite8709_device *dev, int stage, int errno,
--				char *msg)
--{
--	if (msg != NULL)
--		printk(KERN_ERR LIRC_DRIVER_NAME ": %s\n", msg);
--
--	switch (stage) {
--	case 6:
--		if (dev->use_count > 0)
--			ite8709_drop_hardware(dev);
--	case 5:
--		free_irq(dev->irq, dev);
--	case 4:
--		release_region(dev->io, 2);
--	case 3:
--		lirc_unregister_driver(dev->driver.minor);
--	case 2:
--		lirc_buffer_free(dev->driver.rbuf);
--		kfree(dev->driver.rbuf);
--	case 1:
--		kfree(dev);
--	case 0:
--		;
--	}
--
--	return errno;
--}
--
--static int __devinit ite8709_pnp_probe(struct pnp_dev *dev,
--					const struct pnp_device_id *dev_id)
--{
--	struct lirc_driver *driver;
--	struct ite8709_device *ite8709_dev;
--	int ret;
--
--	/* Check resources validity */
--	if (!pnp_irq_valid(dev, 0))
--		return ite8709_cleanup(NULL, 0, -ENODEV, "invalid IRQ");
--	if (!pnp_port_valid(dev, 2))
--		return ite8709_cleanup(NULL, 0, -ENODEV, "invalid IO port");
--
--	/* Allocate memory for device struct */
--	ite8709_dev = kzalloc(sizeof(struct ite8709_device), GFP_KERNEL);
--	if (ite8709_dev == NULL)
--		return ite8709_cleanup(NULL, 0, -ENOMEM, "kzalloc failed");
--	pnp_set_drvdata(dev, ite8709_dev);
--
--	/* Initialize device struct */
--	ite8709_dev->use_count = 0;
--	ite8709_dev->irq = pnp_irq(dev, 0);
--	ite8709_dev->io = pnp_port_start(dev, 2);
--	ite8709_dev->hardware_lock =
--		__SPIN_LOCK_UNLOCKED(ite8709_dev->hardware_lock);
--	ite8709_dev->acc_pulse = 0;
--	ite8709_dev->acc_space = 0;
--	ite8709_dev->lastbit = 0;
--	do_gettimeofday(&ite8709_dev->last_tv);
--	tasklet_init(&ite8709_dev->tasklet, ite8709_rearm_irq,
--							(long) ite8709_dev);
--	ite8709_dev->force_rearm = 0;
--	ite8709_dev->rearmed = 0;
--	ite8709_dev->device_busy = 0;
--
--	/* Initialize driver struct */
--	driver = &ite8709_dev->driver;
--	strcpy(driver->name, LIRC_DRIVER_NAME);
--	driver->minor = -1;
--	driver->code_length = sizeof(int) * 8;
--	driver->sample_rate = 0;
--	driver->features = LIRC_CAN_REC_MODE2;
--	driver->data = ite8709_dev;
--	driver->add_to_buf = NULL;
--	driver->set_use_inc = ite8709_set_use_inc;
--	driver->set_use_dec = ite8709_set_use_dec;
--	driver->dev = &dev->dev;
--	driver->owner = THIS_MODULE;
--
--	/* Initialize LIRC buffer */
--	driver->rbuf = kmalloc(sizeof(struct lirc_buffer), GFP_KERNEL);
--	if (!driver->rbuf)
--		return ite8709_cleanup(ite8709_dev, 1, -ENOMEM,
--				       "can't allocate lirc_buffer");
--	if (lirc_buffer_init(driver->rbuf, BUF_CHUNK_SIZE, BUF_SIZE))
--		return ite8709_cleanup(ite8709_dev, 1, -ENOMEM,
--				       "lirc_buffer_init() failed");
--
--	/* Register LIRC driver */
--	ret = lirc_register_driver(driver);
--	if (ret < 0)
--		return ite8709_cleanup(ite8709_dev, 2, ret,
--					"lirc_register_driver() failed");
--
--	/* Reserve I/O port access */
--	if (!request_region(ite8709_dev->io, 2, LIRC_DRIVER_NAME))
--		return ite8709_cleanup(ite8709_dev, 3, -EBUSY,
--						"i/o port already in use");
--
--	/* Reserve IRQ line */
--	ret = request_irq(ite8709_dev->irq, ite8709_interrupt, 0,
--					LIRC_DRIVER_NAME, ite8709_dev);
--	if (ret < 0)
--		return ite8709_cleanup(ite8709_dev, 4, ret,
--						"IRQ already in use");
--
--	/* Initialize hardware */
--	ite8709_drop_hardware(ite8709_dev); /* Shutdown hw until first use */
--
--	printk(KERN_INFO LIRC_DRIVER_NAME ": device found : irq=%d io=0x%x\n",
--					ite8709_dev->irq, ite8709_dev->io);
--
--	return 0;
--}
--
--static void __devexit ite8709_pnp_remove(struct pnp_dev *dev)
--{
--	struct ite8709_device *ite8709_dev;
--	ite8709_dev = pnp_get_drvdata(dev);
--
--	ite8709_cleanup(ite8709_dev, 6, 0, NULL);
--
--	printk(KERN_INFO LIRC_DRIVER_NAME ": device removed\n");
--}
--
--#ifdef CONFIG_PM
--static int ite8709_pnp_suspend(struct pnp_dev *dev, pm_message_t state)
--{
--	struct ite8709_device *ite8709_dev;
--	ite8709_dev = pnp_get_drvdata(dev);
--
--	if (ite8709_dev->use_count > 0)
--		ite8709_drop_hardware(ite8709_dev);
--
--	return 0;
--}
--
--static int ite8709_pnp_resume(struct pnp_dev *dev)
--{
--	struct ite8709_device *ite8709_dev;
--	ite8709_dev = pnp_get_drvdata(dev);
--
--	if (ite8709_dev->use_count > 0)
--		ite8709_init_hardware(ite8709_dev);
--
--	return 0;
--}
--#else
--#define ite8709_pnp_suspend NULL
--#define ite8709_pnp_resume NULL
--#endif
--
--static const struct pnp_device_id pnp_dev_table[] = {
--	{"ITE8709", 0},
--	{}
--};
--
--MODULE_DEVICE_TABLE(pnp, pnp_dev_table);
--
--static struct pnp_driver ite8709_pnp_driver = {
--	.name           = LIRC_DRIVER_NAME,
--	.probe          = ite8709_pnp_probe,
--	.remove         = __devexit_p(ite8709_pnp_remove),
--	.suspend        = ite8709_pnp_suspend,
--	.resume         = ite8709_pnp_resume,
--	.id_table       = pnp_dev_table,
--};
--
--static int __init ite8709_init_module(void)
--{
--	return pnp_register_driver(&ite8709_pnp_driver);
--}
--module_init(ite8709_init_module);
--
--static void __exit ite8709_cleanup_module(void)
--{
--	pnp_unregister_driver(&ite8709_pnp_driver);
--}
--module_exit(ite8709_cleanup_module);
--
--MODULE_DESCRIPTION("LIRC driver for ITE8709 CIR port");
--MODULE_AUTHOR("Grégory Lardière");
--MODULE_LICENSE("GPL");
--
--module_param(debug, bool, S_IRUGO | S_IWUSR);
--MODULE_PARM_DESC(debug, "Enable debugging messages");
--- 
-1.7.1
+I would be grateful for your comments. Original cover letter has been
+attached below.
 
+This patch series contains:
+
+[PATCH v2 1/8] media: Changes in include/linux/videodev2.h for MFC 5.1
+[PATCH v2 2/8] ARM: S5PV310: Add clock support for MFC v5.1
+[PATCH v2 3/8] ARM: S5PV310: Add memory map support for MFC v5.1
+[PATCH v2 4/8] ARM: S5P: Add platform support for MFC v5.1
+[PATCH v2 5/8] ARM: S5PV310: Add 'CONSISTENT_DMA_SIZE' definition for DMA pool allocator
+[PATCH v2 6/8] media: MFC: Add MFC v5.1 V4L2 driver
+[PATCH v2 7/8] ARM: S5PV310: Add MFC v5.1 platform device support for SMDKC210
+[PATCH v2 8/8] ARM: S5PV310: Add MFC v5.1 platform device support for SMDKV310
+
+Best regards,
+Jeongtae Park
+
+* Changelog:
+
+==================
+ Changes since v1
+==================
+
+1) Heavily re-organized to devide decoder and encoder.
+2) Support videobuf2 DMA-Pool allocator.
+3) Support H.263, MPEG4 encoding.
+4) Support B-Frame encoding.
+4) Add per-buffer contorl handling.
+
+* Original cover letter:
+
+==============
+ Introduction
+==============
+
+The purpose of this RFC is to discuss the driver for a hw video codec
+embedded in the new Samusng's SoCs. Multi Format Codec 5.1 is able to
+handle video decoding and encoding of in a range of formats.
+
+So far no hardware codec was supported in V4L2 and this would be the
+first one. I guess there are more similar device that would benefit from
+a V4L2 unified interface. I suggest a separate control class for codec
+devices - V4L2_CTRL_CLASS_CODEC.
+
+Internally the driver uses videobuf2 framework and CMA memory allocator.
+I am aware that those have not yet been merged, but I wanted to start
+discussion about the driver earlier so it could be merged sooner. The
+driver posted here is the initial version, so I suppose it will require
+more work.
+
+==================
+ Device interface
+==================
+
+The driver principle is based on the idea of memory-to-memory devices:
+it provides two video nodes (decoder and encoder) and each opened file
+handle gets its own private context with separate buffer queues. Each
+context consist of 2 buffer queues: OUTPUT (for source buffers, i.e.
+encoded video frames for decoder) and CAPTURE (for destination buffers,
+i.e. decoded raw video frames for decoder).
+The process of decoding video data from stream is a bit more complicated
+than typical memory-to-memory processing, that's why the m2m framework
+is not directly used (it is too limited for this case). The main reason
+for this is the fact that the CAPTURE buffers can be dequeued in a
+different order than they queued. The hw block decides which buffer has
+been completely processed. This is due to the structure of most
+compressed video streams - use of B frames causes that decoding and
+display order may be different.
+
+==============================
+ Decoding initialization path
+==============================
+
+First the OUTPUT queue is initialized. With S_FMT the application
+chooses which video format to decode and what size should be the input
+buffer. Fourcc values have been defined for different codecs e.g.
+V4L2_PIX_FMT_H264 for h264. Then the OUTPUT buffers are requested and
+mmaped. The stream header frame is loaded into the first buffer, queued
+and streaming is enabled. At this point the hardware is able to start
+processing the stream header and afterwards it will have information
+about the video dimensions and the size of the buffers with raw video
+data.
+
+The next step is setting up the CAPTURE queue and buffers. The width,
+height, buffer size and minimum number of buffers can be read with G_FMT
+call. The application can request more output buffer if necessary. After
+requesting and mmaping buffers the device is ready to decode video
+stream.
+
+The stream frames (ES frames) are written to the OUTPUT buffers, and
+decoded video frames can be read from the CAPTURE buffers. When no more
+source frames are present a single buffer with bytesused set to 0 should
+be queued. This will inform the driver that processing should be
+finished and it can dequeue all video frames that are still left. The
+number of such frames is dependent on the stream and its internal
+structure (how many frames had to be kept as reference frames for
+decoding, etc).
+
+==============================
+ Encoding initialization path
+==============================
+
+First the encoding parameters should be set with S_EXT_CTRLS ioctl.
+Some paramters can be specific for codec type.
+
+Next, the CAPTURE queue is initialized. With S_FMT the application
+chooses which video format to encode. Fourcc values have been defined
+for different codecs e.g. V4L2_PIX_FMT_H264 for h264. The application
+can request more capture buffer if necessary. After requesting and
+mmaping buffers the device is ready to encode raw frame data.
+
+Next step is OUTPUT queue initilization. With S_FMT the application
+chooses which frame format as input, MFC supports V4L2_PIX_FMT_NV12
+and V4L2_PIX_FMT_NV12MT Fourcc values. Then the OUTPUT buffers are
+requested and mmaped. The raw video frame is loaded into the first
+buffer, queued and streaming can be enabled.
+
+After, all buffer are ready to start encoding MFC will be start
+encoding. The raw frames are written to the OUTPUT buffers, and
+encoded video frames can be read from the CAPTURE buffers.
+
+===============
+ Usage summary
+===============
+
+This is a step by step summary of the video decoding (from user
+application point of view, with 2 treads and blocking api):
+
+01. S_FMT(OUTPUT, V4L2_PIX_FMT_H264, ...)
+02. REQ_BUFS(OUTPUT, n)
+03. for i=1..n MMAP(OUTPUT, i)
+04. put stream header to buffer #1
+05. QBUF(OUTPUT, #1)
+06. STREAM_ON(OUTPUT)
+07. G_FMT(CAPTURE)
+08. REQ_BUFS(CAPTURE, m)
+09. for j=1..m MMAP(CAPTURE, j)
+10. for j=1..m QBUF(CAPTURE, #j)
+11. STREAM_ON(CAPTURE)
+
+display thread:
+12. DQBUF(CAPTURE) -> got decoded video data in buffer #j
+13. display buffer #j
+14. QBUF(CAPTURE, #j)
+15. goto 12
+
+parser thread:
+16. put next ES frame to buffer #i
+17. QBUF(OUTPUT, #i)
+18. DQBUF(OUTPUT) -> get next empty buffer #i 19. goto 16
+
+...
+
+A sequence of the video encoding is very similar to the decoding :
+
+01. S_EXT_CTRLS(V4L2_CTRL_CLASS_CODEC, p) -> set encoding parameters
+02. S_FMT(CAPTURE, V4L2_PIX_FMT_H264)
+03. REQ_BUFS(CAPTURE, n)
+04. for i=1..n MMAP(CAPTURE, i)
+05. for i=1..m QBUF(CAPTURE, #j)
+06. STREAM_ON(CAPTURE)
+07. S_FMT(OUTPUT, V4L2_PIX_FMT_NV12 or V4L2_PIX_FMT_NV12MT)
+08. REQ_BUFS(OUTPUT, n)
+09. for i=1..n MMAP(OUTPUT, i)
+
+source thread:
+10. put next source frame to buffer #i
+11. QBUF(OUTPUT, #i)
+12. if NOT streaming then STREAM_ON(OUTPUT)
+13. if OUTPUT buffer is available then goto 10
+14. DQBUF(OUTPUT) -> get next empty buffer #i
+15. goto 10
+
+destination thread:
+15. DQBUF(CAPTURE) -> get encoded video data in buffer #j
+16. save buffer #j
+17. QBUF(CAPTURE, #j)
+18. goto 15
+
+...
+
+Similar usage sequence can be achieved with single threaded application
+and non-blocking api with poll() call.
+
+Like patch '[PATCH/RFC 0/7] Samsung IOMMU videobuf2 allocator and s5p-fimc update'
+This patch series is based on git://linuxtv.org/media_tree.git tree,
+staging/for_v2.6.39 branch.
+Also, This series has not been rebased onto the latest changes (S5PV310
+renamed to EXYNOS4) in
+git://git.kernel.org/pub/scm/linux/kernel/git/kgene/linux-samsung.git,
+for-next branch
+
+Please have a look at the code and the idea of how to introduce codec
+devices to V4L2. Comments will be very much appreciated.
+
+Patch summary:
+
+Jeongtae Park (8):
+      media: Changes in include/linux/videodev2.h for MFC 5.1
+      ARM: S5PV310: Add clock support for MFC v5.1
+      ARM: S5PV310: Add memory map support for MFC v5.1
+      ARM: S5P: Add platform support for MFC v5.1
+      ARM: S5PV310: Add 'CONSISTENT_DMA_SIZE' definition for DMA pool allocator
+      media: MFC: Add MFC v5.1 V4L2 driver
+      ARM: S5PV310: Add MFC v5.1 platform device support for SMDKC210
+      ARM: S5PV310: Add MFC v5.1 platform device support for SMDKV310
+
+ arch/arm/mach-s5pv310/Kconfig                   |    2 +
+ arch/arm/mach-s5pv310/clock.c                   |   68 +
+ arch/arm/mach-s5pv310/include/mach/map.h        |    3 +
+ arch/arm/mach-s5pv310/include/mach/memory.h     |    1 +
+ arch/arm/mach-s5pv310/include/mach/regs-clock.h |    3 +
+ arch/arm/mach-s5pv310/mach-smdkc210.c           |    3 +
+ arch/arm/mach-s5pv310/mach-smdkv310.c           |    3 +
+ arch/arm/plat-s5p/Kconfig                       |    5 +
+ arch/arm/plat-s5p/Makefile                      |    1 +
+ arch/arm/plat-s5p/dev-mfc.c                     |   46 +
+ arch/arm/plat-samsung/include/plat/devs.h       |    2 +
+ drivers/media/video/Kconfig                     |   19 +
+ drivers/media/video/Makefile                    |    1 +
+ drivers/media/video/s5p-mfc/Makefile            |    5 +
+ drivers/media/video/s5p-mfc/regs-mfc.h          |  399 ++++
+ drivers/media/video/s5p-mfc/s5p_mfc.c           | 1249 +++++++++++++
+ drivers/media/video/s5p-mfc/s5p_mfc_cmd.c       |  143 ++
+ drivers/media/video/s5p-mfc/s5p_mfc_cmd.h       |   28 +
+ drivers/media/video/s5p-mfc/s5p_mfc_common.h    |  499 +++++
+ drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c      |  405 +++++
+ drivers/media/video/s5p-mfc/s5p_mfc_ctrl.h      |   26 +
+ drivers/media/video/s5p-mfc/s5p_mfc_debug.h     |   48 +
+ drivers/media/video/s5p-mfc/s5p_mfc_dec.c       | 1595 ++++++++++++++++
+ drivers/media/video/s5p-mfc/s5p_mfc_dec.h       |   23 +
+ drivers/media/video/s5p-mfc/s5p_mfc_enc.c       | 2198 +++++++++++++++++++++++
+ drivers/media/video/s5p-mfc/s5p_mfc_enc.h       |   21 +
+ drivers/media/video/s5p-mfc/s5p_mfc_inst.c      |   52 +
+ drivers/media/video/s5p-mfc/s5p_mfc_inst.h      |   19 +
+ drivers/media/video/s5p-mfc/s5p_mfc_intr.c      |   96 +
+ drivers/media/video/s5p-mfc/s5p_mfc_intr.h      |   26 +
+ drivers/media/video/s5p-mfc/s5p_mfc_mem.c       |   80 +
+ drivers/media/video/s5p-mfc/s5p_mfc_mem.h       |   76 +
+ drivers/media/video/s5p-mfc/s5p_mfc_opr.c       | 1616 +++++++++++++++++
+ drivers/media/video/s5p-mfc/s5p_mfc_opr.h       |   81 +
+ drivers/media/video/s5p-mfc/s5p_mfc_pm.c        |  160 ++
+ drivers/media/video/s5p-mfc/s5p_mfc_pm.h        |   25 +
+ drivers/media/video/s5p-mfc/s5p_mfc_reg.c       |   34 +
+ drivers/media/video/s5p-mfc/s5p_mfc_reg.h       |  119 ++
+ drivers/media/video/s5p-mfc/s5p_mfc_shm.c       |   53 +
+ drivers/media/video/s5p-mfc/s5p_mfc_shm.h       |   86 +
+ include/linux/videodev2.h                       |  158 ++
+ 41 files changed, 9477 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/plat-s5p/dev-mfc.c
+ create mode 100644 drivers/media/video/s5p-mfc/Makefile
+ create mode 100644 drivers/media/video/s5p-mfc/regs-mfc.h
+ create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc.c
+ create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_cmd.c
+ create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_cmd.h
+ create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_common.h
+ create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c
+ create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_ctrl.h
+ create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_debug.h
+ create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_dec.c
+ create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_dec.h
+ create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_enc.c
+ create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_enc.h
+ create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_inst.c
+ create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_inst.h
+ create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_intr.c
+ create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_intr.h
+ create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_mem.c
+ create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_mem.h
+ create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_opr.c
+ create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_opr.h
+ create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_pm.c
+ create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_pm.h
+ create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_reg.c
+ create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_reg.h
+ create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_shm.c
+ create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_shm.h
