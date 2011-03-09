@@ -1,99 +1,46 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.128.26]:24370 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754783Ab1C3LG0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Mar 2011 07:06:26 -0400
-Message-ID: <4D930E92.70302@maxwell.research.nokia.com>
-Date: Wed, 30 Mar 2011 14:05:54 +0300
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Nayden Kanchev <nkanchev@mm-sol.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Cohen David Abraham <david.cohen@nokia.com>
-Subject: Re: [RFC] V4L2 API for flash devices
-References: <4D90854C.2000802@maxwell.research.nokia.com> <201103301134.14798.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201103301134.14798.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:62387 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756993Ab1CIJRm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Mar 2011 04:17:42 -0500
+From: David Cohen <dacohen@gmail.com>
+To: Hiroshi.DOYU@nokia.com
+Cc: linux-omap@vger.kernel.org, linux-media@vger.kernel.org,
+	laurent.pinchart@ideasonboard.com,
+	sakari.ailus@maxwell.research.nokia.com, fernando.lugo@ti.com,
+	David Cohen <dacohen@gmail.com>
+Subject: [PATCH v3 0/2] omap: iovmm: Fix IOVMM check for fixed 'da'
+Date: Wed,  9 Mar 2011 11:17:31 +0200
+Message-Id: <1299662253-29817-1-git-send-email-dacohen@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Laurent Pinchart wrote:
-> Hi Sakari,
+Hi,
 
-Hi Laurent,
+Previous patch 2/3 was dropped in this new version. Patch 1 was updated
+according to a comment it got.
 
-Thanks for the comments!
+---
+IOVMM driver checks input 'da == 0' when mapping address to determine whether
+user wants fixed 'da' or not. At the same time, it doesn't disallow address
+0x0 to be used, what creates an ambiguous situation. This patch set moves
+fixed 'da' check to the input flags.
 
-> On Monday 28 March 2011 14:55:40 Sakari Ailus wrote:
-> 
-> [snip]
-> 
->> 	V4L2_CID_FLASH_STROBE_MODE (menu; LED)
->>
->> Use hardware or software strobe. If hardware strobe is selected, the
->> flash controller is a slave in the system where the sensor produces the
->> strobe signal to the flash.
->>
->> In this case the flash controller setup is limited to programming strobe
->> timeout and power (LED flash) and the sensor controls the timing and
->> length of the strobe.
->>
->> enum v4l2_flash_strobe_mode {
->> 	V4L2_FLASH_STROBE_MODE_SOFTWARE,
->> 	V4L2_FLASH_STROBE_MODE_EXT_STROBE,
->> };
-> 
-> [snip]
-> 
->> 	V4L2_CID_FLASH_LED_MODE (menu; LED)
->>
->> enum v4l2_flash_led_mode {
->> 	V4L2_FLASH_LED_MODE_FLASH = 1,
->> 	V4L2_FLASH_LED_MODE_TORCH,
->> };
-> 
-> Thinking about this some more, shouldn't we combine the two controls ? They 
-> are basically used to configure how the flash LED is controlled: manually 
-> (torch mode), automatically by the flash controller (software strobe mode) or 
-> automatically by an external component (external strobe mode).
+Br,
 
-That's a good question.
+David Cohen
+---
 
-The adp1653 supports also additional control (not implemented in the
-driver, though) that affect hardware strobe length. Based on register
-setting, the led will be on after strobe either until the timeout
-expires, or until the strobe signal is high.
+David Cohen (1):
+  omap: iovmm: don't check 'da' to set IOVMF_DA_FIXED flag
 
-Should this be also part of the same control, or a different one?
+Michael Jones (1):
+  omap: iovmm: disallow mapping NULL address when IOVMF_DA_ANON is set
 
-Even without this, we'd have:
-
-V4L2_FLASH_MODE_OFF
-V4L2_FLASH_MODE_TORCH
-V4L2_FLASH_MODE_SOFTWARE_STROBE
-V4L2_FLASH_MODE_EXTERNAL_STROBE
-
-Additionally, this might be
-
-V4L2_FLASH_MODE_EXTERNAL_STROBE_EDGE
-
-It's true that these are mutually exclusive.
-
-I think this is about whether we want to specify the operation of the
-flash explicitly here or allow extending the interface later on when new
-hardware is available by adding new controls. There are upsides and
-downsides in each approach.
-
-There could be additional differentiating factors to the functionalty
-later on, like the torch/video light differentiation that some hardware
-does --- who knows based on what?
-
-I perhaps wouldn't combine the controls. What do you think?
+ arch/arm/plat-omap/include/plat/iovmm.h |    2 --
+ arch/arm/plat-omap/iovmm.c              |   27 ++++++++++++---------------
+ 2 files changed, 12 insertions(+), 17 deletions(-)
 
 -- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+1.7.4.1
+
