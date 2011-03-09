@@ -1,114 +1,82 @@
 Return-path: <mchehab@pedra>
-Received: from knetgate.kensnet.org ([80.168.136.138]:55160 "EHLO
-	knetgate.kensnet.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755280Ab1CQSv3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Mar 2011 14:51:29 -0400
-Received: from [172.16.0.164] ([172.16.0.164])
-	(authenticated bits=0)
-	by knetgate.kensnet.org (8.13.8/8.13.8) with ESMTP id p2HIpJY0014879
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Thu, 17 Mar 2011 18:51:20 GMT
-Message-ID: <4D825827.6000104@kensnet.org>
-Date: Thu, 17 Mar 2011 18:51:19 +0000
-From: Ken Smith <kens@kensnet.org>
-Reply-To: kens@kensnet.org
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58225 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752238Ab1CIXkj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Mar 2011 18:40:39 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Michael Jones <michael.jones@matrix-vision.de>
+Subject: Re: [PATCH v2 3/4] omap3isp: ccdc: support Y10/12, 8-bit bayer fmts
+Date: Thu, 10 Mar 2011 00:41:00 +0100
+Cc: linux-media@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+References: <1299686863-20701-1-git-send-email-michael.jones@matrix-vision.de> <1299686863-20701-4-git-send-email-michael.jones@matrix-vision.de>
+In-Reply-To: <1299686863-20701-4-git-send-email-michael.jones@matrix-vision.de>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: Compro VideoMate S350
-References: <4D8104E7.70607@kensnet.org>
-In-Reply-To: <4D8104E7.70607@kensnet.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201103100041.03387.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+Hi Michael,
 
+Thanks for the patch.
 
-Ken Smith wrote:
->
-> First post to this list, but not new to Linux.
->
-> I'm trying to get a Compro VideoMate S350 card to work in a 32bit 
-> Centos 5.5 system that also has a Hauppauge WinTV-NOVA-T-500 that uses 
-> the dvb-usb-dib0700.ko kernel module as its driver. The Nova-T appears 
-> to be working.
->
-> I've used the v4l source RPM from ATRPMS to build an RPM of the v4l 
-> package. The RPM I compiled/built is called 
-> video4linux-kmdl-2.6.18-194.32.1.el5.centos.plus-20090907-93.RHL5.i386.rpm 
->
->
-> The build runs fine without issue.
->
-> When I try to load the driver for the Compro with
->
-> modprobe -v saa7134 card=169
->
-> I get
->
->
-> insmod 
-> /lib/modules/2.6.18-194.32.1.el5.centos.plus/kernel/drivers/media/video/video-buf.ko 
->
-> WARNING: Error inserting video_buf 
-> (/lib/modules/2.6.18-194.32.1.el5.centos.plus/kernel/drivers/media/video/video-buf.ko): 
-> Invalid module format
-> WARNING: Error inserting videobuf_dma_sg 
-> (/lib/modules/2.6.18-194.32.1.el5.centos.plus/updates/drivers/media/video/videobuf-dma-sg.ko): 
-> Unknown symbol in module, or unknown parameter (see dmesg)
-> WARNING: Error inserting v4l1_compat 
-> (/lib/modules/2.6.18-194.32.1.el5.centos.plus/updates/drivers/media/video/v4l1-compat.ko): 
-> Unknown symbol in module, or unknown parameter (see dmesg)
-> WARNING: Error inserting videodev 
-> (/lib/modules/2.6.18-194.32.1.el5.centos.plus/updates/drivers/media/video/videodev.ko): 
-> Unknown symbol in module, or unknown parameter (see dmesg)
-> WARNING: Error inserting v4l2_common 
-> (/lib/modules/2.6.18-194.32.1.el5.centos.plus/updates/drivers/media/video/v4l2-common.ko): 
-> Unknown symbol in module, or unknown parameter (see dmesg)
-> WARNING: Error inserting ir_common 
-> (/lib/modules/2.6.18-194.32.1.el5.centos.plus/updates/drivers/media/common/ir-common.ko): 
-> Unknown symbol in module, or unknown parameter (see dmesg)
-> FATAL: Error inserting saa7134 
-> (/lib/modules/2.6.18-194.32.1.el5.centos.plus/updates/drivers/media/video/saa7134/saa7134.ko): 
-> Unknown symbol in module, or unknown parameter (see dmesg)
->
->
-> The line referred to in /var/log/messages is
->
->  kernel: video_buf: exports duplicate symbol videobuf_mmap_mapper 
-> (owned by videobuf_core)
->
-> I know that the centos.plus distribution includes some (if not all of) 
-> the v4l modules, so I tried my build of v4l with the plain Centos 
-> kernel build. The Nova T also runs fine, but I still get the error
->
-> insmod 
-> /lib/modules/2.6.18-194.32.1.el5/kernel/drivers/media/video/video-buf.ko
-> WARNING: Error inserting video_buf 
-> (/lib/modules/2.6.18-194.32.1.el5/kernel/drivers/media/video/video-buf.ko): 
-> Invalid module format
->
-> I'm sure I have missed something obvious, I'd appreciate any suggestions.
->
-> Thanks
->
-> Ken
->
->
+On Wednesday 09 March 2011 17:07:42 Michael Jones wrote:
+> Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
 
-Apologies - have I sent this to the wrong list. Is there a more 
-appropriate forum?
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Thanks
-
-Ken
->
->
->
+> ---
+>  drivers/media/video/omap3-isp/ispccdc.c  |    6 ++++++
+>  drivers/media/video/omap3-isp/ispvideo.c |   12 ++++++++++++
+>  2 files changed, 18 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap3-isp/ispccdc.c
+> b/drivers/media/video/omap3-isp/ispccdc.c index e4d04ce..23000b6 100644
+> --- a/drivers/media/video/omap3-isp/ispccdc.c
+> +++ b/drivers/media/video/omap3-isp/ispccdc.c
+> @@ -43,6 +43,12 @@ __ccdc_get_format(struct isp_ccdc_device *ccdc, struct
+> v4l2_subdev_fh *fh,
+> 
+>  static const unsigned int ccdc_fmts[] = {
+>  	V4L2_MBUS_FMT_Y8_1X8,
+> +	V4L2_MBUS_FMT_Y10_1X10,
+> +	V4L2_MBUS_FMT_Y12_1X12,
+> +	V4L2_MBUS_FMT_SGRBG8_1X8,
+> +	V4L2_MBUS_FMT_SRGGB8_1X8,
+> +	V4L2_MBUS_FMT_SBGGR8_1X8,
+> +	V4L2_MBUS_FMT_SGBRG8_1X8,
+>  	V4L2_MBUS_FMT_SGRBG10_1X10,
+>  	V4L2_MBUS_FMT_SRGGB10_1X10,
+>  	V4L2_MBUS_FMT_SBGGR10_1X10,
+> diff --git a/drivers/media/video/omap3-isp/ispvideo.c
+> b/drivers/media/video/omap3-isp/ispvideo.c index f16d787..3c3b3c4 100644
+> --- a/drivers/media/video/omap3-isp/ispvideo.c
+> +++ b/drivers/media/video/omap3-isp/ispvideo.c
+> @@ -48,6 +48,18 @@
+>  static struct isp_format_info formats[] = {
+>  	{ V4L2_MBUS_FMT_Y8_1X8, V4L2_MBUS_FMT_Y8_1X8,
+>  	  V4L2_MBUS_FMT_Y8_1X8, V4L2_PIX_FMT_GREY, 8, },
+> +	{ V4L2_MBUS_FMT_Y10_1X10, V4L2_MBUS_FMT_Y10_1X10,
+> +	  V4L2_MBUS_FMT_Y10_1X10, V4L2_PIX_FMT_Y10, 10, },
+> +	{ V4L2_MBUS_FMT_Y12_1X12, V4L2_MBUS_FMT_Y10_1X10,
+> +	  V4L2_MBUS_FMT_Y12_1X12, V4L2_PIX_FMT_Y12, 12, },
+> +	{ V4L2_MBUS_FMT_SBGGR8_1X8, V4L2_MBUS_FMT_SBGGR8_1X8,
+> +	  V4L2_MBUS_FMT_SBGGR8_1X8, V4L2_PIX_FMT_SBGGR8, 8, },
+> +	{ V4L2_MBUS_FMT_SGBRG8_1X8, V4L2_MBUS_FMT_SGBRG8_1X8,
+> +	  V4L2_MBUS_FMT_SGBRG8_1X8, V4L2_PIX_FMT_SGBRG8, 8, },
+> +	{ V4L2_MBUS_FMT_SGRBG8_1X8, V4L2_MBUS_FMT_SGRBG8_1X8,
+> +	  V4L2_MBUS_FMT_SGRBG8_1X8, V4L2_PIX_FMT_SGRBG8, 8, },
+> +	{ V4L2_MBUS_FMT_SRGGB8_1X8, V4L2_MBUS_FMT_SRGGB8_1X8,
+> +	  V4L2_MBUS_FMT_SRGGB8_1X8, V4L2_PIX_FMT_SRGGB8, 8, },
+>  	{ V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8, V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8,
+>  	  V4L2_MBUS_FMT_SGRBG10_1X10, V4L2_PIX_FMT_SGRBG10DPCM8, 8, },
+>  	{ V4L2_MBUS_FMT_SBGGR10_1X10, V4L2_MBUS_FMT_SBGGR10_1X10,
 
 -- 
-This message has been scanned for viruses and
-dangerous content by MailScanner, and is
-believed to be clean.
+Regards,
 
+Laurent Pinchart
