@@ -1,53 +1,102 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50625 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753294Ab1CVJWM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Mar 2011 05:22:12 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [RFC PATCH RESEND v2 2/3] v4l2-ctrls: modify uvc driver to use new menu type of V4L2_CID_FOCUS_AUTO
-Date: Tue, 22 Mar 2011 10:22:28 +0100
-Cc: riverful.kim@samsung.com,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"???/Mobile S/W Platform Lab(DMC?)/E4(??)/????"
-	<sw0312.kim@samsung.com>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
-References: <4D6EFA00.80009@samsung.com> <201103031110.44920.laurent.pinchart@ideasonboard.com> <4D87ED00.1050406@redhat.com>
-In-Reply-To: <4D87ED00.1050406@redhat.com>
+Received: from mail1.matrix-vision.com ([78.47.19.71]:36228 "EHLO
+	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753452Ab1CIH4q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Mar 2011 02:56:46 -0500
+Message-ID: <4D7732BC.4050307@matrix-vision.de>
+Date: Wed, 09 Mar 2011 08:56:44 +0100
+From: Michael Jones <michael.jones@matrix-vision.de>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+To: David Cohen <dacohen@gmail.com>
+CC: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>,
+	Hiroshi.DOYU@nokia.com, linux-omap@vger.kernel.org,
+	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@maxwell.research.nokia.com
+Subject: Re: [PATCH v2 1/3] omap: iovmm: disallow mapping NULL address when
+ IOVMF_DA_ANON is set
+References: <1299615316-17512-1-git-send-email-dacohen@gmail.com>	<1299615316-17512-2-git-send-email-dacohen@gmail.com> <AANLkTintZ6vphJqM54SxFeKtk=6CuDQJTUpk-7jFRDeA@mail.gmail.com>
+In-Reply-To: <AANLkTintZ6vphJqM54SxFeKtk=6CuDQJTUpk-7jFRDeA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201103221022.28563.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
-
-On Tuesday 22 March 2011 01:27:44 Mauro Carvalho Chehab wrote:
-> Em 03-03-2011 07:10, Laurent Pinchart escreveu:
-> > On Thursday 03 March 2011 03:16:32 Kim, HeungJun wrote:
-> >> As following to change the boolean type of V4L2_CID_FOCUS_AUTO to menu
-> >> type, this uvc is modified the usage of V4L2_CID_FOCUS_AUTO, maintaining
-> >> v4l2 menu index.
-> >> 
-> >> Signed-off-by: Heungjun Kim <riverful.kim@samsung.com>
-> >> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> > 
-> > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+On 03/08/2011 09:31 PM, Guzman Lugo, Fernando wrote:
+> On Tue, Mar 8, 2011 at 2:15 PM, David Cohen <dacohen@gmail.com> wrote:
+>> From: Michael Jones <michael.jones@matrix-vision.de>
+>>
+>> commit c7f4ab26e3bcdaeb3e19ec658e3ad9092f1a6ceb allowed mapping the NULL
+>> address if da_start==0, which would then not get unmapped. Disallow
+>> this again if IOVMF_DA_ANON is set. And spell variable 'alignment'
+>> correctly.
+>>
+>> Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
+>> ---
+>>  arch/arm/plat-omap/iovmm.c |   16 ++++++++++------
+>>  1 files changed, 10 insertions(+), 6 deletions(-)
+>>
+>> diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
+>> index 6dc1296..e5f8341 100644
+>> --- a/arch/arm/plat-omap/iovmm.c
+>> +++ b/arch/arm/plat-omap/iovmm.c
+>> @@ -271,20 +271,24 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
+>>                                           size_t bytes, u32 flags)
+>>  {
+>>        struct iovm_struct *new, *tmp;
+>> -       u32 start, prev_end, alignement;
+>> +       u32 start, prev_end, alignment;
+>>
+>>        if (!obj || !bytes)
+>>                return ERR_PTR(-EINVAL);
+>>
+>>        start = da;
+>> -       alignement = PAGE_SIZE;
+>> +       alignment = PAGE_SIZE;
+>>
+>>        if (flags & IOVMF_DA_ANON) {
+>> -               start = obj->da_start;
+>> +               /* Don't map address 0 */
+>> +               if (obj->da_start)
+>> +                       start = obj->da_start;
+>> +               else
+>> +                       start = alignment;
 > 
-> I'm assuming that you'll be applying those patches on your tree and sending
-> me a pull request, right?
+> looks good to me, just a nitpick comment, that would look better
+> 
+>                   start = (obj->da_start) ? obj->da_start : alignment;
+> 
+> Regards,
+> Fernando.
+> 
+>>
+>>                if (flags & IOVMF_LINEAR)
+>> -                       alignement = iopgsz_max(bytes);
+>> -               start = roundup(start, alignement);
+>> +                       alignment = iopgsz_max(bytes);
+>> +               start = roundup(start, alignment);
+>>        } else if (start < obj->da_start || start > obj->da_end ||
+>>                                        obj->da_end - start < bytes) {
+>>                return ERR_PTR(-EINVAL);
+>> @@ -304,7 +308,7 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
+>>                        goto found;
+>>
+>>                if (tmp->da_end >= start && flags & IOVMF_DA_ANON)
+>> -                       start = roundup(tmp->da_end + 1, alignement);
+>> +                       start = roundup(tmp->da_end + 1, alignment);
+>>
+>>                prev_end = tmp->da_end;
+>>        }
+>> --
+>> 1.7.0.4
+>>
 
-The patch depends on other V4L2 core patches in the same series, so I wasn't 
-planning to push it through my tree, but it can be done. There are still 
-issues with this series though, as we haven't reached an agreement on the 
-auto-focus ABI yet.
+Hi David,
 
--- 
-Regards,
+These changes to my patch are fine with me.  If you want to incorporate
+Fernando's recommendation above, too, go ahead.
 
-Laurent Pinchart
+-Michael
+
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
