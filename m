@@ -1,191 +1,315 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53798 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750880Ab1CDNga (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2011 08:36:30 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH] v4l2-ctrls: Add transaction support
-Date: Fri, 4 Mar 2011 14:36:40 +0100
-Cc: linux-media@vger.kernel.org
-References: <1299165213-14014-1-git-send-email-laurent.pinchart@ideasonboard.com> <201103041047.11882.hverkuil@xs4all.nl>
-In-Reply-To: <201103041047.11882.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201103041436.41615.laurent.pinchart@ideasonboard.com>
+Received: from mail1.matrix-vision.com ([78.47.19.71]:37565 "EHLO
+	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757174Ab1CIQIS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Mar 2011 11:08:18 -0500
+From: Michael Jones <michael.jones@matrix-vision.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH v2 4/4] omap3isp: lane shifter support
+Date: Wed,  9 Mar 2011 17:07:43 +0100
+Message-Id: <1299686863-20701-5-git-send-email-michael.jones@matrix-vision.de>
+In-Reply-To: <1299686863-20701-1-git-send-email-michael.jones@matrix-vision.de>
+References: <1299686863-20701-1-git-send-email-michael.jones@matrix-vision.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Hans,
+To use the lane shifter, set different pixel formats at each end of
+the link at the CCDC input.
 
-On Friday 04 March 2011 10:47:11 Hans Verkuil wrote:
-> Hi Laurent,
-> 
-> I'm afraid this approach won't work. See below for the details.
-> 
-> On Thursday, March 03, 2011 16:13:33 Laurent Pinchart wrote:
-> > Some hardware supports controls transactions. For instance, the MT9T001
-> > sensor can optionally shadow registers that influence the output image,
-> > allowing the host to explicitly control the shadow process.
-> > 
-> > To support such hardware, drivers need to be notified when a control
-> > transation is about to start and when it has finished. Add begin() and
-> > commit() callback functions to the v4l2_ctrl_handler structure to
-> > support such notifications.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> > 
-> >  drivers/media/video/v4l2-ctrls.c |   42
-> >  +++++++++++++++++++++++++++++++++++-- include/media/v4l2-ctrls.h      
-> >  |    8 +++++++
-> >  2 files changed, 47 insertions(+), 3 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/v4l2-ctrls.c
-> > b/drivers/media/video/v4l2-ctrls.c index 2412f08..d0e6265 100644
-> > --- a/drivers/media/video/v4l2-ctrls.c
-> > +++ b/drivers/media/video/v4l2-ctrls.c
-> > @@ -1264,13 +1264,22 @@ EXPORT_SYMBOL(v4l2_ctrl_handler_log_status);
-> > 
-> >  int v4l2_ctrl_handler_setup(struct v4l2_ctrl_handler *hdl)
-> >  {
-> >  
-> >  	struct v4l2_ctrl *ctrl;
-> > 
-> > +	unsigned int count = 0;
-> > 
-> >  	int ret = 0;
-> >  	
-> >  	if (hdl == NULL)
-> >  	
-> >  		return 0;
-> >  	
-> >  	mutex_lock(&hdl->lock);
-> > 
-> > -	list_for_each_entry(ctrl, &hdl->ctrls, node)
-> > +	list_for_each_entry(ctrl, &hdl->ctrls, node) {
-> > 
-> >  		ctrl->done = false;
-> > 
-> > +		count++;
-> > +	}
-> > +
-> > +	if (hdl->begin) {
-> > +		ret = hdl->begin(hdl, count == 1);
-> 
-> Note that count can be 0! In any case, rather then adding a counter you can
-> use list_empty() and list_is_singular().
+Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
+---
+ drivers/media/video/omap3-isp/isp.c      |    6 +-
+ drivers/media/video/omap3-isp/isp.h      |    5 +-
+ drivers/media/video/omap3-isp/ispccdc.c  |   26 +++++++-
+ drivers/media/video/omap3-isp/ispvideo.c |   97 +++++++++++++++++++++++------
+ drivers/media/video/omap3-isp/ispvideo.h |    3 +
+ 5 files changed, 108 insertions(+), 29 deletions(-)
 
-OK.
-
-> > +		if (ret)
-> > +			goto done;
-> > +	}
-> > 
-> >  	list_for_each_entry(ctrl, &hdl->ctrls, node) {
-> >  	
-> >  		struct v4l2_ctrl *master = ctrl->cluster[0];
-> > 
-> > @@ -1298,6 +1307,11 @@ int v4l2_ctrl_handler_setup(struct
-> > v4l2_ctrl_handler *hdl)
-> > 
-> >  			if (master->cluster[i])
-> >  			
-> >  				master->cluster[i]->done = true;
-> >  	
-> >  	}
-> > 
-> > +
-> > +	if (hdl->commit)
-> > +		hdl->commit(hdl, ret != 0);
-> > +
-> 
-> > +done:
-> I understand that you assume that all controls registered to a handler can
-> be used in a transaction. But isn't it possible that only a subset of the
-> controls is shadowed? And so only certain controls can be in a
-> transaction?
-> 
-> >  	mutex_unlock(&hdl->lock);
-> >  	return ret;
-> >  
-> >  }
-> > 
-> > @@ -1717,6 +1731,12 @@ static int try_or_set_ext_ctrls(struct
-> > v4l2_ctrl_handler *hdl,
-> > 
-> >  			return -EBUSY;
-> >  	
-> >  	}
-> > 
-> > +	if (set && hdl->begin) {
-> > +		ret = hdl->begin(hdl, cs->count == 1);
-> > +		if (ret)
-> > +			return ret;
-> > +	}
-> > +
-> 
-> You are assuming that all controls here are owned by the given control
-> handler. That's not necessarily the case though as a control handler can
-> inherit controls from another handler. So the cs array is an array of
-> controls where each control can be owned by a different handler.
-
-Right. That will indeed be an issue.
-
-> >  	for (i = 0; !ret && i < cs->count; i++) {
-> >  	
-> >  		struct v4l2_ctrl *ctrl = helpers[i].ctrl;
-> >  		struct v4l2_ctrl *master = ctrl->cluster[0];
-> > 
-> > @@ -1747,6 +1767,10 @@ static int try_or_set_ext_ctrls(struct
-> > v4l2_ctrl_handler *hdl,
-> > 
-> >  		v4l2_ctrl_unlock(ctrl);
-> >  		cluster_done(i, cs, helpers);
-> >  	
-> >  	}
-> > 
-> > +
-> > +	if (set && hdl->commit)
-> > +		hdl->commit(hdl, ret == 0);
-> > +
-> 
-> If you rollback a transaction, then you also have a problem: if some of the
-> controls of the transaction succeeded then try_or_set_control_cluster()
-> will have set the current control value to the new value (since the 'set'
-> succeeded).
-> 
-> But if you rollback the transaction, then that means that the old value
-> isn't restored for such controls.
-> 
-> I don't see an easy solution for that offhand.
-> 
-> I really wonder whether you are not reinventing the control cluster here.
-> 
-> If you put all shadowed controls in a cluster, then it will behave exactly
-> the same as a transaction.
-> 
-> Yes, that might mean that all controls of a subdev are in a single cluster.
-> But so what? That's the way to atomically handle controls that in some
-> manner are related.
-
-More and more sensors start to support control transactions. The MT9V034 even 
-supports two sets of control-related registers, with a single command to 
-switch between them. We need a way to support that in the control framework. 
-Putting all controls into a cluster seems like a dirty hack to workaround the 
-problem. The control framework will be less useful then.
-
-If this is the only possible solution, then I would rename cluster to 
-something else, as the controls are definitely not a cluster. We could have a 
-flag that ask the control framework to handle all controls as if they're a big 
-cluster, and call s_ctrl only once per transaction.
-
-It won't provide a way to configure two sets of controls and quickly swicth 
-between them though. This might need to be supported at some point.
-
+diff --git a/drivers/media/video/omap3-isp/isp.c b/drivers/media/video/omap3-isp/isp.c
+index 08d90fe..68c6bcd 100644
+--- a/drivers/media/video/omap3-isp/isp.c
++++ b/drivers/media/video/omap3-isp/isp.c
+@@ -285,7 +285,8 @@ static void isp_power_settings(struct isp_device *isp, int idle)
+  */
+ void omap3isp_configure_bridge(struct isp_device *isp,
+ 			       enum ccdc_input_entity input,
+-			       const struct isp_parallel_platform_data *pdata)
++			       const struct isp_parallel_platform_data *pdata,
++			       int shift)
+ {
+ 	u32 ispctrl_val;
+ 
+@@ -298,7 +299,6 @@ void omap3isp_configure_bridge(struct isp_device *isp,
+ 	switch (input) {
+ 	case CCDC_INPUT_PARALLEL:
+ 		ispctrl_val |= ISPCTRL_PAR_SER_CLK_SEL_PARALLEL;
+-		ispctrl_val |= pdata->data_lane_shift << ISPCTRL_SHIFT_SHIFT;
+ 		ispctrl_val |= pdata->clk_pol << ISPCTRL_PAR_CLK_POL_SHIFT;
+ 		ispctrl_val |= pdata->bridge << ISPCTRL_PAR_BRIDGE_SHIFT;
+ 		break;
+@@ -319,6 +319,8 @@ void omap3isp_configure_bridge(struct isp_device *isp,
+ 		return;
+ 	}
+ 
++	ispctrl_val |= ((shift/2) << ISPCTRL_SHIFT_SHIFT) & ISPCTRL_SHIFT_MASK;
++
+ 	ispctrl_val &= ~ISPCTRL_SYNC_DETECT_MASK;
+ 	ispctrl_val |= ISPCTRL_SYNC_DETECT_VSRISE;
+ 
+diff --git a/drivers/media/video/omap3-isp/isp.h b/drivers/media/video/omap3-isp/isp.h
+index 21fa88b..3d13f8b 100644
+--- a/drivers/media/video/omap3-isp/isp.h
++++ b/drivers/media/video/omap3-isp/isp.h
+@@ -144,8 +144,6 @@ struct isp_reg {
+  *		ISPCTRL_PAR_BRIDGE_BENDIAN - Big endian
+  */
+ struct isp_parallel_platform_data {
+-	unsigned int width;
+-	unsigned int data_lane_shift:2;
+ 	unsigned int clk_pol:1;
+ 	unsigned int bridge:4;
+ };
+@@ -322,7 +320,8 @@ int omap3isp_pipeline_set_stream(struct isp_pipeline *pipe,
+ 				 enum isp_pipeline_stream_state state);
+ void omap3isp_configure_bridge(struct isp_device *isp,
+ 			       enum ccdc_input_entity input,
+-			       const struct isp_parallel_platform_data *pdata);
++			       const struct isp_parallel_platform_data *pdata,
++			       int shift);
+ 
+ #define ISP_XCLK_NONE			-1
+ #define ISP_XCLK_A			0
+diff --git a/drivers/media/video/omap3-isp/ispccdc.c b/drivers/media/video/omap3-isp/ispccdc.c
+index 23000b6..923a08f 100644
+--- a/drivers/media/video/omap3-isp/ispccdc.c
++++ b/drivers/media/video/omap3-isp/ispccdc.c
+@@ -1120,21 +1120,39 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
+ 	struct isp_parallel_platform_data *pdata = NULL;
+ 	struct v4l2_subdev *sensor;
+ 	struct v4l2_mbus_framefmt *format;
++	int depth_in = 0, depth_out = 0;
++	int shift;
++	const struct isp_format_info *fmt_info;
++	struct v4l2_subdev_format fmt_src;
+ 	struct media_pad *pad;
+ 	unsigned long flags;
+ 	u32 syn_mode;
+ 	u32 ccdc_pattern;
+ 
++	pad = media_entity_remote_source(&ccdc->pads[CCDC_PAD_SINK]);
++	sensor = media_entity_to_v4l2_subdev(pad->entity);
+ 	if (ccdc->input == CCDC_INPUT_PARALLEL) {
+-		pad = media_entity_remote_source(&ccdc->pads[CCDC_PAD_SINK]);
+-		sensor = media_entity_to_v4l2_subdev(pad->entity);
+ 		pdata = &((struct isp_v4l2_subdevs_group *)sensor->host_priv)
+ 			->bus.parallel;
+ 	}
+ 
+-	omap3isp_configure_bridge(isp, ccdc->input, pdata);
++	/* set syncif.datsz */
++	fmt_src.pad = pad->index;
++	fmt_src.which = V4L2_SUBDEV_FORMAT_ACTIVE;
++	if (!v4l2_subdev_call(sensor, pad, get_fmt, NULL, &fmt_src)) {
++		fmt_info = omap3isp_video_format_info(fmt_src.format.code);
++		depth_in = fmt_info ? fmt_info->bpp : 0;
++	}
++
++	/* find CCDC input format */
++	fmt_info = omap3isp_video_format_info
++		(isp->isp_ccdc.formats[CCDC_PAD_SINK].code);
++	depth_out = fmt_info ? fmt_info->bpp : 0;
++
++	shift = depth_in - depth_out;
++	omap3isp_configure_bridge(isp, ccdc->input, pdata, shift);
+ 
+-	ccdc->syncif.datsz = pdata ? pdata->width : 10;
++	ccdc->syncif.datsz = depth_out;
+ 	ccdc_config_sync_if(ccdc, &ccdc->syncif);
+ 
+ 	/* CCDC_PAD_SINK */
+diff --git a/drivers/media/video/omap3-isp/ispvideo.c b/drivers/media/video/omap3-isp/ispvideo.c
+index 3c3b3c4..decc744 100644
+--- a/drivers/media/video/omap3-isp/ispvideo.c
++++ b/drivers/media/video/omap3-isp/ispvideo.c
+@@ -47,41 +47,59 @@
+ 
+ static struct isp_format_info formats[] = {
+ 	{ V4L2_MBUS_FMT_Y8_1X8, V4L2_MBUS_FMT_Y8_1X8,
+-	  V4L2_MBUS_FMT_Y8_1X8, V4L2_PIX_FMT_GREY, 8, },
++	  V4L2_MBUS_FMT_Y8_1X8, V4L2_MBUS_FMT_Y8_1X8,
++	  V4L2_PIX_FMT_GREY, 8, },
+ 	{ V4L2_MBUS_FMT_Y10_1X10, V4L2_MBUS_FMT_Y10_1X10,
+-	  V4L2_MBUS_FMT_Y10_1X10, V4L2_PIX_FMT_Y10, 10, },
++	  V4L2_MBUS_FMT_Y10_1X10, V4L2_MBUS_FMT_Y8_1X8,
++	  V4L2_PIX_FMT_Y10, 10, },
+ 	{ V4L2_MBUS_FMT_Y12_1X12, V4L2_MBUS_FMT_Y10_1X10,
+-	  V4L2_MBUS_FMT_Y12_1X12, V4L2_PIX_FMT_Y12, 12, },
++	  V4L2_MBUS_FMT_Y12_1X12, V4L2_MBUS_FMT_Y8_1X8,
++	  V4L2_PIX_FMT_Y12, 12, },
+ 	{ V4L2_MBUS_FMT_SBGGR8_1X8, V4L2_MBUS_FMT_SBGGR8_1X8,
+-	  V4L2_MBUS_FMT_SBGGR8_1X8, V4L2_PIX_FMT_SBGGR8, 8, },
++	  V4L2_MBUS_FMT_SBGGR8_1X8, V4L2_MBUS_FMT_SBGGR8_1X8,
++	  V4L2_PIX_FMT_SBGGR8, 8, },
+ 	{ V4L2_MBUS_FMT_SGBRG8_1X8, V4L2_MBUS_FMT_SGBRG8_1X8,
+-	  V4L2_MBUS_FMT_SGBRG8_1X8, V4L2_PIX_FMT_SGBRG8, 8, },
++	  V4L2_MBUS_FMT_SGBRG8_1X8, V4L2_MBUS_FMT_SGBRG8_1X8,
++	  V4L2_PIX_FMT_SGBRG8, 8, },
+ 	{ V4L2_MBUS_FMT_SGRBG8_1X8, V4L2_MBUS_FMT_SGRBG8_1X8,
+-	  V4L2_MBUS_FMT_SGRBG8_1X8, V4L2_PIX_FMT_SGRBG8, 8, },
++	  V4L2_MBUS_FMT_SGRBG8_1X8, V4L2_MBUS_FMT_SGRBG8_1X8,
++	  V4L2_PIX_FMT_SGRBG8, 8, },
+ 	{ V4L2_MBUS_FMT_SRGGB8_1X8, V4L2_MBUS_FMT_SRGGB8_1X8,
+-	  V4L2_MBUS_FMT_SRGGB8_1X8, V4L2_PIX_FMT_SRGGB8, 8, },
++	  V4L2_MBUS_FMT_SRGGB8_1X8, V4L2_MBUS_FMT_SRGGB8_1X8,
++	  V4L2_PIX_FMT_SRGGB8, 8, },
+ 	{ V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8, V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8,
+-	  V4L2_MBUS_FMT_SGRBG10_1X10, V4L2_PIX_FMT_SGRBG10DPCM8, 8, },
++	  V4L2_MBUS_FMT_SGRBG10_1X10, V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8,
++	  V4L2_PIX_FMT_SGRBG10DPCM8, 8, },
+ 	{ V4L2_MBUS_FMT_SBGGR10_1X10, V4L2_MBUS_FMT_SBGGR10_1X10,
+-	  V4L2_MBUS_FMT_SBGGR10_1X10, V4L2_PIX_FMT_SBGGR10, 10, },
++	  V4L2_MBUS_FMT_SBGGR10_1X10, V4L2_MBUS_FMT_SBGGR8_1X8,
++	  V4L2_PIX_FMT_SBGGR10, 10, },
+ 	{ V4L2_MBUS_FMT_SGBRG10_1X10, V4L2_MBUS_FMT_SGBRG10_1X10,
+-	  V4L2_MBUS_FMT_SGBRG10_1X10, V4L2_PIX_FMT_SGBRG10, 10, },
++	  V4L2_MBUS_FMT_SGBRG10_1X10, V4L2_MBUS_FMT_SGBRG8_1X8,
++	  V4L2_PIX_FMT_SGBRG10, 10, },
+ 	{ V4L2_MBUS_FMT_SGRBG10_1X10, V4L2_MBUS_FMT_SGRBG10_1X10,
+-	  V4L2_MBUS_FMT_SGRBG10_1X10, V4L2_PIX_FMT_SGRBG10, 10, },
++	  V4L2_MBUS_FMT_SGRBG10_1X10, V4L2_MBUS_FMT_SGRBG8_1X8,
++	  V4L2_PIX_FMT_SGRBG10, 10, },
+ 	{ V4L2_MBUS_FMT_SRGGB10_1X10, V4L2_MBUS_FMT_SRGGB10_1X10,
+-	  V4L2_MBUS_FMT_SRGGB10_1X10, V4L2_PIX_FMT_SRGGB10, 10, },
++	  V4L2_MBUS_FMT_SRGGB10_1X10, V4L2_MBUS_FMT_SRGGB8_1X8,
++	  V4L2_PIX_FMT_SRGGB10, 10, },
+ 	{ V4L2_MBUS_FMT_SBGGR12_1X12, V4L2_MBUS_FMT_SBGGR10_1X10,
+-	  V4L2_MBUS_FMT_SBGGR12_1X12, V4L2_PIX_FMT_SBGGR12, 12, },
++	  V4L2_MBUS_FMT_SBGGR12_1X12, V4L2_MBUS_FMT_SBGGR8_1X8,
++	  V4L2_PIX_FMT_SBGGR12, 12, },
+ 	{ V4L2_MBUS_FMT_SGBRG12_1X12, V4L2_MBUS_FMT_SGBRG10_1X10,
+-	  V4L2_MBUS_FMT_SGBRG12_1X12, V4L2_PIX_FMT_SGBRG12, 12, },
++	  V4L2_MBUS_FMT_SGBRG12_1X12, V4L2_MBUS_FMT_SGBRG8_1X8,
++	  V4L2_PIX_FMT_SGBRG12, 12, },
+ 	{ V4L2_MBUS_FMT_SGRBG12_1X12, V4L2_MBUS_FMT_SGRBG10_1X10,
+-	  V4L2_MBUS_FMT_SGRBG12_1X12, V4L2_PIX_FMT_SGRBG12, 12, },
++	  V4L2_MBUS_FMT_SGRBG12_1X12, V4L2_MBUS_FMT_SGRBG8_1X8,
++	  V4L2_PIX_FMT_SGRBG12, 12, },
+ 	{ V4L2_MBUS_FMT_SRGGB12_1X12, V4L2_MBUS_FMT_SRGGB10_1X10,
+-	  V4L2_MBUS_FMT_SRGGB12_1X12, V4L2_PIX_FMT_SRGGB12, 12, },
++	  V4L2_MBUS_FMT_SRGGB12_1X12, V4L2_MBUS_FMT_SRGGB8_1X8,
++	  V4L2_PIX_FMT_SRGGB12, 12, },
+ 	{ V4L2_MBUS_FMT_UYVY8_1X16, V4L2_MBUS_FMT_UYVY8_1X16,
+-	  V4L2_MBUS_FMT_UYVY8_1X16, V4L2_PIX_FMT_UYVY, 16, },
++	  V4L2_MBUS_FMT_UYVY8_1X16, 0,
++	  V4L2_PIX_FMT_UYVY, 16, },
+ 	{ V4L2_MBUS_FMT_YUYV8_1X16, V4L2_MBUS_FMT_YUYV8_1X16,
+-	  V4L2_MBUS_FMT_YUYV8_1X16, V4L2_PIX_FMT_YUYV, 16, },
++	  V4L2_MBUS_FMT_YUYV8_1X16, 0,
++	  V4L2_PIX_FMT_YUYV, 16, },
+ };
+ 
+ const struct isp_format_info *
+@@ -98,6 +116,32 @@ omap3isp_video_format_info(enum v4l2_mbus_pixelcode code)
+ }
+ 
+ /*
++ * Decide whether desired output pixel code can be obtained with
++ * the lane shifter by shifting the input pixel code.
++ * return 1 if the combination is possible
++ * return 0 otherwise
++ */
++static bool omap3isp_is_shiftable(enum v4l2_mbus_pixelcode in,
++		enum v4l2_mbus_pixelcode out)
++{
++	const struct isp_format_info *in_info, *out_info;
++
++	if (in == out)
++		return 1;
++
++	in_info = omap3isp_video_format_info(in);
++	out_info = omap3isp_video_format_info(out);
++
++	if ((in_info->flavor == 0) || (out_info->flavor == 0))
++		return 0;
++
++	if (in_info->flavor != out_info->flavor)
++		return 0;
++
++	return (in_info->bpp - out_info->bpp <= 6);
++}
++
++/*
+  * isp_video_mbus_to_pix - Convert v4l2_mbus_framefmt to v4l2_pix_format
+  * @video: ISP video instance
+  * @mbus: v4l2_mbus_framefmt format (input)
+@@ -247,6 +291,7 @@ static int isp_video_validate_pipeline(struct isp_pipeline *pipe)
+ 		return -EPIPE;
+ 
+ 	while (1) {
++		unsigned int link_has_shifter;
+ 		/* Retrieve the sink format */
+ 		pad = &subdev->entity.pads[0];
+ 		if (!(pad->flags & MEDIA_PAD_FL_SINK))
+@@ -275,6 +320,10 @@ static int isp_video_validate_pipeline(struct isp_pipeline *pipe)
+ 				return -ENOSPC;
+ 		}
+ 
++		/* if sink pad is on CCDC, the link has the lane shifter
++		 * in the middle of it. */
++		link_has_shifter = (subdev == &isp->isp_ccdc.subdev);
++
+ 		/* Retrieve the source format */
+ 		pad = media_entity_remote_source(pad);
+ 		if (pad == NULL ||
+@@ -290,10 +339,18 @@ static int isp_video_validate_pipeline(struct isp_pipeline *pipe)
+ 			return -EPIPE;
+ 
+ 		/* Check if the two ends match */
+-		if (fmt_source.format.code != fmt_sink.format.code ||
+-		    fmt_source.format.width != fmt_sink.format.width ||
++		if (fmt_source.format.width != fmt_sink.format.width ||
+ 		    fmt_source.format.height != fmt_sink.format.height)
+ 			return -EPIPE;
++
++		if (link_has_shifter) {
++			if (!omap3isp_is_shiftable(fmt_source.format.code,
++						fmt_sink.format.code)) {
++				pr_debug("%s not shiftable.\n", __func__);
++				return -EPIPE;
++			}
++		} else if (fmt_source.format.code != fmt_sink.format.code)
++			return -EPIPE;
+ 	}
+ 
+ 	return 0;
+diff --git a/drivers/media/video/omap3-isp/ispvideo.h b/drivers/media/video/omap3-isp/ispvideo.h
+index 524a1ac..911bea6 100644
+--- a/drivers/media/video/omap3-isp/ispvideo.h
++++ b/drivers/media/video/omap3-isp/ispvideo.h
+@@ -49,6 +49,8 @@ struct v4l2_pix_format;
+  *	bits. Identical to @code if the format is 10 bits wide or less.
+  * @uncompressed: V4L2 media bus format code for the corresponding uncompressed
+  *	format. Identical to @code if the format is not DPCM compressed.
++ * @flavor: V4L2 media bus format code for the same pixel layout but
++ *	shifted to be 8 bits per pixel. =0 if format is not shiftable.
+  * @pixelformat: V4L2 pixel format FCC identifier
+  * @bpp: Bits per pixel
+  */
+@@ -56,6 +58,7 @@ struct isp_format_info {
+ 	enum v4l2_mbus_pixelcode code;
+ 	enum v4l2_mbus_pixelcode truncated;
+ 	enum v4l2_mbus_pixelcode uncompressed;
++	enum v4l2_mbus_pixelcode flavor;
+ 	u32 pixelformat;
+ 	unsigned int bpp;
+ };
 -- 
-Regards,
+1.7.4.1
 
-Laurent Pinchart
+
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
