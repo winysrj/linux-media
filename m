@@ -1,120 +1,630 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:57527 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751206Ab1CYMeL convert rfc822-to-8bit (ORCPT
+Received: from eu1sys200aog108.obsmtp.com ([207.126.144.125]:56754 "EHLO
+	eu1sys200aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932239Ab1CIMT3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Mar 2011 08:34:11 -0400
-Received: by iwn34 with SMTP id 34so1012987iwn.19
-        for <linux-media@vger.kernel.org>; Fri, 25 Mar 2011 05:34:10 -0700 (PDT)
+	Wed, 9 Mar 2011 07:19:29 -0500
+From: <johan.xx.mossberg@stericsson.com>
+To: <johan.xx.mossberg@stericsson.com>, <linux-mm@kvack.org>,
+	<linaro-dev@lists.linaro.org>, <linux-media@vger.kernel.org>
+Cc: <gstreamer-devel@lists.freedesktop.org>, <m.nazarewicz@samsung.com>
+Subject: [PATCHv2 2/3] hwmem: Add hwmem (part 2)
+Date: Wed, 9 Mar 2011 13:18:52 +0100
+Message-ID: <1299673133-26464-3-git-send-email-johan.xx.mossberg@stericsson.com>
+In-Reply-To: <1299673133-26464-1-git-send-email-johan.xx.mossberg@stericsson.com>
+References: <1299673133-26464-1-git-send-email-johan.xx.mossberg@stericsson.com>
 MIME-Version: 1.0
-In-Reply-To: <AANLkTimyQiG86LHW8-h+GHyXgMkvD-Zp6LP=G4LKHgHY@mail.gmail.com>
-References: <AANLkTimdFVDLLz2o9Fb2OJM2EsJ9R9q-xKAP63g9uSi+@mail.gmail.com>
-	<201103222140.28674.laurent.pinchart@ideasonboard.com>
-	<AANLkTim8C73WGHkKXsC1nQzV3PjjYjTVUr7U3Ud8jaxk@mail.gmail.com>
-	<201103241140.22986.laurent.pinchart@ideasonboard.com>
-	<AANLkTimyQiG86LHW8-h+GHyXgMkvD-Zp6LP=G4LKHgHY@mail.gmail.com>
-Date: Fri, 25 Mar 2011 13:34:10 +0100
-Message-ID: <AANLkTimiOr+dsTM4DXEf31XBkQHD8tt7ZjHDUcRn_f0+@mail.gmail.com>
-Subject: Re: OMAP3 ISP outputs 5555 5555 5555 5555 ...
-From: Bastian Hecht <hechtb@googlemail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-2011/3/24 Bastian Hecht <hechtb@googlemail.com>:
-> 2011/3/24 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
->> Hi Bastian,
->>
->> On Thursday 24 March 2011 10:59:01 Bastian Hecht wrote:
->>> 2011/3/22 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
->>> > On Tuesday 22 March 2011 17:11:04 Bastian Hecht wrote:
->>> >> Hello omap isp devs,
->>> >>
->>> >> maybe you can help me, I am a bit desperate with my current cam problem:
->>> >>
->>> >> I use a ov5642 chip and get only 0x55 in my data output when I use a
->>> >> camclk > 1 MHz. With 1 MHz data rate from the camera chip to the omap
->>> >> all works (well the colorspace is strange - it's greenish, but that is
->>> >> not my main concern).
->>> >> I looked up the data on the oscilloscope and all flanks seem to be
->>> >> fine at the isp. Very clear cuts with 4 MHz and 10MHz. Also the data
->>> >> pins are flickering fine. Looks like a picture.
->>> >>
->>> >> I found that the isp stats module uses 0x55 as a magic number but I
->>> >> don't see why it should confuse my readout.
->>> >>
->>> >> I use 2592x1944 raw bayer output via the ccdc. Next to the logical
->>> >> right config I tried all possible configurations of vs/hs active high
->>> >> and low on camera and isp. The isp gets the vs flanks right as the
->>> >> images come out in time (sometimes it misses 1 frame).
->>> >>
->>> >> Anyone of you had this behaviour before?
->>> >
->>> > How do you capture images ? yavta will fill buffers with 0x55 before
->>> > queueing them, so this might indicate that no data is written to the
->>> > buffer at all.
->>>
->>> Yes I use yavta. So what does that all mean?
->>
+Add hardware memory driver, part 2.
 
->> It means that the ISP doesn't write data to the buffer. I have no idea why.
+The main purpose of hwmem is:
 
-This simple and clear statement directly led me to the problem :)
+* To allocate buffers suitable for use with hardware. Currently
+this means contiguous buffers.
+* To synchronize the caches for the allocated buffers. This is
+achieved by keeping track of when the CPU uses a buffer and when
+other hardware uses the buffer, when we switch from CPU to other
+hardware or vice versa the caches are synchronized.
+* To handle sharing of allocated buffers between processes i.e.
+import, export.
 
-There was no cam_wen (write enable) pin on both my camera boards. The
-ISP on the other hand is configured by default to expect it. So I only
-captured images when my data lanes luckily pulled up the omap wen pin
-by induction.
+Hwmem is available both through a user space API and through a
+kernel API.
 
-In ccdc_config_sync_if() I added:
+Signed-off-by: Johan Mossberg <johan.xx.mossberg@stericsson.com>
+---
+ drivers/misc/hwmem/cache_handler.c |  510 ++++++++++++++++++++++++++++++++++++
+ drivers/misc/hwmem/cache_handler.h |   61 +++++
+ 2 files changed, 571 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/misc/hwmem/cache_handler.c
+ create mode 100644 drivers/misc/hwmem/cache_handler.h
 
-        /* HACK */
-        printk(KERN_ALERT "Disable wen\n");
-        syn_mode &= ~ISPCCDC_SYN_MODE_WEN;
+diff --git a/drivers/misc/hwmem/cache_handler.c b/drivers/misc/hwmem/cache_handler.c
+new file mode 100644
+index 0000000..e0ab4ee
+--- /dev/null
++++ b/drivers/misc/hwmem/cache_handler.c
+@@ -0,0 +1,510 @@
++/*
++ * Copyright (C) ST-Ericsson SA 2010
++ *
++ * Cache handler
++ *
++ * Author: Johan Mossberg <johan.xx.mossberg@stericsson.com>
++ * for ST-Ericsson.
++ *
++ * License terms: GNU General Public License (GPL), version 2.
++ */
++
++#include <linux/hwmem.h>
++
++#include <asm/pgtable.h>
++
++#include <mach/dcache.h>
++
++#include "cache_handler.h"
++
++#define U32_MAX (~(u32)0)
++
++enum hwmem_alloc_flags cachi_get_cache_settings(
++			enum hwmem_alloc_flags requested_cache_settings);
++void cachi_set_pgprot_cache_options(enum hwmem_alloc_flags cache_settings,
++							pgprot_t *pgprot);
++
++static void sync_buf_pre_cpu(struct cach_buf *buf, enum hwmem_access access,
++						struct hwmem_region *region);
++static void sync_buf_post_cpu(struct cach_buf *buf,
++	enum hwmem_access next_access, struct hwmem_region *next_region);
++
++static void invalidate_cpu_cache(struct cach_buf *buf,
++					struct cach_range *range_2b_used);
++static void clean_cpu_cache(struct cach_buf *buf,
++					struct cach_range *range_2b_used);
++static void flush_cpu_cache(struct cach_buf *buf,
++					struct cach_range *range_2b_used);
++
++static void null_range(struct cach_range *range);
++static void expand_range(struct cach_range *range,
++					struct cach_range *range_2_add);
++/*
++ * Expands range to one of enclosing_range's two edges. The function will
++ * choose which of enclosing_range's edges to expand range to in such a
++ * way that the size of range is minimized. range must be located inside
++ * enclosing_range.
++ */
++static void expand_range_2_edge(struct cach_range *range,
++					struct cach_range *enclosing_range);
++static void shrink_range(struct cach_range *range,
++					struct cach_range *range_2_remove);
++static bool is_non_empty_range(struct cach_range *range);
++static void intersect_range(struct cach_range *range_1,
++		struct cach_range *range_2, struct cach_range *intersection);
++/* Align_up restrictions apply here to */
++static void align_range_up(struct cach_range *range, u32 alignment);
++static u32 range_length(struct cach_range *range);
++static void region_2_range(struct hwmem_region *region, u32 buffer_size,
++						struct cach_range *range);
++
++static void *offset_2_vaddr(struct cach_buf *buf, u32 offset);
++static u32 offset_2_paddr(struct cach_buf *buf, u32 offset);
++
++/* Saturates, might return unaligned values when that happens */
++static u32 align_up(u32 value, u32 alignment);
++static u32 align_down(u32 value, u32 alignment);
++
++/*
++ * Exported functions
++ */
++
++void cach_init_buf(struct cach_buf *buf, enum hwmem_alloc_flags cache_settings,
++								u32 size)
++{
++	buf->vstart = NULL;
++	buf->pstart = 0;
++	buf->size = size;
++
++	buf->cache_settings = cachi_get_cache_settings(cache_settings);
++}
++
++void cach_set_buf_addrs(struct cach_buf *buf, void* vaddr, u32 paddr)
++{
++	bool tmp;
++
++	buf->vstart = vaddr;
++	buf->pstart = paddr;
++
++	if (buf->cache_settings & HWMEM_ALLOC_HINT_CACHED) {
++		/*
++		 * Keep whatever is in the cache. This way we avoid an
++		 * unnecessary synch if CPU is the first user.
++		 */
++		buf->range_in_cpu_cache.start = 0;
++		buf->range_in_cpu_cache.end = buf->size;
++		align_range_up(&buf->range_in_cpu_cache,
++						get_dcache_granularity());
++		buf->range_dirty_in_cpu_cache.start = 0;
++		buf->range_dirty_in_cpu_cache.end = buf->size;
++		align_range_up(&buf->range_dirty_in_cpu_cache,
++						get_dcache_granularity());
++	} else {
++		flush_cpu_dcache(buf->vstart, buf->pstart, buf->size, false,
++									&tmp);
++		drain_cpu_write_buf();
++
++		null_range(&buf->range_in_cpu_cache);
++		null_range(&buf->range_dirty_in_cpu_cache);
++	}
++	null_range(&buf->range_invalid_in_cpu_cache);
++}
++
++void cach_set_pgprot_cache_options(struct cach_buf *buf, pgprot_t *pgprot)
++{
++	cachi_set_pgprot_cache_options(buf->cache_settings, pgprot);
++}
++
++void cach_set_domain(struct cach_buf *buf, enum hwmem_access access,
++			enum hwmem_domain domain, struct hwmem_region *region)
++{
++	struct hwmem_region *__region;
++	struct hwmem_region full_region;
++
++	if (region != NULL) {
++		__region = region;
++	} else {
++		full_region.offset = 0;
++		full_region.count = 1;
++		full_region.start = 0;
++		full_region.end = buf->size;
++		full_region.size = buf->size;
++
++		__region = &full_region;
++	}
++
++	switch (domain) {
++	case HWMEM_DOMAIN_SYNC:
++		sync_buf_post_cpu(buf, access, __region);
++
++		break;
++
++	case HWMEM_DOMAIN_CPU:
++		sync_buf_pre_cpu(buf, access, __region);
++
++		break;
++	}
++}
++
++/*
++ * Local functions
++ */
++
++enum hwmem_alloc_flags __attribute__((weak)) cachi_get_cache_settings(
++			enum hwmem_alloc_flags requested_cache_settings)
++{
++	static const u32 CACHE_ON_FLAGS_MASK = HWMEM_ALLOC_HINT_CACHED |
++		HWMEM_ALLOC_HINT_CACHE_WB | HWMEM_ALLOC_HINT_CACHE_WT |
++		HWMEM_ALLOC_HINT_CACHE_NAOW | HWMEM_ALLOC_HINT_CACHE_AOW |
++				HWMEM_ALLOC_HINT_INNER_AND_OUTER_CACHE |
++					HWMEM_ALLOC_HINT_INNER_CACHE_ONLY;
++	/* We don't know the cache setting so we assume worst case. */
++	static const u32 CACHE_SETTING = HWMEM_ALLOC_HINT_WRITE_COMBINE |
++			HWMEM_ALLOC_HINT_CACHED | HWMEM_ALLOC_HINT_CACHE_WB |
++						HWMEM_ALLOC_HINT_CACHE_AOW |
++					HWMEM_ALLOC_HINT_INNER_AND_OUTER_CACHE;
++
++	if (requested_cache_settings & CACHE_ON_FLAGS_MASK)
++		return CACHE_SETTING;
++	else if (requested_cache_settings & HWMEM_ALLOC_HINT_WRITE_COMBINE ||
++		(requested_cache_settings & HWMEM_ALLOC_HINT_UNCACHED &&
++		 !(requested_cache_settings &
++					HWMEM_ALLOC_HINT_NO_WRITE_COMBINE)))
++		return HWMEM_ALLOC_HINT_WRITE_COMBINE;
++	else if (requested_cache_settings &
++					(HWMEM_ALLOC_HINT_NO_WRITE_COMBINE |
++						HWMEM_ALLOC_HINT_UNCACHED))
++		return 0;
++	else
++		/* Nothing specified, use cached */
++		return CACHE_SETTING;
++}
++
++void __attribute__((weak)) cachi_set_pgprot_cache_options(
++		enum hwmem_alloc_flags cache_settings, pgprot_t *pgprot)
++{
++	if (cache_settings & HWMEM_ALLOC_HINT_CACHED)
++		*pgprot = *pgprot; /* To silence compiler and checkpatch */
++	else if (cache_settings & HWMEM_ALLOC_HINT_WRITE_COMBINE)
++		*pgprot = pgprot_writecombine(*pgprot);
++	else
++		*pgprot = pgprot_noncached(*pgprot);
++}
++
++bool __attribute__((weak)) speculative_data_prefetch(void)
++{
++	/* We don't know so we go with the safe alternative */
++	return true;
++}
++
++static void sync_buf_pre_cpu(struct cach_buf *buf, enum hwmem_access access,
++						struct hwmem_region *region)
++{
++	bool write = access & HWMEM_ACCESS_WRITE;
++	bool read = access & HWMEM_ACCESS_READ;
++
++	if (!write && !read)
++		return;
++
++	if (buf->cache_settings & HWMEM_ALLOC_HINT_CACHED) {
++		struct cach_range region_range;
++
++		region_2_range(region, buf->size, &region_range);
++
++		if (read || (write && buf->cache_settings &
++						HWMEM_ALLOC_HINT_CACHE_WB))
++			/* Perform defered invalidates */
++			invalidate_cpu_cache(buf, &region_range);
++		if (read || (write && buf->cache_settings &
++						HWMEM_ALLOC_HINT_CACHE_AOW))
++			expand_range(&buf->range_in_cpu_cache, &region_range);
++		if (write && buf->cache_settings & HWMEM_ALLOC_HINT_CACHE_WB) {
++			struct cach_range dirty_range_addition;
++
++			if (buf->cache_settings & HWMEM_ALLOC_HINT_CACHE_AOW)
++				dirty_range_addition = region_range;
++			else
++				intersect_range(&buf->range_in_cpu_cache,
++					&region_range, &dirty_range_addition);
++
++			expand_range(&buf->range_dirty_in_cpu_cache,
++							&dirty_range_addition);
++		}
++	}
++	if (buf->cache_settings & HWMEM_ALLOC_HINT_WRITE_COMBINE) {
++		if (write)
++			buf->in_cpu_write_buf = true;
++	}
++}
++
++static void sync_buf_post_cpu(struct cach_buf *buf,
++	enum hwmem_access next_access, struct hwmem_region *next_region)
++{
++	bool write = next_access & HWMEM_ACCESS_WRITE;
++	bool read = next_access & HWMEM_ACCESS_READ;
++	struct cach_range region_range;
++
++	if (!write && !read)
++		return;
++
++	region_2_range(next_region, buf->size, &region_range);
++
++	if (write) {
++		if (speculative_data_prefetch()) {
++			/* Defer invalidate */
++			struct cach_range intersection;
++
++			intersect_range(&buf->range_in_cpu_cache,
++						&region_range, &intersection);
++
++			expand_range(&buf->range_invalid_in_cpu_cache,
++								&intersection);
++
++			clean_cpu_cache(buf, &region_range);
++		} else {
++			flush_cpu_cache(buf, &region_range);
++		}
++	}
++	if (read)
++		clean_cpu_cache(buf, &region_range);
++
++	if (buf->in_cpu_write_buf) {
++		drain_cpu_write_buf();
++
++		buf->in_cpu_write_buf = false;
++	}
++}
++
++static void invalidate_cpu_cache(struct cach_buf *buf, struct cach_range *range)
++{
++	struct cach_range intersection;
++
++	intersect_range(&buf->range_invalid_in_cpu_cache, range,
++								&intersection);
++	if (is_non_empty_range(&intersection)) {
++		bool flushed_everything;
++
++		expand_range_2_edge(&intersection,
++					&buf->range_invalid_in_cpu_cache);
++
++		/*
++		 * Cache handler never uses invalidate to discard data in the
++		 * cache so we can use flush instead which is considerably
++		 * faster for large buffers.
++		 */
++		flush_cpu_dcache(
++				offset_2_vaddr(buf, intersection.start),
++				offset_2_paddr(buf, intersection.start),
++				range_length(&intersection),
++				buf->cache_settings &
++					HWMEM_ALLOC_HINT_INNER_CACHE_ONLY,
++							&flushed_everything);
++
++		if (flushed_everything) {
++			null_range(&buf->range_invalid_in_cpu_cache);
++			null_range(&buf->range_dirty_in_cpu_cache);
++		} else {
++			/*
++			 * No need to shrink range_in_cpu_cache as invalidate
++			 * is only used when we can't keep track of what's in
++			 * the CPU cache.
++			 */
++			shrink_range(&buf->range_invalid_in_cpu_cache,
++								&intersection);
++		}
++	}
++}
++
++static void clean_cpu_cache(struct cach_buf *buf, struct cach_range *range)
++{
++	struct cach_range intersection;
++
++	intersect_range(&buf->range_dirty_in_cpu_cache, range, &intersection);
++	if (is_non_empty_range(&intersection)) {
++		bool cleaned_everything;
++
++		expand_range_2_edge(&intersection,
++					&buf->range_dirty_in_cpu_cache);
++
++		clean_cpu_dcache(
++				offset_2_vaddr(buf, intersection.start),
++				offset_2_paddr(buf, intersection.start),
++				range_length(&intersection),
++				buf->cache_settings &
++					HWMEM_ALLOC_HINT_INNER_CACHE_ONLY,
++							&cleaned_everything);
++
++		if (cleaned_everything)
++			null_range(&buf->range_dirty_in_cpu_cache);
++		else
++			shrink_range(&buf->range_dirty_in_cpu_cache,
++								&intersection);
++	}
++}
++
++static void flush_cpu_cache(struct cach_buf *buf, struct cach_range *range)
++{
++	struct cach_range intersection;
++
++	intersect_range(&buf->range_in_cpu_cache, range, &intersection);
++	if (is_non_empty_range(&intersection)) {
++		bool flushed_everything;
++
++		expand_range_2_edge(&intersection, &buf->range_in_cpu_cache);
++
++		flush_cpu_dcache(
++				offset_2_vaddr(buf, intersection.start),
++				offset_2_paddr(buf, intersection.start),
++				range_length(&intersection),
++				buf->cache_settings &
++					HWMEM_ALLOC_HINT_INNER_CACHE_ONLY,
++							&flushed_everything);
++
++		if (flushed_everything) {
++			if (!speculative_data_prefetch())
++				null_range(&buf->range_in_cpu_cache);
++			null_range(&buf->range_dirty_in_cpu_cache);
++			null_range(&buf->range_invalid_in_cpu_cache);
++		} else {
++			if (!speculative_data_prefetch())
++				shrink_range(&buf->range_in_cpu_cache,
++							 &intersection);
++			shrink_range(&buf->range_dirty_in_cpu_cache,
++								&intersection);
++			shrink_range(&buf->range_invalid_in_cpu_cache,
++								&intersection);
++		}
++	}
++}
++
++static void null_range(struct cach_range *range)
++{
++	range->start = U32_MAX;
++	range->end = 0;
++}
++
++static void expand_range(struct cach_range *range,
++						struct cach_range *range_2_add)
++{
++	range->start = min(range->start, range_2_add->start);
++	range->end = max(range->end, range_2_add->end);
++}
++
++/*
++ * Expands range to one of enclosing_range's two edges. The function will
++ * choose which of enclosing_range's edges to expand range to in such a
++ * way that the size of range is minimized. range must be located inside
++ * enclosing_range.
++ */
++static void expand_range_2_edge(struct cach_range *range,
++					struct cach_range *enclosing_range)
++{
++	u32 space_on_low_side = range->start - enclosing_range->start;
++	u32 space_on_high_side = enclosing_range->end - range->end;
++
++	if (space_on_low_side < space_on_high_side)
++		range->start = enclosing_range->start;
++	else
++		range->end = enclosing_range->end;
++}
++
++static void shrink_range(struct cach_range *range,
++					struct cach_range *range_2_remove)
++{
++	if (range_2_remove->start > range->start)
++		range->end = min(range->end, range_2_remove->start);
++	else
++		range->start = max(range->start, range_2_remove->end);
++
++	if (range->start >= range->end)
++		null_range(range);
++}
++
++static bool is_non_empty_range(struct cach_range *range)
++{
++	return range->end > range->start;
++}
++
++static void intersect_range(struct cach_range *range_1,
++		struct cach_range *range_2, struct cach_range *intersection)
++{
++	intersection->start = max(range_1->start, range_2->start);
++	intersection->end = min(range_1->end, range_2->end);
++
++	if (intersection->start >= intersection->end)
++		null_range(intersection);
++}
++
++/* Align_up restrictions apply here to */
++static void align_range_up(struct cach_range *range, u32 alignment)
++{
++	if (!is_non_empty_range(range))
++		return;
++
++	range->start = align_down(range->start, alignment);
++	range->end = align_up(range->end, alignment);
++}
++
++static u32 range_length(struct cach_range *range)
++{
++	if (is_non_empty_range(range))
++		return range->end - range->start;
++	else
++		return 0;
++}
++
++static void region_2_range(struct hwmem_region *region, u32 buffer_size,
++						struct cach_range *range)
++{
++	/*
++	 * We don't care about invalid regions, instead we limit the region's
++	 * range to the buffer's range. This should work good enough, worst
++	 * case we synch the entire buffer when we get an invalid region which
++	 * is acceptable.
++	 */
++	range->start = region->offset + region->start;
++	range->end = min(region->offset + (region->count * region->size) -
++				(region->size - region->end), buffer_size);
++	if (range->start >= range->end) {
++		null_range(range);
++		return;
++	}
++
++	align_range_up(range, get_dcache_granularity());
++}
++
++static void *offset_2_vaddr(struct cach_buf *buf, u32 offset)
++{
++	return (void *)((u32)buf->vstart + offset);
++}
++
++static u32 offset_2_paddr(struct cach_buf *buf, u32 offset)
++{
++	return buf->pstart + offset;
++}
++
++/* Saturates, might return unaligned values when that happens */
++static u32 align_up(u32 value, u32 alignment)
++{
++	u32 remainder = value % alignment;
++	u32 value_2_add;
++
++	if (remainder == 0)
++		return value;
++
++	value_2_add = alignment - remainder;
++
++	if (value_2_add > U32_MAX - value) /* Will overflow */
++		return U32_MAX;
++
++	return value + value_2_add;
++}
++
++static u32 align_down(u32 value, u32 alignment)
++{
++	u32 remainder = value % alignment;
++	if (remainder == 0)
++		return value;
++
++	return value - remainder;
++}
+diff --git a/drivers/misc/hwmem/cache_handler.h b/drivers/misc/hwmem/cache_handler.h
+new file mode 100644
+index 0000000..7921051
+--- /dev/null
++++ b/drivers/misc/hwmem/cache_handler.h
+@@ -0,0 +1,61 @@
++/*
++ * Copyright (C) ST-Ericsson SA 2010
++ *
++ * Cache handler
++ *
++ * Author: Johan Mossberg <johan.xx.mossberg@stericsson.com>
++ * for ST-Ericsson.
++ *
++ * License terms: GNU General Public License (GPL), version 2.
++ */
++
++/*
++ * Cache handler can not handle simultaneous execution! The caller has to
++ * ensure such a situation does not occur.
++ */
++
++#ifndef _CACHE_HANDLER_H_
++#define _CACHE_HANDLER_H_
++
++#include <linux/types.h>
++#include <linux/hwmem.h>
++
++/*
++ * To not have to double all datatypes we've used hwmem datatypes. If someone
++ * want's to use cache handler but not hwmem then we'll have to define our own
++ * datatypes.
++ */
++
++struct cach_range {
++	u32 start; /* Inclusive */
++	u32 end; /* Exclusive */
++};
++
++/*
++ * Internal, do not touch!
++ */
++struct cach_buf {
++	void *vstart;
++	u32 pstart;
++	u32 size;
++
++	/* Remaining hints are active */
++	enum hwmem_alloc_flags cache_settings;
++
++	bool in_cpu_write_buf;
++	struct cach_range range_in_cpu_cache;
++	struct cach_range range_dirty_in_cpu_cache;
++	struct cach_range range_invalid_in_cpu_cache;
++};
++
++void cach_init_buf(struct cach_buf *buf,
++			enum hwmem_alloc_flags cache_settings, u32 size);
++
++void cach_set_buf_addrs(struct cach_buf *buf, void* vaddr, u32 paddr);
++
++void cach_set_pgprot_cache_options(struct cach_buf *buf, pgprot_t *pgprot);
++
++void cach_set_domain(struct cach_buf *buf, enum hwmem_access access,
++			enum hwmem_domain domain, struct hwmem_region *region);
++
++#endif /* _CACHE_HANDLER_H_ */
+-- 
+1.7.4.1
 
-So is this something to add to the platform data? I can prepare my
-very first kernel patch :)
-
-cheers,
-
- Bastian
-
-
-> OK, I keep trying to find the reason. Thank you for answering.
->
-> - Bastian
->
->
->>> As far as I understand things: The isp gets a new frame start. Then it
->>> counts up the lines as I receive a vd0 interrupt (I added a printk at the
->>> isr). In between the isp doesn't write/dma-transfer any data. I double-
->>> checked the pclk-line but I see nice flanks.
->>>
->>> yavta Output with 4MHz:
->>> Device /dev/video2 opened: OMAP3 ISP CCDC output (media).
->>> Video format set: width: 2592 height: 1944 buffer size: 10077696
->>> Video format: BA10 (30314142) 2592x1944
->>> 2 buffers requested.
->>> length: 10077696 offset: 0
->>> Buffer 0 mapped at address 0x4016e000.
->>> length: 10077696 offset: 10080256
->>> Buffer 1 mapped at address 0x40b0b000.
->>> [  528.454376] pad_op 4, framix addr: dea0a800
->>> [  528.462341] s_stream is it! enable: 1
->>> [  530.026184] last line of image received
->>> 0 (0) [-] 0 10077696 bytes 530.213853 1300960526.930187 -0.001 fps
->>> [  531.558898] last line of image received
->>> 1 (1) [-] 1 10077696 bytes 531.746555 1300960528.462828 0.652 fps
->>> [  533.091613] last line of image received
->>> [  533.098571] s_stream is it! enable: 0
->>> Captured 2 frames in 3.075627 seconds (0.650274 fps, 6553262.798122 B/s).
->>
->> --
->> Regards,
->>
->> Laurent Pinchart
->>
->
