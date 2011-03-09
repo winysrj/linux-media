@@ -1,72 +1,50 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46069 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58208 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753069Ab1CPRqf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Mar 2011 13:46:35 -0400
+	with ESMTP id S1751249Ab1CIXi0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Mar 2011 18:38:26 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: [PATCH v3 4/4] omap3isp: lane shifter support
-Date: Wed, 16 Mar 2011 18:46:35 +0100
-Cc: Michael Jones <michael.jones@matrix-vision.de>,
-	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-References: <1299830749-7269-1-git-send-email-michael.jones@matrix-vision.de> <201103161727.43838.laurent.pinchart@ideasonboard.com> <4D80EE74.3040703@maxwell.research.nokia.com>
-In-Reply-To: <4D80EE74.3040703@maxwell.research.nokia.com>
+To: Michael Jones <michael.jones@matrix-vision.de>
+Subject: Re: [PATCH v2 1/4] v4l: add V4L2_PIX_FMT_Y12 format
+Date: Thu, 10 Mar 2011 00:36:14 +0100
+Cc: linux-media@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+References: <1299686863-20701-1-git-send-email-michael.jones@matrix-vision.de> <1299686863-20701-2-git-send-email-michael.jones@matrix-vision.de>
+In-Reply-To: <1299686863-20701-2-git-send-email-michael.jones@matrix-vision.de>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201103161846.35599.laurent.pinchart@ideasonboard.com>
+Message-Id: <201103100036.21138.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Sakari,
+Hi Michael,
 
-On Wednesday 16 March 2011 18:08:04 Sakari Ailus wrote:
-> Laurent Pinchart wrote:
-> > Hi Sakari,
-> >>> +	return in_info->bpp - out_info->bpp + additional_shift <= 6;
-> >> 
-> >> Currently there are no formats that would behave badly in this check?
-> >> Perhaps it'd be good idea to take that into consideration. The shift
-> >> that can be done is even.
-> > 
-> > I've asked Michael to remove the check because we have no misbehaving
-> > formats
-> > 
-> > :-) Do you think we need to add a check back ?
+Thanks for the patch.
+
+On Wednesday 09 March 2011 17:07:40 Michael Jones wrote:
+> Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  include/linux/videodev2.h |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
 > 
-> I think it would be helpful in debugging if someone decides to attach a
-> sensor which supports a shift of non-even bits (8 and 9 bits, for
-> example). In any case an invalid configuration is possible in such case,
-> and I don't think that should be allowed, should it?
-
-I agree it shouldn't be allowed, but the ISP driver doesn't support non-even 
-widths at the moment, so there's no big risk. There could be an issue when a 
-non-even width is added to the driver if the developer forgets to update the 
-shift code. Maybe a comment in ispvideo.c above the big formats array would 
-help making sure this is not forgotten ?
-
-> >>> @@ -247,6 +296,7 @@ static int isp_video_validate_pipeline(struct
-> >>> isp_pipeline *pipe)
-> >>> 
-> >>>  		return -EPIPE;
-> >>>  	
-> >>>  	while (1) {
-> >>> 
-> >>> +		unsigned int link_has_shifter;
-> >> 
-> >> link_has_shifter is only used in one place. Would it be cleaner to test
-> >> below if it's the CCDC? A comment there could be nice, too.
-> > 
-> > I would like that better as well, but between the line where
-> > link_has_shifter is set and the line where it is checked, the subdev
-> > variable changes so we can't just check subdev == &isp->isp_ccdc.subdev
-> > there.
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index 02da9e7..6fac463 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -288,6 +288,7 @@ struct v4l2_pix_format {
+>  #define V4L2_PIX_FMT_Y4      v4l2_fourcc('Y', '0', '4', ' ') /*  4  Greyscale     */
+>  #define V4L2_PIX_FMT_Y6      v4l2_fourcc('Y', '0', '6', ' ') /*  6  Greyscale     */
+>  #define V4L2_PIX_FMT_Y10     v4l2_fourcc('Y', '1', '0', ' ') /* 10  Greyscale     */
+> +#define V4L2_PIX_FMT_Y12     v4l2_fourcc('Y', '1', '2', ' ') /* 12  Greyscale     */
+>  #define V4L2_PIX_FMT_Y16     v4l2_fourcc('Y', '1', '6', ' ') /* 16  Greyscale     */
 > 
-> That's definitely valid. I take my comment back. The variable could be
-> called is_ccdc, though, since only the CCDC has that feature. No need to
-> generalise. :-)
+>  /* Palette formats */
+
+Could you please also document the format in Documentation/DocBook/v4l ?
 
 -- 
 Regards,
