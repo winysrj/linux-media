@@ -1,62 +1,214 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3244 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753366Ab1CZS3c (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Mar 2011 14:29:32 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mariusz Kozlowski <mk@lab.zgora.pl>
-Subject: Re: [PATCH] [media] cpia2: fix typo in variable initialisation
-Date: Sat, 26 Mar 2011 19:28:52 +0100
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <1301163624-7362-1-git-send-email-mk@lab.zgora.pl>
-In-Reply-To: <1301163624-7362-1-git-send-email-mk@lab.zgora.pl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201103261928.52677.hverkuil@xs4all.nl>
+Received: from mailout3.samsung.com ([203.254.224.33]:32394 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750816Ab1CIFYP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Mar 2011 00:24:15 -0500
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Received: from epmmp1 (mailout3.samsung.com [203.254.224.33])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LHR00BHQYZYZP90@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 09 Mar 2011 14:23:58 +0900 (KST)
+Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
+ by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LHR00KY0YZYBN@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 09 Mar 2011 14:23:58 +0900 (KST)
+Date: Wed, 09 Mar 2011 14:23:58 +0900
+From: "Kim, HeungJun" <riverful.kim@samsung.com>
+Subject: Re: [RFC PATCH RESEND v2 3/3] v4l2-ctrls: document the changes about
+ auto focus mode
+In-reply-to: <4D76B6F6.4070100@gmail.com>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Cc: Kim HeungJun <riverful@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"???/Mobile S/W Platform Lab(DMC?)/E4(??)/????"
+	<sw0312.kim@samsung.com>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
+Reply-to: riverful.kim@samsung.com
+Message-id: <4D770EEE.8060902@samsung.com>
+Content-transfer-encoding: 8BIT
+References: <4D6EFA02.4080105@samsung.com>
+ <201103031424.41611.laurent.pinchart@ideasonboard.com>
+ <C4036AEF-AD3A-44E3-A285-CAF7AAA20460@gmail.com>
+ <201103031622.16641.laurent.pinchart@ideasonboard.com>
+ <4D76B6F6.4070100@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mariusz,
+Hi Sylwester, 
 
-On Saturday, March 26, 2011 19:20:24 Mariusz Kozlowski wrote:
-> Currently 'fh' initialises to whatever happens to be on stack. This
-> looks like a typo and this patch fixes that.
+2011-03-09 오전 8:08, Sylwester Nawrocki 쓴 글:
+> Hi HeungJun,
 > 
-> Signed-off-by: Mariusz Kozlowski <mk@lab.zgora.pl>
-
-If you don't mind then I'll take this patch. Although I'll probably drop it,
-not because it is wrong as such but because the priority handling in cpia2
-is broken big time. I intend to rewrite it using the new prio framework that
-was just merged.
-
-Luckily I finally found someone who can test this driver, so that should be
-very helpful.
-
-I hope to work on this next weekend.
-
-Regards,
-
-	Hans
-
-> ---
->  drivers/media/video/cpia2/cpia2_v4l.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
+> On 03/03/2011 04:22 PM, Laurent Pinchart wrote:
+>> Hi,
+>>
+>> On Thursday 03 March 2011 15:34:36 Kim HeungJun wrote:
+>>> 2011. 3. 3., 오후 10:24, Laurent Pinchart 작성:
+>>>> On Thursday 03 March 2011 14:17:10 Kim HeungJun wrote:
+>>>>> 2011. 3. 3., 오후 7:08, Laurent Pinchart 작성:
+>>>>>> On Thursday 03 March 2011 03:16:34 Kim, HeungJun wrote:
+>>>>>>> Document about the type changes and the enumeration of the auto focus
+>>>>>>> control.
+>>>>>>>
+>>>>>>> Signed-off-by: Heungjun Kim<riverful.kim@samsung.com>
+>>>>>>> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
+>>>>>>> ---
+>>>>>>> Documentation/DocBook/v4l/controls.xml    |   31
+>>>>>>> +++++++++++++++++++++++++--- Documentation/DocBook/v4l/videodev2.h.xml
+>>>>>>> | 6 +++++
+>>>>>>> 2 files changed, 33 insertions(+), 4 deletions(-)
+>>>>>>>
+>>>>>>> diff --git a/Documentation/DocBook/v4l/controls.xml
+>>>>>>> b/Documentation/DocBook/v4l/controls.xml index 2fae3e8..889fa84 100644
+>>>>>>> --- a/Documentation/DocBook/v4l/controls.xml
+>>>>>>> +++ b/Documentation/DocBook/v4l/controls.xml
+>>>>>>> @@ -1801,12 +1801,35 @@ negative values towards infinity. This is a
+>>>>>>> write-only control.</entry>  </row>
+>>>>>>>
+>>>>>>> 	<row><entry></entry></row>
+>>>>>>>
+>>>>>>> -	<row>
+>>>>>>> +	<row id="v4l2-focus-auto-type">
+>>>>>>>
+>>>>>>> 	<entry
+>>>>>>>
+>>>>>>> spanname="id"><constant>V4L2_CID_FOCUS_AUTO</constant>&nbsp;</entry>  -
+>>>>>>> <entry>boolean</entry>
+>>>>>>> +	<entry>enum&nbsp;v4l2_focus_auto_type</entry>
+>>>>>>>
+>>>>>>> 	</row><row><entry spanname="descr">Enables automatic focus
+>>>>>>>
+>>>>>>> -adjustments. The effect of manual focus adjustments while this
+>>>>>>> feature -is enabled is undefined, drivers should ignore such
+>>>>>>> requests.</entry>  +adjustments of the normal or macro or
+>>>>>>> continuous(CAF) mode. The effect of +manual focus adjustments while
+>>>>>>> this feature is enabled is undefined, +drivers should ignore such
+>>>>>>> requests. Possible values are:</entry>  +	</row>
+>>>>>>> +	<row>
+>>>>>>> +	<entrytbl spanname="descr" cols="2">
+>>>>>>> +	<tbody valign="top">
+>>>>>>> +		<row>
+>>>>>>> +		<entry><constant>V4L2_FOCUS_MANUAL</constant>&nbsp;</entry>
+>>>>>>> +		<entry>Manual focus mode.</entry>
+>>>>>>> +		</row>
+>>>>>>> +		<row>
+>>>>>>> +		<entry><constant>V4L2_FOCUS_AUTO</constant>&nbsp;</entry>
+>>>>>>> +		<entry>Auto focus mode with normal operation.</entry>
+>>>>>>> +		</row>
+>>>>>>> +		<row>
+>>>>>>> +		<entry><constant>V4L2_FOCUS_MACRO</constant>&nbsp;</entry>
+>>>>>>> +		<entry>Auto focus mode with macro operation.</entry>
+>>>>>>> +		</row>
+>>>>>>> +		<row>
+>>>>>>> +		<entry><constant>V4L2_FOCUS_CONTINUOUS</constant>&nbsp;</entry>
+>>>>>>> +		<entry>Auto focus mode with continuous(CAF) operation.</entry>
+>>>>>>
+>>>>>> I should have asked this sooner, but what's the difference between
+>>>>>> normal AF and continuous AF ?
+>>>>>
+>>>>> Let's assume that the whole focus process(of course the sensor-internal
+>>>>> process automatically) is below : 1) pointing the object focussed
+>>>>>
+>>>>>     : mostly this is possible to be a middle spot, or pre-given orient x
+>>>>>     :&  y set from register.
+>>>>>
+>>>>>     (The mode using given orient x&  y, may be defined V4L2_FOCUS_TOUCH
+>>>>>     or
+>>>>>
+>>>>> whatever, but I know touch auto focus suggestion is determined nothing
+>>>>> so far, because of that, after this I will suggest to discuss about it
+>>>>> one more.) 2) starting and completing the move of the motor to control
+>>>>> lens, using the focusing internal algorithm 3) check whether the lens
+>>>>> position is proper or not, using the focusing internal algorithm, too.
+>>>>> (If the position is not proper, the image may looks defocused)
+>>>>>
+>>>>> In the Normal AF mode, the sensor do the whole focusing process once,
+>>>>> and after completing to move lens, even though the sensor failed
+>>>>> focusing process. On the other hand, the sensor repeats 1~3 in the
+>>>>> Continuous AF mode periodically, regardless of success of failure.
+>>>>
+>>>> OK, that was my understanding as well. How will that work with the
+>>>> proposed focus menu control ? Don't you need a button control for normal
+>>>> auto-focus ?
+>>>
+>>> You mean that the normal auto-focus control type should be a button, right?
+>>> For now, in our case the user application assumes that such modes(normal,
+>>> MACRO, CAF, TOUCH or oriented mode, or something) are already ready in the
+>>> driver. So, I did't need the normal auto-focus is a button type.
+>>>
+>>> But, IMHO, the focus control of camera is right to follow the next
+>>> procedure, 1) choosing the modes as I said upper. (because, the camera
+>>> dose not have one more focus mode.) 2) adjusting the value of the mode set
+>>> right before.
+>>> 3) doing the action of the mode.
+>>>
+>>> 1) is the same call the control V4L2_AUTO_FOCUS of menu type.
+>>> 2), 3) is the same call the control dedicated focus control. Currently, the
+>>> focus control excepting manual is not needed another control. If touch
+>>> mode are needed, we can add another enum value, e.g. V4L2_FOCUS_ORIENT.
+>>> and add another dedicated control, e.g., V4L2_CID_FOCUS_ORIENT_X,
+>>> V4L2_CID_FOCUS_ORIENT_Y.
+>>>
+>>> I think this as I use digital camera. We normally follow such procedure,
+>>> using the digital camera.
+>>>
+>>> If I get your words wrongly, give me some clue :)
+>>
+>> What happens when the user selects the V4L2_FOCUS_AUTO menu entry ? Will the
+>> camera start a one-shot auto-focus algorithm ? In that case, if the user is
+>> not happy with the result and wants to perform a new auto-focus, how will that
+>> be possible ? The V4L2_CID_FOCUS_AUTO control will already be in
+>> V4L2_FOCUS_AUTO mode.
+>>
 > 
-> diff --git a/drivers/media/video/cpia2/cpia2_v4l.c b/drivers/media/video/cpia2/cpia2_v4l.c
-> index 5111bbc..0073a8c 100644
-> --- a/drivers/media/video/cpia2/cpia2_v4l.c
-> +++ b/drivers/media/video/cpia2/cpia2_v4l.c
-> @@ -1313,7 +1313,7 @@ static int cpia2_g_priority(struct file *file, void *_fh, enum v4l2_priority *p)
->  static int cpia2_s_priority(struct file *file, void *_fh, enum v4l2_priority prio)
->  {
->  	struct camera_data *cam = video_drvdata(file);
-> -	struct cpia2_fh *fh = fh;
-> +	struct cpia2_fh *fh = _fh;
->  
->  	if (cam->streaming && prio != fh->prio &&
->  			fh->prio == V4L2_PRIORITY_RECORD)
+> IIUC normally in digital cameras the shutter button is being pressed half way
+> to start operation in the selected focus mode. Having only your new menu control
+> I'm not sure how we do re-focus on a new object after V4L2_FOCUS_AUTO menu entry
+> is selected.
+> Do we need to switch to V4L2_FOCUS_MANUAL and then back to V4L2_FOCUS_AUTO 
+> to achieve this? Could you explain again please?
+There is a gap using the type of GUI button on screen or real button, especially when
+we're discussing about digital camera. The managing real button implies more having
+possibility than dealing with GUI button. The real button makes the cpu recognize
+event using interrupt or polling whatever, and then, if it's ok, the userapplication
+let the v4l2-framework handle this event how to control camera. But, it can be changed.
+Another input methods exist possibly. 
+
+In other words, the real user press/re-press the *real* button is input event side,
+not v4l2 side, I think.
+
+If the users(real camera user, not user application) press the button, and then 
+the camera do the focus. When the users see unfocused images, they press the butten
+one more time for another re-focusing, at that time they must detach the button,
+and the camera(device) can check this event.
+If detaching recognized, digital camera userland can do V4L2_FOCUS_MANUAL or
+some stuff as the camera needed.
+
+For doing this more precisely, the userapp can get the feedback of the focus
+status, because the full focusing time goes about 3~4 seconds, and the focus
+status depends on how to determine the next control and preparing for user
+application. But, I have not find proper things yet, and IMHO, for doing as
+your words, we can get the feedback first. For now, we can call control just
+twice to do the focus, although it's not a perfect focusing job.
+
+If we start to think the focus feedback, we must check more thing we expected.
+For examples, preventing the stop or being slow while focusing in the preview,
+and the methods getting the status for generic API, and when the sensor notifies
+the status of focus, etc. But, sooner, this will be need I think.
+
+Let me know another opinions. :)
+
 > 
+> --
+> Regards, 
+> Sylwester Nawrocki
+> 
+> 
+
+Thanks,
+Heungjun Kim
