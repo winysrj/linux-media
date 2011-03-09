@@ -1,69 +1,37 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.128.24]:25141 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932228Ab1CXI1o (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Mar 2011 04:27:44 -0400
-Message-ID: <4D8B00FA.1090008@maxwell.research.nokia.com>
-Date: Thu, 24 Mar 2011 10:29:46 +0200
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:55523 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757142Ab1CIKMt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Mar 2011 05:12:49 -0500
+Received: by iyb26 with SMTP id 26so343778iyb.19
+        for <linux-media@vger.kernel.org>; Wed, 09 Mar 2011 02:12:48 -0800 (PST)
 MIME-Version: 1.0
-To: Daniel Lundborg <daniel.lundborg@prevas.se>
-CC: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: OMAP3 isp single-shot
-References: <loom.20110323T141429-496@post.gmane.org>
-In-Reply-To: <loom.20110323T141429-496@post.gmane.org>
+Date: Wed, 9 Mar 2011 11:12:48 +0100
+Message-ID: <AANLkTinsKCWHMeiG=EzjUR3O2pSUEUThJX8Q1BF2ZtH9@mail.gmail.com>
+Subject: v4l2 saa7134
+From: =?ISO-8859-1?Q?Norbert_Pl=F3t=E1r?= <plotter008@gmail.com>
+To: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Daniel Lundborg wrote:
-> Hello,
+Hi,
 
-Hi Daniel,
+ Is there anybody, who knows, how, the v4l2 saa7134 part works in kernel space?
+ I mean I have a gt-p8000 tv card. It's a hybrid tuner.
+ I started to modify the saa7134 driver, but I cannot see the control
+flaw, the call order.
+ Furthermore I would like to debug my code like only switching a GPIO
+on a single chip.
+ My card contains the following chips:
 
-(Cc'ing Laurent.)
+  saa7131e/03/g
+  tda18271hd
+  tda10048hn
 
-> I am successfully using the gumstix overo board together with a camera sensor
-> Aptina MT9V034 with the kernel 2.6.35 and patches from
-> http://git.linuxtv.org/pinchartl/media.git (isp6).
+ My future plan to create a gui, and control the 3 chips separately.
+But first of all, to make it work as a TV card on linux.
 
-Which branch did you use?
-
-> I can use the media-ctl program and yavta to take pictures in continous
-> streaming mode.
-> 
-> media-ctl -r -l '"mt9034 3-0048":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP
-> CCDC":1->"OMAP3 ISP CCDC output":0[1]'
-> media-ctl -f '"mt9v034 3-0048":0[SGRBG10 752x480], "OMAP3 ISP CCDC":1[SGRBG10
-> 752x480]
-> 
-> and then:
-> 
-> yavta -f SGRBG10 -s 752x480 -n 1 --capture=1 -F /dev/video2
-> 
-> 
-> Is there a way to set the ISP in single shot mode?
-
-Single shot for the ISP is the same as to queue just one buffer. I
-assume the single shot mode is something that the sensor supports?
-
-> I have tested setting the mt9v034 in snapshot mode and manually trigger the
-> camera, but the ISP does not send a picture. Is there a way to solve this with
-> the current OMAP3 isp code?
-
-Do you get any errors, or you just don't get any video buffers?
-
-As the sensor works in streaming mode, are you sure it outputs the image
-of correct size in the single shot mode?
-
-> I have before successfully used the isp parts from the Nokia N900 project..
-
-This is nice to hear! :-)
-
-Regards,
-
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+Thanks.
+BR,
+Norbert
