@@ -1,47 +1,55 @@
 Return-path: <mchehab@pedra>
-Received: from out1.ip05ir2.opaltelecom.net ([62.24.128.241]:57474 "EHLO
-	out1.ip05ir2.opaltelecom.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754327Ab1CBQ02 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Mar 2011 11:26:28 -0500
-Message-Id: <9fnr6q$9ube9b@out1.ip05ir2.opaltelecom.net>
-Date: Wed, 02 Mar 2011 16:16:33 +0000
-To: linux-media@vger.kernel.org
-From: Nick Pelling <nickpelling@nanodome.com>
-Subject: Missing /dev/video[N] devices...?
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; format=flowed
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:35922 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753970Ab1CIQXl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Mar 2011 11:23:41 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Wed, 09 Mar 2011 17:23:23 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v2 0/2(7)] s5p fimc driver fixes
+In-reply-to: <1298558034-10768-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com
+Message-id: <1299687805-23525-1-git-send-email-s.nawrocki@samsung.com>
+References: <1298558034-10768-1-git-send-email-s.nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi everyone,
+Hello,
 
-I'm trying to bring up the 2.6.37 kernel from scratch on a new 
-Samsung S5PC100-based board, but have hit a media problem. Though my 
-various v4l2 devices are all registering OK during the boot process 
-and end up visible in /sys/class/video4linux , they never manage to 
-become visible in /dev , i.e.
+this is basically a resend of my previous s5p fimc driver bugfix change set
+including altered 2 out of 7. It's a result of my further struggle with
+the DMA engine and also a correction of the G_FMT ioctl function to return
+proper bytesperline/sizeimage for all supported formats.
 
-	# ls /dev/video*
-	ls: /dev/video*: No such file or directory
+[PATCH 1/7] s5p-fimc: fix ISR and buffer handling for fimc-capture
+[PATCH 7/7] s5p-fimc: Fix G_FMT ioctl handler
 
-	# ls /sys/class/video4linux/
-	video0   video1   video14  video2   video21  video22
+Following is the previous original change set summary.
 
-	# ls /sys/class/video4linux/video0/
-	dev        index      name       subsystem  uevent
+---
 
-	# cat /sys/class/video4linux/video0/name
-	s5p-fimc.0:m2m
+the following are a few bugfixes for s5p-fimc driver.
+These patches correct fimc output DMA handling and locking in m2m
+driver so there is no issues in m2m multi-instance operation.
+One of the patches adds missing g_fmt ioctl conversion to multiplanar
+formats.
 
-	# cat /sys/class/video4linux/video0/uevent
-	MAJOR=81
-	MINOR=0
-	DEVNAME=video0
+The patch series contains:
 
-I've tried enabling everything that seems relevant in the kernel's 
-menuconfig options, but it seems as though I've omitted some crucial 
-piece of the v4l2 infrastructure. Any suggestions for what's missing?
+[PATCH 1/7] s5p-fimc: fix ISR and buffer handling for fimc-capture
+[PATCH 2/7] s5p-fimc: Prevent oops when i2c adapter is not available
+[PATCH 3/7] s5p-fimc: Prevent hanging on device close and fix the locking
+[PATCH 4/7] s5p-fimc: Allow defining number of sensors at runtime
+[PATCH 5/7] s5p-fimc: Add a platform data entry for MIPI-CSI data alignment
+[PATCH 6/7] s5p-fimc: Use dynamic debug
+[PATCH 7/7] s5p-fimc: Fix G_FMT ioctl handler
 
-Thanks!, ....Nick Pelling....
 
+Regards,
+--
+Sylwester Nawrocki
+Samsung Poland R&D Center
