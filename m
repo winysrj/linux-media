@@ -1,91 +1,89 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:60603 "EHLO
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:47687 "EHLO
 	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751979Ab1CDRMf (ORCPT
+	by vger.kernel.org with ESMTP id S1755347Ab1CIAgt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Mar 2011 12:12:35 -0500
+	Tue, 8 Mar 2011 19:36:49 -0500
 Subject: Re: BUG at mm/mmap.c:2309 when cx18.ko and cx18-alsa.ko loaded
 From: Andy Walls <awalls@md.metrocast.net>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-In-Reply-To: <AANLkTikoSnBZ5E2tD2d5QsLf4DxmQYi0rYtNRvnU8Fmz@mail.gmail.com>
+To: Hugh Dickins <hughd@google.com>
+Cc: linux-kernel@vger.kernel.org, akpm@linux-foundation.org,
+	David Miller <davem@davemloft.net>,
+	linux-media@vger.kernel.org,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+In-Reply-To: <1299445446.2310.157.camel@localhost>
 References: <1299204400.2812.35.camel@localhost>
-	 <AANLkTikoSnBZ5E2tD2d5QsLf4DxmQYi0rYtNRvnU8Fmz@mail.gmail.com>
+	 <1299362366.2570.27.camel@localhost> <1299377017.2341.50.camel@localhost>
+	 <AANLkTimU9qV11p+wTDz4SCvaoYyxpja8tmJ5D7-ki==B@mail.gmail.com>
+	 <1299445446.2310.157.camel@localhost>
 Content-Type: text/plain; charset="UTF-8"
-Date: Fri, 04 Mar 2011 12:13:04 -0500
-Message-ID: <1299258784.14867.16.camel@morgan.silverblock.net>
+Date: Tue, 08 Mar 2011 19:37:01 -0500
+Message-ID: <1299631021.3023.10.camel@localhost>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Fri, 2011-03-04 at 10:50 -0500, Devin Heitmueller wrote:
-> On Thu, Mar 3, 2011 at 9:06 PM, Andy Walls <awalls@md.metrocast.net> wrote:
-> > Hi,
-> >
-> > I got a BUG when loading the cx18.ko module (which in turn requests the
-> > cx18-alsa.ko module) on a kernel built from this repository
-> >
-> >        http://git.linuxtv.org/media_tree.git staging/for_v2.6.39
-> >
-> > which I beleive is based on 2.6.38-rc2.
-> >
-> > The BUG is mmap related and I'm almost certain it has to do with
-> > userspace accessing cx18-alsa.ko ALSA device nodes, since cx18.ko
-> > doesn't provide any mmap() related file ops.
-> >
-> > So here is my transcription of a fuzzy digital photo of the screen:
-> <snip>
-> > I'm not very familiar with mmap() nor ALSA and I did not author the
-> > cx18-alsa part of the cx18 driver, so any hints at where to look for the
-> > problem are appreciated.
+On Sun, 2011-03-06 at 16:04 -0500, Andy Walls wrote:
+> On Sun, 2011-03-06 at 10:37 -0800, Hugh Dickins wrote:
+
+> > 
+> > Thanks for all the effort you are putting into investigating this: you
+> > deserve a better response than I can give you.
+> > 
+> > mm/vmalloc.c's vmap_area handling is entirely separate from
+> > mm/mmap.c's vm_area_struct handling, yet both misbehaviors would be
+> > explained if a next pointer has been corrupted to NULL.
+> > 
+> > Probably just coincidence that they both manifest that way, though the
+> > underlying problem may turn out to be one.
+
+> > If you have not already, it would be well worth turning on
+> > CONFIG_DEBUG_LIST and CONFIG_DEBUG_SLAB or CONFIG_SLUB_DEBUG with
+> > CONFIG_SLUB_DEBUG_ON.
+
 > 
-> Hi Andy,
+> >  But you are having trouble
+> > reproducing it yourself?
 > 
-> I'm traveling on business for about two weeks, so I won't be able to
-> look into this right now.
-> 
-> Any idea whether this is some new regression?
+> I can't say yet.  I'm currently two for two.
 
-I do not know.  I normally don't let cx18-alsa.ko load, due to
-PulseAudio's persistence at keeping the device nodes open (which makes
-unloading the cx18.ko module for development a hassle.)
+After backing up the machine and testing again, I'm now 3 for 3.
 
+This time it happened in the memset() in kernel/module.c:move_module()
+when modprobe was trying to load the cx18-alsa.ko module.
 
->   I'm just trying to
-> understand whether this is something that has always been there since
-> I originally added the ALSA support to cx18 or whether it's something
-> that is new, in which case it might make sense to drag the ALSA people
-> into the conversation since there haven't been any changes in the cx18
-> driver lately.
+        static int move_module(struct module *mod, struct load_info
+        *info)
+        {
+                int i;
+                void *ptr;
+        
+                /* Do the allocs. */
+                ptr = module_alloc_update_bounds(mod->core_size);
+                /*
+                 * The pointer to this block is stored in the module structure
+                 * which is inside the block. Just mark it as not being
+        a
+                 * leak.
+                 */
+                kmemleak_not_leak(ptr);
+                if (!ptr)
+                        return -ENOMEM;
+        
+                memset(ptr, 0, mod->core_size);   <----- Ooops/BUG
+        
+        /home/andy/cx18dev/git/media_tree/kernel/module.c:2529
+            385c:       41 8b 8c 24 64 01 00    mov    0x164(%r12),%ecx
+            3863:       00 
+            3864:       31 c0                   xor    %eax,%eax
+            3866:       48 89 d7                mov    %rdx,%rdi
+            3869:       f3 aa                   rep stos %al,%es:(%rdi)  <----- Oops/BUG
+        
+ptr had a value of 0x0000000000001000
 
-I can add some information about what is going on in userspace.  This
-was on a Fedora 10 machine.  When devices nodes show up, the HAL daemon
-and PulseAudio start using the device nodes right away.
-
-That activity  triggers cx18.ko to do a firmware load which gets udevd
-running to satisfy firmware requests, and then the cx18 driver issues
-some simple commands to the CX23418 firmware, which will have
-acknowledgment interrupts coming back from the CX23418.  I resolved the
-firmware race in cx18*.ko a while ago, so I'm confident its not an
-issue.
-
-The BUG looks like some sort of mmap() race or memory management problem
-outside of the cx18*.ko modules, given that mmput(), which appears to be
-an mm specific reference counting function, is involved.
-
-It could also be in ALSA I guess.
-
-I'm not sure how in the cx18-alsa.ko things can be screwed up so badly
-that it messes up the kernel's reference counting of mm structures.
-
-I'll take a harder look at it myself this weekend, but the kernel mm
-system is a little out of my current realm of experience.  Looks like I
-get to learn, because I'm not going to bisect a BUG() that halts the
-machine and risks disk corruption every time.
+I'm starting a git bisect now.
 
 Regards,
 Andy
-
-
 
