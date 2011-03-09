@@ -1,82 +1,99 @@
 Return-path: <mchehab@pedra>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:58542 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753739Ab1C0P2r (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Mar 2011 11:28:47 -0400
-Date: Sun, 27 Mar 2011 10:28:40 -0500
-From: Jonathan Nieder <jrnieder@gmail.com>
-To: Huber Andreas <hobrom@corax.at>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [linux-dvb] cx88-blackbird broken (since 2.6.37)
-Message-ID: <20110327152810.GA32106@elie>
-References: <20110327150610.4029.95961.reportbug@xen.corax.at>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:64470 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756484Ab1CIITp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Mar 2011 03:19:45 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20110327150610.4029.95961.reportbug@xen.corax.at>
+In-Reply-To: <4D772FB0.4020804@maxwell.research.nokia.com>
+References: <1299615316-17512-1-git-send-email-dacohen@gmail.com>
+	<1299615316-17512-3-git-send-email-dacohen@gmail.com>
+	<4D772FB0.4020804@maxwell.research.nokia.com>
+Date: Wed, 9 Mar 2011 10:19:43 +0200
+Message-ID: <AANLkTi=ARF3zyFWOXwoyobUeKsN8HzTtd5TkxNSV+srO@mail.gmail.com>
+Subject: Re: [PATCH v2 2/3] omap3: change ISP's IOMMU da_start address
+From: David Cohen <dacohen@gmail.com>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Cc: Hiroshi.DOYU@nokia.com, linux-omap@vger.kernel.org,
+	fernando.lugo@ti.com, linux-media@vger.kernel.org,
+	laurent.pinchart@ideasonboard.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Andi,
+On Wed, Mar 9, 2011 at 9:43 AM, Sakari Ailus
+<sakari.ailus@maxwell.research.nokia.com> wrote:
+> David Cohen wrote:
+>> ISP doesn't consider 0x0 as a valid address, so it should explicitly
+>> exclude first page from allowed 'da' range.
+>>
+>> Signed-off-by: David Cohen <dacohen@gmail.com>
+>> ---
+>>  arch/arm/mach-omap2/omap-iommu.c |    2 +-
+>>  1 files changed, 1 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/omap-iommu.c b/arch/arm/mach-omap2/omap-iommu.c
+>> index 3fc5dc7..3bea489 100644
+>> --- a/arch/arm/mach-omap2/omap-iommu.c
+>> +++ b/arch/arm/mach-omap2/omap-iommu.c
+>> @@ -33,7 +33,7 @@ static struct iommu_device omap3_devices[] = {
+>>                       .name = "isp",
+>>                       .nr_tlb_entries = 8,
+>>                       .clk_name = "cam_ick",
+>> -                     .da_start = 0x0,
+>> +                     .da_start = 0x1000,
+>>                       .da_end = 0xFFFFF000,
+>>               },
+>>       },
+>
+> Hi David!
 
-Huber Andreas wrote[1]:
+Hi Sakari,
 
-> [Symptom]
-> Processes that try to open a cx88-blackbird driven MPEG device will hang up.
+>
+> Thanks for the patch.
 
-Thanks for reporting.  Just cc-ing some relevant people.  Could you file a
-bug to track this at <http://bugzilla.kernel.org/>, product v4l-dvb,
-component cx88, and then send the bug number to 619827@bugs.debian.org ?
+And thanks for the comments. :)
 
-Report follows.
+>
+> My question is once again: is this necessary? My understanding is that
+> the IOMMU allows mapping the NULL address if the user wishes to map it
+> explicitly. da_end specifies the real hardware limit for the mapped top
+> address, da_start should do the same for bottom.
 
-Jonathan
+Hm. da_start/da_end in this case belong to OMAP3 IOMMU ISP VM. It
+means they're related to OMAP3 ISP only. But they do not reflect the
+hw limit, as the range limit is anything which fits in u32. They say
+what's the range OMAP3 ISP is expecting to have mapped. And the answer
+to this question is the first page is not expected. Then, why say the
+opposite in da_start?
 
-[1] http://bugs.debian.org/619827
+>
+> I think that the IOMMU users should be either able to rely that they get
+> no NULL allocated automatically for them. Do we want or not want it to
+> be part of the API? I don't think the ISP driver is a special case of
+> all the possible drivers using the IOMMU.
 
-> [Cause]
-> Nestet mutex_locks (which are not allowed) result in a deadlock.
-> 
-> [Details]
-> Source-File: drivers/media/video/cx88/cx88-blackbird.c
-> Function: int mpeg_open(struct file *file)
-> Problem: the calls to  drv->request_acquire(drv); and
-> drv->request_release(drv); will hang because they try to lock a
-> mutex that has already been locked by a previouse call to
-> mutex_lock(&dev->core->lock) ...
-> 
-> 1050 static int mpeg_open(struct file *file)
-> 1051 {
-> [...]
-> 1060         mutex_lock(&dev->core->lock);         // MUTEX LOCKED !!!!!!!!!!!!!!!!
-> 1061
-> 1062         /* Make sure we can acquire the hardware */
-> 1063         drv = cx8802_get_driver(dev, CX88_MPEG_BLACKBIRD);
-> 1064         if (drv) {
-> 1065                 err = drv->request_acquire(drv);  // HANGS !!!!!!!!!!!!!!!!!!!
-> 1066                 if(err != 0) {
-> 1067                         dprintk(1,"%s: Unable to acquire hardware, %d\n", __func__, err);
-> 1068                         mutex_unlock(&dev->core->lock);;
-> 1069                         return err;
-> 1070                 }
-> 1071         }
-> [...]
-> 
-> Here's the relevant kernel log extract (Linux version 2.6.38-1-amd64 (Debian 2.6.38-1)) ...
-> 
-> Mar 24 21:25:10 xen kernel: [  241.472067] INFO: task v4l_id:1000 blocked for more than 120 seconds.
-> Mar 24 21:25:10 xen kernel: [  241.478845] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
-> Mar 24 21:25:10 xen kernel: [  241.482412] v4l_id          D ffff88006bcb6540     0  1000      1 0x00000000
-> Mar 24 21:25:10 xen kernel: [  241.486031]  ffff88006bcb6540 0000000000000086 ffff880000000001 ffff88006981c380
-> Mar 24 21:25:10 xen kernel: [  241.489694]  0000000000013700 ffff88006be5bfd8 ffff88006be5bfd8 0000000000013700
-> Mar 24 21:25:10 xen kernel: [  241.493301]  ffff88006bcb6540 ffff88006be5a010 ffff88006bcb6540 000000016be5a000
-> Mar 24 21:25:10 xen kernel: [  241.496766] Call Trace:
-> Mar 24 21:25:10 xen kernel: [  241.500145]  [<ffffffff81321c4a>] ? __mutex_lock_common+0x127/0x193
-> Mar 24 21:25:10 xen kernel: [  241.503630]  [<ffffffff81321d82>] ? mutex_lock+0x1a/0x33
-> Mar 24 21:25:10 xen kernel: [  241.507145]  [<ffffffffa09dd155>] ? cx8802_request_acquire+0x66/0xc6 [cx8802]
-> Mar 24 21:25:10 xen kernel: [  241.510699]  [<ffffffffa0aab7f2>] ? mpeg_open+0x7a/0x1fc [cx88_blackbird]
-> Mar 24 21:25:10 xen kernel: [  241.514279]  [<ffffffff8123bfb6>] ? kobj_lookup+0x139/0x173
-> Mar 24 21:25:10 xen kernel: [  241.517856]  [<ffffffffa062d5fd>] ? v4l2_open+0xb3/0xdf [videodev]
+My understanding after this discussion is address 0x0 should be
+allowed (what is done by patch 3/3 of this set). But as a safer
+choice, it won't be returned without explicitly request (what is done
+in path 1/3). Because of that, I'm OK in drop this patch 2/3. But then
+there's one question which is the motivation for this change:
+If the current OMAP3 ISP driver doesn't want the first page, (1)
+should we pass a generic information and expect IOVMM driver to
+correct it to ISP need or (2) should we pass the information which
+reflects the real ISP driver's need?
+My understanding is (2). But I'm fine with (1) as it will lead to the
+same result.
+
+>
+> On the other hand, probably there will be an API change at some point
+> for the IOMMU since as far as I remember, there are somewhat
+> established APIs for IOMMUs in existence.
+
+At some point we need to find a standard for many IOMMU drivers. But
+for now we need to stick with what we have. :)
+
+Regards,
+
+David Cohen
