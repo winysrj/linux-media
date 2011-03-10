@@ -1,44 +1,81 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:6652 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753984Ab1CBRmi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Mar 2011 12:42:38 -0500
-Message-ID: <4D6E817D.7090500@redhat.com>
-Date: Wed, 02 Mar 2011 14:42:21 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:32942 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752711Ab1CJRyI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Mar 2011 12:54:08 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: Re: mt9p031 support for Beagleboard.
+Date: Thu, 10 Mar 2011 18:54:32 +0100
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	javier Martin <javier.martin@vista-silicon.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <AANLkTi=8iEa4ZXvh1SqL8XdHuB2YcDAxXAqouJA2JriV@mail.gmail.com> <201103101741.41403.laurent.pinchart@ideasonboard.com> <19F8576C6E063C45BE387C64729E739404E1F52AB5@dbde02.ent.ti.com>
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404E1F52AB5@dbde02.ent.ti.com>
 MIME-Version: 1.0
-To: Samuel Ortiz <sameo@linux.intel.com>
-CC: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>,
-	alsa-devel@alsa-project.org, broonie@opensource.wolfsonmicro.com,
-	lrg@slimlogic.co.uk, hverkuil@xs4all.nl,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v21 1/3] MFD: WL1273 FM Radio: MFD driver for the FM radio.
-References: <1298966450-31814-1-git-send-email-matti.j.aaltonen@nokia.com> <1298966450-31814-2-git-send-email-matti.j.aaltonen@nokia.com> <20110301114353.GA4543@sortiz-mobl>
-In-Reply-To: <20110301114353.GA4543@sortiz-mobl>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201103101854.33109.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 01-03-2011 08:43, Samuel Ortiz escreveu:
-> Hi Matti,
-> 
-> On Tue, Mar 01, 2011 at 10:00:48AM +0200, Matti J. Aaltonen wrote:
->> This is the core of the WL1273 FM radio driver, it connects
->> the two child modules. The two child drivers are
->> drivers/media/radio/radio-wl1273.c and sound/soc/codecs/wl1273.c.
->>
->> The radio-wl1273 driver implements the V4L2 interface and communicates
->> with the device. The ALSA codec offers digital audio, without it only
->> analog audio is available.
-> 
-> Acked-by: Samuel Ortiz <sameo@linux.intel.com>
-> 
-> Mauro, I suppose you're taking this one ?
+Hi Vaibhav,
 
-Yes, I'm taking this patch series. As patch 1/3 didn't seem to change
-between v21 and v22, I'm adding your acked-by to the v22 1/3 and committing
-it on my tree.
+On Thursday 10 March 2011 18:09:42 Hiremath, Vaibhav wrote:
+> On Thursday, March 10, 2011 10:12 PM Laurent Pinchart wrote:
+> > On Thursday 10 March 2011 17:23:52 Hiremath, Vaibhav wrote:
+> > >
+> > > BeagleXM supports set of parallel sensors (MT9V113, MT9P031, MT9T111,
+> > > etc...),  out of this I believe reset gpio, regulator and data channel
+> > > path enable part is going to be common between all of the sensors.
+> > > 
+> > > The things which will be different would be, especially clock
+> > > configuration and i2c address. I2C address is going to be very crucial
+> > > and need some thinking, since there are sensors with same I2C address.
+> > 
+> > I2C addresses, signals polarities and data lane shifting will need to be
+> > configured.
+> > 
+> > > I guess I am still not following you completely (must be missing
+> > > something), would you mind help me to understand your concern here.
+> > 
+> > Those parameters all need to be provided by board code. You can't push a
+> > patch that adds hardcoded support for the MT9P031 to the
+> > board-omap3beagle.c file upstream, as not all Beagleboards will have an
+> > MT9P031 sensor connected (or even any sensor at all). How can we push the
+> > code upstream and still make it configurable enough ?
+> 
+> I don't think some of these parameters we can make configurable, for
+> example, platform_data for sensor, it has to be sensor specific. I2C
+> address, it has to be sensor dependent, etc...
 
-Thanks!
-Mauro
+What I mean is that we can't hardcode the presence of a given sensor in the 
+board file, as the sensors can be plugged in as addon board. Support for a 
+specific sensor module connected to the Beagleboard must thus come in the form 
+of a kernel build option or a module (I'm not talking about the sensor driver 
+itself, but the sensor and OMAP3 ISP data that must be provided by board 
+code).
+
+> Also, I am quite not sure how can we make things configurable based on
+> presence of daughter card here. If we do not have daughter card connected
+> to board, enumeration will fail.
+> 
+> > > [By next week I should be able to make all my changes public (into my
+> > > Arago repo) for reference]
+> > 
+> > There are too many repositories with code lying around. We should try to
+> > coordinate our efforts.
+> 
+> I agree with you.
+
+Any suggestion ? Should I create a repository based on mainline (or latest 
+linux-media tree) and maintain sensor drivers there before they get pushed to 
+mainline ?
+
+-- 
+Regards,
+
+Laurent Pinchart
