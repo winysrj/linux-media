@@ -1,134 +1,80 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:48929 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756179Ab1CHUPi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Mar 2011 15:15:38 -0500
-From: David Cohen <dacohen@gmail.com>
-To: Hiroshi.DOYU@nokia.com
-Cc: linux-omap@vger.kernel.org, fernando.lugo@ti.com,
-	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@maxwell.research.nokia.com,
-	David Cohen <dacohen@gmail.com>
-Subject: [PATCH v2 3/3] omap: iovmm: don't check 'da' to set IOVMF_DA_FIXED flag
-Date: Tue,  8 Mar 2011 22:15:16 +0200
-Message-Id: <1299615316-17512-4-git-send-email-dacohen@gmail.com>
-In-Reply-To: <1299615316-17512-1-git-send-email-dacohen@gmail.com>
-References: <1299615316-17512-1-git-send-email-dacohen@gmail.com>
+Received: from mailout4.samsung.com ([203.254.224.34]:48161 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751137Ab1CJOO2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Mar 2011 09:14:28 -0500
+Received: from epmmp2 (mailout4.samsung.com [203.254.224.34])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LHU00MW0I81OID0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 10 Mar 2011 23:14:25 +0900 (KST)
+Received: from AMDC159 ([106.116.37.153])
+ by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LHU00FB2I7OUD@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 10 Mar 2011 23:14:25 +0900 (KST)
+Date: Thu, 10 Mar 2011 15:14:11 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: Yet another memory provider: can linaro organize a meeting?
+In-reply-to: <201103080913.59231.hverkuil@xs4all.nl>
+To: 'Hans Verkuil' <hverkuil@xs4all.nl>, linaro-dev@lists.linaro.org
+Cc: linux-media@vger.kernel.org,
+	'Jonghun Han' <jonghun.han@samsung.com>,
+	'Russell King - ARM Linux' <linux@arm.linux.org.uk>,
+	kyungmin.park@samsung.com
+Message-id: <000001cbdf2d$7070bcb0$51523610$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <201103080913.59231.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Currently IOVMM driver sets IOVMF_DA_FIXED/IOVMF_DA_ANON flags according
-to input 'da' address when mapping memory:
-da == 0: IOVMF_DA_ANON
-da != 0: IOVMF_DA_FIXED
+Hello,
 
-It prevents IOMMU to map first page with fixed 'da'. To avoid such
-issue, IOVMM will not automatically set IOVMF_DA_FIXED. It should now
-come from the user throught 'flags' parameter when mapping memory.
-As IOVMF_DA_ANON and IOVMF_DA_FIXED are mutually exclusive, IOVMF_DA_ANON
-can be removed. The driver will now check internally if IOVMF_DA_FIXED
-is set or not.
+On Tuesday, March 08, 2011 9:14 AM Hans Verkuil wrote:
 
-Signed-off-by: David Cohen <dacohen@gmail.com>
----
- arch/arm/plat-omap/include/plat/iovmm.h |    2 --
- arch/arm/plat-omap/iovmm.c              |   14 +++++---------
- 2 files changed, 5 insertions(+), 11 deletions(-)
+> We had a discussion yesterday regarding ways in which linaro can assist
+> V4L2 development. One topic was that of sorting out memory providers like
+> GEM and HWMEM.
+> 
+> Today I learned of yet another one: UMP from ARM.
+> 
+> http://blogs.arm.com/multimedia/249-making-the-mali-gpu-device-driver-open-
+> source/page__cid__133__show__newcomment/
 
-diff --git a/arch/arm/plat-omap/include/plat/iovmm.h b/arch/arm/plat-omap/include/plat/iovmm.h
-index bdc7ce5..32a2f6c 100644
---- a/arch/arm/plat-omap/include/plat/iovmm.h
-+++ b/arch/arm/plat-omap/include/plat/iovmm.h
-@@ -71,8 +71,6 @@ struct iovm_struct {
- #define IOVMF_LINEAR_MASK	(3 << (2 + IOVMF_SW_SHIFT))
- 
- #define IOVMF_DA_FIXED		(1 << (4 + IOVMF_SW_SHIFT))
--#define IOVMF_DA_ANON		(2 << (4 + IOVMF_SW_SHIFT))
--#define IOVMF_DA_MASK		(3 << (4 + IOVMF_SW_SHIFT))
- 
- 
- extern struct iovm_struct *find_iovm_area(struct iommu *obj, u32 da);
-diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
-index e5f8341..894489c 100644
---- a/arch/arm/plat-omap/iovmm.c
-+++ b/arch/arm/plat-omap/iovmm.c
-@@ -279,7 +279,7 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
- 	start = da;
- 	alignment = PAGE_SIZE;
- 
--	if (flags & IOVMF_DA_ANON) {
-+	if (~flags & IOVMF_DA_FIXED) {
- 		/* Don't map address 0 */
- 		if (obj->da_start)
- 			start = obj->da_start;
-@@ -307,7 +307,7 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
- 		if (tmp->da_start > start && (tmp->da_start - start) >= bytes)
- 			goto found;
- 
--		if (tmp->da_end >= start && flags & IOVMF_DA_ANON)
-+		if (tmp->da_end >= start && ~flags & IOVMF_DA_FIXED)
- 			start = roundup(tmp->da_end + 1, alignment);
- 
- 		prev_end = tmp->da_end;
-@@ -654,7 +654,6 @@ u32 iommu_vmap(struct iommu *obj, u32 da, const struct sg_table *sgt,
- 	flags &= IOVMF_HW_MASK;
- 	flags |= IOVMF_DISCONT;
- 	flags |= IOVMF_MMIO;
--	flags |= (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
- 
- 	da = __iommu_vmap(obj, da, sgt, va, bytes, flags);
- 	if (IS_ERR_VALUE(da))
-@@ -694,7 +693,7 @@ EXPORT_SYMBOL_GPL(iommu_vunmap);
-  * @flags:	iovma and page property
-  *
-  * Allocate @bytes linearly and creates 1-n-1 mapping and returns
-- * @da again, which might be adjusted if 'IOVMF_DA_ANON' is set.
-+ * @da again, which might be adjusted if 'IOVMF_DA_FIXED' is not set.
-  */
- u32 iommu_vmalloc(struct iommu *obj, u32 da, size_t bytes, u32 flags)
- {
-@@ -713,7 +712,6 @@ u32 iommu_vmalloc(struct iommu *obj, u32 da, size_t bytes, u32 flags)
- 	flags &= IOVMF_HW_MASK;
- 	flags |= IOVMF_DISCONT;
- 	flags |= IOVMF_ALLOC;
--	flags |= (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
- 
- 	sgt = sgtable_alloc(bytes, flags, da, 0);
- 	if (IS_ERR(sgt)) {
-@@ -784,7 +782,7 @@ static u32 __iommu_kmap(struct iommu *obj, u32 da, u32 pa, void *va,
-  * @flags:	iovma and page property
-  *
-  * Creates 1-1-1 mapping and returns @da again, which can be
-- * adjusted if 'IOVMF_DA_ANON' is set.
-+ * adjusted if 'IOVMF_DA_FIXED' is not set.
-  */
- u32 iommu_kmap(struct iommu *obj, u32 da, u32 pa, size_t bytes,
- 		 u32 flags)
-@@ -803,7 +801,6 @@ u32 iommu_kmap(struct iommu *obj, u32 da, u32 pa, size_t bytes,
- 	flags &= IOVMF_HW_MASK;
- 	flags |= IOVMF_LINEAR;
- 	flags |= IOVMF_MMIO;
--	flags |= (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
- 
- 	da = __iommu_kmap(obj, da, pa, va, bytes, flags);
- 	if (IS_ERR_VALUE(da))
-@@ -842,7 +839,7 @@ EXPORT_SYMBOL_GPL(iommu_kunmap);
-  * @flags:	iovma and page property
-  *
-  * Allocate @bytes linearly and creates 1-1-1 mapping and returns
-- * @da again, which might be adjusted if 'IOVMF_DA_ANON' is set.
-+ * @da again, which might be adjusted if 'IOVMF_DA_FIXED' is not set.
-  */
- u32 iommu_kmalloc(struct iommu *obj, u32 da, size_t bytes, u32 flags)
- {
-@@ -862,7 +859,6 @@ u32 iommu_kmalloc(struct iommu *obj, u32 da, size_t bytes, u32 flags)
- 	flags &= IOVMF_HW_MASK;
- 	flags |= IOVMF_LINEAR;
- 	flags |= IOVMF_ALLOC;
--	flags |= (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
- 
- 	da = __iommu_kmap(obj, da, pa, va, bytes, flags);
- 	if (IS_ERR_VALUE(da))
--- 
-1.7.0.4
+I really wonder what's the opinion of ARM Linux maintainer on this memory
+allocator. Russell - could you comment on it? Is this a preferred memory
+provider/allocator on ARM Linux platform? What's about still to-be-resolved
+issues with mapping memory regions for DMA transfers and different cache
+settings for each mapping?
+
+> This is getting out of hand. I think that organizing a meeting to solve this
+> mess should be on the top of the list. Companies keep on solving the same
+> problem time and again and since none of it enters the mainline kernel any
+> driver using it is also impossible to upstream.
+> 
+> All these memory-related modules have the same purpose: make it possible to
+> allocate/reserve large amounts of memory and share it between different
+> subsystems (primarily framebuffer, GPU and V4L).
+> 
+> It really shouldn't be that hard to get everyone involved together and settle
+> on a single solution (either based on an existing proposal or create a 'the
+> best of' vendor-neutral solution).
+> 
+> I am currently aware of the following solutions floating around the net
+> that all solve different parts of the problem:
+> 
+> In the kernel: GEM and TTM.
+> Out-of-tree: HWMEM, UMP, CMA, VCM, CMEM, PMEM.
+> 
+> I'm sure that last list is incomplete.
+
+Best regards
+--
+Marek Szyprowski
+Samsung Poland R&D Center
+
+
 
