@@ -1,48 +1,46 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.23]:59470 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752333Ab1C1W5x (ORCPT
+Received: from mail1.matrix-vision.com ([78.47.19.71]:40960 "EHLO
+	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753085Ab1CJPaw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Mar 2011 18:57:53 -0400
-From: Oliver Endriss <o.endriss@gmx.de>
-Reply-To: linux-media@vger.kernel.org
-To: Malcolm Priestley <tvboxspy@gmail.com>
-Subject: Re: [PATCH 2/2] STV0299 Register 02 on Opera1/Bsru6/z0194a/mantis_vp1033
-Date: Tue, 29 Mar 2011 00:34:28 +0200
-Cc: linux-media@vger.kernel.org
-References: <1301187827.2338.1.camel@localhost>
-In-Reply-To: <1301187827.2338.1.camel@localhost>
+	Thu, 10 Mar 2011 10:30:52 -0500
+Message-ID: <4D78EEA8.7060301@matrix-vision.de>
+Date: Thu, 10 Mar 2011 16:30:48 +0100
+From: Michael Jones <michael.jones@matrix-vision.de>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH v2 4/4] omap3isp: lane shifter support
+References: <1299686863-20701-1-git-send-email-michael.jones@matrix-vision.de> <201103100113.25952.laurent.pinchart@ideasonboard.com> <4D78A390.8040500@matrix-vision.de> <201103101121.40846.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201103101121.40846.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201103290034.29165@orion.escape-edv.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sunday 27 March 2011 03:03:47 Malcolm Priestley wrote:
-> Bits 4 and 5 on register 02 should always be set to 1.
+Hi Laurent,
+
+On 03/10/2011 11:21 AM, Laurent Pinchart wrote:
+> Hi Michael,
 > 
-> Opera1/Bsru6/z0194a/mantis_vp1033
+[snip]
+> I've had a closer look at the boards I have here, and it turns out one of them 
+> connects a 10-bit sensor to DATA[11:2] :-/ data_lane_shift is thus needed for 
+> it.
 > 
-> Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
-> ---
->  drivers/media/dvb/dvb-usb/opera1.c       |    2 +-
->  drivers/media/dvb/frontends/bsru6.h      |    2 +-
->  drivers/media/dvb/frontends/z0194a.h     |    2 +-
->  drivers/media/dvb/mantis/mantis_vp1033.c |    2 +-
->  4 files changed, 4 insertions(+), 4 deletions(-)
->  ...
+> I'm fine with leaving data_lane_shift out of this patch, but can you submit a 
+> second patch to add it back ? I'd rather avoid applying a patch that breaks 
+> one of my boards and then have to fix it myself :-)
 
-Acked-by: Oliver Endriss <o.endriss@gmx.de>
+OK, but in that case I'd rather incorporate it into this last patch than
+introduce a new patch for it.  I don't think it will be very complex and
+they logically belong together.  I had just been hoping to avoid
+implementing it altogether.
 
-CU
-Oliver
+-Michael
 
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
-Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
-----------------------------------------------------------------
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
