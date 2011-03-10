@@ -1,209 +1,79 @@
 Return-path: <mchehab@pedra>
-Received: from comal.ext.ti.com ([198.47.26.152]:42285 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753358Ab1CNN5a (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Mar 2011 09:57:30 -0400
-From: Manjunath Hadli <manjunath.hadli@ti.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Kevin Hilman <khilman@deeprootsystems.com>,
-	LAK <linux-arm-kernel@lists.infradead.org>,
-	Sekhar Nori <nsekhar@ti.com>
-Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: [PATCH 6/7] davinci: dm644x: add support for v4l2 video display
-Date: Mon, 14 Mar 2011 19:27:12 +0530
-Message-Id: <1300111032-17925-1-git-send-email-manjunath.hadli@ti.com>
+Received: from mailout2.samsung.com ([203.254.224.25]:36142 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750981Ab1CJKKX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Mar 2011 05:10:23 -0500
+Received: from epmmp1 (mailout2.samsung.com [203.254.224.25])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LHU00M636AL12C0@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 10 Mar 2011 18:56:45 +0900 (KST)
+Received: from jtppark ([12.23.103.64])
+ by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LHU00FLI6AKSJ@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 10 Mar 2011 18:56:45 +0900 (KST)
+Date: Thu, 10 Mar 2011 18:56:40 +0900
+From: Jeongtae Park <jtp.park@samsung.com>
+Subject: RE: [PATCH/RFC 0/2] Support controls at the subdev file handler level
+In-reply-to: <1299706041-21589-1-git-send-email-laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
+Reply-to: jtp.park@samsung.com
+Message-id: <000601cbdf09$76be8c10$643ba430$%park@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ks_c_5601-1987
+Content-language: ko
+Content-transfer-encoding: 7BIT
+References: <1299706041-21589-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Create platform devices for various video modules like venc,osd,
-vpbe and v4l2 driver for dm644x.
+Hi, all.
 
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
----
- arch/arm/mach-davinci/dm644x.c              |  130 ++++++++++++++++++++++++++-
- arch/arm/mach-davinci/include/mach/dm644x.h |    4 +
- 2 files changed, 131 insertions(+), 3 deletions(-)
+Some hardware need to handle per-filehandle level controls.
+Hans suggests add a v4l2_ctrl_handler struct v4l2_fh. It will be work fine.
+Although below patch series are for subdev, but it's great start point.
+I will try to make a patch.
 
-diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
-index 41e8866..aaa8f4d 100644
---- a/arch/arm/mach-davinci/dm644x.c
-+++ b/arch/arm/mach-davinci/dm644x.c
-@@ -619,7 +619,7 @@ static struct resource dm644x_vpfe_resources[] = {
- 	},
- };
- 
--static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
-+static u64 dm644x_video_dma_mask = DMA_BIT_MASK(32);
- static struct resource dm644x_ccdc_resource[] = {
- 	/* CCDC Base address */
- 	{
-@@ -635,7 +635,7 @@ static struct platform_device dm644x_ccdc_dev = {
- 	.num_resources  = ARRAY_SIZE(dm644x_ccdc_resource),
- 	.resource       = dm644x_ccdc_resource,
- 	.dev = {
--		.dma_mask               = &vpfe_capture_dma_mask,
-+		.dma_mask               = &dm644x_video_dma_mask,
- 		.coherent_dma_mask      = DMA_BIT_MASK(32),
- 	},
- };
-@@ -646,7 +646,127 @@ static struct platform_device dm644x_vpfe_dev = {
- 	.num_resources	= ARRAY_SIZE(dm644x_vpfe_resources),
- 	.resource	= dm644x_vpfe_resources,
- 	.dev = {
--		.dma_mask		= &vpfe_capture_dma_mask,
-+		.dma_mask		= &dm644x_video_dma_mask,
-+		.coherent_dma_mask	= DMA_BIT_MASK(32),
-+	},
-+};
-+
-+#define DM644X_OSD_REG_BASE		0x01C72600
-+
-+static struct resource dm644x_osd_resources[] = {
-+	{
-+		.start	= DM644X_OSD_REG_BASE,
-+		.end	= DM644X_OSD_REG_BASE + 0x1ff,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+};
-+
-+static struct osd_platform_data dm644x_osd_data = {
-+	.vpbe_type     = VPBE_VERSION_1,
-+};
-+
-+static struct platform_device dm644x_osd_dev = {
-+	.name		= VPBE_OSD_SUBDEV_NAME,
-+	.id		= -1,
-+	.num_resources	= ARRAY_SIZE(dm644x_osd_resources),
-+	.resource	= dm644x_osd_resources,
-+	.dev		= {
-+		.dma_mask		= &dm644x_video_dma_mask,
-+		.coherent_dma_mask	= DMA_BIT_MASK(32),
-+		.platform_data		= &dm644x_osd_data,
-+	},
-+};
-+
-+#define DM644X_VENC_REG_BASE		0x01C72400
-+
-+static struct resource dm644x_venc_resources[] = {
-+	{
-+		.start	= DM644X_VENC_REG_BASE,
-+		.end	= DM644X_VENC_REG_BASE + 0x17f,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+};
-+
-+static int dm644x_venc_setup_clock(enum vpbe_enc_timings_type type,
-+				   unsigned int mode)
-+{
-+	int ret = 0;
-+	void __iomem *vpss_clkctl_reg;
-+
-+	vpss_clkctl_reg = DAVINCI_SYSMODULE_VIRT(0x44);
-+
-+	switch (type) {
-+	case VPBE_ENC_STD:
-+		writel(0x18, vpss_clkctl_reg);
-+		break;
-+	case VPBE_ENC_DV_PRESET:
-+		switch ((unsigned int)mode) {
-+		case V4L2_DV_480P59_94:
-+		case V4L2_DV_576P50:
-+			writel(0x19, vpss_clkctl_reg);
-+			break;
-+		case V4L2_DV_720P60:
-+		case V4L2_DV_1080I60:
-+		case V4L2_DV_1080P30:
-+			/*
-+			 * For HD, use external clock source since
-+			 * HD requires higher clock rate
-+			 */
-+			writel(0xa, vpss_clkctl_reg);
-+			break;
-+		default:
-+			ret = -EINVAL;
-+			break;
-+		}
-+		break;
-+	default:
-+		ret  = -EINVAL;
-+	}
-+
-+	return ret;
-+}
-+
-+static struct resource dm644x_v4l2_disp_resources[] = {
-+	{
-+		.start	= IRQ_VENCINT,
-+		.end	= IRQ_VENCINT,
-+		.flags	= IORESOURCE_IRQ,
-+	},
-+};
-+
-+static struct platform_device dm644x_vpbe_display = {
-+	.name		= "vpbe-v4l2",
-+	.id		= -1,
-+	.num_resources	= ARRAY_SIZE(dm644x_v4l2_disp_resources),
-+	.resource	= dm644x_v4l2_disp_resources,
-+	.dev		= {
-+		.dma_mask		= &dm644x_video_dma_mask,
-+		.coherent_dma_mask	= DMA_BIT_MASK(32),
-+	},
-+};
-+
-+struct venc_platform_data dm644x_venc_pdata = {
-+	.venc_type	= VPBE_VERSION_1,
-+	.setup_clock	= dm644x_venc_setup_clock,
-+};
-+
-+static struct platform_device dm644x_venc_dev = {
-+	.name		= VPBE_VENC_SUBDEV_NAME,
-+	.id		= -1,
-+	.num_resources	= ARRAY_SIZE(dm644x_venc_resources),
-+	.resource	= dm644x_venc_resources,
-+	.dev		= {
-+		.dma_mask		= &dm644x_video_dma_mask,
-+		.coherent_dma_mask	= DMA_BIT_MASK(32),
-+		.platform_data		= &dm644x_venc_pdata,
-+	},
-+};
-+
-+static struct platform_device dm644x_vpbe_dev = {
-+	.name		= "vpbe_controller",
-+	.id		= -1,
-+	.dev		= {
-+		.dma_mask		= &dm644x_video_dma_mask,
- 		.coherent_dma_mask	= DMA_BIT_MASK(32),
- 	},
- };
-@@ -783,6 +903,10 @@ static struct platform_device *dm644x_video_devices[] __initdata = {
- 	&dm644x_vpss_device,
- 	&dm644x_ccdc_dev,
- 	&dm644x_vpfe_dev,
-+	&dm644x_osd_dev,
-+	&dm644x_venc_dev,
-+	&dm644x_vpbe_dev,
-+	&dm644x_vpbe_display,
- };
- 
- int __init dm644x_init_video(struct vpfe_config *vpfe_cfg)
-diff --git a/arch/arm/mach-davinci/include/mach/dm644x.h b/arch/arm/mach-davinci/include/mach/dm644x.h
-index 29a9e24..d18a2e5 100644
---- a/arch/arm/mach-davinci/include/mach/dm644x.h
-+++ b/arch/arm/mach-davinci/include/mach/dm644x.h
-@@ -26,6 +26,10 @@
- #include <mach/hardware.h>
- #include <mach/asp.h>
- #include <media/davinci/vpfe_capture.h>
-+#include <media/davinci/vpbe_types.h>
-+#include <media/davinci/vpbe.h>
-+#include <media/davinci/vpss.h>
-+#include <media/davinci/vpbe_osd.h>
- 
- #define DM644X_EMAC_BASE		(0x01C80000)
- #define DM644X_EMAC_MDIO_BASE		(DM644X_EMAC_BASE + 0x4000)
--- 
-1.6.2.4
+If v4l2 control framework can be handle per-filehandle controls,
+a driver could be handle per-buffer level controls also. (with VB2 callback
+operation)
+
+Best Regards,
+
+/jtpark
+
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Laurent Pinchart
+> Sent: Thursday, March 10, 2011 6:27 AM
+> To: linux-media@vger.kernel.org
+> Cc: hverkuil@xs4all.nl; jaeryul.oh@samsung.com
+> Subject: [PATCH/RFC 0/2] Support controls at the subdev file handler level
+> 
+> Hi everybody,
+> 
+> Here's a patch set that adds support for per-file-handle controls on V4L2
+> subdevs. The patches are work in progress, but I'm still sending them as
+> Samsung expressed interest in a similar feature on V4L2 device nodes.
+> 
+> Laurent Pinchart (2):
+>   v4l: subdev: Move file handle support to drivers
+>   v4l: subdev: Add support for file handler control handler
+> 
+>  drivers/media/video/v4l2-subdev.c |  144 +++++++++++++++++++-------------
+----
+>  include/media/v4l2-subdev.h       |   10 ++-
+>  2 files changed, 84 insertions(+), 70 deletions(-)
+> 
+> --
+> Regards,
+> 
+> Laurent Pinchart
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
