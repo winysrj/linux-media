@@ -1,61 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:56473 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750759Ab1C0ED0 (ORCPT
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:47786 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753194Ab1CJQ1p (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Mar 2011 00:03:26 -0400
-Subject: [GIT PULL for 2.6.39] cx18: Make RF analog TV work for newer
- HVR-1600 models
-From: Andy Walls <awalls@md.metrocast.net>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Thu, 10 Mar 2011 11:27:45 -0500
+Received: by qyg14 with SMTP id 14so1590671qyg.19
+        for <linux-media@vger.kernel.org>; Thu, 10 Mar 2011 08:27:44 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20110310170221.2bc8c2b8@borg.bxl.tuxicoman.be>
+References: <201102280102.17852.malte.gell@gmx.de>
+	<4D6AEC35.8000202@iki.fi>
+	<20110310170221.2bc8c2b8@borg.bxl.tuxicoman.be>
+Date: Thu, 10 Mar 2011 17:27:44 +0100
+Message-ID: <AANLkTin_EOL1SmOJnqSUhVEVAzZs85Z=xV1fJu0KUBj+@mail.gmail.com>
+Subject: Re: Well supported USB DVB-C device?
+From: Markus Rechberger <mrechberger@gmail.com>
+To: Guy Martin <gmsoft@tuxicoman.be>
+Cc: Antti Palosaari <crope@iki.fi>, Malte Gell <malte.gell@gmx.de>,
 	linux-media@vger.kernel.org
-Cc: Jeff Campbell <jac1dlists@gmail.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 27 Mar 2011 00:02:40 -0400
-Message-ID: <1301198560.15581.11.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Mauro,
+On Thu, Mar 10, 2011 at 5:02 PM, Guy Martin <gmsoft@tuxicoman.be> wrote:
+> On Mon, 28 Feb 2011 02:28:37 +0200
+> Antti Palosaari <crope@iki.fi> wrote:
+>
+>>
+>> I am not sure which is status of TT CT-3650, it could be other one
+>> which is working.
+>>
+>
+> The CT-3650 works well. I belive everything works (CI, IR) but DVB-T is
+> not yet implemented on that one.
+>
 
-Please pull the following changes that fix RF analog TV for the newest
-models of HVR-1600 and increment the cx18 driver version number.  The
-DTV RF tuner side was already working with Devin's previous change, but
-analog RF side did not work.
+without AC Adapter Sundtek MediaTV Pro (DVB-C, DVB-T, AnalogTV,
+FM-Radio, Composite, S-Video) / Digital Home (DVB-C, DVB-T only),
+supported from Linux 2.6.15 - (any newer System). Full standby after
+15 seconds inactivity. Also supported across many different
+Architectures.
+Driver installation should not take longer than 10 seconds on just
+about any system.
+Some multimedia distributions already ship direct support for it.
 
-Thanks go to Jeff Campbell and Mike Bradley for reporting the problem,
-and also to Mike Bradley for doing a lot of the legwork to figure out
-the tuner reset GPIO line, the demodulator I2C address, and that the
-GPIOs have to be reinitialized after a cardtype switch.
-
-Jeff also provided me with one of the newer HVR-1600's, so I was able to
-test the changes and make addtional fixes for proper analog RF tuner
-video standard setup.  These newer HVR-1600's have a worldwide analog
-tuner. :)
-
-Regards,
-Andy
-
-
-The following changes since commit b328817a2a391d1e879c4252cd3f11a352d3f3bc:
-
-  [media] DM04/QQBOX Fix issue with firmware release and cold reset (2011-03-22 19:48:41 -0300)
-
-are available in the git repository at:
-  ssh://linuxtv.org/git/awalls/media_tree.git cx18_39
-
-Andy Walls (2):
-      cx18: Make RF analog TV work for newer HVR-1600 models with silicon tuners
-      cx18: Bump driver version, since a new class of HVR-1600 is properly supported
-
- drivers/media/video/cx18/Kconfig        |    3 +++
- drivers/media/video/cx18/cx18-cards.c   |   18 ++++++++++++++----
- drivers/media/video/cx18/cx18-cards.h   |    2 +-
- drivers/media/video/cx18/cx18-driver.c  |   25 +++++++++++++++++++++++--
- drivers/media/video/cx18/cx18-version.h |    2 +-
- 5 files changed, 42 insertions(+), 8 deletions(-)
-
-
+BR,
+Markus
