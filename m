@@ -1,70 +1,57 @@
 Return-path: <mchehab@pedra>
-Received: from mx4.wp.pl ([212.77.101.8]:39113 "EHLO mx4.wp.pl"
+Received: from lo.gmane.org ([80.91.229.12]:43117 "EHLO lo.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754212Ab1CBP5K (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Mar 2011 10:57:10 -0500
-Received: from dnx210.neoplus.adsl.tpnet.pl (HELO [192.168.2.5]) (laurentp@[83.24.105.210])
-          (envelope-sender <laurentp@wp.pl>)
-          by smtp.wp.pl (WP-SMTPD) with AES256-SHA encrypted SMTP
-          for <linux-media@vger.kernel.org>; 2 Mar 2011 16:57:07 +0100
-Message-ID: <4D6E68D1.6050209@wp.pl>
-Date: Wed, 02 Mar 2011 16:57:05 +0100
-From: "W.P." <laurentp@wp.pl>
-MIME-Version: 1.0
+	id S1753348Ab1CJQAK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Mar 2011 11:00:10 -0500
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1PxiHW-0005Pb-2E
+	for linux-media@vger.kernel.org; Thu, 10 Mar 2011 17:00:06 +0100
+Received: from 79-133-11-156.bredband.aland.net ([79.133.11.156])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 10 Mar 2011 17:00:06 +0100
+Received: from dennis.kurten by 79-133-11-156.bredband.aland.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 10 Mar 2011 17:00:06 +0100
 To: linux-media@vger.kernel.org
-Subject: Big ptoblem with small webcam
-Content-Type: text/plain; charset=UTF-8
+From: Dennis Kurten <dennis.kurten@gmail.com>
+Subject: Re: Well supported USB DVB-C device?
+Date: Thu, 10 Mar 2011 15:46:51 +0000 (UTC)
+Message-ID: <loom.20110310T155515-682@post.gmane.org>
+References: <201102280102.17852.malte.gell@gmx.de> <4D6AEC35.8000202@iki.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi there,
-I just got an Creative VGA (640x480) USB Live Webcam, VF0520.
+Antti Palosaari <crope <at> iki.fi> writes:
 
-lsusb (partial):
+> 
+> Anysee E30 C Plus is supported as far as I know.
+> 
+> Note that new revision of Anysee E30 Combo Plus is no longer supported 
+> since they changed to new NXP silicon tuner. E30 Combo Plus and E30 C 
+> Plus are different devices.
+> 
 
-Bus 003 Device 007: ID 041e:406c Creative Technology, Ltd
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.00
-  bDeviceClass          239 Miscellaneous Device
-  bDeviceSubClass         2 ?
-  bDeviceProtocol         1 Interface Association
-  bMaxPacketSize0        64
-  idVendor           0x041e Creative Technology, Ltd
-  idProduct          0x406c
-  bcdDevice           10.19
-  iManufacturer           1 Creative Labs
-  iProduct                3 VF0520 Live! Cam Sync
-  iSerial                 0
-  bNumConfigurations      1
+I might have some useful info on this, since I bought a recent 
+Anysee E30 C earlier this week.
 
-lsmod | grep vid:
-uvcvideo               50184  0
-compat_ioctl32          5120  1 uvcvideo
-videodev               32000  1 uvcvideo
-v4l1_compat            15876  2 uvcvideo,videodev
+The unit does not seem to work out of the box (tested on three different 
+kernels (2.6.32, 2.6.33 & 2.6.35). It registers as having a TDA10023 
+frontend and also loads modules for zl10353 and mt352.
 
-uname -a (kernel from Fedora 10):
-[root@laurent-home ~]# uname -a
-Linux laurent-home 2.6.27.5-117.fc10.i686 #1 SMP Tue Nov 18 12:19:59 EST
-2008 i686 athlon i386 GNU/Linux
+Tuning fails however and the device info indicates rev1.0 which means 
+something might have changed. The funny thing is that in windows it shows 
+up as a DVB-C/T device and you can tune to both cable and terrestrial!!
 
-Problem: device nodes are created, but NO video in gmplayer, tvtime
-complains: can't open /dev/video0.
+Could this mean that it is actually the same hardware as a Combo? 
+I tried to check with a distributor and got a message that new devices 
+could have the following components: DNOD44CDV086A, TDA18212.
 
-Only trace in syslog is:
+I plan to return the unit unless somebody knows if there's any hope
+of getting it to work with existing drivers.
 
-Mar  2 16:26:56 laurent-home kernel: uvcvideo: Failed to submit URB 0 (-28).
-
-Webcam is connected to VIA USB 2.0 controller through a USB 2.0 hub.
-
-What is strange, two days ago I tried apparently the same (model VFxxxx)
-with SUCCESS.
-Device seems working in Windoze (Ekiga).
-
-What should I check/ do?
-
-W.P.
 
