@@ -1,76 +1,42 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.samsung.com ([203.254.224.25]:42318 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752284Ab1CNI7V (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33122 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751750Ab1CJQAy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Mar 2011 04:59:21 -0400
-Date: Mon, 14 Mar 2011 09:28:28 +0100
-From: Kamil Debski <k.debski@samsung.com>
-Subject: RE: [PATCH v2 3/8] ARM: S5PV310: Add memory map support for MFC v5.1
-In-reply-to: <1299676567-14194-4-git-send-email-jtp.park@samsung.com>
-To: 'Jeongtae Park' <jtp.park@samsung.com>,
-	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: jaeryul.oh@samsung.com, kgene.kim@samsung.com, ben-linux@fluff.org,
-	jonghun.han@samsung.com,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <002801cbe221$cd328770$67979650$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: en-gb
-Content-transfer-encoding: 7BIT
-References: <1299676567-14194-1-git-send-email-jtp.park@samsung.com>
- <1299676567-14194-4-git-send-email-jtp.park@samsung.com>
+	Thu, 10 Mar 2011 11:00:54 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: Re: mt9p031 support for Beagleboard.
+Date: Thu, 10 Mar 2011 17:01:19 +0100
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	javier Martin <javier.martin@vista-silicon.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <AANLkTi=8iEa4ZXvh1SqL8XdHuB2YcDAxXAqouJA2JriV@mail.gmail.com> <201103101644.23547.laurent.pinchart@ideasonboard.com> <19F8576C6E063C45BE387C64729E739404E1F52A88@dbde02.ent.ti.com>
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404E1F52A88@dbde02.ent.ti.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201103101701.19396.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
-
-It looks ok for me. Thanks for fixing the patch.
-
-> From: Jeongtae Park [mailto:jtp.park@samsung.com]
-> Subject: [PATCH v2 3/8] ARM: S5PV310: Add memory map support for MFC
-> v5.1
+On Thursday 10 March 2011 16:47:46 Hiremath, Vaibhav wrote:
+> On Thursday, March 10, 2011 9:14 PM Laurent Pinchart wrote:
+> >
+> > I'm curious about the Beagleboard code, as the camera module is an
+> > expansion board you obviously can't hardcode support for it in the board
+> > file. How do you plan to handle that ?
 > 
-> This patch adds memroy map support for MFC v5.1.
-> 
-> Reviewed-by: Peter Oh <jaeryul.oh@samsung.com>
-> Signed-off-by: Jeongtae Park <jtp.park@samsung.com>
-> Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-> Cc: Kamil Debski <k.debski@samsung.com>
+> I did not understand your concern here, I already have MT9V113 sensor
+> running with Media-controller (YUV format) on top of beagleXm board.
 
-Acked-by: Kamil Debski <k.debski@samsung.com>
+It's easy to patch the board-omap3beagle.c file to support the sensor, but how 
+can that patch be pushed to mainline ? We have a wide range of sensors that 
+can be connected to the Beagleboard, so this needs to be somehow configurable.
 
-Best regards,
---
-Kamil Debski
-Linux Platform Group
-Samsung Poland R&D Center
+-- 
+Regards,
 
-> ---
->  arch/arm/mach-s5pv310/include/mach/map.h |    3 +++
->  1 files changed, 3 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-s5pv310/include/mach/map.h b/arch/arm/mach-
-> s5pv310/include/mach/map.h
-> index 74d4006..fa7866a 100644
-> --- a/arch/arm/mach-s5pv310/include/mach/map.h
-> +++ b/arch/arm/mach-s5pv310/include/mach/map.h
-> @@ -73,6 +73,8 @@
->  #define S5PV310_PA_SROMC		(0x12570000)
->  #define S5P_PA_SROMC			S5PV310_PA_SROMC
-> 
-> +#define S5PV310_PA_MFC			0x13400000
-> +
->  /* S/PDIF */
->  #define S5PV310_PA_SPDIF	0xE1100000
-> 
-> @@ -145,5 +147,6 @@
->  #define S3C_PA_WDT			S5PV310_PA_WATCHDOG
->  #define S5P_PA_MIPI_CSIS0		S5PV310_PA_MIPI_CSIS0
->  #define S5P_PA_MIPI_CSIS1		S5PV310_PA_MIPI_CSIS1
-> +#define S5P_PA_MFC			S5PV310_PA_MFC
-> 
->  #endif /* __ASM_ARCH_MAP_H */
-> --
-> 1.7.1
-
+Laurent Pinchart
