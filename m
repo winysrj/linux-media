@@ -1,34 +1,49 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.1.48]:63778 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751360Ab1CYPTN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Mar 2011 11:19:13 -0400
-Received: from maxwell.research.nokia.com (maxwell.research.nokia.com [172.21.50.162])
-	by mgw-sa02.nokia.com (Switch-3.4.3/Switch-3.4.3) with ESMTP id p2PFJBtB030756
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 25 Mar 2011 17:19:12 +0200
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by maxwell.research.nokia.com (Postfix) with ESMTP id B489537FCDA
-	for <linux-media@vger.kernel.org>; Fri, 25 Mar 2011 17:19:11 +0200 (EET)
-Message-ID: <4D8CB26F.1040201@nokia.com>
-Date: Fri, 25 Mar 2011 17:19:11 +0200
-From: Sakari Ailus <sakari.ailus@nokia.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:65134 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753290Ab1CJTnp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Mar 2011 14:43:45 -0500
+Received: by wwa36 with SMTP id 36so2358989wwa.1
+        for <linux-media@vger.kernel.org>; Thu, 10 Mar 2011 11:43:44 -0800 (PST)
+Message-ID: <4D7929EC.7080003@gmail.com>
+Date: Thu, 10 Mar 2011 20:43:40 +0100
+From: Sylwester Nawrocki <snjw23@gmail.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/4] omap iommu: Check existence of arch_iommu
-References: <4D8CB106.7030608@maxwell.research.nokia.com> <1301066005-7882-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <1301066005-7882-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: jtp.park@samsung.com
+CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH/RFC 0/2] Support controls at the subdev file handler level
+References: <1299706041-21589-1-git-send-email-laurent.pinchart@ideasonboard.com> <000601cbdf09$76be8c10$643ba430$%park@samsung.com>
+In-Reply-To: <000601cbdf09$76be8c10$643ba430$%park@samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Sakari Ailus wrote:
-> Check that the arch_iommu has been installed before trying to use it. This
-> will lead to kernel oops if the arch_iommu isn't there.
+Hi,
 
-This was intended to go to linux-omap. Sorry for the noise.
+On 03/10/2011 10:56 AM, Jeongtae Park wrote:
+> Hi, all.
+> 
+> Some hardware need to handle per-filehandle level controls.
+> Hans suggests add a v4l2_ctrl_handler struct v4l2_fh. It will be work fine.
+> Although below patch series are for subdev, but it's great start point.
+> I will try to make a patch.
+> 
+> If v4l2 control framework can be handle per-filehandle controls,
+> a driver could be handle per-buffer level controls also. (with VB2 callback
+> operation)
+> 
 
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+Can you elaborate to what kind of per buffer controls are you referring to?
+Using optional meta data planes is expected to be a proper way to do such
+things. Either to pass meta data from application to driver or in the opposite
+direction.
+
+I can't see how the per buffer controls can be dependent on a per file handle
+control support. Perhaps this is only specific to some selected devices.
+
+--
+Regards,
+Sylwester Nawrocki
+
