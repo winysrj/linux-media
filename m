@@ -1,102 +1,22 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36160 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753257Ab1CQLEH (ORCPT
+Received: from postbus02.c.iops.be ([212.53.5.82]:55585 "EHLO
+	postbus02.versateladsl.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750925Ab1CJHin (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Mar 2011 07:04:07 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Michael Jones <michael.jones@matrix-vision.de>
-Subject: Re: [PATCH v3 4/4] omap3isp: lane shifter support
-Date: Thu, 17 Mar 2011 12:04:10 +0100
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-References: <1299830749-7269-1-git-send-email-michael.jones@matrix-vision.de> <201103161846.35599.laurent.pinchart@ideasonboard.com> <4D81DD6C.1050706@matrix-vision.de>
-In-Reply-To: <4D81DD6C.1050706@matrix-vision.de>
+	Thu, 10 Mar 2011 02:38:43 -0500
+Cc: recipient list not shown:;
+Message-ID: <1299742715.4d787ffb97d66@webmail.unitedtelecom.be>
+Date: Thu, 10 Mar 2011 15:38:35 +0800
+From: WESTERN UNION <info@yahoo.com>
+Reply-to: westernu_online2@hotmail.co.uk
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201103171204.10785.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thursday 17 March 2011 11:07:40 Michael Jones wrote:
-> On 03/16/2011 06:46 PM, Laurent Pinchart wrote:
-> > On Wednesday 16 March 2011 18:08:04 Sakari Ailus wrote:
-> >> Laurent Pinchart wrote:
-> >>> Hi Sakari,
-> >>> 
-> >>>>> +	return in_info->bpp - out_info->bpp + additional_shift <= 6;
-> >>>> 
-> >>>> Currently there are no formats that would behave badly in this check?
-> >>>> Perhaps it'd be good idea to take that into consideration. The shift
-> >>>> that can be done is even.
-> >>> 
-> >>> I've asked Michael to remove the check because we have no misbehaving
-> >>> formats
-> >>> 
-> >>> :-) Do you think we need to add a check back ?
-> >> 
-> >> I think it would be helpful in debugging if someone decides to attach a
-> >> sensor which supports a shift of non-even bits (8 and 9 bits, for
-> >> example). In any case an invalid configuration is possible in such case,
-> >> and I don't think that should be allowed, should it?
-> > 
-> > I agree it shouldn't be allowed, but the ISP driver doesn't support
-> > non-even widths at the moment, so there's no big risk. There could be an
-> > issue when a non-even width is added to the driver if the developer
-> > forgets to update the shift code. Maybe a comment in ispvideo.c above
-> > the big formats array would help making sure this is not forgotten ?
-> 
-> I think now that additional_shift is also being considered which comes
-> from the board file, it makes sense to reintroduce the check for an even
-> shift.  As Sakari points out, this would be helpful for debugging if
-> someone tries using .data_lane_shift which is odd.
 
-How should we handle such a broken .data_lane_shift value ? Always refuse to 
-start streaming (maybe with a kernel log message) ? Or should we catch it in 
-isp_register_entities() instead ?
 
-> >>>>> @@ -247,6 +296,7 @@ static int isp_video_validate_pipeline(struct
-> >>>>> isp_pipeline *pipe)
-> >>>>> 
-> >>>>>  		return -EPIPE;
-> >>>>>  	
-> >>>>>  	while (1) {
-> >>>>> 
-> >>>>> +		unsigned int link_has_shifter;
-> >>>> 
-> >>>> link_has_shifter is only used in one place. Would it be cleaner to
-> >>>> test below if it's the CCDC? A comment there could be nice, too.
-> >>> 
-> >>> I would like that better as well, but between the line where
-> >>> link_has_shifter is set and the line where it is checked, the subdev
-> >>> variable changes so we can't just check subdev == &isp->isp_ccdc.subdev
-> >>> there.
-> >> 
-> >> That's definitely valid. I take my comment back. The variable could be
-> >> called is_ccdc, though, since only the CCDC has that feature. No need to
-> >> generalise. :-)
-> 
-> But this is not a feature of the CCDC, the lane shifter is outside of
-> the CCDC.  Each 'while (1)' iteration handles 2 subdevs on each side of
-> one link, so I think it makes sense for a particular iteration to say
-> "this link has", especially when the subdev ptr changes values between
-> the assignment of this var and its usage.  "is_ccdc" is vague as to
-> which side of the CCDC we're on.  'link_has_shifter' wasn't intended to
-> be general, it was supposed to mean 'this_is_the_link_with_the_shifter'.
->  If you want to be more specific where that is in the pipeline, maybe
-> 'ccdc_sink_link'?  If you just want it to sound less like "this is one
-> of the links with a shifter" and more like "We've found _the_ link with
-> _the_ shifter", it could just be 'shifter_link'.
-
-shifter_link sounds good to me.
-
-> After we iron these two things out, are you guys ready to see v4?
-
-That's fine with me.
-
--- 
-Regards,
-
-Laurent Pinchart
+You have earned 1,000,000.00 USD,Send info:Names,Age,Country,phone number
+To:(westernu_online2@hotmail.co.uk)
