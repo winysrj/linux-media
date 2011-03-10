@@ -1,98 +1,78 @@
 Return-path: <mchehab@pedra>
-Received: from mail1-out1.atlantis.sk ([80.94.52.55]:58457 "EHLO
-	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752016Ab1CNK2L (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:56707 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751310Ab1CJPuT convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Mar 2011 06:28:11 -0400
-From: Ondrej Zary <linux@rainbow-software.org>
-To: "Hans Verkuil" <hverkuil@xs4all.nl>
-Subject: Re: [alsa-devel] radio-maestro broken (conflicts with snd-es1968)
-Date: Mon, 14 Mar 2011 11:28:01 +0100
-Cc: "Takashi Iwai" <tiwai@suse.de>, jirislaby@gmail.com,
-	alsa-devel@alsa-project.org,
-	"Kernel development list" <linux-kernel@vger.kernel.org>,
-	linux-media@vger.kernel.org
-References: <201103121919.05657.linux@rainbow-software.org> <s5hei6ahvtu.wl%tiwai@suse.de> <df650e295afbf5651be743e58b06eb5b.squirrel@webmail.xs4all.nl>
-In-Reply-To: <df650e295afbf5651be743e58b06eb5b.squirrel@webmail.xs4all.nl>
+	Thu, 10 Mar 2011 10:50:19 -0500
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: javier Martin <javier.martin@vista-silicon.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Date: Thu, 10 Mar 2011 21:20:12 +0530
+Subject: RE: mt9p031 support for Beagleboard.
+Message-ID: <19F8576C6E063C45BE387C64729E739404E1F52A8C@dbde02.ent.ti.com>
+References: <AANLkTi=8iEa4ZXvh1SqL8XdHuB2YcDAxXAqouJA2JriV@mail.gmail.com>
+In-Reply-To: <AANLkTi=8iEa4ZXvh1SqL8XdHuB2YcDAxXAqouJA2JriV@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201103141128.01259.linux@rainbow-software.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Monday 14 March 2011, Hans Verkuil wrote:
-> > At Sat, 12 Mar 2011 19:52:39 +0100,
-> >
-> > Hans Verkuil wrote:
-> >> On Saturday, March 12, 2011 19:19:00 Ondrej Zary wrote:
-> >> > Hello,
-> >> > the radio-maestro driver is badly broken. It's intended to drive the
-> >>
-> >> radio on
-> >>
-> >> > MediaForte ESS Maestro-based sound cards with integrated radio (like
-> >> > SF64-PCE2-04). But it conflicts with snd_es1968, ALSA driver for the
-> >>
-> >> sound
-> >>
-> >> > chip itself.
-> >> >
-> >> > If one driver is loaded, the other one does not work - because a
-> >>
-> >> driver is
-> >>
-> >> > already registered for the PCI device (there is only one). This was
-> >>
-> >> probably
-> >>
-> >> > broken by conversion of PCI probing in 2006:
-> >> > ttp://lkml.org/lkml/2005/12/31/93
-> >> >
-> >> > How to fix it properly? Include radio functionality in snd-es1968 and
-> >>
-> >> delete
-> >>
-> >> > radio-maestro?
-> >>
-> >> Interesting. I don't know anyone among the video4linux developers who
-> >> has
-> >> this hardware, so the radio-maestro driver hasn't been tested in at
-> >> least
-> >> 6 or 7 years.
-> >>
-> >> The proper fix would be to do it like the fm801.c alsa driver does: have
-> >> the radio functionality as an i2c driver. In fact, it would not surprise
-> >> me at all if you could use the tea575x-tuner.c driver (in
-> >> sound/i2c/other)
-> >> for the es1968 and delete the radio-maestro altogether.
-> >
-> > I guess simply porting radio-maestro codes into snd-es1968 would work
-> > without much hustles, and it's a bit safe way to go for now; smaller
-> > changes have less chance for breakage, and as little people seem using
-> > this driver, it'd be better to take a safer option, IMO.
->
-> I assume someone has hardware since someone reported this breakage. So try
-> to use tuner-tea575x for the es1968. It shouldn't be too difficult.
-> Additional cleanup should probably wait until we find a tester for the
-> fm801 as well.
 
-I have the hardware - both ES1968 (SF64-PCE2-04) and FM801 cards (SF64-PCR) 
-with these tuners. I remember fixing mute in tea5757x-tuner back in 2009 
-(testing it on SF64-PCR).
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of javier Martin
+> Sent: Thursday, March 10, 2011 8:55 PM
+> To: linux-media@vger.kernel.org
+> Cc: Guennadi Liakhovetski
+> Subject: mt9p031 support for Beagleboard.
+> 
+> Hi,
+> we are going to receive a Beagleaboard xM board in a couple of days.
+> One of the things we would like to test is video capture.
+> 
+> When it comes to the DM3730 SoC, it seems the support is given through
+> these two files:
+> http://lxr.linux.no/#linux+v2.6.37.3/drivers/media/video/davinci/vpfe_capt
+> ure.c
+> --> to capture from sensor
+> http://lxr.linux.no/#linux+v2.6.37.3/drivers/media/video/davinci/dm644x_cc
+> dc.c
+> --> to convert from Bayer RGB to YUV
 
-> I don't like the idea to duplicate code.
+[Hiremath, Vaibhav] Martin,
 
-I don't like that either. I've done a quick hack - copied radio support from 
-fm801 and radio_bits_get() and radio_bits_set() from radio-maestro to es1968 
-and it seems to basically work.
-Now I just need some more time to finish it, then move everything good from 
-radio-maestro to tea575x-tuner and delete radio-maestro.
+All above driver files are not applicable for AM/DM37x ISP camera module, you should be looking at driver/media/video/omap3isp/
 
-IIRC, the TEA5757 tuner is also present on at least one ISA radio card - 
-SF16-FMR2 (which I also have).
-
--- 
-Ondrej Zary
+Thanks,
+Vaibhav
+> 
+> On the other hand, the sensor we would like to test is mt9p031 which
+> comes with LI-5M03, a module that can be attached to Beagleboard xM
+> directly:
+> https://www.leopardimaging.com/Beagle_Board_xM_Camera.html
+> 
+> By a lot of googling I found this version of a driver for mt9p031
+> which is developed by Guennadi Liakhovetski. It is located in a 2.6.32
+> based branch:
+> http://arago-project.org/git/projects/?p=linux-
+> davinci.git;a=blob;f=drivers/media/video/mt9p031.c;h=66b5e54d0368052bf7679
+> 6aa846e9464e42204bb;hb=HEAD
+> 
+> The question is, what does this driver lack for not entering into
+> mainline? We would be very interested on helping it make it.
+>  
+> --
+> Javier Martin
+> Vista Silicon S.L.
+> CDTUC - FASE C - Oficina S-345
+> Avda de los Castros s/n
+> 39005- Santander. Cantabria. Spain
+> +34 942 25 32 60
+> www.vista-silicon.com
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
