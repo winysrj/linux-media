@@ -1,55 +1,58 @@
 Return-path: <mchehab@pedra>
-Received: from mo-p00-ob.rzone.de ([81.169.146.161]:54544 "EHLO
-	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753789Ab1CLOFM (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:37666 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752759Ab1CJM3W (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Mar 2011 09:05:12 -0500
-From: Ralph Metzler <rjkm@metzlerbros.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Message-ID: <19835.32151.116648.554824@morden.metzler>
-Date: Sat, 12 Mar 2011 15:05:11 +0100
-To: Andreas Oberritter <obi@linuxtv.org>
-Cc: Martin Vidovic <xtronom@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] Ngene cam device name
-In-Reply-To: <4D7B7524.2050108@linuxtv.org>
-References: <alpine.LNX.2.00.1103101608030.9782@hp8540w.home>
-	<4D7A452C.7020700@linuxtv.org>
-	<4D7A97BB.4020704@gmail.com>
-	<4D7B7524.2050108@linuxtv.org>
+	Thu, 10 Mar 2011 07:29:22 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from eu_spt1 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LHU008CWDCVKP80@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 10 Mar 2011 12:29:19 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LHU00COIDCUQZ@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 10 Mar 2011 12:29:18 +0000 (GMT)
+Date: Thu, 10 Mar 2011 13:28:42 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 3/3] v4l2: vb2-dma-sg: fix potential security hole
+In-reply-to: <1299760122-29493-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	andrzej.p@samsung.com, pawel@osciak.com
+Message-id: <1299760122-29493-4-git-send-email-m.szyprowski@samsung.com>
+References: <1299760122-29493-1-git-send-email-m.szyprowski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Andreas Oberritter writes:
- > On 03/11/2011 10:44 PM, Martin Vidovic wrote:
- > > Andreas Oberritter wrote:
- > >> It's rather unintuitive that some CAMs appear as ca0, while others as
- > >> cam0.
- > >>   
- > > Ngene CI appears as both ca0 and cam0 (or sec0). The ca0 node is used
- > > as usual, to setup the CAM. The cam0 (or sec0) node is used to read/write
- > > transport stream. To me it  looks like an extension of the current API.
- > 
- > I see. This raises another problem. How to find out, which ca device
- > cam0 relates to, in case there are more ca devices than cam devices?
- > 
+From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
 
-They should be in different adapterX directories. 
-Even on the cards where you can connect up to 4 dual frontends or CAM adapters
-I currently use one adapter directory for every frontend and CAM.
+Memory allocated by alloc_page() function might contain some potentially
+important data from other system processes. The patch adds a flag to
+zero the allocated page before giving it to videobuf2 (and then to
+userspace).
 
-If you want to "save" adapters one could put them in the same
-directory and caX would belong to camX. 
-More ca than cam devices could only occur on cards with mixed old and
-new style hardware. I am not aware of such cards.
+Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+ drivers/media/video/videobuf2-dma-sg.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-I think there are cards with dual frontend and two CAM adapters where
-normally data from frontendX is passed through caX (they are in the same adapter
-directory) but the paths can also be switched. I do not now how this is
-handled.
-
-
-Regards,
-Ralph
-
+diff --git a/drivers/media/video/videobuf2-dma-sg.c b/drivers/media/video/videobuf2-dma-sg.c
+index d5311ff..b2d9485 100644
+--- a/drivers/media/video/videobuf2-dma-sg.c
++++ b/drivers/media/video/videobuf2-dma-sg.c
+@@ -62,7 +62,7 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size)
+ 		goto fail_pages_array_alloc;
+ 
+ 	for (i = 0; i < buf->sg_desc.num_pages; ++i) {
+-		buf->pages[i] = alloc_page(GFP_KERNEL);
++		buf->pages[i] = alloc_page(GFP_KERNEL | __GFP_ZERO);
+ 		if (NULL == buf->pages[i])
+ 			goto fail_pages_alloc;
+ 		sg_set_page(&buf->sg_desc.sglist[i],
+-- 
+1.7.1.569.g6f426
