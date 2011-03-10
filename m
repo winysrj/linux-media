@@ -1,96 +1,53 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:64161 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752062Ab1CEO3M (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Mar 2011 09:29:12 -0500
-Received: by wyg36 with SMTP id 36so3006248wyg.19
-        for <linux-media@vger.kernel.org>; Sat, 05 Mar 2011 06:29:11 -0800 (PST)
-Message-ID: <4D7248B4.9090003@gmail.com>
-Date: Sat, 05 Mar 2011 15:29:08 +0100
-From: Sylwester Nawrocki <snjw23@gmail.com>
-MIME-Version: 1.0
-To: David Cohen <dacohen@gmail.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	alsa-devel@alsa-project.org,
-	Sakari Ailus <sakari.ailus@retiisi.org.uk>,
-	Pawel Osciak <pawel@osciak.com>
-Subject: Re: [GIT PULL FOR 2.6.39] Media controller and OMAP3 ISP driver
-References: <201102171606.58540.laurent.pinchart@ideasonboard.com>	<201103031125.06419.laurent.pinchart@ideasonboard.com>	<4D71471D.6060808@redhat.com>	<201103051252.12342.hverkuil@xs4all.nl> <AANLkTi=SS3CBkKUdovU33SQi=s9gNprZszKaMrkRGqGy@mail.gmail.com>
-In-Reply-To: <AANLkTi=SS3CBkKUdovU33SQi=s9gNprZszKaMrkRGqGy@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:36665 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752690Ab1CJM3V (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Mar 2011 07:29:21 -0500
+Received: from spt2.w1.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LHU00K2PDCU54@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 10 Mar 2011 12:29:19 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LHU00HBVDCU0Z@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 10 Mar 2011 12:29:18 +0000 (GMT)
+Date: Thu, 10 Mar 2011 13:28:39 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 0/3] Another set of videobuf2 hotfixes
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	andrzej.p@samsung.com, pawel@osciak.com
+Message-id: <1299760122-29493-1-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi David,
+Hello!
 
-On 03/05/2011 02:04 PM, David Cohen wrote:
-> Hi Hans,
-> 
-> On Sat, Mar 5, 2011 at 1:52 PM, Hans Verkuil<hverkuil@xs4all.nl>  wrote:
->> On Friday, March 04, 2011 21:10:05 Mauro Carvalho Chehab wrote:
->>> Em 03-03-2011 07:25, Laurent Pinchart escreveu:
-...
->>>>        v4l: Group media bus pixel codes by types and sort them alphabetically
->>>
->>> The presence of those mediabus names against the traditional fourcc codes
->>> at the API adds some mess to the media controller. Not sure how to solve,
->>> but maybe the best way is to add a table at the V4L2 API associating each
->>> media bus format to the corresponding V4L2 fourcc codes.
->>
->> You can't do that in general. Only for specific hardware platforms. If you
->> could do it, then we would have never bothered creating these mediabus fourccs.
->>
->> How a mediabus fourcc translates to a pixelcode (== memory format) depends
->> entirely on the hardware capabilities (mostly that of the DMA engine).
-> 
-> May I ask you one question here? (not entirely related to this patch set).
-> Why pixelcode != mediabus fourcc?
-> e.g. OMAP2 camera driver talks to sensor through subdev interface and
-> sets its own output pixelformat depending on sensor's mediabus fourcc.
-> So it needs a translation table mbus_pixelcode ->  pixelformat. Why
-> can't it be pixelformat ->  pixelformat ?
-> 
+This is one more set of hotfixes for videobuf2 framework.  I hope they
+can be applied to staging/for-2.6.39 kernel tree once vb2 finally gets
+into Linus tree.
 
-Let me try to explain, struct v4l2_mbus_framefmt::code (pixelcode)
-describes how data is transfered/sampled on the camera parallel or serial bus.
-It defines bus width, data alignment and how many data samples form a single
-pixel.
+Best regards
+--
+Marek Szyprowski
+Samsung Poland R&D Center
 
-struct v4l2_pix_format::pixelformat (fourcc) on the other hand describes how
-the image data is stored in memory.
- 
-As Hans pointed out there is not always a 1:1 correspondence, e.g. 
 
-1. Both V4L2_MBUS_FMT_YUYV8_1x16 and V4L2_MBUS_FMT_YUYV8_2x8 may being 
-translating to V4L2_PIX_FMT_YUYV fourcc,
+Andrzej Pietrasiewicz (1):
+  v4l2: vb2-dma-sg: fix potential security hole
 
-2. Or the DMA engine in the camera host interface might be capable of
-converting single V4L2_MBUS_FMT_RGB555 pixelcode to V4L2_PIX_FMT_RGB555
-and V4L2_PIX_FMT_RGB565 fourcc's. So the user can choose any of them they
-seem most suitable and the hardware takes care of the conversion. 
+Marek Szyprowski (2):
+  v4l2: vb2: one more fix for REQBUFS()
+  v4l2: vb2: simplify __vb2_queue_free function
 
-What translations are available really depends on the hardware, so how
-could we define a standard translation table? IMO it should be realized
-in each driver on an individual basis.
+ drivers/media/video/videobuf2-core.c   |   15 +++++++++------
+ drivers/media/video/videobuf2-dma-sg.c |    2 +-
+ 2 files changed, 10 insertions(+), 7 deletions(-)
 
-Regards,
-Sylwester
-
-> Regards,
-> 
-> David
-> 
->>
->> A generic V4L2 application will never use mediabus fourcc codes. It's only used
->> by drivers and applications written specifically for that hardware and using
->> /dev/v4l-subdevX devices.
->>
->> Regards,
->>
->>         Hans
->>
-
+-- 
+1.7.1.569.g6f426
