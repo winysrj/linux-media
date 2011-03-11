@@ -1,43 +1,58 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.work.de ([212.12.45.188]:37087 "EHLO smtp2.work.de"
+Received: from mx1.redhat.com ([209.132.183.28]:36570 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751494Ab1CXQ5M (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Mar 2011 12:57:12 -0400
-Message-ID: <4D8B77E5.5030602@jusst.de>
-Date: Thu, 24 Mar 2011 17:57:09 +0100
-From: Julian Scheel <julian@jusst.de>
+	id S1754736Ab1CKPk4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Mar 2011 10:40:56 -0500
+Message-ID: <4D7A427A.3060303@redhat.com>
+Date: Fri, 11 Mar 2011 12:40:42 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: "H. Ellenberger" <tuxoholic@hotmail.de>
-CC: linux-media@vger.kernel.org
-Subject: Re: S2-3200 switching-timeouts on 2.6.38
-References: <BLU0-SMTP178757907CEF2BB7BC4D728D8B70@phx.gbl>
-In-Reply-To: <BLU0-SMTP178757907CEF2BB7BC4D728D8B70@phx.gbl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	alsa-devel@alsa-project.org,
+	Sakari Ailus <sakari.ailus@retiisi.org.uk>,
+	Pawel Osciak <pawel@osciak.com>
+Subject: Re: [GIT PULL FOR 2.6.39] Media controller and OMAP3 ISP driver
+References: <201102171606.58540.laurent.pinchart@ideasonboard.com> <201103051402.34416.laurent.pinchart@ideasonboard.com> <4D727F64.7040805@redhat.com> <201103052148.06603.laurent.pinchart@ideasonboard.com> <4D74C82A.9050406@redhat.com>
+In-Reply-To: <4D74C82A.9050406@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+Em 07-03-2011 08:57, Mauro Carvalho Chehab escreveu:
+> Em 05-03-2011 17:48, Laurent Pinchart escreveu:
 
-Am 23.03.2011 19:19, schrieb H. Ellenberger:
-> @Manu: Your argumentation is inconsistent and lacks any proof.
->
-> Running a full scan of Astra 19.2 E with Kaffeine together with cards model
-> Skystar HD and Twinhan/Azurewave VP-1041 results in a channel list of approx
-> 400 stations only. When I apply my patch then almost all stations are found:
->
-> patch in tuner: 400 stations found, not usable,
+> Added both patches and folded them as requested, and added the remaining
+> patches after my review. The new tree is at:
+> 
+> http://git.linuxtv.org/mchehab/experimental.git?a=shortlog;h=refs/heads/media_controller
+> 
+> The pending issues for merging it to the main devel branch are:
+> 	- omap3isp private control description;
+> 	- a renaming patch to make directory name and file names consistent.
 
-With KNC TV-Station DVB-S2 (which is stb0899 as well) I can't confirm 
-this issue. Channel search finds > 1000 channels at any time.
+Tree updated with the patches from:
+	git://linuxtv.org/pinchartl/media.git media-for-mauro
 
-> patch in tuner + demod: 1127 stations found, better but less than without
-> tuner patch.
-> patch in demod only: 1145 stations found, slightly more than with tuner patch.
+> 	- a chapter describing how *MBUS* and fourcc formats are related;
 
-Have you done both searches at (almost) same time? On astra network 
-there are quite some channels, which are only available and announced at 
-certain time, which can make a noticable difference in the amount of 
-channels found.
+Still needed. For now, I'll merge what we currently have at the master devel tree,
+but we still need such chapter to be written, in order to have the media controller
+for .39.
 
--Julian
+> 	- a description about how to lock between MBUS/fourcc get/set format;
+
+We had some discussions about it, but we didn't reach to a conclusion. I'd like
+to see something documented at the v4l framework about that. IMO, this is a good
+theme for the V4L "brainstorm" meeting.
+
+I also like to have a patch adding such docs for .39.
+
+Could you please double-check if everything went fine on my merge at:
+	http://git.linuxtv.org/mchehab/experimental.git?a=shortlog;h=refs/heads/media_controller
+Before I merge it at the media-tree?
+
+Thanks,
+Mauro.
+
