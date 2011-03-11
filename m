@@ -1,97 +1,51 @@
 Return-path: <mchehab@pedra>
-Received: from slow3-v.mail.gandi.net ([217.70.178.89]:48732 "EHLO
-	slow3-v.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752168Ab1CBReg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Mar 2011 12:34:36 -0500
-Received: from relay2-d.mail.gandi.net (relay2-d.mail.gandi.net [217.70.183.194])
-	by slow3-v.mail.gandi.net (Postfix) with ESMTP id E1D473853B
-	for <linux-media@vger.kernel.org>; Wed,  2 Mar 2011 18:34:34 +0100 (CET)
-From: =?iso-8859-1?Q?S=E9bastien_RAILLARD_=28COEXSI=29?= <sr@coexsi.fr>
-To: "'Ralph Metzler'" <rjkm@metzlerbros.de>,
-	"'Issa Gorissen'" <flop.m@usa.net>
-Cc: <linux-media@vger.kernel.org>
-References: <369PBbkEv0304S02.1298889107@web02.cms.usa.net> <19820.61059.315710.559958@morden.metzler>
-In-Reply-To: <19820.61059.315710.559958@morden.metzler>
-Subject: RE: Sony CXD2099AR support
-Date: Wed, 2 Mar 2011 18:33:42 +0100
-Message-ID: <009101cbd8ff$fa4d2150$eee763f0$@coexsi.fr>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:46048 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753560Ab1CKXfI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Mar 2011 18:35:08 -0500
+Received: by eyx24 with SMTP id 24so1086733eyx.19
+        for <linux-media@vger.kernel.org>; Fri, 11 Mar 2011 15:35:07 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Language: fr
+In-Reply-To: <3934d121118af31f8708589189a42b95@localhost>
+References: <20110309175231.16446e92.jean.bruenn@ip-minds.de>
+	<76A39CFB-2838-4AD7-B353-49971F9F7DFF@wilsonet.com>
+	<ba12e998349efa465be466a4d7f9d43f@localhost>
+	<3AF3951C-11F6-48E4-A0EE-85179B013AFC@wilsonet.com>
+	<81E0AF02-0837-4DF8-BFEA-94A654FFF471@wilsonet.com>
+	<af7d57a1bb478c0edac4cd7afdfd6f41@localhost>
+	<AANLkTimqGxS6OYNarqQwZNxFk+rccPn40UcK+6Oo72SC@mail.gmail.com>
+	<3934d121118af31f8708589189a42b95@localhost>
+Date: Fri, 11 Mar 2011 18:35:06 -0500
+Message-ID: <AANLkTikYjaeXnhA3iP+kxjpA-NU4QQw-_YhRFf4U=30a@mail.gmail.com>
+Subject: Re: WinTV 1400 broken with recent versions?
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: jean.bruenn@ip-minds.de
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+On Fri, Mar 11, 2011 at 6:30 PM,  <jean.bruenn@ip-minds.de> wrote:
+>
+>> Doesn't seem weird to me at all.  This is a pretty uncommon card, so
+>> it is entirely possible that many revisions could go by without
+>> someone noticing a regression.  I know for example that the HVR-1500Q
+>> (the US version of that board) was broken for months and nobody
+>> noticed.
+>
+> Well. How was it solved at the hvr-1500q? :) Any other information i
+> could provide maybe?
 
+It's not clear to me that it ever was resolved for the 1500q.  If the
+goal is for it to get fixed, it's usually a matter of getting a sample
+unit in the hands of a developer who knows how to debug the issue.  A
+common problem is the lack of overlap between people who have the
+board versus people who know what to do with it.
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Ralph Metzler
-> Sent: mardi 1 mars 2011 14:03
-> To: Issa Gorissen
-> Cc: linux-media@vger.kernel.org
-> Subject: Sony CXD2099AR support
-> 
-> Issa Gorissen writes:
->  > I have read that this CI chip driver is in staging because some
-> questions on  > how to handle it are still not answered.
->  >
->  > I volunteer to handle this one. I'm a regular java developer, but I'm
-> willing  > to put effort in learning linux drivers writing.
->  >
->  > So Ralph, can you give me some pointers on where the discussion
-> should resume  > ?
->  >
-> 
-> AFAIR, the only problem was that the old "sec"-Device name was abused. I
-> do not see a problem in just adding a "cam" or whatever device in dvb-
-> core and use that.
-> Or just rename "sec" since it is no longer used.
-> 
-> Regarding the interface I think it should just remain being like a pipe.
-> Using the dvr and demux devices for this just adds overhead.
-> 
+Devin
 
-Dear all,
-
-I'm looking for a while the work done on the nGene driver and especially the
-CI driver.
-For sure, this new kind of card add a lot of flexibility as the CI is
-completely independent.
-
-I wondering if a parameter can be added to the driver in order to make the
-card working like a classic one:
-
-- Having the tuner#1 working with the CAM the classic way:
-
-  * Keep the frontend0 device as it is for controlling the tuning parameters
-
-  * Create the ca0 and sec0 devices attached to the CI like it is done now
-
-  * Send the full TS stream from the demodulator unfiltered to the CI
-interface (CAM usually need full TS stream for working correctly - The Multi
-Transponder Decrypt advertised has a risky future with all the new
-protections planed for smartcard and CAM). Is this can be done directly in
-the APB7202 chip or all data has first to be retrieved by the kernel before
-being send back to the CI trough sec0?
-
-  * Create the dvr0 and demux0 devices for the sec0 output
-
-- Having the tuner#2 working without the CAM, with its demux1, dvr1,
-frontend1 devices
-
-It may help to keep compatibility with existent DVB applications.
-What do you think?
-
-Best regards,
-Sebastien.
-
-> 
-> -Ralph
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media"
-> in the body of a message to majordomo@vger.kernel.org More majordomo
-> info at  http://vger.kernel.org/majordomo-info.html
-
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
