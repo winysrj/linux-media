@@ -1,43 +1,62 @@
 Return-path: <mchehab@pedra>
-Received: from mail1.matrix-vision.com ([78.47.19.71]:42254 "EHLO
-	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750998Ab1CKJiK (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.171]:59620 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751481Ab1CKOIG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Mar 2011 04:38:10 -0500
-Message-ID: <4D79ED80.3070508@matrix-vision.de>
-Date: Fri, 11 Mar 2011 10:38:08 +0100
-From: Michael Jones <michael.jones@matrix-vision.de>
+	Fri, 11 Mar 2011 09:08:06 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCH 3/7] ARM: Samsung: update/rewrite Samsung SYSMMU (IOMMU) driver
+Date: Fri, 11 Mar 2011 15:07:59 +0100
+Cc: linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	k.debski@samsung.com, kgene.kim@samsung.com,
+	kyungmin.park@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	" =?euc-kr?q?=27=B4=EB=C0=CE=B1=E2=27?=" <inki.dae@samsung.com>,
+	" =?euc-kr?q?=27=B0=AD=B9=CE=B1=D4=27?=" <mk7.kang@samsung.com>,
+	"'KyongHo Cho'" <pullip.cho@samsung.com>,
+	linux-kernel@vger.kernel.org
+References: <1299229274-9753-4-git-send-email-m.szyprowski@samsung.com> <201103111250.51252.arnd@arndb.de> <000001cbdfe8$ce444b20$6acce160$%szyprowski@samsung.com>
+In-Reply-To: <000001cbdfe8$ce444b20$6acce160$%szyprowski@samsung.com>
 MIME-Version: 1.0
-To: Antonio Ospite <ospite@studenti.unina.it>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v3 1/4] v4l: add V4L2_PIX_FMT_Y12 format
-References: <1299830749-7269-1-git-send-email-michael.jones@matrix-vision.de>	<1299830749-7269-2-git-send-email-michael.jones@matrix-vision.de> <20110311102100.b6faa55a.ospite@studenti.unina.it>
-In-Reply-To: <20110311102100.b6faa55a.ospite@studenti.unina.it>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="euc-kr"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201103111507.59825.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 03/11/2011 10:21 AM, Antonio Ospite wrote:
-> Hi Michael,
+On Friday 11 March 2011, Marek Szyprowski wrote:
+> > The iommu API is not really meant to be KVM specific, it's just that the
+> > in-tree users are basically limited to KVM at the moment. Another user that
+> > is coming up soon is the vmio device driver that can be used to transparently
+> > pass devices to user space. The idea behind the IOMMU API is that you can
+> > map arbitrary bus addresses to physical memory addresses, but it does not
+> > deal with allocating the bus addresses or providing buffer management such
+> > as cache flushes.
 > 
-> are you going to release also Y12 conversion routines for libv4lconvert?
-> 
-> Regards,
->    Antonio
-> 
+> Yea, I've noticed this and this basically what we expect from iommu driver. 
+> However the iommu.h API requires a separate call to map each single memory page.
+> This is quite ineffective approach and imho the API need to be extended to allow
+> mapping of the arbitrary set of pages.
 
-Hi Antonio,
+We can always discuss extensions to the existing infrastructure, adding
+an interface for mapping an array of page pointers in the iommu API
+sounds like a good idea.
 
-As I am neither a user nor developer of libv4lconvert, I am not planning
-on adding Y12 conversion routines there.  Hopefully somebody else will
-step up.  Maybe you?
+I also think that we should not really have separate iommu and dma-mapping
+interfaces, but rather have a portable way to define an iommu so that it
+can be used through the dma-mapping interfaces. I'm not asking you to
+do that as a prerequisite to merging your driver, but it may be good to
+keep in mind that the current situation is still lacking and that any
+suggestion for improving this as part of your work to support the
+samsung IOMMU is welcome.
 
--Michael
+Note that the ARM implementation of the dma-mapping.h interface currently
+does not support IOMMUs, but that could be changed by wrapping it
+using the include/asm-generic/dma-mapping-common.h infrastructure.
 
-MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
-Registergericht: Amtsgericht Stuttgart, HRB 271090
-Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
+	Arnd
