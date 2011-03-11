@@ -1,73 +1,45 @@
 Return-path: <mchehab@pedra>
-Received: from mail1.matrix-vision.com ([78.47.19.71]:47497 "EHLO
-	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752259Ab1CKIGJ (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2484 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754239Ab1CKVUm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Mar 2011 03:06:09 -0500
-From: Michael Jones <michael.jones@matrix-vision.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH v3 3/4] omap3isp: ccdc: support Y10/12, 8-bit bayer fmts
-Date: Fri, 11 Mar 2011 09:05:48 +0100
-Message-Id: <1299830749-7269-4-git-send-email-michael.jones@matrix-vision.de>
-In-Reply-To: <1299830749-7269-1-git-send-email-michael.jones@matrix-vision.de>
-References: <1299830749-7269-1-git-send-email-michael.jones@matrix-vision.de>
+	Fri, 11 Mar 2011 16:20:42 -0500
+Received: from tschai.localnet (215.80-203-102.nextgentel.com [80.203.102.215])
+	(authenticated bits=0)
+	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id p2BLKfsA037831
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 11 Mar 2011 22:20:41 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [GIT PATCHES FOR 2.6.39] One more docbook fix
+Date: Fri, 11 Mar 2011 22:20:41 +0100
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201103112220.41037.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/omap3-isp/ispccdc.c  |    6 ++++++
- drivers/media/video/omap3-isp/ispvideo.c |   12 ++++++++++++
- 2 files changed, 18 insertions(+), 0 deletions(-)
+With this fix the spec compiles without any errors.
 
-diff --git a/drivers/media/video/omap3-isp/ispccdc.c b/drivers/media/video/omap3-isp/ispccdc.c
-index e4d04ce..23000b6 100644
---- a/drivers/media/video/omap3-isp/ispccdc.c
-+++ b/drivers/media/video/omap3-isp/ispccdc.c
-@@ -43,6 +43,12 @@ __ccdc_get_format(struct isp_ccdc_device *ccdc, struct v4l2_subdev_fh *fh,
- 
- static const unsigned int ccdc_fmts[] = {
- 	V4L2_MBUS_FMT_Y8_1X8,
-+	V4L2_MBUS_FMT_Y10_1X10,
-+	V4L2_MBUS_FMT_Y12_1X12,
-+	V4L2_MBUS_FMT_SGRBG8_1X8,
-+	V4L2_MBUS_FMT_SRGGB8_1X8,
-+	V4L2_MBUS_FMT_SBGGR8_1X8,
-+	V4L2_MBUS_FMT_SGBRG8_1X8,
- 	V4L2_MBUS_FMT_SGRBG10_1X10,
- 	V4L2_MBUS_FMT_SRGGB10_1X10,
- 	V4L2_MBUS_FMT_SBGGR10_1X10,
-diff --git a/drivers/media/video/omap3-isp/ispvideo.c b/drivers/media/video/omap3-isp/ispvideo.c
-index f16d787..3c3b3c4 100644
---- a/drivers/media/video/omap3-isp/ispvideo.c
-+++ b/drivers/media/video/omap3-isp/ispvideo.c
-@@ -48,6 +48,18 @@
- static struct isp_format_info formats[] = {
- 	{ V4L2_MBUS_FMT_Y8_1X8, V4L2_MBUS_FMT_Y8_1X8,
- 	  V4L2_MBUS_FMT_Y8_1X8, V4L2_PIX_FMT_GREY, 8, },
-+	{ V4L2_MBUS_FMT_Y10_1X10, V4L2_MBUS_FMT_Y10_1X10,
-+	  V4L2_MBUS_FMT_Y10_1X10, V4L2_PIX_FMT_Y10, 10, },
-+	{ V4L2_MBUS_FMT_Y12_1X12, V4L2_MBUS_FMT_Y10_1X10,
-+	  V4L2_MBUS_FMT_Y12_1X12, V4L2_PIX_FMT_Y12, 12, },
-+	{ V4L2_MBUS_FMT_SBGGR8_1X8, V4L2_MBUS_FMT_SBGGR8_1X8,
-+	  V4L2_MBUS_FMT_SBGGR8_1X8, V4L2_PIX_FMT_SBGGR8, 8, },
-+	{ V4L2_MBUS_FMT_SGBRG8_1X8, V4L2_MBUS_FMT_SGBRG8_1X8,
-+	  V4L2_MBUS_FMT_SGBRG8_1X8, V4L2_PIX_FMT_SGBRG8, 8, },
-+	{ V4L2_MBUS_FMT_SGRBG8_1X8, V4L2_MBUS_FMT_SGRBG8_1X8,
-+	  V4L2_MBUS_FMT_SGRBG8_1X8, V4L2_PIX_FMT_SGRBG8, 8, },
-+	{ V4L2_MBUS_FMT_SRGGB8_1X8, V4L2_MBUS_FMT_SRGGB8_1X8,
-+	  V4L2_MBUS_FMT_SRGGB8_1X8, V4L2_PIX_FMT_SRGGB8, 8, },
- 	{ V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8, V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8,
- 	  V4L2_MBUS_FMT_SGRBG10_1X10, V4L2_PIX_FMT_SGRBG10DPCM8, 8, },
- 	{ V4L2_MBUS_FMT_SBGGR10_1X10, V4L2_MBUS_FMT_SBGGR10_1X10,
+Regards,
+
+	Hans
+
+The following changes since commit 41f3becb7bef489f9e8c35284dd88a1ff59b190c:
+
+  [media] V4L DocBook: update V4L2 version (2011-03-11 18:09:02 -0300)
+
+are available in the git repository at:
+  ssh://linuxtv.org/git/hverkuil/media_tree.git fixes
+
+Hans Verkuil (1):
+      Fix 'ID nv12mt already defined' error
+
+ Documentation/DocBook/v4l/pixfmt-nv12mt.xml |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
 -- 
-1.7.4.1
-
-
-MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
-Registergericht: Amtsgericht Stuttgart, HRB 271090
-Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
+Hans Verkuil - video4linux developer - sponsored by Cisco
