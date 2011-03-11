@@ -1,70 +1,92 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:23856 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752346Ab1CAPiM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Mar 2011 10:38:12 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p21FcCkp023801
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 1 Mar 2011 10:38:12 -0500
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>
-Subject: [PATCH] nuvoton-cir: fix wake from suspend
-Date: Tue,  1 Mar 2011 10:38:02 -0500
-Message-Id: <1298993882-26778-1-git-send-email-jarod@redhat.com>
+Received: from mailout2.samsung.com ([203.254.224.25]:54119 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752687Ab1CKOwO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Mar 2011 09:52:14 -0500
+Date: Fri, 11 Mar 2011 15:51:55 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH 3/7] ARM: Samsung: update/rewrite Samsung SYSMMU (IOMMU)
+ driver
+In-reply-to: <201103111507.59825.arnd@arndb.de>
+To: 'Arnd Bergmann' <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	k.debski@samsung.com, kgene.kim@samsung.com,
+	kyungmin.park@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	=?ks_c_5601-1987?B?J7TrwM6x4ic=?= <inki.dae@samsung.com>,
+	=?ks_c_5601-1987?B?J7Ctuc6x1Cc=?= <mk7.kang@samsung.com>,
+	'KyongHo Cho' <pullip.cho@samsung.com>,
+	linux-kernel@vger.kernel.org
+Message-id: <000101cbdffb$e1844b00$a48ce100$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ks_c_5601-1987
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <1299229274-9753-4-git-send-email-m.szyprowski@samsung.com>
+ <201103111250.51252.arnd@arndb.de>
+ <000001cbdfe8$ce444b20$6acce160$%szyprowski@samsung.com>
+ <201103111507.59825.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The CIR Wake FIFO is 67 bytes long, but the stock remote appears to only
-populate 65 of them. Limit comparison to 65 bytes, and wake from suspend
-works a whole lot better (it wasn't working at all for most folks).
+Hello,
 
-Fix based on comparison with the old lirc_wb677 driver from Nuvoton,
-debugging and testing done by Dave Treacy by way of the lirc mailing
-list.
+On Friday, March 11, 2011 3:08 PM Arnd Bergmann wrote:
 
-Reported-by: Dave Treacy <davetreacy@gmail.com>
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/rc/nuvoton-cir.c |    5 +++--
- drivers/media/rc/nuvoton-cir.h |    7 +++++--
- 2 files changed, 8 insertions(+), 4 deletions(-)
+> On Friday 11 March 2011, Marek Szyprowski wrote:
+> > > The iommu API is not really meant to be KVM specific, it's just that the
+> > > in-tree users are basically limited to KVM at the moment. Another user that
+> > > is coming up soon is the vmio device driver that can be used to transparently
+> > > pass devices to user space. The idea behind the IOMMU API is that you can
+> > > map arbitrary bus addresses to physical memory addresses, but it does not
+> > > deal with allocating the bus addresses or providing buffer management such
+> > > as cache flushes.
+> >
+> > Yea, I've noticed this and this basically what we expect from iommu driver.
+> > However the iommu.h API requires a separate call to map each single memory page.
+> > This is quite ineffective approach and imho the API need to be extended to allow
+> > mapping of the arbitrary set of pages.
+> 
+> We can always discuss extensions to the existing infrastructure, adding
+> an interface for mapping an array of page pointers in the iommu API
+> sounds like a good idea.
 
-diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
-index 273d9d6..d4d6449 100644
---- a/drivers/media/rc/nuvoton-cir.c
-+++ b/drivers/media/rc/nuvoton-cir.c
-@@ -385,8 +385,9 @@ static void nvt_cir_regs_init(struct nvt_dev *nvt)
- 
- static void nvt_cir_wake_regs_init(struct nvt_dev *nvt)
- {
--	/* set number of bytes needed for wake key comparison (default 67) */
--	nvt_cir_wake_reg_write(nvt, CIR_WAKE_FIFO_LEN, CIR_WAKE_FIFO_CMP_DEEP);
-+	/* set number of bytes needed for wake from s3 (default 65) */
-+	nvt_cir_wake_reg_write(nvt, CIR_WAKE_FIFO_CMP_BYTES,
-+			       CIR_WAKE_FIFO_CMP_DEEP);
- 
- 	/* set tolerance/variance allowed per byte during wake compare */
- 	nvt_cir_wake_reg_write(nvt, CIR_WAKE_CMP_TOLERANCE,
-diff --git a/drivers/media/rc/nuvoton-cir.h b/drivers/media/rc/nuvoton-cir.h
-index 1df8235..048135e 100644
---- a/drivers/media/rc/nuvoton-cir.h
-+++ b/drivers/media/rc/nuvoton-cir.h
-@@ -305,8 +305,11 @@ struct nvt_dev {
- #define CIR_WAKE_IRFIFOSTS_RX_EMPTY	0x20
- #define CIR_WAKE_IRFIFOSTS_RX_FULL	0x10
- 
--/* CIR Wake FIFO buffer is 67 bytes long */
--#define CIR_WAKE_FIFO_LEN		67
-+/*
-+ * The CIR Wake FIFO buffer is 67 bytes long, but the stock remote wakes
-+ * the system comparing only 65 bytes (fails with this set to 67)
-+ */
-+#define CIR_WAKE_FIFO_CMP_BYTES		65
- /* CIR Wake byte comparison tolerance */
- #define CIR_WAKE_CMP_TOLERANCE		5
- 
--- 
-1.7.1
+We will investigate this API further. From the first sight it looks it won't take
+much work to port/rewrite our driver to fit into iommu.h API.
+
+> I also think that we should not really have separate iommu and dma-mapping
+> interfaces, but rather have a portable way to define an iommu so that it
+> can be used through the dma-mapping interfaces. I'm not asking you to
+> do that as a prerequisite to merging your driver, but it may be good to
+> keep in mind that the current situation is still lacking and that any
+> suggestion for improving this as part of your work to support the
+> samsung IOMMU is welcome.
+
+Well creating a portable iommu framework and merging it with dma-mapping interface
+looks like a much harder (and time consuming) task. There is definitely a need for
+it. I hope that it can be developed incrementally starting from the current iommu.h
+and dma-mapping.h interfaces. Please note that there might be some subtle differences
+in the hardware that such framework must be aware. The first obvious one is the
+hardware design. Some platform has central iommu unit, other (like Samsung Exynos4)
+has a separate iommu unit per each device driver (this is still a simplification,
+because a video codec device has 2 memory interfaces and 2 iommu units). Currently
+I probably have not enough knowledge to predict the other possible issues that need
+to be taken into account in the portable and generic iommu/dma-mapping frame-work.
+
+> Note that the ARM implementation of the dma-mapping.h interface currently
+> does not support IOMMUs, but that could be changed by wrapping it
+> using the include/asm-generic/dma-mapping-common.h infrastructure.
+
+ARM dma-mapping framework also requires some additional research for better DMA
+support (there are still issues with multiple mappings to be resolved).
+
+Best regards
+--
+Marek Szyprowski
+Samsung Poland R&D Center
+
 
