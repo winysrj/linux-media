@@ -1,50 +1,73 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:59399 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751634Ab1CCOvX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2011 09:51:23 -0500
-Received: by eyx24 with SMTP id 24so364554eyx.19
-        for <linux-media@vger.kernel.org>; Thu, 03 Mar 2011 06:51:21 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <AANLkTik=GeFXP-aXtO513ojq2=nqir1QdarBs=RRVU+c@mail.gmail.com>
-References: <AANLkTi=jkLGgZDH6XytL1MEE7w5SckZjXoGPhFSCo40b@mail.gmail.com>
-	<20110215220433.GA3327@redhat.com>
-	<20110215221857.GB3327@redhat.com>
-	<AANLkTinxCddEK2Ce3k42O3105fi8WqjzV3TDFqDO6WaR@mail.gmail.com>
-	<AANLkTikdeg4q9fN7RrO+bYbMjfU-g=id_Y8F=c0TstNj@mail.gmail.com>
-	<AANLkTi=1j25xwsC5ks5sEUniyUmVMCK2fKFR-gtEaHC+@mail.gmail.com>
-	<AANLkTikkK38w-6uEvG+shT9Vv=n+NsF4enpv7T2N=A1=@mail.gmail.com>
-	<20110217141849.GA19291@redhat.com>
-	<AANLkTik=GeFXP-aXtO513ojq2=nqir1QdarBs=RRVU+c@mail.gmail.com>
-Date: Thu, 3 Mar 2011 09:51:19 -0500
-Message-ID: <AANLkTin7G1fp0Eeud1y7jGjJpAY+ZMcfgOubuSbJFQpX@mail.gmail.com>
-Subject: Re: IR for remote control not working for Hauppauge WinTV-HVR-1150 (SAA7134)
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Fernando Laudares Camargos <fernando.laudares.camargos@gmail.com>
-Cc: Jarod Wilson <jarod@redhat.com>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail1.matrix-vision.com ([78.47.19.71]:47497 "EHLO
+	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752259Ab1CKIGJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Mar 2011 03:06:09 -0500
+From: Michael Jones <michael.jones@matrix-vision.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH v3 3/4] omap3isp: ccdc: support Y10/12, 8-bit bayer fmts
+Date: Fri, 11 Mar 2011 09:05:48 +0100
+Message-Id: <1299830749-7269-4-git-send-email-michael.jones@matrix-vision.de>
+In-Reply-To: <1299830749-7269-1-git-send-email-michael.jones@matrix-vision.de>
+References: <1299830749-7269-1-git-send-email-michael.jones@matrix-vision.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, Mar 3, 2011 at 8:51 AM, Fernando Laudares Camargos
-<fernando.laudares.camargos@gmail.com> wrote:
-> Of course, it did not worked since the device is probably not a i2c
-> remote as was HVR-1110. That makes me wondering what have changed at
-> the IR level from the HVR-1110 to 1120 and then to 1150 and if the
-> remote control is working for anybody having the 1120 board.
+Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/omap3-isp/ispccdc.c  |    6 ++++++
+ drivers/media/video/omap3-isp/ispvideo.c |   12 ++++++++++++
+ 2 files changed, 18 insertions(+), 0 deletions(-)
 
->From a design standpoint, it is identical to the 1120 (IR receiver
-diode tied directly to a GPIO).  But as I said in my previous email, I
-believe that the code is broken for the 1120 as well.
-
-So the upside is that once you fix it for the 1150, the 1120 should
-start working properly again as well.  The downside is that you will
-have to actually debug the IRQ handler for the GPIO edge timing to
-find the underlying bug.  This isn't something as easy as just adding
-a couple of lines somewhere for the board profile.
-
-Devin
-
+diff --git a/drivers/media/video/omap3-isp/ispccdc.c b/drivers/media/video/omap3-isp/ispccdc.c
+index e4d04ce..23000b6 100644
+--- a/drivers/media/video/omap3-isp/ispccdc.c
++++ b/drivers/media/video/omap3-isp/ispccdc.c
+@@ -43,6 +43,12 @@ __ccdc_get_format(struct isp_ccdc_device *ccdc, struct v4l2_subdev_fh *fh,
+ 
+ static const unsigned int ccdc_fmts[] = {
+ 	V4L2_MBUS_FMT_Y8_1X8,
++	V4L2_MBUS_FMT_Y10_1X10,
++	V4L2_MBUS_FMT_Y12_1X12,
++	V4L2_MBUS_FMT_SGRBG8_1X8,
++	V4L2_MBUS_FMT_SRGGB8_1X8,
++	V4L2_MBUS_FMT_SBGGR8_1X8,
++	V4L2_MBUS_FMT_SGBRG8_1X8,
+ 	V4L2_MBUS_FMT_SGRBG10_1X10,
+ 	V4L2_MBUS_FMT_SRGGB10_1X10,
+ 	V4L2_MBUS_FMT_SBGGR10_1X10,
+diff --git a/drivers/media/video/omap3-isp/ispvideo.c b/drivers/media/video/omap3-isp/ispvideo.c
+index f16d787..3c3b3c4 100644
+--- a/drivers/media/video/omap3-isp/ispvideo.c
++++ b/drivers/media/video/omap3-isp/ispvideo.c
+@@ -48,6 +48,18 @@
+ static struct isp_format_info formats[] = {
+ 	{ V4L2_MBUS_FMT_Y8_1X8, V4L2_MBUS_FMT_Y8_1X8,
+ 	  V4L2_MBUS_FMT_Y8_1X8, V4L2_PIX_FMT_GREY, 8, },
++	{ V4L2_MBUS_FMT_Y10_1X10, V4L2_MBUS_FMT_Y10_1X10,
++	  V4L2_MBUS_FMT_Y10_1X10, V4L2_PIX_FMT_Y10, 10, },
++	{ V4L2_MBUS_FMT_Y12_1X12, V4L2_MBUS_FMT_Y10_1X10,
++	  V4L2_MBUS_FMT_Y12_1X12, V4L2_PIX_FMT_Y12, 12, },
++	{ V4L2_MBUS_FMT_SBGGR8_1X8, V4L2_MBUS_FMT_SBGGR8_1X8,
++	  V4L2_MBUS_FMT_SBGGR8_1X8, V4L2_PIX_FMT_SBGGR8, 8, },
++	{ V4L2_MBUS_FMT_SGBRG8_1X8, V4L2_MBUS_FMT_SGBRG8_1X8,
++	  V4L2_MBUS_FMT_SGBRG8_1X8, V4L2_PIX_FMT_SGBRG8, 8, },
++	{ V4L2_MBUS_FMT_SGRBG8_1X8, V4L2_MBUS_FMT_SGRBG8_1X8,
++	  V4L2_MBUS_FMT_SGRBG8_1X8, V4L2_PIX_FMT_SGRBG8, 8, },
++	{ V4L2_MBUS_FMT_SRGGB8_1X8, V4L2_MBUS_FMT_SRGGB8_1X8,
++	  V4L2_MBUS_FMT_SRGGB8_1X8, V4L2_PIX_FMT_SRGGB8, 8, },
+ 	{ V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8, V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8,
+ 	  V4L2_MBUS_FMT_SGRBG10_1X10, V4L2_PIX_FMT_SGRBG10DPCM8, 8, },
+ 	{ V4L2_MBUS_FMT_SBGGR10_1X10, V4L2_MBUS_FMT_SBGGR10_1X10,
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.7.4.1
+
+
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
