@@ -1,99 +1,91 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.8]:62118 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754456Ab1CCICZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2011 03:02:25 -0500
-Date: Thu, 3 Mar 2011 09:02:20 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Hans Verkuil <hansverk@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Kim HeungJun <riverful@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Stanimir Varbanov <svarbanov@mm-sol.com>
-Subject: Re: [RFC] snapshot mode, flash capabilities and control
-In-Reply-To: <201103021919.30003.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.1103030837450.31639@axis700.grange>
-References: <Pine.LNX.4.64.1102240947230.15756@axis700.grange>
- <Pine.LNX.4.64.1102282340480.17525@axis700.grange>
- <Pine.LNX.4.64.1103021841140.29360@axis700.grange> <201103021919.30003.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mailout3.samsung.com ([203.254.224.33]:30572 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753604Ab1CKMfn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Mar 2011 07:35:43 -0500
+Date: Fri, 11 Mar 2011 13:35:21 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH 3/7] ARM: Samsung: update/rewrite Samsung SYSMMU (IOMMU)
+ driver
+In-reply-to: <201103111250.51252.arnd@arndb.de>
+To: 'Arnd Bergmann' <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	k.debski@samsung.com, kgene.kim@samsung.com,
+	kyungmin.park@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	=?ks_c_5601-1987?B?J7TrwM6x4ic=?= <inki.dae@samsung.com>,
+	=?ks_c_5601-1987?B?J7Ctuc6x1Cc=?= <mk7.kang@samsung.com>,
+	'KyongHo Cho' <pullip.cho@samsung.com>,
+	linux-kernel@vger.kernel.org,
+	'Marek Szyprowski' <m.szyprowski@samsung.com>
+Message-id: <000001cbdfe8$ce444b20$6acce160$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ks_c_5601-1987
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <1299229274-9753-4-git-send-email-m.szyprowski@samsung.com>
+ <201103101552.15536.arnd@arndb.de>
+ <002101cbdfcb$5c657820$15306860$%szyprowski@samsung.com>
+ <201103111250.51252.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 2 Mar 2011, Hans Verkuil wrote:
+Hello,
 
-> On Wednesday, March 02, 2011 18:51:43 Guennadi Liakhovetski wrote:
-> > ...Just occurred to me:
-> > 
-> > On Mon, 28 Feb 2011, Guennadi Liakhovetski wrote:
-> > 
-> > > On Mon, 28 Feb 2011, Guennadi Liakhovetski wrote:
-> > > 
-> > > > On Mon, 28 Feb 2011, Hans Verkuil wrote:
-> > > > 
-> > > > > Does anyone know which drivers stop capture if there are no buffers available? 
-> > > > > I'm not aware of any.
-> > > > 
-> > > > Many soc-camera hosts do that.
-> > > > 
-> > > > > I think this is certainly a good initial approach.
-> > > > > 
-> > > > > Can someone make a list of things needed for flash/snapshot? So don't look yet 
-> > > > > at the implementation, but just start a list of functionalities that we need 
-> > > > > to support. I don't think I have seen that yet.
-> > > > 
-> > > > These are not the features, that we _have_ to implement, these are just 
-> > > > the ones, that are related to the snapshot mode:
-> > > > 
-> > > > * flash strobe (provided, we do not want to control its timing from 
-> > > > 	generic controls, and leave that to "reasonable defaults" or to 
-> > > > 	private controls)
-> > 
-> > Wouldn't it be a good idea to also export an LED (drivers/leds/) API from 
-> > our flash implementation? At least for applications like torch. Downside: 
-> > the LED API itself is not advanced enough for all our uses, and exporting 
-> > two interfaces to the same device is usually a bad idea. Still, 
-> > conceptually it seems to be a good fit.
+On Friday, March 11, 2011 12:51 PM Arnd Bergmann wrote:
+
+> On Friday 11 March 2011, Marek Szyprowski wrote:
+> >
+> > We followed the style of iommu API for other mainline ARM platforms (both OMAP and MSM
+> > also have custom API for their iommu modules). I've briefly checked include/linux/iommu.h
+> > API and I've noticed that it has been designed mainly for KVM support. There is also
+> > include/linux/intel-iommu.h interface, but I it is very specific to intel gfx chips.
 > 
-> I believe we discussed LEDs before (during a discussion about adding illuminator
-> controls). I think the preference was to export LEDs as V4L controls.
+> The MSM code actually uses the generic iommu.h code, using register_iommu, so
+> the drivers can use the regular iommu_map.
+> 
+> I believe the omap code predates the iommu API, and should really be changed
+> to use that. At least it was added before I started reviewing the code.
+> 
+> The iommu API is not really meant to be KVM specific, it's just that the
+> in-tree users are basically limited to KVM at the moment. Another user that
+> is coming up soon is the vmio device driver that can be used to transparently
+> pass devices to user space. The idea behind the IOMMU API is that you can
+> map arbitrary bus addresses to physical memory addresses, but it does not
+> deal with allocating the bus addresses or providing buffer management such
+> as cache flushes.
 
-Unfortunately, I missed that one.
+Yea, I've noticed this and this basically what we expect from iommu driver. 
+However the iommu.h API requires a separate call to map each single memory page.
+This is quite ineffective approach and imho the API need to be extended to allow
+mapping of the arbitrary set of pages.
 
-> In general I am no fan of exporting multiple interfaces. It only leads to double
-> maintenance and I see no noticable advantage to userspace, only confusion.
+> > Is there any example how include/linux/dma-mapping.h interface can be used for iommu
+> > mappings?
+> 
+> The dma-mapping API is the normal interface that you should use for IOMMUs
+> that sit between DMA devices and kernel memory. The idea is that you
+> completely abstract the concept of an IOMMU so the device driver uses
+> the same code for talking to a device with an IOMMU and another device with
+> a linear mapping or an swiotlb bounce buffer.
+> 
+> This means that the user of the dma-mapping API does not get to choose the
+> bus addresses, but instead you use the API to get a bus address for a
+> chunk of memory, and then you can pass that address to a device.
+> 
+> See arch/powerpc/kernel/iommu.c and arch/x86/kernel/amd_iommu.c for common
+> examples of how this is implemented. The latter one actually implements
+> both the iommu_ops for iommu.h and dma_map_ops for dma-mapping.h.
 
-On the one hand - yes, but OTOH: think about MFDs. Also think about some 
-other functions internal to cameras, like i2c busses. Before those I2C 
-busses have been handled internally, but we now prefer properly exporting 
-them at the system level and abstracting devices on them as normal i2c 
-devices. Think about audio, say, on HDMI. I don't think we have any such 
-examples in the mainline atm, but if you have to implement an HDMI 
-output as a v4l2 device - you will export a standard audio interface too, 
-and they probably will share some register spaces, at least on the PHY. 
-Think about cameras with a separate illumitation sensor (yes, I have such 
-a webcam, which has a separate sensor window, used to control its "flash" 
-LEDs, no idea whether that's also available to the user, it works 
-automatically - close the sensor, LEDs go on;)) - wouldn't you export it 
-as an "ambient light sensor" device?
+Thanks for your comments! We will check how is it suitable for our case.
 
-Wouldn't using a standard API like the LED one make it easier to cover the 
-variety of implementations like: sensor-strobe driven, external dedicated 
-flash controller, coupled with the sensor, primitive GPIO- or PWM-operated 
-light. The LED API also has an in-kernel part (triggers) and a 
-user-interface (sysfs), which is also something, that we need. Consider a 
-case, when you have some LED-controller on the system, that controls 
-several LEDs, some for camera status, some for other system statuses.
+Best regards
+--
+Marek Szyprowski
+Samsung Poland R&D Center
 
-So, not sure...
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
