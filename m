@@ -1,92 +1,69 @@
 Return-path: <mchehab@pedra>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:40624 "EHLO
-	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752131Ab1CINjk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Mar 2011 08:39:40 -0500
-From: Jeongtae Park <jtp.park@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: jaeryul.oh@samsung.com, kgene.kim@samsung.com,
-	jonghun.han@samsung.com
-Subject: [PATCH 0/1] Add videobuf2 DMA pool allocator
-Date: Wed,  9 Mar 2011 22:11:30 +0900
-Message-Id: <1299676291-14036-1-git-send-email-jtp.park@samsung.com>
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2285 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750893Ab1CKQ4r (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Mar 2011 11:56:47 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: Media Controller API: Thanks to all who worked on it!
+Date: Fri, 11 Mar 2011 17:56:19 +0100
+Cc: Manjunath Hadli <manjunath.hadli@ti.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201103111756.19899.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello!
+Hi all!
 
-The DMA pool allocator allocates a memory using dma_alloc_coherent(),
-creates a pool using generic allocator in the initialization.
-For every allocation requests, the allocator returns a part of its
-memory pool using generic allocator instead of new memory allocation.
+Today the Media Controller (and the OMAP3 driver that uses it!) was merged.
+This is a major achievement after approximately three years of work. I think
+I contacted Manju Hadli from Texas Instruments early 2008 and the first RFC
+was posted July 18th 2008:
 
-This allocator used for devices have below limitations.
-- the start address should be aligned
-- the range of memory access limited to the offset from the start
-  address (= the allocation address should be existed in a
-  constant offset from the start address)
-- the allocation address should be aligned
+http://lists-archives.org/video4linux/23652-rfc-add-support-to-query-and-change-connections-inside-a-media-device.html
 
-* This patch is same previous sent one.
-  But, It is based on git://linuxtv.org/media_tree.git tree,
-  staging/for_v2.6.39 branch
+After rereading this RFC I am pleased to say that it closely resembles the
+final version. The main difference is that the concept of 'media processors'
+morphed eventually into the sub-device concept.
 
-I would be grateful for your comments.
+It was clear from the beginning that the only way the Media Controller could
+be implemented was if the V4L2 core framework (what little there was at the
+time) was substantially expanded. And the multiple incompatible APIs towards
+those i2c drivers had to be resolved first since that blocked much of the
+framework development and in turn the MC development.
 
-This patch series contains:
+It took more than a year to get that sorted (mostly, there is still some work
+to be done for soc-camera drivers) and to create the required core framework
+components, but on September 10th 2009 the second version of the RFC was posted:
 
-[PATCH 1/1] v4l: videobuf2: Add DMA pool allocator
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg09462.html
 
-Best regards,
-Jeongtae Park
+This formed the foundation of the final version we have today. Laurent
+Pinchart took that and did all the hard work of actually implementing this
+for the OMAP3 driver on behalf of Nokia.
 
-Patch summary:
+I wanted to thank all of you who worked on this, and my special thanks go
+to Manju (for without our discussions in 2008 none of this would have happened),
+Laurent (for obvious reasons!), Sakari (for helping convince Nokia to fund this
+work) and of course Mauro (for brainstorming, reviewing and finally merging it!).
 
-Jeongtae Park (1):
-      v4l: videobuf2: Add DMA pool allocator
+We now have (I hope) a very strong framework to build on in the coming years.
 
- drivers/media/video/Kconfig              |    7 +
- drivers/media/video/Makefile             |    1 +
- drivers/media/video/videobuf2-dma-pool.c |  310 ++++++++++++++++++++++++++++++
- include/media/videobuf2-dma-pool.h       |   37 ++++
- 4 files changed, 355 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/videobuf2-dma-pool.c
- create mode 100644 include/media/videobuf2-dma-pool.hHello!
+There is still much work to be done, but this was 'the big one' and I am
+very pleased to see this merged.
 
-The DMA pool allocator allocates a memory using dma_alloc_coherent(),
-creates a pool using generic allocator in the initialization.
-For every allocation requests, the allocator returns a part of its
-memory pool using generic allocator instead of new memory allocation.
+Thank you!
 
-This allocator used for devices have below limitations.
-- the start address should be aligned
-- the range of memory access limited to the offset from the start
-  address (= the allocation address should be existed in a
-  constant offset from the start address)
-- the allocation address should be aligned
+Regards,
 
-* This patch is same previous sent one.
-  But, It is based on git://linuxtv.org/media_tree.git tree,
-  staging/for_v2.6.39 branch
+	Hans
 
-I would be grateful for your comments.
-
-This patch series contains:
-
-[PATCH 1/1] v4l: videobuf2: Add DMA pool allocator
-
-Best regards,
-Jeongtae Park
-
-Patch summary:
-
-Jeongtae Park (1):
-      v4l: videobuf2: Add DMA pool allocator
-
- drivers/media/video/Kconfig              |    7 +
- drivers/media/video/Makefile             |    1 +
- drivers/media/video/videobuf2-dma-pool.c |  310 ++++++++++++++++++++++++++++++
- include/media/videobuf2-dma-pool.h       |   37 ++++
- 4 files changed, 355 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/videobuf2-dma-pool.c
- create mode 100644 include/media/videobuf2-dma-pool.h
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
