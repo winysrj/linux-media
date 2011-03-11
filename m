@@ -1,75 +1,44 @@
 Return-path: <mchehab@pedra>
-Received: from devils.ext.ti.com ([198.47.26.153]:52005 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757411Ab1CON6S (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44759 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751298Ab1CKIzy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Mar 2011 09:58:18 -0400
-From: Manjunath Hadli <manjunath.hadli@ti.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Kevin Hilman <khilman@deeprootsystems.com>,
-	LAK <linux-arm-kernel@lists.infradead.org>,
-	Sekhar Nori <nsekhar@ti.com>
-Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: [PATCH v15 05/13] davinci vpbe: Build infrastructure for VPBE driver
-Date: Tue, 15 Mar 2011 19:28:00 +0530
-Message-Id: <1300197480-4280-1-git-send-email-manjunath.hadli@ti.com>
+	Fri, 11 Mar 2011 03:55:54 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Michael Jones <michael.jones@matrix-vision.de>
+Subject: Re: [PATCH v3 1/4] v4l: add V4L2_PIX_FMT_Y12 format
+Date: Fri, 11 Mar 2011 09:56:18 +0100
+Cc: linux-media@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+References: <1299830749-7269-1-git-send-email-michael.jones@matrix-vision.de> <1299830749-7269-2-git-send-email-michael.jones@matrix-vision.de>
+In-Reply-To: <1299830749-7269-2-git-send-email-michael.jones@matrix-vision.de>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201103110956.19233.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This patch adds the build infra-structure for Davinci
-VPBE dislay driver.
+Hi Michael,
 
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/video/davinci/Kconfig  |   22 ++++++++++++++++++++++
- drivers/media/video/davinci/Makefile |    2 ++
- 2 files changed, 24 insertions(+), 0 deletions(-)
+Thanks for the patch.
 
-diff --git a/drivers/media/video/davinci/Kconfig b/drivers/media/video/davinci/Kconfig
-index 6b19540..a7f11e7 100644
---- a/drivers/media/video/davinci/Kconfig
-+++ b/drivers/media/video/davinci/Kconfig
-@@ -91,3 +91,25 @@ config VIDEO_ISIF
- 
- 	   To compile this driver as a module, choose M here: the
- 	   module will be called vpfe.
-+
-+config VIDEO_DM644X_VPBE
-+	tristate "DM644X VPBE HW module"
-+	select VIDEO_VPSS_SYSTEM
-+	select VIDEOBUF_DMA_CONTIG
-+	help
-+	    Enables VPBE modules used for display on a DM644x
-+	    SoC.
-+
-+	    To compile this driver as a module, choose M here: the
-+	    module will be called vpbe.
-+
-+
-+config VIDEO_VPBE_DISPLAY
-+	tristate "VPBE V4L2 Display driver"
-+	select VIDEO_DM644X_VPBE
-+	default y
-+	help
-+	    Enables VPBE V4L2 Display driver on a DMXXX device
-+
-+	    To compile this driver as a module, choose M here: the
-+	    module will be called vpbe_display.
-diff --git a/drivers/media/video/davinci/Makefile b/drivers/media/video/davinci/Makefile
-index a379557..ae7dafb 100644
---- a/drivers/media/video/davinci/Makefile
-+++ b/drivers/media/video/davinci/Makefile
-@@ -16,3 +16,5 @@ obj-$(CONFIG_VIDEO_VPFE_CAPTURE) += vpfe_capture.o
- obj-$(CONFIG_VIDEO_DM6446_CCDC) += dm644x_ccdc.o
- obj-$(CONFIG_VIDEO_DM355_CCDC) += dm355_ccdc.o
- obj-$(CONFIG_VIDEO_ISIF) += isif.o
-+obj-$(CONFIG_VIDEO_DM644X_VPBE) += vpbe.o vpbe_osd.o vpbe_venc.o
-+obj-$(CONFIG_VIDEO_VPBE_DISPLAY) += vpbe_display.o
+On Friday 11 March 2011 09:05:46 Michael Jones wrote:
+> Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
+> ---
+>  Documentation/DocBook/v4l/pixfmt-y12.xml |   79 +++++++++++++++++++++++++++
+>  include/linux/videodev2.h                |    1 +
+>  2 files changed, 80 insertions(+), 0 deletions(-)
+>  create mode 100644 Documentation/DocBook/v4l/pixfmt-y12.xml
+
+You also need to modify Documentation/DocBook/v4l/pixfmt.xml (and 
+Documentation/DocBook/media-entities.tmpl) to include pixfmt-y12.xml, 
+otherwise the new documentation file won't be used. Search for 'sub-y16' for 
+an example.
+
 -- 
-1.6.2.4
+Regards,
 
+Laurent Pinchart
