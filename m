@@ -1,132 +1,130 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52911 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754804Ab1C3Nw5 convert rfc822-to-8bit (ORCPT
+Received: from mail1.matrix-vision.com ([78.47.19.71]:47485 "EHLO
+	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751770Ab1CKIGF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Mar 2011 09:52:57 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: [RFC] V4L2 API for flash devices
-Date: Wed, 30 Mar 2011 15:53:16 +0200
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Nayden Kanchev <nkanchev@mm-sol.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Cohen David Abraham <david.cohen@nokia.com>
-References: <4D90854C.2000802@maxwell.research.nokia.com> <201103301055.42521.laurent.pinchart@ideasonboard.com> <4D9325A9.4080200@maxwell.research.nokia.com>
-In-Reply-To: <4D9325A9.4080200@maxwell.research.nokia.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201103301553.17220.laurent.pinchart@ideasonboard.com>
+	Fri, 11 Mar 2011 03:06:05 -0500
+From: Michael Jones <michael.jones@matrix-vision.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH v3 1/4] v4l: add V4L2_PIX_FMT_Y12 format
+Date: Fri, 11 Mar 2011 09:05:46 +0100
+Message-Id: <1299830749-7269-2-git-send-email-michael.jones@matrix-vision.de>
+In-Reply-To: <1299830749-7269-1-git-send-email-michael.jones@matrix-vision.de>
+References: <1299830749-7269-1-git-send-email-michael.jones@matrix-vision.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Sakari,
+Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
+---
+ Documentation/DocBook/v4l/pixfmt-y12.xml |   79 ++++++++++++++++++++++++++++++
+ include/linux/videodev2.h                |    1 +
+ 2 files changed, 80 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/DocBook/v4l/pixfmt-y12.xml
 
-On Wednesday 30 March 2011 14:44:25 Sakari Ailus wrote:
-> Laurent Pinchart wrote:
-> > On Tuesday 29 March 2011 11:35:19 Sakari Ailus wrote:
-> >> Hans Verkuil wrote:
-> >>> On Monday, March 28, 2011 14:55:40 Sakari Ailus wrote:
-> > [snip]
-> > 
-> >>>> 	V4L2_CID_FLASH_TIMEOUT (integer; LED)
-> >>>> 
-> >>>> The flash controller provides timeout functionality to shut down the
-> >>>> led in case the host fails to do that. For hardware strobe, this is
-> >>>> the maximum amount of time the flash should stay on, and the purpose
-> >>>> of the setting is to prevent the LED from catching fire.
-> >>>> 
-> >>>> For software strobe, the setting may be used to limit the length of
-> >>>> the strobe in case a driver does not implement it itself. The
-> >>>> granularity of the timeout in [1, 2, 3] is very coarse. However, the
-> >>>> length of a driver-implemented LED strobe shutoff is very dependent
-> >>>> on host. Possibly V4L2_CID_FLASH_DURATION should be added, and
-> >>>> V4L2_CID_FLASH_TIMEOUT would be read-only so that the user would be
-> >>>> able to obtain the actual hardware implemented safety timeout.
-> >>>> 
-> >>>> Likely a standard unit such as ms or µs should be used.
-> >>> 
-> >>> It seems to me that this control should always be read-only. A setting
-> >>> like this is very much hardware specific and you don't want an attacker
-> >>> changing the timeout to the max value that might cause a LED catching
-> >>> fire.
-> >> 
-> >> I'm not sure about that.
-> >> 
-> >> The driver already must take care of protecting the hardware in my
-> >> opinion. Besides, at least one control is required to select the
-> >> duration for the flash if there's no hardware synchronisation.
-> >> 
-> >> What about this:
-> >> 	V4L2_CID_FLASH_TIMEOUT
-> >> 
-> >> Hardware timeout, read-only. Programmed to the maximum value allowed by
-> >> the hardware for the external strobe, greater or equal to
-> >> V4L2_CID_FLASH_DURATION for software strobe.
-> >> 
-> >> 	V4L2_CID_FLASH_DURATION
-> >> 
-> >> Software implemented timeout when V4L2_CID_FLASH_STROBE_MODE ==
-> >> V4L2_FLASH_STROBE_MODE_SOFTWARE.
-> > 
-> > Why would we need two controls here ? My understanding is that the
-> > maximum strobe duration length can be limited by
-> > 
-> > - the flash controller itself
-> > - platform-specific constraints to avoid over-heating the flash
-> > 
-> > The platform-specific constraints come from board code, and the flash
-> > driver needs to ensure that the flash is never strobed for a duration
-> > longer than the limit. This requires implementing a software timer if
-> > the hardware has no timeout control, and programming the hardware with
-> > the correct timeout value otherwise. The limit can be queried with
-> > QUERYCTRL on the duration control.
-> 
-> That's true.
-> 
-> The alternative would be software timeout since the hardware timeout is
-> rather coarse. Its intention is to protect the hardware from catching
-> fire mostly.
-
-A software timeout can always be implemented in the driver in addition to the 
-hardware timeout. I think this should be transparent for applications.
+diff --git a/Documentation/DocBook/v4l/pixfmt-y12.xml b/Documentation/DocBook/v4l/pixfmt-y12.xml
+new file mode 100644
+index 0000000..ff417b8
+--- /dev/null
++++ b/Documentation/DocBook/v4l/pixfmt-y12.xml
+@@ -0,0 +1,79 @@
++<refentry id="V4L2-PIX-FMT-Y12">
++  <refmeta>
++    <refentrytitle>V4L2_PIX_FMT_Y12 ('Y12 ')</refentrytitle>
++    &manvol;
++  </refmeta>
++  <refnamediv>
++    <refname><constant>V4L2_PIX_FMT_Y12</constant></refname>
++    <refpurpose>Grey-scale image</refpurpose>
++  </refnamediv>
++  <refsect1>
++    <title>Description</title>
++
++    <para>This is a grey-scale image with a depth of 12 bits per pixel. Pixels
++are stored in 16-bit words with unused high bits padded with 0. The least
++significant byte is stored at lower memory addresses (little-endian).</para>
++
++    <example>
++      <title><constant>V4L2_PIX_FMT_Y12</constant> 4 &times; 4
++pixel image</title>
++
++      <formalpara>
++	<title>Byte Order.</title>
++	<para>Each cell is one byte.
++	  <informaltable frame="none">
++	    <tgroup cols="9" align="center">
++	      <colspec align="left" colwidth="2*" />
++	      <tbody valign="top">
++		<row>
++		  <entry>start&nbsp;+&nbsp;0:</entry>
++		  <entry>Y'<subscript>00low</subscript></entry>
++		  <entry>Y'<subscript>00high</subscript></entry>
++		  <entry>Y'<subscript>01low</subscript></entry>
++		  <entry>Y'<subscript>01high</subscript></entry>
++		  <entry>Y'<subscript>02low</subscript></entry>
++		  <entry>Y'<subscript>02high</subscript></entry>
++		  <entry>Y'<subscript>03low</subscript></entry>
++		  <entry>Y'<subscript>03high</subscript></entry>
++		</row>
++		<row>
++		  <entry>start&nbsp;+&nbsp;8:</entry>
++		  <entry>Y'<subscript>10low</subscript></entry>
++		  <entry>Y'<subscript>10high</subscript></entry>
++		  <entry>Y'<subscript>11low</subscript></entry>
++		  <entry>Y'<subscript>11high</subscript></entry>
++		  <entry>Y'<subscript>12low</subscript></entry>
++		  <entry>Y'<subscript>12high</subscript></entry>
++		  <entry>Y'<subscript>13low</subscript></entry>
++		  <entry>Y'<subscript>13high</subscript></entry>
++		</row>
++		<row>
++		  <entry>start&nbsp;+&nbsp;16:</entry>
++		  <entry>Y'<subscript>20low</subscript></entry>
++		  <entry>Y'<subscript>20high</subscript></entry>
++		  <entry>Y'<subscript>21low</subscript></entry>
++		  <entry>Y'<subscript>21high</subscript></entry>
++		  <entry>Y'<subscript>22low</subscript></entry>
++		  <entry>Y'<subscript>22high</subscript></entry>
++		  <entry>Y'<subscript>23low</subscript></entry>
++		  <entry>Y'<subscript>23high</subscript></entry>
++		</row>
++		<row>
++		  <entry>start&nbsp;+&nbsp;24:</entry>
++		  <entry>Y'<subscript>30low</subscript></entry>
++		  <entry>Y'<subscript>30high</subscript></entry>
++		  <entry>Y'<subscript>31low</subscript></entry>
++		  <entry>Y'<subscript>31high</subscript></entry>
++		  <entry>Y'<subscript>32low</subscript></entry>
++		  <entry>Y'<subscript>32high</subscript></entry>
++		  <entry>Y'<subscript>33low</subscript></entry>
++		  <entry>Y'<subscript>33high</subscript></entry>
++		</row>
++	      </tbody>
++	    </tgroup>
++	  </informaltable>
++	</para>
++      </formalpara>
++    </example>
++  </refsect1>
++</refentry>
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 02da9e7..6fac463 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -288,6 +288,7 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_Y4      v4l2_fourcc('Y', '0', '4', ' ') /*  4  Greyscale     */
+ #define V4L2_PIX_FMT_Y6      v4l2_fourcc('Y', '0', '6', ' ') /*  6  Greyscale     */
+ #define V4L2_PIX_FMT_Y10     v4l2_fourcc('Y', '1', '0', ' ') /* 10  Greyscale     */
++#define V4L2_PIX_FMT_Y12     v4l2_fourcc('Y', '1', '2', ' ') /* 12  Greyscale     */
+ #define V4L2_PIX_FMT_Y16     v4l2_fourcc('Y', '1', '6', ' ') /* 16  Greyscale     */
  
-> But as I commented in the other e-mail, there likely isn't a need to be
-> able to control this very precisely. The user just shuts down the flash
-> whenever (s)he no longer needs it rather than knows beforehand how long
-> it needs to stay on.
-
-What about hardware that needs to be pre-programmed with a duration ?
-
-> >> I have to say I'm not entirely sure the duration control is required.
-> >> The timeout could be writable for software strobe in the case drivers do
-> >> not implement software timeout. The granularity isn't _that_ much
-> >> anyway. Also, a timeout fault should be produced whenever the duration
-> >> would expire.
-> >> 
-> >> Perhaps it would be best to just leave that out for now.
-> >> 
-> >>>> 	V4L2_CID_FLASH_LED_MODE (menu; LED)
-> >>>> 
-> >>>> enum v4l2_flash_led_mode {
-> >>>> 
-> >>>> 	V4L2_FLASH_LED_MODE_FLASH = 1,
-> >>>> 	V4L2_FLASH_LED_MODE_TORCH,
-> > 
-> > "torch" mode can also be used for video, should we rename TORCH to
-> > something more generic ? Maybe a "manual" mode ?
-> 
-> The controllers recognise a torch mode and I think it describes the
-> functionality quite well. Some appear to make a difference between torch
-> and video light --- but I can't imagine a purpose in which this could be
-> useful.
-
-Torch mode is indeed a common name, but it sounds a bit specific to me.
-
+ /* Palette formats */
 -- 
-Regards,
+1.7.4.1
 
-Laurent Pinchart
+
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
