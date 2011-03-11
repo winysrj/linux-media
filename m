@@ -1,34 +1,38 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:62842 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753464Ab1DAAKT (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1923 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750766Ab1CKT2k (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Mar 2011 20:10:19 -0400
+	Fri, 11 Mar 2011 14:28:40 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [GIT PATCHES FOR 2.6.39] DocBook validation fixes
+Date: Fri, 11 Mar 2011 20:28:26 +0100
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-In-Reply-To: <20110227095154.2741d051.randy.dunlap@oracle.com>
-References: <20110227095154.2741d051.randy.dunlap@oracle.com>
-From: Mike Frysinger <vapier.adi@gmail.com>
-Date: Thu, 31 Mar 2011 20:09:57 -0400
-Message-ID: <AANLkTikQ3k_E1-7Hnxdgm1xRo4Q+Skw_-Yn_T4K35D2V@mail.gmail.com>
-Subject: Re: [PATCH] media/radio/wl1273: fix build errors
-To: Randy Dunlap <randy.dunlap@oracle.com>, stable@kernel.org
-Cc: linux-media@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>,
-	Mauro <mchehab@infradead.org>,
-	Matti Aaltonen <matti.j.aaltonen@nokia.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201103112028.26373.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sun, Feb 27, 2011 at 12:51, Randy Dunlap wrote:
-> From: Randy Dunlap <randy.dunlap@oracle.com>
->
-> RADIO_WL1273 needs to make sure that the mfd core is built to avoid
-> build errors:
->
-> ERROR: "mfd_add_devices" [drivers/mfd/wl1273-core.ko] undefined!
-> ERROR: "mfd_remove_devices" [drivers/mfd/wl1273-core.ko] undefined!
+The following changes since commit 97c6bc5e15e60c0c15ff028c03af2cf42ad9a07e:
 
-2.6.38 stable worthy ?
+  [media] altera-ci.h: add missing inline (2011-03-11 14:17:05 -0300)
 
-now in mainline as 1b149bbe9156d2eb2afd5a072bd61ad0d4bfaca7 ...
--mike
+are available in the git repository at:
+  ssh://linuxtv.org/git/hverkuil/media_tree.git fixes
+
+Hans Verkuil (2):
+      V4L doc fixes
+      V4L DocBook: update V4L2 version.
+
+ Documentation/DocBook/v4l/dev-subdev.xml           |   46 +++++++-------
+ .../DocBook/v4l/media-ioc-enum-entities.xml        |    6 +-
+ Documentation/DocBook/v4l/subdev-formats.xml       |   64 ++++++++++----------
+ Documentation/DocBook/v4l/v4l2.xml                 |    2 +-
+ 4 files changed, 59 insertions(+), 59 deletions(-)
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
