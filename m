@@ -1,44 +1,58 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:44012 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933811Ab1CaBw2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Mar 2011 21:52:28 -0400
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p2V1qSWs030245
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 30 Mar 2011 21:52:28 -0400
-Received: from [10.3.230.187] (vpn-230-187.phx2.redhat.com [10.3.230.187])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p2V1qRVU015919
-	for <linux-media@vger.kernel.org>; Wed, 30 Mar 2011 21:52:28 -0400
-Message-ID: <4D93DE5A.8050300@redhat.com>
-Date: Wed, 30 Mar 2011 22:52:26 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mo-p00-ob.rzone.de ([81.169.146.162]:34500 "EHLO
+	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754950Ab1CKVqZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Mar 2011 16:46:25 -0500
+From: Ralph Metzler <rjkm@metzlerbros.de>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH dvb-apps] Add initial transponder for Net Digital
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
+Message-ID: <19834.38956.105807.55268@morden.metzler>
+Date: Fri, 11 Mar 2011 22:46:20 +0100
+To: linux-media@vger.kernel.org
+Cc: Issa Gorissen <flop.m@usa.net>,
+	Andreas Oberritter <obi@linuxtv.org>
+Subject: Re: [PATCH] Ngene cam device name
+In-Reply-To: <4D7A8879.5010401@linuxtv.org>
+References: <419PcksGF8800S02.1299868385@web02.cms.usa.net>
+	<4D7A8879.5010401@linuxtv.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Adds the initial transponder used on Net Digital on Sao Paulo
-state (specifically at Sao Jose dos Campos).
+Andreas Oberritter writes:
+ > >> On 03/10/2011 04:29 PM, Issa Gorissen wrote:
+ > > Now, according to Mauro comments, he has put this code into staging because of
+ > > the usage of sec0 name for a cam device.
+ > > 
+ > > Please comment on Oliver's explanations from this thread
+ > > 
+ > > http://www.mail-archive.com/linux-media@vger.kernel.org/msg26901.html
+ > 
+ > Oliver explained that he's not going to put work into this driver,
+ > because he's not using it.
+ > 
+ > Until now, I haven't heard any reasons for just adding another device
+ > node other than it being easier than defining a proper interface. The
+ > fact that a solution "just works as is" is not sufficient to move a
+ > driver from staging. IMO the CI driver should not have been included at
+ > all in its current shape.
 
-The other transponders are automatically obtained, so, there's
-no need to add them all.
+Unless you want to move the writing to/reading from the CI module into
+ioctls of the ci device you need another node. 
+Even nicer would be having the control messages moved to ioctls and the
+TS IO in read/write of ci, but this would break the old interface.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+What kind of proper interface were you thinking about?
 
 
-diff --git a/util/scan/dvb-c/br-Net-Digital b/util/scan/dvb-c/br-Net-Digital
-new file mode 100644
---- /dev/null
-+++ b/util/scan/dvb-c/br-Net-Digital
-@@ -0,0 +1,6 @@
-+# Net Digital
-+# Just the initial transponder is enough
-+
-+# freq sr fec mod
-+# Found on Sao Jose dos Campos, SP
-+C 573000000 5217000 NONE QAM256
+Regarding usage of dvr/demux mentioned in the linked thread above,
+this would add major overhead and lots more nodes. 
+You would need dvr0/demux0 for output and dvr1/demux1 for input and both
+would PID-filter the stream yet again although it probably already was
+when being read from the demux or dvr device belonging to the tuner.
+
+
+Regards,
+Ralph
 
