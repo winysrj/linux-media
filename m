@@ -1,105 +1,37 @@
 Return-path: <mchehab@pedra>
-Received: from mailout4.samsung.com ([203.254.224.34]:48596 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757736Ab1CCCQ6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Mar 2011 21:16:58 -0500
-Received: from epmmp1 (mailout4.samsung.com [203.254.224.34])
- by mailout4.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LHG002XJMBMWC50@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Thu, 03 Mar 2011 11:16:34 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LHG000ZUMBMH5@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 03 Mar 2011 11:16:34 +0900 (KST)
-Date: Thu, 03 Mar 2011 11:16:34 +0900
-From: "Kim, HeungJun" <riverful.kim@samsung.com>
-Subject: [RFC PATCH RESEND v2 3/3] v4l2-ctrls: document the changes about auto
- focus mode
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"???/Mobile S/W Platform Lab(DMC?)/E4(??)/????"
-	<sw0312.kim@samsung.com>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
-Reply-to: riverful.kim@samsung.com
-Message-id: <4D6EFA02.4080105@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7BIT
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:15487 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753534Ab1CKUh7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Mar 2011 15:37:59 -0500
+Date: Fri, 11 Mar 2011 12:37:57 -0800
+From: Tony Lindgren <tony@atomide.com>
+To: David Cohen <dacohen@gmail.com>
+Cc: Hiroshi.DOYU@nokia.com, linux-omap@vger.kernel.org,
+	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@maxwell.research.nokia.com, fernando.lugo@ti.com
+Subject: Re: [PATCH v3 0/2] omap: iovmm: Fix IOVMM check for fixed 'da'
+Message-ID: <20110311203757.GI10079@atomide.com>
+References: <1299662253-29817-1-git-send-email-dacohen@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1299662253-29817-1-git-send-email-dacohen@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Document about the type changes and the enumeration of the auto focus control.
+* David Cohen <dacohen@gmail.com> [110309 01:16]:
+> Hi,
+> 
+> Previous patch 2/3 was dropped in this new version. Patch 1 was updated
+> according to a comment it got.
+> 
+> ---
+> IOVMM driver checks input 'da == 0' when mapping address to determine whether
+> user wants fixed 'da' or not. At the same time, it doesn't disallow address
+> 0x0 to be used, what creates an ambiguous situation. This patch set moves
+> fixed 'da' check to the input flags.
 
-Signed-off-by: Heungjun Kim <riverful.kim@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- Documentation/DocBook/v4l/controls.xml    |   31 +++++++++++++++++++++++++---
- Documentation/DocBook/v4l/videodev2.h.xml |    6 +++++
- 2 files changed, 33 insertions(+), 4 deletions(-)
+Applying these.
 
-diff --git a/Documentation/DocBook/v4l/controls.xml b/Documentation/DocBook/v4l/controls.xml
-index 2fae3e8..889fa84 100644
---- a/Documentation/DocBook/v4l/controls.xml
-+++ b/Documentation/DocBook/v4l/controls.xml
-@@ -1801,12 +1801,35 @@ negative values towards infinity. This is a write-only control.</entry>
- 	  </row>
- 	  <row><entry></entry></row>
- 
--	  <row>
-+	  <row id="v4l2-focus-auto-type">
- 	    <entry spanname="id"><constant>V4L2_CID_FOCUS_AUTO</constant>&nbsp;</entry>
--	    <entry>boolean</entry>
-+	    <entry>enum&nbsp;v4l2_focus_auto_type</entry>
- 	  </row><row><entry spanname="descr">Enables automatic focus
--adjustments. The effect of manual focus adjustments while this feature
--is enabled is undefined, drivers should ignore such requests.</entry>
-+adjustments of the normal or macro or continuous(CAF) mode. The effect of
-+manual focus adjustments while this feature is enabled is undefined,
-+drivers should ignore such requests. Possible values are:</entry>
-+	  </row>
-+	  <row>
-+	    <entrytbl spanname="descr" cols="2">
-+	      <tbody valign="top">
-+		<row>
-+		  <entry><constant>V4L2_FOCUS_MANUAL</constant>&nbsp;</entry>
-+		  <entry>Manual focus mode.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_FOCUS_AUTO</constant>&nbsp;</entry>
-+		  <entry>Auto focus mode with normal operation.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_FOCUS_MACRO</constant>&nbsp;</entry>
-+		  <entry>Auto focus mode with macro operation.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_FOCUS_CONTINUOUS</constant>&nbsp;</entry>
-+		  <entry>Auto focus mode with continuous(CAF) operation.</entry>
-+		</row>
-+	      </tbody>
-+	    </entrytbl>
- 	  </row>
- 	  <row><entry></entry></row>
- 
-diff --git a/Documentation/DocBook/v4l/videodev2.h.xml b/Documentation/DocBook/v4l/videodev2.h.xml
-index 325b23b..ccf6c2b 100644
---- a/Documentation/DocBook/v4l/videodev2.h.xml
-+++ b/Documentation/DocBook/v4l/videodev2.h.xml
-@@ -1291,6 +1291,12 @@ enum  <link linkend="v4l2-exposure-auto-type">v4l2_exposure_auto_type</link> {
- #define V4L2_CID_FOCUS_ABSOLUTE                 (V4L2_CID_CAMERA_CLASS_BASE+10)
- #define V4L2_CID_FOCUS_RELATIVE                 (V4L2_CID_CAMERA_CLASS_BASE+11)
- #define V4L2_CID_FOCUS_AUTO                     (V4L2_CID_CAMERA_CLASS_BASE+12)
-+enum  <link linkend="v4l2-focus-auto-type">v4l2_exposure_auto_type</link> {
-+	V4L2_FOCUS_MANUAL = 0,
-+	V4L2_FOCUS_AUTO = 1,
-+	V4L2_FOCUS_MACRO = 2,
-+	V4L2_FOCUS_CONTINUOUS = 3
-+};
- 
- #define V4L2_CID_ZOOM_ABSOLUTE                  (V4L2_CID_CAMERA_CLASS_BASE+13)
- #define V4L2_CID_ZOOM_RELATIVE                  (V4L2_CID_CAMERA_CLASS_BASE+14)
--- 
-1.7.0.4
+Tony
