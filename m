@@ -1,74 +1,180 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:61981 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759000Ab1CaTu3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Mar 2011 15:50:29 -0400
-Message-ID: <4D94DB00.8060909@redhat.com>
-Date: Thu, 31 Mar 2011 16:50:24 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: handygewinnspiel@gmx.de
-CC: linux-media@vger.kernel.org
-Subject: Re: [w_scan PATCH] Add Brazil support on w_scan
-References: <4D909B59.9040809@redhat.com> <20110328172045.64750@gmx.net> <4D90D78F.7050308@redhat.com> <20110329201152.282620@gmx.net> <4D92697C.3030209@redhat.com> <4D945B39.8050708@redhat.com> <20110331171516.250770@gmx.net>
-In-Reply-To: <20110331171516.250770@gmx.net>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.samsung.com ([203.254.224.24]:35393 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751030Ab1CKGyx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Mar 2011 01:54:53 -0500
+Received: from epmmp2 (mailout1.samsung.com [203.254.224.24])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LHV002I9SJE19D0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 11 Mar 2011 15:54:50 +0900 (KST)
+Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
+ by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LHV00IINSJED5@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 11 Mar 2011 15:54:51 +0900 (KST)
+Date: Fri, 11 Mar 2011 15:54:46 +0900
+From: Joonyoung Shim <jy0922.shim@samsung.com>
+Subject: [PATCH 1/3] radio-si470x: support seek and tune interrupt enable
+To: linux-media@vger.kernel.org
+Cc: mchehab@infradead.org, tobias.lorenz@gmx.net,
+	kyungmin.park@samsung.com
+Message-id: <1299826488-20506-1-git-send-email-jy0922.shim@samsung.com>
+Content-transfer-encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 31-03-2011 14:15, handygewinnspiel@gmx.de escreveu:
-> 
->> Em 29-03-2011 20:21, Mauro Carvalho Chehab escreveu:
->>> Em 29-03-2011 17:11, handygewinnspiel@gmx.de escreveu:
->>>> So I changed it now to scan any srate for 6MHz networks, but skip over
->> those which are unsupported by bandwidth limitation.
->> ...
->>> Anyway, I'll test the today's version and reply if I detect any troubles
->> on it.
->>
->> Test results:
->>
->> 	$ ./w_scan -c BR -fc 
->> Took about 30 mins for scan. As the board I'm using doesn't support
->> QAM_AUTO
->> for DVB-C, it seek only QAM_64
-> 
-> This is unexpected && should be fixed to fit to w_scan's default behaviour: first QAM_64, then QAM_256.
-> 
-> Can you pls re-check with the following change in countries.c line 500ff
-> 
-> /*
->  * start/stop values for dvbc qam loop
->  * 0 == QAM_64, 1 == QAM_256, 2 == QAM_128
->  */
-> int dvbc_qam_max(int channel, int channellist) {
-> switch(channellist) {
->        case DVBC_FI:    return 2; //QAM128
-> +      case DVBC_BR:
->        case DVBC_FR:
->        case DVBC_QAM:   return 1; //QAM256
->        default:         return 0; //no qam loop
->        }
-> }
-> 
->     
-> int dvbc_qam_min(int channel, int channellist) {
-> switch(channellist) {
->        case DVBC_FI:
-> +      case DVBC_BR:
->        case DVBC_FR:
->        case DVBC_QAM:   return 0; //QAM64
->        default:         return 0; //no qam loop
->        }
-> }
-> 
-> I don't think that adding QAM_128 makes sense.
+Currently we use busy waiting to seek and tune, it can replace to
+interrupt way. SI470X I2C driver supports interrupt way to week and tune
+via this patch.
 
-Agreed
-> Later, if i have more reports from 6MHz network users, i will reduce the number of symbol rates.
+Signed-off-by: Joonyoung Shim <jy0922.shim@samsung.com>
+---
+ drivers/media/radio/si470x/radio-si470x-common.c |   60 +++++++++++++++-------
+ drivers/media/radio/si470x/radio-si470x-i2c.c    |   17 +++++-
+ drivers/media/radio/si470x/radio-si470x.h        |    3 +
+ 3 files changed, 60 insertions(+), 20 deletions(-)
 
-Ok.
+diff --git a/drivers/media/radio/si470x/radio-si470x-common.c b/drivers/media/radio/si470x/radio-si470x-common.c
+index 60c176f..0a5d83d 100644
+--- a/drivers/media/radio/si470x/radio-si470x-common.c
++++ b/drivers/media/radio/si470x/radio-si470x-common.c
+@@ -174,15 +174,27 @@ static int si470x_set_chan(struct si470x_device *radio, unsigned short chan)
+ 	if (retval < 0)
+ 		goto done;
+ 
+-	/* wait till tune operation has completed */
+-	timeout = jiffies + msecs_to_jiffies(tune_timeout);
+-	do {
+-		retval = si470x_get_register(radio, STATUSRSSI);
+-		if (retval < 0)
+-			goto stop;
+-		timed_out = time_after(jiffies, timeout);
+-	} while (((radio->registers[STATUSRSSI] & STATUSRSSI_STC) == 0) &&
+-		(!timed_out));
++	/* currently I2C driver only uses interrupt way to tune */
++	if (radio->stci_enabled) {
++		INIT_COMPLETION(radio->completion);
++
++		/* wait till tune operation has completed */
++		retval = wait_for_completion_timeout(&radio->completion,
++				msecs_to_jiffies(tune_timeout));
++		if (!retval)
++			timed_out = true;
++	} else {
++		/* wait till tune operation has completed */
++		timeout = jiffies + msecs_to_jiffies(tune_timeout);
++		do {
++			retval = si470x_get_register(radio, STATUSRSSI);
++			if (retval < 0)
++				goto stop;
++			timed_out = time_after(jiffies, timeout);
++		} while (((radio->registers[STATUSRSSI] & STATUSRSSI_STC) == 0)
++				&& (!timed_out));
++	}
++
+ 	if ((radio->registers[STATUSRSSI] & STATUSRSSI_STC) == 0)
+ 		dev_warn(&radio->videodev->dev, "tune does not complete\n");
+ 	if (timed_out)
+@@ -310,15 +322,27 @@ static int si470x_set_seek(struct si470x_device *radio,
+ 	if (retval < 0)
+ 		goto done;
+ 
+-	/* wait till seek operation has completed */
+-	timeout = jiffies + msecs_to_jiffies(seek_timeout);
+-	do {
+-		retval = si470x_get_register(radio, STATUSRSSI);
+-		if (retval < 0)
+-			goto stop;
+-		timed_out = time_after(jiffies, timeout);
+-	} while (((radio->registers[STATUSRSSI] & STATUSRSSI_STC) == 0) &&
+-		(!timed_out));
++	/* currently I2C driver only uses interrupt way to seek */
++	if (radio->stci_enabled) {
++		INIT_COMPLETION(radio->completion);
++
++		/* wait till seek operation has completed */
++		retval = wait_for_completion_timeout(&radio->completion,
++				msecs_to_jiffies(seek_timeout));
++		if (!retval)
++			timed_out = true;
++	} else {
++		/* wait till seek operation has completed */
++		timeout = jiffies + msecs_to_jiffies(seek_timeout);
++		do {
++			retval = si470x_get_register(radio, STATUSRSSI);
++			if (retval < 0)
++				goto stop;
++			timed_out = time_after(jiffies, timeout);
++		} while (((radio->registers[STATUSRSSI] & STATUSRSSI_STC) == 0)
++				&& (!timed_out));
++	}
++
+ 	if ((radio->registers[STATUSRSSI] & STATUSRSSI_STC) == 0)
+ 		dev_warn(&radio->videodev->dev, "seek does not complete\n");
+ 	if (radio->registers[STATUSRSSI] & STATUSRSSI_SF)
+diff --git a/drivers/media/radio/si470x/radio-si470x-i2c.c b/drivers/media/radio/si470x/radio-si470x-i2c.c
+index 4ce541a..81b0a1a 100644
+--- a/drivers/media/radio/si470x/radio-si470x-i2c.c
++++ b/drivers/media/radio/si470x/radio-si470x-i2c.c
+@@ -197,8 +197,9 @@ int si470x_fops_open(struct file *file)
+ 		if (retval < 0)
+ 			goto done;
+ 
+-		/* enable RDS interrupt */
++		/* enable RDS / STC interrupt */
+ 		radio->registers[SYSCONFIG1] |= SYSCONFIG1_RDSIEN;
++		radio->registers[SYSCONFIG1] |= SYSCONFIG1_STCIEN;
+ 		radio->registers[SYSCONFIG1] &= ~SYSCONFIG1_GPIO2;
+ 		radio->registers[SYSCONFIG1] |= 0x1 << 2;
+ 		retval = si470x_set_register(radio, SYSCONFIG1);
+@@ -274,12 +275,20 @@ static void si470x_i2c_interrupt_work(struct work_struct *work)
+ 	unsigned char tmpbuf[3];
+ 	int retval = 0;
+ 
++	/* check Seek/Tune Complete */
++	retval = si470x_get_register(radio, STATUSRSSI);
++	if (retval < 0)
++		return;
++
++	if (radio->registers[STATUSRSSI] & STATUSRSSI_STC)
++		complete(&radio->completion);
++
+ 	/* safety checks */
+ 	if ((radio->registers[SYSCONFIG1] & SYSCONFIG1_RDS) == 0)
+ 		return;
+ 
+ 	/* Update RDS registers */
+-	for (regnr = 0; regnr < RDS_REGISTER_NUM; regnr++) {
++	for (regnr = 1; regnr < RDS_REGISTER_NUM; regnr++) {
+ 		retval = si470x_get_register(radio, STATUSRSSI + regnr);
+ 		if (retval < 0)
+ 			return;
+@@ -441,6 +450,10 @@ static int __devinit si470x_i2c_probe(struct i2c_client *client,
+ 	radio->rd_index = 0;
+ 	init_waitqueue_head(&radio->read_queue);
+ 
++	/* mark Seek/Tune Complete Interrupt enabled */
++	radio->stci_enabled = true;
++	init_completion(&radio->completion);
++
+ 	retval = request_irq(client->irq, si470x_i2c_interrupt,
+ 			IRQF_TRIGGER_FALLING, DRIVER_NAME, radio);
+ 	if (retval) {
+diff --git a/drivers/media/radio/si470x/radio-si470x.h b/drivers/media/radio/si470x/radio-si470x.h
+index 4a4e908..9ef6716 100644
+--- a/drivers/media/radio/si470x/radio-si470x.h
++++ b/drivers/media/radio/si470x/radio-si470x.h
+@@ -158,6 +158,9 @@ struct si470x_device {
+ 	unsigned int rd_index;
+ 	unsigned int wr_index;
+ 
++	struct completion completion;
++	bool stci_enabled;		/* Seek/Tune Complete Interrupt */
++
+ #if defined(CONFIG_USB_SI470X) || defined(CONFIG_USB_SI470X_MODULE)
+ 	/* reference to USB and video device */
+ 	struct usb_device *usbdev;
+-- 
+1.7.0.4
 
-Worked. Thanks!
-Mauro.
