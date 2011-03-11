@@ -1,85 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from cnc.isely.net ([75.149.91.89]:46362 "EHLO cnc.isely.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751155Ab1CZEhG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Mar 2011 00:37:06 -0400
-Date: Fri, 25 Mar 2011 23:37:04 -0500 (CDT)
-From: Mike Isely <isely@isely.net>
-To: Dan Carpenter <error27@gmail.com>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org,
-	Mike Isely <isely@isely.net>
-Subject: Re: [PATCH 6/6] [media] pvrusb2: replace !0 with 1
-In-Reply-To: <20110326015530.GK2008@bicker>
-Message-ID: <alpine.DEB.1.10.1103252335590.12072@ivanova.isely.net>
-References: <20110326015530.GK2008@bicker>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.samsung.com ([203.254.224.34]:8465 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752484Ab1CKJEx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Mar 2011 04:04:53 -0500
+Date: Fri, 11 Mar 2011 10:04:36 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH 3/7] ARM: Samsung: update/rewrite Samsung SYSMMU (IOMMU)
+ driver
+In-reply-to: <201103101552.15536.arnd@arndb.de>
+To: 'Arnd Bergmann' <arnd@arndb.de>,
+	linux-arm-kernel@lists.infradead.org
+Cc: linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	k.debski@samsung.com, kgene.kim@samsung.com,
+	kyungmin.park@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	=?ks_c_5601-1987?B?J7TrwM6x4ic=?= <inki.dae@samsung.com>,
+	=?ks_c_5601-1987?B?J7Ctuc6x1Cc=?= <mk7.kang@samsung.com>,
+	'KyongHo Cho' <pullip.cho@samsung.com>
+Message-id: <002101cbdfcb$5c657820$15306860$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ks_c_5601-1987
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <1299229274-9753-4-git-send-email-m.szyprowski@samsung.com>
+ <1299254660-15765-1-git-send-email-m.szyprowski@samsung.com>
+ <201103101552.15536.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+Hello,
 
-That's an opinion which I as the driver author disagree with.  Strongly.  
-How hard is it to read "not false"?
+On Thursday, March 10, 2011 3:52 PM Arnd Bergmann wrote:
 
-Nacked-By: Mike Isely <isely@pobox.com>
-
-
-On Sat, 26 Mar 2011, Dan Carpenter wrote:
-
-> Using !0 is less readable than just saying 1.
+> On Friday 04 March 2011, Marek Szyprowski wrote:
+> > From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+> >
+> > This patch performs a complete rewrite of sysmmu driver for Samsung platform:
+> > - the new version introduces an api to construct device private page
+> >   tables and enables to use device private address space mode
+> > - simplified the resource management: no more single platform
+> >   device with 32 resources is needed, better fits into linux driver model,
+> >   each sysmmu instance has it's own resource definition
+> > - added support for sysmmu clocks
+> > - some other minor API chages required by upcoming videobuf2 allocator
+> >
+> > Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> > Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 > 
-> Signed-off-by: Dan Carpenter <error27@gmail.com>
+> Please explain why create a new IOMMU API when we already have two
+> generic ones (include/linux/iommu.h and include/linux/dma-mapping.h).
 > 
-> diff --git a/drivers/media/video/pvrusb2/pvrusb2-std.c b/drivers/media/video/pvrusb2/pvrusb2-std.c
-> index 9bebc08..ca4f67b 100644
-> --- a/drivers/media/video/pvrusb2/pvrusb2-std.c
-> +++ b/drivers/media/video/pvrusb2/pvrusb2-std.c
-> @@ -158,7 +158,7 @@ int pvr2_std_str_to_id(v4l2_std_id *idPtr, const char *buf,
->  			cnt++;
->  			buf += cnt;
->  			buf_size -= cnt;
-> -			mMode = !0;
-> +			mMode = 1;
->  			cmsk = sp->id;
->  			continue;
->  		}
-> @@ -190,7 +190,7 @@ int pvr2_std_str_to_id(v4l2_std_id *idPtr, const char *buf,
->  
->  	if (idPtr)
->  		*idPtr = id;
-> -	return !0;
-> +	return 1;
->  }
->  
->  unsigned int pvr2_std_id_to_str(char *buf, unsigned int buf_size,
-> @@ -217,10 +217,10 @@ unsigned int pvr2_std_id_to_str(char *buf, unsigned int buf_size,
->  					buf_size -= c2;
->  					buf += c2;
->  				}
-> -				cfl = !0;
-> +				cfl = 1;
->  				c2 = scnprintf(buf, buf_size,
->  					       "%s-", gp->name);
-> -				gfl = !0;
-> +				gfl = 1;
->  			} else {
->  				c2 = scnprintf(buf, buf_size, "/");
->  			}
-> @@ -315,7 +315,7 @@ static int pvr2_std_fill(struct v4l2_standard *std, v4l2_std_id id)
->  	std->name[bcnt] = 0;
->  	pvr2_trace(PVR2_TRACE_STD, "Set up standard idx=%u name=%s",
->  		   std->index, std->name);
-> -	return !0;
-> +	return 1;
->  }
->  
->  /*
-> 
+> Is there something that cannot be done with the common code?
+> The first approach should be to extend the existing APIs to
+> do what you need.
 
--- 
+We followed the style of iommu API for other mainline ARM platforms (both OMAP and MSM
+also have custom API for their iommu modules). I've briefly checked include/linux/iommu.h
+API and I've noticed that it has been designed mainly for KVM support. There is also
+include/linux/intel-iommu.h interface, but I it is very specific to intel gfx chips.
 
-Mike Isely
-isely @ isely (dot) net
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
+Is there any example how include/linux/dma-mapping.h interface can be used for iommu
+mappings?
+
+Best regards
+--
+Marek Szyprowski
+Samsung Poland R&D Center
+
+
