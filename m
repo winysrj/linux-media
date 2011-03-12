@@ -1,143 +1,102 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.128.26]:38151 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753234Ab1C3OSi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Mar 2011 10:18:38 -0400
-Message-ID: <4D933B9A.1090002@maxwell.research.nokia.com>
-Date: Wed, 30 Mar 2011 17:18:02 +0300
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Received: from blu0-omc2-s4.blu0.hotmail.com ([65.55.111.79]:3826 "EHLO
+	blu0-omc2-s4.blu0.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754236Ab1CLQnR convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Mar 2011 11:43:17 -0500
+Message-ID: <BLU118-W16CC3A9564300FA54CB1E4E5CA0@phx.gbl>
+From: wim delvaux <wim.delvaux@hotmail.com>
+To: <linux-media@vger.kernel.org>
+Subject: Problems with analog sound on Pinnacle Dazzle TV hybrid USB stick
+Date: Sat, 12 Mar 2011 17:37:06 +0100
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Nayden Kanchev <nkanchev@mm-sol.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Cohen David Abraham <david.cohen@nokia.com>
-Subject: Re: [RFC] V4L2 API for flash devices
-References: <4D90854C.2000802@maxwell.research.nokia.com> <201103301055.42521.laurent.pinchart@ideasonboard.com> <4D9325A9.4080200@maxwell.research.nokia.com> <201103301553.17220.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201103301553.17220.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Laurent Pinchart wrote:
-> Hi Sakari,
 
-Heippa,
+Hi all,
 
-> On Wednesday 30 March 2011 14:44:25 Sakari Ailus wrote:
->> Laurent Pinchart wrote:
->>> On Tuesday 29 March 2011 11:35:19 Sakari Ailus wrote:
->>>> Hans Verkuil wrote:
->>>>> On Monday, March 28, 2011 14:55:40 Sakari Ailus wrote:
->>> [snip]
->>>
->>>>>> 	V4L2_CID_FLASH_TIMEOUT (integer; LED)
->>>>>>
->>>>>> The flash controller provides timeout functionality to shut down the
->>>>>> led in case the host fails to do that. For hardware strobe, this is
->>>>>> the maximum amount of time the flash should stay on, and the purpose
->>>>>> of the setting is to prevent the LED from catching fire.
->>>>>>
->>>>>> For software strobe, the setting may be used to limit the length of
->>>>>> the strobe in case a driver does not implement it itself. The
->>>>>> granularity of the timeout in [1, 2, 3] is very coarse. However, the
->>>>>> length of a driver-implemented LED strobe shutoff is very dependent
->>>>>> on host. Possibly V4L2_CID_FLASH_DURATION should be added, and
->>>>>> V4L2_CID_FLASH_TIMEOUT would be read-only so that the user would be
->>>>>> able to obtain the actual hardware implemented safety timeout.
->>>>>>
->>>>>> Likely a standard unit such as ms or µs should be used.
->>>>>
->>>>> It seems to me that this control should always be read-only. A setting
->>>>> like this is very much hardware specific and you don't want an attacker
->>>>> changing the timeout to the max value that might cause a LED catching
->>>>> fire.
->>>>
->>>> I'm not sure about that.
->>>>
->>>> The driver already must take care of protecting the hardware in my
->>>> opinion. Besides, at least one control is required to select the
->>>> duration for the flash if there's no hardware synchronisation.
->>>>
->>>> What about this:
->>>> 	V4L2_CID_FLASH_TIMEOUT
->>>>
->>>> Hardware timeout, read-only. Programmed to the maximum value allowed by
->>>> the hardware for the external strobe, greater or equal to
->>>> V4L2_CID_FLASH_DURATION for software strobe.
->>>>
->>>> 	V4L2_CID_FLASH_DURATION
->>>>
->>>> Software implemented timeout when V4L2_CID_FLASH_STROBE_MODE ==
->>>> V4L2_FLASH_STROBE_MODE_SOFTWARE.
->>>
->>> Why would we need two controls here ? My understanding is that the
->>> maximum strobe duration length can be limited by
->>>
->>> - the flash controller itself
->>> - platform-specific constraints to avoid over-heating the flash
->>>
->>> The platform-specific constraints come from board code, and the flash
->>> driver needs to ensure that the flash is never strobed for a duration
->>> longer than the limit. This requires implementing a software timer if
->>> the hardware has no timeout control, and programming the hardware with
->>> the correct timeout value otherwise. The limit can be queried with
->>> QUERYCTRL on the duration control.
->>
->> That's true.
->>
->> The alternative would be software timeout since the hardware timeout is
->> rather coarse. Its intention is to protect the hardware from catching
->> fire mostly.
-> 
-> A software timeout can always be implemented in the driver in addition to the 
-> hardware timeout. I think this should be transparent for applications.
->  
->> But as I commented in the other e-mail, there likely isn't a need to be
->> able to control this very precisely. The user just shuts down the flash
->> whenever (s)he no longer needs it rather than knows beforehand how long
->> it needs to stay on.
-> 
-> What about hardware that needs to be pre-programmed with a duration ?
+I have read serveral newsgroups about this problem and did not find any solution.
 
-Same control?
+The closest to a solution was a suggestion to install a em28xx-new module but it is no longer available.
 
-I wonder if I could say we agree to have one timeout control which is
-used to control the hardware timeout directly, or to implement a timeout
-in software? :-)
+I have loaded em28xx em28xx-alsa and em28xx-dvb with this output ( I have forced the card on 56 using options em28xx card=56)
 
->>>> I have to say I'm not entirely sure the duration control is required.
->>>> The timeout could be writable for software strobe in the case drivers do
->>>> not implement software timeout. The granularity isn't _that_ much
->>>> anyway. Also, a timeout fault should be produced whenever the duration
->>>> would expire.
->>>>
->>>> Perhaps it would be best to just leave that out for now.
->>>>
->>>>>> 	V4L2_CID_FLASH_LED_MODE (menu; LED)
->>>>>>
->>>>>> enum v4l2_flash_led_mode {
->>>>>>
->>>>>> 	V4L2_FLASH_LED_MODE_FLASH = 1,
->>>>>> 	V4L2_FLASH_LED_MODE_TORCH,
->>>
->>> "torch" mode can also be used for video, should we rename TORCH to
->>> something more generic ? Maybe a "manual" mode ?
->>
->> The controllers recognise a torch mode and I think it describes the
->> functionality quite well. Some appear to make a difference between torch
->> and video light --- but I can't imagine a purpose in which this could be
->> useful.
-> 
-> Torch mode is indeed a common name, but it sounds a bit specific to me.
 
-Torch suggests it can be used over extended periods of time, unlike
-manual which doesn't really say much. I'd keep it torch since what it
-suggests is that it can stay on for long. No references outside the
-flash controller itself.
+[51556.500765] em28xx: New device USB 2881 Video @ 480 Mbps (eb1a:2881, interface 0, class 0)
+[51556.500949] em28xx #0: chip ID is em2882/em2883
+[51556.687042] em28xx #0: i2c eeprom 00: 1a eb 67 95 1a eb 81 28 58 12 5c 00 6a 20 6a 00
+[51556.687056] em28xx #0: i2c eeprom 10: 00 00 04 57 64 57 00 00 60 f4 00 00 02 02 00 00
+[51556.687068] em28xx #0: i2c eeprom 20: 56 00 01 00 00 00 02 00 b8 00 00 00 5b 1e 00 00
+[51556.687080] em28xx #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 10 02 00 00 00 00 00 00
+[51556.687091] em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[51556.687102] em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[51556.687114] em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 20 03 55 00 53 00
+[51556.687125] em28xx #0: i2c eeprom 70: 42 00 20 00 32 00 38 00 38 00 31 00 20 00 56 00
+[51556.687137] em28xx #0: i2c eeprom 80: 69 00 64 00 65 00 6f 00 00 00 00 00 00 00 00 00
+[51556.687148] em28xx #0: i2c eeprom 90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[51556.687160] em28xx #0: i2c eeprom a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[51556.687171] em28xx #0: i2c eeprom b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[51556.687182] em28xx #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[51556.687194] em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[51556.687205] em28xx #0: i2c eeprom e0: 5a 00 55 aa 79 55 54 03 00 17 98 01 00 00 00 00
+[51556.687216] em28xx #0: i2c eeprom f0: 0c 00 00 01 00 00 00 00 00 00 00 00 00 00 00 00
+[51556.687229] em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0xb8846b20
+[51556.687232] em28xx #0: EEPROM info:
+[51556.687234] em28xx #0:       AC97 audio (5 sample rates)
+[51556.687236] em28xx #0:       USB Remote wakeup capable
+[51556.687238] em28xx #0:       500mA max power
+[51556.687241] em28xx #0:       Table at 0x04, strings=0x206a, 0x006a, 0x0000
+[51556.687915] em28xx #0: Identified as Pinnacle Hybrid Pro (card=53)
+[51556.690103] tvp5150 1-005c: chip found @ 0xb8 (em28xx #0)
+[51556.694727] tuner 1-0061: chip found @ 0xc2 (em28xx #0)
+[51556.694862] xc2028 1-0061: creating new instance
+[51556.694864] xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
+[51556.694872] usb 2-6: firmware: requesting xc3028-v27.fw
+[51556.696352] xc2028 1-0061: Loading 80 firmware images from xc3028-v27.fw, type: xc2028 firmware, ver 2.7
+[51556.752531] xc2028 1-0061: Loading firmware for type=BASE (1), id 0000000000000000.
+[51557.679461] xc2028 1-0061: Loading firmware for type=(0), id 000000000000b700.
+[51557.693080] SCODE (20000000), id 000000000000b700:
+[51557.693088] xc2028 1-0061: Loading SCODE for type=MONO SCODE HAS_IF_4320 (60008000), id 0000000000008000.
+[51557.900062] em28xx #0: Config register raw data: 0x58
+[51557.900812] em28xx #0: AC97 vendor ID = 0xffffffff
+[51557.901178] em28xx #0: AC97 features = 0x6a90
+[51557.901181] em28xx #0: Empia 202 AC97 audio processor detected
+[51558.050427] tvp5150 1-005c: tvp5150am1 detected.
+[51558.153287] em28xx #0: v4l2 driver version 0.1.2
+[51558.237283] em28xx #0: V4L2 video device registered as /dev/video1
+[51558.237287] em28xx #0: V4L2 VBI device registered as /dev/vbi1
+[51558.250087] usbcore: registered new interface driver em28xx
+[51558.250092] em28xx driver loaded
+[51558.420877] xc2028 1-0061: attaching existing instance
+[51558.420881] xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
+[51558.420884] em28xx #0/2: xc3028 attached
+[51558.420888] DVB: registering new adapter (em28xx #0)
+[51558.420893] DVB: registering adapter 0 frontend 0 (Zarlink ZL10353 DVB-T)...
+[51558.421536] Successfully loaded em28xx-dvb
+[51558.421540] Em28xx: Initialized (Em28xx dvb Extension) extension
+[51558.421968] Em28xx: Initialized (Em28xx Audio Extension) extension
+[51560.520457] tvp5150 1-005c: tvp5150am1 detected.
+[51561.024168] tvp5150 1-005c: tvp5150am1 detected.
+[51561.332517] xc2028 1-0061: Loading firmware for type=BASE F8MHZ (3), id 0000000000000000.
+[51562.259446] (0), id 00000000000000ff:
+[51562.259452] xc2028 1-0061: Loading firmware for type=(0), id 0000000100000007.
+[51562.273059] xc2028 1-0061: Loading SCODE for type=MONO SCODE HAS_IF_5320 (60008000), id 0000000f0000000
 
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+I can get video. I see in alsa a third card (in fact I have a second internal TV capture card)
+But I cannot get sound out of it.
+
+I used mplayer to play TV.  I did get no errors about opening the card but again no sound.
+I used this command :
+
+mplayer -tv immediatemode=0:outfmt=yuy2:width=768:height=576:adevice=hw.2,0:forceaudio:alsa:amode=1:norm=PAL:normid=5:chanlist=europe-west:freq=203.25:device=/dev/video1:input=0 tv://
+
+(I also tried hw.1,0 or /dev/dsp(x)
+
+help greatly appreciated
+
+Thx
+W
+ 		 	   		  
