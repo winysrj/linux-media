@@ -1,36 +1,55 @@
 Return-path: <mchehab@pedra>
-Received: from 47-67.174.81.serverdedicati.seflow.net ([81.174.67.47]:53826
-	"EHLO vps.virtual-bit.com" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1752338Ab1CTU1n (ORCPT
+Received: from mo-p00-ob.rzone.de ([81.169.146.161]:54544 "EHLO
+	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753789Ab1CLOFM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Mar 2011 16:27:43 -0400
-From: Lucio Crusca <lucio@sulweb.org>
-To: Antti Palosaari <crope@iki.fi>
-Subject: Re: AF9015 problems
-Date: Sun, 20 Mar 2011 21:27:39 +0100
-Cc: linux-media@vger.kernel.org
-References: <201103202010.33892.lucio@sulweb.org> <4D865783.20808@iki.fi>
-In-Reply-To: <4D865783.20808@iki.fi>
+	Sat, 12 Mar 2011 09:05:12 -0500
+From: Ralph Metzler <rjkm@metzlerbros.de>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Message-Id: <201103202127.39722.lucio@sulweb.org>
+Message-ID: <19835.32151.116648.554824@morden.metzler>
+Date: Sat, 12 Mar 2011 15:05:11 +0100
+To: Andreas Oberritter <obi@linuxtv.org>
+Cc: Martin Vidovic <xtronom@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] Ngene cam device name
+In-Reply-To: <4D7B7524.2050108@linuxtv.org>
+References: <alpine.LNX.2.00.1103101608030.9782@hp8540w.home>
+	<4D7A452C.7020700@linuxtv.org>
+	<4D7A97BB.4020704@gmail.com>
+	<4D7B7524.2050108@linuxtv.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-> Could you say which are missing freqs and bandwidth of those freqs?
+Andreas Oberritter writes:
+ > On 03/11/2011 10:44 PM, Martin Vidovic wrote:
+ > > Andreas Oberritter wrote:
+ > >> It's rather unintuitive that some CAMs appear as ca0, while others as
+ > >> cam0.
+ > >>   
+ > > Ngene CI appears as both ca0 and cam0 (or sec0). The ca0 node is used
+ > > as usual, to setup the CAM. The cam0 (or sec0) node is used to read/write
+ > > transport stream. To me it  looks like an extension of the current API.
+ > 
+ > I see. This raises another problem. How to find out, which ca device
+ > cam0 relates to, in case there are more ca devices than cam devices?
+ > 
 
-The missing frequences are all in the 8MHz bands, while the 4 services it finds 
-are the only services in the 7MHz bands. The 4 services it finds are all "RAI" 
-services, which is the national tv here, just in case it helps knowing that.
+They should be in different adapterX directories. 
+Even on the cards where you can connect up to 4 dual frontends or CAM adapters
+I currently use one adapter directory for every frontend and CAM.
 
-When I scan for services with the TV decoder, RAI services are always the first 
-to be found and I'm quite convinced that's because they have the lowest 
-frequencies among all. 205500 KHz seems also to be the last frequency with 
-7MHz bandwidth. The TV decoder, after RAI services, skips immediately to 8MHz 
-bands.
+If you want to "save" adapters one could put them in the same
+directory and caX would belong to camX. 
+More ca than cam devices could only occur on cards with mixed old and
+new style hardware. I am not aware of such cards.
 
-The TV decoder finds a number of services at 594000 KHz/8MHz bandwidth 
-(Mediaset), and then others at higher frequences. Between 205500 and 594000 
-KHz there appears to be nothing also for the TV decoder.
+I think there are cards with dual frontend and two CAM adapters where
+normally data from frontendX is passed through caX (they are in the same adapter
+directory) but the paths can also be switched. I do not now how this is
+handled.
+
+
+Regards,
+Ralph
+
