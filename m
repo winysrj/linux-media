@@ -1,59 +1,54 @@
 Return-path: <mchehab@pedra>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:51014 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752451Ab1CFNt7 (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:42481 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752140Ab1CLO5I (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 6 Mar 2011 08:49:59 -0500
-Message-ID: <4D739104.7030007@fastmail.fm>
-Date: Sun, 06 Mar 2011 13:49:56 +0000
-From: Jack Stone <jwjstone@fastmail.fm>
+	Sat, 12 Mar 2011 09:57:08 -0500
+Received: by fxm17 with SMTP id 17so1785211fxm.19
+        for <linux-media@vger.kernel.org>; Sat, 12 Mar 2011 06:57:07 -0800 (PST)
+Message-ID: <4D7B89C1.2020607@gmail.com>
+Date: Sat, 12 Mar 2011 15:57:05 +0100
+From: Martin Vidovic <xtronom@gmail.com>
 MIME-Version: 1.0
-To: Florian Mickler <florian@mickler.org>
-CC: mchehab@infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Greg Kroah-Hartman <greg@kroah.com>,
-	"Rafael J. Wysocki" <rjw@sisk.pl>,
-	Maciej Rutecki <maciej.rutecki@gmail.com>
-Subject: Re: [PATCH] [media] dib0700: get rid of on-stack dma buffers
-References: <1299410212-24897-1-git-send-email-florian@mickler.org>
-In-Reply-To: <1299410212-24897-1-git-send-email-florian@mickler.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Andreas Oberritter <obi@linuxtv.org>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] Ngene cam device name
+References: <391PcLoJ29568S04.1299939053@web04.cms.usa.net> <4D7B87D2.6030903@linuxtv.org>
+In-Reply-To: <4D7B87D2.6030903@linuxtv.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 06/03/2011 11:16, Florian Mickler wrote:
-> This should fix warnings seen by some:
-> 	WARNING: at lib/dma-debug.c:866 check_for_stack
-> 
-> Fixes: https://bugzilla.kernel.org/show_bug.cgi?id=15977.
-> Reported-by: Zdenek Kabelac <zdenek.kabelac@gmail.com>
-> Signed-off-by: Florian Mickler <florian@mickler.org>
-> CC: Mauro Carvalho Chehab <mchehab@infradead.org>
-> CC: linux-media@vger.kernel.org
-> CC: linux-kernel@vger.kernel.org
-> CC: Greg Kroah-Hartman <greg@kroah.com>
-> CC: Rafael J. Wysocki <rjw@sisk.pl>
-> CC: Maciej Rutecki <maciej.rutecki@gmail.com>
-> ---
-> @@ -101,8 +109,19 @@ int dib0700_ctrl_rd(struct dvb_usb_device *d, u8 *tx, u8 txlen, u8 *rx, u8 rxlen
->  
->  int dib0700_set_gpio(struct dvb_usb_device *d, enum dib07x0_gpios gpio, u8 gpio_dir, u8 gpio_val)
->  {
-> -	u8 buf[3] = { REQUEST_SET_GPIO, gpio, ((gpio_dir & 0x01) << 7) | ((gpio_val & 0x01) << 6) };
-> -	return dib0700_ctrl_wr(d, buf, sizeof(buf));
-> +	s16 ret;
-> +	u8 *buf = kmalloc(3, GFP_KERNEL);
-> +	if (!buf)
-> +		return -ENOMEM;
-> +
-> +	buf[0] = REQUEST_SET_GPIO;
-> +	buf[1] = gpio;
-> +	buf[2] = ((gpio_dir & 0x01) << 7) | ((gpio_val & 0x01) << 6);
-> +
-> +	ret = dib0700_ctrl_wr(d, buf, sizeof(buf));
+Andreas Oberritter wrote:
+> On 03/12/2011 03:10 PM, Issa Gorissen wrote:
+>   
+>> From: Andreas Oberritter <obi@linuxtv.org>
+>>     
+>>> On 03/11/2011 10:44 PM, Martin Vidovic wrote:
+>>>       
+>>>> Andreas Oberritter wrote:
+>>>>         
+>>>>> It's rather unintuitive that some CAMs appear as ca0, while others as
+>>>>> cam0.
+>>>>>   
+>>>>>           
+>>>> Ngene CI appears as both ca0 and cam0 (or sec0). The ca0 node is used
+>>>> as usual, to setup the CAM. The cam0 (or sec0) node is used to read/write
+>>>> transport stream. To me it  looks like an extension of the current API.
+>>>>         
+>>> I see. This raises another problem. How to find out, which ca device
+>>> cam0 relates to, in case there are more ca devices than cam devices?
+>>>
+>>>       
+>> Are you sure there can be more ca devices than cam devices ?
+>>     
+>
+> Yes. See my previous response to Ralph.
+>   
 
-Shouldn't this sizeof be changed as well?
+Isn't this the same as asking which 'dvr' device relates to which 
+'frontend' device?
 
-Thanks,
-
-Jack
+Regards,
+Martin
