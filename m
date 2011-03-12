@@ -1,52 +1,67 @@
 Return-path: <mchehab@pedra>
-Received: from kroah.org ([198.145.64.141]:50475 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750807Ab1CODJE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Mar 2011 23:09:04 -0400
-Date: Mon, 14 Mar 2011 20:09:56 -0700
-From: Greg KH <greg@kroah.com>
-To: James Bottomley <James.Bottomley@suse.de>
-Cc: Vasiliy Kulikov <segoon@openwall.com>, security@kernel.org,
-	acpi4asus-user@lists.sourceforge.net, linux-scsi@vger.kernel.org,
-	rtc-linux@googlegroups.com, linux-usb@vger.kernel.org,
-	linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org,
-	open-iscsi@googlegroups.com, linux-omap@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [Security] [PATCH 00/20] world-writable files in sysfs and
- debugfs
-Message-ID: <20110315030956.GA2234@kroah.com>
-References: <cover.1296818921.git.segoon@openwall.com>
- <AANLkTikE-A=Fe-yRrN0opWwJGQ0f4uOzkyB3XCcEUrFE@mail.gmail.com>
- <1300155965.5665.15.camel@mulgrave.site>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4299 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754216Ab1CLSxS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Mar 2011 13:53:18 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Ondrej Zary <linux@rainbow-software.org>
+Subject: Re: radio-maestro broken (conflicts with snd-es1968)
+Date: Sat, 12 Mar 2011 19:52:39 +0100
+Cc: linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	Kernel development list <linux-kernel@vger.kernel.org>,
+	jirislaby@gmail.com
+References: <201103121919.05657.linux@rainbow-software.org>
+In-Reply-To: <201103121919.05657.linux@rainbow-software.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1300155965.5665.15.camel@mulgrave.site>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201103121952.39850.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, Mar 14, 2011 at 10:26:05PM -0400, James Bottomley wrote:
-> On Sat, 2011-03-12 at 23:23 +0300, Vasiliy Kulikov wrote:
-> > > Vasiliy Kulikov (20):
-> > >  mach-ux500: mbox-db5500: world-writable sysfs fifo file
-> > >  leds: lp5521: world-writable sysfs engine* files
-> > >  leds: lp5523: world-writable engine* sysfs files
-> > >  misc: ep93xx_pwm: world-writable sysfs files
-> > >  rtc: rtc-ds1511: world-writable sysfs nvram file
-> > >  scsi: aic94xx: world-writable sysfs update_bios file
-> > >  scsi: iscsi: world-writable sysfs priv_sess file
-> > 
-> > These are still not merged :(
+On Saturday, March 12, 2011 19:19:00 Ondrej Zary wrote:
+> Hello,
+> the radio-maestro driver is badly broken. It's intended to drive the radio on 
+> MediaForte ESS Maestro-based sound cards with integrated radio (like 
+> SF64-PCE2-04). But it conflicts with snd_es1968, ALSA driver for the sound 
+> chip itself.
 > 
-> OK, so I've not been tracking where we are in the dizzying ride on
-> security systems.  However, I thought we landed up in the privilege
-> separation arena using capabilities.  That means that world writeable
-> files aren't necessarily a problem as long as the correct capabilities
-> checks are in place, right?
+> If one driver is loaded, the other one does not work - because a driver is 
+> already registered for the PCI device (there is only one). This was probably 
+> broken by conversion of PCI probing in 2006: 
+> ttp://lkml.org/lkml/2005/12/31/93
+> 
+> How to fix it properly? Include radio functionality in snd-es1968 and delete 
+> radio-maestro?
 
-There are no capability checks on sysfs files right now, so these all
-need to be fixed.
+Interesting. I don't know anyone among the video4linux developers who has
+this hardware, so the radio-maestro driver hasn't been tested in at least
+6 or 7 years.
 
-thanks,
+The proper fix would be to do it like the fm801.c alsa driver does: have
+the radio functionality as an i2c driver. In fact, it would not surprise
+me at all if you could use the tea575x-tuner.c driver (in sound/i2c/other)
+for the es1968 and delete the radio-maestro altogether.
 
-greg k-h
+Both are for the tea575x tuner, although radio-maestro seems to have better
+support for the g_tuner operation. It doesn't seem difficult to add that to
+tea575x-tuner.c.
+
+The fm801 code for driving the tea575x is pretty horrible and it should be
+possible to improve that. I suspect that those read/write/mute functions
+really belong in tea575x-tuner.c and that only the low-level gpio actions
+need to be in the fm801/es1968 drivers.
+
+Hope this helps.
+
+Regards,
+
+	Hans
+
+BTW: if anyone has spare hardware for testing the radio-maestro/tea575x-tuner,
+then I'm interested.
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
