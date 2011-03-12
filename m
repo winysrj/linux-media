@@ -1,130 +1,37 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.samsung.com ([203.254.224.33]:39359 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755320Ab1CVIiQ (ORCPT
+Received: from cmsout01.mbox.net ([165.212.64.31]:51103 "EHLO
+	cmsout01.mbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752902Ab1CLOK6 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Mar 2011 04:38:16 -0400
-Received: from epmmp1 (mailout3.samsung.com [203.254.224.33])
- by mailout3.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LIG001MCANPL300@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Tue, 22 Mar 2011 17:38:13 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LIG001UXANP8A@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 22 Mar 2011 17:38:13 +0900 (KST)
-Date: Tue, 22 Mar 2011 17:38:08 +0900
-From: "Kim, Heungjun" <riverful.kim@samsung.com>
-Subject: [RFC PATCH v3 1/2] v4l2-ctrls: support various modes and 4 coordinates
- of rectangle auto focus
-In-reply-to: <4D885F32.60309@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, kyungmin.park@samsung.com,
-	"Kim, Heungjun" <riverful.kim@samsung.com>
-Message-id: <1300783089-14984-1-git-send-email-riverful.kim@samsung.com>
-Content-transfer-encoding: 7BIT
-References: <4D885F32.60309@samsung.com>
+	Sat, 12 Mar 2011 09:10:58 -0500
+Received: from cmsout01.mbox.net (cmsout01-lo [127.0.0.1])
+	by cmsout01.mbox.net (Postfix) with ESMTP id B9EFE2AC377
+	for <linux-media@vger.kernel.org>; Sat, 12 Mar 2011 14:10:57 +0000 (GMT)
+Date: Sat, 12 Mar 2011 15:10:53 +0100
+From: "Issa Gorissen" <flop.m@usa.net>
+To: <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Ngene cam device name
+Mime-Version: 1.0
+Message-ID: <391PcLoJ29568S04.1299939053@web04.cms.usa.net>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-It supports various modes of auto focus. Each modes define as the enumerations
-of menu type.
+From: Andreas Oberritter <obi@linuxtv.org>
+> On 03/11/2011 10:44 PM, Martin Vidovic wrote:
+> > Andreas Oberritter wrote:
+> >> It's rather unintuitive that some CAMs appear as ca0, while others as
+> >> cam0.
+> >>   
+> > Ngene CI appears as both ca0 and cam0 (or sec0). The ca0 node is used
+> > as usual, to setup the CAM. The cam0 (or sec0) node is used to read/write
+> > transport stream. To me it  looks like an extension of the current API.
+> 
+> I see. This raises another problem. How to find out, which ca device
+> cam0 relates to, in case there are more ca devices than cam devices?
+> 
 
-	V4L2_FOCUS_AUTO_NORMAL,
-	V4L2_FOCUS_AUTO_MACRO,
-	V4L2_FOCUS_AUTO_CONTINUOUS,
-	V4L2_FOCUS_AUTO_FACE_DETECTION,
-	V4L2_FOCUS_AUTO_RECTANGLE
-
-In the cause of rectangle it needs the 4 kinds of coordinate control ID of
-integer type for expression about focus-spot, and each control ID means
-similar to the struct v4l2_rect.
-
-	V4L2_CID_FOCUS_AUTO_RECTANGLE_LEFT
-	V4L2_CID_FOCUS_AUTO_RECTANGLE_TOP
-	V4L2_CID_FOCUS_AUTO_RECTANGLE_WIDTH
-	V4L2_CID_FOCUS_AUTO_RECTANGLE_HEIGHT
-
-Signed-off-by: Kim, Heungjun <riverful.kim@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/v4l2-ctrls.c |   16 ++++++++++++++++
- include/linux/videodev2.h        |   13 +++++++++++++
- 2 files changed, 29 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 2412f08..365540f 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -197,6 +197,14 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		"Aperture Priority Mode",
- 		NULL
- 	};
-+	static const char * const camera_focus_auto_mode[] = {
-+		"Normal Mode",
-+		"Macro Mode",
-+		"Continuous Mode",
-+		"Face Detection Mode",
-+		"Rectangle Mode",
-+		NULL
-+	};
- 	static const char * const colorfx[] = {
- 		"None",
- 		"Black & White",
-@@ -252,6 +260,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		return camera_power_line_frequency;
- 	case V4L2_CID_EXPOSURE_AUTO:
- 		return camera_exposure_auto;
-+	case V4L2_CID_FOCUS_AUTO_MODE:
-+		return camera_focus_auto_mode;
- 	case V4L2_CID_COLORFX:
- 		return colorfx;
- 	case V4L2_CID_TUNE_PREEMPHASIS:
-@@ -365,6 +375,11 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_PRIVACY:			return "Privacy";
- 	case V4L2_CID_IRIS_ABSOLUTE:		return "Iris, Absolute";
- 	case V4L2_CID_IRIS_RELATIVE:		return "Iris, Relative";
-+	case V4L2_CID_FOCUS_AUTO_MODE:		return "Focus, Mode";
-+	case V4L2_CID_FOCUS_AUTO_RECTANGLE_LEFT: return "Focus, Rectangle Left";
-+	case V4L2_CID_FOCUS_AUTO_RECTANGLE_TOP: return "Focus, Rectangle Top";
-+	case V4L2_CID_FOCUS_AUTO_RECTANGLE_WIDTH: return "Focus, Rectangle Width";
-+	case V4L2_CID_FOCUS_AUTO_RECTANGLE_HEIGHT: return "Focus, Rectangle Height";
- 
- 	/* FM Radio Modulator control */
- 	/* Keep the order of the 'case's the same as in videodev2.h! */
-@@ -450,6 +465,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_MPEG_STREAM_TYPE:
- 	case V4L2_CID_MPEG_STREAM_VBI_FMT:
- 	case V4L2_CID_EXPOSURE_AUTO:
-+	case V4L2_CID_FOCUS_AUTO_MODE:
- 	case V4L2_CID_COLORFX:
- 	case V4L2_CID_TUNE_PREEMPHASIS:
- 		*type = V4L2_CTRL_TYPE_MENU;
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index aa6c393..99cd1b7 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1389,6 +1389,19 @@ enum  v4l2_exposure_auto_type {
- #define V4L2_CID_IRIS_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+17)
- #define V4L2_CID_IRIS_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+18)
- 
-+#define V4L2_CID_FOCUS_AUTO_MODE		(V4L2_CID_CAMERA_CLASS_BASE+19)
-+enum  v4l2_focus_mode_type {
-+	V4L2_FOCUS_AUTO_NORMAL = 0,
-+	V4L2_FOCUS_AUTO_MACRO = 1,
-+	V4L2_FOCUS_AUTO_CONTINUOUS = 2,
-+	V4L2_FOCUS_AUTO_FACE_DETECTION = 3,
-+	V4L2_FOCUS_AUTO_RECTANGLE = 4
-+};
-+#define V4L2_CID_FOCUS_AUTO_RECTANGLE_LEFT	(V4L2_CID_CAMERA_CLASS_BASE+20)
-+#define V4L2_CID_FOCUS_AUTO_RECTANGLE_TOP	(V4L2_CID_CAMERA_CLASS_BASE+21)
-+#define V4L2_CID_FOCUS_AUTO_RECTANGLE_WIDTH	(V4L2_CID_CAMERA_CLASS_BASE+22)
-+#define V4L2_CID_FOCUS_AUTO_RECTANGLE_HEIGHT	(V4L2_CID_CAMERA_CLASS_BASE+23)
-+
- /* FM Modulator class control IDs */
- #define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
- #define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
--- 
-1.7.0.4
+Are you sure there can be more ca devices than cam devices ? Shouldn't they
+come by pair ?
 
