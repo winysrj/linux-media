@@ -1,120 +1,113 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:24263 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751465Ab1CKUNl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Mar 2011 15:13:41 -0500
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p2BKDfwX030563
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 11 Mar 2011 15:13:41 -0500
-Received: from pedra (vpn-228-17.phx2.redhat.com [10.3.228.17])
-	by int-mx09.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p2BKCclm009816
-	for <linux-media@vger.kernel.org>; Fri, 11 Mar 2011 15:13:40 -0500
-Date: Fri, 11 Mar 2011 17:08:28 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 2/2] [media] cpia2: Fix some gcc 4.6 warnings when debug is
- disabled
-Message-ID: <20110311170828.1563022e@pedra>
-In-Reply-To: <07bc26366f39bab1838da48068df633d6a714f4b.1299874085.git.mchehab@redhat.com>
-References: <07bc26366f39bab1838da48068df633d6a714f4b.1299874085.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:39865 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753986Ab1CLP7X convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Mar 2011 10:59:23 -0500
+MIME-Version: 1.0
+In-Reply-To: <20101205112813.GB12542@viiv.ffwll.ch>
+References: <F45880696056844FA6A73F415B568C6953604E802E@EXDCVYMBSTM006.EQ1STM.local>
+	<201011251747.48365.arnd@arndb.de>
+	<C832F8F5D375BD43BFA11E82E0FE9FE0082586F430@EXDCVYMBSTM005.EQ1STM.local>
+	<201011261224.59490.arnd@arndb.de>
+	<AANLkTinSb-9=xzX3LfZVYcKiDt5Qkm=qV6CiFGUyq+fC@mail.gmail.com>
+	<20101205112813.GB12542@viiv.ffwll.ch>
+Date: Sat, 12 Mar 2011 09:59:19 -0600
+Message-ID: <AANLkTi=B=_3tHXgG02pQA=zE=i8TOz0BZ=Pe9ZZwGLh3@mail.gmail.com>
+Subject: Re: [PATCH 09/10] MCDE: Add build files and bus
+From: Rob Clark <robdclark@gmail.com>
+To: Alex Deucher <alexdeucher@gmail.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Jimmy RUBIN <jimmy.rubin@stericsson.com>,
+	Dan JOHANSSON <dan.johansson@stericsson.com>,
+	Linus WALLEIJ <linus.walleij@stericsson.com>,
+	Marcus LORENTZON <marcus.xm.lorentzon@stericsson.com>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	dri-devel@lists.freedesktop.org,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-cpia2_core.c:529:14: warning: variable 'dir' set but not used [-Wunused-but-set-variable]
-cpia2_core.c:526:5: warning: variable 'block_index' set but not used [-Wunused-but-set-variable]
+On Sun, Dec 5, 2010 at 5:28 AM, Daniel Vetter <daniel@ffwll.ch> wrote:
+> On Sat, Dec 04, 2010 at 04:34:22PM -0500, Alex Deucher wrote:
+>> This doesn't seem that different from the graphics chips we support
+>> with kms.  I don't think it would require much work to use KMS.  One
+>> thing we considered, but never ended up implementing was a generic
+>> overlay API for KMS.  Most PC hardware still has overlays, but we
+>> don't use them much any more on the desktop side.  It may be
+>> worthwhile to design an appropriate API for them for these type of
+>> hardware.
+>
+> Just fyi about a generic overlay api: I've looked a bit into this when
+> doing the intel overlay support and I think adding special overlay crtcs
+> that can be attached real crtcs gives a nice clean api. We could the reuse
+> the existing framebuffer/pageflipping api to get the buffers to the
+> overlay engine.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+btw, has there been any further thought/discussion on this topic..
+I've been experimenting with a drm driver interface on the OMAP SoC.
+It is working well now for framebuffer type usage (mode setting,
+virtual framebuffer spanning multiple diplays, and those types of
+xrandr things)..  the next step that I've started thinking about is
+overlay (or underlay.. the z-order is flexible) support..
 
-diff --git a/drivers/media/video/cpia2/cpia2_core.c b/drivers/media/video/cpia2/cpia2_core.c
-index aaffca8..ee91e29 100644
---- a/drivers/media/video/cpia2/cpia2_core.c
-+++ b/drivers/media/video/cpia2/cpia2_core.c
-@@ -519,22 +519,16 @@ int cpia2_do_command(struct camera_data *cam,
-  *  cpia2_send_command
-  *
-  *****************************************************************************/
-+
-+#define DIR(cmd) ((cmd->direction == TRANSFER_WRITE) ? "Write" : "Read")
-+#define BINDEX(cmd) (cmd->req_mode & 0x03)
-+
- int cpia2_send_command(struct camera_data *cam, struct cpia2_command *cmd)
- {
- 	u8 count;
- 	u8 start;
--	u8 block_index;
- 	u8 *buffer;
- 	int retval;
--	const char* dir;
--
--	if (cmd->direction == TRANSFER_WRITE) {
--		dir = "Write";
--	} else {
--		dir = "Read";
--	}
--
--	block_index = cmd->req_mode & 0x03;
- 
- 	switch (cmd->req_mode & 0x0c) {
- 	case CAMERAACCESS_TYPE_RANDOM:
-@@ -542,32 +536,32 @@ int cpia2_send_command(struct camera_data *cam, struct cpia2_command *cmd)
- 		start = 0;
- 		buffer = (u8 *) & cmd->buffer;
- 		if (debugs_on & DEBUG_REG)
--			DBG("%s Random: Register block %s\n", dir,
--			    block_name[block_index]);
-+			DBG("%s Random: Register block %s\n", DIR(cmd),
-+			    block_name[BINDEX(cmd)]);
- 		break;
- 	case CAMERAACCESS_TYPE_BLOCK:
- 		count = cmd->reg_count;
- 		start = cmd->start;
- 		buffer = cmd->buffer.block_data;
- 		if (debugs_on & DEBUG_REG)
--			DBG("%s Block: Register block %s\n", dir,
--			    block_name[block_index]);
-+			DBG("%s Block: Register block %s\n", DIR(cmd),
-+			    block_name[BINDEX(cmd)]);
- 		break;
- 	case CAMERAACCESS_TYPE_MASK:
- 		count = cmd->reg_count * sizeof(struct cpia2_reg_mask);
- 		start = 0;
- 		buffer = (u8 *) & cmd->buffer;
- 		if (debugs_on & DEBUG_REG)
--			DBG("%s Mask: Register block %s\n", dir,
--			    block_name[block_index]);
-+			DBG("%s Mask: Register block %s\n", DIR(cmd),
-+			    block_name[BINDEX(cmd)]);
- 		break;
- 	case CAMERAACCESS_TYPE_REPEAT:	/* For patch blocks only */
- 		count = cmd->reg_count;
- 		start = cmd->start;
- 		buffer = cmd->buffer.block_data;
- 		if (debugs_on & DEBUG_REG)
--			DBG("%s Repeat: Register block %s\n", dir,
--			    block_name[block_index]);
-+			DBG("%s Repeat: Register block %s\n", DIR(cmd),
-+			    block_name[BINDEX(cmd)]);
- 		break;
- 	default:
- 		LOG("%s: invalid request mode\n",__func__);
-@@ -584,10 +578,10 @@ int cpia2_send_command(struct camera_data *cam, struct cpia2_command *cmd)
- 		for (i = 0; i < cmd->reg_count; i++) {
- 			if((cmd->req_mode & 0x0c) == CAMERAACCESS_TYPE_BLOCK)
- 				KINFO("%s Block: [0x%02X] = 0x%02X\n",
--				    dir, start + i, buffer[i]);
-+				    DIR(cmd), start + i, buffer[i]);
- 			if((cmd->req_mode & 0x0c) == CAMERAACCESS_TYPE_RANDOM)
- 				KINFO("%s Random: [0x%02X] = 0x%02X\n",
--				    dir, cmd->buffer.registers[i].index,
-+				    DIR(cmd), cmd->buffer.registers[i].index,
- 				    cmd->buffer.registers[i].value);
- 		}
- 	}
--- 
-1.7.1
+I was thinking in a similar direction (ie. a special, or maybe not so
+special, sort of crtc) and came across this thread, so I thought I'd
+resurrect the topic.
 
+In our case, most of the CRTCs in our driver could be used either with
+(A)RGB buffers as a traditional framebuffer, or with a few different
+formats of YUV as video under/overlays.  So if you had one display
+attached, you might only use one CRTC for traditional GUI/gfx layer,
+and the rest are available for video.  If you had two displays, then
+you'd steal one of the video CRTCs and use it for the gfx layer on the
+second display.  And so on.
+
+Rough thinking:
++ add some 'caps' to the CRTC to indicate whether it can handle YUV,
+ARGB, scaling
++ add an x/y offset relative to the encoder (as opposed to the
+existing x/y offset relative to the framebuffer)
++ add a z-order parameter
+
+Not sure about intel hw if it is supporting clip-rects.. if so, maybe
+need to add something about that.  In our case we jut put the video
+behind the gfx layer and use the alpha channel in the gfx framebuffer
+to clip/blend rather than using clip-rects.
+
+
+> The real pain starts when we want format discovery from userspace with all
+> the alignement/size/layout constrains. Add in tiling support and its
+> almost impossible to do in a generic way. But also for kms userspace needs
+> to know these constrains (implemented for generic use in libkms). I favor
+> such an approach for overlays, too (if it ever happens) - i.e. a few
+> helpers in libkms that allocate an appropriate buffer for a given format
+> and size and returns the buffer, strides and offsets for the different
+> planes.
+
+hmm, I guess I know about the OMAP display subsystem, and it's overlay
+formats/capabilities.. but not enough about other hw to say anything
+intelligent here.  But I guess even if we ignore the format of the
+data in the buffer, at least the APIs to setup/attach overlay CRTCs at
+various positions could maybe be something we can start with as a
+first step.  At least standardizing this part seems like a good first
+step.  But I'm definitely interested if someone has some ideas.
+
+BR,
+-R
+
+> -Daniel
+> --
+> Daniel Vetter
+> Mail: daniel@ffwll.ch
+> Mobile: +41 (0)79 365 57 48
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
