@@ -1,143 +1,82 @@
 Return-path: <mchehab@pedra>
-Received: from ist.d-labs.de ([213.239.218.44]:47639 "EHLO mx01.d-labs.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755716Ab1COIx1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Mar 2011 04:53:27 -0400
-From: Florian Mickler <florian@mickler.org>
-To: mchehab@infradead.org
-Cc: oliver@neukum.org, jwjstone@fastmail.fm,
-	Florian Mickler <florian@mickler.org>,
-	linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 04/16] [media] vp7045: get rid of on-stack dma buffers
-Date: Tue, 15 Mar 2011 09:43:36 +0100
-Message-Id: <1300178655-24832-4-git-send-email-florian@mickler.org>
-In-Reply-To: <1300178655-24832-1-git-send-email-florian@mickler.org>
-References: <20110315093632.5fc9fb77@schatten.dmk.lab>
- <1300178655-24832-1-git-send-email-florian@mickler.org>
+Received: from mo-p00-ob.rzone.de ([81.169.146.160]:16461 "EHLO
+	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752093Ab1CLPGG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Mar 2011 10:06:06 -0500
+From: Ralph Metzler <rjkm@metzlerbros.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Message-ID: <19835.35802.17724.340910@morden.metzler>
+Date: Sat, 12 Mar 2011 16:06:02 +0100
+To: Andreas Oberritter <obi@linuxtv.org>
+Cc: Ralph Metzler <rjkm@metzlerbros.de>,
+	Martin Vidovic <xtronom@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] Ngene cam device name
+In-Reply-To: <4D7B8549.2090008@linuxtv.org>
+References: <alpine.LNX.2.00.1103101608030.9782@hp8540w.home>
+	<4D7A452C.7020700@linuxtv.org>
+	<4D7A97BB.4020704@gmail.com>
+	<4D7B7524.2050108@linuxtv.org>
+	<19835.32151.116648.554824@morden.metzler>
+	<4D7B8549.2090008@linuxtv.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-usb_control_msg initiates (and waits for completion of) a dma transfer using
-the supplied buffer. That buffer thus has to be seperately allocated on
-the heap.
+Andreas Oberritter writes:
+ > > They should be in different adapterX directories. 
+ > > Even on the cards where you can connect up to 4 dual frontends or CAM adapters
+ > > I currently use one adapter directory for every frontend and CAM.
+ > 
+ > That looks like a hack to me, that may work well for your PC style
+ > adapter, e.g frontends and CAMs attached to PCI or USB. But how would
 
-In lib/dma_debug.c the function check_for_stack even warns about it:
-	WARNING: at lib/dma-debug.c:866 check_for_stack
+Exactly what I want to support with this.
 
-Note: This change is tested to compile only, as I don't have the hardware.
 
-Signed-off-by: Florian Mickler <florian@mickler.org>
----
- drivers/media/dvb/dvb-usb/vp7045.c |   41 ++++++++++++++++++++++++++---------
- 1 files changed, 30 insertions(+), 11 deletions(-)
+ > you integrate audio and video decoders and hardware demux devices into
+ > that scenario? Would you expect adapterN's frontend to be able to feed a
+ > TS into adapterN+1's hardware demux and then into adapterN+2's video
+ > decoder?
 
-diff --git a/drivers/media/dvb/dvb-usb/vp7045.c b/drivers/media/dvb/dvb-usb/vp7045.c
-index ab0ab3c..17478ec 100644
---- a/drivers/media/dvb/dvb-usb/vp7045.c
-+++ b/drivers/media/dvb/dvb-usb/vp7045.c
-@@ -28,9 +28,9 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
- int vp7045_usb_op(struct dvb_usb_device *d, u8 cmd, u8 *out, int outlen, u8 *in, int inlen, int msec)
- {
- 	int ret = 0;
--	u8 inbuf[12] = { 0 }, outbuf[20] = { 0 };
-+	u8 *buf = d->priv;
- 
--	outbuf[0] = cmd;
-+	buf[0] = cmd;
- 
- 	if (outlen > 19)
- 		outlen = 19;
-@@ -39,10 +39,10 @@ int vp7045_usb_op(struct dvb_usb_device *d, u8 cmd, u8 *out, int outlen, u8 *in,
- 		inlen = 11;
- 
- 	if (out != NULL && outlen > 0)
--		memcpy(&outbuf[1], out, outlen);
-+		memcpy(&buf[1], out, outlen);
- 
- 	deb_xfer("out buffer: ");
--	debug_dump(outbuf,outlen+1,deb_xfer);
-+	debug_dump(buf, outlen+1, deb_xfer);
- 
- 	if ((ret = mutex_lock_interruptible(&d->usb_mutex)))
- 		return ret;
-@@ -50,7 +50,7 @@ int vp7045_usb_op(struct dvb_usb_device *d, u8 cmd, u8 *out, int outlen, u8 *in,
- 	if (usb_control_msg(d->udev,
- 			usb_sndctrlpipe(d->udev,0),
- 			TH_COMMAND_OUT, USB_TYPE_VENDOR | USB_DIR_OUT, 0, 0,
--			outbuf, 20, 2000) != 20) {
-+			buf, 20, 2000) != 20) {
- 		err("USB control message 'out' went wrong.");
- 		ret = -EIO;
- 		goto unlock;
-@@ -61,17 +61,17 @@ int vp7045_usb_op(struct dvb_usb_device *d, u8 cmd, u8 *out, int outlen, u8 *in,
- 	if (usb_control_msg(d->udev,
- 			usb_rcvctrlpipe(d->udev,0),
- 			TH_COMMAND_IN, USB_TYPE_VENDOR | USB_DIR_IN, 0, 0,
--			inbuf, 12, 2000) != 12) {
-+			buf, 12, 2000) != 12) {
- 		err("USB control message 'in' went wrong.");
- 		ret = -EIO;
- 		goto unlock;
- 	}
- 
- 	deb_xfer("in buffer: ");
--	debug_dump(inbuf,12,deb_xfer);
-+	debug_dump(buf, 12, deb_xfer);
- 
- 	if (in != NULL && inlen > 0)
--		memcpy(in,&inbuf[1],inlen);
-+		memcpy(in, &buf[1], inlen);
- 
- unlock:
- 	mutex_unlock(&d->usb_mutex);
-@@ -222,8 +222,26 @@ static struct dvb_usb_device_properties vp7045_properties;
- static int vp7045_usb_probe(struct usb_interface *intf,
- 		const struct usb_device_id *id)
- {
--	return dvb_usb_device_init(intf, &vp7045_properties,
--				   THIS_MODULE, NULL, adapter_nr);
-+	struct dvb_usb_device *d;
-+	int ret = dvb_usb_device_init(intf, &vp7045_properties,
-+				   THIS_MODULE, &d, adapter_nr);
-+	if (ret)
-+		return ret;
-+
-+	d->priv = kmalloc(20, GFP_KERNEL);
-+	if (!d->priv) {
-+		dvb_usb_device_exit(intf);
-+		return -ENOMEM;
-+	}
-+
-+	return ret;
-+}
-+
-+static void vp7045_usb_disconnect(struct usb_interface *intf)
-+{
-+	struct dvb_usb_device *d = usb_get_intfdata(intf);
-+	kfree(d->priv);
-+	dvb_usb_device_exit(intf);
- }
- 
- static struct usb_device_id vp7045_usb_table [] = {
-@@ -238,6 +256,7 @@ MODULE_DEVICE_TABLE(usb, vp7045_usb_table);
- static struct dvb_usb_device_properties vp7045_properties = {
- 	.usb_ctrl = CYPRESS_FX2,
- 	.firmware = "dvb-usb-vp7045-01.fw",
-+	.size_of_priv = sizeof(u8 *),
- 
- 	.num_adapters = 1,
- 	.adapter = {
-@@ -284,7 +303,7 @@ static struct dvb_usb_device_properties vp7045_properties = {
- static struct usb_driver vp7045_usb_driver = {
- 	.name		= "dvb_usb_vp7045",
- 	.probe		= vp7045_usb_probe,
--	.disconnect = dvb_usb_device_exit,
-+	.disconnect	= vp7045_usb_disconnect,
- 	.id_table	= vp7045_usb_table,
- };
- 
--- 
-1.7.4.rc3
+This would be up to the application since there is no hardware stream
+routing on these cards and no general stream routing protocol for 
+DVB in the kernel.
+
+ > > If you want to "save" adapters one could put them in the same
+ > > directory and caX would belong to camX. 
+ > > More ca than cam devices could only occur on cards with mixed old and
+ > > new style hardware. I am not aware of such cards.
+ > 
+ > DVB descramblers use ca devices, too. So it's certainly possible to occur.
+
+Not in the same adapter directory.
+
+
+ > And even if no hardware exists that uses CAM slots with such different
+ > capabilities, we should be prepared when such hardware appears.
+
+Then we also should not use the current API (or any) for the same reason?
+
+
+ > > I think there are cards with dual frontend and two CAM adapters where
+ > > normally data from frontendX is passed through caX (they are in the same adapter
+ > > directory) but the paths can also be switched. I do not now how this is
+ > > handled.
+ > 
+ > On our STB platform. we have four frontends and four CAM slots.
+ > Frontends and CAM slots get connected on demand or even chained to allow
+ > multiple CAMs to try to decode parts of the same TS. I don't see how
+ > multiple adapters could fit in that situation.
+
+Is this routing in hardware? If yes, it is totally different 
+because your devices are not independent.
+How do you support this with the current API?
+
+
+Regards,
+Ralph
+
+
 
