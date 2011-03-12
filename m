@@ -1,108 +1,66 @@
 Return-path: <mchehab@pedra>
-Received: from mail2.matrix-vision.com ([85.214.244.251]:58757 "EHLO
-	mail2.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932303Ab1CWLHP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Mar 2011 07:07:15 -0400
-Message-ID: <4D89D460.7000808@matrix-vision.de>
-Date: Wed, 23 Mar 2011 12:07:12 +0100
-From: Michael Jones <michael.jones@matrix-vision.de>
+Received: from ffm.saftware.de ([83.141.3.46]:44703 "EHLO ffm.saftware.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752140Ab1CLO6T (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Mar 2011 09:58:19 -0500
+Message-ID: <4D7B8A07.70602@linuxtv.org>
+Date: Sat, 12 Mar 2011 15:58:15 +0100
+From: Andreas Oberritter <obi@linuxtv.org>
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	=?ISO-8859-1?Q?Lo=EFc_Akue?= <akue.loic@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Yordan Kamenov <ykamenov@mm-sol.com>
-Subject: Re: [PATCH] omap3isp: implement ENUM_FMT
-References: <4D889C61.905@matrix-vision.de> <4D89C2ED.5080803@maxwell.research.nokia.com>
-In-Reply-To: <4D89C2ED.5080803@maxwell.research.nokia.com>
+To: Issa Gorissen <flop.m@usa.net>
+CC: Ralph Metzler <rjkm@metzlerbros.de>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] Ngene cam device name
+References: <777PcLohh6368S03.1299940473@web03.cms.usa.net>
+In-Reply-To: <777PcLohh6368S03.1299940473@web03.cms.usa.net>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Sakari,
-
-On 03/23/2011 10:52 AM, Sakari Ailus wrote:
-> Hi Michael,
-> 
-> Thanks for the patch.
-> 
-> Michael Jones wrote:
->> From dccbd4a0a717ee72a3271075b1e3456a9c67ca0e Mon Sep 17 00:00:00 2001
->> From: Michael Jones <michael.jones@matrix-vision.de>
->> Date: Tue, 22 Mar 2011 11:47:22 +0100
->> Subject: [PATCH] omap3isp: implement ENUM_FMT
+On 03/12/2011 03:34 PM, Issa Gorissen wrote:
+> From: Ralph Metzler <rjkm@metzlerbros.de>
+>> Andreas Oberritter writes:
+>>  > > Unless you want to move the writing to/reading from the CI module into
+>>  > > ioctls of the ci device you need another node. 
+>>  > > Even nicer would be having the control messages moved to ioctls and
+> the
+>>  > > TS IO in read/write of ci, but this would break the old interface.
+>>  > 
+>>  > It's possible to keep compatibility. Just add ioctls to get and set the
+>>  > interface version. Default to the current version, not supporting TS
+>>  > I/O. If the version is set to e.g. 1, switch from the current interface
+>>  > to the new one, using ioctls for control messages.
 >>
->> Whatever format is currently being delivered will be declared as the only
->> possible format
->>
->> Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
->> ---
->>
->> Some V4L2 apps require ENUM_FMT, which is a mandatory ioctl for V4L2.
->> This patch doesn't enumerate all of the formats which could possibly be
->> set (as is intended by ENUM_FMT), but at least it reports the one that
->> is currently set.
+>> A possibility, but also requires rewrites in existing software like
+> libdvben50221.
+>> Right now you can e.g. tune with /dev/dvb/adapter0/frontend0, point an
+> unchanged
+>> libdvben50221 to /dev/dvb/adapter1/ci0 (separate adapter since it can even
+>> be on a different card) and pipe all PIDs of cam_pmt of the program
+>> you are watching through /dev/dvb/adapter1/sec0(cam0) and it is decoded.
+
+Obviously, adapting libdvben50221 would be the first thing to do for an
+enhanced CI API. Probably not a big deal.
+
+> This is KISS compliant by the way.
 > 
-> What would be the purpose of ENUM_FMT in this case? It provides no
-> additional information to user space, and the information it provides is
-> in fact incomplete. Using other formats is possible, but that requires
-> changes to the format configuration on links.
+> Andreas, please explain what *really* bothers you with this architecture
+> choice of having a new node, leaving the current API as is.
 
-The only purpose of it was to provide minimum functionality for apps to
-be able to fetch frames from the ISP after setting up the ISP pipeline
-with media-ctl.  By "apps", I mean Gstreamer in my case, which Loïc had
-also recently asked Laurent about.
+I'm not against adding a new node if its behaviour is well defined and
+documented and if it integrates well into the existing API.
 
-> 
-> As the relevant format configuration is done on the subdevs and not on
-> the video nodes, the format configuration on the video nodes is very
-> limited and much affected by the state of the formats on the subdev pads
-> (which I think is right). This is not limited to ENUM_FMT but all format
-> related IOCTLs on the OMAP 3 ISP driver.
-> 
-> My view is that should a generic application want to change (or
-> enumerate) the format(s) on a video node, the application would need to
-> be using libv4l for that.
-> 
-> A compatibility layer implemented in libv4l (plugin, not the main
-> library) needs to configure the links in the first place, so
-> implementing ENUM_FMT in the plugin would not be a big deal. It could
-> even provide useful information. The possible results of the ENUM_FMT
-> would also depend on what kind of pipeline configuration does the plugin
-> support, though.
+> You might find that adding a new node is lazy, but there are advantages:
+> - current API isn't broken, namely, ca devices are still used for the control
+> messages, nothing more;
 
-BTW, my GStreamer is using libv4l, although it looked like it's also
-possible to configure GStreamer to use ioctls directly.  I can agree
-that it would be nice to implement ENUM_FMT and the like in a
-compatibility layer in libv4l.  That would be in the true spirit of
-ENUM_FMT, where the app could actually see different formats it can set.
+"nothing more" is wrong, as ca devices are used for descramblers, too.
 
-But is there any work being done on such a compatibility layer?
+> - for applications using the DVB API, it is also easier to debug while reading
+> the code, in my opinion, because of the usage of two distinct devices (ca /
+> cam) instead of one (ca / ioctls);
 
-Is there a policy decision that in the future, apps will be required to
-use libv4l to get images from the ISP?  Are we not intending to support
-using e.g. media-ctl + some v4l2 app, as I'm currently doing during
-development?
+That's just a matter of taste.
 
-In the meantime, I will continue using this patch locally to enable
-getting a live image with Gstreamer, and it can at least serve as a help
-to Loïc if he's trying to do the same.
-
-> 
-> (Cc Yordan and Hans.)
-> 
-> I discussed this with Laurent initially and the conclusion was that more
-> discussion is required. :-) Hans: do you have an opinion on this?
-> 
-> Best regards,
-> 
-
-thanks for the discussion,
-Michael
-
-MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
-Registergericht: Amtsgericht Stuttgart, HRB 271090
-Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
+Regards,
+Andreas
