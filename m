@@ -1,85 +1,54 @@
 Return-path: <mchehab@pedra>
-Received: from smtp6-g21.free.fr ([212.27.42.6]:55339 "EHLO smtp6-g21.free.fr"
+Received: from ffm.saftware.de ([83.141.3.46]:38067 "EHLO ffm.saftware.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754952Ab1COTqI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Mar 2011 15:46:08 -0400
-Received: from [192.168.1.234] (unknown [81.57.151.96])
-	by smtp6-g21.free.fr (Postfix) with ESMTP id F1972823E0
-	for <linux-media@vger.kernel.org>; Tue, 15 Mar 2011 20:46:01 +0100 (CET)
-Message-ID: <4D7FC1F8.4090101@free.fr>
-Date: Tue, 15 Mar 2011 20:46:00 +0100
-From: matthieu castet <castet.matthieu@free.fr>
+	id S1752839Ab1CLNZM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Mar 2011 08:25:12 -0500
+Message-ID: <4D7B7434.4050404@linuxtv.org>
+Date: Sat, 12 Mar 2011 14:25:08 +0100
+From: Andreas Oberritter <obi@linuxtv.org>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: add dvb-t fr-All frequency
-Content-Type: multipart/mixed;
- boundary="------------040500050307080901010805"
+To: Ralph Metzler <rjkm@metzlerbros.de>
+CC: linux-media@vger.kernel.org, Issa Gorissen <flop.m@usa.net>
+Subject: Re: [PATCH] Ngene cam device name
+References: <419PcksGF8800S02.1299868385@web02.cms.usa.net>	<4D7A8879.5010401@linuxtv.org> <19834.38956.105807.55268@morden.metzler>
+In-Reply-To: <19834.38956.105807.55268@morden.metzler>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This is a multi-part message in MIME format.
---------------040500050307080901010805
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+On 03/11/2011 10:46 PM, Ralph Metzler wrote:
+> Andreas Oberritter writes:
+>  > >> On 03/10/2011 04:29 PM, Issa Gorissen wrote:
+>  > > Now, according to Mauro comments, he has put this code into staging because of
+>  > > the usage of sec0 name for a cam device.
+>  > > 
+>  > > Please comment on Oliver's explanations from this thread
+>  > > 
+>  > > http://www.mail-archive.com/linux-media@vger.kernel.org/msg26901.html
+>  > 
+>  > Oliver explained that he's not going to put work into this driver,
+>  > because he's not using it.
+>  > 
+>  > Until now, I haven't heard any reasons for just adding another device
+>  > node other than it being easier than defining a proper interface. The
+>  > fact that a solution "just works as is" is not sufficient to move a
+>  > driver from staging. IMO the CI driver should not have been included at
+>  > all in its current shape.
+> 
+> Unless you want to move the writing to/reading from the CI module into
+> ioctls of the ci device you need another node. 
+> Even nicer would be having the control messages moved to ioctls and the
+> TS IO in read/write of ci, but this would break the old interface.
 
-Hi,
+It's possible to keep compatibility. Just add ioctls to get and set the
+interface version. Default to the current version, not supporting TS
+I/O. If the version is set to e.g. 1, switch from the current interface
+to the new one, using ioctls for control messages.
 
-can this file be added to dvb-apps/util/scan/dvb-t
+> What kind of proper interface were you thinking about?
 
-Thanks
+At least something that's documented and has a defined behaviour.
 
-Matthieu
-
---------------040500050307080901010805
-Content-Type: text/plain;
- name="fr-All"
-Content-Transfer-Encoding: base64
-Content-Disposition: inline;
- filename="fr-All"
-
-I2h0dHA6Ly90dmlnbmF1ZC5wYWdlc3BlcnNvLW9yYW5nZS5mci8KClQgNDc0MDAwMDAwIDhN
-SHogQVVUTyBBVVRPIFFBTTY0IEFVVE8gQVVUTyBOT05FClQgNDgyMDAwMDAwIDhNSHogQVVU
-TyBBVVRPIFFBTTY0IEFVVE8gQVVUTyBOT05FClQgNDkwMDAwMDAwIDhNSHogQVVUTyBBVVRP
-IFFBTTY0IEFVVE8gQVVUTyBOT05FClQgNDk4MDAwMDAwIDhNSHogQVVUTyBBVVRPIFFBTTY0
-IEFVVE8gQVVUTyBOT05FClQgNTA2MDAwMDAwIDhNSHogQVVUTyBBVVRPIFFBTTY0IEFVVE8g
-QVVUTyBOT05FClQgNTE0MDAwMDAwIDhNSHogQVVUTyBBVVRPIFFBTTY0IEFVVE8gQVVUTyBO
-T05FClQgNTIyMDAwMDAwIDhNSHogQVVUTyBBVVRPIFFBTTY0IEFVVE8gQVVUTyBOT05FClQg
-NTMwMDAwMDAwIDhNSHogQVVUTyBBVVRPIFFBTTY0IEFVVE8gQVVUTyBOT05FClQgNTM4MDAw
-MDAwIDhNSHogQVVUTyBBVVRPIFFBTTY0IEFVVE8gQVVUTyBOT05FClQgNTQ2MDAwMDAwIDhN
-SHogQVVUTyBBVVRPIFFBTTY0IEFVVE8gQVVUTyBOT05FClQgNTU0MDAwMDAwIDhNSHogQVVU
-TyBBVVRPIFFBTTY0IEFVVE8gQVVUTyBOT05FClQgNTYyMDAwMDAwIDhNSHogQVVUTyBBVVRP
-IFFBTTY0IEFVVE8gQVVUTyBOT05FClQgNTcwMDAwMDAwIDhNSHogQVVUTyBBVVRPIFFBTTY0
-IEFVVE8gQVVUTyBOT05FClQgNTc4MDAwMDAwIDhNSHogQVVUTyBBVVRPIFFBTTY0IEFVVE8g
-QVVUTyBOT05FClQgNTg2MDAwMDAwIDhNSHogQVVUTyBBVVRPIFFBTTY0IEFVVE8gQVVUTyBO
-T05FClQgNTk0MDAwMDAwIDhNSHogQVVUTyBBVVRPIFFBTTY0IEFVVE8gQVVUTyBOT05FClQg
-NjAyMDAwMDAwIDhNSHogQVVUTyBBVVRPIFFBTTY0IEFVVE8gQVVUTyBOT05FClQgNjEwMDAw
-MDAwIDhNSHogQVVUTyBBVVRPIFFBTTY0IEFVVE8gQVVUTyBOT05FClQgNjE4MDAwMDAwIDhN
-SHogQVVUTyBBVVRPIFFBTTY0IEFVVE8gQVVUTyBOT05FClQgNjI2MDAwMDAwIDhNSHogQVVU
-TyBBVVRPIFFBTTY0IEFVVE8gQVVUTyBOT05FClQgNjM0MDAwMDAwIDhNSHogQVVUTyBBVVRP
-IFFBTTY0IEFVVE8gQVVUTyBOT05FClQgNjQyMDAwMDAwIDhNSHogQVVUTyBBVVRPIFFBTTY0
-IEFVVE8gQVVUTyBOT05FClQgNjUwMDAwMDAwIDhNSHogQVVUTyBBVVRPIFFBTTY0IEFVVE8g
-QVVUTyBOT05FClQgNjU4MDAwMDAwIDhNSHogQVVUTyBBVVRPIFFBTTY0IEFVVE8gQVVUTyBO
-T05FClQgNjY2MDAwMDAwIDhNSHogQVVUTyBBVVRPIFFBTTY0IEFVVE8gQVVUTyBOT05FClQg
-Njc0MDAwMDAwIDhNSHogQVVUTyBBVVRPIFFBTTY0IEFVVE8gQVVUTyBOT05FClQgNjgyMDAw
-MDAwIDhNSHogQVVUTyBBVVRPIFFBTTY0IEFVVE8gQVVUTyBOT05FClQgNjkwMDAwMDAwIDhN
-SHogQVVUTyBBVVRPIFFBTTY0IEFVVE8gQVVUTyBOT05FClQgNjk4MDAwMDAwIDhNSHogQVVU
-TyBBVVRPIFFBTTY0IEFVVE8gQVVUTyBOT05FClQgNzA2MDAwMDAwIDhNSHogQVVUTyBBVVRP
-IFFBTTY0IEFVVE8gQVVUTyBOT05FClQgNzE0MDAwMDAwIDhNSHogQVVUTyBBVVRPIFFBTTY0
-IEFVVE8gQVVUTyBOT05FClQgNzIyMDAwMDAwIDhNSHogQVVUTyBBVVRPIFFBTTY0IEFVVE8g
-QVVUTyBOT05FClQgNzMwMDAwMDAwIDhNSHogQVVUTyBBVVRPIFFBTTY0IEFVVE8gQVVUTyBO
-T05FClQgNzM4MDAwMDAwIDhNSHogQVVUTyBBVVRPIFFBTTY0IEFVVE8gQVVUTyBOT05FClQg
-NzQ2MDAwMDAwIDhNSHogQVVUTyBBVVRPIFFBTTY0IEFVVE8gQVVUTyBOT05FClQgNzU0MDAw
-MDAwIDhNSHogQVVUTyBBVVRPIFFBTTY0IEFVVE8gQVVUTyBOT05FClQgNzYyMDAwMDAwIDhN
-SHogQVVUTyBBVVRPIFFBTTY0IEFVVE8gQVVUTyBOT05FClQgNzcwMDAwMDAwIDhNSHogQVVU
-TyBBVVRPIFFBTTY0IEFVVE8gQVVUTyBOT05FClQgNzc4MDAwMDAwIDhNSHogQVVUTyBBVVRP
-IFFBTTY0IEFVVE8gQVVUTyBOT05FClQgNzg2MDAwMDAwIDhNSHogQVVUTyBBVVRPIFFBTTY0
-IEFVVE8gQVVUTyBOT05FClQgNzk0MDAwMDAwIDhNSHogQVVUTyBBVVRPIFFBTTY0IEFVVE8g
-QVVUTyBOT05FClQgODAyMDAwMDAwIDhNSHogQVVUTyBBVVRPIFFBTTY0IEFVVE8gQVVUTyBO
-T05FClQgODEwMDAwMDAwIDhNSHogQVVUTyBBVVRPIFFBTTY0IEFVVE8gQVVUTyBOT05FClQg
-ODE4MDAwMDAwIDhNSHogQVVUTyBBVVRPIFFBTTY0IEFVVE8gQVVUTyBOT05FClQgODI2MDAw
-MDAwIDhNSHogQVVUTyBBVVRPIFFBTTY0IEFVVE8gQVVUTyBOT05FClQgODM0MDAwMDAwIDhN
-SHogQVVUTyBBVVRPIFFBTTY0IEFVVE8gQVVUTyBOT05FClQgODQyMDAwMDAwIDhNSHogQVVU
-TyBBVVRPIFFBTTY0IEFVVE8gQVVUTyBOT05FClQgODUwMDAwMDAwIDhNSHogQVVUTyBBVVRP
-IFFBTTY0IEFVVE8gQVVUTyBOT05FClQgODU4MDAwMDAwIDhNSHogQVVUTyBBVVRPIFFBTTY0
-IEFVVE8gQVVUTyBOT05FCg==
---------------040500050307080901010805--
+Regards,
+Andreas
