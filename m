@@ -1,120 +1,236 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.samsung.com ([203.254.224.25]:50296 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759891Ab1CDS4n (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2011 13:56:43 -0500
-Date: Fri, 04 Mar 2011 19:56:35 +0100
-From: Kamil Debski <k.debski@samsung.com>
-Subject: RE: [RFC/PATCH v7 1/5] Changes in include/linux/videodev2.h for MFC 5.1
-In-reply-to: <201103041738.43558.laurent.pinchart@ideasonboard.com>
-To: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	kyungmin.park@samsung.com, jaeryul.oh@samsung.com,
-	kgene.kim@samsung.com
-Message-id: <005801cbda9d$e5ad94b0$b108be10$%debski@samsung.com>
+Received: from mailout4.samsung.com ([203.254.224.34]:59700 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752572Ab1CLA1h (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Mar 2011 19:27:37 -0500
+Date: Sat, 12 Mar 2011 09:27:31 +0900
+From: Kukjin Kim <kgene.kim@samsung.com>
+Subject: RE: [PATCH 1/7] ARM: S5PV310: Add platform definitions for FIMC
+In-reply-to: <1299229274-9753-2-git-send-email-m.szyprowski@samsung.com>
+To: 'Marek Szyprowski' <m.szyprowski@samsung.com>,
+	linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, andrzej.p@samsung.com,
+	t.stanislaws@samsung.com, s.nawrocki@samsung.com,
+	k.debski@samsung.com
+Message-id: <002601cbe04c$489287d0$d9b79770$%kim@samsung.com>
 MIME-version: 1.0
 Content-type: text/plain; charset=US-ASCII
-Content-language: en-gb
+Content-language: ko
 Content-transfer-encoding: 7BIT
-References: <1299237982-31687-1-git-send-email-k.debski@samsung.com>
- <1299237982-31687-2-git-send-email-k.debski@samsung.com>
- <201103041738.43558.laurent.pinchart@ideasonboard.com>
+References: <1299229274-9753-1-git-send-email-m.szyprowski@samsung.com>
+ <1299229274-9753-2-git-send-email-m.szyprowski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
-
-> -----Original Message-----
-> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> Sent: 04 March 2011 17:39
-> To: Kamil Debski
-> Cc: linux-media@vger.kernel.org; linux-samsung-soc@vger.kernel.org;
-> m.szyprowski@samsung.com; kyungmin.park@samsung.com;
-> jaeryul.oh@samsung.com; kgene.kim@samsung.com
-> Subject: Re: [RFC/PATCH v7 1/5] Changes in include/linux/videodev2.h
-> for MFC 5.1
+Marek Szyprowski wrote:
 > 
-> On Friday 04 March 2011 12:26:18 Kamil Debski wrote:
-> > This patch adds fourcc values for compressed video stream formats and
-> > V4L2_CTRL_CLASS_CODEC. Also adds controls used by MFC 5.1 driver.
-> >
-> > Signed-off-by: Kamil Debski <k.debski@samsung.com>
-> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> > ---
-> >  include/linux/videodev2.h |   39
-> +++++++++++++++++++++++++++++++++++++++
-> >  1 files changed, 39 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> > index a94c4d5..a48a42e 100644
-> > --- a/include/linux/videodev2.h
-> > +++ b/include/linux/videodev2.h
-> > @@ -369,6 +369,19 @@ struct v4l2_pix_format {
-> >  #define V4L2_PIX_FMT_DV       v4l2_fourcc('d', 'v', 's', 'd') /*
-> 1394 */
-> >  #define V4L2_PIX_FMT_MPEG     v4l2_fourcc('M', 'P', 'E', 'G') /*
-> MPEG-1/2/4 */
-> >
-> > +#define V4L2_PIX_FMT_H264     v4l2_fourcc('H', '2', '6', '4') /*
-> H264 */
-> > +#define V4L2_PIX_FMT_H263     v4l2_fourcc('H', '2', '6', '3') /*
-> H263 */
-> > +#define V4L2_PIX_FMT_MPEG12   v4l2_fourcc('M', 'P', '1', '2') /*
-> MPEG-1/2  */
-> > +#define V4L2_PIX_FMT_MPEG4    v4l2_fourcc('M', 'P', 'G', '4') /*
-> MPEG-4  */
-> > +#define V4L2_PIX_FMT_DIVX     v4l2_fourcc('D', 'I', 'V', 'X') /*
-> DivX  */
-> > +#define V4L2_PIX_FMT_DIVX3    v4l2_fourcc('D', 'I', 'V', '3') /*
-> DivX 3.11 */
-> > +#define V4L2_PIX_FMT_DIVX4    v4l2_fourcc('D', 'I', 'V', '4') /*
-> DivX 4.12 */
-> > +#define V4L2_PIX_FMT_DIVX500  v4l2_fourcc('D', 'X', '5', '2') /*
-> DivX 5.00 - 5.02 */
-> > +#define V4L2_PIX_FMT_DIVX503  v4l2_fourcc('D', 'X', '5', '3') /*
-> DivX 5.03 - x */
-> > +#define V4L2_PIX_FMT_XVID     v4l2_fourcc('X', 'V', 'I', 'D') /*
-> Xvid */
-> > +#define V4L2_PIX_FMT_VC1      v4l2_fourcc('V', 'C', '1', 'A') /* VC-
-> 1 */
-> > +#define V4L2_PIX_FMT_VC1_RCV  v4l2_fourcc('V', 'C', '1', 'R') /* VC-
-> 1 RCV */
-> > +
+> From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 > 
-> Hans, you mentioned some time ago that you were against ading H.264 or
-> MPEG4
-> fourccs, and that drivers should use the MPEG controls instead. Could
-> you
-> clarify your current position on this ?
+> Add support for fourth FIMC platform device definition and define
+> resources for FIMC modules on S5PV310 machines.
+> 
+> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> ---
+>  arch/arm/mach-s5pv310/cpu.c                    |    7 ++++
+>  arch/arm/mach-s5pv310/include/mach/irqs.h      |    4 ++
+>  arch/arm/mach-s5pv310/include/mach/map.h       |    8 ++++
+>  arch/arm/plat-s5p/Kconfig                      |    5 +++
+>  arch/arm/plat-s5p/Makefile                     |    1 +
+>  arch/arm/plat-s5p/dev-fimc3.c                  |   43
+> ++++++++++++++++++++++++
+>  arch/arm/plat-samsung/include/plat/devs.h      |    1 +
+>  arch/arm/plat-samsung/include/plat/fimc-core.h |    5 +++
+>  8 files changed, 74 insertions(+), 0 deletions(-)
+>  create mode 100644 arch/arm/plat-s5p/dev-fimc3.c
+> 
+> diff --git a/arch/arm/mach-s5pv310/cpu.c b/arch/arm/mach-s5pv310/cpu.c
+> index 0db0fb6..0bdb0b0 100644
+> --- a/arch/arm/mach-s5pv310/cpu.c
+> +++ b/arch/arm/mach-s5pv310/cpu.c
+> @@ -21,6 +21,8 @@
+>  #include <plat/clock.h>
+>  #include <plat/s5pv310.h>
+>  #include <plat/sdhci.h>
+> +#include <plat/devs.h>
+> +#include <plat/fimc-core.h>
+> 
+>  #include <mach/regs-irq.h>
+> 
+> @@ -114,6 +116,11 @@ void __init s5pv310_map_io(void)
+>  	s5pv310_default_sdhci1();
+>  	s5pv310_default_sdhci2();
+>  	s5pv310_default_sdhci3();
+> +
+> +	s3c_fimc_setname(0, "s5pv310-fimc");
+> +	s3c_fimc_setname(1, "s5pv310-fimc");
+> +	s3c_fimc_setname(2, "s5pv310-fimc");
+> +	s3c_fimc_setname(3, "s5pv310-fimc");
+>  }
+> 
+>  void __init s5pv310_init_clocks(int xtal)
+> diff --git a/arch/arm/mach-s5pv310/include/mach/irqs.h b/arch/arm/mach-
+> s5pv310/include/mach/irqs.h
+> index 536b0b5..0e99968 100644
+> --- a/arch/arm/mach-s5pv310/include/mach/irqs.h
+> +++ b/arch/arm/mach-s5pv310/include/mach/irqs.h
+> @@ -107,6 +107,10 @@
+> 
+>  #define IRQ_MIPI_CSIS0		COMBINER_IRQ(30, 0)
+>  #define IRQ_MIPI_CSIS1		COMBINER_IRQ(30, 1)
+> +#define IRQ_FIMC0		COMBINER_IRQ(32, 0)
+> +#define IRQ_FIMC1		COMBINER_IRQ(32, 1)
+> +#define IRQ_FIMC2		COMBINER_IRQ(33, 0)
+> +#define IRQ_FIMC3		COMBINER_IRQ(33, 1)
+> 
+>  #define IRQ_ONENAND_AUDI	COMBINER_IRQ(34, 0)
+> 
+> diff --git a/arch/arm/mach-s5pv310/include/mach/map.h b/arch/arm/mach-
+> s5pv310/include/mach/map.h
+> index 901657f..0db3a47 100644
+> --- a/arch/arm/mach-s5pv310/include/mach/map.h
+> +++ b/arch/arm/mach-s5pv310/include/mach/map.h
+> @@ -25,6 +25,10 @@
+> 
+>  #define S5PV310_PA_SYSRAM		0x02025000
+> 
+> +#define S5PV310_PA_FIMC0		0x11800000
+> +#define S5PV310_PA_FIMC1		0x11810000
+> +#define S5PV310_PA_FIMC2		0x11820000
+> +#define S5PV310_PA_FIMC3		0x11830000
+>  #define S5PV310_PA_I2S0			0x03830000
+>  #define S5PV310_PA_I2S1			0xE3100000
+>  #define S5PV310_PA_I2S2			0xE2A00000
+> @@ -121,6 +125,10 @@
+>  #define S5P_PA_CHIPID			S5PV310_PA_CHIPID
+>  #define S5P_PA_MIPI_CSIS0		S5PV310_PA_MIPI_CSIS0
+>  #define S5P_PA_MIPI_CSIS1		S5PV310_PA_MIPI_CSIS1
+> +#define S5P_PA_FIMC0			S5PV310_PA_FIMC0
+> +#define S5P_PA_FIMC1			S5PV310_PA_FIMC1
+> +#define S5P_PA_FIMC2			S5PV310_PA_FIMC2
+> +#define S5P_PA_FIMC3			S5PV310_PA_FIMC3
+>  #define S5P_PA_ONENAND			S5PC210_PA_ONENAND
+>  #define S5P_PA_ONENAND_DMA		S5PC210_PA_ONENAND_DMA
+>  #define S5P_PA_SDRAM			S5PV310_PA_SDRAM
+> diff --git a/arch/arm/plat-s5p/Kconfig b/arch/arm/plat-s5p/Kconfig
+> index 557f8c5..0db2a7a 100644
+> --- a/arch/arm/plat-s5p/Kconfig
+> +++ b/arch/arm/plat-s5p/Kconfig
+> @@ -60,6 +60,11 @@ config S5P_DEV_FIMC2
+>  	help
+>  	  Compile in platform device definitions for FIMC controller 2
+> 
+> +config S5P_DEV_FIMC3
+> +	bool
+> +	help
+> +	  Compile in platform device definitions for FIMC controller 3
+> +
+>  config S5P_DEV_ONENAND
+>  	bool
+>  	help
+> diff --git a/arch/arm/plat-s5p/Makefile b/arch/arm/plat-s5p/Makefile
+> index ce5a0a7..cfcd1db 100644
+> --- a/arch/arm/plat-s5p/Makefile
+> +++ b/arch/arm/plat-s5p/Makefile
+> @@ -28,6 +28,7 @@ obj-$(CONFIG_SUSPEND)		+= irq-pm.o
+>  obj-$(CONFIG_S5P_DEV_FIMC0)	+= dev-fimc0.o
+>  obj-$(CONFIG_S5P_DEV_FIMC1)	+= dev-fimc1.o
+>  obj-$(CONFIG_S5P_DEV_FIMC2)	+= dev-fimc2.o
+> +obj-$(CONFIG_S5P_DEV_FIMC3)	+= dev-fimc3.o
+>  obj-$(CONFIG_S5P_DEV_ONENAND)	+= dev-onenand.o
+>  obj-$(CONFIG_S5P_DEV_CSIS0)	+= dev-csis0.o
+>  obj-$(CONFIG_S5P_DEV_CSIS1)	+= dev-csis1.o
+> diff --git a/arch/arm/plat-s5p/dev-fimc3.c b/arch/arm/plat-s5p/dev-fimc3.c
+> new file mode 100644
+> index 0000000..ef31bec
+> --- /dev/null
+> +++ b/arch/arm/plat-s5p/dev-fimc3.c
+> @@ -0,0 +1,43 @@
+> +/* linux/arch/arm/plat-s5p/dev-fimc3.c
+> + *
+> + * Copyright (c) 2010 Samsung Electronics
+> + *
+> + * Base S5P FIMC3 resource and device definitions
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/dma-mapping.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/interrupt.h>
+> +#include <linux/ioport.h>
+> +#include <mach/map.h>
+> +
+> +static struct resource s5p_fimc3_resource[] = {
+> +	[0] = {
+> +		.start	= S5P_PA_FIMC3,
+> +		.end	= S5P_PA_FIMC3 + SZ_4K - 1,
+> +		.flags	= IORESOURCE_MEM,
+> +	},
+> +	[1] = {
+> +		.start	= IRQ_FIMC3,
+> +		.end	= IRQ_FIMC3,
+> +		.flags	= IORESOURCE_IRQ,
+> +	},
+> +};
+> +
+> +static u64 s5p_fimc3_dma_mask = DMA_BIT_MASK(32);
+> +
+> +struct platform_device s5p_device_fimc3 = {
+> +	.name		= "s5p-fimc",
+> +	.id		= 3,
+> +	.num_resources	= ARRAY_SIZE(s5p_fimc3_resource),
+> +	.resource	= s5p_fimc3_resource,
+> +	.dev		= {
+> +		.dma_mask		= &s5p_fimc3_dma_mask,
+> +		.coherent_dma_mask	= DMA_BIT_MASK(32),
+> +	},
+> +};
+> diff --git a/arch/arm/plat-samsung/include/plat/devs.h b/arch/arm/plat-
+> samsung/include/plat/devs.h
+> index b4d208b..b0123f3 100644
+> --- a/arch/arm/plat-samsung/include/plat/devs.h
+> +++ b/arch/arm/plat-samsung/include/plat/devs.h
+> @@ -133,6 +133,7 @@ extern struct platform_device samsung_device_keypad;
+>  extern struct platform_device s5p_device_fimc0;
+>  extern struct platform_device s5p_device_fimc1;
+>  extern struct platform_device s5p_device_fimc2;
+> +extern struct platform_device s5p_device_fimc3;
+> 
+>  extern struct platform_device s5p_device_mipi_csis0;
+>  extern struct platform_device s5p_device_mipi_csis1;
+> diff --git a/arch/arm/plat-samsung/include/plat/fimc-core.h
+b/arch/arm/plat-
+> samsung/include/plat/fimc-core.h
+> index 81a3bfe..945a99d 100644
+> --- a/arch/arm/plat-samsung/include/plat/fimc-core.h
+> +++ b/arch/arm/plat-samsung/include/plat/fimc-core.h
+> @@ -38,6 +38,11 @@ static inline void s3c_fimc_setname(int id, char *name)
+>  		s5p_device_fimc2.name = name;
+>  		break;
+>  #endif
+> +#ifdef CONFIG_S5P_DEV_FIMC3
+> +	case 3:
+> +		s5p_device_fimc3.name = name;
+> +		break;
+> +#endif
+>  	}
+>  }
+> 
+> --
 
-If I remember correct there was no clear conclusion on this. I hope we can
-discuss this
-during the upcoming meeting. 
-
-Have you got an alternative suggestion to using fourccs?
-
-The existing MPEG controls won't cover all the functions and parameters that
-are
-used by video codecs. The controls that are in this patch are the ones
-related to
-decoding, there is even more for encoding.
-
-Yesterday I have been talking with Hans on the IRC channel about the control
-for
-quantization parameters and he has suggested to use different for MPEG4,
-H263 and H264.
-Personally I'd like to have a common one, as the QP meaning is the same in
-those 3
-cases, the difference is the range of the value.
-So I think that this still is a subject that could use more discussion as
-there are
-a few ideas.
+Ok, applied this based on my for-next.
+Thanks.
 
 Best regards,
-
--- 
-Kamil Debski
-Linux Platform Group
-Samsung Poland R&D Center
+Kgene.
+--
+Kukjin Kim <kgene.kim@samsung.com>, Senior Engineer,
+SW Solution Development Team, Samsung Electronics Co., Ltd.
 
