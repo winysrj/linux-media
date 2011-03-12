@@ -1,89 +1,104 @@
 Return-path: <mchehab@pedra>
-Received: from ist.d-labs.de ([213.239.218.44]:43669 "EHLO mx01.d-labs.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754218Ab1CUSeI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Mar 2011 14:34:08 -0400
-From: Florian Mickler <florian@mickler.org>
-To: mchehab@infradead.org
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	js@linuxtv.org, tskd2@yahoo.co.jp, liplianin@me.by,
-	g.marco@freenet.de, aet@rasterburn.org, pb@linuxtv.org,
-	mkrufky@linuxtv.org, nick@nick-andrew.net, max@veneto.com,
-	janne-dvb@grunau.be, Florian Mickler <florian@mickler.org>
-Subject: [PATCH 6/6] [media] opera1: get rid of on-stack dma buffer
-Date: Mon, 21 Mar 2011 19:33:46 +0100
-Message-Id: <1300732426-18958-7-git-send-email-florian@mickler.org>
-In-Reply-To: <1300732426-18958-1-git-send-email-florian@mickler.org>
-References: <1300732426-18958-1-git-send-email-florian@mickler.org>
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2788 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753144Ab1CLKBo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Mar 2011 05:01:44 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [GIT PATCHES FOR 2.6.39] Core prio support and global release callback
+Date: Sat, 12 Mar 2011 11:01:23 +0100
+Cc: Andy Walls <awalls@md.metrocast.net>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201103121101.23464.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-usb_control_msg initiates (and waits for completion of) a dma transfer using
-the supplied buffer. That buffer thus has to be seperately allocated on
-the heap.
+Hi Mauro!
 
-In lib/dma_debug.c the function check_for_stack even warns about it:
-	WARNING: at lib/dma-debug.c:866 check_for_stack
+This changeset adds core support for VIDIOC_S/G_PRIORITY and adds a release
+callback to struct v4l2_device.
 
-Note: This change is tested to compile only, as I don't have the hardware.
+vivi and cx18 are modified to use the core prio support and dsbr100 was
+changed to use the release callback and unlocked_ioctl.
 
-Signed-off-by: Florian Mickler <florian@mickler.org>
----
- drivers/media/dvb/dvb-usb/opera1.c |   31 ++++++++++++++++++++-----------
- 1 files changed, 20 insertions(+), 11 deletions(-)
+I fixed a few related ivtv problems as well.
 
-diff --git a/drivers/media/dvb/dvb-usb/opera1.c b/drivers/media/dvb/dvb-usb/opera1.c
-index 1f1b7d6..2ca6e87 100644
---- a/drivers/media/dvb/dvb-usb/opera1.c
-+++ b/drivers/media/dvb/dvb-usb/opera1.c
-@@ -53,27 +53,36 @@ static int opera1_xilinx_rw(struct usb_device *dev, u8 request, u16 value,
- 			    u8 * data, u16 len, int flags)
- {
- 	int ret;
--	u8 r;
--	u8 u8buf[len];
--
-+	u8 tmp;
-+	u8 *buf;
- 	unsigned int pipe = (flags == OPERA_READ_MSG) ?
- 		usb_rcvctrlpipe(dev,0) : usb_sndctrlpipe(dev, 0);
- 	u8 request_type = (flags == OPERA_READ_MSG) ? USB_DIR_IN : USB_DIR_OUT;
- 
-+	buf = kmalloc(len, GFP_KERNEL);
-+	if (!buf)
-+		return -ENOMEM;
-+
- 	if (flags == OPERA_WRITE_MSG)
--		memcpy(u8buf, data, len);
--	ret =
--		usb_control_msg(dev, pipe, request, request_type | USB_TYPE_VENDOR,
--			value, 0x0, u8buf, len, 2000);
-+		memcpy(buf, data, len);
-+	ret = usb_control_msg(dev, pipe, request,
-+			request_type | USB_TYPE_VENDOR, value, 0x0,
-+			buf, len, 2000);
- 
- 	if (request == OPERA_TUNER_REQ) {
-+		tmp = buf[0];
- 		if (usb_control_msg(dev, usb_rcvctrlpipe(dev, 0),
--				OPERA_TUNER_REQ, USB_DIR_IN | USB_TYPE_VENDOR,
--				0x01, 0x0, &r, 1, 2000)<1 || r!=0x08)
--					return 0;
-+			    OPERA_TUNER_REQ, USB_DIR_IN | USB_TYPE_VENDOR,
-+			    0x01, 0x0, buf, 1, 2000) < 1 || buf[0] != 0x08) {
-+			ret = 0;
-+			goto out;
-+		}
-+		buf[0] = tmp;
- 	}
- 	if (flags == OPERA_READ_MSG)
--		memcpy(data, u8buf, len);
-+		memcpy(data, buf, len);
-+out:
-+	kfree(buf);
- 	return ret;
- }
- 
+Tested with cx18, ivtv, vivi and bttv.
+
+We don't have hardware for the DSB-R100, so those changed are untested.
+
+There is one on its way to me, so I should be able to verify it in 2-3
+weeks.
+
+The core prio support makes vivi fully pass v4l2-compliance (and it's the
+first driver to do so :-) ). It is also required to have the control
+framework honor the priority ioctls. Without this file descriptors with a
+lower prio could still change controls.
+
+Note that the prio core support only kicks in for drivers that use struct
+v4l2_fh and do not set vidioc_s_priority in the ioctl_ops.
+
+Regards,
+
+	Hans
+
+The following changes since commit 41f3becb7bef489f9e8c35284dd88a1ff59b190c:
+
+  [media] V4L DocBook: update V4L2 version (2011-03-11 18:09:02 -0300)
+
+are available in the git repository at:
+  ssh://linuxtv.org/git/hverkuil/media_tree.git core
+
+Hans Verkuil (17):
+      v4l2_prio: move from v4l2-common to v4l2-dev.
+      v4l2: add v4l2_prio_state to v4l2_device and video_device
+      v4l2-fh: implement v4l2_priority support.
+      v4l2-fh: add v4l2_fh_open and v4l2_fh_release helper functions
+      v4l2-fh: add v4l2_fh_is_singular
+      v4l2-ioctl: add priority handling support.
+      ivtv: convert to core priority handling.
+      v4l2-framework.txt: improve v4l2_fh/priority documentation
+      cx18: use v4l2_fh as preparation for adding core priority support.
+      cx18: use core priority handling
+      v4l2-device: add kref and a release function
+      v4l2-framework.txt: document new v4l2_device release() callback
+      dsbr100: convert to unlocked_ioctl
+      dsbr100: ensure correct disconnect sequence.
+      vivi: convert to core priority handling.
+      ivtv: add missing v4l2_fh_exit.
+      ivtv: replace ugly casts with a proper container_of.
+
+ Documentation/video4linux/v4l2-framework.txt |  135 ++++++++++++++++------
+ drivers/media/radio/dsbr100.c                |  128 ++++++---------------
+ drivers/media/radio/radio-si4713.c           |    3 +-
+ drivers/media/video/cpia2/cpia2_v4l.c        |    3 +-
+ drivers/media/video/cx18/cx18-driver.h       |   14 ++-
+ drivers/media/video/cx18/cx18-fileops.c      |   20 ++-
+ drivers/media/video/cx18/cx18-ioctl.c        |  128 ++++++---------------
+ drivers/media/video/davinci/vpfe_capture.c   |    2 +-
+ drivers/media/video/ivtv/ivtv-driver.h       |    2 -
+ drivers/media/video/ivtv/ivtv-fileops.c      |    3 +-
+ drivers/media/video/ivtv/ivtv-ioctl.c        |  159 +++++++++++---------------
+ drivers/media/video/meye.c                   |    3 +-
+ drivers/media/video/mxb.c                    |    3 +-
+ drivers/media/video/pwc/pwc-v4l.c            |    3 +-
+ drivers/media/video/v4l2-common.c            |   63 ----------
+ drivers/media/video/v4l2-dev.c               |   80 +++++++++++++
+ drivers/media/video/v4l2-device.c            |   17 +++
+ drivers/media/video/v4l2-fh.c                |   46 ++++++++
+ drivers/media/video/v4l2-ioctl.c             |   64 +++++++++-
+ drivers/media/video/vivi.c                   |   17 +--
+ include/media/v4l2-common.h                  |   15 ---
+ include/media/v4l2-dev.h                     |   18 +++
+ include/media/v4l2-device.h                  |   14 +++
+ include/media/v4l2-fh.h                      |   29 +++++
+ include/media/v4l2-ioctl.h                   |    2 +-
+ 25 files changed, 546 insertions(+), 425 deletions(-)
+
 -- 
-1.7.4.1
-
+Hans Verkuil - video4linux developer - sponsored by Cisco
