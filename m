@@ -1,69 +1,70 @@
 Return-path: <mchehab@pedra>
-Received: from ist.d-labs.de ([213.239.218.44]:43651 "EHLO mx01.d-labs.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751161Ab1CUSeG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Mar 2011 14:34:06 -0400
-From: Florian Mickler <florian@mickler.org>
-To: mchehab@infradead.org
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	js@linuxtv.org, tskd2@yahoo.co.jp, liplianin@me.by,
-	g.marco@freenet.de, aet@rasterburn.org, pb@linuxtv.org,
-	mkrufky@linuxtv.org, nick@nick-andrew.net, max@veneto.com,
-	janne-dvb@grunau.be, Florian Mickler <florian@mickler.org>
-Subject: [PATCH 4/6] [media] dw2102: get rid of on-stack dma buffer
-Date: Mon, 21 Mar 2011 19:33:44 +0100
-Message-Id: <1300732426-18958-5-git-send-email-florian@mickler.org>
-In-Reply-To: <1300732426-18958-1-git-send-email-florian@mickler.org>
-References: <1300732426-18958-1-git-send-email-florian@mickler.org>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:60822 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752738Ab1CMKrn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Mar 2011 06:47:43 -0400
+Received: by fxm17 with SMTP id 17so2139876fxm.19
+        for <linux-media@vger.kernel.org>; Sun, 13 Mar 2011 03:47:42 -0700 (PDT)
+Message-ID: <4D7CA0CC.8090308@gmail.com>
+Date: Sun, 13 Mar 2011 11:47:40 +0100
+From: Martin Vidovic <xtronom@gmail.com>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+CC: Andreas Oberritter <obi@linuxtv.org>
+Subject: Re: [PATCH] Ngene cam device name
+References: <alpine.LNX.2.00.1103101608030.9782@hp8540w.home> <4D7A97BB.4020704@gmail.com> <4D7B7524.2050108@linuxtv.org> <201103130042.49199@orion.escape-edv.de>
+In-Reply-To: <201103130042.49199@orion.escape-edv.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-usb_control_msg initiates (and waits for completion of) a dma transfer using
-the supplied buffer. That buffer thus has to be seperately allocated on
-the heap.
+Oliver Endriss wrote:
+> Hi,
+>
+> On Saturday 12 March 2011 14:29:08 Andreas Oberritter wrote:
+>   
+>> On 03/11/2011 10:44 PM, Martin Vidovic wrote:
+>>     
+>>> Andreas Oberritter wrote:
+>>>       
+>>>> It's rather unintuitive that some CAMs appear as ca0, while others as
+>>>> cam0.
+>>>>   
+>>>>         
+>>> Ngene CI appears as both ca0 and cam0 (or sec0). The ca0 node is used
+>>> as usual, to setup the CAM. The cam0 (or sec0) node is used to read/write
+>>> transport stream. To me it  looks like an extension of the current API.
+>>>       
+>> I see. This raises another problem. How to find out, which ca device
+>> cam0 relates to, in case there are more ca devices than cam devices?
+>>     
+>
+> Hm, I do not see a problem here. The API extension is simple:
+>
+> (1) camX is optional. If camX exists, it is tied to caX.
+>
+> (2) If there is no camX, the CI/CAM operates in 'legacy mode'.
+>
+> (3) If camX exists, the encrypted transport stream of the CI/CAM is sent
+>     through camX, and the decrypted stream is received from camX.
+>     caX behaves the same way as in (2).
+>
+> Btw, we should choose a more meaningful name for 'camX'.
+> I would prefer something like cainoutX or caioX or cinoutX or cioX.
+>   
 
-In lib/dma_debug.c the function check_for_stack even warns about it:
-	WARNING: at lib/dma-debug.c:866 check_for_stack
+I agree, camX could be misleading since it's not necessarily a CAM 
+application.
 
-Note: This change is tested to compile only, as I don't have the hardware.
+According to EN 50221 the two interfaces are named Command Interface 
+(for caX)
+and Transport Stream Interface (for camX). Then maybe 'tsiX' would be an 
+appropriate
+name?
 
-Signed-off-by: Florian Mickler <florian@mickler.org>
----
- drivers/media/dvb/dvb-usb/dw2102.c |   10 ++++++++--
- 1 files changed, 8 insertions(+), 2 deletions(-)
+Anyway, 'cioX' sounds good too.
 
-diff --git a/drivers/media/dvb/dvb-usb/dw2102.c b/drivers/media/dvb/dvb-usb/dw2102.c
-index 2c307ba..4c8ff39 100644
---- a/drivers/media/dvb/dvb-usb/dw2102.c
-+++ b/drivers/media/dvb/dvb-usb/dw2102.c
-@@ -101,12 +101,16 @@ static int dw210x_op_rw(struct usb_device *dev, u8 request, u16 value,
- 			u16 index, u8 * data, u16 len, int flags)
- {
- 	int ret;
--	u8 u8buf[len];
--
-+	u8 *u8buf;
- 	unsigned int pipe = (flags == DW210X_READ_MSG) ?
- 				usb_rcvctrlpipe(dev, 0) : usb_sndctrlpipe(dev, 0);
- 	u8 request_type = (flags == DW210X_READ_MSG) ? USB_DIR_IN : USB_DIR_OUT;
- 
-+	u8buf = kmalloc(len, GFP_KERNEL);
-+	if (!u8buf)
-+		return -ENOMEM;
-+
-+
- 	if (flags == DW210X_WRITE_MSG)
- 		memcpy(u8buf, data, len);
- 	ret = usb_control_msg(dev, pipe, request, request_type | USB_TYPE_VENDOR,
-@@ -114,6 +118,8 @@ static int dw210x_op_rw(struct usb_device *dev, u8 request, u16 value,
- 
- 	if (flags == DW210X_READ_MSG)
- 		memcpy(data, u8buf, len);
-+
-+	kfree(u8buf);
- 	return ret;
- }
- 
--- 
-1.7.4.1
-
+Regards,
+Martin
