@@ -1,644 +1,623 @@
 Return-path: <mchehab@pedra>
-Received: from smtp23.services.sfr.fr ([93.17.128.19]:41750 "EHLO
-	smtp23.services.sfr.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755182Ab1CQXc2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Mar 2011 19:32:28 -0400
-Message-ID: <4D829A08.7070906@sfr.fr>
-Date: Fri, 18 Mar 2011 00:32:24 +0100
-From: Patrice Chotard <patrice.chotard@sfr.fr>
+Received: from blu0-omc2-s7.blu0.hotmail.com ([65.55.111.82]:23244 "EHLO
+	blu0-omc2-s7.blu0.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755350Ab1CMRDa convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Mar 2011 13:03:30 -0400
+Message-ID: <BLU118-W26118755C470359B6430AFE5CD0@phx.gbl>
+From: wim delvaux <wim.delvaux@hotmail.com>
+To: <linux-media@vger.kernel.org>
+Subject: RE: em28xx based analog tv tuner USB KWorld PVR-TV 305U
+ (eb1a:e305): no sound
+Date: Sun, 13 Mar 2011 18:03:29 +0100
+In-Reply-To: <AANLkTinARMoc=2UL44oX9FzuxszqLfweNwabt31go6tw@mail.gmail.com>
+References: <4D7C8216.8060504@gmail.com>,<BLU118-W10258E4268CCC10262F101E5CD0@phx.gbl>,<AANLkTinARMoc=2UL44oX9FzuxszqLfweNwabt31go6tw@mail.gmail.com>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-CC: Theodore Kilgore <kilgota@banach.math.auburn.edu>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH]  New Jeilin dual-mode camera support
-References: <4D811835.5060303@sfr.fr> <20110317112835.2247810d@tele>
-In-Reply-To: <20110317112835.2247810d@tele>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Le 17/03/2011 11:28, Jean-Francois Moine a Ã©crit :
-> 
-> On Wed, 16 Mar 2011 21:06:13 +0100
-> Patrice Chotard <patrice.chotard@sfr.fr> wrote:
-> 
->> This patch add a new jeilin dual mode camera support and some
->> specific controls settings.
-> 
-> Hi Patrice and Theodore,
-> 
-> Here are somme comments about Patrice's patch.
-> 
->>  #include <linux/workqueue.h>
->> +#include <linux/delay.h>
->>  #include <linux/slab.h>
-> 
-> It is not a good idea to use mdelay(): it is a loop. Better use
-> msleep().
-> 
->> -	u8 quality;			/* image quality */
->> -	u8 jpegqual;			/* webcam quality */
->> +	u8 camquality;			/* webcam quality */
->> +	u8 jpegquality;			/* jpeg quality */
-> 
-> The webcam (encoding) quality and the jpeg (decoding) quality must be
-> the same. Then, looking carefully, jpegquality is not used!
-> 
->> +	u8 freq;
->> +	u8 type;
->> +	/* below variables are only used for SPORTSCAM_DV15 */
->> +	u8 autogain;
->> +	u8 cyan;
->> +	u8 magenta;
->> +	u8 yellow;
-> 
-> You should use the new control mechanism (see stk014, sonixj, zc3xx...).
-> 
->> +#define V4L2_CID_CAMQUALITY (V4L2_CID_USER_BASE + 1)
->> +		.id      = V4L2_CID_CAMQUALITY,
->> +		.type    = V4L2_CTRL_TYPE_INTEGER,
->> +		.name    = "Image quality",
-> 
-> The JPEG quality must be get/set by the VIDIOC_G_JPEGCOMP /
-> VIDIOC_S_JPEGCOMP ioctl's.
-> 
->> +#define V4L2_CID_CYAN_BALANCE (V4L2_CID_USER_BASE + 2)
-> 	[snip]
->> +#define V4L2_CID_MAGENTA_BALANCE (V4L2_CID_USER_BASE + 3)
-> 	[snip]
->> +#define V4L2_CID_YELLOW_BALANCE (V4L2_CID_USER_BASE + 4)
-> 
-> These values redefine V4L2_CID_SATURATION and V4L2_CID_HUE (user_base +
-> 4 is no more defined). You should use V4L2_CID_RED_BALANCE,
-> V4L2_CID_BLUE_BALANCE and V4L2_CID_GAIN to set these controls.
-> 
->> +	if (sd->type == SPORTSCAM_DV15)
->> +		start_commands_size = 9;
->> +	else
->> +		start_commands_size = ARRAY_SIZE(start_commands);
-> 
-> Don't use magic values ('9').
-> 
->> +			mdelay(start_commands[i].delay);
-> 
-> See above.
-> 
-> BTW, Theodore, as there is no USB command in the loop, there is no need
-> to have a work queue (look at the SENSOR_OV772x in ov534).
-> 
-> Best regards.
-> 
-
-Hi,
-
-Following Jean Francois's remark, here is a new version of my previous patch
-for a new jeilin dual mode camera support with specific control settings.
-
-Regards.
-
-Signed-off-by: Patrice CHOTARD <patricechotard@free.fr>
-Signed-off-by: Theodore Kilgore <kilgota@auburn.edu>
----
- Documentation/video4linux/gspca.txt |    1 +
- drivers/media/video/gspca/jeilinj.c |  405 ++++++++++++++++++++++++++++++-----
- 2 files changed, 354 insertions(+), 52 deletions(-)
-
-diff --git a/Documentation/video4linux/gspca.txt b/Documentation/video4linux/gspca.txt
-index 261776e..c4245d2 100644
---- a/Documentation/video4linux/gspca.txt
-+++ b/Documentation/video4linux/gspca.txt
-@@ -265,6 +265,7 @@ pac7302		093a:2629	Genious iSlim 300
- pac7302		093a:262a	Webcam 300k
- pac7302		093a:262c	Philips SPC 230 NC
- jeilinj		0979:0280	Sakar 57379
-+jeilinj		0979:0270	Sportscam DV15
- zc3xx		0ac8:0302	Z-star Vimicro zc0302
- vc032x		0ac8:0321	Vimicro generic vc0321
- vc032x		0ac8:0323	Vimicro Vc0323
-diff --git a/drivers/media/video/gspca/jeilinj.c b/drivers/media/video/gspca/jeilinj.c
-index 06b777f..b417589 100644
---- a/drivers/media/video/gspca/jeilinj.c
-+++ b/drivers/media/video/gspca/jeilinj.c
-@@ -6,6 +6,9 @@
-  *
-  * Copyright (C) 2009 Theodore Kilgore
-  *
-+ * Sportscam DV15 support and control settings are
-+ * Copyright (C) 2011 Patrice Chotard
-+ *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-  * the Free Software Foundation; either version 2 of the License, or
-@@ -34,6 +37,7 @@ MODULE_LICENSE("GPL");
- 
- /* Default timeouts, in ms */
- #define JEILINJ_CMD_TIMEOUT 500
-+#define JEILINJ_CMD_DELAY 160
- #define JEILINJ_DATA_TIMEOUT 1000
- 
- /* Maximum transfer size to use. */
-@@ -41,30 +45,40 @@ MODULE_LICENSE("GPL");
- 
- #define FRAME_HEADER_LEN 0x10
- 
-+enum {
-+	SAKAR_57379,
-+	SPORTSCAM_DV15,
-+};
-+
-+#define CAMQUALITY_MIN 0	/* highest cam quality */
-+#define CAMQUALITY_MAX 97	/* lowest cam quality  */
-+#define SPORTSCAM_DV15_CMD_SIZE 9
-+
- /* Structure to hold all of our device specific stuff */
- struct sd {
- 	struct gspca_dev gspca_dev;	/* !! must be the first item */
--	const struct v4l2_pix_format *cap_mode;
- 	/* Driver stuff */
- 	struct work_struct work_struct;
- 	struct workqueue_struct *work_thread;
--	u8 quality;				 /* image quality */
--	u8 jpegqual;				/* webcam quality */
-+	u8 quality;
-+#define QUALITY_MIN 35
-+#define QUALITY_MAX 85
-+#define QUALITY_DEF 85
-+
- 	u8 jpeg_hdr[JPEG_HDR_SZ];
-+	u8 freq;
-+	u8 type;
-+	/* below variables are only used for SPORTSCAM_DV15 */
-+	u8 autogain;
-+	u8 blue;
-+	u8 green;
-+	u8 red;
- };
- 
--	struct jlj_command {
--		unsigned char instruction[2];
--		unsigned char ack_wanted;
--	};
--
--/* AFAICT these cameras will only do 320x240. */
--static struct v4l2_pix_format jlj_mode[] = {
--	{ 320, 240, V4L2_PIX_FMT_JPEG, V4L2_FIELD_NONE,
--		.bytesperline = 320,
--		.sizeimage = 320 * 240,
--		.colorspace = V4L2_COLORSPACE_JPEG,
--		.priv = 0}
-+struct jlj_command {
-+	unsigned char instruction[2];
-+	unsigned char ack_wanted;
-+	unsigned char delay;
- };
- 
- /*
-@@ -80,7 +94,7 @@ static int jlj_write2(struct gspca_dev *gspca_dev, unsigned char *command)
- 	memcpy(gspca_dev->usb_buf, command, 2);
- 	retval = usb_bulk_msg(gspca_dev->dev,
- 			usb_sndbulkpipe(gspca_dev->dev, 3),
--			gspca_dev->usb_buf, 2, NULL, 500);
-+			gspca_dev->usb_buf, 2, NULL, JEILINJ_CMD_TIMEOUT);
- 	if (retval < 0)
- 		err("command write [%02x] error %d",
- 				gspca_dev->usb_buf[0], retval);
-@@ -94,7 +108,7 @@ static int jlj_read1(struct gspca_dev *gspca_dev, unsigned char response)
- 
- 	retval = usb_bulk_msg(gspca_dev->dev,
- 	usb_rcvbulkpipe(gspca_dev->dev, 0x84),
--				gspca_dev->usb_buf, 1, NULL, 500);
-+			gspca_dev->usb_buf, 1, NULL, JEILINJ_CMD_TIMEOUT);
- 	response = gspca_dev->usb_buf[0];
- 	if (retval < 0)
- 		err("read command [%02x] error %d",
-@@ -102,49 +116,259 @@ static int jlj_read1(struct gspca_dev *gspca_dev, unsigned char response)
- 	return retval;
- }
- 
-+static void setfreq(struct gspca_dev *gspca_dev)
-+{
-+	struct sd *sd = (struct sd *) gspca_dev;
-+	struct jlj_command freq_commands[] = {
-+		{{0x71, 0x80}, 0, 0},
-+		{{0x70, 0x07}, 0, 0}
-+	};
-+
-+	if (sd->freq)
-+		freq_commands[0].instruction[1] & (sd->freq >> 1);
-+
-+	jlj_write2(gspca_dev, freq_commands[0].instruction);
-+	jlj_write2(gspca_dev, freq_commands[1].instruction);
-+}
-+
-+static void setcamquality(struct gspca_dev *gspca_dev)
-+{
-+	struct sd *sd = (struct sd *) gspca_dev;
-+	struct jlj_command quality_commands[] = {
-+		{{0x71, 0x1E}, 0, 0},
-+		{{0x70, 0x06}, 0, 0}
-+	};
-+	u8 camquality;
-+
-+	/* adapt camera quality from jpeg quality */
-+	camquality = ((QUALITY_MAX - sd->quality) * CAMQUALITY_MAX)
-+		/ (QUALITY_MAX - QUALITY_MIN);
-+	quality_commands[0].instruction[1] += camquality;
-+
-+	jlj_write2(gspca_dev, quality_commands[0].instruction);
-+	jlj_write2(gspca_dev, quality_commands[1].instruction);
-+}
-+
-+static void setautogain(struct gspca_dev *gspca_dev)
-+{
-+	struct sd *sd = (struct sd *) gspca_dev;
-+	struct jlj_command autogain_commands[] = {
-+		{{0x94, 0x02}, 0, 0},
-+		{{0xcf, 0x00}, 0, 0}
-+	};
-+
-+	autogain_commands[1].instruction[1] = (sd->autogain << 4);
-+
-+	jlj_write2(gspca_dev, autogain_commands[0].instruction);
-+	jlj_write2(gspca_dev, autogain_commands[1].instruction);
-+}
-+
-+static void setred(struct gspca_dev *gspca_dev)
-+{
-+	struct sd *sd = (struct sd *) gspca_dev;
-+	struct jlj_command setred_commands[] = {
-+		{{0x94, 0x02}, 0, 0},
-+		{{0xe6, 0x00}, 0, 0}
-+	};
-+
-+	setred_commands[1].instruction[1] = sd->red;
-+
-+	jlj_write2(gspca_dev, setred_commands[0].instruction);
-+	jlj_write2(gspca_dev, setred_commands[1].instruction);
-+}
-+
-+static void setgreen(struct gspca_dev *gspca_dev)
-+{
-+	struct sd *sd = (struct sd *) gspca_dev;
-+	struct jlj_command setgreen_commands[] = {
-+		{{0x94, 0x02}, 0, 0},
-+		{{0xe7, 0x00}, 0, 0}
-+	};
-+
-+	setgreen_commands[1].instruction[1] = sd->green;
-+
-+	jlj_write2(gspca_dev, setgreen_commands[0].instruction);
-+	jlj_write2(gspca_dev, setgreen_commands[1].instruction);
-+}
-+
-+static void setblue(struct gspca_dev *gspca_dev)
-+{
-+	struct sd *sd = (struct sd *) gspca_dev;
-+	struct jlj_command setblue_commands[] = {
-+		{{0x94, 0x02}, 0, 0},
-+		{{0xe9, 0x00}, 0, 0}
-+	};
-+
-+	setblue_commands[1].instruction[1] = sd->blue;
-+
-+	jlj_write2(gspca_dev, setblue_commands[0].instruction);
-+	jlj_write2(gspca_dev, setblue_commands[1].instruction);
-+}
-+
-+/* Functions to get and set a control value */
-+#define SD_SETGET(thename) \
-+static int sd_set##thename(struct gspca_dev *gspca_dev, s32 val)\
-+{\
-+	struct sd *sd = (struct sd *) gspca_dev;\
-+\
-+	sd->thename = val;\
-+	if (gspca_dev->streaming)\
-+		set##thename(gspca_dev);\
-+	return 0;\
-+} \
-+static int sd_get##thename(struct gspca_dev *gspca_dev, s32 *val)\
-+{\
-+	struct sd *sd = (struct sd *) gspca_dev;\
-+\
-+	*val = sd->thename;\
-+	return 0;\
-+}
-+
-+SD_SETGET(freq);
-+SD_SETGET(autogain);
-+SD_SETGET(blue);
-+SD_SETGET(green);
-+SD_SETGET(red);
-+
-+static struct ctrl sd_ctrls[] = {
-+	{
-+	    {
-+		.id      = V4L2_CID_POWER_LINE_FREQUENCY,
-+		.type    = V4L2_CTRL_TYPE_MENU,
-+		.name    = "Light frequency filter",
-+		.minimum = V4L2_CID_POWER_LINE_FREQUENCY_DISABLED, /* 0 */
-+		.maximum = V4L2_CID_POWER_LINE_FREQUENCY_60HZ, /* 2 */
-+		.step    = 1,
-+		.default_value = V4L2_CID_POWER_LINE_FREQUENCY_60HZ,
-+	    },
-+	    .set = sd_setfreq,
-+	    .get = sd_getfreq,
-+	},
-+	{
-+	    {
-+		.id = V4L2_CID_AUTOGAIN,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.name = "Automatic Gain (and Exposure)",
-+		.minimum = 0,
-+		.maximum = 3,
-+		.step = 1,
-+#define AUTOGAIN_DEF 0
-+		.default_value = AUTOGAIN_DEF,
-+	   },
-+	   .set = sd_setautogain,
-+	   .get = sd_getautogain,
-+	},
-+	{
-+	    {
-+		.id = V4L2_CID_BLUE_BALANCE,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.name = "blue balance",
-+		.minimum = 0,
-+		.maximum = 3,
-+		.step = 1,
-+#define BLUE_BALANCE_DEF 2
-+		.default_value = BLUE_BALANCE_DEF,
-+	   },
-+	   .set = sd_setblue,
-+	   .get = sd_getblue,
-+	},
-+	{
-+	    {
-+		.id = V4L2_CID_GAIN,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.name = "green balance",
-+		.minimum = 0,
-+		.maximum = 3,
-+		.step = 1,
-+#define GREEN_BALANCE_DEF 2
-+		.default_value = GREEN_BALANCE_DEF,
-+	   },
-+	   .set = sd_setgreen,
-+	   .get = sd_getgreen,
-+	},
-+	{
-+	    {
-+		.id = V4L2_CID_RED_BALANCE,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.name = "red balance",
-+		.minimum = 0,
-+		.maximum = 3,
-+		.step = 1,
-+#define RED_BALANCE_DEF 2
-+		.default_value = RED_BALANCE_DEF,
-+	   },
-+	   .set = sd_setred,
-+	   .get = sd_getred,
-+	},
-+};
-+
-+static struct v4l2_pix_format jlj_mode[] = {
-+	{ 320, 240, V4L2_PIX_FMT_JPEG, V4L2_FIELD_NONE,
-+		.bytesperline = 320,
-+		.sizeimage = 320 * 240,
-+		.colorspace = V4L2_COLORSPACE_JPEG,
-+		.priv = 0},
-+	{ 640, 480, V4L2_PIX_FMT_JPEG, V4L2_FIELD_NONE,
-+		.bytesperline = 640,
-+		.sizeimage = 640 * 480,
-+		.colorspace = V4L2_COLORSPACE_JPEG,
-+		.priv = 0}
-+};
-+
- static int jlj_start(struct gspca_dev *gspca_dev)
- {
-+	struct sd *sd  = (struct sd *) gspca_dev;
- 	int i;
- 	int retval = -1;
-+	int start_commands_size;
- 	u8 response = 0xff;
- 	struct jlj_command start_commands[] = {
--		{{0x71, 0x81}, 0},
--		{{0x70, 0x05}, 0},
--		{{0x95, 0x70}, 1},
--		{{0x71, 0x81}, 0},
--		{{0x70, 0x04}, 0},
--		{{0x95, 0x70}, 1},
--		{{0x71, 0x00}, 0},
--		{{0x70, 0x08}, 0},
--		{{0x95, 0x70}, 1},
--		{{0x94, 0x02}, 0},
--		{{0xde, 0x24}, 0},
--		{{0x94, 0x02}, 0},
--		{{0xdd, 0xf0}, 0},
--		{{0x94, 0x02}, 0},
--		{{0xe3, 0x2c}, 0},
--		{{0x94, 0x02}, 0},
--		{{0xe4, 0x00}, 0},
--		{{0x94, 0x02}, 0},
--		{{0xe5, 0x00}, 0},
--		{{0x94, 0x02}, 0},
--		{{0xe6, 0x2c}, 0},
--		{{0x94, 0x03}, 0},
--		{{0xaa, 0x00}, 0},
--		{{0x71, 0x1e}, 0},
--		{{0x70, 0x06}, 0},
--		{{0x71, 0x80}, 0},
--		{{0x70, 0x07}, 0}
-+		{{0x71, 0x81}, 0, 0},
-+		{{0x70, 0x05}, 0, JEILINJ_CMD_DELAY},
-+		{{0x95, 0x70}, 1, 0},
-+		{{0x71, 0x81 - gspca_dev->curr_mode}, 0, 0},
-+		{{0x70, 0x04}, 0, JEILINJ_CMD_DELAY},
-+		{{0x95, 0x70}, 1, 0},
-+		{{0x71, 0x00}, 0, 0},   /* start streaming ??*/
-+		{{0x70, 0x08}, 0, JEILINJ_CMD_DELAY},
-+		{{0x95, 0x70}, 1, 0},
-+		{{0x94, 0x02}, 0, 0},
-+		{{0xde, 0x24}, 0, 0},
-+		{{0x94, 0x02}, 0, 0},
-+		{{0xdd, 0xf0}, 0, 0},
-+		{{0x94, 0x02}, 0, 0},
-+		{{0xe3, 0x2c}, 0, 0},
-+		{{0x94, 0x02}, 0, 0},
-+		{{0xe4, 0x00}, 0, 0},
-+		{{0x94, 0x02}, 0, 0},
-+		{{0xe5, 0x00}, 0, 0},
-+		{{0x94, 0x02}, 0, 0},
-+		{{0xe6, 0x2c}, 0, 0},
-+		{{0x94, 0x03}, 0, 0},
-+		{{0xaa, 0x00}, 0, 0}
- 	};
--	for (i = 0; i < ARRAY_SIZE(start_commands); i++) {
-+
-+	/* Under Windows, USB spy shows that only the 9 first start
-+	 * commands are used for SPORTSCAM_DV15 webcam
-+	 */
-+	if (sd->type == SPORTSCAM_DV15)
-+		start_commands_size = SPORTSCAM_DV15_CMD_SIZE;
-+	else
-+		start_commands_size = ARRAY_SIZE(start_commands);
-+
-+	for (i = 0; i < start_commands_size; i++) {
- 		retval = jlj_write2(gspca_dev, start_commands[i].instruction);
- 		if (retval < 0)
- 			return retval;
-+		if (start_commands[i].delay)
-+			msleep(start_commands[i].delay);
- 		if (start_commands[i].ack_wanted)
- 			retval = jlj_read1(gspca_dev, response);
- 		if (retval < 0)
- 			return retval;
- 	}
-+	setcamquality(gspca_dev);
-+	setfreq(gspca_dev);
- 	PDEBUG(D_ERR, "jlj_start retval is %d", retval);
- 	return retval;
- }
-@@ -256,13 +480,17 @@ static int sd_config(struct gspca_dev *gspca_dev,
- 	struct cam *cam = &gspca_dev->cam;
- 	struct sd *dev  = (struct sd *) gspca_dev;
- 
--	dev->quality  = 85;
--	dev->jpegqual = 85;
-+	dev->type = id->driver_info;
-+	dev->quality = QUALITY_DEF;
-+	dev->freq = V4L2_CID_POWER_LINE_FREQUENCY_60HZ;
-+	dev->red = RED_BALANCE_DEF;
-+	dev->blue = BLUE_BALANCE_DEF;
-+	dev->green = GREEN_BALANCE_DEF;
- 	PDEBUG(D_PROBE,
- 		"JEILINJ camera detected"
- 		" (vid/pid 0x%04X:0x%04X)", id->idVendor, id->idProduct);
- 	cam->cam_mode = jlj_mode;
--	cam->nmodes = 1;
-+	cam->nmodes = ARRAY_SIZE(jlj_mode);
- 	cam->bulk = 1;
- 	/* We don't use the buffer gspca allocates so make it small. */
- 	cam->bulk_size = 32;
-@@ -300,7 +528,8 @@ static int sd_start(struct gspca_dev *gspca_dev)
- 	jpeg_define(dev->jpeg_hdr, gspca_dev->height, gspca_dev->width,
- 			0x21);          /* JPEG 422 */
- 	jpeg_set_qual(dev->jpeg_hdr, dev->quality);
--	PDEBUG(D_STREAM, "Start streaming at 320x240");
-+	PDEBUG(D_STREAM, "Start streaming at %dx%d",
-+			gspca_dev->width, gspca_dev->height);
- 	ret = jlj_start(gspca_dev);
- 	if (ret < 0) {
- 		PDEBUG(D_ERR, "Start streaming command failed");
-@@ -315,14 +544,67 @@ static int sd_start(struct gspca_dev *gspca_dev)
- 
- /* Table of supported USB devices */
- static const struct usb_device_id device_table[] = {
--	{USB_DEVICE(0x0979, 0x0280)},
-+	{USB_DEVICE(0x0979, 0x0280), .driver_info = SAKAR_57379},
-+	{USB_DEVICE(0x0979, 0x0270), .driver_info = SPORTSCAM_DV15},
- 	{}
- };
- 
- MODULE_DEVICE_TABLE(usb, device_table);
- 
-+static int sd_querymenu(struct gspca_dev *gspca_dev,
-+			struct v4l2_querymenu *menu)
-+{
-+	switch (menu->id) {
-+	case V4L2_CID_POWER_LINE_FREQUENCY:
-+		switch (menu->index) {
-+		case 0:	/* V4L2_CID_POWER_LINE_FREQUENCY_DISABLED */
-+			strcpy((char *) menu->name, "NoFliker");
-+			return 0;
-+		case 1:	/* V4L2_CID_POWER_LINE_FREQUENCY_50HZ */
-+			strcpy((char *) menu->name, "50 Hz");
-+			return 0;
-+		case 2:	/* V4L2_CID_POWER_LINE_FREQUENCY_60HZ */
-+			strcpy((char *) menu->name, "60 Hz");
-+			return 0;
-+		}
-+		break;
-+	}
-+	return -EINVAL;
-+}
-+
-+static int sd_set_jcomp(struct gspca_dev *gspca_dev,
-+			struct v4l2_jpegcompression *jcomp)
-+{
-+	struct sd *sd = (struct sd *) gspca_dev;
-+
-+	if (jcomp->quality < QUALITY_MIN)
-+		sd->quality = QUALITY_MIN;
-+	else if (jcomp->quality > QUALITY_MAX)
-+		sd->quality = QUALITY_MAX;
-+	else
-+		sd->quality = jcomp->quality;
-+	if (gspca_dev->streaming) {
-+		jpeg_set_qual(sd->jpeg_hdr, sd->quality);
-+		setcamquality(gspca_dev);
-+	}
-+	return 0;
-+}
-+
-+static int sd_get_jcomp(struct gspca_dev *gspca_dev,
-+			struct v4l2_jpegcompression *jcomp)
-+{
-+	struct sd *sd = (struct sd *) gspca_dev;
-+
-+	memset(jcomp, 0, sizeof *jcomp);
-+	jcomp->quality = sd->quality;
-+	jcomp->jpeg_markers = V4L2_JPEG_MARKER_DHT
-+			| V4L2_JPEG_MARKER_DQT;
-+	return 0;
-+}
-+
-+
- /* sub-driver description */
--static const struct sd_desc sd_desc = {
-+static const struct sd_desc sd_desc_sakar_57379 = {
- 	.name   = MODULE_NAME,
- 	.config = sd_config,
- 	.init   = sd_init,
-@@ -330,12 +612,31 @@ static const struct sd_desc sd_desc = {
- 	.stop0  = sd_stop0,
- };
- 
-+/* sub-driver description */
-+static const struct sd_desc sd_desc_sportscam_dv15 = {
-+	.name   = MODULE_NAME,
-+	.config = sd_config,
-+	.init   = sd_init,
-+	.start  = sd_start,
-+	.stop0  = sd_stop0,
-+	.ctrls = sd_ctrls,
-+	.nctrls = ARRAY_SIZE(sd_ctrls),
-+	.querymenu = sd_querymenu,
-+	.get_jcomp = sd_get_jcomp,
-+	.set_jcomp = sd_set_jcomp,
-+};
-+
-+static const struct sd_desc *sd_desc[2] = {
-+	&sd_desc_sakar_57379,
-+	&sd_desc_sportscam_dv15
-+};
-+
- /* -- device connect -- */
- static int sd_probe(struct usb_interface *intf,
- 		const struct usb_device_id *id)
- {
- 	return gspca_dev_probe(intf, id,
--			&sd_desc,
-+			sd_desc[id->driver_info],
- 			sizeof(struct sd),
- 			THIS_MODULE);
- }
--- 
-1.7.0.4
 
 
-
-
-
+similar problem with pinnacle dazzle tv hybrid 
+ 
+lsusb : ID eb1a:2881 eMPIA Technology, Inc. EM2881 Video Controller
+kernel : Linux GCV 2.6.32-25-generic #45-Ubuntu SMP Sat Oct 16 19:52:42 UTC 2010 x86_64 GNU/Linux
+cardlist : arecord -l
+ 
+**** List of CAPTURE Hardware Devices ****
+card 0: Intel [HDA Intel], device 0: ALC883 Analog [ALC883 Analog]
+  Subdevices: 1/1
+  Subdevice #0: subdevice #0
+card 0: Intel [HDA Intel], device 2: ALC883 Analog [ALC883 Analog]
+  Subdevices: 1/1
+  Subdevice #0: subdevice #0
+card 1: Bt878 [Brooktree Bt878], device 0: Bt87x Digital [Bt87x Digital]
+  Subdevices: 1/1
+  Subdevice #0: subdevice #0
+card 1: Bt878 [Brooktree Bt878], device 1: Bt87x Analog [Bt87x Analog]
+  Subdevices: 1/1
+  Subdevice #0: subdevice #0
+card 2: Video [USB 2881 Video], device 0: USB Audio [USB Audio]
+  Subdevices: 1/1
+  Subdevice #0: subdevice #0
+ 
+dmesg output
+ 
+[51556.500765] em28xx: New device USB 2881 Video @ 480 Mbps (eb1a:2881, interface 0, class 0)
+[51556.500949] em28xx #0: chip ID is em2882/em2883
+[51556.687042] em28xx #0: i2c eeprom 00: 1a eb 67 95 1a eb 81 28 58 12 5c 00 6a 20 6a 00
+[51556.687056] em28xx #0: i2c eeprom 10: 00 00 04 57 64 57 00 00 60 f4 00 00 02 02 00 00
+[51556.687068] em28xx #0: i2c eeprom 20: 56 00 01 00 00 00 02 00 b8 00 00 00 5b 1e 00 00
+[51556.687080] em28xx #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 10 02 00 00 00 00 00 00
+[51556.687091] em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[51556.687102] em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[51556.687114] em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 20 03 55 00 53 00
+[51556.687125] em28xx #0: i2c eeprom 70: 42 00 20 00 32 00 38 00 38 00 31 00 20 00 56 00
+[51556.687137] em28xx #0: i2c eeprom 80: 69 00 64 00 65 00 6f 00 00 00 00 00 00 00 00 00
+[51556.687148] em28xx #0: i2c eeprom 90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[51556.687160] em28xx #0: i2c eeprom a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[51556.687171] em28xx #0: i2c eeprom b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[51556.687182] em28xx #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[51556.687194] em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[51556.687205] em28xx #0: i2c eeprom e0: 5a 00 55 aa 79 55 54 03 00 17 98 01 00 00 00 00
+[51556.687216] em28xx #0: i2c eeprom f0: 0c 00 00 01 00 00 00 00 00 00 00 00 00 00 00 00
+[51556.687229] em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0xb8846b20
+[51556.687232] em28xx #0: EEPROM info:
+[51556.687234] em28xx #0:       AC97 audio (5 sample rates)
+[51556.687236] em28xx #0:       USB Remote wakeup capable
+[51556.687238] em28xx #0:       500mA max power
+[51556.687241] em28xx #0:       Table at 0x04, strings=0x206a, 0x006a, 0x0000
+[51556.687915] em28xx #0: Identified as Pinnacle Hybrid Pro (card=53)
+[51556.690103] tvp5150 1-005c: chip found @ 0xb8 (em28xx #0)
+[51556.694727] tuner 1-0061: chip found @ 0xc2 (em28xx #0)
+[51556.694862] xc2028 1-0061: creating new instance
+[51556.694864] xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
+[51556.694872] usb 2-6: firmware: requesting xc3028-v27.fw
+[51556.696352] xc2028 1-0061: Loading 80 firmware images from xc3028-v27.fw, type: xc2028 firmware, ver 2.7
+[51556.752531] xc2028 1-0061: Loading firmware for type=BASE (1), id 0000000000000000.
+[51557.679461] xc2028 1-0061: Loading firmware for type=(0), id 000000000000b700.
+[51557.693080] SCODE (20000000), id 000000000000b700:
+[51557.693088] xc2028 1-0061: Loading SCODE for type=MONO SCODE HAS_IF_4320 (60008000), id 0000000000008000.
+[51557.900062] em28xx #0: Config register raw data: 0x58
+[51557.900812] em28xx #0: AC97 vendor ID = 0xffffffff
+[51557.901178] em28xx #0: AC97 features = 0x6a90
+[51557.901181] em28xx #0: Empia 202 AC97 audio processor detected
+[51558.050427] tvp5150 1-005c: tvp5150am1 detected.
+[51558.153287] em28xx #0: v4l2 driver version 0.1.2
+[51558.237283] em28xx #0: V4L2 video device registered as /dev/video1
+[51558.237287] em28xx #0: V4L2 VBI device registered as /dev/vbi1
+[51558.250087] usbcore: registered new interface driver em28xx
+[51558.250092] em28xx driver loaded
+[51558.420877] xc2028 1-0061: attaching existing instance
+[51558.420881] xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
+[51558.420884] em28xx #0/2: xc3028 attached
+[51558.420888] DVB: registering new adapter (em28xx #0)
+[51558.420893] DVB: registering adapter 0 frontend 0 (Zarlink ZL10353 DVB-T)...
+[51558.421536] Successfully loaded em28xx-dvb
+[51558.421540] Em28xx: Initialized (Em28xx dvb Extension) extension
+[51558.421968] Em28xx: Initialized (Em28xx Audio Extension) extension
+[51560.520457] tvp5150 1-005c: tvp5150am1 detected.
+[51561.024168] tvp5150 1-005c: tvp5150am1 detected.
+[51561.332517] xc2028 1-0061: Loading firmware for type=BASE F8MHZ (3), id 0000000000000000.
+[51562.259446] (0), id 00000000000000ff:
+[51562.259452] xc2028 1-0061: Loading firmware for type=(0), id 0000000100000007.
+[51562.273059] xc2028 1-0061: Loading SCODE for type=MONO SCODE HAS_IF_5320 (60008000), id 0000000f00000007.
+ 
+ 
+----------------------------------------
+> Date: Sun, 13 Mar 2011 16:50:40 +0200
+> Subject: Re: em28xx based analog tv tuner USB KWorld PVR-TV 305U (eb1a:e305): no sound
+> From: tosiara@gmail.com
+> To: wim.delvaux@hotmail.com
+>
+> Hi
+>
+> Please send your reply to "linux-media@vger.kernel.org" so it appears
+> in the mail list archive
+>
+> Thanks!
+>
+>
+>
+> On Sun, Mar 13, 2011 at 12:47, wim delvaux  wrote:
+> >
+> > similar problem with pinnacle dazzle tv hybrid
+> >
+> > lsusb : ID eb1a:2881 eMPIA Technology, Inc. EM2881 Video Controller
+> > kernel : Linux GCV 2.6.32-25-generic #45-Ubuntu SMP Sat Oct 16 19:52:42 UTC 2010 x86_64 GNU/Linux
+> > cardlist : arecord -l
+> >
+> > **** List of CAPTURE Hardware Devices ****
+> > card 0: Intel [HDA Intel], device 0: ALC883 Analog [ALC883 Analog]
+> >   Subdevices: 1/1
+> >   Subdevice #0: subdevice #0
+> > card 0: Intel [HDA Intel], device 2: ALC883 Analog [ALC883 Analog]
+> >   Subdevices: 1/1
+> >   Subdevice #0: subdevice #0
+> > card 1: Bt878 [Brooktree Bt878], device 0: Bt87x Digital [Bt87x Digital]
+> >   Subdevices: 1/1
+> >   Subdevice #0: subdevice #0
+> > card 1: Bt878 [Brooktree Bt878], device 1: Bt87x Analog [Bt87x Analog]
+> >   Subdevices: 1/1
+> >   Subdevice #0: subdevice #0
+> > card 2: Video [USB 2881 Video], device 0: USB Audio [USB Audio]
+> >   Subdevices: 1/1
+> >   Subdevice #0: subdevice #0
+> >
+> > dmesg output
+> >
+> > [51556.500765] em28xx: New device USB 2881 Video @ 480 Mbps (eb1a:2881, interface 0, class 0)
+> > [51556.500949] em28xx #0: chip ID is em2882/em2883
+> > [51556.687042] em28xx #0: i2c eeprom 00: 1a eb 67 95 1a eb 81 28 58 12 5c 00 6a 20 6a 00
+> > [51556.687056] em28xx #0: i2c eeprom 10: 00 00 04 57 64 57 00 00 60 f4 00 00 02 02 00 00
+> > [51556.687068] em28xx #0: i2c eeprom 20: 56 00 01 00 00 00 02 00 b8 00 00 00 5b 1e 00 00
+> > [51556.687080] em28xx #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 10 02 00 00 00 00 00 00
+> > [51556.687091] em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> > [51556.687102] em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> > [51556.687114] em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 20 03 55 00 53 00
+> > [51556.687125] em28xx #0: i2c eeprom 70: 42 00 20 00 32 00 38 00 38 00 31 00 20 00 56 00
+> > [51556.687137] em28xx #0: i2c eeprom 80: 69 00 64 00 65 00 6f 00 00 00 00 00 00 00 00 00
+> > [51556.687148] em28xx #0: i2c eeprom 90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> > [51556.687160] em28xx #0: i2c eeprom a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> > [51556.687171] em28xx #0: i2c eeprom b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> > [51556.687182] em28xx #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> > [51556.687194] em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> > [51556.687205] em28xx #0: i2c eeprom e0: 5a 00 55 aa 79 55 54 03 00 17 98 01 00 00 00 00
+> > [51556.687216] em28xx #0: i2c eeprom f0: 0c 00 00 01 00 00 00 00 00 00 00 00 00 00 00 00
+> > [51556.687229] em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0xb8846b20
+> > [51556.687232] em28xx #0: EEPROM info:
+> > [51556.687234] em28xx #0:       AC97 audio (5 sample rates)
+> > [51556.687236] em28xx #0:       USB Remote wakeup capable
+> > [51556.687238] em28xx #0:       500mA max power
+> > [51556.687241] em28xx #0:       Table at 0x04, strings=0x206a, 0x006a, 0x0000
+> > [51556.687915] em28xx #0: Identified as Pinnacle Hybrid Pro (card=53)
+> > [51556.690103] tvp5150 1-005c: chip found @ 0xb8 (em28xx #0)
+> > [51556.694727] tuner 1-0061: chip found @ 0xc2 (em28xx #0)
+> > [51556.694862] xc2028 1-0061: creating new instance
+> > [51556.694864] xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
+> > [51556.694872] usb 2-6: firmware: requesting xc3028-v27.fw
+> > [51556.696352] xc2028 1-0061: Loading 80 firmware images from xc3028-v27.fw, type: xc2028 firmware, ver 2.7
+> > [51556.752531] xc2028 1-0061: Loading firmware for type=BASE (1), id 0000000000000000.
+> > [51557.679461] xc2028 1-0061: Loading firmware for type=(0), id 000000000000b700.
+> > [51557.693080] SCODE (20000000), id 000000000000b700:
+> > [51557.693088] xc2028 1-0061: Loading SCODE for type=MONO SCODE HAS_IF_4320 (60008000), id 0000000000008000.
+> > [51557.900062] em28xx #0: Config register raw data: 0x58
+> > [51557.900812] em28xx #0: AC97 vendor ID = 0xffffffff
+> > [51557.901178] em28xx #0: AC97 features = 0x6a90
+> > [51557.901181] em28xx #0: Empia 202 AC97 audio processor detected
+> > [51558.050427] tvp5150 1-005c: tvp5150am1 detected.
+> > [51558.153287] em28xx #0: v4l2 driver version 0.1.2
+> > [51558.237283] em28xx #0: V4L2 video device registered as /dev/video1
+> > [51558.237287] em28xx #0: V4L2 VBI device registered as /dev/vbi1
+> > [51558.250087] usbcore: registered new interface driver em28xx
+> > [51558.250092] em28xx driver loaded
+> > [51558.420877] xc2028 1-0061: attaching existing instance
+> > [51558.420881] xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
+> > [51558.420884] em28xx #0/2: xc3028 attached
+> > [51558.420888] DVB: registering new adapter (em28xx #0)
+> > [51558.420893] DVB: registering adapter 0 frontend 0 (Zarlink ZL10353 DVB-T)...
+> > [51558.421536] Successfully loaded em28xx-dvb
+> > [51558.421540] Em28xx: Initialized (Em28xx dvb Extension) extension
+> > [51558.421968] Em28xx: Initialized (Em28xx Audio Extension) extension
+> > [51560.520457] tvp5150 1-005c: tvp5150am1 detected.
+> > [51561.024168] tvp5150 1-005c: tvp5150am1 detected.
+> > [51561.332517] xc2028 1-0061: Loading firmware for type=BASE F8MHZ (3), id 0000000000000000.
+> > [51562.259446] (0), id 00000000000000ff:
+> > [51562.259452] xc2028 1-0061: Loading firmware for type=(0), id 0000000100000007.
+> > [51562.273059] xc2028 1-0061: Loading SCODE for type=MONO SCODE HAS_IF_5320 (60008000), id 0000000f00000007.
+> >
+> >
+> >
+> > ----------------------------------------
+> >> Date: Sun, 13 Mar 2011 10:36:38 +0200
+> >> From: tosiara@gmail.com
+> >> To: linux-media@vger.kernel.org
+> >> Subject: em28xx based analog tv tuner USB KWorld PVR-TV 305U (eb1a:e305): no sound
+> >>
+> >> Hello
+> >>
+> >> I've made tests with my *KWorld* usb tuner:
+> >>
+> >> *Model*: USB KWorld PVR-TV 305U
+> >> *Vendor/Product id*: [eb1a:e305].
+> >>
+> >> *Tests made*:
+> >>
+> >> - Analog video [Worked]
+> >> - Analog audio [not working, details attached below]
+> >>
+> >>
+> >> Hardware and system details:
+> >>
+> >> # lsusb -s 002:003
+> >>
+> >> Bus 002 Device 003: ID eb1a:e305 eMPIA Technology, Inc.
+> >>
+> >> # uname -a
+> >> Linux vista.linuks.lan 2.6.34.7-0.7-desktop #1 SMP PREEMPT 2010-12-13 11:13:53 +0100 i686 athlon i386 GNU/Linux
+> >>
+> >> # cat /etc/issue
+> >> Welcome to openSUSE 11.3 "Teal" - Kernel \r (\l).
+> >>
+> >> ALSA version: 1.0.24.1-72.1
+> >>
+> >>
+> >> Build latest dvb drivers from linuxtv.org:
+> >>
+> >> # lsmod
+> >> Module Size Used by
+> >> aes_i586 7396 1
+> >> aes_generic 27151 1 aes_i586
+> >> fuse 65789 3
+> >> ip6t_LOG 5150 11
+> >> xt_tcpudp 2107 25
+> >> xt_pkttype 912 4
+> >> xt_physdev 1539 2
+> >> ipt_LOG 5119 11
+> >> xt_limit 1705 22
+> >> rfcomm 69557 4
+> >> vboxnetadp 7018 0
+> >> vboxnetflt 16967 0
+> >> sco 16711 2
+> >> af_packet 19512 4
+> >> bridge 71700 1
+> >> stp 1719 1 bridge
+> >> llc 5093 2 bridge,stp
+> >> bnep 14764 2
+> >> vboxdrv 204362 2 vboxnetadp,vboxnetflt
+> >> l2cap 53658 16 rfcomm,bnep
+> >> snd_pcm_oss 47613 0
+> >> snd_mixer_oss 16751 1 snd_pcm_oss
+> >> snd_seq 57343 0
+> >> snd_seq_device 6598 1 snd_seq
+> >> edd 8720 0
+> >> vmnet 46129 13
+> >> ppdev 8444 0
+> >> parport_pc 33475 0
+> >> parport 34052 2 ppdev,parport_pc
+> >> vmblock 11886 1
+> >> vsock 41336 0
+> >> vmci 59117 1 vsock
+> >> vmmon 76038 0
+> >> ip6t_REJECT 4311 3
+> >> nf_conntrack_ipv6 18225 4
+> >> ip6table_raw 1187 1
+> >> xt_NOTRACK 816 4
+> >> ipt_REJECT 2152 3
+> >> xt_state 1162 8
+> >> iptable_raw 1246 1
+> >> iptable_filter 1418 1
+> >> ip6table_mangle 1588 0
+> >> nf_conntrack_netbios_ns 1382 0
+> >> nf_conntrack_ipv4 8691 4
+> >> nf_conntrack 75628 5 nf_conntrack_ipv6,xt_NOTRACK,xt_state,nf_conntrack_netbios_ns,nf_conntrack_ipv4
+> >> nf_defrag_ipv4 1201 1 nf_conntrack_ipv4
+> >> ip_tables 12172 2 iptable_raw,iptable_filter
+> >> ip6table_filter 1359 1
+> >> cpufreq_conservative 10064 0
+> >> cpufreq_userspace 2583 0
+> >> cpufreq_powersave 914 0
+> >> ip6_tables 13508 4 ip6t_LOG,ip6table_raw,ip6table_mangle,ip6table_filter
+> >> x_tables 17098 17 ip6t_LOG,xt_tcpudp,xt_pkttype,xt_physdev,ipt_LOG,xt_limit,ip6t_REJECT,ip6table_raw,xt_NOTRACK,ipt_REJECT,xt_state,iptable_raw,iptable_filter,ip6table_mangle,ip_tables,ip6table_filter,ip6_tables
+> >> powernow_k8 18707 0
+> >> mperf 1255 1 powernow_k8
+> >> loop 14694 0
+> >> dm_mod 73457 0
+> >> em28xx_alsa 6316 0
+> >> arc4 1281 2
+> >> tuner_xc2028 20652 1
+> >> ecb 1967 2
+> >> tuner 18636 1
+> >> snd_hda_codec_atihdmi 2591 1
+> >> ir_lirc_codec 4075 0
+> >> lirc_dev 15476 1 ir_lirc_codec
+> >> tvp5150 15288 1
+> >> ir_sony_decoder 2005 0
+> >> snd_hda_codec_idt 58593 1
+> >> ir_jvc_decoder 2098 0
+> >> ir_rc6_decoder 2450 0
+> >> firewire_ohci 23817 0
+> >> firewire_core 52354 1 firewire_ohci
+> >> crc_itu_t 1435 1 firewire_core
+> >> snd_hda_intel 24950 3
+> >> rc_rc6_mce 1230 0
+> >> snd_hda_codec 98635 3 snd_hda_codec_atihdmi,snd_hda_codec_idt,snd_hda_intel
+> >> snd_hwdep 6164 1 snd_hda_codec
+> >> em28xx 89777 1 em28xx_alsa
+> >> snd_pcm 87882 4 snd_pcm_oss,em28xx_alsa,snd_hda_intel,snd_hda_codec
+> >> ir_rc5_decoder 1970 0
+> >> ath5k 135497 0
+> >> mac80211 248390 1 ath5k
+> >> ath 8743 1 ath5k
+> >> ohci1394 30324 0
+> >> snd_timer 21669 2 snd_seq,snd_pcm
+> >> ene_ir 14962 0
+> >> snd 65788 17 snd_pcm_oss,snd_mixer_oss,snd_seq,snd_seq_device,em28xx_alsa,snd_hda_codec_idt,snd_hda_intel,snd_hda_codec,snd_hwdep,snd_pcm,snd_timer
+> >> ir_nec_decoder 2386 0
+> >> hp_wmi 5882 0
+> >> cfg80211 156087 3 ath5k,mac80211,ath
+> >> v4l2_common 10269 3 tuner,tvp5150,em28xx
+> >> videobuf_vmalloc 4868 1 em28xx
+> >> videobuf_core 18232 2 em28xx,videobuf_vmalloc
+> >> jmb38x_ms 12491 0
+> >> sdhci_pci 7110 0
+> >> sdhci 20020 1 sdhci_pci
+> >> hp_accel 12712 0
+> >> lis3lv02d 7908 1 hp_accel
+> >> uvcvideo 60566 0
+> >> soundcore 7379 1 snd
+> >> snd_page_alloc 8041 2 snd_hda_intel,snd_pcm
+> >> video 21205 0
+> >> btusb 15667 2
+> >> bluetooth 96350 9 rfcomm,sco,bnep,l2cap,btusb
+> >> rfkill 17298 4 hp_wmi,cfg80211,bluetooth
+> >> sg 27872 0
+> >> wmi 7467 1 hp_wmi
+> >> rc_core 18319 10 ir_lirc_codec,ir_sony_decoder,ir_jvc_decoder,ir_rc6_decoder,rc_rc6_mce,em28xx,ir_rc5_decoder,ene_ir,ir_nec_decoder
+> >> r8169 38911 0
+> >> mmc_core 72345 1 sdhci
+> >> sr_mod 14671 0
+> >> tveeprom 11421 1 em28xx
+> >> memstick 9710 1 jmb38x_ms
+> >> ieee1394 88668 1 ohci1394
+> >> battery 9730 0
+> >> input_polldev 3799 1 lis3lv02d
+> >> pcspkr 1614 0
+> >> joydev 9354 0
+> >> ac 3083 0
+> >> videodev 75386 5 tuner,tvp5150,em28xx,v4l2_common,uvcvideo
+> >> cdrom 38085 1 sr_mod
+> >> button 5449 0
+> >> i2c_piix4 11574 0
+> >> k10temp 2723 0
+> >> ext4 365656 1
+> >> jbd2 83102 1 ext4
+> >> crc16 1403 2 l2cap,ext4
+> >> fglrx 2410654 325
+> >> fan 3539 0
+> >> processor 40761 1 powernow_k8
+> >> ata_generic 2743 0
+> >> pata_atiixp 3564 0
+> >> thermal 17357 0
+> >> thermal_sys 14678 4 video,fan,processor,thermal
+> >>
+> >>
+> >> Plugging tuner in, dmesg:
+> >>
+> >> [ 1875.180265] usb 2-4: new high speed USB device using ehci_hcd and address 4
+> >> [ 1875.298100] usb 2-4: New USB device found, idVendor=eb1a, idProduct=e305
+> >> [ 1875.298117] usb 2-4: New USB device strings: Mfr=0, Product=1, SerialNumber=0
+> >>
+> >> [ 1875.298152] usb 2-4: Product: USB 2861 Device
+> >> [ 1875.300292] em28xx: New device USB 2861 Device @ 480 Mbps (eb1a:e305, interface 0, class 0)
+> >> [ 1875.300580] em28xx #0: chip ID is em2860
+> >> [ 1875.487692] em28xx #0: i2c eeprom 00: 1a eb 67 95 1a eb 05 e3 d0 00 5c 00 6a 22 00 00
+> >>
+> >> [ 1875.487730] em28xx #0: i2c eeprom 10: 00 00 04 57 4e 03 00 00 00 00 00 00 00 00 00 00
+> >> [ 1875.487764] em28xx #0: i2c eeprom 20: 06 00 01 00 f0 10 01 00 00 00 00 00 5b 00 00 00
+> >> [ 1875.487796] em28xx #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 01 01 00 00 00 00 00 00
+> >>
+> >> [ 1875.487828] em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> >> [ 1875.487858] em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> >> [ 1875.487888] em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 22 03 55 00 53 00
+> >>
+> >> [ 1875.487919] em28xx #0: i2c eeprom 70: 42 00 20 00 32 00 38 00 36 00 31 00 20 00 44 00
+> >> [ 1875.487950] em28xx #0: i2c eeprom 80: 65 00 76 00 69 00 63 00 65 00 00 00 00 00 00 00
+> >> [ 1875.487981] em28xx #0: i2c eeprom 90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> >>
+> >> [ 1875.488011] em28xx #0: i2c eeprom a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> >> [ 1875.488042] em28xx #0: i2c eeprom b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> >> [ 1875.488072] em28xx #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> >>
+> >> [ 1875.488103] em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> >> [ 1875.488201] em28xx #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> >> [ 1875.488304] em28xx #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> >>
+> >> [ 1875.488424] em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0x28a51142
+> >> [ 1875.488436] em28xx #0: EEPROM info:
+> >> [ 1875.488447] em28xx #0: AC97 audio (5 sample rates)
+> >> [ 1875.488458] em28xx #0: 500mA max power
+> >>
+> >> [ 1875.488472] em28xx #0: Table at 0x04, strings=0x226a, 0x0000, 0x0000
+> >> [ 1875.490941] em28xx #0: Identified as KWorld DVB-T 305U (card=47)
+> >> [ 1875.490954] em28xx #0:
+> >> [ 1875.490959]
+> >> [ 1875.490965] em28xx #0: The support for this board weren't valid yet.
+> >>
+> >> [ 1875.490974] em28xx #0: Please send a report of having this working
+> >> [ 1875.490982] em28xx #0: not to V4L mailing list (and/or to other addresses)
+> >> [ 1875.490987]
+> >> [ 1875.498585] tvp5150 0-005c: chip found @ 0xb8 (em28xx #0)
+> >>
+> >> [ 1875.570814] tvp5150 0-005c: tvp5150am1 detected.
+> >> [ 1875.612698] tuner 0-0061: Tuner -1 found with type(s) Radio TV.
+> >> [ 1875.612837] xc2028 0-0061: creating new instance
+> >> [ 1875.612840] xc2028 0-0061: type set to XCeive xc2028/xc3028 tuner
+> >>
+> >> [ 1875.612848] usb 2-4: firmware: requesting xc3028-v27.fw
+> >> [ 1875.619760] xc2028 0-0061: Loading 80 firmware images from xc3028-v27.fw, type: xc2028 firmware, ver 2.7
+> >> [ 1875.672106] xc2028 0-0061: Loading firmware for type=BASE (1), id 0000000000000000.
+> >>
+> >> [ 1883.005108] xc2028 0-0061: Loading firmware for type=(0), id 000000000000b700.
+> >> [ 1883.154107] SCODE (20000000), id 000000000000b700:
+> >> [ 1883.154156] xc2028 0-0061: Loading SCODE for type=MONO SCODE HAS_IF_4320 (60008000), id 0000000000008000.
+> >>
+> >> [ 1883.319239] em28xx #0: Config register raw data: 0xd0
+> >> [ 1883.332960] em28xx #0: AC97 vendor ID = 0xffffffff
+> >> [ 1883.339834] em28xx #0: AC97 features = 0x6a90
+> >> [ 1883.339843] em28xx #0: Empia 202 AC97 audio processor detected
+> >>
+> >> [ 1884.746060] em28xx #0: v4l2 driver version 0.1.2
+> >> [ 1885.414516] em28xx #0: V4L2 video device registered as video1
+> >> [ 1885.414530] em28xx #0: V4L2 VBI device registered as vbi0
+> >> [ 1885.414541] em28xx-audio.c: probing for em28x1 non standard usbaudio
+> >>
+> >> [ 1885.414550] em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
+> >> [ 1885.423686] em28xx video device (eb1a:e305): interface 1, class 255 found.
+> >> [ 1885.423696] em28xx This is an anciliary interface not used by the driver
+> >>
+> >>
+> >> Appears new ALSA capture device:
+> >>
+> >> # arecord -l
+> >> **** List of CAPTURE Hardware Devices ****
+> >> card 0: SB [HDA ATI SB], device 0: STAC92xx Analog [STAC92xx Analog]
+> >> Subdevices: 2/2
+> >> Subdevice #0: subdevice #0
+> >> Subdevice #1: subdevice #1
+> >>
+> >> card 2: Em28xxAudio [Em28xx Audio], device 0: Em28xx Audio [Empia 28xx Capture]
+> >> Subdevices: 1/1
+> >> Subdevice #0: subdevice #0
+> >>
+> >>
+> >>
+> >> I can see video only using MPlayer:
+> >>
+> >> mplayer tv:// -tv driver=v4l2:norm=PAL-DK:device=/dev/video1:freq=59.25
+> >>
+> >> Picture is of acceptable quality
+> >>
+> >>
+> >> If I try to capture video and audio I get audio input/output error:
+> >>
+> >> > mencoder tv:// -tv device=/dev/video1:driver=v4l2:width=320:height=240:norm=PAL-DK:freq=59.25:alsa:immediatemode=0:adevice=hw.2,0 -oac mp3lame -lameopts cbr:br=128 -ovc lavc -lavcopts vcodec=mpeg4:vbitrate=2000 -o test.avi
+> >> MPlayer dev-SVN-r31930-4.5-openSUSE Linux 11.3 (i686)-Packman (C) 2000-2010 MPlayer Teamsuccess: format: 9 data: 0x0 - 0x0
+> >> TV file format detected.
+> >> Selected driver: v4l2
+> >> name: Video 4 Linux 2 input
+> >> author: Martin Olschewski
+> >> comment: first try, more to come ;-)
+> >> Selected device: KWorld DVB-T 305U
+> >> Tuner cap:
+> >> Tuner rxs:
+> >> Capabilities: video capture VBI capture device tuner audio read/write streaming
+> >> supported norms: 0 = NTSC; 1 = NTSC-M; 2 = NTSC-M-JP; 3 = NTSC-M-KR; 4 = NTSC-443; 5 = PAL; 6 = PAL-BG; 7 = PAL-H; 8 = PAL-I; 9 = PAL-DK; 10 = PAL-M; 11 = PAL-N; 12 = PAL-Nc; 13 = PAL-60; 14 = SECAM; 15 = SECAM-B; 16 = SECAM-G; 17 = SECAM-H; 18 = SECAM-DK; 19 = SECAM-L; 20 = SECAM-Lc;
+> >> inputs: 0 = Television; 1 = Composite1; 2 = S-Video;
+> >> Current input: 0
+> >> Current format: YUYV
+> >> v4l2: current audio mode is : MONO
+> >> v4l2: ioctl set format failed: Invalid argument
+> >> v4l2: ioctl set format failed: Invalid argument
+> >> v4l2: ioctl set format failed: Invalid argument
+> >> Channel count not available - reverting to default: 2
+> >> Channel count not available - reverting to default: 2
+> >> [V] filefmt:9 fourcc:0x32595559 size:320x240 fps:25.000 ftime:=0.0400
+> >> ==========================================================================
+> >> Opening audio decoder: [pcm] Uncompressed PCM audio decoder
+> >> AUDIO: 48000 Hz, 2 ch, s16le, 1536.0 kbit/100.00% (ratio: 192000->192000)
+> >> Selected audio codec: [pcm] afm: pcm (Uncompressed PCM)
+> >> ==========================================================================
+> >> Opening video filter: [expand osd=1]
+> >> Expand: -1 x -1, -1 ; -1, osd: 1, aspect: 0.000000, round: 1
+> >> ==========================================================================
+> >> Opening video decoder: [raw] RAW Uncompressed Video
+> >> Could not find matching colorspace - retrying with -vf scale...
+> >> Opening video filter: [scale]
+> >> Movie-Aspect is undefined - no prescaling applied.
+> >> [swscaler @ 0x8f20170] using unscaled yuyv422 -> yuv420p special converter
+> >> videocodec: libavcodec (320x240 fourcc=34504d46 [FMP4])
+> >> Selected video codec: [rawyuy2] vfm: raw (RAW YUY2)
+> >> ==========================================================================
+> >> MP3 audio selected.
+> >> Forcing audio preload to 0, max pts correction to 0.
+> >>
+> >> 3 duplicate frame(s)!
+> >> Pos: 0.2s 1f ( 0%) 0.00fps Trem: 0min 0mb A-V:0.000 [0:0]
+> >>
+> >> Error reading audio: Input/output error
+> >>
+> >> Error reading audio: Input/output error
+> >>
+> >> Error reading audio: Input/output error
+> >>
+> >> Error reading audio: Input/output error
+> >>
+> >> Error reading audio: Input/output error
+> >>
+> >>
+> >> video buffer full - dropping frame
+> >>
+> >> video buffer full - dropping frame
+> >>
+> >> video buffer full - dropping frame
+> >>
+> >> video buffer full - dropping frame
+> >>
+> >> video buffer full - dropping frame
+> >>
+> >> video buffer full - dropping frame
+> >>
+> >>
+> >>
+> >> If I try to capture sound only using audacity - it does not record anything: audio recording progress bar stays at 00:00:00 and nothing is recorded.
+> >>
+> >>
+> >> And sometimes this message appears in dmesg:
+> >>
+> >> [ 5663.100194] ALSA pcm_lib.c:1752: capture write error (DMA or IRQ trouble?)
+> >>
+> >>
+> >> When using tvtime there is no sound too.
+> >> I followed instructions on tvtime WIKI:
+> >>
+> >>
+> >> > sox -r 32000 -t ossdsp /dev/dsp2 -t ossdsp /dev/dsp
+> >>
+> >> /dev/dsp2: (ossdsp)
+> >>
+> >> Encoding: Signed PCM
+> >> Channels: 2 @ 16-bit
+> >> Samplerate: 32000Hz
+> >> Replaygain: off
+> >> Duration: unknown
+> >>
+> >> In:0.00%
+> >> 00:00:00.00 [00:00:00.00] Out:0 [ | ] Clip:0
+> >>
+> >> sox FAIL sox: `/dev/dsp2' lsx_readbuf: Input/output error
+> >> In:0.00% 00:00:00.00 [00:00:00.00] Out:0 [ | ] Clip:0
+> >> Done.
+> >>
+> >>
+> >> The above command fails in apprx. 4 seconds
+> >>
+> >> Windows driver contains these files:
+> >>
+> >> # ls x86/ -l
+> >> total 780
+> >> -rw------- 1 tos users 48 2011-03-06 18:01 .directory
+> >> -r-xr-xr-x 1 tos users 5062 2007-01-19 14:15 EMAUDIO.INF
+> >> -r-xr-xr-x 1 tos users 22912 2007-01-12 10:55 emAudio.sys
+> >>
+> >> -r-xr-xr-x 1 tos users 34335 2007-01-19 14:15 EMBDA.INF
+> >> -r-xr-xr-x 1 tos users 380416 2007-01-12 10:55 emBDA.sys
+> >> -r-xr-xr-x 1 tos users 61440 2006-12-15 09:54 emmon.exe
+> >> -r-xr-xr-x 1 tos users 30208 2006-12-21 06:12 emOEM.sys
+> >>
+> >> -r-xr-xr-x 1 tos users 106496 2007-01-12 10:53 emPRP.ax
+> >> -r-xr-xr-x 1 tos users 49152 2007-03-21 06:00 emunist.exe
+> >> -r-xr-xr-x 1 tos users 15548 2007-01-24 03:27 emwhql.cat
+> >> drwxr-xr-x 2 tos users 4096 1970-01-01 03:00 Language
+> >>
+> >> -r-xr-xr-x 1 tos users 16382 2006-11-09 06:50 merlinC.rom
+> >> -r-xr-xr-x 1 tos users 53248 2007-03-21 05:58 SetupDrv.exe
+> >> -r-xr-xr-x 1 tos users 2068 2006-12-11 15:20 TVEpaDrv.ini
+> >>
+> >>
+> >>
+> >> I would like to ask, if this is driver, firmware or ALSA issue? Maybe I need to extract firmware from OEM drivers but how can I do that? Maybe try other kernel/ALSA?
+> >> Or maybe this device is not supported yet?
+> >>
+> >> Can anybody provide feedback on this issue?
+> >>
+> >> Thank you
+> >>
+> >> --
+> >> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> >> the body of a message to majordomo@vger.kernel.org
+> >> More majordomo info at http://vger.kernel.org/majordomo-info.html
+> >
+ 		 	   		  
