@@ -1,136 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:56083 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932904Ab1C3Uhv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Mar 2011 16:37:51 -0400
-Received: by pzk9 with SMTP id 9so265350pzk.19
-        for <linux-media@vger.kernel.org>; Wed, 30 Mar 2011 13:37:50 -0700 (PDT)
-Subject: Re: [RFC] V4L2 API for flash devices
-Mime-Version: 1.0 (Apple Message framework v1082)
-Content-Type: text/plain; charset=euc-kr
-From: Kim HeungJun <riverful@gmail.com>
-In-Reply-To: <4D931610.9030504@maxwell.research.nokia.com>
-Date: Thu, 31 Mar 2011 05:37:43 +0900
-Cc: Kim HeungJun <riverful@gmail.com>, riverful.kim@samsung.com,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Nayden Kanchev <nkanchev@mm-sol.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Cohen David Abraham <david.cohen@nokia.com>
-Content-Transfer-Encoding: 8BIT
-Message-Id: <D9FEC684-31BC-4708-B600-7228D097FD7C@gmail.com>
-References: <4D90854C.2000802@maxwell.research.nokia.com> <4D91B7EC.2020004@samsung.com> <4D91EF7D.2020403@maxwell.research.nokia.com> <4D92BA71.9080005@samsung.com> <4D931610.9030504@maxwell.research.nokia.com>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Received: from alia.ip-minds.de ([84.201.38.2]:54129 "EHLO alia.ip-minds.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751736Ab1CMLE3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Mar 2011 07:04:29 -0400
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by alia.ip-minds.de (Postfix) with ESMTP id AD14066AFB2
+	for <linux-media@vger.kernel.org>; Sun, 13 Mar 2011 12:04:49 +0100 (CET)
+Received: from alia.ip-minds.de ([127.0.0.1])
+	by localhost (alia.ip-minds.de [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id hxIkFukvyRv2 for <linux-media@vger.kernel.org>;
+	Sun, 13 Mar 2011 12:04:49 +0100 (CET)
+Received: from localhost (pD9E1A3D9.dip.t-dialin.net [217.225.163.217])
+	by alia.ip-minds.de (Postfix) with ESMTPA id 5092766A08C
+	for <linux-media@vger.kernel.org>; Sun, 13 Mar 2011 12:04:49 +0100 (CET)
+Date: Sun, 13 Mar 2011 13:04:26 +0100
+From: Jean-Michel Bruenn <jean.bruenn@ip-minds.de>
+To: linux-media@vger.kernel.org
+Subject: Re: WinTV 1400 broken with recent versions?
+Message-Id: <20110313130426.c3c53baf.jean.bruenn@ip-minds.de>
+In-Reply-To: <AANLkTikZ4KFSrzj6cJhbST9DWVcDqgQ6Y8R3we9614Bo@mail.gmail.com>
+References: <20110309175231.16446e92.jean.bruenn@ip-minds.de>
+	<76A39CFB-2838-4AD7-B353-49971F9F7DFF@wilsonet.com>
+	<ba12e998349efa465be466a4d7f9d43f@localhost>
+	<3AF3951C-11F6-48E4-A0EE-85179B013AFC@wilsonet.com>
+	<81E0AF02-0837-4DF8-BFEA-94A654FFF471@wilsonet.com>
+	<af7d57a1bb478c0edac4cd7afdfd6f41@localhost>
+	<AANLkTimqGxS6OYNarqQwZNxFk+rccPn40UcK+6Oo72SC@mail.gmail.com>
+	<3934d121118af31f8708589189a42b95@localhost>
+	<AANLkTikYjaeXnhA3iP+kxjpA-NU4QQw-_YhRFf4U=30a@mail.gmail.com>
+	<3DAC424F-1318-4E9D-B1E6-949ABE9E3CBB@wilsonet.com>
+	<20110313032208.ab1b6488.jean.bruenn@ip-minds.de>
+	<AANLkTikZ4KFSrzj6cJhbST9DWVcDqgQ6Y8R3we9614Bo@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Sakari,
+> It means the i2c bus failed to get an ACK back when talking to the
+> xc3028.  It could be a number of different things:
+> 
+> * broken cx23885 i2c master implementation
+> * bug in the xc3028 driver
+> * screwed up GPIOs causing the xc3028 to be held in reset
+> * i2c bus wedged
 
-2011. 3. 30., 오후 8:37, Sakari Ailus 작성:
+Ah. Thanks. Now i know what to search for.
 
-> Kim, HeungJun wrote:
->> Hi Sakari,
+> > Also, nobody has any idea what i could try (except for what
+> > i already did, including reverting patches and downgrading the kernel)?
 > 
-> Hi HeungJun,
-> 
->> 2011-03-29 오후 11:41, Sakari Ailus 쓴 글:
->>> Kim, HeungJun wrote:
->> [snip]
->>>> I think it's not different method to turn on/off, whatever the mode name is.
->>>> But, the mode name DEDICATED is look more reasonable, because the reason 
->>>> which is devided FLASH and TORCH in the mode, is why only power up the led,
->>>> not sensor.
->>> 
->>> Sensor? Is the flash part of the sensor module for you?
->> Yes. The flash is a part of the sensor module(our case like M-5MOLS).
->> Precisely, the sensor internal core's gpio pin is connected with
->> external Flash LED, and the control master is the sensor internal core.
->> For turnning on the Flash LED, we should use I2C register access.
->> So, I think it's exactly matches with hardware strobe as you metioned.
-> 
-> Ok, I think I'm lost now. :-)
-> 
-> What signals are sent from sensor to flash in both torch and flash cases?
-I guess the signal probably is just continuous repetition High/Low like PWM signal,
-which is generated by the core of sensor module.  Although I don't check what signal
-it is, it's very possible. Because it's the only way to be able to control intensity of  Flash.
+> If you're knowledgeable enough to downgrade the kernel, then your best
+> bet is to learn how to use git bisect so you can identify exactly
+> which patch introduced the regression.
 
-So, I think the torch and flash case is the same way or signal in this case.
+Yup, started to try that yesterday, however, going back from today to
+2008 will take some time. I'll let you know if i made any progress.
 
-> 
->>> I think it should be other factors than the flash mode that are used to
->>> make the decision on whether to power on the sensor or not.
->>> 
->>> The factors based on which to power the subdevs probably will be
->>> discussed in the future, and which entity is responsible for power
->>> management. The power management code originally was part of the Media
->>> controller framework but it was removed since it was not seen to be
->>> generic enough.
->>> 
->>> Many subdev drivers (including the adp1653) basically get powered as
->>> long as the subdev device node is open. Sensor can be powered based on
->>> other factors as well, such as the streaming state and what are the
->>> connections to the video nodes.
->> That's the start point I said. When the user use only the flash, it should be
->> accompanied(of course, I have same circumstance) by opening the videonode
->> and doing the media control operation, but we have no option to do because
->> it's depending on the hardware connection architecture.
-> 
-> When the user only needs to use the flash, in this case the user must
-> open the subdev node which is exported by the flash controller driver.
-> Not the video node, which is handled in the bridge (ISP) driver.
-
-> 
->> So, I suggesst that, if we can not give to users(of course, this user
->> want to use only flash function, not the camera) proper method usage
->> (openning the videonode for using flash), let's express that the camera
->> flash is used in the DEDICATED MODE now, as the enumeration name DEDICATED.
-> 
-> No. The video nodes should not be involved since they are related to the
-> bridge (ISP) which is not needed to use the flash. Assuming that this is
-> the situation.
-> 
-> This is how the use case should go:
-> 
-> 1. open subdev node, e.g. /dev/v4l-subdev0, which is the flash
-> (flash controller powered on)
-> 2. VIDIOC_S_CTRL: V4L2_CID_FLASH_LED_MODE, V4L2_FLASH_LED_MODE_TORCH
-> (flash is on now)
-> 2. VIDIOC_S_CTRL: V4L2_CID_FLASH_LED_MODE, V4L2_FLASH_LED_MODE_NONE
-> (flash is off now)
-> 3. close the file handle
-> (flash controller powered off)
-Probably you mean media controller framework is based on. I get it. :)
-
-> 
->> But, I think it might be not a big issue. So, any others don't comment at this,
->> it's ok for me to pass this naming issue.
->> 
->> I can see this API is very cool for camera man just like me.
-> 
-> Thanks!
-> 
->> plus: actually I have the one of N-series, N810. So, the omap3isp is available to
->> activate this device, not even it's cpu is omap3? Just question.
-> 
-> The N810 has OMAP 2420 which has a completely different camera bridge,
-> and there's no flash. The drivers for the camera in N810 are omap24xxcam
-> and tcm825x. The drivers are functional in mainline but the platform
-> data is missing, as well as the CBUS driver. This work is queued but
-> unknown when there's time for this.
-Thanks for plus reply. I've tested tony's patch for booting the ubuntu long time ago,
-but I'm sure this gadget is good device. 
-
-> 
-> Regards,
-> 
-> -- 
-> Sakari Ailus
-> sakari.ailus@maxwell.research.nokia.com
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Thanks so far.
