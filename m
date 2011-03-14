@@ -1,120 +1,218 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47383 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753227Ab1CPRtd (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:13795 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753304Ab1CNJGJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Mar 2011 13:49:33 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Alex Deucher <alexdeucher@gmail.com>
-Subject: Re: Yet another memory provider: can linaro organize a meeting?
-Date: Wed, 16 Mar 2011 18:49:34 +0100
-Cc: Li Li <eggonlea@gmail.com>,
-	Robert Fekete <robert.fekete@linaro.org>,
-	Jonghun Han <jonghun.han@samsung.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	linaro-dev@lists.linaro.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-media@vger.kernel.org
-References: <201103080913.59231.hverkuil@xs4all.nl> <AANLkTi=+2-K9-nt_Sahhrr4K9yg1bzotVexq_YnUTJYi@mail.gmail.com> <AANLkTimX1-2COQEZKMLq_EMWfGv=CGd6EWhfVnQDJ-SS@mail.gmail.com>
-In-Reply-To: <AANLkTimX1-2COQEZKMLq_EMWfGv=CGd6EWhfVnQDJ-SS@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201103161849.35496.laurent.pinchart@ideasonboard.com>
+	Mon, 14 Mar 2011 05:06:09 -0400
+Date: Mon, 14 Mar 2011 09:47:50 +0100
+From: Kamil Debski <k.debski@samsung.com>
+Subject: RE: [PATCH v2 2/8] ARM: S5PV310: Add clock support for MFC v5.1
+In-reply-to: <002901cbe05e$f05d11d0$d1173570$%kim@samsung.com>
+To: 'Kukjin Kim' <kgene.kim@samsung.com>,
+	'Jeongtae Park' <jtp.park@samsung.com>,
+	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: jaeryul.oh@samsung.com, ben-linux@fluff.org,
+	jonghun.han@samsung.com,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <002901cbe224$8421aa90$8c64ffb0$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: en-gb
+Content-transfer-encoding: 7BIT
+References: <1299676567-14194-1-git-send-email-jtp.park@samsung.com>
+ <1299676567-14194-3-git-send-email-jtp.park@samsung.com>
+ <002901cbe05e$f05d11d0$d1173570$%kim@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Alex,
-
-On Wednesday 16 March 2011 17:09:45 Alex Deucher wrote:
-> On Wed, Mar 16, 2011 at 3:37 AM, Li Li <eggonlea@gmail.com> wrote:
-> > Sorry but I feel the discussion is a bit off the point. We're not
-> > going to compare the pros and cons of current code (GEM/TTM, HWMEM,
-> > UMP, CMA, VCM, CMEM, PMEM, etc.)
-> > 
-> > The real problem is to find a suitable unified memory management
-> > module for various kinds of HW components (including CPU, VPU, GPU,
-> > camera, FB/OVL, etc.), especially for ARM based SOC. Some HW requires
-> > physical continuous big chunk of memory (e.g. some VPU & OVL); while
-> > others could live with DMA chain (e.g. some powerful GPU has built-in
-> > MMU).
-> > 
-> > So, what's current situation?
-> > 
-> > 1) As Hans mentioned, there're GEM & TTM in upstream kernel, under the
-> > DRM framework (w/ KMS, etc.). This works fine on conventional (mostly
-> > Xorg-based) Linux distribution.
-> > 
-> > 2) But DRM (or GEM/TTM) is still too heavy and complex to some
-> > embedded OS, which only want a cheaper memory management module. So...
-> > 
-> > 2.1) Google uses PMEM in Android - However PMEM was removed from
-> > upstream kernel for well-known reasons;
-> > 
-> > 2.2) Qualcomm writes a hybrid KGSL based DRM+PMEM solution - However
-> > KGSL was shamed in dri-devel list because their close user space
-> > binary.
-> > 
-> > 2.3) ARM starts UMP/MaliDRM for both of Android and X11/DRI2 - This
-> > makes things even more complicated. (Therefore I personally think this
-> > is actually a shame for ARM to create another private SW. As a leader
-> > of Linaro, ARM should think more and coordinate with partners better
-> > to come up a unified solution to make our life easier.)
-> > 
-> > 2.4) Other companies also have their own private solutions because
-> > nobody can get a STANDARD interface from upstream, including Marvell,
-> > TI, Freescale.
-> > 
-> > 
-> > 
-> > In general, it would be highly appreciated if Linaro guys could sit
-> > down together around a table, co-work with silicon vendors and
-> > upstream Linux kernel maintainers to make a unified (and cheaper than
-> > GEM/TTM/DRM) memory management module. This module should be reviewed
-> > carefully and strong enough to replace any other private memory
-> > manager mentioned above. It should replace PMEM for Android (with
-> > respect to Gralloc). And it could even be leveraged in DRM framework
-> > (as a primitive memory allocation provider under GEM).
-> > 
-> > Anyway, such a module is necessary, because user space application
-> > cannot exchange enough information by a single virtual address (among
-> > different per-process virtual address space). Gstreamer, V4L and any
-> > other middleware could remain using a single virtual address in the
-> > same process. But a global handler/ID is also necessary for sharing
-> > buffers between processes.
-> > 
-> > Furthermore, besides those well-known basic features, some advanced
-> > APIs should be provided for application to map the same physical
-> > memory region into another process, with 1) manageable fine
-> > CACHEable/BUFFERable attributes and cache flush mechanism (for
-> > performance); 2) lock/unlock synchronization; 3) swap/migration
-> > ability (optional in current stage, as those buffer are often expected
-> > to stay in RAM for better performance).
-> > 
-> > Finally, and the most important, THIS MODULE SHOULD BE PUSHED TO
-> > UPSTREAM (sorry, please ignore all the nonsense I wrote above if we
-> > can achieve this) so that everyone treat it as a de facto well
-> > supported memory management module. Thus all companies could transit
-> > from current private design to this public one. And, let's cheer for
-> > the end of this damn chaos!
+> From: Kukjin Kim [mailto:kgene.kim@samsung.com]
 > 
-> FWIW, I don't know if a common memory management API is possible.  On
-> the GPU side we tried, but there ended up being too many weird
-> hardware quirks from vendor to vendor (types of memory addressable,
-> strange tiling formats, etc.).  You might be able to come up with some
-> kind of basic framework like TTM, but by the time you add the
-> necessary quirks for various hw, it may be bigger than you want.
-> That's why we have GEM and TTM and driver specific memory management
-> ioctls in the drm.
+> Jeongtae Park wrote:
+> >
+> > This patch adds clock support for MFC v5.1.
+> >
+> > Reviewed-by: Peter Oh <jaeryul.oh@samsung.com>
+> > Signed-off-by: Jeongtae Park <jtp.park@samsung.com>
+> > Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+> > Cc: Kamil Debski <k.debski@samsung.com>
+> > ---
+> >  arch/arm/mach-s5pv310/clock.c                   |   68
+> > +++++++++++++++++++++++
+> >  arch/arm/mach-s5pv310/include/mach/regs-clock.h |    3 +
+> >  2 files changed, 71 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-s5pv310/clock.c b/arch/arm/mach-
+> s5pv310/clock.c
+> > index fc7c2f8..88c7943 100644
+> > --- a/arch/arm/mach-s5pv310/clock.c
+> > +++ b/arch/arm/mach-s5pv310/clock.c
+> > @@ -86,6 +86,11 @@ static int s5pv310_clk_ip_cam_ctrl(struct clk
+> *clk, int
+> > enable)
+> >  	return s5p_gatectrl(S5P_CLKGATE_IP_CAM, clk, enable);
+> >  }
+> >
+> > +static int s5pv310_clk_ip_mfc_ctrl(struct clk *clk, int enable)
+> > +{
+> > +	return s5p_gatectrl(S5P_CLKGATE_IP_MFC, clk, enable);
+> > +}
+> > +
+> >  static int s5pv310_clk_ip_image_ctrl(struct clk *clk, int enable)
+> >  {
+> >  	return s5p_gatectrl(S5P_CLKGATE_IP_IMAGE, clk, enable);
+> > @@ -417,6 +422,11 @@ static struct clk init_clocks_off[] = {
+> >  		.enable		= s5pv310_clk_ip_cam_ctrl,
+> >  		.ctrlbit	= (1 << 2),
+> >  	}, {
+> > +		.name		= "mfc",
+> > +		.id		= -1,
+> > +		.enable		= s5pv310_clk_ip_mfc_ctrl,
+> > +		.ctrlbit	= (1 << 0),
+> > +	}, {
+> >  		.name		= "fimc",
+> >  		.id		= 3,
+> >  		.enable		= s5pv310_clk_ip_cam_ctrl,
+> > @@ -643,6 +653,54 @@ static struct clksrc_sources clkset_group = {
+> >  	.nr_sources	= ARRAY_SIZE(clkset_group_list),
+> >  };
+> >
+> > +static struct clk *clkset_mout_mfc0_list[] = {
+> > +	[0] = &clk_mout_mpll.clk,
+> > +	[1] = &clk_sclk_apll.clk,
+> > +};
+> > +
+> > +static struct clksrc_sources clkset_mout_mfc0 = {
+> > +	.sources	= clkset_mout_mfc0_list,
+> > +	.nr_sources	= ARRAY_SIZE(clkset_mout_mfc0_list),
+> > +};
+> > +
+> > +static struct clksrc_clk clk_mout_mfc0 = {
+> > +	.clk	= {
+> > +		.name		= "mout_mfc0",
+> > +		.id		= -1,
+> > +	},
+> > +	.sources	= &clkset_mout_mfc0,
+> > +	.reg_src	= { .reg = S5P_CLKSRC_MFC, .shift = 0, .size = 1 },
+> > +};
+> > +
+> > +static struct clk *clkset_mout_mfc1_list[] = {
+> > +	[0] = &clk_mout_epll.clk,
+> > +	[1] = &clk_sclk_vpll.clk,
+> > +};
+> > +
+> > +static struct clksrc_sources clkset_mout_mfc1 = {
+> > +	.sources	= clkset_mout_mfc1_list,
+> > +	.nr_sources	= ARRAY_SIZE(clkset_mout_mfc1_list),
+> > +};
+> > +
+> > +static struct clksrc_clk clk_mout_mfc1 = {
+> > +	.clk	= {
+> > +		.name		= "mout_mfc1",
+> > +		.id		= -1,
+> > +	},
+> > +	.sources	= &clkset_mout_mfc1,
+> > +	.reg_src	= { .reg = S5P_CLKSRC_MFC, .shift = 4, .size = 1 },
+> > +};
+> > +
+> > +static struct clk *clkset_mout_mfc_list[] = {
+> > +	[0] = &clk_mout_mfc0.clk,
+> > +	[1] = &clk_mout_mfc1.clk,
+> > +};
+> > +
+> > +static struct clksrc_sources clkset_mout_mfc = {
+> > +	.sources	= clkset_mout_mfc_list,
+> > +	.nr_sources	= ARRAY_SIZE(clkset_mout_mfc_list),
+> > +};
+> > +
+> >  static struct clk *clkset_mout_g2d0_list[] = {
+> >  	[0] = &clk_mout_mpll.clk,
+> >  	[1] = &clk_sclk_apll.clk,
+> > @@ -814,6 +872,14 @@ static struct clksrc_clk clksrcs[] = {
+> >  		.reg_div = { .reg = S5P_CLKDIV_CAM, .shift = 28, .size = 4
+> },
+> >  	}, {
+> >  		.clk		= {
+> > +			.name		= "sclk_mfc",
+> > +			.id		= -1,
+> > +		},
+> > +		.sources = &clkset_mout_mfc,
+> > +		.reg_src = { .reg = S5P_CLKSRC_MFC, .shift = 8, .size = 1
+> },
+> > +		.reg_div = { .reg = S5P_CLKDIV_MFC, .shift = 0, .size = 4
+> },
+> > +	}, {
+> > +		.clk		= {
+> >  			.name		= "sclk_cam",
+> >  			.id		= 0,
+> >  			.enable		= s5pv310_clksrc_mask_cam_ctrl,
+> > @@ -1018,6 +1084,8 @@ static struct clksrc_clk *sysclks[] = {
+> >  	&clk_dout_mmc2,
+> >  	&clk_dout_mmc3,
+> >  	&clk_dout_mmc4,
+> > +	&clk_mout_mfc0,
+> > +	&clk_mout_mfc1,
+> >  };
+> >
+> >  static int xtal_rate;
+> > diff --git a/arch/arm/mach-s5pv310/include/mach/regs-clock.h
+> b/arch/arm/mach-
+> > s5pv310/include/mach/regs-clock.h
+> > index b5c4ada..27b02e8 100644
+> > --- a/arch/arm/mach-s5pv310/include/mach/regs-clock.h
+> > +++ b/arch/arm/mach-s5pv310/include/mach/regs-clock.h
+> > @@ -33,6 +33,7 @@
+> >  #define S5P_CLKSRC_TOP0			S5P_CLKREG(0x0C210)
+> >  #define S5P_CLKSRC_TOP1			S5P_CLKREG(0x0C214)
+> >  #define S5P_CLKSRC_CAM			S5P_CLKREG(0x0C220)
+> > +#define S5P_CLKSRC_MFC			S5P_CLKREG(0x0C228)
+> >  #define S5P_CLKSRC_IMAGE		S5P_CLKREG(0x0C230)
+> >  #define S5P_CLKSRC_LCD0			S5P_CLKREG(0x0C234)
+> >  #define S5P_CLKSRC_LCD1			S5P_CLKREG(0x0C238)
+> > @@ -42,6 +43,7 @@
+> >
+> >  #define S5P_CLKDIV_TOP			S5P_CLKREG(0x0C510)
+> >  #define S5P_CLKDIV_CAM			S5P_CLKREG(0x0C520)
+> > +#define S5P_CLKDIV_MFC			S5P_CLKREG(0x0C528)
+> >  #define S5P_CLKDIV_IMAGE		S5P_CLKREG(0x0C530)
+> >  #define S5P_CLKDIV_LCD0			S5P_CLKREG(0x0C534)
+> >  #define S5P_CLKDIV_LCD1			S5P_CLKREG(0x0C538)
+> > @@ -67,6 +69,7 @@
+> >  #define S5P_CLKDIV_STAT_TOP		S5P_CLKREG(0x0C610)
+> >
+> >  #define S5P_CLKGATE_IP_CAM		S5P_CLKREG(0x0C920)
+> > +#define S5P_CLKGATE_IP_MFC		S5P_CLKREG(0x0C928)
+> >  #define S5P_CLKGATE_IP_IMAGE		S5P_CLKREG(0x0C930)
+> >  #define S5P_CLKGATE_IP_LCD0		S5P_CLKREG(0x0C934)
+> >  #define S5P_CLKGATE_IP_LCD1		S5P_CLKREG(0x0C938)
+> > --
+> > 1.7.1
+> 
+> Hi Jeongtae,
+> 
+> Firstly, your 2nd, 3rd and 4th patches are ok to me, but need to re-
+> work
+> based on latest.
+> Could you please do based on my for-next?
+> 
+> Kamil,
+> Your patch of regarding mfc platform device has same purpose but clock
+> codes
+> are different.
+> As I said, mfc clock handling needs this approach so if you're ok, I'd
+> like
+> to pick this up. How do you think?
+> 
 
-I agree that we might not be able to use the same memory buffers for all 
-devices, as they all have more or less complex requirements regarding the 
-memory properties (type, alignment, ...). However, having a common API to pass 
-buffers around between drivers and applications using a common ID would be 
-highly interesting. I'm not sure how complex that would be, I might not have 
-all the nasty small details in mind.
+Hi Kukjin,
 
--- 
-Regards,
+It's ok with me to merge patches 2 and 3 by Jeongtae - he fixed the 
+issues you were talking about. I would like you to merge my patch entitled
+"Add platform support for MFC v5.1" as it was my code posted again by
+Jeongtae.
 
-Laurent Pinchart
+Best wishes,
+--
+Kamil Debski
+Linux Platform Group
+Samsung Poland R&D Center
+
