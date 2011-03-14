@@ -1,94 +1,157 @@
 Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:50748 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754660Ab1CVAsQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Mar 2011 20:48:16 -0400
-Message-ID: <4D87F1C6.3040209@infradead.org>
-Date: Mon, 21 Mar 2011 21:48:06 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
-To: Jonathan Corbet <corbet@lwn.net>
-CC: Daniel Drake <dsd@laptop.org>, dilinger@queued.net,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] via-camera: Fix OLPC serial check
-References: <20110303190331.E8ED79D401D@zog.reactivated.net> <20110310092457.2e748f72@bike.lwn.net>
-In-Reply-To: <20110310092457.2e748f72@bike.lwn.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from bear.ext.ti.com ([192.94.94.41]:53646 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752855Ab1CNN4F (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Mar 2011 09:56:05 -0400
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Kevin Hilman <khilman@deeprootsystems.com>,
+	LAK <linux-arm-kernel@lists.infradead.org>,
+	Sekhar Nori <nsekhar@ti.com>
+Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [PATCH 2/7] davinci: eliminate use of IO_ADDRESS() on sysmod
+Date: Mon, 14 Mar 2011 19:25:47 +0530
+Message-Id: <1300110947-16229-1-git-send-email-manjunath.hadli@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 10-03-2011 13:24, Jonathan Corbet escreveu:
-> [Trying to bash my inbox into reasonable shape, sorry for the slow
-> response...]
-> 
-> On Thu,  3 Mar 2011 19:03:31 +0000 (GMT)
-> Daniel Drake <dsd@laptop.org> wrote:
-> 
->> The code that checks the OLPC serial port is never built at the moment,
->> because CONFIG_OLPC_XO_1_5 doesn't exist and probably won't be added.
->>
->> Fix it so that it gets compiled in, only executes on OLPC laptops, and
->> move the check into the probe routine.
->>
->> The compiler is smart enough to eliminate this code when CONFIG_OLPC=n
->> (due to machine_is_olpc() always returning false).
-> 
-> Getting rid of the nonexistent config option is clearly the right thing to
-> do.  I only wonder about moving the check to viacam_probe().  The nice
-> thing about having things fail in viacam_init() is that, if the camera is
-> not usable, the module will not load at all.  By the time you get to
-> viacam_probe(), the module is there but not will be useful for anything.
-> 
-> Did the check need to move for some reason?  If so, a one-of-these-days
-> nice feature might be to allow changing override_serial at run time.
-> 
-> Regardless, the behavior change only affects OLPC folks using the serial
-> line, so I'm OK with it.
-> 
-> 	Acked-by: Jonathan Corbet <corbet@lwn.net>
+Current devices.c file has a number of instances where
+IO_ADDRESS() is used for system module register
+access. Eliminate this in favor of a ioremap()
+based access.
 
-Weird, patchwork didn't catch the acked-by:
-	https://patchwork.kernel.org/patch/607461/
+Consequent to this, a new global pointer davinci_sysmodbase
+has been introduced which gets initialized during
+the initialization of each relevant SoC
 
-Perhaps it only does the right thing if the ack is not indented?
-
-As reference, I'm enclosing what patchwork provides when clicking at the
-mbox download hyperlink.
-
-Anyway, manually added.
-
-Thanks!
-Mauro
-
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
 ---
+ arch/arm/mach-davinci/devices.c               |   23 ++++++++++++++---------
+ arch/arm/mach-davinci/dm355.c                 |    1 +
+ arch/arm/mach-davinci/dm365.c                 |    1 +
+ arch/arm/mach-davinci/dm644x.c                |    1 +
+ arch/arm/mach-davinci/dm646x.c                |    1 +
+ arch/arm/mach-davinci/include/mach/hardware.h |    6 ++++++
+ 6 files changed, 24 insertions(+), 9 deletions(-)
 
->From patchwork Thu Mar  3 19:03:31 2011
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Subject: via-camera: Fix OLPC serial check
-Date: Thu, 03 Mar 2011 19:03:31 -0000
-From: Daniel Drake <dsd@laptop.org>
-X-Patchwork-Id: 607461
-Message-Id: <20110303190331.E8ED79D401D@zog.reactivated.net>
-To: mchehab@infradead.org
-Cc: linux-media@vger.kernel.org
+diff --git a/arch/arm/mach-davinci/devices.c b/arch/arm/mach-davinci/devices.c
+index d3b2040..66a948d 100644
+--- a/arch/arm/mach-davinci/devices.c
++++ b/arch/arm/mach-davinci/devices.c
+@@ -33,6 +33,14 @@
+ #define DM365_MMCSD0_BASE	     0x01D11000
+ #define DM365_MMCSD1_BASE	     0x01D00000
+ 
++void __iomem  *davinci_sysmodbase;
++
++void davinci_map_sysmod(void)
++{
++	davinci_sysmodbase = ioremap_nocache(DAVINCI_SYSTEM_MODULE_BASE, 0x800);
++	WARN_ON(!davinci_sysmodbase);
++}
++
+ static struct resource i2c_resources[] = {
+ 	{
+ 		.start		= DAVINCI_I2C_BASE,
+@@ -210,12 +218,12 @@ void __init davinci_setup_mmc(int module, struct davinci_mmc_config *config)
+ 			davinci_cfg_reg(DM355_SD1_DATA2);
+ 			davinci_cfg_reg(DM355_SD1_DATA3);
+ 		} else if (cpu_is_davinci_dm365()) {
+-			void __iomem *pupdctl1 =
+-				IO_ADDRESS(DAVINCI_SYSTEM_MODULE_BASE + 0x7c);
+-
+ 			/* Configure pull down control */
+-			__raw_writel((__raw_readl(pupdctl1) & ~0xfc0),
+-					pupdctl1);
++			void __iomem *pupdctl1 = DAVINCI_SYSMODULE_VIRT(0x7c);
++			unsigned v;
++
++			v = readl(pupdctl1);
++			writel(v & ~0xfc0, pupdctl1);
+ 
+ 			mmcsd1_resources[0].start = DM365_MMCSD1_BASE;
+ 			mmcsd1_resources[0].end = DM365_MMCSD1_BASE +
+@@ -244,11 +252,8 @@ void __init davinci_setup_mmc(int module, struct davinci_mmc_config *config)
+ 			mmcsd0_resources[2].start = IRQ_DM365_SDIOINT0;
+ 		} else if (cpu_is_davinci_dm644x()) {
+ 			/* REVISIT: should this be in board-init code? */
+-			void __iomem *base =
+-				IO_ADDRESS(DAVINCI_SYSTEM_MODULE_BASE);
+-
+ 			/* Power-on 3.3V IO cells */
+-			__raw_writel(0, base + DM64XX_VDD3P3V_PWDN);
++			writel(0, DAVINCI_SYSMODULE_VIRT(DM64XX_VDD3P3V_PWDN));
+ 			/*Set up the pull regiter for MMC */
+ 			davinci_cfg_reg(DM644X_MSTK);
+ 		}
+diff --git a/arch/arm/mach-davinci/dm355.c b/arch/arm/mach-davinci/dm355.c
+index a5f8a80..1baab94 100644
+--- a/arch/arm/mach-davinci/dm355.c
++++ b/arch/arm/mach-davinci/dm355.c
+@@ -874,6 +874,7 @@ void __init dm355_init_asp1(u32 evt_enable, struct snd_platform_data *pdata)
+ void __init dm355_init(void)
+ {
+ 	davinci_common_init(&davinci_soc_info_dm355);
++	davinci_map_sysmod();
+ }
+ 
+ static int __init dm355_init_devices(void)
+diff --git a/arch/arm/mach-davinci/dm365.c b/arch/arm/mach-davinci/dm365.c
+index 02d2cc3..a788980 100644
+--- a/arch/arm/mach-davinci/dm365.c
++++ b/arch/arm/mach-davinci/dm365.c
+@@ -1127,6 +1127,7 @@ void __init dm365_init_rtc(void)
+ void __init dm365_init(void)
+ {
+ 	davinci_common_init(&davinci_soc_info_dm365);
++	davinci_map_sysmod();
+ }
+ 
+ static struct resource dm365_vpss_resources[] = {
+diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
+index 9a2376b..77dea11 100644
+--- a/arch/arm/mach-davinci/dm644x.c
++++ b/arch/arm/mach-davinci/dm644x.c
+@@ -779,6 +779,7 @@ void __init dm644x_init_asp(struct snd_platform_data *pdata)
+ void __init dm644x_init(void)
+ {
+ 	davinci_common_init(&davinci_soc_info_dm644x);
++	davinci_map_sysmod();
+ }
+ 
+ static int __init dm644x_init_devices(void)
+diff --git a/arch/arm/mach-davinci/dm646x.c b/arch/arm/mach-davinci/dm646x.c
+index 1e0f809..ce93b83 100644
+--- a/arch/arm/mach-davinci/dm646x.c
++++ b/arch/arm/mach-davinci/dm646x.c
+@@ -903,6 +903,7 @@ void __init dm646x_init(void)
+ {
+ 	dm646x_board_setup_refclk(&ref_clk);
+ 	davinci_common_init(&davinci_soc_info_dm646x);
++	davinci_map_sysmod();
+ }
+ 
+ static int __init dm646x_init_devices(void)
+diff --git a/arch/arm/mach-davinci/include/mach/hardware.h b/arch/arm/mach-davinci/include/mach/hardware.h
+index 414e0b9..5296025 100644
+--- a/arch/arm/mach-davinci/include/mach/hardware.h
++++ b/arch/arm/mach-davinci/include/mach/hardware.h
+@@ -21,6 +21,12 @@
+  */
+ #define DAVINCI_SYSTEM_MODULE_BASE        0x01C40000
+ 
++#ifndef __ASSEMBLER__
++extern void __iomem  *davinci_sysmodbase;
++#define DAVINCI_SYSMODULE_VIRT(x)	(davinci_sysmodbase + (x))
++void davinci_map_sysmod(void);
++#endif
++
+ /*
+  * I/O mapping
+  */
+-- 
+1.6.2.4
 
-The code that checks the OLPC serial port is never built at the moment,
-because CONFIG_OLPC_XO_1_5 doesn't exist and probably won't be added.
-
-Fix it so that it gets compiled in, only executes on OLPC laptops, and
-move the check into the probe routine.
-
-The compiler is smart enough to eliminate this code when CONFIG_OLPC=n
-(due to machine_is_olpc() always returning false).
-
-Signed-off-by: Daniel Drake <dsd@laptop.org>
-
----
-drivers/media/video/via-camera.c |   83 +++++++++++++++++---------------------
- 1 files changed, 37 insertions(+), 46 deletions(-)
-
-<diff snipped>
