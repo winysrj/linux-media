@@ -1,31 +1,47 @@
 Return-path: <mchehab@pedra>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:36677 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752205Ab1CJR0y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Mar 2011 12:26:54 -0500
-Received: by gxk8 with SMTP id 8so742926gxk.19
-        for <linux-media@vger.kernel.org>; Thu, 10 Mar 2011 09:26:53 -0800 (PST)
-MIME-Version: 1.0
-Date: Thu, 10 Mar 2011 12:26:53 -0500
-Message-ID: <AANLkTik_W1uE05J+BSY8K6siOdgYxsB1CLmiFUmGy-s8@mail.gmail.com>
-Subject: mygica hdcap
-From: James Klaas <jklaas@appalachian.dyndns.org>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from cnc.isely.net ([75.149.91.89]:36467 "EHLO cnc.isely.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752329Ab1CNBpr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Mar 2011 21:45:47 -0400
+Date: Sun, 13 Mar 2011 20:45:46 -0500 (CDT)
+From: Mike Isely <isely@isely.net>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Matti Aaltonen <matti.j.aaltonen@nokia.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: compilation warnings/errors
+In-Reply-To: <alpine.DEB.1.10.1103111640550.3738@cnc.isely.net>
+Message-ID: <alpine.DEB.1.10.1103132043550.31934@ivanova.isely.net>
+References: <4D7A69EB.3060200@redhat.com> <alpine.DEB.1.10.1103111640550.3738@cnc.isely.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-I just got one of these the other day and I was wondering if anyone
-has looked at it.  It will take HDMI, component and composite input
-plus stereo.  I have a picture I can post somewhere of the board.  It
-has 3 main chips.
+On Fri, 11 Mar 2011, Mike Isely wrote:
 
-AD9985A - Component/composite input?
-SIL9013CLU - Audio input?
-TM6202 - HDMI input
+> On Fri, 11 Mar 2011, Mauro Carvalho Chehab wrote:
+> 
+> > /home/mchehab/new_build/v4l/pvrusb2-v4l2.c: In function 'pvr2_v4l2_do_ioctl':
+> > /home/mchehab/new_build/v4l/pvrusb2-v4l2.c:798:23: warning: variable 'cap' set but not used [-Wunused-but-set-variable]
+> 
+> I will look into these.  I'm a little puzzled right now since silly 
+> stuff like this usually doesn't get by me.  Unfortunately I can't look 
+> at it right this minute.  Expect to hear from me on Sunday.
 
-I'm not sure if this falls under v4l since it has no tuner or dvb
-since it captures digital video.
+I looked at these two warnings.  It's dead code that should be removed.  
+Amazingly enough, this particular bit of crap has been in the driver, 
+unnoticed, since 2008!
 
-James
+I have a pull request coming for more pvrusb2 patches, probably in a few 
+more hours, once I'm done testing.  A fix for this will be in the patch 
+set.
+
+  -Mike
+
+-- 
+
+Mike Isely
+isely @ isely (dot) net
+PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
