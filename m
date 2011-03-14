@@ -1,47 +1,233 @@
 Return-path: <mchehab@pedra>
-Received: from eu1sys200aog103.obsmtp.com ([207.126.144.115]:36990 "EHLO
-	eu1sys200aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750750Ab1C2OcH convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Mar 2011 10:32:07 -0400
-Received: from zeta.dmz-eu.st.com (ns2.st.com [164.129.230.9])
-	by beta.dmz-eu.st.com (STMicroelectronics) with ESMTP id 85738B1
-	for <linux-media@vger.kernel.org>; Tue, 29 Mar 2011 14:01:35 +0000 (GMT)
-Received: from relay2.stm.gmessaging.net (unknown [10.230.100.18])
-	by zeta.dmz-eu.st.com (STMicroelectronics) with ESMTP id 1F0C2275E
-	for <linux-media@vger.kernel.org>; Tue, 29 Mar 2011 14:01:35 +0000 (GMT)
-Received: from exdcvycastm003.EQ1STM.local (alteon-source-exch [10.230.100.61])
-	(using TLSv1 with cipher RC4-MD5 (128/128 bits))
-	(Client CN "exdcvycastm003", Issuer "exdcvycastm003" (not verified))
-	by relay2.stm.gmessaging.net (Postfix) with ESMTPS id 30FC4A807D
-	for <linux-media@vger.kernel.org>; Tue, 29 Mar 2011 16:01:29 +0200 (CEST)
-From: Willy POISSON <willy.poisson@stericsson.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Tue, 29 Mar 2011 16:01:33 +0200
-Subject: v4l: Buffer pools
-Message-ID: <757395B8DE5A844B80F3F4BE9867DDB652374B2340@EXDCVYMBSTM006.EQ1STM.local>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from mailout1.samsung.com ([203.254.224.24]:60302 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751316Ab1CNEwA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Mar 2011 00:52:00 -0400
+Date: Mon, 14 Mar 2011 13:51:49 +0900
+From: Jeongtae Park <jtp.park@samsung.com>
+Subject: RE: [PATCH v2 2/8] ARM: S5PV310: Add clock support for MFC v5.1
+In-reply-to: <002901cbe05e$f05d11d0$d1173570$%kim@samsung.com>
+To: linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
+	kgene.kim@samsung.com
+Cc: k.debski@samsung.com, jaeryul.oh@samsung.com, jemings@samsung.com,
+	ben-linux@fluff.org, jonghun.han@samsung.com,
+	m.szyprowski@samsung.com, nala.la@samsung.com
+Reply-to: jtp.park@samsung.com
+Message-id: <001401cbe203$8b8ec540$a2ac4fc0$%park@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=windows-1252
+Content-language: ko
+Content-transfer-encoding: 7BIT
+References: <1299676567-14194-1-git-send-email-jtp.park@samsung.com>
+ <1299676567-14194-3-git-send-email-jtp.park@samsung.com>
+ <002901cbe05e$f05d11d0$d1173570$%kim@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi all,
-	Following to the Warsaw mini-summit action point, I would like to open the thread to gather buffer pool & memory manager requirements.
-The list of requirement for buffer pool may contain:
--	Support physically contiguous and virtual memory
--	Support IPC, import/export handles (between processes/drivers/userland/etc)
--	Security(access rights in order to secure no one unauthorized is allowed to access buffers)
--	Cache flush management (by using setdomain and optimize when flushing is needed)
--	Pin/unpin in order to get the actual address to be able to do defragmentation
--	Support pinning in user land in order to allow defragmentation while buffer is mmapped but not pined.
--	Both a user API and a Kernel API is needed for this module. (Kernel drivers needs to be able to resolve buffer handles as well from the memory manager module, and pin/unpin)
--	be able to support any platform specific allocator (Separate memory allocation from management as allocator is platform dependant)
--	Support multiple region domain (Allow to allocate from several memory domain ex: DDR1, DDR2, Embedded SRAM to make for ex bandwidth load balancing ...)
-Another idea, but not so linked to memory management (more usage of buffers), would be to have a common data container (structure to access data) shared by several media (Imaging, video/still codecs, graphics, Display...) to ease usage of the data. This container could  embed data type (video frames, Access Unit) , frames format, pixel format, width, height, pixel aspect ratio, region of interest, CTS (composition time stamp),  ColorSpace, transparency (opaque, alpha, color key...), pointer on buffer(s) handle)... 
-Regards,
-	Willy.
-=============
-Willy Poisson
-ST-Ericsson
+Hi Kgene,
+
+I see, I will re-work based on lastest 'for-next' ASAP.
+
+Thanks.
+
+BRs.
+/jtpark
+
+> -----Original Message-----
+> From: linux-samsung-soc-owner@vger.kernel.org [mailto:linux-samsung-soc-
+> owner@vger.kernel.org] On Behalf Of Kukjin Kim
+> Sent: Saturday, March 12, 2011 11:41 AM
+> To: 'Jeongtae Park'; linux-media@vger.kernel.org; linux-samsung-
+> soc@vger.kernel.org
+> Cc: k.debski@samsung.com; jaeryul.oh@samsung.com; ben-linux@fluff.org;
+> jonghun.han@samsung.com; 'Marek Szyprowski'
+> Subject: RE: [PATCH v2 2/8] ARM: S5PV310: Add clock support for MFC v5.1
+> 
+> Jeongtae Park wrote:
+> >
+> > This patch adds clock support for MFC v5.1.
+> >
+> > Reviewed-by: Peter Oh <jaeryul.oh@samsung.com>
+> > Signed-off-by: Jeongtae Park <jtp.park@samsung.com>
+> > Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+> > Cc: Kamil Debski <k.debski@samsung.com>
+> > ---
+> >  arch/arm/mach-s5pv310/clock.c                   |   68
+> > +++++++++++++++++++++++
+> >  arch/arm/mach-s5pv310/include/mach/regs-clock.h |    3 +
+> >  2 files changed, 71 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-s5pv310/clock.c
+b/arch/arm/mach-s5pv310/clock.c
+> > index fc7c2f8..88c7943 100644
+> > --- a/arch/arm/mach-s5pv310/clock.c
+> > +++ b/arch/arm/mach-s5pv310/clock.c
+> > @@ -86,6 +86,11 @@ static int s5pv310_clk_ip_cam_ctrl(struct clk *clk,
+int
+> > enable)
+> >  	return s5p_gatectrl(S5P_CLKGATE_IP_CAM, clk, enable);
+> >  }
+> >
+> > +static int s5pv310_clk_ip_mfc_ctrl(struct clk *clk, int enable)
+> > +{
+> > +	return s5p_gatectrl(S5P_CLKGATE_IP_MFC, clk, enable);
+> > +}
+> > +
+> >  static int s5pv310_clk_ip_image_ctrl(struct clk *clk, int enable)
+> >  {
+> >  	return s5p_gatectrl(S5P_CLKGATE_IP_IMAGE, clk, enable);
+> > @@ -417,6 +422,11 @@ static struct clk init_clocks_off[] = {
+> >  		.enable		= s5pv310_clk_ip_cam_ctrl,
+> >  		.ctrlbit	= (1 << 2),
+> >  	}, {
+> > +		.name		= "mfc",
+> > +		.id		= -1,
+> > +		.enable		= s5pv310_clk_ip_mfc_ctrl,
+> > +		.ctrlbit	= (1 << 0),
+> > +	}, {
+> >  		.name		= "fimc",
+> >  		.id		= 3,
+> >  		.enable		= s5pv310_clk_ip_cam_ctrl,
+> > @@ -643,6 +653,54 @@ static struct clksrc_sources clkset_group = {
+> >  	.nr_sources	= ARRAY_SIZE(clkset_group_list),
+> >  };
+> >
+> > +static struct clk *clkset_mout_mfc0_list[] = {
+> > +	[0] = &clk_mout_mpll.clk,
+> > +	[1] = &clk_sclk_apll.clk,
+> > +};
+> > +
+> > +static struct clksrc_sources clkset_mout_mfc0 = {
+> > +	.sources	= clkset_mout_mfc0_list,
+> > +	.nr_sources	= ARRAY_SIZE(clkset_mout_mfc0_list),
+> > +};
+> > +
+> > +static struct clksrc_clk clk_mout_mfc0 = {
+> > +	.clk	= {
+> > +		.name		= "mout_mfc0",
+> > +		.id		= -1,
+> > +	},
+> > +	.sources	= &clkset_mout_mfc0,
+> > +	.reg_src	= { .reg = S5P_CLKSRC_MFC, .shift = 0, .size = 1 },
+> > +};
+> > +
+> > +static struct clk *clkset_mout_mfc1_list[] = {
+> > +	[0] = &clk_mout_epll.clk,
+> > +	[1] = &clk_sclk_vpll.clk,
+> > +};
+> > +
+> > +static struct clksrc_sources clkset_mout_mfc1 = {
+> > +	.sources	= clkset_mout_mfc1_list,
+> > +	.nr_sources	= ARRAY_SIZE(clkset_mout_mfc1_list),
+> > +};
+> > +
+> > +static struct clksrc_clk clk_mout_mfc1 = {
+> > +	.clk	= {
+> > +		.name		= "mout_mfc1",
+> > +		.id		= -1,
+> > +	},
+> > +	.sources	= &clkset_mout_mfc1,
+> > +	.reg_src	= { .reg = S5P_CLKSRC_MFC, .shift = 4, .size = 1 },
+> > +};
+> > +
+> > +static struct clk *clkset_mout_mfc_list[] = {
+> > +	[0] = &clk_mout_mfc0.clk,
+> > +	[1] = &clk_mout_mfc1.clk,
+> > +};
+> > +
+> > +static struct clksrc_sources clkset_mout_mfc = {
+> > +	.sources	= clkset_mout_mfc_list,
+> > +	.nr_sources	= ARRAY_SIZE(clkset_mout_mfc_list),
+> > +};
+> > +
+> >  static struct clk *clkset_mout_g2d0_list[] = {
+> >  	[0] = &clk_mout_mpll.clk,
+> >  	[1] = &clk_sclk_apll.clk,
+> > @@ -814,6 +872,14 @@ static struct clksrc_clk clksrcs[] = {
+> >  		.reg_div = { .reg = S5P_CLKDIV_CAM, .shift = 28, .size = 4
+> },
+> >  	}, {
+> >  		.clk		= {
+> > +			.name		= "sclk_mfc",
+> > +			.id		= -1,
+> > +		},
+> > +		.sources = &clkset_mout_mfc,
+> > +		.reg_src = { .reg = S5P_CLKSRC_MFC, .shift = 8, .size = 1 },
+> > +		.reg_div = { .reg = S5P_CLKDIV_MFC, .shift = 0, .size = 4 },
+> > +	}, {
+> > +		.clk		= {
+> >  			.name		= "sclk_cam",
+> >  			.id		= 0,
+> >  			.enable		= s5pv310_clksrc_mask_cam_ctrl,
+> > @@ -1018,6 +1084,8 @@ static struct clksrc_clk *sysclks[] = {
+> >  	&clk_dout_mmc2,
+> >  	&clk_dout_mmc3,
+> >  	&clk_dout_mmc4,
+> > +	&clk_mout_mfc0,
+> > +	&clk_mout_mfc1,
+> >  };
+> >
+> >  static int xtal_rate;
+> > diff --git a/arch/arm/mach-s5pv310/include/mach/regs-clock.h
+> b/arch/arm/mach-
+> > s5pv310/include/mach/regs-clock.h
+> > index b5c4ada..27b02e8 100644
+> > --- a/arch/arm/mach-s5pv310/include/mach/regs-clock.h
+> > +++ b/arch/arm/mach-s5pv310/include/mach/regs-clock.h
+> > @@ -33,6 +33,7 @@
+> >  #define S5P_CLKSRC_TOP0			S5P_CLKREG(0x0C210)
+> >  #define S5P_CLKSRC_TOP1			S5P_CLKREG(0x0C214)
+> >  #define S5P_CLKSRC_CAM			S5P_CLKREG(0x0C220)
+> > +#define S5P_CLKSRC_MFC			S5P_CLKREG(0x0C228)
+> >  #define S5P_CLKSRC_IMAGE		S5P_CLKREG(0x0C230)
+> >  #define S5P_CLKSRC_LCD0			S5P_CLKREG(0x0C234)
+> >  #define S5P_CLKSRC_LCD1			S5P_CLKREG(0x0C238)
+> > @@ -42,6 +43,7 @@
+> >
+> >  #define S5P_CLKDIV_TOP			S5P_CLKREG(0x0C510)
+> >  #define S5P_CLKDIV_CAM			S5P_CLKREG(0x0C520)
+> > +#define S5P_CLKDIV_MFC			S5P_CLKREG(0x0C528)
+> >  #define S5P_CLKDIV_IMAGE		S5P_CLKREG(0x0C530)
+> >  #define S5P_CLKDIV_LCD0			S5P_CLKREG(0x0C534)
+> >  #define S5P_CLKDIV_LCD1			S5P_CLKREG(0x0C538)
+> > @@ -67,6 +69,7 @@
+> >  #define S5P_CLKDIV_STAT_TOP		S5P_CLKREG(0x0C610)
+> >
+> >  #define S5P_CLKGATE_IP_CAM		S5P_CLKREG(0x0C920)
+> > +#define S5P_CLKGATE_IP_MFC		S5P_CLKREG(0x0C928)
+> >  #define S5P_CLKGATE_IP_IMAGE		S5P_CLKREG(0x0C930)
+> >  #define S5P_CLKGATE_IP_LCD0		S5P_CLKREG(0x0C934)
+> >  #define S5P_CLKGATE_IP_LCD1		S5P_CLKREG(0x0C938)
+> > --
+> > 1.7.1
+> 
+> Hi Jeongtae,
+> 
+> Firstly, your 2nd, 3rd and 4th patches are ok to me, but need to re-work
+> based on latest.
+> Could you please do based on my for-next?
+> 
+> Kamil,
+> Your patch of regarding mfc platform device has same purpose but clock
+codes
+> are different.
+> As I said, mfc clock handling needs this approach so if you're ok, I'd
+like
+> to pick this up. How do you think?
+> 
+> Thanks.
+> 
+> Best regards,
+> Kgene.
+> --
+> Kukjin Kim <kgene.kim@samsung.com>, Senior Engineer,
+> SW Solution Development Team, Samsung Electronics Co., Ltd.
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe
+linux-samsung-soc"
+> in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
