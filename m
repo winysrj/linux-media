@@ -1,55 +1,131 @@
 Return-path: <mchehab@pedra>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:57005 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753087Ab1CUKzq (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4924 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754477Ab1CNL5a (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Mar 2011 06:55:46 -0400
-Received: by gwaa18 with SMTP id a18so2338526gwa.19
-        for <linux-media@vger.kernel.org>; Mon, 21 Mar 2011 03:55:46 -0700 (PDT)
-Message-ID: <4D872EA6.8070502@aapt.net.au>
-Date: Mon, 21 Mar 2011 21:55:34 +1100
-From: Andrew Goff <goffa72@gmail.com>
-Reply-To: goffa72@gmail.com
+	Mon, 14 Mar 2011 07:57:30 -0400
+Message-ID: <33b29bfb135fbe2ddcba88d342d67526.squirrel@webmail.xs4all.nl>
+In-Reply-To: <201103141128.01259.linux@rainbow-software.org>
+References: <201103121919.05657.linux@rainbow-software.org>
+    <s5hei6ahvtu.wl%tiwai@suse.de>
+    <df650e295afbf5651be743e58b06eb5b.squirrel@webmail.xs4all.nl>
+    <201103141128.01259.linux@rainbow-software.org>
+Date: Mon, 14 Mar 2011 12:57:27 +0100
+Subject: Re: [alsa-devel] radio-maestro broken (conflicts with snd-es1968)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Ondrej Zary" <linux@rainbow-software.org>
+Cc: "Takashi Iwai" <tiwai@suse.de>, jirislaby@gmail.com,
+	alsa-devel@alsa-project.org,
+	"Kernel development list" <linux-kernel@vger.kernel.org>,
+	linux-media@vger.kernel.org
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org
-Subject: Re: Leadtek Winfast 1800H FM Tuner
-References: <4D8550A3.5010604@aapt.net.au> <4D85B871.3010201@iki.fi>
-In-Reply-To: <4D85B871.3010201@iki.fi>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sun 20-Mar-2011 7:18 PM, Antti Palosaari wrote:
-> On 03/20/2011 02:56 AM, Andrew Goff wrote:
->> Hi, I hope someone may be able to help me solve a problem or point me in
->> the right direction.
+> On Monday 14 March 2011, Hans Verkuil wrote:
+>> > At Sat, 12 Mar 2011 19:52:39 +0100,
+>> >
+>> > Hans Verkuil wrote:
+>> >> On Saturday, March 12, 2011 19:19:00 Ondrej Zary wrote:
+>> >> > Hello,
+>> >> > the radio-maestro driver is badly broken. It's intended to drive
+>> the
+>> >>
+>> >> radio on
+>> >>
+>> >> > MediaForte ESS Maestro-based sound cards with integrated radio
+>> (like
+>> >> > SF64-PCE2-04). But it conflicts with snd_es1968, ALSA driver for
+>> the
+>> >>
+>> >> sound
+>> >>
+>> >> > chip itself.
+>> >> >
+>> >> > If one driver is loaded, the other one does not work - because a
+>> >>
+>> >> driver is
+>> >>
+>> >> > already registered for the PCI device (there is only one). This was
+>> >>
+>> >> probably
+>> >>
+>> >> > broken by conversion of PCI probing in 2006:
+>> >> > ttp://lkml.org/lkml/2005/12/31/93
+>> >> >
+>> >> > How to fix it properly? Include radio functionality in snd-es1968
+>> and
+>> >>
+>> >> delete
+>> >>
+>> >> > radio-maestro?
+>> >>
+>> >> Interesting. I don't know anyone among the video4linux developers who
+>> >> has
+>> >> this hardware, so the radio-maestro driver hasn't been tested in at
+>> >> least
+>> >> 6 or 7 years.
+>> >>
+>> >> The proper fix would be to do it like the fm801.c alsa driver does:
+>> have
+>> >> the radio functionality as an i2c driver. In fact, it would not
+>> surprise
+>> >> me at all if you could use the tea575x-tuner.c driver (in
+>> >> sound/i2c/other)
+>> >> for the es1968 and delete the radio-maestro altogether.
+>> >
+>> > I guess simply porting radio-maestro codes into snd-es1968 would work
+>> > without much hustles, and it's a bit safe way to go for now; smaller
+>> > changes have less chance for breakage, and as little people seem using
+>> > this driver, it'd be better to take a safer option, IMO.
 >>
->> I have been using a Leadtek Winfast DTV1800H card (﻿Xceive xc3028 tuner)
->> for a while now without any issues (DTV & Radio have been working well),
->> I recently decided to get another tuner card, Leadtek Winfast DTV2000DS
->> (Tuner: NXP TDA18211, but detected as TDA18271 by V4L drivers, Chipset:
->> AF9015 + AF9013 ) and had to compile and install the V4L drivers to get
->> it working. Now DTV on both cards work well but there is a problem with
->> the radio tuner on the 1800H card.
->>
->> After installing the more recent V4L drivers the radio frequency is
->> 2.7MHz out, so if I want to listen to 104.9 I need to tune the radio to
->> 107.6. Now I could just change all my preset stations but I can not
->> listen to my preferred stations as I need to set the frequency above
->> 108MHz.
+>> I assume someone has hardware since someone reported this breakage. So
+>> try
+>> to use tuner-tea575x for the es1968. It shouldn't be too difficult.
+>> Additional cleanup should probably wait until we find a tester for the
+>> fm801 as well.
 >
-> I think there is something wrong with the FM tuner (xc3028?) or other 
-> chipset drivers used for DTV1800H. No relations to the af9015, af9013 
-> or tda18271. tda18211 is same chip as tda18271 but only DVB-T 
-> included. If DTV1800H does not contain tda18211 or tda18271 problem 
-> cannot be either that.
+> I have the hardware - both ES1968 (SF64-PCE2-04) and FM801 cards
+> (SF64-PCR)
+> with these tuners. I remember fixing mute in tea5757x-tuner back in 2009
+> (testing it on SF64-PCR).
 >
-> Antti
+>> I don't like the idea to duplicate code.
 >
+> I don't like that either. I've done a quick hack - copied radio support
+> from
+> fm801 and radio_bits_get() and radio_bits_set() from radio-maestro to
+> es1968
+> and it seems to basically work.
+> Now I just need some more time to finish it, then move everything good
+> from
+> radio-maestro to tea575x-tuner and delete radio-maestro.
+
+Great! Let me know if you have any v4l-related questions!
+
 >
-yes, I suspect it is a problem with the newer drivers for the DTV1800H 
-card. I am using mythbuntu 10.04 as my operating systems and the FM 
-tuner works fine until the the newer V4L drivers installed.  The FM 
-tuner frequency is not correct with the new drivers.
+> IIRC, the TEA5757 tuner is also present on at least one ISA radio card -
+> SF16-FMR2 (which I also have).
+
+Interesting. I have a bunch of isa radio cards myself and I am planning a
+major cleanup of those isa drivers. I might get back to you for testing.
+
+Regards,
+
+        Hans
+
+>
+> --
+> Ondrej Zary
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
+
