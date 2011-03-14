@@ -1,96 +1,377 @@
 Return-path: <mchehab@pedra>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:39614 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751807Ab1CHR7p convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Mar 2011 12:59:45 -0500
+Received: from snt0-omc4-s34.snt0.hotmail.com ([65.55.90.237]:50380 "EHLO
+	snt0-omc4-s34.snt0.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753504Ab1CNCz7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Mar 2011 22:55:59 -0400
+Message-ID: <SNT129-W61E80D9715BB18A9AF3418E5CC0@phx.gbl>
+Content-Type: multipart/mixed;
+	boundary="_5e746218-8841-4157-bcc6-c6d406dbf257_"
+From: Peter Tilley <peter_tilley13@hotmail.com>
+To: <pboettcher@kernellabs.com>, <linux-media@vger.kernel.org>
+Subject: RE: Dib7000/mt2266 help
+Date: Mon, 14 Mar 2011 02:55:58 +0000
+In-Reply-To: <201103121647.40488.pboettcher@kernellabs.com>
+References: <SNT129-W418509BB02BD3867DCAA77E5CA0@phx.gbl>,<201103121647.40488.pboettcher@kernellabs.com>
 MIME-Version: 1.0
-In-Reply-To: <1299588365-2749-4-git-send-email-dacohen@gmail.com>
-References: <1299588365-2749-1-git-send-email-dacohen@gmail.com>
-	<1299588365-2749-4-git-send-email-dacohen@gmail.com>
-Date: Tue, 8 Mar 2011 11:59:43 -0600
-Message-ID: <AANLkTikvUah8LPXCeV4Opi09DJ4ZoHAc2xUVTcDhNK=Q@mail.gmail.com>
-Subject: Re: [PATCH 3/3] omap: iovmm: don't check 'da' to set
- IOVMF_DA_FIXED/IOVMF_DA_ANON flags
-From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-To: David Cohen <dacohen@gmail.com>
-Cc: Hiroshi.DOYU@nokia.com, linux-omap@vger.kernel.org,
-	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@maxwell.research.nokia.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, Mar 8, 2011 at 6:46 AM, David Cohen <dacohen@gmail.com> wrote:
-> Currently IOVMM driver sets IOVMF_DA_FIXED/IOVMF_DA_ANON flags according
-> to input 'da' address when mapping memory:
-> da == 0: IOVMF_DA_ANON
-> da != 0: IOVMF_DA_FIXED
->
-> It prevents IOMMU to map first page with fixed 'da'. To avoid such
-> issue, IOVMM will not automatically set IOVMF_DA_FIXED. It should now
-> come from the user. IOVMF_DA_ANON will be automatically set if
-> IOVMF_DA_FIXED isn't set.
->
-> Signed-off-by: David Cohen <dacohen@gmail.com>
-> ---
->  arch/arm/plat-omap/iovmm.c |   12 ++++++++----
->  1 files changed, 8 insertions(+), 4 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
-> index 11c9b76..dde9cb0 100644
-> --- a/arch/arm/plat-omap/iovmm.c
-> +++ b/arch/arm/plat-omap/iovmm.c
-> @@ -654,7 +654,8 @@ u32 iommu_vmap(struct iommu *obj, u32 da, const struct sg_table *sgt,
->        flags &= IOVMF_HW_MASK;
->        flags |= IOVMF_DISCONT;
->        flags |= IOVMF_MMIO;
-> -       flags |= (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
-> +       if (~flags & IOVMF_DA_FIXED)
-> +               flags |= IOVMF_DA_ANON;
+--_5e746218-8841-4157-bcc6-c6d406dbf257_
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-could we use only one? both are mutual exclusive, what happen if flag
-is IOVMF_DA_FIXED | IOVMF_DA_ANON? so, I suggest to get rid of
-IOVMF_DA_ANON.
 
-Regards,
-Fernando.
+Hi Patrick=2C
 
->
->        da = __iommu_vmap(obj, da, sgt, va, bytes, flags);
->        if (IS_ERR_VALUE(da))
-> @@ -713,7 +714,8 @@ u32 iommu_vmalloc(struct iommu *obj, u32 da, size_t bytes, u32 flags)
->        flags &= IOVMF_HW_MASK;
->        flags |= IOVMF_DISCONT;
->        flags |= IOVMF_ALLOC;
-> -       flags |= (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
-> +       if (~flags & IOVMF_DA_FIXED)
-> +               flags |= IOVMF_DA_ANON;
->
->        sgt = sgtable_alloc(bytes, flags, da, 0);
->        if (IS_ERR(sgt)) {
-> @@ -803,7 +805,8 @@ u32 iommu_kmap(struct iommu *obj, u32 da, u32 pa, size_t bytes,
->        flags &= IOVMF_HW_MASK;
->        flags |= IOVMF_LINEAR;
->        flags |= IOVMF_MMIO;
-> -       flags |= (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
-> +       if (~flags & IOVMF_DA_FIXED)
-> +               flags |= IOVMF_DA_ANON;
->
->        da = __iommu_kmap(obj, da, pa, va, bytes, flags);
->        if (IS_ERR_VALUE(da))
-> @@ -862,7 +865,8 @@ u32 iommu_kmalloc(struct iommu *obj, u32 da, size_t bytes, u32 flags)
->        flags &= IOVMF_HW_MASK;
->        flags |= IOVMF_LINEAR;
->        flags |= IOVMF_ALLOC;
-> -       flags |= (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
-> +       if (~flags & IOVMF_DA_FIXED)
-> +               flags |= IOVMF_DA_ANON;
->
->        da = __iommu_kmap(obj, da, pa, va, bytes, flags);
->        if (IS_ERR_VALUE(da))
+Thank you for replying. In answer to your questions:
+
+> Are you sure it is a driver problem?
+No but given the very same device on the very same antenna system works ok =
+under Windows it seemed like a good place to start.
+
+> If the BER stays at this value it could also mean that the channel-config=
+uration is wrong.
+> Are you using a channels.conf which has all parameters set=2C or are you =
+doing a channel-scan-like tune (all values are set to AUTO).
+I have attached a copy of the channels.conf file I have been using. It was =
+generated by hand based because the scan and w_scan commands would time out=
+ for all stations except C31. The information was obtained from a variety o=
+f sources on the internet but mostly from http://igorfuna.com/dvb-t/austral=
+ia/ I am located in Melbourne Australia. Looking in the file you can see th=
+at most paramaters are defined except for inversion which is left as auto.
+
+> There are usually some adaptations board-designing companies do to improv=
+e=20
+> reception quality (adding external LNAs and things like that) that are of=
+=20
+> course handled by the Window-driver=2C because it is created by the=20
+> manufacturer and not by the Linux-driver=2C because (in this case) the dr=
+iver=20
+> was released by the chip-manufacturer.
+I agree this could be the case and indeed changing the force_lna_activation=
+ module parameter seemed to do nothing which would make me suspect that the=
+ lna control GPIO on this device is not that same as what is implemented in=
+ the driver. Challenge is there seems to be no information around about the=
+ DIB7000 or the MT2266 otherwise I would just trace the connections manuall=
+y using device pinouts.
+
+> Is the device toggling between FE_HAS_LOCK and no FE_HAS_LOCK or does it=
+=20
+> stay constantly at=20
+The device stays constantly on FE LOCK after the initial tune. Attached are=
+ brief snapshots of tuning using tzap for the different frequencies. Whilst=
+ this only shows a few seconds worth of data=2C the output is more or less =
+the same over an extended period.
+
+> Please try whether you can achieve the BER lowering by moving the antenna=
+ or=20
+> using a better one. If this helps=2C it really means that the windows-dri=
+ver=20
+> does something more the board.
+Not really practical to move the antenna its up on a mast and indeed as the=
+ existing analogue stations are still transmitting from the same tower I kn=
+ow that I have a good signal with no multipath. Other TV sets with digital =
+tuners on the same antenna also report excellent signal levels.
+
+> I doubt that the chip-driver needs to be changed=2C more likely the GPIOs=
+ of=20
+> the dib0700 (in dib0700_core.c) or of the dib7000 are used to turn on or =
+off=20
+> a frequency switch or a LNA.
+Yes=2C I suspect that you are right. Challenge is that without any document=
+ation on the devices you are flying blind to reverse engineer the design.
+
+> Good point=2C what are the frequencies you're tuning ?
+The frequencies I have been tuning are listed below but also of interest is=
+ that they all use 64QAM whereas the station that works uses QPSK which to =
+me says this is a signal problem and as you state above=2C probably tied in=
+ with a LNA as QPSK is more robust in comparison to 64QAM which is why it h=
+as probably been used by C31 as they don't have the need for the higher thr=
+oughput and have a more modest transmission power compared to the others.  =
+  So they get more bang for their buck but have the down side of only a sin=
+gle SD stream.
+
+C31   557.625 MHz   QPSK     Works ok.
+
+ABC   226.5 MHz     64QAM    Doesn't work
+7     177.5 MHz     64QAM    Doesn't work
+9     191.625 MHz   64QAM    Doesn't work
+10    219.5 MHz     64QAM    Doesn't work
+SBS   536.625 Mhz   64QAM    Doesn't work
+
+
+Happy to hear your or anyone else's thoughts.
+
+Regards
+Pete
+
+
+
+
+> From: pboettcher@kernellabs.com
+> To: peter_tilley13@hotmail.com=3B linux-media@vger.kernel.org
+> Subject: Re: Dib7000/mt2266 help
+> Date: Sat=2C 12 Mar 2011 16:47:40 +0100
+>=20
+> Hi Peter=2C
+>=20
+> (adding back the list to CC)
+>=20
+> On Saturday 12 March 2011 11:48:38 Peter Tilley wrote:
+> > Hi Patrick=2C
+> > My sincerest apologies for coming to you directly but I have tried the
+> > Linux mailing list and received no response and noticed you seem to hav=
+e
+> > been heavily involved with much of the Dibcom driver development.
+> >=20
+> > I have an issue with a dual tuner which is sold under the brand of Kais=
+er
+> > Baas KBA01004 but identifies itself as 1164:1e8c which is a Yaun device
+> > and this device seems to have already been included in the driver files=
+.
+> >=20
+> > It loads ok and reports not problems. It tunes ok and reports FE lock o=
+n
+> > all channels however on all but one channel upon receiving FE lock the
+> > BER stays at 1ffff instead of dropping to a low number which would
+> > indicate I am not getting viterbi.
+> >=20
+> > The device is fitted with pairs of MT2266 and DIB7000 which I have
+> > positive identified by opening the USB stick.
+> >=20
+> > am more than happy to try and work this out myself however the amount o=
+f
+> > detail around in support of the Linux drivers is extremely low and a
+> > search for manufacturers data sheets finds next to nothing. There
+> > seems to be lots of what I would call "magic numbers" in the drivers an=
+d
+> > little to determine what they are doing.
+>=20
+> Are you sure it is a driver problem?
+>=20
+> If the BER stays at this value it could also mean that the channel-
+> configuration is wrong.
+>=20
+> Are you using a channels.conf which has all parameters set=2C or are you =
+doing=20
+> a channel-scan-like tune (all values are set to AUTO).
+>=20
+> > My question to you is are you able to offer either any pointers to solv=
+e
+> > the problem or help me find detailed information about the devices so I
+> > can help myself.
+> >=20
+> > I should point out that the device works perfectly under windows on the
+> > same antenna and indeed I have even successfully extracted the firmware
+> > from the supplied windows driver=2C renamed it so it loads and the prob=
+lem
+> > still remains.
+>=20
+> There are usually some adaptations board-designing companies do to improv=
+e=20
+> reception quality (adding external LNAs and things like that) that are of=
+=20
+> course handled by the Window-driver=2C because it is created by the=20
+> manufacturer and not by the Linux-driver=2C because (in this case) the dr=
+iver=20
+> was released by the chip-manufacturer.
+>=20
+> Is the device toggling between FE_HAS_LOCK and no FE_HAS_LOCK or does it=
+=20
+> stay constantly at=20
+>=20
+> Please try whether you can achieve the BER lowering by moving the antenna=
+ or=20
+> using a better one. If this helps=2C it really means that the windows-dri=
+ver=20
+> does something more the board.
+>=20
+> I doubt that the chip-driver needs to be changed=2C more likely the GPIOs=
+ of=20
+> the dib0700 (in dib0700_core.c) or of the dib7000 are used to turn on or =
+off=20
+> a frequency switch or a LNA.
+>=20
+> Good point=2C what are the frequencies you're tuning ?
+>=20
+> regards=2C
+>=20
 > --
-> 1.7.0.4
->
->
+> Patrick
+> http://www.kernellabs.com/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at http://vger.kernel.org/majordomo-info.html 		 	   =
+		  =
+
+--_5e746218-8841-4157-bcc6-c6d406dbf257_
+Content-Type: text/plain
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="tzap.txt"
+
+cGV0ZXJAR2FyYWdlMjp+Ly50emFwJCB0emFwIGMzMQ0KdXNpbmcgJy9kZXYvZHZiL2FkYXB0ZXIw
+L2Zyb250ZW5kMCcgYW5kICcvZGV2L2R2Yi9hZGFwdGVyMC9kZW11eDAnDQpyZWFkaW5nIGNoYW5u
+ZWxzIGZyb20gZmlsZSAnL2hvbWUvcGV0ZXIvLnR6YXAvY2hhbm5lbHMuY29uZicNCnR1bmluZyB0
+byA1NTc2MjUwMDAgSHoNCnZpZGVvIHBpZCAweDAwNjUsIGF1ZGlvIHBpZCAweDAwNjYNCnN0YXR1
+cyAwZSB8IHNpZ25hbCBmZmZmIHwgc25yIDAwNmEgfCBiZXIgMDAxZmZmZmYgfCB1bmMgMDAwMDAw
+MDAgfCANCnN0YXR1cyAxZSB8IHNpZ25hbCBmZmZmIHwgc25yIDAwMzEgfCBiZXIgMDAwMDAwMDAg
+fCB1bmMgMDAwMDAwMDAgfCBGRV9IQVNfTE9DSw0Kc3RhdHVzIDFlIHwgc2lnbmFsIGZmZmYgfCBz
+bnIgMDA3YiB8IGJlciAwMDAwMDAwMCB8IHVuYyAwMDAwMDAwMCB8IEZFX0hBU19MT0NLDQpzdGF0
+dXMgMWUgfCBzaWduYWwgZmZmZiB8IHNuciAwMDQwIHwgYmVyIDAwMDAwMDAwIHwgdW5jIDAwMDAw
+MDAwIHwgRkVfSEFTX0xPQ0sNCnN0YXR1cyAxZSB8IHNpZ25hbCBmZmZmIHwgc25yIDAwMjcgfCBi
+ZXIgMDAwMDAwMDAgfCB1bmMgMDAwMDAwMDAgfCBGRV9IQVNfTE9DSw0KDQoNCnBldGVyQEdhcmFn
+ZTI6fi8udHphcCQgdHphcCAiU0JTIERpZ2l0YWwgMSINCnVzaW5nICcvZGV2L2R2Yi9hZGFwdGVy
+MC9mcm9udGVuZDAnIGFuZCAnL2Rldi9kdmIvYWRhcHRlcjAvZGVtdXgwJw0KcmVhZGluZyBjaGFu
+bmVscyBmcm9tIGZpbGUgJy9ob21lL3BldGVyLy50emFwL2NoYW5uZWxzLmNvbmYnDQp0dW5pbmcg
+dG8gNTM2NjI1MDAwIEh6DQp2aWRlbyBwaWQgMHgwMGExLCBhdWRpbyBwaWQgMHgwMDUxDQpzdGF0
+dXMgMDIgfCBzaWduYWwgZmZmZiB8IHNuciAwMDJiIHwgYmVyIDAwMWZmZmZmIHwgdW5jIDAwMDAw
+MDAwIHwgDQpzdGF0dXMgMWEgfCBzaWduYWwgZmZmZiB8IHNuciAwMDI0IHwgYmVyIDAwMWZmZmZm
+IHwgdW5jIDAwMDAwMDAwIHwgRkVfSEFTX0xPQ0sNCnN0YXR1cyAxYSB8IHNpZ25hbCBmZmZmIHwg
+c25yIDAwMjAgfCBiZXIgMDAxZmZmZmYgfCB1bmMgMDAwMDAwMDAgfCBGRV9IQVNfTE9DSw0Kc3Rh
+dHVzIDFhIHwgc2lnbmFsIGZmZmYgfCBzbnIgMDAxOSB8IGJlciAwMDFmZmZmZiB8IHVuYyAwMDAw
+MDAwOSB8IEZFX0hBU19MT0NLDQoNCg0KcGV0ZXJAR2FyYWdlMjp+Ly50emFwJCB0emFwICJUZW4g
+RGlnaXRhbCAxIg0KdXNpbmcgJy9kZXYvZHZiL2FkYXB0ZXIwL2Zyb250ZW5kMCcgYW5kICcvZGV2
+L2R2Yi9hZGFwdGVyMC9kZW11eDAnDQpyZWFkaW5nIGNoYW5uZWxzIGZyb20gZmlsZSAnL2hvbWUv
+cGV0ZXIvLnR6YXAvY2hhbm5lbHMuY29uZicNCnR1bmluZyB0byAyMTk1MDAwMDAgSHoNCnZpZGVv
+IHBpZCAweDAyMDAsIGF1ZGlvIHBpZCAweDAyOGENCnN0YXR1cyAwMiB8IHNpZ25hbCBmZmZmIHwg
+c25yIDAwMWMgfCBiZXIgMDAxZmZmZmYgfCB1bmMgMDAwMDAwMDAgfCANCnN0YXR1cyAxYSB8IHNp
+Z25hbCBmZmZmIHwgc25yIDAwMTcgfCBiZXIgMDAxZmZmZmYgfCB1bmMgMDAwMDAwMGIgfCBGRV9I
+QVNfTE9DSw0Kc3RhdHVzIDFhIHwgc2lnbmFsIGZmZmYgfCBzbnIgMDAwZSB8IGJlciAwMDFmZmZm
+ZiB8IHVuYyAwMDAwMDAwMCB8IEZFX0hBU19MT0NLDQpzdGF0dXMgMWEgfCBzaWduYWwgZmZmZiB8
+IHNuciAwMDA4IHwgYmVyIDAwMWZmZmZmIHwgdW5jIDAwMDAwMDAwIHwgRkVfSEFTX0xPQ0sNCnN0
+YXR1cyAxYSB8IHNpZ25hbCBmZmZmIHwgc25yIDAwMDYgfCBiZXIgMDAxZmZmZmYgfCB1bmMgMDAw
+MDAwMDAgfCBGRV9IQVNfTE9DSw0KDQoNCnBldGVyQEdhcmFnZTI6fi8udHphcCQgdHphcCAiTmlu
+ZSBEaWdpdGFsIg0KdXNpbmcgJy9kZXYvZHZiL2FkYXB0ZXIwL2Zyb250ZW5kMCcgYW5kICcvZGV2
+L2R2Yi9hZGFwdGVyMC9kZW11eDAnDQpyZWFkaW5nIGNoYW5uZWxzIGZyb20gZmlsZSAnL2hvbWUv
+cGV0ZXIvLnR6YXAvY2hhbm5lbHMuY29uZicNCnR1bmluZyB0byAxOTE2MjUwMDAgSHoNCnZpZGVv
+IHBpZCAweDAyMDcsIGF1ZGlvIHBpZCAweDAyZDANCnN0YXR1cyAwMiB8IHNpZ25hbCBmZmZmIHwg
+c25yIDAwMTIgfCBiZXIgMDAxZmZmZmYgfCB1bmMgMDAwMDAwMDAgfCANCnN0YXR1cyAxYSB8IHNp
+Z25hbCBmZmZmIHwgc25yIDAwMTIgfCBiZXIgMDAxZmZmZmYgfCB1bmMgMDAwMDAwMDAgfCBGRV9I
+QVNfTE9DSw0Kc3RhdHVzIDFhIHwgc2lnbmFsIGZmZmYgfCBzbnIgMDAwZCB8IGJlciAwMDFmZmZm
+ZiB8IHVuYyAwMDAwMDAwMCB8IEZFX0hBU19MT0NLDQpzdGF0dXMgMWEgfCBzaWduYWwgZmZmZiB8
+IHNuciAwMDA5IHwgYmVyIDAwMWZmZmZmIHwgdW5jIDAwMDAwMDAwIHwgRkVfSEFTX0xPQ0sNCnN0
+YXR1cyAxYSB8IHNpZ25hbCBmZmZmIHwgc25yIDAwMDYgfCBiZXIgMDAxZmZmZmYgfCB1bmMgMDAw
+MDAwMDAgfCBGRV9IQVNfTE9DSw0Kc3RhdHVzIDFhIHwgc2lnbmFsIGZmZmYgfCBzbnIgMDAwNCB8
+IGJlciAwMDFmZmZmZiB8IHVuYyAwMDAwMDAwMCB8IEZFX0hBU19MT0NLDQoNCg0KDQpwZXRlckBH
+YXJhZ2UyOn4vLnR6YXAkIHR6YXAgIjcgRGlnaXRhbCINCnVzaW5nICcvZGV2L2R2Yi9hZGFwdGVy
+MC9mcm9udGVuZDAnIGFuZCAnL2Rldi9kdmIvYWRhcHRlcjAvZGVtdXgwJw0KcmVhZGluZyBjaGFu
+bmVscyBmcm9tIGZpbGUgJy9ob21lL3BldGVyLy50emFwL2NoYW5uZWxzLmNvbmYnDQp0dW5pbmcg
+dG8gMTc3NTAwMDAwIEh6DQp2aWRlbyBwaWQgMHgwMzAxLCBhdWRpbyBwaWQgMHgwMzAyDQpzdGF0
+dXMgMGEgfCBzaWduYWwgZmZmZiB8IHNuciAwMDFjIHwgYmVyIDAwMWZmZmZmIHwgdW5jIDAwMDAw
+MDAwIHwgDQpzdGF0dXMgMWEgfCBzaWduYWwgZmZmZiB8IHNuciAwMDE3IHwgYmVyIDAwMWZmZmZm
+IHwgdW5jIDAwMDAwMDAwIHwgRkVfSEFTX0xPQ0sNCnN0YXR1cyAxYSB8IHNpZ25hbCBmZmZmIHwg
+c25yIDAwMTAgfCBiZXIgMDAxZmZmZmYgfCB1bmMgMDAwMDAwMDggfCBGRV9IQVNfTE9DSw0Kc3Rh
+dHVzIDFhIHwgc2lnbmFsIGZmZmYgfCBzbnIgMDAwZiB8IGJlciAwMDFmZmZmZiB8IHVuYyAwMDAw
+MDAwMCB8IEZFX0hBU19MT0NLDQpzdGF0dXMgMWEgfCBzaWduYWwgZmZmZiB8IHNuciAwMDBlIHwg
+YmVyIDAwMWZmZmZmIHwgdW5jIDAwMDAwMDAwIHwgRkVfSEFTX0xPQ0sNCg0KDQpwZXRlckBHYXJh
+Z2UyOn4vLnR6YXAkIHR6YXAgIkFCQyBIRFRWIg0KdXNpbmcgJy9kZXYvZHZiL2FkYXB0ZXIwL2Zy
+b250ZW5kMCcgYW5kICcvZGV2L2R2Yi9hZGFwdGVyMC9kZW11eDAnDQpyZWFkaW5nIGNoYW5uZWxz
+IGZyb20gZmlsZSAnL2hvbWUvcGV0ZXIvLnR6YXAvY2hhbm5lbHMuY29uZicNCnR1bmluZyB0byAy
+MjY1MDAwMDAgSHoNCnZpZGVvIHBpZCAweDA5MGEsIGF1ZGlvIHBpZCAweDAwMDANCnN0YXR1cyAw
+YSB8IHNpZ25hbCBmZmZmIHwgc25yIDAwMWMgfCBiZXIgMDAxZmZmZmYgfCB1bmMgMDAwMDAwMDAg
+fCANCnN0YXR1cyAxYSB8IHNpZ25hbCBmZmZmIHwgc25yIDAwMGYgfCBiZXIgMDAxZmZmZmYgfCB1
+bmMgMDAwMDAwMDAgfCBGRV9IQVNfTE9DSw0Kc3RhdHVzIDFhIHwgc2lnbmFsIGZmZmYgfCBzbnIg
+MDAwOCB8IGJlciAwMDFmZmZmZiB8IHVuYyAwMDAwMDAwMCB8IEZFX0hBU19MT0NLDQpzdGF0dXMg
+MWEgfCBzaWduYWwgZmZmZiB8IHNuciAwMDA4IHwgYmVyIDAwMWZmZmZmIHwgdW5jIDAwMDAwMDAw
+IHwgRkVfSEFTX0xPQ0sNCg0K
+
+--_5e746218-8841-4157-bcc6-c6d406dbf257_
+Content-Type: text/plain
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="channels.conf"
+
+QUJDIEhEVFY6MjI2NTAwMDAwOklOVkVSU0lPTl9BVVRPOkJBTkRXSURUSF83X01IWjpGRUNfM180
+OkZFQ18zXzQ6UUFNXzY0OlRSQU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJEX0lOVEVSVkFMXzFfMTY6
+SElFUkFSQ0hZX05PTkU6MjMxNDowOjU2MApBQkMgVFYgTWVsYm91cm5lOjIyNjUwMDAwMDpJTlZF
+UlNJT05fQVVUTzpCQU5EV0lEVEhfN19NSFo6RkVDXzNfNDpGRUNfM180OlFBTV82NDpUUkFOU01J
+U1NJT05fTU9ERV84SzpHVUFSRF9JTlRFUlZBTF8xXzE2OkhJRVJBUkNIWV9OT05FOjUxMjo2NTA6
+NTYxCkFCQzI6MjI2NTAwMDAwOklOVkVSU0lPTl9BVVRPOkJBTkRXSURUSF83X01IWjpGRUNfM180
+OkZFQ18zXzQ6UUFNXzY0OlRSQU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJEX0lOVEVSVkFMXzFfMTY6
+SElFUkFSQ0hZX05PTkU6MjMwNzoyMzA4OjU2MgpBQkMgVFY6MjI2NTAwMDAwOklOVkVSU0lPTl9B
+VVRPOkJBTkRXSURUSF83X01IWjpGRUNfM180OkZFQ18zXzQ6UUFNXzY0OlRSQU5TTUlTU0lPTl9N
+T0RFXzhLOkdVQVJEX0lOVEVSVkFMXzFfMTY6SElFUkFSQ0hZX05PTkU6NTEyOjY1MDo1NjMKQUJD
+IERpRyBSYWRpbzoyMjY1MDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzdfTUhaOkZFQ18z
+XzQ6RkVDXzNfNDpRQU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV8x
+NjpISUVSQVJDSFlfTk9ORTowOjIzMTc6NTY2CkFCQyBEaUcgSmF6ejoyMjY1MDAwMDA6SU5WRVJT
+SU9OX0FVVE86QkFORFdJRFRIXzdfTUhaOkZFQ18zXzQ6RkVDXzNfNDpRQU1fNjQ6VFJBTlNNSVNT
+SU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV8xNjpISUVSQVJDSFlfTk9ORTowOjIzMTg6NTY3
+CjcgRGlnaXRhbDoxNzc1MDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzdfTUhaOkZFQ18y
+XzM6RkVDXzJfMzpRQU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV8x
+NjpISUVSQVJDSFlfTk9ORTo3Njk6NzcwOjEzMjgKNyBEaWdpdGFsIDE6MTc3NTAwMDAwOklOVkVS
+U0lPTl9BVVRPOkJBTkRXSURUSF83X01IWjpGRUNfMl8zOkZFQ18yXzM6UUFNXzY0OlRSQU5TTUlT
+U0lPTl9NT0RFXzhLOkdVQVJEX0lOVEVSVkFMXzFfMTY6SElFUkFSQ0hZX05PTkU6NzY5Ojc3MDox
+MzI5CjcgRGlnaXRhbCAyOjE3NzUwMDAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfN19NSFo6
+RkVDXzJfMzpGRUNfMl8zOlFBTV82NDpUUkFOU01JU1NJT05fTU9ERV84SzpHVUFSRF9JTlRFUlZB
+TF8xXzE2OkhJRVJBUkNIWV9OT05FOjc2OTo3NzA6MTMzMAo3IERpZ2l0YWwgMzoxNzc1MDAwMDA6
+SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzdfTUhaOkZFQ18yXzM6RkVDXzJfMzpRQU1fNjQ6VFJB
+TlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV8xNjpISUVSQVJDSFlfTk9ORTo3Njk6
+NzcwOjEzMzEKNyBIRCBEaWdpdGFsOjE3NzUwMDAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhf
+N19NSFo6RkVDXzJfMzpGRUNfMl8zOlFBTV82NDpUUkFOU01JU1NJT05fTU9ERV84SzpHVUFSRF9J
+TlRFUlZBTF8xXzE2OkhJRVJBUkNIWV9OT05FOjgzMzowOjEzMzIKNyBHdWlkZToxNzc1MDAwMDA6
+SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzdfTUhaOkZFQ18yXzM6RkVDXzJfMzpRQU1fNjQ6VFJB
+TlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV8xNjpISUVSQVJDSFlfTk9ORTo4NjU6
+ODY2OjEzMzQKTmluZSBEaWdpdGFsOjE5MTYyNTAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhf
+N19NSFo6RkVDXzNfNDpGRUNfM180OlFBTV82NDpUUkFOU01JU1NJT05fTU9ERV84SzpHVUFSRF9J
+TlRFUlZBTF8xXzE2OkhJRVJBUkNIWV9OT05FOjUxOTo3MjA6MTA3MgpOaW5lIERpZ2l0YWwgSEQ6
+MTkxNjI1MDAwOklOVkVSU0lPTl9BVVRPOkJBTkRXSURUSF83X01IWjpGRUNfM180OkZFQ18zXzQ6
+UUFNXzY0OlRSQU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJEX0lOVEVSVkFMXzFfMTY6SElFUkFSQ0hZ
+X05PTkU6NTEyOjA6MTA3MwpOaW5lIEd1aWRlOjE5MTYyNTAwMDpJTlZFUlNJT05fQVVUTzpCQU5E
+V0lEVEhfN19NSFo6RkVDXzNfNDpGRUNfM180OlFBTV82NDpUUkFOU01JU1NJT05fTU9ERV84SzpH
+VUFSRF9JTlRFUlZBTF8xXzE2OkhJRVJBUkNIWV9OT05FOjUxNzo3MDA6MTA3NApURU4gRGlnaXRh
+bDoyMTk1MDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzdfTUhaOkZFQ18zXzQ6RkVDXzFf
+MjpRQU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV8xNjpISUVSQVJD
+SFlfTk9ORTo1MTI6NjUwOjE1ODUKVEVOIERpZ2l0YWwgMToyMTk1MDAwMDA6SU5WRVJTSU9OX0FV
+VE86QkFORFdJRFRIXzdfTUhaOkZFQ18zXzQ6RkVDXzFfMjpRQU1fNjQ6VFJBTlNNSVNTSU9OX01P
+REVfOEs6R1VBUkRfSU5URVJWQUxfMV8xNjpISUVSQVJDSFlfTk9ORTo1MTI6NjUwOjE1ODYKVEVO
+IERpZ2l0YWwgMjoyMTk1MDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzdfTUhaOkZFQ18z
+XzQ6RkVDXzFfMjpRQU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV8x
+NjpISUVSQVJDSFlfTk9ORTo1MTI6NjUwOjE1ODcKVEVOIERpZ2l0YWwgMzoyMTk1MDAwMDA6SU5W
+RVJTSU9OX0FVVE86QkFORFdJRFRIXzdfTUhaOkZFQ18zXzQ6RkVDXzFfMjpRQU1fNjQ6VFJBTlNN
+SVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV8xNjpISUVSQVJDSFlfTk9ORTo1MTI6NjUw
+OjE1ODgKVEVOIERpZ2l0YWw6MjE5NTAwMDAwOklOVkVSU0lPTl9BVVRPOkJBTkRXSURUSF83X01I
+WjpGRUNfM180OkZFQ18xXzI6UUFNXzY0OlRSQU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJEX0lOVEVS
+VkFMXzFfMTY6SElFUkFSQ0hZX05PTkU6NTEyOjY1MDoxNTg5ClRFTiBHdWlkZToyMTk1MDAwMDA6
+SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzdfTUhaOkZFQ18zXzQ6RkVDXzFfMjpRQU1fNjQ6VFJB
+TlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV8xNjpISUVSQVJDSFlfTk9ORTo1MTM6
+NjYwOjE1OTEKVEVOIEhEOjIxOTUwMDAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfN19NSFo6
+RkVDXzNfNDpGRUNfMV8yOlFBTV82NDpUUkFOU01JU1NJT05fTU9ERV84SzpHVUFSRF9JTlRFUlZB
+TF8xXzE2OkhJRVJBUkNIWV9OT05FOjUxNDowOjE1OTIKVEVOIEd1aWRlOjIxOTUwMDAwMDpJTlZF
+UlNJT05fQVVUTzpCQU5EV0lEVEhfN19NSFo6RkVDXzNfNDpGRUNfMV8yOlFBTV82NDpUUkFOU01J
+U1NJT05fTU9ERV84SzpHVUFSRF9JTlRFUlZBTF8xXzE2OkhJRVJBUkNIWV9OT05FOjUxMzo2NjA6
+MTU5MwpTQlMgSEQ6NTM2NjI1MDAwOklOVkVSU0lPTl9BVVRPOkJBTkRXSURUSF83X01IWjpGRUNf
+Ml8zOkZFQ18yXzM6UUFNXzY0OlRSQU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJEX0lOVEVSVkFMXzFf
+ODpISUVSQVJDSFlfTk9ORToxMDI6MTAzOjc4NApTQlMgRElHSVRBTCAxOjUzNjYyNTAwMDpJTlZF
+UlNJT05fQVVUTzpCQU5EV0lEVEhfN19NSFo6RkVDXzJfMzpGRUNfMl8zOlFBTV82NDpUUkFOU01J
+U1NJT05fTU9ERV84SzpHVUFSRF9JTlRFUlZBTF8xXzg6SElFUkFSQ0hZX05PTkU6MTYxOjgxOjc4
+NQpTQlMgRElHSVRBTCAyOjUzNjYyNTAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfN19NSFo6
+RkVDXzJfMzpGRUNfMl8zOlFBTV82NDpUUkFOU01JU1NJT05fTU9ERV84SzpHVUFSRF9JTlRFUlZB
+TF8xXzg6SElFUkFSQ0hZX05PTkU6MTYyOjgzOjc4NgpTQlMgRVBHOjUzNjYyNTAwMDpJTlZFUlNJ
+T05fQVVUTzpCQU5EV0lEVEhfN19NSFo6RkVDXzJfMzpGRUNfMl8zOlFBTV82NDpUUkFOU01JU1NJ
+T05fTU9ERV84SzpHVUFSRF9JTlRFUlZBTF8xXzg6SElFUkFSQ0hZX05PTkU6MTYzOjg1Ojc4NwpT
+QlMgUkFESU8gMTo1MzY2MjUwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzdfTUhaOkZFQ18y
+XzM6RkVDXzJfMzpRQU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV84
+OkhJRVJBUkNIWV9OT05FOjA6MjAxOjc5OApTQlMgUkFESU8gMjo1MzY2MjUwMDA6SU5WRVJTSU9O
+X0FVVE86QkFORFdJRFRIXzdfTUhaOkZFQ18yXzM6RkVDXzJfMzpRQU1fNjQ6VFJBTlNNSVNTSU9O
+X01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV84OkhJRVJBUkNIWV9OT05FOjA6MjAyOjc5OQpTQlMg
+SEQ6NTM2NTAwMDAwOklOVkVSU0lPTl9BVVRPOkJBTkRXSURUSF83X01IWjpGRUNfMl8zOkZFQ18y
+XzM6UUFNXzY0OlRSQU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJEX0lOVEVSVkFMXzFfODpISUVSQVJD
+SFlfTk9ORToxMDI6MTAzOjc4NApTQlMgRElHSVRBTCAxOjUzNjUwMDAwMDpJTlZFUlNJT05fQVVU
+TzpCQU5EV0lEVEhfN19NSFo6RkVDXzJfMzpGRUNfMl8zOlFBTV82NDpUUkFOU01JU1NJT05fTU9E
+RV84SzpHVUFSRF9JTlRFUlZBTF8xXzg6SElFUkFSQ0hZX05PTkU6MTYxOjgxOjc4NQpTQlMgRElH
+SVRBTCAyOjUzNjUwMDAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfN19NSFo6RkVDXzJfMzpG
+RUNfMl8zOlFBTV82NDpUUkFOU01JU1NJT05fTU9ERV84SzpHVUFSRF9JTlRFUlZBTF8xXzg6SElF
+UkFSQ0hZX05PTkU6MTYyOjgzOjc4NgpTQlMgRVBHOjUzNjUwMDAwMDpJTlZFUlNJT05fQVVUTzpC
+QU5EV0lEVEhfN19NSFo6RkVDXzJfMzpGRUNfMl8zOlFBTV82NDpUUkFOU01JU1NJT05fTU9ERV84
+SzpHVUFSRF9JTlRFUlZBTF8xXzg6SElFUkFSQ0hZX05PTkU6MTYzOjg1Ojc4NwpTQlMgUkFESU8g
+MTo1MzY1MDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzdfTUhaOkZFQ18yXzM6RkVDXzJf
+MzpRQU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV84OkhJRVJBUkNI
+WV9OT05FOjA6MjAxOjc5OApTQlMgUkFESU8gMjo1MzY1MDAwMDA6SU5WRVJTSU9OX0FVVE86QkFO
+RFdJRFRIXzdfTUhaOkZFQ18yXzM6RkVDXzJfMzpRQU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6
+R1VBUkRfSU5URVJWQUxfMV84OkhJRVJBUkNIWV9OT05FOjA6MjAyOjc5OQpDMzE6NTU3NjI1MDAw
+OklOVkVSU0lPTl9BVVRPOkJBTkRXSURUSF83X01IWjpGRUNfM180OkZFQ19OT05FOlFQU0s6VFJB
+TlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV8xNjpISUVSQVJDSFlfTk9ORToxMDE6
+MTAyOjM1ODUK
+
+--_5e746218-8841-4157-bcc6-c6d406dbf257_--
