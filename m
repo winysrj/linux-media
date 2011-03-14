@@ -1,113 +1,62 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:45599 "EHLO mx1.redhat.com"
+Received: from smtp5-g21.free.fr ([212.27.42.5]:58997 "EHLO smtp5-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751020Ab1CJSbJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Mar 2011 13:31:09 -0500
-Message-ID: <4D7918E5.4090104@redhat.com>
-Date: Thu, 10 Mar 2011 15:31:01 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Steven Rostedt <rostedt@goodmis.org>
-CC: LKML <linux-kernel@vger.kernel.org>,
-	linux-kbuild <linux-kbuild@vger.kernel.org>,
-	Michal Marek <mmarek@suse.cz>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Sucky dependencies found in video saa7134 rc
-References: <1299778653.15854.370.camel@gandalf.stny.rr.com>
-In-Reply-To: <1299778653.15854.370.camel@gandalf.stny.rr.com>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+	id S1754348Ab1CNLyY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Mar 2011 07:54:24 -0400
+Received: from tele (unknown [82.245.201.222])
+	by smtp5-g21.free.fr (Postfix) with ESMTP id 25596D48267
+	for <linux-media@vger.kernel.org>; Mon, 14 Mar 2011 12:54:17 +0100 (CET)
+Date: Mon, 14 Mar 2011 12:54:40 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: linux-media@vger.kernel.org
+Subject: [GIT PATCHES FOR 2.6.39] gspca for_v2.6.39
+Message-ID: <20110314125440.4d3578ed@tele>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 10-03-2011 14:37, Steven Rostedt escreveu:
-> Running randconfigs with ktest seems to find this crap all over. It's
-> not just saa7134, it happens else where too, but this is the one that
-> I'm currently looking at.
-> 
-> I'm also not blaming the saa7134 driver, but I think we need to find a
-> way to fix Kconfig to handle this. Maybe it is in the works. I don't
-> know.
-> 
-> Here's the issue:
-> 
-> 1) in the Makefile in drivers/media/video/saa7134/ we have:
-> 
-> aa7134-y :=	saa7134-cards.o saa7134-core.o saa7134-i2c.o
-> saa7134-y +=	saa7134-ts.o saa7134-tvaudio.o saa7134-vbi.o
-> saa7134-y +=	saa7134-video.o
-> saa7134-$(CONFIG_VIDEO_SAA7134_RC) += saa7134-input.o
-> 
-> 2) in the Kconfig of that directory:
-> 
-> config VIDEO_SAA7134_RC
-> 	bool "Philips SAA7134 Remote Controller support"
-> 	depends on RC_CORE
-> 	depends on VIDEO_SAA7134
-> 	default y
-> 
-> 3) in the Makefile of drivers/media/rc
-> 
-> obj-$(CONFIG_RC_CORE) += rc-core.o
-> 
-> 4) in the Kconfig of that directory:
-> 
-> menuconfig RC_CORE
-> 	tristate "Remote Controller adapters"
-> 	depends on INPUT
-> 	default INPUT
-> 
-> And finally in the .config produced by randconfig:
-> 
-> CONFIG_RC_CORE=m
-> CONFIG_VIDEO_SAA7134=y
-> CONFIG_VIDEO_SAA7134_RC=y
-> 
-> Thus, RC_CORE is a module and the SAA7134 input file is built in, which
-> gives me the following error:
-> 
-> drivers/built-in.o: In function `saa7134_input_init1':
-> /home/rostedt/work/autotest/nobackup/linux-test.git/drivers/media/video/saa7134/saa7134-input.c:737: undefined reference to `rc_allocate_device'
-> /home/rostedt/work/autotest/nobackup/linux-test.git/drivers/media/video/saa7134/saa7134-input.c:780: undefined reference to `rc_register_device'
-> /home/rostedt/work/autotest/nobackup/linux-test.git/drivers/media/video/saa7134/saa7134-input.c:787: undefined reference to `rc_free_device'
-> drivers/built-in.o: In function `saa7134_input_fini':
-> /home/rostedt/work/autotest/nobackup/linux-test.git/drivers/media/video/saa7134/saa7134-input.c:799: undefined reference to `rc_unregister_device'
-> drivers/built-in.o: In function `ir_raw_decode_timer_end':
-> /home/rostedt/work/autotest/nobackup/linux-test.git/drivers/media/video/saa7134/saa7134-input.c:400: undefined reference to `ir_raw_event_handle'
-> drivers/built-in.o: In function `build_key':
-> /home/rostedt/work/autotest/nobackup/linux-test.git/drivers/media/video/saa7134/saa7134-input.c:93: undefined reference to `rc_keydown_notimeout'
-> /home/rostedt/work/autotest/nobackup/linux-test.git/drivers/media/video/saa7134/saa7134-input.c:101: undefined reference to `rc_keydown_notimeout'
-> /home/rostedt/work/autotest/nobackup/linux-test.git/drivers/media/video/saa7134/saa7134-input.c:102: undefined reference to `rc_keyup'
-> drivers/built-in.o: In function `saa7134_raw_decode_irq':
-> /home/rostedt/work/autotest/nobackup/linux-test.git/drivers/media/video/saa7134/saa7134-input.c:920: undefined reference to `ir_raw_event_store_edge'
-> make[1]: *** [.tmp_vmlinux1] Error 1
-> 
-> I know this is just a randconfig and I doubt that people will actually
-> run into this problem, but randconfig should always produce a kernel
-> that can compile, and preferably boot ;)
-> 
-> I think the issue here is that we should never allowed that SAA7134_RC
-> be set to 'y' when RC_CORE is 'm'. I need to look at the kconfig code
-> and see if there's a way to prevent that 'y' if its dependencies have
-> 'm'.
-> 
-> Hmm, but that may not work either :( This may be a Makefile issue, as
-> that 'y' is not really a builtin to the kernel but a builtin to a module
-> that may or may not be built into the kernel. Which makes this
-> dependency agnostic to the Kconfigs. God what a horrible tangled web we
-> weave!
+The following changes since commit
+41f3becb7bef489f9e8c35284dd88a1ff59b190c:
 
-One solution would be to convert CONFIG_VIDEO_SAA7134_RC into a module,
-and change its Kconfig item to tri-state. This way, everything should work
-properly.
+  [media] V4L DocBook: update V4L2 version (2011-03-11 18:09:02 -0300)
 
-It is not that hard to convert it to be a module. Like the approach it
-was taken for saa7134-alsa and saa7134-dvb, but this would require to move
-the IR init code from saa7134 into saa7134-rc, as the -rc module will be
-initialized late, and asynchronous.
+are available in the git repository at:
+  git://linuxtv.org/jfrancois/gspca.git for_v2.6.39
 
-Unfortunately, I don't have any time soon for doing that. Perhaps an easier
-way would be to disable CONFIG_VIDEO_SAA7134_RC if RC_CORE=m and SAA7134=y.
+Hans de Goede (1):
+      gspca - sonixb: Update inactive flags to reflect autogain setting
 
-Cheers,
-Mauro
+Jean-François Moine (9):
+      gspca - zc3xx: Remove double definition
+      gspca - zc3xx: Cleanup source
+      gspca: New file autogain_functions.h
+      gspca - sonixb: Use the new control mechanism
+      gspca - sonixb: Clenup source
+      gspca - jeilinj / stv06xx: Fix some warnings
+      gspca - ov519: Add exposure and autogain controls for ov2610/2610ae
+      gspca - main: Cleanup source
+      gspca - nw80x: New subdriver for Divio based webcams
+
+ Documentation/video4linux/gspca.txt            |    9 +
+ drivers/media/video/gspca/Kconfig              |    9 +
+ drivers/media/video/gspca/Makefile             |    2 +
+ drivers/media/video/gspca/autogain_functions.h |  179 ++
+ drivers/media/video/gspca/gspca.c              |   13 +-
+ drivers/media/video/gspca/jeilinj.c            |    2 -
+ drivers/media/video/gspca/nw80x.c              | 2443 ++++++++++++++++++++++++
+ drivers/media/video/gspca/ov519.c              |  120 +-
+ drivers/media/video/gspca/sonixb.c             |  306 ++--
+ drivers/media/video/gspca/stv06xx/stv06xx.c    |    2 -
+ drivers/media/video/gspca/zc3xx-reg.h          |    2 -
+ drivers/media/video/gspca/zc3xx.c              |   48 +-
+ include/linux/videodev2.h                      |    1 +
+ 13 files changed, 2888 insertions(+), 248 deletions(-)
+ create mode 100644 drivers/media/video/gspca/autogain_functions.h
+ create mode 100644 drivers/media/video/gspca/nw80x.c
+
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
