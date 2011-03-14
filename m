@@ -1,69 +1,197 @@
 Return-path: <mchehab@pedra>
-Received: from alia.ip-minds.de ([84.201.38.2]:33012 "EHLO alia.ip-minds.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755178Ab1CMBWM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Mar 2011 20:22:12 -0500
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by alia.ip-minds.de (Postfix) with ESMTP id 86D0C66A089
-	for <linux-media@vger.kernel.org>; Sun, 13 Mar 2011 02:22:31 +0100 (CET)
-Received: from alia.ip-minds.de ([127.0.0.1])
-	by localhost (alia.ip-minds.de [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id BTgPKDmw6p89 for <linux-media@vger.kernel.org>;
-	Sun, 13 Mar 2011 02:22:31 +0100 (CET)
-Received: from localhost (pD9E1A3D9.dip.t-dialin.net [217.225.163.217])
-	by alia.ip-minds.de (Postfix) with ESMTPA id 1D02666A088
-	for <linux-media@vger.kernel.org>; Sun, 13 Mar 2011 02:22:31 +0100 (CET)
-Date: Sun, 13 Mar 2011 03:22:08 +0100
-From: Jean-Michel Bruenn <jean.bruenn@ip-minds.de>
-To: linux-media@vger.kernel.org
-Subject: Re: WinTV 1400 broken with recent versions?
-Message-Id: <20110313032208.ab1b6488.jean.bruenn@ip-minds.de>
-In-Reply-To: <3DAC424F-1318-4E9D-B1E6-949ABE9E3CBB@wilsonet.com>
-References: <20110309175231.16446e92.jean.bruenn@ip-minds.de>
-	<76A39CFB-2838-4AD7-B353-49971F9F7DFF@wilsonet.com>
-	<ba12e998349efa465be466a4d7f9d43f@localhost>
-	<3AF3951C-11F6-48E4-A0EE-85179B013AFC@wilsonet.com>
-	<81E0AF02-0837-4DF8-BFEA-94A654FFF471@wilsonet.com>
-	<af7d57a1bb478c0edac4cd7afdfd6f41@localhost>
-	<AANLkTimqGxS6OYNarqQwZNxFk+rccPn40UcK+6Oo72SC@mail.gmail.com>
-	<3934d121118af31f8708589189a42b95@localhost>
-	<AANLkTikYjaeXnhA3iP+kxjpA-NU4QQw-_YhRFf4U=30a@mail.gmail.com>
-	<3DAC424F-1318-4E9D-B1E6-949ABE9E3CBB@wilsonet.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.samsung.com ([203.254.224.24]:56052 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752284Ab1CNIpw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Mar 2011 04:45:52 -0400
+Date: Mon, 14 Mar 2011 09:28:22 +0100
+From: Kamil Debski <k.debski@samsung.com>
+Subject: RE: [PATCH v2 2/8] ARM: S5PV310: Add clock support for MFC v5.1
+In-reply-to: <1299676567-14194-3-git-send-email-jtp.park@samsung.com>
+To: 'Jeongtae Park' <jtp.park@samsung.com>,
+	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: jaeryul.oh@samsung.com, kgene.kim@samsung.com, ben-linux@fluff.org,
+	jonghun.han@samsung.com,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <002701cbe221$cb3de360$61b9aa20$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: en-gb
+Content-transfer-encoding: 7BIT
+References: <1299676567-14194-1-git-send-email-jtp.park@samsung.com>
+ <1299676567-14194-3-git-send-email-jtp.park@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-So i guess, nobody here can help me to solve that problems?
+Hi,
 
-xc2028 1-0064: i2c output error: rc = -6 (should be 64)
-xc2028 1-0064: -6 returned from send
-xc2028 1-0064: Error -22 while loading base firmware
-xc2028 1-0064: Loading firmware for type=BASE F8MHZ (3), id
-0000000000000000.
+It looks ok for me. Thanks for fixing the clock patch.
 
-and nobody can tell me, whether thats a firmware problem, or is it an
-i2c problem? At least someone who could explain me, what the above
-errors mean? Also, nobody has any idea what i could try (except for what
-i already did, including reverting patches and downgrading the kernel)?
-I don't think the card is that uncommon, because i've already seen some
-pages stating problems with that card, at least 3 on this maillinglist
-with exactly the same problem (not to talk about those people, who just
-send the card back and replace it with something else/people who don't
-use maillinglists/bugtracker) however, whether the card is common or
-uncommon is not very helpful/useful, so.. it shouldn't really matter.
+> From: Jeongtae Park [mailto:jtp.park@samsung.com]
+> Subject: [PATCH v2 2/8] ARM: S5PV310: Add clock support for MFC v5.1
+> 
+> This patch adds clock support for MFC v5.1.
+> 
+> Reviewed-by: Peter Oh <jaeryul.oh@samsung.com>
+> Signed-off-by: Jeongtae Park <jtp.park@samsung.com>
+> Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+> Cc: Kamil Debski <k.debski@samsung.com>
 
-heh. I'm about to give up. just a pity because the card wasn't 
-cheap when it came out and every page states "supported in linux" which
-seems to be not true anymore. I know that it was, back in 2008 when i
-wrote with S. Toth about it.
+Acked-by: Kamil Debski <k.debski@samsung.com>
 
-http://git.linuxtv.org/anttip/media_tree.git?a=commit;h=6676237398d0c2e61e5a3a27e0951f60d6ef6fe3
+Best regards,
+--
+Kamil Debski
+Linux Platform Group
+Samsung Poland R&D Center
 
-Here's the commit when the card was added. I was using it without any
-trouble around that time. Well if someone knows what i could try (i
-could also hack around in the source if someone tells me what to
-change/where to change) i'd be very happy about ANY information.
+> ---
+>  arch/arm/mach-s5pv310/clock.c                   |   68
+> +++++++++++++++++++++++
+>  arch/arm/mach-s5pv310/include/mach/regs-clock.h |    3 +
+>  2 files changed, 71 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-s5pv310/clock.c b/arch/arm/mach-
+> s5pv310/clock.c
+> index fc7c2f8..88c7943 100644
+> --- a/arch/arm/mach-s5pv310/clock.c
+> +++ b/arch/arm/mach-s5pv310/clock.c
+> @@ -86,6 +86,11 @@ static int s5pv310_clk_ip_cam_ctrl(struct clk *clk,
+> int enable)
+>  	return s5p_gatectrl(S5P_CLKGATE_IP_CAM, clk, enable);
+>  }
+> 
+> +static int s5pv310_clk_ip_mfc_ctrl(struct clk *clk, int enable)
+> +{
+> +	return s5p_gatectrl(S5P_CLKGATE_IP_MFC, clk, enable);
+> +}
+> +
+>  static int s5pv310_clk_ip_image_ctrl(struct clk *clk, int enable)
+>  {
+>  	return s5p_gatectrl(S5P_CLKGATE_IP_IMAGE, clk, enable);
+> @@ -417,6 +422,11 @@ static struct clk init_clocks_off[] = {
+>  		.enable		= s5pv310_clk_ip_cam_ctrl,
+>  		.ctrlbit	= (1 << 2),
+>  	}, {
+> +		.name		= "mfc",
+> +		.id		= -1,
+> +		.enable		= s5pv310_clk_ip_mfc_ctrl,
+> +		.ctrlbit	= (1 << 0),
+> +	}, {
+>  		.name		= "fimc",
+>  		.id		= 3,
+>  		.enable		= s5pv310_clk_ip_cam_ctrl,
+> @@ -643,6 +653,54 @@ static struct clksrc_sources clkset_group = {
+>  	.nr_sources	= ARRAY_SIZE(clkset_group_list),
+>  };
+> 
+> +static struct clk *clkset_mout_mfc0_list[] = {
+> +	[0] = &clk_mout_mpll.clk,
+> +	[1] = &clk_sclk_apll.clk,
+> +};
+> +
+> +static struct clksrc_sources clkset_mout_mfc0 = {
+> +	.sources	= clkset_mout_mfc0_list,
+> +	.nr_sources	= ARRAY_SIZE(clkset_mout_mfc0_list),
+> +};
+> +
+> +static struct clksrc_clk clk_mout_mfc0 = {
+> +	.clk	= {
+> +		.name		= "mout_mfc0",
+> +		.id		= -1,
+> +	},
+> +	.sources	= &clkset_mout_mfc0,
+> +	.reg_src	= { .reg = S5P_CLKSRC_MFC, .shift = 0, .size = 1 },
+> +};
+> +
+> +static struct clk *clkset_mout_mfc1_list[] = {
+> +	[0] = &clk_mout_epll.clk,
+> +	[1] = &clk_sclk_vpll.clk,
+> +};
+> +
+> +static struct clksrc_sources clkset_mout_mfc1 = {
+> +	.sources	= clkset_mout_mfc1_list,
+> +	.nr_sources	= ARRAY_SIZE(clkset_mout_mfc1_list),
+> +};
+> +
+> +static struct clksrc_clk clk_mout_mfc1 = {
+> +	.clk	= {
+> +		.name		= "mout_mfc1",
+> +		.id		= -1,
+> +	},
+> +	.sources	= &clkset_mout_mfc1,
+> +	.reg_src	= { .reg = S5P_CLKSRC_MFC, .shift = 4, .size = 1 },
+> +};
+> +
+> +static struct clk *clkset_mout_mfc_list[] = {
+> +	[0] = &clk_mout_mfc0.clk,
+> +	[1] = &clk_mout_mfc1.clk,
+> +};
+> +
+> +static struct clksrc_sources clkset_mout_mfc = {
+> +	.sources	= clkset_mout_mfc_list,
+> +	.nr_sources	= ARRAY_SIZE(clkset_mout_mfc_list),
+> +};
+> +
+>  static struct clk *clkset_mout_g2d0_list[] = {
+>  	[0] = &clk_mout_mpll.clk,
+>  	[1] = &clk_sclk_apll.clk,
+> @@ -814,6 +872,14 @@ static struct clksrc_clk clksrcs[] = {
+>  		.reg_div = { .reg = S5P_CLKDIV_CAM, .shift = 28, .size = 4
+> },
+>  	}, {
+>  		.clk		= {
+> +			.name		= "sclk_mfc",
+> +			.id		= -1,
+> +		},
+> +		.sources = &clkset_mout_mfc,
+> +		.reg_src = { .reg = S5P_CLKSRC_MFC, .shift = 8, .size = 1
+> },
+> +		.reg_div = { .reg = S5P_CLKDIV_MFC, .shift = 0, .size = 4
+> },
+> +	}, {
+> +		.clk		= {
+>  			.name		= "sclk_cam",
+>  			.id		= 0,
+>  			.enable		= s5pv310_clksrc_mask_cam_ctrl,
+> @@ -1018,6 +1084,8 @@ static struct clksrc_clk *sysclks[] = {
+>  	&clk_dout_mmc2,
+>  	&clk_dout_mmc3,
+>  	&clk_dout_mmc4,
+> +	&clk_mout_mfc0,
+> +	&clk_mout_mfc1,
+>  };
+> 
+>  static int xtal_rate;
+> diff --git a/arch/arm/mach-s5pv310/include/mach/regs-clock.h
+> b/arch/arm/mach-s5pv310/include/mach/regs-clock.h
+> index b5c4ada..27b02e8 100644
+> --- a/arch/arm/mach-s5pv310/include/mach/regs-clock.h
+> +++ b/arch/arm/mach-s5pv310/include/mach/regs-clock.h
+> @@ -33,6 +33,7 @@
+>  #define S5P_CLKSRC_TOP0			S5P_CLKREG(0x0C210)
+>  #define S5P_CLKSRC_TOP1			S5P_CLKREG(0x0C214)
+>  #define S5P_CLKSRC_CAM			S5P_CLKREG(0x0C220)
+> +#define S5P_CLKSRC_MFC			S5P_CLKREG(0x0C228)
+>  #define S5P_CLKSRC_IMAGE		S5P_CLKREG(0x0C230)
+>  #define S5P_CLKSRC_LCD0			S5P_CLKREG(0x0C234)
+>  #define S5P_CLKSRC_LCD1			S5P_CLKREG(0x0C238)
+> @@ -42,6 +43,7 @@
+> 
+>  #define S5P_CLKDIV_TOP			S5P_CLKREG(0x0C510)
+>  #define S5P_CLKDIV_CAM			S5P_CLKREG(0x0C520)
+> +#define S5P_CLKDIV_MFC			S5P_CLKREG(0x0C528)
+>  #define S5P_CLKDIV_IMAGE		S5P_CLKREG(0x0C530)
+>  #define S5P_CLKDIV_LCD0			S5P_CLKREG(0x0C534)
+>  #define S5P_CLKDIV_LCD1			S5P_CLKREG(0x0C538)
+> @@ -67,6 +69,7 @@
+>  #define S5P_CLKDIV_STAT_TOP		S5P_CLKREG(0x0C610)
+> 
+>  #define S5P_CLKGATE_IP_CAM		S5P_CLKREG(0x0C920)
+> +#define S5P_CLKGATE_IP_MFC		S5P_CLKREG(0x0C928)
+>  #define S5P_CLKGATE_IP_IMAGE		S5P_CLKREG(0x0C930)
+>  #define S5P_CLKGATE_IP_LCD0		S5P_CLKREG(0x0C934)
+>  #define S5P_CLKGATE_IP_LCD1		S5P_CLKREG(0x0C938)
+> --
+> 1.7.1
 
-thanks so far.
