@@ -1,44 +1,37 @@
 Return-path: <mchehab@pedra>
-Received: from mga01.intel.com ([192.55.52.88]:9814 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756232Ab1CALoH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Mar 2011 06:44:07 -0500
-Date: Tue, 1 Mar 2011 12:43:54 +0100
-From: Samuel Ortiz <sameo@linux.intel.com>
-To: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Cc: alsa-devel@alsa-project.org, broonie@opensource.wolfsonmicro.com,
-	lrg@slimlogic.co.uk, mchehab@redhat.com, hverkuil@xs4all.nl,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v21 1/3] MFD: WL1273 FM Radio: MFD driver for the FM
- radio.
-Message-ID: <20110301114353.GA4543@sortiz-mobl>
-References: <1298966450-31814-1-git-send-email-matti.j.aaltonen@nokia.com>
- <1298966450-31814-2-git-send-email-matti.j.aaltonen@nokia.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:57065 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750876Ab1CNEKy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Mar 2011 00:10:54 -0400
+Received: by iwn34 with SMTP id 34so4551017iwn.19
+        for <linux-media@vger.kernel.org>; Sun, 13 Mar 2011 21:10:53 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1298966450-31814-2-git-send-email-matti.j.aaltonen@nokia.com>
+In-Reply-To: <201103131331.16338.hverkuil@xs4all.nl>
+References: <201103131331.16338.hverkuil@xs4all.nl>
+Date: Mon, 14 Mar 2011 15:10:53 +1100
+Message-ID: <AANLkTikJDt-sDaPNPipGRo7kLjLysSw4z-Yq4LOOnibg@mail.gmail.com>
+Subject: Re: [ANN] Agenda for the Warsaw meeting.
+From: Jason Hecker <jhecker@wireless.org.au>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Matti,
+> B) Use of V4L2 as a frontend for SW/DSP codecs
+>   (Laurent)
 
-On Tue, Mar 01, 2011 at 10:00:48AM +0200, Matti J. Aaltonen wrote:
-> This is the core of the WL1273 FM radio driver, it connects
-> the two child modules. The two child drivers are
-> drivers/media/radio/radio-wl1273.c and sound/soc/codecs/wl1273.c.
-> 
-> The radio-wl1273 driver implements the V4L2 interface and communicates
-> with the device. The ALSA codec offers digital audio, without it only
-> analog audio is available.
+This would be good.   Realtek's RT2832U chip can tune to and possibly
+demodulate DAB/DAB+ and FM along with the usual DVB-T.  Realtek does
+support DAB and FM in Windows with this part but not in Linux and in
+spite of promises from one of their developers I haven't seen anything
+from them.  I think it'd be good to get this part talking to the DAB
+processing routines in OpenDAB or OpenMoko as I strongly suspect the
+part can tune to and provide a digital version of the bandband signal
+for demodulation of DAB or FM in user space.
 
-Acked-by: Samuel Ortiz <sameo@linux.intel.com>
-
-Mauro, I suppose you're taking this one ?
-
-Cheers,
-Samuel.
-
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+It might be a good opportunity to get a signal processing framework
+into the driver but I suspect an API to allow a user space demodulator
+to read ADC baseband data from such a device would be best and safest.
