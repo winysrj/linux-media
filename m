@@ -1,59 +1,42 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.samsung.com ([203.254.224.33]:10238 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753831Ab1CHLBR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Mar 2011 06:01:17 -0500
-Received: from epmmp2 (mailout3.samsung.com [203.254.224.33])
- by mailout3.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LHQ00GDVJXGGFF0@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Tue, 08 Mar 2011 20:00:52 +0900 (KST)
-Received: from AMDC159 ([106.116.37.153])
- by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LHQ00JV2JX5OH@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 08 Mar 2011 20:00:53 +0900 (KST)
-Date: Tue, 08 Mar 2011 12:00:39 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: V4L2 'brainstorming' meeting in Warsaw, March 2011
-In-reply-to: <000001cbd825$1954f9a0$4bfeece0$%szyprowski@samsung.com>
-To: 'Marek Szyprowski' <m.szyprowski@samsung.com>,
-	linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl,
-	"'Martin Bugge (marbugge)'" <marbugge@cisco.com>,
-	'Sakari Ailus' <sakari.ailus@maxwell.research.nokia.com>,
-	'Guennadi Liakhovetski' <g.liakhovetski@gmx.de>,
-	'Laurent Pinchart' <laurent.pinchart@skynet.be>,
-	'Willy POISSON' <willy.poisson@stericsson.com>,
-	'Jaeryul Oh' <jaeryul.oh@samsung.com>,
-	'Jonghun Han' <jonghun.han@samsung.com>, sw0312.kim@samsung.com
-Message-id: <000201cbdd80$130f3ff0$392dbfd0$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <ADF13DA15EB3FE4FBA487CCC7BEFDF36190F532AED@bssrvexch01>
- <000001cbd7fd$1868a500$4939ef00$%szyprowski@samsung.com>
- <000001cbd825$1954f9a0$4bfeece0$%szyprowski@samsung.com>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:57901 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755547Ab1CNBPU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Mar 2011 21:15:20 -0400
+References: <AANLkTi=RNXdb6BSLQL74NA9XMrN9mj6CNYvZgycSCQ9n@mail.gmail.com> <AANLkTinyJOVQEurOUdibvTfTNLRCWEJi_GX8=bodK4c=@mail.gmail.com> <AANLkTikCX8S=Q0=06ggw+qVAYRh=56ch3rRduyN0G7W5@mail.gmail.com> <AANLkTimVnmX6Bqk=wqB6g48M_JJ99tO=a7rVtQGcz-34@mail.gmail.com>
+In-Reply-To: <AANLkTimVnmX6Bqk=wqB6g48M_JJ99tO=a7rVtQGcz-34@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Subject: Re: Problem with saa7134: Asus Tiger revision 1.0, subsys 1043:4857
+From: Andy Walls <awalls@md.metrocast.net>
+Date: Sun, 13 Mar 2011 21:15:29 -0400
+To: Jason Hecker <jwhecker@gmail.com>, linux-media@vger.kernel.org
+Message-ID: <707cd595-bc97-4f8f-b478-3221539e8739@email.android.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello once again,
+Jason Hecker <jwhecker@gmail.com> wrote:
 
-I will come to Polonia Palace Hotel on Wednesday morning. I propose
-to meet near the reception desk at 8:45 AM and then we will come together to
-the SPRC Office. If one decided to stay in a different hotel, he can also
-join us near the SPRC Office building at 9:00 AM.
+>I seem to have fixed the problem for now.  It's the hoary old problem
+>of Mythtv's backend coming up and accessing the cards before the
+>firmware has loaded onto the cards.  Adding in a startup delay to
+>myth-backend's init script has solved the problem, for now.  The
+>firmware seems to load now on Mythbuntu 10.04 without a problem.
+>
+>Is there some way to put a lock in the driver or even speed up the
+>process of loading the firmware with some command line arguments when
+>the saa7134 driver is loaded?
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-media"
+>in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-In case of any problems or questions, please don't hesitate to call me
-directly. Here is my phone numer: +48604072390
+The ivtv and cx18 driver have that sort of logic in them.  Look for init_on_first_open and serialized_open functions that set some firmware loading related bit flags.
 
-Just to remind - here is a map with SPRC Office building and Hotel Polonia
-Palace: 
-http://tinyurl.com/4tubbyu
+I'm not sure what saa7134 does, but devloping a patch to add something similar shouldn't be rocket science for anyone with time, test hardware, and motivation.
 
-Best regards
---
-Marek Szyprowski
-Samsung Poland R&D Center
-
-
+-Andy
