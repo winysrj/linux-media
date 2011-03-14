@@ -1,39 +1,54 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.171]:54461 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751899Ab1CWKBC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Mar 2011 06:01:02 -0400
-Date: Wed, 23 Mar 2011 11:00:06 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-cc: linux-media@vger.kernel.org,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Tony Lindgren <tony@atomide.com>,
-	Discussion of the Amstrad E3 emailer hardware/software
-	<e3-hacking@earth.li>
-Subject: Re: [PATCH v3] SoC Camera: add driver for OMAP1 camera interface
-In-Reply-To: <201009301335.51643.jkrzyszt@tis.icnet.pl>
-Message-ID: <Pine.LNX.4.64.1103231056360.6836@axis700.grange>
-References: <201009301335.51643.jkrzyszt@tis.icnet.pl>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from bear.ext.ti.com ([192.94.94.41]:53734 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753358Ab1CNN4Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Mar 2011 09:56:24 -0400
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Kevin Hilman <khilman@deeprootsystems.com>,
+	LAK <linux-arm-kernel@lists.infradead.org>,
+	Sekhar Nori <nsekhar@ti.com>
+Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [PATCH 3/7] davinci: dm644x: Replace register base value with a defined macro
+Date: Mon, 14 Mar 2011 19:26:08 +0530
+Message-Id: <1300110968-16350-1-git-send-email-manjunath.hadli@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Janusz
+Replace hard coded value of vpss register base to a define macro
+DM644X_VPSS_REG_BASE for proper readability
 
-You might want to retest ams-delta with the camera on the current (next or
-
-git://linuxtv.org/media_tree.git staging/for_v2.6.39
-
-) kernel - I suspect, you'll need something similar to
-
-http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/30728
-
-Thanks
-Guennadi
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ arch/arm/mach-davinci/dm644x.c |    8 +++++---
+ 1 files changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
+index 77dea11..73e74d0 100644
+--- a/arch/arm/mach-davinci/dm644x.c
++++ b/arch/arm/mach-davinci/dm644x.c
+@@ -586,13 +586,15 @@ static struct platform_device dm644x_asp_device = {
+ 	.resource	= dm644x_asp_resources,
+ };
+ 
++#define DM644X_VPSS_REG_BASE           0x01c73400
++
+ static struct resource dm644x_vpss_resources[] = {
+ 	{
+ 		/* VPSS Base address */
+ 		.name		= "vpss",
+-		.start          = 0x01c73400,
+-		.end            = 0x01c73400 + 0xff,
+-		.flags          = IORESOURCE_MEM,
++		.start		= DM644X_VPSS_REG_BASE,
++		.end		= DM644X_VPSS_REG_BASE + 0xff,
++		.flags		= IORESOURCE_MEM,
+ 	},
+ };
+ 
+-- 
+1.6.2.4
+
