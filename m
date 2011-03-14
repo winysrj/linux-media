@@ -1,38 +1,44 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:51166 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752864Ab1CENAa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Mar 2011 08:00:30 -0500
-Received: by fxm17 with SMTP id 17so2926645fxm.19
-        for <linux-media@vger.kernel.org>; Sat, 05 Mar 2011 05:00:29 -0800 (PST)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [GIT PATCHES FOR 2.6.39] cx23885, altera-ci, stv0367: uncorrected blocks counter and other fixes
-Date: Sat, 5 Mar 2011 15:00:38 +0200
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:3469 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751187Ab1CNKQZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Mar 2011 06:16:25 -0400
+Message-ID: <2392d6a7f50862a36201f8cbe7eaf18e.squirrel@webmail.xs4all.nl>
+Date: Mon, 14 Mar 2011 11:16:12 +0100
+Subject: Missing V4L2_PIX_FMT_JPGL
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Hans de Goede" <hdegoede@redhat.com>
+Cc: linux-media@vger.kernel.org
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201103051500.38525.liplianin@me.by>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The following changes since commit 88a763df226facb74fdb254563e30e9efb64275c:
+Hi Hans,
 
-  [media] dw2102: prof 1100 corrected (2011-03-02 16:56:54 -0300)
+I just copied the latest videobuf2.h to v4l-utils and tried to compile,
+but it fails with:
 
-are available in the git repository at:
-  git://linuxtv.org/liplianin/media_tree.git dual_dvb_t_c_ci_rf-1
+make[2]: Entering directory
+`/home/hve/work/src/v4l/v4l-utils/lib/libv4lconvert'
+cc -Wp,-MMD,"libv4lconvert.d",-MQ,"libv4lconvert.o",-MP -c -I../include
+-fvisibility=hidden -fPIC -DLIBDIR=\"/usr/local/lib\"
+-DLIBSUBDIR=\"libv4l\" -I../../include -I../../lib/include -D_GNU_SOURCE
+-DV4L_UTILS_VERSION='"0.8.4-test"' -g -O1 -Wall -Wpointer-arith
+-Wstrict-prototypes -Wmissing-prototypes -o libv4lconvert.o
+libv4lconvert.c
+libv4lconvert.c:73: error: 'V4L2_PIX_FMT_JPGL' undeclared here (not in a
+function)
 
-Abylay Ospan (5):
-      cx23885: Altera FPGA CI interface reworked.
-      stv0367: change default value for AGC register.
-      stv0367: implement uncorrected blocks counter.
-      Fix CI code for NetUP Dual DVB-T/C CI RF card
-      Force xc5000 firmware loading for NetUP Dual DVB-T/C CI RF card
+It seems V4L2_PIX_FMT_JPGL was removed. I guess the support for this
+format can be removed from libv4lconvert.c?
 
- drivers/media/dvb/frontends/stv0367.c     |   24 +++++++++++++++++++++---
- drivers/media/video/cx23885/altera-ci.c   |   14 ++++++++++----
- drivers/media/video/cx23885/cx23885-dvb.c |   23 +++++++++++++----------
- 3 files changed, 44 insertions(+), 17 deletions(-)
+Regards,
+
+       Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
+
