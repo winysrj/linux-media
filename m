@@ -1,208 +1,128 @@
 Return-path: <mchehab@pedra>
-Received: from ist.d-labs.de ([213.239.218.44]:44324 "EHLO mx01.d-labs.de"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:47038 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752979Ab1CUKTi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Mar 2011 06:19:38 -0400
-From: Florian Mickler <florian@mickler.org>
-To: mchehab@infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	pb@linuxtv.org, Florian Mickler <florian@mickler.org>
-Subject: [PATCH 9/9] [media] vp702x: use preallocated buffer in the frontend
-Date: Mon, 21 Mar 2011 11:19:14 +0100
-Message-Id: <1300702754-16376-10-git-send-email-florian@mickler.org>
-In-Reply-To: <1300702754-16376-1-git-send-email-florian@mickler.org>
-References: <1300702754-16376-1-git-send-email-florian@mickler.org>
+	id S1752832Ab1CNN5O (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Mar 2011 09:57:14 -0400
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Kevin Hilman <khilman@deeprootsystems.com>,
+	LAK <linux-arm-kernel@lists.infradead.org>,
+	Sekhar Nori <nsekhar@ti.com>
+Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [PATCH 5/7] davinci: dm644x: move vpfe init from soc to board specific files
+Date: Mon, 14 Mar 2011 19:26:54 +0530
+Message-Id: <1300111014-16766-1-git-send-email-manjunath.hadli@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Note: This change is tested to compile only as I don't have the
-hardware.
+Move all vpfe platform device registrations to the board specific
+file like the rest of the devices, and have all of them together.
 
-Signed-off-by: Florian Mickler <florian@mickler.org>
+This would remove the  restriction of inclusion and registration of
+vpfe platform devices for non-vpfe boards.
+
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
 ---
- drivers/media/dvb/dvb-usb/vp702x-fe.c |   69 +++++++++++++++++----------------
- 1 files changed, 35 insertions(+), 34 deletions(-)
+ arch/arm/mach-davinci/board-dm644x-evm.c    |    3 +-
+ arch/arm/mach-davinci/dm644x.c              |   29 +++++++++++++++-----------
+ arch/arm/mach-davinci/include/mach/dm644x.h |    2 +-
+ 3 files changed, 19 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/media/dvb/dvb-usb/vp702x-fe.c b/drivers/media/dvb/dvb-usb/vp702x-fe.c
-index 7468a38..2bb8d4c 100644
---- a/drivers/media/dvb/dvb-usb/vp702x-fe.c
-+++ b/drivers/media/dvb/dvb-usb/vp702x-fe.c
-@@ -41,14 +41,13 @@ struct vp702x_fe_state {
- 
- static int vp702x_fe_refresh_state(struct vp702x_fe_state *st)
+diff --git a/arch/arm/mach-davinci/board-dm644x-evm.c b/arch/arm/mach-davinci/board-dm644x-evm.c
+index 6919f28..d1542b1 100644
+--- a/arch/arm/mach-davinci/board-dm644x-evm.c
++++ b/arch/arm/mach-davinci/board-dm644x-evm.c
+@@ -628,8 +628,6 @@ static struct davinci_uart_config uart_config __initdata = {
+ static void __init
+ davinci_evm_map_io(void)
  {
-+	struct vp702x_device_state *dst = st->d->priv;
- 	u8 *buf;
- 
- 	if (time_after(jiffies, st->next_status_check)) {
--		buf = kmalloc(10, GFP_KERNEL);
--		if (!buf) {
--			deb_fe("%s: buffer alloc failed\n", __func__);
--			return -ENOMEM;
--		}
-+		mutex_lock(&dst->buf_mutex);
-+		buf = dst->buf;
-+
- 		vp702x_usb_in_op(st->d, READ_STATUS, 0, 0, buf, 10);
- 		st->lock = buf[4];
- 
-@@ -58,9 +57,8 @@ static int vp702x_fe_refresh_state(struct vp702x_fe_state *st)
- 		vp702x_usb_in_op(st->d, READ_TUNER_REG_REQ, 0x15, 0, buf, 1);
- 		st->sig = buf[0];
- 
--
-+		mutex_unlock(&dst->buf_mutex);
- 		st->next_status_check = jiffies + (st->status_check_interval*HZ)/1000;
--		kfree(buf);
- 	}
- 	return 0;
- }
-@@ -141,15 +139,17 @@ static int vp702x_fe_set_frontend(struct dvb_frontend* fe,
- 				  struct dvb_frontend_parameters *fep)
- {
- 	struct vp702x_fe_state *st = fe->demodulator_priv;
-+	struct vp702x_device_state *dst = st->d->priv;
- 	u32 freq = fep->frequency/1000;
- 	/*CalFrequency*/
- /*	u16 frequencyRef[16] = { 2, 4, 8, 16, 32, 64, 128, 256, 24, 5, 10, 20, 40, 80, 160, 320 }; */
- 	u64 sr;
- 	u8 *cmd;
- 
--	cmd = kzalloc(10, GFP_KERNEL);
--	if (!cmd)
--		return -ENOMEM;
-+	mutex_lock(&dst->buf_mutex);
-+
-+	cmd = dst->buf;
-+	memset(cmd, 0, 10);
- 
- 	cmd[0] = (freq >> 8) & 0x7f;
- 	cmd[1] =  freq       & 0xff;
-@@ -192,7 +192,8 @@ static int vp702x_fe_set_frontend(struct dvb_frontend* fe,
- 	else
- 		deb_fe("tuning succeeded.\n");
- 
--	kfree(cmd);
-+	mutex_unlock(&dst->buf_mutex);
-+
- 	return 0;
+-	/* setup input configuration for VPFE input devices */
+-	dm644x_set_vpfe_config(&dm644xevm_capture_cfg);
+ 	dm644x_init();
  }
  
-@@ -220,21 +221,18 @@ static int vp702x_fe_get_frontend(struct dvb_frontend* fe,
- static int vp702x_fe_send_diseqc_msg (struct dvb_frontend* fe,
- 				    struct dvb_diseqc_master_cmd *m)
- {
--	int ret;
- 	u8 *cmd;
- 	struct vp702x_fe_state *st = fe->demodulator_priv;
+@@ -701,6 +699,7 @@ static __init void davinci_evm_init(void)
+ 	evm_init_i2c();
+ 
+ 	davinci_setup_mmc(0, &dm6446evm_mmc_config);
++	dm644x_init_video(&dm644xevm_capture_cfg);
+ 
+ 	davinci_serial_init(&uart_config);
+ 	dm644x_init_asp(&dm644x_evm_snd_data);
+diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
+index 8ff5d5f..41e8866 100644
+--- a/arch/arm/mach-davinci/dm644x.c
++++ b/arch/arm/mach-davinci/dm644x.c
+@@ -651,11 +651,6 @@ static struct platform_device dm644x_vpfe_dev = {
+ 	},
+ };
+ 
+-void dm644x_set_vpfe_config(struct vpfe_config *cfg)
+-{
+-	dm644x_vpfe_dev.dev.platform_data = cfg;
+-}
 -
--	cmd = kzalloc(10, GFP_KERNEL);
--	if (!cmd)
--		return -ENOMEM;
-+	struct vp702x_device_state *dst = st->d->priv;
+ /*----------------------------------------------------------------------*/
  
- 	deb_fe("%s\n",__func__);
+ static struct map_desc dm644x_io_desc[] = {
+@@ -784,14 +779,28 @@ void __init dm644x_init(void)
+ 	davinci_map_sysmod();
+ }
  
--	if (m->msg_len > 4) {
--		ret = -EINVAL;
--		goto out;
--	}
-+	if (m->msg_len > 4)
-+		return -EINVAL;
++static struct platform_device *dm644x_video_devices[] __initdata = {
++	&dm644x_vpss_device,
++	&dm644x_ccdc_dev,
++	&dm644x_vpfe_dev,
++};
 +
-+	mutex_lock(&dst->buf_mutex);
- 
-+	cmd = dst->buf;
- 	cmd[1] = SET_DISEQC_CMD;
- 	cmd[2] = m->msg_len;
- 	memcpy(&cmd[3], m->msg, m->msg_len);
-@@ -246,10 +244,10 @@ static int vp702x_fe_send_diseqc_msg (struct dvb_frontend* fe,
- 		deb_fe("diseqc cmd failed.\n");
- 	else
- 		deb_fe("diseqc cmd succeeded.\n");
--	ret = 0;
--out:
--	kfree(cmd);
--	return ret;
-+
-+	mutex_unlock(&dst->buf_mutex);
-+
++int __init dm644x_init_video(struct vpfe_config *vpfe_cfg)
++{
++	dm644x_vpfe_dev.dev.platform_data = vpfe_cfg;
++	/* Add ccdc clock aliases */
++	clk_add_alias("master", dm644x_ccdc_dev.name, "vpss_master", NULL);
++	clk_add_alias("slave", dm644x_ccdc_dev.name, "vpss_slave", NULL);
++	platform_add_devices(dm644x_video_devices,
++				ARRAY_SIZE(dm644x_video_devices));
 +	return 0;
- }
- 
- static int vp702x_fe_send_diseqc_burst (struct dvb_frontend* fe, fe_sec_mini_cmd_t burst)
-@@ -261,14 +259,11 @@ static int vp702x_fe_send_diseqc_burst (struct dvb_frontend* fe, fe_sec_mini_cmd
- static int vp702x_fe_set_tone(struct dvb_frontend* fe, fe_sec_tone_mode_t tone)
++}
++
+ static int __init dm644x_init_devices(void)
  {
- 	struct vp702x_fe_state *st = fe->demodulator_priv;
-+	struct vp702x_device_state *dst = st->d->priv;
- 	u8 *buf;
+ 	if (!cpu_is_davinci_dm644x())
+ 		return 0;
  
- 	deb_fe("%s\n",__func__);
+-	/* Add ccdc clock aliases */
+-	clk_add_alias("master", dm644x_ccdc_dev.name, "vpss_master", NULL);
+-	clk_add_alias("slave", dm644x_ccdc_dev.name, "vpss_slave", NULL);
+ 	platform_device_register(&dm644x_edma_device);
  
--	buf = kmalloc(10, GFP_KERNEL);
--	if (!buf)
--		return -ENOMEM;
+ 	platform_device_register(&dm644x_mdio_device);
+@@ -799,10 +808,6 @@ static int __init dm644x_init_devices(void)
+ 	clk_add_alias(NULL, dev_name(&dm644x_mdio_device.dev),
+ 		      NULL, &dm644x_emac_device.dev);
+ 
+-	platform_device_register(&dm644x_vpss_device);
+-	platform_device_register(&dm644x_ccdc_dev);
+-	platform_device_register(&dm644x_vpfe_dev);
 -
- 	st->tone_mode = tone;
- 
- 	if (tone == SEC_TONE_ON)
-@@ -277,6 +272,10 @@ static int vp702x_fe_set_tone(struct dvb_frontend* fe, fe_sec_tone_mode_t tone)
- 		st->lnb_buf[2] = 0x00;
- 
- 	st->lnb_buf[7] = vp702x_chksum(st->lnb_buf, 0, 7);
-+
-+	mutex_lock(&dst->buf_mutex);
-+
-+	buf = dst->buf;
- 	memcpy(buf, st->lnb_buf, 8);
- 
- 	vp702x_usb_inout_op(st->d, buf, 8, buf, 10, 100);
-@@ -285,7 +284,8 @@ static int vp702x_fe_set_tone(struct dvb_frontend* fe, fe_sec_tone_mode_t tone)
- 	else
- 		deb_fe("set_tone cmd succeeded.\n");
- 
--	kfree(buf);
-+	mutex_unlock(&dst->buf_mutex);
-+
  	return 0;
  }
+ postcore_initcall(dm644x_init_devices);
+diff --git a/arch/arm/mach-davinci/include/mach/dm644x.h b/arch/arm/mach-davinci/include/mach/dm644x.h
+index 5a1b26d..29a9e24 100644
+--- a/arch/arm/mach-davinci/include/mach/dm644x.h
++++ b/arch/arm/mach-davinci/include/mach/dm644x.h
+@@ -42,6 +42,6 @@
  
-@@ -293,13 +293,10 @@ static int vp702x_fe_set_voltage (struct dvb_frontend* fe, fe_sec_voltage_t
- 		voltage)
- {
- 	struct vp702x_fe_state *st = fe->demodulator_priv;
-+	struct vp702x_device_state *dst = st->d->priv;
- 	u8 *buf;
- 	deb_fe("%s\n",__func__);
+ void __init dm644x_init(void);
+ void __init dm644x_init_asp(struct snd_platform_data *pdata);
+-void dm644x_set_vpfe_config(struct vpfe_config *cfg);
++int __init dm644x_init_video(struct vpfe_config *);
  
--	buf = kmalloc(10, GFP_KERNEL);
--	if (!buf)
--		return -ENOMEM;
--
- 	st->voltage = voltage;
- 
- 	if (voltage != SEC_VOLTAGE_OFF)
-@@ -308,6 +305,10 @@ static int vp702x_fe_set_voltage (struct dvb_frontend* fe, fe_sec_voltage_t
- 		st->lnb_buf[4] = 0x00;
- 
- 	st->lnb_buf[7] = vp702x_chksum(st->lnb_buf, 0, 7);
-+
-+	mutex_lock(&dst->buf_mutex);
-+
-+	buf = dst->buf;
- 	memcpy(buf, st->lnb_buf, 8);
- 
- 	vp702x_usb_inout_op(st->d, buf, 8, buf, 10, 100);
-@@ -316,7 +317,7 @@ static int vp702x_fe_set_voltage (struct dvb_frontend* fe, fe_sec_voltage_t
- 	else
- 		deb_fe("set_voltage cmd succeeded.\n");
- 
--	kfree(buf);
-+	mutex_unlock(&dst->buf_mutex);
- 	return 0;
- }
- 
+ #endif /* __ASM_ARCH_DM644X_H */
 -- 
-1.7.4.1
+1.6.2.4
 
