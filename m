@@ -1,161 +1,342 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.samsung.com ([203.254.224.24]:44251 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752466Ab1CHJe5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Mar 2011 04:34:57 -0500
-Date: Tue, 08 Mar 2011 10:34:40 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [PATCH/RFC 0/7] Samsung IOMMU videobuf2 allocator and s5p-fimc
- update
-In-reply-to: <03ab01cbdd62$739550d0$5abff270$%kim@samsung.com>
-To: 'Kukjin Kim' <kgene.kim@samsung.com>,
-	linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	k.debski@samsung.com,
-	=?ks_c_5601-1987?B?J8DMwM/Ioy9TL1cgU29sdXRpb26ws7nfxsAoUy5MU0kpL0U1KA==?=
-	 =?ks_c_5601-1987?B?w6XA0ykvu++8usD8wNon?=
-	<ilho215.lee@samsung.com>,
-	=?ks_c_5601-1987?B?J8G2sObIoy9TL1cgU29sdXRpb26ws7nfxsAoUy5MU0kpL0U0KA==?=
-	 =?ks_c_5601-1987?B?vLHA0ykvu++8usD8wNon?= <pullip.cho@samsung.com>,
-	=?ks_c_5601-1987?B?J7TrwM6x4ic=?= <inki.dae@samsung.com>,
-	=?ks_c_5601-1987?B?J7Ctuc6x1Cc=?= <mk7.kang@samsung.com>
-Message-id: <001301cbdd74$1044a4b0$30cdee10$%szyprowski@samsung.com>
+Received: from mailout3.samsung.com ([203.254.224.33]:28266 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752979Ab1CNNKY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Mar 2011 09:10:24 -0400
+Date: Mon, 14 Mar 2011 14:08:07 +0100
+From: Kamil Debski <k.debski@samsung.com>
+Subject: RE: [PATCH v2 1/8] media: Changes in include/linux/videodev2.h for MFC
+ 5.1
+In-reply-to: <1299676567-14194-2-git-send-email-jtp.park@samsung.com>
+To: 'Jeongtae Park' <jtp.park@samsung.com>,
+	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: jaeryul.oh@samsung.com, kgene.kim@samsung.com, ben-linux@fluff.org,
+	jonghun.han@samsung.com,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <002d01cbe248$df988af0$9ec9a0d0$%debski@samsung.com>
 MIME-version: 1.0
-Content-type: text/plain; charset=ks_c_5601-1987
-Content-language: pl
+Content-type: text/plain; charset=us-ascii
+Content-language: en-gb
 Content-transfer-encoding: 7BIT
-References: <1299229274-9753-1-git-send-email-m.szyprowski@samsung.com>
- <03ab01cbdd62$739550d0$5abff270$%kim@samsung.com>
+References: <1299676567-14194-1-git-send-email-jtp.park@samsung.com>
+ <1299676567-14194-2-git-send-email-jtp.park@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+Hi,
 
-On Tuesday, March 08, 2011 8:29 AM Kukjin Kim wrote:
+Please see my comments below.
 
-> Hello,
+> -----Original Message-----
+> From: Jeongtae Park [mailto:jtp.park@samsung.com]
+> Sent: 09 March 2011 14:16
+> To: linux-media@vger.kernel.org; linux-samsung-soc@vger.kernel.org
+> Cc: k.debski@samsung.com; jaeryul.oh@samsung.com;
+> kgene.kim@samsung.com; ben-linux@fluff.org; jonghun.han@samsung.com;
+> Jeongtae Park; Marek Szyprowski
+> Subject: [PATCH v2 1/8] media: Changes in include/linux/videodev2.h for
+> MFC 5.1
 > 
-> There are comments for your System MMU driver below.
-
-Please take into account that this was an initial version of our SYSMMU
-driver to start the discussion, so there were a few minor problems left.
-Thanks for pointing them out btw. :)
-
- 
-> It's good that System MMU has functionality of mapping but System MMU have
-> to use other mapping of virtual memory allocator.
-
-Could you elaborate on this? I'm not sure I understand right your problem.
-
-SYSMMU driver is a low-level driver for the SYSMMU module. The driver should
-provide all the basic functionality that is (or might be) hardware dependent.
-Creating a mapping is one of such elementary functionalities. Sysmmu client
-(let it be videobuf2-s5p-iommu, vcmm, maybe even other driver directly)
-should not need to know the format of page descriptors or the way they are
-arranged in the memory. The sysmmu should provide low level functions to create
-and remove a mapping. Managing a virtual space is something that MIGHT be client
-dependent and should be left to the client. 
-
-This design allows for different approaches to coexist. Videobuf2-s5p-iommu
-client will manage the virtual space with gen_alloc framework, while vcmm will
-use its own methods.
-
-It would be great if one decide to unify iommu interfaces across the kernel,
-but this will be a long road. We need to start from something simple (platform
-private) and working first.
- 
-> And would be better to change sysmmu_list to use array of defined in
-> s5p_sysmmu_ip enumeration, so that can get enhancement of memory space
-> usage, speed, and readability of codes.
-
-Yes, the list can be simplified to an array, but this is really a minor issue.
-
-> TLB replacement policy does not need to use LRU. Of course, current System
-> MMU also needs it. I think, the round robin is enough, because to access
-> memory has no temporal locality and to make LRU need to access to System
-> MMU register one more. The reset value is round robin.
-
-Well, the best possibility is to allow sysmmu clients to decide which policy
-should be used. For some devices (I'm thinking of MFC) LRU policy might give
-a little speedup.
-
-> In the setting of SHARED page table in s5p_sysmmu_control_locked, get the
-> page table base address of ARM core from cp15 register now. But current->mm-
-> >pgd is better for more compatibility.
-
-Right, this way the pgd table pointer can be acquired in a more system friendly
-way.
-
-> When it make page table with PRIVATE page table methods, the size of the
-> structure to manage the second page table is quite big. It is much better
-> rather that to make slab with cache size of 1KB.
-
-Yes, our initial driver uses directly 4KB pages to manage 4 consecutive second
-page tables. However usually the allocations of client devices will be few but
-quite large each. So most of pages used to hold second level page tables will
-be effectively reused. 
-
-You are right however that the approach with a slab with 1KB units will
-result in code that is cleaner and easier to understand.
-
-> Besides, the page mapping implementation is not safe in your System MMU
-> driver. Because only first one confirms primary page table entry, when it
-> assigns four second page tables consecutively at a time.
-
-That's a direct result of the 4-second-level-at-once method of allocating
-second level pages, but this can be cleaned by using 1KB with slab.
-
-> The System MMU driver cannot apply runtime pm by oneself with calling
-> pm_runtime_put_sync(). The reason is because a device with System MMU can
-> on/off power. I think just clock gating is enough. However, I can't find
-> clock enable/disable in your driver.
-
-Clock is enabled in probe() and disabled in remove(). pm_runtime_get/put_sync()
-only increases/decreases use count of a respective power domain, so the actual
-device driver also has to call pm_runtime_get/put. Calling pm_runtime_put_sync()
-will not shut down the power if the sysmmu client driver has called
-pm_runtime_get() without pm_runtime_put(). I see no problems here. Could you 
-elaborate your issue?
-
+> Add V4L2_CTRL_CLASS_CODEC and adds controls used by MFC 5.1 driver
 > 
-> By PRIVATE page table method, each system MMU comes to have a page table
-> only for oneself. In this case, the problem is that each MFC System MMU L
-> and R having another page table.
+> Reviewed-by: Peter Oh <jaeryul.oh@samsung.com>
+> Signed-off-by: Jeongtae Park <jtp.park@samsung.com>
+> Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+> Cc: Kamil Debski <k.debski@samsung.com>
+> ---
+>  include/linux/videodev2.h |  158
+> +++++++++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 158 insertions(+), 0 deletions(-)
+> 
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index a94c4d5..37ed969 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -369,6 +369,19 @@ struct v4l2_pix_format {
+>  #define V4L2_PIX_FMT_DV       v4l2_fourcc('d', 'v', 's', 'd') /* 1394
+> */
+>  #define V4L2_PIX_FMT_MPEG     v4l2_fourcc('M', 'P', 'E', 'G') /* MPEG-
+> 1/2/4    */
+> 
+> +#define V4L2_PIX_FMT_H264     v4l2_fourcc('H', '2', '6', '4') /* H264
+> */
+> +#define V4L2_PIX_FMT_H263     v4l2_fourcc('H', '2', '6', '3') /* H263
+> */
+> +#define V4L2_PIX_FMT_MPEG12   v4l2_fourcc('M', 'P', '1', '2') /* MPEG-
+> 1/2      */
+> +#define V4L2_PIX_FMT_MPEG4    v4l2_fourcc('M', 'P', 'G', '4') /* MPEG-
+> 4        */
+> +#define V4L2_PIX_FMT_DIVX     v4l2_fourcc('D', 'I', 'V', 'X') /* DivX
+> */
+> +#define V4L2_PIX_FMT_DIVX3    v4l2_fourcc('D', 'I', 'V', '3') /* DivX
+> 3.11     */
+> +#define V4L2_PIX_FMT_DIVX4    v4l2_fourcc('D', 'I', 'V', '4') /* DivX
+> 4.x      */
+> +#define V4L2_PIX_FMT_DIVX500  v4l2_fourcc('D', 'X', '5', '2') /* DivX
+> 5.0, 5.01, 5.02 */
+> +#define V4L2_PIX_FMT_DIVX503  v4l2_fourcc('D', 'X', '5', '3') /* DivX
+> 5.03 ~   */
+> +#define V4L2_PIX_FMT_XVID     v4l2_fourcc('X', 'V', 'I', 'D') /* XviD
+> */
+> +#define V4L2_PIX_FMT_VC1      v4l2_fourcc('V', 'C', '1', 'A') /* VC-1
+> */
+> +#define V4L2_PIX_FMT_VC1_RCV  v4l2_fourcc('V', 'C', '1', 'R') /* VC-1
+> RCV      */
+> +
+>  /*  Vendor-specific formats   */
+>  #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1
+> YUV */
+>  #define V4L2_PIX_FMT_WNVA     v4l2_fourcc('W', 'N', 'V', 'A') /*
+> Winnov hw compress */
+> @@ -1016,6 +1029,7 @@ struct v4l2_ext_controls {
+>  #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls
+> */
+>  #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class
+> controls */
+>  #define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control
+class
+> */
+> +#define V4L2_CTRL_CLASS_CODEC 0x009c0000	/* Codec control class */
+> 
+>  #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
+>  #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
+> @@ -1349,6 +1363,150 @@ enum v4l2_mpeg_cx2341x_video_median_filter_type
+> {
+>  #define V4L2_CID_MPEG_CX2341X_VIDEO_CHROMA_MEDIAN_FILTER_TOP
+> 	(V4L2_CID_MPEG_CX2341X_BASE+10)
+>  #define V4L2_CID_MPEG_CX2341X_STREAM_INSERT_NAV_PACKETS
+> 	(V4L2_CID_MPEG_CX2341X_BASE+11)
+> 
+> +/*  Codec class control IDs */
+> +#define V4L2_CID_CODEC_BASE			(V4L2_CTRL_CLASS_CODEC |
+> 0x900)
+> +#define V4L2_CID_CODEC_CLASS			(V4L2_CTRL_CLASS_CODEC | 1)
+> +
+> +/*  For both decoding and encoding */
+> +#define V4L2_CID_CODEC_LOOP_FILTER_H264
+(V4L2_CID_CODEC_BASE+0)
+> +enum v4l2_cid_codec_loop_filter_h264 {
+> +	V4L2_CID_CODEC_LOOP_FILTER_H264_ENABLE = 0,
+> +	V4L2_CID_CODEC_LOOP_FILTER_H264_DISABLE = 1,
+> +	V4L2_CID_CODEC_LOOP_FILTER_H264_DISABLE_AT_BOUNDARY = 2,
+> +};
+> +
+> +/*  For decoding */
+> +#define V4L2_CID_CODEC_LOOP_FILTER_MPEG4_ENABLE
+> 	(V4L2_CID_CODEC_BASE+100)
+> +#define V4L2_CID_CODEC_DISPLAY_DELAY
+> 	(V4L2_CID_CODEC_BASE+101)
+> +#define V4L2_CID_CODEC_REQ_NUM_BUFS
+> 	(V4L2_CID_CODEC_BASE+102)
+> +#define V4L2_CID_CODEC_SLICE_INTERFACE
+> 	(V4L2_CID_CODEC_BASE+103)
+> +#define V4L2_CID_CODEC_PACKED_PB		(V4L2_CID_CODEC_BASE+104)
+> +#define V4L2_CID_CODEC_FRAME_TAG		(V4L2_CID_CODEC_BASE+105)
+> +
+> +/*  For encoding */
+> +/* common */
+> +enum v4l2_codec_switch {
+> +	V4L2_CODEC_SW_DISABLE	= 0,
+> +	V4L2_CODEC_SW_ENABLE	= 1,
+> +};
+> +enum v4l2_codec_switch_inv {
+> +	V4L2_CODEC_SW_INV_ENABLE	= 0,
+> +	V4L2_CODEC_SW_INV_DISABLE	= 1,
+> +};
 
-Yes, true. This is consequence of the MFC hardware design and the fact that
-it has 2 AXI master interfaces and 2 SYSMMU controllers. Each of them have to
-be configured separately. Each of them has a separate virtual driver's address
-space. Such configuration is used by the MFC driver posted in v7 patch series.
 
-> In your System MMU driver, the page size is always 4KB crucially. This says
-> TLB thrashing and produces a result to lose a TLB hit rate. It is a big
-> problem with the device such as rotator which does not do sequential access
-> especially.
+Why introduce this? It is used by you for boolean controls - it is
+pretty obvious that 0 means false and 1 means true. Adding a separate
+enum for inverted boolean is both confusing and definitely not necessary.
 
-The page size is set to 4KB, because Linux kernel uses 4KB pages by default.
-Once support for other page size is available in the kernel, then sysmmu can be
-extended also.
+When get the value from the application you can easily invert it in the
+driver.
 
-> And the IRQ handler just outputs only a message. It should be implemented
-> in call back function to be able to handle from each device driver.
+> +#define V4L2_CID_CODEC_GOP_SIZE
+> 	(V4L2_CID_CODEC_BASE+200)
+> +#define V4L2_CID_CODEC_MULTI_SLICE_MODE
+> 	(V4L2_CID_CODEC_BASE+201)
+> +enum v4l2_codec_multi_slice_mode {
+> +	V4L2_CODEC_MULTI_SLICE_MODE_DISABLE		= 0,
+> +	V4L2_CODEC_MULTI_SLICE_MODE_MACROBLOCK_COUNT	= 1,
+> +	V4L2_CODEC_MULTI_SLICE_MODE_BIT_COUNT		= 3,
+> +};
+> +#define V4L2_CID_CODEC_MULTI_SLICE_MB
+> 	(V4L2_CID_CODEC_BASE+202)
+> +#define V4L2_CID_CODEC_MULTI_SLICE_BIT
+> 	(V4L2_CID_CODEC_BASE+203)
+> +#define V4L2_CID_CODEC_INTRA_REFRESH_MB
+> 	(V4L2_CID_CODEC_BASE+204)
+> +#define V4L2_CID_CODEC_PAD_CTRL_ENABLE
+> 	(V4L2_CID_CODEC_BASE+205)
+> +#define V4L2_CID_CODEC_PAD_LUMA_VALUE
+> 	(V4L2_CID_CODEC_BASE+206)
+> +#define V4L2_CID_CODEC_PAD_CB_VALUE
+> 	(V4L2_CID_CODEC_BASE+207)
+> +#define V4L2_CID_CODEC_PAD_CR_VALUE
+> 	(V4L2_CID_CODEC_BASE+208)
+> +#define V4L2_CID_CODEC_RC_FRAME_ENABLE
+> 	(V4L2_CID_CODEC_BASE+209)
+> +#define V4L2_CID_CODEC_RC_BIT_RATE		(V4L2_CID_CODEC_BASE+210)
+> +#define V4L2_CID_CODEC_RC_REACTION_COEFF	(V4L2_CID_CODEC_BASE+211)
+> +#define V4L2_CID_CODEC_STREAM_SIZE		(V4L2_CID_CODEC_BASE+212)
+> +#define V4L2_CID_CODEC_FRAME_COUNT		(V4L2_CID_CODEC_BASE+213)
+> +#define V4L2_CID_CODEC_FRAME_TYPE		(V4L2_CID_CODEC_BASE+214)
+> +enum v4l2_codec_frame_type {
+> +	V4L2_CODEC_FRAME_TYPE_INVALID		= -1,
+> +	V4L2_CODEC_FRAME_TYPE_NOT_CODED		= 0,
+> +	V4L2_CODEC_FRAME_TYPE_I_FRAME		= 1,
+> +	V4L2_CODEC_FRAME_TYPE_P_FRAME		= 2,
+> +	V4L2_CODEC_FRAME_TYPE_B_FRAME		= 3,
+> +	V4L2_CODEC_FRAME_TYPE_SKIPPED		= 4,
+> +	V4L2_CODEC_FRAME_TYPE_OTHERS		= 5,
+> +};
+> +#define V4L2_CID_CODEC_FORCE_FRAME_TYPE	(V4L2_CID_CODEC_BASE+215)
+> +enum v4l2_codec_force_frame_type {
+> +	V4L2_CODEC_FORCE_FRAME_TYPE_I_FRAME	= 1,
+> +	V4L2_CODEC_FORCE_FRAME_TYPE_NOT_CODED	= 2,
+> +};
+> +#define V4L2_CID_CODEC_VBV_BUF_SIZE
+> 	(V4L2_CID_CODEC_BASE+216)
+> +#define V4L2_CID_CODEC_SEQ_HDR_MODE
+> 	(V4L2_CID_CODEC_BASE+217)
+> +enum v4l2_codec_seq_hdr_mode {
+> +	V4L2_CODEC_SEQ_HDR_MODE_SEQ		= 0,
+> +	V4L2_CODEC_SEQ_HDR_MODE_SEQ_FRAME	= 1,
+> +};
+> +#define V4L2_CID_CODEC_FRAME_SKIP_MODE	(V4L2_CID_CODEC_BASE+218)
+> +enum v4l2_codec_frame_skip_mode {
+> +	V4L2_CODEC_FRAME_SKIP_MODE_DISABLE	= 0,
+> +	V4L2_CODEC_FRAME_SKIP_MODE_LEVEL	= 1,
+> +	V4L2_CODEC_FRAME_SKIP_MODE_VBV_BUF_SIZE	= 2,
+> +};
+> +#define V4L2_CID_CODEC_RC_FIXED_TARGET_BIT
+> 	(V4L2_CID_CODEC_BASE+219)
+> +
+> +/* codec specific */
+> +#define V4L2_CID_CODEC_H264_B_FRAMES
+> 	(V4L2_CID_CODEC_BASE+300)
+> +#define V4L2_CID_CODEC_H264_PROFILE
+> 	(V4L2_CID_CODEC_BASE+301)
+> +enum v4l2_codec_h264_profile {
+> +	V4L2_CODEC_H264_PROFILE_MAIN		= 0,
+> +	V4L2_CODEC_H264_PROFILE_HIGH		= 1,
+> +	V4L2_CODEC_H264_PROFILE_BASELINE	= 2,
+> +};
+> +#define V4L2_CID_CODEC_H264_LEVEL		(V4L2_CID_CODEC_BASE+302)
+> +#define V4L2_CID_CODEC_H264_INTERLACE
+> 	(V4L2_CID_CODEC_BASE+303)
+> +#define V4L2_CID_CODEC_H264_LOOP_FILTER_MODE
+> 	(V4L2_CID_CODEC_BASE+304)
+> +enum v4l2_codec_h264_loop_filter {
+> +	V4L2_CODEC_H264_LOOP_FILTER_ENABLE		= 0,
+> +	V4L2_CODEC_H264_LOOP_FILTER_DISABLE		= 1,
+> +	V4L2_CODEC_H264_LOOP_FILTER_DISABLE_AT_BOUNDARY	= 2,
+> +};
+> +#define V4L2_CID_CODEC_H264_LOOP_FILTER_ALPHA
+> 	(V4L2_CID_CODEC_BASE+305)
+> +#define V4L2_CID_CODEC_H264_LOOP_FILTER_BETA
+> 	(V4L2_CID_CODEC_BASE+306)
+> +#define V4L2_CID_CODEC_H264_ENTROPY_MODE	(V4L2_CID_CODEC_BASE+307)
+> +enum v4l2_codec_h264_entropy_mode {
+> +	V4L2_CODEC_H264_ENTROPY_MODE_CAVLC	= 0,
+> +	V4L2_CODEC_H264_ENTROPY_MODE_CABAC	= 1,
+> +};
+> +#define V4L2_CID_CODEC_H264_MAX_REF_PIC
+> 	(V4L2_CID_CODEC_BASE+308)
+> +#define V4L2_CID_CODEC_H264_NUM_REF_PIC_4P
+> 	(V4L2_CID_CODEC_BASE+309)
+> +#define V4L2_CID_CODEC_H264_8X8_TRANSFORM
+> 	(V4L2_CID_CODEC_BASE+310)
+> +#define V4L2_CID_CODEC_H264_RC_MB_ENABLE	(V4L2_CID_CODEC_BASE+311)
+> +#define V4L2_CID_CODEC_H264_RC_FRAME_RATE
+> 	(V4L2_CID_CODEC_BASE+312)
+> +#define V4L2_CID_CODEC_H264_RC_FRAME_QP
+> 	(V4L2_CID_CODEC_BASE+313)
+> +#define V4L2_CID_CODEC_H264_RC_MIN_QP
+> 	(V4L2_CID_CODEC_BASE+314)
+> +#define V4L2_CID_CODEC_H264_RC_MAX_QP
+> 	(V4L2_CID_CODEC_BASE+315)
+> +#define V4L2_CID_CODEC_H264_RC_MB_DARK
+> 	(V4L2_CID_CODEC_BASE+316)
+> +#define V4L2_CID_CODEC_H264_RC_MB_SMOOTH	(V4L2_CID_CODEC_BASE+317)
+> +#define V4L2_CID_CODEC_H264_RC_MB_STATIC	(V4L2_CID_CODEC_BASE+318)
+> +#define V4L2_CID_CODEC_H264_RC_MB_ACTIVITY
+> 	(V4L2_CID_CODEC_BASE+319)
+> +#define V4L2_CID_CODEC_H264_RC_P_FRAME_QP
+> 	(V4L2_CID_CODEC_BASE+320)
+> +#define V4L2_CID_CODEC_H264_RC_B_FRAME_QP
+> 	(V4L2_CID_CODEC_BASE+321)
+> +#define V4L2_CID_CODEC_H264_AR_VUI_ENABLE
+> 	(V4L2_CID_CODEC_BASE+322)
+> +#define V4L2_CID_CODEC_H264_AR_VUI_IDC
+> 	(V4L2_CID_CODEC_BASE+323)
+> +#define V4L2_CID_CODEC_H264_EXT_SAR_WIDTH
+> 	(V4L2_CID_CODEC_BASE+324)
+> +#define V4L2_CID_CODEC_H264_EXT_SAR_HEIGHT
+> 	(V4L2_CID_CODEC_BASE+325)
+> +#define V4L2_CID_CODEC_H264_OPEN_GOP
+> 	(V4L2_CID_CODEC_BASE+326)
+> +#define V4L2_CID_CODEC_H264_I_PERIOD
+> 	(V4L2_CID_CODEC_BASE+327)
+> +
+> +#define V4L2_CID_CODEC_MPEG4_B_FRAMES
+> 	(V4L2_CID_CODEC_BASE+340)
+> +#define V4L2_CID_CODEC_MPEG4_PROFILE
+> 	(V4L2_CID_CODEC_BASE+341)
+> +enum v4l2_codec_mpeg4_profile {
+> +	V4L2_CODEC_MPEG4_PROFILE_SIMPLE		= 0,
+> +	V4L2_CODEC_MPEG4_PROFILE_ADVANCED_SIMPLE	= 1,
+> +};
+> +#define V4L2_CID_CODEC_MPEG4_LEVEL		(V4L2_CID_CODEC_BASE+342)
+> +#define V4L2_CID_CODEC_MPEG4_RC_FRAME_QP	(V4L2_CID_CODEC_BASE+343)
+> +#define V4L2_CID_CODEC_MPEG4_RC_MIN_QP
+> 	(V4L2_CID_CODEC_BASE+344)
+> +#define V4L2_CID_CODEC_MPEG4_RC_MAX_QP
+> 	(V4L2_CID_CODEC_BASE+345)
+> +#define V4L2_CID_CODEC_MPEG4_QUARTER_PIXEL
+> 	(V4L2_CID_CODEC_BASE+346)
+> +#define V4L2_CID_CODEC_MPEG4_RC_P_FRAME_QP
+> 	(V4L2_CID_CODEC_BASE+347)
+> +#define V4L2_CID_CODEC_MPEG4_RC_B_FRAME_QP
+> 	(V4L2_CID_CODEC_BASE+348)
+> +#define V4L2_CID_CODEC_MPEG4_VOP_TIME_RES
+> 	(V4L2_CID_CODEC_BASE+349)
+> +#define V4L2_CID_CODEC_MPEG4_VOP_FRM_DELTA
+> 	(V4L2_CID_CODEC_BASE+350)
+> +
+> +#define V4L2_CID_CODEC_H263_RC_FRAME_RATE
+> 	(V4L2_CID_CODEC_BASE+360)
+> +#define V4L2_CID_CODEC_H263_RC_FRAME_QP
+> 	(V4L2_CID_CODEC_BASE+361)
+> +#define V4L2_CID_CODEC_H263_RC_MIN_QP
+> 	(V4L2_CID_CODEC_BASE+362)
+> +#define V4L2_CID_CODEC_H263_RC_MAX_QP
+> 	(V4L2_CID_CODEC_BASE+363)
+> +#define V4L2_CID_CODEC_H263_RC_P_FRAME_QP
+> 	(V4L2_CID_CODEC_BASE+364)
 
-This was only for debugging purpose, but you are right that the sysmmu API in 
-this area need to be extended.
 
-> When it sets System MMU in SHARED page table, kernel virtual memory is
-> broken by a method such as s5p_sysmmu_map_area()
+Regarding the QP controls (quantization parameter) I would make 
+those generic controls. For example V4L2_CID_CODEC_MIN_QP & ...MAX_QP.
+The value range is different for H264(0..51) and  H263/MPEG4(1..31) but
+the meaning is the same.
 
-Yes, there should be a check added to prevent messing with ARM pgd in SHARED 
-mode.
+I know that Hans has another opinion on this - we will discuss this during
+the Warsaw meeting.
 
-Best regards
+> +
+>  /*  Camera class control IDs */
+>  #define V4L2_CID_CAMERA_CLASS_BASE 	(V4L2_CTRL_CLASS_CAMERA |
+> 0x900)
+>  #define V4L2_CID_CAMERA_CLASS 		(V4L2_CTRL_CLASS_CAMERA | 1)
+> --
+> 1.7.1
+
+Best wishes,
 --
-Marek Szyprowski
+Kamil Debski
+Linux Platform Group
 Samsung Poland R&D Center
-
-
 
