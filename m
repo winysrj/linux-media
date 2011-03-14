@@ -1,124 +1,190 @@
 Return-path: <mchehab@pedra>
-Received: from kroah.org ([198.145.64.141]:58794 "EHLO coco.kroah.org"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:47497 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753762Ab1CPTsI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Mar 2011 15:48:08 -0400
-Date: Wed, 16 Mar 2011 12:47:58 -0700
-From: Greg KH <greg@kroah.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	USB list <linux-usb@vger.kernel.org>
-Subject: Re: [ANNOUNCE] usbmon capture and parser script
-Message-ID: <20110316194758.GA32557@kroah.com>
-References: <4D8102A9.9080202@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4D8102A9.9080202@redhat.com>
+	id S1751278Ab1CNN6y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Mar 2011 09:58:54 -0400
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Kevin Hilman <khilman@deeprootsystems.com>,
+	LAK <linux-arm-kernel@lists.infradead.org>,
+	Sekhar Nori <nsekhar@ti.com>
+Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [PATCH 7/7] davinci: dm644x EVM: add support for VPBE display
+Date: Mon, 14 Mar 2011 19:27:34 +0530
+Message-Id: <1300111054-18502-1-git-send-email-manjunath.hadli@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Mar 16, 2011 at 03:34:17PM -0300, Mauro Carvalho Chehab wrote:
-> While trying to debug some issues on a driver on Linux, and using a Beagleboard card as a
-> hardware USB sniffer[1], I noticed the need of having a parser to work with
-> the sniffer data. While wireshark provides a good way of looking into the info,
-> most of the times, I just want to convert the data into something more concise
-> that allows me to work on a char terminal, and that allows to use a device-specific 
-> parser that translates an obscure log into device-specific register reads and writes.
-> 
-> [1] using the code available at: http://beagleboard-usbsniffer.blogspot.com/
-> 
-> So, I wrote a parser, in perl, called parse_tcpdump_log.pl. The current version
-> is, in fact, more than a parser, as it allows both parsing a previously captured
-> log, or to start a capture and parse data in real time. The script is available
-> at the v4l-utils tree, on:
-> 	http://git.linuxtv.org/v4l-utils.git?a=blob;f=contrib/parse_tcpdump_log.pl;h=f90e981125462a58cadefa607cbff0ecb4b5ed45;hb=HEAD
-> 
-> At the output, each line is a URB data control transfer. The script groups the
-> request and the complete URB's into one line, so, each line of the dump
-> will correspond to a call to usb_control_msg().
-> 
-> The output is:
-> 
->         000000000 ms 000000 ms (000127 us EP=80) 80 06 00 01 00 00 28 00 >>> 12 01 00 02 00 00 00 40 40 20 13 65 10 01 00 01 02 01
->         000000000 ms 000000 ms (000002 us EP=80) 80 06 00 01 00 00 28 00 >>> 12 01 00 02 09 00 00 40 6b 1d 02 00 06 02 03 02 01 01
->         000000006 ms 000005 ms (000239 us EP=80) c0 00 00 00 45 00 03 00 <<< 00 00 10
->         000001006 ms 001000 ms (000112 us EP=80) c0 00 00 00 45 00 03 00 <<< 00 00 10
->         000001106 ms 000100 ms (000150 us EP=80) c0 00 00 00 45 00 03 00 <<< 00 00 10
-> 
-> The provided info on each of the above lines are:
-> 
->        - Time from the script start;
->        - Time from the last transaction;
->        - Time between URB send request and URB response;
->        - Endpoint for the transfer;
->        - 8 bytes with the following URB fields:
->            - Type (1 byte);
->            - Request (1 byte);
->            - wValue (2 bytes);
->            - wIndex (2 bytes);
->            - wLength (2 bytes);
->        - URB direction:
->            >>> - To URB device
->            <<< - To host
->        - Optional data (length is given by wLength).
-> 
-> It is also possible to produce a detailed log, when used with "--debug 2", like:
-> 
-> PARSED data:
-> 		RAW: ID => 0xffff880105a53f00
-> 		RAW: Payload => 00000000000000000000000000000000000200000000000012010002090000406b1d0200060203020101
-> 		RAW: Time => 1300309970.745112
-> 		RAW: Status => 0
-> 		RAW: ArrivalTime => 5584788795812741120.745112
-> 		RAW: URBLength => 18
-> 		RAW: TransferType => 2
-> 		RAW: Device => 1
-> 		RAW: Type => C
-> 		RAW: DataLength => 18
-> 		RAW: BusID => 1
-> 		RAW: HasData => present
-> 		RAW: Endpoint => 128
-> 		RAW: PayloadSize => 42
-> 		RAW: SetupRequest => not present
-> 
-> There are a few other parsers at the v4l-utils git tree that can work with the 
-> default output format and produce a device-specific output. For example, the 
-> parser_em28xx.pl will produce a code that will look close to the C clauses
-> inside the em28xx driver. So, for a real-time debug of the em28xx driver, for
-> example, it will do:
-> 
-> # ./parse_tcpdump_log.pl --pcap |./parse_em28xx.pl 
-> 
-> em28xx_read_reg(dev, EM28XX_R26_COMPR);		/* read 0x0c */
-> em28xx_write_reg(dev, EM28XX_R26_COMPR, 0x0c);
-> i2c_master_send(0xb8>>1, { 02 00 }, 0x02);
-> i2c_master_send(0xb8>>1, { 00 00 }, 0x02);
-> i2c_master_send(0xb8>>1, { 03 }, 0x01);
-> i2c_master_recv(0xb8>>1, &buf, 0x01); /* 6f */
-> em28xx_read_reg(dev, 0x05);		/* read 0x00 */
-> i2c_master_send(0xb8>>1, { 03 6f }, 0x02);
-> em28xx_write_ac97(dev, AC97_MASTER_VOL, 0x8000);
-> em28xx_write_ac97(dev, AC97_LINE_LEVEL_VOL, 0x8000);
-> em28xx_write_ac97(dev, AC97_MASTER_MONO_VOL, 0x8000);
-> em28xx_write_ac97(dev, AC97_LFE_MASTER_VOL, 0x8000);
-> 
-> I wrote a short summary on how to use it at:
-> 	http://linuxtv.org/wiki/index.php/Bus_snooping/sniffing#Snooping_Procedures:
-> 
-> The script also accepts the "--man" and "--help" parameters to produce a manpage
-> or a help.
-> 
-> In summary, I hope that this script will ease USB device driver debug and development.
+This patch adds support for V4L2 video display to DM6446 EVM.
+Support for SD and ED modes is provided, along with Composite
+and Component outputs.
 
-Very cool stuff.  You are away of:
-	http://vusb-analyzer.sourceforge.net/
-right?
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+---
+ arch/arm/mach-davinci/board-dm644x-evm.c    |  108 ++++++++++++++++++++++++++-
+ arch/arm/mach-davinci/dm644x.c              |    4 +-
+ arch/arm/mach-davinci/include/mach/dm644x.h |    3 +-
+ 3 files changed, 112 insertions(+), 3 deletions(-)
 
-I know you are doing this in console mode, but it looks close to the
-same idea.
+diff --git a/arch/arm/mach-davinci/board-dm644x-evm.c b/arch/arm/mach-davinci/board-dm644x-evm.c
+index d1542b1..4a642dd 100644
+--- a/arch/arm/mach-davinci/board-dm644x-evm.c
++++ b/arch/arm/mach-davinci/board-dm644x-evm.c
+@@ -616,6 +616,112 @@ static void __init evm_init_i2c(void)
+ 	i2c_register_board_info(1, i2c_info, ARRAY_SIZE(i2c_info));
+ }
+ 
++#define VENC_STD_ALL	(V4L2_STD_NTSC | V4L2_STD_PAL)
++
++/* venc standard timings */
++static struct vpbe_enc_mode_info dm644xevm_enc_std_timing[] = {
++	{
++		.name		= "ntsc",
++		.timings_type	= VPBE_ENC_STD,
++		.timings	= {V4L2_STD_525_60},
++		.interlaced	= 1,
++		.xres		= 720,
++		.yres		= 480,
++		.aspect		= {11, 10},
++		.fps		= {30000, 1001},
++		.left_margin	= 0x79,
++		.upper_margin	= 0x10,
++	},
++	{
++		.name		= "pal",
++		.timings_type	= VPBE_ENC_STD,
++		.timings	= {V4L2_STD_625_50},
++		.interlaced	= 1,
++		.xres		= 720,
++		.yres		= 576,
++		.aspect		= {54, 59},
++		.fps		= {25, 1},
++		.left_margin	= 0x7E,
++		.upper_margin	= 0x16,
++	},
++};
++
++/* venc dv preset timings */
++static struct vpbe_enc_mode_info dm644xevm_enc_preset_timing[] = {
++	{
++		.name		= "480p59_94",
++		.timings_type	= VPBE_ENC_DV_PRESET,
++		.timings	= {V4L2_DV_480P59_94},
++		.interlaced	= 0,
++		.xres		= 720,
++		.yres		= 480,
++		.aspect		= {1, 1},
++		.fps		= {5994, 100},
++		.left_margin	= 0x80,
++		.upper_margin	= 0x20,
++	},
++	{
++		.name		= "576p50",
++		.timings_type	= VPBE_ENC_DV_PRESET,
++		.timings	= {V4L2_DV_576P50},
++		.interlaced	= 0,
++		.xres		= 720,
++		.yres		= 576,
++		.aspect		= {1, 1},
++		.fps		= {50, 1},
++		.left_margin	= 0x7E,
++		.upper_margin	= 0x30,
++	},
++};
++
++/*
++ * The outputs available from VPBE + encoders. Keep the order same
++ * as that of encoders. First those from venc followed by that from
++ * encoders. Index in the output refers to index on a particular encoder.
++ * Driver uses this index to pass it to encoder when it supports more than
++ * one output. Application uses index of the array to set an output.
++ */
++static struct vpbe_output dm644xevm_vpbe_outputs[] = {
++	{
++		.output		= {
++			.index		= 0,
++			.name		= "Composite",
++			.type		= V4L2_OUTPUT_TYPE_ANALOG,
++			.std		= VENC_STD_ALL,
++			.capabilities	= V4L2_OUT_CAP_STD,
++		},
++		.subdev_name	= VPBE_VENC_SUBDEV_NAME,
++		.default_mode	= "ntsc",
++		.num_modes	= ARRAY_SIZE(dm644xevm_enc_std_timing),
++		.modes		= dm644xevm_enc_std_timing,
++	},
++	{
++		.output		= {
++			.index		= 1,
++			.name		= "Component",
++			.type		= V4L2_OUTPUT_TYPE_ANALOG,
++			.capabilities	= V4L2_OUT_CAP_PRESETS,
++		},
++		.subdev_name	= VPBE_VENC_SUBDEV_NAME,
++		.default_mode	= "480p59_94",
++		.num_modes	= ARRAY_SIZE(dm644xevm_enc_preset_timing),
++		.modes		= dm644xevm_enc_preset_timing,
++	},
++};
++
++static struct vpbe_config dm644xevm_display_cfg = {
++	.module_name	= "dm644x-vpbe-display",
++	.i2c_adapter_id	= 1,
++	.osd		= {
++		.module_name	= VPBE_OSD_SUBDEV_NAME,
++	},
++	.venc		= {
++		.module_name	= VPBE_VENC_SUBDEV_NAME,
++	},
++	.num_outputs	= ARRAY_SIZE(dm644xevm_vpbe_outputs),
++	.outputs	= dm644xevm_vpbe_outputs,
++};
++
+ static struct platform_device *davinci_evm_devices[] __initdata = {
+ 	&davinci_fb_device,
+ 	&rtc_dev,
+@@ -699,7 +805,7 @@ static __init void davinci_evm_init(void)
+ 	evm_init_i2c();
+ 
+ 	davinci_setup_mmc(0, &dm6446evm_mmc_config);
+-	dm644x_init_video(&dm644xevm_capture_cfg);
++	dm644x_init_video(&dm644xevm_capture_cfg, &dm644xevm_display_cfg);
+ 
+ 	davinci_serial_init(&uart_config);
+ 	dm644x_init_asp(&dm644x_evm_snd_data);
+diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
+index aaa8f4d..2d37163 100644
+--- a/arch/arm/mach-davinci/dm644x.c
++++ b/arch/arm/mach-davinci/dm644x.c
+@@ -909,9 +909,11 @@ static struct platform_device *dm644x_video_devices[] __initdata = {
+ 	&dm644x_vpbe_display,
+ };
+ 
+-int __init dm644x_init_video(struct vpfe_config *vpfe_cfg)
++int __init dm644x_init_video(struct vpfe_config *vpfe_cfg,
++			     struct vpbe_config *vpbe_cfg)
+ {
+ 	dm644x_vpfe_dev.dev.platform_data = vpfe_cfg;
++	dm644x_vpbe_dev.dev.platform_data = vpbe_cfg;
+ 	/* Add ccdc clock aliases */
+ 	clk_add_alias("master", dm644x_ccdc_dev.name, "vpss_master", NULL);
+ 	clk_add_alias("slave", dm644x_ccdc_dev.name, "vpss_slave", NULL);
+diff --git a/arch/arm/mach-davinci/include/mach/dm644x.h b/arch/arm/mach-davinci/include/mach/dm644x.h
+index d18a2e5..6c90afa 100644
+--- a/arch/arm/mach-davinci/include/mach/dm644x.h
++++ b/arch/arm/mach-davinci/include/mach/dm644x.h
+@@ -46,6 +46,7 @@
+ 
+ void __init dm644x_init(void);
+ void __init dm644x_init_asp(struct snd_platform_data *pdata);
+-int __init dm644x_init_video(struct vpfe_config *);
++int __init dm644x_init_video(struct vpfe_config *,
++			     struct vpbe_config *);
+ 
+ #endif /* __ASM_ARCH_DM644X_H */
+-- 
+1.6.2.4
 
-thanks,
-
-greg k-h
