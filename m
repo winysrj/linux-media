@@ -1,93 +1,120 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:33560 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753062Ab1CANUT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Mar 2011 08:20:19 -0500
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p21DKINI026050
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 1 Mar 2011 08:20:19 -0500
-Received: from pedra (vpn-225-140.phx2.redhat.com [10.3.225.140])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p21DIEb8025546
-	for <linux-media@vger.kernel.org>; Tue, 1 Mar 2011 08:20:18 -0500
-Date: Tue, 1 Mar 2011 10:17:59 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 3/3] [media] DocBook: Document the removal of the old
- VIDIOC_*_OLD ioctls
-Message-ID: <20110301101759.31f56a58@pedra>
-In-Reply-To: <cover.1298985234.git.mchehab@redhat.com>
-References: <cover.1298985234.git.mchehab@redhat.com>
-Mime-Version: 1.0
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1834 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750981Ab1CNJ7w (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Mar 2011 05:59:52 -0400
+Message-ID: <df650e295afbf5651be743e58b06eb5b.squirrel@webmail.xs4all.nl>
+In-Reply-To: <s5hei6ahvtu.wl%tiwai@suse.de>
+References: <201103121919.05657.linux@rainbow-software.org>
+    <201103121952.39850.hverkuil@xs4all.nl>
+    <s5hei6ahvtu.wl%tiwai@suse.de>
+Date: Mon, 14 Mar 2011 10:59:47 +0100
+Subject: Re: [alsa-devel] radio-maestro broken (conflicts with snd-es1968)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Takashi Iwai" <tiwai@suse.de>
+Cc: "Ondrej Zary" <linux@rainbow-software.org>, jirislaby@gmail.com,
+	alsa-devel@alsa-project.org,
+	"Kernel development list" <linux-kernel@vger.kernel.org>,
+	linux-media@vger.kernel.org
+MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Content-Transfer-Encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Those ioctls passed away. Properly documented it.
+> At Sat, 12 Mar 2011 19:52:39 +0100,
+> Hans Verkuil wrote:
+>>
+>> On Saturday, March 12, 2011 19:19:00 Ondrej Zary wrote:
+>> > Hello,
+>> > the radio-maestro driver is badly broken. It's intended to drive the
+>> radio on
+>> > MediaForte ESS Maestro-based sound cards with integrated radio (like
+>> > SF64-PCE2-04). But it conflicts with snd_es1968, ALSA driver for the
+>> sound
+>> > chip itself.
+>> >
+>> > If one driver is loaded, the other one does not work - because a
+>> driver is
+>> > already registered for the PCI device (there is only one). This was
+>> probably
+>> > broken by conversion of PCI probing in 2006:
+>> > ttp://lkml.org/lkml/2005/12/31/93
+>> >
+>> > How to fix it properly? Include radio functionality in snd-es1968 and
+>> delete
+>> > radio-maestro?
+>>
+>> Interesting. I don't know anyone among the video4linux developers who
+>> has
+>> this hardware, so the radio-maestro driver hasn't been tested in at
+>> least
+>> 6 or 7 years.
+>>
+>> The proper fix would be to do it like the fm801.c alsa driver does: have
+>> the radio functionality as an i2c driver. In fact, it would not surprise
+>> me at all if you could use the tea575x-tuner.c driver (in
+>> sound/i2c/other)
+>> for the es1968 and delete the radio-maestro altogether.
+>
+> I guess simply porting radio-maestro codes into snd-es1968 would work
+> without much hustles, and it's a bit safe way to go for now; smaller
+> changes have less chance for breakage, and as little people seem using
+> this driver, it'd be better to take a safer option, IMO.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+I assume someone has hardware since someone reported this breakage. So try
+to use tuner-tea575x for the es1968. It shouldn't be too difficult.
+Additional cleanup should probably wait until we find a tester for the
+fm801 as well.
 
-diff --git a/Documentation/DocBook/v4l/compat.xml b/Documentation/DocBook/v4l/compat.xml
-index 223c24c..4d74bf2 100644
---- a/Documentation/DocBook/v4l/compat.xml
-+++ b/Documentation/DocBook/v4l/compat.xml
-@@ -1711,8 +1711,8 @@ ioctl would enumerate the available audio inputs. An ioctl to
- determine the current audio input, if more than one combines with the
- current video input, did not exist. So
- <constant>VIDIOC_G_AUDIO</constant> was renamed to
--<constant>VIDIOC_G_AUDIO_OLD</constant>, this ioctl will be removed in
--the future. The &VIDIOC-ENUMAUDIO; ioctl was added to enumerate
-+<constant>VIDIOC_G_AUDIO_OLD</constant>, this ioctl was removed on
-+Kernel 2.6.39. The &VIDIOC-ENUMAUDIO; ioctl was added to enumerate
- audio inputs, while &VIDIOC-G-AUDIO; now reports the current audio
- input.</para>
- 	  <para>The same changes were made to &VIDIOC-G-AUDOUT; and
-@@ -1726,7 +1726,7 @@ must be updated to successfully compile again.</para>
- 	  <para>The &VIDIOC-OVERLAY; ioctl was incorrectly defined with
- write-read parameter. It was changed to write-only, while the write-read
- version was renamed to <constant>VIDIOC_OVERLAY_OLD</constant>. The old
--ioctl will be removed in the future. Until further the "videodev"
-+ioctl was removed on Kernel 2.6.39. Until further the "videodev"
- kernel module will automatically translate to the new version, so drivers
- must be recompiled, but not applications.</para>
- 	</listitem>
-@@ -1744,7 +1744,7 @@ surface can be seen.</para>
- defined with write-only parameter, inconsistent with other ioctls
- modifying their argument. They were changed to write-read, while a
- <constant>_OLD</constant> suffix was added to the write-only versions.
--The old ioctls will be removed in the future. Drivers and
-+The old ioctls were removed on Kernel 2.6.39. Drivers and
- applications assuming a constant parameter need an update.</para>
- 	</listitem>
-       </orderedlist>
-@@ -1815,8 +1815,8 @@ yet to be addressed, for details see <xref
- 	  <para>The &VIDIOC-CROPCAP; ioctl was incorrectly defined
- with read-only parameter. It is now defined as write-read ioctl, while
- the read-only version was renamed to
--<constant>VIDIOC_CROPCAP_OLD</constant>. The old ioctl will be removed
--in the future.</para>
-+<constant>VIDIOC_CROPCAP_OLD</constant>. The old ioctl was removed
-+on Kernel 2.6.39.</para>
- 	</listitem>
-       </orderedlist>
-     </section>
-@@ -2364,6 +2364,14 @@ that used it. It was originally scheduled for removal in 2.6.35.
-         </listitem>
-       </orderedlist>
-     </section>
-+    <section>
-+      <title>V4L2 in Linux 2.6.39</title>
-+      <orderedlist>
-+        <listitem>
-+          <para>The old VIDIOC_*_OLD symbols and V4L1 support were removed.</para>
-+        </listitem>
-+      </orderedlist>
-+    </section>
- 
-     <section id="other">
-       <title>Relation of V4L2 to other Linux multimedia APIs</title>
+I don't like the idea to duplicate code.
+
+Regards,
+
+      Hans
+
+> If we have active testers for both devices, it's nicer to go forward
+> to clean-up works indeed, though.
+>
+>
+> thanks,
+>
+> Takashi
+>
+>> Both are for the tea575x tuner, although radio-maestro seems to have
+>> better
+>> support for the g_tuner operation. It doesn't seem difficult to add that
+>> to
+>> tea575x-tuner.c.
+>>
+>> The fm801 code for driving the tea575x is pretty horrible and it should
+>> be
+>> possible to improve that. I suspect that those read/write/mute functions
+>> really belong in tea575x-tuner.c and that only the low-level gpio
+>> actions
+>> need to be in the fm801/es1968 drivers.
+>>
+>> Hope this helps.
+>>
+>> Regards,
+>>
+>> 	Hans
+>>
+>> BTW: if anyone has spare hardware for testing the
+>> radio-maestro/tea575x-tuner,
+>> then I'm interested.
+>>
+>> --
+>> Hans Verkuil - video4linux developer - sponsored by Cisco
+>> _______________________________________________
+>> Alsa-devel mailing list
+>> Alsa-devel@alsa-project.org
+>> http://mailman.alsa-project.org/mailman/listinfo/alsa-devel
+>>
+>
+
+
 -- 
-1.7.1
+Hans Verkuil - video4linux developer - sponsored by Cisco
 
