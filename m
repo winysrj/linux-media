@@ -1,325 +1,62 @@
 Return-path: <mchehab@pedra>
-Received: from mailout4.samsung.com ([203.254.224.34]:57315 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756374Ab1CaAb2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Mar 2011 20:31:28 -0400
-Date: Thu, 31 Mar 2011 09:31:17 +0900
-From: Jaeryul Oh <jaeryul.oh@samsung.com>
-Subject: RE: [RFC/PATCH v7 3/5] MFC: Add MFC 5.1 V4L2 driver
-In-reply-to: <1299237982-31687-4-git-send-email-k.debski@samsung.com>
-To: 'Kamil Debski' <k.debski@samsung.com>, linux-media@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	kgene.kim@samsung.com
-Reply-to: jaeryul.oh@samsung.com
-Message-id: <007b01cbef3a$f6293b30$e27bb190$%oh@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ks_c_5601-1987
-Content-language: ko
-Content-transfer-encoding: 7BIT
-References: <1299237982-31687-1-git-send-email-k.debski@samsung.com>
- <1299237982-31687-4-git-send-email-k.debski@samsung.com>
+Received: from cantor.suse.de ([195.135.220.2]:47427 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932314Ab1COQc7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Mar 2011 12:32:59 -0400
+Subject: Re: [Security] [PATCH 00/20] world-writable files in sysfs and
+ debugfs
+From: James Bottomley <James.Bottomley@suse.de>
+To: Vasiliy Kulikov <segoon@openwall.com>
+Cc: Greg KH <greg@kroah.com>, security@kernel.org,
+	acpi4asus-user@lists.sourceforge.net, linux-scsi@vger.kernel.org,
+	rtc-linux@googlegroups.com, linux-usb@vger.kernel.org,
+	linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org,
+	open-iscsi@googlegroups.com, linux-omap@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+In-Reply-To: <20110315160804.GA3380@albatros>
+References: <cover.1296818921.git.segoon@openwall.com>
+	 <AANLkTikE-A=Fe-yRrN0opWwJGQ0f4uOzkyB3XCcEUrFE@mail.gmail.com>
+	 <1300155965.5665.15.camel@mulgrave.site> <20110315030956.GA2234@kroah.com>
+	 <1300189828.4017.2.camel@mulgrave.site>  <20110315160804.GA3380@albatros>
+Content-Type: text/plain; charset="UTF-8"
+Date: Tue, 15 Mar 2011 12:32:31 -0400
+Message-ID: <1300206751.11313.3.camel@mulgrave.site>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi, Kamil
-
-I found some mal-functional points.
-
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Kamil Debski
-> Sent: Friday, March 04, 2011 8:26 PM
-> To: linux-media@vger.kernel.org; linux-samsung-soc@vger.kernel.org
-> Cc: m.szyprowski@samsung.com; kyungmin.park@samsung.com;
-> k.debski@samsung.com; jaeryul.oh@samsung.com; kgene.kim@samsung.com
-> Subject: [RFC/PATCH v7 3/5] MFC: Add MFC 5.1 V4L2 driver
+On Tue, 2011-03-15 at 19:08 +0300, Vasiliy Kulikov wrote:
+> On Tue, Mar 15, 2011 at 07:50 -0400, James Bottomley wrote:
+> >      1. Did anyone actually check for capabilities before assuming world
+> >         writeable files were wrong?
 > 
-> Multi Format Codec 5.1 is capable of handling a range of video codecs
-> and this driver provides V4L2 interface for video decoding.
+> I didn't check all these files as I haven't got these hardware :-)
+
+You don't need the hardware to check ... the question becomes is a
+capabilities test sitting in the implementation or not.
+
+>   But
+> as I can "chmod a+w" all sysfs files on my machine and they all become
+> sensible to nonroot writes, I suppose there is nothing preventing
+> nonroot users from writing to these buggy sysfs files.  As you can see,
+> there are no capable() checks in these drivers in open() or write().
 > 
-> Signed-off-by: Kamil Debski <k.debski@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  drivers/media/video/Kconfig                  |    8 +
->  drivers/media/video/Makefile                 |    1 +
->  drivers/media/video/s5p-mfc/Makefile         |    3 +
->  drivers/media/video/s5p-mfc/regs-mfc5.h      |  346 ++++
->  drivers/media/video/s5p-mfc/s5p_mfc.c        | 2253
-> ++++++++++++++++++++++++++
->  drivers/media/video/s5p-mfc/s5p_mfc_common.h |  240 +++
->  drivers/media/video/s5p-mfc/s5p_mfc_ctrls.h  |  182 +++
->  drivers/media/video/s5p-mfc/s5p_mfc_debug.h  |   47 +
->  drivers/media/video/s5p-mfc/s5p_mfc_intr.c   |   92 ++
->  drivers/media/video/s5p-mfc/s5p_mfc_intr.h   |   26 +
->  drivers/media/video/s5p-mfc/s5p_mfc_memory.h |   43 +
->  drivers/media/video/s5p-mfc/s5p_mfc_opr.c    |  913 +++++++++++
->  drivers/media/video/s5p-mfc/s5p_mfc_opr.h    |  142 ++
->  13 files changed, 4296 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/media/video/s5p-mfc/Makefile
->  create mode 100644 drivers/media/video/s5p-mfc/regs-mfc5.h
->  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc.c
->  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_common.h
->  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_ctrls.h
->  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_debug.h
->  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_intr.c
->  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_intr.h
->  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_memory.h
->  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_opr.c
->  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_opr.h
+> >      2. Even if there aren't any capabilities checks in the implementing
+> >         routines, should there be (are we going the separated
+> >         capabilities route vs the monolithic root route)?
 > 
-> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-> index 12fb325..0bdc64d 100644
-> --- a/drivers/media/video/Kconfig
-> +++ b/drivers/media/video/Kconfig
-> @@ -1025,4 +1025,12 @@ config  VIDEO_SAMSUNG_S5P_FIMC
->  	  This is a v4l2 driver for the S5P camera interface
->  	  (video postprocessor)
-> 
-> +config VIDEO_SAMSUNG_S5P_MFC
-> +	tristate "Samsung S5P MFC 5.1 Video Codec"
-> +	depends on VIDEO_V4L2
-> +	select VIDEOBUF2_S5P_IOMMU
-> +	default n
-> +	help
-> +	    MFC 5.1 driver for V4L2.
-> +
->  endif # V4L_MEM2MEM_DRIVERS
-> diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-> index fd9488d..4b09ddb 100644
-> --- a/drivers/media/video/Makefile
-> +++ b/drivers/media/video/Makefile
-> @@ -164,6 +164,7 @@ obj-$(CONFIG_VIDEO_SH_MOBILE_CSI2)	+=
-> sh_mobile_csi2.o
->  obj-$(CONFIG_VIDEO_SH_MOBILE_CEU)	+= sh_mobile_ceu_camera.o
->  obj-$(CONFIG_VIDEO_OMAP1)		+= omap1_camera.o
->  obj-$(CONFIG_VIDEO_SAMSUNG_S5P_FIMC) 	+= s5p-fimc/
-> +obj-$(CONFIG_VIDEO_SAMSUNG_S5P_MFC)	+= s5p-mfc/
-> 
->  obj-$(CONFIG_ARCH_DAVINCI)		+= davinci/
-> 
-> diff --git a/drivers/media/video/s5p-mfc/Makefile
-> b/drivers/media/video/s5p-mfc/Makefile
-> new file mode 100644
-> index 0000000..69b6294
-> --- /dev/null
-> +++ b/drivers/media/video/s5p-mfc/Makefile
-> @@ -0,0 +1,3 @@
-> +obj-$(CONFIG_VIDEO_SAMSUNG_S5P_MFC) := s5p-mfc.o
-> +s5p-mfc-y := s5p_mfc.o s5p_mfc_intr.o  s5p_mfc_opr.o
-> +
-> diff --git a/drivers/media/video/s5p-mfc/regs-mfc5.h
-> b/drivers/media/video/s5p-mfc/regs-mfc5.h
-> new file mode 100644
-> index 0000000..eeb6e2e
-> --- /dev/null
-> +++ b/drivers/media/video/s5p-mfc/regs-mfc5.h
-> @@ -0,0 +1,346 @@
+> IMO, In any case old good DAC security model must not be obsoleted just
+> because someone thinks that MAC or anything else is more convenient for
+> him.  If sysfs is implemented via filesystem then it must support POSIX
+> permissions semantic.  MAC is very good in _some_ cases, but not instead
+> of DAC.
 
-snipping
+Um, I'm not sure that's even an issue.  capabilities have CAP_ADMIN
+which is precisely the same check as owner == root.  We use this a lot
+because ioctls ignore the standard unix DAC model.
 
-> +}
-> +
-> +static inline void s5p_mfc_run_res_change(struct s5p_mfc_ctx *ctx)
-> +{
-> +	struct s5p_mfc_dev *dev = ctx->dev;
-> +
-> +	s5p_mfc_set_dec_stream_buffer(ctx, 0, 0, 0);
-> +	dev->curr_ctx = ctx->num;
-> +	s5p_mfc_clean_ctx_int_flags(ctx);
-> +	s5p_mfc_decode_one_frame(ctx, MFC_DEC_RES_CHANGE);
-> +}
-> +
-> +static inline void s5p_mfc_run_dec_last_frames(struct s5p_mfc_ctx *ctx)
-> +{
-> +	struct s5p_mfc_dev *dev = ctx->dev;
-> +
-> +	s5p_mfc_set_dec_stream_buffer(ctx, 0, 0, 0);
-> +	dev->curr_ctx = ctx->num;
-> +	s5p_mfc_clean_ctx_int_flags(ctx);
-> +	s5p_mfc_decode_one_frame(ctx, MFC_DEC_LAST_FRAME);
-> +}
-> +
+James
 
-You used '0' as a second param.(= buf_addr) in
-s5p_mfc_set_dec_stream_buffer(ctx, 0, 0, 0)
-This must be a problem, 'cause OFFSETA(buf_addr) is calculated wrongly.
-And I propose that 
-why don't you try to check addr condition(necessary cond. of MFC, it should
-be located at 
-rear region from base_addr) 
 
-> +static inline int s5p_mfc_run_dec_frame(struct s5p_mfc_ctx *ctx)
-> +{
-> +	struct s5p_mfc_dev *dev = ctx->dev;
-> +	struct s5p_mfc_buf *temp_vb;
-> +	unsigned long flags;
-> +	int dec_arg = MFC_DEC_FRAME;
-> +
-> +	spin_lock_irqsave(&dev->irqlock, flags);
-> +
-> +	/* Frames are being decoded */
-> +	if (list_empty(&ctx->src_queue)) {
-> +		mfc_debug("No src buffers.\n");
-> +		spin_unlock_irqrestore(&dev->irqlock, flags);
-> +		return -EAGAIN;
-> +	}
-> +	/* Get the next source buffer */
-> +	temp_vb = list_entry(ctx->src_queue.next, struct s5p_mfc_buf, list);
-> +	mfc_debug("Temp vb: %p\n", temp_vb);
-> +	mfc_debug("Src Addr: %08x\n", s5p_mfc_plane_addr(temp_vb->b, 0));
-> +	s5p_mfc_set_dec_stream_buffer(ctx, s5p_mfc_plane_addr(temp_vb->b,
-> 0),
-> +				ctx->consumed_stream, temp_vb->b-
-> >v4l2_planes[0].bytesused);
-> +	spin_unlock_irqrestore(&dev->irqlock, flags);
-> +	dev->curr_ctx = ctx->num;
-> +	s5p_mfc_clean_ctx_int_flags(ctx);
-> +	if (temp_vb->b->v4l2_planes[0].bytesused == 0) {
-> +	        mfc_debug("Setting ctx->state to FINISHING\n");
-> +	        ctx->state = MFCINST_DEC_FINISHING;
-> +		dec_arg = MFC_DEC_LAST_FRAME;
-> +	}
-> +	s5p_mfc_decode_one_frame(ctx,
-> +				dec_arg);
-> +
-> +	return 0;
-> +}
-> +
-> +static inline int s5p_mfc_run_get_inst_no(struct s5p_mfc_ctx *ctx)
-> +{
-> +	struct s5p_mfc_dev *dev = ctx->dev;
-> +	int ret;
-> +
-> +	/* Preparing decoding - getting instance number */
-> +	mfc_debug("Getting instance number\n");
-> +	dev->curr_ctx = ctx->num;
-> +	s5p_mfc_clean_ctx_int_flags(ctx);
-> +	ret = s5p_mfc_open_inst(ctx);
-> +	if (ret) {
-> +		mfc_err("Failed to create a new instance.\n");
-> +		ctx->state = MFCINST_DEC_ERROR;
-> +	}
-> +	return ret;
-> +}
-> +
-> +static inline int s5p_mfc_run_return_inst(struct s5p_mfc_ctx *ctx)
-> +{
-> +	struct s5p_mfc_dev *dev = ctx->dev;
-> +	int ret;
-> +
-> +	/* Closing decoding instance  */
-> +	mfc_debug("Returning instance number\n");
-> +	dev->curr_ctx = ctx->num;
-> +	s5p_mfc_clean_ctx_int_flags(ctx);
-> +	ret = s5p_mfc_return_inst_no(ctx);
-> +	if (ret) {
-> +		mfc_err("Failed to return an instance.\n");
-> +		ctx->state = MFCINST_DEC_ERROR;
-> +		return ret;
-> +	}
-> +	return ret;
-> +}
-> +
-> +static inline void s5p_mfc_run_init_dec(struct s5p_mfc_ctx *ctx)
-> +{
-> +	struct s5p_mfc_dev *dev = ctx->dev;
-> +	unsigned long flags;
-> +	struct s5p_mfc_buf *temp_vb;
-> +
-> +	/* Initializing decoding - parsing header */
-> +	spin_lock_irqsave(&dev->irqlock, flags);
-> +	mfc_debug("Preparing to init decoding.\n");
-> +	temp_vb = list_entry(ctx->src_queue.next, struct s5p_mfc_buf, list);
-> +	s5p_mfc_set_dec_desc_buffer(ctx);
-> +	mfc_debug("Header size: %d\n", temp_vb->b-
-> >v4l2_planes[0].bytesused);
-> +	s5p_mfc_set_dec_stream_buffer(ctx, s5p_mfc_plane_addr(temp_vb->b,
-> 0),
-> +				0, temp_vb->b->v4l2_planes[0].bytesused);
-> +	spin_unlock_irqrestore(&dev->irqlock, flags);
-> +	dev->curr_ctx = ctx->num;
-> +	mfc_debug("paddr: %08x\n",
-> +			(int)phys_to_virt(s5p_mfc_plane_addr(temp_vb->b,
-0)));
-> +	s5p_mfc_clean_ctx_int_flags(ctx);
-> +	s5p_mfc_init_decode(ctx);
-> +}
-> +
-> +static inline int s5p_mfc_run_init_dec_buffers(struct s5p_mfc_ctx *ctx)
-> +{
-> +	struct s5p_mfc_dev *dev = ctx->dev;
-> +	unsigned long flags;
-> +	struct s5p_mfc_buf *temp_vb;
-> +	int ret;
-> +	/* Header was parsed now starting processing
-> +	 * First set the output frame buffers
-> +	 * s5p_mfc_alloc_dec_buffers(ctx); */
-> +
-> +	if (ctx->capture_state != QUEUE_BUFS_MMAPED) {
-> +		mfc_err("It seems that not all destionation buffers were "
-> +			"mmaped.\nMFC requires that all destination are
-mmaped
-> "
-> +			"before starting processing.\n");
-> +		return -EAGAIN;
-> +	}
-> +
-> +	spin_lock_irqsave(&dev->irqlock, flags);
-> +
-> +	if (list_empty(&ctx->src_queue)) {
-> +		mfc_err("Header has been deallocated in the middle of "
->
-+							"initialization.\n")
-;
-> +		spin_unlock_irqrestore(&dev->irqlock, flags);
-> +		return -EIO;
-> +	}
-> +
-> +	temp_vb = list_entry(ctx->src_queue.next, struct s5p_mfc_buf, list);
-> +	mfc_debug("Header size: %d\n", temp_vb->b-
-> >v4l2_planes[0].bytesused);
-> +	s5p_mfc_set_dec_stream_buffer(ctx, s5p_mfc_plane_addr(temp_vb->b,
-> 0),
-> +				0, temp_vb->b->v4l2_planes[0].bytesused);
-> +	spin_unlock_irqrestore(&dev->irqlock, flags);
-> +	dev->curr_ctx = ctx->num;
-> +	s5p_mfc_clean_ctx_int_flags(ctx);
-> +	ret = s5p_mfc_set_dec_frame_buffer(ctx);
-> +	if (ret) {
-> +		mfc_err("Failed to alloc frame mem.\n");
-> +		ctx->state = MFCINST_DEC_ERROR;
-> +	}
-> +	return ret;
-> +}
-
-snipping
-
-> +/* Set registers for decoding stream buffer */
-> +int s5p_mfc_set_dec_stream_buffer(struct s5p_mfc_ctx *ctx, int buf_addr,
-> +		  unsigned int start_num_byte, unsigned int buf_size)
-> +{
-> +	struct s5p_mfc_dev *dev = ctx->dev;
-> +
-> +	mfc_debug_enter();
-> +	mfc_debug("inst_no: %d, buf_addr: 0x%08x, buf_size: 0x"
-> +		"%08x (%d)\n",  ctx->inst_no, buf_addr, buf_size, buf_size);
-> +	WRITEL(OFFSETA(buf_addr), S5P_FIMV_SI_CH0_SB_ST_ADR);
-> +	WRITEL(CPB_BUF_SIZE, S5P_FIMV_SI_CH0_CPB_SIZE);
-> +	WRITEL(buf_size, S5P_FIMV_SI_CH0_SB_FRM_SIZE);
-> +	mfc_debug("Shared_virt: %p (start offset: %d)\n",
-> +					ctx->shared_virt, start_num_byte);
-> +	s5p_mfc_set_start_num(ctx, start_num_byte);
-> +	mfc_debug_leave();
-> +	return 0;
-> +}
-> +
-> 
-Snipping
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
