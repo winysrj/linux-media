@@ -1,59 +1,84 @@
 Return-path: <mchehab@pedra>
-Received: from hrndva-omtalb.mail.rr.com ([71.74.56.123]:37176 "EHLO
-	hrndva-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759000Ab1CaTYe (ORCPT
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:37143 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752342Ab1COKNL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Mar 2011 15:24:34 -0400
-Date: Thu, 31 Mar 2011 15:24:30 -0400
-From: Steven Rostedt <rostedt@goodmis.org>
-To: Dave Hansen <dave@linux.vnet.ibm.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-mm@kvack.org, Michal Nazarewicz <mina86@mina86.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
-	Mel Gorman <mel@csn.ul.ie>, Pawel Osciak <pawel@osciak.com>
-Subject: Re: [PATCH 04/12] mm: alloc_contig_freed_pages() added
-Message-ID: <20110331192429.GD14441@home.goodmis.org>
-References: <1301577368-16095-1-git-send-email-m.szyprowski@samsung.com>
- <1301577368-16095-5-git-send-email-m.szyprowski@samsung.com>
- <1301587083.31087.1032.camel@nimitz>
+	Tue, 15 Mar 2011 06:13:11 -0400
+Date: Tue, 15 Mar 2011 09:53:41 +0000
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: daeinki <inki.dae@samsung.com>
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	k.debski@samsung.com, linux-samsung-soc@vger.kernel.org,
+	Arnd Bergmann <arnd@arndb.de>,
+	=?utf-8?B?6rCV66+86rec?= <mk7.kang@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
+	kgene.kim@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	InKi Dae <daeinki@gmail.com>,
+	KyongHo Cho <pullip.cho@samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 3/7] ARM: Samsung: update/rewrite Samsung SYSMMU (IOMMU)
+	driver
+Message-ID: <20110315095341.GD3921@n2100.arm.linux.org.uk>
+References: <1299229274-9753-4-git-send-email-m.szyprowski@samsung.com> <201103111615.01829.arnd@arndb.de> <000201cbe002$768d9de0$63a8d9a0$%szyprowski@samsung.com> <201103111700.17373.arnd@arndb.de> <AANLkTimagS1vBXEYjXQDx=OGhTRm=n0yO4n+kHTAqBOz@mail.gmail.com> <20110314124652.GF26085@n2100.arm.linux.org.uk> <AANLkTinzBvkcB111UZd2rJ9raaXkh2TqmTw5Y+4WFd48@mail.gmail.com> <20110315083515.GA3921@n2100.arm.linux.org.uk> <4D7F32B2.6020905@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <1301587083.31087.1032.camel@nimitz>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <4D7F32B2.6020905@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, Mar 31, 2011 at 08:58:03AM -0700, Dave Hansen wrote:
-> On Thu, 2011-03-31 at 15:16 +0200, Marek Szyprowski wrote:
-> > 
-> > +unsigned long alloc_contig_freed_pages(unsigned long start, unsigned long end,
-> > +                                      gfp_t flag)
-> > +{
-> > +       unsigned long pfn = start, count;
-> > +       struct page *page;
-> > +       struct zone *zone;
-> > +       int order;
-> > +
-> > +       VM_BUG_ON(!pfn_valid(start));
-> 
-> This seems kinda mean.  Could we return an error?  I understand that
-> this is largely going to be an early-boot thing, but surely trying to
-> punt on crappy input beats a full-on BUG().
-> 
-> 	if (!pfn_valid(start))
-> 		return -1;
+On Tue, Mar 15, 2011 at 06:34:42PM +0900, daeinki wrote:
+> Russell King - ARM Linux 쓴 글:
+>> On Tue, Mar 15, 2011 at 10:45:50AM +0900, InKi Dae wrote:
+>>> 2011/3/14 Russell King - ARM Linux <linux@arm.linux.org.uk>:
+>>>> On Mon, Mar 14, 2011 at 09:37:51PM +0900, KyongHo Cho wrote:
+>>>>> I have also noticed that dma_map_single/page/sg() can map physical
+>>>>> memory into an arbitrary device address region.
+>>>>> But it is not enough solution for various kinds of IOMMUs.
+>>>>> As Kukjin Kim addressed, we need to support larger page size than 4KB
+>>>>> because we can reduce TLB miss when we have larger page size.
+>>>>>
+>>>>> Our IOMMU(system mmu) supports all page size of ARM architecture
+>>>>> including 16MB, 1MB, 64KB and 4KB.
+>>>>> Since the largest size supported by buddy system of 32-bit architecture is 4MB,
+>>>>> our system support all page sizes except 16MB.
+>>>>> We proved that larger page size is helpful for DMA performance
+>>>>> significantly (more than 10%, approximately).
+>>>>> Big page size is not a problem for peripheral devices
+>>>>> because their address space is not suffer from external fragmentation.
+>>>> 1. dma_map_single() et.al. is used for mapping *system* *RAM* for devices
+>>>>   using whatever is necessary.  It must not be used for trying to setup
+>>>>   arbitary other mappings.
+>>>>
+>>>> 2. It doesn't matter where the memory for dma_map_single() et.al. comes
+>>>>   from provided the virtual address is a valid system RAM address or
+>>>>   the struct page * is a valid struct page in the memory map (iow, you
+>>>>   can't create this yourself.)
+>>> You mean that we cannot have arbitrary virtual address mapping for
+>>> iommu based device?
+>>
+>> No.  I mean exactly what I said - I'm talking about the DMA API in the
+>> above two points.  The implication is that you can not create arbitary
+>> mappings of non-system RAM with the DMA API.
+>>
+> sorry but I couldn't understand exactly what you said. could you give me  
+> your answer one more time?
+> does non-system RAM mean reserved memory regions? if not, is it  
+> arbitrary virtual address space that isn't kernel or user virtual  
+> address space and is the space for iommu based deivce?
 
-But still keep the warning?
+For dma_map_single(dev, addr, size, dir), basically:
 
-	if (WARN_ON(!pfn_valid(start))
-		return -1;
+	for (a = addr; a < addr + size; a += PAGE_SIZE)
+		BUG_ON(!virt_addr_valid(a));
 
--- Steve
+For dma_map_page(dev, page, offset, size, dir), 'page' must be something
+obtained from one of the page-based kernel allocators (so either refering
+to a page in the *existing* lowmem or highmem memory) _and_ you must not
+use offset/size to then point at something outside that.
 
+So, if you take something out of the kernel's knowledge of what is memory,
+you can't then use the DMA API with it.
