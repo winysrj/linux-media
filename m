@@ -1,58 +1,52 @@
 Return-path: <mchehab@pedra>
-Received: from mail2.matrix-vision.com ([85.214.244.251]:57587 "EHLO
-	mail2.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933172Ab1CXH2d (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Mar 2011 03:28:33 -0400
-Message-ID: <4D8AF29F.9010409@matrix-vision.de>
-Date: Thu, 24 Mar 2011 08:28:31 +0100
-From: Michael Jones <michael.jones@matrix-vision.de>
+Received: from kroah.org ([198.145.64.141]:50475 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750807Ab1CODJE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Mar 2011 23:09:04 -0400
+Date: Mon, 14 Mar 2011 20:09:56 -0700
+From: Greg KH <greg@kroah.com>
+To: James Bottomley <James.Bottomley@suse.de>
+Cc: Vasiliy Kulikov <segoon@openwall.com>, security@kernel.org,
+	acpi4asus-user@lists.sourceforge.net, linux-scsi@vger.kernel.org,
+	rtc-linux@googlegroups.com, linux-usb@vger.kernel.org,
+	linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org,
+	open-iscsi@googlegroups.com, linux-omap@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [Security] [PATCH 00/20] world-writable files in sysfs and
+ debugfs
+Message-ID: <20110315030956.GA2234@kroah.com>
+References: <cover.1296818921.git.segoon@openwall.com>
+ <AANLkTikE-A=Fe-yRrN0opWwJGQ0f4uOzkyB3XCcEUrFE@mail.gmail.com>
+ <1300155965.5665.15.camel@mulgrave.site>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	=?ISO-8859-1?Q?Lo=EFc_Akue?= <akue.loic@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Yordan Kamenov <ykamenov@mm-sol.com>
-Subject: Re: [PATCH] omap3isp: implement ENUM_FMT
-References: <4D889C61.905@matrix-vision.de> <4D89C2ED.5080803@maxwell.research.nokia.com> <4D89D460.7000808@matrix-vision.de> <201103231316.46934.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201103231316.46934.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1300155965.5665.15.camel@mulgrave.site>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Laurent,
-
-On 03/23/2011 01:16 PM, Laurent Pinchart wrote:
-> Hi Michael,
+On Mon, Mar 14, 2011 at 10:26:05PM -0400, James Bottomley wrote:
+> On Sat, 2011-03-12 at 23:23 +0300, Vasiliy Kulikov wrote:
+> > > Vasiliy Kulikov (20):
+> > >  mach-ux500: mbox-db5500: world-writable sysfs fifo file
+> > >  leds: lp5521: world-writable sysfs engine* files
+> > >  leds: lp5523: world-writable engine* sysfs files
+> > >  misc: ep93xx_pwm: world-writable sysfs files
+> > >  rtc: rtc-ds1511: world-writable sysfs nvram file
+> > >  scsi: aic94xx: world-writable sysfs update_bios file
+> > >  scsi: iscsi: world-writable sysfs priv_sess file
+> > 
+> > These are still not merged :(
 > 
-[snip]
->>
->> Is there a policy decision that in the future, apps will be required to
->> use libv4l to get images from the ISP?  Are we not intending to support
->> using e.g. media-ctl + some v4l2 app, as I'm currently doing during
->> development?
-> 
-> Apps should be able to use the V4L2 API directly. However, we can't implement 
-> all that API, as most calls don't make sense for the OMA3 ISP driver. Which 
-> calls need to be implemented is a grey area at the moment, as there's no 
-> detailed semantics on how subdev-level configuration and video device 
-> configuration should interact.
-> 
-> Your implementation of ENUM_FMT looks correct to me, but the question is 
-> whether ENUM_FMT should be implemented. I don't think ENUM_FMT is a required 
-> ioctl, so maybe v4l2src shouldn't depend on it. I'm interesting in getting 
-> Hans' opinion on this.
-> 
+> OK, so I've not been tracking where we are in the dizzying ride on
+> security systems.  However, I thought we landed up in the privilege
+> separation arena using capabilities.  That means that world writeable
+> files aren't necessarily a problem as long as the correct capabilities
+> checks are in place, right?
 
-I only implemented it after I saw that ENUM_FMT _was_ required by V4L2.
- From http://v4l2spec.bytesex.org/spec/x1859.htm#AEN1894 :
-"The VIDIOC_ENUM_FMT ioctl must be supported by all drivers exchanging
-image data with applications."
+There are no capability checks on sysfs files right now, so these all
+need to be fixed.
 
--Michael
+thanks,
 
-MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
-Registergericht: Amtsgericht Stuttgart, HRB 271090
-Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
+greg k-h
