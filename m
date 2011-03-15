@@ -1,54 +1,82 @@
 Return-path: <mchehab@pedra>
-Received: from ist.d-labs.de ([213.239.218.44]:47670 "EHLO mx01.d-labs.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755825Ab1COIx2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Mar 2011 04:53:28 -0400
-From: Florian Mickler <florian@mickler.org>
-To: mchehab@infradead.org
-Cc: oliver@neukum.org, jwjstone@fastmail.fm,
-	Florian Mickler <florian@mickler.org>,
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:40358 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750893Ab1COBpw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Mar 2011 21:45:52 -0400
+MIME-Version: 1.0
+In-Reply-To: <20110314124652.GF26085@n2100.arm.linux.org.uk>
+References: <1299229274-9753-4-git-send-email-m.szyprowski@samsung.com>
+	<201103111615.01829.arnd@arndb.de>
+	<000201cbe002$768d9de0$63a8d9a0$%szyprowski@samsung.com>
+	<201103111700.17373.arnd@arndb.de>
+	<AANLkTimagS1vBXEYjXQDx=OGhTRm=n0yO4n+kHTAqBOz@mail.gmail.com>
+	<20110314124652.GF26085@n2100.arm.linux.org.uk>
+Date: Tue, 15 Mar 2011 10:45:50 +0900
+Message-ID: <AANLkTinzBvkcB111UZd2rJ9raaXkh2TqmTw5Y+4WFd48@mail.gmail.com>
+Subject: Re: [PATCH 3/7] ARM: Samsung: update/rewrite Samsung SYSMMU (IOMMU) driver
+From: InKi Dae <daeinki@gmail.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: KyongHo Cho <pullip.cho@samsung.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	k.debski@samsung.com, linux-samsung-soc@vger.kernel.org,
+	Arnd Bergmann <arnd@arndb.de>,
+	=?EUC-KR?B?sK25zrHU?= <mk7.kang@samsung.com>,
 	linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 02/16] [media] dib0700: remove unused variable
-Date: Tue, 15 Mar 2011 09:43:34 +0100
-Message-Id: <1300178655-24832-2-git-send-email-florian@mickler.org>
-In-Reply-To: <1300178655-24832-1-git-send-email-florian@mickler.org>
-References: <20110315093632.5fc9fb77@schatten.dmk.lab>
- <1300178655-24832-1-git-send-email-florian@mickler.org>
+	=?EUC-KR?B?tOvAzrHi?= <inki.dae@samsung.com>,
+	kyungmin.park@samsung.com, kgene.kim@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This variable is never used.
+2011/3/14 Russell King - ARM Linux <linux@arm.linux.org.uk>:
+> On Mon, Mar 14, 2011 at 09:37:51PM +0900, KyongHo Cho wrote:
+>> I have also noticed that dma_map_single/page/sg() can map physical
+>> memory into an arbitrary device address region.
+>> But it is not enough solution for various kinds of IOMMUs.
+>> As Kukjin Kim addressed, we need to support larger page size than 4KB
+>> because we can reduce TLB miss when we have larger page size.
+>>
+>> Our IOMMU(system mmu) supports all page size of ARM architecture
+>> including 16MB, 1MB, 64KB and 4KB.
+>> Since the largest size supported by buddy system of 32-bit architecture is 4MB,
+>> our system support all page sizes except 16MB.
+>> We proved that larger page size is helpful for DMA performance
+>> significantly (more than 10%, approximately).
+>> Big page size is not a problem for peripheral devices
+>> because their address space is not suffer from external fragmentation.
+>
+> 1. dma_map_single() et.al. is used for mapping *system* *RAM* for devices
+>   using whatever is necessary.  It must not be used for trying to setup
+>   arbitary other mappings.
+>
+> 2. It doesn't matter where the memory for dma_map_single() et.al. comes
+>   from provided the virtual address is a valid system RAM address or
+>   the struct page * is a valid struct page in the memory map (iow, you
+>   can't create this yourself.)
 
-Signed-off-by: Florian Mickler <florian@mickler.org>
---
- drivers/media/dvb/dvb-usb/dib0700_core.c |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
----
- drivers/media/dvb/dvb-usb/dib0700_core.c |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
+You mean that we cannot have arbitrary virtual address mapping for
+iommu based device?
+actually, we have memory mapping to arbitrary device virtual address
+space, not kernel virtual address space.
 
-diff --git a/drivers/media/dvb/dvb-usb/dib0700_core.c b/drivers/media/dvb/dvb-usb/dib0700_core.c
-index 1c19b73..c705ea4 100644
---- a/drivers/media/dvb/dvb-usb/dib0700_core.c
-+++ b/drivers/media/dvb/dvb-usb/dib0700_core.c
-@@ -576,7 +576,6 @@ struct dib0700_rc_response {
- static void dib0700_rc_urb_completion(struct urb *purb)
- {
- 	struct dvb_usb_device *d = purb->context;
--	struct dib0700_state *st;
- 	struct dib0700_rc_response *poll_reply;
- 	u32 uninitialized_var(keycode);
- 	u8 toggle;
-@@ -591,7 +590,6 @@ static void dib0700_rc_urb_completion(struct urb *purb)
- 		return;
- 	}
- 
--	st = d->priv;
- 	poll_reply = purb->transfer_buffer;
- 
- 	if (purb->status < 0) {
--- 
-1.7.4.rc3
-
+>
+> 3. In the case of an IOMMU, the DMA API does not limit you to only using
+>   4K pages to setup the IOMMU mappings.  You can use whatever you like
+>   provided the hardware can cope with it.  You can coalesce several
+>   existing entries together provided you track what you're doing and can
+>   undo what's been done when the mapping is no longer required.
+>
+> So really there's no reason not to use 64K, 1M and 16M IOMMU entries if
+> that's the size of buffer which has been passed to the DMA API.
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+>
