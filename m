@@ -1,37 +1,32 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:48776 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752054Ab1CKSkU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Mar 2011 13:40:20 -0500
-Message-ID: <4D7A6CFC.4050102@redhat.com>
-Date: Fri, 11 Mar 2011 19:42:04 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:40428 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758011Ab1COPT3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Mar 2011 11:19:29 -0400
+Received: by vxi39 with SMTP id 39so653093vxi.19
+        for <linux-media@vger.kernel.org>; Tue, 15 Mar 2011 08:19:28 -0700 (PDT)
 MIME-Version: 1.0
-To: "Chen, Xianwen" <xianwen.chen@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: What is the driver for "0c45:6413 Microdia" webcam?
-References: <AANLkTik2jsKfBYjj37gXZH=h5R0DPZ5tVyXusw0Y4noi@mail.gmail.com>
-In-Reply-To: <AANLkTik2jsKfBYjj37gXZH=h5R0DPZ5tVyXusw0Y4noi@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Antoine Maillard <antoine.maillard@gmail.com>
+Date: Tue, 15 Mar 2011 16:19:08 +0100
+Message-ID: <AANLkTimTSE76vazXEM_UHYOh4qAnPa2OfhFXN9YxOoG+@mail.gmail.com>
+Subject: Help with tuner/demux ST chips on i2c bus
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+Hello,
 
-On 03/11/2011 07:04 PM, Chen, Xianwen wrote:
-> Hi there,
->
-> I'm having a hard time locating the proper driver for "0c45:6413
-> Microdia" webcam. I consulted "Documentation/video4linux/gspca.txt",
-> but didn't find such a device.
+I'm currently working on a Set Top Box which embeds two ST chips for
+digital TV (stv6110b for the tuning and stv0900b for the demod). Since
+those two chips are often used in retail PCI cards, the DVBAPI
+includes drivers for these chips. Thus I'd like to know if I can use
+those drivers just by enabling them in my .config or do I need to
+write some glue to be able to talk with these chips ? (some kind of
+abstraction layer, the same the PCI card drivers implement to expose
+the chips to the userspace via /dev/dvb...).
 
-The 6413 is a UVC compatible camera / controller from Microdia, as
-such it should use the uvcvideo driver.
+Many thanks,
 
-Basically on any modern Linux distribution, it should just work as
-soon as you plug it in.
-
-Regards,
-
-Hans
+Antoine
