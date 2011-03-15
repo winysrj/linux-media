@@ -1,104 +1,182 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:46314 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932569Ab1CDWoM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2011 17:44:12 -0500
-Received: by wwb22 with SMTP id 22so3286726wwb.1
-        for <linux-media@vger.kernel.org>; Fri, 04 Mar 2011 14:44:11 -0800 (PST)
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:33201 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932283Ab1COQrs convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Mar 2011 12:47:48 -0400
+Received: by qwk3 with SMTP id 3so612200qwk.19
+        for <linux-media@vger.kernel.org>; Tue, 15 Mar 2011 09:47:47 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <4D7163FD.9030604@iki.fi>
-References: <AANLkTi=rcfL_pku9hhx68C_Fb_76KsW2Yy+Oys10a7+4@mail.gmail.com>
-	<4D7163FD.9030604@iki.fi>
-Date: Fri, 4 Mar 2011 22:44:11 +0000
-Message-ID: <AANLkTimjC99zhJ=huHZiGgbENCoyHy5KT87iujjTT8w3@mail.gmail.com>
-Subject: Re: [patch] Fix AF9015 Dual tuner i2c write failures
-From: Andrew de Quincey <adq_dvb@lidskialf.net>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=0016e6dab06b781824049dafe2ff
+In-Reply-To: <AANLkTin=CUsTH-dB2b0PYxSQbnq_e4nm-tDufVaKNM9p@mail.gmail.com>
+References: <201103080913.59231.hverkuil@xs4all.nl>
+	<201103081652.20561.laurent.pinchart@ideasonboard.com>
+	<1299611565.24699.12.camel@morgan.silverblock.net>
+	<201103082023.58437.laurent.pinchart@ideasonboard.com>
+	<AANLkTin=CUsTH-dB2b0PYxSQbnq_e4nm-tDufVaKNM9p@mail.gmail.com>
+Date: Tue, 15 Mar 2011 12:47:47 -0400
+Message-ID: <AANLkTi=YcrYKJ5aiqjeFEPceNbg5k0k7p58bYHkm2rEH@mail.gmail.com>
+Subject: Re: Yet another memory provider: can linaro organize a meeting?
+From: Alex Deucher <alexdeucher@gmail.com>
+To: Robert Fekete <robert.fekete@linaro.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linaro-dev@lists.linaro.org,
+	linux-media@vger.kernel.org, Jonghun Han <jonghun.han@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
---0016e6dab06b781824049dafe2ff
-Content-Type: text/plain; charset=ISO-8859-1
-
->> Adding a "bus lock" to af9015_i2c_xfer() will not work as demod/tuner
->> accesses will take multiple i2c transactions.
+On Tue, Mar 15, 2011 at 12:07 PM, Robert Fekete
+<robert.fekete@linaro.org> wrote:
+> On 8 March 2011 20:23, Laurent Pinchart
+> <laurent.pinchart@ideasonboard.com> wrote:
+>> Hi Andy,
 >>
->> Therefore, the following patch overrides the dvb_frontend_ops
->> functions to add a per-device lock around them: only one frontend can
->> now use the i2c bus at a time. Testing with the scripts above shows
->> this has eliminated the errors.
+>> On Tuesday 08 March 2011 20:12:45 Andy Walls wrote:
+>>> On Tue, 2011-03-08 at 16:52 +0100, Laurent Pinchart wrote:
+>>>
+>>> [snip]
+>>>
+>>> > > > It really shouldn't be that hard to get everyone involved together
+>>> > > > and settle on a single solution (either based on an existing
+>>> > > > proposal or create a 'the best of' vendor-neutral solution).
+>>> > >
+>>> > > "Single" might be making the problem impossibly hard to solve well.
+>>> > > One-size-fits-all solutions have a tendency to fall short on meeting
+>>> > > someone's critical requirement.  I will agree that "less than n", for
+>>> > > some small n, is certainly desirable.
+>>> > >
+>>> > > The memory allocators and managers are ideally satisfying the
+>>> > > requirements imposed by device hardware, what userspace applications
+>>> > > are expected to do with the buffers, and system performance.  (And
+>>> > > maybe the platform architecture, I/O bus, and dedicated video memory?)
+>>> >
+>>> > In the embedded world, a very common use case is to capture video data
+>>> > from an ISP (V4L2+MC), process it in a DSP (V4L2+M2M, tidspbridge, ...)
+>>> > and display it on the GPU (OpenGL/ES). We need to be able to share a
+>>> > data buffer between the ISP and the DSP, and another buffer between the
+>>> > DSP and the GPU. If processing is not required, sharing a data buffer
+>>> > between the ISP and the GPU is required. Achieving zero-copy requires a
+>>> > single memory management solution used by the ISP, the DSP and the GPU.
+>>>
+>>> Ah.  I guess I misunderstood what was meant by "memory provider" to some
+>>> extent.
+>>>
+>>> So what I read is a common way of providing in kernel persistent buffers
+>>> (buffer objects? buffer entities?) for drivers and userspace
+>>> applications to pass around by reference (no copies).  Userspace may or
+>>> may not want to see the contents of the buffer objects.
+>>
+>> Exactly. How that memory is allocated in irrelevant here, and we can have
+>> several different allocators as long as the buffer objects can be managed
+>> through a single API. That API will probably have to expose buffer properties
+>> related to allocation, in order for all components in the system to verify
+>> that the buffers are suitable for their needs, but the allocation process
+>> itself is irrelevant.
+>>
+>>> So I understand now why a single solution is desirable.
+>>
 >
-> This have annoyed me too, but since it does not broken functionality much I
-> haven't put much effort for fixing it. I like that fix since it is in AF9015
-> driver where it logically belongs to. But it looks still rather complex. I
-> see you have also considered "bus lock" to af9015_i2c_xfer() which could be
-> much smaller in code size (that's I have tried to implement long time back).
+> Exactly,
 >
-> I would like to ask if it possible to check I2C gate open / close inside
-> af9015_i2c_xfer() and lock according that? Something like:
+> It is important to know that there are 3 topics of discussion which
+> all are a separate topic of its own:
+>
+> 1. The actual memory allocator
+> 2. In-kernel API
+> 3. Userland API
+>
+> Explained:
+> 1. This is how you acquire the actual physical or virtual memory,
+> defrag, swap, etc. This can be enhanced by CMA, hotswap, memory
+> regions or whatever and the main topic for a system wide memory
+> allocator does not deal much with how this is done.
+> 2. In-kernel API is important from a device driver point of view in
+> order to resolve buffers, pin memory when used(enable defrag when
+> unpinned)
+> 3. Userland API deals with alloc/free, import/export(IPC), security,
+> and set-domain capabilities among others and is meant to pass buffers
+> between processes in userland and enable no-copy data paths.
+>
+> We need to resolve 2. and 3.
+>
+> GEM/TTM is mentioned in this thread and there is an overlap of what is
+> happening within DRM/DRI/GEM/TTM/KMS and V4L2. The whole idea behind
+> DRM is to have one device driver for everything (well at least 2D/3D,
+> video codecs, display output/composition), while on a SoC all this is
+> on several drivers/IP's. A V4L2 device cannot resolve a GEM handle.
+> GEM only lives inside one DRM device (AFAIK). GEM is also mainly for
+> "dedicated memory-less" graphics cards while TTM mainly targets
+> advanced Graphics Card with dedicated memory. From a SoC point of view
+> DRM looks very "fluffy" and not quite slimmed for an embedded device,
+> and you cannot get GEM/TTM without bringing in all of DRM/DRI. KMS on
+> the other hand is very attractive as a framebuffer device replacer. It
+> is not an easy task to decide on a multimedia user interface for a SoC
+> vendor.
 
-Hmm, I did think about that, but I felt overriding the functions was
-just cleaner: I felt it was more obvious what it was doing. Doing
-exactly this sort of tweaking was one of the main reasons we added
-that function overriding feature.
+Modern GPUs are basically an SoC: 3D engine, video decode, hdmi packet
+engines, audio, dma engine, display blocks, etc. with a shared memory
+controller.  Also the AMD fusion and Intel moorestown SoCs are not too
+different from ARM-based SoCs and we are supporting them with the drm.
+ I expect we'll see the x86 and ARM/MIPS based SoCs continue to get
+closer together.
 
-I don't like the idea of returning "error locked by FE" since that'll
-mean the tuning will randomly fail sometimes in a way visible to
-userspace (unless we change the core dvb_frontend code), which was one
-of the things I was trying to avoid. Unless, of course, I've
-misunderstood your proposal.
+What are you basing your "fluffy" statement on?  We recently merged a
+set of patches from qualcomm to support platform devices in the drm
+and Dave added support for USB devices. Qualcomm also has an open
+source drm for their snapdragon GPUs (although the userspace driver is
+closed) and they are using that on their SoCs.
 
-However, looking at the code again, I realise it is possible to
-simplify it. Since its only the demod gates that cause a problem, we
-only /actually/ need to lock the get_frontend() and set_frontend()
-calls.
+>
+> Uniting the frameworks within the kernel will likely fail(too big of a
+> task) but a common system wide memory manager would for sure make life
+> easier enabling the  possibility to pass buffers between drivers(and
+> user-land as well). In order for No-copy to work on a system level the
+> general multimedia infrastructure in User-land (i.e.
+> Gstreamer/X11/wayland/stagefright/flingers/etc) must also be aware of
+> this memory manager and manage handles accordingly. This
+> infrastructure in user-land puts the requirements on the User land API
+> (1.).
 
-Signed-off-by: Andrew de Quincey <adq_dvb@lidskialf.net>
 
---0016e6dab06b781824049dafe2ff
-Content-Type: text/x-patch; charset=US-ASCII; name="af9015-fix-dual-tuner-v2.patch"
-Content-Disposition: attachment; filename="af9015-fix-dual-tuner-v2.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gkvowtwh0
+You don't have to use GEM or TTM for as your memory manager for KMS or
+DRI, it's memory manager independent.  That said, I don't really see
+why you couldn't use one of them for a central memory manager on an
+SoC;  the sub drivers would just request buffers from the common
+memory manager.  We are already working on support for sharing buffers
+between drm drivers for supporting hybrid laptops and crossfire
+(multi-gpu) type things.  We already share buffers between multiple
+userspace acceleration drivers and the drm using the DRI protocol.
 
-ZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvYWY5MDE1LmMgYi9kcml2ZXJz
-L21lZGlhL2R2Yi9kdmItdXNiL2FmOTAxNS5jCmluZGV4IDMxYzBhMGUuLjUyYWM2ZWYgMTAwNjQ0
-Ci0tLSBhL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvYWY5MDE1LmMKKysrIGIvZHJpdmVycy9t
-ZWRpYS9kdmIvZHZiLXVzYi9hZjkwMTUuYwpAQCAtMTA4Myw2ICsxMDgzLDM0IEBAIHN0YXRpYyBp
-bnQgYWY5MDE1X2kyY19pbml0KHN0cnVjdCBkdmJfdXNiX2RldmljZSAqZCkKIAlyZXR1cm4gcmV0
-OwogfQogCitzdGF0aWMgaW50IGFmOTAxNV9sb2NrX3NldF9mcm9udGVuZChzdHJ1Y3QgZHZiX2Zy
-b250ZW5kKiBmZSwgc3RydWN0IGR2Yl9mcm9udGVuZF9wYXJhbWV0ZXJzKiBwYXJhbXMpCit7CisJ
-aW50IHJlc3VsdDsKKwlzdHJ1Y3QgZHZiX3VzYl9hZGFwdGVyICphZGFwID0gZmUtPmR2Yi0+cHJp
-djsKKwlzdHJ1Y3QgYWY5MDE1X3N0YXRlICpzdGF0ZSA9IGFkYXAtPmRldi0+cHJpdjsKKworCWlm
-IChtdXRleF9sb2NrX2ludGVycnVwdGlibGUoJmFkYXAtPmRldi0+dXNiX211dGV4KSkKKwkJcmV0
-dXJuIC1FQUdBSU47CisKKwlyZXN1bHQgPSBzdGF0ZS0+ZmVfb3BzW2FkYXAtPmlkXS5zZXRfZnJv
-bnRlbmQoZmUsIHBhcmFtcyk7CisJbXV0ZXhfdW5sb2NrKCZhZGFwLT5kZXYtPnVzYl9tdXRleCk7
-CisJcmV0dXJuIHJlc3VsdDsKK30KKyAgICAgICAgICAgICAgICAKK3N0YXRpYyBpbnQgYWY5MDE1
-X2xvY2tfZ2V0X2Zyb250ZW5kKHN0cnVjdCBkdmJfZnJvbnRlbmQqIGZlLCBzdHJ1Y3QgZHZiX2Zy
-b250ZW5kX3BhcmFtZXRlcnMqIHBhcmFtcykKK3sKKwlpbnQgcmVzdWx0OworCXN0cnVjdCBkdmJf
-dXNiX2FkYXB0ZXIgKmFkYXAgPSBmZS0+ZHZiLT5wcml2OworCXN0cnVjdCBhZjkwMTVfc3RhdGUg
-KnN0YXRlID0gYWRhcC0+ZGV2LT5wcml2OworCisJaWYgKG11dGV4X2xvY2tfaW50ZXJydXB0aWJs
-ZSgmYWRhcC0+ZGV2LT51c2JfbXV0ZXgpKQorCQlyZXR1cm4gLUVBR0FJTjsKKworCXJlc3VsdCA9
-IHN0YXRlLT5mZV9vcHNbYWRhcC0+aWRdLmdldF9mcm9udGVuZChmZSwgcGFyYW1zKTsKKwltdXRl
-eF91bmxvY2soJmFkYXAtPmRldi0+dXNiX211dGV4KTsKKwlyZXR1cm4gcmVzdWx0OworfQorCiBz
-dGF0aWMgaW50IGFmOTAxNV9hZjkwMTNfZnJvbnRlbmRfYXR0YWNoKHN0cnVjdCBkdmJfdXNiX2Fk
-YXB0ZXIgKmFkYXApCiB7CiAJaW50IHJldDsKQEAgLTExMTYsNiArMTE0NCwxMiBAQCBzdGF0aWMg
-aW50IGFmOTAxNV9hZjkwMTNfZnJvbnRlbmRfYXR0YWNoKHN0cnVjdCBkdmJfdXNiX2FkYXB0ZXIg
-KmFkYXApCiAJLyogYXR0YWNoIGRlbW9kdWxhdG9yICovCiAJYWRhcC0+ZmUgPSBkdmJfYXR0YWNo
-KGFmOTAxM19hdHRhY2gsICZhZjkwMTVfYWY5MDEzX2NvbmZpZ1thZGFwLT5pZF0sCiAJCWkyY19h
-ZGFwKTsKKwkJCisJbWVtY3B5KCZzdGF0ZS0+ZmVfb3BzW2FkYXAtPmlkXSwgJmFkYXAtPmZlLT5v
-cHMsIHNpemVvZihzdHJ1Y3QgZHZiX2Zyb250ZW5kX29wcykpOworCWlmIChhZGFwLT5mZS0+b3Bz
-LnNldF9mcm9udGVuZCkKKwkJYWRhcC0+ZmUtPm9wcy5zZXRfZnJvbnRlbmQgPSBhZjkwMTVfbG9j
-a19zZXRfZnJvbnRlbmQ7CisJaWYgKGFkYXAtPmZlLT5vcHMuZ2V0X2Zyb250ZW5kKQorCQlhZGFw
-LT5mZS0+b3BzLmdldF9mcm9udGVuZCA9IGFmOTAxNV9sb2NrX2dldF9mcm9udGVuZDsKIAogCXJl
-dHVybiBhZGFwLT5mZSA9PSBOVUxMID8gLUVOT0RFViA6IDA7CiB9CmRpZmYgLS1naXQgYS9kcml2
-ZXJzL21lZGlhL2R2Yi9kdmItdXNiL2FmOTAxNS5oIGIvZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVz
-Yi9hZjkwMTUuaAppbmRleCBmMjBjZmE2Li43NTliYjNmIDEwMDY0NAotLS0gYS9kcml2ZXJzL21l
-ZGlhL2R2Yi9kdmItdXNiL2FmOTAxNS5oCisrKyBiL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2Iv
-YWY5MDE1LmgKQEAgLTEwMiw2ICsxMDIsNyBAQCBzdHJ1Y3QgYWY5MDE1X3N0YXRlIHsKIAlzdHJ1
-Y3QgaTJjX2FkYXB0ZXIgaTJjX2FkYXA7IC8qIEkyQyBhZGFwdGVyIGZvciAybmQgRkUgKi8KIAl1
-OCByY19yZXBlYXQ7CiAJdTMyIHJjX2tleWNvZGU7CisJc3RydWN0IGR2Yl9mcm9udGVuZF9vcHMg
-ZmVfb3BzWzJdOwogfTsKIAogc3RydWN0IGFmOTAxNV9jb25maWcgewo=
---0016e6dab06b781824049dafe2ff--
+>
+> I know that STE and ARM has a vision to have a hwmem/ump alike API and
+> that Linaro is one place to resolve this. As Jesse Barker mentioned
+> earlier Linaro has work ongoing on this topic
+> (https://wiki.linaro.org/WorkingGroups/Middleware/Graphics/Projects/UnifiedMemoryManagement)
+> and a V4L2 brainstorming meeting in Warsaw will likely bring this up
+> as well. And Gstreamer is also looking at this from a user-land point
+> of view.
+>
+> ARM, STE seems to agree on this, V4L2 maestros seems to agree,
+> GStreamer as well(I believe),
+> How about Samsung(vcm)? TI(cmem)? Freescale? DRI community? Linus?
+
+FWIW, I have yet to see any v4l developers ever email the dri mailing
+list while discussing GEM, TTM, or the DRM, all the while conjecturing
+on aspects of it they admit to not fully understanding.  For future
+reference, the address is: <dri-devel@lists.freedesktop.org>.  We are
+happy to answer questions.
+
+Alex
+
+>
+> Jesse! any progress?
+>
+> BR
+> /Robert Fekete
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
