@@ -1,88 +1,69 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.128.26]:25146 "EHLO mgw-da02.nokia.com"
+Received: from cantor.suse.de ([195.135.220.2]:41379 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933179Ab1CXILg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Mar 2011 04:11:36 -0400
-Message-ID: <4D8AFD20.4000705@maxwell.research.nokia.com>
-Date: Thu, 24 Mar 2011 10:13:20 +0200
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Michael Jones <michael.jones@matrix-vision.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	=?ISO-8859-1?Q?Lo=EFc_Akue?= <akue.loic@gmail.com>,
-	Yordan Kamenov <ykamenov@mm-sol.com>
-Subject: Re: [PATCH] omap3isp: implement ENUM_FMT
-References: <4D889C61.905@matrix-vision.de> <201103231316.46934.laurent.pinchart@ideasonboard.com> <4D8AF29F.9010409@matrix-vision.de> <201103240842.43024.hverkuil@xs4all.nl>
-In-Reply-To: <201103240842.43024.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
+	id S1754964Ab1COOZ4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Mar 2011 10:25:56 -0400
+Subject: Re: [Security] [PATCH 00/20] world-writable files in sysfs and
+ debugfs
+From: James Bottomley <James.Bottomley@suse.de>
+To: Greg KH <greg@kroah.com>
+Cc: Vasiliy Kulikov <segoon@openwall.com>, security@kernel.org,
+	acpi4asus-user@lists.sourceforge.net, linux-scsi@vger.kernel.org,
+	rtc-linux@googlegroups.com, linux-usb@vger.kernel.org,
+	linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org,
+	open-iscsi@googlegroups.com, linux-omap@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+In-Reply-To: <20110315141859.GA19442@kroah.com>
+References: <cover.1296818921.git.segoon@openwall.com>
+	 <AANLkTikE-A=Fe-yRrN0opWwJGQ0f4uOzkyB3XCcEUrFE@mail.gmail.com>
+	 <1300155965.5665.15.camel@mulgrave.site> <20110315030956.GA2234@kroah.com>
+	 <1300189828.4017.2.camel@mulgrave.site>  <20110315141859.GA19442@kroah.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Tue, 15 Mar 2011 10:25:51 -0400
+Message-ID: <1300199151.7744.12.camel@mulgrave.site>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hans Verkuil wrote:
-> On Thursday, March 24, 2011 08:28:31 Michael Jones wrote:
->> Hi Laurent,
->>
->> On 03/23/2011 01:16 PM, Laurent Pinchart wrote:
->>> Hi Michael,
->>>
->> [snip]
->>>>
->>>> Is there a policy decision that in the future, apps will be required to
->>>> use libv4l to get images from the ISP?  Are we not intending to support
->>>> using e.g. media-ctl + some v4l2 app, as I'm currently doing during
->>>> development?
->>>
->>> Apps should be able to use the V4L2 API directly. However, we can't implement 
->>> all that API, as most calls don't make sense for the OMA3 ISP driver. Which 
->>> calls need to be implemented is a grey area at the moment, as there's no 
->>> detailed semantics on how subdev-level configuration and video device 
->>> configuration should interact.
+On Tue, 2011-03-15 at 07:18 -0700, Greg KH wrote:
+> On Tue, Mar 15, 2011 at 07:50:28AM -0400, James Bottomley wrote:
+> > On Mon, 2011-03-14 at 20:09 -0700, Greg KH wrote:
+> > > There are no capability checks on sysfs files right now, so these all
+> > > need to be fixed.
+> > 
+> > That statement is true but irrelevant, isn't it?  There can't be
+> > capabilities within sysfs files because the system that does them has no
+> > idea what the capabilities would be.  If there were capabilities checks,
+> > they'd have to be in the implementing routines.
 > 
-> We definitely need to discuss this in the near future. It's indeed a grey
-> area at the moment that needs to be clarified.
-
-I fully agree.
-
->>> Your implementation of ENUM_FMT looks correct to me, but the question is 
->>> whether ENUM_FMT should be implemented. I don't think ENUM_FMT is a required 
->>> ioctl, so maybe v4l2src shouldn't depend on it. I'm interesting in getting 
->>> Hans' opinion on this.
->>>
->>
->> I only implemented it after I saw that ENUM_FMT _was_ required by V4L2.
->>  From http://v4l2spec.bytesex.org/spec/x1859.htm#AEN1894 :
->> "The VIDIOC_ENUM_FMT ioctl must be supported by all drivers exchanging
->> image data with applications."
+> Ah, you are correct, sorry for the misunderstanding.
 > 
-> If you can call S_FMT on a device node, then you also have to implement
-> ENUM_FMT.
+> > I think the questions are twofold:
+> > 
+> >      1. Did anyone actually check for capabilities before assuming world
+> >         writeable files were wrong?
+> 
+> I do not think so as the majority (i.e. all the ones that I looked at)
+> did no such checks.
 
-I think the issue here is that it's not possible (or feasible) to
-implement ENUM_FMT in a way applications would obtain the information
-they're interested in. Available pixel formats are dictated by the
-formats on links (validation must be done first in a generic case!) and
-in the case of OMAP 3 ISP there's always just one.
+OK, as long as someone checked, I'm happy.
 
-S_FMT and TRY_FMT behave more or less the way applications like. The
-pixelformat or size may not change, though, and this information is also
-used to prepare the buffers.
+> >      2. Even if there aren't any capabilities checks in the implementing
+> >         routines, should there be (are we going the separated
+> >         capabilities route vs the monolithic root route)?
+> 
+> I think the general consensus is that we go the monolithic root route
+> for sysfs files in that we do not allow them to be world writable.
+> 
+> Do you have any exceptions that you know of that do these checks?
 
-> I am assuming applications need to call S_FMT for omap3 video nodes, right?
-> Because that defines the result of the DMA engine. Or is the result always
-> fixed, based on the current pipeline configuration? In the latter case I
-> would still expect to see an ENUM_FMT, but one that just returns the current
-> format. And S/TRY_FMT would also return the current format.
+Heh, I didn't call our security vacillations a dizzying ride for
+nothing.  I know the goal once was to try to run a distro without root
+daemons (which is what required the capabilities stuff).  I'm actually
+trying to avoid the issue ... I just want to make sure that people who
+care aren't all moving in different directions.
 
-There are some options in the format that is not defined by the
-v4l2_mbus_pixelcode already. Padding is such and I don't think there
-should be anything else than that since the v4l2_mbus_pixelcode
-conversion and scaling takes places in the subdevs. Laurent? :-)
+James
 
-Cheers,
 
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
