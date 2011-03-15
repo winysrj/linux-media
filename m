@@ -1,76 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:59881 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754351Ab1C1SEf (ORCPT
+Received: from slow3-v.mail.gandi.net ([217.70.178.89]:41947 "EHLO
+	slow3-v.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754974Ab1COIld (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Mar 2011 14:04:35 -0400
-Received: by vws1 with SMTP id 1so2502109vws.19
-        for <linux-media@vger.kernel.org>; Mon, 28 Mar 2011 11:04:35 -0700 (PDT)
+	Tue, 15 Mar 2011 04:41:33 -0400
+Received: from relay2-v.mail.gandi.net (relay2-v.mail.gandi.net [217.70.178.76])
+	by slow3-v.mail.gandi.net (Postfix) with ESMTP id 18A6286412
+	for <linux-media@vger.kernel.org>; Tue, 15 Mar 2011 09:41:25 +0100 (CET)
+Received: from mfilter1-d.gandi.net (mfilter1-d.gandi.net [217.70.178.41])
+	by relay2-v.mail.gandi.net (Postfix) with ESMTP id 24F13135E0
+	for <linux-media@vger.kernel.org>; Tue, 15 Mar 2011 09:41:02 +0100 (CET)
+Received: from relay2-v.mail.gandi.net ([217.70.178.76])
+	by mfilter1-d.gandi.net (mfilter1-d.gandi.net [217.70.178.41]) (amavisd-new, port 10024)
+	with ESMTP id 5e3j4HRapTVo for <linux-media@vger.kernel.org>;
+	Tue, 15 Mar 2011 09:41:00 +0100 (CET)
+Received: from sira.localnet (sira.upc.es [147.83.37.68])
+	(Authenticated sender: leo@alaxarxa.net)
+	by relay2-v.mail.gandi.net (Postfix) with ESMTPSA id A2037135E4
+	for <linux-media@vger.kernel.org>; Tue, 15 Mar 2011 09:41:00 +0100 (CET)
+From: "Leopold Palomo-Avellaneda" <leo@alaxarxa.net>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: wis go7007 driver
+Date: Tue, 15 Mar 2011 09:40:57 +0100
 MIME-Version: 1.0
-Date: Mon, 28 Mar 2011 20:04:35 +0200
-Message-ID: <AANLkTik2V7FcDfhFQfA4fG9OROhXyBavm2OyLFy34n2M@mail.gmail.com>
-Subject: [PATCH] Support for Medion CTX1921 DVB-T Stick for 2.6.32.35 kernel
-From: Radoslaw Warowny <radoslaww@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201103150940.57931.leo@alaxarxa.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Add support for Medion CTX1921 DVB-T USB stick (DIB7770 based) using existing
-Dibcom driver. The device is identified as: "ID 1660:1921 Creatix
-Polymedia GmbH".
+Hi,
 
-Signed-off-by: Radoslaw Warowny <radoslaww@gmail.com>
+I have asked to some people and they have point me to this list to ask. I hope 
+this is the right place. :-)
 
----
-The patch was tested with CTX1921 V2.1.1 (white USB stick with
-"Medion" inscription on top of it).
+We have a card Addlink PCI-MPG24 that has 4 bt878 and 4 wis go7007. We have 
+used the driver from [1] and [2]. 
 
-diff -uprN linux-2.6.32.35-vanilla/drivers/media/dvb/dvb-usb/dib0700_devices.c
-linux-2.6.32.35/drivers/media/dvb/dvb-usb/dib0700_devices.c
---- linux-2.6.32.35-vanilla/drivers/media/dvb/dvb-usb/dib0700_devices.c	2011-03-27
-16:13:19.991002659 +0200
-+++ linux-2.6.32.35/drivers/media/dvb/dvb-usb/dib0700_devices.c	2011-03-27
-17:15:44.227409205 +0200
-@@ -1861,6 +1861,7 @@ struct usb_device_id dib0700_usb_id_tabl
- 	{ USB_DEVICE(USB_VID_DIBCOM,    USB_PID_DIBCOM_STK807XPVR) },
- 	{ USB_DEVICE(USB_VID_DIBCOM,    USB_PID_DIBCOM_STK807XP) },
- 	{ USB_DEVICE(USB_VID_PIXELVIEW, USB_PID_PIXELVIEW_SBTVD) },
-+	{ USB_DEVICE(USB_VID_MEDION,    USB_PID_MEDION_CTX1921) },
- 	{ 0 }		/* Terminating entry */
- };
- MODULE_DEVICE_TABLE(usb, dib0700_usb_id_table);
-@@ -2332,7 +2333,7 @@ struct dvb_usb_device_properties dib0700
- 			},
- 		},
+Also, I have compiled the kernel source staged (2.6.32) and 
+although it compiles without problem, the driver doesn't works. I'm testing it 
+with two application spook (rtsp server)  and gorecord: both complains about 
+Unable to set compression params.
 
--		.num_device_descs = 2,
-+		.num_device_descs = 3,
- 		.devices = {
- 			{   "DiBcom STK7770P reference design",
- 				{ &dib0700_usb_id_table[59], NULL },
-@@ -2344,6 +2345,10 @@ struct dvb_usb_device_properties dib0700
- 					&dib0700_usb_id_table[60], NULL},
- 				{ NULL },
- 			},
-+                        {   "Medion CTX1921",
-+                                { &dib0700_usb_id_table[64], NULL },
-+                                { NULL },
-+                        }
- 		},
- 		.rc_interval      = DEFAULT_RC_INTERVAL,
- 		.rc_key_map       = dib0700_rc_keys,
-diff -uprN linux-2.6.32.35-vanilla/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
-linux-2.6.32.35/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
---- linux-2.6.32.35-vanilla/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	2011-03-27
-16:13:19.991002659 +0200
-+++ linux-2.6.32.35/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	2011-03-27
-17:14:27.217407350 +0200
-@@ -276,5 +276,6 @@
- #define USB_PID_DVB_T_USB_STICK_HIGH_SPEED_COLD		0x5000
- #define USB_PID_DVB_T_USB_STICK_HIGH_SPEED_WARM		0x5001
- #define USB_PID_FRIIO_WHITE				0x0001
-+#define USB_PID_MEDION_CTX1921				0x1921
+This driver have been working with an stock debian kernel 2.6.26 without 
+problems. Now, I would like to make it works with the current stock kernel 
+(2.6.32) and up.
 
- #endif
+So, please, could you help me to try to see what's happening and try to solve 
+this issue? 
+
+Best regards,
+
+Leo
+
+
+
+[1] http://nikosapi.org/wiki/index.php/WIS_Go7007_Linux_driver
+[2] http://home.comcast.net/~bender647/go7007/
