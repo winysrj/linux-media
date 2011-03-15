@@ -1,52 +1,53 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-out003.kontent.com ([81.88.40.217]:40859 "EHLO
-	smtp-out003.kontent.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751011Ab1CFMLn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Mar 2011 07:11:43 -0500
-From: Oliver Neukum <oliver@neukum.org>
-To: Florian Mickler <florian@mickler.org>
-Subject: Re: [PATCH] [media] dib0700: get rid of on-stack dma buffers
-Date: Sun, 6 Mar 2011 13:06:09 +0100
-Cc: mchehab@infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	"Greg Kroah-Hartman" <greg@kroah.com>,
-	"Rafael J. Wysocki" <rjw@sisk.pl>,
-	Maciej Rutecki <maciej.rutecki@gmail.com>
-References: <1299410212-24897-1-git-send-email-florian@mickler.org>
-In-Reply-To: <1299410212-24897-1-git-send-email-florian@mickler.org>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:57652 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757552Ab1COMXk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Mar 2011 08:23:40 -0400
+Received: by iyb26 with SMTP id 26so502399iyb.19
+        for <linux-media@vger.kernel.org>; Tue, 15 Mar 2011 05:23:40 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201103061306.10045.oliver@neukum.org>
+In-Reply-To: <20110315121126.GD8113@aniel>
+References: <AANLkTimexhCMBSd7UNr1gizgbnarwS9kucZC0nWSBJxX@mail.gmail.com>
+	<20110315121126.GD8113@aniel>
+Date: Tue, 15 Mar 2011 13:23:40 +0100
+Message-ID: <AANLkTingP4tLViGTMvKeBM4XNj-cRZtqECh4WjLgZM40@mail.gmail.com>
+Subject: Re: [PATCH] DVB-APPS: azap gets -p argument
+From: Christian Ulrich <chrulri@gmail.com>
+To: Janne Grunau <j@jannau.net>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Am Sonntag, 6. März 2011, 12:16:52 schrieb Florian Mickler:
-> This should fix warnings seen by some:
-> 	WARNING: at lib/dma-debug.c:866 check_for_stack
-> 
-> Fixes: https://bugzilla.kernel.org/show_bug.cgi?id=15977.
-> Reported-by: Zdenek Kabelac <zdenek.kabelac@gmail.com>
-> Signed-off-by: Florian Mickler <florian@mickler.org>
-> CC: Mauro Carvalho Chehab <mchehab@infradead.org>
-> CC: linux-media@vger.kernel.org
-> CC: linux-kernel@vger.kernel.org
-> CC: Greg Kroah-Hartman <greg@kroah.com>
-> CC: Rafael J. Wysocki <rjw@sisk.pl>
-> CC: Maciej Rutecki <maciej.rutecki@gmail.com>
-> ---
-> 
-> Please take a look at it, as I do not do that much kernel hacking
-> and don't wanna brake anybodys computer... :)
-> 
-> From my point of view this should _not_ go to stable even though it would
-> be applicable. But if someone feels strongly about that and can
-> take responsibility for that change...
+Hi, thank you for your feedback.
 
-The patch looks good and is needed in stable.
-It could be improved by using a buffer allocated once in the places
-you hold a mutex anyway.
+Indeed, I never used -r alone, but only with -p.
+So with your patch, [acst]zap -r will be the same as -rp. That looks good to me.
 
-	Regards
-		Oliver
+Chris
+
+2011/3/15 Janne Grunau <j@jannau.net>:
+> Hi,
+>
+> On Sat, Mar 05, 2011 at 03:16:51AM +0100, Christian Ulrich wrote:
+>>
+>> I've written a patch against the latest version of azap in the hg
+>> repository during the work of my Archos Gen8 DVB-T / ATSC project.
+>>
+>> Details of patch:
+>> - add -p argument from tzap to azap
+>> - thus ts streaming to dvr0 includes the pat/pmt
+>
+> I would prefer if you simply add PAT/PMT filters to -r. I'll send a
+> patch which does the same for [cst]zap. The reulting files without
+> PAT/PMT are simply invalid. It wasn't a serious problem as long as
+> the used codecs were always mpeg2 video and mpeg1 layer 2 audio but
+> that has changed.
+> Since people use "[acst]zap -r" + cat/dd/... for recording we should
+> make the life of playback software easier by producing valid files.
+>
+> patch looks good otherwise. thanks
+>
+> Janne
+>
