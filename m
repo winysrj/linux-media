@@ -1,87 +1,84 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:58836 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751877Ab1CDXL5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2011 18:11:57 -0500
-Received: by wwb22 with SMTP id 22so3306463wwb.1
-        for <linux-media@vger.kernel.org>; Fri, 04 Mar 2011 15:11:55 -0800 (PST)
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4136 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750839Ab1COHvF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Mar 2011 03:51:05 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Pawel Osciak <pawel@osciak.com>
+Subject: Re: [Query] VIDIOC_QBUF and VIDIOC_STREAMON order
+Date: Tue, 15 Mar 2011 08:50:45 +0100
+Cc: subash.rp@gmail.com, Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Subash Patel <subashrp@gmail.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <4D7DEA68.2050604@samsung.com> <AANLkTimA070CdJxDR5A7Yq_e6cRG_0TUFG3Cf1VCBbCh@mail.gmail.com> <AANLkTinE_Z3QDWDB1+w1ih0bQ2dC15ynkprqB-nFPeqd@mail.gmail.com>
+In-Reply-To: <AANLkTinE_Z3QDWDB1+w1ih0bQ2dC15ynkprqB-nFPeqd@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <4D716ECA.4060900@iki.fi>
-References: <AANLkTi=rcfL_pku9hhx68C_Fb_76KsW2Yy+Oys10a7+4@mail.gmail.com>
-	<4D7163FD.9030604@iki.fi>
-	<AANLkTimjC99zhJ=huHZiGgbENCoyHy5KT87iujjTT8w3@mail.gmail.com>
-	<4D716ECA.4060900@iki.fi>
-Date: Fri, 4 Mar 2011 23:11:55 +0000
-Message-ID: <AANLkTimHa6XFwhvpLbhtRm7Vee-jYPkHpx+D8L2=+vQb@mail.gmail.com>
-Subject: Re: [patch] Fix AF9015 Dual tuner i2c write failures
-From: Andrew de Quincey <adq_dvb@lidskialf.net>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201103150850.45961.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 4 March 2011 22:59, Antti Palosaari <crope@iki.fi> wrote:
-> On 03/05/2011 12:44 AM, Andrew de Quincey wrote:
->>>>
->>>> Adding a "bus lock" to af9015_i2c_xfer() will not work as demod/tuner
->>>> accesses will take multiple i2c transactions.
->>>>
->>>> Therefore, the following patch overrides the dvb_frontend_ops
->>>> functions to add a per-device lock around them: only one frontend can
->>>> now use the i2c bus at a time. Testing with the scripts above shows
->>>> this has eliminated the errors.
->>>
->>> This have annoyed me too, but since it does not broken functionality much
->>> I
->>> haven't put much effort for fixing it. I like that fix since it is in
->>> AF9015
->>> driver where it logically belongs to. But it looks still rather complex.
->>> I
->>> see you have also considered "bus lock" to af9015_i2c_xfer() which could
->>> be
->>> much smaller in code size (that's I have tried to implement long time
->>> back).
->>>
->>> I would like to ask if it possible to check I2C gate open / close inside
->>> af9015_i2c_xfer() and lock according that? Something like:
->>
->> Hmm, I did think about that, but I felt overriding the functions was
->> just cleaner: I felt it was more obvious what it was doing. Doing
->> exactly this sort of tweaking was one of the main reasons we added
->> that function overriding feature.
->>
->> I don't like the idea of returning "error locked by FE" since that'll
->> mean the tuning will randomly fail sometimes in a way visible to
->> userspace (unless we change the core dvb_frontend code), which was one
->> of the things I was trying to avoid. Unless, of course, I've
->> misunderstood your proposal.
->
-> Not returning error, but waiting in lock like that:
-> if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
->  return -EAGAIN;
+On Tuesday, March 15, 2011 04:21:05 Pawel Osciak wrote:
+> Hi,
+> 
+> On Mon, Mar 14, 2011 at 03:49, Subash Patel <subashrp@gmail.com> wrote:
+> > VIDIOC_STREAMON expects buffers to be queued before hardware part of
+> > image/video pipe is enabled. From my experience of V4L2 user space, I
+> > have always QBUFfed before invoking the STREAMON. Below is the API
+> > specification which also speaks something same:
+> >
+> 
+> Not exactly. It says that the API requires buffers to be queued for
+> output devices. It does not require any buffers to be queued for input
+> devices. Sylwester is right here.
+> 
+> This feature of not having to queue input buffers before STREAMON
+> introduces problems to driver implementations and I am personally not
+> a big fan of it either. But I'm seeing some additional problems here.
+> Suppose we forced QBUF to be done before STREAMON. This would work,
+> but what happens next? What should happen when we want to DQBUF the
+> last buffer? If the device couldn't start without any buffers queued,
+> can it continue streaming with all of them dequeued? I would guess
+> not. So we'd either have to deny DQBUF of the last buffer (which for
+> me personally is almost unacceptable) or have the last DQBUF
+> automatically cause a STREAMOFF. So, for the latter, should
+> applications, after they get all the data they wanted, be made to
+> always have one more buffer queued as a "throwaway" buffer? This is
+> probably the only reasonable solution here, but the applications would
+> have to keep count of their queued buffers and be aware of this.
+> Also, there might still be situations where being able to STREAMON
+> without buffers queued would be beneficial. For example, enabling the
+> device might be a slow/expensive operation and we might prefer to keep
+> it running even if we don't want any data at the moment. Even for
+> faster devices, being able to keep them on and periodically take a
+> snapshot would be faster without having to call STREAMON anyway...
 
-Ah k, sorry
+The problem is that what is possible is highly hardware dependent. All video
+capture device I know of (composite in, HDMI in, etc) require that buffers
+are queued and they won't release that buffer to userspace until a new free
+buffer is available. They DMA continuously and stopping the DMA at the last
+buffer and restarting it when a new one appears tends to be too expensive
+and leads to additional loss of frames.
 
->> However, looking at the code again, I realise it is possible to
->> simplify it. Since its only the demod gates that cause a problem, we
->> only /actually/ need to lock the get_frontend() and set_frontend()
->> calls.
->
-> I don't understand why .get_frontend() causes problem, since it does not
-> access tuner at all. It only reads demod registers. The main problem is
-> (like schema in af9015.c shows) that there is two tuners on same I2C bus
-> using same address. And demod gate is only way to open access for desired
-> tuner only.
+In part how this should act depends on the use-case: if you are streaming
+video, then requiring buffers to be present before STREAMON and holding on
+to a buffer if userspace can't keep up seems quite reasonable to me.
 
-AFAIR /some/ tuner code accesses the tuner hardware to read the exact
-tuned frequency back on a get_frontend(); was just being extra
-paranoid :)
+But for snapshot and codec type streams this behavior doesn't make sense.
+The main difference is that in this case the DMA is not driven by an external
+input, but by internal (userspace) demand.
 
-> You should block traffic based of tuner not demod. And I think those
-> callbacks which are needed for override are tuner driver callbacks. Consider
-> situation device goes it v4l-core calls same time both tuner .sleep() ==
-> problem.
+Something for our meeting to discuss.
 
-Hmm, yeah, you're right, let me have another look tomorrow.
+Regards,
+
+	Hans
+
+> 
+> 
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by Cisco
