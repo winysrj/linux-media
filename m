@@ -1,244 +1,143 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.171]:59683 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756329Ab1C3W3y convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Mar 2011 18:29:54 -0400
-Date: Thu, 31 Mar 2011 00:29:17 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Paolo Santinelli <paolo.santinelli@unimore.it>
-cc: linux-media@vger.kernel.org
-Subject: Re: soc_camera dynamically cropping and scaling
-In-Reply-To: <AANLkTikx84JovevQ1YHrU79Hj1=jjSZ7FM9BtogiWOcc@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1103310027490.15210@axis700.grange>
-References: <AANLkTinVP6CePBY6g9Dn2aKXM0ovwmpqMd5G4ucz44EH@mail.gmail.com>
- <Pine.LNX.4.64.1103292357270.13285@axis700.grange>
- <AANLkTimhP_YoqKRKyPzRbM6gw5jXVNV2D3pveRqqH0W_@mail.gmail.com>
- <Pine.LNX.4.64.1103300947580.4695@axis700.grange>
- <AANLkTimN_LgfXYgH9jejakS38v-FdRQUnQ6qJJJCb1oe@mail.gmail.com>
- <AANLkTikx84JovevQ1YHrU79Hj1=jjSZ7FM9BtogiWOcc@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from ist.d-labs.de ([213.239.218.44]:47639 "EHLO mx01.d-labs.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755716Ab1COIx1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Mar 2011 04:53:27 -0400
+From: Florian Mickler <florian@mickler.org>
+To: mchehab@infradead.org
+Cc: oliver@neukum.org, jwjstone@fastmail.fm,
+	Florian Mickler <florian@mickler.org>,
+	linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 04/16] [media] vp7045: get rid of on-stack dma buffers
+Date: Tue, 15 Mar 2011 09:43:36 +0100
+Message-Id: <1300178655-24832-4-git-send-email-florian@mickler.org>
+In-Reply-To: <1300178655-24832-1-git-send-email-florian@mickler.org>
+References: <20110315093632.5fc9fb77@schatten.dmk.lab>
+ <1300178655-24832-1-git-send-email-florian@mickler.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 30 Mar 2011, Paolo Santinelli wrote:
+usb_control_msg initiates (and waits for completion of) a dma transfer using
+the supplied buffer. That buffer thus has to be seperately allocated on
+the heap.
 
-> Hi Guennadi,
-> 
-> Am I wrong or do  I have to add some functions ?
-> 
-> I have hand applied the changes at the soc_camera.c and soc_camera.h
-> files. At a fist glance to these files seems that I have to add the
-> function:
-> 
->  .set_livecrop()
+In lib/dma_debug.c the function check_for_stack even warns about it:
+	WARNING: at lib/dma-debug.c:866 check_for_stack
 
-Yes, I think, I mentioned this in my last mail, that's what my sh-ceu 
-example should have illustrated.
+Note: This change is tested to compile only, as I don't have the hardware.
 
-> 
-> and probably even something more:
-> 
->   CC      drivers/media/video/soc_camera.o
-> drivers/media/video/soc_camera.c: In function 'soc_camera_s_fmt_vid_cap':
-> drivers/media/video/soc_camera.c:545: error: implicit declaration of
-> function 'vb2_is_streaming'
-> drivers/media/video/soc_camera.c:545: error: 'struct
-> soc_camera_device' has no member named 'vb2_vidq'
-> drivers/media/video/soc_camera.c: In function 'soc_camera_s_crop':
-> drivers/media/video/soc_camera.c:799: error: 'struct
-> soc_camera_device' has no member named 'vb2_vidq'
-> make[3]: *** [drivers/media/video/soc_camera.o] Error 1
-
-You have to use current sources. 2.6.39-rc1 should be ok.
-
-Thanks
-Guennadi
-
-> 
-> What about vb2_is_streaming and vb2_vidq ?
-> 
-> Any tips regarding these functions ?
-> 
-> Thanks
-> 
-> Paolo
-> 2011/3/30 Paolo Santinelli <paolo.santinelli@unimore.it>:
-> > Hi Guennadi,
-> >
-> > thank you very much for the patch. I am going to apply it in order to
-> > start toying with the new capability. I think it is a  useful
-> > capability.
-> >
-> > I'll let you know.
-> >
-> > Again thank you.
-> >
-> > Paolo
-> >
-> > 2011/3/30 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
-> >> On Tue, 29 Mar 2011, Paolo Santinelli wrote:
-> >>
-> >>> Hi Guennadi,
-> >>>
-> >>> thank you for the quick answer.
-> >>>
-> >>> Here is what I mean with dynamic: I take "live" one frame at high
-> >>> resolution, for example a picture at VGA or  QVGA resolution, then a
-> >>> sequence of frames that depict a cropped area (200x200 or 100x100)
-> >>> from the original full-resolution frame, and then a new full
-> >>> resolution image (VGA or QVGA) and again the sequence of frames  that
-> >>> depict a cropped area from the original full resolution, and so on.
-> >>> That means takes one frame in 640x480 and  than takes some frames at
-> >>> 100x100 (or 200x200) and so on.
-> >>
-> >> Ic, so, if you can live with a fixed output format and only change the
-> >> input cropping rectangle, the patch set, that I've just sent could give
-> >> you a hint, how this can be done. This would work if you're ok with first
-> >> obtaining VGA images scaled down to, say, 160x120, and then take 160x120
-> >> cropped frames unscaled. But I'm not sure, this is something, that would
-> >> work for you. Otherwise, unless your sensor can upscale cropped images to
-> >> VGA output size, you'll also want fast switching between different output
-> >> sizes, which you'd have to wait for (or implement yourself;-))
-> >>
-> >> Thanks
-> >> Guennadi
-> >>
-> >>>
-> >>> The best would be have two different fixed-output image formats, the
-> >>> WHOLE IMAGE format ex. 640x480 and the ROI format, 100x100. The ROI
-> >>> pictures obtained cropping the a region of the whole image. The
-> >>> cropping area could be even wider  than 100x100 and then scaled down
-> >>> to the 100x100 ROI format.
-> >>>
-> >>> Probably it is more simple have a cropping area of the same dimension
-> >>> of the ROI format, 100x100.
-> >>>
-> >>> In this way there is a reduction of the computation load of the CPU
-> >>> (smaller images).
-> >>>
-> >>> Thank you very much!
-> >>>
-> >>> Paolo
-> >>>
-> >>> 2011/3/29 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
-> >>> > On Tue, 29 Mar 2011, Paolo Santinelli wrote:
-> >>> >
-> >>> >> Hi all,
-> >>> >>
-> >>> >> I am using a PXA270 board running linux 2.6.37 equipped with an ov9655
-> >>> >> Image sensor. I am able to use the cropping and scaling capabilities
-> >>> >> V4L2 driver.
-> >>> >> The question is :
-> >>> >>
-> >>> >> Is it possible dynamically change the cropping and scaling values
-> >>> >> without close and re-open  the camera every time ?
-> >>> >>
-> >>> >> Now I am using the streaming I/O memory mapping and to dynamically
-> >>> >> change the cropping and scaling values I do :
-> >>> >>
-> >>> >> 1) stop capturing using VIDIOC_STREAMOFF;
-> >>> >> 2) unmap all the buffers;
-> >>> >> 3) close the device;
-> >>> >> 4) open the device;
-> >>> >> 5) init the device: VIDIOC_CROPCAP and VIDIOC_S_CROP in order to set
-> >>> >> the cropping parameters. VIDIOC_G_FMT and VIDIOC_S_FMT in order to set
-> >>> >> the target image width and height, (scaling).
-> >>> >> 6) Mapping the buffers: VIDIOC_REQBUFS in order to request buffers and
-> >>> >> mmap each buffer using VIDIOC_QUERYBUF and mmap():
-> >>> >>
-> >>> >> this procedure works but take 400 ms.
-> >>> >>
-> >>> >> If I omit steps 3) and 4)  (close and re-open the device) I get this errors:
-> >>> >>
-> >>> >> camera 0-0: S_CROP denied: queue initialised and sizes differ
-> >>> >> camera 0-0: S_FMT denied: queue initialised
-> >>> >> VIDIOC_S_FMT error 16, Device or resource busy
-> >>> >> pxa27x-camera pxa27x-camera.0: PXA Camera driver detached from camera 0
-> >>> >>
-> >>> >> Do you have some Idea regarding why I have to close and reopen the
-> >>> >> device and regarding a way to speed up these change?
-> >>> >
-> >>> > Yes, by chance I do;-) First of all you have to make it more precise -
-> >>> > what exactly do you mean - dynamic (I call it "live") scaling or cropping?
-> >>> > If you want to change output format, that will not be easy ATM, that will
-> >>> > require the snapshot mode API, which is not yet even in an RFC state. If
-> >>> > you only want to change the cropping and keep the output format (zoom),
-> >>> > then I've just implemented that for sh_mobile_ceu_camera. This requires a
-> >>> > couple of extensions to the soc-camera core, which I can post tomorrow.
-> >>> > But in fact that is also a hack, because the proper way to implement this
-> >>> > is to port soc-camera to the Media Controller framework and use the
-> >>> > pad-level API. So, I am not sure, whether we want this in the mainline,
-> >>> > but if already two of us need it now - before the transition to pad-level
-> >>> > operations, maybe it would make sense to mainline this. If, however, you
-> >>> > do have to change your output window, maybe you could tell us your
-> >>> > use-case, so that we could consider, what's the best way to support that.
-> >>> >
-> >>> > Thanks
-> >>> > Guennadi
-> >>> > ---
-> >>> > Guennadi Liakhovetski, Ph.D.
-> >>> > Freelance Open-Source Software Developer
-> >>> > http://www.open-technology.de/
-> >>> >
-> >>>
-> >>>
-> >>>
-> >>> --
-> >>> --------------------------------------------------
-> >>> Paolo Santinelli
-> >>> ImageLab Computer Vision and Pattern Recognition Lab
-> >>> Dipartimento di Ingegneria dell'Informazione
-> >>> Universita' di Modena e Reggio Emilia
-> >>> via Vignolese 905/B, 41125, Modena, Italy
-> >>>
-> >>> Cell. +39 3472953357,  Office +39 059 2056270, Fax +39 059 2056129
-> >>> email:  <mailto:paolo.santinelli@unimore.it> paolo.santinelli@unimore.it
-> >>> URL:  <http://imagelab.ing.unimo.it/> http://imagelab.ing.unimo.it
-> >>> --------------------------------------------------
-> >>>
-> >>
-> >> ---
-> >> Guennadi Liakhovetski, Ph.D.
-> >> Freelance Open-Source Software Developer
-> >> http://www.open-technology.de/
-> >>
-> >
-> >
-> >
-> > --
-> > --------------------------------------------------
-> > Paolo Santinelli
-> > ImageLab Computer Vision and Pattern Recognition Lab
-> > Dipartimento di Ingegneria dell'Informazione
-> > Universita' di Modena e Reggio Emilia
-> > via Vignolese 905/B, 41125, Modena, Italy
-> >
-> > Cell. +39 3472953357,  Office +39 059 2056270, Fax +39 059 2056129
-> > email:  <mailto:paolo.santinelli@unimore.it> paolo.santinelli@unimore.it
-> > URL:  <http://imagelab.ing.unimo.it/> http://imagelab.ing.unimo.it
-> > --------------------------------------------------
-> >
-> 
-> 
-> 
-> -- 
-> --------------------------------------------------
-> Paolo Santinelli
-> ImageLab Computer Vision and Pattern Recognition Lab
-> Dipartimento di Ingegneria dell'Informazione
-> Universita' di Modena e Reggio Emilia
-> via Vignolese 905/B, 41125, Modena, Italy
-> 
-> Cell. +39 3472953357,  Office +39 059 2056270, Fax +39 059 2056129
-> email:  <mailto:paolo.santinelli@unimore.it> paolo.santinelli@unimore.it
-> URL:  <http://imagelab.ing.unimo.it/> http://imagelab.ing.unimo.it
-> --------------------------------------------------
-> 
-
+Signed-off-by: Florian Mickler <florian@mickler.org>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/dvb/dvb-usb/vp7045.c |   41 ++++++++++++++++++++++++++---------
+ 1 files changed, 30 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/media/dvb/dvb-usb/vp7045.c b/drivers/media/dvb/dvb-usb/vp7045.c
+index ab0ab3c..17478ec 100644
+--- a/drivers/media/dvb/dvb-usb/vp7045.c
++++ b/drivers/media/dvb/dvb-usb/vp7045.c
+@@ -28,9 +28,9 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+ int vp7045_usb_op(struct dvb_usb_device *d, u8 cmd, u8 *out, int outlen, u8 *in, int inlen, int msec)
+ {
+ 	int ret = 0;
+-	u8 inbuf[12] = { 0 }, outbuf[20] = { 0 };
++	u8 *buf = d->priv;
+ 
+-	outbuf[0] = cmd;
++	buf[0] = cmd;
+ 
+ 	if (outlen > 19)
+ 		outlen = 19;
+@@ -39,10 +39,10 @@ int vp7045_usb_op(struct dvb_usb_device *d, u8 cmd, u8 *out, int outlen, u8 *in,
+ 		inlen = 11;
+ 
+ 	if (out != NULL && outlen > 0)
+-		memcpy(&outbuf[1], out, outlen);
++		memcpy(&buf[1], out, outlen);
+ 
+ 	deb_xfer("out buffer: ");
+-	debug_dump(outbuf,outlen+1,deb_xfer);
++	debug_dump(buf, outlen+1, deb_xfer);
+ 
+ 	if ((ret = mutex_lock_interruptible(&d->usb_mutex)))
+ 		return ret;
+@@ -50,7 +50,7 @@ int vp7045_usb_op(struct dvb_usb_device *d, u8 cmd, u8 *out, int outlen, u8 *in,
+ 	if (usb_control_msg(d->udev,
+ 			usb_sndctrlpipe(d->udev,0),
+ 			TH_COMMAND_OUT, USB_TYPE_VENDOR | USB_DIR_OUT, 0, 0,
+-			outbuf, 20, 2000) != 20) {
++			buf, 20, 2000) != 20) {
+ 		err("USB control message 'out' went wrong.");
+ 		ret = -EIO;
+ 		goto unlock;
+@@ -61,17 +61,17 @@ int vp7045_usb_op(struct dvb_usb_device *d, u8 cmd, u8 *out, int outlen, u8 *in,
+ 	if (usb_control_msg(d->udev,
+ 			usb_rcvctrlpipe(d->udev,0),
+ 			TH_COMMAND_IN, USB_TYPE_VENDOR | USB_DIR_IN, 0, 0,
+-			inbuf, 12, 2000) != 12) {
++			buf, 12, 2000) != 12) {
+ 		err("USB control message 'in' went wrong.");
+ 		ret = -EIO;
+ 		goto unlock;
+ 	}
+ 
+ 	deb_xfer("in buffer: ");
+-	debug_dump(inbuf,12,deb_xfer);
++	debug_dump(buf, 12, deb_xfer);
+ 
+ 	if (in != NULL && inlen > 0)
+-		memcpy(in,&inbuf[1],inlen);
++		memcpy(in, &buf[1], inlen);
+ 
+ unlock:
+ 	mutex_unlock(&d->usb_mutex);
+@@ -222,8 +222,26 @@ static struct dvb_usb_device_properties vp7045_properties;
+ static int vp7045_usb_probe(struct usb_interface *intf,
+ 		const struct usb_device_id *id)
+ {
+-	return dvb_usb_device_init(intf, &vp7045_properties,
+-				   THIS_MODULE, NULL, adapter_nr);
++	struct dvb_usb_device *d;
++	int ret = dvb_usb_device_init(intf, &vp7045_properties,
++				   THIS_MODULE, &d, adapter_nr);
++	if (ret)
++		return ret;
++
++	d->priv = kmalloc(20, GFP_KERNEL);
++	if (!d->priv) {
++		dvb_usb_device_exit(intf);
++		return -ENOMEM;
++	}
++
++	return ret;
++}
++
++static void vp7045_usb_disconnect(struct usb_interface *intf)
++{
++	struct dvb_usb_device *d = usb_get_intfdata(intf);
++	kfree(d->priv);
++	dvb_usb_device_exit(intf);
+ }
+ 
+ static struct usb_device_id vp7045_usb_table [] = {
+@@ -238,6 +256,7 @@ MODULE_DEVICE_TABLE(usb, vp7045_usb_table);
+ static struct dvb_usb_device_properties vp7045_properties = {
+ 	.usb_ctrl = CYPRESS_FX2,
+ 	.firmware = "dvb-usb-vp7045-01.fw",
++	.size_of_priv = sizeof(u8 *),
+ 
+ 	.num_adapters = 1,
+ 	.adapter = {
+@@ -284,7 +303,7 @@ static struct dvb_usb_device_properties vp7045_properties = {
+ static struct usb_driver vp7045_usb_driver = {
+ 	.name		= "dvb_usb_vp7045",
+ 	.probe		= vp7045_usb_probe,
+-	.disconnect = dvb_usb_device_exit,
++	.disconnect	= vp7045_usb_disconnect,
+ 	.id_table	= vp7045_usb_table,
+ };
+ 
+-- 
+1.7.4.rc3
+
