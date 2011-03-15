@@ -1,63 +1,94 @@
 Return-path: <mchehab@pedra>
-Received: from lo.gmane.org ([80.91.229.12]:48377 "EHLO lo.gmane.org"
+Received: from ist.d-labs.de ([213.239.218.44]:47671 "EHLO mx01.d-labs.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932078Ab1CVNHZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Mar 2011 09:07:25 -0400
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1Q21Iy-0000qV-Ra
-	for linux-media@vger.kernel.org; Tue, 22 Mar 2011 14:07:24 +0100
-Received: from 193.160.199.2 ([193.160.199.2])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Tue, 22 Mar 2011 14:07:24 +0100
-Received: from bjorn by 193.160.199.2 with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Tue, 22 Mar 2011 14:07:24 +0100
-To: linux-media@vger.kernel.org
-From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
-Subject: Re: S2-3200 switching-timeouts on 2.6.38
-Date: Tue, 22 Mar 2011 14:07:13 +0100
-Message-ID: <87tyevuwvy.fsf@nemi.mork.no>
-References: <4D87AB0F.4040908@t-online.de>
-	<20110321131602.36d146b1.rdunlap@xenotime.net>
-	<AANLkTik22=YE-2W4AtO9w_kVm=oro_YM7hJ52Rj83Fmt@mail.gmail.com>
-	<4D8888F7.6010903@t-online.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+	id S1755856Ab1COIx2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Mar 2011 04:53:28 -0400
+From: Florian Mickler <florian@mickler.org>
+To: mchehab@infradead.org
+Cc: oliver@neukum.org, jwjstone@fastmail.fm,
+	Florian Mickler <florian@mickler.org>,
+	linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 05/16] [media] ec168: get rid of on stack dma buffers
+Date: Tue, 15 Mar 2011 09:43:37 +0100
+Message-Id: <1300178655-24832-5-git-send-email-florian@mickler.org>
+In-Reply-To: <1300178655-24832-1-git-send-email-florian@mickler.org>
+References: <20110315093632.5fc9fb77@schatten.dmk.lab>
+ <1300178655-24832-1-git-send-email-florian@mickler.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Rico Tzschichholz <ricotz@t-online.de> writes:
+usb_control_msg initiates (and waits for completion of) a dma transfer using
+the supplied buffer. That buffer thus has to be seperately allocated on
+the heap.
 
->> Actually, quite a lot of effort was put in to get that part right. It
->> does the reverse thing that's to be done.
->> The revamped version is here [1] If the issue persists still, then it
->> needs to be investigated further.
->>
->> [1] http://www.mail-archive.com/linuxtv-commits@linuxtv.org/msg09214.html
->
-> I am not sure how this is related to stb6100?
->
-> Does that mean the current stb0899 patch [2] isnt ready to be proposed
-> for 2.6.39 yet? Or does the stb6100 patch has a better design to solve
-> this issue which should be adapted for stb0899 then?
+In lib/dma_debug.c the function check_for_stack even warns about it:
+	WARNING: at lib/dma-debug.c:866 check_for_stack
 
-I believe the point was that the real issue was a noise problem in the
-stb6100 tuner driver, and that the stb0899 frontend patch just papered
-over this.
+Note: This change is tested to compile only, as I don't have the hardware.
 
-> I was hoping to see it included before the merge window is closed again.
->
-> [2] https://patchwork.kernel.org/patch/244201/
+Signed-off-by: Florian Mickler <florian@mickler.org>
+---
+ drivers/media/dvb/dvb-usb/ec168.c |   18 +++++++++++++++---
+ 1 files changed, 15 insertions(+), 3 deletions(-)
 
-Please test the driver with the patch Manu refers to and report if there
-still are issues.  The patch is now upstream in the 2.6.38 kernel, so
-testing it should be fairly easy.  
-
-Do you still have this issue with a plain 2.6.38 driver?
-
-
-Bjørn
+diff --git a/drivers/media/dvb/dvb-usb/ec168.c b/drivers/media/dvb/dvb-usb/ec168.c
+index 52f5d4f..1ba3e5d 100644
+--- a/drivers/media/dvb/dvb-usb/ec168.c
++++ b/drivers/media/dvb/dvb-usb/ec168.c
+@@ -36,7 +36,9 @@ static int ec168_rw_udev(struct usb_device *udev, struct ec168_req *req)
+ 	int ret;
+ 	unsigned int pipe;
+ 	u8 request, requesttype;
+-	u8 buf[req->size];
++	u8 *buf;
++
++
+ 
+ 	switch (req->cmd) {
+ 	case DOWNLOAD_FIRMWARE:
+@@ -72,6 +74,12 @@ static int ec168_rw_udev(struct usb_device *udev, struct ec168_req *req)
+ 		goto error;
+ 	}
+ 
++	buf = kmalloc(req->size, GFP_KERNEL);
++	if (!buf) {
++		ret = -ENOMEM;
++		goto error;
++	}
++
+ 	if (requesttype == (USB_TYPE_VENDOR | USB_DIR_OUT)) {
+ 		/* write */
+ 		memcpy(buf, req->data, req->size);
+@@ -84,13 +92,13 @@ static int ec168_rw_udev(struct usb_device *udev, struct ec168_req *req)
+ 	msleep(1); /* avoid I2C errors */
+ 
+ 	ret = usb_control_msg(udev, pipe, request, requesttype, req->value,
+-		req->index, buf, sizeof(buf), EC168_USB_TIMEOUT);
++		req->index, buf, req->size, EC168_USB_TIMEOUT);
+ 
+ 	ec168_debug_dump(request, requesttype, req->value, req->index, buf,
+ 		req->size, deb_xfer);
+ 
+ 	if (ret < 0)
+-		goto error;
++		goto err_dealloc;
+ 	else
+ 		ret = 0;
+ 
+@@ -98,7 +106,11 @@ static int ec168_rw_udev(struct usb_device *udev, struct ec168_req *req)
+ 	if (!ret && requesttype == (USB_TYPE_VENDOR | USB_DIR_IN))
+ 		memcpy(req->data, buf, req->size);
+ 
++	kfree(buf);
+ 	return ret;
++
++err_dealloc:
++	kfree(buf);
+ error:
+ 	deb_info("%s: failed:%d\n", __func__, ret);
+ 	return ret;
+-- 
+1.7.4.rc3
 
