@@ -1,95 +1,59 @@
 Return-path: <mchehab@pedra>
-Received: from tuur.schedom-europe.net ([193.109.184.94]:58265 "EHLO
-	tuur.schedom-europe.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757057Ab1CIOze convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Mar 2011 09:55:34 -0500
-Date: Wed, 9 Mar 2011 15:47:37 +0100
-From: Guy Martin <gmsoft@tuxicoman.be>
-To: Pascal =?UTF-8?B?SsO8cmdlbnM=?=
-	<lists.pascal.juergens@googlemail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Simultaneous recordings from one frontend
-Message-ID: <20110309154737.3a567af8@borg.bxl.tuxicoman.be>
-In-Reply-To: <B7991825-5F55-4AA0-AB7B-BB2A968F7464@googlemail.com>
-References: <B7991825-5F55-4AA0-AB7B-BB2A968F7464@googlemail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from ist.d-labs.de ([213.239.218.44]:47648 "EHLO mx01.d-labs.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755752Ab1COIx2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Mar 2011 04:53:28 -0400
+From: Florian Mickler <florian@mickler.org>
+To: mchehab@infradead.org
+Cc: oliver@neukum.org, jwjstone@fastmail.fm,
+	Florian Mickler <florian@mickler.org>,
+	linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, Malcolm Priestley <tvboxspy@gmail.com>
+Subject: [PATCH 11/16] [media] lmedm04: correct indentation
+Date: Tue, 15 Mar 2011 09:43:43 +0100
+Message-Id: <1300178655-24832-11-git-send-email-florian@mickler.org>
+In-Reply-To: <1300178655-24832-1-git-send-email-florian@mickler.org>
+References: <20110315093632.5fc9fb77@schatten.dmk.lab>
+ <1300178655-24832-1-git-send-email-florian@mickler.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+This should not change anything except whitespace.
 
-Hi Pascal,
+Signed-off-by: Florian Mickler <florian@mickler.org>
+---
+ drivers/media/dvb/dvb-usb/lmedm04.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
 
-I've written a very small program that does just that :
-https://svn.tuxicoman.be/listing.php?repname=dvbsplit
-It's a quick hack, there is probably a better way to do this but at
-least it works :)
-
-To get the sources : "svn checkout
-https://svn.tuxicoman.be/svn/dvbsplit/trunk dvbsplit". Check the readme
-for compilation.
-
-You'll need to tune to the right TP with `{stc}zap -r`, then start it
-and it will dump everything in the directory.
-
-HTH,
-  Guy
-
-On Wed, 9 Mar 2011 15:20:06 +0100
-Pascal Jürgens  <lists.pascal.juergens@googlemail.com> wrote:
-
-> Hi all,
-> 
-> SUMMARY: What's the best available tool for demultiplexing into
-> multiple simultaneous recordings (files)?
-> 
-> I'm looking for a way to record a program (video, audio, subtitle,
-> teletext PIDs) to overlapping files (ie, files2 should start 5
-> minutes before file1 ends). This means that two readers need to
-> access the card at once. As far as I can tell from past discussions
-> [1], this is not a feature that's currently present or planned in the
-> kernel.
-> 
-> So while searching for a userspace app that is capable of this, I
-> found two options[3]:
-> 
-> - Adam Charrett's dvbstreamer [2] seems to run a sort-of ringbuffer
-> and can output to streams and files. However, it's not all too
-> stable, especially when using the remote control protocol and in low
-> signal situations.
-> 
-> - the RTP streaming apps (dvblast, mumudvb, dvbyell etc.) are
-> designed to allow multiple listeners. The ideal solution would be
-> something like an interface-local ipv6 multicast. Sadly, I haven't
-> gotten that to work [4].
-> 
-> Hence my questions are:
-> - Am I doing something wrong and is there actually an easy way to
-> stream to two files locally?
-> - Is there some other solution that I'm not aware of that fits my
-> scenario perfectly?
-> 
-> Thanks in advance,
-> regards,
-> Pascal Juergens
-> 
-> [1]
-> http://www.linuxtv.org/pipermail/linux-dvb/2008-February/024093.html /
-> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/15413
-> [2] http://sourceforge.net/projects/dvbstreamer/
-> 
-> [3] There's also the Linux::DVB::DVBT perl extension, but in my tests
-> it wasn't happy about recording anything: "timed out waiting for
-> data : Inappropriate ioctl for device at /usr/local/bin/dvbt-record
-> line 53"
-> 
-> [4] dvblast, for example, gives "warning: getaddrinfo error: Name or
-> service not known error: Invalid target address for -d switch" when
-> using [ff01::1%eth0] as the target address. Additionally, I wasn't
-> able to consume a regular ipv4 multicast with two instances of
-> mplayer - the first one worked, the second one couldn't access the
-> url.-- To unsubscribe from this list: send the line "unsubscribe
-> linux-media" in the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/media/dvb/dvb-usb/lmedm04.c b/drivers/media/dvb/dvb-usb/lmedm04.c
+index 9eea418..0a3e88f 100644
+--- a/drivers/media/dvb/dvb-usb/lmedm04.c
++++ b/drivers/media/dvb/dvb-usb/lmedm04.c
+@@ -626,15 +626,15 @@ static int lme2510_download_firmware(struct usb_device *dev,
+ 				data[0] = i | 0x80;
+ 				dlen = (u8)(end - j)-1;
+ 			}
+-		data[1] = dlen;
+-		memcpy(&data[2], fw_data, dlen+1);
+-		wlen = (u8) dlen + 4;
+-		data[wlen-1] = check_sum(fw_data, dlen+1);
+-		deb_info(1, "Data S=%02x:E=%02x CS= %02x", data[3],
++			data[1] = dlen;
++			memcpy(&data[2], fw_data, dlen+1);
++			wlen = (u8) dlen + 4;
++			data[wlen-1] = check_sum(fw_data, dlen+1);
++			deb_info(1, "Data S=%02x:E=%02x CS= %02x", data[3],
+ 				data[dlen+2], data[dlen+3]);
+-		ret |= lme2510_bulk_write(dev, data,  wlen, 1);
+-		ret |= lme2510_bulk_read(dev, data, len_in , 1);
+-		ret |= (data[0] == 0x88) ? 0 : -1;
++			ret |= lme2510_bulk_write(dev, data,  wlen, 1);
++			ret |= lme2510_bulk_read(dev, data, len_in , 1);
++			ret |= (data[0] == 0x88) ? 0 : -1;
+ 		}
+ 	}
+ 
+-- 
+1.7.4.rc3
 
