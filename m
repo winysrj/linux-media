@@ -1,48 +1,105 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.22]:56502 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754435Ab1CFVHQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Mar 2011 16:07:16 -0500
-From: "Hans-Frieder Vogt" <hfvogt@gmx.net>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 1/2] v4l-utils: remove conflicting definitions in keymap for imon_mce
-Date: Sun, 6 Mar 2011 22:07:07 +0100
-Cc: mchehab@infradead.org
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201103062207.07520.hfvogt@gmx.net>
+Received: from ist.d-labs.de ([213.239.218.44]:47600 "EHLO mx01.d-labs.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754134Ab1COIx0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Mar 2011 04:53:26 -0400
+From: Florian Mickler <florian@mickler.org>
+To: mchehab@infradead.org
+Cc: oliver@neukum.org, jwjstone@fastmail.fm,
+	Florian Mickler <florian@mickler.org>,
+	linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, Akihiro Tsukada <tskd2@yahoo.co.jp>
+Subject: [PATCH 07/16] [media] friio: get rid of on-stack dma buffers
+Date: Tue, 15 Mar 2011 09:43:39 +0100
+Message-Id: <1300178655-24832-7-git-send-email-florian@mickler.org>
+In-Reply-To: <1300178655-24832-1-git-send-email-florian@mickler.org>
+References: <20110315093632.5fc9fb77@schatten.dmk.lab>
+ <1300178655-24832-1-git-send-email-florian@mickler.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-v4l-utils: Trivial patch that removes doublicate and conflicting definitions of 
-keys. The patch is checked against a git pull of today.
+usb_control_msg initiates (and waits for completion of) a dma transfer using
+the supplied buffer. That buffer thus has to be seperately allocated on
+the heap.
 
-Signed-off-by: Hans-Frieder Vogt <hfvogt@gmx.net>
+In lib/dma_debug.c the function check_for_stack even warns about it:
+	WARNING: at lib/dma-debug.c:866 check_for_stack
 
- imon_mce |    2 --
- 1 file changed, 2 deletions(-)
+Note: This change is tested to compile only, as I don't have the hardware.
 
---- a/utils/keytable/rc_keymaps/imon_mce	2011-02-19 19:04:44.974793906 
-+0100
-+++ b/utils/keytable/rc_keymaps/imon_mce	2011-03-06 21:47:10.527674607 +0100
-@@ -16,7 +16,6 @@
- 0x800ff420 KEY_LEFT
- 0x800ff421 KEY_RIGHT
- 0x800ff40b KEY_ENTER
--0x02000028 KEY_ENTER
- 0x02000028 KEY_OK
- 0x800ff422 KEY_OK
- 0x0200002a KEY_EXIT
-@@ -67,7 +66,6 @@
- 0x800ff45d KEY_YELLOW
- 0x800ff45e KEY_BLUE
- 0x800ff466 KEY_RED
--0x800ff425 KEY_GREEN
- 0x800ff468 KEY_YELLOW
- 0x800ff41d KEY_BLUE
- 0x800ff40f KEY_INFO
+Signed-off-by: Florian Mickler <florian@mickler.org>
+---
+ drivers/media/dvb/dvb-usb/friio.c |   23 +++++++++++++++++++----
+ 1 files changed, 19 insertions(+), 4 deletions(-)
 
+diff --git a/drivers/media/dvb/dvb-usb/friio.c b/drivers/media/dvb/dvb-usb/friio.c
+index 14a65b4..76159ae 100644
+--- a/drivers/media/dvb/dvb-usb/friio.c
++++ b/drivers/media/dvb/dvb-usb/friio.c
+@@ -142,17 +142,20 @@ static u32 gl861_i2c_func(struct i2c_adapter *adapter)
+ 	return I2C_FUNC_I2C;
+ }
+ 
+-
+ static int friio_ext_ctl(struct dvb_usb_adapter *adap,
+ 			 u32 sat_color, int lnb_on)
+ {
+ 	int i;
+ 	int ret;
+ 	struct i2c_msg msg;
+-	u8 buf[2];
++	u8 *buf;
+ 	u32 mask;
+ 	u8 lnb = (lnb_on) ? FRIIO_CTL_LNB : 0;
+ 
++	buf = kmalloc(2, GFP_KERNEL);
++	if (!buf)
++		return -ENOMEM;
++
+ 	msg.addr = 0x00;
+ 	msg.flags = 0;
+ 	msg.len = 2;
+@@ -189,6 +192,7 @@ static int friio_ext_ctl(struct dvb_usb_adapter *adap,
+ 	buf[1] |= FRIIO_CTL_CLK;
+ 	ret += gl861_i2c_xfer(&adap->dev->i2c_adap, &msg, 1);
+ 
++	kfree(buf);
+ 	return (ret == 70);
+ }
+ 
+@@ -219,11 +223,20 @@ static int friio_initialize(struct dvb_usb_device *d)
+ 	int ret;
+ 	int i;
+ 	int retry = 0;
+-	u8 rbuf[2];
+-	u8 wbuf[3];
++	u8 *rbuf, *wbuf;
+ 
+ 	deb_info("%s called.\n", __func__);
+ 
++	wbuf = kmalloc(3, GFP_KERNEL);
++	if (!wbuf)
++		return -ENOMEM;
++
++	rbuf = kmalloc(2, GFP_KERNEL);
++	if (!rbuf) {
++		kfree(wbuf);
++		return -ENOMEM;
++	}
++
+ 	/* use gl861_i2c_msg instead of gl861_i2c_xfer(), */
+ 	/* because the i2c device is not set up yet. */
+ 	wbuf[0] = 0x11;
+@@ -358,6 +371,8 @@ restart:
+ 	return 0;
+ 
+ error:
++	kfree(wbuf);
++	kfree(rbuf);
+ 	deb_info("%s:ret == %d\n", __func__, ret);
+ 	return -EIO;
+ }
+-- 
+1.7.4.rc3
 
-Hans-Frieder Vogt                       e-mail: hfvogt <at> gmx .dot. net
