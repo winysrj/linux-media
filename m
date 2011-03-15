@@ -1,58 +1,128 @@
 Return-path: <mchehab@pedra>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:37666 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752759Ab1CJM3W (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Mar 2011 07:29:22 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from eu_spt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LHU008CWDCVKP80@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 10 Mar 2011 12:29:19 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LHU00COIDCUQZ@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 10 Mar 2011 12:29:18 +0000 (GMT)
-Date: Thu, 10 Mar 2011 13:28:42 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 3/3] v4l2: vb2-dma-sg: fix potential security hole
-In-reply-to: <1299760122-29493-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	andrzej.p@samsung.com, pawel@osciak.com
-Message-id: <1299760122-29493-4-git-send-email-m.szyprowski@samsung.com>
-References: <1299760122-29493-1-git-send-email-m.szyprowski@samsung.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:48202 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755870Ab1CON7o (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Mar 2011 09:59:44 -0400
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Kevin Hilman <khilman@deeprootsystems.com>,
+	LAK <linux-arm-kernel@lists.infradead.org>,
+	Sekhar Nori <nsekhar@ti.com>
+Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [PATCH v17 11/13] davinci: dm644x: move vpfe init from soc to board specific files
+Date: Tue, 15 Mar 2011 19:29:27 +0530
+Message-Id: <1300197567-4903-1-git-send-email-manjunath.hadli@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Move all vpfe platform device registrations to the board specific
+file like the rest of the devices, and have all of them together.
 
-Memory allocated by alloc_page() function might contain some potentially
-important data from other system processes. The patch adds a flag to
-zero the allocated page before giving it to videobuf2 (and then to
-userspace).
+This would remove the  restriction of inclusion and registration of
+vpfe platform devices for non-vpfe boards.
 
-Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
 ---
- drivers/media/video/videobuf2-dma-sg.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ arch/arm/mach-davinci/board-dm644x-evm.c    |    3 +-
+ arch/arm/mach-davinci/dm644x.c              |   29 +++++++++++++++-----------
+ arch/arm/mach-davinci/include/mach/dm644x.h |    2 +-
+ 3 files changed, 19 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/media/video/videobuf2-dma-sg.c b/drivers/media/video/videobuf2-dma-sg.c
-index d5311ff..b2d9485 100644
---- a/drivers/media/video/videobuf2-dma-sg.c
-+++ b/drivers/media/video/videobuf2-dma-sg.c
-@@ -62,7 +62,7 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size)
- 		goto fail_pages_array_alloc;
+diff --git a/arch/arm/mach-davinci/board-dm644x-evm.c b/arch/arm/mach-davinci/board-dm644x-evm.c
+index 6919f28..d1542b1 100644
+--- a/arch/arm/mach-davinci/board-dm644x-evm.c
++++ b/arch/arm/mach-davinci/board-dm644x-evm.c
+@@ -628,8 +628,6 @@ static struct davinci_uart_config uart_config __initdata = {
+ static void __init
+ davinci_evm_map_io(void)
+ {
+-	/* setup input configuration for VPFE input devices */
+-	dm644x_set_vpfe_config(&dm644xevm_capture_cfg);
+ 	dm644x_init();
+ }
  
- 	for (i = 0; i < buf->sg_desc.num_pages; ++i) {
--		buf->pages[i] = alloc_page(GFP_KERNEL);
-+		buf->pages[i] = alloc_page(GFP_KERNEL | __GFP_ZERO);
- 		if (NULL == buf->pages[i])
- 			goto fail_pages_alloc;
- 		sg_set_page(&buf->sg_desc.sglist[i],
+@@ -701,6 +699,7 @@ static __init void davinci_evm_init(void)
+ 	evm_init_i2c();
+ 
+ 	davinci_setup_mmc(0, &dm6446evm_mmc_config);
++	dm644x_init_video(&dm644xevm_capture_cfg);
+ 
+ 	davinci_serial_init(&uart_config);
+ 	dm644x_init_asp(&dm644x_evm_snd_data);
+diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
+index 8ff5d5f..41e8866 100644
+--- a/arch/arm/mach-davinci/dm644x.c
++++ b/arch/arm/mach-davinci/dm644x.c
+@@ -651,11 +651,6 @@ static struct platform_device dm644x_vpfe_dev = {
+ 	},
+ };
+ 
+-void dm644x_set_vpfe_config(struct vpfe_config *cfg)
+-{
+-	dm644x_vpfe_dev.dev.platform_data = cfg;
+-}
+-
+ /*----------------------------------------------------------------------*/
+ 
+ static struct map_desc dm644x_io_desc[] = {
+@@ -784,14 +779,28 @@ void __init dm644x_init(void)
+ 	davinci_map_sysmod();
+ }
+ 
++static struct platform_device *dm644x_video_devices[] __initdata = {
++	&dm644x_vpss_device,
++	&dm644x_ccdc_dev,
++	&dm644x_vpfe_dev,
++};
++
++int __init dm644x_init_video(struct vpfe_config *vpfe_cfg)
++{
++	dm644x_vpfe_dev.dev.platform_data = vpfe_cfg;
++	/* Add ccdc clock aliases */
++	clk_add_alias("master", dm644x_ccdc_dev.name, "vpss_master", NULL);
++	clk_add_alias("slave", dm644x_ccdc_dev.name, "vpss_slave", NULL);
++	platform_add_devices(dm644x_video_devices,
++				ARRAY_SIZE(dm644x_video_devices));
++	return 0;
++}
++
+ static int __init dm644x_init_devices(void)
+ {
+ 	if (!cpu_is_davinci_dm644x())
+ 		return 0;
+ 
+-	/* Add ccdc clock aliases */
+-	clk_add_alias("master", dm644x_ccdc_dev.name, "vpss_master", NULL);
+-	clk_add_alias("slave", dm644x_ccdc_dev.name, "vpss_slave", NULL);
+ 	platform_device_register(&dm644x_edma_device);
+ 
+ 	platform_device_register(&dm644x_mdio_device);
+@@ -799,10 +808,6 @@ static int __init dm644x_init_devices(void)
+ 	clk_add_alias(NULL, dev_name(&dm644x_mdio_device.dev),
+ 		      NULL, &dm644x_emac_device.dev);
+ 
+-	platform_device_register(&dm644x_vpss_device);
+-	platform_device_register(&dm644x_ccdc_dev);
+-	platform_device_register(&dm644x_vpfe_dev);
+-
+ 	return 0;
+ }
+ postcore_initcall(dm644x_init_devices);
+diff --git a/arch/arm/mach-davinci/include/mach/dm644x.h b/arch/arm/mach-davinci/include/mach/dm644x.h
+index 5a1b26d..29a9e24 100644
+--- a/arch/arm/mach-davinci/include/mach/dm644x.h
++++ b/arch/arm/mach-davinci/include/mach/dm644x.h
+@@ -42,6 +42,6 @@
+ 
+ void __init dm644x_init(void);
+ void __init dm644x_init_asp(struct snd_platform_data *pdata);
+-void dm644x_set_vpfe_config(struct vpfe_config *cfg);
++int __init dm644x_init_video(struct vpfe_config *);
+ 
+ #endif /* __ASM_ARCH_DM644X_H */
 -- 
-1.7.1.569.g6f426
+1.6.2.4
+
