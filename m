@@ -1,94 +1,53 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.9]:57783 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753417Ab1CFTNx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Mar 2011 14:13:53 -0500
-Date: Sun, 6 Mar 2011 20:13:49 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Andy Walls <awalls@md.metrocast.net>
-cc: "Aguirre, Sergio" <saaguirre@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [Query] What is the best way to handle V4L2_PIX_FMT_NV12 buffers?
-In-Reply-To: <1299434124.2310.12.camel@localhost>
-Message-ID: <Pine.LNX.4.64.1103062008350.27091@axis700.grange>
-References: <A24693684029E5489D1D202277BE89448861F7E6@dlee02.ent.ti.com>
- <1299434124.2310.12.camel@localhost>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from ist.d-labs.de ([213.239.218.44]:40338 "EHLO mx01.d-labs.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754429Ab1COIgg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Mar 2011 04:36:36 -0400
+Date: Tue, 15 Mar 2011 09:36:32 +0100
+From: Florian Mickler <florian@mickler.org>
+To: mchehab@infradead.org
+Cc: Florian Mickler <florian@mickler.org>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Greg Kroah-Hartman <greg@kroah.com>,
+	"Rafael J. Wysocki" <rjw@sisk.pl>,
+	Maciej Rutecki <maciej.rutecki@gmail.com>,
+	Oliver Neukum <oliver@neukum.org>,
+	Jack Stone <jwjstone@fastmail.fm>
+Subject: Re: [PATCH 1/2 v3] [media] dib0700: get rid of on-stack dma buffers
+Message-ID: <20110315093632.5fc9fb77@schatten.dmk.lab>
+In-Reply-To: <20110306185713.5b621e80@schatten.dmk.lab>
+References: <201103061744.15946.oliver@neukum.org>
+	<1299433677-8269-1-git-send-email-florian@mickler.org>
+	<20110306185713.5b621e80@schatten.dmk.lab>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sun, 6 Mar 2011, Andy Walls wrote:
+On Sun, 6 Mar 2011 18:57:13 +0100
+Florian Mickler <florian@mickler.org> wrote:
 
-> On Sat, 2011-03-05 at 22:49 -0600, Aguirre, Sergio wrote:
-> > Hi,
-> > 
-> > I was curious in how to handle properly buffers of pixelformat V4L2_PIX_FMT_NV12.
-> > 
-> > I see that the standard convention for determining a bytesize of an image buffer is:
-> > 
-> > bytesperline * height
-> > 
-> > However, for NV12 case, the bytes per line is equal to the width, _but_ the actual buffer size is:
-> > 
-> > For the Y buffer: width * height
-> > For the UV buffer: width * (height / 2)
-> > Total size = width * (height + height / 2)
-> > 
-> > Which I think renders the bytesperline * height formula not valid for this case.
-> > 
-> > Any ideas how this should be properly handled?
-> 
-> For the HM12 macroblock format:
-> 
-> http://git.linuxtv.org/media_tree.git?a=blob;f=Documentation/video4linux/cx2341x/README.hm12;h=b36148ea07501bdac37ae74b31cc258150f75a81;hb=staging/for_v2.6.39
-> 
-> ivtv and cx18 do this in cx18-ioctl.c and ivtv-ioctl.c:
-> 
-> ...
-> 	if (id->type == xxxx_ENC_STREAM_TYPE_YUV) {
->                 pixfmt->pixelformat = V4L2_PIX_FMT_HM12;
->                 /* YUV size is (Y=(h*720) + UV=(h*(720/2))) */
->                 pixfmt->sizeimage = pixfmt->height * 720 * 3 / 2;
->                 pixfmt->bytesperline = 720;
-> 	}
-> ...
-
-Yep, the height * width formula is in no way "standard" or "compulsory" - 
-that's exactly the reason why this calculation is left to the individual 
-drivers. You can also look at sh_mobile_ceu_camera.c, which also supports 
-this format, and effectively also calculates height * width * 3 / 2.
-
-Thanks
-Guennadi
-
-> 
-> Note that the wdith is fixed at 720 because the CX2341x chips always
-> build HM12 planes assuming a width of 720, even though it isn't going to
-> actually fill in the off-sceen pixels for widths less than 720.
+> On Sun,  6 Mar 2011 18:47:56 +0100
+> Florian Mickler <florian@mickler.org> wrote:
 > 
 > 
-> Note that "pixfmt->height * 3 / 2" is just "(height + height / 2)".
+> > +static void dib0700_disconnect(struct usb_interface *intf) {
 > 
-> It's not a definitive answer; only an example of what two drivers do for
-> a very uncommon macroblock format.
+> 
+> That { should go on its own line... sorry ;-)
+> 
+> If that patch is acceptable, I can resend with that fixed. 
 > 
 > Regards,
-> Andy
-> 
-> > NOTE: See here for more details: http://www.fourcc.org/yuv.php#NV12
-> > 
-> > Regards,
-> > Sergio--
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> Flo
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+
+Hi Mauro, 
+
+what about this patch? I have similar patches for the same problem in
+the other dvb-usb drivers in need of beeing fixed. Are you
+maintaining these drivers or should I find someone else to pick these
+up? 
+
+Regards,
+Flo
