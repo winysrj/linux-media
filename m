@@ -1,57 +1,117 @@
 Return-path: <mchehab@pedra>
-Received: from mail.tu-berlin.de ([130.149.7.33])
-	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <davejohansen@gmail.com>) id 1PmDET-0005VT-4T
-	for linux-dvb@linuxtv.org; Sun, 06 Feb 2011 23:37:26 +0100
-Received: from mail-wy0-f182.google.com ([74.125.82.182])
-	by mail.tu-berlin.de (exim-4.74/mailfrontend-c) with esmtps
-	[TLSv1:RC4-MD5:128] for <linux-dvb@linuxtv.org>
-	id 1PmDES-0005OP-5V; Sun, 06 Feb 2011 23:37:24 +0100
-Received: by wyf19 with SMTP id 19so4070907wyf.41
-	for <linux-dvb@linuxtv.org>; Sun, 06 Feb 2011 14:37:23 -0800 (PST)
-MIME-Version: 1.0
-Date: Sun, 6 Feb 2011 15:37:23 -0700
-Message-ID: <AANLkTinjefXPaDrbgbWLEC4-Zd9wOjx8zz1=vvPDuKtu@mail.gmail.com>
-From: Dave Johansen <davejohansen@gmail.com>
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Tuning channels with DViCO FusionHDTV7 Dual Express
-Reply-To: linux-media@vger.kernel.org
-List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
-List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
-List-Post: <mailto:linux-dvb@linuxtv.org>
-List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
-List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:39347 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757232Ab1COVCp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Mar 2011 17:02:45 -0400
+Subject: Re: [PATCH 12/16] [media] lmedm04: get rid of on-stack dma buffers
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: Florian Mickler <florian@mickler.org>
+Cc: mchehab@infradead.org, oliver@neukum.org, jwjstone@fastmail.fm,
+	linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+In-Reply-To: <1300178655-24832-12-git-send-email-florian@mickler.org>
+References: <20110315093632.5fc9fb77@schatten.dmk.lab>
+	 <1300178655-24832-1-git-send-email-florian@mickler.org>
+	 <1300178655-24832-12-git-send-email-florian@mickler.org>
+Content-Type: text/plain; charset="UTF-8"
+Date: Tue, 15 Mar 2011 20:54:43 +0000
+Message-ID: <1300222483.1910.12.camel@localhost>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
-List-ID: <linux-dvb@linuxtv.org>
 
-I am trying to resurrect my MythBuntu system with a DViCO FusionHDTV7
-Dual Express. I had previously had some issues with trying to get
-channels working in MythTV (
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg03846.html
-), but now it locks up with MythBuntu 10.10 when I scan for channels
-in MythTV and also with the scan command line utility.
+The patch failed for the following reason.
 
-Here's the output from scan:
+On Tue, 2011-03-15 at 09:43 +0100, Florian Mickler wrote:
+> usb_control_msg initiates (and waits for completion of) a dma transfer using
+> the supplied buffer. That buffer thus has to be seperately allocated on
+> the heap.
+> 
+> In lib/dma_debug.c the function check_for_stack even warns about it:
+> 	WARNING: at lib/dma-debug.c:866 check_for_stack
+> 
+> Note: This change is tested to compile only, as I don't have the hardware.
+> 
+> Signed-off-by: Florian Mickler <florian@mickler.org>
+> ---
+>  drivers/media/dvb/dvb-usb/lmedm04.c |   16 +++++++++++++---
+>  1 files changed, 13 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/dvb/dvb-usb/lmedm04.c b/drivers/media/dvb/dvb-usb/lmedm04.c
+> index 0a3e88f..bec5439 100644
+> --- a/drivers/media/dvb/dvb-usb/lmedm04.c
+> +++ b/drivers/media/dvb/dvb-usb/lmedm04.c
+> @@ -314,12 +314,17 @@ static int lme2510_int_read(struct dvb_usb_adapter *adap)
+>  static int lme2510_return_status(struct usb_device *dev)
+>  {
+>  	int ret = 0;
+> -	u8 data[10] = {0};
+> +	u8 *data;
+> +
+> +	data = kzalloc(10, GFP_KERNEL);
+> +	if (!data)
+> +		return -ENOMEM;
+>  
+>  	ret |= usb_control_msg(dev, usb_rcvctrlpipe(dev, 0),
+>  			0x06, 0x80, 0x0302, 0x00, data, 0x0006, 200);
+>  	info("Firmware Status: %x (%x)", ret , data[2]);
+>  
+> +	kfree(data);
+>  	return (ret < 0) ? -ENODEV : data[2];
 
-scan /usr/share/dvb/atsc/us-ATSC-center-frequencies-8VSB
-scanning us-ATSC-center-frequencies-8VSB
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
->>> tune to: 189028615:8VSB
-WARNING: filter timeout pid 0x0000
-WARNING: filter timeout pid 0x1ffb
+data has been killed off when we need the buffer contents.
+changing to the following fixed.
 
-Any ideas/suggestions on how I can get this to work?
+	ret = (ret < 0) ? -ENODEV : data[2];
 
-Thanks,
-Dave
+	kfree(data);
 
-_______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+	return ret;
+
+
+> @@ -603,7 +608,7 @@ static int lme2510_download_firmware(struct usb_device *dev,
+>  					const struct firmware *fw)
+>  {
+>  	int ret = 0;
+> -	u8 data[512] = {0};
+> +	u8 *data;
+>  	u16 j, wlen, len_in, start, end;
+>  	u8 packet_size, dlen, i;
+>  	u8 *fw_data;
+> @@ -611,6 +616,11 @@ static int lme2510_download_firmware(struct usb_device *dev,
+>  	packet_size = 0x31;
+>  	len_in = 1;
+>  
+> +	data = kzalloc(512, GFP_KERNEL);
+> +	if (!data) {
+> +		info("FRM Could not start Firmware Download (Buffer allocation failed)");
+
+Longer than 80 characters, 
+
+> +		return -ENOMEM;
+> +	}
+>  
+>  	info("FRM Starting Firmware Download");
+>  
+> @@ -654,7 +664,7 @@ static int lme2510_download_firmware(struct usb_device *dev,
+>  	else
+>  		info("FRM Firmware Download Completed - Resetting Device");
+>  
+> -
+> +	kfree(data);
+>  	return (ret < 0) ? -ENODEV : 0;
+>  }
+>  
+
+Otherwise the patch as corrected has been put on test. No initial
+problems have been encountered.
+
+Regards 
+
+Malcolm
+
+
+
