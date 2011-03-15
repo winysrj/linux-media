@@ -1,59 +1,75 @@
 Return-path: <mchehab@pedra>
-Received: from mail.pripojeni.net ([217.66.174.14]:42731 "EHLO
-	smtp.pripojeni.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755519Ab1CAIVv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Mar 2011 03:21:51 -0500
-From: Jiri Slaby <jslaby@suse.cz>
-To: mchehab@infradead.org
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	jirislaby@gmail.com, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Subject: [PATCH v2 1/1] V4L: videobuf, don't use dma addr as physical
-Date: Tue,  1 Mar 2011 09:21:41 +0100
-Message-Id: <1298967701-11889-1-git-send-email-jslaby@suse.cz>
+Received: from devils.ext.ti.com ([198.47.26.153]:52005 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757411Ab1CON6S (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Mar 2011 09:58:18 -0400
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Kevin Hilman <khilman@deeprootsystems.com>,
+	LAK <linux-arm-kernel@lists.infradead.org>,
+	Sekhar Nori <nsekhar@ti.com>
+Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [PATCH v15 05/13] davinci vpbe: Build infrastructure for VPBE driver
+Date: Tue, 15 Mar 2011 19:28:00 +0530
+Message-Id: <1300197480-4280-1-git-send-email-manjunath.hadli@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-mem->dma_handle is a dma address obtained by dma_alloc_coherent which
-needn't be a physical address as a hardware IOMMU can (and most
-likely will) return a bus address where physical != bus address. So
-ensure we are remapping (remap_pfn_range) the right page in
-__videobuf_mmap_mapper by using virt_to_phys(mem->vaddr) and not
-mem->dma_handle.
+This patch adds the build infra-structure for Davinci
+VPBE dislay driver.
 
-While at it, use PFN_DOWN instead of explicit shift to obtain a frame
-number.
-
-This was discovered by a random review of the code when looking for
-something completely different. I'm not aware of any bug reports for
-this.
-
-However it is a bug because many v4l drivers use this layer and have
-no idea whether IOMMU is in the system and running or not.
-
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
 ---
+ drivers/media/video/davinci/Kconfig  |   22 ++++++++++++++++++++++
+ drivers/media/video/davinci/Makefile |    2 ++
+ 2 files changed, 24 insertions(+), 0 deletions(-)
 
-This is a version with updated changelog.
-
- drivers/media/video/videobuf-dma-contig.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/video/videobuf-dma-contig.c b/drivers/media/video/videobuf-dma-contig.c
-index c969111..19d3e4a 100644
---- a/drivers/media/video/videobuf-dma-contig.c
-+++ b/drivers/media/video/videobuf-dma-contig.c
-@@ -300,7 +300,7 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
+diff --git a/drivers/media/video/davinci/Kconfig b/drivers/media/video/davinci/Kconfig
+index 6b19540..a7f11e7 100644
+--- a/drivers/media/video/davinci/Kconfig
++++ b/drivers/media/video/davinci/Kconfig
+@@ -91,3 +91,25 @@ config VIDEO_ISIF
  
- 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
- 	retval = remap_pfn_range(vma, vma->vm_start,
--				 mem->dma_handle >> PAGE_SHIFT,
-+				 PFN_DOWN(virt_to_phys(mem->vaddr))
- 				 size, vma->vm_page_prot);
- 	if (retval) {
- 		dev_err(q->dev, "mmap: remap failed with error %d. ", retval);
+ 	   To compile this driver as a module, choose M here: the
+ 	   module will be called vpfe.
++
++config VIDEO_DM644X_VPBE
++	tristate "DM644X VPBE HW module"
++	select VIDEO_VPSS_SYSTEM
++	select VIDEOBUF_DMA_CONTIG
++	help
++	    Enables VPBE modules used for display on a DM644x
++	    SoC.
++
++	    To compile this driver as a module, choose M here: the
++	    module will be called vpbe.
++
++
++config VIDEO_VPBE_DISPLAY
++	tristate "VPBE V4L2 Display driver"
++	select VIDEO_DM644X_VPBE
++	default y
++	help
++	    Enables VPBE V4L2 Display driver on a DMXXX device
++
++	    To compile this driver as a module, choose M here: the
++	    module will be called vpbe_display.
+diff --git a/drivers/media/video/davinci/Makefile b/drivers/media/video/davinci/Makefile
+index a379557..ae7dafb 100644
+--- a/drivers/media/video/davinci/Makefile
++++ b/drivers/media/video/davinci/Makefile
+@@ -16,3 +16,5 @@ obj-$(CONFIG_VIDEO_VPFE_CAPTURE) += vpfe_capture.o
+ obj-$(CONFIG_VIDEO_DM6446_CCDC) += dm644x_ccdc.o
+ obj-$(CONFIG_VIDEO_DM355_CCDC) += dm355_ccdc.o
+ obj-$(CONFIG_VIDEO_ISIF) += isif.o
++obj-$(CONFIG_VIDEO_DM644X_VPBE) += vpbe.o vpbe_osd.o vpbe_venc.o
++obj-$(CONFIG_VIDEO_VPBE_DISPLAY) += vpbe_display.o
 -- 
-1.7.4.1
-
+1.6.2.4
 
