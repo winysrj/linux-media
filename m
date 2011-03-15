@@ -1,79 +1,70 @@
 Return-path: <mchehab@pedra>
-Received: from ist.d-labs.de ([213.239.218.44]:51936 "EHLO mx01.d-labs.de"
+Received: from ist.d-labs.de ([213.239.218.44]:59740 "EHLO mx01.d-labs.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751038Ab1CTVvc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Mar 2011 17:51:32 -0400
+	id S1751540Ab1COVOk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Mar 2011 17:14:40 -0400
+Date: Tue, 15 Mar 2011 22:14:34 +0100
 From: Florian Mickler <florian@mickler.org>
-To: mchehab@infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	crope@iki.fi, tvboxspy@gmail.com,
-	Florian Mickler <florian@mickler.org>
-Subject: [PATCH 2/5] [media] ce6230: get rid of on-stack dma buffer
-Date: Sun, 20 Mar 2011 22:50:49 +0100
-Message-Id: <1300657852-29318-3-git-send-email-florian@mickler.org>
-In-Reply-To: <1300657852-29318-1-git-send-email-florian@mickler.org>
-References: <1300657852-29318-1-git-send-email-florian@mickler.org>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: oliver@neukum.org, jwjstone@fastmail.fm,
+	linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org,
+	Patrick Boettcher <pboettcher@dibcom.fr>
+Subject: Re: [PATCH 01/16] [media] dib0700: get rid of on-stack dma buffers
+Message-ID: <20110315221434.7b0dc2a8@schatten.dmk.lab>
+In-Reply-To: <4D7F5538.6080907@infradead.org>
+References: <20110315093632.5fc9fb77@schatten.dmk.lab>
+	<1300178655-24832-1-git-send-email-florian@mickler.org>
+	<4D7F5538.6080907@infradead.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-usb_control_msg initiates (and waits for completion of) a dma transfer using
-the supplied buffer. That buffer thus has to be seperately allocated on
-the heap.
+On Tue, 15 Mar 2011 09:02:00 -0300
+Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
+> 
+> You're allocating a buffer for URB control messages. IMO, this is a good idea, as
+> this way, allocating/freeing on each urb call is avoided. However, on most places,
+> you're not using it. The better would be to just use this buffer on all
+> the above places.
+> 
+> You should just take care of protecting such buffer with a mutex, to avoid concurrency.
+> Such kind of protection is generally ok, as dvb applications generally serialize
+> the calls anyway.
+> 
 
-In lib/dma_debug.c the function check_for_stack even warns about it:
-	WARNING: at lib/dma-debug.c:866 check_for_stack
+I didn't do so already, because I had/have no overview over the big
+picture operation of the dvb framework and thus feared to introduce
+deadlocks or massive serializations where concurrency is needed. But if
+you suggest it, I guess it should be benign. I'm wondering about the
+purpose of the usb_mutex and the i2c_mutex ... 
 
-Signed-off-by: Florian Mickler <florian@mickler.org>
-Acked-by: Antti Palosaari <crope@iki.fi>
-Reviewed-by: Antti Palosaari <crope@iki.fi>
-Tested-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb/dvb-usb/ce6230.c |   11 +++++++++--
- 1 files changed, 9 insertions(+), 2 deletions(-)
+Should I introduce new driver specific mutexes to protect the buffer or
+is it possible to reuse one of the 2? 
 
-diff --git a/drivers/media/dvb/dvb-usb/ce6230.c b/drivers/media/dvb/dvb-usb/ce6230.c
-index 3df2045..6d1a304 100644
---- a/drivers/media/dvb/dvb-usb/ce6230.c
-+++ b/drivers/media/dvb/dvb-usb/ce6230.c
-@@ -39,7 +39,7 @@ static int ce6230_rw_udev(struct usb_device *udev, struct req_t *req)
- 	u8 requesttype;
- 	u16 value;
- 	u16 index;
--	u8 buf[req->data_len];
-+	u8 *buf;
- 
- 	request = req->cmd;
- 	value = req->value;
-@@ -62,6 +62,12 @@ static int ce6230_rw_udev(struct usb_device *udev, struct req_t *req)
- 		goto error;
- 	}
- 
-+	buf = kmalloc(req->data_len, GFP_KERNEL);
-+	if (!buf) {
-+		ret = -ENOMEM;
-+		goto error;
-+	}
-+
- 	if (requesttype == (USB_TYPE_VENDOR | USB_DIR_OUT)) {
- 		/* write */
- 		memcpy(buf, req->data, req->data_len);
-@@ -74,7 +80,7 @@ static int ce6230_rw_udev(struct usb_device *udev, struct req_t *req)
- 	msleep(1); /* avoid I2C errors */
- 
- 	ret = usb_control_msg(udev, pipe, request, requesttype, value, index,
--				buf, sizeof(buf), CE6230_USB_TIMEOUT);
-+				buf, req->data_len, CE6230_USB_TIMEOUT);
- 
- 	ce6230_debug_dump(request, requesttype, value, index, buf,
- 		req->data_len, deb_xfer);
-@@ -88,6 +94,7 @@ static int ce6230_rw_udev(struct usb_device *udev, struct req_t *req)
- 	if (!ret && requesttype == (USB_TYPE_VENDOR | USB_DIR_IN))
- 		memcpy(req->data, buf, req->data_len);
- 
-+	kfree(buf);
- error:
- 	return ret;
- }
--- 
-1.7.4.1
+vp702x_usb_inout_op takes the usb_mutex, 
+but vp702x_usb_out_op and vp702x_usb_in_op get called without that
+mutex hold. That makes me wonder what that mutex purpose is in that
+driver?
+
+Other drivers like the az6027 introduce a driver specific mutex and
+also use the usb_mutex. That make conceptually (to my inexperienced
+mind) more sense. (each layer does it's own locking) but the idea of
+operation is not yet clear in my mind...
+
+Can you perhaps shed some light on what the purpose of those locks is
+and if it is sufficient to use the usb_mutex to serialize all
+usb_control_msg calls (which would probably protect the buffer
+sufficiently but may be too much if the dvb-usb framework uses that
+mutex for different purposes). 
+
+In the meantime I will respin this series using preallocated buffers and
+will hopefully work out stuff that is unclear to me yet ...
+
+Regards,
+Flo
+
 
