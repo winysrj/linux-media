@@ -1,44 +1,54 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:34237 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758196Ab1CCQHi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2011 11:07:38 -0500
-Received: by eyx24 with SMTP id 24so399970eyx.19
-        for <linux-media@vger.kernel.org>; Thu, 03 Mar 2011 08:07:37 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1299168093.2864.14.camel@ares>
-References: <1299168093.2864.14.camel@ares>
-Date: Thu, 3 Mar 2011 11:07:35 -0500
-Message-ID: <AANLkTikkz74O96-CPZXOGiXFhcck6dXge8NRknxXTfQy@mail.gmail.com>
-Subject: Re: em28xx: dvb lock bug on re-plug of device?
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Steve Kerrison <steve@stevekerrison.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from bear.ext.ti.com ([192.94.94.41]:47921 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757867Ab1CON7K (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Mar 2011 09:59:10 -0400
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Kevin Hilman <khilman@deeprootsystems.com>,
+	LAK <linux-arm-kernel@lists.infradead.org>,
+	Sekhar Nori <nsekhar@ti.com>
+Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [PATCH v17 09/13] davinci: dm644x: Replace register base value with a defined macro
+Date: Tue, 15 Mar 2011 19:28:57 +0530
+Message-Id: <1300197537-4672-1-git-send-email-manjunath.hadli@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, Mar 3, 2011 at 11:01 AM, Steve Kerrison <steve@stevekerrison.com> wrote:
-> Hi all,
->
-> I wonder if Devin/Mauro could help me with something as I've run into a
-> problem developing a driver for the PCTV 290e?
->
-> First plug of the device works fine, em28xx and em28xx_dvb are loaded.
-> However, if I disconnect and then re-plug the device, the em28xx_dvb
-> module will hang in dvb_init() where it performs mutex_lock(&dev->lock);
+Replace hard coded value of vpss register base to a define macro
+DM644X_VPSS_REG_BASE for proper readability
 
-Hi Steve,
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+---
+ arch/arm/mach-davinci/dm644x.c |    8 +++++---
+ 1 files changed, 5 insertions(+), 3 deletions(-)
 
-I saw this too and brought it to Mauro's attention some months ago
-(because I believed strongly it was related to locking changes).  It
-looks like he never did anything to address it though (and I've been
-working on other bridges so haven't had any time to dig into it).
-
-So, for what it's worth, I can confirm the problem that you are experiencing.
-
-Devin
-
+diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
+index 77dea11..73e74d0 100644
+--- a/arch/arm/mach-davinci/dm644x.c
++++ b/arch/arm/mach-davinci/dm644x.c
+@@ -586,13 +586,15 @@ static struct platform_device dm644x_asp_device = {
+ 	.resource	= dm644x_asp_resources,
+ };
+ 
++#define DM644X_VPSS_REG_BASE           0x01c73400
++
+ static struct resource dm644x_vpss_resources[] = {
+ 	{
+ 		/* VPSS Base address */
+ 		.name		= "vpss",
+-		.start          = 0x01c73400,
+-		.end            = 0x01c73400 + 0xff,
+-		.flags          = IORESOURCE_MEM,
++		.start		= DM644X_VPSS_REG_BASE,
++		.end		= DM644X_VPSS_REG_BASE + 0xff,
++		.flags		= IORESOURCE_MEM,
+ 	},
+ };
+ 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.6.2.4
+
