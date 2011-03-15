@@ -1,136 +1,91 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:37646 "EHLO mx1.redhat.com"
+Received: from ist.d-labs.de ([213.239.218.44]:47620 "EHLO mx01.d-labs.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751822Ab1CFK4Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 6 Mar 2011 05:56:24 -0500
-Message-ID: <4D736844.50703@redhat.com>
-Date: Sun, 06 Mar 2011 07:56:04 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Sylwester Nawrocki <snjw23@gmail.com>
-CC: David Cohen <dacohen@gmail.com>, Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	alsa-devel@alsa-project.org,
-	Sakari Ailus <sakari.ailus@retiisi.org.uk>,
-	Pawel Osciak <pawel@osciak.com>
-Subject: Re: [GIT PULL FOR 2.6.39] Media controller and OMAP3 ISP driver
-References: <201102171606.58540.laurent.pinchart@ideasonboard.com>	<201103031125.06419.laurent.pinchart@ideasonboard.com>	<4D71471D.6060808@redhat.com>	<201103051252.12342.hverkuil@xs4all.nl> <AANLkTi=SS3CBkKUdovU33SQi=s9gNprZszKaMrkRGqGy@mail.gmail.com> <4D7248B4.9090003@gmail.com> <4D727D6E.2070602@redhat.com> <4D72C5F0.6090209@gmail.com>
-In-Reply-To: <4D72C5F0.6090209@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+	id S1755360Ab1COIx0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Mar 2011 04:53:26 -0400
+From: Florian Mickler <florian@mickler.org>
+To: mchehab@infradead.org
+Cc: oliver@neukum.org, jwjstone@fastmail.fm,
+	Florian Mickler <florian@mickler.org>,
+	linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, Malcolm Priestley <tvboxspy@gmail.com>
+Subject: [PATCH 12/16] [media] lmedm04: get rid of on-stack dma buffers
+Date: Tue, 15 Mar 2011 09:43:44 +0100
+Message-Id: <1300178655-24832-12-git-send-email-florian@mickler.org>
+In-Reply-To: <1300178655-24832-1-git-send-email-florian@mickler.org>
+References: <20110315093632.5fc9fb77@schatten.dmk.lab>
+ <1300178655-24832-1-git-send-email-florian@mickler.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 05-03-2011 20:23, Sylwester Nawrocki escreveu:
-> Hi Mauro,
-> 
-> On 03/05/2011 07:14 PM, Mauro Carvalho Chehab wrote:
->> Em 05-03-2011 11:29, Sylwester Nawrocki escreveu:
->>> Hi David,
->>>
->>> On 03/05/2011 02:04 PM, David Cohen wrote:
->>>> Hi Hans,
->>>>
->>>> On Sat, Mar 5, 2011 at 1:52 PM, Hans Verkuil<hverkuil@xs4all.nl>   wrote:
->>>>> On Friday, March 04, 2011 21:10:05 Mauro Carvalho Chehab wrote:
->>>>>> Em 03-03-2011 07:25, Laurent Pinchart escreveu:
->>> ...
->>>>>>>         v4l: Group media bus pixel codes by types and sort them alphabetically
->>>>>>
->>>>>> The presence of those mediabus names against the traditional fourcc codes
->>>>>> at the API adds some mess to the media controller. Not sure how to solve,
->>>>>> but maybe the best way is to add a table at the V4L2 API associating each
->>>>>> media bus format to the corresponding V4L2 fourcc codes.
->>>>>
->>>>> You can't do that in general. Only for specific hardware platforms. If you
->>>>> could do it, then we would have never bothered creating these mediabus fourccs.
->>>>>
->>>>> How a mediabus fourcc translates to a pixelcode (== memory format) depends
->>>>> entirely on the hardware capabilities (mostly that of the DMA engine).
->>>>
->>>> May I ask you one question here? (not entirely related to this patch set).
->>>> Why pixelcode != mediabus fourcc?
->>>> e.g. OMAP2 camera driver talks to sensor through subdev interface and
->>>> sets its own output pixelformat depending on sensor's mediabus fourcc.
->>>> So it needs a translation table mbus_pixelcode ->   pixelformat. Why
->>>> can't it be pixelformat ->   pixelformat ?
->>>>
->>>
->>> Let me try to explain, struct v4l2_mbus_framefmt::code (pixelcode)
->>> describes how data is transfered/sampled on the camera parallel or serial bus.
->>> It defines bus width, data alignment and how many data samples form a single
->>> pixel.
->>>
->>> struct v4l2_pix_format::pixelformat (fourcc) on the other hand describes how
->>> the image data is stored in memory.
->>>
->>> As Hans pointed out there is not always a 1:1 correspondence, e.g.
->>
->> The relation may not be 1:1 but they are related.
->>
->> It should be documented somehow how those are related, otherwise, the API
->> will be obscure.
-> 
-> Yeah, I agree this is a good point now when the media bus formats have become
-> public. Perhaps by a misunderstanding I just thought it is all more about some
-> utility functions in the v4l core rather than the documentation.
+usb_control_msg initiates (and waits for completion of) a dma transfer using
+the supplied buffer. That buffer thus has to be seperately allocated on
+the heap.
 
-Yes, now you got my point. 
+In lib/dma_debug.c the function check_for_stack even warns about it:
+	WARNING: at lib/dma-debug.c:866 check_for_stack
+
+Note: This change is tested to compile only, as I don't have the hardware.
+
+Signed-off-by: Florian Mickler <florian@mickler.org>
+---
+ drivers/media/dvb/dvb-usb/lmedm04.c |   16 +++++++++++++---
+ 1 files changed, 13 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/dvb/dvb-usb/lmedm04.c b/drivers/media/dvb/dvb-usb/lmedm04.c
+index 0a3e88f..bec5439 100644
+--- a/drivers/media/dvb/dvb-usb/lmedm04.c
++++ b/drivers/media/dvb/dvb-usb/lmedm04.c
+@@ -314,12 +314,17 @@ static int lme2510_int_read(struct dvb_usb_adapter *adap)
+ static int lme2510_return_status(struct usb_device *dev)
+ {
+ 	int ret = 0;
+-	u8 data[10] = {0};
++	u8 *data;
++
++	data = kzalloc(10, GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
  
->>
->> Of course, the output format may be different than the internal formats,
->> since some bridges have format converters.
->>
->>>
->>> 1. Both V4L2_MBUS_FMT_YUYV8_1x16 and V4L2_MBUS_FMT_YUYV8_2x8 may being
->>> translating to V4L2_PIX_FMT_YUYV fourcc,
->>
->> Ok, so there is a relationship between them.
->>
->>> 2. Or the DMA engine in the camera host interface might be capable of
->>> converting single V4L2_MBUS_FMT_RGB555 pixelcode to V4L2_PIX_FMT_RGB555
->>> and V4L2_PIX_FMT_RGB565 fourcc's. So the user can choose any of them they
->>> seem most suitable and the hardware takes care of the conversion.
->>
->> No. You can't create an additional bit. if V4L2_MBUS_FMT_RGB555 provides 5
->> bits for all color channels, the only corresponding format is V4L2_PIX_FMT_RGB555,
->> as there's no way to get 6 bits for green, if the hardware sampled it with
->> 5 bits. Ok, some bridge may fill with 0 an "extra" bit for green, but this
->> is the bridge doing a format conversion.
->>
->> In general, for all RGB formats, a mapping between MBUS_FMT_RGBxxx and the
->> corresponding fourcc formats could be mapped on two formats only:
->> V4L2_PIX_FMT_RGBxxx or V4L2_PIX_FMT_BGRxxx.
-> 
-> OK, that might not have been a good example, of one mbus pixel code to many
-> fourccs relationship. 
-> There will be always conversion between media bus pixelcode and fourccs 
-> as they are in completely different domains. And the method of conversion 
-> from media bus formats may be an intrinsic property of a bridge, changing
-> across various bridges, e.g. different endianness may be used.
-> 
-> So I think in general it is good to clearly specify the relationships 
-> in the API but we need to be aware of varying "correlation ratio" across 
-> the formats and that we should perhaps operate on ranges rather than single
-> formats. Perhaps the API should provide guidelines of which formats should
-> be used when to obtain best results.
+ 	ret |= usb_control_msg(dev, usb_rcvctrlpipe(dev, 0),
+ 			0x06, 0x80, 0x0302, 0x00, data, 0x0006, 200);
+ 	info("Firmware Status: %x (%x)", ret , data[2]);
+ 
++	kfree(data);
+ 	return (ret < 0) ? -ENODEV : data[2];
+ }
+ 
+@@ -603,7 +608,7 @@ static int lme2510_download_firmware(struct usb_device *dev,
+ 					const struct firmware *fw)
+ {
+ 	int ret = 0;
+-	u8 data[512] = {0};
++	u8 *data;
+ 	u16 j, wlen, len_in, start, end;
+ 	u8 packet_size, dlen, i;
+ 	u8 *fw_data;
+@@ -611,6 +616,11 @@ static int lme2510_download_firmware(struct usb_device *dev,
+ 	packet_size = 0x31;
+ 	len_in = 1;
+ 
++	data = kzalloc(512, GFP_KERNEL);
++	if (!data) {
++		info("FRM Could not start Firmware Download (Buffer allocation failed)");
++		return -ENOMEM;
++	}
+ 
+ 	info("FRM Starting Firmware Download");
+ 
+@@ -654,7 +664,7 @@ static int lme2510_download_firmware(struct usb_device *dev,
+ 	else
+ 		info("FRM Firmware Download Completed - Resetting Device");
+ 
+-
++	kfree(data);
+ 	return (ret < 0) ? -ENODEV : 0;
+ }
+ 
+-- 
+1.7.4.rc3
 
-It makes sense to operate in ranges are you're proposing.
-
-A somewhat unrelated question that occurred to me today: what happens when a 
-format change happens while streaming? 
-
-Considering that some formats need more bits than others, this could lead into 
-buffer overflows, either internally at the device or externally, on bridges 
-that just forward whatever it receives to the DMA buffers (there are some that 
-just does that). I didn't see anything inside the mc code preventing such
-condition to happen, and probably implementing it won't be an easy job. So,
-one alternative would be to require some special CAPS if userspace tries to
-set the mbus format directly, or to recommend userspace to create media
-controller nodes with 0600 permission.
-
-Comments?
-
-Thanks,
-Mauro.
