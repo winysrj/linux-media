@@ -1,40 +1,54 @@
 Return-path: <mchehab@pedra>
-Received: from emh01.mail.saunalahti.fi ([62.142.5.107]:48877 "EHLO
-	emh01.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753985Ab1CZUU4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Mar 2011 16:20:56 -0400
-Message-ID: <4D8E4AA2.7070408@kolumbus.fi>
-Date: Sat, 26 Mar 2011 22:20:50 +0200
-From: Marko Ristola <marko.ristola@kolumbus.fi>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	=?ISO-8859-1?Q?Bj=F8rn_Mork?= <bjorn@mork.no>
-Subject: Pending dvb_dmx_swfilter(_204)() patch tested enough
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:17146 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753528Ab1CPUQq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Mar 2011 16:16:46 -0400
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p2GKGkFs027520
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 16 Mar 2011 16:16:46 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Jarod Wilson <jarod@redhat.com>
+Subject: [PATCH 2/2] hdpvr: use same polling interval as other OS
+Date: Wed, 16 Mar 2011 16:16:35 -0400
+Message-Id: <1300306595-19098-2-git-send-email-jarod@redhat.com>
+In-Reply-To: <1300306595-19098-1-git-send-email-jarod@redhat.com>
+References: <1300306595-19098-1-git-send-email-jarod@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+The hdpvr's IR part, in short, sucks. As observed with a usb traffic
+sniffer, the Windows software for it uses a polling interval of 405ms.
+Its still not behaving as well as I'd like even with this change, but
+this inches us closer and closer to that point...
 
-Hi Mauro.
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
+---
+ drivers/media/video/hdpvr/hdpvr-i2c.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-Following patch has been tested enough since last Summer 2010:
-
-"Avoid unnecessary data copying inside dvb_dmx_swfilter_204() function"
-https://patchwork.kernel.org/patch/118147/
-It modifies both dvb_dmx_swfilter_204() and dvb_dmx_swfilter()  functions.
-
-I Myself tested dvb_dmx_swfilter_204() with terrestrial DVB-C, using 204 sized packets.
-Some other Mantis users have satellite receiver equipment, using 188 sized packets, thus
-using dvb_dmx_swfilter().
-
-The patch has been in yaVDR/testing branch and used there.
-
-So both functions are tested enough during one half year period.
-I was asked by a person this week that if the patch could go forward.
-
-Regards,
-Marko Ristola
+diff --git a/drivers/media/video/hdpvr/hdpvr-i2c.c b/drivers/media/video/hdpvr/hdpvr-i2c.c
+index de69bae..2a1ac28 100644
+--- a/drivers/media/video/hdpvr/hdpvr-i2c.c
++++ b/drivers/media/video/hdpvr/hdpvr-i2c.c
+@@ -56,6 +56,7 @@ struct i2c_client *hdpvr_register_ir_rx_i2c(struct hdpvr_device *dev)
+ 	init_data->internal_get_key_func = IR_KBD_GET_KEY_HAUP_XVR;
+ 	init_data->type = RC_TYPE_RC5;
+ 	init_data->name = "HD-PVR";
++	init_data->polling_interval = 405; /* ms, duplicated from Windows */
+ 	hdpvr_ir_rx_i2c_board_info.platform_data = init_data;
+ 
+ 	return i2c_new_device(&dev->i2c_adapter, &hdpvr_ir_rx_i2c_board_info);
+@@ -191,7 +192,7 @@ static struct i2c_adapter hdpvr_i2c_adapter_template = {
+ 
+ static int hdpvr_activate_ir(struct hdpvr_device *dev)
+ {
+-	char buffer[8];
++	char buffer[2];
+ 
+ 	mutex_lock(&dev->i2c_mutex);
+ 
+-- 
+1.7.1
 
