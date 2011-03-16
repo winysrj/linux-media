@@ -1,50 +1,37 @@
 Return-path: <mchehab@pedra>
-Received: from mailfe04.c2i.net ([212.247.154.98]:39314 "EHLO swip.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754445Ab1C1Ri1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Mar 2011 13:38:27 -0400
-Received: from [188.126.198.129] (account mc467741@c2i.net HELO laptop002.hselasky.homeunix.org)
-  by mailfe04.swip.net (CommuniGate Pro SMTP 5.2.19)
-  with ESMTPA id 106055718 for linux-media@vger.kernel.org; Mon, 28 Mar 2011 19:38:24 +0200
-From: Hans Petter Selasky <hselasky@c2i.net>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: [PATCH] cx24116.c - fix for wrong parameter description
-Date: Mon, 28 Mar 2011 19:37:36 +0200
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:63561 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752462Ab1CPKBy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Mar 2011 06:01:54 -0400
+Received: by iwn34 with SMTP id 34so1490291iwn.19
+        for <linux-media@vger.kernel.org>; Wed, 16 Mar 2011 03:01:53 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_gdMkN+AgbVvFf0o"
-Message-Id: <201103281937.36599.hselasky@c2i.net>
+Date: Wed, 16 Mar 2011 11:01:53 +0100
+Message-ID: <AANLkTimB5br6fydkHnE9sYwhpPh0u56Swn-qKHN0s_J4@mail.gmail.com>
+Subject: Where to find 8-bit sbggr patch for omap3-isp
+From: Bastian Hecht <hechtb@googlemail.com>
+To: Michael Jones <michael.jones@matrix-vision.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
---Boundary-00=_gdMkN+AgbVvFf0o
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Hello dear omap-isp developers,
 
+I'm working with a  OV5642 sensor with an 8-bit parallel bus.
 
-See attachment.
+I'm referring to this patch:
+http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/29876/match=sgrbg8
 
---HPS
+Michael, you say that the patch applies to media-0005-omap3isp from Laurent.
+I cannot see it in the repo:
+http://git.linuxtv.org/pinchartl/media.git?a=blob;f=drivers/media/video/omap3-isp/ispccdc.c;h=5ff9d14ce71099cc672e71e2bd1d7ca619bbcc98;hb=media-0005-omap3isp
 
---Boundary-00=_gdMkN+AgbVvFf0o
-Content-Type: text/x-patch;
-  charset="us-ascii";
-  name="cx24116.c.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
-	filename="cx24116.c.diff"
+Hasn't the patch been merged into your tree yet, Laurent?
+Or am I looking at the wrong spot?
 
---- cx24116.c.orig	2011-03-20 23:11:40.000000000 +0100
-+++ cx24116.c	2011-03-20 23:12:35.000000000 +0100
-@@ -137,7 +137,7 @@
- /* SNR measurements */
- static int esno_snr;
- module_param(esno_snr, int, 0644);
--MODULE_PARM_DESC(debug, "SNR return units, 0=PERCENTAGE 0-100, "\
-+MODULE_PARM_DESC(esno_snr, "SNR return units, 0=PERCENTAGE 0-100, "\
- 	"1=ESNO(db * 10) (default:0)");
- 
- enum cmds {
+Thanks for help,
 
---Boundary-00=_gdMkN+AgbVvFf0o--
+ Bastian Hecht
