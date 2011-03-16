@@ -1,97 +1,280 @@
 Return-path: <mchehab@pedra>
-Received: from devils.ext.ti.com ([198.47.26.153]:33490 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754527Ab1CVGxg convert rfc822-to-8bit (ORCPT
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:56945 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751167Ab1CPQJr convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Mar 2011 02:53:36 -0400
-From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-To: "Hadli, Manjunath" <manjunath.hadli@ti.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Kevin Hilman <khilman@deeprootsystems.com>,
-	LAK <linux-arm-kernel@lists.infradead.org>,
-	"Nori, Sekhar" <nsekhar@ti.com>
-CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Date: Tue, 22 Mar 2011 12:23:14 +0530
-Subject: RE: [PATCH v17 00/13] davinci vpbe: dm6446 v4l2 driver
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024BCEF72A@dbde02.ent.ti.com>
-In-Reply-To: <1300197388-3704-1-git-send-email-manjunath.hadli@ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Wed, 16 Mar 2011 12:09:47 -0400
+Received: by qyg14 with SMTP id 14so1691485qyg.19
+        for <linux-media@vger.kernel.org>; Wed, 16 Mar 2011 09:09:46 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <AANLkTi=+2-K9-nt_Sahhrr4K9yg1bzotVexq_YnUTJYi@mail.gmail.com>
+References: <201103080913.59231.hverkuil@xs4all.nl>
+	<201103081652.20561.laurent.pinchart@ideasonboard.com>
+	<1299611565.24699.12.camel@morgan.silverblock.net>
+	<201103082023.58437.laurent.pinchart@ideasonboard.com>
+	<AANLkTin=CUsTH-dB2b0PYxSQbnq_e4nm-tDufVaKNM9p@mail.gmail.com>
+	<AANLkTi=YcrYKJ5aiqjeFEPceNbg5k0k7p58bYHkm2rEH@mail.gmail.com>
+	<AANLkTi=+2-K9-nt_Sahhrr4K9yg1bzotVexq_YnUTJYi@mail.gmail.com>
+Date: Wed, 16 Mar 2011 12:09:45 -0400
+Message-ID: <AANLkTimX1-2COQEZKMLq_EMWfGv=CGd6EWhfVnQDJ-SS@mail.gmail.com>
+Subject: Re: Yet another memory provider: can linaro organize a meeting?
+From: Alex Deucher <alexdeucher@gmail.com>
+To: Li Li <eggonlea@gmail.com>
+Cc: Robert Fekete <robert.fekete@linaro.org>,
+	Jonghun Han <jonghun.han@samsung.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	linaro-dev@lists.linaro.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Sekhar, Kevin, 
- These patches have gone through considerable reviews. 
-Could you please ACK from your end?
+On Wed, Mar 16, 2011 at 3:37 AM, Li Li <eggonlea@gmail.com> wrote:
+> Sorry but I feel the discussion is a bit off the point. We're not
+> going to compare the pros and cons of current code (GEM/TTM, HWMEM,
+> UMP, CMA, VCM, CMEM, PMEM, etc.)
+>
+> The real problem is to find a suitable unified memory management
+> module for various kinds of HW components (including CPU, VPU, GPU,
+> camera, FB/OVL, etc.), especially for ARM based SOC. Some HW requires
+> physical continuous big chunk of memory (e.g. some VPU & OVL); while
+> others could live with DMA chain (e.g. some powerful GPU has built-in
+> MMU).
+>
+> So, what's current situation?
+>
+> 1) As Hans mentioned, there're GEM & TTM in upstream kernel, under the
+> DRM framework (w/ KMS, etc.). This works fine on conventional (mostly
+> Xorg-based) Linux distribution.
+>
+> 2) But DRM (or GEM/TTM) is still too heavy and complex to some
+> embedded OS, which only want a cheaper memory management module. So...
+>
+> 2.1) Google uses PMEM in Android - However PMEM was removed from
+> upstream kernel for well-known reasons;
+>
+> 2.2) Qualcomm writes a hybrid KGSL based DRM+PMEM solution - However
+> KGSL was shamed in dri-devel list because their close user space
+> binary.
+>
+> 2.3) ARM starts UMP/MaliDRM for both of Android and X11/DRI2 - This
+> makes things even more complicated. (Therefore I personally think this
+> is actually a shame for ARM to create another private SW. As a leader
+> of Linaro, ARM should think more and coordinate with partners better
+> to come up a unified solution to make our life easier.)
+>
+> 2.4) Other companies also have their own private solutions because
+> nobody can get a STANDARD interface from upstream, including Marvell,
+> TI, Freescale.
+>
+>
+>
+> In general, it would be highly appreciated if Linaro guys could sit
+> down together around a table, co-work with silicon vendors and
+> upstream Linux kernel maintainers to make a unified (and cheaper than
+> GEM/TTM/DRM) memory management module. This module should be reviewed
+> carefully and strong enough to replace any other private memory
+> manager mentioned above. It should replace PMEM for Android (with
+> respect to Gralloc). And it could even be leveraged in DRM framework
+> (as a primitive memory allocation provider under GEM).
+>
+> Anyway, such a module is necessary, because user space application
+> cannot exchange enough information by a single virtual address (among
+> different per-process virtual address space). Gstreamer, V4L and any
+> other middleware could remain using a single virtual address in the
+> same process. But a global handler/ID is also necessary for sharing
+> buffers between processes.
+>
+> Furthermore, besides those well-known basic features, some advanced
+> APIs should be provided for application to map the same physical
+> memory region into another process, with 1) manageable fine
+> CACHEable/BUFFERable attributes and cache flush mechanism (for
+> performance); 2) lock/unlock synchronization; 3) swap/migration
+> ability (optional in current stage, as those buffer are often expected
+> to stay in RAM for better performance).
+>
+> Finally, and the most important, THIS MODULE SHOULD BE PUSHED TO
+> UPSTREAM (sorry, please ignore all the nonsense I wrote above if we
+> can achieve this) so that everyone treat it as a de facto well
+> supported memory management module. Thus all companies could transit
+> from current private design to this public one. And, let's cheer for
+> the end of this damn chaos!
 
+FWIW, I don't know if a common memory management API is possible.  On
+the GPU side we tried, but there ended up being too many weird
+hardware quirks from vendor to vendor (types of memory addressable,
+strange tiling formats, etc.).  You might be able to come up with some
+kind of basic framework like TTM, but by the time you add the
+necessary quirks for various hw, it may be bigger than you want.
+That's why we have GEM and TTM and driver specific memory management
+ioctls in the drm.
 
-Thanks and Regards,
--Manju
+Alex
 
-On Tue, Mar 15, 2011 at 19:26:28, Hadli, Manjunath wrote:
-> version17:
-> The more important among the patch history from previous comments 1. Replacing _raw_readl() with readl().
-> 2. Removal of platform resource overlap.
-> 3. Removal of unused macros.
-> 4. Fixing the module params typo.
-> 5. Minor changes in the GPL licensing header.
-> 6. Removed the initializer for field inversion parameter.
-> 7. Changing the Field inversion #ifdef to platform 
->    based implementation.
-> 8. Interchanged platform and board specific patches due to dependencies.
-> 
-> Manjunath Hadli (13):
->   davinci vpbe: V4L2 display driver for DM644X SoC
->   davinci vpbe: VPBE display driver
->   davinci vpbe: OSD(On Screen Display) block
->   davinci vpbe: VENC( Video Encoder) implementation
->   davinci vpbe: Build infrastructure for VPBE driver
->   davinci vpbe: Readme text for Dm6446 vpbe
->   davinci: move DM64XX_VDD3P3V_PWDN to devices.c
->   davinci: eliminate use of IO_ADDRESS() on sysmod
->   davinci: dm644x: Replace register base value with a defined macro
->   davinci: dm644x: change vpfe capture structure variables for
->     consistency
->   davinci: dm644x: move vpfe init from soc to board specific files
->   davinci: dm644x: add support for v4l2 video display
->   davinci: dm644x EVM: add support for VPBE display
-> 
->  Documentation/video4linux/README.davinci-vpbe |   93 ++
->  arch/arm/mach-davinci/board-dm644x-evm.c      |  131 ++-
->  arch/arm/mach-davinci/devices.c               |   24 +-
->  arch/arm/mach-davinci/dm355.c                 |    1 +
->  arch/arm/mach-davinci/dm365.c                 |    1 +
->  arch/arm/mach-davinci/dm644x.c                |  172 ++-
->  arch/arm/mach-davinci/dm646x.c                |    1 +
->  arch/arm/mach-davinci/include/mach/dm644x.h   |    7 +-
->  arch/arm/mach-davinci/include/mach/hardware.h |    7 +-
->  drivers/media/video/davinci/Kconfig           |   22 +
->  drivers/media/video/davinci/Makefile          |    2 +
->  drivers/media/video/davinci/vpbe.c            |  826 ++++++++++
->  drivers/media/video/davinci/vpbe_display.c    | 2084 +++++++++++++++++++++++++
->  drivers/media/video/davinci/vpbe_osd.c        | 1216 ++++++++++++++
->  drivers/media/video/davinci/vpbe_osd_regs.h   |  364 +++++
->  drivers/media/video/davinci/vpbe_venc.c       |  556 +++++++
->  drivers/media/video/davinci/vpbe_venc_regs.h  |  177 +++
->  include/media/davinci/vpbe.h                  |  185 +++
->  include/media/davinci/vpbe_display.h          |  146 ++
->  include/media/davinci/vpbe_osd.h              |  397 +++++
->  include/media/davinci/vpbe_types.h            |   91 ++
->  include/media/davinci/vpbe_venc.h             |   41 +
->  22 files changed, 6500 insertions(+), 44 deletions(-)  create mode 100644 Documentation/video4linux/README.davinci-vpbe
->  create mode 100644 drivers/media/video/davinci/vpbe.c
->  create mode 100644 drivers/media/video/davinci/vpbe_display.c
->  create mode 100644 drivers/media/video/davinci/vpbe_osd.c
->  create mode 100644 drivers/media/video/davinci/vpbe_osd_regs.h
->  create mode 100644 drivers/media/video/davinci/vpbe_venc.c
->  create mode 100644 drivers/media/video/davinci/vpbe_venc_regs.h
->  create mode 100644 include/media/davinci/vpbe.h  create mode 100644 include/media/davinci/vpbe_display.h
->  create mode 100644 include/media/davinci/vpbe_osd.h  create mode 100644 include/media/davinci/vpbe_types.h
->  create mode 100644 include/media/davinci/vpbe_venc.h
-> 
-> 
-
+>
+> Thanks,
+> Lea
+>
+> On Wed, Mar 16, 2011 at 12:47 AM, Alex Deucher <alexdeucher@gmail.com> wrote:
+>> On Tue, Mar 15, 2011 at 12:07 PM, Robert Fekete
+>> <robert.fekete@linaro.org> wrote:
+>>> On 8 March 2011 20:23, Laurent Pinchart
+>>> <laurent.pinchart@ideasonboard.com> wrote:
+>>>> Hi Andy,
+>>>>
+>>>> On Tuesday 08 March 2011 20:12:45 Andy Walls wrote:
+>>>>> On Tue, 2011-03-08 at 16:52 +0100, Laurent Pinchart wrote:
+>>>>>
+>>>>> [snip]
+>>>>>
+>>>>> > > > It really shouldn't be that hard to get everyone involved together
+>>>>> > > > and settle on a single solution (either based on an existing
+>>>>> > > > proposal or create a 'the best of' vendor-neutral solution).
+>>>>> > >
+>>>>> > > "Single" might be making the problem impossibly hard to solve well.
+>>>>> > > One-size-fits-all solutions have a tendency to fall short on meeting
+>>>>> > > someone's critical requirement.  I will agree that "less than n", for
+>>>>> > > some small n, is certainly desirable.
+>>>>> > >
+>>>>> > > The memory allocators and managers are ideally satisfying the
+>>>>> > > requirements imposed by device hardware, what userspace applications
+>>>>> > > are expected to do with the buffers, and system performance.  (And
+>>>>> > > maybe the platform architecture, I/O bus, and dedicated video memory?)
+>>>>> >
+>>>>> > In the embedded world, a very common use case is to capture video data
+>>>>> > from an ISP (V4L2+MC), process it in a DSP (V4L2+M2M, tidspbridge, ...)
+>>>>> > and display it on the GPU (OpenGL/ES). We need to be able to share a
+>>>>> > data buffer between the ISP and the DSP, and another buffer between the
+>>>>> > DSP and the GPU. If processing is not required, sharing a data buffer
+>>>>> > between the ISP and the GPU is required. Achieving zero-copy requires a
+>>>>> > single memory management solution used by the ISP, the DSP and the GPU.
+>>>>>
+>>>>> Ah.  I guess I misunderstood what was meant by "memory provider" to some
+>>>>> extent.
+>>>>>
+>>>>> So what I read is a common way of providing in kernel persistent buffers
+>>>>> (buffer objects? buffer entities?) for drivers and userspace
+>>>>> applications to pass around by reference (no copies).  Userspace may or
+>>>>> may not want to see the contents of the buffer objects.
+>>>>
+>>>> Exactly. How that memory is allocated in irrelevant here, and we can have
+>>>> several different allocators as long as the buffer objects can be managed
+>>>> through a single API. That API will probably have to expose buffer properties
+>>>> related to allocation, in order for all components in the system to verify
+>>>> that the buffers are suitable for their needs, but the allocation process
+>>>> itself is irrelevant.
+>>>>
+>>>>> So I understand now why a single solution is desirable.
+>>>>
+>>>
+>>> Exactly,
+>>>
+>>> It is important to know that there are 3 topics of discussion which
+>>> all are a separate topic of its own:
+>>>
+>>> 1. The actual memory allocator
+>>> 2. In-kernel API
+>>> 3. Userland API
+>>>
+>>> Explained:
+>>> 1. This is how you acquire the actual physical or virtual memory,
+>>> defrag, swap, etc. This can be enhanced by CMA, hotswap, memory
+>>> regions or whatever and the main topic for a system wide memory
+>>> allocator does not deal much with how this is done.
+>>> 2. In-kernel API is important from a device driver point of view in
+>>> order to resolve buffers, pin memory when used(enable defrag when
+>>> unpinned)
+>>> 3. Userland API deals with alloc/free, import/export(IPC), security,
+>>> and set-domain capabilities among others and is meant to pass buffers
+>>> between processes in userland and enable no-copy data paths.
+>>>
+>>> We need to resolve 2. and 3.
+>>>
+>>> GEM/TTM is mentioned in this thread and there is an overlap of what is
+>>> happening within DRM/DRI/GEM/TTM/KMS and V4L2. The whole idea behind
+>>> DRM is to have one device driver for everything (well at least 2D/3D,
+>>> video codecs, display output/composition), while on a SoC all this is
+>>> on several drivers/IP's. A V4L2 device cannot resolve a GEM handle.
+>>> GEM only lives inside one DRM device (AFAIK). GEM is also mainly for
+>>> "dedicated memory-less" graphics cards while TTM mainly targets
+>>> advanced Graphics Card with dedicated memory. From a SoC point of view
+>>> DRM looks very "fluffy" and not quite slimmed for an embedded device,
+>>> and you cannot get GEM/TTM without bringing in all of DRM/DRI. KMS on
+>>> the other hand is very attractive as a framebuffer device replacer. It
+>>> is not an easy task to decide on a multimedia user interface for a SoC
+>>> vendor.
+>>
+>> Modern GPUs are basically an SoC: 3D engine, video decode, hdmi packet
+>> engines, audio, dma engine, display blocks, etc. with a shared memory
+>> controller.  Also the AMD fusion and Intel moorestown SoCs are not too
+>> different from ARM-based SoCs and we are supporting them with the drm.
+>>  I expect we'll see the x86 and ARM/MIPS based SoCs continue to get
+>> closer together.
+>>
+>> What are you basing your "fluffy" statement on?  We recently merged a
+>> set of patches from qualcomm to support platform devices in the drm
+>> and Dave added support for USB devices. Qualcomm also has an open
+>> source drm for their snapdragon GPUs (although the userspace driver is
+>> closed) and they are using that on their SoCs.
+>>
+>>>
+>>> Uniting the frameworks within the kernel will likely fail(too big of a
+>>> task) but a common system wide memory manager would for sure make life
+>>> easier enabling the  possibility to pass buffers between drivers(and
+>>> user-land as well). In order for No-copy to work on a system level the
+>>> general multimedia infrastructure in User-land (i.e.
+>>> Gstreamer/X11/wayland/stagefright/flingers/etc) must also be aware of
+>>> this memory manager and manage handles accordingly. This
+>>> infrastructure in user-land puts the requirements on the User land API
+>>> (1.).
+>>
+>>
+>> You don't have to use GEM or TTM for as your memory manager for KMS or
+>> DRI, it's memory manager independent.  That said, I don't really see
+>> why you couldn't use one of them for a central memory manager on an
+>> SoC;  the sub drivers would just request buffers from the common
+>> memory manager.  We are already working on support for sharing buffers
+>> between drm drivers for supporting hybrid laptops and crossfire
+>> (multi-gpu) type things.  We already share buffers between multiple
+>> userspace acceleration drivers and the drm using the DRI protocol.
+>>
+>>>
+>>> I know that STE and ARM has a vision to have a hwmem/ump alike API and
+>>> that Linaro is one place to resolve this. As Jesse Barker mentioned
+>>> earlier Linaro has work ongoing on this topic
+>>> (https://wiki.linaro.org/WorkingGroups/Middleware/Graphics/Projects/UnifiedMemoryManagement)
+>>> and a V4L2 brainstorming meeting in Warsaw will likely bring this up
+>>> as well. And Gstreamer is also looking at this from a user-land point
+>>> of view.
+>>>
+>>> ARM, STE seems to agree on this, V4L2 maestros seems to agree,
+>>> GStreamer as well(I believe),
+>>> How about Samsung(vcm)? TI(cmem)? Freescale? DRI community? Linus?
+>>
+>> FWIW, I have yet to see any v4l developers ever email the dri mailing
+>> list while discussing GEM, TTM, or the DRM, all the while conjecturing
+>> on aspects of it they admit to not fully understanding.  For future
+>> reference, the address is: <dri-devel@lists.freedesktop.org>.  We are
+>> happy to answer questions.
+>>
+>> Alex
+>>
+>>>
+>>> Jesse! any progress?
+>>>
+>>> BR
+>>> /Robert Fekete
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>>
+>> _______________________________________________
+>> linaro-dev mailing list
+>> linaro-dev@lists.linaro.org
+>> http://lists.linaro.org/mailman/listinfo/linaro-dev
+>>
+>
