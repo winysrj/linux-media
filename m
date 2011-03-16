@@ -1,99 +1,125 @@
 Return-path: <mchehab@pedra>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43259 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752359Ab1CYTIJ convert rfc822-to-8bit (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:20370 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750799Ab1CPEuN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Mar 2011 15:08:09 -0400
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>,
-	"david.cohen@nokia.com" <david.cohen@nokia.com>,
-	"hiroshi.doyu@nokia.com" <hiroshi.doyu@nokia.com>
-Date: Sat, 26 Mar 2011 00:37:46 +0530
-Subject: RE: [PATCH 1/4] omap iommu: Check existence of arch_iommu
-Message-ID: <19F8576C6E063C45BE387C64729E739404E21D57E2@dbde02.ent.ti.com>
-References: <4D8CB106.7030608@maxwell.research.nokia.com>
- <1301066005-7882-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <1301066005-7882-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	Wed, 16 Mar 2011 00:50:13 -0400
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Received: from epmmp1 (mailout4.samsung.com [203.254.224.34])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LI4000C8W3NSZ90@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 16 Mar 2011 13:50:11 +0900 (KST)
+Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
+ by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LI400ABQW3NVD@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 16 Mar 2011 13:50:11 +0900 (KST)
+Date: Wed, 16 Mar 2011 13:50:11 +0900
+From: "Kim, HeungJun" <riverful.kim@samsung.com>
+Subject: Re: the focus terms or sequences
+In-reply-to: <201103160114.03677.laurent.pinchart@ideasonboard.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
+Reply-to: riverful.kim@samsung.com
+Message-id: <4D804183.8020505@samsung.com>
+Content-transfer-encoding: 8BIT
+References: <4D7DBD69.2000507@samsung.com>
+ <201103160114.03677.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Sakari Ailus
-> Sent: Friday, March 25, 2011 8:43 PM
-> To: linux-media@vger.kernel.org
-> Cc: laurent.pinchart@ideasonboard.com; david.cohen@nokia.com;
-> hiroshi.doyu@nokia.com
-> Subject: [PATCH 1/4] omap iommu: Check existence of arch_iommu
+Hi Laurent,
+
+First, I hope to be good at the warsaw meeting. :)
+
+2011-03-16 오전 9:14, Laurent Pinchart 쓴 글:
+> Hi HeungJun,
 > 
-> Check that the arch_iommu has been installed before trying to use it. This
-> will lead to kernel oops if the arch_iommu isn't there.
+> On Monday 14 March 2011 08:02:01 Kim, HeungJun wrote:
+>> Hi Laurent,
+>>
+>> I heard of that there was a chance between you and Sylwester telling about
+>> the menu entries focus, and so after that, probably this menu style of the
+>> patch I sent, need to be more upgraded. So, can you tell me the kind or
+>> sequence of the UVC device breifly?
+>>
+>> I guess the word *AUTO* at the UVC device means doing focus continuously,
+>> not once or one time.
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-> ---
->  arch/arm/plat-omap/iommu.c |    3 +++
->  1 files changed, 3 insertions(+), 0 deletions(-)
+> That's correct. In the UVC context, auto focus means CAF and manual focus 
+> means... well, manual focus :-)
 > 
-> diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
-> index b1107c0..f0fea0b 100644
-> --- a/arch/arm/plat-omap/iommu.c
-> +++ b/arch/arm/plat-omap/iommu.c
-> @@ -104,6 +104,9 @@ static int iommu_enable(struct iommu *obj)
->  	if (!obj)
->  		return -EINVAL;
+>> But, at the sensors I used the *AUTO* focus means doing focus once, on the
+>> other hand *CONTINUOUS* means doing continuously. So, we need to be clear
+>> terms about focus.
+>>
+>> At the sensor I used, the focus needs 3 kinds of commands:
+>> 1) setting mode
+>>
+>>   : it makes the lens initial position for each AF(Normal, Continuous,
+>>   : Night mode Focus, etc),
+>>
+>>     and set the AF status Idle.
+>> 2) execute AF
+>>
+>>   : doing the move of the lens
+>>
+>> 3) read AF status
+>>
+>>   : checking the lens status(Focus failed, Focus success, Idle, Busy)
+>>
+>>     and do the proper jobs.
+>>
+>> I don't know uvc case well, so, If you share about this, it can be help.
 > 
-> +	if (!arch_iommu)
-> +		return -ENOENT;
-> +
-[Hiremath, Vaibhav] Similar patch has already been submitted and accepted in community, not sure which baseline you are using. Please refer to below commit - 
-
-
-commit ef4815ab1ff10d642c21ef92faa6544934bc78d1
-Author: Martin Hostettler <martin@neutronstar.dyndns.org>
-Date:   Thu Feb 24 12:51:31 2011 -0800
-
-    omap: iommu: Gracefully fail iommu_enable if no arch_iommu is registered
-
-    In a modular build of the iommu code it's possible that the arch iommu code
-    isn't loaded when trying to enable the iommu. Instead of blindly following a
-    null pointer return -NODEV in that case.
-
-    Signed-off-by: Martin Hostettler <martin@neutronstar.dyndns.org>
-    Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
-index b1107c0..3d8f55e 100644
---- a/arch/arm/plat-omap/iommu.c
-+++ b/arch/arm/plat-omap/iommu.c
-@@ -104,6 +104,9 @@ static int iommu_enable(struct iommu *obj)
-        if (!obj)
-                return -EINVAL;
-
-+       if (!arch_iommu)
-+               return -ENODEV;
-+
-        clk_enable(obj->clk);
-
-        err = arch_iommu->enable(obj);
-
-
-Thanks,
-Vaibhav
-
->  	clk_enable(obj->clk);
+> What bothers me with your auto-focus implementation is that the user might 
+> want to perform auto-focus several times. Let's imagine this use case:
 > 
->  	err = arch_iommu->enable(obj);
-> --
-> 1.7.2.3
+> 1. The user points the camera (webcam, cellphone camera, digital camera, it 
+> doesn't matter) at an object.
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 2. The user presses a button to perform singleshot auto-focus (it can be a 
+> physical button or a button on the camera screen, once again it doesn't 
+> matter).
+> 
+> 3. The application sets the focus control to AUTO.
+> 
+> 4. The driver and device perform auto-focus once. The lens is moved so that 
+> the object is in focus.
+> 
+> 5. The user points the camera at another object.
+> 
+> 6. The user presses a button to perform singleshot auto-focus.
+> 
+> 7. The applications sets the focus control to AUTO. As the focus control value 
+> was already AUTO, nothing is done.
+> 
+> This is clearly broken. That's why we need a V4L2 button control in addition 
+> to the menu control.
+> 
+Yes. Youre'rignt. The menu control dosen't called one more with the same value.
+It's now worked I know. But, the reason why I choose menu type for focus,
+is because the menu type can let the user-application know how many kinds of
+focus this sensor have & support, using querymenu. The only way letting know,
+is currently the menu type.
+
+On the other hand, not-working twice or more executions is handled by user-application.
+The user-application want twice auto focus, it calls AUTO-Manual-(or any other control
+value)-and AUTO once again. It's wierd, but It can satisfy application and drivers.
+
+And, but it might be irrelevant, the user-application(or upper layer platform) can
+determine how to draw & arrange the UI objects after it knows the kinds of focus
+method at last.
+
+It may be a time to need another type of control. And such control should satisfy these:
+1. letting the user-application know how many kinds in the controls(like a querymenu)
+2. being available to be called one more.
+
+How about your opinion?
+
+Regards,
+Heungjun Kim
