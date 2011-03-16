@@ -1,75 +1,43 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:43104 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754877Ab1CHTrB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Mar 2011 14:47:01 -0500
+Received: from kroah.org ([198.145.64.141]:48685 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753761Ab1CPUba (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Mar 2011 16:31:30 -0400
+Date: Wed, 16 Mar 2011 13:31:19 -0700
+From: Greg KH <greg@kroah.com>
+To: Paul Bolle <pebolle@tiscali.nl>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	USB list <linux-usb@vger.kernel.org>
+Subject: Re: [ANNOUNCE] usbmon capture and parser script
+Message-ID: <20110316203119.GA3994@kroah.com>
+References: <4D8102A9.9080202@redhat.com>
+ <20110316194758.GA32557@kroah.com>
+ <1300306845.1954.7.camel@t41.thuisdomein>
 MIME-Version: 1.0
-In-Reply-To: <AANLkTimcSRB+AS=UEAtfc6D=BYWB7Nedj3LQyCnG4bVf@mail.gmail.com>
-References: <1299588365-2749-1-git-send-email-dacohen@gmail.com>
-	<1299588365-2749-4-git-send-email-dacohen@gmail.com>
-	<AANLkTikvUah8LPXCeV4Opi09DJ4ZoHAc2xUVTcDhNK=Q@mail.gmail.com>
-	<20110308.200901.212929907269368357.Hiroshi.DOYU@nokia.com>
-	<AANLkTi=E+9sjGEpCmHPFLFRGTQujDv8747Jf8=ukU1hC@mail.gmail.com>
-	<AANLkTikmWdQZZJHTmJsDTrSX434pKfpqJWZ6RWGB7ec6@mail.gmail.com>
-	<AANLkTimcSRB+AS=UEAtfc6D=BYWB7Nedj3LQyCnG4bVf@mail.gmail.com>
-Date: Tue, 8 Mar 2011 21:46:59 +0200
-Message-ID: <AANLkTik9H1H5AfWX-aAh7+7Ghx0i0ADLT6sq4FtG8c1e@mail.gmail.com>
-Subject: Re: [PATCH 3/3] omap: iovmm: don't check 'da' to set
- IOVMF_DA_FIXED/IOVMF_DA_ANON flags
-From: David Cohen <dacohen@gmail.com>
-To: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-omap@vger.kernel.org,
-	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@maxwell.research.nokia.com
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1300306845.1954.7.camel@t41.thuisdomein>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-[snip]
+On Wed, Mar 16, 2011 at 09:20:24PM +0100, Paul Bolle wrote:
+> On Wed, 2011-03-16 at 12:47 -0700, Greg KH wrote:
+> > Very cool stuff.  You are away of:
+> > 	http://vusb-analyzer.sourceforge.net/
+> > right?
+> > 
+> > I know you are doing this in console mode, but it looks close to the
+> > same idea.
+> 
+> Perhaps there should be some references to vusb-analyzer and similar
+> tools in Documentation/usb/usbmon.txt (it now only mentions "usbdump"
+> and "USBMon"). I remember looking for a tool like that (ie, a parser)
+> for quite some time before stumbling onto vusb-analyzer.
 
->>>>>> -       flags |= (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
->>>>>> +       if (~flags & IOVMF_DA_FIXED)
->>>>>> +               flags |= IOVMF_DA_ANON;
->>>>>
->>>>> could we use only one? both are mutual exclusive, what happen if flag
->>>>> is IOVMF_DA_FIXED | IOVMF_DA_ANON? so, I suggest to get rid of
->>>>> IOVMF_DA_ANON.
->>>>
->>>> Then, what about introducing some MACRO? Better names?
->>>>
->>>> #define set_iovmf_da_anon(flags)
->>>> #define set_iovmf_da_fix(flags)
->>>> #define set_iovmf_mmio(flags)
->>>
->>> will they be used by the users?
->>>
->>> I think people are more used to use
->>>
->>> iommu_vmap(obj, da, sgt, IOVMF_MMIO | IOVMF_DA_ANON);
->>
->> I'd be happier with this approach, instead of the macros. :)
->> It's intuitive and very common on kernel.
->>
->>>
->>> than
->>>
->>> set_iovmf_da_anon(flags)
->>> set_iovmf_mmio(flags)
->>> iommu_vmap(obj, da, sgt, flags);
->>>
->>> I don't have problem with the change, but I think how it is now is ok,
->>> just that we don't we two bits to handle anon/fixed da, it can be
->>> managed it only 1 bit (one flag), or is there a issue?
->>
->> We can exclude IOVMF_DA_ANON and stick with IOVMF_DA_FIXED only.
->> I can resend my patch if we agree it's OK.
->
-> sounds perfect to me.
+Patches are always gladly welcome, especially for documentation :)
 
-Not sure indeed if this change fits to this same patch. Looks like a
-4th patch sounds better.
+thanks,
 
-Br,
-
-David Cohen
+greg k-h
