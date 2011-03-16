@@ -1,64 +1,52 @@
 Return-path: <mchehab@pedra>
-Received: from e3.ny.us.ibm.com ([32.97.182.143]:56193 "EHLO e3.ny.us.ibm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752957Ab1CaUdq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Mar 2011 16:33:46 -0400
-Subject: Re: [PATCH 04/12] mm: alloc_contig_freed_pages() added
-From: Dave Hansen <dave@linux.vnet.ibm.com>
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-mm@kvack.org, Michal Nazarewicz <mina86@mina86.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
-	Mel Gorman <mel@csn.ul.ie>, Pawel Osciak <pawel@osciak.com>
-In-Reply-To: <20110331192429.GD14441@home.goodmis.org>
-References: <1301577368-16095-1-git-send-email-m.szyprowski@samsung.com>
-	 <1301577368-16095-5-git-send-email-m.szyprowski@samsung.com>
-	 <1301587083.31087.1032.camel@nimitz>
-	 <20110331192429.GD14441@home.goodmis.org>
-Content-Type: text/plain; charset="ISO-8859-1"
-Date: Thu, 31 Mar 2011 13:33:39 -0700
-Message-ID: <1301603619.31087.1203.camel@nimitz>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:39194 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750884Ab1CPQAE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Mar 2011 12:00:04 -0400
+Received: by qwk3 with SMTP id 3so1413288qwk.19
+        for <linux-media@vger.kernel.org>; Wed, 16 Mar 2011 09:00:04 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <201103160952.04865.laurent.pinchart@ideasonboard.com>
+References: <201103080913.59231.hverkuil@xs4all.nl>
+	<AANLkTin=CUsTH-dB2b0PYxSQbnq_e4nm-tDufVaKNM9p@mail.gmail.com>
+	<AANLkTi=YcrYKJ5aiqjeFEPceNbg5k0k7p58bYHkm2rEH@mail.gmail.com>
+	<201103160952.04865.laurent.pinchart@ideasonboard.com>
+Date: Wed, 16 Mar 2011 12:00:03 -0400
+Message-ID: <AANLkTi=zc80wYytFKtz7is5KOxy2Rwb8Na5C3Eeb3pR7@mail.gmail.com>
+Subject: Re: Yet another memory provider: can linaro organize a meeting?
+From: Alex Deucher <alexdeucher@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Robert Fekete <robert.fekete@linaro.org>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linaro-dev@lists.linaro.org,
+	linux-media@vger.kernel.org, Jonghun Han <jonghun.han@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, 2011-03-31 at 15:24 -0400, Steven Rostedt wrote:
-> On Thu, Mar 31, 2011 at 08:58:03AM -0700, Dave Hansen wrote:
-> > On Thu, 2011-03-31 at 15:16 +0200, Marek Szyprowski wrote:
-> > > 
-> > > +unsigned long alloc_contig_freed_pages(unsigned long start, unsigned long end,
-> > > +                                      gfp_t flag)
-> > > +{
-> > > +       unsigned long pfn = start, count;
-> > > +       struct page *page;
-> > > +       struct zone *zone;
-> > > +       int order;
-> > > +
-> > > +       VM_BUG_ON(!pfn_valid(start));
-> > 
-> > This seems kinda mean.  Could we return an error?  I understand that
-> > this is largely going to be an early-boot thing, but surely trying to
-> > punt on crappy input beats a full-on BUG().
-> > 
-> > 	if (!pfn_valid(start))
-> > 		return -1;
-> 
-> But still keep the warning?
-> 
-> 	if (WARN_ON(!pfn_valid(start))
-> 		return -1;
+On Wed, Mar 16, 2011 at 4:52 AM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Alex,
+>
+> On Tuesday 15 March 2011 17:47:47 Alex Deucher wrote:
+>
+> [snip]
+>
+>> FWIW, I have yet to see any v4l developers ever email the dri mailing
+>> list while discussing GEM, TTM, or the DRM, all the while conjecturing
+>> on aspects of it they admit to not fully understanding.  For future
+>> reference, the address is: <dri-devel@lists.freedesktop.org>.  We are
+>> happy to answer questions.
+>
+> Please don't see any malice there. Even though the topic has been on our table
+> for quite some time now, we're only starting to actively work on it. The first
+> step is to gather our requirements (this will likely be done this week, during
+> the V4L2 brainstorming meeting in Warsaw). We will then of course contact
+> DRM/DRI developers.
 
-Sure.  You might also want to make sure you're respecting __GFP_NOWARN
-if you're going to do that, or maybe just warn once per boot.
+Sorry, it came out a little harsher than I wanted.  I just want to
+avoid duplication of effort if possible.
 
-
--- Dave
-
+Alex
