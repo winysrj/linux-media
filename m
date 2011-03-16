@@ -1,103 +1,118 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42029 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47383 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755086Ab1CWMQv convert rfc822-to-8bit (ORCPT
+	with ESMTP id S1753227Ab1CPRtd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Mar 2011 08:16:51 -0400
+	Wed, 16 Mar 2011 13:49:33 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Michael Jones <michael.jones@matrix-vision.de>
-Subject: Re: [PATCH] omap3isp: implement ENUM_FMT
-Date: Wed, 23 Mar 2011 13:16:45 +0100
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	=?iso-8859-1?q?Lo=EFc_Akue?= <akue.loic@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Yordan Kamenov <ykamenov@mm-sol.com>
-References: <4D889C61.905@matrix-vision.de> <4D89C2ED.5080803@maxwell.research.nokia.com> <4D89D460.7000808@matrix-vision.de>
-In-Reply-To: <4D89D460.7000808@matrix-vision.de>
+To: Alex Deucher <alexdeucher@gmail.com>
+Subject: Re: Yet another memory provider: can linaro organize a meeting?
+Date: Wed, 16 Mar 2011 18:49:34 +0100
+Cc: Li Li <eggonlea@gmail.com>,
+	Robert Fekete <robert.fekete@linaro.org>,
+	Jonghun Han <jonghun.han@samsung.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	linaro-dev@lists.linaro.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media@vger.kernel.org
+References: <201103080913.59231.hverkuil@xs4all.nl> <AANLkTi=+2-K9-nt_Sahhrr4K9yg1bzotVexq_YnUTJYi@mail.gmail.com> <AANLkTimX1-2COQEZKMLq_EMWfGv=CGd6EWhfVnQDJ-SS@mail.gmail.com>
+In-Reply-To: <AANLkTimX1-2COQEZKMLq_EMWfGv=CGd6EWhfVnQDJ-SS@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201103231316.46934.laurent.pinchart@ideasonboard.com>
+Content-Transfer-Encoding: 7bit
+Message-Id: <201103161849.35496.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Michael,
+Hi Alex,
 
-On Wednesday 23 March 2011 12:07:12 Michael Jones wrote:
-> On 03/23/2011 10:52 AM, Sakari Ailus wrote:
-> > Michael Jones wrote:
-> >> From dccbd4a0a717ee72a3271075b1e3456a9c67ca0e Mon Sep 17 00:00:00 2001
-> >> From: Michael Jones <michael.jones@matrix-vision.de>
-> >> Date: Tue, 22 Mar 2011 11:47:22 +0100
-> >> Subject: [PATCH] omap3isp: implement ENUM_FMT
-> >> 
-> >> Whatever format is currently being delivered will be declared as the
-> >> only possible format
-> >> 
-> >> Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
-> >> ---
-> >> 
-> >> Some V4L2 apps require ENUM_FMT, which is a mandatory ioctl for V4L2.
-> >> This patch doesn't enumerate all of the formats which could possibly be
-> >> set (as is intended by ENUM_FMT), but at least it reports the one that
-> >> is currently set.
+On Wednesday 16 March 2011 17:09:45 Alex Deucher wrote:
+> On Wed, Mar 16, 2011 at 3:37 AM, Li Li <eggonlea@gmail.com> wrote:
+> > Sorry but I feel the discussion is a bit off the point. We're not
+> > going to compare the pros and cons of current code (GEM/TTM, HWMEM,
+> > UMP, CMA, VCM, CMEM, PMEM, etc.)
 > > 
-> > What would be the purpose of ENUM_FMT in this case? It provides no
-> > additional information to user space, and the information it provides is
-> > in fact incomplete. Using other formats is possible, but that requires
-> > changes to the format configuration on links.
-> 
-> The only purpose of it was to provide minimum functionality for apps to
-> be able to fetch frames from the ISP after setting up the ISP pipeline
-> with media-ctl.  By "apps", I mean Gstreamer in my case, which Loïc had
-> also recently asked Laurent about.
-> 
-> > As the relevant format configuration is done on the subdevs and not on
-> > the video nodes, the format configuration on the video nodes is very
-> > limited and much affected by the state of the formats on the subdev pads
-> > (which I think is right). This is not limited to ENUM_FMT but all format
-> > related IOCTLs on the OMAP 3 ISP driver.
+> > The real problem is to find a suitable unified memory management
+> > module for various kinds of HW components (including CPU, VPU, GPU,
+> > camera, FB/OVL, etc.), especially for ARM based SOC. Some HW requires
+> > physical continuous big chunk of memory (e.g. some VPU & OVL); while
+> > others could live with DMA chain (e.g. some powerful GPU has built-in
+> > MMU).
 > > 
-> > My view is that should a generic application want to change (or
-> > enumerate) the format(s) on a video node, the application would need to
-> > be using libv4l for that.
+> > So, what's current situation?
 > > 
-> > A compatibility layer implemented in libv4l (plugin, not the main
-> > library) needs to configure the links in the first place, so
-> > implementing ENUM_FMT in the plugin would not be a big deal. It could
-> > even provide useful information. The possible results of the ENUM_FMT
-> > would also depend on what kind of pipeline configuration does the plugin
-> > support, though.
+> > 1) As Hans mentioned, there're GEM & TTM in upstream kernel, under the
+> > DRM framework (w/ KMS, etc.). This works fine on conventional (mostly
+> > Xorg-based) Linux distribution.
+> > 
+> > 2) But DRM (or GEM/TTM) is still too heavy and complex to some
+> > embedded OS, which only want a cheaper memory management module. So...
+> > 
+> > 2.1) Google uses PMEM in Android - However PMEM was removed from
+> > upstream kernel for well-known reasons;
+> > 
+> > 2.2) Qualcomm writes a hybrid KGSL based DRM+PMEM solution - However
+> > KGSL was shamed in dri-devel list because their close user space
+> > binary.
+> > 
+> > 2.3) ARM starts UMP/MaliDRM for both of Android and X11/DRI2 - This
+> > makes things even more complicated. (Therefore I personally think this
+> > is actually a shame for ARM to create another private SW. As a leader
+> > of Linaro, ARM should think more and coordinate with partners better
+> > to come up a unified solution to make our life easier.)
+> > 
+> > 2.4) Other companies also have their own private solutions because
+> > nobody can get a STANDARD interface from upstream, including Marvell,
+> > TI, Freescale.
+> > 
+> > 
+> > 
+> > In general, it would be highly appreciated if Linaro guys could sit
+> > down together around a table, co-work with silicon vendors and
+> > upstream Linux kernel maintainers to make a unified (and cheaper than
+> > GEM/TTM/DRM) memory management module. This module should be reviewed
+> > carefully and strong enough to replace any other private memory
+> > manager mentioned above. It should replace PMEM for Android (with
+> > respect to Gralloc). And it could even be leveraged in DRM framework
+> > (as a primitive memory allocation provider under GEM).
+> > 
+> > Anyway, such a module is necessary, because user space application
+> > cannot exchange enough information by a single virtual address (among
+> > different per-process virtual address space). Gstreamer, V4L and any
+> > other middleware could remain using a single virtual address in the
+> > same process. But a global handler/ID is also necessary for sharing
+> > buffers between processes.
+> > 
+> > Furthermore, besides those well-known basic features, some advanced
+> > APIs should be provided for application to map the same physical
+> > memory region into another process, with 1) manageable fine
+> > CACHEable/BUFFERable attributes and cache flush mechanism (for
+> > performance); 2) lock/unlock synchronization; 3) swap/migration
+> > ability (optional in current stage, as those buffer are often expected
+> > to stay in RAM for better performance).
+> > 
+> > Finally, and the most important, THIS MODULE SHOULD BE PUSHED TO
+> > UPSTREAM (sorry, please ignore all the nonsense I wrote above if we
+> > can achieve this) so that everyone treat it as a de facto well
+> > supported memory management module. Thus all companies could transit
+> > from current private design to this public one. And, let's cheer for
+> > the end of this damn chaos!
 > 
-> BTW, my GStreamer is using libv4l, although it looked like it's also
-> possible to configure GStreamer to use ioctls directly.  I can agree
-> that it would be nice to implement ENUM_FMT and the like in a
-> compatibility layer in libv4l.  That would be in the true spirit of
-> ENUM_FMT, where the app could actually see different formats it can set.
-> 
-> But is there any work being done on such a compatibility layer?
-> 
-> Is there a policy decision that in the future, apps will be required to
-> use libv4l to get images from the ISP?  Are we not intending to support
-> using e.g. media-ctl + some v4l2 app, as I'm currently doing during
-> development?
+> FWIW, I don't know if a common memory management API is possible.  On
+> the GPU side we tried, but there ended up being too many weird
+> hardware quirks from vendor to vendor (types of memory addressable,
+> strange tiling formats, etc.).  You might be able to come up with some
+> kind of basic framework like TTM, but by the time you add the
+> necessary quirks for various hw, it may be bigger than you want.
+> That's why we have GEM and TTM and driver specific memory management
+> ioctls in the drm.
 
-Apps should be able to use the V4L2 API directly. However, we can't implement 
-all that API, as most calls don't make sense for the OMA3 ISP driver. Which 
-calls need to be implemented is a grey area at the moment, as there's no 
-detailed semantics on how subdev-level configuration and video device 
-configuration should interact.
-
-Your implementation of ENUM_FMT looks correct to me, but the question is 
-whether ENUM_FMT should be implemented. I don't think ENUM_FMT is a required 
-ioctl, so maybe v4l2src shouldn't depend on it. I'm interesting in getting 
-Hans' opinion on this.
-
-> In the meantime, I will continue using this patch locally to enable
-> getting a live image with Gstreamer, and it can at least serve as a help
-> to Loïc if he's trying to do the same.
+I agree that we might not be able to use the same memory buffers for all 
+devices, as they all have more or less complex requirements regarding the 
+memory properties (type, alignment, ...). However, having a common API to pass 
+buffers around between drivers and applications using a common ID would be 
+highly interesting. I'm not sure how complex that would be, I might not have 
+all the nasty small details in mind.
 
 -- 
 Regards,
