@@ -1,72 +1,43 @@
 Return-path: <mchehab@pedra>
-Received: from mail1.matrix-vision.com ([78.47.19.71]:36061 "EHLO
-	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751140Ab1C2IUE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Mar 2011 04:20:04 -0400
-From: Michael Jones <michael.jones@matrix-vision.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: [PATCH v4 3/4] omap3isp: ccdc: support Y10/12, 8-bit bayer fmts
-Date: Tue, 29 Mar 2011 10:19:08 +0200
-Message-Id: <1301386749-17497-4-git-send-email-michael.jones@matrix-vision.de>
-In-Reply-To: <1301386749-17497-1-git-send-email-michael.jones@matrix-vision.de>
-References: <1301386749-17497-1-git-send-email-michael.jones@matrix-vision.de>
+Received: from mx1.redhat.com ([209.132.183.28]:46332 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754035Ab1CPUYk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Mar 2011 16:24:40 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p2GKOeaJ026214
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 16 Mar 2011 16:24:40 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Jarod Wilson <jarod@redhat.com>
+Subject: [PATCH 5/6] lirc_zilog: error out if buffer read bytes != chunk size
+Date: Wed, 16 Mar 2011 16:24:30 -0400
+Message-Id: <1300307071-19665-6-git-send-email-jarod@redhat.com>
+In-Reply-To: <1300307071-19665-1-git-send-email-jarod@redhat.com>
+References: <1300307071-19665-1-git-send-email-jarod@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
 ---
- drivers/media/video/omap3isp/ispccdc.c  |    6 ++++++
- drivers/media/video/omap3isp/ispvideo.c |   12 ++++++++++++
- 2 files changed, 18 insertions(+), 0 deletions(-)
+ drivers/staging/lirc/lirc_zilog.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
-index 5c5219e..651b47b 100644
---- a/drivers/media/video/omap3isp/ispccdc.c
-+++ b/drivers/media/video/omap3isp/ispccdc.c
-@@ -43,6 +43,12 @@ __ccdc_get_format(struct isp_ccdc_device *ccdc, struct v4l2_subdev_fh *fh,
- 
- static const unsigned int ccdc_fmts[] = {
- 	V4L2_MBUS_FMT_Y8_1X8,
-+	V4L2_MBUS_FMT_Y10_1X10,
-+	V4L2_MBUS_FMT_Y12_1X12,
-+	V4L2_MBUS_FMT_SGRBG8_1X8,
-+	V4L2_MBUS_FMT_SRGGB8_1X8,
-+	V4L2_MBUS_FMT_SBGGR8_1X8,
-+	V4L2_MBUS_FMT_SGBRG8_1X8,
- 	V4L2_MBUS_FMT_SGRBG10_1X10,
- 	V4L2_MBUS_FMT_SRGGB10_1X10,
- 	V4L2_MBUS_FMT_SBGGR10_1X10,
-diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
-index 3db7bdd..e2ec9b0 100644
---- a/drivers/media/video/omap3isp/ispvideo.c
-+++ b/drivers/media/video/omap3isp/ispvideo.c
-@@ -48,6 +48,18 @@
- static struct isp_format_info formats[] = {
- 	{ V4L2_MBUS_FMT_Y8_1X8, V4L2_MBUS_FMT_Y8_1X8,
- 	  V4L2_MBUS_FMT_Y8_1X8, V4L2_PIX_FMT_GREY, 8, },
-+	{ V4L2_MBUS_FMT_Y10_1X10, V4L2_MBUS_FMT_Y10_1X10,
-+	  V4L2_MBUS_FMT_Y10_1X10, V4L2_PIX_FMT_Y10, 10, },
-+	{ V4L2_MBUS_FMT_Y12_1X12, V4L2_MBUS_FMT_Y10_1X10,
-+	  V4L2_MBUS_FMT_Y12_1X12, V4L2_PIX_FMT_Y12, 12, },
-+	{ V4L2_MBUS_FMT_SBGGR8_1X8, V4L2_MBUS_FMT_SBGGR8_1X8,
-+	  V4L2_MBUS_FMT_SBGGR8_1X8, V4L2_PIX_FMT_SBGGR8, 8, },
-+	{ V4L2_MBUS_FMT_SGBRG8_1X8, V4L2_MBUS_FMT_SGBRG8_1X8,
-+	  V4L2_MBUS_FMT_SGBRG8_1X8, V4L2_PIX_FMT_SGBRG8, 8, },
-+	{ V4L2_MBUS_FMT_SGRBG8_1X8, V4L2_MBUS_FMT_SGRBG8_1X8,
-+	  V4L2_MBUS_FMT_SGRBG8_1X8, V4L2_PIX_FMT_SGRBG8, 8, },
-+	{ V4L2_MBUS_FMT_SRGGB8_1X8, V4L2_MBUS_FMT_SRGGB8_1X8,
-+	  V4L2_MBUS_FMT_SRGGB8_1X8, V4L2_PIX_FMT_SRGGB8, 8, },
- 	{ V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8, V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8,
- 	  V4L2_MBUS_FMT_SGRBG10_1X10, V4L2_PIX_FMT_SGRBG10DPCM8, 8, },
- 	{ V4L2_MBUS_FMT_SBGGR10_1X10, V4L2_MBUS_FMT_SBGGR10_1X10,
+diff --git a/drivers/staging/lirc/lirc_zilog.c b/drivers/staging/lirc/lirc_zilog.c
+index 407d4b4..5ada643 100644
+--- a/drivers/staging/lirc/lirc_zilog.c
++++ b/drivers/staging/lirc/lirc_zilog.c
+@@ -950,6 +950,10 @@ static ssize_t read(struct file *filep, char *outbuf, size_t n, loff_t *ppos)
+ 				ret = copy_to_user((void *)outbuf+written, buf,
+ 						   rbuf->chunk_size);
+ 				written += rbuf->chunk_size;
++			} else {
++				zilog_error("Buffer read failed!\n");
++				ret = -EIO;
++				break;
+ 			}
+ 		}
+ 	}
 -- 
-1.7.4.2
+1.7.1
 
-
-MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
-Registergericht: Amtsgericht Stuttgart, HRB 271090
-Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
