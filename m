@@ -1,164 +1,101 @@
 Return-path: <mchehab@pedra>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:46320 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751767Ab1CCPxn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2011 10:53:43 -0500
-Received: by gxk8 with SMTP id 8so426844gxk.19
-        for <linux-media@vger.kernel.org>; Thu, 03 Mar 2011 07:53:42 -0800 (PST)
-Subject: Re: [RFC PATCH RESEND v2 3/3] v4l2-ctrls: document the changes about auto focus mode
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:42076 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753110Ab1CPPRl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Mar 2011 11:17:41 -0400
+Received: by gwaa18 with SMTP id a18so693036gwa.19
+        for <linux-media@vger.kernel.org>; Wed, 16 Mar 2011 08:17:40 -0700 (PDT)
+Subject: Re: the focus terms or sequences
 Mime-Version: 1.0 (Apple Message framework v1082)
 Content-Type: text/plain; charset=euc-kr
 From: Kim HeungJun <riverful@gmail.com>
-In-Reply-To: <201103031622.16641.laurent.pinchart@ideasonboard.com>
-Date: Fri, 4 Mar 2011 00:53:35 +0900
+In-Reply-To: <201103161515.39134.laurent.pinchart@ideasonboard.com>
+Date: Thu, 17 Mar 2011 00:17:30 +0900
 Cc: Kim HeungJun <riverful@gmail.com>, riverful.kim@samsung.com,
 	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
 	Hans Verkuil <hverkuil@xs4all.nl>,
 	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"???/Mobile S/W Platform Lab(DMC?)/E4(??)/????"
-	<sw0312.kim@samsung.com>,
 	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
 Content-Transfer-Encoding: 8BIT
-Message-Id: <9C1810F7-5B97-430E-9D26-DE5C9C8D19B2@gmail.com>
-References: <4D6EFA02.4080105@samsung.com> <201103031424.41611.laurent.pinchart@ideasonboard.com> <C4036AEF-AD3A-44E3-A285-CAF7AAA20460@gmail.com> <201103031622.16641.laurent.pinchart@ideasonboard.com>
+Message-Id: <8C6FF5D6-7DC2-44D5-8A5C-E9F5EBB530F7@gmail.com>
+References: <4D7DBD69.2000507@samsung.com> <201103160114.03677.laurent.pinchart@ideasonboard.com> <4D804183.8020505@samsung.com> <201103161515.39134.laurent.pinchart@ideasonboard.com>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
 
-2011. 3. 4., 오전 12:22, Laurent Pinchart 작성:
+2011. 3. 16., 오후 11:15, Laurent Pinchart 작성:
 
 > Hi,
 > 
-> On Thursday 03 March 2011 15:34:36 Kim HeungJun wrote:
->> 2011. 3. 3., 오후 10:24, Laurent Pinchart 작성:
->>> On Thursday 03 March 2011 14:17:10 Kim HeungJun wrote:
->>>> 2011. 3. 3., 오후 7:08, Laurent Pinchart 작성:
->>>>> On Thursday 03 March 2011 03:16:34 Kim, HeungJun wrote:
->>>>>> Document about the type changes and the enumeration of the auto focus
->>>>>> control.
->>>>>> 
->>>>>> Signed-off-by: Heungjun Kim <riverful.kim@samsung.com>
->>>>>> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
->>>>>> ---
->>>>>> Documentation/DocBook/v4l/controls.xml    |   31
->>>>>> +++++++++++++++++++++++++--- Documentation/DocBook/v4l/videodev2.h.xml
->>>>>> | 6 +++++
->>>>>> 2 files changed, 33 insertions(+), 4 deletions(-)
->>>>>> 
->>>>>> diff --git a/Documentation/DocBook/v4l/controls.xml
->>>>>> b/Documentation/DocBook/v4l/controls.xml index 2fae3e8..889fa84 100644
->>>>>> --- a/Documentation/DocBook/v4l/controls.xml
->>>>>> +++ b/Documentation/DocBook/v4l/controls.xml
->>>>>> @@ -1801,12 +1801,35 @@ negative values towards infinity. This is a
->>>>>> write-only control.</entry> </row>
->>>>>> 
->>>>>> 	  <row><entry></entry></row>
->>>>>> 
->>>>>> -	  <row>
->>>>>> +	  <row id="v4l2-focus-auto-type">
->>>>>> 
->>>>>> 	    <entry
->>>>>> 
->>>>>> spanname="id"><constant>V4L2_CID_FOCUS_AUTO</constant>&nbsp;</entry> -
->>>>>> <entry>boolean</entry>
->>>>>> +	    <entry>enum&nbsp;v4l2_focus_auto_type</entry>
->>>>>> 
->>>>>> 	  </row><row><entry spanname="descr">Enables automatic focus
->>>>>> 
->>>>>> -adjustments. The effect of manual focus adjustments while this
->>>>>> feature -is enabled is undefined, drivers should ignore such
->>>>>> requests.</entry> +adjustments of the normal or macro or
->>>>>> continuous(CAF) mode. The effect of +manual focus adjustments while
->>>>>> this feature is enabled is undefined, +drivers should ignore such
->>>>>> requests. Possible values are:</entry> +	  </row>
->>>>>> +	  <row>
->>>>>> +	    <entrytbl spanname="descr" cols="2">
->>>>>> +	      <tbody valign="top">
->>>>>> +		<row>
->>>>>> +		  <entry><constant>V4L2_FOCUS_MANUAL</constant>&nbsp;</entry>
->>>>>> +		  <entry>Manual focus mode.</entry>
->>>>>> +		</row>
->>>>>> +		<row>
->>>>>> +		  <entry><constant>V4L2_FOCUS_AUTO</constant>&nbsp;</entry>
->>>>>> +		  <entry>Auto focus mode with normal operation.</entry>
->>>>>> +		</row>
->>>>>> +		<row>
->>>>>> +		  <entry><constant>V4L2_FOCUS_MACRO</constant>&nbsp;</entry>
->>>>>> +		  <entry>Auto focus mode with macro operation.</entry>
->>>>>> +		</row>
->>>>>> +		<row>
->>>>>> +		  <entry><constant>V4L2_FOCUS_CONTINUOUS</constant>&nbsp;</entry>
->>>>>> +		  <entry>Auto focus mode with continuous(CAF) operation.</entry>
->>>>> 
->>>>> I should have asked this sooner, but what's the difference between
->>>>> normal AF and continuous AF ?
->>>> 
->>>> Let's assume that the whole focus process(of course the sensor-internal
->>>> process automatically) is below : 1) pointing the object focussed
->>>> 
->>>>   : mostly this is possible to be a middle spot, or pre-given orient x
->>>>   : & y set from register.
->>>> 
->>>>   (The mode using given orient x & y, may be defined V4L2_FOCUS_TOUCH
->>>>   or
->>>> 
->>>> whatever, but I know touch auto focus suggestion is determined nothing
->>>> so far, because of that, after this I will suggest to discuss about it
->>>> one more.) 2) starting and completing the move of the motor to control
->>>> lens, using the focusing internal algorithm 3) check whether the lens
->>>> position is proper or not, using the focusing internal algorithm, too.
->>>> (If the position is not proper, the image may looks defocused)
->>>> 
->>>> In the Normal AF mode, the sensor do the whole focusing process once,
->>>> and after completing to move lens, even though the sensor failed
->>>> focusing process. On the other hand, the sensor repeats 1~3 in the
->>>> Continuous AF mode periodically, regardless of success of failure.
->>> 
->>> OK, that was my understanding as well. How will that work with the
->>> proposed focus menu control ? Don't you need a button control for normal
->>> auto-focus ?
->> 
->> You mean that the normal auto-focus control type should be a button, right?
->> For now, in our case the user application assumes that such modes(normal,
->> MACRO, CAF, TOUCH or oriented mode, or something) are already ready in the
->> driver. So, I did't need the normal auto-focus is a button type.
->> 
->> But, IMHO, the focus control of camera is right to follow the next
->> procedure, 1) choosing the modes as I said upper. (because, the camera
->> dose not have one more focus mode.) 2) adjusting the value of the mode set
->> right before.
->> 3) doing the action of the mode.
->> 
->> 1) is the same call the control V4L2_AUTO_FOCUS of menu type.
->> 2), 3) is the same call the control dedicated focus control. Currently, the
->> focus control excepting manual is not needed another control. If touch
->> mode are needed, we can add another enum value, e.g. V4L2_FOCUS_ORIENT.
->> and add another dedicated control, e.g., V4L2_CID_FOCUS_ORIENT_X,
->> V4L2_CID_FOCUS_ORIENT_Y.
->> 
->> I think this as I use digital camera. We normally follow such procedure,
->> using the digital camera.
->> 
->> If I get your words wrongly, give me some clue :)
+> On Wednesday 16 March 2011 05:50:11 Kim, HeungJun wrote:
+>> 2011-03-16 오전 9:14, Laurent Pinchart 쓴 글:
 > 
-> What happens when the user selects the V4L2_FOCUS_AUTO menu entry ? Will the 
-> camera start a one-shot auto-focus algorithm ? In that case, if the user is 
-> not happy with the result and wants to perform a new auto-focus, how will that 
-> be possible ? The V4L2_CID_FOCUS_AUTO control will already be in 
-> V4L2_FOCUS_AUTO mode.
+> [snip]
+> 
+>>> What bothers me with your auto-focus implementation is that the user
+>>> might want to perform auto-focus several times. Let's imagine this use
+>>> case:
+>>> 
+>>> 1. The user points the camera (webcam, cellphone camera, digital camera,
+>>> it doesn't matter) at an object.
+>>> 
+>>> 2. The user presses a button to perform singleshot auto-focus (it can be
+>>> a physical button or a button on the camera screen, once again it
+>>> doesn't matter).
+>>> 
+>>> 3. The application sets the focus control to AUTO.
+>>> 
+>>> 4. The driver and device perform auto-focus once. The lens is moved so
+>>> that the object is in focus.
+>>> 
+>>> 5. The user points the camera at another object.
+>>> 
+>>> 6. The user presses a button to perform singleshot auto-focus.
+>>> 
+>>> 7. The applications sets the focus control to AUTO. As the focus control
+>>> value was already AUTO, nothing is done.
+>>> 
+>>> This is clearly broken. That's why we need a V4L2 button control in
+>>> addition to the menu control.
+>> 
+>> Yes. Youre'rignt. The menu control dosen't called one more with the same
+>> value. It's now worked I know. But, the reason why I choose menu type for
+>> focus, is because the menu type can let the user-application know how many
+>> kinds of focus this sensor have & support, using querymenu. The only way
+>> letting know, is currently the menu type.
+>> 
+>> On the other hand, not-working twice or more executions is handled by
+>> user-application. The user-application want twice auto focus, it calls
+>> AUTO-Manual-(or any other control value)-and AUTO once again. It's wierd,
+>> but It can satisfy application and drivers.
+>> 
+>> And, but it might be irrelevant, the user-application(or upper layer
+>> platform) can determine how to draw & arrange the UI objects after it
+>> knows the kinds of focus method at last.
+>> 
+>> It may be a time to need another type of control. And such control should
+>> satisfy these: 1. letting the user-application know how many kinds in the
+>> controls(like a querymenu) 2. being available to be called one more.
+>> 
+>> How about your opinion?
+> 
+> I think we need a menu control (to select the focus type) and a button control 
+> (to run singleshot auto-focus). When the menu control is in auto-focus mode, 
+> setting the button control will run the auto-focus algorithm once.
+Ah. it's very reasonable. When the focus mode keeps the menu type, and doing
+focus is button type, even if another new mode is needed to insert, we can add
+easily. I agree with this. 
 
-You're right. I confused the orders and contents. So, I'm going to explain my thought again.
+But, the drivers using focus like uvc, should be changed. And we should probably
+consider the cluster between focus mode and execution. is it right? 
+ 
+> 
+> Is the macro focus mode a singleshot focus or a continuous auto-focus ?
+Of course. yes.
 
-The 1), 2), 3) is just the action unit for focus. Just ignore the order in the case of human thought. 
-On the other hand, 2) should be done in the driver first. And 1), 3) are happened at the same time in the driver.
+I'll make another patch about this, and could you look around this?  
 
-I intend to say, the each focus action unit is the same with human thought and driver,
-even though the procedure order is different between the human and driver.
-
-Sorry to confuse you.
-
-
-Regards,
+Thanks,
 Heungjun Kim
-
