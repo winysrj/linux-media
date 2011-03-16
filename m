@@ -1,128 +1,45 @@
 Return-path: <mchehab@pedra>
-Received: from mailout4.samsung.com ([203.254.224.34]:54986 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752221Ab1CVIu5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Mar 2011 04:50:57 -0400
-Received: from epmmp2 (mailout4.samsung.com [203.254.224.34])
- by mailout4.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LIG00EUEB8VXB10@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Tue, 22 Mar 2011 17:50:55 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LIG00KHAB8WT0@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 22 Mar 2011 17:50:56 +0900 (KST)
-Date: Tue, 22 Mar 2011 17:50:45 +0900
-From: "Kim, Heungjun" <riverful.kim@samsung.com>
-Subject: [RFC PATCH v3 1/2] v4l2-ctrls: support various modes and 4 coordinates
- of rectangle auto focus
+Received: from mx1.redhat.com ([209.132.183.28]:44063 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753868Ab1CPUYe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Mar 2011 16:24:34 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p2GKOXNu026188
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 16 Mar 2011 16:24:33 -0400
+From: Jarod Wilson <jarod@redhat.com>
 To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, kyungmin.park@samsung.com,
-	"Kim, Heungjun" <riverful.kim@samsung.com>
-Message-id: <1300783846-15083-1-git-send-email-riverful.kim@samsung.com>
-Content-transfer-encoding: 7BIT
+Cc: Jarod Wilson <jarod@redhat.com>
+Subject: [PATCH 0/6] media: trivial IR fixes
+Date: Wed, 16 Mar 2011 16:24:25 -0400
+Message-Id: <1300307071-19665-1-git-send-email-jarod@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-It supports various modes of auto focus. Each modes define as the enumerations
-of menu type.
+This is a stack of relatively small miscellaneous IR fixes for 2.6.39.
+The ir-kbd-i2c one is actually relatively important, following the
+pending changes to the hauppauge keymaps though, and the zilog error's
+usefulness becomes apparent the second you try running lirc_zilog on
+a pre-2.6.33 kernel which has an older kfifo implementation (there
+will be a media_build patch to cope, when I get around to it).
 
-	V4L2_FOCUS_AUTO_NORMAL,
-	V4L2_FOCUS_AUTO_MACRO,
-	V4L2_FOCUS_AUTO_CONTINUOUS,
-	V4L2_FOCUS_AUTO_FACE_DETECTION,
-	V4L2_FOCUS_AUTO_RECTANGLE
+Jarod Wilson (6):
+  docs: fix typo in lirc_device_interface.xml
+  imon: add more panel scancode mappings
+  ir-kbd-i2c: pass device code w/key in hauppauge case
+  lirc: silence some compile warnings
+  lirc_zilog: error out if buffer read bytes != chunk size
+  mceusb: topseed 0x0011 needs gen3 init for tx to work
 
-In the cause of rectangle it needs the 4 kinds of coordinate control ID of
-integer type for expression about focus-spot, and each control ID means
-similar to the struct v4l2_rect.
+ Documentation/DocBook/v4l/lirc_device_interface.xml |    2 +-
+ drivers/media/rc/imon.c                             |   11 ++++++++++-
+ drivers/media/rc/mceusb.c                           |    2 +-
+ drivers/media/video/ir-kbd-i2c.c                    |    2 +-
+ drivers/staging/lirc/lirc_imon.c                    |    2 +-
+ drivers/staging/lirc/lirc_sasem.c                   |    2 +-
+ drivers/staging/lirc/lirc_zilog.c                   |    4 ++++
+ 7 files changed, 19 insertions(+), 6 deletions(-)
 
-	V4L2_CID_FOCUS_AUTO_RECTANGLE_LEFT
-	V4L2_CID_FOCUS_AUTO_RECTANGLE_TOP
-	V4L2_CID_FOCUS_AUTO_RECTANGLE_WIDTH
-	V4L2_CID_FOCUS_AUTO_RECTANGLE_HEIGHT
-
-Signed-off-by: Kim, Heungjun <riverful.kim@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/v4l2-ctrls.c |   16 ++++++++++++++++
- include/linux/videodev2.h        |   13 +++++++++++++
- 2 files changed, 29 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 2412f08..365540f 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -197,6 +197,14 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		"Aperture Priority Mode",
- 		NULL
- 	};
-+	static const char * const camera_focus_auto_mode[] = {
-+		"Normal Mode",
-+		"Macro Mode",
-+		"Continuous Mode",
-+		"Face Detection Mode",
-+		"Rectangle Mode",
-+		NULL
-+	};
- 	static const char * const colorfx[] = {
- 		"None",
- 		"Black & White",
-@@ -252,6 +260,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		return camera_power_line_frequency;
- 	case V4L2_CID_EXPOSURE_AUTO:
- 		return camera_exposure_auto;
-+	case V4L2_CID_FOCUS_AUTO_MODE:
-+		return camera_focus_auto_mode;
- 	case V4L2_CID_COLORFX:
- 		return colorfx;
- 	case V4L2_CID_TUNE_PREEMPHASIS:
-@@ -365,6 +375,11 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_PRIVACY:			return "Privacy";
- 	case V4L2_CID_IRIS_ABSOLUTE:		return "Iris, Absolute";
- 	case V4L2_CID_IRIS_RELATIVE:		return "Iris, Relative";
-+	case V4L2_CID_FOCUS_AUTO_MODE:		return "Focus, Mode";
-+	case V4L2_CID_FOCUS_AUTO_RECTANGLE_LEFT: return "Focus, Rectangle Left";
-+	case V4L2_CID_FOCUS_AUTO_RECTANGLE_TOP: return "Focus, Rectangle Top";
-+	case V4L2_CID_FOCUS_AUTO_RECTANGLE_WIDTH: return "Focus, Rectangle Width";
-+	case V4L2_CID_FOCUS_AUTO_RECTANGLE_HEIGHT: return "Focus, Rectangle Height";
- 
- 	/* FM Radio Modulator control */
- 	/* Keep the order of the 'case's the same as in videodev2.h! */
-@@ -450,6 +465,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_MPEG_STREAM_TYPE:
- 	case V4L2_CID_MPEG_STREAM_VBI_FMT:
- 	case V4L2_CID_EXPOSURE_AUTO:
-+	case V4L2_CID_FOCUS_AUTO_MODE:
- 	case V4L2_CID_COLORFX:
- 	case V4L2_CID_TUNE_PREEMPHASIS:
- 		*type = V4L2_CTRL_TYPE_MENU;
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index aa6c393..99cd1b7 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1389,6 +1389,19 @@ enum  v4l2_exposure_auto_type {
- #define V4L2_CID_IRIS_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+17)
- #define V4L2_CID_IRIS_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+18)
- 
-+#define V4L2_CID_FOCUS_AUTO_MODE		(V4L2_CID_CAMERA_CLASS_BASE+19)
-+enum  v4l2_focus_mode_type {
-+	V4L2_FOCUS_AUTO_NORMAL = 0,
-+	V4L2_FOCUS_AUTO_MACRO = 1,
-+	V4L2_FOCUS_AUTO_CONTINUOUS = 2,
-+	V4L2_FOCUS_AUTO_FACE_DETECTION = 3,
-+	V4L2_FOCUS_AUTO_RECTANGLE = 4
-+};
-+#define V4L2_CID_FOCUS_AUTO_RECTANGLE_LEFT	(V4L2_CID_CAMERA_CLASS_BASE+20)
-+#define V4L2_CID_FOCUS_AUTO_RECTANGLE_TOP	(V4L2_CID_CAMERA_CLASS_BASE+21)
-+#define V4L2_CID_FOCUS_AUTO_RECTANGLE_WIDTH	(V4L2_CID_CAMERA_CLASS_BASE+22)
-+#define V4L2_CID_FOCUS_AUTO_RECTANGLE_HEIGHT	(V4L2_CID_CAMERA_CLASS_BASE+23)
-+
- /* FM Modulator class control IDs */
- #define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
- #define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
--- 
-1.7.0.4
+ drivers/media/rc/mceusb.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
