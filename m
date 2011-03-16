@@ -1,412 +1,88 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.samsung.com ([203.254.224.33]:55729 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751404Ab1CHHi0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Mar 2011 02:38:26 -0500
-Date: Tue, 08 Mar 2011 15:32:39 +0900
-From: Kukjin Kim <kgene.kim@samsung.com>
-Subject: RE: [PATCH/RFC 0/5] [media] s5p-tvout: Add S5P TVOUT driver
-In-reply-to: <201103051244.40228.hverkuil@xs4all.nl>
-To: 'Hans Verkuil' <hverkuil@xs4all.nl>,
-	'Abhilash Kesavan' <a.kesavan@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	'Mauro Carvalho Chehab' <mchehab@infradead.org>,
-	'Ilho Lee' <ilho215.lee@samsung.com>
-Message-id: <03a301cbdd5a$a1e90830$e5bb1890$%kim@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: ko
-Content-transfer-encoding: 7BIT
-References: <1298620413-24182-1-git-send-email-a.kesavan@samsung.com>
- <201103051244.40228.hverkuil@xs4all.nl>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51967 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751137Ab1CPOPj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Mar 2011 10:15:39 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: riverful.kim@samsung.com
+Subject: Re: the focus terms or sequences
+Date: Wed, 16 Mar 2011 15:15:38 +0100
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
+References: <4D7DBD69.2000507@samsung.com> <201103160114.03677.laurent.pinchart@ideasonboard.com> <4D804183.8020505@samsung.com>
+In-Reply-To: <4D804183.8020505@samsung.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201103161515.39134.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hans Verkuil wrote:
+Hi,
+
+On Wednesday 16 March 2011 05:50:11 Kim, HeungJun wrote:
+> 2011-03-16 오전 9:14, Laurent Pinchart 쓴 글:
+
+[snip]
+
+> > What bothers me with your auto-focus implementation is that the user
+> > might want to perform auto-focus several times. Let's imagine this use
+> > case:
+> > 
+> > 1. The user points the camera (webcam, cellphone camera, digital camera,
+> > it doesn't matter) at an object.
+> > 
+> > 2. The user presses a button to perform singleshot auto-focus (it can be
+> > a physical button or a button on the camera screen, once again it
+> > doesn't matter).
+> > 
+> > 3. The application sets the focus control to AUTO.
+> > 
+> > 4. The driver and device perform auto-focus once. The lens is moved so
+> > that the object is in focus.
+> > 
+> > 5. The user points the camera at another object.
+> > 
+> > 6. The user presses a button to perform singleshot auto-focus.
+> > 
+> > 7. The applications sets the focus control to AUTO. As the focus control
+> > value was already AUTO, nothing is done.
+> > 
+> > This is clearly broken. That's why we need a V4L2 button control in
+> > addition to the menu control.
 > 
-> Hi!
+> Yes. Youre'rignt. The menu control dosen't called one more with the same
+> value. It's now worked I know. But, the reason why I choose menu type for
+> focus, is because the menu type can let the user-application know how many
+> kinds of focus this sensor have & support, using querymenu. The only way
+> letting know, is currently the menu type.
 > 
-Hi :)
-
-> Sorry for not replying earlier. To be honest, there is not much I can say
-yet.
+> On the other hand, not-working twice or more executions is handled by
+> user-application. The user-application want twice auto focus, it calls
+> AUTO-Manual-(or any other control value)-and AUTO once again. It's wierd,
+> but It can satisfy application and drivers.
 > 
-> The main new part in this driver is the HDMI/CEC support. And that is one
-of
-> the topics of the upcoming Warsaw brainstorm meeting (several of your
-Samsung
-> colleagues will be attending).
+> And, but it might be irrelevant, the user-application(or upper layer
+> platform) can determine how to draw & arrange the UI objects after it
+> knows the kinds of focus method at last.
 > 
-> An RFC for CEC support has been posted last week and hopefully we (Cisco
-> Systems
-> Norway) can get a HDMI RFC posted as well in time for the meeting.
+> It may be a time to need another type of control. And such control should
+> satisfy these: 1. letting the user-application know how many kinds in the
+> controls(like a querymenu) 2. being available to be called one more.
 > 
-> The main difference of our approach to HDMI is that we integrate it in
-V4L2
-> rather than creating new device nodes. Once the media controller is in we
-> also
-> have per-subdevice nodes in /dev which we want to utilize for the HDMI and
-> CEC
-> APIs.
-> 
-> Functionality-wise the CEC RFC is effectively identical to your
-> implementation.
-> 
+> How about your opinion?
 
-Thanks for your comment. I'll have a look at the proposed CEC-API additions.
+I think we need a menu control (to select the focus type) and a button control 
+(to run singleshot auto-focus). When the menu control is in auto-focus mode, 
+setting the button control will run the auto-focus algorithm once.
 
-Can you please give your comments on the fact that this driver uses the
-framebuffer layer for the Mixer's graphic layer. This has been done keeping
-in mind certain customer requirements like X Driver and dual display.
+Is the macro focus mode a singleshot focus or a continuous auto-focus ?
 
-Yeah, I'm interested in knowing if this approach is valid/requires
-modification or if there are any alternate approaches.
+-- 
+Regards,
 
-Thanks.
-
-Best regards,
-Kgene.
---
-Kukjin Kim <kgene.kim@samsung.com>, Senior Engineer,
-SW Solution Development Team, Samsung Electronics Co., Ltd.
-
-
-> On Friday, February 25, 2011 08:53:28 Abhilash Kesavan wrote:
-> > This patch-set adds support for TV-OUT interface in the EXYNOS4 series
-of
-> SoCs.
-> > TVOUT includes the HDMI interface, analog TV interface, mixer and video
-> > processor. This is a full-featured driver providing the following:
-> >
-> > 1) HDMI Support
-> > 2) Analog Support
-> > 3) Mixer Support
-> > 4) Video Processor Support
-> > 5) Hotplug Detect Support
-> > 6) HDCP Support
-> > 7) CEC Support
-> > 8) I2S/SPDIF Support
-> >
-> > The driver is under development and needs major modifications, as
-mentioned
-> > later in the TODO section, to conform to open source standards. Please
-have
-> > a look at the driver design and offer any suggestions/comments.
-> >
-> >
-> > I) HARDWARE
-> >
-> > Video processor is responsible for video scaling, de-interlacing, and
-video
-> post
-> > processing of TVOUT data path. It reads reconstructed YCbCr video
-sequences
-> from
-> > DRAM, processes the sequence, and sends it to mixer on-the-fly. Input to
-VP
-> is
-> > NV12 and NV21 (Linear and tiled) format while the output to the mixer is
-> YUV444.
-> >
-> > Mixer overlaps or blends input data such as graphic, video, background
-and
-> sends
-> > the resulting data to the HDMI or analog TV interface. Along with the
-> YUV444 in-
-> > put from VP interface, the mixer can receive two RGB inputs. It allows
-for
-> layer
-> > blending, alpha blending, chroma key, scaling etc.
-> >
-> > HDMI interface supports 1.3 Tx subsystem V1.0 comprising an HDMI Tx core
-> with
-> > I2S input interface, CEC block, and HDCP key block. It receives YUV444
-or
-> RGB888
-> > data from the mixer and converts it into HDMI packets. Supports a
-variety
-> of
-> > video formats varying from 480p to 1080p.
-> >
-> > Analog TV interface supports ITU-R BT 470 and EIA-770 compliant analog
-TV
-> > signals with 1 channel 10bit DAC. Supports PAL-m@60Hz, PAL-60@60Hz,
-> NTSC@60Hz,
-> > NTSC-443@60Hz, PAL@50Hz, PAL-n@50Hz and (M)NTSC@60Hz formats for
-composite
-> > output.
-> >
-> >
-> > II) S/W DESIGN
-> >
-> >
->
-============================================================================
-=
-> ==
-> >
--------------------------------------------------------------------
-> ----
-> >                                         VFS
-> >
--------------------------------------------------------------------
-> ----
-> > KERNEL       |                               |
-> >              V                               V
-> >         ----------                       --------
---------------
-> ----
-> >         V4L2 STACK                       FB STACK            Linux
-Driver
-> Model
-> >         ----------                       --------
---------------
-> ----
-> >              |                               |                        |
-> >
->
-=============+===============================+========================+=====
-=
-> ==
-> >              |                               |                        |
-> >              |                               |          +-------------|
-> >              |                               |          |             |
-> >              V                               V          V             |
-> >
-+---------------------------------------------------------------+----
-> ---+
-> >       |                                                               |
-> |
-> >       |                                                               |
-> |
-> >       | ------------    -------------   -----------                   |
-> |
-> >       |  Video Ctrl  -- Graphics Ctrl -- TVOUT I/F                    |
-> |
-> >       | ------------    -------------   -----------                   V
-> |
-> >       |      |               |             |    |__________
----------
-> -- |
-> >       |      |               |             |               |       HPD
-> Driver |
-> >       |      V               V             V               V
-(GPIO)
-> |
-> >       | -----------     -----------   -----------   -----------
----------
-> -- |
-> >       |     VP I/F       Mixer I/F     Analog I/F    HDMI I/F
-> |
-> >       | -----------     -----------   -----------   -----------
-> |
-> >       |      |               |               |         |   |
-> |
-> > DEVICE|      |               |               |         |
-|_______________
-> |
-> > DRIVER|      |               |               |         |           |
-> |  |
-> >       |      |               |               |         |           V
-> V  |
-> >       |      |               |               |         |         -----
----
-> ---|
-> >       |      |               |               |         |          CEC
-> HDCP |
-> >       |      |               |               |         |         -----
----
-> ---|
-> >       |      |               |               |
-> |___________|_______|  |
-> >       |      |               |               |
-> |
-> >
-+------+---------------+---------------+-----------------------------
-> ---+
-> >              |               |               |         |
-> >              |               |               |         |
-> >
->
-=============+===============+===============+==============================
-=
-> ==
-> >              |               |               |         |
-> >              V               V               V         |
-> >         -----------     -----------     -----------    |
---------
-> >             VP     ---->   Mixer   ----> TV Encoder ---+-------->   DAC
-> >         -----------     -----------  |  -----------    |
---------
-> >                                      |                 |
-> > HARDWARE                             |                 V
-> >                                      |           ----------
---------
-> >                                      +----------> HDMI Link  --> HDMI
-PHY
-> >                                                  ----------
---------
-> >
->
-============================================================================
-=
-> ==
-> > Description:
-> > 1) S5P TVOUT driver is devided into control layer and interface layer.
-> interface
-> > layer accesses hardware register in TVOUT subsystem like video
-processor,
-> mixer,
-> > hdmi and sdo. and control layer controls each hardware IPs and
-communicates
-> with
-> > other control modules.
-> > 2) S5P TVOUT driver is composed of 3 kinds of drivers logically.
-> > 	- Video driver controls video processor and follows V4L2 interface
-> > 	- Graphic driver controls mixer and follows framebuffer interface
-> > 	- TV interface driver selects hdmi or analog TV interface and
-follows
-> V4L2
-> > 	  interface
-> > 3) HPD(Hot-Plug Detection) driver is used for HDMI interface. It
-generates
-> event
-> > when plugging or unplugging HDMI cable.
-> >
-> > 4) CEC(Consumer Electronic Control) driver is also used for HDMI
-interface.
-> > It can send signals like turning on/off from source to sink device.
-> >
-> > III) CODE STRUCTURE
-> >
-> >  +---------------------+	+--------------------------+
-> >  |API 		       |	|Platform Drivers	   |
-> >  |    s5p_tvout_v4l2.c |	|          s5p_tvout.c	   |
-> >  |    s5p_tvout_fb.c   |	|          s5p_tvout_hpd.c |
-> >  +---------------------+ 	|          s5p_tvout_cec.c |
-> > 				+--------------------------+
-> >
-> >  +-----------------------+	+----------------------------+
-> >  |CONTROL CLASS	 	 |	|COMMON			     |
-> >  |	s5p_vp_ctrl.c    |	|     s5p_tvout_common_lib.c |
-> >  |	s5p_mixer_ctrl.c |	+----------------------------+
-> >  |	s5p_tvif_ctrl.c  |
-> >  +-----------------------+
-> >
-> >  +-----------------------------------------------------------+
-> >  |HARDWARE INTERFACE					     |
-> >  |	vp.c   mixer.c   cec.c   hdcp.c   hdmi.c   sdo.c     |
-> >  +-----------------------------------------------------------+
-> >
-> >
-> > Notes:
-> > 1) A hw_if interface sub-directory has been created to collect all the
-> > APIs for accessing each of the IPs like VP, Mixer and HDMI. The sdo.c
-> > file contains functions for TV Encoder + DAC.
-> > 2) The common library provides common memory allocator and run-time PM
-> > APIs.
-> > 3) V4L2 callbacks for the s5p_tvout driver and fb registration & initi-
-> > alization has been implemented in the two API files.
-> > 4) TV-OUT interface component has 3 classes. (tvif, hdmi, sdo)
-> > 	- tvif ctrl class: controls hdmi and sdo ctrl class.
-> > 	- hdmi ctrl class: contrls hdmi hardware by using hw_if/hdmi.c
-> > 	- sdo  ctrl class: contrls sdo hardware by using hw_if/sdo.c
-> >
-> >                        +-----------------+
-> >                        | tvif ctrl class |
-> >                        +-----------------+
-> >                               |   |
-> >                    +----------+   +----------+             ctrl class
-layer
-> >                    |                         |
-> >                    V                         V
-> >           +-----------------+       +-----------------+
-> >           | sdo ctrl class  |       | hdmi ctrl class |
-> >           +-----------------+       +-----------------+
-> >                    |                         |
-> >
----------------+-------------------------+-----------------------------
-> -
-> >                    V                         V
-> >           +-----------------+       +-----------------+
-> >           |   hw_if/sdo.c   |       |   hw_if/hdmi.c  |         hw_if
-layer
-> >           +-----------------+       +-----------------+
-> >                    |                         |
-> >
----------------+-------------------------+-----------------------------
-> -
-> >                    V                         V
-> >           +-----------------+       +-----------------+
-> >           |   sdo hardware  |       |   hdmi hardware |
-Hardware
-> >           +-----------------+       +-----------------+
-> >
-> >
-> > IV) APPLICATION FLOW
-> >
-> > a) open "/dev/video14" node.
-> > b) query device capabilities VIDIOC_QUERYCAP
-> > c) set output device standard VIDIOC_S_STD
-> > d) set output device VIDIOC_S_OUTPUT
-> > e) Use CEC (if output is HDMI)
-> > f) Enable/Disable HDCP
-> > g) open "/dev/fb10" node.
-> > h) configure attributes of graphics layer using fb such as pixel format,
-> > window position, window size etc. FBIOPUT_VSCREENINFO
-> > i) turn on the window FBIOBLANK_UNBLANK
-> > j) open "/dev/video21" (overlay) node.
-> > k) set source video plane parameters VIDIOC_S_FMT.
-> > l) set source video data information VIDIOC_S_CROP
-> > m) set destination (video plane of mixer) information VIDIOC_S_FBUF
-> > n) set destination video overlay format VIDIO_S_FMT
-> > o) start overlay VIDIOC_OVERLAY
-> >
-> >
-> > V) MISCELLANEOUS
-> >
-> > a) The driver has undergone HDMI compliance tests and has been verfied
-to
-> be
-> > HDMI 1.3 compliant.
-> > b) The driver uses the framebuffer interface on mixer's graphic layer to
-> > support many customer requirements like a Xdriver.
-> > c) All of the following video formats are supported by the HDMI driver:
-> 480p@
-> > 59.94Hz/60Hz, 576p@50Hz, 720p@50Hz/59.94Hz/60Hz,
-1080i@50Hz/59.94Hz/60Hz,
-> > 1080p@30Hz, 1080p@60Hz.
-> > d) Support 1 video layer and 2 graphics layers, and blending of all 3
-> layers.
-> >
-> >
-> > VI) TODO
-> >
-> > a) Use the newer videobuf2 framework for buffer management.
-> > b) Modify the tvout_fb code to be more in line with the framebuffer
-stack.
-> >
-> > * NOTE: The arch/mach specific header files Will be added later.
-> >
-> > [PATCH 1/5] [media] s5p-tvout: Add TVOUT core driver for S5P SoCs
-> > [PATCH 2/5] [media] s5p-tvout: Add Graphic layer control for S5P TVOUT
-> driver
-> > [PATCH 3/5] [media] s5p-tvout: Add TVOUT interface control for S5P TVOUT
-> driver
-> > [PATCH 4/5] [media] s5p-tvout: Add CEC driver for S5P TVOUT
-> > [PATCH 5/5] [media] s5p-tvout: Add HPD driver for S5P TVOUT
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media"
-in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-> >
-> 
-> --
-> Hans Verkuil - video4linux developer - sponsored by Cisco
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Laurent Pinchart
