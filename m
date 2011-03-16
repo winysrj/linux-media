@@ -1,82 +1,42 @@
 Return-path: <mchehab@pedra>
-Received: from bear.ext.ti.com ([192.94.94.41]:58577 "EHLO bear.ext.ti.com"
+Received: from mx1.redhat.com ([209.132.183.28]:50196 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753118Ab1CWKRZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Mar 2011 06:17:25 -0400
-From: manjunatha_halli@ti.com
-To: mchehab@infradead.org, hverkuil@xs4all.nl
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Manjunatha Halli <manjunatha_halli@ti.com>
-Subject: [PATCH] [media] radio: wl128x: Update registration process with ST.
-Date: Wed, 23 Mar 2011 06:44:30 -0400
-Message-Id: <1300877070-22476-1-git-send-email-manjunatha_halli@ti.com>
+	id S1753868Ab1CPUYg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Mar 2011 16:24:36 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p2GKOZTL021241
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 16 Mar 2011 16:24:35 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Jarod Wilson <jarod@redhat.com>
+Subject: [PATCH 1/6] docs: fix typo in lirc_device_interface.xml
+Date: Wed, 16 Mar 2011 16:24:26 -0400
+Message-Id: <1300307071-19665-2-git-send-email-jarod@redhat.com>
+In-Reply-To: <1300307071-19665-1-git-send-email-jarod@redhat.com>
+References: <1300307071-19665-1-git-send-email-jarod@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Manjunatha Halli <manjunatha_halli@ti.com>
-
-As underlying ST driver registration API's have changed with
-latest 2.6.38-rc8 kernel this patch will update the FM driver
-accordingly.
-
-Signed-off-by: Manjunatha Halli <manjunatha_halli@ti.com>
+Reported-by: Daniel Burr <dburr@topcon.com>
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
 ---
- drivers/media/radio/wl128x/fmdrv_common.c |   16 +++++++++++++---
- 1 files changed, 13 insertions(+), 3 deletions(-)
+ .../DocBook/v4l/lirc_device_interface.xml          |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/media/radio/wl128x/fmdrv_common.c b/drivers/media/radio/wl128x/fmdrv_common.c
-index 96a95c5..b09b283 100644
---- a/drivers/media/radio/wl128x/fmdrv_common.c
-+++ b/drivers/media/radio/wl128x/fmdrv_common.c
-@@ -1494,12 +1494,17 @@ u32 fmc_prepare(struct fmdev *fmdev)
- 	}
+diff --git a/Documentation/DocBook/v4l/lirc_device_interface.xml b/Documentation/DocBook/v4l/lirc_device_interface.xml
+index 68134c0..0e0453f 100644
+--- a/Documentation/DocBook/v4l/lirc_device_interface.xml
++++ b/Documentation/DocBook/v4l/lirc_device_interface.xml
+@@ -45,7 +45,7 @@ describing an IR signal are read from the chardev.</para>
+ <para>The data written to the chardev is a pulse/space sequence of integer
+ values. Pulses and spaces are only marked implicitly by their position. The
+ data must start and end with a pulse, therefore, the data must always include
+-an unevent number of samples. The write function must block until the data has
++an uneven number of samples. The write function must block until the data has
+ been transmitted by the hardware.</para>
+ </section>
  
- 	memset(&fm_st_proto, 0, sizeof(fm_st_proto));
--	fm_st_proto.type = ST_FM;
- 	fm_st_proto.recv = fm_st_receive;
- 	fm_st_proto.match_packet = NULL;
- 	fm_st_proto.reg_complete_cb = fm_st_reg_comp_cb;
- 	fm_st_proto.write = NULL; /* TI ST driver will fill write pointer */
- 	fm_st_proto.priv_data = fmdev;
-+	fm_st_proto.chnl_id = 0x08;
-+	fm_st_proto.max_frame_size = 0xff;
-+	fm_st_proto.hdr_len = 1;
-+	fm_st_proto.offset_len_in_hdr = 0;
-+	fm_st_proto.len_size = 1;
-+	fm_st_proto.reserve = 1;
- 
- 	ret = st_register(&fm_st_proto);
- 	if (ret == -EINPROGRESS) {
-@@ -1532,7 +1537,7 @@ u32 fmc_prepare(struct fmdev *fmdev)
- 		g_st_write = fm_st_proto.write;
- 	} else {
- 		fmerr("Failed to get ST write func pointer\n");
--		ret = st_unregister(ST_FM);
-+		ret = st_unregister(&fm_st_proto);
- 		if (ret < 0)
- 			fmerr("st_unregister failed %d\n", ret);
- 		return -EAGAIN;
-@@ -1586,6 +1591,7 @@ u32 fmc_prepare(struct fmdev *fmdev)
-  */
- u32 fmc_release(struct fmdev *fmdev)
- {
-+	static struct st_proto_s fm_st_proto;
- 	u32 ret;
- 
- 	if (!test_bit(FM_CORE_READY, &fmdev->flag)) {
-@@ -1604,7 +1610,11 @@ u32 fmc_release(struct fmdev *fmdev)
- 	fmdev->resp_comp = NULL;
- 	fmdev->rx.freq = 0;
- 
--	ret = st_unregister(ST_FM);
-+	memset(&fm_st_proto, 0, sizeof(fm_st_proto));
-+	fm_st_proto.chnl_id = 0x08;
-+
-+	ret = st_unregister(&fm_st_proto);
-+
- 	if (ret < 0)
- 		fmerr("Failed to de-register FM from ST %d\n", ret);
- 	else
 -- 
-1.7.0.4
+1.7.1
 
