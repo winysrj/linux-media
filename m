@@ -1,109 +1,45 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:63854 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751877Ab1CEBvK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2011 20:51:10 -0500
-Received: by wyg36 with SMTP id 36so2687222wyg.19
-        for <linux-media@vger.kernel.org>; Fri, 04 Mar 2011 17:51:09 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <AANLkTik9cSnAFWNdTUv3NNU3K2SoeECDO2036Htx-OAi@mail.gmail.com>
-References: <AANLkTi=rcfL_pku9hhx68C_Fb_76KsW2Yy+Oys10a7+4@mail.gmail.com>
-	<4D7163FD.9030604@iki.fi>
-	<AANLkTimjC99zhJ=huHZiGgbENCoyHy5KT87iujjTT8w3@mail.gmail.com>
-	<4D716ECA.4060900@iki.fi>
-	<AANLkTimHa6XFwhvpLbhtRm7Vee-jYPkHpx+D8L2=+vQb@mail.gmail.com>
-	<AANLkTik9cSnAFWNdTUv3NNU3K2SoeECDO2036Htx-OAi@mail.gmail.com>
-Date: Sat, 5 Mar 2011 01:51:08 +0000
-Message-ID: <AANLkTi=e-cAzMWZSHvKR8Yx+0MqcY_Ewf4z1gDyZfCeo@mail.gmail.com>
-Subject: Re: [patch] Fix AF9015 Dual tuner i2c write failures
-From: adq <adq@lidskialf.net>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:41439 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753012Ab1CPPvs convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Mar 2011 11:51:48 -0400
+Received: by iyb26 with SMTP id 26so1800700iyb.19
+        for <linux-media@vger.kernel.org>; Wed, 16 Mar 2011 08:51:48 -0700 (PDT)
+Subject: Re: the focus terms or sequences
+Mime-Version: 1.0 (Apple Message framework v1082)
+Content-Type: text/plain; charset=euc-kr
+From: Kim HeungJun <riverful@gmail.com>
+In-Reply-To: <201103161627.59693.laurent.pinchart@ideasonboard.com>
+Date: Thu, 17 Mar 2011 00:51:40 +0900
+Cc: Kim HeungJun <riverful@gmail.com>, riverful.kim@samsung.com,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
 Content-Transfer-Encoding: 8BIT
+Message-Id: <06BD2A92-8EEC-48E3-BCED-F0A11D9C3D71@gmail.com>
+References: <4D7DBD69.2000507@samsung.com> <201103161515.39134.laurent.pinchart@ideasonboard.com> <8C6FF5D6-7DC2-44D5-8A5C-E9F5EBB530F7@gmail.com> <201103161627.59693.laurent.pinchart@ideasonboard.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 5 March 2011 01:43, adq <adq@lidskialf.net> wrote:
-> On 4 March 2011 23:11, Andrew de Quincey <adq_dvb@lidskialf.net> wrote:
->> On 4 March 2011 22:59, Antti Palosaari <crope@iki.fi> wrote:
->>> On 03/05/2011 12:44 AM, Andrew de Quincey wrote:
->>>>>>
->>>>>> Adding a "bus lock" to af9015_i2c_xfer() will not work as demod/tuner
->>>>>> accesses will take multiple i2c transactions.
->>>>>>
->>>>>> Therefore, the following patch overrides the dvb_frontend_ops
->>>>>> functions to add a per-device lock around them: only one frontend can
->>>>>> now use the i2c bus at a time. Testing with the scripts above shows
->>>>>> this has eliminated the errors.
->>>>>
->>>>> This have annoyed me too, but since it does not broken functionality much
->>>>> I
->>>>> haven't put much effort for fixing it. I like that fix since it is in
->>>>> AF9015
->>>>> driver where it logically belongs to. But it looks still rather complex.
->>>>> I
->>>>> see you have also considered "bus lock" to af9015_i2c_xfer() which could
->>>>> be
->>>>> much smaller in code size (that's I have tried to implement long time
->>>>> back).
->>>>>
->>>>> I would like to ask if it possible to check I2C gate open / close inside
->>>>> af9015_i2c_xfer() and lock according that? Something like:
->>>>
->>>> Hmm, I did think about that, but I felt overriding the functions was
->>>> just cleaner: I felt it was more obvious what it was doing. Doing
->>>> exactly this sort of tweaking was one of the main reasons we added
->>>> that function overriding feature.
->>>>
->>>> I don't like the idea of returning "error locked by FE" since that'll
->>>> mean the tuning will randomly fail sometimes in a way visible to
->>>> userspace (unless we change the core dvb_frontend code), which was one
->>>> of the things I was trying to avoid. Unless, of course, I've
->>>> misunderstood your proposal.
->>>
->>> Not returning error, but waiting in lock like that:
->>> if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
->>> 쟲eturn -EAGAIN;
->>
->> Ah k, sorry
->>
->>>> However, looking at the code again, I realise it is possible to
->>>> simplify it. Since its only the demod gates that cause a problem, we
->>>> only /actually/ need to lock the get_frontend() and set_frontend()
->>>> calls.
->>>
->>> I don't understand why .get_frontend() causes problem, since it does not
->>> access tuner at all. It only reads demod registers. The main problem is
->>> (like schema in af9015.c shows) that there is two tuners on same I2C bus
->>> using same address. And demod gate is only way to open access for desired
->>> tuner only.
->>
->> AFAIR /some/ tuner code accesses the tuner hardware to read the exact
->> tuned frequency back on a get_frontend(); was just being extra
->> paranoid :)
->>
->>> You should block traffic based of tuner not demod. And I think those
->>> callbacks which are needed for override are tuner driver callbacks. Consider
->>> situation device goes it v4l-core calls same time both tuner .sleep() ==
->>> problem.
->>
->> Hmm, yeah, you're right, let me have another look tomorrow.
->>
->
-> Hi, must admit I misunderstood your diagram originally, I thought it
-> was the demods AND the tuners that had the same i2c addresses.
->
-> As you say though. its just the tuners, so adding the locking into the
-> gate ctrl as you suggested makes perfect sense. Attached is v3
-> implementing this; it seems to be working fine here.
->
+Hi, 
 
-Unfortunately even with this fix, I'm still seeing the problem I was
-trying to fix to begin with.
+2011. 3. 17., 오전 12:27, Laurent Pinchart 작성:
 
-Although I no longer get any i2c errors (or *any* reported errors),
-after a bit, one of the frontends just.. stops working. All attempts
-to tune it fail. I can even unload and reload the driver module, and
-its stuck in the same state, indicating its a problem with the
-hardware. :(
+> On Wednesday 16 March 2011 16:17:30 Kim HeungJun wrote:
+>> 2011. 3. 16., 오후 11:15, Laurent Pinchart 작성:
+>>> On Wednesday 16 March 2011 05:50:11 Kim, HeungJun wrote:
+>>>> 2011-03-16 오전 9:14, Laurent Pinchart 쓴 글:
+>>> [snip]
+[snip]
+>>> Is the macro focus mode a singleshot focus or a continuous auto-focus ?
+>> 
+>> Of course. yes.
+> 
+> Which one ? Singleshot ? Or CAF ?
+I mean Singleshot :)
+
+Regards,
+Heungjun Kim
