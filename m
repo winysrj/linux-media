@@ -1,353 +1,565 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:37617 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751884Ab1CDL0e (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2011 06:26:34 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Fri, 04 Mar 2011 12:26:17 +0100
-From: Kamil Debski <k.debski@samsung.com>
-Subject: [RFC/PATCH v7 0/5] Multi Format Codec 5.1 driver for s5pv310 SoC
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	k.debski@samsung.com, jaeryul.oh@samsung.com, kgene.kim@samsung.com
-Message-id: <1299237982-31687-1-git-send-email-k.debski@samsung.com>
+Received: from smtp22.services.sfr.fr ([93.17.128.12]:18067 "EHLO
+	smtp22.services.sfr.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753650Ab1CPUGQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Mar 2011 16:06:16 -0400
+Message-ID: <4D811835.5060303@sfr.fr>
+Date: Wed, 16 Mar 2011 21:06:13 +0100
+From: Patrice Chotard <patrice.chotard@sfr.fr>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+CC: Theodore Kilgore <kilgota@banach.math.auburn.edu>,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH]  New Jeilin dual-mode camera support
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+This is a re-submission, my previous patch has not been send in plain text.
 
-This is the seventh version of the MFC 5.1 driver. It is still a work in progress.
-This version currently supports decoding only, but encoding is heavily developed.
-For nearly two months new features were added and fixes and suggestions were
-implemented.
+This patch add a new jeilin dual mode camera support and some specific controls settings.
 
-The main purpose for posting this patch is to show an example driver that
-uses the new IOMMU vb2 allocator. In addition this is the first try to
-create a V4L2 codec driver that I know of. I hope to discuss issues related
-to this type of hardware on the upcoming brainstorming session in Warsaw.
+Regards
 
-Major new features include:
-- proper handling for stream seeking (stream off + stream on and resume from
-  another point of the stream).
-- support for resolution change in the stream
-- power domain handling
-- clock gating
-- support for IOMMU allocator
-- setting buffer flags according to decoded frame type:
-  V4L2_BUF_FLAG_(KEY|P|B)FRAME
-- proper display delay handling for H264
+Signed-off-by: Patrice CHOTARD <patricechotard@free.fr>
+	       Theodore Kilgore <kilgota@banach.math.auburn.edu>
+---
+ Documentation/video4linux/gspca.txt |    1 +
+ drivers/media/video/gspca/jeilinj.c |  396 ++++++++++++++++++++++++++++++-----
+ 2 files changed, 345 insertions(+), 52 deletions(-)
 
-Things that still need to be done:
-- move to the control framework
-- rebase onto Exynos4 platform name change
+diff --git a/Documentation/video4linux/gspca.txt b/Documentation/video4linux/gspca.txt
+index 261776e..c4245d2 100644
+--- a/Documentation/video4linux/gspca.txt
++++ b/Documentation/video4linux/gspca.txt
+@@ -265,6 +265,7 @@ pac7302		093a:2629	Genious iSlim 300
+ pac7302		093a:262a	Webcam 300k
+ pac7302		093a:262c	Philips SPC 230 NC
+ jeilinj		0979:0280	Sakar 57379
++jeilinj		0979:0270	Sportscam DV15
+ zc3xx		0ac8:0302	Z-star Vimicro zc0302
+ vc032x		0ac8:0321	Vimicro generic vc0321
+ vc032x		0ac8:0323	Vimicro Vc0323
+diff --git a/drivers/media/video/gspca/jeilinj.c b/drivers/media/video/gspca/jeilinj.c
+index 06b777f..6b14028 100644
+--- a/drivers/media/video/gspca/jeilinj.c
++++ b/drivers/media/video/gspca/jeilinj.c
+@@ -6,6 +6,9 @@
+  *
+  * Copyright (C) 2009 Theodore Kilgore
+  *
++ * Sportscam DV15 support and control settings are
++ * Copyright (C) 2011 Patrice Chotard
++ *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+  * the Free Software Foundation; either version 2 of the License, or
+@@ -24,6 +27,7 @@
+ #define MODULE_NAME "jeilinj"
+ 
+ #include <linux/workqueue.h>
++#include <linux/delay.h>
+ #include <linux/slab.h>
+ #include "gspca.h"
+ #include "jpeg.h"
+@@ -34,6 +38,7 @@ MODULE_LICENSE("GPL");
+ 
+ /* Default timeouts, in ms */
+ #define JEILINJ_CMD_TIMEOUT 500
++#define JEILINJ_CMD_DELAY 160
+ #define JEILINJ_DATA_TIMEOUT 1000
+ 
+ /* Maximum transfer size to use. */
+@@ -41,6 +46,18 @@ MODULE_LICENSE("GPL");
+ 
+ #define FRAME_HEADER_LEN 0x10
+ 
++enum {
++	SAKAR_57379,
++	SPORTSCAM_DV15,
++};
++
++#define CAMQUALITY_MIN 0	/* highest cam quality */
++#define CAMQUALITY_MAX 97	/* lowest cam quality  */
++
++#define JPEGQUALITY_MIN 35
++#define JPEGQUALITY_MAX 85
++#define JPEGQUALITY_DEF 85
++
+ /* Structure to hold all of our device specific stuff */
+ struct sd {
+ 	struct gspca_dev gspca_dev;	/* !! must be the first item */
+@@ -48,23 +65,22 @@ struct sd {
+ 	/* Driver stuff */
+ 	struct work_struct work_struct;
+ 	struct workqueue_struct *work_thread;
+-	u8 quality;				 /* image quality */
+-	u8 jpegqual;				/* webcam quality */
++	u8 camquality;			/* webcam quality */
++	u8 jpegquality;			/* jpeg quality */
+ 	u8 jpeg_hdr[JPEG_HDR_SZ];
++	u8 freq;
++	u8 type;
++	/* below variables are only used for SPORTSCAM_DV15 */
++	u8 autogain;
++	u8 cyan;
++	u8 magenta;
++	u8 yellow;
+ };
+ 
+-	struct jlj_command {
+-		unsigned char instruction[2];
+-		unsigned char ack_wanted;
+-	};
+-
+-/* AFAICT these cameras will only do 320x240. */
+-static struct v4l2_pix_format jlj_mode[] = {
+-	{ 320, 240, V4L2_PIX_FMT_JPEG, V4L2_FIELD_NONE,
+-		.bytesperline = 320,
+-		.sizeimage = 320 * 240,
+-		.colorspace = V4L2_COLORSPACE_JPEG,
+-		.priv = 0}
++struct jlj_command {
++	unsigned char instruction[2];
++	unsigned char ack_wanted;
++	unsigned char delay;
+ };
+ 
+ /*
+@@ -80,7 +96,7 @@ static int jlj_write2(struct gspca_dev *gspca_dev, unsigned char *command)
+ 	memcpy(gspca_dev->usb_buf, command, 2);
+ 	retval = usb_bulk_msg(gspca_dev->dev,
+ 			usb_sndbulkpipe(gspca_dev->dev, 3),
+-			gspca_dev->usb_buf, 2, NULL, 500);
++			gspca_dev->usb_buf, 2, NULL, JEILINJ_CMD_TIMEOUT);
+ 	if (retval < 0)
+ 		err("command write [%02x] error %d",
+ 				gspca_dev->usb_buf[0], retval);
+@@ -94,7 +110,7 @@ static int jlj_read1(struct gspca_dev *gspca_dev, unsigned char response)
+ 
+ 	retval = usb_bulk_msg(gspca_dev->dev,
+ 	usb_rcvbulkpipe(gspca_dev->dev, 0x84),
+-				gspca_dev->usb_buf, 1, NULL, 500);
++			gspca_dev->usb_buf, 1, NULL, JEILINJ_CMD_TIMEOUT);
+ 	response = gspca_dev->usb_buf[0];
+ 	if (retval < 0)
+ 		err("read command [%02x] error %d",
+@@ -102,49 +118,282 @@ static int jlj_read1(struct gspca_dev *gspca_dev, unsigned char response)
+ 	return retval;
+ }
+ 
++static void setfreq(struct gspca_dev *gspca_dev)
++{
++	struct sd *sd = (struct sd *) gspca_dev;
++	struct jlj_command freq_commands[] = {
++		{{0x71, 0x80}, 0, 0},
++		{{0x70, 0x07}, 0, 0}
++	};
++
++	if (sd->freq)
++		freq_commands[0].instruction[1] & (sd->freq >> 1);
++
++	jlj_write2(gspca_dev, freq_commands[0].instruction);
++	jlj_write2(gspca_dev, freq_commands[1].instruction);
++}
++
++static void setcamquality(struct gspca_dev *gspca_dev)
++{
++	struct sd *sd = (struct sd *) gspca_dev;
++	struct jlj_command quality_commands[] = {
++		{{0x71, 0x1E}, 0, 0},
++		{{0x70, 0x06}, 0, 0}
++	};
++	u8 jpegquality;
++	u8 temp;
++
++	quality_commands[0].instruction[1] += sd->camquality;
++
++	jlj_write2(gspca_dev, quality_commands[0].instruction);
++	jlj_write2(gspca_dev, quality_commands[1].instruction);
++
++	/* adapt quantification table to camera quality */
++	temp = ((JPEGQUALITY_MAX - JPEGQUALITY_MIN) * sd->camquality)
++		/ CAMQUALITY_MAX;
++	jpegquality = JPEGQUALITY_MAX - temp;
++	jpeg_set_qual(sd->jpeg_hdr, jpegquality);
++}
++
++static void setautogain(struct gspca_dev *gspca_dev)
++{
++	struct sd *sd = (struct sd *) gspca_dev;
++	struct jlj_command autogain_commands[] = {
++		{{0x94, 0x02}, 0, 0},
++		{{0xcf, 0x00}, 0, 0}
++	};
++
++	autogain_commands[1].instruction[1] = (sd->autogain << 4);
++
++	jlj_write2(gspca_dev, autogain_commands[0].instruction);
++	jlj_write2(gspca_dev, autogain_commands[1].instruction);
++}
++
++static void setcyan(struct gspca_dev *gspca_dev)
++{
++	struct sd *sd = (struct sd *) gspca_dev;
++	struct jlj_command setcyan_commands[] = {
++		{{0x94, 0x02}, 0, 0},
++		{{0xe6, 0x00}, 0, 0}
++	};
++
++	setcyan_commands[1].instruction[1] = sd->cyan;
++
++	jlj_write2(gspca_dev, setcyan_commands[0].instruction);
++	jlj_write2(gspca_dev, setcyan_commands[1].instruction);
++}
++
++static void setmagenta(struct gspca_dev *gspca_dev)
++{
++	struct sd *sd = (struct sd *) gspca_dev;
++	struct jlj_command setmagenta_commands[] = {
++		{{0x94, 0x02}, 0, 0},
++		{{0xe7, 0x00}, 0, 0}
++	};
++
++	setmagenta_commands[1].instruction[1] = sd->magenta;
++
++	jlj_write2(gspca_dev, setmagenta_commands[0].instruction);
++	jlj_write2(gspca_dev, setmagenta_commands[1].instruction);
++}
++
++static void setyellow(struct gspca_dev *gspca_dev)
++{
++	struct sd *sd = (struct sd *) gspca_dev;
++	struct jlj_command setyellow_commands[] = {
++		{{0x94, 0x02}, 0, 0},
++		{{0xe9, 0x00}, 0, 0}
++	};
++
++	setyellow_commands[1].instruction[1] = sd->yellow;
++
++	jlj_write2(gspca_dev, setyellow_commands[0].instruction);
++	jlj_write2(gspca_dev, setyellow_commands[1].instruction);
++}
++
++/* Functions to get and set a control value */
++#define SD_SETGET(thename) \
++static int sd_set##thename(struct gspca_dev *gspca_dev, s32 val)\
++{\
++	struct sd *sd = (struct sd *) gspca_dev;\
++\
++	sd->thename = val;\
++	if (gspca_dev->streaming)\
++		set##thename(gspca_dev);\
++	return 0;\
++} \
++static int sd_get##thename(struct gspca_dev *gspca_dev, s32 *val)\
++{\
++	struct sd *sd = (struct sd *) gspca_dev;\
++\
++	*val = sd->thename;\
++	return 0;\
++}
++
++SD_SETGET(freq);
++SD_SETGET(camquality);
++SD_SETGET(autogain);
++SD_SETGET(cyan);
++SD_SETGET(magenta);
++SD_SETGET(yellow);
++
++static struct ctrl sd_ctrls[] = {
++	{
++	    {
++		.id      = V4L2_CID_POWER_LINE_FREQUENCY,
++		.type    = V4L2_CTRL_TYPE_MENU,
++		.name    = "Light frequency filter",
++		.minimum = V4L2_CID_POWER_LINE_FREQUENCY_DISABLED, /* 0 */
++		.maximum = V4L2_CID_POWER_LINE_FREQUENCY_60HZ, /* 2 */
++		.step    = 1,
++		.default_value = V4L2_CID_POWER_LINE_FREQUENCY_60HZ,
++	    },
++	    .set = sd_setfreq,
++	    .get = sd_getfreq,
++	},
++	{
++	    {
++		.id = V4L2_CID_AUTOGAIN,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.name = "Automatic Gain (and Exposure)",
++		.minimum = 0,
++		.maximum = 3,
++		.step = 1,
++#define AUTOGAIN_DEF 0
++		.default_value = AUTOGAIN_DEF,
++	   },
++	   .set = sd_setautogain,
++	   .get = sd_getautogain,
++	},
++	{
++	    {
++#define V4L2_CID_CAMQUALITY (V4L2_CID_USER_BASE + 1)
++		.id      = V4L2_CID_CAMQUALITY,
++		.type    = V4L2_CTRL_TYPE_INTEGER,
++		.name    = "Image quality",
++		.minimum = CAMQUALITY_MIN,
++		.maximum = CAMQUALITY_MAX,
++		.step    = 1,
++#define CAMQUALITY_DEF 0
++		.default_value = CAMQUALITY_DEF,
++	    },
++	    .set = sd_setcamquality,
++	    .get = sd_getcamquality,
++	},
++	{
++	    {
++#define V4L2_CID_CYAN_BALANCE (V4L2_CID_USER_BASE + 2)
++		.id = V4L2_CID_CYAN_BALANCE,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.name = "Cyan balance",
++		.minimum = 0,
++		.maximum = 3,
++		.step = 1,
++#define CYAN_BALANCE_DEF 2
++		.default_value = CYAN_BALANCE_DEF,
++	   },
++	   .set = sd_setcyan,
++	   .get = sd_getcyan,
++	},
++	{
++	    {
++#define V4L2_CID_MAGENTA_BALANCE (V4L2_CID_USER_BASE + 3)
++		.id = V4L2_CID_MAGENTA_BALANCE,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.name = "Magenta balance",
++		.minimum = 0,
++		.maximum = 3,
++		.step = 1,
++#define MAGENTA_BALANCE_DEF 2
++		.default_value = MAGENTA_BALANCE_DEF,
++	   },
++	   .set = sd_setmagenta,
++	   .get = sd_getmagenta,
++	},
++	{
++	    {
++#define V4L2_CID_YELLOW_BALANCE (V4L2_CID_USER_BASE + 4)
++		.id = V4L2_CID_YELLOW_BALANCE,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.name = "Yellow balance",
++		.minimum = 0,
++		.maximum = 3,
++		.step = 1,
++#define YELLOW_BALANCE_DEF 2
++		.default_value = YELLOW_BALANCE_DEF,
++	   },
++	   .set = sd_setyellow,
++	   .get = sd_getyellow,
++	},
++};
++
++static struct v4l2_pix_format jlj_mode[] = {
++	{ 320, 240, V4L2_PIX_FMT_JPEG, V4L2_FIELD_NONE,
++		.bytesperline = 320,
++		.sizeimage = 320 * 240,
++		.colorspace = V4L2_COLORSPACE_JPEG,
++		.priv = 0},
++	{ 640, 480, V4L2_PIX_FMT_JPEG, V4L2_FIELD_NONE,
++		.bytesperline = 640,
++		.sizeimage = 640 * 480,
++		.colorspace = V4L2_COLORSPACE_JPEG,
++		.priv = 0}
++};
++
+ static int jlj_start(struct gspca_dev *gspca_dev)
+ {
++	struct sd *sd  = (struct sd *) gspca_dev;
+ 	int i;
+ 	int retval = -1;
++	int start_commands_size;
+ 	u8 response = 0xff;
+ 	struct jlj_command start_commands[] = {
+-		{{0x71, 0x81}, 0},
+-		{{0x70, 0x05}, 0},
+-		{{0x95, 0x70}, 1},
+-		{{0x71, 0x81}, 0},
+-		{{0x70, 0x04}, 0},
+-		{{0x95, 0x70}, 1},
+-		{{0x71, 0x00}, 0},
+-		{{0x70, 0x08}, 0},
+-		{{0x95, 0x70}, 1},
+-		{{0x94, 0x02}, 0},
+-		{{0xde, 0x24}, 0},
+-		{{0x94, 0x02}, 0},
+-		{{0xdd, 0xf0}, 0},
+-		{{0x94, 0x02}, 0},
+-		{{0xe3, 0x2c}, 0},
+-		{{0x94, 0x02}, 0},
+-		{{0xe4, 0x00}, 0},
+-		{{0x94, 0x02}, 0},
+-		{{0xe5, 0x00}, 0},
+-		{{0x94, 0x02}, 0},
+-		{{0xe6, 0x2c}, 0},
+-		{{0x94, 0x03}, 0},
+-		{{0xaa, 0x00}, 0},
+-		{{0x71, 0x1e}, 0},
+-		{{0x70, 0x06}, 0},
+-		{{0x71, 0x80}, 0},
+-		{{0x70, 0x07}, 0}
++		{{0x71, 0x81}, 0, 0},
++		{{0x70, 0x05}, 0, JEILINJ_CMD_DELAY},
++		{{0x95, 0x70}, 1, 0},
++		{{0x71, 0x81 - gspca_dev->curr_mode}, 0, 0},
++		{{0x70, 0x04}, 0, JEILINJ_CMD_DELAY},
++		{{0x95, 0x70}, 1, 0},
++		{{0x71, 0x00}, 0, 0},   /* start streaming ??*/
++		{{0x70, 0x08}, 0, JEILINJ_CMD_DELAY},
++		{{0x95, 0x70}, 1, 0},
++		{{0x94, 0x02}, 0, 0},
++		{{0xde, 0x24}, 0, 0},
++		{{0x94, 0x02}, 0, 0},
++		{{0xdd, 0xf0}, 0, 0},
++		{{0x94, 0x02}, 0, 0},
++		{{0xe3, 0x2c}, 0, 0},
++		{{0x94, 0x02}, 0, 0},
++		{{0xe4, 0x00}, 0, 0},
++		{{0x94, 0x02}, 0, 0},
++		{{0xe5, 0x00}, 0, 0},
++		{{0x94, 0x02}, 0, 0},
++		{{0xe6, 0x2c}, 0, 0},
++		{{0x94, 0x03}, 0, 0},
++		{{0xaa, 0x00}, 0, 0}
+ 	};
+-	for (i = 0; i < ARRAY_SIZE(start_commands); i++) {
++
++	/* Under Windows, USB spy shows that only the 9 first start
++	 * commands are used for SPORTSCAM_DV15 webcam
++	 */
++	if (sd->type == SPORTSCAM_DV15)
++		start_commands_size = 9;
++	else
++		start_commands_size = ARRAY_SIZE(start_commands);
++
++	for (i = 0; i < start_commands_size; i++) {
+ 		retval = jlj_write2(gspca_dev, start_commands[i].instruction);
+ 		if (retval < 0)
+ 			return retval;
++		if (start_commands[i].delay)
++			mdelay(start_commands[i].delay);
+ 		if (start_commands[i].ack_wanted)
+ 			retval = jlj_read1(gspca_dev, response);
+ 		if (retval < 0)
+ 			return retval;
+ 	}
++	setcamquality(gspca_dev);
++	setfreq(gspca_dev);
+ 	PDEBUG(D_ERR, "jlj_start retval is %d", retval);
+ 	return retval;
+ }
+@@ -256,13 +505,15 @@ static int sd_config(struct gspca_dev *gspca_dev,
+ 	struct cam *cam = &gspca_dev->cam;
+ 	struct sd *dev  = (struct sd *) gspca_dev;
+ 
+-	dev->quality  = 85;
+-	dev->jpegqual = 85;
++	dev->type = id->driver_info;
++	dev->camquality = CAMQUALITY_DEF;
++	dev->jpegquality = JPEGQUALITY_DEF;
++	dev->freq = V4L2_CID_POWER_LINE_FREQUENCY_60HZ;
+ 	PDEBUG(D_PROBE,
+ 		"JEILINJ camera detected"
+ 		" (vid/pid 0x%04X:0x%04X)", id->idVendor, id->idProduct);
+ 	cam->cam_mode = jlj_mode;
+-	cam->nmodes = 1;
++	cam->nmodes = ARRAY_SIZE(jlj_mode);
+ 	cam->bulk = 1;
+ 	/* We don't use the buffer gspca allocates so make it small. */
+ 	cam->bulk_size = 32;
+@@ -299,8 +550,10 @@ static int sd_start(struct gspca_dev *gspca_dev)
+ 	/* create the JPEG header */
+ 	jpeg_define(dev->jpeg_hdr, gspca_dev->height, gspca_dev->width,
+ 			0x21);          /* JPEG 422 */
+-	jpeg_set_qual(dev->jpeg_hdr, dev->quality);
+-	PDEBUG(D_STREAM, "Start streaming at 320x240");
++	dev->jpegquality = JPEGQUALITY_DEF;
++	jpeg_set_qual(dev->jpeg_hdr, dev->jpegquality);
++	PDEBUG(D_STREAM, "Start streaming at %dx%d",
++			gspca_dev->width, gspca_dev->height);
+ 	ret = jlj_start(gspca_dev);
+ 	if (ret < 0) {
+ 		PDEBUG(D_ERR, "Start streaming command failed");
+@@ -315,14 +568,36 @@ static int sd_start(struct gspca_dev *gspca_dev)
+ 
+ /* Table of supported USB devices */
+ static const struct usb_device_id device_table[] = {
+-	{USB_DEVICE(0x0979, 0x0280)},
++	{USB_DEVICE(0x0979, 0x0280), .driver_info = SAKAR_57379},
++	{USB_DEVICE(0x0979, 0x0270), .driver_info = SPORTSCAM_DV15},
+ 	{}
+ };
+ 
+ MODULE_DEVICE_TABLE(usb, device_table);
+ 
++static int sd_querymenu(struct gspca_dev *gspca_dev,
++			struct v4l2_querymenu *menu)
++{
++	switch (menu->id) {
++	case V4L2_CID_POWER_LINE_FREQUENCY:
++		switch (menu->index) {
++		case 0:	/* V4L2_CID_POWER_LINE_FREQUENCY_DISABLED */
++			strcpy((char *) menu->name, "NoFliker");
++			return 0;
++		case 1:	/* V4L2_CID_POWER_LINE_FREQUENCY_50HZ */
++			strcpy((char *) menu->name, "50 Hz");
++			return 0;
++		case 2:	/* V4L2_CID_POWER_LINE_FREQUENCY_60HZ */
++			strcpy((char *) menu->name, "60 Hz");
++			return 0;
++		}
++		break;
++	}
++	return -EINVAL;
++}
++
+ /* sub-driver description */
+-static const struct sd_desc sd_desc = {
++static const struct sd_desc sd_desc_sakar_57379 = {
+ 	.name   = MODULE_NAME,
+ 	.config = sd_config,
+ 	.init   = sd_init,
+@@ -330,12 +605,29 @@ static const struct sd_desc sd_desc = {
+ 	.stop0  = sd_stop0,
+ };
+ 
++/* sub-driver description */
++static const struct sd_desc sd_desc_sportscam_dv15 = {
++	.name   = MODULE_NAME,
++	.config = sd_config,
++	.init   = sd_init,
++	.start  = sd_start,
++	.stop0  = sd_stop0,
++	.ctrls = sd_ctrls,
++	.nctrls = ARRAY_SIZE(sd_ctrls),
++	.querymenu = sd_querymenu,
++};
++
++static const struct sd_desc *sd_desc[2] = {
++	&sd_desc_sakar_57379,
++	&sd_desc_sportscam_dv15
++};
++
+ /* -- device connect -- */
+ static int sd_probe(struct usb_interface *intf,
+ 		const struct usb_device_id *id)
+ {
+ 	return gspca_dev_probe(intf, id,
+-			&sd_desc,
++			sd_desc[id->driver_info],
+ 			sizeof(struct sd),
+ 			THIS_MODULE);
+ }
+-- 
+1.7.0.4
 
-* Stream seeking scenario is as follows:
 
-1. Stream off on OUTPUT
-2. Stream off on CAPTURE
-3. Queue at least one new src buffer on OUTPUT (after stream off they all have
-   been dequeued and at least one buffer has to be queued to successfully do a
-   stream on)
-4. Queue dst buffers on CAPTURE (after stream off they all have been dequeued)
-5. Stream on on CAPTURE queue
-6. Stream on on OUTPUT queue
-
-* Resolution change scenario:
-
-1. Stream off on CAPTURE
-2. Unmap the destination buffers
-	Note: To successfully unmap the buffer they cannot be used
-	by any other hardware, such as FIMC. Thus it necessary to
-	shutdown FIMC - either close, or streamoff and reqbufs(0).
-3. Call Reqbufs (0) on CAPTURE
-4. Same as after parsing header
-	a) Run G_FMT on CAPTURE
-	b) Run G_CROP on CAPTURE
-	c) Get the minimum number of buffers (by reading the
-	   V4L2_CID_CODEC_REQ_NUM_BUFS control)
-5. Init CAPTURE stream
-	a) Run Reqbufs with appropriate number of buffers (minimum + extra)
-	b) Run Querybuf and Mmap on each buffer
-	c) Run Q_BUF on the new buffers
-6. Stream on on CAPTURE
-7. Initialize FIMC
-
-Note: application is notified about resolution change in the same way as the
-notification that all decoded buffers have been read. The value of bytesused
-in the capture buffer is set to 0. If the application has sent last encoded
-stream frame then it is waiting for last decoded frame. If the application
-receives a frame with bytesused set to 0 with no error set in the middle of a
-stream then it should treat is as the notification of resolution change.
-
-Best regards,
-Kamil
-
-* Changelog:
-
-==================
- Changes since v6
-==================
-
-1) Stream seeking handling
-   - done by running stream off and then stream on from another point of the
-     stream
-2) Support for streams during which the resolution is changed
-   - done by calling stream off, reallocating the buffers and stream on again to
-     resume
-3) Power domain handling
-4) Clock gating hw related operations
-   - This has introduced a large reduction in power use
-5) Support for IOMMU allocator
-   - Using IOMMU as the memory allocator removes the cache problem
-     and the need for reserving continuous memory at system boot
-6) Flags of v4l2_buffer are set accrodingly to the returned buffer frame type
-   V4L2_BUF_FLAG_(KEY|P|B)FRAME
-7) Fixed display delay handling of H264. Now dealy of 0 frames is possible,
-   although it may cause that the frames are returned out of order.
-8) Minor changes
-   - global s5p_mfc_dev variable has been removed
-   - improved Packed PB handling
-   - fixed error handling - separate for decoding and display frames
-   - some cosmetic changes to simplify the code and make it more readable
-
-==================
- Changes since v5
-==================
-
-1) Changes suggested by Hans Verkuil:
-- small change in videodev2.h - corrected control offsets
-- made the code more readable by simplifying if statements and using temporary
-  pointers
-- mfc_mutex is now included in s5p_mfc_dev structure
-- after discussion with Peter Oh modification of fourcc defintions
- (replaced DX52 and DX53 with DX50)
-
-2) Changes suggested by JongHun Han:
-- comsmetic changed of defines in regs-mfc5.h
-- in buffers that have no width adn height, such as the buffer for compressed
-  stream, those values are set to 0 instead of 1
-- remove redundant pointer to MFC registers
-- change name of the union in s5p_mfc_buf from paddr to cookie
-- removed global variable (struct s5p_mfc_dev *dev) and moved to use video_drvdata
-
-3) Other changes:
-- added check for values returned after parsing header - in rare circumstances MFC
-  hw returned 0x0 as image size and this could cause problems
-
-==================
- Changes since v4
-==================
-
-1) Changes suggested by Kukjin Kim from:
-- removed comment arch/arm/mach-s5pv210/include/mach/map.h
-- changed device name to s5p-mfc (removed "5", MFC version number)
-  also removed the version number from the name of MFC device file
-- added GPL license to arch/arm/plat-s5p/dev-mfc.c
-- removed unused include file from dev-mfc.c and unnecessary comments
-
-2) Cache handling improvement:
-- changed cache handling to use dma_map_single and dma_unmap_single
-
-==================
- Changes since v3
-==================
-
-1) Update to the v6 videobuf2 API (here thanks go to Marek Szyprowski)
-- s5p_mfc_buf_negotiate and s5p_mfc_buf_setup_plane functions
-have been merged
-- queue initialization has been adapted to the new API
-- use of the allocator memops has been changed, now there are single
-memops for all the allocator contexts
-
-2) Split of the s5p_mfc_try_run and s5p_mfc_handle_frame_int functions
-- parts of the s5p_mfc_try_run function have been moved to separate
-functions (s5p_mfc_get_new_ctx, s5p_mfc_run_dec_last_frames,
-s5p_mfc_run_dec_frame, s5p_mfc_run_get_inst_no, s5p_mfc_run_return_inst
-s5p_mfc_run_init_dec,s5p_mfc_run_init_dec_buffers)
-- s5p_mfc_handle_frame_int has been split to the following functions:
-s5p_mfc_handle_frame_all_extracted, s5p_mfc_handle_frame_new
-and s5p_mfc_handle_frame to handle different cases
-
-3) Remove remaining magic numbers and tidy up comments
-
-==================
- Changes since v2
-==================
-
-1) Update to newest videobuf2 API
-This is the major change from v2. The videobuf2 API will hopefully have no more
-major API changes. Buffer initialization has been moved from buf_prepare
-callback to buf_init to simplify the process. Locking mechanism has been
-modified to the requirements of new videobuf2 version.
-2) Code cleanup
-Removed more magic contants and replaced them with appropriate defines. Changed
-code to use unlocked_ioctl instead of ioctl in v4l2 file ops.
-3) Allocators
-All internal buffer allocations are done using the selected vb2 allocator,
-instead of using CMA functions directly.
-
-==================
- Changes since v1
-==================
-
-1) Cleanup accoridng to Peter Oh suggestions on the mailing list (Thanks).
-
-* Original cover letter:
-
-==============
- Introduction
-==============
-
-The purpose of this RFC is to discuss the driver for a hw video codec
-embedded in the new Samusng's SoCs. Multi Format Codec 5.0 is able to
-handle video decoding of in a range of formats.
-
-So far no hardware codec was supported in V4L2 and this would be the
-first one. I guess there are more similar device that would benefit from
-a V4L2 unified interface. I suggest a separate control class for codec
-devices - V4L2_CTRL_CLASS_CODEC.
-
-Internally the driver uses videobuf2 framework and CMA memory allocator.
-I am aware that those have not yet been merged, but I wanted to start
-discussion about the driver earlier so it could be merged sooner. The
-driver posted here is the initial version, so I suppose it will require
-more work.
-
-==================
- Device interface
-==================
-
-The driver principle is based on the idea of memory-to-memory devices:
-it provides a single video node and each opened file handle gets its own
-private context with separate buffer queues. Each context consist of 2
-buffer queues: OUTPUT (for source buffers, i.e. encoded video frames)
-and CAPTURE (for destination buffers, i.e. decoded raw video frames).
-The process of decoding video data from stream is a bit more complicated
-than typical memory-to-memory processing, that's why the m2m framework
-is not directly used (it is too limited for this case). The main reason
-for this is the fact that the CAPTURE buffers can be dequeued in a
-different order than they queued. The hw block decides which buffer has
-been completely processed. This is due to the structure of most
-compressed video streams - use of B frames causes that decoding and
-display order may be different.
-
-==============================
- Decoding initialization path
-==============================
-
-First the OUTPUT queue is initialized. With S_FMT the application
-chooses which video format to decode and what size should be the input
-buffer. Fourcc values have been defined for different codecs e.g.
-V4L2_PIX_FMT_H264 for h264. Then the OUTPUT buffers are requested and
-mmaped. The stream header frame is loaded into the first buffer, queued
-and streaming is enabled. At this point the hardware is able to start
-processing the stream header and afterwards it will have information
-about the video dimensions and the size of the buffers with raw video
-data.
-
-The next step is setting up the CAPTURE queue and buffers. The width,
-height, buffer size and minimum number of buffers can be read with G_FMT
-call. The application can request more output buffer if necessary. After
-requesting and mmaping buffers the device is ready to decode video
-stream.
-
-The stream frames (ES frames) are written to the OUTPUT buffers, and
-decoded video frames can be read from the CAPTURE buffers. When no more
-source frames are present a single buffer with bytesused set to 0 should
-be queued. This will inform the driver that processing should be
-finished and it can dequeue all video frames that are still left. The
-number of such frames is dependent on the stream and its internal
-structure (how many frames had to be kept as reference frames for
-decoding, etc).
-
-===============
- Usage summary
-===============
-
-This is a step by step summary of the video decoding (from user
-application point of view, with 2 treads and blocking api):
-
-01. S_FMT(OUTPUT, V4L2_PIX_FMT_H264, ...)
-02. REQ_BUFS(OUTPUT, n)
-03. for i=1..n MMAP(OUTPUT, i)
-04. put stream header to buffer #1
-05. QBUF(OUTPUT, #1)
-06. STREAM_ON(OUTPUT)
-07. G_FMT(CAPTURE)
-08. REQ_BUFS(CAPTURE, m)
-09. for j=1..m MMAP(CAPTURE, j)
-10. for j=1..m QBUF(CAPTURE, #j)
-11. STREAM_ON(CAPTURE)
-
-display thread:
-12. DQBUF(CAPTURE) -> got decoded video data in buffer #j
-13. display buffer #j
-14. QBUF(CAPTURE, #j)
-15. goto 12
-
-parser thread:
-16. put next ES frame to buffer #i
-17. QBUF(OUTPUT, #i)
-18. DQBUF(OUTPUT) -> get next empty buffer #i 19. goto 16
-
-...
-
-Similar usage sequence can be achieved with single threaded application
-and non-blocking api with poll() call.
-
-Branch with MFC, CMA and videobuf2 will be soon available at
-http://git.infradead.org/users/kmpark/linux-2.6-samsung/shortlog/refs/heads/vb2-mfc-fimc
-This tree is based on 2.6.37 rc4.
-
-Please have a look at the code and the idea of how to introduce codec
-devices to V4L2. Comments will be very much appreciated.
-
-Patch summary:
-
-
-Kamil Debski (5):
-  Changes in include/linux/videodev2.h for MFC
-  MFC: Add MFC 5.1 driver to plat-s5p, mach-s5pv210 and mach-s5pv210
-  MFC: Added MFC 5.1 V4L2 driver
-  s5pv310: Enable MFC on C210_universal
-  v4l: Documentation for the codec interface
-
- Documentation/DocBook/v4l/dev-codec.xml         |  169 ++-
- arch/arm/mach-s5pv310/Kconfig                   |    1 +
- arch/arm/mach-s5pv310/clock.c                   |   28 +-
- arch/arm/mach-s5pv310/include/mach/map.h        |    2 +
- arch/arm/mach-s5pv310/include/mach/regs-clock.h |    3 +
- arch/arm/mach-s5pv310/mach-universal_c210.c     |    8 +
- arch/arm/plat-s5p/Kconfig                       |    5 +
- arch/arm/plat-s5p/Makefile                      |    2 +-
- arch/arm/plat-s5p/dev-mfc.c                     |   49 +
- arch/arm/plat-samsung/include/plat/devs.h       |    1 +
- drivers/media/video/Kconfig                     |    8 +
- drivers/media/video/Makefile                    |    1 +
- drivers/media/video/s5p-mfc/Makefile            |    3 +
- drivers/media/video/s5p-mfc/regs-mfc5.h         |  346 ++++
- drivers/media/video/s5p-mfc/s5p_mfc.c           | 2253 +++++++++++++++++++++++
- drivers/media/video/s5p-mfc/s5p_mfc_common.h    |  240 +++
- drivers/media/video/s5p-mfc/s5p_mfc_ctrls.h     |  182 ++
- drivers/media/video/s5p-mfc/s5p_mfc_debug.h     |   47 +
- drivers/media/video/s5p-mfc/s5p_mfc_intr.c      |   92 +
- drivers/media/video/s5p-mfc/s5p_mfc_intr.h      |   26 +
- drivers/media/video/s5p-mfc/s5p_mfc_memory.h    |   43 +
- drivers/media/video/s5p-mfc/s5p_mfc_opr.c       |  913 +++++++++
- drivers/media/video/s5p-mfc/s5p_mfc_opr.h       |  142 ++
- include/linux/videodev2.h                       |   39 +
- 24 files changed, 4587 insertions(+), 16 deletions(-)
- create mode 100644 arch/arm/plat-s5p/dev-mfc.c
- create mode 100644 drivers/media/video/s5p-mfc/Makefile
- create mode 100644 drivers/media/video/s5p-mfc/regs-mfc5.h
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc.c
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_common.h
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_ctrls.h
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_debug.h
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_intr.c
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_intr.h
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_memory.h
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_opr.c
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_opr.h
