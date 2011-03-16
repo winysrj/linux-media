@@ -1,178 +1,148 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:35932 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752892Ab1C3O5b convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58041 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751515Ab1CPItE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Mar 2011 10:57:31 -0400
-Received: by iwn34 with SMTP id 34so1345657iwn.19
-        for <linux-media@vger.kernel.org>; Wed, 30 Mar 2011 07:57:30 -0700 (PDT)
+	Wed, 16 Mar 2011 04:49:04 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Robert Fekete <robert.fekete@linaro.org>
+Subject: Re: Yet another memory provider: can linaro organize a meeting?
+Date: Wed, 16 Mar 2011 09:49:06 +0100
+Cc: Andy Walls <awalls@md.metrocast.net>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linaro-dev@lists.linaro.org,
+	linux-media@vger.kernel.org, Jonghun Han <jonghun.han@samsung.com>
+References: <201103080913.59231.hverkuil@xs4all.nl> <201103082023.58437.laurent.pinchart@ideasonboard.com> <AANLkTin=CUsTH-dB2b0PYxSQbnq_e4nm-tDufVaKNM9p@mail.gmail.com>
+In-Reply-To: <AANLkTin=CUsTH-dB2b0PYxSQbnq_e4nm-tDufVaKNM9p@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <4D933B9A.1090002@maxwell.research.nokia.com>
-References: <4D90854C.2000802@maxwell.research.nokia.com>
-	<201103301055.42521.laurent.pinchart@ideasonboard.com>
-	<4D9325A9.4080200@maxwell.research.nokia.com>
-	<201103301553.17220.laurent.pinchart@ideasonboard.com>
-	<4D933B9A.1090002@maxwell.research.nokia.com>
-Date: Wed, 30 Mar 2011 17:57:30 +0300
-Message-ID: <BANLkTin_xvyL6Bfcao3Pobps8OkeR9eTSA@mail.gmail.com>
-Subject: Re: [RFC] V4L2 API for flash devices
-From: David Cohen <dacohen@gmail.com>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Nayden Kanchev <nkanchev@mm-sol.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Cohen David Abraham <david.cohen@nokia.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201103160949.06430.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Mar 30, 2011 at 5:18 PM, Sakari Ailus
-<sakari.ailus@maxwell.research.nokia.com> wrote:
-> Laurent Pinchart wrote:
->> Hi Sakari,
->
-> Heippa,
+On Tuesday 15 March 2011 17:07:10 Robert Fekete wrote:
+> On 8 March 2011 20:23, Laurent Pinchart wrote:
+> > On Tuesday 08 March 2011 20:12:45 Andy Walls wrote:
+> >> On Tue, 2011-03-08 at 16:52 +0100, Laurent Pinchart wrote:
+> >> 
+> >> [snip]
+> >> 
+> >> > > > It really shouldn't be that hard to get everyone involved together
+> >> > > > and settle on a single solution (either based on an existing
+> >> > > > proposal or create a 'the best of' vendor-neutral solution).
+> >> > > 
+> >> > > "Single" might be making the problem impossibly hard to solve well.
+> >> > > One-size-fits-all solutions have a tendency to fall short on meeting
+> >> > > someone's critical requirement.  I will agree that "less than n",
+> >> > > for some small n, is certainly desirable.
+> >> > > 
+> >> > > The memory allocators and managers are ideally satisfying the
+> >> > > requirements imposed by device hardware, what userspace applications
+> >> > > are expected to do with the buffers, and system performance.  (And
+> >> > > maybe the platform architecture, I/O bus, and dedicated video
+> >> > > memory?)
+> >> > 
+> >> > In the embedded world, a very common use case is to capture video data
+> >> > from an ISP (V4L2+MC), process it in a DSP (V4L2+M2M, tidspbridge,
+> >> > ...) and display it on the GPU (OpenGL/ES). We need to be able to
+> >> > share a data buffer between the ISP and the DSP, and another buffer
+> >> > between the DSP and the GPU. If processing is not required, sharing a
+> >> > data buffer between the ISP and the GPU is required. Achieving
+> >> > zero-copy requires a single memory management solution used by the
+> >> > ISP, the DSP and the GPU.
+> >> 
+> >> Ah.  I guess I misunderstood what was meant by "memory provider" to some
+> >> extent.
+> >> 
+> >> So what I read is a common way of providing in kernel persistent buffers
+> >> (buffer objects? buffer entities?) for drivers and userspace
+> >> applications to pass around by reference (no copies).  Userspace may or
+> >> may not want to see the contents of the buffer objects.
+> > 
+> > Exactly. How that memory is allocated in irrelevant here, and we can have
+> > several different allocators as long as the buffer objects can be managed
+> > through a single API. That API will probably have to expose buffer
+> > properties related to allocation, in order for all components in the
+> > system to verify that the buffers are suitable for their needs, but the
+> > allocation process itself is irrelevant.
+> > 
+> >> So I understand now why a single solution is desirable.
+> 
+> Exactly,
+> 
+> It is important to know that there are 3 topics of discussion which
+> all are a separate topic of its own:
+> 
+> 1. The actual memory allocator
+> 2. In-kernel API
+> 3. Userland API
 
-Hello,
+I think there's an agreement on this. Memory allocation and memory management 
+must be separated, in order to have a single buffer management API working 
+with several different memory providers. Given the wild creativity of hardware 
+engineers, it's pretty much guaranteed that we'll see even more exotic memory 
+allocation requirements in the future :-)
 
-My 2 cents below.
+> Explained:
+> 1. This is how you acquire the actual physical or virtual memory,
+> defrag, swap, etc. This can be enhanced by CMA, hotswap, memory
+> regions or whatever and the main topic for a system wide memory
+> allocator does not deal much with how this is done.
+> 2. In-kernel API is important from a device driver point of view in
+> order to resolve buffers, pin memory when used(enable defrag when
+> unpinned)
+> 3. Userland API deals with alloc/free, import/export(IPC), security,
+> and set-domain capabilities among others and is meant to pass buffers
+> between processes in userland and enable no-copy data paths.
+> 
+> We need to resolve 2. and 3.
+> 
+> GEM/TTM is mentioned in this thread and there is an overlap of what is
+> happening within DRM/DRI/GEM/TTM/KMS and V4L2. The whole idea behind
+> DRM is to have one device driver for everything (well at least 2D/3D,
+> video codecs, display output/composition), while on a SoC all this is
+> on several drivers/IP's. A V4L2 device cannot resolve a GEM handle.
+> GEM only lives inside one DRM device (AFAIK). GEM is also mainly for
+> "dedicated memory-less" graphics cards while TTM mainly targets
+> advanced Graphics Card with dedicated memory. From a SoC point of view
+> DRM looks very "fluffy" and not quite slimmed for an embedded device,
+> and you cannot get GEM/TTM without bringing in all of DRM/DRI. KMS on
+> the other hand is very attractive as a framebuffer device replacer. It
+> is not an easy task to decide on a multimedia user interface for a SoC
+> vendor.
+> 
+> Uniting the frameworks within the kernel will likely fail(too big of a
+> task) but a common system wide memory manager would for sure make life
+> easier enabling the  possibility to pass buffers between drivers(and
+> user-land as well). In order for No-copy to work on a system level the
+> general multimedia infrastructure in User-land (i.e.
+> Gstreamer/X11/wayland/stagefright/flingers/etc) must also be aware of
+> this memory manager and manage handles accordingly. This
+> infrastructure in user-land puts the requirements on the User land API
+> (1.).
+> 
+> I know that STE and ARM has a vision to have a hwmem/ump alike API and
+> that Linaro is one place to resolve this. As Jesse Barker mentioned
+> earlier Linaro has work ongoing on this topic
+> (https://wiki.linaro.org/WorkingGroups/Middleware/Graphics/Projects/Unified
+> MemoryManagement) and a V4L2 brainstorming meeting in Warsaw will likely
+> bring this up as well. And Gstreamer is also looking at this from a
+> user-land point of view.
 
->
->> On Wednesday 30 March 2011 14:44:25 Sakari Ailus wrote:
->>> Laurent Pinchart wrote:
->>>> On Tuesday 29 March 2011 11:35:19 Sakari Ailus wrote:
->>>>> Hans Verkuil wrote:
->>>>>> On Monday, March 28, 2011 14:55:40 Sakari Ailus wrote:
->>>> [snip]
->>>>
->>>>>>>  V4L2_CID_FLASH_TIMEOUT (integer; LED)
->>>>>>>
->>>>>>> The flash controller provides timeout functionality to shut down the
->>>>>>> led in case the host fails to do that. For hardware strobe, this is
->>>>>>> the maximum amount of time the flash should stay on, and the purpose
->>>>>>> of the setting is to prevent the LED from catching fire.
->>>>>>>
->>>>>>> For software strobe, the setting may be used to limit the length of
->>>>>>> the strobe in case a driver does not implement it itself. The
->>>>>>> granularity of the timeout in [1, 2, 3] is very coarse. However, the
->>>>>>> length of a driver-implemented LED strobe shutoff is very dependent
->>>>>>> on host. Possibly V4L2_CID_FLASH_DURATION should be added, and
->>>>>>> V4L2_CID_FLASH_TIMEOUT would be read-only so that the user would be
->>>>>>> able to obtain the actual hardware implemented safety timeout.
->>>>>>>
->>>>>>> Likely a standard unit such as ms or 盜 should be used.
->>>>>>
->>>>>> It seems to me that this control should always be read-only. A setting
->>>>>> like this is very much hardware specific and you don't want an attacker
->>>>>> changing the timeout to the max value that might cause a LED catching
->>>>>> fire.
->>>>>
->>>>> I'm not sure about that.
->>>>>
->>>>> The driver already must take care of protecting the hardware in my
->>>>> opinion. Besides, at least one control is required to select the
->>>>> duration for the flash if there's no hardware synchronisation.
->>>>>
->>>>> What about this:
->>>>>    V4L2_CID_FLASH_TIMEOUT
->>>>>
->>>>> Hardware timeout, read-only. Programmed to the maximum value allowed by
->>>>> the hardware for the external strobe, greater or equal to
->>>>> V4L2_CID_FLASH_DURATION for software strobe.
->>>>>
->>>>>    V4L2_CID_FLASH_DURATION
->>>>>
->>>>> Software implemented timeout when V4L2_CID_FLASH_STROBE_MODE ==
->>>>> V4L2_FLASH_STROBE_MODE_SOFTWARE.
->>>>
->>>> Why would we need two controls here ? My understanding is that the
->>>> maximum strobe duration length can be limited by
->>>>
->>>> - the flash controller itself
->>>> - platform-specific constraints to avoid over-heating the flash
->>>>
->>>> The platform-specific constraints come from board code, and the flash
->>>> driver needs to ensure that the flash is never strobed for a duration
->>>> longer than the limit. This requires implementing a software timer if
->>>> the hardware has no timeout control, and programming the hardware with
->>>> the correct timeout value otherwise. The limit can be queried with
->>>> QUERYCTRL on the duration control.
->>>
->>> That's true.
->>>
->>> The alternative would be software timeout since the hardware timeout is
->>> rather coarse. Its intention is to protect the hardware from catching
->>> fire mostly.
->>
->> A software timeout can always be implemented in the driver in addition to the
->> hardware timeout. I think this should be transparent for applications.
->>
->>> But as I commented in the other e-mail, there likely isn't a need to be
->>> able to control this very precisely. The user just shuts down the flash
->>> whenever (s)he no longer needs it rather than knows beforehand how long
->>> it needs to stay on.
->>
->> What about hardware that needs to be pre-programmed with a duration ?
->
-> Same control?
->
-> I wonder if I could say we agree to have one timeout control which is
-> used to control the hardware timeout directly, or to implement a timeout
-> in software? :-)
+I've had a look at HWMEM yesterday. The API seems to go more or less in the 
+right direction, but the allocator and memory managers are tightly integrated, 
+so we'll need to solve that.
 
-Correct if I'm wrong, but I guess we might be talking about 2 kind of timeouts:
- - One for the duration itself
- - Another one to act like watchdog in addition to the hw timeout
+> ARM, STE seems to agree on this, V4L2 maestros seems to agree,
+> GStreamer as well(I believe),
+> How about Samsung(vcm)? TI(cmem)? Freescale? DRI community? Linus?
 
-IMO they should be different controls. We could even specify on the
-control name when it's a watchdog case to make it more clear.
+I've asked TI who is responsible for CMEM, I'm waiting for an answer.
 
->
->>>>> I have to say I'm not entirely sure the duration control is required.
->>>>> The timeout could be writable for software strobe in the case drivers do
->>>>> not implement software timeout. The granularity isn't _that_ much
->>>>> anyway. Also, a timeout fault should be produced whenever the duration
->>>>> would expire.
->>>>>
->>>>> Perhaps it would be best to just leave that out for now.
->>>>>
->>>>>>>  V4L2_CID_FLASH_LED_MODE (menu; LED)
->>>>>>>
->>>>>>> enum v4l2_flash_led_mode {
->>>>>>>
->>>>>>>  V4L2_FLASH_LED_MODE_FLASH = 1,
->>>>>>>  V4L2_FLASH_LED_MODE_TORCH,
->>>>
->>>> "torch" mode can also be used for video, should we rename TORCH to
->>>> something more generic ? Maybe a "manual" mode ?
->>>
->>> The controllers recognise a torch mode and I think it describes the
->>> functionality quite well. Some appear to make a difference between torch
->>> and video light --- but I can't imagine a purpose in which this could be
->>> useful.
->>
->> Torch mode is indeed a common name, but it sounds a bit specific to me.
->
-> Torch suggests it can be used over extended periods of time, unlike
-> manual which doesn't really say much. I'd keep it torch since what it
-> suggests is that it can stay on for long. No references outside the
-> flash controller itself.
+> Jesse! any progress?
 
-I'd keep with torch also as it seems to be more clear.
-
+-- 
 Regards,
 
-David
-
->
-> --
-> Sakari Ailus
-> sakari.ailus@maxwell.research.nokia.com
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Laurent Pinchart
