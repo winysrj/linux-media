@@ -1,53 +1,69 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:36665 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752690Ab1CJM3V (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Mar 2011 07:29:21 -0500
-Received: from spt2.w1.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LHU00K2PDCU54@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 10 Mar 2011 12:29:19 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LHU00HBVDCU0Z@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 10 Mar 2011 12:29:18 +0000 (GMT)
-Date: Thu, 10 Mar 2011 13:28:39 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 0/3] Another set of videobuf2 hotfixes
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	andrzej.p@samsung.com, pawel@osciak.com
-Message-id: <1299760122-29493-1-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
+Received: from mx1.redhat.com ([209.132.183.28]:49468 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752910Ab1CQLrH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Mar 2011 07:47:07 -0400
+Message-ID: <4D81F4B3.4000004@redhat.com>
+Date: Thu, 17 Mar 2011 08:46:59 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Paul Bolle <pebolle@tiscali.nl>
+CC: Greg KH <greg@kroah.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	USB list <linux-usb@vger.kernel.org>
+Subject: Re: [ANNOUNCE] usbmon capture and parser script
+References: <4D8102A9.9080202@redhat.com> <20110316194758.GA32557@kroah.com> <1300306845.1954.7.camel@t41.thuisdomein>
+In-Reply-To: <1300306845.1954.7.camel@t41.thuisdomein>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello!
+Em 16-03-2011 17:20, Paul Bolle escreveu:
+> On Wed, 2011-03-16 at 12:47 -0700, Greg KH wrote:
+>> Very cool stuff.  You are away of:
+>> 	http://vusb-analyzer.sourceforge.net/
+>> right?
 
-This is one more set of hotfixes for videobuf2 framework.  I hope they
-can be applied to staging/for-2.6.39 kernel tree once vb2 finally gets
-into Linus tree.
+Thanks for pointing it. It seems very interesting.
 
-Best regards
---
-Marek Szyprowski
-Samsung Poland R&D Center
+Paul, 
 
+On a quick test, it seems that it doesn't recognize the tcpdump file 
+format (at least, it was not able to capture the dump files I got 
+with the beagleboard). Adding support for it could be an interesting 
+addition to your code. 
 
-Andrzej Pietrasiewicz (1):
-  v4l2: vb2-dma-sg: fix potential security hole
+Btw, it seems that most of your work is focused on getting VMware logs.
+Most USB adapters I handle are USB 2.0 only, and have very high 
+bandwidth requirements (something like 40%-60% of the total bandwidth
+available at the USB bus). It would be nice to be capable of using a
+VM on some cases, but the last time I tested VMWare, kvm, etc, none 
+of them were capable of properly support USB 2.0 with isoc data transfers.
 
-Marek Szyprowski (2):
-  v4l2: vb2: one more fix for REQBUFS()
-  v4l2: vb2: simplify __vb2_queue_free function
+Do you know if any of them are now capable of properly emulate USB 2.0
+isoc transfers and give enough performance for the devices to actually
+work with such high-bandwidth requirements?
 
- drivers/media/video/videobuf2-core.c   |   15 +++++++++------
- drivers/media/video/videobuf2-dma-sg.c |    2 +-
- 2 files changed, 10 insertions(+), 7 deletions(-)
+>> I know you are doing this in console mode, but it looks close to the
+>> same idea.
 
--- 
-1.7.1.569.g6f426
+Yes, there are some similarities, although I think that the tools
+complement each other.
+
+Doing it via console is nice, as I can just use the serial interface of
+the beagleboard to capture and parse data in real time.
+
+An offline graphic analyser is interesting, especially when you need to
+filter data and check event timings.
+
+> Perhaps there should be some references to vusb-analyzer and similar
+> tools in Documentation/usb/usbmon.txt (it now only mentions "usbdump"
+> and "USBMon"). I remember looking for a tool like that (ie, a parser)
+> for quite some time before stumbling onto vusb-analyzer.
+
+Yeah, that seems a good idea to me too.
+
+Cheers,
+Mauro
