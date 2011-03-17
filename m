@@ -1,58 +1,114 @@
 Return-path: <mchehab@pedra>
-Received: from ist.d-labs.de ([213.239.218.44]:46867 "EHLO mx01.d-labs.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755239Ab1CVO1e convert rfc822-to-8bit (ORCPT
+Received: from knetgate.kensnet.org ([80.168.136.138]:55160 "EHLO
+	knetgate.kensnet.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755280Ab1CQSv3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Mar 2011 10:27:34 -0400
+	Thu, 17 Mar 2011 14:51:29 -0400
+Received: from [172.16.0.164] ([172.16.0.164])
+	(authenticated bits=0)
+	by knetgate.kensnet.org (8.13.8/8.13.8) with ESMTP id p2HIpJY0014879
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 17 Mar 2011 18:51:20 GMT
+Message-ID: <4D825827.6000104@kensnet.org>
+Date: Thu, 17 Mar 2011 18:51:19 +0000
+From: Ken Smith <kens@kensnet.org>
+Reply-To: kens@kensnet.org
 MIME-Version: 1.0
-In-Reply-To: <20110322104426.GA20444@amd.com>
-References: <1300732426-18958-1-git-send-email-florian@mickler.org>
-	<a08d026a-d4c3-4ee5-b01a-d561f755b1ec@email.android.com>
-	<20110321220315.7545a61a@schatten.dmk.lab>
-	<20110322104426.GA20444@amd.com>
-Date: Tue, 22 Mar 2011 15:27:30 +0100
-Message-ID: <AANLkTimJm-Fd0siuuOKgmHWq2L7h0LB=wZ-6E_ZuK=wK@mail.gmail.com>
-Subject: Re: [PATCH 0/6] get rid of on-stack dma buffers
-From: Florian Mickler <florian@mickler.org>
-To: "Roedel, Joerg" <Joerg.Roedel@amd.com>
-Cc: Andy Walls <awalls@md.metrocast.net>,
-	"mchehab@infradead.org" <mchehab@infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"js@linuxtv.org" <js@linuxtv.org>,
-	"tskd2@yahoo.co.jp" <tskd2@yahoo.co.jp>,
-	"liplianin@me.by" <liplianin@me.by>,
-	"g.marco@freenet.de" <g.marco@freenet.de>,
-	"aet@rasterburn.org" <aet@rasterburn.org>,
-	"pb@linuxtv.org" <pb@linuxtv.org>,
-	"mkrufky@linuxtv.org" <mkrufky@linuxtv.org>,
-	"nick@nick-andrew.net" <nick@nick-andrew.net>,
-	"max@veneto.com" <max@veneto.com>,
-	"janne-dvb@grunau.be" <janne-dvb@grunau.be>,
-	Oliver Neukum <oliver@neukum.org>,
-	Greg Kroah-Hartman <greg@kroah.com>,
-	"Rafael J. Wysocki" <rjw@sisk.pl>,
-	James Bottomley <James.Bottomley@hansenpartnership.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: linux-media@vger.kernel.org
+Subject: Re: Compro VideoMate S350
+References: <4D8104E7.70607@kensnet.org>
+In-Reply-To: <4D8104E7.70607@kensnet.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-2011/3/22 Roedel, Joerg <Joerg.Roedel@amd.com>:
-> On Mon, Mar 21, 2011 at 05:03:15PM -0400, Florian Mickler wrote:
->> I guess (not verified), that the dma api takes sufficient precautions
->> to abort the dma transfer if a timeout happens.  So freeing _should_
->> not be an issue. (At least, I would expect big fat warnings everywhere
->> if that were the case)
+
+
+Ken Smith wrote:
 >
-> Freeing is very well an issue. All you can expect from the DMA-API is to
-> give you a valid DMA handle for your device. But it can not prevent that
-> a device uses this handle after you returned it. You need to make sure
-> yourself that any pending DMA is canceled before calling kfree().
+> First post to this list, but not new to Linux.
+>
+> I'm trying to get a Compro VideoMate S350 card to work in a 32bit 
+> Centos 5.5 system that also has a Hauppauge WinTV-NOVA-T-500 that uses 
+> the dvb-usb-dib0700.ko kernel module as its driver. The Nova-T appears 
+> to be working.
+>
+> I've used the v4l source RPM from ATRPMS to build an RPM of the v4l 
+> package. The RPM I compiled/built is called 
+> video4linux-kmdl-2.6.18-194.32.1.el5.centos.plus-20090907-93.RHL5.i386.rpm 
+>
+>
+> The build runs fine without issue.
+>
+> When I try to load the driver for the Compro with
+>
+> modprobe -v saa7134 card=169
+>
+> I get
+>
+>
+> insmod 
+> /lib/modules/2.6.18-194.32.1.el5.centos.plus/kernel/drivers/media/video/video-buf.ko 
+>
+> WARNING: Error inserting video_buf 
+> (/lib/modules/2.6.18-194.32.1.el5.centos.plus/kernel/drivers/media/video/video-buf.ko): 
+> Invalid module format
+> WARNING: Error inserting videobuf_dma_sg 
+> (/lib/modules/2.6.18-194.32.1.el5.centos.plus/updates/drivers/media/video/videobuf-dma-sg.ko): 
+> Unknown symbol in module, or unknown parameter (see dmesg)
+> WARNING: Error inserting v4l1_compat 
+> (/lib/modules/2.6.18-194.32.1.el5.centos.plus/updates/drivers/media/video/v4l1-compat.ko): 
+> Unknown symbol in module, or unknown parameter (see dmesg)
+> WARNING: Error inserting videodev 
+> (/lib/modules/2.6.18-194.32.1.el5.centos.plus/updates/drivers/media/video/videodev.ko): 
+> Unknown symbol in module, or unknown parameter (see dmesg)
+> WARNING: Error inserting v4l2_common 
+> (/lib/modules/2.6.18-194.32.1.el5.centos.plus/updates/drivers/media/video/v4l2-common.ko): 
+> Unknown symbol in module, or unknown parameter (see dmesg)
+> WARNING: Error inserting ir_common 
+> (/lib/modules/2.6.18-194.32.1.el5.centos.plus/updates/drivers/media/common/ir-common.ko): 
+> Unknown symbol in module, or unknown parameter (see dmesg)
+> FATAL: Error inserting saa7134 
+> (/lib/modules/2.6.18-194.32.1.el5.centos.plus/updates/drivers/media/video/saa7134/saa7134.ko): 
+> Unknown symbol in module, or unknown parameter (see dmesg)
+>
+>
+> The line referred to in /var/log/messages is
+>
+>  kernel: video_buf: exports duplicate symbol videobuf_mmap_mapper 
+> (owned by videobuf_core)
+>
+> I know that the centos.plus distribution includes some (if not all of) 
+> the v4l modules, so I tried my build of v4l with the plain Centos 
+> kernel build. The Nova T also runs fine, but I still get the error
+>
+> insmod 
+> /lib/modules/2.6.18-194.32.1.el5/kernel/drivers/media/video/video-buf.ko
+> WARNING: Error inserting video_buf 
+> (/lib/modules/2.6.18-194.32.1.el5/kernel/drivers/media/video/video-buf.ko): 
+> Invalid module format
+>
+> I'm sure I have missed something obvious, I'd appreciate any suggestions.
+>
+> Thanks
+>
+> Ken
+>
+>
 
-sorry, I meant usb_control_msg above when I said 'dma api'... as that
-is the function these
-drivers use to do the dma.
+Apologies - have I sent this to the wrong list. Is there a more 
+appropriate forum?
 
-Regards,
-Flo
+Thanks
+
+Ken
+>
+>
+>
+
+-- 
+This message has been scanned for viruses and
+dangerous content by MailScanner, and is
+believed to be clean.
+
