@@ -1,85 +1,77 @@
 Return-path: <mchehab@pedra>
-Received: from eu1sys200aog103.obsmtp.com ([207.126.144.115]:52110 "EHLO
-	eu1sys200aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932224Ab1CIMTU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Mar 2011 07:19:20 -0500
-From: <johan.xx.mossberg@stericsson.com>
-To: <johan.xx.mossberg@stericsson.com>, <linux-mm@kvack.org>,
-	<linaro-dev@lists.linaro.org>, <linux-media@vger.kernel.org>
-Cc: <gstreamer-devel@lists.freedesktop.org>, <m.nazarewicz@samsung.com>
-Subject: [PATCHv2 0/3] hwmem: Hardware memory driver
-Date: Wed, 9 Mar 2011 13:18:50 +0100
-Message-ID: <1299673133-26464-1-git-send-email-johan.xx.mossberg@stericsson.com>
+Received: from mx1.redhat.com ([209.132.183.28]:33780 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754439Ab1CQPmI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Mar 2011 11:42:08 -0400
+Date: Thu, 17 Mar 2011 11:42:04 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 5/6] lirc_zilog: error out if buffer read bytes != chunk
+ size
+Message-ID: <20110317154204.GB5941@redhat.com>
+References: <1300307071-19665-1-git-send-email-jarod@redhat.com>
+ <1300307071-19665-6-git-send-email-jarod@redhat.com>
+ <1300320442.2296.25.camel@localhost>
+ <20110317131909.GA5941@redhat.com>
+ <210cb1d1-4426-4b73-92aa-ec4337d9642c@email.android.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <210cb1d1-4426-4b73-92aa-ec4337d9642c@email.android.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello everyone, 
+On Thu, Mar 17, 2011 at 11:29:08AM -0400, Andy Walls wrote:
+> Jarod Wilson <jarod@redhat.com> wrote:
+> 
+> >On Wed, Mar 16, 2011 at 08:07:22PM -0400, Andy Walls wrote:
+> >> On Wed, 2011-03-16 at 16:24 -0400, Jarod Wilson wrote:
+> >> > Signed-off-by: Jarod Wilson <jarod@redhat.com>
+> >> > ---
+> >> >  drivers/staging/lirc/lirc_zilog.c |    4 ++++
+> >> >  1 files changed, 4 insertions(+), 0 deletions(-)
+> >> > 
+> >> > diff --git a/drivers/staging/lirc/lirc_zilog.c
+> >b/drivers/staging/lirc/lirc_zilog.c
+> >> > index 407d4b4..5ada643 100644
+> >> > --- a/drivers/staging/lirc/lirc_zilog.c
+> >> > +++ b/drivers/staging/lirc/lirc_zilog.c
+> >> > @@ -950,6 +950,10 @@ static ssize_t read(struct file *filep, char
+> >*outbuf, size_t n, loff_t *ppos)
+> >> >  				ret = copy_to_user((void *)outbuf+written, buf,
+> >> >  						   rbuf->chunk_size);
+> >> >  				written += rbuf->chunk_size;
+> >> > +			} else {
+> >> > +				zilog_error("Buffer read failed!\n");
+> >> > +				ret = -EIO;
+> >> > +				break;
+> >> 
+> >> No need to break, just let the non-0 ret value drop you out of the
+> >while
+> >> loop.
+> >
+> >Ah, indeed. I think I mindlessly copied what the tests just a few lines
+> >above were doing without looking at the actual reason for them. I'll
+> >remove that break from the patch here locally.
+> >
+> >-- 
+> >Jarod Wilson
+> >jarod@redhat.com
+> 
+> You might also want to take a look at that test to ensure it doesn't break blocking read() behavior.  (man 2 read). I'm swamped ATM and didn't look too hard.
+> 
+> It seems odd that the lirc buffer object can have data ready (the first branch of the big if() in the while() loop), and yet the read of that lirc buffer object fails.
 
-The following patchset implements a "hardware memory driver". The
-main purpose of hwmem is:
-
-* To allocate buffers suitable for use with hardware. Currently
-this means contiguous buffers.
-* To synchronize the caches for the allocated buffers. This is
-achieved by keeping track of when the CPU uses a buffer and when
-other hardware uses the buffer, when we switch from CPU to other
-hardware or vice versa the caches are synchronized.
-* To handle sharing of allocated buffers between processes i.e.
-import, export.
-
-Hwmem is available both through a user space API and through a
-kernel API.
-
-Here at ST-Ericsson we use hwmem for graphics buffers. Graphics
-buffers need to be contiguous due to our hardware, are passed
-between processes (usually application and window manager)and are
-part of usecases where performance is top priority so we can't
-afford to synchronize the caches unecessarily.
-
-Additions in v2:
-* Bugfixes
-* Added the possibility to map hwmem buffers in the kernel through
-hwmem_kmap/kunmap
-* Moved mach specific stuff to mach.
-
-Best regards
-Johan Mossberg
-Consultant at ST-Ericsson
-
-Johan Mossberg (3):
-  hwmem: Add hwmem (part 1)
-  hwmem: Add hwmem (part 2)
-  hwmem: Add hwmem to ux500
-
- arch/arm/mach-ux500/Makefile               |    2 +-
- arch/arm/mach-ux500/board-mop500.c         |    1 +
- arch/arm/mach-ux500/dcache.c               |  266 +++++++++
- arch/arm/mach-ux500/devices.c              |   31 ++
- arch/arm/mach-ux500/include/mach/dcache.h  |   26 +
- arch/arm/mach-ux500/include/mach/devices.h |    1 +
- drivers/misc/Kconfig                       |    1 +
- drivers/misc/Makefile                      |    1 +
- drivers/misc/hwmem/Kconfig                 |    7 +
- drivers/misc/hwmem/Makefile                |    3 +
- drivers/misc/hwmem/cache_handler.c         |  510 ++++++++++++++++++
- drivers/misc/hwmem/cache_handler.h         |   61 +++
- drivers/misc/hwmem/hwmem-ioctl.c           |  455 ++++++++++++++++
- drivers/misc/hwmem/hwmem-main.c            |  799 ++++++++++++++++++++++++++++
- include/linux/hwmem.h                      |  536 +++++++++++++++++++
- 15 files changed, 2699 insertions(+), 1 deletions(-)
- create mode 100644 arch/arm/mach-ux500/dcache.c
- create mode 100644 arch/arm/mach-ux500/include/mach/dcache.h
- create mode 100644 drivers/misc/hwmem/Kconfig
- create mode 100644 drivers/misc/hwmem/Makefile
- create mode 100644 drivers/misc/hwmem/cache_handler.c
- create mode 100644 drivers/misc/hwmem/cache_handler.h
- create mode 100644 drivers/misc/hwmem/hwmem-ioctl.c
- create mode 100644 drivers/misc/hwmem/hwmem-main.c
- create mode 100644 include/linux/hwmem.h
+Generally, it shouldn't, but lirc_buffer_read uses kfifo underneath, and
+in the pre-2.6.33 kfifo implementation, the retval from lirc_buffer_read
+(as backported by way of media_build) is always 0, which is of course not
+equal to chunk_size. So I think that in current kernels, this should never
+trigger, and its partially just a note-to-self that this check will go
+sideways when running on an older kernel, but not a bad check to have if
+something really does go wrong.
 
 -- 
-1.7.4.1
+Jarod Wilson
+jarod@redhat.com
 
