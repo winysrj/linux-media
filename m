@@ -1,168 +1,108 @@
 Return-path: <mchehab@pedra>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:10838 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755948Ab1CAJ7J (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Mar 2011 04:59:09 -0500
-Message-ID: <4D6CC36B.50009@cisco.com>
-Date: Tue, 01 Mar 2011 10:59:07 +0100
-From: "Martin Bugge (marbugge)" <marbugge@cisco.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:59871 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757018Ab1CRQfH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Mar 2011 12:35:07 -0400
+Message-ID: <4D8389B2.60507@iki.fi>
+Date: Fri, 18 Mar 2011 18:34:58 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC] HDMI-CEC proposal
+To: Florian Mickler <florian@mickler.org>
+CC: mchehab@infradead.org, oliver@neukum.org, jwjstone@fastmail.fm,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 09/16] [media] au6610: get rid of on-stack dma buffer
+References: <20110315093632.5fc9fb77@schatten.dmk.lab> <1300178655-24832-1-git-send-email-florian@mickler.org> <1300178655-24832-9-git-send-email-florian@mickler.org>
+In-Reply-To: <1300178655-24832-9-git-send-email-florian@mickler.org>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Author: Martin Bugge <marbugge@cisco.com>
-Date:  Tue, 1 March 2010
-======================
-
-This is a proposal for adding a Consumer Electronic Control (CEC) API to 
-V4L2.
-This document describes the changes and new ioctls needed.
-
-Version 1.0 (This is first version)
-
-Background
-==========
-CEC is a protocol that provides high-level control functions between 
-various audiovisual products.
-It is an optional supplement to the High-Definition Multimedia Interface 
-Specification (HDMI).
-Physical layer is a one-wire bidirectional serial bus that uses the 
-industry-standard AV.link protocol.
-
-In short: CEC uses pin 13 on the HDMI connector to transmit and receive 
-small data-packets
-           (maximum 16 bytes including a 1 byte header) at low data 
-rates (~400 bits/s).
-
-A CEC device may have any of 15 logical addresses (0 - 14).
-(address 15 is broadcast and some addresses are reserved)
+On 03/15/2011 10:43 AM, Florian Mickler wrote:
+> usb_control_msg initiates (and waits for completion of) a dma transfer using
+> the supplied buffer. That buffer thus has to be seperately allocated on
+> the heap.
+>
+> In lib/dma_debug.c the function check_for_stack even warns about it:
+> 	WARNING: at lib/dma-debug.c:866 check_for_stack
+>
+> Note: This change is tested to compile only, as I don't have the hardware.
+>
+> Signed-off-by: Florian Mickler<florian@mickler.org>
 
 
-References
-==========
-[1] High-Definition Multimedia Interface Specification version 1.3a,
-     Supplement 1 Consumer Electronic Control (CEC).
-     http://www.hdmi.org/manufacturer/specification.aspx
+This patch did not found from patchwork! Probably skipped due to broken 
+Cc at my contact. Please resend.
 
-[2] 
-http://www.hdmi.org/pdf/whitepaper/DesigningCECintoYourNextHDMIProduct.pdf
+Anyhow, I tested and reviewed it.
 
+Acked-by: Antti Palosaari <crope@iki.fi>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
+Tested-by: Antti Palosaari <crope@iki.fi>
 
-Proposed solution
-=================
+[1] https://patchwork.kernel.org/project/linux-media/list/
 
-Two new ioctls:
-     VIDIOC_CEC_CAP (read)
-     VIDIOC_CEC_CMD (read/write)
-
-VIDIOC_CEC_CAP:
----------------
-
-struct vl2_cec_cap {
-        __u32 logicaldevices;
-        __u32 reserved[7];
-};
-
-The capability ioctl will return the number of logical devices/addresses 
-which can be
-simultaneously supported on this HW.
-     0:       This HW don't support CEC.
-     1 -> 14: This HW supports n logical devices simultaneously.
-
-VIDIOC_CEC_CMD:
----------------
-
-struct v4l2_cec_cmd {
-     __u32 cmd;
-     __u32 reserved[7];
-     union {
-         struct {
-             __u32 index;
-             __u32 enable;
-             __u32 addr;
-         } conf;
-         struct {
-             __u32 len;
-             __u8  msg[16];
-             __u32 status;
-         } data;
-         __u32 raw[8];
-     };
-};
-
-Alternatively the data struct could be:
-         struct {
-             __u8  initiator;
-             __u8  destination;
-             __u8  len;
-             __u8  msg[15];
-             __u32 status;
-         } data;
-
-Commands:
-
-#define V4L2_CEC_CMD_CONF  (1)
-#define V4L2_CEC_CMD_TX    (2)
-#define V4L2_CEC_CMD_RX    (3)
-
-Tx status field:
-
-#define V4L2_CEC_STAT_TX_OK            (0)
-#define V4L2_CEC_STAT_TX_ARB_LOST      (1)
-#define V4L2_CEC_STAT_TX_RETRY_TIMEOUT (2)
-
-The command ioctl is used both for configuration and to receive/transmit 
-data.
-
-* The configuration command must be done for each logical device address
-   which is to be enabled on this HW. Maximum number of logical devices
-   is found with the capability ioctl.
-     conf:
-          index:  0 -> number_of_logical_devices-1
-          enable: true/false
-          addr:   logical address
-
-   By default all logical devices are disabled.
-
-* Tx/Rx command
-     data:
-          len:    length of message (data + header)
-          msg:    the raw CEC message received/transmitted
-          status: when the driver is in blocking mode it gives the 
-result for transmit.
-
-Events
-------
-
-In the case of non-blocking mode the driver will issue the following events:
-
-V4L2_EVENT_CEC_TX
-V4L2_EVENT_CEC_RX
-
-V4L2_EVENT_CEC_TX
------------------
-  * transmit is complete with the following status:
-Add an additional struct to the struct v4l2_event
-
-struct v4l2_event_cec_tx {
-        __u32 status;
-}
-
-V4L2_EVENT_CEC_RX
------------------
-  * received a complete message
+Antti
 
 
-Comments ?
 
-            Martin Bugge
+> ---
+>   drivers/media/dvb/dvb-usb/au6610.c |   22 ++++++++++++++++------
+>   1 files changed, 16 insertions(+), 6 deletions(-)
+>
+> diff --git a/drivers/media/dvb/dvb-usb/au6610.c b/drivers/media/dvb/dvb-usb/au6610.c
+> index eb34cc3..2351077 100644
+> --- a/drivers/media/dvb/dvb-usb/au6610.c
+> +++ b/drivers/media/dvb/dvb-usb/au6610.c
+> @@ -33,8 +33,16 @@ static int au6610_usb_msg(struct dvb_usb_device *d, u8 operation, u8 addr,
+>   {
+>   	int ret;
+>   	u16 index;
+> -	u8 usb_buf[6]; /* enough for all known requests,
+> -			  read returns 5 and write 6 bytes */
+> +	u8 *usb_buf;
+> +
+> +	/*
+> +	 * allocate enough for all known requests,
+> +	 * read returns 5 and write 6 bytes
+> +	 */
+> +	usb_buf = kmalloc(6, GFP_KERNEL);
+> +	if (!usb_buf)
+> +		return -ENOMEM;
+> +
+>   	switch (wlen) {
+>   	case 1:
+>   		index = wbuf[0]<<  8;
+> @@ -45,14 +53,15 @@ static int au6610_usb_msg(struct dvb_usb_device *d, u8 operation, u8 addr,
+>   		break;
+>   	default:
+>   		warn("wlen = %x, aborting.", wlen);
+> -		return -EINVAL;
+> +		ret = -EINVAL;
+> +		goto error;
+>   	}
+>
+>   	ret = usb_control_msg(d->udev, usb_rcvctrlpipe(d->udev, 0), operation,
+>   			      USB_TYPE_VENDOR|USB_DIR_IN, addr<<  1, index,
+> -			      usb_buf, sizeof(usb_buf), AU6610_USB_TIMEOUT);
+> +			      usb_buf, 6, AU6610_USB_TIMEOUT);
+>   	if (ret<  0)
+> -		return ret;
+> +		goto error;
+>
+>   	switch (operation) {
+>   	case AU6610_REQ_I2C_READ:
+> @@ -60,7 +69,8 @@ static int au6610_usb_msg(struct dvb_usb_device *d, u8 operation, u8 addr,
+>   		/* requested value is always 5th byte in buffer */
+>   		rbuf[0] = usb_buf[4];
+>   	}
+> -
+> +error:
+> +	kfree(usb_buf);
+>   	return ret;
+>   }
+>
 
---
-Martin Bugge - Tandberg (now a part of Cisco)
---
 
+-- 
+http://palosaari.fi/
