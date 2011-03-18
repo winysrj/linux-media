@@ -1,104 +1,51 @@
 Return-path: <mchehab@pedra>
-Received: from mail.kapsi.fi ([217.30.184.167]:48839 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756917Ab1CRQg5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Mar 2011 12:36:57 -0400
-Message-ID: <4D838A25.8010301@iki.fi>
-Date: Fri, 18 Mar 2011 18:36:53 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:46745 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932097Ab1CRJeD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Mar 2011 05:34:03 -0400
+Received: by iwn34 with SMTP id 34so3773809iwn.19
+        for <linux-media@vger.kernel.org>; Fri, 18 Mar 2011 02:34:03 -0700 (PDT)
 MIME-Version: 1.0
-To: Florian Mickler <florian@mickler.org>
-CC: mchehab@infradead.org, oliver@neukum.org, jwjstone@fastmail.fm,
-	linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 05/16] [media] ec168: get rid of on stack dma buffers
-References: <20110315093632.5fc9fb77@schatten.dmk.lab> <1300178655-24832-1-git-send-email-florian@mickler.org> <1300178655-24832-5-git-send-email-florian@mickler.org>
-In-Reply-To: <1300178655-24832-5-git-send-email-florian@mickler.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1300412946.9136.18.camel@pc07.localdom.local>
+References: <AANLkTikV3LW5JZdUMjctretv8_ZWN6YFhhfwzDo8NzbW@mail.gmail.com>
+	<1300412946.9136.18.camel@pc07.localdom.local>
+Date: Fri, 18 Mar 2011 20:34:03 +1100
+Message-ID: <AANLkTi=vi-1Y7kjwF1d9K1VBO38jYcO2ynT0UgCvdKNn@mail.gmail.com>
+Subject: Re: [linux-dvb] Problem with saa7134: Asus Tiger revision 1.0, subsys 1043:4857
+From: Jason Hecker <jwhecker@gmail.com>
+To: hermann pitton <hermann-pitton@arcor.de>
+Cc: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 03/15/2011 10:43 AM, Florian Mickler wrote:
-> usb_control_msg initiates (and waits for completion of) a dma transfer using
-> the supplied buffer. That buffer thus has to be seperately allocated on
-> the heap.
->
-> In lib/dma_debug.c the function check_for_stack even warns about it:
-> 	WARNING: at lib/dma-debug.c:866 check_for_stack
->
-> Note: This change is tested to compile only, as I don't have the hardware.
->
-> Signed-off-by: Florian Mickler<florian@mickler.org>
+Hi Hermann,
 
-Acked-by: Antti Palosaari <crope@iki.fi>
-Reviewed-by: Antti Palosaari <crope@iki.fi>
-Tested-by: Antti Palosaari <crope@iki.fi>
+> Hopefully it does help in that other case.
 
-t. Antti
+I have it working now.  I had to add a delay of 120 seconds in the
+mythtv backend script to allow the driver enough time to scan both
+cards and install the firmware properly.  Previously the mythtv
+backend at startup was trying to talk to the cards before the firmware
+was loaded and so they'd fail to work.
 
-> ---
->   drivers/media/dvb/dvb-usb/ec168.c |   18 +++++++++++++++---
->   1 files changed, 15 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/media/dvb/dvb-usb/ec168.c b/drivers/media/dvb/dvb-usb/ec168.c
-> index 52f5d4f..1ba3e5d 100644
-> --- a/drivers/media/dvb/dvb-usb/ec168.c
-> +++ b/drivers/media/dvb/dvb-usb/ec168.c
-> @@ -36,7 +36,9 @@ static int ec168_rw_udev(struct usb_device *udev, struct ec168_req *req)
->   	int ret;
->   	unsigned int pipe;
->   	u8 request, requesttype;
-> -	u8 buf[req->size];
-> +	u8 *buf;
-> +
-> +
->
->   	switch (req->cmd) {
->   	case DOWNLOAD_FIRMWARE:
-> @@ -72,6 +74,12 @@ static int ec168_rw_udev(struct usb_device *udev, struct ec168_req *req)
->   		goto error;
->   	}
->
-> +	buf = kmalloc(req->size, GFP_KERNEL);
-> +	if (!buf) {
-> +		ret = -ENOMEM;
-> +		goto error;
-> +	}
-> +
->   	if (requesttype == (USB_TYPE_VENDOR | USB_DIR_OUT)) {
->   		/* write */
->   		memcpy(buf, req->data, req->size);
-> @@ -84,13 +92,13 @@ static int ec168_rw_udev(struct usb_device *udev, struct ec168_req *req)
->   	msleep(1); /* avoid I2C errors */
->
->   	ret = usb_control_msg(udev, pipe, request, requesttype, req->value,
-> -		req->index, buf, sizeof(buf), EC168_USB_TIMEOUT);
-> +		req->index, buf, req->size, EC168_USB_TIMEOUT);
->
->   	ec168_debug_dump(request, requesttype, req->value, req->index, buf,
->   		req->size, deb_xfer);
->
->   	if (ret<  0)
-> -		goto error;
-> +		goto err_dealloc;
->   	else
->   		ret = 0;
->
-> @@ -98,7 +106,11 @@ static int ec168_rw_udev(struct usb_device *udev, struct ec168_req *req)
->   	if (!ret&&  requesttype == (USB_TYPE_VENDOR | USB_DIR_IN))
->   		memcpy(req->data, buf, req->size);
->
-> +	kfree(buf);
->   	return ret;
-> +
-> +err_dealloc:
-> +	kfree(buf);
->   error:
->   	deb_info("%s: failed:%d\n", __func__, ret);
->   	return ret;
+It's not a big hassle but it would seem in spite of a test in the
+startup script to ensure udev configuration was complete before
+mythbackend was loaded it would seem that udev device configuration
+was completing before the firmware was loaded.
 
+Is there the possibility of adding some feature into the driver to
+make sure it fails on opening if the firmware isn't properly loaded?
 
--- 
-http://palosaari.fi/
+Another general question, does V4L sequentially initialise hardware or
+does it run in parallel?  It would seem to be a good time saver to
+have all DVB cards initialised in parallel to speed up booting of a
+system.
+
+I have reverted back to Mythbuntu 10.04 and kernel 2.6.32 and the
+cards work fine now (though with the latest v29 of the firmware for
+these cards).
+
+Cheers
+Jason
