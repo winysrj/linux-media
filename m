@@ -1,53 +1,92 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.128.26]:58978 "EHLO mgw-da02.nokia.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:37104 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755289Ab1CHOGQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Mar 2011 09:06:16 -0500
-Message-ID: <4D7637D0.4010402@maxwell.research.nokia.com>
-Date: Tue, 08 Mar 2011 16:06:08 +0200
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+	id S1757181Ab1CRQgQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Mar 2011 12:36:16 -0400
+Message-ID: <4D8389FB.6040707@iki.fi>
+Date: Fri, 18 Mar 2011 18:36:11 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: David Cohen <dacohen@gmail.com>
-CC: Hiroshi.DOYU@nokia.com, linux-omap@vger.kernel.org,
-	fernando.lugo@ti.com, linux-media@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH 2/3] omap3: change ISP's IOMMU da_start address
-References: <1299588365-2749-1-git-send-email-dacohen@gmail.com> <1299588365-2749-3-git-send-email-dacohen@gmail.com>
-In-Reply-To: <1299588365-2749-3-git-send-email-dacohen@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Florian Mickler <florian@mickler.org>
+CC: mchehab@infradead.org, oliver@neukum.org, jwjstone@fastmail.fm,
+	linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 06/16] [media] ce6230: get rid of on-stack dma buffer
+References: <20110315093632.5fc9fb77@schatten.dmk.lab> <1300178655-24832-1-git-send-email-florian@mickler.org> <1300178655-24832-6-git-send-email-florian@mickler.org>
+In-Reply-To: <1300178655-24832-6-git-send-email-florian@mickler.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-David Cohen wrote:
-> ISP doesn't consider 0x0 as a valid address, so it should explicitly
-> exclude first page from allowed 'da' range.
-> 
-> Signed-off-by: David Cohen <dacohen@gmail.com>
+On 03/15/2011 10:43 AM, Florian Mickler wrote:
+> usb_control_msg initiates (and waits for completion of) a dma transfer using
+> the supplied buffer. That buffer thus has to be seperately allocated on
+> the heap.
+>
+> In lib/dma_debug.c the function check_for_stack even warns about it:
+> 	WARNING: at lib/dma-debug.c:866 check_for_stack
+>
+> Note: This change is tested to compile only, as I don't have the hardware.
+>
+> Signed-off-by: Florian Mickler<florian@mickler.org>
+
+Acked-by: Antti Palosaari <crope@iki.fi>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
+Tested-by: Antti Palosaari <crope@iki.fi>
+
+
+t. Antti
+
 > ---
->  arch/arm/mach-omap2/omap-iommu.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/omap-iommu.c b/arch/arm/mach-omap2/omap-iommu.c
-> index 3fc5dc7..3bea489 100644
-> --- a/arch/arm/mach-omap2/omap-iommu.c
-> +++ b/arch/arm/mach-omap2/omap-iommu.c
-> @@ -33,7 +33,7 @@ static struct iommu_device omap3_devices[] = {
->  			.name = "isp",
->  			.nr_tlb_entries = 8,
->  			.clk_name = "cam_ick",
-> -			.da_start = 0x0,
-> +			.da_start = 0x1000,
+>   drivers/media/dvb/dvb-usb/ce6230.c |   11 +++++++++--
+>   1 files changed, 9 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/dvb/dvb-usb/ce6230.c b/drivers/media/dvb/dvb-usb/ce6230.c
+> index 3df2045..6d1a304 100644
+> --- a/drivers/media/dvb/dvb-usb/ce6230.c
+> +++ b/drivers/media/dvb/dvb-usb/ce6230.c
+> @@ -39,7 +39,7 @@ static int ce6230_rw_udev(struct usb_device *udev, struct req_t *req)
+>   	u8 requesttype;
+>   	u16 value;
+>   	u16 index;
+> -	u8 buf[req->data_len];
+> +	u8 *buf;
+>
+>   	request = req->cmd;
+>   	value = req->value;
+> @@ -62,6 +62,12 @@ static int ce6230_rw_udev(struct usb_device *udev, struct req_t *req)
+>   		goto error;
+>   	}
+>
+> +	buf = kmalloc(req->data_len, GFP_KERNEL);
+> +	if (!buf) {
+> +		ret = -ENOMEM;
+> +		goto error;
+> +	}
+> +
+>   	if (requesttype == (USB_TYPE_VENDOR | USB_DIR_OUT)) {
+>   		/* write */
+>   		memcpy(buf, req->data, req->data_len);
+> @@ -74,7 +80,7 @@ static int ce6230_rw_udev(struct usb_device *udev, struct req_t *req)
+>   	msleep(1); /* avoid I2C errors */
+>
+>   	ret = usb_control_msg(udev, pipe, request, requesttype, value, index,
+> -				buf, sizeof(buf), CE6230_USB_TIMEOUT);
+> +				buf, req->data_len, CE6230_USB_TIMEOUT);
+>
+>   	ce6230_debug_dump(request, requesttype, value, index, buf,
+>   		req->data_len, deb_xfer);
+> @@ -88,6 +94,7 @@ static int ce6230_rw_udev(struct usb_device *udev, struct req_t *req)
+>   	if (!ret&&  requesttype == (USB_TYPE_VENDOR | USB_DIR_IN))
+>   		memcpy(req->data, buf, req->data_len);
+>
+> +	kfree(buf);
+>   error:
+>   	return ret;
+>   }
 
-The NULL address is still valid for the MMU. Can the IOVMF_DA_ANON
-mapping be specified by the API to be always non-NULL?
-
-This way it would be possible to combine IOVMF_DA_FIXED and
-IOVMF_DA_ANON mappings in the same IOMMU while still being able to rely
-that IOVMF_DA_ANON mappings would always be non-NULL.
-
-Regards,
 
 -- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+http://palosaari.fi/
