@@ -1,109 +1,96 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:42785 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752411Ab1CJTde (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Mar 2011 14:33:34 -0500
-Message-ID: <4D7927EB.8040708@redhat.com>
-Date: Thu, 10 Mar 2011 20:35:07 +0100
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Yordan Kamenov <ykamenov@mm-sol.com>
-CC: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-Subject: Re: [PATCH 0/1 v3] libv4l: Add plugin support
-References: <cover.1297680043.git.ykamenov@mm-sol.com> <4D78D634.70901@mm-sol.com>
-In-Reply-To: <4D78D634.70901@mm-sol.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from mail-in-01.arcor-online.net ([151.189.21.41]:32996 "EHLO
+	mail-in-01.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755076Ab1CRB6e (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Mar 2011 21:58:34 -0400
+Subject: Re: [linux-dvb] Problem with saa7134: Asus Tiger revision 1.0,
+	subsys 1043:4857
+From: hermann pitton <hermann-pitton@arcor.de>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org
+In-Reply-To: <AANLkTikV3LW5JZdUMjctretv8_ZWN6YFhhfwzDo8NzbW@mail.gmail.com>
+References: <AANLkTikV3LW5JZdUMjctretv8_ZWN6YFhhfwzDo8NzbW@mail.gmail.com>
+Content-Type: text/plain
+Date: Fri, 18 Mar 2011 02:49:06 +0100
+Message-Id: <1300412946.9136.18.camel@pc07.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+Hi Jason,
 
-On 03/10/2011 02:46 PM, Yordan Kamenov wrote:
-> Hi Hans,
->
-> any comments on that?
->
+Am Samstag, den 12.03.2011, 10:43 +1100 schrieb Jason Hecker:
+> I just bought a pair of what are a version of the My Cinema 7131
+> Hybrid cards.
+> 
+> The kernel reports it as saa7134: Asus Tiger revision 1.0, subsys
+> 1043:4857 
+> 
+> I did inititially try Mythbuntu 10.04 but the firmware upload seemed
+> to fail fairly consistently.  Restarting with v10.10 the firmware
+> loads but I can't seem to scan the channels with Mythbackend - it has
+> a 0% signal and 100% signal to noise.  I am using MythTV 0.24 with
+> Avenard's latest patches.
+> 
+> This version of the card has written on the silkscreen Tiger rev 3.02,
+> a sticker that says Tiger_8M AA.F7.C0.01 (which would appear to be the
+> latest firmware for this card on Asus's support site) but there is
+> only one RF connector on CON1.  CON2 is not fitted nor is the IR
+> receiver.  Now I saw mentioned on a list that to get DVB working on
+> this card in Linux you need to connect the TV antenna to the FM port,
+> which I suspect is the one not fitted.  The latest Windows drivers for
+> this card is circa 2009.
+> 
+> Two questions:
+> - Is there some sort of SAA7134 module argument I need to use to get
+> the card working on the TV RF input?
+> - Why does the kernel show the firmware is being reloaded every time
+> MythTV seems to want to talk to the card?  This slows down access as
+> it seems to take about 30 seconds for the firmware to install each
+> time.
+> 
+> I am happy to provide whatever debug dumps or more info if need be.
+> 
 
-I looked at globally immediately after you send it,
-summary of that look: looks good, but I still spotted
-some minor issues.
+this hits me only by accident, reading through backlash, but I added
+that Asus Tiger Revision 1.0 with subsys 1043:4857, with a huge delay
+only. (approximately 1 1/2 years)
 
-I'm still trying to make some time for a more detailed
-look. I hope to do that real soon now, esp. as I would
-like to have this reviewed before the Warschau meeting.
+The development and testing for the new tuner types was done only much
+later on freely available stuff, a so called Asus Dual _non_ OEM
+variant.
 
-Thanks & Regards,
+Not to tell what we did all see thereafter, but that all was at least,
+with only one exception, valid using the PCI subsystem as unique
+identifier.
 
-Hans
+Luckily, as far as I can see, we have only a fictional radio device on
+your "new" variant left over.
 
-> Regards
-> Yordan
->
->
->
-> Yordan Kamenov wrote:
->> Hi Hans,
->>
->> here is third version of plugin support for libv4l2.
->>
->> Changes in v3:
->>
->> * Pass opened fd to the plugin instead of filename
->> * Plugin private data is returned by init call and is passed as argument
->> in ioctl/read/close (remove libv4l2_set/get_plugindata functions)
->> * Plugin do not handle mmap/munmap
->>
->>
->>
->> --------------------------------------------------------------------------
->> Changes in v2:
->>
->> * Remove calls of v4l2_plugin_foo functions in the beginning of coresponding
->> v4l2_foo functions and instead replace SYS_FOO calls.
->> * Add to v4l2_dev_info device operation structure which can hold plugin
->> callbacks or dyrect syscall(SYS_foo, ...) calls.
->> * Under libv4lconvert also replace SYS_FOO cals with device operations. This
->> required also to add dev_ops field to v4lconvert_data and v4lcontrol_data.
->>
->> ---------------------------------------------------------------------------
->> v1:
->>
->> Here is initial version of plugin support for libv4l, based on your RFC.
->>
->> It is provided by functions v4l2_plugin_[open,close,etc]. When open() is
->> called libv4l dlopens files in /usr/lib/libv4l/plugins 1 at a time and call
->> open() callback passing through the applications parameters unmodified.
->> If a plugin is relevant for the specified device node, it can indicate so by
->> returning a value other then -1 (the actual file descriptor).
->>
->> As soon as a plugin returns another value then -1 plugin loading stops and
->> information about it (fd and corresponding library handle) is stored.
->> For each function v4l2_[ioctl,read,close,etc] is called corresponding
->> v4l2_plugin_* function which looks if there is loaded plugin for that file
->> and call it's callbacks. v4l2_plugin_* functions indicate by their first
->> argument if plugin was used, and if it was not then v4l2_* functions proceed
->> with their usual behavior.
->>
->>
->> Yordan Kamenov (1):
->> libv4l: Add plugin support to libv4l
->>
->> lib/include/libv4l2-plugin.h | 36 ++++++
->> lib/include/libv4lconvert.h | 5 +-
->> lib/libv4l2/Makefile | 4 +-
->> lib/libv4l2/libv4l2-priv.h | 10 ++
->> lib/libv4l2/libv4l2.c | 90 ++++++++++----
->> lib/libv4l2/v4l2-plugin.c | 160 ++++++++++++++++++++++++
->> lib/libv4l2/v4l2convert.c | 9 --
->> lib/libv4lconvert/control/libv4lcontrol-priv.h | 4 +
->> lib/libv4lconvert/control/libv4lcontrol.c | 35 ++++--
->> lib/libv4lconvert/control/libv4lcontrol.h | 5 +-
->> lib/libv4lconvert/libv4lconvert-priv.h | 2 +
->> lib/libv4lconvert/libv4lconvert.c | 34 ++++--
->> 12 files changed, 333 insertions(+), 61 deletions(-)
->> create mode 100644 lib/include/libv4l2-plugin.h
->> create mode 100644 lib/libv4l2/v4l2-plugin.c
->>
->
+This can still be very annoying, but won't do any harm, except wasting a
+users time, bad enough, but at least not any radiation from that sort of
+radio flaw.
+
+Since the PCI subsystem is identical with mine, still around somewhere,
+with radio support, either take that dead radio device for now or a last
+chance is to discover, if any eeprom differences are there to eventually
+filter that minor, but unpleasant shortcoming for those trying in vain
+on the radio.
+
+Cheers,
+Hermann
+
+To restore the power on a failing power plant in urgent need of it seems
+to be a good idea, after six or seven days ...
+
+All my excuses for the failing radio device on that not yet seen OEM
+stuff, but I can ensure, to piss on it doesn't help any further.
+
+Hopefully it does help in that other case.
+
+
+
+
+
