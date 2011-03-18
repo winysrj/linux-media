@@ -1,88 +1,70 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51967 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751137Ab1CPOPj convert rfc822-to-8bit (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:57641 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751829Ab1CRAuN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Mar 2011 10:15:39 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: riverful.kim@samsung.com
-Subject: Re: the focus terms or sequences
-Date: Wed, 16 Mar 2011 15:15:38 +0100
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
-References: <4D7DBD69.2000507@samsung.com> <201103160114.03677.laurent.pinchart@ideasonboard.com> <4D804183.8020505@samsung.com>
-In-Reply-To: <4D804183.8020505@samsung.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201103161515.39134.laurent.pinchart@ideasonboard.com>
+	Thu, 17 Mar 2011 20:50:13 -0400
+Subject: Re: [PATCH 5/6] lirc_zilog: error out if buffer read bytes !=
+ chunk size
+From: Andy Walls <awalls@md.metrocast.net>
+To: Jarod Wilson <jarod@redhat.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <20110317190827.GD5941@redhat.com>
+References: <1300307071-19665-1-git-send-email-jarod@redhat.com>
+	 <1300307071-19665-6-git-send-email-jarod@redhat.com>
+	 <1300320442.2296.25.camel@localhost> <20110317131909.GA5941@redhat.com>
+	 <210cb1d1-4426-4b73-92aa-ec4337d9642c@email.android.com>
+	 <20110317154204.GB5941@redhat.com>
+	 <9e23e0c0-8944-458f-a521-216239dc9bf9@email.android.com>
+	 <20110317190827.GD5941@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Thu, 17 Mar 2011 20:50:33 -0400
+Message-ID: <1300409433.2317.64.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
-
-On Wednesday 16 March 2011 05:50:11 Kim, HeungJun wrote:
-> 2011-03-16 오전 9:14, Laurent Pinchart 쓴 글:
-
-[snip]
-
-> > What bothers me with your auto-focus implementation is that the user
-> > might want to perform auto-focus several times. Let's imagine this use
-> > case:
+On Thu, 2011-03-17 at 15:08 -0400, Jarod Wilson wrote:
+> On Thu, Mar 17, 2011 at 12:16:31PM -0400, Andy Walls wrote:
+> > Jarod Wilson <jarod@redhat.com> wrote:
+> .
 > > 
-> > 1. The user points the camera (webcam, cellphone camera, digital camera,
-> > it doesn't matter) at an object.
+> > But the orignal intent of the check I put in was to avoid passing
+> partial/junk data to userspace, and go around again to see if good
+> data could be provided.  
 > > 
-> > 2. The user presses a button to perform singleshot auto-focus (it can be
-> > a physical button or a button on the camera screen, once again it
-> > doesn't matter).
-> > 
-> > 3. The application sets the focus control to AUTO.
-> > 
-> > 4. The driver and device perform auto-focus once. The lens is moved so
-> > that the object is in focus.
-> > 
-> > 5. The user points the camera at another object.
-> > 
-> > 6. The user presses a button to perform singleshot auto-focus.
-> > 
-> > 7. The applications sets the focus control to AUTO. As the focus control
-> > value was already AUTO, nothing is done.
-> > 
-> > This is clearly broken. That's why we need a V4L2 button control in
-> > addition to the menu control.
+> > Your check bails when good data that might be sitting there still.
+> That doesn't seem like a good trade for supporting backward compat for
+> old kernels.
 > 
-> Yes. Youre'rignt. The menu control dosen't called one more with the same
-> value. It's now worked I know. But, the reason why I choose menu type for
-> focus, is because the menu type can let the user-application know how many
-> kinds of focus this sensor have & support, using querymenu. The only way
-> letting know, is currently the menu type.
+> Ah. Another thing I neglected to notice then. :)
 > 
-> On the other hand, not-working twice or more executions is handled by
-> user-application. The user-application want twice auto focus, it calls
-> AUTO-Manual-(or any other control value)-and AUTO once again. It's wierd,
-> but It can satisfy application and drivers.
-> 
-> And, but it might be irrelevant, the user-application(or upper layer
-> platform) can determine how to draw & arrange the UI objects after it
-> knows the kinds of focus method at last.
-> 
-> It may be a time to need another type of control. And such control should
-> satisfy these: 1. letting the user-application know how many kinds in the
-> controls(like a querymenu) 2. being available to be called one more.
-> 
-> How about your opinion?
+> Perhaps there should be a retry count check as well then, as otherwise,
+> its possible to get stuck in that loop forever (which is what was
+> happening on older kernels). Its conceivable that similar could happen on
+> a newer kernel for some reason.
 
-I think we need a menu control (to select the focus type) and a button control 
-(to run singleshot auto-focus). When the menu control is in auto-focus mode, 
-setting the button control will run the auto-focus algorithm once.
+Well, lets see,
 
-Is the macro focus mode a singleshot focus or a continuous auto-focus ?
+>From the perspective of userspace & lircd:
 
--- 
+1. A specification compliance failure for a corner case isn't too bad
+(bailing out on junk and leaving good data behind)
+
+2. An unrecoverable failure for any case is very bad (spinning/hanging
+on a result that won't change)
+
+3. Sending unitialized bytes out to userspace with copy_to_user() is
+very bad.
+(I recall the old code would do the copy to user and always tell
+userspace it got a code whether it read anything out of the buffer or
+not.  IIRC, that leaked information off the stack.)
+
+
+If the code as patched avoids the two very bad things (#2 and #3), then
+the patch is OK by me.
+
 Regards,
+Andy
 
-Laurent Pinchart
