@@ -1,216 +1,359 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:22339 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753655Ab1CDJB3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2011 04:01:29 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Fri, 04 Mar 2011 10:01:08 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 1/7] ARM: S5PV310: Add platform definitions for FIMC
-In-reply-to: <1299229274-9753-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	kgene.kim@samsung.com, andrzej.p@samsung.com,
-	t.stanislaws@samsung.com, s.nawrocki@samsung.com,
-	k.debski@samsung.com
-Message-id: <1299229274-9753-2-git-send-email-m.szyprowski@samsung.com>
-References: <1299229274-9753-1-git-send-email-m.szyprowski@samsung.com>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:60899 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754677Ab1CRAHY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Mar 2011 20:07:24 -0400
+Received: by fxm17 with SMTP id 17so3232652fxm.19
+        for <linux-media@vger.kernel.org>; Thu, 17 Mar 2011 17:07:22 -0700 (PDT)
+Date: Fri, 18 Mar 2011 09:08:55 +0900
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Stefan Ringel <stefan.ringel@arcor.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] tm6000: fix s-video input
+Message-ID: <20110318090855.773af168@glory.local>
+In-Reply-To: <4D5D8BFB.4070802@redhat.com>
+References: <4CAD5A78.3070803@redhat.com>
+ <4CB492D4.1000609@arcor.de>
+ <20101129174412.08f2001c@glory.local>
+ <4CF51C9E.6040600@arcor.de>
+ <20101201144704.43b58f2c@glory.local>
+ <4CF67AB9.6020006@arcor.de>
+ <20101202134128.615bbfa0@glory.local>
+ <4CF71CF6.7080603@redhat.com>
+ <20101206010934.55d07569@glory.local>
+ <4CFBF62D.7010301@arcor.de>
+ <20101206190230.2259d7ab@glory.local>
+ <4CFEA3D2.4050309@arcor.de>
+ <20101208125539.739e2ed2@glory.local>
+ <4CFFAD1E.7040004@arcor.de>
+ <20101214122325.5cdea67e@glory.local>
+ <4D079ADF.2000705@arcor.de>
+ <20101215164634.44846128@glory.local>
+ <4D08E43C.8080002@arcor.de>
+ <20101216183844.6258734e@glory.local>
+ <4D0A4883.20804@arcor.de>
+ <20101217104633.7c9d10d7@glory.local>
+ <4D0AF2A7.6080100@arcor.de>
+ <20101217160854.16a1f754@glory.local>
+ <4D0BFF4B.3060001@redhat.com>
+ <20110120150508.53c9b55e@glory.local>
+ <4D388C44.7040500@arcor.de>
+ <20110217141257.6d1b578b@glory.local>
+ <4D5D8BFB.4070802@redhat.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="MP_/Xo6XcssTo0FRssK4Vpc6QVW"
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+--MP_/Xo6XcssTo0FRssK4Vpc6QVW
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Add support for fourth FIMC platform device definition and define
-resources for FIMC modules on S5PV310 machines.
+Hi
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- arch/arm/mach-s5pv310/cpu.c                    |    7 ++++
- arch/arm/mach-s5pv310/include/mach/irqs.h      |    4 ++
- arch/arm/mach-s5pv310/include/mach/map.h       |    8 ++++
- arch/arm/plat-s5p/Kconfig                      |    5 +++
- arch/arm/plat-s5p/Makefile                     |    1 +
- arch/arm/plat-s5p/dev-fimc3.c                  |   43 ++++++++++++++++++++++++
- arch/arm/plat-samsung/include/plat/devs.h      |    1 +
- arch/arm/plat-samsung/include/plat/fimc-core.h |    5 +++
- 8 files changed, 74 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/plat-s5p/dev-fimc3.c
+Add compatibility for composite and s-video inputs. Some TV cards hasn't it.
+Fix S-Video input, the s-video cable has only video signals no audio. Call the function of audio configure kill chroma in signal. only b/w video.
 
-diff --git a/arch/arm/mach-s5pv310/cpu.c b/arch/arm/mach-s5pv310/cpu.c
-index 0db0fb6..0bdb0b0 100644
---- a/arch/arm/mach-s5pv310/cpu.c
-+++ b/arch/arm/mach-s5pv310/cpu.c
-@@ -21,6 +21,8 @@
- #include <plat/clock.h>
- #include <plat/s5pv310.h>
- #include <plat/sdhci.h>
-+#include <plat/devs.h>
-+#include <plat/fimc-core.h>
- 
- #include <mach/regs-irq.h>
- 
-@@ -114,6 +116,11 @@ void __init s5pv310_map_io(void)
- 	s5pv310_default_sdhci1();
- 	s5pv310_default_sdhci2();
- 	s5pv310_default_sdhci3();
+Known bugs:
+after s-video the audio for radio didn't work, TV crashed hardly
+after composite TV crashed hardly too.
+
+P.S. After this patch I'll want to rework the procedure of configure video. Now it has a lot of junk and dubles.
+
+diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
+index 88144a1..146c7e8 100644
+--- a/drivers/staging/tm6000/tm6000-cards.c
++++ b/drivers/staging/tm6000/tm6000-cards.c
+@@ -235,11 +235,13 @@ struct tm6000_board tm6000_boards[] = {
+ 		.avideo       = TM6000_AIP_SIF1,
+ 		.aradio       = TM6000_AIP_LINE1,
+ 		.caps = {
+-			.has_tuner    = 1,
+-			.has_dvb      = 1,
+-			.has_zl10353  = 1,
+-			.has_eeprom   = 1,
+-			.has_remote   = 1,
++			.has_tuner      = 1,
++			.has_dvb        = 1,
++			.has_zl10353    = 1,
++			.has_eeprom     = 1,
++			.has_remote     = 1,
++			.has_input_comp = 1,
++			.has_input_svid = 1,
+ 		},
+ 		.gpio = {
+ 			.tuner_reset	= TM6010_GPIO_0,
+@@ -255,11 +257,13 @@ struct tm6000_board tm6000_boards[] = {
+ 		.avideo       = TM6000_AIP_SIF1,
+ 		.aradio       = TM6000_AIP_LINE1,
+ 		.caps = {
+-			.has_tuner    = 1,
+-			.has_dvb      = 0,
+-			.has_zl10353  = 0,
+-			.has_eeprom   = 1,
+-			.has_remote   = 1,
++			.has_tuner      = 1,
++			.has_dvb        = 0,
++			.has_zl10353    = 0,
++			.has_eeprom     = 1,
++			.has_remote     = 1,
++			.has_input_comp = 1,
++			.has_input_svid = 1,
+ 		},
+ 		.gpio = {
+ 			.tuner_reset	= TM6010_GPIO_0,
+@@ -327,10 +331,13 @@ struct tm6000_board tm6000_boards[] = {
+ 		.avideo       = TM6000_AIP_SIF1,
+ 		.aradio       = TM6000_AIP_LINE1,
+ 		.caps = {
+-			.has_tuner    = 1,
+-			.has_dvb      = 1,
+-			.has_zl10353  = 1,
+-			.has_eeprom   = 1,
++			.has_tuner      = 1,
++			.has_dvb        = 1,
++			.has_zl10353    = 1,
++			.has_eeprom     = 1,
++			.has_remote     = 0,
++			.has_input_comp = 0,
++			.has_input_svid = 0,
+ 		},
+ 		.gpio = {
+ 			.tuner_reset	= TM6010_GPIO_0,
+@@ -346,10 +353,13 @@ struct tm6000_board tm6000_boards[] = {
+ 		.avideo       = TM6000_AIP_SIF1,
+ 		.aradio       = TM6000_AIP_LINE1,
+ 		.caps = {
+-			.has_tuner    = 1,
+-			.has_dvb      = 0,
+-			.has_zl10353  = 0,
+-			.has_eeprom   = 1,
++			.has_tuner      = 1,
++			.has_dvb        = 0,
++			.has_zl10353    = 0,
++			.has_eeprom     = 1,
++			.has_remote     = 0,
++			.has_input_comp = 0,
++			.has_input_svid = 0,
+ 		},
+ 		.gpio = {
+ 			.tuner_reset	= TM6010_GPIO_0,
+diff --git a/drivers/staging/tm6000/tm6000-stds.c b/drivers/staging/tm6000/tm6000-stds.c
+index a4c07e5..da3e51b 100644
+--- a/drivers/staging/tm6000/tm6000-stds.c
++++ b/drivers/staging/tm6000/tm6000-stds.c
+@@ -1161,8 +1161,6 @@ int tm6000_set_standard(struct tm6000_core *dev, v4l2_std_id * norm)
+ 				rc = tm6000_load_std(dev, svideo_stds[i].common,
+ 						     sizeof(svideo_stds[i].
+ 							    common));
+-				tm6000_set_audio_std(dev, svideo_stds[i].audio_default_std);
+-
+ 				goto ret;
+ 			}
+ 		}
+diff --git a/drivers/staging/tm6000/tm6000-video.c b/drivers/staging/tm6000/tm6000-video.c
+index b550340..c80a316 100644
+--- a/drivers/staging/tm6000/tm6000-video.c
++++ b/drivers/staging/tm6000/tm6000-video.c
+@@ -1080,18 +1080,27 @@ static int vidioc_s_std (struct file *file, void *priv, v4l2_std_id *norm)
+ static int vidioc_enum_input(struct file *file, void *priv,
+ 				struct v4l2_input *inp)
+ {
++	struct tm6000_fh   *fh = priv;
++	struct tm6000_core *dev = fh->dev;
 +
-+	s3c_fimc_setname(0, "s5pv310-fimc");
-+	s3c_fimc_setname(1, "s5pv310-fimc");
-+	s3c_fimc_setname(2, "s5pv310-fimc");
-+	s3c_fimc_setname(3, "s5pv310-fimc");
- }
- 
- void __init s5pv310_init_clocks(int xtal)
-diff --git a/arch/arm/mach-s5pv310/include/mach/irqs.h b/arch/arm/mach-s5pv310/include/mach/irqs.h
-index 536b0b5..0e99968 100644
---- a/arch/arm/mach-s5pv310/include/mach/irqs.h
-+++ b/arch/arm/mach-s5pv310/include/mach/irqs.h
-@@ -107,6 +107,10 @@
- 
- #define IRQ_MIPI_CSIS0		COMBINER_IRQ(30, 0)
- #define IRQ_MIPI_CSIS1		COMBINER_IRQ(30, 1)
-+#define IRQ_FIMC0		COMBINER_IRQ(32, 0)
-+#define IRQ_FIMC1		COMBINER_IRQ(32, 1)
-+#define IRQ_FIMC2		COMBINER_IRQ(33, 0)
-+#define IRQ_FIMC3		COMBINER_IRQ(33, 1)
- 
- #define IRQ_ONENAND_AUDI	COMBINER_IRQ(34, 0)
- 
-diff --git a/arch/arm/mach-s5pv310/include/mach/map.h b/arch/arm/mach-s5pv310/include/mach/map.h
-index 901657f..0db3a47 100644
---- a/arch/arm/mach-s5pv310/include/mach/map.h
-+++ b/arch/arm/mach-s5pv310/include/mach/map.h
-@@ -25,6 +25,10 @@
- 
- #define S5PV310_PA_SYSRAM		0x02025000
- 
-+#define S5PV310_PA_FIMC0		0x11800000
-+#define S5PV310_PA_FIMC1		0x11810000
-+#define S5PV310_PA_FIMC2		0x11820000
-+#define S5PV310_PA_FIMC3		0x11830000
- #define S5PV310_PA_I2S0			0x03830000
- #define S5PV310_PA_I2S1			0xE3100000
- #define S5PV310_PA_I2S2			0xE2A00000
-@@ -121,6 +125,10 @@
- #define S5P_PA_CHIPID			S5PV310_PA_CHIPID
- #define S5P_PA_MIPI_CSIS0		S5PV310_PA_MIPI_CSIS0
- #define S5P_PA_MIPI_CSIS1		S5PV310_PA_MIPI_CSIS1
-+#define S5P_PA_FIMC0			S5PV310_PA_FIMC0
-+#define S5P_PA_FIMC1			S5PV310_PA_FIMC1
-+#define S5P_PA_FIMC2			S5PV310_PA_FIMC2
-+#define S5P_PA_FIMC3			S5PV310_PA_FIMC3
- #define S5P_PA_ONENAND			S5PC210_PA_ONENAND
- #define S5P_PA_ONENAND_DMA		S5PC210_PA_ONENAND_DMA
- #define S5P_PA_SDRAM			S5PV310_PA_SDRAM
-diff --git a/arch/arm/plat-s5p/Kconfig b/arch/arm/plat-s5p/Kconfig
-index 557f8c5..0db2a7a 100644
---- a/arch/arm/plat-s5p/Kconfig
-+++ b/arch/arm/plat-s5p/Kconfig
-@@ -60,6 +60,11 @@ config S5P_DEV_FIMC2
- 	help
- 	  Compile in platform device definitions for FIMC controller 2
- 
-+config S5P_DEV_FIMC3
-+	bool
-+	help
-+	  Compile in platform device definitions for FIMC controller 3
-+	  
- config S5P_DEV_ONENAND
- 	bool
- 	help
-diff --git a/arch/arm/plat-s5p/Makefile b/arch/arm/plat-s5p/Makefile
-index ce5a0a7..cfcd1db 100644
---- a/arch/arm/plat-s5p/Makefile
-+++ b/arch/arm/plat-s5p/Makefile
-@@ -28,6 +28,7 @@ obj-$(CONFIG_SUSPEND)		+= irq-pm.o
- obj-$(CONFIG_S5P_DEV_FIMC0)	+= dev-fimc0.o
- obj-$(CONFIG_S5P_DEV_FIMC1)	+= dev-fimc1.o
- obj-$(CONFIG_S5P_DEV_FIMC2)	+= dev-fimc2.o
-+obj-$(CONFIG_S5P_DEV_FIMC3)	+= dev-fimc3.o
- obj-$(CONFIG_S5P_DEV_ONENAND)	+= dev-onenand.o
- obj-$(CONFIG_S5P_DEV_CSIS0)	+= dev-csis0.o
- obj-$(CONFIG_S5P_DEV_CSIS1)	+= dev-csis1.o
-diff --git a/arch/arm/plat-s5p/dev-fimc3.c b/arch/arm/plat-s5p/dev-fimc3.c
-new file mode 100644
-index 0000000..ef31bec
---- /dev/null
-+++ b/arch/arm/plat-s5p/dev-fimc3.c
-@@ -0,0 +1,43 @@
-+/* linux/arch/arm/plat-s5p/dev-fimc3.c
-+ *
-+ * Copyright (c) 2010 Samsung Electronics
-+ *
-+ * Base S5P FIMC3 resource and device definitions
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/platform_device.h>
-+#include <linux/interrupt.h>
-+#include <linux/ioport.h>
-+#include <mach/map.h>
-+
-+static struct resource s5p_fimc3_resource[] = {
-+	[0] = {
-+		.start	= S5P_PA_FIMC3,
-+		.end	= S5P_PA_FIMC3 + SZ_4K - 1,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	[1] = {
-+		.start	= IRQ_FIMC3,
-+		.end	= IRQ_FIMC3,
-+		.flags	= IORESOURCE_IRQ,
-+	},
-+};
-+
-+static u64 s5p_fimc3_dma_mask = DMA_BIT_MASK(32);
-+
-+struct platform_device s5p_device_fimc3 = {
-+	.name		= "s5p-fimc",
-+	.id		= 3,
-+	.num_resources	= ARRAY_SIZE(s5p_fimc3_resource),
-+	.resource	= s5p_fimc3_resource,
-+	.dev		= {
-+		.dma_mask		= &s5p_fimc3_dma_mask,
-+		.coherent_dma_mask	= DMA_BIT_MASK(32),
-+	},
-+};
-diff --git a/arch/arm/plat-samsung/include/plat/devs.h b/arch/arm/plat-samsung/include/plat/devs.h
-index b4d208b..b0123f3 100644
---- a/arch/arm/plat-samsung/include/plat/devs.h
-+++ b/arch/arm/plat-samsung/include/plat/devs.h
-@@ -133,6 +133,7 @@ extern struct platform_device samsung_device_keypad;
- extern struct platform_device s5p_device_fimc0;
- extern struct platform_device s5p_device_fimc1;
- extern struct platform_device s5p_device_fimc2;
-+extern struct platform_device s5p_device_fimc3;
- 
- extern struct platform_device s5p_device_mipi_csis0;
- extern struct platform_device s5p_device_mipi_csis1;
-diff --git a/arch/arm/plat-samsung/include/plat/fimc-core.h b/arch/arm/plat-samsung/include/plat/fimc-core.h
-index 81a3bfe..945a99d 100644
---- a/arch/arm/plat-samsung/include/plat/fimc-core.h
-+++ b/arch/arm/plat-samsung/include/plat/fimc-core.h
-@@ -38,6 +38,11 @@ static inline void s3c_fimc_setname(int id, char *name)
- 		s5p_device_fimc2.name = name;
+ 	switch (inp->index) {
+ 	case TM6000_INPUT_TV:
+ 		inp->type = V4L2_INPUT_TYPE_TUNER;
+ 		strcpy(inp->name, "Television");
  		break;
- #endif
-+#ifdef CONFIG_S5P_DEV_FIMC3
-+	case 3:
-+		s5p_device_fimc3.name = name;
-+		break;
-+#endif
- 	}
- }
+ 	case TM6000_INPUT_COMPOSITE:
+-		inp->type = V4L2_INPUT_TYPE_CAMERA;
+-		strcpy(inp->name, "Composite");
++		if (dev->caps.has_input_comp) {
++			inp->type = V4L2_INPUT_TYPE_CAMERA;
++			strcpy(inp->name, "Composite");
++		} else
++			return -EINVAL;
+ 		break;
+ 	case TM6000_INPUT_SVIDEO:
+-		inp->type = V4L2_INPUT_TYPE_CAMERA;
+-		strcpy(inp->name, "S-Video");
++		if (dev->caps.has_input_svid) {
++			inp->type = V4L2_INPUT_TYPE_CAMERA;
++			strcpy(inp->name, "S-Video");
++		} else
++			return -EINVAL;
+ 		break;
+ 	default:
+ 		return -EINVAL;
+diff --git a/drivers/staging/tm6000/tm6000.h b/drivers/staging/tm6000/tm6000.h
+index ccd120f..99ae50e 100644
+--- a/drivers/staging/tm6000/tm6000.h
++++ b/drivers/staging/tm6000/tm6000.h
+@@ -129,6 +129,8 @@ struct tm6000_capabilities {
+ 	unsigned int    has_zl10353:1;
+ 	unsigned int    has_eeprom:1;
+ 	unsigned int    has_remote:1;
++	unsigned int    has_input_comp:1;
++	unsigned int    has_input_svid:1;
+ };
  
--- 
-1.7.1.569.g6f426
+ struct tm6000_dvb {
+
+Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+
+With my best regards, Dmitry.
+
+--MP_/Xo6XcssTo0FRssK4Vpc6QVW
+Content-Type: text/x-patch
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=tm6000_svideo.patch
+
+diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
+index 88144a1..146c7e8 100644
+--- a/drivers/staging/tm6000/tm6000-cards.c
++++ b/drivers/staging/tm6000/tm6000-cards.c
+@@ -235,11 +235,13 @@ struct tm6000_board tm6000_boards[] = {
+ 		.avideo       = TM6000_AIP_SIF1,
+ 		.aradio       = TM6000_AIP_LINE1,
+ 		.caps = {
+-			.has_tuner    = 1,
+-			.has_dvb      = 1,
+-			.has_zl10353  = 1,
+-			.has_eeprom   = 1,
+-			.has_remote   = 1,
++			.has_tuner      = 1,
++			.has_dvb        = 1,
++			.has_zl10353    = 1,
++			.has_eeprom     = 1,
++			.has_remote     = 1,
++			.has_input_comp = 1,
++			.has_input_svid = 1,
+ 		},
+ 		.gpio = {
+ 			.tuner_reset	= TM6010_GPIO_0,
+@@ -255,11 +257,13 @@ struct tm6000_board tm6000_boards[] = {
+ 		.avideo       = TM6000_AIP_SIF1,
+ 		.aradio       = TM6000_AIP_LINE1,
+ 		.caps = {
+-			.has_tuner    = 1,
+-			.has_dvb      = 0,
+-			.has_zl10353  = 0,
+-			.has_eeprom   = 1,
+-			.has_remote   = 1,
++			.has_tuner      = 1,
++			.has_dvb        = 0,
++			.has_zl10353    = 0,
++			.has_eeprom     = 1,
++			.has_remote     = 1,
++			.has_input_comp = 1,
++			.has_input_svid = 1,
+ 		},
+ 		.gpio = {
+ 			.tuner_reset	= TM6010_GPIO_0,
+@@ -327,10 +331,13 @@ struct tm6000_board tm6000_boards[] = {
+ 		.avideo       = TM6000_AIP_SIF1,
+ 		.aradio       = TM6000_AIP_LINE1,
+ 		.caps = {
+-			.has_tuner    = 1,
+-			.has_dvb      = 1,
+-			.has_zl10353  = 1,
+-			.has_eeprom   = 1,
++			.has_tuner      = 1,
++			.has_dvb        = 1,
++			.has_zl10353    = 1,
++			.has_eeprom     = 1,
++			.has_remote     = 0,
++			.has_input_comp = 0,
++			.has_input_svid = 0,
+ 		},
+ 		.gpio = {
+ 			.tuner_reset	= TM6010_GPIO_0,
+@@ -346,10 +353,13 @@ struct tm6000_board tm6000_boards[] = {
+ 		.avideo       = TM6000_AIP_SIF1,
+ 		.aradio       = TM6000_AIP_LINE1,
+ 		.caps = {
+-			.has_tuner    = 1,
+-			.has_dvb      = 0,
+-			.has_zl10353  = 0,
+-			.has_eeprom   = 1,
++			.has_tuner      = 1,
++			.has_dvb        = 0,
++			.has_zl10353    = 0,
++			.has_eeprom     = 1,
++			.has_remote     = 0,
++			.has_input_comp = 0,
++			.has_input_svid = 0,
+ 		},
+ 		.gpio = {
+ 			.tuner_reset	= TM6010_GPIO_0,
+diff --git a/drivers/staging/tm6000/tm6000-stds.c b/drivers/staging/tm6000/tm6000-stds.c
+index a4c07e5..da3e51b 100644
+--- a/drivers/staging/tm6000/tm6000-stds.c
++++ b/drivers/staging/tm6000/tm6000-stds.c
+@@ -1161,8 +1161,6 @@ int tm6000_set_standard(struct tm6000_core *dev, v4l2_std_id * norm)
+ 				rc = tm6000_load_std(dev, svideo_stds[i].common,
+ 						     sizeof(svideo_stds[i].
+ 							    common));
+-				tm6000_set_audio_std(dev, svideo_stds[i].audio_default_std);
+-
+ 				goto ret;
+ 			}
+ 		}
+diff --git a/drivers/staging/tm6000/tm6000-video.c b/drivers/staging/tm6000/tm6000-video.c
+index b550340..c80a316 100644
+--- a/drivers/staging/tm6000/tm6000-video.c
++++ b/drivers/staging/tm6000/tm6000-video.c
+@@ -1080,18 +1080,27 @@ static int vidioc_s_std (struct file *file, void *priv, v4l2_std_id *norm)
+ static int vidioc_enum_input(struct file *file, void *priv,
+ 				struct v4l2_input *inp)
+ {
++	struct tm6000_fh   *fh = priv;
++	struct tm6000_core *dev = fh->dev;
++
+ 	switch (inp->index) {
+ 	case TM6000_INPUT_TV:
+ 		inp->type = V4L2_INPUT_TYPE_TUNER;
+ 		strcpy(inp->name, "Television");
+ 		break;
+ 	case TM6000_INPUT_COMPOSITE:
+-		inp->type = V4L2_INPUT_TYPE_CAMERA;
+-		strcpy(inp->name, "Composite");
++		if (dev->caps.has_input_comp) {
++			inp->type = V4L2_INPUT_TYPE_CAMERA;
++			strcpy(inp->name, "Composite");
++		} else
++			return -EINVAL;
+ 		break;
+ 	case TM6000_INPUT_SVIDEO:
+-		inp->type = V4L2_INPUT_TYPE_CAMERA;
+-		strcpy(inp->name, "S-Video");
++		if (dev->caps.has_input_svid) {
++			inp->type = V4L2_INPUT_TYPE_CAMERA;
++			strcpy(inp->name, "S-Video");
++		} else
++			return -EINVAL;
+ 		break;
+ 	default:
+ 		return -EINVAL;
+diff --git a/drivers/staging/tm6000/tm6000.h b/drivers/staging/tm6000/tm6000.h
+index ccd120f..99ae50e 100644
+--- a/drivers/staging/tm6000/tm6000.h
++++ b/drivers/staging/tm6000/tm6000.h
+@@ -129,6 +129,8 @@ struct tm6000_capabilities {
+ 	unsigned int    has_zl10353:1;
+ 	unsigned int    has_eeprom:1;
+ 	unsigned int    has_remote:1;
++	unsigned int    has_input_comp:1;
++	unsigned int    has_input_svid:1;
+ };
+ 
+ struct tm6000_dvb {
+
+Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+
+--MP_/Xo6XcssTo0FRssK4Vpc6QVW--
