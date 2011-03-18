@@ -1,85 +1,42 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48344 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755882Ab1CAKJ5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Mar 2011 05:09:57 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Bhupesh SHARMA <bhupesh.sharma@st.com>
-Subject: Re: isp or soc-camera for image co-processors
-Date: Tue, 1 Mar 2011 11:10:05 +0100
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <D5ECB3C7A6F99444980976A8C6D896384DEFA5983D@EAPEX1MAIL1.st.com> <201103011041.03424.laurent.pinchart@ideasonboard.com> <D5ECB3C7A6F99444980976A8C6D896384DEFA598FC@EAPEX1MAIL1.st.com>
-In-Reply-To: <D5ECB3C7A6F99444980976A8C6D896384DEFA598FC@EAPEX1MAIL1.st.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:46191 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750953Ab1CRPq0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Mar 2011 11:46:26 -0400
+Message-ID: <4D837E4E.7010105@iki.fi>
+Date: Fri, 18 Mar 2011 17:46:22 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: adq <adq@lidskialf.net>
+CC: =?ISO-8859-1?Q?Juan_Jes=FAs_Garc=EDa_de_Soria_Lucena?=
+	<skandalfo@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: [patch] Fix AF9015 Dual tuner i2c write failures
+References: <AANLkTi=rcfL_pku9hhx68C_Fb_76KsW2Yy+Oys10a7+4@mail.gmail.com>	<4D7163FD.9030604@iki.fi>	<AANLkTimjC99zhJ=huHZiGgbENCoyHy5KT87iujjTT8w3@mail.gmail.com>	<4D716ECA.4060900@iki.fi>	<AANLkTimHa6XFwhvpLbhtRm7Vee-jYPkHpx+D8L2=+vQb@mail.gmail.com>	<AANLkTik9cSnAFWNdTUv3NNU3K2SoeECDO2036Htx-OAi@mail.gmail.com>	<AANLkTi=e-cAzMWZSHvKR8Yx+0MqcY_Ewf4z1gDyZfCeo@mail.gmail.com>	<AANLkTi=YMtTbgwxNA1O6zp03OoeGKJvn8oYDB9kHjti1@mail.gmail.com>	<AANLkTimDSwR06nRxNv9x11_dDdaSBzD-En4N8ameDe1Y@mail.gmail.com>	<AANLkTimWRDk+iGPzuXarmpr0w9W4aS4Be=xpBPkMipdC@mail.gmail.com>	<AANLkTimUAKjx81Z1GF=ceG33zHhLX1r-HfykWWyNpay-@mail.gmail.com> <AANLkTinZVRjZEHDhi1Q0d4jfyTk5E7HhBP2U08ymW=BG@mail.gmail.com>
+In-Reply-To: <AANLkTinZVRjZEHDhi1Q0d4jfyTk5E7HhBP2U08ymW=BG@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201103011110.06258.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Bhupesh,
+On 03/08/2011 12:12 AM, adq wrote:
+> Ah well, so its definitely /not/ conflicting i2c writes that cause the
+> tuner problem as it has finally just died. The festats for a "crashed"
+> tuner are:
+>    Sig: 50933  SNR: 50  BER: 0  UBLK: 5370554  Stat: 0x01 [SIG ]
+> (no other error messages)
+>
+> For the other tuner, it  is:
+>    Sig: 55703  SNR: 120  BER: 0  UBLK: 919  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
+>
+> Note the /massive/ difference in ubclocks; the tuner that died always
+> had a massively larger UCBLOCKS count even when it was working fine.
+>
+> Antii, I'll try out your GPIO suggestions today or tomorrow, and I'll
+> try and snag an i2c register dump to see if that sheds any light...
 
-On Tuesday 01 March 2011 10:46:36 Bhupesh SHARMA wrote:
-> On Tuesday, March 01, 2011 3:11 PM Laurent Pinchart wrote: 
-> > On Tuesday 01 March 2011 08:25:12 Bhupesh SHARMA wrote:
-> > > Hi Guennadi and Laurent,
-> > > 
-> > > We are now evaluating another ST platform that supports a image
-> > > co-processor between the camera sensor and the camera host (SoC).
-> > > 
-> > > The simple architecture diagram will be similar to one shown below
-> > > (for the sake of simplicity I show only a single sensor. At least
-> > 
-> > > two sensors can be supported by the co-processor):
-> > [snip] (as the ascii-art looks more like a Picasso painting with the
-> > quote
-> > characters)
-> :
-> :(
-> 
-> Despite my efforts to align it properly :)
+Any new findings?
 
-Try to configure your mailer to use spaces instead of tabs, or to make tabs 8 
-spaces wide. It should then look good. Replies will usually mess the diagrams 
-up though.
-
-> > > The co-processor supports a video progressing logic engine capable of
-> > > performing a variety of operations like image recovery, cropping,
-> > > scaling, gamma correction etc.
-> > > 
-> > > Now, evaluating the framework available for supporting for the camera
-> > > host, sensor and co-processor, I am wondering whether soc-camera(v4l2)
-> > > can support this complex design or something similar to the ISP driver
-> > > written for OMAP is the way forward.
-> > 
-> > I think this can be a good candidate for the media controller API. It
-> > depends on how complex the co-processor is and what kind of processing it
-> > performs. I suppose there's no public datasheet.
-> > 
-> > You will probably need to enhance subdev registration, as I'm not aware
-> > of any existing use case such as yours where a chain of subdevs unknown to
-> > the host controller is connected to the host controller input.
-> 
-> Could you please give me some documentation links for media controller API.
-
-The media controller documentation is part of the V4L2 kernel documentation. 
-You can find a compiled copy at http://www.ideasonboard.org/media/media/
-
-The in-kernel API is documented in the kernel sources, in Documentation/media-
-framework.txt
-
-> Are there are reference drivers that I can use for my study?
-
-The OMAP3 ISP driver.
-
-> Unfortunately the data-sheet of the co-processor cannot be made public
-> as of yet.
-
-Can you publish a block diagram of the co-processor internals ?
+Antti
 
 -- 
-Regards,
-
-Laurent Pinchart
+http://palosaari.fi/
