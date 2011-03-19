@@ -1,85 +1,53 @@
 Return-path: <mchehab@pedra>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:62531 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751506Ab1CTXfV (ORCPT
+Received: from mail1-out1.atlantis.sk ([80.94.52.55]:34636 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754516Ab1CSPdP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Mar 2011 19:35:21 -0400
-Received: by pwi15 with SMTP id 15so693171pwi.19
-        for <linux-media@vger.kernel.org>; Sun, 20 Mar 2011 16:35:20 -0700 (PDT)
-From: Pawel Osciak <pawel@osciak.com>
-To: linux-media@vger.kernel.org
-Cc: Pawel Osciak <pawel@osciak.com>
-Subject: [PATCH] [media] Make 2.6.39 not 2.6.38 the version when Multi-planar API was added
-Date: Sun, 20 Mar 2011 16:35:12 -0700
-Message-Id: <1300664112-24910-1-git-send-email-pawel@osciak.com>
+	Sat, 19 Mar 2011 11:33:15 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: "Hans Verkuil" <hverkuil@xs4all.nl>
+Subject: [RFC PATCH 2/3] tea575x-tuner: remove dev_nr
+Date: Sat, 19 Mar 2011 16:33:01 +0100
+Cc: "Takashi Iwai" <tiwai@suse.de>, jirislaby@gmail.com,
+	alsa-devel@alsa-project.org,
+	"Kernel development list" <linux-kernel@vger.kernel.org>,
+	linux-media@vger.kernel.org
+References: <201103121919.05657.linux@rainbow-software.org> <201103141128.01259.linux@rainbow-software.org> <33b29bfb135fbe2ddcba88d342d67526.squirrel@webmail.xs4all.nl>
+In-Reply-To: <33b29bfb135fbe2ddcba88d342d67526.squirrel@webmail.xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201103191633.06935.linux@rainbow-software.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Multi-planar API was added to 2.6.39 version of Video for Linux 2 API.
+Remove unused dev_nr from struct tea575x_tuner.
 
-Signed-off-by: Pawel Osciak <pawel@osciak.com>
----
- Documentation/DocBook/v4l/compat.xml |   13 ++++---------
- Documentation/DocBook/v4l/v4l2.xml   |   13 ++-----------
- 2 files changed, 6 insertions(+), 20 deletions(-)
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 
-diff --git a/Documentation/DocBook/v4l/compat.xml b/Documentation/DocBook/v4l/compat.xml
-index 4d74bf2..9f7cd4f 100644
---- a/Documentation/DocBook/v4l/compat.xml
-+++ b/Documentation/DocBook/v4l/compat.xml
-@@ -2354,9 +2354,12 @@ that used it. It was originally scheduled for removal in 2.6.35.
-       </orderedlist>
-     </section>
-     <section>
--      <title>V4L2 in Linux 2.6.38</title>
-+      <title>V4L2 in Linux 2.6.39</title>
-       <orderedlist>
-         <listitem>
-+          <para>The old VIDIOC_*_OLD symbols and V4L1 support were removed.</para>
-+        </listitem>
-+        <listitem>
-           <para>Multi-planar API added. Does not affect the compatibility of
-           current drivers and applications. See
-           <link linkend="planar-apis">multi-planar API</link>
-@@ -2364,14 +2367,6 @@ that used it. It was originally scheduled for removal in 2.6.35.
-         </listitem>
-       </orderedlist>
-     </section>
--    <section>
--      <title>V4L2 in Linux 2.6.39</title>
--      <orderedlist>
--        <listitem>
--          <para>The old VIDIOC_*_OLD symbols and V4L1 support were removed.</para>
--        </listitem>
--      </orderedlist>
--    </section>
- 
-     <section id="other">
-       <title>Relation of V4L2 to other Linux multimedia APIs</title>
-diff --git a/Documentation/DocBook/v4l/v4l2.xml b/Documentation/DocBook/v4l/v4l2.xml
-index ae7a069..a7fd76d 100644
---- a/Documentation/DocBook/v4l/v4l2.xml
-+++ b/Documentation/DocBook/v4l/v4l2.xml
-@@ -130,17 +130,8 @@ applications. -->
-       <revision>
- 	<revnumber>2.6.39</revnumber>
- 	<date>2011-03-01</date>
--	<authorinitials>mcc</authorinitials>
--	<revremark>Removed VIDIOC_*_OLD from videodev2.h header and update it to reflect latest changes.
--	</revremark>
--      </revision>
--
--      <revision>
--	<revnumber>2.6.38</revnumber>
--	<date>2011-01-16</date>
--	<authorinitials>po</authorinitials>
--	<revremark>Added the <link linkend="planar-apis">multi-planar API</link>.
--	</revremark>
-+	<authorinitials>mcc, po</authorinitials>
-+	<revremark>Removed VIDIOC_*_OLD from videodev2.h header and update it to reflect latest changes. Added the <link linkend="planar-apis">multi-planar API</link>.</revremark>
-       </revision>
- 
-       <revision>
+--- linux-2.6.38-rc4-/include/sound/tea575x-tuner.h	2011-03-19 16:00:53.000000000 +0100
++++ linux-2.6.38-rc4/include/sound/tea575x-tuner.h	2011-03-19 16:01:12.000000000 +0100
+@@ -37,7 +37,6 @@ struct snd_tea575x_ops {
+ struct snd_tea575x {
+ 	struct snd_card *card;
+ 	struct video_device *vd;	/* video device */
+-	int dev_nr;			/* requested device number + 1 */
+ 	bool tea5759;			/* 5759 chip is present */
+ 	bool mute;			/* Device is muted? */
+ 	bool stereo;			/* receiving stereo */
+--- linux-2.6.38-rc4-/sound/pci/fm801.c	2011-02-08 01:03:55.000000000 +0100
++++ linux-2.6.38-rc4/sound/pci/fm801.c	2011-03-19 16:02:33.000000000 +0100
+@@ -1453,7 +1453,6 @@ static int __devinit snd_fm801_create(st
+ #ifdef TEA575X_RADIO
+ 	if ((tea575x_tuner & TUNER_TYPE_MASK) > 0 &&
+ 	    (tea575x_tuner & TUNER_TYPE_MASK) < 4) {
+-		chip->tea.dev_nr = tea575x_tuner >> 16;
+ 		chip->tea.card = card;
+ 		chip->tea.freq_fixup = 10700;
+ 		chip->tea.private_data = chip;
+
+
 -- 
-1.7.4.1
-
+Ondrej Zary
