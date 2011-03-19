@@ -1,60 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:65042 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752059Ab1CVR6Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Mar 2011 13:58:16 -0400
-Message-ID: <4D88E32C.2000005@redhat.com>
-Date: Tue, 22 Mar 2011 14:58:04 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mailout-de.gmx.net ([213.165.64.23]:45764 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1756880Ab1CSSkX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 19 Mar 2011 14:40:23 -0400
+From: Jochen Reinwand <Jochen.Reinwand@gmx.de>
+To: linux-media@vger.kernel.org
+Subject: Remote control TechnoTrend TT-connect S2-3650 CI
+Date: Sat, 19 Mar 2011 19:40:20 +0100
 MIME-Version: 1.0
-To: Patrice Chotard <patrice.chotard@sfr.fr>
-CC: linux-media@vger.kernel.org,
-	Theodore Kilgore <kilgota@banach.math.auburn.edu>,
-	Jean-Francois Moine <moinejf@free.fr>
-Subject: Re: [PATCH v2] New Jeilin dual-mode camera support
-References: <4D7E98D2.3050609@sfr.fr>
-In-Reply-To: <4D7E98D2.3050609@sfr.fr>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201103191940.20876.Jochen.Reinwand@gmx.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 14-03-2011 19:38, Patrice Chotard escreveu:
-> I have forgotten to include the Documentation/video4linux/gspca.txt modification in my previous patch
-> 
-> Patrice.
->
-> Sportscam_DV15.patch
-> 
-> Signed-off-by: Patrice CHOTARD <patricechotard@free.fr>
-> 	       Theodore Kilgore <kilgota@banach.math.auburn.edu>
-> ---
->  Documentation/video4linux/gspca.txt |    1 +
->  drivers/media/video/gspca/jeilinj.c |  396 ++++++++++++++++++++++++++++++-----
-> 2 files changed, 345 insertions(+), 52 deletions(-)
+Hi everyone,
 
-Please, don't send patches like that. It makes harder to handle. Instead, use:
+I've searched the archive and Google for this, but haven't found anything 
+useful...
 
+I'm using a TechnoTrend TT-connect S2-3650 CI. The S2API support is great! I 
+do not have any problems watching DVB-S and DVB-S2 content. Tuning is quite 
+fast! It's working much better than my Hauppauge WinTV Nova-TD, but that's a 
+different story...
 
-<patch description>
+The only severe problem I have with the TechnoTrend is related to the remote 
+control. Around 30% of the key presses produce two key events. It's not 
+related to any lirc or X11 configuration issue. I verified it using the tool 
+input-events on the device. There are really two separate events coming from 
+the device.
 
-Signed-off-by: Patrice CHOTARD <patricechotard@free.fr>
-Signed-off-by: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+Is this due to a hardware problem, or is it a driver issue? My C and Kernel 
+knowledge is not really the best. But there is some code in dvb-usb-remote.c 
+that seems to be related to key repeats. Are the dvb remote input devices 
+doing something special here? I'm also not able to modify behaviour of the 
+device via "xset r rate" when using it as X11 input device. It's only 
+affecting the real keyboard that is also attached.
 
----
+The system is a recent yaVDR. So it's more or less an Ubuntu 10.4. Kernel is 
+2.6.32. S2API should be a recent check out.
 
-I have forgotten to include the Documentation/video4linux/gspca.txt modification in my previous patch
-(and/or any other review comments that you might have - everything between "---" and the diff
-will be discarded by usual scripts).
+Any ideas?
 
->  Documentation/video4linux/gspca.txt |    1 +
->  drivers/media/video/gspca/jeilinj.c |  396 ++++++++++++++++++++++++++++++-----
-> 2 files changed, 345 insertions(+), 52 deletions(-)
-
-
--
-
-/me is waiting for Jean-Francois final review, in order to apply it upstream.
-
-Thanks,
-Mauro
+Thanks in advance,
+Jochen
