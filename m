@@ -1,66 +1,217 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.171]:50490 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755007Ab1COJAN (ORCPT
+Received: from mail-in-18.arcor-online.net ([151.189.21.58]:53487 "EHLO
+	mail-in-18.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753280Ab1CSGs2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Mar 2011 05:00:13 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: "Nori, Sekhar" <nsekhar@ti.com>
-Subject: Re: [PATCH 2/7] davinci: eliminate use of IO_ADDRESS() on sysmod
-Date: Tue, 15 Mar 2011 10:00:10 +0100
-Cc: "linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"Hadli, Manjunath" <manjunath.hadli@ti.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Kevin Hilman <khilman@deeprootsystems.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Sergei Shtylyov <sshtylyov@mvista.com>
-References: <1300110947-16229-1-git-send-email-manjunath.hadli@ti.com> <201103141721.52033.arnd@arndb.de> <B85A65D85D7EB246BE421B3FB0FBB593024C246CB1@dbde02.ent.ti.com>
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024C246CB1@dbde02.ent.ti.com>
+	Sat, 19 Mar 2011 02:48:28 -0400
+Message-ID: <4D845160.8030509@arcor.de>
+Date: Sat, 19 Mar 2011 07:46:56 +0100
+From: Stefan Ringel <stefan.ringel@arcor.de>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Dmitri Belimov <d.belimov@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] tm6000: fix s-video input
+References: <4CAD5A78.3070803@redhat.com> <4CB492D4.1000609@arcor.de> <20101129174412.08f2001c@glory.local> <4CF51C9E.6040600@arcor.de> <20101201144704.43b58f2c@glory.local> <4CF67AB9.6020006@arcor.de> <20101202134128.615bbfa0@glory.local> <4CF71CF6.7080603@redhat.com> <20101206010934.55d07569@glory.local> <4CFBF62D.7010301@arcor.de> <20101206190230.2259d7ab@glory.local> <4CFEA3D2.4050309@arcor.de> <20101208125539.739e2ed2@glory.local> <4CFFAD1E.7040004@arcor.de> <20101214122325.5cdea67e@glory.local> <4D079ADF.2000705@arcor.de> <20101215164634.44846128@glory.local> <4D08E43C.8080002@arcor.de> <20101216183844.6258734e@glory.local> <4D0A4883.20804@arcor.de> <20101217104633.7c9d10d7@glory.local> <4D0AF2A7.6080100@arcor.de> <20101217160854.16a1f754@glory.local> <4D0BFF4B.3060001@redhat.com> <20110120150508.53c9b55e@glory.local> <4D388C44.7040500@arcor.de> <20110217141257.6d1b578b@glory.local> <4D5D8BFB.4070802@redhat.com> <20110318090855.773af168@glory.local>
+In-Reply-To: <20110318090855.773af168@glory.local>
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Message-Id: <201103151000.10350.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tuesday 15 March 2011 07:00:44 Nori, Sekhar wrote:
 
-> > * If you need to access sysmod in multiple places, a nicer
-> >   way would be to make the virtual address pointer static,
-> >   and export the accessor functions for it, rather than
-> >   having a global pointer.
-> 
-> Seems like opinion is divided on this. A while back
-> I submitted a patch with such an accessor function and
-> was asked to do the opposite of what you are asking here.
-> 
-> https://patchwork.kernel.org/patch/366501/
-> 
-> It can be changed to the way you are asking, but would
-> like to know what is more universally acceptable (if
-> at all there is such a thing).
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+ 
+Am 18.03.2011 01:08, schrieb Dmitri Belimov:
+> Hi
+>
+> Add compatibility for composite and s-video inputs. Some TV cards
+hasn't it.
+> Fix S-Video input, the s-video cable has only video signals no audio.
+Call the function of audio configure kill chroma in signal. only b/w video.
+>
+> Known bugs:
+> after s-video the audio for radio didn't work, TV crashed hardly
+> after composite TV crashed hardly too.
+>
+> P.S. After this patch I'll want to rework the procedure of configure
+video. Now it has a lot of junk and dubles.
+>
 
-One difference is that the base address pointer here
-can be treated as read-only by using an accessor function,
-which was not possible for the case you cited. Doing
-an inline function would also let you make the access
-more type-safe, e.g forcing the right kind of readl/writel
-variant and possibly locking if necessary.
+Why you use caps to define video input and audio with avideo and/or
+aradio as flags? Better is , I think,  we use a struct for edge
+virtual input (Video type (s-vhs, composite, tuner), video input pin
+(video port a, video port b or both), video mode gpio, audio type ,
+audio input pin (adc 1, adc 2 or sif)). If we are called
+vidioc_s_input or radio_g_input setting input number. In tm6000_std.c
+we can use this input number and the input struct with the same number
+and can use all setting from here to set it.
 
-I would also argue against Sergei's point for the other
-patch -- the current solution is not better than the originally
-suggested one IMHO. I believe a better way would have
-been to pass the maximum frequency as an argument to
-da850_register_cpufreq() in that case.
+Stefan Ringel
 
-However, neither of these discussion is really important,
-and we don't have a strict rule for doing it one way
-or the other. Just use common sense and decide case-by-case,
-as I said in the previous comment, you got the important
-parts right.
 
-	Arnd
+> diff --git a/drivers/staging/tm6000/tm6000-cards.c
+b/drivers/staging/tm6000/tm6000-cards.c
+> index 88144a1..146c7e8 100644
+> --- a/drivers/staging/tm6000/tm6000-cards.c
+> +++ b/drivers/staging/tm6000/tm6000-cards.c
+> @@ -235,11 +235,13 @@ struct tm6000_board tm6000_boards[] = {
+> .avideo = TM6000_AIP_SIF1,
+> .aradio = TM6000_AIP_LINE1,
+> .caps = {
+> - .has_tuner = 1,
+> - .has_dvb = 1,
+> - .has_zl10353 = 1,
+> - .has_eeprom = 1,
+> - .has_remote = 1,
+> + .has_tuner = 1,
+> + .has_dvb = 1,
+> + .has_zl10353 = 1,
+> + .has_eeprom = 1,
+> + .has_remote = 1,
+> + .has_input_comp = 1,
+> + .has_input_svid = 1,
+> },
+> .gpio = {
+> .tuner_reset = TM6010_GPIO_0,
+> @@ -255,11 +257,13 @@ struct tm6000_board tm6000_boards[] = {
+> .avideo = TM6000_AIP_SIF1,
+> .aradio = TM6000_AIP_LINE1,
+> .caps = {
+> - .has_tuner = 1,
+> - .has_dvb = 0,
+> - .has_zl10353 = 0,
+> - .has_eeprom = 1,
+> - .has_remote = 1,
+> + .has_tuner = 1,
+> + .has_dvb = 0,
+> + .has_zl10353 = 0,
+> + .has_eeprom = 1,
+> + .has_remote = 1,
+> + .has_input_comp = 1,
+> + .has_input_svid = 1,
+> },
+> .gpio = {
+> .tuner_reset = TM6010_GPIO_0,
+> @@ -327,10 +331,13 @@ struct tm6000_board tm6000_boards[] = {
+> .avideo = TM6000_AIP_SIF1,
+> .aradio = TM6000_AIP_LINE1,
+> .caps = {
+> - .has_tuner = 1,
+> - .has_dvb = 1,
+> - .has_zl10353 = 1,
+> - .has_eeprom = 1,
+> + .has_tuner = 1,
+> + .has_dvb = 1,
+> + .has_zl10353 = 1,
+> + .has_eeprom = 1,
+> + .has_remote = 0,
+> + .has_input_comp = 0,
+> + .has_input_svid = 0,
+> },
+> .gpio = {
+> .tuner_reset = TM6010_GPIO_0,
+> @@ -346,10 +353,13 @@ struct tm6000_board tm6000_boards[] = {
+> .avideo = TM6000_AIP_SIF1,
+> .aradio = TM6000_AIP_LINE1,
+> .caps = {
+> - .has_tuner = 1,
+> - .has_dvb = 0,
+> - .has_zl10353 = 0,
+> - .has_eeprom = 1,
+> + .has_tuner = 1,
+> + .has_dvb = 0,
+> + .has_zl10353 = 0,
+> + .has_eeprom = 1,
+> + .has_remote = 0,
+> + .has_input_comp = 0,
+> + .has_input_svid = 0,
+> },
+> .gpio = {
+> .tuner_reset = TM6010_GPIO_0,
+> diff --git a/drivers/staging/tm6000/tm6000-stds.c
+b/drivers/staging/tm6000/tm6000-stds.c
+> index a4c07e5..da3e51b 100644
+> --- a/drivers/staging/tm6000/tm6000-stds.c
+> +++ b/drivers/staging/tm6000/tm6000-stds.c
+> @@ -1161,8 +1161,6 @@ int tm6000_set_standard(struct tm6000_core *dev,
+v4l2_std_id * norm)
+> rc = tm6000_load_std(dev, svideo_stds[i].common,
+> sizeof(svideo_stds[i].
+> common));
+> - tm6000_set_audio_std(dev, svideo_stds[i].audio_default_std);
+> -
+> goto ret;
+> }
+> }
+> diff --git a/drivers/staging/tm6000/tm6000-video.c
+b/drivers/staging/tm6000/tm6000-video.c
+> index b550340..c80a316 100644
+> --- a/drivers/staging/tm6000/tm6000-video.c
+> +++ b/drivers/staging/tm6000/tm6000-video.c
+> @@ -1080,18 +1080,27 @@ static int vidioc_s_std (struct file *file,
+void *priv, v4l2_std_id *norm)
+> static int vidioc_enum_input(struct file *file, void *priv,
+> struct v4l2_input *inp)
+> {
+> + struct tm6000_fh *fh = priv;
+> + struct tm6000_core *dev = fh->dev;
+> +
+> switch (inp->index) {
+> case TM6000_INPUT_TV:
+> inp->type = V4L2_INPUT_TYPE_TUNER;
+> strcpy(inp->name, "Television");
+> break;
+> case TM6000_INPUT_COMPOSITE:
+> - inp->type = V4L2_INPUT_TYPE_CAMERA;
+> - strcpy(inp->name, "Composite");
+> + if (dev->caps.has_input_comp) {
+> + inp->type = V4L2_INPUT_TYPE_CAMERA;
+> + strcpy(inp->name, "Composite");
+> + } else
+> + return -EINVAL;
+> break;
+> case TM6000_INPUT_SVIDEO:
+> - inp->type = V4L2_INPUT_TYPE_CAMERA;
+> - strcpy(inp->name, "S-Video");
+> + if (dev->caps.has_input_svid) {
+> + inp->type = V4L2_INPUT_TYPE_CAMERA;
+> + strcpy(inp->name, "S-Video");
+> + } else
+> + return -EINVAL;
+> break;
+> default:
+> return -EINVAL;
+> diff --git a/drivers/staging/tm6000/tm6000.h
+b/drivers/staging/tm6000/tm6000.h
+> index ccd120f..99ae50e 100644
+> --- a/drivers/staging/tm6000/tm6000.h
+> +++ b/drivers/staging/tm6000/tm6000.h
+> @@ -129,6 +129,8 @@ struct tm6000_capabilities {
+> unsigned int has_zl10353:1;
+> unsigned int has_eeprom:1;
+> unsigned int has_remote:1;
+> + unsigned int has_input_comp:1;
+> + unsigned int has_input_svid:1;
+> };
+>
+> struct tm6000_dvb {
+>
+> Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+>
+> With my best regards, Dmitry.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.12 (MingW32)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+ 
+iQEcBAEBAgAGBQJNhFFgAAoJEAWtPFjxMvFGATAH/RZnxOBnRF7bvpInTVcvDr3f
+siYCB6O+JKKLwA8dWzh5ejOi+cBcYWPqcgJcZ2s/0dedqEQ8/RVxGflrnYk66/vT
+KP3JkysbH3Nme9mE9AlSXSrCpGg6AG9u99SgyHkCJQKASkQX7dHg/prz4iMySIgi
+Ii05FHR2f5P5FmaH96eKjgzd8J8WSHe2excr07gKg2FL2bX8icnqt0Lz7S1/V0rQ
+ewdL9cOh+IBsIG8dOLBetB3rxlfEtheph7bHtBqJ2s9+yo9KVj8tynpGghgoNrAw
+ntDttbSrnCjcXaALKFfXBvAnv349jwbBLnyZU3PWjK560sdjg9bhLi515xYXwhM=
+=eldX
+-----END PGP SIGNATURE-----
+
