@@ -1,99 +1,209 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.samsung.com ([203.254.224.25]:59386 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752015Ab1CaKPH (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:64643 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757142Ab1CST2s (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Mar 2011 06:15:07 -0400
-Received: from epmmp1 (ep_mmp1 [203.254.227.16])
- by mailout2.samsung.com (Oracle Communications Messaging Exchange Server
- 7u4-19.01 64bit (built Sep  7 2010))
- with ESMTP id <0LIX00DN7354IH60@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 31 Mar 2011 19:15:04 +0900 (KST)
-Received: from AMDC159 ([106.116.37.153])
- by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LIX00MAQ34WGN@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 31 Mar 2011 19:15:04 +0900 (KST)
-Date: Thu, 31 Mar 2011 12:14:55 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: v4l: Buffer pools
-In-reply-to: <757395B8DE5A844B80F3F4BE9867DDB652374B2340@EXDCVYMBSTM006.EQ1STM.local>
-To: 'Willy POISSON' <willy.poisson@stericsson.com>,
-	linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, 'Hans Verkuil' <hverkuil@xs4all.nl>,
-	kyungmin.park@samsung.com
-Message-id: <001b01cbef8c$7da953a0$78fbfae0$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <757395B8DE5A844B80F3F4BE9867DDB652374B2340@EXDCVYMBSTM006.EQ1STM.local>
+	Sat, 19 Mar 2011 15:28:48 -0400
+Received: by wya21 with SMTP id 21so4758294wya.19
+        for <linux-media@vger.kernel.org>; Sat, 19 Mar 2011 12:28:47 -0700 (PDT)
+Message-ID: <4D8503EC.6040103@gmail.com>
+Date: Sat, 19 Mar 2011 20:28:44 +0100
+From: Sylwester Nawrocki <snjw23@gmail.com>
+MIME-Version: 1.0
+To: Kim HeungJun <riverful@gmail.com>
+CC: "Kim, Heungjun" <riverful.kim@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Add support for M-5MOLS 8 Mega Pixel camera
+References: <1300282723-31536-1-git-send-email-riverful.kim@samsung.com> <4D84B183.7020709@gmail.com> <3985908C-2E67-4274-AA8F-E5F70745DED7@gmail.com>
+In-Reply-To: <3985908C-2E67-4274-AA8F-E5F70745DED7@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+On 03/19/2011 04:11 PM, Kim HeungJun wrote:
+> Hi Sylwester,
+> 
+> Thanks for the reviews. :)
+> 
+> 2011. 3. 19., 오후 10:37, Sylwester Nawrocki 작성:
+> 
+>> Hi HeungJun,
+>>
+>> On 03/16/2011 02:38 PM, Kim, Heungjun wrote:
+>>> Add I2C/V4L2 subdev driver for M-5MOLS camera sensor with integrated
+>>> image signal processor.
+>>>
+>>> Signed-off-by: Heungjun Kim<riverful.kim@samsung.com>
+>>> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
+>>> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
+>>> ---
+>>>
+>>> Hi Hans and everyone,
+>>>
+>>> This is sixth version of M-5MOLS 8 Mega Pixel camera sensor. And, if you see
+>>
+>> Would be good to indicate the version in the subject too.
+>>
+>>> previous version, you can find at:
+>>> http://www.spinics.net/lists/linux-media/msg29350.html
+>>>
+>>> This driver patch is fixed several times, and the important issues is almost
+>>> corrected. And, I hope that this is the last version one merged for 2.6.39.
+>>> I look forward to be reviewed one more time.
+>>>
+>>> The summary of this version's feature is belows:
+>>>
+>>> 1. Add focus control
+>>> 	: I've suggest menu type focus control, but I agreed this version is
+>>> 	not yet the level accepted. So, I did not use focus control which
+>>> 	I suggest.
+>>> 	The M-5MOLS focus routine takes some time to execute. But, the user
+>>> 	application calling v4l2 control, should not hanged while streaming
+>>> 	using q/dqbuf. So, I use workqueue. I want to discuss the focus
+>>> 	subject on mailnglist next time.
+>>>
+>>> 2. Add irq routine
+>>> 	: M-5MOLS can issues using GPIO pin, and I insert the basic routine
+>>> 	of irq. This version handles only the Auto focus interrupt source.
+>>> 	It shows only lens focusing status, don't any action now.
+>>>
+>>> 3. Speed-up whole I2C operation
+>>> 	: I've tested several times for decreasing the stabilization time
+>>> 	while I2C communication, and I have find proper time. Of course,
+>>> 	it's more faster than previous version.
+>>
+>> That sounds good. Do you think the delays before I2C read/write could
+>> be avoided in some (if not all) cases by using some status registers
+>> polling?
+> I don't understand literally. Could you explain more detailed with some examples?
+> My understanding is that it might be an issues or problem when getting some
+> status registers with polling it. is it right?
 
-On Tuesday, March 29, 2011 4:02 PM Willy POISSON wrote:
+My concern is that we might not need an extra delay between consecutive 
+read or write operations in every case. Possibly it would be enough
+to read the status of some operations instead. But that just what I suspect.
 
-> 	Following to the Warsaw mini-summit action point, I would like to open the thread to gather
-> buffer pool & memory manager requirements.
-> The list of requirement for buffer pool may contain:
-> -	Support physically contiguous and virtual memory
-> -	Support IPC, import/export handles (between processes/drivers/userland/etc)
-> -	Security(access rights in order to secure no one unauthorized is allowed to access buffers)
-> -	Cache flush management (by using setdomain and optimize when flushing is needed)
-> -	Pin/unpin in order to get the actual address to be able to do defragmentation
-> -	Support pinning in user land in order to allow defragmentation while buffer is mmapped but not
-> pined.
-> -	Both a user API and a Kernel API is needed for this module. (Kernel drivers needs to be able to
-> resolve buffer handles as well from the memory manager module, and pin/unpin)
-> -	be able to support any platform specific allocator (Separate memory allocation from management
-> as allocator is platform dependant)
-> -	Support multiple region domain (Allow to allocate from several memory domain ex: DDR1, DDR2,
-> Embedded SRAM to make for ex bandwidth load balancing ...)
+> 
+>>
+>>>
+>>> 4. Let streamon() be called once at the streamming
+>>> 	: It might be an issue, videobuf2 framework calls streamon when
+>>> 	qbuf() for enqueueing. It means, the driver's streamon() function
+>>
+>> No, that's not really the case. At last videobuf2 buf_queue op might be
+>> called in response to VIDIOC_STREAMON. Certainly there must be some bug
+>> in the host driver if subdev's s_stream is being called repeatedly.
+>
+> Ah, it's good news. I seemed to use some little old version of vb2.
+> Then, I would try to merge new vb2 on our branch, and I need some help on that.
+> I'll contact you. After that, I test new vb2 merged on our branch and chech if there
+> is not any issues, I'll correct to use just enable variable not using is_streaming(),
+> and also correct comments.
 
-The above list looks fine.
+Sorry, I confused you. Instead of "at last" I should have used "at most".
+I think it's the host driver, not vb2 issue. I'll take care of that.
+It doesn't bother to do an additional checking though, but your comments
+should be slightly changed.
 
-Memory/buffer pools are a large topic that covers at least 3 subsystems:
-1. user space api
-2. in-kernel buffer manager
-3. in-kernel memory allocator 
+> 
+> Actually, that has happened low frame rate issues on M-5MOLS, I had have headache
+> cause of this some weeks, and it's the suspects. :D
+> It's my fault not to use newer version.
+> So, letting me know this new version is very happy for me.
+> 
+>>
+>>> 	might be callled continuously if there is no proper handling in the
+>>> 	subdev driver, and low the framerate by adding unneeded I2C operation.
+>>> 	The M-5MOLS sensor needs command one time for streaming. If commands
+>>> 	once, this sensor streams continuously, and this version handles it.
+>>>
+>>> 5. Update FW
+>>> 	: It's a little tricky. Originally, the v4l2 frame provide load_fw(),
+>>> 	but, there is the occasion which should do in openning the videonode,
+>>> 	and it's the same occasion with us. So, if it's not wrong or it makes
+>>> 	any problem, we hope to insert m5mols_update_fw() with weak attribute.
+>>> 	And, I'm sorry that the fw updating code is confidential. unserstand
+>>> 	by favor, plz.
+>>>
+>>> And, as always, this driver is tested on s5pc210 board using s5p-fimc driver.
+>>>
+>>> I'll wait for reviewing.
+>>>
+>>> Thanks and Regards,
+>>> 	Heungjun Kim
+>>> 	Samsung Electronics DMC R&D Center
+>>>
+>>>   drivers/media/video/Kconfig                  |    2 +
+>>>   drivers/media/video/Makefile                 |    1 +
+>>>   drivers/media/video/m5mols/Kconfig           |    5 +
+>>>   drivers/media/video/m5mols/Makefile          |    3 +
+>>>   drivers/media/video/m5mols/m5mols.h          |  251 ++++++
+>>>   drivers/media/video/m5mols/m5mols_controls.c |  213 +++++
+>>>   drivers/media/video/m5mols/m5mols_core.c     | 1062 ++++++++++++++++++++++++++
+>>>   drivers/media/video/m5mols/m5mols_reg.h      |  218 ++++++
+>>>   include/media/m5mols.h                       |   35 +
+>>>   9 files changed, 1790 insertions(+), 0 deletions(-)
+>>>   create mode 100644 drivers/media/video/m5mols/Kconfig
+>>>   create mode 100644 drivers/media/video/m5mols/Makefile
+>>>   create mode 100644 drivers/media/video/m5mols/m5mols.h
+>>>   create mode 100644 drivers/media/video/m5mols/m5mols_controls.c
+>>>   create mode 100644 drivers/media/video/m5mols/m5mols_core.c
+>>>   create mode 100644 drivers/media/video/m5mols/m5mols_reg.h
+>>>   create mode 100644 include/media/m5mols.h
+>>>
+>> ...
+>>
+>>> +/*
+>>> + * m5mols_sensor_armboot() - booting M-5MOLS internal ARM core-controller.
+>>> + *
+>>> + * It makes to ready M-5MOLS for I2C&   MIPI interface. After it's powered up,
+>>> + * it activates if it gets armboot command for I2C interface. After getting
+>>> + * cmd, it must wait about least 520ms referenced by M-5MOLS datasheet.
+>>> + */
+>>> +static int m5mols_sensor_armboot(struct v4l2_subdev *sd)
+>>> +{
+>>> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>>> +	u32 reg;
+>>> +	int ret;
+>>> +
+>>> +	/* ARM(M-5MOLS core) booting */
+>>> +	ret = i2c_w8_flash(sd, CATF_CAM_START, true);
+>>> +	if (ret<   0)
+>>> +		return ret;
+>>> +
+>>> +	msleep(520);
+>>
+>> Don't you consider using a waitqueue and a relevant interrupt
+>> generated by the ISP when it has completed booting?
+>> This would allow to decrease the delay to an optimal minimum.
+> I didn't yet consider it. But, it looks good option. I would try this at the next version. :)
 
-Most of the requirements above list can be assigned to one of these subsystems.
+Thanks.
 
-If would like to focus first on the user space API. This API should provide a generic way to allocate
-memory buffers. User space should not be aware of the allocator specific parameters of the buffer.
-User space should not decide whether a physically contiguous buffer is needed or not. The only
-information that user space should provide is a set or list of devices that the application want use
-with the allocated buffer. User space might also provide some additional hints about the buffers - like
-the preferred memory region.
+> 
+> And, but it seems relevant or not, how to think about changing to probe all sensors
+> when video node (exactly fimc) being opened by user application?
 
-Our chip S5PC110 and EXYNOS4 are very similar in terms of integrated multimedia modules, however there
-is one important difference. The latter has IOMMU module, so multimedia blocks doesn't require physically
-contiguous buffers. In userspace however we would like to support both with the same API.
+Currently only the first sensor from the list, passed as platform data,
+is initialized when the video device is opened, to make sure the capture
+device is usable.
 
-We have also a very specific requirement for buffers for video codes (chroma buffers and luma buffers
-must be allocated from different memory banks). The memory bank should be specified at allocation time.
+> I means, as you know, the most sensors has booting delay time, including even
+> noonxxxxxxx&  srxxxxxx sensor series. But, we can choose the calling to probe sensor
+> be made of workqueue() in the fimc. If doing as this, it can be possible not to wait
+> probing previous sensor. So, What about your opinion?
 
-The only problem is to define a way the user space API will be able to provide a list of devices that 
-must be able to operate with the allocated buffer. Without some kind of enumeration of all entities 
-that work with buffer pool it might be a bit hard. I would like to avoid the need of hardcoding device 
-names in the user space applications.
+Yeah, sounds like a good idea. Possibly that could save us some 100...200ms
+in cases when the applications do not want to use the first sensor.
+I'll consider that when converting FIMC to the media device.
 
-The in-kernel memory allocator is mainly targeted to systems that require physically contiguous buffers.
-Currently CMA framework perfectly fits here. A new version will be posted very soon.
-
-> Another idea, but not so linked to memory management (more usage of buffers), would be to have a
-> common data container (structure to access data) shared by several media (Imaging, video/still codecs,
-> graphics, Display...) to ease usage of the data. This container could  embed data type (video frames,
-> Access Unit) , frames format, pixel format, width, height, pixel aspect ratio, region of interest, CTS
-> (composition time stamp),  ColorSpace, transparency (opaque, alpha, color key...), pointer on buffer(s)
-> handle)...
-
-I'm not sure if such idea can be ever implemented in the mainline kernel... IHMO it is too complicated.
-
-Best regards
 --
-Marek Szyprowski
-Samsung Poland R&D Center
+Regards,
+Sylwester
 
 
