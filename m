@@ -1,85 +1,70 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1561 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751076Ab1CEQCc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Mar 2011 11:02:32 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: V4L2 'brainstorming' meeting in Warsaw, March 2011
-Date: Sat, 5 Mar 2011 17:02:13 +0100
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+Received: from mailout-de.gmx.net ([213.165.64.22]:45188 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751186Ab1CTV7I convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 Mar 2011 17:59:08 -0400
+References: <201103191940.20876.Jochen.Reinwand@gmx.de> <4D85005A.4080101@web.de> <201103202145.11493.Jochen.Reinwand@gmx.de>
+In-Reply-To: <201103202145.11493.Jochen.Reinwand@gmx.de>
+Mime-Version: 1.0 (iPhone Mail 8C148)
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+	charset=utf-8
+Message-Id: <F4C2A6DF-0F62-412F-8FD9-37CE4747D7F1@gmx.de>
+Cc: =?utf-8?Q?Andr=C3=A9_Weidemann?= <Andre.Weidemann@web.de>,
 	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <ADF13DA15EB3FE4FBA487CCC7BEFDF36190F532AF3@bssrvexch01> <201102281903.39708.hverkuil@xs4all.nl> <201102281912.01542.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201102281912.01542.laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201103051702.14048.hverkuil@xs4all.nl>
+From: Harald Becherer <Harald.Becherer@gmx.de>
+Subject: Re: Remote control TechnoTrend TT-connect S2-3650 CI
+Date: Sun, 20 Mar 2011 22:59:00 +0100
+To: Jochen Reinwand <Jochen.Reinwand@gmx.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Monday, February 28, 2011 19:12:00 Laurent Pinchart wrote:
-> On Monday 28 February 2011 19:03:39 Hans Verkuil wrote:
-> > On Monday, February 28, 2011 18:11:47 Marek Szyprowski wrote:
+
+
+Am 20.03.2011 um 21:45 schrieb Jochen Reinwand <Jochen.Reinwand@gmx.de>:
+
+> Hi André,
 > 
-> [snip]
+> Thanks for the help! I already fixed the problem! By accident...
 > 
-> > > 4. Agenda
-> > > 
-> > >         TBD, everyone is welcomed to put his items here :)
-> > 
-> > In no particular order:
-> > 
-> > 1) pipeline configuration, cropping and scaling:
-> > 
-> > http://www.mail-archive.com/linux-media@vger.kernel.org/msg27956.html
-> > http://www.mail-archive.com/linux-media@vger.kernel.org/msg26630.html
-> > 
-> > 2) HDMI API support
-> > 
-> > Some hotplug/CEC code can be found here:
-> > 
-> > http://www.mail-archive.com/linux-media@vger.kernel.org/msg28549.html
-> > 
-> > but Cisco will soon post RFCs on this topic as well.
-> > 
-> > 3) Snapshot functionality.
-> > 
-> > http://www.mail-archive.com/linux-media@vger.kernel.org/msg28192.html
-> > http://www.mail-archive.com/linux-media@vger.kernel.org/msg28490.html
-> > 
-> > If we finish quicker than expected, then we can also look at this:
-> > 
-> > - use of V4L2 as a frontend for SW/DSP codecs
+> On Saturday 19 March 2011, André Weidemann wrote:
+>> I don't think that this is a hardware problem. I think it is related to
+>> the driver. When I added support for the S2-3650CI to Dominik Kuhlen's
+>> code for the PC-TV452e, I used the RC-code function "pctv452e_rc_query"
+>> for the S2-3650CI. I ran into this problem back then and thought that
+>> setting .rc_interval to 500 would "fix" the problem good enough.
 > 
-> In still no particular order:
+> My first idea was simple: Set it to 1000. Better a slow remote control than  
+> double key presses. But the double key press events remained.
+> So I was planning to do some more debugging.
+> But my next idea was: If I get double events anyway, I can also speed up the 
+> remote by setting .rc_interval to 250. After setting it, everything was faster 
+> and ...  the double events disappeared!!! Of course, I did some further tests 
+> and found out that setting .rc_interval to 50 is also working perfectly! No 
+> double key press events so far and the remote is reacting really quick.
 > 
->  - Muxed formats (H.264 inside MJPEG)
->  - H.264
->  - Buffers pool
->  - Entity information ioctl
-
-Can you elaborate on this one?
-
->  - Userspace drivers (OMX)
-
-And this one?
-
->  - Sensor blanking/pixel-clock/frame-rate settings (including 
-> enumeration/discovery)
->  - GL/ES in V4L2 devices
-
-And this one?
-
-I need a bit more information for the agenda.
-
-Thanks!
-
-	Hans
-
+> I don't really understand why this is fixing the issue...
+> Does it make sense to put this into the official repo? Or is it too dangerous? 
+> It's possibly breaking things for others...
 > 
-> 
+> Regards
+> Jochen
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
--- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+
+Hi,
+
+I just tried and indeed, it works for me as well;-)
+Never switched so fast...
+I tried 50 but it is almost too fast
+Maybe 75 or 100...
+
+By the way, are there any thoughts/plans to merge TT S2-3600 into kernel some time?
+Would be a guinea pig and buy a card for CI testing.
+
+Greetings
+Harald
