@@ -1,78 +1,92 @@
 Return-path: <mchehab@pedra>
-Received: from mail-in-11.arcor-online.net ([151.189.21.51]:44905 "EHLO
-	mail-in-11.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751335Ab1CTCgm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Mar 2011 22:36:42 -0400
-Date: Sun, 20 Mar 2011 03:36:37 +0100 (CET)
-From: hermann-pitton@arcor.de
-To: jwhecker@gmail.com, hermann-pitton@arcor.de
-Cc: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
-Message-ID: <1749854967.238689.1300588597796.JavaMail.ngmail@webmail08.arcor-online.net>
-In-Reply-To: <AANLkTi=vi-1Y7kjwF1d9K1VBO38jYcO2ynT0UgCvdKNn@mail.gmail.com>
-References: <AANLkTi=vi-1Y7kjwF1d9K1VBO38jYcO2ynT0UgCvdKNn@mail.gmail.com> <AANLkTikV3LW5JZdUMjctretv8_ZWN6YFhhfwzDo8NzbW@mail.gmail.com>
-	<1300412946.9136.18.camel@pc07.localdom.local>
-Subject: Re: [linux-dvb] Problem with saa7134: Asus Tiger revision 1.0,
- subsys 1043:4857
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from ist.d-labs.de ([213.239.218.44]:51941 "EHLO mx01.d-labs.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751043Ab1CTVvc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 Mar 2011 17:51:32 -0400
+From: Florian Mickler <florian@mickler.org>
+To: mchehab@infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	crope@iki.fi, tvboxspy@gmail.com,
+	Florian Mickler <florian@mickler.org>
+Subject: [PATCH 1/5] [media] ec168: get rid of on-stack dma buffers
+Date: Sun, 20 Mar 2011 22:50:48 +0100
+Message-Id: <1300657852-29318-2-git-send-email-florian@mickler.org>
+In-Reply-To: <1300657852-29318-1-git-send-email-florian@mickler.org>
+References: <1300657852-29318-1-git-send-email-florian@mickler.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+usb_control_msg initiates (and waits for completion of) a dma transfer using
+the supplied buffer. That buffer thus has to be seperately allocated on
+the heap.
+
+In lib/dma_debug.c the function check_for_stack even warns about it:
+	WARNING: at lib/dma-debug.c:866 check_for_stack
+
+Signed-off-by: Florian Mickler <florian@mickler.org>
+Acked-by: Antti Palosaari <crope@iki.fi>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
+Tested-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb/dvb-usb/ec168.c |   18 +++++++++++++++---
+ 1 files changed, 15 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/dvb/dvb-usb/ec168.c b/drivers/media/dvb/dvb-usb/ec168.c
+index 52f5d4f..1ba3e5d 100644
+--- a/drivers/media/dvb/dvb-usb/ec168.c
++++ b/drivers/media/dvb/dvb-usb/ec168.c
+@@ -36,7 +36,9 @@ static int ec168_rw_udev(struct usb_device *udev, struct ec168_req *req)
+ 	int ret;
+ 	unsigned int pipe;
+ 	u8 request, requesttype;
+-	u8 buf[req->size];
++	u8 *buf;
++
++
  
-Hi Jason,
+ 	switch (req->cmd) {
+ 	case DOWNLOAD_FIRMWARE:
+@@ -72,6 +74,12 @@ static int ec168_rw_udev(struct usb_device *udev, struct ec168_req *req)
+ 		goto error;
+ 	}
+ 
++	buf = kmalloc(req->size, GFP_KERNEL);
++	if (!buf) {
++		ret = -ENOMEM;
++		goto error;
++	}
++
+ 	if (requesttype == (USB_TYPE_VENDOR | USB_DIR_OUT)) {
+ 		/* write */
+ 		memcpy(buf, req->data, req->size);
+@@ -84,13 +92,13 @@ static int ec168_rw_udev(struct usb_device *udev, struct ec168_req *req)
+ 	msleep(1); /* avoid I2C errors */
+ 
+ 	ret = usb_control_msg(udev, pipe, request, requesttype, req->value,
+-		req->index, buf, sizeof(buf), EC168_USB_TIMEOUT);
++		req->index, buf, req->size, EC168_USB_TIMEOUT);
+ 
+ 	ec168_debug_dump(request, requesttype, req->value, req->index, buf,
+ 		req->size, deb_xfer);
+ 
+ 	if (ret < 0)
+-		goto error;
++		goto err_dealloc;
+ 	else
+ 		ret = 0;
+ 
+@@ -98,7 +106,11 @@ static int ec168_rw_udev(struct usb_device *udev, struct ec168_req *req)
+ 	if (!ret && requesttype == (USB_TYPE_VENDOR | USB_DIR_IN))
+ 		memcpy(req->data, buf, req->size);
+ 
++	kfree(buf);
+ 	return ret;
++
++err_dealloc:
++	kfree(buf);
+ error:
+ 	deb_info("%s: failed:%d\n", __func__, ret);
+ 	return ret;
+-- 
+1.7.4.1
 
-> Hi Hermann,
-> 
-> > Hopefully it does help in that other case.
-
-that one really counts now.
-
-> I have it working now.  I had to add a delay of 120 seconds in the
-> mythtv backend script to allow the driver enough time to scan both
-> cards and install the firmware properly.  Previously the mythtv
-> backend at startup was trying to talk to the cards before the firmware
-> was loaded and so they'd fail to work.
-> 
-> It's not a big hassle but it would seem in spite of a test in the
-> startup script to ensure udev configuration was complete before
-> mythbackend was loaded it would seem that udev device configuration
-
-Sorry, no time yet to dig into it further, but I seem to hear some faint noise.
-
-How sure you are to have original eeprom content on your card ?
-
-Some bill, original packing material or similar?
-
-On some first impression, l doubt we deal with something it claims to be.
-
-Cheers,
-Hermann
-
-
-
-
-
-
-
-
-
-
-> was completing before the firmware was loaded.
-> 
-> Is there the possibility of adding some feature into the driver to
-> make sure it fails on opening if the firmware isn't properly loaded?
-> 
-> Another general question, does V4L sequentially initialise hardware or
-> does it run in parallel?  It would seem to be a good time saver to
-> have all DVB cards initialised in parallel to speed up booting of a
-> system.
-> 
-> I have reverted back to Mythbuntu 10.04 and kernel 2.6.32 and the
-> cards work fine now (though with the latest v29 of the firmware for
-> these cards).
-> 
-> Cheers
-> Jason
-> 
