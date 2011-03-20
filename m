@@ -1,32 +1,46 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:63070 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751410Ab1CZGs0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Mar 2011 02:48:26 -0400
-Date: Sat, 26 Mar 2011 09:48:04 +0300
-From: Dan Carpenter <error27@gmail.com>
-To: Mike Isely <isely@isely.net>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH 3/6] [media] pvrusb2: check for allocation failures
-Message-ID: <20110326064804.GL2008@bicker>
-References: <20110326015221.GH2008@bicker>
- <alpine.DEB.1.10.1103252333150.12072@ivanova.isely.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.1.10.1103252333150.12072@ivanova.isely.net>
+Received: from ist.d-labs.de ([213.239.218.44]:51922 "EHLO mx01.d-labs.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751132Ab1CTVvc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 Mar 2011 17:51:32 -0400
+From: Florian Mickler <florian@mickler.org>
+To: mchehab@infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	crope@iki.fi, tvboxspy@gmail.com,
+	Florian Mickler <florian@mickler.org>
+Subject: [PATCH 0/5] get rid of on-stack dma buffers (part1)
+Date: Sun, 20 Mar 2011 22:50:47 +0100
+Message-Id: <1300657852-29318-1-git-send-email-florian@mickler.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Fri, Mar 25, 2011 at 11:33:36PM -0500, Mike Isely wrote:
-> 
-> Acked-By: Mike Isely <isely@pobox.com>
-> 
+Hi Mauro!
 
-I'd need to reformat this one to get it to apply... :/  It doesn't
-actually fix the bug so it's not worth it.
+These are the patches which got tested already and 
+should be good to go. [first batch of patches]
 
-regards,
-dan carpenter
+I have another batch with updated patches (dib0700, gp8psk, vp702x)
+where I did some more extensive changes to use preallocated memory.
+And a small update to the vp7045 patch.
+
+Third batch are the patches to opera1, m920x, dw2102, friio,
+a800 which I left as is, for the time beeing. 
+Regards,
+Flo
+
+Florian Mickler (5):
+  [media] ec168: get rid of on-stack dma buffers
+  [media] ce6230: get rid of on-stack dma buffer
+  [media] au6610: get rid of on-stack dma buffer
+  [media] lmedm04: correct indentation
+  [media] lmedm04: get rid of on-stack dma buffers
+
+ drivers/media/dvb/dvb-usb/au6610.c  |   22 ++++++++++++++++------
+ drivers/media/dvb/dvb-usb/ce6230.c  |   11 +++++++++--
+ drivers/media/dvb/dvb-usb/ec168.c   |   18 +++++++++++++++---
+ drivers/media/dvb/dvb-usb/lmedm04.c |   35 +++++++++++++++++++++++------------
+ 4 files changed, 63 insertions(+), 23 deletions(-)
+
+-- 
+1.7.4.1
+
