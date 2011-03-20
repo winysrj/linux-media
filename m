@@ -1,37 +1,79 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:55523 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757142Ab1CIKMt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Mar 2011 05:12:49 -0500
-Received: by iyb26 with SMTP id 26so343778iyb.19
-        for <linux-media@vger.kernel.org>; Wed, 09 Mar 2011 02:12:48 -0800 (PST)
-MIME-Version: 1.0
-Date: Wed, 9 Mar 2011 11:12:48 +0100
-Message-ID: <AANLkTinsKCWHMeiG=EzjUR3O2pSUEUThJX8Q1BF2ZtH9@mail.gmail.com>
-Subject: v4l2 saa7134
-From: =?ISO-8859-1?Q?Norbert_Pl=F3t=E1r?= <plotter008@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from ist.d-labs.de ([213.239.218.44]:51936 "EHLO mx01.d-labs.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751038Ab1CTVvc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 Mar 2011 17:51:32 -0400
+From: Florian Mickler <florian@mickler.org>
+To: mchehab@infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	crope@iki.fi, tvboxspy@gmail.com,
+	Florian Mickler <florian@mickler.org>
+Subject: [PATCH 2/5] [media] ce6230: get rid of on-stack dma buffer
+Date: Sun, 20 Mar 2011 22:50:49 +0100
+Message-Id: <1300657852-29318-3-git-send-email-florian@mickler.org>
+In-Reply-To: <1300657852-29318-1-git-send-email-florian@mickler.org>
+References: <1300657852-29318-1-git-send-email-florian@mickler.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+usb_control_msg initiates (and waits for completion of) a dma transfer using
+the supplied buffer. That buffer thus has to be seperately allocated on
+the heap.
 
- Is there anybody, who knows, how, the v4l2 saa7134 part works in kernel space?
- I mean I have a gt-p8000 tv card. It's a hybrid tuner.
- I started to modify the saa7134 driver, but I cannot see the control
-flaw, the call order.
- Furthermore I would like to debug my code like only switching a GPIO
-on a single chip.
- My card contains the following chips:
+In lib/dma_debug.c the function check_for_stack even warns about it:
+	WARNING: at lib/dma-debug.c:866 check_for_stack
 
-  saa7131e/03/g
-  tda18271hd
-  tda10048hn
+Signed-off-by: Florian Mickler <florian@mickler.org>
+Acked-by: Antti Palosaari <crope@iki.fi>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
+Tested-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb/dvb-usb/ce6230.c |   11 +++++++++--
+ 1 files changed, 9 insertions(+), 2 deletions(-)
 
- My future plan to create a gui, and control the 3 chips separately.
-But first of all, to make it work as a TV card on linux.
+diff --git a/drivers/media/dvb/dvb-usb/ce6230.c b/drivers/media/dvb/dvb-usb/ce6230.c
+index 3df2045..6d1a304 100644
+--- a/drivers/media/dvb/dvb-usb/ce6230.c
++++ b/drivers/media/dvb/dvb-usb/ce6230.c
+@@ -39,7 +39,7 @@ static int ce6230_rw_udev(struct usb_device *udev, struct req_t *req)
+ 	u8 requesttype;
+ 	u16 value;
+ 	u16 index;
+-	u8 buf[req->data_len];
++	u8 *buf;
+ 
+ 	request = req->cmd;
+ 	value = req->value;
+@@ -62,6 +62,12 @@ static int ce6230_rw_udev(struct usb_device *udev, struct req_t *req)
+ 		goto error;
+ 	}
+ 
++	buf = kmalloc(req->data_len, GFP_KERNEL);
++	if (!buf) {
++		ret = -ENOMEM;
++		goto error;
++	}
++
+ 	if (requesttype == (USB_TYPE_VENDOR | USB_DIR_OUT)) {
+ 		/* write */
+ 		memcpy(buf, req->data, req->data_len);
+@@ -74,7 +80,7 @@ static int ce6230_rw_udev(struct usb_device *udev, struct req_t *req)
+ 	msleep(1); /* avoid I2C errors */
+ 
+ 	ret = usb_control_msg(udev, pipe, request, requesttype, value, index,
+-				buf, sizeof(buf), CE6230_USB_TIMEOUT);
++				buf, req->data_len, CE6230_USB_TIMEOUT);
+ 
+ 	ce6230_debug_dump(request, requesttype, value, index, buf,
+ 		req->data_len, deb_xfer);
+@@ -88,6 +94,7 @@ static int ce6230_rw_udev(struct usb_device *udev, struct req_t *req)
+ 	if (!ret && requesttype == (USB_TYPE_VENDOR | USB_DIR_IN))
+ 		memcpy(req->data, buf, req->data_len);
+ 
++	kfree(buf);
+ error:
+ 	return ret;
+ }
+-- 
+1.7.4.1
 
-Thanks.
-BR,
-Norbert
