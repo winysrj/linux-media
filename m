@@ -1,91 +1,88 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:50993 "EHLO mx1.redhat.com"
+Received: from ist.d-labs.de ([213.239.218.44]:51951 "EHLO mx01.d-labs.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752920Ab1CKUMk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Mar 2011 15:12:40 -0500
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p2BKCe4F006158
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 11 Mar 2011 15:12:40 -0500
-Received: from pedra (vpn-228-17.phx2.redhat.com [10.3.228.17])
-	by int-mx09.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p2BKCcll009816
-	for <linux-media@vger.kernel.org>; Fri, 11 Mar 2011 15:12:39 -0500
-Date: Fri, 11 Mar 2011 17:08:29 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 1/2] [media] several drivers: Fix a few gcc 4.6 warnings
-Message-ID: <20110311170829.1b771081@pedra>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	id S1751438Ab1CTVvd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 Mar 2011 17:51:33 -0400
+From: Florian Mickler <florian@mickler.org>
+To: mchehab@infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	crope@iki.fi, tvboxspy@gmail.com,
+	Florian Mickler <florian@mickler.org>
+Subject: [PATCH 3/5] [media] au6610: get rid of on-stack dma buffer
+Date: Sun, 20 Mar 2011 22:50:50 +0100
+Message-Id: <1300657852-29318-4-git-send-email-florian@mickler.org>
+In-Reply-To: <1300657852-29318-1-git-send-email-florian@mickler.org>
+References: <1300657852-29318-1-git-send-email-florian@mickler.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-au0828-dvb.c:99:6: warning: variable 'ptr' set but not used [-Wunused-but-set-variable]
-au0828-video.c:1180:25: warning: variable 'maxheight' set but not used [-Wunused-but-set-variable]
-au0828-video.c:1180:15: warning: variable 'maxwidth' set but not used [-Wunused-but-set-variable]
-bttv-input.c:196:16: warning: variable 'current_jiffies' set but not used [-Wunused-but-set-variable]
+usb_control_msg initiates (and waits for completion of) a dma transfer using
+the supplied buffer. That buffer thus has to be seperately allocated on
+the heap.
 
-Those variables are not used at all, so just remove them.
+In lib/dma_debug.c the function check_for_stack even warns about it:
+	WARNING: at lib/dma-debug.c:866 check_for_stack
 
-Cc: Steven Toth <stoth@hauppauge.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Florian Mickler <florian@mickler.org>
+Acked-by: Antti Palosaari <crope@iki.fi>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
+Tested-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb/dvb-usb/au6610.c |   22 ++++++++++++++++------
+ 1 files changed, 16 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/video/au0828/au0828-dvb.c b/drivers/media/video/au0828/au0828-dvb.c
-index f1edf1d..5182167 100644
---- a/drivers/media/video/au0828/au0828-dvb.c
-+++ b/drivers/media/video/au0828/au0828-dvb.c
-@@ -96,7 +96,6 @@ static struct tda18271_config hauppauge_woodbury_tunerconfig = {
- /*-------------------------------------------------------------------*/
- static void urb_completion(struct urb *purb)
+diff --git a/drivers/media/dvb/dvb-usb/au6610.c b/drivers/media/dvb/dvb-usb/au6610.c
+index eb34cc3..2351077 100644
+--- a/drivers/media/dvb/dvb-usb/au6610.c
++++ b/drivers/media/dvb/dvb-usb/au6610.c
+@@ -33,8 +33,16 @@ static int au6610_usb_msg(struct dvb_usb_device *d, u8 operation, u8 addr,
  {
--	u8 *ptr;
- 	struct au0828_dev *dev = purb->context;
- 	int ptype = usb_pipetype(purb->pipe);
- 
-@@ -114,8 +113,6 @@ static void urb_completion(struct urb *purb)
- 		return;
+ 	int ret;
+ 	u16 index;
+-	u8 usb_buf[6]; /* enough for all known requests,
+-			  read returns 5 and write 6 bytes */
++	u8 *usb_buf;
++
++	/*
++	 * allocate enough for all known requests,
++	 * read returns 5 and write 6 bytes
++	 */
++	usb_buf = kmalloc(6, GFP_KERNEL);
++	if (!usb_buf)
++		return -ENOMEM;
++
+ 	switch (wlen) {
+ 	case 1:
+ 		index = wbuf[0] << 8;
+@@ -45,14 +53,15 @@ static int au6610_usb_msg(struct dvb_usb_device *d, u8 operation, u8 addr,
+ 		break;
+ 	default:
+ 		warn("wlen = %x, aborting.", wlen);
+-		return -EINVAL;
++		ret = -EINVAL;
++		goto error;
  	}
  
--	ptr = (u8 *)purb->transfer_buffer;
+ 	ret = usb_control_msg(d->udev, usb_rcvctrlpipe(d->udev, 0), operation,
+ 			      USB_TYPE_VENDOR|USB_DIR_IN, addr << 1, index,
+-			      usb_buf, sizeof(usb_buf), AU6610_USB_TIMEOUT);
++			      usb_buf, 6, AU6610_USB_TIMEOUT);
+ 	if (ret < 0)
+-		return ret;
++		goto error;
+ 
+ 	switch (operation) {
+ 	case AU6610_REQ_I2C_READ:
+@@ -60,7 +69,8 @@ static int au6610_usb_msg(struct dvb_usb_device *d, u8 operation, u8 addr,
+ 		/* requested value is always 5th byte in buffer */
+ 		rbuf[0] = usb_buf[4];
+ 	}
 -
- 	/* Feed the transport payload into the kernel demux */
- 	dvb_dmx_swfilter_packets(&dev->dvb.demux,
- 		purb->transfer_buffer, purb->actual_length / 188);
-diff --git a/drivers/media/video/au0828/au0828-video.c b/drivers/media/video/au0828/au0828-video.c
-index 9c475c6..6ad83a1 100644
---- a/drivers/media/video/au0828/au0828-video.c
-+++ b/drivers/media/video/au0828/au0828-video.c
-@@ -1177,10 +1177,6 @@ static int au0828_set_format(struct au0828_dev *dev, unsigned int cmd,
- 	int ret;
- 	int width = format->fmt.pix.width;
- 	int height = format->fmt.pix.height;
--	unsigned int maxwidth, maxheight;
--
--	maxwidth = 720;
--	maxheight = 480;
++error:
++	kfree(usb_buf);
+ 	return ret;
+ }
  
- 	if (format->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
- 		return -EINVAL;
-diff --git a/drivers/media/video/bt8xx/bttv-input.c b/drivers/media/video/bt8xx/bttv-input.c
-index e8b64bc..677d70c 100644
---- a/drivers/media/video/bt8xx/bttv-input.c
-+++ b/drivers/media/video/bt8xx/bttv-input.c
-@@ -193,12 +193,10 @@ static void bttv_rc5_timer_end(unsigned long data)
- {
- 	struct bttv_ir *ir = (struct bttv_ir *)data;
- 	struct timeval tv;
--	unsigned long current_jiffies;
- 	u32 gap;
- 	u32 rc5 = 0;
- 
- 	/* get time */
--	current_jiffies = jiffies;
- 	do_gettimeofday(&tv);
- 
- 	/* avoid overflow with gap >1s */
 -- 
-1.7.1
-
+1.7.4.1
 
