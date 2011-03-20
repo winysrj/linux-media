@@ -1,23 +1,19 @@
 Return-path: <mchehab@pedra>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <freebeer.bouwsma@gmail.com>) id 1PxKtI-0003d4-Ju
-	for linux-dvb@linuxtv.org; Wed, 09 Mar 2011 16:01:33 +0100
-Received: from mail-ey0-f182.google.com ([209.85.215.182])
-	by mail.tu-berlin.de (exim-4.74/mailfrontend-c) with esmtps
-	[TLSv1:RC4-SHA:128] for <linux-dvb@linuxtv.org>
-	id 1PxKtI-0001Sy-3R; Wed, 09 Mar 2011 16:01:32 +0100
-Received: by eyg7 with SMTP id 7so188901eyg.41
-	for <linux-dvb@linuxtv.org>; Wed, 09 Mar 2011 07:01:30 -0800 (PST)
-Date: Wed, 9 Mar 2011 16:01:24 +0100 (CET)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: =?UTF-8?Q?Pascal_J=C3=BCrgens?= <lists.pascal.juergens@googlemail.com>
-In-Reply-To: <DB7182D0-F83D-459A-8706-40E67D0ABD06@googlemail.com>
-Message-ID: <alpine.DEB.2.01.1103091520560.27893@localhost.localdomain>
-References: <DB7182D0-F83D-459A-8706-40E67D0ABD06@googlemail.com>
+	(envelope-from <aslam@hcscomm.com>) id 1Q1HHJ-0001Uk-Ku
+	for linux-dvb@linuxtv.org; Sun, 20 Mar 2011 12:58:38 +0100
+Received: from mail2.hejailan.com ([82.205.218.163] helo=alhimss.alhgroup.net)
+	by mail.tu-berlin.de (exim-4.74/mailfrontend-b) with esmtp
+	for <linux-dvb@linuxtv.org>
+	id 1Q1HHJ-0000eV-6a; Sun, 20 Mar 2011 12:58:37 +0100
+From: Aslam Mullappilly <aslam@hcscomm.com>
+To: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
+Date: Sun, 20 Mar 2011 14:58:31 +0300
+Message-ID: <425356A9213FA046A466287AF4E18B1901468986AA34@ALH-MAIL.alhgroup.net>
+Content-Language: en-US
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Simultaneous recordings from one frontend
+Subject: [linux-dvb] unsubscribe
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -26,88 +22,100 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============0495746374=="
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 Sender: <mchehab@pedra>
 List-ID: <linux-dvb@linuxtv.org>
 
-T24gV2VkIChXZWRuZXNkYXkpIDA5Lk1hciAoTWFyY2gpIDIwMTEsIDE0OjQxLCAgUGFzY2FsIErD
-vHJnZW5zIHdyb3RlOgoKPiBTVU1NQVJZOiBXaGF0J3MgdGhlIGJlc3QgYXZhaWxhYmxlIHRvb2wg
-Zm9yIGRlbXVsdGlwbGV4aW5nIGludG8gCj4gbXVsdGlwbGUgc2ltdWx0YW5lb3VzIHJlY29yZGlu
-Z3MgKGZpbGVzKT8KClF1ZXN0aW9uIC0tIGNhbiB5b3UgY2xhcmlmeSB0aGlzIC0tIGRvIHlvdSB3
-YW50IHRvIHJlY29yZCB0d28Kc2ltdWx0YW5lb3VzIHByb2dyYW1tZXMgZnJvbSBvbmUgZGV2aWNl
-LCBzYXksIGYncmluc3RhbmNlIHR3bwpCQkMgcmFkaW8gc2hvd3MgZnJvbSBvbmUgY29tbW9uIHRy
-YW5zcG9uZGVyL211bHRpcGxleCBmb3IgdGhlCnNha2Ugb2YgZWZmaWNpZW5jeSwgYnV0IHdoaWNo
-IHJ1biB3aXRoIG92ZXJsYXBwaW5nIHRpbWVzLCBvcgphcmUgeW91IHdhbnRpbmcgdG8gcmVjb3Jk
-IGEgc2luZ2xlIHRyYW5zcG9ydCBzdHJlYW0gb3Igb3RoZXIKcGVybXV0YXRpb24gdGhlcmVvZiAo
-UFMsIEVTLCByYXcgcGF5bG9hZCBkYXRhKSBvZiBvbmUgc2luZ2xlCnByb2dyYW1tZSBpbnRvIG92
-ZXJsYXBwaW5nIGZpbGVzLCBub3QgdW5saWtlIGp1Z2dsaW5nIGZsb3BwaWVzPwoKCj4gSSdtIGxv
-b2tpbmcgZm9yIGEgd2F5IHRvIHJlY29yZCBhIFRTIHRvIG92ZXJsYXBwaW5nIGZpbGVzIChpZSwg
-Cj4gZmlsZXMyIHNob3VsZCBzdGFydCA1IG1pbnV0ZXMgYmVmb3JlIGZpbGUxIGVuZHMpLiBUaGlz
-IG1lYW5zIAo+IHRoYXQgdHdvIHJlYWRlcnMgbmVlZCB0byBhY2Nlc3MgdGhlIGNhcmQgYXQgb25j
-ZS4gQXMgZmFyIGFzIEkgCj4gY2FuIHRlbGwgZnJvbSBwYXN0IGRpc2N1c3Npb25zIFsxXSwgdGhp
-cyBpcyBub3QgYSBmZWF0dXJlIHRoYXQncyAKPiBjdXJyZW50bHkgcHJlc2VudCBvciBwbGFubmVk
-IGluIHRoZSBrZXJuZWwuCgpJZiB0aGVzZSB3b3VsZCBiZSB0d28gZGlzdGluY3QgcHJvZ3JhbW1l
-cywgSSdkIHBvaW50IHlvdSBpbiB0aGUKZGlyZWN0aW9uIG9mIHdoYXQgSSB0aGluayBpcyBjYWxs
-ZWQgU3VwZXJEZW11eGVyLiAgQWgsIEkgZG8gaGF2ZQppdHMgc291cmNlIGhhbmR5OiAgc3VwZXJf
-ZGVtdXgtMC4zIG9mIHdoaWNoIEkgcnVuIGEgc2xpZ2h0bHkgCmhhY2tlZCAyMDA1IHZpbnRhZ2Ug
-dG8gc3BsaXQgb3V0IGEgaGFsZiBkb3plbiBvdmVybGFwcGluZyByYWRpbwpzaG93cyBpbnRvIHNl
-cGFyYXRlIG1wMiBmaWxlcy4KCkZvciBvdmVybGFwcGluZyBmaWxlcyAocHJvZ3JhbW1lcz8pIEkg
-d291bGQgc3VnZ2VzdCBqdXN0IHVzaW5nCmB0ZWUnIG9yIGEgc2ltaWxhcmx5LWluZmx1ZW5jZWQg
-dXRpbGl0eSBhbmQgaWYgeW91IGNhbiwgYWNjZXB0CnRoZSB3YXN0ZSBvdXRzaWRlIG9mIG92ZXJs
-YXBwaW5nIHByb2dyYW1tZXMuCgpGb3IgbXVsdGlwbGUgYWNjZXNzIHRvIGEgc2luZ2xlIHN0cmVh
-bSwgSSd2ZSBoYWQgZ3JlYXQgc3VjY2Vzcwpmb3Igd2hhdCBJIGRvIHdpdGggVURQIG11bHRpY2Fz
-dCBvdmVyIGEgcmVsaWFibGUgcGh5c2ljYWwgbWVkaXVtLgpCdXQgdGhlcmUgSSdtIG9ubHkgY2Fy
-aW5nIGFib3V0IHRoZSBzaW1wbGUgcGF5bG9hZCBhbmQgbm90IHRoZQpsZWFzdCBhYm91dCBhbnkg
-b2YgdGhlIGFkZGVkIFRyYW5zcG9ydCBTdHJlYW0gaW5mb3JtYXRpb24uCgoKCgo+IC0gQWRhbSBD
-aGFycmV0dCdzIGR2YnN0cmVhbWVyIFsyXSBzZWVtcyB0byBydW4gYSBzb3J0LW9mIAo+IHJpbmdi
-dWZmZXIgYW5kIGNhbiBvdXRwdXQgdG8gc3RyZWFtcyBhbmQgZmlsZXMuIEhvd2V2ZXIsIGl0J3Mg
-Cj4gbm90IGFsbCB0b28gc3RhYmxlLCBlc3BlY2lhbGx5IHdoZW4gdXNpbmcgdGhlIHJlbW90ZSBj
-b250cm9sIAo+IHByb3RvY29sLgoKRm9yIGFsbCBhY2Nlc3MgdG8gbXkgZnJvbnRlbmRzIHRvIGdl
-dCBhIFRyYW5zcG9ydCBTdHJlYW0sIEkgcmVseSAKb24KL21lZGlhL3NlcnZlci9ob21lL2JlZXIv
-YmluL2R2YnN0cmVhbTogYnJva2VuIHN5bWJvbGljIGxpbmsgdG8gCmAvdXNyL2xvY2FsL3NyYy9k
-dmJ0b29scy9kdmJzdHJlYW0vZHZic3RyZWFtCndoaWNoIEknbSBub3Qgc3VyZSBpZiBpdCdzIGlk
-ZW50aWNhbCAtLSBhbmQgYWdhaW4sIGxpa2VseSB0byBoYXZlCnN1ZmZlcmVkIGEgZmV3IG1pbm9y
-IGhhY2tzIGhlcmUuICBJIGJlbGlldmUgaXQgd29ya3Mgd2VsbCBmb3IgbWUKdGhlIGZldyB0aW1l
-cyBJJ3ZlIHRlc3RlZCBtdWx0aWNhc3Qgc3RyZWFtaW5nIGJlZm9yZSBzZXR0bGluZyBvbgpzdHJp
-cHBpbmcgb3V0IGp1c3QgdGhlIHBheWxvYWQgZmlyc3QuCgpCdXQgYXMgeW91IG1heSBndWVzcyBJ
-J20gdXNpbmcgZXNzZW50aWFsbHkgYSBzZXJ2ZXIgZm9yIGV2ZXJ5dGhpbmcKdGhhdCBJIHdvbid0
-IGJlIHNlZWluZyB1c2VyIHN0YWJpbGl0eSBwcm9ibGVtcyB5b3UgbWF5IGhhdmUuCgoKPiAtIHRo
-ZSBSVFAgc3RyZWFtaW5nIGFwcHMgKGR2Ymxhc3QsIG11bXVkdmIsIGR2YnllbGwgZXRjLikgYXJl
-IAo+IGRlc2lnbmVkIHRvIGFsbG93IG11bHRpcGxlIGxpc3RlbmVycy4gVGhlIGlkZWFsIHNvbHV0
-aW9uIHdvdWxkIAo+IGJlIHNvbWV0aGluZyBsaWtlIGFuIGludGVyZmFjZS1sb2NhbCBpcHY2IG11
-bHRpY2FzdCAobXVtdWR2YiAKPiByZWNvbW1lbmRzIHVzaW5nIGEgVFRMIG9mIDAgdG8gcHJldmVu
-dCBwYWNrZXRzIGZyb20gZXhpdGluZyB0aGUgCj4gbWFjaGluZSwgYnV0IHRoYXQgc2VlbXMgbGlr
-ZSBhIGNsdWRnZSkuIFNhZGx5LCBJIGhhdmVuJ3QgZ290dGVuIAo+IHRoYXQgdG8gd29yayBbNF0u
-CgpCZWNhdXNlIEkgb25seSBjYXJlIGFib3V0IHRoZSBtdWx0aWNhc3QgcGF5bG9hZCwgSSd2ZSB1
-c2VkIGEKdmVyc2lvbiwgYWdhaW4gcGVyaGFwcyBzbGlnaHRseSBoYWNrZWQsIG9mCm1hc3QtMC4y
-LjIvc3JjL21hc3RfcmF3Y2FzdCAgIC1wIE1QQQp3aGljaCBhZ2FpbiBtYXkgYmUgdW5zdWl0YWJs
-ZSBmb3IgeW91ciBuZWVkcyAtLSBvdmVyIElQdjQgZm9yCm5vdy4gIEkgaGF2ZSBubyB3b3JyaWVz
-IGFib3V0IHRoZSBzdHJlYW0gZ2V0dGluZyBvdXQgb2YgdGhlIGxvY2FsCm5ldHdvcmssIGJlY2F1
-c2UgdGhlcmUncyBubyByb3V0aW5nIGhlcmUgdG8gc2VuZCBpdCBhbnl3aGVyZSB0aGF0CnNwZWFr
-cyBtdWx0aWNhc3QsIHN1cHBvcnQgZm9yIHdoaWNoIEkndmUgZm91bmQgbGVzcyB0aGFuIGlkZWFs
-LgoKCgo+IEFkZGl0aW9uYWxseSwgSSB3YXNuJ3QgYWJsZSB0byBjb25zdW1lIGEgcmVndWxhciBp
-cHY0IG11bHRpY2FzdCAKPiB3aXRoIHR3byBpbnN0YW5jZXMgb2YgbXBsYXllciAtIHRoZSBmaXJz
-dCBvbmUgd29ya2VkLCB0aGUgc2Vjb25kIAo+IG9uZSBjb3VsZG4ndCBhY2Nlc3MgdGhlIHVybC4K
-CkkndmUgaGFkIHRvIHJlbHkgb24gYHZsYycgd2hpY2ggcGxheXMgbXkgYXVkaW8tb25seSBzdHJl
-YW0gYXMgCnNpbXBsZSBSVFAgcGVyZmVjdGx5LCBldmVuIG9uIHZpc2l0aW5nICdkb3plIG1hY2hp
-bmVzLiAgRm9yCnNjcmlwdGVkIHNlcnZlciB1c2UgSSByZWx5IG9uIHNvbWV0aGluZyBlbHNlLgoK
-Tm93IHRoYXQgSSB0aGluayBvZiBpdCwgSSBkaWQgdGVzdCBzaW1wbGVyIHN0cmVhbWluZyBvZiBt
-b3JlCnRoYW4ganVzdCBvbmUgcGFydCBvZiBhIG1vcmUgY29tcGxleCBzdHJlYW0sIGhhZCBoYWQg
-c3VjY2VzcyBpbgpkaWZmZXJlbnRpYXRpbmcgdGhlIGRpZmZlcmVudCBwYXJ0cyBvZiB0aGUgc3Ry
-ZWFtIHdpdGggYG1wbGF5ZXInCnNvIGRlc3BpdGUgbXkgZmFpbGluZyBtZW1vcnksIEkgY2FuIGFk
-bWl0IHRvIGRvaW5nIHRvLgoKQW5vdGhlciB0aGluZyB0byBub3RlIGlzIHRoYXQgcGVyaGFwcyBz
-b21lIHV0aWxpdGllcyBtYXkgd2FudAp0byBzcGVhayBvdmVyIGEgcmV0dXJuIGNoYW5uZWwgLS0g
-SSBzZWUgcG9ydCA1MDAzIGJlZm9yZSBJIGhhY2tlZAp0aGF0IHVzZWxlc3MgZmVlZGJhY2sgYXdh
-eSwgdG8gcHJ1bmUgdG8gdGhlIGJhcmUgbWluaW11bSBvbiBteQphbmNpZW50IGxvdy1iYW5kd2lk
-dGggZXRoZXJuZXQsIGFsdGhvdWdoIEkgY2FuJ3QgaW1hZ2luZSBob3cgYQp1dGlsaXR5IHdvdWxk
-IGRlcGVuZCB1cG9uIHRoaXMgaW4gbXkgc2l0dWF0aW9uLgoKCkhvcGUgdGhpcyBpcyBoZWxwZnVs
-LCBzb21laG93LiAgQXMgSSBzYXkgd2l0aG91dCBhIGJldHRlciAobW9yZQpzcGVjaWZpYykgZXhh
-bXBsZSBvZiB3aGF0IHlvdSdyZSB0cnlpbmcgdG8gZG8sIEkgY2FuJ3QgdGVsbCBpZgpJJ20gbGVh
-ZGluZyB5b3UgYXN0cmF5IHRoYW5rcyB0byBzaW1wbGUgbWlzdW5kZXJzdGFuZGluZy4uLgoKCnRo
-YW5rcywKYmFycnkgYm91d3NtYQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX18KbGludXgtZHZiIHVzZXJzIG1haWxpbmcgbGlzdApGb3IgVjRML0RWQiBkZXZl
-bG9wbWVudCwgcGxlYXNlIHVzZSBpbnN0ZWFkIGxpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZwps
-aW51eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxt
-YW4vbGlzdGluZm8vbGludXgtZHZi
+
+--===============0495746374==
+Content-Language: en-US
+Content-Type: multipart/alternative;
+	boundary="_000_425356A9213FA046A466287AF4E18B1901468986AA34ALHMAILalhg_"
+
+
+--_000_425356A9213FA046A466287AF4E18B1901468986AA34ALHMAILalhg_
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+
+
+
+--_000_425356A9213FA046A466287AF4E18B1901468986AA34ALHMAILalhg_
+Content-Type: text/html; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+
+<html xmlns:v=3D"urn:schemas-microsoft-com:vml" xmlns:o=3D"urn:schemas-micr=
+osoft-com:office:office" xmlns:w=3D"urn:schemas-microsoft-com:office:word" =
+xmlns:m=3D"http://schemas.microsoft.com/office/2004/12/omml" xmlns=3D"http:=
+//www.w3.org/TR/REC-html40"><head><META HTTP-EQUIV=3D"Content-Type" CONTENT=
+=3D"text/html; charset=3Dus-ascii"><meta name=3DGenerator content=3D"Micros=
+oft Word 14 (filtered medium)"><style><!--
+/* Font Definitions */
+@font-face
+	{font-family:Calibri;
+	panose-1:2 15 5 2 2 2 4 3 2 4;}
+@font-face
+	{font-family:Tahoma;
+	panose-1:2 11 6 4 3 5 4 4 2 4;}
+/* Style Definitions */
+p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin:0in;
+	margin-bottom:.0001pt;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+a:link, span.MsoHyperlink
+	{mso-style-priority:99;
+	color:blue;
+	text-decoration:underline;}
+a:visited, span.MsoHyperlinkFollowed
+	{mso-style-priority:99;
+	color:purple;
+	text-decoration:underline;}
+p.MsoAcetate, li.MsoAcetate, div.MsoAcetate
+	{mso-style-priority:99;
+	mso-style-link:"Balloon Text Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:8.0pt;
+	font-family:"Tahoma","sans-serif";}
+span.EmailStyle17
+	{mso-style-type:personal-compose;
+	font-family:"Calibri","sans-serif";
+	color:windowtext;}
+span.BalloonTextChar
+	{mso-style-name:"Balloon Text Char";
+	mso-style-priority:99;
+	mso-style-link:"Balloon Text";
+	font-family:"Tahoma","sans-serif";}
+.MsoChpDefault
+	{mso-style-type:export-only;
+	font-family:"Calibri","sans-serif";}
+@page WordSection1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.0in 1.0in 1.0in;}
+div.WordSection1
+	{page:WordSection1;}
+--></style><!--[if gte mso 9]><xml>
+<o:shapedefaults v:ext=3D"edit" spidmax=3D"1026" />
+</xml><![endif]--><!--[if gte mso 9]><xml>
+<o:shapelayout v:ext=3D"edit">
+<o:idmap v:ext=3D"edit" data=3D"1" />
+</o:shapelayout></xml><![endif]--></head><body lang=3DEN-US link=3Dblue vli=
+nk=3Dpurple><div class=3DWordSection1><p class=3DMsoNormal><o:p>&nbsp;</o:p=
+></p></div></body></html>=
+
+--_000_425356A9213FA046A466287AF4E18B1901468986AA34ALHMAILalhg_--
+
+
+--===============0495746374==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0495746374==--
