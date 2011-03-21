@@ -1,75 +1,79 @@
 Return-path: <mchehab@pedra>
-Received: from swampdragon.chaosbits.net ([90.184.90.115]:18997 "EHLO
-	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753609Ab1CUUgr (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:38946 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750786Ab1CUH44 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Mar 2011 16:36:47 -0400
-Date: Mon, 21 Mar 2011 21:36:37 +0100 (CET)
-From: Jesper Juhl <jj@chaosbits.net>
-To: Matthias Schwarzott <zzam@gentoo.org>
-cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Dan Carpenter <error27@gmail.com>, Tejun Heo <tj@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [Patch] Zarlink zl10036 DVB-S: Fix mem leak in zl10036_attach
-In-Reply-To: <201102172145.55258.zzam@gentoo.org>
-Message-ID: <alpine.LNX.2.00.1103212135530.15815@swampdragon.chaosbits.net>
-References: <alpine.LNX.2.00.1102062128391.13593@swampdragon.chaosbits.net> <201102172054.12773.zzam@gentoo.org> <alpine.LNX.2.00.1102172130360.17697@swampdragon.chaosbits.net> <201102172145.55258.zzam@gentoo.org>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Mon, 21 Mar 2011 03:56:56 -0400
+Received: from epmmp1 (mailout2.samsung.com [203.254.224.25])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LIE00FHTE23MZ30@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 21 Mar 2011 16:56:27 +0900 (KST)
+Received: from AMDC159 ([106.116.37.153])
+ by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LIE00LYLE1T5R@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 21 Mar 2011 16:56:27 +0900 (KST)
+Date: Mon, 21 Mar 2011 08:56:15 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH 1/2] [media] vb2: vb2_poll() fix return values for file I/O
+ mode
+In-reply-to: <1300663876-24712-1-git-send-email-pawel@osciak.com>
+To: 'Pawel Osciak' <pawel@osciak.com>, linux-media@vger.kernel.org
+Message-id: <000001cbe79d$76d58ea0$6480abe0$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <1300663876-24712-1-git-send-email-pawel@osciak.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, 17 Feb 2011, Matthias Schwarzott wrote:
+Hello,
 
-> On Thursday 17 February 2011, Jesper Juhl wrote:
-> > On Thu, 17 Feb 2011, Matthias Schwarzott wrote:
-> > > On Sunday 06 February 2011, Jesper Juhl wrote:
-> > > > If the memory allocation to 'state' succeeds but we jump to the 'error'
-> > > > label before 'state' is assigned to fe->tuner_priv, then the call to
-> > > > 'zl10036_release(fe)' at the 'error:' label will not free 'state', but
-> > > > only what was previously assigned to 'tuner_priv', thus leaking the
-> > > > memory allocated to 'state'.
-> > > > There are may ways to fix this, including assigning the allocated
-> > > > memory directly to 'fe->tuner_priv', but I did not go for that since
-> > > > the additional pointer derefs are more expensive than the local
-> > > > variable, so I just added a 'kfree(state)' call. I guess the call to
-> > > > 'zl10036_release' might not even be needed in this case, but I wasn't
-> > > > sure, so I left it in.
-> > > 
-> > > Yeah, that call to zl10036_release can be completely eleminated.
-> > > Another thing is: jumping to the error label only makes sense when memory
-> > > was already allocated. So the jump in line 471 can be replaced by
-> > > "return NULL",
-> > > 
-> > > as the other error handling before allocation:
-> > >         if (NULL == config) {
-> > >         
-> > >                 printk(KERN_ERR "%s: no config specified", __func__);
-> > >                 goto error;
-> > >         
-> > >         }
-> > > 
-> > > I suggest to improve the patch to clean the code up when changing that.
-> > > 
-> > > But I am fine with commiting this patch also if you do not want to change
-> > > it.
-> > 
-> > Thank you for your feedback. It makes a lot of sense.
-> > Changing it is not a problem :)
-> > How about the updated patch below?
-> > 
-> Looks good.
+On Monday, March 21, 2011 12:31 AM Pawel Osciak wrote:
+
+> poll() should be returning poll-specific error values, not E* errors.
 > 
-> @Mauro: Please apply.
+> Signed-off-by: Pawel Osciak <pawel@osciak.com>
+
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+
+> ---
+>  drivers/media/video/videobuf2-core.c |    6 +++---
+>  1 files changed, 3 insertions(+), 3 deletions(-)
 > 
+> diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
+> index ce03225..8c6f04b 100644
+> --- a/drivers/media/video/videobuf2-core.c
+> +++ b/drivers/media/video/videobuf2-core.c
+> @@ -1364,18 +1364,18 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
+>  	struct vb2_buffer *vb = NULL;
+> 
+>  	/*
+> -	 * Start file io emulator if streaming api has not been used yet.
+> +	 * Start file I/O emulator only if streaming API has not been used yet.
+>  	 */
+>  	if (q->num_buffers == 0 && q->fileio == NULL) {
+>  		if (!V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_READ)) {
+>  			ret = __vb2_init_fileio(q, 1);
+>  			if (ret)
+> -				return ret;
+> +				return POLLERR;
+>  		}
+>  		if (V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_WRITE)) {
+>  			ret = __vb2_init_fileio(q, 0);
+>  			if (ret)
+> -				return ret;
+> +				return POLLERR;
+>  			/*
+>  			 * Write to OUTPUT queue can be done immediately.
+>  			 */
+> --
+> 1.7.4.1
 
-I can't seen to find this patch applied.
+Best regards
+--
+Marek Szyprowski
+Samsung Poland R&D Center
 
-PING ?
-
-
--- 
-Jesper Juhl <jj@chaosbits.net>       http://www.chaosbits.net/
-Don't top-post http://www.catb.org/jargon/html/T/top-post.html
-Plain text mails only, please.
 
