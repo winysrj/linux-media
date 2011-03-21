@@ -1,64 +1,39 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.8]:50602 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753198Ab1CJPgn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Mar 2011 10:36:43 -0500
-Date: Thu, 10 Mar 2011 16:36:36 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: javier Martin <javier.martin@vista-silicon.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: mt9p031 support for Beagleboard.
-In-Reply-To: <AANLkTi=8iEa4ZXvh1SqL8XdHuB2YcDAxXAqouJA2JriV@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1103101632260.18816@axis700.grange>
-References: <AANLkTi=8iEa4ZXvh1SqL8XdHuB2YcDAxXAqouJA2JriV@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from ist.d-labs.de ([213.239.218.44]:44316 "EHLO mx01.d-labs.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752929Ab1CUKTe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Mar 2011 06:19:34 -0400
+From: Florian Mickler <florian@mickler.org>
+To: mchehab@infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	pb@linuxtv.org, Florian Mickler <florian@mickler.org>
+Subject: [PATCH 4/9] [media] vp702x: remove unused variable
+Date: Mon, 21 Mar 2011 11:19:09 +0100
+Message-Id: <1300702754-16376-5-git-send-email-florian@mickler.org>
+In-Reply-To: <1300702754-16376-1-git-send-email-florian@mickler.org>
+References: <1300702754-16376-1-git-send-email-florian@mickler.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi
+struct vp702x_device_state.power_state is nowhere referenced.
 
-On Thu, 10 Mar 2011, javier Martin wrote:
-
-> Hi,
-> we are going to receive a Beagleaboard xM board in a couple of days.
-> One of the things we would like to test is video capture.
-> 
-> When it comes to the DM3730 SoC, it seems the support is given through
-> these two files:
-> http://lxr.linux.no/#linux+v2.6.37.3/drivers/media/video/davinci/vpfe_capture.c
-> --> to capture from sensor
-> http://lxr.linux.no/#linux+v2.6.37.3/drivers/media/video/davinci/dm644x_ccdc.c
-> --> to convert from Bayer RGB to YUV
-> 
-> On the other hand, the sensor we would like to test is mt9p031 which
-> comes with LI-5M03, a module that can be attached to Beagleboard xM
-> directly:
-> https://www.leopardimaging.com/Beagle_Board_xM_Camera.html
-> 
-> By a lot of googling I found this version of a driver for mt9p031
-> which is developed by Guennadi Liakhovetski. It is located in a 2.6.32
-> based branch:
-
-That's a back-port of my patches by a "third party";) Probably, never 
-actually tested.
-
-> http://arago-project.org/git/projects/?p=linux-davinci.git;a=blob;f=drivers/media/video/mt9p031.c;h=66b5e54d0368052bf76796aa846e9464e42204bb;hb=HEAD
-> 
-> The question is, what does this driver lack for not entering into
-> mainline? We would be very interested on helping it make it.
-
-I'm waiting for media-controller to be pulled by Mauro (I think, they 
-needed some updates by Laurent, not sure about the current state). As soon 
-as that's in the mainline, I'll try to find some time to update, clean up 
-and submit my beagle-board and mt9p031 patches.
-
-Thanks
-Guennadi
+Signed-off-by: Florian Mickler <florian@mickler.org>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/dvb/dvb-usb/vp702x.h |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/dvb/dvb-usb/vp702x.h b/drivers/media/dvb/dvb-usb/vp702x.h
+index 86960c6..20b9005 100644
+--- a/drivers/media/dvb/dvb-usb/vp702x.h
++++ b/drivers/media/dvb/dvb-usb/vp702x.h
+@@ -99,7 +99,6 @@ extern int dvb_usb_vp702x_debug;
+ /* IN  i: 0, v: 0, no extra buffer */
+ 
+ struct vp702x_device_state {
+-	u8 power_state;
+ 	struct mutex buf_mutex;
+ 	int buf_len;
+ 	u8 *buf;
+-- 
+1.7.4.1
+
