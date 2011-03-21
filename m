@@ -1,60 +1,75 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:33032 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751355Ab1CGKbb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Mar 2011 05:31:31 -0500
-Received: by wwb22 with SMTP id 22so5001927wwb.1
-        for <linux-media@vger.kernel.org>; Mon, 07 Mar 2011 02:31:30 -0800 (PST)
+Received: from swampdragon.chaosbits.net ([90.184.90.115]:18997 "EHLO
+	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753609Ab1CUUgr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Mar 2011 16:36:47 -0400
+Date: Mon, 21 Mar 2011 21:36:37 +0100 (CET)
+From: Jesper Juhl <jj@chaosbits.net>
+To: Matthias Schwarzott <zzam@gentoo.org>
+cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Dan Carpenter <error27@gmail.com>, Tejun Heo <tj@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [Patch] Zarlink zl10036 DVB-S: Fix mem leak in zl10036_attach
+In-Reply-To: <201102172145.55258.zzam@gentoo.org>
+Message-ID: <alpine.LNX.2.00.1103212135530.15815@swampdragon.chaosbits.net>
+References: <alpine.LNX.2.00.1102062128391.13593@swampdragon.chaosbits.net> <201102172054.12773.zzam@gentoo.org> <alpine.LNX.2.00.1102172130360.17697@swampdragon.chaosbits.net> <201102172145.55258.zzam@gentoo.org>
 MIME-Version: 1.0
-In-Reply-To: <1299491520.2189.10.camel@ares>
-References: <1299491520.2189.10.camel@ares>
-Date: Mon, 7 Mar 2011 10:31:30 +0000
-Message-ID: <AANLkTikawatHbobeRBGDyr61LmEhru2uZ4FtqZUtxwh5@mail.gmail.com>
-Subject: Re: i2c_gate_ctrl question
-From: adq <adq@lidskialf.net>
-To: Steve Kerrison <steve@stevekerrison.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 7 March 2011 09:52, Steve Kerrison <steve@stevekerrison.com> wrote:
-> Hi media men & women,
->
-> I have a question regarding the cxd2820r I'm working on with a couple of
-> other people.
->
-> In my naivety I implemented i2c gate control for the device (to access
-> the tuner behind it) as a separate i2c device that did the passthrough.
-> Now that I realise this, it would make sense to use the gate_ctrl
-> features.
->
-> However, picking apart the USB data it looks as though the way the
-> cxd2820r implements "gate control" isn't immediately compatible with the
-> implementation seen in other devices.
->
-> Example, and I2C send to the tuner at (addr << 1) of:
-> { xx, xx, ..., xx}
->
-> becomes a write to (demod_addr << 1) of :
-> { 09, (addr << 1) | flags, xx, xx, ..., xx}
->
-> And an i2c receive is implemented to a receive from the demod address,
-> not from the tuner address.
->
-> So, unless there are open and close gate commands that aren't apparent
-> from the snoop, or there's something I've missed, all i2c transfers to
-> the tuner have to be mangled - sorry I mean encapsulated - prior to
-> sending. To my understanding this doesn't fit in with the gate_ctrl
-> implementation for i2c.
->
-> I haven't had time to examine all other gate control implementations in
-> the media modules, so if anyone knows any good examples that might work
-> in a similar way, I'd appreciate the tip-off. Otherwise, would there be
-> any objections to my implementation of a dummy i2c device that does the
-> encapsulation?
+On Thu, 17 Feb 2011, Matthias Schwarzott wrote:
 
-Yup, it sounds like the gate_ctrl code won't work in this case and
-you'll need a seperate i2c bus.
+> On Thursday 17 February 2011, Jesper Juhl wrote:
+> > On Thu, 17 Feb 2011, Matthias Schwarzott wrote:
+> > > On Sunday 06 February 2011, Jesper Juhl wrote:
+> > > > If the memory allocation to 'state' succeeds but we jump to the 'error'
+> > > > label before 'state' is assigned to fe->tuner_priv, then the call to
+> > > > 'zl10036_release(fe)' at the 'error:' label will not free 'state', but
+> > > > only what was previously assigned to 'tuner_priv', thus leaking the
+> > > > memory allocated to 'state'.
+> > > > There are may ways to fix this, including assigning the allocated
+> > > > memory directly to 'fe->tuner_priv', but I did not go for that since
+> > > > the additional pointer derefs are more expensive than the local
+> > > > variable, so I just added a 'kfree(state)' call. I guess the call to
+> > > > 'zl10036_release' might not even be needed in this case, but I wasn't
+> > > > sure, so I left it in.
+> > > 
+> > > Yeah, that call to zl10036_release can be completely eleminated.
+> > > Another thing is: jumping to the error label only makes sense when memory
+> > > was already allocated. So the jump in line 471 can be replaced by
+> > > "return NULL",
+> > > 
+> > > as the other error handling before allocation:
+> > >         if (NULL == config) {
+> > >         
+> > >                 printk(KERN_ERR "%s: no config specified", __func__);
+> > >                 goto error;
+> > >         
+> > >         }
+> > > 
+> > > I suggest to improve the patch to clean the code up when changing that.
+> > > 
+> > > But I am fine with commiting this patch also if you do not want to change
+> > > it.
+> > 
+> > Thank you for your feedback. It makes a lot of sense.
+> > Changing it is not a problem :)
+> > How about the updated patch below?
+> > 
+> Looks good.
+> 
+> @Mauro: Please apply.
+> 
 
-An example is the cx24123 demod, which creates its own i2c tuner bus.
+I can't seen to find this patch applied.
+
+PING ?
+
+
+-- 
+Jesper Juhl <jj@chaosbits.net>       http://www.chaosbits.net/
+Don't top-post http://www.catb.org/jargon/html/T/top-post.html
+Plain text mails only, please.
+
