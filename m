@@ -1,79 +1,96 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:21389 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755030Ab1CVUjl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Mar 2011 16:39:41 -0400
-Date: Tue, 22 Mar 2011 16:39:36 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 5/6] lirc_zilog: error out if buffer read bytes != chunk
- size
-Message-ID: <20110322203936.GC19325@redhat.com>
-References: <1300307071-19665-1-git-send-email-jarod@redhat.com>
- <1300307071-19665-6-git-send-email-jarod@redhat.com>
- <1300320442.2296.25.camel@localhost>
- <20110317131909.GA5941@redhat.com>
- <210cb1d1-4426-4b73-92aa-ec4337d9642c@email.android.com>
- <20110317154204.GB5941@redhat.com>
- <9e23e0c0-8944-458f-a521-216239dc9bf9@email.android.com>
- <20110317190827.GD5941@redhat.com>
- <1300409433.2317.64.camel@localhost>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1241 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753659Ab1CURGX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Mar 2011 13:06:23 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: V4L2_CAP_VIDEO_OUTPUT and videobuf[1/2] & adv7175 mediabus
+Date: Mon, 21 Mar 2011 18:06:05 +0100
+Cc: Christian Gmeiner <christian.gmeiner@gmail.com>,
+	linux-media@vger.kernel.org
+References: <AANLkTimN9Acw2hE3p8T6U6RxgXi1HRcypKB2Uqg8V7oa@mail.gmail.com> <Pine.LNX.4.64.1103211740150.24139@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1103211740150.24139@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1300409433.2317.64.camel@localhost>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201103211806.05233.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, Mar 17, 2011 at 08:50:33PM -0400, Andy Walls wrote:
-> On Thu, 2011-03-17 at 15:08 -0400, Jarod Wilson wrote:
-> > On Thu, Mar 17, 2011 at 12:16:31PM -0400, Andy Walls wrote:
-> > > Jarod Wilson <jarod@redhat.com> wrote:
-> > .
-> > > 
-> > > But the orignal intent of the check I put in was to avoid passing
-> > partial/junk data to userspace, and go around again to see if good
-> > data could be provided.  
-> > > 
-> > > Your check bails when good data that might be sitting there still.
-> > That doesn't seem like a good trade for supporting backward compat for
-> > old kernels.
+On Monday, March 21, 2011 17:49:24 Guennadi Liakhovetski wrote:
+> Hi Christian
+> 
+> On Thu, 24 Feb 2011, Christian Gmeiner wrote:
+> 
+> > Hi all,
 > > 
-> > Ah. Another thing I neglected to notice then. :)
+> > I jumped into the cold water and I am trying to convert the
+> > dxr3/em8300 driver to the v4l2 api. I got some parts already working,
+> > but I think
+> > that the hardest parts are still missing. As you might think... yes I
+> > have some questions :)
 > > 
-> > Perhaps there should be a retry count check as well then, as otherwise,
-> > its possible to get stuck in that loop forever (which is what was
-> > happening on older kernels). Its conceivable that similar could happen on
-> > a newer kernel for some reason.
+> > 1) The dxr3 has a hardware fifo, which is used to play content. Can I
+> > reuse videbuf1 or videbuf2 to manage the fifo? Are these
+> > the frameworks designed to support output devices - write operation to
+> > the device?
 > 
-> Well, lets see,
-> 
-> >From the perspective of userspace & lircd:
-> 
-> 1. A specification compliance failure for a corner case isn't too bad
-> (bailing out on junk and leaving good data behind)
-> 
-> 2. An unrecoverable failure for any case is very bad (spinning/hanging
-> on a result that won't change)
-> 
-> 3. Sending unitialized bytes out to userspace with copy_to_user() is
-> very bad.
-> (I recall the old code would do the copy to user and always tell
-> userspace it got a code whether it read anything out of the buffer or
-> not.  IIRC, that leaked information off the stack.)
-> 
-> 
-> If the code as patched avoids the two very bad things (#2 and #3), then
-> the patch is OK by me.
+> Yes, videobuf* APIs are used for both input and output. I don't think you 
+> would be able to use videobuf1 for your set up, and you shouldn't anyway. 
+> As for videobuf2 - not sure... Are those hardware buffers purely internal 
+> to the hardware or can they also be directly accessed by the CPU as normal 
+> RAM? Even if it is possible in principle, using videobuf2, you would, 
+> probably, have to write your own memory-allocator. I'm sure others on this 
+> list can give a more qualified answer to this question;-)
 
-I *think* what I've got now should address both 2 and 3, with a very
-minimal risk of leaving data behind, since it'll retry a couple of times
-before bailing out of the loop, so it should be pretty unlikely we'd leave
-any good data behind. But even if we do, like you said, this is just an IR
-signal, the user can press the button on the remote again. :)
+vb2 should definitely be a good fit for this. That said, be aware that it
+is quite new, so if you run into problems don't hesitate to ask on the list
+just in case we overlooked something.
+
+Also useful to know is that work will need to be done on the decoding API.
+The ivtv driver does decoding as well. However, it uses a DVB API for that
+(include/linux/dvb/video.h and audio.h). In hindsight this was a bad idea
+and instead a proper V4L2 API should be created. This can be based on the
+those headers. I can help with that, time permitting.
+
+Regards,
+
+	Hans
+
+> 
+> > Here you can find the current fifo impl.
+> > https://github.com/austriancoder/v4l2-em8300/blob/master/modules/em8300_fifo.c
+> > 
+> > 2) The adv7175 chip support to different input data types:
+> > 
+> > Video Input Data Port Supports:
+> > CCIR-656 4:2:2 8-Bit Parallel Input Format
+> > 4:2:2 16-Bit Parallel Input Format
+> > 
+> > See http://dxr3.sourceforge.net/download/hardware/ADV7175A_6A.pdf for
+> > more details about the chip.
+> > 
+> > Now I thought that I should use the v4l2-mediabus api for that, but I
+> > am not sure what pixel codes (V4L2_MBUS_FMT...)
+> > should be used for CCIR-656 4:2:2 8-Bit and CCIR-656 4:2:2 16-Bit.
+> 
+> Yes, you should use mediabus formats, and no, these formats are not 
+> defined yet. Please, propose a patch with these two new formats.
+> 
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
 -- 
-Jarod Wilson
-jarod@redhat.com
-
+Hans Verkuil - video4linux developer - sponsored by Cisco
