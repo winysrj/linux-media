@@ -1,112 +1,81 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50595 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751707Ab1CVJRr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Mar 2011 05:17:47 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [GIT PATCHES FOR 2.6.39] Make the UVC API public (and bug fixes)
-Date: Tue, 22 Mar 2011 10:17:54 +0100
-Cc: linux-media@vger.kernel.org,
-	Martin Rubli <martin_rubli@logitech.com>
-References: <201102271836.01888.laurent.pinchart@ideasonboard.com> <4D87A965.3000506@redhat.com>
-In-Reply-To: <4D87A965.3000506@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201103221017.55219.laurent.pinchart@ideasonboard.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:47593 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751486Ab1CULgX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Mar 2011 07:36:23 -0400
+From: manjunatha_halli@ti.com
+To: sfr@canb.auug.org.au
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Manjunatha Halli <manjunatha_halli@ti.com>
+Subject: [PATCH 2/2] [media] radio: wl128x: Update registration process with ST.
+Date: Mon, 21 Mar 2011 08:03:14 -0400
+Message-Id: <1300708994-18058-1-git-send-email-manjunatha_halli@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
+From: Manjunatha Halli <manjunatha_halli@ti.com>
 
-Thanks for the review.
+As underlying ST driver registration API's have changed this
+patch will update the FM driver accordingly.
 
-On Monday 21 March 2011 20:39:17 Mauro Carvalho Chehab wrote:
-> Em 27-02-2011 14:36, Laurent Pinchart escreveu:
-> > Hi Mauro,
-> > 
-> > These patches move the uvcvideo.h header file from
-> > drivers/media/video/uvc to include/linux, making the UVC API public.
-> > 
-> > Martin Rubli has committed support for the public API to libwebcam, so
-> > userspace support is up to date.
-> > 
-> > The following changes since commit 
-9e650fdb12171a5a5839152863eaab9426984317:
-> >   [media] drivers:media:radio: Update Kconfig and Makefile for wl128x FM
-> >   driver (2011-02-27 07:50:42 -0300)
-> > 
-> > are available in the git repository at:
-> >   git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo-next
-> > 
-> > Laurent Pinchart (6):
-> >       uvcvideo: Deprecate UVCIOC_CTRL_{ADD,MAP_OLD,GET,SET}
-> 
-> There are some places there saying that the removal will happen at 2.6.39.
+Signed-off-by: Manjunatha Halli <manjunatha_halli@ti.com>
+---
+ drivers/media/radio/wl128x/fmdrv_common.c |   16 +++++++++++++---
+ 1 files changed, 13 insertions(+), 3 deletions(-)
 
-I'll fix that.
-
-> >       uvcvideo: Rename UVC_CONTROL_* flags to UVC_CTRL_FLAG_*
-> >       uvcvideo: Include linux/types.h in uvcvideo.h
-> >       uvcvideo: Move uvcvideo.h to include/linux
-> 
-> -'U'    00-0F   drivers/media/video/uvc/uvcvideo.h      conflict!
-> +'U'    00-0F   linux/uvcvideo.h        conflict!
-> 
-> Please avoid conflicts at userspace API's.
-
-The uvcvideo driver already uses 'U'. I can change it, but it will break the 
-ABI.
-
-> >       uvcvideo: Fix descriptor parsing for video output devices
-> 
-> This one seems independent from API changes. Applying it.
-> 
-> >       v4l: videobuf2: Typo fix
-
-What about this one ?
-
-> > Martin Rubli (2):
-> >       uvcvideo: Add UVCIOC_CTRL_QUERY ioctl
-> >       uvcvideo: Add driver documentation
-> 
-> Please, don't use "enum" at the public API:
-> 
-> +       __u32   id              V4L2 control identifier
-> +       __u8    name[32]        V4L2 control name
-> +       __u8    entity[16]      UVC extension unit GUID
-> +       __u8    selector        UVC control selector
-> +       __u8    size            V4L2 control size (in bits)
-> +       __u8    offset          V4L2 control offset (in bits)
-> +       enum v4l2_ctrl_type
-> +               v4l2_type       V4L2 control type
-> +       enum uvc_control_data_type
-> +               data_type       UVC control data type
-> +       struct uvc_menu_info
-> +               *menu_info      Array of menu entries (for menu controls
-> only) +       __u32   menu_count      Number of menu entries (for menu
-> controls only) +
-> +       * struct uvc_menu_info
-> +
-> +       __u32   value           Menu entry value used by the device
-> +       __u8    name[32]        Menu entry name
-> 
-> 
-> enum size is not portable. (OK, I know that V4L2 API has some enum's, but
-> let's not add new stuff using it). Also, please be sure that the new API
-> won't require any compat32 bits.
-
-OK I'll fix that.
-
-> > Stephan Lachowsky (1):
-> >       uvcvideo: Fix uvc_fixup_video_ctrl() format search
-> 
-> This one seems independent from API changes. Applying it.
-
+diff --git a/drivers/media/radio/wl128x/fmdrv_common.c b/drivers/media/radio/wl128x/fmdrv_common.c
+index 96a95c5..b09b283 100644
+--- a/drivers/media/radio/wl128x/fmdrv_common.c
++++ b/drivers/media/radio/wl128x/fmdrv_common.c
+@@ -1494,12 +1494,17 @@ u32 fmc_prepare(struct fmdev *fmdev)
+ 	}
+ 
+ 	memset(&fm_st_proto, 0, sizeof(fm_st_proto));
+-	fm_st_proto.type = ST_FM;
+ 	fm_st_proto.recv = fm_st_receive;
+ 	fm_st_proto.match_packet = NULL;
+ 	fm_st_proto.reg_complete_cb = fm_st_reg_comp_cb;
+ 	fm_st_proto.write = NULL; /* TI ST driver will fill write pointer */
+ 	fm_st_proto.priv_data = fmdev;
++	fm_st_proto.chnl_id = 0x08;
++	fm_st_proto.max_frame_size = 0xff;
++	fm_st_proto.hdr_len = 1;
++	fm_st_proto.offset_len_in_hdr = 0;
++	fm_st_proto.len_size = 1;
++	fm_st_proto.reserve = 1;
+ 
+ 	ret = st_register(&fm_st_proto);
+ 	if (ret == -EINPROGRESS) {
+@@ -1532,7 +1537,7 @@ u32 fmc_prepare(struct fmdev *fmdev)
+ 		g_st_write = fm_st_proto.write;
+ 	} else {
+ 		fmerr("Failed to get ST write func pointer\n");
+-		ret = st_unregister(ST_FM);
++		ret = st_unregister(&fm_st_proto);
+ 		if (ret < 0)
+ 			fmerr("st_unregister failed %d\n", ret);
+ 		return -EAGAIN;
+@@ -1586,6 +1591,7 @@ u32 fmc_prepare(struct fmdev *fmdev)
+  */
+ u32 fmc_release(struct fmdev *fmdev)
+ {
++	static struct st_proto_s fm_st_proto;
+ 	u32 ret;
+ 
+ 	if (!test_bit(FM_CORE_READY, &fmdev->flag)) {
+@@ -1604,7 +1610,11 @@ u32 fmc_release(struct fmdev *fmdev)
+ 	fmdev->resp_comp = NULL;
+ 	fmdev->rx.freq = 0;
+ 
+-	ret = st_unregister(ST_FM);
++	memset(&fm_st_proto, 0, sizeof(fm_st_proto));
++	fm_st_proto.chnl_id = 0x08;
++
++	ret = st_unregister(&fm_st_proto);
++
+ 	if (ret < 0)
+ 		fmerr("Failed to de-register FM from ST %d\n", ret);
+ 	else
 -- 
-Regards,
+1.7.0.4
 
-Laurent Pinchart
