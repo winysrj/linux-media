@@ -1,33 +1,38 @@
 Return-path: <mchehab@pedra>
-Received: from ffm.saftware.de ([83.141.3.46]:37128 "EHLO ffm.saftware.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752983Ab1CLN3L (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Mar 2011 08:29:11 -0500
-Message-ID: <4D7B7524.2050108@linuxtv.org>
-Date: Sat, 12 Mar 2011 14:29:08 +0100
-From: Andreas Oberritter <obi@linuxtv.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57365 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753603Ab1CURnZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Mar 2011 13:43:25 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: =?iso-8859-15?q?Lo=EFc_Akue?= <akue.loic@gmail.com>
+Subject: Re: Demande de support V4L2
+Date: Mon, 21 Mar 2011 18:43:39 +0100
+Cc: linux-media@vger.kernel.org, Neil MacMunn <neil@gumstix.com>,
+	Bastian Hecht <hechtb@googlemail.com>
+References: <AANLkTinK1MvhNtAKpSwMARZhLNrW+FGLwd9KMcbdwOCa@mail.gmail.com> <AANLkTin+4_Y65nL9h45feGarzmuJaeZnWxfyMPyDQai0@mail.gmail.com> <AANLkTikyoEKuBvLhnFo7t9wXBPwNnQy5mxgnVyns6TWZ@mail.gmail.com>
+In-Reply-To: <AANLkTikyoEKuBvLhnFo7t9wXBPwNnQy5mxgnVyns6TWZ@mail.gmail.com>
 MIME-Version: 1.0
-To: Martin Vidovic <xtronom@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] Ngene cam device name
-References: <alpine.LNX.2.00.1103101608030.9782@hp8540w.home> <4D7A452C.7020700@linuxtv.org> <4D7A97BB.4020704@gmail.com>
-In-Reply-To: <4D7A97BB.4020704@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201103211843.39677.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 03/11/2011 10:44 PM, Martin Vidovic wrote:
-> Andreas Oberritter wrote:
->> It's rather unintuitive that some CAMs appear as ca0, while others as
->> cam0.
->>   
-> Ngene CI appears as both ca0 and cam0 (or sec0). The ca0 node is used
-> as usual, to setup the CAM. The cam0 (or sec0) node is used to read/write
-> transport stream. To me it  looks like an extension of the current API.
+Hi Loïc,
 
-I see. This raises another problem. How to find out, which ca device
-cam0 relates to, in case there are more ca devices than cam devices?
+On Friday 18 March 2011 16:43:40 Loïc Akue wrote:
+> Hi,
+> 
+> Do you know if Gstreamer or Mplayer are able to capture some vidéo from the
+> CCDC output?
+> I've been trying with the v4l2src plugin but Gstreamer "can negociate
+> format".
 
+I haven't tried mplayer or v4l2src with the OAMP3 ISP, sorry.
+
+-- 
 Regards,
-Andreas
+
+Laurent Pinchart
