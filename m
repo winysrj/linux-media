@@ -1,233 +1,144 @@
 Return-path: <mchehab@pedra>
-Received: from smtp2.sms.unimo.it ([155.185.44.12]:45589 "EHLO
-	smtp2.sms.unimo.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933018Ab1C3WTo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Mar 2011 18:19:44 -0400
-Received: from mail-fx0-f51.google.com ([209.85.161.51]:47262)
-	by smtp2.sms.unimo.it with esmtps (TLS1.0:RSA_ARCFOUR_SHA1:16)
-	(Exim 4.69)
-	(envelope-from <76466@studenti.unimore.it>)
-	id 1Q53jj-0001lt-FL
-	for linux-media@vger.kernel.org; Thu, 31 Mar 2011 00:19:39 +0200
-Received: by fxm5 with SMTP id 5so1946599fxm.24
-        for <linux-media@vger.kernel.org>; Wed, 30 Mar 2011 15:19:35 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <AANLkTimN_LgfXYgH9jejakS38v-FdRQUnQ6qJJJCb1oe@mail.gmail.com>
-References: <AANLkTinVP6CePBY6g9Dn2aKXM0ovwmpqMd5G4ucz44EH@mail.gmail.com>
-	<Pine.LNX.4.64.1103292357270.13285@axis700.grange>
-	<AANLkTimhP_YoqKRKyPzRbM6gw5jXVNV2D3pveRqqH0W_@mail.gmail.com>
-	<Pine.LNX.4.64.1103300947580.4695@axis700.grange>
-	<AANLkTimN_LgfXYgH9jejakS38v-FdRQUnQ6qJJJCb1oe@mail.gmail.com>
-Date: Wed, 30 Mar 2011 17:19:34 -0500
-Message-ID: <AANLkTikx84JovevQ1YHrU79Hj1=jjSZ7FM9BtogiWOcc@mail.gmail.com>
-Subject: Re: soc_camera dynamically cropping and scaling
-From: Paolo Santinelli <paolo.santinelli@unimore.it>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from ist.d-labs.de ([213.239.218.44]:43661 "EHLO mx01.d-labs.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754182Ab1CUSeH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Mar 2011 14:34:07 -0400
+From: Florian Mickler <florian@mickler.org>
+To: mchehab@infradead.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	js@linuxtv.org, tskd2@yahoo.co.jp, liplianin@me.by,
+	g.marco@freenet.de, aet@rasterburn.org, pb@linuxtv.org,
+	mkrufky@linuxtv.org, nick@nick-andrew.net, max@veneto.com,
+	janne-dvb@grunau.be, Florian Mickler <florian@mickler.org>
+Subject: [PATCH 5/6] [media] m920x: get rid of on-stack dma buffers
+Date: Mon, 21 Mar 2011 19:33:45 +0100
+Message-Id: <1300732426-18958-6-git-send-email-florian@mickler.org>
+In-Reply-To: <1300732426-18958-1-git-send-email-florian@mickler.org>
+References: <1300732426-18958-1-git-send-email-florian@mickler.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Guennadi,
+usb_control_msg initiates (and waits for completion of) a dma transfer using
+the supplied buffer. That buffer thus has to be seperately allocated on
+the heap.
 
-Am I wrong or do  I have to add some functions ?
+In lib/dma_debug.c the function check_for_stack even warns about it:
+	WARNING: at lib/dma-debug.c:866 check_for_stack
 
-I have hand applied the changes at the soc_camera.c and soc_camera.h
-files. At a fist glance to these files seems that I have to add the
-function:
+Note: This change is tested to compile only, as I don't have the hardware.
 
- .set_livecrop()
+Signed-off-by: Florian Mickler <florian@mickler.org>
+---
+ drivers/media/dvb/dvb-usb/m920x.c |   33 ++++++++++++++++++++++-----------
+ 1 files changed, 22 insertions(+), 11 deletions(-)
 
-and probably even something more:
-
-  CC      drivers/media/video/soc_camera.o
-drivers/media/video/soc_camera.c: In function 'soc_camera_s_fmt_vid_cap':
-drivers/media/video/soc_camera.c:545: error: implicit declaration of
-function 'vb2_is_streaming'
-drivers/media/video/soc_camera.c:545: error: 'struct
-soc_camera_device' has no member named 'vb2_vidq'
-drivers/media/video/soc_camera.c: In function 'soc_camera_s_crop':
-drivers/media/video/soc_camera.c:799: error: 'struct
-soc_camera_device' has no member named 'vb2_vidq'
-make[3]: *** [drivers/media/video/soc_camera.o] Error 1
-
-What about vb2_is_streaming and vb2_vidq ?
-
-Any tips regarding these functions ?
-
-Thanks
-
-Paolo
-2011/3/30 Paolo Santinelli <paolo.santinelli@unimore.it>:
-> Hi Guennadi,
->
-> thank you very much for the patch. I am going to apply it in order to
-> start toying with the new capability. I think it is a  useful
-> capability.
->
-> I'll let you know.
->
-> Again thank you.
->
-> Paolo
->
-> 2011/3/30 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
->> On Tue, 29 Mar 2011, Paolo Santinelli wrote:
->>
->>> Hi Guennadi,
->>>
->>> thank you for the quick answer.
->>>
->>> Here is what I mean with dynamic: I take "live" one frame at high
->>> resolution, for example a picture at VGA or  QVGA resolution, then a
->>> sequence of frames that depict a cropped area (200x200 or 100x100)
->>> from the original full-resolution frame, and then a new full
->>> resolution image (VGA or QVGA) and again the sequence of frames  that
->>> depict a cropped area from the original full resolution, and so on.
->>> That means takes one frame in 640x480 and  than takes some frames at
->>> 100x100 (or 200x200) and so on.
->>
->> Ic, so, if you can live with a fixed output format and only change the
->> input cropping rectangle, the patch set, that I've just sent could give
->> you a hint, how this can be done. This would work if you're ok with first
->> obtaining VGA images scaled down to, say, 160x120, and then take 160x120
->> cropped frames unscaled. But I'm not sure, this is something, that would
->> work for you. Otherwise, unless your sensor can upscale cropped images to
->> VGA output size, you'll also want fast switching between different output
->> sizes, which you'd have to wait for (or implement yourself;-))
->>
->> Thanks
->> Guennadi
->>
->>>
->>> The best would be have two different fixed-output image formats, the
->>> WHOLE IMAGE format ex. 640x480 and the ROI format, 100x100. The ROI
->>> pictures obtained cropping the a region of the whole image. The
->>> cropping area could be even wider  than 100x100 and then scaled down
->>> to the 100x100 ROI format.
->>>
->>> Probably it is more simple have a cropping area of the same dimension
->>> of the ROI format, 100x100.
->>>
->>> In this way there is a reduction of the computation load of the CPU
->>> (smaller images).
->>>
->>> Thank you very much!
->>>
->>> Paolo
->>>
->>> 2011/3/29 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
->>> > On Tue, 29 Mar 2011, Paolo Santinelli wrote:
->>> >
->>> >> Hi all,
->>> >>
->>> >> I am using a PXA270 board running linux 2.6.37 equipped with an ov9655
->>> >> Image sensor. I am able to use the cropping and scaling capabilities
->>> >> V4L2 driver.
->>> >> The question is :
->>> >>
->>> >> Is it possible dynamically change the cropping and scaling values
->>> >> without close and re-open  the camera every time ?
->>> >>
->>> >> Now I am using the streaming I/O memory mapping and to dynamically
->>> >> change the cropping and scaling values I do :
->>> >>
->>> >> 1) stop capturing using VIDIOC_STREAMOFF;
->>> >> 2) unmap all the buffers;
->>> >> 3) close the device;
->>> >> 4) open the device;
->>> >> 5) init the device: VIDIOC_CROPCAP and VIDIOC_S_CROP in order to set
->>> >> the cropping parameters. VIDIOC_G_FMT and VIDIOC_S_FMT in order to set
->>> >> the target image width and height, (scaling).
->>> >> 6) Mapping the buffers: VIDIOC_REQBUFS in order to request buffers and
->>> >> mmap each buffer using VIDIOC_QUERYBUF and mmap():
->>> >>
->>> >> this procedure works but take 400 ms.
->>> >>
->>> >> If I omit steps 3) and 4)  (close and re-open the device) I get this errors:
->>> >>
->>> >> camera 0-0: S_CROP denied: queue initialised and sizes differ
->>> >> camera 0-0: S_FMT denied: queue initialised
->>> >> VIDIOC_S_FMT error 16, Device or resource busy
->>> >> pxa27x-camera pxa27x-camera.0: PXA Camera driver detached from camera 0
->>> >>
->>> >> Do you have some Idea regarding why I have to close and reopen the
->>> >> device and regarding a way to speed up these change?
->>> >
->>> > Yes, by chance I do;-) First of all you have to make it more precise -
->>> > what exactly do you mean - dynamic (I call it "live") scaling or cropping?
->>> > If you want to change output format, that will not be easy ATM, that will
->>> > require the snapshot mode API, which is not yet even in an RFC state. If
->>> > you only want to change the cropping and keep the output format (zoom),
->>> > then I've just implemented that for sh_mobile_ceu_camera. This requires a
->>> > couple of extensions to the soc-camera core, which I can post tomorrow.
->>> > But in fact that is also a hack, because the proper way to implement this
->>> > is to port soc-camera to the Media Controller framework and use the
->>> > pad-level API. So, I am not sure, whether we want this in the mainline,
->>> > but if already two of us need it now - before the transition to pad-level
->>> > operations, maybe it would make sense to mainline this. If, however, you
->>> > do have to change your output window, maybe you could tell us your
->>> > use-case, so that we could consider, what's the best way to support that.
->>> >
->>> > Thanks
->>> > Guennadi
->>> > ---
->>> > Guennadi Liakhovetski, Ph.D.
->>> > Freelance Open-Source Software Developer
->>> > http://www.open-technology.de/
->>> >
->>>
->>>
->>>
->>> --
->>> --------------------------------------------------
->>> Paolo Santinelli
->>> ImageLab Computer Vision and Pattern Recognition Lab
->>> Dipartimento di Ingegneria dell'Informazione
->>> Universita' di Modena e Reggio Emilia
->>> via Vignolese 905/B, 41125, Modena, Italy
->>>
->>> Cell. +39 3472953357,  Office +39 059 2056270, Fax +39 059 2056129
->>> email:  <mailto:paolo.santinelli@unimore.it> paolo.santinelli@unimore.it
->>> URL:  <http://imagelab.ing.unimo.it/> http://imagelab.ing.unimo.it
->>> --------------------------------------------------
->>>
->>
->> ---
->> Guennadi Liakhovetski, Ph.D.
->> Freelance Open-Source Software Developer
->> http://www.open-technology.de/
->>
->
->
->
-> --
-> --------------------------------------------------
-> Paolo Santinelli
-> ImageLab Computer Vision and Pattern Recognition Lab
-> Dipartimento di Ingegneria dell'Informazione
-> Universita' di Modena e Reggio Emilia
-> via Vignolese 905/B, 41125, Modena, Italy
->
-> Cell. +39 3472953357,  Office +39 059 2056270, Fax +39 059 2056129
-> email:  <mailto:paolo.santinelli@unimore.it> paolo.santinelli@unimore.it
-> URL:  <http://imagelab.ing.unimo.it/> http://imagelab.ing.unimo.it
-> --------------------------------------------------
->
-
-
-
+diff --git a/drivers/media/dvb/dvb-usb/m920x.c b/drivers/media/dvb/dvb-usb/m920x.c
+index da9dc91..f66eaa3 100644
+--- a/drivers/media/dvb/dvb-usb/m920x.c
++++ b/drivers/media/dvb/dvb-usb/m920x.c
+@@ -134,13 +134,17 @@ static int m920x_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
+ {
+ 	struct m920x_state *m = d->priv;
+ 	int i, ret = 0;
+-	u8 rc_state[2];
++	u8 *rc_state;
++
++	rc_state = kmalloc(2, GFP_KERNEL);
++	if (!rc_state)
++		return -ENOMEM;
+ 
+ 	if ((ret = m920x_read(d->udev, M9206_CORE, 0x0, M9206_RC_STATE, rc_state, 1)) != 0)
+-		goto unlock;
++		goto out;
+ 
+ 	if ((ret = m920x_read(d->udev, M9206_CORE, 0x0, M9206_RC_KEY, rc_state + 1, 1)) != 0)
+-		goto unlock;
++		goto out;
+ 
+ 	for (i = 0; i < d->props.rc.legacy.rc_map_size; i++)
+ 		if (rc5_data(&d->props.rc.legacy.rc_map_table[i]) == rc_state[1]) {
+@@ -149,7 +153,7 @@ static int m920x_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
+ 			switch(rc_state[0]) {
+ 			case 0x80:
+ 				*state = REMOTE_NO_KEY_PRESSED;
+-				goto unlock;
++				goto out;
+ 
+ 			case 0x88: /* framing error or "invalid code" */
+ 			case 0x99:
+@@ -157,7 +161,7 @@ static int m920x_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
+ 			case 0xd8:
+ 				*state = REMOTE_NO_KEY_PRESSED;
+ 				m->rep_count = 0;
+-				goto unlock;
++				goto out;
+ 
+ 			case 0x93:
+ 			case 0x92:
+@@ -165,7 +169,7 @@ static int m920x_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
+ 			case 0x82:
+ 				m->rep_count = 0;
+ 				*state = REMOTE_KEY_PRESSED;
+-				goto unlock;
++				goto out;
+ 
+ 			case 0x91:
+ 			case 0x81: /* pinnacle PCTV310e */
+@@ -174,12 +178,12 @@ static int m920x_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
+ 					*state = REMOTE_KEY_REPEAT;
+ 				else
+ 					*state = REMOTE_NO_KEY_PRESSED;
+-				goto unlock;
++				goto out;
+ 
+ 			default:
+ 				deb("Unexpected rc state %02x\n", rc_state[0]);
+ 				*state = REMOTE_NO_KEY_PRESSED;
+-				goto unlock;
++				goto out;
+ 			}
+ 		}
+ 
+@@ -188,8 +192,8 @@ static int m920x_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
+ 
+ 	*state = REMOTE_NO_KEY_PRESSED;
+ 
+- unlock:
+-
++ out:
++	kfree(rc_state);
+ 	return ret;
+ }
+ 
+@@ -339,13 +343,19 @@ static int m920x_pid_filter(struct dvb_usb_adapter *adap, int index, u16 pid, in
+ static int m920x_firmware_download(struct usb_device *udev, const struct firmware *fw)
+ {
+ 	u16 value, index, size;
+-	u8 read[4], *buff;
++	u8 *read, *buff;
+ 	int i, pass, ret = 0;
+ 
+ 	buff = kmalloc(65536, GFP_KERNEL);
+ 	if (buff == NULL)
+ 		return -ENOMEM;
+ 
++	read = kmalloc(4, GFP_KERNEL);
++	if (!read) {
++		kfree(buff);
++		return -ENOMEM;
++	}
++
+ 	if ((ret = m920x_read(udev, M9206_FILTER, 0x0, 0x8000, read, 4)) != 0)
+ 		goto done;
+ 	deb("%x %x %x %x\n", read[0], read[1], read[2], read[3]);
+@@ -396,6 +406,7 @@ static int m920x_firmware_download(struct usb_device *udev, const struct firmwar
+ 	deb("firmware uploaded!\n");
+ 
+  done:
++	kfree(read);
+ 	kfree(buff);
+ 
+ 	return ret;
 -- 
---------------------------------------------------
-Paolo Santinelli
-ImageLab Computer Vision and Pattern Recognition Lab
-Dipartimento di Ingegneria dell'Informazione
-Universita' di Modena e Reggio Emilia
-via Vignolese 905/B, 41125, Modena, Italy
+1.7.4.1
 
-Cell. +39 3472953357,  Office +39 059 2056270, Fax +39 059 2056129
-email:  <mailto:paolo.santinelli@unimore.it> paolo.santinelli@unimore.it
-URL:  <http://imagelab.ing.unimo.it/> http://imagelab.ing.unimo.it
---------------------------------------------------
