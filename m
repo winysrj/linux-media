@@ -1,116 +1,68 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f42.google.com ([74.125.82.42]:56927 "EHLO
-	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759662Ab1CDQts convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2011 11:49:48 -0500
+Received: from mx1.redhat.com ([209.132.183.28]:45044 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752453Ab1CURok (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Mar 2011 13:44:40 -0400
+Message-ID: <4D878E84.2020801@redhat.com>
+Date: Mon, 21 Mar 2011 14:44:36 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <AANLkTinSJpjPXWHWduLbRSmb=La3sv82ufwgsq-uR7S2@mail.gmail.com>
-References: <4D6D219D.7020605@matrix-vision.de>
-	<201103022018.23446.laurent.pinchart@ideasonboard.com>
-	<4D6FBC7F.1080500@matrix-vision.de>
-	<AANLkTikAKy=CzTqEv-UGBQ1EavqmCStPNFZ5vs7vH5VK@mail.gmail.com>
-	<4D70F985.8030902@matrix-vision.de>
-	<AANLkTinSJpjPXWHWduLbRSmb=La3sv82ufwgsq-uR7S2@mail.gmail.com>
-Date: Fri, 4 Mar 2011 18:49:46 +0200
-Message-ID: <AANLkTi=8Sss-5xfgPmgx=J_T__=hrC1rQU-xBOdKC8Ve@mail.gmail.com>
-Subject: Re: omap3isp cache error when unloading
-From: David Cohen <dacohen@gmail.com>
-To: Michael Jones <michael.jones@matrix-vision.de>,
-	Hiroshi.DOYU@nokia.com
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	fernando.lugo@ti.com,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-omap@vger.kernel.org
+To: goffa72@gmail.com
+CC: linux-media@vger.kernel.org
+Subject: Re: Leadtek Winfast 1800H FM Tuner
+References: <4D8550A3.5010604@aapt.net.au> <4D85B871.3010201@iki.fi> <4D8726C5.2090403@gmail.com> <4D8737EB.9070006@aapt.net.au>
+In-Reply-To: <4D8737EB.9070006@aapt.net.au>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-[snip]
+Em 21-03-2011 08:35, Andrew Goff escreveu:
+> On Mon 21-Mar-2011 9:21 PM, Mauro Carvalho Chehab wrote:
+>> Em 20-03-2011 05:18, Antti Palosaari escreveu:
+>>> On 03/20/2011 02:56 AM, Andrew Goff wrote:
+>>>> Hi, I hope someone may be able to help me solve a problem or point me in
+>>>> the right direction.
+>>>>
+>>>> I have been using a Leadtek Winfast DTV1800H card (﻿Xceive xc3028 tuner)
+>>>> for a while now without any issues (DTV & Radio have been working well),
+>>>> I recently decided to get another tuner card, Leadtek Winfast DTV2000DS
+>>>> (Tuner: NXP TDA18211, but detected as TDA18271 by V4L drivers, Chipset:
+>>>> AF9015 + AF9013 ) and had to compile and install the V4L drivers to get
+>>>> it working. Now DTV on both cards work well but there is a problem with
+>>>> the radio tuner on the 1800H card.
+>>>>
+>>>> After installing the more recent V4L drivers the radio frequency is
+>>>> 2.7MHz out, so if I want to listen to 104.9 I need to tune the radio to
+>>>> 107.6. Now I could just change all my preset stations but I can not
+>>>> listen to my preferred stations as I need to set the frequency above
+>>>> 108MHz.
+>>> I think there is something wrong with the FM tuner (xc3028?) or other chipset drivers used for DTV1800H. No relations to the af9015, af9013 or tda18271. tda18211 is same chip as tda18271 but only DVB-T included. If DTV1800H does not contain tda18211 or tda18271 problem cannot be either that.
+>> Yes, the problem is likely at xc3028. It has to do frequency shift for some
+>> DVB standards, and the shift is dependent on what firmware is loaded.
+>>
+>> So, you need to enable load tuner-xc2028 with debug=1, and provide us the
+>> dmesg.
+>>
+>> Mauro.
+>>
+> Hi Mauro
+> 
+> To do this do I just add the line
+> 
+> options tuner-xc2028 debug=1
+> 
+> to the /etc/modules file.
+> 
+> From my current dmesg file looks like the firmware is version 2.7.
+> 
+> xc2028 1-0061: Loading 80 firmware images from xc3028-v27.fw, type: xc2028 firmware, ver 2.7
 
->> From 2712f2fd087ca782e964c912c7f1973e7d84f2b7 Mon Sep 17 00:00:00 2001
->> From: Michael Jones <michael.jones@matrix-vision.de>
->> Date: Fri, 4 Mar 2011 15:09:48 +0100
->> Subject: [PATCH] omap: iovmm: disallow mapping NULL address
->>
->> commit c7f4ab26e3bcdaeb3e19ec658e3ad9092f1a6ceb allowed mapping
->> the NULL address if da_start==0, which would then not get unmapped.
->> Disallow this again.  And spell variable 'alignment' correctly.
->>
->> Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
->> ---
->>  arch/arm/plat-omap/iovmm.c |   16 ++++++++++------
->>  1 files changed, 10 insertions(+), 6 deletions(-)
->>
->> diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
->> index 6dc1296..11c9b76 100644
->> --- a/arch/arm/plat-omap/iovmm.c
->> +++ b/arch/arm/plat-omap/iovmm.c
->> @@ -271,20 +271,24 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
->>                                           size_t bytes, u32 flags)
->>  {
->>        struct iovm_struct *new, *tmp;
->> -       u32 start, prev_end, alignement;
->> +       u32 start, prev_end, alignment;
->>
->>        if (!obj || !bytes)
->>                return ERR_PTR(-EINVAL);
->>
->>        start = da;
->> -       alignement = PAGE_SIZE;
->> +       alignment = PAGE_SIZE;
->>
->>        if (flags & IOVMF_DA_ANON) {
->> -               start = obj->da_start;
->> +               /* Don't map address 0 */
->> +               if (obj->da_start)
->> +                       start = obj->da_start;
->> +               else
->> +                       start = obj->da_start + alignment;
->
-> It seems to be fine for me now. Let's see what Hiroshi says.
 
-Sorry, I'm afraid I changed my mind after take a look into the driver. :)
-Try to correct obj->da_start in the functions iommu_set_da_range() and
-omap_iommu_probe(). That should be the correct way. Your patch doesn't
-fix this situation when IOVMF_DA_ANON isn't set.
-After obj->da_start is correctly set, your current patch is non longer required.
+There are about 60 firmwares that are grouped inside xc3028-v27.fw. Please
+post the complete dmesg. We also need to know what version of the driver
+you were using when the driver used to work and what you're using when it
+broke.
 
-Regards,
-
-David
-
->
-> Regards,
->
-> David
->
->>
->>                if (flags & IOVMF_LINEAR)
->> -                       alignement = iopgsz_max(bytes);
->> -               start = roundup(start, alignement);
->> +                       alignment = iopgsz_max(bytes);
->> +               start = roundup(start, alignment);
->>        } else if (start < obj->da_start || start > obj->da_end ||
->>                                        obj->da_end - start < bytes) {
->>                return ERR_PTR(-EINVAL);
->> @@ -304,7 +308,7 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
->>                        goto found;
->>
->>                if (tmp->da_end >= start && flags & IOVMF_DA_ANON)
->> -                       start = roundup(tmp->da_end + 1, alignement);
->> +                       start = roundup(tmp->da_end + 1, alignment);
->>
->>                prev_end = tmp->da_end;
->>        }
->> --
->> 1.7.4.1
->>
->>
->>
->> MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
->> Registergericht: Amtsgericht Stuttgart, HRB 271090
->> Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
->>
->
+Thanks
+Mauro.
