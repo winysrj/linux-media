@@ -1,105 +1,103 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:22339 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752896Ab1CDJBd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2011 04:01:33 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Fri, 04 Mar 2011 10:01:14 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 7/7] ARM: S5PC210: enable FIMC on Universal_C210
-In-reply-to: <1299229274-9753-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	kgene.kim@samsung.com, andrzej.p@samsung.com,
-	t.stanislaws@samsung.com, s.nawrocki@samsung.com,
-	k.debski@samsung.com
-Message-id: <1299229274-9753-8-git-send-email-m.szyprowski@samsung.com>
-References: <1299229274-9753-1-git-send-email-m.szyprowski@samsung.com>
+Received: from ist.d-labs.de ([213.239.218.44]:44324 "EHLO mx01.d-labs.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752950Ab1CUKTf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Mar 2011 06:19:35 -0400
+From: Florian Mickler <florian@mickler.org>
+To: mchehab@infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	pb@linuxtv.org, Florian Mickler <florian@mickler.org>
+Subject: [PATCH 6/9] [media] vp702x: fix locking of usb operations
+Date: Mon, 21 Mar 2011 11:19:11 +0100
+Message-Id: <1300702754-16376-7-git-send-email-florian@mickler.org>
+In-Reply-To: <1300702754-16376-1-git-send-email-florian@mickler.org>
+References: <1300702754-16376-1-git-send-email-florian@mickler.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This patch adds definitions to enable support for s5p-fimc driver
-together with required power domains and sysmmu controller on Universal
-C210 board.
+Otherwise it is not obvious that vp702x_usb_in_op or vp702x_usb_out_op
+will not interfere with any vp702x_usb_inout_op.
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Note: This change is tested to compile only, as I don't have the
+hardware.
+
+Signed-off-by: Florian Mickler <florian@mickler.org>
 ---
- arch/arm/mach-s5pv310/Kconfig               |    6 ++++++
- arch/arm/mach-s5pv310/mach-universal_c210.c |   20 ++++++++++++++++++++
- 2 files changed, 26 insertions(+), 0 deletions(-)
+ drivers/media/dvb/dvb-usb/vp702x.c |   37 +++++++++++++++++++++++++++++------
+ 1 files changed, 30 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/mach-s5pv310/Kconfig b/arch/arm/mach-s5pv310/Kconfig
-index a8b0425..c850086 100644
---- a/arch/arm/mach-s5pv310/Kconfig
-+++ b/arch/arm/mach-s5pv310/Kconfig
-@@ -97,12 +97,18 @@ config MACH_UNIVERSAL_C210
- 	bool "Mobile UNIVERSAL_C210 Board"
- 	select CPU_S5PV310
- 	select S5P_DEV_ONENAND
-+	select S5P_DEV_FIMC0
-+	select S5P_DEV_FIMC1
-+	select S5P_DEV_FIMC2
-+	select S5P_DEV_FIMC3
- 	select S3C_DEV_HSMMC
- 	select S3C_DEV_HSMMC2
- 	select S3C_DEV_HSMMC3
- 	select S5PV310_SETUP_SDHCI
- 	select S3C_DEV_I2C1
- 	select S3C_DEV_I2C5
-+	select S5PV310_DEV_PD
-+	select S5PV310_DEV_SYSMMU
- 	select S5PV310_SETUP_I2C1
- 	select S5PV310_SETUP_I2C5
- 	help
-diff --git a/arch/arm/mach-s5pv310/mach-universal_c210.c b/arch/arm/mach-s5pv310/mach-universal_c210.c
-index eece381..f153895 100644
---- a/arch/arm/mach-s5pv310/mach-universal_c210.c
-+++ b/arch/arm/mach-s5pv310/mach-universal_c210.c
-@@ -24,7 +24,9 @@
- #include <plat/s5pv310.h>
- #include <plat/cpu.h>
- #include <plat/devs.h>
-+#include <plat/pd.h>
- #include <plat/sdhci.h>
-+#include <plat/sysmmu.h>
+diff --git a/drivers/media/dvb/dvb-usb/vp702x.c b/drivers/media/dvb/dvb-usb/vp702x.c
+index 35fe778..c82cb6b 100644
+--- a/drivers/media/dvb/dvb-usb/vp702x.c
++++ b/drivers/media/dvb/dvb-usb/vp702x.c
+@@ -30,8 +30,8 @@ struct vp702x_adapter_state {
+ 	u8  pid_filter_state;
+ };
  
- #include <mach/map.h>
- #include <mach/gpio.h>
-@@ -816,6 +818,15 @@ static struct platform_device *universal_devices[] __initdata = {
- 	&s3c_device_hsmmc0,
- 	&s3c_device_hsmmc2,
- 	&s3c_device_hsmmc3,
-+	&s5p_device_fimc0,
-+	&s5p_device_fimc1,
-+	&s5p_device_fimc2,
-+	&s5p_device_fimc3,
-+	&s5pv310_device_pd[PD_CAM],
-+	&s5pv310_device_sysmmu[S5P_SYSMMU_FIMC0],
-+	&s5pv310_device_sysmmu[S5P_SYSMMU_FIMC1],
-+	&s5pv310_device_sysmmu[S5P_SYSMMU_FIMC2],
-+	&s5pv310_device_sysmmu[S5P_SYSMMU_FIMC3],
+-/* check for mutex FIXME */
+-int vp702x_usb_in_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8 *b, int blen)
++static int vp702x_usb_in_op_unlocked(struct dvb_usb_device *d, u8 req,
++				     u16 value, u16 index, u8 *b, int blen)
+ {
+ 	int ret;
  
- 	/* Universal Devices */
- 	&universal_gpio_keys,
-@@ -842,6 +853,15 @@ static void __init universal_machine_init(void)
- 
- 	/* Last */
- 	platform_add_devices(universal_devices, ARRAY_SIZE(universal_devices));
-+
-+	s5p_device_fimc0.dev.parent = &s5pv310_device_pd[PD_CAM].dev;
-+	s5p_device_fimc1.dev.parent = &s5pv310_device_pd[PD_CAM].dev;
-+	s5p_device_fimc2.dev.parent = &s5pv310_device_pd[PD_CAM].dev;
-+	s5p_device_fimc3.dev.parent = &s5pv310_device_pd[PD_CAM].dev;
-+	s5pv310_device_sysmmu[S5P_SYSMMU_FIMC0].dev.parent = &s5pv310_device_pd[PD_CAM].dev;
-+	s5pv310_device_sysmmu[S5P_SYSMMU_FIMC1].dev.parent = &s5pv310_device_pd[PD_CAM].dev;
-+	s5pv310_device_sysmmu[S5P_SYSMMU_FIMC2].dev.parent = &s5pv310_device_pd[PD_CAM].dev;
-+	s5pv310_device_sysmmu[S5P_SYSMMU_FIMC3].dev.parent = &s5pv310_device_pd[PD_CAM].dev;
+@@ -55,8 +55,20 @@ int vp702x_usb_in_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8
+ 	return ret;
  }
  
- MACHINE_START(UNIVERSAL_C210, "UNIVERSAL_C210")
+-static int vp702x_usb_out_op(struct dvb_usb_device *d, u8 req, u16 value,
+-			     u16 index, u8 *b, int blen)
++int vp702x_usb_in_op(struct dvb_usb_device *d, u8 req, u16 value,
++			    u16 index, u8 *b, int blen)
++{
++	int ret;
++
++	mutex_lock(&d->usb_mutex);
++	ret = vp702x_usb_in_op_unlocked(d, req, value, index, b, blen);
++	mutex_unlock(&d->usb_mutex);
++
++	return ret;
++}
++
++int vp702x_usb_out_op_unlocked(struct dvb_usb_device *d, u8 req, u16 value,
++				      u16 index, u8 *b, int blen)
+ {
+ 	int ret;
+ 	deb_xfer("out: req. %02x, val: %04x, ind: %04x, buffer: ",req,value,index);
+@@ -74,6 +86,18 @@ static int vp702x_usb_out_op(struct dvb_usb_device *d, u8 req, u16 value,
+ 		return 0;
+ }
+ 
++int vp702x_usb_out_op(struct dvb_usb_device *d, u8 req, u16 value,
++			     u16 index, u8 *b, int blen)
++{
++	int ret;
++
++	mutex_lock(&d->usb_mutex);
++	ret = vp702x_usb_out_op_unlocked(d, req, value, index, b, blen);
++	mutex_unlock(&d->usb_mutex);
++
++	return ret;
++}
++
+ int vp702x_usb_inout_op(struct dvb_usb_device *d, u8 *o, int olen, u8 *i, int ilen, int msec)
+ {
+ 	int ret;
+@@ -81,12 +105,11 @@ int vp702x_usb_inout_op(struct dvb_usb_device *d, u8 *o, int olen, u8 *i, int il
+ 	if ((ret = mutex_lock_interruptible(&d->usb_mutex)))
+ 		return ret;
+ 
+-	ret = vp702x_usb_out_op(d,REQUEST_OUT,0,0,o,olen);
++	ret = vp702x_usb_out_op_unlocked(d, REQUEST_OUT, 0, 0, o, olen);
+ 	msleep(msec);
+-	ret = vp702x_usb_in_op(d,REQUEST_IN,0,0,i,ilen);
++	ret = vp702x_usb_in_op_unlocked(d, REQUEST_IN, 0, 0, i, ilen);
+ 
+ 	mutex_unlock(&d->usb_mutex);
+-
+ 	return ret;
+ }
+ 
 -- 
-1.7.1.569.g6f426
+1.7.4.1
+
