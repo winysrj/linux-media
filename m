@@ -1,56 +1,63 @@
 Return-path: <mchehab@pedra>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:54346 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751516Ab1CWAqH convert rfc822-to-8bit (ORCPT
+Received: from mailout02.t-online.de ([194.25.134.17]:41738 "EHLO
+	mailout02.t-online.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754374Ab1CUUDZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Mar 2011 20:46:07 -0400
+	Mon, 21 Mar 2011 16:03:25 -0400
+Message-ID: <4D87AB0F.4040908@t-online.de>
+Date: Mon, 21 Mar 2011 20:46:23 +0100
+From: Rico Tzschichholz <ricotz@t-online.de>
 MIME-Version: 1.0
-In-Reply-To: <1300815176-21206-1-git-send-email-mythripk@ti.com>
-References: <1300815176-21206-1-git-send-email-mythripk@ti.com>
-Date: Wed, 23 Mar 2011 10:46:03 +1000
-Message-ID: <AANLkTim61Xdo6ED7mr_SvpLuotso89RdR6Qaz-GCXOmJ@mail.gmail.com>
-Subject: Re: [RFC PATCH] HDMI:Support for EDID parsing in kernel.
-From: Dave Airlie <airlied@gmail.com>
-To: Mythri P K <mythripk@ti.com>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	dri-devel <dri-devel@lists.freedesktop.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: linux-media@vger.kernel.org
+CC: Rico Tzschichholz <ricotz@t-online.de>
+Subject: S2-3200 switching-timeouts on 2.6.38
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="------------enig42263E99D23723865332B1B8"
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Mar 23, 2011 at 3:32 AM, Mythri P K <mythripk@ti.com> wrote:
-> Adding support for common EDID parsing in kernel.
->
-> EDID - Extended display identification data is a data structure provided by
-> a digital display to describe its capabilities to a video source, This a
-> standard supported by CEA and VESA.
->
-> There are several custom implementations for parsing EDID in kernel, some
-> of them are present in fbmon.c, drm_edid.c, sh_mobile_hdmi.c, Ideally
-> parsing of EDID should be done in a library, which is agnostic of the
-> framework (V4l2, DRM, FB)  which is using the functionality, just based on
-> the raw EDID pointer with size/segment information.
->
-> With other RFC's such as the one below, which tries to standardize HDMI API's
-> It would be better to have a common EDID code in one place.It also helps to
-> provide better interoperability with variety of TV/Monitor may be even by
-> listing out quirks which might get missed with several custom implementation
-> of EDID.
-> http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/30401
->
-> This patch tries to add functions to parse some portion EDID (detailed timing,
-> monitor limits, AV delay information, deep color mode support, Audio and VSDB)
-> If we can align on this library approach i can enhance this library to parse
-> other blocks and probably we could also add quirks from other implementation
-> as well.
->
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig42263E99D23723865332B1B8
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-If you want to take this approach, you need to start from the DRM EDID parser,
-its the most well tested and I can guarantee its been plugged into more monitors
-than any of the others. There is just no way we would move the DRM parser to a
-library one that isn't derived from it + enhancements, as we'd throw away the
-years of testing and the regression count would be way too high.
+Hello,
 
-Dave.
+I would like to know if there is any intention to include this patch
+soon? https://patchwork.kernel.org/patch/244201/
+
+Currently using 2.6.38 results in switching-timeouts on my S2-3200 and
+this patch fixes this for good.
+
+So it would be nice to have it in 2.6.39.
+
+Thank you and best regards,
+Rico Tzschichholz
+
+
+--------------enig42263E99D23723865332B1B8
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+
+iQIcBAEBCAAGBQJNh6sTAAoJEF3s26iScOcjv9kQAM4Z7J/iGAq5kPdqPnX8nHvY
+JHQqkWL+BpGh96q1l4vDuJPYR7SwD8UJsNDL+PsFbbSQoNiWgSWHXhoNO3tEs4Ca
+OdJQNh4OXj15joLksgQInB19w0kNPycu447eju0/TrLMjkg3di0jtudIfbhpFJ+S
+jhfAKhIkblNcDvfptRQXHI+W3bz8Sz0Mh9EIv6uEdhtRhOUBbpj/VTXLi4QNtTz3
+TjDM2U7WRpNY88VLVIE4iaVhHUOgy/CKx9BmGOtNDnX9Pz1UMUfvP3qu7rpOZIuk
+98CRSglZNrBQzDAkxAvlISF1AYqRNMEYCFeI9poDgAzW+r99U1I65kaD/u2IyS+v
+W2E0wzOUnXP3Ktowyao+vkQR5i/dqJXBsC9lSiya6idW/XmWZ+SNForqVFytcUwU
+LiFIKZ9zyBDvr5qzcerK5rSjzAF44wpibtQA0Hl2KwsuGnG46Vv03/GbrzjpEH18
+iZKGlIiIJ3E0zE5iyRdXpG9eIeWNWHc9ynHRrmfPFeIOJfZjtBjiXnvkZSCej7xY
+Stvjqpkxrt86FIdD9OyuBr/AKGFnZjj7NxzalgtG31b2qqdBU0jGMXLUctyH59bR
+Nd8M/a4hY670hAs8WmKzaVSNHS/sLyNRjznGLkuLlINWAnU4y+UkJuf6/KPcBjdF
+zdsH5g5mUQrNuPo42wel
+=LPn9
+-----END PGP SIGNATURE-----
+
+--------------enig42263E99D23723865332B1B8--
