@@ -1,79 +1,50 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:51655 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751588Ab1CZX3g (ORCPT
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:49613 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752774Ab1CUKWE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Mar 2011 19:29:36 -0400
-Received: by wya21 with SMTP id 21so1976599wya.19
-        for <linux-media@vger.kernel.org>; Sat, 26 Mar 2011 16:29:35 -0700 (PDT)
-Subject: [PATCH] v1.82 DM04/QQBOX dvb-usb-lmedm04 diseqc timing changes
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 26 Mar 2011 23:29:28 +0000
-Message-ID: <1301182168.7060.5.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Mon, 21 Mar 2011 06:22:04 -0400
+Received: by vws1 with SMTP id 1so5047153vws.19
+        for <linux-media@vger.kernel.org>; Mon, 21 Mar 2011 03:22:02 -0700 (PDT)
+Message-ID: <4D8726C5.2090403@gmail.com>
+Date: Mon, 21 Mar 2011 07:21:57 -0300
+From: Mauro Carvalho Chehab <maurochehab@gmail.com>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: goffa72@gmail.com, linux-media@vger.kernel.org
+Subject: Re: Leadtek Winfast 1800H FM Tuner
+References: <4D8550A3.5010604@aapt.net.au> <4D85B871.3010201@iki.fi>
+In-Reply-To: <4D85B871.3010201@iki.fi>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Frontend timing change for diseqc functions.
+Em 20-03-2011 05:18, Antti Palosaari escreveu:
+> On 03/20/2011 02:56 AM, Andrew Goff wrote:
+>> Hi, I hope someone may be able to help me solve a problem or point me in
+>> the right direction.
+>>
+>> I have been using a Leadtek Winfast DTV1800H card (﻿Xceive xc3028 tuner)
+>> for a while now without any issues (DTV & Radio have been working well),
+>> I recently decided to get another tuner card, Leadtek Winfast DTV2000DS
+>> (Tuner: NXP TDA18211, but detected as TDA18271 by V4L drivers, Chipset:
+>> AF9015 + AF9013 ) and had to compile and install the V4L drivers to get
+>> it working. Now DTV on both cards work well but there is a problem with
+>> the radio tuner on the 1800H card.
+>>
+>> After installing the more recent V4L drivers the radio frequency is
+>> 2.7MHz out, so if I want to listen to 104.9 I need to tune the radio to
+>> 107.6. Now I could just change all my preset stations but I can not
+>> listen to my preferred stations as I need to set the frequency above
+>> 108MHz.
+> 
+> I think there is something wrong with the FM tuner (xc3028?) or other chipset drivers used for DTV1800H. No relations to the af9015, af9013 or tda18271. tda18211 is same chip as tda18271 but only DVB-T included. If DTV1800H does not contain tda18211 or tda18271 problem cannot be either that.
 
-Timing on the STV0288 and STV0299 frontends cause initial disegc errors
-on some applications.
+Yes, the problem is likely at xc3028. It has to do frequency shift for some
+DVB standards, and the shift is dependent on what firmware is loaded.
 
+So, you need to enable load tuner-xc2028 with debug=1, and provide us the
+dmesg.
 
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
----
- drivers/media/dvb/dvb-usb/lmedm04.c |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/dvb/dvb-usb/lmedm04.c b/drivers/media/dvb/dvb-usb/lmedm04.c
-index ec0f5a7..91f239c 100644
---- a/drivers/media/dvb/dvb-usb/lmedm04.c
-+++ b/drivers/media/dvb/dvb-usb/lmedm04.c
-@@ -179,8 +179,6 @@ static int lme2510_usb_talk(struct dvb_usb_device *d,
- 
- 	ret |= lme2510_bulk_write(d->udev, buff, wlen , 0x01);
- 
--	msleep(10);
--
- 	ret |= usb_clear_halt(d->udev, usb_rcvbulkpipe(d->udev, 0x01));
- 
- 	ret |= lme2510_bulk_read(d->udev, buff, (rlen > 512) ?
-@@ -364,6 +362,7 @@ static int lme2510_msg(struct dvb_usb_device *d,
- 					msleep(80);
- 				}
- 			}
-+			msleep(20);
- 			break;
- 		case TUNER_S7395:
- 			if (wbuf[2] == 0xd0) {
-@@ -376,7 +375,7 @@ static int lme2510_msg(struct dvb_usb_device *d,
- 					}
- 				}
- 				if ((wbuf[3] != 0x6) & (wbuf[3] != 0x5))
--					msleep(5);
-+					msleep(20);
- 			}
- 			break;
- 		case TUNER_S0194:
-@@ -389,6 +388,8 @@ static int lme2510_msg(struct dvb_usb_device *d,
- 						st->i2c_talk_onoff = 0;
- 					}
- 				}
-+				if ((wbuf[3] != 0x9) & (wbuf[3] != 0x0a))
-+					msleep(20);
- 			}
- 			break;
- 		default:
-@@ -1222,5 +1223,5 @@ module_exit(lme2510_module_exit);
- 
- MODULE_AUTHOR("Malcolm Priestley <tvboxspy@gmail.com>");
- MODULE_DESCRIPTION("LME2510(C) DVB-S USB2.0");
--MODULE_VERSION("1.81");
-+MODULE_VERSION("1.82");
- MODULE_LICENSE("GPL");
--- 
-1.7.4.1
-
+Mauro.
