@@ -1,44 +1,55 @@
 Return-path: <mchehab@pedra>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:52699 "EHLO
-	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932307Ab1CINoy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Mar 2011 08:44:54 -0500
-From: Jeongtae Park <jtp.park@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: k.debski@samsung.com, jaeryul.oh@samsung.com,
-	kgene.kim@samsung.com, ben-linux@fluff.org,
-	jonghun.han@samsung.com, Jeongtae Park <jtp.park@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH v2 5/8] ARM: S5PV310: Add 'CONSISTENT_DMA_SIZE' definition for DMA pool allocator
-Date: Wed,  9 Mar 2011 22:16:04 +0900
-Message-Id: <1299676567-14194-6-git-send-email-jtp.park@samsung.com>
-In-Reply-To: <1299676567-14194-1-git-send-email-jtp.park@samsung.com>
-References: <1299676567-14194-1-git-send-email-jtp.park@samsung.com>
+Received: from ist.d-labs.de ([213.239.218.44]:44298 "EHLO mx01.d-labs.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751609Ab1CUKTZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Mar 2011 06:19:25 -0400
+From: Florian Mickler <florian@mickler.org>
+To: mchehab@infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	pb@linuxtv.org, Florian Mickler <florian@mickler.org>
+Subject: [PATCH 0/9] vp702x: get rid of on-stack dma buffers (part2 1/2)
+Date: Mon, 21 Mar 2011 11:19:05 +0100
+Message-Id: <1300702754-16376-1-git-send-email-florian@mickler.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This patch adds 'CONSISTENT_DMA_SIZE' definition for DMA pool allocator.
+Hi!
 
-Reviewed-by: Peter Oh <jaeryul.oh@samsung.com>
-Signed-off-by: Jeongtae Park <jtp.park@samsung.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Kamil Debski <k.debski@samsung.com>
----
- arch/arm/mach-s5pv310/include/mach/memory.h |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+This is a patchset modifying the vp702x to get rid of on-stack dma buffers
+and additionally preallocating the used buffers on device probe. 
 
-diff --git a/arch/arm/mach-s5pv310/include/mach/memory.h b/arch/arm/mach-s5pv310/include/mach/memory.h
-index 1dffb48..f026870 100644
---- a/arch/arm/mach-s5pv310/include/mach/memory.h
-+++ b/arch/arm/mach-s5pv310/include/mach/memory.h
-@@ -14,6 +14,7 @@
- #define __ASM_ARCH_MEMORY_H __FILE__
- 
- #define PHYS_OFFSET		UL(0x40000000)
-+#define CONSISTENT_DMA_SIZE	(SZ_8M)
- 
- /* Maximum of 256MiB in one bank */
- #define MAX_PHYSMEM_BITS	32
+I can not test these patches, as I don't have the hardware.
+They compile though...
+I made it a bit more finegrained for easier review.
+
+If someone could test these, that would be appreciated.
+
+I have a few more patches to dib0700 and gp8psk to also use a 
+preallocated buffer, but I'm not shure the added complexity is 
+worth it. So I'm waiting on feedback to the vp702x to proceed.
+
+I have another batch of patches to opera1, m920x, dw2102, friio,
+a800 which I did not modify since my first patch submission.
+
+Regards,
+Flo
+
+Florian Mickler (9):
+  [media] vp702x: cleanup: whitespace and indentation
+  [media] vp702x: rename struct vp702x_state -> vp702x_adapter_state
+  [media] vp702x: preallocate memory on device probe
+  [media] vp702x: remove unused variable
+  [media] vp702x: get rid of on-stack dma buffers
+  [media] vp702x: fix locking of usb operations
+  [media] vp702x: use preallocated buffer
+  [media] vp702x: use preallocated buffer in vp702x_usb_inout_cmd
+  [media] vp702x: use preallocated buffer in the frontend
+
+ drivers/media/dvb/dvb-usb/vp702x-fe.c |   80 +++++++++----
+ drivers/media/dvb/dvb-usb/vp702x.c    |  213 ++++++++++++++++++++++++++-------
+ drivers/media/dvb/dvb-usb/vp702x.h    |    7 +
+ 3 files changed, 233 insertions(+), 67 deletions(-)
+
 -- 
-1.7.1
+1.7.4.1
 
