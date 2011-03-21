@@ -1,92 +1,96 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:61560 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752470Ab1CLPrr (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.9]:61546 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753381Ab1CUNXD convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Mar 2011 10:47:47 -0500
-Received: by bwz15 with SMTP id 15so3420869bwz.19
-        for <linux-media@vger.kernel.org>; Sat, 12 Mar 2011 07:47:45 -0800 (PST)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: Peter Tilley <peter_tilley13@hotmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Dib7000/mt2266 help
-Date: Sat, 12 Mar 2011 16:47:40 +0100
-References: <SNT129-W418509BB02BD3867DCAA77E5CA0@phx.gbl>
-In-Reply-To: <SNT129-W418509BB02BD3867DCAA77E5CA0@phx.gbl>
+	Mon, 21 Mar 2011 09:23:03 -0400
+Date: Mon, 21 Mar 2011 14:22:56 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Magnus Damm <magnus.damm@gmail.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-sh@vger.kernel.org,
+	Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+Subject: Re: [PATCH 3/3] ARM: switch mackerel to dynamically manage the
+ platform camera
+In-Reply-To: <AANLkTikA0QDCLNSrM3FGobEzBBh9hcP_ZpyC+4YPSbx7@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1103211421040.24139@axis700.grange>
+References: <Pine.LNX.4.64.1102221049240.1380@axis700.grange>
+ <Pine.LNX.4.64.1102221057040.1380@axis700.grange>
+ <AANLkTikA0QDCLNSrM3FGobEzBBh9hcP_ZpyC+4YPSbx7@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201103121647.40488.pboettcher@kernellabs.com>
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Peter,
+Hi Magnus
 
-(adding back the list to CC)
+On Wed, 16 Mar 2011, Magnus Damm wrote:
 
-On Saturday 12 March 2011 11:48:38 Peter Tilley wrote:
-> Hi Patrick,
-> My sincerest apologies for coming to you directly but I have tried the
-> Linux mailing list and received no response and noticed you seem to have
-> been heavily involved with much of the Dibcom driver development.
+> On Tue, Feb 22, 2011 at 6:57 PM, Guennadi Liakhovetski
+> <g.liakhovetski@gmx.de> wrote:
+> > Use soc_camera_platform helper functions to dynamically manage the
+> > camera device.
+> >
+> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > ---
+> >  arch/arm/mach-shmobile/board-mackerel.c |   28 +++++++---------------------
+> >  1 files changed, 7 insertions(+), 21 deletions(-)
 > 
-> I have an issue with a dual tuner which is sold under the brand of Kaiser
-> Baas KBA01004 but identifies itself as 1164:1e8c which is a Yaun device
-> and this device seems to have already been included in the driver files.
+> Hi Guennadi,
 > 
-> It loads ok and reports not problems.  It tunes ok and reports FE lock on
-> all channels however on all but one channel upon receiving FE lock the
-> BER stays at 1ffff instead of dropping to a low number which would
-> indicate I am not getting viterbi.
+> Thanks for your work on this. The soc_camera_platform interface has
+> become much much nicer with these patches.
 > 
-> The device is fitted with pairs of MT2266 and DIB7000 which I have
-> positive identified by opening the USB stick.
+> I just tested patch 1/3 and patch 3/3 on my Mackerel board.
+
+Thanks for testing!
+
+> Unfortunately I get this printout on the console:
 > 
->  am more than happy to try and work this out myself however the amount of
-> detail around in support of the Linux drivers is extremely low and a
-> search for manufacturers data sheets finds next to nothing.    There
-> seems to be lots of what I would call "magic numbers" in the drivers and
-> little to determine what they are doing.
+> sh_mobile_ceu sh_mobile_ceu.0: SuperH Mobile CEU driver attached to camera 0
+> soc_camera_platform soc_camera_platform.0: Platform has not set
+> soc_camera_device pointer!
+> soc_camera_platform: probe of soc_camera_platform.0 failed with error -22
+> sh_mobile_ceu sh_mobile_ceu.0: SuperH Mobile CEU driver detached from camera 0
+> 
+> Without these two patches everything work just fine. Any ideas on how
+> to fix it? I'd be happy to test V2. =)
 
-Are you sure it is a driver problem?
+Hm, yes, looks like I'm initialising the pointer too late. Could you, 
+please, test the patch below on top, if it helps, I'll send v2.
 
-If the BER stays at this value it could also mean that the channel-
-configuration is wrong.
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
 
-Are you using a channels.conf which has all parameters set, or are you doing 
-a channel-scan-like tune (all values are set to AUTO).
+diff --git a/include/media/soc_camera_platform.h b/include/media/soc_camera_platform.h
+index fbf4b79..6d7a4fd 100644
+--- a/include/media/soc_camera_platform.h
++++ b/include/media/soc_camera_platform.h
+@@ -50,6 +50,8 @@ static inline int soc_camera_platform_add(const struct soc_camera_link *icl,
+ 	if (!*pdev)
+ 		return -ENOMEM;
  
-> My question to you is are you able to offer either any pointers to solve
-> the problem or help me find detailed information about the devices so I
-> can help myself.
-> 
-> I should point out that the device works perfectly under windows on the
-> same antenna and indeed I have even successfully extracted the firmware
-> from the supplied windows driver, renamed it so it loads and the problem
-> still remains.
-
-There are usually some adaptations board-designing companies do to improve 
-reception quality (adding external LNAs and things like that) that are of 
-course handled by the Window-driver, because it is created by the 
-manufacturer and not by the Linux-driver, because (in this case) the driver 
-was released by the chip-manufacturer.
-
-Is the device toggling between FE_HAS_LOCK and no FE_HAS_LOCK or does it 
-stay constantly at 
-
-Please try whether you can achieve the BER lowering by moving the antenna or 
-using a better one. If this helps, it really means that the windows-driver 
-does something more the board.
-
-I doubt that the chip-driver needs to be changed, more likely the GPIOs of 
-the dib0700 (in dib0700_core.c) or of the dib7000 are used to turn on or off 
-a frequency switch or a LNA.
-
-Good point, what are the frequencies you're tuning ?
-
-regards,
-
---
-Patrick
-http://www.kernellabs.com/
++	info->dev = dev;
++
+ 	(*pdev)->dev.platform_data = info;
+ 	(*pdev)->dev.release = release;
+ 
+@@ -57,11 +59,10 @@ static inline int soc_camera_platform_add(const struct soc_camera_link *icl,
+ 	if (ret < 0) {
+ 		platform_device_put(*pdev);
+ 		*pdev = NULL;
+-	} else {
+-		info->dev = dev;
++		info->dev = NULL;
+ 	}
+ 
+-	return 0;
++	return ret;
+ }
+ 
+ static inline void soc_camera_platform_del(const struct soc_camera_link *icl,
