@@ -1,251 +1,250 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.128.24]:47120 "EHLO mgw-da01.nokia.com"
+Received: from canardo.mork.no ([148.122.252.1]:55935 "EHLO canardo.mork.no"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752350Ab1CANL1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Mar 2011 08:11:27 -0500
-From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-To: alsa-devel@alsa-project.org, broonie@opensource.wolfsonmicro.com,
-	lrg@slimlogic.co.uk, mchehab@redhat.com, hverkuil@xs4all.nl,
-	sameo@linux.intel.com, linux-media@vger.kernel.org
-Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Subject: [PATCH v22 1/3] MFD: WL1273 FM Radio: MFD driver for the FM radio.
-Date: Tue,  1 Mar 2011 15:10:35 +0200
-Message-Id: <1298985037-2714-2-git-send-email-matti.j.aaltonen@nokia.com>
-In-Reply-To: <1298985037-2714-1-git-send-email-matti.j.aaltonen@nokia.com>
-References: <1298985037-2714-1-git-send-email-matti.j.aaltonen@nokia.com>
+	id S1753469Ab1CUOwX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Mar 2011 10:52:23 -0400
+From: =?UTF-8?q?Bj=C3=B8rn=20Mork?= <bjorn@mork.no>
+To: linux-media@vger.kernel.org
+Cc: =?UTF-8?q?Bj=C3=B8rn=20Mork?= <bjorn@mork.no>,
+	Auke Kok <auke-jan.h.kok@intel.com>
+Subject: [PATCH] [media] use pci_dev->revision
+Date: Mon, 21 Mar 2011 15:35:56 +0100
+Message-Id: <1300718156-25395-1-git-send-email-bjorn@mork.no>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This is the core of the WL1273 FM radio driver, it connects
-the two child modules. The two child drivers are
-drivers/media/radio/radio-wl1273.c and sound/soc/codecs/wl1273.c.
+pci_setup_device() has saved the PCI revision in the pci_dev
+struct since Linux 2.6.23.  Use it.
 
-The radio-wl1273 driver implements the V4L2 interface and communicates
-with the device. The ALSA codec offers digital audio, without it only
-analog audio is available.
-
-Signed-off-by: Matti J. Aaltonen <matti.j.aaltonen@nokia.com>
+Cc: Auke Kok <auke-jan.h.kok@intel.com>
+Signed-off-by: Bjørn Mork <bjorn@mork.no>
 ---
- drivers/mfd/Kconfig             |    2 +-
- drivers/mfd/wl1273-core.c       |  149 ++++++++++++++++++++++++++++++++++++++-
- include/linux/mfd/wl1273-core.h |    2 +
- 3 files changed, 149 insertions(+), 4 deletions(-)
+I assume some of these drivers could have the revision
+removed from their driver specific structures as well, but 
+I haven't done that to avoid unnecessary ABI changes.
 
-diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-index fd01836..9db079b 100644
---- a/drivers/mfd/Kconfig
-+++ b/drivers/mfd/Kconfig
-@@ -615,7 +615,7 @@ config MFD_VX855
- 	  and/or vx855_gpio drivers for this to do anything useful.
+ drivers/media/common/saa7146_core.c        |    7 +------
+ drivers/media/dvb/b2c2/flexcop-pci.c       |    4 +---
+ drivers/media/dvb/bt8xx/bt878.c            |    2 +-
+ drivers/media/dvb/mantis/mantis_pci.c      |    5 ++---
+ drivers/media/video/bt8xx/bttv-driver.c    |    2 +-
+ drivers/media/video/cx18/cx18-driver.c     |    2 +-
+ drivers/media/video/cx23885/cx23885-core.c |    2 +-
+ drivers/media/video/cx88/cx88-mpeg.c       |    2 +-
+ drivers/media/video/cx88/cx88-video.c      |    2 +-
+ drivers/media/video/ivtv/ivtv-driver.c     |    4 +---
+ drivers/media/video/saa7134/saa7134-core.c |    2 +-
+ drivers/media/video/saa7164/saa7164-core.c |    2 +-
+ drivers/media/video/zoran/zoran_card.c     |    2 +-
+ 13 files changed, 14 insertions(+), 24 deletions(-)
+
+diff --git a/drivers/media/common/saa7146_core.c b/drivers/media/common/saa7146_core.c
+index 9f47e38..9af2140 100644
+--- a/drivers/media/common/saa7146_core.c
++++ b/drivers/media/common/saa7146_core.c
+@@ -378,12 +378,7 @@ static int saa7146_init_one(struct pci_dev *pci, const struct pci_device_id *ent
+ 	dev->pci = pci;
  
- config MFD_WL1273_CORE
--	tristate
-+	tristate "Support for TI WL1273 FM radio."
- 	depends on I2C
- 	select MFD_CORE
- 	default n
-diff --git a/drivers/mfd/wl1273-core.c b/drivers/mfd/wl1273-core.c
-index d2ecc24..4025a4b 100644
---- a/drivers/mfd/wl1273-core.c
-+++ b/drivers/mfd/wl1273-core.c
-@@ -1,7 +1,7 @@
- /*
-  * MFD driver for wl1273 FM radio and audio codec submodules.
-  *
-- * Copyright (C) 2010 Nokia Corporation
-+ * Copyright (C) 2011 Nokia Corporation
-  * Author: Matti Aaltonen <matti.j.aaltonen@nokia.com>
-  *
-  * This program is free software; you can redistribute it and/or modify
-@@ -31,6 +31,145 @@ static struct i2c_device_id wl1273_driver_id_table[] = {
- };
- MODULE_DEVICE_TABLE(i2c, wl1273_driver_id_table);
+ 	/* get chip-revision; this is needed to enable bug-fixes */
+-	err = pci_read_config_dword(pci, PCI_CLASS_REVISION, &dev->revision);
+-	if (err < 0) {
+-		ERR(("pci_read_config_dword() failed.\n"));
+-		goto err_disable;
+-	}
+-	dev->revision &= 0xf;
++	dev->revision = pci->revision;
  
-+static int wl1273_fm_read_reg(struct wl1273_core *core, u8 reg, u16 *value)
-+{
-+	struct i2c_client *client = core->client;
-+	u8 b[2];
-+	int r;
-+
-+	r = i2c_smbus_read_i2c_block_data(client, reg, sizeof(b), b);
-+	if (r != 2) {
-+		dev_err(&client->dev, "%s: Read: %d fails.\n", __func__, reg);
-+		return -EREMOTEIO;
-+	}
-+
-+	*value = (u16)b[0] << 8 | b[1];
-+
-+	return 0;
-+}
-+
-+static int wl1273_fm_write_cmd(struct wl1273_core *core, u8 cmd, u16 param)
-+{
-+	struct i2c_client *client = core->client;
-+	u8 buf[] = { (param >> 8) & 0xff, param & 0xff };
-+	int r;
-+
-+	r = i2c_smbus_write_i2c_block_data(client, cmd, sizeof(buf), buf);
-+	if (r) {
-+		dev_err(&client->dev, "%s: Cmd: %d fails.\n", __func__, cmd);
-+		return r;
-+	}
-+
-+	return 0;
-+}
-+
-+static int wl1273_fm_write_data(struct wl1273_core *core, u8 *data, u16 len)
-+{
-+	struct i2c_client *client = core->client;
-+	struct i2c_msg msg;
-+	int r;
-+
-+	msg.addr = client->addr;
-+	msg.flags = 0;
-+	msg.buf = data;
-+	msg.len = len;
-+
-+	r = i2c_transfer(client->adapter, &msg, 1);
-+	if (r != 1) {
-+		dev_err(&client->dev, "%s: write error.\n", __func__);
-+		return -EREMOTEIO;
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-+ * wl1273_fm_set_audio() -	Set audio mode.
-+ * @core:			A pointer to the device struct.
-+ * @new_mode:			The new audio mode.
-+ *
-+ * Audio modes are WL1273_AUDIO_DIGITAL and WL1273_AUDIO_ANALOG.
-+ */
-+static int wl1273_fm_set_audio(struct wl1273_core *core, unsigned int new_mode)
-+{
-+	int r = 0;
-+
-+	if (core->mode == WL1273_MODE_OFF ||
-+	    core->mode == WL1273_MODE_SUSPENDED)
-+		return -EPERM;
-+
-+	if (core->mode == WL1273_MODE_RX && new_mode == WL1273_AUDIO_DIGITAL) {
-+		r = wl1273_fm_write_cmd(core, WL1273_PCM_MODE_SET,
-+					WL1273_PCM_DEF_MODE);
-+		if (r)
-+			goto out;
-+
-+		r = wl1273_fm_write_cmd(core, WL1273_I2S_MODE_CONFIG_SET,
-+					core->i2s_mode);
-+		if (r)
-+			goto out;
-+
-+		r = wl1273_fm_write_cmd(core, WL1273_AUDIO_ENABLE,
-+					WL1273_AUDIO_ENABLE_I2S);
-+		if (r)
-+			goto out;
-+
-+	} else if (core->mode == WL1273_MODE_RX &&
-+		   new_mode == WL1273_AUDIO_ANALOG) {
-+		r = wl1273_fm_write_cmd(core, WL1273_AUDIO_ENABLE,
-+					WL1273_AUDIO_ENABLE_ANALOG);
-+		if (r)
-+			goto out;
-+
-+	} else if (core->mode == WL1273_MODE_TX &&
-+		   new_mode == WL1273_AUDIO_DIGITAL) {
-+		r = wl1273_fm_write_cmd(core, WL1273_I2S_MODE_CONFIG_SET,
-+					core->i2s_mode);
-+		if (r)
-+			goto out;
-+
-+		r = wl1273_fm_write_cmd(core, WL1273_AUDIO_IO_SET,
-+					WL1273_AUDIO_IO_SET_I2S);
-+		if (r)
-+			goto out;
-+
-+	} else if (core->mode == WL1273_MODE_TX &&
-+		   new_mode == WL1273_AUDIO_ANALOG) {
-+		r = wl1273_fm_write_cmd(core, WL1273_AUDIO_IO_SET,
-+					WL1273_AUDIO_IO_SET_ANALOG);
-+		if (r)
-+			goto out;
-+	}
-+
-+	core->audio_mode = new_mode;
-+out:
-+	return r;
-+}
-+
-+/**
-+ * wl1273_fm_set_volume() -	Set volume.
-+ * @core:			A pointer to the device struct.
-+ * @volume:			The new volume value.
-+ */
-+static int wl1273_fm_set_volume(struct wl1273_core *core, unsigned int volume)
-+{
-+	u16 val;
-+	int r;
-+
-+	if (volume > WL1273_MAX_VOLUME)
-+		return -EINVAL;
-+
-+	if (core->volume == volume)
-+		return 0;
-+
-+	r = wl1273_fm_write_cmd(core, WL1273_VOLUME_SET, volume);
-+	if (r)
-+		return r;
-+
-+	core->volume = volume;
-+	return 0;
-+}
-+
- static int wl1273_core_remove(struct i2c_client *client)
+ 	/* remap the memory from virtual to physical address */
+ 
+diff --git a/drivers/media/dvb/b2c2/flexcop-pci.c b/drivers/media/dvb/b2c2/flexcop-pci.c
+index 227c020..326d2e8 100644
+--- a/drivers/media/dvb/b2c2/flexcop-pci.c
++++ b/drivers/media/dvb/b2c2/flexcop-pci.c
+@@ -290,10 +290,8 @@ static void flexcop_pci_dma_exit(struct flexcop_pci *fc_pci)
+ static int flexcop_pci_init(struct flexcop_pci *fc_pci)
  {
- 	struct wl1273_core *core = i2c_get_clientdata(client);
-@@ -38,7 +177,6 @@ static int wl1273_core_remove(struct i2c_client *client)
- 	dev_dbg(&client->dev, "%s\n", __func__);
+ 	int ret;
+-	u8 card_rev;
  
- 	mfd_remove_devices(&client->dev);
--	i2c_set_clientdata(client, NULL);
- 	kfree(core);
+-	pci_read_config_byte(fc_pci->pdev, PCI_CLASS_REVISION, &card_rev);
+-	info("card revision %x", card_rev);
++	info("card revision %x", fc_pci->pdev->revision);
  
- 	return 0;
-@@ -83,6 +221,12 @@ static int __devinit wl1273_core_probe(struct i2c_client *client,
- 	cell->data_size = sizeof(core);
- 	children++;
+ 	if ((ret = pci_enable_device(fc_pci->pdev)) != 0)
+ 		return ret;
+diff --git a/drivers/media/dvb/bt8xx/bt878.c b/drivers/media/dvb/bt8xx/bt878.c
+index 99d6209..b34fa95 100644
+--- a/drivers/media/dvb/bt8xx/bt878.c
++++ b/drivers/media/dvb/bt8xx/bt878.c
+@@ -460,7 +460,7 @@ static int __devinit bt878_probe(struct pci_dev *dev,
+ 		goto fail0;
+ 	}
  
-+	core->read = wl1273_fm_read_reg;
-+	core->write = wl1273_fm_write_cmd;
-+	core->write_data = wl1273_fm_write_data;
-+	core->set_audio = wl1273_fm_set_audio;
-+	core->set_volume = wl1273_fm_set_volume;
-+
- 	if (pdata->children & WL1273_CODEC_CHILD) {
- 		cell = &core->cells[children];
+-	pci_read_config_byte(dev, PCI_CLASS_REVISION, &bt->revision);
++	bt->revision = dev->revision;
+ 	pci_read_config_byte(dev, PCI_LATENCY_TIMER, &lat);
  
-@@ -104,7 +248,6 @@ static int __devinit wl1273_core_probe(struct i2c_client *client,
- 	return 0;
  
- err:
--	i2c_set_clientdata(client, NULL);
- 	pdata->free_resources();
- 	kfree(core);
+diff --git a/drivers/media/dvb/mantis/mantis_pci.c b/drivers/media/dvb/mantis/mantis_pci.c
+index 10a432a..371558a 100644
+--- a/drivers/media/dvb/mantis/mantis_pci.c
++++ b/drivers/media/dvb/mantis/mantis_pci.c
+@@ -48,7 +48,7 @@
  
-diff --git a/include/linux/mfd/wl1273-core.h b/include/linux/mfd/wl1273-core.h
-index 9787293..db2f3f4 100644
---- a/include/linux/mfd/wl1273-core.h
-+++ b/include/linux/mfd/wl1273-core.h
-@@ -280,7 +280,9 @@ struct wl1273_core {
+ int __devinit mantis_pci_init(struct mantis_pci *mantis)
+ {
+-	u8 revision, latency;
++	u8 latency;
+ 	struct mantis_hwconfig *config	= mantis->hwconfig;
+ 	struct pci_dev *pdev		= mantis->pdev;
+ 	int err, ret = 0;
+@@ -95,9 +95,8 @@ int __devinit mantis_pci_init(struct mantis_pci *mantis)
+ 	}
  
- 	struct i2c_client *client;
+ 	pci_read_config_byte(pdev, PCI_LATENCY_TIMER, &latency);
+-	pci_read_config_byte(pdev, PCI_CLASS_REVISION, &revision);
+ 	mantis->latency = latency;
+-	mantis->revision = revision;
++	mantis->revision = pdev->revision;
  
-+	int (*read)(struct wl1273_core *core, u8, u16 *);
- 	int (*write)(struct wl1273_core *core, u8, u16);
-+	int (*write_data)(struct wl1273_core *core, u8 *, u16);
- 	int (*set_audio)(struct wl1273_core *core, unsigned int);
- 	int (*set_volume)(struct wl1273_core *core, unsigned int);
- };
+ 	dprintk(MANTIS_ERROR, 0, "    Mantis Rev %d [%04x:%04x], ",
+ 		mantis->revision,
+diff --git a/drivers/media/video/bt8xx/bttv-driver.c b/drivers/media/video/bt8xx/bttv-driver.c
+index 91399c9..a97cf27 100644
+--- a/drivers/media/video/bt8xx/bttv-driver.c
++++ b/drivers/media/video/bt8xx/bttv-driver.c
+@@ -4303,7 +4303,7 @@ static int __devinit bttv_probe(struct pci_dev *dev,
+ 		goto fail0;
+ 	}
+ 
+-	pci_read_config_byte(dev, PCI_CLASS_REVISION, &btv->revision);
++	btv->revision = dev->revision;
+ 	pci_read_config_byte(dev, PCI_LATENCY_TIMER, &lat);
+ 	printk(KERN_INFO "bttv%d: Bt%d (rev %d) at %s, ",
+ 	       bttv_num,btv->id, btv->revision, pci_name(dev));
+diff --git a/drivers/media/video/cx18/cx18-driver.c b/drivers/media/video/cx18/cx18-driver.c
+index b1c3cbd..9d7f8f2 100644
+--- a/drivers/media/video/cx18/cx18-driver.c
++++ b/drivers/media/video/cx18/cx18-driver.c
+@@ -810,7 +810,7 @@ static int cx18_setup_pci(struct cx18 *cx, struct pci_dev *pci_dev,
+ 	cmd |= PCI_COMMAND_MEMORY | PCI_COMMAND_MASTER;
+ 	pci_write_config_word(pci_dev, PCI_COMMAND, cmd);
+ 
+-	pci_read_config_byte(pci_dev, PCI_CLASS_REVISION, &cx->card_rev);
++	cx->card_rev = pci_dev->revision;
+ 	pci_read_config_byte(pci_dev, PCI_LATENCY_TIMER, &pci_latency);
+ 
+ 	if (pci_latency < 64 && cx18_pci_latency) {
+diff --git a/drivers/media/video/cx23885/cx23885-core.c b/drivers/media/video/cx23885/cx23885-core.c
+index 3598824..3f3ddba 100644
+--- a/drivers/media/video/cx23885/cx23885-core.c
++++ b/drivers/media/video/cx23885/cx23885-core.c
+@@ -2035,7 +2035,7 @@ static int __devinit cx23885_initdev(struct pci_dev *pci_dev,
+ 	}
+ 
+ 	/* print pci info */
+-	pci_read_config_byte(pci_dev, PCI_CLASS_REVISION, &dev->pci_rev);
++	dev->pci_rev = pci_dev->revision;
+ 	pci_read_config_byte(pci_dev, PCI_LATENCY_TIMER,  &dev->pci_lat);
+ 	printk(KERN_INFO "%s/0: found at %s, rev: %d, irq: %d, "
+ 	       "latency: %d, mmio: 0x%llx\n", dev->name,
+diff --git a/drivers/media/video/cx88/cx88-mpeg.c b/drivers/media/video/cx88/cx88-mpeg.c
+index addf954..9b500e6 100644
+--- a/drivers/media/video/cx88/cx88-mpeg.c
++++ b/drivers/media/video/cx88/cx88-mpeg.c
+@@ -474,7 +474,7 @@ static int cx8802_init_common(struct cx8802_dev *dev)
+ 		return -EIO;
+ 	}
+ 
+-	pci_read_config_byte(dev->pci, PCI_CLASS_REVISION, &dev->pci_rev);
++	dev->pci_rev = dev->pci->revision;
+ 	pci_read_config_byte(dev->pci, PCI_LATENCY_TIMER,  &dev->pci_lat);
+ 	printk(KERN_INFO "%s/2: found at %s, rev: %d, irq: %d, "
+ 	       "latency: %d, mmio: 0x%llx\n", dev->core->name,
+diff --git a/drivers/media/video/cx88/cx88-video.c b/drivers/media/video/cx88/cx88-video.c
+index 508dabb..69c0f37 100644
+--- a/drivers/media/video/cx88/cx88-video.c
++++ b/drivers/media/video/cx88/cx88-video.c
+@@ -1803,7 +1803,7 @@ static int __devinit cx8800_initdev(struct pci_dev *pci_dev,
+ 	dev->core = core;
+ 
+ 	/* print pci info */
+-	pci_read_config_byte(pci_dev, PCI_CLASS_REVISION, &dev->pci_rev);
++	dev->pci_rev = pci_dev->revision;
+ 	pci_read_config_byte(pci_dev, PCI_LATENCY_TIMER,  &dev->pci_lat);
+ 	printk(KERN_INFO "%s/0: found at %s, rev: %d, irq: %d, "
+ 	       "latency: %d, mmio: 0x%llx\n", core->name,
+diff --git a/drivers/media/video/ivtv/ivtv-driver.c b/drivers/media/video/ivtv/ivtv-driver.c
+index 3994642..a4e4dfd 100644
+--- a/drivers/media/video/ivtv/ivtv-driver.c
++++ b/drivers/media/video/ivtv/ivtv-driver.c
+@@ -810,7 +810,6 @@ static int ivtv_setup_pci(struct ivtv *itv, struct pci_dev *pdev,
+ 			  const struct pci_device_id *pci_id)
+ {
+ 	u16 cmd;
+-	u8 card_rev;
+ 	unsigned char pci_latency;
+ 
+ 	IVTV_DEBUG_INFO("Enabling pci device\n");
+@@ -857,7 +856,6 @@ static int ivtv_setup_pci(struct ivtv *itv, struct pci_dev *pdev,
+ 	}
+ 	IVTV_DEBUG_INFO("Bus Mastering Enabled.\n");
+ 
+-	pci_read_config_byte(pdev, PCI_CLASS_REVISION, &card_rev);
+ 	pci_read_config_byte(pdev, PCI_LATENCY_TIMER, &pci_latency);
+ 
+ 	if (pci_latency < 64 && ivtv_pci_latency) {
+@@ -874,7 +872,7 @@ static int ivtv_setup_pci(struct ivtv *itv, struct pci_dev *pdev,
+ 
+ 	IVTV_DEBUG_INFO("%d (rev %d) at %02x:%02x.%x, "
+ 		   "irq: %d, latency: %d, memory: 0x%lx\n",
+-		   pdev->device, card_rev, pdev->bus->number,
++		   pdev->device, pdev->revision, pdev->bus->number,
+ 		   PCI_SLOT(pdev->devfn), PCI_FUNC(pdev->devfn),
+ 		   pdev->irq, pci_latency, (unsigned long)itv->base_addr);
+ 
+diff --git a/drivers/media/video/saa7134/saa7134-core.c b/drivers/media/video/saa7134/saa7134-core.c
+index 6abeecf..8f4f2ef 100644
+--- a/drivers/media/video/saa7134/saa7134-core.c
++++ b/drivers/media/video/saa7134/saa7134-core.c
+@@ -918,7 +918,7 @@ static int __devinit saa7134_initdev(struct pci_dev *pci_dev,
+ 	}
+ 
+ 	/* print pci info */
+-	pci_read_config_byte(pci_dev, PCI_CLASS_REVISION, &dev->pci_rev);
++	dev->pci_rev = pci_dev->revision;
+ 	pci_read_config_byte(pci_dev, PCI_LATENCY_TIMER,  &dev->pci_lat);
+ 	printk(KERN_INFO "%s: found at %s, rev: %d, irq: %d, "
+ 	       "latency: %d, mmio: 0x%llx\n", dev->name,
+diff --git a/drivers/media/video/saa7164/saa7164-core.c b/drivers/media/video/saa7164/saa7164-core.c
+index 58af67f..360547a 100644
+--- a/drivers/media/video/saa7164/saa7164-core.c
++++ b/drivers/media/video/saa7164/saa7164-core.c
+@@ -1247,7 +1247,7 @@ static int __devinit saa7164_initdev(struct pci_dev *pci_dev,
+ 	}
+ 
+ 	/* print pci info */
+-	pci_read_config_byte(pci_dev, PCI_CLASS_REVISION, &dev->pci_rev);
++	dev->pci_rev = pci_dev->revision;
+ 	pci_read_config_byte(pci_dev, PCI_LATENCY_TIMER,  &dev->pci_lat);
+ 	printk(KERN_INFO "%s/0: found at %s, rev: %d, irq: %d, "
+ 	       "latency: %d, mmio: 0x%llx\n", dev->name,
+diff --git a/drivers/media/video/zoran/zoran_card.c b/drivers/media/video/zoran/zoran_card.c
+index 9f2bac5..ba6878b 100644
+--- a/drivers/media/video/zoran/zoran_card.c
++++ b/drivers/media/video/zoran/zoran_card.c
+@@ -1230,7 +1230,7 @@ static int __devinit zoran_probe(struct pci_dev *pdev,
+ 	mutex_init(&zr->other_lock);
+ 	if (pci_enable_device(pdev))
+ 		goto zr_unreg;
+-	pci_read_config_byte(zr->pci_dev, PCI_CLASS_REVISION, &zr->revision);
++	zr->revision = zr->pci_dev->revision;
+ 
+ 	dprintk(1,
+ 		KERN_INFO
 -- 
-1.6.1.3
+1.7.2.5
 
