@@ -1,92 +1,97 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.samsung.com ([203.254.224.25]:54119 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752687Ab1CKOwO (ORCPT
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:55404 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754011Ab1CUWnN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Mar 2011 09:52:14 -0500
-Date: Fri, 11 Mar 2011 15:51:55 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [PATCH 3/7] ARM: Samsung: update/rewrite Samsung SYSMMU (IOMMU)
- driver
-In-reply-to: <201103111507.59825.arnd@arndb.de>
-To: 'Arnd Bergmann' <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	k.debski@samsung.com, kgene.kim@samsung.com,
-	kyungmin.park@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	=?ks_c_5601-1987?B?J7TrwM6x4ic=?= <inki.dae@samsung.com>,
-	=?ks_c_5601-1987?B?J7Ctuc6x1Cc=?= <mk7.kang@samsung.com>,
-	'KyongHo Cho' <pullip.cho@samsung.com>,
-	linux-kernel@vger.kernel.org
-Message-id: <000101cbdffb$e1844b00$a48ce100$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ks_c_5601-1987
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <1299229274-9753-4-git-send-email-m.szyprowski@samsung.com>
- <201103111250.51252.arnd@arndb.de>
- <000001cbdfe8$ce444b20$6acce160$%szyprowski@samsung.com>
- <201103111507.59825.arnd@arndb.de>
+	Mon, 21 Mar 2011 18:43:13 -0400
+Message-ID: <4D87D47B.80206@gmail.com>
+Date: Mon, 21 Mar 2011 19:43:07 -0300
+From: Mauro Carvalho Chehab <maurochehab@gmail.com>
+MIME-Version: 1.0
+To: Jiri Slaby <jslaby@suse.cz>
+CC: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	jirislaby@gmail.com
+Subject: Re: [PATCH v2 -resend#1 1/1] V4L: videobuf, don't use dma addr as
+ physical
+References: <1298885822-10083-1-git-send-email-jslaby@suse.cz> <20110228145301.GC10846@dumpdata.com> <4D6BC3AE.903@suse.cz> <4D6BE756.1090800@infradead.org>
+In-Reply-To: <4D6BE756.1090800@infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
-
-On Friday, March 11, 2011 3:08 PM Arnd Bergmann wrote:
-
-> On Friday 11 March 2011, Marek Szyprowski wrote:
-> > > The iommu API is not really meant to be KVM specific, it's just that the
-> > > in-tree users are basically limited to KVM at the moment. Another user that
-> > > is coming up soon is the vmio device driver that can be used to transparently
-> > > pass devices to user space. The idea behind the IOMMU API is that you can
-> > > map arbitrary bus addresses to physical memory addresses, but it does not
-> > > deal with allocating the bus addresses or providing buffer management such
-> > > as cache flushes.
-> >
-> > Yea, I've noticed this and this basically what we expect from iommu driver.
-> > However the iommu.h API requires a separate call to map each single memory page.
-> > This is quite ineffective approach and imho the API need to be extended to allow
-> > mapping of the arbitrary set of pages.
+Em 28-02-2011 15:20, Mauro Carvalho Chehab escreveu:
+> Em 28-02-2011 12:47, Jiri Slaby escreveu:
+>> On 02/28/2011 03:53 PM, Konrad Rzeszutek Wilk wrote:
+>>> On Mon, Feb 28, 2011 at 10:37:02AM +0100, Jiri Slaby wrote:
+>>>> mem->dma_handle is a dma address obtained by dma_alloc_coherent which
+>>>> needn't be a physical address in presence of IOMMU. So ensure we are
+>>>
+>>> Can you add a comment why you are fixing it? Is there a bug report for this?
+>>> Under what conditions did you expose this fault?
+>>
+>> No, by a just peer review when I was looking for something completely
+>> different.
+>>
+>>> You also might want to mention that "needn't be a physical address as
+>>> a hardware IOMMU can (and most likely) will return a bus address where
+>>> physical != bus address."
+>>
+>> Mauro, do you want me to resend this with such an udpate in the changelog?
 > 
-> We can always discuss extensions to the existing infrastructure, adding
-> an interface for mapping an array of page pointers in the iommu API
-> sounds like a good idea.
+> Having it properly documented is always a good idea, especially since a similar
+> fix might be needed on other drivers that also need contiguous memory. While it
+> currently is used only on devices embedded on hardware with no iommu, there are
+> some x86 hardware that doesn't allow DMA scatter/gather.
+> 
+> Btw, it may be worth to take a look at vb2 dma contig module, as it might have
+> similar issues.
+> 
+>>> Otherwise you can stick 'Reviewed-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>'
+>>> on it.
+> 
+> Cheers,
+> Mauro
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-We will investigate this API further. From the first sight it looks it won't take
-much work to port/rewrite our driver to fit into iommu.h API.
+As I got no return, and the patch looked sane, I've reviewed the comment myself,
+in order to make it more explicit, as suggested by Konrad, and added his
+reviewed-by: tag:
 
-> I also think that we should not really have separate iommu and dma-mapping
-> interfaces, but rather have a portable way to define an iommu so that it
-> can be used through the dma-mapping interfaces. I'm not asking you to
-> do that as a prerequisite to merging your driver, but it may be good to
-> keep in mind that the current situation is still lacking and that any
-> suggestion for improving this as part of your work to support the
-> samsung IOMMU is welcome.
+Author: Jiri Slaby <jslaby@suse.cz>
+Date:   Mon Feb 28 06:37:02 2011 -0300
 
-Well creating a portable iommu framework and merging it with dma-mapping interface
-looks like a much harder (and time consuming) task. There is definitely a need for
-it. I hope that it can be developed incrementally starting from the current iommu.h
-and dma-mapping.h interfaces. Please note that there might be some subtle differences
-in the hardware that such framework must be aware. The first obvious one is the
-hardware design. Some platform has central iommu unit, other (like Samsung Exynos4)
-has a separate iommu unit per each device driver (this is still a simplification,
-because a video codec device has 2 memory interfaces and 2 iommu units). Currently
-I probably have not enough knowledge to predict the other possible issues that need
-to be taken into account in the portable and generic iommu/dma-mapping frame-work.
+    [media] V4L: videobuf, don't use dma addr as physical
+    
+    mem->dma_handle is a dma address obtained by dma_alloc_coherent which
+    needn't be a physical address in presence of IOMMU, as
+    a hardware IOMMU can (and most likely) will return a bus address where
+    physical != bus address.
+    
+    So ensure we are remapping (remap_pfn_range) the right page in
+    __videobuf_mmap_mapper by using virt_to_phys(mem->vaddr) and not
+    mem->dma_handle.
+    
+    While at it, use PFN_DOWN instead of explicit shift.
+    
+    Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+    Reviewed-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-> Note that the ARM implementation of the dma-mapping.h interface currently
-> does not support IOMMUs, but that could be changed by wrapping it
-> using the include/asm-generic/dma-mapping-common.h infrastructure.
-
-ARM dma-mapping framework also requires some additional research for better DMA
-support (there are still issues with multiple mappings to be resolved).
-
-Best regards
---
-Marek Szyprowski
-Samsung Poland R&D Center
-
-
+diff --git a/drivers/media/video/videobuf-dma-contig.c b/drivers/media/video/videobuf-dma-contig.c
+index c969111..19d3e4a 100644
+--- a/drivers/media/video/videobuf-dma-contig.c
++++ b/drivers/media/video/videobuf-dma-contig.c
+@@ -300,7 +300,7 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
+ 
+        vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+        retval = remap_pfn_range(vma, vma->vm_start,
+-                            mem->dma_handle >> PAGE_SHIFT,
++                          PFN_DOWN(virt_to_phys(mem->vaddr))
+                                 size, vma->vm_page_prot);
+        if (retval) {
+                dev_err(q->dev, "mmap: remap failed with error %d. ", retval);
