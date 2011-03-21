@@ -1,163 +1,89 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.128.26]:19877 "EHLO mgw-da02.nokia.com"
+Received: from ist.d-labs.de ([213.239.218.44]:43669 "EHLO mx01.d-labs.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751076Ab1CESwS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 5 Mar 2011 13:52:18 -0500
-Message-ID: <4D7286CE.8080400@maxwell.research.nokia.com>
-Date: Sat, 05 Mar 2011 20:54:06 +0200
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-MIME-Version: 1.0
-To: Bhupesh SHARMA <bhupesh.sharma@st.com>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: isp or soc-camera for image co-processors
-References: <D5ECB3C7A6F99444980976A8C6D896384DEFA5983D@EAPEX1MAIL1.st.com> <201103011041.03424.laurent.pinchart@ideasonboard.com> <D5ECB3C7A6F99444980976A8C6D896384DEFA598FC@EAPEX1MAIL1.st.com> <201103011110.06258.laurent.pinchart@ideasonboard.com> <D5ECB3C7A6F99444980976A8C6D896384DEFA5998E@EAPEX1MAIL1.st.com> <4D6E2233.6090602@maxwell.research.nokia.com> <D5ECB3C7A6F99444980976A8C6D896384DF0A71A63@EAPEX1MAIL1.st.com>
-In-Reply-To: <D5ECB3C7A6F99444980976A8C6D896384DF0A71A63@EAPEX1MAIL1.st.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	id S1754218Ab1CUSeI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Mar 2011 14:34:08 -0400
+From: Florian Mickler <florian@mickler.org>
+To: mchehab@infradead.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	js@linuxtv.org, tskd2@yahoo.co.jp, liplianin@me.by,
+	g.marco@freenet.de, aet@rasterburn.org, pb@linuxtv.org,
+	mkrufky@linuxtv.org, nick@nick-andrew.net, max@veneto.com,
+	janne-dvb@grunau.be, Florian Mickler <florian@mickler.org>
+Subject: [PATCH 6/6] [media] opera1: get rid of on-stack dma buffer
+Date: Mon, 21 Mar 2011 19:33:46 +0100
+Message-Id: <1300732426-18958-7-git-send-email-florian@mickler.org>
+In-Reply-To: <1300732426-18958-1-git-send-email-florian@mickler.org>
+References: <1300732426-18958-1-git-send-email-florian@mickler.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Bhupesh SHARMA wrote:
-> Hi Sakari, Laurent and Guennadi,
+usb_control_msg initiates (and waits for completion of) a dma transfer using
+the supplied buffer. That buffer thus has to be seperately allocated on
+the heap.
 
-Hi Bhupesh and others,
+In lib/dma_debug.c the function check_for_stack even warns about it:
+	WARNING: at lib/dma-debug.c:866 check_for_stack
 
->> ...
->>
->>>>> Are there are reference drivers that I can use for my study?
->>>>
->>>> The OMAP3 ISP driver.
->>>
->>> Thanks, I will go through the same.
->>
->> The major difference in this to OMAP 3 is that the OMAP 3 does have
->> access to host side memory but the co-processor doesn't --- as it's a
->> CSI-2 link.
->>
->> Additional CSI-2 receiver (and a driver for it) is required on the host
->> side. This receiver likely is not dependent on the co-processor so the
->> driver shouldn't be either.
->>
->> For example, using this co-processor should well be possible with the
->> OMAP 3 ISP, in theory at least. What would be needed in this case is...
->> support for multiple complex Media device drivers under a single Media
->> device --- both drivers would be accessible through the same media
->> device.
->>
->> The co-processor would mostly look like a sensor for the OMAP 3 ISP
->> driver. Its internal topology would be more complex, though.
->>
->> Just a few ideas; what do you think of this? :-)
-> 
-> Yes, but I think I need to explain the system design better :
-> One, there is an camera interface IP within the SOC as well which 
-> has an internal buffer to store a line of image data and dma capabilities
-> to send this data to system ddr.
-> 
-> So, co-processor has no access to system MMU or buffers inside the main SoC,
-> but it has internal buffer to store data. It is connected via either a ITU or
-> CSI-2 interface to the SoC. This is the primary and major difference between our
-> architecture and OMAP 3 ISP.
-> 
-> As I read more the OMAP 3 TRM, I wonder whether SoC framework fits better
-> in our case, as we have three separate entities to consider here:
-> 	- Camera Host inside the SoC
-> 	- Camera Co-processor connected with host via CSI-2/ITU (data interface)
-> 	  and I2C/CCI (control interface)
-> 	- Camera sensor connected to the co-processor via CSI-2 (data interface)
-> 	  and I2C/CCI (control interface)
-> What are your views?
-> Guennadi can you also pitch in with your thoughts..
-> 
-> I fear that neither soc-camera  nor media framework have support
-> for 3 entities listed above, as of now.
+Note: This change is tested to compile only, as I don't have the hardware.
 
-The Media controller interface allows enumerating entities and links in
-the media device, activating the links between the entities. There is no
-such thing as support for particular type of entity.
+Signed-off-by: Florian Mickler <florian@mickler.org>
+---
+ drivers/media/dvb/dvb-usb/opera1.c |   31 ++++++++++++++++++++-----------
+ 1 files changed, 20 insertions(+), 11 deletions(-)
 
-V4L2 subdevs on the other hand do give access to the V4L2 specifics of
-the entities.
-
-I think the Media controller & V4L2 subdevs are a good starting point
-for supporting this kind of hardware.
-
-Changes in the Media controller framework are likely needed to allow
-more flexible graph definition than currently is possible. That should
-make attaching this type of a device to any existing CSI-2 (or parallel)
-receiver on the host CPU relatively easy.
-
->>>>> Unfortunately the data-sheet of the co-processor cannot be made
->>>> public
->>>>> as of yet.
->>>>
->>>> Can you publish a block diagram of the co-processor internals ?
->>>
->>> I will check internally to see if I can send a block-diagram
->>> of the co-processor internals to you. The internals seem similar to
->>
->> I'd be very interested in this as well, thank you.
-> 
-> I have raised a request internally to enquire about the same :)
-
-Thanks!
-
->>> OMAP ISP (which I can see from the public TRM). However, our
->>> co-processor doesn't have the circular buffer and MMU that ISP seem
->> to
->>> have (and some other features).
->>>
->>> In the meantime I copy the features of the co-processor here for your
->> review:
->>>
->>> Input / Output interfaces of co-processor:
->>> ==========================================
->>> - Sensor interfaces: 2 x MIPI CSI-2 receivers (1 x dual-lane up to
->> 1.6 Gbit/s
->>>  and 1 x single lane up to 800 Mbit/s)
->>> - Host interface: MIPI CSI-2 dual lane transmitter (up to 1.6 Gbit/s)
->> or ITU
->>>  (8-bit CCIR interface, up to 100 MHz) - all with independent
->> variable
->>>  transmitter clock (PLL)
->>> - Control interface: CCI (up to 400 kHz) or SPI
->>>
->>> Sensor support:
->>> ===============
->>> - Supports two MIPI compliant sensors of up to 8 Megapixel resolution
->>>  (one sensor streaming at a time)
->>> - Support for auto-focus (AF), extended depth of field (EDOF) and
->> wide dynamic
->>>  range (WDR)sensors
->>>
->>> Internal Features:
->>> ==================
->>> - Versatile clock manager and internal buffer to accommodate a wide
->> range of data rates
->>>   between sensors and the coprocessor and between the coprocessor and
->> the host.
->>> - Synchronized flash gun control with red-eye reduction (pre-flash
->> and main-flash strobes) for
->>>   high-power LED or Xenon strobe light
->>
->> Does the co-processor have internal memory or can external memory be
->> attached to it for buffer storage?
->>
-> 
-> The co-processor has no access to system MMU or buffers inside the main SoC,
-> but it has internal buffer to store data.
-
-One more question... does the co-processor have enough memory to store
-images themselves? The rotation functionality suggests that it has more
-memory than is required to save just a few lines of image data.
-
-What about the jpeg encoding; is the co-processor also able to provide
-the same image as raw bayer or in YUV colour space to the host, for example?
-
-Best regards,
-
+diff --git a/drivers/media/dvb/dvb-usb/opera1.c b/drivers/media/dvb/dvb-usb/opera1.c
+index 1f1b7d6..2ca6e87 100644
+--- a/drivers/media/dvb/dvb-usb/opera1.c
++++ b/drivers/media/dvb/dvb-usb/opera1.c
+@@ -53,27 +53,36 @@ static int opera1_xilinx_rw(struct usb_device *dev, u8 request, u16 value,
+ 			    u8 * data, u16 len, int flags)
+ {
+ 	int ret;
+-	u8 r;
+-	u8 u8buf[len];
+-
++	u8 tmp;
++	u8 *buf;
+ 	unsigned int pipe = (flags == OPERA_READ_MSG) ?
+ 		usb_rcvctrlpipe(dev,0) : usb_sndctrlpipe(dev, 0);
+ 	u8 request_type = (flags == OPERA_READ_MSG) ? USB_DIR_IN : USB_DIR_OUT;
+ 
++	buf = kmalloc(len, GFP_KERNEL);
++	if (!buf)
++		return -ENOMEM;
++
+ 	if (flags == OPERA_WRITE_MSG)
+-		memcpy(u8buf, data, len);
+-	ret =
+-		usb_control_msg(dev, pipe, request, request_type | USB_TYPE_VENDOR,
+-			value, 0x0, u8buf, len, 2000);
++		memcpy(buf, data, len);
++	ret = usb_control_msg(dev, pipe, request,
++			request_type | USB_TYPE_VENDOR, value, 0x0,
++			buf, len, 2000);
+ 
+ 	if (request == OPERA_TUNER_REQ) {
++		tmp = buf[0];
+ 		if (usb_control_msg(dev, usb_rcvctrlpipe(dev, 0),
+-				OPERA_TUNER_REQ, USB_DIR_IN | USB_TYPE_VENDOR,
+-				0x01, 0x0, &r, 1, 2000)<1 || r!=0x08)
+-					return 0;
++			    OPERA_TUNER_REQ, USB_DIR_IN | USB_TYPE_VENDOR,
++			    0x01, 0x0, buf, 1, 2000) < 1 || buf[0] != 0x08) {
++			ret = 0;
++			goto out;
++		}
++		buf[0] = tmp;
+ 	}
+ 	if (flags == OPERA_READ_MSG)
+-		memcpy(data, u8buf, len);
++		memcpy(data, buf, len);
++out:
++	kfree(buf);
+ 	return ret;
+ }
+ 
 -- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+1.7.4.1
+
