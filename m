@@ -1,91 +1,68 @@
 Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:53109 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750910Ab1CVSXq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Mar 2011 14:23:46 -0400
-Message-ID: <4D88E927.4010303@infradead.org>
-Date: Tue, 22 Mar 2011 15:23:35 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
-To: Randy Dunlap <randy.dunlap@oracle.com>
-CC: manjunatha_halli@ti.com, hverkuil@xs4all.nl,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH -next] drivers:media:radio: wl128x: fix printk format
- and text
-References: <1294745487-29138-1-git-send-email-manjunatha_halli@ti.com>	<1294745487-29138-2-git-send-email-manjunatha_halli@ti.com>	<1294745487-29138-3-git-send-email-manjunatha_halli@ti.com>	<1294745487-29138-4-git-send-email-manjunatha_halli@ti.com> <20110318091854.b234ad3e.randy.dunlap@oracle.com>
-In-Reply-To: <20110318091854.b234ad3e.randy.dunlap@oracle.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from ist.d-labs.de ([213.239.218.44]:44306 "EHLO mx01.d-labs.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751609Ab1CUKTc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Mar 2011 06:19:32 -0400
+From: Florian Mickler <florian@mickler.org>
+To: mchehab@infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	pb@linuxtv.org, Florian Mickler <florian@mickler.org>
+Subject: [PATCH 2/9] [media] vp702x: rename struct vp702x_state -> vp702x_adapter_state
+Date: Mon, 21 Mar 2011 11:19:07 +0100
+Message-Id: <1300702754-16376-3-git-send-email-florian@mickler.org>
+In-Reply-To: <1300702754-16376-1-git-send-email-florian@mickler.org>
+References: <1300702754-16376-1-git-send-email-florian@mickler.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 18-03-2011 13:18, Randy Dunlap escreveu:
-> What happened to this driver in linux-next of 2011.0318?
-> It's in linux-next of 2011.0317.
-> 
-> Here's a patch that was prepared against linux-next of 2011.0317.
-> 
-> ---
-> From: Randy Dunlap <randy.dunlap@oracle.com>
-> 
-> Fix text spacing and grammar.
-> Fix printk format warning:
-> 
-> drivers/media/radio/wl128x/fmdrv_common.c:274: warning: format '%d' expects type 'int', but argument 4 has type 'long unsigned int'
-> 
-> Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-> ---
->  drivers/media/radio/wl128x/fmdrv_common.c |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> --- linux-next-20110317.orig/drivers/media/radio/wl128x/fmdrv_common.c
-> +++ linux-next-20110317/drivers/media/radio/wl128x/fmdrv_common.c
-> @@ -271,8 +271,8 @@ static void recv_tasklet(unsigned long a
->  	/* Process all packets in the RX queue */
->  	while ((skb = skb_dequeue(&fmdev->rx_q))) {
->  		if (skb->len < sizeof(struct fm_event_msg_hdr)) {
-> -			fmerr("skb(%p) has only %d bytes"
-> -				"atleast need %d bytes to decode\n", skb,
-> +			fmerr("skb(%p) has only %d bytes; "
-> +				"need at least %zd bytes to decode\n", skb,
->  				skb->len, sizeof(struct fm_event_msg_hdr));
->  			kfree_skb(skb);
->  			continue;
+We need a state struct for the dvb_usb_device.
+In order to reduce confusion we rename the vp702x_state struct.
 
-Thanks, but it got superseeded by this one:
+Signed-off-by: Florian Mickler <florian@mickler.org>
+---
+ drivers/media/dvb/dvb-usb/vp702x.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-commit c6a721201f0ab67dc86709afe7b8f0e549bcdd07
-Author:     Hans Verkuil <hverkuil@xs4all.nl>
-AuthorDate: Sun Mar 6 09:30:02 2011 -0300
-Commit:     Mauro Carvalho Chehab <mchehab@redhat.com>
-CommitDate: Fri Mar 11 14:13:23 2011 -0300
+diff --git a/drivers/media/dvb/dvb-usb/vp702x.c b/drivers/media/dvb/dvb-usb/vp702x.c
+index 4c9939f..25536f9 100644
+--- a/drivers/media/dvb/dvb-usb/vp702x.c
++++ b/drivers/media/dvb/dvb-usb/vp702x.c
+@@ -23,7 +23,7 @@ MODULE_PARM_DESC(debug, "set debugging level (1=info,xfer=2,rc=4 (or-able))." DV
+ 
+ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+ 
+-struct vp702x_state {
++struct vp702x_adapter_state {
+ 	int pid_filter_count;
+ 	int pid_filter_can_bypass;
+ 	u8  pid_filter_state;
+@@ -126,7 +126,7 @@ static int vp702x_set_pld_state(struct dvb_usb_adapter *adap, u8 state)
+ 
+ static int vp702x_set_pid(struct dvb_usb_adapter *adap, u16 pid, u8 id, int onoff)
+ {
+-	struct vp702x_state *st = adap->priv;
++	struct vp702x_adapter_state *st = adap->priv;
+ 	u8 buf[16] = { 0 };
+ 
+ 	if (onoff)
+@@ -147,7 +147,7 @@ static int vp702x_set_pid(struct dvb_usb_adapter *adap, u16 pid, u8 id, int onof
+ 
+ static int vp702x_init_pid_filter(struct dvb_usb_adapter *adap)
+ {
+-	struct vp702x_state *st = adap->priv;
++	struct vp702x_adapter_state *st = adap->priv;
+ 	int i;
+ 	u8 b[10] = { 0 };
+ 
+@@ -279,7 +279,7 @@ static struct dvb_usb_device_properties vp702x_properties = {
+ 					}
+ 				}
+ 			},
+-			.size_of_priv     = sizeof(struct vp702x_state),
++			.size_of_priv     = sizeof(struct vp702x_adapter_state),
+ 		}
+ 	},
+ 	.read_mac_address = vp702x_read_mac_addr,
+-- 
+1.7.4.1
 
-    [media] fmdrv_common.c: fix compiler warning
-    
-    drivers/media/radio/wl128x/fmdrv_common.c: In function 'recv_tasklet':
-    drivers/media/radio/wl128x/fmdrv_common.c:274:4: warning: format '%d' expects type 'int', but argument 4 has type 'long unsigned int'
-    
-    The result of sizeof() should be printed with %zu.
-    
-    Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
-    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-diff --git a/drivers/media/radio/wl128x/fmdrv_common.c b/drivers/media/radio/wl128x/fmdrv_common.c
-index 12f4c65..64454d3 100644
---- a/drivers/media/radio/wl128x/fmdrv_common.c
-+++ b/drivers/media/radio/wl128x/fmdrv_common.c
-@@ -271,8 +271,8 @@ static void recv_tasklet(unsigned long arg)
- 	/* Process all packets in the RX queue */
- 	while ((skb = skb_dequeue(&fmdev->rx_q))) {
- 		if (skb->len < sizeof(struct fm_event_msg_hdr)) {
--			fmerr("skb(%p) has only %d bytes"
--				"atleast need %d bytes to decode\n", skb,
-+			fmerr("skb(%p) has only %d bytes, "
-+				"at least need %zu bytes to decode\n", skb,
- 				skb->len, sizeof(struct fm_event_msg_hdr));
- 			kfree_skb(skb);
- 			continue;
-
-Thanks,
-Mauro
