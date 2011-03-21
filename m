@@ -1,168 +1,81 @@
 Return-path: <mchehab@pedra>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:52703 "EHLO
-	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932318Ab1CINoy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Mar 2011 08:44:54 -0500
-From: Jeongtae Park <jtp.park@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: k.debski@samsung.com, jaeryul.oh@samsung.com,
-	kgene.kim@samsung.com, ben-linux@fluff.org,
-	jonghun.han@samsung.com, Jeongtae Park <jtp.park@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH v2 2/8] ARM: S5PV310: Add clock support for MFC v5.1
-Date: Wed,  9 Mar 2011 22:16:01 +0900
-Message-Id: <1299676567-14194-3-git-send-email-jtp.park@samsung.com>
-In-Reply-To: <1299676567-14194-1-git-send-email-jtp.park@samsung.com>
-References: <1299676567-14194-1-git-send-email-jtp.park@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:8653 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752468Ab1CUTJ1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Mar 2011 15:09:27 -0400
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p2LJ9QVr012152
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 21 Mar 2011 15:09:26 -0400
+Received: from [10.3.229.63] (vpn-229-63.phx2.redhat.com [10.3.229.63])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p2LJ9Pl8017993
+	for <linux-media@vger.kernel.org>; Mon, 21 Mar 2011 15:09:26 -0400
+Message-ID: <4D87A264.2@redhat.com>
+Date: Mon, 21 Mar 2011 16:09:24 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: v4l-dvb Mercurial repository and media-build git repository
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This patch adds clock support for MFC v5.1.
+Hi,
 
-Reviewed-by: Peter Oh <jaeryul.oh@samsung.com>
-Signed-off-by: Jeongtae Park <jtp.park@samsung.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Kamil Debski <k.debski@samsung.com>
----
- arch/arm/mach-s5pv310/clock.c                   |   68 +++++++++++++++++++++++
- arch/arm/mach-s5pv310/include/mach/regs-clock.h |    3 +
- 2 files changed, 71 insertions(+), 0 deletions(-)
+Today I added a patch at the old -hg repository meant to
+warn people that might eventually be using the old v4l-dvb hg
+repository in the hope that his device will eventually work
+on it. The latest patch there were applied 8 months ago. So,
+I'd say that the drivers there are likely older than 2.6.36 kernel.
 
-diff --git a/arch/arm/mach-s5pv310/clock.c b/arch/arm/mach-s5pv310/clock.c
-index fc7c2f8..88c7943 100644
---- a/arch/arm/mach-s5pv310/clock.c
-+++ b/arch/arm/mach-s5pv310/clock.c
-@@ -86,6 +86,11 @@ static int s5pv310_clk_ip_cam_ctrl(struct clk *clk, int enable)
- 	return s5p_gatectrl(S5P_CLKGATE_IP_CAM, clk, enable);
- }
- 
-+static int s5pv310_clk_ip_mfc_ctrl(struct clk *clk, int enable)
-+{
-+	return s5p_gatectrl(S5P_CLKGATE_IP_MFC, clk, enable);
-+}
-+
- static int s5pv310_clk_ip_image_ctrl(struct clk *clk, int enable)
- {
- 	return s5p_gatectrl(S5P_CLKGATE_IP_IMAGE, clk, enable);
-@@ -417,6 +422,11 @@ static struct clk init_clocks_off[] = {
- 		.enable		= s5pv310_clk_ip_cam_ctrl,
- 		.ctrlbit	= (1 << 2),
- 	}, {
-+		.name		= "mfc",
-+		.id		= -1,
-+		.enable		= s5pv310_clk_ip_mfc_ctrl,
-+		.ctrlbit	= (1 << 0),
-+	}, {
- 		.name		= "fimc",
- 		.id		= 3,
- 		.enable		= s5pv310_clk_ip_cam_ctrl,
-@@ -643,6 +653,54 @@ static struct clksrc_sources clkset_group = {
- 	.nr_sources	= ARRAY_SIZE(clkset_group_list),
- };
- 
-+static struct clk *clkset_mout_mfc0_list[] = {
-+	[0] = &clk_mout_mpll.clk,
-+	[1] = &clk_sclk_apll.clk,
-+};
-+
-+static struct clksrc_sources clkset_mout_mfc0 = {
-+	.sources	= clkset_mout_mfc0_list,
-+	.nr_sources	= ARRAY_SIZE(clkset_mout_mfc0_list),
-+};
-+
-+static struct clksrc_clk clk_mout_mfc0 = {
-+	.clk	= {
-+		.name		= "mout_mfc0",
-+		.id		= -1,
-+	},
-+	.sources	= &clkset_mout_mfc0,
-+	.reg_src	= { .reg = S5P_CLKSRC_MFC, .shift = 0, .size = 1 },
-+};
-+
-+static struct clk *clkset_mout_mfc1_list[] = {
-+	[0] = &clk_mout_epll.clk,
-+	[1] = &clk_sclk_vpll.clk,
-+};
-+
-+static struct clksrc_sources clkset_mout_mfc1 = {
-+	.sources	= clkset_mout_mfc1_list,
-+	.nr_sources	= ARRAY_SIZE(clkset_mout_mfc1_list),
-+};
-+
-+static struct clksrc_clk clk_mout_mfc1 = {
-+	.clk	= {
-+		.name		= "mout_mfc1",
-+		.id		= -1,
-+	},
-+	.sources	= &clkset_mout_mfc1,
-+	.reg_src	= { .reg = S5P_CLKSRC_MFC, .shift = 4, .size = 1 },
-+};
-+
-+static struct clk *clkset_mout_mfc_list[] = {
-+	[0] = &clk_mout_mfc0.clk,
-+	[1] = &clk_mout_mfc1.clk,
-+};
-+
-+static struct clksrc_sources clkset_mout_mfc = {
-+	.sources	= clkset_mout_mfc_list,
-+	.nr_sources	= ARRAY_SIZE(clkset_mout_mfc_list),
-+};
-+
- static struct clk *clkset_mout_g2d0_list[] = {
- 	[0] = &clk_mout_mpll.clk,
- 	[1] = &clk_sclk_apll.clk,
-@@ -814,6 +872,14 @@ static struct clksrc_clk clksrcs[] = {
- 		.reg_div = { .reg = S5P_CLKDIV_CAM, .shift = 28, .size = 4 },
- 	}, {
- 		.clk		= {
-+			.name		= "sclk_mfc",
-+			.id		= -1,
-+		},
-+		.sources = &clkset_mout_mfc,
-+		.reg_src = { .reg = S5P_CLKSRC_MFC, .shift = 8, .size = 1 },
-+		.reg_div = { .reg = S5P_CLKDIV_MFC, .shift = 0, .size = 4 },
-+	}, {
-+		.clk		= {
- 			.name		= "sclk_cam",
- 			.id		= 0,
- 			.enable		= s5pv310_clksrc_mask_cam_ctrl,
-@@ -1018,6 +1084,8 @@ static struct clksrc_clk *sysclks[] = {
- 	&clk_dout_mmc2,
- 	&clk_dout_mmc3,
- 	&clk_dout_mmc4,
-+	&clk_mout_mfc0,
-+	&clk_mout_mfc1,
- };
- 
- static int xtal_rate;
-diff --git a/arch/arm/mach-s5pv310/include/mach/regs-clock.h b/arch/arm/mach-s5pv310/include/mach/regs-clock.h
-index b5c4ada..27b02e8 100644
---- a/arch/arm/mach-s5pv310/include/mach/regs-clock.h
-+++ b/arch/arm/mach-s5pv310/include/mach/regs-clock.h
-@@ -33,6 +33,7 @@
- #define S5P_CLKSRC_TOP0			S5P_CLKREG(0x0C210)
- #define S5P_CLKSRC_TOP1			S5P_CLKREG(0x0C214)
- #define S5P_CLKSRC_CAM			S5P_CLKREG(0x0C220)
-+#define S5P_CLKSRC_MFC			S5P_CLKREG(0x0C228)
- #define S5P_CLKSRC_IMAGE		S5P_CLKREG(0x0C230)
- #define S5P_CLKSRC_LCD0			S5P_CLKREG(0x0C234)
- #define S5P_CLKSRC_LCD1			S5P_CLKREG(0x0C238)
-@@ -42,6 +43,7 @@
- 
- #define S5P_CLKDIV_TOP			S5P_CLKREG(0x0C510)
- #define S5P_CLKDIV_CAM			S5P_CLKREG(0x0C520)
-+#define S5P_CLKDIV_MFC			S5P_CLKREG(0x0C528)
- #define S5P_CLKDIV_IMAGE		S5P_CLKREG(0x0C530)
- #define S5P_CLKDIV_LCD0			S5P_CLKREG(0x0C534)
- #define S5P_CLKDIV_LCD1			S5P_CLKREG(0x0C538)
-@@ -67,6 +69,7 @@
- #define S5P_CLKDIV_STAT_TOP		S5P_CLKREG(0x0C610)
- 
- #define S5P_CLKGATE_IP_CAM		S5P_CLKREG(0x0C920)
-+#define S5P_CLKGATE_IP_MFC		S5P_CLKREG(0x0C928)
- #define S5P_CLKGATE_IP_IMAGE		S5P_CLKREG(0x0C930)
- #define S5P_CLKGATE_IP_LCD0		S5P_CLKREG(0x0C934)
- #define S5P_CLKGATE_IP_LCD1		S5P_CLKREG(0x0C938)
--- 
-1.7.1
+I also updated the linuxtv git homepage to point to the 
+media_build.git tree (that replaced the legacy tree), and added
+a few patches there to help developers to know what media_tree.git
+snapshot was used when some user reports an issue.
+
+Now, when someone compiles from the media-build, a warning message
+will be displayed when dvb, rc or v4l core is loaded. Something like:
+
+Linux video capture interface: v2.00
+WARNING: You are using an experimental version of the media stack.
+	As the driver is backported to an older kernel, it doesn't offer
+	enough quality for its usage in production.
+	Use it with care.
+Latest git patches (needed if you report a bug to linux-media@vger.kernel.org):
+	41f3becb7bef489f9e8c35284dd88a1ff59b190c [media] V4L DocBook: update V4L2 version
+	00cd84ab54a51d4bce9754d54d5d8160358844c4 [media] V4L doc fixes
+	e82aa4810c1ff222b344e3de6cc5c26177c321f6 [media] v4l2: vb2-dma-sg: fix potential security hole
+
+With the above messages, developers that may be receiving a bug report
+will know that:
+	1) the reporter used a media_tree.git tree to report a bug, and
+not a vanilla (or a distro-patched kernel);
+	2) the latest 3 git commits that were applied at the tree, being
+able to check if a newer patch might already be fixed the reported issue.
+
+The tester will know that:
+	1) he is using an experimental tree, not meant for production;
+	2) the email where he could report an issue;
+	3) that developers need a "dmesg" in order to know what's
+happening.
+
+It should be noticed that there are still a few group of developers
+using the old hg tree as the basis for his development.
+
+I don't have any intention to remove the -hg repository for the 
+same reason we still preserve the legacy cvs repositories: people
+may find its history useful.
+
+Also, people still can send me pull requests from -hg, as I still
+have my scripts to retrieve patches from it.
+
+However, as the code is diverging from upstream, as nobody is keeping 
+the -hg tree updated, the developers that are still using -hg will 
+likely need to apply some backports by themselves, or eventually work
+together to do backports, otherwise, the submitted patches may not 
+apply upstream anymore, as some non-trivial merge conflict may happen.
+
+Cheers,
+Mauro
 
