@@ -1,258 +1,83 @@
 Return-path: <mchehab@pedra>
-Received: from mailout4.samsung.com ([203.254.224.34]:31536 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752784Ab1CLC2w (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:15883 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751058Ab1CUGIs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Mar 2011 21:28:52 -0500
-Date: Sat, 12 Mar 2011 11:28:45 +0900
-From: Kukjin Kim <kgene.kim@samsung.com>
-Subject: RE: [RFC/PATCH v7 2/5] MFC: Add MFC 5.1 driver to plat-s5p
-In-reply-to: <1299237982-31687-3-git-send-email-k.debski@samsung.com>
-To: 'Kamil Debski' <k.debski@samsung.com>, linux-media@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	jaeryul.oh@samsung.com
-Message-id: <002801cbe05d$3843f830$a8cbe890$%kim@samsung.com>
+	Mon, 21 Mar 2011 02:08:48 -0400
 MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-language: ko
-Content-transfer-encoding: 7BIT
-References: <1299237982-31687-1-git-send-email-k.debski@samsung.com>
- <1299237982-31687-3-git-send-email-k.debski@samsung.com>
+Content-type: text/plain; charset=UTF-8
+Received: from epmmp1 (mailout2.samsung.com [203.254.224.25])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LIE00F5X9290R60@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 21 Mar 2011 15:08:33 +0900 (KST)
+Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
+ by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LIE00FUK9295K@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 21 Mar 2011 15:08:33 +0900 (KST)
+Date: Mon, 21 Mar 2011 15:08:33 +0900
+From: "Kim, HeungJun" <riverful.kim@samsung.com>
+Subject: Re: [PATCH] Add support for M-5MOLS 8 Mega Pixel camera
+In-reply-to: <4D8503EC.6040103@gmail.com>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Cc: Kim HeungJun <riverful@gmail.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-media <linux-media@vger.kernel.org>
+Reply-to: riverful.kim@samsung.com
+Message-id: <4D86EB61.1010706@samsung.com>
+Content-transfer-encoding: 8BIT
+References: <1300282723-31536-1-git-send-email-riverful.kim@samsung.com>
+ <4D84B183.7020709@gmail.com> <3985908C-2E67-4274-AA8F-E5F70745DED7@gmail.com>
+ <4D8503EC.6040103@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Kamil Debski wrote:
-> 
-> This patch adds platform support for Multi Format Codec 5.1.
-> MFC 5.1 is capable of handling a range of video codecs and this driver
-> provides V4L2 interface for video decoding.
-> 
-> Signed-off-by: Kamil Debski <k.debski@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  arch/arm/mach-s5pv310/clock.c                   |   28 ++++++++++++-
->  arch/arm/mach-s5pv310/include/mach/map.h        |    2 +
->  arch/arm/mach-s5pv310/include/mach/regs-clock.h |    3 +
->  arch/arm/plat-s5p/Kconfig                       |    5 ++
->  arch/arm/plat-s5p/Makefile                      |    2 +-
->  arch/arm/plat-s5p/dev-mfc.c                     |   49
-> +++++++++++++++++++++++
->  arch/arm/plat-samsung/include/plat/devs.h       |    1 +
->  7 files changed, 88 insertions(+), 2 deletions(-)
->  create mode 100644 arch/arm/plat-s5p/dev-mfc.c
-> 
-> diff --git a/arch/arm/mach-s5pv310/clock.c b/arch/arm/mach-s5pv310/clock.c
-> index f142b8c..d28fa6f 100644
-> --- a/arch/arm/mach-s5pv310/clock.c
-> +++ b/arch/arm/mach-s5pv310/clock.c
-> @@ -523,6 +523,11 @@ static struct clk init_clocks_off[] = {
->  		.enable		= s5pv310_clk_ip_lcd1_ctrl,
->  		.ctrlbit	= (1 << 0),
->  	}, {
-> +		.name           = "mfc",
-> +		.id             = -1,
-> +		.enable         = s5pv310_clk_ip_mfc_ctrl,
+Hi Sylwester,
 
-Where is "s5pv310_clk_ip_mfc_ctrl" in your patch or mainline?
-Please make sure that your patch can be applied into current maintainer's
-tree before submitting.
-
-> +		.ctrlbit        = (1 << 0),
-> +	}, {
->  		.name		= "hsmmc",
->  		.id		= 0,
->  		.parent		= &clk_aclk_133.clk,
-> @@ -734,6 +739,18 @@ static struct clksrc_sources clkset_group = {
->  	.nr_sources	= ARRAY_SIZE(clkset_group_list),
->  };
+2011-03-20 오전 4:28, Sylwester Nawrocki 쓴 글:
+> On 03/19/2011 04:11 PM, Kim HeungJun wrote:
+>> Hi Sylwester,
+>>
+>> Thanks for the reviews. :)
+>>
+>> 2011. 3. 19., 오후 10:37, Sylwester Nawrocki 작성:
+>>
+>>> Hi HeungJun,
+>>>
+>>> On 03/16/2011 02:38 PM, Kim, Heungjun wrote:
+>>>> Add I2C/V4L2 subdev driver for M-5MOLS camera sensor with integrated
+>>>> image signal processor.
+>>>>
+[snip]
+>>>>
+>>>> 3. Speed-up whole I2C operation
+>>>> 	: I've tested several times for decreasing the stabilization time
+>>>> 	while I2C communication, and I have find proper time. Of course,
+>>>> 	it's more faster than previous version.
+>>>
+>>> That sounds good. Do you think the delays before I2C read/write could
+>>> be avoided in some (if not all) cases by using some status registers
+>>> polling?
+>> I don't understand literally. Could you explain more detailed with some examples?
+>> My understanding is that it might be an issues or problem when getting some
+>> status registers with polling it. is it right?
 > 
-> +static struct clk *clkset_group1_list[] = {
+> My concern is that we might not need an extra delay between consecutive 
+> read or write operations in every case. Possibly it would be enough
+> to read the status of some operations instead. But that just what I suspect.
+Ah, I understand. The consecutive delay needs to read/write operations.
+Because, in non-delay cases, I found the values is not changed to be read
+when the driver is reading continuously at the different address. I means,
+if there is not regular amount of delay in r/w operations, the value is kept
+the previous value to be read by I2C operation. It's the same way in writing
+case. It's wierd.
 
-What group1? We can know it is used for MFC now, but if there is in just
-clock.c, can't do it.
+It might be different the kind of M-5MOLS sensor's FW and packaging type. But,
+I expect that the internal ARM core of M-5MOLS takes time to proceed something
+and to load values through I2C bus for the host process. 
 
-> +	[0] = &clk_mout_mpll.clk,
-> +	[1] = &clk_sclk_apll.clk,
-> +	[2] = &clk_mout_epll.clk,
-> +	[3] = &clk_sclk_vpll.clk,
-
-As you know, above sources are not connected to one same MUX, so should be
-separated.
-
-> +};
-> +
-> +static struct clksrc_sources clkset_group1 = {
-> +	.sources        = clkset_group1_list,
-> +	.nr_sources     = ARRAY_SIZE(clkset_group1_list),
-> +};
-> +
->  static struct clk *clkset_mout_g2d0_list[] = {
->  	[0] = &clk_mout_mpll.clk,
->  	[1] = &clk_sclk_apll.clk,
-> @@ -1076,7 +1093,16 @@ static struct clksrc_clk clksrcs[] = {
->  			.ctrlbit	= (1 << 16),
->  		},
->  		.reg_div = { .reg = S5P_CLKDIV_FSYS3, .shift = 8, .size = 8
-},
-> -	}
-> +	}, {
-> +		.clk            = {
-> +			.name           = "sclk_mfc",
-> +			.id             = -1,
-> +		},
-> +		.sources = &clkset_group1,
-> +		.reg_src = { .reg = S5P_CLKSRC_MFC, .shift = 8, .size = 1 },
-> +		.reg_div = { .reg = S5P_CLKDIV_MFC, .shift = 0, .size = 4 },
-> +	},
-> +
->  };
-> 
->  /* Clock initialization code */
-> diff --git a/arch/arm/mach-s5pv310/include/mach/map.h b/arch/arm/mach-
-> s5pv310/include/mach/map.h
-> index 0db3a47..576ba55 100644
-> --- a/arch/arm/mach-s5pv310/include/mach/map.h
-> +++ b/arch/arm/mach-s5pv310/include/mach/map.h
-> @@ -29,6 +29,7 @@
->  #define S5PV310_PA_FIMC1		0x11810000
->  #define S5PV310_PA_FIMC2		0x11820000
->  #define S5PV310_PA_FIMC3		0x11830000
-> +#define S5PV310_PA_MFC			0x13400000
->  #define S5PV310_PA_I2S0			0x03830000
->  #define S5PV310_PA_I2S1			0xE3100000
->  #define S5PV310_PA_I2S2			0xE2A00000
-> @@ -129,6 +130,7 @@
->  #define S5P_PA_FIMC1			S5PV310_PA_FIMC1
->  #define S5P_PA_FIMC2			S5PV310_PA_FIMC2
->  #define S5P_PA_FIMC3			S5PV310_PA_FIMC3
-> +#define S5P_PA_MFC			S5PV310_PA_MFC
->  #define S5P_PA_ONENAND			S5PC210_PA_ONENAND
->  #define S5P_PA_ONENAND_DMA		S5PC210_PA_ONENAND_DMA
->  #define S5P_PA_SDRAM			S5PV310_PA_SDRAM
-> diff --git a/arch/arm/mach-s5pv310/include/mach/regs-clock.h
-b/arch/arm/mach-
-> s5pv310/include/mach/regs-clock.h
-> index 9ef5f0c..f6b8181 100644
-> --- a/arch/arm/mach-s5pv310/include/mach/regs-clock.h
-> +++ b/arch/arm/mach-s5pv310/include/mach/regs-clock.h
-> @@ -176,4 +176,7 @@
-> 
->  #define S5P_EPLL_CON			S5P_EPLL_CON0
-> 
-> +/* MFC related */
-> +#define S5P_CLKSRC_MFC			S5P_CLKREG(0x0C228)
-> +#define S5P_CLKDIV_MFC			S5P_CLKREG(0x0C528)
->  #endif /* __ASM_ARCH_REGS_CLOCK_H */
-> diff --git a/arch/arm/plat-s5p/Kconfig b/arch/arm/plat-s5p/Kconfig
-> index 4166964..ea9032e 100644
-> --- a/arch/arm/plat-s5p/Kconfig
-> +++ b/arch/arm/plat-s5p/Kconfig
-> @@ -5,6 +5,11 @@
->  #
->  # Licensed under GPLv2
-> 
-> +config S5P_DEV_MFC
-> +	bool
-> +	help
-> +	  Compile in platform device definitions for MFC
-> +
-
-Hmm...above S5P_DEV_MFC should be moved after PLAT_S5P?
-
->  config PLAT_S5P
->  	bool
->  	depends on (ARCH_S5P64X0 || ARCH_S5P6442 || ARCH_S5PC100 ||
-> ARCH_S5PV210 || ARCH_S5PV310)
-> diff --git a/arch/arm/plat-s5p/Makefile b/arch/arm/plat-s5p/Makefile
-> index cfcd1db..54e330d 100644
-> --- a/arch/arm/plat-s5p/Makefile
-> +++ b/arch/arm/plat-s5p/Makefile
-> @@ -24,7 +24,7 @@ obj-$(CONFIG_SUSPEND)		+= pm.o
->  obj-$(CONFIG_SUSPEND)		+= irq-pm.o
-> 
->  # devices
-> -
-> +obj-$(CONFIG_S5P_DEV_MFC)	+= dev-mfc.o
->  obj-$(CONFIG_S5P_DEV_FIMC0)	+= dev-fimc0.o
->  obj-$(CONFIG_S5P_DEV_FIMC1)	+= dev-fimc1.o
->  obj-$(CONFIG_S5P_DEV_FIMC2)	+= dev-fimc2.o
-> diff --git a/arch/arm/plat-s5p/dev-mfc.c b/arch/arm/plat-s5p/dev-mfc.c
-> new file mode 100644
-> index 0000000..0dfcb1a
-> --- /dev/null
-> +++ b/arch/arm/plat-s5p/dev-mfc.c
-> @@ -0,0 +1,49 @@
-> +/* linux/arch/arm/plat-s5p/dev-mfc.c
-> + *
-> + * Copyright (c) 2010 Samsung Electronics
-> + *
-> + * Base S5P MFC 5.1 resource and device definitions
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +
-> +#include <linux/kernel.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/dma-mapping.h>
-> +#include <linux/ioport.h>
-> +
-> +#include <mach/map.h>
-> +#include <plat/devs.h>
-> +#include <plat/irqs.h>
-> +
-> +static struct resource s5p_mfc_resource[] = {
-> +	[0] = {
-> +		.start  = S5P_PA_MFC,
-> +		.end    = S5P_PA_MFC + SZ_64K - 1,
-> +		.flags  = IORESOURCE_MEM,
-> +	},
-> +	[1] = {
-> +		.start  = IRQ_MFC,
-> +		.end    = IRQ_MFC,
-> +		.flags  = IORESOURCE_IRQ,
-> +	}
-> +};
-> +
-> +static u64 s5p_mfc_dma_mask = DMA_BIT_MASK(32);
-> +
-> +struct platform_device s5p_device_mfc = {
-> +	.name          = "s5p-mfc",
-> +	.id            = -1,
-> +	.num_resources = ARRAY_SIZE(s5p_mfc_resource),
-> +	.resource      = s5p_mfc_resource,
-> +	.dev		= {
-> +		.dma_mask		= &s5p_mfc_dma_mask,
-> +		.coherent_dma_mask	= DMA_BIT_MASK(32),
-> +	},
-> +};
-> +
-> +EXPORT_SYMBOL(s5p_device_mfc);
-> diff --git a/arch/arm/plat-samsung/include/plat/devs.h b/arch/arm/plat-
-> samsung/include/plat/devs.h
-> index 9f42dee..6a869b8 100644
-> --- a/arch/arm/plat-samsung/include/plat/devs.h
-> +++ b/arch/arm/plat-samsung/include/plat/devs.h
-> @@ -135,6 +135,7 @@ extern struct platform_device s5p_device_fimc1;
->  extern struct platform_device s5p_device_fimc2;
->  extern struct platform_device s5p_device_fimc3;
-> 
-> +extern struct platform_device s5p_device_mfc;
->  extern struct platform_device s5p_device_mipi_csis0;
->  extern struct platform_device s5p_device_mipi_csis1;
-> 
-> --
-> 1.6.3.3
-
-Thanks.
-
-Best regards,
-Kgene.
---
-Kukjin Kim <kgene.kim@samsung.com>, Senior Engineer,
-SW Solution Development Team, Samsung Electronics Co., Ltd.
-
+Regards,
+Heungjun Kim
