@@ -1,81 +1,208 @@
 Return-path: <mchehab@pedra>
-Received: from mailout4.samsung.com ([203.254.224.34]:39649 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754682Ab1CAKvd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Mar 2011 05:51:33 -0500
-Received: from epmmp2 (mailout4.samsung.com [203.254.224.34])
- by mailout4.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LHD007M6KTWAQ20@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Tue, 01 Mar 2011 19:51:32 +0900 (KST)
-Received: from AMDC159 ([106.116.37.153])
- by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LHD005OTKTIR3@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 01 Mar 2011 19:51:32 +0900 (KST)
-Date: Tue, 01 Mar 2011 11:51:17 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [st-ericsson] v4l2 vs omx for camera
-In-reply-to: <1298975145.24906.60.camel@localhost>
-To: 'Edward Hervey' <bilboed@gmail.com>
-Cc: 'Nicolas Pitre' <nicolas.pitre@linaro.org>,
-	'Kyungmin Park' <kmpark@infradead.org>,
-	'Linus Walleij' <linus.walleij@linaro.org>,
-	linaro-dev@lists.linaro.org,
-	'Harald Gustafsson' <harald.gustafsson@ericsson.com>,
-	'Hans Verkuil' <hverkuil@xs4all.nl>,
-	'Discussion of the development of and with GStreamer'
-	<gstreamer-devel@lists.freedesktop.org>,
-	johan.mossberg.lml@gmail.com,
-	'ST-Ericsson LT Mailing List' <st-ericsson@lists.linaro.org>,
-	linux-media@vger.kernel.org,
-	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>
-Message-id: <000701cbd7fe$9b1c4fa0$d154eee0$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=utf-8
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <AANLkTik=Yc9cb9r7Ro=evRoxd61KVE=8m7Z5+dNwDzVd@mail.gmail.com>
- <AANLkTinDFMMDD-F-FsccCTvUvp6K3zewYsGT1BH9VP1F@mail.gmail.com>
- <201102100847.15212.hverkuil@xs4all.nl>
- <201102171448.09063.laurent.pinchart@ideasonboard.com>
- <AANLkTikg0Oj6nq6h_1-d7AQ4NQr2UyMuSemyniYZBLu3@mail.gmail.com>
- <1298578789.821.54.camel@deumeu>
- <AANLkTi=Twg-hzngyrpU_=o1yxQ3qVtiJf-Qhj--OubPu@mail.gmail.com>
- <AANLkTini7xuQ2kcrWbfGSUomdoPkLLJiik2soer8SL+X@mail.gmail.com>
- <alpine.LFD.2.00.1102261408010.22034@xanadu.home>
- <002b01cbd724$8e528bc0$aaf7a340$%szyprowski@samsung.com>
- <1298975145.24906.60.camel@localhost>
+Received: from ist.d-labs.de ([213.239.218.44]:44324 "EHLO mx01.d-labs.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752979Ab1CUKTi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Mar 2011 06:19:38 -0400
+From: Florian Mickler <florian@mickler.org>
+To: mchehab@infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	pb@linuxtv.org, Florian Mickler <florian@mickler.org>
+Subject: [PATCH 9/9] [media] vp702x: use preallocated buffer in the frontend
+Date: Mon, 21 Mar 2011 11:19:14 +0100
+Message-Id: <1300702754-16376-10-git-send-email-florian@mickler.org>
+In-Reply-To: <1300702754-16376-1-git-send-email-florian@mickler.org>
+References: <1300702754-16376-1-git-send-email-florian@mickler.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+Note: This change is tested to compile only as I don't have the
+hardware.
 
-On Tuesday, March 01, 2011 11:26 AM Edward Hervey wrote:
+Signed-off-by: Florian Mickler <florian@mickler.org>
+---
+ drivers/media/dvb/dvb-usb/vp702x-fe.c |   69 +++++++++++++++++----------------
+ 1 files changed, 35 insertions(+), 34 deletions(-)
 
-> On Mon, 2011-02-28 at 09:50 +0100, Marek Szyprowski wrote:
-> > Hello,
-> [...]
-> >
-> > I'm not sure that highmem is the right solution. First, this will force
-> > systems with rather small amount of memory (like 256M) to use highmem just
-> > to support DMA allocable memory. It also doesn't solve the issue with
-> > specific memory requirement for our DMA hardware (multimedia codec needs
-> > video memory buffers from 2 physical banks).
-> 
->   Could you explain why a codec would require memory buffers from 2
-> physical banks ?
-> 
-
-Well, this is rather a question to hardware engineer who designed it. 
-
-I suspect that the buffers has been split into 2 regions and placed in 2 different
-memory banks to achieve the performance required to decode/encode full hd h264
-movie. Video codec has 2 AXI master interfaces and I expect it is able to perform
-2 transaction to the memory at once.
-
-Best regards
---
-Marek Szyprowski
-Samsung Poland R&D Center
-
+diff --git a/drivers/media/dvb/dvb-usb/vp702x-fe.c b/drivers/media/dvb/dvb-usb/vp702x-fe.c
+index 7468a38..2bb8d4c 100644
+--- a/drivers/media/dvb/dvb-usb/vp702x-fe.c
++++ b/drivers/media/dvb/dvb-usb/vp702x-fe.c
+@@ -41,14 +41,13 @@ struct vp702x_fe_state {
+ 
+ static int vp702x_fe_refresh_state(struct vp702x_fe_state *st)
+ {
++	struct vp702x_device_state *dst = st->d->priv;
+ 	u8 *buf;
+ 
+ 	if (time_after(jiffies, st->next_status_check)) {
+-		buf = kmalloc(10, GFP_KERNEL);
+-		if (!buf) {
+-			deb_fe("%s: buffer alloc failed\n", __func__);
+-			return -ENOMEM;
+-		}
++		mutex_lock(&dst->buf_mutex);
++		buf = dst->buf;
++
+ 		vp702x_usb_in_op(st->d, READ_STATUS, 0, 0, buf, 10);
+ 		st->lock = buf[4];
+ 
+@@ -58,9 +57,8 @@ static int vp702x_fe_refresh_state(struct vp702x_fe_state *st)
+ 		vp702x_usb_in_op(st->d, READ_TUNER_REG_REQ, 0x15, 0, buf, 1);
+ 		st->sig = buf[0];
+ 
+-
++		mutex_unlock(&dst->buf_mutex);
+ 		st->next_status_check = jiffies + (st->status_check_interval*HZ)/1000;
+-		kfree(buf);
+ 	}
+ 	return 0;
+ }
+@@ -141,15 +139,17 @@ static int vp702x_fe_set_frontend(struct dvb_frontend* fe,
+ 				  struct dvb_frontend_parameters *fep)
+ {
+ 	struct vp702x_fe_state *st = fe->demodulator_priv;
++	struct vp702x_device_state *dst = st->d->priv;
+ 	u32 freq = fep->frequency/1000;
+ 	/*CalFrequency*/
+ /*	u16 frequencyRef[16] = { 2, 4, 8, 16, 32, 64, 128, 256, 24, 5, 10, 20, 40, 80, 160, 320 }; */
+ 	u64 sr;
+ 	u8 *cmd;
+ 
+-	cmd = kzalloc(10, GFP_KERNEL);
+-	if (!cmd)
+-		return -ENOMEM;
++	mutex_lock(&dst->buf_mutex);
++
++	cmd = dst->buf;
++	memset(cmd, 0, 10);
+ 
+ 	cmd[0] = (freq >> 8) & 0x7f;
+ 	cmd[1] =  freq       & 0xff;
+@@ -192,7 +192,8 @@ static int vp702x_fe_set_frontend(struct dvb_frontend* fe,
+ 	else
+ 		deb_fe("tuning succeeded.\n");
+ 
+-	kfree(cmd);
++	mutex_unlock(&dst->buf_mutex);
++
+ 	return 0;
+ }
+ 
+@@ -220,21 +221,18 @@ static int vp702x_fe_get_frontend(struct dvb_frontend* fe,
+ static int vp702x_fe_send_diseqc_msg (struct dvb_frontend* fe,
+ 				    struct dvb_diseqc_master_cmd *m)
+ {
+-	int ret;
+ 	u8 *cmd;
+ 	struct vp702x_fe_state *st = fe->demodulator_priv;
+-
+-	cmd = kzalloc(10, GFP_KERNEL);
+-	if (!cmd)
+-		return -ENOMEM;
++	struct vp702x_device_state *dst = st->d->priv;
+ 
+ 	deb_fe("%s\n",__func__);
+ 
+-	if (m->msg_len > 4) {
+-		ret = -EINVAL;
+-		goto out;
+-	}
++	if (m->msg_len > 4)
++		return -EINVAL;
++
++	mutex_lock(&dst->buf_mutex);
+ 
++	cmd = dst->buf;
+ 	cmd[1] = SET_DISEQC_CMD;
+ 	cmd[2] = m->msg_len;
+ 	memcpy(&cmd[3], m->msg, m->msg_len);
+@@ -246,10 +244,10 @@ static int vp702x_fe_send_diseqc_msg (struct dvb_frontend* fe,
+ 		deb_fe("diseqc cmd failed.\n");
+ 	else
+ 		deb_fe("diseqc cmd succeeded.\n");
+-	ret = 0;
+-out:
+-	kfree(cmd);
+-	return ret;
++
++	mutex_unlock(&dst->buf_mutex);
++
++	return 0;
+ }
+ 
+ static int vp702x_fe_send_diseqc_burst (struct dvb_frontend* fe, fe_sec_mini_cmd_t burst)
+@@ -261,14 +259,11 @@ static int vp702x_fe_send_diseqc_burst (struct dvb_frontend* fe, fe_sec_mini_cmd
+ static int vp702x_fe_set_tone(struct dvb_frontend* fe, fe_sec_tone_mode_t tone)
+ {
+ 	struct vp702x_fe_state *st = fe->demodulator_priv;
++	struct vp702x_device_state *dst = st->d->priv;
+ 	u8 *buf;
+ 
+ 	deb_fe("%s\n",__func__);
+ 
+-	buf = kmalloc(10, GFP_KERNEL);
+-	if (!buf)
+-		return -ENOMEM;
+-
+ 	st->tone_mode = tone;
+ 
+ 	if (tone == SEC_TONE_ON)
+@@ -277,6 +272,10 @@ static int vp702x_fe_set_tone(struct dvb_frontend* fe, fe_sec_tone_mode_t tone)
+ 		st->lnb_buf[2] = 0x00;
+ 
+ 	st->lnb_buf[7] = vp702x_chksum(st->lnb_buf, 0, 7);
++
++	mutex_lock(&dst->buf_mutex);
++
++	buf = dst->buf;
+ 	memcpy(buf, st->lnb_buf, 8);
+ 
+ 	vp702x_usb_inout_op(st->d, buf, 8, buf, 10, 100);
+@@ -285,7 +284,8 @@ static int vp702x_fe_set_tone(struct dvb_frontend* fe, fe_sec_tone_mode_t tone)
+ 	else
+ 		deb_fe("set_tone cmd succeeded.\n");
+ 
+-	kfree(buf);
++	mutex_unlock(&dst->buf_mutex);
++
+ 	return 0;
+ }
+ 
+@@ -293,13 +293,10 @@ static int vp702x_fe_set_voltage (struct dvb_frontend* fe, fe_sec_voltage_t
+ 		voltage)
+ {
+ 	struct vp702x_fe_state *st = fe->demodulator_priv;
++	struct vp702x_device_state *dst = st->d->priv;
+ 	u8 *buf;
+ 	deb_fe("%s\n",__func__);
+ 
+-	buf = kmalloc(10, GFP_KERNEL);
+-	if (!buf)
+-		return -ENOMEM;
+-
+ 	st->voltage = voltage;
+ 
+ 	if (voltage != SEC_VOLTAGE_OFF)
+@@ -308,6 +305,10 @@ static int vp702x_fe_set_voltage (struct dvb_frontend* fe, fe_sec_voltage_t
+ 		st->lnb_buf[4] = 0x00;
+ 
+ 	st->lnb_buf[7] = vp702x_chksum(st->lnb_buf, 0, 7);
++
++	mutex_lock(&dst->buf_mutex);
++
++	buf = dst->buf;
+ 	memcpy(buf, st->lnb_buf, 8);
+ 
+ 	vp702x_usb_inout_op(st->d, buf, 8, buf, 10, 100);
+@@ -316,7 +317,7 @@ static int vp702x_fe_set_voltage (struct dvb_frontend* fe, fe_sec_voltage_t
+ 	else
+ 		deb_fe("set_voltage cmd succeeded.\n");
+ 
+-	kfree(buf);
++	mutex_unlock(&dst->buf_mutex);
+ 	return 0;
+ }
+ 
+-- 
+1.7.4.1
 
