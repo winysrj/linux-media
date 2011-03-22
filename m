@@ -1,157 +1,189 @@
 Return-path: <mchehab@pedra>
-Received: from mail.kapsi.fi ([217.30.184.167]:40592 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750766Ab1CEJYE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 5 Mar 2011 04:24:04 -0500
-Message-ID: <4D72012F.6030506@iki.fi>
-Date: Sat, 05 Mar 2011 11:23:59 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:37806 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753610Ab1CVSkF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Mar 2011 14:40:05 -0400
+Message-ID: <4D88ECFD.9000706@gmail.com>
+Date: Tue, 22 Mar 2011 15:39:57 -0300
+From: Mauro Carvalho Chehab <maurochehab@gmail.com>
 MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Juan_Jes=FAs_Garc=EDa_de_Soria_Lucena?=
-	<skandalfo@gmail.com>
-CC: adq <adq@lidskialf.net>, linux-media@vger.kernel.org
-Subject: Re: [patch] Fix AF9015 Dual tuner i2c write failures
-References: <AANLkTi=rcfL_pku9hhx68C_Fb_76KsW2Yy+Oys10a7+4@mail.gmail.com>	<4D7163FD.9030604@iki.fi>	<AANLkTimjC99zhJ=huHZiGgbENCoyHy5KT87iujjTT8w3@mail.gmail.com>	<4D716ECA.4060900@iki.fi>	<AANLkTimHa6XFwhvpLbhtRm7Vee-jYPkHpx+D8L2=+vQb@mail.gmail.com>	<AANLkTik9cSnAFWNdTUv3NNU3K2SoeECDO2036Htx-OAi@mail.gmail.com>	<AANLkTi=e-cAzMWZSHvKR8Yx+0MqcY_Ewf4z1gDyZfCeo@mail.gmail.com> <AANLkTi=YMtTbgwxNA1O6zp03OoeGKJvn8oYDB9kHjti1@mail.gmail.com>
-In-Reply-To: <AANLkTi=YMtTbgwxNA1O6zp03OoeGKJvn8oYDB9kHjti1@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+To: Takashi Iwai <tiwai@suse.de>
+CC: Ondrej Zary <linux@rainbow-software.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>, jirislaby@gmail.com,
+	alsa-devel@alsa-project.org,
+	Kernel development list <linux-kernel@vger.kernel.org>,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH 1/3] tea575x-tuner: various improvements
+References: <201103121919.05657.linux@rainbow-software.org>	<201103141128.01259.linux@rainbow-software.org>	<33b29bfb135fbe2ddcba88d342d67526.squirrel@webmail.xs4all.nl>	<201103191632.58347.linux@rainbow-software.org> <s5htyewr8xg.wl%tiwai@suse.de>
+In-Reply-To: <s5htyewr8xg.wl%tiwai@suse.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Switching channels for long time seems to hang device (no errors seen 
-but it does not lock anymore), I don't know why. It is not very easy to 
-reproduce. For me it will take generally few days just tune from channel 
-to channel in loop.
-
-Antti
-
-On 03/05/2011 10:56 AM, Juan Jesús García de Soria Lucena wrote:
-> Hi, Andrew.
->
-> This is what happens to me with both the KWorld dual tuner (when using only
-> one tuner) and the Avermedia Volar Black (single tuner), both based on
-> AF9015.
->
-> I also got corrupted streams with the KWorld when capturing via both tuners
-> (the video our the audio would show artifacts in mythtv each several
-> seconds).
->
-> As far as the loss of tuning ability goes, I think it's a problem related to
-> tuning itself, since it wouldn't happen when you just left a channel tuned
-> and streaming in a simple client, but would trigger after a random time when
-> you left mythtv scanning the channels for EIT data.
->
-> I don't think it's a problem with a specific HW implementation, since I got
-> it with both AF9015-based cards. It could be either a chipset quirk our a
-> bug in the driver.
->
-> My informal and quick tests with Windows Media Center and these cards did
-> not reproduce the problem, when trying to change channels as quickly as
-> possible, admittedly for not so long a time.
->
-> Best regards,
->     Juan Jesus.
-> El 05/03/2011 02:53, "adq"<adq@lidskialf.net>  escribió:
->> On 5 March 2011 01:43, adq<adq@lidskialf.net>  wrote:
->>> On 4 March 2011 23:11, Andrew de Quincey<adq_dvb@lidskialf.net>  wrote:
->>>> On 4 March 2011 22:59, Antti Palosaari<crope@iki.fi>  wrote:
->>>>> On 03/05/2011 12:44 AM, Andrew de Quincey wrote:
->>>>>>>>
->>>>>>>> Adding a "bus lock" to af9015_i2c_xfer() will not work as
-> demod/tuner
->>>>>>>> accesses will take multiple i2c transactions.
->>>>>>>>
->>>>>>>> Therefore, the following patch overrides the dvb_frontend_ops
->>>>>>>> functions to add a per-device lock around them: only one frontend
-> can
->>>>>>>> now use the i2c bus at a time. Testing with the scripts above shows
->>>>>>>> this has eliminated the errors.
->>>>>>>
->>>>>>> This have annoyed me too, but since it does not broken functionality
-> much
->>>>>>> I
->>>>>>> haven't put much effort for fixing it. I like that fix since it is in
->>>>>>> AF9015
->>>>>>> driver where it logically belongs to. But it looks still rather
-> complex.
->>>>>>> I
->>>>>>> see you have also considered "bus lock" to af9015_i2c_xfer() which
-> could
->>>>>>> be
->>>>>>> much smaller in code size (that's I have tried to implement long time
->>>>>>> back).
->>>>>>>
->>>>>>> I would like to ask if it possible to check I2C gate open / close
-> inside
->>>>>>> af9015_i2c_xfer() and lock according that? Something like:
->>>>>>
->>>>>> Hmm, I did think about that, but I felt overriding the functions was
->>>>>> just cleaner: I felt it was more obvious what it was doing. Doing
->>>>>> exactly this sort of tweaking was one of the main reasons we added
->>>>>> that function overriding feature.
->>>>>>
->>>>>> I don't like the idea of returning "error locked by FE" since that'll
->>>>>> mean the tuning will randomly fail sometimes in a way visible to
->>>>>> userspace (unless we change the core dvb_frontend code), which was one
->>>>>> of the things I was trying to avoid. Unless, of course, I've
->>>>>> misunderstood your proposal.
->>>>>
->>>>> Not returning error, but waiting in lock like that:
->>>>> if (mutex_lock_interruptible(&d->i2c_mutex)<  0)
->>>>>   return -EAGAIN;
->>>>
->>>> Ah k, sorry
->>>>
->>>>>> However, looking at the code again, I realise it is possible to
->>>>>> simplify it. Since its only the demod gates that cause a problem, we
->>>>>> only /actually/ need to lock the get_frontend() and set_frontend()
->>>>>> calls.
->>>>>
->>>>> I don't understand why .get_frontend() causes problem, since it does
-> not
->>>>> access tuner at all. It only reads demod registers. The main problem is
->>>>> (like schema in af9015.c shows) that there is two tuners on same I2C
-> bus
->>>>> using same address. And demod gate is only way to open access for
-> desired
->>>>> tuner only.
->>>>
->>>> AFAIR /some/ tuner code accesses the tuner hardware to read the exact
->>>> tuned frequency back on a get_frontend(); was just being extra
->>>> paranoid :)
->>>>
->>>>> You should block traffic based of tuner not demod. And I think those
->>>>> callbacks which are needed for override are tuner driver callbacks.
-> Consider
->>>>> situation device goes it v4l-core calls same time both tuner .sleep()
-> ==
->>>>> problem.
->>>>
->>>> Hmm, yeah, you're right, let me have another look tomorrow.
->>>>
->>>
->>> Hi, must admit I misunderstood your diagram originally, I thought it
->>> was the demods AND the tuners that had the same i2c addresses.
->>>
->>> As you say though. its just the tuners, so adding the locking into the
->>> gate ctrl as you suggested makes perfect sense. Attached is v3
->>> implementing this; it seems to be working fine here.
->>>
+Em 21-03-2011 08:48, Takashi Iwai escreveu:
+> At Sat, 19 Mar 2011 16:32:53 +0100,
+> Ondrej Zary wrote:
 >>
->> Unfortunately even with this fix, I'm still seeing the problem I was
->> trying to fix to begin with.
+>> Improve tea575x-tuner with various good things from radio-maestro:
+>> - extend frequency range to 50-150MHz
+>> - fix querycap(): card name, CAP_RADIO
+>> - improve g_tuner(): CAP_STEREO, stereo and tuned indication
+>> - improve g_frequency(): tuner index checking and reading frequency from HW
+>> - improve s_frequency(): tuner index and type checking
 >>
->> Although I no longer get any i2c errors (or *any* reported errors),
->> after a bit, one of the frontends just.. stops working. All attempts
->> to tune it fail. I can even unload and reload the driver module, and
->> its stuck in the same state, indicating its a problem with the
->> hardware. :(
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at http://vger.kernel.org/majordomo-info.html
->
+>> Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+> 
+> Applied these 3 patches now to topic/misc branch of sound git tree
+> (i.e. for 2.6.40 kernel).
 
+Patches look sane to me, you may add my ACK if you want.
 
--- 
-http://palosaari.fi/
+Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+> 
+> I leave the removal of radio-maestro to v4l guys, as this is fairly
+> independent.
+> 
+> 
+> thanks,
+> 
+> Takashi
+> 
+> 
+>> --- linux-2.6.38-rc4-orig/sound/i2c/other/tea575x-tuner.c	2011-02-08 01:03:55.000000000 +0100
+>> +++ linux-2.6.38-rc4/sound/i2c/other/tea575x-tuner.c	2011-03-19 15:40:14.000000000 +0100
+>> @@ -37,8 +37,8 @@ static int radio_nr = -1;
+>>  module_param(radio_nr, int, 0);
+>>  
+>>  #define RADIO_VERSION KERNEL_VERSION(0, 0, 2)
+>> -#define FREQ_LO		 (87 * 16000)
+>> -#define FREQ_HI		(108 * 16000)
+>> +#define FREQ_LO		 (50UL * 16000)
+>> +#define FREQ_HI		(150UL * 16000)
+>>  
+>>  /*
+>>   * definitions
+>> @@ -77,15 +77,29 @@ static struct v4l2_queryctrl radio_qctrl
+>>   * lowlevel part
+>>   */
+>>  
+>> +static void snd_tea575x_get_freq(struct snd_tea575x *tea)
+>> +{
+>> +	unsigned long freq;
+>> +
+>> +	freq = tea->ops->read(tea) & TEA575X_BIT_FREQ_MASK;
+>> +	/* freq *= 12.5 */
+>> +	freq *= 125;
+>> +	freq /= 10;
+>> +	/* crystal fixup */
+>> +	if (tea->tea5759)
+>> +		freq += tea->freq_fixup;
+>> +	else
+>> +		freq -= tea->freq_fixup;
+>> +
+>> +	tea->freq = freq * 16;		/* from kHz */
+>> +}
+>> +
+>>  static void snd_tea575x_set_freq(struct snd_tea575x *tea)
+>>  {
+>>  	unsigned long freq;
+>>  
+>> -	freq = tea->freq / 16;		/* to kHz */
+>> -	if (freq > 108000)
+>> -		freq = 108000;
+>> -	if (freq < 87000)
+>> -		freq = 87000;
+>> +	freq = clamp(tea->freq, FREQ_LO, FREQ_HI);
+>> +	freq /= 16;		/* to kHz */
+>>  	/* crystal fixup */
+>>  	if (tea->tea5759)
+>>  		freq -= tea->freq_fixup;
+>> @@ -109,29 +123,33 @@ static int vidioc_querycap(struct file *
+>>  {
+>>  	struct snd_tea575x *tea = video_drvdata(file);
+>>  
+>> -	strcpy(v->card, tea->tea5759 ? "TEA5759" : "TEA5757");
+>>  	strlcpy(v->driver, "tea575x-tuner", sizeof(v->driver));
+>> -	strlcpy(v->card, "Maestro Radio", sizeof(v->card));
+>> +	strlcpy(v->card, tea->tea5759 ? "TEA5759" : "TEA5757", sizeof(v->card));
+>>  	sprintf(v->bus_info, "PCI");
+>>  	v->version = RADIO_VERSION;
+>> -	v->capabilities = V4L2_CAP_TUNER;
+>> +	v->capabilities = V4L2_CAP_TUNER | V4L2_CAP_RADIO;
+>>  	return 0;
+>>  }
+>>  
+>>  static int vidioc_g_tuner(struct file *file, void *priv,
+>>  					struct v4l2_tuner *v)
+>>  {
+>> +	struct snd_tea575x *tea = video_drvdata(file);
+>> +
+>>  	if (v->index > 0)
+>>  		return -EINVAL;
+>>  
+>> +	tea->ops->read(tea);
+>> +
+>>  	strcpy(v->name, "FM");
+>>  	v->type = V4L2_TUNER_RADIO;
+>> +	v->capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO;
+>>  	v->rangelow = FREQ_LO;
+>>  	v->rangehigh = FREQ_HI;
+>> -	v->rxsubchans = V4L2_TUNER_SUB_MONO|V4L2_TUNER_SUB_STEREO;
+>> -	v->capability = V4L2_TUNER_CAP_LOW;
+>> -	v->audmode = V4L2_TUNER_MODE_MONO;
+>> -	v->signal = 0xffff;
+>> +	v->rxsubchans = V4L2_TUNER_SUB_MONO | V4L2_TUNER_SUB_STEREO;
+>> +	v->audmode = tea->stereo ? V4L2_TUNER_MODE_STEREO : V4L2_TUNER_MODE_MONO;
+>> +	v->signal = tea->tuned ? 0xffff : 0;
+>> +
+>>  	return 0;
+>>  }
+>>  
+>> @@ -148,7 +166,10 @@ static int vidioc_g_frequency(struct fil
+>>  {
+>>  	struct snd_tea575x *tea = video_drvdata(file);
+>>  
+>> +	if (f->tuner != 0)
+>> +		return -EINVAL;
+>>  	f->type = V4L2_TUNER_RADIO;
+>> +	snd_tea575x_get_freq(tea);
+>>  	f->frequency = tea->freq;
+>>  	return 0;
+>>  }
+>> @@ -158,6 +179,9 @@ static int vidioc_s_frequency(struct fil
+>>  {
+>>  	struct snd_tea575x *tea = video_drvdata(file);
+>>  
+>> +	if (f->tuner != 0 || f->type != V4L2_TUNER_RADIO)
+>> +		return -EINVAL;
+>> +
+>>  	if (f->frequency < FREQ_LO || f->frequency > FREQ_HI)
+>>  		return -EINVAL;
+>>  
+>> --- linux-2.6.38-rc4-orig/include/sound/tea575x-tuner.h	2011-02-08 01:03:55.000000000 +0100
+>> +++ linux-2.6.38-rc4/include/sound/tea575x-tuner.h	2011-03-19 14:18:06.000000000 +0100
+>> @@ -38,8 +38,10 @@ struct snd_tea575x {
+>>  	struct snd_card *card;
+>>  	struct video_device *vd;	/* video device */
+>>  	int dev_nr;			/* requested device number + 1 */
+>> -	int tea5759;			/* 5759 chip is present */
+>> -	int mute;			/* Device is muted? */
+>> +	bool tea5759;			/* 5759 chip is present */
+>> +	bool mute;			/* Device is muted? */
+>> +	bool stereo;			/* receiving stereo */
+>> +	bool tuned;			/* tuned to a station */
+>>  	unsigned int freq_fixup;	/* crystal onboard */
+>>  	unsigned int val;		/* hw value */
+>>  	unsigned long freq;		/* frequency */
+>>
+>>
+>> -- 
+>> Ondrej Zary
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
