@@ -1,64 +1,52 @@
 Return-path: <mchehab@pedra>
-Received: from ist.d-labs.de ([213.239.218.44]:36995 "EHLO mx01.d-labs.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757444Ab1CRV1W (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Mar 2011 17:27:22 -0400
-Date: Fri, 18 Mar 2011 22:27:13 +0100
-From: Florian Mickler <florian@mickler.org>
-To: Antti Palosaari <crope@iki.fi>
-Cc: mchehab@infradead.org, oliver@neukum.org, jwjstone@fastmail.fm,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 09/16] [media] au6610: get rid of on-stack dma buffer
-Message-ID: <20110318222713.4c51f1ed@schatten.dmk.lab>
-In-Reply-To: <4D8389B2.60507@iki.fi>
-References: <20110315093632.5fc9fb77@schatten.dmk.lab>
-	<1300178655-24832-1-git-send-email-florian@mickler.org>
-	<1300178655-24832-9-git-send-email-florian@mickler.org>
-	<4D8389B2.60507@iki.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from moutng.kundenserver.de ([212.227.126.186]:61881 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755573Ab1CVWJp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Mar 2011 18:09:45 -0400
+Date: Tue, 22 Mar 2011 23:09:43 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PULL] soc-camera: 4 more feature-commits for 2.6.39
+Message-ID: <Pine.LNX.4.64.1103222304580.29576@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Fri, 18 Mar 2011 18:34:58 +0200
-Antti Palosaari <crope@iki.fi> wrote:
+Hi Mauro
 
-> On 03/15/2011 10:43 AM, Florian Mickler wrote:
-> > usb_control_msg initiates (and waits for completion of) a dma transfer using
-> > the supplied buffer. That buffer thus has to be seperately allocated on
-> > the heap.
-> >
-> > In lib/dma_debug.c the function check_for_stack even warns about it:
-> > 	WARNING: at lib/dma-debug.c:866 check_for_stack
-> >
-> > Note: This change is tested to compile only, as I don't have the hardware.
-> >
-> > Signed-off-by: Florian Mickler<florian@mickler.org>
-> 
-> 
-> This patch did not found from patchwork! Probably skipped due to broken 
-> Cc at my contact. Please resend.
-> 
-> Anyhow, I tested and reviewed it.
-> 
-> Acked-by: Antti Palosaari <crope@iki.fi>
-> Reviewed-by: Antti Palosaari <crope@iki.fi>
-> Tested-by: Antti Palosaari <crope@iki.fi>
-> 
-> [1] https://patchwork.kernel.org/project/linux-media/list/
-> 
-> Antti
-> 
+The following changes since commit c002e112822c2fe152e55feb5db036c642681b1a:
 
-Yes, there was some broken adressing on my side. Sorry. 
+  [media] stv0367: typo in function parameter (2011-03-22 07:00:39 -0300)
 
-Thanks for review && test!  I will resend (hopefully this weekend) the
-series when I reviewed some of the other patches if it is
-feasible/better to use prealocated memory as suggested by Mauro. 
+are available in the git repository at:
+  git://linuxtv.org/gliakhovetski/v4l-dvb.git for-2.6.39
 
-How often does au6610_usb_msg get called in normal operation? Should it
-use preallocated memory?
+Guennadi Liakhovetski (1):
+      V4L: soc-camera: explicitly require V4L2_BUF_TYPE_VIDEO_CAPTURE
 
-Regards,
-Flo
+Pawel Osciak (2):
+      sh_mobile_ceu_camera: Do not call vb2's mem_ops directly
+      videobuf2-dma-contig: make cookie() return a pointer to dma_addr_t
+
+Sergio Aguirre (1):
+      v4l: soc-camera: Store negotiated buffer settings
+
+ drivers/media/video/sh_mobile_ceu_camera.c |    4 +---
+ drivers/media/video/soc_camera.c           |   25 ++++++++++++++++---------
+ drivers/media/video/videobuf2-dma-contig.c |    2 +-
+ include/media/soc_camera.h                 |    2 ++
+ include/media/videobuf2-dma-contig.h       |    9 ++++++---
+ 5 files changed, 26 insertions(+), 16 deletions(-)
+
+As I mentioned earlier today on the IRC, I've got a few more fixes, that I 
+will be posting and pushing a bit later, they can also go in after -rc1.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
