@@ -1,42 +1,59 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:50196 "EHLO mx1.redhat.com"
+Received: from lo.gmane.org ([80.91.229.12]:49860 "EHLO lo.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753868Ab1CPUYg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Mar 2011 16:24:36 -0400
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p2GKOZTL021241
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 16 Mar 2011 16:24:35 -0400
-From: Jarod Wilson <jarod@redhat.com>
+	id S1753543Ab1CVJxq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Mar 2011 05:53:46 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1Q1yHY-0001Wl-78
+	for linux-media@vger.kernel.org; Tue, 22 Mar 2011 10:53:44 +0100
+Received: from 193.160.199.2 ([193.160.199.2])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 22 Mar 2011 10:53:44 +0100
+Received: from bjorn by 193.160.199.2 with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 22 Mar 2011 10:53:44 +0100
 To: linux-media@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>
-Subject: [PATCH 1/6] docs: fix typo in lirc_device_interface.xml
-Date: Wed, 16 Mar 2011 16:24:26 -0400
-Message-Id: <1300307071-19665-2-git-send-email-jarod@redhat.com>
-In-Reply-To: <1300307071-19665-1-git-send-email-jarod@redhat.com>
-References: <1300307071-19665-1-git-send-email-jarod@redhat.com>
+From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
+Subject: Re: S2-3200 switching-timeouts on 2.6.38
+Date: Tue, 22 Mar 2011 10:53:29 +0100
+Message-ID: <8739mfwkfa.fsf@nemi.mork.no>
+References: <4D87AB0F.4040908@t-online.de>
+	<20110321131602.36d146b1.rdunlap@xenotime.net>
+	<AANLkTik22=YE-2W4AtO9w_kVm=oro_YM7hJ52Rj83Fmt@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Reported-by: Daniel Burr <dburr@topcon.com>
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- .../DocBook/v4l/lirc_device_interface.xml          |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Manu Abraham <abraham.manu@gmail.com> writes:
+> On Tue, Mar 22, 2011 at 1:46 AM, Randy Dunlap <rdunlap@xenotime.net> wrote:
+>> On Mon, 21 Mar 2011 20:46:23 +0100 Rico Tzschichholz wrote:
+>>
+>>> Hello,
+>>>
+>>> I would like to know if there is any intention to include this patch
+>>> soon? https://patchwork.kernel.org/patch/244201/
+>>
+>> There are MANY posted but unmerged patches in patchwork from the linux-media
+>> mailing list.  What is going on (or not going on) with patch merging?
+>
+> Actually, quite a lot of effort was put in to get that part right. It
+> does the reverse thing that's to be done.
+> The revamped version is here [1] If the issue persists still, then it
+> needs to be investigated further.
+>
+> [1] http://www.mail-archive.com/linuxtv-commits@linuxtv.org/msg09214.html
 
-diff --git a/Documentation/DocBook/v4l/lirc_device_interface.xml b/Documentation/DocBook/v4l/lirc_device_interface.xml
-index 68134c0..0e0453f 100644
---- a/Documentation/DocBook/v4l/lirc_device_interface.xml
-+++ b/Documentation/DocBook/v4l/lirc_device_interface.xml
-@@ -45,7 +45,7 @@ describing an IR signal are read from the chardev.</para>
- <para>The data written to the chardev is a pulse/space sequence of integer
- values. Pulses and spaces are only marked implicitly by their position. The
- data must start and end with a pulse, therefore, the data must always include
--an unevent number of samples. The write function must block until the data has
-+an uneven number of samples. The write function must block until the data has
- been transmitted by the hardware.</para>
- </section>
- 
--- 
-1.7.1
+So the patch state should be "Rejected" and not "Under Review".
+
+Would certainly help us all if the patchwork state was updated whenever
+a patch actually was processed...
+
+
+Bjørn
+
+
 
