@@ -1,201 +1,170 @@
 Return-path: <mchehab@pedra>
-Received: from sj-iport-6.cisco.com ([171.71.176.117]:43656 "EHLO
-	sj-iport-6.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932487Ab1CWLa4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Mar 2011 07:30:56 -0400
-From: Hans Verkuil <hansverk@cisco.com>
-To: Kamil Debski <k.debski@samsung.com>
-Subject: Re: [RFC/PATCH] v4l: add fourcc definitons for compressed formats.
-Date: Wed, 23 Mar 2011 12:30:51 +0100
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	hverkuil@xs4all.nl, kyungmin.park@samsung.com,
-	Ben Collins <benmcollins13@gmail.com>
-References: <1300878573-13289-1-git-send-email-k.debski@samsung.com>
-In-Reply-To: <1300878573-13289-1-git-send-email-k.debski@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:27502 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750757Ab1CVSxJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Mar 2011 14:53:09 -0400
+Message-ID: <4D88F00D.5090308@redhat.com>
+Date: Tue, 22 Mar 2011 15:53:01 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201103231230.51216.hansverk@cisco.com>
+To: Wojciech Myrda <vojcek@tlen.pl>
+CC: linux-media@vger.kernel.org
+Subject: Re: Prof_Revolution_DVB-S2_8000_PCI-E & Linux Kernel 2.6.38-rc8-next-20110314
+References: <4D86566B.9090803@tlen.pl>
+In-Reply-To: <4D86566B.9090803@tlen.pl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-(Added Ben to the CC list so he can look at this from the solo6x10 
-perspective).
+Em 20-03-2011 16:32, Wojciech Myrda escreveu:
 
-On Wednesday, March 23, 2011 12:09:33 Kamil Debski wrote:
-> Add fourcc definitions for the following compressed formats:
-> H264, H264 without start codes, MPEG1/2/4 ES, DIVX versions
-> 3.11, 4, 5.0-5.0.2, 5.03 and up, XVID, VC1 Simple/Main Profile
-> and VC1 Advanced profile.
-> ---
-> Hi,
-> 
-> During the v4l2 brain storming meeting in Warsaw one of the topics was 
-assigning
-> fourcc values for compressed elementary streams.
+> It turns ot that revised patch not only applies cleanly but compiles as
+> well agaist Linux Kernel 2.6.38-rc8-next-20110321. Looking at dmesg
+> everything is recognized properly as well. Do you guys think if it is
+> possible to include it into the tree?
 
-All these fourcc values are for compressed elementary *video* streams, right? 
-Because you can also have elementary audio streams (the conexant MPEG encoders 
-can deliver that, although that isn't implemented in the ivtv/cx18 drivers).
+Please post the patch again, with a few fixes (see bellow), and add your
+Signed-off-by: (please read how to submit patches section at linuxtv.org wiki
+for more details). 
 
-> 
-> I did some research - which included checking the VC1 and DivX formats. For
-> other codecs: Xvid, MPEG1/2/4 and H263 the choice of fourcc values was 
-clear.
-> We have also had discussion regarding the H264 codec, which resulted in 
-having
-> two fourccs - one with start codes and one without.
-> 
-> *** MPEG ***
-> 'MPEG' fourcc will remain reserved for transport/program streams. For 
-elementary
-> MPEG streams the proposed fourccs are:
-> * 'MPG1' for MPEG1
-> * 'MPG2' for MPEG2
-> * 'MPG4' for MPEG4
-> 
-> *** H263 ***
-> For H263 the ‘H263’ fourcc value is reasonable.
-> 
-> *** Xvid ***
-> ‘XVID’ fourcc seems a good choice.
-> 
-> *** H264 ***
-> H264 elementary stream can come in two flavours: one with start codes and 
-one
-> without.  Following fourccs are proposed:
-> * 'H264' for NALUs with start codes (start codes are a fixed pattern used to
-> locate packet boundaries). [1]
-> * 'AVC1' for NALUs without start codes (framing needs to be provided out of
-> band, for instance by providing a length field for each packet). [1]
-> 
-> Links:
-> [1] http://msdn.microsoft.com/en-us/library/dd757808%28v=vs.85%29.aspx
-> 
-> *** VC1 ***
-> VC1 streams have different content based on the profile. VC1 Advanced 
-profile
-> has start codes and Main and Simple profile relies on the Transport Layer to
-> provide frame start and length. For VC1 AP the stream content is defined
-> Annex E. For VC1 SP and MP the streamz by Annex J and Annex L of the SMPTE 
-421M.
-> 
-> "In the advanced profile, pictures and slices shall be byte-aligned and 
-carried
-> in a bitstream data unit (as described in Annex E). Each new picture or a 
-slice,
-> is detected via start-codes as defined in Annex E. In the simple and main
-> profiles,pictures shall be byte-aligned. For each coded picture, the pointer 
-to
-> the coded bitstream, and its size shall be communicated to the decoder by 
-the
-> Transport Layer. In simple and main profiles, a picture whose coded size is 
-less
-> than or equal to one byte shall be considered to be a skipped picture."
-> SMPTE 421M Draft [2]
-> 
-> Following fourccs are proposed:
-> * 'WVC1' for VC1 Advanced Profile [1]
-> * 'WMV3' for VC1 Main and Simple profiles [1]
-> 
-> Links:
-> [1] http://wiki.multimedia.cx/index.php?title=VC1 - Fourccs used by 
-Microsoft
-> [2] http://multimedia.cx/mirror/s421m.pdf - Proposed SMPTE Standard
-> 
-> *** DivX ***
-> It is reasonable that versions 3.11, 4 and 5 should have different fourccs.
-> According to the document I have, there also were important changes and 
-bugfixes
-> done in DivX 5.0.3. Hence I propose to have a separate fourcc for DivX 
-versions
-> 5.0.0-5.0.2.
-> 
-> Following fourccs are proposed:
-> * 'DIV3' for DivX 3.11
-> * 'DIV4' for DivX 4.x
-> * 'DX50' for Divx 5.0.0-5.0.2
-> * 'DIV5' for Divx 5.0.3 and newer
-> 
-> There are quite a few differences between versions 5.0 - 5.02 and 5.0.3. 
-Those
-> include:
-> - quarter pixel motion compensation follows the algorithm described in the
->   Corrigendum 2 of the ISO/IEC 14496-2 document. (versions prior to 5.0.3 
-had
->   used the algorithm described in a previous document)
-> - new deringing algorithm
-> - motion vectors are stored in a different way
-> 
-> I appreciate your comments.
 
-Looks good. I think the spec also needs to be updated with the new fourcc's 
-(of course), but also the distinction between multiplexed and elementary 
-streams should be clarified. A note should be added to the STREAM_TYPE and
-AUDIO_ENCODING/VIDEO_ENCODING controls that those are specific to multiplexed 
-streams only.
+> diff -r 1da5fed5c8b2 linux/drivers/media/video/cx23885/cx23885-cards.c
+> --- a/linux/drivers/media/video/cx23885/cx23885-cards.c	Sun Sep 19 02:23:09 2010 -0300
+> +++ b/linux/drivers/media/video/cx23885/cx23885-cards.c	Sat Oct 02 11:19:50 2010 +0300
 
-Regards,
+/linux? Are you using the old -hg tree? Please don't do that. The mercurial
+tree is not touched for the last 8 months! Please use, instead the media_tree.git
+(media_build.git allows you to compile/test a driver against the media_tree.git tree). 
 
-	Hans
+> @@ -169,6 +169,10 @@
+>  		.name		= "TurboSight TBS 6920",
+>  		.portb		= CX23885_MPEG_DVB,
+>  	},
+> +	[CX23885_BOARD_PROF_8000] = {
+> +		.name		= "Prof Revolution DVB-S2 8000",
+> +		.portb		= CX23885_MPEG_DVB,
+> +	},
+>  	[CX23885_BOARD_TEVII_S470] = {
+>  		.name		= "TeVii S470",
+>  		.portb		= CX23885_MPEG_DVB,
+> @@ -388,6 +392,10 @@
+>  		.subdevice = 0x8888,
+>  		.card      = CX23885_BOARD_TBS_6920,
+>  	}, {
+> +		.subvendor = 0x8000,
+> +		.subdevice = 0x3034,
+> +		.card      = CX23885_BOARD_PROF_8000,
+> +	}, {
+>  		.subvendor = 0xd470,
+>  		.subdevice = 0x9022,
+>  		.card      = CX23885_BOARD_TEVII_S470,
+> @@ -813,6 +821,7 @@
+>  		mdelay(20);
+>  		cx_set(GP0_IO, 0x00040004);
+>  		break;
+> +	case CX23885_BOARD_PROF_8000:
+>  	case CX23885_BOARD_TBS_6920:
+>  		cx_write(MC417_CTL, 0x00000036);
+>  		cx_write(MC417_OEN, 0x00001000);
+> @@ -1043,6 +1052,7 @@
+>  		ts1->ts_clk_en_val = 0x1; /* Enable TS_CLK */
+>  		ts1->src_sel_val   = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
+>  		break;
+> +	case CX23885_BOARD_PROF_8000:
+>  	case CX23885_BOARD_TEVII_S470:
+>  	case CX23885_BOARD_DVBWORLD_2005:
+>  		ts1->gen_ctrl_val  = 0x5; /* Parallel */
+> --- a/linux/drivers/media/video/cx23885/cx23885-dvb.c.old	2011-03-20 08:20:37.384001338 +0100
+> +++ b/linux/drivers/media/video/cx23885/cx23885-dvb.c	2011-03-20 08:29:56.757001476 +0100
+> @@ -47,6 +47,9 @@
+>  #include "dibx000_common.h"
+>  #include "zl10353.h"
+>  #include "stv0900.h"
+> +#include "stb6100.h"
+> +#include "stb6100_proc.h"
+> +#include "stv0900.h"
 
-> 
-> Best regards,
-> --
-> Kamil Debski
-> Linux Platform Group
-> Samsung Poland R&D Center
-> ---
->  include/linux/videodev2.h |   13 +++++++++++++
->  1 files changed, 13 insertions(+), 0 deletions(-)
-> 
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index aa6c393..5d80e95 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -372,6 +372,19 @@ struct v4l2_pix_format {
->  #define V4L2_PIX_FMT_JPEG     v4l2_fourcc('J', 'P', 'E', 'G') /* JFIF JPEG     
-*/
->  #define V4L2_PIX_FMT_DV       v4l2_fourcc('d', 'v', 's', 'd') /* 1394          
-*/
->  #define V4L2_PIX_FMT_MPEG     v4l2_fourcc('M', 'P', 'E', 'G') /* MPEG-1/2/4    
-*/
-> +#define V4L2_PIX_FMT_H264     v4l2_fourcc('H', '2', '6', '4') /* H264 with 
-start codes */
-> +#define V4L2_PIX_FMT_H264_NO_SC v4l2_fourcc('A', 'V', 'C', '1') /* H264 
-without start codes */
-> +#define V4L2_PIX_FMT_H263     v4l2_fourcc('H', '2', '6', '3') /* H263          
-*/
-> +#define V4L2_PIX_FMT_MPEG1    v4l2_fourcc('M', 'P', 'G', '1') /* MPEG-1 ES     
-*/
-> +#define V4L2_PIX_FMT_MPEG2    v4l2_fourcc('M', 'P', 'G', '2') /* MPEG-2 ES     
-*/
-> +#define V4L2_PIX_FMT_MPEG4    v4l2_fourcc('M', 'P', 'G', '4') /* MPEG-4 ES     
-*/
-> +#define V4L2_PIX_FMT_DIVX3    v4l2_fourcc('D', 'I', 'V', '3') /* DivX 3.11     
-*/
-> +#define V4L2_PIX_FMT_DIVX4    v4l2_fourcc('D', 'I', 'V', '4') /* DivX 4.12     
-*/
-> +#define V4L2_PIX_FMT_DIVX500  v4l2_fourcc('D', 'X', '5', '0') /* DivX 5.00 
-- 5.02  */
-> +#define V4L2_PIX_FMT_DIVX5    v4l2_fourcc('D', 'I', 'V', '5') /* DivX 5.03 
-- x  */
-> +#define V4L2_PIX_FMT_XVID     v4l2_fourcc('X', 'V', 'I', 'D') /* Xvid           
-*/
-> +#define V4L2_PIX_FMT_VC1      v4l2_fourcc('W', 'M', 'V', '3') /* VC-1 Main 
-and simple profiles */
-> +#define V4L2_PIX_FMT_VC1_AP   v4l2_fourcc('W', 'V', 'C', '1') /* VC-1 
-Advanced profile */
+If you're adding more dependencies here, you'll need to touch also drivers/media/video/cx23885/Kconfig
+in order to select the right frontends.
+
+>  #include "stv0900_reg.h"
+>  #include "stv6110.h"
+>  #include "lnbh24.h"
+> @@ -478,6 +478,35 @@
+>  	.if_khz = 5380,
+>  };
 >  
->  /*  Vendor-specific formats   */
->  #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1 YUV 
-*/
-> -- 
-> 1.6.3.3
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> +static int p8000_set_voltage(struct dvb_frontend *fe, fe_sec_voltage_t voltage)
+> +{
+> +	struct cx23885_tsport *port = fe->dvb->priv;
+> +	struct cx23885_dev *dev = port->dev;
+> +
+> +	if (voltage == SEC_VOLTAGE_18)
+> +		cx_write(MC417_RWD, 0x00001e00);
+> +	else if (voltage == SEC_VOLTAGE_13)
+> +		cx_write(MC417_RWD, 0x00001a00);
+> +	else
+> +		cx_write(MC417_RWD, 0x00001800);
+> +	return 0;
+> +}
+> +
+> +static struct stv0900_config prof_8000_stv0900_config = {
+> +	.demod_address = 0x6a,
+> +	.xtal = 27000000,
+> +	.clkmode = 3,
+> +	.diseqc_mode = 2,
+> +	.tun1_maddress = 0,
+> +	.tun1_adc = 0,
+> +	.path1_mode = 3,
+> +};
+> +
+> +static struct stb6100_config prof_8000_stb6100_config = {
+> +	.tuner_address = 0x60,
+> +	.refclock = 27000000,
+> +};
+> +
+>  static int cx23885_dvb_set_frontend(struct dvb_frontend *fe,
+>  				    struct dvb_frontend_parameters *param)
+>  {
+> @@ -1094,6 +1123,29 @@
+>  				goto frontend_detach;
+>  		}
+>  		break;
+> +	case CX23885_BOARD_PROF_8000: {
+> +		struct dvb_tuner_ops *tuner_ops = NULL;
+> +
+> +		i2c_bus = &dev->i2c_bus[0];
+> +		fe0->dvb.frontend = dvb_attach(stv0900_attach,
+> +						&prof_8000_stv0900_config,
+> +						&i2c_bus->i2c_adap, 0);
+> +		if (fe0->dvb.frontend != NULL) {
+> +			if (dvb_attach(stb6100_attach, fe0->dvb.frontend,
+> +					&prof_8000_stb6100_config,
+> +					&i2c_bus->i2c_adap)) {
+> +				tuner_ops = &fe0->dvb.frontend->ops.tuner_ops;
+> +				tuner_ops->set_frequency = stb6100_set_freq;
+> +				tuner_ops->get_frequency = stb6100_get_freq;
+> +				tuner_ops->set_bandwidth = stb6100_set_bandw;
+> +				tuner_ops->get_bandwidth = stb6100_get_bandw;
+> +
+> +				fe0->dvb.frontend->ops.set_voltage =
+> +							p8000_set_voltage;
+> +			}
+> +		}
+> +		break;
+> +		}
+>  	default:
+>  		printk(KERN_INFO "%s: The frontend of your DVB/ATSC card "
+>  			" isn't supported yet\n",
+> --- a/linux/drivers/media/video/cx23885/cx23885.h.old	2011-03-20 08:33:15.159001527 +0100
+> +++ b/linux/drivers/media/video/cx23885/cx23885.h	2011-03-20 08:34:32.244001547 +0100
+> @@ -86,6 +86,7 @@
+>  #define CX23885_BOARD_LEADTEK_WINFAST_PXTV1200 28
+>  #define CX23885_BOARD_GOTVIEW_X5_3D_HYBRID     29
+>  #define CX23885_BOARD_NETUP_DUAL_DVB_T_C_CI_RF 30
+> +#define CX23885_BOARD_PROF_8000                31
+>  
+>  #define GPIO_0 0x00000001
+>  #define GPIO_1 0x00000002
+
