@@ -1,96 +1,78 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.samsung.com ([203.254.224.24]:30064 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753233Ab1COJn3 (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:52889 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754616Ab1CVVee (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Mar 2011 05:43:29 -0400
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8; format=flowed
-Date: Tue, 15 Mar 2011 18:34:42 +0900
-From: daeinki <inki.dae@samsung.com>
-Subject: Re: [PATCH 3/7] ARM: Samsung: update/rewrite Samsung SYSMMU	(IOMMU)
- driver
-In-reply-to: <20110315083515.GA3921@n2100.arm.linux.org.uk>
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: InKi Dae <daeinki@gmail.com>, KyongHo Cho <pullip.cho@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	k.debski@samsung.com, linux-samsung-soc@vger.kernel.org,
-	Arnd Bergmann <arnd@arndb.de>,
-	=?UTF-8?B?6rCV66+86rec?= <mk7.kang@samsung.com>,
-	linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
-	kgene.kim@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <4D7F32B2.6020905@samsung.com>
-Content-transfer-encoding: 8BIT
-References: <1299229274-9753-4-git-send-email-m.szyprowski@samsung.com>
- <201103111615.01829.arnd@arndb.de>
- <000201cbe002$768d9de0$63a8d9a0$%szyprowski@samsung.com>
- <201103111700.17373.arnd@arndb.de>
- <AANLkTimagS1vBXEYjXQDx=OGhTRm=n0yO4n+kHTAqBOz@mail.gmail.com>
- <20110314124652.GF26085@n2100.arm.linux.org.uk>
- <AANLkTinzBvkcB111UZd2rJ9raaXkh2TqmTw5Y+4WFd48@mail.gmail.com>
- <20110315083515.GA3921@n2100.arm.linux.org.uk>
+	Tue, 22 Mar 2011 17:34:34 -0400
+Received: by wya21 with SMTP id 21so7135170wya.19
+        for <linux-media@vger.kernel.org>; Tue, 22 Mar 2011 14:34:33 -0700 (PDT)
+Subject: Re: [PATCH 1/2] v180 - DM04/QQBOX added support for BS2F7HZ0194
+ versions
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <4D87F005.4070602@redhat.com>
+References: <1297560908.24985.5.camel@tvboxspy>
+	 <4D87EAA7.2040803@redhat.com> <1300753968.15997.4.camel@localhost>
+	 <4D87F005.4070602@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Tue, 22 Mar 2011 21:34:22 +0000
+Message-ID: <1300829662.2048.7.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Russell King - ARM Linux 쓴 글:
-> On Tue, Mar 15, 2011 at 10:45:50AM +0900, InKi Dae wrote:
->> 2011/3/14 Russell King - ARM Linux <linux@arm.linux.org.uk>:
->>> On Mon, Mar 14, 2011 at 09:37:51PM +0900, KyongHo Cho wrote:
->>>> I have also noticed that dma_map_single/page/sg() can map physical
->>>> memory into an arbitrary device address region.
->>>> But it is not enough solution for various kinds of IOMMUs.
->>>> As Kukjin Kim addressed, we need to support larger page size than 4KB
->>>> because we can reduce TLB miss when we have larger page size.
->>>>
->>>> Our IOMMU(system mmu) supports all page size of ARM architecture
->>>> including 16MB, 1MB, 64KB and 4KB.
->>>> Since the largest size supported by buddy system of 32-bit architecture is 4MB,
->>>> our system support all page sizes except 16MB.
->>>> We proved that larger page size is helpful for DMA performance
->>>> significantly (more than 10%, approximately).
->>>> Big page size is not a problem for peripheral devices
->>>> because their address space is not suffer from external fragmentation.
->>> 1. dma_map_single() et.al. is used for mapping *system* *RAM* for devices
->>>   using whatever is necessary.  It must not be used for trying to setup
->>>   arbitary other mappings.
->>>
->>> 2. It doesn't matter where the memory for dma_map_single() et.al. comes
->>>   from provided the virtual address is a valid system RAM address or
->>>   the struct page * is a valid struct page in the memory map (iow, you
->>>   can't create this yourself.)
->> You mean that we cannot have arbitrary virtual address mapping for
->> iommu based device?
+On Mon, 2011-03-21 at 21:40 -0300, Mauro Carvalho Chehab wrote:
+> Em 21-03-2011 21:32, Malcolm Priestley escreveu:
+> > On Mon, 2011-03-21 at 21:17 -0300, Mauro Carvalho Chehab wrote:
+> >> Em 12-02-2011 23:35, Malcolm Priestley escreveu:
+> >>> Old versions of these boxes have the BS2F7HZ0194 tuner module on
+> >>> both the LME2510 and LME2510C.
+> >>>
+> >>> Firmware dvb-usb-lme2510-s0194.fw  and/or dvb-usb-lme2510c-s0194.fw
+> >>> files are required.
+> >>>
+> >>> See Documentation/dvb/lmedm04.txt
+> >>>
+> >>> Patch 535181 is also required.
+> >>>
+> >>> Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+> >>> ---
+> >>
+> >>> @@ -1110,5 +1220,5 @@ module_exit(lme2510_module_exit);
+> >>>  
+> >>>  MODULE_AUTHOR("Malcolm Priestley <tvboxspy@gmail.com>");
+> >>>  MODULE_DESCRIPTION("LME2510(C) DVB-S USB2.0");
+> >>> -MODULE_VERSION("1.76");
+> >>> +MODULE_VERSION("1.80");
+> >>>  MODULE_LICENSE("GPL");
+> >>
+> >>
+> >> There were a merge conflict on this patch. The version we have was 1.75.
+> >>
+> >> Maybe some patch got missed?
+> > 
+> > 1.76 relates to remote control patches.
+> > 
+> > https://patchwork.kernel.org/patch/499391/
+> > https://patchwork.kernel.org/patch/499401/
 > 
-> No.  I mean exactly what I said - I'm talking about the DMA API in the
-> above two points.  The implication is that you can not create arbitary
-> mappings of non-system RAM with the DMA API.
-> 
-sorry but I couldn't understand exactly what you said. could you give me 
-your answer one more time?
-does non-system RAM mean reserved memory regions? if not, is it 
-arbitrary virtual address space that isn't kernel or user virtual 
-address space and is the space for iommu based deivce?
+> Ah! Ok, I'll be applying them. Btw, please, move the keycode tables to the
+> proper place and use the RC core stuff. The idea is to remove all those keytables
+> from kernel in a near future, and use the userspace tool to load it via udev.
+
+For some reason patch to 1.81(552551) was also missing from the
+Patchwork list earlier, although it is there now.
+
+https://patchwork.kernel.org/patch/553551/
+
+I will put the RC on the TODO list and hope to complete in the near
+future.
+
+Regards
 
 
->> actually, we have memory mapping to arbitrary device virtual address
->> space, not kernel virtual address space.
->>
->>> 3. In the case of an IOMMU, the DMA API does not limit you to only using
->>>   4K pages to setup the IOMMU mappings.  You can use whatever you like
->>>   provided the hardware can cope with it.  You can coalesce several
->>>   existing entries together provided you track what you're doing and can
->>>   undo what's been done when the mapping is no longer required.
->>>
->>> So really there's no reason not to use 64K, 1M and 16M IOMMU entries if
->>> that's the size of buffer which has been passed to the DMA API.
->>>
->>> _______________________________________________
->>> linux-arm-kernel mailing list
->>> linux-arm-kernel@lists.infradead.org
->>> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
->>>
-> 
+Malcolm
+
 
