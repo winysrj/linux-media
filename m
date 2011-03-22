@@ -1,58 +1,54 @@
 Return-path: <mchehab@pedra>
-Received: from mo-p00-ob.rzone.de ([81.169.146.162]:34500 "EHLO
-	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754950Ab1CKVqZ (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57718 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755214Ab1CVUkb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Mar 2011 16:46:25 -0500
-From: Ralph Metzler <rjkm@metzlerbros.de>
+	Tue, 22 Mar 2011 16:40:31 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Bastian Hecht <hechtb@googlemail.com>
+Subject: Re: OMAP3 ISP outputs 5555 5555 5555 5555 ...
+Date: Tue, 22 Mar 2011 21:40:28 +0100
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Michael Jones <michael.jones@matrix-vision.de>
+References: <AANLkTimdFVDLLz2o9Fb2OJM2EsJ9R9q-xKAP63g9uSi+@mail.gmail.com>
+In-Reply-To: <AANLkTimdFVDLLz2o9Fb2OJM2EsJ9R9q-xKAP63g9uSi+@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-ID: <19834.38956.105807.55268@morden.metzler>
-Date: Fri, 11 Mar 2011 22:46:20 +0100
-To: linux-media@vger.kernel.org
-Cc: Issa Gorissen <flop.m@usa.net>,
-	Andreas Oberritter <obi@linuxtv.org>
-Subject: Re: [PATCH] Ngene cam device name
-In-Reply-To: <4D7A8879.5010401@linuxtv.org>
-References: <419PcksGF8800S02.1299868385@web02.cms.usa.net>
-	<4D7A8879.5010401@linuxtv.org>
+Message-Id: <201103222140.28674.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Andreas Oberritter writes:
- > >> On 03/10/2011 04:29 PM, Issa Gorissen wrote:
- > > Now, according to Mauro comments, he has put this code into staging because of
- > > the usage of sec0 name for a cam device.
- > > 
- > > Please comment on Oliver's explanations from this thread
- > > 
- > > http://www.mail-archive.com/linux-media@vger.kernel.org/msg26901.html
- > 
- > Oliver explained that he's not going to put work into this driver,
- > because he's not using it.
- > 
- > Until now, I haven't heard any reasons for just adding another device
- > node other than it being easier than defining a proper interface. The
- > fact that a solution "just works as is" is not sufficient to move a
- > driver from staging. IMO the CI driver should not have been included at
- > all in its current shape.
+Hi Bastian,
 
-Unless you want to move the writing to/reading from the CI module into
-ioctls of the ci device you need another node. 
-Even nicer would be having the control messages moved to ioctls and the
-TS IO in read/write of ci, but this would break the old interface.
+On Tuesday 22 March 2011 17:11:04 Bastian Hecht wrote:
+> Hello omap isp devs,
+> 
+> maybe you can help me, I am a bit desperate with my current cam problem:
+> 
+> I use a ov5642 chip and get only 0x55 in my data output when I use a
+> camclk > 1 MHz. With 1 MHz data rate from the camera chip to the omap
+> all works (well the colorspace is strange - it's greenish, but that is
+> not my main concern).
+> I looked up the data on the oscilloscope and all flanks seem to be
+> fine at the isp. Very clear cuts with 4 MHz and 10MHz. Also the data
+> pins are flickering fine. Looks like a picture.
+> 
+> I found that the isp stats module uses 0x55 as a magic number but I
+> don't see why it should confuse my readout.
+> 
+> I use 2592x1944 raw bayer output via the ccdc. Next to the logical
+> right config I tried all possible configurations of vs/hs active high
+> and low on camera and isp. The isp gets the vs flanks right as the
+> images come out in time (sometimes it misses 1 frame).
+> 
+> Anyone of you had this behaviour before?
 
-What kind of proper interface were you thinking about?
+How do you capture images ? yavta will fill buffers with 0x55 before queueing 
+them, so this might indicate that no data is written to the buffer at all.
 
-
-Regarding usage of dvr/demux mentioned in the linked thread above,
-this would add major overhead and lots more nodes. 
-You would need dvr0/demux0 for output and dvr1/demux1 for input and both
-would PID-filter the stream yet again although it probably already was
-when being read from the demux or dvr device belonging to the tuner.
-
-
+-- 
 Regards,
-Ralph
 
+Laurent Pinchart
