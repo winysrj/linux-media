@@ -1,72 +1,55 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:49864 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752839Ab1CGMIQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Mar 2011 07:08:16 -0500
-Date: Mon, 7 Mar 2011 14:08:12 +0200
-From: Sakari Ailus <sakari.ailus@retiisi.org.uk>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	alsa-devel@alsa-project.org
-Subject: Re: [GIT PULL FOR 2.6.39] Media controller and OMAP3 ISP driver
-Message-ID: <20110307120812.GF26689@valkosipuli.localdomain>
-References: <201102171606.58540.laurent.pinchart@ideasonboard.com>
- <4D73472A.60702@retiisi.org.uk>
- <201103061117.42896.laurent.pinchart@ideasonboard.com>
- <4D74C7EF.6040004@redhat.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:38981 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932077Ab1CVUVR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Mar 2011 16:21:17 -0400
+Received: by wwa36 with SMTP id 36so9293049wwa.1
+        for <linux-media@vger.kernel.org>; Tue, 22 Mar 2011 13:21:16 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4D74C7EF.6040004@redhat.com>
+In-Reply-To: <8739mfwkfa.fsf@nemi.mork.no>
+References: <4D87AB0F.4040908@t-online.de>
+	<20110321131602.36d146b1.rdunlap@xenotime.net>
+	<AANLkTik22=YE-2W4AtO9w_kVm=oro_YM7hJ52Rj83Fmt@mail.gmail.com>
+	<8739mfwkfa.fsf@nemi.mork.no>
+Date: Wed, 23 Mar 2011 01:51:15 +0530
+Message-ID: <AANLkTinBjupxVd-CWh8mAUPG=h9LMrNSxEuq1hDHkbSu@mail.gmail.com>
+Subject: Re: S2-3200 switching-timeouts on 2.6.38
+From: Manu Abraham <abraham.manu@gmail.com>
+To: =?ISO-8859-1?Q?Bj=F8rn_Mork?= <bjorn@mork.no>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, Mar 07, 2011 at 08:56:31AM -0300, Mauro Carvalho Chehab wrote:
-> Em 06-03-2011 07:17, Laurent Pinchart escreveu:
-> > Hi Sakari,
-> > 
-> > On Sunday 06 March 2011 09:34:50 Sakari Ailus wrote:
-> >> Hi Laurent,
-> >>
-> >> Many thanks for the pull req!
-> >>
-> >> On Thu, Feb 17, 2011 at 04:06:58PM +0100, Laurent Pinchart wrote:
-> >> ...
-> >>
-> >>>  drivers/media/video/omap3-isp/ispresizer.c         | 1693 ++++++++++++++
-> >>>  drivers/media/video/omap3-isp/ispresizer.h         |  147 ++
-> >>>  drivers/media/video/omap3-isp/ispstat.c            | 1092 +++++++++
-> >>>  drivers/media/video/omap3-isp/ispstat.h            |  169 ++
-> >>>  drivers/media/video/omap3-isp/ispvideo.c           | 1264 ++++++++++
-> >>>  drivers/media/video/omap3-isp/ispvideo.h           |  202 ++
-> >>>  drivers/media/video/omap3-isp/luma_enhance_table.h |   42 +
-> >>>  drivers/media/video/omap3-isp/noise_filter_table.h |   30 +
-> >>
-> >> ...
-> >>
-> >>>  include/linux/Kbuild                               |    4 +
-> >>>  include/linux/media.h                              |  132 ++
-> >>>  include/linux/omap3isp.h                           |  646 +++++
-> >>
-> >> What about renaming the directory omap3isp for the sake of consistency?
-> >> The header file is called omap3isp.h and omap3isp is the prefix used in
-> >> the driver for exported symbols.
-> > 
-> > I'm fine with both. If Mauro prefers omap3-isp, I can update the patches.
-> 
-> Probably, omap3-isp would be better, but I'm fine if you prefere omap3isp.
+On Tue, Mar 22, 2011 at 3:23 PM, Bjørn Mork <bjorn@mork.no> wrote:
+> Manu Abraham <abraham.manu@gmail.com> writes:
+>> On Tue, Mar 22, 2011 at 1:46 AM, Randy Dunlap <rdunlap@xenotime.net> wrote:
+>>> On Mon, 21 Mar 2011 20:46:23 +0100 Rico Tzschichholz wrote:
+>>>
+>>>> Hello,
+>>>>
+>>>> I would like to know if there is any intention to include this patch
+>>>> soon? https://patchwork.kernel.org/patch/244201/
+>>>
+>>> There are MANY posted but unmerged patches in patchwork from the linux-media
+>>> mailing list.  What is going on (or not going on) with patch merging?
+>>
+>> Actually, quite a lot of effort was put in to get that part right. It
+>> does the reverse thing that's to be done.
+>> The revamped version is here [1] If the issue persists still, then it
+>> needs to be investigated further.
+>>
+>> [1] http://www.mail-archive.com/linuxtv-commits@linuxtv.org/msg09214.html
+>
+> So the patch state should be "Rejected" and not "Under Review".
+>
+> Would certainly help us all if the patchwork state was updated whenever
+> a patch actually was processed...
 
-Hi Mauro, Laurent,
+Sure, I could've pointed it out to Mauro, but handling multiple
+things, that slipped off my mind.
 
-I'm also fine with omap3-isp. My point was that we should be consistent in
-naming. If the symbol prefix and the file / directory names are a little
-different that is certainly not an issue to me. So the change to the current
-state of the patchset would be that the header file was be called
-omap3-isp.h, right?
-
-Cheers,
-
--- 
-Sakari Ailus
-sakari dot ailus at retiisi dot org dot uk
+Best Regards,
+Manu
