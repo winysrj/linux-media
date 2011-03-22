@@ -1,131 +1,50 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:37903 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755099Ab1CHOAj (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:22826 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755429Ab1CVIt1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Mar 2011 09:00:39 -0500
-Subject: Re: Yet another memory provider: can linaro organize a meeting?
-From: Andy Walls <awalls@md.metrocast.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linaro-dev@lists.linaro.org, linux-media@vger.kernel.org,
-	Jonghun Han <jonghun.han@samsung.com>
-In-Reply-To: <201103080913.59231.hverkuil@xs4all.nl>
-References: <201103080913.59231.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Date: Tue, 08 Mar 2011 09:01:10 -0500
-Message-ID: <1299592870.2083.67.camel@morgan.silverblock.net>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Tue, 22 Mar 2011 04:49:27 -0400
+Received: from epmmp2 (mailout1.samsung.com [203.254.224.24])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LIG00DOOB6CFF10@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 22 Mar 2011 17:49:24 +0900 (KST)
+Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
+ by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LIG00KMCB6DWE@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 22 Mar 2011 17:49:25 +0900 (KST)
+Date: Tue, 22 Mar 2011 17:49:24 +0900
+From: "Kim, HeungJun" <riverful.kim@samsung.com>
+Subject: [RFC PATCH v3 0/2] v4l2-ctrls: add auto focus mode and controls
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
+Reply-to: riverful.kim@samsung.com
+Message-id: <4D886294.5060300@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, 2011-03-08 at 09:13 +0100, Hans Verkuil wrote:
-> Hi all,
-> 
-> We had a discussion yesterday regarding ways in which linaro can assist
-> V4L2 development. One topic was that of sorting out memory providers like
-> GEM and HWMEM.
-> 
-> Today I learned of yet another one: UMP from ARM.
-> 
-> http://blogs.arm.com/multimedia/249-making-the-mali-gpu-device-driver-open-source/page__cid__133__show__newcomment/
-> 
-> This is getting out of hand. I think that organizing a meeting to solve this
-> mess should be on the top of the list. Companies keep on solving the same
-> problem time and again and since none of it enters the mainline kernel any
-> driver using it is also impossible to upstream.
-> 
-> All these memory-related modules have the same purpose: make it possible to
-> allocate/reserve large amounts of memory and share it between different
-> subsystems (primarily framebuffer, GPU and V4L).
+Hello,
 
-I'm not sure that's the entire story regarding what the current
-allocators for GPU do.  TTM and GEM create in kernel objects that can be
-passed between applications.  TTM apparently has handling for VRAM
-(video RAM).  GEM uses anonymous userspace memory that can be swapped
-out.
+This is third version of RFC patch series about adding auto focus mode
+and controls. The patch of the previous version bring about the issue
+to be able to execute only once, not repeatedly. Because the each modes
+are defined by menu type. To solve this, we add the new control of
+choosing focus mode, and if doing repeatedly, it's alright that you
+determine the focus mode and change the value of V4L2_CID_FOCUS_AUTO.
 
-TTM:
-http://lwn.net/Articles/257417/
-http://www.x.org/wiki/ttm
-http://nouveau.freedesktop.org/wiki/TTMMemoryManager?action=AttachFile&do=get&target=mm.pdf
-http://nouveau.freedesktop.org/wiki/TTMMemoryManager?action=AttachFile&do=get&target=xdevconf2006.pdf
+In the case of new added rectangle mode, these each controls belongs to
+4 new controls, can make to point by the form of rectangle. These 4 new
+each control values mean left x coordinate, top y coordinate,
+width x length, height y length. It's similar to structure v4l2_rect.
 
-GEM:
-http://lwn.net/Articles/283798/
+You can find previous threads about this:
+http://www.spinics.net/lists/linux-media/msg29446.html
 
-GEM vs. TTM:
-http://lwn.net/Articles/283793/
-
-
-The current TTM and GEM allocators appear to have API and buffer
-processing and management functions tied in with memory allocation.
-
-TTM has fences for event notification of buffer processing completion.
-(maybe something v4l2 can do with v4l2_events?)
-
-GEM tries avoid mapping buffers to userspace. (sounds like the v4l2 mem
-to mem API?)
-
-
-Thanks to the good work of developers on the LMML in the past year or
-two, V4L2 has separated out some of that functionality from video buffer
-allocation: 
-
-	video buffer queue management and userspace access (videobuf2)
-	memory to memory buffer transformation/movement (m2m)
-	event notification (VIDIOC_SUBSCRIBE_EVENT)
-
-	http://lwn.net/Articles/389081/
-	http://lwn.net/Articles/420512/
-
-
-> It really shouldn't be that hard to get everyone involved together and settle
-> on a single solution (either based on an existing proposal or create a 'the
-> best of' vendor-neutral solution).
-
-
-"Single" might be making the problem impossibly hard to solve well.
-One-size-fits-all solutions have a tendency to fall short on meeting
-someone's critical requirement.  I will agree that "less than n", for
-some small n, is certainly desirable.
-
-The memory allocators and managers are ideally satisfying the
-requirements imposed by device hardware, what userspace applications are
-expected to do with the buffers, and system performance.  (And maybe the
-platform architecture, I/O bus, and dedicated video memory?)
-
-
-
-> I am currently aware of the following solutions floating around the net
-> that all solve different parts of the problem:
-> 
-> In the kernel: GEM and TTM.
-> Out-of-tree: HWMEM, UMP, CMA, VCM, CMEM, PMEM.
-
-Prior to a meeting one would probably want to capture for each
-allocator:
-
-1. What are the attributes of the memory allocated by this allocator?
-
-2. For what domain was this allocator designed: GPU, video capture,
-video decoder, etc.
-
-3. How are applications expected to use objects from this allocator?
-
-4. What are the estimated sizes and lifetimes of objects that would be
-allocated this allocator?
-
-5. Beyond memory allocation, what other functionality is built into this
-allocator: buffer queue management, event notification, etc.?
-
-6. Of the requirements that this allocator satisfies, what are the
-performance critical requirements?
-
-
-Maybe there are better question to ask.
-
-Regards,
-Andy
-
-
+Thanks and Regards,
+Heungjun Kim
