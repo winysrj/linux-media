@@ -1,54 +1,49 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46328 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759755Ab1CDPmE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2011 10:42:04 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Michael Jones <michael.jones@matrix-vision.de>
-Subject: Re: [PATCH 1/4] v4l: add V4L2_PIX_FMT_Y12 format
-Date: Fri, 4 Mar 2011 16:42:18 +0100
-Cc: linux-media@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-References: <1299229084-8335-1-git-send-email-michael.jones@matrix-vision.de> <1299229084-8335-2-git-send-email-michael.jones@matrix-vision.de>
-In-Reply-To: <1299229084-8335-2-git-send-email-michael.jones@matrix-vision.de>
-MIME-Version: 1.0
-Message-Id: <201103041642.18343.laurent.pinchart@ideasonboard.com>
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Received: from smtp5-g21.free.fr ([212.27.42.5]:33601 "EHLO smtp5-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753743Ab1CVJ4n convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Mar 2011 05:56:43 -0400
+Received: from tele (unknown [82.245.201.222])
+	by smtp5-g21.free.fr (Postfix) with ESMTP id 1BA74D48240
+	for <linux-media@vger.kernel.org>; Tue, 22 Mar 2011 10:56:36 +0100 (CET)
+Date: Tue, 22 Mar 2011 10:57:07 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: linux-media@vger.kernel.org
+Subject: [GIT PATCHES FOR 2.6.39] gspca for_v2.6.39
+Message-ID: <20110322105707.2581001b@tele>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Michael,
+The following changes since commit
+d2803205ff3be8e8ea4634709799606c5d5294b5:
 
-Thanks for the patch.
+  [media] via-camera: Fix OLPC serial check (2011-03-21 21:48:25 -0300)
 
-On Friday 04 March 2011 09:58:01 Michael Jones wrote:
-> Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
+are available in the git repository at:
+  git://linuxtv.org/jfrancois/gspca.git for_v2.6.39
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Jean-François Moine (9):
+      gspca - nw80x: Cleanup source
+      gspca - nw80x: The webcam dsb-c110 is the same as the twinkle
+      gspca - nw80x: Do some initialization at probe time
+      gspca - nw80x: Fix the gain, exposure and autogain
+      gspca - nw80x: Check the bridge from the webcam type
+      gspca - nw80x: Fix some image resolutions
+      gspca - nw80x: Get the sensor ID when bridge et31x110
+      gspca - nw80x: Fix exposure for some webcams
+      gspca - zc3xx: Add exposure control for sensor hv7131r
 
-> ---
->  include/linux/videodev2.h |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
-> 
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index 02da9e7..6fac463 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -288,6 +288,7 @@ struct v4l2_pix_format {
->  #define V4L2_PIX_FMT_Y4      v4l2_fourcc('Y', '0', '4', ' ') /*  4 
-> Greyscale     */ #define V4L2_PIX_FMT_Y6      v4l2_fourcc('Y', '0', '6', '
-> ') /*  6  Greyscale     */ #define V4L2_PIX_FMT_Y10     v4l2_fourcc('Y',
-> '1', '0', ' ') /* 10  Greyscale     */ +#define V4L2_PIX_FMT_Y12    
-> v4l2_fourcc('Y', '1', '2', ' ') /* 12  Greyscale     */ #define
-> V4L2_PIX_FMT_Y16     v4l2_fourcc('Y', '1', '6', ' ') /* 16  Greyscale    
-> */
-> 
->  /* Palette formats */
+Patrice Chotard (1):
+      gspca - main: Add endpoint direction test in alt_xfer
 
+ drivers/media/video/gspca/gspca.c |    3 +-
+ drivers/media/video/gspca/nw80x.c |  858 ++++++++++++-------------------------
+ drivers/media/video/gspca/zc3xx.c |   76 +++-
+ 3 files changed, 351 insertions(+), 586 deletions(-)
 -- 
-Regards,
-
-Laurent Pinchart
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
