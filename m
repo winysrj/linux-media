@@ -1,346 +1,146 @@
 Return-path: <mchehab@pedra>
-Received: from snt0-omc2-s21.snt0.hotmail.com ([65.55.90.96]:4306 "EHLO
-	snt0-omc2-s21.snt0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758536Ab1CCOUq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Mar 2011 09:20:46 -0500
-Message-ID: <SNT129-W18D3517697F0391DCBD43FE5C30@phx.gbl>
-Content-Type: multipart/mixed;
-	boundary="_36065531-bb62-4dde-b87f-03949d319137_"
-From: Peter Tilley <peter_tilley13@hotmail.com>
-To: <linux-media@vger.kernel.org>
-Subject: USB DVB-T too much signal?
-Date: Thu, 3 Mar 2011 14:14:35 +0000
-In-Reply-To: <SNT129-W5526DA8CE9536349513448E5C30@phx.gbl>
-References: <SNT129-W5526DA8CE9536349513448E5C30@phx.gbl>
+Received: from mx1.redhat.com ([209.132.183.28]:51549 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751422Ab1CVSgj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Mar 2011 14:36:39 -0400
+Message-ID: <4D88EC2A.5030200@redhat.com>
+Date: Tue, 22 Mar 2011 15:36:26 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
+To: adq <adq@lidskialf.net>
+CC: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [patch] Fix AF9015 Dual tuner i2c write failures
+References: <AANLkTi=rcfL_pku9hhx68C_Fb_76KsW2Yy+Oys10a7+4@mail.gmail.com>	<4D7163FD.9030604@iki.fi>	<AANLkTimjC99zhJ=huHZiGgbENCoyHy5KT87iujjTT8w3@mail.gmail.com>	<4D716ECA.4060900@iki.fi>	<AANLkTimHa6XFwhvpLbhtRm7Vee-jYPkHpx+D8L2=+vQb@mail.gmail.com>	<4D886541.60302@redhat.com> <AANLkTi=DidEh1X2MGA3z_KBgZUyaC+6Sr30n+8M59Wio@mail.gmail.com>
+In-Reply-To: <AANLkTi=DidEh1X2MGA3z_KBgZUyaC+6Sr30n+8M59Wio@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
---_36065531-bb62-4dde-b87f-03949d319137_
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Em 22-03-2011 15:26, adq escreveu:
+> On 22 March 2011 09:00, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+>> Em 04-03-2011 20:11, Andrew de Quincey escreveu:
+>>> On 4 March 2011 22:59, Antti Palosaari <crope@iki.fi> wrote:
+>>>> On 03/05/2011 12:44 AM, Andrew de Quincey wrote:
+>>>>>>>
+>>>>>>> Adding a "bus lock" to af9015_i2c_xfer() will not work as demod/tuner
+>>>>>>> accesses will take multiple i2c transactions.
+>>>>>>>
+>>>>>>> Therefore, the following patch overrides the dvb_frontend_ops
+>>>>>>> functions to add a per-device lock around them: only one frontend can
+>>>>>>> now use the i2c bus at a time. Testing with the scripts above shows
+>>>>>>> this has eliminated the errors.
+>>>>>>
+>>>>>> This have annoyed me too, but since it does not broken functionality much
+>>>>>> I
+>>>>>> haven't put much effort for fixing it. I like that fix since it is in
+>>>>>> AF9015
+>>>>>> driver where it logically belongs to. But it looks still rather complex.
+>>>>>> I
+>>>>>> see you have also considered "bus lock" to af9015_i2c_xfer() which could
+>>>>>> be
+>>>>>> much smaller in code size (that's I have tried to implement long time
+>>>>>> back).
+>>>>>>
+>>>>>> I would like to ask if it possible to check I2C gate open / close inside
+>>>>>> af9015_i2c_xfer() and lock according that? Something like:
+>>>>>
+>>>>> Hmm, I did think about that, but I felt overriding the functions was
+>>>>> just cleaner: I felt it was more obvious what it was doing. Doing
+>>>>> exactly this sort of tweaking was one of the main reasons we added
+>>>>> that function overriding feature.
+>>>>>
+>>>>> I don't like the idea of returning "error locked by FE" since that'll
+>>>>> mean the tuning will randomly fail sometimes in a way visible to
+>>>>> userspace (unless we change the core dvb_frontend code), which was one
+>>>>> of the things I was trying to avoid. Unless, of course, I've
+>>>>> misunderstood your proposal.
+>>>>
+>>>> Not returning error, but waiting in lock like that:
+>>>> if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
+>>>>  return -EAGAIN;
+>>>
+>>> Ah k, sorry
+>>>
+>>>>> However, looking at the code again, I realise it is possible to
+>>>>> simplify it. Since its only the demod gates that cause a problem, we
+>>>>> only /actually/ need to lock the get_frontend() and set_frontend()
+>>>>> calls.
+>>>>
+>>>> I don't understand why .get_frontend() causes problem, since it does not
+>>>> access tuner at all. It only reads demod registers. The main problem is
+>>>> (like schema in af9015.c shows) that there is two tuners on same I2C bus
+>>>> using same address. And demod gate is only way to open access for desired
+>>>> tuner only.
+>>>
+>>> AFAIR /some/ tuner code accesses the tuner hardware to read the exact
+>>> tuned frequency back on a get_frontend(); was just being extra
+>>> paranoid :)
+>>>
+>>>> You should block traffic based of tuner not demod. And I think those
+>>>> callbacks which are needed for override are tuner driver callbacks. Consider
+>>>> situation device goes it v4l-core calls same time both tuner .sleep() ==
+>>>> problem.
+>>>
+>>> Hmm, yeah, you're right, let me have another look tomorrow.
+>>
+>> Andrew, Antti,
+>>
+>> I'm understanding that I should wait for another patch on this subject, right?
+>> Please let me know when you have a patch ready for me to apply.
+>>
+>> Btw, I think that the long term solution would be, instead, to provide some sort of
+>> resource locking inside DVB (and V4L) core. I have here 3 devices not supported yet that
+>> uses the same tuner (and the same demod - DRX-K) for both DVB-C and DVB-T. It would
+>> be a way better to use some core-provided solution to prevent that both DVB-C and DVB-T
+>> would be used at the same time on such devices, instead of cloning the same code
+>> (or modified versions on it) on each driver that have such issues.
+>>
+>> One solution could be to have a callback like:
+>>
+>> enum dvb_fe_lock_type {
+>>        ATV_DEMOD_LOCK,
+>>        DTV_DEMOD_T_LOCK,
+>>        DTV_DEMOD_S_LOCK,
+>>        DTV_DEMOD_C_LOCK,
+>>        TUNER_T_LOCK,
+>>        TUNER_S_LOCK,
+>>        TUNER_C_LOCK,
+>>        TUNER_FM_LOCK,
+>>        FM_DEMOD_LOCK,
+>> };
+>>
+>> /**
+>>  * dvb_fe_lock - locks a frontend resource
+>>  * @fe:         DVB frontend struct
+>>  * @type:       type of resource to lock
+>>  * @lock:       true indicates to lock the resource, false to unlock
+>>  *
+>>  * Returns true if the resource was locked, false otherwise.
+>>  * routine may wait for a pending transaction to happen before returning.
+>>  */
+>> bool (*dvb_fe_lock)(struct dvb_frontend *fe, enum dvb_fe_lock_type type, bool lock);
+>>
+>> What do you think?
+> 
+> Have to think on it, but it does sound sensible to do it in the core
+> if there are other things like this.
 
+Yes, but the current way it is done right now (e. g. the "standard" i2c gate
+control) is not fitting anymore. There are tons of cases where it is not covered,
+and several different implementations to work around it. On complex devices like
+cx231xx (that has 4 I2C buses, one of them with an internal switch inside the
+bridge chip), locking it at I2C level is not enough.
 
+So, it is better to provide a new way and replace the existing methods with the
+new one were required.
 
-I have a USB DVB-T dual digital TV reciver which has the branding Kaiser Ba=
-as KBA 01004 on it. The device consists of a pair of DIBCOM DIB7000Ps and a=
- pair of Microtune MT2266F tuners to provide dual tuner functionality. The =
-USB device identities are 1164:1e8c which has been seen before in a range o=
-f devices and seems to have been supported by the V4L drivers for a while. =
-I am using it with kernel version 2.6.35 (Ubuntu 10.10) The device is recog=
-nised ok and successfully loads the 1.20 release firmware. On the surface c=
-hecks of syslog=2C etc everything seems to be ok. However used under Linux =
-it demonstrates issues which do not appear when used with Windows.
+> 
+> Definitely hold off on the dual patch though, as it doesn't fix the
+> tuner lockup issue I'm seeing unfortunately.
 
-That is=2C when used with an external antenna=2C etc on Windows the unit fu=
-nctions fine whereas when used with Linux and using the DVButils scan=2C w_=
-scan and tzap I am able to successfully tune only 1 out of 6 stations. Coin=
-cidently that station is the only one tranmitting with QPSK whereas all the=
- others are using 64QAM. I live in an area with good signal level and I get=
- the feeling that maybe the Linux agc implementation is not all it should b=
-e as you will see from the attached tzap screen dumps I have lots of signal=
-=2C low SNR but high BER which is causing me to not get viterbi on any stat=
-ion using 64QAM. I can receive the local community tv station which is usin=
-g QPSK. I have a hunch that maybe the frontend is being overdriven and the =
-Linux agc implementation is not driving down the input signal. With QPSK be=
-ing a more robust transmission mode in comparison to 64QAM=2C I suspect I a=
-m getting away with the high signal level and also the community TV station=
- transmits with lower power and therefore is probably not hitting the front=
- end with quite as much signal in the first place anyway.
+Ok, I'll mark those patches as Rejected at patchwork and I'll wait for a new
+set.
 
-I do not believe this is a firmware issue as in addition to using the 1.20 =
-firmware I have also complied and used Hans-Frieder Vogt's firmware extract=
-ion tool to pull the firmware out of the windows driver this uses and after=
- after renaming it to replace the existing 1.2 firmware the same issues rem=
-ain. The attached channels.conf file was constructed by hand as neither sca=
-n or W_scan were able to create entries for ither than C31. They would just=
- time out for other stations.
-
-Does anyone have any suggestions or comment on my thoughts and how the agc =
-is implemented? I was thinking I would probably have to tweak the settings =
-for this device in dib0700_devices.c
-
-The other issue I have is that to make sure that I had the latest and great=
-est drivers and tried to rebuild them from the latest git using the basic a=
-pproach at http://linuxtv.org/wiki/index.php/How_to_Obtain=2C_Build_and_Ins=
-tall_V4L-DVB_Device_Drivers The problem I found was that when I ran the bui=
-ld script it ran for a while and then came back and complained I was missin=
-g some source files. See attachment.
-
-If anyone has any pointers on this they would be greatly appreciated.
-
-Regards
-Pete 		 	   		  =
-
---_36065531-bb62-4dde-b87f-03949d319137_
-Content-Type: text/plain
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="build.txt"
-
-cGV0ZXJAR2FyYWdlMjp+L21lZGlhX2J1aWxkJCAuL2J1aWxkLnNoDQoqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioNCiogVGhpcyBzY3Jp
-cHQgd2lsbCBkb3dubG9hZCB0aGUgbGF0ZXN0IHRhcmJhbGwgYW5kIGJ1aWxkIGl0Kg0KKiBBc3N1
-bWluZyB0aGF0IHlvdXIga2VybmVsIGlzIGNvbXBhdGlibGUgd2l0aCB0aGUgbGF0ZXN0ICAqDQoq
-IGRyaXZlcnMuIElmIG5vdCwgeW91J2xsIG5lZWQgdG8gYWRkIHNvbWUgZXh0cmEgYmFja3BvcnRz
-LCoNCiogLi9iYWNrcG9ydHMvPGtlcm5lbD4gZGlyZWN0b3J5LiAgICAgICAgICAgICAgICAgICAg
-ICAgICAgKg0KKiBJdCB3aWxsIGFsc28gdXBkYXRlIHRoaXMgdHJlZSB0byBiZSBzdXJlIHRoYXQg
-YWxsIGNvbXBhdCAqDQoqIGJpdHMgYXJlIHRoZXJlLCB0byBhdm9pZCBjb21waWxhdGlvbiBmYWls
-dXJlcyAgICAgICAgICAgICoNCioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKg0KDQpOb3RlOiByZXF1aXJlcyBnaXQvcGVybC9tYWtlL2dj
-Yy9wYXRjaC9wZXJsLURpZ2VzdC1TSEExL3BhdGNodXRpbHMgcGFja2FnZXMgdG8gd29yaw0KZ2l0
-IHB1bGwgZ2l0Oi8vbGludXh0di5vcmcvbWVkaWFfYnVpbGQuZ2l0IG1hc3Rlcg0KRnJvbSBnaXQ6
-Ly9saW51eHR2Lm9yZy9tZWRpYV9idWlsZA0KICogYnJhbmNoICAgICAgICAgICAgbWFzdGVyICAg
-ICAtPiBGRVRDSF9IRUFEDQpBbHJlYWR5IHVwLXRvLWRhdGUuDQptYWtlIC1DIGxpbnV4LyBkb3du
-bG9hZA0KbWFrZTogRW50ZXJpbmcgZGlyZWN0b3J5IGAvaG9tZS9wZXRlci9tZWRpYV9idWlsZC9s
-aW51eCcNCndnZXQgaHR0cDovL2xpbnV4dHYub3JnL2Rvd25sb2Fkcy9kcml2ZXJzL2xpbnV4LW1l
-ZGlhLUxBVEVTVC50YXIuYnoyLm1kNSAtTyBsaW51eC1tZWRpYS50YXIuYnoyLm1kNS50bXANCi0t
-MjAxMS0wMy0wMyAxOTowNToyMS0tICBodHRwOi8vbGludXh0di5vcmcvZG93bmxvYWRzL2RyaXZl
-cnMvbGludXgtbWVkaWEtTEFURVNULnRhci5iejIubWQ1DQpSZXNvbHZpbmcgbGludXh0di5vcmcu
-Li4gMTMwLjE0OS44MC4yNDgNCkNvbm5lY3RpbmcgdG8gbGludXh0di5vcmd8MTMwLjE0OS44MC4y
-NDh8OjgwLi4uIGNvbm5lY3RlZC4NCkhUVFAgcmVxdWVzdCBzZW50LCBhd2FpdGluZyByZXNwb25z
-ZS4uLiAyMDAgT0sNCkxlbmd0aDogOTMgW2FwcGxpY2F0aW9uL3gtYnppcDJdDQpTYXZpbmcgdG86
-IGBsaW51eC1tZWRpYS50YXIuYnoyLm1kNS50bXAnDQoNCjEwMCVbPT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT5dIDkzICAgICAgICAgIC0t
-Li1LL3MgICBpbiAwcyAgICAgIA0KDQoyMDExLTAzLTAzIDE5OjA1OjIyICg1LjM2IE1CL3MpIC0g
-YGxpbnV4LW1lZGlhLnRhci5iejIubWQ1LnRtcCcgc2F2ZWQgWzkzLzkzXQ0KDQotLTIwMTEtMDMt
-MDMgMTk6MDU6MjItLSAgaHR0cDovL2xpbnV4dHYub3JnL2Rvd25sb2Fkcy9kcml2ZXJzL2xpbnV4
-LW1lZGlhLUxBVEVTVC50YXIuYnoyDQpSZXNvbHZpbmcgbGludXh0di5vcmcuLi4gMTMwLjE0OS44
-MC4yNDgNCkNvbm5lY3RpbmcgdG8gbGludXh0di5vcmd8MTMwLjE0OS44MC4yNDh8OjgwLi4uIGNv
-bm5lY3RlZC4NCkhUVFAgcmVxdWVzdCBzZW50LCBhd2FpdGluZyByZXNwb25zZS4uLiAyMDAgT0sN
-Ckxlbmd0aDogMzU3MzcxMSAoMy40TSkgW2FwcGxpY2F0aW9uL3gtYnppcDJdDQpTYXZpbmcgdG86
-IGBsaW51eC1tZWRpYS50YXIuYnoyJw0KDQoxMDAlWz09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0+XSAzLDU3Myw3MTEgICAgNTQxSy9zICAg
-aW4gOC41cyAgICANCg0KMjAxMS0wMy0wMyAxOTowNTozMiAoNDExIEtCL3MpIC0gYGxpbnV4LW1l
-ZGlhLnRhci5iejInIHNhdmVkIFszNTczNzExLzM1NzM3MTFdDQoNCm1ha2U6IExlYXZpbmcgZGly
-ZWN0b3J5IGAvaG9tZS9wZXRlci9tZWRpYV9idWlsZC9saW51eCcNCm1ha2UgLUMgbGludXgvIHVu
-dGFyDQptYWtlOiBFbnRlcmluZyBkaXJlY3RvcnkgYC9ob21lL3BldGVyL21lZGlhX2J1aWxkL2xp
-bnV4Jw0KdGFyIHhmaiBsaW51eC1tZWRpYS50YXIuYnoyDQpybSAtZiAucGF0Y2hlc19hcHBsaWVk
-DQptYWtlOiBMZWF2aW5nIGRpcmVjdG9yeSBgL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQvbGludXgn
-DQptYWtlDQptYWtlIC1DIC9ob21lL3BldGVyL21lZGlhX2J1aWxkL3Y0bCANCm1ha2VbMV06IEVu
-dGVyaW5nIGRpcmVjdG9yeSBgL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQvdjRsJw0Kc2NyaXB0cy9t
-YWtlX21ha2VmaWxlLnBsDQptYWtlWzJdOiBFbnRlcmluZyBkaXJlY3RvcnkgYC9ob21lL3BldGVy
-L21lZGlhX2J1aWxkL2xpbnV4Jw0KQXBwbHlpbmcgcGF0Y2hlcyBmb3Iga2VybmVsIHYyLjYuMzUN
-CnBhdGNoIC1zIC1mIC1OIC1wMSAtaSAuLi9iYWNrcG9ydHMvdjIuNi4zN19kb250X3VzZV9hbGxv
-Y19vcmRlcmVkX3dvcmtxdWV1ZS5wYXRjaA0KcGF0Y2ggLXMgLWYgLU4gLXAxIC1pIC4uL2JhY2tw
-b3J0cy92Mi42LjM2X2lucHV0X2dldGtleWNvZGUucGF0Y2gNCnBhdGNoIC1zIC1mIC1OIC1wMSAt
-aSAuLi9iYWNrcG9ydHMvdjIuNi4zNV92bV9wcmV2LnBhdGNoDQpwYXRjaCAtcyAtZiAtTiAtcDEg
-LWkgLi4vYmFja3BvcnRzL3YyLjYuMzVfZmlyZWR0dl9oYW5kbGVfZmNwLnBhdGNoDQpwYXRjaCAt
-cyAtZiAtTiAtcDEgLWkgLi4vYmFja3BvcnRzL3YyLjYuMzVfaTJjX25ld19wcm9iZWRfZGV2aWNl
-LnBhdGNoDQpwYXRjaCAtcyAtZiAtTiAtcDEgLWkgLi4vYmFja3BvcnRzL3YyLjYuMzVfd29ya19o
-YW5kbGVyLnBhdGNoDQptYWtlWzJdOiBMZWF2aW5nIGRpcmVjdG9yeSBgL2hvbWUvcGV0ZXIvbWVk
-aWFfYnVpbGQvbGludXgnDQouL3NjcmlwdHMvbWFrZV9rY29uZmlnLnBsIC9saWIvbW9kdWxlcy8y
-LjYuMzUtMjUtZ2VuZXJpYy9idWlsZCAvbGliL21vZHVsZXMvMi42LjM1LTI1LWdlbmVyaWMvYnVp
-bGQNClByZXBhcmluZyB0byBjb21waWxlIGZvciBrZXJuZWwgdmVyc2lvbiAyLjYuMzUNCg0KKioq
-V0FSTklORzoqKiogWW91IGRvIG5vdCBoYXZlIHRoZSBmdWxsIGtlcm5lbCBzb3VyY2VzIGluc3Rh
-bGxlZC4NClRoaXMgZG9lcyBub3QgcHJldmVudCB5b3UgZnJvbSBidWlsZGluZyB0aGUgdjRsLWR2
-YiB0cmVlIGlmIHlvdSBoYXZlIHRoZQ0Ka2VybmVsIGhlYWRlcnMsIGJ1dCB0aGUgZnVsbCBrZXJu
-ZWwgc291cmNlIG1heSBiZSByZXF1aXJlZCBpbiBvcmRlciB0byB1c2UNCm1ha2UgbWVudWNvbmZp
-ZyAvIHhjb25maWcgLyBxY29uZmlnLg0KSWYgeW91IGFyZSBleHBlcmllbmNpbmcgcHJvYmxlbXMg
-YnVpbGRpbmcgdGhlIHY0bC1kdmIgdHJlZSwgcGxlYXNlIHRyeQ0KYnVpbGRpbmcgYWdhaW5zdCBh
-IHZhbmlsbGEga2VybmVsIGJlZm9yZSByZXBvcnRpbmcgYSBidWcuDQoNClZhbmlsbGEga2VybmVs
-cyBhcmUgYXZhaWxhYmxlIGF0IGh0dHA6Ly9rZXJuZWwub3JnLg0KT24gbW9zdCBkaXN0cm9zLCB0
-aGlzIHdpbGwgY29tcGlsZSBhIG5ld2x5IGRvd25sb2FkZWQga2VybmVsOg0KDQpjcCAvYm9vdC9j
-b25maWctYHVuYW1lIC1yYCA8eW91ciBrZXJuZWwgZGlyPi8uY29uZmlnDQpjZCA8eW91ciBrZXJu
-ZWwgZGlyPg0KbWFrZSBhbGwgbW9kdWxlc19pbnN0YWxsIGluc3RhbGwNCg0KUGxlYXNlIHNlZSB5
-b3VyIGRpc3RybydzIHdlYiBzaXRlIGZvciBpbnN0cnVjdGlvbnMgdG8gYnVpbGQgYSBuZXcga2Vy
-bmVsLg0KDQpXQVJOSU5HOiBUaGlzIGlzIHRoZSBWNEwvRFZCIGJhY2twb3J0IHRyZWUsIHdpdGgg
-ZXhwZXJpbWVudGFsIGRyaXZlcnMNCgkgYmFja3BvcnRlZCB0byBydW4gb24gbGVnYWN5IGtlcm5l
-bHMgZnJvbSB0aGUgZGV2ZWxvcG1lbnQgdHJlZSBhdDoNCgkJaHR0cDovL2dpdC5saW51eHR2Lm9y
-Zy9tZWRpYS10cmVlLmdpdC4NCgkgSXQgaXMgZ2VuZXJhbGx5IHNhZmUgdG8gdXNlIGl0IGZvciB0
-ZXN0aW5nIGEgbmV3IGRyaXZlciBvcg0KCSBmZWF0dXJlLCBidXQgaXRzIHVzYWdlIG9uIHByb2R1
-Y3Rpb24gZW52aXJvbm1lbnRzIGlzIHJpc2t5Lg0KCSBEb24ndCB1c2UgaXQgaW4gcHJvZHVjdGlv
-bi4gWW91J3ZlIGJlZW4gd2FybmVkLg0KVklERU9fVklBX0NBTUVSQTogUmVxdWlyZXMgYXQgbGVh
-c3Qga2VybmVsIDIuNi4zNw0KLi9zY3JpcHRzL21ha2VfbXljb25maWcucGwNCm1ha2VbMV06IExl
-YXZpbmcgZGlyZWN0b3J5IGAvaG9tZS9wZXRlci9tZWRpYV9idWlsZC92NGwnDQptYWtlWzFdOiBF
-bnRlcmluZyBkaXJlY3RvcnkgYC9ob21lL3BldGVyL21lZGlhX2J1aWxkL3Y0bCcNCnBlcmwgc2Ny
-aXB0cy9tYWtlX2NvbmZpZ19jb21wYXQucGwgL2xpYi9tb2R1bGVzLzIuNi4zNS0yNS1nZW5lcmlj
-L2J1aWxkIC4vLm15Y29uZmlnIC4vY29uZmlnLWNvbXBhdC5oDQpjcmVhdGluZyBzeW1ib2xpYyBs
-aW5rcy4uLg0KbWFrZSAtQyBmaXJtd2FyZSBwcmVwDQptYWtlWzJdOiBFbnRlcmluZyBkaXJlY3Rv
-cnkgYC9ob21lL3BldGVyL21lZGlhX2J1aWxkL3Y0bC9maXJtd2FyZScNCm1ha2VbMl06IExlYXZp
-bmcgZGlyZWN0b3J5IGAvaG9tZS9wZXRlci9tZWRpYV9idWlsZC92NGwvZmlybXdhcmUnDQptYWtl
-IC1DIGZpcm13YXJlDQptYWtlWzJdOiBFbnRlcmluZyBkaXJlY3RvcnkgYC9ob21lL3BldGVyL21l
-ZGlhX2J1aWxkL3Y0bC9maXJtd2FyZScNCm1ha2VbMl06IE5vdGhpbmcgdG8gYmUgZG9uZSBmb3Ig
-YGRlZmF1bHQnLg0KbWFrZVsyXTogTGVhdmluZyBkaXJlY3RvcnkgYC9ob21lL3BldGVyL21lZGlh
-X2J1aWxkL3Y0bC9maXJtd2FyZScNCktlcm5lbCBidWlsZCBkaXJlY3RvcnkgaXMgL2xpYi9tb2R1
-bGVzLzIuNi4zNS0yNS1nZW5lcmljL2J1aWxkDQptYWtlIC1DIC4uL2xpbnV4IGFwcGx5X3BhdGNo
-ZXMNCm1ha2VbMl06IEVudGVyaW5nIGRpcmVjdG9yeSBgL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQv
-bGludXgnDQpQYXRjaGVzIGZvciB2Mi42LjM1IGFscmVhZHkgYXBwbGllZC4NCm1ha2VbMl06IExl
-YXZpbmcgZGlyZWN0b3J5IGAvaG9tZS9wZXRlci9tZWRpYV9idWlsZC9saW51eCcNCm1ha2UgLUMg
-L2xpYi9tb2R1bGVzLzIuNi4zNS0yNS1nZW5lcmljL2J1aWxkIFNVQkRJUlM9L2hvbWUvcGV0ZXIv
-bWVkaWFfYnVpbGQvdjRsICBtb2R1bGVzDQptYWtlWzJdOiBFbnRlcmluZyBkaXJlY3RvcnkgYC91
-c3Ivc3JjL2xpbnV4LWhlYWRlcnMtMi42LjM1LTI1LWdlbmVyaWMnDQogIENDIFtNXSAgL2hvbWUv
-cGV0ZXIvbWVkaWFfYnVpbGQvdjRsL3R1bmVyLXhjMjAyOC5vDQogIENDIFtNXSAgL2hvbWUvcGV0
-ZXIvbWVkaWFfYnVpbGQvdjRsL3R1bmVyLXNpbXBsZS5vDQogIENDIFtNXSAgL2hvbWUvcGV0ZXIv
-bWVkaWFfYnVpbGQvdjRsL3R1bmVyLXR5cGVzLm8NCiAgQ0MgW01dICAvaG9tZS9wZXRlci9tZWRp
-YV9idWlsZC92NGwvbXQyMHh4Lm8NCiAgQ0MgW01dICAvaG9tZS9wZXRlci9tZWRpYV9idWlsZC92
-NGwvdGRhODI5MC5vDQogIENDIFtNXSAgL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQvdjRsL3RlYTU3
-Njcubw0KICBDQyBbTV0gIC9ob21lL3BldGVyL21lZGlhX2J1aWxkL3Y0bC90ZWE1NzYxLm8NCiAg
-Q0MgW01dICAvaG9tZS9wZXRlci9tZWRpYV9idWlsZC92NGwvdGRhOTg4Ny5vDQogIENDIFtNXSAg
-L2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQvdjRsL3RkYTgyN3gubw0KICBDQyBbTV0gIC9ob21lL3Bl
-dGVyL21lZGlhX2J1aWxkL3Y0bC9hdTA4MjgtY29yZS5vDQogIENDIFtNXSAgL2hvbWUvcGV0ZXIv
-bWVkaWFfYnVpbGQvdjRsL2F1MDgyOC1pMmMubw0KICBDQyBbTV0gIC9ob21lL3BldGVyL21lZGlh
-X2J1aWxkL3Y0bC9hdTA4MjgtY2FyZHMubw0KICBDQyBbTV0gIC9ob21lL3BldGVyL21lZGlhX2J1
-aWxkL3Y0bC9hdTA4MjgtZHZiLm8NCiAgQ0MgW01dICAvaG9tZS9wZXRlci9tZWRpYV9idWlsZC92
-NGwvYXUwODI4LXZpZGVvLm8NCiAgQ0MgW01dICAvaG9tZS9wZXRlci9tZWRpYV9idWlsZC92NGwv
-YXUwODI4LXZiaS5vDQogIENDIFtNXSAgL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQvdjRsL2F1ODUy
-Ml9kaWcubw0KICBDQyBbTV0gIC9ob21lL3BldGVyL21lZGlhX2J1aWxkL3Y0bC9hdTg1MjJfZGVj
-b2Rlci5vDQogIENDIFtNXSAgL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQvdjRsL2ZsZXhjb3AtcGNp
-Lm8NCiAgQ0MgW01dICAvaG9tZS9wZXRlci9tZWRpYV9idWlsZC92NGwvZmxleGNvcC11c2Iubw0K
-ICBDQyBbTV0gIC9ob21lL3BldGVyL21lZGlhX2J1aWxkL3Y0bC9mbGV4Y29wLm8NCiAgQ0MgW01d
-ICAvaG9tZS9wZXRlci9tZWRpYV9idWlsZC92NGwvZmxleGNvcC1mZS10dW5lci5vDQogIENDIFtN
-XSAgL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQvdjRsL2ZsZXhjb3AtaTJjLm8NCiAgQ0MgW01dICAv
-aG9tZS9wZXRlci9tZWRpYV9idWlsZC92NGwvZmxleGNvcC1zcmFtLm8NCiAgQ0MgW01dICAvaG9t
-ZS9wZXRlci9tZWRpYV9idWlsZC92NGwvZmxleGNvcC1lZXByb20ubw0KICBDQyBbTV0gIC9ob21l
-L3BldGVyL21lZGlhX2J1aWxkL3Y0bC9mbGV4Y29wLW1pc2Mubw0KICBDQyBbTV0gIC9ob21lL3Bl
-dGVyL21lZGlhX2J1aWxkL3Y0bC9mbGV4Y29wLWh3LWZpbHRlci5vDQogIENDIFtNXSAgL2hvbWUv
-cGV0ZXIvbWVkaWFfYnVpbGQvdjRsL2ZsZXhjb3AtZG1hLm8NCiAgQ0MgW01dICAvaG9tZS9wZXRl
-ci9tZWRpYV9idWlsZC92NGwvYnR0di1kcml2ZXIubw0KICBDQyBbTV0gIC9ob21lL3BldGVyL21l
-ZGlhX2J1aWxkL3Y0bC9idHR2LWNhcmRzLm8NCiAgQ0MgW01dICAvaG9tZS9wZXRlci9tZWRpYV9i
-dWlsZC92NGwvYnR0di1pZi5vDQogIENDIFtNXSAgL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQvdjRs
-L2J0dHYtcmlzYy5vDQogIENDIFtNXSAgL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQvdjRsL2J0dHYt
-dmJpLm8NCiAgQ0MgW01dICAvaG9tZS9wZXRlci9tZWRpYV9idWlsZC92NGwvYnR0di1pMmMubw0K
-ICBDQyBbTV0gIC9ob21lL3BldGVyL21lZGlhX2J1aWxkL3Y0bC9idHR2LWdwaW8ubw0KICBDQyBb
-TV0gIC9ob21lL3BldGVyL21lZGlhX2J1aWxkL3Y0bC9idHR2LWlucHV0Lm8NCiAgQ0MgW01dICAv
-aG9tZS9wZXRlci9tZWRpYV9idWlsZC92NGwvYnR0di1hdWRpby1ob29rLm8NCiAgQ0MgW01dICAv
-aG9tZS9wZXRlci9tZWRpYV9idWlsZC92NGwvY3BpYTJfdjRsLm8NCiAgQ0MgW01dICAvaG9tZS9w
-ZXRlci9tZWRpYV9idWlsZC92NGwvY3BpYTJfdXNiLm8NCiAgQ0MgW01dICAvaG9tZS9wZXRlci9t
-ZWRpYV9idWlsZC92NGwvY3BpYTJfY29yZS5vDQogIENDIFtNXSAgL2hvbWUvcGV0ZXIvbWVkaWFf
-YnVpbGQvdjRsL2N4MTgtYWxzYS1tYWluLm8NCiAgQ0MgW01dICAvaG9tZS9wZXRlci9tZWRpYV9i
-dWlsZC92NGwvY3gxOC1hbHNhLXBjbS5vDQogIENDIFtNXSAgL2hvbWUvcGV0ZXIvbWVkaWFfYnVp
-bGQvdjRsL2N4MTgtZHJpdmVyLm8NCiAgQ0MgW01dICAvaG9tZS9wZXRlci9tZWRpYV9idWlsZC92
-NGwvY3gxOC1jYXJkcy5vDQogIENDIFtNXSAgL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQvdjRsL2N4
-MTgtaTJjLm8NCiAgQ0MgW01dICAvaG9tZS9wZXRlci9tZWRpYV9idWlsZC92NGwvY3gxOC1maXJt
-d2FyZS5vDQogIENDIFtNXSAgL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQvdjRsL2N4MTgtZ3Bpby5v
-DQogIENDIFtNXSAgL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQvdjRsL2N4MTgtcXVldWUubw0KICBD
-QyBbTV0gIC9ob21lL3BldGVyL21lZGlhX2J1aWxkL3Y0bC9jeDE4LXN0cmVhbXMubw0KICBDQyBb
-TV0gIC9ob21lL3BldGVyL21lZGlhX2J1aWxkL3Y0bC9jeDE4LWZpbGVvcHMubw0KICBDQyBbTV0g
-IC9ob21lL3BldGVyL21lZGlhX2J1aWxkL3Y0bC9jeDE4LWlvY3RsLm8NCiAgQ0MgW01dICAvaG9t
-ZS9wZXRlci9tZWRpYV9idWlsZC92NGwvY3gxOC1jb250cm9scy5vDQogIENDIFtNXSAgL2hvbWUv
-cGV0ZXIvbWVkaWFfYnVpbGQvdjRsL2N4MTgtbWFpbGJveC5vDQogIENDIFtNXSAgL2hvbWUvcGV0
-ZXIvbWVkaWFfYnVpbGQvdjRsL2N4MTgtdmJpLm8NCiAgQ0MgW01dICAvaG9tZS9wZXRlci9tZWRp
-YV9idWlsZC92NGwvY3gxOC1hdWRpby5vDQogIENDIFtNXSAgL2hvbWUvcGV0ZXIvbWVkaWFfYnVp
-bGQvdjRsL2N4MTgtdmlkZW8ubw0KICBDQyBbTV0gIC9ob21lL3BldGVyL21lZGlhX2J1aWxkL3Y0
-bC9jeDE4LWlycS5vDQogIENDIFtNXSAgL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQvdjRsL2N4MTgt
-YXYtY29yZS5vDQogIENDIFtNXSAgL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQvdjRsL2N4MTgtYXYt
-YXVkaW8ubw0KICBDQyBbTV0gIC9ob21lL3BldGVyL21lZGlhX2J1aWxkL3Y0bC9jeDE4LWF2LWZp
-cm13YXJlLm8NCiAgQ0MgW01dICAvaG9tZS9wZXRlci9tZWRpYV9idWlsZC92NGwvY3gxOC1hdi12
-Ymkubw0KICBDQyBbTV0gIC9ob21lL3BldGVyL21lZGlhX2J1aWxkL3Y0bC9jeDE4LXNjYi5vDQog
-IENDIFtNXSAgL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQvdjRsL2N4MTgtZHZiLm8NCiAgQ0MgW01d
-ICAvaG9tZS9wZXRlci9tZWRpYV9idWlsZC92NGwvY3gxOC1pby5vDQogIENDIFtNXSAgL2hvbWUv
-cGV0ZXIvbWVkaWFfYnVpbGQvdjRsL2N4MjMxeHgtYXVkaW8ubw0KICBDQyBbTV0gIC9ob21lL3Bl
-dGVyL21lZGlhX2J1aWxkL3Y0bC9jeDIzMXh4LXZpZGVvLm8NCiAgQ0MgW01dICAvaG9tZS9wZXRl
-ci9tZWRpYV9idWlsZC92NGwvY3gyMzF4eC1pMmMubw0KICBDQyBbTV0gIC9ob21lL3BldGVyL21l
-ZGlhX2J1aWxkL3Y0bC9jeDIzMXh4LWNhcmRzLm8NCiAgQ0MgW01dICAvaG9tZS9wZXRlci9tZWRp
-YV9idWlsZC92NGwvY3gyMzF4eC1jb3JlLm8NCiAgQ0MgW01dICAvaG9tZS9wZXRlci9tZWRpYV9i
-dWlsZC92NGwvY3gyMzF4eC1hdmNvcmUubw0KICBDQyBbTV0gIC9ob21lL3BldGVyL21lZGlhX2J1
-aWxkL3Y0bC9jeDIzMXh4LTQxNy5vDQogIENDIFtNXSAgL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQv
-djRsL2N4MjMxeHgtcGNiLWNmZy5vDQogIENDIFtNXSAgL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQv
-djRsL2N4MjMxeHgtdmJpLm8NCiAgQ0MgW01dICAvaG9tZS9wZXRlci9tZWRpYV9idWlsZC92NGwv
-Y3gyMzF4eC1pbnB1dC5vDQogIENDIFtNXSAgL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQvdjRsL2N4
-MjM4ODUtY2FyZHMubw0KL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQvdjRsL2N4MjM4ODUtY2FyZHMu
-YzoyODogZmF0YWwgZXJyb3I6IHN0YWdpbmcvYWx0ZXJhLmg6IE5vIHN1Y2ggZmlsZSBvciBkaXJl
-Y3RvcnkNCmNvbXBpbGF0aW9uIHRlcm1pbmF0ZWQuDQptYWtlWzNdOiAqKiogWy9ob21lL3BldGVy
-L21lZGlhX2J1aWxkL3Y0bC9jeDIzODg1LWNhcmRzLm9dIEVycm9yIDENCm1ha2VbMl06ICoqKiBb
-X21vZHVsZV8vaG9tZS9wZXRlci9tZWRpYV9idWlsZC92NGxdIEVycm9yIDINCm1ha2VbMl06IExl
-YXZpbmcgZGlyZWN0b3J5IGAvdXNyL3NyYy9saW51eC1oZWFkZXJzLTIuNi4zNS0yNS1nZW5lcmlj
-Jw0KbWFrZVsxXTogKioqIFtkZWZhdWx0XSBFcnJvciAyDQptYWtlWzFdOiBMZWF2aW5nIGRpcmVj
-dG9yeSBgL2hvbWUvcGV0ZXIvbWVkaWFfYnVpbGQvdjRsJw0KbWFrZTogKioqIFthbGxdIEVycm9y
-IDINCioqKiBFUlJPUi4gQWJvcnRpbmcgKioqDQpwZXRlckBHYXJhZ2UyOn4vbWVkaWFfYnVpbGQk
-
---_36065531-bb62-4dde-b87f-03949d319137_
-Content-Type: text/plain
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="channels.conf.txt"
-
-U0JTIE9ORTo1MzY2MjUwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzdfTUhaOkZFQ18yXzM6
-RkVDXzFfMjpRQU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV84OkhJ
-RVJBUkNIWV9OT05FOjE2MTo4MTo3ODUNClNCUyBUV086NTM2NjI1MDAwOklOVkVSU0lPTl9BVVRP
-OkJBTkRXSURUSF83X01IWjpGRUNfMl8zOkZFQ18xXzI6UUFNXzY0OlRSQU5TTUlTU0lPTl9NT0RF
-XzhLOkdVQVJEX0lOVEVSVkFMXzFfODpISUVSQVJDSFlfTk9ORToxNjI6ODM6Nzg2DQpTQlMgMzo1
-MzY2MjUwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzdfTUhaOkZFQ18yXzM6RkVDXzFfMjpR
-QU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV84OkhJRVJBUkNIWV9O
-T05FOjE2MTo4MTo3ODcNClNCUyA0OjUzNjYyNTAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhf
-N19NSFo6RkVDXzJfMzpGRUNfMV8yOlFBTV82NDpUUkFOU01JU1NJT05fTU9ERV84SzpHVUFSRF9J
-TlRFUlZBTF8xXzg6SElFUkFSQ0hZX05PTkU6MTYxOjgxOjc4OA0KU0JTIEhEOjUzNjYyNTAwMDpJ
-TlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfN19NSFo6RkVDXzJfMzpGRUNfMV8yOlFBTV82NDpUUkFO
-U01JU1NJT05fTU9ERV84SzpHVUFSRF9JTlRFUlZBTF8xXzg6SElFUkFSQ0hZX05PTkU6MTAyOjEw
-Mzo3ODkNClNCUyBSYWRpbyAxOjUzNjYyNTAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfN19N
-SFo6RkVDXzJfMzpGRUNfMV8yOlFBTV82NDpUUkFOU01JU1NJT05fTU9ERV84SzpHVUFSRF9JTlRF
-UlZBTF8xXzg6SElFUkFSQ0hZX05PTkU6MDoyMDE6Nzk4DQpTQlMgUmFkaW8gMjo1MzY2MjUwMDA6
-SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzdfTUhaOkZFQ18yXzM6RkVDXzFfMjpRQU1fNjQ6VFJB
-TlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV84OkhJRVJBUkNIWV9OT05FOjA6MjAy
-Ojc5OQ==
-
---_36065531-bb62-4dde-b87f-03949d319137_
-Content-Type: text/plain
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="tzap.txt"
-
-cGV0ZXJAR2FyYWdlMjp+Ly50emFwJCB0emFwIGMzMQ0KdXNpbmcgJy9kZXYvZHZiL2FkYXB0ZXIw
-L2Zyb250ZW5kMCcgYW5kICcvZGV2L2R2Yi9hZGFwdGVyMC9kZW11eDAnDQpyZWFkaW5nIGNoYW5u
-ZWxzIGZyb20gZmlsZSAnL2hvbWUvcGV0ZXIvLnR6YXAvY2hhbm5lbHMuY29uZicNCnR1bmluZyB0
-byA1NTc2MjUwMDAgSHoNCnZpZGVvIHBpZCAweDAwNjUsIGF1ZGlvIHBpZCAweDAwNjYNCnN0YXR1
-cyAwZSB8IHNpZ25hbCBmZmZmIHwgc25yIDAwNmEgfCBiZXIgMDAxZmZmZmYgfCB1bmMgMDAwMDAw
-MDAgfCANCnN0YXR1cyAxZSB8IHNpZ25hbCBmZmZmIHwgc25yIDAwMzEgfCBiZXIgMDAwMDAwMDAg
-fCB1bmMgMDAwMDAwMDAgfCBGRV9IQVNfTE9DSw0Kc3RhdHVzIDFlIHwgc2lnbmFsIGZmZmYgfCBz
-bnIgMDA3YiB8IGJlciAwMDAwMDAwMCB8IHVuYyAwMDAwMDAwMCB8IEZFX0hBU19MT0NLDQpzdGF0
-dXMgMWUgfCBzaWduYWwgZmZmZiB8IHNuciAwMDQwIHwgYmVyIDAwMDAwMDAwIHwgdW5jIDAwMDAw
-MDAwIHwgRkVfSEFTX0xPQ0sNCnN0YXR1cyAxZSB8IHNpZ25hbCBmZmZmIHwgc25yIDAwMjcgfCBi
-ZXIgMDAwMDAwMDAgfCB1bmMgMDAwMDAwMDAgfCBGRV9IQVNfTE9DSw0KDQoNCnBldGVyQEdhcmFn
-ZTI6fi8udHphcCQgdHphcCAiU0JTIERpZ2l0YWwgMSINCnVzaW5nICcvZGV2L2R2Yi9hZGFwdGVy
-MC9mcm9udGVuZDAnIGFuZCAnL2Rldi9kdmIvYWRhcHRlcjAvZGVtdXgwJw0KcmVhZGluZyBjaGFu
-bmVscyBmcm9tIGZpbGUgJy9ob21lL3BldGVyLy50emFwL2NoYW5uZWxzLmNvbmYnDQp0dW5pbmcg
-dG8gNTM2NjI1MDAwIEh6DQp2aWRlbyBwaWQgMHgwMGExLCBhdWRpbyBwaWQgMHgwMDUxDQpzdGF0
-dXMgMDIgfCBzaWduYWwgZmZmZiB8IHNuciAwMDJiIHwgYmVyIDAwMWZmZmZmIHwgdW5jIDAwMDAw
-MDAwIHwgDQpzdGF0dXMgMWEgfCBzaWduYWwgZmZmZiB8IHNuciAwMDI0IHwgYmVyIDAwMWZmZmZm
-IHwgdW5jIDAwMDAwMDAwIHwgRkVfSEFTX0xPQ0sNCnN0YXR1cyAxYSB8IHNpZ25hbCBmZmZmIHwg
-c25yIDAwMjAgfCBiZXIgMDAxZmZmZmYgfCB1bmMgMDAwMDAwMDAgfCBGRV9IQVNfTE9DSw0Kc3Rh
-dHVzIDFhIHwgc2lnbmFsIGZmZmYgfCBzbnIgMDAxOSB8IGJlciAwMDFmZmZmZiB8IHVuYyAwMDAw
-MDAwOSB8IEZFX0hBU19MT0NLDQoNCg0KcGV0ZXJAR2FyYWdlMjp+Ly50emFwJCB0emFwICJUZW4g
-RGlnaXRhbCAxIg0KdXNpbmcgJy9kZXYvZHZiL2FkYXB0ZXIwL2Zyb250ZW5kMCcgYW5kICcvZGV2
-L2R2Yi9hZGFwdGVyMC9kZW11eDAnDQpyZWFkaW5nIGNoYW5uZWxzIGZyb20gZmlsZSAnL2hvbWUv
-cGV0ZXIvLnR6YXAvY2hhbm5lbHMuY29uZicNCnR1bmluZyB0byAyMTk1MDAwMDAgSHoNCnZpZGVv
-IHBpZCAweDAyMDAsIGF1ZGlvIHBpZCAweDAyOGENCnN0YXR1cyAwMiB8IHNpZ25hbCBmZmZmIHwg
-c25yIDAwMWMgfCBiZXIgMDAxZmZmZmYgfCB1bmMgMDAwMDAwMDAgfCANCnN0YXR1cyAxYSB8IHNp
-Z25hbCBmZmZmIHwgc25yIDAwMTcgfCBiZXIgMDAxZmZmZmYgfCB1bmMgMDAwMDAwMGIgfCBGRV9I
-QVNfTE9DSw0Kc3RhdHVzIDFhIHwgc2lnbmFsIGZmZmYgfCBzbnIgMDAwZSB8IGJlciAwMDFmZmZm
-ZiB8IHVuYyAwMDAwMDAwMCB8IEZFX0hBU19MT0NLDQpzdGF0dXMgMWEgfCBzaWduYWwgZmZmZiB8
-IHNuciAwMDA4IHwgYmVyIDAwMWZmZmZmIHwgdW5jIDAwMDAwMDAwIHwgRkVfSEFTX0xPQ0sNCnN0
-YXR1cyAxYSB8IHNpZ25hbCBmZmZmIHwgc25yIDAwMDYgfCBiZXIgMDAxZmZmZmYgfCB1bmMgMDAw
-MDAwMDAgfCBGRV9IQVNfTE9DSw0KDQoNCnBldGVyQEdhcmFnZTI6fi8udHphcCQgdHphcCAiTmlu
-ZSBEaWdpdGFsIg0KdXNpbmcgJy9kZXYvZHZiL2FkYXB0ZXIwL2Zyb250ZW5kMCcgYW5kICcvZGV2
-L2R2Yi9hZGFwdGVyMC9kZW11eDAnDQpyZWFkaW5nIGNoYW5uZWxzIGZyb20gZmlsZSAnL2hvbWUv
-cGV0ZXIvLnR6YXAvY2hhbm5lbHMuY29uZicNCnR1bmluZyB0byAxOTE2MjUwMDAgSHoNCnZpZGVv
-IHBpZCAweDAyMDcsIGF1ZGlvIHBpZCAweDAyZDANCnN0YXR1cyAwMiB8IHNpZ25hbCBmZmZmIHwg
-c25yIDAwMTIgfCBiZXIgMDAxZmZmZmYgfCB1bmMgMDAwMDAwMDAgfCANCnN0YXR1cyAxYSB8IHNp
-Z25hbCBmZmZmIHwgc25yIDAwMTIgfCBiZXIgMDAxZmZmZmYgfCB1bmMgMDAwMDAwMDAgfCBGRV9I
-QVNfTE9DSw0Kc3RhdHVzIDFhIHwgc2lnbmFsIGZmZmYgfCBzbnIgMDAwZCB8IGJlciAwMDFmZmZm
-ZiB8IHVuYyAwMDAwMDAwMCB8IEZFX0hBU19MT0NLDQpzdGF0dXMgMWEgfCBzaWduYWwgZmZmZiB8
-IHNuciAwMDA5IHwgYmVyIDAwMWZmZmZmIHwgdW5jIDAwMDAwMDAwIHwgRkVfSEFTX0xPQ0sNCnN0
-YXR1cyAxYSB8IHNpZ25hbCBmZmZmIHwgc25yIDAwMDYgfCBiZXIgMDAxZmZmZmYgfCB1bmMgMDAw
-MDAwMDAgfCBGRV9IQVNfTE9DSw0Kc3RhdHVzIDFhIHwgc2lnbmFsIGZmZmYgfCBzbnIgMDAwNCB8
-IGJlciAwMDFmZmZmZiB8IHVuYyAwMDAwMDAwMCB8IEZFX0hBU19MT0NLDQoNCg0KDQpwZXRlckBH
-YXJhZ2UyOn4vLnR6YXAkIHR6YXAgIjcgRGlnaXRhbCINCnVzaW5nICcvZGV2L2R2Yi9hZGFwdGVy
-MC9mcm9udGVuZDAnIGFuZCAnL2Rldi9kdmIvYWRhcHRlcjAvZGVtdXgwJw0KcmVhZGluZyBjaGFu
-bmVscyBmcm9tIGZpbGUgJy9ob21lL3BldGVyLy50emFwL2NoYW5uZWxzLmNvbmYnDQp0dW5pbmcg
-dG8gMTc3NTAwMDAwIEh6DQp2aWRlbyBwaWQgMHgwMzAxLCBhdWRpbyBwaWQgMHgwMzAyDQpzdGF0
-dXMgMGEgfCBzaWduYWwgZmZmZiB8IHNuciAwMDFjIHwgYmVyIDAwMWZmZmZmIHwgdW5jIDAwMDAw
-MDAwIHwgDQpzdGF0dXMgMWEgfCBzaWduYWwgZmZmZiB8IHNuciAwMDE3IHwgYmVyIDAwMWZmZmZm
-IHwgdW5jIDAwMDAwMDAwIHwgRkVfSEFTX0xPQ0sNCnN0YXR1cyAxYSB8IHNpZ25hbCBmZmZmIHwg
-c25yIDAwMTAgfCBiZXIgMDAxZmZmZmYgfCB1bmMgMDAwMDAwMDggfCBGRV9IQVNfTE9DSw0Kc3Rh
-dHVzIDFhIHwgc2lnbmFsIGZmZmYgfCBzbnIgMDAwZiB8IGJlciAwMDFmZmZmZiB8IHVuYyAwMDAw
-MDAwMCB8IEZFX0hBU19MT0NLDQpzdGF0dXMgMWEgfCBzaWduYWwgZmZmZiB8IHNuciAwMDBlIHwg
-YmVyIDAwMWZmZmZmIHwgdW5jIDAwMDAwMDAwIHwgRkVfSEFTX0xPQ0sNCg0KDQpwZXRlckBHYXJh
-Z2UyOn4vLnR6YXAkIHR6YXAgIkFCQyBIRFRWIg0KdXNpbmcgJy9kZXYvZHZiL2FkYXB0ZXIwL2Zy
-b250ZW5kMCcgYW5kICcvZGV2L2R2Yi9hZGFwdGVyMC9kZW11eDAnDQpyZWFkaW5nIGNoYW5uZWxz
-IGZyb20gZmlsZSAnL2hvbWUvcGV0ZXIvLnR6YXAvY2hhbm5lbHMuY29uZicNCnR1bmluZyB0byAy
-MjY1MDAwMDAgSHoNCnZpZGVvIHBpZCAweDA5MGEsIGF1ZGlvIHBpZCAweDAwMDANCnN0YXR1cyAw
-YSB8IHNpZ25hbCBmZmZmIHwgc25yIDAwMWMgfCBiZXIgMDAxZmZmZmYgfCB1bmMgMDAwMDAwMDAg
-fCANCnN0YXR1cyAxYSB8IHNpZ25hbCBmZmZmIHwgc25yIDAwMGYgfCBiZXIgMDAxZmZmZmYgfCB1
-bmMgMDAwMDAwMDAgfCBGRV9IQVNfTE9DSw0Kc3RhdHVzIDFhIHwgc2lnbmFsIGZmZmYgfCBzbnIg
-MDAwOCB8IGJlciAwMDFmZmZmZiB8IHVuYyAwMDAwMDAwMCB8IEZFX0hBU19MT0NLDQpzdGF0dXMg
-MWEgfCBzaWduYWwgZmZmZiB8IHNuciAwMDA4IHwgYmVyIDAwMWZmZmZmIHwgdW5jIDAwMDAwMDAw
-IHwgRkVfSEFTX0xPQ0sNCg0K
-
---_36065531-bb62-4dde-b87f-03949d319137_--
+Thanks!
+Mauro
