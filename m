@@ -1,80 +1,55 @@
 Return-path: <mchehab@pedra>
-Received: from kroah.org ([198.145.64.141]:44555 "EHLO coco.kroah.org"
+Received: from comal.ext.ti.com ([198.47.26.152]:60675 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754917Ab1COOWS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Mar 2011 10:22:18 -0400
-Date: Tue, 15 Mar 2011 07:18:59 -0700
-From: Greg KH <greg@kroah.com>
-To: James Bottomley <James.Bottomley@suse.de>
-Cc: Vasiliy Kulikov <segoon@openwall.com>, security@kernel.org,
-	acpi4asus-user@lists.sourceforge.net, linux-scsi@vger.kernel.org,
-	rtc-linux@googlegroups.com, linux-usb@vger.kernel.org,
-	linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org,
-	open-iscsi@googlegroups.com, linux-omap@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [Security] [PATCH 00/20] world-writable files in sysfs and
- debugfs
-Message-ID: <20110315141859.GA19442@kroah.com>
-References: <cover.1296818921.git.segoon@openwall.com>
- <AANLkTikE-A=Fe-yRrN0opWwJGQ0f4uOzkyB3XCcEUrFE@mail.gmail.com>
- <1300155965.5665.15.camel@mulgrave.site>
- <20110315030956.GA2234@kroah.com>
- <1300189828.4017.2.camel@mulgrave.site>
+	id S1752042Ab1CVO3U convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Mar 2011 10:29:20 -0400
+From: "Nori, Sekhar" <nsekhar@ti.com>
+To: "Hadli, Manjunath" <manjunath.hadli@ti.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Kevin Hilman <khilman@deeprootsystems.com>,
+	LAK <linux-arm-kernel@lists.infradead.org>
+CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Date: Tue, 22 Mar 2011 19:58:57 +0530
+Subject: RE: [PATCH v17 12/13] davinci: dm644x: add support for v4l2 video
+ display
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024C47D8A2@dbde02.ent.ti.com>
+References: <1300197580-5029-1-git-send-email-manjunath.hadli@ti.com>
+In-Reply-To: <1300197580-5029-1-git-send-email-manjunath.hadli@ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1300189828.4017.2.camel@mulgrave.site>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, Mar 15, 2011 at 07:50:28AM -0400, James Bottomley wrote:
-> On Mon, 2011-03-14 at 20:09 -0700, Greg KH wrote:
-> > On Mon, Mar 14, 2011 at 10:26:05PM -0400, James Bottomley wrote:
-> > > On Sat, 2011-03-12 at 23:23 +0300, Vasiliy Kulikov wrote:
-> > > > > Vasiliy Kulikov (20):
-> > > > >  mach-ux500: mbox-db5500: world-writable sysfs fifo file
-> > > > >  leds: lp5521: world-writable sysfs engine* files
-> > > > >  leds: lp5523: world-writable engine* sysfs files
-> > > > >  misc: ep93xx_pwm: world-writable sysfs files
-> > > > >  rtc: rtc-ds1511: world-writable sysfs nvram file
-> > > > >  scsi: aic94xx: world-writable sysfs update_bios file
-> > > > >  scsi: iscsi: world-writable sysfs priv_sess file
-> > > > 
-> > > > These are still not merged :(
-> > > 
-> > > OK, so I've not been tracking where we are in the dizzying ride on
-> > > security systems.  However, I thought we landed up in the privilege
-> > > separation arena using capabilities.  That means that world writeable
-> > > files aren't necessarily a problem as long as the correct capabilities
-> > > checks are in place, right?
-> > 
-> > There are no capability checks on sysfs files right now, so these all
-> > need to be fixed.
+On Tue, Mar 15, 2011 at 19:29:40, Hadli, Manjunath wrote:
+> Create platform devices for various video modules like venc,osd,
+> vpbe and v4l2 driver for dm644x.
 > 
-> That statement is true but irrelevant, isn't it?  There can't be
-> capabilities within sysfs files because the system that does them has no
-> idea what the capabilities would be.  If there were capabilities checks,
-> they'd have to be in the implementing routines.
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> ---
 
-Ah, you are correct, sorry for the misunderstanding.
+> +struct venc_platform_data dm644x_venc_pdata = {
+> +	.venc_type	= VPBE_VERSION_1,
+> +	.setup_clock	= dm644x_venc_setup_clock,
+> +};
 
-> I think the questions are twofold:
-> 
->      1. Did anyone actually check for capabilities before assuming world
->         writeable files were wrong?
+Sparse pointed out that this symbol can
+be static.
 
-I do not think so as the majority (i.e. all the ones that I looked at)
-did no such checks.
+Can you please build the complete series with
+C=1 on the command line? This will enable
+sparse check on all files being re-compiled.
 
->      2. Even if there aren't any capabilities checks in the implementing
->         routines, should there be (are we going the separated
->         capabilities route vs the monolithic root route)?
+I also noticed some sparse warnings on vpbe_venc.c
 
-I think the general consensus is that we go the monolithic root route
-for sysfs files in that we do not allow them to be world writable.
+Also, please build with CONFIG_DEBUG_SECTION_MISMATCH=y
+on the command line. I noticed some section
+mismatches as well with the new code.
 
-Do you have any exceptions that you know of that do these checks?
+Thanks,
+Sekhar
 
-thanks,
-
-greg k-h
