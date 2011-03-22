@@ -1,71 +1,125 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:33219 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753264Ab1CJPoB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Mar 2011 10:44:01 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: mt9p031 support for Beagleboard.
-Date: Thu, 10 Mar 2011 16:44:23 +0100
-Cc: javier Martin <javier.martin@vista-silicon.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <AANLkTi=8iEa4ZXvh1SqL8XdHuB2YcDAxXAqouJA2JriV@mail.gmail.com> <Pine.LNX.4.64.1103101632260.18816@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1103101632260.18816@axis700.grange>
+Received: from mx1.redhat.com ([209.132.183.28]:14217 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751146Ab1CVJBJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Mar 2011 05:01:09 -0400
+Message-ID: <4D886541.60302@redhat.com>
+Date: Tue, 22 Mar 2011 06:00:49 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Andrew de Quincey <adq_dvb@lidskialf.net>
+CC: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [patch] Fix AF9015 Dual tuner i2c write failures
+References: <AANLkTi=rcfL_pku9hhx68C_Fb_76KsW2Yy+Oys10a7+4@mail.gmail.com>	<4D7163FD.9030604@iki.fi>	<AANLkTimjC99zhJ=huHZiGgbENCoyHy5KT87iujjTT8w3@mail.gmail.com>	<4D716ECA.4060900@iki.fi> <AANLkTimHa6XFwhvpLbhtRm7Vee-jYPkHpx+D8L2=+vQb@mail.gmail.com>
+In-Reply-To: <AANLkTimHa6XFwhvpLbhtRm7Vee-jYPkHpx+D8L2=+vQb@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201103101644.23547.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Guennadi,
-
-On Thursday 10 March 2011 16:36:36 Guennadi Liakhovetski wrote:
-> On Thu, 10 Mar 2011, javier Martin wrote:
-> > Hi,
-> > we are going to receive a Beagleaboard xM board in a couple of days.
-> > One of the things we would like to test is video capture.
-> > 
-> > When it comes to the DM3730 SoC, it seems the support is given through
-> > these two files:
-> > http://lxr.linux.no/#linux+v2.6.37.3/drivers/media/video/davinci/vpfe_cap
-> > ture.c --> to capture from sensor
-> > http://lxr.linux.no/#linux+v2.6.37.3/drivers/media/video/davinci/dm644x_c
-> > cdc.c --> to convert from Bayer RGB to YUV
-> > 
-> > On the other hand, the sensor we would like to test is mt9p031 which
-> > comes with LI-5M03, a module that can be attached to Beagleboard xM
-> > directly:
-> > https://www.leopardimaging.com/Beagle_Board_xM_Camera.html
-> > 
-> > By a lot of googling I found this version of a driver for mt9p031
-> > which is developed by Guennadi Liakhovetski. It is located in a 2.6.32
-> > based branch:
-> That's a back-port of my patches by a "third party";) Probably, never
-> actually tested.
+Em 04-03-2011 20:11, Andrew de Quincey escreveu:
+> On 4 March 2011 22:59, Antti Palosaari <crope@iki.fi> wrote:
+>> On 03/05/2011 12:44 AM, Andrew de Quincey wrote:
+>>>>>
+>>>>> Adding a "bus lock" to af9015_i2c_xfer() will not work as demod/tuner
+>>>>> accesses will take multiple i2c transactions.
+>>>>>
+>>>>> Therefore, the following patch overrides the dvb_frontend_ops
+>>>>> functions to add a per-device lock around them: only one frontend can
+>>>>> now use the i2c bus at a time. Testing with the scripts above shows
+>>>>> this has eliminated the errors.
+>>>>
+>>>> This have annoyed me too, but since it does not broken functionality much
+>>>> I
+>>>> haven't put much effort for fixing it. I like that fix since it is in
+>>>> AF9015
+>>>> driver where it logically belongs to. But it looks still rather complex.
+>>>> I
+>>>> see you have also considered "bus lock" to af9015_i2c_xfer() which could
+>>>> be
+>>>> much smaller in code size (that's I have tried to implement long time
+>>>> back).
+>>>>
+>>>> I would like to ask if it possible to check I2C gate open / close inside
+>>>> af9015_i2c_xfer() and lock according that? Something like:
+>>>
+>>> Hmm, I did think about that, but I felt overriding the functions was
+>>> just cleaner: I felt it was more obvious what it was doing. Doing
+>>> exactly this sort of tweaking was one of the main reasons we added
+>>> that function overriding feature.
+>>>
+>>> I don't like the idea of returning "error locked by FE" since that'll
+>>> mean the tuning will randomly fail sometimes in a way visible to
+>>> userspace (unless we change the core dvb_frontend code), which was one
+>>> of the things I was trying to avoid. Unless, of course, I've
+>>> misunderstood your proposal.
+>>
+>> Not returning error, but waiting in lock like that:
+>> if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
+>>  return -EAGAIN;
 > 
-> > http://arago-project.org/git/projects/?p=linux-davinci.git;a=blob;f=drive
-> > rs/media/video/mt9p031.c;h=66b5e54d0368052bf76796aa846e9464e42204bb;hb=HE
-> > AD
-> > 
-> > The question is, what does this driver lack for not entering into
-> > mainline? We would be very interested on helping it make it.
+> Ah k, sorry
 > 
-> I'm waiting for media-controller to be pulled by Mauro (I think, they
-> needed some updates by Laurent, not sure about the current state). As soon
-> as that's in the mainline, I'll try to find some time to update, clean up
-> and submit my beagle-board and mt9p031 patches.
+>>> However, looking at the code again, I realise it is possible to
+>>> simplify it. Since its only the demod gates that cause a problem, we
+>>> only /actually/ need to lock the get_frontend() and set_frontend()
+>>> calls.
+>>
+>> I don't understand why .get_frontend() causes problem, since it does not
+>> access tuner at all. It only reads demod registers. The main problem is
+>> (like schema in af9015.c shows) that there is two tuners on same I2C bus
+>> using same address. And demod gate is only way to open access for desired
+>> tuner only.
+> 
+> AFAIR /some/ tuner code accesses the tuner hardware to read the exact
+> tuned frequency back on a get_frontend(); was just being extra
+> paranoid :)
+> 
+>> You should block traffic based of tuner not demod. And I think those
+>> callbacks which are needed for override are tuner driver callbacks. Consider
+>> situation device goes it v4l-core calls same time both tuner .sleep() ==
+>> problem.
+> 
+> Hmm, yeah, you're right, let me have another look tomorrow.
 
-I'll submit Aptina sensor drivers as well. I'll review your patches.
+Andrew, Antti,
 
-I'm curious about the Beagleboard code, as the camera module is an expansion 
-board you obviously can't hardcode support for it in the board file. How do 
-you plan to handle that ?
+I'm understanding that I should wait for another patch on this subject, right?
+Please let me know when you have a patch ready for me to apply.
 
--- 
-Regards,
+Btw, I think that the long term solution would be, instead, to provide some sort of
+resource locking inside DVB (and V4L) core. I have here 3 devices not supported yet that
+uses the same tuner (and the same demod - DRX-K) for both DVB-C and DVB-T. It would
+be a way better to use some core-provided solution to prevent that both DVB-C and DVB-T
+would be used at the same time on such devices, instead of cloning the same code
+(or modified versions on it) on each driver that have such issues.
 
-Laurent Pinchart
+One solution could be to have a callback like:
+
+enum dvb_fe_lock_type {
+	ATV_DEMOD_LOCK,
+	DTV_DEMOD_T_LOCK,
+	DTV_DEMOD_S_LOCK,
+	DTV_DEMOD_C_LOCK,
+	TUNER_T_LOCK,
+	TUNER_S_LOCK,
+	TUNER_C_LOCK,
+	TUNER_FM_LOCK,
+	FM_DEMOD_LOCK,
+};
+
+/**
+ * dvb_fe_lock - locks a frontend resource
+ * @fe:		DVB frontend struct
+ * @type:	type of resource to lock
+ * @lock:	true indicates to lock the resource, false to unlock
+ *
+ * Returns true if the resource was locked, false otherwise.
+ * routine may wait for a pending transaction to happen before returning.
+ */
+bool (*dvb_fe_lock)(struct dvb_frontend *fe, enum dvb_fe_lock_type type, bool lock);
+
+What do you think?
+
+Thanks,
+Mauro.
