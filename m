@@ -1,83 +1,82 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:55644 "EHLO
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:57365 "EHLO
 	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756183Ab1CGVfd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Mar 2011 16:35:33 -0500
-MIME-Version: 1.0
-In-Reply-To: <201103072219.32938.laurent.pinchart@ideasonboard.com>
-References: <4D6D219D.7020605@matrix-vision.de>
-	<AANLkTi=KncNfW0NEEoV+mrT_Ft2j-c=rQG=qbeR6tLQK@mail.gmail.com>
-	<AANLkTimac512Gu0_vyPjThvNxXHsXTRD73B0d1bHnnAg@mail.gmail.com>
-	<201103072219.32938.laurent.pinchart@ideasonboard.com>
-Date: Mon, 7 Mar 2011 23:35:31 +0200
-Message-ID: <AANLkTi=9CYUbkxaSit76OwFR=4PpH+0nDzg5vQLaV51s@mail.gmail.com>
-Subject: Re: [PATCH] omap: iommu: disallow mapping NULL address
-From: David Cohen <dacohen@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>,
-	Hiroshi.DOYU@nokia.com,
-	Michael Jones <michael.jones@matrix-vision.de>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-omap@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	with ESMTP id S1752757Ab1CVWMv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Mar 2011 18:12:51 -0400
+Received: by wya21 with SMTP id 21so7159148wya.19
+        for <linux-media@vger.kernel.org>; Tue, 22 Mar 2011 15:12:50 -0700 (PDT)
+Subject: Re: [PATCH 1/2] v180 - DM04/QQBOX added support for BS2F7HZ0194
+ versions
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+In-Reply-To: <4D87F0CB.2090705@iki.fi>
+References: <1297560908.24985.5.camel@tvboxspy>
+	 <4D87EAA7.2040803@redhat.com> <1300753968.15997.4.camel@localhost>
+	 <4D87F0CB.2090705@iki.fi>
+Content-Type: text/plain; charset="UTF-8"
+Date: Tue, 22 Mar 2011 22:12:39 +0000
+Message-ID: <1300831959.2048.25.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, Mar 7, 2011 at 11:19 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi David,
+On Tue, 2011-03-22 at 02:43 +0200, Antti Palosaari wrote:
+> On 03/22/2011 02:32 AM, Malcolm Priestley wrote:
+> > On Mon, 2011-03-21 at 21:17 -0300, Mauro Carvalho Chehab wrote:
+> >> Em 12-02-2011 23:35, Malcolm Priestley escreveu:
+> >>> Old versions of these boxes have the BS2F7HZ0194 tuner module on
+> >>> both the LME2510 and LME2510C.
+> >>>
+> >>> Firmware dvb-usb-lme2510-s0194.fw  and/or dvb-usb-lme2510c-s0194.fw
+> >>> files are required.
+> >>>
+> >>> See Documentation/dvb/lmedm04.txt
+> >>>
+> >>> Patch 535181 is also required.
+> >>>
+> >>> Signed-off-by: Malcolm Priestley<tvboxspy@gmail.com>
+> >>> ---
+> >>
+> >>> @@ -1110,5 +1220,5 @@ module_exit(lme2510_module_exit);
+> >>>
+> >>>   MODULE_AUTHOR("Malcolm Priestley<tvboxspy@gmail.com>");
+> >>>   MODULE_DESCRIPTION("LME2510(C) DVB-S USB2.0");
+> >>> -MODULE_VERSION("1.76");
+> >>> +MODULE_VERSION("1.80");
+> >>>   MODULE_LICENSE("GPL");
+> >>
+> >>
+> >> There were a merge conflict on this patch. The version we have was 1.75.
+> >>
+> >> Maybe some patch got missed?
+> >
+> > 1.76 relates to remote control patches.
+> >
+> > https://patchwork.kernel.org/patch/499391/
+> > https://patchwork.kernel.org/patch/499401/
+> 
+> Those are NEC extended remotes. You are now setting it as 32 bit NEC, in 
+> my understanding it should be defined as 24 bit NEC extended.
+> 
+> Anyhow, my opinion is still that we *should* make all NEC remotes as 32 
+> bit and leave handling of NEC 16, NEC 24, NEC 32 to NEC decoder. For 
+> example AF9015 current NEC handling is too complex for that reason... I 
+> don't like how it is implemented currently.
 
-Hi Laurent,
+One of the reasons for using 32 bit was interference from other consumer
+remotes.  It appears, these near identical bubble remotes originate from
+a Chinese factory and supplied with the same product with completely
+different key mapping.
 
->
-> On Monday 07 March 2011 20:41:21 David Cohen wrote:
->> On Mon, Mar 7, 2011 at 9:25 PM, Guzman Lugo, Fernando wrote:
->> > On Mon, Mar 7, 2011 at 1:19 PM, David Cohen wrote:
->> >> On Mon, Mar 7, 2011 at 9:17 PM, Guzman Lugo, Fernando wrote:
->> >>> On Mon, Mar 7, 2011 at 7:10 AM, Michael Jones wrote:
->> >>>> From e7dbe4c4b64eb114f9b0804d6af3a3ca0e78acc8 Mon Sep 17 00:00:00 2001
->> >>>> From: Michael Jones <michael.jones@matrix-vision.de>
->> >>>> Date: Mon, 7 Mar 2011 13:36:15 +0100
->> >>>> Subject: [PATCH] omap: iommu: disallow mapping NULL address
->> >>>>
->> >>>> commit c7f4ab26e3bcdaeb3e19ec658e3ad9092f1a6ceb allowed mapping
->> >>>> the NULL address if da_start==0.  Force da_start to exclude the
->> >>>> first page.
->> >>>
->> >>> what about devices that uses page 0? ipu after reset always starts
->> >>> from 0x00000000 how could we map that address??
->> >>
->> >> from 0x0? The driver sees da == 0 as error. May I ask you why do you
->> >> want it?
->> >
->> > unlike DSP that you can load a register with the addres the DSP will
->> > boot, IPU core always starts from address 0x00000000, so if you take
->> > IPU out of reset it will try to access address 0x0 if not map it,
->> > there will be a mmu fault.
->>
->> Hm. Looks like the iommu should not restrict any da. The valid da
->> range should rely only on pdata.
->> Michael, what about just update ISP's da_start on omap-iommu.c file?
->> Set it to 0x1000.
->
-> What about patching the OMAP3 ISP driver to use a non-zero value (maybe -1) as
-> an invalid/freed pointer ?
+I am not sure how many of these remotes are common to other devices.
 
-I wouldn't be comfortable to use 0 (or NULL) value as valid address on
-ISP driver. The 'da' range (da_start and da_end) is defined per VM and
-specified as platform data. IMO, to set da_start = 0x1000 seems to be
-a correct approach for ISP as it's the only client for its IOMMU
-instance.
+Regards
 
-Regards,
 
-David
+Malcolm
 
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
+
