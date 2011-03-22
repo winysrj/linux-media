@@ -1,94 +1,45 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47061 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751221Ab1C2PJU (ORCPT
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:58235 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752445Ab1CVQLG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Mar 2011 11:09:20 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Daniel Lundborg" <Daniel.Lundborg@prevas.se>
-Subject: Re: OMAP3 isp single-shot
-Date: Tue, 29 Mar 2011 17:09:38 +0200
-Cc: "Sakari Ailus" <sakari.ailus@maxwell.research.nokia.com>,
-	linux-media@vger.kernel.org
-References: <CA7B7D6C54015B459601D68441548157C5A3AE@prevas1.prevas.se> <201103241135.06025.laurent.pinchart@ideasonboard.com> <CA7B7D6C54015B459601D68441548157C5A3B3@prevas1.prevas.se>
-In-Reply-To: <CA7B7D6C54015B459601D68441548157C5A3B3@prevas1.prevas.se>
+	Tue, 22 Mar 2011 12:11:06 -0400
+Received: by iwn34 with SMTP id 34so7598659iwn.19
+        for <linux-media@vger.kernel.org>; Tue, 22 Mar 2011 09:11:05 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201103291709.38515.laurent.pinchart@ideasonboard.com>
+Date: Tue, 22 Mar 2011 17:11:04 +0100
+Message-ID: <AANLkTimdFVDLLz2o9Fb2OJM2EsJ9R9q-xKAP63g9uSi+@mail.gmail.com>
+Subject: OMAP3 ISP outputs 5555 5555 5555 5555 ...
+From: Bastian Hecht <hechtb@googlemail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Michael Jones <michael.jones@matrix-vision.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Daniel,
+Hello omap isp devs,
 
-On Friday 25 March 2011 14:10:28 Daniel Lundborg wrote:
-> > On Thursday 24 March 2011 11:26:01 Daniel Lundborg wrote:
+maybe you can help me, I am a bit desperate with my current cam problem:
 
-[snip]
+I use a ov5642 chip and get only 0x55 in my data output when I use a
+camclk > 1 MHz. With 1 MHz data rate from the camera chip to the omap
+all works (well the colorspace is strange - it's greenish, but that is
+not my main concern).
+I looked up the data on the oscilloscope and all flanks seem to be
+fine at the isp. Very clear cuts with 4 MHz and 10MHz. Also the data
+pins are flickering fine. Looks like a picture.
 
-> > > I can see on the oscilloscope that the sensor is sending something when
-> > > I trigger it, but no picture is received..
-> > 
-> > "something" is a bit vague, can you check the hsync/vsync signals and make
-> > sure they're identical in both modes ?
-> 
-> I have now tested this and I can say that I am having problems triggering
-> the sensor. I wrongly thought I was triggering the sensor with my other
-> driver correctly, but that was not the case.
-> 
-> What I want is to put the Omap ISP to generate a signal (CAM_WEN) to
-> make the camera sensor take a picture.
+I found that the isp stats module uses 0x55 as a magic number but I
+don't see why it should confuse my readout.
 
-That's not possible. The cam_wen signal is an input to the ISP. The ISP Timing 
-Control module can generate pulses on the cam_shutter, cam_strobe and 
-cam_global_reset signals only.
+I use 2592x1944 raw bayer output via the ccdc. Next to the logical
+right config I tried all possible configurations of vs/hs active high
+and low on camera and isp. The isp gets the vs flanks right as the
+images come out in time (sometimes it misses 1 frame).
 
-What you could do is configure the cam_wen pin as a GPIO and control it using 
-the GPIO framework (either in kernelspace or userspace).
+Anyone of you had this behaviour before?
 
-> In my working mt9v034 driver which is using kernel 2.6.31-rc7 with the
-> patches from <http://gitorious.org/omap3camera/mainline/commits/slave> I
-> set the ISP to this on power on:
-> 
->   isp_reg_and_or(vdev->cam->isp, OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_CTRL,
-> 0x9a1b63ff, 0x98036000);  // Set CAM_GLOBAL_RESET pin as output, enable
-> shutter, set DIVC = 216
+Thanks so much for reading this,
 
-What ISP driver version are you using ? isp_reg_and_or has been replaced by 
-isp_reg_clr_set a very long time ago. You should really upgrade.
-
->   isp_reg_and(vdev->cam->isp, OMAP3_ISP_IOMEM_MAIN,
-> ISP_TCTRL_SHUT_DELAY, 0xfe000000);  // Set no shutter delay
->   isp_reg_and_or(vdev->cam->isp, OMAP3_ISP_IOMEM_MAIN,
-> ISP_TCTRL_SHUT_LENGTH, 0xfe000000, 0x000003e8);  // Set shutter signal
-> length to 1000 (=> 1000 * 1/216MHz * 216 = 1 ms)
->   isp_reg_and_or(vdev->cam->isp, OMAP3_ISP_IOMEM_MAIN,
-> ISP_TCTRL_GRESET_LENGTH, 0xfe000000, 0x000003e8);  // Set shutter signal
-> length to 1000 (=> 1000 * 1/216MHz * 216 = 1 ms)
->   isp_reg_and(isp_ccdc_dev, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_LSC_CONFIG,
-> ~ISPCCDC_LSC_ENABLE);  // Make sure you disable LSC
-> 
-> And when I want to take a picture I do:
-> 
->   isp_reg_or(vdev->cam->isp, OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_CTRL,
-> 0x00e00000);  // Enable shutter (SHUTEN bit = 1)
->   isp_reg_or(vdev->cam->isp, OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_CTRL,
-> 0x20000000);  // Start generation of CAM_GLOBAL_RESET signal (GRESETEN
-> bit = 1)
-> 
-> When I try to do this in the newer driver I manage to generate a pulse
-> on the CAM_WEN pin, but no VSYNC, HSYNC or data is transmitted.
-
-I fail to see how that code can generate a pulse on the cam_wen signal. It 
-should only control the cam_shutter, cam_strobe and cam_global_shutter pins.
-
-> Am I missing something?
-
-Is your sensor correctly configured ? Is there a publicly available datasheet 
-for the MT9V034 ?
-
--- 
-Regards,
-
-Laurent Pinchart
+Bastian Hecht
