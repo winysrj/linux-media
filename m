@@ -1,79 +1,67 @@
 Return-path: <mchehab@pedra>
-Received: from emh06.mail.saunalahti.fi ([62.142.5.116]:57031 "EHLO
-	emh06.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752466Ab1CASLf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Mar 2011 13:11:35 -0500
-Message-ID: <4D6D3464.2030602@kolumbus.fi>
-Date: Tue, 01 Mar 2011 20:01:08 +0200
-From: Marko Ristola <marko.ristola@kolumbus.fi>
+Received: from mail.kapsi.fi ([217.30.184.167]:43224 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754773Ab1CVAoA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Mar 2011 20:44:00 -0400
+Message-ID: <4D87F0CB.2090705@iki.fi>
+Date: Tue, 22 Mar 2011 02:43:55 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Jonas Hanschke <jonas.hanschke@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Remote control not working for Terratec Cinergy C (2.6.37 Mantis
- driver)
-References: <AANLkTinfJiCpMOTx4-mc6jW3Bpe_3qduLYpqvRi8U+ga@mail.gmail.com>
-In-Reply-To: <AANLkTinfJiCpMOTx4-mc6jW3Bpe_3qduLYpqvRi8U+ga@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Malcolm Priestley <tvboxspy@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/2] v180 - DM04/QQBOX added support for BS2F7HZ0194 versions
+References: <1297560908.24985.5.camel@tvboxspy>	 <4D87EAA7.2040803@redhat.com> <1300753968.15997.4.camel@localhost>
+In-Reply-To: <1300753968.15997.4.camel@localhost>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-28.02.2011 19:26, Jonas Hanschke kirjoitti:
-> Hi,
+On 03/22/2011 02:32 AM, Malcolm Priestley wrote:
+> On Mon, 2011-03-21 at 21:17 -0300, Mauro Carvalho Chehab wrote:
+>> Em 12-02-2011 23:35, Malcolm Priestley escreveu:
+>>> Old versions of these boxes have the BS2F7HZ0194 tuner module on
+>>> both the LME2510 and LME2510C.
+>>>
+>>> Firmware dvb-usb-lme2510-s0194.fw  and/or dvb-usb-lme2510c-s0194.fw
+>>> files are required.
+>>>
+>>> See Documentation/dvb/lmedm04.txt
+>>>
+>>> Patch 535181 is also required.
+>>>
+>>> Signed-off-by: Malcolm Priestley<tvboxspy@gmail.com>
+>>> ---
+>>
+>>> @@ -1110,5 +1220,5 @@ module_exit(lme2510_module_exit);
+>>>
+>>>   MODULE_AUTHOR("Malcolm Priestley<tvboxspy@gmail.com>");
+>>>   MODULE_DESCRIPTION("LME2510(C) DVB-S USB2.0");
+>>> -MODULE_VERSION("1.76");
+>>> +MODULE_VERSION("1.80");
+>>>   MODULE_LICENSE("GPL");
+>>
+>>
+>> There were a merge conflict on this patch. The version we have was 1.75.
+>>
+>> Maybe some patch got missed?
 >
-> despite lots of time spent tinkering around and looking for help on
-> the web, I've had no success in getting to work the remote control of
-> my DVB-C card.
+> 1.76 relates to remote control patches.
 >
-> It is a Terratec Cinergy C:
-> http://linuxtv.org/wiki/index.php/TerraTec_Cinergy_C_DVB-C
->
-> and am using the Mantis driver. Since it was merged into the kernel
-> tree in 2.6.33, watching TV works without patches, but the remote
-> control does not, although it is supposed to be supported, according
-> to the link above.
->
-> Kernel is a vanilla 2.6.37.2 with custom configuration on an old AMD
-> Athlon XP machine, running debian Squeeze.
->
->
-> When I modprobe the Mantis driver, the following IR-modules are pulled
-> in automagically:
-> ir_lirc_codec
-> lirc_dev
-> ir_core
->
-> However, no input device is created during module loading. dmesg output:
-> Mantis 0000:01:0a.0: PCI INT A ->  Link[APC1] ->  GSI 16 (level, high) ->  IRQ 16
-> DVB: registering new adapter (Mantis DVB adapter)
-> IR LIRC bridge handler initialized
-> DVB: registering adapter 0 frontend 0 (Philips TDA10023 DVB-C)...
->
-> Am I missing some additional modules? Are there any dependencies on
-> other kernel config options that are not handled automatically by make
-> menuconf?
->
-> If additional information is needed, I will be happy to provide it.
-> However, I am not sure what is useful and what is not and did not want
-> to bloat this message.
+> https://patchwork.kernel.org/patch/499391/
+> https://patchwork.kernel.org/patch/499401/
 
-Before merging into v4l-dvb, doing modprobe mantis was enough.
-I don't know how it should work with recent kernels.
-I haven't seen remote control working lately.
+Those are NEC extended remotes. You are now setting it as 32 bit NEC, in 
+my understanding it should be defined as 24 bit NEC extended.
 
-Turning mantis module debug options on gives some information
-what is happening into /var/log/messages.
+Anyhow, my opinion is still that we *should* make all NEC remotes as 32 
+bit and leave handling of NEC 16, NEC 24, NEC 32 to NEC decoder. For 
+example AF9015 current NEC handling is too complex for that reason... I 
+don't like how it is implemented currently.
 
-Regards,
-Marko Ristola
+Antti
 
->
-> Thanks in advance,
->
-> Jonas
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
 
+-- 
+http://palosaari.fi/
