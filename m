@@ -1,233 +1,87 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.samsung.com ([203.254.224.24]:60302 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751316Ab1CNEwA (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:45207 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750734Ab1CVKx1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Mar 2011 00:52:00 -0400
-Date: Mon, 14 Mar 2011 13:51:49 +0900
-From: Jeongtae Park <jtp.park@samsung.com>
-Subject: RE: [PATCH v2 2/8] ARM: S5PV310: Add clock support for MFC v5.1
-In-reply-to: <002901cbe05e$f05d11d0$d1173570$%kim@samsung.com>
-To: linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
-	kgene.kim@samsung.com
-Cc: k.debski@samsung.com, jaeryul.oh@samsung.com, jemings@samsung.com,
-	ben-linux@fluff.org, jonghun.han@samsung.com,
-	m.szyprowski@samsung.com, nala.la@samsung.com
-Reply-to: jtp.park@samsung.com
-Message-id: <001401cbe203$8b8ec540$a2ac4fc0$%park@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=windows-1252
-Content-language: ko
-Content-transfer-encoding: 7BIT
-References: <1299676567-14194-1-git-send-email-jtp.park@samsung.com>
- <1299676567-14194-3-git-send-email-jtp.park@samsung.com>
- <002901cbe05e$f05d11d0$d1173570$%kim@samsung.com>
+	Tue, 22 Mar 2011 06:53:27 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [Query] VIDIOC_QBUF and VIDIOC_STREAMON order
+Date: Tue, 22 Mar 2011 11:53:43 +0100
+Cc: Pawel Osciak <pawel@osciak.com>, subash.rp@gmail.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Subash Patel <subashrp@gmail.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <4D7DEA68.2050604@samsung.com> <AANLkTinE_Z3QDWDB1+w1ih0bQ2dC15ynkprqB-nFPeqd@mail.gmail.com> <201103150850.45961.hverkuil@xs4all.nl>
+In-Reply-To: <201103150850.45961.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201103221153.43729.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Kgene,
+Hi Hans,
 
-I see, I will re-work based on lastest 'for-next' ASAP.
+On Tuesday 15 March 2011 08:50:45 Hans Verkuil wrote:
+> On Tuesday, March 15, 2011 04:21:05 Pawel Osciak wrote:
+> > On Mon, Mar 14, 2011 at 03:49, Subash Patel <subashrp@gmail.com> wrote:
+> > > VIDIOC_STREAMON expects buffers to be queued before hardware part of
+> > > image/video pipe is enabled. From my experience of V4L2 user space, I
+> > > have always QBUFfed before invoking the STREAMON. Below is the API
+> > 
+> > > specification which also speaks something same:
+> > Not exactly. It says that the API requires buffers to be queued for
+> > output devices. It does not require any buffers to be queued for input
+> > devices. Sylwester is right here.
+> > 
+> > This feature of not having to queue input buffers before STREAMON
+> > introduces problems to driver implementations and I am personally not
+> > a big fan of it either. But I'm seeing some additional problems here.
+> > Suppose we forced QBUF to be done before STREAMON. This would work,
+> > but what happens next? What should happen when we want to DQBUF the
+> > last buffer? If the device couldn't start without any buffers queued,
+> > can it continue streaming with all of them dequeued? I would guess
+> > not. So we'd either have to deny DQBUF of the last buffer (which for
+> > me personally is almost unacceptable) or have the last DQBUF
+> > automatically cause a STREAMOFF. So, for the latter, should
+> > applications, after they get all the data they wanted, be made to
+> > always have one more buffer queued as a "throwaway" buffer? This is
+> > probably the only reasonable solution here, but the applications would
+> > have to keep count of their queued buffers and be aware of this.
+> > Also, there might still be situations where being able to STREAMON
+> > without buffers queued would be beneficial. For example, enabling the
+> > device might be a slow/expensive operation and we might prefer to keep
+> > it running even if we don't want any data at the moment. Even for
+> > faster devices, being able to keep them on and periodically take a
+> > snapshot would be faster without having to call STREAMON anyway...
+> 
+> The problem is that what is possible is highly hardware dependent. All
+> video capture device I know of (composite in, HDMI in, etc) require that
+> buffers are queued and they won't release that buffer to userspace until a
+> new free buffer is available.
 
-Thanks.
+That's funny, all video capture devices I know of behave the opposite way :-) 
+They either pause the stream when they run out of buffers and resume it when a 
+new buffer gets queued, or they throw away the data when intermediate buffers 
+are used (such as with USB devices).
 
-BRs.
-/jtpark
+> They DMA continuously and stopping the DMA
+> at the last buffer and restarting it when a new one appears tends to be
+> too expensive and leads to additional loss of frames.
+> 
+> In part how this should act depends on the use-case: if you are streaming
+> video, then requiring buffers to be present before STREAMON and holding on
+> to a buffer if userspace can't keep up seems quite reasonable to me.
+> 
+> But for snapshot and codec type streams this behavior doesn't make sense.
+> The main difference is that in this case the DMA is not driven by an
+> external input, but by internal (userspace) demand.
+> 
+> Something for our meeting to discuss.
 
-> -----Original Message-----
-> From: linux-samsung-soc-owner@vger.kernel.org [mailto:linux-samsung-soc-
-> owner@vger.kernel.org] On Behalf Of Kukjin Kim
-> Sent: Saturday, March 12, 2011 11:41 AM
-> To: 'Jeongtae Park'; linux-media@vger.kernel.org; linux-samsung-
-> soc@vger.kernel.org
-> Cc: k.debski@samsung.com; jaeryul.oh@samsung.com; ben-linux@fluff.org;
-> jonghun.han@samsung.com; 'Marek Szyprowski'
-> Subject: RE: [PATCH v2 2/8] ARM: S5PV310: Add clock support for MFC v5.1
-> 
-> Jeongtae Park wrote:
-> >
-> > This patch adds clock support for MFC v5.1.
-> >
-> > Reviewed-by: Peter Oh <jaeryul.oh@samsung.com>
-> > Signed-off-by: Jeongtae Park <jtp.park@samsung.com>
-> > Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-> > Cc: Kamil Debski <k.debski@samsung.com>
-> > ---
-> >  arch/arm/mach-s5pv310/clock.c                   |   68
-> > +++++++++++++++++++++++
-> >  arch/arm/mach-s5pv310/include/mach/regs-clock.h |    3 +
-> >  2 files changed, 71 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-s5pv310/clock.c
-b/arch/arm/mach-s5pv310/clock.c
-> > index fc7c2f8..88c7943 100644
-> > --- a/arch/arm/mach-s5pv310/clock.c
-> > +++ b/arch/arm/mach-s5pv310/clock.c
-> > @@ -86,6 +86,11 @@ static int s5pv310_clk_ip_cam_ctrl(struct clk *clk,
-int
-> > enable)
-> >  	return s5p_gatectrl(S5P_CLKGATE_IP_CAM, clk, enable);
-> >  }
-> >
-> > +static int s5pv310_clk_ip_mfc_ctrl(struct clk *clk, int enable)
-> > +{
-> > +	return s5p_gatectrl(S5P_CLKGATE_IP_MFC, clk, enable);
-> > +}
-> > +
-> >  static int s5pv310_clk_ip_image_ctrl(struct clk *clk, int enable)
-> >  {
-> >  	return s5p_gatectrl(S5P_CLKGATE_IP_IMAGE, clk, enable);
-> > @@ -417,6 +422,11 @@ static struct clk init_clocks_off[] = {
-> >  		.enable		= s5pv310_clk_ip_cam_ctrl,
-> >  		.ctrlbit	= (1 << 2),
-> >  	}, {
-> > +		.name		= "mfc",
-> > +		.id		= -1,
-> > +		.enable		= s5pv310_clk_ip_mfc_ctrl,
-> > +		.ctrlbit	= (1 << 0),
-> > +	}, {
-> >  		.name		= "fimc",
-> >  		.id		= 3,
-> >  		.enable		= s5pv310_clk_ip_cam_ctrl,
-> > @@ -643,6 +653,54 @@ static struct clksrc_sources clkset_group = {
-> >  	.nr_sources	= ARRAY_SIZE(clkset_group_list),
-> >  };
-> >
-> > +static struct clk *clkset_mout_mfc0_list[] = {
-> > +	[0] = &clk_mout_mpll.clk,
-> > +	[1] = &clk_sclk_apll.clk,
-> > +};
-> > +
-> > +static struct clksrc_sources clkset_mout_mfc0 = {
-> > +	.sources	= clkset_mout_mfc0_list,
-> > +	.nr_sources	= ARRAY_SIZE(clkset_mout_mfc0_list),
-> > +};
-> > +
-> > +static struct clksrc_clk clk_mout_mfc0 = {
-> > +	.clk	= {
-> > +		.name		= "mout_mfc0",
-> > +		.id		= -1,
-> > +	},
-> > +	.sources	= &clkset_mout_mfc0,
-> > +	.reg_src	= { .reg = S5P_CLKSRC_MFC, .shift = 0, .size = 1 },
-> > +};
-> > +
-> > +static struct clk *clkset_mout_mfc1_list[] = {
-> > +	[0] = &clk_mout_epll.clk,
-> > +	[1] = &clk_sclk_vpll.clk,
-> > +};
-> > +
-> > +static struct clksrc_sources clkset_mout_mfc1 = {
-> > +	.sources	= clkset_mout_mfc1_list,
-> > +	.nr_sources	= ARRAY_SIZE(clkset_mout_mfc1_list),
-> > +};
-> > +
-> > +static struct clksrc_clk clk_mout_mfc1 = {
-> > +	.clk	= {
-> > +		.name		= "mout_mfc1",
-> > +		.id		= -1,
-> > +	},
-> > +	.sources	= &clkset_mout_mfc1,
-> > +	.reg_src	= { .reg = S5P_CLKSRC_MFC, .shift = 4, .size = 1 },
-> > +};
-> > +
-> > +static struct clk *clkset_mout_mfc_list[] = {
-> > +	[0] = &clk_mout_mfc0.clk,
-> > +	[1] = &clk_mout_mfc1.clk,
-> > +};
-> > +
-> > +static struct clksrc_sources clkset_mout_mfc = {
-> > +	.sources	= clkset_mout_mfc_list,
-> > +	.nr_sources	= ARRAY_SIZE(clkset_mout_mfc_list),
-> > +};
-> > +
-> >  static struct clk *clkset_mout_g2d0_list[] = {
-> >  	[0] = &clk_mout_mpll.clk,
-> >  	[1] = &clk_sclk_apll.clk,
-> > @@ -814,6 +872,14 @@ static struct clksrc_clk clksrcs[] = {
-> >  		.reg_div = { .reg = S5P_CLKDIV_CAM, .shift = 28, .size = 4
-> },
-> >  	}, {
-> >  		.clk		= {
-> > +			.name		= "sclk_mfc",
-> > +			.id		= -1,
-> > +		},
-> > +		.sources = &clkset_mout_mfc,
-> > +		.reg_src = { .reg = S5P_CLKSRC_MFC, .shift = 8, .size = 1 },
-> > +		.reg_div = { .reg = S5P_CLKDIV_MFC, .shift = 0, .size = 4 },
-> > +	}, {
-> > +		.clk		= {
-> >  			.name		= "sclk_cam",
-> >  			.id		= 0,
-> >  			.enable		= s5pv310_clksrc_mask_cam_ctrl,
-> > @@ -1018,6 +1084,8 @@ static struct clksrc_clk *sysclks[] = {
-> >  	&clk_dout_mmc2,
-> >  	&clk_dout_mmc3,
-> >  	&clk_dout_mmc4,
-> > +	&clk_mout_mfc0,
-> > +	&clk_mout_mfc1,
-> >  };
-> >
-> >  static int xtal_rate;
-> > diff --git a/arch/arm/mach-s5pv310/include/mach/regs-clock.h
-> b/arch/arm/mach-
-> > s5pv310/include/mach/regs-clock.h
-> > index b5c4ada..27b02e8 100644
-> > --- a/arch/arm/mach-s5pv310/include/mach/regs-clock.h
-> > +++ b/arch/arm/mach-s5pv310/include/mach/regs-clock.h
-> > @@ -33,6 +33,7 @@
-> >  #define S5P_CLKSRC_TOP0			S5P_CLKREG(0x0C210)
-> >  #define S5P_CLKSRC_TOP1			S5P_CLKREG(0x0C214)
-> >  #define S5P_CLKSRC_CAM			S5P_CLKREG(0x0C220)
-> > +#define S5P_CLKSRC_MFC			S5P_CLKREG(0x0C228)
-> >  #define S5P_CLKSRC_IMAGE		S5P_CLKREG(0x0C230)
-> >  #define S5P_CLKSRC_LCD0			S5P_CLKREG(0x0C234)
-> >  #define S5P_CLKSRC_LCD1			S5P_CLKREG(0x0C238)
-> > @@ -42,6 +43,7 @@
-> >
-> >  #define S5P_CLKDIV_TOP			S5P_CLKREG(0x0C510)
-> >  #define S5P_CLKDIV_CAM			S5P_CLKREG(0x0C520)
-> > +#define S5P_CLKDIV_MFC			S5P_CLKREG(0x0C528)
-> >  #define S5P_CLKDIV_IMAGE		S5P_CLKREG(0x0C530)
-> >  #define S5P_CLKDIV_LCD0			S5P_CLKREG(0x0C534)
-> >  #define S5P_CLKDIV_LCD1			S5P_CLKREG(0x0C538)
-> > @@ -67,6 +69,7 @@
-> >  #define S5P_CLKDIV_STAT_TOP		S5P_CLKREG(0x0C610)
-> >
-> >  #define S5P_CLKGATE_IP_CAM		S5P_CLKREG(0x0C920)
-> > +#define S5P_CLKGATE_IP_MFC		S5P_CLKREG(0x0C928)
-> >  #define S5P_CLKGATE_IP_IMAGE		S5P_CLKREG(0x0C930)
-> >  #define S5P_CLKGATE_IP_LCD0		S5P_CLKREG(0x0C934)
-> >  #define S5P_CLKGATE_IP_LCD1		S5P_CLKREG(0x0C938)
-> > --
-> > 1.7.1
-> 
-> Hi Jeongtae,
-> 
-> Firstly, your 2nd, 3rd and 4th patches are ok to me, but need to re-work
-> based on latest.
-> Could you please do based on my for-next?
-> 
-> Kamil,
-> Your patch of regarding mfc platform device has same purpose but clock
-codes
-> are different.
-> As I said, mfc clock handling needs this approach so if you're ok, I'd
-like
-> to pick this up. How do you think?
-> 
-> Thanks.
-> 
-> Best regards,
-> Kgene.
-> --
-> Kukjin Kim <kgene.kim@samsung.com>, Senior Engineer,
-> SW Solution Development Team, Samsung Electronics Co., Ltd.
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe
-linux-samsung-soc"
-> in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Regards,
 
+Laurent Pinchart
