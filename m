@@ -1,59 +1,73 @@
 Return-path: <mchehab@pedra>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:63636 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751612Ab1CCPMn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2011 10:12:43 -0500
-Received: by gyh20 with SMTP id 20so438894gyh.19
-        for <linux-media@vger.kernel.org>; Thu, 03 Mar 2011 07:12:42 -0800 (PST)
-Subject: Re: using V4L2_CID_BRIGHTNESS or V4L2_CID_EXPOSURE in the camera
-Mime-Version: 1.0 (Apple Message framework v1082)
-Content-Type: text/plain; charset=euc-kr
-From: Kim HeungJun <riverful@gmail.com>
-In-Reply-To: <201103031605.34470.laurent.pinchart@ideasonboard.com>
-Date: Fri, 4 Mar 2011 00:12:35 +0900
-Cc: Kim HeungJun <riverful@gmail.com>,
-	"linux-media@vger.kernel.org Mailing List Media"
-	<linux-media@vger.kernel.org>,
-	VerkuilHans VerkuilHans <hverkuil@xs4all.nl>,
-	=?euc-kr?B?udqw5rnO?= <kyungmin.park@samsung.com>
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:36500 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753053Ab1CWNro convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Mar 2011 09:47:44 -0400
+MIME-Version: 1.0
+In-Reply-To: <20110322175810.GA32416@linux-sh.org>
+References: <1300815176-21206-1-git-send-email-mythripk@ti.com>
+ <4D88E1FB.5070503@redhat.com> <20110322175810.GA32416@linux-sh.org>
+From: "K, Mythri P" <mythripk@ti.com>
+Date: Wed, 23 Mar 2011 19:17:20 +0530
+Message-ID: <AANLkTinjEmih3GC9FMByUCcLVvcc1k1PCzVECbQZa62f@mail.gmail.com>
+Subject: Re: [RFC PATCH] HDMI:Support for EDID parsing in kernel.
+To: Paul Mundt <lethal@linux-sh.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
-Message-Id: <2BAA83BC-F322-42CF-A6D8-A3866B86FCDB@gmail.com>
-References: <52566539-3662-4153-B111-EC82389102BE@gmail.com> <201103031605.34470.laurent.pinchart@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Laurent,
+Hi Paul,
 
-2011. 3. 4., ø¿¿¸ 12:05, Laurent Pinchart ¿€º∫:
+On Tue, Mar 22, 2011 at 11:28 PM, Paul Mundt <lethal@linux-sh.org> wrote:
+> On Tue, Mar 22, 2011 at 02:52:59PM -0300, Mauro Carvalho Chehab wrote:
+>> Em 22-03-2011 14:32, Mythri P K escreveu:
+>> > Adding support for common EDID parsing in kernel.
+>> >
+>> > EDID - Extended display identification data is a data structure provided by
+>> > a digital display to describe its capabilities to a video source, This a
+>> > standard supported by CEA and VESA.
+>> >
+>> > There are several custom implementations for parsing EDID in kernel, some
+>> > of them are present in fbmon.c, drm_edid.c, sh_mobile_hdmi.c, Ideally
+>> > parsing of EDID should be done in a library, which is agnostic of the
+>> > framework (V4l2, DRM, FB) †which is using the functionality, just based on
+>> > the raw EDID pointer with size/segment information.
+>> >
+>> > With other RFC's such as the one below, which tries to standardize HDMI API's
+>> > It would be better to have a common EDID code in one place.It also helps to
+>> > provide better interoperability with variety of TV/Monitor may be even by
+>> > listing out quirks which might get missed with several custom implementation
+>> > of EDID.
+>> > http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/30401
+>> >
+>> > This patch tries to add functions to parse some portion EDID (detailed timing,
+>> > monitor limits, AV delay information, deep color mode support, Audio and VSDB)
+>> > If we can align on this library approach i can enhance this library to parse
+>> > other blocks and probably we could also add quirks from other implementation
+>> > as well.
+>> >
+>> > Signed-off-by: Mythri P K <mythripk@ti.com>
+>> > ---
+>> > †arch/arm/include/asm/edid.h | †243 ++++++++++++++++++++++++++++++
+>> > †drivers/video/edid.c † † † †| †340 +++++++++++++++++++++++++++++++++++++++++++
+>>
+>> Hmm... if you want this to be agnostic, the header file should not be inside
+>> arch/arm, but on some other place, like include/video/.
+>>
+> Ironically this adds a drivers/video/edid.c but completely ignores
+> drivers/video/edid.h which already exists and already contains many of
+> these definitions.
+>
+> I like the idea of a generalized library, but it would be nice to see the
+> existing edid.h evolved and its users updated incrementally.
+>
+well yes , That could be enhanced and that would take care of Mauro's
+comment too.
 
-> Hi Kim,
-
-probably it's difficult to call my name. Just call me riverful.
-
-> 
-> On Thursday 03 March 2011 16:01:24 Kim HeungJun wrote:
->> Hello everyone,
->> 
->> I have a question about realization the camera brightness control (or
->> exposure, because it's similar effect). I'm confused this similar two
->> control - V4L2_CID_BRIGHTNESS and V4L2_CID_EXPOSURE.
->> 
->> These control both express the brightness consequently.
->> 
->> The CID can express the brightness - V4L2_CID_EXPOSURE, is prepared in the
->> camera class. And V4L2_CID_BRIGHTNESS seems be possible to use in the
->> camera driver, although it is defined in the global(?) class.
->> 
->> So, which CID I can use to express the image's brightness??
-> 
-> V4L2_CID_EXPOSURE is used to control the exposure time (which obviously 
-> influences the brightness), and V4L2_CID_BRIGHTNESS to control the brightness 
-> offset (constant value added to all pixels in the image by a processing block 
-> in the digital domain).
-
-And I didn't know before, it helps very much for me. :)
-
-Thanks,
-Heungjun Kim
-
+Thanks and regards,
+Mythri.
