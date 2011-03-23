@@ -1,100 +1,257 @@
 Return-path: <mchehab@pedra>
-Received: from mail1.matrix-vision.com ([78.47.19.71]:41245 "EHLO
-	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752535Ab1CQKHm (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:43358 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754462Ab1CWCsN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Mar 2011 06:07:42 -0400
-Message-ID: <4D81DD6C.1050706@matrix-vision.de>
-Date: Thu, 17 Mar 2011 11:07:40 +0100
-From: Michael Jones <michael.jones@matrix-vision.de>
-MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v3 4/4] omap3isp: lane shifter support
-References: <1299830749-7269-1-git-send-email-michael.jones@matrix-vision.de> <201103161727.43838.laurent.pinchart@ideasonboard.com> <4D80EE74.3040703@maxwell.research.nokia.com> <201103161846.35599.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201103161846.35599.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	Tue, 22 Mar 2011 22:48:13 -0400
+Received: by fxm17 with SMTP id 17so6976748fxm.19
+        for <linux-media@vger.kernel.org>; Tue, 22 Mar 2011 19:48:12 -0700 (PDT)
+Date: Wed, 23 Mar 2011 11:49:52 +0900
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: Stefan Ringel <stefan.ringel@arcor.de>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] tm6000: fix s-video input
+Message-ID: <20110323114952.4ddedfb1@glory.local>
+In-Reply-To: <4D845160.8030509@arcor.de>
+References: <4CAD5A78.3070803@redhat.com>
+	<4CF51C9E.6040600@arcor.de>
+	<20101201144704.43b58f2c@glory.local>
+	<4CF67AB9.6020006@arcor.de>
+	<20101202134128.615bbfa0@glory.local>
+	<4CF71CF6.7080603@redhat.com>
+	<20101206010934.55d07569@glory.local>
+	<4CFBF62D.7010301@arcor.de>
+	<20101206190230.2259d7ab@glory.local>
+	<4CFEA3D2.4050309@arcor.de>
+	<20101208125539.739e2ed2@glory.local>
+	<4CFFAD1E.7040004@arcor.de>
+	<20101214122325.5cdea67e@glory.local>
+	<4D079ADF.2000705@arcor.de>
+	<20101215164634.44846128@glory.local>
+	<4D08E43C.8080002@arcor.de>
+	<20101216183844.6258734e@glory.local>
+	<4D0A4883.20804@arcor.de>
+	<20101217104633.7c9d10d7@glory.local>
+	<4D0AF2A7.6080100@arcor.de>
+	<20101217160854.16a1f754@glory.local>
+	<4D0BFF4B.3060001@redhat.com>
+	<20110120150508.53c9b55e@glory.local>
+	<4D388C44.7040500@arcor.de>
+	<20110217141257.6d1b578b@glory.local>
+	<4D5D8BFB.4070802@redhat.com>
+	<20110318090855.773af168@glory.local>
+	<4D845160.8030509@arcor.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Sakari,
-
-Thanks for the review.
-
-On 03/16/2011 06:46 PM, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> On Wednesday 16 March 2011 18:08:04 Sakari Ailus wrote:
->> Laurent Pinchart wrote:
->>> Hi Sakari,
->>>>> +	return in_info->bpp - out_info->bpp + additional_shift <= 6;
->>>>
->>>> Currently there are no formats that would behave badly in this check?
->>>> Perhaps it'd be good idea to take that into consideration. The shift
->>>> that can be done is even.
->>>
->>> I've asked Michael to remove the check because we have no misbehaving
->>> formats
->>>
->>> :-) Do you think we need to add a check back ?
->>
->> I think it would be helpful in debugging if someone decides to attach a
->> sensor which supports a shift of non-even bits (8 and 9 bits, for
->> example). In any case an invalid configuration is possible in such case,
->> and I don't think that should be allowed, should it?
-> 
-> I agree it shouldn't be allowed, but the ISP driver doesn't support non-even 
-> widths at the moment, so there's no big risk. There could be an issue when a 
-> non-even width is added to the driver if the developer forgets to update the 
-> shift code. Maybe a comment in ispvideo.c above the big formats array would 
-> help making sure this is not forgotten ?
-
-I think now that additional_shift is also being considered which comes
-from the board file, it makes sense to reintroduce the check for an even
-shift.  As Sakari points out, this would be helpful for debugging if
-someone tries using .data_lane_shift which is odd.
+Hi Stefan
 
 > 
->>>>> @@ -247,6 +296,7 @@ static int isp_video_validate_pipeline(struct
->>>>> isp_pipeline *pipe)
->>>>>
->>>>>  		return -EPIPE;
->>>>>  	
->>>>>  	while (1) {
->>>>>
->>>>> +		unsigned int link_has_shifter;
->>>>
->>>> link_has_shifter is only used in one place. Would it be cleaner to test
->>>> below if it's the CCDC? A comment there could be nice, too.
->>>
->>> I would like that better as well, but between the line where
->>> link_has_shifter is set and the line where it is checked, the subdev
->>> variable changes so we can't just check subdev == &isp->isp_ccdc.subdev
->>> there.
->>
->> That's definitely valid. I take my comment back. The variable could be
->> called is_ccdc, though, since only the CCDC has that feature. No need to
->> generalise. :-)
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
+>  
+> Am 18.03.2011 01:08, schrieb Dmitri Belimov:
+> > Hi
+> >
+> > Add compatibility for composite and s-video inputs. Some TV cards
+> hasn't it.
+> > Fix S-Video input, the s-video cable has only video signals no
+> > audio.
+> Call the function of audio configure kill chroma in signal. only b/w
+> video.
+> >
+> > Known bugs:
+> > after s-video the audio for radio didn't work, TV crashed hardly
+> > after composite TV crashed hardly too.
+> >
+> > P.S. After this patch I'll want to rework the procedure of configure
+> video. Now it has a lot of junk and dubles.
+> >
 > 
+> Why you use caps to define video input and audio with avideo and/or
+> aradio as flags? Better is , I think,  we use a struct for edge
+> virtual input (Video type (s-vhs, composite, tuner), video input pin
+> (video port a, video port b or both), video mode gpio, audio type ,
+> audio input pin (adc 1, adc 2 or sif)). If we are called
+> vidioc_s_input or radio_g_input setting input number. In tm6000_std.c
+> we can use this input number and the input struct with the same number
+> and can use all setting from here to set it.
 
-But this is not a feature of the CCDC, the lane shifter is outside of
-the CCDC.  Each 'while (1)' iteration handles 2 subdevs on each side of
-one link, so I think it makes sense for a particular iteration to say
-"this link has", especially when the subdev ptr changes values between
-the assignment of this var and its usage.  "is_ccdc" is vague as to
-which side of the CCDC we're on.  'link_has_shifter' wasn't intended to
-be general, it was supposed to mean 'this_is_the_link_with_the_shifter'.
- If you want to be more specific where that is in the pipeline, maybe
-'ccdc_sink_link'?  If you just want it to sound less like "this is one
-of the links with a shifter" and more like "We've found _the_ link with
-_the_ shifter", it could just be 'shifter_link'.
+It's very intresting but right now much better for me make full-working TV cards.
+You can rework this part of code as you want. Or we can do it togehter.
 
-After we iron these two things out, are you guys ready to see v4?
+With my best regards, Dmitry.
 
--Michael
-
-MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
-Registergericht: Amtsgericht Stuttgart, HRB 271090
-Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
+> Stefan Ringel
+> 
+> 
+> > diff --git a/drivers/staging/tm6000/tm6000-cards.c
+> b/drivers/staging/tm6000/tm6000-cards.c
+> > index 88144a1..146c7e8 100644
+> > --- a/drivers/staging/tm6000/tm6000-cards.c
+> > +++ b/drivers/staging/tm6000/tm6000-cards.c
+> > @@ -235,11 +235,13 @@ struct tm6000_board tm6000_boards[] = {
+> > .avideo = TM6000_AIP_SIF1,
+> > .aradio = TM6000_AIP_LINE1,
+> > .caps = {
+> > - .has_tuner = 1,
+> > - .has_dvb = 1,
+> > - .has_zl10353 = 1,
+> > - .has_eeprom = 1,
+> > - .has_remote = 1,
+> > + .has_tuner = 1,
+> > + .has_dvb = 1,
+> > + .has_zl10353 = 1,
+> > + .has_eeprom = 1,
+> > + .has_remote = 1,
+> > + .has_input_comp = 1,
+> > + .has_input_svid = 1,
+> > },
+> > .gpio = {
+> > .tuner_reset = TM6010_GPIO_0,
+> > @@ -255,11 +257,13 @@ struct tm6000_board tm6000_boards[] = {
+> > .avideo = TM6000_AIP_SIF1,
+> > .aradio = TM6000_AIP_LINE1,
+> > .caps = {
+> > - .has_tuner = 1,
+> > - .has_dvb = 0,
+> > - .has_zl10353 = 0,
+> > - .has_eeprom = 1,
+> > - .has_remote = 1,
+> > + .has_tuner = 1,
+> > + .has_dvb = 0,
+> > + .has_zl10353 = 0,
+> > + .has_eeprom = 1,
+> > + .has_remote = 1,
+> > + .has_input_comp = 1,
+> > + .has_input_svid = 1,
+> > },
+> > .gpio = {
+> > .tuner_reset = TM6010_GPIO_0,
+> > @@ -327,10 +331,13 @@ struct tm6000_board tm6000_boards[] = {
+> > .avideo = TM6000_AIP_SIF1,
+> > .aradio = TM6000_AIP_LINE1,
+> > .caps = {
+> > - .has_tuner = 1,
+> > - .has_dvb = 1,
+> > - .has_zl10353 = 1,
+> > - .has_eeprom = 1,
+> > + .has_tuner = 1,
+> > + .has_dvb = 1,
+> > + .has_zl10353 = 1,
+> > + .has_eeprom = 1,
+> > + .has_remote = 0,
+> > + .has_input_comp = 0,
+> > + .has_input_svid = 0,
+> > },
+> > .gpio = {
+> > .tuner_reset = TM6010_GPIO_0,
+> > @@ -346,10 +353,13 @@ struct tm6000_board tm6000_boards[] = {
+> > .avideo = TM6000_AIP_SIF1,
+> > .aradio = TM6000_AIP_LINE1,
+> > .caps = {
+> > - .has_tuner = 1,
+> > - .has_dvb = 0,
+> > - .has_zl10353 = 0,
+> > - .has_eeprom = 1,
+> > + .has_tuner = 1,
+> > + .has_dvb = 0,
+> > + .has_zl10353 = 0,
+> > + .has_eeprom = 1,
+> > + .has_remote = 0,
+> > + .has_input_comp = 0,
+> > + .has_input_svid = 0,
+> > },
+> > .gpio = {
+> > .tuner_reset = TM6010_GPIO_0,
+> > diff --git a/drivers/staging/tm6000/tm6000-stds.c
+> b/drivers/staging/tm6000/tm6000-stds.c
+> > index a4c07e5..da3e51b 100644
+> > --- a/drivers/staging/tm6000/tm6000-stds.c
+> > +++ b/drivers/staging/tm6000/tm6000-stds.c
+> > @@ -1161,8 +1161,6 @@ int tm6000_set_standard(struct tm6000_core
+> > *dev,
+> v4l2_std_id * norm)
+> > rc = tm6000_load_std(dev, svideo_stds[i].common,
+> > sizeof(svideo_stds[i].
+> > common));
+> > - tm6000_set_audio_std(dev, svideo_stds[i].audio_default_std);
+> > -
+> > goto ret;
+> > }
+> > }
+> > diff --git a/drivers/staging/tm6000/tm6000-video.c
+> b/drivers/staging/tm6000/tm6000-video.c
+> > index b550340..c80a316 100644
+> > --- a/drivers/staging/tm6000/tm6000-video.c
+> > +++ b/drivers/staging/tm6000/tm6000-video.c
+> > @@ -1080,18 +1080,27 @@ static int vidioc_s_std (struct file *file,
+> void *priv, v4l2_std_id *norm)
+> > static int vidioc_enum_input(struct file *file, void *priv,
+> > struct v4l2_input *inp)
+> > {
+> > + struct tm6000_fh *fh = priv;
+> > + struct tm6000_core *dev = fh->dev;
+> > +
+> > switch (inp->index) {
+> > case TM6000_INPUT_TV:
+> > inp->type = V4L2_INPUT_TYPE_TUNER;
+> > strcpy(inp->name, "Television");
+> > break;
+> > case TM6000_INPUT_COMPOSITE:
+> > - inp->type = V4L2_INPUT_TYPE_CAMERA;
+> > - strcpy(inp->name, "Composite");
+> > + if (dev->caps.has_input_comp) {
+> > + inp->type = V4L2_INPUT_TYPE_CAMERA;
+> > + strcpy(inp->name, "Composite");
+> > + } else
+> > + return -EINVAL;
+> > break;
+> > case TM6000_INPUT_SVIDEO:
+> > - inp->type = V4L2_INPUT_TYPE_CAMERA;
+> > - strcpy(inp->name, "S-Video");
+> > + if (dev->caps.has_input_svid) {
+> > + inp->type = V4L2_INPUT_TYPE_CAMERA;
+> > + strcpy(inp->name, "S-Video");
+> > + } else
+> > + return -EINVAL;
+> > break;
+> > default:
+> > return -EINVAL;
+> > diff --git a/drivers/staging/tm6000/tm6000.h
+> b/drivers/staging/tm6000/tm6000.h
+> > index ccd120f..99ae50e 100644
+> > --- a/drivers/staging/tm6000/tm6000.h
+> > +++ b/drivers/staging/tm6000/tm6000.h
+> > @@ -129,6 +129,8 @@ struct tm6000_capabilities {
+> > unsigned int has_zl10353:1;
+> > unsigned int has_eeprom:1;
+> > unsigned int has_remote:1;
+> > + unsigned int has_input_comp:1;
+> > + unsigned int has_input_svid:1;
+> > };
+> >
+> > struct tm6000_dvb {
+> >
+> > Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov
+> > <d.belimov@gmail.com>
+> >
+> > With my best regards, Dmitry.
+> 
+> -----BEGIN PGP SIGNATURE-----
+> Version: GnuPG v2.0.12 (MingW32)
+> Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+>  
+> iQEcBAEBAgAGBQJNhFFgAAoJEAWtPFjxMvFGATAH/RZnxOBnRF7bvpInTVcvDr3f
+> siYCB6O+JKKLwA8dWzh5ejOi+cBcYWPqcgJcZ2s/0dedqEQ8/RVxGflrnYk66/vT
+> KP3JkysbH3Nme9mE9AlSXSrCpGg6AG9u99SgyHkCJQKASkQX7dHg/prz4iMySIgi
+> Ii05FHR2f5P5FmaH96eKjgzd8J8WSHe2excr07gKg2FL2bX8icnqt0Lz7S1/V0rQ
+> ewdL9cOh+IBsIG8dOLBetB3rxlfEtheph7bHtBqJ2s9+yo9KVj8tynpGghgoNrAw
+> ntDttbSrnCjcXaALKFfXBvAnv349jwbBLnyZU3PWjK560sdjg9bhLi515xYXwhM=
+> =eldX
+> -----END PGP SIGNATURE-----
+> 
