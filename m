@@ -1,147 +1,164 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.186]:56635 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752641Ab1C3H5A convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Mar 2011 03:57:00 -0400
-Date: Wed, 30 Mar 2011 09:56:50 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Paolo Santinelli <paolo.santinelli@unimore.it>
-cc: linux-media@vger.kernel.org
-Subject: Re: soc_camera dynamically cropping and scaling
-In-Reply-To: <AANLkTimhP_YoqKRKyPzRbM6gw5jXVNV2D3pveRqqH0W_@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1103300947580.4695@axis700.grange>
-References: <AANLkTinVP6CePBY6g9Dn2aKXM0ovwmpqMd5G4ucz44EH@mail.gmail.com>
- <Pine.LNX.4.64.1103292357270.13285@axis700.grange>
- <AANLkTimhP_YoqKRKyPzRbM6gw5jXVNV2D3pveRqqH0W_@mail.gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:5684 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755774Ab1CWI4v (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Mar 2011 04:56:51 -0400
+Message-ID: <4D89B5D0.1010202@redhat.com>
+Date: Wed, 23 Mar 2011 05:56:48 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: 8BIT
+To: Andrew Goff <goffa72@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Leadtek Winfast 1800H FM Tuner
+References: <4D8550A3.5010604@aapt.net.au>	<4D85B871.3010201@iki.fi>	<4D8726C5.2090403@gmail.com>	<4D8737EB.9070006@aapt.net.au>	<4D878E84.2020801@redhat.com>	<4D87B927.9040200@aapt.net.au>	<4D87BEA1.7080601@redhat.com> <AANLkTikTf-M9U5VZBj+uZY9oFMCTtSufrHBsyn_DO9UR@mail.gmail.com>
+In-Reply-To: <AANLkTikTf-M9U5VZBj+uZY9oFMCTtSufrHBsyn_DO9UR@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, 29 Mar 2011, Paolo Santinelli wrote:
+Em 22-03-2011 08:54, Andrew Goff escreveu:
+> On Tue, Mar 22, 2011 at 8:09 AM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+>> Em 21-03-2011 17:46, Andrew Goff escreveu:
+>>> On Tue 22-Mar-2011 4:44 AM, Mauro Carvalho Chehab wrote:
+>>>> Em 21-03-2011 08:35, Andrew Goff escreveu:
+>>>>> On Mon 21-Mar-2011 9:21 PM, Mauro Carvalho Chehab wrote:
+>>>>>> Em 20-03-2011 05:18, Antti Palosaari escreveu:
+>>>>>>> On 03/20/2011 02:56 AM, Andrew Goff wrote:
+>>>>>>>> Hi, I hope someone may be able to help me solve a problem or point me in
+>>>>>>>> the right direction.
+>>>>>>>>
+>>>>>>>> I have been using a Leadtek Winfast DTV1800H card (ï»¿Xceive xc3028 tuner)
+>>>>>>>> for a while now without any issues (DTV&  Radio have been working well),
+>>>>>>>> I recently decided to get another tuner card, Leadtek Winfast DTV2000DS
+>>>>>>>> (Tuner: NXP TDA18211, but detected as TDA18271 by V4L drivers, Chipset:
+>>>>>>>> AF9015 + AF9013 ) and had to compile and install the V4L drivers to get
+>>>>>>>> it working. Now DTV on both cards work well but there is a problem with
+>>>>>>>> the radio tuner on the 1800H card.
+>>>>>>>>
+>>>>>>>> After installing the more recent V4L drivers the radio frequency is
+>>>>>>>> 2.7MHz out, so if I want to listen to 104.9 I need to tune the radio to
+>>>>>>>> 107.6. Now I could just change all my preset stations but I can not
+>>>>>>>> listen to my preferred stations as I need to set the frequency above
+>>>>>>>> 108MHz.
+>>>>>>> I think there is something wrong with the FM tuner (xc3028?) or other chipset drivers used for DTV1800H. No relations to the af9015, af9013 or tda18271. tda18211 is same chip as tda18271 but only DVB-T included. If DTV1800H does not contain tda18211 or tda18271 problem cannot be either that.
+>>>>>> Yes, the problem is likely at xc3028. It has to do frequency shift for some
+>>>>>> DVB standards, and the shift is dependent on what firmware is loaded.
+>>>>>>
+>>>>>> So, you need to enable load tuner-xc2028 with debug=1, and provide us the
+>>>>>> dmesg.
+>>>>>>
+>>>>>> Mauro.
+>>>>>>
+>>>>> Hi Mauro
+>>>>>
+>>>>> To do this do I just add the line
+>>>>>
+>>>>> options tuner-xc2028 debug=1
+>>>>>
+>>>>> to the /etc/modules file.
+>>>>>
+>>>>>  From my current dmesg file looks like the firmware is version 2.7.
+>>>>>
+>>>>> xc2028 1-0061: Loading 80 firmware images from xc3028-v27.fw, type: xc2028 firmware, ver 2.7
+>>>>
+>>>> There are about 60 firmwares that are grouped inside xc3028-v27.fw. Please
+>>>> post the complete dmesg. We also need to know what version of the driver
+>>>> you were using when the driver used to work and what you're using when it
+>>>> broke.
+>>>>
+>>>> Thanks
+>>>> Mauro.
+>>>>
+>>>
+>>> Mauro, please see dmesg attached, note I have not added debug=1 yet, do I still need to do this.
+>>>
+>>> To get the other card working I installed this driver version http://linuxtv.org/hg/v4l-dvb/rev/abd3aac6644e
+>>
+>> The mercurial tree is there just due to historic reasons. It has _obsolete_ stuff and nobody
+>> is updating it. Please use, instead, the media_build.git (see linuxtv.org wiki).
+>>
+>> the dmesg with the debug=1 is required, otherwise, it won't produce any error about what's happening at
+>> the xc3028 driver.
+>>
+>> Mauro.
+>>
+> 
+> HI Mauro, now using media_build.git and followed the instructions from
+> http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
+> 
+> have added options tuner-xc2028 debug=1 to the /etc/modules , please
+> see attached dmesg
+> 
+> FM tuner has now completely stopped working.
 
-> Hi Guennadi,
-> 
-> thank you for the quick answer.
-> 
-> Here is what I mean with dynamic: I take "live" one frame at high
-> resolution, for example a picture at VGA or  QVGA resolution, then a
-> sequence of frames that depict a cropped area (200x200 or 100x100)
-> from the original full-resolution frame, and then a new full
-> resolution image (VGA or QVGA) and again the sequence of frames  that
-> depict a cropped area from the original full resolution, and so on.
-> That means takes one frame in 640x480 and  than takes some frames at
-> 100x100 (or 200x200) and so on.
+Weird:
 
-Ic, so, if you can live with a fixed output format and only change the 
-input cropping rectangle, the patch set, that I've just sent could give 
-you a hint, how this can be done. This would work if you're ok with first 
-obtaining VGA images scaled down to, say, 160x120, and then take 160x120 
-cropped frames unscaled. But I'm not sure, this is something, that would 
-work for you. Otherwise, unless your sensor can upscale cropped images to 
-VGA output size, you'll also want fast switching between different output 
-sizes, which you'd have to wait for (or implement yourself;-))
+[   36.654409] xc2028 1-0061: creating new instance
+[   36.654414] xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
+[   36.654419] xc2028 1-0061: destroying instance
+[   36.654489] xc2028 1-0061: creating new instance
+[   36.654491] xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
+[   36.654494] cx88[0]: Asking xc2028/3028 to load firmware xc3028-v27.fw
+[   36.745247] cx88_audio 0000:01:06.1: firmware: requesting xc3028-v27.fw
+[   36.817868] xc2028 1-0061: Loading 80 firmware images from xc3028-v27.fw, type: xc2028 firmware, ver 2.7
+[   36.817993] cx88[0]: Calling XC2028/3028 callback
+[   36.966811] xc2028 1-0061: Loading firmware for type=BASE (1), id 0000000000000000.
+[   36.966815] cx88[0]: Calling XC2028/3028 callback
 
-Thanks
-Guennadi
+xc2028 driver didn't try to load a standard-specific firmware... 
 
-> 
-> The best would be have two different fixed-output image formats, the
-> WHOLE IMAGE format ex. 640x480 and the ROI format, 100x100. The ROI
-> pictures obtained cropping the a region of the whole image. The
-> cropping area could be even wider  than 100x100 and then scaled down
-> to the 100x100 ROI format.
-> 
-> Probably it is more simple have a cropping area of the same dimension
-> of the ROI format, 100x100.
-> 
-> In this way there is a reduction of the computation load of the CPU
-> (smaller images).
-> 
-> Thank you very much!
-> 
-> Paolo
-> 
-> 2011/3/29 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
-> > On Tue, 29 Mar 2011, Paolo Santinelli wrote:
-> >
-> >> Hi all,
-> >>
-> >> I am using a PXA270 board running linux 2.6.37 equipped with an ov9655
-> >> Image sensor. I am able to use the cropping and scaling capabilities
-> >> V4L2 driver.
-> >> The question is :
-> >>
-> >> Is it possible dynamically change the cropping and scaling values
-> >> without close and re-open  the camera every time ?
-> >>
-> >> Now I am using the streaming I/O memory mapping and to dynamically
-> >> change the cropping and scaling values I do :
-> >>
-> >> 1) stop capturing using VIDIOC_STREAMOFF;
-> >> 2) unmap all the buffers;
-> >> 3) close the device;
-> >> 4) open the device;
-> >> 5) init the device: VIDIOC_CROPCAP and VIDIOC_S_CROP in order to set
-> >> the cropping parameters. VIDIOC_G_FMT and VIDIOC_S_FMT in order to set
-> >> the target image width and height, (scaling).
-> >> 6) Mapping the buffers: VIDIOC_REQBUFS in order to request buffers and
-> >> mmap each buffer using VIDIOC_QUERYBUF and mmap():
-> >>
-> >> this procedure works but take 400 ms.
-> >>
-> >> If I omit steps 3) and 4)  (close and re-open the device) I get this errors:
-> >>
-> >> camera 0-0: S_CROP denied: queue initialised and sizes differ
-> >> camera 0-0: S_FMT denied: queue initialised
-> >> VIDIOC_S_FMT error 16, Device or resource busy
-> >> pxa27x-camera pxa27x-camera.0: PXA Camera driver detached from camera 0
-> >>
-> >> Do you have some Idea regarding why I have to close and reopen the
-> >> device and regarding a way to speed up these change?
-> >
-> > Yes, by chance I do;-) First of all you have to make it more precise -
-> > what exactly do you mean - dynamic (I call it "live") scaling or cropping?
-> > If you want to change output format, that will not be easy ATM, that will
-> > require the snapshot mode API, which is not yet even in an RFC state. If
-> > you only want to change the cropping and keep the output format (zoom),
-> > then I've just implemented that for sh_mobile_ceu_camera. This requires a
-> > couple of extensions to the soc-camera core, which I can post tomorrow.
-> > But in fact that is also a hack, because the proper way to implement this
-> > is to port soc-camera to the Media Controller framework and use the
-> > pad-level API. So, I am not sure, whether we want this in the mainline,
-> > but if already two of us need it now - before the transition to pad-level
-> > operations, maybe it would make sense to mainline this. If, however, you
-> > do have to change your output window, maybe you could tell us your
-> > use-case, so that we could consider, what's the best way to support that.
-> >
-> > Thanks
-> > Guennadi
-> > ---
-> > Guennadi Liakhovetski, Ph.D.
-> > Freelance Open-Source Software Developer
-> > http://www.open-technology.de/
-> >
-> 
-> 
-> 
-> -- 
-> --------------------------------------------------
-> Paolo Santinelli
-> ImageLab Computer Vision and Pattern Recognition Lab
-> Dipartimento di Ingegneria dell'Informazione
-> Universita' di Modena e Reggio Emilia
-> via Vignolese 905/B, 41125, Modena, Italy
-> 
-> Cell. +39 3472953357,  Office +39 059 2056270, Fax +39 059 2056129
-> email:  <mailto:paolo.santinelli@unimore.it> paolo.santinelli@unimore.it
-> URL:  <http://imagelab.ing.unimo.it/> http://imagelab.ing.unimo.it
-> --------------------------------------------------
-> 
+I would expect at least two load firmware lines there... one for NTSC, and another one for one of
+the radio-specific firmwares, when you tried to run radio on it.
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Please also load tuner with debug=1. Let's see what happens when you change a frequency on your
+radio program.
+
+AH! Very important! V4L1 API got removed, so, you need to be sure that your radio program is
+using V4L2 API. I had to fix xawtv3 "radio" program for it to work properly using V4L2 API.
+So, xawtv 3.95 is broken. If you're using xawtv 3.100, radio application is working fine.
+
+We had also a report that gnome-radio upstream is broken. While it does support both API's,
+it seems that it fails if V4L1 is not available. There's a patch fixing it on Fedora. Not
+sure if other distros applied the patch, but, on a quick look, the Fedora patch didn't reach
+upstream:
+	http://git.gnome.org/browse/gnomeradio/
+
+Hmm...
+
+[   37.381526] ir_lirc_codec: Unknown symbol lirc_dev_fop_poll
+[   37.381724] ir_lirc_codec: Unknown symbol lirc_dev_fop_open
+[   37.381807] ir_lirc_codec: disagrees about version of symbol lirc_get_pdata
+[   37.381809] ir_lirc_codec: Unknown symbol lirc_get_pdata
+[   37.381900] ir_lirc_codec: Unknown symbol lirc_dev_fop_close
+[   37.381999] ir_lirc_codec: Unknown symbol lirc_dev_fop_read
+[   37.382068] ir_lirc_codec: disagrees about version of symbol lirc_register_driver
+[   37.382070] ir_lirc_codec: Unknown symbol lirc_register_driver
+[   37.382256] ir_lirc_codec: Unknown symbol lirc_dev_fop_ioctl
+
+You have a mix of old and new drivers on your install. The results are unpredictable
+when you're mixing drivers. Please be sure that the Kernel you're running doesn't
+have any trace of the ancient drivers. Maybe some parts of RC/V4L/DVB were compiled
+built in, or your distro is not putting the media stuff at the right place.
+
+The standard place to add media Kernel drivers are at:
+	/lib/modules/`uname -r`/kernel/drivers/media/
+
+Sometimes, they might also be find at:
+	/lib/modules/`uname -r`/kernel/extra (or /lib/modules/`uname -r`/extra  )
+
+Ubuntu (Debian?) have a different opinion about that, and they have
+a directory on some other random place with some drivers. It used to be at:
+	/lib/modules/`uname -r`/ubuntu/media 
+
+The new_build install target tries to remove the ancient drivers from the above
+directories, but if the distro you're using are storing them into some other
+random place, make install won't be able to cleanup everything.
+
+Could you please fix the above issues and test again?
+
+Cheers,
+Mauro
+
+
