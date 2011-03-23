@@ -1,125 +1,82 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.10]:63003 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933573Ab1CXTNb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Mar 2011 15:13:31 -0400
-Date: Thu, 24 Mar 2011 20:13:27 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: "K, Mythri P" <mythripk@ti.com>
-cc: Jesse Barnes <jbarnes@virtuousgeek.org>,
-	Dave Airlie <airlied@gmail.com>, linux-fbdev@vger.kernel.org,
-	linux-omap@vger.kernel.org,
-	dri-devel <dri-devel@lists.freedesktop.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH] HDMI:Support for EDID parsing in kernel.
-In-Reply-To: <AANLkTinYHzCgXe9yw1rGHZA0uM=-VrY+Mktpn-HvfRyR@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1103242001460.21914@axis700.grange>
-References: <1300815176-21206-1-git-send-email-mythripk@ti.com>
- <AANLkTim61Xdo6ED7mr_SvpLuotso89RdR6Qaz-GCXOmJ@mail.gmail.com>
- <AANLkTinMUCbaEVjwZsHG9BxFVjx0YxS=Sw+3gViDJXhg@mail.gmail.com>
- <20110323081820.5b37d169@jbarnes-desktop> <AANLkTinYHzCgXe9yw1rGHZA0uM=-VrY+Mktpn-HvfRyR@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from bear.ext.ti.com ([192.94.94.41]:58577 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753118Ab1CWKRZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Mar 2011 06:17:25 -0400
+From: manjunatha_halli@ti.com
+To: mchehab@infradead.org, hverkuil@xs4all.nl
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Manjunatha Halli <manjunatha_halli@ti.com>
+Subject: [PATCH] [media] radio: wl128x: Update registration process with ST.
+Date: Wed, 23 Mar 2011 06:44:30 -0400
+Message-Id: <1300877070-22476-1-git-send-email-manjunatha_halli@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, 24 Mar 2011, K, Mythri P wrote:
+From: Manjunatha Halli <manjunatha_halli@ti.com>
 
-> Hi Jesse,
-> 
-> On Wed, Mar 23, 2011 at 8:48 PM, Jesse Barnes <jbarnes@virtuousgeek.org> wrote:
-> > On Wed, 23 Mar 2011 18:58:27 +0530
-> > "K, Mythri P" <mythripk@ti.com> wrote:
-> >
-> >> Hi Dave,
-> >>
-> >> On Wed, Mar 23, 2011 at 6:16 AM, Dave Airlie <airlied@gmail.com> wrote:
-> >> > On Wed, Mar 23, 2011 at 3:32 AM, Mythri P K <mythripk@ti.com> wrote:
-> >> >> Adding support for common EDID parsing in kernel.
-> >> >>
-> >> >> EDID - Extended display identification data is a data structure provided by
-> >> >> a digital display to describe its capabilities to a video source, This a
-> >> >> standard supported by CEA and VESA.
-> >> >>
-> >> >> There are several custom implementations for parsing EDID in kernel, some
-> >> >> of them are present in fbmon.c, drm_edid.c, sh_mobile_hdmi.c, Ideally
-> >> >> parsing of EDID should be done in a library, which is agnostic of the
-> >> >> framework (V4l2, DRM, FB)  which is using the functionality, just based on
-> >> >> the raw EDID pointer with size/segment information.
-> >> >>
-> >> >> With other RFC's such as the one below, which tries to standardize HDMI API's
-> >> >> It would be better to have a common EDID code in one place.It also helps to
-> >> >> provide better interoperability with variety of TV/Monitor may be even by
-> >> >> listing out quirks which might get missed with several custom implementation
-> >> >> of EDID.
-> >> >> http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/30401
-> >> >>
-> >> >> This patch tries to add functions to parse some portion EDID (detailed timing,
-> >> >> monitor limits, AV delay information, deep color mode support, Audio and VSDB)
-> >> >> If we can align on this library approach i can enhance this library to parse
-> >> >> other blocks and probably we could also add quirks from other implementation
-> >> >> as well.
-> >> >>
-> >> >
-> >> > If you want to take this approach, you need to start from the DRM EDID parser,
-> >> > its the most well tested and I can guarantee its been plugged into more monitors
-> >> > than any of the others. There is just no way we would move the DRM parser to a
-> >> > library one that isn't derived from it + enhancements, as we'd throw away the
-> >> > years of testing and the regression count would be way too high.
-> >> >
-> >> I had a look at the DRM EDID code, but for quirks it looks pretty much the same.
-> >> yes i could take quirks and other DRM tested code and enhance, but
-> >> still the code has to do away with struct drm_display_mode
-> >> which is very much custom to DRM.
-> >
-> > If that's the only issue you have, we could easily rename that
-> > structure or add conversion funcs to a smaller structure if that's what
-> > you need.
-> >
-> > Dave's point is that we can't ditch the existing code without
-> > introducing a lot of risk; it would be better to start a library-ized
-> > EDID codebase from the most complete one we have already, i.e. the DRM
-> > EDID code.
+As underlying ST driver registration API's have changed with
+latest 2.6.38-rc8 kernel this patch will update the FM driver
+accordingly.
 
-Does the DRM EDID-parser also process blocks beyond the first one and 
-also parses SVD entries similar to what I've recently added to fbdev? Yes, 
-we definitely need a common EDID parses, and maybe we'll have to collect 
-various pieces from different implementations.
-
-Thanks
-Guennadi
-
-> >
-> This sounds good. If we can remove the DRM dependent portion to have a
-> library-ized EDID code,
-> That would be perfect. The main Intention to have a library is,
-> Instead of having several different Implementation in kernel, all
-> doing the same EDID parsing , if we could have one single
-> implementation , it would help in better testing and interoperability.
-> 
-> > Do you really think the differences between your code and the existing
-> > DRM code are irreconcilable?
-> >
-> On the contrary if there is a library-ized  EDID parsing using the
-> drm_edid, and there is any delta / fields( Parsing the video block in
-> CEA extension for Short Video Descriptor, Vendor block for AV delay
-> /Deep color information etc) that are parsed with the RFC i posted i
-> would be happy to add.
-> 
-> Thanks and regards,
-> Mythri.
-> > --
-> > Jesse Barnes, Intel Open Source Technology Center
-> >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+Signed-off-by: Manjunatha Halli <manjunatha_halli@ti.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/radio/wl128x/fmdrv_common.c |   16 +++++++++++++---
+ 1 files changed, 13 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/radio/wl128x/fmdrv_common.c b/drivers/media/radio/wl128x/fmdrv_common.c
+index 96a95c5..b09b283 100644
+--- a/drivers/media/radio/wl128x/fmdrv_common.c
++++ b/drivers/media/radio/wl128x/fmdrv_common.c
+@@ -1494,12 +1494,17 @@ u32 fmc_prepare(struct fmdev *fmdev)
+ 	}
+ 
+ 	memset(&fm_st_proto, 0, sizeof(fm_st_proto));
+-	fm_st_proto.type = ST_FM;
+ 	fm_st_proto.recv = fm_st_receive;
+ 	fm_st_proto.match_packet = NULL;
+ 	fm_st_proto.reg_complete_cb = fm_st_reg_comp_cb;
+ 	fm_st_proto.write = NULL; /* TI ST driver will fill write pointer */
+ 	fm_st_proto.priv_data = fmdev;
++	fm_st_proto.chnl_id = 0x08;
++	fm_st_proto.max_frame_size = 0xff;
++	fm_st_proto.hdr_len = 1;
++	fm_st_proto.offset_len_in_hdr = 0;
++	fm_st_proto.len_size = 1;
++	fm_st_proto.reserve = 1;
+ 
+ 	ret = st_register(&fm_st_proto);
+ 	if (ret == -EINPROGRESS) {
+@@ -1532,7 +1537,7 @@ u32 fmc_prepare(struct fmdev *fmdev)
+ 		g_st_write = fm_st_proto.write;
+ 	} else {
+ 		fmerr("Failed to get ST write func pointer\n");
+-		ret = st_unregister(ST_FM);
++		ret = st_unregister(&fm_st_proto);
+ 		if (ret < 0)
+ 			fmerr("st_unregister failed %d\n", ret);
+ 		return -EAGAIN;
+@@ -1586,6 +1591,7 @@ u32 fmc_prepare(struct fmdev *fmdev)
+  */
+ u32 fmc_release(struct fmdev *fmdev)
+ {
++	static struct st_proto_s fm_st_proto;
+ 	u32 ret;
+ 
+ 	if (!test_bit(FM_CORE_READY, &fmdev->flag)) {
+@@ -1604,7 +1610,11 @@ u32 fmc_release(struct fmdev *fmdev)
+ 	fmdev->resp_comp = NULL;
+ 	fmdev->rx.freq = 0;
+ 
+-	ret = st_unregister(ST_FM);
++	memset(&fm_st_proto, 0, sizeof(fm_st_proto));
++	fm_st_proto.chnl_id = 0x08;
++
++	ret = st_unregister(&fm_st_proto);
++
+ 	if (ret < 0)
+ 		fmerr("Failed to de-register FM from ST %d\n", ret);
+ 	else
+-- 
+1.7.0.4
+
