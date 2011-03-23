@@ -1,112 +1,63 @@
 Return-path: <mchehab@pedra>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:49653 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753783Ab1C2PTy convert rfc822-to-8bit (ORCPT
+Received: from smtpauth03.prod.mesa1.secureserver.net ([64.202.165.183]:44462
+	"HELO smtpauth03.prod.mesa1.secureserver.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751066Ab1CWGaO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Mar 2011 11:19:54 -0400
-Received: by gwaa18 with SMTP id a18so114882gwa.19
-        for <linux-media@vger.kernel.org>; Tue, 29 Mar 2011 08:19:53 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <201101191221.17773.laurent.pinchart@ideasonboard.com>
-References: <AANLkTimec2+VyO+iRSx1PYy3btOb6RbHt0j3ytmnykVo@mail.gmail.com>
-	<201101181036.35818.laurent.pinchart@ideasonboard.com>
-	<AANLkTikiYzv-uHzgbDvUSJWDZbiWtC05M24G7Y8Pja04@mail.gmail.com>
-	<201101191221.17773.laurent.pinchart@ideasonboard.com>
-Date: Tue, 29 Mar 2011 17:19:53 +0200
-Message-ID: <AANLkTin7n=0TF+jyeTNPKenAN4rxG5P3BgDGbwfu-1Du@mail.gmail.com>
-Subject: Re: OMAP3 ISP and tvp5151 driver.
-From: =?UTF-8?Q?Enric_Balletb=C3=B2_i_Serra?= <eballetbo@gmail.com>
+	Wed, 23 Mar 2011 02:30:14 -0400
+Subject: Re: soc-camera layer2 driver
+Mime-Version: 1.0 (Apple Message framework v1082)
+Content-Type: text/plain; charset=us-ascii
+From: Gilles <gilles@gigadevices.com>
+In-Reply-To: <201103221148.17804.laurent.pinchart@ideasonboard.com>
+Date: Tue, 22 Mar 2011 23:30:11 -0700
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Message-Id: <E4F4A76D-2DA4-4C88-9DFF-C4723E41D8D8@gigadevices.com>
+References: <092708F1-CB5B-420A-B675-EED63B7E68A7@gigadevices.com> <4898622A-5298-4E4D-BAB0-D1C71B7C2845@gigadevices.com> <Pine.LNX.4.64.1103221021450.29576@axis700.grange> <201103221148.17804.laurent.pinchart@ideasonboard.com>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, mchehab@redhat.com
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello all,
+Laurent,
 
-2011/1/19 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> Hi Enric,
->
-> On Wednesday 19 January 2011 12:05:54 Enric Balletbò i Serra wrote:
->> 2011/1/18 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
->> > On Tuesday 18 January 2011 10:20:43 Enric Balletbò i Serra wrote:
->> >> Now seems yavta is blocked dequeuing a buffer ( VIDIOC_DQBUF ), with
->> >> strace I get
->> >>
->> >> $ strace ./yavta -f SGRBG10 -s 720x525 -n 1 --capture=1 -F /dev/video2
->> >>
->> >> mmap2(NULL, 756000, PROT_READ|PROT_WRITE, MAP_SHARED, 3, 0) = 0x4011f000
->> >> write(1, "Buffer 0 mapped at address 0x401"..., 39Buffer 0 mapped at
->> >> address 0x4011f000.
->> >> ) = 39
->> >> ioctl(3, VIDIOC_QBUF or VT_SETACTIVATE, 0xbede36cc) = 0
->> >> ioctl(3, VIDIOC_STREAMON, 0xbede365c)   = 0
->> >> gettimeofday({10879, 920196}, NULL)     = 0
->> >> ioctl(3, VIDIOC_DQBUF
->> >>
->> >> and the code where stops is here
->> >>
->> >> ispqueue.c
->> >> 913   buf = list_first_entry(&queue->queue, struct isp_video_buffer,
->> >> stream); 914   ret = isp_video_buffer_wait(buf, nonblocking);
->> >>
->> >> Any idea ?
->> >
->> > My guess is that the CCDC doesn't receive the amount of lines it expects.
->> >
->> > The CCDC generates an interrupt at 2/3 of the image and another one at
->> > the beginning of the last line. Start by checking if the ISP generates
->> > any interrupt to the host with cat /proc/interrupts. If it doesn't, then
->> > the CCDC receives less than 2/3 of the expected number of lines. If it
->> > does, it probably receives between 2/3 and 3/3. You can add printk
->> > statements in ispccdc_vd0_isr() and ispccdc_vd1_isr() to confirm this.
->>
->> Looks like my problem is that  ispccdc_vd0_isr() and ispccdc_vd1_isr()
->> are never called, adding printk in these functions I see only a lots
->> of ispccdc_hs_vs_isr(), Seems the CCDC receives less than 2/3 of
->> expected number lines. Using an oscilloscope I see VS and HS data
->> lines of the camera interface, so seems physical interface is working.
->>
->> I guess I'm missing something to configure in tvp5150 driver but I
->> don't know. Any help ?
->
-> Try to hack the ISP driver to generate the VD1 interrupt much earlier (after a
-> couple of lines only). If you get it, then modify the number of lines to see
-> how many lines the CCDC receives. This should hopefully give you a hint.
+>> the videobuf2-dma-contig allocator), look at sh_mobile_ceu for an advanced
+>> example, or at one of mx3_camera, mx2_camera, mx1_camera for simpler ones.
+>> omap1_camera is also trying to support both sg and contig... If you have
+>> questions, don't hesitate to ask on the ML, also cc me and / or the
+>> respective driver author. Maybe you end up writing some such howto too;)
 
-After a parenthesis, back to work with tvp5151.
+Thank you for your help and pointers. I will definitely consider the
+howto when I feel like I understand what I'm doing. I guess what
+worries me is that there are many options I will not get to
+exercice (because I may not need them in my case) so my howto would be
+incomplete. But I'll be glad to write what I've learned.
 
-I programmed tvp5151 as 8-bit ITU-R BT.656 parallel interface and
-capture PAL-B, D, G, H, I standard ( Pixels per line: 864,  Active
-pixels per line: 720, Line per frame: 625 )
 
-As Laurent's suggest I modified the number of lines to see how many
-lines the CCDC receives and I get 312 lines, he did the trick. I think
-this is because the tvp5151 sends the images in interlaced mode, so
-the first frame I receive contains the odd lines and the second frame
-the even lines. Still having some issues but at least I get some
-images with yavta and gstreamer using these commands:
+>> I'm not aware about any 3d efforts in v4l2... I would've thought, that one
+>> would want to synchronize frames at the driver level, the application
+>> level is too indeterministic. So, you would need to add an API to retrieve
+>> pairs of frames, I presume, one of which is marked left, other right. This
+>> frame-pair handling is one addition to the generic V4L2 API. You'll also
+>> need a way to open / associate two sensors with one v4l2 device node.
+>> Then, how you assemble two different frames from two sensors in one
+>> stereo-frame is up to your driver, I presume.
 
-$ ./media-ctl --set-format '"tvp5150 2-005c":0 [UYVY 720x312]'
-$ ./yavta -f UYVY -s 720x312 -n 4 --capture=4 --skip 3 -F /dev/video2
-$ gst-launch -v v4l2src device=/dev/video2 queue-size=14 !
-video/x-raw-yuv,format=\(fourcc\)UYVY,width=720,height=312 !
-ffmpegcolorspace ! xvimagesink
+No questions about it. Both cameras should definitely be handled by the
+same driver. The application should be able to select whether it wants to
+capture frame-alternative or side-by-side and the driver would package
+accordingly.
 
-Maybe someone can help me with these questions:
+At this point, I have a hardware issue because I hooked up both cameras
+to the same reset and same pixel clock but the HSync signals are not in
+sync so it's relatively impossible for me (even at the driver level) to
+control when a frame is captured. I think it has to do with I2C commands
+changing the timing. This is outside of the scope of this thread but it
+would be interesting to discuss how 3D would be added to V4L.
 
-I get a 720x312 image, how can I get 720x525 (the real size) ? The
-OMAP ISP can do this ? Gstreamer can do this ? And, maybe a stupid
-question, but, why the CCDC generates an interrupt at 2/3 of the image
-?
+Anyway, Thank you for your help, I have some things to look at.
 
-Thanks in advance,
-  Enric
+Thanks,
+Gilles
+.
 
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
