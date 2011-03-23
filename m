@@ -1,135 +1,65 @@
 Return-path: <mchehab@pedra>
-Received: from ist.d-labs.de ([213.239.218.44]:34030 "EHLO mx01.d-labs.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756163Ab1COVqo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Mar 2011 17:46:44 -0400
-Date: Tue, 15 Mar 2011 22:46:41 +0100
-From: Florian Mickler <florian@mickler.org>
-To: Malcolm Priestley <tvboxspy@gmail.com>
-Cc: mchehab@infradead.org, oliver@neukum.org, jwjstone@fastmail.fm,
-	linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 12/16] [media] lmedm04: get rid of on-stack dma buffers
-Message-ID: <20110315224641.4e088082@schatten.dmk.lab>
-In-Reply-To: <1300222483.1910.12.camel@localhost>
-References: <20110315093632.5fc9fb77@schatten.dmk.lab>
-	<1300178655-24832-1-git-send-email-florian@mickler.org>
-	<1300178655-24832-12-git-send-email-florian@mickler.org>
-	<1300222483.1910.12.camel@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from moutng.kundenserver.de ([212.227.17.10]:50517 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755865Ab1CWKF7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Mar 2011 06:05:59 -0400
+Date: Wed, 23 Mar 2011 11:05:58 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: linux-sh@vger.kernel.org
+Subject: [PATCH] V4L: sh_mobile_csi2: fix module reloading
+Message-ID: <Pine.LNX.4.64.1103231105110.6836@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, 15 Mar 2011 20:54:43 +0000
-Malcolm Priestley <tvboxspy@gmail.com> wrote:
+If the camera host driver (sh_mobile_ceu_camera.c) is unloaded and then
+reloaded, probe will fail, because camera client .set_bus_param() and
+.query_bus_param() methods have been set to NULL. Fix this by caching
+the original pointers and restoring them on driver-unbind.
 
-> The patch failed for the following reason.
-> 
-> On Tue, 2011-03-15 at 09:43 +0100, Florian Mickler wrote:
-> > usb_control_msg initiates (and waits for completion of) a dma transfer using
-> > the supplied buffer. That buffer thus has to be seperately allocated on
-> > the heap.
-> > 
-> > In lib/dma_debug.c the function check_for_stack even warns about it:
-> > 	WARNING: at lib/dma-debug.c:866 check_for_stack
-> > 
-> > Note: This change is tested to compile only, as I don't have the hardware.
-> > 
-> > Signed-off-by: Florian Mickler <florian@mickler.org>
-> > ---
-> >  drivers/media/dvb/dvb-usb/lmedm04.c |   16 +++++++++++++---
-> >  1 files changed, 13 insertions(+), 3 deletions(-)
-> > 
-> > diff --git a/drivers/media/dvb/dvb-usb/lmedm04.c b/drivers/media/dvb/dvb-usb/lmedm04.c
-> > index 0a3e88f..bec5439 100644
-> > --- a/drivers/media/dvb/dvb-usb/lmedm04.c
-> > +++ b/drivers/media/dvb/dvb-usb/lmedm04.c
-> > @@ -314,12 +314,17 @@ static int lme2510_int_read(struct dvb_usb_adapter *adap)
-> >  static int lme2510_return_status(struct usb_device *dev)
-> >  {
-> >  	int ret = 0;
-> > -	u8 data[10] = {0};
-> > +	u8 *data;
-> > +
-> > +	data = kzalloc(10, GFP_KERNEL);
-> > +	if (!data)
-> > +		return -ENOMEM;
-> >  
-> >  	ret |= usb_control_msg(dev, usb_rcvctrlpipe(dev, 0),
-> >  			0x06, 0x80, 0x0302, 0x00, data, 0x0006, 200);
-> >  	info("Firmware Status: %x (%x)", ret , data[2]);
-> >  
-> > +	kfree(data);
-> >  	return (ret < 0) ? -ENODEV : data[2];
-> 
-> data has been killed off when we need the buffer contents.
-> changing to the following fixed.
-> 
-> 	ret = (ret < 0) ? -ENODEV : data[2];
-> 
-> 	kfree(data);
-> 
-> 	return ret;
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/video/sh_mobile_csi2.c |   10 ++++++++--
+ 1 files changed, 8 insertions(+), 2 deletions(-)
 
-Yes. Thanks. I updated the patch locally. 
+diff --git a/drivers/media/video/sh_mobile_csi2.c b/drivers/media/video/sh_mobile_csi2.c
+index 94e575f..9b68a40 100644
+--- a/drivers/media/video/sh_mobile_csi2.c
++++ b/drivers/media/video/sh_mobile_csi2.c
+@@ -38,6 +38,8 @@ struct sh_csi2 {
+ 	void __iomem			*base;
+ 	struct platform_device		*pdev;
+ 	struct sh_csi2_client_config	*client;
++	unsigned long (*query_bus_param)(struct soc_camera_device *);
++	int (*set_bus_param)(struct soc_camera_device *, unsigned long);
+ };
+ 
+ static int sh_csi2_try_fmt(struct v4l2_subdev *sd,
+@@ -216,6 +218,8 @@ static int sh_csi2_notify(struct notifier_block *nb,
+ 
+ 		priv->client = pdata->clients + i;
+ 
++		priv->set_bus_param		= icd->ops->set_bus_param;
++		priv->query_bus_param		= icd->ops->query_bus_param;
+ 		icd->ops->set_bus_param		= sh_csi2_set_bus_param;
+ 		icd->ops->query_bus_param	= sh_csi2_query_bus_param;
+ 
+@@ -227,8 +231,10 @@ static int sh_csi2_notify(struct notifier_block *nb,
+ 		priv->client = NULL;
+ 
+ 		/* Driver is about to be unbound */
+-		icd->ops->set_bus_param		= NULL;
+-		icd->ops->query_bus_param	= NULL;
++		icd->ops->set_bus_param		= priv->set_bus_param;
++		icd->ops->query_bus_param	= priv->query_bus_param;
++		priv->set_bus_param		= NULL;
++		priv->query_bus_param		= NULL;
+ 
+ 		v4l2_device_unregister_subdev(&priv->subdev);
+ 
+-- 
+1.7.2.5
 
-> 
-> > @@ -603,7 +608,7 @@ static int lme2510_download_firmware(struct usb_device *dev,
-> >  					const struct firmware *fw)
-> >  {
-> >  	int ret = 0;
-> > -	u8 data[512] = {0};
-> > +	u8 *data;
-> >  	u16 j, wlen, len_in, start, end;
-> >  	u8 packet_size, dlen, i;
-> >  	u8 *fw_data;
-> > @@ -611,6 +616,11 @@ static int lme2510_download_firmware(struct usb_device *dev,
-> >  	packet_size = 0x31;
-> >  	len_in = 1;
-> >  
-> > +	data = kzalloc(512, GFP_KERNEL);
-> > +	if (!data) {
-> > +		info("FRM Could not start Firmware Download (Buffer allocation failed)");
-> 
-> Longer than 80 characters, 
-
-I choose to ignore this warning to keep the string on one line (for
-grep and co).
-
-> > +		return -ENOMEM;
-> > +	}
-> >  
-> >  	info("FRM Starting Firmware Download");
-> >  
-> > @@ -654,7 +664,7 @@ static int lme2510_download_firmware(struct usb_device *dev,
-> >  	else
-> >  		info("FRM Firmware Download Completed - Resetting Device");
-> >  
-> > -
-> > +	kfree(data);
-> >  	return (ret < 0) ? -ENODEV : 0;
-> >  }
-> >  
-> 
-> Otherwise the patch as corrected has been put on test. No initial
-> problems have been encountered.
-> 
-> Regards 
-> 
-> Malcolm
-> 
-
-Thanks. I added a 
-Tested-by: Malcolm Priestley <tvboxspy@gmail.com>,
-if that is ok?
-
-Do you know how often/when is the .identify_state callback called during
-normal operation? I.e. is this memory allocation/deallocation
-in lme2510_return_status happening often and should use a preallocated
-buffer?
-
-Regards,
-Flo
