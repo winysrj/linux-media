@@ -1,56 +1,61 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:49311 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751218Ab1CPW0Z (ORCPT
+Received: from zone0.gcu-squad.org ([212.85.147.21]:18407 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755969Ab1CWNgS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Mar 2011 18:26:25 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: Re: mt9p031 support for Beagleboard.
-Date: Wed, 16 Mar 2011 23:26:25 +0100
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	javier Martin <javier.martin@vista-silicon.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <AANLkTi=8iEa4ZXvh1SqL8XdHuB2YcDAxXAqouJA2JriV@mail.gmail.com> <201103101854.33109.laurent.pinchart@ideasonboard.com> <19F8576C6E063C45BE387C64729E739404E1F52AD5@dbde02.ent.ti.com>
-In-Reply-To: <19F8576C6E063C45BE387C64729E739404E1F52AD5@dbde02.ent.ti.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+	Wed, 23 Mar 2011 09:36:18 -0400
+Date: Wed, 23 Mar 2011 14:35:57 +0100
+From: Jean Delvare <khali@linux-fr.org>
+To: LMML <linux-media@vger.kernel.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] zoran: Drop unused module parameters encoder and decoder
+Message-ID: <20110323143557.40ad9df7@endymion.delvare>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201103162326.26248.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Vaibhav,
+The ability to force the encoder or decoder chip was broken by commit
+0ab6e1c38d80ab586e3a1ca9e71844131d9f51dc in February 2009. As nobody
+complained for over 2 years, I take it that these parameters were no
+longer used so we can simply drop them.
 
-On Thursday 10 March 2011 19:20:02 Hiremath, Vaibhav wrote:
-> On Thursday, March 10, 2011 11:25 PM Laurent Pinchart wrote: > > On Thursday 
-10 March 2011 18:09:42 Hiremath, Vaibhav wrote:
-> > > On Thursday, March 10, 2011 10:12 PM Laurent Pinchart wrote:
-> > > > On Thursday 10 March 2011 17:23:52 Hiremath, Vaibhav wrote:
-> <snip>
-> 
-> > > > > [By next week I should be able to make all my changes public (into
-> > > > > my Arago repo) for reference]
-> > > > 
-> > > > There are too many repositories with code lying around. We should try
-> > > > to coordinate our efforts.
-> > > 
-> > > I agree with you.
-> > 
-> > Any suggestion ? Should I create a repository based on mainline (or
-> > latest linux-media tree) and maintain sensor drivers there before they
-> > get pushed to
-> > mainline ?
-> 
-> I agree, its good idea, I think no need to create separate repository;
-> separate branch in your "media" repository should be ok. What do you think?
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ Documentation/video4linux/Zoran        |    1 -
+ drivers/media/video/zoran/zoran_card.c |    8 --------
+ 2 files changed, 9 deletions(-)
 
-Sounds good. Now that 2.6.38 is out, I'll reorganize the repository and add 
-sensor drivers. I'll send a mail to the list when the tree will be ready.
+--- linux-2.6.39-rc0.orig/Documentation/video4linux/Zoran	2011-03-23 10:34:22.000000000 +0100
++++ linux-2.6.39-rc0/Documentation/video4linux/Zoran	2011-03-23 13:21:22.000000000 +0100
+@@ -130,7 +130,6 @@ Card number: 4
+ 
+ Note: No module for the mse3000 is available yet
+ Note: No module for the vpx3224 is available yet
+-Note: use encoder=X or decoder=X for non-default i2c chips
+ 
+ ===========================
+ 
+--- linux-2.6.39-rc0.orig/drivers/media/video/zoran/zoran_card.c	2011-03-21 17:46:15.000000000 +0100
++++ linux-2.6.39-rc0/drivers/media/video/zoran/zoran_card.c	2011-03-23 13:21:22.000000000 +0100
+@@ -64,14 +64,6 @@ static int card[BUZ_MAX] = { [0 ... (BUZ
+ module_param_array(card, int, NULL, 0444);
+ MODULE_PARM_DESC(card, "Card type");
+ 
+-static int encoder[BUZ_MAX] = { [0 ... (BUZ_MAX-1)] = -1 };
+-module_param_array(encoder, int, NULL, 0444);
+-MODULE_PARM_DESC(encoder, "Video encoder chip");
+-
+-static int decoder[BUZ_MAX] = { [0 ... (BUZ_MAX-1)] = -1 };
+-module_param_array(decoder, int, NULL, 0444);
+-MODULE_PARM_DESC(decoder, "Video decoder chip");
+-
+ /*
+    The video mem address of the video card.
+    The driver has a little database for some videocards
+
 
 -- 
-Regards,
-
-Laurent Pinchart
+Jean Delvare
