@@ -1,76 +1,98 @@
 Return-path: <mchehab@pedra>
-Received: from smtp2.sms.unimo.it ([155.185.44.12]:51359 "EHLO
-	smtp2.sms.unimo.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751635Ab1C2RH0 convert rfc822-to-8bit (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.9]:54797 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755943Ab1CWJQ1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Mar 2011 13:07:26 -0400
-Received: from mail-fx0-f51.google.com ([209.85.161.51]:49542)
-	by smtp2.sms.unimo.it with esmtps (TLS1.0:RSA_ARCFOUR_SHA1:16)
-	(Exim 4.69)
-	(envelope-from <76466@studenti.unimore.it>)
-	id 1Q4boq-0001rf-Pg
-	for linux-media@vger.kernel.org; Tue, 29 Mar 2011 18:31:00 +0200
-Received: by fxm5 with SMTP id 5so472345fxm.24
-        for <linux-media@vger.kernel.org>; Tue, 29 Mar 2011 09:31:00 -0700 (PDT)
+	Wed, 23 Mar 2011 05:16:27 -0400
+Date: Wed, 23 Mar 2011 10:16:24 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Magnus Damm <damm@opensource.se>
+Subject: [PATCH 1/3 v2] V4L: soc_camera_platform: add helper functions to
+ manage device instances
+Message-ID: <Pine.LNX.4.64.1103231011540.6836@axis700.grange>
 MIME-Version: 1.0
-Date: Tue, 29 Mar 2011 11:30:53 -0500
-Message-ID: <AANLkTinVP6CePBY6g9Dn2aKXM0ovwmpqMd5G4ucz44EH@mail.gmail.com>
-Subject: soc_camera dynamically cropping and scaling
-From: Paolo Santinelli <paolo.santinelli@unimore.it>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi all,
+Add helper inline functions to correctly manage dynamic allocation and
+freeing of platform devices. This avoids the ugly code to nullify
+device objects.
 
-I am using a PXA270 board running linux 2.6.37 equipped with an ov9655
-Image sensor. I am able to use the cropping and scaling capabilities
-V4L2 driver.
-The question is :
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Acked-by: Magnus Damm <damm@opensource.se>
+---
 
-Is it possible dynamically change the cropping and scaling values
-without close and re-open  the camera every time ?
+v2: fix the device link assignment order, reported by Magnus - thanks for 
+testing!
 
-Now I am using the streaming I/O memory mapping and to dynamically
-change the cropping and scaling values I do :
+Now, wondering, if we still can manage to get this into .39 together with 
+the other 2 patches for the SH and ARM platforms from the series and via 
+which tree...
 
-1) stop capturing using VIDIOC_STREAMOFF;
-2) unmap all the buffers;
-3) close the device;
-4) open the device;
-5) init the device: VIDIOC_CROPCAP and VIDIOC_S_CROP in order to set
-the cropping parameters. VIDIOC_G_FMT and VIDIOC_S_FMT in order to set
-the target image width and height, (scaling).
-6) Mapping the buffers: VIDIOC_REQBUFS in order to request buffers and
-mmap each buffer using VIDIOC_QUERYBUF and mmap():
+ include/media/soc_camera_platform.h |   50 +++++++++++++++++++++++++++++++++++
+ 1 files changed, 50 insertions(+), 0 deletions(-)
 
-this procedure works but take 400 ms.
-
-If I omit steps 3) and 4)  (close and re-open the device) I get this errors:
-
-camera 0-0: S_CROP denied: queue initialised and sizes differ
-camera 0-0: S_FMT denied: queue initialised
-VIDIOC_S_FMT error 16, Device or resource busy
-pxa27x-camera pxa27x-camera.0: PXA Camera driver detached from camera 0
-
-Do you have some Idea regarding why I have to close and reopen the
-device and regarding a way to speed up these change?
-
-Thanks in advance
-
-Paolo Santinelli
-
+diff --git a/include/media/soc_camera_platform.h b/include/media/soc_camera_platform.h
+index 0ecefe2..6d7a4fd 100644
+--- a/include/media/soc_camera_platform.h
++++ b/include/media/soc_camera_platform.h
+@@ -25,4 +25,54 @@ struct soc_camera_platform_info {
+ 	int (*set_capture)(struct soc_camera_platform_info *info, int enable);
+ };
+ 
++static inline void soc_camera_platform_release(struct platform_device **pdev)
++{
++	*pdev = NULL;
++}
++
++static inline int soc_camera_platform_add(const struct soc_camera_link *icl,
++					  struct device *dev,
++					  struct platform_device **pdev,
++					  struct soc_camera_link *plink,
++					  void (*release)(struct device *dev),
++					  int id)
++{
++	struct soc_camera_platform_info *info = plink->priv;
++	int ret;
++
++	if (icl != plink)
++		return -ENODEV;
++
++	if (*pdev)
++		return -EBUSY;
++
++	*pdev = platform_device_alloc("soc_camera_platform", id);
++	if (!*pdev)
++		return -ENOMEM;
++
++	info->dev = dev;
++
++	(*pdev)->dev.platform_data = info;
++	(*pdev)->dev.release = release;
++
++	ret = platform_device_add(*pdev);
++	if (ret < 0) {
++		platform_device_put(*pdev);
++		*pdev = NULL;
++		info->dev = NULL;
++	}
++
++	return ret;
++}
++
++static inline void soc_camera_platform_del(const struct soc_camera_link *icl,
++					   struct platform_device *pdev,
++					   const struct soc_camera_link *plink)
++{
++	if (icl != plink || !pdev)
++		return;
++
++	platform_device_unregister(pdev);
++}
++
+ #endif /* __SOC_CAMERA_H__ */
 -- 
---------------------------------------------------
-Paolo Santinelli
-ImageLab Computer Vision and Pattern Recognition Lab
-Dipartimento di Ingegneria dell'Informazione
-Universita' di Modena e Reggio Emilia
-via Vignolese 905/B, 41125, Modena, Italy
+1.7.2.5
 
-Cell. +39 3472953357,  Office +39 059 2056270, Fax +39 059 2056129
-email:  <mailto:paolo.santinelli@unimore.it> paolo.santinelli@unimore.it
-URL:  <http://imagelab.ing.unimo.it/> http://imagelab.ing.unimo.it
---------------------------------------------------
