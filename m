@@ -1,121 +1,118 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:60001 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756436Ab1CAPic (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Mar 2011 10:38:32 -0500
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p21FcWMq023891
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 1 Mar 2011 10:38:32 -0500
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>
-Subject: [PATCH] mceusb: don't claim multifunction device non-IR parts
-Date: Tue,  1 Mar 2011 10:38:28 -0500
-Message-Id: <1298993908-26828-1-git-send-email-jarod@redhat.com>
+Received: from moutng.kundenserver.de ([212.227.126.171]:57748 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756004Ab1CWKD5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Mar 2011 06:03:57 -0400
+Date: Wed, 23 Mar 2011 11:03:55 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: linux-sh@vger.kernel.org
+Subject: [PATCH] V4L: soc-camera: fix a recent multi-camera breakage on
+ sh-mobile
+Message-ID: <Pine.LNX.4.64.1103231102550.6836@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-There's a Realtek combo card reader and IR receiver device with multiple
-usb interfaces on it. The mceusb driver is incorrectly grabbing all of
-them. This change should make it bind to only interface 2 (patch based
-on lsusb output on the linux-media list from Lucian Muresan).
+With the introduction of CSI2 support on sh-mobile, the host driver
+switched to using v4l2_device_call_until_err() with grp_id == 0 to
+call subdev operations on the sensor and the CSI2 subdev. However,
+this has broken multi-client set ups like the one on migor, because
+that way all operations get called on both clients. To fix this add
+a grp_id and set it to the client private context.
 
-Tested regression-free with the six mceusb devices I have myself.
-
-Reported-by: Patrick Boettcher <pboettcher@kernellabs.com>
-Reported-by: Lucian Muresan <lucianm@users.sourceforge.net>
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
- drivers/media/rc/mceusb.c |   27 +++++++++++++++------------
- 1 files changed, 15 insertions(+), 12 deletions(-)
+ drivers/media/video/sh_mobile_ceu_camera.c |   10 +++++-----
+ drivers/media/video/sh_mobile_csi2.c       |    1 +
+ drivers/media/video/soc_camera.c           |    4 +++-
+ 3 files changed, 9 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
-index 6df0a49..e4f8eac 100644
---- a/drivers/media/rc/mceusb.c
-+++ b/drivers/media/rc/mceusb.c
-@@ -148,6 +148,7 @@ enum mceusb_model_type {
- 	MCE_GEN2_TX_INV,
- 	POLARIS_EVK,
- 	CX_HYBRID_TV,
-+	MULTIFUNCTION,
- };
+diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
+index 3fe54bf..d84daf1 100644
+--- a/drivers/media/video/sh_mobile_ceu_camera.c
++++ b/drivers/media/video/sh_mobile_ceu_camera.c
+@@ -922,7 +922,7 @@ static int sh_mobile_ceu_get_formats(struct soc_camera_device *icd, unsigned int
+ 			/* Try 2560x1920, 1280x960, 640x480, 320x240 */
+ 			mf.width	= 2560 >> shift;
+ 			mf.height	= 1920 >> shift;
+-			ret = v4l2_device_call_until_err(sd->v4l2_dev, 0, video,
++			ret = v4l2_device_call_until_err(sd->v4l2_dev, (int)icd, video,
+ 							 s_mbus_fmt, &mf);
+ 			if (ret < 0)
+ 				return ret;
+@@ -1224,7 +1224,7 @@ static int client_s_fmt(struct soc_camera_device *icd,
+ 	struct v4l2_cropcap cap;
+ 	int ret;
  
- struct mceusb_model {
-@@ -155,9 +156,10 @@ struct mceusb_model {
- 	u32 mce_gen2:1;
- 	u32 mce_gen3:1;
- 	u32 tx_mask_normal:1;
--	u32 is_polaris:1;
- 	u32 no_tx:1;
+-	ret = v4l2_device_call_until_err(sd->v4l2_dev, 0, video,
++	ret = v4l2_device_call_until_err(sd->v4l2_dev, (int)icd, video,
+ 					 s_mbus_fmt, mf);
+ 	if (ret < 0)
+ 		return ret;
+@@ -1254,7 +1254,7 @@ static int client_s_fmt(struct soc_camera_device *icd,
+ 		tmp_h = min(2 * tmp_h, max_height);
+ 		mf->width = tmp_w;
+ 		mf->height = tmp_h;
+-		ret = v4l2_device_call_until_err(sd->v4l2_dev, 0, video,
++		ret = v4l2_device_call_until_err(sd->v4l2_dev, (int)icd, video,
+ 						 s_mbus_fmt, mf);
+ 		dev_geo(dev, "Camera scaled to %ux%u\n",
+ 			mf->width, mf->height);
+@@ -1658,7 +1658,7 @@ static int sh_mobile_ceu_try_fmt(struct soc_camera_device *icd,
+ 	mf.code		= xlate->code;
+ 	mf.colorspace	= pix->colorspace;
  
-+	int ir_intfnum;
+-	ret = v4l2_device_call_until_err(sd->v4l2_dev, 0, video, try_mbus_fmt, &mf);
++	ret = v4l2_device_call_until_err(sd->v4l2_dev, (int)icd, video, try_mbus_fmt, &mf);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -1682,7 +1682,7 @@ static int sh_mobile_ceu_try_fmt(struct soc_camera_device *icd,
+ 			 */
+ 			mf.width = 2560;
+ 			mf.height = 1920;
+-			ret = v4l2_device_call_until_err(sd->v4l2_dev, 0, video,
++			ret = v4l2_device_call_until_err(sd->v4l2_dev, (int)icd, video,
+ 							 try_mbus_fmt, &mf);
+ 			if (ret < 0) {
+ 				/* Shouldn't actually happen... */
+diff --git a/drivers/media/video/sh_mobile_csi2.c b/drivers/media/video/sh_mobile_csi2.c
+index dd1b81b..94e575f 100644
+--- a/drivers/media/video/sh_mobile_csi2.c
++++ b/drivers/media/video/sh_mobile_csi2.c
+@@ -208,6 +208,7 @@ static int sh_csi2_notify(struct notifier_block *nb,
+ 	case BUS_NOTIFY_BOUND_DRIVER:
+ 		snprintf(priv->subdev.name, V4L2_SUBDEV_NAME_SIZE, "%s%s",
+ 			 dev_name(v4l2_dev->dev), ".mipi-csi");
++		priv->subdev.grp_id = (int)icd;
+ 		ret = v4l2_device_register_subdev(v4l2_dev, &priv->subdev);
+ 		dev_dbg(dev, "%s(%p): ret(register_subdev) = %d\n", __func__, priv, ret);
+ 		if (ret < 0)
+diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+index 4628448..e97be53 100644
+--- a/drivers/media/video/soc_camera.c
++++ b/drivers/media/video/soc_camera.c
+@@ -1071,6 +1071,9 @@ static int soc_camera_probe(struct device *dev)
+ 		}
+ 	}
+ 
++	sd = soc_camera_to_subdev(icd);
++	sd->grp_id = (int)icd;
 +
- 	const char *rc_map;	/* Allow specify a per-board map */
- 	const char *name;	/* per-board name */
- };
-@@ -179,7 +181,6 @@ static const struct mceusb_model mceusb_model[] = {
- 		.tx_mask_normal = 1,
- 	},
- 	[POLARIS_EVK] = {
--		.is_polaris = 1,
- 		/*
- 		 * In fact, the EVK is shipped without
- 		 * remotes, but we should have something handy,
-@@ -189,10 +190,13 @@ static const struct mceusb_model mceusb_model[] = {
- 		.name = "Conexant Hybrid TV (cx231xx) MCE IR",
- 	},
- 	[CX_HYBRID_TV] = {
--		.is_polaris = 1,
- 		.no_tx = 1, /* tx isn't wired up at all */
- 		.name = "Conexant Hybrid TV (cx231xx) MCE IR",
- 	},
-+	[MULTIFUNCTION] = {
-+		.mce_gen2 = 1,
-+		.ir_intfnum = 2,
-+	},
- };
+ 	/* At this point client .probe() should have run already */
+ 	ret = soc_camera_init_user_formats(icd);
+ 	if (ret < 0)
+@@ -1092,7 +1095,6 @@ static int soc_camera_probe(struct device *dev)
+ 		goto evidstart;
  
- static struct usb_device_id mceusb_dev_table[] = {
-@@ -216,8 +220,9 @@ static struct usb_device_id mceusb_dev_table[] = {
- 	{ USB_DEVICE(VENDOR_PHILIPS, 0x206c) },
- 	/* Philips/Spinel plus IR transceiver for ASUS */
- 	{ USB_DEVICE(VENDOR_PHILIPS, 0x2088) },
--	/* Realtek MCE IR Receiver */
--	{ USB_DEVICE(VENDOR_REALTEK, 0x0161) },
-+	/* Realtek MCE IR Receiver and card reader */
-+	{ USB_DEVICE(VENDOR_REALTEK, 0x0161),
-+	  .driver_info = MULTIFUNCTION },
- 	/* SMK/Toshiba G83C0004D410 */
- 	{ USB_DEVICE(VENDOR_SMK, 0x031d),
- 	  .driver_info = MCE_GEN2_TX_INV },
-@@ -1101,7 +1106,7 @@ static int __devinit mceusb_dev_probe(struct usb_interface *intf,
- 	bool is_gen3;
- 	bool is_microsoft_gen1;
- 	bool tx_mask_normal;
--	bool is_polaris;
-+	int ir_intfnum;
- 
- 	dev_dbg(&intf->dev, "%s called\n", __func__);
- 
-@@ -1110,13 +1115,11 @@ static int __devinit mceusb_dev_probe(struct usb_interface *intf,
- 	is_gen3 = mceusb_model[model].mce_gen3;
- 	is_microsoft_gen1 = mceusb_model[model].mce_gen1;
- 	tx_mask_normal = mceusb_model[model].tx_mask_normal;
--	is_polaris = mceusb_model[model].is_polaris;
-+	ir_intfnum = mceusb_model[model].ir_intfnum;
- 
--	if (is_polaris) {
--		/* Interface 0 is IR */
--		if (idesc->desc.bInterfaceNumber)
--			return -ENODEV;
--	}
-+	/* There are multi-function devices with non-IR interfaces */
-+	if (idesc->desc.bInterfaceNumber != ir_intfnum)
-+		return -ENODEV;
- 
- 	/* step through the endpoints to find first bulk in and out endpoint */
- 	for (i = 0; i < idesc->desc.bNumEndpoints; ++i) {
+ 	/* Try to improve our guess of a reasonable window format */
+-	sd = soc_camera_to_subdev(icd);
+ 	if (!v4l2_subdev_call(sd, video, g_mbus_fmt, &mf)) {
+ 		icd->user_width		= mf.width;
+ 		icd->user_height	= mf.height;
 -- 
-1.7.1
+1.7.2.5
 
