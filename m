@@ -1,81 +1,55 @@
 Return-path: <mchehab@pedra>
-Received: from bear.ext.ti.com ([192.94.94.41]:47593 "EHLO bear.ext.ti.com"
+Received: from d1.icnet.pl ([212.160.220.21]:45915 "EHLO d1.icnet.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751486Ab1CULgX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Mar 2011 07:36:23 -0400
-From: manjunatha_halli@ti.com
-To: sfr@canb.auug.org.au
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Manjunatha Halli <manjunatha_halli@ti.com>
-Subject: [PATCH 2/2] [media] radio: wl128x: Update registration process with ST.
-Date: Mon, 21 Mar 2011 08:03:14 -0400
-Message-Id: <1300708994-18058-1-git-send-email-manjunatha_halli@ti.com>
+	id S933284Ab1CWVK7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Mar 2011 17:10:59 -0400
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v3] SoC Camera: add driver for OMAP1 camera interface
+Date: Wed, 23 Mar 2011 17:13:34 +0100
+Cc: linux-media@vger.kernel.org,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Tony Lindgren <tony@atomide.com>,
+	"Discussion of the Amstrad E3 emailer hardware/software"
+	<e3-hacking@earth.li>
+References: <201009301335.51643.jkrzyszt@tis.icnet.pl> <Pine.LNX.4.64.1103231056360.6836@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1103231056360.6836@axis700.grange>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201103231713.50667.jkrzyszt@tis.icnet.pl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Manjunatha Halli <manjunatha_halli@ti.com>
+On Wednesday, 23 March 2011, at 11:00:06, Guennadi Liakhovetski wrote:
+> Hi Janusz
+> 
+> You might want to retest ams-delta with the camera on the current
+> (next or
+> 
+> git://linuxtv.org/media_tree.git staging/for_v2.6.39
+> 
+> ) kernel - I suspect, you'll need something similar to
+> 
+> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructu
+> re/30728
 
-As underlying ST driver registration API's have changed this
-patch will update the FM driver accordingly.
+Hi Guennadi,
+Thanks for bringing this issue to my attention. However, we alread have 
+something like 
 
-Signed-off-by: Manjunatha Halli <manjunatha_halli@ti.com>
----
- drivers/media/radio/wl128x/fmdrv_common.c |   16 +++++++++++++---
- 1 files changed, 13 insertions(+), 3 deletions(-)
+		.dev		= {
+			...
+			.coherent_dma_mask      = DMA_BIT_MASK(32),
+		},
 
-diff --git a/drivers/media/radio/wl128x/fmdrv_common.c b/drivers/media/radio/wl128x/fmdrv_common.c
-index 96a95c5..b09b283 100644
---- a/drivers/media/radio/wl128x/fmdrv_common.c
-+++ b/drivers/media/radio/wl128x/fmdrv_common.c
-@@ -1494,12 +1494,17 @@ u32 fmc_prepare(struct fmdev *fmdev)
- 	}
- 
- 	memset(&fm_st_proto, 0, sizeof(fm_st_proto));
--	fm_st_proto.type = ST_FM;
- 	fm_st_proto.recv = fm_st_receive;
- 	fm_st_proto.match_packet = NULL;
- 	fm_st_proto.reg_complete_cb = fm_st_reg_comp_cb;
- 	fm_st_proto.write = NULL; /* TI ST driver will fill write pointer */
- 	fm_st_proto.priv_data = fmdev;
-+	fm_st_proto.chnl_id = 0x08;
-+	fm_st_proto.max_frame_size = 0xff;
-+	fm_st_proto.hdr_len = 1;
-+	fm_st_proto.offset_len_in_hdr = 0;
-+	fm_st_proto.len_size = 1;
-+	fm_st_proto.reserve = 1;
- 
- 	ret = st_register(&fm_st_proto);
- 	if (ret == -EINPROGRESS) {
-@@ -1532,7 +1537,7 @@ u32 fmc_prepare(struct fmdev *fmdev)
- 		g_st_write = fm_st_proto.write;
- 	} else {
- 		fmerr("Failed to get ST write func pointer\n");
--		ret = st_unregister(ST_FM);
-+		ret = st_unregister(&fm_st_proto);
- 		if (ret < 0)
- 			fmerr("st_unregister failed %d\n", ret);
- 		return -EAGAIN;
-@@ -1586,6 +1591,7 @@ u32 fmc_prepare(struct fmdev *fmdev)
-  */
- u32 fmc_release(struct fmdev *fmdev)
- {
-+	static struct st_proto_s fm_st_proto;
- 	u32 ret;
- 
- 	if (!test_bit(FM_CORE_READY, &fmdev->flag)) {
-@@ -1604,7 +1610,11 @@ u32 fmc_release(struct fmdev *fmdev)
- 	fmdev->resp_comp = NULL;
- 	fmdev->rx.freq = 0;
- 
--	ret = st_unregister(ST_FM);
-+	memset(&fm_st_proto, 0, sizeof(fm_st_proto));
-+	fm_st_proto.chnl_id = 0x08;
-+
-+	ret = st_unregister(&fm_st_proto);
-+
- 	if (ret < 0)
- 		fmerr("Failed to de-register FM from ST %d\n", ret);
- 	else
--- 
-1.7.0.4
+defined inside the platform_device structure registered for our OMAP1 
+camera device, so shouldn't be affected.
 
+Anyway, I have the camera driver review/upgrade task already sitting in 
+my todo list for a few weeks, and hope to find some spare time to deal 
+with it soon, so will verify that as well.
+
+Thanks,
+Janusz
