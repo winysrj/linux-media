@@ -1,533 +1,136 @@
 Return-path: <mchehab@pedra>
-Received: from cnc.isely.net ([75.149.91.89]:53966 "EHLO cnc.isely.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751152Ab1CZEb4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Mar 2011 00:31:56 -0400
-Date: Fri, 25 Mar 2011 23:31:55 -0500 (CDT)
-From: Mike Isely <isely@isely.net>
-To: Dan Carpenter <error27@gmail.com>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org,
-	Mike Isely <isely@isely.net>
-Subject: Re: [PATCH 1/6] [media] pvrusb2: white space changes
-In-Reply-To: <20110326014918.GF2008@bicker>
-Message-ID: <alpine.DEB.1.10.1103252328490.12072@ivanova.isely.net>
-References: <20110326014918.GF2008@bicker>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:41272 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751634Ab1CXOUD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Mar 2011 10:20:03 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from spt2.w1.samsung.com ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LIK00CEGFTAQ790@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 24 Mar 2011 14:19:58 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LIK00FA1FT9JN@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 24 Mar 2011 14:19:57 +0000 (GMT)
+Date: Thu, 24 Mar 2011 15:19:54 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [RFC/PATCH] v4l: Add V4L2_MBUS_FMT_JPEG_1X8 media bus format
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, g.liakhovetski@gmx.de,
+	m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	s.nawrocki@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <1300976395-23826-1-git-send-email-s.nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+Add V4L2_MBUS_FMT_JPEG_1X8 format and the corresponding Docbook
+documentation.
 
-I vehemently object to this scale of disruption to the pvrusb2 driver 
-source code purely to move around a bunch of braces and whitespace.  
-ESPECIALLY the massive ridiculous changes having to do with if-statement 
-syntax!
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
 
-Nacked-By: Mike Isely <isely@pobox.com>
+Hi all,
 
+I would like to propose and addition of JPEG format to the list
+of media bus formats. The requirement of this format had already
+been discussed in the past [1], [2].
+This patch adds relevant entry in v4l2-mediabus.h header and
+the documentation. Initially I have added only bus width information
+to the format code. I am not sure what other information could be
+included. I am open to suggestions if anyone knows about any other
+requirements.
 
-On Sat, 26 Mar 2011, Dan Carpenter wrote:
+JPEG format on media bus is, among others, required for Samsung
+S5P MIPI CSI receiver [3] and M-5MOLS camera drivers [4].
 
-> * Broke up if statements so that the condition and the body are on
->   separate lines.
-> * Added spaces around commas and other operator characters.
-> * Removed extra blank lines.
-> * Added blank lines after declarations.
-> * Changed C99 comments into kernel style.
-> * Fixed checkpatch complaints where "{" char was on its own line but it
->   wasn't the start of a function.
-> 
-> Signed-off-by: Dan Carpenter <error27@gmail.com>
-> 
-> diff --git a/drivers/media/video/pvrusb2/pvrusb2-std.c b/drivers/media/video/pvrusb2/pvrusb2-std.c
-> index ca9f83a..a5d4867 100644
-> --- a/drivers/media/video/pvrusb2/pvrusb2-std.c
-> +++ b/drivers/media/video/pvrusb2/pvrusb2-std.c
-> @@ -28,39 +28,38 @@ struct std_name {
->  	v4l2_std_id id;
->  };
->  
-> -
->  #define CSTD_PAL \
-> -	(V4L2_STD_PAL_B| \
-> -	 V4L2_STD_PAL_B1| \
-> -	 V4L2_STD_PAL_G| \
-> -	 V4L2_STD_PAL_H| \
-> -	 V4L2_STD_PAL_I| \
-> -	 V4L2_STD_PAL_D| \
-> -	 V4L2_STD_PAL_D1| \
-> -	 V4L2_STD_PAL_K| \
-> -	 V4L2_STD_PAL_M| \
-> -	 V4L2_STD_PAL_N| \
-> -	 V4L2_STD_PAL_Nc| \
-> +	(V4L2_STD_PAL_B  | \
-> +	 V4L2_STD_PAL_B1 | \
-> +	 V4L2_STD_PAL_G  | \
-> +	 V4L2_STD_PAL_H  | \
-> +	 V4L2_STD_PAL_I  | \
-> +	 V4L2_STD_PAL_D  | \
-> +	 V4L2_STD_PAL_D1 | \
-> +	 V4L2_STD_PAL_K  | \
-> +	 V4L2_STD_PAL_M  | \
-> +	 V4L2_STD_PAL_N  | \
-> +	 V4L2_STD_PAL_Nc | \
->  	 V4L2_STD_PAL_60)
->  
->  #define CSTD_NTSC \
-> -	(V4L2_STD_NTSC_M| \
-> -	 V4L2_STD_NTSC_M_JP| \
-> -	 V4L2_STD_NTSC_M_KR| \
-> +	(V4L2_STD_NTSC_M    | \
-> +	 V4L2_STD_NTSC_M_JP | \
-> +	 V4L2_STD_NTSC_M_KR | \
->  	 V4L2_STD_NTSC_443)
->  
->  #define CSTD_ATSC \
-> -	(V4L2_STD_ATSC_8_VSB| \
-> +	(V4L2_STD_ATSC_8_VSB | \
->  	 V4L2_STD_ATSC_16_VSB)
->  
->  #define CSTD_SECAM \
-> -	(V4L2_STD_SECAM_B| \
-> -	 V4L2_STD_SECAM_D| \
-> -	 V4L2_STD_SECAM_G| \
-> -	 V4L2_STD_SECAM_H| \
-> -	 V4L2_STD_SECAM_K| \
-> -	 V4L2_STD_SECAM_K1| \
-> -	 V4L2_STD_SECAM_L| \
-> +	(V4L2_STD_SECAM_B  | \
-> +	 V4L2_STD_SECAM_D  | \
-> +	 V4L2_STD_SECAM_G  | \
-> +	 V4L2_STD_SECAM_H  | \
-> +	 V4L2_STD_SECAM_K  | \
-> +	 V4L2_STD_SECAM_K1 | \
-> +	 V4L2_STD_SECAM_L  | \
->  	 V4L2_STD_SECAM_LC)
->  
->  #define TSTD_B   (V4L2_STD_PAL_B|V4L2_STD_SECAM_B)
-> @@ -82,39 +81,40 @@ struct std_name {
->  
->  /* Mapping of standard bits to color system */
->  static const struct std_name std_groups[] = {
-> -	{"PAL",CSTD_PAL},
-> -	{"NTSC",CSTD_NTSC},
-> -	{"SECAM",CSTD_SECAM},
-> -	{"ATSC",CSTD_ATSC},
-> +	{"PAL",   CSTD_PAL},
-> +	{"NTSC",  CSTD_NTSC},
-> +	{"SECAM", CSTD_SECAM},
-> +	{"ATSC",  CSTD_ATSC},
->  };
->  
->  /* Mapping of standard bits to modulation system */
->  static const struct std_name std_items[] = {
-> -	{"B",TSTD_B},
-> -	{"B1",TSTD_B1},
-> -	{"D",TSTD_D},
-> -	{"D1",TSTD_D1},
-> -	{"G",TSTD_G},
-> -	{"H",TSTD_H},
-> -	{"I",TSTD_I},
-> -	{"K",TSTD_K},
-> -	{"K1",TSTD_K1},
-> -	{"L",TSTD_L},
-> -	{"LC",V4L2_STD_SECAM_LC},
-> -	{"M",TSTD_M},
-> -	{"Mj",V4L2_STD_NTSC_M_JP},
-> -	{"443",V4L2_STD_NTSC_443},
-> -	{"Mk",V4L2_STD_NTSC_M_KR},
-> -	{"N",TSTD_N},
-> -	{"Nc",TSTD_Nc},
-> -	{"60",TSTD_60},
-> -	{"8VSB",V4L2_STD_ATSC_8_VSB},
-> -	{"16VSB",V4L2_STD_ATSC_16_VSB},
-> +	{"B",     TSTD_B},
-> +	{"B1",    TSTD_B1},
-> +	{"D",     TSTD_D},
-> +	{"D1",    TSTD_D1},
-> +	{"G",     TSTD_G},
-> +	{"H",     TSTD_H},
-> +	{"I",     TSTD_I},
-> +	{"K",     TSTD_K},
-> +	{"K1",    TSTD_K1},
-> +	{"L",     TSTD_L},
-> +	{"LC",    V4L2_STD_SECAM_LC},
-> +	{"M",     TSTD_M},
-> +	{"Mj",    V4L2_STD_NTSC_M_JP},
-> +	{"443",   V4L2_STD_NTSC_443},
-> +	{"Mk",    V4L2_STD_NTSC_M_KR},
-> +	{"N",     TSTD_N},
-> +	{"Nc",    TSTD_Nc},
-> +	{"60",    TSTD_60},
-> +	{"8VSB",  V4L2_STD_ATSC_8_VSB},
-> +	{"16VSB", V4L2_STD_ATSC_16_VSB},
->  };
->  
-> -
-> -// Search an array of std_name structures and return a pointer to the
-> -// element with the matching name.
-> +/*
-> + * Search an array of std_name structures and return a pointer to the
-> + * element with the matching name.
-> + */
->  static const struct std_name *find_std_name(const struct std_name *arrPtr,
->  					    unsigned int arrSize,
->  					    const char *bufPtr,
-> @@ -122,16 +122,18 @@ static const struct std_name *find_std_name(const struct std_name *arrPtr,
->  {
->  	unsigned int idx;
->  	const struct std_name *p;
-> +
->  	for (idx = 0; idx < arrSize; idx++) {
->  		p = arrPtr + idx;
-> -		if (strlen(p->name) != bufSize) continue;
-> -		if (!memcmp(bufPtr,p->name,bufSize)) return p;
-> +		if (strlen(p->name) != bufSize)
-> +			continue;
-> +		if (!memcmp(bufPtr, p->name, bufSize))
-> +			return p;
->  	}
->  	return NULL;
->  }
->  
-> -
-> -int pvr2_std_str_to_id(v4l2_std_id *idPtr,const char *bufPtr,
-> +int pvr2_std_str_to_id(v4l2_std_id *idPtr, const char *bufPtr,
->  		       unsigned int bufSize)
->  {
->  	v4l2_std_id id = 0;
-> @@ -145,11 +147,14 @@ int pvr2_std_str_to_id(v4l2_std_id *idPtr,const char *bufPtr,
->  	while (bufSize) {
->  		if (!mMode) {
->  			cnt = 0;
-> -			while ((cnt < bufSize) && (bufPtr[cnt] != '-')) cnt++;
-> -			if (cnt >= bufSize) return 0; // No more characters
-> +			while ((cnt < bufSize) && (bufPtr[cnt] != '-'))
-> +				cnt++;
-> +			if (cnt >= bufSize)
-> +				return 0; /* No more characters */
->  			sp = find_std_name(std_groups, ARRAY_SIZE(std_groups),
-> -					   bufPtr,cnt);
-> -			if (!sp) return 0; // Illegal color system name
-> +					   bufPtr, cnt);
-> +			if (!sp)
-> +				return 0; /* Illegal color system name */
->  			cnt++;
->  			bufPtr += cnt;
->  			bufSize -= cnt;
-> @@ -164,58 +169,65 @@ int pvr2_std_str_to_id(v4l2_std_id *idPtr,const char *bufPtr,
->  				mMode = 0;
->  				break;
->  			}
-> -			if (ch == '/') break;
-> +			if (ch == '/')
-> +				break;
->  			cnt++;
->  		}
->  		sp = find_std_name(std_items, ARRAY_SIZE(std_items),
-> -				   bufPtr,cnt);
-> -		if (!sp) return 0; // Illegal modulation system ID
-> +				   bufPtr, cnt);
-> +		if (!sp)
-> +			return 0; /* Illegal modulation system ID */
->  		t = sp->id & cmsk;
-> -		if (!t) return 0; // Specific color + modulation system illegal
-> +		if (!t)
-> +			return 0; /* Specific color + modulation system
-> +				     illegal */
->  		id |= t;
-> -		if (cnt < bufSize) cnt++;
-> +		if (cnt < bufSize)
-> +			cnt++;
->  		bufPtr += cnt;
->  		bufSize -= cnt;
->  	}
->  
-> -	if (idPtr) *idPtr = id;
-> +	if (idPtr)
-> +		*idPtr = id;
->  	return !0;
->  }
->  
-> -
->  unsigned int pvr2_std_id_to_str(char *bufPtr, unsigned int bufSize,
->  				v4l2_std_id id)
->  {
-> -	unsigned int idx1,idx2;
-> -	const struct std_name *ip,*gp;
-> -	int gfl,cfl;
-> -	unsigned int c1,c2;
-> +	unsigned int idx1, idx2;
-> +	const struct std_name *ip, *gp;
-> +	int gfl, cfl;
-> +	unsigned int c1, c2;
->  	cfl = 0;
->  	c1 = 0;
-> +
->  	for (idx1 = 0; idx1 < ARRAY_SIZE(std_groups); idx1++) {
->  		gp = std_groups + idx1;
->  		gfl = 0;
->  		for (idx2 = 0; idx2 < ARRAY_SIZE(std_items); idx2++) {
->  			ip = std_items + idx2;
-> -			if (!(gp->id & ip->id & id)) continue;
-> +			if (!(gp->id & ip->id & id))
-> +				continue;
->  			if (!gfl) {
->  				if (cfl) {
-> -					c2 = scnprintf(bufPtr,bufSize,";");
-> +					c2 = scnprintf(bufPtr, bufSize, ";");
->  					c1 += c2;
->  					bufSize -= c2;
->  					bufPtr += c2;
->  				}
->  				cfl = !0;
-> -				c2 = scnprintf(bufPtr,bufSize,
-> -					       "%s-",gp->name);
-> +				c2 = scnprintf(bufPtr, bufSize,
-> +					       "%s-", gp->name);
->  				gfl = !0;
->  			} else {
-> -				c2 = scnprintf(bufPtr,bufSize,"/");
-> +				c2 = scnprintf(bufPtr, bufSize, "/");
->  			}
->  			c1 += c2;
->  			bufSize -= c2;
->  			bufPtr += c2;
-> -			c2 = scnprintf(bufPtr,bufSize,
-> +			c2 = scnprintf(bufPtr, bufSize,
->  				       ip->name);
->  			c1 += c2;
->  			bufSize -= c2;
-> @@ -225,9 +237,10 @@ unsigned int pvr2_std_id_to_str(char *bufPtr, unsigned int bufSize,
->  	return c1;
->  }
->  
-> -
-> -// Template data for possible enumerated video standards.  Here we group
-> -// standards which share common frame rates and resolution.
-> +/*
-> + * Template data for possible enumerated video standards.  Here we group
-> + * standards which share common frame rates and resolution.
-> + */
->  static struct v4l2_standard generic_standards[] = {
->  	{
->  		.id             = (TSTD_B|TSTD_B1|
-> @@ -239,42 +252,38 @@ static struct v4l2_standard generic_standards[] = {
->  				   TSTD_L|
->  				   V4L2_STD_SECAM_LC |
->  				   TSTD_N|TSTD_Nc),
-> -		.frameperiod    =
-> -		{
-> -			.numerator  = 1,
-> -			.denominator= 25
-> +		.frameperiod    = {
-> +			.numerator   = 1,
-> +			.denominator = 25
->  		},
->  		.framelines     = 625,
-> -		.reserved       = {0,0,0,0}
-> +		.reserved       = {0, 0, 0, 0}
->  	}, {
->  		.id             = (TSTD_M|
->  				   V4L2_STD_NTSC_M_JP|
->  				   V4L2_STD_NTSC_M_KR),
-> -		.frameperiod    =
-> -		{
-> -			.numerator  = 1001,
-> -			.denominator= 30000
-> +		.frameperiod    = {
-> +			.numerator   = 1001,
-> +			.denominator = 30000
->  		},
->  		.framelines     = 525,
-> -		.reserved       = {0,0,0,0}
-> -	}, { // This is a total wild guess
-> +		.reserved       = {0, 0, 0, 0}
-> +	}, { /* This is a total wild guess */
->  		.id             = (TSTD_60),
-> -		.frameperiod    =
-> -		{
-> -			.numerator  = 1001,
-> -			.denominator= 30000
-> +		.frameperiod    = {
-> +			.numerator   = 1001,
-> +			.denominator = 30000
->  		},
->  		.framelines     = 525,
-> -		.reserved       = {0,0,0,0}
-> -	}, { // This is total wild guess
-> +		.reserved       = {0, 0, 0, 0}
-> +	}, { /* This is total wild guess */
->  		.id             = V4L2_STD_NTSC_443,
-> -		.frameperiod    =
-> -		{
-> -			.numerator  = 1001,
-> -			.denominator= 30000
-> +		.frameperiod    = {
-> +			.numerator   = 1001,
-> +			.denominator = 30000
->  		},
->  		.framelines     = 525,
-> -		.reserved       = {0,0,0,0}
-> +		.reserved       = {0, 0, 0, 0}
->  	}
->  };
->  
-> @@ -283,6 +292,7 @@ static struct v4l2_standard generic_standards[] = {
->  static struct v4l2_standard *match_std(v4l2_std_id id)
->  {
->  	unsigned int idx;
-> +
->  	for (idx = 0; idx < generic_standards_cnt; idx++) {
->  		if (generic_standards[idx].id & id) {
->  			return generic_standards + idx;
-> @@ -291,26 +301,30 @@ static struct v4l2_standard *match_std(v4l2_std_id id)
->  	return NULL;
->  }
->  
-> -static int pvr2_std_fill(struct v4l2_standard *std,v4l2_std_id id)
-> +static int pvr2_std_fill(struct v4l2_standard *std, v4l2_std_id id)
->  {
->  	struct v4l2_standard *template;
->  	int idx;
->  	unsigned int bcnt;
-> +
->  	template = match_std(id);
-> -	if (!template) return 0;
-> +	if (!template)
-> +		return 0;
->  	idx = std->index;
-> -	memcpy(std,template,sizeof(*template));
-> +	memcpy(std, template, sizeof(*template));
->  	std->index = idx;
->  	std->id = id;
-> -	bcnt = pvr2_std_id_to_str(std->name,sizeof(std->name)-1,id);
-> +	bcnt = pvr2_std_id_to_str(std->name, sizeof(std->name) - 1, id);
->  	std->name[bcnt] = 0;
-> -	pvr2_trace(PVR2_TRACE_STD,"Set up standard idx=%u name=%s",
-> -		   std->index,std->name);
-> +	pvr2_trace(PVR2_TRACE_STD, "Set up standard idx=%u name=%s",
-> +		   std->index, std->name);
->  	return !0;
->  }
->  
-> -/* These are special cases of combined standards that we should enumerate
-> -   separately if the component pieces are present. */
-> +/*
-> + * These are special cases of combined standards that we should enumerate
-> + * separately if the component pieces are present.
-> + */
->  static v4l2_std_id std_mixes[] = {
->  	V4L2_STD_PAL_B | V4L2_STD_PAL_G,
->  	V4L2_STD_PAL_D | V4L2_STD_PAL_K,
-> @@ -322,23 +336,25 @@ struct v4l2_standard *pvr2_std_create_enum(unsigned int *countptr,
->  					   v4l2_std_id id)
->  {
->  	unsigned int std_cnt = 0;
-> -	unsigned int idx,bcnt,idx2;
-> -	v4l2_std_id idmsk,cmsk,fmsk;
-> +	unsigned int idx, bcnt, idx2;
-> +	v4l2_std_id idmsk, cmsk, fmsk;
->  	struct v4l2_standard *stddefs;
->  
->  	if (pvrusb2_debug & PVR2_TRACE_STD) {
->  		char buf[100];
-> -		bcnt = pvr2_std_id_to_str(buf,sizeof(buf),id);
-> +
-> +		bcnt = pvr2_std_id_to_str(buf, sizeof(buf), id);
->  		pvr2_trace(
-> -			PVR2_TRACE_STD,"Mapping standards mask=0x%x (%.*s)",
-> -			(int)id,bcnt,buf);
-> +			PVR2_TRACE_STD, "Mapping standards mask=0x%x (%.*s)",
-> +			(int)id, bcnt, buf);
->  	}
->  
->  	*countptr = 0;
->  	std_cnt = 0;
->  	fmsk = 0;
->  	for (idmsk = 1, cmsk = id; cmsk; idmsk <<= 1) {
-> -		if (!(idmsk & cmsk)) continue;
-> +		if (!(idmsk & cmsk))
-> +			continue;
->  		cmsk &= ~idmsk;
->  		if (match_std(idmsk)) {
->  			std_cnt++;
-> @@ -348,7 +364,8 @@ struct v4l2_standard *pvr2_std_create_enum(unsigned int *countptr,
->  	}
->  
->  	for (idx2 = 0; idx2 < ARRAY_SIZE(std_mixes); idx2++) {
-> -		if ((id & std_mixes[idx2]) == std_mixes[idx2]) std_cnt++;
-> +		if ((id & std_mixes[idx2]) == std_mixes[idx2])
-> +			std_cnt++;
->  	}
->  
->  	/* Don't complain about ATSC standard values */
-> @@ -356,35 +373,42 @@ struct v4l2_standard *pvr2_std_create_enum(unsigned int *countptr,
->  
->  	if (fmsk) {
->  		char buf[100];
-> -		bcnt = pvr2_std_id_to_str(buf,sizeof(buf),fmsk);
-> +
-> +		bcnt = pvr2_std_id_to_str(buf, sizeof(buf), fmsk);
->  		pvr2_trace(
->  			PVR2_TRACE_ERROR_LEGS,
->  			"WARNING:"
->  			" Failed to classify the following standard(s): %.*s",
-> -			bcnt,buf);
-> +			bcnt, buf);
->  	}
->  
-> -	pvr2_trace(PVR2_TRACE_STD,"Setting up %u unique standard(s)",
-> +	pvr2_trace(PVR2_TRACE_STD, "Setting up %u unique standard(s)",
->  		   std_cnt);
-> -	if (!std_cnt) return NULL; // paranoia
-> +	if (!std_cnt)
-> +		return NULL; /* paranoia */
->  
->  	stddefs = kzalloc(sizeof(struct v4l2_standard) * std_cnt,
->  			  GFP_KERNEL);
-> -	for (idx = 0; idx < std_cnt; idx++) stddefs[idx].index = idx;
-> +	for (idx = 0; idx < std_cnt; idx++)
-> +		stddefs[idx].index = idx;
->  
->  	idx = 0;
->  
->  	/* Enumerate potential special cases */
->  	for (idx2 = 0; (idx2 < ARRAY_SIZE(std_mixes)) && (idx < std_cnt);
->  	     idx2++) {
-> -		if (!(id & std_mixes[idx2])) continue;
-> -		if (pvr2_std_fill(stddefs+idx,std_mixes[idx2])) idx++;
-> +		if (!(id & std_mixes[idx2]))
-> +			continue;
-> +		if (pvr2_std_fill(stddefs + idx, std_mixes[idx2]))
-> +			idx++;
->  	}
->  	/* Now enumerate individual pieces */
->  	for (idmsk = 1, cmsk = id; cmsk && (idx < std_cnt); idmsk <<= 1) {
-> -		if (!(idmsk & cmsk)) continue;
-> +		if (!(idmsk & cmsk))
-> +			continue;
->  		cmsk &= ~idmsk;
-> -		if (!pvr2_std_fill(stddefs+idx,idmsk)) continue;
-> +		if (!pvr2_std_fill(stddefs + idx, idmsk))
-> +			continue;
->  		idx++;
->  	}
->  
-> @@ -397,7 +421,6 @@ v4l2_std_id pvr2_std_get_usable(void)
->  	return CSTD_ALL;
->  }
->  
-> -
->  /*
->    Stuff for Emacs to see, in order to encourage consistent editing style:
->    *** Local Variables: ***
-> 
+Comments are welcome!
 
+--
+Regards,
+Sylwester Nawrocki,
+Samsung Poland R&D Center
+
+[1] http://www.spinics.net/lists/linux-media/msg27980.html
+[2] http://www.spinics.net/lists/linux-media/msg28651.html
+[3] http://www.spinics.net/lists/linux-samsung-soc/msg03807.html
+[4] http://lwn.net/Articles/433836/
+---
+ Documentation/DocBook/v4l/subdev-formats.xml |   45 ++++++++++++++++++++++++++
+ include/linux/v4l2-mediabus.h                |    3 ++
+ 2 files changed, 48 insertions(+), 0 deletions(-)
+
+diff --git a/Documentation/DocBook/v4l/subdev-formats.xml b/Documentation/DocBook/v4l/subdev-formats.xml
+index b5376e2..60a6fe2 100644
+--- a/Documentation/DocBook/v4l/subdev-formats.xml
++++ b/Documentation/DocBook/v4l/subdev-formats.xml
+@@ -2463,5 +2463,50 @@
+ 	</tgroup>
+       </table>
+     </section>
++
++    <section>
++      <title>JPEG Compressed Formats</title>
++
++      <para>Those data formats are used to transfer arbitrary byte-based image
++	data obtained from JPEG compression process. The format code
++	is made of the following information.
++	<itemizedlist>
++	  <listitem>The bus width in bits.</listitem>
++	</itemizedlist>
++
++	<para>For instance, a format where bus width is 8 bits will be named
++	  <constant>V4L2_MBUS_FMT_JPEG_1X8</constant>.
++	</para>
++
++      </para>
++
++      <para>The following table lists existing JPEG compressed formats.</para>
++
++      <table pgwide="0" frame="none" id="v4l2-mbus-pixelcode-jpeg">
++	<title>JPEG Formats</title>
++	<tgroup cols="23">
++	  <colspec colname="id" align="left" />
++	  <colspec colname="code" align="left"/>
++	  <colspec colname="remarks" align="left"/>
++	  <thead>
++	    <row>
++	      <entry>Identifier</entry>
++	      <entry>Code</entry>
++	      <entry>Remarks</entry>
++	    </row>
++	  </thead>
++	  <tbody valign="top">
++	    <row id="V4L2-MBUS-FMT-JPEG-1X8">
++	      <entry>V4L2_MBUS_FMT_JPEG_1X8</entry>
++	      <entry>0x4001</entry>
++	      <entry> This format shall be used for of transmission of JPEG
++		data over MIPI CSI-2 bus with User Defined 8-bit Data types.
++	      </entry>
++	    </row>
++
++	  </tbody>
++	</tgroup>
++      </table>
++    </section>
+   </section>
+ </section>
+diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
+index 7054a7a..15d6cda 100644
+--- a/include/linux/v4l2-mediabus.h
++++ b/include/linux/v4l2-mediabus.h
+@@ -86,6 +86,9 @@ enum v4l2_mbus_pixelcode {
+ 	V4L2_MBUS_FMT_SGBRG12_1X12 = 0x3010,
+ 	V4L2_MBUS_FMT_SGRBG12_1X12 = 0x3011,
+ 	V4L2_MBUS_FMT_SRGGB12_1X12 = 0x3012,
++
++	/* JPEG compressed formats - next is 0x4002 */
++	V4L2_MBUS_FMT_JPEG_1X8 = 0x4001,
+ };
+ 
+ /**
 -- 
-
-Mike Isely
-isely @ isely (dot) net
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
+1.7.4.1
