@@ -1,237 +1,141 @@
 Return-path: <mchehab@pedra>
-Received: from rtp-iport-1.cisco.com ([64.102.122.148]:34026 "EHLO
-	rtp-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752555Ab1CAOgm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Mar 2011 09:36:42 -0500
-From: Hans Verkuil <hansverk@cisco.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [RFC] HDMI-CEC proposal
-Date: Tue, 1 Mar 2011 15:38:51 +0100
-Cc: "Martin Bugge (marbugge)" <marbugge@cisco.com>,
-	linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Jarod Wilson <jarod@redhat.com>
-References: <4D6CC36B.50009@cisco.com> <4D6CE673.2050608@redhat.com>
-In-Reply-To: <4D6CE673.2050608@redhat.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:43695 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933676Ab1CXTWK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Mar 2011 15:22:10 -0400
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201103011538.51844.hansverk@cisco.com>
+In-Reply-To: <Pine.LNX.4.64.1103242001460.21914@axis700.grange>
+References: <1300815176-21206-1-git-send-email-mythripk@ti.com>
+	<AANLkTim61Xdo6ED7mr_SvpLuotso89RdR6Qaz-GCXOmJ@mail.gmail.com>
+	<AANLkTinMUCbaEVjwZsHG9BxFVjx0YxS=Sw+3gViDJXhg@mail.gmail.com>
+	<20110323081820.5b37d169@jbarnes-desktop>
+	<AANLkTinYHzCgXe9yw1rGHZA0uM=-VrY+Mktpn-HvfRyR@mail.gmail.com>
+	<Pine.LNX.4.64.1103242001460.21914@axis700.grange>
+Date: Thu, 24 Mar 2011 15:22:09 -0400
+Message-ID: <AANLkTinsrboO32SsA1_REUf6SecviocHJ4mfj1x97NRA@mail.gmail.com>
+Subject: Re: [RFC PATCH] HDMI:Support for EDID parsing in kernel.
+From: Alex Deucher <alexdeucher@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: "K, Mythri P" <mythripk@ti.com>,
+	Jesse Barnes <jbarnes@virtuousgeek.org>,
+	Dave Airlie <airlied@gmail.com>, linux-fbdev@vger.kernel.org,
+	linux-omap@vger.kernel.org,
+	dri-devel <dri-devel@lists.freedesktop.org>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
+On Thu, Mar 24, 2011 at 3:13 PM, Guennadi Liakhovetski
+<g.liakhovetski@gmx.de> wrote:
+> On Thu, 24 Mar 2011, K, Mythri P wrote:
+>
+>> Hi Jesse,
+>>
+>> On Wed, Mar 23, 2011 at 8:48 PM, Jesse Barnes <jbarnes@virtuousgeek.org> wrote:
+>> > On Wed, 23 Mar 2011 18:58:27 +0530
+>> > "K, Mythri P" <mythripk@ti.com> wrote:
+>> >
+>> >> Hi Dave,
+>> >>
+>> >> On Wed, Mar 23, 2011 at 6:16 AM, Dave Airlie <airlied@gmail.com> wrote:
+>> >> > On Wed, Mar 23, 2011 at 3:32 AM, Mythri P K <mythripk@ti.com> wrote:
+>> >> >> Adding support for common EDID parsing in kernel.
+>> >> >>
+>> >> >> EDID - Extended display identification data is a data structure provided by
+>> >> >> a digital display to describe its capabilities to a video source, This a
+>> >> >> standard supported by CEA and VESA.
+>> >> >>
+>> >> >> There are several custom implementations for parsing EDID in kernel, some
+>> >> >> of them are present in fbmon.c, drm_edid.c, sh_mobile_hdmi.c, Ideally
+>> >> >> parsing of EDID should be done in a library, which is agnostic of the
+>> >> >> framework (V4l2, DRM, FB)  which is using the functionality, just based on
+>> >> >> the raw EDID pointer with size/segment information.
+>> >> >>
+>> >> >> With other RFC's such as the one below, which tries to standardize HDMI API's
+>> >> >> It would be better to have a common EDID code in one place.It also helps to
+>> >> >> provide better interoperability with variety of TV/Monitor may be even by
+>> >> >> listing out quirks which might get missed with several custom implementation
+>> >> >> of EDID.
+>> >> >> http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/30401
+>> >> >>
+>> >> >> This patch tries to add functions to parse some portion EDID (detailed timing,
+>> >> >> monitor limits, AV delay information, deep color mode support, Audio and VSDB)
+>> >> >> If we can align on this library approach i can enhance this library to parse
+>> >> >> other blocks and probably we could also add quirks from other implementation
+>> >> >> as well.
+>> >> >>
+>> >> >
+>> >> > If you want to take this approach, you need to start from the DRM EDID parser,
+>> >> > its the most well tested and I can guarantee its been plugged into more monitors
+>> >> > than any of the others. There is just no way we would move the DRM parser to a
+>> >> > library one that isn't derived from it + enhancements, as we'd throw away the
+>> >> > years of testing and the regression count would be way too high.
+>> >> >
+>> >> I had a look at the DRM EDID code, but for quirks it looks pretty much the same.
+>> >> yes i could take quirks and other DRM tested code and enhance, but
+>> >> still the code has to do away with struct drm_display_mode
+>> >> which is very much custom to DRM.
+>> >
+>> > If that's the only issue you have, we could easily rename that
+>> > structure or add conversion funcs to a smaller structure if that's what
+>> > you need.
+>> >
+>> > Dave's point is that we can't ditch the existing code without
+>> > introducing a lot of risk; it would be better to start a library-ized
+>> > EDID codebase from the most complete one we have already, i.e. the DRM
+>> > EDID code.
+>
+> Does the DRM EDID-parser also process blocks beyond the first one and
+> also parses SVD entries similar to what I've recently added to fbdev? Yes,
+> we definitely need a common EDID parses, and maybe we'll have to collect
+> various pieces from different implementations.
 
-On Tuesday, March 01, 2011 13:28:35 Mauro Carvalho Chehab wrote:
-> Hi Martin,
-> 
-> Em 01-03-2011 06:59, Martin Bugge (marbugge) escreveu:
-> > Author: Martin Bugge <marbugge@cisco.com>
-> > Date:  Tue, 1 March 2010
-> > ======================
-> > 
-> > This is a proposal for adding a Consumer Electronic Control (CEC) API to 
-V4L2.
-> > This document describes the changes and new ioctls needed.
-> > 
-> > Version 1.0 (This is first version)
-> > 
-> > Background
-> > ==========
-> > CEC is a protocol that provides high-level control functions between 
-various audiovisual products.
-> > It is an optional supplement to the High-Definition Multimedia Interface 
-Specification (HDMI).
-> > Physical layer is a one-wire bidirectional serial bus that uses the 
-industry-standard AV.link protocol.
-> > 
-> > In short: CEC uses pin 13 on the HDMI connector to transmit and receive 
-small data-packets
-> >           (maximum 16 bytes including a 1 byte header) at low data rates 
-(~400 bits/s).
-> > 
-> > A CEC device may have any of 15 logical addresses (0 - 14).
-> > (address 15 is broadcast and some addresses are reserved)
-> > 
-> > 
-> > References
-> > ==========
-> > [1] High-Definition Multimedia Interface Specification version 1.3a,
-> >     Supplement 1 Consumer Electronic Control (CEC).
-> >     http://www.hdmi.org/manufacturer/specification.aspx
-> > 
-> > [2] 
-http://www.hdmi.org/pdf/whitepaper/DesigningCECintoYourNextHDMIProduct.pdf
-> > 
-> > 
-> > Proposed solution
-> > =================
-> > 
-> > Two new ioctls:
-> >     VIDIOC_CEC_CAP (read)
-> >     VIDIOC_CEC_CMD (read/write)
-> 
-> How this proposal will interact with RC core? The way I see it, HDMI-CEC is 
-just a way to get/send
-> Remote Controller data, and should be interacting with the proper Kernel 
-subsystems, e. g.,
-> with Remote Controller and input/event subsystems.
+At the moment there is only limited support for looking up things like
+the hdmi block and checking for audio.
 
-I knew you were going to mention this :-)
+Alex
 
-Actually, while CEC does support IR commands, this is only a very small part 
-of the standard. Routing IR commands to the IR core is possible to do, 
-although it is not in this initial version. Should this be needed, then a flag 
-can be created that tells V4L to route IR commands to the IR core.
-
-This should be optional, though, because if you are a repeater you do not want 
-to pass such IR commands to the IR core, instead you want to retransmit them 
-to a CEC output.
-
-> 
-> I don't think we need two ioctls for that, as RC capabilities are already 
-exported via
-> sysfs, and we have two interfaces already for receiving events (input/event 
-and lirc).
-> For sending, lirc interface might be used, but it is currently focused only 
-on sending
-> raw pulse/space sequences. So, we'll need to add some capability there for 
-IR/CEC TX.
-> I had a few discussions about that with Jarod, but we didn't write yet an 
-interface for it.
-
-Again, CEC != IR. All you need is a simple API to be able to send and receive 
-CEC packets and a libcec that you can use to do the topology discovery and 
-send/receive the commands. You don't want nor need that in the kernel.
-
-The only place where routing things to the IR core is useful is when someone 
-points a remote at a TV (for example), which then passes it over CEC to your 
-device which is not a repeater but can actually handle the remote command.
-
-This is a future extension, though.
-
-Regards,
-
-	Hans
-
-> 
-> 
-> > 
-> > VIDIOC_CEC_CAP:
-> > ---------------
-> > 
-> > struct vl2_cec_cap {
-> >        __u32 logicaldevices;
-> >        __u32 reserved[7];
-> > };
-> > 
-> > The capability ioctl will return the number of logical devices/addresses 
-which can be
-> > simultaneously supported on this HW.
-> >     0:       This HW don't support CEC.
-> >     1 -> 14: This HW supports n logical devices simultaneously.
-> > 
-> > VIDIOC_CEC_CMD:
-> > ---------------
-> > 
-> > struct v4l2_cec_cmd {
-> >     __u32 cmd;
-> >     __u32 reserved[7];
-> >     union {
-> >         struct {
-> >             __u32 index;
-> >             __u32 enable;
-> >             __u32 addr;
-> >         } conf;
-> >         struct {
-> >             __u32 len;
-> >             __u8  msg[16];
-> >             __u32 status;
-> >         } data;
-> >         __u32 raw[8];
-> >     };
-> > };
-> > 
-> > Alternatively the data struct could be:
-> >         struct {
-> >             __u8  initiator;
-> >             __u8  destination;
-> >             __u8  len;
-> >             __u8  msg[15];
-> >             __u32 status;
-> >         } data;
-> > 
-> > Commands:
-> > 
-> > #define V4L2_CEC_CMD_CONF  (1)
-> > #define V4L2_CEC_CMD_TX    (2)
-> > #define V4L2_CEC_CMD_RX    (3)
-> > 
-> > Tx status field:
-> > 
-> > #define V4L2_CEC_STAT_TX_OK            (0)
-> > #define V4L2_CEC_STAT_TX_ARB_LOST      (1)
-> > #define V4L2_CEC_STAT_TX_RETRY_TIMEOUT (2)
-> > 
-> > The command ioctl is used both for configuration and to receive/transmit 
-data.
-> > 
-> > * The configuration command must be done for each logical device address
-> >   which is to be enabled on this HW. Maximum number of logical devices
-> >   is found with the capability ioctl.
-> >     conf:
-> >          index:  0 -> number_of_logical_devices-1
-> >          enable: true/false
-> >          addr:   logical address
-> > 
-> >   By default all logical devices are disabled.
-> > 
-> > * Tx/Rx command
-> >     data:
-> >          len:    length of message (data + header)
-> >          msg:    the raw CEC message received/transmitted
-> >          status: when the driver is in blocking mode it gives the result 
-for transmit.
-> > 
-> > Events
-> > ------
-> > 
-> > In the case of non-blocking mode the driver will issue the following 
-events:
-> > 
-> > V4L2_EVENT_CEC_TX
-> > V4L2_EVENT_CEC_RX
-> > 
-> > V4L2_EVENT_CEC_TX
-> > -----------------
-> >  * transmit is complete with the following status:
-> > Add an additional struct to the struct v4l2_event
-> > 
-> > struct v4l2_event_cec_tx {
-> >        __u32 status;
-> > }
-> > 
-> > V4L2_EVENT_CEC_RX
-> > -----------------
-> >  * received a complete message
-> > 
-> > 
-> > Comments ?
-> > 
-> >            Martin Bugge
-> > 
-> > -- 
-> > Martin Bugge - Tandberg (now a part of Cisco)
-> > -- 
-> > 
-> > -- 
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+>
+> Thanks
+> Guennadi
+>
+>> >
+>> This sounds good. If we can remove the DRM dependent portion to have a
+>> library-ized EDID code,
+>> That would be perfect. The main Intention to have a library is,
+>> Instead of having several different Implementation in kernel, all
+>> doing the same EDID parsing , if we could have one single
+>> implementation , it would help in better testing and interoperability.
+>>
+>> > Do you really think the differences between your code and the existing
+>> > DRM code are irreconcilable?
+>> >
+>> On the contrary if there is a library-ized  EDID parsing using the
+>> drm_edid, and there is any delta / fields( Parsing the video block in
+>> CEA extension for Short Video Descriptor, Vendor block for AV delay
+>> /Deep color information etc) that are parsed with the RFC i posted i
+>> would be happy to add.
+>>
+>> Thanks and regards,
+>> Mythri.
+>> > --
+>> > Jesse Barnes, Intel Open Source Technology Center
+>> >
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-media" in
 > the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
