@@ -1,40 +1,33 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:41807 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756534Ab1CBKJo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Mar 2011 05:09:44 -0500
-Received: by bwz15 with SMTP id 15so6895bwz.19
-        for <linux-media@vger.kernel.org>; Wed, 02 Mar 2011 02:09:43 -0800 (PST)
+Received: from DSL01.212.114.205.243.ip-pool.NEFkom.net ([212.114.205.243]:53375
+	"EHLO enzo.pibbs.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750892Ab1CXRiy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Mar 2011 13:38:54 -0400
+From: Martin Seekatz <martin@pibbs.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Pinnacle PCTV 340e -
+Date: Thu, 24 Mar 2011 18:30:04 +0100
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
 MIME-Version: 1.0
-Date: Wed, 2 Mar 2011 11:09:43 +0100
-Message-ID: <AANLkTin7TdZ5_1TERmZ6ZHzNirHKc_KkxLDpPeruRAAg@mail.gmail.com>
-Subject: Remote controller AsusU3100Mini plus
-From: Michal Bojda <rexearth.mbojda@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201103241830.05196.martin@pibbs.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello there,
+Hello,
 
-I am trying figure how to make this remote controller working. I tried
-LIRC, but on the website isnt this card in supported controllers.
-After apt-getting lirc and depencies. controller isnt reacting. At
-least how he should be. If I open terminal, and trying to push
-buttons, my PC starts to make interesting sounds :) And after that,
-even my keaboard isnt working how it is supposed to. So I dont think
-this is the right way. Maybe some kind of reprogramming? Or someone
-got config file for it ?
+is there any status change on the development for the Pinnacle PCTV 
+Hybrid Pro Stick 340e since the KernelLab annoncement from December 
+2009?
 
-I will be glad for any help, posting image found on google. I know its
-not DVB-T card I am writing, but controller looks same. Just for
-imagination.
+Any hope that this device will be supportet under Linux?
 
-I thanks once more for any reply.
-
-Best regards M. Bojda
-
-http://www.waroengkom.com/product/TV%20TUNER%20MYC-U3000%20HYBRID.png
+Thanks
+Martin
 
 -- 
-Those who watches their backs, meet death from the front.
+"A PC without Windows is like a chocolate cake without mustard."
+Johannes Bauer
