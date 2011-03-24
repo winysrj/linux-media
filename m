@@ -1,150 +1,117 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:8727 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753528Ab1CPUQl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Mar 2011 16:16:41 -0400
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p2GKGfLk023918
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 16 Mar 2011 16:16:41 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>
-Subject: [PATCH 1/2] hdpvr: i2c master enhancements
-Date: Wed, 16 Mar 2011 16:16:34 -0400
-Message-Id: <1300306595-19098-1-git-send-email-jarod@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48174 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751417Ab1CXLFA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Mar 2011 07:05:00 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Robert Fekete <robert.fekete@linaro.org>
+Subject: Re: Future desktop on dumb frame buffers?
+Date: Thu, 24 Mar 2011 12:05:02 +0100
+Cc: Alex Deucher <alexdeucher@gmail.com>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	dri-devel@lists.freedesktop.org,
+	timofonic timofonic <timofonic@gmail.com>,
+	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
+	wayland-devel@lists.freedesktop.org, linaro-dev@lists.linaro.org,
+	linux-media@vger.kernel.org
+References: <AANLkTimJWpebAskcjA+qQUDWXjiH6aHta4fri9z6OxRN@mail.gmail.com> <AANLkTimqkA7GGdT52Ys0b+346Pxr3A=PtDpY0nJ+ycVO@mail.gmail.com> <AANLkTi=fWKt=v5O9A7XivDiFaJyki6H90k1=Jfcmw2dN@mail.gmail.com>
+In-Reply-To: <AANLkTi=fWKt=v5O9A7XivDiFaJyki6H90k1=Jfcmw2dN@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201103241205.02640.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Make the hdpvr's i2c master implementation more closely mirror that of
-the pvrusb2 driver. Currently makes no significant difference in IR
-reception behavior with ir-kbd-i2c (i.e., it still sucks).
+On Wednesday 23 March 2011 15:09:54 Robert Fekete wrote:
+> On 21 March 2011 21:08, Alex Deucher <alexdeucher@gmail.com> wrote:
+> > On Mon, Mar 21, 2011 at 3:50 PM, Geert Uytterhoeven wrote:
+> >> On Mon, Mar 21, 2011 at 20:25, Jesse Barnes wrote:
+> >>> On Mon, 21 Mar 2011 19:19:43 +0000 timofonic timofonic wrote:
+> >>>> So if KMS is so cool and provides many advantages over fbdev and
+> >>>> such... Why isn't more widely used intead of still relying on fbdev?
+> >>>> Why still using fbdev emulation (that is partial and somewhat broken,
+> >>>> it seems) instead using KMS directly?
+> >>> 
+> >>> Used by what?  All three major GPU device classes have KMS support
+> >>> (Intel, ATI, and nVidia).  If you want it for a particular device, you
+> >>> can always port it over.
+> >> 
+> >> The three major GPU device classes on PC...
+> > 
+> > Sadly it gets worse.  A lot of the SoC vendors are adding an fbdev
+> > emulation layer on top of v4l rather than using fbdev directly or
+> > using KMS and v4l has grown it's own edid, hdmi, and cec handling.
 
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/video/hdpvr/hdpvr-i2c.c |   67 ++++++++++++++++++++++++--------
- 1 files changed, 50 insertions(+), 17 deletions(-)
+We're also evaluating the possibility of providing a generic fbdev emulation 
+layer on top of V4L2 without requiring any device-specific fbdev code. fbdev 
+isn't maintained and hasn't really evolved for quite some time now.
 
-diff --git a/drivers/media/video/hdpvr/hdpvr-i2c.c b/drivers/media/video/hdpvr/hdpvr-i2c.c
-index e53fa55..3e06587 100644
---- a/drivers/media/video/hdpvr/hdpvr-i2c.c
-+++ b/drivers/media/video/hdpvr/hdpvr-i2c.c
-@@ -62,15 +62,25 @@ struct i2c_client *hdpvr_register_ir_rx_i2c(struct hdpvr_device *dev)
- }
- 
- static int hdpvr_i2c_read(struct hdpvr_device *dev, int bus,
--			  unsigned char addr, char *data, int len)
-+			  unsigned char addr, char *wdata, int wlen,
-+			  char *data, int len)
- {
- 	int ret;
- 
--	if (len > sizeof(dev->i2c_buf))
-+	if ((len > sizeof(dev->i2c_buf)) || (wlen > sizeof(dev->i2c_buf)))
- 		return -EINVAL;
- 
--	ret = usb_control_msg(dev->udev,
--			      usb_rcvctrlpipe(dev->udev, 0),
-+	if (wlen) {
-+		memcpy(&dev->i2c_buf, wdata, wlen);
-+		ret = usb_control_msg(dev->udev, usb_sndctrlpipe(dev->udev, 0),
-+				      REQTYPE_I2C_WRITE, CTRL_WRITE_REQUEST,
-+				      (bus << 8) | addr, 0, &dev->i2c_buf,
-+				      wlen, 1000);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	ret = usb_control_msg(dev->udev, usb_rcvctrlpipe(dev->udev, 0),
- 			      REQTYPE_I2C_READ, CTRL_READ_REQUEST,
- 			      (bus << 8) | addr, 0, &dev->i2c_buf, len, 1000);
- 
-@@ -92,16 +102,14 @@ static int hdpvr_i2c_write(struct hdpvr_device *dev, int bus,
- 		return -EINVAL;
- 
- 	memcpy(&dev->i2c_buf, data, len);
--	ret = usb_control_msg(dev->udev,
--			      usb_sndctrlpipe(dev->udev, 0),
-+	ret = usb_control_msg(dev->udev, usb_sndctrlpipe(dev->udev, 0),
- 			      REQTYPE_I2C_WRITE, CTRL_WRITE_REQUEST,
- 			      (bus << 8) | addr, 0, &dev->i2c_buf, len, 1000);
- 
- 	if (ret < 0)
- 		return ret;
- 
--	ret = usb_control_msg(dev->udev,
--			      usb_rcvctrlpipe(dev->udev, 0),
-+	ret = usb_control_msg(dev->udev, usb_rcvctrlpipe(dev->udev, 0),
- 			      REQTYPE_I2C_WRITE_STATT, CTRL_READ_REQUEST,
- 			      0, 0, &dev->i2c_buf, 2, 1000);
- 
-@@ -117,24 +125,49 @@ static int hdpvr_transfer(struct i2c_adapter *i2c_adapter, struct i2c_msg *msgs,
- 			  int num)
- {
- 	struct hdpvr_device *dev = i2c_get_adapdata(i2c_adapter);
--	int retval = 0, i, addr;
-+	int retval = 0, addr;
- 
- 	if (num <= 0)
- 		return 0;
- 
- 	mutex_lock(&dev->i2c_mutex);
- 
--	for (i = 0; i < num && !retval; i++) {
--		addr = msgs[i].addr << 1;
-+	addr = msgs[0].addr << 1;
- 
--		if (msgs[i].flags & I2C_M_RD)
--			retval = hdpvr_i2c_read(dev, 1, addr, msgs[i].buf,
--						msgs[i].len);
-+	if (num == 1) {
-+		if (msgs[0].flags & I2C_M_RD)
-+			retval = hdpvr_i2c_read(dev, 1, addr, NULL, 0,
-+						msgs[0].buf, msgs[0].len);
- 		else
--			retval = hdpvr_i2c_write(dev, 1, addr, msgs[i].buf,
--						 msgs[i].len);
-+			retval = hdpvr_i2c_write(dev, 1, addr, msgs[0].buf,
-+						 msgs[0].len);
-+	} else if (num == 2) {
-+		if (msgs[0].addr != msgs[1].addr) {
-+			v4l2_warn(&dev->v4l2_dev, "refusing 2-phase i2c xfer "
-+				  "with conflicting target addresses\n");
-+			retval = -EINVAL;
-+			goto out;
-+		}
-+
-+		if ((msgs[0].flags & I2C_M_RD) || !(msgs[1].flags & I2C_M_RD)) {
-+			v4l2_warn(&dev->v4l2_dev, "refusing complex xfer with "
-+				  "r0=%d, r1=%d\n", msgs[0].flags & I2C_M_RD,
-+				  msgs[1].flags & I2C_M_RD);
-+			retval = -EINVAL;
-+			goto out;
-+		}
-+
-+		/*
-+		 * Write followed by atomic read is the only complex xfer that
-+		 * we actually support here.
-+		 */
-+		retval = hdpvr_i2c_read(dev, 1, addr, msgs[0].buf, msgs[0].len,
-+					msgs[1].buf, msgs[1].len);
-+	} else {
-+		v4l2_warn(&dev->v4l2_dev, "refusing %d-phase i2c xfer\n", num);
- 	}
- 
-+out:
- 	mutex_unlock(&dev->i2c_mutex);
- 
- 	return retval ? retval : num;
-@@ -162,7 +195,7 @@ static int hdpvr_activate_ir(struct hdpvr_device *dev)
- 
- 	mutex_lock(&dev->i2c_mutex);
- 
--	hdpvr_i2c_read(dev, 0, 0x54, buffer, 1);
-+	hdpvr_i2c_read(dev, 0, 0x54, NULL, 0, buffer, 1);
- 
- 	buffer[0] = 0;
- 	buffer[1] = 0x8;
+> I agree, it is sad that as a SoC vendor there are different
+> kernel/user API's(v4l2/fbdev/drm) to choose from when implementing say
+> a Display controller driver. One must also remember that there are big
+> differences between a desktop/PC multimedia/graphics system and the
+> ones present on an embedded SoC. It is two very different cultures and
+> HW designs now trying to merge into one Linux Kernel. Of course there
+> will be some overlaps but I believe it can be sorted out as soon as we
+> understand each others different possibilities/limitations. Doing
+> duplicate work like HDMI will not benefit any party.
+> 
+> Just to list some of the differences.
+> 
+> - Developments within V4L2 has mainly been driven by embedded devices
+> while DRM is a result of desktop Graphics cards. And for some extent
+> also solving different problems.
+> - Embedded devices usually have several different hw IP's managing
+> displays, hdmi, camera/ISP, video codecs(h264 accellerators), DSP's,
+> 2D blitters, Open GL ES hw, all of which have a separate device/driver
+> in the kernel, while on a desktop nowadays all this functionality
+> usually resides on ONE graphics card, hence one DRM device for all.
+> - DRM is closely developed in conjunction with desktop/Xorg, while X11
+> on an embedded device is not very 2011...wayland on the other hand is
+> 
+> :-), but do wayland really need the full potential of DRM/DRI or just
+> 
+> parts of it.
+> - Copying buffers is really bad for embedded devices due to lower
+> memory bandwidth and power consumption while on a Desktop memory
+> bandwidth is from an other galaxy (copying still bad but accepted it
+> seems), AND embedded devices of today records and plays/displays 1080p
+> content as well.
+> - Not all embedded devices have MMU's for each IP requiring physical
+> contiguous memory, while on a desktop MMU's have been present for
+> ages.
+> - Embedded devices are usually ARM based SoCs while x86 dominates the
+> Desktop/Laptop market, and functionality provided is soon the very
+> same.
+> - yada yada....The list can grow very long....There are also
+> similarities of course.
+> 
+> The outcome is that SoC vendors likes the embedded friendliness of
+> v4l2 and fbdev while "we" also glance at the DRM part due to its
+> de-facto standard on desktop environments. But from an embedded point
+> of view DRM lacks the support for interconnecting multiple
+> devices/drivers mentioned above, GEM/TTM is valid within a DRM device,
+> the execution/context management is not needed,, no overlays(or
+> similar), the coupling to DRI/X11 not wanted. SoCs like KMS/GEM but
+> the rest of DRM will likely not be heavily used on SoCs unless running
+> X11 as well. Most likely this worked on as well within the DRI
+> community. I can see good features all over the place(sometimes
+> duplicated) but not find one single guideline/API that solves all the
+> embedded SoC problems (which involves use-cases optimized for no-copy
+> cross media/drivers).
+> 
+> Last but not least...
+> 
+> On Linaro there is already discussions ongoing to solve one of the
+> biggest issues from a SoC point of view and that is a "System Wide
+> Memory manager" which manages buffer sharing and resolves no-copy use
+> cases between devices/drivers. Read more on the following thread:
+> http://lists.linaro.org/pipermail/linaro-dev/2011-March/003053.html.
+
 -- 
-1.7.1
+Regards,
 
+Laurent Pinchart
