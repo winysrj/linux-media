@@ -1,157 +1,58 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:62722 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760195Ab1CDVhy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2011 16:37:54 -0500
-Received: by wyg36 with SMTP id 36so2529524wyg.19
-        for <linux-media@vger.kernel.org>; Fri, 04 Mar 2011 13:37:53 -0800 (PST)
+Received: from mail2.matrix-vision.com ([85.214.244.251]:57587 "EHLO
+	mail2.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933172Ab1CXH2d (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Mar 2011 03:28:33 -0400
+Message-ID: <4D8AF29F.9010409@matrix-vision.de>
+Date: Thu, 24 Mar 2011 08:28:31 +0100
+From: Michael Jones <michael.jones@matrix-vision.de>
 MIME-Version: 1.0
-Date: Fri, 4 Mar 2011 21:37:53 +0000
-Message-ID: <AANLkTi=rcfL_pku9hhx68C_Fb_76KsW2Yy+Oys10a7+4@mail.gmail.com>
-Subject: [patch] Fix AF9015 Dual tuner i2c write failures
-From: Andrew de Quincey <adq_dvb@lidskialf.net>
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=00151759366c5e3570049daef5ba
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	=?ISO-8859-1?Q?Lo=EFc_Akue?= <akue.loic@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Yordan Kamenov <ykamenov@mm-sol.com>
+Subject: Re: [PATCH] omap3isp: implement ENUM_FMT
+References: <4D889C61.905@matrix-vision.de> <4D89C2ED.5080803@maxwell.research.nokia.com> <4D89D460.7000808@matrix-vision.de> <201103231316.46934.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201103231316.46934.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
---00151759366c5e3570049daef5ba
-Content-Type: text/plain; charset=ISO-8859-1
+Hi Laurent,
 
-Hi, this has been annoying me for some time, so this evening I fixed
-it. If you use one of the above dual tuner devices (e.g. KWorld 399U),
-you get random tuning failures and i2c errors reported in dmesg such
-as:
+On 03/23/2011 01:16 PM, Laurent Pinchart wrote:
+> Hi Michael,
+> 
+[snip]
+>>
+>> Is there a policy decision that in the future, apps will be required to
+>> use libv4l to get images from the ISP?  Are we not intending to support
+>> using e.g. media-ctl + some v4l2 app, as I'm currently doing during
+>> development?
+> 
+> Apps should be able to use the V4L2 API directly. However, we can't implement 
+> all that API, as most calls don't make sense for the OMA3 ISP driver. Which 
+> calls need to be implemented is a grey area at the moment, as there's no 
+> detailed semantics on how subdev-level configuration and video device 
+> configuration should interact.
+> 
+> Your implementation of ENUM_FMT looks correct to me, but the question is 
+> whether ENUM_FMT should be implemented. I don't think ENUM_FMT is a required 
+> ioctl, so maybe v4l2src shouldn't depend on it. I'm interesting in getting 
+> Hans' opinion on this.
+> 
 
-af9013: I2C read failed reg:d607
-af9015: command failed:1
-mxl5005s I2C write failed
-af9015: command failed:1
-mxl5005s I2C write failed
-af9015: command failed:2
-af9013: I2C read failed reg:d607
-af9015: command failed:2
-af9013: I2C read failed reg:d607
+I only implemented it after I saw that ENUM_FMT _was_ required by V4L2.
+ From http://v4l2spec.bytesex.org/spec/x1859.htm#AEN1894 :
+"The VIDIOC_ENUM_FMT ioctl must be supported by all drivers exchanging
+image data with applications."
 
-Looking at the large comment in dvb-usb/af9015.c/af9015_i2c_xfer() it
-seems the dual demods/tuners have the same i2c addresses and are
-switched by an i2c gate. Since the two show up as separate DVB
-devices, and there is no synchronisation of i2c accesses, its fairly
-obvious the problem is because both tuners are being written to at the
-same time, which is mucking up the i2c gate. I tested this with two
-scripts on my development machine:
+-Michael
 
-while [ 1 ];
-do
-        scan -a 0 /usr/share/dvb/dvb-t/uk-Craigkelly
-done
-
-AND
-
-while [ 1 ];
-do
-        scan -a 1 /usr/share/dvb/dvb-t/uk-Craigkelly
-done
-
-
-If I run only one at a time, it works perfectly. Run two, and I start
-to see errors.
-
-Adding a "bus lock" to af9015_i2c_xfer() will not work as demod/tuner
-accesses will take multiple i2c transactions.
-
-Therefore, the following patch overrides the dvb_frontend_ops
-functions to add a per-device lock around them: only one frontend can
-now use the i2c bus at a time. Testing with the scripts above shows
-this has eliminated the errors.
-
-Signed-off-by: Andrew de Quincey <adq_dvb@lidskialf.net>
-
---00151759366c5e3570049daef5ba
-Content-Type: text/x-patch; charset=US-ASCII; name="af9015-fix-dual-tuner-v1.patch"
-Content-Disposition: attachment; filename="af9015-fix-dual-tuner-v1.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gkvmk2w52
-
-ZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvYWY5MDE1LmMgYi9kcml2ZXJz
-L21lZGlhL2R2Yi9kdmItdXNiL2FmOTAxNS5jCmluZGV4IDMxYzBhMGUuLjc0MGQ5NjkgMTAwNjQ0
-Ci0tLSBhL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvYWY5MDE1LmMKKysrIGIvZHJpdmVycy9t
-ZWRpYS9kdmIvZHZiLXVzYi9hZjkwMTUuYwpAQCAtMTA4Myw2ICsxMDgzLDEwNCBAQCBzdGF0aWMg
-aW50IGFmOTAxNV9pMmNfaW5pdChzdHJ1Y3QgZHZiX3VzYl9kZXZpY2UgKmQpCiAJcmV0dXJuIHJl
-dDsKIH0KIAorc3RhdGljIGludCBhZjkwMTVfbG9ja19zZXRfZnJvbnRlbmQoc3RydWN0IGR2Yl9m
-cm9udGVuZCogZmUsIHN0cnVjdCBkdmJfZnJvbnRlbmRfcGFyYW1ldGVycyogcGFyYW1zKQorewor
-CWludCByZXN1bHQ7CisJc3RydWN0IGR2Yl91c2JfYWRhcHRlciAqYWRhcCA9IGZlLT5kdmItPnBy
-aXY7CisJc3RydWN0IGFmOTAxNV9zdGF0ZSAqc3RhdGUgPSBhZGFwLT5kZXYtPnByaXY7CisKKwlp
-ZiAobXV0ZXhfbG9ja19pbnRlcnJ1cHRpYmxlKCZhZGFwLT5kZXYtPnVzYl9tdXRleCkpCisJCXJl
-dHVybiAtRUFHQUlOOworCisJcmVzdWx0ID0gc3RhdGUtPmZlX29wc1thZGFwLT5pZF0uc2V0X2Zy
-b250ZW5kKGZlLCBwYXJhbXMpOworCW11dGV4X3VubG9jaygmYWRhcC0+ZGV2LT51c2JfbXV0ZXgp
-OworCXJldHVybiByZXN1bHQ7Cit9CisgICAgICAgICAgICAgICAgCitzdGF0aWMgaW50IGFmOTAx
-NV9sb2NrX2dldF9mcm9udGVuZChzdHJ1Y3QgZHZiX2Zyb250ZW5kKiBmZSwgc3RydWN0IGR2Yl9m
-cm9udGVuZF9wYXJhbWV0ZXJzKiBwYXJhbXMpCit7CisJaW50IHJlc3VsdDsKKwlzdHJ1Y3QgZHZi
-X3VzYl9hZGFwdGVyICphZGFwID0gZmUtPmR2Yi0+cHJpdjsKKwlzdHJ1Y3QgYWY5MDE1X3N0YXRl
-ICpzdGF0ZSA9IGFkYXAtPmRldi0+cHJpdjsKKworCWlmIChtdXRleF9sb2NrX2ludGVycnVwdGli
-bGUoJmFkYXAtPmRldi0+dXNiX211dGV4KSkKKwkJcmV0dXJuIC1FQUdBSU47CisKKwlyZXN1bHQg
-PSBzdGF0ZS0+ZmVfb3BzW2FkYXAtPmlkXS5nZXRfZnJvbnRlbmQoZmUsIHBhcmFtcyk7CisJbXV0
-ZXhfdW5sb2NrKCZhZGFwLT5kZXYtPnVzYl9tdXRleCk7CisJcmV0dXJuIHJlc3VsdDsKK30KKyAg
-ICAgICAgICAgICAgICAgICAgICAgIAorc3RhdGljIGludCBhZjkwMTVfbG9ja19yZWFkX3N0YXR1
-cyhzdHJ1Y3QgZHZiX2Zyb250ZW5kKiBmZSwgZmVfc3RhdHVzX3QqIHN0YXR1cykKK3sKKwlpbnQg
-cmVzdWx0OworCXN0cnVjdCBkdmJfdXNiX2FkYXB0ZXIgKmFkYXAgPSBmZS0+ZHZiLT5wcml2Owor
-CXN0cnVjdCBhZjkwMTVfc3RhdGUgKnN0YXRlID0gYWRhcC0+ZGV2LT5wcml2OworCisJaWYgKG11
-dGV4X2xvY2tfaW50ZXJydXB0aWJsZSgmYWRhcC0+ZGV2LT51c2JfbXV0ZXgpKQorCQlyZXR1cm4g
-LUVBR0FJTjsKKworCXJlc3VsdCA9IHN0YXRlLT5mZV9vcHNbYWRhcC0+aWRdLnJlYWRfc3RhdHVz
-KGZlLCBzdGF0dXMpOworCW11dGV4X3VubG9jaygmYWRhcC0+ZGV2LT51c2JfbXV0ZXgpOworCXJl
-dHVybiByZXN1bHQ7Cit9CisKK3N0YXRpYyBpbnQgYWY5MDE1X2xvY2tfcmVhZF9iZXIoc3RydWN0
-IGR2Yl9mcm9udGVuZCogZmUsIHUzMiogYmVyKQoreworCWludCByZXN1bHQ7CisJc3RydWN0IGR2
-Yl91c2JfYWRhcHRlciAqYWRhcCA9IGZlLT5kdmItPnByaXY7CisJc3RydWN0IGFmOTAxNV9zdGF0
-ZSAqc3RhdGUgPSBhZGFwLT5kZXYtPnByaXY7CisKKwlpZiAobXV0ZXhfbG9ja19pbnRlcnJ1cHRp
-YmxlKCZhZGFwLT5kZXYtPnVzYl9tdXRleCkpCisJCXJldHVybiAtRUFHQUlOOworCisJcmVzdWx0
-ID0gc3RhdGUtPmZlX29wc1thZGFwLT5pZF0ucmVhZF9iZXIoZmUsIGJlcik7CisJbXV0ZXhfdW5s
-b2NrKCZhZGFwLT5kZXYtPnVzYl9tdXRleCk7CisJcmV0dXJuIHJlc3VsdDsKK30KKworc3RhdGlj
-IGludCBhZjkwMTVfbG9ja19yZWFkX3NpZ25hbF9zdHJlbmd0aChzdHJ1Y3QgZHZiX2Zyb250ZW5k
-KiBmZSwgdTE2KiBzdHJlbmd0aCkKK3sKKwlpbnQgcmVzdWx0OworCXN0cnVjdCBkdmJfdXNiX2Fk
-YXB0ZXIgKmFkYXAgPSBmZS0+ZHZiLT5wcml2OworCXN0cnVjdCBhZjkwMTVfc3RhdGUgKnN0YXRl
-ID0gYWRhcC0+ZGV2LT5wcml2OworCisJaWYgKG11dGV4X2xvY2tfaW50ZXJydXB0aWJsZSgmYWRh
-cC0+ZGV2LT51c2JfbXV0ZXgpKQorCQlyZXR1cm4gLUVBR0FJTjsKKworCXJlc3VsdCA9IHN0YXRl
-LT5mZV9vcHNbYWRhcC0+aWRdLnJlYWRfc2lnbmFsX3N0cmVuZ3RoKGZlLCBzdHJlbmd0aCk7CisJ
-bXV0ZXhfdW5sb2NrKCZhZGFwLT5kZXYtPnVzYl9tdXRleCk7CisJcmV0dXJuIHJlc3VsdDsKK30K
-Kworc3RhdGljIGludCBhZjkwMTVfbG9ja19yZWFkX3NucihzdHJ1Y3QgZHZiX2Zyb250ZW5kKiBm
-ZSwgdTE2KiBzbnIpCit7CisJaW50IHJlc3VsdDsKKwlzdHJ1Y3QgZHZiX3VzYl9hZGFwdGVyICph
-ZGFwID0gZmUtPmR2Yi0+cHJpdjsKKwlzdHJ1Y3QgYWY5MDE1X3N0YXRlICpzdGF0ZSA9IGFkYXAt
-PmRldi0+cHJpdjsKKworCWlmIChtdXRleF9sb2NrX2ludGVycnVwdGlibGUoJmFkYXAtPmRldi0+
-dXNiX211dGV4KSkKKwkJcmV0dXJuIC1FQUdBSU47CisKKwlyZXN1bHQgPSBzdGF0ZS0+ZmVfb3Bz
-W2FkYXAtPmlkXS5yZWFkX3NucihmZSwgc25yKTsKKwltdXRleF91bmxvY2soJmFkYXAtPmRldi0+
-dXNiX211dGV4KTsKKwlyZXR1cm4gcmVzdWx0OworfQorCitzdGF0aWMgaW50IGFmOTAxNV9sb2Nr
-X3JlYWRfdWNibG9ja3Moc3RydWN0IGR2Yl9mcm9udGVuZCogZmUsIHUzMiogdWNibG9ja3MpCit7
-CisJaW50IHJlc3VsdDsKKwlzdHJ1Y3QgZHZiX3VzYl9hZGFwdGVyICphZGFwID0gZmUtPmR2Yi0+
-cHJpdjsKKwlzdHJ1Y3QgYWY5MDE1X3N0YXRlICpzdGF0ZSA9IGFkYXAtPmRldi0+cHJpdjsKKwor
-CWlmIChtdXRleF9sb2NrX2ludGVycnVwdGlibGUoJmFkYXAtPmRldi0+dXNiX211dGV4KSkKKwkJ
-cmV0dXJuIC1FQUdBSU47CisKKwlyZXN1bHQgPSBzdGF0ZS0+ZmVfb3BzW2FkYXAtPmlkXS5yZWFk
-X3VjYmxvY2tzKGZlLCB1Y2Jsb2Nrcyk7CisJbXV0ZXhfdW5sb2NrKCZhZGFwLT5kZXYtPnVzYl9t
-dXRleCk7CisJcmV0dXJuIHJlc3VsdDsKK30KKwogc3RhdGljIGludCBhZjkwMTVfYWY5MDEzX2Zy
-b250ZW5kX2F0dGFjaChzdHJ1Y3QgZHZiX3VzYl9hZGFwdGVyICphZGFwKQogewogCWludCByZXQ7
-CkBAIC0xMTE2LDYgKzEyMTQsMjIgQEAgc3RhdGljIGludCBhZjkwMTVfYWY5MDEzX2Zyb250ZW5k
-X2F0dGFjaChzdHJ1Y3QgZHZiX3VzYl9hZGFwdGVyICphZGFwKQogCS8qIGF0dGFjaCBkZW1vZHVs
-YXRvciAqLwogCWFkYXAtPmZlID0gZHZiX2F0dGFjaChhZjkwMTNfYXR0YWNoLCAmYWY5MDE1X2Fm
-OTAxM19jb25maWdbYWRhcC0+aWRdLAogCQlpMmNfYWRhcCk7CisJCQorCW1lbWNweSgmc3RhdGUt
-PmZlX29wc1thZGFwLT5pZF0sICZhZGFwLT5mZS0+b3BzLCBzaXplb2Yoc3RydWN0IGR2Yl9mcm9u
-dGVuZF9vcHMpKTsKKwlpZiAoYWRhcC0+ZmUtPm9wcy5zZXRfZnJvbnRlbmQpCisJCWFkYXAtPmZl
-LT5vcHMuc2V0X2Zyb250ZW5kID0gYWY5MDE1X2xvY2tfc2V0X2Zyb250ZW5kOworCWlmIChhZGFw
-LT5mZS0+b3BzLmdldF9mcm9udGVuZCkKKwkJYWRhcC0+ZmUtPm9wcy5nZXRfZnJvbnRlbmQgPSBh
-ZjkwMTVfbG9ja19nZXRfZnJvbnRlbmQ7CisJaWYgKGFkYXAtPmZlLT5vcHMucmVhZF9zdGF0dXMp
-CisJCWFkYXAtPmZlLT5vcHMucmVhZF9zdGF0dXMgPSBhZjkwMTVfbG9ja19yZWFkX3N0YXR1czsK
-KwlpZiAoYWRhcC0+ZmUtPm9wcy5yZWFkX2JlcikKKwkJYWRhcC0+ZmUtPm9wcy5yZWFkX2JlciA9
-IGFmOTAxNV9sb2NrX3JlYWRfYmVyOworCWlmIChhZGFwLT5mZS0+b3BzLnJlYWRfc2lnbmFsX3N0
-cmVuZ3RoKQorCQlhZGFwLT5mZS0+b3BzLnJlYWRfc2lnbmFsX3N0cmVuZ3RoID0gYWY5MDE1X2xv
-Y2tfcmVhZF9zaWduYWxfc3RyZW5ndGg7CisJaWYgKGFkYXAtPmZlLT5vcHMucmVhZF9zbnIpCisJ
-CWFkYXAtPmZlLT5vcHMucmVhZF9zbnIgPSBhZjkwMTVfbG9ja19yZWFkX3NucjsKKwlpZiAoYWRh
-cC0+ZmUtPm9wcy5yZWFkX3VjYmxvY2tzKQorCQlhZGFwLT5mZS0+b3BzLnJlYWRfdWNibG9ja3Mg
-PSBhZjkwMTVfbG9ja19yZWFkX3VjYmxvY2tzOwogCiAJcmV0dXJuIGFkYXAtPmZlID09IE5VTEwg
-PyAtRU5PREVWIDogMDsKIH0KZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2Iv
-YWY5MDE1LmggYi9kcml2ZXJzL21lZGlhL2R2Yi9kdmItdXNiL2FmOTAxNS5oCmluZGV4IGYyMGNm
-YTYuLjc1OWJiM2YgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvYWY5MDE1
-LmgKKysrIGIvZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9hZjkwMTUuaApAQCAtMTAyLDYgKzEw
-Miw3IEBAIHN0cnVjdCBhZjkwMTVfc3RhdGUgewogCXN0cnVjdCBpMmNfYWRhcHRlciBpMmNfYWRh
-cDsgLyogSTJDIGFkYXB0ZXIgZm9yIDJuZCBGRSAqLwogCXU4IHJjX3JlcGVhdDsKIAl1MzIgcmNf
-a2V5Y29kZTsKKwlzdHJ1Y3QgZHZiX2Zyb250ZW5kX29wcyBmZV9vcHNbMl07CiB9OwogCiBzdHJ1
-Y3QgYWY5MDE1X2NvbmZpZyB7Cg==
---00151759366c5e3570049daef5ba--
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
