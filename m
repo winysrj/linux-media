@@ -1,74 +1,44 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:46631 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757075Ab1CIJRp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Mar 2011 04:17:45 -0500
-From: David Cohen <dacohen@gmail.com>
-To: Hiroshi.DOYU@nokia.com
-Cc: linux-omap@vger.kernel.org, linux-media@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com,
-	sakari.ailus@maxwell.research.nokia.com, fernando.lugo@ti.com,
-	Michael Jones <michael.jones@matrix-vision.de>
-Subject: [PATCH v3 1/2] omap: iovmm: disallow mapping NULL address when IOVMF_DA_ANON is set
-Date: Wed,  9 Mar 2011 11:17:32 +0200
-Message-Id: <1299662253-29817-2-git-send-email-dacohen@gmail.com>
-In-Reply-To: <1299662253-29817-1-git-send-email-dacohen@gmail.com>
-References: <1299662253-29817-1-git-send-email-dacohen@gmail.com>
+Received: from smtp.nokia.com ([147.243.1.48]:35826 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752285Ab1CXMhy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Mar 2011 08:37:54 -0400
+Message-ID: <4D8B3B18.1050208@maxwell.research.nokia.com>
+Date: Thu, 24 Mar 2011 14:37:44 +0200
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+MIME-Version: 1.0
+To: Daniel Lundborg <Daniel.Lundborg@prevas.se>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Subject: Re: SV: SV: OMAP3 isp single-shot
+References: <loom.20110323T141429-496@post.gmane.org> <4D8B00FA.1090008@maxwell.research.nokia.com> <CA7B7D6C54015B459601D68441548157C5A3AE@prevas1.prevas.se> <201103241135.06025.laurent.pinchart@ideasonboard.com> <CA7B7D6C54015B459601D68441548157C5A3AF@prevas1.prevas.se>
+In-Reply-To: <CA7B7D6C54015B459601D68441548157C5A3AF@prevas1.prevas.se>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Michael Jones <michael.jones@matrix-vision.de>
+Daniel Lundborg wrote:
+> Hi Laurent,
 
-commit c7f4ab26e3bcdaeb3e19ec658e3ad9092f1a6ceb allowed mapping the NULL
-address if da_start==0, which would then not get unmapped. Disallow
-this again if IOVMF_DA_ANON is set. And spell variable 'alignment'
-correctly.
+Hi all,
 
-Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
----
- arch/arm/plat-omap/iovmm.c |   13 +++++++------
- 1 files changed, 7 insertions(+), 6 deletions(-)
+>>> Device /dev/video2 opened: OMAP3 ISP CCDC output (media).
+>>> Video format set: width: 752 height: 480 buffer size: 721920 Video 
+>>> format: BA10 (30314142) 752x480
+>>> 1 buffers requested.
+>>> length: 721920 offset: 0
+>>> Buffer 0 mapped at address 0x4014d000.
+>>>
+>>> And it freezes. I can stop yavta with CTRL+C.
+>>
+>> Have you tried to trigger the sensor multiple times in a row ?
+> 
+> No. I will test that.
 
-diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
-index 6dc1296..ea7eab9 100644
---- a/arch/arm/plat-omap/iovmm.c
-+++ b/arch/arm/plat-omap/iovmm.c
-@@ -271,20 +271,21 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
- 					   size_t bytes, u32 flags)
- {
- 	struct iovm_struct *new, *tmp;
--	u32 start, prev_end, alignement;
-+	u32 start, prev_end, alignment;
- 
- 	if (!obj || !bytes)
- 		return ERR_PTR(-EINVAL);
- 
- 	start = da;
--	alignement = PAGE_SIZE;
-+	alignment = PAGE_SIZE;
- 
- 	if (flags & IOVMF_DA_ANON) {
--		start = obj->da_start;
-+		/* Don't map address 0 */
-+		start = obj->da_start ? obj->da_start : alignment;
- 
- 		if (flags & IOVMF_LINEAR)
--			alignement = iopgsz_max(bytes);
--		start = roundup(start, alignement);
-+			alignment = iopgsz_max(bytes);
-+		start = roundup(start, alignment);
- 	} else if (start < obj->da_start || start > obj->da_end ||
- 					obj->da_end - start < bytes) {
- 		return ERR_PTR(-EINVAL);
-@@ -304,7 +305,7 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
- 			goto found;
- 
- 		if (tmp->da_end >= start && flags & IOVMF_DA_ANON)
--			start = roundup(tmp->da_end + 1, alignement);
-+			start = roundup(tmp->da_end + 1, alignment);
- 
- 		prev_end = tmp->da_end;
- 	}
+Besides the two things what were proposed, it'd be good to check which
+interrupts does the ISP produce.
+
 -- 
-1.7.4.1
-
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
