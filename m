@@ -1,100 +1,117 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:46235 "EHLO
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:58772 "EHLO
 	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751869Ab1C1UY0 convert rfc822-to-8bit (ORCPT
+	with ESMTP id S932334Ab1CXTGV convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Mar 2011 16:24:26 -0400
-References: <20110326015530.GK2008@bicker> <alpine.DEB.1.10.1103252335590.12072@ivanova.isely.net>
-In-Reply-To: <alpine.DEB.1.10.1103252335590.12072@ivanova.isely.net>
-Mime-Version: 1.0 (Apple Message framework v1082)
-Content-Type: text/plain; charset=us-ascii
-Message-Id: <907BA542-7FBE-497D-93B3-BB20012F4FD3@wilsonet.com>
+	Thu, 24 Mar 2011 15:06:21 -0400
+MIME-Version: 1.0
+In-Reply-To: <AANLkTinYHzCgXe9yw1rGHZA0uM=-VrY+Mktpn-HvfRyR@mail.gmail.com>
+References: <1300815176-21206-1-git-send-email-mythripk@ti.com>
+	<AANLkTim61Xdo6ED7mr_SvpLuotso89RdR6Qaz-GCXOmJ@mail.gmail.com>
+	<AANLkTinMUCbaEVjwZsHG9BxFVjx0YxS=Sw+3gViDJXhg@mail.gmail.com>
+	<20110323081820.5b37d169@jbarnes-desktop>
+	<AANLkTinYHzCgXe9yw1rGHZA0uM=-VrY+Mktpn-HvfRyR@mail.gmail.com>
+Date: Thu, 24 Mar 2011 12:06:19 -0700
+Message-ID: <AANLkTi=Yc0Pg9uCZcTei45PLbERutoRc7XyoFghwS=KV@mail.gmail.com>
+Subject: Re: [RFC PATCH] HDMI:Support for EDID parsing in kernel.
+From: Corbin Simpson <mostawesomedude@gmail.com>
+To: "K, Mythri P" <mythripk@ti.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>,
+	linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org,
+	dri-devel <dri-devel@lists.freedesktop.org>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
-Cc: Dan Carpenter <error27@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-From: Jarod Wilson <jarod@wilsonet.com>
-Subject: Re: [PATCH 6/6] [media] pvrusb2: replace !0 with 1
-Date: Mon, 28 Mar 2011 16:24:35 -0400
-To: Mike Isely <isely@isely.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mar 26, 2011, at 12:37 AM, Mike Isely wrote:
+On Thu, Mar 24, 2011 at 2:51 AM, K, Mythri P <mythripk@ti.com> wrote:
+> Hi Jesse,
+>
+> On Wed, Mar 23, 2011 at 8:48 PM, Jesse Barnes <jbarnes@virtuousgeek.org> wrote:
+>> On Wed, 23 Mar 2011 18:58:27 +0530
+>> "K, Mythri P" <mythripk@ti.com> wrote:
+>>
+>>> Hi Dave,
+>>>
+>>> On Wed, Mar 23, 2011 at 6:16 AM, Dave Airlie <airlied@gmail.com> wrote:
+>>> > On Wed, Mar 23, 2011 at 3:32 AM, Mythri P K <mythripk@ti.com> wrote:
+>>> >> Adding support for common EDID parsing in kernel.
+>>> >>
+>>> >> EDID - Extended display identification data is a data structure provided by
+>>> >> a digital display to describe its capabilities to a video source, This a
+>>> >> standard supported by CEA and VESA.
+>>> >>
+>>> >> There are several custom implementations for parsing EDID in kernel, some
+>>> >> of them are present in fbmon.c, drm_edid.c, sh_mobile_hdmi.c, Ideally
+>>> >> parsing of EDID should be done in a library, which is agnostic of the
+>>> >> framework (V4l2, DRM, FB)  which is using the functionality, just based on
+>>> >> the raw EDID pointer with size/segment information.
+>>> >>
+>>> >> With other RFC's such as the one below, which tries to standardize HDMI API's
+>>> >> It would be better to have a common EDID code in one place.It also helps to
+>>> >> provide better interoperability with variety of TV/Monitor may be even by
+>>> >> listing out quirks which might get missed with several custom implementation
+>>> >> of EDID.
+>>> >> http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/30401
+>>> >>
+>>> >> This patch tries to add functions to parse some portion EDID (detailed timing,
+>>> >> monitor limits, AV delay information, deep color mode support, Audio and VSDB)
+>>> >> If we can align on this library approach i can enhance this library to parse
+>>> >> other blocks and probably we could also add quirks from other implementation
+>>> >> as well.
+>>> >>
+>>> >
+>>> > If you want to take this approach, you need to start from the DRM EDID parser,
+>>> > its the most well tested and I can guarantee its been plugged into more monitors
+>>> > than any of the others. There is just no way we would move the DRM parser to a
+>>> > library one that isn't derived from it + enhancements, as we'd throw away the
+>>> > years of testing and the regression count would be way too high.
+>>> >
+>>> I had a look at the DRM EDID code, but for quirks it looks pretty much the same.
+>>> yes i could take quirks and other DRM tested code and enhance, but
+>>> still the code has to do away with struct drm_display_mode
+>>> which is very much custom to DRM.
+>>
+>> If that's the only issue you have, we could easily rename that
+>> structure or add conversion funcs to a smaller structure if that's what
+>> you need.
+>>
+>> Dave's point is that we can't ditch the existing code without
+>> introducing a lot of risk; it would be better to start a library-ized
+>> EDID codebase from the most complete one we have already, i.e. the DRM
+>> EDID code.
+>>
+> This sounds good. If we can remove the DRM dependent portion to have a
+> library-ized EDID code,
+> That would be perfect. The main Intention to have a library is,
+> Instead of having several different Implementation in kernel, all
+> doing the same EDID parsing , if we could have one single
+> implementation , it would help in better testing and interoperability.
+>
+>> Do you really think the differences between your code and the existing
+>> DRM code are irreconcilable?
+>>
+> On the contrary if there is a library-ized  EDID parsing using the
+> drm_edid, and there is any delta / fields( Parsing the video block in
+> CEA extension for Short Video Descriptor, Vendor block for AV delay
+> /Deep color information etc) that are parsed with the RFC i posted i
+> would be happy to add.
 
-> 
-> That's an opinion which I as the driver author disagree with.  Strongly.  
-> How hard is it to read "not false"?
+Something just occurred to me. Why do video input drivers need EDID?
+Perhaps I'm betraying my youth here, but none of my TV tuners have the
+ability to read EDIDs in from the other side of the coax/RCA jack, and
+IIUC they really only care about whether they're receiving NTSC or
+PAL. The only drivers that should be parsing EDIDs are FB and KMS
+drivers, right?
 
+So why should this be a common library? Most kernel code doesn't need
+it. Or is there a serious need for video input to parse EDIDs?
 
-Personally, I prefer use of "true" and "false" over both...
-
-
-> On Sat, 26 Mar 2011, Dan Carpenter wrote:
-> 
->> Using !0 is less readable than just saying 1.
->> 
->> Signed-off-by: Dan Carpenter <error27@gmail.com>
->> 
->> diff --git a/drivers/media/video/pvrusb2/pvrusb2-std.c b/drivers/media/video/pvrusb2/pvrusb2-std.c
->> index 9bebc08..ca4f67b 100644
->> --- a/drivers/media/video/pvrusb2/pvrusb2-std.c
->> +++ b/drivers/media/video/pvrusb2/pvrusb2-std.c
->> @@ -158,7 +158,7 @@ int pvr2_std_str_to_id(v4l2_std_id *idPtr, const char *buf,
->> 			cnt++;
->> 			buf += cnt;
->> 			buf_size -= cnt;
->> -			mMode = !0;
->> +			mMode = 1;
->> 			cmsk = sp->id;
->> 			continue;
->> 		}
->> @@ -190,7 +190,7 @@ int pvr2_std_str_to_id(v4l2_std_id *idPtr, const char *buf,
->> 
->> 	if (idPtr)
->> 		*idPtr = id;
->> -	return !0;
->> +	return 1;
->> }
->> 
->> unsigned int pvr2_std_id_to_str(char *buf, unsigned int buf_size,
->> @@ -217,10 +217,10 @@ unsigned int pvr2_std_id_to_str(char *buf, unsigned int buf_size,
->> 					buf_size -= c2;
->> 					buf += c2;
->> 				}
->> -				cfl = !0;
->> +				cfl = 1;
->> 				c2 = scnprintf(buf, buf_size,
->> 					       "%s-", gp->name);
->> -				gfl = !0;
->> +				gfl = 1;
->> 			} else {
->> 				c2 = scnprintf(buf, buf_size, "/");
->> 			}
->> @@ -315,7 +315,7 @@ static int pvr2_std_fill(struct v4l2_standard *std, v4l2_std_id id)
->> 	std->name[bcnt] = 0;
->> 	pvr2_trace(PVR2_TRACE_STD, "Set up standard idx=%u name=%s",
->> 		   std->index, std->name);
->> -	return !0;
->> +	return 1;
->> }
->> 
->> /*
->> 
-> 
-> -- 
-> 
-> Mike Isely
-> isely @ isely (dot) net
-> PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+~ C.
 
 -- 
-Jarod Wilson
-jarod@wilsonet.com
+When the facts change, I change my mind. What do you do, sir? ~ Keynes
 
-
-
+Corbin Simpson
+<MostAwesomeDude@gmail.com>
