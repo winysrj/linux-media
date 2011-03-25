@@ -1,185 +1,105 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:48436 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752583Ab1CARww convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Mar 2011 12:52:52 -0500
-Received: by fxm17 with SMTP id 17so5054303fxm.19
-        for <linux-media@vger.kernel.org>; Tue, 01 Mar 2011 09:52:51 -0800 (PST)
+Received: from mail1-out1.atlantis.sk ([80.94.52.55]:38421 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755131Ab1CYVk2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Mar 2011 17:40:28 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFC PATCH 1/3] tea575x-tuner: various improvements
+Date: Fri, 25 Mar 2011 22:40:12 +0100
+Cc: "Takashi Iwai" <tiwai@suse.de>, jirislaby@gmail.com,
+	alsa-devel@alsa-project.org,
+	"Kernel development list" <linux-kernel@vger.kernel.org>,
+	linux-media@vger.kernel.org
+References: <201103121919.05657.linux@rainbow-software.org> <201103191632.58347.linux@rainbow-software.org> <201103222002.31074.hverkuil@xs4all.nl>
+In-Reply-To: <201103222002.31074.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <4D6CC36B.50009@cisco.com>
-References: <4D6CC36B.50009@cisco.com>
-Date: Tue, 1 Mar 2011 12:52:28 -0500
-Message-ID: <AANLkTikS6AkBprfiDrW+M83YpUBjm_o3cfNJhcpzCM9N@mail.gmail.com>
-Subject: Re: [RFC] HDMI-CEC proposal
-From: Alex Deucher <alexdeucher@gmail.com>
-To: "Martin Bugge (marbugge)" <marbugge@cisco.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201103252240.16051.linux@rainbow-software.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, Mar 1, 2011 at 4:59 AM, Martin Bugge (marbugge)
-<marbugge@cisco.com> wrote:
-> Author: Martin Bugge <marbugge@cisco.com>
-> Date:  Tue, 1 March 2010
-> ======================
+On Tuesday 22 March 2011 20:02:30 Hans Verkuil wrote:
+> BTW, can you run the v4l2-compliance utility for the two boards that use
+> this radio tuner?
 >
-> This is a proposal for adding a Consumer Electronic Control (CEC) API to
-> V4L2.
-> This document describes the changes and new ioctls needed.
+> This utility is part of the v4l-utils repository
+> (http://git.linuxtv.org/v4l-utils.git).
 >
-> Version 1.0 (This is first version)
+> Run as 'v4l2-compliance -r /dev/radioX -v2'.
 >
-> Background
-> ==========
-> CEC is a protocol that provides high-level control functions between various
-> audiovisual products.
-> It is an optional supplement to the High-Definition Multimedia Interface
-> Specification (HDMI).
-> Physical layer is a one-wire bidirectional serial bus that uses the
-> industry-standard AV.link protocol.
->
-> In short: CEC uses pin 13 on the HDMI connector to transmit and receive
-> small data-packets
->          (maximum 16 bytes including a 1 byte header) at low data rates
-> (~400 bits/s).
->
-> A CEC device may have any of 15 logical addresses (0 - 14).
-> (address 15 is broadcast and some addresses are reserved)
->
+> I'm sure there will be some errors/warnings (warnings regarding
+> G/S_PRIORITY are to be expected). But I can use it to make a patch for
+> 2.6.40 that fixes any issues.
 
-It would be nice if this was not tied to v4l as we'll start seeing CEC
-support show in GPUs soon as well.
+The output is the same for both fm801 and es1968 (see below). Seems that
+there are 4 errors:
+ 1. multiple-open does not work
+ 2. something bad with s_frequency
+ 3. input functions are present
+ 4. no extended controls
 
-Alex
 
->
-> References
-> ==========
-> [1] High-Definition Multimedia Interface Specification version 1.3a,
->    Supplement 1 Consumer Electronic Control (CEC).
->    http://www.hdmi.org/manufacturer/specification.aspx
->
-> [2]
-> http://www.hdmi.org/pdf/whitepaper/DesigningCECintoYourNextHDMIProduct.pdf
->
->
-> Proposed solution
-> =================
->
-> Two new ioctls:
->    VIDIOC_CEC_CAP (read)
->    VIDIOC_CEC_CMD (read/write)
->
-> VIDIOC_CEC_CAP:
-> ---------------
->
-> struct vl2_cec_cap {
->       __u32 logicaldevices;
->       __u32 reserved[7];
-> };
->
-> The capability ioctl will return the number of logical devices/addresses
-> which can be
-> simultaneously supported on this HW.
->    0:       This HW don't support CEC.
->    1 -> 14: This HW supports n logical devices simultaneously.
->
-> VIDIOC_CEC_CMD:
-> ---------------
->
-> struct v4l2_cec_cmd {
->    __u32 cmd;
->    __u32 reserved[7];
->    union {
->        struct {
->            __u32 index;
->            __u32 enable;
->            __u32 addr;
->        } conf;
->        struct {
->            __u32 len;
->            __u8  msg[16];
->            __u32 status;
->        } data;
->        __u32 raw[8];
->    };
-> };
->
-> Alternatively the data struct could be:
->        struct {
->            __u8  initiator;
->            __u8  destination;
->            __u8  len;
->            __u8  msg[15];
->            __u32 status;
->        } data;
->
-> Commands:
->
-> #define V4L2_CEC_CMD_CONF  (1)
-> #define V4L2_CEC_CMD_TX    (2)
-> #define V4L2_CEC_CMD_RX    (3)
->
-> Tx status field:
->
-> #define V4L2_CEC_STAT_TX_OK            (0)
-> #define V4L2_CEC_STAT_TX_ARB_LOST      (1)
-> #define V4L2_CEC_STAT_TX_RETRY_TIMEOUT (2)
->
-> The command ioctl is used both for configuration and to receive/transmit
-> data.
->
-> * The configuration command must be done for each logical device address
->  which is to be enabled on this HW. Maximum number of logical devices
->  is found with the capability ioctl.
->    conf:
->         index:  0 -> number_of_logical_devices-1
->         enable: true/false
->         addr:   logical address
->
->  By default all logical devices are disabled.
->
-> * Tx/Rx command
->    data:
->         len:    length of message (data + header)
->         msg:    the raw CEC message received/transmitted
->         status: when the driver is in blocking mode it gives the result for
-> transmit.
->
-> Events
-> ------
->
-> In the case of non-blocking mode the driver will issue the following events:
->
-> V4L2_EVENT_CEC_TX
-> V4L2_EVENT_CEC_RX
->
-> V4L2_EVENT_CEC_TX
-> -----------------
->  * transmit is complete with the following status:
-> Add an additional struct to the struct v4l2_event
->
-> struct v4l2_event_cec_tx {
->       __u32 status;
-> }
->
-> V4L2_EVENT_CEC_RX
-> -----------------
->  * received a complete message
->
->
-> Comments ?
->
->           Martin Bugge
->
-> --
-> Martin Bugge - Tandberg (now a part of Cisco)
-> --
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+
+Running on 2.6.38
+
+Driver Info:
+	Driver name   : tea575x-tuner
+	Card type     : TEA5757
+	Bus info      : PCI
+	Driver version: 0.0.2
+	Capabilities  : 0x00050000
+		Tuner
+		Radio
+
+Compliance test for device /dev/radio0 (not using libv4l2):
+
+Required ioctls:
+	test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+	test second radio open: FAIL
+
+Debug ioctls:
+	test VIDIOC_DBG_G_CHIP_IDENT: Not Supported
+	test VIDIOC_DBG_G/S_REGISTER: Not Supported
+	test VIDIOC_LOG_STATUS: Not Supported
+
+Input ioctls:
+	test VIDIOC_G/S_TUNER: OK
+		fail: set rangehigh+1 frequency did not return EINVAL
+	test VIDIOC_G/S_FREQUENCY: FAIL
+	test VIDIOC_ENUMAUDIO: Not Supported
+		fail: radio can't have input support
+	test VIDIOC_G/S/ENUMINPUT: FAIL
+	test VIDIOC_G/S_AUDIO: Not Supported
+	Inputs: 0 Audio Inputs: 0 Tuners: 1
+
+Output ioctls:
+	test VIDIOC_G/S_MODULATOR: Not Supported
+	test VIDIOC_G/S_FREQUENCY: OK
+	test VIDIOC_ENUMAUDOUT: Not Supported
+	test VIDIOC_G/S/ENUMOUTPUT: Not Supported
+	test VIDIOC_G/S_AUDOUT: Not Supported
+	Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Control ioctls:
+		fail: does not support V4L2_CTRL_FLAG_NEXT_CTRL
+	test VIDIOC_QUERYCTRL/MENU: FAIL
+	test VIDIOC_G/S_CTRL: OK
+	test VIDIOC_G/S/TRY_EXT_CTRLS: Not Supported
+	Standard Controls: 0 Private Controls: 0
+
+Input/Output configuration ioctls:
+	test VIDIOC_ENUM/G/S/QUERY_STD: Not Supported
+	test VIDIOC_ENUM/G/S/QUERY_DV_PRESETS: Not Supported
+	test VIDIOC_G/S_DV_TIMINGS: Not Supported
+
+Total: 21 Succeeded: 17 Failed: 4 Warnings: 0
+
+-- 
+Ondrej Zary
