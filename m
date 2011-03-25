@@ -1,96 +1,94 @@
 Return-path: <mchehab@pedra>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:35001 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755597Ab1CHUlC convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Mar 2011 15:41:02 -0500
-MIME-Version: 1.0
-In-Reply-To: <201103082131.06761.laurent.pinchart@ideasonboard.com>
-References: <4D6D219D.7020605@matrix-vision.de>
-	<201103072219.32938.laurent.pinchart@ideasonboard.com>
-	<AANLkTi=9CYUbkxaSit76OwFR=4PpH+0nDzg5vQLaV51s@mail.gmail.com>
-	<201103082131.06761.laurent.pinchart@ideasonboard.com>
-Date: Tue, 8 Mar 2011 14:41:00 -0600
-Message-ID: <AANLkTimOXOk9H3hgZyou520nE=AYOU+HJk8OAG3csn3X@mail.gmail.com>
-Subject: Re: [PATCH] omap: iommu: disallow mapping NULL address
-From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: David Cohen <dacohen@gmail.com>, Hiroshi.DOYU@nokia.com,
-	Michael Jones <michael.jones@matrix-vision.de>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+Received: from smtp-outbound-1.vmware.com ([65.115.85.69]:50670 "EHLO
+	smtp-outbound-1.vmware.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757394Ab1CYCy1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Mar 2011 22:54:27 -0400
+Date: Thu, 24 Mar 2011 19:54:01 -0700
+From: Micah Elizabeth Scott <micah@vmware.com>
+To: Paul Bolle <pebolle@tiscali.nl>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Greg KH <greg@kroah.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-omap@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	USB list <linux-usb@vger.kernel.org>
+Subject: Re: [ANNOUNCE] usbmon capture and parser script
+Message-ID: <20110325025401.GA14110@vmware.com>
+References: <4D8102A9.9080202@redhat.com>
+ <20110316194758.GA32557@kroah.com>
+ <1300306845.1954.7.camel@t41.thuisdomein>
+ <4D81F4B3.4000004@redhat.com>
+ <1300468899.1844.17.camel@t41.thuisdomein>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1300468899.1844.17.camel@t41.thuisdomein>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, Mar 8, 2011 at 2:31 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi David,
->
-> On Monday 07 March 2011 22:35:31 David Cohen wrote:
->> On Mon, Mar 7, 2011 at 11:19 PM, Laurent Pinchart wrote:
->> > On Monday 07 March 2011 20:41:21 David Cohen wrote:
->> >> On Mon, Mar 7, 2011 at 9:25 PM, Guzman Lugo, Fernando wrote:
->> >> > On Mon, Mar 7, 2011 at 1:19 PM, David Cohen wrote:
->> >> >> On Mon, Mar 7, 2011 at 9:17 PM, Guzman Lugo, Fernando wrote:
->> >> >>> On Mon, Mar 7, 2011 at 7:10 AM, Michael Jones wrote:
->> >> >>>> From e7dbe4c4b64eb114f9b0804d6af3a3ca0e78acc8 Mon Sep 17 00:00:00
->> >> >>>> 2001 From: Michael Jones <michael.jones@matrix-vision.de>
->> >> >>>> Date: Mon, 7 Mar 2011 13:36:15 +0100
->> >> >>>> Subject: [PATCH] omap: iommu: disallow mapping NULL address
->> >> >>>>
->> >> >>>> commit c7f4ab26e3bcdaeb3e19ec658e3ad9092f1a6ceb allowed mapping
->> >> >>>> the NULL address if da_start==0.  Force da_start to exclude the
->> >> >>>> first page.
->> >> >>>
->> >> >>> what about devices that uses page 0? ipu after reset always starts
->> >> >>> from 0x00000000 how could we map that address??
->> >> >>
->> >> >> from 0x0? The driver sees da == 0 as error. May I ask you why do you
->> >> >> want it?
->> >> >
->> >> > unlike DSP that you can load a register with the addres the DSP will
->> >> > boot, IPU core always starts from address 0x00000000, so if you take
->> >> > IPU out of reset it will try to access address 0x0 if not map it,
->> >> > there will be a mmu fault.
->> >>
->> >> Hm. Looks like the iommu should not restrict any da. The valid da
->> >> range should rely only on pdata.
->> >> Michael, what about just update ISP's da_start on omap-iommu.c file?
->> >> Set it to 0x1000.
->> >
->> > What about patching the OMAP3 ISP driver to use a non-zero value (maybe
->> > -1) as an invalid/freed pointer ?
->>
->> I wouldn't be comfortable to use 0 (or NULL) value as valid address on
->> ISP driver.
->
-> Why not ? The IOMMUs can use 0x00000000 as a valid address. Whether we allow
-> it or not is a software architecture decision, not influenced by the IOMMU
-> hardware. As some peripherals (namely IPU) require mapping memory to
-> 0x00000000, the IOMMU layer must support it and not treat 0x00000000
-> specially. All da == 0 checks to aim at catching invalid address values must
-> be removed, both from the IOMMU API and the IOMMU internals.
+On Fri, Mar 18, 2011 at 10:21:33AM -0700, Paul Bolle wrote:
+> On Thu, 2011-03-17 at 08:46 -0300, Mauro Carvalho Chehab wrote:
+> > On a quick test, it seems that it doesn't recognize the tcpdump file 
+> > format (at least, it was not able to capture the dump files I got 
+> > with the beagleboard). Adding support for it could be an interesting 
+> > addition to your code.
+> 
+> Please note that Micah Dowty is the maintainer of vusb-analyzer. I
+> mostly cleaned, etc. its usbmon support (which was originally added by
+> Christoph Zimmermann). Anyway, you're always free to try to add support
+> for another file format. I must say that Micah was rather easy to work
+> with.
+> 
+> > Btw, it seems that most of your work is focused on getting VMware logs.
+> 
+> Micah had a vmware.com address last time I contacted him. That should
+> explain that focus.
 
-Yes, I completely agree with this approach.
+Right, vusb-analyzer doesn't currently understand tcpdump files.
 
-Regards,
-Fernando.
+I originally wrote it as just an internal debugging tool for VMware,
+but we open sourced it and I've been quite interested in including
+support for other log formats. It originally just had support for
+VMware's logs and for XML files dumped by the Ellisys hardware
+analyzers we use. Paul Bolle contributed usbmon log support.
 
+I unfortunately haven't had much time to work on vusb-analyzer myself
+in the past few years.. I'm hoping that will change soon, but in any
+case I'd be happy to accept patches.
+
+As another point of interest... I have some friends working on a
+hardware USB analyzer project (openvizsla.org) and they've been
+planning on using vusb-analyzer or something based on it. I've been
+thinking about rewriting it in something a bit faster than Python,
+improving the support for traversing large log files efficiently, and
+making it fully understand lower-level USB packet logs like you'd see
+from a hardware analyzer.
+
+I think vusb-analyzer's strength has always been the graphical timing
+analysis and quickly navigating complex logs. Wireshark is probably
+better suited for deep protocol analysis.
+
+> > Do you know if any of them are now capable of properly emulate USB 2.0
+> > isoc transfers and give enough performance for the devices to actually
+> > work with such high-bandwidth requirements?
 >
->> The 'da' range (da_start and da_end) is defined per VM and specified as
->> platform data. IMO, to set da_start = 0x1000 seems to be> a correct approach
->> for ISP as it's the only client for its IOMMU instance.
->
-> We can do that, and then use 0 as an invalid pointer in the ISP driver. As the
-> IOMMU API will use another value (what about 0xffffffff, as for the userspace
-> mmap() call ?) to mean "invalid pointer", it might be better to use the same
-> value in the ISP driver.
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
+> This is not something I know much about. I tried to use some digital
+> camera over USB with qemu without much success. Apparently qemu's USB
+> pass through has little chance of supporting high bandwidth USB devices.
+> See
+> http://lists.nongnu.org/archive/html/qemu-devel/2010-09/msg00017.html
+> for the - not very interesting - answer I got when I wanted to know more
+> about the problems of USB pass through in qemu.
+
+I can't really speak for qemu, but I wrote the EHCI USB 2.0 Isochronous
+emulation that VMware uses.
+
+At the risk of sounding like an advertisment, there are of course
+plenty of caveats to emulating Isochronous transfers in
+userspace.. but VMware's emulation usually manages to work
+correctly. You'll certainly run into problem devices sometimes, but
+the raw CPU power hasn't been an issue. I routinely tested it with
+high-bandwidth uncompressed TV tuner devices back in 2005 or 2006.
+
+Cheers,
+--beth
