@@ -1,56 +1,135 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-out3.tiscali.nl ([195.241.79.178]:51654 "EHLO
-	smtp-out3.tiscali.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757190Ab1CRRVk (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:39486 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750851Ab1CYP3j (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Mar 2011 13:21:40 -0400
-Subject: Re: [ANNOUNCE] usbmon capture and parser script
-From: Paul Bolle <pebolle@tiscali.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Greg KH <greg@kroah.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	USB list <linux-usb@vger.kernel.org>
-Date: Fri, 18 Mar 2011 18:21:33 +0100
-In-Reply-To: <4D81F4B3.4000004@redhat.com>
-References: <4D8102A9.9080202@redhat.com> <20110316194758.GA32557@kroah.com>
-	 <1300306845.1954.7.camel@t41.thuisdomein> <4D81F4B3.4000004@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Message-ID: <1300468899.1844.17.camel@t41.thuisdomein>
-Mime-Version: 1.0
+	Fri, 25 Mar 2011 11:29:39 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from eu_spt1 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LIM008BVDPCDH20@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 25 Mar 2011 15:29:36 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LIM00GL7DPBY5@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 25 Mar 2011 15:29:35 +0000 (GMT)
+Date: Fri, 25 Mar 2011 16:29:27 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [RFC/PATCH v2] v4l: Add V4L2_MBUS_FMT_JPEG_1X8 media bus format
+In-reply-to: <201103241731.33518.laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, g.liakhovetski@gmx.de,
+	m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	s.nawrocki@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <1301066967-26690-1-git-send-email-s.nawrocki@samsung.com>
+References: <201103241731.33518.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, 2011-03-17 at 08:46 -0300, Mauro Carvalho Chehab wrote:
-> On a quick test, it seems that it doesn't recognize the tcpdump file 
-> format (at least, it was not able to capture the dump files I got 
-> with the beagleboard). Adding support for it could be an interesting 
-> addition to your code. 
+Add V4L2_MBUS_FMT_JPEG_1X8 format and the corresponding Docbook
+documentation.
 
-Please note that Micah Dowty is the maintainer of vusb-analyzer. I
-mostly cleaned, etc. its usbmon support (which was originally added by
-Christoph Zimmermann). Anyway, you're always free to try to add support
-for another file format. I must say that Micah was rather easy to work
-with.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
 
-> Btw, it seems that most of your work is focused on getting VMware logs.
+Hello,
 
-Micah had a vmware.com address last time I contacted him. That should
-explain that focus.
+it's a second patch version adding V4L2_MBUS_FMT_JPEG_1X8
+format to the list of media bus formats. The requirement of
+this format had already been discussed in the past (1*, 2*).
+This patch adds relevant entry in v4l2-mediabus.h header and
+the documentation.
 
-> Do you know if any of them are now capable of properly emulate USB 2.0
-> isoc transfers and give enough performance for the devices to actually
-> work with such high-bandwidth requirements?
+Changes since v1:
+ - rewritten description of JPEG formats code structure
 
-This is not something I know much about. I tried to use some digital
-camera over USB with qemu without much success. Apparently qemu's USB
-pass through has little chance of supporting high bandwidth USB devices.
-See
-http://lists.nongnu.org/archive/html/qemu-devel/2010-09/msg00017.html
-for the - not very interesting - answer I got when I wanted to know more
-about the problems of USB pass through in qemu.
+Comments and suggestions are welcome.
+
+--
+Regards,
+Sylwester Nawrocki,
+Samsung Poland R&D Center
 
 
-Paul Bolle
+1* http://www.spinics.net/lists/linux-media/msg27980.html
+2* http://www.spinics.net/lists/linux-media/msg28651.html
+---
+ Documentation/DocBook/v4l/subdev-formats.xml |   46 ++++++++++++++++++++++++++
+ include/linux/v4l2-mediabus.h                |    3 ++
+ 2 files changed, 49 insertions(+), 0 deletions(-)
 
+diff --git a/Documentation/DocBook/v4l/subdev-formats.xml b/Documentation/DocBook/v4l/subdev-formats.xml
+index b5376e2..a65e97e 100644
+--- a/Documentation/DocBook/v4l/subdev-formats.xml
++++ b/Documentation/DocBook/v4l/subdev-formats.xml
+@@ -2463,5 +2463,51 @@
+ 	</tgroup>
+       </table>
+     </section>
++
++    <section>
++      <title>JPEG Compressed Formats</title>
++
++      <para>Those data formats consist of an ordered sequence of 8-bit bytes
++	obtained from JPEG compression process. Additionally to the
++	<constant>_JPEG</constant> prefix the format code is made of
++	the following information.
++	<itemizedlist>
++	  <listitem>The number of bus samples per entropy encoded byte.</listitem>
++	  <listitem>The bus width.</listitem>
++	</itemizedlist>
++
++	<para>For instance, for a JPEG baseline process and an 8-bit bus width
++	  the format will be named <constant>V4L2_MBUS_FMT_JPEG_1X8</constant>.
++	</para>
++      </para>
++
++      <para>The following table lists existing JPEG compressed formats.</para>
++
++      <table pgwide="0" frame="none" id="v4l2-mbus-pixelcode-jpeg">
++	<title>JPEG Formats</title>
++	<tgroup cols="3">
++	  <colspec colname="id" align="left" />
++	  <colspec colname="code" align="left"/>
++	  <colspec colname="remarks" align="left"/>
++	  <thead>
++	    <row>
++	      <entry>Identifier</entry>
++	      <entry>Code</entry>
++	      <entry>Remarks</entry>
++	    </row>
++	  </thead>
++	  <tbody valign="top">
++	    <row id="V4L2-MBUS-FMT-JPEG-1X8">
++	      <entry>V4L2_MBUS_FMT_JPEG_1X8</entry>
++	      <entry>0x4001</entry>
++	      <entry>Besides of its usage for the parallel bus this format is
++		recommended for transmission of JPEG data over MIPI CSI bus
++		using the User Defined 8-bit Data types.
++	      </entry>
++	    </row>
++	  </tbody>
++	</tgroup>
++      </table>
++    </section>
+   </section>
+ </section>
+diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
+index 7054a7a..15d6cda 100644
+--- a/include/linux/v4l2-mediabus.h
++++ b/include/linux/v4l2-mediabus.h
+@@ -86,6 +86,9 @@ enum v4l2_mbus_pixelcode {
+ 	V4L2_MBUS_FMT_SGBRG12_1X12 = 0x3010,
+ 	V4L2_MBUS_FMT_SGRBG12_1X12 = 0x3011,
+ 	V4L2_MBUS_FMT_SRGGB12_1X12 = 0x3012,
++
++	/* JPEG compressed formats - next is 0x4002 */
++	V4L2_MBUS_FMT_JPEG_1X8 = 0x4001,
+ };
+ 
+ /**
+-- 
+1.7.4.1
