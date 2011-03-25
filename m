@@ -1,64 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42565 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752008Ab1CGVTs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Mar 2011 16:19:48 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: David Cohen <dacohen@gmail.com>
-Subject: Re: [PATCH] omap: iommu: disallow mapping NULL address
-Date: Mon, 7 Mar 2011 22:19:32 +0100
-Cc: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>,
-	Hiroshi.DOYU@nokia.com,
-	Michael Jones <michael.jones@matrix-vision.de>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-omap@vger.kernel.org
-References: <4D6D219D.7020605@matrix-vision.de> <AANLkTi=KncNfW0NEEoV+mrT_Ft2j-c=rQG=qbeR6tLQK@mail.gmail.com> <AANLkTimac512Gu0_vyPjThvNxXHsXTRD73B0d1bHnnAg@mail.gmail.com>
-In-Reply-To: <AANLkTimac512Gu0_vyPjThvNxXHsXTRD73B0d1bHnnAg@mail.gmail.com>
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:58788 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751730Ab1CYPVx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Mar 2011 11:21:53 -0400
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201103072219.32938.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <4D8BC915.60400@gmx.de>
+References: <1300815176-21206-1-git-send-email-mythripk@ti.com>
+ <AANLkTim61Xdo6ED7mr_SvpLuotso89RdR6Qaz-GCXOmJ@mail.gmail.com>
+ <AANLkTinMUCbaEVjwZsHG9BxFVjx0YxS=Sw+3gViDJXhg@mail.gmail.com>
+ <20110323081820.5b37d169@jbarnes-desktop> <AANLkTinYHzCgXe9yw1rGHZA0uM=-VrY+Mktpn-HvfRyR@mail.gmail.com>
+ <AANLkTi=Yc0Pg9uCZcTei45PLbERutoRc7XyoFghwS=KV@mail.gmail.com> <4D8BC915.60400@gmx.de>
+From: "K, Mythri P" <mythripk@ti.com>
+Date: Fri, 25 Mar 2011 20:51:31 +0530
+Message-ID: <AANLkTinP3CUm3d8-RTG6NVniGh8MEwJ-unkggwZwpiZb@mail.gmail.com>
+Subject: Re: [RFC PATCH] HDMI:Support for EDID parsing in kernel.
+To: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: Corbin Simpson <mostawesomedude@gmail.com>,
+	Jesse Barnes <jbarnes@virtuousgeek.org>,
+	linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org,
+	dri-devel <dri-devel@lists.freedesktop.org>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi David,
+Hi Florian,
 
-On Monday 07 March 2011 20:41:21 David Cohen wrote:
-> On Mon, Mar 7, 2011 at 9:25 PM, Guzman Lugo, Fernando wrote:
-> > On Mon, Mar 7, 2011 at 1:19 PM, David Cohen wrote:
-> >> On Mon, Mar 7, 2011 at 9:17 PM, Guzman Lugo, Fernando wrote:
-> >>> On Mon, Mar 7, 2011 at 7:10 AM, Michael Jones wrote:
-> >>>> From e7dbe4c4b64eb114f9b0804d6af3a3ca0e78acc8 Mon Sep 17 00:00:00 2001
-> >>>> From: Michael Jones <michael.jones@matrix-vision.de>
-> >>>> Date: Mon, 7 Mar 2011 13:36:15 +0100
-> >>>> Subject: [PATCH] omap: iommu: disallow mapping NULL address
-> >>>> 
-> >>>> commit c7f4ab26e3bcdaeb3e19ec658e3ad9092f1a6ceb allowed mapping
-> >>>> the NULL address if da_start==0.  Force da_start to exclude the
-> >>>> first page.
-> >>> 
-> >>> what about devices that uses page 0? ipu after reset always starts
-> >>> from 0x00000000 how could we map that address??
-> >> 
-> >> from 0x0? The driver sees da == 0 as error. May I ask you why do you
-> >> want it?
-> > 
-> > unlike DSP that you can load a register with the addres the DSP will
-> > boot, IPU core always starts from address 0x00000000, so if you take
-> > IPU out of reset it will try to access address 0x0 if not map it,
-> > there will be a mmu fault.
-> 
-> Hm. Looks like the iommu should not restrict any da. The valid da
-> range should rely only on pdata.
-> Michael, what about just update ISP's da_start on omap-iommu.c file?
-> Set it to 0x1000.
+<snip>
+>
+>> So why should this be a common library? Most kernel code doesn't need
+>> it. Or is there a serious need for video input to parse EDIDs?
+>
+> It's true that most kernel code does not need it as it is only useful for
+> display output systems (and only the ones that can be connected to something
+> sending EDID data) but it would be good anyway.
+> Because sharing code that should fulfill the same purpose is always a good
+> idea. But of course only if the scope is clearly limited as we don't want to
+> end up with a mess that nobody dares touching again as it became to complex.
+> So I totally agree that we should share the common stuff we all need and
+> adding the extras one needs in the subsystem/driver.
+> This is good because it looks like we'll have 3 display subsystems within
+> the kernel for a long future and with a common library the same patch would
+> not need to be done 3 times but only once. Or even more often if drivers
+> have there private EDID implementation which I just throw out of mine to
+> replace it later with a common one.
+>
 
-What about patching the OMAP3 ISP driver to use a non-zero value (maybe -1) as 
-an invalid/freed pointer ?
+Precisely my point . Also if there are some bad TV models which
+doesn't adhere to standard EDID, It would help to add quirks.
+Anyone out there want to help me split the DRM code ? As i don't want
+DRMer's to fret over changed code :).
 
--- 
-Regards,
-
-Laurent Pinchart
+Thanks and regards,
+Mythri.
+> Regards,
+>
+> Florian Tobias Schandinat
+>
