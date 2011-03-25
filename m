@@ -1,63 +1,120 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.128.24]:57654 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750844Ab1CHJFa convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Mar 2011 04:05:30 -0500
-Date: Tue, 08 Mar 2011 11:02:51 +0200 (EET)
-Message-Id: <20110308.110251.355905602403266314.Hiroshi.DOYU@nokia.com>
-To: dacohen@gmail.com
-Cc: fernando.lugo@ti.com, michael.jones@matrix-vision.de,
-	laurent.pinchart@ideasonboard.com,
-	sakari.ailus@maxwell.research.nokia.com,
-	linux-media@vger.kernel.org, linux-omap@vger.kernel.org
-Subject: Re: [PATCH] omap: iommu: disallow mapping NULL address
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-In-Reply-To: <AANLkTimac512Gu0_vyPjThvNxXHsXTRD73B0d1bHnnAg@mail.gmail.com>
-References: <AANLkTikzAjUrec+c6zcSCx6auaR9QvbWwwTbXpGYuOoZ@mail.gmail.com>
-	<AANLkTi=KncNfW0NEEoV+mrT_Ft2j-c=rQG=qbeR6tLQK@mail.gmail.com>
-	<AANLkTimac512Gu0_vyPjThvNxXHsXTRD73B0d1bHnnAg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:57527 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751206Ab1CYMeL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Mar 2011 08:34:11 -0400
+Received: by iwn34 with SMTP id 34so1012987iwn.19
+        for <linux-media@vger.kernel.org>; Fri, 25 Mar 2011 05:34:10 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <AANLkTimyQiG86LHW8-h+GHyXgMkvD-Zp6LP=G4LKHgHY@mail.gmail.com>
+References: <AANLkTimdFVDLLz2o9Fb2OJM2EsJ9R9q-xKAP63g9uSi+@mail.gmail.com>
+	<201103222140.28674.laurent.pinchart@ideasonboard.com>
+	<AANLkTim8C73WGHkKXsC1nQzV3PjjYjTVUr7U3Ud8jaxk@mail.gmail.com>
+	<201103241140.22986.laurent.pinchart@ideasonboard.com>
+	<AANLkTimyQiG86LHW8-h+GHyXgMkvD-Zp6LP=G4LKHgHY@mail.gmail.com>
+Date: Fri, 25 Mar 2011 13:34:10 +0100
+Message-ID: <AANLkTimiOr+dsTM4DXEf31XBkQHD8tt7ZjHDUcRn_f0+@mail.gmail.com>
+Subject: Re: OMAP3 ISP outputs 5555 5555 5555 5555 ...
+From: Bastian Hecht <hechtb@googlemail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: ext David Cohen <dacohen@gmail.com>
-Subject: Re: [PATCH] omap: iommu: disallow mapping NULL address
-Date: Mon, 7 Mar 2011 21:41:21 +0200
-
-> On Mon, Mar 7, 2011 at 9:25 PM, Guzman Lugo, Fernando
-> <fernando.lugo@ti.com> wrote:
->> On Mon, Mar 7, 2011 at 1:19 PM, David Cohen <dacohen@gmail.com> wrote:
->>> On Mon, Mar 7, 2011 at 9:17 PM, Guzman Lugo, Fernando
->>> <fernando.lugo@ti.com> wrote:
->>>> On Mon, Mar 7, 2011 at 7:10 AM, Michael Jones
->>>> <michael.jones@matrix-vision.de> wrote:
->>>>> From e7dbe4c4b64eb114f9b0804d6af3a3ca0e78acc8 Mon Sep 17 00:00:00 2001
->>>>> From: Michael Jones <michael.jones@matrix-vision.de>
->>>>> Date: Mon, 7 Mar 2011 13:36:15 +0100
->>>>> Subject: [PATCH] omap: iommu: disallow mapping NULL address
->>>>>
->>>>> commit c7f4ab26e3bcdaeb3e19ec658e3ad9092f1a6ceb allowed mapping
->>>>> the NULL address if da_start==0.  Force da_start to exclude the
->>>>> first page.
->>>>
->>>> what about devices that uses page 0? ipu after reset always starts
->>>> from 0x00000000 how could we map that address??
->>>
->>> from 0x0? The driver sees da == 0 as error. May I ask you why do you want it?
+2011/3/24 Bastian Hecht <hechtb@googlemail.com>:
+> 2011/3/24 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+>> Hi Bastian,
 >>
->> unlike DSP that you can load a register with the addres the DSP will
->> boot, IPU core always starts from address 0x00000000, so if you take
->> IPU out of reset it will try to access address 0x0 if not map it,
->> there will be a mmu fault.
-> 
-> Hm. Looks like the iommu should not restrict any da. The valid da
-> range should rely only on pdata.
-> Michael, what about just update ISP's da_start on omap-iommu.c file?
-> Set it to 0x1000.
-> 
-> Hiroshi, any opinion?
+>> On Thursday 24 March 2011 10:59:01 Bastian Hecht wrote:
+>>> 2011/3/22 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+>>> > On Tuesday 22 March 2011 17:11:04 Bastian Hecht wrote:
+>>> >> Hello omap isp devs,
+>>> >>
+>>> >> maybe you can help me, I am a bit desperate with my current cam problem:
+>>> >>
+>>> >> I use a ov5642 chip and get only 0x55 in my data output when I use a
+>>> >> camclk > 1 MHz. With 1 MHz data rate from the camera chip to the omap
+>>> >> all works (well the colorspace is strange - it's greenish, but that is
+>>> >> not my main concern).
+>>> >> I looked up the data on the oscilloscope and all flanks seem to be
+>>> >> fine at the isp. Very clear cuts with 4 MHz and 10MHz. Also the data
+>>> >> pins are flickering fine. Looks like a picture.
+>>> >>
+>>> >> I found that the isp stats module uses 0x55 as a magic number but I
+>>> >> don't see why it should confuse my readout.
+>>> >>
+>>> >> I use 2592x1944 raw bayer output via the ccdc. Next to the logical
+>>> >> right config I tried all possible configurations of vs/hs active high
+>>> >> and low on camera and isp. The isp gets the vs flanks right as the
+>>> >> images come out in time (sometimes it misses 1 frame).
+>>> >>
+>>> >> Anyone of you had this behaviour before?
+>>> >
+>>> > How do you capture images ? yavta will fill buffers with 0x55 before
+>>> > queueing them, so this might indicate that no data is written to the
+>>> > buffer at all.
+>>>
+>>> Yes I use yavta. So what does that all mean?
+>>
 
-We have assumed that 'da == 0' is NULL so far. According to Fernando's
-explanation, 'da == 0' should be allowed in iovmm layer by default.
+>> It means that the ISP doesn't write data to the buffer. I have no idea why.
+
+This simple and clear statement directly led me to the problem :)
+
+There was no cam_wen (write enable) pin on both my camera boards. The
+ISP on the other hand is configured by default to expect it. So I only
+captured images when my data lanes luckily pulled up the omap wen pin
+by induction.
+
+In ccdc_config_sync_if() I added:
+
+        /* HACK */
+        printk(KERN_ALERT "Disable wen\n");
+        syn_mode &= ~ISPCCDC_SYN_MODE_WEN;
+
+So is this something to add to the platform data? I can prepare my
+very first kernel patch :)
+
+cheers,
+
+ Bastian
+
+
+> OK, I keep trying to find the reason. Thank you for answering.
+>
+> - Bastian
+>
+>
+>>> As far as I understand things: The isp gets a new frame start. Then it
+>>> counts up the lines as I receive a vd0 interrupt (I added a printk at the
+>>> isr). In between the isp doesn't write/dma-transfer any data. I double-
+>>> checked the pclk-line but I see nice flanks.
+>>>
+>>> yavta Output with 4MHz:
+>>> Device /dev/video2 opened: OMAP3 ISP CCDC output (media).
+>>> Video format set: width: 2592 height: 1944 buffer size: 10077696
+>>> Video format: BA10 (30314142) 2592x1944
+>>> 2 buffers requested.
+>>> length: 10077696 offset: 0
+>>> Buffer 0 mapped at address 0x4016e000.
+>>> length: 10077696 offset: 10080256
+>>> Buffer 1 mapped at address 0x40b0b000.
+>>> [  528.454376] pad_op 4, framix addr: dea0a800
+>>> [  528.462341] s_stream is it! enable: 1
+>>> [  530.026184] last line of image received
+>>> 0 (0) [-] 0 10077696 bytes 530.213853 1300960526.930187 -0.001 fps
+>>> [  531.558898] last line of image received
+>>> 1 (1) [-] 1 10077696 bytes 531.746555 1300960528.462828 0.652 fps
+>>> [  533.091613] last line of image received
+>>> [  533.098571] s_stream is it! enable: 0
+>>> Captured 2 frames in 3.075627 seconds (0.650274 fps, 6553262.798122 B/s).
+>>
+>> --
+>> Regards,
+>>
+>> Laurent Pinchart
+>>
+>
