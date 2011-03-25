@@ -1,53 +1,41 @@
 Return-path: <mchehab@pedra>
-Received: from mail1-out1.atlantis.sk ([80.94.52.55]:34636 "EHLO
-	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754516Ab1CSPdP (ORCPT
+Received: from smtp-outbound-1.vmware.com ([65.115.85.69]:51017 "EHLO
+	smtp-outbound-1.vmware.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751212Ab1CYDEo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Mar 2011 11:33:15 -0400
-From: Ondrej Zary <linux@rainbow-software.org>
-To: "Hans Verkuil" <hverkuil@xs4all.nl>
-Subject: [RFC PATCH 2/3] tea575x-tuner: remove dev_nr
-Date: Sat, 19 Mar 2011 16:33:01 +0100
-Cc: "Takashi Iwai" <tiwai@suse.de>, jirislaby@gmail.com,
-	alsa-devel@alsa-project.org,
-	"Kernel development list" <linux-kernel@vger.kernel.org>,
-	linux-media@vger.kernel.org
-References: <201103121919.05657.linux@rainbow-software.org> <201103141128.01259.linux@rainbow-software.org> <33b29bfb135fbe2ddcba88d342d67526.squirrel@webmail.xs4all.nl>
-In-Reply-To: <33b29bfb135fbe2ddcba88d342d67526.squirrel@webmail.xs4all.nl>
+	Thu, 24 Mar 2011 23:04:44 -0400
+Date: Thu, 24 Mar 2011 20:04:17 -0700
+From: Micah Elizabeth Scott <micah@vmware.com>
+To: Paul Bolle <pebolle@tiscali.nl>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Greg KH <greg@kroah.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	USB list <linux-usb@vger.kernel.org>
+Subject: Re: [ANNOUNCE] usbmon capture and parser script
+Message-ID: <20110325030417.GA14251@vmware.com>
+References: <4D8102A9.9080202@redhat.com>
+ <20110316194758.GA32557@kroah.com>
+ <1300306845.1954.7.camel@t41.thuisdomein>
+ <4D81F4B3.4000004@redhat.com>
+ <1300468899.1844.17.camel@t41.thuisdomein>
+ <20110325025401.GA14110@vmware.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Message-Id: <201103191633.06935.linux@rainbow-software.org>
+In-Reply-To: <20110325025401.GA14110@vmware.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Remove unused dev_nr from struct tea575x_tuner.
+On Thu, Mar 24, 2011 at 07:54:01PM -0700, Micah Elizabeth Scott wrote:
+> Paul Bolle contributed usbmon log support.
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+I guess I must be too tired to write email without making mistakes tonight...
 
---- linux-2.6.38-rc4-/include/sound/tea575x-tuner.h	2011-03-19 16:00:53.000000000 +0100
-+++ linux-2.6.38-rc4/include/sound/tea575x-tuner.h	2011-03-19 16:01:12.000000000 +0100
-@@ -37,7 +37,6 @@ struct snd_tea575x_ops {
- struct snd_tea575x {
- 	struct snd_card *card;
- 	struct video_device *vd;	/* video device */
--	int dev_nr;			/* requested device number + 1 */
- 	bool tea5759;			/* 5759 chip is present */
- 	bool mute;			/* Device is muted? */
- 	bool stereo;			/* receiving stereo */
---- linux-2.6.38-rc4-/sound/pci/fm801.c	2011-02-08 01:03:55.000000000 +0100
-+++ linux-2.6.38-rc4/sound/pci/fm801.c	2011-03-19 16:02:33.000000000 +0100
-@@ -1453,7 +1453,6 @@ static int __devinit snd_fm801_create(st
- #ifdef TEA575X_RADIO
- 	if ((tea575x_tuner & TUNER_TYPE_MASK) > 0 &&
- 	    (tea575x_tuner & TUNER_TYPE_MASK) < 4) {
--		chip->tea.dev_nr = tea575x_tuner >> 16;
- 		chip->tea.card = card;
- 		chip->tea.freq_fixup = 10700;
- 		chip->tea.private_data = chip;
+As Paul said, the usbmon support was by Christoph Zimmermann. Paul had
+a number of other contributions, including a handful of cleanups to
+the usbmon code.
 
+Sorry guys.
 
--- 
-Ondrej Zary
+--beth
