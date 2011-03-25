@@ -1,50 +1,54 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.23]:59582 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752333Ab1C1W6D (ORCPT
+Received: from mail2.matrix-vision.com ([85.214.244.251]:50971 "EHLO
+	mail2.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755680Ab1CYKQG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Mar 2011 18:58:03 -0400
-From: Oliver Endriss <o.endriss@gmx.de>
-Reply-To: linux-media@vger.kernel.org
-To: Ralph Metzler <rjkm@metzlerbros.de>
-Subject: Re: [PATCH] Ngene cam device name
-Date: Tue, 29 Mar 2011 00:57:03 +0200
-Cc: linux-media@vger.kernel.org
-References: <777PcLohh6368S03.1299940473@web03.cms.usa.net> <4D7B8A07.70602@linuxtv.org> <19855.55774.192407.326483@morden.metzler>
-In-Reply-To: <19855.55774.192407.326483@morden.metzler>
+	Fri, 25 Mar 2011 06:16:06 -0400
+Message-ID: <4D8C6B62.90600@matrix-vision.de>
+Date: Fri, 25 Mar 2011 11:16:02 +0100
+From: Michael Jones <michael.jones@matrix-vision.de>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	=?ISO-8859-1?Q?Lo=EFc_Akue?= <akue.loic@gmail.com>,
+	Yordan Kamenov <ykamenov@mm-sol.com>
+Subject: Re: [PATCH] omap3isp: implement ENUM_FMT
+References: <4D889C61.905@matrix-vision.de> <201103240842.43024.hverkuil@xs4all.nl> <4D8AFD20.4000705@maxwell.research.nokia.com> <201103241136.54032.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201103241136.54032.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201103290057.03664@orion.escape-edv.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Monday 28 March 2011 02:44:14 Ralph Metzler wrote:
+Hi Laurent,
+
+On 03/24/2011 11:36 AM, Laurent Pinchart wrote:
 > Hi,
 > 
-> since I just saw cxd2099 appear in staging in the latest git kernel, a
-> simple question which has been pointed out to me before:
+[snip]
 > 
-> Why is cxd2099.c in staging regarding the device name question?
-> It has nothing to do with the naming.
+> Padding at end of line can be configured through S_FMT. Other than that, all 
+> other options (width, height, pixelcode) are fixed for a given mbus format 
+> *for the ISP driver*. Other drivers might support different pixel codes for a 
+> given mbus code (with different padding and/or endianness).
+> 
+> Application either need to be aware of the media controller framework, in 
+> which case they will know how to deal with mbus formats and pixel formats, or 
+> need to be run after an external application takes care of pipeline 
+> configuration. In the second case I suppose it's reasonable to assume that no 
+> application will touch the pipeline while the pure V4L2 runs. In that case I 
+> think your implementation of ENUM_FMT makes sense.
+> 
 
-Well, it was a political decision. ;-)
+It is this second case which I am currently using, and why I submitted
+this patch.  I think supporting ENUM_FMT in some form at /dev/videoX
+makes sense unless this second case is deemed obsolete and unsupported.
+ But then that seems like a bigger break from V4L.
 
-Afaics there were 3 alternatives:
-(1) Do not submit the cxd driver.
-(2) Move cxd to staging.
-(3) Move ngene to staging.
+-Michael
 
-Imho option (2) was the one with minimal impact.
-
-CU
-Oliver
-
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
-Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
-----------------------------------------------------------------
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
