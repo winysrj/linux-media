@@ -1,74 +1,79 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:57612 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752592Ab1CFRzD (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:51655 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751588Ab1CZX3g (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 6 Mar 2011 12:55:03 -0500
-Subject: Re: [Query] What is the best way to handle V4L2_PIX_FMT_NV12
- buffers?
-From: Andy Walls <awalls@md.metrocast.net>
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-In-Reply-To: <A24693684029E5489D1D202277BE89448861F7E6@dlee02.ent.ti.com>
-References: <A24693684029E5489D1D202277BE89448861F7E6@dlee02.ent.ti.com>
+	Sat, 26 Mar 2011 19:29:36 -0400
+Received: by wya21 with SMTP id 21so1976599wya.19
+        for <linux-media@vger.kernel.org>; Sat, 26 Mar 2011 16:29:35 -0700 (PDT)
+Subject: [PATCH] v1.82 DM04/QQBOX dvb-usb-lmedm04 diseqc timing changes
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: linux-media@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 06 Mar 2011 12:55:24 -0500
-Message-ID: <1299434124.2310.12.camel@localhost>
+Date: Sat, 26 Mar 2011 23:29:28 +0000
+Message-ID: <1301182168.7060.5.camel@localhost>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sat, 2011-03-05 at 22:49 -0600, Aguirre, Sergio wrote:
-> Hi,
-> 
-> I was curious in how to handle properly buffers of pixelformat V4L2_PIX_FMT_NV12.
-> 
-> I see that the standard convention for determining a bytesize of an image buffer is:
-> 
-> bytesperline * height
-> 
-> However, for NV12 case, the bytes per line is equal to the width, _but_ the actual buffer size is:
-> 
-> For the Y buffer: width * height
-> For the UV buffer: width * (height / 2)
-> Total size = width * (height + height / 2)
-> 
-> Which I think renders the bytesperline * height formula not valid for this case.
-> 
-> Any ideas how this should be properly handled?
+Frontend timing change for diseqc functions.
 
-For the HM12 macroblock format:
-
-http://git.linuxtv.org/media_tree.git?a=blob;f=Documentation/video4linux/cx2341x/README.hm12;h=b36148ea07501bdac37ae74b31cc258150f75a81;hb=staging/for_v2.6.39
-
-ivtv and cx18 do this in cx18-ioctl.c and ivtv-ioctl.c:
-
-...
-	if (id->type == xxxx_ENC_STREAM_TYPE_YUV) {
-                pixfmt->pixelformat = V4L2_PIX_FMT_HM12;
-                /* YUV size is (Y=(h*720) + UV=(h*(720/2))) */
-                pixfmt->sizeimage = pixfmt->height * 720 * 3 / 2;
-                pixfmt->bytesperline = 720;
-	}
-...
-
-Note that the wdith is fixed at 720 because the CX2341x chips always
-build HM12 planes assuming a width of 720, even though it isn't going to
-actually fill in the off-sceen pixels for widths less than 720.
+Timing on the STV0288 and STV0299 frontends cause initial disegc errors
+on some applications.
 
 
-Note that "pixfmt->height * 3 / 2" is just "(height + height / 2)".
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+---
+ drivers/media/dvb/dvb-usb/lmedm04.c |    9 +++++----
+ 1 files changed, 5 insertions(+), 4 deletions(-)
 
-It's not a definitive answer; only an example of what two drivers do for
-a very uncommon macroblock format.
-
-Regards,
-Andy
-
-> NOTE: See here for more details: http://www.fourcc.org/yuv.php#NV12
-> 
-> Regards,
-> Sergio--
-
+diff --git a/drivers/media/dvb/dvb-usb/lmedm04.c b/drivers/media/dvb/dvb-usb/lmedm04.c
+index ec0f5a7..91f239c 100644
+--- a/drivers/media/dvb/dvb-usb/lmedm04.c
++++ b/drivers/media/dvb/dvb-usb/lmedm04.c
+@@ -179,8 +179,6 @@ static int lme2510_usb_talk(struct dvb_usb_device *d,
+ 
+ 	ret |= lme2510_bulk_write(d->udev, buff, wlen , 0x01);
+ 
+-	msleep(10);
+-
+ 	ret |= usb_clear_halt(d->udev, usb_rcvbulkpipe(d->udev, 0x01));
+ 
+ 	ret |= lme2510_bulk_read(d->udev, buff, (rlen > 512) ?
+@@ -364,6 +362,7 @@ static int lme2510_msg(struct dvb_usb_device *d,
+ 					msleep(80);
+ 				}
+ 			}
++			msleep(20);
+ 			break;
+ 		case TUNER_S7395:
+ 			if (wbuf[2] == 0xd0) {
+@@ -376,7 +375,7 @@ static int lme2510_msg(struct dvb_usb_device *d,
+ 					}
+ 				}
+ 				if ((wbuf[3] != 0x6) & (wbuf[3] != 0x5))
+-					msleep(5);
++					msleep(20);
+ 			}
+ 			break;
+ 		case TUNER_S0194:
+@@ -389,6 +388,8 @@ static int lme2510_msg(struct dvb_usb_device *d,
+ 						st->i2c_talk_onoff = 0;
+ 					}
+ 				}
++				if ((wbuf[3] != 0x9) & (wbuf[3] != 0x0a))
++					msleep(20);
+ 			}
+ 			break;
+ 		default:
+@@ -1222,5 +1223,5 @@ module_exit(lme2510_module_exit);
+ 
+ MODULE_AUTHOR("Malcolm Priestley <tvboxspy@gmail.com>");
+ MODULE_DESCRIPTION("LME2510(C) DVB-S USB2.0");
+-MODULE_VERSION("1.81");
++MODULE_VERSION("1.82");
+ MODULE_LICENSE("GPL");
+-- 
+1.7.4.1
 
