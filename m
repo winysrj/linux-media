@@ -1,74 +1,67 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:27214 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752851Ab1CESWk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 5 Mar 2011 13:22:40 -0500
-Message-ID: <4D727F64.7040805@redhat.com>
-Date: Sat, 05 Mar 2011 15:22:28 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-px0-f179.google.com ([209.85.212.179]:61105 "EHLO
+	mail-px0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934174Ab1CZBzs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Mar 2011 21:55:48 -0400
+Date: Sat, 26 Mar 2011 04:55:30 +0300
+From: Dan Carpenter <error27@gmail.com>
+To: Mike Isely <isely@pobox.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [PATCH 6/6] [media] pvrusb2: replace !0 with 1
+Message-ID: <20110326015530.GK2008@bicker>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	alsa-devel@alsa-project.org,
-	Sakari Ailus <sakari.ailus@retiisi.org.uk>,
-	Pawel Osciak <pawel@osciak.com>
-Subject: Re: [GIT PULL FOR 2.6.39] Media controller and OMAP3 ISP driver
-References: <201102171606.58540.laurent.pinchart@ideasonboard.com> <201103031125.06419.laurent.pinchart@ideasonboard.com> <4D713CBD.7030405@redhat.com> <201103051402.34416.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201103051402.34416.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 05-03-2011 10:02, Laurent Pinchart escreveu:
-> Hi Mauro,
-> 
-> Thanks for the review. Let me address all your concerns in a single mail.
-> 
-> - ioctl numbers
-> 
-> I'll send you a patch that reserves a range in Documentation/ioctl/ioctl-
-> number.txt and update include/linux/media.h accordingly.
+Using !0 is less readable than just saying 1.
 
-Ok, thanks.
-> 
-> - private ioctls
-> 
-> As already explained by David, the private ioctls are used to control advanced 
-> device features that can't be handled by V4L2 controls at the moment (such as 
-> setting a gamma correction table). Using those ioctls is not mandatory, and 
-> the device will work correctly without them (albeit with a non optimal image 
-> quality).
-> 
-> David said he will submit a patch to document the ioctls.
+Signed-off-by: Dan Carpenter <error27@gmail.com>
 
-Ok.
-
-> - media bus formats
-> 
-> As Hans explained, there's no 1:1 relationship between media bus formats and 
-> pixel formats.
-
-Yet, there are some relationship between them. See my comments on my previous email.
-
-> - FOURCC and media bus codes documentation
-> 
-> I forgot to document some of them. I'll send a new patch that adds the missing 
-> documentation.
-
-Ok.
-> 
-> 
-> Is there any other issue I need to address ? 
-
-Nothing else, in the patches I've analysed so far. I'll take a look at the remaining
-omap3isp after receiving the documentation for the private ioctl's.
-
-> My understanding is that there's 
-> no need to rebase the existing patches, is that correct ?
-
-Yes, it is correct. Just send the new patches to be applied at the end of the series.
-I'll eventually reorder them if needed to avoid breaking git bisect.
-
-Thanks!
-Mauro.
+diff --git a/drivers/media/video/pvrusb2/pvrusb2-std.c b/drivers/media/video/pvrusb2/pvrusb2-std.c
+index 9bebc08..ca4f67b 100644
+--- a/drivers/media/video/pvrusb2/pvrusb2-std.c
++++ b/drivers/media/video/pvrusb2/pvrusb2-std.c
+@@ -158,7 +158,7 @@ int pvr2_std_str_to_id(v4l2_std_id *idPtr, const char *buf,
+ 			cnt++;
+ 			buf += cnt;
+ 			buf_size -= cnt;
+-			mMode = !0;
++			mMode = 1;
+ 			cmsk = sp->id;
+ 			continue;
+ 		}
+@@ -190,7 +190,7 @@ int pvr2_std_str_to_id(v4l2_std_id *idPtr, const char *buf,
+ 
+ 	if (idPtr)
+ 		*idPtr = id;
+-	return !0;
++	return 1;
+ }
+ 
+ unsigned int pvr2_std_id_to_str(char *buf, unsigned int buf_size,
+@@ -217,10 +217,10 @@ unsigned int pvr2_std_id_to_str(char *buf, unsigned int buf_size,
+ 					buf_size -= c2;
+ 					buf += c2;
+ 				}
+-				cfl = !0;
++				cfl = 1;
+ 				c2 = scnprintf(buf, buf_size,
+ 					       "%s-", gp->name);
+-				gfl = !0;
++				gfl = 1;
+ 			} else {
+ 				c2 = scnprintf(buf, buf_size, "/");
+ 			}
+@@ -315,7 +315,7 @@ static int pvr2_std_fill(struct v4l2_standard *std, v4l2_std_id id)
+ 	std->name[bcnt] = 0;
+ 	pvr2_trace(PVR2_TRACE_STD, "Set up standard idx=%u name=%s",
+ 		   std->index, std->name);
+-	return !0;
++	return 1;
+ }
+ 
+ /*
