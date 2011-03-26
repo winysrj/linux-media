@@ -1,88 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:33718 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751285Ab1CJKVS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Mar 2011 05:21:18 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Michael Jones <michael.jones@matrix-vision.de>
-Subject: Re: [PATCH v2 4/4] omap3isp: lane shifter support
-Date: Thu, 10 Mar 2011 11:21:39 +0100
-Cc: linux-media@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-References: <1299686863-20701-1-git-send-email-michael.jones@matrix-vision.de> <201103100113.25952.laurent.pinchart@ideasonboard.com> <4D78A390.8040500@matrix-vision.de>
-In-Reply-To: <4D78A390.8040500@matrix-vision.de>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+Received: from cnc.isely.net ([75.149.91.89]:40787 "EHLO cnc.isely.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751177Ab1CZEfy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 26 Mar 2011 00:35:54 -0400
+Date: Fri, 25 Mar 2011 23:35:53 -0500 (CDT)
+From: Mike Isely <isely@isely.net>
+To: Dan Carpenter <error27@gmail.com>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org,
+	Mike Isely <isely@isely.net>
+Subject: Re: [PATCH 5/5] [media] pvrusb2: delete generic_standards_cnt
+In-Reply-To: <20110326015434.GJ2008@bicker>
+Message-ID: <alpine.DEB.1.10.1103252335170.12072@ivanova.isely.net>
+References: <20110326015434.GJ2008@bicker>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Message-Id: <201103101121.40846.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Michael,
 
-On Thursday 10 March 2011 11:10:24 Michael Jones wrote:
-> Hi Laurent,
+Are you actually serious about this?  Well it's a small change...
+
+Acked-By: Mike Isely <isely@pobox.com>
+
+
+On Sat, 26 Mar 2011, Dan Carpenter wrote:
+
+> The generic_standards_cnt define is only used in one place and it's
+> more readable to just call ARRAY_SIZE(generic_standards) directly.
 > 
-> Thanks for the review.  Most of your suggestions didn't warrant
-> discussion and I will incorporate those changes.  The others are below.
+> Signed-off-by: Dan Carpenter <error27@gmail.com>
 > 
-> On 03/10/2011 01:13 AM, Laurent Pinchart wrote:
-> > On Wednesday 09 March 2011 17:07:43 Michael Jones wrote:
-> >> To use the lane shifter, set different pixel formats at each end of
-> >> the link at the CCDC input.
-> >> 
-> >> Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
-> > 
-> > [snip]
-> > 
-> >> diff --git a/drivers/media/video/omap3-isp/isp.h
-> >> b/drivers/media/video/omap3-isp/isp.h index 21fa88b..3d13f8b 100644
-> >> --- a/drivers/media/video/omap3-isp/isp.h
-> >> +++ b/drivers/media/video/omap3-isp/isp.h
-> >> @@ -144,8 +144,6 @@ struct isp_reg {
-> >> 
-> >>   *		ISPCTRL_PAR_BRIDGE_BENDIAN - Big endian
-> >>   */
-> >>  
-> >>  struct isp_parallel_platform_data {
-> >> 
-> >> -	unsigned int width;
-> >> -	unsigned int data_lane_shift:2;
-> > 
-> > I'm afraid you can't remove the data_lane_shift field completely. Board
-> > can wire a 8 bits sensor to DATA[9:2] :-/ That needs to be taken into
-> > account as well when computing the total shift value.
-> > 
-> > Hardware configuration can be done by adding the requested shift value to
-> > data_lane_shift for parallel sensors in omap3isp_configure_bridge(), but
-> > we also need to take it into account when validating the pipeline.
-> > 
-> > I'm not aware of any board requiring data_lane_shift at the moment
-> > though, so we could just drop it now and add it back later when needed.
-> > This will avoid making this patch more complex.
+> diff --git a/drivers/media/video/pvrusb2/pvrusb2-std.c b/drivers/media/video/pvrusb2/pvrusb2-std.c
+> index d5a679f..9bebc08 100644
+> --- a/drivers/media/video/pvrusb2/pvrusb2-std.c
+> +++ b/drivers/media/video/pvrusb2/pvrusb2-std.c
+> @@ -287,13 +287,11 @@ static struct v4l2_standard generic_standards[] = {
+>  	}
+>  };
+>  
+> -#define generic_standards_cnt ARRAY_SIZE(generic_standards)
+> -
+>  static struct v4l2_standard *match_std(v4l2_std_id id)
+>  {
+>  	unsigned int idx;
+>  
+> -	for (idx = 0; idx < generic_standards_cnt; idx++) {
+> +	for (idx = 0; idx < ARRAY_SIZE(generic_standards); idx++) {
+>  		if (generic_standards[idx].id & id)
+>  			return generic_standards + idx;
+>  	}
 > 
-> I'm in favor of leaving it as is for now and adding it back when needed.
->  It's a good point, and I do think it should be supported in the long
-> run, but it'd be nice to not have to worry about it for this patch.  Is
-> it OK with you to leave 'data_lane_shift' out for now?
-
-I've had a closer look at the boards I have here, and it turns out one of them 
-connects a 10-bit sensor to DATA[11:2] :-/ data_lane_shift is thus needed for 
-it.
-
-I'm fine with leaving data_lane_shift out of this patch, but can you submit a 
-second patch to add it back ? I'd rather avoid applying a patch that breaks 
-one of my boards and then have to fix it myself :-)
-
-> >>  	unsigned int clk_pol:1;
-> >>  	unsigned int bridge:4;
-> >>  
-> >>  };
 
 -- 
-Regards,
 
-Laurent Pinchart
+Mike Isely
+isely @ isely (dot) net
+PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
