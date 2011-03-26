@@ -1,58 +1,133 @@
 Return-path: <mchehab@pedra>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:37666 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751197Ab1CJM3V (ORCPT
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:65441 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751660Ab1CZNc1 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Mar 2011 07:29:21 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from eu_spt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LHU008CWDCVKP80@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 10 Mar 2011 12:29:19 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LHU000J2DCUHB@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 10 Mar 2011 12:29:18 +0000 (GMT)
-Date: Thu, 10 Mar 2011 13:28:40 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 1/3] v4l2: vb2: one more fix for REQBUFS()
-In-reply-to: <1299760122-29493-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	andrzej.p@samsung.com, pawel@osciak.com
-Message-id: <1299760122-29493-2-git-send-email-m.szyprowski@samsung.com>
-References: <1299760122-29493-1-git-send-email-m.szyprowski@samsung.com>
+	Sat, 26 Mar 2011 09:32:27 -0400
+MIME-Version: 1.0
+In-Reply-To: <AANLkTimizTZvkHk=FeSM3hN0O2E42q1wZQNM9NZ7s8AH@mail.gmail.com>
+References: <1301050377.25083.2.camel@kaas>
+	<4D8C7B62.9010701@maxwell.research.nokia.com>
+	<1301052893.25083.3.camel@kaas>
+	<BANLkTik5MCZXWT5mAeAyL8Uh5eGE85-Ynw@mail.gmail.com>
+	<1301079693.25083.8.camel@kaas>
+	<AANLkTimizTZvkHk=FeSM3hN0O2E42q1wZQNM9NZ7s8AH@mail.gmail.com>
+Date: Sat, 26 Mar 2011 14:32:26 +0100
+Message-ID: <AANLkTimat2mzSE_Fsz6OJPwGN70RoBvcUs5rkkgz8bV=@mail.gmail.com>
+Subject: Re: OMAP 3430 Camera/ISP out of memory error
+From: Patrick Radius <info@notoyota.nl>
+To: linux-omap@vger.kernel.org
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Return immedietely if the target number of buffers is the same as
-the current one and memory access type doesn't change.
+Thanks.
+I'm still not sure where to find an (the) up-to-date mainline.
+I was under the impression there's only one mainline?
+Regarding the older kernel, unfortunately I won't be able to choose
+for a newer version.
+The lead developer for this project did most of the work for the rest
+of the device with this kernel allready.
+So, I guess it's possible to backport the changes to the older kernel too right?
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/videobuf2-core.c |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
+Patrick Radius
+Noto Yota multimedialab
+Mail:        info@notoyota.nl
+Phone:    06-15693122
+Web:        http://www.notoyota.nl
+Skype:     notoyota
+LinkedIn: http://nl.linkedin.com/in/patrickradius
 
-diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
-index c5f99c7..9df484d 100644
---- a/drivers/media/video/videobuf2-core.c
-+++ b/drivers/media/video/videobuf2-core.c
-@@ -488,6 +488,13 @@ int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
- 		return -EINVAL;
- 	}
- 
-+	/*
-+	 * If the same number of buffers and memory access method is requested
-+	 * then return immedietely.
-+	 */
-+	if (q->memory == req->memory && req->count == q->num_buffers)
-+		return 0;
-+
- 	if (req->count == 0 || q->num_buffers != 0 || q->memory != req->memory) {
- 		/*
- 		 * We already have buffers allocated, so first check if they
--- 
-1.7.1.569.g6f426
+
+2011/3/26 David Cohen <dacohen@gmail.com>
+>
+> On Fri, Mar 25, 2011 at 9:01 PM, Patrick Radius <info@notoyota.nl> wrote:
+> > Thanks,
+> >
+> > I'm looking at
+> > http://gitorious.org/linux-omap/mainline/trees/master/drivers/media/video
+> >
+> > however, I can't seem to find the drivers I need.
+> > I only see omap24xxcam while I was using the omap34xxcam from Linux
+> > kernel 2.6.32.9.
+> > And I also don't see any M-4MO driver anymore.
+> > I'm probably looking at the wrong spot, but...
+>
+> You need to get an up-to-date mainline kernel. The driver is in the
+> directory: drivers/media/video/omap3isp/
+> I don't recommend you to use 2.6.32, as it depends on some new V4L2
+> stuff which you won't natively find in such old kernel version. I also
+> suggest you to CC linux-media@vger.kernel.org as well in next
+> questions.
+>
+> Br,
+>
+> David
+>
+> >
+> > As you can tell, I'm fairly new with OMAP programming.
+> >
+> > Thanks!
+> >
+> > Regards,
+> > Patrick
+> >
+> > On vr, 2011-03-25 at 16:34 +0200, David Cohen wrote:
+> >> Hi,
+> >>
+> >> On Fri, Mar 25, 2011 at 1:34 PM, Patrick Radius <info@notoyota.nl> wrote:
+> >> > Ok, thanks!
+> >> > However, I'm also quite curious about peoples thoughts about it from
+> >> > here.
+> >> > Since I think what's happing is quite OMAP specific.
+> >> > For example, I was wondering where omap34xxcam.c gets it's memory it
+> >> > should allocate from.
+> >> > Is it the 'main' memory? Or does it share memory with a framebuffer
+> >> > (overlay)? Or memory from the (M-4MO) sensor?
+> >> > Is it possible I should allocate memory for it as boot argument? similar
+> >> > like vmem=16M omapfb.vram=0:8M
+> >> >
+> >> > I can't find much information about this all...
+> >>
+> >> You're using an old version of the driver. Please, use the newer one
+> >> available in mainline.
+> >>
+> >> Regards,
+> >>
+> >> David Cohen
+> >>
+> >> >
+> >> > On vr, 2011-03-25 at 13:24 +0200, Sakari Ailus wrote:
+> >> >> Patrick Radius wrote:
+> >> >> > Hi,
+> >> >>
+> >> >> Hi Patrick,
+> >> >>
+> >> >> I think this question will get better answered in the linux-media list.
+> >> >> Cc it.
+> >> >>
+> >> >> > i'm trying to get camera support working on a relatively new Android
+> >> >> > port to an OMAP 3430 based phone (Samsung GT-i8320 a.k.a. Samsung H1).
+> >> >> > However calls to VIDIOC_REQBUFS fail with a -12 (OUT OF MEMORY).
+> >> >> > As far as I can see this return error isn't even supposed to exist,
+> >> >> > according to the V4L2 spec.
+> >> >> > I'm using the code from Android on the Zoom2.
+> >> >> > The sensor is a Fujitsu M-4MO.
+> >> >> >
+> >> >> > Any ideas on what could be wrong with the out of memory result?
+> >> >>
+> >> >> First of all, which version of the driver are you using, i.e. is it the
+> >> >> current one going to upstream?
+> >> >>
+> >> >
+> >> >
+> >> > --
+> >> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> >> > the body of a message to majordomo@vger.kernel.org
+> >> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >> >
+> >
+> >
+> >
