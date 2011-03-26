@@ -1,65 +1,62 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:52656 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752168Ab1CBSyh (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3244 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753366Ab1CZS3c (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Mar 2011 13:54:37 -0500
-References: <9fnr6q$9ube9b@out1.ip05ir2.opaltelecom.net>
-In-Reply-To: <9fnr6q$9ube9b@out1.ip05ir2.opaltelecom.net>
+	Sat, 26 Mar 2011 14:29:32 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mariusz Kozlowski <mk@lab.zgora.pl>
+Subject: Re: [PATCH] [media] cpia2: fix typo in variable initialisation
+Date: Sat, 26 Mar 2011 19:28:52 +0100
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <1301163624-7362-1-git-send-email-mk@lab.zgora.pl>
+In-Reply-To: <1301163624-7362-1-git-send-email-mk@lab.zgora.pl>
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: Missing /dev/video[N] devices...?
-From: Andy Walls <awalls@md.metrocast.net>
-Date: Wed, 02 Mar 2011 13:54:39 -0500
-To: Nick Pelling <nickpelling@nanodome.com>,
-	linux-media@vger.kernel.org
-Message-ID: <dd9effa0-f249-47da-9e76-0c10092c8976@email.android.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201103261928.52677.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Nick Pelling <nickpelling@nanodome.com> wrote:
+Hi Mariusz,
 
->Hi everyone,
->
->I'm trying to bring up the 2.6.37 kernel from scratch on a new 
->Samsung S5PC100-based board, but have hit a media problem. Though my 
->various v4l2 devices are all registering OK during the boot process 
->and end up visible in /sys/class/video4linux , they never manage to 
->become visible in /dev , i.e.
->
->	# ls /dev/video*
->	ls: /dev/video*: No such file or directory
->
->	# ls /sys/class/video4linux/
->	video0   video1   video14  video2   video21  video22
->
->	# ls /sys/class/video4linux/video0/
->	dev        index      name       subsystem  uevent
->
->	# cat /sys/class/video4linux/video0/name
->	s5p-fimc.0:m2m
->
->	# cat /sys/class/video4linux/video0/uevent
->	MAJOR=81
->	MINOR=0
->	DEVNAME=video0
->
->I've tried enabling everything that seems relevant in the kernel's 
->menuconfig options, but it seems as though I've omitted some crucial 
->piece of the v4l2 infrastructure. Any suggestions for what's missing?
->
->Thanks!, ....Nick Pelling....
->
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media"
->in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Saturday, March 26, 2011 19:20:24 Mariusz Kozlowski wrote:
+> Currently 'fh' initialises to whatever happens to be on stack. This
+> looks like a typo and this patch fixes that.
+> 
+> Signed-off-by: Mariusz Kozlowski <mk@lab.zgora.pl>
 
-I thought udev normally makes those nodes.
+If you don't mind then I'll take this patch. Although I'll probably drop it,
+not because it is wrong as such but because the priority handling in cpia2
+is broken big time. I intend to rewrite it using the new prio framework that
+was just merged.
 
-On embedded systems there is a different, smaller user space app responding to hotplug events including firmware load requests.
+Luckily I finally found someone who can test this driver, so that should be
+very helpful.
 
--Andy
+I hope to work on this next weekend.
+
+Regards,
+
+	Hans
+
+> ---
+>  drivers/media/video/cpia2/cpia2_v4l.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/cpia2/cpia2_v4l.c b/drivers/media/video/cpia2/cpia2_v4l.c
+> index 5111bbc..0073a8c 100644
+> --- a/drivers/media/video/cpia2/cpia2_v4l.c
+> +++ b/drivers/media/video/cpia2/cpia2_v4l.c
+> @@ -1313,7 +1313,7 @@ static int cpia2_g_priority(struct file *file, void *_fh, enum v4l2_priority *p)
+>  static int cpia2_s_priority(struct file *file, void *_fh, enum v4l2_priority prio)
+>  {
+>  	struct camera_data *cam = video_drvdata(file);
+> -	struct cpia2_fh *fh = fh;
+> +	struct cpia2_fh *fh = _fh;
+>  
+>  	if (cam->streaming && prio != fh->prio &&
+>  			fh->prio == V4L2_PRIORITY_RECORD)
+> 
