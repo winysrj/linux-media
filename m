@@ -1,62 +1,67 @@
 Return-path: <mchehab@pedra>
-Received: from mail2.matrix-vision.com ([85.214.244.251]:33076 "EHLO
-	mail2.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754032Ab1CXPeP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Mar 2011 11:34:15 -0400
-Message-ID: <4D8B6475.6030707@matrix-vision.de>
-Date: Thu, 24 Mar 2011 16:34:13 +0100
-From: Michael Jones <michael.jones@matrix-vision.de>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: mchehab@redhat.com,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] ignore Documentation/DocBook/media/
-References: <4D80C7BD.3030704@matrix-vision.de>
-In-Reply-To: <4D80C7BD.3030704@matrix-vision.de>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from cnc.isely.net ([75.149.91.89]:34662 "EHLO cnc.isely.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751152Ab1CZEdG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 26 Mar 2011 00:33:06 -0400
+Date: Fri, 25 Mar 2011 23:33:04 -0500 (CDT)
+From: Mike Isely <isely@isely.net>
+To: Dan Carpenter <error27@gmail.com>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org,
+	Mike Isely <isely@isely.net>
+Subject: Re: [PATCH 2/6] [media] pvrusb2: fix remaining checkpatch.pl
+ complaints
+In-Reply-To: <20110326015112.GG2008@bicker>
+Message-ID: <alpine.DEB.1.10.1103252332110.12072@ivanova.isely.net>
+References: <20110326015112.GG2008@bicker>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 03/16/2011 03:22 PM, Michael Jones wrote:
->>From 81a09633855b88d19f013d7e559e0c4f602ba711 Mon Sep 17 00:00:00 2001
-> From: Michael Jones <michael.jones@matrix-vision.de>
-> Date: Thu, 10 Mar 2011 16:16:38 +0100
-> Subject: [PATCH] ignore Documentation/DocBook/media/
-> 
-> It is created and populated by 'make htmldocs'
-> 
-> 
-> Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
-> ---
->  Documentation/DocBook/.gitignore |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/.gitignore b/Documentation/DocBook/.gitignore
-> index c6def35..679034c 100644
-> --- a/Documentation/DocBook/.gitignore
-> +++ b/Documentation/DocBook/.gitignore
-> @@ -8,3 +8,4 @@
->  *.dvi
->  *.log
->  *.out
-> +media/
 
-In general, where do patches on this list land?  On
-http://linuxtv.org/wiki/index.php/Developer_Section
-the link to "Current git log" is broken.  The link to 'Git V4L-DVB
-development repository' is v4l-dvb.git which is suspiciously inactive:
-2.6.37-rc8, from 2 months ago.  Judging by the activity level, I guess
-that patches from this mailing list currently land in branch
-'staging/for_v2.6.39' of 'http://git.linuxtv.org/media_tree.git'?
+I am OK with the #include change, but NOT the if-statement change.  But 
+since it's bundled into one patch...
 
-And what's the destiny of this patch in particular?  It doesn't seem to
-have even been picked up by patchwork.
+Nacked-By: Mike Isely <isely@pobox.com>
 
-thanks,
-Michael
 
-MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
-Registergericht: Amtsgericht Stuttgart, HRB 271090
-Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
+On Sat, 26 Mar 2011, Dan Carpenter wrote:
+
+> * Include <linux/string.h> instead of <asm/string.h>.
+> * Remove unneeded curly braces.
+> 
+> Signed-off-by: Dan Carpenter <error27@gmail.com>
+> 
+> diff --git a/drivers/media/video/pvrusb2/pvrusb2-std.c b/drivers/media/video/pvrusb2/pvrusb2-std.c
+> index a5d4867..370a9ab 100644
+> --- a/drivers/media/video/pvrusb2/pvrusb2-std.c
+> +++ b/drivers/media/video/pvrusb2/pvrusb2-std.c
+> @@ -20,7 +20,7 @@
+>  
+>  #include "pvrusb2-std.h"
+>  #include "pvrusb2-debug.h"
+> -#include <asm/string.h>
+> +#include <linux/string.h>
+>  #include <linux/slab.h>
+>  
+>  struct std_name {
+> @@ -294,9 +294,8 @@ static struct v4l2_standard *match_std(v4l2_std_id id)
+>  	unsigned int idx;
+>  
+>  	for (idx = 0; idx < generic_standards_cnt; idx++) {
+> -		if (generic_standards[idx].id & id) {
+> +		if (generic_standards[idx].id & id)
+>  			return generic_standards + idx;
+> -		}
+>  	}
+>  	return NULL;
+>  }
+> 
+
+-- 
+
+Mike Isely
+isely @ isely (dot) net
+PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
