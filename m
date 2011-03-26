@@ -1,60 +1,39 @@
 Return-path: <mchehab@pedra>
-Received: from cantor.suse.de ([195.135.220.2]:38177 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756020Ab1CVNMJ convert rfc822-to-8bit (ORCPT
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:43264 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755665Ab1CZBw4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Mar 2011 09:12:09 -0400
-From: Oliver Neukum <oneukum@suse.de>
-To: Florian Mickler <florian@mickler.org>
-Subject: Re: [PATCH 0/6] get rid of on-stack dma buffers
-Date: Tue, 22 Mar 2011 14:12:46 +0100
-Cc: "Roedel, Joerg" <Joerg.Roedel@amd.com>,
-	"Greg Kroah-Hartman" <greg@kroah.com>,
-	"janne-dvb@grunau.be" <janne-dvb@grunau.be>,
-	"g.marco@freenet.de" <g.marco@freenet.de>,
-	"tskd2@yahoo.co.jp" <tskd2@yahoo.co.jp>,
-	"liplianin@me.by" <liplianin@me.by>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"pb@linuxtv.org" <pb@linuxtv.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"max@veneto.com" <max@veneto.com>,
-	"mchehab@infradead.org" <mchehab@infradead.org>,
-	"aet@rasterburn.org" <aet@rasterburn.org>,
-	"mkrufky@linuxtv.org" <mkrufky@linuxtv.org>,
-	James Bottomley <James.Bottomley@hansenpartnership.com>,
-	"js@linuxtv.org" <js@linuxtv.org>,
-	"Rafael J. Wysocki" <rjw@sisk.pl>,
-	Andy Walls <awalls@md.metrocast.net>,
-	"nick@nick-andrew.net" <nick@nick-andrew.net>
-References: <1300732426-18958-1-git-send-email-florian@mickler.org> <20110322104426.GA20444@amd.com> <AANLkTimXobrwc-XHgoVN1dD5NCTde64dykbyvtJMo229@mail.gmail.com>
-In-Reply-To: <AANLkTimXobrwc-XHgoVN1dD5NCTde64dykbyvtJMo229@mail.gmail.com>
+	Fri, 25 Mar 2011 21:52:56 -0400
+Date: Sat, 26 Mar 2011 04:52:22 +0300
+From: Dan Carpenter <error27@gmail.com>
+To: Mike Isely <isely@pobox.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [PATCH 3/6] [media] pvrusb2: check for allocation failures
+Message-ID: <20110326015221.GH2008@bicker>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201103221412.46507.oneukum@suse.de>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Am Dienstag, 22. März 2011, 14:08:17 schrieb Florian Mickler:
-> Am 22.03.2011 12:10 schrieb "Roedel, Joerg" <Joerg.Roedel@amd.com>:
-> >
-> > On Mon, Mar 21, 2011 at 05:03:15PM -0400, Florian Mickler wrote:
-> > > I guess (not verified), that the dma api takes sufficient precautions
-> > > to abort the dma transfer if a timeout happens.  So freeing _should_
-> > > not be an issue. (At least, I would expect big fat warnings everywhere
-> > > if that were the case)
-> >
-> > Freeing is very well an issue. All you can expect from the DMA-API is to
-> > give you a valid DMA handle for your device. But it can not prevent that
-> > a device uses this handle after you returned it. You need to make sure
-> > yourself that any pending DMA is canceled before calling kfree().
-> 
-> Does usb_control_msg do this? It waits for completion but takes also a
-> timeout parameter. I will recheck this once I'm home.
+This function returns NULL on failure so lets do that if kzalloc()
+fails.  There is a separate problem that the caller for this function
+doesn't check for errors...
 
-It uses usb_start_wait_urb() which upon a timeout kills the URB. The
-buffer is unused after usb_control_msg() returns.
+Signed-off-by: Dan Carpenter <error27@gmail.com>
 
-	HTH
-		Oliver
+diff --git a/drivers/media/video/pvrusb2/pvrusb2-std.c b/drivers/media/video/pvrusb2/pvrusb2-std.c
+index 370a9ab..b214f77 100644
+--- a/drivers/media/video/pvrusb2/pvrusb2-std.c
++++ b/drivers/media/video/pvrusb2/pvrusb2-std.c
+@@ -388,6 +388,9 @@ struct v4l2_standard *pvr2_std_create_enum(unsigned int *countptr,
+ 
+ 	stddefs = kzalloc(sizeof(struct v4l2_standard) * std_cnt,
+ 			  GFP_KERNEL);
++	if (!stddefs)
++		return NULL;
++
+ 	for (idx = 0; idx < std_cnt; idx++)
+ 		stddefs[idx].index = idx;
+ 
