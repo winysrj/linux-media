@@ -1,52 +1,82 @@
 Return-path: <mchehab@pedra>
-Received: from tex.lwn.net ([70.33.254.29]:42858 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752259Ab1CJQY7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Mar 2011 11:24:59 -0500
-Date: Thu, 10 Mar 2011 09:24:57 -0700
-From: Jonathan Corbet <corbet@lwn.net>
-To: Daniel Drake <dsd@laptop.org>, dilinger@queued.net
-Cc: mchehab@infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH] via-camera: Fix OLPC serial check
-Message-ID: <20110310092457.2e748f72@bike.lwn.net>
-In-Reply-To: <20110303190331.E8ED79D401D@zog.reactivated.net>
-References: <20110303190331.E8ED79D401D@zog.reactivated.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:58542 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753739Ab1C0P2r (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 27 Mar 2011 11:28:47 -0400
+Date: Sun, 27 Mar 2011 10:28:40 -0500
+From: Jonathan Nieder <jrnieder@gmail.com>
+To: Huber Andreas <hobrom@corax.at>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [linux-dvb] cx88-blackbird broken (since 2.6.37)
+Message-ID: <20110327152810.GA32106@elie>
+References: <20110327150610.4029.95961.reportbug@xen.corax.at>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20110327150610.4029.95961.reportbug@xen.corax.at>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-[Trying to bash my inbox into reasonable shape, sorry for the slow
-response...]
+Hi Andi,
 
-On Thu,  3 Mar 2011 19:03:31 +0000 (GMT)
-Daniel Drake <dsd@laptop.org> wrote:
+Huber Andreas wrote[1]:
 
-> The code that checks the OLPC serial port is never built at the moment,
-> because CONFIG_OLPC_XO_1_5 doesn't exist and probably won't be added.
+> [Symptom]
+> Processes that try to open a cx88-blackbird driven MPEG device will hang up.
+
+Thanks for reporting.  Just cc-ing some relevant people.  Could you file a
+bug to track this at <http://bugzilla.kernel.org/>, product v4l-dvb,
+component cx88, and then send the bug number to 619827@bugs.debian.org ?
+
+Report follows.
+
+Jonathan
+
+[1] http://bugs.debian.org/619827
+
+> [Cause]
+> Nestet mutex_locks (which are not allowed) result in a deadlock.
 > 
-> Fix it so that it gets compiled in, only executes on OLPC laptops, and
-> move the check into the probe routine.
+> [Details]
+> Source-File: drivers/media/video/cx88/cx88-blackbird.c
+> Function: int mpeg_open(struct file *file)
+> Problem: the calls to  drv->request_acquire(drv); and
+> drv->request_release(drv); will hang because they try to lock a
+> mutex that has already been locked by a previouse call to
+> mutex_lock(&dev->core->lock) ...
 > 
-> The compiler is smart enough to eliminate this code when CONFIG_OLPC=n
-> (due to machine_is_olpc() always returning false).
-
-Getting rid of the nonexistent config option is clearly the right thing to
-do.  I only wonder about moving the check to viacam_probe().  The nice
-thing about having things fail in viacam_init() is that, if the camera is
-not usable, the module will not load at all.  By the time you get to
-viacam_probe(), the module is there but not will be useful for anything.
-
-Did the check need to move for some reason?  If so, a one-of-these-days
-nice feature might be to allow changing override_serial at run time.
-
-Regardless, the behavior change only affects OLPC folks using the serial
-line, so I'm OK with it.
-
-	Acked-by: Jonathan Corbet <corbet@lwn.net>
-
-Thanks,
-
-jon
-
+> 1050 static int mpeg_open(struct file *file)
+> 1051 {
+> [...]
+> 1060         mutex_lock(&dev->core->lock);         // MUTEX LOCKED !!!!!!!!!!!!!!!!
+> 1061
+> 1062         /* Make sure we can acquire the hardware */
+> 1063         drv = cx8802_get_driver(dev, CX88_MPEG_BLACKBIRD);
+> 1064         if (drv) {
+> 1065                 err = drv->request_acquire(drv);  // HANGS !!!!!!!!!!!!!!!!!!!
+> 1066                 if(err != 0) {
+> 1067                         dprintk(1,"%s: Unable to acquire hardware, %d\n", __func__, err);
+> 1068                         mutex_unlock(&dev->core->lock);;
+> 1069                         return err;
+> 1070                 }
+> 1071         }
+> [...]
+> 
+> Here's the relevant kernel log extract (Linux version 2.6.38-1-amd64 (Debian 2.6.38-1)) ...
+> 
+> Mar 24 21:25:10 xen kernel: [  241.472067] INFO: task v4l_id:1000 blocked for more than 120 seconds.
+> Mar 24 21:25:10 xen kernel: [  241.478845] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+> Mar 24 21:25:10 xen kernel: [  241.482412] v4l_id          D ffff88006bcb6540     0  1000      1 0x00000000
+> Mar 24 21:25:10 xen kernel: [  241.486031]  ffff88006bcb6540 0000000000000086 ffff880000000001 ffff88006981c380
+> Mar 24 21:25:10 xen kernel: [  241.489694]  0000000000013700 ffff88006be5bfd8 ffff88006be5bfd8 0000000000013700
+> Mar 24 21:25:10 xen kernel: [  241.493301]  ffff88006bcb6540 ffff88006be5a010 ffff88006bcb6540 000000016be5a000
+> Mar 24 21:25:10 xen kernel: [  241.496766] Call Trace:
+> Mar 24 21:25:10 xen kernel: [  241.500145]  [<ffffffff81321c4a>] ? __mutex_lock_common+0x127/0x193
+> Mar 24 21:25:10 xen kernel: [  241.503630]  [<ffffffff81321d82>] ? mutex_lock+0x1a/0x33
+> Mar 24 21:25:10 xen kernel: [  241.507145]  [<ffffffffa09dd155>] ? cx8802_request_acquire+0x66/0xc6 [cx8802]
+> Mar 24 21:25:10 xen kernel: [  241.510699]  [<ffffffffa0aab7f2>] ? mpeg_open+0x7a/0x1fc [cx88_blackbird]
+> Mar 24 21:25:10 xen kernel: [  241.514279]  [<ffffffff8123bfb6>] ? kobj_lookup+0x139/0x173
+> Mar 24 21:25:10 xen kernel: [  241.517856]  [<ffffffffa062d5fd>] ? v4l2_open+0xb3/0xdf [videodev]
