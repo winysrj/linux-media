@@ -1,69 +1,64 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:42063 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753500Ab1CNONU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Mar 2011 10:13:20 -0400
-Received: by wwa36 with SMTP id 36so5700306wwa.1
-        for <linux-media@vger.kernel.org>; Mon, 14 Mar 2011 07:13:19 -0700 (PDT)
-Message-ID: <4D7E21FF.4050305@mvista.com>
-Date: Mon, 14 Mar 2011 17:11:11 +0300
-From: Sergei Shtylyov <sshtylyov@mvista.com>
+Received: from smtp.nokia.com ([147.243.128.26]:36598 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753309Ab1C0RCU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 27 Mar 2011 13:02:20 -0400
+Message-ID: <4D8F6E0A.5080404@maxwell.research.nokia.com>
+Date: Sun, 27 Mar 2011 20:04:10 +0300
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-To: Manjunath Hadli <manjunath.hadli@ti.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	Kevin Hilman <khilman@deeprootsystems.com>,
-	LAK <linux-arm-kernel@lists.infradead.org>,
-	Sekhar Nori <nsekhar@ti.com>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH 2/7] davinci: eliminate use of IO_ADDRESS() on sysmod
-References: <1300110947-16229-1-git-send-email-manjunath.hadli@ti.com>
-In-Reply-To: <1300110947-16229-1-git-send-email-manjunath.hadli@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"laurent.pinchart@ideasonboard.com"
+	<laurent.pinchart@ideasonboard.com>,
+	"david.cohen@nokia.com" <david.cohen@nokia.com>,
+	"hiroshi.doyu@nokia.com" <hiroshi.doyu@nokia.com>
+Subject: Re: [PATCH 1/4] omap iommu: Check existence of arch_iommu
+References: <4D8CB106.7030608@maxwell.research.nokia.com> <1301066005-7882-1-git-send-email-sakari.ailus@maxwell.research.nokia.com> <19F8576C6E063C45BE387C64729E739404E21D57E2@dbde02.ent.ti.com>
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404E21D57E2@dbde02.ent.ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello.
+Hiremath, Vaibhav wrote:
+>> -----Original Message-----
+>> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+>> owner@vger.kernel.org] On Behalf Of Sakari Ailus
+>> Sent: Friday, March 25, 2011 8:43 PM
+>> To: linux-media@vger.kernel.org
+>> Cc: laurent.pinchart@ideasonboard.com; david.cohen@nokia.com;
+>> hiroshi.doyu@nokia.com
+>> Subject: [PATCH 1/4] omap iommu: Check existence of arch_iommu
+>>
+>> Check that the arch_iommu has been installed before trying to use it. This
+>> will lead to kernel oops if the arch_iommu isn't there.
+>>
+>> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+>> ---
+>>  arch/arm/plat-omap/iommu.c |    3 +++
+>>  1 files changed, 3 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
+>> index b1107c0..f0fea0b 100644
+>> --- a/arch/arm/plat-omap/iommu.c
+>> +++ b/arch/arm/plat-omap/iommu.c
+>> @@ -104,6 +104,9 @@ static int iommu_enable(struct iommu *obj)
+>>  	if (!obj)
+>>  		return -EINVAL;
+>>
+>> +	if (!arch_iommu)
+>> +		return -ENOENT;
+>> +
+> [Hiremath, Vaibhav] Similar patch has already been submitted and
+accepted in community, not sure which baseline you are using. Please
+refer to below commit -
+> 
 
-Manjunath Hadli wrote:
+Thanks, Vaibhav. I guess I need to update my tree and resend the set...
 
-> Current devices.c file has a number of instances where
-> IO_ADDRESS() is used for system module register
-> access. Eliminate this in favor of a ioremap()
-> based access.
+Cheers,
 
-> Consequent to this, a new global pointer davinci_sysmodbase
-> has been introduced which gets initialized during
-> the initialization of each relevant SoC
-
-> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-[...]
-
-> diff --git a/arch/arm/mach-davinci/devices.c b/arch/arm/mach-davinci/devices.c
-> index d3b2040..66a948d 100644
-> --- a/arch/arm/mach-davinci/devices.c
-> +++ b/arch/arm/mach-davinci/devices.c
-[...]
-> @@ -210,12 +218,12 @@ void __init davinci_setup_mmc(int module, struct davinci_mmc_config *config)
->  			davinci_cfg_reg(DM355_SD1_DATA2);
->  			davinci_cfg_reg(DM355_SD1_DATA3);
->  		} else if (cpu_is_davinci_dm365()) {
-> -			void __iomem *pupdctl1 =
-> -				IO_ADDRESS(DAVINCI_SYSTEM_MODULE_BASE + 0x7c);
-> -
->  			/* Configure pull down control */
-> -			__raw_writel((__raw_readl(pupdctl1) & ~0xfc0),
-> -					pupdctl1);
-> +			void __iomem *pupdctl1 = DAVINCI_SYSMODULE_VIRT(0x7c);
-> +			unsigned v;
-> +
-> +			v = readl(pupdctl1);
-> +			writel(v & ~0xfc0, pupdctl1);
-
-    Why are you changing from __raw_{readl|writel}() to {readl|writel}()? You 
-don't mention it in the change log...
-
-WBR, Sergei
-
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
