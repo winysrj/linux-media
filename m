@@ -1,69 +1,61 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2285 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750893Ab1CKQ4r (ORCPT
+Received: from smtp5-g21.free.fr ([212.27.42.5]:34716 "EHLO smtp5-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751653Ab1C0HLT convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Mar 2011 11:56:47 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: Media Controller API: Thanks to all who worked on it!
-Date: Fri, 11 Mar 2011 17:56:19 +0100
-Cc: Manjunath Hadli <manjunath.hadli@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201103111756.19899.hverkuil@xs4all.nl>
+	Sun, 27 Mar 2011 03:11:19 -0400
+Received: from tele (unknown [82.245.201.222])
+	by smtp5-g21.free.fr (Postfix) with ESMTP id E03F6D4801F
+	for <linux-media@vger.kernel.org>; Sun, 27 Mar 2011 09:11:12 +0200 (CEST)
+Date: Sun, 27 Mar 2011 09:11:48 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] pwc: Handle V4L2_CTRL_FLAG_NEXT_CTRL in queryctrl
+Message-ID: <20110327091148.63f5309a@tele>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi all!
+Signed-off-by: Jean-François Moine <moinejf@free.fr>
+---
+ drivers/media/video/pwc/pwc-v4l.c |   23 +++++++++++++++++++++--
+ 1 files changed, 21 insertions(+), 2 deletions(-)
 
-Today the Media Controller (and the OMAP3 driver that uses it!) was merged.
-This is a major achievement after approximately three years of work. I think
-I contacted Manju Hadli from Texas Instruments early 2008 and the first RFC
-was posted July 18th 2008:
-
-http://lists-archives.org/video4linux/23652-rfc-add-support-to-query-and-change-connections-inside-a-media-device.html
-
-After rereading this RFC I am pleased to say that it closely resembles the
-final version. The main difference is that the concept of 'media processors'
-morphed eventually into the sub-device concept.
-
-It was clear from the beginning that the only way the Media Controller could
-be implemented was if the V4L2 core framework (what little there was at the
-time) was substantially expanded. And the multiple incompatible APIs towards
-those i2c drivers had to be resolved first since that blocked much of the
-framework development and in turn the MC development.
-
-It took more than a year to get that sorted (mostly, there is still some work
-to be done for soc-camera drivers) and to create the required core framework
-components, but on September 10th 2009 the second version of the RFC was posted:
-
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg09462.html
-
-This formed the foundation of the final version we have today. Laurent
-Pinchart took that and did all the hard work of actually implementing this
-for the OMAP3 driver on behalf of Nokia.
-
-I wanted to thank all of you who worked on this, and my special thanks go
-to Manju (for without our discussions in 2008 none of this would have happened),
-Laurent (for obvious reasons!), Sakari (for helping convince Nokia to fund this
-work) and of course Mauro (for brainstorming, reviewing and finally merging it!).
-
-We now have (I hope) a very strong framework to build on in the coming years.
-
-There is still much work to be done, but this was 'the big one' and I am
-very pleased to see this merged.
-
-Thank you!
-
-Regards,
-
-	Hans
-
+diff --git a/drivers/media/video/pwc/pwc-v4l.c b/drivers/media/video/pwc/pwc-v4l.c
+index aa87e46..f85c512 100644
+--- a/drivers/media/video/pwc/pwc-v4l.c
++++ b/drivers/media/video/pwc/pwc-v4l.c
+@@ -379,8 +379,27 @@ static int pwc_s_input(struct file *file, void *fh, unsigned int i)
+ 
+ static int pwc_queryctrl(struct file *file, void *fh, struct v4l2_queryctrl *c)
+ {
+-	int i;
+-
++	int i, idx;
++	u32 id;
++
++	id = c->id;
++	if (id & V4L2_CTRL_FLAG_NEXT_CTRL) {
++		id &= V4L2_CTRL_ID_MASK;
++		id++;
++		idx = -1;
++		for (i = 0; i < ARRAY_SIZE(pwc_controls); i++) {
++			if (pwc_controls[i].id < id)
++				continue;
++			if (idx >= 0
++			 && pwc_controls[i].id > pwc_controls[idx].id)
++				continue;
++			idx = i;
++		}
++		if (idx < 0)
++			return -EINVAL;
++		memcpy(c, &pwc_controls[idx], sizeof pwc_controls[0]);
++		return 0;
++	}
+ 	for (i = 0; i < sizeof(pwc_controls) / sizeof(struct v4l2_queryctrl); i++) {
+ 		if (pwc_controls[i].id == c->id) {
+ 			PWC_DEBUG_IOCTL("ioctl(VIDIOC_QUERYCTRL) found\n");
 -- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+1.7.4.1
