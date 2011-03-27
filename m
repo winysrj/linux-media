@@ -1,139 +1,61 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.samsung.com ([203.254.224.33]:39359 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755151Ab1CVIiT (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:56473 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750759Ab1C0ED0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Mar 2011 04:38:19 -0400
-Received: from epmmp1 (mailout3.samsung.com [203.254.224.33])
- by mailout3.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LIG001MCANPL300@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Tue, 22 Mar 2011 17:38:13 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LIG001UXANP8A@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 22 Mar 2011 17:38:13 +0900 (KST)
-Date: Tue, 22 Mar 2011 17:38:09 +0900
-From: "Kim, Heungjun" <riverful.kim@samsung.com>
-Subject: [RFC PATCH v3 2/2] v4l2-ctrls: update auto focus mode documentation
-In-reply-to: <4D885F32.60309@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, kyungmin.park@samsung.com,
-	"Kim, Heungjun" <riverful.kim@samsung.com>
-Message-id: <1300783089-14984-2-git-send-email-riverful.kim@samsung.com>
-Content-transfer-encoding: 7BIT
-References: <4D885F32.60309@samsung.com>
+	Sun, 27 Mar 2011 00:03:26 -0400
+Subject: [GIT PULL for 2.6.39] cx18: Make RF analog TV work for newer
+ HVR-1600 models
+From: Andy Walls <awalls@md.metrocast.net>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Cc: Jeff Campbell <jac1dlists@gmail.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sun, 27 Mar 2011 00:02:40 -0400
+Message-ID: <1301198560.15581.11.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-As following to change the boolean type of V4L2_CID_FOCUS_AUTO to menu type,
-this uvc is modified the usage of V4L2_CID_FOCUS_AUTO.
+Mauro,
 
-Signed-off-by: Heungjun Kim <riverful.kim@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- Documentation/DocBook/v4l/controls.xml    |   67 +++++++++++++++++++++++++++++
- Documentation/DocBook/v4l/videodev2.h.xml |    8 +++
- 2 files changed, 75 insertions(+), 0 deletions(-)
+Please pull the following changes that fix RF analog TV for the newest
+models of HVR-1600 and increment the cx18 driver version number.  The
+DTV RF tuner side was already working with Devin's previous change, but
+analog RF side did not work.
 
-diff --git a/Documentation/DocBook/v4l/controls.xml b/Documentation/DocBook/v4l/controls.xml
-index 2fae3e8..b940e21 100644
---- a/Documentation/DocBook/v4l/controls.xml
-+++ b/Documentation/DocBook/v4l/controls.xml
-@@ -1860,6 +1860,73 @@ it one step further. This is a write-only control.</entry>
- 	  </row>
- 	  <row><entry></entry></row>
- 
-+	  <row id="v4l2-focus-auto-mode-type">
-+	    <entry spanname="id"><constant>V4L2_CID_FOCUS_AUTO_MODE</constant>&nbsp;</entry>
-+	    <entry>enum&nbsp;v4l2_focus_auto_mode_type</entry>
-+	  </row><row><entry spanname="descr">Enables setting modes of
-+auto focus. The focus has 5 kinds of mode, and each enumerations express
-+current auto focus mode in which the camera is. In the case of
-+V4L2_FOCUS_AUTO_RECTANGLE, this control id can be clustered with
-+4 control id which means focusing spot expressed by 4 point of rectangle.
-+	  </entry>
-+	  </row>
-+	  <row>
-+	    <entrytbl spanname="descr" cols="2">
-+	      <tbody valign="top">
-+		<row>
-+		  <entry><constant>V4L2_FOCUS_AUTO_NORMAL</constant>&nbsp;</entry>
-+		  <entry>Normal mode Auto focus, single shot.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_FOCUS_AUTO_MACRO</constant>&nbsp;</entry>
-+		  <entry>Macro mode Auto focus, single shot.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_FOCUS_AUTO_CONTINUOUS</constant>&nbsp;</entry>
-+		  <entry>Continuous mode Auto focus, continuous shot.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_FOCUS_AUTO_FACE_DETECTION</constant>&nbsp;</entry>
-+		  <entry>Face detection mode Auto focus, single shot.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_FOCUS_AUTO_RECTANGLE</constant>&nbsp;</entry>
-+		  <entry>Rectangle mode Auto focus, single shot.</entry>
-+		</row>
-+	      </tbody>
-+	    </entrytbl>
-+	  </row>
-+	  <row><entry></entry></row>
-+
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_FOCUS_AUTO_RECTANGLE_LEFT</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row><row><entry spanname="descr">This control means the left
-+side's point of the rectangle expressing focusing spot.</entry>
-+	  </row>
-+	  <row><entry></entry></row>
-+
-+	    <entry spanname="id"><constant>V4L2_CID_FOCUS_AUTO_RECTANGLE_TOP</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row><row><entry spanname="descr">This control means the top
-+side's point of the rectangle expressing focusing spot.</entry>
-+	  </row>
-+	  <row><entry></entry></row>
-+
-+	    <entry spanname="id"><constant>V4L2_CID_FOCUS_AUTO_RECTANGLE_WIDTH</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row><row><entry spanname="descr">This control means the width
-+length of the rectangle expressing focusing spot.</entry>
-+	  </row>
-+	  <row><entry></entry></row>
-+
-+	    <entry spanname="id"><constant>V4L2_CID_FOCUS_AUTO_RECTANGLE_HEIGHT</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row><row><entry spanname="descr">This control means the height
-+length of the rectangle expressing focusing spot.</entry>
-+	  </row>
-+	  <row><entry></entry></row>
-+
- 	  <row>
- 	    <entry spanname="id"><constant>V4L2_CID_PRIVACY</constant>&nbsp;</entry>
- 	    <entry>boolean</entry>
-diff --git a/Documentation/DocBook/v4l/videodev2.h.xml b/Documentation/DocBook/v4l/videodev2.h.xml
-index 2b796a2..6bb67a6 100644
---- a/Documentation/DocBook/v4l/videodev2.h.xml
-+++ b/Documentation/DocBook/v4l/videodev2.h.xml
-@@ -1385,6 +1385,14 @@ enum  <link linkend="v4l2-exposure-auto-type">v4l2_exposure_auto_type</link> {
- #define V4L2_CID_IRIS_ABSOLUTE                  (V4L2_CID_CAMERA_CLASS_BASE+17)
- #define V4L2_CID_IRIS_RELATIVE                  (V4L2_CID_CAMERA_CLASS_BASE+18)
- 
-+enum  <link linkend="v4l2-focus-auto-mode-type">v4l2_focus_auto_mode_type</link> {
-+	V4L2_FOCUS_AUTO_NORMAL = 0,
-+	V4L2_FOCUS_AUTO_MACRO = 1,
-+	V4L2_FOCUS_AUTO_CONTINUOUS = 2,
-+	V4L2_FOCUS_AUTO_FACE_DETECTION = 3,
-+	V4L2_FOCUS_AUTO_RECTANGLE = 4
-+};
-+
- /* FM Modulator class control IDs */
- #define V4L2_CID_FM_TX_CLASS_BASE               (V4L2_CTRL_CLASS_FM_TX | 0x900)
- #define V4L2_CID_FM_TX_CLASS                    (V4L2_CTRL_CLASS_FM_TX | 1)
--- 
-1.7.0.4
+Thanks go to Jeff Campbell and Mike Bradley for reporting the problem,
+and also to Mike Bradley for doing a lot of the legwork to figure out
+the tuner reset GPIO line, the demodulator I2C address, and that the
+GPIOs have to be reinitialized after a cardtype switch.
+
+Jeff also provided me with one of the newer HVR-1600's, so I was able to
+test the changes and make addtional fixes for proper analog RF tuner
+video standard setup.  These newer HVR-1600's have a worldwide analog
+tuner. :)
+
+Regards,
+Andy
+
+
+The following changes since commit b328817a2a391d1e879c4252cd3f11a352d3f3bc:
+
+  [media] DM04/QQBOX Fix issue with firmware release and cold reset (2011-03-22 19:48:41 -0300)
+
+are available in the git repository at:
+  ssh://linuxtv.org/git/awalls/media_tree.git cx18_39
+
+Andy Walls (2):
+      cx18: Make RF analog TV work for newer HVR-1600 models with silicon tuners
+      cx18: Bump driver version, since a new class of HVR-1600 is properly supported
+
+ drivers/media/video/cx18/Kconfig        |    3 +++
+ drivers/media/video/cx18/cx18-cards.c   |   18 ++++++++++++++----
+ drivers/media/video/cx18/cx18-cards.h   |    2 +-
+ drivers/media/video/cx18/cx18-driver.c  |   25 +++++++++++++++++++++++--
+ drivers/media/video/cx18/cx18-version.h |    2 +-
+ 5 files changed, 42 insertions(+), 8 deletions(-)
+
 
