@@ -1,70 +1,77 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.22]:45188 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751186Ab1CTV7I convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Mar 2011 17:59:08 -0400
-References: <201103191940.20876.Jochen.Reinwand@gmx.de> <4D85005A.4080101@web.de> <201103202145.11493.Jochen.Reinwand@gmx.de>
-In-Reply-To: <201103202145.11493.Jochen.Reinwand@gmx.de>
-Mime-Version: 1.0 (iPhone Mail 8C148)
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain;
-	charset=utf-8
-Message-Id: <F4C2A6DF-0F62-412F-8FD9-37CE4747D7F1@gmx.de>
-Cc: =?utf-8?Q?Andr=C3=A9_Weidemann?= <Andre.Weidemann@web.de>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-From: Harald Becherer <Harald.Becherer@gmx.de>
-Subject: Re: Remote control TechnoTrend TT-connect S2-3650 CI
-Date: Sun, 20 Mar 2011 22:59:00 +0100
-To: Jochen Reinwand <Jochen.Reinwand@gmx.de>
+Received: from mx1.redhat.com ([209.132.183.28]:47681 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752923Ab1C1V6b (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Mar 2011 17:58:31 -0400
+Message-ID: <4D910477.1030408@redhat.com>
+Date: Mon, 28 Mar 2011 18:58:15 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Andreas Oberritter <obi@linuxtv.org>
+CC: Marko Ristola <marko.ristola@kolumbus.fi>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	=?ISO-8859-1?Q?Bj=F8rn_Mork?= <bjorn@mork.no>
+Subject: Re: Pending dvb_dmx_swfilter(_204)() patch tested enough
+References: <4D8E4AA2.7070408@kolumbus.fi> <4D9079FD.1060303@linuxtv.org>
+In-Reply-To: <4D9079FD.1060303@linuxtv.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-
-
-Am 20.03.2011 um 21:45 schrieb Jochen Reinwand <Jochen.Reinwand@gmx.de>:
-
-> Hi André,
+Em 28-03-2011 09:07, Andreas Oberritter escreveu:
+> Hello Marko,
 > 
-> Thanks for the help! I already fixed the problem! By accident...
+> On 03/26/2011 09:20 PM, Marko Ristola wrote:
+>> Following patch has been tested enough since last Summer 2010:
+>>
+>> "Avoid unnecessary data copying inside dvb_dmx_swfilter_204() function"
+>> https://patchwork.kernel.org/patch/118147/
+>> It modifies both dvb_dmx_swfilter_204() and dvb_dmx_swfilter()  functions.
 > 
-> On Saturday 19 March 2011, André Weidemann wrote:
->> I don't think that this is a hardware problem. I think it is related to
->> the driver. When I added support for the S2-3650CI to Dominik Kuhlen's
->> code for the PC-TV452e, I used the RC-code function "pctv452e_rc_query"
->> for the S2-3650CI. I ran into this problem back then and thought that
->> setting .rc_interval to 500 would "fix" the problem good enough.
+> sorry, I didn't know about your patch. Can you please resubmit it with
+> the following changes?
 > 
-> My first idea was simple: Set it to 1000. Better a slow remote control than  
-> double key presses. But the double key press events remained.
-> So I was planning to do some more debugging.
-> But my next idea was: If I get double events anyway, I can also speed up the 
-> remote by setting .rc_interval to 250. After setting it, everything was faster 
-> and ...  the double events disappeared!!! Of course, I did some further tests 
-> and found out that setting .rc_interval to 50 is also working perfectly! No 
-> double key press events so far and the remote is reacting really quick.
+> - Don't use camelCase (findNextPacket)
 > 
-> I don't really understand why this is fixing the issue...
-> Does it make sense to put this into the official repo? Or is it too dangerous? 
-> It's possibly breaking things for others...
+> - Remove disabled printk() calls.
 > 
-> Regards
-> Jochen
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> - Only one statement per line.
+> 	if (unlikely(lost = pos - start)) {
+> 	while (likely((p = findNextPacket(buf, p, count, pktsize)) < count)) {
+> 
+> - Add white space between while and the opening brace.
+> 	while(likely(pos < count)) {
+> 
+> - Use unsigned data types for pos and pktsize:
+> 	static inline int findNextPacket(const u8 *buf, int pos, size_t count,
+> 	const int pktsize)
+> 
+> The CodingStyle[1] document can serve as a guideline on how to properly
+> format kernel code.
 
+A good way for testing coding style is to run the scripts/checkpatch.pl.
 
-Hi,
+It points most of the stuff at CodingStyle.
 
-I just tried and indeed, it works for me as well;-)
-Never switched so fast...
-I tried 50 but it is almost too fast
-Maybe 75 or 100...
+> Does the excessive use of likely() and unlikely() really improve the
+> performance or is it just a guess?
 
-By the way, are there any thoughts/plans to merge TT S2-3600 into kernel some time?
-Would be a guinea pig and buy a card for CI testing.
+I never tried to perf likely/unlikely, but, AFAIK, it will affect cache miss
+rate and will also affect performance on superscalar architecture, as a
+branch operation may clean the pipelines. So, avoiding an unneeded branch
+will improve speed.
 
-Greetings
-Harald
+So, it is recommended to use it when you know what you're doing and need to
+optimize performance.
+
+There's an interesting explanation about it at:
+	http://kerneltrap.org/node/4705
+
+> 
+> Regards,
+> Andreas
+> 
+> [1]
+> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=Documentation/CodingStyle
+
