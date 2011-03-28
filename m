@@ -1,70 +1,100 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.9]:65478 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752359Ab1CKLvD (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:46235 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751869Ab1C1UY0 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Mar 2011 06:51:03 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH 3/7] ARM: Samsung: update/rewrite Samsung SYSMMU (IOMMU) driver
-Date: Fri, 11 Mar 2011 12:50:51 +0100
-Cc: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	k.debski@samsung.com, kgene.kim@samsung.com,
-	kyungmin.park@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	" =?euc-kr?q?=27=B4=EB=C0=CE=B1=E2=27?=" <inki.dae@samsung.com>,
-	" =?euc-kr?q?=27=B0=AD=B9=CE=B1=D4=27?=" <mk7.kang@samsung.com>,
-	"'KyongHo Cho'" <pullip.cho@samsung.com>,
-	linux-kernel@vger.kernel.org
-References: <1299229274-9753-4-git-send-email-m.szyprowski@samsung.com> <201103101552.15536.arnd@arndb.de> <002101cbdfcb$5c657820$15306860$%szyprowski@samsung.com>
-In-Reply-To: <002101cbdfcb$5c657820$15306860$%szyprowski@samsung.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="euc-kr"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201103111250.51252.arnd@arndb.de>
+	Mon, 28 Mar 2011 16:24:26 -0400
+References: <20110326015530.GK2008@bicker> <alpine.DEB.1.10.1103252335590.12072@ivanova.isely.net>
+In-Reply-To: <alpine.DEB.1.10.1103252335590.12072@ivanova.isely.net>
+Mime-Version: 1.0 (Apple Message framework v1082)
+Content-Type: text/plain; charset=us-ascii
+Message-Id: <907BA542-7FBE-497D-93B3-BB20012F4FD3@wilsonet.com>
+Content-Transfer-Encoding: 8BIT
+Cc: Dan Carpenter <error27@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+From: Jarod Wilson <jarod@wilsonet.com>
+Subject: Re: [PATCH 6/6] [media] pvrusb2: replace !0 with 1
+Date: Mon, 28 Mar 2011 16:24:35 -0400
+To: Mike Isely <isely@isely.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Friday 11 March 2011, Marek Szyprowski wrote:
+On Mar 26, 2011, at 12:37 AM, Mike Isely wrote:
+
 > 
-> We followed the style of iommu API for other mainline ARM platforms (both OMAP and MSM
-> also have custom API for their iommu modules). I've briefly checked include/linux/iommu.h
-> API and I've noticed that it has been designed mainly for KVM support. There is also
-> include/linux/intel-iommu.h interface, but I it is very specific to intel gfx chips.
+> That's an opinion which I as the driver author disagree with.  Strongly.  
+> How hard is it to read "not false"?
 
-The MSM code actually uses the generic iommu.h code, using register_iommu, so
-the drivers can use the regular iommu_map.
 
-I believe the omap code predates the iommu API, and should really be changed
-to use that. At least it was added before I started reviewing the code.
+Personally, I prefer use of "true" and "false" over both...
 
-The iommu API is not really meant to be KVM specific, it's just that the
-in-tree users are basically limited to KVM at the moment. Another user that
-is coming up soon is the vmio device driver that can be used to transparently
-pass devices to user space. The idea behind the IOMMU API is that you can
-map arbitrary bus addresses to physical memory addresses, but it does not
-deal with allocating the bus addresses or providing buffer management such
-as cache flushes.
 
-> Is there any example how include/linux/dma-mapping.h interface can be used for iommu
-> mappings?
+> On Sat, 26 Mar 2011, Dan Carpenter wrote:
+> 
+>> Using !0 is less readable than just saying 1.
+>> 
+>> Signed-off-by: Dan Carpenter <error27@gmail.com>
+>> 
+>> diff --git a/drivers/media/video/pvrusb2/pvrusb2-std.c b/drivers/media/video/pvrusb2/pvrusb2-std.c
+>> index 9bebc08..ca4f67b 100644
+>> --- a/drivers/media/video/pvrusb2/pvrusb2-std.c
+>> +++ b/drivers/media/video/pvrusb2/pvrusb2-std.c
+>> @@ -158,7 +158,7 @@ int pvr2_std_str_to_id(v4l2_std_id *idPtr, const char *buf,
+>> 			cnt++;
+>> 			buf += cnt;
+>> 			buf_size -= cnt;
+>> -			mMode = !0;
+>> +			mMode = 1;
+>> 			cmsk = sp->id;
+>> 			continue;
+>> 		}
+>> @@ -190,7 +190,7 @@ int pvr2_std_str_to_id(v4l2_std_id *idPtr, const char *buf,
+>> 
+>> 	if (idPtr)
+>> 		*idPtr = id;
+>> -	return !0;
+>> +	return 1;
+>> }
+>> 
+>> unsigned int pvr2_std_id_to_str(char *buf, unsigned int buf_size,
+>> @@ -217,10 +217,10 @@ unsigned int pvr2_std_id_to_str(char *buf, unsigned int buf_size,
+>> 					buf_size -= c2;
+>> 					buf += c2;
+>> 				}
+>> -				cfl = !0;
+>> +				cfl = 1;
+>> 				c2 = scnprintf(buf, buf_size,
+>> 					       "%s-", gp->name);
+>> -				gfl = !0;
+>> +				gfl = 1;
+>> 			} else {
+>> 				c2 = scnprintf(buf, buf_size, "/");
+>> 			}
+>> @@ -315,7 +315,7 @@ static int pvr2_std_fill(struct v4l2_standard *std, v4l2_std_id id)
+>> 	std->name[bcnt] = 0;
+>> 	pvr2_trace(PVR2_TRACE_STD, "Set up standard idx=%u name=%s",
+>> 		   std->index, std->name);
+>> -	return !0;
+>> +	return 1;
+>> }
+>> 
+>> /*
+>> 
+> 
+> -- 
+> 
+> Mike Isely
+> isely @ isely (dot) net
+> PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-The dma-mapping API is the normal interface that you should use for IOMMUs
-that sit between DMA devices and kernel memory. The idea is that you
-completely abstract the concept of an IOMMU so the device driver uses
-the same code for talking to a device with an IOMMU and another device with
-a linear mapping or an swiotlb bounce buffer.
+-- 
+Jarod Wilson
+jarod@wilsonet.com
 
-This means that the user of the dma-mapping API does not get to choose the
-bus addresses, but instead you use the API to get a bus address for a
-chunk of memory, and then you can pass that address to a device.
 
-See arch/powerpc/kernel/iommu.c and arch/x86/kernel/amd_iommu.c for common
-examples of how this is implemented. The latter one actually implements
-both the iommu_ops for iommu.h and dma_map_ops for dma-mapping.h.
 
-	Arnd
