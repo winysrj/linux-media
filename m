@@ -1,47 +1,47 @@
 Return-path: <mchehab@pedra>
-Received: from cnc.isely.net ([75.149.91.89]:36467 "EHLO cnc.isely.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752329Ab1CNBpr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Mar 2011 21:45:47 -0400
-Date: Sun, 13 Mar 2011 20:45:46 -0500 (CDT)
-From: Mike Isely <isely@isely.net>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Matti Aaltonen <matti.j.aaltonen@nokia.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: compilation warnings/errors
-In-Reply-To: <alpine.DEB.1.10.1103111640550.3738@cnc.isely.net>
-Message-ID: <alpine.DEB.1.10.1103132043550.31934@ivanova.isely.net>
-References: <4D7A69EB.3060200@redhat.com> <alpine.DEB.1.10.1103111640550.3738@cnc.isely.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Received: from mailout-de.gmx.net ([213.165.64.23]:59496 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752333Ab1C1W5z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Mar 2011 18:57:55 -0400
+From: Oliver Endriss <o.endriss@gmx.de>
+Reply-To: linux-media@vger.kernel.org
+To: Malcolm Priestley <tvboxspy@gmail.com>
+Subject: Re: [PATCH 1/2] STV0299 incorrect standby setting issues register 02 (MCR)
+Date: Tue, 29 Mar 2011 00:32:41 +0200
+Cc: linux-media@vger.kernel.org
+References: <1301187453.2179.2.camel@localhost>
+In-Reply-To: <1301187453.2179.2.camel@localhost>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201103290032.42334@orion.escape-edv.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Fri, 11 Mar 2011, Mike Isely wrote:
-
-> On Fri, 11 Mar 2011, Mauro Carvalho Chehab wrote:
+On Sunday 27 March 2011 01:57:33 Malcolm Priestley wrote:
+> Issues with Register 02 causing spurious channel locking from standby.
+> Should have always bits 4 & 5 written to 1.
+> Lower nibble not used in any current driver. Usage if necessary can be applied
+> through initab to mcr_reg.
+> stv0299 not out of standby before writing inittab.
 > 
-> > /home/mchehab/new_build/v4l/pvrusb2-v4l2.c: In function 'pvr2_v4l2_do_ioctl':
-> > /home/mchehab/new_build/v4l/pvrusb2-v4l2.c:798:23: warning: variable 'cap' set but not used [-Wunused-but-set-variable]
-> 
-> I will look into these.  I'm a little puzzled right now since silly 
-> stuff like this usually doesn't get by me.  Unfortunately I can't look 
-> at it right this minute.  Expect to hear from me on Sunday.
+> Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+> ---
+>  drivers/media/dvb/frontends/stv0299.c |   10 ++++++++--
+>  1 files changed, 8 insertions(+), 2 deletions(-)
+> ...
 
-I looked at these two warnings.  It's dead code that should be removed.  
-Amazingly enough, this particular bit of crap has been in the driver, 
-unnoticed, since 2008!
+Acked-by: Oliver Endriss <o.endriss@gmx.de>
 
-I have a pull request coming for more pvrusb2 patches, probably in a few 
-more hours, once I'm done testing.  A fix for this will be in the patch 
-set.
-
-  -Mike
+CU
+Oliver
 
 -- 
-
-Mike Isely
-isely @ isely (dot) net
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
+Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
+----------------------------------------------------------------
