@@ -1,52 +1,279 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58208 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751249Ab1CIXi0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Mar 2011 18:38:26 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Michael Jones <michael.jones@matrix-vision.de>
-Subject: Re: [PATCH v2 1/4] v4l: add V4L2_PIX_FMT_Y12 format
-Date: Thu, 10 Mar 2011 00:36:14 +0100
-Cc: linux-media@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-References: <1299686863-20701-1-git-send-email-michael.jones@matrix-vision.de> <1299686863-20701-2-git-send-email-michael.jones@matrix-vision.de>
-In-Reply-To: <1299686863-20701-2-git-send-email-michael.jones@matrix-vision.de>
+Received: from smtp.nokia.com ([147.243.1.48]:42900 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753680Ab1C1Mzr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Mar 2011 08:55:47 -0400
+Message-ID: <4D90854C.2000802@maxwell.research.nokia.com>
+Date: Mon, 28 Mar 2011 15:55:40 +0300
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201103100036.21138.laurent.pinchart@ideasonboard.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: Nayden Kanchev <nkanchev@mm-sol.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Cohen David Abraham <david.cohen@nokia.com>
+Subject: [RFC] V4L2 API for flash devices
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Michael,
+Hi,
 
-Thanks for the patch.
+This is a proposal for an interface for controlling flash devices on the
+V4L2/v4l2_subdev APIs. My plan is to use the interface in the ADP1653
+driver, the flash controller used in the Nokia N900.
 
-On Wednesday 09 March 2011 17:07:40 Michael Jones wrote:
-> Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  include/linux/videodev2.h |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
-> 
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index 02da9e7..6fac463 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -288,6 +288,7 @@ struct v4l2_pix_format {
->  #define V4L2_PIX_FMT_Y4      v4l2_fourcc('Y', '0', '4', ' ') /*  4  Greyscale     */
->  #define V4L2_PIX_FMT_Y6      v4l2_fourcc('Y', '0', '6', ' ') /*  6  Greyscale     */
->  #define V4L2_PIX_FMT_Y10     v4l2_fourcc('Y', '1', '0', ' ') /* 10  Greyscale     */
-> +#define V4L2_PIX_FMT_Y12     v4l2_fourcc('Y', '1', '2', ' ') /* 12  Greyscale     */
->  #define V4L2_PIX_FMT_Y16     v4l2_fourcc('Y', '1', '6', ' ') /* 16  Greyscale     */
-> 
->  /* Palette formats */
+Comments and questions are very, very welcome!
 
-Could you please also document the format in Documentation/DocBook/v4l ?
+
+Scope
+=====
+
+This RFC is focused mostly on the ADP1653 [1] and similar chips [2, 3]
+which provides following functionality. [2, 3] mostly differ on the
+available faults --- for example, there are faults also for the
+indicator LED.
+
+- High power LED output (flash or torch modes)
+- Low power indicator LED output (a.k.a. privacy light)
+- Programmable flash timeout
+- Software and hardware strobe
+- Fault detection
+	- Overvoltage
+	- Overtemperature
+	- Short circuit
+	- Timeout
+- Programmable current (both high-power and indicator LEDs)
+
+If anyone else is aware of hardware which significantly differs from
+these and does not get served well under the proposed interface, please
+tell about it.
+
+This RFC does NOT address the synchronisation of the flash to a given
+frame since this task is typically performed by the sensor through a
+strobe signal. The host does not have enough information for this ---
+exact timing information on the exposure of the sensor pixel array. In
+this case the flash synchronisation is visible to the flash controller
+as the hardware strobe originating from the sensor.
+
+Flash synchronisation requires
+
+1) flash control capability from the sensor including a strobe output,
+2) strobe input in the flash controller,
+3) (optionally) ability to program sensor parameters at given frame,
+such as flash strobe, and
+4) ability to read back metadata produced by the sensor related to a
+given frame. This should include whether the frame is exposed with
+flash, i.e. the sensor's flash strobe output.
+
+Since we have little examples of both in terms of hardware support,
+which is in practice required, it was decided to postpone the interface
+specification for now. [6]
+
+Xenon flash controllers exist but I don't have a specific example of
+those. Typically the interface is quite simple. Gpio pins for charge and
+strobe. The length of the strobe signal determines the strength of the
+flash pulse. The strobe is controlled by the sensor as for LED flash if
+it is hardware based.
+
+
+Known use cases
+===============
+
+The use case listed below concentrate on using a flash in a mobile
+device, for example in a mobile phone. The use cases could be somewhat
+different in devices the primary use of which is camera.
+
+Unsynchronised LED flash (software strobe)
+------------------------------------------
+
+Unsynchronised LED flash is controlled directly by the host as the
+sensor. The flash must be enabled by the host before the exposure of the
+image starts and disabled once it ends. The host is fully responsible
+for the timing of the flash.
+
+Example of such device: Nokia N900.
+
+
+Synchronised LED flash (hardware strobe)
+----------------------------------------
+
+The synchronised LED flash is pre-programmed by the host (power and
+timeout) but controlled by the sensor through a strobe signal from the
+sensor to the flash.
+
+The sensor controls the flash duration and timing. This control
+typically must be programmed to the sensor, and specifying an interface
+for this is out of scope of this RFC.
+
+The LED flash controllers we know of can function in both synchronised
+and unsynchronised modes.
+
+
+LED flash as torch
+------------------
+
+LED flash may be used as torch in conjunction with another use case
+involving camera or individually. [4]
+
+
+Synchronised xenon flash
+------------------------
+
+The synchronised xenon flash is controlled more closely by the sensor
+than the LED flash. There is no separate intensity control for the xenon
+flash as its intensity is determined by the length of the strobe pulse.
+Several consecutive strobe pluses are possible but this needs to be
+still controlled by the sensor.
+
+
+Proposed interface
+==================
+
+The flash, either LED or xenon, does not require large amounts of data
+to control it. There are parameters to control it but they are
+independent and assumably some hardware would only support some subsets
+of the functionality available somewhere else. Thus V4L2 controls seem
+an ideal way to support flash controllers.
+
+A separate control class is reserved for the flash controls. It is
+called V4L2_CTRL_CLASS_FLASH.
+
+Type of the control; type of flash is in parentheses after the control.
+
+
+	V4L2_CID_FLASH_STROBE (button; LED)
+
+Strobe the flash using software strobe from the host, typically over I2C
+or a GPIO. The flash is NOT synchronised to sensor pixel are exposure
+since the command is given asynchronously. Alternatively, if the flash
+controller is a master in the system, the sensor exposure may be
+triggered based on software strobe.
+
+
+	V4L2_CID_FLASH_STROBE_MODE (menu; LED)
+
+Use hardware or software strobe. If hardware strobe is selected, the
+flash controller is a slave in the system where the sensor produces the
+strobe signal to the flash.
+
+In this case the flash controller setup is limited to programming strobe
+timeout and power (LED flash) and the sensor controls the timing and
+length of the strobe.
+
+enum v4l2_flash_strobe_mode {
+	V4L2_FLASH_STROBE_MODE_SOFTWARE,
+	V4L2_FLASH_STROBE_MODE_EXT_STROBE,
+};
+
+
+	V4L2_CID_FLASH_TIMEOUT (integer; LED)
+
+The flash controller provides timeout functionality to shut down the led
+in case the host fails to do that. For hardware strobe, this is the
+maximum amount of time the flash should stay on, and the purpose of the
+setting is to prevent the LED from catching fire.
+
+For software strobe, the setting may be used to limit the length of the
+strobe in case a driver does not implement it itself. The granularity of
+the timeout in [1, 2, 3] is very coarse. However, the length of a
+driver-implemented LED strobe shutoff is very dependent on host.
+Possibly V4L2_CID_FLASH_DURATION should be added, and
+V4L2_CID_FLASH_TIMEOUT would be read-only so that the user would be able
+to obtain the actual hardware implemented safety timeout.
+
+Likely a standard unit such as ms or µs should be used.
+
+
+	V4L2_CID_FLASH_LED_MODE (menu; LED)
+
+enum v4l2_flash_led_mode {
+	V4L2_FLASH_LED_MODE_FLASH = 1,
+	V4L2_FLASH_LED_MODE_TORCH,
+};
+
+
+	V4L2_CID_FLASH_INTENSITY (integer; LED)
+
+Intensity of the flash in hardware specific units. The LED flash
+controller provides current to the LED but the actual luminous power is
+dictated by the LED connected to the controller.
+
+
+	V4L2_CID_FLASH_TORCH_INTENSITY (integer; LED)
+
+Intensity of the flash in hardware specific units.
+
+
+	V4L2_CID_FLASH_INDICATOR_INTENSITY (integer; LED)
+
+Intensity of the indicator light in hardware specific units.
+
+
+	V4L2_CID_FLASH_FAULT (bit field; LED)
+
+This is a bitmask containing the fault information for the flash. This
+assumes the proposed V4L2 bit mask controls [5]; otherwise this would
+likely need to be a set of controls.
+
+#define V4L2_FLASH_FAULT_OVER_VOLTAGE		0x00000001
+#define V4L2_FLASH_FAULT_TIMEOUT		0x00000002
+#define V4L2_FLASH_FAULT_OVER_TEMPERATURE	0x00000004
+#define V4L2_FLASH_FAULT_SHORT_CIRCUIT		0x00000008
+
+Several faults may occur at single occasion. The ADP1653 is able to
+inform the user a fault has occurred, so a V4L2 control event (proposed
+earlier) could be used for that.
+
+These faults are supported by the ADP1653. More faults may be added as
+support for more chips require that. In some other hardware faults are
+available for indicator led as well.
+
+Question: should indicator faults be part of the same control, or a
+different control, e.g. V4L2_CID_FLASH_INDICATOR_FAULT?
+
+
+	V4L2_CID_FLASH_CHARGE (bool; xenon)
+
+Charge control for the xenon flash. Enable or disable charging.
+
+
+	V4L2_CID_FLASH_READY (bool; xenon, LED)
+
+Flash is ready to strobe. On xenon flash this tells the capacitor has
+been charged, on LED flash it's that the LED is no longer too hot.
+
+The implementation on LED flash may be modelling the temperature
+behaviour of the LED in the driver (or elsewhere, e.g. library or board
+code) if the hardware does not provide direct temperature information
+from the LED.
+
+A V4L2 control event should be produced whenever the flash becomes ready.
+
+
+References
+==========
+
+[1] http://www.analog.com/static/imported-files/data_sheets/ADP1653.pdf
+
+[2] http://www.national.com/mpf/LM/LM3555.html#Overview
+
+[3]
+http://www.austriamicrosystems.com/eng/Products/Lighting-Management/Camera-Flash-LED-Drivers/AS3645
+
+[4] http://maemo.org/downloads/product/Maemo5/flashlight-applet/
+
+[5]
+http://www.retiisi.org.uk/v4l2/v4l2-brainstorming-warsaw-2011-03/notes/day%202%20(SGz6LU2esk).html
+
+[6]
+http://www.retiisi.org.uk/v4l2/v4l2-brainstorming-warsaw-2011-03/notes/day%203%20(RhoYa0X9D7).html
+
+
+Cheers,
 
 -- 
-Regards,
-
-Laurent Pinchart
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
