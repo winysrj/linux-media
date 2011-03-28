@@ -1,74 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:36665 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752760Ab1CJM3W (ORCPT
+Received: from mailout-de.gmx.net ([213.165.64.23]:59470 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752333Ab1C1W5x (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Mar 2011 07:29:22 -0500
-Received: from spt2.w1.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LHU00K2PDCU54@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 10 Mar 2011 12:29:19 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LHU00G1BDCU4A@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 10 Mar 2011 12:29:18 +0000 (GMT)
-Date: Thu, 10 Mar 2011 13:28:41 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 2/3] v4l2: vb2: simplify __vb2_queue_free function
-In-reply-to: <1299760122-29493-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	andrzej.p@samsung.com, pawel@osciak.com
-Message-id: <1299760122-29493-3-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1299760122-29493-1-git-send-email-m.szyprowski@samsung.com>
+	Mon, 28 Mar 2011 18:57:53 -0400
+From: Oliver Endriss <o.endriss@gmx.de>
+Reply-To: linux-media@vger.kernel.org
+To: Malcolm Priestley <tvboxspy@gmail.com>
+Subject: Re: [PATCH 2/2] STV0299 Register 02 on Opera1/Bsru6/z0194a/mantis_vp1033
+Date: Tue, 29 Mar 2011 00:34:28 +0200
+Cc: linux-media@vger.kernel.org
+References: <1301187827.2338.1.camel@localhost>
+In-Reply-To: <1301187827.2338.1.camel@localhost>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201103290034.29165@orion.escape-edv.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-__vb2_queue_free function doesn't really return anything useful. This patch
-removes support for the return value to simplify the code.
+On Sunday 27 March 2011 03:03:47 Malcolm Priestley wrote:
+> Bits 4 and 5 on register 02 should always be set to 1.
+> 
+> Opera1/Bsru6/z0194a/mantis_vp1033
+> 
+> Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+> ---
+>  drivers/media/dvb/dvb-usb/opera1.c       |    2 +-
+>  drivers/media/dvb/frontends/bsru6.h      |    2 +-
+>  drivers/media/dvb/frontends/z0194a.h     |    2 +-
+>  drivers/media/dvb/mantis/mantis_vp1033.c |    2 +-
+>  4 files changed, 4 insertions(+), 4 deletions(-)
+>  ...
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/videobuf2-core.c |    8 ++------
- 1 files changed, 2 insertions(+), 6 deletions(-)
+Acked-by: Oliver Endriss <o.endriss@gmx.de>
 
-diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
-index 9df484d..f564920 100644
---- a/drivers/media/video/videobuf2-core.c
-+++ b/drivers/media/video/videobuf2-core.c
-@@ -227,7 +227,7 @@ static void __vb2_free_mem(struct vb2_queue *q)
-  * and return the queue to an uninitialized state. Might be called even if the
-  * queue has already been freed.
-  */
--static int __vb2_queue_free(struct vb2_queue *q)
-+static void __vb2_queue_free(struct vb2_queue *q)
- {
- 	unsigned int buffer;
- 
-@@ -251,8 +251,6 @@ static int __vb2_queue_free(struct vb2_queue *q)
- 
- 	q->num_buffers = 0;
- 	q->memory = 0;
--
--	return 0;
- }
- 
- /**
-@@ -505,9 +503,7 @@ int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
- 			return -EBUSY;
- 		}
- 
--		ret = __vb2_queue_free(q);
--		if (ret != 0)
--			return ret;
-+		__vb2_queue_free(q);
- 
- 		/*
- 		 * In case of REQBUFS(0) return immediately without calling
+CU
+Oliver
+
 -- 
-1.7.1.569.g6f426
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
+Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
+----------------------------------------------------------------
