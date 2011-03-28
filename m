@@ -1,49 +1,49 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:37771 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752038Ab1CJUgP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Mar 2011 15:36:15 -0500
-Received: by qyk7 with SMTP id 7so5250017qyk.19
-        for <linux-media@vger.kernel.org>; Thu, 10 Mar 2011 12:36:14 -0800 (PST)
-References: <AANLkTik_W1uE05J+BSY8K6siOdgYxsB1CLmiFUmGy-s8@mail.gmail.com>
-In-Reply-To: <AANLkTik_W1uE05J+BSY8K6siOdgYxsB1CLmiFUmGy-s8@mail.gmail.com>
-Mime-Version: 1.0 (Apple Message framework v1082)
-Content-Type: text/plain; charset=us-ascii
-Message-Id: <BF6ACC3F-C9C0-42F4-B649-B4D28AB9B4A4@wilsonet.com>
+Received: from mx1.redhat.com ([209.132.183.28]:6411 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752836Ab1C1Vk1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Mar 2011 17:40:27 -0400
+Message-ID: <4D910042.4030100@redhat.com>
+Date: Mon, 28 Mar 2011 18:40:18 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Ralph Metzler <rjkm@metzlerbros.de>
+CC: linux-media@vger.kernel.org, Andreas Oberritter <obi@linuxtv.org>
+Subject: Re: [PATCH] Ngene cam device name
+References: <777PcLohh6368S03.1299940473@web03.cms.usa.net>	<4D7B8A07.70602@linuxtv.org> <19855.55774.192407.326483@morden.metzler>
+In-Reply-To: <19855.55774.192407.326483@morden.metzler>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-From: Jarod Wilson <jarod@wilsonet.com>
-Subject: Re: mygica hdcap
-Date: Thu, 10 Mar 2011 15:30:29 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mar 10, 2011, at 12:26 PM, James Klaas wrote:
-
-> I just got one of these the other day and I was wondering if anyone
-> has looked at it.  It will take HDMI, component and composite input
-> plus stereo.  I have a picture I can post somewhere of the board.  It
-> has 3 main chips.
+Em 27-03-2011 21:44, Ralph Metzler escreveu:
+> Hi,
 > 
-> AD9985A - Component/composite input?
-> SIL9013CLU - Audio input?
-> TM6202 - HDMI input
+> since I just saw cxd2099 appear in staging in the latest git kernel, a
+> simple question which has been pointed out to me before:
 > 
-> I'm not sure if this falls under v4l since it has no tuner or dvb
-> since it captures digital video.
+> Why is cxd2099.c in staging regarding the device name question?
+> It has nothing to do with the naming.
 
-It looks like an at least semi-similar device to the Hauppauge HD-PVR,
-which is under v4l, so it probably does make sense here. Not aware of
-anyone working on your specific hardware, but Hans Verkuil posted some
-patches for some at least similar-ish Analog Devices chips not too
-long ago, which might be relevant to at least that part of your card...
+It is not just because of naming. A NACK was given to it, as is, at:
 
-http://git.linuxtv.org/hverkuil/cisco.git?a=shortlog;h=refs/heads/cobalt
+http://www.spinics.net/lists/linux-media/msg28004.html
 
--- 
-Jarod Wilson
-jarod@wilsonet.com
+A previous discussion about this subject were started at:
+	http://www.mail-archive.com/linux-media@vger.kernel.org/msg22196.html
 
+The point is that an interface meant to be used by satellite were
+used as a ci interface, due to the lack of handling independent CA devices.
 
+As there were no final decision about a proper way to address it, Oliver
+decided to keep it as-is, and I decided to move it to staging while we
+don't properly address the question, extending the DVB API in order to support
+independent CA devs.
 
+Having the driver at staging allow us to rework at the API and change the
+driver when API changes are done, without needing to pass through kernel 
+process of deprecating old API stuff.
+
+Cheers,
+Mauro
