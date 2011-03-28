@@ -1,92 +1,59 @@
 Return-path: <mchehab@pedra>
-Received: from mail.kapsi.fi ([217.30.184.167]:37104 "EHLO mail.kapsi.fi"
+Received: from ffm.saftware.de ([83.141.3.46]:58284 "EHLO ffm.saftware.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757181Ab1CRQgQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Mar 2011 12:36:16 -0400
-Message-ID: <4D8389FB.6040707@iki.fi>
-Date: Fri, 18 Mar 2011 18:36:11 +0200
-From: Antti Palosaari <crope@iki.fi>
+	id S1751755Ab1C1MH3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Mar 2011 08:07:29 -0400
+Message-ID: <4D9079FD.1060303@linuxtv.org>
+Date: Mon, 28 Mar 2011 14:07:25 +0200
+From: Andreas Oberritter <obi@linuxtv.org>
 MIME-Version: 1.0
-To: Florian Mickler <florian@mickler.org>
-CC: mchehab@infradead.org, oliver@neukum.org, jwjstone@fastmail.fm,
-	linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 06/16] [media] ce6230: get rid of on-stack dma buffer
-References: <20110315093632.5fc9fb77@schatten.dmk.lab> <1300178655-24832-1-git-send-email-florian@mickler.org> <1300178655-24832-6-git-send-email-florian@mickler.org>
-In-Reply-To: <1300178655-24832-6-git-send-email-florian@mickler.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Marko Ristola <marko.ristola@kolumbus.fi>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	=?ISO-8859-1?Q?Bj=F8rn_Mork?= <bjorn@mork.no>
+Subject: Re: Pending dvb_dmx_swfilter(_204)() patch tested enough
+References: <4D8E4AA2.7070408@kolumbus.fi>
+In-Reply-To: <4D8E4AA2.7070408@kolumbus.fi>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 03/15/2011 10:43 AM, Florian Mickler wrote:
-> usb_control_msg initiates (and waits for completion of) a dma transfer using
-> the supplied buffer. That buffer thus has to be seperately allocated on
-> the heap.
->
-> In lib/dma_debug.c the function check_for_stack even warns about it:
-> 	WARNING: at lib/dma-debug.c:866 check_for_stack
->
-> Note: This change is tested to compile only, as I don't have the hardware.
->
-> Signed-off-by: Florian Mickler<florian@mickler.org>
+Hello Marko,
 
-Acked-by: Antti Palosaari <crope@iki.fi>
-Reviewed-by: Antti Palosaari <crope@iki.fi>
-Tested-by: Antti Palosaari <crope@iki.fi>
+On 03/26/2011 09:20 PM, Marko Ristola wrote:
+> Following patch has been tested enough since last Summer 2010:
+>
+> "Avoid unnecessary data copying inside dvb_dmx_swfilter_204() function"
+> https://patchwork.kernel.org/patch/118147/
+> It modifies both dvb_dmx_swfilter_204() and dvb_dmx_swfilter()  functions.
 
+sorry, I didn't know about your patch. Can you please resubmit it with
+the following changes?
 
-t. Antti
+- Don't use camelCase (findNextPacket)
 
-> ---
->   drivers/media/dvb/dvb-usb/ce6230.c |   11 +++++++++--
->   1 files changed, 9 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/dvb/dvb-usb/ce6230.c b/drivers/media/dvb/dvb-usb/ce6230.c
-> index 3df2045..6d1a304 100644
-> --- a/drivers/media/dvb/dvb-usb/ce6230.c
-> +++ b/drivers/media/dvb/dvb-usb/ce6230.c
-> @@ -39,7 +39,7 @@ static int ce6230_rw_udev(struct usb_device *udev, struct req_t *req)
->   	u8 requesttype;
->   	u16 value;
->   	u16 index;
-> -	u8 buf[req->data_len];
-> +	u8 *buf;
->
->   	request = req->cmd;
->   	value = req->value;
-> @@ -62,6 +62,12 @@ static int ce6230_rw_udev(struct usb_device *udev, struct req_t *req)
->   		goto error;
->   	}
->
-> +	buf = kmalloc(req->data_len, GFP_KERNEL);
-> +	if (!buf) {
-> +		ret = -ENOMEM;
-> +		goto error;
-> +	}
-> +
->   	if (requesttype == (USB_TYPE_VENDOR | USB_DIR_OUT)) {
->   		/* write */
->   		memcpy(buf, req->data, req->data_len);
-> @@ -74,7 +80,7 @@ static int ce6230_rw_udev(struct usb_device *udev, struct req_t *req)
->   	msleep(1); /* avoid I2C errors */
->
->   	ret = usb_control_msg(udev, pipe, request, requesttype, value, index,
-> -				buf, sizeof(buf), CE6230_USB_TIMEOUT);
-> +				buf, req->data_len, CE6230_USB_TIMEOUT);
->
->   	ce6230_debug_dump(request, requesttype, value, index, buf,
->   		req->data_len, deb_xfer);
-> @@ -88,6 +94,7 @@ static int ce6230_rw_udev(struct usb_device *udev, struct req_t *req)
->   	if (!ret&&  requesttype == (USB_TYPE_VENDOR | USB_DIR_IN))
->   		memcpy(req->data, buf, req->data_len);
->
-> +	kfree(buf);
->   error:
->   	return ret;
->   }
+- Remove disabled printk() calls.
 
+- Only one statement per line.
+	if (unlikely(lost = pos - start)) {
+	while (likely((p = findNextPacket(buf, p, count, pktsize)) < count)) {
 
--- 
-http://palosaari.fi/
+- Add white space between while and the opening brace.
+	while(likely(pos < count)) {
+
+- Use unsigned data types for pos and pktsize:
+	static inline int findNextPacket(const u8 *buf, int pos, size_t count,
+	const int pktsize)
+
+The CodingStyle[1] document can serve as a guideline on how to properly
+format kernel code.
+
+Does the excessive use of likely() and unlikely() really improve the
+performance or is it just a guess?
+
+Regards,
+Andreas
+
+[1]
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=Documentation/CodingStyle
