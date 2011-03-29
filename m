@@ -1,70 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:30771 "EHLO mx1.redhat.com"
+Received: from smtp.nokia.com ([147.243.1.48]:50503 "EHLO mgw-sa02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759323Ab1CaTwh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Mar 2011 15:52:37 -0400
-Message-ID: <4D94DB7F.2030500@redhat.com>
-Date: Thu, 31 Mar 2011 16:52:31 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1750994Ab1C2LwP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Mar 2011 07:52:15 -0400
+Message-ID: <4D91C7CA.1050105@nokia.com>
+Date: Tue, 29 Mar 2011 14:51:38 +0300
+From: Sakari Ailus <sakari.ailus@nokia.com>
 MIME-Version: 1.0
-To: handygewinnspiel@gmx.de
-CC: linux-media@vger.kernel.org
-Subject: Re: [w_scan PATCH] Add Brazil support on w_scan
-References: <4D909B59.9040809@redhat.com> <20110328172045.64750@gmx.net> <4D90D78F.7050308@redhat.com> <20110329201152.282620@gmx.net> <4D92697C.3030209@redhat.com> <4D945B39.8050708@redhat.com> <20110331171516.250770@gmx.net> <4D94DB00.8060909@redhat.com>
-In-Reply-To: <4D94DB00.8060909@redhat.com>
-Content-Type: text/plain; charset=UTF-8
+To: Hans Verkuil <hansverk@cisco.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Nayden Kanchev <nkanchev@mm-sol.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Cohen David Abraham <david.cohen@nokia.com>
+Subject: Re: [RFC] V4L2 API for flash devices
+References: <4D90854C.2000802@maxwell.research.nokia.com> <201103290849.48799.hverkuil@xs4all.nl> <4D91A7D7.5060909@maxwell.research.nokia.com> <201103291154.43536.hansverk@cisco.com> <4D91C4BA.20200@maxwell.research.nokia.com>
+In-Reply-To: <4D91C4BA.20200@maxwell.research.nokia.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 31-03-2011 16:50, Mauro Carvalho Chehab escreveu:
-> Em 31-03-2011 14:15, handygewinnspiel@gmx.de escreveu:
->>
->>> Em 29-03-2011 20:21, Mauro Carvalho Chehab escreveu:
->>>> Em 29-03-2011 17:11, handygewinnspiel@gmx.de escreveu:
->>>>> So I changed it now to scan any srate for 6MHz networks, but skip over
->>> those which are unsupported by bandwidth limitation.
->>> ...
->>>> Anyway, I'll test the today's version and reply if I detect any troubles
->>> on it.
+Sakari Ailus wrote:
+> Hans Verkuil wrote:
+>> On Tuesday, March 29, 2011 11:35:19 Sakari Ailus wrote:
+>>> Hi Hans,
 >>>
->>> Test results:
+>>> Many thanks for the comments!
 >>>
->>> 	$ ./w_scan -c BR -fc 
->>> Took about 30 mins for scan. As the board I'm using doesn't support
->>> QAM_AUTO
->>> for DVB-C, it seek only QAM_64
+> 
+> ...
+> 
+>>> It occurred to me that an application might want to turn off a flash
+>>> which has been strobed on software. That can't be done on a single
+>>> button control.
+>>>
+>>> V4L2_CID_FLASH_SHUTDOWN?
+>>>
+>>> The application would know the flash strobe is ongoing before it
+>>> receives a timeout fault. I somehow feel that there should be a control
+>>> telling that directly.
+>>>
+>>> What about using a bool control for the strobe?
 >>
->> This is unexpected && should be fixed to fit to w_scan's default behaviour: first QAM_64, then QAM_256.
->>
->> Can you pls re-check with the following change in countries.c line 500ff
->>
->> /*
->>  * start/stop values for dvbc qam loop
->>  * 0 == QAM_64, 1 == QAM_256, 2 == QAM_128
->>  */
->> int dvbc_qam_max(int channel, int channellist) {
->> switch(channellist) {
->>        case DVBC_FI:    return 2; //QAM128
->> +      case DVBC_BR:
->>        case DVBC_FR:
->>        case DVBC_QAM:   return 1; //QAM256
->>        default:         return 0; //no qam loop
->>        }
->> }
->>
->>     
->> int dvbc_qam_min(int channel, int channellist) {
->> switch(channellist) {
->>        case DVBC_FI:
->> +      case DVBC_BR:
->>        case DVBC_FR:
->>        case DVBC_QAM:   return 0; //QAM64
->>        default:         return 0; //no qam loop
->>        }
->> }
+>> It depends: is the strobe signal just a pulse that kicks off the flash, or is 
+>> it active throughout the flash duration? In the latter case a bool makes 
+>> sense, in the first case an extra button control makes sense.
+> 
+> I like buttons since I associate them with action (like strobing) but on
+> the other hand buttons don't allow querying the current state. On the
+> other hand, the current state isn't always determinable, e.g. in the
+> absence of the interrupt line from the flash controller interrupt pin
+> (e.g. N900!).
 
-Forgot to comment: the above fixed w_scan probe with default parameters.
+Oh, I need to take my words back a bit.
 
-Thanks!
-Mauro
+There indeed is a way to get the on/off status for the flash, but that
+involves I2C register access --- when you read the fault registers, you
+do get the state, even if the interrupt linke is missing from the
+device. At least I can't see why this wouldn't work, at least on this
+particular chip.
+
+What you can't have in this case is the event.
+
+So, in my opinion this suggests that a single boolean control is the way
+to go.
+
+Regards,
+
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
