@@ -1,133 +1,409 @@
 Return-path: <mchehab@pedra>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38633 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757188Ab1COOEH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Mar 2011 10:04:07 -0400
-From: Manjunath Hadli <manjunath.hadli@ti.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Kevin Hilman <khilman@deeprootsystems.com>,
-	LAK <linux-arm-kernel@lists.infradead.org>,
-	Sekhar Nori <nsekhar@ti.com>
-Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: [PATCH v15 06/13] davinci vpbe: Readme text for Dm6446 vpbe
-Date: Tue, 15 Mar 2011 19:28:15 +0530
-Message-Id: <1300197495-4365-1-git-send-email-manjunath.hadli@ti.com>
+Received: from sj-iport-3.cisco.com ([171.71.176.72]:34699 "EHLO
+	sj-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752249Ab1C2JzF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Mar 2011 05:55:05 -0400
+From: Hans Verkuil <hansverk@cisco.com>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [RFC] V4L2 API for flash devices
+Date: Tue, 29 Mar 2011 11:54:43 +0200
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Nayden Kanchev <nkanchev@mm-sol.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Cohen David Abraham <david.cohen@nokia.com>
+References: <4D90854C.2000802@maxwell.research.nokia.com> <201103290849.48799.hverkuil@xs4all.nl> <4D91A7D7.5060909@maxwell.research.nokia.com>
+In-Reply-To: <4D91A7D7.5060909@maxwell.research.nokia.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201103291154.43536.hansverk@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Please refer to this file for detailed documentation of
-davinci vpbe v4l2 driver.
+On Tuesday, March 29, 2011 11:35:19 Sakari Ailus wrote:
+> Hi Hans,
+> 
+> Many thanks for the comments!
+> 
+> Hans Verkuil wrote:
+> > On Monday, March 28, 2011 14:55:40 Sakari Ailus wrote:
+> >> Hi,
+> >>
+> >> This is a proposal for an interface for controlling flash devices on the
+> >> V4L2/v4l2_subdev APIs. My plan is to use the interface in the ADP1653
+> >> driver, the flash controller used in the Nokia N900.
+> >>
+> >> Comments and questions are very, very welcome!
+> >>
+> >>
+> >> Scope
+> >> =====
+> >>
+> >> This RFC is focused mostly on the ADP1653 [1] and similar chips [2, 3]
+> >> which provides following functionality. [2, 3] mostly differ on the
+> >> available faults --- for example, there are faults also for the
+> >> indicator LED.
+> >>
+> >> - High power LED output (flash or torch modes)
+> >> - Low power indicator LED output (a.k.a. privacy light)
+> >> - Programmable flash timeout
+> >> - Software and hardware strobe
+> >> - Fault detection
+> >> 	- Overvoltage
+> >> 	- Overtemperature
+> >> 	- Short circuit
+> >> 	- Timeout
+> >> - Programmable current (both high-power and indicator LEDs)
+> >>
+> >> If anyone else is aware of hardware which significantly differs from
+> >> these and does not get served well under the proposed interface, please
+> >> tell about it.
+> >>
+> >> This RFC does NOT address the synchronisation of the flash to a given
+> >> frame since this task is typically performed by the sensor through a
+> >> strobe signal. The host does not have enough information for this ---
+> >> exact timing information on the exposure of the sensor pixel array. In
+> >> this case the flash synchronisation is visible to the flash controller
+> >> as the hardware strobe originating from the sensor.
+> >>
+> >> Flash synchronisation requires
+> >>
+> >> 1) flash control capability from the sensor including a strobe output,
+> >> 2) strobe input in the flash controller,
+> >> 3) (optionally) ability to program sensor parameters at given frame,
+> >> such as flash strobe, and
+> >> 4) ability to read back metadata produced by the sensor related to a
+> >> given frame. This should include whether the frame is exposed with
+> >> flash, i.e. the sensor's flash strobe output.
+> >>
+> >> Since we have little examples of both in terms of hardware support,
+> >> which is in practice required, it was decided to postpone the interface
+> >> specification for now. [6]
+> >>
+> >> Xenon flash controllers exist but I don't have a specific example of
+> >> those. Typically the interface is quite simple. Gpio pins for charge and
+> >> strobe. The length of the strobe signal determines the strength of the
+> >> flash pulse. The strobe is controlled by the sensor as for LED flash if
+> >> it is hardware based.
+> >>
+> >>
+> >> Known use cases
+> >> ===============
+> >>
+> >> The use case listed below concentrate on using a flash in a mobile
+> >> device, for example in a mobile phone. The use cases could be somewhat
+> >> different in devices the primary use of which is camera.
+> >>
+> >> Unsynchronised LED flash (software strobe)
+> >> ------------------------------------------
+> >>
+> >> Unsynchronised LED flash is controlled directly by the host as the
+> >> sensor. The flash must be enabled by the host before the exposure of the
+> >> image starts and disabled once it ends. The host is fully responsible
+> >> for the timing of the flash.
+> >>
+> >> Example of such device: Nokia N900.
+> >>
+> >>
+> >> Synchronised LED flash (hardware strobe)
+> >> ----------------------------------------
+> >>
+> >> The synchronised LED flash is pre-programmed by the host (power and
+> >> timeout) but controlled by the sensor through a strobe signal from the
+> >> sensor to the flash.
+> >>
+> >> The sensor controls the flash duration and timing. This control
+> >> typically must be programmed to the sensor, and specifying an interface
+> >> for this is out of scope of this RFC.
+> >>
+> >> The LED flash controllers we know of can function in both synchronised
+> >> and unsynchronised modes.
+> >>
+> >>
+> >> LED flash as torch
+> >> ------------------
+> >>
+> >> LED flash may be used as torch in conjunction with another use case
+> >> involving camera or individually. [4]
+> >>
+> >>
+> >> Synchronised xenon flash
+> >> ------------------------
+> >>
+> >> The synchronised xenon flash is controlled more closely by the sensor
+> >> than the LED flash. There is no separate intensity control for the xenon
+> >> flash as its intensity is determined by the length of the strobe pulse.
+> >> Several consecutive strobe pluses are possible but this needs to be
+> >> still controlled by the sensor.
+> >>
+> >>
+> >> Proposed interface
+> >> ==================
+> >>
+> >> The flash, either LED or xenon, does not require large amounts of data
+> >> to control it. There are parameters to control it but they are
+> >> independent and assumably some hardware would only support some subsets
+> >> of the functionality available somewhere else. Thus V4L2 controls seem
+> >> an ideal way to support flash controllers.
+> >>
+> >> A separate control class is reserved for the flash controls. It is
+> >> called V4L2_CTRL_CLASS_FLASH.
+> >>
+> >> Type of the control; type of flash is in parentheses after the control.
+> >>
+> >>
+> >> 	V4L2_CID_FLASH_STROBE (button; LED)
+> >>
+> >> Strobe the flash using software strobe from the host, typically over I2C
+> >> or a GPIO. The flash is NOT synchronised to sensor pixel are exposure
+> >> since the command is given asynchronously. Alternatively, if the flash
+> >> controller is a master in the system, the sensor exposure may be
+> >> triggered based on software strobe.
+> 
+> It occurred to me that an application might want to turn off a flash
+> which has been strobed on software. That can't be done on a single
+> button control.
+> 
+> V4L2_CID_FLASH_SHUTDOWN?
+> 
+> The application would know the flash strobe is ongoing before it
+> receives a timeout fault. I somehow feel that there should be a control
+> telling that directly.
+> 
+> What about using a bool control for the strobe?
 
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- Documentation/video4linux/README.davinci-vpbe |   93 +++++++++++++++++++++++++
- 1 files changed, 93 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/video4linux/README.davinci-vpbe
+It depends: is the strobe signal just a pulse that kicks off the flash, or is 
+it active throughout the flash duration? In the latter case a bool makes 
+sense, in the first case an extra button control makes sense.
 
-diff --git a/Documentation/video4linux/README.davinci-vpbe b/Documentation/video4linux/README.davinci-vpbe
-new file mode 100644
-index 0000000..7a460b0
---- /dev/null
-+++ b/Documentation/video4linux/README.davinci-vpbe
-@@ -0,0 +1,93 @@
-+
-+                VPBE V4L2 driver design
-+ ======================================================================
-+
-+ File partitioning
-+ -----------------
-+ V4L2 display device driver
-+         drivers/media/video/davinci/vpbe_display.c
-+         drivers/media/video/davinci/vpbe_display.h
-+
-+ VPBE display controller
-+         drivers/media/video/davinci/vpbe.c
-+         drivers/media/video/davinci/vpbe.h
-+
-+ VPBE venc sub device driver
-+         drivers/media/video/davinci/vpbe_venc.c
-+         drivers/media/video/davinci/vpbe_venc.h
-+         drivers/media/video/davinci/vpbe_venc_regs.h
-+
-+ VPBE osd driver
-+         drivers/media/video/davinci/vpbe_osd.c
-+         drivers/media/video/davinci/vpbe_osd.h
-+         drivers/media/video/davinci/vpbe_osd_regs.h
-+
-+ Functional partitioning
-+ -----------------------
-+
-+ Consists of the following (in the same order as the list under file
-+ partitioning):-
-+
-+ 1. V4L2 display driver
-+    Implements creation of video2 and video3 device nodes and
-+    provides v4l2 device interface to manage VID0 and VID1 layers.
-+
-+ 2. Display controller
-+    Loads up VENC, OSD and external encoders such as ths8200. It provides
-+    a set of API calls to V4L2 drivers to set the output/standards
-+    in the VENC or external sub devices. It also provides
-+    a device object to access the services from OSD subdevice
-+    using sub device ops. The connection of external encoders to VENC LCD
-+    controller port is done at init time based on default output and standard
-+    selection or at run time when application change the output through
-+    V4L2 IOCTLs.
-+
-+    When connected to an external encoder, vpbe controller is also responsible
-+    for setting up the interface between VENC and external encoders based on
-+    board specific settings (specified in board-xxx-evm.c). This allows
-+    interfacing external encoders such as ths8200. The setup_if_config()
-+    is implemented for this as well as configure_venc() (part of the next patch)
-+    API to set timings in VENC for a specific display resolution. As of this
-+    patch series, the interconnection and enabling and setting of the external
-+    encoders is not present, and would be a part of the next patch series.
-+
-+ 3. VENC subdevice module
-+    Responsible for setting outputs provided through internal DACs and also
-+    setting timings at LCD controller port when external encoders are connected
-+    at the port or LCD panel timings required. When external encoder/LCD panel
-+    is connected, the timings for a specific standard/preset is retrieved from
-+    the board specific table and the values are used to set the timings in
-+    venc using non-standard timing mode.
-+
-+    Support LCD Panel displays using the VENC. For example to support a Logic
-+    PD display, it requires setting up the LCD controller port with a set of
-+    timings for the resolution supported and setting the dot clock. So we could
-+    add the available outputs as a board specific entry (i.e add the "LogicPD"
-+    output name to board-xxx-evm.c). A table of timings for various LCDs
-+    supported can be maintained in the board specific setup file to support
-+    various LCD displays.As of this patch a basic driver is present, and this
-+    support for external encoders and displays forms a part of the next
-+    patch series.
-+
-+ 4. OSD module
-+    OSD module implements all OSD layer management and hardware specific
-+    features. The VPBE module interacts with the OSD for enabling and
-+    disabling appropriate features of the OSD.
-+
-+ Current status:-
-+
-+ A fully functional working version of the V4L2 driver is available. This
-+ driver has been tested with NTSC and PAL standards and buffer streaming.
-+
-+ Following are TBDs.
-+
-+ vpbe display controller
-+    - Add support for external encoders.
-+    - add support for selecting external encoder as default at probe time.
-+
-+ vpbe venc sub device
-+    - add timings for supporting ths8200
-+    - add support for LogicPD LCD.
-+
-+ FB drivers
-+    - Add support for fbdev drivers.- Ready and part of subsequent patches.
--- 
-1.6.2.4
+> 
+> >> 	V4L2_CID_FLASH_STROBE_MODE (menu; LED)
+> >>
+> >> Use hardware or software strobe. If hardware strobe is selected, the
+> >> flash controller is a slave in the system where the sensor produces the
+> >> strobe signal to the flash.
+> >>
+> >> In this case the flash controller setup is limited to programming strobe
+> >> timeout and power (LED flash) and the sensor controls the timing and
+> >> length of the strobe.
+> >>
+> >> enum v4l2_flash_strobe_mode {
+> >> 	V4L2_FLASH_STROBE_MODE_SOFTWARE,
+> >> 	V4L2_FLASH_STROBE_MODE_EXT_STROBE,
+> >> };
+> > 
+> > I'm not sure about the naming. Perhaps call the first MODE_SW_STROBE?
+> > Or MODE_SW_TRIGGER and MODE_HW_TRIGGER? Or perhaps just MODE_SOFTWARE and
+> > MODE_EXTERNAL or MODE_HARDWARE.
+> 
+> MODE_SOFTWARE and MODE_EXTERNAL (or MODE_HARDWARE) are the best, I
+> think. Indeed there's no need to repeat strobe in the name of a strobe mode.
+> 
+> "External" is good since it directly indicates the strobe is external to
+> the flash controller.
+> 
+> >>
+> >>
+> >> 	V4L2_CID_FLASH_TIMEOUT (integer; LED)
+> >>
+> >> The flash controller provides timeout functionality to shut down the led
+> >> in case the host fails to do that. For hardware strobe, this is the
+> >> maximum amount of time the flash should stay on, and the purpose of the
+> >> setting is to prevent the LED from catching fire.
+> >>
+> >> For software strobe, the setting may be used to limit the length of the
+> >> strobe in case a driver does not implement it itself. The granularity of
+> >> the timeout in [1, 2, 3] is very coarse. However, the length of a
+> >> driver-implemented LED strobe shutoff is very dependent on host.
+> >> Possibly V4L2_CID_FLASH_DURATION should be added, and
+> >> V4L2_CID_FLASH_TIMEOUT would be read-only so that the user would be able
+> >> to obtain the actual hardware implemented safety timeout.
+> >>
+> >> Likely a standard unit such as ms or µs should be used.
+> > 
+> > It seems to me that this control should always be read-only. A setting 
+like
+> > this is very much hardware specific and you don't want an attacker 
+changing
+> > the timeout to the max value that might cause a LED catching fire.
+> 
+> I'm not sure about that.
+> 
+> The driver already must take care of protecting the hardware in my
+> opinion. Besides, at least one control is required to select the
+> duration for the flash if there's no hardware synchronisation.
+> 
+> What about this:
+> 
+> 	V4L2_CID_FLASH_TIMEOUT
+> 
+> Hardware timeout, read-only. Programmed to the maximum value allowed by
+> the hardware for the external strobe, greater or equal to
+> V4L2_CID_FLASH_DURATION for software strobe.
+> 
+> 	V4L2_CID_FLASH_DURATION
+> 
+> Software implemented timeout when V4L2_CID_FLASH_STROBE_MODE ==
+> V4L2_FLASH_STROBE_MODE_SOFTWARE.
+> 
+> I have to say I'm not entirely sure the duration control is required.
+> The timeout could be writable for software strobe in the case drivers do
+> not implement software timeout. The granularity isn't _that_ much
+> anyway. Also, a timeout fault should be produced whenever the duration
+> would expire.
+> 
+> Perhaps it would be best to just leave that out for now.
 
+Do you need something like this for the N900? If not, then leaving it out 
+until we have a bit more experience is a good option.
+
+Regards,
+
+	Hans
+
+> 
+> >>
+> >>
+> >> 	V4L2_CID_FLASH_LED_MODE (menu; LED)
+> >>
+> >> enum v4l2_flash_led_mode {
+> >> 	V4L2_FLASH_LED_MODE_FLASH = 1,
+> >> 	V4L2_FLASH_LED_MODE_TORCH,
+> >> };
+> > 
+> > Would a LED_MODE_NONE make sense as well to turn off the flash completely?
+> 
+> It would essentially be the same as choosing software strobe and
+> disabling strobe. A separate mode for this still could be good to make
+> it explicit.
+> 
+> >>
+> >>
+> >> 	V4L2_CID_FLASH_INTENSITY (integer; LED)
+> >>
+> >> Intensity of the flash in hardware specific units. The LED flash
+> >> controller provides current to the LED but the actual luminous power is
+> >> dictated by the LED connected to the controller.
+> >>
+> >>
+> >> 	V4L2_CID_FLASH_TORCH_INTENSITY (integer; LED)
+> >>
+> >> Intensity of the flash in hardware specific units.
+> >>
+> >>
+> >> 	V4L2_CID_FLASH_INDICATOR_INTENSITY (integer; LED)
+> >>
+> >> Intensity of the indicator light in hardware specific units.
+> >>
+> >>
+> >> 	V4L2_CID_FLASH_FAULT (bit field; LED)
+> >>
+> >> This is a bitmask containing the fault information for the flash. This
+> >> assumes the proposed V4L2 bit mask controls [5]; otherwise this would
+> >> likely need to be a set of controls.
+> > 
+> > I intend to work on bitmask controls and control events tomorrow.
+> 
+> Nice! I look forward to see them! :-)
+> 
+> >>
+> >> #define V4L2_FLASH_FAULT_OVER_VOLTAGE		0x00000001
+> >> #define V4L2_FLASH_FAULT_TIMEOUT		0x00000002
+> >> #define V4L2_FLASH_FAULT_OVER_TEMPERATURE	0x00000004
+> >> #define V4L2_FLASH_FAULT_SHORT_CIRCUIT		0x00000008
+> >>
+> >> Several faults may occur at single occasion. The ADP1653 is able to
+> >> inform the user a fault has occurred, so a V4L2 control event (proposed
+> >> earlier) could be used for that.
+> 
+> Btw. as this is an I2C device, there's an external interrupt pin which
+> tells this. Very likely the board code needs to tell this to the driver,
+> or the driver could depend on the GPIO framework while the configuration
+> would be in the board code.
+> 
+> >> These faults are supported by the ADP1653. More faults may be added as
+> >> support for more chips require that. In some other hardware faults are
+> >> available for indicator led as well.
+> >>
+> >> Question: should indicator faults be part of the same control, or a
+> >> different control, e.g. V4L2_CID_FLASH_INDICATOR_FAULT?
+> > 
+> > If they are independently reported, then I would say so, yes.
+> 
+> I believe it could be the same register, but this could be hardware
+> dependent.
+> 
+> Still, the faults essentially can be divided to separate LEDs. Perhaps
+> it'd be good to rethink this when someone writes a driver for such a
+> device. :-)
+> 
+> >>
+> >>
+> >> 	V4L2_CID_FLASH_CHARGE (bool; xenon)
+> >>
+> >> Charge control for the xenon flash. Enable or disable charging.
+> >>
+> >>
+> >> 	V4L2_CID_FLASH_READY (bool; xenon, LED)
+> >>
+> >> Flash is ready to strobe. On xenon flash this tells the capacitor has
+> >> been charged, on LED flash it's that the LED is no longer too hot.
+> >>
+> >> The implementation on LED flash may be modelling the temperature
+> >> behaviour of the LED in the driver (or elsewhere, e.g. library or board
+> >> code) if the hardware does not provide direct temperature information
+> >> from the LED.
+> >>
+> >> A V4L2 control event should be produced whenever the flash becomes ready.
+> > 
+> > Looks good!
+> 
+> Thanks! :-)
+> 
+> > 
+> > Regards,
+> > 
+> > 	Hans
+> > 
+> >>
+> >>
+> >> References
+> >> ==========
+> >>
+> >> [1] http://www.analog.com/static/imported-files/data_sheets/ADP1653.pdf
+> >>
+> >> [2] http://www.national.com/mpf/LM/LM3555.html#Overview
+> >>
+> >> [3]
+> >> http://www.austriamicrosystems.com/eng/Products/Lighting-
+Management/Camera-Flash-LED-Drivers/AS3645
+> >>
+> >> [4] http://maemo.org/downloads/product/Maemo5/flashlight-applet/
+> >>
+> >> [5]
+> >> http://www.retiisi.org.uk/v4l2/v4l2-brainstorming-
+warsaw-2011-03/notes/day%202%20(SGz6LU2esk).html
+> >>
+> >> [6]
+> >> http://www.retiisi.org.uk/v4l2/v4l2-brainstorming-
+warsaw-2011-03/notes/day%203%20(RhoYa0X9D7).html
+> >>
+> >>
+> >> Cheers,
+> >>
+> >>
+> > 
+> 
+> 
+> -- 
+> Sakari Ailus
+> sakari.ailus@maxwell.research.nokia.com
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
