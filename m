@@ -1,264 +1,183 @@
 Return-path: <mchehab@pedra>
-Received: from lo.gmane.org ([80.91.229.12]:56128 "EHLO lo.gmane.org"
+Received: from mx1.redhat.com ([209.132.183.28]:52080 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750821Ab1C2JWf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Mar 2011 05:22:35 -0400
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1Q4V8B-0003BG-KS
-	for linux-media@vger.kernel.org; Tue, 29 Mar 2011 11:22:31 +0200
-Received: from 217067201162.u.itsa.pl ([217.67.201.162])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Tue, 29 Mar 2011 11:22:31 +0200
-Received: from t.stanislaws by 217067201162.u.itsa.pl with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Tue, 29 Mar 2011 11:22:31 +0200
-To: linux-media@vger.kernel.org
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [PATCH 0/2] V4L: Extended crop/compose API
-Date: Tue, 29 Mar 2011 11:22:17 +0200
-Message-ID: <4D91A4C9.6050602@samsung.com>
-References: <1301325596-18166-1-git-send-email-t.stanislaws@samsung.com> <201103290858.16138.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+	id S1751360Ab1C2XVi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Mar 2011 19:21:38 -0400
+Message-ID: <4D92697C.3030209@redhat.com>
+Date: Tue, 29 Mar 2011 20:21:32 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: handygewinnspiel@gmx.de
+CC: linux-media@vger.kernel.org
+Subject: Re: [w_scan PATCH] Add Brazil support on w_scan
+References: <4D909B59.9040809@redhat.com> <20110328172045.64750@gmx.net> <4D90D78F.7050308@redhat.com> <20110329201152.282620@gmx.net>
+In-Reply-To: <20110329201152.282620@gmx.net>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-In-Reply-To: <201103290858.16138.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hans Verkuil wrote:
-> On Monday, March 28, 2011 17:19:54 Tomasz Stanislawski wrote:
->> Hello everyone,
+Em 29-03-2011 17:11, handygewinnspiel@gmx.de escreveu:
+>> Em 28-03-2011 14:20, handygewinnspiel@gmx.de escreveu:
+>>> Hi Mauro,
+>>>
+>>>> This patch adds support for both ISDB-T and DVB-C @6MHz used in
+>>>> Brazil, and adds a new bit rate of 5.2170 MSymbol/s, found on QAM256
+>>>> transmissions at some Brazilian cable operators.
+>>>
+>>> Good. :)
+>>>
+>>>> While here, fix compilation with kernels 2.6.39 and later, where the
+>>>> old V4L1 API were removed (so, linux/videodev.h doesn't exist anymore).
+>>>> This is needed to compile it on Fedora 15 beta.
+>>>
+>>> videodev.h should have never been in there. Was already reported and
+>> will be removed instead.
+>>>
+>>>> @@ -1985,6 +1986,10 @@
+>>>>  		dvbc_symbolrate_min=dvbc_symbolrate_max=0;
+>>>>  		break;
+>>>>  	case FE_QAM:
+>>>> +		// 6MHz DVB-C uses lower symbol rates
+>>>> +		if (freq_step(channel, this_channellist) == 6000000) {
+>>>> +			dvbc_symbolrate_min=dvbc_symbolrate_max=17;
+>>>> +		}
+>>>>  		break;
+>>>>  	case FE_QPSK:
+>>>>  		// channel means here: transponder,
+>>>
+>>> This one causes me headache, because this one has side-effects to all
+>> other DVB-C cases using 6MHz bandwidth.
+>>> Are there *any cases* around, where some country may use DVB-C with
+>> symbolrates other than 5.217Mbit/s?
 >>
->> This patch-set introduces new ioctls to V4L2 API. The new method for
->> configuration of cropping and composition is presented.
+>> If you take a look at EN 300 429[1], The DVB-C roll-off factor (alpha) is
+>> defined as 0.15.
 >>
->> There is some confusion in understanding of a cropping in current version of
->> V4L2. For CAPTURE devices cropping refers to choosing only a part of input
->> data stream and processing it and storing it in a memory buffer. The buffer is
->> fully filled by data. It is not possible to choose only a part of a buffer for
->> being updated by hardware.
+>> 	[1] EN 300 429 V1.2.1 (1998-04), chapter 9, page 16, and table B.1
 >>
->> In case of OUTPUT devices, the whole content of a buffer is passed by hardware
->> to output display. Cropping means selecting only a part of an output
->> display/signal. It is not possible to choose only a part for a memory buffer
->> to be processed.
+>> So, the amount of the needed bandwidth (e. g. the Nyquist cut-off
+>> frequency) is given by:
+>>   Bw = Symbol_rate * (1 + 0.15)
 >>
->> The overmentioned flaws in cropping API were discussed in post:
->> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/28945
+>> E. g. the maximum symbol rate is given by:
 >>
->> A solution was proposed during brainstorming session in Warsaw.
+>> 	Symbol_rate(6MHz) = 6000000/1.15 = 5217391.30434782608695652173
+>> 	Symbol_rate(7MHz) = 7000000/1.15 = 6086956.52173913043478260869
+>> 	Symbol_rate(8MHz) = 8000000/1.15 = 6956521.73913043478260869565
+>>
+>> As you see, for Countries using 6MHz bandwidth, the maximum value is about
+>> 5.127 Mbauds.
+>> With the current w_scan logic of assuming 6.9 or 6.875 Mbauds by default
+>> for DVB-C, 
+>> w_scan will never find any channel, if the channel bandwidth fits into a
+>> 6MHz (or 7MHz)
+>> channel spacing.
+>>
+>> So, the above change won't cause regressions, although it could be
+>> improved.
+> 
+> 
+> 
+> If w_scan assumes that every 6MHz cable network, also outside Brazil, will use it's maximum theoretical symbol
+> rate *only* like your patch was implemented, it will probably fail as well, because in practice lower values are used.
 
-Hello. Thank you for a quick comment.
+True. I suspect, however, that there aren't many Countries using 6MHz for DVB-C. The bandwidth usage
+for cable generally follows the analog broadcast standard. There are two standards used for 6MHz
+analog: NTSC/M (North/Central America, Japan, Korea) and PAL/M (used only in Brazil and Laos, AFAIK - 
+never had the opportunity to talk with anyone from Laos to double check it). The Countries that use 
+NTSC generally follow US choice for Digital (Except for Japan: I think ISDB-C is used there).
 
 > 
-> I don't have time right now to review this RFC in-depth, but one thing that
-> needs more attention is the relationship between these new ioctls and CROPCAP.
+> Your patch disabled the looping through different symbol rates for any 6MHz network; therefore i was asking.
 > 
-> And also how this relates to analog inputs (I don't think analog outputs make
-> any sense). And would a COMPOSECAP ioctl make sense?
+> So I changed it now to scan any srate for 6MHz networks, but skip over those which are unsupported by bandwidth limitation.
+
+Thanks for appling the fix for Brazil!
+
+I look your implementation. It looks sane, although it will increase a lot
+the scanning time. IMO, for now, except if the user uses -e or -S parameters,
+I would just seek for 5127 symbol rate, to speed up scanning.
+
 > 
-
-Maybe two new ioctl COMPOSECAP and EXTCROPCAP should be added.
-For input CROPCAP maps to EXTCROPCAP, for output it maps to COMPOSECAP.
-The output EXTCROPCAP would return dimentions of a buffer.
-But in my opinion field v4l2_selection::bounds should be added to 
-structure below. In such a case G_EXTCROP could be used to obtain 
-cropping bounds.
-
->> 1. Data structures.
+> 
 >>
->> The structure v4l2_crop used by current API lacks any place for further
->> extensions. Therefore new structure is proposed.
+>> IMHO, a different logic could be used instead, if the user doesn't use the
+>> -S parameter, like:
 >>
->> struct v4l2_selection {
->> 	u32 type;
->> 	struct v4l2_rect r;
->> 	u32 flags;
->> 	u32 reserved[10];
+>> int dvbc_symbolrate[] = {
+>> 	7000000,
+>> 	6956500,		/* Max Symbol rate for 8 MHz channel bandwidth */
+>> 	6956000,
+>> 	6952000,
+>> 	6950000,
+>> 	6900000,
+>> 	6875000,
+>> 	6811000,
+>> 	6790000,
+>> 	6250000,
+>> 	6111000,
+>>
+>> 	/* Weird: I would expect 6086 or 6086.5 here, as the max rate for 7MHz
+>> spacing */
+>> 			
+>> 	5900000,		/* Require at least 7 MHz channel bandwidth */
+>> 	5483000,
+>> 	5217000,		/* Max Symbol rate for 6 MHz channel bandwidth */
+>> 	5156000,
+>> 	5000000,
+>> 	4000000,
+>> 	3450000,
 >> };
 >>
->> Where,
->> type	 - type of buffer queue: V4L2_BUF_TYPE_VIDEO_CAPTURE,
->>            V4L2_BUF_TYPE_VIDEO_OUTPUT, etc.
->> r	 - selection rectangle
->> flags	 - control over coordinates adjustments
->> reserved - place for further extensions, adjust struct size to 64 bytes
+>> for (i = 0; i < ARRAY_SIZE(dvbc_symbolrate)) {
+>> 	if (freq_step(channel, this_channellist) / 1.15 > dvbc_symbolrate[i])
+>> 		next;
 >>
->> At first, the distinction between cropping and composing was stated. The
->> cropping operation means choosing only part of input data bounding it by a
->> cropping rectangle.  All other data must be discarded.  On the other hand,
->> composing means pasting processed data into rectangular part of data sink. The
->> sink may be output device, user buffer, etc.
+>> 	/* Scan channel */
+>> ...
+>> }
 >>
->> 2. Crop/Compose ioctl.
->> Four new ioctls would be added to V4L2.
->>
->> Name
->> 	VIDIOC_S_EXTCROP - set cropping rectangle on an input of a device
->>
->> Synopsis
->> 	int ioctl(fd, VIDIOC_S_EXTCROP, struct v4l2_selection *s)
->>
->> Description:
->> 	The ioctl is used to configure:
->> 	- for input devices, a part of input data that is processed in hardware
->> 	- for output devices, a part of a data buffer to be passed to hardware
->> 	  Drivers may adjust a cropping area. The adjustment can be controlled
->>           by v4l2_selection::flags.  Please refer to Hints section.
->> 	- an adjusted crop rectangle is returned in v4l2_selection::r
->>
->> Return value
->> 	On success 0 is returned, on error -1 and the errno variable is set
->>         appropriately:
->> 	ERANGE - failed to find a rectangle that satisfy all constraints
->> 	EINVAL - incorrect buffer type, cropping not supported
->>
->> -----------------------------------------------------------------
->>
->> Name
->> 	VIDIOC_G_EXTCROP - get cropping rectangle on an input of a device
->>
->> Synopsis
->> 	int ioctl(fd, VIDIOC_G_EXTCROP, struct v4l2_selection *s)
->>
->> Description:
->> 	The ioctl is used to query:
->> 	- for input devices, a part of input data that is processed in hardware
->> 	- for output devices, a part of data buffer to be passed to hardware
->>
->> Return value
->> 	On success 0 is returned, on error -1 and the errno variable is set
->>         appropriately:
->> 	EINVAL - incorrect buffer type, cropping not supported
->>
->> -----------------------------------------------------------------
->>
->> Name
->> 	VIDIOC_S_COMPOSE - set destination rectangle on an output of a device
->>
->> Synopsis
->> 	int ioctl(fd, VIDIOC_S_COMPOSE, struct v4l2_selection *s)
->>
->> Description:
->> 	The ioctl is used to configure:
->> 	- for input devices, a part of a data buffer that is filled by hardware
->> 	- for output devices, a area on output device where image is inserted
->> 	Drivers may adjust a composing area. The adjustment can be controlled
->>         by v4l2_selection::flags. Please refer to Hints section.
->> 	- an adjusted composing rectangle is returned in v4l2_selection::r
->>
->> Return value
->> 	On success 0 is returned, on error -1 and the errno variable is set
->>         appropriately:
->> 	ERANGE - failed to find a rectangle that satisfy all constraints
->> 	EINVAL - incorrect buffer type, composing not supported
->>
->> -----------------------------------------------------------------
->>
->> Name
->> 	VIDIOC_G_COMPOSE - get destination rectangle on an output of a device
->>
->> Synopsis
->> 	int ioctl(fd, VIDIOC_G_COMPOSE, struct v4l2_selection *s)
->>
->> Description:
->> 	The ioctl is used to query:
->> 	- for input devices, a part of a data buffer that is filled by hardware
->> 	- for output devices, a area on output device where image is inserted
->>
->> Return value
->> 	On success 0 is returned, on error -1 and the errno variable is set
->>         appropriately:
->> 	EINVAL - incorrect buffer type, composing not supported
->>
->>
->> 3. Hints
->>
->> The v4l2_selection::flags field is used to give a driver a hint about
->> coordinate adjustments.  Below one can find the proposition of adjustment
->> flags. The syntax is V4L2_SEL_{name}_{LE/GE}, where {name} refer to a field in
->> struct v4l2_rect. The LE is abbreviation from "lesser or equal".  It prevents
->> the driver form increasing a parameter. In similar fashion GE means "greater or
->> equal" and it disallows decreasing. Combining LE and GE flags prevents the
->> driver from any adjustments of parameters.  In such a manner, setting flags
->> field to zero would give a driver a free hand in coordinate adjustment.
->>
->> #define V4L2_SEL_WIDTH_GE	0x00000001
->> #define V4L2_SEL_WIDTH_LE	0x00000002
->> #define V4L2_SEL_HEIGHT_GE	0x00000004
->> #define V4L2_SEL_HEIGHT_LE	0x00000008
->> #define V4L2_SEL_LEFT_GE	0x00000010
->> #define V4L2_SEL_LEFT_LE	0x00000020
->> #define V4L2_SEL_TOP_GE		0x00000040
->> #define V4L2_SEL_TOP_LE		0x00000080
 > 
-> Wouldn't you also need similar flags for RIGHT and BOTTOM?
-> 
-> Regards,
-> 
-> 	Hans
-> 
-Proposed flags refer to fields in v4l2_rect structure. These are left, 
-top, width and height. Fields bottom and right and not present in 
-v4l2_rect structure.
+> Doesnt look reasonable, since every DVB-C scan would take easily several hours this way.
 
-Best regards,
-Tomasz Stanislawski
+True. One way to speed up would be to assume that all DVB-C channels have the same symbol rate,
+by default (and provide a parameter to override it). Something like:
 
->> #define V4L2_SEL_WIDTH_FIXED	0x00000003
->> #define V4L2_SEL_HEIGHT_FIXED	0x0000000c
->> #define V4L2_SEL_LEFT_FIXED	0x00000030
->> #define V4L2_SEL_TOP_FIXED	0x000000c0
->>
->> #define V4L2_SEL_FIXED		0x000000ff
->>
->> The hint flags may be useful in a following scenario.  There is a sensor with a
->> face detection functionality. An application receives information about a
->> position of a face on sensor array. Assume that the camera pipeline is capable
->> of an image scaling. The application is capable of obtaining a location of a
->> face using V4L2 controls. The task it to grab only part of image that contains
->> a face, and store it to a framebuffer at a fixed window. Therefore following
->> constrains have to be satisfied:
->> - the rectangle that contains a face must lay inside cropping area
->> - hardware is allowed only to access area inside window on the framebuffer
->>
->> Both constraints could be satisfied with two ioctl calls.
->> - VIDIOC_EXTCROP with flags field equal to
->>   V4L2_SEL_TOP_FIXED | V4L2_SEL_LEFT_FIXED |
->>   V4L2_SEL_WIDTH_GE | V4L2_SEL_HEIGHT_GE.
->> - VIDIOC_COMPOSE with flags field equal to
->>   V4L2_SEL_TOP_FIXED | V4L2_SEL_LEFT_FIXED |
->>   V4L2_SEL_WIDTH_LE | V4L2_SEL_HEIGHT_LE
->>
->> Feel free to add a new flag if necessary.
->>
->> 4. Possible improvements and extensions.
->> - combine composing and cropping ioctl into a single ioctl
->> - add subpixel resolution
->>  * hardware is often capable of subpixel processing. The ioctl triple
->>    S_EXTCROP, S_SCALE, S_COMPOSE can be converted to S_EXTCROP and S_COMPOSE
->>    pair if a subpixel resolution is supported
->>
->>
->> What it your opinion about proposed solutions?
->>
->> Looking for a reply,
->>
->> Best regards,
->> Tomasz Stanislawski
->>
->> Tomasz Stanislawski (2):
->>   v4l: add support for extended crop/compose API
->>   v4l: simulate old crop API using extcrop/compose
->>
->>  drivers/media/video/v4l2-compat-ioctl32.c |    4 +
->>  drivers/media/video/v4l2-ioctl.c          |  102 +++++++++++++++++++++++++++--
->>  include/linux/videodev2.h                 |   30 +++++++++
->>  include/media/v4l2-ioctl.h                |    8 ++
->>  4 files changed, 137 insertions(+), 7 deletions(-)
->>
->>
+
+Probably, the easiest way to do it is:
+
++static int assume_all_channels_use_same_symbolrate = 1;
+...
+                if (__tune_to_transponder (frontend_fd, ptest,0) < 0)
+                        continue;
+
++		if ((test.type ==  FE_QAM) && assume_all_channels_use_same_symbolrate) {
++			info("Assuming that all channels use %.04f Msymbols/s symbol rate.\n"
++			     "Use -A parameter to force testing for all symbol rates on all channels\n",
++			     sr_parm/1000000.0);
++			dvbc_symbolrate_min = dvbc_symbolrate_max = sr_parm;
++			assume_all_channels_use_same_symbolrate = 0;
++		}
+...
++                switch (opt) {
++               	case 'A':
++				assume_all_channels_use_same_symbolrate = 0;
++				break;
+
+(code untested)
+
+Another optimization for speeding it up for DVB-C would be to have the symbolrate at the external loop.
+
+> 
+> Sorting into groups makes sense, one per bandwidth, but with the widely used first for each group is better. And still limit to common used srates -> done.
+> 
+> 
+> So, it's included now, but i changed the whole stuff a little. 
+
+
+Anyway, I'll test the today's version and reply if I detect any troubles on it.
+
+Thanks!
+Mauro
 
