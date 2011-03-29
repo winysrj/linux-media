@@ -1,53 +1,76 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.23]:52534 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1756537Ab1CAXiM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Mar 2011 18:38:12 -0500
-Date: Wed, 2 Mar 2011 00:38:06 +0100
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: "Martin Bugge \(marbugge\)" <marbugge@cisco.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC] HDMI-CEC proposal
-Message-ID: <20110301233806.GA4969@minime.bse>
-References: <4D6CC36B.50009@cisco.com>
+Received: from smtp2.sms.unimo.it ([155.185.44.12]:51359 "EHLO
+	smtp2.sms.unimo.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751635Ab1C2RH0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Mar 2011 13:07:26 -0400
+Received: from mail-fx0-f51.google.com ([209.85.161.51]:49542)
+	by smtp2.sms.unimo.it with esmtps (TLS1.0:RSA_ARCFOUR_SHA1:16)
+	(Exim 4.69)
+	(envelope-from <76466@studenti.unimore.it>)
+	id 1Q4boq-0001rf-Pg
+	for linux-media@vger.kernel.org; Tue, 29 Mar 2011 18:31:00 +0200
+Received: by fxm5 with SMTP id 5so472345fxm.24
+        for <linux-media@vger.kernel.org>; Tue, 29 Mar 2011 09:31:00 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4D6CC36B.50009@cisco.com>
+Date: Tue, 29 Mar 2011 11:30:53 -0500
+Message-ID: <AANLkTinVP6CePBY6g9Dn2aKXM0ovwmpqMd5G4ucz44EH@mail.gmail.com>
+Subject: soc_camera dynamically cropping and scaling
+From: Paolo Santinelli <paolo.santinelli@unimore.it>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, Mar 01, 2011 at 10:59:07AM +0100, Martin Bugge (marbugge) wrote:
-> CEC is a protocol that provides high-level control functions between
-> various audiovisual products.
-> It is an optional supplement to the High-Definition Multimedia
-> Interface Specification (HDMI).
-> Physical layer is a one-wire bidirectional serial bus that uses the
-> industry-standard AV.link protocol.
+Hi all,
 
-Apart from CEC being twice as fast as AV.link and using 3.6V
-instead of 5V, CEC does look like an extension to the frame format
-defined in EN 50157-2-2 for multiple data bytes.
+I am using a PXA270 board running linux 2.6.37 equipped with an ov9655
+Image sensor. I am able to use the cropping and scaling capabilities
+V4L2 driver.
+The question is :
 
-So, how about adding support for EN 50157-2-* messages as well?
-SCART isn't dead yet.
+Is it possible dynamically change the cropping and scaling values
+without close and re-open  the camera every time ?
 
-EN 50157-2-1 is tricky in that it requires devices to override
-data bits like it is done for ack bits to announce their status.
-There is a single message type with 21 bits.
+Now I am using the streaming I/O memory mapping and to dynamically
+change the cropping and scaling values I do :
 
-For EN 50157-2-2 the only change necessary would be to tell the
-application that it has to use AV.link commands instead of CEC
-commands. In theory one could mix AV.link and CEC on a single
-wire as they can be distinguished by their start bits.
+1) stop capturing using VIDIOC_STREAMOFF;
+2) unmap all the buffers;
+3) close the device;
+4) open the device;
+5) init the device: VIDIOC_CROPCAP and VIDIOC_S_CROP in order to set
+the cropping parameters. VIDIOC_G_FMT and VIDIOC_S_FMT in order to set
+the target image width and height, (scaling).
+6) Mapping the buffers: VIDIOC_REQBUFS in order to request buffers and
+mmap each buffer using VIDIOC_QUERYBUF and mmap():
 
-EN 50157-2-3 allows 7 vendors to register their own applications
-with up to 100 data bits per message. I doubt we can support
-these if they require bits on the wire to be modified.
-As they still didn't make use of the reserved value to extend the
-application number space beyond 7, chances are no vendor ever
-applied for a number.
+this procedure works but take 400 ms.
 
-Just my 2 cents.
+If I omit steps 3) and 4)  (close and re-open the device) I get this errors:
 
-  Daniel
+camera 0-0: S_CROP denied: queue initialised and sizes differ
+camera 0-0: S_FMT denied: queue initialised
+VIDIOC_S_FMT error 16, Device or resource busy
+pxa27x-camera pxa27x-camera.0: PXA Camera driver detached from camera 0
+
+Do you have some Idea regarding why I have to close and reopen the
+device and regarding a way to speed up these change?
+
+Thanks in advance
+
+Paolo Santinelli
+
+-- 
+--------------------------------------------------
+Paolo Santinelli
+ImageLab Computer Vision and Pattern Recognition Lab
+Dipartimento di Ingegneria dell'Informazione
+Universita' di Modena e Reggio Emilia
+via Vignolese 905/B, 41125, Modena, Italy
+
+Cell. +39 3472953357,  Office +39 059 2056270, Fax +39 059 2056129
+email:  <mailto:paolo.santinelli@unimore.it> paolo.santinelli@unimore.it
+URL:  <http://imagelab.ing.unimo.it/> http://imagelab.ing.unimo.it
+--------------------------------------------------
