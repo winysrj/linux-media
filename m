@@ -1,72 +1,89 @@
 Return-path: <mchehab@pedra>
-Received: from ist.d-labs.de ([213.239.218.44]:50384 "EHLO mx01.d-labs.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751930Ab1CFPp6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Mar 2011 10:45:58 -0500
-Date: Sun, 6 Mar 2011 16:45:21 +0100
-From: Florian Mickler <florian@mickler.org>
-To: Oliver Neukum <oliver@neukum.org>
-Cc: mchehab@infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	"Greg Kroah-Hartman" <greg@kroah.com>,
-	"Rafael J. Wysocki" <rjw@sisk.pl>,
-	Maciej Rutecki <maciej.rutecki@gmail.com>
-Subject: Re: [PATCH] [media] dib0700: get rid of on-stack dma buffers
-Message-ID: <20110306164521.2a88a155@schatten.dmk.lab>
-In-Reply-To: <201103061606.38846.oliver@neukum.org>
-References: <1299410212-24897-1-git-send-email-florian@mickler.org>
-	<201103061306.10045.oliver@neukum.org>
-	<20110306153805.001011a9@schatten.dmk.lab>
-	<201103061606.38846.oliver@neukum.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:49474 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754039Ab1C2Ulv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Mar 2011 16:41:51 -0400
+Received: by qwk3 with SMTP id 3so405913qwk.19
+        for <linux-media@vger.kernel.org>; Tue, 29 Mar 2011 13:41:50 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <201103291650.50501.hverkuil@xs4all.nl>
+References: <757395B8DE5A844B80F3F4BE9867DDB652374B2340@EXDCVYMBSTM006.EQ1STM.local>
+	<201103291650.50501.hverkuil@xs4all.nl>
+Date: Tue, 29 Mar 2011 22:41:50 +0200
+Message-ID: <AANLkTi=tC6-bonR8bJc3U=gM0_0HNb4gwA2uqRd+Mm=w@mail.gmail.com>
+Subject: Re: v4l: Buffer pools
+From: Robert Fekete <robert.fekete@linaro.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Willy POISSON <willy.poisson@stericsson.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sun, 6 Mar 2011 16:06:38 +0100
-Oliver Neukum <oliver@neukum.org> wrote:
+Hi Hans!
 
-> Am Sonntag, 6. März 2011, 15:38:05 schrieb Florian Mickler:
-> > On Sun, 6 Mar 2011 13:06:09 +0100
-> > Oliver Neukum <oliver@neukum.org> wrote:
-> > 
-> > > Am Sonntag, 6. März 2011, 12:16:52 schrieb Florian Mickler:
-> 
-> > > > Please take a look at it, as I do not do that much kernel hacking
-> > > > and don't wanna brake anybodys computer... :)
-> > > > 
-> > > > From my point of view this should _not_ go to stable even though it would
-> > > > be applicable. But if someone feels strongly about that and can
-> > > > take responsibility for that change...
-> > > 
-> > > The patch looks good and is needed in stable.
-> > > It could be improved by using a buffer allocated once in the places
-> > > you hold a mutex anyway.
-> > > 
-> > > 	Regards
-> > > 		Oliver
-> > 
-> > Ok, I now put a buffer member in the priv dib0700_state which gets
-> > allocated on the heap. 
-> 
-> This however is wrong. Just like DMA on the stack this breaks
-> coherency rules. You may do DMA to the heap in the sense that
-> you can do DMA to buffers allocated on the heap, but you cannot
-> do DMA to a part of another structure allocated on the heap.
-> You need a separate kmalloc for each buffer.
-> You can reuse the buffer with proper locking, but you must allocate
-> it seperately once.
-> 
-> 	Regards
-> 		Oliver
+On 29 March 2011 16:50, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Tuesday, March 29, 2011 16:01:33 Willy POISSON wrote:
+>> Hi all,
+>>       Following to the Warsaw mini-summit action point, I would like to open the thread to gather buffer pool & memory manager requirements.
+>> The list of requirement for buffer pool may contain:
+>> -     Support physically contiguous and virtual memory
 
-Hm.. allocating the buffer
-in the probe routine and deallocating it in the usb_driver disconnect
-callback should work?
+Only physical contigous allocator supported in hwmem as of today.
 
-How come that it must be a seperate kmalloc buffer? Is it some aligning
-that kmalloc garantees? 
+>> -     Support IPC, import/export handles (between processes/drivers/userland/etc)
 
-Regards,
-Flo
+Supported in hwmem
+
+>> -     Security(access rights in order to secure no one unauthorized is allowed to access buffers)
+
+Supported in hwmem
+
+>> -     Cache flush management (by using setdomain and optimize when flushing is needed)
+
+Supported in hwmem
+
+>> -     Pin/unpin in order to get the actual address to be able to do defragmentation
+
+Pin/unpin implemented but defragmentation not done...yet. It's more of
+a memory allocator feature and I know CMA took influence of this and
+added pin/unpin into CMA in order to be able to do defragmentation
+
+>> -     Support pinning in user land in order to allow defragmentation while buffer is mmapped but not pined.
+>> -     Both a user API and a Kernel API is needed for this module. (Kernel drivers needs to be able to resolve buffer handles as well from the memory manager module, and pin/unpin)
+
+Supported in hwmem
+
+>> -     be able to support any platform specific allocator (Separate memory allocation from management as allocator is platform dependant)
+
+As Laurent pinpointed we have a tightly coupled physical contigous
+memory allocator in hwmem today. Plan is to separate this more clearly
+from the hwmem api's and also add a virtual memory allocator as
+well(This is not supported today). We have also tested as a quick
+prototype to use CMA as allocator.
+
+
+>> -     Support multiple region domain (Allow to allocate from several memory domain ex: DDR1, DDR2, Embedded SRAM to make for ex bandwidth load balancing ...)
+
+Not supported in hwmem today. No problems to add separate
+regions(mapped to several ddr banks or whatever), although
+loadbalancing and similar will likely need some fancy hw in order to
+spread addresses across the regions efficiently.
+
+>
+> Thanks for your input, Willy!
+>
+> I have one question: do you know which of the points mentioned above are
+> implemented in actual existing code that ST-Ericsson uses? Ideally with links
+> to such code as well if available :-)
+>
+> That will help as a reference.
+>
+
+You can find the details of current hwmem in the linux-mm list.
+http://marc.info/?l=linux-mm&w=2&r=1&s=hwmem&q=b
+
+BR
+/Robert Fekete
