@@ -1,48 +1,94 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:62013 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756936Ab1CBUNp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Mar 2011 15:13:45 -0500
-Message-ID: <4D6EA4EB.9070607@redhat.com>
-Date: Wed, 02 Mar 2011 17:13:31 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47061 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751221Ab1C2PJU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Mar 2011 11:09:20 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Daniel Lundborg" <Daniel.Lundborg@prevas.se>
+Subject: Re: OMAP3 isp single-shot
+Date: Tue, 29 Mar 2011 17:09:38 +0200
+Cc: "Sakari Ailus" <sakari.ailus@maxwell.research.nokia.com>,
+	linux-media@vger.kernel.org
+References: <CA7B7D6C54015B459601D68441548157C5A3AE@prevas1.prevas.se> <201103241135.06025.laurent.pinchart@ideasonboard.com> <CA7B7D6C54015B459601D68441548157C5A3B3@prevas1.prevas.se>
+In-Reply-To: <CA7B7D6C54015B459601D68441548157C5A3B3@prevas1.prevas.se>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	alsa-devel@alsa-project.org,
-	Sakari Ailus <sakari.ailus@retiisi.org.uk>,
-	Pawel Osciak <pawel@osciak.com>
-Subject: Re: [GIT PULL FOR 2.6.39] Media controller and OMAP3 ISP driver
-References: <201102171606.58540.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201102171606.58540.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201103291709.38515.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 17-02-2011 13:06, Laurent Pinchart escreveu:
->       v4l: Share code between video_usercopy and video_ioctl2
+Hi Daniel,
 
-Two hunks failed on this patch:
+On Friday 25 March 2011 14:10:28 Daniel Lundborg wrote:
+> > On Thursday 24 March 2011 11:26:01 Daniel Lundborg wrote:
 
-$ quilt push
-Applying patch patches/0951-v4l-Share-code-between-video_usercopy-and-video_ioct.patch
-patching file drivers/media/video/v4l2-ioctl.c
-Hunk #1 FAILED at 325.
-Hunk #2 succeeded at 332 (offset -33 lines).
-Hunk #3 succeeded at 368 (offset -33 lines).
-Hunk #4 succeeded at 397 (offset -33 lines).
-Hunk #5 FAILED at 1982.
-2 out of 5 hunks FAILED -- rejects in file drivers/media/video/v4l2-ioctl.c
-Patch patches/0951-v4l-Share-code-between-video_usercopy-and-video_ioct.patch does not apply (enforce with -f)
+[snip]
 
-Basically, the code for video_ioctl2 suffered some recent changes. I suspect that the
-blamed patch is this one:
+> > > I can see on the oscilloscope that the sensor is sending something when
+> > > I trigger it, but no picture is received..
+> > 
+> > "something" is a bit vague, can you check the hsync/vsync signals and make
+> > sure they're identical in both modes ?
+> 
+> I have now tested this and I can say that I am having problems triggering
+> the sensor. I wrongly thought I was triggering the sensor with my other
+> driver correctly, but that was not the case.
+> 
+> What I want is to put the Omap ISP to generate a signal (CAM_WEN) to
+> make the camera sensor take a picture.
 
-cff7fbc6 (Pawel Osciak           2010-12-23 04:15:27 -0300 2342)        bool    has_array_args;
-cff7fbc6 (Pawel Osciak           2010-12-23 04:15:27 -0300 2343)        size_t  array_size = 0;
+That's not possible. The cam_wen signal is an input to the ISP. The ISP Timing 
+Control module can generate pulses on the cam_shutter, cam_strobe and 
+cam_global_reset signals only.
 
-Could you please fix the merge conflicts?
+What you could do is configure the cam_wen pin as a GPIO and control it using 
+the GPIO framework (either in kernelspace or userspace).
 
-Thanks!
-Mauro.
+> In my working mt9v034 driver which is using kernel 2.6.31-rc7 with the
+> patches from <http://gitorious.org/omap3camera/mainline/commits/slave> I
+> set the ISP to this on power on:
+> 
+>   isp_reg_and_or(vdev->cam->isp, OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_CTRL,
+> 0x9a1b63ff, 0x98036000);  // Set CAM_GLOBAL_RESET pin as output, enable
+> shutter, set DIVC = 216
+
+What ISP driver version are you using ? isp_reg_and_or has been replaced by 
+isp_reg_clr_set a very long time ago. You should really upgrade.
+
+>   isp_reg_and(vdev->cam->isp, OMAP3_ISP_IOMEM_MAIN,
+> ISP_TCTRL_SHUT_DELAY, 0xfe000000);  // Set no shutter delay
+>   isp_reg_and_or(vdev->cam->isp, OMAP3_ISP_IOMEM_MAIN,
+> ISP_TCTRL_SHUT_LENGTH, 0xfe000000, 0x000003e8);  // Set shutter signal
+> length to 1000 (=> 1000 * 1/216MHz * 216 = 1 ms)
+>   isp_reg_and_or(vdev->cam->isp, OMAP3_ISP_IOMEM_MAIN,
+> ISP_TCTRL_GRESET_LENGTH, 0xfe000000, 0x000003e8);  // Set shutter signal
+> length to 1000 (=> 1000 * 1/216MHz * 216 = 1 ms)
+>   isp_reg_and(isp_ccdc_dev, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_LSC_CONFIG,
+> ~ISPCCDC_LSC_ENABLE);  // Make sure you disable LSC
+> 
+> And when I want to take a picture I do:
+> 
+>   isp_reg_or(vdev->cam->isp, OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_CTRL,
+> 0x00e00000);  // Enable shutter (SHUTEN bit = 1)
+>   isp_reg_or(vdev->cam->isp, OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_CTRL,
+> 0x20000000);  // Start generation of CAM_GLOBAL_RESET signal (GRESETEN
+> bit = 1)
+> 
+> When I try to do this in the newer driver I manage to generate a pulse
+> on the CAM_WEN pin, but no VSYNC, HSYNC or data is transmitted.
+
+I fail to see how that code can generate a pulse on the cam_wen signal. It 
+should only control the cam_shutter, cam_strobe and cam_global_shutter pins.
+
+> Am I missing something?
+
+Is your sensor correctly configured ? Is there a publicly available datasheet 
+for the MT9V034 ?
+
+-- 
+Regards,
+
+Laurent Pinchart
