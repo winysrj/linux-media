@@ -1,171 +1,93 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f42.google.com ([74.125.82.42]:59034 "EHLO
-	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752433Ab1CHKFv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Mar 2011 05:05:51 -0500
+Received: from mail1-out1.atlantis.sk ([80.94.52.55]:40869 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753364Ab1C2T0G (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Mar 2011 15:26:06 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFC PATCH 1/3] tea575x-tuner: various improvements
+Date: Tue, 29 Mar 2011 21:25:55 +0200
+Cc: "Takashi Iwai" <tiwai@suse.de>, jirislaby@gmail.com,
+	alsa-devel@alsa-project.org,
+	"Kernel development list" <linux-kernel@vger.kernel.org>,
+	linux-media@vger.kernel.org
+References: <201103121919.05657.linux@rainbow-software.org> <201103252240.16051.linux@rainbow-software.org> <201103261119.31897.hverkuil@xs4all.nl>
+In-Reply-To: <201103261119.31897.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <001301cbdd74$1044a4b0$30cdee10$%szyprowski@samsung.com>
-References: <1299229274-9753-1-git-send-email-m.szyprowski@samsung.com>
-	<03ab01cbdd62$739550d0$5abff270$%kim@samsung.com>
-	<001301cbdd74$1044a4b0$30cdee10$%szyprowski@samsung.com>
-Date: Tue, 8 Mar 2011 19:05:50 +0900
-Message-ID: <AANLkTin9Lj8cR2cTfz5s72c=rJaNy5ia866+gT1tNnpA@mail.gmail.com>
-Subject: Re: [PATCH/RFC 0/7] Samsung IOMMU videobuf2 allocator and s5p-fimc update
-From: InKi Dae <daeinki@gmail.com>
-To: Kukjin Kim <kgene.kim@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	k.debski@samsung.com, =?EUC-KR?B?sK25zrHU?= <mk7.kang@samsung.com>,
-	=?EUC-KR?B?wMzAz8ijL1MvVyBTb2x1dGlvbrCzud/GwChTLkxTSSkvRTUow6XA0ykvu++8usD8?=
-	 =?EUC-KR?B?wNo=?= <ilho215.lee@samsung.com>,
-	=?EUC-KR?B?tOvAzrHi?= <inki.dae@samsung.com>,
-	kyungmin.park@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	=?EUC-KR?B?wbaw5sijL1MvVyBTb2x1dGlvbrCzud/GwChTLkxTSSkvRTQovLHA0ykvu++8usD8?=
-	 =?EUC-KR?B?wNo=?= <pullip.cho@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201103292125.58561.linux@rainbow-software.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello, Mr. Kukjin.
+On Saturday 26 March 2011 11:19:31 Hans Verkuil wrote:
+> On Friday, March 25, 2011 22:40:12 Ondrej Zary wrote:
+> > On Tuesday 22 March 2011 20:02:30 Hans Verkuil wrote:
+> > > BTW, can you run the v4l2-compliance utility for the two boards that
+> > > use this radio tuner?
+> > >
+> > > This utility is part of the v4l-utils repository
+> > > (http://git.linuxtv.org/v4l-utils.git).
+> > >
+> > > Run as 'v4l2-compliance -r /dev/radioX -v2'.
+> > >
+> > > I'm sure there will be some errors/warnings (warnings regarding
+> > > G/S_PRIORITY are to be expected). But I can use it to make a patch for
+> > > 2.6.40 that fixes any issues.
+> >
+> > The output is the same for both fm801 and es1968 (see below). Seems that
+> > there are 4 errors:
+> >  1. multiple-open does not work
+> >  2. something bad with s_frequency
+> >  3. input functions are present
+> >  4. no extended controls
+>
+> Thanks for testing! Some comments are below...
+>
+> > Running on 2.6.38
+> >
+> > Driver Info:
+> > 	Driver name   : tea575x-tuner
+> > 	Card type     : TEA5757
+> > 	Bus info      : PCI
+> > 	Driver version: 0.0.2
+> > 	Capabilities  : 0x00050000
+> > 		Tuner
+> > 		Radio
+> >
+> > Compliance test for device /dev/radio0 (not using libv4l2):
+> >
+> > Required ioctls:
+> > 	test VIDIOC_QUERYCAP: OK
+> >
+> > Allow for multiple opens:
+> > 	test second radio open: FAIL
+>
+> I will fix this. Once 2.6.39-rc1 is released I can make a patch fixing
+> this.
+>
+> > Debug ioctls:
+> > 	test VIDIOC_DBG_G_CHIP_IDENT: Not Supported
+> > 	test VIDIOC_DBG_G/S_REGISTER: Not Supported
+> > 	test VIDIOC_LOG_STATUS: Not Supported
+> >
+> > Input ioctls:
+> > 	test VIDIOC_G/S_TUNER: OK
+> > 		fail: set rangehigh+1 frequency did not return EINVAL
+> > 	test VIDIOC_G/S_FREQUENCY: FAIL
+>
+> Hmm, S_FREQUENCY apparently fails to check for valid frequency values.
+> Can you take a quick look at the code?
 
+The driver code is OK. But there is a bug in v4l2-test-input-output.cpp at 
+line 214:
+if (ret)
+	return fail("set rangehigh+1 frequency did not return EINVAL\n");
 
-2011/3/8 Marek Szyprowski <m.szyprowski@samsung.com>:
-> Hello,
->
-> On Tuesday, March 08, 2011 8:29 AM Kukjin Kim wrote:
->
->> Hello,
->>
->> There are comments for your System MMU driver below.
->
-> Please take into account that this was an initial version of our SYSMMU
-> driver to start the discussion, so there were a few minor problems left.
-> Thanks for pointing them out btw. :)
->
->
->> It's good that System MMU has functionality of mapping but System MMU have
->> to use other mapping of virtual memory allocator.
->
-you mean that other page sizes such as large, small page and so on
-should be supported in mapping also? otherwise use 64k not 4k page?
+There should be "if (ret != EINVAL)" instead of "if (ret)".
 
-> Could you elaborate on this? I'm not sure I understand right your problem.
->
-> SYSMMU driver is a low-level driver for the SYSMMU module. The driver should
-> provide all the basic functionality that is (or might be) hardware dependent.
-> Creating a mapping is one of such elementary functionalities. Sysmmu client
-> (let it be videobuf2-s5p-iommu, vcmm, maybe even other driver directly)
-> should not need to know the format of page descriptors or the way they are
-> arranged in the memory. The sysmmu should provide low level functions to create
-> and remove a mapping. Managing a virtual space is something that MIGHT be client
-> dependent and should be left to the client.
->
-> This design allows for different approaches to coexist. Videobuf2-s5p-iommu
-> client will manage the virtual space with gen_alloc framework, while vcmm will
-> use its own methods.
->
-> It would be great if one decide to unify iommu interfaces across the kernel,
-> but this will be a long road. We need to start from something simple (platform
-> private) and working first.
->
->> And would be better to change sysmmu_list to use array of defined in
->> s5p_sysmmu_ip enumeration, so that can get enhancement of memory space
->> usage, speed, and readability of codes.
->
-> Yes, the list can be simplified to an array, but this is really a minor issue.
->
->> TLB replacement policy does not need to use LRU. Of course, current System
->> MMU also needs it. I think, the round robin is enough, because to access
->> memory has no temporal locality and to make LRU need to access to System
->> MMU register one more. The reset value is round robin.
->
-> Well, the best possibility is to allow sysmmu clients to decide which policy
-> should be used. For some devices (I'm thinking of MFC) LRU policy might give
-> a little speedup.
->
->> In the setting of SHARED page table in s5p_sysmmu_control_locked, get the
->> page table base address of ARM core from cp15 register now. But current->mm-
->> >pgd is better for more compatibility.
->
-> Right, this way the pgd table pointer can be acquired in a more system friendly
-> way.
->
->> When it make page table with PRIVATE page table methods, the size of the
->> structure to manage the second page table is quite big. It is much better
->> rather that to make slab with cache size of 1KB.
->
-> Yes, our initial driver uses directly 4KB pages to manage 4 consecutive second
-> page tables. However usually the allocations of client devices will be few but
-> quite large each. So most of pages used to hold second level page tables will
-> be effectively reused.
->
-> You are right however that the approach with a slab with 1KB units will
-> result in code that is cleaner and easier to understand.
->
->> Besides, the page mapping implementation is not safe in your System MMU
->> driver. Because only first one confirms primary page table entry, when it
->> assigns four second page tables consecutively at a time.
->
-> That's a direct result of the 4-second-level-at-once method of allocating
-> second level pages, but this can be cleaned by using 1KB with slab.
->
->> The System MMU driver cannot apply runtime pm by oneself with calling
->> pm_runtime_put_sync(). The reason is because a device with System MMU can
->> on/off power. I think just clock gating is enough. However, I can't find
->> clock enable/disable in your driver.
->
-> Clock is enabled in probe() and disabled in remove(). pm_runtime_get/put_sync()
-> only increases/decreases use count of a respective power domain, so the actual
-> device driver also has to call pm_runtime_get/put. Calling pm_runtime_put_sync()
-> will not shut down the power if the sysmmu client driver has called
-> pm_runtime_get() without pm_runtime_put(). I see no problems here. Could you
-> elaborate your issue?
->
->>
->> By PRIVATE page table method, each system MMU comes to have a page table
->> only for oneself. In this case, the problem is that each MFC System MMU L
->> and R having another page table.
->
-> Yes, true. This is consequence of the MFC hardware design and the fact that
-> it has 2 AXI master interfaces and 2 SYSMMU controllers. Each of them have to
-> be configured separately. Each of them has a separate virtual driver's address
-> space. Such configuration is used by the MFC driver posted in v7 patch series.
->
->> In your System MMU driver, the page size is always 4KB crucially. This says
->> TLB thrashing and produces a result to lose a TLB hit rate. It is a big
->> problem with the device such as rotator which does not do sequential access
->> especially.
->
-> The page size is set to 4KB, because Linux kernel uses 4KB pages by default.
-> Once support for other page size is available in the kernel, then sysmmu can be
-> extended also.
->
->> And the IRQ handler just outputs only a message. It should be implemented
->> in call back function to be able to handle from each device driver.
->
-> This was only for debugging purpose, but you are right that the sysmmu API in
-> this area need to be extended.
->
->> When it sets System MMU in SHARED page table, kernel virtual memory is
->> broken by a method such as s5p_sysmmu_map_area()
->
-> Yes, there should be a check added to prevent messing with ARM pgd in SHARED
-> mode.
->
-> Best regards
-> --
-> Marek Szyprowski
-> Samsung Poland R&D Center
->
->
->
->
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
->
+-- 
+Ondrej Zary
