@@ -1,94 +1,118 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-outbound-1.vmware.com ([65.115.85.69]:50670 "EHLO
-	smtp-outbound-1.vmware.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757394Ab1CYCy1 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:56238 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753182Ab1C2Ulc convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Mar 2011 22:54:27 -0400
-Date: Thu, 24 Mar 2011 19:54:01 -0700
-From: Micah Elizabeth Scott <micah@vmware.com>
-To: Paul Bolle <pebolle@tiscali.nl>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Greg KH <greg@kroah.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	USB list <linux-usb@vger.kernel.org>
-Subject: Re: [ANNOUNCE] usbmon capture and parser script
-Message-ID: <20110325025401.GA14110@vmware.com>
-References: <4D8102A9.9080202@redhat.com>
- <20110316194758.GA32557@kroah.com>
- <1300306845.1954.7.camel@t41.thuisdomein>
- <4D81F4B3.4000004@redhat.com>
- <1300468899.1844.17.camel@t41.thuisdomein>
+	Tue, 29 Mar 2011 16:41:32 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Enric =?utf-8?q?Balletb=C3=B2_i_Serra?= <eballetbo@gmail.com>
+Subject: Re: OMAP3 ISP and tvp5151 driver.
+Date: Tue, 29 Mar 2011 22:41:50 +0200
+Cc: linux-media@vger.kernel.org, mchehab@redhat.com
+References: <AANLkTimec2+VyO+iRSx1PYy3btOb6RbHt0j3ytmnykVo@mail.gmail.com> <201101191221.17773.laurent.pinchart@ideasonboard.com> <AANLkTin7n=0TF+jyeTNPKenAN4rxG5P3BgDGbwfu-1Du@mail.gmail.com>
+In-Reply-To: <AANLkTin7n=0TF+jyeTNPKenAN4rxG5P3BgDGbwfu-1Du@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1300468899.1844.17.camel@t41.thuisdomein>
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201103292241.51237.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Fri, Mar 18, 2011 at 10:21:33AM -0700, Paul Bolle wrote:
-> On Thu, 2011-03-17 at 08:46 -0300, Mauro Carvalho Chehab wrote:
-> > On a quick test, it seems that it doesn't recognize the tcpdump file 
-> > format (at least, it was not able to capture the dump files I got 
-> > with the beagleboard). Adding support for it could be an interesting 
-> > addition to your code.
+Hi Enric,
+
+On Tuesday 29 March 2011 17:19:53 Enric Balletbò i Serra wrote:
+> 2011/1/19 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> > On Wednesday 19 January 2011 12:05:54 Enric Balletbò i Serra wrote:
+> >> 2011/1/18 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> >> > On Tuesday 18 January 2011 10:20:43 Enric Balletbò i Serra wrote:
+> >> >> Now seems yavta is blocked dequeuing a buffer ( VIDIOC_DQBUF ), with
+> >> >> strace I get
+> >> >> 
+> >> >> $ strace ./yavta -f SGRBG10 -s 720x525 -n 1 --capture=1 -F
+> >> >> /dev/video2
+> >> >> 
+> >> >> mmap2(NULL, 756000, PROT_READ|PROT_WRITE, MAP_SHARED, 3, 0) =
+> >> >> 0x4011f000 write(1, "Buffer 0 mapped at address 0x401"..., 39Buffer
+> >> >> 0 mapped at address 0x4011f000.
+> >> >> ) = 39
+> >> >> ioctl(3, VIDIOC_QBUF or VT_SETACTIVATE, 0xbede36cc) = 0
+> >> >> ioctl(3, VIDIOC_STREAMON, 0xbede365c)   = 0
+> >> >> gettimeofday({10879, 920196}, NULL)     = 0
+> >> >> ioctl(3, VIDIOC_DQBUF
+> >> >> 
+> >> >> and the code where stops is here
+> >> >> 
+> >> >> ispqueue.c
+> >> >> 913   buf = list_first_entry(&queue->queue, struct isp_video_buffer,
+> >> >> stream); 914   ret = isp_video_buffer_wait(buf, nonblocking);
+> >> >> 
+> >> >> Any idea ?
+> >> > 
+> >> > My guess is that the CCDC doesn't receive the amount of lines it
+> >> > expects.
+> >> > 
+> >> > The CCDC generates an interrupt at 2/3 of the image and another one at
+> >> > the beginning of the last line. Start by checking if the ISP generates
+> >> > any interrupt to the host with cat /proc/interrupts. If it doesn't,
+> >> > then the CCDC receives less than 2/3 of the expected number of lines.
+> >> > If it does, it probably receives between 2/3 and 3/3. You can add
+> >> > printk statements in ispccdc_vd0_isr() and ispccdc_vd1_isr() to
+> >> > confirm this.
+> >> 
+> >> Looks like my problem is that  ispccdc_vd0_isr() and ispccdc_vd1_isr()
+> >> are never called, adding printk in these functions I see only a lots
+> >> of ispccdc_hs_vs_isr(), Seems the CCDC receives less than 2/3 of
+> >> expected number lines. Using an oscilloscope I see VS and HS data
+> >> lines of the camera interface, so seems physical interface is working.
+> >> 
+> >> I guess I'm missing something to configure in tvp5150 driver but I
+> >> don't know. Any help ?
+> > 
+> > Try to hack the ISP driver to generate the VD1 interrupt much earlier
+> > (after a couple of lines only). If you get it, then modify the number of
+> > lines to see how many lines the CCDC receives. This should hopefully
+> > give you a hint.
 > 
-> Please note that Micah Dowty is the maintainer of vusb-analyzer. I
-> mostly cleaned, etc. its usbmon support (which was originally added by
-> Christoph Zimmermann). Anyway, you're always free to try to add support
-> for another file format. I must say that Micah was rather easy to work
-> with.
+> After a parenthesis, back to work with tvp5151.
 > 
-> > Btw, it seems that most of your work is focused on getting VMware logs.
+> I programmed tvp5151 as 8-bit ITU-R BT.656 parallel interface and
+> capture PAL-B, D, G, H, I standard ( Pixels per line: 864,  Active
+> pixels per line: 720, Line per frame: 625 )
 > 
-> Micah had a vmware.com address last time I contacted him. That should
-> explain that focus.
+> As Laurent's suggest I modified the number of lines to see how many
+> lines the CCDC receives and I get 312 lines, he did the trick. I think
+> this is because the tvp5151 sends the images in interlaced mode, so
+> the first frame I receive contains the odd lines and the second frame
+> the even lines.
 
-Right, vusb-analyzer doesn't currently understand tcpdump files.
+That seems quite likely.
 
-I originally wrote it as just an internal debugging tool for VMware,
-but we open sourced it and I've been quite interested in including
-support for other log formats. It originally just had support for
-VMware's logs and for XML files dumped by the Ellisys hardware
-analyzers we use. Paul Bolle contributed usbmon log support.
+> Still having some issues but at least I get some images with yavta and
+> gstreamer using these commands:
+> 
+> $ ./media-ctl --set-format '"tvp5150 2-005c":0 [UYVY 720x312]'
+> $ ./yavta -f UYVY -s 720x312 -n 4 --capture=4 --skip 3 -F /dev/video2
+> $ gst-launch -v v4l2src device=/dev/video2 queue-size=14 !
+> video/x-raw-yuv,format=\(fourcc\)UYVY,width=720,height=312 !
+> ffmpegcolorspace ! xvimagesink
+> 
+> Maybe someone can help me with these questions:
+> 
+> I get a 720x312 image, how can I get 720x525 (the real size) ? The OMAP ISP
+> can do this ?
 
-I unfortunately haven't had much time to work on vusb-analyzer myself
-in the past few years.. I'm hoping that will change soon, but in any
-case I'd be happy to accept patches.
+The OMAP3 ISP should support interleaving interlaced frames, but that's not 
+implemented in the driver. You will need to at least implement interlaced 
+frames support in the CCDC module to report field identifiers to userspace.
 
-As another point of interest... I have some friends working on a
-hardware USB analyzer project (openvizsla.org) and they've been
-planning on using vusb-analyzer or something based on it. I've been
-thinking about rewriting it in something a bit faster than Python,
-improving the support for traversing large log files efficiently, and
-making it fully understand lower-level USB packet logs like you'd see
-from a hardware analyzer.
+> Gstreamer can do this ? And, maybe a stupid question, but, why the CCDC
+> generates an interrupt at 2/3 of the image ?
 
-I think vusb-analyzer's strength has always been the graphical timing
-analysis and quickly navigating complex logs. Wireshark is probably
-better suited for deep protocol analysis.
+That's for internal reasons. The driver needs to reconfigure the CCDC before 
+the end of the image.
 
-> > Do you know if any of them are now capable of properly emulate USB 2.0
-> > isoc transfers and give enough performance for the devices to actually
-> > work with such high-bandwidth requirements?
->
-> This is not something I know much about. I tried to use some digital
-> camera over USB with qemu without much success. Apparently qemu's USB
-> pass through has little chance of supporting high bandwidth USB devices.
-> See
-> http://lists.nongnu.org/archive/html/qemu-devel/2010-09/msg00017.html
-> for the - not very interesting - answer I got when I wanted to know more
-> about the problems of USB pass through in qemu.
+-- 
+Regards,
 
-I can't really speak for qemu, but I wrote the EHCI USB 2.0 Isochronous
-emulation that VMware uses.
-
-At the risk of sounding like an advertisment, there are of course
-plenty of caveats to emulating Isochronous transfers in
-userspace.. but VMware's emulation usually manages to work
-correctly. You'll certainly run into problem devices sometimes, but
-the raw CPU power hasn't been an issue. I routinely tested it with
-high-bandwidth uncompressed TV tuner devices back in 2005 or 2006.
-
-Cheers,
---beth
+Laurent Pinchart
