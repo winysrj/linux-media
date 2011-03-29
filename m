@@ -1,116 +1,264 @@
 Return-path: <mchehab@pedra>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:33078 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754877Ab1CHTdm convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Mar 2011 14:33:42 -0500
-MIME-Version: 1.0
-In-Reply-To: <AANLkTikmWdQZZJHTmJsDTrSX434pKfpqJWZ6RWGB7ec6@mail.gmail.com>
-References: <1299588365-2749-1-git-send-email-dacohen@gmail.com>
-	<1299588365-2749-4-git-send-email-dacohen@gmail.com>
-	<AANLkTikvUah8LPXCeV4Opi09DJ4ZoHAc2xUVTcDhNK=Q@mail.gmail.com>
-	<20110308.200901.212929907269368357.Hiroshi.DOYU@nokia.com>
-	<AANLkTi=E+9sjGEpCmHPFLFRGTQujDv8747Jf8=ukU1hC@mail.gmail.com>
-	<AANLkTikmWdQZZJHTmJsDTrSX434pKfpqJWZ6RWGB7ec6@mail.gmail.com>
-Date: Tue, 8 Mar 2011 13:33:36 -0600
-Message-ID: <AANLkTimcSRB+AS=UEAtfc6D=BYWB7Nedj3LQyCnG4bVf@mail.gmail.com>
-Subject: Re: [PATCH 3/3] omap: iovmm: don't check 'da' to set
- IOVMF_DA_FIXED/IOVMF_DA_ANON flags
-From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-To: David Cohen <dacohen@gmail.com>
-Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-omap@vger.kernel.org,
-	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@maxwell.research.nokia.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from lo.gmane.org ([80.91.229.12]:56128 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750821Ab1C2JWf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Mar 2011 05:22:35 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1Q4V8B-0003BG-KS
+	for linux-media@vger.kernel.org; Tue, 29 Mar 2011 11:22:31 +0200
+Received: from 217067201162.u.itsa.pl ([217.67.201.162])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 29 Mar 2011 11:22:31 +0200
+Received: from t.stanislaws by 217067201162.u.itsa.pl with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 29 Mar 2011 11:22:31 +0200
+To: linux-media@vger.kernel.org
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [PATCH 0/2] V4L: Extended crop/compose API
+Date: Tue, 29 Mar 2011 11:22:17 +0200
+Message-ID: <4D91A4C9.6050602@samsung.com>
+References: <1301325596-18166-1-git-send-email-t.stanislaws@samsung.com> <201103290858.16138.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+In-Reply-To: <201103290858.16138.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, Mar 8, 2011 at 12:57 PM, David Cohen <dacohen@gmail.com> wrote:
-> Hi Hiroshi, Fernando,
->
-> On Tue, Mar 8, 2011 at 8:53 PM, Guzman Lugo, Fernando
-> <fernando.lugo@ti.com> wrote:
->> On Tue, Mar 8, 2011 at 12:09 PM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> wrote:
->>> From: "ext Guzman Lugo, Fernando" <fernando.lugo@ti.com>
->>> Subject: Re: [PATCH 3/3] omap: iovmm: don't check 'da' to set IOVMF_DA_FIXED/IOVMF_DA_ANON flags
->>> Date: Tue, 8 Mar 2011 11:59:43 -0600
->>>
->>>> On Tue, Mar 8, 2011 at 6:46 AM, David Cohen <dacohen@gmail.com> wrote:
->>>>> Currently IOVMM driver sets IOVMF_DA_FIXED/IOVMF_DA_ANON flags according
->>>>> to input 'da' address when mapping memory:
->>>>> da == 0: IOVMF_DA_ANON
->>>>> da != 0: IOVMF_DA_FIXED
->>>>>
->>>>> It prevents IOMMU to map first page with fixed 'da'. To avoid such
->>>>> issue, IOVMM will not automatically set IOVMF_DA_FIXED. It should now
->>>>> come from the user. IOVMF_DA_ANON will be automatically set if
->>>>> IOVMF_DA_FIXED isn't set.
->>>>>
->>>>> Signed-off-by: David Cohen <dacohen@gmail.com>
->>>>> ---
->>>>>  arch/arm/plat-omap/iovmm.c |   12 ++++++++----
->>>>>  1 files changed, 8 insertions(+), 4 deletions(-)
->>>>>
->>>>> diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
->>>>> index 11c9b76..dde9cb0 100644
->>>>> --- a/arch/arm/plat-omap/iovmm.c
->>>>> +++ b/arch/arm/plat-omap/iovmm.c
->>>>> @@ -654,7 +654,8 @@ u32 iommu_vmap(struct iommu *obj, u32 da, const struct sg_table *sgt,
->>>>>        flags &= IOVMF_HW_MASK;
->>>>>        flags |= IOVMF_DISCONT;
->>>>>        flags |= IOVMF_MMIO;
->>>>> -       flags |= (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
->>>>> +       if (~flags & IOVMF_DA_FIXED)
->>>>> +               flags |= IOVMF_DA_ANON;
->>>>
->>>> could we use only one? both are mutual exclusive, what happen if flag
->>>> is IOVMF_DA_FIXED | IOVMF_DA_ANON? so, I suggest to get rid of
->>>> IOVMF_DA_ANON.
->>>
->>> Then, what about introducing some MACRO? Better names?
->>>
->>> #define set_iovmf_da_anon(flags)
->>> #define set_iovmf_da_fix(flags)
->>> #define set_iovmf_mmio(flags)
+Hans Verkuil wrote:
+> On Monday, March 28, 2011 17:19:54 Tomasz Stanislawski wrote:
+>> Hello everyone,
 >>
->> will they be used by the users?
+>> This patch-set introduces new ioctls to V4L2 API. The new method for
+>> configuration of cropping and composition is presented.
 >>
->> I think people are more used to use
+>> There is some confusion in understanding of a cropping in current version of
+>> V4L2. For CAPTURE devices cropping refers to choosing only a part of input
+>> data stream and processing it and storing it in a memory buffer. The buffer is
+>> fully filled by data. It is not possible to choose only a part of a buffer for
+>> being updated by hardware.
 >>
->> iommu_vmap(obj, da, sgt, IOVMF_MMIO | IOVMF_DA_ANON);
->
-> I'd be happier with this approach, instead of the macros. :)
-> It's intuitive and very common on kernel.
->
+>> In case of OUTPUT devices, the whole content of a buffer is passed by hardware
+>> to output display. Cropping means selecting only a part of an output
+>> display/signal. It is not possible to choose only a part for a memory buffer
+>> to be processed.
 >>
->> than
+>> The overmentioned flaws in cropping API were discussed in post:
+>> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/28945
 >>
->> set_iovmf_da_anon(flags)
->> set_iovmf_mmio(flags)
->> iommu_vmap(obj, da, sgt, flags);
->>
->> I don't have problem with the change, but I think how it is now is ok,
->> just that we don't we two bits to handle anon/fixed da, it can be
->> managed it only 1 bit (one flag), or is there a issue?
->
-> We can exclude IOVMF_DA_ANON and stick with IOVMF_DA_FIXED only.
-> I can resend my patch if we agree it's OK.
+>> A solution was proposed during brainstorming session in Warsaw.
 
-sounds perfect to me.
+Hello. Thank you for a quick comment.
 
-Regards,
-Fernando.
+> 
+> I don't have time right now to review this RFC in-depth, but one thing that
+> needs more attention is the relationship between these new ioctls and CROPCAP.
+> 
+> And also how this relates to analog inputs (I don't think analog outputs make
+> any sense). And would a COMPOSECAP ioctl make sense?
+> 
 
->
+Maybe two new ioctl COMPOSECAP and EXTCROPCAP should be added.
+For input CROPCAP maps to EXTCROPCAP, for output it maps to COMPOSECAP.
+The output EXTCROPCAP would return dimentions of a buffer.
+But in my opinion field v4l2_selection::bounds should be added to 
+structure below. In such a case G_EXTCROP could be used to obtain 
+cropping bounds.
+
+>> 1. Data structures.
+>>
+>> The structure v4l2_crop used by current API lacks any place for further
+>> extensions. Therefore new structure is proposed.
+>>
+>> struct v4l2_selection {
+>> 	u32 type;
+>> 	struct v4l2_rect r;
+>> 	u32 flags;
+>> 	u32 reserved[10];
+>> };
+>>
+>> Where,
+>> type	 - type of buffer queue: V4L2_BUF_TYPE_VIDEO_CAPTURE,
+>>            V4L2_BUF_TYPE_VIDEO_OUTPUT, etc.
+>> r	 - selection rectangle
+>> flags	 - control over coordinates adjustments
+>> reserved - place for further extensions, adjust struct size to 64 bytes
+>>
+>> At first, the distinction between cropping and composing was stated. The
+>> cropping operation means choosing only part of input data bounding it by a
+>> cropping rectangle.  All other data must be discarded.  On the other hand,
+>> composing means pasting processed data into rectangular part of data sink. The
+>> sink may be output device, user buffer, etc.
+>>
+>> 2. Crop/Compose ioctl.
+>> Four new ioctls would be added to V4L2.
+>>
+>> Name
+>> 	VIDIOC_S_EXTCROP - set cropping rectangle on an input of a device
+>>
+>> Synopsis
+>> 	int ioctl(fd, VIDIOC_S_EXTCROP, struct v4l2_selection *s)
+>>
+>> Description:
+>> 	The ioctl is used to configure:
+>> 	- for input devices, a part of input data that is processed in hardware
+>> 	- for output devices, a part of a data buffer to be passed to hardware
+>> 	  Drivers may adjust a cropping area. The adjustment can be controlled
+>>           by v4l2_selection::flags.  Please refer to Hints section.
+>> 	- an adjusted crop rectangle is returned in v4l2_selection::r
+>>
+>> Return value
+>> 	On success 0 is returned, on error -1 and the errno variable is set
+>>         appropriately:
+>> 	ERANGE - failed to find a rectangle that satisfy all constraints
+>> 	EINVAL - incorrect buffer type, cropping not supported
+>>
+>> -----------------------------------------------------------------
+>>
+>> Name
+>> 	VIDIOC_G_EXTCROP - get cropping rectangle on an input of a device
+>>
+>> Synopsis
+>> 	int ioctl(fd, VIDIOC_G_EXTCROP, struct v4l2_selection *s)
+>>
+>> Description:
+>> 	The ioctl is used to query:
+>> 	- for input devices, a part of input data that is processed in hardware
+>> 	- for output devices, a part of data buffer to be passed to hardware
+>>
+>> Return value
+>> 	On success 0 is returned, on error -1 and the errno variable is set
+>>         appropriately:
+>> 	EINVAL - incorrect buffer type, cropping not supported
+>>
+>> -----------------------------------------------------------------
+>>
+>> Name
+>> 	VIDIOC_S_COMPOSE - set destination rectangle on an output of a device
+>>
+>> Synopsis
+>> 	int ioctl(fd, VIDIOC_S_COMPOSE, struct v4l2_selection *s)
+>>
+>> Description:
+>> 	The ioctl is used to configure:
+>> 	- for input devices, a part of a data buffer that is filled by hardware
+>> 	- for output devices, a area on output device where image is inserted
+>> 	Drivers may adjust a composing area. The adjustment can be controlled
+>>         by v4l2_selection::flags. Please refer to Hints section.
+>> 	- an adjusted composing rectangle is returned in v4l2_selection::r
+>>
+>> Return value
+>> 	On success 0 is returned, on error -1 and the errno variable is set
+>>         appropriately:
+>> 	ERANGE - failed to find a rectangle that satisfy all constraints
+>> 	EINVAL - incorrect buffer type, composing not supported
+>>
+>> -----------------------------------------------------------------
+>>
+>> Name
+>> 	VIDIOC_G_COMPOSE - get destination rectangle on an output of a device
+>>
+>> Synopsis
+>> 	int ioctl(fd, VIDIOC_G_COMPOSE, struct v4l2_selection *s)
+>>
+>> Description:
+>> 	The ioctl is used to query:
+>> 	- for input devices, a part of a data buffer that is filled by hardware
+>> 	- for output devices, a area on output device where image is inserted
+>>
+>> Return value
+>> 	On success 0 is returned, on error -1 and the errno variable is set
+>>         appropriately:
+>> 	EINVAL - incorrect buffer type, composing not supported
+>>
+>>
+>> 3. Hints
+>>
+>> The v4l2_selection::flags field is used to give a driver a hint about
+>> coordinate adjustments.  Below one can find the proposition of adjustment
+>> flags. The syntax is V4L2_SEL_{name}_{LE/GE}, where {name} refer to a field in
+>> struct v4l2_rect. The LE is abbreviation from "lesser or equal".  It prevents
+>> the driver form increasing a parameter. In similar fashion GE means "greater or
+>> equal" and it disallows decreasing. Combining LE and GE flags prevents the
+>> driver from any adjustments of parameters.  In such a manner, setting flags
+>> field to zero would give a driver a free hand in coordinate adjustment.
+>>
+>> #define V4L2_SEL_WIDTH_GE	0x00000001
+>> #define V4L2_SEL_WIDTH_LE	0x00000002
+>> #define V4L2_SEL_HEIGHT_GE	0x00000004
+>> #define V4L2_SEL_HEIGHT_LE	0x00000008
+>> #define V4L2_SEL_LEFT_GE	0x00000010
+>> #define V4L2_SEL_LEFT_LE	0x00000020
+>> #define V4L2_SEL_TOP_GE		0x00000040
+>> #define V4L2_SEL_TOP_LE		0x00000080
+> 
+> Wouldn't you also need similar flags for RIGHT and BOTTOM?
+> 
 > Regards,
->
-> David
->
+> 
+> 	Hans
+> 
+Proposed flags refer to fields in v4l2_rect structure. These are left, 
+top, width and height. Fields bottom and right and not present in 
+v4l2_rect structure.
+
+Best regards,
+Tomasz Stanislawski
+
+>> #define V4L2_SEL_WIDTH_FIXED	0x00000003
+>> #define V4L2_SEL_HEIGHT_FIXED	0x0000000c
+>> #define V4L2_SEL_LEFT_FIXED	0x00000030
+>> #define V4L2_SEL_TOP_FIXED	0x000000c0
 >>
->> Regards,
->> Fernando.
->>> ......
->>>
+>> #define V4L2_SEL_FIXED		0x000000ff
 >>
->
+>> The hint flags may be useful in a following scenario.  There is a sensor with a
+>> face detection functionality. An application receives information about a
+>> position of a face on sensor array. Assume that the camera pipeline is capable
+>> of an image scaling. The application is capable of obtaining a location of a
+>> face using V4L2 controls. The task it to grab only part of image that contains
+>> a face, and store it to a framebuffer at a fixed window. Therefore following
+>> constrains have to be satisfied:
+>> - the rectangle that contains a face must lay inside cropping area
+>> - hardware is allowed only to access area inside window on the framebuffer
+>>
+>> Both constraints could be satisfied with two ioctl calls.
+>> - VIDIOC_EXTCROP with flags field equal to
+>>   V4L2_SEL_TOP_FIXED | V4L2_SEL_LEFT_FIXED |
+>>   V4L2_SEL_WIDTH_GE | V4L2_SEL_HEIGHT_GE.
+>> - VIDIOC_COMPOSE with flags field equal to
+>>   V4L2_SEL_TOP_FIXED | V4L2_SEL_LEFT_FIXED |
+>>   V4L2_SEL_WIDTH_LE | V4L2_SEL_HEIGHT_LE
+>>
+>> Feel free to add a new flag if necessary.
+>>
+>> 4. Possible improvements and extensions.
+>> - combine composing and cropping ioctl into a single ioctl
+>> - add subpixel resolution
+>>  * hardware is often capable of subpixel processing. The ioctl triple
+>>    S_EXTCROP, S_SCALE, S_COMPOSE can be converted to S_EXTCROP and S_COMPOSE
+>>    pair if a subpixel resolution is supported
+>>
+>>
+>> What it your opinion about proposed solutions?
+>>
+>> Looking for a reply,
+>>
+>> Best regards,
+>> Tomasz Stanislawski
+>>
+>> Tomasz Stanislawski (2):
+>>   v4l: add support for extended crop/compose API
+>>   v4l: simulate old crop API using extcrop/compose
+>>
+>>  drivers/media/video/v4l2-compat-ioctl32.c |    4 +
+>>  drivers/media/video/v4l2-ioctl.c          |  102 +++++++++++++++++++++++++++--
+>>  include/linux/videodev2.h                 |   30 +++++++++
+>>  include/media/v4l2-ioctl.h                |    8 ++
+>>  4 files changed, 137 insertions(+), 7 deletions(-)
+>>
+>>
+
