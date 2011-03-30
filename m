@@ -1,49 +1,99 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.171]:63453 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752052Ab1CJOwT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Mar 2011 09:52:19 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH 3/7] ARM: Samsung: update/rewrite Samsung SYSMMU (IOMMU) driver
-Date: Thu, 10 Mar 2011 15:52:15 +0100
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
-	t.stanislaws@samsung.com, k.debski@samsung.com,
-	kgene.kim@samsung.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com, andrzej.p@samsung.com
-References: <1299229274-9753-4-git-send-email-m.szyprowski@samsung.com> <1299254660-15765-1-git-send-email-m.szyprowski@samsung.com>
-In-Reply-To: <1299254660-15765-1-git-send-email-m.szyprowski@samsung.com>
+Received: from smtp.nokia.com ([147.243.128.26]:24370 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754783Ab1C3LG0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Mar 2011 07:06:26 -0400
+Message-ID: <4D930E92.70302@maxwell.research.nokia.com>
+Date: Wed, 30 Mar 2011 14:05:54 +0300
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Nayden Kanchev <nkanchev@mm-sol.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Cohen David Abraham <david.cohen@nokia.com>
+Subject: Re: [RFC] V4L2 API for flash devices
+References: <4D90854C.2000802@maxwell.research.nokia.com> <201103301134.14798.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201103301134.14798.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201103101552.15536.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Friday 04 March 2011, Marek Szyprowski wrote:
-> From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Laurent Pinchart wrote:
+> Hi Sakari,
+
+Hi Laurent,
+
+Thanks for the comments!
+
+> On Monday 28 March 2011 14:55:40 Sakari Ailus wrote:
 > 
-> This patch performs a complete rewrite of sysmmu driver for Samsung platform:
-> - the new version introduces an api to construct device private page
->   tables and enables to use device private address space mode
-> - simplified the resource management: no more single platform
->   device with 32 resources is needed, better fits into linux driver model,
->   each sysmmu instance has it's own resource definition
-> - added support for sysmmu clocks
-> - some other minor API chages required by upcoming videobuf2 allocator
+> [snip]
 > 
-> Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+>> 	V4L2_CID_FLASH_STROBE_MODE (menu; LED)
+>>
+>> Use hardware or software strobe. If hardware strobe is selected, the
+>> flash controller is a slave in the system where the sensor produces the
+>> strobe signal to the flash.
+>>
+>> In this case the flash controller setup is limited to programming strobe
+>> timeout and power (LED flash) and the sensor controls the timing and
+>> length of the strobe.
+>>
+>> enum v4l2_flash_strobe_mode {
+>> 	V4L2_FLASH_STROBE_MODE_SOFTWARE,
+>> 	V4L2_FLASH_STROBE_MODE_EXT_STROBE,
+>> };
+> 
+> [snip]
+> 
+>> 	V4L2_CID_FLASH_LED_MODE (menu; LED)
+>>
+>> enum v4l2_flash_led_mode {
+>> 	V4L2_FLASH_LED_MODE_FLASH = 1,
+>> 	V4L2_FLASH_LED_MODE_TORCH,
+>> };
+> 
+> Thinking about this some more, shouldn't we combine the two controls ? They 
+> are basically used to configure how the flash LED is controlled: manually 
+> (torch mode), automatically by the flash controller (software strobe mode) or 
+> automatically by an external component (external strobe mode).
 
-Please explain why create a new IOMMU API when we already have two
-generic ones (include/linux/iommu.h and include/linux/dma-mapping.h).
+That's a good question.
 
-Is there something that cannot be done with the common code?
-The first approach should be to extend the existing APIs to
-do what you need.
+The adp1653 supports also additional control (not implemented in the
+driver, though) that affect hardware strobe length. Based on register
+setting, the led will be on after strobe either until the timeout
+expires, or until the strobe signal is high.
 
-	Arnd
+Should this be also part of the same control, or a different one?
+
+Even without this, we'd have:
+
+V4L2_FLASH_MODE_OFF
+V4L2_FLASH_MODE_TORCH
+V4L2_FLASH_MODE_SOFTWARE_STROBE
+V4L2_FLASH_MODE_EXTERNAL_STROBE
+
+Additionally, this might be
+
+V4L2_FLASH_MODE_EXTERNAL_STROBE_EDGE
+
+It's true that these are mutually exclusive.
+
+I think this is about whether we want to specify the operation of the
+flash explicitly here or allow extending the interface later on when new
+hardware is available by adding new controls. There are upsides and
+downsides in each approach.
+
+There could be additional differentiating factors to the functionalty
+later on, like the torch/video light differentiation that some hardware
+does --- who knows based on what?
+
+I perhaps wouldn't combine the controls. What do you think?
+
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
