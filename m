@@ -1,409 +1,110 @@
 Return-path: <mchehab@pedra>
-Received: from sj-iport-3.cisco.com ([171.71.176.72]:34699 "EHLO
-	sj-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752249Ab1C2JzF convert rfc822-to-8bit (ORCPT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:58944 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755690Ab1C3Jlp convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Mar 2011 05:55:05 -0400
-From: Hans Verkuil <hansverk@cisco.com>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: [RFC] V4L2 API for flash devices
-Date: Tue, 29 Mar 2011 11:54:43 +0200
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Nayden Kanchev <nkanchev@mm-sol.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Cohen David Abraham <david.cohen@nokia.com>
-References: <4D90854C.2000802@maxwell.research.nokia.com> <201103290849.48799.hverkuil@xs4all.nl> <4D91A7D7.5060909@maxwell.research.nokia.com>
-In-Reply-To: <4D91A7D7.5060909@maxwell.research.nokia.com>
+	Wed, 30 Mar 2011 05:41:45 -0400
+Received: by iyb14 with SMTP id 14so1055035iyb.19
+        for <linux-media@vger.kernel.org>; Wed, 30 Mar 2011 02:41:44 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+In-Reply-To: <201103291656.00189.laurent.pinchart@ideasonboard.com>
+References: <AANLkTimdFVDLLz2o9Fb2OJM2EsJ9R9q-xKAP63g9uSi+@mail.gmail.com>
+	<AANLkTimyQiG86LHW8-h+GHyXgMkvD-Zp6LP=G4LKHgHY@mail.gmail.com>
+	<AANLkTimiOr+dsTM4DXEf31XBkQHD8tt7ZjHDUcRn_f0+@mail.gmail.com>
+	<201103291656.00189.laurent.pinchart@ideasonboard.com>
+Date: Wed, 30 Mar 2011 11:41:44 +0200
+Message-ID: <BANLkTi=+6Xo-sS=sd31mpzzihX0zMGDAPA@mail.gmail.com>
+Subject: Re: OMAP3 ISP outputs 5555 5555 5555 5555 ...
+From: Bastian Hecht <hechtb@googlemail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
-Message-Id: <201103291154.43536.hansverk@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tuesday, March 29, 2011 11:35:19 Sakari Ailus wrote:
-> Hi Hans,
-> 
-> Many thanks for the comments!
-> 
-> Hans Verkuil wrote:
-> > On Monday, March 28, 2011 14:55:40 Sakari Ailus wrote:
-> >> Hi,
-> >>
-> >> This is a proposal for an interface for controlling flash devices on the
-> >> V4L2/v4l2_subdev APIs. My plan is to use the interface in the ADP1653
-> >> driver, the flash controller used in the Nokia N900.
-> >>
-> >> Comments and questions are very, very welcome!
-> >>
-> >>
-> >> Scope
-> >> =====
-> >>
-> >> This RFC is focused mostly on the ADP1653 [1] and similar chips [2, 3]
-> >> which provides following functionality. [2, 3] mostly differ on the
-> >> available faults --- for example, there are faults also for the
-> >> indicator LED.
-> >>
-> >> - High power LED output (flash or torch modes)
-> >> - Low power indicator LED output (a.k.a. privacy light)
-> >> - Programmable flash timeout
-> >> - Software and hardware strobe
-> >> - Fault detection
-> >> 	- Overvoltage
-> >> 	- Overtemperature
-> >> 	- Short circuit
-> >> 	- Timeout
-> >> - Programmable current (both high-power and indicator LEDs)
-> >>
-> >> If anyone else is aware of hardware which significantly differs from
-> >> these and does not get served well under the proposed interface, please
-> >> tell about it.
-> >>
-> >> This RFC does NOT address the synchronisation of the flash to a given
-> >> frame since this task is typically performed by the sensor through a
-> >> strobe signal. The host does not have enough information for this ---
-> >> exact timing information on the exposure of the sensor pixel array. In
-> >> this case the flash synchronisation is visible to the flash controller
-> >> as the hardware strobe originating from the sensor.
-> >>
-> >> Flash synchronisation requires
-> >>
-> >> 1) flash control capability from the sensor including a strobe output,
-> >> 2) strobe input in the flash controller,
-> >> 3) (optionally) ability to program sensor parameters at given frame,
-> >> such as flash strobe, and
-> >> 4) ability to read back metadata produced by the sensor related to a
-> >> given frame. This should include whether the frame is exposed with
-> >> flash, i.e. the sensor's flash strobe output.
-> >>
-> >> Since we have little examples of both in terms of hardware support,
-> >> which is in practice required, it was decided to postpone the interface
-> >> specification for now. [6]
-> >>
-> >> Xenon flash controllers exist but I don't have a specific example of
-> >> those. Typically the interface is quite simple. Gpio pins for charge and
-> >> strobe. The length of the strobe signal determines the strength of the
-> >> flash pulse. The strobe is controlled by the sensor as for LED flash if
-> >> it is hardware based.
-> >>
-> >>
-> >> Known use cases
-> >> ===============
-> >>
-> >> The use case listed below concentrate on using a flash in a mobile
-> >> device, for example in a mobile phone. The use cases could be somewhat
-> >> different in devices the primary use of which is camera.
-> >>
-> >> Unsynchronised LED flash (software strobe)
-> >> ------------------------------------------
-> >>
-> >> Unsynchronised LED flash is controlled directly by the host as the
-> >> sensor. The flash must be enabled by the host before the exposure of the
-> >> image starts and disabled once it ends. The host is fully responsible
-> >> for the timing of the flash.
-> >>
-> >> Example of such device: Nokia N900.
-> >>
-> >>
-> >> Synchronised LED flash (hardware strobe)
-> >> ----------------------------------------
-> >>
-> >> The synchronised LED flash is pre-programmed by the host (power and
-> >> timeout) but controlled by the sensor through a strobe signal from the
-> >> sensor to the flash.
-> >>
-> >> The sensor controls the flash duration and timing. This control
-> >> typically must be programmed to the sensor, and specifying an interface
-> >> for this is out of scope of this RFC.
-> >>
-> >> The LED flash controllers we know of can function in both synchronised
-> >> and unsynchronised modes.
-> >>
-> >>
-> >> LED flash as torch
-> >> ------------------
-> >>
-> >> LED flash may be used as torch in conjunction with another use case
-> >> involving camera or individually. [4]
-> >>
-> >>
-> >> Synchronised xenon flash
-> >> ------------------------
-> >>
-> >> The synchronised xenon flash is controlled more closely by the sensor
-> >> than the LED flash. There is no separate intensity control for the xenon
-> >> flash as its intensity is determined by the length of the strobe pulse.
-> >> Several consecutive strobe pluses are possible but this needs to be
-> >> still controlled by the sensor.
-> >>
-> >>
-> >> Proposed interface
-> >> ==================
-> >>
-> >> The flash, either LED or xenon, does not require large amounts of data
-> >> to control it. There are parameters to control it but they are
-> >> independent and assumably some hardware would only support some subsets
-> >> of the functionality available somewhere else. Thus V4L2 controls seem
-> >> an ideal way to support flash controllers.
-> >>
-> >> A separate control class is reserved for the flash controls. It is
-> >> called V4L2_CTRL_CLASS_FLASH.
-> >>
-> >> Type of the control; type of flash is in parentheses after the control.
-> >>
-> >>
-> >> 	V4L2_CID_FLASH_STROBE (button; LED)
-> >>
-> >> Strobe the flash using software strobe from the host, typically over I2C
-> >> or a GPIO. The flash is NOT synchronised to sensor pixel are exposure
-> >> since the command is given asynchronously. Alternatively, if the flash
-> >> controller is a master in the system, the sensor exposure may be
-> >> triggered based on software strobe.
-> 
-> It occurred to me that an application might want to turn off a flash
-> which has been strobed on software. That can't be done on a single
-> button control.
-> 
-> V4L2_CID_FLASH_SHUTDOWN?
-> 
-> The application would know the flash strobe is ongoing before it
-> receives a timeout fault. I somehow feel that there should be a control
-> telling that directly.
-> 
-> What about using a bool control for the strobe?
+2011/3/29 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> Hi Bastian,
+>
+> On Friday 25 March 2011 13:34:10 Bastian Hecht wrote:
+>> 2011/3/24 Bastian Hecht <hechtb@googlemail.com>:
+>> > 2011/3/24 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+>> >> On Thursday 24 March 2011 10:59:01 Bastian Hecht wrote:
+>> >>> 2011/3/22 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+>> >>> > On Tuesday 22 March 2011 17:11:04 Bastian Hecht wrote:
+>> >>> >> Hello omap isp devs,
+>> >>> >>
+>> >>> >> maybe you can help me, I am a bit desperate with my current cam
+>> >>> >> problem:
+>> >>> >>
+>> >>> >> I use a ov5642 chip and get only 0x55 in my data output when I use a
+>> >>> >> camclk > 1 MHz. With 1 MHz data rate from the camera chip to the
+>> >>> >> omap all works (well the colorspace is strange - it's greenish, but
+>> >>> >> that is not my main concern).
+>> >>> >> I looked up the data on the oscilloscope and all flanks seem to be
+>> >>> >> fine at the isp. Very clear cuts with 4 MHz and 10MHz. Also the data
+>> >>> >> pins are flickering fine. Looks like a picture.
+>> >>> >>
+>> >>> >> I found that the isp stats module uses 0x55 as a magic number but I
+>> >>> >> don't see why it should confuse my readout.
+>> >>> >>
+>> >>> >> I use 2592x1944 raw bayer output via the ccdc. Next to the logical
+>> >>> >> right config I tried all possible configurations of vs/hs active
+>> >>> >> high and low on camera and isp. The isp gets the vs flanks right as
+>> >>> >> the images come out in time (sometimes it misses 1 frame).
+>> >>> >>
+>> >>> >> Anyone of you had this behaviour before?
+>> >>> >
+>> >>> > How do you capture images ? yavta will fill buffers with 0x55 before
+>> >>> > queueing them, so this might indicate that no data is written to the
+>> >>> > buffer at all.
+>> >>>
+>> >>> Yes I use yavta. So what does that all mean?
+>> >>
+>> >> It means that the ISP doesn't write data to the buffer. I have no idea
+>> >> why.
+>>
+>> This simple and clear statement directly led me to the problem :)
+>>
+>> There was no cam_wen (write enable) pin on both my camera boards. The
+>> ISP on the other hand is configured by default to expect it. So I only
+>> captured images when my data lanes luckily pulled up the omap wen pin
+>> by induction.
+>>
+>> In ccdc_config_sync_if() I added:
+>>
+>>         /* HACK */
+>>         printk(KERN_ALERT "Disable wen\n");
+>>         syn_mode &= ~ISPCCDC_SYN_MODE_WEN;
+>>
+>> So is this something to add to the platform data? I can prepare my
+>> very first kernel patch :)
+>
+> The WEN bit controls whether the CCDC module writes to memory or not. It's not
+> supposed to interact with the external cam_wen signal. If you clear the WEN
+> bit, the CCDC is supposed not to write data to memory at all.
+>
+> What you might need to check is the EXWEN bit in the same register. It
+> controls whether the CCDC uses the cam_wen signal or not. The EXWEN bit should
+> already be set to zero by the driver though.
+>
+> Does clearing the WEN bit fix your issue ?
 
-It depends: is the strobe signal just a pulse that kicks off the flash, or is 
-it active throughout the flash duration? In the latter case a bool makes 
-sense, in the first case an extra button control makes sense.
+Hi Laurent,
 
-> 
-> >> 	V4L2_CID_FLASH_STROBE_MODE (menu; LED)
-> >>
-> >> Use hardware or software strobe. If hardware strobe is selected, the
-> >> flash controller is a slave in the system where the sensor produces the
-> >> strobe signal to the flash.
-> >>
-> >> In this case the flash controller setup is limited to programming strobe
-> >> timeout and power (LED flash) and the sensor controls the timing and
-> >> length of the strobe.
-> >>
-> >> enum v4l2_flash_strobe_mode {
-> >> 	V4L2_FLASH_STROBE_MODE_SOFTWARE,
-> >> 	V4L2_FLASH_STROBE_MODE_EXT_STROBE,
-> >> };
-> > 
-> > I'm not sure about the naming. Perhaps call the first MODE_SW_STROBE?
-> > Or MODE_SW_TRIGGER and MODE_HW_TRIGGER? Or perhaps just MODE_SOFTWARE and
-> > MODE_EXTERNAL or MODE_HARDWARE.
-> 
-> MODE_SOFTWARE and MODE_EXTERNAL (or MODE_HARDWARE) are the best, I
-> think. Indeed there's no need to repeat strobe in the name of a strobe mode.
-> 
-> "External" is good since it directly indicates the strobe is external to
-> the flash controller.
-> 
-> >>
-> >>
-> >> 	V4L2_CID_FLASH_TIMEOUT (integer; LED)
-> >>
-> >> The flash controller provides timeout functionality to shut down the led
-> >> in case the host fails to do that. For hardware strobe, this is the
-> >> maximum amount of time the flash should stay on, and the purpose of the
-> >> setting is to prevent the LED from catching fire.
-> >>
-> >> For software strobe, the setting may be used to limit the length of the
-> >> strobe in case a driver does not implement it itself. The granularity of
-> >> the timeout in [1, 2, 3] is very coarse. However, the length of a
-> >> driver-implemented LED strobe shutoff is very dependent on host.
-> >> Possibly V4L2_CID_FLASH_DURATION should be added, and
-> >> V4L2_CID_FLASH_TIMEOUT would be read-only so that the user would be able
-> >> to obtain the actual hardware implemented safety timeout.
-> >>
-> >> Likely a standard unit such as ms or µs should be used.
-> > 
-> > It seems to me that this control should always be read-only. A setting 
-like
-> > this is very much hardware specific and you don't want an attacker 
-changing
-> > the timeout to the max value that might cause a LED catching fire.
-> 
-> I'm not sure about that.
-> 
-> The driver already must take care of protecting the hardware in my
-> opinion. Besides, at least one control is required to select the
-> duration for the flash if there's no hardware synchronisation.
-> 
-> What about this:
-> 
-> 	V4L2_CID_FLASH_TIMEOUT
-> 
-> Hardware timeout, read-only. Programmed to the maximum value allowed by
-> the hardware for the external strobe, greater or equal to
-> V4L2_CID_FLASH_DURATION for software strobe.
-> 
-> 	V4L2_CID_FLASH_DURATION
-> 
-> Software implemented timeout when V4L2_CID_FLASH_STROBE_MODE ==
-> V4L2_FLASH_STROBE_MODE_SOFTWARE.
-> 
-> I have to say I'm not entirely sure the duration control is required.
-> The timeout could be writable for software strobe in the case drivers do
-> not implement software timeout. The granularity isn't _that_ much
-> anyway. Also, a timeout fault should be produced whenever the duration
-> would expire.
-> 
-> Perhaps it would be best to just leave that out for now.
+As I remember (I currently haven't the datasheet available)  the wen
+signal is an input from the camera and the SYN_MODE_WEN makes check
+this signal. Disabling the SYN_MODE_WEN solved my problem and I can
+reliably read images with 24 MHz datarate on the parallel bus.
+Artefacts are gone that I had before with 1 MHz, too.
+Is this too small for an own patch or could I send one?
 
-Do you need something like this for the N900? If not, then leaving it out 
-until we have a bit more experience is a good option.
+best regards,
 
-Regards,
+ Bastian
 
-	Hans
-
-> 
-> >>
-> >>
-> >> 	V4L2_CID_FLASH_LED_MODE (menu; LED)
-> >>
-> >> enum v4l2_flash_led_mode {
-> >> 	V4L2_FLASH_LED_MODE_FLASH = 1,
-> >> 	V4L2_FLASH_LED_MODE_TORCH,
-> >> };
-> > 
-> > Would a LED_MODE_NONE make sense as well to turn off the flash completely?
-> 
-> It would essentially be the same as choosing software strobe and
-> disabling strobe. A separate mode for this still could be good to make
-> it explicit.
-> 
-> >>
-> >>
-> >> 	V4L2_CID_FLASH_INTENSITY (integer; LED)
-> >>
-> >> Intensity of the flash in hardware specific units. The LED flash
-> >> controller provides current to the LED but the actual luminous power is
-> >> dictated by the LED connected to the controller.
-> >>
-> >>
-> >> 	V4L2_CID_FLASH_TORCH_INTENSITY (integer; LED)
-> >>
-> >> Intensity of the flash in hardware specific units.
-> >>
-> >>
-> >> 	V4L2_CID_FLASH_INDICATOR_INTENSITY (integer; LED)
-> >>
-> >> Intensity of the indicator light in hardware specific units.
-> >>
-> >>
-> >> 	V4L2_CID_FLASH_FAULT (bit field; LED)
-> >>
-> >> This is a bitmask containing the fault information for the flash. This
-> >> assumes the proposed V4L2 bit mask controls [5]; otherwise this would
-> >> likely need to be a set of controls.
-> > 
-> > I intend to work on bitmask controls and control events tomorrow.
-> 
-> Nice! I look forward to see them! :-)
-> 
-> >>
-> >> #define V4L2_FLASH_FAULT_OVER_VOLTAGE		0x00000001
-> >> #define V4L2_FLASH_FAULT_TIMEOUT		0x00000002
-> >> #define V4L2_FLASH_FAULT_OVER_TEMPERATURE	0x00000004
-> >> #define V4L2_FLASH_FAULT_SHORT_CIRCUIT		0x00000008
-> >>
-> >> Several faults may occur at single occasion. The ADP1653 is able to
-> >> inform the user a fault has occurred, so a V4L2 control event (proposed
-> >> earlier) could be used for that.
-> 
-> Btw. as this is an I2C device, there's an external interrupt pin which
-> tells this. Very likely the board code needs to tell this to the driver,
-> or the driver could depend on the GPIO framework while the configuration
-> would be in the board code.
-> 
-> >> These faults are supported by the ADP1653. More faults may be added as
-> >> support for more chips require that. In some other hardware faults are
-> >> available for indicator led as well.
-> >>
-> >> Question: should indicator faults be part of the same control, or a
-> >> different control, e.g. V4L2_CID_FLASH_INDICATOR_FAULT?
-> > 
-> > If they are independently reported, then I would say so, yes.
-> 
-> I believe it could be the same register, but this could be hardware
-> dependent.
-> 
-> Still, the faults essentially can be divided to separate LEDs. Perhaps
-> it'd be good to rethink this when someone writes a driver for such a
-> device. :-)
-> 
-> >>
-> >>
-> >> 	V4L2_CID_FLASH_CHARGE (bool; xenon)
-> >>
-> >> Charge control for the xenon flash. Enable or disable charging.
-> >>
-> >>
-> >> 	V4L2_CID_FLASH_READY (bool; xenon, LED)
-> >>
-> >> Flash is ready to strobe. On xenon flash this tells the capacitor has
-> >> been charged, on LED flash it's that the LED is no longer too hot.
-> >>
-> >> The implementation on LED flash may be modelling the temperature
-> >> behaviour of the LED in the driver (or elsewhere, e.g. library or board
-> >> code) if the hardware does not provide direct temperature information
-> >> from the LED.
-> >>
-> >> A V4L2 control event should be produced whenever the flash becomes ready.
-> > 
-> > Looks good!
-> 
-> Thanks! :-)
-> 
-> > 
-> > Regards,
-> > 
-> > 	Hans
-> > 
-> >>
-> >>
-> >> References
-> >> ==========
-> >>
-> >> [1] http://www.analog.com/static/imported-files/data_sheets/ADP1653.pdf
-> >>
-> >> [2] http://www.national.com/mpf/LM/LM3555.html#Overview
-> >>
-> >> [3]
-> >> http://www.austriamicrosystems.com/eng/Products/Lighting-
-Management/Camera-Flash-LED-Drivers/AS3645
-> >>
-> >> [4] http://maemo.org/downloads/product/Maemo5/flashlight-applet/
-> >>
-> >> [5]
-> >> http://www.retiisi.org.uk/v4l2/v4l2-brainstorming-
-warsaw-2011-03/notes/day%202%20(SGz6LU2esk).html
-> >>
-> >> [6]
-> >> http://www.retiisi.org.uk/v4l2/v4l2-brainstorming-
-warsaw-2011-03/notes/day%203%20(RhoYa0X9D7).html
-> >>
-> >>
-> >> Cheers,
-> >>
-> >>
-> > 
-> 
-> 
-> -- 
-> Sakari Ailus
-> sakari.ailus@maxwell.research.nokia.com
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> Regards,
+>
+> Laurent Pinchart
+>
