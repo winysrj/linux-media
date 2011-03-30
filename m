@@ -1,48 +1,34 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3669 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751128Ab1C2OvQ (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.187]:56027 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754175Ab1C3Hk6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Mar 2011 10:51:16 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Willy POISSON <willy.poisson@stericsson.com>
-Subject: Re: v4l: Buffer pools
-Date: Tue, 29 Mar 2011 16:50:49 +0200
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <757395B8DE5A844B80F3F4BE9867DDB652374B2340@EXDCVYMBSTM006.EQ1STM.local>
-In-Reply-To: <757395B8DE5A844B80F3F4BE9867DDB652374B2340@EXDCVYMBSTM006.EQ1STM.local>
+	Wed, 30 Mar 2011 03:40:58 -0400
+Date: Wed, 30 Mar 2011 09:40:49 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Paolo Santinelli <paolo.santinelli@unimore.it>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH/DRAFT 0/2] Add livecrop to soc-camera and to sh CEU
+In-Reply-To: <AANLkTimuV6Mjvp5K+mUOOBgvRsw+vWtYqPb_Vqr8-tDo@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1103300932050.4695@axis700.grange>
+References: <AANLkTinVP6CePBY6g9Dn2aKXM0ovwmpqMd5G4ucz44EH@mail.gmail.com>
+ <Pine.LNX.4.64.1103292357270.13285@axis700.grange>
+ <AANLkTimhP_YoqKRKyPzRbM6gw5jXVNV2D3pveRqqH0W_@mail.gmail.com>
+ <AANLkTimuV6Mjvp5K+mUOOBgvRsw+vWtYqPb_Vqr8-tDo@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201103291650.50501.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tuesday, March 29, 2011 16:01:33 Willy POISSON wrote:
-> Hi all,
-> 	Following to the Warsaw mini-summit action point, I would like to open the thread to gather buffer pool & memory manager requirements.
-> The list of requirement for buffer pool may contain:
-> -	Support physically contiguous and virtual memory
-> -	Support IPC, import/export handles (between processes/drivers/userland/etc)
-> -	Security(access rights in order to secure no one unauthorized is allowed to access buffers)
-> -	Cache flush management (by using setdomain and optimize when flushing is needed)
-> -	Pin/unpin in order to get the actual address to be able to do defragmentation
-> -	Support pinning in user land in order to allow defragmentation while buffer is mmapped but not pined.
-> -	Both a user API and a Kernel API is needed for this module. (Kernel drivers needs to be able to resolve buffer handles as well from the memory manager module, and pin/unpin)
-> -	be able to support any platform specific allocator (Separate memory allocation from management as allocator is platform dependant)
-> -	Support multiple region domain (Allow to allocate from several memory domain ex: DDR1, DDR2, Embedded SRAM to make for ex bandwidth load balancing ...)
+This is just a dump of an idea, I've been toying with to support live zoom 
+on soc-camera. I do not know, if we'll end up mainlining this, because the 
+proper way to do this is to use MC / pad-level operations, and even if we 
+do this, at least the second patch will have to be further split into 2 or 
+three patches. So, this is mainly just for Paolo to have a look.
 
-Thanks for your input, Willy!
-
-I have one question: do you know which of the points mentioned above are
-implemented in actual existing code that ST-Ericsson uses? Ideally with links
-to such code as well if available :-)
-
-That will help as a reference.
-
-> Another idea, but not so linked to memory management (more usage of buffers), would be to have a common data container (structure to access data) shared by several media (Imaging, video/still codecs, graphics, Display...) to ease usage of the data. This container could  embed data type (video frames, Access Unit) , frames format, pixel format, width, height, pixel aspect ratio, region of interest, CTS (composition time stamp),  ColorSpace, transparency (opaque, alpha, color key...), pointer on buffer(s) handle)... 
-
-Regards,
-
-	Hans
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
