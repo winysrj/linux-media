@@ -1,52 +1,111 @@
 Return-path: <mchehab@pedra>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:65397 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752460Ab1CJPZX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Mar 2011 10:25:23 -0500
-Received: by yxs7 with SMTP id 7so691467yxs.19
-        for <linux-media@vger.kernel.org>; Thu, 10 Mar 2011 07:25:23 -0800 (PST)
+Received: from smtp.nokia.com ([147.243.128.24]:45650 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754193Ab1C3LiG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Mar 2011 07:38:06 -0400
+Message-ID: <4D931610.9030504@maxwell.research.nokia.com>
+Date: Wed, 30 Mar 2011 14:37:52 +0300
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-Date: Thu, 10 Mar 2011 16:25:22 +0100
-Message-ID: <AANLkTi=8iEa4ZXvh1SqL8XdHuB2YcDAxXAqouJA2JriV@mail.gmail.com>
-Subject: mt9p031 support for Beagleboard.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Content-Type: text/plain; charset=ISO-8859-1
+To: riverful.kim@samsung.com
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Nayden Kanchev <nkanchev@mm-sol.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Cohen David Abraham <david.cohen@nokia.com>
+Subject: Re: [RFC] V4L2 API for flash devices
+References: <4D90854C.2000802@maxwell.research.nokia.com> <4D91B7EC.2020004@samsung.com> <4D91EF7D.2020403@maxwell.research.nokia.com> <4D92BA71.9080005@samsung.com>
+In-Reply-To: <4D92BA71.9080005@samsung.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
-we are going to receive a Beagleaboard xM board in a couple of days.
-One of the things we would like to test is video capture.
+Kim, HeungJun wrote:
+> Hi Sakari,
 
-When it comes to the DM3730 SoC, it seems the support is given through
-these two files:
-http://lxr.linux.no/#linux+v2.6.37.3/drivers/media/video/davinci/vpfe_capture.c
---> to capture from sensor
-http://lxr.linux.no/#linux+v2.6.37.3/drivers/media/video/davinci/dm644x_ccdc.c
---> to convert from Bayer RGB to YUV
+Hi HeungJun,
 
-On the other hand, the sensor we would like to test is mt9p031 which
-comes with LI-5M03, a module that can be attached to Beagleboard xM
-directly:
-https://www.leopardimaging.com/Beagle_Board_xM_Camera.html
+> 2011-03-29 오후 11:41, Sakari Ailus 쓴 글:
+>> Kim, HeungJun wrote:
+> [snip]
+>>> I think it's not different method to turn on/off, whatever the mode name is.
+>>> But, the mode name DEDICATED is look more reasonable, because the reason 
+>>> which is devided FLASH and TORCH in the mode, is why only power up the led,
+>>> not sensor.
+>>
+>> Sensor? Is the flash part of the sensor module for you?
+> Yes. The flash is a part of the sensor module(our case like M-5MOLS).
+> Precisely, the sensor internal core's gpio pin is connected with
+> external Flash LED, and the control master is the sensor internal core.
+> For turnning on the Flash LED, we should use I2C register access.
+> So, I think it's exactly matches with hardware strobe as you metioned.
 
-By a lot of googling I found this version of a driver for mt9p031
-which is developed by Guennadi Liakhovetski. It is located in a 2.6.32
-based branch:
-http://arago-project.org/git/projects/?p=linux-davinci.git;a=blob;f=drivers/media/video/mt9p031.c;h=66b5e54d0368052bf76796aa846e9464e42204bb;hb=HEAD
+Ok, I think I'm lost now. :-)
 
-The question is, what does this driver lack for not entering into
-mainline? We would be very interested on helping it make it.
+What signals are sent from sensor to flash in both torch and flash cases?
 
+>> I think it should be other factors than the flash mode that are used to
+>> make the decision on whether to power on the sensor or not.
+>>
+>> The factors based on which to power the subdevs probably will be
+>> discussed in the future, and which entity is responsible for power
+>> management. The power management code originally was part of the Media
+>> controller framework but it was removed since it was not seen to be
+>> generic enough.
+>>
+>> Many subdev drivers (including the adp1653) basically get powered as
+>> long as the subdev device node is open. Sensor can be powered based on
+>> other factors as well, such as the streaming state and what are the
+>> connections to the video nodes.
+> That's the start point I said. When the user use only the flash, it should be
+> accompanied(of course, I have same circumstance) by opening the videonode
+> and doing the media control operation, but we have no option to do because
+> it's depending on the hardware connection architecture.
+
+When the user only needs to use the flash, in this case the user must
+open the subdev node which is exported by the flash controller driver.
+Not the video node, which is handled in the bridge (ISP) driver.
+
+> So, I suggesst that, if we can not give to users(of course, this user
+> want to use only flash function, not the camera) proper method usage
+> (openning the videonode for using flash), let's express that the camera
+> flash is used in the DEDICATED MODE now, as the enumeration name DEDICATED.
+
+No. The video nodes should not be involved since they are related to the
+bridge (ISP) which is not needed to use the flash. Assuming that this is
+the situation.
+
+This is how the use case should go:
+
+1. open subdev node, e.g. /dev/v4l-subdev0, which is the flash
+(flash controller powered on)
+2. VIDIOC_S_CTRL: V4L2_CID_FLASH_LED_MODE, V4L2_FLASH_LED_MODE_TORCH
+(flash is on now)
+2. VIDIOC_S_CTRL: V4L2_CID_FLASH_LED_MODE, V4L2_FLASH_LED_MODE_NONE
+(flash is off now)
+3. close the file handle
+(flash controller powered off)
+
+> But, I think it might be not a big issue. So, any others don't comment at this,
+> it's ok for me to pass this naming issue.
+> 
+> I can see this API is very cool for camera man just like me.
+
+Thanks!
+
+> plus: actually I have the one of N-series, N810. So, the omap3isp is available to
+> activate this device, not even it's cpu is omap3? Just question.
+
+The N810 has OMAP 2420 which has a completely different camera bridge,
+and there's no flash. The drivers for the camera in N810 are omap24xxcam
+and tcm825x. The drivers are functional in mainline but the platform
+data is missing, as well as the CBUS driver. This work is queued but
+unknown when there's time for this.
+
+Regards,
 
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
