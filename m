@@ -1,59 +1,115 @@
 Return-path: <mchehab@pedra>
-Received: from ffm.saftware.de ([83.141.3.46]:51096 "EHLO ffm.saftware.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752920Ab1CKUj3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Mar 2011 15:39:29 -0500
-Message-ID: <4D7A8879.5010401@linuxtv.org>
-Date: Fri, 11 Mar 2011 21:39:21 +0100
-From: Andreas Oberritter <obi@linuxtv.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52930 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754812Ab1C3Ny1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Mar 2011 09:54:27 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [RFC] V4L2 API for flash devices
+Date: Wed, 30 Mar 2011 15:54:46 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Nayden Kanchev <nkanchev@mm-sol.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Cohen David Abraham <david.cohen@nokia.com>
+References: <4D90854C.2000802@maxwell.research.nokia.com> <201103301134.14798.laurent.pinchart@ideasonboard.com> <4D930E92.70302@maxwell.research.nokia.com>
+In-Reply-To: <4D930E92.70302@maxwell.research.nokia.com>
 MIME-Version: 1.0
-To: Issa Gorissen <flop.m@usa.net>
-CC: linux-media@vger.kernel.org, rjkm@metzlerbros.de
-Subject: Re: [PATCH] Ngene cam device name
-References: <419PcksGF8800S02.1299868385@web02.cms.usa.net>
-In-Reply-To: <419PcksGF8800S02.1299868385@web02.cms.usa.net>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201103301554.47092.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
->> On 03/10/2011 04:29 PM, Issa Gorissen wrote:
->>> As the cxd20099 driver is in staging due to abuse of the sec0 device,
-> this
->>> patch renames it to cam0. The sec0 device is not in use and can be
-> removed
->>
->> That doesn't solve anything. Besides, your patch doesn't even do what
->> you describe.
->>
->> Wouldn't it be possible to extend the current CA API? If not, shouldn't
->> a new API be created that covers both old and new requirements?
->>
->> It's rather unintuitive that some CAMs appear as ca0, while others as cam0.
->>
->> If it was that easy to fix, it wouldn't be in staging today.
->>
->> Regards,
->> Andreas
+On Wednesday 30 March 2011 13:05:54 Sakari Ailus wrote:
+> Laurent Pinchart wrote:
+> > Hi Sakari,
 > 
+> Hi Laurent,
 > 
-> Yes indeed, this patch is missing the update of dnames arrays in dvbdev.c
+> Thanks for the comments!
 > 
-> Now, according to Mauro comments, he has put this code into staging because of
-> the usage of sec0 name for a cam device.
+> > On Monday 28 March 2011 14:55:40 Sakari Ailus wrote:
+> > 
+> > [snip]
+> > 
+> >> 	V4L2_CID_FLASH_STROBE_MODE (menu; LED)
+> >> 
+> >> Use hardware or software strobe. If hardware strobe is selected, the
+> >> flash controller is a slave in the system where the sensor produces the
+> >> strobe signal to the flash.
+> >> 
+> >> In this case the flash controller setup is limited to programming strobe
+> >> timeout and power (LED flash) and the sensor controls the timing and
+> >> length of the strobe.
+> >> 
+> >> enum v4l2_flash_strobe_mode {
+> >> 
+> >> 	V4L2_FLASH_STROBE_MODE_SOFTWARE,
+> >> 	V4L2_FLASH_STROBE_MODE_EXT_STROBE,
+> >> 
+> >> };
+> > 
+> > [snip]
+> > 
+> >> 	V4L2_CID_FLASH_LED_MODE (menu; LED)
+> >> 
+> >> enum v4l2_flash_led_mode {
+> >> 
+> >> 	V4L2_FLASH_LED_MODE_FLASH = 1,
+> >> 	V4L2_FLASH_LED_MODE_TORCH,
+> >> 
+> >> };
+> > 
+> > Thinking about this some more, shouldn't we combine the two controls ?
+> > They are basically used to configure how the flash LED is controlled:
+> > manually (torch mode), automatically by the flash controller (software
+> > strobe mode) or automatically by an external component (external strobe
+> > mode).
 > 
-> Please comment on Oliver's explanations from this thread
+> That's a good question.
 > 
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg26901.html
+> The adp1653 supports also additional control (not implemented in the
+> driver, though) that affect hardware strobe length. Based on register
+> setting, the led will be on after strobe either until the timeout
+> expires, or until the strobe signal is high.
+>
+> Should this be also part of the same control, or a different one?
 
-Oliver explained that he's not going to put work into this driver,
-because he's not using it.
+That can be controlled by a duration control. If the duration is 0, the flash 
+is lit for the duration of the external strobe, otherwise it's lit for the 
+programmed duration.
 
-Until now, I haven't heard any reasons for just adding another device
-node other than it being easier than defining a proper interface. The
-fact that a solution "just works as is" is not sufficient to move a
-driver from staging. IMO the CI driver should not have been included at
-all in its current shape.
+> 
+> Even without this, we'd have:
+> 
+> V4L2_FLASH_MODE_OFF
+> V4L2_FLASH_MODE_TORCH
+> V4L2_FLASH_MODE_SOFTWARE_STROBE
+> V4L2_FLASH_MODE_EXTERNAL_STROBE
+> 
+> Additionally, this might be
+> 
+> V4L2_FLASH_MODE_EXTERNAL_STROBE_EDGE
+> 
+> It's true that these are mutually exclusive.
+> 
+> I think this is about whether we want to specify the operation of the
+> flash explicitly here or allow extending the interface later on when new
+> hardware is available by adding new controls. There are upsides and
+> downsides in each approach.
+> 
+> There could be additional differentiating factors to the functionalty
+> later on, like the torch/video light differentiation that some hardware
+> does --- who knows based on what?
+> 
+> I perhaps wouldn't combine the controls. What do you think?
 
+I'm not sure yet :-)
+
+-- 
 Regards,
-Andreas
+
+Laurent Pinchart
