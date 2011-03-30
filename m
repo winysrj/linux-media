@@ -1,66 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:57759 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756901Ab1CIPyw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Mar 2011 10:54:52 -0500
-Received: by vxi39 with SMTP id 39so570627vxi.19
-        for <linux-media@vger.kernel.org>; Wed, 09 Mar 2011 07:54:51 -0800 (PST)
-References: <20110309175231.16446e92.jean.bruenn@ip-minds.de>
-In-Reply-To: <20110309175231.16446e92.jean.bruenn@ip-minds.de>
-Mime-Version: 1.0 (Apple Message framework v1082)
-Content-Type: text/plain; charset=us-ascii
-Message-Id: <76A39CFB-2838-4AD7-B353-49971F9F7DFF@wilsonet.com>
-Content-Transfer-Encoding: 8BIT
-Cc: linux-media@vger.kernel.org
-From: Jarod Wilson <jarod@wilsonet.com>
-Subject: Re: WinTV 1400 broken with recent versions?
-Date: Wed, 9 Mar 2011 10:55:03 -0500
-To: Jean-Michel Bruenn <jean.bruenn@ip-minds.de>
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:33294 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932504Ab1C3O0p (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Mar 2011 10:26:45 -0400
+Subject: [PATCH] rc-core: fix winbond-cir issues
+To: linux-media@vger.kernel.org
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: mchehab@redhat.com, skandalfo@gmail.com
+Date: Wed, 30 Mar 2011 16:20:14 +0200
+Message-ID: <20110330141952.11373.16400.stgit@felix.hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mar 9, 2011, at 11:52 AM, Jean-Michel Bruenn wrote:
+The conversion of winbond-cir to use rc-core seems to have missed a
+a few bits and pieces which were in my local tree. Kudos to
+Juan Jes√∫s Garc√≠a de Soria Lucena <skandalfo@gmail.com> for noticing.
 
-> Hey,
-> 
-> is this driver going to be fixed anytime soon? It was working fine ago a
-> half year/year.
-> 
-> lspci:
-> 06:00.0 Multimedia video controller: Conexant Systems, Inc. CX23885 PCI
-> Video and Audio Decoder (rev 02)
-> 
-> uname -a:
-> Linux lyra 2.6.37.1 #1 SMP PREEMPT Tue Feb 22 13:22:59 CET 2011 x86_64
-> x86_64 x86_64 GNU/Linux
-> 
-> dmesg:
-> xc2028 1-0064: i2c output error: rc = -6 (should be 64)
-> xc2028 1-0064: -6 returned from send
-> xc2028 1-0064: Error -22 while loading base firmware
-> xc2028 1-0064: Loading firmware for type=BASE F8MHZ (3), id
-> 0000000000000000.
-> xc2028 1-0064: i2c output error: rc = -6 (should be 64)
-> xc2028 1-0064: -6 returned from send
-> xc2028 1-0064: Error -22 while loading base firmware
-> xc2028 1-0064: Loading firmware for type=BASE F8MHZ (3), id
-> 0000000000000000.
-> xc2028 1-0064: i2c output error: rc = -6 (should be 64)
-> xc2028 1-0064: -6 returned from send
-> xc2028 1-0064: Error -22 while loading base firmware
-> 
-> nothing works - if i do scan it finds nothing and those messages appear on
-> dmesg. if i try to watch with the channels.conf from my other pc i can play
-> nothing, all i get is those messages above.
+Signed-off-by: David H√§rdeman <david@hardeman.nu>
+---
+ drivers/media/rc/winbond-cir.c |   20 +++++---------------
+ 1 files changed, 5 insertions(+), 15 deletions(-)
 
-This may already be fixed, just not in 2.6.37.x yet. Can you give
-2.6.38-rc8 (or later) a try and/or the media_build bits?
-
-http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
-
--- 
-Jarod Wilson
-jarod@wilsonet.com
-
-
+diff --git a/drivers/media/rc/winbond-cir.c b/drivers/media/rc/winbond-cir.c
+index 186de55..16f4178 100644
+--- a/drivers/media/rc/winbond-cir.c
++++ b/drivers/media/rc/winbond-cir.c
+@@ -7,7 +7,7 @@
+  *  with minor modifications.
+  *
+  *  Original Author: David H‰rdeman <david@hardeman.nu>
+- *     Copyright (C) 2009 - 2010 David H‰rdeman <david@hardeman.nu>
++ *     Copyright (C) 2009 - 2011 David H‰rdeman <david@hardeman.nu>
+  *
+  *  Dedicated to my daughter Matilda, without whose loving attention this
+  *  driver would have been finished in half the time and with a fraction
+@@ -629,18 +629,8 @@ wbcir_init_hw(struct wbcir_data *data)
+ 	/* prescaler 1.0, tx/rx fifo lvl 16 */
+ 	outb(0x30, data->sbase + WBCIR_REG_SP3_EXCR2);
+ 
+-	/* Set baud divisor to generate one byte per bit/cell */
+-	switch (protocol) {
+-	case IR_PROTOCOL_RC5:
+-		outb(0xA7, data->sbase + WBCIR_REG_SP3_BGDL);
+-		break;
+-	case IR_PROTOCOL_RC6:
+-		outb(0x53, data->sbase + WBCIR_REG_SP3_BGDL);
+-		break;
+-	case IR_PROTOCOL_NEC:
+-		outb(0x69, data->sbase + WBCIR_REG_SP3_BGDL);
+-		break;
+-	}
++	/* Set baud divisor to sample every 10 us */
++	outb(0x0F, data->sbase + WBCIR_REG_SP3_BGDL);
+ 	outb(0x00, data->sbase + WBCIR_REG_SP3_BGDH);
+ 
+ 	/* Set CEIR mode */
+@@ -649,9 +639,9 @@ wbcir_init_hw(struct wbcir_data *data)
+ 	inb(data->sbase + WBCIR_REG_SP3_LSR); /* Clear LSR */
+ 	inb(data->sbase + WBCIR_REG_SP3_MSR); /* Clear MSR */
+ 
+-	/* Disable RX demod, run-length encoding/decoding, set freq span */
++	/* Disable RX demod, enable run-length enc/dec, set freq span */
+ 	wbcir_select_bank(data, WBCIR_BANK_7);
+-	outb(0x10, data->sbase + WBCIR_REG_SP3_RCCFG);
++	outb(0x90, data->sbase + WBCIR_REG_SP3_RCCFG);
+ 
+ 	/* Disable timer */
+ 	wbcir_select_bank(data, WBCIR_BANK_4);
 
