@@ -1,133 +1,669 @@
 Return-path: <mchehab@pedra>
-Received: from smtp2.sms.unimo.it ([155.185.44.12]:34229 "EHLO
-	smtp2.sms.unimo.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752660Ab1C2Xoe convert rfc822-to-8bit (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:26246 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751683Ab1C3HBH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Mar 2011 19:44:34 -0400
-Received: from mail-fx0-f51.google.com ([209.85.161.51]:37224)
-	by smtp2.sms.unimo.it with esmtps (TLS1.0:RSA_ARCFOUR_SHA1:16)
-	(Exim 4.69)
-	(envelope-from <76466@studenti.unimore.it>)
-	id 1Q4iaM-0006Ea-2U
-	for linux-media@vger.kernel.org; Wed, 30 Mar 2011 01:44:30 +0200
-Received: by fxm5 with SMTP id 5so887907fxm.24
-        for <linux-media@vger.kernel.org>; Tue, 29 Mar 2011 16:44:29 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1103292357270.13285@axis700.grange>
-References: <AANLkTinVP6CePBY6g9Dn2aKXM0ovwmpqMd5G4ucz44EH@mail.gmail.com>
-	<Pine.LNX.4.64.1103292357270.13285@axis700.grange>
-Date: Tue, 29 Mar 2011 18:44:29 -0500
-Message-ID: <AANLkTimhP_YoqKRKyPzRbM6gw5jXVNV2D3pveRqqH0W_@mail.gmail.com>
-Subject: Re: soc_camera dynamically cropping and scaling
-From: Paolo Santinelli <paolo.santinelli@unimore.it>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Wed, 30 Mar 2011 03:01:07 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Wed, 30 Mar 2011 09:00:47 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 1/2] media: vb2: add frame buffer emulator for video output
+	devices
+In-reply-to: <1301468448-25524-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	t.stanislaws@samsung.com
+Message-id: <1301468448-25524-2-git-send-email-m.szyprowski@samsung.com>
+References: <1301468448-25524-1-git-send-email-m.szyprowski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Guennadi,
+This patch adds generic frame buffer emulator for any video output device
+that uses videobuf2 framework. This emulator assumes that the driver
+is capable of working in single-buffering mode and use memory allocator
+that allows coherent memory mapping.
 
-thank you for the quick answer.
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/Kconfig        |    7 +
+ drivers/media/video/Makefile       |    1 +
+ drivers/media/video/videobuf2-fb.c |  565 ++++++++++++++++++++++++++++++++++++
+ include/media/videobuf2-fb.h       |   22 ++
+ 4 files changed, 595 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/videobuf2-fb.c
+ create mode 100644 include/media/videobuf2-fb.h
 
-Here is what I mean with dynamic: I take "live" one frame at high
-resolution, for example a picture at VGA or  QVGA resolution, then a
-sequence of frames that depict a cropped area (200x200 or 100x100)
-from the original full-resolution frame, and then a new full
-resolution image (VGA or QVGA) and again the sequence of frames  that
-depict a cropped area from the original full resolution, and so on.
-That means takes one frame in 640x480 and  than takes some frames at
-100x100 (or 200x200) and so on.
-
-The best would be have two different fixed-output image formats, the
-WHOLE IMAGE format ex. 640x480 and the ROI format, 100x100. The ROI
-pictures obtained cropping the a region of the whole image. The
-cropping area could be even wider  than 100x100 and then scaled down
-to the 100x100 ROI format.
-
-Probably it is more simple have a cropping area of the same dimension
-of the ROI format, 100x100.
-
-In this way there is a reduction of the computation load of the CPU
-(smaller images).
-
-Thank you very much!
-
-Paolo
-
-2011/3/29 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
-> On Tue, 29 Mar 2011, Paolo Santinelli wrote:
->
->> Hi all,
->>
->> I am using a PXA270 board running linux 2.6.37 equipped with an ov9655
->> Image sensor. I am able to use the cropping and scaling capabilities
->> V4L2 driver.
->> The question is :
->>
->> Is it possible dynamically change the cropping and scaling values
->> without close and re-open  the camera every time ?
->>
->> Now I am using the streaming I/O memory mapping and to dynamically
->> change the cropping and scaling values I do :
->>
->> 1) stop capturing using VIDIOC_STREAMOFF;
->> 2) unmap all the buffers;
->> 3) close the device;
->> 4) open the device;
->> 5) init the device: VIDIOC_CROPCAP and VIDIOC_S_CROP in order to set
->> the cropping parameters. VIDIOC_G_FMT and VIDIOC_S_FMT in order to set
->> the target image width and height, (scaling).
->> 6) Mapping the buffers: VIDIOC_REQBUFS in order to request buffers and
->> mmap each buffer using VIDIOC_QUERYBUF and mmap():
->>
->> this procedure works but take 400 ms.
->>
->> If I omit steps 3) and 4)  (close and re-open the device) I get this errors:
->>
->> camera 0-0: S_CROP denied: queue initialised and sizes differ
->> camera 0-0: S_FMT denied: queue initialised
->> VIDIOC_S_FMT error 16, Device or resource busy
->> pxa27x-camera pxa27x-camera.0: PXA Camera driver detached from camera 0
->>
->> Do you have some Idea regarding why I have to close and reopen the
->> device and regarding a way to speed up these change?
->
-> Yes, by chance I do;-) First of all you have to make it more precise -
-> what exactly do you mean - dynamic (I call it "live") scaling or cropping?
-> If you want to change output format, that will not be easy ATM, that will
-> require the snapshot mode API, which is not yet even in an RFC state. If
-> you only want to change the cropping and keep the output format (zoom),
-> then I've just implemented that for sh_mobile_ceu_camera. This requires a
-> couple of extensions to the soc-camera core, which I can post tomorrow.
-> But in fact that is also a hack, because the proper way to implement this
-> is to port soc-camera to the Media Controller framework and use the
-> pad-level API. So, I am not sure, whether we want this in the mainline,
-> but if already two of us need it now - before the transition to pad-level
-> operations, maybe it would make sense to mainline this. If, however, you
-> do have to change your output window, maybe you could tell us your
-> use-case, so that we could consider, what's the best way to support that.
->
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
->
-
-
-
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 6fa35b8..14ba464 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -50,6 +50,13 @@ config VIDEOBUF2_CORE
+ config VIDEOBUF2_MEMOPS
+ 	tristate
+ 
++config VIDEOBUF2_FB
++	depends on VIDEOBUF2_CORE
++	select FB_CFB_FILLRECT
++	select FB_CFB_COPYAREA
++	select FB_CFB_IMAGEBLIT
++	tristate
++
+ config VIDEOBUF2_DMA_CONTIG
+ 	select VIDEOBUF2_CORE
+ 	select VIDEOBUF2_MEMOPS
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index f1bba24..f9e7616 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -115,6 +115,7 @@ obj-$(CONFIG_VIDEO_BTCX)  += btcx-risc.o
+ 
+ obj-$(CONFIG_VIDEOBUF2_CORE)		+= videobuf2-core.o
+ obj-$(CONFIG_VIDEOBUF2_MEMOPS)		+= videobuf2-memops.o
++obj-$(CONFIG_VIDEOBUF2_FB)		+= videobuf2-fb.o
+ obj-$(CONFIG_VIDEOBUF2_VMALLOC)		+= videobuf2-vmalloc.o
+ obj-$(CONFIG_VIDEOBUF2_DMA_CONTIG)	+= videobuf2-dma-contig.o
+ obj-$(CONFIG_VIDEOBUF2_DMA_SG)		+= videobuf2-dma-sg.o
+diff --git a/drivers/media/video/videobuf2-fb.c b/drivers/media/video/videobuf2-fb.c
+new file mode 100644
+index 0000000..c48e450
+--- /dev/null
++++ b/drivers/media/video/videobuf2-fb.c
+@@ -0,0 +1,565 @@
++/*
++ * videobuf2-fb.c - FrameBuffer API emulator on top of Videobuf2 framework
++ *
++ * Copyright (C) 2011 Samsung Electronics
++ *
++ * Author: Marek Szyprowski <m.szyprowski@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation.
++ */
++
++#include <linux/err.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/mm.h>
++#include <linux/poll.h>
++#include <linux/slab.h>
++#include <linux/sched.h>
++#include <linux/fb.h>
++
++#include <linux/videodev2.h>
++#include <media/v4l2-dev.h>
++#include <media/v4l2-ioctl.h>
++#include <media/videobuf2-core.h>
++#include <media/videobuf2-fb.h>
++
++static int debug = 1;
++module_param(debug, int, 0644);
++
++#define dprintk(level, fmt, arg...)					\
++	do {								\
++		if (debug >= level)					\
++			printk(KERN_DEBUG "vb2: " fmt, ## arg);		\
++	} while (0)
++
++struct vb2_fb_data {
++	struct video_device *vfd;
++	struct vb2_queue *q;
++	struct device *dev;
++	struct v4l2_requestbuffers req;
++	struct v4l2_buffer b;
++	struct v4l2_plane p;
++	void *vaddr;
++	unsigned int size;
++	int refcount;
++	int blank;
++	int streaming;
++
++	struct file fake_file;
++	struct dentry fake_dentry;
++	struct inode fake_inode;
++};
++
++static int vb2_fb_stop(struct fb_info *info);
++
++struct fmt_desc {
++	__u32			fourcc;
++	__u32			bits_per_pixel;
++	struct fb_bitfield	red;
++	struct fb_bitfield	green;
++	struct fb_bitfield	blue;
++	struct fb_bitfield	transp;
++};
++
++static struct fmt_desc fmt_conv_table[] = {
++	{
++		.fourcc = V4L2_PIX_FMT_RGB565,
++		.bits_per_pixel = 16,
++		.red = {	.offset = 11,	.length = 5,	},
++		.green = {	.offset = 5,	.length = 6,	},
++		.blue = {	.offset = 0,	.length = 5,	},
++	}, {
++		.fourcc = V4L2_PIX_FMT_RGB555,
++		.bits_per_pixel = 16,
++		.red = {	.offset = 11,	.length = 5,	},
++		.green = {	.offset = 5,	.length = 5,	},
++		.blue = {	.offset = 0,	.length = 5,	},
++	}, {
++		.fourcc = V4L2_PIX_FMT_RGB444,
++		.bits_per_pixel = 16,
++		.red = {	.offset = 8,	.length = 4,	},
++		.green = {	.offset = 4,	.length = 4,	},
++		.blue = {	.offset = 0,	.length = 4,	},
++		.transp = {	.offset = 12,	.length = 4,	},
++	}, {
++		.fourcc = V4L2_PIX_FMT_BGR32,
++		.bits_per_pixel = 32,
++		.red = {	.offset = 16,	.length = 4,	},
++		.green = {	.offset = 8,	.length = 8,	},
++		.blue = {	.offset = 0,	.length = 8,	},
++		.transp = {	.offset = 24,	.length = 8,	},
++	},
++	/* TODO: add more format descriptors */
++};
++
++/**
++ * vb2_drv_lock() - a shortcut to call driver specific lock()
++ * @q:		videobuf2 queue
++ */
++static inline void vb2_drv_lock(struct vb2_queue *q)
++{
++	q->ops->wait_finish(q);
++}
++
++/**
++ * vb2_drv_unlock() - a shortcut to call driver specific unlock()
++ * @q:		videobuf2 queue
++ */
++static inline void vb2_drv_unlock(struct vb2_queue *q)
++{
++	q->ops->wait_prepare(q);
++}
++
++/**
++ * vb2_fb_activate() - activate framebuffer emulator
++ * @info:	framebuffer vb2 emulator data
++ * This function activates framebuffer emulator. The pixel format
++ * is acquired from video node, memory is allocated and framebuffer
++ * structures are filled with valid data.
++ */
++static int vb2_fb_activate(struct fb_info *info)
++{
++	struct vb2_fb_data *data = info->par;
++	struct vb2_queue *q = data->q;
++	struct fb_var_screeninfo *var;
++	struct v4l2_format fmt;
++	struct fmt_desc *conv = NULL;
++	int width, height, fourcc, bpl, size;
++	int i, ret = 0;
++	int (*g_fmt)(struct file *file, void *fh, struct v4l2_format *f);
++
++	/*
++	 * Check if streaming api has not been already activated.
++	 */
++	if (q->streaming || q->num_buffers > 0)
++		return -EBUSY;
++
++	dprintk(3, "setting up framebuffer\n");
++
++	/*
++	 * Open video node.
++	 */
++	ret = data->vfd->fops->open(&data->fake_file);
++	if (ret)
++		return ret;
++
++	/*
++	 * Get format from the video node.
++	 */
++	memset(&fmt, 0, sizeof(fmt));
++	fmt.type = q->type;
++	if (data->vfd->ioctl_ops->vidioc_g_fmt_vid_out) {
++		g_fmt = data->vfd->ioctl_ops->vidioc_g_fmt_vid_out;
++		ret = g_fmt(&data->fake_file, data->fake_file.private_data, &fmt);
++		if (ret)
++			goto err;
++		width = fmt.fmt.pix.width;
++		height = fmt.fmt.pix.height;
++		fourcc = fmt.fmt.pix.pixelformat;
++		bpl = fmt.fmt.pix.bytesperline;
++		size = fmt.fmt.pix.sizeimage;
++	} else if (data->vfd->ioctl_ops->vidioc_g_fmt_vid_out_mplane) {
++		g_fmt = data->vfd->ioctl_ops->vidioc_g_fmt_vid_out_mplane;
++		ret = g_fmt(&data->fake_file, data->fake_file.private_data, &fmt);
++		if (ret)
++			goto err;
++		width = fmt.fmt.pix_mp.width;
++		height = fmt.fmt.pix_mp.height;
++		fourcc = fmt.fmt.pix_mp.pixelformat;
++		bpl = fmt.fmt.pix_mp.plane_fmt[0].bytesperline;
++		size = fmt.fmt.pix_mp.plane_fmt[0].sizeimage;
++	} else {
++		ret = -EINVAL;
++		goto err;
++	}
++
++	dprintk(3, "fb emu: width %d height %d fourcc %08x size %d bpl %d\n",
++		width, height, fourcc, size, bpl);
++
++	/*
++	 * Find format mapping with fourcc returned by g_fmt().
++	 */
++	for (i = 0; i < ARRAY_SIZE(fmt_conv_table); i++) {
++		if (fmt_conv_table[i].fourcc == fourcc) {
++			conv = &fmt_conv_table[i];
++			break;
++		}
++	}
++
++	if (conv == NULL) {
++		ret = -EBUSY;
++		goto err;
++	}
++
++	/*
++	 * Request buffers and use MMAP type to force driver
++	 * to allocate buffers by itself.
++	 */
++	data->req.count = 1;
++	data->req.memory = V4L2_MEMORY_MMAP;
++	data->req.type = q->type;
++	ret = vb2_reqbufs(q, &data->req);
++	if (ret)
++		goto err;
++
++	/*
++	 * Check if plane_count is correct,
++	 * multiplane buffers are not supported.
++	 */
++	if (q->bufs[0]->num_planes != 1) {
++		data->req.count = 0;
++		ret = -EBUSY;
++		goto err;
++	}
++
++	/*
++	 * Get kernel address of the buffer.
++	 */
++	data->vaddr = vb2_plane_vaddr(q->bufs[0], 0);
++	if (data->vaddr == NULL) {
++		ret = -EINVAL;
++		goto err;
++	}
++	data->size = size = vb2_plane_size(q->bufs[0], 0);
++
++	/*
++	 * Clear the buffer
++	 */
++	memset(data->vaddr, 0, size);
++
++	/*
++	 * Setup framebuffer parameters
++	 */
++	info->screen_base = data->vaddr;
++	info->screen_size = size;
++	info->fix.line_length = bpl;
++	info->fix.smem_len = info->fix.mmio_len = size;
++
++	var = &info->var;
++	var->xres = var->xres_virtual = var->width = width;
++	var->yres = var->yres_virtual = var->height = height;
++	var->bits_per_pixel = conv->bits_per_pixel;
++	var->red = conv->red;
++	var->green = conv->green;
++	var->blue = conv->blue;
++	var->transp = conv->transp;
++
++	return 0;
++
++err:
++	data->vfd->fops->release(&data->fake_file);
++	return ret;
++}
++
++/**
++ * vb2_fb_deactivate() - deactivate framebuffer emulator
++ * @info:	framebuffer vb2 emulator data
++ * Stop displaying video data and close framebuffer emulator.
++ */
++static int vb2_fb_deactivate(struct fb_info *info)
++{
++	struct vb2_fb_data *data = info->par;
++
++	info->screen_base = NULL;
++	info->screen_size = 0;
++	data->blank = 1;
++	data->streaming = 0;
++
++	vb2_fb_stop(info);
++	return data->vfd->fops->release(&data->fake_file);
++}
++
++/**
++ * vb2_fb_start() - start displaying the video buffer
++ * @info:	framebuffer vb2 emulator data
++ * This function queues video buffer to the driver and starts streaming.
++ */
++static int vb2_fb_start(struct fb_info *info)
++{
++	struct vb2_fb_data *data = info->par;
++	struct v4l2_buffer *b = &data->b;
++	struct v4l2_plane *p = &data->p;
++	struct vb2_queue *q = data->q;
++	int ret;
++
++	if (data->streaming)
++		return 0;
++
++	/*
++	 * Prepare the buffer and queue it.
++	 */
++	memset(b, 0, sizeof(*b));
++	b->type = q->type;
++	b->memory = q->memory;
++	b->index = 0;
++
++	if (b->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
++		b->bytesused = data->size;
++		b->length = data->size;
++	} else if (b->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
++		memset(p, 0, sizeof(*p));
++		b->m.planes = p;
++		b->length = 1;
++		p->bytesused = data->size;
++		p->length = data->size;
++	}
++	ret = vb2_qbuf(q, b);
++	if (ret)
++		return ret;
++
++	/*
++	 * Start streaming.
++	 */
++	ret = vb2_streamon(q, q->type);
++	if (ret == 0) {
++		data->streaming = 1;
++		dprintk(3, "fb emu: enabled streaming\n");
++	}
++	return ret;
++}
++
++/**
++ * vb2_fb_start() - stop displaying video buffer
++ * @info:	framebuffer vb2 emulator data
++ * This function stops streaming on the video driver.
++ */
++static int vb2_fb_stop(struct fb_info *info)
++{
++	struct vb2_fb_data *data = info->par;
++	struct vb2_queue *q = data->q;
++	int ret = 0;
++
++	if (data->streaming) {
++		ret = vb2_streamoff(q, q->type);
++		data->streaming = 0;
++		dprintk(3, "fb emu: disabled streaming\n");
++	}
++
++	return ret;
++}
++
++/**
++ * vb2_fb_open() - open method for emulated framebuffer
++ * @info:	framebuffer vb2 emulator data
++ * @user:	client type (0 means kernel, 1 mean userspace)
++ */
++static int vb2_fb_open(struct fb_info *info, int user)
++{
++	struct vb2_fb_data *data = info->par;
++	int ret = 0;
++	dprintk(3, "fb emu: open()\n");
++
++	/*
++	 * Reject open() call from fb console.
++	 */
++	if (user == 0)
++		return -ENODEV;
++
++	vb2_drv_lock(data->q);
++
++	/*
++	 * Activate emulation on the first open.
++	 */
++	if (data->refcount == 0)
++		ret = vb2_fb_activate(info);
++
++	if (ret == 0)
++		data->refcount++;
++
++	vb2_drv_unlock(data->q);
++
++	return ret;
++}
++
++/**
++ * vb2_fb_release() - release method for emulated framebuffer
++ * @info:	framebuffer vb2 emulator data
++ * @user:	client type (0 means kernel, 1 mean userspace)
++ */
++static int vb2_fb_release(struct fb_info *info, int user)
++{
++	struct vb2_fb_data *data = info->par;
++	int ret = 0;
++
++	dprintk(3, "fb emu: release()\n");
++
++	vb2_drv_lock(data->q);
++
++	if (--data->refcount == 0)
++		ret = vb2_fb_deactivate(info);
++
++	vb2_drv_unlock(data->q);
++
++	return ret;
++}
++
++/**
++ * vb2_fb_mmap() - mmap method for emulated framebuffer
++ * @info:	framebuffer vb2 emulator data
++ * @vma:	memory area to map
++ */
++static int vb2_fb_mmap(struct fb_info *info, struct vm_area_struct *vma)
++{
++	struct vb2_fb_data *data = info->par;
++	int ret = 0;
++
++	dprintk(3, "fb emu: mmap offset %ld\n", vma->vm_pgoff);
++
++	/*
++	 * Add flags required by v4l2/vb2
++	 */
++	vma->vm_flags |= VM_SHARED;
++
++	/*
++	 * Only the most common case (mapping the whole framebuffer) is
++	 * supported for now.
++	 */
++	if (vma->vm_pgoff != 0 || (vma->vm_end - vma->vm_start) < data->size)
++		return -EINVAL;
++
++	vb2_drv_lock(data->q);
++	ret = vb2_mmap(data->q, vma);
++	vb2_drv_unlock(data->q);
++
++	return ret;
++}
++
++/**
++ * vb2_fb_blank() - blank method for emulated framebuffer
++ * @blank_mode:	requested blank method
++ * @info:	framebuffer vb2 emulator data
++ */
++static int vb2_fb_blank(int blank_mode, struct fb_info *info)
++{
++	struct vb2_fb_data *data = info->par;
++	int ret = -EBUSY;
++
++	dprintk(3, "fb emu: blank mode %d, blank %d, streaming %d\n",
++		blank_mode, data->blank, data->streaming);
++
++	/*
++	 * If no blank mode change then return immediately
++	 */
++	if ((data->blank && blank_mode != FB_BLANK_UNBLANK) ||
++	    (!data->blank && blank_mode == FB_BLANK_UNBLANK))
++		return 0;
++
++	/*
++	 * Currently blank works only if device has been opened first.
++	 */
++	if (!data->refcount)
++		return -EBUSY;
++
++	vb2_drv_lock(data->q);
++
++	/*
++	 * Start emulation if user requested mode == FB_BLANK_UNBLANK.
++	 */
++	if (blank_mode == FB_BLANK_UNBLANK && data->blank) {
++		ret = vb2_fb_start(info);
++		if (ret == 0)
++			data->blank = 0;
++	}
++
++	/*
++	 * Stop emulation if user requested mode != FB_BLANK_UNBLANK.
++	 */
++	if (blank_mode != FB_BLANK_UNBLANK && !data->blank) {
++		ret = vb2_fb_stop(info);
++		if (ret == 0)
++			data->blank = 1;
++	}
++
++	vb2_drv_unlock(data->q);
++
++	return ret;
++}
++
++static struct fb_ops vb2_fb_ops = {
++	.owner		= THIS_MODULE,
++	.fb_open	= vb2_fb_open,
++	.fb_release	= vb2_fb_release,
++	.fb_mmap	= vb2_fb_mmap,
++	.fb_blank	= vb2_fb_blank,
++	.fb_fillrect	= cfb_fillrect,
++	.fb_copyarea	= cfb_copyarea,
++	.fb_imageblit	= cfb_imageblit,
++};
++
++/**
++ * vb2_fb_reqister() - register framebuffer emulation
++ * @q:		videobuf2 queue
++ * @vfd:	video node
++ * This function registers framebuffer emulation for specified
++ * videobuf2 queue and video node. It returns a pointer to the registered
++ * framebuffer device.
++ */
++void *vb2_fb_register(struct vb2_queue *q, struct video_device *vfd)
++{
++	struct vb2_fb_data *data;
++	struct fb_info *info;
++	int ret;
++
++	BUG_ON(q->type != V4L2_BUF_TYPE_VIDEO_OUTPUT &&
++	     q->type != V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE);
++	BUG_ON(!q->mem_ops->vaddr);
++	BUG_ON(!q->ops->wait_prepare || !q->ops->wait_finish);
++	BUG_ON(!vfd->ioctl_ops || !vfd->fops);
++
++	if (!try_module_get(vfd->fops->owner))
++		return ERR_PTR(-ENODEV);
++
++	info = framebuffer_alloc(sizeof(struct vb2_fb_data), &vfd->dev);
++	if (!info)
++		return ERR_PTR(-ENOMEM);
++
++	data = info->par;
++
++	info->fix.type	= FB_TYPE_PACKED_PIXELS;
++	info->fix.accel	= FB_ACCEL_NONE;
++	info->fix.visual = FB_VISUAL_TRUECOLOR,
++	info->var.activate = FB_ACTIVATE_NOW;
++	info->var.vmode	= FB_VMODE_NONINTERLACED;
++	info->fbops = &vb2_fb_ops;
++	info->flags = FBINFO_FLAG_DEFAULT;
++	info->screen_base = NULL;
++
++	ret = register_framebuffer(info);
++	if (ret)
++		return ERR_PTR(ret);
++
++	printk(KERN_INFO "fb%d: registered frame buffer emulation for /dev/%s\n",
++	       info->node, dev_name(&vfd->dev));
++
++	data->blank = 1;
++	data->vfd = vfd;
++	data->q = q;
++	data->fake_file.f_path.dentry = &data->fake_dentry;
++	data->fake_dentry.d_inode = &data->fake_inode;
++	data->fake_inode.i_rdev = vfd->cdev->dev;
++
++	return info;
++}
++EXPORT_SYMBOL_GPL(vb2_fb_register);
++
++/**
++ * vb2_fb_unreqister() - unregister framebuffer emulation
++ * @fb_emu:	emulated framebuffer device
++ */
++int vb2_fb_unregister(void *fb_emu)
++{
++	struct fb_info *info = fb_emu;
++	struct vb2_fb_data *data = info->par;
++	struct module *owner = data->vfd->fops->owner;
++
++	unregister_framebuffer(info);
++	module_put(owner);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(vb2_fb_unregister);
++
++MODULE_DESCRIPTION("FrameBuffer emulator for Videobuf2 and Video for Linux 2");
++MODULE_AUTHOR("Marek Szyprowski");
++MODULE_LICENSE("GPL");
+diff --git a/include/media/videobuf2-fb.h b/include/media/videobuf2-fb.h
+new file mode 100644
+index 0000000..fea16b6
+--- /dev/null
++++ b/include/media/videobuf2-fb.h
+@@ -0,0 +1,22 @@
++/*
++ * videobuf2-fb.h - FrameBuffer API emulator on top of Videobuf2 framework
++ *
++ * Copyright (C) 2011 Samsung Electronics
++ *
++ * Author: Marek Szyprowski <m.szyprowski@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation.
++ */
++
++#ifndef _MEDIA_VIDEOBUF2_FB_H
++#define _MEDIA_VIDEOBUF2_FB_H
++
++#include <media/v4l2-dev.h>
++#include <media/videobuf2-core.h>
++
++void *vb2_fb_register(struct vb2_queue *q, struct video_device *vfd);
++int vb2_fb_unregister(void *fb_emu);
++
++#endif
 -- 
---------------------------------------------------
-Paolo Santinelli
-ImageLab Computer Vision and Pattern Recognition Lab
-Dipartimento di Ingegneria dell'Informazione
-Universita' di Modena e Reggio Emilia
-via Vignolese 905/B, 41125, Modena, Italy
-
-Cell. +39 3472953357,  Office +39 059 2056270, Fax +39 059 2056129
-email:  <mailto:paolo.santinelli@unimore.it> paolo.santinelli@unimore.it
-URL:  <http://imagelab.ing.unimo.it/> http://imagelab.ing.unimo.it
---------------------------------------------------
+1.7.1.569.g6f426
