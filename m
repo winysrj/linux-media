@@ -1,103 +1,79 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:54114 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46206 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752387Ab1CXKgw (ORCPT
+	with ESMTP id S1755549Ab1C3Iq4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Mar 2011 06:36:52 -0400
+	Wed, 30 Mar 2011 04:46:56 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: [PATCH] omap3isp: implement ENUM_FMT
-Date: Thu, 24 Mar 2011 11:36:53 +0100
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Michael Jones <michael.jones@matrix-vision.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	=?iso-8859-1?q?Lo=EFc_Akue?= <akue.loic@gmail.com>,
-	Yordan Kamenov <ykamenov@mm-sol.com>
-References: <4D889C61.905@matrix-vision.de> <201103240842.43024.hverkuil@xs4all.nl> <4D8AFD20.4000705@maxwell.research.nokia.com>
-In-Reply-To: <4D8AFD20.4000705@maxwell.research.nokia.com>
+To: Sakari Ailus <sakari.ailus@nokia.com>
+Subject: Re: [RFC] V4L2 API for flash devices
+Date: Wed, 30 Mar 2011 10:47:15 +0200
+Cc: Hans Verkuil <hansverk@cisco.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Nayden Kanchev <nkanchev@mm-sol.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Cohen David Abraham <david.cohen@nokia.com>
+References: <4D90854C.2000802@maxwell.research.nokia.com> <4D91C4BA.20200@maxwell.research.nokia.com> <4D91C7CA.1050105@nokia.com>
+In-Reply-To: <4D91C7CA.1050105@nokia.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201103241136.54032.laurent.pinchart@ideasonboard.com>
+Message-Id: <201103301047.15678.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+Hi Sakari,
 
-On Thursday 24 March 2011 09:13:20 Sakari Ailus wrote:
-> Hans Verkuil wrote:
-> > On Thursday, March 24, 2011 08:28:31 Michael Jones wrote:
-> >> On 03/23/2011 01:16 PM, Laurent Pinchart wrote:
-> >>> Hi Michael,
-> >> 
-> >> [snip]
-> >> 
-> >>>> Is there a policy decision that in the future, apps will be required
-> >>>> to use libv4l to get images from the ISP?  Are we not intending to
-> >>>> support using e.g. media-ctl + some v4l2 app, as I'm currently doing
-> >>>> during development?
+On Tuesday 29 March 2011 13:51:38 Sakari Ailus wrote:
+> Sakari Ailus wrote:
+> > Hans Verkuil wrote:
+> >> On Tuesday, March 29, 2011 11:35:19 Sakari Ailus wrote:
+> >>> Hi Hans,
 > >>> 
-> >>> Apps should be able to use the V4L2 API directly. However, we can't
-> >>> implement all that API, as most calls don't make sense for the OMA3
-> >>> ISP driver. Which calls need to be implemented is a grey area at the
-> >>> moment, as there's no detailed semantics on how subdev-level
-> >>> configuration and video device configuration should interact.
+> >>> Many thanks for the comments!
 > > 
-> > We definitely need to discuss this in the near future. It's indeed a grey
-> > area at the moment that needs to be clarified.
-> 
-> I fully agree.
-> 
-> >>> Your implementation of ENUM_FMT looks correct to me, but the question
-> >>> is whether ENUM_FMT should be implemented. I don't think ENUM_FMT is a
-> >>> required ioctl, so maybe v4l2src shouldn't depend on it. I'm
-> >>> interesting in getting Hans' opinion on this.
+> > ...
+> > 
+> >>> It occurred to me that an application might want to turn off a flash
+> >>> which has been strobed on software. That can't be done on a single
+> >>> button control.
+> >>> 
+> >>> V4L2_CID_FLASH_SHUTDOWN?
+> >>> 
+> >>> The application would know the flash strobe is ongoing before it
+> >>> receives a timeout fault. I somehow feel that there should be a control
+> >>> telling that directly.
+> >>> 
+> >>> What about using a bool control for the strobe?
 > >> 
-> >> I only implemented it after I saw that ENUM_FMT _was_ required by V4L2.
-> >> 
-> >>  From http://v4l2spec.bytesex.org/spec/x1859.htm#AEN1894 :
-> >> "The VIDIOC_ENUM_FMT ioctl must be supported by all drivers exchanging
-> >> image data with applications."
-
-Good point.
-
-> > If you can call S_FMT on a device node, then you also have to implement
-> > ENUM_FMT.
+> >> It depends: is the strobe signal just a pulse that kicks off the flash,
+> >> or is it active throughout the flash duration? In the latter case a
+> >> bool makes sense, in the first case an extra button control makes
+> >> sense.
+> > 
+> > I like buttons since I associate them with action (like strobing) but on
+> > the other hand buttons don't allow querying the current state. On the
+> > other hand, the current state isn't always determinable, e.g. in the
+> > absence of the interrupt line from the flash controller interrupt pin
+> > (e.g. N900!).
 > 
-> I think the issue here is that it's not possible (or feasible) to
-> implement ENUM_FMT in a way applications would obtain the information
-> they're interested in. Available pixel formats are dictated by the
-> formats on links (validation must be done first in a generic case!) and
-> in the case of OMAP 3 ISP there's always just one.
+> Oh, I need to take my words back a bit.
 > 
-> S_FMT and TRY_FMT behave more or less the way applications like. The
-> pixelformat or size may not change, though, and this information is also
-> used to prepare the buffers.
+> There indeed is a way to get the on/off status for the flash, but that
+> involves I2C register access --- when you read the fault registers, you
+> do get the state, even if the interrupt linke is missing from the
+> device. At least I can't see why this wouldn't work, at least on this
+> particular chip.
 > 
-> > I am assuming applications need to call S_FMT for omap3 video nodes,
-> > right? Because that defines the result of the DMA engine. Or is the
-> > result always fixed, based on the current pipeline configuration? In the
-> > latter case I would still expect to see an ENUM_FMT, but one that just
-> > returns the current format. And S/TRY_FMT would also return the current
-> > format.
+> What you can't have in this case is the event.
 > 
-> There are some options in the format that is not defined by the
-> v4l2_mbus_pixelcode already. Padding is such and I don't think there
-> should be anything else than that since the v4l2_mbus_pixelcode
-> conversion and scaling takes places in the subdevs. Laurent? :-)
+> So, in my opinion this suggests that a single boolean control is the way
+> to go.
 
-Padding at end of line can be configured through S_FMT. Other than that, all 
-other options (width, height, pixelcode) are fixed for a given mbus format 
-*for the ISP driver*. Other drivers might support different pixel codes for a 
-given mbus code (with different padding and/or endianness).
-
-Application either need to be aware of the media controller framework, in 
-which case they will know how to deal with mbus formats and pixel formats, or 
-need to be run after an external application takes care of pipeline 
-configuration. In the second case I suppose it's reasonable to assume that no 
-application will touch the pipeline while the pure V4L2 runs. In that case I 
-think your implementation of ENUM_FMT makes sense.
+Why would an application want to turn off a flash that has been strobbed in 
+software ? Applications should set the flash duration and then strobe it.
 
 -- 
 Regards,
