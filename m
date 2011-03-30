@@ -1,115 +1,113 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48174 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59059 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751417Ab1CXLFA (ORCPT
+	with ESMTP id S932184Ab1C3KI7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Mar 2011 07:05:00 -0400
+	Wed, 30 Mar 2011 06:08:59 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Robert Fekete <robert.fekete@linaro.org>
-Subject: Re: Future desktop on dumb frame buffers?
-Date: Thu, 24 Mar 2011 12:05:02 +0100
-Cc: Alex Deucher <alexdeucher@gmail.com>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	dri-devel@lists.freedesktop.org,
-	timofonic timofonic <timofonic@gmail.com>,
-	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
-	wayland-devel@lists.freedesktop.org, linaro-dev@lists.linaro.org,
-	linux-media@vger.kernel.org
-References: <AANLkTimJWpebAskcjA+qQUDWXjiH6aHta4fri9z6OxRN@mail.gmail.com> <AANLkTimqkA7GGdT52Ys0b+346Pxr3A=PtDpY0nJ+ycVO@mail.gmail.com> <AANLkTi=fWKt=v5O9A7XivDiFaJyki6H90k1=Jfcmw2dN@mail.gmail.com>
-In-Reply-To: <AANLkTi=fWKt=v5O9A7XivDiFaJyki6H90k1=Jfcmw2dN@mail.gmail.com>
+To: Bastian Hecht <hechtb@googlemail.com>
+Subject: Re: OMAP3 ISP outputs 5555 5555 5555 5555 ...
+Date: Wed, 30 Mar 2011 12:09:16 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <AANLkTimdFVDLLz2o9Fb2OJM2EsJ9R9q-xKAP63g9uSi+@mail.gmail.com> <201103291656.00189.laurent.pinchart@ideasonboard.com> <BANLkTi=+6Xo-sS=sd31mpzzihX0zMGDAPA@mail.gmail.com>
+In-Reply-To: <BANLkTi=+6Xo-sS=sd31mpzzihX0zMGDAPA@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201103241205.02640.laurent.pinchart@ideasonboard.com>
+Message-Id: <201103301209.17497.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wednesday 23 March 2011 15:09:54 Robert Fekete wrote:
-> On 21 March 2011 21:08, Alex Deucher <alexdeucher@gmail.com> wrote:
-> > On Mon, Mar 21, 2011 at 3:50 PM, Geert Uytterhoeven wrote:
-> >> On Mon, Mar 21, 2011 at 20:25, Jesse Barnes wrote:
-> >>> On Mon, 21 Mar 2011 19:19:43 +0000 timofonic timofonic wrote:
-> >>>> So if KMS is so cool and provides many advantages over fbdev and
-> >>>> such... Why isn't more widely used intead of still relying on fbdev?
-> >>>> Why still using fbdev emulation (that is partial and somewhat broken,
-> >>>> it seems) instead using KMS directly?
-> >>> 
-> >>> Used by what?  All three major GPU device classes have KMS support
-> >>> (Intel, ATI, and nVidia).  If you want it for a particular device, you
-> >>> can always port it over.
+Hi Bastian,
+
+On Wednesday 30 March 2011 11:41:44 Bastian Hecht wrote:
+> 2011/3/29 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> > On Friday 25 March 2011 13:34:10 Bastian Hecht wrote:
+> >> 2011/3/24 Bastian Hecht <hechtb@googlemail.com>:
+> >> > 2011/3/24 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> >> >> On Thursday 24 March 2011 10:59:01 Bastian Hecht wrote:
+> >> >>> 2011/3/22 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> >> >>> > On Tuesday 22 March 2011 17:11:04 Bastian Hecht wrote:
+> >> >>> >> Hello omap isp devs,
+> >> >>> >> 
+> >> >>> >> maybe you can help me, I am a bit desperate with my current cam
+> >> >>> >> problem:
+> >> >>> >> 
+> >> >>> >> I use a ov5642 chip and get only 0x55 in my data output when I
+> >> >>> >> use a camclk > 1 MHz. With 1 MHz data rate from the camera chip
+> >> >>> >> to the omap all works (well the colorspace is strange - it's
+> >> >>> >> greenish, but that is not my main concern).
+> >> >>> >> I looked up the data on the oscilloscope and all flanks seem to
+> >> >>> >> be fine at the isp. Very clear cuts with 4 MHz and 10MHz. Also
+> >> >>> >> the data pins are flickering fine. Looks like a picture.
+> >> >>> >> 
+> >> >>> >> I found that the isp stats module uses 0x55 as a magic number but
+> >> >>> >> I don't see why it should confuse my readout.
+> >> >>> >> 
+> >> >>> >> I use 2592x1944 raw bayer output via the ccdc. Next to the
+> >> >>> >> logical right config I tried all possible configurations of
+> >> >>> >> vs/hs active high and low on camera and isp. The isp gets the vs
+> >> >>> >> flanks right as the images come out in time (sometimes it misses
+> >> >>> >> 1 frame).
+> >> >>> >> 
+> >> >>> >> Anyone of you had this behaviour before?
+> >> >>> > 
+> >> >>> > How do you capture images ? yavta will fill buffers with 0x55
+> >> >>> > before queueing them, so this might indicate that no data is
+> >> >>> > written to the buffer at all.
+> >> >>> 
+> >> >>> Yes I use yavta. So what does that all mean?
+> >> >> 
+> >> >> It means that the ISP doesn't write data to the buffer. I have no
+> >> >> idea why.
 > >> 
-> >> The three major GPU device classes on PC...
+> >> This simple and clear statement directly led me to the problem :)
+> >> 
+> >> There was no cam_wen (write enable) pin on both my camera boards. The
+> >> ISP on the other hand is configured by default to expect it. So I only
+> >> captured images when my data lanes luckily pulled up the omap wen pin
+> >> by induction.
+> >> 
+> >> In ccdc_config_sync_if() I added:
+> >> 
+> >>         /* HACK */
+> >>         printk(KERN_ALERT "Disable wen\n");
+> >>         syn_mode &= ~ISPCCDC_SYN_MODE_WEN;
+> >> 
+> >> So is this something to add to the platform data? I can prepare my
+> >> very first kernel patch :)
 > > 
-> > Sadly it gets worse.  A lot of the SoC vendors are adding an fbdev
-> > emulation layer on top of v4l rather than using fbdev directly or
-> > using KMS and v4l has grown it's own edid, hdmi, and cec handling.
+> > The WEN bit controls whether the CCDC module writes to memory or not.
+> > It's not supposed to interact with the external cam_wen signal. If you
+> > clear the WEN bit, the CCDC is supposed not to write data to memory at
+> > all.
+> > 
+> > What you might need to check is the EXWEN bit in the same register. It
+> > controls whether the CCDC uses the cam_wen signal or not. The EXWEN bit
+> > should already be set to zero by the driver though.
+> > 
+> > Does clearing the WEN bit fix your issue ?
+> 
+> Hi Laurent,
+> 
+> As I remember (I currently haven't the datasheet available) the wen signal
+> is an input from the camera
 
-We're also evaluating the possibility of providing a generic fbdev emulation 
-layer on top of V4L2 without requiring any device-specific fbdev code. fbdev 
-isn't maintained and hasn't really evolved for quite some time now.
+That's correct.
 
-> I agree, it is sad that as a SoC vendor there are different
-> kernel/user API's(v4l2/fbdev/drm) to choose from when implementing say
-> a Display controller driver. One must also remember that there are big
-> differences between a desktop/PC multimedia/graphics system and the
-> ones present on an embedded SoC. It is two very different cultures and
-> HW designs now trying to merge into one Linux Kernel. Of course there
-> will be some overlaps but I believe it can be sorted out as soon as we
-> understand each others different possibilities/limitations. Doing
-> duplicate work like HDMI will not benefit any party.
-> 
-> Just to list some of the differences.
-> 
-> - Developments within V4L2 has mainly been driven by embedded devices
-> while DRM is a result of desktop Graphics cards. And for some extent
-> also solving different problems.
-> - Embedded devices usually have several different hw IP's managing
-> displays, hdmi, camera/ISP, video codecs(h264 accellerators), DSP's,
-> 2D blitters, Open GL ES hw, all of which have a separate device/driver
-> in the kernel, while on a desktop nowadays all this functionality
-> usually resides on ONE graphics card, hence one DRM device for all.
-> - DRM is closely developed in conjunction with desktop/Xorg, while X11
-> on an embedded device is not very 2011...wayland on the other hand is
-> 
-> :-), but do wayland really need the full potential of DRM/DRI or just
-> 
-> parts of it.
-> - Copying buffers is really bad for embedded devices due to lower
-> memory bandwidth and power consumption while on a Desktop memory
-> bandwidth is from an other galaxy (copying still bad but accepted it
-> seems), AND embedded devices of today records and plays/displays 1080p
-> content as well.
-> - Not all embedded devices have MMU's for each IP requiring physical
-> contiguous memory, while on a desktop MMU's have been present for
-> ages.
-> - Embedded devices are usually ARM based SoCs while x86 dominates the
-> Desktop/Laptop market, and functionality provided is soon the very
-> same.
-> - yada yada....The list can grow very long....There are also
-> similarities of course.
-> 
-> The outcome is that SoC vendors likes the embedded friendliness of
-> v4l2 and fbdev while "we" also glance at the DRM part due to its
-> de-facto standard on desktop environments. But from an embedded point
-> of view DRM lacks the support for interconnecting multiple
-> devices/drivers mentioned above, GEM/TTM is valid within a DRM device,
-> the execution/context management is not needed,, no overlays(or
-> similar), the coupling to DRI/X11 not wanted. SoCs like KMS/GEM but
-> the rest of DRM will likely not be heavily used on SoCs unless running
-> X11 as well. Most likely this worked on as well within the DRI
-> community. I can see good features all over the place(sometimes
-> duplicated) but not find one single guideline/API that solves all the
-> embedded SoC problems (which involves use-cases optimized for no-copy
-> cross media/drivers).
-> 
-> Last but not least...
-> 
-> On Linaro there is already discussions ongoing to solve one of the
-> biggest issues from a SoC point of view and that is a "System Wide
-> Memory manager" which manages buffer sharing and resolves no-copy use
-> cases between devices/drivers. Read more on the following thread:
-> http://lists.linaro.org/pipermail/linaro-dev/2011-March/003053.html.
+> and the SYN_MODE_WEN makes check this signal.
+
+According to the TRM, SYN_MODE_EXWEN control whether the cam_wen signal is 
+used or not, and SYN_MODE_WEN controls whether the CCDC captures data to 
+memory or not.
+
+> Disabling the SYN_MODE_WEN solved my problem and I can reliably read images
+> with 24 MHz datarate on the parallel bus. Artefacts are gone that I had
+> before with 1 MHz, too.
+
+If you capture data at the CCDC output, clearing SYN_MODE_WEN is supposed to 
+disable capture completely. Could you double-check your modifications ?
 
 -- 
 Regards,
