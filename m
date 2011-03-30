@@ -1,122 +1,117 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.128.24]:29678 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757146Ab1CaIQC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Mar 2011 04:16:02 -0400
-Message-ID: <4D9438AD.7040405@maxwell.research.nokia.com>
-Date: Thu, 31 Mar 2011 11:17:49 +0300
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+Received: from perceval.ideasonboard.com ([95.142.166.194]:60359 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754839Ab1C3IzY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Mar 2011 04:55:24 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [RFC] V4L2 API for flash devices
+Date: Wed, 30 Mar 2011 10:55:42 +0200
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
 	Nayden Kanchev <nkanchev@mm-sol.com>,
 	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
 	Cohen David Abraham <david.cohen@nokia.com>
-Subject: Re: [RFC] V4L2 API for flash devices
-References: <4D90854C.2000802@maxwell.research.nokia.com> <201103301134.14798.laurent.pinchart@ideasonboard.com> <4D930E92.70302@maxwell.research.nokia.com> <201103301554.47092.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201103301554.47092.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+References: <4D90854C.2000802@maxwell.research.nokia.com> <201103290849.48799.hverkuil@xs4all.nl> <4D91A7D7.5060909@maxwell.research.nokia.com>
+In-Reply-To: <4D91A7D7.5060909@maxwell.research.nokia.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201103301055.42521.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Laurent Pinchart wrote:
-> On Wednesday 30 March 2011 13:05:54 Sakari Ailus wrote:
->> Laurent Pinchart wrote:
->>> Hi Sakari,
->>
->> Hi Laurent,
->>
->> Thanks for the comments!
->>
->>> On Monday 28 March 2011 14:55:40 Sakari Ailus wrote:
->>>
->>> [snip]
->>>
->>>> 	V4L2_CID_FLASH_STROBE_MODE (menu; LED)
->>>>
->>>> Use hardware or software strobe. If hardware strobe is selected, the
->>>> flash controller is a slave in the system where the sensor produces the
->>>> strobe signal to the flash.
->>>>
->>>> In this case the flash controller setup is limited to programming strobe
->>>> timeout and power (LED flash) and the sensor controls the timing and
->>>> length of the strobe.
->>>>
->>>> enum v4l2_flash_strobe_mode {
->>>>
->>>> 	V4L2_FLASH_STROBE_MODE_SOFTWARE,
->>>> 	V4L2_FLASH_STROBE_MODE_EXT_STROBE,
->>>>
->>>> };
->>>
->>> [snip]
->>>
->>>> 	V4L2_CID_FLASH_LED_MODE (menu; LED)
->>>>
->>>> enum v4l2_flash_led_mode {
->>>>
->>>> 	V4L2_FLASH_LED_MODE_FLASH = 1,
->>>> 	V4L2_FLASH_LED_MODE_TORCH,
->>>>
->>>> };
->>>
->>> Thinking about this some more, shouldn't we combine the two controls ?
->>> They are basically used to configure how the flash LED is controlled:
->>> manually (torch mode), automatically by the flash controller (software
->>> strobe mode) or automatically by an external component (external strobe
->>> mode).
->>
->> That's a good question.
->>
->> The adp1653 supports also additional control (not implemented in the
->> driver, though) that affect hardware strobe length. Based on register
->> setting, the led will be on after strobe either until the timeout
->> expires, or until the strobe signal is high.
->>
->> Should this be also part of the same control, or a different one?
+Hi Sakari,
+
+On Tuesday 29 March 2011 11:35:19 Sakari Ailus wrote:
+> Hans Verkuil wrote:
+> > On Monday, March 28, 2011 14:55:40 Sakari Ailus wrote:
+
+[snip]
+
+> >> 	V4L2_CID_FLASH_TIMEOUT (integer; LED)
+> >> 
+> >> The flash controller provides timeout functionality to shut down the led
+> >> in case the host fails to do that. For hardware strobe, this is the
+> >> maximum amount of time the flash should stay on, and the purpose of the
+> >> setting is to prevent the LED from catching fire.
+> >> 
+> >> For software strobe, the setting may be used to limit the length of the
+> >> strobe in case a driver does not implement it itself. The granularity of
+> >> the timeout in [1, 2, 3] is very coarse. However, the length of a
+> >> driver-implemented LED strobe shutoff is very dependent on host.
+> >> Possibly V4L2_CID_FLASH_DURATION should be added, and
+> >> V4L2_CID_FLASH_TIMEOUT would be read-only so that the user would be able
+> >> to obtain the actual hardware implemented safety timeout.
+> >> 
+> >> Likely a standard unit such as ms or µs should be used.
+> > 
+> > It seems to me that this control should always be read-only. A setting
+> > like this is very much hardware specific and you don't want an attacker
+> > changing the timeout to the max value that might cause a LED catching
+> > fire.
 > 
-> That can be controlled by a duration control. If the duration is 0, the flash 
-> is lit for the duration of the external strobe, otherwise it's lit for the 
-> programmed duration.
-
-Sounds good to me.
-
->> Even without this, we'd have:
->>
->> V4L2_FLASH_MODE_OFF
->> V4L2_FLASH_MODE_TORCH
->> V4L2_FLASH_MODE_SOFTWARE_STROBE
->> V4L2_FLASH_MODE_EXTERNAL_STROBE
->>
->> Additionally, this might be
->>
->> V4L2_FLASH_MODE_EXTERNAL_STROBE_EDGE
->>
->> It's true that these are mutually exclusive.
->>
->> I think this is about whether we want to specify the operation of the
->> flash explicitly here or allow extending the interface later on when new
->> hardware is available by adding new controls. There are upsides and
->> downsides in each approach.
->>
->> There could be additional differentiating factors to the functionalty
->> later on, like the torch/video light differentiation that some hardware
->> does --- who knows based on what?
->>
->> I perhaps wouldn't combine the controls. What do you think?
+> I'm not sure about that.
 > 
-> I'm not sure yet :-)
+> The driver already must take care of protecting the hardware in my
+> opinion. Besides, at least one control is required to select the
+> duration for the flash if there's no hardware synchronisation.
+> 
+> What about this:
+> 
+> 	V4L2_CID_FLASH_TIMEOUT
+> 
+> Hardware timeout, read-only. Programmed to the maximum value allowed by
+> the hardware for the external strobe, greater or equal to
+> V4L2_CID_FLASH_DURATION for software strobe.
+> 
+> 	V4L2_CID_FLASH_DURATION
+> 
+> Software implemented timeout when V4L2_CID_FLASH_STROBE_MODE ==
+> V4L2_FLASH_STROBE_MODE_SOFTWARE.
 
-I have a vague feeling that as we don't know about the future hardware
-I'd prefer to keep this as extensible as possible, meaning that I'd
-rather add new controls than define menu controls with use case specific
-items in them. This would translate to two controls: flash mode (none,
-torch, flash) and strobe mode (software, external).
+Why would we need two controls here ? My understanding is that the maximum 
+strobe duration length can be limited by
 
-What do the others think on this?
+- the flash controller itself
+- platform-specific constraints to avoid over-heating the flash
+
+The platform-specific constraints come from board code, and the flash driver 
+needs to ensure that the flash is never strobed for a duration longer than the 
+limit. This requires implementing a software timer if the hardware has no 
+timeout control, and programming the hardware with the correct timeout value 
+otherwise. The limit can be queried with QUERYCTRL on the duration control.
+
+> I have to say I'm not entirely sure the duration control is required.
+> The timeout could be writable for software strobe in the case drivers do
+> not implement software timeout. The granularity isn't _that_ much
+> anyway. Also, a timeout fault should be produced whenever the duration
+> would expire.
+> 
+> Perhaps it would be best to just leave that out for now.
+> 
+> >> 	V4L2_CID_FLASH_LED_MODE (menu; LED)
+> >> 
+> >> enum v4l2_flash_led_mode {
+> >> 
+> >> 	V4L2_FLASH_LED_MODE_FLASH = 1,
+> >> 	V4L2_FLASH_LED_MODE_TORCH,
+
+"torch" mode can also be used for video, should we rename TORCH to something 
+more generic ? Maybe a "manual" mode ?
+
+> >> 
+> >> };
+> > 
+> > Would a LED_MODE_NONE make sense as well to turn off the flash
+> > completely?
+> 
+> It would essentially be the same as choosing software strobe and disabling
+> strobe. A separate mode for this still could be good to make it explicit.
 
 -- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+Regards,
+
+Laurent Pinchart
