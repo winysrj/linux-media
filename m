@@ -1,78 +1,147 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.samsung.com ([203.254.224.33]:36484 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757557Ab1CCCWc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Mar 2011 21:22:32 -0500
-Received: from epmmp1 (mailout3.samsung.com [203.254.224.33])
- by mailout3.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LHG001ZHMBCFH50@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Thu, 03 Mar 2011 11:16:24 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LHG000VQMBCH5@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 03 Mar 2011 11:16:24 +0900 (KST)
-Date: Thu, 03 Mar 2011 11:16:24 +0900
-From: "Kim, HeungJun" <riverful.kim@samsung.com>
-Subject: [RFC PATCH RESEND v2 0/3] v4l2-ctrls: add new focus mode
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"???/Mobile S/W Platform Lab(DMC?)/E4(??)/????"
-	<sw0312.kim@samsung.com>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
-Reply-to: riverful.kim@samsung.com
-Message-id: <4D6EF9F8.9070902@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7BIT
+Received: from moutng.kundenserver.de ([212.227.126.186]:56635 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752641Ab1C3H5A convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Mar 2011 03:57:00 -0400
+Date: Wed, 30 Mar 2011 09:56:50 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Paolo Santinelli <paolo.santinelli@unimore.it>
+cc: linux-media@vger.kernel.org
+Subject: Re: soc_camera dynamically cropping and scaling
+In-Reply-To: <AANLkTimhP_YoqKRKyPzRbM6gw5jXVNV2D3pveRqqH0W_@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1103300947580.4695@axis700.grange>
+References: <AANLkTinVP6CePBY6g9Dn2aKXM0ovwmpqMd5G4ucz44EH@mail.gmail.com>
+ <Pine.LNX.4.64.1103292357270.13285@axis700.grange>
+ <AANLkTimhP_YoqKRKyPzRbM6gw5jXVNV2D3pveRqqH0W_@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+On Tue, 29 Mar 2011, Paolo Santinelli wrote:
 
-Agenda
-======================================================================
-I faced to the absence of the mode of v4l2 focus for a couple of years.
-While dealing with some few mobile camera sensors, the focus modes
-are needed more than the current v4l2 focus mode, e.g. a Macro &
-Continuous mode. The M-5MOLS camera sensor I dealt with, also support
-these 2 modes. So, I'm going to suggest supports of more detailed
-v4l2 focus mode.
+> Hi Guennadi,
+> 
+> thank you for the quick answer.
+> 
+> Here is what I mean with dynamic: I take "live" one frame at high
+> resolution, for example a picture at VGA or  QVGA resolution, then a
+> sequence of frames that depict a cropped area (200x200 or 100x100)
+> from the original full-resolution frame, and then a new full
+> resolution image (VGA or QVGA) and again the sequence of frames  that
+> depict a cropped area from the original full resolution, and so on.
+> That means takes one frame in 640x480 and  than takes some frames at
+> 100x100 (or 200x200) and so on.
 
-Version
-======================================================================
-This is second version patch about auto focus mode.
-The second version changes are below:
-1. switch enumeration value between V4L2_FOCUS_AUTO and V4L2_FOCUS_MACRO,
-   for maintaing previous auto focus mode value.
-2. add documentations about the changes of auto focus mode.
-3. There are a little of changes since the second version submission,
-   but it's not big changes as considering the patch version is up.
-   So, this patch keep the previous version 2.
+Ic, so, if you can live with a fixed output format and only change the 
+input cropping rectangle, the patch set, that I've just sent could give 
+you a hint, how this can be done. This would work if you're ok with first 
+obtaining VGA images scaled down to, say, 160x120, and then take 160x120 
+cropped frames unscaled. But I'm not sure, this is something, that would 
+work for you. Otherwise, unless your sensor can upscale cropped images to 
+VGA output size, you'll also want fast switching between different output 
+sizes, which you'd have to wait for (or implement yourself;-))
 
-This RFC series of patch adds new auto focus modes, and documents it.
+Thanks
+Guennadi
 
-The first patch the boolean type of V4L2_CID_FOCUS_AUTO to menu type,
-and insert menus 4 enumerations: 
+> 
+> The best would be have two different fixed-output image formats, the
+> WHOLE IMAGE format ex. 640x480 and the ROI format, 100x100. The ROI
+> pictures obtained cropping the a region of the whole image. The
+> cropping area could be even wider  than 100x100 and then scaled down
+> to the 100x100 ROI format.
+> 
+> Probably it is more simple have a cropping area of the same dimension
+> of the ROI format, 100x100.
+> 
+> In this way there is a reduction of the computation load of the CPU
+> (smaller images).
+> 
+> Thank you very much!
+> 
+> Paolo
+> 
+> 2011/3/29 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+> > On Tue, 29 Mar 2011, Paolo Santinelli wrote:
+> >
+> >> Hi all,
+> >>
+> >> I am using a PXA270 board running linux 2.6.37 equipped with an ov9655
+> >> Image sensor. I am able to use the cropping and scaling capabilities
+> >> V4L2 driver.
+> >> The question is :
+> >>
+> >> Is it possible dynamically change the cropping and scaling values
+> >> without close and re-open  the camera every time ?
+> >>
+> >> Now I am using the streaming I/O memory mapping and to dynamically
+> >> change the cropping and scaling values I do :
+> >>
+> >> 1) stop capturing using VIDIOC_STREAMOFF;
+> >> 2) unmap all the buffers;
+> >> 3) close the device;
+> >> 4) open the device;
+> >> 5) init the device: VIDIOC_CROPCAP and VIDIOC_S_CROP in order to set
+> >> the cropping parameters. VIDIOC_G_FMT and VIDIOC_S_FMT in order to set
+> >> the target image width and height, (scaling).
+> >> 6) Mapping the buffers: VIDIOC_REQBUFS in order to request buffers and
+> >> mmap each buffer using VIDIOC_QUERYBUF and mmap():
+> >>
+> >> this procedure works but take 400 ms.
+> >>
+> >> If I omit steps 3) and 4)  (close and re-open the device) I get this errors:
+> >>
+> >> camera 0-0: S_CROP denied: queue initialised and sizes differ
+> >> camera 0-0: S_FMT denied: queue initialised
+> >> VIDIOC_S_FMT error 16, Device or resource busy
+> >> pxa27x-camera pxa27x-camera.0: PXA Camera driver detached from camera 0
+> >>
+> >> Do you have some Idea regarding why I have to close and reopen the
+> >> device and regarding a way to speed up these change?
+> >
+> > Yes, by chance I do;-) First of all you have to make it more precise -
+> > what exactly do you mean - dynamic (I call it "live") scaling or cropping?
+> > If you want to change output format, that will not be easy ATM, that will
+> > require the snapshot mode API, which is not yet even in an RFC state. If
+> > you only want to change the cropping and keep the output format (zoom),
+> > then I've just implemented that for sh_mobile_ceu_camera. This requires a
+> > couple of extensions to the soc-camera core, which I can post tomorrow.
+> > But in fact that is also a hack, because the proper way to implement this
+> > is to port soc-camera to the Media Controller framework and use the
+> > pad-level API. So, I am not sure, whether we want this in the mainline,
+> > but if already two of us need it now - before the transition to pad-level
+> > operations, maybe it would make sense to mainline this. If, however, you
+> > do have to change your output window, maybe you could tell us your
+> > use-case, so that we could consider, what's the best way to support that.
+> >
+> > Thanks
+> > Guennadi
+> > ---
+> > Guennadi Liakhovetski, Ph.D.
+> > Freelance Open-Source Software Developer
+> > http://www.open-technology.de/
+> >
+> 
+> 
+> 
+> -- 
+> --------------------------------------------------
+> Paolo Santinelli
+> ImageLab Computer Vision and Pattern Recognition Lab
+> Dipartimento di Ingegneria dell'Informazione
+> Universita' di Modena e Reggio Emilia
+> via Vignolese 905/B, 41125, Modena, Italy
+> 
+> Cell. +39 3472953357,  Office +39 059 2056270, Fax +39 059 2056129
+> email:  <mailto:paolo.santinelli@unimore.it> paolo.santinelli@unimore.it
+> URL:  <http://imagelab.ing.unimo.it/> http://imagelab.ing.unimo.it
+> --------------------------------------------------
+> 
 
-V4L2_FOCUS_MANUAL,
-V4L2_FOCUS_AUTO, 
-V4L2_FOCUS_MACRO,
-V4L2_FOCUS_CONTINUOUS
-
-The recent mobile camera sensors with ISP supports Macro & Continuous Auto
-Focus aka CAF mode, of course normal AUTO mode, even Continuous mode.
-Changing the type of V4L2_CID_FOCUS_MODE, is able to define more exact
-focusing mode of camera sensor.
-
-The second patch let the uvc driver using V4L2_CID_FOCUS_AUTO by
-boolean type, be able to use the type of menu.
-
-The third patch documentation about changes of the auto focus mode.
-
-Thanks for reading this, and I hope any ideas and any comments.
-
-Regards,
-Heungjun Kim
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
