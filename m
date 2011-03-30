@@ -1,208 +1,244 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:49997 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752794Ab1CEL4s convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Mar 2011 06:56:48 -0500
-Received: by wwb22 with SMTP id 22so3557455wwb.1
-        for <linux-media@vger.kernel.org>; Sat, 05 Mar 2011 03:56:46 -0800 (PST)
+Received: from moutng.kundenserver.de ([212.227.126.171]:59683 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756329Ab1C3W3y convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Mar 2011 18:29:54 -0400
+Date: Thu, 31 Mar 2011 00:29:17 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Paolo Santinelli <paolo.santinelli@unimore.it>
+cc: linux-media@vger.kernel.org
+Subject: Re: soc_camera dynamically cropping and scaling
+In-Reply-To: <AANLkTikx84JovevQ1YHrU79Hj1=jjSZ7FM9BtogiWOcc@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1103310027490.15210@axis700.grange>
+References: <AANLkTinVP6CePBY6g9Dn2aKXM0ovwmpqMd5G4ucz44EH@mail.gmail.com>
+ <Pine.LNX.4.64.1103292357270.13285@axis700.grange>
+ <AANLkTimhP_YoqKRKyPzRbM6gw5jXVNV2D3pveRqqH0W_@mail.gmail.com>
+ <Pine.LNX.4.64.1103300947580.4695@axis700.grange>
+ <AANLkTimN_LgfXYgH9jejakS38v-FdRQUnQ6qJJJCb1oe@mail.gmail.com>
+ <AANLkTikx84JovevQ1YHrU79Hj1=jjSZ7FM9BtogiWOcc@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <4D72012F.6030506@iki.fi>
-References: <AANLkTi=rcfL_pku9hhx68C_Fb_76KsW2Yy+Oys10a7+4@mail.gmail.com>
-	<4D7163FD.9030604@iki.fi>
-	<AANLkTimjC99zhJ=huHZiGgbENCoyHy5KT87iujjTT8w3@mail.gmail.com>
-	<4D716ECA.4060900@iki.fi>
-	<AANLkTimHa6XFwhvpLbhtRm7Vee-jYPkHpx+D8L2=+vQb@mail.gmail.com>
-	<AANLkTik9cSnAFWNdTUv3NNU3K2SoeECDO2036Htx-OAi@mail.gmail.com>
-	<AANLkTi=e-cAzMWZSHvKR8Yx+0MqcY_Ewf4z1gDyZfCeo@mail.gmail.com>
-	<AANLkTi=YMtTbgwxNA1O6zp03OoeGKJvn8oYDB9kHjti1@mail.gmail.com>
-	<4D72012F.6030506@iki.fi>
-Date: Sat, 5 Mar 2011 11:56:46 +0000
-Message-ID: <AANLkTi=aPYY_NeWU1u0GATQY1i=mnn-UcMaQOP-S8=jc@mail.gmail.com>
-Subject: Re: [patch] Fix AF9015 Dual tuner i2c write failures
-From: Andrew de Quincey <adq_dvb@lidskialf.net>
-To: Antti Palosaari <crope@iki.fi>
-Cc: =?ISO-8859-1?Q?Juan_Jes=FAs_Garc=EDa_de_Soria_Lucena?=
-	<skandalfo@gmail.com>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Perhaps it depends on the characteristics of the transmissions being
-received? I'm in the UK.
+On Wed, 30 Mar 2011, Paolo Santinelli wrote:
 
-2011/3/5 Antti Palosaari <crope@iki.fi>:
-> Switching channels for long time seems to hang device (no errors seen but it
-> does not lock anymore), I don't know why. It is not very easy to reproduce.
-> For me it will take generally few days just tune from channel to channel in
-> loop.
->
-> Antti
->
-> On 03/05/2011 10:56 AM, Juan Jesús García de Soria Lucena wrote:
->>
->> Hi, Andrew.
->>
->> This is what happens to me with both the KWorld dual tuner (when using
->> only
->> one tuner) and the Avermedia Volar Black (single tuner), both based on
->> AF9015.
->>
->> I also got corrupted streams with the KWorld when capturing via both
->> tuners
->> (the video our the audio would show artifacts in mythtv each several
->> seconds).
->>
->> As far as the loss of tuning ability goes, I think it's a problem related
->> to
->> tuning itself, since it wouldn't happen when you just left a channel tuned
->> and streaming in a simple client, but would trigger after a random time
->> when
->> you left mythtv scanning the channels for EIT data.
->>
->> I don't think it's a problem with a specific HW implementation, since I
->> got
->> it with both AF9015-based cards. It could be either a chipset quirk our a
->> bug in the driver.
->>
->> My informal and quick tests with Windows Media Center and these cards did
->> not reproduce the problem, when trying to change channels as quickly as
->> possible, admittedly for not so long a time.
->>
->> Best regards,
->>    Juan Jesus.
->> El 05/03/2011 02:53, "adq"<adq@lidskialf.net>  escribió:
->>>
->>> On 5 March 2011 01:43, adq<adq@lidskialf.net>  wrote:
->>>>
->>>> On 4 March 2011 23:11, Andrew de Quincey<adq_dvb@lidskialf.net>  wrote:
->>>>>
->>>>> On 4 March 2011 22:59, Antti Palosaari<crope@iki.fi>  wrote:
->>>>>>
->>>>>> On 03/05/2011 12:44 AM, Andrew de Quincey wrote:
->>>>>>>>>
->>>>>>>>> Adding a "bus lock" to af9015_i2c_xfer() will not work as
->>
->> demod/tuner
->>>>>>>>>
->>>>>>>>> accesses will take multiple i2c transactions.
->>>>>>>>>
->>>>>>>>> Therefore, the following patch overrides the dvb_frontend_ops
->>>>>>>>> functions to add a per-device lock around them: only one frontend
->>
->> can
->>>>>>>>>
->>>>>>>>> now use the i2c bus at a time. Testing with the scripts above shows
->>>>>>>>> this has eliminated the errors.
->>>>>>>>
->>>>>>>> This have annoyed me too, but since it does not broken functionality
->>
->> much
->>>>>>>>
->>>>>>>> I
->>>>>>>> haven't put much effort for fixing it. I like that fix since it is
->>>>>>>> in
->>>>>>>> AF9015
->>>>>>>> driver where it logically belongs to. But it looks still rather
->>
->> complex.
->>>>>>>>
->>>>>>>> I
->>>>>>>> see you have also considered "bus lock" to af9015_i2c_xfer() which
->>
->> could
->>>>>>>>
->>>>>>>> be
->>>>>>>> much smaller in code size (that's I have tried to implement long
->>>>>>>> time
->>>>>>>> back).
->>>>>>>>
->>>>>>>> I would like to ask if it possible to check I2C gate open / close
->>
->> inside
->>>>>>>>
->>>>>>>> af9015_i2c_xfer() and lock according that? Something like:
->>>>>>>
->>>>>>> Hmm, I did think about that, but I felt overriding the functions was
->>>>>>> just cleaner: I felt it was more obvious what it was doing. Doing
->>>>>>> exactly this sort of tweaking was one of the main reasons we added
->>>>>>> that function overriding feature.
->>>>>>>
->>>>>>> I don't like the idea of returning "error locked by FE" since that'll
->>>>>>> mean the tuning will randomly fail sometimes in a way visible to
->>>>>>> userspace (unless we change the core dvb_frontend code), which was
->>>>>>> one
->>>>>>> of the things I was trying to avoid. Unless, of course, I've
->>>>>>> misunderstood your proposal.
->>>>>>
->>>>>> Not returning error, but waiting in lock like that:
->>>>>> if (mutex_lock_interruptible(&d->i2c_mutex)<  0)
->>>>>>  return -EAGAIN;
->>>>>
->>>>> Ah k, sorry
->>>>>
->>>>>>> However, looking at the code again, I realise it is possible to
->>>>>>> simplify it. Since its only the demod gates that cause a problem, we
->>>>>>> only /actually/ need to lock the get_frontend() and set_frontend()
->>>>>>> calls.
->>>>>>
->>>>>> I don't understand why .get_frontend() causes problem, since it does
->>
->> not
->>>>>>
->>>>>> access tuner at all. It only reads demod registers. The main problem
->>>>>> is
->>>>>> (like schema in af9015.c shows) that there is two tuners on same I2C
->>
->> bus
->>>>>>
->>>>>> using same address. And demod gate is only way to open access for
->>
->> desired
->>>>>>
->>>>>> tuner only.
->>>>>
->>>>> AFAIR /some/ tuner code accesses the tuner hardware to read the exact
->>>>> tuned frequency back on a get_frontend(); was just being extra
->>>>> paranoid :)
->>>>>
->>>>>> You should block traffic based of tuner not demod. And I think those
->>>>>> callbacks which are needed for override are tuner driver callbacks.
->>
->> Consider
->>>>>>
->>>>>> situation device goes it v4l-core calls same time both tuner .sleep()
->>
->> ==
->>>>>>
->>>>>> problem.
->>>>>
->>>>> Hmm, yeah, you're right, let me have another look tomorrow.
->>>>>
->>>>
->>>> Hi, must admit I misunderstood your diagram originally, I thought it
->>>> was the demods AND the tuners that had the same i2c addresses.
->>>>
->>>> As you say though. its just the tuners, so adding the locking into the
->>>> gate ctrl as you suggested makes perfect sense. Attached is v3
->>>> implementing this; it seems to be working fine here.
->>>>
->>>
->>> Unfortunately even with this fix, I'm still seeing the problem I was
->>> trying to fix to begin with.
->>>
->>> Although I no longer get any i2c errors (or *any* reported errors),
->>> after a bit, one of the frontends just.. stops working. All attempts
->>> to tune it fail. I can even unload and reload the driver module, and
->>> its stuck in the same state, indicating its a problem with the
->>> hardware. :(
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at http://vger.kernel.org/majordomo-info.html
->>
->
->
-> --
-> http://palosaari.fi/
->
+> Hi Guennadi,
+> 
+> Am I wrong or do  I have to add some functions ?
+> 
+> I have hand applied the changes at the soc_camera.c and soc_camera.h
+> files. At a fist glance to these files seems that I have to add the
+> function:
+> 
+>  .set_livecrop()
+
+Yes, I think, I mentioned this in my last mail, that's what my sh-ceu 
+example should have illustrated.
+
+> 
+> and probably even something more:
+> 
+>   CC      drivers/media/video/soc_camera.o
+> drivers/media/video/soc_camera.c: In function 'soc_camera_s_fmt_vid_cap':
+> drivers/media/video/soc_camera.c:545: error: implicit declaration of
+> function 'vb2_is_streaming'
+> drivers/media/video/soc_camera.c:545: error: 'struct
+> soc_camera_device' has no member named 'vb2_vidq'
+> drivers/media/video/soc_camera.c: In function 'soc_camera_s_crop':
+> drivers/media/video/soc_camera.c:799: error: 'struct
+> soc_camera_device' has no member named 'vb2_vidq'
+> make[3]: *** [drivers/media/video/soc_camera.o] Error 1
+
+You have to use current sources. 2.6.39-rc1 should be ok.
+
+Thanks
+Guennadi
+
+> 
+> What about vb2_is_streaming and vb2_vidq ?
+> 
+> Any tips regarding these functions ?
+> 
+> Thanks
+> 
+> Paolo
+> 2011/3/30 Paolo Santinelli <paolo.santinelli@unimore.it>:
+> > Hi Guennadi,
+> >
+> > thank you very much for the patch. I am going to apply it in order to
+> > start toying with the new capability. I think it is a  useful
+> > capability.
+> >
+> > I'll let you know.
+> >
+> > Again thank you.
+> >
+> > Paolo
+> >
+> > 2011/3/30 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+> >> On Tue, 29 Mar 2011, Paolo Santinelli wrote:
+> >>
+> >>> Hi Guennadi,
+> >>>
+> >>> thank you for the quick answer.
+> >>>
+> >>> Here is what I mean with dynamic: I take "live" one frame at high
+> >>> resolution, for example a picture at VGA or  QVGA resolution, then a
+> >>> sequence of frames that depict a cropped area (200x200 or 100x100)
+> >>> from the original full-resolution frame, and then a new full
+> >>> resolution image (VGA or QVGA) and again the sequence of frames  that
+> >>> depict a cropped area from the original full resolution, and so on.
+> >>> That means takes one frame in 640x480 and  than takes some frames at
+> >>> 100x100 (or 200x200) and so on.
+> >>
+> >> Ic, so, if you can live with a fixed output format and only change the
+> >> input cropping rectangle, the patch set, that I've just sent could give
+> >> you a hint, how this can be done. This would work if you're ok with first
+> >> obtaining VGA images scaled down to, say, 160x120, and then take 160x120
+> >> cropped frames unscaled. But I'm not sure, this is something, that would
+> >> work for you. Otherwise, unless your sensor can upscale cropped images to
+> >> VGA output size, you'll also want fast switching between different output
+> >> sizes, which you'd have to wait for (or implement yourself;-))
+> >>
+> >> Thanks
+> >> Guennadi
+> >>
+> >>>
+> >>> The best would be have two different fixed-output image formats, the
+> >>> WHOLE IMAGE format ex. 640x480 and the ROI format, 100x100. The ROI
+> >>> pictures obtained cropping the a region of the whole image. The
+> >>> cropping area could be even wider  than 100x100 and then scaled down
+> >>> to the 100x100 ROI format.
+> >>>
+> >>> Probably it is more simple have a cropping area of the same dimension
+> >>> of the ROI format, 100x100.
+> >>>
+> >>> In this way there is a reduction of the computation load of the CPU
+> >>> (smaller images).
+> >>>
+> >>> Thank you very much!
+> >>>
+> >>> Paolo
+> >>>
+> >>> 2011/3/29 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+> >>> > On Tue, 29 Mar 2011, Paolo Santinelli wrote:
+> >>> >
+> >>> >> Hi all,
+> >>> >>
+> >>> >> I am using a PXA270 board running linux 2.6.37 equipped with an ov9655
+> >>> >> Image sensor. I am able to use the cropping and scaling capabilities
+> >>> >> V4L2 driver.
+> >>> >> The question is :
+> >>> >>
+> >>> >> Is it possible dynamically change the cropping and scaling values
+> >>> >> without close and re-open  the camera every time ?
+> >>> >>
+> >>> >> Now I am using the streaming I/O memory mapping and to dynamically
+> >>> >> change the cropping and scaling values I do :
+> >>> >>
+> >>> >> 1) stop capturing using VIDIOC_STREAMOFF;
+> >>> >> 2) unmap all the buffers;
+> >>> >> 3) close the device;
+> >>> >> 4) open the device;
+> >>> >> 5) init the device: VIDIOC_CROPCAP and VIDIOC_S_CROP in order to set
+> >>> >> the cropping parameters. VIDIOC_G_FMT and VIDIOC_S_FMT in order to set
+> >>> >> the target image width and height, (scaling).
+> >>> >> 6) Mapping the buffers: VIDIOC_REQBUFS in order to request buffers and
+> >>> >> mmap each buffer using VIDIOC_QUERYBUF and mmap():
+> >>> >>
+> >>> >> this procedure works but take 400 ms.
+> >>> >>
+> >>> >> If I omit steps 3) and 4)  (close and re-open the device) I get this errors:
+> >>> >>
+> >>> >> camera 0-0: S_CROP denied: queue initialised and sizes differ
+> >>> >> camera 0-0: S_FMT denied: queue initialised
+> >>> >> VIDIOC_S_FMT error 16, Device or resource busy
+> >>> >> pxa27x-camera pxa27x-camera.0: PXA Camera driver detached from camera 0
+> >>> >>
+> >>> >> Do you have some Idea regarding why I have to close and reopen the
+> >>> >> device and regarding a way to speed up these change?
+> >>> >
+> >>> > Yes, by chance I do;-) First of all you have to make it more precise -
+> >>> > what exactly do you mean - dynamic (I call it "live") scaling or cropping?
+> >>> > If you want to change output format, that will not be easy ATM, that will
+> >>> > require the snapshot mode API, which is not yet even in an RFC state. If
+> >>> > you only want to change the cropping and keep the output format (zoom),
+> >>> > then I've just implemented that for sh_mobile_ceu_camera. This requires a
+> >>> > couple of extensions to the soc-camera core, which I can post tomorrow.
+> >>> > But in fact that is also a hack, because the proper way to implement this
+> >>> > is to port soc-camera to the Media Controller framework and use the
+> >>> > pad-level API. So, I am not sure, whether we want this in the mainline,
+> >>> > but if already two of us need it now - before the transition to pad-level
+> >>> > operations, maybe it would make sense to mainline this. If, however, you
+> >>> > do have to change your output window, maybe you could tell us your
+> >>> > use-case, so that we could consider, what's the best way to support that.
+> >>> >
+> >>> > Thanks
+> >>> > Guennadi
+> >>> > ---
+> >>> > Guennadi Liakhovetski, Ph.D.
+> >>> > Freelance Open-Source Software Developer
+> >>> > http://www.open-technology.de/
+> >>> >
+> >>>
+> >>>
+> >>>
+> >>> --
+> >>> --------------------------------------------------
+> >>> Paolo Santinelli
+> >>> ImageLab Computer Vision and Pattern Recognition Lab
+> >>> Dipartimento di Ingegneria dell'Informazione
+> >>> Universita' di Modena e Reggio Emilia
+> >>> via Vignolese 905/B, 41125, Modena, Italy
+> >>>
+> >>> Cell. +39 3472953357,  Office +39 059 2056270, Fax +39 059 2056129
+> >>> email:  <mailto:paolo.santinelli@unimore.it> paolo.santinelli@unimore.it
+> >>> URL:  <http://imagelab.ing.unimo.it/> http://imagelab.ing.unimo.it
+> >>> --------------------------------------------------
+> >>>
+> >>
+> >> ---
+> >> Guennadi Liakhovetski, Ph.D.
+> >> Freelance Open-Source Software Developer
+> >> http://www.open-technology.de/
+> >>
+> >
+> >
+> >
+> > --
+> > --------------------------------------------------
+> > Paolo Santinelli
+> > ImageLab Computer Vision and Pattern Recognition Lab
+> > Dipartimento di Ingegneria dell'Informazione
+> > Universita' di Modena e Reggio Emilia
+> > via Vignolese 905/B, 41125, Modena, Italy
+> >
+> > Cell. +39 3472953357,  Office +39 059 2056270, Fax +39 059 2056129
+> > email:  <mailto:paolo.santinelli@unimore.it> paolo.santinelli@unimore.it
+> > URL:  <http://imagelab.ing.unimo.it/> http://imagelab.ing.unimo.it
+> > --------------------------------------------------
+> >
+> 
+> 
+> 
+> -- 
+> --------------------------------------------------
+> Paolo Santinelli
+> ImageLab Computer Vision and Pattern Recognition Lab
+> Dipartimento di Ingegneria dell'Informazione
+> Universita' di Modena e Reggio Emilia
+> via Vignolese 905/B, 41125, Modena, Italy
+> 
+> Cell. +39 3472953357,  Office +39 059 2056270, Fax +39 059 2056129
+> email:  <mailto:paolo.santinelli@unimore.it> paolo.santinelli@unimore.it
+> URL:  <http://imagelab.ing.unimo.it/> http://imagelab.ing.unimo.it
+> --------------------------------------------------
+> 
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
