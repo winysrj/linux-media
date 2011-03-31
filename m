@@ -1,38 +1,47 @@
 Return-path: <mchehab@pedra>
-Received: from tex.lwn.net ([70.33.254.29]:57484 "EHLO vena.lwn.net"
+Received: from e5.ny.us.ibm.com ([32.97.182.145]:39085 "EHLO e5.ny.us.ibm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752151Ab1CHSEP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Mar 2011 13:04:15 -0500
-Date: Tue, 8 Mar 2011 11:04:12 -0700
-From: Jonathan Corbet <corbet@lwn.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linaro-dev@lists.linaro.org, linux-media@vger.kernel.org,
-	Jonghun Han <jonghun.han@samsung.com>,
-	Hugh Dickins <hughd@google.com>
-Subject: Re: Yet another memory provider: can linaro organize a meeting?
-Message-ID: <20110308110412.73ea8be9@bike.lwn.net>
-In-Reply-To: <201103080913.59231.hverkuil@xs4all.nl>
-References: <201103080913.59231.hverkuil@xs4all.nl>
+	id S1758286Ab1CaQCy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 31 Mar 2011 12:02:54 -0400
+Subject: Re: [PATCH 05/12] mm: alloc_contig_range() added
+From: Dave Hansen <dave@linux.vnet.ibm.com>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-mm@kvack.org, Michal Nazarewicz <mina86@mina86.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
+	Mel Gorman <mel@csn.ul.ie>, Pawel Osciak <pawel@osciak.com>
+In-Reply-To: <1301577368-16095-6-git-send-email-m.szyprowski@samsung.com>
+References: <1301577368-16095-1-git-send-email-m.szyprowski@samsung.com>
+	 <1301577368-16095-6-git-send-email-m.szyprowski@samsung.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Date: Thu, 31 Mar 2011 09:02:41 -0700
+Message-ID: <1301587361.31087.1040.camel@nimitz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, 8 Mar 2011 09:13:59 +0100
-Hans Verkuil <hverkuil@xs4all.nl> wrote:
+On Thu, 2011-03-31 at 15:16 +0200, Marek Szyprowski wrote:
+> +       ret = 0;
+> +       while (!PageBuddy(pfn_to_page(start & (~0UL << ret))))
+> +               if (WARN_ON(++ret >= MAX_ORDER))
+> +                       return -EINVAL; 
 
-> All these memory-related modules have the same purpose: make it possible to
-> allocate/reserve large amounts of memory and share it between different
-> subsystems (primarily framebuffer, GPU and V4L).
-> 
-> It really shouldn't be that hard to get everyone involved together and settle
-> on a single solution (either based on an existing proposal or create a 'the
-> best of' vendor-neutral solution).
+Holy cow, that's dense.  Is there really no more straightforward way to
+do that?
 
-There is a memory management summit at the LF Collaboration Summit next
-month.  Perhaps this would be a good topic to raise there?  I've added
-Hugh to the Cc list in case he has any thoughts on the matter - and
-besides, he doesn't have enough to do...:)
+In any case, please pull the ++ret bit out of the WARN_ON().  Some
+people like to do:
 
-jon
+#define WARN_ON(...) do{}while(0)
+
+to save space on some systems.  
+
+-- Dave
+
