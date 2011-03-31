@@ -1,79 +1,122 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.samsung.com ([203.254.224.25]:36142 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750981Ab1CJKKX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Mar 2011 05:10:23 -0500
-Received: from epmmp1 (mailout2.samsung.com [203.254.224.25])
- by mailout2.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LHU00M636AL12C0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 10 Mar 2011 18:56:45 +0900 (KST)
-Received: from jtppark ([12.23.103.64])
- by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LHU00FLI6AKSJ@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 10 Mar 2011 18:56:45 +0900 (KST)
-Date: Thu, 10 Mar 2011 18:56:40 +0900
-From: Jeongtae Park <jtp.park@samsung.com>
-Subject: RE: [PATCH/RFC 0/2] Support controls at the subdev file handler level
-In-reply-to: <1299706041-21589-1-git-send-email-laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
-Reply-to: jtp.park@samsung.com
-Message-id: <000601cbdf09$76be8c10$643ba430$%park@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ks_c_5601-1987
-Content-language: ko
-Content-transfer-encoding: 7BIT
-References: <1299706041-21589-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from smtp.nokia.com ([147.243.128.24]:29678 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757146Ab1CaIQC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 31 Mar 2011 04:16:02 -0400
+Message-ID: <4D9438AD.7040405@maxwell.research.nokia.com>
+Date: Thu, 31 Mar 2011 11:17:49 +0300
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Nayden Kanchev <nkanchev@mm-sol.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Cohen David Abraham <david.cohen@nokia.com>
+Subject: Re: [RFC] V4L2 API for flash devices
+References: <4D90854C.2000802@maxwell.research.nokia.com> <201103301134.14798.laurent.pinchart@ideasonboard.com> <4D930E92.70302@maxwell.research.nokia.com> <201103301554.47092.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201103301554.47092.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi, all.
+Laurent Pinchart wrote:
+> On Wednesday 30 March 2011 13:05:54 Sakari Ailus wrote:
+>> Laurent Pinchart wrote:
+>>> Hi Sakari,
+>>
+>> Hi Laurent,
+>>
+>> Thanks for the comments!
+>>
+>>> On Monday 28 March 2011 14:55:40 Sakari Ailus wrote:
+>>>
+>>> [snip]
+>>>
+>>>> 	V4L2_CID_FLASH_STROBE_MODE (menu; LED)
+>>>>
+>>>> Use hardware or software strobe. If hardware strobe is selected, the
+>>>> flash controller is a slave in the system where the sensor produces the
+>>>> strobe signal to the flash.
+>>>>
+>>>> In this case the flash controller setup is limited to programming strobe
+>>>> timeout and power (LED flash) and the sensor controls the timing and
+>>>> length of the strobe.
+>>>>
+>>>> enum v4l2_flash_strobe_mode {
+>>>>
+>>>> 	V4L2_FLASH_STROBE_MODE_SOFTWARE,
+>>>> 	V4L2_FLASH_STROBE_MODE_EXT_STROBE,
+>>>>
+>>>> };
+>>>
+>>> [snip]
+>>>
+>>>> 	V4L2_CID_FLASH_LED_MODE (menu; LED)
+>>>>
+>>>> enum v4l2_flash_led_mode {
+>>>>
+>>>> 	V4L2_FLASH_LED_MODE_FLASH = 1,
+>>>> 	V4L2_FLASH_LED_MODE_TORCH,
+>>>>
+>>>> };
+>>>
+>>> Thinking about this some more, shouldn't we combine the two controls ?
+>>> They are basically used to configure how the flash LED is controlled:
+>>> manually (torch mode), automatically by the flash controller (software
+>>> strobe mode) or automatically by an external component (external strobe
+>>> mode).
+>>
+>> That's a good question.
+>>
+>> The adp1653 supports also additional control (not implemented in the
+>> driver, though) that affect hardware strobe length. Based on register
+>> setting, the led will be on after strobe either until the timeout
+>> expires, or until the strobe signal is high.
+>>
+>> Should this be also part of the same control, or a different one?
+> 
+> That can be controlled by a duration control. If the duration is 0, the flash 
+> is lit for the duration of the external strobe, otherwise it's lit for the 
+> programmed duration.
 
-Some hardware need to handle per-filehandle level controls.
-Hans suggests add a v4l2_ctrl_handler struct v4l2_fh. It will be work fine.
-Although below patch series are for subdev, but it's great start point.
-I will try to make a patch.
+Sounds good to me.
 
-If v4l2 control framework can be handle per-filehandle controls,
-a driver could be handle per-buffer level controls also. (with VB2 callback
-operation)
+>> Even without this, we'd have:
+>>
+>> V4L2_FLASH_MODE_OFF
+>> V4L2_FLASH_MODE_TORCH
+>> V4L2_FLASH_MODE_SOFTWARE_STROBE
+>> V4L2_FLASH_MODE_EXTERNAL_STROBE
+>>
+>> Additionally, this might be
+>>
+>> V4L2_FLASH_MODE_EXTERNAL_STROBE_EDGE
+>>
+>> It's true that these are mutually exclusive.
+>>
+>> I think this is about whether we want to specify the operation of the
+>> flash explicitly here or allow extending the interface later on when new
+>> hardware is available by adding new controls. There are upsides and
+>> downsides in each approach.
+>>
+>> There could be additional differentiating factors to the functionalty
+>> later on, like the torch/video light differentiation that some hardware
+>> does --- who knows based on what?
+>>
+>> I perhaps wouldn't combine the controls. What do you think?
+> 
+> I'm not sure yet :-)
 
-Best Regards,
+I have a vague feeling that as we don't know about the future hardware
+I'd prefer to keep this as extensible as possible, meaning that I'd
+rather add new controls than define menu controls with use case specific
+items in them. This would translate to two controls: flash mode (none,
+torch, flash) and strobe mode (software, external).
 
-/jtpark
+What do the others think on this?
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Laurent Pinchart
-> Sent: Thursday, March 10, 2011 6:27 AM
-> To: linux-media@vger.kernel.org
-> Cc: hverkuil@xs4all.nl; jaeryul.oh@samsung.com
-> Subject: [PATCH/RFC 0/2] Support controls at the subdev file handler level
-> 
-> Hi everybody,
-> 
-> Here's a patch set that adds support for per-file-handle controls on V4L2
-> subdevs. The patches are work in progress, but I'm still sending them as
-> Samsung expressed interest in a similar feature on V4L2 device nodes.
-> 
-> Laurent Pinchart (2):
->   v4l: subdev: Move file handle support to drivers
->   v4l: subdev: Add support for file handler control handler
-> 
->  drivers/media/video/v4l2-subdev.c |  144 +++++++++++++++++++-------------
-----
->  include/media/v4l2-subdev.h       |   10 ++-
->  2 files changed, 84 insertions(+), 70 deletions(-)
-> 
-> --
-> Regards,
-> 
-> Laurent Pinchart
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
