@@ -1,183 +1,217 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:52080 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751360Ab1C2XVi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Mar 2011 19:21:38 -0400
-Message-ID: <4D92697C.3030209@redhat.com>
-Date: Tue, 29 Mar 2011 20:21:32 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: handygewinnspiel@gmx.de
-CC: linux-media@vger.kernel.org
-Subject: Re: [w_scan PATCH] Add Brazil support on w_scan
-References: <4D909B59.9040809@redhat.com> <20110328172045.64750@gmx.net> <4D90D78F.7050308@redhat.com> <20110329201152.282620@gmx.net>
-In-Reply-To: <20110329201152.282620@gmx.net>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:22671 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757529Ab1CaNQX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 31 Mar 2011 09:16:23 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Thu, 31 Mar 2011 15:16:01 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 05/12] mm: alloc_contig_range() added
+In-reply-to: <1301577368-16095-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-mm@kvack.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
+	Mel Gorman <mel@csn.ul.ie>, Pawel Osciak <pawel@osciak.com>
+Message-id: <1301577368-16095-6-git-send-email-m.szyprowski@samsung.com>
+References: <1301577368-16095-1-git-send-email-m.szyprowski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 29-03-2011 17:11, handygewinnspiel@gmx.de escreveu:
->> Em 28-03-2011 14:20, handygewinnspiel@gmx.de escreveu:
->>> Hi Mauro,
->>>
->>>> This patch adds support for both ISDB-T and DVB-C @6MHz used in
->>>> Brazil, and adds a new bit rate of 5.2170 MSymbol/s, found on QAM256
->>>> transmissions at some Brazilian cable operators.
->>>
->>> Good. :)
->>>
->>>> While here, fix compilation with kernels 2.6.39 and later, where the
->>>> old V4L1 API were removed (so, linux/videodev.h doesn't exist anymore).
->>>> This is needed to compile it on Fedora 15 beta.
->>>
->>> videodev.h should have never been in there. Was already reported and
->> will be removed instead.
->>>
->>>> @@ -1985,6 +1986,10 @@
->>>>  		dvbc_symbolrate_min=dvbc_symbolrate_max=0;
->>>>  		break;
->>>>  	case FE_QAM:
->>>> +		// 6MHz DVB-C uses lower symbol rates
->>>> +		if (freq_step(channel, this_channellist) == 6000000) {
->>>> +			dvbc_symbolrate_min=dvbc_symbolrate_max=17;
->>>> +		}
->>>>  		break;
->>>>  	case FE_QPSK:
->>>>  		// channel means here: transponder,
->>>
->>> This one causes me headache, because this one has side-effects to all
->> other DVB-C cases using 6MHz bandwidth.
->>> Are there *any cases* around, where some country may use DVB-C with
->> symbolrates other than 5.217Mbit/s?
->>
->> If you take a look at EN 300 429[1], The DVB-C roll-off factor (alpha) is
->> defined as 0.15.
->>
->> 	[1] EN 300 429 V1.2.1 (1998-04), chapter 9, page 16, and table B.1
->>
->> So, the amount of the needed bandwidth (e. g. the Nyquist cut-off
->> frequency) is given by:
->>   Bw = Symbol_rate * (1 + 0.15)
->>
->> E. g. the maximum symbol rate is given by:
->>
->> 	Symbol_rate(6MHz) = 6000000/1.15 = 5217391.30434782608695652173
->> 	Symbol_rate(7MHz) = 7000000/1.15 = 6086956.52173913043478260869
->> 	Symbol_rate(8MHz) = 8000000/1.15 = 6956521.73913043478260869565
->>
->> As you see, for Countries using 6MHz bandwidth, the maximum value is about
->> 5.127 Mbauds.
->> With the current w_scan logic of assuming 6.9 or 6.875 Mbauds by default
->> for DVB-C, 
->> w_scan will never find any channel, if the channel bandwidth fits into a
->> 6MHz (or 7MHz)
->> channel spacing.
->>
->> So, the above change won't cause regressions, although it could be
->> improved.
-> 
-> 
-> 
-> If w_scan assumes that every 6MHz cable network, also outside Brazil, will use it's maximum theoretical symbol
-> rate *only* like your patch was implemented, it will probably fail as well, because in practice lower values are used.
+From: Michal Nazarewicz <m.nazarewicz@samsung.com>
 
-True. I suspect, however, that there aren't many Countries using 6MHz for DVB-C. The bandwidth usage
-for cable generally follows the analog broadcast standard. There are two standards used for 6MHz
-analog: NTSC/M (North/Central America, Japan, Korea) and PAL/M (used only in Brazil and Laos, AFAIK - 
-never had the opportunity to talk with anyone from Laos to double check it). The Countries that use 
-NTSC generally follow US choice for Digital (Except for Japan: I think ISDB-C is used there).
+This commit adds the alloc_contig_range() function which tries
+to allecate given range of pages.  It tries to migrate all
+already allocated pages that fall in the range thus freeing them.
+Once all pages in the range are freed they are removed from the
+buddy system thus allocated for the caller to use.
 
-> 
-> Your patch disabled the looping through different symbol rates for any 6MHz network; therefore i was asking.
-> 
-> So I changed it now to scan any srate for 6MHz networks, but skip over those which are unsupported by bandwidth limitation.
+Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+CC: Michal Nazarewicz <mina86@mina86.com>
+---
+ include/linux/page-isolation.h |    2 +
+ mm/page_alloc.c                |  144 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 146 insertions(+), 0 deletions(-)
 
-Thanks for appling the fix for Brazil!
-
-I look your implementation. It looks sane, although it will increase a lot
-the scanning time. IMO, for now, except if the user uses -e or -S parameters,
-I would just seek for 5127 symbol rate, to speed up scanning.
-
-> 
-> 
->>
->> IMHO, a different logic could be used instead, if the user doesn't use the
->> -S parameter, like:
->>
->> int dvbc_symbolrate[] = {
->> 	7000000,
->> 	6956500,		/* Max Symbol rate for 8 MHz channel bandwidth */
->> 	6956000,
->> 	6952000,
->> 	6950000,
->> 	6900000,
->> 	6875000,
->> 	6811000,
->> 	6790000,
->> 	6250000,
->> 	6111000,
->>
->> 	/* Weird: I would expect 6086 or 6086.5 here, as the max rate for 7MHz
->> spacing */
->> 			
->> 	5900000,		/* Require at least 7 MHz channel bandwidth */
->> 	5483000,
->> 	5217000,		/* Max Symbol rate for 6 MHz channel bandwidth */
->> 	5156000,
->> 	5000000,
->> 	4000000,
->> 	3450000,
->> };
->>
->> for (i = 0; i < ARRAY_SIZE(dvbc_symbolrate)) {
->> 	if (freq_step(channel, this_channellist) / 1.15 > dvbc_symbolrate[i])
->> 		next;
->>
->> 	/* Scan channel */
->> ...
->> }
->>
-> 
-> Doesnt look reasonable, since every DVB-C scan would take easily several hours this way.
-
-True. One way to speed up would be to assume that all DVB-C channels have the same symbol rate,
-by default (and provide a parameter to override it). Something like:
-
-
-Probably, the easiest way to do it is:
-
-+static int assume_all_channels_use_same_symbolrate = 1;
-...
-                if (__tune_to_transponder (frontend_fd, ptest,0) < 0)
-                        continue;
-
-+		if ((test.type ==  FE_QAM) && assume_all_channels_use_same_symbolrate) {
-+			info("Assuming that all channels use %.04f Msymbols/s symbol rate.\n"
-+			     "Use -A parameter to force testing for all symbol rates on all channels\n",
-+			     sr_parm/1000000.0);
-+			dvbc_symbolrate_min = dvbc_symbolrate_max = sr_parm;
-+			assume_all_channels_use_same_symbolrate = 0;
+diff --git a/include/linux/page-isolation.h b/include/linux/page-isolation.h
+index f1417ed..c5d1a7c 100644
+--- a/include/linux/page-isolation.h
++++ b/include/linux/page-isolation.h
+@@ -34,6 +34,8 @@ extern int set_migratetype_isolate(struct page *page);
+ extern void unset_migratetype_isolate(struct page *page);
+ extern unsigned long alloc_contig_freed_pages(unsigned long start,
+ 					      unsigned long end, gfp_t flag);
++extern int alloc_contig_range(unsigned long start, unsigned long end,
++			      gfp_t flags);
+ extern void free_contig_pages(struct page *page, int nr_pages);
+ 
+ /*
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 11f8bcb..0a270a5 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -5583,6 +5583,150 @@ unsigned long alloc_contig_freed_pages(unsigned long start, unsigned long end,
+ 	return pfn;
+ }
+ 
++static unsigned long pfn_to_maxpage(unsigned long pfn)
++{
++	return pfn & ~(MAX_ORDER_NR_PAGES - 1);
++}
++
++static unsigned long pfn_to_maxpage_up(unsigned long pfn)
++{
++	return ALIGN(pfn, MAX_ORDER_NR_PAGES);
++}
++
++#define MIGRATION_RETRY	5
++static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
++{
++	int migration_failed = 0, ret;
++	unsigned long pfn = start;
++
++	/*
++	 * Some code "borrowed" from KAMEZAWA Hiroyuki's
++	 * __alloc_contig_pages().
++	 */
++
++	for (;;) {
++		pfn = scan_lru_pages(pfn, end);
++		if (!pfn || pfn >= end)
++			break;
++
++		ret = do_migrate_range(pfn, end);
++		if (!ret) {
++			migration_failed = 0;
++		} else if (ret != -EBUSY
++			|| ++migration_failed >= MIGRATION_RETRY) {
++			return ret;
++		} else {
++			/* There are unstable pages.on pagevec. */
++			lru_add_drain_all();
++			/*
++			 * there may be pages on pcplist before
++			 * we mark the range as ISOLATED.
++			 */
++			drain_all_pages();
 +		}
-...
-+                switch (opt) {
-+               	case 'A':
-+				assume_all_channels_use_same_symbolrate = 0;
-+				break;
-
-(code untested)
-
-Another optimization for speeding it up for DVB-C would be to have the symbolrate at the external loop.
-
-> 
-> Sorting into groups makes sense, one per bandwidth, but with the widely used first for each group is better. And still limit to common used srates -> done.
-> 
-> 
-> So, it's included now, but i changed the whole stuff a little. 
-
-
-Anyway, I'll test the today's version and reply if I detect any troubles on it.
-
-Thanks!
-Mauro
-
++		cond_resched();
++	}
++
++	if (!migration_failed) {
++		/* drop all pages in pagevec and pcp list */
++		lru_add_drain_all();
++		drain_all_pages();
++	}
++
++	/* Make sure all pages are isolated */
++	if (WARN_ON(test_pages_isolated(start, end)))
++		return -EBUSY;
++
++	return 0;
++}
++
++/**
++ * alloc_contig_range() -- tries to allocate given range of pages
++ * @start:	start PFN to allocate
++ * @end:	one-past-the-last PFN to allocate
++ * @flags:	flags passed to alloc_contig_freed_pages().
++ *
++ * The PFN range does not have to be pageblock or MAX_ORDER_NR_PAGES
++ * aligned, hovewer it's callers responsibility to guarantee that we
++ * are the only thread that changes migrate type of pageblocks the
++ * pages fall in.
++ *
++ * Returns zero on success or negative error code.  On success all
++ * pages which PFN is in (start, end) are allocated for the caller and
++ * need to be freed with free_contig_pages().
++ */
++int alloc_contig_range(unsigned long start, unsigned long end,
++		       gfp_t flags)
++{
++	unsigned long _start, _end;
++	int ret;
++
++	/*
++	 * What we do here is we mark all pageblocks in range as
++	 * MIGRATE_ISOLATE.  Because of the way page allocator work, we
++	 * align the range to MAX_ORDER pages so that page allocator
++	 * won't try to merge buddies from different pageblocks and
++	 * change MIGRATE_ISOLATE to some other migration type.
++	 *
++	 * Once the pageblocks are marked as MIGRATE_ISOLATE, we
++	 * migrate the pages from an unaligned range (ie. pages that
++	 * we are interested in).  This will put all the pages in
++	 * range back to page allocator as MIGRATE_ISOLATE.
++	 *
++	 * When this is done, we take the pages in range from page
++	 * allocator removing them from the buddy system.  This way
++	 * page allocator will never consider using them.
++	 *
++	 * This lets us mark the pageblocks back as
++	 * MIGRATE_CMA/MIGRATE_MOVABLE so that free pages in the
++	 * MAX_ORDER aligned range but not in the unaligned, original
++	 * range are put back to page allocator so that buddy can use
++	 * them.
++	 */
++
++	ret = start_isolate_page_range(pfn_to_maxpage(start),
++				       pfn_to_maxpage_up(end));
++	if (ret)
++		goto done;
++
++	ret = __alloc_contig_migrate_range(start, end);
++	if (ret)
++		goto done;
++
++	/*
++	 * Pages from [start, end) are within a MAX_ORDER_NR_PAGES
++	 * aligned blocks that are marked as MIGRATE_ISOLATE.  What's
++	 * more, all pages in [start, end) are free in page allocator.
++	 * What we are going to do is to allocate all pages from
++	 * [start, end) (that is remove them from page allocater).
++	 *
++	 * The only problem is that pages at the beginning and at the
++	 * end of interesting range may be not aligned with pages that
++	 * page allocator holds, ie. they can be part of higher order
++	 * pages.  Because of this, we reserve the bigger range and
++	 * once this is done free the pages we are not interested in.
++	 */
++
++	ret = 0;
++	while (!PageBuddy(pfn_to_page(start & (~0UL << ret))))
++		if (WARN_ON(++ret >= MAX_ORDER))
++			return -EINVAL;
++
++	_start = start & (~0UL << ret);
++	_end   = alloc_contig_freed_pages(_start, end, flag);
++
++	/* Free head and tail (if any) */
++	if (start != _start)
++		free_contig_pages(pfn_to_page(_start), start - _start);
++	if (end != _end)
++		free_contig_pages(pfn_to_page(end), _end - end);
++
++	ret = 0;
++done:
++	undo_isolate_page_range(pfn_to_maxpage(start), pfn_to_maxpage_up(end));
++	return ret;
++}
++
+ void free_contig_pages(struct page *page, int nr_pages)
+ {
+ 	for (; nr_pages; --nr_pages, ++page)
+-- 
+1.7.1.569.g6f426
