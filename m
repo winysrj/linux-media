@@ -1,316 +1,396 @@
 Return-path: <mchehab@pedra>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:30239 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754644Ab1CKLgM (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:22671 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752638Ab1CaNQS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Mar 2011 06:36:12 -0500
-Message-ID: <4D7A0929.6080705@cisco.com>
-Date: Fri, 11 Mar 2011 12:36:09 +0100
-From: "Martin Bugge (marbugge)" <marbugge@cisco.com>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC] HDMI-CEC proposal, ver 2
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+	Thu, 31 Mar 2011 09:16:18 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Thu, 31 Mar 2011 15:15:58 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 02/12] lib: genalloc: Generic allocator improvements
+In-reply-to: <1301577368-16095-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-mm@kvack.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
+	Mel Gorman <mel@csn.ul.ie>, Pawel Osciak <pawel@osciak.com>
+Message-id: <1301577368-16095-3-git-send-email-m.szyprowski@samsung.com>
+References: <1301577368-16095-1-git-send-email-m.szyprowski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi
-
-This is an updated version of the proposal for adding an api for 
-HDMI-CEC to V4L2.
-Main difference is the support of AV.link EN 50157-2-[123]. (thanks to 
-Daniel Glöckner)
-
-
-Author: Martin Bugge <marbugge@cisco.com>
-Date:  Fri, 11th of March 2010
-=============================
-
-This is a proposal for adding a Consumer Electronic Control (CEC) API to 
-V4L2.
-This document describes the changes and new ioctls needed.
-
-Version 1.
-            Initial version
-
-Version 2.
-           Added support for AV.link EN 50157-2-[123].
-
-Background
-==========
-CEC is a protocol that provides high-level control functions between 
-various audiovisual products.
-It is an optional supplement to the High-Definition Multimedia Interface 
-Specification (HDMI).
-
-In short: CEC uses pin 13 on the HDMI connector to transmit and receive 
-small data-packets
-           (maximum 16 bytes including a 1 byte header) at low data 
-rates (~400 bits/s).
-
-A CEC device may have any of 15 logical addresses (0 - 14).
-(address 15 is broadcast and some addresses are reserved)
-
-Physical layer is a one-wire bidirectional serial bus that uses the
-industry-standard AV.link, see [3].
-Due to this the proposed ioctls and events are meant to cover expansion 
-for the protocols in [3].
-
-
-References
-==========
-[1] High-Definition Multimedia Interface Specification version 1.3a,
-     Supplement 1 Consumer Electronic Control (CEC).
-     http://www.hdmi.org/manufacturer/specification.aspx
-
-[2] 
-http://www.hdmi.org/pdf/whitepaper/DesigningCECintoYourNextHDMIProduct.pdf
-
-[3] Domestic and similar electronic equipment interconnection requirements
-     AV.link. EN 50157-2-[123]
-
-
-Proposed solution
-=================
-
-Two new ioctls:
-     VIDIOC_AV_LINK_CAP (read)
-     VIDIOC_AV_LINK_CMD (read/write)
-
-
-VIDIOC_AV_LINK_CAP:
--------------------------------
-
-#define AV_LINK_CAP_MODE_CEC (1 << 0)
-#define AV_LINK_CAP_MODE_1   (1 << 1)
-#define AV_LINK_CAP_MODE_2   (1 << 2)
-#define AV_LINK_CAP_MODE_3   (1 << 3)
-
-struct vl2_av_link_cap {
-        __u32 capabilities;
-        __u32 logicaldevices;
-        __u32 reserved[14];
-};
-
-The capabilities field will indicate which protocols/formats this HW 
-supports.
-
-* AV link mode CEC:
-      logicaldevices: 1 -> 14, this HW supports n logical devices 
-simultaneously.
-
-* AV link mode 1:
-      logicaldevices: not used.
-
-* AV link mode 2:
-      Same as AV link mode CEC.
-
-* AV link mode 3:
-      logicaldevices: not used.
-
-      reserved: for future use.
-
-
-VIDIOC_AV_LINK_CMD:
--------------------
-The command ioctl is used both for configuration and to receive/transmit 
-data.
-
-/* mode 1 */
-struct avl_mode1_conf {
-        __u32 enable;
-        __u32 upstream_Qty;
-        __u32 downstream_Qty;
-};
-struct avl_mode1 {
-        __u32 head;
-        __u32 Qty;
-        __u32 tx_status;
-        __u32 tx_status_Qty;
-};
-
-/* mode 2, 3 and CEC */
-struct avl_conf {
-         __u32 enable;
-         __u32 index;
-         __u32 addr;
-};
-struct avl {
-        __u32 len;
-        __u8  msg[16];
-        __u32 tx_status;
-};
-
-struct v4l2_av_link_cmd {
-     __u32 command;
-     __u32 mode;
-     __u32 reserved[2];
-     union {
-         struct avl_mode1_conf avlm1_conf;
-         struct avl_mode1 avlm1;
-         struct avl_conf conf;
-         struct avl avl;
-         __u32 raw[12];
-     };
-};
-
-/* command */
-#define V4L2_AV_LINK_CMD_CONF (1)
-#define V4L2_AV_LINK_CMD_TX   (2)
-#define V4L2_AV_LINK_CMD_RX   (3)
-
-/* mode */
-#define AV_LINK_CMD_MODE_CEC (1)
-#define AV_LINK_CMD_MODE_1   (2)
-#define AV_LINK_CMD_MODE_2   (3)
-#define AV_LINK_CMD_MODE_3   (4)
-
-/* Tx status */
-#define V4L2_AV_LINK_STAT_TX_OK                 (0)
-#define V4L2_AV_LINK_STAT_TX_ARB_LOST           (1)
-#define V4L2_AV_LINK_STAT_TX_RETRY_TIMEOUT      (2)
-#define V4L2_AV_LINK_STAT_TX_BROADCAST_REJECT   (3)
-
-Not every tx status is applicable for all modes, see table 1.
-
-|-----------------------------------------------------|
-|    Av link Mode     |  CEC  |   1   |   2   |   3   |
-|-----------------------------------------------------|
-|      Status         |       |       |       |       |
-|-----------------------------------------------------|
-|      TX_OK          |   a   |  n/a  |   a   |  n/a  |
-|-----------------------------------------------------|
-|  TX_ARB_LOST        |   a   |  n/a  |   a   |   a   |
-|-----------------------------------------------------|
-| TX_RETRY_TIMEOUT    |   a   |  n/a  |   a   |   a   |
-|-----------------------------------------------------|
-| TX_BROADCAST_REJECT |   a   |  n/a  |   a   |  n/a  |
-|-----------------------------------------------------|
-Table 1: tx status versus mode.
-          a:   applicable
-          n/a: not applicable
-
-
-Configuration command:
-----------------------
-
-* AV link mode CEC:
-      Must be done for each logical device address which is to be
-      enabled on this HW. Maximum number of logical devices
-      is found with the capability ioctl.
-      conf:
-          index:  0 -> number_of_logical_devices-1
-          enable: true/false
-          addr:   logical address
-
-
-* AV link mode 1:
-      In mode 1 the frame length is fixed to 21 bits (including the 
-start sequence).
-      Some of these bits (Qty 1 - 6) can be arbitrated by the receiver 
-to signal
-      supported formats/standards.
-      conf:
-          enable: true/false
-          upstream_Qty: QTY bits 1-6
-          downstream_Qty: QTY bits 1-6
-              |------------------------------------------------|
-              | Bits:     | 31 - 7 | 6 | 5 | 4 | 3 | 2 | 1 | 0 |
-              |------------------------------------------------|
-              | Qty bits  |   x    | x | 6 | 5 | 4 | 3 | 2 | 1 |
-              |------------------------------------------------|
-              Qty bits 1-6 mapping (x: not used)
-
-
-* AV link mode 2:
-      Same as AV link mode CEC.
-
-
-* AV link mode 3:  TBD. Chances are that nobody ever used this
-      conf:
-          index: 0 (not used)
-          enable: true/false
-          addr: 0 (not used)
-
-Tx/Rx command:
---------------
-
-* AV link mode CEC:
-      len:    length of message in bytes (data + header).
-      msg:    the raw message received/transmitted.
-      tx_status: tx status in blocking mode.
-
-
-* AV link mode 1:
-      Frame received/transmitted:
-      head:
-          |-------------------------------------------------|
-          | Bits:       | 31 - 4 |  3  |   2  |   1  |  0   |
-          |-------------------------------------------------|
-          | head bits:  |    x   | DIR | /PAS | /NAS | /DES |
-          |-------------------------------------------------|
-      Qty: Quality bits 1 - 16;
-          |---------------------------------------|
-          | Bits:     | 31 - 16 | 15 | 14 - 1 | 0 |
-          |---------------------------------------|
-          | Qty bits  |    x    | 16 | 15 - 2 | 1 |
-          |---------------------------------------|
-          x: not used
-
-      In blocking mode only:
-         tx_status: tx status.
-         tx_status_Qty: which Qty bits 1 - 6 bits was arbitrated during 
-transmit.
-
-
-* AV link mode 2:
-      len:    length of message in bytes (data + command block).
-      msg:    the raw message received/transmitted (without the start 
-sequence).
-      tx_status: tx status in blocking mode.
-
-
-* AV link mode 3: TBD. Chances are that nobody ever used this
-      len: length of message in bits, maximum 96 bits.
-      msg: the raw message received/transmitted. (without the start 
-sequence).
-      tx_status: tx status in blocking mode.
-
-Events
-------
-
-In the case of non-blocking mode the driver will issue the following events:
-
-V4L2_EVENT_AV_LINK_TX
-V4L2_EVENT_AV_LINK_RX
-
-
-V4L2_EVENT_AV_LINK_TX
------------------
-  * transmit is complete with the following status:
-Add an additional struct to the struct v4l2_event
-
-struct v4l2_event_av_link_tx {
-        __u32 status;
-        __u32 tx_status_mode1_Qty;
-};
-  * The status field is the same as in blocking mode described above.
-  * tx_status_mode1_Qty apply only to mode 1.
-
-
-V4L2_EVENT_AV_LINK_RX
------------------
-  * received a complete message
-    Use the VIDIOC_AV_LINK_CMD to read the message.
-
-
-Comments ?
-
-            Martin Bugge
-
---
-Martin Bugge - Tandberg (now a part of Cisco)
---
-
-
+From: Michal Nazarewicz <m.nazarewicz@samsung.com>
+
+This commit adds a gen_pool_alloc_aligned() function to the
+generic allocator API.  It allows specifying alignment for the
+allocated block.  This feature uses
+the bitmap_find_next_zero_area_off() function.
+
+It also fixes possible issue with bitmap's last element being
+not fully allocated (ie. space allocated for chunk->bits is
+not a multiple of sizeof(long)).
+
+It also makes some other smaller changes:
+- moves structure definitions out of the header file,
+- adds __must_check to functions returning value,
+- makes gen_pool_add() return -ENOMEM rater than -1 on error,
+- changes list_for_each to list_for_each_entry, and
+- makes use of bitmap_clear().
+
+Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+CC: Michal Nazarewicz <mina86@mina86.com>
+---
+ include/linux/genalloc.h |   46 ++++++------
+ lib/genalloc.c           |  182 ++++++++++++++++++++++++++-------------------
+ 2 files changed, 129 insertions(+), 99 deletions(-)
+
+diff --git a/include/linux/genalloc.h b/include/linux/genalloc.h
+index 9869ef3..8ac7337 100644
+--- a/include/linux/genalloc.h
++++ b/include/linux/genalloc.h
+@@ -8,29 +8,31 @@
+  * Version 2.  See the file COPYING for more details.
+  */
+ 
++struct gen_pool;
+ 
+-/*
+- *  General purpose special memory pool descriptor.
+- */
+-struct gen_pool {
+-	rwlock_t lock;
+-	struct list_head chunks;	/* list of chunks in this pool */
+-	int min_alloc_order;		/* minimum allocation order */
+-};
++struct gen_pool *__must_check gen_pool_create(unsigned order, int nid);
+ 
+-/*
+- *  General purpose special memory pool chunk descriptor.
++int __must_check gen_pool_add(struct gen_pool *pool, unsigned long addr,
++			      size_t size, int nid);
++
++void gen_pool_destroy(struct gen_pool *pool);
++
++unsigned long __must_check
++gen_pool_alloc_aligned(struct gen_pool *pool, size_t size,
++		       unsigned alignment_order);
++
++/**
++ * gen_pool_alloc() - allocate special memory from the pool
++ * @pool:	Pool to allocate from.
++ * @size:	Number of bytes to allocate from the pool.
++ *
++ * Allocate the requested number of bytes from the specified pool.
++ * Uses a first-fit algorithm.
+  */
+-struct gen_pool_chunk {
+-	spinlock_t lock;
+-	struct list_head next_chunk;	/* next chunk in pool */
+-	unsigned long start_addr;	/* starting address of memory chunk */
+-	unsigned long end_addr;		/* ending address of memory chunk */
+-	unsigned long bits[0];		/* bitmap for allocating memory chunk */
+-};
++static inline unsigned long __must_check
++gen_pool_alloc(struct gen_pool *pool, size_t size)
++{
++	return gen_pool_alloc_aligned(pool, size, 0);
++}
+ 
+-extern struct gen_pool *gen_pool_create(int, int);
+-extern int gen_pool_add(struct gen_pool *, unsigned long, size_t, int);
+-extern void gen_pool_destroy(struct gen_pool *);
+-extern unsigned long gen_pool_alloc(struct gen_pool *, size_t);
+-extern void gen_pool_free(struct gen_pool *, unsigned long, size_t);
++void gen_pool_free(struct gen_pool *pool, unsigned long addr, size_t size);
+diff --git a/lib/genalloc.c b/lib/genalloc.c
+index 1923f14..0761079 100644
+--- a/lib/genalloc.c
++++ b/lib/genalloc.c
+@@ -16,53 +16,80 @@
+ #include <linux/genalloc.h>
+ 
+ 
++/* General purpose special memory pool descriptor. */
++struct gen_pool {
++	rwlock_t lock;			/* protects chunks list */
++	struct list_head chunks;	/* list of chunks in this pool */
++	unsigned order;			/* minimum allocation order */
++};
++
++/* General purpose special memory pool chunk descriptor. */
++struct gen_pool_chunk {
++	spinlock_t lock;		/* protects bits */
++	struct list_head next_chunk;	/* next chunk in pool */
++	unsigned long start;		/* start of memory chunk */
++	unsigned long size;		/* number of bits */
++	unsigned long bits[0];		/* bitmap for allocating memory chunk */
++};
++
++
+ /**
+- * gen_pool_create - create a new special memory pool
+- * @min_alloc_order: log base 2 of number of bytes each bitmap bit represents
+- * @nid: node id of the node the pool structure should be allocated on, or -1
++ * gen_pool_create() - create a new special memory pool
++ * @order:	Log base 2 of number of bytes each bitmap bit
++ *		represents.
++ * @nid:	Node id of the node the pool structure should be allocated
++ *		on, or -1.  This will be also used for other allocations.
+  *
+  * Create a new special memory pool that can be used to manage special purpose
+  * memory not managed by the regular kmalloc/kfree interface.
+  */
+-struct gen_pool *gen_pool_create(int min_alloc_order, int nid)
++struct gen_pool *__must_check gen_pool_create(unsigned order, int nid)
+ {
+ 	struct gen_pool *pool;
+ 
+-	pool = kmalloc_node(sizeof(struct gen_pool), GFP_KERNEL, nid);
+-	if (pool != NULL) {
++	if (WARN_ON(order >= BITS_PER_LONG))
++		return NULL;
++
++	pool = kmalloc_node(sizeof *pool, GFP_KERNEL, nid);
++	if (pool) {
+ 		rwlock_init(&pool->lock);
+ 		INIT_LIST_HEAD(&pool->chunks);
+-		pool->min_alloc_order = min_alloc_order;
++		pool->order = order;
+ 	}
+ 	return pool;
+ }
+ EXPORT_SYMBOL(gen_pool_create);
+ 
+ /**
+- * gen_pool_add - add a new chunk of special memory to the pool
+- * @pool: pool to add new memory chunk to
+- * @addr: starting address of memory chunk to add to pool
+- * @size: size in bytes of the memory chunk to add to pool
+- * @nid: node id of the node the chunk structure and bitmap should be
+- *       allocated on, or -1
++ * gen_pool_add() - add a new chunk of special memory to the pool
++ * @pool:	Pool to add new memory chunk to.
++ * @addr:	Starting address of memory chunk to add to pool.
++ * @size:	Size in bytes of the memory chunk to add to pool.
+  *
+  * Add a new chunk of special memory to the specified pool.
+  */
+-int gen_pool_add(struct gen_pool *pool, unsigned long addr, size_t size,
+-		 int nid)
++int __must_check
++gen_pool_add(struct gen_pool *pool, unsigned long addr, size_t size, int nid)
+ {
+ 	struct gen_pool_chunk *chunk;
+-	int nbits = size >> pool->min_alloc_order;
+-	int nbytes = sizeof(struct gen_pool_chunk) +
+-				(nbits + BITS_PER_BYTE - 1) / BITS_PER_BYTE;
++	size_t nbytes;
++
++	if (WARN_ON(!addr || addr + size < addr ||
++		    (addr & ((1 << pool->order) - 1))))
++		return -EINVAL;
+ 
+-	chunk = kmalloc_node(nbytes, GFP_KERNEL | __GFP_ZERO, nid);
+-	if (unlikely(chunk == NULL))
+-		return -1;
++	size = size >> pool->order;
++	if (WARN_ON(!size))
++		return -EINVAL;
++
++	nbytes = sizeof *chunk + BITS_TO_LONGS(size) * sizeof *chunk->bits;
++	chunk = kzalloc_node(nbytes, GFP_KERNEL, nid);
++	if (!chunk)
++		return -ENOMEM;
+ 
+ 	spin_lock_init(&chunk->lock);
+-	chunk->start_addr = addr;
+-	chunk->end_addr = addr + size;
++	chunk->start = addr >> pool->order;
++	chunk->size  = size;
+ 
+ 	write_lock(&pool->lock);
+ 	list_add(&chunk->next_chunk, &pool->chunks);
+@@ -73,115 +100,116 @@ int gen_pool_add(struct gen_pool *pool, unsigned long addr, size_t size,
+ EXPORT_SYMBOL(gen_pool_add);
+ 
+ /**
+- * gen_pool_destroy - destroy a special memory pool
+- * @pool: pool to destroy
++ * gen_pool_destroy() - destroy a special memory pool
++ * @pool:	Pool to destroy.
+  *
+  * Destroy the specified special memory pool. Verifies that there are no
+  * outstanding allocations.
+  */
+ void gen_pool_destroy(struct gen_pool *pool)
+ {
+-	struct list_head *_chunk, *_next_chunk;
+ 	struct gen_pool_chunk *chunk;
+-	int order = pool->min_alloc_order;
+-	int bit, end_bit;
+-
++	int bit;
+ 
+-	list_for_each_safe(_chunk, _next_chunk, &pool->chunks) {
+-		chunk = list_entry(_chunk, struct gen_pool_chunk, next_chunk);
++	while (!list_empty(&pool->chunks)) {
++		chunk = list_entry(pool->chunks.next, struct gen_pool_chunk,
++				   next_chunk);
+ 		list_del(&chunk->next_chunk);
+ 
+-		end_bit = (chunk->end_addr - chunk->start_addr) >> order;
+-		bit = find_next_bit(chunk->bits, end_bit, 0);
+-		BUG_ON(bit < end_bit);
++		bit = find_next_bit(chunk->bits, chunk->size, 0);
++		BUG_ON(bit < chunk->size);
+ 
+ 		kfree(chunk);
+ 	}
+ 	kfree(pool);
+-	return;
+ }
+ EXPORT_SYMBOL(gen_pool_destroy);
+ 
+ /**
+- * gen_pool_alloc - allocate special memory from the pool
+- * @pool: pool to allocate from
+- * @size: number of bytes to allocate from the pool
++ * gen_pool_alloc_aligned() - allocate special memory from the pool
++ * @pool:	Pool to allocate from.
++ * @size:	Number of bytes to allocate from the pool.
++ * @alignment_order:	Order the allocated space should be
++ *			aligned to (eg. 20 means allocated space
++ *			must be aligned to 1MiB).
+  *
+  * Allocate the requested number of bytes from the specified pool.
+  * Uses a first-fit algorithm.
+  */
+-unsigned long gen_pool_alloc(struct gen_pool *pool, size_t size)
++unsigned long __must_check
++gen_pool_alloc_aligned(struct gen_pool *pool, size_t size,
++		       unsigned alignment_order)
+ {
+-	struct list_head *_chunk;
++	unsigned long addr, align_mask = 0, flags, start;
+ 	struct gen_pool_chunk *chunk;
+-	unsigned long addr, flags;
+-	int order = pool->min_alloc_order;
+-	int nbits, start_bit, end_bit;
+ 
+ 	if (size == 0)
+ 		return 0;
+ 
+-	nbits = (size + (1UL << order) - 1) >> order;
++	if (alignment_order > pool->order)
++		align_mask = (1 << (alignment_order - pool->order)) - 1;
+ 
+-	read_lock(&pool->lock);
+-	list_for_each(_chunk, &pool->chunks) {
+-		chunk = list_entry(_chunk, struct gen_pool_chunk, next_chunk);
++	size = (size + (1UL << pool->order) - 1) >> pool->order;
+ 
+-		end_bit = (chunk->end_addr - chunk->start_addr) >> order;
++	read_lock(&pool->lock);
++	list_for_each_entry(chunk, &pool->chunks, next_chunk) {
++		if (chunk->size < size)
++			continue;
+ 
+ 		spin_lock_irqsave(&chunk->lock, flags);
+-		start_bit = bitmap_find_next_zero_area(chunk->bits, end_bit, 0,
+-						nbits, 0);
+-		if (start_bit >= end_bit) {
++		start = bitmap_find_next_zero_area_off(chunk->bits, chunk->size,
++						       0, size, align_mask,
++						       chunk->start);
++		if (start >= chunk->size) {
+ 			spin_unlock_irqrestore(&chunk->lock, flags);
+ 			continue;
+ 		}
+ 
+-		addr = chunk->start_addr + ((unsigned long)start_bit << order);
+-
+-		bitmap_set(chunk->bits, start_bit, nbits);
++		bitmap_set(chunk->bits, start, size);
+ 		spin_unlock_irqrestore(&chunk->lock, flags);
+-		read_unlock(&pool->lock);
+-		return addr;
++		addr = (chunk->start + start) << pool->order;
++		goto done;
+ 	}
++
++	addr = 0;
++done:
+ 	read_unlock(&pool->lock);
+-	return 0;
++	return addr;
+ }
+-EXPORT_SYMBOL(gen_pool_alloc);
++EXPORT_SYMBOL(gen_pool_alloc_aligned);
+ 
+ /**
+- * gen_pool_free - free allocated special memory back to the pool
+- * @pool: pool to free to
+- * @addr: starting address of memory to free back to pool
+- * @size: size in bytes of memory to free
++ * gen_pool_free() - free allocated special memory back to the pool
++ * @pool:	Pool to free to.
++ * @addr:	Starting address of memory to free back to pool.
++ * @size:	Size in bytes of memory to free.
+  *
+  * Free previously allocated special memory back to the specified pool.
+  */
+ void gen_pool_free(struct gen_pool *pool, unsigned long addr, size_t size)
+ {
+-	struct list_head *_chunk;
+ 	struct gen_pool_chunk *chunk;
+ 	unsigned long flags;
+-	int order = pool->min_alloc_order;
+-	int bit, nbits;
+ 
+-	nbits = (size + (1UL << order) - 1) >> order;
++	if (!size)
++		return;
+ 
+-	read_lock(&pool->lock);
+-	list_for_each(_chunk, &pool->chunks) {
+-		chunk = list_entry(_chunk, struct gen_pool_chunk, next_chunk);
++	addr = addr >> pool->order;
++	size = (size + (1UL << pool->order) - 1) >> pool->order;
++
++	BUG_ON(addr + size < addr);
+ 
+-		if (addr >= chunk->start_addr && addr < chunk->end_addr) {
+-			BUG_ON(addr + size > chunk->end_addr);
++	read_lock(&pool->lock);
++	list_for_each_entry(chunk, &pool->chunks, next_chunk)
++		if (addr >= chunk->start &&
++		    addr + size <= chunk->start + chunk->size) {
+ 			spin_lock_irqsave(&chunk->lock, flags);
+-			bit = (addr - chunk->start_addr) >> order;
+-			while (nbits--)
+-				__clear_bit(bit++, chunk->bits);
++			bitmap_clear(chunk->bits, addr - chunk->start, size);
+ 			spin_unlock_irqrestore(&chunk->lock, flags);
+-			break;
++			goto done;
+ 		}
+-	}
+-	BUG_ON(nbits > 0);
++	BUG_ON(1);
++done:
+ 	read_unlock(&pool->lock);
+ }
+ EXPORT_SYMBOL(gen_pool_free);
+-- 
+1.7.1.569.g6f426
