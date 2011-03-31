@@ -1,86 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:22210 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751198Ab1CXRe1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Mar 2011 13:34:27 -0400
-Message-ID: <4D8B80A0.5040600@redhat.com>
-Date: Thu, 24 Mar 2011 14:34:24 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:51219 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758702Ab1CaQ0u (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 31 Mar 2011 12:26:50 -0400
+Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-mm@kvack.org, "Kyungmin Park" <kyungmin.park@samsung.com>,
+	"Andrew Morton" <akpm@linux-foundation.org>,
+	"KAMEZAWA Hiroyuki" <kamezawa.hiroyu@jp.fujitsu.com>,
+	"Ankita Garg" <ankita@in.ibm.com>,
+	"Daniel Walker" <dwalker@codeaurora.org>,
+	"Johan MOSSBERG" <johan.xx.mossberg@stericsson.com>,
+	"Mel Gorman" <mel@csn.ul.ie>, "Pawel Osciak" <pawel@osciak.com>
+References: <1301577368-16095-1-git-send-email-m.szyprowski@samsung.com>
+ <1301577368-16095-6-git-send-email-m.szyprowski@samsung.com>
+ <1301587361.31087.1040.camel@nimitz>
+Subject: Re: [PATCH 05/12] mm: alloc_contig_range() added
+To: "Marek Szyprowski" <m.szyprowski@samsung.com>,
+	"Dave Hansen" <dave@linux.vnet.ibm.com>
+Date: Thu, 31 Mar 2011 18:26:45 +0200
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL] HVR-900 R2 and PCTV 330e DVB support
-References: <AANLkTi=hppcpARY1DOOJwK7kyKPe+2Q415jt8dNh8Z=-@mail.gmail.com>
-In-Reply-To: <AANLkTi=hppcpARY1DOOJwK7kyKPe+2Q415jt8dNh8Z=-@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
+From: "Michal Nazarewicz" <mina86@mina86.com>
+Message-ID: <op.vs7umufd3l0zgt@mnazarewicz-glaptop>
+In-Reply-To: <1301587361.31087.1040.camel@nimitz>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 24-03-2011 14:05, Devin Heitmueller escreveu:
-> This patch series finally merges in Ralph Metzler's drx-d driver and
-> brings up the PCTV 330e and
-> HVR-900R2.  The patches have been tested for quite some time by users
-> on the Kernel Labs blog,
-> and they have been quite happy with them.
-> 
-> The firmware required can be found here:
-> 
-> http://kernellabs.com/firmware/drxd/
-> 
-> The following changes since commit 41f3becb7bef489f9e8c35284dd88a1ff59b190c:
-> 
->   [media] V4L DocBook: update V4L2 version (2011-03-11 18:09:02 -0300)
-> 
-> are available in the git repository at:
->   git://sol.kernellabs.com/dheitmueller/drx.git drxd
+> On Thu, 2011-03-31 at 15:16 +0200, Marek Szyprowski wrote:
+>> +       ret = 0;
+>> +       while (!PageBuddy(pfn_to_page(start & (~0UL << ret))))
+>> +               if (WARN_ON(++ret >= MAX_ORDER))
+>> +                       return -EINVAL;
 
-The pull request went fine. I'll be handling the series right now.
+On Thu, 31 Mar 2011 18:02:41 +0200, Dave Hansen wrote:
+> Holy cow, that's dense.  Is there really no more straightforward way to
+> do that?
 
-One quick note for your next pull requests: Please don't add:
+Which part exactly is dense?  What would be qualify as a more
+straightforward way?
 
-Priority: normal
+> In any case, please pull the ++ret bit out of the WARN_ON().  Some
+> people like to do:
+>
+> #define WARN_ON(...) do{}while(0)
+>
+> to save space on some systems.
 
-Meta-tag on git patches. All patches are handled by default as normal patches.
-If you want to send me fixes, please use a separate pull request. Also, if
-a patch is meant to be sent also to stable kernels, just add:
+I don't think that's the case.  Even if WARN_ON() decides not to print
+a warning, it will still return the value of the argument.  If not,
+a lot of code will brake.
 
-Cc: stable@kernel.org
-
-And upstream stable team will take care on it, when the patch arrives Linus tree.
-
-> 
-> Devin Heitmueller (12):
->       drx: add initial drx-d driver
->       drxd: add driver to Makefile and Kconfig
->       drxd: provide ability to control rs byte
->       em28xx: enable support for the drx-d on the HVR-900 R2
->       drxd: provide ability to disable the i2c gate control function
->       em28xx: fix GPIO problem with HVR-900R2 getting out of sync with drx-d
->       em28xx: include model number for PCTV 330e
->       em28xx: add digital support for PCTV 330e
->       drxd: move firmware to binary blob
->       em28xx: remove "not validated" flag for PCTV 330e
->       em28xx: add remote control support for PCTV 330e
->       drxd: Run lindent across sources
-> 
->  Documentation/video4linux/CARDLIST.em28xx   |    2 +-
->  drivers/media/dvb/frontends/Kconfig         |   11 +
->  drivers/media/dvb/frontends/Makefile        |    2 +
->  drivers/media/dvb/frontends/drxd.h          |   61 +
->  drivers/media/dvb/frontends/drxd_firm.c     |  929 ++
->  drivers/media/dvb/frontends/drxd_firm.h     |  118 +
->  drivers/media/dvb/frontends/drxd_hard.c     | 2806 ++++++
->  drivers/media/dvb/frontends/drxd_map_firm.h |12694 +++++++++++++++++++++++++++
->  drivers/media/video/em28xx/em28xx-cards.c   |   21 +-
->  drivers/media/video/em28xx/em28xx-dvb.c     |   22 +-
->  drivers/media/video/em28xx/em28xx.h         |    2 +-
->  11 files changed, 16649 insertions(+), 19 deletions(-)
->  create mode 100644 drivers/media/dvb/frontends/drxd.h
->  create mode 100644 drivers/media/dvb/frontends/drxd_firm.c
->  create mode 100644 drivers/media/dvb/frontends/drxd_firm.h
->  create mode 100644 drivers/media/dvb/frontends/drxd_hard.c
->  create mode 100644 drivers/media/dvb/frontends/drxd_map_firm.h
-> 
-> 
-
+-- 
+Best regards,                                         _     _
+.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
+..o | Computer Science,  Michal "mina86" Nazarewicz    (o o)
+ooo +-----<email/xmpp: mnazarewicz@google.com>-----ooO--(_)--Ooo--
