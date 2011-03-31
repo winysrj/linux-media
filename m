@@ -1,630 +1,325 @@
 Return-path: <mchehab@pedra>
-Received: from eu1sys200aog108.obsmtp.com ([207.126.144.125]:56754 "EHLO
-	eu1sys200aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932239Ab1CIMT3 (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:57315 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756374Ab1CaAb2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Mar 2011 07:19:29 -0500
-From: <johan.xx.mossberg@stericsson.com>
-To: <johan.xx.mossberg@stericsson.com>, <linux-mm@kvack.org>,
-	<linaro-dev@lists.linaro.org>, <linux-media@vger.kernel.org>
-Cc: <gstreamer-devel@lists.freedesktop.org>, <m.nazarewicz@samsung.com>
-Subject: [PATCHv2 2/3] hwmem: Add hwmem (part 2)
-Date: Wed, 9 Mar 2011 13:18:52 +0100
-Message-ID: <1299673133-26464-3-git-send-email-johan.xx.mossberg@stericsson.com>
-In-Reply-To: <1299673133-26464-1-git-send-email-johan.xx.mossberg@stericsson.com>
-References: <1299673133-26464-1-git-send-email-johan.xx.mossberg@stericsson.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	Wed, 30 Mar 2011 20:31:28 -0400
+Date: Thu, 31 Mar 2011 09:31:17 +0900
+From: Jaeryul Oh <jaeryul.oh@samsung.com>
+Subject: RE: [RFC/PATCH v7 3/5] MFC: Add MFC 5.1 V4L2 driver
+In-reply-to: <1299237982-31687-4-git-send-email-k.debski@samsung.com>
+To: 'Kamil Debski' <k.debski@samsung.com>, linux-media@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	kgene.kim@samsung.com
+Reply-to: jaeryul.oh@samsung.com
+Message-id: <007b01cbef3a$f6293b30$e27bb190$%oh@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ks_c_5601-1987
+Content-language: ko
+Content-transfer-encoding: 7BIT
+References: <1299237982-31687-1-git-send-email-k.debski@samsung.com>
+ <1299237982-31687-4-git-send-email-k.debski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Add hardware memory driver, part 2.
+Hi, Kamil
 
-The main purpose of hwmem is:
+I found some mal-functional points.
 
-* To allocate buffers suitable for use with hardware. Currently
-this means contiguous buffers.
-* To synchronize the caches for the allocated buffers. This is
-achieved by keeping track of when the CPU uses a buffer and when
-other hardware uses the buffer, when we switch from CPU to other
-hardware or vice versa the caches are synchronized.
-* To handle sharing of allocated buffers between processes i.e.
-import, export.
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Kamil Debski
+> Sent: Friday, March 04, 2011 8:26 PM
+> To: linux-media@vger.kernel.org; linux-samsung-soc@vger.kernel.org
+> Cc: m.szyprowski@samsung.com; kyungmin.park@samsung.com;
+> k.debski@samsung.com; jaeryul.oh@samsung.com; kgene.kim@samsung.com
+> Subject: [RFC/PATCH v7 3/5] MFC: Add MFC 5.1 V4L2 driver
+> 
+> Multi Format Codec 5.1 is capable of handling a range of video codecs
+> and this driver provides V4L2 interface for video decoding.
+> 
+> Signed-off-by: Kamil Debski <k.debski@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  drivers/media/video/Kconfig                  |    8 +
+>  drivers/media/video/Makefile                 |    1 +
+>  drivers/media/video/s5p-mfc/Makefile         |    3 +
+>  drivers/media/video/s5p-mfc/regs-mfc5.h      |  346 ++++
+>  drivers/media/video/s5p-mfc/s5p_mfc.c        | 2253
+> ++++++++++++++++++++++++++
+>  drivers/media/video/s5p-mfc/s5p_mfc_common.h |  240 +++
+>  drivers/media/video/s5p-mfc/s5p_mfc_ctrls.h  |  182 +++
+>  drivers/media/video/s5p-mfc/s5p_mfc_debug.h  |   47 +
+>  drivers/media/video/s5p-mfc/s5p_mfc_intr.c   |   92 ++
+>  drivers/media/video/s5p-mfc/s5p_mfc_intr.h   |   26 +
+>  drivers/media/video/s5p-mfc/s5p_mfc_memory.h |   43 +
+>  drivers/media/video/s5p-mfc/s5p_mfc_opr.c    |  913 +++++++++++
+>  drivers/media/video/s5p-mfc/s5p_mfc_opr.h    |  142 ++
+>  13 files changed, 4296 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/media/video/s5p-mfc/Makefile
+>  create mode 100644 drivers/media/video/s5p-mfc/regs-mfc5.h
+>  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc.c
+>  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_common.h
+>  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_ctrls.h
+>  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_debug.h
+>  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_intr.c
+>  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_intr.h
+>  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_memory.h
+>  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_opr.c
+>  create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_opr.h
+> 
+> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+> index 12fb325..0bdc64d 100644
+> --- a/drivers/media/video/Kconfig
+> +++ b/drivers/media/video/Kconfig
+> @@ -1025,4 +1025,12 @@ config  VIDEO_SAMSUNG_S5P_FIMC
+>  	  This is a v4l2 driver for the S5P camera interface
+>  	  (video postprocessor)
+> 
+> +config VIDEO_SAMSUNG_S5P_MFC
+> +	tristate "Samsung S5P MFC 5.1 Video Codec"
+> +	depends on VIDEO_V4L2
+> +	select VIDEOBUF2_S5P_IOMMU
+> +	default n
+> +	help
+> +	    MFC 5.1 driver for V4L2.
+> +
+>  endif # V4L_MEM2MEM_DRIVERS
+> diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+> index fd9488d..4b09ddb 100644
+> --- a/drivers/media/video/Makefile
+> +++ b/drivers/media/video/Makefile
+> @@ -164,6 +164,7 @@ obj-$(CONFIG_VIDEO_SH_MOBILE_CSI2)	+=
+> sh_mobile_csi2.o
+>  obj-$(CONFIG_VIDEO_SH_MOBILE_CEU)	+= sh_mobile_ceu_camera.o
+>  obj-$(CONFIG_VIDEO_OMAP1)		+= omap1_camera.o
+>  obj-$(CONFIG_VIDEO_SAMSUNG_S5P_FIMC) 	+= s5p-fimc/
+> +obj-$(CONFIG_VIDEO_SAMSUNG_S5P_MFC)	+= s5p-mfc/
+> 
+>  obj-$(CONFIG_ARCH_DAVINCI)		+= davinci/
+> 
+> diff --git a/drivers/media/video/s5p-mfc/Makefile
+> b/drivers/media/video/s5p-mfc/Makefile
+> new file mode 100644
+> index 0000000..69b6294
+> --- /dev/null
+> +++ b/drivers/media/video/s5p-mfc/Makefile
+> @@ -0,0 +1,3 @@
+> +obj-$(CONFIG_VIDEO_SAMSUNG_S5P_MFC) := s5p-mfc.o
+> +s5p-mfc-y := s5p_mfc.o s5p_mfc_intr.o  s5p_mfc_opr.o
+> +
+> diff --git a/drivers/media/video/s5p-mfc/regs-mfc5.h
+> b/drivers/media/video/s5p-mfc/regs-mfc5.h
+> new file mode 100644
+> index 0000000..eeb6e2e
+> --- /dev/null
+> +++ b/drivers/media/video/s5p-mfc/regs-mfc5.h
+> @@ -0,0 +1,346 @@
 
-Hwmem is available both through a user space API and through a
-kernel API.
+snipping
 
-Signed-off-by: Johan Mossberg <johan.xx.mossberg@stericsson.com>
----
- drivers/misc/hwmem/cache_handler.c |  510 ++++++++++++++++++++++++++++++++++++
- drivers/misc/hwmem/cache_handler.h |   61 +++++
- 2 files changed, 571 insertions(+), 0 deletions(-)
- create mode 100644 drivers/misc/hwmem/cache_handler.c
- create mode 100644 drivers/misc/hwmem/cache_handler.h
+> +}
+> +
+> +static inline void s5p_mfc_run_res_change(struct s5p_mfc_ctx *ctx)
+> +{
+> +	struct s5p_mfc_dev *dev = ctx->dev;
+> +
+> +	s5p_mfc_set_dec_stream_buffer(ctx, 0, 0, 0);
+> +	dev->curr_ctx = ctx->num;
+> +	s5p_mfc_clean_ctx_int_flags(ctx);
+> +	s5p_mfc_decode_one_frame(ctx, MFC_DEC_RES_CHANGE);
+> +}
+> +
+> +static inline void s5p_mfc_run_dec_last_frames(struct s5p_mfc_ctx *ctx)
+> +{
+> +	struct s5p_mfc_dev *dev = ctx->dev;
+> +
+> +	s5p_mfc_set_dec_stream_buffer(ctx, 0, 0, 0);
+> +	dev->curr_ctx = ctx->num;
+> +	s5p_mfc_clean_ctx_int_flags(ctx);
+> +	s5p_mfc_decode_one_frame(ctx, MFC_DEC_LAST_FRAME);
+> +}
+> +
 
-diff --git a/drivers/misc/hwmem/cache_handler.c b/drivers/misc/hwmem/cache_handler.c
-new file mode 100644
-index 0000000..e0ab4ee
---- /dev/null
-+++ b/drivers/misc/hwmem/cache_handler.c
-@@ -0,0 +1,510 @@
-+/*
-+ * Copyright (C) ST-Ericsson SA 2010
-+ *
-+ * Cache handler
-+ *
-+ * Author: Johan Mossberg <johan.xx.mossberg@stericsson.com>
-+ * for ST-Ericsson.
-+ *
-+ * License terms: GNU General Public License (GPL), version 2.
-+ */
-+
-+#include <linux/hwmem.h>
-+
-+#include <asm/pgtable.h>
-+
-+#include <mach/dcache.h>
-+
-+#include "cache_handler.h"
-+
-+#define U32_MAX (~(u32)0)
-+
-+enum hwmem_alloc_flags cachi_get_cache_settings(
-+			enum hwmem_alloc_flags requested_cache_settings);
-+void cachi_set_pgprot_cache_options(enum hwmem_alloc_flags cache_settings,
-+							pgprot_t *pgprot);
-+
-+static void sync_buf_pre_cpu(struct cach_buf *buf, enum hwmem_access access,
-+						struct hwmem_region *region);
-+static void sync_buf_post_cpu(struct cach_buf *buf,
-+	enum hwmem_access next_access, struct hwmem_region *next_region);
-+
-+static void invalidate_cpu_cache(struct cach_buf *buf,
-+					struct cach_range *range_2b_used);
-+static void clean_cpu_cache(struct cach_buf *buf,
-+					struct cach_range *range_2b_used);
-+static void flush_cpu_cache(struct cach_buf *buf,
-+					struct cach_range *range_2b_used);
-+
-+static void null_range(struct cach_range *range);
-+static void expand_range(struct cach_range *range,
-+					struct cach_range *range_2_add);
-+/*
-+ * Expands range to one of enclosing_range's two edges. The function will
-+ * choose which of enclosing_range's edges to expand range to in such a
-+ * way that the size of range is minimized. range must be located inside
-+ * enclosing_range.
-+ */
-+static void expand_range_2_edge(struct cach_range *range,
-+					struct cach_range *enclosing_range);
-+static void shrink_range(struct cach_range *range,
-+					struct cach_range *range_2_remove);
-+static bool is_non_empty_range(struct cach_range *range);
-+static void intersect_range(struct cach_range *range_1,
-+		struct cach_range *range_2, struct cach_range *intersection);
-+/* Align_up restrictions apply here to */
-+static void align_range_up(struct cach_range *range, u32 alignment);
-+static u32 range_length(struct cach_range *range);
-+static void region_2_range(struct hwmem_region *region, u32 buffer_size,
-+						struct cach_range *range);
-+
-+static void *offset_2_vaddr(struct cach_buf *buf, u32 offset);
-+static u32 offset_2_paddr(struct cach_buf *buf, u32 offset);
-+
-+/* Saturates, might return unaligned values when that happens */
-+static u32 align_up(u32 value, u32 alignment);
-+static u32 align_down(u32 value, u32 alignment);
-+
-+/*
-+ * Exported functions
-+ */
-+
-+void cach_init_buf(struct cach_buf *buf, enum hwmem_alloc_flags cache_settings,
-+								u32 size)
-+{
-+	buf->vstart = NULL;
-+	buf->pstart = 0;
-+	buf->size = size;
-+
-+	buf->cache_settings = cachi_get_cache_settings(cache_settings);
-+}
-+
-+void cach_set_buf_addrs(struct cach_buf *buf, void* vaddr, u32 paddr)
-+{
-+	bool tmp;
-+
-+	buf->vstart = vaddr;
-+	buf->pstart = paddr;
-+
-+	if (buf->cache_settings & HWMEM_ALLOC_HINT_CACHED) {
-+		/*
-+		 * Keep whatever is in the cache. This way we avoid an
-+		 * unnecessary synch if CPU is the first user.
-+		 */
-+		buf->range_in_cpu_cache.start = 0;
-+		buf->range_in_cpu_cache.end = buf->size;
-+		align_range_up(&buf->range_in_cpu_cache,
-+						get_dcache_granularity());
-+		buf->range_dirty_in_cpu_cache.start = 0;
-+		buf->range_dirty_in_cpu_cache.end = buf->size;
-+		align_range_up(&buf->range_dirty_in_cpu_cache,
-+						get_dcache_granularity());
-+	} else {
-+		flush_cpu_dcache(buf->vstart, buf->pstart, buf->size, false,
-+									&tmp);
-+		drain_cpu_write_buf();
-+
-+		null_range(&buf->range_in_cpu_cache);
-+		null_range(&buf->range_dirty_in_cpu_cache);
-+	}
-+	null_range(&buf->range_invalid_in_cpu_cache);
-+}
-+
-+void cach_set_pgprot_cache_options(struct cach_buf *buf, pgprot_t *pgprot)
-+{
-+	cachi_set_pgprot_cache_options(buf->cache_settings, pgprot);
-+}
-+
-+void cach_set_domain(struct cach_buf *buf, enum hwmem_access access,
-+			enum hwmem_domain domain, struct hwmem_region *region)
-+{
-+	struct hwmem_region *__region;
-+	struct hwmem_region full_region;
-+
-+	if (region != NULL) {
-+		__region = region;
-+	} else {
-+		full_region.offset = 0;
-+		full_region.count = 1;
-+		full_region.start = 0;
-+		full_region.end = buf->size;
-+		full_region.size = buf->size;
-+
-+		__region = &full_region;
-+	}
-+
-+	switch (domain) {
-+	case HWMEM_DOMAIN_SYNC:
-+		sync_buf_post_cpu(buf, access, __region);
-+
-+		break;
-+
-+	case HWMEM_DOMAIN_CPU:
-+		sync_buf_pre_cpu(buf, access, __region);
-+
-+		break;
-+	}
-+}
-+
-+/*
-+ * Local functions
-+ */
-+
-+enum hwmem_alloc_flags __attribute__((weak)) cachi_get_cache_settings(
-+			enum hwmem_alloc_flags requested_cache_settings)
-+{
-+	static const u32 CACHE_ON_FLAGS_MASK = HWMEM_ALLOC_HINT_CACHED |
-+		HWMEM_ALLOC_HINT_CACHE_WB | HWMEM_ALLOC_HINT_CACHE_WT |
-+		HWMEM_ALLOC_HINT_CACHE_NAOW | HWMEM_ALLOC_HINT_CACHE_AOW |
-+				HWMEM_ALLOC_HINT_INNER_AND_OUTER_CACHE |
-+					HWMEM_ALLOC_HINT_INNER_CACHE_ONLY;
-+	/* We don't know the cache setting so we assume worst case. */
-+	static const u32 CACHE_SETTING = HWMEM_ALLOC_HINT_WRITE_COMBINE |
-+			HWMEM_ALLOC_HINT_CACHED | HWMEM_ALLOC_HINT_CACHE_WB |
-+						HWMEM_ALLOC_HINT_CACHE_AOW |
-+					HWMEM_ALLOC_HINT_INNER_AND_OUTER_CACHE;
-+
-+	if (requested_cache_settings & CACHE_ON_FLAGS_MASK)
-+		return CACHE_SETTING;
-+	else if (requested_cache_settings & HWMEM_ALLOC_HINT_WRITE_COMBINE ||
-+		(requested_cache_settings & HWMEM_ALLOC_HINT_UNCACHED &&
-+		 !(requested_cache_settings &
-+					HWMEM_ALLOC_HINT_NO_WRITE_COMBINE)))
-+		return HWMEM_ALLOC_HINT_WRITE_COMBINE;
-+	else if (requested_cache_settings &
-+					(HWMEM_ALLOC_HINT_NO_WRITE_COMBINE |
-+						HWMEM_ALLOC_HINT_UNCACHED))
-+		return 0;
-+	else
-+		/* Nothing specified, use cached */
-+		return CACHE_SETTING;
-+}
-+
-+void __attribute__((weak)) cachi_set_pgprot_cache_options(
-+		enum hwmem_alloc_flags cache_settings, pgprot_t *pgprot)
-+{
-+	if (cache_settings & HWMEM_ALLOC_HINT_CACHED)
-+		*pgprot = *pgprot; /* To silence compiler and checkpatch */
-+	else if (cache_settings & HWMEM_ALLOC_HINT_WRITE_COMBINE)
-+		*pgprot = pgprot_writecombine(*pgprot);
-+	else
-+		*pgprot = pgprot_noncached(*pgprot);
-+}
-+
-+bool __attribute__((weak)) speculative_data_prefetch(void)
-+{
-+	/* We don't know so we go with the safe alternative */
-+	return true;
-+}
-+
-+static void sync_buf_pre_cpu(struct cach_buf *buf, enum hwmem_access access,
-+						struct hwmem_region *region)
-+{
-+	bool write = access & HWMEM_ACCESS_WRITE;
-+	bool read = access & HWMEM_ACCESS_READ;
-+
-+	if (!write && !read)
-+		return;
-+
-+	if (buf->cache_settings & HWMEM_ALLOC_HINT_CACHED) {
-+		struct cach_range region_range;
-+
-+		region_2_range(region, buf->size, &region_range);
-+
-+		if (read || (write && buf->cache_settings &
-+						HWMEM_ALLOC_HINT_CACHE_WB))
-+			/* Perform defered invalidates */
-+			invalidate_cpu_cache(buf, &region_range);
-+		if (read || (write && buf->cache_settings &
-+						HWMEM_ALLOC_HINT_CACHE_AOW))
-+			expand_range(&buf->range_in_cpu_cache, &region_range);
-+		if (write && buf->cache_settings & HWMEM_ALLOC_HINT_CACHE_WB) {
-+			struct cach_range dirty_range_addition;
-+
-+			if (buf->cache_settings & HWMEM_ALLOC_HINT_CACHE_AOW)
-+				dirty_range_addition = region_range;
-+			else
-+				intersect_range(&buf->range_in_cpu_cache,
-+					&region_range, &dirty_range_addition);
-+
-+			expand_range(&buf->range_dirty_in_cpu_cache,
-+							&dirty_range_addition);
-+		}
-+	}
-+	if (buf->cache_settings & HWMEM_ALLOC_HINT_WRITE_COMBINE) {
-+		if (write)
-+			buf->in_cpu_write_buf = true;
-+	}
-+}
-+
-+static void sync_buf_post_cpu(struct cach_buf *buf,
-+	enum hwmem_access next_access, struct hwmem_region *next_region)
-+{
-+	bool write = next_access & HWMEM_ACCESS_WRITE;
-+	bool read = next_access & HWMEM_ACCESS_READ;
-+	struct cach_range region_range;
-+
-+	if (!write && !read)
-+		return;
-+
-+	region_2_range(next_region, buf->size, &region_range);
-+
-+	if (write) {
-+		if (speculative_data_prefetch()) {
-+			/* Defer invalidate */
-+			struct cach_range intersection;
-+
-+			intersect_range(&buf->range_in_cpu_cache,
-+						&region_range, &intersection);
-+
-+			expand_range(&buf->range_invalid_in_cpu_cache,
-+								&intersection);
-+
-+			clean_cpu_cache(buf, &region_range);
-+		} else {
-+			flush_cpu_cache(buf, &region_range);
-+		}
-+	}
-+	if (read)
-+		clean_cpu_cache(buf, &region_range);
-+
-+	if (buf->in_cpu_write_buf) {
-+		drain_cpu_write_buf();
-+
-+		buf->in_cpu_write_buf = false;
-+	}
-+}
-+
-+static void invalidate_cpu_cache(struct cach_buf *buf, struct cach_range *range)
-+{
-+	struct cach_range intersection;
-+
-+	intersect_range(&buf->range_invalid_in_cpu_cache, range,
-+								&intersection);
-+	if (is_non_empty_range(&intersection)) {
-+		bool flushed_everything;
-+
-+		expand_range_2_edge(&intersection,
-+					&buf->range_invalid_in_cpu_cache);
-+
-+		/*
-+		 * Cache handler never uses invalidate to discard data in the
-+		 * cache so we can use flush instead which is considerably
-+		 * faster for large buffers.
-+		 */
-+		flush_cpu_dcache(
-+				offset_2_vaddr(buf, intersection.start),
-+				offset_2_paddr(buf, intersection.start),
-+				range_length(&intersection),
-+				buf->cache_settings &
-+					HWMEM_ALLOC_HINT_INNER_CACHE_ONLY,
-+							&flushed_everything);
-+
-+		if (flushed_everything) {
-+			null_range(&buf->range_invalid_in_cpu_cache);
-+			null_range(&buf->range_dirty_in_cpu_cache);
-+		} else {
-+			/*
-+			 * No need to shrink range_in_cpu_cache as invalidate
-+			 * is only used when we can't keep track of what's in
-+			 * the CPU cache.
-+			 */
-+			shrink_range(&buf->range_invalid_in_cpu_cache,
-+								&intersection);
-+		}
-+	}
-+}
-+
-+static void clean_cpu_cache(struct cach_buf *buf, struct cach_range *range)
-+{
-+	struct cach_range intersection;
-+
-+	intersect_range(&buf->range_dirty_in_cpu_cache, range, &intersection);
-+	if (is_non_empty_range(&intersection)) {
-+		bool cleaned_everything;
-+
-+		expand_range_2_edge(&intersection,
-+					&buf->range_dirty_in_cpu_cache);
-+
-+		clean_cpu_dcache(
-+				offset_2_vaddr(buf, intersection.start),
-+				offset_2_paddr(buf, intersection.start),
-+				range_length(&intersection),
-+				buf->cache_settings &
-+					HWMEM_ALLOC_HINT_INNER_CACHE_ONLY,
-+							&cleaned_everything);
-+
-+		if (cleaned_everything)
-+			null_range(&buf->range_dirty_in_cpu_cache);
-+		else
-+			shrink_range(&buf->range_dirty_in_cpu_cache,
-+								&intersection);
-+	}
-+}
-+
-+static void flush_cpu_cache(struct cach_buf *buf, struct cach_range *range)
-+{
-+	struct cach_range intersection;
-+
-+	intersect_range(&buf->range_in_cpu_cache, range, &intersection);
-+	if (is_non_empty_range(&intersection)) {
-+		bool flushed_everything;
-+
-+		expand_range_2_edge(&intersection, &buf->range_in_cpu_cache);
-+
-+		flush_cpu_dcache(
-+				offset_2_vaddr(buf, intersection.start),
-+				offset_2_paddr(buf, intersection.start),
-+				range_length(&intersection),
-+				buf->cache_settings &
-+					HWMEM_ALLOC_HINT_INNER_CACHE_ONLY,
-+							&flushed_everything);
-+
-+		if (flushed_everything) {
-+			if (!speculative_data_prefetch())
-+				null_range(&buf->range_in_cpu_cache);
-+			null_range(&buf->range_dirty_in_cpu_cache);
-+			null_range(&buf->range_invalid_in_cpu_cache);
-+		} else {
-+			if (!speculative_data_prefetch())
-+				shrink_range(&buf->range_in_cpu_cache,
-+							 &intersection);
-+			shrink_range(&buf->range_dirty_in_cpu_cache,
-+								&intersection);
-+			shrink_range(&buf->range_invalid_in_cpu_cache,
-+								&intersection);
-+		}
-+	}
-+}
-+
-+static void null_range(struct cach_range *range)
-+{
-+	range->start = U32_MAX;
-+	range->end = 0;
-+}
-+
-+static void expand_range(struct cach_range *range,
-+						struct cach_range *range_2_add)
-+{
-+	range->start = min(range->start, range_2_add->start);
-+	range->end = max(range->end, range_2_add->end);
-+}
-+
-+/*
-+ * Expands range to one of enclosing_range's two edges. The function will
-+ * choose which of enclosing_range's edges to expand range to in such a
-+ * way that the size of range is minimized. range must be located inside
-+ * enclosing_range.
-+ */
-+static void expand_range_2_edge(struct cach_range *range,
-+					struct cach_range *enclosing_range)
-+{
-+	u32 space_on_low_side = range->start - enclosing_range->start;
-+	u32 space_on_high_side = enclosing_range->end - range->end;
-+
-+	if (space_on_low_side < space_on_high_side)
-+		range->start = enclosing_range->start;
-+	else
-+		range->end = enclosing_range->end;
-+}
-+
-+static void shrink_range(struct cach_range *range,
-+					struct cach_range *range_2_remove)
-+{
-+	if (range_2_remove->start > range->start)
-+		range->end = min(range->end, range_2_remove->start);
-+	else
-+		range->start = max(range->start, range_2_remove->end);
-+
-+	if (range->start >= range->end)
-+		null_range(range);
-+}
-+
-+static bool is_non_empty_range(struct cach_range *range)
-+{
-+	return range->end > range->start;
-+}
-+
-+static void intersect_range(struct cach_range *range_1,
-+		struct cach_range *range_2, struct cach_range *intersection)
-+{
-+	intersection->start = max(range_1->start, range_2->start);
-+	intersection->end = min(range_1->end, range_2->end);
-+
-+	if (intersection->start >= intersection->end)
-+		null_range(intersection);
-+}
-+
-+/* Align_up restrictions apply here to */
-+static void align_range_up(struct cach_range *range, u32 alignment)
-+{
-+	if (!is_non_empty_range(range))
-+		return;
-+
-+	range->start = align_down(range->start, alignment);
-+	range->end = align_up(range->end, alignment);
-+}
-+
-+static u32 range_length(struct cach_range *range)
-+{
-+	if (is_non_empty_range(range))
-+		return range->end - range->start;
-+	else
-+		return 0;
-+}
-+
-+static void region_2_range(struct hwmem_region *region, u32 buffer_size,
-+						struct cach_range *range)
-+{
-+	/*
-+	 * We don't care about invalid regions, instead we limit the region's
-+	 * range to the buffer's range. This should work good enough, worst
-+	 * case we synch the entire buffer when we get an invalid region which
-+	 * is acceptable.
-+	 */
-+	range->start = region->offset + region->start;
-+	range->end = min(region->offset + (region->count * region->size) -
-+				(region->size - region->end), buffer_size);
-+	if (range->start >= range->end) {
-+		null_range(range);
-+		return;
-+	}
-+
-+	align_range_up(range, get_dcache_granularity());
-+}
-+
-+static void *offset_2_vaddr(struct cach_buf *buf, u32 offset)
-+{
-+	return (void *)((u32)buf->vstart + offset);
-+}
-+
-+static u32 offset_2_paddr(struct cach_buf *buf, u32 offset)
-+{
-+	return buf->pstart + offset;
-+}
-+
-+/* Saturates, might return unaligned values when that happens */
-+static u32 align_up(u32 value, u32 alignment)
-+{
-+	u32 remainder = value % alignment;
-+	u32 value_2_add;
-+
-+	if (remainder == 0)
-+		return value;
-+
-+	value_2_add = alignment - remainder;
-+
-+	if (value_2_add > U32_MAX - value) /* Will overflow */
-+		return U32_MAX;
-+
-+	return value + value_2_add;
-+}
-+
-+static u32 align_down(u32 value, u32 alignment)
-+{
-+	u32 remainder = value % alignment;
-+	if (remainder == 0)
-+		return value;
-+
-+	return value - remainder;
-+}
-diff --git a/drivers/misc/hwmem/cache_handler.h b/drivers/misc/hwmem/cache_handler.h
-new file mode 100644
-index 0000000..7921051
---- /dev/null
-+++ b/drivers/misc/hwmem/cache_handler.h
-@@ -0,0 +1,61 @@
-+/*
-+ * Copyright (C) ST-Ericsson SA 2010
-+ *
-+ * Cache handler
-+ *
-+ * Author: Johan Mossberg <johan.xx.mossberg@stericsson.com>
-+ * for ST-Ericsson.
-+ *
-+ * License terms: GNU General Public License (GPL), version 2.
-+ */
-+
-+/*
-+ * Cache handler can not handle simultaneous execution! The caller has to
-+ * ensure such a situation does not occur.
-+ */
-+
-+#ifndef _CACHE_HANDLER_H_
-+#define _CACHE_HANDLER_H_
-+
-+#include <linux/types.h>
-+#include <linux/hwmem.h>
-+
-+/*
-+ * To not have to double all datatypes we've used hwmem datatypes. If someone
-+ * want's to use cache handler but not hwmem then we'll have to define our own
-+ * datatypes.
-+ */
-+
-+struct cach_range {
-+	u32 start; /* Inclusive */
-+	u32 end; /* Exclusive */
-+};
-+
-+/*
-+ * Internal, do not touch!
-+ */
-+struct cach_buf {
-+	void *vstart;
-+	u32 pstart;
-+	u32 size;
-+
-+	/* Remaining hints are active */
-+	enum hwmem_alloc_flags cache_settings;
-+
-+	bool in_cpu_write_buf;
-+	struct cach_range range_in_cpu_cache;
-+	struct cach_range range_dirty_in_cpu_cache;
-+	struct cach_range range_invalid_in_cpu_cache;
-+};
-+
-+void cach_init_buf(struct cach_buf *buf,
-+			enum hwmem_alloc_flags cache_settings, u32 size);
-+
-+void cach_set_buf_addrs(struct cach_buf *buf, void* vaddr, u32 paddr);
-+
-+void cach_set_pgprot_cache_options(struct cach_buf *buf, pgprot_t *pgprot);
-+
-+void cach_set_domain(struct cach_buf *buf, enum hwmem_access access,
-+			enum hwmem_domain domain, struct hwmem_region *region);
-+
-+#endif /* _CACHE_HANDLER_H_ */
--- 
-1.7.4.1
+You used '0' as a second param.(= buf_addr) in
+s5p_mfc_set_dec_stream_buffer(ctx, 0, 0, 0)
+This must be a problem, 'cause OFFSETA(buf_addr) is calculated wrongly.
+And I propose that 
+why don't you try to check addr condition(necessary cond. of MFC, it should
+be located at 
+rear region from base_addr) 
+
+> +static inline int s5p_mfc_run_dec_frame(struct s5p_mfc_ctx *ctx)
+> +{
+> +	struct s5p_mfc_dev *dev = ctx->dev;
+> +	struct s5p_mfc_buf *temp_vb;
+> +	unsigned long flags;
+> +	int dec_arg = MFC_DEC_FRAME;
+> +
+> +	spin_lock_irqsave(&dev->irqlock, flags);
+> +
+> +	/* Frames are being decoded */
+> +	if (list_empty(&ctx->src_queue)) {
+> +		mfc_debug("No src buffers.\n");
+> +		spin_unlock_irqrestore(&dev->irqlock, flags);
+> +		return -EAGAIN;
+> +	}
+> +	/* Get the next source buffer */
+> +	temp_vb = list_entry(ctx->src_queue.next, struct s5p_mfc_buf, list);
+> +	mfc_debug("Temp vb: %p\n", temp_vb);
+> +	mfc_debug("Src Addr: %08x\n", s5p_mfc_plane_addr(temp_vb->b, 0));
+> +	s5p_mfc_set_dec_stream_buffer(ctx, s5p_mfc_plane_addr(temp_vb->b,
+> 0),
+> +				ctx->consumed_stream, temp_vb->b-
+> >v4l2_planes[0].bytesused);
+> +	spin_unlock_irqrestore(&dev->irqlock, flags);
+> +	dev->curr_ctx = ctx->num;
+> +	s5p_mfc_clean_ctx_int_flags(ctx);
+> +	if (temp_vb->b->v4l2_planes[0].bytesused == 0) {
+> +	        mfc_debug("Setting ctx->state to FINISHING\n");
+> +	        ctx->state = MFCINST_DEC_FINISHING;
+> +		dec_arg = MFC_DEC_LAST_FRAME;
+> +	}
+> +	s5p_mfc_decode_one_frame(ctx,
+> +				dec_arg);
+> +
+> +	return 0;
+> +}
+> +
+> +static inline int s5p_mfc_run_get_inst_no(struct s5p_mfc_ctx *ctx)
+> +{
+> +	struct s5p_mfc_dev *dev = ctx->dev;
+> +	int ret;
+> +
+> +	/* Preparing decoding - getting instance number */
+> +	mfc_debug("Getting instance number\n");
+> +	dev->curr_ctx = ctx->num;
+> +	s5p_mfc_clean_ctx_int_flags(ctx);
+> +	ret = s5p_mfc_open_inst(ctx);
+> +	if (ret) {
+> +		mfc_err("Failed to create a new instance.\n");
+> +		ctx->state = MFCINST_DEC_ERROR;
+> +	}
+> +	return ret;
+> +}
+> +
+> +static inline int s5p_mfc_run_return_inst(struct s5p_mfc_ctx *ctx)
+> +{
+> +	struct s5p_mfc_dev *dev = ctx->dev;
+> +	int ret;
+> +
+> +	/* Closing decoding instance  */
+> +	mfc_debug("Returning instance number\n");
+> +	dev->curr_ctx = ctx->num;
+> +	s5p_mfc_clean_ctx_int_flags(ctx);
+> +	ret = s5p_mfc_return_inst_no(ctx);
+> +	if (ret) {
+> +		mfc_err("Failed to return an instance.\n");
+> +		ctx->state = MFCINST_DEC_ERROR;
+> +		return ret;
+> +	}
+> +	return ret;
+> +}
+> +
+> +static inline void s5p_mfc_run_init_dec(struct s5p_mfc_ctx *ctx)
+> +{
+> +	struct s5p_mfc_dev *dev = ctx->dev;
+> +	unsigned long flags;
+> +	struct s5p_mfc_buf *temp_vb;
+> +
+> +	/* Initializing decoding - parsing header */
+> +	spin_lock_irqsave(&dev->irqlock, flags);
+> +	mfc_debug("Preparing to init decoding.\n");
+> +	temp_vb = list_entry(ctx->src_queue.next, struct s5p_mfc_buf, list);
+> +	s5p_mfc_set_dec_desc_buffer(ctx);
+> +	mfc_debug("Header size: %d\n", temp_vb->b-
+> >v4l2_planes[0].bytesused);
+> +	s5p_mfc_set_dec_stream_buffer(ctx, s5p_mfc_plane_addr(temp_vb->b,
+> 0),
+> +				0, temp_vb->b->v4l2_planes[0].bytesused);
+> +	spin_unlock_irqrestore(&dev->irqlock, flags);
+> +	dev->curr_ctx = ctx->num;
+> +	mfc_debug("paddr: %08x\n",
+> +			(int)phys_to_virt(s5p_mfc_plane_addr(temp_vb->b,
+0)));
+> +	s5p_mfc_clean_ctx_int_flags(ctx);
+> +	s5p_mfc_init_decode(ctx);
+> +}
+> +
+> +static inline int s5p_mfc_run_init_dec_buffers(struct s5p_mfc_ctx *ctx)
+> +{
+> +	struct s5p_mfc_dev *dev = ctx->dev;
+> +	unsigned long flags;
+> +	struct s5p_mfc_buf *temp_vb;
+> +	int ret;
+> +	/* Header was parsed now starting processing
+> +	 * First set the output frame buffers
+> +	 * s5p_mfc_alloc_dec_buffers(ctx); */
+> +
+> +	if (ctx->capture_state != QUEUE_BUFS_MMAPED) {
+> +		mfc_err("It seems that not all destionation buffers were "
+> +			"mmaped.\nMFC requires that all destination are
+mmaped
+> "
+> +			"before starting processing.\n");
+> +		return -EAGAIN;
+> +	}
+> +
+> +	spin_lock_irqsave(&dev->irqlock, flags);
+> +
+> +	if (list_empty(&ctx->src_queue)) {
+> +		mfc_err("Header has been deallocated in the middle of "
+>
++							"initialization.\n")
+;
+> +		spin_unlock_irqrestore(&dev->irqlock, flags);
+> +		return -EIO;
+> +	}
+> +
+> +	temp_vb = list_entry(ctx->src_queue.next, struct s5p_mfc_buf, list);
+> +	mfc_debug("Header size: %d\n", temp_vb->b-
+> >v4l2_planes[0].bytesused);
+> +	s5p_mfc_set_dec_stream_buffer(ctx, s5p_mfc_plane_addr(temp_vb->b,
+> 0),
+> +				0, temp_vb->b->v4l2_planes[0].bytesused);
+> +	spin_unlock_irqrestore(&dev->irqlock, flags);
+> +	dev->curr_ctx = ctx->num;
+> +	s5p_mfc_clean_ctx_int_flags(ctx);
+> +	ret = s5p_mfc_set_dec_frame_buffer(ctx);
+> +	if (ret) {
+> +		mfc_err("Failed to alloc frame mem.\n");
+> +		ctx->state = MFCINST_DEC_ERROR;
+> +	}
+> +	return ret;
+> +}
+
+snipping
+
+> +/* Set registers for decoding stream buffer */
+> +int s5p_mfc_set_dec_stream_buffer(struct s5p_mfc_ctx *ctx, int buf_addr,
+> +		  unsigned int start_num_byte, unsigned int buf_size)
+> +{
+> +	struct s5p_mfc_dev *dev = ctx->dev;
+> +
+> +	mfc_debug_enter();
+> +	mfc_debug("inst_no: %d, buf_addr: 0x%08x, buf_size: 0x"
+> +		"%08x (%d)\n",  ctx->inst_no, buf_addr, buf_size, buf_size);
+> +	WRITEL(OFFSETA(buf_addr), S5P_FIMV_SI_CH0_SB_ST_ADR);
+> +	WRITEL(CPB_BUF_SIZE, S5P_FIMV_SI_CH0_CPB_SIZE);
+> +	WRITEL(buf_size, S5P_FIMV_SI_CH0_SB_FRM_SIZE);
+> +	mfc_debug("Shared_virt: %p (start offset: %d)\n",
+> +					ctx->shared_virt, start_num_byte);
+> +	s5p_mfc_set_start_num(ctx, start_num_byte);
+> +	mfc_debug_leave();
+> +	return 0;
+> +}
+> +
+> 
+Snipping
+
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
