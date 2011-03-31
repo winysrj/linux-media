@@ -1,396 +1,108 @@
 Return-path: <mchehab@pedra>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:22671 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752638Ab1CaNQS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Mar 2011 09:16:18 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Thu, 31 Mar 2011 15:15:58 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 02/12] lib: genalloc: Generic allocator improvements
-In-reply-to: <1301577368-16095-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-mm@kvack.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
-	Mel Gorman <mel@csn.ul.ie>, Pawel Osciak <pawel@osciak.com>
-Message-id: <1301577368-16095-3-git-send-email-m.szyprowski@samsung.com>
-References: <1301577368-16095-1-git-send-email-m.szyprowski@samsung.com>
+Received: from smtp.nokia.com ([147.243.128.26]:51232 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757146Ab1CaIHp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 31 Mar 2011 04:07:45 -0400
+Message-ID: <4D9436B8.501@maxwell.research.nokia.com>
+Date: Thu, 31 Mar 2011 11:09:28 +0300
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: David Cohen <dacohen@gmail.com>, Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Nayden Kanchev <nkanchev@mm-sol.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Cohen David Abraham <david.cohen@nokia.com>
+Subject: Re: [RFC] V4L2 API for flash devices
+References: <4D90854C.2000802@maxwell.research.nokia.com> <4D933B9A.1090002@maxwell.research.nokia.com> <BANLkTin_xvyL6Bfcao3Pobps8OkeR9eTSA@mail.gmail.com> <201103301700.47462.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201103301700.47462.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Laurent Pinchart wrote:
+> Hi David,
 
-This commit adds a gen_pool_alloc_aligned() function to the
-generic allocator API.  It allows specifying alignment for the
-allocated block.  This feature uses
-the bitmap_find_next_zero_area_off() function.
+Salut,
 
-It also fixes possible issue with bitmap's last element being
-not fully allocated (ie. space allocated for chunk->bits is
-not a multiple of sizeof(long)).
+> On Wednesday 30 March 2011 16:57:30 David Cohen wrote:
+>> On Wed, Mar 30, 2011 at 5:18 PM, Sakari Ailus wrote:
+>>>> On Wednesday 30 March 2011 14:44:25 Sakari Ailus wrote:
+...
+>>>>> But as I commented in the other e-mail, there likely isn't a need to be
+>>>>> able to control this very precisely. The user just shuts down the flash
+>>>>> whenever (s)he no longer needs it rather than knows beforehand how long
+>>>>> it needs to stay on.
+>>>>
+>>>> What about hardware that needs to be pre-programmed with a duration ?
+>>>
+>>> Same control?
+>>>
+>>> I wonder if I could say we agree to have one timeout control which is
+>>> used to control the hardware timeout directly, or to implement a timeout
+>>> in software? :-)
+>>
+>> Correct if I'm wrong, but I guess we might be talking about 2 kind of
+>> timeouts:
+>> - One for the duration itself
+>> - Another one to act like watchdog in addition to the hw timeout
+> 
+> Do we need a control for that, or should it just be a fixed value that comes 
+> from platform data ?
 
-It also makes some other smaller changes:
-- moves structure definitions out of the header file,
-- adds __must_check to functions returning value,
-- makes gen_pool_add() return -ENOMEM rater than -1 on error,
-- changes list_for_each to list_for_each_entry, and
-- makes use of bitmap_clear().
+I think it's good to set the hardware timeout as small as possible. This
+makes the timeout behaviour more deterministic. I'm not sure if the
+information _needs_ to be delivered to user space though.
 
-Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-CC: Michal Nazarewicz <mina86@mina86.com>
----
- include/linux/genalloc.h |   46 ++++++------
- lib/genalloc.c           |  182 ++++++++++++++++++++++++++-------------------
- 2 files changed, 129 insertions(+), 99 deletions(-)
+On the other hand, if we now use the same control for both software and
+hardware timeout we can't add a new one without changing the meaning for
+the old one.
 
-diff --git a/include/linux/genalloc.h b/include/linux/genalloc.h
-index 9869ef3..8ac7337 100644
---- a/include/linux/genalloc.h
-+++ b/include/linux/genalloc.h
-@@ -8,29 +8,31 @@
-  * Version 2.  See the file COPYING for more details.
-  */
- 
-+struct gen_pool;
- 
--/*
-- *  General purpose special memory pool descriptor.
-- */
--struct gen_pool {
--	rwlock_t lock;
--	struct list_head chunks;	/* list of chunks in this pool */
--	int min_alloc_order;		/* minimum allocation order */
--};
-+struct gen_pool *__must_check gen_pool_create(unsigned order, int nid);
- 
--/*
-- *  General purpose special memory pool chunk descriptor.
-+int __must_check gen_pool_add(struct gen_pool *pool, unsigned long addr,
-+			      size_t size, int nid);
-+
-+void gen_pool_destroy(struct gen_pool *pool);
-+
-+unsigned long __must_check
-+gen_pool_alloc_aligned(struct gen_pool *pool, size_t size,
-+		       unsigned alignment_order);
-+
-+/**
-+ * gen_pool_alloc() - allocate special memory from the pool
-+ * @pool:	Pool to allocate from.
-+ * @size:	Number of bytes to allocate from the pool.
-+ *
-+ * Allocate the requested number of bytes from the specified pool.
-+ * Uses a first-fit algorithm.
-  */
--struct gen_pool_chunk {
--	spinlock_t lock;
--	struct list_head next_chunk;	/* next chunk in pool */
--	unsigned long start_addr;	/* starting address of memory chunk */
--	unsigned long end_addr;		/* ending address of memory chunk */
--	unsigned long bits[0];		/* bitmap for allocating memory chunk */
--};
-+static inline unsigned long __must_check
-+gen_pool_alloc(struct gen_pool *pool, size_t size)
-+{
-+	return gen_pool_alloc_aligned(pool, size, 0);
-+}
- 
--extern struct gen_pool *gen_pool_create(int, int);
--extern int gen_pool_add(struct gen_pool *, unsigned long, size_t, int);
--extern void gen_pool_destroy(struct gen_pool *);
--extern unsigned long gen_pool_alloc(struct gen_pool *, size_t);
--extern void gen_pool_free(struct gen_pool *, unsigned long, size_t);
-+void gen_pool_free(struct gen_pool *pool, unsigned long addr, size_t size);
-diff --git a/lib/genalloc.c b/lib/genalloc.c
-index 1923f14..0761079 100644
---- a/lib/genalloc.c
-+++ b/lib/genalloc.c
-@@ -16,53 +16,80 @@
- #include <linux/genalloc.h>
- 
- 
-+/* General purpose special memory pool descriptor. */
-+struct gen_pool {
-+	rwlock_t lock;			/* protects chunks list */
-+	struct list_head chunks;	/* list of chunks in this pool */
-+	unsigned order;			/* minimum allocation order */
-+};
-+
-+/* General purpose special memory pool chunk descriptor. */
-+struct gen_pool_chunk {
-+	spinlock_t lock;		/* protects bits */
-+	struct list_head next_chunk;	/* next chunk in pool */
-+	unsigned long start;		/* start of memory chunk */
-+	unsigned long size;		/* number of bits */
-+	unsigned long bits[0];		/* bitmap for allocating memory chunk */
-+};
-+
-+
- /**
-- * gen_pool_create - create a new special memory pool
-- * @min_alloc_order: log base 2 of number of bytes each bitmap bit represents
-- * @nid: node id of the node the pool structure should be allocated on, or -1
-+ * gen_pool_create() - create a new special memory pool
-+ * @order:	Log base 2 of number of bytes each bitmap bit
-+ *		represents.
-+ * @nid:	Node id of the node the pool structure should be allocated
-+ *		on, or -1.  This will be also used for other allocations.
-  *
-  * Create a new special memory pool that can be used to manage special purpose
-  * memory not managed by the regular kmalloc/kfree interface.
-  */
--struct gen_pool *gen_pool_create(int min_alloc_order, int nid)
-+struct gen_pool *__must_check gen_pool_create(unsigned order, int nid)
- {
- 	struct gen_pool *pool;
- 
--	pool = kmalloc_node(sizeof(struct gen_pool), GFP_KERNEL, nid);
--	if (pool != NULL) {
-+	if (WARN_ON(order >= BITS_PER_LONG))
-+		return NULL;
-+
-+	pool = kmalloc_node(sizeof *pool, GFP_KERNEL, nid);
-+	if (pool) {
- 		rwlock_init(&pool->lock);
- 		INIT_LIST_HEAD(&pool->chunks);
--		pool->min_alloc_order = min_alloc_order;
-+		pool->order = order;
- 	}
- 	return pool;
- }
- EXPORT_SYMBOL(gen_pool_create);
- 
- /**
-- * gen_pool_add - add a new chunk of special memory to the pool
-- * @pool: pool to add new memory chunk to
-- * @addr: starting address of memory chunk to add to pool
-- * @size: size in bytes of the memory chunk to add to pool
-- * @nid: node id of the node the chunk structure and bitmap should be
-- *       allocated on, or -1
-+ * gen_pool_add() - add a new chunk of special memory to the pool
-+ * @pool:	Pool to add new memory chunk to.
-+ * @addr:	Starting address of memory chunk to add to pool.
-+ * @size:	Size in bytes of the memory chunk to add to pool.
-  *
-  * Add a new chunk of special memory to the specified pool.
-  */
--int gen_pool_add(struct gen_pool *pool, unsigned long addr, size_t size,
--		 int nid)
-+int __must_check
-+gen_pool_add(struct gen_pool *pool, unsigned long addr, size_t size, int nid)
- {
- 	struct gen_pool_chunk *chunk;
--	int nbits = size >> pool->min_alloc_order;
--	int nbytes = sizeof(struct gen_pool_chunk) +
--				(nbits + BITS_PER_BYTE - 1) / BITS_PER_BYTE;
-+	size_t nbytes;
-+
-+	if (WARN_ON(!addr || addr + size < addr ||
-+		    (addr & ((1 << pool->order) - 1))))
-+		return -EINVAL;
- 
--	chunk = kmalloc_node(nbytes, GFP_KERNEL | __GFP_ZERO, nid);
--	if (unlikely(chunk == NULL))
--		return -1;
-+	size = size >> pool->order;
-+	if (WARN_ON(!size))
-+		return -EINVAL;
-+
-+	nbytes = sizeof *chunk + BITS_TO_LONGS(size) * sizeof *chunk->bits;
-+	chunk = kzalloc_node(nbytes, GFP_KERNEL, nid);
-+	if (!chunk)
-+		return -ENOMEM;
- 
- 	spin_lock_init(&chunk->lock);
--	chunk->start_addr = addr;
--	chunk->end_addr = addr + size;
-+	chunk->start = addr >> pool->order;
-+	chunk->size  = size;
- 
- 	write_lock(&pool->lock);
- 	list_add(&chunk->next_chunk, &pool->chunks);
-@@ -73,115 +100,116 @@ int gen_pool_add(struct gen_pool *pool, unsigned long addr, size_t size,
- EXPORT_SYMBOL(gen_pool_add);
- 
- /**
-- * gen_pool_destroy - destroy a special memory pool
-- * @pool: pool to destroy
-+ * gen_pool_destroy() - destroy a special memory pool
-+ * @pool:	Pool to destroy.
-  *
-  * Destroy the specified special memory pool. Verifies that there are no
-  * outstanding allocations.
-  */
- void gen_pool_destroy(struct gen_pool *pool)
- {
--	struct list_head *_chunk, *_next_chunk;
- 	struct gen_pool_chunk *chunk;
--	int order = pool->min_alloc_order;
--	int bit, end_bit;
--
-+	int bit;
- 
--	list_for_each_safe(_chunk, _next_chunk, &pool->chunks) {
--		chunk = list_entry(_chunk, struct gen_pool_chunk, next_chunk);
-+	while (!list_empty(&pool->chunks)) {
-+		chunk = list_entry(pool->chunks.next, struct gen_pool_chunk,
-+				   next_chunk);
- 		list_del(&chunk->next_chunk);
- 
--		end_bit = (chunk->end_addr - chunk->start_addr) >> order;
--		bit = find_next_bit(chunk->bits, end_bit, 0);
--		BUG_ON(bit < end_bit);
-+		bit = find_next_bit(chunk->bits, chunk->size, 0);
-+		BUG_ON(bit < chunk->size);
- 
- 		kfree(chunk);
- 	}
- 	kfree(pool);
--	return;
- }
- EXPORT_SYMBOL(gen_pool_destroy);
- 
- /**
-- * gen_pool_alloc - allocate special memory from the pool
-- * @pool: pool to allocate from
-- * @size: number of bytes to allocate from the pool
-+ * gen_pool_alloc_aligned() - allocate special memory from the pool
-+ * @pool:	Pool to allocate from.
-+ * @size:	Number of bytes to allocate from the pool.
-+ * @alignment_order:	Order the allocated space should be
-+ *			aligned to (eg. 20 means allocated space
-+ *			must be aligned to 1MiB).
-  *
-  * Allocate the requested number of bytes from the specified pool.
-  * Uses a first-fit algorithm.
-  */
--unsigned long gen_pool_alloc(struct gen_pool *pool, size_t size)
-+unsigned long __must_check
-+gen_pool_alloc_aligned(struct gen_pool *pool, size_t size,
-+		       unsigned alignment_order)
- {
--	struct list_head *_chunk;
-+	unsigned long addr, align_mask = 0, flags, start;
- 	struct gen_pool_chunk *chunk;
--	unsigned long addr, flags;
--	int order = pool->min_alloc_order;
--	int nbits, start_bit, end_bit;
- 
- 	if (size == 0)
- 		return 0;
- 
--	nbits = (size + (1UL << order) - 1) >> order;
-+	if (alignment_order > pool->order)
-+		align_mask = (1 << (alignment_order - pool->order)) - 1;
- 
--	read_lock(&pool->lock);
--	list_for_each(_chunk, &pool->chunks) {
--		chunk = list_entry(_chunk, struct gen_pool_chunk, next_chunk);
-+	size = (size + (1UL << pool->order) - 1) >> pool->order;
- 
--		end_bit = (chunk->end_addr - chunk->start_addr) >> order;
-+	read_lock(&pool->lock);
-+	list_for_each_entry(chunk, &pool->chunks, next_chunk) {
-+		if (chunk->size < size)
-+			continue;
- 
- 		spin_lock_irqsave(&chunk->lock, flags);
--		start_bit = bitmap_find_next_zero_area(chunk->bits, end_bit, 0,
--						nbits, 0);
--		if (start_bit >= end_bit) {
-+		start = bitmap_find_next_zero_area_off(chunk->bits, chunk->size,
-+						       0, size, align_mask,
-+						       chunk->start);
-+		if (start >= chunk->size) {
- 			spin_unlock_irqrestore(&chunk->lock, flags);
- 			continue;
- 		}
- 
--		addr = chunk->start_addr + ((unsigned long)start_bit << order);
--
--		bitmap_set(chunk->bits, start_bit, nbits);
-+		bitmap_set(chunk->bits, start, size);
- 		spin_unlock_irqrestore(&chunk->lock, flags);
--		read_unlock(&pool->lock);
--		return addr;
-+		addr = (chunk->start + start) << pool->order;
-+		goto done;
- 	}
-+
-+	addr = 0;
-+done:
- 	read_unlock(&pool->lock);
--	return 0;
-+	return addr;
- }
--EXPORT_SYMBOL(gen_pool_alloc);
-+EXPORT_SYMBOL(gen_pool_alloc_aligned);
- 
- /**
-- * gen_pool_free - free allocated special memory back to the pool
-- * @pool: pool to free to
-- * @addr: starting address of memory to free back to pool
-- * @size: size in bytes of memory to free
-+ * gen_pool_free() - free allocated special memory back to the pool
-+ * @pool:	Pool to free to.
-+ * @addr:	Starting address of memory to free back to pool.
-+ * @size:	Size in bytes of memory to free.
-  *
-  * Free previously allocated special memory back to the specified pool.
-  */
- void gen_pool_free(struct gen_pool *pool, unsigned long addr, size_t size)
- {
--	struct list_head *_chunk;
- 	struct gen_pool_chunk *chunk;
- 	unsigned long flags;
--	int order = pool->min_alloc_order;
--	int bit, nbits;
- 
--	nbits = (size + (1UL << order) - 1) >> order;
-+	if (!size)
-+		return;
- 
--	read_lock(&pool->lock);
--	list_for_each(_chunk, &pool->chunks) {
--		chunk = list_entry(_chunk, struct gen_pool_chunk, next_chunk);
-+	addr = addr >> pool->order;
-+	size = (size + (1UL << pool->order) - 1) >> pool->order;
-+
-+	BUG_ON(addr + size < addr);
- 
--		if (addr >= chunk->start_addr && addr < chunk->end_addr) {
--			BUG_ON(addr + size > chunk->end_addr);
-+	read_lock(&pool->lock);
-+	list_for_each_entry(chunk, &pool->chunks, next_chunk)
-+		if (addr >= chunk->start &&
-+		    addr + size <= chunk->start + chunk->size) {
- 			spin_lock_irqsave(&chunk->lock, flags);
--			bit = (addr - chunk->start_addr) >> order;
--			while (nbits--)
--				__clear_bit(bit++, chunk->bits);
-+			bitmap_clear(chunk->bits, addr - chunk->start, size);
- 			spin_unlock_irqrestore(&chunk->lock, flags);
--			break;
-+			goto done;
- 		}
--	}
--	BUG_ON(nbits > 0);
-+	BUG_ON(1);
-+done:
- 	read_unlock(&pool->lock);
- }
- EXPORT_SYMBOL(gen_pool_free);
+My proposal: let's postpone this and decide when we need to. Only
+hardware timeouts are implemented for now. When someone wants a software
+timeout then figure out what to do. We'd have exactly the same options
+then: the same control or a new control.
+
+>> IMO they should be different controls. We could even specify on the
+>> control name when it's a watchdog case to make it more clear.
+>>
+>>>>>>> I have to say I'm not entirely sure the duration control is required.
+>>>>>>> The timeout could be writable for software strobe in the case drivers
+>>>>>>> do not implement software timeout. The granularity isn't _that_ much
+>>>>>>> anyway. Also, a timeout fault should be produced whenever the
+>>>>>>> duration would expire.
+>>>>>>>
+>>>>>>> Perhaps it would be best to just leave that out for now.
+>>>>>>>
+>>>>>>>>>  V4L2_CID_FLASH_LED_MODE (menu; LED)
+>>>>>>>>>
+>>>>>>>>> enum v4l2_flash_led_mode {
+>>>>>>>>>
+>>>>>>>>>  V4L2_FLASH_LED_MODE_FLASH = 1,
+>>>>>>>>>  V4L2_FLASH_LED_MODE_TORCH,
+>>>>>>
+>>>>>> "torch" mode can also be used for video, should we rename TORCH to
+>>>>>> something more generic ? Maybe a "manual" mode ?
+>>>>>
+>>>>> The controllers recognise a torch mode and I think it describes the
+>>>>> functionality quite well. Some appear to make a difference between
+>>>>> torch and video light --- but I can't imagine a purpose in which this
+>>>>> could be useful.
+>>>>
+>>>> Torch mode is indeed a common name, but it sounds a bit specific to me.
+>>>
+>>> Torch suggests it can be used over extended periods of time, unlike
+>>> manual which doesn't really say much. I'd keep it torch since what it
+>>> suggests is that it can stay on for long. No references outside the
+>>> flash controller itself.
+>>
+>> I'd keep with torch also as it seems to be more clear.
+> 
+> OK, I'll give up then :-)
+
+Torch, then. :-)
+
 -- 
-1.7.1.569.g6f426
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
