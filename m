@@ -1,218 +1,319 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.samsung.com ([203.254.224.24]:13795 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753304Ab1CNJGJ (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:22671 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757515Ab1CaNQU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Mar 2011 05:06:09 -0400
-Date: Mon, 14 Mar 2011 09:47:50 +0100
-From: Kamil Debski <k.debski@samsung.com>
-Subject: RE: [PATCH v2 2/8] ARM: S5PV310: Add clock support for MFC v5.1
-In-reply-to: <002901cbe05e$f05d11d0$d1173570$%kim@samsung.com>
-To: 'Kukjin Kim' <kgene.kim@samsung.com>,
-	'Jeongtae Park' <jtp.park@samsung.com>,
-	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: jaeryul.oh@samsung.com, ben-linux@fluff.org,
-	jonghun.han@samsung.com,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <002901cbe224$8421aa90$8c64ffb0$%debski@samsung.com>
+	Thu, 31 Mar 2011 09:16:20 -0400
 MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: en-gb
 Content-transfer-encoding: 7BIT
-References: <1299676567-14194-1-git-send-email-jtp.park@samsung.com>
- <1299676567-14194-3-git-send-email-jtp.park@samsung.com>
- <002901cbe05e$f05d11d0$d1173570$%kim@samsung.com>
+Content-type: TEXT/PLAIN
+Date: Thu, 31 Mar 2011 15:15:59 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 03/12] mm: move some functions from memory_hotplug.c to
+	page_isolation.c
+In-reply-to: <1301577368-16095-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-mm@kvack.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
+	Mel Gorman <mel@csn.ul.ie>, Pawel Osciak <pawel@osciak.com>
+Message-id: <1301577368-16095-4-git-send-email-m.szyprowski@samsung.com>
+References: <1301577368-16095-1-git-send-email-m.szyprowski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-> From: Kukjin Kim [mailto:kgene.kim@samsung.com]
-> 
-> Jeongtae Park wrote:
-> >
-> > This patch adds clock support for MFC v5.1.
-> >
-> > Reviewed-by: Peter Oh <jaeryul.oh@samsung.com>
-> > Signed-off-by: Jeongtae Park <jtp.park@samsung.com>
-> > Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-> > Cc: Kamil Debski <k.debski@samsung.com>
-> > ---
-> >  arch/arm/mach-s5pv310/clock.c                   |   68
-> > +++++++++++++++++++++++
-> >  arch/arm/mach-s5pv310/include/mach/regs-clock.h |    3 +
-> >  2 files changed, 71 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-s5pv310/clock.c b/arch/arm/mach-
-> s5pv310/clock.c
-> > index fc7c2f8..88c7943 100644
-> > --- a/arch/arm/mach-s5pv310/clock.c
-> > +++ b/arch/arm/mach-s5pv310/clock.c
-> > @@ -86,6 +86,11 @@ static int s5pv310_clk_ip_cam_ctrl(struct clk
-> *clk, int
-> > enable)
-> >  	return s5p_gatectrl(S5P_CLKGATE_IP_CAM, clk, enable);
-> >  }
-> >
-> > +static int s5pv310_clk_ip_mfc_ctrl(struct clk *clk, int enable)
-> > +{
-> > +	return s5p_gatectrl(S5P_CLKGATE_IP_MFC, clk, enable);
-> > +}
-> > +
-> >  static int s5pv310_clk_ip_image_ctrl(struct clk *clk, int enable)
-> >  {
-> >  	return s5p_gatectrl(S5P_CLKGATE_IP_IMAGE, clk, enable);
-> > @@ -417,6 +422,11 @@ static struct clk init_clocks_off[] = {
-> >  		.enable		= s5pv310_clk_ip_cam_ctrl,
-> >  		.ctrlbit	= (1 << 2),
-> >  	}, {
-> > +		.name		= "mfc",
-> > +		.id		= -1,
-> > +		.enable		= s5pv310_clk_ip_mfc_ctrl,
-> > +		.ctrlbit	= (1 << 0),
-> > +	}, {
-> >  		.name		= "fimc",
-> >  		.id		= 3,
-> >  		.enable		= s5pv310_clk_ip_cam_ctrl,
-> > @@ -643,6 +653,54 @@ static struct clksrc_sources clkset_group = {
-> >  	.nr_sources	= ARRAY_SIZE(clkset_group_list),
-> >  };
-> >
-> > +static struct clk *clkset_mout_mfc0_list[] = {
-> > +	[0] = &clk_mout_mpll.clk,
-> > +	[1] = &clk_sclk_apll.clk,
-> > +};
-> > +
-> > +static struct clksrc_sources clkset_mout_mfc0 = {
-> > +	.sources	= clkset_mout_mfc0_list,
-> > +	.nr_sources	= ARRAY_SIZE(clkset_mout_mfc0_list),
-> > +};
-> > +
-> > +static struct clksrc_clk clk_mout_mfc0 = {
-> > +	.clk	= {
-> > +		.name		= "mout_mfc0",
-> > +		.id		= -1,
-> > +	},
-> > +	.sources	= &clkset_mout_mfc0,
-> > +	.reg_src	= { .reg = S5P_CLKSRC_MFC, .shift = 0, .size = 1 },
-> > +};
-> > +
-> > +static struct clk *clkset_mout_mfc1_list[] = {
-> > +	[0] = &clk_mout_epll.clk,
-> > +	[1] = &clk_sclk_vpll.clk,
-> > +};
-> > +
-> > +static struct clksrc_sources clkset_mout_mfc1 = {
-> > +	.sources	= clkset_mout_mfc1_list,
-> > +	.nr_sources	= ARRAY_SIZE(clkset_mout_mfc1_list),
-> > +};
-> > +
-> > +static struct clksrc_clk clk_mout_mfc1 = {
-> > +	.clk	= {
-> > +		.name		= "mout_mfc1",
-> > +		.id		= -1,
-> > +	},
-> > +	.sources	= &clkset_mout_mfc1,
-> > +	.reg_src	= { .reg = S5P_CLKSRC_MFC, .shift = 4, .size = 1 },
-> > +};
-> > +
-> > +static struct clk *clkset_mout_mfc_list[] = {
-> > +	[0] = &clk_mout_mfc0.clk,
-> > +	[1] = &clk_mout_mfc1.clk,
-> > +};
-> > +
-> > +static struct clksrc_sources clkset_mout_mfc = {
-> > +	.sources	= clkset_mout_mfc_list,
-> > +	.nr_sources	= ARRAY_SIZE(clkset_mout_mfc_list),
-> > +};
-> > +
-> >  static struct clk *clkset_mout_g2d0_list[] = {
-> >  	[0] = &clk_mout_mpll.clk,
-> >  	[1] = &clk_sclk_apll.clk,
-> > @@ -814,6 +872,14 @@ static struct clksrc_clk clksrcs[] = {
-> >  		.reg_div = { .reg = S5P_CLKDIV_CAM, .shift = 28, .size = 4
-> },
-> >  	}, {
-> >  		.clk		= {
-> > +			.name		= "sclk_mfc",
-> > +			.id		= -1,
-> > +		},
-> > +		.sources = &clkset_mout_mfc,
-> > +		.reg_src = { .reg = S5P_CLKSRC_MFC, .shift = 8, .size = 1
-> },
-> > +		.reg_div = { .reg = S5P_CLKDIV_MFC, .shift = 0, .size = 4
-> },
-> > +	}, {
-> > +		.clk		= {
-> >  			.name		= "sclk_cam",
-> >  			.id		= 0,
-> >  			.enable		= s5pv310_clksrc_mask_cam_ctrl,
-> > @@ -1018,6 +1084,8 @@ static struct clksrc_clk *sysclks[] = {
-> >  	&clk_dout_mmc2,
-> >  	&clk_dout_mmc3,
-> >  	&clk_dout_mmc4,
-> > +	&clk_mout_mfc0,
-> > +	&clk_mout_mfc1,
-> >  };
-> >
-> >  static int xtal_rate;
-> > diff --git a/arch/arm/mach-s5pv310/include/mach/regs-clock.h
-> b/arch/arm/mach-
-> > s5pv310/include/mach/regs-clock.h
-> > index b5c4ada..27b02e8 100644
-> > --- a/arch/arm/mach-s5pv310/include/mach/regs-clock.h
-> > +++ b/arch/arm/mach-s5pv310/include/mach/regs-clock.h
-> > @@ -33,6 +33,7 @@
-> >  #define S5P_CLKSRC_TOP0			S5P_CLKREG(0x0C210)
-> >  #define S5P_CLKSRC_TOP1			S5P_CLKREG(0x0C214)
-> >  #define S5P_CLKSRC_CAM			S5P_CLKREG(0x0C220)
-> > +#define S5P_CLKSRC_MFC			S5P_CLKREG(0x0C228)
-> >  #define S5P_CLKSRC_IMAGE		S5P_CLKREG(0x0C230)
-> >  #define S5P_CLKSRC_LCD0			S5P_CLKREG(0x0C234)
-> >  #define S5P_CLKSRC_LCD1			S5P_CLKREG(0x0C238)
-> > @@ -42,6 +43,7 @@
-> >
-> >  #define S5P_CLKDIV_TOP			S5P_CLKREG(0x0C510)
-> >  #define S5P_CLKDIV_CAM			S5P_CLKREG(0x0C520)
-> > +#define S5P_CLKDIV_MFC			S5P_CLKREG(0x0C528)
-> >  #define S5P_CLKDIV_IMAGE		S5P_CLKREG(0x0C530)
-> >  #define S5P_CLKDIV_LCD0			S5P_CLKREG(0x0C534)
-> >  #define S5P_CLKDIV_LCD1			S5P_CLKREG(0x0C538)
-> > @@ -67,6 +69,7 @@
-> >  #define S5P_CLKDIV_STAT_TOP		S5P_CLKREG(0x0C610)
-> >
-> >  #define S5P_CLKGATE_IP_CAM		S5P_CLKREG(0x0C920)
-> > +#define S5P_CLKGATE_IP_MFC		S5P_CLKREG(0x0C928)
-> >  #define S5P_CLKGATE_IP_IMAGE		S5P_CLKREG(0x0C930)
-> >  #define S5P_CLKGATE_IP_LCD0		S5P_CLKREG(0x0C934)
-> >  #define S5P_CLKGATE_IP_LCD1		S5P_CLKREG(0x0C938)
-> > --
-> > 1.7.1
-> 
-> Hi Jeongtae,
-> 
-> Firstly, your 2nd, 3rd and 4th patches are ok to me, but need to re-
-> work
-> based on latest.
-> Could you please do based on my for-next?
-> 
-> Kamil,
-> Your patch of regarding mfc platform device has same purpose but clock
-> codes
-> are different.
-> As I said, mfc clock handling needs this approach so if you're ok, I'd
-> like
-> to pick this up. How do you think?
-> 
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Hi Kukjin,
+Memory hotplug is a logic for making pages unused in the specified
+range of pfn. So, some of core logics can be used for other purpose
+as allocating a very large contigous memory block.
 
-It's ok with me to merge patches 2 and 3 by Jeongtae - he fixed the 
-issues you were talking about. I would like you to merge my patch entitled
-"Add platform support for MFC v5.1" as it was my code posted again by
-Jeongtae.
+This patch moves some functions from mm/memory_hotplug.c to
+mm/page_isolation.c. This helps adding a function for large-alloc in
+page_isolation.c with memory-unplug technique.
 
-Best wishes,
---
-Kamil Debski
-Linux Platform Group
-Samsung Poland R&D Center
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+[m.nazarewicz: reworded commit message]
+Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+[m.szyprowski: rebase and updated to v2.6.39-rc1 changes]
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+CC: Michal Nazarewicz <mina86@mina86.com>
+---
+ include/linux/page-isolation.h |    7 +++
+ mm/memory_hotplug.c            |  109 ---------------------------------------
+ mm/page_isolation.c            |  111 ++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 118 insertions(+), 109 deletions(-)
 
+diff --git a/include/linux/page-isolation.h b/include/linux/page-isolation.h
+index 051c1b1..58cdbac 100644
+--- a/include/linux/page-isolation.h
++++ b/include/linux/page-isolation.h
+@@ -33,5 +33,12 @@ test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn);
+ extern int set_migratetype_isolate(struct page *page);
+ extern void unset_migratetype_isolate(struct page *page);
+ 
++/*
++ * For migration.
++ */
++
++int test_pages_in_a_zone(unsigned long start_pfn, unsigned long end_pfn);
++unsigned long scan_lru_pages(unsigned long start, unsigned long end);
++int do_migrate_range(unsigned long start_pfn, unsigned long end_pfn);
+ 
+ #endif
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index 321fc74..746f6ed 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -640,115 +640,6 @@ int is_mem_section_removable(unsigned long start_pfn, unsigned long nr_pages)
+ }
+ 
+ /*
+- * Confirm all pages in a range [start, end) is belongs to the same zone.
+- */
+-static int test_pages_in_a_zone(unsigned long start_pfn, unsigned long end_pfn)
+-{
+-	unsigned long pfn;
+-	struct zone *zone = NULL;
+-	struct page *page;
+-	int i;
+-	for (pfn = start_pfn;
+-	     pfn < end_pfn;
+-	     pfn += MAX_ORDER_NR_PAGES) {
+-		i = 0;
+-		/* This is just a CONFIG_HOLES_IN_ZONE check.*/
+-		while ((i < MAX_ORDER_NR_PAGES) && !pfn_valid_within(pfn + i))
+-			i++;
+-		if (i == MAX_ORDER_NR_PAGES)
+-			continue;
+-		page = pfn_to_page(pfn + i);
+-		if (zone && page_zone(page) != zone)
+-			return 0;
+-		zone = page_zone(page);
+-	}
+-	return 1;
+-}
+-
+-/*
+- * Scanning pfn is much easier than scanning lru list.
+- * Scan pfn from start to end and Find LRU page.
+- */
+-static unsigned long scan_lru_pages(unsigned long start, unsigned long end)
+-{
+-	unsigned long pfn;
+-	struct page *page;
+-	for (pfn = start; pfn < end; pfn++) {
+-		if (pfn_valid(pfn)) {
+-			page = pfn_to_page(pfn);
+-			if (PageLRU(page))
+-				return pfn;
+-		}
+-	}
+-	return 0;
+-}
+-
+-static struct page *
+-hotremove_migrate_alloc(struct page *page, unsigned long private, int **x)
+-{
+-	/* This should be improooooved!! */
+-	return alloc_page(GFP_HIGHUSER_MOVABLE);
+-}
+-
+-#define NR_OFFLINE_AT_ONCE_PAGES	(256)
+-static int
+-do_migrate_range(unsigned long start_pfn, unsigned long end_pfn)
+-{
+-	unsigned long pfn;
+-	struct page *page;
+-	int move_pages = NR_OFFLINE_AT_ONCE_PAGES;
+-	int not_managed = 0;
+-	int ret = 0;
+-	LIST_HEAD(source);
+-
+-	for (pfn = start_pfn; pfn < end_pfn && move_pages > 0; pfn++) {
+-		if (!pfn_valid(pfn))
+-			continue;
+-		page = pfn_to_page(pfn);
+-		if (!page_count(page))
+-			continue;
+-		/*
+-		 * We can skip free pages. And we can only deal with pages on
+-		 * LRU.
+-		 */
+-		ret = isolate_lru_page(page);
+-		if (!ret) { /* Success */
+-			list_add_tail(&page->lru, &source);
+-			move_pages--;
+-			inc_zone_page_state(page, NR_ISOLATED_ANON +
+-					    page_is_file_cache(page));
+-
+-		} else {
+-#ifdef CONFIG_DEBUG_VM
+-			printk(KERN_ALERT "removing pfn %lx from LRU failed\n",
+-			       pfn);
+-			dump_page(page);
+-#endif
+-			/* Becasue we don't have big zone->lock. we should
+-			   check this again here. */
+-			if (page_count(page)) {
+-				not_managed++;
+-				ret = -EBUSY;
+-				break;
+-			}
+-		}
+-	}
+-	if (!list_empty(&source)) {
+-		if (not_managed) {
+-			putback_lru_pages(&source);
+-			goto out;
+-		}
+-		/* this function returns # of failed pages */
+-		ret = migrate_pages(&source, hotremove_migrate_alloc, 0,
+-								true, true);
+-		if (ret)
+-			putback_lru_pages(&source);
+-	}
+-out:
+-	return ret;
+-}
+-
+-/*
+  * remove from free_area[] and mark all as Reserved.
+  */
+ static int
+diff --git a/mm/page_isolation.c b/mm/page_isolation.c
+index 4ae42bb..8a3122c 100644
+--- a/mm/page_isolation.c
++++ b/mm/page_isolation.c
+@@ -5,6 +5,9 @@
+ #include <linux/mm.h>
+ #include <linux/page-isolation.h>
+ #include <linux/pageblock-flags.h>
++#include <linux/memcontrol.h>
++#include <linux/migrate.h>
++#include <linux/mm_inline.h>
+ #include "internal.h"
+ 
+ static inline struct page *
+@@ -139,3 +142,111 @@ int test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn)
+ 	spin_unlock_irqrestore(&zone->lock, flags);
+ 	return ret ? 0 : -EBUSY;
+ }
++
++
++/*
++ * Confirm all pages in a range [start, end) is belongs to the same zone.
++ */
++int test_pages_in_a_zone(unsigned long start_pfn, unsigned long end_pfn)
++{
++	unsigned long pfn;
++	struct zone *zone = NULL;
++	struct page *page;
++	int i;
++	for (pfn = start_pfn;
++	     pfn < end_pfn;
++	     pfn += MAX_ORDER_NR_PAGES) {
++		i = 0;
++		/* This is just a CONFIG_HOLES_IN_ZONE check.*/
++		while ((i < MAX_ORDER_NR_PAGES) && !pfn_valid_within(pfn + i))
++			i++;
++		if (i == MAX_ORDER_NR_PAGES)
++			continue;
++		page = pfn_to_page(pfn + i);
++		if (zone && page_zone(page) != zone)
++			return 0;
++		zone = page_zone(page);
++	}
++	return 1;
++}
++
++/*
++ * Scanning pfn is much easier than scanning lru list.
++ * Scan pfn from start to end and Find LRU page.
++ */
++unsigned long scan_lru_pages(unsigned long start, unsigned long end)
++{
++	unsigned long pfn;
++	struct page *page;
++	for (pfn = start; pfn < end; pfn++) {
++		if (pfn_valid(pfn)) {
++			page = pfn_to_page(pfn);
++			if (PageLRU(page))
++				return pfn;
++		}
++	}
++	return 0;
++}
++
++struct page *
++hotremove_migrate_alloc(struct page *page, unsigned long private, int **x)
++{
++	/* This should be improooooved!! */
++	return alloc_page(GFP_HIGHUSER_MOVABLE);
++}
++
++#define NR_OFFLINE_AT_ONCE_PAGES	(256)
++int do_migrate_range(unsigned long start_pfn, unsigned long end_pfn)
++{
++	unsigned long pfn;
++	struct page *page;
++	int move_pages = NR_OFFLINE_AT_ONCE_PAGES;
++	int not_managed = 0;
++	int ret = 0;
++	LIST_HEAD(source);
++
++	for (pfn = start_pfn; pfn < end_pfn && move_pages > 0; pfn++) {
++		if (!pfn_valid(pfn))
++			continue;
++		page = pfn_to_page(pfn);
++		if (!page_count(page))
++			continue;
++		/*
++		 * We can skip free pages. And we can only deal with pages on
++		 * LRU.
++		 */
++		ret = isolate_lru_page(page);
++		if (!ret) { /* Success */
++			list_add_tail(&page->lru, &source);
++			move_pages--;
++			inc_zone_page_state(page, NR_ISOLATED_ANON +
++					    page_is_file_cache(page));
++
++		} else {
++#ifdef CONFIG_DEBUG_VM
++			printk(KERN_ALERT "removing pfn %lx from LRU failed\n",
++			       pfn);
++			dump_page(page);
++#endif
++			/* Because we don't have big zone->lock. we should
++			   check this again here. */
++			if (page_count(page)) {
++				not_managed++;
++				ret = -EBUSY;
++				break;
++			}
++		}
++	}
++	if (!list_empty(&source)) {
++		if (not_managed) {
++			putback_lru_pages(&source);
++			goto out;
++		}
++		/* this function returns # of failed pages */
++		ret = migrate_pages(&source, hotremove_migrate_alloc, MPOL_MF_MOVE_ALL, 0, 1);
++		if (ret)
++			putback_lru_pages(&source);
++	}
++out:
++	return ret;
++}
+-- 
+1.7.1.569.g6f426
