@@ -1,62 +1,99 @@
 Return-path: <mchehab@pedra>
-Received: from alia.ip-minds.de ([84.201.38.2]:55480 "EHLO alia.ip-minds.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751533Ab1CKXD6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Mar 2011 18:03:58 -0500
-To: Jarod Wilson <jarod@wilsonet.com>
-Subject: Re: WinTV 1400 broken with recent =?UTF-8?Q?versions=3F?=
-MIME-Version: 1.0
-Date: Sat, 12 Mar 2011 00:04:10 +0100
-From: <jean.bruenn@ip-minds.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Jean Delvare <khali@linux-fr.org>
-In-Reply-To: <81E0AF02-0837-4DF8-BFEA-94A654FFF471@wilsonet.com>
-References: <20110309175231.16446e92.jean.bruenn@ip-minds.de> <76A39CFB-2838-4AD7-B353-49971F9F7DFF@wilsonet.com> <ba12e998349efa465be466a4d7f9d43f@localhost> <3AF3951C-11F6-48E4-A0EE-85179B013AFC@wilsonet.com> <81E0AF02-0837-4DF8-BFEA-94A654FFF471@wilsonet.com>
-Message-ID: <af7d57a1bb478c0edac4cd7afdfd6f41@localhost>
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset=UTF-8
+Received: from mailout2.samsung.com ([203.254.224.25]:59386 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752015Ab1CaKPH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 31 Mar 2011 06:15:07 -0400
+Received: from epmmp1 (ep_mmp1 [203.254.227.16])
+ by mailout2.samsung.com (Oracle Communications Messaging Exchange Server
+ 7u4-19.01 64bit (built Sep  7 2010))
+ with ESMTP id <0LIX00DN7354IH60@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 31 Mar 2011 19:15:04 +0900 (KST)
+Received: from AMDC159 ([106.116.37.153])
+ by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LIX00MAQ34WGN@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 31 Mar 2011 19:15:04 +0900 (KST)
+Date: Thu, 31 Mar 2011 12:14:55 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: v4l: Buffer pools
+In-reply-to: <757395B8DE5A844B80F3F4BE9867DDB652374B2340@EXDCVYMBSTM006.EQ1STM.local>
+To: 'Willy POISSON' <willy.poisson@stericsson.com>,
+	linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, 'Hans Verkuil' <hverkuil@xs4all.nl>,
+	kyungmin.park@samsung.com
+Message-id: <001b01cbef8c$7da953a0$78fbfae0$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <757395B8DE5A844B80F3F4BE9867DDB652374B2340@EXDCVYMBSTM006.EQ1STM.local>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+Hello,
 
-Hey,
+On Tuesday, March 29, 2011 4:02 PM Willy POISSON wrote:
 
-i tried to revert that patch manually (e.g. switching into the directory,
-vim cx23885-i2c.c, removing the stuff which was added), then "make clean"
-"make distclean" followed by "./build.sh" then make rmmod, then plugged in
-the card, dmesg shows it loaded the card correctly, all fine, then i did
-./scan Scanlist.txt and i get the same i2c related errors. Did a reboot
-just to verify, still getting those, scan gives no results always "tuning
-failed". 
+> 	Following to the Warsaw mini-summit action point, I would like to open the thread to gather
+> buffer pool & memory manager requirements.
+> The list of requirement for buffer pool may contain:
+> -	Support physically contiguous and virtual memory
+> -	Support IPC, import/export handles (between processes/drivers/userland/etc)
+> -	Security(access rights in order to secure no one unauthorized is allowed to access buffers)
+> -	Cache flush management (by using setdomain and optimize when flushing is needed)
+> -	Pin/unpin in order to get the actual address to be able to do defragmentation
+> -	Support pinning in user land in order to allow defragmentation while buffer is mmapped but not
+> pined.
+> -	Both a user API and a Kernel API is needed for this module. (Kernel drivers needs to be able to
+> resolve buffer handles as well from the memory manager module, and pin/unpin)
+> -	be able to support any platform specific allocator (Separate memory allocation from management
+> as allocator is platform dependant)
+> -	Support multiple region domain (Allow to allocate from several memory domain ex: DDR1, DDR2,
+> Embedded SRAM to make for ex bandwidth load balancing ...)
 
-Then i reverted another patch (just to make sure..
-http://git.kernel.org/?p=linux/kernel/git/mchehab/linux-2.6.git;a=commit;h=f4acb3c4ccca74f5448354308f917e87ce83505a)
-- However, this didn't help. So, the problem might be somewhere else. 
+The above list looks fine.
 
-I did some more research and it seems i'm not the only one with those
-issues, tho nearly none gets answers regarding this trouble, e.g.:
+Memory/buffer pools are a large topic that covers at least 3 subsystems:
+1. user space api
+2. in-kernel buffer manager
+3. in-kernel memory allocator 
 
-(same card - also expresscard, december 2010)
-http://www.spinics.net/lists/linux-media/msg27042.html
-(not the same card, tho similar error, hvr 1500, i got hvr 1400 - februar
-2009)
-http://www.linuxtv.org/pipermail/linux-dvb/2009-February/031839.html
+Most of the requirements above list can be assigned to one of these subsystems.
 
-I'm running out of ideas where the problem might be located. i also tried
-to switch the firmware by extracting the firmware manually, didn't help.
-There's a low power version and another one available, tried to replace,
-didn't work neither.
+If would like to focus first on the user space API. This API should provide a generic way to allocate
+memory buffers. User space should not be aware of the allocator specific parameters of the buffer.
+User space should not decide whether a physically contiguous buffer is needed or not. The only
+information that user space should provide is a set or list of devices that the application want use
+with the allocated buffer. User space might also provide some additional hints about the buffers - like
+the preferred memory region.
 
-So it seems, this driver is broken at least since december 2010. Totally
-weird why there's such a mess, i know for sure that this WAS working.
+Our chip S5PC110 and EXYNOS4 are very similar in terms of integrated multimedia modules, however there
+is one important difference. The latter has IOMMU module, so multimedia blocks doesn't require physically
+contiguous buffers. In userspace however we would like to support both with the same API.
 
-Anyone, any idea? Maybe something wrong configured in kernel? Might
-running native 64bit the cause (no multilib/32bit compat libs here)?
+We have also a very specific requirement for buffers for video codes (chroma buffers and luma buffers
+must be allocated from different memory banks). The memory bank should be specified at allocation time.
 
-> I knew this all seemed too familiar... :)
-> 
->
-http://git.kernel.org/?p=linux/kernel/git/mchehab/linux-2.6.git;a=commit;h=67914b5c400d6c213f9e56d7547a2038ab5c06f4
-> 
-> Its already being reverted for 2.6.38 final (hopefully -- Mauro included
-> that in the pull req sent to Linus today).
+The only problem is to define a way the user space API will be able to provide a list of devices that 
+must be able to operate with the allocated buffer. Without some kind of enumeration of all entities 
+that work with buffer pool it might be a bit hard. I would like to avoid the need of hardcoding device 
+names in the user space applications.
+
+The in-kernel memory allocator is mainly targeted to systems that require physically contiguous buffers.
+Currently CMA framework perfectly fits here. A new version will be posted very soon.
+
+> Another idea, but not so linked to memory management (more usage of buffers), would be to have a
+> common data container (structure to access data) shared by several media (Imaging, video/still codecs,
+> graphics, Display...) to ease usage of the data. This container could  embed data type (video frames,
+> Access Unit) , frames format, pixel format, width, height, pixel aspect ratio, region of interest, CTS
+> (composition time stamp),  ColorSpace, transparency (opaque, alpha, color key...), pointer on buffer(s)
+> handle)...
+
+I'm not sure if such idea can be ever implemented in the mainline kernel... IHMO it is too complicated.
+
+Best regards
+--
+Marek Szyprowski
+Samsung Poland R&D Center
+
+
