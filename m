@@ -1,125 +1,71 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:59738 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755888Ab1CGTlX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Mar 2011 14:41:23 -0500
+Received: from mailout-de.gmx.net ([213.165.64.23]:35407 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1758573Ab1CaRPV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 31 Mar 2011 13:15:21 -0400
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Date: Thu, 31 Mar 2011 19:15:16 +0200
+From: handygewinnspiel@gmx.de
+In-Reply-To: <4D945B39.8050708@redhat.com>
+Message-ID: <20110331171516.250770@gmx.net>
 MIME-Version: 1.0
-In-Reply-To: <AANLkTi=KncNfW0NEEoV+mrT_Ft2j-c=rQG=qbeR6tLQK@mail.gmail.com>
-References: <4D6D219D.7020605@matrix-vision.de>
-	<201103022018.23446.laurent.pinchart@ideasonboard.com>
-	<4D6FBC7F.1080500@matrix-vision.de>
-	<AANLkTikAKy=CzTqEv-UGBQ1EavqmCStPNFZ5vs7vH5VK@mail.gmail.com>
-	<4D70F985.8030902@matrix-vision.de>
-	<AANLkTinSJpjPXWHWduLbRSmb=La3sv82ufwgsq-uR7S2@mail.gmail.com>
-	<AANLkTi=8Sss-5xfgPmgx=J_T__=hrC1rQU-xBOdKC8Ve@mail.gmail.com>
-	<4D74D94F.7040702@matrix-vision.de>
-	<AANLkTikokA2hGMYA3vfBOxa0jPr0tjbLfYW603+zicry@mail.gmail.com>
-	<AANLkTikzAjUrec+c6zcSCx6auaR9QvbWwwTbXpGYuOoZ@mail.gmail.com>
-	<AANLkTi=KncNfW0NEEoV+mrT_Ft2j-c=rQG=qbeR6tLQK@mail.gmail.com>
-Date: Mon, 7 Mar 2011 21:41:21 +0200
-Message-ID: <AANLkTimac512Gu0_vyPjThvNxXHsXTRD73B0d1bHnnAg@mail.gmail.com>
-Subject: Re: [PATCH] omap: iommu: disallow mapping NULL address
-From: David Cohen <dacohen@gmail.com>
-To: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>,
-	Hiroshi.DOYU@nokia.com,
-	Michael Jones <michael.jones@matrix-vision.de>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-omap@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+References: <4D909B59.9040809@redhat.com> <20110328172045.64750@gmx.net>
+ <4D90D78F.7050308@redhat.com> <20110329201152.282620@gmx.net>
+ <4D92697C.3030209@redhat.com> <4D945B39.8050708@redhat.com>
+Subject: Re: [w_scan PATCH] Add Brazil support on w_scan
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, Mar 7, 2011 at 9:25 PM, Guzman Lugo, Fernando
-<fernando.lugo@ti.com> wrote:
-> On Mon, Mar 7, 2011 at 1:19 PM, David Cohen <dacohen@gmail.com> wrote:
->> On Mon, Mar 7, 2011 at 9:17 PM, Guzman Lugo, Fernando
->> <fernando.lugo@ti.com> wrote:
->>> On Mon, Mar 7, 2011 at 7:10 AM, Michael Jones
->>> <michael.jones@matrix-vision.de> wrote:
->>>> From e7dbe4c4b64eb114f9b0804d6af3a3ca0e78acc8 Mon Sep 17 00:00:00 2001
->>>> From: Michael Jones <michael.jones@matrix-vision.de>
->>>> Date: Mon, 7 Mar 2011 13:36:15 +0100
->>>> Subject: [PATCH] omap: iommu: disallow mapping NULL address
->>>>
->>>> commit c7f4ab26e3bcdaeb3e19ec658e3ad9092f1a6ceb allowed mapping
->>>> the NULL address if da_start==0.  Force da_start to exclude the
->>>> first page.
->>>
->>> what about devices that uses page 0? ipu after reset always starts
->>> from 0x00000000 how could we map that address??
->>
->> from 0x0? The driver sees da == 0 as error. May I ask you why do you want it?
->
-> unlike DSP that you can load a register with the addres the DSP will
-> boot, IPU core always starts from address 0x00000000, so if you take
-> IPU out of reset it will try to access address 0x0 if not map it,
-> there will be a mmu fault.
 
-Hm. Looks like the iommu should not restrict any da. The valid da
-range should rely only on pdata.
-Michael, what about just update ISP's da_start on omap-iommu.c file?
-Set it to 0x1000.
+> Em 29-03-2011 20:21, Mauro Carvalho Chehab escreveu:
+> > Em 29-03-2011 17:11, handygewinnspiel@gmx.de escreveu:
+> >> So I changed it now to scan any srate for 6MHz networks, but skip over
+> those which are unsupported by bandwidth limitation.
+> ...
+> > Anyway, I'll test the today's version and reply if I detect any troubles
+> on it.
+> 
+> Test results:
+> 
+> 	$ ./w_scan -c BR -fc 
+> Took about 30 mins for scan. As the board I'm using doesn't support
+> QAM_AUTO
+> for DVB-C, it seek only QAM_64
 
-Hiroshi, any opinion?
+This is unexpected && should be fixed to fit to w_scan's default behaviour: first QAM_64, then QAM_256.
 
-Br,
+Can you pls re-check with the following change in countries.c line 500ff
 
-David
+/*
+ * start/stop values for dvbc qam loop
+ * 0 == QAM_64, 1 == QAM_256, 2 == QAM_128
+ */
+int dvbc_qam_max(int channel, int channellist) {
+switch(channellist) {
+       case DVBC_FI:    return 2; //QAM128
++      case DVBC_BR:
+       case DVBC_FR:
+       case DVBC_QAM:   return 1; //QAM256
+       default:         return 0; //no qam loop
+       }
+}
 
->
-> Regards,
-> Fernando.
->
->>
->> Br,
->>
->> David
->>
->>>
->>> Regards,
->>> Fernando.
->>>
->>>>
->>>> Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
->>>> ---
->>>>  arch/arm/plat-omap/iommu.c |    6 ++++--
->>>>  1 files changed, 4 insertions(+), 2 deletions(-)
->>>>
->>>> diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
->>>> index 5990ea6..dcb5513 100644
->>>> --- a/arch/arm/plat-omap/iommu.c
->>>> +++ b/arch/arm/plat-omap/iommu.c
->>>> @@ -850,7 +850,7 @@ int iommu_set_da_range(struct iommu *obj, u32 start, u32 end)
->>>>        if (end < start || !PAGE_ALIGN(start | end))
->>>>                return -EINVAL;
->>>>
->>>> -       obj->da_start = start;
->>>> +       obj->da_start = max(start, (u32)PAGE_SIZE);
->>>>        obj->da_end = end;
->>>>
->>>>        return 0;
->>>> @@ -950,7 +950,9 @@ static int __devinit omap_iommu_probe(struct platform_device *pdev)
->>>>        obj->name = pdata->name;
->>>>        obj->dev = &pdev->dev;
->>>>        obj->ctx = (void *)obj + sizeof(*obj);
->>>> -       obj->da_start = pdata->da_start;
->>>> +
->>>> +       /* reserve the first page for NULL */
->>>> +       obj->da_start = max(pdata->da_start, (u32)PAGE_SIZE);
->>>>        obj->da_end = pdata->da_end;
->>>>
->>>>        mutex_init(&obj->iommu_lock);
->>>> --
->>>> 1.7.4.1
->>>>
->>>>
->>>> MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
->>>> Registergericht: Amtsgericht Stuttgart, HRB 271090
->>>> Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
->>>>
->>>
->>
->
+    
+int dvbc_qam_min(int channel, int channellist) {
+switch(channellist) {
+       case DVBC_FI:
++      case DVBC_BR:
+       case DVBC_FR:
+       case DVBC_QAM:   return 0; //QAM64
+       default:         return 0; //no qam loop
+       }
+}
+
+I don't think that adding QAM_128 makes sense. Later, if i have more reports from 6MHz network users, i will reduce the number of symbol rates.
+-- 
+Empfehlen Sie GMX DSL Ihren Freunden und Bekannten und wir
+belohnen Sie mit bis zu 50,- Euro! https://freundschaftswerbung.gmx.de
