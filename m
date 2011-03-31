@@ -1,83 +1,83 @@
 Return-path: <mchehab@pedra>
-Received: from cpoproxy2-pub.bluehost.com ([67.222.39.38]:45656 "HELO
-	cpoproxy2-pub.bluehost.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S932870Ab1CWPS0 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Mar 2011 11:18:26 -0400
-Date: Wed, 23 Mar 2011 08:18:20 -0700
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-To: "K, Mythri P" <mythripk@ti.com>
-Cc: Dave Airlie <airlied@gmail.com>, linux-fbdev@vger.kernel.org,
-	linux-omap@vger.kernel.org,
-	dri-devel <dri-devel@lists.freedesktop.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH] HDMI:Support for EDID parsing in kernel.
-Message-ID: <20110323081820.5b37d169@jbarnes-desktop>
-In-Reply-To: <AANLkTinMUCbaEVjwZsHG9BxFVjx0YxS=Sw+3gViDJXhg@mail.gmail.com>
-References: <1300815176-21206-1-git-send-email-mythripk@ti.com>
-	<AANLkTim61Xdo6ED7mr_SvpLuotso89RdR6Qaz-GCXOmJ@mail.gmail.com>
-	<AANLkTinMUCbaEVjwZsHG9BxFVjx0YxS=Sw+3gViDJXhg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:44400 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759054Ab1CaTwa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 31 Mar 2011 15:52:30 -0400
+Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
+To: "Steven Rostedt" <rostedt@goodmis.org>
+Cc: "Marek Szyprowski" <m.szyprowski@samsung.com>,
+	"Dave Hansen" <dave@linux.vnet.ibm.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-mm@kvack.org, "Kyungmin Park" <kyungmin.park@samsung.com>,
+	"Andrew Morton" <akpm@linux-foundation.org>,
+	"KAMEZAWA Hiroyuki" <kamezawa.hiroyu@jp.fujitsu.com>,
+	"Ankita Garg" <ankita@in.ibm.com>,
+	"Daniel Walker" <dwalker@codeaurora.org>,
+	"Johan MOSSBERG" <johan.xx.mossberg@stericsson.com>,
+	"Mel Gorman" <mel@csn.ul.ie>, "Pawel Osciak" <pawel@osciak.com>
+Subject: Re: [PATCH 05/12] mm: alloc_contig_range() added
+References: <1301577368-16095-1-git-send-email-m.szyprowski@samsung.com>
+ <1301577368-16095-6-git-send-email-m.szyprowski@samsung.com>
+ <1301587361.31087.1040.camel@nimitz> <op.vs7umufd3l0zgt@mnazarewicz-glaptop>
+ <20110331192821.GF14441@home.goodmis.org>
+Date: Thu, 31 Mar 2011 21:52:26 +0200
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+From: "Michal Nazarewicz" <mina86@mina86.com>
+Message-ID: <op.vs735nki3l0zgt@mnazarewicz-glaptop>
+In-Reply-To: <20110331192821.GF14441@home.goodmis.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 23 Mar 2011 18:58:27 +0530
-"K, Mythri P" <mythripk@ti.com> wrote:
+On Thu, 31 Mar 2011 21:28:21 +0200, Steven Rostedt wrote:
+> WARN_ON() should never do anything but test. That ret++ does not belong
+> inside the WARN_ON() condition. If there are other locations in the
+> kernel that do that, then those locations need to be fixed.
 
-> Hi Dave,
-> 
-> On Wed, Mar 23, 2011 at 6:16 AM, Dave Airlie <airlied@gmail.com> wrote:
-> > On Wed, Mar 23, 2011 at 3:32 AM, Mythri P K <mythripk@ti.com> wrote:
-> >> Adding support for common EDID parsing in kernel.
-> >>
-> >> EDID - Extended display identification data is a data structure provided by
-> >> a digital display to describe its capabilities to a video source, This a
-> >> standard supported by CEA and VESA.
-> >>
-> >> There are several custom implementations for parsing EDID in kernel, some
-> >> of them are present in fbmon.c, drm_edid.c, sh_mobile_hdmi.c, Ideally
-> >> parsing of EDID should be done in a library, which is agnostic of the
-> >> framework (V4l2, DRM, FB)  which is using the functionality, just based on
-> >> the raw EDID pointer with size/segment information.
-> >>
-> >> With other RFC's such as the one below, which tries to standardize HDMI API's
-> >> It would be better to have a common EDID code in one place.It also helps to
-> >> provide better interoperability with variety of TV/Monitor may be even by
-> >> listing out quirks which might get missed with several custom implementation
-> >> of EDID.
-> >> http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/30401
-> >>
-> >> This patch tries to add functions to parse some portion EDID (detailed timing,
-> >> monitor limits, AV delay information, deep color mode support, Audio and VSDB)
-> >> If we can align on this library approach i can enhance this library to parse
-> >> other blocks and probably we could also add quirks from other implementation
-> >> as well.
-> >>
-> >
-> > If you want to take this approach, you need to start from the DRM EDID parser,
-> > its the most well tested and I can guarantee its been plugged into more monitors
-> > than any of the others. There is just no way we would move the DRM parser to a
-> > library one that isn't derived from it + enhancements, as we'd throw away the
-> > years of testing and the regression count would be way too high.
-> >
-> I had a look at the DRM EDID code, but for quirks it looks pretty much the same.
-> yes i could take quirks and other DRM tested code and enhance, but
-> still the code has to do away with struct drm_display_mode
-> which is very much custom to DRM.
+Testing implies evaluating, so if we allow:
 
-If that's the only issue you have, we could easily rename that
-structure or add conversion funcs to a smaller structure if that's what
-you need.
+     if (++i == end) { /* ... */ }
 
-Dave's point is that we can't ditch the existing code without
-introducing a lot of risk; it would be better to start a library-ized
-EDID codebase from the most complete one we have already, i.e. the DRM
-EDID code.
+I see no reason why not to allow:
 
-Do you really think the differences between your code and the existing
-DRM code are irreconcilable?
+     if (WARN_ON(++i == end)) { /* ... */ }
+
+In both cases the condition is tested.
+
+>> On Thu, 2011-03-31 at 15:16 +0200, Marek Szyprowski wrote:
+>>> +       ret = 0;
+>>> +       while (!PageBuddy(pfn_to_page(start & (~0UL << ret))))
+>>> +               if (WARN_ON(++ret >= MAX_ORDER))
+>>> +                       return -EINVAL;
+
+> On Thu, Mar 31, 2011 at 09:02:41AM -0700, Dave Hansen wrote:
+>> In any case, please pull the ++ret bit out of the WARN_ON().  Some
+>> people like to do:
+>>
+>> #define WARN_ON(...) do{}while(0)
+>>
+>> to save space on some systems.
+
+On Thu, 31 Mar 2011 21:26:50 +0200, Steven Rostedt wrote:
+> That should be fixed, as the if (WARN_ON()) has become a standard in
+> most of the kernel. Removing WARN_ON() should be:
+>
+> #define WARN_ON(x) ({0;})
+
+This would break a lot of code which expect that testing to take place.
+Also see <http://lxr.linux.no/linux+*/include/asm-generic/bug.h#L108>.
+
+> But I agree, that there should be no "side effects" inside a WARN_ON(),
+> which that "++ret" is definitely one.
+
+Thus I don't really agree with this point.
+
+At any rate, I don't really care.
 
 -- 
-Jesse Barnes, Intel Open Source Technology Center
+Best regards,                                         _     _
+.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
+..o | Computer Science,  Michal "mina86" Nazarewicz    (o o)
+ooo +-----<email/xmpp: mnazarewicz@google.com>-----ooO--(_)--Ooo--
