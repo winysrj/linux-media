@@ -1,60 +1,242 @@
 Return-path: <mchehab@pedra>
-Received: from db3ehsobe004.messaging.microsoft.com ([213.199.154.142]:1679
-	"EHLO DB3EHSOBE004.bigfish.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754746Ab1CVKog (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:22671 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757516Ab1CaNQV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Mar 2011 06:44:36 -0400
-Date: Tue, 22 Mar 2011 11:44:26 +0100
-From: "Roedel, Joerg" <Joerg.Roedel@amd.com>
-To: Florian Mickler <florian@mickler.org>
-CC: Andy Walls <awalls@md.metrocast.net>,
-	"mchehab@infradead.org" <mchehab@infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"js@linuxtv.org" <js@linuxtv.org>,
-	"tskd2@yahoo.co.jp" <tskd2@yahoo.co.jp>,
-	"liplianin@me.by" <liplianin@me.by>,
-	"g.marco@freenet.de" <g.marco@freenet.de>,
-	"aet@rasterburn.org" <aet@rasterburn.org>,
-	"pb@linuxtv.org" <pb@linuxtv.org>,
-	"mkrufky@linuxtv.org" <mkrufky@linuxtv.org>,
-	"nick@nick-andrew.net" <nick@nick-andrew.net>,
-	"max@veneto.com" <max@veneto.com>,
-	"janne-dvb@grunau.be" <janne-dvb@grunau.be>,
-	Oliver Neukum <oliver@neukum.org>,
-	Greg Kroah-Hartman <greg@kroah.com>,
-	"Rafael J. Wysocki" <rjw@sisk.pl>,
-	James Bottomley <James.Bottomley@HansenPartnership.com>
-Subject: Re: [PATCH 0/6] get rid of on-stack dma buffers
-Message-ID: <20110322104426.GA20444@amd.com>
-References: <1300732426-18958-1-git-send-email-florian@mickler.org>
- <a08d026a-d4c3-4ee5-b01a-d561f755b1ec@email.android.com>
- <20110321220315.7545a61a@schatten.dmk.lab>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20110321220315.7545a61a@schatten.dmk.lab>
+	Thu, 31 Mar 2011 09:16:21 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Thu, 31 Mar 2011 15:16:04 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 08/12] mm: MIGRATE_CMA isolation functions added
+In-reply-to: <1301577368-16095-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-mm@kvack.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
+	Mel Gorman <mel@csn.ul.ie>, Pawel Osciak <pawel@osciak.com>
+Message-id: <1301577368-16095-9-git-send-email-m.szyprowski@samsung.com>
+References: <1301577368-16095-1-git-send-email-m.szyprowski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, Mar 21, 2011 at 05:03:15PM -0400, Florian Mickler wrote:
-> I guess (not verified), that the dma api takes sufficient precautions
-> to abort the dma transfer if a timeout happens.  So freeing _should_
-> not be an issue. (At least, I would expect big fat warnings everywhere
-> if that were the case)
+From: Michal Nazarewicz <m.nazarewicz@samsung.com>
 
-Freeing is very well an issue. All you can expect from the DMA-API is to
-give you a valid DMA handle for your device. But it can not prevent that
-a device uses this handle after you returned it. You need to make sure
-yourself that any pending DMA is canceled before calling kfree().
+This commit changes various functions that change pages and
+pageblocks migrate type between MIGRATE_ISOLATE and
+MIGRATE_MOVABLE in such a way as to allow to work with
+MIGRATE_CMA migrate type.
 
+Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+CC: Michal Nazarewicz <mina86@mina86.com>
+---
+ include/linux/page-isolation.h |   40 +++++++++++++++++++++++++++-------------
+ mm/page_alloc.c                |   19 ++++++++++++-------
+ mm/page_isolation.c            |   15 ++++++++-------
+ 3 files changed, 47 insertions(+), 27 deletions(-)
 
-		Joerg
-
+diff --git a/include/linux/page-isolation.h b/include/linux/page-isolation.h
+index c5d1a7c..177b307 100644
+--- a/include/linux/page-isolation.h
++++ b/include/linux/page-isolation.h
+@@ -3,39 +3,53 @@
+ 
+ /*
+  * Changes migrate type in [start_pfn, end_pfn) to be MIGRATE_ISOLATE.
+- * If specified range includes migrate types other than MOVABLE,
++ * If specified range includes migrate types other than MOVABLE or CMA,
+  * this will fail with -EBUSY.
+  *
+  * For isolating all pages in the range finally, the caller have to
+  * free all pages in the range. test_page_isolated() can be used for
+  * test it.
+  */
+-extern int
+-start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn);
++int __start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
++			       unsigned migratetype);
++
++static inline int
++start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
++{
++	return __start_isolate_page_range(start_pfn, end_pfn, MIGRATE_MOVABLE);
++}
++
++int __undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
++			      unsigned migratetype);
+ 
+ /*
+  * Changes MIGRATE_ISOLATE to MIGRATE_MOVABLE.
+  * target range is [start_pfn, end_pfn)
+  */
+-extern int
+-undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn);
++static inline int
++undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
++{
++	return __undo_isolate_page_range(start_pfn, end_pfn, MIGRATE_MOVABLE);
++}
+ 
+ /*
+- * test all pages in [start_pfn, end_pfn)are isolated or not.
++ * Test all pages in [start_pfn, end_pfn) are isolated or not.
+  */
+-extern int
+-test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn);
++int test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn);
+ 
+ /*
+- * Internal funcs.Changes pageblock's migrate type.
+- * Please use make_pagetype_isolated()/make_pagetype_movable().
++ * Internal functions. Changes pageblock's migrate type.
+  */
+-extern int set_migratetype_isolate(struct page *page);
+-extern void unset_migratetype_isolate(struct page *page);
++int set_migratetype_isolate(struct page *page);
++void __unset_migratetype_isolate(struct page *page, unsigned migratetype);
++static inline void unset_migratetype_isolate(struct page *page)
++{
++	__unset_migratetype_isolate(page, MIGRATE_MOVABLE);
++}
+ extern unsigned long alloc_contig_freed_pages(unsigned long start,
+ 					      unsigned long end, gfp_t flag);
+ extern int alloc_contig_range(unsigned long start, unsigned long end,
+-			      gfp_t flags);
++			      gfp_t flags, unsigned migratetype);
+ extern void free_contig_pages(struct page *page, int nr_pages);
+ 
+ /*
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 24f795e..5f4232d 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -5586,7 +5586,7 @@ out:
+ 	return ret;
+ }
+ 
+-void unset_migratetype_isolate(struct page *page)
++void __unset_migratetype_isolate(struct page *page, unsigned migratetype)
+ {
+ 	struct zone *zone;
+ 	unsigned long flags;
+@@ -5594,8 +5594,8 @@ void unset_migratetype_isolate(struct page *page)
+ 	spin_lock_irqsave(&zone->lock, flags);
+ 	if (get_pageblock_migratetype(page) != MIGRATE_ISOLATE)
+ 		goto out;
+-	set_pageblock_migratetype(page, MIGRATE_MOVABLE);
+-	move_freepages_block(zone, page, MIGRATE_MOVABLE);
++	set_pageblock_migratetype(page, migratetype);
++	move_freepages_block(zone, page, migratetype);
+ out:
+ 	spin_unlock_irqrestore(&zone->lock, flags);
+ }
+@@ -5700,6 +5700,10 @@ static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
+  * @start:	start PFN to allocate
+  * @end:	one-past-the-last PFN to allocate
+  * @flags:	flags passed to alloc_contig_freed_pages().
++ * @migratetype:	migratetype of the underlaying pageblocks (either
++ *			#MIGRATE_MOVABLE or #MIGRATE_CMA).  All pageblocks
++ *			in range must have the same migratetype and it must
++ *			be either of the two.
+  *
+  * The PFN range does not have to be pageblock or MAX_ORDER_NR_PAGES
+  * aligned, hovewer it's callers responsibility to guarantee that we
+@@ -5711,7 +5715,7 @@ static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
+  * need to be freed with free_contig_pages().
+  */
+ int alloc_contig_range(unsigned long start, unsigned long end,
+-		       gfp_t flags)
++		       gfp_t flags, unsigned migratetype)
+ {
+ 	unsigned long _start, _end;
+ 	int ret;
+@@ -5739,8 +5743,8 @@ int alloc_contig_range(unsigned long start, unsigned long end,
+ 	 * them.
+ 	 */
+ 
+-	ret = start_isolate_page_range(pfn_to_maxpage(start),
+-				       pfn_to_maxpage_up(end));
++	ret = __start_isolate_page_range(pfn_to_maxpage(start),
++					 pfn_to_maxpage_up(end), migratetype);
+ 	if (ret)
+ 		goto done;
+ 
+@@ -5778,7 +5782,8 @@ int alloc_contig_range(unsigned long start, unsigned long end,
+ 
+ 	ret = 0;
+ done:
+-	undo_isolate_page_range(pfn_to_maxpage(start), pfn_to_maxpage_up(end));
++	__undo_isolate_page_range(pfn_to_maxpage(start), pfn_to_maxpage_up(end),
++				  migratetype);
+ 	return ret;
+ }
+ 
+diff --git a/mm/page_isolation.c b/mm/page_isolation.c
+index 8a3122c..d36f082 100644
+--- a/mm/page_isolation.c
++++ b/mm/page_isolation.c
+@@ -23,10 +23,11 @@ __first_valid_page(unsigned long pfn, unsigned long nr_pages)
+ }
+ 
+ /*
+- * start_isolate_page_range() -- make page-allocation-type of range of pages
++ * __start_isolate_page_range() -- make page-allocation-type of range of pages
+  * to be MIGRATE_ISOLATE.
+  * @start_pfn: The lower PFN of the range to be isolated.
+  * @end_pfn: The upper PFN of the range to be isolated.
++ * @migratetype: migrate type to set in error recovery.
+  *
+  * Making page-allocation-type to be MIGRATE_ISOLATE means free pages in
+  * the range will never be allocated. Any free pages and pages freed in the
+@@ -35,8 +36,8 @@ __first_valid_page(unsigned long pfn, unsigned long nr_pages)
+  * start_pfn/end_pfn must be aligned to pageblock_order.
+  * Returns 0 on success and -EBUSY if any part of range cannot be isolated.
+  */
+-int
+-start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
++int __start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
++			       unsigned migratetype)
+ {
+ 	unsigned long pfn;
+ 	unsigned long undo_pfn;
+@@ -59,7 +60,7 @@ undo:
+ 	for (pfn = start_pfn;
+ 	     pfn < undo_pfn;
+ 	     pfn += pageblock_nr_pages)
+-		unset_migratetype_isolate(pfn_to_page(pfn));
++		__unset_migratetype_isolate(pfn_to_page(pfn), migratetype);
+ 
+ 	return -EBUSY;
+ }
+@@ -67,8 +68,8 @@ undo:
+ /*
+  * Make isolated pages available again.
+  */
+-int
+-undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
++int __undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
++			      unsigned migratetype)
+ {
+ 	unsigned long pfn;
+ 	struct page *page;
+@@ -80,7 +81,7 @@ undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
+ 		page = __first_valid_page(pfn, pageblock_nr_pages);
+ 		if (!page || get_pageblock_migratetype(page) != MIGRATE_ISOLATE)
+ 			continue;
+-		unset_migratetype_isolate(page);
++		__unset_migratetype_isolate(page, migratetype);
+ 	}
+ 	return 0;
+ }
 -- 
-AMD Operating System Research Center
-
-Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
-General Managers: Alberto Bozzo, Andrew Bowd
-Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr. 43632
-
+1.7.1.569.g6f426
