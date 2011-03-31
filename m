@@ -1,64 +1,70 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44869 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932396Ab1C3Jd4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Mar 2011 05:33:56 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: [RFC] V4L2 API for flash devices
-Date: Wed, 30 Mar 2011 11:34:14 +0200
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Nayden Kanchev <nkanchev@mm-sol.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Cohen David Abraham <david.cohen@nokia.com>
-References: <4D90854C.2000802@maxwell.research.nokia.com>
-In-Reply-To: <4D90854C.2000802@maxwell.research.nokia.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Received: from e4.ny.us.ibm.com ([32.97.182.144]:37144 "EHLO e4.ny.us.ibm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753674Ab1CaVOp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 31 Mar 2011 17:14:45 -0400
+Subject: Re: [PATCH 04/12] mm: alloc_contig_freed_pages() added
+From: Dave Hansen <dave@linux.vnet.ibm.com>
+To: Michal Nazarewicz <mina86@mina86.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-mm@kvack.org, Kyungmin Park <kyungmin.park@samsung.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
+	Mel Gorman <mel@csn.ul.ie>, Pawel Osciak <pawel@osciak.com>
+In-Reply-To: <op.vs77qfx03l0zgt@mnazarewicz-glaptop>
+References: <1301577368-16095-1-git-send-email-m.szyprowski@samsung.com>
+	 <1301577368-16095-5-git-send-email-m.szyprowski@samsung.com>
+	 <1301587083.31087.1032.camel@nimitz>
+	 <op.vs77qfx03l0zgt@mnazarewicz-glaptop>
+Content-Type: text/plain; charset="ISO-8859-1"
+Date: Thu, 31 Mar 2011 14:14:38 -0700
+Message-ID: <1301606078.31087.1275.camel@nimitz>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Message-Id: <201103301134.14798.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Sakari,
-
-On Monday 28 March 2011 14:55:40 Sakari Ailus wrote:
-
-[snip]
-
-> 	V4L2_CID_FLASH_STROBE_MODE (menu; LED)
+On Thu, 2011-03-31 at 23:09 +0200, Michal Nazarewicz wrote:
+> On Thu, 31 Mar 2011 17:58:03 +0200, Dave Hansen <dave@linux.vnet.ibm.com>  
+> wrote:
+> > On Thu, 2011-03-31 at 15:16 +0200, Marek Szyprowski wrote:
+> >> +unsigned long alloc_contig_freed_pages(unsigned long start, unsigned  
+> >> long end,
+> >> +                                      gfp_t flag)
+> >> +{
+> >> +       unsigned long pfn = start, count;
+> >> +       struct page *page;
+> >> +       struct zone *zone;
+> >> +       int order;
+> >> +
+> >> +       VM_BUG_ON(!pfn_valid(start));
+> >
+> > This seems kinda mean.  Could we return an error?  I understand that
+> > this is largely going to be an early-boot thing, but surely trying to
+> > punt on crappy input beats a full-on BUG().
 > 
-> Use hardware or software strobe. If hardware strobe is selected, the
-> flash controller is a slave in the system where the sensor produces the
-> strobe signal to the flash.
+> Actually, I would have to check but I think that the usage of this function
+> (in this patchset) is that the caller expects the function to succeed.  It  
+> is quite a low-level function so before running it a lot of preparation is  
+> needed and the caller must make sure that several conditions are met.  I don't  
+> really see advantage of returning a value rather then BUG()ing.
 > 
-> In this case the flash controller setup is limited to programming strobe
-> timeout and power (LED flash) and the sensor controls the timing and
-> length of the strobe.
-> 
-> enum v4l2_flash_strobe_mode {
-> 	V4L2_FLASH_STROBE_MODE_SOFTWARE,
-> 	V4L2_FLASH_STROBE_MODE_EXT_STROBE,
-> };
+> Also, CMA does not call this function at boot time.
 
-[snip]
+We BUG_ON() in bootmem.  Basically if we try to allocate an early-boot
+structure and fail, we're screwed.  We can't keep running without an
+inode hash, or a mem_map[].
 
-> 	V4L2_CID_FLASH_LED_MODE (menu; LED)
-> 
-> enum v4l2_flash_led_mode {
-> 	V4L2_FLASH_LED_MODE_FLASH = 1,
-> 	V4L2_FLASH_LED_MODE_TORCH,
-> };
+This looks like it's going to at least get partially used in drivers, at
+least from the examples.  Are these kinds of things that, if the driver
+fails to load, that the system is useless and hosed?  Or, is it
+something where we might limp along to figure out what went wrong before
+we reboot?
 
-Thinking about this some more, shouldn't we combine the two controls ? They 
-are basically used to configure how the flash LED is controlled: manually 
-(torch mode), automatically by the flash controller (software strobe mode) or 
-automatically by an external component (external strobe mode).
+-- Dave
 
--- 
-Regards,
-
-Laurent Pinchart
