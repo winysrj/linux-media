@@ -1,52 +1,40 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:53907 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751595Ab1CQAHM (ORCPT
+Received: from e35.co.us.ibm.com ([32.97.110.153]:43764 "EHLO
+	e35.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964977Ab1CaQ1R (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Mar 2011 20:07:12 -0400
-Subject: Re: [PATCH 5/6] lirc_zilog: error out if buffer read bytes !=
- chunk size
-From: Andy Walls <awalls@md.metrocast.net>
-To: Jarod Wilson <jarod@redhat.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <1300307071-19665-6-git-send-email-jarod@redhat.com>
-References: <1300307071-19665-1-git-send-email-jarod@redhat.com>
-	 <1300307071-19665-6-git-send-email-jarod@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 16 Mar 2011 20:07:22 -0400
-Message-ID: <1300320442.2296.25.camel@localhost>
+	Thu, 31 Mar 2011 12:27:17 -0400
+Subject: Re: [PATCH 05/12] mm: alloc_contig_range() added
+From: Dave Hansen <dave@linux.vnet.ibm.com>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-mm@kvack.org, Michal Nazarewicz <mina86@mina86.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
+	Mel Gorman <mel@csn.ul.ie>, Pawel Osciak <pawel@osciak.com>
+In-Reply-To: <1301577368-16095-6-git-send-email-m.szyprowski@samsung.com>
+References: <1301577368-16095-1-git-send-email-m.szyprowski@samsung.com>
+	 <1301577368-16095-6-git-send-email-m.szyprowski@samsung.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Date: Thu, 31 Mar 2011 09:04:05 -0700
+Message-ID: <1301587445.31087.1042.camel@nimitz>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 2011-03-16 at 16:24 -0400, Jarod Wilson wrote:
-> Signed-off-by: Jarod Wilson <jarod@redhat.com>
-> ---
->  drivers/staging/lirc/lirc_zilog.c |    4 ++++
->  1 files changed, 4 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/staging/lirc/lirc_zilog.c b/drivers/staging/lirc/lirc_zilog.c
-> index 407d4b4..5ada643 100644
-> --- a/drivers/staging/lirc/lirc_zilog.c
-> +++ b/drivers/staging/lirc/lirc_zilog.c
-> @@ -950,6 +950,10 @@ static ssize_t read(struct file *filep, char *outbuf, size_t n, loff_t *ppos)
->  				ret = copy_to_user((void *)outbuf+written, buf,
->  						   rbuf->chunk_size);
->  				written += rbuf->chunk_size;
-> +			} else {
-> +				zilog_error("Buffer read failed!\n");
-> +				ret = -EIO;
-> +				break;
+On Thu, 2011-03-31 at 15:16 +0200, Marek Szyprowski wrote:
+> +       _start = start & (~0UL << ret);
+> +       _end   = alloc_contig_freed_pages(_start, end, flag); 
 
-No need to break, just let the non-0 ret value drop you out of the while
-loop.
+These names are a wee bit lacking.  Care to give them proper names that
+might let a reader figure out how the "_" makes the variable different
+from its nearly-identical twin?
 
-Regards,
-Andy
-
->  			}
->  		}
->  	}
-
+-- Dave
 
