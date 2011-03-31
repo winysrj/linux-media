@@ -1,13 +1,14 @@
 Return-path: <mchehab@pedra>
-Received: from e34.co.us.ibm.com ([32.97.110.152]:52043 "EHLO
-	e34.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752186Ab1CaU2v (ORCPT
+Received: from hrndva-omtalb.mail.rr.com ([71.74.56.122]:54434 "EHLO
+	hrndva-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759227Ab1CaT2Y (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Mar 2011 16:28:51 -0400
-Subject: Re: [PATCH 05/12] mm: alloc_contig_range() added
-From: Dave Hansen <dave@linux.vnet.ibm.com>
+	Thu, 31 Mar 2011 15:28:24 -0400
+Date: Thu, 31 Mar 2011 15:28:21 -0400
+From: Steven Rostedt <rostedt@goodmis.org>
 To: Michal Nazarewicz <mina86@mina86.com>
 Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
 	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
 	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
 	linux-mm@kvack.org, Kyungmin Park <kyungmin.park@samsung.com>,
@@ -17,69 +18,35 @@ Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
 	Daniel Walker <dwalker@codeaurora.org>,
 	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
 	Mel Gorman <mel@csn.ul.ie>, Pawel Osciak <pawel@osciak.com>
-In-Reply-To: <op.vs7umufd3l0zgt@mnazarewicz-glaptop>
+Subject: Re: [PATCH 05/12] mm: alloc_contig_range() added
+Message-ID: <20110331192821.GF14441@home.goodmis.org>
 References: <1301577368-16095-1-git-send-email-m.szyprowski@samsung.com>
-	 <1301577368-16095-6-git-send-email-m.szyprowski@samsung.com>
-	 <1301587361.31087.1040.camel@nimitz>
-	 <op.vs7umufd3l0zgt@mnazarewicz-glaptop>
-Content-Type: text/plain; charset="ISO-8859-1"
-Date: Thu, 31 Mar 2011 13:28:42 -0700
-Message-ID: <1301603322.31087.1196.camel@nimitz>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+ <1301577368-16095-6-git-send-email-m.szyprowski@samsung.com>
+ <1301587361.31087.1040.camel@nimitz>
+ <op.vs7umufd3l0zgt@mnazarewicz-glaptop>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <op.vs7umufd3l0zgt@mnazarewicz-glaptop>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, 2011-03-31 at 18:26 +0200, Michal Nazarewicz wrote:
-> > On Thu, 2011-03-31 at 15:16 +0200, Marek Szyprowski wrote:
-> >> +       ret = 0;
-> >> +       while (!PageBuddy(pfn_to_page(start & (~0UL << ret))))
-> >> +               if (WARN_ON(++ret >= MAX_ORDER))
-> >> +                       return -EINVAL;
-> 
-> On Thu, 31 Mar 2011 18:02:41 +0200, Dave Hansen wrote:
-> > Holy cow, that's dense.  Is there really no more straightforward way to
-> > do that?
-> 
-> Which part exactly is dense?  What would be qualify as a more
-> straightforward way?
-
-I'm still not 100% sure what it's trying to do.  It looks like it
-attempts to check all of "start"'s buddy pages.
-
-unsigned long find_buddy(unsigned long pfn, int buddy)
-{
-	unsigned long page_idx = pfn & ((1 << MAX_ORDER) - 1); // You had a macro for this I think
-	unsigned long buddy_idx = __find_buddy_index(page_idx, order);
-	return page_idx + buddy_idx;
-}
-
-Is something like this equivalent?
-
-int order;
-for (order = 0; order <= MAX_ORDER; order++) {
-	unsigned long buddy_pfn = find_buddy(start, order);
-	struct page *buddy = pfn_to_page(buddy_pfn);
-	if (PageBuddy(buddy)
-		break;
-	WARN();
-	return -EINVAL;
-}
-
-I'm wondering also if you can share some code with __rmqueue().
-
-> > In any case, please pull the ++ret bit out of the WARN_ON().  Some
-> > people like to do:
+On Thu, Mar 31, 2011 at 06:26:45PM +0200, Michal Nazarewicz wrote:
+> >In any case, please pull the ++ret bit out of the WARN_ON().  Some
+> >people like to do:
 > >
-> > #define WARN_ON(...) do{}while(0)
+> >#define WARN_ON(...) do{}while(0)
 > >
-> > to save space on some systems.
+> >to save space on some systems.
 > 
 > I don't think that's the case.  Even if WARN_ON() decides not to print
 > a warning, it will still return the value of the argument.  If not,
 > a lot of code will brake.
+>
 
-Bah, sorry.  I'm confusing WARN_ON() and WARN().
+WARN_ON() should never do anything but test. That ret++ does not belong
+inside the WARN_ON() condition. If there are other locations in the
+kernel that do that, then those locations need to be fixed.
 
--- Dave
+-- Steve
 
