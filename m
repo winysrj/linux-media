@@ -1,47 +1,47 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.23]:45156 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750879Ab1DBLVb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Apr 2011 07:21:31 -0400
-Message-ID: <4D9706AC.7000704@gmx.net>
-Date: Sat, 02 Apr 2011 13:21:16 +0200
-From: Jos Hoekstra <joshoekstra@gmx.net>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: Technisat Cablestar HD2 not automatically detected by kernel
- > 2.6.33?
-References: <4D9390FA.9040402@gmx.net> <8762qz79o7.fsf@nemi.mork.no>
-In-Reply-To: <8762qz79o7.fsf@nemi.mork.no>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from adelie.canonical.com ([91.189.90.139]:46309 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757196Ab1DAOY0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Apr 2011 10:24:26 -0400
+From: Herton Ronaldo Krzesinski <herton.krzesinski@canonical.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] v4l: subdev: initialize sd->internal_ops in v4l2_subdev_init
+Date: Fri,  1 Apr 2011 11:24:17 -0300
+Message-Id: <1301667857-5145-2-git-send-email-herton.krzesinski@canonical.com>
+In-Reply-To: <1301667857-5145-1-git-send-email-herton.krzesinski@canonical.com>
+References: <1301667857-5145-1-git-send-email-herton.krzesinski@canonical.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Op 31-3-2011 14:32, Bjørn Mork schreef:
-> Jos Hoekstra<joshoekstra@gmx.net>  writes:
->
->> I got this card and it doesn't seem to be detected by Ubuntu 10.4.2
->> with kernel 2.6.35(-25-generic #44~lucid1-Ubuntu SMP Tue Jan 25
->> 19:17:25 UTC 2011 x86_64 GNU/Linux)
->>
->> The wiki seems to indicate that this card is supported as of kernel
->> 2.6.33, however it doesn't show up as a dvb-adapter.
-> [..]
->> After rebooting it however seems I need to manually modprobe mantis
->> and restart the backend to have mythtv work with this card. Is there a
->> way to make these modules load automatically after a reboot?
-> The best way to work around the problem until you upgrade your kernel to
-> 2.6.38 or newer, is probably just adding mantis to /etc/modules.
->
->
-> Bjørn
+Many v4l drivers currently don't initialize their struct v4l2_subdev
+with zeros, so since the addition of internal_ops in commit 45f6f84, we
+are at risk of random oopses when code in v4l2_device_register_subdev
+tries to dereference sd->internal_ops->*, as can be shown by the report
+at http://bugs.launchpad.net/bugs/745213
 
-This work-around solved this little issue for me, thanks :)
+So make sure internal_ops is cleared in v4l2_subdev_init.
 
-Is there a how-to for handing in initial scan-files or complete scans? 
-I'm on fiber and afaik this goes for the whole network excluding local 
-stations.
+BugLink: http://bugs.launchpad.net/bugs/745213
+Cc: <stable@kernel.org> # .38.x
+Signed-off-by: Herton Ronaldo Krzesinski <herton.krzesinski@canonical.com>
+---
+ drivers/media/video/v4l2-subdev.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-Thanks,
+diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+index 0b80644..0f70c74 100644
+--- a/drivers/media/video/v4l2-subdev.c
++++ b/drivers/media/video/v4l2-subdev.c
+@@ -324,6 +324,7 @@ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
+ 	sd->grp_id = 0;
+ 	sd->dev_priv = NULL;
+ 	sd->host_priv = NULL;
++	sd->internal_ops = NULL;
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 	sd->entity.name = sd->name;
+ 	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV;
+-- 
+1.7.1
 
-Jos Hoekstra
