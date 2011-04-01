@@ -1,109 +1,114 @@
 Return-path: <mchehab@pedra>
-Received: from cmsout01.mbox.net ([165.212.64.31]:41987 "EHLO
-	cmsout01.mbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753036Ab1DWKUe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Apr 2011 06:20:34 -0400
-Message-ID: <4DB2A7CF.9050700@usa.net>
-Date: Sat, 23 Apr 2011 12:19:59 +0200
-From: Issa Gorissen <flop.m@usa.net>
-MIME-Version: 1.0
-To: Ralph Metzler <rjkm@metzlerbros.de>
-CC: xtronom@gmail.com, linux-media@vger.kernel.org
-Subject: Re: ngene CI problems
-References: <4D74E28A.6030302@gmail.com> <4DB1FE58.20006@usa.net>
-In-Reply-To: <4DB1FE58.20006@usa.net>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.samsung.com ([203.254.224.33]:15831 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752340Ab1DAIti (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Apr 2011 04:49:38 -0400
+Date: Fri, 01 Apr 2011 17:49:26 +0900
+From: Jonghun Han <jonghun.han@samsung.com>
+Subject: RE: [RFC/PATCH 0/2] FrameBuffer emulator for V4L2/VideoBuf2
+In-reply-to: <1301468448-25524-1-git-send-email-m.szyprowski@samsung.com>
+To: 'Marek Szyprowski' <m.szyprowski@samsung.com>,
+	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, t.stanislaws@samsung.com,
+	=?ks_c_5601-1987?B?J7DtwOe47Sc=?= <jemings@samsung.com>,
+	=?ks_c_5601-1987?B?J8DMwM/Ioyc=?= <ilho215.lee@samsung.com>
+Message-id: <002a01cbf049$b824cf10$286e6d30$%han@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ks_c_5601-1987
+Content-language: ko
+Content-transfer-encoding: 7BIT
+References: <1301468448-25524-1-git-send-email-m.szyprowski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 23/04/11 00:16, Issa Gorissen wrote:
->> Hi all!
->>
->> I'm trying to make the DVB_DEVICE_SEC approach work, however I'm 
->> experiencing certain problems with the following setup:
->>
->> Software:
->> Linux 2.6.34.8 (vanilla)
->> drivers from http://linuxtv.org/hg/~endriss/v4l-dvb/ <http://linuxtv.org/hg/%7Eendriss/v4l-dvb/>
->>
->> Hardware:
->> Digital Devices CineS2 + CI Module
->>
->> Problems:
->>
->> - Packets get lost in SEC device:
->>
->> I write complete TS to SEC, but when reading from SEC there are 
->> discontinuities on the CC.
->>
->> - SEC device generates NULL packets (ad infinitum):
->>
->> When reading from SEC, NULL packets are read and interleaved with 
->> expected packets. They can be even read with dd(1) when nobody is 
->> writing to SEC and even when CAM is not ready.
->>
->> - SEC device blocks on CAM re-insertion:
->>
->> When CAM is removed from the slot and inserted again, all read() 
->> operations just hang. Rebooting resolves the problem.
->>
->> - SEC device does not respect O_NONBLOCK:
->>
->> In connection to the previous problem, SEC device blocks even if opened 
->> with O_NONBLOCK.
->>
->> Best regards,
->> Martin Vidovic
->
-> Hi,
->
-> Running a bunch of test with gnutv and a DuoFLEX S2.
->
-> I saw the same problem concerning the decryption with a CAM.
->
-> I'm running kern 2.6.39 rc 4 with the latest patches from Oliver. Also
-> applied the patch moving from SEC to CAIO.
->
-> I would run gnutv  like 'gnutv -out stdout channelname >
-> /dev/dvb/adapter0/caio0' and then 'cat /dev/dvb/adapter0/caio0 | mplayer -'
-> Mplayer would complain the file is invalid. Simply running simply 'cat
-> /dev/dvb/adapter0/caio0' will show me the same data pattern over and over.
->
-> Anyone using ngene based card with a CAM running successfully ?
 
-Hi Ralph,
+Hi Marek,
 
-Could you enlighten us on the following matter please ?
+On Wednesday, March 30, 2011 4:01 PM Marek Szyprowski wrote:
+> Hello,
+> 
+> On V4L2 brainstorming meeting in Warsaw we discussed the need of a
+> framebuffer userspace interface for video output devices. Such
+> framebuffer interface is aimed mainly for legacy applications and/or
+> interoperatibility with Xfbdev.
+> 
+> I proposed to give the idea of generic fb-on-top-of-video-node a second
+> try, now using the power of videobuf2.
+> 
+> This short patch series demonstrates that this approach is possible. We
+> succesfully implemented a framebuffer emulator and tested it with
+> s5p-hdmi driver on Samsung Exynos4 platform.
+> 
+> This initial version provides a basic non-accelerated framebuffer
+> device. The emulation is started on the first open of the framebuffer
+> device and stopped on last close. The framebuffer boots in 'blanked'
+> mode, so one also needs to make a call to blank ioctl (with
+> FB_BLANK_UNBLANK argument) to enable video output.
+> 
+> We successfully managed to get vanilla Xfbdev server working on top of
+> it without ANY changes in X server sources.
+> 
+> The framebuffer resolution and pixel format is autoconfigured from the
+> parameters of the corresponding video output node. One can use v4l2-ctrl
+> (or similar) tool to select pixel format, resolution, output, etc (and
+> in the near future also the composition on the target video device).
+> 
+> There a few requirements for the video output driver:
+> 1. support for single-buffering mode
+> 2. support for videoc_ioctl interface (this might change in the future)
+> 3. use memory allocator that allows coherent mappings (mmaped framebuffer
+>    will be accessed by application while it is displayed by dma engine).
+> 
+> The changes that are needed in the video output driver are really
+> simple. Mainly one need to add just a call to vb2_fb_register(q, vfd)
+> and vb2_fb_register(fb) functions.
+> 
+> The future versions might aslo include the following features:
+> - vsync event translation into WAIT_VSYNC framebuffer ioctl
+> - support for frame buffer panning with upcoming S_COMPOSE ioctl
+> 
 
-I took a look inside cxd2099.c and I found that the method I suspect to
-read/write data from/to the CAM are not activated.
+As I know, the panning is different from upcoming S_COMPOSE.
+The panning selects the frame buffer area which will be read by display
+controller to support virtual screen feature.
+But as I remember, the S_COMPOSE is related in positioning on the display
+device like HDMI.
+IMO, VIDIOC_S_EXTCROP makes sense for panning.
 
-static struct dvb_ca_en50221 en_templ = {
-    .read_attribute_mem  = read_attribute_mem,
-    .write_attribute_mem = write_attribute_mem,
-    .read_cam_control    = read_cam_control,
-    .write_cam_control   = write_cam_control,
-    .slot_reset          = slot_reset,
-    .slot_shutdown       = slot_shutdown,
-    .slot_ts_enable      = slot_ts_enable,
-    .poll_slot_status    = poll_slot_status,
-#ifdef BUFFER_MODE
-    .read_data           = read_data,
-    .write_data          = write_data,
-#endif
+> The patch series is based on the V2 of the s5p-hdmi driver. The complete
+> kernel tree will be available on:
+> git://git.infradead.org/users/kmpark/linux-2.6-samsung vb2-fb-tv branch.
+> 
+> An updated s5p-hdmi/tv driver will be posted soon.
+> 
+> Best regards
+> --
+> Marek Szyprowski
+> Samsung Poland R&D Center
+> 
+> 
+> Complete patch summary:
+> 
+> Marek Szyprowski (2):
+>   media: vb2: add frame buffer emulator for video output devices
+>   media: s5p-hdmi: add support for frame buffer emulator
+> 
+>  drivers/media/video/Kconfig              |    7 +
+>  drivers/media/video/Makefile             |    1 +
+>  drivers/media/video/s5p-tv/Kconfig       |    1 +
+>  drivers/media/video/s5p-tv/mixer.h       |    2 +
+>  drivers/media/video/s5p-tv/mixer_video.c |   10 +
+>  drivers/media/video/videobuf2-fb.c       |  565
+++++++++++++++++++++++++++++++
+>  include/media/videobuf2-fb.h             |   22 ++
+>  7 files changed, 608 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/media/video/videobuf2-fb.c
+>  create mode 100644 include/media/videobuf2-fb.h
+> 
+> --
+> 1.7.1.569.g6f426
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-};
-
-Methods read_data and write_data are both enclosed inside the
-BUFFER_MODE test. Also, current version of struct dvb_ca_en50221 does
-not provide for read_data/write_data methods, right ?
-
-If I recall right, you once told that you manage to test the CAM
-<http://www.mail-archive.com/linux-media@vger.kernel.org/msg22196.html>,
-how did you do ?
-
-Thx
---
-Issa
