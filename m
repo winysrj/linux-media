@@ -1,52 +1,169 @@
 Return-path: <mchehab@pedra>
-Received: from swampdragon.chaosbits.net ([90.184.90.115]:13345 "EHLO
-	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756591Ab1DGTeN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Apr 2011 15:34:13 -0400
-Date: Thu, 7 Apr 2011 21:34:30 +0200 (CEST)
-From: Jesper Juhl <jj@chaosbits.net>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Dan Carpenter <error27@gmail.com>,
-	Olivier Grenie <olivier.grenie@dibcom.fr>,
-	Patrick Boettcher <patrick.boettcher@dibcom.fr>
-Subject: [PATCH][media] DVB, DiB9000: Fix leak in dib9000_attach()
-Message-ID: <alpine.LNX.2.00.1104072131050.1538@swampdragon.chaosbits.net>
+Received: from moutng.kundenserver.de ([212.227.17.10]:55563 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753149Ab1DAINF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Apr 2011 04:13:05 -0400
+Date: Fri, 1 Apr 2011 10:13:02 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH/RFC 1/4] V4L: add three new ioctl()s for multi-size videobuffer
+ management
+In-Reply-To: <Pine.LNX.4.64.1104010959470.9530@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1104011010530.9530@axis700.grange>
+References: <Pine.LNX.4.64.1104010959470.9530@axis700.grange>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-If the second memory allocation in dib9000_attach() fails, we'll leak the 
-memory allocated by the first.
+A possibility to preallocate and initialise buffers of different sizes
+in V4L2 is required for an efficient implementation of asnapshot mode.
+This patch adds three new ioctl()s: VIDIOC_CREATE_BUFS,
+VIDIOC_DESTROY_BUFS, and VIDIOC_SUBMIT_BUF and defines respective data
+structures.
 
-Signed-off-by: Jesper Juhl <jj@chaosbits.net>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
- dib9000.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/media/video/v4l2-compat-ioctl32.c |    3 ++
+ drivers/media/video/v4l2-ioctl.c          |   43 +++++++++++++++++++++++++++++
+ include/linux/videodev2.h                 |   24 ++++++++++++++++
+ include/media/v4l2-ioctl.h                |    3 ++
+ 4 files changed, 73 insertions(+), 0 deletions(-)
 
-   compile tested only...
-
-diff --git a/drivers/media/dvb/frontends/dib9000.c b/drivers/media/dvb/frontends/dib9000.c
-index 9151876..b25ef2b 100644
---- a/drivers/media/dvb/frontends/dib9000.c
-+++ b/drivers/media/dvb/frontends/dib9000.c
-@@ -2255,8 +2255,10 @@ struct dvb_frontend *dib9000_attach(struct i2c_adapter *i2c_adap, u8 i2c_addr, c
- 	if (st == NULL)
- 		return NULL;
- 	fe = kzalloc(sizeof(struct dvb_frontend), GFP_KERNEL);
--	if (fe == NULL)
-+	if (fe == NULL) {
-+		kfree(st);
- 		return NULL;
-+	}
+diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
+index 7c26947..d71b289 100644
+--- a/drivers/media/video/v4l2-compat-ioctl32.c
++++ b/drivers/media/video/v4l2-compat-ioctl32.c
+@@ -922,6 +922,9 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
+ 	case VIDIOC_DQEVENT:
+ 	case VIDIOC_SUBSCRIBE_EVENT:
+ 	case VIDIOC_UNSUBSCRIBE_EVENT:
++	case VIDIOC_CREATE_BUFS:
++	case VIDIOC_DESTROY_BUFS:
++	case VIDIOC_SUBMIT_BUF:
+ 		ret = do_video_ioctl(file, cmd, arg);
+ 		break;
  
- 	memcpy(&st->chip.d9.cfg, cfg, sizeof(struct dib9000_config));
- 	st->i2c.i2c_adap = i2c_adap;
-
-
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index a01ed39..b80a211 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -259,6 +259,9 @@ static const char *v4l2_ioctls[] = {
+ 	[_IOC_NR(VIDIOC_DQEVENT)]	   = "VIDIOC_DQEVENT",
+ 	[_IOC_NR(VIDIOC_SUBSCRIBE_EVENT)]  = "VIDIOC_SUBSCRIBE_EVENT",
+ 	[_IOC_NR(VIDIOC_UNSUBSCRIBE_EVENT)] = "VIDIOC_UNSUBSCRIBE_EVENT",
++	[_IOC_NR(VIDIOC_CREATE_BUFS)]      = "VIDIOC_CREATE_BUFS",
++	[_IOC_NR(VIDIOC_DESTROY_BUFS)]     = "VIDIOC_DESTROY_BUFS",
++	[_IOC_NR(VIDIOC_SUBMIT_BUF)]       = "VIDIOC_SUBMIT_BUF",
+ };
+ #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
+ 
+@@ -2184,6 +2187,46 @@ static long __video_do_ioctl(struct file *file,
+ 		dbgarg(cmd, "type=0x%8.8x", sub->type);
+ 		break;
+ 	}
++	case VIDIOC_CREATE_BUFS:
++	{
++		struct v4l2_create_buffers *create = arg;
++
++		if (!ops->vidioc_create_bufs)
++			break;
++		ret = check_fmt(ops, create->format.type);
++		if (ret)
++			break;
++
++		if (create->size)
++			CLEAR_AFTER_FIELD(create, count);
++
++		ret = ops->vidioc_create_bufs(file, fh, create);
++
++		dbgarg(cmd, "count=%d\n", create->count);
++		break;
++	}
++	case VIDIOC_DESTROY_BUFS:
++	{
++		struct v4l2_buffer_span *span = arg;
++
++		if (!ops->vidioc_destroy_bufs)
++			break;
++
++		ret = ops->vidioc_destroy_bufs(file, fh, span);
++
++		dbgarg(cmd, "count=%d", span->count);
++		break;
++	}
++	case VIDIOC_SUBMIT_BUF:
++	{
++		unsigned int *i = arg;
++
++		if (!ops->vidioc_submit_buf)
++			break;
++		ret = ops->vidioc_submit_buf(file, fh, *i);
++		dbgarg(cmd, "index=%d", *i);
++		break;
++	}
+ 	default:
+ 	{
+ 		bool valid_prio = true;
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index aa6c393..b6ef46e 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1847,6 +1847,26 @@ struct v4l2_dbg_chip_ident {
+ 	__u32 revision;    /* chip revision, chip specific */
+ } __attribute__ ((packed));
+ 
++/* VIDIOC_DESTROY_BUFS */
++struct v4l2_buffer_span {
++	__u32			index;	/* output: buffers index...index + count - 1 have been created */
++	__u32			count;
++	__u32			reserved[2];
++};
++
++/* struct v4l2_createbuffers::flags */
++#define V4L2_BUFFER_FLAG_NO_CACHE_INVALIDATE	(1 << 0)
++
++/* VIDIOC_CREATE_BUFS */
++struct v4l2_create_buffers {
++	__u32			index;		/* output: buffers index...index + count - 1 have been created */
++	__u32			count;
++	__u32			flags;		/* V4L2_BUFFER_FLAG_* */
++	enum v4l2_memory        memory;
++	__u32			size;		/* Explicit size, e.g., for compressed streams */
++	struct v4l2_format	format;		/* "type" is used always, the rest if size == 0 */
++};
++
+ /*
+  *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
+  *
+@@ -1937,6 +1957,10 @@ struct v4l2_dbg_chip_ident {
+ #define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct v4l2_event_subscription)
+ #define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 91, struct v4l2_event_subscription)
+ 
++#define VIDIOC_CREATE_BUFS	_IOWR('V', 92, struct v4l2_create_buffers)
++#define VIDIOC_DESTROY_BUFS	_IOWR('V', 93, struct v4l2_buffer_span)
++#define VIDIOC_SUBMIT_BUF	 _IOW('V', 94, int)
++
+ /* Reminder: when adding new ioctls please add support for them to
+    drivers/media/video/v4l2-compat-ioctl32.c as well! */
+ 
+diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+index dd9f1e7..00962c6 100644
+--- a/include/media/v4l2-ioctl.h
++++ b/include/media/v4l2-ioctl.h
+@@ -122,6 +122,9 @@ struct v4l2_ioctl_ops {
+ 	int (*vidioc_qbuf)    (struct file *file, void *fh, struct v4l2_buffer *b);
+ 	int (*vidioc_dqbuf)   (struct file *file, void *fh, struct v4l2_buffer *b);
+ 
++	int (*vidioc_create_bufs) (struct file *file, void *fh, struct v4l2_create_buffers *b);
++	int (*vidioc_destroy_bufs)(struct file *file, void *fh, struct v4l2_buffer_span *b);
++	int (*vidioc_submit_buf)  (struct file *file, void *fh, unsigned int i);
+ 
+ 	int (*vidioc_overlay) (struct file *file, void *fh, unsigned int i);
+ 	int (*vidioc_g_fbuf)   (struct file *file, void *fh,
 -- 
-Jesper Juhl <jj@chaosbits.net>       http://www.chaosbits.net/
-Don't top-post http://www.catb.org/jargon/html/T/top-post.html
-Plain text mails only, please.
+1.7.2.5
 
