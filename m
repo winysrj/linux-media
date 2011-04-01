@@ -1,48 +1,110 @@
 Return-path: <mchehab@pedra>
-Received: from d1.icnet.pl ([212.160.220.21]:40507 "EHLO d1.icnet.pl"
+Received: from mga11.intel.com ([192.55.52.93]:5662 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757977Ab1DHX6x (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 Apr 2011 19:58:53 -0400
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 2.6.39] soc_camera: OMAP1: fix missing bytesperline and sizeimage initialization
-Date: Sat, 9 Apr 2011 01:57:38 +0200
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+	id S1753605Ab1DAS0U (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 Apr 2011 14:26:20 -0400
+Date: Fri, 1 Apr 2011 20:26:08 +0200
+From: Samuel Ortiz <sameo@linux.intel.com>
+To: Andres Salomon <dilinger@queued.net>
+Cc: Grant Likely <grant.likely@secretlab.ca>,
+	linux-kernel@vger.kernel.org,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	khali@linux-fr.org, ben-linux@fluff.org,
+	Peter Korsgaard <jacmet@sunsite.dk>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	David Brownell <dbrownell@users.sourceforge.net>,
+	linux-i2c@vger.kernel.org, linux-media@vger.kernel.org,
+	netdev@vger.kernel.org, spi-devel-general@lists.sourceforge.net,
+	Mocean Laboratories <info@mocean-labs.com>
+Subject: Re: [PATCH 07/19] timberdale: mfd_cell is now implicitly available
+ to drivers
+Message-ID: <20110401182607.GC29397@sortiz-mobl>
+References: <20110202195417.228e2656@queued.net>
+ <20110202200812.3d8d6cba@queued.net>
+ <20110331230522.GI437@ponder.secretlab.ca>
+ <20110401112030.GA3447@sortiz-mobl>
+ <20110401104756.2f5c6f7a@debxo>
 MIME-Version: 1.0
-Message-Id: <201104090158.04827.jkrzyszt@tis.icnet.pl>
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20110401104756.2f5c6f7a@debxo>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Since commit 0e4c180d3e2cc11e248f29d4c604b6194739d05a, bytesperline and 
-sizeimage memebers of v4l2_pix_format structure have no longer been 
-calculated inside soc_camera_g_fmt_vid_cap(), but rather passed via 
-soc_camera_device structure from a host driver callback invoked by 
-soc_camera_set_fmt().
+On Fri, Apr 01, 2011 at 10:47:56AM -0700, Andres Salomon wrote:
+> On Fri, 1 Apr 2011 13:20:31 +0200
+> Samuel Ortiz <sameo@linux.intel.com> wrote:
+> 
+> > Hi Grant,
+> > 
+> > On Thu, Mar 31, 2011 at 05:05:22PM -0600, Grant Likely wrote:
+> [...]
+> > > Gah.  Not all devices instantiated via mfd will be an mfd device,
+> > > which means that the driver may very well expect an *entirely
+> > > different* platform_device pointer; which further means a very high
+> > > potential of incorrectly dereferenced structures (as evidenced by a
+> > > patch series that is not bisectable).  For instance, the xilinx ip
+> > > cores are used by more than just mfd.
+> > I agree. Since the vast majority of the MFD subdevices are MFD
+> > specific IPs, I overlooked that part. The impacted drivers are the
+> > timberdale and the DaVinci voice codec ones.
+> 
+> Can you please provide pointers to what you're referring to?  The only
+> code that I could find that created platform devices prefixed with
+> 'timb-' or named 'xilinx_spi' was drivers/mfd/timberdale.c.
+The xilinx-spi, ocores-i2c, i2c-xiic drivers and to some extend the
+ks8842 ethernet driver are generic IPs that the timberdale SOC happens to
+use. So I agree it's extremely unlikely that anyone could come up with a
+platform that would be re-using e.g. the timb-radio IP, but I think it's less
+unikely for more generic IPs such as the xilinx-spi one.
 
-OMAP1 camera host driver has never been providing these parameters, so 
-it no longer works correctly. Fix it by adding suitable assignments to 
-omap1_cam_set_fmt().
 
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
----
- drivers/media/video/omap1_camera.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+> > To fix that problem I propose 2 alternatives:
+> > 
+> > 1) When declaring the sub devices cells, the MFD driver should
+> > specify an mfd_data_size value for sub devices that are not MFD
+> > specific. It's the MFD driver responsibility to set the cell
+> > properly, and the non MFD specific drivers are kept MFD agnostic.
+> > See my patch below for the timberdale case.
+> > 
+> > 2) Revert the mfd_get_data() call for getting sub devices platform
+> > data pointers. That was introduced to ease the MFD cell sharing work,
+> > so if we take this route we'll need the cs5535 MFD driver to pass its
+> > cells as platform_data pointer. Andres, can you confirm that this
+> > would be fine for the mfd_clone_cell() routine to keep working ?
+> 
+> It would break mfd_clone_cell, as it uses mfd_get_cell to grab the one
+> to clone.  We could change it to accept the cell as an argument.  It
+> would also break mfd_cell_enable/disable, of course.
+I'm talking about reverting the default behaviour of passing the MFD cell as
+the platform data, and going back to the cell definitions setting their
+platform_data pointer explicitely. In that case, the cs5535 driver would have
+to do something like:
 
---- linux-2.6.39-rc2/drivers/media/video/omap1_camera.c.orig	2011-04-06 14:30:37.000000000 +0200
-+++ linux-2.6.39-rc2/drivers/media/video/omap1_camera.c	2011-04-09 00:16:36.000000000 +0200
-@@ -1292,6 +1292,12 @@ static int omap1_cam_set_fmt(struct soc_
- 	pix->colorspace  = mf.colorspace;
- 	icd->current_fmt = xlate;
+diff --git a/drivers/mfd/cs5535-mfd.c b/drivers/mfd/cs5535-mfd.c
+index 155fa04..3e3841d 100644
+--- a/drivers/mfd/cs5535-mfd.c
++++ b/drivers/mfd/cs5535-mfd.c
+@@ -106,6 +106,7 @@ static __devinitdata struct mfd_cell cs5535_mfd_cells[] =
+{
+                .name = "cs5535-acpi",
+                .num_resources = 1,
+                .resources = &cs5535_mfd_resources[ACPI_BAR],
++               .platform_data = &cs5535_mfd_cells[ACPI_BAR],
  
-+	pix->bytesperline = soc_mbus_bytes_per_line(pix->width,
-+						    xlate->host_fmt);
-+	if (pix->bytesperline < 0)
-+		return pix->bytesperline;
-+	pix->sizeimage = pix->height * pix->bytesperline;
-+
- 	return 0;
- }
- 
+                .enable = cs5535_mfd_res_enable,
+                .disable = cs5535_mfd_res_disable,
+
+mfd_get_cell would then return &cs5535_mfd_cells[ACPI_BAR].
+
+This fix would put all sub devices drivers back to an MFD agnostic state,
+although the vast majority of them will certainly never be found anywhere else
+than in their current MFD SoC. That's why I'm still not sure which way to go
+to fix that problem.
+
+Cheers,
+Samuel.
+
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
