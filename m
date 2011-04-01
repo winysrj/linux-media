@@ -1,68 +1,147 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:52924 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751388Ab1DRFsc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Apr 2011 01:48:32 -0400
-Received: by bwz15 with SMTP id 15so3528910bwz.19
-        for <linux-media@vger.kernel.org>; Sun, 17 Apr 2011 22:48:31 -0700 (PDT)
-Date: Mon, 18 Apr 2011 07:48:22 +0200
-From: Steffen Barszus <steffenbpunkt@googlemail.com>
-To: Lutz Sammer <johns98@gmx.net>
-Cc: linux-media@vger.kernel.org, liplianin@me.by,
-	abraham.manu@gmail.com
-Subject: Re: [PATCH] Fixes stb0899 not locking
-Message-ID: <20110418074822.0d2174a2@grobi>
-In-Reply-To: <4D99B357.50804@gmx.net>
-References: <4D99B357.50804@gmx.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from adelie.canonical.com ([91.189.90.139]:57667 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758461Ab1DARMI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Apr 2011 13:12:08 -0400
+From: Herton Ronaldo Krzesinski <herton.krzesinski@canonical.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] v4l: make sure drivers supply a zeroed struct v4l2_subdev
+Date: Fri,  1 Apr 2011 14:12:02 -0300
+Message-Id: <1301677922-6765-1-git-send-email-herton.krzesinski@canonical.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, 04 Apr 2011 14:02:31 +0200
-Lutz Sammer <johns98@gmx.net> wrote:
+Some v4l drivers currently don't initialize their struct v4l2_subdev
+with zeros, and this is a problem since some of the v4l2 code expects
+this. One example is the addition of internal_ops in commit 45f6f84,
+after that we are at risk of random oopses with these drivers when code
+in v4l2_device_register_subdev tries to dereference sd->internal_ops->*,
+as can be shown by the report at http://bugs.launchpad.net/bugs/745213
+and analysis of its crash at https://lkml.org/lkml/2011/4/1/168
 
-> Fixes stb0899 not locking.
-> See http://www.spinics.net/lists/linux-media/msg30486.html ...
-> 
-> When stb0899_check_data is entered, it could happen, that the data is
-> already locked and the data search looped.  stb0899_check_data fails
-> to lock on a good frequency.  stb0899_search_data uses an extrem big
-> search step and fails to lock.
-> 
-> The new code checks for lock before starting a new search.
-> The first read ignores the loop bit, for the case that the loop bit is
-> set during the search setup.  I also added the msleep to reduce the
-> traffic on the i2c bus.
-> 
+Use kzalloc within problematic drivers to ensure we have a zeroed struct
+v4l2_subdev.
 
-Thanks Lutz for getting down to the problem :) !
-
-Manu, Mauro,
-
-Any comments ? Let's have that finally sorted. 
-
-I think its proven now that its a bug. We have a fix. 
-
+BugLink: http://bugs.launchpad.net/bugs/745213
+Cc: <stable@kernel.org>
+Signed-off-by: Herton Ronaldo Krzesinski <herton.krzesinski@canonical.com>
 ---
-A few test result on 2.6.39-rc3 from vdr-portal(thx to jrie, hope its
-ok for him). This is tuning a pre defined channel list until we have a
-lock and then tune the next. 
+ drivers/media/radio/saa7706h.c  |    2 +-
+ drivers/media/radio/tef6862.c   |    2 +-
+ drivers/media/video/m52790.c    |    2 +-
+ drivers/media/video/tda9840.c   |    2 +-
+ drivers/media/video/tea6415c.c  |    2 +-
+ drivers/media/video/tea6420.c   |    2 +-
+ drivers/media/video/upd64031a.c |    2 +-
+ drivers/media/video/upd64083.c  |    2 +-
+ 8 files changed, 8 insertions(+), 8 deletions(-)
 
-
-Astra_only.txt + Original
-TOT: lok_errs =172, runs=1136 of sequ=1135, multi=56032, multi_max=931
-real 101m40.777s
-user 0m0.083s
-sys 0m19.039s
-
-Astra_only.txt + stb0899_not_locking_fix.diff
-TOT: lok_errs =0, runs=1136 of sequ=1135, multi=289, multi_max=99
-real 17m15.636s
-user 0m0.007s
-sys 0m9.445s
-
-
+diff --git a/drivers/media/radio/saa7706h.c b/drivers/media/radio/saa7706h.c
+index 585680f..b1193df 100644
+--- a/drivers/media/radio/saa7706h.c
++++ b/drivers/media/radio/saa7706h.c
+@@ -376,7 +376,7 @@ static int __devinit saa7706h_probe(struct i2c_client *client,
+ 	v4l_info(client, "chip found @ 0x%02x (%s)\n",
+ 			client->addr << 1, client->adapter->name);
+ 
+-	state = kmalloc(sizeof(struct saa7706h_state), GFP_KERNEL);
++	state = kzalloc(sizeof(struct saa7706h_state), GFP_KERNEL);
+ 	if (state == NULL)
+ 		return -ENOMEM;
+ 	sd = &state->sd;
+diff --git a/drivers/media/radio/tef6862.c b/drivers/media/radio/tef6862.c
+index 7c0d777..0991e19 100644
+--- a/drivers/media/radio/tef6862.c
++++ b/drivers/media/radio/tef6862.c
+@@ -176,7 +176,7 @@ static int __devinit tef6862_probe(struct i2c_client *client,
+ 	v4l_info(client, "chip found @ 0x%02x (%s)\n",
+ 			client->addr << 1, client->adapter->name);
+ 
+-	state = kmalloc(sizeof(struct tef6862_state), GFP_KERNEL);
++	state = kzalloc(sizeof(struct tef6862_state), GFP_KERNEL);
+ 	if (state == NULL)
+ 		return -ENOMEM;
+ 	state->freq = TEF6862_LO_FREQ;
+diff --git a/drivers/media/video/m52790.c b/drivers/media/video/m52790.c
+index 5e1c9a8..303ffa7 100644
+--- a/drivers/media/video/m52790.c
++++ b/drivers/media/video/m52790.c
+@@ -174,7 +174,7 @@ static int m52790_probe(struct i2c_client *client,
+ 	v4l_info(client, "chip found @ 0x%x (%s)\n",
+ 			client->addr << 1, client->adapter->name);
+ 
+-	state = kmalloc(sizeof(struct m52790_state), GFP_KERNEL);
++	state = kzalloc(sizeof(struct m52790_state), GFP_KERNEL);
+ 	if (state == NULL)
+ 		return -ENOMEM;
+ 
+diff --git a/drivers/media/video/tda9840.c b/drivers/media/video/tda9840.c
+index 5d4cf3b..22fa820 100644
+--- a/drivers/media/video/tda9840.c
++++ b/drivers/media/video/tda9840.c
+@@ -171,7 +171,7 @@ static int tda9840_probe(struct i2c_client *client,
+ 	v4l_info(client, "chip found @ 0x%x (%s)\n",
+ 			client->addr << 1, client->adapter->name);
+ 
+-	sd = kmalloc(sizeof(struct v4l2_subdev), GFP_KERNEL);
++	sd = kzalloc(sizeof(struct v4l2_subdev), GFP_KERNEL);
+ 	if (sd == NULL)
+ 		return -ENOMEM;
+ 	v4l2_i2c_subdev_init(sd, client, &tda9840_ops);
+diff --git a/drivers/media/video/tea6415c.c b/drivers/media/video/tea6415c.c
+index 19621ed..827425c 100644
+--- a/drivers/media/video/tea6415c.c
++++ b/drivers/media/video/tea6415c.c
+@@ -152,7 +152,7 @@ static int tea6415c_probe(struct i2c_client *client,
+ 
+ 	v4l_info(client, "chip found @ 0x%x (%s)\n",
+ 			client->addr << 1, client->adapter->name);
+-	sd = kmalloc(sizeof(struct v4l2_subdev), GFP_KERNEL);
++	sd = kzalloc(sizeof(struct v4l2_subdev), GFP_KERNEL);
+ 	if (sd == NULL)
+ 		return -ENOMEM;
+ 	v4l2_i2c_subdev_init(sd, client, &tea6415c_ops);
+diff --git a/drivers/media/video/tea6420.c b/drivers/media/video/tea6420.c
+index 5ea8404..f350b6c 100644
+--- a/drivers/media/video/tea6420.c
++++ b/drivers/media/video/tea6420.c
+@@ -125,7 +125,7 @@ static int tea6420_probe(struct i2c_client *client,
+ 	v4l_info(client, "chip found @ 0x%x (%s)\n",
+ 			client->addr << 1, client->adapter->name);
+ 
+-	sd = kmalloc(sizeof(struct v4l2_subdev), GFP_KERNEL);
++	sd = kzalloc(sizeof(struct v4l2_subdev), GFP_KERNEL);
+ 	if (sd == NULL)
+ 		return -ENOMEM;
+ 	v4l2_i2c_subdev_init(sd, client, &tea6420_ops);
+diff --git a/drivers/media/video/upd64031a.c b/drivers/media/video/upd64031a.c
+index f8138c7..1aab96a 100644
+--- a/drivers/media/video/upd64031a.c
++++ b/drivers/media/video/upd64031a.c
+@@ -230,7 +230,7 @@ static int upd64031a_probe(struct i2c_client *client,
+ 	v4l_info(client, "chip found @ 0x%x (%s)\n",
+ 			client->addr << 1, client->adapter->name);
+ 
+-	state = kmalloc(sizeof(struct upd64031a_state), GFP_KERNEL);
++	state = kzalloc(sizeof(struct upd64031a_state), GFP_KERNEL);
+ 	if (state == NULL)
+ 		return -ENOMEM;
+ 	sd = &state->sd;
+diff --git a/drivers/media/video/upd64083.c b/drivers/media/video/upd64083.c
+index 28e0e6b..9bbe617 100644
+--- a/drivers/media/video/upd64083.c
++++ b/drivers/media/video/upd64083.c
+@@ -202,7 +202,7 @@ static int upd64083_probe(struct i2c_client *client,
+ 	v4l_info(client, "chip found @ 0x%x (%s)\n",
+ 			client->addr << 1, client->adapter->name);
+ 
+-	state = kmalloc(sizeof(struct upd64083_state), GFP_KERNEL);
++	state = kzalloc(sizeof(struct upd64083_state), GFP_KERNEL);
+ 	if (state == NULL)
+ 		return -ENOMEM;
+ 	sd = &state->sd;
+-- 
+1.7.1
 
