@@ -1,158 +1,125 @@
 Return-path: <mchehab@pedra>
-Received: from comal.ext.ti.com ([198.47.26.152]:37002 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755734Ab1DBJob (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 2 Apr 2011 05:44:31 -0400
-From: Manjunath Hadli <manjunath.hadli@ti.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Kevin Hilman <khilman@deeprootsystems.com>,
-	LAK <linux-arm-kernel@lists.infradead.org>,
-	Sekhar Nori <nsekhar@ti.com>
-Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: [PATCH v18 13/13] davinci: dm644x EVM: add support for VPBE display
-Date: Sat,  2 Apr 2011 15:14:23 +0530
-Message-Id: <1301737463-4589-1-git-send-email-manjunath.hadli@ti.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:62838 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755825Ab1DBJo4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Apr 2011 05:44:56 -0400
+Date: Sat, 2 Apr 2011 04:44:51 -0500
+From: Jonathan Nieder <jrnieder@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Huber Andreas <hobrom@corax.at>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-kernel@vger.kernel.org, andrew.walker27@ntlworld.com,
+	Ben Hutchings <ben@decadent.org.uk>,
+	Trent Piepho <xyzzy@speakeasy.org>
+Subject: [PATCH 3/3] [media] cx88: use a mutex to protect cx8802_devlist
+Message-ID: <20110402094451.GD17015@elie>
+References: <20110327150610.4029.95961.reportbug@xen.corax.at>
+ <20110327152810.GA32106@elie>
+ <20110402093856.GA17015@elie>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20110402093856.GA17015@elie>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This patch adds support for V4L2 video display to DM6446 EVM.
-Support for SD and ED modes is provided, along with Composite
-and Component outputs.Also added vpbe_config as a parameter for
-dm644x_init_video to allow for registration of vpbe platform devices.
+From: Ben Hutchings <ben@decadent.org.uk>
+Date: Tue, 29 Mar 2011 03:25:15 +0100
 
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Acked-by: Sekhar Nori <nsekhar@ti.com>
+Add and use a mutex to protect the cx88-mpeg device list.  Previously
+the BKL prevented races.
+
+[jn: split from a larger patch, with new commit message; also protect
+ use in cx8802_probe]
+
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
 ---
- arch/arm/mach-davinci/board-dm644x-evm.c |  108 +++++++++++++++++++++++++++++-
- 1 files changed, 107 insertions(+), 1 deletions(-)
+That's the end of the series.  Hopefully I haven't mangled the patches
+too much --- if we're lucky they might even still work, though I
+wouldn't bet on it.  Bug reports and improvements welcome.
 
-diff --git a/arch/arm/mach-davinci/board-dm644x-evm.c b/arch/arm/mach-davinci/board-dm644x-evm.c
-index afa88ac..4a642dd 100644
---- a/arch/arm/mach-davinci/board-dm644x-evm.c
-+++ b/arch/arm/mach-davinci/board-dm644x-evm.c
-@@ -616,6 +616,112 @@ static void __init evm_init_i2c(void)
- 	i2c_register_board_info(1, i2c_info, ARRAY_SIZE(i2c_info));
+Good night,
+Jonathan
+
+ drivers/media/video/cx88/cx88-mpeg.c |   20 +++++++++++++++++---
+ 1 files changed, 17 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/video/cx88/cx88-mpeg.c b/drivers/media/video/cx88/cx88-mpeg.c
+index 9147c16..6b58647 100644
+--- a/drivers/media/video/cx88/cx88-mpeg.c
++++ b/drivers/media/video/cx88/cx88-mpeg.c
+@@ -78,6 +78,7 @@ static void flush_request_modules(struct cx8802_dev *dev)
+ 
+ 
+ static LIST_HEAD(cx8802_devlist);
++static DEFINE_MUTEX(cx8802_mutex);
+ /* ------------------------------------------------------------------ */
+ 
+ static int cx8802_start_dma(struct cx8802_dev    *dev,
+@@ -689,6 +690,8 @@ int cx8802_register_driver(struct cx8802_driver *drv)
+ 		return err;
+ 	}
+ 
++	mutex_lock(&cx8802_mutex);
++
+ 	list_for_each_entry(dev, &cx8802_devlist, devlist) {
+ 		printk(KERN_INFO
+ 		       "%s/2: subsystem: %04x:%04x, board: %s [card=%d]\n",
+@@ -698,8 +701,10 @@ int cx8802_register_driver(struct cx8802_driver *drv)
+ 
+ 		/* Bring up a new struct for each driver instance */
+ 		driver = kzalloc(sizeof(*drv),GFP_KERNEL);
+-		if (driver == NULL)
+-			return -ENOMEM;
++		if (driver == NULL) {
++			err = -ENOMEM;
++			goto out;
++		}
+ 
+ 		/* Snapshot of the driver registration data */
+ 		drv->core = dev->core;
+@@ -723,7 +728,10 @@ int cx8802_register_driver(struct cx8802_driver *drv)
+ 
+ 	}
+ 
+-	return i ? 0 : -ENODEV;
++	err = i ? 0 : -ENODEV;
++out:
++	mutex_unlock(&cx8802_mutex);
++	return err;
  }
  
-+#define VENC_STD_ALL	(V4L2_STD_NTSC | V4L2_STD_PAL)
-+
-+/* venc standard timings */
-+static struct vpbe_enc_mode_info dm644xevm_enc_std_timing[] = {
-+	{
-+		.name		= "ntsc",
-+		.timings_type	= VPBE_ENC_STD,
-+		.timings	= {V4L2_STD_525_60},
-+		.interlaced	= 1,
-+		.xres		= 720,
-+		.yres		= 480,
-+		.aspect		= {11, 10},
-+		.fps		= {30000, 1001},
-+		.left_margin	= 0x79,
-+		.upper_margin	= 0x10,
-+	},
-+	{
-+		.name		= "pal",
-+		.timings_type	= VPBE_ENC_STD,
-+		.timings	= {V4L2_STD_625_50},
-+		.interlaced	= 1,
-+		.xres		= 720,
-+		.yres		= 576,
-+		.aspect		= {54, 59},
-+		.fps		= {25, 1},
-+		.left_margin	= 0x7E,
-+		.upper_margin	= 0x16,
-+	},
-+};
-+
-+/* venc dv preset timings */
-+static struct vpbe_enc_mode_info dm644xevm_enc_preset_timing[] = {
-+	{
-+		.name		= "480p59_94",
-+		.timings_type	= VPBE_ENC_DV_PRESET,
-+		.timings	= {V4L2_DV_480P59_94},
-+		.interlaced	= 0,
-+		.xres		= 720,
-+		.yres		= 480,
-+		.aspect		= {1, 1},
-+		.fps		= {5994, 100},
-+		.left_margin	= 0x80,
-+		.upper_margin	= 0x20,
-+	},
-+	{
-+		.name		= "576p50",
-+		.timings_type	= VPBE_ENC_DV_PRESET,
-+		.timings	= {V4L2_DV_576P50},
-+		.interlaced	= 0,
-+		.xres		= 720,
-+		.yres		= 576,
-+		.aspect		= {1, 1},
-+		.fps		= {50, 1},
-+		.left_margin	= 0x7E,
-+		.upper_margin	= 0x30,
-+	},
-+};
-+
-+/*
-+ * The outputs available from VPBE + encoders. Keep the order same
-+ * as that of encoders. First those from venc followed by that from
-+ * encoders. Index in the output refers to index on a particular encoder.
-+ * Driver uses this index to pass it to encoder when it supports more than
-+ * one output. Application uses index of the array to set an output.
-+ */
-+static struct vpbe_output dm644xevm_vpbe_outputs[] = {
-+	{
-+		.output		= {
-+			.index		= 0,
-+			.name		= "Composite",
-+			.type		= V4L2_OUTPUT_TYPE_ANALOG,
-+			.std		= VENC_STD_ALL,
-+			.capabilities	= V4L2_OUT_CAP_STD,
-+		},
-+		.subdev_name	= VPBE_VENC_SUBDEV_NAME,
-+		.default_mode	= "ntsc",
-+		.num_modes	= ARRAY_SIZE(dm644xevm_enc_std_timing),
-+		.modes		= dm644xevm_enc_std_timing,
-+	},
-+	{
-+		.output		= {
-+			.index		= 1,
-+			.name		= "Component",
-+			.type		= V4L2_OUTPUT_TYPE_ANALOG,
-+			.capabilities	= V4L2_OUT_CAP_PRESETS,
-+		},
-+		.subdev_name	= VPBE_VENC_SUBDEV_NAME,
-+		.default_mode	= "480p59_94",
-+		.num_modes	= ARRAY_SIZE(dm644xevm_enc_preset_timing),
-+		.modes		= dm644xevm_enc_preset_timing,
-+	},
-+};
-+
-+static struct vpbe_config dm644xevm_display_cfg = {
-+	.module_name	= "dm644x-vpbe-display",
-+	.i2c_adapter_id	= 1,
-+	.osd		= {
-+		.module_name	= VPBE_OSD_SUBDEV_NAME,
-+	},
-+	.venc		= {
-+		.module_name	= VPBE_VENC_SUBDEV_NAME,
-+	},
-+	.num_outputs	= ARRAY_SIZE(dm644xevm_vpbe_outputs),
-+	.outputs	= dm644xevm_vpbe_outputs,
-+};
-+
- static struct platform_device *davinci_evm_devices[] __initdata = {
- 	&davinci_fb_device,
- 	&rtc_dev,
-@@ -699,7 +805,7 @@ static __init void davinci_evm_init(void)
- 	evm_init_i2c();
+ int cx8802_unregister_driver(struct cx8802_driver *drv)
+@@ -737,6 +745,8 @@ int cx8802_unregister_driver(struct cx8802_driver *drv)
+ 	       drv->type_id == CX88_MPEG_DVB ? "dvb" : "blackbird",
+ 	       drv->hw_access == CX8802_DRVCTL_SHARED ? "shared" : "exclusive");
  
- 	davinci_setup_mmc(0, &dm6446evm_mmc_config);
--	dm644x_init_video(&dm644xevm_capture_cfg, NULL);
-+	dm644x_init_video(&dm644xevm_capture_cfg, &dm644xevm_display_cfg);
++	mutex_lock(&cx8802_mutex);
++
+ 	list_for_each_entry(dev, &cx8802_devlist, devlist) {
+ 		printk(KERN_INFO
+ 		       "%s/2: subsystem: %04x:%04x, board: %s [card=%d]\n",
+@@ -763,6 +773,8 @@ int cx8802_unregister_driver(struct cx8802_driver *drv)
+ 		mutex_unlock(&dev->core->lock);
+ 	}
  
- 	davinci_serial_init(&uart_config);
- 	dm644x_init_asp(&dm644x_evm_snd_data);
++	mutex_unlock(&cx8802_mutex);
++
+ 	return err;
+ }
+ 
+@@ -800,7 +812,9 @@ static int __devinit cx8802_probe(struct pci_dev *pci_dev,
+ 		goto fail_free;
+ 
+ 	INIT_LIST_HEAD(&dev->drvlist);
++	mutex_lock(&cx8802_mutex);
+ 	list_add_tail(&dev->devlist,&cx8802_devlist);
++	mutex_unlock(&cx8802_mutex);
+ 
+ 	/* now autoload cx88-dvb or cx88-blackbird */
+ 	request_modules(dev);
 -- 
-1.6.2.4
+1.7.5.rc0
 
