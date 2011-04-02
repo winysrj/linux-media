@@ -1,184 +1,67 @@
 Return-path: <mchehab@pedra>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:34885 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753361Ab1DSRU3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Apr 2011 13:20:29 -0400
-Received: by vws1 with SMTP id 1so4414114vws.19
-        for <linux-media@vger.kernel.org>; Tue, 19 Apr 2011 10:20:28 -0700 (PDT)
-Date: Tue, 19 Apr 2011 13:12:20 -0400
-From: Eric B Munson <emunson@mgebm.net>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: Michael Krufky <mkrufky@kernellabs.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	mchehab@infradead.org, linux-media@vger.kernel.org
-Subject: Re: HVR-1600 (model 74351 rev F1F5) analog Red Screen
-Message-ID: <20110419171220.GA4883@mgebm.net>
-References: <BANLkTikqBPdr2M8jyY1zmu4TPLsXo0y5Xw@mail.gmail.com>
- <BANLkTi=dVYRgUbQ5pRySQLptnzaHOMKTqg@mail.gmail.com>
- <1302015521.4529.17.camel@morgan.silverblock.net>
- <BANLkTimQkDHmDsqSsQ9jiYnHWXnc7umeWw@mail.gmail.com>
- <1302481535.2282.61.camel@localhost>
- <20110411163239.GA4324@mgebm.net>
- <20110418141514.GA4611@mgebm.net>
- <ac791492-7bc5-4a78-92af-503dda599346@email.android.com>
- <20110418224855.GB4611@mgebm.net>
- <1303215523.2274.27.camel@localhost>
+Received: from mail.kapsi.fi ([217.30.184.167]:53992 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755299Ab1DBMSJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 2 Apr 2011 08:18:09 -0400
+Message-ID: <4D9713FE.7050001@iki.fi>
+Date: Sat, 02 Apr 2011 15:18:06 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="h31gzZEtNLTqOjlF"
-Content-Disposition: inline
-In-Reply-To: <1303215523.2274.27.camel@localhost>
+To: adq <adq@lidskialf.net>
+CC: =?ISO-8859-1?Q?Juan_Jes=FAs_Garc=EDa_de_Soria_Lucena?=
+	<skandalfo@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: [patch] Fix AF9015 Dual tuner i2c write failures
+References: <AANLkTi=rcfL_pku9hhx68C_Fb_76KsW2Yy+Oys10a7+4@mail.gmail.com>	<4D7163FD.9030604@iki.fi>	<AANLkTimjC99zhJ=huHZiGgbENCoyHy5KT87iujjTT8w3@mail.gmail.com>	<4D716ECA.4060900@iki.fi>	<AANLkTimHa6XFwhvpLbhtRm7Vee-jYPkHpx+D8L2=+vQb@mail.gmail.com>	<AANLkTik9cSnAFWNdTUv3NNU3K2SoeECDO2036Htx-OAi@mail.gmail.com>	<AANLkTi=e-cAzMWZSHvKR8Yx+0MqcY_Ewf4z1gDyZfCeo@mail.gmail.com>	<AANLkTi=YMtTbgwxNA1O6zp03OoeGKJvn8oYDB9kHjti1@mail.gmail.com>	<AANLkTimDSwR06nRxNv9x11_dDdaSBzD-En4N8ameDe1Y@mail.gmail.com>	<AANLkTimWRDk+iGPzuXarmpr0w9W4aS4Be=xpBPkMipdC@mail.gmail.com>	<AANLkTimUAKjx81Z1GF=ceG33zHhLX1r-HfykWWyNpay-@mail.gmail.com>	<AANLkTinZVRjZEHDhi1Q0d4jfyTk5E7HhBP2U08ymW=BG@mail.gmail.com>	<4D837E4E.7010105@iki.fi>	<AANLkTi=Dz-cQ6bUUw7FG=z-6OKSt0a=ytvcimnOXqaMK@mail.gmail.com>	<4D96DC3A.8040005@iki.fi> <BANLkTi=Uq=bLgNo6uNHTast4DRM+ZVLF0g@mail.gmail.com>
+In-Reply-To: <BANLkTi=Uq=bLgNo6uNHTast4DRM+ZVLF0g@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+On 04/02/2011 02:06 PM, adq wrote:
+> 2011/4/2 Antti Palosaari<crope@iki.fi>:
+>> On 04/02/2011 04:24 AM, adq wrote:
+>>>
+>>> Hi, just been trying it out, with no success. On my test machine, FE0
+>>> no longer tunes, but FE1 is still fine, so I've just been testing FE0.
+>>
+>> You try to say other frontend / tuner is physically dead? Which one?
+>
+> No no - I can revive it by simply unplugging and replugging the
+> device, but I was avoiding doing that to see if we could either track
+> down something erroneous, or be able to reset it from software.
+>
+> It'd be /really/ handy if they'd connected that reset tuner GPIO :(
+> There isn't a way to completely reset the device from software I take
+> it? Or any other GPIOs hanging about I could test with?
 
---h31gzZEtNLTqOjlF
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+There is few I know, USB command 0x13 boots AF9015 somehow, USB command 
+0x5a reconnects it from USB bus. But most interesting one is demodulator 
+reset register 0xe205, write 1 to that reg should reset it.
 
-On Tue, 19 Apr 2011, Andy Walls wrote:
+> I have an MXL5005R tuner apparently - id 30 - BTW.
 
-> On Mon, 2011-04-18 at 18:48 -0400, Eric B Munson wrote:
-> > On Mon, 18 Apr 2011, Andy Walls wrote:
-> >=20
-> > > Eric B Munson <emunson@mgebm.net> wrote:
-> > >=20
-> > > >On Mon, 11 Apr 2011, Eric B Munson wrote:
-> > > >
-> > > >> On Sun, 10 Apr 2011, Andy Walls wrote:
-> > > >>=20
-> > > >> > On Wed, 2011-04-06 at 13:28 -0400, Eric B Munson wrote:
-> > > >> > > On Tue, Apr 5, 2011 at 10:58 AM, Andy Walls
->=20
-> > > >
-> > > >Is there anything else I can provide to help with this?
-> > >=20
-> > > Eric,
-> > >=20
-> > > Sorry for not getting back sooner (I've been dealing with a personal
-> > situation and haven't logged into my dev system for a few weeks).
-> > >=20
-> > > What rf analog source are you using?
-> >=20
-> > Sorry, very new to this, I am not sure what you are asking for here.
->=20
-> I mean: analog cable, DTV Set Top Box (STB), VCR, etc.
->=20
-> I have only tested the driver on analog US Broadcast Channel 3, since I
-> only have a DTV STB as an RF analog TV source.
+I suspect it is demod which hangs since I have feeling it happens every 
+tuner used.
 
-I am using analog cable.  Cable here is about 25% digital and 75% analog.
+>>> I've tried your suggestions, mainly concentrating on the af9013's
+>>> GPIOs, but I also tried your power management suggestion.
+>>>
+>>> Since I was just using FE0, I've just been setting all the GPIOs at
+>>> the start of af9013.c's set_frontend() implementation; I've tried
+>>> turning them all off, all on, on->mdelay->off, and also
+>>> off->mdelay->on. Nothing works.
+>>
+>> So GPIOs are blocked out.
+>>
+>> I wonder if someone can ran similar many day tuning stress test using
+>> Windows drivers to see if that happen.
+>
+> Might be hard to script under windows I suppose...
 
->=20
->=20
->=20
-> > > Have you used v4l2-ctl to ensure the tuner is set to the right tv
-> > standard (my changes default to NTSC-M)?
-> >=20
-> > emunson@grover:~$ v4l2-ctl -S
-> > Video Standard =3D 0x0000b000
-> > 	NTSC-M/M-JP/M-KR
-> > emunson@grover:~$ v4l2-ctl -s ntsc
-> > Standard set to 0000b000
-> > emunson@grover:~$ v4l2-ctl -S
-> > Video Standard =3D 0x0000b000
-> > 	NTSC-M/M-JP/M-KR
-> >=20
-> > What should the default be?  NTSC-443?  When I set to NTSC-443 I see
-> > the same behaviour as below when I try and change channels.
->=20
-> NTSC-M is the default.  Having it set to autodetect the US, Japanese
-> (-JP), or South Korean (-KR) variants is OK.
->=20
-> Never use NTSC-443 as you likely will never encounter it in your life.
-> NTSC-443 is never broadcast over the air or cable.  It is a weird
-> combination of NTSC video usings a PAL color subcarrier frequency.
->=20
->=20
->=20
->=20
-> > > Have you used v4l2-ctl or ivtv-tune to tune to the proper tv channel
-> > (the driver defaults to US channel 4)?
-> >=20
-> > emunson@grover:~$ v4l2-ctl -F
-> > Frequency: 0 (0.000000 MHz)
-> > emunson@grover:~$ v4l2-ctl -f 259.250
-> > Frequency set to 4148 (259.250000 MHz)
-> > emunson@grover:~$ v4l2-ctl -F
-> > Frequency: 0 (0.000000 MHz)
->=20
-> OK, that doesn't look good.  The tda18271 tuner and/or tda8290 demod
-> drivers may not be working right.
->=20
-> I'll have to look into that later this week.
->=20
-> BTW, Mike Krufky just submitted some patches that may be relevant:
->=20
-> 	http://kernellabs.com/hg/~mkrufky/tda18271-fix
->=20
+I am not aware any good commandline BDA tuning app for Windows. Only one 
+I know is ScanChannelsBDA.exe which is rather buggy - but works.
 
-I have applied these patches and I am still seeing the same problem (freque=
-ncy
-still report 0 after being set) and mplayer still closes immediately.
-
->=20
-> >=20
-> > > Does v4l2-ctl --log-status still show no signal present for the '843 =
-core in the CX23418?
-> >=20
-> > Yeah,
-> >    [94465.349721] cx18-0 843: Video signal:              not present
->=20
-> The tuner or demod isn't tuning to a channel or getting a signal.
->=20
-> Can you try channel 3 (61.250 MHz)?  That one works for me.
-
-Still shows not present on channel 3.
-
->=20
->=20
-> > > Does mplayer /dev/videoN -cache 8192 have a tv station when set to th=
-e rf analog input with v4l2-ctl?
-> >=20
-> > emunson@grover:~$ mplayer /dev/video0 -cache 8192
-> > MPlayer 1.0rc4-4.4.5 (C) 2000-2010 MPlayer Team
-> >=20
-> > Playing /dev/video0.
-> > Cache fill:  0.00% (0 bytes)
-> >=20
-> >=20
-> > Exiting... (End of file)
->=20
-> Hmmm.  I would have expected at least a black picture with snow, if not
-> tuned to a channel.
->=20
-> Does analog S-Video or Composite work?
-
-Unfortunately, I do not have anything I can use to test these.  The card on=
-ly
-takes coaxial or S-Video input and I don't have any sort of S-Video cables =
-or
-converters.
-
-Eric
-
---h31gzZEtNLTqOjlF
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-
-iQEcBAEBAgAGBQJNrcJ0AAoJEH65iIruGRnNKFcIALBi800ZiCJc6bD9kcoQH3ZH
-A3nnmX2SjoTc7Y476fOHkCU5YC5k5Z/9j0fAwkwHFRLwjQjD1u6mkSyIxOdQVfYa
-UyGV6cwmZsef+2yBodsYW+vWfMibpM2H5Dvz3jsC1zuX7uAOjNeKWgPRT431ActO
-Bpy34Ct/+79pXgVC/PBiI7vbdV5ujAEgw9XtygvTs/bSNOwDklik5HVZA6RDX88z
-jKjAJpWogS/p9wtRUt1+ODRH2GzMXeuzD2Bzt/NxKQfabhsLoOg7uPrWNb7ha485
-JDRlLdSnVkVvXRCEZVvGjgANSJWsFJZX7qceqWElKXnZaaJXhGunAbFLKg/mMeM=
-=Fk61
------END PGP SIGNATURE-----
-
---h31gzZEtNLTqOjlF--
+Antti
+-- 
+http://palosaari.fi/
