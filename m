@@ -1,107 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from gateway09.websitewelcome.com ([67.18.144.14]:44479 "HELO
-	gateway09.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1754865Ab1DDSXF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Apr 2011 14:23:05 -0400
-Received: from [50.39.76.146] (port=17275 helo=[10.140.5.32])
-	by gator886.hostgator.com with esmtp (Exim 4.69)
-	(envelope-from <linux-dev@sensoray.com>)
-	id 1Q6oQZ-0001md-NN
-	for linux-media@vger.kernel.org; Mon, 04 Apr 2011 13:23:03 -0500
-Message-ID: <4D9A0C87.40309@sensoray.com>
-Date: Mon, 04 Apr 2011 11:23:03 -0700
-From: Sensoray Linux Development <linux-dev@sensoray.com>
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:38730 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751015Ab1DBLPb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Apr 2011 07:15:31 -0400
+Received: by pvg12 with SMTP id 12so855087pvg.19
+        for <linux-media@vger.kernel.org>; Sat, 02 Apr 2011 04:15:31 -0700 (PDT)
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 2/2] [media] s2255drv: jpeg enable module parameter
+In-Reply-To: <BANLkTi=Uq=bLgNo6uNHTast4DRM+ZVLF0g@mail.gmail.com>
+References: <AANLkTi=rcfL_pku9hhx68C_Fb_76KsW2Yy+Oys10a7+4@mail.gmail.com>
+	<4D7163FD.9030604@iki.fi>
+	<AANLkTimjC99zhJ=huHZiGgbENCoyHy5KT87iujjTT8w3@mail.gmail.com>
+	<4D716ECA.4060900@iki.fi>
+	<AANLkTimHa6XFwhvpLbhtRm7Vee-jYPkHpx+D8L2=+vQb@mail.gmail.com>
+	<AANLkTik9cSnAFWNdTUv3NNU3K2SoeECDO2036Htx-OAi@mail.gmail.com>
+	<AANLkTi=e-cAzMWZSHvKR8Yx+0MqcY_Ewf4z1gDyZfCeo@mail.gmail.com>
+	<AANLkTi=YMtTbgwxNA1O6zp03OoeGKJvn8oYDB9kHjti1@mail.gmail.com>
+	<AANLkTimDSwR06nRxNv9x11_dDdaSBzD-En4N8ameDe1Y@mail.gmail.com>
+	<AANLkTimWRDk+iGPzuXarmpr0w9W4aS4Be=xpBPkMipdC@mail.gmail.com>
+	<AANLkTimUAKjx81Z1GF=ceG33zHhLX1r-HfykWWyNpay-@mail.gmail.com>
+	<AANLkTinZVRjZEHDhi1Q0d4jfyTk5E7HhBP2U08ymW=BG@mail.gmail.com>
+	<4D837E4E.7010105@iki.fi>
+	<AANLkTi=Dz-cQ6bUUw7FG=z-6OKSt0a=ytvcimnOXqaMK@mail.gmail.com>
+	<4D96DC3A.8040005@iki.fi>
+	<BANLkTi=Uq=bLgNo6uNHTast4DRM+ZVLF0g@mail.gmail.com>
+Date: Sat, 2 Apr 2011 12:15:31 +0100
+Message-ID: <BANLkTim=qVBd81AwOmZYmFjJGjsTidRPzA@mail.gmail.com>
+Subject: Re: [patch] Fix AF9015 Dual tuner i2c write failures
+From: adq <adq@lidskialf.net>
+To: Antti Palosaari <crope@iki.fi>
+Cc: =?ISO-8859-1?Q?Juan_Jes=FAs_Garc=EDa_de_Soria_Lucena?=
+	<skandalfo@gmail.com>, linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Adding jpeg enable module parameter.
+2011/4/2 adq <adq@lidskialf.net>:
+> 2011/4/2 Antti Palosaari <crope@iki.fi>:
+>> On 04/02/2011 04:24 AM, adq wrote:
+>>>
+>>> Hi, just been trying it out, with no success. On my test machine, FE0
+>>> no longer tunes, but FE1 is still fine, so I've just been testing FE0.
+>>
+>> You try to say other frontend / tuner is physically dead? Which one?
+>
+> No no - I can revive it by simply unplugging and replugging the
+> device, but I was avoiding doing that to see if we could either track
+> down something erroneous, or be able to reset it from software.
+>
+> It'd be /really/ handy if they'd connected that reset tuner GPIO :(
+> There isn't a way to completely reset the device from software I take
+> it? Or any other GPIOs hanging about I could test with?
+>
+> I have an MXL5005R tuner apparently - id 30 - BTW.
 
-Signed-off-by: Dean Anderson <linux-dev@sensoray.com>
+Forgot to mention - its the tuner attached to the internal af9013
+(fe0) that is having the problem. The one attached to the external one
+(fe1) is still fine. I don't know if this is always the case though.
 
----
- drivers/media/video/s2255drv.c |   21 ++++++++++++++++-----
- 1 files changed, 16 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/video/s2255drv.c b/drivers/media/video/s2255drv.c
-index 38e5c4b..eb33e1e 100644
---- a/drivers/media/video/s2255drv.c
-+++ b/drivers/media/video/s2255drv.c
-@@ -389,12 +389,17 @@ static unsigned int vid_limit = 16;    /* Video memory limit, in Mb */
- /* start video number */
- static int video_nr = -1;    /* /dev/videoN, -1 for autodetect */
- 
-+/* Enable jpeg capture. */
-+static int jpeg_enable = 1;
-+
- module_param(debug, int, 0644);
- MODULE_PARM_DESC(debug, "Debug level(0-100) default 0");
- module_param(vid_limit, int, 0644);
- MODULE_PARM_DESC(vid_limit, "video memory limit(Mb)");
- module_param(video_nr, int, 0644);
- MODULE_PARM_DESC(video_nr, "start video minor(-1 default autodetect)");
-+module_param(jpeg_enable, int, 0644);
-+MODULE_PARM_DESC(jpeg_enable, "Jpeg enable(1-on 0-off) default 1");
- 
- /* USB device table */
- #define USB_SENSORAY_VID    0x1943
-@@ -408,6 +413,7 @@ MODULE_DEVICE_TABLE(usb, s2255_table);
- #define BUFFER_TIMEOUT msecs_to_jiffies(400)
- 
- /* image formats.  */
-+/* JPEG formats must be defined last to support jpeg_enable parameter */
- static const struct s2255_fmt formats[] = {
-     {
-         .name = "4:2:2, planar, YUV422P",
-@@ -424,6 +430,10 @@ static const struct s2255_fmt formats[] = {
-         .fourcc = V4L2_PIX_FMT_UYVY,
-         .depth = 16
-     }, {
-+        .name = "8bpp GREY",
-+        .fourcc = V4L2_PIX_FMT_GREY,
-+        .depth = 8
-+    }, {
-         .name = "JPG",
-         .fourcc = V4L2_PIX_FMT_JPEG,
-         .depth = 24
-@@ -431,10 +441,6 @@ static const struct s2255_fmt formats[] = {
-         .name = "MJPG",
-         .fourcc = V4L2_PIX_FMT_MJPEG,
-         .depth = 24
--    }, {
--        .name = "8bpp GREY",
--        .fourcc = V4L2_PIX_FMT_GREY,
--        .depth = 8
-     }
- };
- 
-@@ -609,6 +615,9 @@ static const struct s2255_fmt *format_by_fourcc(int fourcc)
-     for (i = 0; i < ARRAY_SIZE(formats); i++) {
-         if (-1 == formats[i].fourcc)
-             continue;
-+        if (!jpeg_enable && ((formats[i].fourcc == V4L2_PIX_FMT_JPEG) ||
-+                     (formats[i].fourcc == V4L2_PIX_FMT_MJPEG)))
-+            continue;
-         if (formats[i].fourcc == fourcc)
-             return formats + i;
-     }
-@@ -856,7 +865,9 @@ static int vidioc_enum_fmt_vid_cap(struct file *file, void *priv,
- 
-     if (index >= ARRAY_SIZE(formats))
-         return -EINVAL;
--
-+    if (!jpeg_enable && ((formats[index].fourcc == V4L2_PIX_FMT_JPEG) ||
-+                 (formats[index].fourcc == V4L2_PIX_FMT_MJPEG)))
-+        return -EINVAL;
-     dprintk(4, "name %s\n", formats[index].name);
-     strlcpy(f->description, formats[index].name, sizeof(f->description));
-     f->pixelformat = formats[index].fourcc;
--- 
-1.7.0.4
-
-
+>>> I've tried your suggestions, mainly concentrating on the af9013's
+>>> GPIOs, but I also tried your power management suggestion.
+>>>
+>>> Since I was just using FE0, I've just been setting all the GPIOs at
+>>> the start of af9013.c's set_frontend() implementation; I've tried
+>>> turning them all off, all on, on->mdelay->off, and also
+>>> off->mdelay->on. Nothing works.
+>>
+>> So GPIOs are blocked out.
+>>
+>> I wonder if someone can ran similar many day tuning stress test using
+>> Windows drivers to see if that happen.
+>
+> Might be hard to script under windows I suppose...
+>
