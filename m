@@ -1,53 +1,57 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:60939 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757204Ab1DHPHQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Apr 2011 11:07:16 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: javier Martin <javier.martin@vista-silicon.com>
-Subject: Re: mt9t111 sensor on Beagleboard xM
-Date: Fri, 8 Apr 2011 17:07:17 +0200
-Cc: linux-media@vger.kernel.org
-References: <BANLkTin35p+xPHWkf3WsGNPzL9aeUwsazQ@mail.gmail.com>
-In-Reply-To: <BANLkTin35p+xPHWkf3WsGNPzL9aeUwsazQ@mail.gmail.com>
+Received: from moutng.kundenserver.de ([212.227.17.10]:64547 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753017Ab1DBW7z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Apr 2011 18:59:55 -0400
+Date: Sun, 3 Apr 2011 00:59:48 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PULL] soc-camera: one more patch
+In-Reply-To: <4D97A8F6.1060001@infradead.org>
+Message-ID: <Pine.LNX.4.64.1104030058320.22822@axis700.grange>
+References: <Pine.LNX.4.64.1103232149360.6836@axis700.grange>
+ <4D97A8F6.1060001@infradead.org>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201104081707.17576.laurent.pinchart@ideasonboard.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Javier,
+Hi Mauro
 
-On Friday 08 April 2011 17:02:48 javier Martin wrote:
-> Hi,
-> I've just received a LI-LBCM3M1 camera module from Leopard Imaging and
-> I want to test it with my Beagleboard xM. This module has a mt9t111
-> sensor.
+On Sat, 2 Apr 2011, Mauro Carvalho Chehab wrote:
+
+> Em 23-03-2011 17:51, Guennadi Liakhovetski escreveu:
+> > Hi Mauro
+> > 
+> > Sorry, would be nice if we could manage to push one more patch for 2.6.39:
+> > 
+> > The following changes since commit f772f016e15a0b93b5aa9680203107ab8cb9bdc6:
+> > 
+> >   [media] media-devnode: don't depend on BKL stuff (2011-03-22 19:43:01 -0300)
+> > 
+> > are available in the git repository at:
+> >   git://linuxtv.org/gliakhovetski/v4l-dvb.git for-2.6.39
+> > 
+> > Guennadi Liakhovetski (1):
+> >       V4L: soc_camera_platform: add helper functions to manage device instances
+> > 
+> >  include/media/soc_camera_platform.h |   50 +++++++++++++++++++++++++++++++++++
+> >  1 files changed, 50 insertions(+), 0 deletions(-)
 > 
-> At first glance, this driver
-> (http://lxr.linux.no/#linux+v2.6.38/drivers/media/video/mt9t112.c)
-> supports mt9t111 sensor and uses both soc-camera and v4l2-subdev
-> frameworks.
-> I am trying to somehow connect this sensor with the omap3isp driver
-> recently merged (I'm working with latest mainline kernel), however, I
-> found an issue when trying to pass "mt9t112_camera_info" data to the
-> sensor driver in my board specific file.
+> Guennadi,
 > 
-> It seems that this data is passed through soc-camera but omap3isp
-> doesn't use soc-camera. Do you know what kind of changes are required
-> to adapt this driver so that it can be used with omap3isp?
+> While it would be probably ok to send this patch after the end of the merge window,
+> there's no sense on doing it, as no other driver is using the new stuff. So, I just
+> added it at stating/for_2.6.40.
 
-The OMAP3 ISP driver isn't compatible with the soc-camera framework, as you 
-correctly noticed. You will need to port the MT9T111 driver to pad-level 
-subdev operations.
+These helper functions are for use not by drivers, but by platforms, and I 
+was planning to push 2 users after this patch gets merged. But yes, I 
+think, it's not that critical...
 
-You can find a sensor driver (MT9V032) implementing pad-level subdev 
-operations at 
-http://git.linuxtv.org/pinchartl/media.git?a=commit;h=940b87a5cb7ea3f3cff16454e9085e33ab340064 
-
--- 
-Regards,
-
-Laurent Pinchart
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
