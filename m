@@ -1,63 +1,67 @@
 Return-path: <mchehab@pedra>
-Received: from acoma.acyna.com ([72.9.254.68]:56856 "EHLO acoma.acyna.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750838Ab1D2PBn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Apr 2011 11:01:43 -0400
-Received: from acoma ([127.0.0.1] helo=[127.0.0.100])
-	by acoma.acyna.com with esmtpa (Exim 4.69)
-	(envelope-from <linuxtv@hubstar.net>)
-	id 1QFkdS-0000OQ-VX
-	for linux-media@vger.kernel.org; Fri, 29 Apr 2011 11:09:19 +0100
-Message-ID: <4DBAC672.5060503@hubstar.net>
-Date: Fri, 29 Apr 2011 15:08:50 +0100
-From: linuxtv <linuxtv@hubstar.net>
+Received: from mail-px0-f179.google.com ([209.85.212.179]:46717 "EHLO
+	mail-px0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751015Ab1DBLGI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Apr 2011 07:06:08 -0400
+Received: by pxi2 with SMTP id 2so1163879pxi.10
+        for <linux-media@vger.kernel.org>; Sat, 02 Apr 2011 04:06:08 -0700 (PDT)
 MIME-Version: 1.0
-To: vger <linux-media@vger.kernel.org>
-Subject: Fwd: HVR1300 cx88 Blackbird - no audio in mpeg stream at latest level
- - 2
+In-Reply-To: <4D96DC3A.8040005@iki.fi>
+References: <AANLkTi=rcfL_pku9hhx68C_Fb_76KsW2Yy+Oys10a7+4@mail.gmail.com>
+	<4D7163FD.9030604@iki.fi>
+	<AANLkTimjC99zhJ=huHZiGgbENCoyHy5KT87iujjTT8w3@mail.gmail.com>
+	<4D716ECA.4060900@iki.fi>
+	<AANLkTimHa6XFwhvpLbhtRm7Vee-jYPkHpx+D8L2=+vQb@mail.gmail.com>
+	<AANLkTik9cSnAFWNdTUv3NNU3K2SoeECDO2036Htx-OAi@mail.gmail.com>
+	<AANLkTi=e-cAzMWZSHvKR8Yx+0MqcY_Ewf4z1gDyZfCeo@mail.gmail.com>
+	<AANLkTi=YMtTbgwxNA1O6zp03OoeGKJvn8oYDB9kHjti1@mail.gmail.com>
+	<AANLkTimDSwR06nRxNv9x11_dDdaSBzD-En4N8ameDe1Y@mail.gmail.com>
+	<AANLkTimWRDk+iGPzuXarmpr0w9W4aS4Be=xpBPkMipdC@mail.gmail.com>
+	<AANLkTimUAKjx81Z1GF=ceG33zHhLX1r-HfykWWyNpay-@mail.gmail.com>
+	<AANLkTinZVRjZEHDhi1Q0d4jfyTk5E7HhBP2U08ymW=BG@mail.gmail.com>
+	<4D837E4E.7010105@iki.fi>
+	<AANLkTi=Dz-cQ6bUUw7FG=z-6OKSt0a=ytvcimnOXqaMK@mail.gmail.com>
+	<4D96DC3A.8040005@iki.fi>
+Date: Sat, 2 Apr 2011 12:06:07 +0100
+Message-ID: <BANLkTi=Uq=bLgNo6uNHTast4DRM+ZVLF0g@mail.gmail.com>
+Subject: Re: [patch] Fix AF9015 Dual tuner i2c write failures
+From: adq <adq@lidskialf.net>
+To: Antti Palosaari <crope@iki.fi>
+Cc: =?ISO-8859-1?Q?Juan_Jes=FAs_Garc=EDa_de_Soria_Lucena?=
+	<skandalfo@gmail.com>, linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+2011/4/2 Antti Palosaari <crope@iki.fi>:
+> On 04/02/2011 04:24 AM, adq wrote:
+>>
+>> Hi, just been trying it out, with no success. On my test machine, FE0
+>> no longer tunes, but FE1 is still fine, so I've just been testing FE0.
+>
+> You try to say other frontend / tuner is physically dead? Which one?
 
-Hi,
+No no - I can revive it by simply unplugging and replugging the
+device, but I was avoiding doing that to see if we could either track
+down something erroneous, or be able to reset it from software.
 
-I am using openSuse 11.4 mythtv 0.24 and patched the drivers (attachment
-on the bug) to avoid the locking issue that is in the current kernel
-drivers (cx88)
+It'd be /really/ handy if they'd connected that reset tuner GPIO :(
+There isn't a way to completely reset the device from software I take
+it? Or any other GPIOs hanging about I could test with?
 
-However I can not get audio recorded on this device at this level. Video
-is fine. (Recording from the hw encoded stream /dev/video1 on composite1)
+I have an MXL5005R tuner apparently - id 30 - BTW.
 
-I did briefly managed to get audio one day using
-v4lctl -c /dev/video1 volume mute off
-But once I tried to set it up to automatically run, I've never got audio
-again.
+>> I've tried your suggestions, mainly concentrating on the af9013's
+>> GPIOs, but I also tried your power management suggestion.
+>>
+>> Since I was just using FE0, I've just been setting all the GPIOs at
+>> the start of af9013.c's set_frontend() implementation; I've tried
+>> turning them all off, all on, on->mdelay->off, and also
+>> off->mdelay->on. Nothing works.
+>
+> So GPIOs are blocked out.
+>
+> I wonder if someone can ran similar many day tuning stress test using
+> Windows drivers to see if that happen.
 
-I know the hardware is all working, as the same box has Suse 11.1 and
-mythtv 0.21 working fine 100% of the time with no hacks. I had to
-upgrade as 11.1 to get updates, so went the whole way.
-
-I also tried pulling older driver levels, but unfortunately I'm not
-really upto speed with all the changes that happened in v4l and so
-drivers at early 2010 I get compilation errors.
-
-Any help / ideas would be great
-
-Sorry I couldn't reply to the first message (not sure how)
-
-I wanted to add the following strangeness
-
-- I can sometimes get it working by running smplayer /dev/video1
-Once it is working it stays working until power off
-- I added some delays to the start_codec function in cx88-blackbird.c, and
-it starts up quicker (one or two smplayer starts). 
-
-However I can't make it start 100% of the time.
-
-Thanks
-
-
-
-
+Might be hard to script under windows I suppose...
