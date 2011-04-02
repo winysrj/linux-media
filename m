@@ -1,76 +1,38 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:55324 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754853Ab1DTPZ6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Apr 2011 11:25:58 -0400
-Received: by qyg14 with SMTP id 14so482257qyg.19
-        for <linux-media@vger.kernel.org>; Wed, 20 Apr 2011 08:25:58 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:64927 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751346Ab1DBKnV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 2 Apr 2011 06:43:21 -0400
+Message-ID: <4D96FDC6.3010103@redhat.com>
+Date: Sat, 02 Apr 2011 07:43:18 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <201103301532.16635.laurent.pinchart@ideasonboard.com>
-References: <AANLkTimec2+VyO+iRSx1PYy3btOb6RbHt0j3ytmnykVo@mail.gmail.com>
-	<201103292241.51237.laurent.pinchart@ideasonboard.com>
-	<AANLkTikjDOsx6-A75A510k_BY0bF9qmTKKBw_YVyJgBF@mail.gmail.com>
-	<201103301532.16635.laurent.pinchart@ideasonboard.com>
-Date: Wed, 20 Apr 2011 17:25:58 +0200
-Message-ID: <BANLkTimccZM=ipUUhEBNM+pPhAvQgn=AbQ@mail.gmail.com>
-Subject: Re: OMAP3 ISP and tvp5151 driver.
-From: Raffaele Recalcati <lamiaposta71@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: =?UTF-8?Q?Lo=C3=AFc_Akue?= <akue.loic@gmail.com>,
-	=?UTF-8?Q?Enric_Balletb=C3=B2_i_Serra?= <eballetbo@gmail.com>,
-	linux-media@vger.kernel.org, mchehab@redhat.com
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL] HVR-900 R2 and PCTV 330e DVB support
+References: <AANLkTi=hppcpARY1DOOJwK7kyKPe+2Q415jt8dNh8Z=-@mail.gmail.com>	<4D8CB9C0.1000005@redhat.com> <AANLkTimW+e8-YC=nFdiKYr=6TKYRozf8uAct21i5QHN0@mail.gmail.com>
+In-Reply-To: <AANLkTimW+e8-YC=nFdiKYr=6TKYRozf8uAct21i5QHN0@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Laurent,
+Hi Devin,
 
-On Wed, Mar 30, 2011 at 3:32 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Loïc,
->
-> On Wednesday 30 March 2011 13:05:08 Loïc Akue wrote:
->> Hi Laurent,
+Em 25-03-2011 13:09, Devin Heitmueller escreveu:
+> On Fri, Mar 25, 2011 at 11:50 AM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+>> I've added a patch for it at the end of the series.
 >>
->> > The OMAP3 ISP should support interleaving interlaced frames, but that's
->> > not implemented in the driver. You will need to at least implement
->> > interlaced frames support in the CCDC module to report field identifiers
->> > to userspace.
+>> Could you please double check if everything is ok, for me to move this upstream?
 >>
->> Are you saying that the OMAP ISP could be configured to provide some full
->> field frames on the CCDC output? I'm looking at the ISP's TRM but I can't
->> find anything interesting.
->
-> Look at the "Line-Output Control" section in the OMAP3 TRM (SWPU177B, page
-> 1201).
->
->> Or is it the job of the user space application to recompose the image with
->> the interleaved frames?
->
-> --
-> Regards,
->
-> Laurent Pinchart
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+>> Thanks!
+>> Mauro
+>>
+> 
+> Sure, I will find some time this weekend to try out your tree.
 
-I'm using tvp5151 in DaVinci with the drivers/media/video/tvp5150.c
-driver with little modification to enhance v4l2 interface.
-It works.
-Now I'm moving to dm3730 and I see that evm dm3730 uses tvp514x-int.c
-from Arago tree, that is really different from tvp514x.c .
-I'm trying to understand if I need to create a tvp5150-int.c using the
-call v4l2_int_device_register instead of v4l2_i2c_subdev_init.
-The drivers/media/video/omap34xxcam.c driver calls
-v4l2_int_device_register and so it needs v4l2_int_device_register.
+Any news?
 
-Maybe you have done some modifications to
-drivers/media/video/tvp5150.c that I could merge with mines ?
-
-Bye,
-Raffaele
+Thanks!
+Mauro
