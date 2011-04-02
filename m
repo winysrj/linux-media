@@ -1,63 +1,45 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:64066 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758091Ab1D3BTf convert rfc822-to-8bit (ORCPT
+Received: from blu0-omc2-s26.blu0.hotmail.com ([65.55.111.101]:43320 "EHLO
+	blu0-omc2-s26.blu0.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750902Ab1DBNp3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Apr 2011 21:19:35 -0400
-Received: by iyb14 with SMTP id 14so3462853iyb.19
-        for <linux-media@vger.kernel.org>; Fri, 29 Apr 2011 18:19:34 -0700 (PDT)
+	Sat, 2 Apr 2011 09:45:29 -0400
+Message-ID: <BLU0-SMTP2588D5C8C024CC3D20EE63D8A10@phx.gbl>
+To: linux-media@vger.kernel.org
+Subject: dibusb device with lock problems
+CC: patrick.boettcher@desy.de, pb@linuxtv.org, grafgrimm77@gmx.de,
+	castet.matthieu@free.fr
+From: Mr Tux <tuxoholic@hotmail.de>
 MIME-Version: 1.0
-In-Reply-To: <201104260853.03817.hverkuil@xs4all.nl>
-References: <BANLkTim7AONexeEm-E8iLQA5+TMDRUy36w@mail.gmail.com>
-	<201104231256.25263.hverkuil@xs4all.nl>
-	<BANLkTikneMOMVUQ07mLBZZTDYrKTJ1dfPw@mail.gmail.com>
-	<201104260853.03817.hverkuil@xs4all.nl>
-Date: Fri, 29 Apr 2011 19:19:34 -0600
-Message-ID: <BANLkTikRtZTpDZTe93q08-WFSKRAuv29WQ@mail.gmail.com>
-Subject: Re: Regression with suspend from "msp3400: convert to the new control framework"
-From: Jesse Allen <the3dfxdude@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Date: Sat, 2 Apr 2011 15:45:22 +0200
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, Apr 26, 2011 at 12:53 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->
-> OK, whatever is causing the problems is *not* msp3400 since your card does not
-> have one :-)
->
-> This card uses gpio to handle audio.
->
->> i2c-core: driver [tuner] using legacy suspend method
->> i2c-core: driver [tuner] using legacy resume method
->> tuner 0-0061: chip found @ 0xc2 (bt878 #0 [sw])
->> tuner-simple 0-0061: creating new instance
->> tuner-simple 0-0061: type set to 2 (Philips NTSC (FI1236,FM1236 and
->> compatibles))
->
-> It is more likely to be the tuner driver. But I would have expected to see
-> more bug reports since this is a bog-standard tuner so I have my doubts there
-> as well.
->
-> Regards,
->
->        Hans
->
+Hi list, hello Patrick,
+
+A locking problem with specific dib3000mb devices is still present in
+kernel 2.6.38.
+
+Now people upgrading from lenny to squeeze are also affected - see: [1]
+
+Please have a look at my previous post in [2] for a detailed description and 
+links to this bug's history.
+
+I'm sending a cc of this to the people who once where affected by this bug or 
+involved with the code change that introduced it.
+
+Anyone can confirm this is fixed/pending for his device and what dib3000mb 
+device he is using out of the linuxtv wiki list of 14 dib3000mb devices [3]?
+
+I have 3 devices of the hama usb 1.1 series: [4], that's number 66 in the wiki 
+listing - they all are affected by this bug with kernels > 2.6.31
+
+Thanks for some feedback. Can we fix this for good for the pending devices?
 
 
-After today, basically I have proved that the issue only happens if
-both the radeon and the bttv drivers are both loaded at suspend. If I
-boot without radeon, but load bttv, I can suspend and resume the tv
-card just fine. If I load radeon and when going to suspend unload
-bttv, I can then resume and load bttv just fine. This behavior started
-sometime after v2.6.36. It will be hard to pin point a problem in
-either since both have problems in 2.6.37-rc, where bttv has multiple
-issues during that time frame that cause oopses, and in other places
-loading radeon causes a lockup. So I think this will take me a
-different direction now, and it would be nice to know what changed
-related to all this.
-
-Jesse
+[1] http://www.vdr-portal.de/index.php?page=Thread&postID=991041
+[2] http://www.spinics.net/lists/linux-media/msg28817.html
+[3] http://www.linuxtv.org/wiki/index.php/DVB-T_USB_Devices/Full
+[4] http://www.hama.de/bilder/00049/abb/00049021abb.jpg
