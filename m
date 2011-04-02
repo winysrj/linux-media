@@ -1,104 +1,54 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.1.48]:60496 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755212Ab1DFJ0K (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Apr 2011 05:26:10 -0400
-Message-ID: <4D9C31A4.3050705@maxwell.research.nokia.com>
-Date: Wed, 06 Apr 2011 12:25:56 +0300
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Received: from casper.infradead.org ([85.118.1.10]:53537 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753186Ab1DBWxs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Apr 2011 18:53:48 -0400
+Message-ID: <4D97A8F6.1060001@infradead.org>
+Date: Sat, 02 Apr 2011 19:53:42 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-To: Nayden Kanchev <nkanchev@mm-sol.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Cohen David Abraham <david.cohen@nokia.com>,
-	Kim HeungJun <riverful@gmail.com>
-Subject: Re: [RFC v2] V4L2 API for flash devices
-References: <4D9C2000.9090500@maxwell.research.nokia.com> <4D9C2670.2000603@mm-sol.com>
-In-Reply-To: <4D9C2670.2000603@mm-sol.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PULL] soc-camera: one more patch
+References: <Pine.LNX.4.64.1103232149360.6836@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1103232149360.6836@axis700.grange>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Nayden Kanchev wrote:
-> Hi Sakari,
+Em 23-03-2011 17:51, Guennadi Liakhovetski escreveu:
+> Hi Mauro
 > 
-> Thanks for the update. I have just one comment about strobe types.
-
-Hi Nayden,
-
-Thanks for the comments!
-
-> <snip>
+> Sorry, would be nice if we could manage to push one more patch for 2.6.39:
 > 
+> The following changes since commit f772f016e15a0b93b5aa9680203107ab8cb9bdc6:
 > 
-> On 04/06/2011 11:10 AM, Sakari Ailus wrote:
->> - Added an open question on a new control:
->> V4L2_CID_FLASH_EXTERNAL_STROBE_WHENCE.
->>
->>
->>
-> <snip>
->> 2. External strobe edge / level
->> -------------------------------
->>
->> No use is seen currently for this, but it may well appear, and the
->> hardware supports this. Level based trigger should be used since it is
->> more precise.
->>
->>     V4L2_CID_FLASH_EXTERNAL_STROBE_WHENCE
->>
->> Whether the flash controller considers external strobe as edge, when the
->> only limit of the strobe is the timeout on flash controller, or level,
->> when the flash strobe will last as long as the strobe signal, or as long
->> until the timeout expires.
->>
->> enum v4l2_flash_external_strobe_whence {
->>     V4L2_CID_FLASH_EXTERNAL_STROBE_LEVEL,
->>     V4L2_CID_FLASH_EXTERNAL_STROBE_EDGE,
->> };
-
-Removed "CID_":
-
-enum v4l2_flash_external_strobe_whence {
-	V4L2_FLASH_EXTERNAL_STROBE_LEVEL,
-	V4L2_FLASH_EXTERNAL_STROBE_EDGE,
-};
-
-I guess this should be an rw menu control for LED flash?
-
+>   [media] media-devnode: don't depend on BKL stuff (2011-03-22 19:43:01 -0300)
 > 
-> I agree that control over the strobe usage (level/edge) is required.
-> Although we have some bad experience will lack of detailed information
-> how exactly the flash chip will use those signals.
+> are available in the git repository at:
+>   git://linuxtv.org/gliakhovetski/v4l-dvb.git for-2.6.39
 > 
-> For example with AS3645A flash driver strobing by edge produced really
-> strange flash output - light intensity was changing during the process
-> and flash was stopped before the HW timeout.
+> Guennadi Liakhovetski (1):
+>       V4L: soc_camera_platform: add helper functions to manage device instances
 > 
-> On the other hand strobing by level didn't cause problems.
+>  include/media/soc_camera_platform.h |   50 +++++++++++++++++++++++++++++++++++
+>  1 files changed, 50 insertions(+), 0 deletions(-)
+
+Guennadi,
+
+While it would be probably ok to send this patch after the end of the merge window,
+there's no sense on doing it, as no other driver is using the new stuff. So, I just
+added it at stating/for_2.6.40.
 > 
-> So even if HW supports some functionally we should prevent such
-> malfunctioning by adding some restrictions in the board code also.
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-I agree.
-
-The control should be probably exposed to tell which kind of
-functionality does the flash chip provide, even if the menu has just one
-option in it.
-
-> I would also rename xxx_STROBE_WHENCE to xxx_STROBE_TYPE but it is just
-> a suggestion :)
-
-Sounds good to me.
-
-V4L2_CID_FLASH_STROBE_MODE should be renamed to
-V4L2_CID_FLASH_STROBE_WHENCE. That proper use of whence IMO. :-)
-
-Regards,
-
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
