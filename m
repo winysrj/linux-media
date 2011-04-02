@@ -1,38 +1,38 @@
 Return-path: <mchehab@pedra>
-Received: from cantor.suse.de ([195.135.220.2]:45227 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752941Ab1DRWSs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Apr 2011 18:18:48 -0400
-Date: Tue, 19 Apr 2011 00:18:46 +0200
-From: Michal Marek <mmarek@suse.cz>
-To: linux-kbuild@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 14/34] media/cx231xx: Drop __TIME__ usage
-Message-ID: <20110418221846.GC29882@sepie.suse.cz>
-References: <1302015561-21047-1-git-send-email-mmarek@suse.cz>
- <1302015561-21047-15-git-send-email-mmarek@suse.cz>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1302015561-21047-15-git-send-email-mmarek@suse.cz>
+Received: from gateway04.websitewelcome.com ([67.18.21.5]:56391 "HELO
+	gateway04.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753179Ab1DBAbJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 Apr 2011 20:31:09 -0400
+Subject: [PATCH] s2255drv: atomic submit urb in completion handler
+From: Pete Eberlein <pete@sensoray.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: linux-dev@sensoray.com
+Content-Type: text/plain; charset="UTF-8"
+Date: Fri, 01 Apr 2011 17:21:26 -0700
+Message-ID: <1301703686.9785.12.camel@pete-desktop>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, Apr 05, 2011 at 04:59:01PM +0200, Michal Marek wrote:
-> The kernel already prints its build timestamp during boot, no need to
-> repeat it in random drivers and produce different object files each
-> time.
-> 
-> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Cc: linux-media@vger.kernel.org
-> Signed-off-by: Michal Marek <mmarek@suse.cz>
-> ---
->  drivers/media/video/cx231xx/cx231xx-avcore.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
+An usb_submit_urb should be atomic in a completion handler. This fixes
+"BUG: scheduling while atomic" messages.
 
-Applied to kbuild-2.6.git#trivial.
+Signed-off-by: Pete Eberlein <pete@sensoray.com>
 
-Michal
+diff --git a/drivers/media/video/s2255drv.c b/drivers/media/video/s2255drv.c
+index f5a46c4..85c3158 100644
+--- a/drivers/media/video/s2255drv.c
++++ b/drivers/media/video/s2255drv.c
+@@ -2406,7 +2406,7 @@ static void read_pipe_completion(struct urb *purb)
+                          read_pipe_completion, pipe_info);
+ 
+        if (pipe_info->state != 0) {
+-               if (usb_submit_urb(pipe_info->stream_urb, GFP_KERNEL)) {
++               if (usb_submit_urb(pipe_info->stream_urb, GFP_ATOMIC)) {
+                        dev_err(&dev->udev->dev, "error submitting urb\n");
+                }
+        } else {
+
 
