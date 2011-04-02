@@ -1,73 +1,155 @@
 Return-path: <mchehab@pedra>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:50256 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754417Ab1DASBS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Apr 2011 14:01:18 -0400
-MIME-Version: 1.0
-In-Reply-To: <BANLkTi=bCd_+f=EG-O=U5VH_ZNjFhxkziQ@mail.gmail.com>
-References: <20110202195417.228e2656@queued.net> <20110202200812.3d8d6cba@queued.net>
- <20110331230522.GI437@ponder.secretlab.ca> <20110401112030.GA3447@sortiz-mobl>
- <20110401104756.2f5c6f7a@debxo> <BANLkTi=bCd_+f=EG-O=U5VH_ZNjFhxkziQ@mail.gmail.com>
-From: Grant Likely <grant.likely@secretlab.ca>
-Date: Fri, 1 Apr 2011 12:00:57 -0600
-Message-ID: <BANLkTin5ZdQ+i7e6O98jKux+V7Ncc5Kb3Q@mail.gmail.com>
-Subject: Re: [PATCH 07/19] timberdale: mfd_cell is now implicitly available to drivers
-To: Andres Salomon <dilinger@queued.net>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, linux-kernel@vger.kernel.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	khali@linux-fr.org, ben-linux@fluff.org,
-	Peter Korsgaard <jacmet@sunsite.dk>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-i2c@vger.kernel.org, linux-media@vger.kernel.org,
-	netdev@vger.kernel.org, spi-devel-general@lists.sourceforge.net,
-	Mocean Laboratories <info@mocean-labs.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from comal.ext.ti.com ([198.47.26.152]:36715 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753048Ab1DBJnz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 2 Apr 2011 05:43:55 -0400
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Kevin Hilman <khilman@deeprootsystems.com>,
+	LAK <linux-arm-kernel@lists.infradead.org>,
+	Sekhar Nori <nsekhar@ti.com>
+Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [PATCH v18 10/13] davinci: dm644x: change vpfe capture structure variables for consistency
+Date: Sat,  2 Apr 2011 15:13:46 +0530
+Message-Id: <1301737426-4459-1-git-send-email-manjunath.hadli@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Fri, Apr 1, 2011 at 11:56 AM, Grant Likely <grant.likely@secretlab.ca> wrote:
-> On Fri, Apr 1, 2011 at 11:47 AM, Andres Salomon <dilinger@queued.net> wrote:
->> On Fri, 1 Apr 2011 13:20:31 +0200
->> Samuel Ortiz <sameo@linux.intel.com> wrote:
->>
->>> Hi Grant,
->>>
->>> On Thu, Mar 31, 2011 at 05:05:22PM -0600, Grant Likely wrote:
->> [...]
->>> > Gah.  Not all devices instantiated via mfd will be an mfd device,
->>> > which means that the driver may very well expect an *entirely
->>> > different* platform_device pointer; which further means a very high
->>> > potential of incorrectly dereferenced structures (as evidenced by a
->>> > patch series that is not bisectable).  For instance, the xilinx ip
->>> > cores are used by more than just mfd.
->>> I agree. Since the vast majority of the MFD subdevices are MFD
->>> specific IPs, I overlooked that part. The impacted drivers are the
->>> timberdale and the DaVinci voice codec ones.
->
-> Another option is you could do this for MFD devices:
->
-> struct mfd_device {
->        struct platform_devce pdev;
->        struct mfd_cell *cell;
-> };
->
-> However, that requires that drivers using the mfd_cell will *never*
-> get instantiated outside of the mfd infrastructure, and there is no
-> way to protect against this so it is probably a bad idea.
->
-> Or, mfd_cell could be added to platform_device directly which would
-> *by far* be the safest option at the cost of every platform_device
-> having a mostly unused mfd_cell pointer.  Not a significant cost in my
-> opinion.
->
-> One last option is I'm prototyping a way to add type-safe structure
-> pointers to a device, but that requires nasty CPP tricks and it's not
-> complete yet.  The cure might be worse than the disease here.
+Add SoC and board prefixes to variable names so that it is
+consistent with the rest of the file.
 
-And yet another option is to create a mfd_bus_type, but that probably
-isn't helpful since the one of the purposes of MFDs is that it is a
-collection of non-detectable memory mapped devices that
-platform_bus_type is intended to handle.
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Acked-by: Sekhar Nori <nsekhar@ti.com>
+---
+ arch/arm/mach-davinci/board-dm644x-evm.c |   24 ++++++++++++------------
+ arch/arm/mach-davinci/dm644x.c           |   12 ++++++------
+ 2 files changed, 18 insertions(+), 18 deletions(-)
 
-g.
+diff --git a/arch/arm/mach-davinci/board-dm644x-evm.c b/arch/arm/mach-davinci/board-dm644x-evm.c
+index 0ca90b8..6919f28 100644
+--- a/arch/arm/mach-davinci/board-dm644x-evm.c
++++ b/arch/arm/mach-davinci/board-dm644x-evm.c
+@@ -188,7 +188,7 @@ static struct platform_device davinci_fb_device = {
+ 	.num_resources = 0,
+ };
+ 
+-static struct tvp514x_platform_data tvp5146_pdata = {
++static struct tvp514x_platform_data dm644xevm_tvp5146_pdata = {
+ 	.clk_polarity = 0,
+ 	.hs_polarity = 1,
+ 	.vs_polarity = 1
+@@ -196,7 +196,7 @@ static struct tvp514x_platform_data tvp5146_pdata = {
+ 
+ #define TVP514X_STD_ALL	(V4L2_STD_NTSC | V4L2_STD_PAL)
+ /* Inputs available at the TVP5146 */
+-static struct v4l2_input tvp5146_inputs[] = {
++static struct v4l2_input dm644xevm_tvp5146_inputs[] = {
+ 	{
+ 		.index = 0,
+ 		.name = "Composite",
+@@ -216,7 +216,7 @@ static struct v4l2_input tvp5146_inputs[] = {
+  * ouput that goes to vpfe. There is a one to one correspondence
+  * with tvp5146_inputs
+  */
+-static struct vpfe_route tvp5146_routes[] = {
++static struct vpfe_route dm644xevm_tvp5146_routes[] = {
+ 	{
+ 		.input = INPUT_CVBS_VI2B,
+ 		.output = OUTPUT_10BIT_422_EMBEDDED_SYNC,
+@@ -227,13 +227,13 @@ static struct vpfe_route tvp5146_routes[] = {
+ 	},
+ };
+ 
+-static struct vpfe_subdev_info vpfe_sub_devs[] = {
++static struct vpfe_subdev_info dm644xevm_vpfe_sub_devs[] = {
+ 	{
+ 		.name = "tvp5146",
+ 		.grp_id = 0,
+-		.num_inputs = ARRAY_SIZE(tvp5146_inputs),
+-		.inputs = tvp5146_inputs,
+-		.routes = tvp5146_routes,
++		.num_inputs = ARRAY_SIZE(dm644xevm_tvp5146_inputs),
++		.inputs = dm644xevm_tvp5146_inputs,
++		.routes = dm644xevm_tvp5146_routes,
+ 		.can_route = 1,
+ 		.ccdc_if_params = {
+ 			.if_type = VPFE_BT656,
+@@ -242,15 +242,15 @@ static struct vpfe_subdev_info vpfe_sub_devs[] = {
+ 		},
+ 		.board_info = {
+ 			I2C_BOARD_INFO("tvp5146", 0x5d),
+-			.platform_data = &tvp5146_pdata,
++			.platform_data = &dm644xevm_tvp5146_pdata,
+ 		},
+ 	},
+ };
+ 
+-static struct vpfe_config vpfe_cfg = {
+-	.num_subdevs = ARRAY_SIZE(vpfe_sub_devs),
++static struct vpfe_config dm644xevm_capture_cfg = {
++	.num_subdevs = ARRAY_SIZE(dm644xevm_vpfe_sub_devs),
+ 	.i2c_adapter_id = 1,
+-	.sub_devs = vpfe_sub_devs,
++	.sub_devs = dm644xevm_vpfe_sub_devs,
+ 	.card_name = "DM6446 EVM",
+ 	.ccdc = "DM6446 CCDC",
+ };
+@@ -629,7 +629,7 @@ static void __init
+ davinci_evm_map_io(void)
+ {
+ 	/* setup input configuration for VPFE input devices */
+-	dm644x_set_vpfe_config(&vpfe_cfg);
++	dm644x_set_vpfe_config(&dm644xevm_capture_cfg);
+ 	dm644x_init();
+ }
+ 
+diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
+index 6edb5d1..e258c54 100644
+--- a/arch/arm/mach-davinci/dm644x.c
++++ b/arch/arm/mach-davinci/dm644x.c
+@@ -606,7 +606,7 @@ static struct platform_device dm644x_vpss_device = {
+ 	.resource		= dm644x_vpss_resources,
+ };
+ 
+-static struct resource vpfe_resources[] = {
++static struct resource dm644x_vpfe_resources[] = {
+ 	{
+ 		.start          = IRQ_VDINT0,
+ 		.end            = IRQ_VDINT0,
+@@ -640,11 +640,11 @@ static struct platform_device dm644x_ccdc_dev = {
+ 	},
+ };
+ 
+-static struct platform_device vpfe_capture_dev = {
++static struct platform_device dm644x_vpfe_dev = {
+ 	.name		= CAPTURE_DRV_NAME,
+ 	.id		= -1,
+-	.num_resources	= ARRAY_SIZE(vpfe_resources),
+-	.resource	= vpfe_resources,
++	.num_resources	= ARRAY_SIZE(dm644x_vpfe_resources),
++	.resource	= dm644x_vpfe_resources,
+ 	.dev = {
+ 		.dma_mask		= &vpfe_capture_dma_mask,
+ 		.coherent_dma_mask	= DMA_BIT_MASK(32),
+@@ -653,7 +653,7 @@ static struct platform_device vpfe_capture_dev = {
+ 
+ void dm644x_set_vpfe_config(struct vpfe_config *cfg)
+ {
+-	vpfe_capture_dev.dev.platform_data = cfg;
++	dm644x_vpfe_dev.dev.platform_data = cfg;
+ }
+ 
+ /*----------------------------------------------------------------------*/
+@@ -801,7 +801,7 @@ static int __init dm644x_init_devices(void)
+ 
+ 	platform_device_register(&dm644x_vpss_device);
+ 	platform_device_register(&dm644x_ccdc_dev);
+-	platform_device_register(&vpfe_capture_dev);
++	platform_device_register(&dm644x_vpfe_dev);
+ 
+ 	return 0;
+ }
+-- 
+1.6.2.4
+
