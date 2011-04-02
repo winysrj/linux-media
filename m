@@ -1,141 +1,154 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:21886 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757307Ab1DLXrv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Apr 2011 19:47:51 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p3CNlpWA020665
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 12 Apr 2011 19:47:51 -0400
-Received: from [10.11.8.34] (vpn-8-34.rdu.redhat.com [10.11.8.34])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p3CNloAB030248
-	for <linux-media@vger.kernel.org>; Tue, 12 Apr 2011 19:47:50 -0400
-Message-ID: <4DA4E4A5.1020804@redhat.com>
-Date: Tue, 12 Apr 2011 20:47:49 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:64417 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753096Ab1DBJmA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Apr 2011 05:42:00 -0400
+Date: Sat, 2 Apr 2011 04:41:55 -0500
+From: Jonathan Nieder <jrnieder@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Huber Andreas <hobrom@corax.at>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-kernel@vger.kernel.org, andrew.walker27@ntlworld.com,
+	Ben Hutchings <ben@decadent.org.uk>,
+	Trent Piepho <xyzzy@speakeasy.org>
+Subject: [PATCH 2/3] [media] cx88: fix locking of sub-driver operations
+Message-ID: <20110402094155.GC17015@elie>
+References: <20110327150610.4029.95961.reportbug@xen.corax.at>
+ <20110327152810.GA32106@elie>
+ <20110402093856.GA17015@elie>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH dvb-utils] Use ISO6937 instead of ISO-6937
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20110402093856.GA17015@elie>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Altrough iconv seems to recognize also ISO-6937, and scan uses its own table
-for it, as "iconv --list" shows it as ISO6937, use the name provided by
-iconv. Thanks to Winfried <handygewinnspiel@gmx.de> to point this issue to
-me.
+From: Ben Hutchings <ben@decadent.org.uk>
+Date: Tue, 29 Mar 2011 03:25:15 +0100
 
-While here, improve the help message for the -C parameter, and show the
-default charset at the help message.
+The BKL conversion of this family of drivers seems to have gone wrong.
+Opening cx88-blackbird will deadlock.  Various other uses of the
+sub-device and driver lists appear to be subject to race conditions.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+In particular, mpeg_ops::open in the cx2388x blackbird driver acquires
+the device lock and then calls the drivers' request_acquire, which
+tries to acquire the lock again --- deadlock.  Fix it by clarifying
+the semantics of request_acquire, request_release, advise_acquire, and
+advise_release: all require the caller to hold the device lock now.
 
-diff --git a/util/scan/scan.c b/util/scan/scan.c
---- a/util/scan/scan.c
-+++ b/util/scan/scan.c
-@@ -69,7 +69,7 @@ static int vdr_version = 3;
- static struct lnb_types_st lnb_type;
- static int unique_anon_services;
+[jn: split from a larger patch, with new commit message]
+
+Reported-by: Andi Huber <hobrom@gmx.at>
+Fixes: https://bugzilla.kernel.org/show_bug.cgi?id=31962
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
+Cc: stable@kernel.org
+---
+ drivers/media/video/cx88/cx88-blackbird.c |    9 ++-------
+ drivers/media/video/cx88/cx88-dvb.c       |    8 +-------
+ drivers/media/video/cx88/cx88-mpeg.c      |    4 ----
+ drivers/media/video/cx88/cx88.h           |    3 ++-
+ 4 files changed, 5 insertions(+), 19 deletions(-)
+
+diff --git a/drivers/media/video/cx88/cx88-blackbird.c b/drivers/media/video/cx88/cx88-blackbird.c
+index 85910c6..a6f7d53 100644
+--- a/drivers/media/video/cx88/cx88-blackbird.c
++++ b/drivers/media/video/cx88/cx88-blackbird.c
+@@ -1125,18 +1125,13 @@ static int mpeg_release(struct file *file)
  
--char *default_charset = "ISO-6937";
-+char *default_charset = "ISO6937";
- char *output_charset;
- #define CS_OPTIONS "//TRANSLIT"
+ 	/* Make sure we release the hardware */
+ 	drv = cx8802_get_driver(dev, CX88_MPEG_BLACKBIRD);
+-	mutex_unlock(&dev->core->lock);
+-
+-	/*
+-	 * NEEDSWORK: the driver can be yanked from under our feet.
+-	 * The following really ought to be protected with core->lock.
+-	 */
+-
+ 	if (drv)
+ 		drv->request_release(drv);
  
-@@ -559,7 +559,7 @@ struct charset_conv {
- 	unsigned char  data[3];
- };
+ 	atomic_dec(&dev->core->mpeg_users);
  
--/* This table is the Latin 00 table. Basically ISO-6937 + Euro sign */
-+/* This table is the Latin 00 table. Basically ISO6937 + Euro sign */
- struct charset_conv en300468_latin_00_to_utf8[256] = {
- 	[0x00] = { 1, {0x00, } },
- 	[0x01] = { 1, {0x01, } },
-@@ -725,7 +725,7 @@ struct charset_conv en300468_latin_00_to
- 	[0xa1] = { 2, {0xc2, 0xa1, } },
- 	[0xa2] = { 2, {0xc2, 0xa2, } },
- 	[0xa3] = { 2, {0xc2, 0xa3, } },
--	[0xa4] = { 3, { 0xe2, 0x82, 0xac,} },		/* Euro sign. Addition over the ISO-6937 standard */
-+	[0xa4] = { 3, { 0xe2, 0x82, 0xac,} },		/* Euro sign. Addition over the ISO6937 standard */
- 	[0xa5] = { 2, {0xc2, 0xa5, } },
- 	[0xa6] = { 0, {} },
- 	[0xa7] = { 2, {0xc2, 0xa7, } },
-@@ -836,7 +836,6 @@ static void descriptorcpy(char **dest, c
- 
- 	if (*src < 0x20) {
- 		switch (*src) {
--		case 0x00:	type = "ISO-6937";		break;
- 		case 0x01:	type = "ISO-8859-5";		break;
- 		case 0x02:	type = "ISO-8859-6";		break;
- 		case 0x03:	type = "ISO-8859-7";		break;
-@@ -888,7 +887,7 @@ static void descriptorcpy(char **dest, c
- 	*dest = malloc(destlen + 1);
- 
- 	/* Remove special chars */
--	if (!strncasecmp(type, "ISO-8859", 8) || !strcasecmp(type, "ISO-6937")) {
-+	if (!strncasecmp(type, "ISO-8859", 8) || !strcasecmp(type, "ISO6937")) {
- 		/*
- 		 * Handles the ISO/IEC 10646 1-byte control codes
- 		 * (EN 300 468 v1.11.1 Table A.1)
-@@ -924,7 +923,7 @@ static void descriptorcpy(char **dest, c
- 		s = src;
- 
- 	p = *dest;
--	if (!strcasecmp(type, "ISO-6937")) {
-+	if (!strcasecmp(type, "ISO6937")) {
- 		unsigned char *p1, *p2;
- 
- 		/* Convert charset to UTF-8 using Code table 00 - Latin */
-@@ -2512,7 +2511,8 @@ static const char *usage = "\n"
- 	"	    (but only PAT and PMT) (applies for ATSC only)\n"
- 	"	-A N	check for ATSC 1=Terrestrial [default], 2=Cable or 3=both\n"
- 	"	-U	Uniquely name unknown services\n"
--	"	-C cs	Override default charset for service name/provider (default = ISO-6937)\n"
-+	"	-C cs	Override default charset for service name/provider\n"
-+	"               when no charset is provided (default = %s)\n"
- 	"	-D cs	Output charset (default = %s)\n"
- 	"Supported charsets by -C/-D parameters can be obtained via 'iconv -l' command\n";
- 
-@@ -2526,7 +2526,7 @@ bad_usage(char *pname, int problem)
- 	switch (problem) {
- 	default:
- 	case 0:
--		fprintf (stderr, usage, pname, output_charset);
-+		fprintf (stderr, usage, pname, default_charset, output_charset);
- 		break;
- 	case 1:
- 		i = 0;
-@@ -2542,7 +2542,7 @@ bad_usage(char *pname, int problem)
- 		break;
- 	case 2:
- 		show_existing_tuning_data_files();
--		fprintf (stderr, usage, pname);
-+		fprintf (stderr, usage, pname, default_charset, output_charset);
- 	}
++	mutex_unlock(&dev->core->lock);
++
+ 	return 0;
  }
  
-@@ -2556,11 +2556,6 @@ int main (int argc, char **argv)
- 	const char *initial = NULL;
- 	char *charset;
+diff --git a/drivers/media/video/cx88/cx88-dvb.c b/drivers/media/video/cx88/cx88-dvb.c
+index 5d0f947..c69df7e 100644
+--- a/drivers/media/video/cx88/cx88-dvb.c
++++ b/drivers/media/video/cx88/cx88-dvb.c
+@@ -135,13 +135,6 @@ static int cx88_dvb_bus_ctrl(struct dvb_frontend* fe, int acquire)
  
--	if (argc <= 1) {
--	    bad_usage(argv[0], 2);
--	    return -1;
--	}
+ 	mutex_lock(&dev->core->lock);
+ 	drv = cx8802_get_driver(dev, CX88_MPEG_DVB);
+-	mutex_unlock(&dev->core->lock);
 -
- 	/*
- 	 * Get the environment charset, and use it as the default
- 	 * output charset. In thesis, using nl_langinfo should be
-@@ -2581,6 +2576,11 @@ int main (int argc, char **argv)
- 	} else
- 		output_charset = nl_langinfo(CODESET);
+-	/*
+-	 * NEEDSWORK: The driver can be yanked from under our feet now.
+-	 * We ought to keep holding core->lock during the below.
+-	 */
+-
+ 	if (drv) {
+ 		if (acquire){
+ 			dev->frontends.active_fe_id = fe_id;
+@@ -151,6 +144,7 @@ static int cx88_dvb_bus_ctrl(struct dvb_frontend* fe, int acquire)
+ 			dev->frontends.active_fe_id = 0;
+ 		}
+ 	}
++	mutex_unlock(&dev->core->lock);
  
-+	if (argc <= 1) {
-+	    bad_usage(argv[0], 2);
-+	    return -1;
-+	}
+ 	return ret;
+ }
+diff --git a/drivers/media/video/cx88/cx88-mpeg.c b/drivers/media/video/cx88/cx88-mpeg.c
+index 918172b..9147c16 100644
+--- a/drivers/media/video/cx88/cx88-mpeg.c
++++ b/drivers/media/video/cx88/cx88-mpeg.c
+@@ -624,13 +624,11 @@ static int cx8802_request_acquire(struct cx8802_driver *drv)
+ 
+ 	if (drv->advise_acquire)
+ 	{
+-		mutex_lock(&drv->core->lock);
+ 		core->active_ref++;
+ 		if (core->active_type_id == CX88_BOARD_NONE) {
+ 			core->active_type_id = drv->type_id;
+ 			drv->advise_acquire(drv);
+ 		}
+-		mutex_unlock(&drv->core->lock);
+ 
+ 		mpeg_dbg(1,"%s() Post acquire GPIO=%x\n", __func__, cx_read(MO_GP0_IO));
+ 	}
+@@ -643,14 +641,12 @@ static int cx8802_request_release(struct cx8802_driver *drv)
+ {
+ 	struct cx88_core *core = drv->core;
+ 
+-	mutex_lock(&drv->core->lock);
+ 	if (drv->advise_release && --core->active_ref == 0)
+ 	{
+ 		drv->advise_release(drv);
+ 		core->active_type_id = CX88_BOARD_NONE;
+ 		mpeg_dbg(1,"%s() Post release GPIO=%x\n", __func__, cx_read(MO_GP0_IO));
+ 	}
+-	mutex_unlock(&drv->core->lock);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/media/video/cx88/cx88.h b/drivers/media/video/cx88/cx88.h
+index e3d56c2..9731daa 100644
+--- a/drivers/media/video/cx88/cx88.h
++++ b/drivers/media/video/cx88/cx88.h
+@@ -510,7 +510,8 @@ struct cx8802_driver {
+ 	/* Caller must _not_ hold core->lock */
+ 	int (*probe)(struct cx8802_driver *drv);
+ 
+-	/* Caller must hold core->lock */
++	/* Callers to the following functions must hold core->lock */
 +
- 	/* start with default lnb type */
- 	lnb_type = *lnb_enum(0);
- 	while ((opt = getopt(argc, argv, "5cnpa:f:d:s:o:x:e:t:i:l:vquPA:UC:D:")) != -1) {
+ 	int (*remove)(struct cx8802_driver *drv);
+ 
+ 	/* MPEG 8802 -> mini driver - Access for hardware control */
+-- 
+1.7.5.rc0
+
