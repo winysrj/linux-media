@@ -1,72 +1,47 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:38941 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753379Ab1DCUUZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Apr 2011 16:20:25 -0400
-Received: by bwz15 with SMTP id 15so3592558bwz.19
-        for <linux-media@vger.kernel.org>; Sun, 03 Apr 2011 13:20:23 -0700 (PDT)
-MIME-Version: 1.0
-Date: Sun, 3 Apr 2011 21:20:23 +0100
-Message-ID: <BANLkTinAnVx0_tLfgoK4==k4tcadb3KZqA@mail.gmail.com>
-Subject: DVB-T frequencies for Tenerife, Spain
-From: =?UTF-8?B?Q8OpZHJpYyBNYXJ0w61uZXogQ2FtcG9z?=
-	<cedricmartinezcampos@gmail.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:45042 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752223Ab1DBJjE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Apr 2011 05:39:04 -0400
+Date: Sat, 2 Apr 2011 04:38:56 -0500
+From: Jonathan Nieder <jrnieder@gmail.com>
 To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=0016e6d77c7973dde604a0095f12
+Cc: Huber Andreas <hobrom@corax.at>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, andrew.walker27@ntlworld.com,
+	Ben Hutchings <ben@decadent.org.uk>
+Subject: [RFC/PATCH 0/3] locking fixes for cx88
+Message-ID: <20110402093856.GA17015@elie>
+References: <20110327150610.4029.95961.reportbug@xen.corax.at>
+ <20110327152810.GA32106@elie>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20110327152810.GA32106@elie>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
---0016e6d77c7973dde604a0095f12
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-Hi there,
+Huber Andreas wrote[1]:
 
-attached to this e-mail, you will find the DVB-T frequencies for my
-present region: Tenerife in Spain. It would be great if you could
-include it in the dvb-apps package together.
+> Processes that try to open a cx88-blackbird driven MPEG device will hang up.
 
-Sincerely yours,
+Here's a possible fix based on a patch by Ben Hutchings and
+corrections from Andi Huber.  Warning: probably full of mistakes (my
+fault) since I'm not familiar with any of this stuff.  Untested.
+Review and testing would be welcome.
 
-Dr. C=C3=A9dric M. Campos
-Dept. Matem=C3=A1tica Fundamental
-Universidad de La Laguna, ULL
-Avda. Astrof=C3=ADsico Fco. S=C3=A1nchez, s/n.
-38206 San Crist=C3=B3bal de La Laguna (SPAIN)
+Ben Hutchings (2):
+  [media] cx88: fix locking of sub-driver operations
+  [media] cx88: use a mutex to protect cx8802_devlist
 
-Tel: =C2=A0+34 922 318 163
-Fax: +34 922 318 145
+Jonathan Nieder (1):
+  [media] cx88: protect per-device driver list with device lock
 
-Antes de imprimir este correo-e, por favor ten en cuenta el medio ambiente.
-Please bear in mind the Environment before printing this email.
-
---0016e6d77c7973dde604a0095f12
-Content-Type: application/octet-stream; name=es-Tenerife
-Content-Disposition: attachment; filename=es-Tenerife
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gm2ezy9i0
-
-IyBEVkItVCBUZW5lcmlmZSwgU3BhaW4gKDAzLzA0LzIwMTEpCiMgVCBmcmVxIGJ3IGZlY19oaSBm
-ZWNfbG8gbW9kIHRyYW5zbWlzc2lvbi1tb2RlIGd1YXJkLWludGVydmFsIGhpZXJhcmNoeQpUIDQ5
-MDAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvNCBOT05FICAgIyBDYW5hbCAyMzogbGFT
-ZXh0YSAyLCBsYVNleHRhIDMsIGxhU2V4dGEgSEQsIEMrIDIsIEN1YXRybwpUIDQ5ODAwMDAwMCA4
-TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvNCBOT05FICAgIyBDYW5hbCAyNDogQ2FuYWwgNywgTcOt
-cmFtZSwgQ2FuYWwgNCBUZW5lcmlmZQpUIDUxNDAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhr
-IDEvNCBOT05FICAgIyBDYW5hbCAyNjogTml0cm8sIEFudGVuYSAzLCBNYXJjYSwgMTMKVCA1Mzgw
-MDAwMDAgOE1IeiAyLzMgTk9ORSBRQU02NCA4ayAxLzQgTk9ORSAgICMgQ2FuYWwgMjk6IEJvaW5n
-LCBUZWxlNSBIRCwgTVRWLCBMYSAxMApUIDY2NjAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhr
-IDEvNCBOT05FICAgIyBDYW5hbCA0NTogVFZFIEhELCB0ZHAKVCA3NTQwMDAwMDAgOE1IeiAyLzMg
-Tk9ORSBRQU02NCA4ayAxLzQgTk9ORSAgICMgQ2FuYWwgNTY6IENhbmFsIDYgVGVpZGVWaXNpw7Nu
-LCBFbETDrWEKVCA3NzgwMDAwMDAgOE1IeiAyLzMgTk9ORSBRQU02NCA4ayAxLzQgTk9ORSAgICMg
-Q2FuYWwgNTk6IFRWIENhbmFyaWEsIFRWIENhbmFyaWEgMiwgQW50ZW5hIDMgQ2FuYXJpYQpUIDc4
-NjAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvNCBOT05FICAgIyBDYW5hbCA2MDogTGEg
-MSwgTGEgMiwgMjRoLCBDbGFuClQgODM0MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS80
-IE5PTkUgICAjIENhbmFsIDY2OiBUZWxlZGVwb3J0ZSwgQ2FuYWwgSW5nZW5pZXLDrWEsIFZlbzcs
-IEludGVyZWNvbm9tw61hClQgODQyMDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS80IE5P
-TkUgICAjIENhbmFsIDY3OiBsYVNleHRhLCBsYVNleHRhIDMsIEdvbCBUZWxldmlzacOzbiwgQ3Vh
-dHJvLCBEaXZpbml0eSwgTGEgVGllbmRhIGVuIENhc2EKVCA4NTAwMDAwMDAgOE1IeiAyLzMgTk9O
-RSBRQU02NCA4ayAxLzQgTk9ORSAgICMgQ2FuYWwgNjg6IFRlbGU1LCBGREYsIGxhU2lldGUsIERp
-c25leSBDaGFubmVsLCBJbnRlcmVjb25vbcOtYQpUIDg1ODAwMDAwMCA4TUh6IDIvMyBOT05FIFFB
-TTY0IDhrIDEvNCBOT05FICAgIyBDYW5hbCA2OTogQW50ZW5hIDMsIE5lb3gsIE5vdmEsIFZlbzcs
-IEFYTgo=
---0016e6d77c7973dde604a0095f12--
+ drivers/media/video/cx88/cx88-blackbird.c |    3 +-
+ drivers/media/video/cx88/cx88-dvb.c       |    2 +
+ drivers/media/video/cx88/cx88-mpeg.c      |   35 +++++++++++++++++++---------
+ drivers/media/video/cx88/cx88.h           |   10 +++++++-
+ 4 files changed, 37 insertions(+), 13 deletions(-)
