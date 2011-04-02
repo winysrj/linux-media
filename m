@@ -1,272 +1,127 @@
 Return-path: <mchehab@pedra>
-Received: from mail1-out1.atlantis.sk ([80.94.52.55]:43168 "EHLO
-	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1759212Ab1D0UgO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Apr 2011 16:36:14 -0400
-From: Ondrej Zary <linux@rainbow-software.org>
-To: "Hans Verkuil" <hverkuil@xs4all.nl>
-Subject: [PATCH 1/4] usbvision: add Nogatech USB MicroCam
-Date: Wed, 27 Apr 2011 22:36:05 +0200
-Cc: "Hans de Goede" <hdegoede@redhat.com>,
-	"Joerg Heckenbach" <joerg@heckenbach-aw.de>,
-	"Dwaine Garden" <dwainegarden@rogers.com>,
-	linux-media@vger.kernel.org,
-	"Kernel development list" <linux-kernel@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201104272236.09206.linux@rainbow-software.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:47100 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755470Ab1DBJoH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 2 Apr 2011 05:44:07 -0400
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Kevin Hilman <khilman@deeprootsystems.com>,
+	LAK <linux-arm-kernel@lists.infradead.org>,
+	Sekhar Nori <nsekhar@ti.com>
+Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [PATCH v18 11/13] davinci: dm644x: move vpfe init from soc to board specific files
+Date: Sat,  2 Apr 2011 15:13:59 +0530
+Message-Id: <1301737439-4498-1-git-send-email-manjunath.hadli@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Add Nogatech USB MicroCam PAL (NV3001P) and NTSC (NV3000N) support to
-usbvision driver.
-PAL version is tested, NTSC untested.
-Data captured using usbsnoop, init_values are listed in the INF file along
-with image dimensions, offsets and frame rates.
+Move all vpfe platform device registrations to the board specific
+file like the rest of the devices, and have all of them together.
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+This would remove the  restriction of inclusion and registration of
+vpfe platform devices for non-vpfe boards.
 
-diff -up linux-2.6.39-rc2-orig/drivers/media/video/usbvision/usbvision-cards.c linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision-cards.c
---- linux-2.6.39-rc2-orig/drivers/media/video/usbvision/usbvision-cards.c	2011-04-06 03:30:43.000000000 +0200
-+++ linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision-cards.c	2011-04-27 21:18:57.000000000 +0200
-@@ -1025,6 +1025,34 @@ struct usbvision_device_data_st  usbvisi
- 		.y_offset       = -1,
- 		.model_string   = "Hauppauge WinTv-USB",
- 	},
-+	[MICROCAM_NTSC] = {
-+		.interface      = -1,
-+		.codec          = CODEC_WEBCAM,
-+		.video_channels = 1,
-+		.video_norm     = V4L2_STD_NTSC,
-+		.audio_channels = 0,
-+		.radio          = 0,
-+		.vbi            = 0,
-+		.tuner          = 0,
-+		.tuner_type     = 0,
-+		.x_offset       = 71,
-+		.y_offset       = 15,
-+		.model_string   = "Nogatech USB MicroCam NTSC (NV3000N)",
-+	},
-+	[MICROCAM_PAL] = {
-+		.interface      = -1,
-+		.codec          = CODEC_WEBCAM,
-+		.video_channels = 1,
-+		.video_norm     = V4L2_STD_PAL,
-+		.audio_channels = 0,
-+		.radio          = 0,
-+		.vbi            = 0,
-+		.tuner          = 0,
-+		.tuner_type     = 0,
-+		.x_offset       = 71,
-+		.y_offset       = 18,
-+		.model_string   = "Nogatech USB MicroCam PAL (NV3001P)",
-+	},
- };
- const int usbvision_device_data_size = ARRAY_SIZE(usbvision_device_data);
- 
-@@ -1042,6 +1070,8 @@ struct usb_device_id usbvision_table[] =
- 	{ USB_DEVICE(0x0573, 0x2d00), .driver_info = HPG_WINTV_LIVE_PAL_BG },
- 	{ USB_DEVICE(0x0573, 0x2d01), .driver_info = HPG_WINTV_LIVE_PRO_NTSC_MN },
- 	{ USB_DEVICE(0x0573, 0x2101), .driver_info = ZORAN_PMD_NOGATECH },
-+	{ USB_DEVICE(0x0573, 0x3000), .driver_info = MICROCAM_NTSC },
-+	{ USB_DEVICE(0x0573, 0x3001), .driver_info = MICROCAM_PAL },
- 	{ USB_DEVICE(0x0573, 0x4100), .driver_info = NOGATECH_USB_TV_NTSC_FM },
- 	{ USB_DEVICE(0x0573, 0x4110), .driver_info = PNY_USB_TV_NTSC_FM },
- 	{ USB_DEVICE(0x0573, 0x4450), .driver_info = PV_PLAYTV_USB_PRO_PAL_FM },
-@@ -1088,8 +1118,7 @@ struct usb_device_id usbvision_table[] =
- 	{ USB_DEVICE(0x2304, 0x0110), .driver_info = PINNA_PCTV_USB_PAL_FM },
- 	{ USB_DEVICE(0x2304, 0x0111), .driver_info = MIRO_PCTV_USB },
- 	{ USB_DEVICE(0x2304, 0x0112), .driver_info = PINNA_PCTV_USB_NTSC_FM },
--	{ USB_DEVICE(0x2304, 0x0113),
--	  .driver_info = PINNA_PCTV_USB_NTSC_FM_V3 },
-+	{ USB_DEVICE(0x2304, 0x0113), .driver_info = PINNA_PCTV_USB_NTSC_FM_V3 },
- 	{ USB_DEVICE(0x2304, 0x0210), .driver_info = PINNA_PCTV_USB_PAL_FM_V2 },
- 	{ USB_DEVICE(0x2304, 0x0212), .driver_info = PINNA_PCTV_USB_NTSC_FM_V2 },
- 	{ USB_DEVICE(0x2304, 0x0214), .driver_info = PINNA_PCTV_USB_PAL_FM_V3 },
-diff -up linux-2.6.39-rc2-orig/drivers/media/video/usbvision/usbvision-cards.h linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision-cards.h
---- linux-2.6.39-rc2-orig/drivers/media/video/usbvision/usbvision-cards.h	2011-04-06 03:30:43.000000000 +0200
-+++ linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision-cards.h	2011-04-27 21:18:57.000000000 +0200
-@@ -63,5 +63,7 @@
- #define PINNA_PCTV_BUNGEE_PAL_FM                 62
- #define HPG_WINTV                                63
- #define PINNA_PCTV_USB_NTSC_FM_V3                64
-+#define MICROCAM_NTSC                            65
-+#define MICROCAM_PAL                             66
- 
- extern const int usbvision_device_data_size;
-diff -up linux-2.6.39-rc2-orig/drivers/media/video/usbvision/usbvision-core.c linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision-core.c
---- linux-2.6.39-rc2-orig/drivers/media/video/usbvision/usbvision-core.c	2011-04-06 03:30:43.000000000 +0200
-+++ linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision-core.c	2011-04-27 21:58:28.000000000 +0200
-@@ -1679,6 +1679,55 @@ int usbvision_power_off(struct usb_usbvi
- 	return err_code;
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Acked-by: Sekhar Nori <nsekhar@ti.com>
+---
+ arch/arm/mach-davinci/board-dm644x-evm.c    |    3 +-
+ arch/arm/mach-davinci/dm644x.c              |   29 +++++++++++++++-----------
+ arch/arm/mach-davinci/include/mach/dm644x.h |    2 +-
+ 3 files changed, 19 insertions(+), 15 deletions(-)
+
+diff --git a/arch/arm/mach-davinci/board-dm644x-evm.c b/arch/arm/mach-davinci/board-dm644x-evm.c
+index 6919f28..d1542b1 100644
+--- a/arch/arm/mach-davinci/board-dm644x-evm.c
++++ b/arch/arm/mach-davinci/board-dm644x-evm.c
+@@ -628,8 +628,6 @@ static struct davinci_uart_config uart_config __initdata = {
+ static void __init
+ davinci_evm_map_io(void)
+ {
+-	/* setup input configuration for VPFE input devices */
+-	dm644x_set_vpfe_config(&dm644xevm_capture_cfg);
+ 	dm644x_init();
  }
  
-+/* configure webcam image sensor using the serial port */
-+static int usbvision_init_webcam(struct usb_usbvision *usbvision)
+@@ -701,6 +699,7 @@ static __init void davinci_evm_init(void)
+ 	evm_init_i2c();
+ 
+ 	davinci_setup_mmc(0, &dm6446evm_mmc_config);
++	dm644x_init_video(&dm644xevm_capture_cfg);
+ 
+ 	davinci_serial_init(&uart_config);
+ 	dm644x_init_asp(&dm644x_evm_snd_data);
+diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
+index e258c54..36d4d72 100644
+--- a/arch/arm/mach-davinci/dm644x.c
++++ b/arch/arm/mach-davinci/dm644x.c
+@@ -651,11 +651,6 @@ static struct platform_device dm644x_vpfe_dev = {
+ 	},
+ };
+ 
+-void dm644x_set_vpfe_config(struct vpfe_config *cfg)
+-{
+-	dm644x_vpfe_dev.dev.platform_data = cfg;
+-}
+-
+ /*----------------------------------------------------------------------*/
+ 
+ static struct map_desc dm644x_io_desc[] = {
+@@ -784,14 +779,28 @@ void __init dm644x_init(void)
+ 	davinci_map_sysmod();
+ }
+ 
++static struct platform_device *dm644x_video_devices[] __initdata = {
++	&dm644x_vpss_device,
++	&dm644x_ccdc_dev,
++	&dm644x_vpfe_dev,
++};
++
++int __init dm644x_init_video(struct vpfe_config *vpfe_cfg)
 +{
-+	int rc;
-+	int i;
-+	static char init_values[38][3] = {
-+		{ 0x04, 0x12, 0x08 }, { 0x05, 0xff, 0xc8 }, { 0x06, 0x18, 0x07 }, { 0x07, 0x90, 0x00 },
-+		{ 0x09, 0x00, 0x00 }, { 0x0a, 0x00, 0x00 }, { 0x0b, 0x08, 0x00 }, { 0x0d, 0xcc, 0xcc },
-+		{ 0x0e, 0x13, 0x14 }, { 0x10, 0x9b, 0x83 }, { 0x11, 0x5a, 0x3f }, { 0x12, 0xe4, 0x73 },
-+		{ 0x13, 0x88, 0x84 }, { 0x14, 0x89, 0x80 }, { 0x15, 0x00, 0x20 }, { 0x16, 0x00, 0x00 },
-+		{ 0x17, 0xff, 0xa0 }, { 0x18, 0x6b, 0x20 }, { 0x19, 0x22, 0x40 }, { 0x1a, 0x10, 0x07 },
-+		{ 0x1b, 0x00, 0x47 }, { 0x1c, 0x03, 0xe0 }, { 0x1d, 0x00, 0x00 }, { 0x1e, 0x00, 0x00 },
-+		{ 0x1f, 0x00, 0x00 }, { 0x20, 0x00, 0x00 }, { 0x21, 0x00, 0x00 }, { 0x22, 0x00, 0x00 },
-+		{ 0x23, 0x00, 0x00 }, { 0x24, 0x00, 0x00 }, { 0x25, 0x00, 0x00 }, { 0x26, 0x00, 0x00 },
-+		{ 0x27, 0x00, 0x00 }, { 0x28, 0x00, 0x00 }, { 0x29, 0x00, 0x00 }, { 0x08, 0x80, 0x60 },
-+		{ 0x0f, 0x2d, 0x24 }, { 0x0c, 0x80, 0x80 }
-+	};
-+	char value[3];
-+
-+	/* the only difference between PAL and NTSC init_values */
-+	if (usbvision_device_data[usbvision->dev_model].video_norm == V4L2_STD_NTSC)
-+		init_values[4][1] = 0x34;
-+
-+	for (i = 0; i < sizeof(init_values) / 3; i++) {
-+		usbvision_write_reg(usbvision, USBVISION_SER_MODE, USBVISION_SER_MODE_SOFT);
-+		memcpy(value, init_values[i], 3);
-+		rc = usb_control_msg(usbvision->dev,
-+				     usb_sndctrlpipe(usbvision->dev, 1),
-+				     USBVISION_OP_CODE,
-+				     USB_DIR_OUT | USB_TYPE_VENDOR |
-+				     USB_RECIP_ENDPOINT, 0,
-+				     (__u16) USBVISION_SER_DAT1, value,
-+				     3, HZ);
-+		if (rc < 0)
-+			return rc;
-+		usbvision_write_reg(usbvision, USBVISION_SER_MODE, USBVISION_SER_MODE_SIO);
-+		/* write 3 bytes to the serial port using SIO mode */
-+		usbvision_write_reg(usbvision, USBVISION_SER_CONT, 3 | 0x10);
-+		usbvision_write_reg(usbvision, USBVISION_IOPIN_REG, 0);
-+		usbvision_write_reg(usbvision, USBVISION_SER_MODE, USBVISION_SER_MODE_SOFT);
-+		usbvision_write_reg(usbvision, USBVISION_IOPIN_REG, USBVISION_IO_2);
-+		usbvision_write_reg(usbvision, USBVISION_SER_MODE, USBVISION_SER_MODE_SOFT | USBVISION_CLK_OUT);
-+		usbvision_write_reg(usbvision, USBVISION_SER_MODE, USBVISION_SER_MODE_SOFT | USBVISION_DAT_IO);
-+		usbvision_write_reg(usbvision, USBVISION_SER_MODE, USBVISION_SER_MODE_SOFT | USBVISION_CLK_OUT | USBVISION_DAT_IO);
-+	}
-+
++	dm644x_vpfe_dev.dev.platform_data = vpfe_cfg;
++	/* Add ccdc clock aliases */
++	clk_add_alias("master", dm644x_ccdc_dev.name, "vpss_master", NULL);
++	clk_add_alias("slave", dm644x_ccdc_dev.name, "vpss_slave", NULL);
++	platform_add_devices(dm644x_video_devices,
++				ARRAY_SIZE(dm644x_video_devices));
 +	return 0;
 +}
 +
- /*
-  * usbvision_set_video_format()
-  *
-@@ -1797,6 +1846,13 @@ int usbvision_set_output(struct usb_usbv
- 
- 	frame_drop = FRAMERATE_MAX;	/* We can allow the maximum here, because dropping is controlled */
- 
-+	if (usbvision_device_data[usbvision->dev_model].codec == CODEC_WEBCAM) {
-+		if (usbvision_device_data[usbvision->dev_model].video_norm == V4L2_STD_PAL)
-+			frame_drop = 25;
-+		else
-+			frame_drop = 30;
-+	}
-+
- 	/* frame_drop = 7; => frame_phase = 1, 5, 9, 13, 17, 21, 25, 0, 4, 8, ...
- 		=> frame_skip = 4;
- 		=> frame_rate = (7 + 1) * 25 / 32 = 200 / 32 = 6.25;
-@@ -2046,6 +2102,12 @@ int usbvision_set_input(struct usb_usbvi
- 		value[7] = 0x00;	/* 0x0010 -> 16 Input video v offset */
- 	}
- 
-+	/* webcam is only 480 pixels wide, both PAL and NTSC version */
-+	if (usbvision_device_data[usbvision->dev_model].codec == CODEC_WEBCAM) {
-+		value[0] = 0xe0;
-+		value[1] = 0x01;	/* 0x01E0 -> 480 Input video line length */
-+	}
-+
- 	if (usbvision_device_data[usbvision->dev_model].x_offset >= 0) {
- 		value[4] = usbvision_device_data[usbvision->dev_model].x_offset & 0xff;
- 		value[5] = (usbvision_device_data[usbvision->dev_model].x_offset & 0x0300) >> 8;
-@@ -2148,7 +2210,7 @@ static int usbvision_set_dram_settings(s
- 			     (__u16) USBVISION_DRM_PRM1, value, 8, HZ);
- 
- 	if (rc < 0) {
--		dev_err(&usbvision->dev->dev, "%sERROR=%d\n", __func__, rc);
-+		dev_err(&usbvision->dev->dev, "%s: ERROR=%d\n", __func__, rc);
- 		return rc;
- 	}
- 
-@@ -2180,8 +2242,15 @@ int usbvision_power_on(struct usb_usbvis
- 	usbvision_write_reg(usbvision, USBVISION_PWR_REG,
- 			USBVISION_SSPND_EN | USBVISION_RES2);
- 
-+	if (usbvision_device_data[usbvision->dev_model].codec == CODEC_WEBCAM) {
-+		usbvision_write_reg(usbvision, USBVISION_VIN_REG1,
-+				USBVISION_16_422_SYNC | USBVISION_HVALID_PO);
-+		usbvision_write_reg(usbvision, USBVISION_VIN_REG2,
-+				USBVISION_NOHVALID | USBVISION_KEEP_BLANK);
-+	}
- 	usbvision_write_reg(usbvision, USBVISION_PWR_REG,
- 			USBVISION_SSPND_EN | USBVISION_PWR_VID);
-+	mdelay(10);
- 	err_code = usbvision_write_reg(usbvision, USBVISION_PWR_REG,
- 			USBVISION_SSPND_EN | USBVISION_PWR_VID | USBVISION_RES2);
- 	if (err_code == 1)
-@@ -2310,6 +2379,8 @@ int usbvision_set_audio(struct usb_usbvi
- 
- int usbvision_setup(struct usb_usbvision *usbvision, int format)
+ static int __init dm644x_init_devices(void)
  {
-+	if (usbvision_device_data[usbvision->dev_model].codec == CODEC_WEBCAM)
-+		usbvision_init_webcam(usbvision);
- 	usbvision_set_video_format(usbvision, format);
- 	usbvision_set_dram_settings(usbvision);
- 	usbvision_set_compress_params(usbvision);
-diff -up linux-2.6.39-rc2-orig/drivers/media/video/usbvision/usbvision.h linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision.h
---- linux-2.6.39-rc2-orig/drivers/media/video/usbvision/usbvision.h	2011-04-06 03:30:43.000000000 +0200
-+++ linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision.h	2011-04-27 21:35:51.000000000 +0200
-@@ -59,6 +59,11 @@
- 	#define USBVISION_AUDIO_RADIO		2
- 	#define USBVISION_AUDIO_MUTE		3
- #define USBVISION_SER_MODE		0x07
-+	#define USBVISION_CLK_OUT		(1 << 0)
-+	#define USBVISION_DAT_IO		(1 << 1)
-+	#define USBVISION_SENS_OUT		(1 << 2)
-+	#define USBVISION_SER_MODE_SOFT		(0 << 4)
-+	#define USBVISION_SER_MODE_SIO		(1 << 4)
- #define USBVISION_SER_ADRS		0x08
- #define USBVISION_SER_CONT		0x09
- #define USBVISION_SER_DAT1		0x0A
-@@ -328,6 +333,7 @@ struct usbvision_frame {
+ 	if (!cpu_is_davinci_dm644x())
+ 		return 0;
  
- #define CODEC_SAA7113	7113
- #define CODEC_SAA7111	7111
-+#define CODEC_WEBCAM	3000
- #define BRIDGE_NT1003	1003
- #define BRIDGE_NT1004	1004
- #define BRIDGE_NT1005   1005
-diff -up linux-2.6.39-rc2-orig/drivers/media/video/usbvision/usbvision-i2c.c linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision-i2c.c
---- linux-2.6.39-rc2-orig/drivers/media/video/usbvision/usbvision-i2c.c	2011-04-06 03:30:43.000000000 +0200
-+++ linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision-i2c.c	2011-04-27 21:18:57.000000000 +0200
-@@ -222,7 +222,7 @@ int usbvision_i2c_register(struct usb_us
- 	i2c_set_adapdata(&usbvision->i2c_adap, &usbvision->v4l2_dev);
+-	/* Add ccdc clock aliases */
+-	clk_add_alias("master", dm644x_ccdc_dev.name, "vpss_master", NULL);
+-	clk_add_alias("slave", dm644x_ccdc_dev.name, "vpss_slave", NULL);
+ 	platform_device_register(&dm644x_edma_device);
  
- 	if (usbvision_write_reg(usbvision, USBVISION_SER_MODE, USBVISION_IIC_LRNACK) < 0) {
--		printk(KERN_ERR "usbvision_register: can't write reg\n");
-+		printk(KERN_ERR "usbvision_i2c_register: can't write reg\n");
- 		return -EBUSY;
- 	}
+ 	platform_device_register(&dm644x_mdio_device);
+@@ -799,10 +808,6 @@ static int __init dm644x_init_devices(void)
+ 	clk_add_alias(NULL, dev_name(&dm644x_mdio_device.dev),
+ 		      NULL, &dm644x_emac_device.dev);
  
-diff -up linux-2.6.39-rc2-orig/drivers/media/video/usbvision/usbvision-video.c linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision-video.c
---- linux-2.6.39-rc2-orig/drivers/media/video/usbvision/usbvision-video.c	2011-04-06 03:30:43.000000000 +0200
-+++ linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision-video.c	2011-04-27 21:18:57.000000000 +0200
-@@ -1470,7 +1470,8 @@ static void usbvision_configure_video(st
+-	platform_device_register(&dm644x_vpss_device);
+-	platform_device_register(&dm644x_ccdc_dev);
+-	platform_device_register(&dm644x_vpfe_dev);
+-
+ 	return 0;
+ }
+ postcore_initcall(dm644x_init_devices);
+diff --git a/arch/arm/mach-davinci/include/mach/dm644x.h b/arch/arm/mach-davinci/include/mach/dm644x.h
+index 5a1b26d..29a9e24 100644
+--- a/arch/arm/mach-davinci/include/mach/dm644x.h
++++ b/arch/arm/mach-davinci/include/mach/dm644x.h
+@@ -42,6 +42,6 @@
  
- 	/* This should be here to make i2c clients to be able to register */
- 	/* first switch off audio */
--	usbvision_audio_off(usbvision);
-+	if (usbvision_device_data[model].audio_channels > 0)
-+		usbvision_audio_off(usbvision);
- 	if (!power_on_at_open) {
- 		/* and then power up the noisy tuner */
- 		usbvision_power_on(usbvision);
-
-
+ void __init dm644x_init(void);
+ void __init dm644x_init_asp(struct snd_platform_data *pdata);
+-void dm644x_set_vpfe_config(struct vpfe_config *cfg);
++int __init dm644x_init_video(struct vpfe_config *);
+ 
+ #endif /* __ASM_ARCH_DM644X_H */
 -- 
-Ondrej Zary
+1.6.2.4
+
