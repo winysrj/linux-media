@@ -1,53 +1,46 @@
 Return-path: <mchehab@pedra>
-Received: from swampdragon.chaosbits.net ([90.184.90.115]:13251 "EHLO
-	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756714Ab1DGTXb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Apr 2011 15:23:31 -0400
-Date: Thu, 7 Apr 2011 21:23:48 +0200 (CEST)
-From: Jesper Juhl <jj@chaosbits.net>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org,
-	Alexey Chernov <4ernov@gmail.com>,
-	linux-kernel@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"Igor M. Liplianin" <liplianin@netup.ru>,
-	Steven Toth <stoth@linuxtv.org>
-Subject: [PATCH][media] cx23885: Don't leak firmware in
- cx23885_card_setup()
-Message-ID: <alpine.LNX.2.00.1104072118310.1538@swampdragon.chaosbits.net>
+Received: from mx1.redhat.com ([209.132.183.28]:48011 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751905Ab1DBKkX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 2 Apr 2011 06:40:23 -0400
+Message-ID: <4D96FD11.40404@redhat.com>
+Date: Sat, 02 Apr 2011 07:40:17 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Linus Torvalds <torvalds@linux-foundation.org>
+CC: Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for 2.6.39-rc2] media fixes
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-We leak the memory allocated to 'fw' (the firmware) when the variable goes 
-out of scope.
-Fix the leak by calling release_firmware(fw) before 'fw' goes out of 
-scope.
+Hi Linus,
 
-Signed-off-by: Jesper Juhl <jj@chaosbits.net>
----
- cx23885-cards.c |    1 +
- 1 file changed, 1 insertion(+)
+Please pull from:
+  ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
 
-  compile tested only.
+For two small bug fixes.
 
-diff --git a/drivers/media/video/cx23885/cx23885-cards.c b/drivers/media/video/cx23885/cx23885-cards.c
-index ea88722..2354336 100644
---- a/drivers/media/video/cx23885/cx23885-cards.c
-+++ b/drivers/media/video/cx23885/cx23885-cards.c
-@@ -1399,6 +1399,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
- 		else
- 			altera_init(&netup_config, fw);
- 
-+		release_firmware(fw);
- 		break;
- 	}
- 	}
+Thanks!
+Mauro.
 
+The following changes since commit 0ce790e7d736cedc563e1fb4e998babf5a4dbc3d:
 
--- 
-Jesper Juhl <jj@chaosbits.net>       http://www.chaosbits.net/
-Don't top-post http://www.catb.org/jargon/html/T/top-post.html
-Plain text mails only, please.
+  Linux 2.6.39-rc1 (2011-03-29 12:09:47 -0700)
+
+are available in the git repository at:
+  ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
+
+Manjunatha Halli (1):
+      [media] radio: wl128x: Update registration process with ST
+
+Randy Dunlap (1):
+      [media] staging: altera-jtag needs delay.h
+
+ drivers/media/radio/wl128x/fmdrv_common.c  |   16 +++++++++++++---
+ drivers/staging/altera-stapl/altera-jtag.c |    1 +
+ 2 files changed, 14 insertions(+), 3 deletions(-)
 
