@@ -1,50 +1,49 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53840 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752873Ab1DKOyh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Apr 2011 10:54:37 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFCv1 PATCH 3/9] v4l2-ioctl: add ctrl_handler to v4l2_fh
-Date: Mon, 11 Apr 2011 16:54:43 +0200
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org
-References: <1301917914-27437-1-git-send-email-hans.verkuil@cisco.com> <201104081710.32652.laurent.pinchart@ideasonboard.com> <201104081739.01073.hverkuil@xs4all.nl>
-In-Reply-To: <201104081739.01073.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201104111654.44323.laurent.pinchart@ideasonboard.com>
+Received: from ist.d-labs.de ([213.239.218.44]:54623 "EHLO mx01.d-labs.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752775Ab1DCRYm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 3 Apr 2011 13:24:42 -0400
+From: Florian Mickler <florian@mickler.org>
+To: mchehab@infradead.org
+Cc: oliver@neukum.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, patrick.boettcher@dibcom.fr,
+	Florian Mickler <florian@mickler.org>
+Subject: [PATCH 2/2] [media] dib0700: remove unused variable
+Date: Sun,  3 Apr 2011 19:23:43 +0200
+Message-Id: <1301851423-21969-3-git-send-email-florian@mickler.org>
+In-Reply-To: <1301851423-21969-1-git-send-email-florian@mickler.org>
+References: <1301851423-21969-1-git-send-email-florian@mickler.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Hans,
+This variable is never used.
 
-On Friday 08 April 2011 17:39:01 Hans Verkuil wrote:
-> On Friday, April 08, 2011 17:10:32 Laurent Pinchart wrote:
-> > On Monday 04 April 2011 13:51:48 Hans Verkuil wrote:
-> > > From: Hans Verkuil <hverkuil@xs4all.nl>
-> > > 
-> > > This is required to implement control events and is also needed to
-> > > allow for per-filehandle control handlers.
-> > 
-> > Thanks for the patch.
-> > 
-> > Shouldn't you modify v4l2-subdev.c similarly ?
-> 
-> Good question. Does it make sense to have per-filehandle controls for a
-> sub-device? On the other hand, does it make sense NOT to have it?
+Signed-off-by: Florian Mickler <florian@mickler.org>
 
-Yes, I think it does. I wrote support for per-file handler controls for 
-subdevs and submitted an RFC patch to the list some time ago to implement 
-bandwidth managemeng in the OMAP3 ISP driver (this has been put on hold due to 
-missing information about the OMAP3 ISP though).
+---
+ drivers/media/dvb/dvb-usb/dib0700_core.c |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
 
-> I'm inclined to add this functionality if nobody objects. Although a
-> use-case for this would be nice bonus.
-
+diff --git a/drivers/media/dvb/dvb-usb/dib0700_core.c b/drivers/media/dvb/dvb-usb/dib0700_core.c
+index ca80520..7f6f023 100644
+--- a/drivers/media/dvb/dvb-usb/dib0700_core.c
++++ b/drivers/media/dvb/dvb-usb/dib0700_core.c
+@@ -625,7 +625,6 @@ struct dib0700_rc_response {
+ static void dib0700_rc_urb_completion(struct urb *purb)
+ {
+ 	struct dvb_usb_device *d = purb->context;
+-	struct dib0700_state *st;
+ 	struct dib0700_rc_response *poll_reply;
+ 	u32 uninitialized_var(keycode);
+ 	u8 toggle;
+@@ -640,7 +639,6 @@ static void dib0700_rc_urb_completion(struct urb *purb)
+ 		return;
+ 	}
+ 
+-	st = d->priv;
+ 	poll_reply = purb->transfer_buffer;
+ 
+ 	if (purb->status < 0) {
 -- 
-Regards,
+1.7.4.1
 
-Laurent Pinchart
