@@ -1,61 +1,40 @@
 Return-path: <mchehab@pedra>
-Received: from mail.solarflare.com ([216.237.3.220]:7795 "EHLO
-	exchange.solarflare.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754125Ab1DFSHN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Apr 2011 14:07:13 -0400
-Subject: Re: [PATCH 07/19] timberdale: mfd_cell is now implicitly available
- to drivers
-From: Ben Hutchings <bhutchings@solarflare.com>
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Greg KH <gregkh@suse.de>, Grant Likely <grant.likely@secretlab.ca>,
-	Andres Salomon <dilinger@queued.net>,
-	linux-kernel@vger.kernel.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	khali@linux-fr.org, ben-linux@fluff.org,
-	Peter Korsgaard <jacmet@sunsite.dk>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	David Brownell <dbrownell@users.sourceforge.net>,
-	linux-i2c@vger.kernel.org, linux-media@vger.kernel.org,
-	netdev@vger.kernel.org, spi-devel-general@lists.sourceforge.net,
-	Mocean Laboratories <info@mocean-labs.com>
-In-Reply-To: <20110406175113.GC2757@sortiz-mobl>
-References: <20110401104756.2f5c6f7a@debxo>
-	 <BANLkTi=bCd_+f=EG-O=U5VH_ZNjFhxkziQ@mail.gmail.com>
-	 <20110401235239.GE29397@sortiz-mobl>
-	 <BANLkTi=bq=OGzXFp7qiBr7x_BnGOWf=DRQ@mail.gmail.com>
-	 <20110404100314.GC2751@sortiz-mobl>
-	 <20110405030428.GB29522@ponder.secretlab.ca>
-	 <20110406152322.GA2757@sortiz-mobl> <20110406155805.GA20095@suse.de>
-	 <20110406170537.GB2757@sortiz-mobl> <1302110209.2840.20.camel@bwh-desktop>
-	 <20110406175113.GC2757@sortiz-mobl>
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 06 Apr 2011 19:07:08 +0100
-Message-ID: <1302113228.2840.29.camel@bwh-desktop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:32781 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752366Ab1DCXjJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Apr 2011 19:39:09 -0400
+Received: by iyb14 with SMTP id 14so5389729iyb.19
+        for <linux-media@vger.kernel.org>; Sun, 03 Apr 2011 16:39:08 -0700 (PDT)
+From: Pawel Osciak <pawel@osciak.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, Pawel Osciak <pawel@osciak.com>
+Subject: [PATCH 2/3] [media] vb2: use unsigned int for the `mapped' bitfield
+Date: Sun,  3 Apr 2011 16:38:56 -0700
+Message-Id: <1301873937-14146-2-git-send-email-pawel@osciak.com>
+In-Reply-To: <1301873937-14146-1-git-send-email-pawel@osciak.com>
+References: <1301873937-14146-1-git-send-email-pawel@osciak.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 2011-04-06 at 19:51 +0200, Samuel Ortiz wrote:
-> Hi Ben,
-> 
-> On Wed, Apr 06, 2011 at 06:16:49PM +0100, Ben Hutchings wrote:
-> > > So, adding an MFD cell pointer to the device structure allows us to cleanly
-> > > pass both pieces of information, while keeping all the MFD sub drivers
-> > > independant from the MFD core if they want/can.
-> > 
-> > Why isn't an MFD the parent of its component devices?
-> It actually is. How would that help here ?
+Signed-off-by: Pawel Osciak <pawel@osciak.com>
+Reported-by: David Alan Gilbert <linux@treblig.org>
+---
+ include/media/videobuf2-core.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-I was thinking you could encode the component address in the
-platform_device name (just as the bus address is the name of a normal
-bus device).  That plus the parent device pointer would be sufficient
-information to look up the mfd_cell.
-
-Ben.
-
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 4c1e91f..f3bdbb2 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -83,7 +83,7 @@ struct vb2_mem_ops {
+ 
+ struct vb2_plane {
+ 	void		*mem_priv;
+-	int		mapped:1;
++	unsigned int	mapped:1;
+ };
+ 
+ /**
 -- 
-Ben Hutchings, Senior Software Engineer, Solarflare
-Not speaking for my employer; that's the marketing department's job.
-They asked us to note that Solarflare product names are trademarked.
+1.7.4.2
 
