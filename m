@@ -1,162 +1,42 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.samsung.com ([203.254.224.24]:50596 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751892Ab1DEFiM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2011 01:38:12 -0400
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Received: from epmmp2 (mailout1.samsung.com [203.254.224.24])
- by mailout1.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LJ5003UJZNLQO70@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 05 Apr 2011 14:38:09 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LJ500JV5ZNL4C@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 05 Apr 2011 14:38:09 +0900 (KST)
-Date: Tue, 05 Apr 2011 14:38:08 +0900
-From: "Kim, HeungJun" <riverful.kim@samsung.com>
-Subject: Re: [PATCH] Add support for M-5MOLS 8 Mega Pixel camera
-In-reply-to: <4D9AAA60.4070004@samsung.com>
-To: riverful.kim@samsung.com
-Cc: sungchun.kang@samsung.com, linux-media@vger.kernel.org,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Reply-to: riverful.kim@samsung.com
-Message-id: <4D9AAAC0.8090001@samsung.com>
-Content-transfer-encoding: 8BIT
-References: <1300282723-31536-1-git-send-email-riverful.kim@samsung.com>
- <007901cbf2c2$bb240bb0$316c2310$%kang@samsung.com>
- <4D9AAA60.4070004@samsung.com>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:40585 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751599Ab1DCPnx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Apr 2011 11:43:53 -0400
+Received: by vxi39 with SMTP id 39so3655641vxi.19
+        for <linux-media@vger.kernel.org>; Sun, 03 Apr 2011 08:43:52 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20110403001856.GC3062@gallifrey>
+References: <20110403001856.GC3062@gallifrey>
+From: Pawel Osciak <pawel@osciak.com>
+Date: Sun, 3 Apr 2011 08:42:12 -0700
+Message-ID: <BANLkTimAwV5iJppn_XoSyH5SYPjpNeZqWw@mail.gmail.com>
+Subject: Re: vb2_plane 'mapped' signed bit field
+To: "Dr. David Alan Gilbert" <linux@treblig.org>
+Cc: mchehab@redhat.com, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-2011-04-05 ì˜¤í›„ 2:36, Kim, HeungJun ì“´ ê¸€:
-> Hi Sungchun,
-> 
-> The below comments and issues looks the firmware issues.
-> I add another comments, so you can check this out.
-> 
-> The first plan of this driver I have, is to merge the basic driver code
-> of M-5MOLS. Because, the M-5MOLS has many variation of versions. It makes
-Missig "hard". :)
+On Sat, Apr 2, 2011 at 17:18, Dr. David Alan Gilbert <linux@treblig.org> wrote:
+> Hi Pawel,
+>  'sparse' spotted that vb2_plane's mapped field is a signed
+> bitfield:
+>
+> include/media/videobuf2-core.h:78:41 1 bit signed int
+>
+> struct vb2_plane {
+>       void                    *mem_priv;
+>       int                     mapped:1;
+> };
+>
+> that probably should be an unsigned int (I can see code that assigns
+> 1 to it that just won't fit).
 
-> to send the driver to ML or be merged, also respond when the problem issued.
-> 
-> The version considered with version, probably will be the next version.
-> 
-> 
-> 2011-04-04 ì˜¤í›„ 9:20, Sungchun Kang ì“´ ê¸€:
->> Hi heungjun,
->> I have tested this version for a few days.
->>
->> On 03/16/2011 10:30 PM, Kim, Heungjun wrote:
->>> -----Original Message-----
->>> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
->>> owner@vger.kernel.org] On Behalf Of Kim, Heungjun
->>> Sent: Wednesday, March 16, 2011 10:39 PM
->>> To: linux-media@vger.kernel.org
->>> Cc: hverkuil@xs4all.nl; laurent.pinchart@ideasonboard.com; Kim,
->>> Heungjun; Sylwester Nawrocki; Kyungmin Park
->>> Subject: [PATCH] Add support for M-5MOLS 8 Mega Pixel camera
->>>
->>> Add I2C/V4L2 subdev driver for M-5MOLS camera sensor with integrated
->>> image signal processor.
->>>
->>> Signed-off-by: Heungjun Kim <riverful.kim@samsung.com>
->>> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
->>> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
->>> ---
->>>
->>> Hi Hans and everyone,
->>>
->>> This is sixth version of M-5MOLS 8 Mega Pixel camera sensor. And, if
->>> you see
->>> previous version, you can find at:
->>> http://www.spinics.net/lists/linux-media/msg29350.html
->>>
->>> This driver patch is fixed several times, and the important issues is
->>> almost
->>> corrected. And, I hope that this is the last version one merged for
->>> 2.6.39.
->>> I look forward to be reviewed one more time.
->>>
->>> The summary of this version's feature is belows:
->>>
->>> 1. Add focus control
->>> 	: I've suggest menu type focus control, but I agreed this
->>> version is
->>> 	not yet the level accepted. So, I did not use focus control
->>> which
->>> 	I suggest.
->>> 	The M-5MOLS focus routine takes some time to execute. But, the
->>> user
->>> 	application calling v4l2 control, should not hanged while
->>> streaming
->>> 	using q/dqbuf. So, I use workqueue. I want to discuss the focus
->>> 	subject on mailnglist next time.
->>>
->>
->> I wonder this feature is dependent on this firmware version?
->>
->> .....snip
-> The value can be changable by the firmware, but the usage of focus is not.
-> The specific mode can be added too. But, it also maintains same usage.
-> 
-> It's scheduled at the next time to consider the version. But, it's hard to
-> consider all cases.
-> 
->>
->>> +static int m5mols_start_monitor(struct v4l2_subdev *sd)
->>> +{
->>> +	struct m5mols_info *info = to_m5mols(sd);
->>> +	int ret;
->>> +
->>> +	ret = m5mols_set_mode(sd, MODE_PARAM);
->>> +	if (!ret)
->>> +		ret = i2c_w8_param(sd, CAT1_MONITOR_SIZE, info-
->>>> res_preset);
->>> +	if (!ret)
->>> +		ret = i2c_w8_param(sd, CAT1_MONITOR_FPS, info->fps_preset);
->>> +	if (!ret)
->>> +		ret = m5mols_set_mode(sd, MODE_MONITOR);
->>> +	if (!ret && info->do_once) {
->>> +		/* After probing the driver, this should be callde once.
->>> */
->>> +		v4l2_ctrl_handler_setup(&info->handle);
->> As test result, When sensor is set monitor mode, if this API is called, 
->> Preview data(get from sensor) is craked. Surely, it is good working if this API is called in paramset mode.
->> That waw no problem in Version 5. Because it is returned before v4l2_ctrl_handler_init()
->> In m5mols_init_controls(version 5) :
->> 	ret = i2c_r16_ae(sd, CAT3_MAX_GAIN_MON, (u32 *)&max_ex_mon);
->> 	if (ret) 
->> 		return ret; // if success, return.
->>
->> My test case is :
->> S_power->s_fmt->s_stream.
-> It's a little tricky to control parameter & monitor mode in the M-5MOLS sensor.
-> Any commands or control is specified that it's available in Docunemt, but
-> it's just literaly "available", doesn't mean "working well". Especially,
-> the version difference between firmware is the biggest source of this problems.
-> 
-> Probably, the sensor you have is a different firmware I think.
-> So If there is any other problem, I recommend to use previous version plz.
-> 
-> If you show me the all version strings, I might help you.
-> 
->>
->> .....
->> BRs Sungchun.
->>
->>
-> 
-> Thanks for comments, and any other issues or opinions, let me know.
-> 
-> Regards,
-> Heungjun Kim
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Hi David,
+Thanks for the report, will fix soon.
 
+-- 
+Best regards,
+Pawel Osciak
