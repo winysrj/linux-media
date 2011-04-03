@@ -1,68 +1,87 @@
 Return-path: <mchehab@pedra>
-Received: from mail1-out1.atlantis.sk ([80.94.52.55]:38169 "EHLO
-	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751107Ab1DZIab (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Apr 2011 04:30:31 -0400
-From: Ondrej Zary <linux@rainbow-software.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH] usbvision: remove (broken) image format conversion
-Date: Tue, 26 Apr 2011 10:30:21 +0200
-Cc: Joerg Heckenbach <joerg@heckenbach-aw.de>,
-	Dwaine Garden <dwainegarden@rogers.com>,
-	linux-media@vger.kernel.org,
-	Kernel development list <linux-kernel@vger.kernel.org>
-References: <201104252323.20420.linux@rainbow-software.org> <201104260832.11150.hverkuil@xs4all.nl>
-In-Reply-To: <201104260832.11150.hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:28193 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751107Ab1DCNk5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 3 Apr 2011 09:40:57 -0400
+Message-ID: <4D9878E1.7060603@redhat.com>
+Date: Sun, 03 Apr 2011 10:40:49 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: linux-media@vger.kernel.org
+CC: Oliver Endriss <o.endriss@gmx.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: Debug code in HG repositories
+References: <201101072053.37211@orion.escape-edv.de> <201101080056.40803@orion.escape-edv.de> <4D2AF5E6.1070007@redhat.com> <201101110210.49205@orion.escape-edv.de>
+In-Reply-To: <201101110210.49205@orion.escape-edv.de>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201104261030.21681.linux@rainbow-software.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tuesday 26 April 2011, you wrote:
-> On Monday, April 25, 2011 23:23:17 Ondrej Zary wrote:
-> > The YVU420 and YUV422P formats are broken and cause kernel panic on use.
-> > (YVU420 does not work and sometimes causes "unable to handle paging
-> > request" panic, YUV422P always causes "NULL pointer dereference").
-> >
-> > As V4L2 spec says that drivers shouldn't do any in-kernel image format
-> > conversion, remove it completely (except YUYV).
->
-> What really should happen is that the conversion is moved to libv4lconvert.
-> I've never had the time to tackle that, but it would improve this driver a
-> lot.
+Em 10-01-2011 23:10, Oliver Endriss escreveu:
+> On Monday 10 January 2011 13:04:54 Mauro Carvalho Chehab wrote:
+>> Em 07-01-2011 21:56, Oliver Endriss escreveu:
+>>> ...
+>>> There are large pieces of driver code which are currently unused, and
+>>> nobody can tell whether they will ever be needed.
+>>>
+>>> On the other hand a developer spent days writing this stuff, and now it
+>>> does not exist anymore - without any trace!
+>>>
+>>> The problem is not, that it is missing in the current snapshot, but
+>>> that it has never been in the git repository, and there is no way to
+>>> recover it.
+>>
+>> The Mercurial tree will stay there forever. We still have there the old CVS 
+>> trees used by DVB and V4L development.
+>>>
+>>> Afaics, the only way to preserve this kind of code is 'out-of-tree'.
+>>> It is a shame... :-(
+>>
+>> I see your point. It is harder for people to re-use that code, as they are not
+>> upstream.
+> 
+> The main problem is that they do not even know that the code exists.
+> 
+> Maybe I should add some comment to the driver, that someone should look
+> into the HG repository, before he starts re-inventing the wheel.
+> 
+>> It is easy to recover the changes with:
+>>
+>> $ gentree.pl 2.6.37 --strip_dead_code linux/ /tmp/stripped
+>> $ gentree.pl 2.6.37  linux/ /tmp/not_stripped
+>> $ diff -upr /tmp/stripped/ /tmp/not_stripped/ >/tmp/revert_removed_code.patch
+>>
+>> As a reference and further discussions, I'm enclosing the diff.
+> 
+> The resulting diff is far from complete.
+> In fact, the most interesting parts are missing.
+> 
+> Apparently, the command
+>     gentree.pl 2.6.37  linux/ /tmp/not_stripped
+> stripped all '#if 0' blocks, which are not followed by a comment.
+> Just compare the original ngene_av.c with the resulting version in
+> /tmp/non_stripped.
 
-Depending on isoc_mode module parameter, the device uses different image 
-formats: YUV 4:2:2 interleaved, YUV 4:2:0 planar or compressed format.
+Oliver,
 
-Maybe the parameter should go away and these three formats exposed to 
-userspace? Hopefully the non-compressed formats could be used directly 
-without any conversion. But the compressed format (with new V4L2_PIX_FMT_ 
-assigned?) should be preferred (as it provides much higher frame rates). The 
-code moved into libv4lconvert would decompress the format and convert into 
-something standard (YUV420?).
+I fixed the script. Sorry for taking a long time. Too much stuff here.
+The fix patch were already merged at -hg.
 
-> Would you perhaps be interested in doing that work?
+It will now produce the right results. A regex expression were waiting for
+ something after #if 1/#if 0, with is generally ok, as lines end with \n.
+However, due to the usage of chomp, the \n character were removed, and the 
+regex failed on lines with just '#if 0'.
 
-I can try it. But the hardware isn't mine so my time is limited.
+-
 
-> > The removal also reveals an off-by-one bug in enum_fmt ioctl - it misses
-> > the last format, so this patch fixes it too.
->
-> Good. But why are the GREY/RGB formats also removed? Are those broken as
-> well?
+On most places, the code inside #if 0 are just legacy stuff, where people
+were trying to implement a different code for something. However, at ngene,
+the code inside #if 0 are there just because the ngene developers didn't find
+time yet to work on them. So, it may make sense to add those code into mainstream,
+if people will uncomment part of those code. So, feel free to send me a patch
+adding the commented code, if you need.
 
-GREY, RGB24 and RGB32 seem to work (at least with mplayer). RGB565 and RGB555 
-have wrong colors. GREY is implemented only in compressed mode but can be 
-selected in other modes too. Can't userspace do the conversion better?
-
-> Regards,
->
-> 	Hans
-
--- 
-Ondrej Zary
+Thanks,
+Mauro
