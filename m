@@ -1,156 +1,64 @@
 Return-path: <mchehab@pedra>
-Received: from devils.ext.ti.com ([198.47.26.153]:43873 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756212Ab1D0OOe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Apr 2011 10:14:34 -0400
-From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-To: "'Laurent Pinchart'" <laurent.pinchart@ideasonboard.com>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Wed, 27 Apr 2011 19:44:03 +0530
-Subject: [RFC] Media Controller Capture driver for DM365
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024BBC5CB6@dbde02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:44957 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751048Ab1DCPhJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Apr 2011 11:37:09 -0400
+Received: by wya21 with SMTP id 21so4084551wya.19
+        for <linux-media@vger.kernel.org>; Sun, 03 Apr 2011 08:37:07 -0700 (PDT)
+From: Patrick Boettcher <pboettcher@kernellabs.com>
+To: Mr Tux <tuxoholic@hotmail.de>
+Subject: Re: dibusb device with lock problems
+Date: Sun, 3 Apr 2011 17:37:00 +0200
+Cc: linux-media@vger.kernel.org, grafgrimm77@gmx.de,
+	castet.matthieu@free.fr
+References: <BLU0-SMTP2588D5C8C024CC3D20EE63D8A10@phx.gbl>
+In-Reply-To: <BLU0-SMTP2588D5C8C024CC3D20EE63D8A10@phx.gbl>
 MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201104031737.00564.pboettcher@kernellabs.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Introduction
-------------
-This is the proposal of the initial version of design and implementation  of
-the DM365 VPFE (Video Port Front End) drivers
-using Media Controloler , the initial version which supports
-the following:
-1) dm365 vpfe
-2) ccdc,previewer,resizer,h3a,af blocks
-3) supports both continuous and single-shot modes
-4) supports user pointer exchange and memory mapped modes for buffer allocation
+Hi Mr Tux,
 
-This driver bases its design on Laurent Pinchart's Media Controller Design
-whose patches for Media Controller and subdev enhancements form the base.
-The driver also takes copious elements taken from Laurent Pinchart and
-others' OMAP ISP driver based on Media Controller. So thank you all the
-people who are responsible for the Media Controller and the OMAP ISP driver.
+On Saturday 02 April 2011 15:45:22 Mr Tux wrote:
+> Hi list, hello Patrick,
+> 
+> A locking problem with specific dib3000mb devices is still present in
+> kernel 2.6.38.
+> 
+> Now people upgrading from lenny to squeeze are also affected - see: [1]
+> 
+> Please have a look at my previous post in [2] for a detailed description
+> and links to this bug's history.
+> 
+> I'm sending a cc of this to the people who once where affected by this
+> bug or involved with the code change that introduced it.
+> 
+> Anyone can confirm this is fixed/pending for his device and what
+> dib3000mb device he is using out of the linuxtv wiki list of 14
+> dib3000mb devices [3]?
+> 
+> I have 3 devices of the hama usb 1.1 series: [4], that's number 66 in the
+> wiki listing - they all are affected by this bug with kernels > 2.6.31
+> 
+> Thanks for some feedback. Can we fix this for good for the pending
+> devices?
+> 
+> 
+> [1] http://www.vdr-portal.de/index.php?page=Thread&postID=991041
 
-Also, the core functionality of the driver comes from the arago vpfe capture
-driver of which the CCDC capture was based on V4L2, with other drivers like
-Previwer, and Resizer.
+In the post on vdr-portal you're showing the kernel-output of 2.6.32 I 
+guess, do you still have the kernel output of 2.6.26 (or any before 2.6.32)?
 
-The specification for DM365 can be found here:
-dm365  vpfe: http://www.ti.com/litv/pdf/sprufg8c
+I think this line is not normal in your case:
 
-The initial version of the  driver implementation can be found here:
+ dibusb: This device has the Thomson Cable onboard. Which is default.
 
-http://git.linuxtv.org/mhadli/v4l-dvb-davinci_devices.git?a=shortlog;h=refs/heads/mc_release
+But to be sure I need you to test. TUning the device is not needed with the 
+old kernel, just plugging it and checking that line should be enough.
 
-Driver Design: Main entities
-----------------------------
-The hardware modules for dm355,dm365 are mainly ipipe, ipipeif,isif. These
-hardware modules are generically exposed to the user level in the for of
-dm6446 style modules. Mainly -
-ccdc, previewer, resizer in addition to the other histogram and
-auto color/white balance correction and auto focus modules.
-
-1)MT9P031 sensor  module for RAW capture
-2)TVP7002 decoder module for HD inputs
-3)TVP514x decoder module for SD inputs
-4)CCDC capture module
-5)Previewer Module for Bayer to YUV conversion
-6)Resizer Module for scaling
-
-Connection for on-the-fly capture
----------------------------------
-Mt9P031 ------>CCDC--->Previewer(optional)--->Resizer(optional)--->Video
-           |
-TVP7002 ---
-           |
-TV514x  ---
-
-File Organisation
------------------
-
-main driver files
-----------------
-drivers/media/video/davinci/vpfe_capture.c
-include/media/davinci/vpfe_capture.h
-
-Instantiatiation of the v4l2 device, media device and all  subdevs from here.
-
-video Interface files
----------------------
-drivers/media/video/davinci/vpfe_video.c
-include/media/davinci/vpfe_video.h
-
-Implements all the v4l2 video operations with a generic implementation for
-continuous and one shot mode.
-
-subdev interface files
-----------------------
-These file implement the subdev interface functionality for
-each of the subdev entities - mainly the entry points and their implementations
-in a IP generic way.
-
-drivers/media/video/davinci/vpfe_ccdc.c
-drivers/media/video/davinci/vpfe_previewer.c
-drivers/media/video/davinci/vpfe_resizer.c
-drivers/media/video/davinci/vpfe_af.c
-drivers/media/video/davinci/vpfe_aew.c
-drivers/media/video/mt9p031.c
-drivers/media/video/tvp514x.c
-drivers/media/video/tvp7002.c
-drivers/media/video/ths7353.c
-
-include/media/davinci/vpfe_ccdc.h
-include/media/davinci/vpfe_previewer.h
-include/media/davinci/vpfe_resizer.h
-include/media/davinci/vpfe_af.h
-include/media/davinci/vpfe_aew.h
-include/media/tvp514x.h
-drivers/media/video/tvp514x_regs.h
-include/media/tvp7002.h
-drivers/media/video/tvp7002_reg.h
-
-core implementation files
--------------------------
-These provide a core implementation routines for ccdc, ipipeif,
-ipipe,aew, af, resizer hardware modules.
-
-drivers/media/video/davinci/dm365_ccdc.c
-drivers/media/video/davinci/dm365_ipipe.c
-drivers/media/video/davinci/dm365_def_para.c
-drivers/media/video/davinci/dm365_ipipe_hw.c
-drivers/media/video/davinci/dm3xx_ipipe.c
-drivers/media/video/davinci/dm365_aew.c
-drivers/media/video/davinci/dm365_af.c
-drivers/media/video/davinci/dm365_a3_hw.c
-
-include/media/davinci/imp_common.h
-include/media/davinci/dm365_ccdc.h
-include/media/davinci/dm365_ipipe.h
-include/media/davinci/imp_hw_if.h
-include/media/davinci/dm3xx_ipipe.h
-include/media/davinci/dm365_aew.h
-include/media/davinci/dm365_af.h
-include/media/davinci/dm365_a3_hw.h
-include/media/davinci/vpfe_types.h
-
-drivers/media/video/davinci/dm365_ccdc_regs.h
-drivers/media/video/davinci/ccdc_hw_device.h
-drivers/media/video/davinci/dm365_def_para.h
-drivers/media/video/davinci/dm365_ipipe_hw.h
-
-TODOs:
-======
-
-1. Support NV12/YUYV format
-2. Support more than 1 buffer for single-shot mode
-3. Enable Resizer-B
-4. Remove duplicate format setting in ipipe
-5. Remove function declarations in dm365_ipipe.c by removing function pointer table
-6. Remove function declarations in dm365_ccdc.c by removing function pointer table
-7. Make multilevel previewer module ioctl into single level
-8. Move kernel only headers into drivers/media/video/davinci from include/media/davinci
+--
+Patrick.
