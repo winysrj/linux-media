@@ -1,157 +1,147 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:43020 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753149Ab1DEH5Q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2011 03:57:16 -0400
-Received: from localhost.localdomain (unknown [91.178.236.143])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 0C06335994
-	for <linux-media@vger.kernel.org>; Tue,  5 Apr 2011 07:57:12 +0000 (UTC)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 10/14] v4l: add V4L2_PIX_FMT_Y12 format
-Date: Tue,  5 Apr 2011 09:57:32 +0200
-Message-Id: <1301990256-6963-11-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1301990256-6963-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1301990256-6963-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from moutng.kundenserver.de ([212.227.17.10]:50072 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753802Ab1DDG6o (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2011 02:58:44 -0400
+Date: Mon, 4 Apr 2011 08:58:39 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Pawel Osciak <pawel@osciak.com>
+cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	s.nawrocki@samsung.com
+Subject: Re: [PATCH 1/5] [media] vb2: redesign the stop_streaming() callback
+ and make it obligatory
+In-Reply-To: <1301874670-14833-2-git-send-email-pawel@osciak.com>
+Message-ID: <Pine.LNX.4.64.1104040854300.4668@axis700.grange>
+References: <1301874670-14833-1-git-send-email-pawel@osciak.com>
+ <1301874670-14833-2-git-send-email-pawel@osciak.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Michael Jones <michael.jones@matrix-vision.de>
+On Sun, 3 Apr 2011, Pawel Osciak wrote:
 
-Y12 is a grey-scale format with a depth of 12 bits per pixel stored in
-16-bit words.
+> Drivers are now required to implement the stop_streaming() callback
+> to ensure that all ongoing hardware operations are finished and their
+> ownership of buffers is ceded.
+> Drivers do not have to call vb2_buffer_done() for each buffer they own
+> anymore.
+> Also remove the return value from the callback.
+> 
+> Signed-off-by: Pawel Osciak <pawel@osciak.com>
+> ---
+>  drivers/media/video/videobuf2-core.c |   16 ++++++++++++++--
+>  include/media/videobuf2-core.h       |   16 +++++++---------
+>  2 files changed, 21 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
+> index 6e69584..59d5e8b 100644
+> --- a/drivers/media/video/videobuf2-core.c
+> +++ b/drivers/media/video/videobuf2-core.c
+> @@ -640,6 +640,9 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+>  	struct vb2_queue *q = vb->vb2_queue;
+>  	unsigned long flags;
+>  
+> +	if (atomic_read(&q->queued_count) == 0)
+> +		return;
+> +
+>  	if (vb->state != VB2_BUF_STATE_ACTIVE)
+>  		return;
+>  
+> @@ -1178,12 +1181,20 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+>  	unsigned int i;
+>  
+>  	/*
+> -	 * Tell driver to stop all transactions and release all queued
+> +	 * Tell the driver to stop all transactions and release all queued
+>  	 * buffers.
+>  	 */
+>  	if (q->streaming)
+>  		call_qop(q, stop_streaming, q);
+> +
+> +	/*
+> +	 * All buffers should now not be in use by the driver anymore, but we
+> +	 * have to manually set queued_count to 0, as the driver was not
+> +	 * required to call vb2_buffer_done() from stop_streaming() for all
+> +	 * buffers it had queued.
+> +	 */
+>  	q->streaming = 0;
+> +	atomic_set(&q->queued_count, 0);
+>  
+>  	/*
+>  	 * Remove all buffers from videobuf's list...
+> @@ -1197,7 +1208,7 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+>  	wake_up_all(&q->done_wq);
+>  
+>  	/*
+> -	 * Reinitialize all buffers for next use.
+> +	 * Reinitialize all buffers for future use.
+>  	 */
+>  	for (i = 0; i < q->num_buffers; ++i)
+>  		q->bufs[i]->state = VB2_BUF_STATE_DEQUEUED;
+> @@ -1440,6 +1451,7 @@ int vb2_queue_init(struct vb2_queue *q)
+>  
+>  	BUG_ON(!q->ops->queue_setup);
+>  	BUG_ON(!q->ops->buf_queue);
+> +	BUG_ON(!q->ops->stop_streaming);
+>  
+>  	INIT_LIST_HEAD(&q->queued_list);
+>  	INIT_LIST_HEAD(&q->done_list);
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index f3bdbb2..8115fe9 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -184,7 +184,7 @@ struct vb2_buffer {
+>  
+>  /**
+>   * struct vb2_ops - driver-specific callbacks to be implemented by the driver
+> - * Required: queue_setup, buf_queue. The rest is optional.
+> + * Required: queue_setup, buf_queue, stop_streaming. The rest is optional.
+>   *
+>   * @queue_setup:	used to negotiate queue parameters between the userspace
+>   *			and the driver; called before memory allocation;
+> @@ -231,13 +231,11 @@ struct vb2_buffer {
+>   *			the driver before streaming begins (such as enabling
+>   *			the device);
+>   * @stop_streaming:	called when the 'streaming' state must be disabled;
+> - * 			drivers should stop any DMA transactions here (or wait
+> - * 			until they are finished) and give back all the buffers
+> - * 			received via buf_queue() by calling vb2_buffer_done()
+> - * 			for each of them;
+> - * 			drivers can use the vb2_wait_for_all_buffers() function
+> - * 			here to wait for asynchronous completion events that
+> - * 			call vb2_buffer_done(), such as ISRs;
+> + *			drivers should stop any DMA transactions here (or wait
+> + *			until they are finished) before returning;
+> + *			drivers can use the vb2_wait_for_all_buffers() function
+> + *			here to wait for asynchronous completion events, such
+> + *			as ISRs;
+>   * @buf_queue:		passes a buffer to the driver; the driver may start
+>   *			a hardware operation on that buffer; this callback
+>   *			MUST return immediately, i.e. it may NOT wait for
+> @@ -259,7 +257,7 @@ struct vb2_ops {
+>  	void (*buf_cleanup)(struct vb2_buffer *vb);
+>  
+>  	int (*start_streaming)(struct vb2_queue *q);
+> -	int (*stop_streaming)(struct vb2_queue *q);
+> +	void (*stop_streaming)(struct vb2_queue *q);
 
-Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Won't compilation break after this patch with "assignment from 
+incompatible pointer type?" I know, it's only until it is fixed by the 
+follow-up patches, but normally we're trying to avoid such bisection 
+breakages.
+
+Thanks
+Guennadi
+
+>  
+>  	void (*buf_queue)(struct vb2_buffer *vb);
+>  };
+> -- 
+> 1.7.4.2
+> 
+
 ---
- Documentation/DocBook/media-entities.tmpl |    1 +
- Documentation/DocBook/v4l/pixfmt-y12.xml  |   79 +++++++++++++++++++++++++++++
- Documentation/DocBook/v4l/pixfmt.xml      |    1 +
- include/linux/videodev2.h                 |    1 +
- 4 files changed, 82 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/DocBook/v4l/pixfmt-y12.xml
-
-diff --git a/Documentation/DocBook/media-entities.tmpl b/Documentation/DocBook/media-entities.tmpl
-index 5d259c6..fea63b4 100644
---- a/Documentation/DocBook/media-entities.tmpl
-+++ b/Documentation/DocBook/media-entities.tmpl
-@@ -294,6 +294,7 @@
- <!ENTITY sub-srggb10 SYSTEM "v4l/pixfmt-srggb10.xml">
- <!ENTITY sub-srggb8 SYSTEM "v4l/pixfmt-srggb8.xml">
- <!ENTITY sub-y10 SYSTEM "v4l/pixfmt-y10.xml">
-+<!ENTITY sub-y12 SYSTEM "v4l/pixfmt-y12.xml">
- <!ENTITY sub-pixfmt SYSTEM "v4l/pixfmt.xml">
- <!ENTITY sub-cropcap SYSTEM "v4l/vidioc-cropcap.xml">
- <!ENTITY sub-dbg-g-register SYSTEM "v4l/vidioc-dbg-g-register.xml">
-diff --git a/Documentation/DocBook/v4l/pixfmt-y12.xml b/Documentation/DocBook/v4l/pixfmt-y12.xml
-new file mode 100644
-index 0000000..ff417b8
---- /dev/null
-+++ b/Documentation/DocBook/v4l/pixfmt-y12.xml
-@@ -0,0 +1,79 @@
-+<refentry id="V4L2-PIX-FMT-Y12">
-+  <refmeta>
-+    <refentrytitle>V4L2_PIX_FMT_Y12 ('Y12 ')</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+  <refnamediv>
-+    <refname><constant>V4L2_PIX_FMT_Y12</constant></refname>
-+    <refpurpose>Grey-scale image</refpurpose>
-+  </refnamediv>
-+  <refsect1>
-+    <title>Description</title>
-+
-+    <para>This is a grey-scale image with a depth of 12 bits per pixel. Pixels
-+are stored in 16-bit words with unused high bits padded with 0. The least
-+significant byte is stored at lower memory addresses (little-endian).</para>
-+
-+    <example>
-+      <title><constant>V4L2_PIX_FMT_Y12</constant> 4 &times; 4
-+pixel image</title>
-+
-+      <formalpara>
-+	<title>Byte Order.</title>
-+	<para>Each cell is one byte.
-+	  <informaltable frame="none">
-+	    <tgroup cols="9" align="center">
-+	      <colspec align="left" colwidth="2*" />
-+	      <tbody valign="top">
-+		<row>
-+		  <entry>start&nbsp;+&nbsp;0:</entry>
-+		  <entry>Y'<subscript>00low</subscript></entry>
-+		  <entry>Y'<subscript>00high</subscript></entry>
-+		  <entry>Y'<subscript>01low</subscript></entry>
-+		  <entry>Y'<subscript>01high</subscript></entry>
-+		  <entry>Y'<subscript>02low</subscript></entry>
-+		  <entry>Y'<subscript>02high</subscript></entry>
-+		  <entry>Y'<subscript>03low</subscript></entry>
-+		  <entry>Y'<subscript>03high</subscript></entry>
-+		</row>
-+		<row>
-+		  <entry>start&nbsp;+&nbsp;8:</entry>
-+		  <entry>Y'<subscript>10low</subscript></entry>
-+		  <entry>Y'<subscript>10high</subscript></entry>
-+		  <entry>Y'<subscript>11low</subscript></entry>
-+		  <entry>Y'<subscript>11high</subscript></entry>
-+		  <entry>Y'<subscript>12low</subscript></entry>
-+		  <entry>Y'<subscript>12high</subscript></entry>
-+		  <entry>Y'<subscript>13low</subscript></entry>
-+		  <entry>Y'<subscript>13high</subscript></entry>
-+		</row>
-+		<row>
-+		  <entry>start&nbsp;+&nbsp;16:</entry>
-+		  <entry>Y'<subscript>20low</subscript></entry>
-+		  <entry>Y'<subscript>20high</subscript></entry>
-+		  <entry>Y'<subscript>21low</subscript></entry>
-+		  <entry>Y'<subscript>21high</subscript></entry>
-+		  <entry>Y'<subscript>22low</subscript></entry>
-+		  <entry>Y'<subscript>22high</subscript></entry>
-+		  <entry>Y'<subscript>23low</subscript></entry>
-+		  <entry>Y'<subscript>23high</subscript></entry>
-+		</row>
-+		<row>
-+		  <entry>start&nbsp;+&nbsp;24:</entry>
-+		  <entry>Y'<subscript>30low</subscript></entry>
-+		  <entry>Y'<subscript>30high</subscript></entry>
-+		  <entry>Y'<subscript>31low</subscript></entry>
-+		  <entry>Y'<subscript>31high</subscript></entry>
-+		  <entry>Y'<subscript>32low</subscript></entry>
-+		  <entry>Y'<subscript>32high</subscript></entry>
-+		  <entry>Y'<subscript>33low</subscript></entry>
-+		  <entry>Y'<subscript>33high</subscript></entry>
-+		</row>
-+	      </tbody>
-+	    </tgroup>
-+	  </informaltable>
-+	</para>
-+      </formalpara>
-+    </example>
-+  </refsect1>
-+</refentry>
-diff --git a/Documentation/DocBook/v4l/pixfmt.xml b/Documentation/DocBook/v4l/pixfmt.xml
-index c6fdcbb..40af4be 100644
---- a/Documentation/DocBook/v4l/pixfmt.xml
-+++ b/Documentation/DocBook/v4l/pixfmt.xml
-@@ -696,6 +696,7 @@ information.</para>
-     &sub-packed-yuv;
-     &sub-grey;
-     &sub-y10;
-+    &sub-y12;
-     &sub-y16;
-     &sub-yuyv;
-     &sub-uyvy;
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index aa6c393..be82c8e 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -308,6 +308,7 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_Y4      v4l2_fourcc('Y', '0', '4', ' ') /*  4  Greyscale     */
- #define V4L2_PIX_FMT_Y6      v4l2_fourcc('Y', '0', '6', ' ') /*  6  Greyscale     */
- #define V4L2_PIX_FMT_Y10     v4l2_fourcc('Y', '1', '0', ' ') /* 10  Greyscale     */
-+#define V4L2_PIX_FMT_Y12     v4l2_fourcc('Y', '1', '2', ' ') /* 12  Greyscale     */
- #define V4L2_PIX_FMT_Y16     v4l2_fourcc('Y', '1', '6', ' ') /* 16  Greyscale     */
- 
- /* Palette formats */
--- 
-1.7.3.4
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
