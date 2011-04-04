@@ -1,296 +1,263 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:27329 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754099Ab1DRJ1G (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Apr 2011 05:27:06 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Mon, 18 Apr 2011 11:26:43 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 6/7] v4l: s5p-fimc: Add support for vb2-dma-iommu allocator
-In-reply-to: <1303118804-5575-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Andrzej Pietrasiwiecz <andrzej.p@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Kukjin Kim <kgene.kim@samsung.com>
-Message-id: <1303118804-5575-7-git-send-email-m.szyprowski@samsung.com>
-References: <1303118804-5575-1-git-send-email-m.szyprowski@samsung.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:56128 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754492Ab1DDOuF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2011 10:50:05 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kamil Debski <k.debski@samsung.com>
+Subject: Re: [RFC] New controls for codec devices
+Date: Mon, 4 Apr 2011 16:50:30 +0200
+Cc: linux-media@vger.kernel.org,
+	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
+	jaeryul.oh@samsung.com, hansverk@cisco.com,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+References: <ADF13DA15EB3FE4FBA487CCC7BEFDF3619110DAD1E@bssrvexch01> <201104011200.51712.laurent.pinchart@ideasonboard.com> <002101cbf082$daa237b0$8fe6a710$%debski@samsung.com>
+In-Reply-To: <002101cbf082$daa237b0$8fe6a710$%debski@samsung.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201104041650.30819.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This patch adds support for videobuf2-dma-iommu allocator to s5p-fimc
-driver. This allocator is selected only on systems that contains support
-for S5P SYSMMU module (like EXYNOS4 platform). Otherwise the standard
-videobuf2-dma-contig is used.
+Hi Kamil,
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/Kconfig                 |    3 +-
- drivers/media/video/s5p-fimc/fimc-capture.c |    4 +-
- drivers/media/video/s5p-fimc/fimc-core.c    |   24 ++++---
- drivers/media/video/s5p-fimc/fimc-core.h    |    1 +
- drivers/media/video/s5p-fimc/fimc-mem.h     |  104 +++++++++++++++++++++++++++
- 5 files changed, 123 insertions(+), 13 deletions(-)
- create mode 100644 drivers/media/video/s5p-fimc/fimc-mem.h
+On Friday 01 April 2011 17:38:26 Kamil Debski wrote:
+> > From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
+> > On Tuesday 29 March 2011 11:48:03 Kamil Debski wrote:
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 40d7bcc..bf2d55d 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -1031,7 +1031,8 @@ config VIDEO_MEM2MEM_TESTDEV
- config  VIDEO_SAMSUNG_S5P_FIMC
- 	tristate "Samsung S5P FIMC (video postprocessor) driver"
- 	depends on VIDEO_DEV && VIDEO_V4L2 && PLAT_S5P
--	select VIDEOBUF2_DMA_CONTIG
-+	select VIDEOBUF2_DMA_IOMMU if S5P_SYSTEM_MMU
-+	select VIDEOBUF2_DMA_CONTIG if !S5P_SYSTEM_MMU
- 	select V4L2_MEM2MEM_DEV
- 	help
- 	  This is a v4l2 driver for the S5P camera interface
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index f697ed1..714f0df 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -29,9 +29,9 @@
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-mem2mem.h>
- #include <media/videobuf2-core.h>
--#include <media/videobuf2-dma-contig.h>
- 
- #include "fimc-core.h"
-+#include "fimc-mem.h"
- 
- static struct v4l2_subdev *fimc_subdev_register(struct fimc_dev *fimc,
- 					    struct s5p_fimc_isp_info *isp_info)
-@@ -884,7 +884,7 @@ int fimc_register_capture_device(struct fimc_dev *fimc)
- 	q->io_modes = VB2_MMAP | VB2_USERPTR;
- 	q->drv_priv = fimc->vid_cap.ctx;
- 	q->ops = &fimc_capture_qops;
--	q->mem_ops = &vb2_dma_contig_memops;
-+	q->mem_ops = &fimc_vb2_allocator_memops;
- 	q->buf_struct_size = sizeof(struct fimc_vid_buffer);
- 
- 	vb2_queue_init(q);
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index ead5c0a..594c471 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -27,9 +27,9 @@
- #include <linux/clk.h>
- #include <media/v4l2-ioctl.h>
- #include <media/videobuf2-core.h>
--#include <media/videobuf2-dma-contig.h>
- 
- #include "fimc-core.h"
-+#include "fimc-mem.h"
- 
- static char *fimc_clocks[MAX_FIMC_CLOCKS] = {
- 	"sclk_fimc", "fimc", "sclk_cam"
-@@ -457,7 +457,7 @@ int fimc_prepare_addr(struct fimc_ctx *ctx, struct vb2_buffer *vb,
- 	dbg("memplanes= %d, colplanes= %d, pix_size= %d",
- 		frame->fmt->memplanes, frame->fmt->colplanes, pix_size);
- 
--	paddr->y = vb2_dma_contig_plane_paddr(vb, 0);
-+	paddr->y = fimc_vb2_plane_addr(vb, 0);
- 
- 	if (frame->fmt->memplanes == 1) {
- 		switch (frame->fmt->colplanes) {
-@@ -485,10 +485,10 @@ int fimc_prepare_addr(struct fimc_ctx *ctx, struct vb2_buffer *vb,
- 		}
- 	} else {
- 		if (frame->fmt->memplanes >= 2)
--			paddr->cb = vb2_dma_contig_plane_paddr(vb, 1);
-+			paddr->cb = fimc_vb2_plane_addr(vb, 1);
- 
- 		if (frame->fmt->memplanes == 3)
--			paddr->cr = vb2_dma_contig_plane_paddr(vb, 2);
-+			paddr->cr = fimc_vb2_plane_addr(vb, 2);
- 	}
- 
- 	dbg("PHYS_ADDR: y= 0x%X  cb= 0x%X cr= 0x%X ret= %d",
-@@ -1378,7 +1378,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 	src_vq->io_modes = VB2_MMAP | VB2_USERPTR;
- 	src_vq->drv_priv = ctx;
- 	src_vq->ops = &fimc_qops;
--	src_vq->mem_ops = &vb2_dma_contig_memops;
-+	src_vq->mem_ops = &fimc_vb2_allocator_memops;
- 	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
- 
- 	ret = vb2_queue_init(src_vq);
-@@ -1390,7 +1390,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 	dst_vq->io_modes = VB2_MMAP | VB2_USERPTR;
- 	dst_vq->drv_priv = ctx;
- 	dst_vq->ops = &fimc_qops;
--	dst_vq->mem_ops = &vb2_dma_contig_memops;
-+	dst_vq->mem_ops = &fimc_vb2_allocator_memops;
- 	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
- 
- 	return vb2_queue_init(dst_vq);
-@@ -1688,12 +1688,15 @@ static int fimc_probe(struct platform_device *pdev)
- 		goto err_clk;
- 	}
- 
--	/* Initialize contiguous memory allocator */
--	fimc->alloc_ctx = vb2_dma_contig_init_ctx(&fimc->pdev->dev);
-+	/* Initialize memory allocator */
-+	fimc->alloc_ctx = fimc_vb2_allocator_init(pdev, fimc);
- 	if (IS_ERR(fimc->alloc_ctx)) {
- 		ret = PTR_ERR(fimc->alloc_ctx);
- 		goto err_irq;
- 	}
-+	ret = fimc_vb2_allocator_enable(fimc->alloc_ctx);
-+	if (ret)
-+		goto err_irq;
- 
- 	ret = fimc_register_m2m_device(fimc);
- 	if (ret)
-@@ -1750,7 +1753,8 @@ static int __devexit fimc_remove(struct platform_device *pdev)
- 
- 	fimc_clk_release(fimc);
- 
--	vb2_dma_contig_cleanup_ctx(fimc->alloc_ctx);
-+	fimc_vb2_allocator_disable(fimc->alloc_ctx);
-+	fimc_vb2_allocator_cleanup(fimc->alloc_ctx, fimc);
- 
- 	pm_runtime_disable(&pdev->dev);
- 
-@@ -1907,7 +1911,7 @@ static struct platform_device_id fimc_driver_ids[] = {
- 		.name		= "s5pv210-fimc",
- 		.driver_data	= (unsigned long)&fimc_drvdata_s5pv210,
- 	}, {
--		.name		= "s5pv310-fimc",
-+		.name		= "exynos4-fimc",
- 		.driver_data	= (unsigned long)&fimc_drvdata_s5pv310,
- 	},
- 	{},
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
-index 3beb1e5..0f23547 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.h
-+++ b/drivers/media/video/s5p-fimc/fimc-core.h
-@@ -423,6 +423,7 @@ struct fimc_dev {
- 	struct fimc_vid_cap		vid_cap;
- 	unsigned long			state;
- 	struct vb2_alloc_ctx		*alloc_ctx;
-+	struct device			*iommu_dev;
- };
- 
- /**
-diff --git a/drivers/media/video/s5p-fimc/fimc-mem.h b/drivers/media/video/s5p-fimc/fimc-mem.h
-new file mode 100644
-index 0000000..7b920a8
---- /dev/null
-+++ b/drivers/media/video/s5p-fimc/fimc-mem.h
-@@ -0,0 +1,104 @@
-+/*
-+ * Copyright (c) 2011 Samsung Electronics
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef FIMC_MEM_H_
-+#define FIMC_MEM_H_
-+
-+/*
-+ * fimc-mem.h is the interface for videbuf2 allocator. It is a proxy
-+ * to real allocator depending on system capabilities.
-+ * 1. on S5PC100 & S5PV210/S5PC110 systems vb2-dma-contig is used
-+ * 2. on EXYNOS4 systems vb2-dma-iommu allocator is selected.
-+ *
-+ */
-+
-+#ifdef CONFIG_S5P_SYSTEM_MMU
-+
-+#include <plat/sysmmu.h>
-+#include <media/videobuf2-dma-iommu.h>
-+
-+#define fimc_vb2_allocator_memops vb2_dma_iommu_memops
-+
-+static inline void *fimc_vb2_allocator_init(struct platform_device *pdev,
-+					    struct fimc_dev *fimc)
-+{
-+	struct device *iommu_dev = s5p_sysmmu_get(S5P_SYSMMU_FIMC0 + pdev->id);
-+	void *ret;
-+
-+	if (!iommu_dev) {
-+		dev_err(&pdev->dev, "SYSMMU get failed\n");
-+		return ERR_PTR(-ENODEV);
-+	}
-+
-+	ret = vb2_dma_iommu_init(&pdev->dev, iommu_dev, NULL);
-+	if (IS_ERR(ret)) {
-+		s5p_sysmmu_put(iommu_dev);
-+		return ret;
-+	}
-+	fimc->iommu_dev = iommu_dev;
-+	return ret;
-+}
-+
-+static inline void fimc_vb2_allocator_cleanup(void *alloc_ctx,
-+					      struct fimc_dev *fimc)
-+{
-+	vb2_dma_iommu_cleanup(alloc_ctx);
-+	s5p_sysmmu_put(fimc->iommu_dev);
-+}
-+
-+static inline unsigned long fimc_vb2_plane_addr(struct vb2_buffer *b, int n)
-+{
-+	return vb2_dma_iommu_plane_addr(b, n);
-+}
-+
-+static inline int fimc_vb2_allocator_enable(void *alloc_ctx)
-+{
-+	return vb2_dma_iommu_enable(alloc_ctx);
-+}
-+
-+static inline int fimc_vb2_allocator_disable(void *alloc_ctx)
-+{
-+	return vb2_dma_iommu_disable(alloc_ctx);
-+}
-+
-+#else	/* use vb2-dma-contig allocator */
-+
-+#include <media/videobuf2-dma-contig.h>
-+
-+#define fimc_vb2_allocator_memops vb2_dma_contig_memops
-+
-+static inline void *fimc_vb2_allocator_init(struct platform_device *pdev,
-+					    struct fimc_dev *fimc)
-+{
-+	return vb2_dma_contig_init_ctx(&pdev->dev);
-+}
-+
-+static inline void fimc_vb2_allocator_cleanup(void *alloc_ctx,
-+					      struct fimc_dev *fimc)
-+{
-+	vb2_dma_contig_cleanup_ctx(alloc_ctx);
-+}
-+
-+static inline unsigned long fimc_vb2_plane_addr(struct vb2_buffer *b, int n)
-+{
-+	return vb2_dma_contig_plane_paddr(b, n);
-+}
-+
-+static inline int fimc_vb2_allocator_enable(void *alloc_ctx)
-+{
-+	return 0;
-+}
-+
-+static inline int fimc_vb2_allocator_disable(void *alloc_ctx)
-+{
-+	return 0;
-+}
-+
-+#endif
-+
-+#endif /* FIMC_CORE_H_ */
+[snip]
+
+> > >  2) DECODER_SLICE_INTERFACE             D   all             common
+> > > 
+> > > If set the decoder can accept separate picture slices on input,
+> > > otherwise it requires a whole frame.
+> > 
+> > Isn't that a property instead of a settable control ? I'm not sure to
+> > understand why applications would need to tell the decoder what it can
+> > accept. Or is it supposed to be a read-only control ?
+> 
+> I think I have not described this control properly. It is used by the
+> application to set what kind of buffer it will send to the driver.
+> 
+> A picture can consist of one or more slice. Our hardware can accept two
+> kinds of input buffers and its behavior is determined by a register. So it
+> is a read/write control.  In the first case, a single input buffer contains
+> a whole picture (one or more slices). In the second case, a single input
+> buffer contains a single slice.
+> 
+> A nice figure describing pictures and slices can be found here:
+> http://goo.gl/info/bnFe2
+
+OK I understand it better now.
+
+Is this configurable at runtime for each buffer, or is it a decoder 
+configuration that must be set before the start of the stream ?
+
+> > >  3) DECODER_H264_DISPLAY_DELAY          D   H264            MFC
+> > > 
+> > > Programmable display delay for H264. MFC will return a decoded frame
+> > > after the set number of frames (this may cause that frames are not
+> > > returned in display order).
+> > > 
+> > >  4) DECODER_H264_DISPLAY_DELAY_ENABLE   D   H264            MFC
+> > > 
+> > > Enable display delay for H264.
+> > 
+> > Can't display delay enable/disable be controlled through the
+> > DECODER_H264_DISPLAY_DELAY control ? A zero value would mean no display
+> > delay.
+> 
+> Firstly I have had the same idea as you have proposed. But in this case
+> zero value is meaningful. If display delay is disabled then it is up to
+> the decoder to determine how many OUTPUT buffers will it process before a
+> buffer on the CAPTURE is dequeued. This is influenced by the number of B
+> frames and how many reference frames are used by P and B frames. This
+> ensures that after the CAPTURE buffer is dequeued it won't be used by the
+> hardware.
+> 
+> If the display delay is enabled then the decoder has to return an CAPTURE
+> buffer after processing a certain number of OUTPUT buffers. If this number
+> is low, then it may result in buffers not being dequeued in display order.
+> 
+> Even worse, I have just discovered that the buffer can still be used by the
+> hardware as a reference after it has been dequeued in case of low display
+> delay. So I think that this feature is very specific to our hardware (thus
+> I think it should be hw specific control) and application has to be aware
+> of this.
+
+If I understand this correctly, drivers need to reference CAPTURE buffers 
+(containing decoded images) for some time to decode P and B frames. The 
+default behaviour is to return a buffer to userspace only when the buffer 
+isn't needed by the driver anymore. This behaviour can be overridden using the 
+display delay control to return CAPTURE buffers sooner, making it possible to 
+display frames without an additional delay.
+
+If applications need to write to the buffers, they can't use that feature. 
+Otherwise, why shouldn't drivers always return frames to userspace ASAP ? We 
+would then need a single control to tell the driver whether the application 
+wants to write to the buffers (in which case they won't be dequeued until the 
+driver doesn't need them anymore), or only wants to read from them (in which 
+case the driver will dequeued them ASAP).
+
+> > What is the display delay used for ?
+> 
+> As described above - it is used to force hardware to return an CAPTURE
+> buffer after a set number or OUTPUT buffers was processed.
+> 
+> > > *** Controls for both decoding and encoding ***
+> > > 
+> > >  5) H264_AR_VUI_IDC                     A   H264            common
+> > > 
+> > > VUI aspect ratio IDC for H.264 encoding.  The value is defined in VUI
+> > 
+> > Table
+> > 
+> > > E-1 in the standard.
+> > > 
+> > >  6) H264_EXT_SAR_WIDTH                  A   H264            common
+> > > 
+> > > Extended sample aspect ratio width for H.264 VUI encoding.
+> > > 
+> > >  7) H264_EXT_SAR_HEIGHT                 A   H264            common
+> > > 
+> > > Extended sample aspect ratio height for H.264 VUI encoding
+> > 
+> > What are those 3 controls used for when decoding ?
+> 
+> While encoding it is used to set the aspect ratio indicator in the VUI.
+> During decoding it is used to read such information.
+> 
+> Maybe a better name would be H264_VUI_(AR_IDC, EXT_SAR_WIDTH,
+> EXT_SAR_HEIGHT).
+
+So they're used to read/write information about the encoded stream.
+
+I wonder whether we should create an ioctl to get/set an MPEG information 
+block.
+
+> > >  8) MIN_REQ_BUFS_OUT                    A   all             common
+> > > 
+> > > This is the minimum number of buffers required for the output queue.
+> > > This option may be useful if the encoding settings require a minimum
+> > > number of buffers required as reference and the application would like
+> > > to have N more buffers. For example - the encoding options require 3
+> > > buffers and the application wants to have 2 more. One can read this
+> > > value (3) and supply (3+2) to the reqbufs call.
+> > > 
+> > >  9) MIN_REQ_BUFS_CAP                    A   all             common
+> > > 
+> > > This is the minimum number of buffers required for the capture queue.
+> > > This option may be useful if the decoder requires a minimum number of
+> > > buffers required as reference and the application would like to have N
+> > > more buffers. For example - the stream requires 3 buffers and the
+> > > application wants to have 2 more. One can read this value (3) and
+> > > supply (3+2) to the reqbufs call.
+> > 
+> > Are these 2 read-only controls ?
+> 
+> Yes they are read only.
+
+This feature is useful for non-codec devices as well, should it be a standard 
+control usable by other drivers ?
+
+> > > *** Controls for encoding ***
+> > > 10) GOP_SIZE                            E   all             common
+> > > The size of group of pictures. For H264 this is the IDR period.
+> > > 11) H264_LEVEL                          E   H264            common
+> > > The level information for H264.
+> > > 12) MPEG4_LEVEL                         E   MPEG4           common
+> > > The level information for MPEG4.
+> > 
+> > Do those need to be separate controls ?
+> 
+> I've been thinking hard about this for some time. My first thought was to
+> have a single control. On second thought I have decided to have them
+> separate.
+> 
+> Level names are pretty similar though there are important differences.
+> In case of H264 the level is a number consisting of two digits (such as 1.1
+> or 4.0) and level "1b". In case of MPEG4 we have a single digit 0, 1, 2,
+> 3, 4, 5 and 0b and 3b levels.
+
+You could have a single menu control with different options depending on the 
+stream type.
+
+> > > 13) H264_PROFILE                        E   H264            common
+> > > The profile information for H264.
+> > > 14) MPEG4_PROFILE                       E   MPEG4           common
+> > > The profile information for MPEG4.
+> 
+> In case of profiles the naming differs quite a lot. For H264 we have a lot
+> of profiles to choose from
+> (http://en.wikipedia.org/wiki/H.264/MPEG-4_AVC#Profiles). For MPEG4 we
+> have: Simple, Advanced Simple, Core, Simple Scalable and Advanced Coding
+> Efficiency.
+
+[snip]
+
+> > > 21) H264_LOOP_FILTER_MODE               E   H264            common
+> > > Loop filter mode for H264.
+> > 
+> > There's a DECODER_MPEG4_LOOP_FILTER control. Are they similar ?
+> 
+> The difference is that H264_LOOP_FILTER is a control for encoding. It is
+> used during encoding. The encoder set this and a decoder has to obey the
+> setting used to encode that stream. In case of MPEG4 the filter is used
+> for post processing.
+
+Do those loop filters have a similar purpose, or are they completely different 
+concepts with a similar name ?
+
+[snip]
+
+> > > 24) H264_SYMBOL_MODE                    E   H264            common
+> > > Symbol mode for H264 - CABAC/CAVALC.
+> > > 25) INTERLACE                           E   H264, MPEG4     common
+> > > Enable interlace mode.
+> > > 26) H264_8X8_TRANSFORM                  E   H264            common
+> > > Enable 8X8 transform for H264.
+> > > 27) INTRA_REFRESH_MB                    E   all             common
+> > > Period of random intra macroblock refresh.
+> > > 28) PADDING_ENABLE                      E   all             MFC
+> > > Padding enable - use a color instead of repeating border pixels.
+> > > 29) PADDING_LUMA                        E   all             MFC
+> > > 30) PADDING_CB                          E   all             MFC
+> > > 31) PADDING_CR                          E   all             MFC
+> > 
+> > Do we need 3 controls for that, or can we use a single one (similarly to
+> > what
+> > we did with the color key control) ?
+> 
+> You mean like the chromakey field here:
+> http://v4l2spec.bytesex.org/spec-single/v4l2.html#V4L2-WINDOW ?
+> 
+> For V4L2_PIX_FMT_BGR24 it seems quite reasonable. What about
+> V4L2_PIX_FMT_NV12MT? There are two planes which makes it less obvious.
+> Something like 0xYYCbCr?
+
+It's less obvious, but it can be defined. Or we could define a COLOR control 
+type :-) It would essentially be an integer with a defined way to encode 
+colors.
+
+[snip]
+
+> > > 34) FRAME_RATE                          E   all             common
+> > > Frames per second in 1000x scale (e.g., 7500 stands for 7.5
+> > > frames/sec).
+> > 
+> > What is this used for ?
+> 
+> This is used for encoding rate control. If you want to control the bit rate
+> per second then you need to know how many frames are there per second.
+
+OK. Does the encoder simply divide the requested bitrate by the frame rate to 
+get a bit per frame value, and program the hardware with that, or is it more 
+complex ? If it does, we could have a per-frame bitrate instead of a per-
+second bitrate, but that might be confusing.
+
 -- 
-1.7.1.569.g6f426
+Regards,
+
+Laurent Pinchart
