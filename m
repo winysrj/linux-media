@@ -1,143 +1,197 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:33531 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752079Ab1DSO3o convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Apr 2011 10:29:44 -0400
-Received: by qyk7 with SMTP id 7so1682081qyk.19
-        for <linux-media@vger.kernel.org>; Tue, 19 Apr 2011 07:29:44 -0700 (PDT)
-References: <BANLkTinp69oB1qCK_ieX8vYm3F+Qd=e2mg@mail.gmail.com>
-In-Reply-To: <BANLkTinp69oB1qCK_ieX8vYm3F+Qd=e2mg@mail.gmail.com>
-Mime-Version: 1.0 (Apple Message framework v1084)
-Content-Type: text/plain; charset=us-ascii
-Message-Id: <B2B80B47-7366-41D4-8051-FF82B9198FA8@wilsonet.com>
-Content-Transfer-Encoding: 8BIT
-Cc: linux-media@vger.kernel.org
-From: Jarod Wilson <jarod@wilsonet.com>
-Subject: Re: imon: spews to dmesg
-Date: Tue, 19 Apr 2011 10:29:50 -0400
-To: Vincent McIntyre <vincent.mcintyre@gmail.com>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4741 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753844Ab1DDHGP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2011 03:06:15 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH/RFC 1/4] V4L: add three new ioctl()s for multi-size videobuffer management
+Date: Mon, 4 Apr 2011 09:05:57 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <Pine.LNX.4.64.1104010959470.9530@axis700.grange> <Pine.LNX.4.64.1104011010530.9530@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1104011010530.9530@axis700.grange>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201104040905.57067.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Apr 18, 2011, at 11:06 PM, Vincent McIntyre wrote:
-
-> Hi list,
+On Friday, April 01, 2011 10:13:02 Guennadi Liakhovetski wrote:
+> A possibility to preallocate and initialise buffers of different sizes
+> in V4L2 is required for an efficient implementation of asnapshot mode.
+> This patch adds three new ioctl()s: VIDIOC_CREATE_BUFS,
+> VIDIOC_DESTROY_BUFS, and VIDIOC_SUBMIT_BUF and defines respective data
+> structures.
 > 
-> I just (2011-04-19) upgraded to the current media_build with build.sh
-> commit bcfdefe9f4538abf12fca1cdb631c80e3d598026
-> Author: Mauro Carvalho Chehab <mchehab@nehalem.(none)>
-> Date:   Sun Apr 17 08:21:25 2011 -0300
-> and hit a problem.
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
+>  drivers/media/video/v4l2-compat-ioctl32.c |    3 ++
+>  drivers/media/video/v4l2-ioctl.c          |   43 +++++++++++++++++++++++++++++
+>  include/linux/videodev2.h                 |   24 ++++++++++++++++
+>  include/media/v4l2-ioctl.h                |    3 ++
+>  4 files changed, 73 insertions(+), 0 deletions(-)
 > 
-> I have an Antec case with an LCD screen. It needs the imon driver.
-> The LCD screen has been working well using media_build from 2011-01-30.
+> diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
+> index 7c26947..d71b289 100644
+> --- a/drivers/media/video/v4l2-compat-ioctl32.c
+> +++ b/drivers/media/video/v4l2-compat-ioctl32.c
+> @@ -922,6 +922,9 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
+>  	case VIDIOC_DQEVENT:
+>  	case VIDIOC_SUBSCRIBE_EVENT:
+>  	case VIDIOC_UNSUBSCRIBE_EVENT:
+> +	case VIDIOC_CREATE_BUFS:
+> +	case VIDIOC_DESTROY_BUFS:
+> +	case VIDIOC_SUBMIT_BUF:
+>  		ret = do_video_ioctl(file, cmd, arg);
+>  		break;
+>  
+> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+> index a01ed39..b80a211 100644
+> --- a/drivers/media/video/v4l2-ioctl.c
+> +++ b/drivers/media/video/v4l2-ioctl.c
+> @@ -259,6 +259,9 @@ static const char *v4l2_ioctls[] = {
+>  	[_IOC_NR(VIDIOC_DQEVENT)]	   = "VIDIOC_DQEVENT",
+>  	[_IOC_NR(VIDIOC_SUBSCRIBE_EVENT)]  = "VIDIOC_SUBSCRIBE_EVENT",
+>  	[_IOC_NR(VIDIOC_UNSUBSCRIBE_EVENT)] = "VIDIOC_UNSUBSCRIBE_EVENT",
+> +	[_IOC_NR(VIDIOC_CREATE_BUFS)]      = "VIDIOC_CREATE_BUFS",
+> +	[_IOC_NR(VIDIOC_DESTROY_BUFS)]     = "VIDIOC_DESTROY_BUFS",
+> +	[_IOC_NR(VIDIOC_SUBMIT_BUF)]       = "VIDIOC_SUBMIT_BUF",
+>  };
+>  #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
+>  
+> @@ -2184,6 +2187,46 @@ static long __video_do_ioctl(struct file *file,
+>  		dbgarg(cmd, "type=0x%8.8x", sub->type);
+>  		break;
+>  	}
+> +	case VIDIOC_CREATE_BUFS:
+> +	{
+> +		struct v4l2_create_buffers *create = arg;
+> +
+> +		if (!ops->vidioc_create_bufs)
+> +			break;
+> +		ret = check_fmt(ops, create->format.type);
+> +		if (ret)
+> +			break;
+> +
+> +		if (create->size)
+> +			CLEAR_AFTER_FIELD(create, count);
+> +
+> +		ret = ops->vidioc_create_bufs(file, fh, create);
+> +
+> +		dbgarg(cmd, "count=%d\n", create->count);
+> +		break;
+> +	}
+> +	case VIDIOC_DESTROY_BUFS:
+> +	{
+> +		struct v4l2_buffer_span *span = arg;
+> +
+> +		if (!ops->vidioc_destroy_bufs)
+> +			break;
+> +
+> +		ret = ops->vidioc_destroy_bufs(file, fh, span);
+> +
+> +		dbgarg(cmd, "count=%d", span->count);
+> +		break;
+> +	}
+> +	case VIDIOC_SUBMIT_BUF:
+> +	{
+> +		unsigned int *i = arg;
+> +
+> +		if (!ops->vidioc_submit_buf)
+> +			break;
+> +		ret = ops->vidioc_submit_buf(file, fh, *i);
+> +		dbgarg(cmd, "index=%d", *i);
+> +		break;
+> +	}
+>  	default:
+>  	{
+>  		bool valid_prio = true;
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index aa6c393..b6ef46e 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -1847,6 +1847,26 @@ struct v4l2_dbg_chip_ident {
+>  	__u32 revision;    /* chip revision, chip specific */
+>  } __attribute__ ((packed));
+>  
+> +/* VIDIOC_DESTROY_BUFS */
+> +struct v4l2_buffer_span {
+> +	__u32			index;	/* output: buffers index...index + count - 1 have been created */
+> +	__u32			count;
+> +	__u32			reserved[2];
+> +};
+> +
+> +/* struct v4l2_createbuffers::flags */
+> +#define V4L2_BUFFER_FLAG_NO_CACHE_INVALIDATE	(1 << 0)
+
+We also need a FLAG_NO_CACHE_FLUSH. This is for output devices.
+
+> +
+> +/* VIDIOC_CREATE_BUFS */
+> +struct v4l2_create_buffers {
+> +	__u32			index;		/* output: buffers index...index + count - 1 have been created */
+> +	__u32			count;
+> +	__u32			flags;		/* V4L2_BUFFER_FLAG_* */
+> +	enum v4l2_memory        memory;
+> +	__u32			size;		/* Explicit size, e.g., for compressed streams */
+
+Hmm, shouldn't this be an array of size VIDEO_MAX_PLANES?
+
+> +	struct v4l2_format	format;		/* "type" is used always, the rest if size == 0 */
+
+Needs some reserved fields as well.
+
+> +};
+> +
+>  /*
+>   *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
+>   *
+> @@ -1937,6 +1957,10 @@ struct v4l2_dbg_chip_ident {
+>  #define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct v4l2_event_subscription)
+>  #define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 91, struct v4l2_event_subscription)
+>  
+> +#define VIDIOC_CREATE_BUFS	_IOWR('V', 92, struct v4l2_create_buffers)
+> +#define VIDIOC_DESTROY_BUFS	_IOWR('V', 93, struct v4l2_buffer_span)
+> +#define VIDIOC_SUBMIT_BUF	 _IOW('V', 94, int)
+
+I don't really like the name. I think I'd go for _PRE_QBUF or _PREP_BUF or
+something like that.
+
+BTW, I agree with other reviewers that DESTROY_BUFS shouldn't leave any holes.
+And if CREATE_BUFS has an error, then it shouldn't destroy all buffers, but only
+those that create_bufs managed to allocate before the error occurred.
+
+Regards,
+
+	Hans
+
+> +
+>  /* Reminder: when adding new ioctls please add support for them to
+>     drivers/media/video/v4l2-compat-ioctl32.c as well! */
+
+Don't forget this! VIDIOC_CREATE_BUFS will need to be handled in compat-ioctl32.
+
+Regards,
+
+	Hans
+
+>  
+> diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+> index dd9f1e7..00962c6 100644
+> --- a/include/media/v4l2-ioctl.h
+> +++ b/include/media/v4l2-ioctl.h
+> @@ -122,6 +122,9 @@ struct v4l2_ioctl_ops {
+>  	int (*vidioc_qbuf)    (struct file *file, void *fh, struct v4l2_buffer *b);
+>  	int (*vidioc_dqbuf)   (struct file *file, void *fh, struct v4l2_buffer *b);
+>  
+> +	int (*vidioc_create_bufs) (struct file *file, void *fh, struct v4l2_create_buffers *b);
+> +	int (*vidioc_destroy_bufs)(struct file *file, void *fh, struct v4l2_buffer_span *b);
+> +	int (*vidioc_submit_buf)  (struct file *file, void *fh, unsigned int i);
+>  
+>  	int (*vidioc_overlay) (struct file *file, void *fh, unsigned int i);
+>  	int (*vidioc_g_fbuf)   (struct file *file, void *fh,
 > 
-> The imon kernel module now spews this at a high rate:
-> [   38.532581] imon 9-1:1.0: lcd_write: write 8 bytes to LCD
-> [   38.544545] imon 9-1:1.0: lcd_write: write 8 bytes to LCD
-> [   38.552548] imon 9-1:1.0: lcd_write: write 8 bytes to LCD
-> [   38.560560] imon 9-1:1.0: lcd_write: write 8 bytes to LCD
-> [   38.568546] imon 9-1:1.0: lcd_write: write 8 bytes to LCD
-> [   38.576557] imon 9-1:1.0: lcd_write: write 8 bytes to LCD
-> [   38.584554] imon 9-1:1.0: lcd_write: write 8 bytes to LCD
-> [   38.592558] imon 9-1:1.0: lcd_write: write 8 bytes to LCD
-> [   38.600533] imon 9-1:1.0: lcd_write: write 8 bytes to LCD
-> [   38.608551] imon 9-1:1.0: lcd_write: write 8 bytes to LCD
-> [   38.620024] imon 9-1:1.0: lcd_write: write 8 bytes to LCD
-> [   38.636034] imon 9-1:1.0: lcd_write: write 8 bytes to LCD
-> [   38.652034] imon 9-1:1.0: lcd_write: write 8 bytes to LCD
-> 
-> If I stop LCDd
-> # /etc/init.d/LCDd stop
-> the spew stops.
-> 
-> 
-> I'm running on ubuntu 10.04 i386, with lcdproc 0.5.3-0ubuntu2.
-> $ uname -a
-> Linux ubuntu  2.6.32-27-generic #49-Ubuntu SMP Wed Dec 1 23:52:12 UTC
-> 2010 i686 GNU/Linux
-> $ modinfo imon
-> filename:       /lib/modules/2.6.32-27-generic/kernel/drivers/media/rc/imon.ko
-> license:        GPL
-> version:        0.9.2
-> description:    Driver for SoundGraph iMON MultiMedia IR/Display
-> author:         Jarod Wilson <jarod@wilsonet.com>
-> srcversion:     268453AC090EFB24F487BE7
-> alias:          usb:v15C2p0046d*dc*dsc*dp*ic*isc*ip*
-> alias:          usb:v15C2p0045d*dc*dsc*dp*ic*isc*ip*
-> alias:          usb:v15C2p0044d*dc*dsc*dp*ic*isc*ip*
-> alias:          usb:v15C2p0043d*dc*dsc*dp*ic*isc*ip*
-> alias:          usb:v15C2p0042d*dc*dsc*dp*ic*isc*ip*
-> alias:          usb:v15C2p0041d*dc*dsc*dp*ic*isc*ip*
-> alias:          usb:v15C2p0040d*dc*dsc*dp*ic*isc*ip*
-> alias:          usb:v15C2p003Fd*dc*dsc*dp*ic*isc*ip*
-> alias:          usb:v15C2p003Ed*dc*dsc*dp*ic*isc*ip*
-> alias:          usb:v15C2p003Dd*dc*dsc*dp*ic*isc*ip*
-> alias:          usb:v15C2p003Cd*dc*dsc*dp*ic*isc*ip*
-> alias:          usb:v15C2p003Bd*dc*dsc*dp*ic*isc*ip*
-> alias:          usb:v15C2p003Ad*dc*dsc*dp*ic*isc*ip*
-> alias:          usb:v15C2p0039d*dc*dsc*dp*ic*isc*ip*
-> alias:          usb:v15C2p0038d*dc*dsc*dp*ic*isc*ip*
-> alias:          usb:v15C2p0037d*dc*dsc*dp*ic*isc*ip*
-> alias:          usb:v15C2p0036d*dc*dsc*dp*ic*isc*ip*
-> alias:          usb:v15C2p0035d*dc*dsc*dp*ic*isc*ip*
-> alias:          usb:v15C2p0034d*dc*dsc*dp*ic*isc*ip*
-> alias:          usb:v15C2pFFDCd*dc*dsc*dp*ic*isc*ip*
-> depends:        rc-core
-> vermagic:       2.6.32-27-generic SMP mod_unload modversions 586
-> parm:           debug:Debug messages: 0=no, 1=yes (default: no) (bool)
-> parm:           display_type:Type of attached display. 0=autodetect,
-> 1=vfd, 2=lcd, 3=vga, 4=none (default: autodetect) (int)
-> parm:           pad_stabilize:Apply stabilization algorithm to iMON
-> PAD presses in arrow key mode. 0=disable, 1=enable (default). (int)
-> parm:           nomouse:Disable mouse input device mode when IR device
-> is open. 0=don't disable, 1=disable. (default: don't disable) (bool)
-> parm:           pad_thresh:Threshold at which a pad push registers as
-> an arrow key in kbd mode (default: 28) (int)
-> 
-> The module load looks normal:
-> $ dmesg|grep imon
-> [    4.454786] imon 9-1:1.0: imon_probe: found iMON device (15c2:ffdc, intf0)
-> [    4.454794] imon 9-1:1.0: imon_find_endpoints: found IR endpoint
-> [    4.454794] imon 9-1:1.0: imon_find_endpoints: found display endpoint
-> [    4.472053] imon 9-1:1.0: 0xffdc iMON LCD, MCE IR (id 0x9f)
-> [    5.024035] Registered IR keymap rc-imon-mce
-> [    5.024173] imon 9-1:1.0: Configuring IR receiver for MCE protocol
-> [    5.032117] imon 9-1:1.0: Registering iMON display with sysfs
-> [    5.032173] imon 9-1:1.0: iMON device (15c2:ffdc, intf0) on
-> usb<9:2> initialized
-> [    5.032198] usbcore: registered new interface driver imon
-> 
-> Then the display port is opened...
-> [   38.519700] imon 9-1:1.0: display port opened
-> [   38.532581] imon 9-1:1.0: lcd_write: write 8 bytes to LCD
-> [   38.544545] imon 9-1:1.0: lcd_write: write 8 bytes to LCD
-> [   38.552548] imon 9-1:1.0: lcd_write: write 8 bytes to LCD
-> [   38.560560] imon 9-1:1.0: lcd_write: write 8 bytes to LCD
-> [   38.568546] imon 9-1:1.0: lcd_write: write 8 bytes to LCD
-> [   38.576557] imon 9-1:1.0: lcd_write: write 8 bytes to LCD
-> [   38.584554] imon 9-1:1.0: lcd_write: write 8 bytes to LCD
-> 
-> I don't have any load options defined for the imon module.
-
-Those are almost all dev_dbg spew. This seems relevant:
-
-http://www.gossamer-threads.com/lists/linux/kernel/789201
-
-The normal way to enable dev_dbg spew is via some debugfs magic:
-
-http://outer-rim.gnu4u.org/?p=38
-
-(see also <kernel source>/Documentation/dynamic-debug-howto.txt)
-
-But I also seem to recall that DEBUG may be getting defined
-somewhere as part of the media_build process, which might be what
-is enabling that spew in your case.
-
--- 
-Jarod Wilson
-jarod@wilsonet.com
-
-
-
