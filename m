@@ -1,370 +1,266 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42268 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755763Ab1DFNjG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Apr 2011 09:39:06 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: [RFC v2] V4L2 API for flash devices
-Date: Wed, 6 Apr 2011 15:39:05 +0200
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Nayden Kanchev <nkanchev@mm-sol.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Cohen David Abraham <david.cohen@nokia.com>,
-	Kim HeungJun <riverful@gmail.com>
-References: <4D9C2000.9090500@maxwell.research.nokia.com>
-In-Reply-To: <4D9C2000.9090500@maxwell.research.nokia.com>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1827 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753570Ab1DDGlY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2011 02:41:24 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Pawel Osciak <pawel@osciak.com>
+Subject: Re: [PATCH 1/3] [media] vb2: update and fix interface documentation
+Date: Mon, 4 Apr 2011 08:41:11 +0200
+Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com
+References: <1301873937-14146-1-git-send-email-pawel@osciak.com>
+In-Reply-To: <1301873937-14146-1-git-send-email-pawel@osciak.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201104061539.05494.laurent.pinchart@ideasonboard.com>
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201104040841.11631.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Sakari,
+On Monday, April 04, 2011 01:38:55 Pawel Osciak wrote:
+> Update documentation for videobuf2 driver callbacks and memory operations.
+> 
+> Signed-off-by: Pawel Osciak <pawel@osciak.com>
 
-Thanks for the RFC.
+Much improved, thank you!
 
-On Wednesday 06 April 2011 10:10:40 Sakari Ailus wrote:
-> Hi,
-> 
-> This is a second proposal for an interface for controlling flash devices
-> on the V4L2/v4l2_subdev APIs. My plan is to use the interface in the
-> ADP1653 driver, the flash controller used in the Nokia N900.
-> 
-> Thanks to everyone who commented the previous version of this RFC! I
-> hope I managed to factor in everyone's comments. Please bug me if you
-> think I missed something. :-)
-> 
-> Comments and questions are very, very welcome as always.
-> 
-> Changes since v1 [7]
-> ====================
-> 
-> - V4L2_FLASH_STROBE_MODE_EXT_STROBE renamed to
-> V4L2_FLASH_STROBE_MODE_EXTERNAL.
-> 
-> - V4L2_CID_FLASH_STROBE control changed from button to bool.
-> 
-> - Removed suggestion of adding V4L2_CID_FLASH_DURATION.
-> V4L2_CID_FLASH_TIMEOUT is used as hardware timeout.
-> 
-> - Added control access info (ro/rw).
-> 
-> - V4L2_FLASH_MODE_NONE added, V4L2_FLASH_LED_MODE_FLASH no longer forced
-> as 1 in enum.
-> 
-> - Bits use (1 << x) instead of 0x00... format.
-> 
-> - Added an open question on flash LED mode controls.
-> 
-> - Added an open question on a new control:
-> V4L2_CID_FLASH_EXTERNAL_STROBE_WHENCE.
-> 
-> - Added an open question on control units.
-> 
-> 
-> Scope
-> =====
-> 
-> This RFC is focused mostly on the ADP1653 [1] and similar chips [2, 3]
-> which provides following functionality. [2, 3] mostly differ on the
-> available faults --- for example, there are faults also for the
-> indicator LED.
-> 
-> - High power LED output (flash or torch modes)
-> - Low power indicator LED output (a.k.a. privacy light)
-> - Programmable flash timeout
-> - Software and hardware strobe
-> - Fault detection
-> 	- Overvoltage
-> 	- Overtemperature
-> 	- Short circuit
-> 	- Timeout
-> - Programmable current (both high-power and indicator LEDs)
-> 
-> If anyone else is aware of hardware which significantly differs from
-> these and does not get served well under the proposed interface, please
-> tell about it.
-> 
-> This RFC does NOT address the synchronisation of the flash to a given
-> frame since this task is typically performed by the sensor through a
-> strobe signal. The host does not have enough information for this ---
-> exact timing information on the exposure of the sensor pixel array. In
-> this case the flash synchronisation is visible to the flash controller
-> as the hardware strobe originating from the sensor.
-> 
-> Flash synchronisation requires
-> 
-> 1) flash control capability from the sensor including a strobe output,
-> 2) strobe input in the flash controller,
-> 3) (optionally) ability to program sensor parameters at given frame,
-> such as flash strobe, and
-> 4) ability to read back metadata produced by the sensor related to a
-> given frame. This should include whether the frame is exposed with
-> flash, i.e. the sensor's flash strobe output.
-> 
-> Since we have little examples of both in terms of hardware support,
-> which is in practice required, it was decided to postpone the interface
-> specification for now. [6]
-> 
-> Xenon flash controllers exist but I don't have a specific example of
-> those. Typically the interface is quite simple. Gpio pins for charge and
-> strobe. The length of the strobe signal determines the strength of the
-> flash pulse. The strobe is controlled by the sensor as for LED flash if
-> it is hardware based.
-> 
-> 
-> Known use cases
-> ===============
-> 
-> The use case listed below concentrate on using a flash in a mobile
-> device, for example in a mobile phone. The use cases could be somewhat
-> different in devices the primary use of which is camera.
-> 
-> Unsynchronised LED flash (software strobe)
-> ------------------------------------------
-> 
-> Unsynchronised LED flash is controlled directly by the host as the
-> sensor. The flash must be enabled by the host before the exposure of the
-> image starts and disabled once it ends. The host is fully responsible
-> for the timing of the flash.
-> 
-> Example of such device: Nokia N900.
-> 
-> 
-> Synchronised LED flash (hardware strobe)
-> ----------------------------------------
-> 
-> The synchronised LED flash is pre-programmed by the host (power and
-> timeout) but controlled by the sensor through a strobe signal from the
-> sensor to the flash.
-> 
-> The sensor controls the flash duration and timing. This control
-> typically must be programmed to the sensor, and specifying an interface
-> for this is out of scope of this RFC.
-> 
-> The LED flash controllers we know of can function in both synchronised
-> and unsynchronised modes.
+There is one thing that I would like to see, though, and that is from where
+these ops are called. E.g. it is very helpful to know that buf_prepare is
+called from vb2_qbuf. That will make it easier to relate these ops to actual
+V4L2 ioctls.
 
-What about synchronised LED flash where the hardware starts the flash, but 
-where the duration must be pre-programmed by software beforehand ?
+What would also be nice is to have an overview of where datastructures should
+be placed and how/where to initialize and clean up these structures.
 
-> LED flash as torch
-> ------------------
-> 
-> LED flash may be used as torch in conjunction with another use case
-> involving camera or individually. [4]
-> 
-> 
-> Synchronised xenon flash
-> ------------------------
-> 
-> The synchronised xenon flash is controlled more closely by the sensor
-> than the LED flash. There is no separate intensity control for the xenon
-> flash as its intensity is determined by the length of the strobe pulse.
-> Several consecutive strobe pluses are possible but this needs to be
-> still controlled by the sensor.
-> 
-> 
-> Proposed interface
-> ==================
-> 
-> The flash, either LED or xenon, does not require large amounts of data
-> to control it. There are parameters to control it but they are
-> independent and assumably some hardware would only support some subsets
-> of the functionality available somewhere else. Thus V4L2 controls seem
-> an ideal way to support flash controllers.
-> 
-> A separate control class is reserved for the flash controls. It is
-> called V4L2_CTRL_CLASS_FLASH.
-> 
-> Type of the control; type of flash is in parentheses after the control.
-> 
-> 
-> 	V4L2_CID_FLASH_STROBE (boolean; rw; LED)
-> 
-> Strobe the flash using software strobe from the host, typically over I2C
-> or a GPIO. The flash is NOT synchronised to sensor pixel are exposure
-> since the command is given asynchronously. Alternatively, if the flash
-> controller is a master in the system, the sensor exposure may be
-> triggered based on software strobe.
-> 
-> This control may also be used to shut down the strobe and query the
-> state of the strobe (on/off).
+I.e., things like telling developers that vb2_queue should be part of the
+data structure of the device node and not the file handle (except for m2m
+devices).
 
-Will the strobe control automatically go back to false when the timeout is 
-reached ? Drivers will need to use a work queue, as the control framework 
-doesn't support driver-initiated control changes in interrupt context.
+And how and where is the queue initialized and release, how to handle a
+(USB) disconnect event gracefully, etc.
 
-> 	V4L2_CID_FLASH_STROBE_MODE (menu; rw; LED)
-> 
-> Use hardware or software strobe. If hardware strobe is selected, the
-> flash controller is a slave in the system where the sensor produces the
-> strobe signal to the flash.
-> 
-> In this case the flash controller setup is limited to programming strobe
-> timeout and power (LED flash) and the sensor controls the timing and
-> length of the strobe.
-> 
-> enum v4l2_flash_strobe_mode {
-> 	V4L2_FLASH_STROBE_MODE_SOFTWARE,
-> 	V4L2_FLASH_STROBE_MODE_EXTERNAL,
-> };
-> 
-> 
-> 	V4L2_CID_FLASH_TIMEOUT (integer; rw; LED)
-> 
-> The flash controller provides timeout functionality to shut down the led
-> in case the host fails to do that. For hardware strobe, this is the
-> maximum amount of time the flash should stay on, and the purpose of the
-> setting is to prevent the LED from catching fire.
-> 
-> For software strobe, the setting may be used to limit the length of the
-> strobe using a hardware watchdog. The granularity of the timeout in [1,
-> 2, 3] is very coarse.
-> 
-> A standard unit such as ms or µs should be used.
+One other thing that is missing is information on how to prevent one file
+handle from trampling on another. I.e., once one fh has allocated buffers
+using reqbufs (or implicitly through read/write), other fhs should be
+blocked from using streaming I/O until the first fh calls reqbufs(0).
+M2M devices are an exception, of course.
 
-If the only purpose of the timeout is to catch misbehaving applications (in 
-case of software strobe) or hardware (in case of hardware level-triggered 
-strobe), do applications need to configure the timeout ? Shouldn't it be a 
-fixed value that comes from platform data ?
+I have been wondering for a long time whether this shouldn't be core
+functionality of vb2 or possibly of v4l2-ioctl.c.
 
-Can the timeout limit also vary depending on the flash intensity ?
+Very few, if any, drivers do this right...
 
-> 	V4L2_CID_FLASH_LED_MODE (menu; rw; LED)
-> 
-> enum v4l2_flash_led_mode {
-> 	V4L2_FLASH_LED_MODE_NONE,
-> 	V4L2_FLASH_LED_MODE_FLASH,
-> 	V4L2_FLASH_LED_MODE_TORCH,
-> };
-
-Could you define the semantics of V4L2_FLASH_LED_MODE_NONE ? How does interact 
-with V4L2_CID_FLASH_STROBE ?
-
-> 	V4L2_CID_FLASH_INTENSITY (integer; rw; LED)
-> 
-> Intensity of the flash in hardware specific units. The LED flash
-> controller provides current to the LED but the actual luminous power is
-> dictated by the LED connected to the controller.
-> 
-> 
-> 	V4L2_CID_FLASH_TORCH_INTENSITY (integer; rw; LED)
-> 
-> Intensity of the flash in hardware specific units.
-> 
-> 
-> 	V4L2_CID_FLASH_INDICATOR_INTENSITY (integer; rw; LED)
-> 
-> Intensity of the indicator light in hardware specific units.
-> 
-> 
-> 	V4L2_CID_FLASH_FAULT (bit field; ro; LED)
-> 
-> This is a bitmask containing the fault information for the flash. This
-> assumes the proposed V4L2 bit mask controls [5]; otherwise this would
-> likely need to be a set of controls.
-> 
-> #define V4L2_FLASH_FAULT_OVER_VOLTAGE		(1 << 0)
-> #define V4L2_FLASH_FAULT_TIMEOUT		(1 << 1)
-
-Is timeout always considered as a fault ?
-
-> #define V4L2_FLASH_FAULT_OVER_TEMPERATURE	(1 << 2)
-> #define V4L2_FLASH_FAULT_SHORT_CIRCUIT		(1 << 3)
-> 
-> Several faults may occur at single occasion. The ADP1653 is able to
-> inform the user a fault has occurred, so a V4L2 control event (proposed
-> earlier) could be used for that.
-> 
-> These faults are supported by the ADP1653. More faults may be added as
-> support for more chips require that. In some other hardware faults are
-> available for indicator led as well.
-> 
-> Question: should indicator faults be part of the same control, or a
-> different control, e.g. V4L2_CID_FLASH_INDICATOR_FAULT?
-
-I would go for a separate control, but I'm still not too sure about it.
-
-> 	V4L2_CID_FLASH_CHARGE (bool; rw; xenon)
-> 
-> Charge control for the xenon flash. Enable or disable charging.
-> 
-> 
-> 	V4L2_CID_FLASH_READY (bool; ro; xenon, LED)
-> 
-> Flash is ready to strobe. On xenon flash this tells the capacitor has
-> been charged, on LED flash it's that the LED is no longer too hot.
-> 
-> The implementation on LED flash may be modelling the temperature
-> behaviour of the LED in the driver (or elsewhere, e.g. library or board
-> code) if the hardware does not provide direct temperature information
-> from the LED.
-> 
-> A V4L2 control event should be produced whenever the flash becomes ready.
-
-We should define a list of events in addition to the controls.
-
-> Open questions
-> ==============
-> 
-> 1. Flash LED mode control
-> -------------------------
-> 
-> Should the flash led mode control be a single control or a set of
-> controls? A single control would make it easier for application to
-> choose between different modes, but on the other hand limits future
-> extensibility if there would have to be further splitting of the modes. [8]
-
-As we can't select more than one mode at the same time, I think we should keep 
-the single flash led mode control and not split it.
-
-> 2. External strobe edge / level
-> -------------------------------
-> 
-> No use is seen currently for this, but it may well appear, and the
-> hardware supports this. Level based trigger should be used since it is
-> more precise.
-> 
-> 	V4L2_CID_FLASH_EXTERNAL_STROBE_WHENCE
-> 
-> Whether the flash controller considers external strobe as edge, when the
-> only limit of the strobe is the timeout on flash controller, or level,
-> when the flash strobe will last as long as the strobe signal, or as long
-> until the timeout expires.
-> 
-> enum v4l2_flash_external_strobe_whence {
-> 	V4L2_CID_FLASH_EXTERNAL_STROBE_LEVEL,
-> 	V4L2_CID_FLASH_EXTERNAL_STROBE_EDGE,
-> };
-
-As I've already mentioned in another e-mail, shouldn't this be static 
-information provided through platform data ? Or do we have use cases where the 
-user will want to control the edge explicitly ?
-
-> 3. Units
-> --------
-> 
-> Which units should e.g. V4L2_CID_FLASH_TIMEOUT be using? It'd be very
-> useful to have standard unit on this control, like ms or µs.
-
-µs sounds good to me. I don't think we will ever need something more precise 
-than that, and it would allow timeouts up to a bit more than 35 minutes, which 
-should be long enough.
-
-> Some controls, like V4L2_CID_FLASH_INTENSITY, can't easily use a
-> standard unit. The luminous output depends on the LED connected (you
-> could use an incandescent lightbulb too, I suppose?) to the flash
-> controller. These controls typically control the current supplied by the
-> flash controller.
-
-I don't think we should define a standard unit in that case.
-
--- 
 Regards,
 
-Laurent Pinchart
+	Hans
+
+> ---
+>  include/media/videobuf2-core.h |  146 +++++++++++++++++++++++++---------------
+>  1 files changed, 91 insertions(+), 55 deletions(-)
+> 
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index f87472a..4c1e91f 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -33,8 +33,11 @@ struct vb2_fileio_data;
+>   *		argument is the allocator private per-buffer structure
+>   *		previously returned from the alloc callback
+>   * @get_userptr: acquire userspace memory for a hardware operation; used for
+> - *		 USERPTR memory types; vaddr is the address passed to the
+> - *		 videobuf layer when queuing a video buffer of USERPTR type;
+> + *		 USERPTR memory types; alloc_ctx is the allocator private data,
+> + *		 vaddr is the address passed to the videobuf layer when
+> + *		 queuing a video buffer of USERPTR type, size is the size of
+> + *		 that buffer and write=1 if the buffer will be written to
+> + *		 by kernel/hardware (i.e. is a CAPTURE buffer);
+>   *		 should return an allocator private per-buffer structure
+>   *		 associated with the buffer on success, NULL on failure;
+>   *		 the returned private structure will then be passed as buf_priv
+> @@ -44,9 +47,14 @@ struct vb2_fileio_data;
+>   * @vaddr:	return a kernel virtual address to a given memory buffer
+>   *		associated with the passed private structure or NULL if no
+>   *		such mapping exists
+> - * @cookie:	return allocator specific cookie for a given memory buffer
+> - *		associated with the passed private structure or NULL if not
+> - *		available
+> + * @cookie:	return allocator-specific cookie for a given memory buffer,
+> + *		associated with the passed private structure, or NULL if not
+> + *		available; a cookie is a unique identifier for a buffer that
+> + *		driver will be able to use when communicating with hardware;
+> + *		for example, for devices accessing physical memory directly via
+> + *		physical addresses, it can point to a variable containing
+> + *		a physical address for the given buffer, which the driver can
+> + *		then pass to the device when setting up a HW operation
+>   * @num_users:	return the current number of users of a memory buffer;
+>   *		return 1 if the videobuf layer (or actually the driver using
+>   *		it) is the only user
+> @@ -74,8 +82,8 @@ struct vb2_mem_ops {
+>  };
+>  
+>  struct vb2_plane {
+> -	void			*mem_priv;
+> -	int			mapped:1;
+> +	void		*mem_priv;
+> +	int		mapped:1;
+>  };
+>  
+>  /**
+> @@ -93,10 +101,15 @@ enum vb2_io_modes {
+>  };
+>  
+>  /**
+> - * enum vb2_fileio_flags - flags for selecting a mode of the file io emulator,
+> - * by default the 'streaming' style is used by the file io emulator
+> - * @VB2_FILEIO_READ_ONCE:	report EOF after reading the first buffer
+> - * @VB2_FILEIO_WRITE_IMMEDIATELY:	queue buffer after each write() call
+> + * enum vb2_fileio_flags - flags for selecting file IO (read/write) behavior
+> + * @VB2_FILEIO_READ_ONCE:	if set, the userspace will be able to read one
+> + * 				full buffer only, an EOF will be reported after
+> + * 				the first buffer has been read completely
+> + * @VB2_FILEIO_WRITE_IMMEDIATELY: if set, do not wait for the buffer to be
+> + * 				  filled completely by userspace (possibly
+> + * 				  using multiple write() calls), but send it
+> + * 				  to the device immediately after the first
+> + * 				  write() call
+>   */
+>  enum vb2_fileio_flags {
+>  	VB2_FILEIO_READ_ONCE		= (1 << 0),
+> @@ -130,7 +143,10 @@ struct vb2_queue;
+>   * @v4l2_buf:		struct v4l2_buffer associated with this buffer; can
+>   *			be read by the driver and relevant entries can be
+>   *			changed by the driver in case of CAPTURE types
+> - *			(such as timestamp)
+> + *			(such as timestamp); NOTE that even for single-planar
+> + *			types, the v4l2_planes[0] struct should be used
+> + *			instead of v4l2_buf for filling bytesused - drivers
+> + *			should use the vb2_set_plane_payload() function for that
+>   * @v4l2_planes:	struct v4l2_planes associated with this buffer; can
+>   *			be read by the driver and relevant entries can be
+>   *			changed by the driver in case of CAPTURE types
+> @@ -140,14 +156,13 @@ struct vb2_queue;
+>   *			should use the vb2_set_plane_payload() function for that
+>   * @vb2_queue:		the queue to which this driver belongs
+>   * @num_planes:		number of planes in the buffer
+> - *			on an internal driver queue
+> - * @state:		current buffer state; do not change
+> + * @state:		current buffer state; do not use
+>   * @queued_entry:	entry on the queued buffers list, which holds all
+> - *			buffers queued from userspace
+> + *			buffers queued from userspace; do not use
+>   * @done_entry:		entry on the list that stores all buffers ready to
+> - *			be dequeued to userspace
+> - * @planes:		private per-plane information; do not change
+> - * @num_planes_mapped:	number of mapped planes; do not change
+> + *			be dequeued to userspace; do not use
+> + * @planes:		private per-plane information; do not use
+> + * @num_planes_mapped:	number of mapped planes; do not use
+>   */
+>  struct vb2_buffer {
+>  	struct v4l2_buffer	v4l2_buf;
+> @@ -168,46 +183,67 @@ struct vb2_buffer {
+>  };
+>  
+>  /**
+> - * struct vb2_ops - driver-specific callbacks
+> + * struct vb2_ops - driver-specific callbacks to be implemented by the driver
+> + * Required: queue_setup, buf_queue. The rest is optional.
+>   *
+> - * @queue_setup:	called from a VIDIOC_REQBUFS handler, before
+> - *			memory allocation; driver should return the required
+> - *			number of buffers in num_buffers, the required number
+> - *			of planes per buffer in num_planes; the size of each
+> - *			plane should be set in the sizes[] array and optional
+> - *			per-plane allocator specific context in alloc_ctxs[]
+> - *			array
+> - * @wait_prepare:	release any locks taken while calling vb2 functions;
+> - *			it is called before an ioctl needs to wait for a new
+> - *			buffer to arrive; required to avoid a deadlock in
+> - *			blocking access type
+> - * @wait_finish:	reacquire all locks released in the previous callback;
+> - *			required to continue operation after sleeping while
+> - *			waiting for a new buffer to arrive
+> + * @queue_setup:	used to negotiate queue parameters between the userspace
+> + *			and the driver; called before memory allocation;
+> + *			the number of buffers requested by userspace will be
+> + *			passed in num_buffers, which the driver can change;
+> + *			the driver has to set the required number of planes per
+> + *			buffer for the current format in num_planes and put
+> + *			the size of each plane in the sizes[] array (sizes[i]
+> + *			being the size of i-th plane for all buffers);
+> + *			the driver can also put optional, per-plane
+> + *			allocator-specific contexts in alloc_ctxs[] array;
+> + *			if provided, allocator contexts will be passed to the
+> + *			memory allocator when allocating each plane,
+> + *			alloc_ctx[i] being passed to the alloc() memory
+> + *			operation on allocating i-th plane for each buffer;
+> + * @wait_prepare:	asks the driver to release any locks that should not be
+> + *			held while sleeping and all locks protecting ioctl calls
+> + *			in the driver; it is called before videobuf needs
+> + *			to put the driver to sleep, e.g. to wait for new buffers
+> + *			to arrive; as new buffers can only arrive via an another
+> + *			ioctl call, locks that protect those calls have
+> + *			to be released here as well;
+> + * @wait_finish:	asks the driver to reacquire locks released in
+> + *			wait_prepare; called after waking up;
+>   * @buf_init:		called once after allocating a buffer (in MMAP case)
+>   *			or after acquiring a new USERPTR buffer; drivers may
+> - *			perform additional buffer-related initialization;
+> - *			initialization failure (return != 0) will prevent
+> - *			queue setup from completing successfully; optional
+> - * @buf_prepare:	called every time the buffer is queued from userspace;
+> - *			drivers may perform any initialization required before
+> - *			each hardware operation in this callback;
+> - *			if an error is returned, the buffer will not be queued
+> - *			in driver; optional
+> - * @buf_finish:		called before every dequeue of the buffer back to
+> - *			userspace; drivers may perform any operations required
+> - *			before userspace accesses the buffer; optional
+> - * @buf_cleanup:	called once before the buffer is freed; drivers may
+> - *			perform any additional cleanup; optional
+> - * @start_streaming:	called once before entering 'streaming' state; enables
+> - *			driver to receive buffers over buf_queue() callback
+> - * @stop_streaming:	called when 'streaming' state must be disabled; driver
+> - *			should stop any DMA transactions or wait until they
+> - *			finish and give back all buffers it got from buf_queue()
+> - *			callback; may use vb2_wait_for_all_buffers() function
+> - * @buf_queue:		passes buffer vb to the driver; driver may start
+> - *			hardware operation on this buffer; driver should give
+> - *			the buffer back by calling vb2_buffer_done() function
+> + *			perform additional buffer-related initialization here;
+> + *			a failure (return != 0) will prevent queue setup from
+> + *			completing successfully;
+> + * @buf_prepare:	called each time a buffer is queued from userspace;
+> + *			drivers may perform any additional initialization steps
+> + *			that need to be done before every hardware operation
+> + *			in this callback; if an error is returned, the buffer
+> + *			will not be queued;
+> + * @buf_finish:		a counterpart to buf_prepare; called each time a buffer
+> + *			is about to be dequeued back to the userspace; drivers
+> + *			may perform any operations required before the buffer
+> + *			can be accessed by userspace here;
+> + * @buf_cleanup:	a counterpart to buf_init; called once before a buffer
+> + *			is freed; drivers may perform any additional cleanup
+> + *			here;
+> + * @start_streaming:	called once before entering the 'streaming' state;
+> + *			can be used to perform any additional steps required by
+> + *			the driver before streaming begins (such as enabling
+> + *			the device);
+> + * @stop_streaming:	called when the 'streaming' state must be disabled;
+> + * 			drivers should stop any DMA transactions here (or wait
+> + * 			until they are finished) and give back all the buffers
+> + * 			received via buf_queue() by calling vb2_buffer_done()
+> + * 			for each of them;
+> + * 			drivers can use the vb2_wait_for_all_buffers() function
+> + * 			here to wait for asynchronous completion events that
+> + * 			call vb2_buffer_done(), such as ISRs;
+> + * @buf_queue:		passes a buffer to the driver; the driver may start
+> + *			a hardware operation on that buffer; this callback
+> + *			MUST return immediately, i.e. it may NOT wait for
+> + *			the end of a hardware operation; the driver should use
+> + *			the vb2_buffer_done() function to give the buffer back
+> + *			after an operation is finished;
+>   */
+>  struct vb2_ops {
+>  	int (*queue_setup)(struct vb2_queue *q, unsigned int *num_buffers,
+> 
