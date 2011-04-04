@@ -1,21 +1,20 @@
 Return-path: <mchehab@pedra>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <faugusztin@gmail.com>) id 1QA8R0-0007xW-9p
-	for linux-dvb@linuxtv.org; Thu, 14 Apr 2011 00:21:14 +0200
-Received: from mail-yi0-f54.google.com ([209.85.218.54])
-	by mail.tu-berlin.de (exim-4.75/mailfrontend-4) with esmtps
-	[TLSv1:RC4-SHA:128] for <linux-dvb@linuxtv.org>
-	id 1QA8Qz-0007e4-Bj; Thu, 14 Apr 2011 00:21:14 +0200
-Received: by yie12 with SMTP id 12so590383yie.41
-	for <linux-dvb@linuxtv.org>; Wed, 13 Apr 2011 15:21:11 -0700 (PDT)
-MIME-Version: 1.0
-Date: Thu, 14 Apr 2011 00:21:10 +0200
-Message-ID: <BANLkTikOB1jYsqCa9=XgWQNES8+4iBJouw@mail.gmail.com>
-From: Frantisek Augusztin <faugusztin@gmail.com>
+	(envelope-from <stev391@email.com>) id 1Q6t3B-0006eF-FJ
+	for linux-dvb@linuxtv.org; Tue, 05 Apr 2011 01:19:38 +0200
+Received: from imr-da02.mx.aol.com ([205.188.105.144])
+	by mail.tu-berlin.de (exim-4.75/mailfrontend-3) with esmtp
+	for <linux-dvb@linuxtv.org>
+	id 1Q6t3A-0004WB-G6; Tue, 05 Apr 2011 01:19:13 +0200
+References: <mailman.1.1301911201.19445.linux-dvb@linuxtv.org>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] KNC ONE DVB-C [1894:0022] can't find any channels,
-	PAT/SDT/NIT filter timeout
+Date: Mon, 04 Apr 2011 19:13:41 -0400
+In-Reply-To: <mailman.1.1301911201.19445.linux-dvb@linuxtv.org>
+MIME-Version: 1.0
+From: stev391@email.com
+Message-Id: <8CDC1351244FD0C-16B8-53A3@web-mmc-d04.sysops.aol.com>
+Subject: Re: [linux-dvb] linux-dvb Digest, Vol 75, Issue 3
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -24,212 +23,362 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============2021900270=="
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 Sender: <mchehab@pedra>
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
 
-i'm having problems with my new DVB-C device on UPC DVB-C network
-(encrypted using Conax CAM module):
-
-05:00.0 Multimedia controller [0480]: Philips Semiconductors SAA7146
-[1131:7146] (rev 01)
-        Subsystem: KNC One Device [1894:0022]
-        Flags: bus master, medium devsel, latency 64, IRQ 16
-        Memory at ff700000 (32-bit, non-prefetchable) [size=512]
-        Kernel driver in use: budget_av
-        Kernel modules: budget-av
-
-As you can see, the device is detected and modules loaded :
-
-# ls -l /dev/dvb/adapter0
-total 0
-crw-rw---- 1 root video 212, 6 Apr 13 23:58 ca0
-crw-rw---- 1 root video 212, 4 Apr 13 23:58 demux0
-crw-rw---- 1 root video 212, 5 Apr 13 23:58 dvr0
-crw-rw---- 1 root video 212, 3 Apr 13 23:58 frontend0
-crw-rw---- 1 root video 212, 7 Apr 13 23:58 net0
+--===============2021900270==
+Content-Type: multipart/alternative;
+ boundary="--------MB_8CDC1351250E3EC_16B8_AB38_web-mmc-d04.sysops.aol.com"
 
 
-# lsmod (i did cut out the unnecessary bits)
-Module                  Size  Used by
-sbs                     8885  0
-sbshc                   2712  1 sbs
-ipv6                  244116  33
-tda10023                5443  1
-i915                  515809  1
-budget_av              18830  0
-saa7146_vv             38879  1 budget_av
-drm_kms_helper         23711  1 i915
-videodev               72530  1 saa7146_vv
-drm                   144199  2 i915,drm_kms_helper
-videobuf_dma_sg         6848  1 saa7146_vv
-videobuf_core          13183  2 saa7146_vv,videobuf_dma_sg
-budget_core             5956  1 budget_av
-i2c_algo_bit            4304  1 i915
-i2c_i801                6866  0
-dvb_core               75119  2 budget_av,budget_core
-saa7146                12490  3 budget_av,saa7146_vv,budget_core
-serio_raw               3358  0
-ttpci_eeprom            1364  1 budget_core
-r8169                  34246  0
-i2c_core               15854  11
-lm75,tda10023,i915,budget_av,drm_kms_helper,videodev,drm,budget_core,i2c_algo_bit,i2c_i801,ttpci_eeprom
-
-dmesg: http://pastebin.com/uJDtLGYm
-
-The problem is that i can't even successfully scan for channels.To
-rule out hardware issue, first i tried to use it first with my Windows
-PC, it worked flawlessly (SD absolutely no problems, HD channels had
-some minor dropouts due the high bitrate). The result of scan for
-channels using GlobeTV (the Windows app) was this :
-http://pastebin.com/XNHvjAfb .
-
-Because i'm using a cable operator not listed in /usr/share/dvb files,
-i need to use w_scan and the result is something like this :
-http://pastebin.com/0fUS6Tzx .
-
-Because of those filter timeouts, it finds no channels using the same
-cable and card which had no problems on Windows and using the same
-cable which has no problems with the provided set top box from the
-cable operator.
-
-You might suggest me to use dvbsnoop, but only two commands which work
-are the signal and feinfo. pidscan returns nothing :
-# dvbsnoop -s signal
-dvbsnoop V1.4.50 -- http://dvbsnoop.sourceforge.net/
-
----------------------------------------------------------
-Transponder/Frequency signal strength statistics...
----------------------------------------------------------
-cycle: 1  d_time: 0.001 s  Sig: 65535  SNR: 65535  BER: 1019791  UBLK:
--1886417009  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-cycle: 2  d_time: 0.008 s  Sig: 65535  SNR: 65535  BER: 1019791  UBLK:
--1886417009  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-cycle: 3  d_time: 0.007 s  Sig: 65535  SNR: 65535  BER: 1019791  UBLK:
--1886417009  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-cycle: 4  d_time: 0.007 s  Sig: 65535  SNR: 65535  BER: 1019791  UBLK:
--1886417009  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-cycle: 5  d_time: 0.008 s  Sig: 65535  SNR: 65535  BER: 1019791  UBLK:
--1886417009  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-cycle: 6  d_time: 0.007 s  Sig: 65535  SNR: 65535  BER: 1019791  UBLK:
--1886417009  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-cycle: 7  d_time: 0.007 s  Sig: 65535  SNR: 65535  BER: 1019791  UBLK:
--1886417009  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-cycle: 8  d_time: 0.008 s  Sig: 65535  SNR: 65535  BER: 1019791  UBLK:
--1886417009  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-cycle: 9  d_time: 0.007 s  Sig: 65535  SNR: 65535  BER: 1019791  UBLK:
--1886417009  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-cycle: 10  d_time: 0.008 s  Sig: 65535  SNR: 65535  BER: 1019791
-UBLK: -1886417009  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-cycle: 11  d_time: 0.007 s  Sig: 65535  SNR: 65535  BER: 1019791
-UBLK: -1886417009  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-cycle: 12  d_time: 0.008 s  Sig: 65535  SNR: 65535  BER: 1019791
-UBLK: -1886417009  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-cycle: 13  d_time: 0.007 s  Sig: 65535  SNR: 65535  BER: 1019791
-UBLK: -1886417009  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-cycle: 14  d_time: 0.008 s  Sig: 65535  SNR: 65535  BER: 1019791
-UBLK: -1886417009  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-cycle: 15  d_time: 0.007 s  Sig: 65535  SNR: 65535  BER: 1019791
-UBLK: -1886417009  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-cycle: 16  d_time: 0.007 s  Sig: 65535  SNR: 65535  BER: 1019791
-UBLK: -1886417009  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-cycle: 17  d_time: 0.008 s  Sig: 65535  SNR: 65535  BER: 1019791
-UBLK: -1886417009  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-cycle: 18  d_time: 0.007 s  Sig: 65535  SNR: 65535  BER: 1019791
-UBLK: -1886417009  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-cycle: 19  d_time: 0.008 s  Sig: 65535  SNR: 65535  BER: 1019791
-UBLK: -1886417009  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-cycle: 20  d_time: 0.007 s  Sig: 65535  SNR: 65535  BER: 1019791
-UBLK: -1886417009  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-cycle: 21  d_time: 0.007 s  Sig: 65535  SNR: 65535  BER: 1019791
-UBLK: -1886417009  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-cycle: 22  d_time: 0.008 s  Sig: 65535  SNR: 65535  BER: 1019791
-UBLK: -1886417009  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-cycle: 23  d_time: 0.007 s  Sig: 65535  SNR: 65535  BER: 1019791
-UBLK: -1886417009  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-cycle: 24  d_time: 0.008 s  Sig: 65535  SNR: 65535  BER: 1019791
-UBLK: -1886417009  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-cycle: 25  d_time: 0.007 s  Sig: 65535  SNR: 65535  BER: 1019791
-UBLK: -1886417009  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-cycle: 26  d_time: 0.007 s  Sig: 65535  SNR: 65535  BER: 1019791
-UBLK: -1886417009  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-cycle: 27  d_time: 0.008 s  Sig: 65535  SNR: 65535  BER: 1019791
-UBLK: -1886417009  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-cycle: 28  d_time: 0.007 s  Sig: 65535  SNR: 65535  BER: 1019791
-UBLK: -1886417009  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-cycle: 29  d_time: 0.008 s  Sig: 65535  SNR: 65535  BER: 1019791
-UBLK: -1886417009  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-cycle: 30  d_time: 0.007 s  Sig: 65535  SNR: 65535  BER: 1019791
-UBLK: -1886417009  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-cycle: 31  d_time: 0.007 s  Sig: 65535  SNR: 65535  BER: 1019791
-UBLK: -1886417009  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-cycle: 32  d_time: 0.008 s  Sig: 65535  SNR: 65535  BER: 1019791
-UBLK: -1886417009  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-cycle: 33  d_time: 0.007 s  Sig: 65535  SNR: 65535  BER: 1019791
-UBLK: -1886417009  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-cycle: 34  d_time: 0.007 s  Sig: 65535  SNR: 65535  BER: 1019791
-UBLK: -1886417009  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-cycle: 35  d_time: 0.008 s  Sig: 65535  SNR: 65535  BER: 1019791
-UBLK: -1886417009  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-cycle: 36  d_time: 0.007 s  Sig: 65535  SNR: 65535  BER: 1019791
-UBLK: -1886417009  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-...
-
-# dvbsnoop -s feinfo
-dvbsnoop V1.4.50 -- http://dvbsnoop.sourceforge.net/
-
----------------------------------------------------------
-FrontEnd Info...
----------------------------------------------------------
-
-Device: /dev/dvb/adapter0/frontend0
-
-Basic capabilities:
-    Name: "Philips TDA10023 DVB-C"
-    Frontend-type:       QAM (DVB-C)
-    Frequency (min):     47000.000 kHz
-    Frequency (max):     862000.000 kHz
-    Frequency stepsiz:   62.500 kHz
-    Frequency tolerance: 0.000 kHz
-    Symbol rate (min):     0.451875 MSym/s
-    Symbol rate (max):     7.230000 MSym/s
-    Symbol rate tolerance: 0 ppm
-    Notifier delay: 0 ms
-    Frontend capabilities:
-        auto inversion
-        FEC AUTO
-        QPSK
-        QAM 16
-        QAM 32
-        QAM 64
-        QAM 128
-        QAM 256
-
-Current parameters:
-    Frequency:  362000.000 kHz
-    Inversion:  ON
-    Symbol rate:  6.900000 MSym/s
-    FEC:  none
-    Modulation:  QAM 64
+----------MB_8CDC1351250E3EC_16B8_AB38_web-mmc-d04.sysops.aol.com
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
 
 
-Tested using Arch Linux 2.6.37-ARCH and current 2.6.39-rc3 kernels,
-same result.
+ Nick,
 
-Signal level according to the set top box is ~57%, signal quality is
-97-99%, and as i mentoined, set top box works without problems, and
-even this DVB-C card using the same cable when using with Windows.
+To get some hints on what configuration settings are required check out th=
+e windows driver inf (zl885avs.inf, which is in the FusionHDTV software pa=
+ckage available on DViCo's website).
+In particular these settings:
 
-Any ideas ?
--- 
-Frantisek Augusztin
+ [DvbtDual2.AddReg]
+HKR,"DriverData","TunerType",       0x00010001, 0x20, 0x01, 0x00, 0x00
+HKR,"DriverData","TunerI2CAddress", 0x00010001, 0x12, 0x00, 0x00, 0x00
+HKR,"DriverData","TunerCountryCode",0x00010001, 0x3d, 0x00, 0x00, 0x00  ;=
+ 61=3DAustralia =20
+HKR,"DriverData","HasDualTuner",    0x00010001, 0x01, 0x00, 0x00, 0x00
+HKR,"DriverData","Tuner2Type",      0x00010001, 0x20, 0x01, 0x00, 0x00
+HKR,"DriverData","Tuner1ResetMask", 0x00010001, 0x01, 0x00, 0x00, 0x00
+HKR,"DriverData","Demod1ResetMask", 0x00010001, 0x00, 0x00, 0x00, 0x00
+HKR,"DriverData","Tuner2ResetMask", 0x00010001, 0x04, 0x00, 0x00, 0x00
+HKR,"DriverData","Demod2ResetMask", 0x00010001, 0x00, 0x00, 0x00, 0x00
+
+To get the previous Dual Pro card working I used this information and comp=
+ared it to the existing configuration options. =20
+
+You shouldn't have to modprobe the tuners, if you do the configuration cor=
+rect (cx23885-cards.c) it should load the tuner modules automatically.  Ho=
+wever I'm not sure if the tuner in this card has been used with this PCIe=
+ bridge (it might have, just don't have time to pull apart the code lookin=
+g for the correct TUNER define). Apart from the correct tuner define the=
+ other key is the Tuner I2CAddress (0x12) and the reset masks for the tune=
+r...
+
+I hope this helps you,
+
+Stephen.
+
+
+
+=20
+
+=20
+
+-----Original Message-----
+From: linux-dvb-request@linuxtv.org
+To: linux-dvb@linuxtv.org
+Sent: Mon, Apr 4, 2011 8:00 pm
+Subject: linux-dvb Digest, Vol 75, Issue 3
+
+
+Send linux-dvb mailing list submissions to
+    linux-dvb@linuxtv.org
+
+To subscribe or unsubscribe via the World Wide Web, visit
+    http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+or, via email, send a message with subject or body 'help' to
+    linux-dvb-request@linuxtv.org
+
+You can reach the person managing the list at
+    linux-dvb-owner@linuxtv.org
+
+When replying, please edit your Subject line so it is more specific
+than "Re: Contents of linux-dvb digest..."
+
+
+Today's Topics:
+
+   1. Re: DVICO HDTV Dual Express2 (Nicholas Leahy)
+
+
+----------------------------------------------------------------------
+
+Message: 1
+Date: Mon, 4 Apr 2011 14:43:34 +1000
+From: Nicholas Leahy <silvercordiagsr@hotmail.com>
+Subject: Re: [linux-dvb] DVICO HDTV Dual Express2
+To: <linux-dvb@linuxtv.org>
+Message-ID: <SNT124-W658C9CDE54575A79B73D6FACA30@phx.gbl>
+Content-Type: text/plain; charset=3D"iso-8859-1"
+
+
+Hi
+
+I purchased a DVICO HDTV Dual Express2 http://www.linuxtv.org/wiki/index.p=
+hp/DViCO_FusionHDTV_DVB-T_Dual_Express2
+
+
+The card has a CONEXANT CX23885-152 & DiBcom 7070PB1-AXGXba-G-b Tuners
+
+
+I have been modifying the V4l-DVB code (cx23885-dvb.c, cx23885-cards.c=20
+&cx23885.h) based on the DVICO HDTV Dual Express to try and get the card=
+ to=20
+work.
+But I am having trouble with the 7070PB1-AXGXba-G-b tuners that I am tryin=
+g to=20
+base on the FusionHDTV Dual Digital 4 (cxusb.c).
+
+
+I can get Modprobe to load the 2 tuners, but DVBSCAN says the frontend is=
+ not=20
+loaded
+
+
+Any help would be appreciated
+
+
+Cheers Nick
+=20
+
+
+
+
+
+
+                     =20
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://www.linuxtv.org/pipermail/linux-dvb/attachments/20110404/79aa=
+6670/attachment.html>
+
+------------------------------
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+
+End of linux-dvb Digest, Vol 75, Issue 3
+****************************************
+
+=20
+
+----------MB_8CDC1351250E3EC_16B8_AB38_web-mmc-d04.sysops.aol.com
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html; charset="us-ascii"
+
+<font color=3D'black' size=3D'2' face=3D'arial'><font color=3D"black" face=
+=3D"arial" size=3D"2">
+
+<div> Nick,<br>
+<br>
+To get some hints on what configuration settings are required check out th=
+e windows driver inf (zl885avs.inf, which is in the FusionHDTV software pa=
+ckage available on DViCo's website).<br>
+In particular these settings:<br>
+
+</div>
+
+
+
+<div> [DvbtDual2.AddReg]<br>
+HKR,"DriverData","TunerType",&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0x000100=
+01, 0x20, 0x01, 0x00, 0x00<br>
+HKR,"DriverData","TunerI2CAddress", 0x00010001, 0x12, 0x00, 0x00, 0x00<br>
+HKR,"DriverData","TunerCountryCode",0x00010001, 0x3d, 0x00, 0x00, 0x00&nbs=
+p; ; 61=3DAustralia&nbsp; <br>
+HKR,"DriverData","HasDualTuner",&nbsp;&nbsp;&nbsp; 0x00010001, 0x01, 0x00,=
+ 0x00, 0x00<br>
+HKR,"DriverData","Tuner2Type",&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0x00010001,=
+ 0x20, 0x01, 0x00, 0x00<br>
+HKR,"DriverData","Tuner1ResetMask", 0x00010001, 0x01, 0x00, 0x00, 0x00<br>
+HKR,"DriverData","Demod1ResetMask", 0x00010001, 0x00, 0x00, 0x00, 0x00<br>
+HKR,"DriverData","Tuner2ResetMask", 0x00010001, 0x04, 0x00, 0x00, 0x00<br>
+HKR,"DriverData","Demod2ResetMask", 0x00010001, 0x00, 0x00, 0x00, 0x00<br>
+<br>
+To get the previous Dual Pro card working I used this information and comp=
+ared it to the existing configuration options.&nbsp; <br>
+<br>
+You shouldn't have to modprobe the tuners, if you do the configuration cor=
+rect (cx23885-cards.c) it should load the tuner modules automatically.&nbs=
+p; However I'm not sure if the tuner in this card has been used with this=
+ PCIe bridge (it might have, just don't have time to pull apart the code=
+ looking for the correct TUNER define). Apart from the correct tuner defin=
+e the other key is the Tuner I2CAddress (0x12) and the reset masks for the=
+ tuner...<br>
+<br>
+I hope this helps you,<br>
+<br>
+Stephen.<br>
+<br>
+
+</div>
+
+
+
+<div style=3D"clear:both"></div>
+
+
+
+<div> <br>
+
+</div>
+
+
+
+<div> <br>
+
+</div>
+
+
+
+<div style=3D"font-family:arial,helvetica;font-size:10pt;color:black">----=
+-Original Message-----<br>
+
+From: linux-dvb-request@linuxtv.org<br>
+
+To: linux-dvb@linuxtv.org<br>
+
+Sent: Mon, Apr 4, 2011 8:00 pm<br>
+
+Subject: linux-dvb Digest, Vol 75, Issue 3<br>
+
+<br>
+
+
+
+
+
+
+
+
+
+<div id=3D"AOLMsgPart_0_4ab4349e-a7be-406c-9718-62ca9eaf5b84" style=3D"mar=
+gin: 0px;font-family: Tahoma, Verdana, Arial, Sans-Serif;font-size: 12px;c=
+olor: #000;background-color: #fff;">
+
+<pre style=3D"font-size: 9pt;"><tt>Send linux-dvb mailing list submissions=
+ to
+    <a href=3D"mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a>
+
+To subscribe or unsubscribe via the World Wide Web, visit
+    <a href=3D"http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb"=
+ target=3D"_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-d=
+vb</a>
+or, via email, send a message with subject or body 'help' to
+    <a href=3D"mailto:linux-dvb-request@linuxtv.org">linux-dvb-request@lin=
+uxtv.org</a>
+
+You can reach the person managing the list at
+    <a href=3D"mailto:linux-dvb-owner@linuxtv.org">linux-dvb-owner@linuxtv=
+.org</a>
+
+When replying, please edit your Subject line so it is more specific
+than "Re: Contents of linux-dvb digest..."
+
+
+Today's Topics:
+
+   1. Re: DVICO HDTV Dual Express2 (Nicholas Leahy)
+
+
+----------------------------------------------------------------------
+
+Message: 1
+Date: Mon, 4 Apr 2011 14:43:34 +1000
+From: Nicholas Leahy &lt;<a href=3D"mailto:silvercordiagsr@hotmail.com">si=
+lvercordiagsr@hotmail.com</a>&gt;
+Subject: Re: [linux-dvb] DVICO HDTV Dual Express2
+To: &lt;<a href=3D"mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a>=
+&gt;
+Message-ID: &lt;<a href=3D"mailto:SNT124-W658C9CDE54575A79B73D6FACA30@phx.=
+gbl">SNT124-W658C9CDE54575A79B73D6FACA30@phx.gbl</a>&gt;
+Content-Type: text/plain; charset=3D"iso-8859-1"
+
+
+Hi
+
+I purchased a DVICO HDTV Dual Express2 <a href=3D"http://www.linuxtv.org/w=
+iki/index.php/DViCO_FusionHDTV_DVB-T_Dual_Express2" target=3D"_blank">http=
+://www.linuxtv.org/wiki/index.php/DViCO_FusionHDTV_DVB-T_Dual_Express2</a>
+
+
+The card has a CONEXANT CX23885-152 &amp; DiBcom 7070PB1-AXGXba-G-b Tuners
+
+
+I have been modifying the V4l-DVB code (cx23885-dvb.c, cx23885-cards.c=20
+&amp;cx23885.h) based on the DVICO HDTV Dual Express to try and get the ca=
+rd to=20
+work.
+But I am having trouble with the 7070PB1-AXGXba-G-b tuners that I am tryin=
+g to=20
+base on the FusionHDTV Dual Digital 4 (cxusb.c).
+
+
+I can get Modprobe to load the 2 tuners, but DVBSCAN says the frontend is=
+ not=20
+loaded
+
+
+Any help would be appreciated
+
+
+Cheers Nick
+=20
+
+
+
+
+
+
+                     =20
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<a href=3D"http://www.linuxtv.org/pipermail/linux-dvb/attachments=
+/20110404/79aa6670/attachment.html" target=3D"_blank">http://www.linuxtv.o=
+rg/pipermail/linux-dvb/attachments/20110404/79aa6670/attachment.html</a>&g=
+t;
+
+------------------------------
+
+_______________________________________________
+linux-dvb mailing list
+<a href=3D"mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a>
+<a href=3D"http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" targ=
+et=3D"_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a=
+>
+
+End of linux-dvb Digest, Vol 75, Issue 3
+****************************************
+</tt></pre>
+</div>
+
+ <!-- end of AOLMsgPart_0_4ab4349e-a7be-406c-9718-62ca9eaf5b84 -->
+
+
+
+</div>
+
+</font></font>
+
+----------MB_8CDC1351250E3EC_16B8_AB38_web-mmc-d04.sysops.aol.com--
+
+
+--===============2021900270==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============2021900270==--
