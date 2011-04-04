@@ -1,23 +1,20 @@
 Return-path: <mchehab@pedra>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <lists.pascal.juergens@googlemail.com>)
-	id 1QEorU-0007jV-Si
-	for linux-dvb@linuxtv.org; Tue, 26 Apr 2011 22:27:58 +0200
-Received: from mail-wy0-f182.google.com ([74.125.82.182])
-	by mail.tu-berlin.de (exim-4.75/mailfrontend-2) with esmtps
-	[TLSv1:RC4-SHA:128] for <linux-dvb@linuxtv.org>
-	id 1QEorU-00059L-Gk; Tue, 26 Apr 2011 22:27:56 +0200
-Received: by wyf23 with SMTP id 23so1064147wyf.41
-	for <linux-dvb@linuxtv.org>; Tue, 26 Apr 2011 13:27:55 -0700 (PDT)
-References: <BANLkTimGx15EGwbsafJA81m1anbRw+AV2A@mail.gmail.com>
-From: =?utf-8?Q?Pascal_J=C3=BCrgens?= <lists.pascal.juergens@googlemail.com>
-In-Reply-To: <BANLkTimGx15EGwbsafJA81m1anbRw+AV2A@mail.gmail.com>
-Message-Id: <EE21DCB3-587C-465C-B371-CA508CB2DCEC@googlemail.com>
-Date: Tue, 26 Apr 2011 22:28:38 +0200
-Cc: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
-Mime-Version: 1.0 (iPad Mail 8H7)
-Subject: Re: [linux-dvb] analog OTA tuning
+	(envelope-from <silvercordiagsr@hotmail.com>) id 1Q6bdZ-0005G5-0Z
+	for linux-dvb@linuxtv.org; Mon, 04 Apr 2011 06:43:37 +0200
+Received: from snt0-omc3-s44.snt0.hotmail.com ([65.54.51.81])
+	by mail.tu-berlin.de (exim-4.75/mailfrontend-3) with esmtp
+	for <linux-dvb@linuxtv.org>
+	id 1Q6bdY-0002Da-FS; Mon, 04 Apr 2011 06:43:37 +0200
+Message-ID: <SNT124-W658C9CDE54575A79B73D6FACA30@phx.gbl>
+From: Nicholas Leahy <silvercordiagsr@hotmail.com>
+To: <linux-dvb@linuxtv.org>
+Date: Mon, 4 Apr 2011 14:43:34 +1000
+In-Reply-To: <mailman.466.1301890961.26790.linux-dvb@linuxtv.org>
+References: <mailman.466.1301890961.26790.linux-dvb@linuxtv.org>
+MIME-Version: 1.0
+Subject: Re: [linux-dvb] DVICO HDTV Dual Express2
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -26,92 +23,144 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1823627538=="
+Content-Type: multipart/mixed; boundary="===============1400711381=="
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 Sender: <mchehab@pedra>
 List-ID: <linux-dvb@linuxtv.org>
 
-
---===============1823627538==
+--===============1400711381==
 Content-Type: multipart/alternative;
-	boundary=Apple-Mail-2--874993763
-Content-Transfer-Encoding: 7bit
+	boundary="_d44fec23-d79a-43e8-994d-d78ba491f2d2_"
 
-
---Apple-Mail-2--874993763
+--_d44fec23-d79a-43e8-994d-d78ba491f2d2_
+Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain;
-	charset=us-ascii
 
-That info might be stale, but the last time I looked at the v4l device wiki,=
- it said that the analog tuner of these cards is not yet supported in Linux.=
+
+Hi
+
+I purchased a DVICO HDTV Dual Express2 http://www.linuxtv.org/wiki/index.ph=
+p/DViCO_FusionHDTV_DVB-T_Dual_Express2
+
+
+The card has a CONEXANT CX23885-152 & DiBcom 7070PB1-AXGXba-G-b Tuners
+
+
+I have been modifying the V4l-DVB code (cx23885-dvb.c=2C cx23885-cards.c &c=
+x23885.h) based on the DVICO HDTV Dual Express to try and get the card to w=
+ork.
+But I am having trouble with the 7070PB1-AXGXba-G-b tuners that I am trying=
+ to base on the FusionHDTV Dual Digital 4 (cxusb.c).
+
+
+I can get Modprobe to load the 2 tuners=2C but DVBSCAN says the frontend is=
+ not loaded
+
+
+Any help would be appreciated
+
+
+Cheers Nick
 =20
 
-Cheers,
-Pascal
-
-On 26.04.2011, at 22:08, Martin Cole <mjcoogle@gmail.com> wrote:
-
->=20
-> Hi,
->=20
-> I need to tune analog OTA channels from a pci-e card.  I bought the follow=
-ing card:
->=20
-> http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-2200  (I actually ha=
-ve the 2250)
->=20
-> after installing and downloading the firmware etc, this works fine when tu=
-ning the digital OTA signal that I can see locally.
->=20
-> I am unsure how to change the frontend to attempt to tune analog tv input o=
-r even if this is supported, can someone point me in the right direction to d=
-o this? It looks like I would need to change the tuner type in the driver co=
-de (if analog is supported)
->=20
-> I am aware that no analog broadcasts exist anymore in the US, but where th=
-is will eventually be used still has analog OTA broadcasts.
-> My test setup for now includes a digital to analog converter, which i woul=
-d like to tune with this card, once this works I would test with the actual O=
-TA signal.
->=20
-> Looking at the tuner chip on the card, suggests that it is possible. The l=
-ink on the wiki for the chip is outdated it seems, this is what I found on t=
-he nxp site:
->=20
-> http://www.nxp.com/#/pip/pip=3D[pip=3DTDA18271HD]|pp=3D[t=3Dpip,i=3DTDA182=
-71HD]
->=20
-> I am happy to dive into the code, but wanted to see if anyone has done thi=
-s already or get any suggestions that you more experienced developers could p=
-rovide.
->=20
-> Thanks,
-> --mc
->=20
->=20
->=20
-> _______________________________________________
-> linux-dvb users mailing list
-> For V4L/DVB development, please use instead linux-media@vger.kernel.org
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-
---Apple-Mail-2--874993763
-Content-Transfer-Encoding: 7bit
-Content-Type: text/html;
-	charset=utf-8
-
-<html><body bgcolor="#FFFFFF"><div><div>That info might be stale, but the last time I looked at the v4l device wiki, it said that the analog tuner of these cards is not yet supported in Linux.&nbsp;<br><br></div><div>Cheers,<br>Pascal</div><div><br>On 26.04.2011, at 22:08, Martin Cole &lt;<a href="mailto:mjcoogle@gmail.com"><a href="mailto:mjcoogle@gmail.com">mjcoogle@gmail.com</a></a>&gt; wrote:<br><br></div><div></div><blockquote type="cite"><div><br>Hi,<br><br>I need to tune analog OTA channels from a pci-e card.&nbsp; I bought the following card:<br><br><a href="http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-2200"></a><a href="http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-2200"><a href="http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-2200">http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-2200</a></a>&nbsp; (I actually have the 2250)<br>
-<br>after installing and downloading the firmware etc, this works fine when tuning the digital OTA signal that I can see locally.<br><br>I am unsure how to change the frontend to attempt to tune analog tv input or even if this is supported, can someone point me in the right direction to do this? It looks like I would need to change the tuner type in the driver code (if analog is supported)<br>
-<br>I am aware that no analog broadcasts exist anymore in the US, but where this will eventually be used still has analog OTA broadcasts.<br>My test setup for now includes a digital to analog converter, which i would like to tune with this card, once this works I would test with the actual OTA signal.<br>
-<br>Looking at the tuner chip on the card, suggests that it is possible. The link on the wiki for the chip is outdated it seems, this is what I found on the nxp site:<br><br><a href="http://www.nxp.com/#/pip/pip=[pip=TDA18271HD]|pp=[t=pip,i=TDA18271HD]"></a><a href="http://www.nxp.com/#/pip/pip=[pip=TDA18271HD]|pp=[t=pip,i=TDA18271HD]"><a href="http://www.nxp.com/#/pip/pip=[pip=TDA18271HD]|pp=[t=pip,i=TDA18271HD]">http://www.nxp.com/#/pip/pip=[pip=TDA18271HD]|pp=[t=pip,i=TDA18271HD]</a></a><br>
-<br>I am happy to dive into the code, but wanted to see if anyone has done this already or get any suggestions that you more experienced developers could provide.<br><br>Thanks,<br>--mc<br><br><br><br>
-</div></blockquote><blockquote type="cite"><div><span>_______________________________________________</span><br><span>linux-dvb users mailing list</span><br><span>For V4L/DVB development, please use instead <a href="mailto:linux-media@vger.kernel.org"></a><a href="mailto:linux-media@vger.kernel.org"><a href="mailto:linux-media@vger.kernel.org">linux-media@vger.kernel.org</a></a></span><br><span><a href="mailto:linux-dvb@linuxtv.org"><a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a></a></span><br><span><a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb"><a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a></a></span></div></blockquote></div></body></html>
---Apple-Mail-2--874993763--
 
 
---===============1823627538==
+
+
+
+ 		 	   		  =
+
+--_d44fec23-d79a-43e8-994d-d78ba491f2d2_
+Content-Type: text/html; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+<html>
+<head>
+<style><!--
+.hmmessage P
+{
+margin:0px=3B
+padding:0px
+}
+body.hmmessage
+{
+font-size: 10pt=3B
+font-family:Tahoma
+}
+--></style>
+</head>
+<body class=3D'hmmessage'>
+<p style=3D"font-family: Tahoma=3B font-size: 10pt=3B "><span class=3D"Appl=
+e-style-span" style=3D"font-family: Arial=3B font-size: 10pt=3B ">Hi</span>=
+</p><font class=3D"ecxApple-style-span" face=3D"Arial" size=3D"2" style=3D"=
+font-family: Tahoma=3B font-size: 10pt=3B "><br></font><br><font class=3D"e=
+cxApple-style-span" face=3D"Arial" size=3D"2" style=3D"font-family: Tahoma=
+=3B font-size: 10pt=3B ">I&nbsp=3Bpurchased&nbsp=3Ba DVICO HDTV Dual Expres=
+s2&nbsp=3B</font><a href=3D"http://www.linuxtv.org/wiki/index.php/DViCO_Fus=
+ionHDTV_DVB-T_Dual_Express2" target=3D"_blank" style=3D"font-family: Tahoma=
+=3B font-size: 10pt=3B ">http://www.linuxtv.org/wiki/index.php/DViCO_Fusion=
+HDTV_DVB-T_Dual_Express2</a><br><font class=3D"ecxApple-style-span" face=3D=
+"Arial" size=3D"2" style=3D"font-family: Tahoma=3B font-size: 10pt=3B "><br=
+></font><br><font class=3D"ecxApple-style-span" face=3D"Arial" size=3D"2" s=
+tyle=3D"font-family: Tahoma=3B font-size: 10pt=3B "><span class=3D"ecxApple=
+-style-span" style=3D"font-size:13px">The card has a CONEXANT CX23885-152 &=
+amp=3B DiBcom&nbsp=3B</span></font><span class=3D"ecxApple-style-span" styl=
+e=3D"font-family: Arial=3B font-size: 13px=3B ">7070PB1-AXGXba-G-b Tuners</=
+span><br><font class=3D"ecxApple-style-span" face=3D"Arial" size=3D"2" styl=
+e=3D"font-family: Tahoma=3B font-size: 10pt=3B "><br></font><br><font class=
+=3D"ecxApple-style-span" face=3D"Arial" size=3D"2" style=3D"font-family: Ta=
+homa=3B font-size: 10pt=3B ">I have been modifying the V4l-DVB code&nbsp=3B=
+</font><font class=3D"ecxApple-style-span" face=3D"Arial" size=3D"2" style=
+=3D"text-indent: 0px !important=3B font-family: Tahoma=3B font-size: 10pt=
+=3B ">(</font><font class=3D"ecxApple-style-span" face=3D"Arial" size=3D"2"=
+ style=3D"text-indent: 0px !important=3B font-family: Tahoma=3B font-size: =
+10pt=3B ">cx23885-dvb.c=2C&nbsp=3B</font><span class=3D"ecxApple-style-span=
+" style=3D"text-indent: 0px !important=3B font-family: Arial=3B font-size: =
+10pt=3B ">cx23885-cards.c &amp=3B</span><span class=3D"ecxApple-style-span"=
+ style=3D"text-indent: 0px !important=3B font-family: Arial=3B font-size: 1=
+0pt=3B ">cx23885.h</span><span class=3D"ecxApple-style-span" style=3D"text-=
+indent: 0px !important=3B font-family: Arial=3B font-size: 10pt=3B ">)&nbsp=
+=3B</span><font class=3D"ecxApple-style-span" face=3D"Arial" size=3D"2" sty=
+le=3D"text-indent: 0px !important=3B font-family: Tahoma=3B font-size: 10pt=
+=3B ">bas</font><span class=3D"ecxApple-style-span" style=3D"text-indent: 0=
+px !important=3B font-family: Arial=3B font-size: 10pt=3B ">ed</span><font =
+class=3D"ecxApple-style-span" face=3D"Arial" size=3D"2" style=3D"font-famil=
+y: Tahoma=3B font-size: 10pt=3B ">&nbsp=3B</font><span class=3D"ecxApple-st=
+yle-span" style=3D"text-indent: 0px !important=3B font-family: Arial=3B fon=
+t-size: 10pt=3B ">on the&nbsp=3B<span class=3D"ecxApple-style-span" style=
+=3D"text-indent:0px !important=3Bfont-size:10pt">DVICO HDTV Dual Express</s=
+pan></span><font class=3D"ecxApple-style-span" face=3D"Arial" size=3D"2" st=
+yle=3D"font-family: Tahoma=3B font-size: 10pt=3B ">&nbsp=3B</font><span cla=
+ss=3D"ecxApple-style-span" style=3D"font-family: Arial=3B font-size: 10pt=
+=3B ">to try and get the card to work.</span><br><span class=3D"ecxApple-st=
+yle-span" style=3D"font-family: Arial=3B font-size: 10pt=3B ">But I am havi=
+ng trouble with the 7070PB1-AXGXba-G-b tuners that I am trying to base on t=
+he&nbsp=3BFusionHDTV Dual Digital 4 (cxusb.c).</span><br><span class=3D"ecx=
+Apple-style-span" style=3D"font-family: Arial=3B font-size: 10pt=3B "><br><=
+/span><br><span class=3D"ecxApple-style-span" style=3D"font-family: Arial=
+=3B font-size: 10pt=3B ">I can get Modprobe to load the 2 tuners=2C but DVB=
+SCAN says the frontend is not loaded</span><br><span class=3D"ecxApple-styl=
+e-span" style=3D"font-family: Arial=3B font-size: 10pt=3B "><br></span><br>=
+<span class=3D"ecxApple-style-span" style=3D"font-family: Arial=3B font-siz=
+e: 10pt=3B ">Any help would be&nbsp=3B</span><font class=3D"ecxApple-style-=
+span" face=3D"Arial" size=3D"2" style=3D"font-family: Tahoma=3B font-size: =
+10pt=3B ">appreciated</font><br><font class=3D"ecxApple-style-span" face=3D=
+"Arial" size=3D"2" style=3D"font-family: Tahoma=3B font-size: 10pt=3B "><br=
+></font><br><font class=3D"ecxApple-style-span" face=3D"Arial" size=3D"2" s=
+tyle=3D"font-family: Tahoma=3B font-size: 10pt=3B ">Cheers Nick</font><br><=
+span class=3D"ecxApple-style-span" style=3D"font-family: Arial=3B font-size=
+: 10pt=3B ">&nbsp=3B</span><br><span class=3D"ecxApple-style-span" style=3D=
+"font-family: Arial=3B font-size: 10pt=3B "><br></span><br><font class=3D"e=
+cxApple-style-span" face=3D"Arial" size=3D"2" style=3D"font-family: Tahoma=
+=3B font-size: 10pt=3B "><br></font><br><font class=3D"ecxApple-style-span"=
+ face=3D"Arial" size=3D"2" style=3D"font-family: Tahoma=3B font-size: 10pt=
+=3B "><br></font><br> 		 	   		  </body>
+</html>=
+
+--_d44fec23-d79a-43e8-994d-d78ba491f2d2_--
+
+
+--===============1400711381==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -122,4 +171,4 @@ linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1823627538==--
+--===============1400711381==--
