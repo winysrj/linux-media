@@ -1,38 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:43840 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753041Ab1DEMBo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2011 08:01:44 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Hans Verkuil" <hverkuil@xs4all.nl>
-Subject: Re: [PATCH/RFC 1/4] V4L: add three new ioctl()s for multi-size videobuffer management
-Date: Tue, 5 Apr 2011 14:02:17 +0200
-Cc: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
-	"Linux Media Mailing List" <linux-media@vger.kernel.org>,
-	"Mauro Carvalho Chehab" <mchehab@infradead.org>
-References: <Pine.LNX.4.64.1104010959470.9530@axis700.grange> <Pine.LNX.4.64.1104040915590.4668@axis700.grange> <56f5dd2ffa0a55d09a5f391f0fa2e9d0.squirrel@webmail.xs4all.nl>
-In-Reply-To: <56f5dd2ffa0a55d09a5f391f0fa2e9d0.squirrel@webmail.xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201104051402.17836.laurent.pinchart@ideasonboard.com>
+Received: from mail-in-14.arcor-online.net ([151.189.21.54]:35115 "EHLO
+	mail-in-14.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755450Ab1DDUS7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 Apr 2011 16:18:59 -0400
+From: stefan.ringel@arcor.de
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, d.belimov@gmail.com,
+	Stefan Ringel <stefan.ringel@arcor.de>
+Subject: [PATCH 2/5] tm6000: add dtv78 parameter
+Date: Mon,  4 Apr 2011 22:18:41 +0200
+Message-Id: <1301948324-27186-2-git-send-email-stefan.ringel@arcor.de>
+In-Reply-To: <1301948324-27186-1-git-send-email-stefan.ringel@arcor.de>
+References: <1301948324-27186-1-git-send-email-stefan.ringel@arcor.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Monday 04 April 2011 10:06:47 Hans Verkuil wrote:
-> > On Mon, 4 Apr 2011, Hans Verkuil wrote:
-> >> On Friday, April 01, 2011 10:13:02 Guennadi Liakhovetski wrote:
+From: Stefan Ringel <stefan.ringel@arcor.de>
 
-[snip]
+add dtv78 parameter
 
-> BTW, REQBUFS and CREATE/DESTROY_BUFS should definitely co-exist. REQBUFS
-> is compulsory, while CREATE/DESTROY are optional.
 
-Drivers must support REQBUFS and should support CREATE/DESTROY, but I think 
-applications should not be allowed to mix calls.
+Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+---
+ drivers/staging/tm6000/tm6000-cards.c |   11 +++++++++--
+ 1 files changed, 9 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
+index eef58da..cf2e76c 100644
+--- a/drivers/staging/tm6000/tm6000-cards.c
++++ b/drivers/staging/tm6000/tm6000-cards.c
+@@ -65,6 +65,9 @@ static unsigned int xc2028_mts;
+ module_param(xc2028_mts, int, 0644);
+ MODULE_PARM_DESC(xc2028_mts, "enable mts firmware (xc2028/3028 only)");
+ 
++static unsigned int xc2028_dtv78;
++module_param(xc2028_dtv78, int, 0644);
++MODULE_PARM_DESC(xc2028_dtv78, "enable dualband config (xc2028/3028 only)");
+ 
+ struct tm6000_board {
+ 	char            *name;
+@@ -687,8 +690,12 @@ static void tm6000_config_tuner(struct tm6000_core *dev)
+ 		ctl.read_not_reliable = 0;
+ 		ctl.msleep = 10;
+ 		ctl.demod = XC3028_FE_ZARLINK456;
+-		ctl.vhfbw7 = 1;
+-		ctl.uhfbw8 = 1;
++
++		if (xc2028_dtv78) {
++			ctl.vhfbw7 = 1;
++			ctl.uhfbw8 = 1;
++		}
++
+ 		if (xc2028_mts)
+ 			ctl.mts = 1;
+ 
 -- 
-Regards,
+1.7.3.4
 
-Laurent Pinchart
