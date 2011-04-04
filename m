@@ -1,74 +1,79 @@
 Return-path: <mchehab@pedra>
-Received: from cantor2.suse.de ([195.135.220.15]:51618 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755481Ab1DFW1Z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Apr 2011 18:27:25 -0400
-Date: Wed, 6 Apr 2011 15:09:00 -0700
-From: Greg KH <gregkh@suse.de>
-To: Felipe Balbi <balbi@ti.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Andres Salomon <dilinger@queued.net>,
-	linux-kernel@vger.kernel.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	khali@linux-fr.org, ben-linux@fluff.org,
-	Peter Korsgaard <jacmet@sunsite.dk>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	David Brownell <dbrownell@users.sourceforge.net>,
-	linux-i2c@vger.kernel.org, linux-media@vger.kernel.org,
-	netdev@vger.kernel.org, spi-devel-general@lists.sourceforge.net,
-	Mocean Laboratories <info@mocean-labs.com>
-Subject: Re: [PATCH 07/19] timberdale: mfd_cell is now implicitly available
- to drivers
-Message-ID: <20110406220900.GA16117@suse.de>
-References: <20110401235239.GE29397@sortiz-mobl>
- <BANLkTi=bq=OGzXFp7qiBr7x_BnGOWf=DRQ@mail.gmail.com>
- <20110404100314.GC2751@sortiz-mobl>
- <20110405030428.GB29522@ponder.secretlab.ca>
- <20110406152322.GA2757@sortiz-mobl>
- <20110406155805.GA20095@suse.de>
- <20110406170537.GB2757@sortiz-mobl>
- <20110406175647.GA8048@suse.de>
- <20110406184733.GD2757@sortiz-mobl>
- <20110406185902.GN25654@legolas.emea.dhcp.ti.com>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2361 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753734Ab1DDGtS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2011 02:49:18 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Pawel Osciak <pawel@osciak.com>
+Subject: Re: [PATCH 3/5] [media] s5p-fimc: remove stop_streaming() callback return
+Date: Mon, 4 Apr 2011 08:48:53 +0200
+Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	s.nawrocki@samsung.com, g.liakhovetski@gmx.de
+References: <1301874670-14833-1-git-send-email-pawel@osciak.com> <1301874670-14833-4-git-send-email-pawel@osciak.com>
+In-Reply-To: <1301874670-14833-4-git-send-email-pawel@osciak.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20110406185902.GN25654@legolas.emea.dhcp.ti.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201104040848.53777.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Apr 06, 2011 at 09:59:02PM +0300, Felipe Balbi wrote:
-> Hi,
+On Monday, April 04, 2011 01:51:08 Pawel Osciak wrote:
+> The stop_streaming() callback does not return a value anymore.
 > 
-> On Wed, Apr 06, 2011 at 08:47:34PM +0200, Samuel Ortiz wrote:
-> > > > > What is a "MFD cell pointer" and why is it needed in struct device?
-> > > > An MFD cell is an MFD instantiated device.
-> > > > MFD (Multi Function Device) drivers instantiate platform devices. Those
-> > > > devices drivers sometimes need a platform data pointer, sometimes an MFD
-> > > > specific pointer, and sometimes both. Also, some of those drivers have been
-> > > > implemented as MFD sub drivers, while others know nothing about MFD and just
-> > > > expect a plain platform_data pointer.
-> > > 
-> > > That sounds like a bug in those drivers, why not fix them to properly
-> > > pass in the correct pointer?
-> > Because they're drivers for generic IPs, not MFD ones. By forcing them to use
-> > MFD specific structure and APIs, we make it more difficult for platform code
-> > to instantiate them.
+> Signed-off-by: Pawel Osciak <pawel@osciak.com>
+> ---
+>  drivers/media/video/s5p-fimc/fimc-capture.c |    4 ++--
+>  drivers/media/video/s5p-fimc/fimc-core.c    |    4 +---
+>  2 files changed, 3 insertions(+), 5 deletions(-)
 > 
-> I agree. What I do on those cases is to have a simple platform_device
-> for the core IP driver and use platform_device_id tables to do runtime
-> checks of the small differences. If one platform X doesn't use a
-> platform_bus, it uses e.g. PCI, then you make a PCI "bridge" which
-> allocates a platform_device with the correct name and adds that to the
-> driver model.
+> diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+> index 95f8b4e1..34e55a4 100644
+> --- a/drivers/media/video/s5p-fimc/fimc-capture.c
+> +++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+> @@ -247,7 +247,7 @@ static int start_streaming(struct vb2_queue *q)
+>  	return 0;
+>  }
+>  
+> -static int stop_streaming(struct vb2_queue *q)
+> +static void stop_streaming(struct vb2_queue *q)
+>  {
+>  	struct fimc_ctx *ctx = q->drv_priv;
+>  	struct fimc_dev *fimc = ctx->fimc_dev;
+> @@ -255,7 +255,7 @@ static int stop_streaming(struct vb2_queue *q)
+>  	if (!fimc_capture_active(fimc))
+>  		return -EINVAL;
+
+Return in a void function?
+
+Regards,
+
+	Hans
+
+>  
+> -	return fimc_stop_capture(fimc);
+> +	fimc_stop_capture(fimc);
+>  }
+>  
+>  static unsigned int get_plane_size(struct fimc_frame *fr, unsigned int plane)
+> diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+> index 6c919b3..66571d7 100644
+> --- a/drivers/media/video/s5p-fimc/fimc-core.c
+> +++ b/drivers/media/video/s5p-fimc/fimc-core.c
+> @@ -348,13 +348,11 @@ static void fimc_m2m_shutdown(struct fimc_ctx *ctx)
+>  		fimc_m2m_job_finish(ctx, VB2_BUF_STATE_ERROR);
+>  }
+>  
+> -static int stop_streaming(struct vb2_queue *q)
+> +static void stop_streaming(struct vb2_queue *q)
+>  {
+>  	struct fimc_ctx *ctx = q->drv_priv;
+>  
+>  	fimc_m2m_shutdown(ctx);
+> -
+> -	return 0;
+>  }
+>  
+>  static void fimc_capture_irq_handler(struct fimc_dev *fimc)
 > 
-> See [1] (for the core driver) and [2] (for a PCI bridge driver) for an
-> example of what I'm talking about.
-
-Yes, thanks for providing a real example, this is the best way to handle
-this.
-
-thanks,
-
-greg k-h
