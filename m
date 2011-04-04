@@ -1,87 +1,54 @@
 Return-path: <mchehab@pedra>
-Received: from connie.slackware.com ([64.57.102.36]:40423 "EHLO
-	connie.slackware.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751759Ab1DLObf (ORCPT
+Received: from mail-in-11.arcor-online.net ([151.189.21.51]:42976 "EHLO
+	mail-in-11.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755578Ab1DDUTB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Apr 2011 10:31:35 -0400
-Date: Tue, 12 Apr 2011 07:31:27 -0700 (PDT)
-From: Robby Workman <rworkman@slackware.com>
-To: Andreas Oberritter <obi@linuxtv.org>
-cc: linux-media@vger.kernel.org,
-	Patrick Volkerding <volkerdi@slackware.com>
-Subject: Re: [PATCHES] Misc. trivial fixes
-In-Reply-To: <4DA441D9.2000601@linuxtv.org>
-Message-ID: <alpine.LNX.2.00.1104120729280.7359@connie.slackware.com>
-References: <alpine.LNX.2.00.1104111908050.32072@connie.slackware.com> <4DA441D9.2000601@linuxtv.org>
-MIME-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="960504934-1014675929-1302618687=:7359"
+	Mon, 4 Apr 2011 16:19:01 -0400
+From: stefan.ringel@arcor.de
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, d.belimov@gmail.com,
+	Stefan Ringel <stefan.ringel@arcor.de>
+Subject: [PATCH 5/5] tm6000: add CARDLIST
+Date: Mon,  4 Apr 2011 22:18:44 +0200
+Message-Id: <1301948324-27186-5-git-send-email-stefan.ringel@arcor.de>
+In-Reply-To: <1301948324-27186-1-git-send-email-stefan.ringel@arcor.de>
+References: <1301948324-27186-1-git-send-email-stefan.ringel@arcor.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+From: Stefan Ringel <stefan.ringel@arcor.de>
 
---960504934-1014675929-1302618687=:7359
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-
-On Tue, 12 Apr 2011, Andreas Oberritter wrote:
-
-> On 04/12/2011 04:10 AM, Robby Workman wrote:
->> --- a/Make.rules
->> +++ b/Make.rules
->> @@ -11,6 +11,7 @@ PREFIX = /usr/local
->>  LIBDIR = $(PREFIX)/lib
->>  # subdir below LIBDIR in which to install the libv4lx libc wrappers
->>  LIBSUBDIR = libv4l
->> +MANDIR = /usr/share/man
->
-> Why did you hardcode /usr instead of keeping $(PREFIX)/share/man?
+add CARDLIST
 
 
-Eek.  I'd like to say that I sent the wrong patch, but alas, I
-simply had a thinko.  See attached (better) patch :-)
+Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+---
+ drivers/staging/tm6000/CARDLIST |   16 ++++++++++++++++
+ 1 files changed, 16 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/staging/tm6000/CARDLIST
 
--RW
---960504934-1014675929-1302618687=:7359
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name=0002-Allow-override-of-manpage-installation-directory.patch
-Content-Transfer-Encoding: BASE64
-Content-ID: <alpine.LNX.2.00.1104120731270.7359@connie.slackware.com>
-Content-Description: 
-Content-Disposition: attachment; filename=0002-Allow-override-of-manpage-installation-directory.patch
+diff --git a/drivers/staging/tm6000/CARDLIST b/drivers/staging/tm6000/CARDLIST
+new file mode 100644
+index 0000000..b5edce4
+--- /dev/null
++++ b/drivers/staging/tm6000/CARDLIST
+@@ -0,0 +1,16 @@
++  1 -> Generic tm5600 board                   (tm5600)          [6000:0001]
++  2 -> Generic tm6000 board                   (tm6000)          [6000:0001]
++  3 -> Generic tm6010 board                   (tm6010)          [6000:0002]
++  4 -> 10Moons UT821                          (tm5600)          [6000:0001]
++  5 -> 10Moons UT330                          (tm5600)
++  6 -> ADSTech Dual TV                        (tm6000)          [06e1:f332]
++  7 -> FreeCom and similar                    (tm6000)          [14aa:0620]
++  8 -> ADSTech Mini Dual TV                   (tm6000)          [06e1:b339]
++  9 -> Hauppauge WinTV HVR-900H/USB2 Stick    (tm6010)          [2040:6600,2040:6601,2040:6610,2040:6611]
++ 10 -> Beholder Wander                        (tm6010)          [6000:dec0]
++ 11 -> Beholder Voyager                       (tm6010)          [6000:dec1]
++ 12 -> TerraTec Cinergy Hybrid XE/Cinergy Hybrid Stick (tm6010) [0ccd:0086,0ccd:00a5]
++ 13 -> TwinHan TU501                          (tm6010)          [13d3:3240,13d3:3241,13d3:3243,13d3:3264]
++ 14 -> Beholder Wander Lite                   (tm6010)          [6000:dec2]
++ 15 -> Beholder Voyager Lite                  (tm6010)          [6000:dec3]
++
+-- 
+1.7.3.4
 
-RnJvbSA2ZWY0YTFmZWNlZTI0MmJlOTY1ODUyOGVmNzY2Mzg0NWQ5YmQ2YmM2
-IE1vbiBTZXAgMTcgMDA6MDA6MDAgMjAwMQ0KRnJvbTogUm9iYnkgV29ya21h
-biA8cndvcmttYW5Ac2xhY2t3YXJlLmNvbT4NCkRhdGU6IFR1ZSwgMTIgQXBy
-IDIwMTEgMDk6MjY6NTcgLTA1MDANClN1YmplY3Q6IFtQQVRDSF0gQWxsb3cg
-b3ZlcnJpZGUgb2YgbWFucGFnZSBpbnN0YWxsYXRpb24gZGlyZWN0b3J5DQoN
-ClRoaXMgY3JlYXRlcyBNQU5ESVIgaW4gTWFrZS5ydWxlcyBhbmQga2VlcHMg
-dGhlIHByZWV4aXN0aW5nDQpkZWZhdWx0IG9mICQoUFJFRklYKS9zaGFyZS9t
-YW4sIGJ1dCBhbGxvd3MgcGFja2FnZXJzIHRvIGVhc2lseQ0Kb3ZlcnJpZGUg
-dmlhIGUuZy4gIm1ha2UgTUFORElSPS91c3IvbWFuIg0KLS0tDQogTWFrZS5y
-dWxlcyAgICAgICAgICAgICAgfCAgICAxICsNCiB1dGlscy9rZXl0YWJsZS9N
-YWtlZmlsZSB8ICAgIDQgKystLQ0KIDIgZmlsZXMgY2hhbmdlZCwgMyBpbnNl
-cnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQ0KDQpkaWZmIC0tZ2l0IGEvTWFr
-ZS5ydWxlcyBiL01ha2UucnVsZXMNCmluZGV4IDBiYjJlYjguLjg3NTgyOGEg
-MTAwNjQ0DQotLS0gYS9NYWtlLnJ1bGVzDQorKysgYi9NYWtlLnJ1bGVzDQpA
-QCAtMTEsNiArMTEsNyBAQCBQUkVGSVggPSAvdXNyL2xvY2FsDQogTElCRElS
-ID0gJChQUkVGSVgpL2xpYg0KICMgc3ViZGlyIGJlbG93IExJQkRJUiBpbiB3
-aGljaCB0byBpbnN0YWxsIHRoZSBsaWJ2NGx4IGxpYmMgd3JhcHBlcnMNCiBM
-SUJTVUJESVIgPSBsaWJ2NGwNCitNQU5ESVIgPSAkKFBSRUZJWCkvc2hhcmUv
-bWFuDQogDQogIyBUaGVzZSBvbmVzIHNob3VsZCBub3QgYmUgb3ZlcnJpZGVu
-IGZyb20gdGhlIGNtZGxpbmUNCiANCmRpZmYgLS1naXQgYS91dGlscy9rZXl0
-YWJsZS9NYWtlZmlsZSBiL3V0aWxzL2tleXRhYmxlL01ha2VmaWxlDQppbmRl
-eCAyOWE2YWM0Li5lMDkzMjgwIDEwMDY0NA0KLS0tIGEvdXRpbHMva2V5dGFi
-bGUvTWFrZWZpbGUNCisrKyBiL3V0aWxzL2tleXRhYmxlL01ha2VmaWxlDQpA
-QCAtMzksNyArMzksNyBAQCBpbnN0YWxsOiAkKFRBUkdFVFMpDQogCWluc3Rh
-bGwgLW0gNjQ0IC1wIHJjX2tleW1hcHMvKiAkKERFU1RESVIpL2V0Yy9yY19r
-ZXltYXBzDQogCWluc3RhbGwgLW0gNzU1IC1kICQoREVTVERJUikvbGliL3Vk
-ZXYvcnVsZXMuZA0KIAlpbnN0YWxsIC1tIDY0NCAtcCA3MC1pbmZyYXJlZC5y
-dWxlcyAkKERFU1RESVIpL2xpYi91ZGV2L3J1bGVzLmQNCi0JaW5zdGFsbCAt
-bSA3NTUgLWQgJChERVNURElSKSQoUFJFRklYKS9zaGFyZS9tYW4vbWFuMQ0K
-LQlpbnN0YWxsIC1tIDY0NCAtcCBpci1rZXl0YWJsZS4xICQoREVTVERJUikk
-KFBSRUZJWCkvc2hhcmUvbWFuL21hbjENCisJaW5zdGFsbCAtbSA3NTUgLWQg
-JChERVNURElSKSQoTUFORElSKS9tYW4xDQorCWluc3RhbGwgLW0gNjQ0IC1w
-IGlyLWtleXRhYmxlLjEgJChERVNURElSKSQoTUFORElSKS9tYW4xDQogDQog
-aW5jbHVkZSAuLi8uLi9NYWtlLnJ1bGVzDQotLSANCjEuNy40LjQNCg0K
-
---960504934-1014675929-1302618687=:7359--
