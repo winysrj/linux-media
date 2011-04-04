@@ -1,46 +1,162 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:48011 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751905Ab1DBKkX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 2 Apr 2011 06:40:23 -0400
-Message-ID: <4D96FD11.40404@redhat.com>
-Date: Sat, 02 Apr 2011 07:40:17 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Linus Torvalds <torvalds@linux-foundation.org>
-CC: Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [GIT PULL for 2.6.39-rc2] media fixes
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from sj-iport-3.cisco.com ([171.71.176.72]:3368 "EHLO
+	sj-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753081Ab1DDLwT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2011 07:52:19 -0400
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [RFCv1 PATCH 3/9] v4l2-ioctl: add ctrl_handler to v4l2_fh
+Date: Mon,  4 Apr 2011 13:51:48 +0200
+Message-Id: <b4f1a4000c9764bfd326a4f9b3fbfa57b40ac102.1301916466.git.hans.verkuil@cisco.com>
+In-Reply-To: <1301917914-27437-1-git-send-email-hans.verkuil@cisco.com>
+References: <1301917914-27437-1-git-send-email-hans.verkuil@cisco.com>
+In-Reply-To: <2fa42294dbc167cae5daf227d072b2284f77b1ab.1301916466.git.hans.verkuil@cisco.com>
+References: <2fa42294dbc167cae5daf227d072b2284f77b1ab.1301916466.git.hans.verkuil@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Linus,
+From: Hans Verkuil <hverkuil@xs4all.nl>
 
-Please pull from:
-  ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
+This is required to implement control events and is also needed to allow
+for per-filehandle control handlers.
 
-For two small bug fixes.
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ drivers/media/video/v4l2-fh.c    |    2 ++
+ drivers/media/video/v4l2-ioctl.c |   36 +++++++++++++++++++++++++++---------
+ include/media/v4l2-fh.h          |    2 ++
+ 3 files changed, 31 insertions(+), 9 deletions(-)
 
-Thanks!
-Mauro.
-
-The following changes since commit 0ce790e7d736cedc563e1fb4e998babf5a4dbc3d:
-
-  Linux 2.6.39-rc1 (2011-03-29 12:09:47 -0700)
-
-are available in the git repository at:
-  ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
-
-Manjunatha Halli (1):
-      [media] radio: wl128x: Update registration process with ST
-
-Randy Dunlap (1):
-      [media] staging: altera-jtag needs delay.h
-
- drivers/media/radio/wl128x/fmdrv_common.c  |   16 +++++++++++++---
- drivers/staging/altera-stapl/altera-jtag.c |    1 +
- 2 files changed, 14 insertions(+), 3 deletions(-)
+diff --git a/drivers/media/video/v4l2-fh.c b/drivers/media/video/v4l2-fh.c
+index 717f71e..8635011 100644
+--- a/drivers/media/video/v4l2-fh.c
++++ b/drivers/media/video/v4l2-fh.c
+@@ -32,6 +32,8 @@
+ int v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev)
+ {
+ 	fh->vdev = vdev;
++	/* Inherit from video_device. May be overridden by the driver. */
++	fh->ctrl_handler = vdev->ctrl_handler;
+ 	INIT_LIST_HEAD(&fh->list);
+ 	set_bit(V4L2_FL_USES_V4L2_FH, &fh->vdev->flags);
+ 	fh->prio = V4L2_PRIORITY_UNSET;
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index a01ed39..b5b875b 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -1418,7 +1418,9 @@ static long __video_do_ioctl(struct file *file,
+ 	{
+ 		struct v4l2_queryctrl *p = arg;
+ 
+-		if (vfd->ctrl_handler)
++		if (vfh && vfh->ctrl_handler)
++			ret = v4l2_queryctrl(vfh->ctrl_handler, p);
++		else if (vfd->ctrl_handler)
+ 			ret = v4l2_queryctrl(vfd->ctrl_handler, p);
+ 		else if (ops->vidioc_queryctrl)
+ 			ret = ops->vidioc_queryctrl(file, fh, p);
+@@ -1438,7 +1440,9 @@ static long __video_do_ioctl(struct file *file,
+ 	{
+ 		struct v4l2_control *p = arg;
+ 
+-		if (vfd->ctrl_handler)
++		if (vfh && vfh->ctrl_handler)
++			ret = v4l2_g_ctrl(vfh->ctrl_handler, p);
++		else if (vfd->ctrl_handler)
+ 			ret = v4l2_g_ctrl(vfd->ctrl_handler, p);
+ 		else if (ops->vidioc_g_ctrl)
+ 			ret = ops->vidioc_g_ctrl(file, fh, p);
+@@ -1470,12 +1474,16 @@ static long __video_do_ioctl(struct file *file,
+ 		struct v4l2_ext_controls ctrls;
+ 		struct v4l2_ext_control ctrl;
+ 
+-		if (!vfd->ctrl_handler &&
++		if (!(vfh && vfh->ctrl_handler) && !vfd->ctrl_handler &&
+ 			!ops->vidioc_s_ctrl && !ops->vidioc_s_ext_ctrls)
+ 			break;
+ 
+ 		dbgarg(cmd, "id=0x%x, value=%d\n", p->id, p->value);
+ 
++		if (vfh && vfh->ctrl_handler) {
++			ret = v4l2_s_ctrl(vfh->ctrl_handler, p);
++			break;
++		}
+ 		if (vfd->ctrl_handler) {
+ 			ret = v4l2_s_ctrl(vfd->ctrl_handler, p);
+ 			break;
+@@ -1501,7 +1509,9 @@ static long __video_do_ioctl(struct file *file,
+ 		struct v4l2_ext_controls *p = arg;
+ 
+ 		p->error_idx = p->count;
+-		if (vfd->ctrl_handler)
++		if (vfh && vfh->ctrl_handler)
++			ret = v4l2_g_ext_ctrls(vfh->ctrl_handler, p);
++		else if (vfd->ctrl_handler)
+ 			ret = v4l2_g_ext_ctrls(vfd->ctrl_handler, p);
+ 		else if (ops->vidioc_g_ext_ctrls && check_ext_ctrls(p, 0))
+ 			ret = ops->vidioc_g_ext_ctrls(file, fh, p);
+@@ -1515,10 +1525,13 @@ static long __video_do_ioctl(struct file *file,
+ 		struct v4l2_ext_controls *p = arg;
+ 
+ 		p->error_idx = p->count;
+-		if (!vfd->ctrl_handler && !ops->vidioc_s_ext_ctrls)
++		if (!(vfh && vfh->ctrl_handler) && !vfd->ctrl_handler &&
++				!ops->vidioc_s_ext_ctrls)
+ 			break;
+ 		v4l_print_ext_ctrls(cmd, vfd, p, 1);
+-		if (vfd->ctrl_handler)
++		if (vfh && vfh->ctrl_handler)
++			ret = v4l2_s_ext_ctrls(vfh->ctrl_handler, p);
++		else if (vfd->ctrl_handler)
+ 			ret = v4l2_s_ext_ctrls(vfd->ctrl_handler, p);
+ 		else if (check_ext_ctrls(p, 0))
+ 			ret = ops->vidioc_s_ext_ctrls(file, fh, p);
+@@ -1529,10 +1542,13 @@ static long __video_do_ioctl(struct file *file,
+ 		struct v4l2_ext_controls *p = arg;
+ 
+ 		p->error_idx = p->count;
+-		if (!vfd->ctrl_handler && !ops->vidioc_try_ext_ctrls)
++		if (!(vfh && vfh->ctrl_handler) && !vfd->ctrl_handler &&
++				!ops->vidioc_try_ext_ctrls)
+ 			break;
+ 		v4l_print_ext_ctrls(cmd, vfd, p, 1);
+-		if (vfd->ctrl_handler)
++		if (vfh && vfh->ctrl_handler)
++			ret = v4l2_try_ext_ctrls(vfh->ctrl_handler, p);
++		else if (vfd->ctrl_handler)
+ 			ret = v4l2_try_ext_ctrls(vfd->ctrl_handler, p);
+ 		else if (check_ext_ctrls(p, 0))
+ 			ret = ops->vidioc_try_ext_ctrls(file, fh, p);
+@@ -1542,7 +1558,9 @@ static long __video_do_ioctl(struct file *file,
+ 	{
+ 		struct v4l2_querymenu *p = arg;
+ 
+-		if (vfd->ctrl_handler)
++		if (vfh && vfh->ctrl_handler)
++			ret = v4l2_querymenu(vfh->ctrl_handler, p);
++		else if (vfd->ctrl_handler)
+ 			ret = v4l2_querymenu(vfd->ctrl_handler, p);
+ 		else if (ops->vidioc_querymenu)
+ 			ret = ops->vidioc_querymenu(file, fh, p);
+diff --git a/include/media/v4l2-fh.h b/include/media/v4l2-fh.h
+index 0206aa5..d247111 100644
+--- a/include/media/v4l2-fh.h
++++ b/include/media/v4l2-fh.h
+@@ -30,11 +30,13 @@
+ 
+ struct video_device;
+ struct v4l2_events;
++struct v4l2_ctrl_handler;
+ 
+ struct v4l2_fh {
+ 	struct list_head	list;
+ 	struct video_device	*vdev;
+ 	struct v4l2_events      *events; /* events, pending and subscribed */
++	struct v4l2_ctrl_handler *ctrl_handler;
+ 	enum v4l2_priority	prio;
+ };
+ 
+-- 
+1.7.1
 
