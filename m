@@ -1,276 +1,127 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:36825 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752304Ab1DEDEf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2011 23:04:35 -0400
-Date: Mon, 4 Apr 2011 21:04:29 -0600
-From: Grant Likely <grant.likely@secretlab.ca>
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Andres Salomon <dilinger@queued.net>, linux-kernel@vger.kernel.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	khali@linux-fr.org, ben-linux@fluff.org,
-	Peter Korsgaard <jacmet@sunsite.dk>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	David Brownell <dbrownell@users.sourceforge.net>,
-	linux-i2c@vger.kernel.org, linux-media@vger.kernel.org,
-	netdev@vger.kernel.org, spi-devel-general@lists.sourceforge.net,
-	Mocean Laboratories <info@mocean-labs.com>,
-	Greg Kroah-Hartman <gregkh@suse.de>
-Subject: Re: [PATCH 07/19] timberdale: mfd_cell is now implicitly available
- to drivers
-Message-ID: <20110405030428.GB29522@ponder.secretlab.ca>
-References: <20110202195417.228e2656@queued.net>
- <20110202200812.3d8d6cba@queued.net>
- <20110331230522.GI437@ponder.secretlab.ca>
- <20110401112030.GA3447@sortiz-mobl>
- <20110401104756.2f5c6f7a@debxo>
- <BANLkTi=bCd_+f=EG-O=U5VH_ZNjFhxkziQ@mail.gmail.com>
- <20110401235239.GE29397@sortiz-mobl>
- <BANLkTi=bq=OGzXFp7qiBr7x_BnGOWf=DRQ@mail.gmail.com>
- <20110404100314.GC2751@sortiz-mobl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20110404100314.GC2751@sortiz-mobl>
+Received: from sj-iport-6.cisco.com ([171.71.176.117]:56397 "EHLO
+	sj-iport-6.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753855Ab1DDLwY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2011 07:52:24 -0400
+Received: from OSLEXCP11.eu.tandberg.int ([173.38.136.5])
+	by rcdn-core-2.cisco.com (8.14.3/8.14.3) with ESMTP id p34BqDrn001853
+	for <linux-media@vger.kernel.org>; Mon, 4 Apr 2011 11:52:23 GMT
+Received: from cobaltpc1.rd.tandberg.com (cobaltpc1.rd.tandberg.com [10.47.3.155])
+	by ultra.eu.tandberg.int (8.13.1/8.13.1) with ESMTP id p34BqDdP009325
+	for <linux-media@vger.kernel.org>; Mon, 4 Apr 2011 13:52:14 +0200
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Subject: [RFCv1 PATCH 9/9] v4l2-ctrls: add new SEND_INITIAL flag to force an initial event.
+Date: Mon,  4 Apr 2011 13:51:54 +0200
+Message-Id: <ac7379a780ef077caaea23b7fe844d66e9783f70.1301916466.git.hans.verkuil@cisco.com>
+In-Reply-To: <1301917914-27437-1-git-send-email-hans.verkuil@cisco.com>
+References: <1301917914-27437-1-git-send-email-hans.verkuil@cisco.com>
+In-Reply-To: <2fa42294dbc167cae5daf227d072b2284f77b1ab.1301916466.git.hans.verkuil@cisco.com>
+References: <2fa42294dbc167cae5daf227d072b2284f77b1ab.1301916466.git.hans.verkuil@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, Apr 04, 2011 at 12:03:15PM +0200, Samuel Ortiz wrote:
-> On Fri, Apr 01, 2011 at 05:58:44PM -0600, Grant Likely wrote:
-> > On Fri, Apr 1, 2011 at 5:52 PM, Samuel Ortiz <sameo@linux.intel.com> wrote:
-> > > On Fri, Apr 01, 2011 at 11:56:35AM -0600, Grant Likely wrote:
-> > >> On Fri, Apr 1, 2011 at 11:47 AM, Andres Salomon <dilinger@queued.net> wrote:
-> > >> > On Fri, 1 Apr 2011 13:20:31 +0200
-> > >> > Samuel Ortiz <sameo@linux.intel.com> wrote:
-> > >> >
-> > >> >> Hi Grant,
-> > >> >>
-> > >> >> On Thu, Mar 31, 2011 at 05:05:22PM -0600, Grant Likely wrote:
-> > >> > [...]
-> > >> >> > Gah.  Not all devices instantiated via mfd will be an mfd device,
-> > >> >> > which means that the driver may very well expect an *entirely
-> > >> >> > different* platform_device pointer; which further means a very high
-> > >> >> > potential of incorrectly dereferenced structures (as evidenced by a
-> > >> >> > patch series that is not bisectable).  For instance, the xilinx ip
-> > >> >> > cores are used by more than just mfd.
-> > >> >> I agree. Since the vast majority of the MFD subdevices are MFD
-> > >> >> specific IPs, I overlooked that part. The impacted drivers are the
-> > >> >> timberdale and the DaVinci voice codec ones.
-> > >>
-> > >> Another option is you could do this for MFD devices:
-> > >>
-> > >> struct mfd_device {
-> > >>         struct platform_devce pdev;
-> > >>         struct mfd_cell *cell;
-> > >> };
-> > >>
-> > >> However, that requires that drivers using the mfd_cell will *never*
-> > >> get instantiated outside of the mfd infrastructure, and there is no
-> > >> way to protect against this so it is probably a bad idea.
-> > >>
-> > >> Or, mfd_cell could be added to platform_device directly which would
-> > >> *by far* be the safest option at the cost of every platform_device
-> > >> having a mostly unused mfd_cell pointer.  Not a significant cost in my
-> > >> opinion.
-> > > I thought about this one, but I had the impression people would want to kill
-> > > me for adding an MFD specific pointer to platform_device. I guess it's worth
-> > > giving it a try since it would be a simple and safe solution.
-> > > I'll look at it later this weekend.
-> > >
-> > > Thanks for the input.
-> > 
-> > [cc'ing gregkh because we're talking about modifying struct platform_device]
-> > 
-> > I'll back you up on this one.  It is a far better solution than the
-> > alternatives.  At least with mfd, it covers a large set of devices.  I
-> > think there is a strong argument for doing this.  Or alternatively,
-> > the particular interesting fields from mfd_cell could be added to
-> > platform_device.  What information do child devices need access to?
-> In some cases, they need the whole cell to clone it. So I'm up for adding an
-> mfd_cell pointer to the platform_device structure.
-> Below is a tentative patch. This is a first step and would fix all
-> regressions. I tried to keep the MFD dependencies as small as possible, which
-> is why I placed the pdev->mfd_cell building code in mfd-core.c
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/v4l2-ctrls.c |   25 ++++++++++++++++++++++++-
+ drivers/media/video/v4l2-event.c |    2 +-
+ include/linux/videodev2.h        |    5 ++++-
+ include/media/v4l2-ctrls.h       |    4 +++-
+ 4 files changed, 32 insertions(+), 4 deletions(-)
 
-Okay.
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index 122c6da..e6fa9be 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -1912,10 +1912,33 @@ int v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val)
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_s_ctrl);
+ 
+-void v4l2_ctrl_add_fh(struct v4l2_ctrl *ctrl, struct v4l2_ctrl_fh *ctrl_fh)
++void v4l2_ctrl_add_fh(struct v4l2_ctrl *ctrl, struct v4l2_ctrl_fh *ctrl_fh,
++		struct v4l2_event_subscription *sub)
+ {
+ 	v4l2_ctrl_lock(ctrl);
+ 	list_add_tail(&ctrl_fh->node, &ctrl->fhs);
++	if (sub->flags & V4L2_EVENT_SUB_FL_SEND_INITIAL) {
++		struct v4l2_event ev;
++
++		ev.type = sub->type;
++		ev.id = ctrl->id;
++		switch (ev.type) {
++		case V4L2_EVENT_CTRL_CH_VALUE:
++			/* TODO: shouldn't be done for write-only or button/ctrl_class
++			   controls. */
++			if (ctrl->type == V4L2_CTRL_TYPE_INTEGER64)
++				ev.u.ctrl_ch_value.value64 = ctrl->cur.val64;
++			else
++				ev.u.ctrl_ch_value.value = ctrl->cur.val;
++			v4l2_event_queue_fh(ctrl_fh->fh, &ev);
++			break;
++		case V4L2_EVENT_CTRL_CH_STATE:
++			ev.u.ctrl_ch_state.flags = ctrl->flags;
++			v4l2_event_queue_fh(ctrl_fh->fh, &ev);
++		default:
++			break;
++		}
++	}
+ 	v4l2_ctrl_unlock(ctrl);
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_add_fh);
+diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
+index 9b503aa..06608e7 100644
+--- a/drivers/media/video/v4l2-event.c
++++ b/drivers/media/video/v4l2-event.c
+@@ -293,7 +293,7 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
+ 
+ 	/* v4l2_ctrl_add_fh uses a mutex, so do this outside the spin lock */
+ 	if (!found_ev && ctrl)
+-		v4l2_ctrl_add_fh(ctrl, ctrl_fh);
++		v4l2_ctrl_add_fh(ctrl, ctrl_fh, sub);
+ 
+ 	kfree(sev);
+ 
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index eb56685..2a20dd9 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1827,10 +1827,13 @@ struct v4l2_event {
+ 	__u32				reserved[8];
+ };
+ 
++#define V4L2_EVENT_SUB_FL_SEND_INITIAL (1 << 0)
++
+ struct v4l2_event_subscription {
+ 	__u32				type;
+ 	__u32				id;
+-	__u32				reserved[6];
++	__u32				flags;
++	__u32				reserved[5];
+ };
+ 
+ /*
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index e6917f4..27714c9 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -30,6 +30,7 @@ struct v4l2_ctrl_handler;
+ struct v4l2_ctrl;
+ struct video_device;
+ struct v4l2_subdev;
++struct v4l2_event_subscription;
+ struct v4l2_fh;
+ 
+ /** struct v4l2_ctrl_ops - The control operations that the driver has to provide.
+@@ -445,7 +446,8 @@ s32 v4l2_ctrl_g_ctrl(struct v4l2_ctrl *ctrl);
+   */
+ int v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val);
+ 
+-void v4l2_ctrl_add_fh(struct v4l2_ctrl *ctrl, struct v4l2_ctrl_fh *ctrl_fh);
++void v4l2_ctrl_add_fh(struct v4l2_ctrl *ctrl, struct v4l2_ctrl_fh *ctrl_fh,
++		struct v4l2_event_subscription *sub);
+ void v4l2_ctrl_del_fh(struct v4l2_ctrl *ctrl, struct v4l2_fh *fh);
+ 
+ /* Helpers for ioctl_ops. If hdl == NULL then they will all return -EINVAL. */
+-- 
+1.7.1
 
-> The second step would be to get rid of mfd_get_data() and have all subdrivers
-> going back to the regular platform_data way. They would no longer be dependant
-> on the MFD code except for those who really need it. In that case they could
-> just call mfd_get_cell() and get full access to their MFD cell.
-
-The revert to platform_data needs to happen ASAP though.  If this
-second step isn't ready really quickly, then the current patches
-should be reverted to give some breathing room for creating the
-replacement patches.  However, it's not such a rush if the below
-patch really does eliminate all of the nastiness of the original
-series. (I haven't looked and a rolled up diff of the first series and
-this change, so I don't know for sure).
-
-In principle I agree with this patch.  Some comments below.
-
-g.
-
-> 
-> --- 
->  drivers/mfd/mfd-core.c          |   27 ++++++++++++++++++++++-----
->  include/linux/mfd/core.h        |    7 +++++--
->  include/linux/platform_device.h |    5 +++++
->  3 files changed, 32 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/mfd/mfd-core.c b/drivers/mfd/mfd-core.c
-> index d01574d..c0fc1c0 100644
-> --- a/drivers/mfd/mfd-core.c
-> +++ b/drivers/mfd/mfd-core.c
-> @@ -18,6 +18,21 @@
->  #include <linux/pm_runtime.h>
->  #include <linux/slab.h>
->  
-> +static int mfd_platform_add_cell(struct platform_device *pdev, const struct mfd_cell *cell)
-> +{
-> +	struct mfd_cell *c;
-> +
-> +	if (cell == NULL)
-> +		return 0;
-> +
-> +	c = kmemdup(cell, sizeof(struct mfd_cell), GFP_KERNEL);
-> +	if (c == NULL)
-> +		return -ENOMEM;
-> +
-> +	pdev->mfd_cell = c;
-> +	return 0;
-> +}
-
-'sizeof(*cell) is a teensy bit safer.  Also, this can be more concise:
-
-static int mfd_platform_add_cell(struct platform_device *pdev,
-				 const struct mfd_cell *cell)
-{
-	if (!cell)
-		return 0;
-
-	pdev->mfd_cell = kmemdup(cell, sizeof(*cell), GFP_KERNEL);
-	return pdev->mfd_cell ? 0 : -ENOMEM;
-}
-
-> +
->  int mfd_cell_enable(struct platform_device *pdev)
->  {
->  	const struct mfd_cell *cell = mfd_get_cell(pdev);
-> @@ -75,7 +90,7 @@ static int mfd_add_device(struct device *parent, int id,
->  
->  	pdev->dev.parent = parent;
->  
-> -	ret = platform_device_add_data(pdev, cell, sizeof(*cell));
-> +	ret = mfd_platform_add_cell(pdev, cell);
->  	if (ret)
->  		goto fail_res;
->  
-> @@ -104,17 +119,17 @@ static int mfd_add_device(struct device *parent, int id,
->  		if (!cell->ignore_resource_conflicts) {
->  			ret = acpi_check_resource_conflict(res);
->  			if (ret)
-> -				goto fail_res;
-> +				goto fail_cell;
->  		}
->  	}
->  
->  	ret = platform_device_add_resources(pdev, res, cell->num_resources);
->  	if (ret)
-> -		goto fail_res;
-> +		goto fail_cell;
->  
->  	ret = platform_device_add(pdev);
->  	if (ret)
-> -		goto fail_res;
-> +		goto fail_cell;
->  
->  	if (cell->pm_runtime_no_callbacks)
->  		pm_runtime_no_callbacks(&pdev->dev);
-> @@ -123,7 +138,8 @@ static int mfd_add_device(struct device *parent, int id,
->  
->  	return 0;
->  
-> -/*	platform_device_del(pdev); */
-> +fail_cell:
-> +	kfree(pdev->mfd_cell);
-
-Looks like kfreeing the cell should become part of the
-platform_device_release() function.  Which would remove it from here,
-and also ...
-
->  fail_res:
->  	kfree(res);
->  fail_device:
-> @@ -171,6 +187,7 @@ static int mfd_remove_devices_fn(struct device *dev, void *c)
->  	if (!*usage_count || (cell->usage_count < *usage_count))
->  		*usage_count = cell->usage_count;
->  
-> +	kfree(pdev->mfd_cell);
-
-... from here.
-
->  	platform_device_unregister(pdev);
->  	return 0;
->  }
-> diff --git a/include/linux/mfd/core.h b/include/linux/mfd/core.h
-> index ad1b19a..0e4d3a6 100644
-> --- a/include/linux/mfd/core.h
-> +++ b/include/linux/mfd/core.h
-> @@ -86,7 +86,7 @@ extern int mfd_clone_cell(const char *cell, const char **clones,
->   */
->  static inline const struct mfd_cell *mfd_get_cell(struct platform_device *pdev)
->  {
-> -	return pdev->dev.platform_data;
-> +	return pdev->mfd_cell;
->  }
->  
->  /*
-> @@ -95,7 +95,10 @@ static inline const struct mfd_cell *mfd_get_cell(struct platform_device *pdev)
->   */
->  static inline void *mfd_get_data(struct platform_device *pdev)
->  {
-> -	return mfd_get_cell(pdev)->mfd_data;
-> +	if (pdev->mfd_cell != NULL)
-> +		return mfd_get_cell(pdev)->mfd_data;
-> +	else
-> +		return pdev->dev.platform_data;
-
-Blech!  Yeah, this should become consistent that platform data
-*always* comes from pdev->dev.platform_data.
-
->  }
->  
->  extern int mfd_add_devices(struct device *parent, int id,
-> diff --git a/include/linux/platform_device.h b/include/linux/platform_device.h
-> index d96db98..734d254 100644
-> --- a/include/linux/platform_device.h
-> +++ b/include/linux/platform_device.h
-> @@ -14,6 +14,8 @@
->  #include <linux/device.h>
->  #include <linux/mod_devicetable.h>
->  
-> +struct mfd_cell;
-> +
->  struct platform_device {
->  	const char	* name;
->  	int		id;
-> @@ -23,6 +25,9 @@ struct platform_device {
->  
->  	const struct platform_device_id	*id_entry;
->  
-> +	/* MFD cell pointer */
-> +	struct mfd_cell	*mfd_cell;
-> +
-
-Move this down to by the of_node pointer.  May as well collect all the
-supplemental data about the device in the same place.
-
->  	/* arch specific additions */
->  	struct pdev_archdata	archdata;
->  };
-> 
-> -- 
-> Intel Open Source Technology Centre
-> http://oss.intel.com/
