@@ -1,109 +1,57 @@
 Return-path: <mchehab@pedra>
-Received: from smtp21.services.sfr.fr ([93.17.128.4]:6846 "EHLO
-	smtp21.services.sfr.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751251Ab1DCLlw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Apr 2011 07:41:52 -0400
-Received: from filter.sfr.fr (localhost [127.0.0.1])
-	by msfrf2114.sfr.fr (SMTP Server) with ESMTP id 5457E700008A
-	for <linux-media@vger.kernel.org>; Sun,  3 Apr 2011 13:41:51 +0200 (CEST)
-Received: from smtp-in.softsystem.co.uk (188.181.87-79.rev.gaoland.net [79.87.181.188])
-	by msfrf2114.sfr.fr (SMTP Server) with SMTP id 0B8977000084
-	for <linux-media@vger.kernel.org>; Sun,  3 Apr 2011 13:41:50 +0200 (CEST)
-Received: FROM [192.168.1.62] (gagarin [192.168.1.62])
-	BY smtp-in.softsystem.co.uk [79.87.181.188] (SoftMail 1.0.6, www.softsystem.co.uk) WITH ESMTP
-	FOR <linux-media@vger.kernel.org>; Sun, 03 Apr 2011 13:41:50 +0200
-Subject: Hauppauge Nova-S remote control broken in 2.6.38
-From: Lawrence Rust <lawrence@softsystem.co.uk>
+Received: from gateway09.websitewelcome.com ([67.18.144.14]:60815 "HELO
+	gateway09.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752864Ab1DDS0D (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 Apr 2011 14:26:03 -0400
+Message-ID: <4D9A0AFA.7090202@sensoray.com>
+Date: Mon, 04 Apr 2011 11:16:26 -0700
+From: Sensoray Linux Development <linux-dev@sensoray.com>
+MIME-Version: 1.0
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 03 Apr 2011 13:41:49 +0200
-Message-ID: <1301830909.1709.32.camel@gagarin>
-Mime-Version: 1.0
+Subject: [PATCH 1/2][media] s2255drv: adding MJPEG format
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-I just installed a new 2.6.38.2 kernel and found that the remote control
-on my Hauppauge Nova-S plus is no longer working. dmesg shows that
-everything initialised OK:
+adding MJPEG format
 
-[    8.002874] cx88/0: cx2388x v4l2 driver version 0.0.8 loaded
-[    8.100260] IR NEC protocol handler initialized
-[    8.132843] tveeprom 1-0050: Hauppauge model 92001, rev C1B1, serial# 2700305
-[    8.132853] tveeprom 1-0050: MAC address is 00:0d:fe:29:34:11
-[    8.132858] tveeprom 1-0050: tuner model is Conexant_CX24109 (idx 111, type 4)
-[    8.132864] tveeprom 1-0050: TV standards ATSC/DVB Digital (eeprom 0x80)
-[    8.132870] tveeprom 1-0050: audio processor is CX883 (idx 32)
-[    8.132875] tveeprom 1-0050: decoder processor is CX883 (idx 22)
-[    8.132879] tveeprom 1-0050: has no radio, has IR receiver, has no IR transmitter
-[    8.132884] cx88[0]: hauppauge eeprom: model=92001
-[    8.229173] IR RC5(x) protocol handler initialized
-[    8.261811] Registered IR keymap rc-hauppauge-new
-[    8.272593] input: cx88 IR (Hauppauge Nova-S-Plus  as /devices/pci0000:00/0000:00:0b.2/rc/rc0/input3
-[    8.275331] IR RC6 protocol handler initialized
-[    8.278600] rc0: cx88 IR (Hauppauge Nova-S-Plus  as /devices/pci0000:00/0000:00:0b.2/rc/rc0
-[    8.510290] lirc_dev: IR Remote Control driver registered, major 251 
-[    8.581417] rc rc0: lirc_dev: driver ir-lirc-codec (cx88xx) registered at minor = 0
-[    8.581427] IR LIRC bridge handler initialized
+Signed-off-by: Dean Anderson <linux-dev@sensoray.com>
+---
+ drivers/media/video/s2255drv.c |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
 
-cat /proc/bus/input/devices
-...
-I: Bus=0001 Vendor=0070 Product=9202 Version=0001
-N: Name="cx88 IR (Hauppauge Nova-S-Plus "
-P: Phys=pci-0000:00:0b.2/ir0
-S: Sysfs=/devices/pci0000:00/0000:00:0b.2/rc/rc0/input3
-
-But if I try to receive input events I see nothing:
-
-sudo evtest /dev/input/event3
-Input driver version is 1.0.1
-Input device ID: bus 0x1 vendor 0x70 product 0x9202 version 0x1
-Input device name: "cx88 IR (Hauppauge Nova-S-Plus "
-Supported events:
-...
-
-If I enable debug output:
-
-echo >/sys/module/rc_core/parameters/debug 2
-
-and press a key, dmesg shows:
-
-[  481.765937] ir_raw_event_set_idle: leave idle mode
-[  481.765948] ir_raw_event_store: sample: (01000us pulse)
-[  481.765970] ir_rc5_decode: RC5(x) decode started at state 0 (1000us pulse)
-[  481.765975] ir_rc5_decode: RC5(x) decode started at state 1 (111us pulse)
-[  481.765981] ir_rc6_decode: RC6 decode started at state 0 (1000us pulse)
-[  481.765986] ir_rc6_decode: RC6 decode failed at state 0 (1000us pulse)
-[  481.765995] ir_lirc_decode: delivering 1000us pulse to lirc_dev
-[  481.773939] ir_raw_event_store: sample: (00750us space)
-[  481.773946] ir_raw_event_store: sample: (01000us pulse)
-[  481.773950] ir_raw_event_store: sample: (00750us space)
-[  481.773954] ir_raw_event_store: sample: (01000us pulse)
-[  481.773958] ir_raw_event_store: sample: (01000us space)
-[  481.773961] ir_raw_event_store: sample: (00750us pulse)
-[  481.773965] ir_raw_event_store: sample: (01000us space)
-[  481.773969] ir_raw_event_store: sample: (00750us pulse)
-[  481.773973] ir_raw_event_store: sample: (01000us space)
-[  481.774007] ir_rc5_decode: RC5(x) decode started at state 1 (750us space)
-[  481.774013] ir_rc6_decode: RC6 decode started at state 0 (750us space)
-[  481.774018] ir_rc6_decode: RC6 decode failed at state 0 (750us space)
-[  481.774025] ir_lirc_decode: delivering 750us space to lirc_dev
-[  481.774030] ir_rc5_decode: RC5(x) decode started at state 2 (1000us pulse)
-[  481.774035] ir_rc5_decode: RC5(x) decode started at state 1 (111us pulse)
-[  481.774039] ir_rc6_decode: RC6 decode started at state 0 (1000us pulse)
-[  481.774043] ir_rc6_decode: RC6 decode failed at state 0 (1000us pulse)
-[  481.774047] ir_lirc_decode: delivering 1000us pulse to lirc_dev
-[  481.774051] ir_rc5_decode: RC5(x) decode started at state 1 (750us space)
-[  481.774055] ir_rc6_decode: RC6 decode started at state 0 (750us space)
-[  481.774059] ir_rc6_decode: RC6 decode failed at state 0 (750us space)
-[  481.774063] ir_lirc_decode: delivering 750us space to lirc_dev
-
-So it looks like decoding is failing.  I see that there have been
-extensive changes to the RC system from 2.6.37 and it appears that
-something broke in the transition.  Any suggestions on where the problem
-might be?
-
+diff --git a/drivers/media/video/s2255drv.c b/drivers/media/video/s2255drv.c
+index b12e28e..38e5c4b 100644
+--- a/drivers/media/video/s2255drv.c
++++ b/drivers/media/video/s2255drv.c
+@@ -428,6 +428,10 @@ static const struct s2255_fmt formats[] = {
+         .fourcc = V4L2_PIX_FMT_JPEG,
+         .depth = 24
+     }, {
++        .name = "MJPG",
++        .fourcc = V4L2_PIX_FMT_MJPEG,
++        .depth = 24
++    }, {
+         .name = "8bpp GREY",
+         .fourcc = V4L2_PIX_FMT_GREY,
+         .depth = 8
+@@ -648,6 +652,7 @@ static void s2255_fillbuff(struct s2255_channel *channel,
+             memcpy(vbuf, tmpbuf, buf->vb.width * buf->vb.height);
+             break;
+         case V4L2_PIX_FMT_JPEG:
++        case V4L2_PIX_FMT_MJPEG:
+             buf->vb.size = jpgsize;
+             memcpy(vbuf, tmpbuf, buf->vb.size);
+             break;
+@@ -1032,6 +1037,7 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
+         mode.color |= COLOR_Y8;
+         break;
+     case V4L2_PIX_FMT_JPEG:
++    case V4L2_PIX_FMT_MJPEG:
+         mode.color &= ~MASK_COLOR;
+         mode.color |= COLOR_JPG;
+         mode.color |= (channel->jc.quality << 8);
 -- 
-Lawrence
-
-
+1.7.0.4
