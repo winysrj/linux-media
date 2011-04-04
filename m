@@ -1,90 +1,145 @@
 Return-path: <mchehab@pedra>
-Received: from mail.tu-berlin.de ([130.149.7.33])
-	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <jean.bruenn@ip-minds.de>) id 1PxLLW-0004qJ-OH
-	for linux-dvb@linuxtv.org; Wed, 09 Mar 2011 16:30:43 +0100
-Received: from alia.ip-minds.de ([84.201.38.2])
-	by mail.tu-berlin.de (exim-4.74/mailfrontend-b) with esmtp
-	for <linux-dvb@linuxtv.org>
-	id 1PxLLW-0006kF-7h; Wed, 09 Mar 2011 16:30:42 +0100
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by alia.ip-minds.de (Postfix) with ESMTP id 56EA466B1B9
-	for <linux-dvb@linuxtv.org>; Wed,  9 Mar 2011 16:30:46 +0100 (CET)
-Received: from alia.ip-minds.de ([127.0.0.1])
-	by localhost (alia.ip-minds.de [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id eHUgEA1I46bp for <linux-dvb@linuxtv.org>;
-	Wed,  9 Mar 2011 16:30:46 +0100 (CET)
-Received: from localhost (pD9E1A4FA.dip.t-dialin.net [217.225.164.250])
-	by alia.ip-minds.de (Postfix) with ESMTPA id F3B8966B1B6
-	for <linux-dvb@linuxtv.org>; Wed,  9 Mar 2011 16:30:45 +0100 (CET)
-Date: Wed, 9 Mar 2011 17:30:38 +0100
-From: Jean-Michel Bruenn <jean.bruenn@ip-minds.de>
-To: linux-dvb@linuxtv.org
-Message-Id: <20110309173038.a3be7f23.jean.bruenn@ip-minds.de>
-In-Reply-To: <a8fa184f23be2c90023a3ecf7d6b2017@localhost>
-References: <a8fa184f23be2c90023a3ecf7d6b2017@localhost>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] WinTV 1400 broken with recent versions?
-Reply-To: linux-media@vger.kernel.org
-List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
-List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
-List-Post: <mailto:linux-dvb@linuxtv.org>
-List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
-List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:51243 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751894Ab1DDNbD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2011 09:31:03 -0400
+Received: by pvg12 with SMTP id 12so1348885pvg.19
+        for <linux-media@vger.kernel.org>; Mon, 04 Apr 2011 06:31:02 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <BANLkTikq8Ejdk+J6Layh4xFLVTcqY0EDCg@mail.gmail.com>
+References: <AANLkTimdFVDLLz2o9Fb2OJM2EsJ9R9q-xKAP63g9uSi+@mail.gmail.com>
+	<201103291656.00189.laurent.pinchart@ideasonboard.com>
+	<BANLkTi=+6Xo-sS=sd31mpzzihX0zMGDAPA@mail.gmail.com>
+	<201103301209.17497.laurent.pinchart@ideasonboard.com>
+	<BANLkTikq8Ejdk+J6Layh4xFLVTcqY0EDCg@mail.gmail.com>
+Date: Mon, 4 Apr 2011 15:31:00 +0200
+Message-ID: <BANLkTinnX59_jtwKVfLnbx3cZkwNo2kkrA@mail.gmail.com>
+Subject: Re: OMAP3 ISP outputs 5555 5555 5555 5555 ...
+From: Bastian Hecht <hechtb@googlemail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
+List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
-List-ID: <linux-dvb@linuxtv.org>
 
-nothing?
+2011/3/30 Bastian Hecht <hechtb@googlemail.com>:
+> 2011/3/30 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+>> Hi Bastian,
+>>
+>> On Wednesday 30 March 2011 11:41:44 Bastian Hecht wrote:
+>>> 2011/3/29 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+>>> > On Friday 25 March 2011 13:34:10 Bastian Hecht wrote:
+>>> >> 2011/3/24 Bastian Hecht <hechtb@googlemail.com>:
+>>> >> > 2011/3/24 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+>>> >> >> On Thursday 24 March 2011 10:59:01 Bastian Hecht wrote:
+>>> >> >>> 2011/3/22 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+>>> >> >>> > On Tuesday 22 March 2011 17:11:04 Bastian Hecht wrote:
+>>> >> >>> >> Hello omap isp devs,
+>>> >> >>> >>
+>>> >> >>> >> maybe you can help me, I am a bit desperate with my current cam
+>>> >> >>> >> problem:
+>>> >> >>> >>
+>>> >> >>> >> I use a ov5642 chip and get only 0x55 in my data output when I
+>>> >> >>> >> use a camclk > 1 MHz. With 1 MHz data rate from the camera chip
+>>> >> >>> >> to the omap all works (well the colorspace is strange - it's
+>>> >> >>> >> greenish, but that is not my main concern).
+>>> >> >>> >> I looked up the data on the oscilloscope and all flanks seem to
+>>> >> >>> >> be fine at the isp. Very clear cuts with 4 MHz and 10MHz. Also
+>>> >> >>> >> the data pins are flickering fine. Looks like a picture.
+>>> >> >>> >>
+>>> >> >>> >> I found that the isp stats module uses 0x55 as a magic number but
+>>> >> >>> >> I don't see why it should confuse my readout.
+>>> >> >>> >>
+>>> >> >>> >> I use 2592x1944 raw bayer output via the ccdc. Next to the
+>>> >> >>> >> logical right config I tried all possible configurations of
+>>> >> >>> >> vs/hs active high and low on camera and isp. The isp gets the vs
+>>> >> >>> >> flanks right as the images come out in time (sometimes it misses
+>>> >> >>> >> 1 frame).
+>>> >> >>> >>
+>>> >> >>> >> Anyone of you had this behaviour before?
+>>> >> >>> >
+>>> >> >>> > How do you capture images ? yavta will fill buffers with 0x55
+>>> >> >>> > before queueing them, so this might indicate that no data is
+>>> >> >>> > written to the buffer at all.
+>>> >> >>>
+>>> >> >>> Yes I use yavta. So what does that all mean?
+>>> >> >>
+>>> >> >> It means that the ISP doesn't write data to the buffer. I have no
+>>> >> >> idea why.
+>>> >>
+>>> >> This simple and clear statement directly led me to the problem :)
+>>> >>
+>>> >> There was no cam_wen (write enable) pin on both my camera boards. The
+>>> >> ISP on the other hand is configured by default to expect it. So I only
+>>> >> captured images when my data lanes luckily pulled up the omap wen pin
+>>> >> by induction.
+>>> >>
+>>> >> In ccdc_config_sync_if() I added:
+>>> >>
+>>> >>         /* HACK */
+>>> >>         printk(KERN_ALERT "Disable wen\n");
+>>> >>         syn_mode &= ~ISPCCDC_SYN_MODE_WEN;
+>>> >>
+>>> >> So is this something to add to the platform data? I can prepare my
+>>> >> very first kernel patch :)
+>>> >
+>>> > The WEN bit controls whether the CCDC module writes to memory or not.
+>>> > It's not supposed to interact with the external cam_wen signal. If you
+>>> > clear the WEN bit, the CCDC is supposed not to write data to memory at
+>>> > all.
+>>> >
+>>> > What you might need to check is the EXWEN bit in the same register. It
+>>> > controls whether the CCDC uses the cam_wen signal or not. The EXWEN bit
+>>> > should already be set to zero by the driver though.
+>>> >
+>>> > Does clearing the WEN bit fix your issue ?
+>>>
+>>> Hi Laurent,
+>>>
+>>> As I remember (I currently haven't the datasheet available) the wen signal
+>>> is an input from the camera
+>>
+>> That's correct.
+>>
+>>> and the SYN_MODE_WEN makes check this signal.
+>>
+>> According to the TRM, SYN_MODE_EXWEN control whether the cam_wen signal is
+>> used or not, and SYN_MODE_WEN controls whether the CCDC captures data to
+>> memory or not.
+>>
+>>> Disabling the SYN_MODE_WEN solved my problem and I can reliably read images
+>>> with 24 MHz datarate on the parallel bus. Artefacts are gone that I had
+>>> before with 1 MHz, too.
+>>
+>> If you capture data at the CCDC output, clearing SYN_MODE_WEN is supposed to
+>> disable capture completely. Could you double-check your modifications ?
+> Hi Laurent,
+>
+> I fetched the documentation and see what you mean.Doesn't make much
+> sense. I'll double-check soon.
 
-anyone?
+Hi,
 
-On Wed, 23 Feb 2011 17:02:22 +0100
-<jean.bruenn@ip-minds.de> wrote:
+when I wanted to try out the WEN bit I updated to the newest kernel
+head. It indeed works now whether I disable or enable the
+SYN_MODE_WEN.
+So the error must have been eliminated by other patches in the meantime.
 
-> Hey,
-> 
-> is this driver going to be fixed anytime soon? It was working fine ago a
-> half year/year.
-> 
-> lspci:
-> 06:00.0 Multimedia video controller: Conexant Systems, Inc. CX23885 PCI
-> Video and Audio Decoder (rev 02)
-> 
-> uname -a:
-> Linux lyra 2.6.37.1 #1 SMP PREEMPT Tue Feb 22 13:22:59 CET 2011 x86_64
-> x86_64 x86_64 GNU/Linux
-> 
-> dmesg:
-> xc2028 1-0064: i2c output error: rc = -6 (should be 64)
-> xc2028 1-0064: -6 returned from send
-> xc2028 1-0064: Error -22 while loading base firmware
-> xc2028 1-0064: Loading firmware for type=BASE F8MHZ (3), id
-> 0000000000000000.
-> xc2028 1-0064: i2c output error: rc = -6 (should be 64)
-> xc2028 1-0064: -6 returned from send
-> xc2028 1-0064: Error -22 while loading base firmware
-> xc2028 1-0064: Loading firmware for type=BASE F8MHZ (3), id
-> 0000000000000000.
-> xc2028 1-0064: i2c output error: rc = -6 (should be 64)
-> xc2028 1-0064: -6 returned from send
-> xc2028 1-0064: Error -22 while loading base firmware
-> 
-> nothing works - if i do scan it finds nothing and those messages appear on
-> dmesg. if i try to watch with the channels.conf from my other pc i can play
-> nothing, all i get is those messages above.
-> 
-> MIME
+best regards,
 
--- 
-Jean-Michel Bruenn <jean.bruenn@ip-minds.de>
+ Bastian
 
-_______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+
+> regards,
+>
+>  Bastian
+>
+>
+>
+>> --
+>> Regards,
+>>
+>> Laurent Pinchart
+>>
+>
