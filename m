@@ -1,67 +1,53 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:57376 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751569Ab1DDQv4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2011 12:51:56 -0400
-Received: by eyx24 with SMTP id 24so1772620eyx.19
-        for <linux-media@vger.kernel.org>; Mon, 04 Apr 2011 09:51:55 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <201104041824.43562.smueller@chronox.de>
-References: <201104041824.43562.smueller@chronox.de>
-Date: Mon, 4 Apr 2011 12:51:54 -0400
-Message-ID: <BANLkTin87-qq69fgGC_05jvOr7_1p3Q4hg@mail.gmail.com>
-Subject: Re: [PATCH] cx231xx Hauppauge WinTV 950HD
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Stephan Mueller <smueller@chronox.de>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mail-in-10.arcor-online.net ([151.189.21.50]:33557 "EHLO
+	mail-in-10.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755578Ab1DDUS7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 Apr 2011 16:18:59 -0400
+From: stefan.ringel@arcor.de
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, d.belimov@gmail.com,
+	Stefan Ringel <stefan.ringel@arcor.de>
+Subject: [PATCH 3/5] tm6000: add audio mode parameter
+Date: Mon,  4 Apr 2011 22:18:42 +0200
+Message-Id: <1301948324-27186-3-git-send-email-stefan.ringel@arcor.de>
+In-Reply-To: <1301948324-27186-1-git-send-email-stefan.ringel@arcor.de>
+References: <1301948324-27186-1-git-send-email-stefan.ringel@arcor.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, Apr 4, 2011 at 12:24 PM, Stephan Mueller <smueller@chronox.de> wrote:
-> Hi,
->
-> please apply the attached patch to make the 950HD USB card working.
->
-> Ciao
-> Stephan
->
-> ---
->
-> Hauppauge WinTV 950HD
->
-> Signed-off-by: Stephan Mueller <smueller@chronox.de>
->
-> --- drivers/media/video/cx231xx/cx231xx-cards.c.orig    2011-04-04 18:17:55.245769669 +0200
-> +++ drivers/media/video/cx231xx/cx231xx-cards.c 2011-04-04 15:48:37.257376578 +0200
-> @@ -458,6 +458,8 @@
->         .driver_info = CX231XX_BOARD_CNXT_RDU_250},
->        {USB_DEVICE(0x2040, 0xb120),
->         .driver_info = CX231XX_BOARD_HAUPPAUGE_EXETER},
-> +       {USB_DEVICE(0x2040, 0xb138),
-> +        .driver_info = CX231XX_BOARD_HAUPPAUGE_EXETER},
->        {USB_DEVICE(0x2040, 0xb140),
->         .driver_info = CX231XX_BOARD_HAUPPAUGE_EXETER},
->        {USB_DEVICE(0x2040, 0xc200),
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+From: Stefan Ringel <stefan.ringel@arcor.de>
 
-NACK
+add audio mode parameter
 
-The 2040:b138 is the new variant of the HVR-900, which is a DVB-T
-device that uses a different demodulator (for which there is no driver
-currently).  It needs its own board profile defined, since the
-HAUPPAUGE_EXETER board profile is configured for the lgdt3305 demod.
 
-You can submit a patch which defines a new board profile, sets the
-product name properly, and only supports analog mode (since there is
-no demod driver to reference).
+Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+---
+ drivers/staging/tm6000/tm6000-stds.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
-Devin
-
+diff --git a/drivers/staging/tm6000/tm6000-stds.c b/drivers/staging/tm6000/tm6000-stds.c
+index da3e51b..a9e1921 100644
+--- a/drivers/staging/tm6000/tm6000-stds.c
++++ b/drivers/staging/tm6000/tm6000-stds.c
+@@ -22,12 +22,17 @@
+ #include "tm6000.h"
+ #include "tm6000-regs.h"
+ 
++static unsigned int tm6010_a_mode;
++module_param(tm6010_a_mode, int, 0644);
++MODULE_PARM_DESC(tm6010_a_mode, "set sif audio mode (tm6010 only)");
++
+ struct tm6000_reg_settings {
+ 	unsigned char req;
+ 	unsigned char reg;
+ 	unsigned char value;
+ };
+ 
++/* must be updated */
+ enum tm6000_audio_std {
+ 	BG_NICAM,
+ 	BTSC,
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.7.3.4
+
