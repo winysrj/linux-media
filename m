@@ -1,93 +1,115 @@
 Return-path: <mchehab@pedra>
-Received: from cantor2.suse.de ([195.135.220.15]:43334 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754903Ab1DFRz4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Apr 2011 13:55:56 -0400
-Date: Wed, 6 Apr 2011 10:56:47 -0700
-From: Greg KH <gregkh@suse.de>
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>,
-	Andres Salomon <dilinger@queued.net>,
-	linux-kernel@vger.kernel.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	khali@linux-fr.org, ben-linux@fluff.org,
-	Peter Korsgaard <jacmet@sunsite.dk>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	David Brownell <dbrownell@users.sourceforge.net>,
-	linux-i2c@vger.kernel.org, linux-media@vger.kernel.org,
-	netdev@vger.kernel.org, spi-devel-general@lists.sourceforge.net,
-	Mocean Laboratories <info@mocean-labs.com>
-Subject: Re: [PATCH 07/19] timberdale: mfd_cell is now implicitly available
- to drivers
-Message-ID: <20110406175647.GA8048@suse.de>
-References: <20110401112030.GA3447@sortiz-mobl>
- <20110401104756.2f5c6f7a@debxo>
- <BANLkTi=bCd_+f=EG-O=U5VH_ZNjFhxkziQ@mail.gmail.com>
- <20110401235239.GE29397@sortiz-mobl>
- <BANLkTi=bq=OGzXFp7qiBr7x_BnGOWf=DRQ@mail.gmail.com>
- <20110404100314.GC2751@sortiz-mobl>
- <20110405030428.GB29522@ponder.secretlab.ca>
- <20110406152322.GA2757@sortiz-mobl>
- <20110406155805.GA20095@suse.de>
- <20110406170537.GB2757@sortiz-mobl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20110406170537.GB2757@sortiz-mobl>
+Received: from mailout2.samsung.com ([203.254.224.25]:53759 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754331Ab1DDMUu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2011 08:20:50 -0400
+Received: from epmmp2 (mailout2.samsung.com [203.254.224.25])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LJ4003NPNMOGO90@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 04 Apr 2011 21:20:48 +0900 (KST)
+Received: from NOSUNGCHUNK01 ([12.23.102.212])
+ by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LJ400KN4NMPRM@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 04 Apr 2011 21:20:49 +0900 (KST)
+Date: Mon, 04 Apr 2011 21:20:47 +0900
+From: Sungchun Kang <sungchun.kang@samsung.com>
+Subject: RE: [PATCH] Add support for M-5MOLS 8 Mega Pixel camera
+In-reply-to: <1300282723-31536-1-git-send-email-riverful.kim@samsung.com>
+To: "'Kim, Heungjun'" <riverful.kim@samsung.com>,
+	linux-media@vger.kernel.org
+Reply-to: sungchun.kang@samsung.com
+Message-id: <007901cbf2c2$bb240bb0$316c2310$%kang@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=utf-8
+Content-language: ko
+Content-transfer-encoding: 7BIT
+References: <1300282723-31536-1-git-send-email-riverful.kim@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Apr 06, 2011 at 07:05:38PM +0200, Samuel Ortiz wrote:
-> Hi Greg,
+Hi heungjun,
+I have tested this version for a few days.
+
+On 03/16/2011 10:30 PM, Kim, Heungjun wrote:
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Kim, Heungjun
+> Sent: Wednesday, March 16, 2011 10:39 PM
+> To: linux-media@vger.kernel.org
+> Cc: hverkuil@xs4all.nl; laurent.pinchart@ideasonboard.com; Kim,
+> Heungjun; Sylwester Nawrocki; Kyungmin Park
+> Subject: [PATCH] Add support for M-5MOLS 8 Mega Pixel camera
 > 
-> On Wed, Apr 06, 2011 at 08:58:05AM -0700, Greg KH wrote:
-> > On Wed, Apr 06, 2011 at 05:23:23PM +0200, Samuel Ortiz wrote:
-> > > --- a/include/linux/device.h
-> > > +++ b/include/linux/device.h
-> > > @@ -33,6 +33,7 @@ struct class;
-> > >  struct subsys_private;
-> > >  struct bus_type;
-> > >  struct device_node;
-> > > +struct mfd_cell;
-> > >  
-> > >  struct bus_attribute {
-> > >  	struct attribute	attr;
-> > > @@ -444,6 +445,8 @@ struct device {
-> > >  	struct device_node	*of_node; /* associated device tree node */
-> > >  	const struct of_device_id *of_match; /* matching of_device_id from driver */
-> > >  
-> > > +	struct mfd_cell	*mfd_cell; /* MFD cell pointer */
-> > > +
-> > 
-> > What is a "MFD cell pointer" and why is it needed in struct device?
-> An MFD cell is an MFD instantiated device.
-> MFD (Multi Function Device) drivers instantiate platform devices. Those
-> devices drivers sometimes need a platform data pointer, sometimes an MFD
-> specific pointer, and sometimes both. Also, some of those drivers have been
-> implemented as MFD sub drivers, while others know nothing about MFD and just
-> expect a plain platform_data pointer.
+> Add I2C/V4L2 subdev driver for M-5MOLS camera sensor with integrated
+> image signal processor.
+> 
+> Signed-off-by: Heungjun Kim <riverful.kim@samsung.com>
+> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+> 
+> Hi Hans and everyone,
+> 
+> This is sixth version of M-5MOLS 8 Mega Pixel camera sensor. And, if
+> you see
+> previous version, you can find at:
+> http://www.spinics.net/lists/linux-media/msg29350.html
+> 
+> This driver patch is fixed several times, and the important issues is
+> almost
+> corrected. And, I hope that this is the last version one merged for
+> 2.6.39.
+> I look forward to be reviewed one more time.
+> 
+> The summary of this version's feature is belows:
+> 
+> 1. Add focus control
+> 	: I've suggest menu type focus control, but I agreed this
+> version is
+> 	not yet the level accepted. So, I did not use focus control
+> which
+> 	I suggest.
+> 	The M-5MOLS focus routine takes some time to execute. But, the
+> user
+> 	application calling v4l2 control, should not hanged while
+> streaming
+> 	using q/dqbuf. So, I use workqueue. I want to discuss the focus
+> 	subject on mailnglist next time.
+> 
 
-That sounds like a bug in those drivers, why not fix them to properly
-pass in the correct pointer?
+I wonder this feature is dependent on this firmware version?
 
-> We've been faced with the problem of being able to pass both MFD related data
-> and a platform_data pointer to some of those drivers. Squeezing the MFD bits
-> in the sub driver platform_data pointer doesn't work for drivers that know
-> nothing about MFDs. It also adds an additional dependency on the MFD API to
-> all MFD sub drivers. That prevents any of those drivers to eventually be used
-> as plain platform device drivers.
+.....snip
 
-Then they shouldn't be "plain" platform drivers, that should only be
-reserved for drivers that are the "lowest" type.  Just make them MFD
-devices and go from there.
+> +static int m5mols_start_monitor(struct v4l2_subdev *sd)
+> +{
+> +	struct m5mols_info *info = to_m5mols(sd);
+> +	int ret;
+> +
+> +	ret = m5mols_set_mode(sd, MODE_PARAM);
+> +	if (!ret)
+> +		ret = i2c_w8_param(sd, CAT1_MONITOR_SIZE, info-
+> >res_preset);
+> +	if (!ret)
+> +		ret = i2c_w8_param(sd, CAT1_MONITOR_FPS, info->fps_preset);
+> +	if (!ret)
+> +		ret = m5mols_set_mode(sd, MODE_MONITOR);
+> +	if (!ret && info->do_once) {
+> +		/* After probing the driver, this should be callde once.
+> */
+> +		v4l2_ctrl_handler_setup(&info->handle);
+As test result, When sensor is set monitor mode, if this API is called, 
+Preview data(get from sensor) is craked. Surely, it is good working if this API is called in paramset mode.
+That waw no problem in Version 5. Because it is returned before v4l2_ctrl_handler_init()
+In m5mols_init_controls(version 5) :
+	ret = i2c_r16_ae(sd, CAT3_MAX_GAIN_MON, (u32 *)&max_ex_mon);
+	if (ret) 
+		return ret; // if success, return.
 
-> So, adding an MFD cell pointer to the device structure allows us to cleanly
-> pass both pieces of information, while keeping all the MFD sub drivers
-> independant from the MFD core if they want/can.
+My test case is :
+S_power->s_fmt->s_stream.
 
-They shouldn't be "independant", make them "dependant" and go from
-there.
+.....
+BRs Sungchun.
 
-thanks,
-
-greg k-h
