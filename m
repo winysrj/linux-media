@@ -1,111 +1,53 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:56767 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753053Ab1DEOJG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2011 10:09:06 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Tue, 05 Apr 2011 16:06:50 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 7/7] ARM: EXYNOS4: enable FIMC on Universal_C210
-In-reply-to: <1302012410-17984-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Andrzej Pietrasiwiecz <andrzej.p@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Kukjin Kim <kgene.kim@samsung.com>
-Message-id: <1302012410-17984-8-git-send-email-m.szyprowski@samsung.com>
-References: <1302012410-17984-1-git-send-email-m.szyprowski@samsung.com>
+Received: from cain.gsoft.com.au ([203.31.81.10]:39623 "EHLO cain.gsoft.com.au"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755790Ab1DDW5o convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2011 18:57:44 -0400
+Subject: Re: [linux-dvb] DVICO HDTV Dual Express2
+Mime-Version: 1.0 (Apple Message framework v1084)
+Content-Type: text/plain; charset=us-ascii
+From: "Daniel O'Connor" <darius@dons.net.au>
+In-Reply-To: <BANLkTimBYhq_Ag3nkU1105Em0-AXvMiQbQ@mail.gmail.com>
+Date: Tue, 5 Apr 2011 08:27:03 +0930
+Cc: linux-media@vger.kernel.org
+Content-Transfer-Encoding: 8BIT
+Message-Id: <B6690ADE-0D4F-4E22-8AB2-DB68AD43E749@dons.net.au>
+References: <mailman.466.1301890961.26790.linux-dvb@linuxtv.org> <SNT124-W658C9CDE54575A79B73D6FACA30@phx.gbl> <BANLkTimEtbx6HkqBQLBTc7XX_wEYgs7fJg@mail.gmail.com> <F8BDDD6D-6870-4291-99C9-D8FCABFEEB05@dons.net.au> <BANLkTimBYhq_Ag3nkU1105Em0-AXvMiQbQ@mail.gmail.com>
+To: Vincent McIntyre <vincent.mcintyre@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This patch adds definitions to enable support for s5p-fimc driver
-together with required power domains and sysmmu controller on Universal
-C210 board.
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- arch/arm/mach-exynos4/Kconfig               |    6 ++++++
- arch/arm/mach-exynos4/mach-universal_c210.c |   22 ++++++++++++++++++++++
- 2 files changed, 28 insertions(+), 0 deletions(-)
+On 05/04/2011, at 8:18, Vincent McIntyre wrote:
+> On 4/4/11, Daniel O'Connor <darius@dons.net.au> wrote:
+>> 
+>> I take it you use both tuners? I find I can only use one otherwise one of
+>> them hangs whatever app is using it.
+>> 
+> 
+> I do. I haven't tested very carefully that I can use both tuners at
+> once successfully but I am pretty sure there have been times when both
+> have been running. I only use them with mythtv,
+> unless I am testing something like new v4l modules and in that case I
+> just use one tuner at a time.
+> 
+> The box has two tuner cards, and this one is usually the second one in
+> the enumeration.
 
-diff --git a/arch/arm/mach-exynos4/Kconfig b/arch/arm/mach-exynos4/Kconfig
-index e849f67..544a594 100644
---- a/arch/arm/mach-exynos4/Kconfig
-+++ b/arch/arm/mach-exynos4/Kconfig
-@@ -148,12 +148,18 @@ config MACH_ARMLEX4210
- config MACH_UNIVERSAL_C210
- 	bool "Mobile UNIVERSAL_C210 Board"
- 	select CPU_EXYNOS4210
-+	select S5P_DEV_FIMC0
-+	select S5P_DEV_FIMC1
-+	select S5P_DEV_FIMC2
-+	select S5P_DEV_FIMC3
- 	select S3C_DEV_HSMMC
- 	select S3C_DEV_HSMMC2
- 	select S3C_DEV_HSMMC3
- 	select S3C_DEV_I2C1
- 	select S3C_DEV_I2C5
- 	select S5P_DEV_ONENAND
-+	select EXYNOS4_DEV_PD
-+	select EXYNOS4_DEV_SYSMMU
- 	select EXYNOS4_SETUP_I2C1
- 	select EXYNOS4_SETUP_I2C5
- 	select EXYNOS4_SETUP_SDHCI
-diff --git a/arch/arm/mach-exynos4/mach-universal_c210.c b/arch/arm/mach-exynos4/mach-universal_c210.c
-index 97d329f..7ff2f5f 100644
---- a/arch/arm/mach-exynos4/mach-universal_c210.c
-+++ b/arch/arm/mach-exynos4/mach-universal_c210.c
-@@ -27,9 +27,12 @@
- #include <plat/cpu.h>
- #include <plat/devs.h>
- #include <plat/iic.h>
-+#include <plat/pd.h>
- #include <plat/sdhci.h>
-+#include <plat/sysmmu.h>
- 
- #include <mach/map.h>
-+#include <mach/regs-clock.h>
- 
- /* Following are default values for UCON, ULCON and UFCON UART registers */
- #define UNIVERSAL_UCON_DEFAULT	(S3C2410_UCON_TXILEVEL |	\
-@@ -613,6 +616,15 @@ static struct platform_device *universal_devices[] __initdata = {
- 	&s3c_device_hsmmc2,
- 	&s3c_device_hsmmc3,
- 	&s3c_device_i2c5,
-+	&s5p_device_fimc0,
-+	&s5p_device_fimc1,
-+	&s5p_device_fimc2,
-+	&s5p_device_fimc3,
-+	&exynos4_device_pd[PD_CAM],
-+	&exynos4_device_sysmmu[S5P_SYSMMU_FIMC0],
-+	&exynos4_device_sysmmu[S5P_SYSMMU_FIMC1],
-+	&exynos4_device_sysmmu[S5P_SYSMMU_FIMC2],
-+	&exynos4_device_sysmmu[S5P_SYSMMU_FIMC3],
- 
- 	/* Universal Devices */
- 	&universal_gpio_keys,
-@@ -638,6 +650,16 @@ static void __init universal_machine_init(void)
- 
- 	/* Last */
- 	platform_add_devices(universal_devices, ARRAY_SIZE(universal_devices));
-+
-+	s5p_device_fimc0.dev.parent = &exynos4_device_pd[PD_CAM].dev;
-+	s5p_device_fimc1.dev.parent = &exynos4_device_pd[PD_CAM].dev;
-+	s5p_device_fimc2.dev.parent = &exynos4_device_pd[PD_CAM].dev;
-+	s5p_device_fimc3.dev.parent = &exynos4_device_pd[PD_CAM].dev;
-+	exynos4_device_sysmmu[S5P_SYSMMU_FIMC0].dev.parent = &exynos4_device_pd[PD_CAM].dev;
-+	exynos4_device_sysmmu[S5P_SYSMMU_FIMC1].dev.parent = &exynos4_device_pd[PD_CAM].dev;
-+	exynos4_device_sysmmu[S5P_SYSMMU_FIMC2].dev.parent = &exynos4_device_pd[PD_CAM].dev;
-+	exynos4_device_sysmmu[S5P_SYSMMU_FIMC3].dev.parent = &exynos4_device_pd[PD_CAM].dev;
-+
- }
- 
- MACHINE_START(UNIVERSAL_C210, "UNIVERSAL_C210")
--- 
-1.7.1.569.g6f426
+OK. I only have the one (dual tuner) card but I find that if I enable it mythtv eventually hangs opening one of them.
+
+Perhaps the recent locking changes for that driver will help..
+
+--
+Daniel O'Connor software and network engineer
+for Genesis Software - http://www.gsoft.com.au
+"The nice thing about standards is that there
+are so many of them to choose from."
+  -- Andrew Tanenbaum
+GPG Fingerprint - 5596 B766 97C0 0E94 4347 295E E593 DC20 7B3F CE8C
+
+
+
+
+
+
