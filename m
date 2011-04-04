@@ -1,58 +1,138 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.10]:57326 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751294Ab1DGQms convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Apr 2011 12:42:48 -0400
-Date: Thu, 7 Apr 2011 18:42:45 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PULL] V4L and soc-camera fixes for 2.6.39
-In-Reply-To: <Pine.LNX.4.64.1104071820140.28236@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1104071841040.28236@axis700.grange>
-References: <Pine.LNX.4.64.1104071820140.28236@axis700.grange>
+Received: from fep12.mx.upcmail.net ([62.179.121.32]:50391 "EHLO
+	fep12.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753582Ab1DDCNB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Apr 2011 22:13:01 -0400
+Message-ID: <4D992920.4040400@gmx.at>
+Date: Mon, 04 Apr 2011 04:12:48 +0200
+From: Andreas Huber <hobrom@gmx.at>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: 8BIT
+To: Jonathan Nieder <jrnieder@gmail.com>
+CC: linux-media@vger.kernel.org, Huber Andreas <hobrom@corax.at>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-kernel@vger.kernel.org, andrew.walker27@ntlworld.com,
+	Ben Hutchings <ben@decadent.org.uk>,
+	Trent Piepho <xyzzy@speakeasy.org>,
+	Roland Stoll <dvb.rs@xindex.de>
+Subject: Re: [PATCH 3/3] [media] cx88: use a mutex to protect cx8802_devlist
+References: <20110327150610.4029.95961.reportbug@xen.corax.at> <20110327152810.GA32106@elie> <20110402093856.GA17015@elie> <20110402094451.GD17015@elie> <4D971B8D.4040305@corax.at> <20110402192902.GD20064@elie> <4D978378.7060106@gmx.at>
+In-Reply-To: <4D978378.7060106@gmx.at>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-ehem, let's try again (forgot one more patch):
+I added some printk entries and finally got suspicious output after
 
-The following changes since commit 6221f222c0ebf1acdf7abcf927178f40e1a65e2a:
+rmmod cx88_blackbird ; modprobe cx88_blackbird debug=true
 
-  Linux 2.6.39-rc2 (2011-04-05 18:30:43 -0700)
+[...]
+cx88[0]/2: registered device video3 [mpeg]
+cx88[0]/2-bb: mpeg_open
+[cx88-blackbird.c,mpeg_open(),line 1059] mutex_lock(&dev->core->lock);
+cx88[0]/2-bb: Initialize codec
+[...]
+cx88[0]/2-bb: open dev=video3
+[cx88-blackbird.c,mpeg_open(),line 1103] mutex_unlock(&dev->core->lock); 
+// normal exit
+[...]
+cx88[1]/2: subsystem: 0070:9601, board: Hauppauge WinTV-HVR1300 
+DVB-T/Hybrid MPEG Encoder [card=56]
+[cx88-blackbird.c,mpeg_release(),line 1122] mutex_lock(&dev->core->lock);
+cx88[0] core->active_ref=0
+[cx88-mpeg.c,cx8802_request_release(),line 655]                         
+   // BANG !!!!!!!!!!!!!!! core->active_ref=-1
+[cx88-blackbird.c,mpeg_release(),line 1129] drv->request_release(drv); 
+// drv->core->active_ref=(0->0)
+[cx88-blackbird.c,mpeg_release(),line 1133] 
+mutex_unlock(&dev->core->lock); // normal exit
+cx88[1]/2-bb: cx8802_blackbird_probe
+[...]
 
-are available in the git repository at:
-  git://linuxtv.org/gliakhovetski/v4l-dvb.git 2.6.39-rc1-fixes
+Analyzing this lead me to the conclusion, that a call to mpeg_open() in 
+cx88-blackbird.c
+returns with 0 (= success)
+while not actually having increased the active_ref count.
 
-Guennadi Liakhovetski (8):
-      V4L: fix videobuf2 to correctly identify allocation failures
-      V4L: fix an error message
-      V4L: fix a macro definition
-      V4L: soc-camera: fix a recent multi-camera breakage on sh-mobile
-      V4L: imx074: return a meaningful error code instead of -1
-      V4L: soc-camera: don't dereference I2C client after it has been removed
-      V4L: sh_mobile_csi2: fix module reloading
-      V4L: sh_mobile_ceu_camera: fix typos in documentation
+Here's the relevant code fragment ...
 
-Uwe Kleine-König (1):
-      V4L: mx3_camera: select VIDEOBUF2_DMA_CONTIG instead of VIDEOBUF_DMA_CONTIG
+static int mpeg_open(struct file *file)
+{
+[...]
+     /* Make sure we can acquire the hardware */
+     drv = cx8802_get_driver(dev, CX88_MPEG_BLACKBIRD);      // HOW TO 
+DEAL WITH NULL  ??????
+     if (drv) {
+         err = drv->request_acquire(drv);
+         if(err != 0) {
+             dprintk(1,"%s: Unable to acquire hardware, %d\n", __func__, 
+err);
+             mutex_unlock(&dev->core->lock);
+             return err;
+         }
+     }
+[...]
+     return 0;
+}
 
- Documentation/video4linux/sh_mobile_ceu_camera.txt |    6 +++---
- drivers/media/video/Kconfig                        |    2 +-
- drivers/media/video/imx074.c                       |    2 +-
- drivers/media/video/sh_mobile_ceu_camera.c         |   10 +++++-----
- drivers/media/video/sh_mobile_csi2.c               |   11 +++++++++--
- drivers/media/video/soc_camera.c                   |    7 +++++--
- drivers/media/video/videobuf2-core.c               |    2 +-
- drivers/media/video/videobuf2-dma-contig.c         |    2 +-
- include/media/v4l2-device.h                        |    2 +-
- 9 files changed, 27 insertions(+), 17 deletions(-)
+I suspect, that
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+drv = cx8802_get_driver(dev, CX88_MPEG_BLACKBIRD);
+
+in my case might evaluates to NULL (not normally but during driver 
+initialization!?)
+which then leads to
+
+1) mpeg_open() returns with success
+
+and
+
+2) active_ref count has not been increased
+
+which results in a negative active_ref count later on.
+
+But I might as well be totally wrong.
+
+Andi
+
+On 02.04.2011 22:13, Andreas Huber wrote:
+> Hi Jonathan, thanks for locking into it.
+> I'll try to debug more deeply what's going wrong and keep you up to date.
+> Andi.
+>
+> On 02.04.2011 21:29, Jonathan Nieder wrote:
+>> Hi Andreas,
+>>
+>> (please turn off HTML mail.)
+>> Andreas Huber wrote:
+>>
+>>> There is a reference count bug in the driver code. The driver's
+>>> active_ref count may become negative which leads to unpredictable
+>>> behavior. (mpeg video device inaccessible, etc ...)
+>> Hmm, the patchset didn't touch active_ref handling.
+>>
+>> active_ref was added by v2.6.25-rc3~132^2~7 (V4L/DVB (7194):
+>> cx88-mpeg: Allow concurrent access to cx88-mpeg devices, 2008-02-11)
+>> and relies on three assumptions:
+>>
+>>   * (successful) calls to cx8802_driver::request_acquire are balanced
+>>     with calls to cx8802_driver::request_release;
+>>
+>>   * cx8802_driver::advise_acquire is non-null if and only if
+>>     cx8802_driver::advise_release is (since both are NULL for
+>>     blackbird, non-NULL for dvb);
+>>
+>>   * no data races.
+>>
+>> I suppose it would be more idiomatic to use an atomic_t, but access to
+>> active_ref was previously protected by the BKL and now it is protected
+>> by core->lock.  So it's not clear to me why this doesn't work.
+>>
+>> Any hints?  (e.g., a detailed reproduction recipe, or a log after
+>> adding a printk to find out when exactly active_ref becomes negative)
+>>
+>> Thanks for reporting.
+>> Jonathan
+>
+
