@@ -1,113 +1,45 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:49229 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750807Ab1DEQJn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2011 12:09:43 -0400
-Received: by bwz15 with SMTP id 15so433418bwz.19
-        for <linux-media@vger.kernel.org>; Tue, 05 Apr 2011 09:09:42 -0700 (PDT)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:40370 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753266Ab1DDK07 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2011 06:26:59 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Pawel Osciak <pawel@osciak.com>
+Subject: Re: vb2: stop_streaming() callback redesign
+Date: Mon, 4 Apr 2011 12:27:29 +0200
+Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	s.nawrocki@samsung.com, g.liakhovetski@gmx.de
+References: <1301874670-14833-1-git-send-email-pawel@osciak.com>
+In-Reply-To: <1301874670-14833-1-git-send-email-pawel@osciak.com>
 MIME-Version: 1.0
-In-Reply-To: <1302015521.4529.17.camel@morgan.silverblock.net>
-References: <BANLkTim2MQcHw+T_2g8wSpGkVnOH_OeXzg@mail.gmail.com>
-	<1301922737.5317.7.camel@morgan.silverblock.net>
-	<BANLkTikqBPdr2M8jyY1zmu4TPLsXo0y5Xw@mail.gmail.com>
-	<BANLkTi=dVYRgUbQ5pRySQLptnzaHOMKTqg@mail.gmail.com>
-	<1302015521.4529.17.camel@morgan.silverblock.net>
-Date: Tue, 5 Apr 2011 12:09:40 -0400
-Message-ID: <BANLkTikeOGqcPOTmdGNcgUnJ0xx8qKSphw@mail.gmail.com>
-Subject: Re: HVR-1600 (model 74351 rev F1F5) analog Red Screen
-From: Eric B Munson <emunson@mgebm.net>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>, mchehab@infradead.org,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201104041227.30262.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, Apr 5, 2011 at 10:58 AM, Andy Walls <awalls@md.metrocast.net> wrote:
-> On Mon, 2011-04-04 at 14:36 -0400, Eric B Munson wrote:
->> On Mon, Apr 4, 2011 at 11:16 AM, Eric B Munson <emunson@mgebm.net> wrote:
->> > On Mon, Apr 4, 2011 at 9:12 AM, Andy Walls <awalls@md.metrocast.net> wrote:
->> >> On Mon, 2011-04-04 at 08:20 -0400, Eric B Munson wrote:
->> >>> I the above mentioned capture card and the digital side of the card
->> >>> works well.  However, when I try to get video from the analog side of
->> >>> the card, all I get is a red screen and no sound regardless of channel
->> >>> requested.  This is a problem I see in 2.6.39-rc1 though I typically
->> >>> run the ubuntu 10.10 kernel with the newest drivers built from source.
->> >>>  Is there something in setup or configuration that I may be missing?
->> >>
->> >> Eric,
->> >>
->> >> You are likely missing the last 3 fixes here:
->> >>
->> >> http://git.linuxtv.org/awalls/media_tree.git?a=shortlog;h=refs/heads/cx18_39
->> >>
->> >> (one of which is critical for analog to work).
->> >>
->> >> Also check the ivtv-users and ivtv-devel list for past discussions on
->> >> the "red screen" showing up for known well supported models and what to
->> >> try.
->> >>
->> > Thanks, I will try hand applying these.
->> >
->>
->> I don't have a red screen anymore, now all get from analog static and
->> mythtv's digital channel scanner now seems broken.
->
-> Hmmm.
->
-> 1. Please provide the output of dmesg when the cx18 driver loads.
->
-> 2. Please provide the output of v4l2-ctl -d /dev/video0 --log status
-> when tuned to an analog channel.
->
-> 3. Please provide the relevant portion of the mythbackend log where
-> where the digital scanner starts and then fails.
->
-> 4. Does digital tuning still work in MythTV despite the digital scanner
-> not working?
->
-> 5. Please don't use MythTV to troubleshoot; it is too complex to
-> properly eliminate variables.  Test digital with the dvb utilities
-> described here:
->
-> http://www.linuxtv.org/wiki/index.php/LinuxTV_dvb-apps
-> http://www.linuxtv.org/wiki/index.php/Testing_your_DVB_device
->
-> Once I have a channels.conf file made, I usually use azap (ATSC) and
-> femon to check that I can tune to a digital channel and get a lock.
-> Then I use mplayer to check that the content is viewable.
->
->
-> The things that spring to mind that could be wrong:
->
-> 1. I didn't check that digital still worked when I added my analog
-> changes.  Shame on me, but honestly they *shouldn't* have broken it.
-> (Famous last words...)
->
-> 2. The tda8290 driver module for the new analog demodulator had an I2C
-> address bug introduced recently (hardcoded to the wrong address in
-> tda8290 module), but a fix was also applied recently.  You may have the
-> bug, but not the fix.
->
-> 3. The new HVR-1600 has a worldwide analog tuner that the cx18 driver
-> defaults to NTSC-M.  If you use another analog standard, you will need
-> to use v4l2-ctl to set the proper standard (PAL-B/G/H/I, SECAM-L/L',
-> etc.)
->
->
-> (Be advised, I have no time to look at any of this at the moment. The
-> soonest would be 11 April.)
->
-> Regards,
-> Andy
->
+Hi Pawel,
 
-No worries on the April 11 date, hard to get upset over the scheduling
-of free help :)
+On Monday 04 April 2011 01:51:05 Pawel Osciak wrote:
+> Hi,
+> 
+> This series implements a slight redesign of the stop_streaming() callback
+> in vb2. The callback has been made obligatory. The drivers are expected to
+> finish all hardware operations and cede ownership of all buffers before
+> returning, but are not required to call vb2_buffer_done() for any of them.
+> The return value from this callback has also been removed.
 
-I will fetch everything that you requested and make sure to post it
-before the 11th.
+What's the rationale behind this patch set ? I've always been against vb2 
+controlling the stream state (vb2 should handle buffer management only in my 
+opinion) and I'd like to understand why you want to make it required.
 
-Thanks for your help.
-Eric
+I plan to use vb2 in the uvcvideo driver (when vb2 will provide a way to 
+handle device disconnection), and uvcvideo will stop the stream before calling 
+vb2_queue_release() and vb2_streamoff(). Would will I need a stop_stream 
+operation ?
+
+-- 
+Regards,
+
+Laurent Pinchart
