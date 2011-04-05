@@ -1,38 +1,107 @@
 Return-path: <mchehab@pedra>
-Received: from queueout02-winn.ispmail.ntl.com ([81.103.221.56]:45462 "EHLO
-	queueout02-winn.ispmail.ntl.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760994Ab1D2WFo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Apr 2011 18:05:44 -0400
-From: Daniel Drake <dsd@laptop.org>
-To: corbet@lwn.net
-To: mchehab@infradead.org
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH] [media] via-camera: add MODULE_ALIAS
-Message-Id: <20110429214501.7AAD39D401D@zog.reactivated.net>
-Date: Fri, 29 Apr 2011 22:45:01 +0100 (BST)
+Received: from smtp.nokia.com ([147.243.1.48]:62562 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750920Ab1DELVR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 Apr 2011 07:21:17 -0400
+Message-ID: <4D9AFB1F.7020107@nokia.com>
+Date: Tue, 05 Apr 2011 14:21:03 +0300
+From: Sakari Ailus <sakari.ailus@nokia.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Nayden Kanchev <nkanchev@mm-sol.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Cohen David Abraham <david.cohen@nokia.com>
+Subject: Re: [RFC] V4L2 API for flash devices
+References: <4D90854C.2000802@maxwell.research.nokia.com> <4D9438AD.7040405@maxwell.research.nokia.com> <4D9AEDB7.8040601@nokia.com> <201104051239.05167.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201104051239.05167.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This fixes autoloading of the module.
+Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> On Tuesday 05 April 2011 12:23:51 Sakari Ailus wrote:
+>> Sakari Ailus wrote:
+>>> Laurent Pinchart wrote:
+>>>> On Wednesday 30 March 2011 13:05:54 Sakari Ailus wrote:
+>>>>> Laurent Pinchart wrote:
+>>>>>> On Monday 28 March 2011 14:55:40 Sakari Ailus wrote:
+>>>>>>
+>>>>>> [snip]
+>>>>>>
+>>>>>>> 	V4L2_CID_FLASH_STROBE_MODE (menu; LED)
+>>>>>>>
+>>>>>>> Use hardware or software strobe. If hardware strobe is selected, the
+>>>>>>> flash controller is a slave in the system where the sensor produces
+>>>>>>> the strobe signal to the flash.
+>>>>>>>
+>>>>>>> In this case the flash controller setup is limited to programming
+>>>>>>> strobe timeout and power (LED flash) and the sensor controls the
+>>>>>>> timing and length of the strobe.
+>>>>>>>
+>>>>>>> enum v4l2_flash_strobe_mode {
+>>>>>>>
+>>>>>>> 	V4L2_FLASH_STROBE_MODE_SOFTWARE,
+>>>>>>> 	V4L2_FLASH_STROBE_MODE_EXT_STROBE,
+>>>>>>>
+>>>>>>> };
+>>>>>>
+>>>>>> [snip]
+>>>>>>
+>>>>>>> 	V4L2_CID_FLASH_LED_MODE (menu; LED)
+>>>>>>>
+>>>>>>> enum v4l2_flash_led_mode {
+>>>>>>>
+>>>>>>> 	V4L2_FLASH_LED_MODE_FLASH = 1,
+>>>>>>> 	V4L2_FLASH_LED_MODE_TORCH,
+>>>>>>>
+>>>>>>> };
+>>>>>>
+>>>>>> Thinking about this some more, shouldn't we combine the two controls ?
+>>>>>> They are basically used to configure how the flash LED is controlled:
+>>>>>> manually (torch mode), automatically by the flash controller (software
+>>>>>> strobe mode) or automatically by an external component (external
+>>>>>> strobe mode).
+>>>>>
+>>>>> That's a good question.
+>>>>>
+>>>>> The adp1653 supports also additional control (not implemented in the
+>>>>> driver, though) that affect hardware strobe length. Based on register
+>>>>> setting, the led will be on after strobe either until the timeout
+>>>>> expires, or until the strobe signal is high.
+>>>>>
+>>>>> Should this be also part of the same control, or a different one?
+>>>>
+>>>> That can be controlled by a duration control. If the duration is 0, the
+>>>> flash is lit for the duration of the external strobe, otherwise it's
+>>>> lit for the programmed duration.
+>>>
+>>> Sounds good to me.
+>>
+>> Thinking about this again; there won't be a separate duration control
+> 
+> Why not ? I think we need two timeouts, a watchdog timeout to prevent flash 
+> fire or meltdown, and a normal timeout to lit the flash for a user-selected 
+> duration.
 
-Signed-off-by: Daniel Drake <dsd@laptop.org>
----
- drivers/media/video/via-camera.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+Let's assume that an application wants to expose a frame using flash
+with software strobe.
 
-diff --git a/drivers/media/video/via-camera.c b/drivers/media/video/via-camera.c
-index 8c780c2..85d3048 100644
---- a/drivers/media/video/via-camera.c
-+++ b/drivers/media/video/via-camera.c
-@@ -29,6 +29,7 @@
- 
- #include "via-camera.h"
- 
-+MODULE_ALIAS("platform:viafb-camera");
- MODULE_AUTHOR("Jonathan Corbet <corbet@lwn.net>");
- MODULE_DESCRIPTION("VIA framebuffer-based camera controller driver");
- MODULE_LICENSE("GPL");
+1. strobe flash
+2. qbuf
+3. streamon
+4. dqbuf
+5. streamoff
+6. ...
+
+How does an application know how long is the time between 1 -- 4? I'd
+guess that in 6 the application would like to switch off the flash
+instead of specifying a timeout for it.
+
 -- 
-1.7.4.4
-
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
