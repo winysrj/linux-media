@@ -1,40 +1,45 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:37427 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752110Ab1DLAFO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Apr 2011 20:05:14 -0400
-Received: by qwk3 with SMTP id 3so3589058qwk.19
-        for <linux-media@vger.kernel.org>; Mon, 11 Apr 2011 17:05:13 -0700 (PDT)
-MIME-Version: 1.0
-Date: Tue, 12 Apr 2011 05:35:13 +0530
-Message-ID: <BANLkTimK36=qHyd1py92Sf8t_79GqXAnng@mail.gmail.com>
-Subject: Re - pinnacle pctv 110i remote not detected in ubuntu natty 11.04
-From: Rajeev Nair <rajeev1204@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from cantor.suse.de ([195.135.220.2]:44457 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754138Ab1DEO7h (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 Apr 2011 10:59:37 -0400
+From: Michal Marek <mmarek@suse.cz>
+To: linux-kbuild@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 14/34] media/cx231xx: Drop __TIME__ usage
+Date: Tue,  5 Apr 2011 16:59:01 +0200
+Message-Id: <1302015561-21047-15-git-send-email-mmarek@suse.cz>
+In-Reply-To: <1302015561-21047-1-git-send-email-mmarek@suse.cz>
+References: <1302015561-21047-1-git-send-email-mmarek@suse.cz>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi everyone
+The kernel already prints its build timestamp during boot, no need to
+repeat it in random drivers and produce different object files each
+time.
 
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+Signed-off-by: Michal Marek <mmarek@suse.cz>
+---
+ drivers/media/video/cx231xx/cx231xx-avcore.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-My remote which used to work with older versions of ubuntu now wont
-work with the new natty 11.04.
+diff --git a/drivers/media/video/cx231xx/cx231xx-avcore.c b/drivers/media/video/cx231xx/cx231xx-avcore.c
+index c53e972..ff5cb50 100644
+--- a/drivers/media/video/cx231xx/cx231xx-avcore.c
++++ b/drivers/media/video/cx231xx/cx231xx-avcore.c
+@@ -1356,7 +1356,7 @@ void cx231xx_dump_SC_reg(struct cx231xx *dev)
+ {
+ 	u8 value[4] = { 0, 0, 0, 0 };
+ 	int status = 0;
+-	cx231xx_info("cx231xx_dump_SC_reg %s!\n", __TIME__);
++	cx231xx_info("cx231xx_dump_SC_reg!\n");
+ 
+ 	status = cx231xx_read_ctrl_reg(dev, VRT_GET_REGISTER, BOARD_CFG_STAT,
+ 				 value, 4);
+-- 
+1.7.4.1
 
-It used to be detected in /proc/bus/input/devices as input 5 but now i
-see no such entry.
-
-Is it because of move from hal to udev in new ubuntu .
-
-Please let me know what info you require.I have filed a bug on
-launchpad also.
-https://bugs.launchpad.net/ubuntu/+source/udev/+bug/748284
-
-
-Any help is appreciated.
-
-
-warm regards
-
-rajeev
