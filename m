@@ -1,67 +1,99 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:38086 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752914Ab1DVJAa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Apr 2011 05:00:30 -0400
-Received: by wya21 with SMTP id 21so316042wya.19
-        for <linux-media@vger.kernel.org>; Fri, 22 Apr 2011 02:00:29 -0700 (PDT)
-Subject: [PATCH] IX2505V Keep I2C gate control alive.
-From: Malcolm Priestley <tvboxspy@gmail.com>
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:34237 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752460Ab1DED3q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2011 23:29:46 -0400
+Date: Mon, 4 Apr 2011 22:29:40 -0500
+From: Jonathan Nieder <jrnieder@gmail.com>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Date: Fri, 22 Apr 2011 10:00:22 +0100
-Message-ID: <1303462822.2525.2.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Cc: Huber Andreas <hobrom@corax.at>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-kernel@vger.kernel.org, Ben Hutchings <ben@decadent.org.uk>,
+	Steven Toth <stoth@kernellabs.com>
+Subject: [PATCH 5/7] [media] cx88: gracefully reject attempts to use
+ unregistered cx88-blackbird driver
+Message-ID: <20110405032939.GF4498@elie>
+References: <20110327150610.4029.95961.reportbug@xen.corax.at>
+ <20110327152810.GA32106@elie>
+ <20110402093856.GA17015@elie>
+ <20110405032014.GA4498@elie>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20110405032014.GA4498@elie>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Gate could close after first I2C message. On stv0288 it does.
- Keep 2nd and 3rd message I2C gate control alive.
- Remove unnecessary gate closing in this module.
- Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+It should not be possible to enter mpeg_open and acquire core->lock
+without the blackbird driver being registered, so just error out if it
+is not.  This makes the code more readable and should prevent the bug
+fixed by the patch "hold device lock during sub-driver initialization"
+from resurfacing again.
 
+Similarly, if we enter mpeg_release and acquire core->lock then either
+the blackbird driver is registered (since open files keep it loaded)
+or the sysadmin forced the driver's removal.  In the latter case the
+state will be inconsistent and this is worth a loud warning.
+
+Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
 ---
- drivers/media/dvb/frontends/ix2505v.c |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
+ drivers/media/video/cx88/cx88-blackbird.c |   25 ++++++++++++++-----------
+ 1 files changed, 14 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/media/dvb/frontends/ix2505v.c b/drivers/media/dvb/frontends/ix2505v.c
-index 6c2e929..9a517a4 100644
---- a/drivers/media/dvb/frontends/ix2505v.c
-+++ b/drivers/media/dvb/frontends/ix2505v.c
-@@ -218,11 +218,13 @@ static int ix2505v_set_params(struct dvb_frontend *fe,
- 		fe->ops.i2c_gate_ctrl(fe, 1);
+diff --git a/drivers/media/video/cx88/cx88-blackbird.c b/drivers/media/video/cx88/cx88-blackbird.c
+index f637d34..fa8e347 100644
+--- a/drivers/media/video/cx88/cx88-blackbird.c
++++ b/drivers/media/video/cx88/cx88-blackbird.c
+@@ -1060,18 +1060,21 @@ static int mpeg_open(struct file *file)
  
- 	len = sizeof(data);
--
- 	ret |= ix2505v_write(state, data, len);
- 
- 	data[2] |= 0x4; /* set TM = 1 other bits same */
- 
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 1);
+ 	/* Make sure we can acquire the hardware */
+ 	drv = cx8802_get_driver(dev, CX88_MPEG_BLACKBIRD);
+-	if (drv) {
+-		err = drv->request_acquire(drv);
+-		if(err != 0) {
+-			dprintk(1,"%s: Unable to acquire hardware, %d\n", __func__, err);
+-			mutex_unlock(&dev->core->lock);
+-			return err;
+-		}
++	if (!drv) {
++		dprintk(1, "%s: blackbird driver is not loaded\n", __func__);
++		mutex_unlock(&dev->core->lock);
++		return -ENODEV;
++	}
 +
- 	len = 1;
- 	ret |= ix2505v_write(state, &data[2], len); /* write byte 4 only */
++	err = drv->request_acquire(drv);
++	if (err != 0) {
++		dprintk(1,"%s: Unable to acquire hardware, %d\n", __func__, err);
++		mutex_unlock(&dev->core->lock);
++		return err;
+ 	}
  
-@@ -233,12 +235,12 @@ static int ix2505v_set_params(struct dvb_frontend *fe,
+ 	if (!atomic_read(&dev->core->mpeg_users) && blackbird_initialize_codec(dev) < 0) {
+-		if (drv)
+-			drv->request_release(drv);
++		drv->request_release(drv);
+ 		mutex_unlock(&dev->core->lock);
+ 		return -EINVAL;
+ 	}
+@@ -1080,8 +1083,7 @@ static int mpeg_open(struct file *file)
+ 	/* allocate + initialize per filehandle data */
+ 	fh = kzalloc(sizeof(*fh),GFP_KERNEL);
+ 	if (NULL == fh) {
+-		if (drv)
+-			drv->request_release(drv);
++		drv->request_release(drv);
+ 		mutex_unlock(&dev->core->lock);
+ 		return -ENOMEM;
+ 	}
+@@ -1125,6 +1127,7 @@ static int mpeg_release(struct file *file)
  
- 	deb_info("Data 2=[%x%x]\n", data[2], data[3]);
- 
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 1);
-+
- 	len = 2;
- 	ret |= ix2505v_write(state, &data[2], len); /* write byte 4 & 5 */
- 
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 0);
--
- 	if (state->config->min_delay_ms)
- 		msleep(state->config->min_delay_ms);
+ 	/* Make sure we release the hardware */
+ 	drv = cx8802_get_driver(dev, CX88_MPEG_BLACKBIRD);
++	WARN_ON(!drv);
+ 	if (drv)
+ 		drv->request_release(drv);
  
 -- 
-1.7.4.1
-
+1.7.5.rc0
 
