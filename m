@@ -1,40 +1,90 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:57052 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752673Ab1DLLi3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Apr 2011 07:38:29 -0400
-Received: by bwz15 with SMTP id 15so5277883bwz.19
-        for <linux-media@vger.kernel.org>; Tue, 12 Apr 2011 04:38:27 -0700 (PDT)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57702 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751645Ab1DEMz4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2011 08:55:56 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH/RFC 1/4] V4L: add three new ioctl()s for multi-size videobuffer management
+Date: Tue, 5 Apr 2011 14:56:29 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <Pine.LNX.4.64.1104010959470.9530@axis700.grange> <201104051359.18879.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1104051425030.14419@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1104051425030.14419@axis700.grange>
 MIME-Version: 1.0
-Date: Mon, 11 Apr 2011 23:38:27 -1200
-Message-ID: <BANLkTimfop0KEM=msAGcoZwVm88Qgx_HDA@mail.gmail.com>
-Subject: Re: [PATCH] tm6000: fix vbuf may be used uninitialized (Dmitri please read)
-From: Dan Carpenter <error27@gmail.com>
-To: Jarod Wilson <jarod@wilsonet.com>,
-	Dmitri Belimov <d.belimov@gmail.com>
-Cc: Jarod Wilson <jarod@redhat.com>, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201104051456.29434.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 4/11/11, Jarod Wilson <jarod@wilsonet.com> wrote:
-> So I was just circling back around on this one, and took some time to read
-> the actual code and the radio support addition. After doing so, I don't
-> see why the patch I proposed wouldn't do. The buffer is only manipulated
-> if !dev->radio or if vbuf is non-NULL (the memcpy call). If its initialized
-> to NULL, it only gets used exactly as it did before 8aff8ba9 when
-> !dev->radio, and if its not been used or its NULL following manipulations
-> protected by !dev->radio, it doesn't get copied. What is the "real bug" I
-> am missing there? (Or did I already miss a patch posted to linux-media
-> addressing it?)
->
+Hi Guennadi,
 
-My laptop was stolen so I can't review code for the next couple weeks.
+On Tuesday 05 April 2011 14:39:19 Guennadi Liakhovetski wrote:
+> On Tue, 5 Apr 2011, Laurent Pinchart wrote:
+> > On Friday 01 April 2011 10:13:02 Guennadi Liakhovetski wrote:
+> > > A possibility to preallocate and initialise buffers of different sizes
+> > > in V4L2 is required for an efficient implementation of asnapshot mode.
+> > > This patch adds three new ioctl()s: VIDIOC_CREATE_BUFS,
+> > > VIDIOC_DESTROY_BUFS, and VIDIOC_SUBMIT_BUF and defines respective data
+> > > structures.
 
-I remember that I thought your patch looked correct, but I was hoping that
-Dmitri would Ack it.
+[snip]
 
-regards,
-dan carpenter
+> > > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> > > index aa6c393..b6ef46e 100644
+> > > --- a/include/linux/videodev2.h
+> > > +++ b/include/linux/videodev2.h
+> > > @@ -1847,6 +1847,26 @@ struct v4l2_dbg_chip_ident {
+
+[snip]
+
+> > > +/* struct v4l2_createbuffers::flags */
+> > > +#define V4L2_BUFFER_FLAG_NO_CACHE_INVALIDATE	(1 << 0)
+> > 
+> > Shouldn't cache management be handled at submit/qbuf time instead of
+> > being a buffer property ?
+> 
+> hmm, I'd prefer fixing it at create. Or do you want to be able to create
+> buffers and then submit / queue them with different flags?...
+
+That's the idea, yes. I'm not sure yet how useful that would be though.
+
+[snip]
+
+> > > +
+> > > 
+> > >  /*
+> > >  
+> > >   *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
+> > >   *
+> > > 
+> > > @@ -1937,6 +1957,10 @@ struct v4l2_dbg_chip_ident {
+> > > 
+> > >  #define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct
+> > > 
+> > > v4l2_event_subscription) #define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 91,
+> > > struct v4l2_event_subscription)
+> > > 
+> > > +#define VIDIOC_CREATE_BUFS	_IOWR('V', 92, struct v4l2_create_buffers)
+> > > +#define VIDIOC_DESTROY_BUFS	_IOWR('V', 93, struct v4l2_buffer_span)
+> > 
+> > Just throwing an idea in here, what about using the same structure for
+> > both ioctls ? Or even a single ioctl for both create and destroy, like
+> > we do with REQBUFS ?
+> 
+> Personally, tbh, I don't like either of them. The first one seems an
+> overkill - you don't need all those fields for destroy. The second one is
+> a particular case of the first one, plus it adds confusion by re-using the
+> ioctl:-) Where with REQBUFS we could just set count = 0 to say - release
+> all buffers, with this one we need index and count, so, we'd need one more
+> flag to distinguish between create / destroy...
+
+OK, idea dismissed :-)
+
+-- 
+Regards,
+
+Laurent Pinchart
