@@ -1,95 +1,82 @@
 Return-path: <mchehab@pedra>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:51230 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755591Ab1DDX32 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2011 19:29:28 -0400
-Received: by vxi39 with SMTP id 39so4564259vxi.19
-        for <linux-media@vger.kernel.org>; Mon, 04 Apr 2011 16:29:27 -0700 (PDT)
+Received: from moutng.kundenserver.de ([212.227.17.9]:49423 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751762Ab1DENB3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2011 09:01:29 -0400
+Date: Tue, 5 Apr 2011 15:01:18 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH/RFC 2/4 v2] V4L: add videobuf2 helper functions to support
+ multi-size video-buffers
+In-Reply-To: <201104051438.04072.laurent.pinchart@ideasonboard.com>
+Message-ID: <Pine.LNX.4.64.1104051459050.14419@axis700.grange>
+References: <Pine.LNX.4.64.1104010959470.9530@axis700.grange>
+ <Pine.LNX.4.64.1104011011220.9530@axis700.grange>
+ <Pine.LNX.4.64.1104011604360.11504@axis700.grange>
+ <201104051438.04072.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-In-Reply-To: <B6690ADE-0D4F-4E22-8AB2-DB68AD43E749@dons.net.au>
-References: <mailman.466.1301890961.26790.linux-dvb@linuxtv.org>
-	<SNT124-W658C9CDE54575A79B73D6FACA30@phx.gbl>
-	<BANLkTimEtbx6HkqBQLBTc7XX_wEYgs7fJg@mail.gmail.com>
-	<F8BDDD6D-6870-4291-99C9-D8FCABFEEB05@dons.net.au>
-	<BANLkTimBYhq_Ag3nkU1105Em0-AXvMiQbQ@mail.gmail.com>
-	<B6690ADE-0D4F-4E22-8AB2-DB68AD43E749@dons.net.au>
-Date: Tue, 5 Apr 2011 09:29:27 +1000
-Message-ID: <BANLkTinkRdq4=5tHYvCfvsKAisnq=Xt00Q@mail.gmail.com>
-Subject: Re: [linux-dvb] DVICO HDTV Dual Express2
-From: Nathan Stitt <nathan.j.stitt@gmail.com>
-To: "Daniel O'Connor" <darius@dons.net.au>
-Cc: Vincent McIntyre <vincent.mcintyre@gmail.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-I have this card.
+On Tue, 5 Apr 2011, Laurent Pinchart wrote:
 
-It had been working fine on 2.6.32 kernels, even using both tuners.
-Only complaint was that the stream from one transponder was always
-rubbish (but that channel had rubbish shows mostly anyway, so, meh).
+> Hi Guennadi,
+> 
+> On Friday 01 April 2011 16:06:42 Guennadi Liakhovetski wrote:
+> > This patch extends the videobuf2 framework with new helper functions and
+> > modifies existing ones to support multi-size video-buffers.
+> 
+> [snip]
+> 
+> > diff --git a/include/media/videobuf2-core.h
+> > b/include/media/videobuf2-core.h index f87472a..88076fc 100644
+> > --- a/include/media/videobuf2-core.h
+> > +++ b/include/media/videobuf2-core.h
+> > @@ -177,6 +177,10 @@ struct vb2_buffer {
+> >   *			plane should be set in the sizes[] array and optional
+> >   *			per-plane allocator specific context in alloc_ctxs[]
+> >   *			array
+> > + * @queue_add:		like above, but called from VIDIOC_CREATE_BUFS, but if
+> > + *			there are already buffers on the queue, it won't replace
+> > + *			them, but add new ones, possibly with a different format
+> > + *			and plane sizes
+> 
+> I don't think drivers will need to perform different operations in queue_setup 
+> and queue_add. You could merge the two operations.
 
-Upgrading to a 2.6.35 kernel in an attempt to have a newly added card
-supported, seems to have fixed that problem.
+In principle yes. That's also what I ended up doing internally in the 
+sh-mobile driver. Would have to change existing drivers then...
 
-However now if both tuners are in use, with one of them on another
-particular transponder (different to the previous problematic one),
-the recordings fail, with mythtv saying:
+> >   * @wait_prepare:	release any locks taken while calling vb2 functions;
+> >   *			it is called before an ioctl needs to wait for a new
+> >   *			buffer to arrive; required to avoid a deadlock in
+> > @@ -194,6 +198,8 @@ struct vb2_buffer {
+> >   *			each hardware operation in this callback;
+> >   *			if an error is returned, the buffer will not be queued
+> >   *			in driver; optional
+> > + * @buf_submit:		called primarily to invalidate buffer caches for faster
+> > + *			consequent queuing; optional
+> 
+> What's the difference between buf_submit and buf_prepare ?
 
-2011-04-03 19:56:53.271 DVBRec(10:/dev/dvb/adapter3/frontend0) Error:
-Stream handler died unexpectedly.
-2011-04-03 19:56:53.272 DVBRec(7:/dev/dvb/adapter2/frontend0) Error:
-Stream handler died unexpectedly.
+My confusion;) Clarified this with Hans too already.
 
-/var/log/messages doesn't say anything about this card around that time.
+> >   * @buf_finish:		called before every dequeue of the buffer back to
+> >   *			userspace; drivers may perform any operations required
+> >   *			before userspace accesses the buffer; optional
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
 
-If only one of the tuners on the card is recording from that
-transponder, it works fine. It only fails when both tuners are in use.
-It doesn't matter whether the problematic transponder was tuned
-before, simultaneously or after the other.
-
-I've since started running with the latest v4l releases, however the
-problem remains.
-
-On 5 April 2011 08:57, Daniel O'Connor <darius@dons.net.au> wrote:
->
-> On 05/04/2011, at 8:18, Vincent McIntyre wrote:
->> On 4/4/11, Daniel O'Connor <darius@dons.net.au> wrote:
->>>
->>> I take it you use both tuners? I find I can only use one otherwise one of
->>> them hangs whatever app is using it.
->>>
->>
->> I do. I haven't tested very carefully that I can use both tuners at
->> once successfully but I am pretty sure there have been times when both
->> have been running. I only use them with mythtv,
->> unless I am testing something like new v4l modules and in that case I
->> just use one tuner at a time.
->>
->> The box has two tuner cards, and this one is usually the second one in
->> the enumeration.
->
-> OK. I only have the one (dual tuner) card but I find that if I enable it mythtv eventually hangs opening one of them.
->
-> Perhaps the recent locking changes for that driver will help..
->
-> --
-> Daniel O'Connor software and network engineer
-> for Genesis Software - http://www.gsoft.com.au
-> "The nice thing about standards is that there
-> are so many of them to choose from."
->  -- Andrew Tanenbaum
-> GPG Fingerprint - 5596 B766 97C0 0E94 4347 295E E593 DC20 7B3F CE8C
->
->
->
->
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
