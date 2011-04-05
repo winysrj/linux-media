@@ -1,78 +1,71 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:43018 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752470Ab1DEH5L (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2011 03:57:11 -0400
-Received: from localhost.localdomain (unknown [91.178.236.143])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id EAF0435994
-	for <linux-media@vger.kernel.org>; Tue,  5 Apr 2011 07:57:09 +0000 (UTC)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from cmsout02.mbox.net ([165.212.64.32]:55527 "EHLO
+	cmsout02.mbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750940Ab1DEVvZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2011 17:51:25 -0400
+Received: from cmsout02.mbox.net (co02-lo [127.0.0.1])
+	by cmsout02.mbox.net (Postfix) with ESMTP id 5D09F134502
+	for <linux-media@vger.kernel.org>; Tue,  5 Apr 2011 21:51:25 +0000 (GMT)
+Message-ID: <4D9B8EC2.1030303@usa.net>
+Date: Tue, 05 Apr 2011 23:50:58 +0200
+From: Issa Gorissen <flop.m@usa.net>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Subject: [PATCH 00/14] OMAP3 ISP and media controller patches for 2.6.39
-Date: Tue,  5 Apr 2011 09:57:22 +0200
-Message-Id: <1301990256-6963-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH] Ngene cam device name
+References: <777PcLohh6368S03.1299940473@web03.cms.usa.net> <4D7B8A07.70602@linuxtv.org> <19855.55774.192407.326483@morden.metzler> <201103290057.03664@orion.escape-edv.de>
+In-Reply-To: <201103290057.03664@orion.escape-edv.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi everybody,
+Hello all,
 
-Here's a set of OMAP3 ISP patches for 2.6.39, including two media controller
-patches and a V4L2 core patch.
+Here is the patch for the NGene card family and the new caio device
 
-Most of those patches fix code and documentation. Patches 10/14 to 13/14
-implement lane shifter support in the OMAP3 ISP driver. That's a new feature,
-but there's no risk of regression from 2.6.38 as the OMAP3 ISP driver has been
-merged into 2.6.39-r1.
+Signed-off-by: Issa Gorissen <flop.m@usa.net>
+---
+ drivers/media/dvb/dvb-core/dvbdev.c  |    2 +-
+ drivers/media/dvb/dvb-core/dvbdev.h  |    1 +
+ drivers/media/dvb/ngene/ngene-core.c |    2 +-
+ 3 files changed, 3 insertions(+), 2 deletions(-)
 
-I'll send a pull request at the end of the week if there's no comment on the
-patches.
-
-David Cohen (1):
-  omap3isp: stat: update struct ispstat_generic_config's comments
-
-Laurent Pinchart (6):
-  media: Use correct ioctl name in MEDIA_IOC_SETUP_LINK documentation
-  omap3isp: resizer: Center the crop rectangle
-  omap3isp: resizer: Use 4-tap mode equations when the ratio is <= 512
-  media: Properly handle link flags in link setup, link notify callback
-  omap3isp: isp: Reset the ISP when the pipeline can't be stopped
-  omap3isp: Don't increment node entity use count when poweron fails
-
-Michael Jones (5):
-  omap3isp: Fix trivial typos
-  v4l: add V4L2_PIX_FMT_Y12 format
-  media: add missing 8-bit bayer formats and Y12
-  omap3isp: ccdc: support Y10/12, 8-bit bayer fmts
-  omap3isp: lane shifter support
-
-Sakari Ailus (1):
-  omap3isp: resizer: Improved resizer rsz factor formula
-
-Stanimir Varbanov (1):
-  omap3isp: Use isp xclk defines
-
- Documentation/DocBook/media-entities.tmpl          |    1 +
- Documentation/DocBook/v4l/media-ioc-setup-link.xml |    2 +-
- Documentation/DocBook/v4l/pixfmt-y12.xml           |   79 ++++++++++++++
- Documentation/DocBook/v4l/pixfmt.xml               |    1 +
- Documentation/DocBook/v4l/subdev-formats.xml       |   59 +++++++++++
- drivers/media/media-entity.c                       |    8 +-
- drivers/media/video/omap3isp/isp.c                 |   39 +++++--
- drivers/media/video/omap3isp/isp.h                 |   12 +-
- drivers/media/video/omap3isp/ispccdc.c             |   37 ++++++--
- drivers/media/video/omap3isp/isppreview.c          |    2 +-
- drivers/media/video/omap3isp/ispqueue.c            |    4 +-
- drivers/media/video/omap3isp/ispresizer.c          |   75 +++++++++++---
- drivers/media/video/omap3isp/ispstat.h             |    6 +-
- drivers/media/video/omap3isp/ispvideo.c            |  108 +++++++++++++++++---
- drivers/media/video/omap3isp/ispvideo.h            |    3 +
- include/linux/v4l2-mediabus.h                      |    7 +-
- include/linux/videodev2.h                          |    1 +
- 17 files changed, 380 insertions(+), 64 deletions(-)
- create mode 100644 Documentation/DocBook/v4l/pixfmt-y12.xml
-
--- 
-Regards,
-
-Laurent Pinchart
+diff --git a/drivers/media/dvb/dvb-core/dvbdev.c b/drivers/media/dvb/dvb-core/dvbdev.c
+index f732877..7a64b81 100644
+--- a/drivers/media/dvb/dvb-core/dvbdev.c
++++ b/drivers/media/dvb/dvb-core/dvbdev.c
+@@ -47,7 +47,7 @@ static DEFINE_MUTEX(dvbdev_register_lock);
+ 
+ static const char * const dnames[] = {
+ 	"video", "audio", "sec", "frontend", "demux", "dvr", "ca",
+-	"net", "osd"
++	"net", "osd", "caio"
+ };
+ 
+ #ifdef CONFIG_DVB_DYNAMIC_MINORS
+diff --git a/drivers/media/dvb/dvb-core/dvbdev.h b/drivers/media/dvb/dvb-core/dvbdev.h
+index fcc6ae9..c63c70d 100644
+--- a/drivers/media/dvb/dvb-core/dvbdev.h
++++ b/drivers/media/dvb/dvb-core/dvbdev.h
+@@ -47,6 +47,7 @@
+ #define DVB_DEVICE_CA         6
+ #define DVB_DEVICE_NET        7
+ #define DVB_DEVICE_OSD        8
++#define DVB_DEVICE_CAIO       9
+ 
+ #define DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr) \
+ 	static short adapter_nr[] = \
+diff --git a/drivers/media/dvb/ngene/ngene-core.c b/drivers/media/dvb/ngene/ngene-core.c
+index 175a0f6..17cdd38 100644
+--- a/drivers/media/dvb/ngene/ngene-core.c
++++ b/drivers/media/dvb/ngene/ngene-core.c
+@@ -1523,7 +1523,7 @@ static int init_channel(struct ngene_channel *chan)
+ 		set_transfer(&chan->dev->channel[2], 1);
+ 		dvb_register_device(adapter, &chan->ci_dev,
+ 				    &ngene_dvbdev_ci, (void *) chan,
+-				    DVB_DEVICE_SEC);
++				    DVB_DEVICE_CAIO);
+ 		if (!chan->ci_dev)
+ 			goto err;
+ 	}
 
