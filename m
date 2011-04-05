@@ -1,106 +1,118 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.23]:46173 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753533Ab1DUH7y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Apr 2011 03:59:54 -0400
-Date: Thu, 21 Apr 2011 09:59:47 +0200
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Bob Liu <lliubbo@gmail.com>
-Cc: linux-media@vger.kernel.org, dhowells@redhat.com,
-	linux-uvc-devel@lists.berlios.de, mchehab@redhat.com,
-	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@maxwell.research.nokia.com, martin_rubli@logitech.com,
-	jarod@redhat.com, tj@kernel.org, arnd@arndb.de, fweisbec@gmail.com,
-	agust@denx.de, gregkh@suse.de, vapier@gentoo.org
-Subject: Re: [PATCH v3] media:uvc_driver: add uvc support on no-mmu arch
-Message-ID: <20110421075947.GA8178@minime.bse>
-References: <1303355862-17507-1-git-send-email-lliubbo@gmail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:35549 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752856Ab1DEL2B (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2011 07:28:01 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@nokia.com>
+Subject: Re: [RFC] V4L2 API for flash devices
+Date: Tue, 5 Apr 2011 13:28:34 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Nayden Kanchev <nkanchev@mm-sol.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Cohen David Abraham <david.cohen@nokia.com>
+References: <4D90854C.2000802@maxwell.research.nokia.com> <201104051239.05167.laurent.pinchart@ideasonboard.com> <4D9AFB1F.7020107@nokia.com>
+In-Reply-To: <4D9AFB1F.7020107@nokia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1303355862-17507-1-git-send-email-lliubbo@gmail.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201104051328.34774.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Bob,
+Hi Sakari,
 
-On Thu, Apr 21, 2011 at 11:17:42AM +0800, Bob Liu wrote:
-> +#ifdef CONFIG_MMU
->  	if (i == queue->count || size != queue->buf_size) {
-> +#else
-> +	if (i == queue->count || PAGE_ALIGN(size) != queue->buf_size) {
-> +#endif
+On Tuesday 05 April 2011 13:21:03 Sakari Ailus wrote:
+> Laurent Pinchart wrote:
+> > On Tuesday 05 April 2011 12:23:51 Sakari Ailus wrote:
+> >> Sakari Ailus wrote:
+> >>> Laurent Pinchart wrote:
+> >>>> On Wednesday 30 March 2011 13:05:54 Sakari Ailus wrote:
+> >>>>> Laurent Pinchart wrote:
+> >>>>>> On Monday 28 March 2011 14:55:40 Sakari Ailus wrote:
+> >>>>>> 
+> >>>>>> [snip]
+> >>>>>> 
+> >>>>>>> 	V4L2_CID_FLASH_STROBE_MODE (menu; LED)
+> >>>>>>> 
+> >>>>>>> Use hardware or software strobe. If hardware strobe is selected,
+> >>>>>>> the flash controller is a slave in the system where the sensor
+> >>>>>>> produces the strobe signal to the flash.
+> >>>>>>> 
+> >>>>>>> In this case the flash controller setup is limited to programming
+> >>>>>>> strobe timeout and power (LED flash) and the sensor controls the
+> >>>>>>> timing and length of the strobe.
+> >>>>>>> 
+> >>>>>>> enum v4l2_flash_strobe_mode {
+> >>>>>>> 
+> >>>>>>> 	V4L2_FLASH_STROBE_MODE_SOFTWARE,
+> >>>>>>> 	V4L2_FLASH_STROBE_MODE_EXT_STROBE,
+> >>>>>>> 
+> >>>>>>> };
+> >>>>>> 
+> >>>>>> [snip]
+> >>>>>> 
+> >>>>>>> 	V4L2_CID_FLASH_LED_MODE (menu; LED)
+> >>>>>>> 
+> >>>>>>> enum v4l2_flash_led_mode {
+> >>>>>>> 
+> >>>>>>> 	V4L2_FLASH_LED_MODE_FLASH = 1,
+> >>>>>>> 	V4L2_FLASH_LED_MODE_TORCH,
+> >>>>>>> 
+> >>>>>>> };
+> >>>>>> 
+> >>>>>> Thinking about this some more, shouldn't we combine the two controls
+> >>>>>> ? They are basically used to configure how the flash LED is
+> >>>>>> controlled: manually (torch mode), automatically by the flash
+> >>>>>> controller (software strobe mode) or automatically by an external
+> >>>>>> component (external strobe mode).
+> >>>>> 
+> >>>>> That's a good question.
+> >>>>> 
+> >>>>> The adp1653 supports also additional control (not implemented in the
+> >>>>> driver, though) that affect hardware strobe length. Based on register
+> >>>>> setting, the led will be on after strobe either until the timeout
+> >>>>> expires, or until the strobe signal is high.
+> >>>>> 
+> >>>>> Should this be also part of the same control, or a different one?
+> >>>> 
+> >>>> That can be controlled by a duration control. If the duration is 0,
+> >>>> the flash is lit for the duration of the external strobe, otherwise
+> >>>> it's lit for the programmed duration.
+> >>> 
+> >>> Sounds good to me.
+> >> 
+> >> Thinking about this again; there won't be a separate duration control
+> > 
+> > Why not ? I think we need two timeouts, a watchdog timeout to prevent
+> > flash fire or meltdown, and a normal timeout to lit the flash for a
+> > user-selected duration.
+> 
+> Let's assume that an application wants to expose a frame using flash
+> with software strobe.
+> 
+> 1. strobe flash
+> 2. qbuf
+> 3. streamon
+> 4. dqbuf
+> 5. streamoff
+> 6. ...
+> 
+> How does an application know how long is the time between 1 -- 4? I'd
+> guess that in 6 the application would like to switch off the flash
+> instead of specifying a timeout for it.
 
-on mmu systems do_mmap_pgoff contains a len = PAGE_ALIGN(len); line.
-If we depend on this behavior, why not do it here as well and get rid
-of the #ifdef?
+That's a valid use case, and we need to support it. It requires a way to lit 
+the flash with no timeout other than the watchdog timeout, and a way to turn 
+it off.
 
-> +unsigned long uvc_queue_get_unmapped_area(struct uvc_video_queue *queue,
-> +		unsigned long addr, unsigned long len, unsigned long pgoff)
-> +{
-> +	struct uvc_buffer *buffer;
-> +	unsigned int i;
-> +	int ret = 0;
+However, I'm not sure we should rule out the usefulness of a duration-based 
+software flash strobe. Can't the two APIs coexist ? Or do you think a 
+duration-based API is useless ?
 
-You still didn't change ret to unsigned long.
+-- 
+Regards,
 
-> +	addr = (unsigned long)queue->mem + buffer->buf.m.offset;
-> +	ret = addr;
-
-Why the intermediate step using addr?
-
-> diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
-> index 498e674..221e73f 100644
-> --- a/drivers/media/video/v4l2-dev.c
-> +++ b/drivers/media/video/v4l2-dev.c
-> @@ -368,6 +368,23 @@ static int v4l2_mmap(struct file *filp, struct vm_area_struct *vm)
->  	return ret;
->  }
->  
-> +#ifdef CONFIG_MMU
-> +#define v4l2_get_unmapped_area NULL
-> +#else
-> +static unsigned long v4l2_get_unmapped_area(struct file *filp,
-> +		unsigned long addr, unsigned long len, unsigned long pgoff,
-> +		unsigned long flags)
-> +{
-> +	struct video_device *vdev = video_devdata(filp);
-> +
-> +	if (!vdev->fops->get_unmapped_area)
-> +		return -ENOSYS;
-> +	if (!video_is_registered(vdev))
-> +		return -ENODEV;
-> +	return vdev->fops->get_unmapped_area(filp, addr, len, pgoff, flags);
-> +}
-> +#endif
-> +
->  /* Override for the open function */
->  static int v4l2_open(struct inode *inode, struct file *filp)
->  {
-> @@ -452,6 +469,7 @@ static const struct file_operations v4l2_fops = {
->  	.write = v4l2_write,
->  	.open = v4l2_open,
->  	.mmap = v4l2_mmap,
-> +	.get_unmapped_area = v4l2_get_unmapped_area,
->  	.unlocked_ioctl = v4l2_ioctl,
->  #ifdef CONFIG_COMPAT
->  	.compat_ioctl = v4l2_compat_ioctl32,
-> diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-> index 8266d5a..0616a43 100644
-> --- a/include/media/v4l2-dev.h
-> +++ b/include/media/v4l2-dev.h
-> @@ -63,6 +63,8 @@ struct v4l2_file_operations {
->  	long (*ioctl) (struct file *, unsigned int, unsigned long);
->  	long (*unlocked_ioctl) (struct file *, unsigned int, unsigned long);
->  	int (*mmap) (struct file *, struct vm_area_struct *);
-> +	unsigned long (*get_unmapped_area) (struct file *, unsigned long,
-> +			unsigned long, unsigned long, unsigned long);
->  	int (*open) (struct file *);
->  	int (*release) (struct file *);
->  };
-
-I'd prefer a git revert c29fcff3daafbf46d64a543c1950bbd206ad8c1c for
-this block instead of reverting it together with the UVC changes.
-
-  Daniel
+Laurent Pinchart
