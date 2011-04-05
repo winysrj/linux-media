@@ -1,56 +1,46 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:26585 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753701Ab1DSV0Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Apr 2011 17:26:16 -0400
-Message-ID: <4DADFDF1.9020108@redhat.com>
-Date: Tue, 19 Apr 2011 18:26:09 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:57675 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751883Ab1DEKIA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2011 06:08:00 -0400
+Subject: [PATCH] rc-core: set mode and default keymap for winbond-cir
+To: linux-media@vger.kernel.org
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: mchehab@redhat.com, skandalfo@gmail.com
+Date: Tue, 05 Apr 2011 12:07:27 +0200
+Message-ID: <20110405100727.5054.61603.stgit@felix.hardeman.nu>
 MIME-Version: 1.0
-To: stefan.ringel@arcor.de
-CC: linux-media@vger.kernel.org, d.belimov@gmail.com
-Subject: Re: [PATCH 3/5] tm6000: add audio mode parameter
-References: <1301948324-27186-1-git-send-email-stefan.ringel@arcor.de> <1301948324-27186-3-git-send-email-stefan.ringel@arcor.de>
-In-Reply-To: <1301948324-27186-3-git-send-email-stefan.ringel@arcor.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 04-04-2011 17:18, stefan.ringel@arcor.de escreveu:
-> From: Stefan Ringel <stefan.ringel@arcor.de>
-> 
-> add audio mode parameter
+Not having the correct mode and a default keymap is not
+very user-friendly (and rc-core won't allow it).
 
-Why we need a parameter for it? It should be determined based on
-the standard.
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/rc/winbond-cir.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-> 
-> Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
-> ---
->  drivers/staging/tm6000/tm6000-stds.c |    5 +++++
->  1 files changed, 5 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/staging/tm6000/tm6000-stds.c b/drivers/staging/tm6000/tm6000-stds.c
-> index da3e51b..a9e1921 100644
-> --- a/drivers/staging/tm6000/tm6000-stds.c
-> +++ b/drivers/staging/tm6000/tm6000-stds.c
-> @@ -22,12 +22,17 @@
->  #include "tm6000.h"
->  #include "tm6000-regs.h"
->  
-> +static unsigned int tm6010_a_mode;
-> +module_param(tm6010_a_mode, int, 0644);
-> +MODULE_PARM_DESC(tm6010_a_mode, "set sif audio mode (tm6010 only)");
-> +
->  struct tm6000_reg_settings {
->  	unsigned char req;
->  	unsigned char reg;
->  	unsigned char value;
->  };
->  
-> +/* must be updated */
->  enum tm6000_audio_std {
->  	BG_NICAM,
->  	BTSC,
+diff --git a/drivers/media/rc/winbond-cir.c b/drivers/media/rc/winbond-cir.c
+index 16f4178..b0a5fdc 100644
+--- a/drivers/media/rc/winbond-cir.c
++++ b/drivers/media/rc/winbond-cir.c
+@@ -790,6 +790,7 @@ wbcir_probe(struct pnp_dev *device, const struct pnp_device_id *dev_id)
+ 		goto exit_unregister_led;
+ 	}
+ 
++	data->dev->driver_type = RC_DRIVER_IR_RAW;
+ 	data->dev->driver_name = WBCIR_NAME;
+ 	data->dev->input_name = WBCIR_NAME;
+ 	data->dev->input_phys = "wbcir/cir0";
+@@ -797,6 +798,7 @@ wbcir_probe(struct pnp_dev *device, const struct pnp_device_id *dev_id)
+ 	data->dev->input_id.vendor = PCI_VENDOR_ID_WINBOND;
+ 	data->dev->input_id.product = WBCIR_ID_FAMILY;
+ 	data->dev->input_id.version = WBCIR_ID_CHIP;
++	data->dev->map_name = RC_MAP_RC6_MCE;
+ 	data->dev->priv = data;
+ 	data->dev->dev.parent = &device->dev;
+ 
 
