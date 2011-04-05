@@ -1,31 +1,87 @@
 Return-path: <mchehab@pedra>
-Received: from smtp182.iad.emailsrvr.com ([207.97.245.182]:50814 "EHLO
-	smtp182.iad.emailsrvr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757120Ab1DHA4h convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Apr 2011 20:56:37 -0400
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by smtp38.relay.iad1a.emailsrvr.com (SMTP Server) with ESMTP id D85793483CB
-	for <linux-media@vger.kernel.org>; Thu,  7 Apr 2011 20:50:22 -0400 (EDT)
-Received: from dynamic9.wm-web.iad.mlsrvr.com (dynamic9.wm-web.iad1a.rsapps.net [192.168.2.216])
-	by smtp38.relay.iad1a.emailsrvr.com (SMTP Server) with ESMTP id C08583482F9
-	for <linux-media@vger.kernel.org>; Thu,  7 Apr 2011 20:50:22 -0400 (EDT)
-Received: from mailtrust.com (localhost [127.0.0.1])
-	by dynamic9.wm-web.iad.mlsrvr.com (Postfix) with ESMTP id B04DB3200A4
-	for <linux-media@vger.kernel.org>; Thu,  7 Apr 2011 20:50:22 -0400 (EDT)
-Date: Thu, 7 Apr 2011 20:50:22 -0400 (EDT)
-Subject: Prof 7500 demod crashing after many tunes
-From: "Aaron" <aaron@chinesebob.net>
-To: linux-media@vger.kernel.org
-MIME-Version: 1.0
-Content-Type: text/plain;charset=UTF-8
+Received: from bear.ext.ti.com ([192.94.94.41]:42501 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752474Ab1DEK7Q convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2011 06:59:16 -0400
+From: "Nori, Sekhar" <nsekhar@ti.com>
+To: "Hadli, Manjunath" <manjunath.hadli@ti.com>,
+	LMML <linux-media@vger.kernel.org>,
+	LAK <linux-arm-kernel@lists.infradead.org>
+CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	"Hilman, Kevin" <khilman@ti.com>
+Date: Tue, 5 Apr 2011 16:28:33 +0530
+Subject: RE: [PATCH v18 08/13] davinci: eliminate use of IO_ADDRESS() on
+ sysmod
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024C75E97E@dbde02.ent.ti.com>
+References: <1301737397-4327-1-git-send-email-manjunath.hadli@ti.com>
+In-Reply-To: <1301737397-4327-1-git-send-email-manjunath.hadli@ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Message-ID: <1302223822.720720176@192.168.4.58>
+MIME-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-  I wrote a scan program that steps through all the frequencies in a given range and tries to tune them in a for loop. This is my first C program so be nice, 
+Hi Manju,
 
-http://chinesebob.net/dvb/blindscan-s2/blindscan-s2-201104070153.tgz 
+On Sat, Apr 02, 2011 at 15:13:17, Hadli, Manjunath wrote:
+> Current devices.c file has a number of instances where
+> IO_ADDRESS() is used for system module register
+> access. Eliminate this in favor of a ioremap()
+> based access.
+> 
+> Consequent to this, a new global pointer davinci_sysmodbase
+> has been introduced which gets initialized during
+> the initialization of each relevant SoC
+> 
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> Acked-by: Sekhar Nori <nsekhar@ti.com>
+> ---
 
-I'm using it with my Prof 7500, which uses the dvb-usb-dw2102 and stv0900 modules, this way I can use the blindscan algo and do a blind scan for all transponders in a satellite to find the symbol rates. A problem I'm having now is that after something like 60 tuning attempts the demod crashes and I cannot tune anything else unless I reset power on the tuning device, this is a usb device. Resetting the usb bus and removing/readding the drivers doesn't help. This happens on any version of s2-liplianin I've tried from 3 months ago to current. The current version of s2-liplianin tunes much faster but, that just means it will crash faster when I try my tuning loop. Please let me know what kind of debugging I should do and what I should post to the list that would be helpful to figure this out. When it's in this state I get a constant DEMOD LOCK OK, and it thinks it has 100% signal, is there some way to force the demod to think it is not locking, or force reset the demod somehow without resetting power to the device?   
+> diff --git a/arch/arm/mach-davinci/include/mach/hardware.h b/arch/arm/mach-davinci/include/mach/hardware.h
+> index 414e0b9..2a6b560 100644
+> --- a/arch/arm/mach-davinci/include/mach/hardware.h
+> +++ b/arch/arm/mach-davinci/include/mach/hardware.h
+> @@ -21,6 +21,12 @@
+>   */
+>  #define DAVINCI_SYSTEM_MODULE_BASE        0x01C40000
+>  
+> +#ifndef __ASSEMBLER__
+> +extern void __iomem *davinci_sysmodbase;
+> +#define DAVINCI_SYSMODULE_VIRT(x)	(davinci_sysmodbase + (x))
+> +void davinci_map_sysmod(void);
+> +#endif
+
+Russell has posted[1] that the hardware.h file should
+not be polluted with platform private stuff like this.
+
+Your patch 7/13 actually helped towards that goal, but
+this one takes us back. This patch cannot be used in
+the current form.
+
+Currently there are separate header files for dm644x,
+dm355, dm646x and dm365. I would like to start by
+removing unnecessary code from these files and trying
+to consolidate them into a single file.
+
+Example, the EMAC base address definitions in dm365.h
+should be moved into dm365.c. Similarly, there is a lot
+of VPIF specific stuff in dm646x.h which is not really
+specific to dm646x.h and so should probably be moved to
+include/media/ or arch/arm/mach-davinci/include/mach/vpif.h
+
+Once consolidated into a single file, davinci_sysmodbase
+can be moved into that file.
+
+Also, Russell has said[2] that at least for this merge
+window only consolidation and bug fixes will go through
+his tree. This means that as far as mach-davinci is
+concerned, the clean-up part of this series can go to
+2.6.40 - but not the stuff which adds new support.
+
+Thanks,
+Sekhar
+
+[1] http://www.spinics.net/lists/arm-kernel/msg120410.html
+[2] http://www.spinics.net/lists/arm-kernel/msg120606.html
 
