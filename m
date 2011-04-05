@@ -1,45 +1,33 @@
 Return-path: <mchehab@pedra>
-Received: from cmsout02.mbox.net ([165.212.64.32]:55815 "EHLO
-	cmsout02.mbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755327Ab1DWTwr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Apr 2011 15:52:47 -0400
-Message-ID: <4DB32DEB.7050801@usa.net>
-Date: Sat, 23 Apr 2011 21:52:11 +0200
-From: Issa Gorissen <flop.m@usa.net>
-MIME-Version: 1.0
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:58415 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751739Ab1DEDl4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2011 23:41:56 -0400
+Date: Mon, 4 Apr 2011 22:41:48 -0500
+From: Jonathan Nieder <jrnieder@gmail.com>
 To: linux-media@vger.kernel.org
-CC: Oliver Endriss <o.endriss@gmx.de>
-Subject: Re: ngene CI problems
-References: <4D74E28A.6030302@gmail.com> <201104231940.34575@orion.escape-edv.de> <4DB320EF.3080301@usa.net> <201104232114.31998@orion.escape-edv.de>
-In-Reply-To: <201104232114.31998@orion.escape-edv.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Cc: Huber Andreas <hobrom@corax.at>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-kernel@vger.kernel.org, Ben Hutchings <ben@decadent.org.uk>,
+	Steven Toth <stoth@kernellabs.com>
+Subject: Re: [PATCH 7/7] [mpeg] cx88: don't use atomic_t for core->users
+Message-ID: <20110405034123.GA7420@elie>
+References: <20110327150610.4029.95961.reportbug@xen.corax.at>
+ <20110327152810.GA32106@elie>
+ <20110402093856.GA17015@elie>
+ <20110405032014.GA4498@elie>
+ <20110405033114.GH4498@elie>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20110405033114.GH4498@elie>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 23/04/11 21:14, Oliver Endriss wrote:
->>> If you are running 2.6.39rc4, you must apply patch
->>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg29870.html
->>> Otherwise the data will be garbled.
->> Oliver, this patch was applied already. I'm hacking the ts_read/ts_write
->> method, but so far, haven't manage to get it work.
-> Basically you should not have to hack anything.
->
-> - Setup the CI as with any conventional device.
-> - Write the encrypted stream into sec0.
-> - Read the decrypted stream from sec0.
->
-> This should work. (Please note that I could do some loopback tests only,
-> as I am not watching paytv.)
-Oliver,
+Jonathan Nieder wrote:
 
-Is there a preferred way to do this (read/write from sec0) ? I mean, does a
+> [Subject: [PATCH 7/7] [mpeg] cx88: don't use atomic_t for core->users]
 
-'gnutv -channels file -out stdout  channelname > sec0'
-
-and
-
-'cat sec0 | mplayer -'
-
-should work according to your tests ?
+The subject should say [media] rather than [mpeg].  I fixed it locally
+and then sent the wrong patch; sorry for the nonsense.
