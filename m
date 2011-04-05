@@ -1,55 +1,229 @@
 Return-path: <mchehab@pedra>
-Received: from emh04.mail.saunalahti.fi ([62.142.5.110]:38484 "EHLO
-	emh04.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757756Ab1DHThM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Apr 2011 15:37:12 -0400
-Message-ID: <4D9F63E1.6060808@kolumbus.fi>
-Date: Fri, 08 Apr 2011 22:37:05 +0300
-From: Marko Ristola <marko.ristola@kolumbus.fi>
-MIME-Version: 1.0
-To: Marko Ristola <marko.ristola@kolumbus.fi>
-CC: Andreas Oberritter <obi@linuxtv.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Speed up DVB TS stream delivery from DMA buffer into
- dvb-core's buffer
-References: <4D9F2C83.6070401@kolumbus.fi>
-In-Reply-To: <4D9F2C83.6070401@kolumbus.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:56767 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752870Ab1DEOJC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2011 10:09:02 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Tue, 05 Apr 2011 16:06:46 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 3/7] v4l: videobuf2: dma-sg: move some generic functions to
+	memops
+In-reply-to: <1302012410-17984-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Andrzej Pietrasiwiecz <andrzej.p@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>
+Message-id: <1302012410-17984-4-git-send-email-m.szyprowski@samsung.com>
+References: <1302012410-17984-1-git-send-email-m.szyprowski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
 
-Here is some statistics without likely and with likely functions.
+This patch moves some generic code to videobuf2-memops. This code will
+be later used by the iommu allocator. This patch adds also vma locking
+in user pointer mode.
 
-It seems that using likely() gives better performance with Phenom I too.
+Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+CC: Pawel Osciak <pawel@osciak.com>
+---
+ drivers/media/video/videobuf2-dma-sg.c |   37 +++++----------
+ drivers/media/video/videobuf2-memops.c |   76 ++++++++++++++++++++++++++++++++
+ include/media/videobuf2-memops.h       |    5 ++
+ 3 files changed, 93 insertions(+), 25 deletions(-)
 
-	%	Plain knl %	No likely	%	With likely	%
-dvb_ringbuffer_write	5,9	62,8	8,7	81,3	5,7	79,2
-dvb_dmx_swfilter_packet	1,2	12,8	0,7	6,5	0,8	11,1
-dvb_dmx_swfilter_204	2,3	24,5	1,3	12,1	0,7	9,7
-
-
-Here "Plain knl %" is "perf top -d 30" percentage.
-24,5 12,1 and 9,7 are percentages without a patch, with basic patch
-and last is with "likely" functions using patch.
-
-Regards,
-Marko Ristola
-
-
-08.04.2011 18:40, Marko Ristola kirjoitti:
-> Avoid unnecessary DVB TS 188 sized packet copying from DMA buffer into stack.
-> Backtrack one 188 sized packet just after some garbage bytes when possible.
-> This obsoletes patch https://patchwork.kernel.org/patch/118147/
-> 
-> Signed-off-by: Marko Ristola marko.ristola@kolumbus.fi
-> diff --git a/drivers/media/dvb/dvb-core/dvb_demux.c b/drivers/media/dvb/dvb-core/dvb_demux.c
-> index 4a88a3e..faa3671 100644
-> --- a/drivers/media/dvb/dvb-core/dvb_demux.c
-> +++ b/drivers/media/dvb/dvb-core/dvb_demux.c
-> @@ -478,97 +478,94 @@ void dvb_dmx_swfilter_packets(struct dvb_demux *demux, const u8 *buf,
->  
->  EXPORT_SYMBOL(dvb_dmx_swfilter_packets);
->  
+diff --git a/drivers/media/video/videobuf2-dma-sg.c b/drivers/media/video/videobuf2-dma-sg.c
+index b2d9485..240abaa 100644
+--- a/drivers/media/video/videobuf2-dma-sg.c
++++ b/drivers/media/video/videobuf2-dma-sg.c
+@@ -29,6 +29,7 @@ struct vb2_dma_sg_buf {
+ 	struct vb2_dma_sg_desc		sg_desc;
+ 	atomic_t			refcount;
+ 	struct vb2_vmarea_handler	handler;
++	struct vm_area_struct		*vma;
+ };
+ 
+ static void vb2_dma_sg_put(void *buf_priv);
+@@ -150,15 +151,9 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	if (!buf->pages)
+ 		goto userptr_fail_pages_array_alloc;
+ 
+-	down_read(&current->mm->mmap_sem);
+-	num_pages_from_user = get_user_pages(current, current->mm,
+-					     vaddr & PAGE_MASK,
+-					     buf->sg_desc.num_pages,
+-					     write,
+-					     1, /* force */
+-					     buf->pages,
+-					     NULL);
+-	up_read(&current->mm->mmap_sem);
++	num_pages_from_user = vb2_get_user_pages(vaddr, buf->sg_desc.num_pages,
++					     buf->pages, write, &buf->vma);
++
+ 	if (num_pages_from_user != buf->sg_desc.num_pages)
+ 		goto userptr_fail_get_user_pages;
+ 
+@@ -177,6 +172,8 @@ userptr_fail_get_user_pages:
+ 	       num_pages_from_user, buf->sg_desc.num_pages);
+ 	while (--num_pages_from_user >= 0)
+ 		put_page(buf->pages[num_pages_from_user]);
++	if (buf->vma)
++		vb2_put_vma(buf->vma);
+ 	kfree(buf->pages);
+ 
+ userptr_fail_pages_array_alloc:
+@@ -200,6 +197,8 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
+ 	       __func__, buf->sg_desc.num_pages);
+ 	if (buf->vaddr)
+ 		vm_unmap_ram(buf->vaddr, buf->sg_desc.num_pages);
++	if (buf->vma)
++		vb2_put_vma(buf->vma);
+ 	while (--i >= 0) {
+ 		if (buf->write)
+ 			set_page_dirty_lock(buf->pages[i]);
+@@ -236,28 +235,16 @@ static unsigned int vb2_dma_sg_num_users(void *buf_priv)
+ static int vb2_dma_sg_mmap(void *buf_priv, struct vm_area_struct *vma)
+ {
+ 	struct vb2_dma_sg_buf *buf = buf_priv;
+-	unsigned long uaddr = vma->vm_start;
+-	unsigned long usize = vma->vm_end - vma->vm_start;
+-	int i = 0;
++	int ret;
+ 
+ 	if (!buf) {
+ 		printk(KERN_ERR "No memory to map\n");
+ 		return -EINVAL;
+ 	}
+ 
+-	do {
+-		int ret;
+-
+-		ret = vm_insert_page(vma, uaddr, buf->pages[i++]);
+-		if (ret) {
+-			printk(KERN_ERR "Remapping memory, error: %d\n", ret);
+-			return ret;
+-		}
+-
+-		uaddr += PAGE_SIZE;
+-		usize -= PAGE_SIZE;
+-	} while (usize > 0);
+-
++	ret = vb2_insert_pages(vma, buf->pages);
++	if (ret)
++		return ret;
+ 
+ 	/*
+ 	 * Use common vm_area operations to track buffer refcount.
+diff --git a/drivers/media/video/videobuf2-memops.c b/drivers/media/video/videobuf2-memops.c
+index 5370a3a..9d44473 100644
+--- a/drivers/media/video/videobuf2-memops.c
++++ b/drivers/media/video/videobuf2-memops.c
+@@ -185,6 +185,82 @@ int vb2_mmap_pfn_range(struct vm_area_struct *vma, unsigned long paddr,
+ EXPORT_SYMBOL_GPL(vb2_mmap_pfn_range);
+ 
+ /**
++ * vb2_get_user_pages() - pin user pages
++ * @vaddr:	virtual address from which to start
++ * @num_pages:	number of pages to pin
++ * @pages:	table of pointers to struct pages to pin
++ * @write:	if 0, the pages must not be written to
++ * @vma:	output parameter, copy of the vma or NULL
++ *		if get_user_pages fails
++ *
++ * This function just forwards invocation to get_user_pages, but eases using
++ * the latter in videobuf2 allocators.
++ */
++int vb2_get_user_pages(unsigned long vaddr, unsigned int num_pages,
++		       struct page **pages, int write, struct vm_area_struct **vma)
++{
++	struct vm_area_struct *found_vma;
++	struct mm_struct *mm = current->mm;
++	int ret = -EFAULT;
++
++	down_read(&current->mm->mmap_sem);
++
++	found_vma = find_vma(mm, vaddr);
++	if (NULL == found_vma || found_vma->vm_end < (vaddr + num_pages * PAGE_SIZE))
++		goto done;
++
++	*vma = vb2_get_vma(found_vma);
++	if (NULL == *vma) {
++		ret = -ENOMEM;
++		goto done;
++	}
++
++	ret = get_user_pages(current, current->mm, vaddr & PAGE_MASK, num_pages,
++			     write, 1 /* force */, pages, NULL);
++
++	if (ret != num_pages) {
++		vb2_put_vma(*vma);
++		*vma = NULL;
++	}
++
++done:
++	up_read(&current->mm->mmap_sem);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(vb2_get_user_pages);
++
++/**
++ * vb2_insert_pages - insert pages into user vma
++ * @vma:	virtual memory region for the mapping
++ * @pages:	table of pointers to struct pages to be inserted
++ *
++ * This function for each page to be inserted performs vm_insert_page.
++ */
++int vb2_insert_pages(struct vm_area_struct *vma, struct page **pages)
++{
++	unsigned long uaddr = vma->vm_start;
++	unsigned long usize = vma->vm_end - vma->vm_start;
++	int i = 0;
++
++	do {
++		int ret;
++
++		ret = vm_insert_page(vma, uaddr, pages[i++]);
++		if (ret) {
++			printk(KERN_ERR "Remapping memory, error: %d\n", ret);
++			return ret;
++		}
++
++		uaddr += PAGE_SIZE;
++		usize -= PAGE_SIZE;
++	} while (usize > 0);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(vb2_insert_pages);
++
++/**
+  * vb2_common_vm_open() - increase refcount of the vma
+  * @vma:	virtual memory region for the mapping
+  *
+diff --git a/include/media/videobuf2-memops.h b/include/media/videobuf2-memops.h
+index 84e1f6c..f8a0886 100644
+--- a/include/media/videobuf2-memops.h
++++ b/include/media/videobuf2-memops.h
+@@ -41,5 +41,10 @@ int vb2_mmap_pfn_range(struct vm_area_struct *vma, unsigned long paddr,
+ struct vm_area_struct *vb2_get_vma(struct vm_area_struct *vma);
+ void vb2_put_vma(struct vm_area_struct *vma);
+ 
++int vb2_get_user_pages(unsigned long vaddr, unsigned int num_pages,
++		       struct page **pages, int write,
++		       struct vm_area_struct **vma);
++
++int vb2_insert_pages(struct vm_area_struct *vma, struct page **pages);
+ 
+ #endif
+-- 
+1.7.1.569.g6f426
