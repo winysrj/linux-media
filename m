@@ -1,82 +1,99 @@
 Return-path: <mchehab@pedra>
-Received: from sj-iport-3.cisco.com ([171.71.176.72]:3368 "EHLO
-	sj-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752484Ab1DDLwS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2011 07:52:18 -0400
-Received: from OSLEXCP11.eu.tandberg.int ([173.38.136.5])
-	by rcdn-core-2.cisco.com (8.14.3/8.14.3) with ESMTP id p34BqDrZ001853
-	for <linux-media@vger.kernel.org>; Mon, 4 Apr 2011 11:52:17 GMT
-Received: from cobaltpc1.rd.tandberg.com (cobaltpc1.rd.tandberg.com [10.47.3.155])
-	by ultra.eu.tandberg.int (8.13.1/8.13.1) with ESMTP id p34BqDdI009325
-	for <linux-media@vger.kernel.org>; Mon, 4 Apr 2011 13:52:14 +0200
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:49724 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751141Ab1DEKJQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2011 06:09:16 -0400
+Subject: [PATCH] rc-core: int to bool conversion for winbond-cir
 To: linux-media@vger.kernel.org
-Subject: [RFCv1 PATCH 2/9] vivi: add bitmask test control.
-Date: Mon,  4 Apr 2011 13:51:47 +0200
-Message-Id: <3d7992def0e68d07efaa40bce0ac4f3969058b0b.1301916466.git.hans.verkuil@cisco.com>
-In-Reply-To: <1301917914-27437-1-git-send-email-hans.verkuil@cisco.com>
-References: <1301917914-27437-1-git-send-email-hans.verkuil@cisco.com>
-In-Reply-To: <2fa42294dbc167cae5daf227d072b2284f77b1ab.1301916466.git.hans.verkuil@cisco.com>
-References: <2fa42294dbc167cae5daf227d072b2284f77b1ab.1301916466.git.hans.verkuil@cisco.com>
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: mchehab@redhat.com, skandalfo@gmail.com
+Date: Tue, 05 Apr 2011 12:08:27 +0200
+Message-ID: <20110405100827.5202.52169.stgit@felix.hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/vivi.c |   18 ++++++++++++++++--
- 1 files changed, 16 insertions(+), 2 deletions(-)
+Using bool instead of an int helps readability a bit.
 
-diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
-index 2238a61..21d8f6a 100644
---- a/drivers/media/video/vivi.c
-+++ b/drivers/media/video/vivi.c
-@@ -174,6 +174,7 @@ struct vivi_dev {
- 	struct v4l2_ctrl	   *int64;
- 	struct v4l2_ctrl	   *menu;
- 	struct v4l2_ctrl	   *string;
-+	struct v4l2_ctrl	   *bitmask;
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/rc/winbond-cir.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/media/rc/winbond-cir.c b/drivers/media/rc/winbond-cir.c
+index b0a5fdc..cdb5ef4 100644
+--- a/drivers/media/rc/winbond-cir.c
++++ b/drivers/media/rc/winbond-cir.c
+@@ -382,7 +382,7 @@ wbcir_shutdown(struct pnp_dev *device)
+ {
+ 	struct device *dev = &device->dev;
+ 	struct wbcir_data *data = pnp_get_drvdata(device);
+-	int do_wake = 1;
++	bool do_wake = true;
+ 	u8 match[11];
+ 	u8 mask[11];
+ 	u8 rc6_csl = 0;
+@@ -392,14 +392,14 @@ wbcir_shutdown(struct pnp_dev *device)
+ 	memset(mask, 0, sizeof(mask));
  
- 	spinlock_t                 slock;
- 	struct mutex		   mutex;
-@@ -488,9 +489,10 @@ static void vivi_fillbuff(struct vivi_dev *dev, struct vivi_buffer *buf)
- 	gen_text(dev, vbuf, line++ * 16, 16, str);
- 	snprintf(str, sizeof(str), " volume %3d ", dev->volume->cur.val);
- 	gen_text(dev, vbuf, line++ * 16, 16, str);
--	snprintf(str, sizeof(str), " int32 %d, int64 %lld ",
-+	snprintf(str, sizeof(str), " int32 %d, int64 %lld, bitmask %08x ",
- 			dev->int32->cur.val,
--			dev->int64->cur.val64);
-+			dev->int64->cur.val64,
-+			dev->bitmask->cur.val);
- 	gen_text(dev, vbuf, line++ * 16, 16, str);
- 	snprintf(str, sizeof(str), " boolean %d, menu %s, string \"%s\" ",
- 			dev->boolean->cur.val,
-@@ -1117,6 +1119,17 @@ static const struct v4l2_ctrl_config vivi_ctrl_string = {
- 	.step = 1,
- };
+ 	if (wake_sc == INVALID_SCANCODE || !device_may_wakeup(dev)) {
+-		do_wake = 0;
++		do_wake = false;
+ 		goto finish;
+ 	}
  
-+static const struct v4l2_ctrl_config vivi_ctrl_bitmask = {
-+	.ops = &vivi_ctrl_ops,
-+	.id = VIVI_CID_CUSTOM_BASE + 6,
-+	.name = "Bitmask",
-+	.type = V4L2_CTRL_TYPE_BITMASK,
-+	.def = 0x80002000,
-+	.min = 0,
-+	.max = 0x80402010,
-+	.step = 0,
-+};
-+
- static const struct v4l2_file_operations vivi_fops = {
- 	.owner		= THIS_MODULE,
- 	.open		= v4l2_fh_open,
-@@ -1219,6 +1232,7 @@ static int __init vivi_create_instance(int inst)
- 	dev->boolean = v4l2_ctrl_new_custom(hdl, &vivi_ctrl_boolean, NULL);
- 	dev->menu = v4l2_ctrl_new_custom(hdl, &vivi_ctrl_menu, NULL);
- 	dev->string = v4l2_ctrl_new_custom(hdl, &vivi_ctrl_string, NULL);
-+	dev->bitmask = v4l2_ctrl_new_custom(hdl, &vivi_ctrl_bitmask, NULL);
- 	if (hdl->error) {
- 		ret = hdl->error;
- 		goto unreg_dev;
--- 
-1.7.1
+ 	switch (protocol) {
+ 	case IR_PROTOCOL_RC5:
+ 		if (wake_sc > 0xFFF) {
+-			do_wake = 0;
++			do_wake = false;
+ 			dev_err(dev, "RC5 - Invalid wake scancode\n");
+ 			break;
+ 		}
+@@ -418,7 +418,7 @@ wbcir_shutdown(struct pnp_dev *device)
+ 
+ 	case IR_PROTOCOL_NEC:
+ 		if (wake_sc > 0xFFFFFF) {
+-			do_wake = 0;
++			do_wake = false;
+ 			dev_err(dev, "NEC - Invalid wake scancode\n");
+ 			break;
+ 		}
+@@ -440,7 +440,7 @@ wbcir_shutdown(struct pnp_dev *device)
+ 
+ 		if (wake_rc6mode == 0) {
+ 			if (wake_sc > 0xFFFF) {
+-				do_wake = 0;
++				do_wake = false;
+ 				dev_err(dev, "RC6 - Invalid wake scancode\n");
+ 				break;
+ 			}
+@@ -496,7 +496,7 @@ wbcir_shutdown(struct pnp_dev *device)
+ 			} else if (wake_sc <= 0x007FFFFF) {
+ 				rc6_csl = 60;
+ 			} else {
+-				do_wake = 0;
++				do_wake = false;
+ 				dev_err(dev, "RC6 - Invalid wake scancode\n");
+ 				break;
+ 			}
+@@ -508,14 +508,14 @@ wbcir_shutdown(struct pnp_dev *device)
+ 			mask[i++] = 0x0F;
+ 
+ 		} else {
+-			do_wake = 0;
++			do_wake = false;
+ 			dev_err(dev, "RC6 - Invalid wake mode\n");
+ 		}
+ 
+ 		break;
+ 
+ 	default:
+-		do_wake = 0;
++		do_wake = false;
+ 		break;
+ 	}
+ 
 
