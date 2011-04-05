@@ -1,229 +1,118 @@
 Return-path: <mchehab@pedra>
-Received: from mga11.intel.com ([192.55.52.93]:25577 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753642Ab1DDKDV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Apr 2011 06:03:21 -0400
-Date: Mon, 4 Apr 2011 12:03:15 +0200
-From: Samuel Ortiz <sameo@linux.intel.com>
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Andres Salomon <dilinger@queued.net>, linux-kernel@vger.kernel.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	khali@linux-fr.org, ben-linux@fluff.org,
-	Peter Korsgaard <jacmet@sunsite.dk>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	David Brownell <dbrownell@users.sourceforge.net>,
-	linux-i2c@vger.kernel.org, linux-media@vger.kernel.org,
-	netdev@vger.kernel.org, spi-devel-general@lists.sourceforge.net,
-	Mocean Laboratories <info@mocean-labs.com>,
-	Greg Kroah-Hartman <gregkh@suse.de>
-Subject: Re: [PATCH 07/19] timberdale: mfd_cell is now implicitly available
- to drivers
-Message-ID: <20110404100314.GC2751@sortiz-mobl>
-References: <20110202195417.228e2656@queued.net>
- <20110202200812.3d8d6cba@queued.net>
- <20110331230522.GI437@ponder.secretlab.ca>
- <20110401112030.GA3447@sortiz-mobl>
- <20110401104756.2f5c6f7a@debxo>
- <BANLkTi=bCd_+f=EG-O=U5VH_ZNjFhxkziQ@mail.gmail.com>
- <20110401235239.GE29397@sortiz-mobl>
- <BANLkTi=bq=OGzXFp7qiBr7x_BnGOWf=DRQ@mail.gmail.com>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:61673 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751583Ab1DEBQs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2011 21:16:48 -0400
+Date: Mon, 4 Apr 2011 20:16:40 -0500
+From: Jonathan Nieder <jrnieder@gmail.com>
+To: Andreas Huber <hobrom@gmx.at>
+Cc: linux-media@vger.kernel.org, Huber Andreas <hobrom@corax.at>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-kernel@vger.kernel.org, andrew.walker27@ntlworld.com,
+	Ben Hutchings <ben@decadent.org.uk>,
+	Trent Piepho <xyzzy@speakeasy.org>,
+	Roland Stoll <dvb.rs@xindex.de>
+Subject: Re: [PATCH 3/3] [media] cx88: use a mutex to protect cx8802_devlist
+Message-ID: <20110405011640.GB1830@elie>
+References: <20110327150610.4029.95961.reportbug@xen.corax.at>
+ <20110327152810.GA32106@elie>
+ <20110402093856.GA17015@elie>
+ <20110402094451.GD17015@elie>
+ <4D971B8D.4040305@corax.at>
+ <20110402192902.GD20064@elie>
+ <4D978378.7060106@gmx.at>
+ <4D992920.4040400@gmx.at>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <BANLkTi=bq=OGzXFp7qiBr7x_BnGOWf=DRQ@mail.gmail.com>
+In-Reply-To: <4D992920.4040400@gmx.at>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Fri, Apr 01, 2011 at 05:58:44PM -0600, Grant Likely wrote:
-> On Fri, Apr 1, 2011 at 5:52 PM, Samuel Ortiz <sameo@linux.intel.com> wrote:
-> > On Fri, Apr 01, 2011 at 11:56:35AM -0600, Grant Likely wrote:
-> >> On Fri, Apr 1, 2011 at 11:47 AM, Andres Salomon <dilinger@queued.net> wrote:
-> >> > On Fri, 1 Apr 2011 13:20:31 +0200
-> >> > Samuel Ortiz <sameo@linux.intel.com> wrote:
-> >> >
-> >> >> Hi Grant,
-> >> >>
-> >> >> On Thu, Mar 31, 2011 at 05:05:22PM -0600, Grant Likely wrote:
-> >> > [...]
-> >> >> > Gah.  Not all devices instantiated via mfd will be an mfd device,
-> >> >> > which means that the driver may very well expect an *entirely
-> >> >> > different* platform_device pointer; which further means a very high
-> >> >> > potential of incorrectly dereferenced structures (as evidenced by a
-> >> >> > patch series that is not bisectable).  For instance, the xilinx ip
-> >> >> > cores are used by more than just mfd.
-> >> >> I agree. Since the vast majority of the MFD subdevices are MFD
-> >> >> specific IPs, I overlooked that part. The impacted drivers are the
-> >> >> timberdale and the DaVinci voice codec ones.
-> >>
-> >> Another option is you could do this for MFD devices:
-> >>
-> >> struct mfd_device {
-> >>         struct platform_devce pdev;
-> >>         struct mfd_cell *cell;
-> >> };
-> >>
-> >> However, that requires that drivers using the mfd_cell will *never*
-> >> get instantiated outside of the mfd infrastructure, and there is no
-> >> way to protect against this so it is probably a bad idea.
-> >>
-> >> Or, mfd_cell could be added to platform_device directly which would
-> >> *by far* be the safest option at the cost of every platform_device
-> >> having a mostly unused mfd_cell pointer.  Not a significant cost in my
-> >> opinion.
-> > I thought about this one, but I had the impression people would want to kill
-> > me for adding an MFD specific pointer to platform_device. I guess it's worth
-> > giving it a try since it would be a simple and safe solution.
-> > I'll look at it later this weekend.
-> >
-> > Thanks for the input.
-> 
-> [cc'ing gregkh because we're talking about modifying struct platform_device]
-> 
-> I'll back you up on this one.  It is a far better solution than the
-> alternatives.  At least with mfd, it covers a large set of devices.  I
-> think there is a strong argument for doing this.  Or alternatively,
-> the particular interesting fields from mfd_cell could be added to
-> platform_device.  What information do child devices need access to?
-In some cases, they need the whole cell to clone it. So I'm up for adding an
-mfd_cell pointer to the platform_device structure.
-Below is a tentative patch. This is a first step and would fix all
-regressions. I tried to keep the MFD dependencies as small as possible, which
-is why I placed the pdev->mfd_cell building code in mfd-core.c
-The second step would be to get rid of mfd_get_data() and have all subdrivers
-going back to the regular platform_data way. They would no longer be dependant
-on the MFD code except for those who really need it. In that case they could
-just call mfd_get_cell() and get full access to their MFD cell.
+Hi again,
 
---- 
- drivers/mfd/mfd-core.c          |   27 ++++++++++++++++++++++-----
- include/linux/mfd/core.h        |    7 +++++--
- include/linux/platform_device.h |    5 +++++
- 3 files changed, 32 insertions(+), 7 deletions(-)
+Andreas Huber wrote:
 
-diff --git a/drivers/mfd/mfd-core.c b/drivers/mfd/mfd-core.c
-index d01574d..c0fc1c0 100644
---- a/drivers/mfd/mfd-core.c
-+++ b/drivers/mfd/mfd-core.c
-@@ -18,6 +18,21 @@
- #include <linux/pm_runtime.h>
- #include <linux/slab.h>
+> [...]
+>     /* Make sure we can acquire the hardware */
+>     drv = cx8802_get_driver(dev, CX88_MPEG_BLACKBIRD);      // HOW TO DEAL WITH NULL  ??????
+>     if (drv) {
+
+Reasonable question.  Could you try this patch?
+
+-- 8< -- 
+Subject: [media] cx88: lock device during driver initialization
+
+Reported-by: Andreas Huber <hobrom@gmx.at>
+Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
+---
+ drivers/media/video/cx88/cx88-blackbird.c |    2 --
+ drivers/media/video/cx88/cx88-mpeg.c      |    5 ++---
+ drivers/media/video/cx88/cx88.h           |    7 ++-----
+ 3 files changed, 4 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/media/video/cx88/cx88-blackbird.c b/drivers/media/video/cx88/cx88-blackbird.c
+index a6f7d53..f637d34 100644
+--- a/drivers/media/video/cx88/cx88-blackbird.c
++++ b/drivers/media/video/cx88/cx88-blackbird.c
+@@ -1335,11 +1335,9 @@ static int cx8802_blackbird_probe(struct cx8802_driver *drv)
+ 	blackbird_register_video(dev);
  
-+static int mfd_platform_add_cell(struct platform_device *pdev, const struct mfd_cell *cell)
-+{
-+	struct mfd_cell *c;
-+
-+	if (cell == NULL)
-+		return 0;
-+
-+	c = kmemdup(cell, sizeof(struct mfd_cell), GFP_KERNEL);
-+	if (c == NULL)
-+		return -ENOMEM;
-+
-+	pdev->mfd_cell = c;
-+	return 0;
-+}
-+
- int mfd_cell_enable(struct platform_device *pdev)
- {
- 	const struct mfd_cell *cell = mfd_get_cell(pdev);
-@@ -75,7 +90,7 @@ static int mfd_add_device(struct device *parent, int id,
+ 	/* initial device configuration: needed ? */
+-	mutex_lock(&dev->core->lock);
+ //	init_controls(core);
+ 	cx88_set_tvnorm(core,core->tvnorm);
+ 	cx88_video_mux(core,0);
+-	mutex_unlock(&dev->core->lock);
  
- 	pdev->dev.parent = parent;
+ 	return 0;
  
--	ret = platform_device_add_data(pdev, cell, sizeof(*cell));
-+	ret = mfd_platform_add_cell(pdev, cell);
- 	if (ret)
- 		goto fail_res;
+diff --git a/drivers/media/video/cx88/cx88-mpeg.c b/drivers/media/video/cx88/cx88-mpeg.c
+index 6b58647..b18f9fe 100644
+--- a/drivers/media/video/cx88/cx88-mpeg.c
++++ b/drivers/media/video/cx88/cx88-mpeg.c
+@@ -714,18 +714,17 @@ int cx8802_register_driver(struct cx8802_driver *drv)
+ 		drv->request_release = cx8802_request_release;
+ 		memcpy(driver, drv, sizeof(*driver));
  
-@@ -104,17 +119,17 @@ static int mfd_add_device(struct device *parent, int id,
- 		if (!cell->ignore_resource_conflicts) {
- 			ret = acpi_check_resource_conflict(res);
- 			if (ret)
--				goto fail_res;
-+				goto fail_cell;
++		mutex_lock(&drv->core->lock);
+ 		err = drv->probe(driver);
+ 		if (err == 0) {
+ 			i++;
+-			mutex_lock(&drv->core->lock);
+ 			list_add_tail(&driver->drvlist, &dev->drvlist);
+-			mutex_unlock(&drv->core->lock);
+ 		} else {
+ 			printk(KERN_ERR
+ 			       "%s/2: cx8802 probe failed, err = %d\n",
+ 			       dev->core->name, err);
  		}
+-
++		mutex_unlock(&drv->core->lock);
  	}
  
- 	ret = platform_device_add_resources(pdev, res, cell->num_resources);
- 	if (ret)
--		goto fail_res;
-+		goto fail_cell;
+ 	err = i ? 0 : -ENODEV;
+diff --git a/drivers/media/video/cx88/cx88.h b/drivers/media/video/cx88/cx88.h
+index 9731daa..3d32f4a 100644
+--- a/drivers/media/video/cx88/cx88.h
++++ b/drivers/media/video/cx88/cx88.h
+@@ -505,13 +505,10 @@ struct cx8802_driver {
+ 	int (*suspend)(struct pci_dev *pci_dev, pm_message_t state);
+ 	int (*resume)(struct pci_dev *pci_dev);
  
- 	ret = platform_device_add(pdev);
- 	if (ret)
--		goto fail_res;
-+		goto fail_cell;
- 
- 	if (cell->pm_runtime_no_callbacks)
- 		pm_runtime_no_callbacks(&pdev->dev);
-@@ -123,7 +138,8 @@ static int mfd_add_device(struct device *parent, int id,
- 
- 	return 0;
- 
--/*	platform_device_del(pdev); */
-+fail_cell:
-+	kfree(pdev->mfd_cell);
- fail_res:
- 	kfree(res);
- fail_device:
-@@ -171,6 +187,7 @@ static int mfd_remove_devices_fn(struct device *dev, void *c)
- 	if (!*usage_count || (cell->usage_count < *usage_count))
- 		*usage_count = cell->usage_count;
- 
-+	kfree(pdev->mfd_cell);
- 	platform_device_unregister(pdev);
- 	return 0;
- }
-diff --git a/include/linux/mfd/core.h b/include/linux/mfd/core.h
-index ad1b19a..0e4d3a6 100644
---- a/include/linux/mfd/core.h
-+++ b/include/linux/mfd/core.h
-@@ -86,7 +86,7 @@ extern int mfd_clone_cell(const char *cell, const char **clones,
-  */
- static inline const struct mfd_cell *mfd_get_cell(struct platform_device *pdev)
- {
--	return pdev->dev.platform_data;
-+	return pdev->mfd_cell;
- }
- 
- /*
-@@ -95,7 +95,10 @@ static inline const struct mfd_cell *mfd_get_cell(struct platform_device *pdev)
-  */
- static inline void *mfd_get_data(struct platform_device *pdev)
- {
--	return mfd_get_cell(pdev)->mfd_data;
-+	if (pdev->mfd_cell != NULL)
-+		return mfd_get_cell(pdev)->mfd_data;
-+	else
-+		return pdev->dev.platform_data;
- }
- 
- extern int mfd_add_devices(struct device *parent, int id,
-diff --git a/include/linux/platform_device.h b/include/linux/platform_device.h
-index d96db98..734d254 100644
---- a/include/linux/platform_device.h
-+++ b/include/linux/platform_device.h
-@@ -14,6 +14,8 @@
- #include <linux/device.h>
- #include <linux/mod_devicetable.h>
- 
-+struct mfd_cell;
++	/* Callers to the following functions must hold core->lock */
 +
- struct platform_device {
- 	const char	* name;
- 	int		id;
-@@ -23,6 +25,9 @@ struct platform_device {
+ 	/* MPEG 8802 -> mini driver - Driver probe and configuration */
+-
+-	/* Caller must _not_ hold core->lock */
+ 	int (*probe)(struct cx8802_driver *drv);
+-
+-	/* Callers to the following functions must hold core->lock */
+-
+ 	int (*remove)(struct cx8802_driver *drv);
  
- 	const struct platform_device_id	*id_entry;
- 
-+	/* MFD cell pointer */
-+	struct mfd_cell	*mfd_cell;
-+
- 	/* arch specific additions */
- 	struct pdev_archdata	archdata;
- };
-
+ 	/* MPEG 8802 -> mini driver - Access for hardware control */
 -- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+1.7.5.rc0
+
