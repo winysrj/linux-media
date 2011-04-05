@@ -1,169 +1,267 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.10]:55563 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753149Ab1DAINF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Apr 2011 04:13:05 -0400
-Date: Fri, 1 Apr 2011 10:13:02 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH/RFC 1/4] V4L: add three new ioctl()s for multi-size videobuffer
- management
-In-Reply-To: <Pine.LNX.4.64.1104010959470.9530@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1104011010530.9530@axis700.grange>
-References: <Pine.LNX.4.64.1104010959470.9530@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:56767 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752838Ab1DEOJB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2011 10:09:01 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Tue, 05 Apr 2011 16:06:44 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 1/7] ARM: EXYNOS4: power domains: fixes and code cleanup
+In-reply-to: <1302012410-17984-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Andrzej Pietrasiwiecz <andrzej.p@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>
+Message-id: <1302012410-17984-2-git-send-email-m.szyprowski@samsung.com>
+References: <1302012410-17984-1-git-send-email-m.szyprowski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-A possibility to preallocate and initialise buffers of different sizes
-in V4L2 is required for an efficient implementation of asnapshot mode.
-This patch adds three new ioctl()s: VIDIOC_CREATE_BUFS,
-VIDIOC_DESTROY_BUFS, and VIDIOC_SUBMIT_BUF and defines respective data
-structures.
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+This patch extends power domain driver with support for enabling and
+disabling modules in S5P_CLKGATE_BLOCK register. It also performs a
+little code cleanup to avoid confusion between exynos4_device_pd array
+index and power domain id.
+
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 ---
- drivers/media/video/v4l2-compat-ioctl32.c |    3 ++
- drivers/media/video/v4l2-ioctl.c          |   43 +++++++++++++++++++++++++++++
- include/linux/videodev2.h                 |   24 ++++++++++++++++
- include/media/v4l2-ioctl.h                |    3 ++
- 4 files changed, 73 insertions(+), 0 deletions(-)
+ arch/arm/mach-exynos4/dev-pd.c                  |   93 +++++++++++++++++------
+ arch/arm/mach-exynos4/include/mach/regs-clock.h |    7 ++
+ arch/arm/plat-samsung/include/plat/pd.h         |    1 +
+ 3 files changed, 79 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
-index 7c26947..d71b289 100644
---- a/drivers/media/video/v4l2-compat-ioctl32.c
-+++ b/drivers/media/video/v4l2-compat-ioctl32.c
-@@ -922,6 +922,9 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
- 	case VIDIOC_DQEVENT:
- 	case VIDIOC_SUBSCRIBE_EVENT:
- 	case VIDIOC_UNSUBSCRIBE_EVENT:
-+	case VIDIOC_CREATE_BUFS:
-+	case VIDIOC_DESTROY_BUFS:
-+	case VIDIOC_SUBMIT_BUF:
- 		ret = do_video_ioctl(file, cmd, arg);
- 		break;
+diff --git a/arch/arm/mach-exynos4/dev-pd.c b/arch/arm/mach-exynos4/dev-pd.c
+index 3273f25..44c6597 100644
+--- a/arch/arm/mach-exynos4/dev-pd.c
++++ b/arch/arm/mach-exynos4/dev-pd.c
+@@ -16,13 +16,17 @@
+ #include <linux/delay.h>
  
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index a01ed39..b80a211 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -259,6 +259,9 @@ static const char *v4l2_ioctls[] = {
- 	[_IOC_NR(VIDIOC_DQEVENT)]	   = "VIDIOC_DQEVENT",
- 	[_IOC_NR(VIDIOC_SUBSCRIBE_EVENT)]  = "VIDIOC_SUBSCRIBE_EVENT",
- 	[_IOC_NR(VIDIOC_UNSUBSCRIBE_EVENT)] = "VIDIOC_UNSUBSCRIBE_EVENT",
-+	[_IOC_NR(VIDIOC_CREATE_BUFS)]      = "VIDIOC_CREATE_BUFS",
-+	[_IOC_NR(VIDIOC_DESTROY_BUFS)]     = "VIDIOC_DESTROY_BUFS",
-+	[_IOC_NR(VIDIOC_SUBMIT_BUF)]       = "VIDIOC_SUBMIT_BUF",
- };
- #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
+ #include <mach/regs-pmu.h>
++#include <mach/regs-clock.h>
  
-@@ -2184,6 +2187,46 @@ static long __video_do_ioctl(struct file *file,
- 		dbgarg(cmd, "type=0x%8.8x", sub->type);
- 		break;
+ #include <plat/pd.h>
+ 
++static DEFINE_SPINLOCK(gate_block_slock);
++
+ static int exynos4_pd_enable(struct device *dev)
+ {
+ 	struct samsung_pd_info *pdata =  dev->platform_data;
+ 	u32 timeout;
++	int ret = 0;
+ 
+ 	__raw_writel(S5P_INT_LOCAL_PWR_EN, pdata->base);
+ 
+@@ -31,21 +35,39 @@ static int exynos4_pd_enable(struct device *dev)
+ 	while ((__raw_readl(pdata->base + 0x4) & S5P_INT_LOCAL_PWR_EN)
+ 		!= S5P_INT_LOCAL_PWR_EN) {
+ 		if (timeout == 0) {
+-			printk(KERN_ERR "Power domain %s enable failed.\n",
+-				dev_name(dev));
+-			return -ETIMEDOUT;
++			dev_err(dev, "enable failed\n");
++			ret = -ETIMEDOUT;
++			goto done;
+ 		}
+ 		timeout--;
+ 		udelay(100);
  	}
-+	case VIDIOC_CREATE_BUFS:
-+	{
-+		struct v4l2_create_buffers *create = arg;
+ 
+-	return 0;
++	/* configure clk gate mask if it is present */
++	if (pdata->gate_mask) {
++		unsigned long flags;
++		unsigned long value;
 +
-+		if (!ops->vidioc_create_bufs)
-+			break;
-+		ret = check_fmt(ops, create->format.type);
-+		if (ret)
-+			break;
++		spin_lock_irqsave(&gate_block_slock, flags);
 +
-+		if (create->size)
-+			CLEAR_AFTER_FIELD(create, count);
++		value  = __raw_readl(S5P_CLKGATE_BLOCK);
++		value |= pdata->gate_mask;
++		__raw_writel(value, S5P_CLKGATE_BLOCK);
 +
-+		ret = ops->vidioc_create_bufs(file, fh, create);
-+
-+		dbgarg(cmd, "count=%d\n", create->count);
-+		break;
++		spin_unlock_irqrestore(&gate_block_slock, flags);
 +	}
-+	case VIDIOC_DESTROY_BUFS:
-+	{
-+		struct v4l2_buffer_span *span = arg;
 +
-+		if (!ops->vidioc_destroy_bufs)
-+			break;
++done:
++	dev_info(dev, "enable finished\n");
 +
-+		ret = ops->vidioc_destroy_bufs(file, fh, span);
++	return ret;
+ }
+ 
+ static int exynos4_pd_disable(struct device *dev)
+ {
+ 	struct samsung_pd_info *pdata =  dev->platform_data;
+ 	u32 timeout;
++	int ret = 0;
+ 
+ 	__raw_writel(0, pdata->base);
+ 
+@@ -53,81 +75,108 @@ static int exynos4_pd_disable(struct device *dev)
+ 	timeout = 10;
+ 	while (__raw_readl(pdata->base + 0x4) & S5P_INT_LOCAL_PWR_EN) {
+ 		if (timeout == 0) {
+-			printk(KERN_ERR "Power domain %s disable failed.\n",
+-				dev_name(dev));
+-			return -ETIMEDOUT;
++			dev_err(dev, "disable failed\n");
++			ret = -ETIMEDOUT;
++			goto done;
+ 		}
+ 		timeout--;
+ 		udelay(100);
+ 	}
+ 
+-	return 0;
++	if (pdata->gate_mask) {
++		unsigned long flags;
++		unsigned long value;
 +
-+		dbgarg(cmd, "count=%d", span->count);
-+		break;
++		spin_lock_irqsave(&gate_block_slock, flags);
++
++		value  = __raw_readl(S5P_CLKGATE_BLOCK);
++		value &= ~pdata->gate_mask;
++		__raw_writel(value, S5P_CLKGATE_BLOCK);
++
++		spin_unlock_irqrestore(&gate_block_slock, flags);
 +	}
-+	case VIDIOC_SUBMIT_BUF:
-+	{
-+		unsigned int *i = arg;
++done:
++	dev_info(dev, "disable finished\n");
 +
-+		if (!ops->vidioc_submit_buf)
-+			break;
-+		ret = ops->vidioc_submit_buf(file, fh, *i);
-+		dbgarg(cmd, "index=%d", *i);
-+		break;
-+	}
- 	default:
- 	{
- 		bool valid_prio = true;
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index aa6c393..b6ef46e 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1847,6 +1847,26 @@ struct v4l2_dbg_chip_ident {
- 	__u32 revision;    /* chip revision, chip specific */
- } __attribute__ ((packed));
++	return ret;
+ }
  
-+/* VIDIOC_DESTROY_BUFS */
-+struct v4l2_buffer_span {
-+	__u32			index;	/* output: buffers index...index + count - 1 have been created */
-+	__u32			count;
-+	__u32			reserved[2];
-+};
+ struct platform_device exynos4_device_pd[] = {
+-	{
++	[PD_MFC] = {
+ 		.name		= "samsung-pd",
+-		.id		= 0,
++		.id		= PD_MFC,
+ 		.dev = {
+ 			.platform_data = &(struct samsung_pd_info) {
+ 				.enable		= exynos4_pd_enable,
+ 				.disable	= exynos4_pd_disable,
+ 				.base		= S5P_PMU_MFC_CONF,
++				.gate_mask	= S5P_CLKGATE_BLOCK_MFC,
+ 			},
+ 		},
+-	}, {
++	},
++	[PD_G3D] = {
+ 		.name		= "samsung-pd",
+-		.id		= 1,
++		.id		= PD_G3D,
+ 		.dev = {
+ 			.platform_data = &(struct samsung_pd_info) {
+ 				.enable		= exynos4_pd_enable,
+ 				.disable	= exynos4_pd_disable,
+ 				.base		= S5P_PMU_G3D_CONF,
++				.gate_mask	= S5P_CLKGATE_BLOCK_G3D,
+ 			},
+ 		},
+-	}, {
++	},
++	[PD_LCD0] = {
+ 		.name		= "samsung-pd",
+-		.id		= 2,
++		.id		= PD_LCD0,
+ 		.dev = {
+ 			.platform_data = &(struct samsung_pd_info) {
+ 				.enable		= exynos4_pd_enable,
+ 				.disable	= exynos4_pd_disable,
+ 				.base		= S5P_PMU_LCD0_CONF,
++				.gate_mask	= S5P_CLKGATE_BLOCK_LCD0,
+ 			},
+ 		},
+-	}, {
++	},
++	[PD_LCD1] = {
+ 		.name		= "samsung-pd",
+-		.id		= 3,
++		.id		= PD_LCD1,
+ 		.dev = {
+ 			.platform_data = &(struct samsung_pd_info) {
+ 				.enable		= exynos4_pd_enable,
+ 				.disable	= exynos4_pd_disable,
+ 				.base		= S5P_PMU_LCD1_CONF,
++				.gate_mask	= S5P_CLKGATE_BLOCK_LCD1,
+ 			},
+ 		},
+-	}, {
++	},
++	[PD_TV] = {
+ 		.name		= "samsung-pd",
+-		.id		= 4,
++		.id		= PD_TV,
+ 		.dev = {
+ 			.platform_data = &(struct samsung_pd_info) {
+ 				.enable		= exynos4_pd_enable,
+ 				.disable	= exynos4_pd_disable,
+ 				.base		= S5P_PMU_TV_CONF,
++				.gate_mask	= S5P_CLKGATE_BLOCK_TV,
+ 			},
+ 		},
+-	}, {
++	},
++	[PD_CAM] = {
+ 		.name		= "samsung-pd",
+-		.id		= 5,
++		.id		= PD_CAM,
+ 		.dev = {
+ 			.platform_data = &(struct samsung_pd_info) {
+ 				.enable		= exynos4_pd_enable,
+ 				.disable	= exynos4_pd_disable,
+ 				.base		= S5P_PMU_CAM_CONF,
++				.gate_mask	= S5P_CLKGATE_BLOCK_CAM,
+ 			},
+ 		},
+-	}, {
++	},
++	[PD_GPS] = {
+ 		.name		= "samsung-pd",
+-		.id		= 6,
++		.id		= PD_GPS,
+ 		.dev = {
+ 			.platform_data = &(struct samsung_pd_info) {
+ 				.enable		= exynos4_pd_enable,
+diff --git a/arch/arm/mach-exynos4/include/mach/regs-clock.h b/arch/arm/mach-exynos4/include/mach/regs-clock.h
+index 6e311c1..2c1472b 100644
+--- a/arch/arm/mach-exynos4/include/mach/regs-clock.h
++++ b/arch/arm/mach-exynos4/include/mach/regs-clock.h
+@@ -171,6 +171,13 @@
+ #define S5P_CLKDIV_BUS_GPLR_SHIFT	(4)
+ #define S5P_CLKDIV_BUS_GPLR_MASK	(0x7 << S5P_CLKDIV_BUS_GPLR_SHIFT)
+ 
++#define S5P_CLKGATE_BLOCK_CAM		(1 << 0)
++#define S5P_CLKGATE_BLOCK_TV		(1 << 1)
++#define S5P_CLKGATE_BLOCK_MFC		(1 << 2)
++#define S5P_CLKGATE_BLOCK_G3D		(1 << 3)
++#define S5P_CLKGATE_BLOCK_LCD0		(1 << 4)
++#define S5P_CLKGATE_BLOCK_LCD1		(1 << 5)
 +
-+/* struct v4l2_createbuffers::flags */
-+#define V4L2_BUFFER_FLAG_NO_CACHE_INVALIDATE	(1 << 0)
-+
-+/* VIDIOC_CREATE_BUFS */
-+struct v4l2_create_buffers {
-+	__u32			index;		/* output: buffers index...index + count - 1 have been created */
-+	__u32			count;
-+	__u32			flags;		/* V4L2_BUFFER_FLAG_* */
-+	enum v4l2_memory        memory;
-+	__u32			size;		/* Explicit size, e.g., for compressed streams */
-+	struct v4l2_format	format;		/* "type" is used always, the rest if size == 0 */
-+};
-+
- /*
-  *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
-  *
-@@ -1937,6 +1957,10 @@ struct v4l2_dbg_chip_ident {
- #define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct v4l2_event_subscription)
- #define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 91, struct v4l2_event_subscription)
+ /* Compatibility defines and inclusion */
  
-+#define VIDIOC_CREATE_BUFS	_IOWR('V', 92, struct v4l2_create_buffers)
-+#define VIDIOC_DESTROY_BUFS	_IOWR('V', 93, struct v4l2_buffer_span)
-+#define VIDIOC_SUBMIT_BUF	 _IOW('V', 94, int)
-+
- /* Reminder: when adding new ioctls please add support for them to
-    drivers/media/video/v4l2-compat-ioctl32.c as well! */
+ #include <mach/regs-pmu.h>
+diff --git a/arch/arm/plat-samsung/include/plat/pd.h b/arch/arm/plat-samsung/include/plat/pd.h
+index abb4bc3..ef545ed 100644
+--- a/arch/arm/plat-samsung/include/plat/pd.h
++++ b/arch/arm/plat-samsung/include/plat/pd.h
+@@ -15,6 +15,7 @@ struct samsung_pd_info {
+ 	int (*enable)(struct device *dev);
+ 	int (*disable)(struct device *dev);
+ 	void __iomem *base;
++	unsigned long gate_mask;
+ };
  
-diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-index dd9f1e7..00962c6 100644
---- a/include/media/v4l2-ioctl.h
-+++ b/include/media/v4l2-ioctl.h
-@@ -122,6 +122,9 @@ struct v4l2_ioctl_ops {
- 	int (*vidioc_qbuf)    (struct file *file, void *fh, struct v4l2_buffer *b);
- 	int (*vidioc_dqbuf)   (struct file *file, void *fh, struct v4l2_buffer *b);
- 
-+	int (*vidioc_create_bufs) (struct file *file, void *fh, struct v4l2_create_buffers *b);
-+	int (*vidioc_destroy_bufs)(struct file *file, void *fh, struct v4l2_buffer_span *b);
-+	int (*vidioc_submit_buf)  (struct file *file, void *fh, unsigned int i);
- 
- 	int (*vidioc_overlay) (struct file *file, void *fh, unsigned int i);
- 	int (*vidioc_g_fbuf)   (struct file *file, void *fh,
+ enum exynos4_pd_block {
 -- 
-1.7.2.5
-
+1.7.1.569.g6f426
