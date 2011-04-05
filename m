@@ -1,106 +1,183 @@
 Return-path: <mchehab@pedra>
-Received: from blu0-omc2-s11.blu0.hotmail.com ([65.55.111.86]:14936 "EHLO
-	blu0-omc2-s11.blu0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752854Ab1DCSPs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 3 Apr 2011 14:15:48 -0400
-Message-ID: <BLU0-SMTP19940292858BBA657A1973DD8A00@phx.gbl>
-To: linux-media@vger.kernel.org
-Subject: dibusb device with lock problems
-CC: pb@linuxtv.org, grafgrimm77@gmx.de, castet.matthieu@free.fr
-From: Mr Tux <tuxoholic@hotmail.de>
-Date: Sun, 3 Apr 2011 20:15:44 +0200
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52015 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752546Ab1DEOAH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2011 10:00:07 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [PATCH 0/2] V4L: Extended crop/compose API
+Date: Tue, 5 Apr 2011 16:00:38 +0200
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+References: <1301325596-18166-1-git-send-email-t.stanislaws@samsung.com> <201103291150.29555.hansverk@cisco.com> <4D91B6BA.1070103@samsung.com>
+In-Reply-To: <4D91B6BA.1070103@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201104051600.38985.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-hello Patrick,
+Hi Tomasz,
 
-On Sunday 03 April 2011 17:37:00 Patrick Boettcher wrote:
+On Tuesday 29 March 2011 12:38:50 Tomasz Stanislawski wrote:
+> Hans Verkuil wrote:
+> > On Tuesday, March 29, 2011 11:22:17 Tomasz Stanislawski wrote:
+> >> Hans Verkuil wrote:
+> >>> On Monday, March 28, 2011 17:19:54 Tomasz Stanislawski wrote:
+> >>>> Hello everyone,
+> >>>> 
+> >>>> This patch-set introduces new ioctls to V4L2 API. The new method for
+> >>>> configuration of cropping and composition is presented.
+> >>>> 
+> >>>> There is some confusion in understanding of a cropping in current
+> >>>> version of V4L2. For CAPTURE devices cropping refers to choosing only a
+> >>>> part of input data stream and processing it and storing it in a memory
+> >>>> buffer. The buffer is fully filled by data. It is not possible to
+> >>>> choose only a part of a buffer for being updated by hardware.
+> >>>> 
+> >>>> In case of OUTPUT devices, the whole content of a buffer is passed by
+> >>>> hardware to output display. Cropping means selecting only a part of an
+> >>>> output display/signal. It is not possible to choose only a part for a
+> >>>> memory buffer to be processed.
+> >>>> 
+> >>>> The overmentioned flaws in cropping API were discussed in post:
+> >>>> http://article.gmane.org/gmane.linux.drivers.video-input-
+infrastructure/28945
+> >>>>
+> >>>> A solution was proposed during brainstorming session in Warsaw.
+> >> 
+> >> Hello. Thank you for a quick comment.
+> >> 
+> >>> I don't have time right now to review this RFC in-depth, but one thing
+> >>> that needs more attention is the relationship between these new ioctls
+> >>> and CROPCAP.
+> > 
+> >>> And also how this relates to analog inputs (I don't think analog
+> >>> outputs make any sense). And would a COMPOSECAP ioctl make sense?
+> >> 
+> >> Maybe two new ioctl COMPOSECAP and EXTCROPCAP should be added.
+> >> For input CROPCAP maps to EXTCROPCAP, for output it maps to COMPOSECAP.
+> >> The output EXTCROPCAP would return dimentions of a buffer.
+> >> But in my opinion field v4l2_selection::bounds should be added to
+> >> structure below. In such a case G_EXTCROP could be used to obtain
+> >> cropping bounds.
 
->
->I think this line is not normal in your case:
->
-> dibusb: This device has the Thomson Cable onboard. Which is default.
->
+Using flags to tell G_EXTCROP and G_COMPOSE whether we want to retrieve the 
+bounds, default rectangle or current rectangle would be a sensible option in 
+my opinion.
 
-Here's the output of dmesg in Lenny (kernel 2.6.26-1) where the tuning was 
-fine:
+> > There is more in CROPCAP than just the bounds. I'd have to think about
+> > this myself.
 
-usb 2-1: new full speed USB device using ohci_hcd and address 3
-usb 2-1: configuration #1 chosen from 1 choice
-usb 2-1: New USB device found, idVendor=1822, idProduct=3201
-usb 2-1: New USB device strings: Mfr=0, Product=0, SerialNumber=0
-dvb-usb: found a 'TwinhanDTV USB-Ter USB1.1 / Magic Box I / HAMA USB1.1 DVB-T 
-device' in cold state, will try to load a firmware
-firmware: requesting dvb-usb-dibusb-5.0.0.11.fw
-dvb-usb: downloading firmware from file 'dvb-usb-dibusb-5.0.0.11.fw'
-usbcore: registered new interface driver dvb_usb_dibusb_mb
-usb 2-1: USB disconnect, address 3
-dvb-usb: generic DVB-USB module successfully deinitialized and disconnected.
-usb 2-1: new full speed USB device using ohci_hcd and address 4
-usb 2-1: configuration #1 chosen from 1 choice
-dvb-usb: found a 'TwinhanDTV USB-Ter USB1.1 / Magic Box I / HAMA USB1.1 DVB-T 
-device' in warm state.
-dvb-usb: will use the device's hardware PID filter (table count: 16).
-DVB: registering new adapter (TwinhanDTV USB-Ter USB1.1 / Magic Box I / HAMA 
-USB1.1 DVB-T device)
-DVB: registering frontend 0 (DiBcom 3000M-B DVB-T)...
-dibusb: This device has the Thomson Cable onboard. Which is default.
-input: IR-receiver inside an USB DVB receiver as /class/input/input5
-dvb-usb: schedule remote query interval to 150 msecs.
-dvb-usb: TwinhanDTV USB-Ter USB1.1 / Magic Box I / HAMA USB1.1 DVB-T device 
-successfully initialized and connected.                    
-usb 2-1: New USB device found, idVendor=1822, idProduct=3202                                                                           
-usb 2-1: New USB device strings: Mfr=1, Product=2, SerialNumber=0                                                                      
-usb 2-1: Product: VP7041                                                                                                               
-usb 2-1: Manufacturer: TwinHan
+[snip]
 
+> >>>> 3. Hints
+> >>>> 
+> >>>> The v4l2_selection::flags field is used to give a driver a hint about
+> >>>> coordinate adjustments.  Below one can find the proposition of
+> >>>> adjustment flags. The syntax is V4L2_SEL_{name}_{LE/GE}, where {name}
+> >>>> refer to a
+> > 
+> > field in
+> > 
+> >>>> struct v4l2_rect. The LE is abbreviation from "lesser or equal".  It
+> > 
+> > prevents
+> > 
+> >>>> the driver form increasing a parameter. In similar fashion GE means
+> > 
+> > "greater or
+> > 
+> >>>> equal" and it disallows decreasing. Combining LE and GE flags prevents
+> > 
+> > the
+> > 
+> >>>> driver from any adjustments of parameters.  In such a manner, setting
+> > 
+> > flags
+> > 
+> >>>> field to zero would give a driver a free hand in coordinate
+> >>>> adjustment.
+> >>>> 
+> >>>> #define V4L2_SEL_WIDTH_GE	0x00000001
+> >>>> #define V4L2_SEL_WIDTH_LE	0x00000002
+> >>>> #define V4L2_SEL_HEIGHT_GE	0x00000004
+> >>>> #define V4L2_SEL_HEIGHT_LE	0x00000008
+> >>>> #define V4L2_SEL_LEFT_GE	0x00000010
+> >>>> #define V4L2_SEL_LEFT_LE	0x00000020
+> >>>> #define V4L2_SEL_TOP_GE		0x00000040
+> >>>> #define V4L2_SEL_TOP_LE		0x00000080
+> >>> 
+> >>> Wouldn't you also need similar flags for RIGHT and BOTTOM?
+> >>> 
+> >>> Regards,
+> >>> 
+> >>> 	Hans
+> >> 
+> >> Proposed flags refer to fields in v4l2_rect structure. These are left,
+> >> top, width and height. Fields bottom and right and not present in
+> >> v4l2_rect structure.
+> > 
+> > But what if I want to keep the bottom right corner fixed, and allow other
+> > parameters to change? I don't think you can do that with the current set
+> > of flags.
+> > 
+> > Regards,
+> > 
+> > 	Hans
+> 
+> You are right. New flags should be added:
+> 
+> #define V4L2_SEL_RIGHT_GE	0x00000100
+> #define V4L2_SEL_RIGHT_LE	0x00000200
+> #define V4L2_SEL_BOTTOM_GE	0x00000400
+> #define V4L2_SEL_BOTTOM_LE	0x00000800
+> 
+> They  would be used to inform a driver about adjusting a bottom-right
+> corner. Right and bottom would be defined as:
+> 
+> right = v4l2_rect::left + v4l2_rect::width
+> bottom = v4l2_rect::top + v4l2_rect::height
 
-The Thomson line was there, nevertheless the locking was fine back then:
+What if you want to allow the rectangle to be slightly enlarged or reduced, 
+but want to keep it centered ? I feel like this would get out of hands quite 
+fast. Hints are not a bad idea, but they will become very complex to implement 
+in drivers, especially when the hardware forces all kind of weird constraints 
+(and we all know that hardware designers get extremely creative in that area 
+:-)).
 
-1st consecutive test run using tzap:
+> >>>> #define V4L2_SEL_WIDTH_FIXED	0x00000003
+> >>>> #define V4L2_SEL_HEIGHT_FIXED	0x0000000c
+> >>>> #define V4L2_SEL_LEFT_FIXED	0x00000030
+> >>>> #define V4L2_SEL_TOP_FIXED	0x000000c0
+> >>>> 
+> >>>> #define V4L2_SEL_FIXED		0x000000ff
+> >>>> 
+> >>>> The hint flags may be useful in a following scenario.  There is a
+> >>>> sensor with a face detection functionality. An application receives
+> >>>> information about a position of a face on sensor array. Assume that the
+> >>>> camera pipeline is capable of an image scaling. The application is
+> >>>> capable of obtaining a location of a face using V4L2 controls. The task
+> >>>> it to grab only part of image that contains a face, and store it to a
+> >>>> framebuffer at a fixed window. Therefore following constrains have to
+> >>>> be satisfied:
+> >>>> - the rectangle that contains a face must lay inside cropping area
+> >>>> - hardware is allowed only to access area inside window on the
+> >>>> framebuffer
+> >>>>
+> >>>> Both constraints could be satisfied with two ioctl calls.
+> >>>> - VIDIOC_EXTCROP with flags field equal to
+> >>>> 
+> >>>>   V4L2_SEL_TOP_FIXED | V4L2_SEL_LEFT_FIXED |
+> >>>>   V4L2_SEL_WIDTH_GE | V4L2_SEL_HEIGHT_GE.
+> >>>> 
+> >>>> - VIDIOC_COMPOSE with flags field equal to
+> >>>> 
+> >>>>   V4L2_SEL_TOP_FIXED | V4L2_SEL_LEFT_FIXED |
+> >>>>   V4L2_SEL_WIDTH_LE | V4L2_SEL_HEIGHT_LE
 
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-tuning to 690000000 Hz
-video pid 0x00a0, audio pid 0x0050
-status 00 | signal 1d37 | snr 0000 | ber 001fffff | unc 0000ffff | 
-status 1a | signal 2161 | snr 0046 | ber 001fffff | unc 0000ffff | FE_HAS_LOCK
-status 1b | signal ffff | snr 0044 | ber 001fffff | unc 0000ffff | FE_HAS_LOCK
-status 1b | signal ffff | snr 0046 | ber 00008a18 | unc 00000038 | FE_HAS_LOCK
-status 1b | signal ffff | snr 004b | ber 00004d60 | unc 00000000 | FE_HAS_LOCK
-status 1b | signal f4dd | snr 003a | ber 00003ee4 | unc 00000000 | FE_HAS_LOCK
+-- 
+Regards,
 
-2nd consecutive test run using tzap:
-
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-tuning to 690000000 Hz
-video pid 0x00a0, audio pid 0x0050
-status 02 | signal 0000 | snr 0000 | ber 001fffff | unc 0000ffff | 
-status 1a | signal 9bd0 | snr 0043 | ber 001fffff | unc 0000ffff | FE_HAS_LOCK
-status 1b | signal ffff | snr 0040 | ber 001fffff | unc 0000ffff | FE_HAS_LOCK
-status 1b | signal f4dd | snr 0044 | ber 00008754 | unc 0000002e | FE_HAS_LOCK
-status 1b | signal ffff | snr 0042 | ber 000094a4 | unc 00000000 | FE_HAS_LOCK
-status 1b | signal ffff | snr 003a | ber 000187e8 | unc 00000000 | FE_HAS_LOCK
-
-3rd consecutive test run using tzap:
-
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-tuning to 690000000 Hz
-video pid 0x00a0, audio pid 0x0050
-status 1e | signal 858e | snr 0058 | ber 001fffff | unc 0000ffff | FE_HAS_LOCK
-status 1b | signal ffff | snr 004c | ber 001fffff | unc 0000ffff | FE_HAS_LOCK
-status 1b | signal ffff | snr 0042 | ber 00005b18 | unc 0000000c | FE_HAS_LOCK
-status 1b | signal ffff | snr 0044 | ber 0000697c | unc 00000000 | FE_HAS_LOCK
-status 1b | signal f4dd | snr 004e | ber 00005f20 | unc 00000000 | FE_HAS_LOCK
-status 1b | signal ffff | snr 0055 | ber 00005f20 | unc 00000000 | FE_HAS_LOCK
-status 1b | signal ffff | snr 0037 | ber 00005400 | unc 00000000 | FE_HAS_LOCK
-
-
-So even with a poorly aligned antenna I get some BER, but I always have the 
-instant lock as expected.
-
-This changed with with the eeprom protection you introduced in 2.6.31, and the 
-patch for Mario Bachmann never fixed it for my dib3000mb device.
+Laurent Pinchart
