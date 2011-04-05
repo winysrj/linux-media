@@ -1,118 +1,90 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.128.26]:35317 "EHLO mgw-da02.nokia.com"
+Received: from smtp.nokia.com ([147.243.1.48]:25754 "EHLO mgw-sa02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751989Ab1DPIs5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Apr 2011 04:48:57 -0400
-Message-ID: <4DA9588F.6030103@maxwell.research.nokia.com>
-Date: Sat, 16 Apr 2011 11:51:27 +0300
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+	id S1751141Ab1DEKBJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 Apr 2011 06:01:09 -0400
+Message-ID: <4D9AE83C.4070305@nokia.com>
+Date: Tue, 05 Apr 2011 13:00:28 +0300
+From: Sakari Ailus <sakari.ailus@nokia.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org
-Subject: Re: [RFCv1 PATCH 4/9] v4l2-ctrls: add per-control events.
-References: <1301917914-27437-1-git-send-email-hans.verkuil@cisco.com>    <54721c1be23beb8c885ef56cdf7f782205c9dfdb.1301916466.git.hans.verkuil@cisco.com>    <4DA82325.1020800@maxwell.research.nokia.com> <7db9a20f6d656cee512dd4a9d3f53061.squirrel@webmail.xs4all.nl>
-In-Reply-To: <7db9a20f6d656cee512dd4a9d3f53061.squirrel@webmail.xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Hans Verkuil <hansverk@cisco.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Nayden Kanchev <nkanchev@mm-sol.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Cohen David Abraham <david.cohen@nokia.com>
+Subject: Re: [RFC] V4L2 API for flash devices
+References: <4D90854C.2000802@maxwell.research.nokia.com> <4D91C4BA.20200@maxwell.research.nokia.com> <4D91C7CA.1050105@nokia.com> <201103301047.15678.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201103301047.15678.laurent.pinchart@ideasonboard.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Hans,
+Laurent Pinchart wrote:
+> Hi Sakari,
 
-Thanks for the reply.
+Hi Laurent,
 
-Hans Verkuil wrote:
->> Hi Hans,
+> On Tuesday 29 March 2011 13:51:38 Sakari Ailus wrote:
+>> Sakari Ailus wrote:
+>>> Hans Verkuil wrote:
+>>>> On Tuesday, March 29, 2011 11:35:19 Sakari Ailus wrote:
+>>>>> Hi Hans,
+>>>>>
+>>>>> Many thanks for the comments!
+>>>
+>>> ...
+>>>
+>>>>> It occurred to me that an application might want to turn off a flash
+>>>>> which has been strobed on software. That can't be done on a single
+>>>>> button control.
+>>>>>
+>>>>> V4L2_CID_FLASH_SHUTDOWN?
+>>>>>
+>>>>> The application would know the flash strobe is ongoing before it
+>>>>> receives a timeout fault. I somehow feel that there should be a control
+>>>>> telling that directly.
+>>>>>
+>>>>> What about using a bool control for the strobe?
+>>>>
+>>>> It depends: is the strobe signal just a pulse that kicks off the flash,
+>>>> or is it active throughout the flash duration? In the latter case a
+>>>> bool makes sense, in the first case an extra button control makes
+>>>> sense.
+>>>
+>>> I like buttons since I associate them with action (like strobing) but on
+>>> the other hand buttons don't allow querying the current state. On the
+>>> other hand, the current state isn't always determinable, e.g. in the
+>>> absence of the interrupt line from the flash controller interrupt pin
+>>> (e.g. N900!).
 >>
->> I have some more comments below. :-)
+>> Oh, I need to take my words back a bit.
 >>
->> Hans Verkuil wrote:
->>> Whenever a control changes value an event is sent to anyone that
->>> subscribed
->>> to it.
->>>
->>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>> ---
->>>  drivers/media/video/v4l2-ctrls.c |   59 ++++++++++++++++++
->>>  drivers/media/video/v4l2-event.c |  126
->>> +++++++++++++++++++++++++++-----------
->>>  drivers/media/video/v4l2-fh.c    |    4 +-
->>>  include/linux/videodev2.h        |   17 +++++-
->>>  include/media/v4l2-ctrls.h       |    9 +++
->>>  include/media/v4l2-event.h       |    2 +
->>>  6 files changed, 177 insertions(+), 40 deletions(-)
->>>
->>> diff --git a/drivers/media/video/v4l2-ctrls.c
->>> b/drivers/media/video/v4l2-ctrls.c
->>> index f75a1d4..163f412 100644
->>> --- a/drivers/media/video/v4l2-ctrls.c
->>> +++ b/drivers/media/video/v4l2-ctrls.c
->>> @@ -23,6 +23,7 @@
->>>  #include <media/v4l2-ioctl.h>
->>>  #include <media/v4l2-device.h>
->>>  #include <media/v4l2-ctrls.h>
->>> +#include <media/v4l2-event.h>
->>>  #include <media/v4l2-dev.h>
->>>
->>>  /* Internal temporary helper struct, one for each v4l2_ext_control */
->>> @@ -537,6 +538,16 @@ static bool type_is_int(const struct v4l2_ctrl
->>> *ctrl)
->>>  	}
->>>  }
->>>
->>> +static void send_event(struct v4l2_ctrl *ctrl, struct v4l2_event *ev)
->>> +{
->>> +	struct v4l2_ctrl_fh *pos;
->>> +
->>> +	ev->id = ctrl->id;
->>> +	list_for_each_entry(pos, &ctrl->fhs, node) {
->>> +		v4l2_event_queue_fh(pos->fh, ev);
->>> +	}
+>> There indeed is a way to get the on/off status for the flash, but that
+>> involves I2C register access --- when you read the fault registers, you
+>> do get the state, even if the interrupt linke is missing from the
+>> device. At least I can't see why this wouldn't work, at least on this
+>> particular chip.
 >>
->> Shouldn't we do v4l2_ctrl_lock(ctrl) here? Or does something prevent
->> changes to the file handle list while we loop over it?
+>> What you can't have in this case is the event.
+>>
+>> So, in my opinion this suggests that a single boolean control is the way
+>> to go.
 > 
-> This function is always called with the lock taken.
+> Why would an application want to turn off a flash that has been strobbed in 
+> software ? Applications should set the flash duration and then strobe it.
 
-Yes, you're right.
+The applications won't know beforehand the exact timing of the exposure
+of the frames on the sensor and the latencies of the operating system
+possibly affected by other processes running on the system. Thus it's
+impossible to know exactly how long flash strobe (on software, that is!)
+is required.
 
->> v4l2_ctrl_lock() locks a mutex. Events often arrive from interrupt
->> context, which would mean the drivers would need to create a work queue
->> to tell about changes to control values.
-> 
-> I will have to check whether it is possible to make a function that can be
-> called from interrupt context. I have my doubts though whether it is 1)
-> possible and 2) desirable. At least in the area of HDMI
-> receivers/transmitters you will want to have a workqueue anyway.
-
-I wonder if there could be a more generic mechanism than to implement
-this in a driver itself. In some cases it may also be harmful that
-events are lost, and if there's just a single event for the workqueue,
-it happens too easily in my opinion.
-
-What do you think; could/should there be a queue for control events that
-arrive from interrupt context, or should that be implemented in the
-drivers themselves?
-
-Another issue with this is that workqueues require to be scheduled so
-sending the event to user space gets delayed by that. One of the
-important aspects of events is latency and it would be nice to be able
-to minimise that --- that's one reason why events use a spinlock rather
-than a mutex, the other being that they can be easily sent from
-interrupt context where they mostly arrive from.
-
-It would be nice to have the same properties for control events.
-
-There are use cases where a user space control process would run on a
-real time priority to avoid scheduling latencies caused by other
-processes, and such control process receiving control events would be
-affected by the low priority of the work queues.
-
-I agree with all your responses below on locking.
-
-Thanks.
-
-Regards,
+So, as far as I see there should be a way to turn the flash off and the
+timeout would mostly function as a safeguard. This is likely dependent
+on the flash controller as well.
 
 -- 
 Sakari Ailus
