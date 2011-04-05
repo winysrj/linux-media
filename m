@@ -1,79 +1,66 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:37967 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754507Ab1DKVr4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Apr 2011 17:47:56 -0400
-Received: by wwa36 with SMTP id 36so7172274wwa.1
-        for <linux-media@vger.kernel.org>; Mon, 11 Apr 2011 14:47:54 -0700 (PDT)
-References: <1300997220-4354-1-git-send-email-jarod@redhat.com> <20110324203108.GX2008@bicker> <20110324220523.GB28094@redhat.com>
-In-Reply-To: <20110324220523.GB28094@redhat.com>
-Mime-Version: 1.0 (Apple Message framework v1084)
-Content-Type: text/plain; charset=us-ascii
-Message-Id: <6FD2AAEC-73BF-414A-BEF2-1C9C20A4F4BB@wilsonet.com>
-Content-Transfer-Encoding: 8BIT
-Cc: Dan Carpenter <error27@gmail.com>,
-	Dmitri Belimov <d.belimov@gmail.com>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-From: Jarod Wilson <jarod@wilsonet.com>
-Subject: Re: [PATCH] tm6000: fix vbuf may be used uninitialized
-Date: Mon, 11 Apr 2011 17:48:02 -0400
-To: Jarod Wilson <jarod@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48769 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752856Ab1DEMhc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2011 08:37:32 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH/RFC 2/4 v2] V4L: add videobuf2 helper functions to support multi-size video-buffers
+Date: Tue, 5 Apr 2011 14:38:03 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <Pine.LNX.4.64.1104010959470.9530@axis700.grange> <Pine.LNX.4.64.1104011011220.9530@axis700.grange> <Pine.LNX.4.64.1104011604360.11504@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1104011604360.11504@axis700.grange>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201104051438.04072.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mar 24, 2011, at 6:05 PM, Jarod Wilson wrote:
+Hi Guennadi,
 
-> On Thu, Mar 24, 2011 at 11:31:08PM +0300, Dan Carpenter wrote:
->> On Thu, Mar 24, 2011 at 04:07:00PM -0400, Jarod Wilson wrote:
->>> Signed-off-by: Jarod Wilson <jarod@redhat.com>
->> 
->> Jarod, there is a lot of information missing from your change log...  :/
-> 
-> Hrm, I'm building the media stack with all warnings fatal, so this was
-> just a quick fix to silence the compiler warning, didn't really look into
-> it at all.
-> 
->>> CC: devel@driverdev.osuosl.org
->>> ---
->>> drivers/staging/tm6000/tm6000-video.c |    2 +-
->>> 1 files changed, 1 insertions(+), 1 deletions(-)
->>> 
->>> diff --git a/drivers/staging/tm6000/tm6000-video.c b/drivers/staging/tm6000/tm6000-video.c
->>> index c80a316..bfebedd 100644
->>> --- a/drivers/staging/tm6000/tm6000-video.c
->>> +++ b/drivers/staging/tm6000/tm6000-video.c
->>> @@ -228,7 +228,7 @@ static int copy_streams(u8 *data, unsigned long len,
->>> 	unsigned long header = 0;
->>> 	int rc = 0;
->>> 	unsigned int cmd, cpysize, pktsize, size, field, block, line, pos = 0;
->>> -	struct tm6000_buffer *vbuf;
->>> +	struct tm6000_buffer *vbuf = NULL;
->>> 	char *voutp = NULL;
->>> 	unsigned int linewidth;
->>> 
->> 
->> This looks like a real bug versus just a GCC warning.  It was introduced
->> in 8aff8ba95155df "[media] tm6000: add radio support to the driver".
->> I've added Dmitri to the CC list.
-> 
-> Thanks much, will try to pay more attention next time. ;)
+On Friday 01 April 2011 16:06:42 Guennadi Liakhovetski wrote:
+> This patch extends the videobuf2 framework with new helper functions and
+> modifies existing ones to support multi-size video-buffers.
 
-So I was just circling back around on this one, and took some time to read
-the actual code and the radio support addition. After doing so, I don't
-see why the patch I proposed wouldn't do. The buffer is only manipulated
-if !dev->radio or if vbuf is non-NULL (the memcpy call). If its initialized
-to NULL, it only gets used exactly as it did before 8aff8ba9 when
-!dev->radio, and if its not been used or its NULL following manipulations
-protected by !dev->radio, it doesn't get copied. What is the "real bug" I
-am missing there? (Or did I already miss a patch posted to linux-media
-addressing it?)
+[snip]
 
-Thanks much,
+> diff --git a/include/media/videobuf2-core.h
+> b/include/media/videobuf2-core.h index f87472a..88076fc 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -177,6 +177,10 @@ struct vb2_buffer {
+>   *			plane should be set in the sizes[] array and optional
+>   *			per-plane allocator specific context in alloc_ctxs[]
+>   *			array
+> + * @queue_add:		like above, but called from VIDIOC_CREATE_BUFS, but if
+> + *			there are already buffers on the queue, it won't replace
+> + *			them, but add new ones, possibly with a different format
+> + *			and plane sizes
+
+I don't think drivers will need to perform different operations in queue_setup 
+and queue_add. You could merge the two operations.
+
+>   * @wait_prepare:	release any locks taken while calling vb2 functions;
+>   *			it is called before an ioctl needs to wait for a new
+>   *			buffer to arrive; required to avoid a deadlock in
+> @@ -194,6 +198,8 @@ struct vb2_buffer {
+>   *			each hardware operation in this callback;
+>   *			if an error is returned, the buffer will not be queued
+>   *			in driver; optional
+> + * @buf_submit:		called primarily to invalidate buffer caches for faster
+> + *			consequent queuing; optional
+
+What's the difference between buf_submit and buf_prepare ?
+
+>   * @buf_finish:		called before every dequeue of the buffer back to
+>   *			userspace; drivers may perform any operations required
+>   *			before userspace accesses the buffer; optional
 
 -- 
-Jarod Wilson
-jarod@wilsonet.com
+Regards,
 
-
-
+Laurent Pinchart
