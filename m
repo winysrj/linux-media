@@ -1,39 +1,49 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:54773 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753821Ab1DUIDv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Apr 2011 04:03:51 -0400
-Received: by wya21 with SMTP id 21so1211415wya.19
-        for <linux-media@vger.kernel.org>; Thu, 21 Apr 2011 01:03:50 -0700 (PDT)
-To: linux-media@vger.kernel.org
-Subject: asus p7131 and linux-image-2.6.38-2-amd64
-From: "Nicole B." <damn3dg1rl@gmail.com>
-Date: Thu, 21 Apr 2011 10:03:35 +0200
+Received: from moutng.kundenserver.de ([212.227.17.9]:50110 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753573Ab1DEMsa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2011 08:48:30 -0400
+Date: Tue, 5 Apr 2011 14:48:25 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Pawel Osciak <pawel@osciak.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH/RFC 0/4] V4L: new ioctl()s to support multi-sized
+ video-buffers
+In-Reply-To: <201104051419.42495.laurent.pinchart@ideasonboard.com>
+Message-ID: <Pine.LNX.4.64.1104051445280.14419@axis700.grange>
+References: <Pine.LNX.4.64.1104010959470.9530@axis700.grange>
+ <BANLkTimGCJRv2Hd6ejgewPpRd4ZK=thPxA@mail.gmail.com>
+ <Pine.LNX.4.64.1104040837020.4668@axis700.grange>
+ <201104051419.42495.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201104211003.35744.damn3dg1rl@gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+On Tue, 5 Apr 2011, Laurent Pinchart wrote:
 
+[snip]
 
-I'm using my asus my cinema p7131 hybrid tv tuner 
-[ lspci 01:01.0 Multimedia controller: Philips Semiconductors 
-SAA7131/SAA7133/SAA7135 Video Broadcast Decoder (rev d1) ]
-whith my debian gnu linux 7.0 wheezy, but it returns a corrupted 
-video and stream when i'm using the DVB-T tuner, making the 
-vision very bad.
-Doing a troubleshotting I fount the problem my be the kernel 
-i'm using , the 2.6.38-2 , or a configuration of it. Anyone 
-uses thath kernel and that tv tuner ? 
-How I need to do to resolve that problem? rebuld/recompile 
-the kernel ?
-thanks
--- 
-Nicole B.
-Debian Gnu/linux addicted
-The universal operative system is the best :D
+> > > - Are "holes" in buffer indexes allowed? I don't like the ability to
+> > > free an arbitrary span of buffers in the queue, it complicates checks
+> > > in many places and I don't think is worth it...
+> > 
+> > That's how this ioctl() has been proposed at the Warsaw meeting.
+> 
+> If my memory is correct, we agreed that buffers created with a single CREATE 
+> call had to be freed all at once by DESTROY. This won't prevent holes though, 
+> as applications could call CREATE three times and then free buffers allocated 
+> by the second call.
 
+Yes, I think, you're right. Currently I don't track those creation sets... 
+Do we really want that? What does it give us?
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
