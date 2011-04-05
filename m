@@ -1,206 +1,113 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.10]:62839 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753614Ab1DAINU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Apr 2011 04:13:20 -0400
-Date: Fri, 1 Apr 2011 10:13:18 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH/RFC 4/4] V4L: sh_mobile_ceu_camera: support multi-size
- video-buffers
-In-Reply-To: <Pine.LNX.4.64.1104010959470.9530@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1104011012210.9530@axis700.grange>
-References: <Pine.LNX.4.64.1104010959470.9530@axis700.grange>
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:62148 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752443Ab1DED2F (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2011 23:28:05 -0400
+Date: Mon, 4 Apr 2011 22:27:57 -0500
+From: Jonathan Nieder <jrnieder@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Huber Andreas <hobrom@corax.at>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-kernel@vger.kernel.org, Ben Hutchings <ben@decadent.org.uk>,
+	Steven Toth <stoth@kernellabs.com>
+Subject: [PATCH 4/7] [media] cx88: use a mutex to protect cx8802_devlist
+Message-ID: <20110405032757.GE4498@elie>
+References: <20110327150610.4029.95961.reportbug@xen.corax.at>
+ <20110327152810.GA32106@elie>
+ <20110402093856.GA17015@elie>
+ <20110405032014.GA4498@elie>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20110405032014.GA4498@elie>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-With this patch it is possible to prequeue buffers of different sizes
-in the driver and switch between them by just stopping streaming,
-setting a new format, queuing the suitable buffers and re-starting the
-streaming escaping the need to allocate buffers on this time-critical
-path.
+Add and use a mutex to protect the cx88-mpeg device list.  Previously
+the BKL prevented races.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Based on a patch by Ben Hutchings <ben@decadent.org.uk>.
+
+Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
 ---
- drivers/media/video/sh_mobile_ceu_camera.c |  104 ++++++++++++++++++++++++----
- 1 files changed, 91 insertions(+), 13 deletions(-)
+ drivers/media/video/cx88/cx88-mpeg.c |   20 +++++++++++++++++---
+ 1 files changed, 17 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
-index d1446ad..3245fff 100644
---- a/drivers/media/video/sh_mobile_ceu_camera.c
-+++ b/drivers/media/video/sh_mobile_ceu_camera.c
-@@ -100,6 +100,7 @@ struct sh_mobile_ceu_dev {
- 	unsigned int irq;
- 	void __iomem *base;
- 	unsigned long video_limit;
-+	unsigned long buf_total;
+diff --git a/drivers/media/video/cx88/cx88-mpeg.c b/drivers/media/video/cx88/cx88-mpeg.c
+index 497f26f..b18f9fe 100644
+--- a/drivers/media/video/cx88/cx88-mpeg.c
++++ b/drivers/media/video/cx88/cx88-mpeg.c
+@@ -78,6 +78,7 @@ static void flush_request_modules(struct cx8802_dev *dev)
  
- 	spinlock_t lock;		/* Protects video buffer lists */
- 	struct list_head capture;
-@@ -215,38 +216,110 @@ static int sh_mobile_ceu_soft_reset(struct sh_mobile_ceu_dev *pcdev)
- /*
-  *  Videobuf operations
-  */
--static int sh_mobile_ceu_videobuf_setup(struct vb2_queue *vq,
-+
-+/*
-+ * .queue_add() can be called in two situations:
-+ * (1)	to add a new buffer set. In this case create->count is the number of
-+ *	buffers to be added, *count == 0. We have to return the number of
-+ *	added buffers in *count.
-+ * (2)	to try to adjust the number of buffers down. In this case create->count
-+ *	is the (smaller) number of buffers, that the caller wants to have, and
-+ *	*count is the number of buffers, that we actually allocated in step (1)
-+ *	above. If the smaller create->count is still sufficient for us, we have
-+ *	to adjust our internal configuration and return *count = create->count.
-+ */
-+static int sh_mobile_ceu_videobuf_add(struct vb2_queue *vq,
-+			struct v4l2_create_buffers *create,
- 			unsigned int *count, unsigned int *num_planes,
- 			unsigned long sizes[], void *alloc_ctxs[])
- {
- 	struct soc_camera_device *icd = container_of(vq, struct soc_camera_device, vb2_vidq);
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
- 	struct sh_mobile_ceu_dev *pcdev = ici->priv;
--	int bytes_per_line = soc_mbus_bytes_per_line(icd->user_width,
--						icd->current_fmt->host_fmt);
-+	const struct soc_camera_format_xlate *xlate = soc_camera_xlate_by_fourcc(icd,
-+						create->format.fmt.pix.pixelformat);
-+	const struct soc_mbus_pixelfmt *fmt;
-+	int bytes_per_line;
-+	ssize_t size;
-+
-+	if (!xlate)
-+		return -ENOENT;
  
-+	fmt = xlate->host_fmt;
-+
-+	/* fmt must be != NULL */
-+	bytes_per_line = soc_mbus_bytes_per_line(create->format.fmt.pix.width, fmt);
- 	if (bytes_per_line < 0)
- 		return bytes_per_line;
+ static LIST_HEAD(cx8802_devlist);
++static DEFINE_MUTEX(cx8802_mutex);
+ /* ------------------------------------------------------------------ */
  
-+	if (create->count < 2)
-+		create->count = 2;
-+
- 	*num_planes = 1;
- 
--	pcdev->sequence = 0;
--	sizes[0] = bytes_per_line * icd->user_height;
-+	if (!pcdev->buf_total)
-+		pcdev->sequence = 0;
-+	/* Ignore possible user-provided size, we cannot use it */
-+	sizes[0] = bytes_per_line * create->format.fmt.pix.height;
- 	alloc_ctxs[0] = pcdev->alloc_ctx;
- 
--	if (!*count)
--		*count = 2;
-+	size = PAGE_ALIGN(sizes[0]) * (create->count - *count);
-+
-+	if (pcdev->video_limit &&
-+	    pcdev->buf_total + size > pcdev->video_limit) {
-+		/* This can only be entered in case (1) in the above comment */
-+		unsigned int cnt = (pcdev->video_limit - pcdev->buf_total) /
-+			PAGE_ALIGN(sizes[0]);
-+
-+		/*
-+		 * Normally *count would be 0 here, but add it anyway in case
-+		 * someone decides to call this function to increase the number
-+		 * of buffers from != 0
-+		 */
-+		if (cnt + *count < 2)
-+			return -ENOBUFS;
- 
--	if (pcdev->video_limit) {
--		if (PAGE_ALIGN(sizes[0]) * *count > pcdev->video_limit)
--			*count = pcdev->video_limit / PAGE_ALIGN(sizes[0]);
-+		size = PAGE_ALIGN(sizes[0]) * cnt;
-+		*count += cnt;
-+	} else {
-+		*count = create->count;
+ static int cx8802_start_dma(struct cx8802_dev    *dev,
+@@ -689,6 +690,8 @@ int cx8802_register_driver(struct cx8802_driver *drv)
+ 		return err;
  	}
  
--	dev_dbg(icd->dev.parent, "count=%d, size=%lu\n", *count, sizes[0]);
-+	pcdev->buf_total += size;
++	mutex_lock(&cx8802_mutex);
 +
-+	dev_dbg(icd->dev.parent, "count=%d, size=%lu, fmt=0x%x\n",
-+		*count, sizes[0], fmt->fourcc);
+ 	list_for_each_entry(dev, &cx8802_devlist, devlist) {
+ 		printk(KERN_INFO
+ 		       "%s/2: subsystem: %04x:%04x, board: %s [card=%d]\n",
+@@ -698,8 +701,10 @@ int cx8802_register_driver(struct cx8802_driver *drv)
  
- 	return 0;
- }
+ 		/* Bring up a new struct for each driver instance */
+ 		driver = kzalloc(sizeof(*drv),GFP_KERNEL);
+-		if (driver == NULL)
+-			return -ENOMEM;
++		if (driver == NULL) {
++			err = -ENOMEM;
++			goto out;
++		}
  
-+static int sh_mobile_ceu_videobuf_setup(struct vb2_queue *vq,
-+			unsigned int *count, unsigned int *num_planes,
-+			unsigned long sizes[], void *alloc_ctxs[])
-+{
-+	struct soc_camera_device *icd = container_of(vq, struct soc_camera_device, vb2_vidq);
-+	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
-+	struct sh_mobile_ceu_dev *pcdev = ici->priv;
-+	struct v4l2_create_buffers create = {
-+		.count = *count,
-+		.format.fmt.pix = {
-+			.width = icd->user_width,
-+			.height = icd->user_height,
-+			.pixelformat = icd->current_fmt->host_fmt->fourcc,
-+		},
-+	};
-+
-+	if (vq->num_buffers)
-+		/* The core failed to allocate the required number of buffers */
-+		*count = pcdev->buf_total / PAGE_ALIGN(sizes[0]);
-+	else
-+		*count = 0;
-+
-+	/* Normal allocation */
-+	return sh_mobile_ceu_videobuf_add(vq, &create, count, num_planes, sizes,
-+					  alloc_ctxs);
-+}
-+
- #define CEU_CETCR_MAGIC 0x0317f313 /* acknowledge magical interrupt sources */
- #define CEU_CETCR_IGRW (1 << 4) /* prohibited register access interrupt bit */
- #define CEU_CEIER_CPEIE (1 << 0) /* one-frame capture end interrupt */
-@@ -371,8 +444,8 @@ static int sh_mobile_ceu_videobuf_prepare(struct vb2_buffer *vb)
- 	size = icd->user_height * bytes_per_line;
- 
- 	if (vb2_plane_size(vb, 0) < size) {
--		dev_err(icd->dev.parent, "Buffer too small (%lu < %lu)\n",
--			vb2_plane_size(vb, 0), size);
-+		dev_err(icd->dev.parent, "Buffer #%d too small (%lu < %lu)\n",
-+			vb->v4l2_buf.index, vb2_plane_size(vb, 0), size);
- 		return -ENOBUFS;
+ 		/* Snapshot of the driver registration data */
+ 		drv->core = dev->core;
+@@ -722,7 +727,10 @@ int cx8802_register_driver(struct cx8802_driver *drv)
+ 		mutex_unlock(&drv->core->lock);
  	}
  
-@@ -424,6 +497,8 @@ static void sh_mobile_ceu_videobuf_release(struct vb2_buffer *vb)
- 	/* Doesn't hurt also if the list is empty */
- 	list_del_init(&buf->queue);
- 
-+	pcdev->buf_total -= vb2_plane_size(vb, 0);
-+
- 	spin_unlock_irq(&pcdev->lock);
+-	return i ? 0 : -ENODEV;
++	err = i ? 0 : -ENODEV;
++out:
++	mutex_unlock(&cx8802_mutex);
++	return err;
  }
  
-@@ -455,6 +530,7 @@ static int sh_mobile_ceu_stop_streaming(struct vb2_queue *q)
+ int cx8802_unregister_driver(struct cx8802_driver *drv)
+@@ -736,6 +744,8 @@ int cx8802_unregister_driver(struct cx8802_driver *drv)
+ 	       drv->type_id == CX88_MPEG_DVB ? "dvb" : "blackbird",
+ 	       drv->hw_access == CX8802_DRVCTL_SHARED ? "shared" : "exclusive");
  
- static struct vb2_ops sh_mobile_ceu_videobuf_ops = {
- 	.queue_setup	= sh_mobile_ceu_videobuf_setup,
-+	.queue_add	= sh_mobile_ceu_videobuf_add,
- 	.buf_prepare	= sh_mobile_ceu_videobuf_prepare,
- 	.buf_queue	= sh_mobile_ceu_videobuf_queue,
- 	.buf_cleanup	= sh_mobile_ceu_videobuf_release,
-@@ -515,6 +591,8 @@ static int sh_mobile_ceu_add_device(struct soc_camera_device *icd)
- 
- 	pm_runtime_get_sync(ici->v4l2_dev.dev);
- 
-+	pcdev->buf_total = 0;
++	mutex_lock(&cx8802_mutex);
 +
- 	ret = sh_mobile_ceu_soft_reset(pcdev);
- 	if (!ret)
- 		pcdev->icd = icd;
+ 	list_for_each_entry(dev, &cx8802_devlist, devlist) {
+ 		printk(KERN_INFO
+ 		       "%s/2: subsystem: %04x:%04x, board: %s [card=%d]\n",
+@@ -762,6 +772,8 @@ int cx8802_unregister_driver(struct cx8802_driver *drv)
+ 		mutex_unlock(&dev->core->lock);
+ 	}
+ 
++	mutex_unlock(&cx8802_mutex);
++
+ 	return err;
+ }
+ 
+@@ -799,7 +811,9 @@ static int __devinit cx8802_probe(struct pci_dev *pci_dev,
+ 		goto fail_free;
+ 
+ 	INIT_LIST_HEAD(&dev->drvlist);
++	mutex_lock(&cx8802_mutex);
+ 	list_add_tail(&dev->devlist,&cx8802_devlist);
++	mutex_unlock(&cx8802_mutex);
+ 
+ 	/* now autoload cx88-dvb or cx88-blackbird */
+ 	request_modules(dev);
 -- 
-1.7.2.5
+1.7.5.rc0
 
