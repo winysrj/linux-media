@@ -1,203 +1,82 @@
 Return-path: <mchehab@pedra>
-Received: from smtp209.alice.it ([82.57.200.105]:40868 "EHLO smtp209.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754731Ab1DGQQi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 Apr 2011 12:16:38 -0400
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: linux-media@vger.kernel.org
-Cc: Antonio Ospite <ospite@studenti.unina.it>,
-	Steven Toth <stoth@kernellabs.com>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [RFC, PATCH] libv4lconvert: Add support for Y10B grey format (V4L2_PIX_FMT_Y10BPACK)
-Date: Thu,  7 Apr 2011 18:16:29 +0200
-Message-Id: <1302192989-7747-1-git-send-email-ospite@studenti.unina.it>
+Received: from relay3-d.mail.gandi.net ([217.70.183.195]:46251 "EHLO
+	relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753851Ab1DEUDO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2011 16:03:14 -0400
+From: =?iso-8859-1?Q?S=E9bastien_RAILLARD_=28COEXSI=29?= <sr@coexsi.fr>
+To: "'Issa Gorissen'" <flop.m@usa.net>, <linux-media@vger.kernel.org>
+References: <632PDek8o1744S03.1302001214@web03.cms.usa.net>
+In-Reply-To: <632PDek8o1744S03.1302001214@web03.cms.usa.net>
+Subject: RE: TT-budget S2-3200 cannot tune on HB13E DVBS2 transponder
+Date: Tue, 5 Apr 2011 22:03:12 +0200
+Message-ID: <004701cbf3cc$7f1fa790$7d5ef6b0$@coexsi.fr>
+MIME-Version: 1.0
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Content-language: fr
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Y10B is a 10 bits per pixel greyscale format in a bit-packed array
-representation. Such pixel format is supplied for instance by the Kinect
-sensor device.
 
-Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
----
 
-Hi,
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Issa Gorissen
+> Sent: mardi 5 avril 2011 13:00
+> To: linux-media@vger.kernel.org
+> Subject: TT-budget S2-3200 cannot tune on HB13E DVBS2 transponder
+> 
+> Hi,
+> 
+> Eutelsat made a recent migration from DVB-S to DVB-S2 (since 31/3/2011)
+> on two transponders on HB13E
+> 
+> - HOT BIRD 6 13° Est TP 159 Freq 11,681 Ghz DVB-S2 FEC 3/4 27500 Msymb/s
+> 0.2 Pilot off Polar H
+> 
+> - HOT BIRD 9 13° Est TP 99 Freq 12,692 Ghz DVB-S2 FEC 3/4 27500 Msymb/s
+> 0.2 Pilot off Polar H
+> 
 
-this is a very first attempt about supporting Y10B in libv4lconvert, the
-doubts I have are about the conversion routines which need to unpack a frame
-before doing the actual pixelformat conversion, and maybe this can be handled
-in some conversion layer in libv4l.
+I can confirm that we have a lot of problem with these two transponders and
+the TT-S2-3200 card.
 
-I don't know libv4l yet, so I am asking for advice providing some code to
-discuss on; looking at the last hunk of the patch: can I allocate a temporary
-buffer only once per device (and not per frame as I am horribly doing now) and
-reuse it in the conversion routines? Or is the unpacking better be done even
-before conversion, feeding the conversion routines with already unpacked
-buffers?
+Here are some observations:
 
-Thanks,
-   Antonio Ospite
-   http://ao2.it
+- It seems that going from DVB-S to DVB-S2 make the antenna settings very
+sensitive. We have some sites where everything is working correctly and on
+some other sites where we needed to redo the antenna setup, especially the
+LNB tilt.
 
- include/linux/videodev2.h              |    3 +
- lib/libv4lconvert/libv4lconvert-priv.h |    6 +++
- lib/libv4lconvert/libv4lconvert.c      |   20 ++++++++
- lib/libv4lconvert/rgbyuv.c             |   76 ++++++++++++++++++++++++++++++++
- 4 files changed, 105 insertions(+), 0 deletions(-)
+- The STB0899 driver doesn't seem to work correctly: if the reception isn't
+really good, we are missing a lot of TS packets and these packets are
+altered (mainly garbage). But, the BER returned from the demodulator stay at
+zero! (using FE_READ_BER ioctl). By the way, the FE_READ_UNCORRECTED_BLOCKS
+ioctl isn't implemented in this driver.
 
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 51788a6..559d5f3 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -289,6 +289,9 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_Y10     v4l2_fourcc('Y', '1', '0', ' ') /* 10  Greyscale     */
- #define V4L2_PIX_FMT_Y16     v4l2_fourcc('Y', '1', '6', ' ') /* 16  Greyscale     */
- 
-+/* Grey bit-packed formats */
-+#define V4L2_PIX_FMT_Y10BPACK    v4l2_fourcc('Y', '1', '0', 'B') /* 10  Greyscale bit-packed */
-+
- /* Palette formats */
- #define V4L2_PIX_FMT_PAL8    v4l2_fourcc('P', 'A', 'L', '8') /*  8  8-bit palette */
- 
-diff --git a/lib/libv4lconvert/libv4lconvert-priv.h b/lib/libv4lconvert/libv4lconvert-priv.h
-index 84c706e..470a869 100644
---- a/lib/libv4lconvert/libv4lconvert-priv.h
-+++ b/lib/libv4lconvert/libv4lconvert-priv.h
-@@ -133,6 +133,12 @@ void v4lconvert_grey_to_rgb24(const unsigned char *src, unsigned char *dest,
- void v4lconvert_grey_to_yuv420(const unsigned char *src, unsigned char *dest,
- 		const struct v4l2_format *src_fmt);
- 
-+void v4lconvert_y10b_to_rgb24(const unsigned char *src, unsigned char *dest,
-+		int width, int height);
-+
-+void v4lconvert_y10b_to_yuv420(const unsigned char *src, unsigned char *dest,
-+		const struct v4l2_format *src_fmt);
-+
- void v4lconvert_rgb565_to_rgb24(const unsigned char *src, unsigned char *dest,
- 		int width, int height);
- 
-diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
-index e4863fd..631d912 100644
---- a/lib/libv4lconvert/libv4lconvert.c
-+++ b/lib/libv4lconvert/libv4lconvert.c
-@@ -48,6 +48,7 @@ static const struct v4lconvert_pixfmt supported_src_pixfmts[] = {
- 	{ V4L2_PIX_FMT_YVYU,         0 },
- 	{ V4L2_PIX_FMT_UYVY,         0 },
- 	{ V4L2_PIX_FMT_RGB565,       0 },
-+	{ V4L2_PIX_FMT_Y10BPACK,     0 },
- 	{ V4L2_PIX_FMT_SN9C20X_I420, V4LCONVERT_NEEDS_CONVERSION },
- 	{ V4L2_PIX_FMT_SBGGR8,       V4LCONVERT_NEEDS_CONVERSION },
- 	{ V4L2_PIX_FMT_SGBRG8,       V4LCONVERT_NEEDS_CONVERSION },
-@@ -862,6 +863,25 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
- 			result = -1;
- 		}
- 		break;
-+
-+	case V4L2_PIX_FMT_Y10BPACK:
-+		switch (dest_pix_fmt) {
-+		case V4L2_PIX_FMT_RGB24:
-+	        case V4L2_PIX_FMT_BGR24:
-+			v4lconvert_y10b_to_rgb24(src, dest, width, height);
-+			break;
-+		case V4L2_PIX_FMT_YUV420:
-+		case V4L2_PIX_FMT_YVU420:
-+			v4lconvert_y10b_to_yuv420(src, dest, fmt);
-+			break;
-+		}
-+		if (src_size < (width * height * 10 / 8)) {
-+			V4LCONVERT_ERR("short y10b data frame\n");
-+			errno = EPIPE;
-+			result = -1;
-+		}
-+		break;
-+
- 	case V4L2_PIX_FMT_RGB565:
- 		switch (dest_pix_fmt) {
- 		case V4L2_PIX_FMT_RGB24:
-diff --git a/lib/libv4lconvert/rgbyuv.c b/lib/libv4lconvert/rgbyuv.c
-index 2ee7e58..23fe8f3 100644
---- a/lib/libv4lconvert/rgbyuv.c
-+++ b/lib/libv4lconvert/rgbyuv.c
-@@ -603,3 +603,79 @@ void v4lconvert_grey_to_yuv420(const unsigned char *src, unsigned char *dest,
- 	/* Clear U/V */
- 	memset(dest, 0x80, src_fmt->fmt.pix.width * src_fmt->fmt.pix.height / 2);
- }
-+
-+#include <stdint.h>
-+#include <stdlib.h>
-+/* Unpack buffer of (vw bit) data into padded 16bit buffer. */
-+static inline void convert_packed_to_16bit(uint8_t *raw, uint16_t *unpacked, int vw, int unpacked_len)
-+{
-+	int mask = (1 << vw) - 1;
-+	uint32_t buffer = 0;
-+	int bitsIn = 0;
-+	while (unpacked_len--) {
-+		while (bitsIn < vw) {
-+			buffer = (buffer << 8) | *(raw++);
-+			bitsIn += 8;
-+		}
-+		bitsIn -= vw;
-+		*(unpacked++) = (buffer >> bitsIn) & mask;
-+	}
-+}
-+
-+void v4lconvert_y10b_to_rgb24(const unsigned char *src, unsigned char *dest,
-+		int width, int height)
-+{
-+	unsigned short *unpacked_buffer = NULL;
-+
-+	/* TODO: check return value or move the allocation out of here */
-+	unpacked_buffer = malloc(width * height * sizeof(unsigned short));
-+	convert_packed_to_16bit((uint8_t *)src, unpacked_buffer, 10, width * height);
-+
-+	int j;
-+	unsigned short *tmp = unpacked_buffer;
-+	while (--height >= 0) {
-+		for (j = 0; j < width; j++) {
-+
-+			/* Only 10 useful bits, so we discard the LSBs */
-+			*dest++ = (*tmp & 0x3ff) >> 2;
-+			*dest++ = (*tmp & 0x3ff) >> 2;
-+			*dest++ = (*tmp & 0x3ff) >> 2;
-+
-+			/* +1 means two bytes as we are dealing with (unsigned short) */
-+			tmp += 1;
-+		}
-+	}
-+
-+	free(unpacked_buffer);
-+}
-+
-+void v4lconvert_y10b_to_yuv420(const unsigned char *src, unsigned char *dest,
-+		const struct v4l2_format *src_fmt)
-+{
-+	unsigned short *unpacked_buffer = NULL;
-+	int width = src_fmt->fmt.pix.width;
-+	int height = src_fmt->fmt.pix.height;
-+
-+	/* TODO: check return value or move the allocation out of here */
-+	unpacked_buffer = malloc(width * height * sizeof(unsigned short));
-+	convert_packed_to_16bit((uint8_t *)src, unpacked_buffer, 10, width * height);
-+
-+	int x, y;
-+	unsigned short *tmp = unpacked_buffer;
-+
-+	/* Y */
-+	for (y = 0; y < src_fmt->fmt.pix.height; y++)
-+		for (x = 0; x < src_fmt->fmt.pix.width; x++) {
-+
-+			/* Only 10 useful bits, so we discard the LSBs */
-+			*dest++ = (*tmp & 0x3ff) >> 2;
-+
-+			/* +1 means two bytes as we are dealing with (unsigned short) */
-+			tmp += 1;
-+		}
-+
-+	/* Clear U/V */
-+	memset(dest, 0x80, src_fmt->fmt.pix.width * src_fmt->fmt.pix.height / 2);
-+
-+	free(unpacked_buffer);
-+}
--- 
-1.7.4.1
+Does anyone can confirm these observations?
+
+
+> 
+> Before those changes, with my TT S2 3200, I was able to watch TV on
+> those transponders. Now, I cannot even tune on those transponders. I
+> have tried with
+> scan-s2 and w_scan and the latest drivers from git. They both find the
+> transponders but cannot tune onto it.
+> 
+> Something noteworthy is that my other card, a DuoFlex S2 can tune fine
+> on those transponders.
+> 
+> My question is; can someone try this as well with a TT S2 3200 and post
+> the results ?
+> 
+> Thank you a lot,
+> --
+> Issa
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media"
+> in the body of a message to majordomo@vger.kernel.org More majordomo
+> info at  http://vger.kernel.org/majordomo-info.html
 
