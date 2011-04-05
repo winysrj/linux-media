@@ -1,48 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from gateway07.websitewelcome.com ([67.18.80.17]:51396 "HELO
-	gateway07.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752821Ab1DSTD3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Apr 2011 15:03:29 -0400
-From: "Charlie X. Liu" <charlie@sensoray.com>
-To: <video4linux-list@redhat.com>
-Cc: <linux-media@vger.kernel.org>
-References: <BANLkTikqBPdr2M8jyY1zmu4TPLsXo0y5Xw@mail.gmail.com> <BANLkTi=dVYRgUbQ5pRySQLptnzaHOMKTqg@mail.gmail.com> <1302015521.4529.17.camel@morgan.silverblock.net> <BANLkTimQkDHmDsqSsQ9jiYnHWXnc7umeWw@mail.gmail.com> <1302481535.2282.61.camel@localhost> <20110411163239.GA4324@mgebm.net> <20110418141514.GA4611@mgebm.net> <ac791492-7bc5-4a78-92af-503dda599346@email.android.com> <20110418224855.GB4611@mgebm.net> <1303215523.2274.27.camel@localhost> <20110419171220.GA4883@mgebm.net>
-In-Reply-To: <20110419171220.GA4883@mgebm.net>
-Subject: Sensoray Model 314 DIP Switch setting for LiPPERT's Cool XpressRunner-GS45 SBC
-Date: Tue, 19 Apr 2011 11:54:17 -0700
-Message-ID: <002601cbfec3$3043f930$90cbeb90$@com>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:43337 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752416Ab1DEDUY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2011 23:20:24 -0400
+Date: Mon, 4 Apr 2011 22:20:14 -0500
+From: Jonathan Nieder <jrnieder@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Huber Andreas <hobrom@corax.at>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-kernel@vger.kernel.org, Ben Hutchings <ben@decadent.org.uk>,
+	Steven Toth <stoth@kernellabs.com>
+Subject: [RFC/PATCH v2 0/7] locking fixes for cx88
+Message-ID: <20110405032014.GA4498@elie>
+References: <20110327150610.4029.95961.reportbug@xen.corax.at>
+ <20110327152810.GA32106@elie>
+ <20110402093856.GA17015@elie>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Language: en-us
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20110402093856.GA17015@elie>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Per Sensoray Model 314 ( http://www.sensoray.com/products/314.htm )
-customer's request, we have tested 314 with LiPPERT's Cool XpressRunner-GS45
-( http://www.lippertembedded.com/en/lipperts-cool-xpressrunner-gs45.html )
-SBC (Single Board Computer). 
+Hi again,
 
-Per customer's request and for their convenience, here, we list the Model
-314's DIP switch setting combinations that work with the LiPPERT's Cool
-XpressRunner-GS45 SBC:
+Jonathan Nieder wrote:
+> Huber Andreas wrote[1]:
 
-(on Model 314)
-SW2-1 2 3 4 5 6     Slot # and INT    Verified
-----------------------------------------------
-    D D U U U D     Slot #0 + INTA#      V
-    U D U U D U     Slot #1 + INTB#      V
-    D U U D U U     Slot #2 + INTC#      V
-    U U D U U U     Slot #3 + INTD#      V
-----------------------------------------------
-Note:   D -- Down (ON);   U -- Up (OFF)
+>> Processes that try to open a cx88-blackbird driven MPEG device will hang up.
+>
+> Here's a possible fix based on a patch by Ben Hutchings and
+> corrections from Andi Huber.  Warning: probably full of mistakes (my
+> fault) since I'm not familiar with any of this stuff.  Untested.
+> Review and testing would be welcome.
 
+A reroll.  As before, the goals are: (1) eliminate deadlock, (2)
+eliminate races, (3) introduce some clarity.  The same caveats as
+last time apply --- this is only compile-tested.  Thanks again to Andi
+for testing the previous series and for other useful feedback.
 
-Best regards,
+Patch 1 is meant to protect dev->drvlist against data races.
+Since v1, I removed some clutter in the patch itself and clarified the
+change description to match.
 
-Charlie X. Liu @ Sensoray Co.
+Patch 2 addresses the original deadlock.  The only changes are the
+description and declared authorship of the patch (at Ben's request).
 
+Patch 3 is new.  It fixes the reference count breakage Andi noticed
+(another race previously protected against by the BKL).
 
+Patch 4 fixes a data race noticed by Ben (also from his patch).  It's
+unchanged.
 
+Patches 5, 6, and 7 are cleanups.
+
+Bugs?  Thoughts?
+Jonathan Nieder (7):
+  [media] cx88: protect per-device driver list with device lock
+  [media] cx88: fix locking of sub-driver operations
+  [media] cx88: hold device lock during sub-driver initialization
+  [media] cx88: use a mutex to protect cx8802_devlist
+  [media] cx88: handle attempts to use unregistered cx88-blackbird
+    driver
+  [media] cx88: don't use atomic_t for core->mpeg_users
+  [media] cx88: don't use atomic_t for core->users
+
+ drivers/media/video/cx88/cx88-blackbird.c |   41 +++++++++++++++-------------
+ drivers/media/video/cx88/cx88-dvb.c       |    2 +
+ drivers/media/video/cx88/cx88-mpeg.c      |   40 ++++++++++++++++++----------
+ drivers/media/video/cx88/cx88-video.c     |    5 ++-
+ drivers/media/video/cx88/cx88.h           |   11 +++++--
+ 5 files changed, 61 insertions(+), 38 deletions(-)
