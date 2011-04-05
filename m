@@ -1,66 +1,87 @@
 Return-path: <mchehab@pedra>
-Received: from smtp204.alice.it ([82.57.200.100]:44511 "EHLO smtp204.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751858Ab1DUJvw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Apr 2011 05:51:52 -0400
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: linux-media@vger.kernel.org
-Cc: Drew Fisher <drew.m.fisher@gmail.com>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Antonio Ospite <ospite@studenti.unina.it>
-Subject: [PATCH 1/3] gspca - kinect: move communications buffers out of stack
-Date: Thu, 21 Apr 2011 11:51:34 +0200
-Message-Id: <1303379496-12899-2-git-send-email-ospite@studenti.unina.it>
-In-Reply-To: <1303379496-12899-1-git-send-email-ospite@studenti.unina.it>
-References: <4DADF1CB.4050504@redhat.com>
- <1303379496-12899-1-git-send-email-ospite@studenti.unina.it>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:37275 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753881Ab1DEPmw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2011 11:42:52 -0400
+Received: by vws1 with SMTP id 1so362632vws.19
+        for <linux-media@vger.kernel.org>; Tue, 05 Apr 2011 08:42:51 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <006401cbf28c$02105880$06310980$%szyprowski@samsung.com>
+References: <1301874670-14833-1-git-send-email-pawel@osciak.com>
+ <1301874670-14833-2-git-send-email-pawel@osciak.com> <006401cbf28c$02105880$06310980$%szyprowski@samsung.com>
+From: Pawel Osciak <pawel@osciak.com>
+Date: Tue, 5 Apr 2011 08:42:31 -0700
+Message-ID: <BANLkTi=vESG-0bbyxT_3KdH+5AN9e0VKMQ@mail.gmail.com>
+Subject: Re: [PATCH 1/5] [media] vb2: redesign the stop_streaming() callback
+ and make it obligatory
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-media@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	g.liakhovetski@gmx.de
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Drew Fisher <drew.m.fisher@gmail.com>
+On Sun, Apr 3, 2011 at 22:49, Marek Szyprowski <m.szyprowski@samsung.com> wrote:
+> Hello,
+>
+> On Monday, April 04, 2011 1:51 AM Pawel Osciak wrote:
+>
+>> Drivers are now required to implement the stop_streaming() callback
+>> to ensure that all ongoing hardware operations are finished and their
+>> ownership of buffers is ceded.
+>> Drivers do not have to call vb2_buffer_done() for each buffer they own
+>> anymore.
+>> Also remove the return value from the callback.
+>>
+>> Signed-off-by: Pawel Osciak <pawel@osciak.com>
+>> ---
+>>  drivers/media/video/videobuf2-core.c |   16 ++++++++++++++--
+>>  include/media/videobuf2-core.h       |   16 +++++++---------
+>>  2 files changed, 21 insertions(+), 11 deletions(-)
+>>
+>> diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
+>> index 6e69584..59d5e8b 100644
+>> --- a/drivers/media/video/videobuf2-core.c
+>> +++ b/drivers/media/video/videobuf2-core.c
+>> @@ -640,6 +640,9 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+>>       struct vb2_queue *q = vb->vb2_queue;
+>>       unsigned long flags;
+>>
+>> +     if (atomic_read(&q->queued_count) == 0)
+>> +             return;
+>> +
+>>       if (vb->state != VB2_BUF_STATE_ACTIVE)
+>>               return;
+>>
+>> @@ -1178,12 +1181,20 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+>>       unsigned int i;
+>>
+>>       /*
+>> -      * Tell driver to stop all transactions and release all queued
+>> +      * Tell the driver to stop all transactions and release all queued
+>>        * buffers.
+>>        */
+>>       if (q->streaming)
+>>               call_qop(q, stop_streaming, q);
+>> +
+>> +     /*
+>> +      * All buffers should now not be in use by the driver anymore, but we
+>> +      * have to manually set queued_count to 0, as the driver was not
+>> +      * required to call vb2_buffer_done() from stop_streaming() for all
+>> +      * buffers it had queued.
+>> +      */
+>>       q->streaming = 0;
+>> +     atomic_set(&q->queued_count, 0);
+>
+> If you removed the need to call vb2_buffer_done() then you must also call
+> wake_up_all(&q->done_wq) to wake any other threads/processes that might be
+> sleeping waiting for buffers.
 
-Move large communications buffers out of stack and into device
-structure. This prevents the frame size from being >1kB and fixes a
-compiler warning when CONFIG_FRAME_WARN=1024:
+True, setting queued_count to 0 is not enough. Hm, I'm wondering why
+tests on vivi and qv4l2 didn't catch this, it uses poll as well...
 
-drivers/media/video/gspca/kinect.c: In function â€˜send_cmd.clone.0â€™:
-drivers/media/video/gspca/kinect.c:202: warning: the frame size of 1548 bytes is larger than 1024 bytes
-
-Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-Signed-off-by: Drew Fisher <drew.m.fisher@gmail.com>
-Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
----
- drivers/media/video/gspca/kinect.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/video/gspca/kinect.c b/drivers/media/video/gspca/kinect.c
-index f85e746..79c4ef5 100644
---- a/drivers/media/video/gspca/kinect.c
-+++ b/drivers/media/video/gspca/kinect.c
-@@ -62,6 +62,8 @@ struct sd {
- 	struct gspca_dev gspca_dev; /* !! must be the first item */
- 	uint16_t cam_tag;           /* a sequence number for packets */
- 	uint8_t stream_flag;        /* to identify different steram types */
-+	uint8_t obuf[0x400];        /* output buffer for control commands */
-+	uint8_t ibuf[0x200];        /* input buffer for control commands */
- };
- 
- /* V4L2 controls supported by the driver */
-@@ -133,8 +135,8 @@ static int send_cmd(struct gspca_dev *gspca_dev, uint16_t cmd, void *cmdbuf,
- 	struct sd *sd = (struct sd *) gspca_dev;
- 	struct usb_device *udev = gspca_dev->dev;
- 	int res, actual_len;
--	uint8_t obuf[0x400];
--	uint8_t ibuf[0x200];
-+	uint8_t *obuf = sd->obuf;
-+	uint8_t *ibuf = sd->ibuf;
- 	struct cam_hdr *chdr = (void *)obuf;
- 	struct cam_hdr *rhdr = (void *)ibuf;
- 
 -- 
-1.7.4.4
-
+Best regards,
+Pawel Osciak
