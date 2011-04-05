@@ -1,324 +1,186 @@
 Return-path: <mchehab@pedra>
-Received: from mail-px0-f179.google.com ([209.85.212.179]:36396 "EHLO
-	mail-px0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752101Ab1DRJs7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Apr 2011 05:48:59 -0400
-Received: by pxi2 with SMTP id 2so3190113pxi.10
-        for <linux-media@vger.kernel.org>; Mon, 18 Apr 2011 02:48:59 -0700 (PDT)
-MIME-Version: 1.0
-Date: Mon, 18 Apr 2011 19:48:57 +1000
-Message-ID: <BANLkTinV=2OW09Fz+NfM+qbO+SbgdKXChQ@mail.gmail.com>
-Subject: Leadtek DTV2000DS half working
-From: Ian Marshall <itmarshall@gmail.com>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:37401 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752559Ab1DEDWr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2011 23:22:47 -0400
+Date: Mon, 4 Apr 2011 22:22:39 -0500
+From: Jonathan Nieder <jrnieder@gmail.com>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Cc: Huber Andreas <hobrom@corax.at>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-kernel@vger.kernel.org, Ben Hutchings <ben@decadent.org.uk>,
+	Steven Toth <stoth@kernellabs.com>
+Subject: [PATCH 1/7] [media] cx88: protect per-device driver list with device
+ lock
+Message-ID: <20110405032239.GB4498@elie>
+References: <20110327150610.4029.95961.reportbug@xen.corax.at>
+ <20110327152810.GA32106@elie>
+ <20110402093856.GA17015@elie>
+ <20110405032014.GA4498@elie>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20110405032014.GA4498@elie>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+The BKL conversion of this driver seems to have gone wrong.  Opening
+cx88-blackbird will deadlock.  Various other uses of the sub-device
+and driver lists appear to be subject to race conditions.
 
-In July last year, I set up a Mythbuntu 10.04 system, which used a
-Leadtek DTV2000DS (af9013/af9015) dual tuner PCI card. I used the 4.95
-firmware, with the v4l compiled over the top of the 2.6.32 kernel, and
-successfully got both tuners working.
+For example: various functions access drvlist without a relevant lock
+held, which will race against removal of drivers.  Let's start with
+that --- clean up by consistently protecting dev->drvlist with
+dev->core->lock, noting driver functions that require the device lock
+to be held or not to be held.
 
-A week ago, I bought a second DTV2000DS new, to increase the
-concurrent recording capability of the box, thinking that it would be
-a safe bet - one works, why not two? Unfortunately, I have been unable
-to get the new card to work correctly.
+There are still some races --- e.g., cx8802_blackbird_remove can run
+between the time the blackbird driver is acquired and the time it is
+used in mpeg_release, and there's a similar race in cx88_dvb_bus_ctrl.
 
-I can get one of the two tuners on the new card to work, but the
-second is being stubborn. In my dmesg log, I get the line "af9015:
-firmware copy to 2nd frontend failed, will disable it", and no
-"frontend0" device is created for the adapter. Down below, I have
-pasted the output of "find /dev/dvb/", to show what device files are
-being created. I have also pasted the dvb related lines from "dmesg".
+The only goal is to make the semantics clearer in preparation for more
+changes.  Later patches will address the remaining known races and the
+deadlock noticed by Andi.
 
-After it initially failed with my existing kernel, I tried upgrading
-to a 2.6.35 kernel, as that includes the drivers for the capture cards
-by default. No luck.
+Based on a patch by Ben Hutchings <ben@decadent.org.uk>.
 
-I then found the page on the linux tv wiki
-(http://www.linuxtv.org/wiki/index.php/Leadtek_WinFast_DTV2000DS) and
-followed all the instructions (including the fix for 5.1 firmware) and
-still only got only one tuner working.
+Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
+Cc: Andi Huber <hobrom@gmx.at>
+Cc: stable@kernel.org
+---
+ drivers/media/video/cx88/cx88-blackbird.c |    3 ++-
+ drivers/media/video/cx88/cx88-dvb.c       |    3 +++
+ drivers/media/video/cx88/cx88-mpeg.c      |   11 +++++++----
+ drivers/media/video/cx88/cx88.h           |    9 ++++++++-
+ 4 files changed, 20 insertions(+), 6 deletions(-)
 
-I also tried the 5.1 firmware, but it was worse, none of the blue
-lights on either DTV card came on, so I am sticking with the 4.95
-firmware for now!
+diff --git a/drivers/media/video/cx88/cx88-blackbird.c b/drivers/media/video/cx88/cx88-blackbird.c
+index bca307e..b93fbd3 100644
+--- a/drivers/media/video/cx88/cx88-blackbird.c
++++ b/drivers/media/video/cx88/cx88-blackbird.c
+@@ -1122,10 +1122,11 @@ static int mpeg_release(struct file *file)
+ 	mutex_lock(&dev->core->lock);
+ 	file->private_data = NULL;
+ 	kfree(fh);
+-	mutex_unlock(&dev->core->lock);
+ 
+ 	/* Make sure we release the hardware */
+ 	drv = cx8802_get_driver(dev, CX88_MPEG_BLACKBIRD);
++	mutex_unlock(&dev->core->lock);
++
+ 	if (drv)
+ 		drv->request_release(drv);
+ 
+diff --git a/drivers/media/video/cx88/cx88-dvb.c b/drivers/media/video/cx88/cx88-dvb.c
+index 7b8c9d3..84002bc 100644
+--- a/drivers/media/video/cx88/cx88-dvb.c
++++ b/drivers/media/video/cx88/cx88-dvb.c
+@@ -133,7 +133,10 @@ static int cx88_dvb_bus_ctrl(struct dvb_frontend* fe, int acquire)
+ 		return -EINVAL;
+ 	}
+ 
++	mutex_lock(&dev->core->lock);
+ 	drv = cx8802_get_driver(dev, CX88_MPEG_DVB);
++	mutex_unlock(&dev->core->lock);
++
+ 	if (drv) {
+ 		if (acquire){
+ 			dev->frontends.active_fe_id = fe_id;
+diff --git a/drivers/media/video/cx88/cx88-mpeg.c b/drivers/media/video/cx88/cx88-mpeg.c
+index addf954..918172b 100644
+--- a/drivers/media/video/cx88/cx88-mpeg.c
++++ b/drivers/media/video/cx88/cx88-mpeg.c
+@@ -748,6 +748,8 @@ int cx8802_unregister_driver(struct cx8802_driver *drv)
+ 		       dev->pci->subsystem_device, dev->core->board.name,
+ 		       dev->core->boardnr);
+ 
++		mutex_lock(&dev->core->lock);
++
+ 		list_for_each_entry_safe(d, dtmp, &dev->drvlist, drvlist) {
+ 			/* only unregister the correct driver type */
+ 			if (d->type_id != drv->type_id)
+@@ -755,15 +757,14 @@ int cx8802_unregister_driver(struct cx8802_driver *drv)
+ 
+ 			err = d->remove(d);
+ 			if (err == 0) {
+-				mutex_lock(&drv->core->lock);
+ 				list_del(&d->drvlist);
+-				mutex_unlock(&drv->core->lock);
+ 				kfree(d);
+ 			} else
+ 				printk(KERN_ERR "%s/2: cx8802 driver remove "
+ 				       "failed (%d)\n", dev->core->name, err);
+ 		}
+ 
++		mutex_unlock(&dev->core->lock);
+ 	}
+ 
+ 	return err;
+@@ -827,6 +828,8 @@ static void __devexit cx8802_remove(struct pci_dev *pci_dev)
+ 
+ 	flush_request_modules(dev);
+ 
++	mutex_lock(&dev->core->lock);
++
+ 	if (!list_empty(&dev->drvlist)) {
+ 		struct cx8802_driver *drv, *tmp;
+ 		int err;
+@@ -838,9 +841,7 @@ static void __devexit cx8802_remove(struct pci_dev *pci_dev)
+ 		list_for_each_entry_safe(drv, tmp, &dev->drvlist, drvlist) {
+ 			err = drv->remove(drv);
+ 			if (err == 0) {
+-				mutex_lock(&drv->core->lock);
+ 				list_del(&drv->drvlist);
+-				mutex_unlock(&drv->core->lock);
+ 			} else
+ 				printk(KERN_ERR "%s/2: cx8802 driver remove "
+ 				       "failed (%d)\n", dev->core->name, err);
+@@ -848,6 +849,8 @@ static void __devexit cx8802_remove(struct pci_dev *pci_dev)
+ 		}
+ 	}
+ 
++	mutex_unlock(&dev->core->lock);
++
+ 	/* Destroy any 8802 reference. */
+ 	dev->core->dvbdev = NULL;
+ 
+diff --git a/drivers/media/video/cx88/cx88.h b/drivers/media/video/cx88/cx88.h
+index 9b3742a..e3d56c2 100644
+--- a/drivers/media/video/cx88/cx88.h
++++ b/drivers/media/video/cx88/cx88.h
+@@ -506,7 +506,11 @@ struct cx8802_driver {
+ 	int (*resume)(struct pci_dev *pci_dev);
+ 
+ 	/* MPEG 8802 -> mini driver - Driver probe and configuration */
++
++	/* Caller must _not_ hold core->lock */
+ 	int (*probe)(struct cx8802_driver *drv);
++
++	/* Caller must hold core->lock */
+ 	int (*remove)(struct cx8802_driver *drv);
+ 
+ 	/* MPEG 8802 -> mini driver - Access for hardware control */
+@@ -561,8 +565,9 @@ struct cx8802_dev {
+ 	/* for switching modulation types */
+ 	unsigned char              ts_gen_cntrl;
+ 
+-	/* List of attached drivers */
++	/* List of attached drivers; must hold core->lock to access */
+ 	struct list_head	   drvlist;
++
+ 	struct work_struct	   request_module_wk;
+ };
+ 
+@@ -685,6 +690,8 @@ int cx88_audio_thread(void *data);
+ 
+ int cx8802_register_driver(struct cx8802_driver *drv);
+ int cx8802_unregister_driver(struct cx8802_driver *drv);
++
++/* Caller must hold core->lock */
+ struct cx8802_driver * cx8802_get_driver(struct cx8802_dev *dev, enum cx88_board_type btype);
+ 
+ /* ----------------------------------------------------------- */
+-- 
+1.7.5.rc0
 
-To try and isolate whether it is a combination of both cards that's
-causing problems, I tried uninstalling the original card, but that
-just left me with one working tuner, so I put it back in to keep the
-family happy.
-
-I saw on the wiki page (and Google searches) that I am not the only
-one having problems with the 2nd tuner. However, I think that I may be
-in the unique position of having one working and one problematic card
-- something must have changed in the hardware between the cards. I
-have pasted in the output of the "lsusb" command - but the only
-difference, apart from the bus number, is the "iManufacturer" line,
-which is "1" for the working card, and "1 Afatech" for the new card.
-
-My thinking is that some hardware has changed on Leadtek's end, but
-not the model number, and that change is breaking the driver. A quick
-visual inspection of the cards didn't show anything, but I didn't look
-at individual chip identifications.
-
-Is there anything anyone can suggest to look into to see what has
-changed? Can my old/new combination in one PC help ferret out this
-problem for those that only own the new card? (And also fix it for
-me!)
-
-Sorry for the length of this post, I hope that I haven't gone too far
-in trying to get all the pertinent information in here!
-
-Thanks,
-
-Ian Marshall
-
-----
-
-Output of "find /dev/dvb/":
-
-/dev/dvb/adapter3
-/dev/dvb/adapter3/net0
-/dev/dvb/adapter3/dvr0
-/dev/dvb/adapter3/demux0
-/dev/dvb/adapter2
-/dev/dvb/adapter2/frontend0
-/dev/dvb/adapter2/net0
-/dev/dvb/adapter2/dvr0
-/dev/dvb/adapter2/demux0
-/dev/dvb/adapter1
-/dev/dvb/adapter1/frontend0
-/dev/dvb/adapter1/net0
-/dev/dvb/adapter1/dvr0
-/dev/dvb/adapter1/demux0
-/dev/dvb/adapter0
-/dev/dvb/adapter0/frontend0
-/dev/dvb/adapter0/net0
-/dev/dvb/adapter0/dvr0
-/dev/dvb/adapter0/demux0
-
-Lines from "dmesg" (unrelated lines removed):
-
-[   15.695132] dvb-usb: found a 'Leadtek WinFast DTV2000DS' in cold
-state, will try to load a firmware
-[   15.746678] dvb-usb: downloading firmware from file 'dvb-usb-af9015.fw'
-[   15.817171] dvb-usb: found a 'Leadtek WinFast DTV2000DS' in warm state.
-[   15.817221] dvb-usb: will pass the complete MPEG2 transport stream
-to the software demuxer.
-[   15.817567] DVB: registering new adapter (Leadtek WinFast DTV2000DS)
-[   15.882809] af9013: firmware version:4.95.0
-[   15.886310] DVB: registering adapter 0 frontend 0 (Afatech AF9013 DVB-T)...
-[   15.905524] tda18271 1-00c0: creating new instance
-[   15.911875] TDA18271HD/C2 detected @ 1-00c0
-[   16.277677] dvb-usb: will pass the complete MPEG2 transport stream
-to the software demuxer.
-[   16.278075] DVB: registering new adapter (Leadtek WinFast DTV2000DS)
-[   17.013415] af9013: found a 'Afatech AF9013 DVB-T' in warm state.
-[   17.016041] af9013: firmware version:4.95.0
-[   17.027414] DVB: registering adapter 1 frontend 0 (Afatech AF9013 DVB-T)...
-[   17.027555] tda18271 2-00c0: creating new instance
-[   17.032539] TDA18271HD/C2 detected @ 2-00c0
-[   17.390342] input: IR-receiver inside an USB DVB receiver as
-/devices/pci0000:00/0000:00:14.4/0000:03:05.2/usb3/3-1/input/input2
-[   17.390389] dvb-usb: schedule remote query interval to 150 msecs.
-[   17.390393] dvb-usb: Leadtek WinFast DTV2000DS successfully
-initialized and connected.
-[   17.894086] dvb-usb: found a 'Leadtek WinFast DTV2000DS' in cold
-state, will try to load a firmware
-[   17.895515] dvb-usb: downloading firmware from file 'dvb-usb-af9015.fw'
-[   17.966737] dvb-usb: found a 'Leadtek WinFast DTV2000DS' in warm state.
-[   17.966786] dvb-usb: will pass the complete MPEG2 transport stream
-to the software demuxer.
-[   17.967132] DVB: registering new adapter (Leadtek WinFast DTV2000DS)
-[   17.969229] af9013: firmware version:4.95.0
-[   17.972732] DVB: registering adapter 2 frontend 0 (Afatech AF9013 DVB-T)...
-[   17.972840] tda18271 5-00c0: creating new instance
-[   17.978859] TDA18271HD/C2 detected @ 5-00c0
-[   18.336712] dvb-usb: will pass the complete MPEG2 transport stream
-to the software demuxer.
-[   18.337108] DVB: registering new adapter (Leadtek WinFast DTV2000DS)
-[   18.443267] af9015: command failed:2
-[   18.443270] af9015: firmware copy to 2nd frontend failed, will disable it
-[   18.443273] dvb-usb: no frontend was attached by 'Leadtek WinFast DTV2000DS'
-[   18.443335] input: IR-receiver inside an USB DVB receiver as
-/devices/pci0000:00/0000:00:14.4/0000:03:06.2/usb4/4-1/input/input3
-[   18.443378] dvb-usb: schedule remote query interval to 150 msecs.
-[   18.443381] dvb-usb: Leadtek WinFast DTV2000DS successfully
-initialized and connected.
-[   18.565063] usbcore: registered new interface driver dvb_usb_af9015
-
-Output from "lsusb -v -s 3:2" (the one that works):
-
-Bus 003 Device 002: ID 0413:6a04 Leadtek Research, Inc.
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0
-  bDeviceProtocol         0
-  bMaxPacketSize0        64
-  idVendor           0x0413 Leadtek Research, Inc.
-  idProduct          0x6a04
-  bcdDevice            2.00
-  iManufacturer           1 Afatech
-  iProduct                2 DVB-T 2
-  iSerial                 0
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength           46
-    bNumInterfaces          1
-    bConfigurationValue     1
-    iConfiguration          0
-    bmAttributes         0x80
-      (Bus Powered)
-    MaxPower              500mA
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       0
-      bNumEndpoints           4
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x02  EP 2 OUT
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x85  EP 5 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-Device Status:     0x0000
-  (Bus Powered)
-
-Output from "lsusb -v -s 4:2":
-
-Bus 004 Device 002: ID 0413:6a04 Leadtek Research, Inc.
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0
-  bDeviceProtocol         0
-  bMaxPacketSize0        64
-  idVendor           0x0413 Leadtek Research, Inc.
-  idProduct          0x6a04
-  bcdDevice            2.00
-  iManufacturer           1 Afatech
-  iProduct                2 DVB-T 2
-  iSerial                 0
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength           46
-    bNumInterfaces          1
-    bConfigurationValue     1
-    iConfiguration          0
-    bmAttributes         0x80
-      (Bus Powered)
-    MaxPower              500mA
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       0
-      bNumEndpoints           4
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x02  EP 2 OUT
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x85  EP 5 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-Device Qualifier (for other device speed):
-  bLength                10
-  bDescriptorType         6
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0
-  bDeviceProtocol         0
-  bMaxPacketSize0        64
-  bNumConfigurations      1
-Device Status:     0x0000
-  (Bus Powered)
