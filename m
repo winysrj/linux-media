@@ -1,111 +1,360 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:58843 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757314Ab1DHSiF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Apr 2011 14:38:05 -0400
-Received: by ewy4 with SMTP id 4so1187080ewy.19
-        for <linux-media@vger.kernel.org>; Fri, 08 Apr 2011 11:38:04 -0700 (PDT)
+Received: from smtp2.sms.unimo.it ([155.185.44.12]:40627 "EHLO
+	smtp2.sms.unimo.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751053Ab1DEBEo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2011 21:04:44 -0400
+Received: from mail-fx0-f51.google.com ([209.85.161.51]:40705)
+	by smtp2.sms.unimo.it with esmtps (TLS1.0:RSA_ARCFOUR_SHA1:16)
+	(Exim 4.69)
+	(envelope-from <76466@studenti.unimore.it>)
+	id 1Q6uhC-0000L6-To
+	for linux-media@vger.kernel.org; Tue, 05 Apr 2011 03:04:40 +0200
+Received: by fxm5 with SMTP id 5so6078680fxm.24
+        for <linux-media@vger.kernel.org>; Mon, 04 Apr 2011 18:04:38 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <44DC1ED9-2697-4F92-A81A-CD024C913CCB@wilsonet.com>
-References: <1302267045.1749.38.camel@gagarin>
-	<AFEB19DA-4FD6-4472-9825-F13A112B0E2A@wilsonet.com>
-	<1302276147.1749.46.camel@gagarin>
-	<B9A35B3D-DC47-4D95-88F5-5453DD3F506C@wilsonet.com>
-	<BANLkTimyT98dabuYsrwLrcm2wQFv2uQB9g@mail.gmail.com>
-	<44DC1ED9-2697-4F92-A81A-CD024C913CCB@wilsonet.com>
-Date: Fri, 8 Apr 2011 14:38:03 -0400
-Message-ID: <BANLkTi=3Gq+8kXm40O55y55O6A6Q4-3g-g@mail.gmail.com>
-Subject: Re: [PATCH] Fix cx88 remote control input
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Jarod Wilson <jarod@wilsonet.com>
-Cc: Lawrence Rust <lawrence@softsystem.co.uk>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <AANLkTin51MZy8gUFJLf5cSXTPDQNJDxiAJkC=jX=f8T0@mail.gmail.com>
+References: <AANLkTinVP6CePBY6g9Dn2aKXM0ovwmpqMd5G4ucz44EH@mail.gmail.com>
+	<Pine.LNX.4.64.1103292357270.13285@axis700.grange>
+	<AANLkTimhP_YoqKRKyPzRbM6gw5jXVNV2D3pveRqqH0W_@mail.gmail.com>
+	<Pine.LNX.4.64.1103300947580.4695@axis700.grange>
+	<AANLkTimN_LgfXYgH9jejakS38v-FdRQUnQ6qJJJCb1oe@mail.gmail.com>
+	<AANLkTikx84JovevQ1YHrU79Hj1=jjSZ7FM9BtogiWOcc@mail.gmail.com>
+	<Pine.LNX.4.64.1103310027490.15210@axis700.grange>
+	<AANLkTin51MZy8gUFJLf5cSXTPDQNJDxiAJkC=jX=f8T0@mail.gmail.com>
+Date: Mon, 4 Apr 2011 20:04:38 -0500
+Message-ID: <BANLkTik7jm=zbifmdi3G3huG_Uw4fHWpGA@mail.gmail.com>
+Subject: Re: soc_camera dynamically cropping and scaling
+From: Paolo Santinelli <paolo.santinelli@unimore.it>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Fri, Apr 8, 2011 at 2:00 PM, Jarod Wilson <jarod@wilsonet.com> wrote:
-> Have to admit that I don't think it ever registered in my head that
-> we were going to break that many existing keymaps. But something
-> to consider: how many of those are *raw* rc-5 scancode keymaps, vs.
-> cooked scancodes from drivers that only provide command? It may
-> well be that we should have been more discriminating when building
-> those keymaps, to distinguish which were truly raw IR scancodes that
-> the in-kernel decoders ascertained, and which were just scancodes
-> handed to us directly from the IR hardware.
+Hi Guennadi,
 
-As far as I know, keymaps didn't even support more than eight bit
-codes until recently.  Even if the hardware had supported system
-codes, there was nothing to compare it against since the keymaps were
-limited to eight entries.
+I have tried to implement the changes you suggested me in order to get
+the new live cropping capabilities. I am able to successfully compile
+the patched driver even though I still have problems  when an
+application program tries to do live cropping (calling run time the
+same ."ioctl VIDIOC_S_CROP" but with different cropping parameters).
 
->> This decision was doomed to fail.  It basically said, "Yes, I know
->> full well that I'm breaking most of the keymaps currently supported,
->> but maybe some of those users will eventually report the issue and
->> I'll make them provide an updated keymap which will eventually be
->> merged upstream for others so that their remotes are no longer
->> broken."
+This is the run time error I get when  I call the "ioctl
+VIDIOC_S_CROP" in order to change live the  cropping area:
+
+ov9655 0-0030: Scaled for 320x240 (320x240) : 0x0
+ov9655 0-0030: Adjusted for 320x240 : hstart 240, hstop 560 = 320,
+vstart 11, vstop 252 = 241
+pxa27x-camera pxa27x-camera.0: Output after crop: 320x240
+
+pxa27x-camera pxa27x-camera.0: DMA Bus Error IRQ!
+pxa27x-camera pxa27x-camera.0: DMA Bus Error IRQ!
+pxa27x-camera pxa27x-camera.0: DMA Bus Error IRQ!
+select timeout
+
+
+
+Here is what I have done:
+
+1) I have used the kernel  linux-2.6.39-rc1;
+2) I have carefully  added the patch at the  soc_camera.c and
+soc_camera.h files as you indicated in your mail "[PATCH 1/2] V4L:
+soc-camera: add a livecrop host operation";
+4) I have changed pxa_camera.c file trying to put the patch as you
+have indicated for the sh_mobile_ceu_camera.c, that is:
+
+-I have changed the "pxa_camera_dev" struct  instead of
+"sh_mobile_ceu_dev" adding the elements "struct completion complete"
+and "unsigned int frozen:1;"
+
+-I have added the .set_livecrop() method. Inside this method I  have
+replaced the  prefix "sh_mobile_ceu_"  with "pxa_camera_". This method
+calls the function "sh_mobile_ceu_capture()" but doesn't exist an
+equivalent function named "pxa_camera_capture()", instead there are
+the two functions "pxa_camera_start_capture()" and
+"pxa_camera_stop_capture()". So I call "pxa_camera_start_capture()"
+instead of "sh_mobile_ceu_capture()", but I am not sure this is the
+right solution;
+
+-I have changed the  "pxa_camera_start_capture()" function instead of
+"sh_mobile_ceu_capture()" adding at the end "if (pcdev->frozen)
+complete(&pcdev->complete);" even if I'm afraid that is not good.
+
+-Of course I have  added the line ".set_livecrop	=
+sh_mobile_ceu_set_livecrop," at the structure  "static struct
+soc_camera_host_ops pxa_soc_camera_host_ops" instead of  "static
+struct soc_camera_host_ops sh_mobile_ceu_host_ops".
+
+-I didn't change anything else.
+
+How to do the live cropping from the application program ? Do I have
+to invoke the usual "ioctl VIDIOC_S_CROP" or I have to invoke the
+".livecrop()" method adding a new "ioctl VIDIOC_S_LIVECROP" ?
+
+
+Thank you very much.
+
+Paolo
+
+
+
+2011/3/30 Paolo Santinelli <paolo.santinelli@unimore.it>:
+> OK!
 >
-> Well, ir-keytable -w is also an option, though that does kill the
-> "Just Works"-ness when you first have to come up with the new map.
-
-Agreed.
-
->> We should have introduced a RC profile property indicating how many
->> bits were "significant".  Then for those remotes which didn't have the
->> system code, we could have continued to match against only the key
->> code.
+> Thanks
 >
-> This was a change in the raw rc-5 IR decoder. There's *always* going
-> to be a system code (or at least, a resulting byte), isn't there?
-> Otherwise, its simply not an rc-5 signal. The "no system code" case
-> should really only apply to hardware decoders that strip it off
-> internally.
-
-I realize that the actual remote controls do have system codes, but
-our remote control keymaps are missing the info.  Wouldn't it have
-been better if for those cases we only compared against the key code,
-thereby not resulting in those keymaps being broken?  IMHO, it would
-be better to have had the relatively low risk of the receiver
-responding to keypresses from an incorrect remote because the keymap
-wasn't explicit enough than have those remote controls stop working
-entirely.
-
-> Speaking of which, something just occurred to me. Functionality of
-> Hauppauge receivers and remotes *was* tested. With ir-kbd-i2c. Which
-> was stripping off the system code at the time. It just wasn't tested
-> with Hauppauge hardware that actually passed along raw IR. In 2.6.39,
-> ir-kbd-i2c has been fixed so that it passes along system code and
-> the Hauppauge keymaps were updated accordingly, which also happens
-> to fix the cx88 raw IR case.
-
-I don't doubt that the Hauppauge remote worked against ir-kbd-i2c
-because of the deficiency you described in the ir-kbd-i2c driver.  I
-question the notion of introducing the requirement that all keymap
-definitions must have system codes without having really thought
-through the notion that it would result in breaking every existing
-keymap which hadn't been updated.
-
->> Then over time, as keymaps improved, those keymaps could be
->> updated and the number of significant bits could be adjusted to
->> indicate that the system code was present.
+> Paolo
+>
+> 2011/3/30 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+>> On Wed, 30 Mar 2011, Paolo Santinelli wrote:
 >>
->> This was a crappy call, and it was completely foreseeable.
+>>> Hi Guennadi,
+>>>
+>>> Am I wrong or do  I have to add some functions ?
+>>>
+>>> I have hand applied the changes at the soc_camera.c and soc_camera.h
+>>> files. At a fist glance to these files seems that I have to add the
+>>> function:
+>>>
+>>>  .set_livecrop()
+>>
+>> Yes, I think, I mentioned this in my last mail, that's what my sh-ceu
+>> example should have illustrated.
+>>
+>>>
+>>> and probably even something more:
+>>>
+>>>   CC      drivers/media/video/soc_camera.o
+>>> drivers/media/video/soc_camera.c: In function 'soc_camera_s_fmt_vid_cap':
+>>> drivers/media/video/soc_camera.c:545: error: implicit declaration of
+>>> function 'vb2_is_streaming'
+>>> drivers/media/video/soc_camera.c:545: error: 'struct
+>>> soc_camera_device' has no member named 'vb2_vidq'
+>>> drivers/media/video/soc_camera.c: In function 'soc_camera_s_crop':
+>>> drivers/media/video/soc_camera.c:799: error: 'struct
+>>> soc_camera_device' has no member named 'vb2_vidq'
+>>> make[3]: *** [drivers/media/video/soc_camera.o] Error 1
+>>
+>> You have to use current sources. 2.6.39-rc1 should be ok.
+>>
+>> Thanks
+>> Guennadi
+>>
+>>>
+>>> What about vb2_is_streaming and vb2_vidq ?
+>>>
+>>> Any tips regarding these functions ?
+>>>
+>>> Thanks
+>>>
+>>> Paolo
+>>> 2011/3/30 Paolo Santinelli <paolo.santinelli@unimore.it>:
+>>> > Hi Guennadi,
+>>> >
+>>> > thank you very much for the patch. I am going to apply it in order to
+>>> > start toying with the new capability. I think it is a  useful
+>>> > capability.
+>>> >
+>>> > I'll let you know.
+>>> >
+>>> > Again thank you.
+>>> >
+>>> > Paolo
+>>> >
+>>> > 2011/3/30 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+>>> >> On Tue, 29 Mar 2011, Paolo Santinelli wrote:
+>>> >>
+>>> >>> Hi Guennadi,
+>>> >>>
+>>> >>> thank you for the quick answer.
+>>> >>>
+>>> >>> Here is what I mean with dynamic: I take "live" one frame at high
+>>> >>> resolution, for example a picture at VGA or  QVGA resolution, then a
+>>> >>> sequence of frames that depict a cropped area (200x200 or 100x100)
+>>> >>> from the original full-resolution frame, and then a new full
+>>> >>> resolution image (VGA or QVGA) and again the sequence of frames  that
+>>> >>> depict a cropped area from the original full resolution, and so on.
+>>> >>> That means takes one frame in 640x480 and  than takes some frames at
+>>> >>> 100x100 (or 200x200) and so on.
+>>> >>
+>>> >> Ic, so, if you can live with a fixed output format and only change the
+>>> >> input cropping rectangle, the patch set, that I've just sent could give
+>>> >> you a hint, how this can be done. This would work if you're ok with first
+>>> >> obtaining VGA images scaled down to, say, 160x120, and then take 160x120
+>>> >> cropped frames unscaled. But I'm not sure, this is something, that would
+>>> >> work for you. Otherwise, unless your sensor can upscale cropped images to
+>>> >> VGA output size, you'll also want fast switching between different output
+>>> >> sizes, which you'd have to wait for (or implement yourself;-))
+>>> >>
+>>> >> Thanks
+>>> >> Guennadi
+>>> >>
+>>> >>>
+>>> >>> The best would be have two different fixed-output image formats, the
+>>> >>> WHOLE IMAGE format ex. 640x480 and the ROI format, 100x100. The ROI
+>>> >>> pictures obtained cropping the a region of the whole image. The
+>>> >>> cropping area could be even wider  than 100x100 and then scaled down
+>>> >>> to the 100x100 ROI format.
+>>> >>>
+>>> >>> Probably it is more simple have a cropping area of the same dimension
+>>> >>> of the ROI format, 100x100.
+>>> >>>
+>>> >>> In this way there is a reduction of the computation load of the CPU
+>>> >>> (smaller images).
+>>> >>>
+>>> >>> Thank you very much!
+>>> >>>
+>>> >>> Paolo
+>>> >>>
+>>> >>> 2011/3/29 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+>>> >>> > On Tue, 29 Mar 2011, Paolo Santinelli wrote:
+>>> >>> >
+>>> >>> >> Hi all,
+>>> >>> >>
+>>> >>> >> I am using a PXA270 board running linux 2.6.37 equipped with an ov9655
+>>> >>> >> Image sensor. I am able to use the cropping and scaling capabilities
+>>> >>> >> V4L2 driver.
+>>> >>> >> The question is :
+>>> >>> >>
+>>> >>> >> Is it possible dynamically change the cropping and scaling values
+>>> >>> >> without close and re-open  the camera every time ?
+>>> >>> >>
+>>> >>> >> Now I am using the streaming I/O memory mapping and to dynamically
+>>> >>> >> change the cropping and scaling values I do :
+>>> >>> >>
+>>> >>> >> 1) stop capturing using VIDIOC_STREAMOFF;
+>>> >>> >> 2) unmap all the buffers;
+>>> >>> >> 3) close the device;
+>>> >>> >> 4) open the device;
+>>> >>> >> 5) init the device: VIDIOC_CROPCAP and VIDIOC_S_CROP in order to set
+>>> >>> >> the cropping parameters. VIDIOC_G_FMT and VIDIOC_S_FMT in order to set
+>>> >>> >> the target image width and height, (scaling).
+>>> >>> >> 6) Mapping the buffers: VIDIOC_REQBUFS in order to request buffers and
+>>> >>> >> mmap each buffer using VIDIOC_QUERYBUF and mmap():
+>>> >>> >>
+>>> >>> >> this procedure works but take 400 ms.
+>>> >>> >>
+>>> >>> >> If I omit steps 3) and 4)  (close and re-open the device) I get this errors:
+>>> >>> >>
+>>> >>> >> camera 0-0: S_CROP denied: queue initialised and sizes differ
+>>> >>> >> camera 0-0: S_FMT denied: queue initialised
+>>> >>> >> VIDIOC_S_FMT error 16, Device or resource busy
+>>> >>> >> pxa27x-camera pxa27x-camera.0: PXA Camera driver detached from camera 0
+>>> >>> >>
+>>> >>> >> Do you have some Idea regarding why I have to close and reopen the
+>>> >>> >> device and regarding a way to speed up these change?
+>>> >>> >
+>>> >>> > Yes, by chance I do;-) First of all you have to make it more precise -
+>>> >>> > what exactly do you mean - dynamic (I call it "live") scaling or cropping?
+>>> >>> > If you want to change output format, that will not be easy ATM, that will
+>>> >>> > require the snapshot mode API, which is not yet even in an RFC state. If
+>>> >>> > you only want to change the cropping and keep the output format (zoom),
+>>> >>> > then I've just implemented that for sh_mobile_ceu_camera. This requires a
+>>> >>> > couple of extensions to the soc-camera core, which I can post tomorrow.
+>>> >>> > But in fact that is also a hack, because the proper way to implement this
+>>> >>> > is to port soc-camera to the Media Controller framework and use the
+>>> >>> > pad-level API. So, I am not sure, whether we want this in the mainline,
+>>> >>> > but if already two of us need it now - before the transition to pad-level
+>>> >>> > operations, maybe it would make sense to mainline this. If, however, you
+>>> >>> > do have to change your output window, maybe you could tell us your
+>>> >>> > use-case, so that we could consider, what's the best way to support that.
+>>> >>> >
+>>> >>> > Thanks
+>>> >>> > Guennadi
+>>> >>> > ---
+>>> >>> > Guennadi Liakhovetski, Ph.D.
+>>> >>> > Freelance Open-Source Software Developer
+>>> >>> > http://www.open-technology.de/
+>>> >>> >
+>>> >>>
+>>> >>>
+>>> >>>
+>>> >>> --
+>>> >>> --------------------------------------------------
+>>> >>> Paolo Santinelli
+>>> >>> ImageLab Computer Vision and Pattern Recognition Lab
+>>> >>> Dipartimento di Ingegneria dell'Informazione
+>>> >>> Universita' di Modena e Reggio Emilia
+>>> >>> via Vignolese 905/B, 41125, Modena, Italy
+>>> >>>
+>>> >>> Cell. +39 3472953357,  Office +39 059 2056270, Fax +39 059 2056129
+>>> >>> email:  <mailto:paolo.santinelli@unimore.it> paolo.santinelli@unimore.it
+>>> >>> URL:  <http://imagelab.ing.unimo.it/> http://imagelab.ing.unimo.it
+>>> >>> --------------------------------------------------
+>>> >>>
+>>> >>
+>>> >> ---
+>>> >> Guennadi Liakhovetski, Ph.D.
+>>> >> Freelance Open-Source Software Developer
+>>> >> http://www.open-technology.de/
+>>> >>
+>>> >
+>>> >
+>>> >
+>>> > --
+>>> > --------------------------------------------------
+>>> > Paolo Santinelli
+>>> > ImageLab Computer Vision and Pattern Recognition Lab
+>>> > Dipartimento di Ingegneria dell'Informazione
+>>> > Universita' di Modena e Reggio Emilia
+>>> > via Vignolese 905/B, 41125, Modena, Italy
+>>> >
+>>> > Cell. +39 3472953357,  Office +39 059 2056270, Fax +39 059 2056129
+>>> > email:  <mailto:paolo.santinelli@unimore.it> paolo.santinelli@unimore.it
+>>> > URL:  <http://imagelab.ing.unimo.it/> http://imagelab.ing.unimo.it
+>>> > --------------------------------------------------
+>>> >
+>>>
+>>>
+>>>
+>>> --
+>>> --------------------------------------------------
+>>> Paolo Santinelli
+>>> ImageLab Computer Vision and Pattern Recognition Lab
+>>> Dipartimento di Ingegneria dell'Informazione
+>>> Universita' di Modena e Reggio Emilia
+>>> via Vignolese 905/B, 41125, Modena, Italy
+>>>
+>>> Cell. +39 3472953357,  Office +39 059 2056270, Fax +39 059 2056129
+>>> email:  <mailto:paolo.santinelli@unimore.it> paolo.santinelli@unimore.it
+>>> URL:  <http://imagelab.ing.unimo.it/> http://imagelab.ing.unimo.it
+>>> --------------------------------------------------
+>>>
+>>
+>> ---
+>> Guennadi Liakhovetski, Ph.D.
+>> Freelance Open-Source Software Developer
+>> http://www.open-technology.de/
+>>
 >
-> Possibly. I think too many of us are only hacking on this in their
-> limited free time though, so things like this may get overlooked.
-> I have quite a few pieces of Hauppauge hardware, several with IR
-> receivers and remotes, but all of which use ir-kbd-i2c (or
-> lirc_zilog), i.e., none of which pass along raw IR.
+>
+>
+> --
+> --------------------------------------------------
+> Paolo Santinelli
+> ImageLab Computer Vision and Pattern Recognition Lab
+> Dipartimento di Ingegneria dell'Informazione
+> Universita' di Modena e Reggio Emilia
+> via Vignolese 905/B, 41125, Modena, Italy
+>
+> Cell. +39 3472953357,  Office +39 059 2056270, Fax +39 059 2056129
+> email:  <mailto:paolo.santinelli@unimore.it> paolo.santinelli@unimore.it
+> URL:  <http://imagelab.ing.unimo.it/> http://imagelab.ing.unimo.it
+> --------------------------------------------------
+>
 
-You don't have an HVR-950 or some other stick which announces RC5
-codes?  If not, let me know and I will send you something.  It's kind
-of silly for someone doing that sort of work to not have at least one
-product in each category of receiver.
 
-Devin
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+--------------------------------------------------
+Paolo Santinelli
+ImageLab Computer Vision and Pattern Recognition Lab
+Dipartimento di Ingegneria dell'Informazione
+Universita' di Modena e Reggio Emilia
+via Vignolese 905/B, 41125, Modena, Italy
+
+Cell. +39 3472953357,  Office +39 059 2056270, Fax +39 059 2056129
+email:  <mailto:paolo.santinelli@unimore.it> paolo.santinelli@unimore.it
+URL:  <http://imagelab.ing.unimo.it/> http://imagelab.ing.unimo.it
+--------------------------------------------------
