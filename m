@@ -1,45 +1,44 @@
 Return-path: <mchehab@pedra>
-Received: from ist.d-labs.de ([213.239.218.44]:54612 "EHLO mx01.d-labs.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750978Ab1DCRY0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 3 Apr 2011 13:24:26 -0400
-From: Florian Mickler <florian@mickler.org>
-To: mchehab@infradead.org
-Cc: oliver@neukum.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, patrick.boettcher@dibcom.fr
-Subject: [media] dib0700: get rid of on-stack dma buffers
-Date: Sun,  3 Apr 2011 19:23:41 +0200
-Message-Id: <1301851423-21969-1-git-send-email-florian@mickler.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:43020 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753160Ab1DEH5R (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2011 03:57:17 -0400
+Received: from localhost.localdomain (unknown [91.178.236.143])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id CCF2F35B73
+	for <linux-media@vger.kernel.org>; Tue,  5 Apr 2011 07:57:12 +0000 (UTC)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 14/14] omap3isp: Don't increment node entity use count when poweron fails
+Date: Tue,  5 Apr 2011 09:57:36 +0200
+Message-Id: <1301990256-6963-15-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1301990256-6963-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1301990256-6963-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+When open a device node, all entities part of the same pipeline are
+powered on. If one of the entities fails to be powered on, the open
+operations fails. In that case the device node entity use count must not
+be incremented.
 
-since I got no reaction[1] on the vp702x driver, I proceed with the 
-dib0700. 
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/omap3isp/isp.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-There are multiple drivers in drivers/media/dvb/dvb-usb/ which use
-usb_control_msg to perform dma to stack-allocated buffers. This is a bad idea
-because of cache-coherency issues and on some platforms the stack is mapped
-virtually and also lib/dma-debug.c warn's about it at runtime.
-
-Patches to ec168, ce6230, au6610 and lmedm04 were already tested and reviewed
-and submitted for inclusion [2]. Patches to a800, vp7045, friio, dw2102, m920x
-and opera1 are still waiting for for review and testing [3].
-
-This patch to dib0700 is a fix for a warning seen and reported by Zdenek
-Kabalec in Bug #15977 [4].
-
-Florian Mickler (2):
-      [media] dib0700: get rid of on-stack dma buffers
-      [media] dib0700: remove unused variable
-
-Regards,
-Flo
-
-References:
-[1]: http://www.spinics.net/lists/linux-media/msg30448.html
-[2]: http://comments.gmane.org/gmane.linux.kernel/1115404
-[3]: http://groups.google.com/group/fa.linux.kernel/browse_frm/thread/e169edc121b91181/f1498cd026a59fe2
-[4]: https://bugzilla.kernel.org/show_bug.cgi?id=15977
+diff --git a/drivers/media/video/omap3isp/isp.c b/drivers/media/video/omap3isp/isp.c
+index 8190511..f4edbf0 100644
+--- a/drivers/media/video/omap3isp/isp.c
++++ b/drivers/media/video/omap3isp/isp.c
+@@ -663,6 +663,8 @@ int omap3isp_pipeline_pm_use(struct media_entity *entity, int use)
+ 
+ 	/* Apply power change to connected non-nodes. */
+ 	ret = isp_pipeline_pm_power(entity, change);
++	if (ret < 0)
++		entity->use_count -= change;
+ 
+ 	mutex_unlock(&entity->parent->graph_mutex);
+ 
+-- 
+1.7.3.4
 
