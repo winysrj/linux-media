@@ -1,60 +1,61 @@
 Return-path: <mchehab@pedra>
-Received: from mail-in-14.arcor-online.net ([151.189.21.54]:35115 "EHLO
-	mail-in-14.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755450Ab1DDUS7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Apr 2011 16:18:59 -0400
-From: stefan.ringel@arcor.de
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, d.belimov@gmail.com,
-	Stefan Ringel <stefan.ringel@arcor.de>
-Subject: [PATCH 2/5] tm6000: add dtv78 parameter
-Date: Mon,  4 Apr 2011 22:18:41 +0200
-Message-Id: <1301948324-27186-2-git-send-email-stefan.ringel@arcor.de>
-In-Reply-To: <1301948324-27186-1-git-send-email-stefan.ringel@arcor.de>
-References: <1301948324-27186-1-git-send-email-stefan.ringel@arcor.de>
+Received: from moutng.kundenserver.de ([212.227.17.9]:53641 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751645Ab1DEMwg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2011 08:52:36 -0400
+Date: Tue, 5 Apr 2011 14:52:20 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hansverk@cisco.com>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH/RFC 1/4] V4L: add three new ioctl()s for multi-size
+ videobuffer management
+In-Reply-To: <201104051434.57489.hansverk@cisco.com>
+Message-ID: <Pine.LNX.4.64.1104051449140.14419@axis700.grange>
+References: <Pine.LNX.4.64.1104010959470.9530@axis700.grange>
+ <Pine.LNX.4.64.1104011010530.9530@axis700.grange>
+ <201104051421.03597.laurent.pinchart@ideasonboard.com>
+ <201104051434.57489.hansverk@cisco.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Stefan Ringel <stefan.ringel@arcor.de>
+On Tue, 5 Apr 2011, Hans Verkuil wrote:
 
-add dtv78 parameter
+> On Tuesday, April 05, 2011 14:21:03 Laurent Pinchart wrote:
+> > On Friday 01 April 2011 10:13:02 Guennadi Liakhovetski wrote:
 
+[snip]
 
-Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+> > >  /*
+> > >   *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
+> > >   *
+> > > @@ -1937,6 +1957,10 @@ struct v4l2_dbg_chip_ident {
+> > >  #define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct
+> > > v4l2_event_subscription) #define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 91,
+> > > struct v4l2_event_subscription)
+> > > 
+> > > +#define VIDIOC_CREATE_BUFS	_IOWR('V', 92, struct v4l2_create_buffers)
+> > > +#define VIDIOC_DESTROY_BUFS	_IOWR('V', 93, struct v4l2_buffer_span)
+> > > +#define VIDIOC_SUBMIT_BUF	 _IOW('V', 94, int)
+> > > +
+> > 
+> > In case we later need to pass other information (such as flags) to 
+> > VIDIOC_SUBMIT_BUF, you should use a structure instead of an int.
+> 
+> I would just pass struct v4l2_buffer to this ioctl, just like QBUF/DQBUF do.
+
+Why??? You do not need all that extra information. Well, we could, of 
+course, make a struct with reserved fields... but it seems nice to me to 
+have the clarity here - this ioctl() _only_ gives buffer ownership to the 
+kernel. No more configuration...
+
+Thanks
+Guennadi
 ---
- drivers/staging/tm6000/tm6000-cards.c |   11 +++++++++--
- 1 files changed, 9 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
-index eef58da..cf2e76c 100644
---- a/drivers/staging/tm6000/tm6000-cards.c
-+++ b/drivers/staging/tm6000/tm6000-cards.c
-@@ -65,6 +65,9 @@ static unsigned int xc2028_mts;
- module_param(xc2028_mts, int, 0644);
- MODULE_PARM_DESC(xc2028_mts, "enable mts firmware (xc2028/3028 only)");
- 
-+static unsigned int xc2028_dtv78;
-+module_param(xc2028_dtv78, int, 0644);
-+MODULE_PARM_DESC(xc2028_dtv78, "enable dualband config (xc2028/3028 only)");
- 
- struct tm6000_board {
- 	char            *name;
-@@ -687,8 +690,12 @@ static void tm6000_config_tuner(struct tm6000_core *dev)
- 		ctl.read_not_reliable = 0;
- 		ctl.msleep = 10;
- 		ctl.demod = XC3028_FE_ZARLINK456;
--		ctl.vhfbw7 = 1;
--		ctl.uhfbw8 = 1;
-+
-+		if (xc2028_dtv78) {
-+			ctl.vhfbw7 = 1;
-+			ctl.uhfbw8 = 1;
-+		}
-+
- 		if (xc2028_mts)
- 			ctl.mts = 1;
- 
--- 
-1.7.3.4
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
