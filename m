@@ -1,101 +1,104 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:60998 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753183Ab1DEKie (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2011 06:38:34 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@nokia.com>
-Subject: Re: [RFC] V4L2 API for flash devices
-Date: Tue, 5 Apr 2011 12:39:04 +0200
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Nayden Kanchev <nkanchev@mm-sol.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Cohen David Abraham <david.cohen@nokia.com>
-References: <4D90854C.2000802@maxwell.research.nokia.com> <4D9438AD.7040405@maxwell.research.nokia.com> <4D9AEDB7.8040601@nokia.com>
-In-Reply-To: <4D9AEDB7.8040601@nokia.com>
+Received: from smtp.nokia.com ([147.243.1.48]:60496 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755212Ab1DFJ0K (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 Apr 2011 05:26:10 -0400
+Message-ID: <4D9C31A4.3050705@maxwell.research.nokia.com>
+Date: Wed, 06 Apr 2011 12:25:56 +0300
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-Message-Id: <201104051239.05167.laurent.pinchart@ideasonboard.com>
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Nayden Kanchev <nkanchev@mm-sol.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Cohen David Abraham <david.cohen@nokia.com>,
+	Kim HeungJun <riverful@gmail.com>
+Subject: Re: [RFC v2] V4L2 API for flash devices
+References: <4D9C2000.9090500@maxwell.research.nokia.com> <4D9C2670.2000603@mm-sol.com>
+In-Reply-To: <4D9C2670.2000603@mm-sol.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Sakari,
-
-On Tuesday 05 April 2011 12:23:51 Sakari Ailus wrote:
-> Sakari Ailus wrote:
-> > Laurent Pinchart wrote:
-> >> On Wednesday 30 March 2011 13:05:54 Sakari Ailus wrote:
-> >>> Laurent Pinchart wrote:
-> >>>> On Monday 28 March 2011 14:55:40 Sakari Ailus wrote:
-> >>>> 
-> >>>> [snip]
-> >>>> 
-> >>>>> 	V4L2_CID_FLASH_STROBE_MODE (menu; LED)
-> >>>>> 
-> >>>>> Use hardware or software strobe. If hardware strobe is selected, the
-> >>>>> flash controller is a slave in the system where the sensor produces
-> >>>>> the strobe signal to the flash.
-> >>>>> 
-> >>>>> In this case the flash controller setup is limited to programming
-> >>>>> strobe timeout and power (LED flash) and the sensor controls the
-> >>>>> timing and length of the strobe.
-> >>>>> 
-> >>>>> enum v4l2_flash_strobe_mode {
-> >>>>> 
-> >>>>> 	V4L2_FLASH_STROBE_MODE_SOFTWARE,
-> >>>>> 	V4L2_FLASH_STROBE_MODE_EXT_STROBE,
-> >>>>> 
-> >>>>> };
-> >>>> 
-> >>>> [snip]
-> >>>> 
-> >>>>> 	V4L2_CID_FLASH_LED_MODE (menu; LED)
-> >>>>> 
-> >>>>> enum v4l2_flash_led_mode {
-> >>>>> 
-> >>>>> 	V4L2_FLASH_LED_MODE_FLASH = 1,
-> >>>>> 	V4L2_FLASH_LED_MODE_TORCH,
-> >>>>> 
-> >>>>> };
-> >>>> 
-> >>>> Thinking about this some more, shouldn't we combine the two controls ?
-> >>>> They are basically used to configure how the flash LED is controlled:
-> >>>> manually (torch mode), automatically by the flash controller (software
-> >>>> strobe mode) or automatically by an external component (external
-> >>>> strobe mode).
-> >>> 
-> >>> That's a good question.
-> >>> 
-> >>> The adp1653 supports also additional control (not implemented in the
-> >>> driver, though) that affect hardware strobe length. Based on register
-> >>> setting, the led will be on after strobe either until the timeout
-> >>> expires, or until the strobe signal is high.
-> >>> 
-> >>> Should this be also part of the same control, or a different one?
-> >> 
-> >> That can be controlled by a duration control. If the duration is 0, the
-> >> flash is lit for the duration of the external strobe, otherwise it's
-> >> lit for the programmed duration.
-> > 
-> > Sounds good to me.
+Nayden Kanchev wrote:
+> Hi Sakari,
 > 
-> Thinking about this again; there won't be a separate duration control
+> Thanks for the update. I have just one comment about strobe types.
 
-Why not ? I think we need two timeouts, a watchdog timeout to prevent flash 
-fire or meltdown, and a normal timeout to lit the flash for a user-selected 
-duration.
+Hi Nayden,
 
-> and the hardware timeout can't be zero in a general case.
+Thanks for the comments!
+
+> <snip>
 > 
-> So this is not an option, and I don't think we'd want to add duration
-> control for this purpose.
 > 
-> What about V4L2_CID_FLASH_EXTERNAL_STROBE_EDGE?
+> On 04/06/2011 11:10 AM, Sakari Ailus wrote:
+>> - Added an open question on a new control:
+>> V4L2_CID_FLASH_EXTERNAL_STROBE_WHENCE.
+>>
+>>
+>>
+> <snip>
+>> 2. External strobe edge / level
+>> -------------------------------
+>>
+>> No use is seen currently for this, but it may well appear, and the
+>> hardware supports this. Level based trigger should be used since it is
+>> more precise.
+>>
+>>     V4L2_CID_FLASH_EXTERNAL_STROBE_WHENCE
+>>
+>> Whether the flash controller considers external strobe as edge, when the
+>> only limit of the strobe is the timeout on flash controller, or level,
+>> when the flash strobe will last as long as the strobe signal, or as long
+>> until the timeout expires.
+>>
+>> enum v4l2_flash_external_strobe_whence {
+>>     V4L2_CID_FLASH_EXTERNAL_STROBE_LEVEL,
+>>     V4L2_CID_FLASH_EXTERNAL_STROBE_EDGE,
+>> };
 
--- 
+Removed "CID_":
+
+enum v4l2_flash_external_strobe_whence {
+	V4L2_FLASH_EXTERNAL_STROBE_LEVEL,
+	V4L2_FLASH_EXTERNAL_STROBE_EDGE,
+};
+
+I guess this should be an rw menu control for LED flash?
+
+> 
+> I agree that control over the strobe usage (level/edge) is required.
+> Although we have some bad experience will lack of detailed information
+> how exactly the flash chip will use those signals.
+> 
+> For example with AS3645A flash driver strobing by edge produced really
+> strange flash output - light intensity was changing during the process
+> and flash was stopped before the HW timeout.
+> 
+> On the other hand strobing by level didn't cause problems.
+> 
+> So even if HW supports some functionally we should prevent such
+> malfunctioning by adding some restrictions in the board code also.
+
+I agree.
+
+The control should be probably exposed to tell which kind of
+functionality does the flash chip provide, even if the menu has just one
+option in it.
+
+> I would also rename xxx_STROBE_WHENCE to xxx_STROBE_TYPE but it is just
+> a suggestion :)
+
+Sounds good to me.
+
+V4L2_CID_FLASH_STROBE_MODE should be renamed to
+V4L2_CID_FLASH_STROBE_WHENCE. That proper use of whence IMO. :-)
+
 Regards,
 
-Laurent Pinchart
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
