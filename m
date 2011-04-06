@@ -1,48 +1,88 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.1.48]:20418 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759947Ab1D1OSW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Apr 2011 10:18:22 -0400
-Message-ID: <4DB97725.2070501@maxwell.research.nokia.com>
-Date: Thu, 28 Apr 2011 17:18:13 +0300
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:39344 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754641Ab1DFDDG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2011 23:03:06 -0400
+Received: by mail-vw0-f46.google.com with SMTP id 1so798772vws.19
+        for <linux-media@vger.kernel.org>; Tue, 05 Apr 2011 20:03:06 -0700 (PDT)
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: Yordan Kamenov <ykamenov@mm-sol.com>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1 v3] libv4l: Add plugin support to libv4l
-References: <cover.1297680043.git.ykamenov@mm-sol.com> <234f9f1fbf05f602d2a079962305e050976f1c58.1297680043.git.ykamenov@mm-sol.com> <4DB961A3.70000@redhat.com>
-In-Reply-To: <4DB961A3.70000@redhat.com>
+In-Reply-To: <006401cbf28c$02105880$06310980$%szyprowski@samsung.com>
+References: <1301874670-14833-1-git-send-email-pawel@osciak.com>
+ <1301874670-14833-2-git-send-email-pawel@osciak.com> <006401cbf28c$02105880$06310980$%szyprowski@samsung.com>
+From: Pawel Osciak <pawel@osciak.com>
+Date: Tue, 5 Apr 2011 20:02:46 -0700
+Message-ID: <BANLkTi=MJdNSXyQdX3gdQR=dU6Q0KQXQuQ@mail.gmail.com>
+Subject: Re: [PATCH 1/5] [media] vb2: redesign the stop_streaming() callback
+ and make it obligatory
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-media@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	g.liakhovetski@gmx.de
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hans de Goede wrote:
-> Hi,
+Hi again Marek
 
-Hi Hans, Yordan,
+On Sun, Apr 3, 2011 at 22:49, Marek Szyprowski <m.szyprowski@samsung.com> wrote:
+> Hello,
+>
+> On Monday, April 04, 2011 1:51 AM Pawel Osciak wrote:
+>
+>> Drivers are now required to implement the stop_streaming() callback
+>> to ensure that all ongoing hardware operations are finished and their
+>> ownership of buffers is ceded.
+>> Drivers do not have to call vb2_buffer_done() for each buffer they own
+>> anymore.
+>> Also remove the return value from the callback.
+>>
+>> Signed-off-by: Pawel Osciak <pawel@osciak.com>
+>> ---
+>>  drivers/media/video/videobuf2-core.c |   16 ++++++++++++++--
+>>  include/media/videobuf2-core.h       |   16 +++++++---------
+>>  2 files changed, 21 insertions(+), 11 deletions(-)
+>>
+>> diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
+>> index 6e69584..59d5e8b 100644
+>> --- a/drivers/media/video/videobuf2-core.c
+>> +++ b/drivers/media/video/videobuf2-core.c
+>> @@ -640,6 +640,9 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+>>       struct vb2_queue *q = vb->vb2_queue;
+>>       unsigned long flags;
+>>
+>> +     if (atomic_read(&q->queued_count) == 0)
+>> +             return;
+>> +
+>>       if (vb->state != VB2_BUF_STATE_ACTIVE)
+>>               return;
+>>
+>> @@ -1178,12 +1181,20 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+>>       unsigned int i;
+>>
+>>       /*
+>> -      * Tell driver to stop all transactions and release all queued
+>> +      * Tell the driver to stop all transactions and release all queued
+>>        * buffers.
+>>        */
+>>       if (q->streaming)
+>>               call_qop(q, stop_streaming, q);
+>> +
+>> +     /*
+>> +      * All buffers should now not be in use by the driver anymore, but we
+>> +      * have to manually set queued_count to 0, as the driver was not
+>> +      * required to call vb2_buffer_done() from stop_streaming() for all
+>> +      * buffers it had queued.
+>> +      */
+>>       q->streaming = 0;
+>> +     atomic_set(&q->queued_count, 0);
+>
+> If you removed the need to call vb2_buffer_done() then you must also call
+> wake_up_all(&q->done_wq) to wake any other threads/processes that might be
+> sleeping waiting for buffers.
 
-> First of all my apologies for taking so long to get around to
-> reviewing this.
-> 
-> Over all it looks good, I've put some small remarks inline, if
-> you fix these I can merge this. I wonder though, given the recent
-> limbo around Nokia's change of focus, if there are any plans to
-> actually move forward with a plugin using this... ?
-
-Yes, there are. That hasn't changed a bit.
-
-> The reason I'm asking is that adding the plugin framework if nothing
-> is going to use it seems a bit senseless.
-
-I agree with that. I also hope others would find the plugin framework
-useful as well. :-)
-
-A minor comment on the patch itself: there are a few checkpatch.pl
-warnings from it, mostly lines over 80 characters, but also others.
-
-Cheers,
+You made me doubt myself for a second there, but the patch is correct.
+There is a call to wake_up_all a few lines below this.
 
 -- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+Best regards,
+Pawel Osciak
