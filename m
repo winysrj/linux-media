@@ -1,75 +1,84 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:61253 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755573Ab1DXHpL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Apr 2011 03:45:11 -0400
-Received: by fxm17 with SMTP id 17so881680fxm.19
-        for <linux-media@vger.kernel.org>; Sun, 24 Apr 2011 00:45:10 -0700 (PDT)
-Date: Sun, 24 Apr 2011 09:44:58 +0200
-From: Steffen Barszus <steffenbpunkt@googlemail.com>
-To: Issa Gorissen <flop.m@usa.net>
-Cc: linux-media@vger.kernel.org, tuxoholic@hotmail.de,
-	Manu Abraham <abraham.manu@gmail.com>
-Subject: Re: stb0899/stb6100 tuning problems
-Message-ID: <20110424094458.02881033@grobi>
-In-Reply-To: <4DB33CBF.6010003@usa.net>
-References: <4DB33CBF.6010003@usa.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mga11.intel.com ([192.55.52.93]:48513 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754903Ab1DFRFq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 Apr 2011 13:05:46 -0400
+Date: Wed, 6 Apr 2011 19:05:38 +0200
+From: Samuel Ortiz <sameo@linux.intel.com>
+To: Greg KH <gregkh@suse.de>
+Cc: Grant Likely <grant.likely@secretlab.ca>,
+	Andres Salomon <dilinger@queued.net>,
+	linux-kernel@vger.kernel.org,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	khali@linux-fr.org, ben-linux@fluff.org,
+	Peter Korsgaard <jacmet@sunsite.dk>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	David Brownell <dbrownell@users.sourceforge.net>,
+	linux-i2c@vger.kernel.org, linux-media@vger.kernel.org,
+	netdev@vger.kernel.org, spi-devel-general@lists.sourceforge.net,
+	Mocean Laboratories <info@mocean-labs.com>
+Subject: Re: [PATCH 07/19] timberdale: mfd_cell is now implicitly available
+ to drivers
+Message-ID: <20110406170537.GB2757@sortiz-mobl>
+References: <20110331230522.GI437@ponder.secretlab.ca>
+ <20110401112030.GA3447@sortiz-mobl>
+ <20110401104756.2f5c6f7a@debxo>
+ <BANLkTi=bCd_+f=EG-O=U5VH_ZNjFhxkziQ@mail.gmail.com>
+ <20110401235239.GE29397@sortiz-mobl>
+ <BANLkTi=bq=OGzXFp7qiBr7x_BnGOWf=DRQ@mail.gmail.com>
+ <20110404100314.GC2751@sortiz-mobl>
+ <20110405030428.GB29522@ponder.secretlab.ca>
+ <20110406152322.GA2757@sortiz-mobl>
+ <20110406155805.GA20095@suse.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20110406155805.GA20095@suse.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sat, 23 Apr 2011 22:55:27 +0200
-Issa Gorissen <flop.m@usa.net> wrote:
+Hi Greg,
 
-> Hi,
+On Wed, Apr 06, 2011 at 08:58:05AM -0700, Greg KH wrote:
+> On Wed, Apr 06, 2011 at 05:23:23PM +0200, Samuel Ortiz wrote:
+> > --- a/include/linux/device.h
+> > +++ b/include/linux/device.h
+> > @@ -33,6 +33,7 @@ struct class;
+> >  struct subsys_private;
+> >  struct bus_type;
+> >  struct device_node;
+> > +struct mfd_cell;
+> >  
+> >  struct bus_attribute {
+> >  	struct attribute	attr;
+> > @@ -444,6 +445,8 @@ struct device {
+> >  	struct device_node	*of_node; /* associated device tree node */
+> >  	const struct of_device_id *of_match; /* matching of_device_id from driver */
+> >  
+> > +	struct mfd_cell	*mfd_cell; /* MFD cell pointer */
+> > +
 > 
-> Running kernel 2.6.39rc4. I've got trouble with tuning some
-> transponders on Hotbird 13°E with a TT S2-3200.
-> The transponders have been emitting DVB-S until end of march when they
-> now emit DVB-S2 signals. They are:
-> - 11681.00H 27500 3/4 8psk nid:319 tid:15900 on Hotbird 6
-> - 12692.00H 27500 3/4 8psk nid:319 tid:9900 on Hotbird 9
-> 
-> 
-> [1] https://patchwork.kernel.org/patch/244201/
-> [2]
-> http://www.mail-archive.com/linuxtv-commits@linuxtv.org/msg09214.html
-> 
-> 1) Patch [2] is merged into kernel 2.6.39rc4. Using scan-s2, I get no
-> service available.
-> 
-> 2) I applied patch [1] and still could not get any service with
-> scan-s2 from those transponders.
-> 
-> 3) I *reverted* patch[2] and now scan-s2 returns partial results.
-> scan-s2 can tune onto the transponder on Hotbird 6 really quick and
-> gives back the full services list.
-> But I have to run scan-s2 with scan iterations count set to as high as
-> 100 to be able to get results from the transponder on Hotbird 9.
-> 
-> When those transponders were emitting in DVB-S, I had no problem at
-> all.
-> 
-> Can someone try the same thing on those transponders and report
-> please ?
+> What is a "MFD cell pointer" and why is it needed in struct device?
+An MFD cell is an MFD instantiated device.
+MFD (Multi Function Device) drivers instantiate platform devices. Those
+devices drivers sometimes need a platform data pointer, sometimes an MFD
+specific pointer, and sometimes both. Also, some of those drivers have been
+implemented as MFD sub drivers, while others know nothing about MFD and just
+expect a plain platform_data pointer.
 
-As mentioned before, try to use [1] + [2] + following patch. I would
-expect this to be working. Please confirm. 
+We've been faced with the problem of being able to pass both MFD related data
+and a platform_data pointer to some of those drivers. Squeezing the MFD bits
+in the sub driver platform_data pointer doesn't work for drivers that know
+nothing about MFDs. It also adds an additional dependency on the MFD API to
+all MFD sub drivers. That prevents any of those drivers to eventually be used
+as plain platform device drivers.
+So, adding an MFD cell pointer to the device structure allows us to cleanly
+pass both pieces of information, while keeping all the MFD sub drivers
+independant from the MFD core if they want/can.
 
---- a/linux/drivers/media/dvb/frontends/stb0899_drv.c   2011-02-26 06:44:11.000000000 +0000
-+++ b/linux/drivers/media/dvb/frontends/stb0899_drv.c   2011-04-24 07:39:06.000000000 +0000
-@@ -1426,9 +1426,9 @@ static void stb0899_set_iterations(struc
-        if (iter_scale > config->ldpc_max_iter)
-                iter_scale = config->ldpc_max_iter;
+Cheers,
+Samuel.
 
--       reg = STB0899_READ_S2REG(STB0899_S2DEMOD, MAX_ITER);
-+       reg = STB0899_READ_S2REG(STB0899_S2FEC, MAX_ITER);
-        STB0899_SETFIELD_VAL(MAX_ITERATIONS, reg, iter_scale);
--       stb0899_write_s2reg(state, STB0899_S2DEMOD, STB0899_BASE_MAX_ITER, STB0899_OFF0_MAX_ITER, reg);
-+       stb0899_write_s2reg(state, STB0899_S2FEC, STB0899_BASE_MAX_ITER, STB0899_OFF0_MAX_ITER, reg);
- }
-
- static enum dvbfe_search stb0899_search(struct dvb_frontend *fe, struct dvb_frontend_parameters *p)
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
