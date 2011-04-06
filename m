@@ -1,147 +1,66 @@
 Return-path: <mchehab@pedra>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:38215 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753627Ab1DAR44 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Apr 2011 13:56:56 -0400
-MIME-Version: 1.0
-In-Reply-To: <20110401104756.2f5c6f7a@debxo>
-References: <20110202195417.228e2656@queued.net> <20110202200812.3d8d6cba@queued.net>
- <20110331230522.GI437@ponder.secretlab.ca> <20110401112030.GA3447@sortiz-mobl>
- <20110401104756.2f5c6f7a@debxo>
-From: Grant Likely <grant.likely@secretlab.ca>
-Date: Fri, 1 Apr 2011 11:56:35 -0600
-Message-ID: <BANLkTi=bCd_+f=EG-O=U5VH_ZNjFhxkziQ@mail.gmail.com>
-Subject: Re: [PATCH 07/19] timberdale: mfd_cell is now implicitly available to drivers
-To: Andres Salomon <dilinger@queued.net>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, linux-kernel@vger.kernel.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	khali@linux-fr.org, ben-linux@fluff.org,
-	Peter Korsgaard <jacmet@sunsite.dk>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	David Brownell <dbrownell@users.sourceforge.net>,
-	linux-i2c@vger.kernel.org, linux-media@vger.kernel.org,
-	netdev@vger.kernel.org, spi-devel-general@lists.sourceforge.net,
-	Mocean Laboratories <info@mocean-labs.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:12237 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753912Ab1DFIO6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Apr 2011 04:14:58 -0400
+Date: Wed, 06 Apr 2011 10:14:53 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH 5/7] v4l: s5p-fimc: add pm_runtime support
+In-reply-to: <007c01cbf3f2$c6e7b420$54b71c60$%han@samsung.com>
+To: Jonghun Han <jonghun.han@samsung.com>
+Cc: 'Marek Szyprowski' <m.szyprowski@samsung.com>,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Andrzej Pietrasiwiecz' <andrzej.p@samsung.com>,
+	'Arnd Bergmann' <arnd@arndb.de>,
+	'Kukjin Kim' <kgene.kim@samsung.com>,
+	=?EUC-KR?B?J7DtwOe47Sc=?= <jemings@samsung.com>
+Message-id: <4D9C20FD.2010608@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=EUC-KR
+Content-transfer-encoding: 7BIT
+References: <1302012410-17984-1-git-send-email-m.szyprowski@samsung.com>
+ <1302012410-17984-6-git-send-email-m.szyprowski@samsung.com>
+ <007c01cbf3f2$c6e7b420$54b71c60$%han@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Fri, Apr 1, 2011 at 11:47 AM, Andres Salomon <dilinger@queued.net> wrote:
-> On Fri, 1 Apr 2011 13:20:31 +0200
-> Samuel Ortiz <sameo@linux.intel.com> wrote:
->
->> Hi Grant,
->>
->> On Thu, Mar 31, 2011 at 05:05:22PM -0600, Grant Likely wrote:
-> [...]
->> > Gah.  Not all devices instantiated via mfd will be an mfd device,
->> > which means that the driver may very well expect an *entirely
->> > different* platform_device pointer; which further means a very high
->> > potential of incorrectly dereferenced structures (as evidenced by a
->> > patch series that is not bisectable).  For instance, the xilinx ip
->> > cores are used by more than just mfd.
->> I agree. Since the vast majority of the MFD subdevices are MFD
->> specific IPs, I overlooked that part. The impacted drivers are the
->> timberdale and the DaVinci voice codec ones.
+Hi Jonghun,
 
-Another option is you could do this for MFD devices:
+On 04/06/2011 02:37 AM, Jonghun Han wrote:
+...
+> 
+> Hi Marek,
+> 
+> runtime_pm is used to minimize current.
+> In my opinion, the followings will be better.
+> 1. Adds pm_runtime_get_sync before running of the first job.
+>    IMO, dma_run callback function is the best place for calling in case of
+> M2M.
+Yeah, sounds reasonable.
 
-struct mfd_device {
-        struct platform_devce pdev;
-        struct mfd_cell *cell;
-};
+> 2. And then in the ISR, call pm_runtime_put_sync in the ISR bottom-half if
+> there is no remained job.
 
-However, that requires that drivers using the mfd_cell will *never*
-get instantiated outside of the mfd infrastructure, and there is no
-way to protect against this so it is probably a bad idea.
+So you are switching the clocks off in the interrupt context, I'm not sure
+whether this is a good idea. Perhaps we could just use pm_runtime_put()
+in this case?
 
-Or, mfd_cell could be added to platform_device directly which would
-*by far* be the safest option at the cost of every platform_device
-having a mostly unused mfd_cell pointer.  Not a significant cost in my
-opinion.
+> 
+> I had already implemented and tested.
+> But it remained code cleanup. I hope I can post it on the next week.
 
-One last option is I'm prototyping a way to add type-safe structure
-pointers to a device, but that requires nasty CPP tricks and it's not
-complete yet.  The cure might be worse than the disease here.
+The purpose of Marek's simple patch was to just enable the FIMC IP
+to illustrate the IOMMU driver's operation. I have prepared more complete
+patch for runtime PM and system suspend/resume in the mem-to-mem driver
+as well, but I want to consolidate this with the video capture driver before
+sending upstream.
+Anyway I'm looking forward to see your patch so we can work out some common
+version. Also I've got a few patches for this rc period which I intend to post
+this week.
 
-g.
-
->
-> Can you please provide pointers to what you're referring to?  The only
-> code that I could find that created platform devices prefixed with
-> 'timb-' or named 'xilinx_spi' was drivers/mfd/timberdale.c.
->
->
->
->> To fix that problem I propose 2 alternatives:
->>
->> 1) When declaring the sub devices cells, the MFD driver should
->> specify an mfd_data_size value for sub devices that are not MFD
->> specific. It's the MFD driver responsibility to set the cell
->> properly, and the non MFD specific drivers are kept MFD agnostic.
->> See my patch below for the timberdale case.
-
-This approach worries me because it changes the behaviour on a
-per-device basis.  That could be difficult to maintain a mental model
-for.  I'd rather see consistent behaviour.
-
->>
->> 2) Revert the mfd_get_data() call for getting sub devices platform
->> data pointers. That was introduced to ease the MFD cell sharing work,
->> so if we take this route we'll need the cs5535 MFD driver to pass its
->> cells as platform_data pointer. Andres, can you confirm that this
->> would be fine for the mfd_clone_cell() routine to keep working ?
->
-> It would break mfd_clone_cell, as it uses mfd_get_cell to grab the one
-> to clone.  We could change it to accept the cell as an argument.  It
-> would also break mfd_cell_enable/disable, of course.
->
->
->
->>
->> Patch for solution 1:
->>
->>
->>  drivers/mfd/mfd-core.c          |   13 ++++++++++---
->>  drivers/mfd/timberdale.c        |   11 +++++++++++
->>  include/linux/mfd/core.h        |    1 +
->>  drivers/i2c/busses/i2c-ocores.c |    3 +--
->>  drivers/i2c/busses/i2c-xiic.c   |    3 +--
->>  drivers/net/ks8842.c            |    3 +--
->>  drivers/spi/xilinx_spi.c        |    3 +--
->>  7 files changed, 26 insertions(+), 11 deletions(-)
->>
->> diff --git a/drivers/mfd/mfd-core.c b/drivers/mfd/mfd-core.c
->> index d01574d..8abe510 100644
->> --- a/drivers/mfd/mfd-core.c
->> +++ b/drivers/mfd/mfd-core.c
->> @@ -75,9 +75,16 @@ static int mfd_add_device(struct device *parent,
->> int id,
->>       pdev->dev.parent = parent;
->>
->> -     ret = platform_device_add_data(pdev, cell, sizeof(*cell));
->> -     if (ret)
->> -             goto fail_res;
->> +     if (cell->mfd_data_size > 0) {
->> +             ret = platform_device_add_data(pdev,
->> +                                     cell->mfd_data,
->> cell->mfd_data_size);
->> +             if (ret)
->> +                     goto fail_res;
->> +     } else {
->> +             ret = platform_device_add_data(pdev, cell,
->> sizeof(*cell));
->> +             if (ret)
->> +                     goto fail_res;
->> +     }
->>
->>       for (r = 0; r < cell->num_resources; r++) {
->>               res[r].name = cell->resources[r].name;
->
-
-
-
+Regards,
 -- 
-Grant Likely, B.Sc., P.Eng.
-Secret Lab Technologies Ltd.
+Sylwester Nawrocki
+Samsung Poland R&D Center
