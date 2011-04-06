@@ -1,124 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:65093 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754677Ab1DIQn1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Apr 2011 12:43:27 -0400
-Received: by eyx24 with SMTP id 24so1365472eyx.19
-        for <linux-media@vger.kernel.org>; Sat, 09 Apr 2011 09:43:26 -0700 (PDT)
-Message-ID: <4DA08CA4.60200@gmail.com>
-Date: Sat, 09 Apr 2011 18:43:16 +0200
-From: Sylwester Nawrocki <snjw23@gmail.com>
+Received: from cantor2.suse.de ([195.135.220.15]:51618 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755481Ab1DFW1Z (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 Apr 2011 18:27:25 -0400
+Date: Wed, 6 Apr 2011 15:09:00 -0700
+From: Greg KH <gregkh@suse.de>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Andres Salomon <dilinger@queued.net>,
+	linux-kernel@vger.kernel.org,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	khali@linux-fr.org, ben-linux@fluff.org,
+	Peter Korsgaard <jacmet@sunsite.dk>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	David Brownell <dbrownell@users.sourceforge.net>,
+	linux-i2c@vger.kernel.org, linux-media@vger.kernel.org,
+	netdev@vger.kernel.org, spi-devel-general@lists.sourceforge.net,
+	Mocean Laboratories <info@mocean-labs.com>
+Subject: Re: [PATCH 07/19] timberdale: mfd_cell is now implicitly available
+ to drivers
+Message-ID: <20110406220900.GA16117@suse.de>
+References: <20110401235239.GE29397@sortiz-mobl>
+ <BANLkTi=bq=OGzXFp7qiBr7x_BnGOWf=DRQ@mail.gmail.com>
+ <20110404100314.GC2751@sortiz-mobl>
+ <20110405030428.GB29522@ponder.secretlab.ca>
+ <20110406152322.GA2757@sortiz-mobl>
+ <20110406155805.GA20095@suse.de>
+ <20110406170537.GB2757@sortiz-mobl>
+ <20110406175647.GA8048@suse.de>
+ <20110406184733.GD2757@sortiz-mobl>
+ <20110406185902.GN25654@legolas.emea.dhcp.ti.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 0/2] V4L: Extended crop/compose API, ver2
-References: <1302079459-4018-1-git-send-email-t.stanislaws@samsung.com> <201104081453.02965.hverkuil@xs4all.nl>
-In-Reply-To: <201104081453.02965.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20110406185902.GN25654@legolas.emea.dhcp.ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
-
-On 04/08/2011 02:53 PM, Hans Verkuil wrote:
-> Hi Tomasz!
+On Wed, Apr 06, 2011 at 09:59:02PM +0300, Felipe Balbi wrote:
+> Hi,
 > 
-> Some comments below...
+> On Wed, Apr 06, 2011 at 08:47:34PM +0200, Samuel Ortiz wrote:
+> > > > > What is a "MFD cell pointer" and why is it needed in struct device?
+> > > > An MFD cell is an MFD instantiated device.
+> > > > MFD (Multi Function Device) drivers instantiate platform devices. Those
+> > > > devices drivers sometimes need a platform data pointer, sometimes an MFD
+> > > > specific pointer, and sometimes both. Also, some of those drivers have been
+> > > > implemented as MFD sub drivers, while others know nothing about MFD and just
+> > > > expect a plain platform_data pointer.
+> > > 
+> > > That sounds like a bug in those drivers, why not fix them to properly
+> > > pass in the correct pointer?
+> > Because they're drivers for generic IPs, not MFD ones. By forcing them to use
+> > MFD specific structure and APIs, we make it more difficult for platform code
+> > to instantiate them.
 > 
-> On Wednesday, April 06, 2011 10:44:17 Tomasz Stanislawski wrote:
->> Hello everyone,
->>
->> This patch-set introduces new ioctls to V4L2 API. The new method for
->> configuration of cropping and composition is presented.
->>
->> This is the second version of extcrop RFC. It was enriched with new features
->> like additional hint flags, and a support for auxiliary crop/compose
->> rectangles.
->>
->> There is some confusion in understanding of a cropping in current version of
->> V4L2. For CAPTURE devices cropping refers to choosing only a part of input
->> data stream and processing it and storing it in a memory buffer. The buffer is
->> fully filled by data. It is not possible to choose only a part of a buffer for
->> being updated by hardware.
->>
->> In case of OUTPUT devices, the whole content of a buffer is passed by hardware
->> to output display. Cropping means selecting only a part of an output
->> display/signal. It is not possible to choose only a part for a memory buffer
->> to be processed.
->>
->> The overmentioned flaws in cropping API were discussed in post:
->> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/28945
->>
->> A solution was proposed during brainstorming session in Warsaw.
->>
-... 
->> - merge v4l2_selection::target and v4l2_selection::flags into single field
->> - allow using VIDIOC_S_EXTCROP with target type V4L2_SEL_TARGET_BOUNDS to
->>    choose a resolution of a sensor
-
-Assuming here that the "resolution of a sensor" refers to the output resolution
-of a sensor with embedded ISP as seen by a bridge. Otherwise if it refers to 
-the active pixel matrix resolution VIDIOC_S_EXTCROP(V4L2_SEL_TARGET_BOUNDS) 
-would only make sense for sensors that support different pixel matrix layout,
-e.g. portrait/landscape. Something that Laurent brought to our attention during
-the Warsaw meeting, i.e. where actual sensor matrix contour is square but there
-are square polygons of dark pixels at each corner of the contour.
-
+> I agree. What I do on those cases is to have a simple platform_device
+> for the core IP driver and use platform_device_id tables to do runtime
+> checks of the small differences. If one platform X doesn't use a
+> platform_bus, it uses e.g. PCI, then you make a PCI "bridge" which
+> allocates a platform_device with the correct name and adds that to the
+> driver model.
 > 
-> Too obscure IMHO. That said, it would be nice to have a more explicit method
-> of selecting a sensor resolution. You can enumerate them, but you choose it
-> using VIDIOC_S_FMT, which I've always thought was very dubious. This prevents
-> any sensor-built-in scalers from being used. For video you have S_STD and
+> See [1] (for the core driver) and [2] (for a PCI bridge driver) for an
+> example of what I'm talking about.
 
-IMHO sensor-built-in scalers can be used by means of the VIDIOC_[S/G]_CROP
-ioctls, which allows to select not only width/height of the part of a sensor
-matrix to be fed to the sensor's scaler but also a position of a pixel crop
-rectangle.
+Yes, thanks for providing a real example, this is the best way to handle
+this.
 
-> S_DV_PRESET that select a particular input resolution, but a similar ioctl is
-> missing for sensors. Laurent, what are your thoughts?
-> 
+thanks,
 
-I suppose new ioctls like [G/S]_FRAMESIZE could be useful for selecting 
-sensor's output resolution, those could then call sensor's pad set_fmt/get_fmt
-ops. Please note there are image sensors that support any resolution in their
-nominal range with some alignment requirements. For a maximum resolution 1024x1280
-and 2 pixels alignment those would yield 327680 different resolutions.
-Does enum_framesizes make sense in such cases? 
-
-There is currently no way to configure a scaler built in in the bridge with
-the regular V4L2 API though. Only the final output buffer resolution can be set 
-with VIDIOC_S_FMT. We can select an active pixel array area with S_CROP.
-Depending where the cropping is actually performed - in an image sensor or in
-a bridge we are able to use sensor-built-in scaler OR bridge-built-in scaler,
-never both. Would setting sensor's output and bridge's input resolution with
-new VIDIOC_S_FRAMESIZE ioctl make sense?
-
-.........................................         .....................................
-.                                       .         .                                   .
-.                G/S_CROP              G/S_FRAMESIZE               G/S_FMT            .
-.             (x,y) w1 x h1             . w2 x h2 .                w3 x h3            .
-. +-------------+       +------------+  .         .  +------------+       +---------+ .
-. |             |       |            |  .         .  |            |       |         | .
-. |   Pixel     |       |   ISP      |  .         .  |  SCALER    |       |  DMA    | .
-. |   matrix    |_______| (scaler)   |_______________|            |_______|  eng.   | .
-. |             |       |            |  .         .  | (color     |       |         | .
-. |             |       |            |  .         .  | converter) |       |         | .
-. |             |       |            |  .         .  |            |       |         | .
-. +-------------+       +------------+  .         .  +------------+       +---------+ .
-.                                       .         .                                   .
-.  SENSOR        PAD S0           PAD S1.         . PAD B0                    BRIDGE  .
- ........................................         .....................................
- 
-
-Also how could one enumerate what media bus formats are supported at bridge input pad
-(PAD B0 in the ascii diagram above) if the bridge does not support the v4l2 subdev 
-user space API and the application needs to match formats at pads PAD S1 and PAD B0 ?
-
---
-Regards,
-Sylwester Nawrocki
+greg k-h
