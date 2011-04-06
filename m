@@ -1,169 +1,51 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.10]:50311 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752434Ab1DLIZh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Apr 2011 04:25:37 -0400
-Date: Tue, 12 Apr 2011 10:24:42 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Kassey Lee <kassey1216@gmail.com>
-cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	qingx@marvell.com
-Subject: Re: [PATCH 2.6.39] soc_camera: OMAP1: fix missing bytesperline and
- sizeimage initialization
-In-Reply-To: <BANLkTim3QnLBDodo=k+4GnVLwfqH6mCpMA@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1104121024200.23770@axis700.grange>
-References: <201104090158.04827.jkrzyszt@tis.icnet.pl>
- <Pine.LNX.4.64.1104101751380.12697@axis700.grange>
- <BANLkTimut-G1YXFU+4gqiCij-RLu-Vn4-Q@mail.gmail.com>
- <Pine.LNX.4.64.1104120820020.23770@axis700.grange>
- <BANLkTimc_3wcLMP116B+BkGdJaapZSVkpw@mail.gmail.com>
- <BANLkTim3QnLBDodo=k+4GnVLwfqH6mCpMA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mailout3.samsung.com ([203.254.224.33]:63310 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752013Ab1DFH0h (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Apr 2011 03:26:37 -0400
+Date: Wed, 06 Apr 2011 09:25:45 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH 5/7] v4l: s5p-fimc: add pm_runtime support
+In-reply-to: <007c01cbf3f2$c6e7b420$54b71c60$%han@samsung.com>
+To: 'Jonghun Han' <jonghun.han@samsung.com>,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org
+Cc: 'Kyungmin Park' <kyungmin.park@samsung.com>,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	'Arnd Bergmann' <arnd@arndb.de>,
+	'Kukjin Kim' <kgene.kim@samsung.com>,
+	=?ks_c_5601-1987?B?J7DtwOe47Sc=?= <jemings@samsung.com>,
+	'Marek Szyprowski' <m.szyprowski@samsung.com>
+Message-id: <000001cbf42b$dbd9db90$938d92b0$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ks_c_5601-1987
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <1302012410-17984-1-git-send-email-m.szyprowski@samsung.com>
+ <1302012410-17984-6-git-send-email-m.szyprowski@samsung.com>
+ <007c01cbf3f2$c6e7b420$54b71c60$%han@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, 12 Apr 2011, Kassey Lee wrote:
+Hello,
 
-> 2011/4/12 Kassey Lee <kassey1216@gmail.com>:
-> > Hi, Guennadi;
-> >           for sizeimage , I agree with you. that we can overwrite it
-> > after a frame is done.
-> >
-> >    for byteperline: on Marvell soc.
-> >    it needs to know the bytesperline before receive frame from sensor.
-> >    what we did now is hardcode  in host driver for bytesperline.
-> >
-> >    since different sensors have different timing for JPEG, and
-> > bytesperline is different.
-> >    while  soc_mbus_bytes_per_line does not support JPEG.
-> >
-> >    So, we want that host driver can get byteperline from sensor
-> > driver (sub dev) before transfer a frame for JPEG format.
-> >    a way to do this:
-> >    soc_mbus_bytes_per_line return 0 for JPEG, and host driver will
-> > try another API to get bytesperline for JPEG from sensor driver.
-> >     the effort is new API or reused other API.
-> >
-> >    Is that reasonable ?
+On Wednesday, April 06, 2011 2:37 AM Jonghun Han wrote:
 
-If you mean this your patch
+> runtime_pm is used to minimize current.
+> In my opinion, the followings will be better.
+> 1. Adds pm_runtime_get_sync before running of the first job.
+>    IMO, dma_run callback function is the best place for calling in case of
+> M2M.
+> 2. And then in the ISR, call pm_runtime_put_sync in the ISR bottom-half if
+> there is no remained job.
 
-http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/31323/match=
+Right my pm_runtime implementation is very simple. I've just added it to test
+if other subsystems are working.
 
-then I've queued it for 2.6.40.
+Best regards
+--
+Marek Szyprowski
+Samsung Poland R&D Center
 
-Thanks
-Guennadi
 
-> >
-> >
-> >
-> > 2011/4/12 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
-> >> Hi
-> >>
-> >> On Tue, 12 Apr 2011, Kassey Lee wrote:
-> >>
-> >>> hi, Guennadi:
-> >>>     a lot of sensors support JPEG output.
-> >>>     1) bytesperline is defined by sensor timing.
-> >>>     2) and sizeimage is unknow for jpeg.
-> >>>
-> >>>   how about for JPEG
-> >>>    1) host driver gets bytesperline from sensor driver.
-> >>>    2) sizeimage refilled by host driver after dma transfer done( a
-> >>> frame is received)
-> >>>   thanks.
-> >>
-> >> How is this done currently on other V4L2 drivers? To transfer a frame you
-> >> usually first do at least one of S_FMT and G_FMT, at which time you
-> >> already have to report sizeimage to the user - before any transfer has
-> >> taken place. Currently with soc-camera it is already possible to override
-> >> sizeimage and bytesperline from the host driver. Just set them to whatever
-> >> you need in your try_fmt and they will be kept. Not sure how you want to
-> >> do that, if you need to first read in a frame - do you want to perform
-> >> some dummy frame transfer? You might not even have any buffers queued yet,
-> >> so, it has to be a read without writing to RAM. Don't such compressed
-> >> formats just put a value in sizeimage, that is a calculated maximum size?
-> >>
-> >> Thanks
-> >> Guennadi
-> >>
-> >>> 2011/4/11 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
-> >>> > Hi Janusz
-> >>> >
-> >>> > On Sat, 9 Apr 2011, Janusz Krzysztofik wrote:
-> >>> >
-> >>> >> Since commit 0e4c180d3e2cc11e248f29d4c604b6194739d05a, bytesperline and
-> >>> >> sizeimage memebers of v4l2_pix_format structure have no longer been
-> >>> >> calculated inside soc_camera_g_fmt_vid_cap(), but rather passed via
-> >>> >> soc_camera_device structure from a host driver callback invoked by
-> >>> >> soc_camera_set_fmt().
-> >>> >>
-> >>> >> OMAP1 camera host driver has never been providing these parameters, so
-> >>> >> it no longer works correctly. Fix it by adding suitable assignments to
-> >>> >> omap1_cam_set_fmt().
-> >>> >
-> >>> > Thanks for the patch, but now it looks like many soc-camera host drivers
-> >>> > are re-implementing this very same calculation in different parts of their
-> >>> > code - in try_fmt, set_fmt, get_fmt. Why don't we unify them all,
-> >>> > implement this centrally in soc_camera.c and remove all those
-> >>> > calculations? Could you cook up a patch or maybe several patches - for
-> >>> > soc_camera.c and all drivers?
-> >>> >
-> >>> > Thanks
-> >>> > Guennadi
-> >>> >
-> >>> >>
-> >>> >> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-> >>> >> ---
-> >>> >>  drivers/media/video/omap1_camera.c |    6 ++++++
-> >>> >>  1 file changed, 6 insertions(+)
-> >>> >>
-> >>> >> --- linux-2.6.39-rc2/drivers/media/video/omap1_camera.c.orig  2011-04-06 14:30:37.000000000 +0200
-> >>> >> +++ linux-2.6.39-rc2/drivers/media/video/omap1_camera.c       2011-04-09 00:16:36.000000000 +0200
-> >>> >> @@ -1292,6 +1292,12 @@ static int omap1_cam_set_fmt(struct soc_
-> >>> >>       pix->colorspace  = mf.colorspace;
-> >>> >>       icd->current_fmt = xlate;
-> >>> >>
-> >>> >> +     pix->bytesperline = soc_mbus_bytes_per_line(pix->width,
-> >>> >> +                                                 xlate->host_fmt);
-> >>> >> +     if (pix->bytesperline < 0)
-> >>> >> +             return pix->bytesperline;
-> >>> >> +     pix->sizeimage = pix->height * pix->bytesperline;
-> >>> >> +
-> >>> >>       return 0;
-> >>> >>  }
-> >>> >>
-> >>> >>
-> >>> >
-> >>> > ---
-> >>> > Guennadi Liakhovetski, Ph.D.
-> >>> > Freelance Open-Source Software Developer
-> >>> > http://www.open-technology.de/
-> >>> > --
-> >>> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> >>> > the body of a message to majordomo@vger.kernel.org
-> >>> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >>> >
-> >>>
-> >>
-> >> ---
-> >> Guennadi Liakhovetski, Ph.D.
-> >> Freelance Open-Source Software Developer
-> >> http://www.open-technology.de/
-> >> --
-> >> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> >> the body of a message to majordomo@vger.kernel.org
-> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >>
-> >
-> 
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
