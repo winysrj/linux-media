@@ -1,140 +1,62 @@
 Return-path: <mchehab@pedra>
-Received: from smtp209.alice.it ([82.57.200.105]:34192 "EHLO smtp209.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751827Ab1DGPqI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 Apr 2011 11:46:08 -0400
-From: Antonio Ospite <ospite@studenti.unina.it>
+Received: from mail.visioncatalog.de ([217.6.246.34]:45627 "EHLO
+	root.phytec.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755952Ab1DFOGJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Apr 2011 10:06:09 -0400
+Received: from idefix.phytec.de (idefix.phytec.de [172.16.0.10])
+	by root.phytec.de (Postfix) with ESMTP id CB076BF08A
+	for <linux-media@vger.kernel.org>; Wed,  6 Apr 2011 16:08:06 +0200 (CEST)
+From: =?UTF-8?q?Teresa=20G=C3=A1mez?= <t.gamez@phytec.de>
 To: linux-media@vger.kernel.org
-Cc: Antonio Ospite <ospite@studenti.unina.it>,
-	Steven Toth <stoth@kernellabs.com>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	Drew Fisher <drew.m.fisher@gmail.com>,
-	OpenKinect <openkinect@googlegroups.com>,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH 1/2] Add Y10B, a 10 bpp bit-packed greyscale format.
-Date: Thu,  7 Apr 2011 17:45:51 +0200
-Message-Id: <1302191152-7218-2-git-send-email-ospite@studenti.unina.it>
-In-Reply-To: <1302191152-7218-1-git-send-email-ospite@studenti.unina.it>
-References: <1302191152-7218-1-git-send-email-ospite@studenti.unina.it>
+Cc: =?UTF-8?q?Teresa=20G=C3=A1mez?= <t.gamez@phytec.de>
+Subject: [PATCH 2/2] mt9m111: fix pixel clock
+Date: Wed, 6 Apr 2011 16:01:55 +0200
+Message-Id: <1302098515-12176-2-git-send-email-t.gamez@phytec.de>
+In-Reply-To: <1302098515-12176-1-git-send-email-t.gamez@phytec.de>
+References: <1302098515-12176-1-git-send-email-t.gamez@phytec.de>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Add a 10 bits per pixel greyscale format in a bit-packed array representation,
-naming it Y10B. Such pixel format is supplied for instance by the Kinect
-sensor device.
+This camera driver supports only rising edge, which is the default
+setting of the device. The function mt9m111_setup_pixfmt() overwrites
+this setting. So the driver actually uses falling edge.
+This patch corrects that.
 
-Cc: Steven Toth <stoth@kernellabs.com>
-Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
+Signed-off-by: Teresa Gámez <t.gamez@phytec.de>
 ---
- Documentation/DocBook/media-entities.tmpl |    1 +
- Documentation/DocBook/v4l/pixfmt-y10b.xml |   43 +++++++++++++++++++++++++++++
- Documentation/DocBook/v4l/pixfmt.xml      |    1 +
- Documentation/DocBook/v4l/videodev2.h.xml |    3 ++
- include/linux/videodev2.h                 |    3 ++
- 5 files changed, 51 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/DocBook/v4l/pixfmt-y10b.xml
+ drivers/media/video/mt9m111.c |   14 ++++++++++++--
+ 1 files changed, 12 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/DocBook/media-entities.tmpl b/Documentation/DocBook/media-entities.tmpl
-index 5d259c6..2dead20 100644
---- a/Documentation/DocBook/media-entities.tmpl
-+++ b/Documentation/DocBook/media-entities.tmpl
-@@ -294,6 +294,7 @@
- <!ENTITY sub-srggb10 SYSTEM "v4l/pixfmt-srggb10.xml">
- <!ENTITY sub-srggb8 SYSTEM "v4l/pixfmt-srggb8.xml">
- <!ENTITY sub-y10 SYSTEM "v4l/pixfmt-y10.xml">
-+<!ENTITY sub-y10b SYSTEM "v4l/pixfmt-y10b.xml">
- <!ENTITY sub-pixfmt SYSTEM "v4l/pixfmt.xml">
- <!ENTITY sub-cropcap SYSTEM "v4l/vidioc-cropcap.xml">
- <!ENTITY sub-dbg-g-register SYSTEM "v4l/vidioc-dbg-g-register.xml">
-diff --git a/Documentation/DocBook/v4l/pixfmt-y10b.xml b/Documentation/DocBook/v4l/pixfmt-y10b.xml
-new file mode 100644
-index 0000000..adb0ad8
---- /dev/null
-+++ b/Documentation/DocBook/v4l/pixfmt-y10b.xml
-@@ -0,0 +1,43 @@
-+<refentry id="V4L2-PIX-FMT-Y10BPACK">
-+  <refmeta>
-+    <refentrytitle>V4L2_PIX_FMT_Y10BPACK ('Y10B')</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+  <refnamediv>
-+    <refname><constant>V4L2_PIX_FMT_Y10BPACK</constant></refname>
-+    <refpurpose>Grey-scale image as a bit-packed array</refpurpose>
-+  </refnamediv>
-+  <refsect1>
-+    <title>Description</title>
-+
-+    <para>This is a packed grey-scale image format with a depth of 10 bits per
-+      pixel. Pixels are stored in a bit-packed array of 10bit bits per pixel,
-+      with no padding between them and with the most significant bits coming
-+      first from the left.</para>
-+
-+    <example>
-+      <title><constant>V4L2_PIX_FMT_Y10BPACK</constant> 4 pixel data stream taking 5 bytes</title>
-+
-+      <formalpara>
-+	<title>Bit-packed representation</title>
-+	<para>pixels cross the byte boundary and have a ratio of 5 bytes for each 4
-+          pixels.
-+	  <informaltable frame="all">
-+	    <tgroup cols="5" align="center">
-+	      <colspec align="left" colwidth="2*" />
-+	      <tbody valign="top">
-+		<row>
-+		  <entry>Y'<subscript>00[9:2]</subscript></entry>
-+		  <entry>Y'<subscript>00[1:0]</subscript>Y'<subscript>01[9:4]</subscript></entry>
-+		  <entry>Y'<subscript>01[3:0]</subscript>Y'<subscript>02[9:6]</subscript></entry>
-+		  <entry>Y'<subscript>02[5:0]</subscript>Y'<subscript>03[9:8]</subscript></entry>
-+		  <entry>Y'<subscript>03[7:0]</subscript></entry>
-+		</row>
-+	      </tbody>
-+	    </tgroup>
-+	  </informaltable>
-+	</para>
-+      </formalpara>
-+    </example>
-+  </refsect1>
-+</refentry>
-diff --git a/Documentation/DocBook/v4l/pixfmt.xml b/Documentation/DocBook/v4l/pixfmt.xml
-index c6fdcbb..2e824a3 100644
---- a/Documentation/DocBook/v4l/pixfmt.xml
-+++ b/Documentation/DocBook/v4l/pixfmt.xml
-@@ -696,6 +696,7 @@ information.</para>
-     &sub-packed-yuv;
-     &sub-grey;
-     &sub-y10;
-+    &sub-y10b;
-     &sub-y16;
-     &sub-yuyv;
-     &sub-uyvy;
-diff --git a/Documentation/DocBook/v4l/videodev2.h.xml b/Documentation/DocBook/v4l/videodev2.h.xml
-index 2b796a2..937acf5 100644
---- a/Documentation/DocBook/v4l/videodev2.h.xml
-+++ b/Documentation/DocBook/v4l/videodev2.h.xml
-@@ -311,6 +311,9 @@ struct <link linkend="v4l2-pix-format">v4l2_pix_format</link> {
- #define <link linkend="V4L2-PIX-FMT-Y10">V4L2_PIX_FMT_Y10</link>     v4l2_fourcc('Y', '1', '0', ' ') /* 10  Greyscale     */
- #define <link linkend="V4L2-PIX-FMT-Y16">V4L2_PIX_FMT_Y16</link>     v4l2_fourcc('Y', '1', '6', ' ') /* 16  Greyscale     */
+diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
+index 53fa2a7..4040a96 100644
+--- a/drivers/media/video/mt9m111.c
++++ b/drivers/media/video/mt9m111.c
+@@ -315,10 +315,20 @@ static int mt9m111_setup_rect(struct i2c_client *client,
+ static int mt9m111_setup_pixfmt(struct i2c_client *client, u16 outfmt)
+ {
+ 	int ret;
++	u16 mask = MT9M111_OUTFMT_PROCESSED_BAYER | MT9M111_OUTFMT_RGB |
++		MT9M111_OUTFMT_BYPASS_IFP | MT9M111_OUTFMT_SWAP_RGB_EVEN |
++		MT9M111_OUTFMT_RGB565 | MT9M111_OUTFMT_RGB555 |
++		MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr |
++		MT9M111_OUTFMT_SWAP_YCbCr_C_Y;
  
-+/* Grey bit-packed formats */
-+#define <link linkend="V4L2-PIX-FMT-Y10BPACK">V4L2_PIX_FMT_Y10BPACK</link>    v4l2_fourcc('Y', '1', '0', 'B') /* 10  Greyscale bit-packed */
+-	ret = reg_write(OUTPUT_FORMAT_CTRL2_A, outfmt);
++	ret = reg_clear(OUTPUT_FORMAT_CTRL2_A, mask);
+ 	if (!ret)
+-		ret = reg_write(OUTPUT_FORMAT_CTRL2_B, outfmt);
++		ret = reg_set(OUTPUT_FORMAT_CTRL2_A, outfmt);
++	if (!ret)
++		ret = reg_clear(OUTPUT_FORMAT_CTRL2_B, mask);
++	if (!ret)
++		ret = reg_set(OUTPUT_FORMAT_CTRL2_B, outfmt);
 +
- /* Palette formats */
- #define <link linkend="V4L2-PIX-FMT-PAL8">V4L2_PIX_FMT_PAL8</link>    v4l2_fourcc('P', 'A', 'L', '8') /*  8  8-bit palette */
- 
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index aa6c393..38575ae 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -310,6 +310,9 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_Y10     v4l2_fourcc('Y', '1', '0', ' ') /* 10  Greyscale     */
- #define V4L2_PIX_FMT_Y16     v4l2_fourcc('Y', '1', '6', ' ') /* 16  Greyscale     */
- 
-+/* Grey bit-packed formats */
-+#define V4L2_PIX_FMT_Y10BPACK    v4l2_fourcc('Y', '1', '0', 'B') /* 10  Greyscale bit-packed */
-+
- /* Palette formats */
- #define V4L2_PIX_FMT_PAL8    v4l2_fourcc('P', 'A', 'L', '8') /*  8  8-bit palette */
+ 	return ret;
+ }
  
 -- 
-1.7.4.1
+1.7.0.4
 
