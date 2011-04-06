@@ -1,103 +1,99 @@
 Return-path: <mchehab@pedra>
-Received: from mail.rapiddevelopmentkit.de ([217.6.246.34]:34258 "EHLO
-	root.phytec.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751087Ab1DGMiE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Apr 2011 08:38:04 -0400
-Subject: Re: [PATCH 1/2] mt9v022: fix pixel clock
-From: Teresa Gamez <T.Gamez@phytec.de>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <Pine.LNX.4.64.1104071303001.26842@axis700.grange>
-References: <1302098515-12176-1-git-send-email-t.gamez@phytec.de>
-	 <Pine.LNX.4.64.1104071303001.26842@axis700.grange>
-Date: Thu, 07 Apr 2011 14:38:06 +0200
-Message-ID: <1302179886.5045.5.camel@lws-gamez>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="UTF-8"
+Received: from mga14.intel.com ([143.182.124.37]:1646 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756470Ab1DFSrr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 Apr 2011 14:47:47 -0400
+Date: Wed, 6 Apr 2011 20:47:34 +0200
+From: Samuel Ortiz <sameo@linux.intel.com>
+To: Greg KH <gregkh@suse.de>
+Cc: Grant Likely <grant.likely@secretlab.ca>,
+	Andres Salomon <dilinger@queued.net>,
+	linux-kernel@vger.kernel.org,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	khali@linux-fr.org, ben-linux@fluff.org,
+	Peter Korsgaard <jacmet@sunsite.dk>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	David Brownell <dbrownell@users.sourceforge.net>,
+	linux-i2c@vger.kernel.org, linux-media@vger.kernel.org,
+	netdev@vger.kernel.org, spi-devel-general@lists.sourceforge.net,
+	Mocean Laboratories <info@mocean-labs.com>
+Subject: Re: [PATCH 07/19] timberdale: mfd_cell is now implicitly available
+ to drivers
+Message-ID: <20110406184733.GD2757@sortiz-mobl>
+References: <20110401104756.2f5c6f7a@debxo>
+ <BANLkTi=bCd_+f=EG-O=U5VH_ZNjFhxkziQ@mail.gmail.com>
+ <20110401235239.GE29397@sortiz-mobl>
+ <BANLkTi=bq=OGzXFp7qiBr7x_BnGOWf=DRQ@mail.gmail.com>
+ <20110404100314.GC2751@sortiz-mobl>
+ <20110405030428.GB29522@ponder.secretlab.ca>
+ <20110406152322.GA2757@sortiz-mobl>
+ <20110406155805.GA20095@suse.de>
+ <20110406170537.GB2757@sortiz-mobl>
+ <20110406175647.GA8048@suse.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20110406175647.GA8048@suse.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello Guennadi,
-
-Sorry for the first mail...
-
-The datasheet also says (see table 3):
-
-<quote>
-Pixel clock out. DOUT is valid on rising edge of this
-clock.
-</quote>
-
-There is a difference between DOUT beeing vaild and DOUT beeing set up.
-So does SOCAM_PCLK_SAMPLE_RISING mean that the data is valid at rising
-edge or does it mean the data is set up at rising edge? 
-
-I have tested this with a pcm038 but I will also make meassurements with
-the pcm037.
-
-Teresa
-
-Am Donnerstag, den 07.04.2011, 13:08 +0200 schrieb Guennadi
-Liakhovetski:
-> On Wed, 6 Apr 2011, Teresa Gámez wrote:
-> 
-> > Measurements show that the setup of the pixel clock is not correct.
-> > The 'Invert Pixel Clock' bit has to be set to 1 for falling edge
-> > and not for rising.
-> 
-> Doesn't seem correct to me. The mt9v022 datasheet says:
-> 
-> <quote>
-> Invert pixel clock. When set, LINE_VALID,
-> FRAME_VALID, and DOUT is set up to the rising edge
-> of pixel clock, PIXCLK. When clear, they are set up to
-> the falling edge of PIXCLK.
-> </quote>
-> 
-> and this works for present mt9v022 configurations, which include at least 
-> two boards: PXA270-based arch/arm/mach-pxa/pcm990-baseboard.c and i.MX31 
-> based arch/arm/mach-mx3/mach-pcm037.c. If this is different for your 
-> board, maybe you have to set the SOCAM_SENSOR_INVERT_PCLK flag in your 
-> "struct soc_camera_link" instance.
-> 
-> Thanks
-> Guennadi
-> 
-> > Signed-off-by: Teresa Gámez <t.gamez@phytec.de>
-> > ---
-> >  drivers/media/video/mt9v022.c |    2 +-
-> >  1 files changed, 1 insertions(+), 1 deletions(-)
+On Wed, Apr 06, 2011 at 10:56:47AM -0700, Greg KH wrote:
+> On Wed, Apr 06, 2011 at 07:05:38PM +0200, Samuel Ortiz wrote:
+> > Hi Greg,
 > > 
-> > diff --git a/drivers/media/video/mt9v022.c b/drivers/media/video/mt9v022.c
-> > index 6a784c8..dec2a69 100644
-> > --- a/drivers/media/video/mt9v022.c
-> > +++ b/drivers/media/video/mt9v022.c
-> > @@ -228,7 +228,7 @@ static int mt9v022_set_bus_param(struct soc_camera_device *icd,
-> >  
-> >  	flags = soc_camera_apply_sensor_flags(icl, flags);
-> >  
-> > -	if (flags & SOCAM_PCLK_SAMPLE_RISING)
-> > +	if (flags & SOCAM_PCLK_SAMPLE_FALLING)
-> >  		pixclk |= 0x10;
-> >  
-> >  	if (!(flags & SOCAM_HSYNC_ACTIVE_HIGH))
-> > -- 
-> > 1.7.0.4
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
+> > On Wed, Apr 06, 2011 at 08:58:05AM -0700, Greg KH wrote:
+> > > On Wed, Apr 06, 2011 at 05:23:23PM +0200, Samuel Ortiz wrote:
+> > > > --- a/include/linux/device.h
+> > > > +++ b/include/linux/device.h
+> > > > @@ -33,6 +33,7 @@ struct class;
+> > > >  struct subsys_private;
+> > > >  struct bus_type;
+> > > >  struct device_node;
+> > > > +struct mfd_cell;
+> > > >  
+> > > >  struct bus_attribute {
+> > > >  	struct attribute	attr;
+> > > > @@ -444,6 +445,8 @@ struct device {
+> > > >  	struct device_node	*of_node; /* associated device tree node */
+> > > >  	const struct of_device_id *of_match; /* matching of_device_id from driver */
+> > > >  
+> > > > +	struct mfd_cell	*mfd_cell; /* MFD cell pointer */
+> > > > +
+> > > 
+> > > What is a "MFD cell pointer" and why is it needed in struct device?
+> > An MFD cell is an MFD instantiated device.
+> > MFD (Multi Function Device) drivers instantiate platform devices. Those
+> > devices drivers sometimes need a platform data pointer, sometimes an MFD
+> > specific pointer, and sometimes both. Also, some of those drivers have been
+> > implemented as MFD sub drivers, while others know nothing about MFD and just
+> > expect a plain platform_data pointer.
 > 
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> That sounds like a bug in those drivers, why not fix them to properly
+> pass in the correct pointer?
+Because they're drivers for generic IPs, not MFD ones. By forcing them to use
+MFD specific structure and APIs, we make it more difficult for platform code
+to instantiate them.
+The timberdale MFD for example is built with a Xilinx SPI controller, and a
+Micrel ks8842 ethernet switch IP. Forcing those devices into being MFD devices
+would mean any platform willing to instantiate them would have to use the MFD
+APIs. That sounds a bit artificial to me.
+Although there is currently no drivers instantiated by both an MFD driver
+and some platform code, Grant complaint about the Xilinx SPI driver moving
+from a platform driver to an MFD one makes sense to me. 
 
+> > So, adding an MFD cell pointer to the device structure allows us to cleanly
+> > pass both pieces of information, while keeping all the MFD sub drivers
+> > independant from the MFD core if they want/can.
+> 
+> They shouldn't be "independant", 
+Excuse my poor spelling.
 
+> make them "dependant" and go from there.
+That's what the code currently does.
+
+Cheers,
+Samuel.
+
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
