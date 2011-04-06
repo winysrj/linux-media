@@ -1,112 +1,162 @@
 Return-path: <mchehab@pedra>
-Received: from sj-iport-2.cisco.com ([171.71.176.71]:10601 "EHLO
-	sj-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752484Ab1DDLwS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2011 07:52:18 -0400
-Received: from OSLEXCP11.eu.tandberg.int ([173.38.136.5])
-	by rcdn-core-2.cisco.com (8.14.3/8.14.3) with ESMTP id p34BqDrX001853
-	for <linux-media@vger.kernel.org>; Mon, 4 Apr 2011 11:52:16 GMT
-Received: from cobaltpc1.rd.tandberg.com (cobaltpc1.rd.tandberg.com [10.47.3.155])
-	by ultra.eu.tandberg.int (8.13.1/8.13.1) with ESMTP id p34BqDdH009325
-	for <linux-media@vger.kernel.org>; Mon, 4 Apr 2011 13:52:14 +0200
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:26946 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755020Ab1DFIqC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Apr 2011 04:46:02 -0400
+Received: from spt2.w1.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LJ800JHB2Y6RB@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 06 Apr 2011 09:44:30 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LJ80042N2Y4J4@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 06 Apr 2011 09:44:29 +0100 (BST)
+Date: Wed, 06 Apr 2011 10:44:19 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCH 2/2] v4l: simulate old crop API using extcrop/compose
+In-reply-to: <1302079459-4018-1-git-send-email-t.stanislaws@samsung.com>
 To: linux-media@vger.kernel.org
-Subject: [RFCv1 PATCH 1/9] v4l2-ctrls: add new bitmask control type.
-Date: Mon,  4 Apr 2011 13:51:46 +0200
-Message-Id: <2fa42294dbc167cae5daf227d072b2284f77b1ab.1301916466.git.hans.verkuil@cisco.com>
-In-Reply-To: <1301917914-27437-1-git-send-email-hans.verkuil@cisco.com>
-References: <1301917914-27437-1-git-send-email-hans.verkuil@cisco.com>
+Cc: m.szyprowski@samsung.com, t.stanislaws@samsung.com
+Message-id: <1302079459-4018-3-git-send-email-t.stanislaws@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1302079459-4018-1-git-send-email-t.stanislaws@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+This patch allows new drivers to work correctly with
+applications that use old-style crop API.
+The old crop ioctl is simulated by using extcrop/compose.
+
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
 ---
- drivers/media/video/v4l2-common.c |    3 +++
- drivers/media/video/v4l2-ctrls.c  |   17 ++++++++++++++++-
- include/linux/videodev2.h         |    1 +
- 3 files changed, 20 insertions(+), 1 deletions(-)
+ drivers/media/video/v4l2-ioctl.c |   94 +++++++++++++++++++++++++++++++++-----
+ 1 files changed, 82 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-common.c
-index 06b9f9f..5c6100f 100644
---- a/drivers/media/video/v4l2-common.c
-+++ b/drivers/media/video/v4l2-common.c
-@@ -105,6 +105,9 @@ int v4l2_ctrl_check(struct v4l2_ext_control *ctrl, struct v4l2_queryctrl *qctrl,
- 		    menu_items[ctrl->value][0] == '\0')
- 			return -EINVAL;
- 	}
-+	if (qctrl->type == V4L2_CTRL_TYPE_BITMASK &&
-+			(ctrl->value & ~qctrl->maximum))
-+		return -ERANGE;
- 	return 0;
- }
- EXPORT_SYMBOL(v4l2_ctrl_check);
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 2412f08..f75a1d4 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -726,6 +726,10 @@ static int validate_new(struct v4l2_ctrl *ctrl)
- 			return -EINVAL;
- 		return 0;
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index 3f69218..1e7d18d 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -1725,11 +1725,30 @@ static long __video_do_ioctl(struct file *file,
+ 	{
+ 		struct v4l2_crop *p = arg;
  
-+	case V4L2_CTRL_TYPE_BITMASK:
-+		ctrl->val &= ctrl->maximum;
-+		return 0;
+-		if (!ops->vidioc_g_crop)
+-			break;
+-
+ 		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
+-		ret = ops->vidioc_g_crop(file, fh, p);
 +
- 	case V4L2_CTRL_TYPE_BUTTON:
- 	case V4L2_CTRL_TYPE_CTRL_CLASS:
- 		ctrl->val64 = 0;
-@@ -962,13 +966,17 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 
- 	/* Sanity checks */
- 	if (id == 0 || name == NULL || id >= V4L2_CID_PRIVATE_BASE ||
--	    max < min ||
- 	    (type == V4L2_CTRL_TYPE_INTEGER && step == 0) ||
-+	    (type == V4L2_CTRL_TYPE_BITMASK && max == 0) ||
- 	    (type == V4L2_CTRL_TYPE_MENU && qmenu == NULL) ||
- 	    (type == V4L2_CTRL_TYPE_STRING && max == 0)) {
- 		handler_set_err(hdl, -ERANGE);
- 		return NULL;
- 	}
-+	if (type != V4L2_CTRL_TYPE_BITMASK && max < min) {
-+		handler_set_err(hdl, -ERANGE);
-+		return NULL;
-+	}
- 	if ((type == V4L2_CTRL_TYPE_INTEGER ||
- 	     type == V4L2_CTRL_TYPE_MENU ||
- 	     type == V4L2_CTRL_TYPE_BOOLEAN) &&
-@@ -976,6 +984,10 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 		handler_set_err(hdl, -ERANGE);
- 		return NULL;
- 	}
-+	if (type == V4L2_CTRL_TYPE_BITMASK && ((def & ~max) || min || step)) {
-+		handler_set_err(hdl, -ERANGE);
-+		return NULL;
-+	}
- 
- 	if (type == V4L2_CTRL_TYPE_BUTTON)
- 		flags |= V4L2_CTRL_FLAG_WRITE_ONLY;
-@@ -1217,6 +1229,9 @@ static void log_ctrl(const struct v4l2_ctrl *ctrl,
- 	case V4L2_CTRL_TYPE_MENU:
- 		printk(KERN_CONT "%s", ctrl->qmenu[ctrl->cur.val]);
++		if (ops->vidioc_g_crop) {
++			ret = ops->vidioc_g_crop(file, fh, p);
++		} else {
++			struct v4l2_selection s = {
++				.type = p->type,
++				.target = V4L2_SEL_TARGET_ACTIVE,
++			};
++			/* simulate capture crop using extcrop */
++			if (p->type == V4L2_BUF_TYPE_VIDEO_CAPTURE
++				&& ops->vidioc_g_extcrop) {
++				ret = ops->vidioc_g_extcrop(file, fh, &s);
++			}
++			/* simulate output crop using compose */
++			if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT
++				&& ops->vidioc_g_compose) {
++				ret = ops->vidioc_g_compose(file, fh, &s);
++			}
++			/* copying results to old structure */
++			if (!ret)
++				p->c = s.r;
++		}
++
+ 		if (!ret)
+ 			dbgrect(vfd, "", &p->c);
  		break;
-+	case V4L2_CTRL_TYPE_BITMASK:
-+		printk(KERN_CONT "0x%x", ctrl->cur.val);
-+		break;
- 	case V4L2_CTRL_TYPE_INTEGER64:
- 		printk(KERN_CONT "%lld", ctrl->cur.val64);
- 		break;
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index aa6c393..92d2fdd 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1034,6 +1034,7 @@ enum v4l2_ctrl_type {
- 	V4L2_CTRL_TYPE_INTEGER64     = 5,
- 	V4L2_CTRL_TYPE_CTRL_CLASS    = 6,
- 	V4L2_CTRL_TYPE_STRING        = 7,
-+	V4L2_CTRL_TYPE_BITMASK       = 8,
- };
+@@ -1738,11 +1757,28 @@ static long __video_do_ioctl(struct file *file,
+ 	{
+ 		struct v4l2_crop *p = arg;
  
- /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
+-		if (!ops->vidioc_s_crop)
+-			break;
+ 		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
+ 		dbgrect(vfd, "", &p->c);
+-		ret = ops->vidioc_s_crop(file, fh, p);
++
++		if (ops->vidioc_s_crop) {
++			ret = ops->vidioc_s_crop(file, fh, p);
++		} else {
++			struct v4l2_selection s = {
++				.type = p->type,
++				.target = V4L2_SEL_TARGET_ACTIVE,
++				.r = p->c,
++			};
++			/* simulate capture crop using extcrop */
++			if (p->type == V4L2_BUF_TYPE_VIDEO_CAPTURE
++				&& ops->vidioc_s_extcrop) {
++				ret = ops->vidioc_s_extcrop(file, fh, &s);
++			}
++			/* simulate output crop using compose */
++			if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT
++				&& ops->vidioc_s_compose) {
++				ret = ops->vidioc_s_compose(file, fh, &s);
++			}
++		}
+ 		break;
+ 	}
+ 	case VIDIOC_G_EXTCROP:
+@@ -1801,12 +1837,46 @@ static long __video_do_ioctl(struct file *file,
+ 	{
+ 		struct v4l2_cropcap *p = arg;
+ 
+-		/*FIXME: Should also show v4l2_fract pixelaspect */
+-		if (!ops->vidioc_cropcap)
+-			break;
+-
+ 		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
+-		ret = ops->vidioc_cropcap(file, fh, p);
++		if (ops->vidioc_cropcap) {
++			ret = ops->vidioc_cropcap(file, fh, p);
++		} else {
++			struct v4l2_selection s = { .type = p->type };
++			int (*func)(struct file *file, void *fh,
++				struct v4l2_selection *a) = NULL;
++			struct v4l2_rect bounds;
++
++			/* simulate capture crop using extcrop */
++			if (p->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
++				func = ops->vidioc_g_extcrop;
++			/* simulate output crop using compose */
++			if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
++				func = ops->vidioc_g_compose;
++			/* leave if cropcap can not be simulated */
++			if (func == NULL)
++				break;
++
++			/* obtaining bounds */
++			s.target = V4L2_SEL_TARGET_BOUNDS;
++			ret = func(file, fh, &s);
++			if (ret)
++				break;
++			bounds = s.r;
++
++			/* obtaining defrect */
++			s.target = V4L2_SEL_TARGET_DEFAULT;
++			ret = func(file, fh, &s);
++			if (ret)
++				break;
++
++			/* storing results */
++			p->bounds = bounds;
++			p->defrect = s.r;
++			p->pixelaspect.numerator = 1;
++			p->pixelaspect.denominator = 1;
++		}
++
++		/*FIXME: Should also show v4l2_fract pixelaspect */
+ 		if (!ret) {
+ 			dbgrect(vfd, "bounds ", &p->bounds);
+ 			dbgrect(vfd, "defrect ", &p->defrect);
 -- 
-1.7.1
-
+1.7.4.2
