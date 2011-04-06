@@ -1,266 +1,166 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1827 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753570Ab1DDGlY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2011 02:41:24 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Pawel Osciak <pawel@osciak.com>
-Subject: Re: [PATCH 1/3] [media] vb2: update and fix interface documentation
-Date: Mon, 4 Apr 2011 08:41:11 +0200
-Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com
-References: <1301873937-14146-1-git-send-email-pawel@osciak.com>
-In-Reply-To: <1301873937-14146-1-git-send-email-pawel@osciak.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201104040841.11631.hverkuil@xs4all.nl>
+Received: from mailout2.samsung.com ([203.254.224.25]:40383 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751954Ab1DFAhS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2011 20:37:18 -0400
+Date: Wed, 06 Apr 2011 09:37:09 +0900
+From: Jonghun Han <jonghun.han@samsung.com>
+Subject: RE: [PATCH 5/7] v4l: s5p-fimc: add pm_runtime support
+In-reply-to: <1302012410-17984-6-git-send-email-m.szyprowski@samsung.com>
+To: 'Marek Szyprowski' <m.szyprowski@samsung.com>,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org
+Cc: 'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Andrzej Pietrasiwiecz' <andrzej.p@samsung.com>,
+	'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
+	'Arnd Bergmann' <arnd@arndb.de>,
+	'Kukjin Kim' <kgene.kim@samsung.com>,
+	=?ks_c_5601-1987?B?J7DtwOe47Sc=?= <jemings@samsung.com>
+Message-id: <007c01cbf3f2$c6e7b420$54b71c60$%han@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ks_c_5601-1987
+Content-language: ko
+Content-transfer-encoding: 7BIT
+References: <1302012410-17984-1-git-send-email-m.szyprowski@samsung.com>
+ <1302012410-17984-6-git-send-email-m.szyprowski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Monday, April 04, 2011 01:38:55 Pawel Osciak wrote:
-> Update documentation for videobuf2 driver callbacks and memory operations.
+AALQBmAGkAbQBjADoAIA
+	BhAGQAZAAgAHAAbQBfAHIAdQBuAHQAaQBtAGUAIABzAHUAcABwAG8AcgB0AA==
+x-cr-puzzleid: {0DF5696E-C27B-4620-A41E-B97F4C401FEA}
+
+
+Hi Marek,
+
+runtime_pm is used to minimize current.
+In my opinion, the followings will be better.
+1. Adds pm_runtime_get_sync before running of the first job.
+   IMO, dma_run callback function is the best place for calling in case of
+M2M.
+2. And then in the ISR, call pm_runtime_put_sync in the ISR bottom-half if
+there is no remained job.
+
+I had already implemented and tested.
+But it remained code cleanup. I hope I can post it on the next week.
+
+Best regards,
+Jonghun Han
+
+On Tuesday, April 05, 2011 11:07 PM Marek Szyprowski wrote:
+> This patch adds basic support for pm_runtime to s5p-fimc driver. PM
+runtime
+> support is required to enable the driver on S5PV310 series with power
+domain
+> driver enabled.
 > 
-> Signed-off-by: Pawel Osciak <pawel@osciak.com>
-
-Much improved, thank you!
-
-There is one thing that I would like to see, though, and that is from where
-these ops are called. E.g. it is very helpful to know that buf_prepare is
-called from vb2_qbuf. That will make it easier to relate these ops to actual
-V4L2 ioctls.
-
-What would also be nice is to have an overview of where datastructures should
-be placed and how/where to initialize and clean up these structures.
-
-I.e., things like telling developers that vb2_queue should be part of the
-data structure of the device node and not the file handle (except for m2m
-devices).
-
-And how and where is the queue initialized and release, how to handle a
-(USB) disconnect event gracefully, etc.
-
-One other thing that is missing is information on how to prevent one file
-handle from trampling on another. I.e., once one fh has allocated buffers
-using reqbufs (or implicitly through read/write), other fhs should be
-blocked from using streaming I/O until the first fh calls reqbufs(0).
-M2M devices are an exception, of course.
-
-I have been wondering for a long time whether this shouldn't be core
-functionality of vb2 or possibly of v4l2-ioctl.c.
-
-Very few, if any, drivers do this right...
-
-Regards,
-
-	Hans
-
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 > ---
->  include/media/videobuf2-core.h |  146 +++++++++++++++++++++++++---------------
->  1 files changed, 91 insertions(+), 55 deletions(-)
+>  drivers/media/video/s5p-fimc/fimc-capture.c |    5 +++++
+>  drivers/media/video/s5p-fimc/fimc-core.c    |   14 ++++++++++++++
+>  2 files changed, 19 insertions(+), 0 deletions(-)
 > 
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> index f87472a..4c1e91f 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -33,8 +33,11 @@ struct vb2_fileio_data;
->   *		argument is the allocator private per-buffer structure
->   *		previously returned from the alloc callback
->   * @get_userptr: acquire userspace memory for a hardware operation; used for
-> - *		 USERPTR memory types; vaddr is the address passed to the
-> - *		 videobuf layer when queuing a video buffer of USERPTR type;
-> + *		 USERPTR memory types; alloc_ctx is the allocator private data,
-> + *		 vaddr is the address passed to the videobuf layer when
-> + *		 queuing a video buffer of USERPTR type, size is the size of
-> + *		 that buffer and write=1 if the buffer will be written to
-> + *		 by kernel/hardware (i.e. is a CAPTURE buffer);
->   *		 should return an allocator private per-buffer structure
->   *		 associated with the buffer on success, NULL on failure;
->   *		 the returned private structure will then be passed as buf_priv
-> @@ -44,9 +47,14 @@ struct vb2_fileio_data;
->   * @vaddr:	return a kernel virtual address to a given memory buffer
->   *		associated with the passed private structure or NULL if no
->   *		such mapping exists
-> - * @cookie:	return allocator specific cookie for a given memory buffer
-> - *		associated with the passed private structure or NULL if not
-> - *		available
-> + * @cookie:	return allocator-specific cookie for a given memory buffer,
-> + *		associated with the passed private structure, or NULL if not
-> + *		available; a cookie is a unique identifier for a buffer that
-> + *		driver will be able to use when communicating with hardware;
-> + *		for example, for devices accessing physical memory directly via
-> + *		physical addresses, it can point to a variable containing
-> + *		a physical address for the given buffer, which the driver can
-> + *		then pass to the device when setting up a HW operation
->   * @num_users:	return the current number of users of a memory buffer;
->   *		return 1 if the videobuf layer (or actually the driver using
->   *		it) is the only user
-> @@ -74,8 +82,8 @@ struct vb2_mem_ops {
->  };
->  
->  struct vb2_plane {
-> -	void			*mem_priv;
-> -	int			mapped:1;
-> +	void		*mem_priv;
-> +	int		mapped:1;
->  };
->  
->  /**
-> @@ -93,10 +101,15 @@ enum vb2_io_modes {
->  };
->  
->  /**
-> - * enum vb2_fileio_flags - flags for selecting a mode of the file io emulator,
-> - * by default the 'streaming' style is used by the file io emulator
-> - * @VB2_FILEIO_READ_ONCE:	report EOF after reading the first buffer
-> - * @VB2_FILEIO_WRITE_IMMEDIATELY:	queue buffer after each write() call
-> + * enum vb2_fileio_flags - flags for selecting file IO (read/write) behavior
-> + * @VB2_FILEIO_READ_ONCE:	if set, the userspace will be able to read one
-> + * 				full buffer only, an EOF will be reported after
-> + * 				the first buffer has been read completely
-> + * @VB2_FILEIO_WRITE_IMMEDIATELY: if set, do not wait for the buffer to be
-> + * 				  filled completely by userspace (possibly
-> + * 				  using multiple write() calls), but send it
-> + * 				  to the device immediately after the first
-> + * 				  write() call
->   */
->  enum vb2_fileio_flags {
->  	VB2_FILEIO_READ_ONCE		= (1 << 0),
-> @@ -130,7 +143,10 @@ struct vb2_queue;
->   * @v4l2_buf:		struct v4l2_buffer associated with this buffer; can
->   *			be read by the driver and relevant entries can be
->   *			changed by the driver in case of CAPTURE types
-> - *			(such as timestamp)
-> + *			(such as timestamp); NOTE that even for single-planar
-> + *			types, the v4l2_planes[0] struct should be used
-> + *			instead of v4l2_buf for filling bytesused - drivers
-> + *			should use the vb2_set_plane_payload() function for that
->   * @v4l2_planes:	struct v4l2_planes associated with this buffer; can
->   *			be read by the driver and relevant entries can be
->   *			changed by the driver in case of CAPTURE types
-> @@ -140,14 +156,13 @@ struct vb2_queue;
->   *			should use the vb2_set_plane_payload() function for that
->   * @vb2_queue:		the queue to which this driver belongs
->   * @num_planes:		number of planes in the buffer
-> - *			on an internal driver queue
-> - * @state:		current buffer state; do not change
-> + * @state:		current buffer state; do not use
->   * @queued_entry:	entry on the queued buffers list, which holds all
-> - *			buffers queued from userspace
-> + *			buffers queued from userspace; do not use
->   * @done_entry:		entry on the list that stores all buffers ready to
-> - *			be dequeued to userspace
-> - * @planes:		private per-plane information; do not change
-> - * @num_planes_mapped:	number of mapped planes; do not change
-> + *			be dequeued to userspace; do not use
-> + * @planes:		private per-plane information; do not use
-> + * @num_planes_mapped:	number of mapped planes; do not use
->   */
->  struct vb2_buffer {
->  	struct v4l2_buffer	v4l2_buf;
-> @@ -168,46 +183,67 @@ struct vb2_buffer {
->  };
->  
->  /**
-> - * struct vb2_ops - driver-specific callbacks
-> + * struct vb2_ops - driver-specific callbacks to be implemented by the driver
-> + * Required: queue_setup, buf_queue. The rest is optional.
->   *
-> - * @queue_setup:	called from a VIDIOC_REQBUFS handler, before
-> - *			memory allocation; driver should return the required
-> - *			number of buffers in num_buffers, the required number
-> - *			of planes per buffer in num_planes; the size of each
-> - *			plane should be set in the sizes[] array and optional
-> - *			per-plane allocator specific context in alloc_ctxs[]
-> - *			array
-> - * @wait_prepare:	release any locks taken while calling vb2 functions;
-> - *			it is called before an ioctl needs to wait for a new
-> - *			buffer to arrive; required to avoid a deadlock in
-> - *			blocking access type
-> - * @wait_finish:	reacquire all locks released in the previous callback;
-> - *			required to continue operation after sleeping while
-> - *			waiting for a new buffer to arrive
-> + * @queue_setup:	used to negotiate queue parameters between the userspace
-> + *			and the driver; called before memory allocation;
-> + *			the number of buffers requested by userspace will be
-> + *			passed in num_buffers, which the driver can change;
-> + *			the driver has to set the required number of planes per
-> + *			buffer for the current format in num_planes and put
-> + *			the size of each plane in the sizes[] array (sizes[i]
-> + *			being the size of i-th plane for all buffers);
-> + *			the driver can also put optional, per-plane
-> + *			allocator-specific contexts in alloc_ctxs[] array;
-> + *			if provided, allocator contexts will be passed to the
-> + *			memory allocator when allocating each plane,
-> + *			alloc_ctx[i] being passed to the alloc() memory
-> + *			operation on allocating i-th plane for each buffer;
-> + * @wait_prepare:	asks the driver to release any locks that should not be
-> + *			held while sleeping and all locks protecting ioctl calls
-> + *			in the driver; it is called before videobuf needs
-> + *			to put the driver to sleep, e.g. to wait for new buffers
-> + *			to arrive; as new buffers can only arrive via an another
-> + *			ioctl call, locks that protect those calls have
-> + *			to be released here as well;
-> + * @wait_finish:	asks the driver to reacquire locks released in
-> + *			wait_prepare; called after waking up;
->   * @buf_init:		called once after allocating a buffer (in MMAP case)
->   *			or after acquiring a new USERPTR buffer; drivers may
-> - *			perform additional buffer-related initialization;
-> - *			initialization failure (return != 0) will prevent
-> - *			queue setup from completing successfully; optional
-> - * @buf_prepare:	called every time the buffer is queued from userspace;
-> - *			drivers may perform any initialization required before
-> - *			each hardware operation in this callback;
-> - *			if an error is returned, the buffer will not be queued
-> - *			in driver; optional
-> - * @buf_finish:		called before every dequeue of the buffer back to
-> - *			userspace; drivers may perform any operations required
-> - *			before userspace accesses the buffer; optional
-> - * @buf_cleanup:	called once before the buffer is freed; drivers may
-> - *			perform any additional cleanup; optional
-> - * @start_streaming:	called once before entering 'streaming' state; enables
-> - *			driver to receive buffers over buf_queue() callback
-> - * @stop_streaming:	called when 'streaming' state must be disabled; driver
-> - *			should stop any DMA transactions or wait until they
-> - *			finish and give back all buffers it got from buf_queue()
-> - *			callback; may use vb2_wait_for_all_buffers() function
-> - * @buf_queue:		passes buffer vb to the driver; driver may start
-> - *			hardware operation on this buffer; driver should give
-> - *			the buffer back by calling vb2_buffer_done() function
-> + *			perform additional buffer-related initialization here;
-> + *			a failure (return != 0) will prevent queue setup from
-> + *			completing successfully;
-> + * @buf_prepare:	called each time a buffer is queued from userspace;
-> + *			drivers may perform any additional initialization steps
-> + *			that need to be done before every hardware operation
-> + *			in this callback; if an error is returned, the buffer
-> + *			will not be queued;
-> + * @buf_finish:		a counterpart to buf_prepare; called each time a buffer
-> + *			is about to be dequeued back to the userspace; drivers
-> + *			may perform any operations required before the buffer
-> + *			can be accessed by userspace here;
-> + * @buf_cleanup:	a counterpart to buf_init; called once before a buffer
-> + *			is freed; drivers may perform any additional cleanup
-> + *			here;
-> + * @start_streaming:	called once before entering the 'streaming' state;
-> + *			can be used to perform any additional steps required by
-> + *			the driver before streaming begins (such as enabling
-> + *			the device);
-> + * @stop_streaming:	called when the 'streaming' state must be disabled;
-> + * 			drivers should stop any DMA transactions here (or wait
-> + * 			until they are finished) and give back all the buffers
-> + * 			received via buf_queue() by calling vb2_buffer_done()
-> + * 			for each of them;
-> + * 			drivers can use the vb2_wait_for_all_buffers() function
-> + * 			here to wait for asynchronous completion events that
-> + * 			call vb2_buffer_done(), such as ISRs;
-> + * @buf_queue:		passes a buffer to the driver; the driver may start
-> + *			a hardware operation on that buffer; this callback
-> + *			MUST return immediately, i.e. it may NOT wait for
-> + *			the end of a hardware operation; the driver should use
-> + *			the vb2_buffer_done() function to give the buffer back
-> + *			after an operation is finished;
->   */
->  struct vb2_ops {
->  	int (*queue_setup)(struct vb2_queue *q, unsigned int *num_buffers,
+> diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c
+> b/drivers/media/video/s5p-fimc/fimc-capture.c
+> index 95f8b4e1..f697ed1 100644
+> --- a/drivers/media/video/s5p-fimc/fimc-capture.c
+> +++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+> @@ -18,6 +18,7 @@
+>  #include <linux/interrupt.h>
+>  #include <linux/device.h>
+>  #include <linux/platform_device.h>
+> +#include <linux/pm_runtime.h>
+>  #include <linux/list.h>
+>  #include <linux/slab.h>
+>  #include <linux/clk.h>
+> @@ -398,6 +399,8 @@ static int fimc_capture_open(struct file *file)
+>  	if (fimc_m2m_active(fimc))
+>  		return -EBUSY;
 > 
+> +	pm_runtime_get_sync(&fimc->pdev->dev);
+> +
+>  	if (++fimc->vid_cap.refcnt == 1) {
+>  		ret = fimc_isp_subdev_init(fimc, 0);
+>  		if (ret) {
+> @@ -428,6 +431,8 @@ static int fimc_capture_close(struct file *file)
+>  		fimc_subdev_unregister(fimc);
+>  	}
+> 
+> +	pm_runtime_put_sync(&fimc->pdev->dev);
+> +
+>  	return 0;
+>  }
+> 
+> diff --git a/drivers/media/video/s5p-fimc/fimc-core.c
+> b/drivers/media/video/s5p-fimc/fimc-core.c
+> index 6c919b3..ead5c0a 100644
+> --- a/drivers/media/video/s5p-fimc/fimc-core.c
+> +++ b/drivers/media/video/s5p-fimc/fimc-core.c
+> @@ -20,6 +20,7 @@
+>  #include <linux/interrupt.h>
+>  #include <linux/device.h>
+>  #include <linux/platform_device.h>
+> +#include <linux/pm_runtime.h>
+>  #include <linux/list.h>
+>  #include <linux/io.h>
+>  #include <linux/slab.h>
+> @@ -1410,6 +1411,8 @@ static int fimc_m2m_open(struct file *file)
+>  	if (fimc->vid_cap.refcnt > 0)
+>  		return -EBUSY;
+> 
+> +	pm_runtime_get_sync(&fimc->pdev->dev);
+> +
+>  	fimc->m2m.refcnt++;
+>  	set_bit(ST_OUTDMA_RUN, &fimc->state);
+> 
+> @@ -1452,6 +1455,8 @@ static int fimc_m2m_release(struct file *file)
+>  	if (--fimc->m2m.refcnt <= 0)
+>  		clear_bit(ST_OUTDMA_RUN, &fimc->state);
+> 
+> +	pm_runtime_put_sync(&fimc->pdev->dev);
+> +
+>  	return 0;
+>  }
+> 
+> @@ -1649,6 +1654,11 @@ static int fimc_probe(struct platform_device *pdev)
+>  		goto err_req_region;
+>  	}
+> 
+> +	pm_runtime_set_active(&pdev->dev);
+> +	pm_runtime_enable(&pdev->dev);
+> +
+> +	pm_runtime_get_sync(&pdev->dev);
+> +
+>  	fimc->num_clocks = MAX_FIMC_CLOCKS - 1;
+> 
+>  	/* Check if a video capture node needs to be registered. */ @@ -
+1706,6
+> +1716,8 @@ static int fimc_probe(struct platform_device *pdev)
+>  	dev_dbg(&pdev->dev, "%s(): fimc-%d registered successfully\n",
+>  		__func__, fimc->id);
+> 
+> +	pm_runtime_put_sync(&pdev->dev);
+> +
+>  	return 0;
+> 
+>  err_m2m:
+> @@ -1740,6 +1752,8 @@ static int __devexit fimc_remove(struct
+platform_device
+> *pdev)
+> 
+>  	vb2_dma_contig_cleanup_ctx(fimc->alloc_ctx);
+> 
+> +	pm_runtime_disable(&pdev->dev);
+> +
+>  	iounmap(fimc->regs);
+>  	release_resource(fimc->regs_res);
+>  	kfree(fimc->regs_res);
+> --
+> 1.7.1.569.g6f426
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+the
+> body of a message to majordomo@vger.kernel.org More majordomo info at
+> http://vger.kernel.org/majordomo-info.html
+
