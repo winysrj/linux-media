@@ -1,71 +1,59 @@
 Return-path: <mchehab@pedra>
-Received: from cantor2.suse.de ([195.135.220.15]:45456 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756424Ab1DFSnD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Apr 2011 14:43:03 -0400
-Date: Wed, 6 Apr 2011 11:38:54 -0700
-From: Greg KH <gregkh@suse.de>
-To: Andres Salomon <dilinger@queued.net>
-Cc: Samuel Ortiz <sameo@linux.intel.com>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	linux-kernel@vger.kernel.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	khali@linux-fr.org, ben-linux@fluff.org,
-	Peter Korsgaard <jacmet@sunsite.dk>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	David Brownell <dbrownell@users.sourceforge.net>,
-	linux-i2c@vger.kernel.org, linux-media@vger.kernel.org,
-	netdev@vger.kernel.org, spi-devel-general@lists.sourceforge.net,
-	Mocean Laboratories <info@mocean-labs.com>
-Subject: Re: [PATCH 07/19] timberdale: mfd_cell is now implicitly available
- to drivers
-Message-ID: <20110406183854.GA10058@suse.de>
-References: <BANLkTi=bCd_+f=EG-O=U5VH_ZNjFhxkziQ@mail.gmail.com>
- <20110401235239.GE29397@sortiz-mobl>
- <BANLkTi=bq=OGzXFp7qiBr7x_BnGOWf=DRQ@mail.gmail.com>
- <20110404100314.GC2751@sortiz-mobl>
- <20110405030428.GB29522@ponder.secretlab.ca>
- <20110406152322.GA2757@sortiz-mobl>
- <20110406155805.GA20095@suse.de>
- <20110406170537.GB2757@sortiz-mobl>
- <20110406175647.GA8048@suse.de>
- <20110406112557.5c4c9bfe@debxo>
+Received: from moutng.kundenserver.de ([212.227.126.171]:57913 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754382Ab1DFQTY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Apr 2011 12:19:24 -0400
+Date: Wed, 6 Apr 2011 18:19:18 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hansverk@cisco.com>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH/RFC 1/4] V4L: add three new ioctl()s for multi-size
+ videobuffer management
+In-Reply-To: <201104051434.57489.hansverk@cisco.com>
+Message-ID: <Pine.LNX.4.64.1104061812560.22734@axis700.grange>
+References: <Pine.LNX.4.64.1104010959470.9530@axis700.grange>
+ <Pine.LNX.4.64.1104011010530.9530@axis700.grange>
+ <201104051421.03597.laurent.pinchart@ideasonboard.com>
+ <201104051434.57489.hansverk@cisco.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20110406112557.5c4c9bfe@debxo>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Apr 06, 2011 at 11:25:57AM -0700, Andres Salomon wrote:
-> > > We've been faced with the problem of being able to pass both MFD
-> > > related data and a platform_data pointer to some of those drivers.
-> > > Squeezing the MFD bits in the sub driver platform_data pointer
-> > > doesn't work for drivers that know nothing about MFDs. It also adds
-> > > an additional dependency on the MFD API to all MFD sub drivers.
-> > > That prevents any of those drivers to eventually be used as plain
-> > > platform device drivers.
+On Tue, 5 Apr 2011, Hans Verkuil wrote:
+
+> On Tuesday, April 05, 2011 14:21:03 Laurent Pinchart wrote:
+> > On Friday 01 April 2011 10:13:02 Guennadi Liakhovetski wrote:
+
+[snip]
+
+> > >   *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
+> > >   *
+> > > @@ -1937,6 +1957,10 @@ struct v4l2_dbg_chip_ident {
+> > >  #define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct
+> > > v4l2_event_subscription) #define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 91,
+> > > struct v4l2_event_subscription)
+> > > 
+> > > +#define VIDIOC_CREATE_BUFS	_IOWR('V', 92, struct v4l2_create_buffers)
+> > > +#define VIDIOC_DESTROY_BUFS	_IOWR('V', 93, struct v4l2_buffer_span)
+> > > +#define VIDIOC_SUBMIT_BUF	 _IOW('V', 94, int)
+> > > +
 > > 
-> > Then they shouldn't be "plain" platform drivers, that should only be
-> > reserved for drivers that are the "lowest" type.  Just make them MFD
-> > devices and go from there.
+> > In case we later need to pass other information (such as flags) to 
+> > VIDIOC_SUBMIT_BUF, you should use a structure instead of an int.
 > 
-> 
-> The problem is of mixing "plain" platform devices and MFD devices.
+> I would just pass struct v4l2_buffer to this ioctl, just like QBUF/DQBUF do.
 
-Then don't do that.
+As I said, I didn't like this very much, because it involves redundant 
+data, but if we want to call .buf_prepare() from it, then we need 
+v4l2_buffer...
 
-> It's reasonable to assume that different hardware may be using
-> one method or the other to create devices; in order to maintain
-> compatibility with the driver, one either needs to use a plain platform
-> device.  Alternatively, if an MFD-specific device class is created,
-> then MFD devices would start showing up in weird places.
-
-Then fix it.  Lots of other drivers handle different "bus types" just
-fine (look at the EHCI USB driver for an example.)  Don't polute the
-driver core just because you don't want to fix up the individual driver
-issues that are quite obvious.
-
-thanks,
-
-greg k-h
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
