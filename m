@@ -1,102 +1,69 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:57867 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751438Ab1DZWGm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Apr 2011 18:06:42 -0400
-Received: by ewy4 with SMTP id 4so341416ewy.19
-        for <linux-media@vger.kernel.org>; Tue, 26 Apr 2011 15:06:41 -0700 (PDT)
-Message-ID: <4DB741ED.30700@gmail.com>
-Date: Wed, 27 Apr 2011 00:06:37 +0200
-From: Sylwester Nawrocki <snjw23@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:65180 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752483Ab1DFM2D (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 Apr 2011 08:28:03 -0400
+Message-ID: <4D9C5C4D.4040709@redhat.com>
+Date: Wed, 06 Apr 2011 09:27:57 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	'Marek Szyprowski' <m.szyprowski@samsung.com>,
-	linux Media Mailing List <linux-media@vger.kernel.org>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	Sungchun Kang <sungchun.kang@samsung.com>
-Subject: Re: Dependency troubles with s5p-fimc driver
-References: <4DB72C74.1070305@redhat.com>
-In-Reply-To: <4DB72C74.1070305@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: wk <handygewinnspiel@gmx.de>
+Subject: dvb-apps: charset support
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
+Hi,
 
-On 04/26/2011 10:35 PM, Mauro Carvalho Chehab wrote:
-> Hi Sylvester/Marek,
-> 
-> I've changed the kernel configuration in order to compile the media subsystem as a
+I added some patches to dvb-apps/util/scan.c in order to properly support EN 300 468 charsets.
+Before the patch, scan were producing invalid UTF-8 codes here, for ISO-8859-15 charsets, as
+scan were simply filling service/provider name with whatever non-control characters that were
+there. So, if your computer uses the same character as your service provider, you're lucky.
+Otherwise, invalid characters will appear at the scan tables.
 
-Which kernel tree is this?
-I assume it's kernel maintained by the System LSI team, so I cced Mr. Kukjin Kim.
+After the changes, scan gets the locale environment charset, and use it as the output charset
+on the output files. 
 
-> module (in order to allow me to use the media_build tree and compile just the
-> modules I want). The end result is that the arch tree refused to compile with this
-> error:
-> 
->    CC      arch/arm/mach-s5pv310/mach-smdkc210.o
-> arch/arm/mach-s5pv310/mach-smdkc210.c:1721:18: error: ‘writeback_info’ undeclared here (not in a function)
-> arch/arm/mach-s5pv310/mach-smdkc210.c: In function ‘smdkc210_machine_init’:
-> arch/arm/mach-s5pv310/mach-smdkc210.c:1947:7: warning: "CONFIG_VIDEO_SAMSUNG_S5P_FIMC" is not defined
-> arch/arm/mach-s5pv310/mach-smdkc210.c: At top level:
-> arch/arm/mach-s5pv310/mach-smdkc210.c:1673:33: warning: ‘isp_info’ defined but not used
-> arch/arm/mach-s5pv310/mach-smdkc210.c:1729:20: warning: ‘smdkv310_subdev_config’ defined but not used
-> arch/arm/mach-s5pv310/mach-smdkc210.c:1735:20: warning: ‘smdkv310_camera_config’ defined but not used
-> make[1]: ** [arch/arm/mach-s5pv310/mach-smdkc210.o] Erro 1
-> 
-> By looking at arch/arm/mach-s5pv310/mach-smdkc210.c, it has lots of things like:
-> 
-> #if defined(CONFIG_SND_SOC_WM8994) || defined(CONFIG_SND_SOC_WM8994_MODULE)
-> #include<linux/mfd/wm8994/pdata.h>
-> #endif
-> 
-> Using #if/#endif blocks to include header data is not a good practice. Unfortunately,
-> it seems that all platform data is full of this. The error seems to be here:
+The TS info may provide the used charset on the first character of the provider name and service name,
+if the first character is < 0x20. If not provided, the spec says that the character table 00 should be
+assumed (a modified version of ISO 6937 charset). However, on my tests, local carriers here
+don't fill it, but they use ISO-8859-15 charset, instead of ISO-6937. So, a new optional parameter 
+allows to change the default charset.
 
-Yes, I agree this is not right. However our team maintains only the
-following boards:
+Also, the spec provides 2 tables with control character codes, one for 1-byte character tables,
+and another for 2-byte character tables. Before the patch, the 1-byte control character table
+were applied for all character sets. Now, the table is applied only for ISO-8859* and ISO-6937,
+as they don't seem to make sense for the other character sets. However, the 2-byte control
+character table were not implemented yet, due to a few reasons:
+	1) I'm not familiar with 2-byte charsets;
+	2) I don't have any environment here that would allow me to test it;
+	3) The spec is not very clear about what character tables use 2-byte control codes.
 
-arch/arm/mach-s5pv210/mach-goni.c
-arch/arm/mach-s5pv210/mach-aquila.c
-arch/arm/mach-exynos4/mach-universal_c210.c
+The EN 300 428 Annex A says, just before the 2-byte control code table:
+	"For two-byte character tables, the codes in the range 0xE080 to 0xE09F 
+	 are assigned to control functions as shown in table A.2."
 
-> 
-> /* for mainline fimc interface */
-> #ifdef CONFIG_VIDEO_SAMSUNG_S5P_FIMC
-> #ifdef WRITEBACK_ENABLED
-> struct writeback_mbus_platform_data {
-> 	int id;
-> 	struct v4l2_mbus_framefmt fmt;
-> };
-> 
-> static struct i2c_board_info writeback_info = {
-> 	I2C_BOARD_INFO("writeback", 0x0),
-> };
-> #endif
+So, it seems that the 2-byte control character table refers to character tables 0x11 to 0x14 
+(iso-10646 + Korean Character Set + GB2312 + BIG5).
 
-Hmm...first time I see this stuff..
+However, the table A.2 is described as just:
+	"Table A.2: DVB codes within private use area of ISO/IEC 10646"
 
-Kgene, could you please have a look?
-Or please forward this to someone who can take care of these issues.
+So, one may assume that it refers only to ISO-10646 (character table 0x11), or to this one
+plus BIG5 (table 0x14), as BIG5 is a subset of ISO-10646.
 
-Thank you,
-Sylwester
+The spec is even less clear about what should be done with character table 0x15 (ISO-10646/UTF-8),
+as UTF-8 codes have a variable length from 1-byte to 4-bytes.
 
-> 
-> You should be doing, instead, a check like this one for all symbols that are allowed
-> to be module at the Kconfig:
-> 
-> #if defined(CONFIG_SND_SOC_WM8994) || defined(CONFIG_SND_SOC_WM8994_MODULE)
-> 
-> Cheers,
-> Mauro.
-> 
-> -
-> As reference, I'm enclosing my .config.
-> 
-[snip]
+I _suspect_ that all character tables that are not ISO-8859 or ISO-6937 should be using table
+A.2 (that means, character tables 0x11 to 0x15).
 
+The code change to implement 2-byte control codes should be trivial trough. A placeholder for such
+code is there at the scancode with a short comment.
+
+It would be great to have some feedback about it. So, comments are welcome.
+
+Thanks,
+Mauro.
