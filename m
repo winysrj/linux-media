@@ -1,87 +1,70 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:28193 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751107Ab1DCNk5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 3 Apr 2011 09:40:57 -0400
-Message-ID: <4D9878E1.7060603@redhat.com>
-Date: Sun, 03 Apr 2011 10:40:49 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1977 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751646Ab1DGJ3F (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Apr 2011 05:29:05 -0400
+Message-ID: <67d14bc84cde1153c035ddff7efdcb8f.squirrel@webmail.xs4all.nl>
+In-Reply-To: <201104071117.59995.laurent.pinchart@ideasonboard.com>
+References: <Pine.LNX.4.64.1104010959470.9530@axis700.grange>
+    <Pine.LNX.4.64.1104070914540.24325@axis700.grange>
+    <058f16a20d747a5ef6b300e119fa69b4.squirrel@webmail.xs4all.nl>
+    <201104071117.59995.laurent.pinchart@ideasonboard.com>
+Date: Thu, 7 Apr 2011 11:28:57 +0200
+Subject: Re: [PATCH/RFC 1/4] V4L: add three new ioctl()s for multi-size
+ videobuffer management
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>
+Cc: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
+	"Hans Verkuil" <hansverk@cisco.com>,
+	"Linux Media Mailing List" <linux-media@vger.kernel.org>,
+	"Mauro Carvalho Chehab" <mchehab@infradead.org>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: Oliver Endriss <o.endriss@gmx.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: Debug code in HG repositories
-References: <201101072053.37211@orion.escape-edv.de> <201101080056.40803@orion.escape-edv.de> <4D2AF5E6.1070007@redhat.com> <201101110210.49205@orion.escape-edv.de>
-In-Reply-To: <201101110210.49205@orion.escape-edv.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 10-01-2011 23:10, Oliver Endriss escreveu:
-> On Monday 10 January 2011 13:04:54 Mauro Carvalho Chehab wrote:
->> Em 07-01-2011 21:56, Oliver Endriss escreveu:
->>> ...
->>> There are large pieces of driver code which are currently unused, and
->>> nobody can tell whether they will ever be needed.
->>>
->>> On the other hand a developer spent days writing this stuff, and now it
->>> does not exist anymore - without any trace!
->>>
->>> The problem is not, that it is missing in the current snapshot, but
->>> that it has never been in the git repository, and there is no way to
->>> recover it.
+> Hi Hans,
+>
+> On Thursday 07 April 2011 09:50:13 Hans Verkuil wrote:
+>> > On Thu, 7 Apr 2011, Hans Verkuil wrote:
+>
+> [snip]
+>
+>> >> Regarding DESTROY_BUFS: perhaps we should just skip this for now and
+>> wait
+>> >> for the first use-case. That way we don't need to care about holes. I
+>> >> don't like artificial restrictions like 'no holes'. If someone has a
+>> good
+>> >> use-case for selectively destroying buffers, then we need to look at
+>> this
+>> >> again.
+>> >
+>> > Sorry, skip what? skip the ioctl completely and rely on REQBUFS(0) /
+>> > close()?
 >>
->> The Mercurial tree will stay there forever. We still have there the old CVS 
->> trees used by DVB and V4L development.
->>>
->>> Afaics, the only way to preserve this kind of code is 'out-of-tree'.
->>> It is a shame... :-(
->>
->> I see your point. It is harder for people to re-use that code, as they are not
->> upstream.
-> 
-> The main problem is that they do not even know that the code exists.
-> 
-> Maybe I should add some comment to the driver, that someone should look
-> into the HG repository, before he starts re-inventing the wheel.
-> 
->> It is easy to recover the changes with:
->>
->> $ gentree.pl 2.6.37 --strip_dead_code linux/ /tmp/stripped
->> $ gentree.pl 2.6.37  linux/ /tmp/not_stripped
->> $ diff -upr /tmp/stripped/ /tmp/not_stripped/ >/tmp/revert_removed_code.patch
->>
->> As a reference and further discussions, I'm enclosing the diff.
-> 
-> The resulting diff is far from complete.
-> In fact, the most interesting parts are missing.
-> 
-> Apparently, the command
->     gentree.pl 2.6.37  linux/ /tmp/not_stripped
-> stripped all '#if 0' blocks, which are not followed by a comment.
-> Just compare the original ngene_av.c with the resulting version in
-> /tmp/non_stripped.
+>> Yes.
+>
+> I don't really like that as it would mix CREATE and REQBUFS calls.
+> Applications should either use the old API (REQBUFS) or the new one, but
+> not
+> mix both.
 
-Oliver,
+That's a completely unnecessary limitation. And from the point of view of
+vb2 it shouldn't even matter.
 
-I fixed the script. Sorry for taking a long time. Too much stuff here.
-The fix patch were already merged at -hg.
+> The fact that freeing arbitrary spans of buffers gives us uneasy feelings
+> might be a sign that the CREATE/DESTROY API is not mature enough. I'd
+> rather
+> try to solve the issue now instead of postponing it for later and discover
+> that our CREATE API should have been different.
 
-It will now produce the right results. A regex expression were waiting for
- something after #if 1/#if 0, with is generally ok, as lines end with \n.
-However, due to the usage of chomp, the \n character were removed, and the 
-regex failed on lines with just '#if 0'.
+What gives me an uneasy feeling is prohibiting freeing arbitrary spans of
+buffers. I rather choose not to implement the DESTROY ioctl instead of
+implementing a limited version of it, also because we do not have proper
+use cases yet. But I have no problems with the CREATE/DESTROY API as such.
 
--
+Regards,
 
-On most places, the code inside #if 0 are just legacy stuff, where people
-were trying to implement a different code for something. However, at ngene,
-the code inside #if 0 are there just because the ngene developers didn't find
-time yet to work on them. So, it may make sense to add those code into mainstream,
-if people will uncomment part of those code. So, feel free to send me a patch
-adding the commented code, if you need.
+       Hans
 
-Thanks,
-Mauro
