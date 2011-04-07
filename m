@@ -1,115 +1,69 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.samsung.com ([203.254.224.25]:53759 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754331Ab1DDMUu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2011 08:20:50 -0400
-Received: from epmmp2 (mailout2.samsung.com [203.254.224.25])
- by mailout2.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LJ4003NPNMOGO90@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 04 Apr 2011 21:20:48 +0900 (KST)
-Received: from NOSUNGCHUNK01 ([12.23.102.212])
- by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LJ400KN4NMPRM@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 04 Apr 2011 21:20:49 +0900 (KST)
-Date: Mon, 04 Apr 2011 21:20:47 +0900
-From: Sungchun Kang <sungchun.kang@samsung.com>
-Subject: RE: [PATCH] Add support for M-5MOLS 8 Mega Pixel camera
-In-reply-to: <1300282723-31536-1-git-send-email-riverful.kim@samsung.com>
-To: "'Kim, Heungjun'" <riverful.kim@samsung.com>,
-	linux-media@vger.kernel.org
-Reply-to: sungchun.kang@samsung.com
-Message-id: <007901cbf2c2$bb240bb0$316c2310$%kang@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=utf-8
-Content-language: ko
-Content-transfer-encoding: 7BIT
-References: <1300282723-31536-1-git-send-email-riverful.kim@samsung.com>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:49886 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753694Ab1DGQYW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Apr 2011 12:24:22 -0400
+MIME-Version: 1.0
+In-Reply-To: <20110405030428.GB29522@ponder.secretlab.ca>
+References: <20110202195417.228e2656@queued.net> <20110202200812.3d8d6cba@queued.net>
+ <20110331230522.GI437@ponder.secretlab.ca> <20110401112030.GA3447@sortiz-mobl>
+ <20110401104756.2f5c6f7a@debxo> <BANLkTi=bCd_+f=EG-O=U5VH_ZNjFhxkziQ@mail.gmail.com>
+ <20110401235239.GE29397@sortiz-mobl> <BANLkTi=bq=OGzXFp7qiBr7x_BnGOWf=DRQ@mail.gmail.com>
+ <20110404100314.GC2751@sortiz-mobl> <20110405030428.GB29522@ponder.secretlab.ca>
+From: Grant Likely <grant.likely@secretlab.ca>
+Date: Thu, 7 Apr 2011 09:24:01 -0700
+Message-ID: <BANLkTi=tZ56CEVcGQ_dQb=HmNDP6TEKxMg@mail.gmail.com>
+Subject: Re: [PATCH 07/19] timberdale: mfd_cell is now implicitly available to drivers
+To: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Andres Salomon <dilinger@queued.net>, linux-kernel@vger.kernel.org,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	khali@linux-fr.org, ben-linux@fluff.org,
+	Peter Korsgaard <jacmet@sunsite.dk>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	David Brownell <dbrownell@users.sourceforge.net>,
+	linux-i2c@vger.kernel.org, linux-media@vger.kernel.org,
+	netdev@vger.kernel.org, spi-devel-general@lists.sourceforge.net,
+	Mocean Laboratories <info@mocean-labs.com>,
+	Greg Kroah-Hartman <gregkh@suse.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi heungjun,
-I have tested this version for a few days.
+On Mon, Apr 4, 2011 at 8:04 PM, Grant Likely <grant.likely@secretlab.ca> wrote:
+> On Mon, Apr 04, 2011 at 12:03:15PM +0200, Samuel Ortiz wrote:
+>> diff --git a/include/linux/platform_device.h b/include/linux/platform_device.h
+>> index d96db98..734d254 100644
+>> --- a/include/linux/platform_device.h
+>> +++ b/include/linux/platform_device.h
+>> @@ -14,6 +14,8 @@
+>>  #include <linux/device.h>
+>>  #include <linux/mod_devicetable.h>
+>>
+>> +struct mfd_cell;
+>> +
+>>  struct platform_device {
+>>       const char      * name;
+>>       int             id;
+>> @@ -23,6 +25,9 @@ struct platform_device {
+>>
+>>       const struct platform_device_id *id_entry;
+>>
+>> +     /* MFD cell pointer */
+>> +     struct mfd_cell *mfd_cell;
+>> +
+>
+> Move this down to by the of_node pointer.  May as well collect all the
+> supplemental data about the device in the same place.
 
-On 03/16/2011 10:30 PM, Kim, Heungjun wrote:
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Kim, Heungjun
-> Sent: Wednesday, March 16, 2011 10:39 PM
-> To: linux-media@vger.kernel.org
-> Cc: hverkuil@xs4all.nl; laurent.pinchart@ideasonboard.com; Kim,
-> Heungjun; Sylwester Nawrocki; Kyungmin Park
-> Subject: [PATCH] Add support for M-5MOLS 8 Mega Pixel camera
-> 
-> Add I2C/V4L2 subdev driver for M-5MOLS camera sensor with integrated
-> image signal processor.
-> 
-> Signed-off-by: Heungjun Kim <riverful.kim@samsung.com>
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
-> 
-> Hi Hans and everyone,
-> 
-> This is sixth version of M-5MOLS 8 Mega Pixel camera sensor. And, if
-> you see
-> previous version, you can find at:
-> http://www.spinics.net/lists/linux-media/msg29350.html
-> 
-> This driver patch is fixed several times, and the important issues is
-> almost
-> corrected. And, I hope that this is the last version one merged for
-> 2.6.39.
-> I look forward to be reviewed one more time.
-> 
-> The summary of this version's feature is belows:
-> 
-> 1. Add focus control
-> 	: I've suggest menu type focus control, but I agreed this
-> version is
-> 	not yet the level accepted. So, I did not use focus control
-> which
-> 	I suggest.
-> 	The M-5MOLS focus routine takes some time to execute. But, the
-> user
-> 	application calling v4l2 control, should not hanged while
-> streaming
-> 	using q/dqbuf. So, I use workqueue. I want to discuss the focus
-> 	subject on mailnglist next time.
-> 
+So, okay.  wow.  I have *no* idea what I was smoking at this point in
+time.  The of_node pointer is in struct device which is definitely not
+the place to put the mfd_cell pointer (and you probably though I was
+crazy when I suggested it).  Greg was totally right to complain about
+moving it into struct device.  Sorry for causing trouble.
 
-I wonder this feature is dependent on this firmware version?
+Move it back into struct platform_device and you should be good.  I
+just talked to greg, and there should be any issues with locating it
+there.
 
-.....snip
-
-> +static int m5mols_start_monitor(struct v4l2_subdev *sd)
-> +{
-> +	struct m5mols_info *info = to_m5mols(sd);
-> +	int ret;
-> +
-> +	ret = m5mols_set_mode(sd, MODE_PARAM);
-> +	if (!ret)
-> +		ret = i2c_w8_param(sd, CAT1_MONITOR_SIZE, info-
-> >res_preset);
-> +	if (!ret)
-> +		ret = i2c_w8_param(sd, CAT1_MONITOR_FPS, info->fps_preset);
-> +	if (!ret)
-> +		ret = m5mols_set_mode(sd, MODE_MONITOR);
-> +	if (!ret && info->do_once) {
-> +		/* After probing the driver, this should be callde once.
-> */
-> +		v4l2_ctrl_handler_setup(&info->handle);
-As test result, When sensor is set monitor mode, if this API is called, 
-Preview data(get from sensor) is craked. Surely, it is good working if this API is called in paramset mode.
-That waw no problem in Version 5. Because it is returned before v4l2_ctrl_handler_init()
-In m5mols_init_controls(version 5) :
-	ret = i2c_r16_ae(sd, CAT3_MAX_GAIN_MON, (u32 *)&max_ex_mon);
-	if (ret) 
-		return ret; // if success, return.
-
-My test case is :
-S_power->s_fmt->s_stream.
-
-.....
-BRs Sungchun.
-
+g.
