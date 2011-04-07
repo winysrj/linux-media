@@ -1,82 +1,97 @@
 Return-path: <mchehab@pedra>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:37920 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752804Ab1DFBFv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2011 21:05:51 -0400
-Received: by vws1 with SMTP id 1so746386vws.19
-        for <linux-media@vger.kernel.org>; Tue, 05 Apr 2011 18:05:50 -0700 (PDT)
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2669 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752233Ab1DGHuY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Apr 2011 03:50:24 -0400
+Message-ID: <058f16a20d747a5ef6b300e119fa69b4.squirrel@webmail.xs4all.nl>
+In-Reply-To: <Pine.LNX.4.64.1104070914540.24325@axis700.grange>
+References: <Pine.LNX.4.64.1104010959470.9530@axis700.grange>
+    <201104051434.57489.hansverk@cisco.com>
+    <Pine.LNX.4.64.1104061812560.22734@axis700.grange>
+    <201104070906.00265.hverkuil@xs4all.nl>
+    <Pine.LNX.4.64.1104070914540.24325@axis700.grange>
+Date: Thu, 7 Apr 2011 09:50:13 +0200
+Subject: Re: [PATCH/RFC 1/4] V4L: add three new ioctl()s for multi-size
+ videobuffer management
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
+Cc: "Hans Verkuil" <hansverk@cisco.com>,
+	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
+	"Linux Media Mailing List" <linux-media@vger.kernel.org>,
+	"Mauro Carvalho Chehab" <mchehab@infradead.org>
 MIME-Version: 1.0
-In-Reply-To: <BANLkTinkRdq4=5tHYvCfvsKAisnq=Xt00Q@mail.gmail.com>
-References: <mailman.466.1301890961.26790.linux-dvb@linuxtv.org>
-	<SNT124-W658C9CDE54575A79B73D6FACA30@phx.gbl>
-	<BANLkTimEtbx6HkqBQLBTc7XX_wEYgs7fJg@mail.gmail.com>
-	<F8BDDD6D-6870-4291-99C9-D8FCABFEEB05@dons.net.au>
-	<BANLkTimBYhq_Ag3nkU1105Em0-AXvMiQbQ@mail.gmail.com>
-	<B6690ADE-0D4F-4E22-8AB2-DB68AD43E749@dons.net.au>
-	<BANLkTinkRdq4=5tHYvCfvsKAisnq=Xt00Q@mail.gmail.com>
-Date: Wed, 6 Apr 2011 11:05:50 +1000
-Message-ID: <BANLkTi=dxkiGNYb+7Z+QQ7pZBx75xsSrJQ@mail.gmail.com>
-Subject: Re: [linux-dvb] DVICO HDTV Dual Express2
-From: Nathan Stitt <nathan.j.stitt@gmail.com>
-To: "Daniel O'Connor" <darius@dons.net.au>
-Cc: Vincent McIntyre <vincent.mcintyre@gmail.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-I know I shouldn't have quoted mythtv to identify a problem, so I've
-tinkered with this a little more and can reproduce it using the dvb
-utilities.
+> On Thu, 7 Apr 2011, Hans Verkuil wrote:
+>
+>> On Wednesday, April 06, 2011 18:19:18 Guennadi Liakhovetski wrote:
+>> > On Tue, 5 Apr 2011, Hans Verkuil wrote:
+>> >
+>> > > On Tuesday, April 05, 2011 14:21:03 Laurent Pinchart wrote:
+>> > > > On Friday 01 April 2011 10:13:02 Guennadi Liakhovetski wrote:
+>> >
+>> > [snip]
+>> >
+>> > > > >   *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
+>> > > > >   *
+>> > > > > @@ -1937,6 +1957,10 @@ struct v4l2_dbg_chip_ident {
+>> > > > >  #define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct
+>> > > > > v4l2_event_subscription) #define	VIDIOC_UNSUBSCRIBE_EVENT
+>> _IOW('V', 91,
+>> > > > > struct v4l2_event_subscription)
+>> > > > >
+>> > > > > +#define VIDIOC_CREATE_BUFS	_IOWR('V', 92, struct
+>> v4l2_create_buffers)
+>> > > > > +#define VIDIOC_DESTROY_BUFS	_IOWR('V', 93, struct
+>> v4l2_buffer_span)
+>> > > > > +#define VIDIOC_SUBMIT_BUF	 _IOW('V', 94, int)
+>> > > > > +
+>> > > >
+>> > > > In case we later need to pass other information (such as flags) to
+>> > > > VIDIOC_SUBMIT_BUF, you should use a structure instead of an int.
+>> > >
+>> > > I would just pass struct v4l2_buffer to this ioctl, just like
+>> QBUF/DQBUF do.
+>> >
+>> > As I said, I didn't like this very much, because it involves redundant
+>> > data, but if we want to call .buf_prepare() from it, then we need
+>> > v4l2_buffer...
+>>
+>> I don't see a problem with this. Applications already *have* the
+>> v4l2_buffer
+>> after all. It's not as if they have to fill that structure just for this
+>> call.
+>>
+>> Furthermore, you need all that data anyway because you need to do the
+>> same
+>> checks that vb2_qbuf does.
+>>
+>> Regarding DESTROY_BUFS: perhaps we should just skip this for now and
+>> wait for
+>> the first use-case. That way we don't need to care about holes. I don't
+>> like
+>> artificial restrictions like 'no holes'. If someone has a good use-case
+>> for
+>> selectively destroying buffers, then we need to look at this again.
+>
+> Sorry, skip what? skip the ioctl completely and rely on REQBUFS(0) /
+> close()?
 
-I can reproduce the problem using tzap and cat'ing
-/dev/dvb/adapter[23]/dvr0 to files. When one of the tuners tunes the
-the bad transponder, the files stop growing. Not always immediately,
-but typically within a few seconds.
+Yes.
 
-Turning on debugging in various dvb modules shows nothing obviously
-suspicious when it occurs, but I notice that when the problem occurs,
-when I kill the offending tzap, the following messages are logged.
+       Hans
 
-Apr  6 10:45:39 media kernel: [95234.332590] cx23885_wakeup: 0 buffers
-handled (should be 1)
-Apr  6 10:45:39 media kernel: [95234.332606] cx23885_wakeup: 0 buffers
-handled (should be 1)
 
-But if I kill it without the problem manifesting (either by using a
-non-offending transponder, or by killing it before the failure occurs
-with the problematic transponder) these messages don't appear.
+>
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+>
 
-Also perhaps noteworthy is that once the offending tzap process is
-terminated, the file generated from the other resumes growing.
 
-Here are the modules I thought to turn on debugging. Any other suggestions?
-
-nathan@media:/sys/module$ grep -r 1 */parameters/*debug*
-af9013/parameters/debug:1
-cx23885/parameters/debug:1
-cx23885/parameters/i2c_debug:1
-cx23885/parameters/vbi_debug:1
-cx23885/parameters/video_debug:1
-dvb_core/parameters/cam_debug:1
-dvb_core/parameters/debug:1
-dvb_core/parameters/dvbdev_debug:1
-dvb_core/parameters/frontend_debug:1
-dvb_usb_af9015/parameters/debug:1
-tuner_xc2028/parameters/debug:1
-videobuf_core/parameters/debug:1
-videobuf_dma_sg/parameters/debug:1
-videobuf_dvb/parameters/debug:1
-zl10353/parameters/debug:1
-zl10353/parameters/debug_regs:1
-
-I'm happy to help track this down further if anyone can advise how to proceed.
-
-(I hope I haven't hijacked this thread, I never saw the earlier
-emails, but from what I could tell, it seems to be related to my
-experiences).
-
-(sorry for the repeated email, Daniel, I accidentally didn't Reply-to-all)
-
-Regards,
-Nathan.
