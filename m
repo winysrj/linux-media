@@ -1,102 +1,58 @@
 Return-path: <mchehab@pedra>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:62881 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751723Ab1DEDal (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2011 23:30:41 -0400
-Date: Mon, 4 Apr 2011 22:30:35 -0500
-From: Jonathan Nieder <jrnieder@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Huber Andreas <hobrom@corax.at>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-kernel@vger.kernel.org, Ben Hutchings <ben@decadent.org.uk>,
-	Steven Toth <stoth@kernellabs.com>
-Subject: [PATCH 6/7] [media] cx88: don't use atomic_t for core->mpeg_users
-Message-ID: <20110405033035.GG4498@elie>
-References: <20110327150610.4029.95961.reportbug@xen.corax.at>
- <20110327152810.GA32106@elie>
- <20110402093856.GA17015@elie>
- <20110405032014.GA4498@elie>
+Received: from moutng.kundenserver.de ([212.227.17.10]:57326 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751294Ab1DGQms convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Apr 2011 12:42:48 -0400
+Date: Thu, 7 Apr 2011 18:42:45 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PULL] V4L and soc-camera fixes for 2.6.39
+In-Reply-To: <Pine.LNX.4.64.1104071820140.28236@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1104071841040.28236@axis700.grange>
+References: <Pine.LNX.4.64.1104071820140.28236@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20110405032014.GA4498@elie>
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-mpeg_users is always read or written with core->lock held except
-in mpeg_release (where it looks like a bug).  A plain int is simpler
-and faster.
+ehem, let's try again (forgot one more patch):
 
-Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
+The following changes since commit 6221f222c0ebf1acdf7abcf927178f40e1a65e2a:
+
+  Linux 2.6.39-rc2 (2011-04-05 18:30:43 -0700)
+
+are available in the git repository at:
+  git://linuxtv.org/gliakhovetski/v4l-dvb.git 2.6.39-rc1-fixes
+
+Guennadi Liakhovetski (8):
+      V4L: fix videobuf2 to correctly identify allocation failures
+      V4L: fix an error message
+      V4L: fix a macro definition
+      V4L: soc-camera: fix a recent multi-camera breakage on sh-mobile
+      V4L: imx074: return a meaningful error code instead of -1
+      V4L: soc-camera: don't dereference I2C client after it has been removed
+      V4L: sh_mobile_csi2: fix module reloading
+      V4L: sh_mobile_ceu_camera: fix typos in documentation
+
+Uwe Kleine-König (1):
+      V4L: mx3_camera: select VIDEOBUF2_DMA_CONTIG instead of VIDEOBUF_DMA_CONTIG
+
+ Documentation/video4linux/sh_mobile_ceu_camera.txt |    6 +++---
+ drivers/media/video/Kconfig                        |    2 +-
+ drivers/media/video/imx074.c                       |    2 +-
+ drivers/media/video/sh_mobile_ceu_camera.c         |   10 +++++-----
+ drivers/media/video/sh_mobile_csi2.c               |   11 +++++++++--
+ drivers/media/video/soc_camera.c                   |    7 +++++--
+ drivers/media/video/videobuf2-core.c               |    2 +-
+ drivers/media/video/videobuf2-dma-contig.c         |    2 +-
+ include/media/v4l2-device.h                        |    2 +-
+ 9 files changed, 27 insertions(+), 17 deletions(-)
+
+Thanks
+Guennadi
 ---
- drivers/media/video/cx88/cx88-blackbird.c |   11 ++++++-----
- drivers/media/video/cx88/cx88.h           |    2 +-
- 2 files changed, 7 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/media/video/cx88/cx88-blackbird.c b/drivers/media/video/cx88/cx88-blackbird.c
-index fa8e347..11e49bb 100644
---- a/drivers/media/video/cx88/cx88-blackbird.c
-+++ b/drivers/media/video/cx88/cx88-blackbird.c
-@@ -1073,7 +1073,7 @@ static int mpeg_open(struct file *file)
- 		return err;
- 	}
- 
--	if (!atomic_read(&dev->core->mpeg_users) && blackbird_initialize_codec(dev) < 0) {
-+	if (!dev->core->mpeg_users && blackbird_initialize_codec(dev) < 0) {
- 		drv->request_release(drv);
- 		mutex_unlock(&dev->core->lock);
- 		return -EINVAL;
-@@ -1101,7 +1101,7 @@ static int mpeg_open(struct file *file)
- 	cx88_set_scale(dev->core, dev->width, dev->height,
- 			fh->mpegq.field);
- 
--	atomic_inc(&dev->core->mpeg_users);
-+	dev->core->mpeg_users++;
- 	mutex_unlock(&dev->core->lock);
- 	return 0;
- }
-@@ -1112,7 +1112,9 @@ static int mpeg_release(struct file *file)
- 	struct cx8802_dev *dev = fh->dev;
- 	struct cx8802_driver *drv = NULL;
- 
--	if (dev->mpeg_active && atomic_read(&dev->core->mpeg_users) == 1)
-+	mutex_lock(&dev->core->lock);
-+
-+	if (dev->mpeg_active && dev->core->mpeg_users == 1)
- 		blackbird_stop_codec(dev);
- 
- 	cx8802_cancel_buffers(fh->dev);
-@@ -1121,7 +1123,6 @@ static int mpeg_release(struct file *file)
- 
- 	videobuf_mmap_free(&fh->mpegq);
- 
--	mutex_lock(&dev->core->lock);
- 	file->private_data = NULL;
- 	kfree(fh);
- 
-@@ -1131,7 +1132,7 @@ static int mpeg_release(struct file *file)
- 	if (drv)
- 		drv->request_release(drv);
- 
--	atomic_dec(&dev->core->mpeg_users);
-+	dev->core->mpeg_users--;
- 
- 	mutex_unlock(&dev->core->lock);
- 
-diff --git a/drivers/media/video/cx88/cx88.h b/drivers/media/video/cx88/cx88.h
-index 3d32f4a..9e8176e 100644
---- a/drivers/media/video/cx88/cx88.h
-+++ b/drivers/media/video/cx88/cx88.h
-@@ -390,7 +390,7 @@ struct cx88_core {
- 	/* various v4l controls */
- 	u32                        freq;
- 	atomic_t		   users;
--	atomic_t                   mpeg_users;
-+	int                        mpeg_users;
- 
- 	/* cx88-video needs to access cx8802 for hybrid tuner pll access. */
- 	struct cx8802_dev          *dvbdev;
--- 
-1.7.5.rc0
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
