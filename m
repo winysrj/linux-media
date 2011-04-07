@@ -1,118 +1,75 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35549 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752856Ab1DEL2B (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2011 07:28:01 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@nokia.com>
-Subject: Re: [RFC] V4L2 API for flash devices
-Date: Tue, 5 Apr 2011 13:28:34 +0200
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Nayden Kanchev <nkanchev@mm-sol.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Cohen David Abraham <david.cohen@nokia.com>
-References: <4D90854C.2000802@maxwell.research.nokia.com> <201104051239.05167.laurent.pinchart@ideasonboard.com> <4D9AFB1F.7020107@nokia.com>
-In-Reply-To: <4D9AFB1F.7020107@nokia.com>
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1943 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752631Ab1DGHGK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Apr 2011 03:06:10 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH/RFC 1/4] V4L: add three new ioctl()s for multi-size videobuffer management
+Date: Thu, 7 Apr 2011 09:06:00 +0200
+Cc: Hans Verkuil <hansverk@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <Pine.LNX.4.64.1104010959470.9530@axis700.grange> <201104051434.57489.hansverk@cisco.com> <Pine.LNX.4.64.1104061812560.22734@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1104061812560.22734@axis700.grange>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201104051328.34774.laurent.pinchart@ideasonboard.com>
+Message-Id: <201104070906.00265.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Sakari,
-
-On Tuesday 05 April 2011 13:21:03 Sakari Ailus wrote:
-> Laurent Pinchart wrote:
-> > On Tuesday 05 April 2011 12:23:51 Sakari Ailus wrote:
-> >> Sakari Ailus wrote:
-> >>> Laurent Pinchart wrote:
-> >>>> On Wednesday 30 March 2011 13:05:54 Sakari Ailus wrote:
-> >>>>> Laurent Pinchart wrote:
-> >>>>>> On Monday 28 March 2011 14:55:40 Sakari Ailus wrote:
-> >>>>>> 
-> >>>>>> [snip]
-> >>>>>> 
-> >>>>>>> 	V4L2_CID_FLASH_STROBE_MODE (menu; LED)
-> >>>>>>> 
-> >>>>>>> Use hardware or software strobe. If hardware strobe is selected,
-> >>>>>>> the flash controller is a slave in the system where the sensor
-> >>>>>>> produces the strobe signal to the flash.
-> >>>>>>> 
-> >>>>>>> In this case the flash controller setup is limited to programming
-> >>>>>>> strobe timeout and power (LED flash) and the sensor controls the
-> >>>>>>> timing and length of the strobe.
-> >>>>>>> 
-> >>>>>>> enum v4l2_flash_strobe_mode {
-> >>>>>>> 
-> >>>>>>> 	V4L2_FLASH_STROBE_MODE_SOFTWARE,
-> >>>>>>> 	V4L2_FLASH_STROBE_MODE_EXT_STROBE,
-> >>>>>>> 
-> >>>>>>> };
-> >>>>>> 
-> >>>>>> [snip]
-> >>>>>> 
-> >>>>>>> 	V4L2_CID_FLASH_LED_MODE (menu; LED)
-> >>>>>>> 
-> >>>>>>> enum v4l2_flash_led_mode {
-> >>>>>>> 
-> >>>>>>> 	V4L2_FLASH_LED_MODE_FLASH = 1,
-> >>>>>>> 	V4L2_FLASH_LED_MODE_TORCH,
-> >>>>>>> 
-> >>>>>>> };
-> >>>>>> 
-> >>>>>> Thinking about this some more, shouldn't we combine the two controls
-> >>>>>> ? They are basically used to configure how the flash LED is
-> >>>>>> controlled: manually (torch mode), automatically by the flash
-> >>>>>> controller (software strobe mode) or automatically by an external
-> >>>>>> component (external strobe mode).
-> >>>>> 
-> >>>>> That's a good question.
-> >>>>> 
-> >>>>> The adp1653 supports also additional control (not implemented in the
-> >>>>> driver, though) that affect hardware strobe length. Based on register
-> >>>>> setting, the led will be on after strobe either until the timeout
-> >>>>> expires, or until the strobe signal is high.
-> >>>>> 
-> >>>>> Should this be also part of the same control, or a different one?
-> >>>> 
-> >>>> That can be controlled by a duration control. If the duration is 0,
-> >>>> the flash is lit for the duration of the external strobe, otherwise
-> >>>> it's lit for the programmed duration.
-> >>> 
-> >>> Sounds good to me.
-> >> 
-> >> Thinking about this again; there won't be a separate duration control
+On Wednesday, April 06, 2011 18:19:18 Guennadi Liakhovetski wrote:
+> On Tue, 5 Apr 2011, Hans Verkuil wrote:
+> 
+> > On Tuesday, April 05, 2011 14:21:03 Laurent Pinchart wrote:
+> > > On Friday 01 April 2011 10:13:02 Guennadi Liakhovetski wrote:
+> 
+> [snip]
+> 
+> > > >   *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
+> > > >   *
+> > > > @@ -1937,6 +1957,10 @@ struct v4l2_dbg_chip_ident {
+> > > >  #define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct
+> > > > v4l2_event_subscription) #define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 91,
+> > > > struct v4l2_event_subscription)
+> > > > 
+> > > > +#define VIDIOC_CREATE_BUFS	_IOWR('V', 92, struct v4l2_create_buffers)
+> > > > +#define VIDIOC_DESTROY_BUFS	_IOWR('V', 93, struct v4l2_buffer_span)
+> > > > +#define VIDIOC_SUBMIT_BUF	 _IOW('V', 94, int)
+> > > > +
+> > > 
+> > > In case we later need to pass other information (such as flags) to 
+> > > VIDIOC_SUBMIT_BUF, you should use a structure instead of an int.
 > > 
-> > Why not ? I think we need two timeouts, a watchdog timeout to prevent
-> > flash fire or meltdown, and a normal timeout to lit the flash for a
-> > user-selected duration.
+> > I would just pass struct v4l2_buffer to this ioctl, just like QBUF/DQBUF do.
 > 
-> Let's assume that an application wants to expose a frame using flash
-> with software strobe.
-> 
-> 1. strobe flash
-> 2. qbuf
-> 3. streamon
-> 4. dqbuf
-> 5. streamoff
-> 6. ...
-> 
-> How does an application know how long is the time between 1 -- 4? I'd
-> guess that in 6 the application would like to switch off the flash
-> instead of specifying a timeout for it.
+> As I said, I didn't like this very much, because it involves redundant 
+> data, but if we want to call .buf_prepare() from it, then we need 
+> v4l2_buffer...
 
-That's a valid use case, and we need to support it. It requires a way to lit 
-the flash with no timeout other than the watchdog timeout, and a way to turn 
-it off.
+I don't see a problem with this. Applications already *have* the v4l2_buffer
+after all. It's not as if they have to fill that structure just for this call.
 
-However, I'm not sure we should rule out the usefulness of a duration-based 
-software flash strobe. Can't the two APIs coexist ? Or do you think a 
-duration-based API is useless ?
+Furthermore, you need all that data anyway because you need to do the same
+checks that vb2_qbuf does.
 
--- 
+Regarding DESTROY_BUFS: perhaps we should just skip this for now and wait for
+the first use-case. That way we don't need to care about holes. I don't like
+artificial restrictions like 'no holes'. If someone has a good use-case for
+selectively destroying buffers, then we need to look at this again.
+
 Regards,
 
-Laurent Pinchart
+	Hans
+
+> 
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> 
