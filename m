@@ -1,82 +1,82 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:18421 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757015Ab1DLUXg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Apr 2011 16:23:36 -0400
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p3CKNa1L006844
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 12 Apr 2011 16:23:36 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>
-Subject: [PATCH 2/2] [media] rc/nuvoton-cir: enable CIR on w83667hg chip variant
-Date: Tue, 12 Apr 2011 16:23:22 -0400
-Message-Id: <1302639802-22723-3-git-send-email-jarod@redhat.com>
-In-Reply-To: <1302639802-22723-1-git-send-email-jarod@redhat.com>
-References: <1302639802-22723-1-git-send-email-jarod@redhat.com>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:51816 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754631Ab1DGIEQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Apr 2011 04:04:16 -0400
+Date: Thu, 7 Apr 2011 01:04:04 -0700
+From: Grant Likely <grant.likely@secretlab.ca>
+To: Greg KH <gregkh@suse.de>
+Cc: Andres Salomon <dilinger@queued.net>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	linux-kernel@vger.kernel.org,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	khali@linux-fr.org, ben-linux@fluff.org,
+	Peter Korsgaard <jacmet@sunsite.dk>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	David Brownell <dbrownell@users.sourceforge.net>,
+	linux-i2c@vger.kernel.org, linux-media@vger.kernel.org,
+	netdev@vger.kernel.org, spi-devel-general@lists.sourceforge.net,
+	Mocean Laboratories <info@mocean-labs.com>
+Subject: Re: [PATCH 07/19] timberdale: mfd_cell is now implicitly available
+ to drivers
+Message-ID: <20110407080404.GF6427@angua.secretlab.ca>
+References: <20110401235239.GE29397@sortiz-mobl>
+ <BANLkTi=bq=OGzXFp7qiBr7x_BnGOWf=DRQ@mail.gmail.com>
+ <20110404100314.GC2751@sortiz-mobl>
+ <20110405030428.GB29522@ponder.secretlab.ca>
+ <20110406152322.GA2757@sortiz-mobl>
+ <20110406155805.GA20095@suse.de>
+ <20110406170537.GB2757@sortiz-mobl>
+ <20110406175647.GA8048@suse.de>
+ <20110406112557.5c4c9bfe@debxo>
+ <20110406183854.GA10058@suse.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20110406183854.GA10058@suse.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Thanks to some excellent investigative work by Douglas Clowes, it was
-uncovered that the older w83667hg Nuvoton chip functions with this
-driver after actually enabling the CIR function via its multi-function
-chip config register. The already-supported w83677hg hardware has CIR
-enabled out of the box, and the relevant bits of register 0x2c have a
-completely different meaning, so we only poke them on the 667.
+On Wed, Apr 06, 2011 at 11:38:54AM -0700, Greg KH wrote:
+> On Wed, Apr 06, 2011 at 11:25:57AM -0700, Andres Salomon wrote:
+> > > > We've been faced with the problem of being able to pass both MFD
+> > > > related data and a platform_data pointer to some of those drivers.
+> > > > Squeezing the MFD bits in the sub driver platform_data pointer
+> > > > doesn't work for drivers that know nothing about MFDs. It also adds
+> > > > an additional dependency on the MFD API to all MFD sub drivers.
+> > > > That prevents any of those drivers to eventually be used as plain
+> > > > platform device drivers.
+> > > 
+> > > Then they shouldn't be "plain" platform drivers, that should only be
+> > > reserved for drivers that are the "lowest" type.  Just make them MFD
+> > > devices and go from there.
+> > 
+> > 
+> > The problem is of mixing "plain" platform devices and MFD devices.
+> 
+> Then don't do that.
 
-Reported-by: Douglas Clowes <dclowes1@optusnet.com.au>
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/rc/nuvoton-cir.c |   11 +++++++++++
- drivers/media/rc/nuvoton-cir.h |    3 +++
- 2 files changed, 14 insertions(+), 0 deletions(-)
+>From my perspective, MFD devices are little more than a bag of
+platform_devices, with the MFD layer provides infrastructure for
+managing it.  It isn't that there are 'plain' platform device and
+'mfd' devices.  There are only platform_devices, but some of the
+drivers use additional data stored in a struct mfd.
 
-diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
-index bc5c1e2..4ebda1c 100644
---- a/drivers/media/rc/nuvoton-cir.c
-+++ b/drivers/media/rc/nuvoton-cir.c
-@@ -299,6 +299,17 @@ static void nvt_cir_ldev_init(struct nvt_dev *nvt)
- 	val |= (OUTPUT_ENABLE_CIR | OUTPUT_ENABLE_CIRWB);
- 	nvt_cr_write(nvt, val, CR_OUTPUT_PIN_SEL);
- 
-+	/*
-+	 * multifunction pin selection, on w83677hg, these are fan headers
-+	 * config bits we don't need to touch, but on w83667hg, the two high
-+	 * bits must be set to 10 to enable the CIR function
-+	 */
-+	val = nvt_cr_read(nvt, CR_MULTIFUNC_PIN_SEL);
-+	val &= MULTIFUNC_PIN_SEL_MASK;
-+	val |= MULTIFUNC_ENABLE_CIR;
-+	if (nvt->chip_major == CHIP_ID_HIGH_667)
-+		nvt_cr_write(nvt, val, CR_MULTIFUNC_PIN_SEL);
-+
- 	/* Select CIR logical device and enable */
- 	nvt_select_logical_dev(nvt, LOGICAL_DEV_CIR);
- 	nvt_cr_write(nvt, LOGICAL_DEV_ENABLE, CR_LOGICAL_DEV_EN);
-diff --git a/drivers/media/rc/nuvoton-cir.h b/drivers/media/rc/nuvoton-cir.h
-index cc8cee3..41b3545 100644
---- a/drivers/media/rc/nuvoton-cir.h
-+++ b/drivers/media/rc/nuvoton-cir.h
-@@ -345,6 +345,7 @@ struct nvt_dev {
- #define CR_CHIP_ID_LO		0x21
- #define CR_DEV_POWER_DOWN	0x22 /* bit 2 is CIR power, default power on */
- #define CR_OUTPUT_PIN_SEL	0x27
-+#define CR_MULTIFUNC_PIN_SEL	0x2c
- #define CR_LOGICAL_DEV_EN	0x30 /* valid for all logical devices */
- /* next three regs valid for both the CIR and CIR_WAKE logical devices */
- #define CR_CIR_BASE_ADDR_HI	0x60
-@@ -369,8 +370,10 @@ struct nvt_dev {
- #define PME_INTR_CIR_PASS_BIT	0x08
- 
- #define OUTPUT_PIN_SEL_MASK	0xbc
-+#define MULTIFUNC_PIN_SEL_MASK	0xbf
- #define OUTPUT_ENABLE_CIR	0x01 /* Pin95=CIRRX, Pin96=CIRTX1 */
- #define OUTPUT_ENABLE_CIRWB	0x40 /* enable wide-band sensor */
-+#define MULTIFUNC_ENABLE_CIR	0x80 /* Pin75 and Pin76 on w83667hg */
- 
- /* MCE CIR signal length, related on sample period */
- 
--- 
-1.7.1
+Personally, I'm not thrilled with the approach of using struct mfd, or
+more specifically making it available to drivers, but on the ugly
+scale it isn't very high.
 
+However, the changes on how struct mfd is passed that were merged in
+2.6.39 were actively dangerous and are going to be reverted.  Yet
+a method is still needed to pass the struct mfd in a safe way.  I
+don't have a problem with adding the mfd pointer to struct
+platform_device, even if it should just be a stop gap to something
+better.
+
+Independently, I have been experimenting with typesafe methods for
+attaching data to devices which may very well be the long term
+approach, but for the short term I see no problem with adding the mfd
+pointer, particularly because it is by far safer than any of the other
+immediately available options.
+
+g.
