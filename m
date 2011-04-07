@@ -1,97 +1,184 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2669 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752233Ab1DGHuY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Apr 2011 03:50:24 -0400
-Message-ID: <058f16a20d747a5ef6b300e119fa69b4.squirrel@webmail.xs4all.nl>
-In-Reply-To: <Pine.LNX.4.64.1104070914540.24325@axis700.grange>
-References: <Pine.LNX.4.64.1104010959470.9530@axis700.grange>
-    <201104051434.57489.hansverk@cisco.com>
-    <Pine.LNX.4.64.1104061812560.22734@axis700.grange>
-    <201104070906.00265.hverkuil@xs4all.nl>
-    <Pine.LNX.4.64.1104070914540.24325@axis700.grange>
-Date: Thu, 7 Apr 2011 09:50:13 +0200
-Subject: Re: [PATCH/RFC 1/4] V4L: add three new ioctl()s for multi-size
- videobuffer management
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
-Cc: "Hans Verkuil" <hansverk@cisco.com>,
-	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
-	"Linux Media Mailing List" <linux-media@vger.kernel.org>,
-	"Mauro Carvalho Chehab" <mchehab@infradead.org>
+Received: from mga02.intel.com ([134.134.136.20]:31106 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751220Ab1DGNk3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 7 Apr 2011 09:40:29 -0400
+Date: Thu, 7 Apr 2011 15:40:23 +0200
+From: Samuel Ortiz <sameo@linux.intel.com>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Greg KH <gregkh@suse.de>, Grant Likely <grant.likely@secretlab.ca>,
+	Andres Salomon <dilinger@queued.net>,
+	linux-kernel@vger.kernel.org,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	khali@linux-fr.org, ben-linux@fluff.org,
+	Peter Korsgaard <jacmet@sunsite.dk>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	David Brownell <dbrownell@users.sourceforge.net>,
+	linux-i2c@vger.kernel.org, linux-media@vger.kernel.org,
+	netdev@vger.kernel.org, spi-devel-general@lists.sourceforge.net,
+	Mocean Laboratories <info@mocean-labs.com>
+Subject: Re: [PATCH 07/19] timberdale: mfd_cell is now implicitly available
+ to drivers
+Message-ID: <20110407133717.GA3923@sortiz-mobl>
+References: <20110401235239.GE29397@sortiz-mobl>
+ <BANLkTi=bq=OGzXFp7qiBr7x_BnGOWf=DRQ@mail.gmail.com>
+ <20110404100314.GC2751@sortiz-mobl>
+ <20110405030428.GB29522@ponder.secretlab.ca>
+ <20110406152322.GA2757@sortiz-mobl>
+ <20110406155805.GA20095@suse.de>
+ <20110406170537.GB2757@sortiz-mobl>
+ <20110406175647.GA8048@suse.de>
+ <20110406184733.GD2757@sortiz-mobl>
+ <20110406185902.GN25654@legolas.emea.dhcp.ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20110406185902.GN25654@legolas.emea.dhcp.ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-> On Thu, 7 Apr 2011, Hans Verkuil wrote:
->
->> On Wednesday, April 06, 2011 18:19:18 Guennadi Liakhovetski wrote:
->> > On Tue, 5 Apr 2011, Hans Verkuil wrote:
->> >
->> > > On Tuesday, April 05, 2011 14:21:03 Laurent Pinchart wrote:
->> > > > On Friday 01 April 2011 10:13:02 Guennadi Liakhovetski wrote:
->> >
->> > [snip]
->> >
->> > > > >   *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
->> > > > >   *
->> > > > > @@ -1937,6 +1957,10 @@ struct v4l2_dbg_chip_ident {
->> > > > >  #define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct
->> > > > > v4l2_event_subscription) #define	VIDIOC_UNSUBSCRIBE_EVENT
->> _IOW('V', 91,
->> > > > > struct v4l2_event_subscription)
->> > > > >
->> > > > > +#define VIDIOC_CREATE_BUFS	_IOWR('V', 92, struct
->> v4l2_create_buffers)
->> > > > > +#define VIDIOC_DESTROY_BUFS	_IOWR('V', 93, struct
->> v4l2_buffer_span)
->> > > > > +#define VIDIOC_SUBMIT_BUF	 _IOW('V', 94, int)
->> > > > > +
->> > > >
->> > > > In case we later need to pass other information (such as flags) to
->> > > > VIDIOC_SUBMIT_BUF, you should use a structure instead of an int.
->> > >
->> > > I would just pass struct v4l2_buffer to this ioctl, just like
->> QBUF/DQBUF do.
->> >
->> > As I said, I didn't like this very much, because it involves redundant
->> > data, but if we want to call .buf_prepare() from it, then we need
->> > v4l2_buffer...
->>
->> I don't see a problem with this. Applications already *have* the
->> v4l2_buffer
->> after all. It's not as if they have to fill that structure just for this
->> call.
->>
->> Furthermore, you need all that data anyway because you need to do the
->> same
->> checks that vb2_qbuf does.
->>
->> Regarding DESTROY_BUFS: perhaps we should just skip this for now and
->> wait for
->> the first use-case. That way we don't need to care about holes. I don't
->> like
->> artificial restrictions like 'no holes'. If someone has a good use-case
->> for
->> selectively destroying buffers, then we need to look at this again.
->
-> Sorry, skip what? skip the ioctl completely and rely on REQBUFS(0) /
-> close()?
+Hi Felipe,
 
-Yes.
+On Wed, Apr 06, 2011 at 09:59:02PM +0300, Felipe Balbi wrote:
+> Hi,
+> 
+> On Wed, Apr 06, 2011 at 08:47:34PM +0200, Samuel Ortiz wrote:
+> > > > > What is a "MFD cell pointer" and why is it needed in struct device?
+> > > > An MFD cell is an MFD instantiated device.
+> > > > MFD (Multi Function Device) drivers instantiate platform devices. Those
+> > > > devices drivers sometimes need a platform data pointer, sometimes an MFD
+> > > > specific pointer, and sometimes both. Also, some of those drivers have been
+> > > > implemented as MFD sub drivers, while others know nothing about MFD and just
+> > > > expect a plain platform_data pointer.
+> > > 
+> > > That sounds like a bug in those drivers, why not fix them to properly
+> > > pass in the correct pointer?
+> > Because they're drivers for generic IPs, not MFD ones. By forcing them to use
+> > MFD specific structure and APIs, we make it more difficult for platform code
+> > to instantiate them.
+> 
+> I agree. What I do on those cases is to have a simple platform_device
+> for the core IP driver and use platform_device_id tables to do runtime
+> checks of the small differences. If one platform X doesn't use a
+> platform_bus, it uses e.g. PCI, then you make a PCI "bridge" which
+> allocates a platform_device with the correct name and adds that to the
+> driver model.
+I see, thanks.
+Below is a patch for the Xilinx SPI example. Although this would fix the
+issue, we'd still have to do that on device per device basis. I had a similar
+solution where MFD drivers would set a flag for sub drivers that don't need
+any of the MFD bits. In that case the MFD core code would just forward the
+platform data, instead of embedding it through an MFD cell.
 
-       Hans
+Cheers,
+Samuel.
+
+---
+ drivers/mfd/timberdale.c |    8 ++++----
+ drivers/spi/xilinx_spi.c |   19 ++++++++++++++++++-
+ include/linux/mfd/core.h |    3 +++
+ 3 files changed, 25 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/mfd/timberdale.c b/drivers/mfd/timberdale.c
+index 94c6c8a..c9220ce 100644
+--- a/drivers/mfd/timberdale.c
++++ b/drivers/mfd/timberdale.c
+@@ -416,7 +416,7 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg0[] = {
+ 		.mfd_data = &timberdale_radio_platform_data,
+ 	},
+ 	{
+-		.name = "xilinx_spi",
++		.name = "mfd_xilinx_spi",
+ 		.num_resources = ARRAY_SIZE(timberdale_spi_resources),
+ 		.resources = timberdale_spi_resources,
+ 		.mfd_data = &timberdale_xspi_platform_data,
+@@ -476,7 +476,7 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg1[] = {
+ 		.mfd_data = &timberdale_radio_platform_data,
+ 	},
+ 	{
+-		.name = "xilinx_spi",
++		.name = "mfd_xilinx_spi",
+ 		.num_resources = ARRAY_SIZE(timberdale_spi_resources),
+ 		.resources = timberdale_spi_resources,
+ 		.mfd_data = &timberdale_xspi_platform_data,
+@@ -526,7 +526,7 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg2[] = {
+ 		.mfd_data = &timberdale_radio_platform_data,
+ 	},
+ 	{
+-		.name = "xilinx_spi",
++		.name = "mfd_xilinx_spi",
+ 		.num_resources = ARRAY_SIZE(timberdale_spi_resources),
+ 		.resources = timberdale_spi_resources,
+ 		.mfd_data = &timberdale_xspi_platform_data,
+@@ -570,7 +570,7 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg3[] = {
+ 		.mfd_data = &timberdale_radio_platform_data,
+ 	},
+ 	{
+-		.name = "xilinx_spi",
++		.name = "mfd_xilinx_spi",
+ 		.num_resources = ARRAY_SIZE(timberdale_spi_resources),
+ 		.resources = timberdale_spi_resources,
+ 		.mfd_data = &timberdale_xspi_platform_data,
+diff --git a/drivers/spi/xilinx_spi.c b/drivers/spi/xilinx_spi.c
+index c69c6f2..3287b84 100644
+--- a/drivers/spi/xilinx_spi.c
++++ b/drivers/spi/xilinx_spi.c
+@@ -471,7 +471,11 @@ static int __devinit xilinx_spi_probe(struct platform_device *dev)
+ 	struct spi_master *master;
+ 	u8 i;
+ 
+-	pdata = mfd_get_data(dev);
++	if (platform_get_device_id(dev) &&
++	    platform_get_device_id(dev)->driver_data & MFD_PLATFORM_DEVICE)
++		pdata = mfd_get_data(dev);
++	else
++		pdata = dev->dev.platform_data;
+ 	if (pdata) {
+ 		num_cs = pdata->num_chipselect;
+ 		little_endian = pdata->little_endian;
+@@ -530,6 +534,18 @@ static int __devexit xilinx_spi_remove(struct platform_device *dev)
+ /* work with hotplug and coldplug */
+ MODULE_ALIAS("platform:" XILINX_SPI_NAME);
+ 
++static const struct platform_device_id xilinx_spi_id_table[] = {
++	{
++		.name	= XILINX_SPI_NAME,
++	},
++	{
++		.name	= "mfd_xilinx_spi",
++		.driver_data = MFD_PLATFORM_DEVICE,
++	},
++	{  },	/* Terminating Entry */
++};
++MODULE_DEVICE_TABLE(platform, xilinx_spi_id_table);
++
+ static struct platform_driver xilinx_spi_driver = {
+ 	.probe = xilinx_spi_probe,
+ 	.remove = __devexit_p(xilinx_spi_remove),
+@@ -538,6 +554,7 @@ static struct platform_driver xilinx_spi_driver = {
+ 		.owner = THIS_MODULE,
+ 		.of_match_table = xilinx_spi_of_match,
+ 	},
++	.id_table	= xilinx_spi_id_table,
+ };
+ 
+ static int __init xilinx_spi_pltfm_init(void)
+diff --git a/include/linux/mfd/core.h b/include/linux/mfd/core.h
+index ad1b19a..13f31f4 100644
+--- a/include/linux/mfd/core.h
++++ b/include/linux/mfd/core.h
+@@ -89,6 +89,9 @@ static inline const struct mfd_cell *mfd_get_cell(struct platform_device *pdev)
+ 	return pdev->dev.platform_data;
+ }
+ 
++/* */
++#define MFD_PLATFORM_DEVICE BIT(0)
++
+ /*
+  * Given a platform device that's been created by mfd_add_devices(), fetch
+  * the .mfd_data entry from the mfd_cell that created it.
 
 
->
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
->
-
-
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
