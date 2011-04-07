@@ -1,95 +1,64 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:40641 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750942Ab1DQTzW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Apr 2011 15:55:22 -0400
-Received: by wwa36 with SMTP id 36so4886175wwa.1
-        for <linux-media@vger.kernel.org>; Sun, 17 Apr 2011 12:55:21 -0700 (PDT)
-Subject: [PATCH] dvb-usb return device errors to demuxer v2.
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 17 Apr 2011 20:55:14 +0100
-Message-ID: <1303070114.2104.2.camel@localhost>
-Mime-Version: 1.0
+Received: from mail.kapsi.fi ([217.30.184.167]:57126 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756757Ab1DGUCG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 7 Apr 2011 16:02:06 -0400
+Message-ID: <4D9E1838.30503@iki.fi>
+Date: Thu, 07 Apr 2011 23:02:00 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Steve Kerrison <steve@stevekerrison.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: CXD2820 & PCTV nanoStick T2 290e bringup
+References: <1298836156.2362.7.camel@ares>
+In-Reply-To: <1298836156.2362.7.camel@ares>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Return device errors to demuxer from on/off streamming and
- pid filtering.
+Hello Steve at all,
+Here it is, feel free to test:
+http://git.linuxtv.org/anttip/media_tree.git?a=shortlog;h=refs/heads/pctv_290e
 
-Replaces earlier patch that gave false error on stream stopping.
+Now I *need* help for adding proper DVB-T2 support for the API. I added 
+fe_delivery_system_t SYS_DVBT2, but there is no app knowing that yet. 
+Since there is also module param to set DVB-T2 frequencies.
+For example here is DVB-T2 transmission on channels 570 MHz and 586 MHz. 
+You can just type:
+echo 570,586 > /sys/module/cxd2820r/parameters/dvbt2_freq
+as root, or load driver module following way:
+modprobe cxd2820r dvbt2_freq=570,586
+for the same.
 
-Please test this patch with all dvb-usb devices.
+Also em28xx driver MFE needs review and comments, since I am not sure 
+about its correctness.
 
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
----
- drivers/media/dvb/dvb-usb/dvb-usb-dvb.c |   31 +++++++++++++++++++++----------
- 1 files changed, 21 insertions(+), 10 deletions(-)
+Antti
 
-diff --git a/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c b/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c
-index df1ec3e..b3cb626 100644
---- a/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c
-+++ b/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c
-@@ -12,7 +12,7 @@
- static int dvb_usb_ctrl_feed(struct dvb_demux_feed *dvbdmxfeed, int onoff)
- {
- 	struct dvb_usb_adapter *adap = dvbdmxfeed->demux->priv;
--	int newfeedcount,ret;
-+	int newfeedcount, ret;
- 
- 	if (adap == NULL)
- 		return -ENODEV;
-@@ -24,9 +24,13 @@ static int dvb_usb_ctrl_feed(struct dvb_demux_feed *dvbdmxfeed, int onoff)
- 		deb_ts("stop feeding\n");
- 		usb_urb_kill(&adap->stream);
- 
--		if (adap->props.streaming_ctrl != NULL)
--			if ((ret = adap->props.streaming_ctrl(adap,0)))
-+		if (adap->props.streaming_ctrl != NULL) {
-+			ret = adap->props.streaming_ctrl(adap, 0);
-+			if (ret < 0) {
- 				err("error while stopping stream.");
-+				return ret;
-+			}
-+		}
- 	}
- 
- 	adap->feedcount = newfeedcount;
-@@ -49,17 +53,24 @@ static int dvb_usb_ctrl_feed(struct dvb_demux_feed *dvbdmxfeed, int onoff)
- 
- 		deb_ts("controlling pid parser\n");
- 		if (adap->props.caps & DVB_USB_ADAP_HAS_PID_FILTER &&
--			adap->props.caps & DVB_USB_ADAP_PID_FILTER_CAN_BE_TURNED_OFF &&
--			adap->props.pid_filter_ctrl != NULL)
--			if (adap->props.pid_filter_ctrl(adap,adap->pid_filtering) < 0)
-+			adap->props.caps &
-+			DVB_USB_ADAP_PID_FILTER_CAN_BE_TURNED_OFF &&
-+			adap->props.pid_filter_ctrl != NULL) {
-+			ret = adap->props.pid_filter_ctrl(adap,
-+				adap->pid_filtering);
-+			if (ret < 0) {
- 				err("could not handle pid_parser");
--
-+				return ret;
-+			}
-+		}
- 		deb_ts("start feeding\n");
--		if (adap->props.streaming_ctrl != NULL)
--			if (adap->props.streaming_ctrl(adap,1)) {
-+		if (adap->props.streaming_ctrl != NULL) {
-+			ret = adap->props.streaming_ctrl(adap, 1);
-+			if (ret < 0) {
- 				err("error while enabling fifo.");
--				return -ENODEV;
-+				return ret;
- 			}
-+		}
- 
- 	}
- 	return 0;
+
+On 02/27/2011 09:49 PM, Steve Kerrison wrote:
+> Hello everyone,
+>
+> I've done some work on bringup of this device in Linux, and now have a
+> stub for the CXD2820 demod that includes the capability to pass I2C
+> commands through to the tuner that sits behind it.
+>
+> The focus was on bringup, not compatibility with linux-media or Linus'
+> coding guidelines, but hopefully it's not so horrendous that it makes
+> you want to cry. This isn't a formal patch submission, but anyone with
+> an interest is welcome to read more and grab the patch here:
+> http://stevekerrison.com/290e/index.html#20110227 taking heed of the
+> warnings and advice where necessary :)
+>
+> Only I2C passthrough is supported - none of the other demodulator or
+> frontend functions work, and it doesn't detach properly.
+>
+> I'd like to know what the best approach would be for me to allow others
+> to contribute to this if they so wish?
+>
+> Many thanks,
+
+
 -- 
-1.7.4.1
-
+http://palosaari.fi/
