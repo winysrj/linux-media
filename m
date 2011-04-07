@@ -1,71 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from mail.kapsi.fi ([217.30.184.167]:37397 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757164Ab1DMKMG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Apr 2011 06:12:06 -0400
-Message-ID: <4DA576F1.5040602@iki.fi>
-Date: Wed, 13 Apr 2011 13:12:01 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from moutng.kundenserver.de ([212.227.126.171]:55610 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751220Ab1DGLIM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Apr 2011 07:08:12 -0400
+Date: Thu, 7 Apr 2011 13:08:11 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: =?UTF-8?q?Teresa=20G=C3=A1mez?= <t.gamez@phytec.de>
+cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/2] mt9v022: fix pixel clock
+In-Reply-To: <1302098515-12176-1-git-send-email-t.gamez@phytec.de>
+Message-ID: <Pine.LNX.4.64.1104071303001.26842@axis700.grange>
+References: <1302098515-12176-1-git-send-email-t.gamez@phytec.de>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: [GIT PULL FOR 2.6.40] Anysee
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Moikka Mauro,
+On Wed, 6 Apr 2011, Teresa Gámez wrote:
 
-PULL following patches for the 2.6.40.
-There is new silicon tuner driver for NXP TDA18212HN.
+> Measurements show that the setup of the pixel clock is not correct.
+> The 'Invert Pixel Clock' bit has to be set to 1 for falling edge
+> and not for rising.
 
-This basically adds support for two Anysee models:
-1. E30 Combo Plus (new revision, TDA18212 tuner)
-2. E7 TC
+Doesn't seem correct to me. The mt9v022 datasheet says:
 
+<quote>
+Invert pixel clock. When set, LINE_VALID,
+FRAME_VALID, and DOUT is set up to the rising edge
+of pixel clock, PIXCLK. When clear, they are set up to
+the falling edge of PIXCLK.
+</quote>
 
+and this works for present mt9v022 configurations, which include at least 
+two boards: PXA270-based arch/arm/mach-pxa/pcm990-baseboard.c and i.MX31 
+based arch/arm/mach-mx3/mach-pcm037.c. If this is different for your 
+board, maybe you have to set the SOCAM_SENSOR_INVERT_PCLK flag in your 
+"struct soc_camera_link" instance.
 
-t. Antti
+Thanks
+Guennadi
 
+> Signed-off-by: Teresa Gámez <t.gamez@phytec.de>
+> ---
+>  drivers/media/video/mt9v022.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/mt9v022.c b/drivers/media/video/mt9v022.c
+> index 6a784c8..dec2a69 100644
+> --- a/drivers/media/video/mt9v022.c
+> +++ b/drivers/media/video/mt9v022.c
+> @@ -228,7 +228,7 @@ static int mt9v022_set_bus_param(struct soc_camera_device *icd,
+>  
+>  	flags = soc_camera_apply_sensor_flags(icl, flags);
+>  
+> -	if (flags & SOCAM_PCLK_SAMPLE_RISING)
+> +	if (flags & SOCAM_PCLK_SAMPLE_FALLING)
+>  		pixclk |= 0x10;
+>  
+>  	if (!(flags & SOCAM_HSYNC_ACTIVE_HIGH))
+> -- 
+> 1.7.0.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-The following changes since commit d9954d8547181f9a6a23f835cc1413732700b785:
-
-   Merge branch 'linus' into staging/for_v2.6.40 (2011-04-04 16:04:30 -0300)
-
-are available in the git repository at:
-
-   git://linuxtv.org/anttip/media_tree.git anysee
-
-Antti Palosaari (12):
-       NXP TDA18212HN silicon tuner driver
-       anysee: I2C address fix
-       anysee: fix multibyte I2C read
-       anysee: change some messages
-       anysee: reimplement demod and tuner attach
-       anysee: add support for TDA18212 based E30 Combo Plus
-       anysee: add support for Anysee E7 TC
-       anysee: fix E30 Combo Plus TDA18212 GPIO
-       anysee: fix E30 Combo Plus TDA18212 DVB-T
-       anysee: enhance demod and tuner attach
-       anysee: add support for two byte I2C address
-       anysee: add more info about known board configs
-
-  drivers/media/common/tuners/Kconfig         |    8 +
-  drivers/media/common/tuners/Makefile        |    1 +
-  drivers/media/common/tuners/tda18212.c      |  265 ++++++++++++++
-  drivers/media/common/tuners/tda18212.h      |   48 +++
-  drivers/media/common/tuners/tda18212_priv.h |   44 +++
-  drivers/media/dvb/dvb-usb/Kconfig           |    1 +
-  drivers/media/dvb/dvb-usb/anysee.c          |  519 
-+++++++++++++++++++++-----
-  drivers/media/dvb/dvb-usb/anysee.h          |   22 +-
-  8 files changed, 806 insertions(+), 102 deletions(-)
-  create mode 100644 drivers/media/common/tuners/tda18212.c
-  create mode 100644 drivers/media/common/tuners/tda18212.h
-  create mode 100644 drivers/media/common/tuners/tda18212_priv.h
-
-
-
--- 
-http://palosaari.fi/
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
