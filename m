@@ -1,63 +1,84 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59821 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756803Ab1D3Nff (ORCPT
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:59177 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751069Ab1DGIJ2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Apr 2011 09:35:35 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH 4/4] v4l: Release module if subdev registration fails
-Date: Sat, 30 Apr 2011 15:35:59 +0200
-Cc: linux-media@vger.kernel.org
-References: <1304170445-11978-1-git-send-email-laurent.pinchart@ideasonboard.com> <1304170445-11978-5-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1304170445-11978-5-git-send-email-laurent.pinchart@ideasonboard.com>
+	Thu, 7 Apr 2011 04:09:28 -0400
+Date: Thu, 7 Apr 2011 11:09:22 +0300
+From: Felipe Balbi <balbi@ti.com>
+To: Greg KH <gregkh@suse.de>
+Cc: Felipe Balbi <balbi@ti.com>, Samuel Ortiz <sameo@linux.intel.com>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Andres Salomon <dilinger@queued.net>,
+	linux-kernel@vger.kernel.org,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	khali@linux-fr.org, ben-linux@fluff.org,
+	Peter Korsgaard <jacmet@sunsite.dk>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	David Brownell <dbrownell@users.sourceforge.net>,
+	linux-i2c@vger.kernel.org, linux-media@vger.kernel.org,
+	netdev@vger.kernel.org, spi-devel-general@lists.sourceforge.net,
+	Mocean Laboratories <info@mocean-labs.com>
+Subject: Re: [PATCH 07/19] timberdale: mfd_cell is now implicitly available
+ to drivers
+Message-ID: <20110407080921.GD29038@legolas.emea.dhcp.ti.com>
+Reply-To: balbi@ti.com
+References: <BANLkTi=bq=OGzXFp7qiBr7x_BnGOWf=DRQ@mail.gmail.com>
+ <20110404100314.GC2751@sortiz-mobl>
+ <20110405030428.GB29522@ponder.secretlab.ca>
+ <20110406152322.GA2757@sortiz-mobl>
+ <20110406155805.GA20095@suse.de>
+ <20110406170537.GB2757@sortiz-mobl>
+ <20110406175647.GA8048@suse.de>
+ <20110406184733.GD2757@sortiz-mobl>
+ <20110406185902.GN25654@legolas.emea.dhcp.ti.com>
+ <20110406220900.GA16117@suse.de>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201104301536.00268.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20110406220900.GA16117@suse.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Saturday 30 April 2011 15:34:05 Laurent Pinchart wrote:
-> If v4l2_device_register_subdev() fails, the reference to the subdev
-> module taken by the function isn't released. Fix this.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: stable@kernel.org
-> Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+Hi,
 
-Mauro, if it's not too late, can you pick this patch for 2.6.39 ?
+On Wed, Apr 06, 2011 at 03:09:00PM -0700, Greg KH wrote:
+> On Wed, Apr 06, 2011 at 09:59:02PM +0300, Felipe Balbi wrote:
+> > Hi,
+> > 
+> > On Wed, Apr 06, 2011 at 08:47:34PM +0200, Samuel Ortiz wrote:
+> > > > > > What is a "MFD cell pointer" and why is it needed in struct device?
+> > > > > An MFD cell is an MFD instantiated device.
+> > > > > MFD (Multi Function Device) drivers instantiate platform devices. Those
+> > > > > devices drivers sometimes need a platform data pointer, sometimes an MFD
+> > > > > specific pointer, and sometimes both. Also, some of those drivers have been
+> > > > > implemented as MFD sub drivers, while others know nothing about MFD and just
+> > > > > expect a plain platform_data pointer.
+> > > > 
+> > > > That sounds like a bug in those drivers, why not fix them to properly
+> > > > pass in the correct pointer?
+> > > Because they're drivers for generic IPs, not MFD ones. By forcing them to use
+> > > MFD specific structure and APIs, we make it more difficult for platform code
+> > > to instantiate them.
+> > 
+> > I agree. What I do on those cases is to have a simple platform_device
+> > for the core IP driver and use platform_device_id tables to do runtime
+> > checks of the small differences. If one platform X doesn't use a
+> > platform_bus, it uses e.g. PCI, then you make a PCI "bridge" which
+> > allocates a platform_device with the correct name and adds that to the
+> > driver model.
+> > 
+> > See [1] (for the core driver) and [2] (for a PCI bridge driver) for an
+> > example of what I'm talking about.
+> 
+> Yes, thanks for providing a real example, this is the best way to handle
+> this.
 
-> ---
->  drivers/media/video/v4l2-device.c |    5 ++++-
->  1 files changed, 4 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/v4l2-device.c
-> b/drivers/media/video/v4l2-device.c index 5aeaf87..4aae501 100644
-> --- a/drivers/media/video/v4l2-device.c
-> +++ b/drivers/media/video/v4l2-device.c
-> @@ -155,8 +155,10 @@ int v4l2_device_register_subdev(struct v4l2_device
-> *v4l2_dev, sd->v4l2_dev = v4l2_dev;
->  	if (sd->internal_ops && sd->internal_ops->registered) {
->  		err = sd->internal_ops->registered(sd);
-> -		if (err)
-> +		if (err) {
-> +			module_put(sd->owner);
->  			return err;
-> +		}
->  	}
-> 
->  	/* This just returns 0 if either of the two args is NULL */
-> @@ -164,6 +166,7 @@ int v4l2_device_register_subdev(struct v4l2_device
-> *v4l2_dev, if (err) {
->  		if (sd->internal_ops && sd->internal_ops->unregistered)
->  			sd->internal_ops->unregistered(sd);
-> +		module_put(sd->owner);
->  		return err;
->  	}
+no problem.
+
+ps: that's the driver for the USB3 controller which will come on OMAP5.
+Driver being validate on a pre-silicon platform right now :-D In a few
+weeks I'll send the driver for integration.
 
 -- 
-Regards,
-
-Laurent Pinchart
+balbi
