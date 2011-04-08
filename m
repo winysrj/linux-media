@@ -1,197 +1,77 @@
 Return-path: <mchehab@pedra>
-Received: from ffm.saftware.de ([83.141.3.46]:47822 "EHLO ffm.saftware.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753365Ab1DJMKN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Apr 2011 08:10:13 -0400
-Message-ID: <4DA19E20.6040400@linuxtv.org>
-Date: Sun, 10 Apr 2011 14:10:08 +0200
-From: Andreas Oberritter <obi@linuxtv.org>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:37686 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932136Ab1DHPaz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Apr 2011 11:30:55 -0400
+Received: by gyd10 with SMTP id 10so1466377gyd.19
+        for <linux-media@vger.kernel.org>; Fri, 08 Apr 2011 08:30:54 -0700 (PDT)
 MIME-Version: 1.0
-To: Marko Ristola <marko.ristola@kolumbus.fi>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Speed up DVB TS stream delivery from DMA buffer into
- dvb-core's buffer
-References: <4D9F2C83.6070401@kolumbus.fi>
-In-Reply-To: <4D9F2C83.6070401@kolumbus.fi>
+In-Reply-To: <201104081707.17576.laurent.pinchart@ideasonboard.com>
+References: <BANLkTin35p+xPHWkf3WsGNPzL9aeUwsazQ@mail.gmail.com>
+	<201104081707.17576.laurent.pinchart@ideasonboard.com>
+Date: Fri, 8 Apr 2011 17:30:54 +0200
+Message-ID: <BANLkTi=NTHHyGRhCff+wvXWL4pD+Dv4b8w@mail.gmail.com>
+Subject: Re: mt9t111 sensor on Beagleboard xM
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 04/08/2011 05:40 PM, Marko Ristola wrote:
-> Avoid unnecessary DVB TS 188 sized packet copying from DMA buffer into stack.
-> Backtrack one 188 sized packet just after some garbage bytes when possible.
-> This obsoletes patch https://patchwork.kernel.org/patch/118147/
-> 
-> Signed-off-by: Marko Ristola marko.ristola@kolumbus.fi
-
-Did you intentionally send a version that doesn't use likely()? Anyway,
-those optimizations can still be done in an incremental patch.
-
-Acked-by: Andreas Oberritter <obi@linuxtv.org>
-
-> diff --git a/drivers/media/dvb/dvb-core/dvb_demux.c b/drivers/media/dvb/dvb-core/dvb_demux.c
-> index 4a88a3e..faa3671 100644
-> --- a/drivers/media/dvb/dvb-core/dvb_demux.c
-> +++ b/drivers/media/dvb/dvb-core/dvb_demux.c
-> @@ -478,97 +478,94 @@ void dvb_dmx_swfilter_packets(struct dvb_demux *demux, const u8 *buf,
->  
->  EXPORT_SYMBOL(dvb_dmx_swfilter_packets);
->  
-> -void dvb_dmx_swfilter(struct dvb_demux *demux, const u8 *buf, size_t count)
-> +static inline int find_next_packet(const u8 *buf, int pos, size_t count,
-> +				   const int pktsize)
->  {
-> -	int p = 0, i, j;
-> +	int start = pos, lost;
->  
-> -	spin_lock(&demux->lock);
-> -
-> -	if (demux->tsbufp) {
-> -		i = demux->tsbufp;
-> -		j = 188 - i;
-> -		if (count < j) {
-> -			memcpy(&demux->tsbuf[i], buf, count);
-> -			demux->tsbufp += count;
-> -			goto bailout;
-> -		}
-> -		memcpy(&demux->tsbuf[i], buf, j);
-> -		if (demux->tsbuf[0] == 0x47)
-> -			dvb_dmx_swfilter_packet(demux, demux->tsbuf);
-> -		demux->tsbufp = 0;
-> -		p += j;
-> +	while (pos < count) {
-> +		if (buf[pos] == 0x47 ||
-> +		    (pktsize == 204 && buf[pos] == 0xB8))
-> +			break;
-> +		pos++;
->  	}
->  
-> -	while (p < count) {
-> -		if (buf[p] == 0x47) {
-> -			if (count - p >= 188) {
-> -				dvb_dmx_swfilter_packet(demux, &buf[p]);
-> -				p += 188;
-> -			} else {
-> -				i = count - p;
-> -				memcpy(demux->tsbuf, &buf[p], i);
-> -				demux->tsbufp = i;
-> -				goto bailout;
-> -			}
-> -		} else
-> -			p++;
-> +	lost = pos - start;
-> +	if (lost) {
-> +		/* This garbage is part of a valid packet? */
-> +		int backtrack = pos - pktsize;
-> +		if (backtrack >= 0 && (buf[backtrack] == 0x47 ||
-> +		    (pktsize == 204 && buf[backtrack] == 0xB8)))
-> +			return backtrack;
->  	}
->  
-> -bailout:
-> -	spin_unlock(&demux->lock);
-> +	return pos;
->  }
->  
-> -EXPORT_SYMBOL(dvb_dmx_swfilter);
-> -
-> -void dvb_dmx_swfilter_204(struct dvb_demux *demux, const u8 *buf, size_t count)
-> +/* Filter all pktsize= 188 or 204 sized packets and skip garbage. */
-> +static inline void _dvb_dmx_swfilter(struct dvb_demux *demux, const u8 *buf,
-> +		size_t count, const int pktsize)
->  {
->  	int p = 0, i, j;
-> -	u8 tmppack[188];
-> +	const u8 *q;
->  
->  	spin_lock(&demux->lock);
->  
-> -	if (demux->tsbufp) {
-> +	if (demux->tsbufp) { /* tsbuf[0] is now 0x47. */
->  		i = demux->tsbufp;
-> -		j = 204 - i;
-> +		j = pktsize - i;
->  		if (count < j) {
->  			memcpy(&demux->tsbuf[i], buf, count);
->  			demux->tsbufp += count;
->  			goto bailout;
->  		}
->  		memcpy(&demux->tsbuf[i], buf, j);
-> -		if ((demux->tsbuf[0] == 0x47) || (demux->tsbuf[0] == 0xB8)) {
-> -			memcpy(tmppack, demux->tsbuf, 188);
-> -			if (tmppack[0] == 0xB8)
-> -				tmppack[0] = 0x47;
-> -			dvb_dmx_swfilter_packet(demux, tmppack);
-> -		}
-> +		if (demux->tsbuf[0] == 0x47) /* double check */
-> +			dvb_dmx_swfilter_packet(demux, demux->tsbuf);
->  		demux->tsbufp = 0;
->  		p += j;
->  	}
->  
-> -	while (p < count) {
-> -		if ((buf[p] == 0x47) || (buf[p] == 0xB8)) {
-> -			if (count - p >= 204) {
-> -				memcpy(tmppack, &buf[p], 188);
-> -				if (tmppack[0] == 0xB8)
-> -					tmppack[0] = 0x47;
-> -				dvb_dmx_swfilter_packet(demux, tmppack);
-> -				p += 204;
-> -			} else {
-> -				i = count - p;
-> -				memcpy(demux->tsbuf, &buf[p], i);
-> -				demux->tsbufp = i;
-> -				goto bailout;
-> -			}
-> -		} else {
-> -			p++;
-> +	while (1) {
-> +		p = find_next_packet(buf, p, count, pktsize);
-> +		if (p >= count)
-> +			break;
-> +		if (count - p < pktsize)
-> +			break;
-> +
-> +		q = &buf[p];
-> +
-> +		if (pktsize == 204 && (*q == 0xB8)) {
-> +			memcpy(demux->tsbuf, q, 188);
-> +			demux->tsbuf[0] = 0x47;
-> +			q = demux->tsbuf;
->  		}
-> +		dvb_dmx_swfilter_packet(demux, q);
-> +		p += pktsize;
-> +	}
-> +
-> +	i = count - p;
-> +	if (i) {
-> +		memcpy(demux->tsbuf, &buf[p], i);
-> +		demux->tsbufp = i;
-> +		if (pktsize == 204 && demux->tsbuf[0] == 0xB8)
-> +			demux->tsbuf[0] = 0x47;
->  	}
->  
->  bailout:
->  	spin_unlock(&demux->lock);
->  }
->  
-> +void dvb_dmx_swfilter(struct dvb_demux *demux, const u8 *buf, size_t count)
-> +{
-> +	_dvb_dmx_swfilter(demux, buf, count, 188);
-> +}
-> +EXPORT_SYMBOL(dvb_dmx_swfilter);
-> +
-> +void dvb_dmx_swfilter_204(struct dvb_demux *demux, const u8 *buf, size_t count)
-> +{
-> +	_dvb_dmx_swfilter(demux, buf, count, 204);
-> +}
->  EXPORT_SYMBOL(dvb_dmx_swfilter_204);
->  
->  static struct dvb_demux_filter *dvb_dmx_filter_alloc(struct dvb_demux *demux)
+On 8 April 2011 17:07, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Javier,
+>
+> On Friday 08 April 2011 17:02:48 javier Martin wrote:
+>> Hi,
+>> I've just received a LI-LBCM3M1 camera module from Leopard Imaging and
+>> I want to test it with my Beagleboard xM. This module has a mt9t111
+>> sensor.
+>>
+>> At first glance, this driver
+>> (http://lxr.linux.no/#linux+v2.6.38/drivers/media/video/mt9t112.c)
+>> supports mt9t111 sensor and uses both soc-camera and v4l2-subdev
+>> frameworks.
+>> I am trying to somehow connect this sensor with the omap3isp driver
+>> recently merged (I'm working with latest mainline kernel), however, I
+>> found an issue when trying to pass "mt9t112_camera_info" data to the
+>> sensor driver in my board specific file.
+>>
+>> It seems that this data is passed through soc-camera but omap3isp
+>> doesn't use soc-camera. Do you know what kind of changes are required
+>> to adapt this driver so that it can be used with omap3isp?
+>
+> The OMAP3 ISP driver isn't compatible with the soc-camera framework, as you
+> correctly noticed. You will need to port the MT9T111 driver to pad-level
+> subdev operations.
+>
+> You can find a sensor driver (MT9V032) implementing pad-level subdev
+> operations at
+> http://git.linuxtv.org/pinchartl/media.git?a=commit;h=940b87a5cb7ea3f3cff16454e9085e33ab340064
+>
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Regards,
+>
+> Laurent Pinchart
+>
 
+Hi Laurent,
+thank you for your quick answer.
+
+Does the fact of adding pad-level subdev operations for the sensor
+break  old way of doing things?
+I mean, if I port MT9T111 driver to pad-level subdev operations would
+it be accepted for mainline or would it be rejected since it breaks
+something older?
+
+Thank you,
+
+-- 
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
