@@ -1,103 +1,36 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:57977 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754028Ab1DEO6s (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 Apr 2011 10:58:48 -0400
-Subject: Re: HVR-1600 (model 74351 rev F1F5) analog Red Screen
-From: Andy Walls <awalls@md.metrocast.net>
-To: Eric B Munson <emunson@mgebm.net>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>, mchehab@infradead.org,
-	linux-media@vger.kernel.org
-In-Reply-To: <BANLkTi=dVYRgUbQ5pRySQLptnzaHOMKTqg@mail.gmail.com>
-References: <BANLkTim2MQcHw+T_2g8wSpGkVnOH_OeXzg@mail.gmail.com>
-	 <1301922737.5317.7.camel@morgan.silverblock.net>
-	 <BANLkTikqBPdr2M8jyY1zmu4TPLsXo0y5Xw@mail.gmail.com>
-	 <BANLkTi=dVYRgUbQ5pRySQLptnzaHOMKTqg@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Tue, 05 Apr 2011 10:58:41 -0400
-Message-ID: <1302015521.4529.17.camel@morgan.silverblock.net>
-Mime-Version: 1.0
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57306 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757424Ab1DHPK3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Apr 2011 11:10:29 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv1 PATCH 3/9] v4l2-ioctl: add ctrl_handler to v4l2_fh
+Date: Fri, 8 Apr 2011 17:10:32 +0200
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+References: <1301917914-27437-1-git-send-email-hans.verkuil@cisco.com> <b4f1a4000c9764bfd326a4f9b3fbfa57b40ac102.1301916466.git.hans.verkuil@cisco.com>
+In-Reply-To: <b4f1a4000c9764bfd326a4f9b3fbfa57b40ac102.1301916466.git.hans.verkuil@cisco.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201104081710.32652.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, 2011-04-04 at 14:36 -0400, Eric B Munson wrote:
-> On Mon, Apr 4, 2011 at 11:16 AM, Eric B Munson <emunson@mgebm.net> wrote:
-> > On Mon, Apr 4, 2011 at 9:12 AM, Andy Walls <awalls@md.metrocast.net> wrote:
-> >> On Mon, 2011-04-04 at 08:20 -0400, Eric B Munson wrote:
-> >>> I the above mentioned capture card and the digital side of the card
-> >>> works well.  However, when I try to get video from the analog side of
-> >>> the card, all I get is a red screen and no sound regardless of channel
-> >>> requested.  This is a problem I see in 2.6.39-rc1 though I typically
-> >>> run the ubuntu 10.10 kernel with the newest drivers built from source.
-> >>>  Is there something in setup or configuration that I may be missing?
-> >>
-> >> Eric,
-> >>
-> >> You are likely missing the last 3 fixes here:
-> >>
-> >> http://git.linuxtv.org/awalls/media_tree.git?a=shortlog;h=refs/heads/cx18_39
-> >>
-> >> (one of which is critical for analog to work).
-> >>
-> >> Also check the ivtv-users and ivtv-devel list for past discussions on
-> >> the "red screen" showing up for known well supported models and what to
-> >> try.
-> >>
-> > Thanks, I will try hand applying these.
-> >
+Hi Hans,
+
+On Monday 04 April 2011 13:51:48 Hans Verkuil wrote:
+> From: Hans Verkuil <hverkuil@xs4all.nl>
 > 
-> I don't have a red screen anymore, now all get from analog static and
-> mythtv's digital channel scanner now seems broken.
+> This is required to implement control events and is also needed to allow
+> for per-filehandle control handlers.
 
-Hmmm.
+Thanks for the patch.
 
-1. Please provide the output of dmesg when the cx18 driver loads.
+Shouldn't you modify v4l2-subdev.c similarly ?
 
-2. Please provide the output of v4l2-ctl -d /dev/video0 --log status
-when tuned to an analog channel.
-
-3. Please provide the relevant portion of the mythbackend log where
-where the digital scanner starts and then fails.
-
-4. Does digital tuning still work in MythTV despite the digital scanner
-not working?
-
-5. Please don't use MythTV to troubleshoot; it is too complex to
-properly eliminate variables.  Test digital with the dvb utilities
-described here: 
-
-http://www.linuxtv.org/wiki/index.php/LinuxTV_dvb-apps
-http://www.linuxtv.org/wiki/index.php/Testing_your_DVB_device
-
-Once I have a channels.conf file made, I usually use azap (ATSC) and
-femon to check that I can tune to a digital channel and get a lock.
-Then I use mplayer to check that the content is viewable.
-
-
-The things that spring to mind that could be wrong:
-
-1. I didn't check that digital still worked when I added my analog
-changes.  Shame on me, but honestly they *shouldn't* have broken it.
-(Famous last words...)
-
-2. The tda8290 driver module for the new analog demodulator had an I2C
-address bug introduced recently (hardcoded to the wrong address in
-tda8290 module), but a fix was also applied recently.  You may have the
-bug, but not the fix.
-
-3. The new HVR-1600 has a worldwide analog tuner that the cx18 driver
-defaults to NTSC-M.  If you use another analog standard, you will need
-to use v4l2-ctl to set the proper standard (PAL-B/G/H/I, SECAM-L/L',
-etc.)
-
-
-(Be advised, I have no time to look at any of this at the moment. The
-soonest would be 11 April.)
-
+-- 
 Regards,
-Andy
 
-
-
+Laurent Pinchart
