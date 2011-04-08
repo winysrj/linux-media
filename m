@@ -1,105 +1,84 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.186]:54761 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753803Ab1DDHP5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2011 03:15:57 -0400
-Date: Mon, 4 Apr 2011 09:15:55 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Pawel Osciak <pawel@osciak.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH/RFC 0/4] V4L: new ioctl()s to support multi-sized
- video-buffers
-In-Reply-To: <BANLkTimGCJRv2Hd6ejgewPpRd4ZK=thPxA@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1104040837020.4668@axis700.grange>
-References: <Pine.LNX.4.64.1104010959470.9530@axis700.grange>
- <BANLkTimGCJRv2Hd6ejgewPpRd4ZK=thPxA@mail.gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:34657 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757731Ab1DHTe3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 8 Apr 2011 15:34:29 -0400
+Message-ID: <4D9F6341.9020107@iki.fi>
+Date: Fri, 08 Apr 2011 22:34:25 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Christoph Pfister <christophpfister@gmail.com>
+Subject: update fi-dna initial tuning file
+Content-Type: multipart/mixed;
+ boundary="------------040708040305070607070201"
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sun, 3 Apr 2011, Pawel Osciak wrote:
+This is a multi-part message in MIME format.
+--------------040708040305070607070201
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-> Hi Guennadi,
-> 
-> On Fri, Apr 1, 2011 at 01:12, Guennadi Liakhovetski
-> <g.liakhovetski@gmx.de> wrote:
-> > Hi all
-> >
-> > As discussed at the last V4L2 meeting in Warsaw, one of the prerequisites
-> > to support fast switching between different image formats is an ability to
-> > preallocate buffers of different sizes and handle them over to the driver
-> > in advance. This avoids the need to allocate buffers at the time of
-> > switching. This patch series is a first implementation of these ioctl()s,
-> > implemented for the sh_mobile_ceu_camera soc-camera host driver. Tested on
-> > an sh7722 migor SuperH platform. Yes, I know, documentation is missing
-> > yet;-)
-> >
-> 
-> I will have to wait for documentation before doing a full review, it's
-> hard to comment without it. Also, please mention how the new ioctls
-> influence the state machine.
+Moikka Christoph,
 
-Ok, I wanted to wait with the documentation until we have the API settled, 
-because modifying the code is easier, than modifying the documentation:-) 
-But right, I'll try to put something together.
+Merge attached patch.
 
-> Some questions and doubts I'm having:
-> - Can you call CREATE more than once, before/after REQBUFS, for all
-> streaming states? What about reading/writing?
+Antti
+-- 
+http://palosaari.fi/
 
-The idea was to use CREATE/DESTROY _instead_ of REQBUFS. And yes, one of 
-the purposes of CREATE is to be able to call it multiple times with 
-different parameters. The new API should provide at least all the 
-functionality, that REQBUFS provides, i.e., you should be able to use it 
-with MMAP and USERPTR memory.
+--------------040708040305070607070201
+Content-Type: text/plain;
+ name="2011-04-08-fi-dna.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="2011-04-08-fi-dna.patch"
 
-> - Can driver decline CREATE if it is not supported? What if the format
-> is not supported?
+diff -r 59e55f42ab69 util/scan/dvb-c/fi-dna
+--- a/util/scan/dvb-c/fi-dna	Wed Apr 06 06:50:51 2011 -0300
++++ b/util/scan/dvb-c/fi-dna	Fri Apr 08 22:32:15 2011 +0300
+@@ -1,15 +1,24 @@
+ # DNA network reference channels
++# updated 2011-04-08 Antti Palosaari <crope@iki.fi>
++# http://www.dna.fi/YKSITYISILLE/TV/KAAPELITV/Sivut/Taajuudet.aspx
++#
+ # freq      sr      fec  mod
+ C 154000000 6875000 NONE QAM128
+ C 162000000 6875000 NONE QAM128
++C 162000000 6875000 NONE QAM256
+ C 170000000 6875000 NONE QAM128
+-C 232000000 6875000 NONE QAM128
+-C 250000000 6875000 NONE QAM128
+-C 258000000 6875000 NONE QAM128
+-C 266000000 6875000 NONE QAM128
+-C 274000000 6875000 NONE QAM128
+-C 290000000 6875000 NONE QAM128
++C 226000000 6875000 NONE QAM128
++C 234000000 6875000 NONE QAM128
++C 242000000 6875000 NONE QAM128
++C 242000000 6875000 NONE QAM256
++C 250000000 6875000 NONE QAM256
++C 258000000 6875000 NONE QAM256
++C 266000000 6875000 NONE QAM256
++C 274000000 6875000 NONE QAM256
++C 282000000 6875000 NONE QAM256
++C 290000000 6875000 NONE QAM256
+ C 298000000 6875000 NONE QAM128
++C 298000000 6875000 NONE QAM256
+ C 306000000 6875000 NONE QAM128
+ C 314000000 6875000 NONE QAM128
+ C 322000000 6875000 NONE QAM128
+@@ -18,8 +27,8 @@
+ C 346000000 6875000 NONE QAM128
+ C 354000000 6875000 NONE QAM128
+ C 362000000 6875000 NONE QAM128
++C 362000000 6875000 NONE QAM256
+ C 370000000 6875000 NONE QAM128
+ C 378000000 6875000 NONE QAM128
++C 386000000 6875000 NONE QAM128
+ C 394000000 6875000 NONE QAM128
+-C 402000000 6875000 NONE QAM128
+-C 450000000 6875000 NONE QAM128
 
-Sure, if .vidioc_create_bufs() is not implemented by the driver, the 
-ioctl() will just error out. Of course you're allowed to do any checks you 
-see fit in your driver, like unsupported formats and return an error in 
-case of a problem.
-
-> - If we fail allocating in CREATE, should the whole queue be freed (as
-> it is done in your patch I believe)?
-
-No, that's a bug, thanks for spotting!
-
-> - I'm assuming REQBUFS(0) is to free buffers allocated with CREATE too?
-
-Currently it is possible to mix CREATE/DESTROY and REQBUFS. Not sure if 
-this is good, maybe we have to allow the use of only one API. I'd probably 
-prefer the latter, but I'm open for suggestions here.
-
-> - Are we allowing DESTROY to free arbitrary span of buffers (i.e.
-> those created with REQBUFS as well)?
-
-Again, we can decide, whether we want to support mixing of these APIs or 
-not.
-
-> - Are "holes" in buffer indexes allowed? I don't like the ability to
-> free an arbitrary span of buffers in the queue, it complicates checks
-> in many places and I don't think is worth it...
-
-That's how this ioctl() has been proposed at the Warsaw meeting.
-
-> - I understand SUBMIT is optional?
-
-yes.
-
-> - Could you give an example of how this could be used in an application?
-
-Ok, for my testing I modified the capture.c example from v4l2, I'll try to 
-clean up a patch for it and post it.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+--------------040708040305070607070201--
