@@ -1,44 +1,45 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.23]:34669 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751805Ab1DWRmV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Apr 2011 13:42:21 -0400
-From: Oliver Endriss <o.endriss@gmx.de>
-Reply-To: linux-media@vger.kernel.org
-To: Issa Gorissen <flop.m@usa.net>
-Subject: Re: ngene CI problems
-Date: Sat, 23 Apr 2011 19:40:29 +0200
-Cc: xtronom@gmail.com, linux-media@vger.kernel.org
-References: <4D74E28A.6030302@gmail.com> <4DB1FE58.20006@usa.net>
-In-Reply-To: <4DB1FE58.20006@usa.net>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:38929 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757502Ab1DHPCt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Apr 2011 11:02:49 -0400
+Received: by gxk21 with SMTP id 21so1457751gxk.19
+        for <linux-media@vger.kernel.org>; Fri, 08 Apr 2011 08:02:48 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201104231940.34575@orion.escape-edv.de>
+Date: Fri, 8 Apr 2011 17:02:48 +0200
+Message-ID: <BANLkTin35p+xPHWkf3WsGNPzL9aeUwsazQ@mail.gmail.com>
+Subject: mt9t111 sensor on Beagleboard xM
+From: javier Martin <javier.martin@vista-silicon.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Saturday 23 April 2011 00:16:56 Issa Gorissen wrote:
-> Running a bunch of test with gnutv and a DuoFLEX S2.
-> 
-> I saw the same problem concerning the decryption with a CAM.
-> 
-> I'm running kern 2.6.39 rc 4 with the latest patches from Oliver. Also
-> applied the patch moving from SEC to CAIO.
+Hi,
+I've just received a LI-LBCM3M1 camera module from Leopard Imaging and
+I want to test it with my Beagleboard xM. This module has a mt9t111
+sensor.
 
-If you are running 2.6.39rc4, you must apply patch
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg29870.html
-Otherwise the data will be garbled.
+At first glance, this driver
+(http://lxr.linux.no/#linux+v2.6.38/drivers/media/video/mt9t112.c)
+supports mt9t111 sensor and uses both soc-camera and v4l2-subdev
+frameworks.
+I am trying to somehow connect this sensor with the omap3isp driver
+recently merged (I'm working with latest mainline kernel), however, I
+found an issue when trying to pass "mt9t112_camera_info" data to the
+sensor driver in my board specific file.
 
-CU
-Oliver
+It seems that this data is passed through soc-camera but omap3isp
+doesn't use soc-camera. Do you know what kind of changes are required
+to adapt this driver so that it can be used with omap3isp?
+
+Thank you.
 
 -- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
-Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
-----------------------------------------------------------------
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
