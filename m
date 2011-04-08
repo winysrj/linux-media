@@ -1,110 +1,96 @@
 Return-path: <mchehab@pedra>
-Received: from mail.kapsi.fi ([217.30.184.167]:52034 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752418Ab1D2MKT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Apr 2011 08:10:19 -0400
-Message-ID: <4DBAAAA7.30902@iki.fi>
-Date: Fri, 29 Apr 2011 15:10:15 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44716 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756617Ab1DHMxT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Apr 2011 08:53:19 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Subject: Re: [RFC/PATCH 1/2] v4l: videobuf2: Handle buf_queue errors
+Date: Fri, 8 Apr 2011 14:53:20 +0200
+Cc: Pawel Osciak <pawel@osciak.com>, linux-media@vger.kernel.org,
+	m.szyprowski@samsung.com, hverkuil@xs4all.nl
+References: <1298830353-9797-1-git-send-email-laurent.pinchart@ideasonboard.com> <4D9CC780.3000902@gmail.com> <4D9CE37D.6000202@gmail.com>
+In-Reply-To: <4D9CE37D.6000202@gmail.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <maurochehab@gmail.com>
-CC: poma <pomidorabelisima@gmail.com>, linux-media@vger.kernel.org,
-	andrew.williams@joratech.com, lindsay.mathieson@gmail.com,
-	skandalfo@gmail.com, news004@upsilon.org.uk
-Subject: Re: Afatech AF9015 & dual tuner - dual_mode B.R.O.K.E.N.
-References: <4D5B5FE2.5000302@gmail.com> <4D5CE929.4050102@gmail.com> <4D5D9D10.2060709@gmail.com> <4DBAA909.2090102@gmail.com>
-In-Reply-To: <4DBAA909.2090102@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201104081453.21999.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Moikka Mauro et all,
+Hi Sylwester,
 
-I will NACK this.
+On Thursday 07 April 2011 00:04:45 Sylwester Nawrocki wrote:
+> On 04/06/2011 10:05 PM, Sylwester Nawrocki wrote:
+> > On 03/07/2011 12:20 AM, Pawel Osciak wrote:
+> >> On Tue, Mar 1, 2011 at 02:54, Laurent Pinchart wrote:
+> >>> On Monday 28 February 2011 16:44:38 Pawel Osciak wrote:
+> >>>> Hi Laurent,
+> >>>> A few questions from me below. I feel we need to talk about this
+> >>>> change a bit more, it introduces some recovery and consistency
+> >>>> problems, unless I'm missing something.
+> >>>> 
+> >>>> On Sun, Feb 27, 2011 at 10:12, Laurent Pinchart wrote:
+> >>>>> videobuf2 expects drivers to check buffer in the buf_prepare
+> >>>>> operation and to return success only if the buffer can queued
+> >>>>> without any issue.
+> >>>>> 
+> >>>>> For hot-pluggable devices, disconnection events need to be handled at
+> >>>>> buf_queue time. Checking the disconnected flag and adding the buffer
+> >>>>> to the driver queue need to be performed without releasing the
+> >>>>> driver spinlock, otherwise race conditions can occur in which the
+> >>>>> driver could still allow a buffer to be queued after the
+> >>>>> disconnected flag has been set, resulting in a hang during the next
+> >>>>> DQBUF operation.
+> >>>>> 
+> >>>>> This problem can be solved either in the videobuf2 core or in the
+> >>>>> device drivers. To avoid adding a spinlock to videobuf2, make
+> >>>>> buf_queue return an int and handle buf_queue failures in videobuf2.
+> >>>>> Drivers must not return an error in buf_queue if the condition
+> >>>>> leading to the error can be caught in buf_prepare.
+> 
+> ...
+> 
+> > As buf_queue callback is called by vb2 only after start_streaming,
+> > for a camera snapshot capture I needed to start a pipeline only from the
+> > buf_queue handler level, i.e. subdev's video s_stream op was called from
+> > within buf_queue. s_stream couldn't be done in the start_streaming
+> > handler as at the time it is invoked there is always no buffer available
+> > in the bridge H/W.
+> > It's a consequence of how the vb2_streamon() is designed.
+> > 
+> > Before, I used to simply call s_stream in start_streaming, only deferring
+> > the actual bridge DMA enable till a buf_queue call, thus letting first
+> > frames in the stream to be lost. This of course cannot be done in case
+> > of single-frame capture.
+> > 
+> > To make a long story short, it would be useful in my case to have the
+> > ability to return error codes as per VIDIOC_STREAMON through buf_queue
+> > in the driver (when the first buffer is queued).
+> > At the moment mainly EPIPE comes to my mind. This error code has no
+> > meaning in the API for QBUF though. Should the pipeline be started from
+> > buf_queue
+> 
+> Hmm, the pipeline validation could still be done in start_streaming()
+> so we can return any EPIPE error from there directly and effectively
+> in VIDIOC_STREAMON.
 
-Surely it is not proper solution. And after all, I haven't got any other 
-reports there is such problem. AF9015 is probably most common DVB-T USB 
-hardware today and if there is major problems I am the first person got 
-reports.
+That's correct, and that's what the OMAP3 ISP driver does.
 
-regards,
-Antti
+> So the only remaining errors are those related to I2C communication etc.
+> when streaming is actually enabled in the subdev.
 
+buf_queue is called with a spinlock help, so you can't perform I2C 
+communication there.
 
-On 04/29/2011 03:03 PM, Mauro Carvalho Chehab wrote:
-> Hi Antti,
->
-> I'm assuming that you're reviewing this patchset, so, I'll update patchwork status
-> accordingly.
->
-> Mauro
->
-> Em 17-02-2011 20:11, poma escreveu:
->> poma wrote:
->>> poma wrote:
->>>> To num_adapters = 2, or num_adapters = 1: that is the question!
->>>
->>> In dual tuner mode, after a while device become unrensponsive,
->>> eventually after S5 aka 'Soft Off' system doesn't even boot!
->>> Didn't even mention all sorts of 'mumbo-jumbo' with S3 aka 'Suspend to RAM'.
->>> Antti, please consider adding 'dual_mode' parameter back.
->>>
->>> "dvb_usb_af9015 dual_mode=0"
->>>
->>> Devices to consider:
->>>
->>> Not Only TV/LifeView DUAL DVB-T USB LV52T
->>> (equivalent to TerraTec Cinergy T Stick Dual RC)
->>> Afatech AF9013/AF9015&  2x MaxLinear MxL5007T
->>> http://www.notonlytv.net/p_lv52t.html
->>>
->>> KWorld USB Dual DVB-T TV Stick (DVB-T 399U)
->>> Afatech AF9013/AF9015&  2x MaxLinear MxL5003S
->>> http://www.kworld-global.com/main/prod_in.aspx?mnuid=1248&modid=6&prodid=73
->>>
->>> DigitalNow TinyTwin DVB-T Receiver
->>> Afatech AF9013/AF9015&  2x MaxLinear MxL5005S
->>> http://www.digitalnow.com.au/product_pages/TinyTwin.html
->>>
->>> http://www.spinics.net/lists/linux-dvb/msg31616.html
->>> http://www.spinics.net/lists/linux-dvb/msg31621.html
->>
->> This patch restore dvb_usb_af9015 'dual mode' parameter - "disable dual mode by default because it is buggy".
->> Enabled mode:
->> options dvb_usb_af9015 dual_mode=1
->> in modprobe referent file.
->>
->> ..
->> --- a/linux/drivers/media/dvb/dvb-usb/af9015.c    2011-01-10 16:24:45.000000000 +0100
->> +++ b/linux/drivers/media/dvb/dvb-usb/af9015.c    2011-02-17 21:58:42.099040739 +0100
->> @@ -40,6 +40,9 @@
->>   static int dvb_usb_af9015_remote;
->>   module_param_named(remote, dvb_usb_af9015_remote, int, 0644);
->>   MODULE_PARM_DESC(remote, "select remote");
->> +static int dvb_usb_af9015_dual_mode;
->> +module_param_named(dual_mode, dvb_usb_af9015_dual_mode, int, 0644);
->> +MODULE_PARM_DESC(dual_mode, "enable dual mode");
->>   DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
->>
->>   static DEFINE_MUTEX(af9015_usb_mutex);
->> @@ -841,6 +844,9 @@
->>           goto error;
->>       af9015_config.dual_mode = val;
->>       deb_info("%s: TS mode:%d\n", __func__, af9015_config.dual_mode);
->> +    /* disable dual mode by default because it is buggy */
->> +    if (!dvb_usb_af9015_dual_mode)
->> +        af9015_config.dual_mode = 0;
->>
->>       /* Set adapter0 buffer size according to USB port speed, adapter1 buffer
->>          size can be static because it is enabled only USB2.0 */
->> ..
->>
->> rgds,
->> poma
->>
->
-
+> > the errors from buf_queue would be seen in userspace via VIDIOC_STREAMON
+> > and/or VIDIOC_QBUF.
+> > 
+> > It should be also possible to signal any errors originating from the
+> > subdev when s_stream is called on it, perhaps by EIO ?
 
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
