@@ -1,85 +1,106 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:43021 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752518Ab1DEH5N (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2011 03:57:13 -0400
-Received: from localhost.localdomain (unknown [91.178.236.143])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 90B5935B6A
-	for <linux-media@vger.kernel.org>; Tue,  5 Apr 2011 07:57:10 +0000 (UTC)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 03/14] omap3isp: resizer: Use 4-tap mode equations when the ratio is <= 512
-Date: Tue,  5 Apr 2011 09:57:25 +0200
-Message-Id: <1301990256-6963-4-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1301990256-6963-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1301990256-6963-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:42265 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752636Ab1DHQVr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Apr 2011 12:21:47 -0400
+Received: by qyk7 with SMTP id 7so4085694qyk.19
+        for <linux-media@vger.kernel.org>; Fri, 08 Apr 2011 09:21:46 -0700 (PDT)
+References: <1302267045.1749.38.camel@gagarin> <AFEB19DA-4FD6-4472-9825-F13A112B0E2A@wilsonet.com> <1302276147.1749.46.camel@gagarin>
+In-Reply-To: <1302276147.1749.46.camel@gagarin>
+Mime-Version: 1.0 (Apple Message framework v1084)
+Content-Type: text/plain; charset=iso-8859-1
+Message-Id: <B9A35B3D-DC47-4D95-88F5-5453DD3F506C@wilsonet.com>
+Content-Transfer-Encoding: 8BIT
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Jarod Wilson <jarod@wilsonet.com>
+Subject: Re: [PATCH] Fix cx88 remote control input
+Date: Fri, 8 Apr 2011 12:21:54 -0400
+To: Lawrence Rust <lawrence@softsystem.co.uk>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-As the number of phases/taps, used to select the correct equations to
-compute the ratio, depends on the ratio, start with the 7-tap mode
-equations to compute an approximation of the ratio, and switch to the
-4-tap mode equations if the approximation is lower than or equal to 512.
+On Apr 8, 2011, at 11:22 AM, Lawrence Rust wrote:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/omap3isp/ispresizer.c |   27 ++++++++++++++++++++++-----
- 1 files changed, 22 insertions(+), 5 deletions(-)
+> On Fri, 2011-04-08 at 10:41 -0400, Jarod Wilson wrote:
+>> On Apr 8, 2011, at 8:50 AM, Lawrence Rust wrote:
+>> 
+>>> This patch restores remote control input for cx2388x based boards on
+>>> Linux kernels >= 2.6.38.
+>>> 
+>>> After upgrading from Linux 2.6.37 to 2.6.38 I found that the remote
+>>> control input of my Hauppauge Nova-S plus was no longer functioning.  
+>>> I posted a question on this newsgroup and Mauro Carvalho Chehab gave
+>>> some helpful pointers as to the likely cause.
+>>> 
+>>> Turns out that there are 2 problems:
+>> ...
+>>> 2. The RC5 decoder appends the system code to the scancode and passes
+>>> the combination to rc_keydown().  Unfortunately, the combined value is
+>>> then forwarded to input_event() which then fails to recognise a valid
+>>> scancode and hence no input events are generated.
+>> 
+>> Just to clarify on this one, you're missing a step. We get the scancode,
+>> and its passed to rc_keydown. rc_keydown then looks for a match in the
+>> loaded keytable, then passes the *keycode* that matches the scancode
+>> along to input_event. If you fix the keytable to contain system and
+>> command, everything should work just fine again. Throwing away data is
+>> a no-no though -- take a look at recent changes to ir-kdb-i2c, which
+>> actually just recently made it start *including* system. :)
+> 
+> Don't shoot the messenger.
 
-diff --git a/drivers/media/video/omap3isp/ispresizer.c b/drivers/media/video/omap3isp/ispresizer.c
-index 829d7bf..40b2db8 100644
---- a/drivers/media/video/omap3isp/ispresizer.c
-+++ b/drivers/media/video/omap3isp/ispresizer.c
-@@ -724,9 +724,20 @@ static void resizer_print_status(struct isp_res_device *res)
-  *	vrsz = ((ih - 7) * 256 - 32 - 64 * spv) / (oh - 1)
-  *
-  * The ratios are integer values, and must be rounded down to ensure that the
-- * cropped input size is not bigger than the uncropped input size. As the ratio
-- * in 7-tap mode is always smaller than the ratio in 4-tap mode, we can use the
-- * 7-tap mode equations to compute a ratio approximation.
-+ * cropped input size is not bigger than the uncropped input size.
-+ *
-+ * As the number of phases/taps, used to select the correct equations to compute
-+ * the ratio, depends on the ratio, we start with the 4-tap mode equations to
-+ * compute an approximation of the ratio, and switch to the 7-tap mode equations
-+ * if the approximation is higher than the ratio threshold.
-+ *
-+ * As the 7-tap mode equations will return a ratio smaller than or equal to the
-+ * 4-tap mode equations, the resulting ratio could become lower than or equal to
-+ * the ratio threshold. This 'equations loop' isn't an issue as long as the
-+ * correct equations are used to compute the final input size. Starting with the
-+ * 4-tap mode equations ensure that, in case of values resulting in a 'ratio
-+ * loop', the smallest of the ratio values will be used, never exceeding the
-+ * requested input size.
-  *
-  * We first clamp the output size according to the hardware capabilitie to avoid
-  * auto-cropping the input more than required to satisfy the TRM equations. The
-@@ -788,8 +799,11 @@ static void resizer_calc_ratios(struct isp_res_device *res,
- 	max_height = min_t(unsigned int, max_height, MAX_OUT_HEIGHT);
- 	output->height = clamp(output->height, min_height, max_height);
- 
--	ratio->vert = ((input->height - 7) * 256 - 32 - 64 * spv)
-+	ratio->vert = ((input->height - 4) * 256 - 16 - 32 * spv)
- 		    / (output->height - 1);
-+	if (ratio->vert > MID_RESIZE_VALUE)
-+		ratio->vert = ((input->height - 7) * 256 - 32 - 64 * spv)
-+			    / (output->height - 1);
- 	ratio->vert = clamp_t(unsigned int, ratio->vert,
- 			      MIN_RESIZE_VALUE, MAX_RESIZE_VALUE);
- 
-@@ -856,8 +870,11 @@ static void resizer_calc_ratios(struct isp_res_device *res,
- 			      max_width & ~(width_alignment - 1));
- 	output->width = ALIGN(output->width, width_alignment);
- 
--	ratio->horz = ((input->width - 7) * 256 - 32 - 64 * sph)
-+	ratio->horz = ((input->width - 7) * 256 - 16 - 32 * sph)
- 		    / (output->width - 1);
-+	if (ratio->horz > MID_RESIZE_VALUE)
-+		ratio->horz = ((input->width - 7) * 256 - 32 - 64 * sph)
-+			    / (output->width - 1);
- 	ratio->horz = clamp_t(unsigned int, ratio->horz,
- 			      MIN_RESIZE_VALUE, MAX_RESIZE_VALUE);
- 
+Wasn't my intention. I was simply trying to explain why your "fix"
+isn't correct.
+
+
+> I'm just reporting what I had to do to fix a clumsy hack by someone 6
+> months ago who didn't test their changes.  This patch _restores_ the
+> operation of a subsystem broken by those changes
+> 
+> Perhaps those responsible for commit
+> 2997137be8eba5bf9c07a24d5fda1f4225f9ca7d:
+> 
+>    Signed-off-by: David Härdeman <david@hardeman.nu>
+>    Acked-by: Jarod Wilson <jarod@redhat.com>
+>    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> 
+> should fix the keytable.  In the meantime (next year) I'll be using this
+> patch.
+
+The entire commit message:
+
+    [media] ir-core: convert drivers/media/video/cx88 to ir-core
+    
+    This patch converts the cx88 driver (for sampling hw) to use the
+    decoders provided by ir-core instead of the separate ones provided
+    by ir-functions (and gets rid of those).
+    
+    The value for MO_DDS_IO had a comment saying it corresponded to
+    a 4kHz samplerate. That comment was unfortunately misleading. The
+    actual samplerate was something like 3250Hz.
+    
+    The current value has been derived by analyzing the elapsed time
+    between interrupts for different values (knowing that each interrupt
+    corresponds to 32 samples).
+    
+    Thanks to Mariusz Bialonczyk <manio@skyboo.net> for testing my patches
+    (about one a day for two weeks!) on actual hardware.
+
+Please note the part about how it *was* tested. And this certainly
+was not a "clumsy hack", I'd actually call it a fairly skilled bit
+of code de-duplication by David. Anyway...
+
+The problem is that there isn't a "the keytable". There are many
+many keytables. And a lot of different hardware. Testing all possible
+combinations of hardware (both receiver side and remote side) is
+next to impossible. We do what we can. Its unfortunate that your
+hardware regressed in functionality. It happens, but it *can* be
+fixed. The fix you provided just wasn't correct. The correct fix is
+trivially updating drivers/media/rc/keymaps/<insert-your-keymap-here>.
+
 -- 
-1.7.3.4
+Jarod Wilson
+jarod@wilsonet.com
+
+
 
