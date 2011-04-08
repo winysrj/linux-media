@@ -1,75 +1,92 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1943 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752631Ab1DGHGK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Apr 2011 03:06:10 -0400
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1616 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932099Ab1DHIIN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Apr 2011 04:08:13 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH/RFC 1/4] V4L: add three new ioctl()s for multi-size videobuffer management
-Date: Thu, 7 Apr 2011 09:06:00 +0200
-Cc: Hans Verkuil <hansverk@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <Pine.LNX.4.64.1104010959470.9530@axis700.grange> <201104051434.57489.hansverk@cisco.com> <Pine.LNX.4.64.1104061812560.22734@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1104061812560.22734@axis700.grange>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [RFCv1 PATCH 5/9] vb2_poll: don't start DMA, leave that to the first read().
+Date: Fri, 8 Apr 2011 10:07:52 +0200
+Cc: "'Hans Verkuil'" <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org
+References: <1301917914-27437-1-git-send-email-hans.verkuil@cisco.com> <aa6ba599252cedcbb977fa151a5af70860384bf1.1301916466.git.hans.verkuil@cisco.com> <000601cbf5ba$b499c690$1dcd53b0$%szyprowski@samsung.com>
+In-Reply-To: <000601cbf5ba$b499c690$1dcd53b0$%szyprowski@samsung.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201104070906.00265.hverkuil@xs4all.nl>
+Message-Id: <201104081007.52435.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wednesday, April 06, 2011 18:19:18 Guennadi Liakhovetski wrote:
-> On Tue, 5 Apr 2011, Hans Verkuil wrote:
+On Friday, April 08, 2011 09:00:55 Marek Szyprowski wrote:
+> Hello,
 > 
-> > On Tuesday, April 05, 2011 14:21:03 Laurent Pinchart wrote:
-> > > On Friday 01 April 2011 10:13:02 Guennadi Liakhovetski wrote:
+> On Monday, April 04, 2011 1:52 PM Hans Verkuil wrote:
 > 
-> [snip]
-> 
-> > > >   *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
-> > > >   *
-> > > > @@ -1937,6 +1957,10 @@ struct v4l2_dbg_chip_ident {
-> > > >  #define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct
-> > > > v4l2_event_subscription) #define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 91,
-> > > > struct v4l2_event_subscription)
-> > > > 
-> > > > +#define VIDIOC_CREATE_BUFS	_IOWR('V', 92, struct v4l2_create_buffers)
-> > > > +#define VIDIOC_DESTROY_BUFS	_IOWR('V', 93, struct v4l2_buffer_span)
-> > > > +#define VIDIOC_SUBMIT_BUF	 _IOW('V', 94, int)
-> > > > +
-> > > 
-> > > In case we later need to pass other information (such as flags) to 
-> > > VIDIOC_SUBMIT_BUF, you should use a structure instead of an int.
+> > The vb2_poll function would start read DMA if called without any streaming
+> > in progress. This unfortunately does not work if the application just wants
+> > to poll for exceptions. This information of what the application is polling
+> > for is sadly unavailable in the driver.
 > > 
-> > I would just pass struct v4l2_buffer to this ioctl, just like QBUF/DQBUF do.
+> > Andy Walls suggested to just return POLLIN | POLLRDNORM and let the first
+> > call to read start the DMA. This initial read() call will return EAGAIN
+> > since no actual data is available yet, but it does start the DMA.
 > 
-> As I said, I didn't like this very much, because it involves redundant 
-> data, but if we want to call .buf_prepare() from it, then we need 
-> v4l2_buffer...
+> The current implementation of vb2_read() will just start streaming on first
+> call without returning EAGAIN. Do you think this should be changed?
 
-I don't see a problem with this. Applications already *have* the v4l2_buffer
-after all. It's not as if they have to fill that structure just for this call.
-
-Furthermore, you need all that data anyway because you need to do the same
-checks that vb2_qbuf does.
-
-Regarding DESTROY_BUFS: perhaps we should just skip this for now and wait for
-the first use-case. That way we don't need to care about holes. I don't like
-artificial restrictions like 'no holes'. If someone has a good use-case for
-selectively destroying buffers, then we need to look at this again.
+In the non-blocking case vb2_read will also return EAGAIN. Which is what
+I meant. So nothing needs to be changed.
 
 Regards,
 
-	Hans
+        Hans
 
 > 
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
+> > 
+> > Application are supposed to handle EAGAIN. MythTV does handle this
+> > correctly.
+> > 
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > ---
+> >  drivers/media/video/videobuf2-core.c |   16 +++-------------
+> >  1 files changed, 3 insertions(+), 13 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/videobuf2-core.c
+> > b/drivers/media/video/videobuf2-core.c
+> > index 6698c77..2dea57a 100644
+> > --- a/drivers/media/video/videobuf2-core.c
+> > +++ b/drivers/media/video/videobuf2-core.c
+> > @@ -1372,20 +1372,10 @@ unsigned int vb2_poll(struct vb2_queue *q, struct
+> > file *file, poll_table *wait)
+> >  	 * Start file I/O emulator only if streaming API has not been used
+> > yet.
+> >  	 */
+> >  	if (q->num_buffers == 0 && q->fileio == NULL) {
+> > -		if (!V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_READ))
+> > {
+> > -			ret = __vb2_init_fileio(q, 1);
+> > -			if (ret)
+> > -				return POLLERR;
+> > -		}
+> > -		if (V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_WRITE))
+> > {
+> > -			ret = __vb2_init_fileio(q, 0);
+> > -			if (ret)
+> > -				return POLLERR;
+> > -			/*
+> > -			 * Write to OUTPUT queue can be done immediately.
+> > -			 */
+> > +		if (!V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_READ))
+> > +			return POLLIN | POLLRDNORM;
+> > +		if (V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_WRITE))
+> >  			return POLLOUT | POLLWRNORM;
+> > -		}
+> >  	}
+> > 
+> >  	/*
+> > --
+> 
+> Best regards
 > 
