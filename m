@@ -1,41 +1,53 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.187]:64671 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754517Ab1DROPv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Apr 2011 10:15:51 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH 4/7] v4l: videobuf2: add IOMMU based DMA memory allocator
-Date: Mon, 18 Apr 2011 16:15:48 +0200
-Cc: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Andrzej Pietrasiwiecz <andrzej.p@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kukjin Kim <kgene.kim@samsung.com>
-References: <1303118804-5575-1-git-send-email-m.szyprowski@samsung.com> <1303118804-5575-5-git-send-email-m.szyprowski@samsung.com>
-In-Reply-To: <1303118804-5575-5-git-send-email-m.szyprowski@samsung.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:60939 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757204Ab1DHPHQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Apr 2011 11:07:16 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: javier Martin <javier.martin@vista-silicon.com>
+Subject: Re: mt9t111 sensor on Beagleboard xM
+Date: Fri, 8 Apr 2011 17:07:17 +0200
+Cc: linux-media@vger.kernel.org
+References: <BANLkTin35p+xPHWkf3WsGNPzL9aeUwsazQ@mail.gmail.com>
+In-Reply-To: <BANLkTin35p+xPHWkf3WsGNPzL9aeUwsazQ@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-15"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201104181615.49009.arnd@arndb.de>
+Message-Id: <201104081707.17576.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Monday 18 April 2011, Marek Szyprowski wrote:
-> From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Hi Javier,
+
+On Friday 08 April 2011 17:02:48 javier Martin wrote:
+> Hi,
+> I've just received a LI-LBCM3M1 camera module from Leopard Imaging and
+> I want to test it with my Beagleboard xM. This module has a mt9t111
+> sensor.
 > 
-> This patch adds new videobuf2 memory allocator dedicated to devices that
-> supports IOMMU DMA mappings. A device with IOMMU module and a driver
-> with include/iommu.h compatible interface is required. This allocator
-> aquires memory with standard alloc_page() call and doesn't suffer from
-> memory fragmentation issues. The allocator support following page sizes:
-> 4KiB, 64KiB, 1MiB and 16MiB to reduce iommu translation overhead.
+> At first glance, this driver
+> (http://lxr.linux.no/#linux+v2.6.38/drivers/media/video/mt9t112.c)
+> supports mt9t111 sensor and uses both soc-camera and v4l2-subdev
+> frameworks.
+> I am trying to somehow connect this sensor with the omap3isp driver
+> recently merged (I'm working with latest mainline kernel), however, I
+> found an issue when trying to pass "mt9t112_camera_info" data to the
+> sensor driver in my board specific file.
+> 
+> It seems that this data is passed through soc-camera but omap3isp
+> doesn't use soc-camera. Do you know what kind of changes are required
+> to adapt this driver so that it can be used with omap3isp?
 
-My feeling is that this is not the right abstraction. Why can't you
-just implement the regular dma-mapping.h interfaces for your IOMMU
-so that the videobuf code can use the existing allocators?
+The OMAP3 ISP driver isn't compatible with the soc-camera framework, as you 
+correctly noticed. You will need to port the MT9T111 driver to pad-level 
+subdev operations.
 
-	Arnd
+You can find a sensor driver (MT9V032) implementing pad-level subdev 
+operations at 
+http://git.linuxtv.org/pinchartl/media.git?a=commit;h=940b87a5cb7ea3f3cff16454e9085e33ab340064 
+
+-- 
+Regards,
+
+Laurent Pinchart
