@@ -1,63 +1,31 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.10]:51227 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751703Ab1DSMAg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Apr 2011 08:00:36 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: "Russell King - ARM Linux" <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 4/7] v4l: videobuf2: add IOMMU based DMA memory allocator
-Date: Tue, 19 Apr 2011 14:00:29 +0200
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-samsung-soc@vger.kernel.org,
-	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
-	"'Kukjin Kim'" <kgene.kim@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-References: <1303118804-5575-1-git-send-email-m.szyprowski@samsung.com> <00ea01cbfe70$860ca900$9225fb00$%szyprowski@samsung.com> <20110419092135.GD22799@n2100.arm.linux.org.uk>
-In-Reply-To: <20110419092135.GD22799@n2100.arm.linux.org.uk>
+Received: from smtp182.iad.emailsrvr.com ([207.97.245.182]:50814 "EHLO
+	smtp182.iad.emailsrvr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757120Ab1DHA4h convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Apr 2011 20:56:37 -0400
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by smtp38.relay.iad1a.emailsrvr.com (SMTP Server) with ESMTP id D85793483CB
+	for <linux-media@vger.kernel.org>; Thu,  7 Apr 2011 20:50:22 -0400 (EDT)
+Received: from dynamic9.wm-web.iad.mlsrvr.com (dynamic9.wm-web.iad1a.rsapps.net [192.168.2.216])
+	by smtp38.relay.iad1a.emailsrvr.com (SMTP Server) with ESMTP id C08583482F9
+	for <linux-media@vger.kernel.org>; Thu,  7 Apr 2011 20:50:22 -0400 (EDT)
+Received: from mailtrust.com (localhost [127.0.0.1])
+	by dynamic9.wm-web.iad.mlsrvr.com (Postfix) with ESMTP id B04DB3200A4
+	for <linux-media@vger.kernel.org>; Thu,  7 Apr 2011 20:50:22 -0400 (EDT)
+Date: Thu, 7 Apr 2011 20:50:22 -0400 (EDT)
+Subject: Prof 7500 demod crashing after many tunes
+From: "Aaron" <aaron@chinesebob.net>
+To: linux-media@vger.kernel.org
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201104191400.30167.arnd@arndb.de>
+Content-Type: text/plain;charset=UTF-8
+Content-Transfer-Encoding: 8BIT
+Message-ID: <1302223822.720720176@192.168.4.58>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tuesday 19 April 2011, Russell King - ARM Linux wrote:
-> On Tue, Apr 19, 2011 at 11:02:34AM +0200, Marek Szyprowski wrote:
-> > On Monday, April 18, 2011 4:16 PM Arnd Bergmann wrote:
-> > > My feeling is that this is not the right abstraction. Why can't you
-> > > just implement the regular dma-mapping.h interfaces for your IOMMU
-> > > so that the videobuf code can use the existing allocators?
-> > 
-> > I'm not really sure which existing videobuf2 allocators might transparently
-> > support IOMMU interface yet
-> > 
-> > Do you think that all iommu operations can be hidden behind dma_map_single 
-> > and dma_unmap_single?
-> 
-> That is one of the intentions of the DMA API.
+  I wrote a scan program that steps through all the frequencies in a given range and tries to tune them in a for loop. This is my first C program so be nice, 
 
-Exactly.
+http://chinesebob.net/dvb/blindscan-s2/blindscan-s2-201104070153.tgz 
 
-All architectures that support IOMMUs today do that, see:
+I'm using it with my Prof 7500, which uses the dvb-usb-dw2102 and stv0900 modules, this way I can use the blindscan algo and do a blind scan for all transponders in a satellite to find the symbol rates. A problem I'm having now is that after something like 60 tuning attempts the demod crashes and I cannot tune anything else unless I reset power on the tuning device, this is a usb device. Resetting the usb bus and removing/readding the drivers doesn't help. This happens on any version of s2-liplianin I've tried from 3 months ago to current. The current version of s2-liplianin tunes much faster but, that just means it will crash faster when I try my tuning loop. Please let me know what kind of debugging I should do and what I should post to the list that would be helpful to figure this out. When it's in this state I get a constant DEMOD LOCK OK, and it thinks it has 100% signal, is there some way to force the demod to think it is not locking, or force reset the demod somehow without resetting power to the device?   
 
-arch/alpha/kernel/pci_iommu.c
-arch/ia64/hp/common/sba_iommu.c
-arch/powerpc/kernel/dma-iommu.c
-arch/sparc/kernel/iommu.c
-arch/x86/kernel/amd_iommu.c
-
-ARM would be the first one to combine an IOMMU with potentially
-noncoherent DMA, but there is no fundamental reason why we shouldn't
-be able to transparently support an IOMMU.
-
-Ideally, I think we should first find an architecture-independent
-way to define an IOMMU in one place instead of having to do both
-the iommu.h and dma-mapping.h interfaces, but I wouldn't require
-Samsung to do that in order to support their IOMMU. Doing support for
-the dma-mapping.h interface should be sufficient there.
-
-	Arnd
