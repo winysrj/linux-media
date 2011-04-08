@@ -1,70 +1,69 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1977 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751646Ab1DGJ3F (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Apr 2011 05:29:05 -0400
-Message-ID: <67d14bc84cde1153c035ddff7efdcb8f.squirrel@webmail.xs4all.nl>
-In-Reply-To: <201104071117.59995.laurent.pinchart@ideasonboard.com>
-References: <Pine.LNX.4.64.1104010959470.9530@axis700.grange>
-    <Pine.LNX.4.64.1104070914540.24325@axis700.grange>
-    <058f16a20d747a5ef6b300e119fa69b4.squirrel@webmail.xs4all.nl>
-    <201104071117.59995.laurent.pinchart@ideasonboard.com>
-Date: Thu, 7 Apr 2011 11:28:57 +0200
-Subject: Re: [PATCH/RFC 1/4] V4L: add three new ioctl()s for multi-size
- videobuffer management
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>
-Cc: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
-	"Hans Verkuil" <hansverk@cisco.com>,
-	"Linux Media Mailing List" <linux-media@vger.kernel.org>,
-	"Mauro Carvalho Chehab" <mchehab@infradead.org>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:48534 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757777Ab1DHU0S (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Apr 2011 16:26:18 -0400
+Received: by ewy4 with SMTP id 4so1211868ewy.19
+        for <linux-media@vger.kernel.org>; Fri, 08 Apr 2011 13:26:17 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+In-Reply-To: <15656328.2482791302255317486.JavaMail.defaultUser@defaultHost>
+References: <15656328.2482791302255317486.JavaMail.defaultUser@defaultHost>
+Date: Fri, 8 Apr 2011 16:26:16 -0400
+Message-ID: <BANLkTinC8h232CkvmQ1UPRDKTZgybLp_Lg@mail.gmail.com>
+Subject: Re: [linux-dvb] Pinnacle PCTV Dual DVB-T Pro PCI 2000i
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: linux-media@vger.kernel.org,
+	"pigeonskiller@libero.it" <pigeonskiller@libero.it>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-> Hi Hans,
->
-> On Thursday 07 April 2011 09:50:13 Hans Verkuil wrote:
->> > On Thu, 7 Apr 2011, Hans Verkuil wrote:
->
-> [snip]
->
->> >> Regarding DESTROY_BUFS: perhaps we should just skip this for now and
->> wait
->> >> for the first use-case. That way we don't need to care about holes. I
->> >> don't like artificial restrictions like 'no holes'. If someone has a
->> good
->> >> use-case for selectively destroying buffers, then we need to look at
->> this
->> >> again.
->> >
->> > Sorry, skip what? skip the ioctl completely and rely on REQBUFS(0) /
->> > close()?
->>
->> Yes.
->
-> I don't really like that as it would mix CREATE and REQBUFS calls.
-> Applications should either use the old API (REQBUFS) or the new one, but
-> not
-> mix both.
+On Fri, Apr 8, 2011 at 5:35 AM, pigeonskiller@libero.it
+<pigeonskiller@libero.it> wrote:
+> Pinnacle PCTV Dual DVB-T Pro PCI 2000i (http://linuxtv.org/wiki/index.php/DVB-
+> T_PCI_Cards#Pinnacle) was introduced in 2006 and after 5 years it is still
+> unsupported in linux!
+> Unbelievable!
 
-That's a completely unnecessary limitation. And from the point of view of
-vb2 it shouldn't even matter.
+I'm not sure why you find it so unbelievable.  This is a project
+largely composed of volunteers who are working on products in their
+own time.  If it still isn't supported, then it means that no
+developer owns a board and cares enough to spend a couple dozen hours
+to make it work.
 
-> The fact that freeing arbitrary spans of buffers gives us uneasy feelings
-> might be a sign that the CREATE/DESTROY API is not mature enough. I'd
-> rather
-> try to solve the issue now instead of postponing it for later and discover
-> that our CREATE API should have been different.
+> Yet its chips Zarlink ZL10353 (http://linuxtv.org/wiki/index.
+> php/Zarlink_ZL10353) and Microtune MT2060 (http://linuxtv.org/wiki/index.
+> php/Microtune_MT2060) are supported (http://www.linuxtv.
+> org/downloads/drivers/linux-media-LATEST.tar.bz2)!
+> So, what is missing?
 
-What gives me an uneasy feeling is prohibiting freeing arbitrary spans of
-buffers. I rather choose not to implement the DESTROY ioctl instead of
-implementing a limited version of it, also because we do not have proper
-use cases yet. But I have no problems with the CREATE/DESTROY API as such.
+A developer who cares enough to do the work for free, or a corporate
+entity willing to pay fair market prices to pay to have it supported?
 
-Regards,
+> Probably this is the reason why Linux is not so widespread: LACK OF DRIVERS!
+> And this is the reason why a lot of users cannot migrate to Linux and are
+> forced to use that stupid O.S. called Win****!
+> If anyone wants to have a look at Windows' drivers and is able to develop
+> drivers (I'm not), here are the drivers:
+> ftp://ftp.pctvsystems.com/TV/driver/PCTV%202000i/PCTV%20250i%202000i.zip
 
-       Hans
+There are very few developers actively contributing to LinuxTV.  With
+limited developer resources, they have to make decisions about what
+they are going to work on.  if those decisions aren't aligned with
+what *you* want them working on, then your only option really is to
+learn to become a developer and add the support yourself.
 
+You just have to look at motivation:  if a developer doesn't benefit
+personally from having the card working, doesn't think it's fun to
+make it work, and isn't being paid, then why invest ten or twenty
+hours of his/her valuable time?
+
+Welcome to a community of volunteers.  We'll be happy to refund 100%
+of the money that you've paid to seeing this device work under Linux.
+:-)
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
