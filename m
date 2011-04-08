@@ -1,71 +1,88 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:41198 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753183Ab1DETHQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2011 15:07:16 -0400
-Received: by fxm17 with SMTP id 17so491567fxm.19
-        for <linux-media@vger.kernel.org>; Tue, 05 Apr 2011 12:07:14 -0700 (PDT)
-Date: Tue, 5 Apr 2011 21:07:04 +0200
-From: Steffen Barszus <steffenbpunkt@googlemail.com>
-To: "Issa Gorissen" <flop.m@usa.net>
-Cc: <linux-media@vger.kernel.org>
-Subject: Re: TT-budget S2-3200 cannot tune on HB13E DVBS2 transponder
-Message-ID: <20110405210704.24555a04@grobi>
-In-Reply-To: <632PDek8o1744S03.1302001214@web03.cms.usa.net>
-References: <632PDek8o1744S03.1302001214@web03.cms.usa.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57284 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756128Ab1DHMs3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Apr 2011 08:48:29 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: vb2: stop_streaming() callback redesign
+Date: Fri, 8 Apr 2011 14:48:15 +0200
+Cc: "'Pawel Osciak'" <pawel@osciak.com>, linux-media@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	g.liakhovetski@gmx.de
+References: <1301874670-14833-1-git-send-email-pawel@osciak.com> <201104041227.30262.laurent.pinchart@ideasonboard.com> <009f01cbf39d$a9cd7320$fd685960$%szyprowski@samsung.com>
+In-Reply-To: <009f01cbf39d$a9cd7320$fd685960$%szyprowski@samsung.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201104081448.25924.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, 05 Apr 2011 13:00:14 +0200
-"Issa Gorissen" <flop.m@usa.net> wrote:
+Hi Marek,
 
-> Hi,
+On Tuesday 05 April 2011 16:27:54 Marek Szyprowski wrote:
+> On Monday, April 04, 2011 12:27 PM Laurent Pinchart wrote:
+> > On Monday 04 April 2011 01:51:05 Pawel Osciak wrote:
+> > > 
+> > > This series implements a slight redesign of the stop_streaming()
+> > > callback in vb2. The callback has been made obligatory. The drivers
+> > > are expected to finish all hardware operations and cede ownership of
+> > > all buffers before returning, but are not required to call
+> > > vb2_buffer_done() for any of them. The return value from this callback
+> > > has also been removed.
+> > 
+> > What's the rationale behind this patch set ? I've always been against vb2
+> > controlling the stream state (vb2 should handle buffer management only in
+> > my opinion) and I'd like to understand why you want to make it required.
 > 
-> Eutelsat made a recent migration from DVB-S to DVB-S2 (since
-> 31/3/2011) on two transponders on HB13E
+> Let me remind the rationale behind {start,stop}_streaming. Basically there
+> are more than one place where you should change the DMA streaming state,
+> some of which are quite obvious (like stream_{on,off}), the others are a
+> bit more surprising (like the recently discussed first call to poll()).
+
+stream_on and stream_off are not difficult to handle on the driver side, but I 
+agree that it becomes more complex when poll() and read() get involved. I 
+still believe that stream on/off is out of scope of the video buffer 
+management implemementation.
+
+> Also some of the vb2 operations behaves differently if streaming is
+> enabled or not (like dqbuf), so vb2 needs to be aware of streaming state
+> change.
+
+I have no issue with vb2 being aware of stream state changes, my issues comes 
+from vb2 managing the stream state itself.
+
+> The idea is also to simplify the drivers and provide a one-to-one functions
+> for all typical v4l2 operations: req_bufs, query_bufs, q_buf, dq_buf,
+> stream_on, stream_off, mmap, read/write, poll, so implementation of all
+> from this list can be a simple 4 lines of code, like the following:
 > 
-> - HOT BIRD 6 13° Est TP 159 Freq 11,681 Ghz DVB-S2 FEC 3/4 27500
-> Msymb/s 0.2 Pilot off Polar H
+> static int vidioc_streamon(struct file *file, void *priv, enum
+> v4l2_buf_type i) {
+>         struct vivi_dev *dev = video_drvdata(file);
+>         return vb2_streamon(&dev->vb_vidq, i);
+> }
+
+All those functions deal with buffer management, except for streamon and 
+streamoff.
+
+> > I plan to use vb2 in the uvcvideo driver (when vb2 will provide a way to
+> > handle device disconnection), and uvcvideo will stop the stream before
+> > calling vb2_queue_release() and vb2_streamoff(). Would will I need a
+> > stop_stream operation ?
 > 
-> - HOT BIRD 9 13° Est TP 99 Freq 12,692 Ghz DVB-S2 FEC 3/4 27500
-> Msymb/s 0.2 Pilot off Polar H
-> 
-> 
-> Before those changes, with my TT S2 3200, I was able to watch TV on
-> those transponders. Now, I cannot even tune on those transponders. I
-> have tried with scan-s2 and w_scan and the latest drivers from git.
-> They both find the transponders but cannot tune onto it.
-> 
-> Something noteworthy is that my other card, a DuoFlex S2 can tune
-> fine on those transponders.
-> 
-> My question is; can someone try this as well with a TT S2 3200 and
-> post the results ?
+> What's prevents you from moving the dma streaming stop call from
+> stop_streaming ioctl and release file operation?
 
-i read something about it lately here (german!): 
-http://www.vdr-portal.de/board16-video-disk-recorder/board85-hdtv-dvb-s2/p977938-stb0899-fec-3-4-tester-gesucht/#post977938
+Probably not much. What bothers me is that the vb2 stream on/off callbacks to 
+drivers are not properly documented, so driver authors might implement them 
+without thinking about all possible call paths, and crash in corner cases. I 
+don't like implementing a callback in a driver when I don't know exactly when 
+and how it can be called.
 
-It says in stb0899_drv.c function:
-static void stb0899_set_iterations(struct stb0899_state *state) 
+-- 
+Regards,
 
-This:
-reg = STB0899_READ_S2REG(STB0899_S2DEMOD, MAX_ITER);
-STB0899_SETFIELD_VAL(MAX_ITERATIONS, reg, iter_scale);
-stb0899_write_s2reg(state, STB0899_S2DEMOD, STB0899_BASE_MAX_ITER, STB0899_OFF0_MAX_ITER, reg);
-
-should be replaced with this:
-
-reg = STB0899_READ_S2REG(STB0899_S2FEC, MAX_ITER);
-STB0899_SETFIELD_VAL(MAX_ITERATIONS, reg, iter_scale);
-stb0899_write_s2reg(state, STB0899_S2FEC, STB0899_BASE_MAX_ITER, STB0899_OFF0_MAX_ITER, reg);
-
-Basically replace STB0899_S2DEMOD with STB0899_S2FEC in this 2 lines
-affected.
-
-Kind Regards 
-
-Steffen
-
+Laurent Pinchart
