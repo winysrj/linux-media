@@ -1,44 +1,73 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3811 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932276Ab1DHPjN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Apr 2011 11:39:13 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFCv1 PATCH 3/9] v4l2-ioctl: add ctrl_handler to v4l2_fh
-Date: Fri, 8 Apr 2011 17:39:01 +0200
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org
-References: <1301917914-27437-1-git-send-email-hans.verkuil@cisco.com> <b4f1a4000c9764bfd326a4f9b3fbfa57b40ac102.1301916466.git.hans.verkuil@cisco.com> <201104081710.32652.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201104081710.32652.laurent.pinchart@ideasonboard.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57301 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751826Ab1DHMu0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Apr 2011 08:50:26 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Pawel Osciak <pawel@osciak.com>
+Subject: Re: vb2: stop_streaming() callback redesign
+Date: Fri, 8 Apr 2011 14:50:21 +0200
+Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	s.nawrocki@samsung.com, g.liakhovetski@gmx.de
+References: <1301874670-14833-1-git-send-email-pawel@osciak.com> <201104041227.30262.laurent.pinchart@ideasonboard.com> <BANLkTikBhDkmngtmjfz=Ze2c8Rj6zeVKvg@mail.gmail.com>
+In-Reply-To: <BANLkTikBhDkmngtmjfz=Ze2c8Rj6zeVKvg@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-15"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201104081739.01073.hverkuil@xs4all.nl>
+Message-Id: <201104081450.28472.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Friday, April 08, 2011 17:10:32 Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> On Monday 04 April 2011 13:51:48 Hans Verkuil wrote:
-> > From: Hans Verkuil <hverkuil@xs4all.nl>
+Hi Pawel,
+
+On Tuesday 05 April 2011 17:12:29 Pawel Osciak wrote:
+> On Mon, Apr 4, 2011 at 03:27, Laurent Pinchart wrote:
+> > On Monday 04 April 2011 01:51:05 Pawel Osciak wrote:
+> >> Hi,
+> >> 
+> >> This series implements a slight redesign of the stop_streaming()
+> >> callback in vb2. The callback has been made obligatory. The drivers are
+> >> expected to finish all hardware operations and cede ownership of all
+> >> buffers before returning, but are not required to call
+> >> vb2_buffer_done() for any of them. The return value from this callback
+> >> has also been removed.
 > > 
-> > This is required to implement control events and is also needed to allow
-> > for per-filehandle control handlers.
+> > What's the rationale behind this patch set ? I've always been against vb2
+> > controlling the stream state (vb2 should handle buffer management only in
+> > my opinion) and I'd like to understand why you want to make it required.
 > 
-> Thanks for the patch.
-> 
-> Shouldn't you modify v4l2-subdev.c similarly ?
-> 
-> 
+> I might have overstated the intention saying it was a 'redesign'. It
+> actually doesn't change the overall stop_streaming callback idea, I am
+> just simplifying it with this patch, while also emphasizing its role
+> by making it obligatory. Drivers were always required to finish
+> everything they were doing with the buffers before returning from
+> stop_streaming. But until now, stop_streaming was expecting the driver
+> to call vb2_buffer_done for all buffers it received via buf_queue.
+> We've decided it's superfluous, so I am removing this requirement.
+> Also, I didn't see any use for the return value from stop_streaming so
+> I removed it as well. Apart from the above, nothing has really
+> changed.
 
-Good question. Does it make sense to have per-filehandle controls for a
-sub-device? On the other hand, does it make sense NOT to have it?
+Does that mean that drivers don't have to implement the stop_streaming 
+callback if they finish all buffer-related operations before calling vb2 
+functions that stop streaming ?
 
-I'm inclined to add this functionality if nobody objects. Although a
-use-case for this would be nice bonus.
+> > I plan to use vb2 in the uvcvideo driver (when vb2 will provide a way to
+> > handle device disconnection), and uvcvideo will stop the stream before
+> > calling vb2_queue_release() and vb2_streamoff(). Would will I need a
+> > stop_stream operation ?
+> 
+> I actually just yesterday noticed your response from a couple of weeks ago
+> to my comments to your original buf_queue proposal in my ever growing pile
+> of mail, sorry about that, I will reply to that as soon as I have time to
+> properly read it and think about it. Nevertheless, I have the same question
+> as Marek here, would there be anything preventing you from doing that in
+> stop_streaming?
 
+See my reply to Marek :-)
+
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
