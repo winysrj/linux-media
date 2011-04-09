@@ -1,87 +1,124 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41496 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932858Ab1D0OGC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Apr 2011 10:06:02 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: javier Martin <javier.martin@vista-silicon.com>
-Subject: Re: Problems with omap3isp + mt9p031 in Beagleboard xM.
-Date: Wed, 27 Apr 2011 16:06:19 +0200
-Cc: linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <BANLkTim9-Q2J18WMEzaMrTrXYDLqwkOgag@mail.gmail.com>
-In-Reply-To: <BANLkTim9-Q2J18WMEzaMrTrXYDLqwkOgag@mail.gmail.com>
+Received: from smtp.nokia.com ([147.243.128.24]:46156 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754780Ab1DIQPX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 9 Apr 2011 12:15:23 -0400
+Message-ID: <4DA0869E.4030505@maxwell.research.nokia.com>
+Date: Sat, 09 Apr 2011 19:17:34 +0300
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Nayden Kanchev <nkanchev@mm-sol.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Cohen David Abraham <david.cohen@nokia.com>,
+	Kim HeungJun <riverful@gmail.com>
+Subject: Re: [RFC v2] V4L2 API for flash devices
+References: <4D9C2000.9090500@maxwell.research.nokia.com> <4D9C2670.2000603@mm-sol.com> <4D9C31A4.3050705@maxwell.research.nokia.com> <201104061523.19756.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201104061523.19756.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201104271606.19944.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Javier,
+Laurent Pinchart wrote:
+> Hi Sakari,
 
-On Tuesday 26 April 2011 13:18:44 javier Martin wrote:
-> Hi,
-> I'm trying to port Guennadi's patches
-> (http://download.open-technology.de/BeagleBoard_xM-MT9P031/) to last
-> mainline kernel 2.6.39-rc.
-> 
-> I've managed to compile and configure the video interface using the
-> suggested commands:
-> 
-> root@beagleboard:~# ./media-ctl -r -l '"mt9p031 2-0048":0->"OMAP3 ISP
-> CCDC":0[1], "OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
-> Resetting all links to inactive
-> Setting up link 16:0 -> 5:0 [1]
-> Setting up link 5:1 -> 6:0 [1]
-> 
-> root@beagleboard:~# ./media-ctl -f '"mt9p031 2-0048":0[SGRBG8
-> 320x240], "OMAP3 ISP CCDC":1[SGRBG8 320x240]'
-> Setting up forma[   75.031677] mt9p031_set_format(320x240 : 1)
-> t SGRBG8 320x240 on pad mt9p031 2-0048/0
-> Format set: SGRBG8 320x240
-> Setting up format SGRBG8 320x240 on pad OMAP3 ISP CCDC/0
-> Format set: SGRBG8 320x240
-> Setting up format SGRBG8 320x240 on pad OMAP3 ISP CCDC/1
-> Format set: SGRBG8 320x240
-> 
-> However, when I try to capture some frames using yavta I get the following:
-> 
-> root@beagleboard:~# ./yavta -f SGRBG8 -s 320x240 -n 4 --capture=10
-> --skip 3 -F `./media-ctl -e "OMAP3 ISP CCDC output"`
-> Device /dev/video2 opened: OMAP3 ISP CCDC output (media).
-> Video[   81.140228] mt9p031_get_format()
->  format set: width: 320 height: 240 buffer size: 76800
-> Video format: GRBG (47425247) 320x240
-> 4 buffers requested.
-> length: 76800 offset: 0
-> Buffer 0 mapped at address 0x400c2000.
-> length: 76800 offset: 77824
-> Buffer 1 mapped at address 0x40213000.
-> length: 76800 offset: 155648
-> Buffer 2 mapped at address 0x40293000.
-> length: 76800 offset: 233472
-> Buffer 3 mapped at address 0x40344000.
-> [   81.268341] omap-iommu omap-iommu.0: isp: errs:0x00000000
-> da:0x00000000 pgd:0xdedb0000 *pgd:0x9e00fc01 pte:0xde00fc00
-> *pte:0x00000000
+Hi Laurent,
 
-[snip]
+And thanks for the comments.
 
-> And the image files I get are filled with 5555 instead of useful data.
+> On Wednesday 06 April 2011 11:25:56 Sakari Ailus wrote:
+>> Nayden Kanchev wrote:
+>>> On 04/06/2011 11:10 AM, Sakari Ailus wrote:
+>>>> - Added an open question on a new control:
+>>>> V4L2_CID_FLASH_EXTERNAL_STROBE_WHENCE.
+>>>
+>>> <snip>
+>>>
+>>>> 2. External strobe edge / level
+>>>> -------------------------------
+>>>>
+>>>> No use is seen currently for this, but it may well appear, and the
+>>>> hardware supports this. Level based trigger should be used since it is
+>>>> more precise.
+>>>>
+>>>>     V4L2_CID_FLASH_EXTERNAL_STROBE_WHENCE
+>>>>
+>>>> Whether the flash controller considers external strobe as edge, when the
+>>>> only limit of the strobe is the timeout on flash controller, or level,
+>>>> when the flash strobe will last as long as the strobe signal, or as long
+>>>> until the timeout expires.
+>>>>
+>>>> enum v4l2_flash_external_strobe_whence {
+>>>>
+>>>>     V4L2_CID_FLASH_EXTERNAL_STROBE_LEVEL,
+>>>>     V4L2_CID_FLASH_EXTERNAL_STROBE_EDGE,
+>>>>
+>>>> };
+>>
+>> Removed "CID_":
+>>
+>> enum v4l2_flash_external_strobe_whence {
+>> 	V4L2_FLASH_EXTERNAL_STROBE_LEVEL,
+>> 	V4L2_FLASH_EXTERNAL_STROBE_EDGE,
+>> };
+>>
+>> I guess this should be an rw menu control for LED flash?
+>>
+>>> I agree that control over the strobe usage (level/edge) is required.
+>>> Although we have some bad experience will lack of detailed information
+>>> how exactly the flash chip will use those signals.
+>>>
+>>> For example with AS3645A flash driver strobing by edge produced really
+>>> strange flash output - light intensity was changing during the process
+>>> and flash was stopped before the HW timeout.
+>>>
+>>> On the other hand strobing by level didn't cause problems.
+>>>
+>>> So even if HW supports some functionally we should prevent such
+>>> malfunctioning by adding some restrictions in the board code also.
+>>
+>> I agree.
+>>
+>> The control should be probably exposed to tell which kind of
+>> functionality does the flash chip provide, even if the menu has just one
+>> option in it.
+>>
+>>> I would also rename xxx_STROBE_WHENCE to xxx_STROBE_TYPE but it is just
+>>> a suggestion :)
+>>
+>> Sounds good to me.
+>>
+>> V4L2_CID_FLASH_STROBE_MODE should be renamed to
+>> V4L2_CID_FLASH_STROBE_WHENCE. That proper use of whence IMO. :-)
 > 
-> Does anybody know whether those iommu errors are harmless?
-> Do I need to enable CAM mux inside
-> arch/arm/mach-omap2/board-omap3beagle.c which are currently disabled
-> using an ifdef?
+> Does this really need to be exposed to userspace ? Shouldn't it just be static 
+> information coming from platform data ?
 
-Please try the patch at
+If the sensor is expected to set the strobe length, the value needs to
+be programmed to the sensor. The sensor driver should be able to do this
+as it has all the timing related information on the sensor state.
 
-http://thread.gmane.org/gmane.linux.ports.arm.omap/56662
+What if the user wants to expose more than one frame with flash?
 
--- 
+The sensor should be able to export the total required exposure time of
+the full frame. The exposure of each line begins at different time so
+the exposure time of the full frame exceeds the exposure time of a
+single pixel --- it may be almost double.
+
+The user must be able to know that the exposure time required to expose
+the frame is smaller or equal to the maximum possible exposure time of
+the flash.
+
+To the user there is no significant difference between the two. There
+may be effects on the following frames beyond the one(s) exposed with flash.
+
+I agree we could omit this, at least for now.
+
 Regards,
 
-Laurent Pinchart
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
