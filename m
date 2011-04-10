@@ -1,96 +1,82 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.171]:64413 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753449Ab1DTQHc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Apr 2011 12:07:32 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH 2/7] ARM: Samsung: update/rewrite Samsung SYSMMU (IOMMU) driver
-Date: Wed, 20 Apr 2011 18:07:27 +0200
-Cc: "'Joerg Roedel'" <joerg.roedel@amd.com>,
-	linux-samsung-soc@vger.kernel.org,
-	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
-	"'Kukjin Kim'" <kgene.kim@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-References: <1303118804-5575-1-git-send-email-m.szyprowski@samsung.com> <201104191629.49676.arnd@arndb.de> <007301cbff6a$f17a4710$d46ed530$%szyprowski@samsung.com>
-In-Reply-To: <007301cbff6a$f17a4710$d46ed530$%szyprowski@samsung.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201104201807.27314.arnd@arndb.de>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:57486 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751602Ab1DJBj6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Apr 2011 21:39:58 -0400
+Received: by vxi39 with SMTP id 39so3496366vxi.19
+        for <linux-media@vger.kernel.org>; Sat, 09 Apr 2011 18:39:58 -0700 (PDT)
+Subject: Re: [PATCH] Fix cx88 remote control input
+Mime-Version: 1.0 (Apple Message framework v1084)
+Content-Type: text/plain; charset=us-ascii
+From: Jarod Wilson <jarod@wilsonet.com>
+In-Reply-To: <8f1c0f8a-e4cd-4e3b-8ad4-f58212dfd9d4@email.android.com>
+Date: Sat, 9 Apr 2011 21:39:54 -0400
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Lawrence Rust <lawrence@softsystem.co.uk>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Transfer-Encoding: 8BIT
+Message-Id: <099D978B-BC30-4527-870E-85ECEE74501D@wilsonet.com>
+References: <1302267045.1749.38.camel@gagarin> <AFEB19DA-4FD6-4472-9825-F13A112B0E2A@wilsonet.com> <1302276147.1749.46.camel@gagarin> <B9A35B3D-DC47-4D95-88F5-5453DD3F506C@wilsonet.com> <BANLkTimyT98dabuYsrwLrcm2wQFv2uQB9g@mail.gmail.com> <44DC1ED9-2697-4F92-A81A-CD024C913CCB@wilsonet.com> <BANLkTi=3Gq+8kXm40O55y55O6A6Q4-3g-g@mail.gmail.com> <CDB2A354-8564-447E-99A3-66502E83E4CB@wilsonet.com> <8f1c0f8a-e4cd-4e3b-8ad4-f58212dfd9d4@email.android.com>
+To: Andy Walls <awalls@md.metrocast.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wednesday 20 April 2011, Marek Szyprowski wrote:
-> On Tuesday, April 19, 2011 4:30 PM Arnd Bergmann wrote:
+On Apr 8, 2011, at 4:50 PM, Andy Walls wrote:
 
-> > Sounds good. I think we should put it into a new drivers/iommu, along
-> > with your specific iommu implementation, and then we can convert the
-> > existing ones over to use that.
+> Jarod Wilson <jarod@wilsonet.com> wrote:
+...
+>>>> I have quite a few pieces of Hauppauge hardware, several with IR
+>>>> receivers and remotes, but all of which use ir-kbd-i2c (or
+>>>> lirc_zilog), i.e., none of which pass along raw IR.
+>>> 
+>>> You don't have an HVR-950 or some other stick which announces RC5
+>>> codes?  If not, let me know and I will send you something.  It's kind
+>>> of silly for someone doing that sort of work to not have at least one
+>>> product in each category of receiver.
+>> 
+>> I don't think I even fully realized before today that there was
+>> Hauppauge hardware shipping with the grey remotes and a raw IR
+>> receiver. All the Hauppauge stuff I've got is either i2c IR
+>> (PVR-250, PVR-350, HVR-1950, HD-PVR) or came with a bundled mceusb
+>> transceiver (HVR-1500Q, HVR-1800, HVR-950Q -- model 72241, iirc),
+>> and its all working these days (modulo some quirks with the HD-PVR
+>> that still need sorting, but they're not regressions, its actually
+>> better now than it used to be).
+>> 
+>> So yeah, I guess I have a gap in my IR hardware collection here,
+>> and would be happy to have something to fill it.
+>> 
 > 
-> I see, this sounds quite reasonable. I think I finally got how this should
-> be implemented. 
+> Jarod,
 > 
-> The only question is how a device can allocate a buffer that will be most
-> convenient for IOMMU mapping (i.e. will require least entries to map)?
+> The HVR-1850 uses a raw IR receiver in the CX23888 and older HVR-1250s use the raw IR receiver in the CX23885.  They both work for Rx (I need to tweak the Cx23885 rx watermark though), but I never found time to finish Tx (lack of kernel interface when I had time).
 > 
-> IOMMU can create a contiguous mapping for ANY set of pages, but it performs
-> much better if the pages are grouped into 64KiB or 1MiB areas.
-> 
-> Can device allocate a buffer without mapping it into kernel space?
+> If you obtain one of these I can answer any driver questions.
 
-Not today as far as I know. You can register coherent memory per device
-using dma_declare_coherent_memory(), which will be used to back
-dma_alloc_coherent(), but I believe it is always mapped right now.
+Quite some time back, I bought an HVR-1800 and an HVR-1250. I know one of
+them came with an mceusb transceiver and remote, as was pretty sure it was
+the 1800. For some reason, I didn't recall the 1250 coming with anything at
+all, but looking at dmesg output for it:
 
-This can of course be changed. 
+cx23885 driver version 0.0.2 loaded
+cx23885 0000:03:00.0: PCI INT A -> GSI 16 (level, low) -> IRQ 16
+CORE cx23885[0]: subsystem: 0070:7911, board: Hauppauge WinTV-HVR1250 [card=3,autodetected]
+tveeprom 0-0050: Hauppauge model 79001, rev E3D9, serial# 4904656
+tveeprom 0-0050: MAC address is 00:0d:fe:4a:d6:d0
+tveeprom 0-0050: tuner model is Microtune MT2131 (idx 139, type 4)
+tveeprom 0-0050: TV standards NTSC(M) ATSC/DVB Digital (eeprom 0x88)
+tveeprom 0-0050: audio processor is CX23885 (idx 39)
+tveeprom 0-0050: decoder processor is CX23885 (idx 33)
+tveeprom 0-0050: has no radio, has IR receiver, has no IR transmitter
 
-> The problem that still left to be resolved is the fact the
-> dma_coherent_alloc() should also be able to use IOMMU. This would however
-> trigger the problem of double mappings with different cache attributes: 
-> dma api might require to create coherent (==non-cached mappings), while 
-> all low-memory is still mapped with (super)sections as cached, what is 
-> against ARM CPU specification and might cause unpredicted behavior
-> especially on CPUs that do speculative prefetch. Right now this problem
-> has been ignored in dma-mappings implementation, but there have been some
-> patches posted to resolve this by reserving some area exclusively for dma
-> coherent mappings: 
-> http://thread.gmane.org/gmane.linux.ports.arm.kernel/100822/focus=100913
-> 
-> Right now I would like to postpone resolving this issue because the Samsung
-> iommu task already became really big.
+So it seems I do have hardware. However, its one of the two tuner cards in
+my "production" mythtv backend right now, making it a bit hard to do any
+experimenting with. If I can get it out of there, it looks like I just add
+an enable_885_ir=1, and I should be able to poke at it...
 
-Agreed.
+-- 
+Jarod Wilson
+jarod@wilsonet.com
 
-> > > Getting back to our video codec - it has 2 IOMMU controllers. The codec
-> > > hardware is able to address only 256MiB of space. Do you have an idea how
-> > > this can be handled with dma-mapping API? The only idea that comes to my
-> > > mind is to provide a second, fake 'struct device' and use it for
-> > allocations
-> > > for the second IOMMU controller.
-> > 
-> > Good question.
-> > 
-> > How do you even decide which controller to use from the driver?
-> > I would need to understand better what you are trying to do to
-> > give a good recommendation.
-> 
-> Both controllers are used by the hardware depending on the buffer type.
-> For example, buffers with chroma video data are accessed by first (called
-> 'left') memory channel, the others (with luma video data) - by the second
-> channel (called 'right'). Each memory channel is limited to 256MiB address
-> space and best performance is achieved when buffers are allocated in 
-> separate physical memory banks (the boards usually have 2 or more memory banks,
-> memory is not interleaved).
 
-Ok, I see. Having one device per channel as you suggested could probably
-work around this, and it's at least consistent with how you'd represent
-IOMMUs in the device tree. It is not ideal because it makes the video
-driver more complex when it now has to deal with multiple struct device
-that it binds to, but I can't think of any nicer way either.
 
-	Arnd
