@@ -1,102 +1,71 @@
 Return-path: <mchehab@pedra>
-Received: from mx5.orcon.net.nz ([219.88.242.55]:58425 "EHLO mx5.orcon.net.nz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751624Ab1D3LQJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Apr 2011 07:16:09 -0400
-Received: from Debian-exim by mx5.orcon.net.nz with local (Exim 4.69)
-	(envelope-from <mstuff@read.org.nz>)
-	id 1QG89g-0006o4-I9
-	for linux-media@vger.kernel.org; Sat, 30 Apr 2011 23:16:08 +1200
-Message-ID: <4DBBEF77.8000208@read.org.nz>
-Date: Sat, 30 Apr 2011 23:16:07 +1200
-From: Morgan Read <mstuff@read.org.nz>
+Received: from moutng.kundenserver.de ([212.227.126.171]:56848 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754449Ab1DJQAS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Apr 2011 12:00:18 -0400
+Date: Sun, 10 Apr 2011 18:00:14 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2.6.39] soc_camera: OMAP1: fix missing bytesperline and
+ sizeimage initialization
+In-Reply-To: <201104090158.04827.jkrzyszt@tis.icnet.pl>
+Message-ID: <Pine.LNX.4.64.1104101751380.12697@axis700.grange>
+References: <201104090158.04827.jkrzyszt@tis.icnet.pl>
 MIME-Version: 1.0
-To: Stu Fleming <stewart@wic.co.nz>
-CC: linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] Optus D1 tuning?
-References: <BANLkTikXWx-E_rOyEb47S1TFfh3KBd0oNw@mail.gmail.com> <1304154990.3962.48.camel@media-centre>
-In-Reply-To: <1304154990.3962.48.camel@media-centre>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Yes, I have too - amongst others...
+Hi Janusz
 
-My hope was that someone might stick the info below in a file called
-OptusD1-160E and package it up to arrive in /dvb-apps/dvb-s so others
-don't have to use the myriad of little bits of information out there and
-it would just work...
+On Sat, 9 Apr 2011, Janusz Krzysztofik wrote:
 
-Many thanks,
-M.
-
-On 30/04/11 21:16, Stu Fleming wrote:
-> I used http://www.wlug.org.nz/FreeViewMythTvSetup as a guide to set up
-> my Freeview on Mythtv.
+> Since commit 0e4c180d3e2cc11e248f29d4c604b6194739d05a, bytesperline and 
+> sizeimage memebers of v4l2_pix_format structure have no longer been 
+> calculated inside soc_camera_g_fmt_vid_cap(), but rather passed via 
+> soc_camera_device structure from a host driver callback invoked by 
+> soc_camera_set_fmt().
 > 
-> Hope this helps.
-> Regards,
-> Stu
+> OMAP1 camera host driver has never been providing these parameters, so 
+> it no longer works correctly. Fix it by adding suitable assignments to 
+> omap1_cam_set_fmt().
+
+Thanks for the patch, but now it looks like many soc-camera host drivers 
+are re-implementing this very same calculation in different parts of their 
+code - in try_fmt, set_fmt, get_fmt. Why don't we unify them all, 
+implement this centrally in soc_camera.c and remove all those 
+calculations? Could you cook up a patch or maybe several patches - for 
+soc_camera.c and all drivers?
+
+Thanks
+Guennadi
+
 > 
-> On Sat, 2011-04-30 at 21:05 +1200, Morgan Read wrote:
->> Hello list
->>
->> I've been trying to connect to the Optus D1 satellite from NZ, and I'm
->> tearing my hair out.
->>
->> There is no config file dvb-apps/dvb-s so I've constructed the following from:
->> http://www.lyngsat.com/optusd1.html
->>
->> # Optus D1 satellite 160E
->> # freq pol sr fec
->>
->> ### Freeview: DVB-S, Prime TV, Shine TV, C4, TV 3, Four, Stratos,
->> Parliament TV, Cue TV, Te Reo, TV 3 +1
->> S 12456000 H 22500000 3/4
->> ### Freeview: DVB-S, Maori TV, TVNZ TV One Auckland, TVNZ TV 2, TVNZ7,
->> TVNZ U, TVNZ TV One Hamilton, TVNZ TV One Wellington, TVNZ TV One
->> Christchurch
->> S 12483000 H 22500000 3/4
->>
->> ### DVB-S2, Channel Nine, GEM, Go!
->> S 12398000 V 11909000 2/3
->> ### SBS Tasmania: DVB-S, SBS One Tasmania, SBS Two Tasmania, SBS One
->> Tasmania HD, SBS Radio Tasmania AM, SBS Radio Tasmania FM
->> S 12648000 V 12600000 5/6
->>
->> ### Sky New Zealand: DVB-S2 Videoguard
->> S 12267000 H 22500000 2/3
->> S 12331000 H 22500000 2/3
->> S 12358000 H 22500000 2/3
->> ### Sky	New Zealand: DVB-S Videoguard
->> S 12394000 H 22500000 3/4
->> S 12421000 H 22500000 3/4
->> ### Sky New Zealand: DVB-S Videoguard, Radio New Zealand National,
->> Radio New Zealand Concert, Niu FM, Tahu FM
->> S 12519000 H 22500000 3/4
->> ### Sky New Zealand: DVB-S Videoguard, Calvary Chapel Radio New Zealand
->> S 12546000 H 22500000 3/4
->> ### Sky New Zealand: DVB-S Videoguard, The Edge FM
->> S 12581000 H 22500000 3/4
->> ### Sky New Zealand: DVB-S Videoguard, Maori TV
->> S 12608000 H 22500000 3/4
->> ### Sky New Zealand: DVB-S Videoguard
->> S 12644000 H 22500000 3/4
->> ### Sky New Zealand: DVB-S Videoguard, TVNZ TV One, TVNZ TV 2, Trackside
->> S 12671000 H 22500000 3/4
->> ### Sky New Zealand: DVB-S Videoguard
->> S 12707000 H 22500000 3/4
->> S 12734000 H 22500000 3/4
->>
+> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> ---
+>  drivers/media/video/omap1_camera.c |    6 ++++++
+>  1 file changed, 6 insertions(+)
+> 
+> --- linux-2.6.39-rc2/drivers/media/video/omap1_camera.c.orig	2011-04-06 14:30:37.000000000 +0200
+> +++ linux-2.6.39-rc2/drivers/media/video/omap1_camera.c	2011-04-09 00:16:36.000000000 +0200
+> @@ -1292,6 +1292,12 @@ static int omap1_cam_set_fmt(struct soc_
+>  	pix->colorspace  = mf.colorspace;
+>  	icd->current_fmt = xlate;
+>  
+> +	pix->bytesperline = soc_mbus_bytes_per_line(pix->width,
+> +						    xlate->host_fmt);
+> +	if (pix->bytesperline < 0)
+> +		return pix->bytesperline;
+> +	pix->sizeimage = pix->height * pix->bytesperline;
+> +
+>  	return 0;
+>  }
+>  
+> 
 
-
-
--- 
-Morgan Read
-NEW ZEALAND
-<mailto:mstuffATreadDOTorgDOTnz>
-
-Confused about DRM?
-Get all the info you need at:
-http://drm.info/
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
