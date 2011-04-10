@@ -1,71 +1,51 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:54793 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751267Ab1DRLen (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Apr 2011 07:34:43 -0400
+Received: from ffm.saftware.de ([83.141.3.46]:47862 "EHLO ffm.saftware.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753101Ab1DJM2d (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Apr 2011 08:28:33 -0400
+Message-ID: <4DA1A26F.2010305@linuxtv.org>
+Date: Sun, 10 Apr 2011 14:28:31 +0200
+From: Andreas Oberritter <obi@linuxtv.org>
 MIME-Version: 1.0
-Date: Mon, 18 Apr 2011 13:34:42 +0200
-Message-ID: <BANLkTimeOj3KvZw3+SM3WGH4dTJ8KvsPZA@mail.gmail.com>
-Subject: Resume freezes laptop with Nova-TD Stick dvb-t tuner
-From: Zdenek Kabelac <zdenek.kabelac@gmail.com>
-To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	USB list <linux-usb@vger.kernel.org>, linux-dvb@linuxtv.org,
-	linux-media@vger.kernel.org,
-	Olivier Grenie <olivier.grenie@dibcom.fr>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jiri Slaby <jslaby@suse.cz>
+To: Marko Ristola <marko.ristola@kolumbus.fi>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Speed up DVB TS stream delivery from DMA buffer into
+ dvb-core's buffer
+References: <4D9F2C83.6070401@kolumbus.fi> <4D9F63E1.6060808@kolumbus.fi>
+In-Reply-To: <4D9F63E1.6060808@kolumbus.fi>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi
+On 04/08/2011 09:37 PM, Marko Ristola wrote:
+> 
+> Here is some statistics without likely and with likely functions.
+> 
+> It seems that using likely() gives better performance with Phenom I too.
 
-It seems like there is something broken with dvb-t driver.
+I'm not sure whether that's the right conclusion. See below.
 
-Upon resume it requests firmware load - and this is freezing laptop.
+> 	%	Plain knl %	No likely	%	With likely	%
+> dvb_ringbuffer_write		5,9	62,8	8,7	81,3	5,7	79,2
+> dvb_dmx_swfilter_packet	1,2	12,8	0,7	6,5	0,8	11,1
+> dvb_dmx_swfilter_204		2,3	24,5	1,3	12,1	0,7	9,7
+> 
+> 
+> Here "Plain knl %" is "perf top -d 30" percentage.
+> 24,5 12,1 and 9,7 are percentages without a patch, with basic patch
+> and last is with "likely" functions using patch.
 
-usb 3-2: new high speed USB device number 2 using ehci_hcd
-usb 3-2: New USB device found, idVendor=2040, idProduct=5200
-usb 3-2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-usb 3-2: Product: NovaT 500Stick
-usb 3-2: Manufacturer: Hauppauge
-usb 3-2: SerialNumber: 4031595310
-IR NEC protocol handler initialized
-IR RC5(x) protocol handler initialized
-IR RC6 protocol handler initialized
-IR JVC protocol handler initialized
-IR Sony protocol handler initialized
-lirc_dev: IR Remote Control driver registered, major 252
-dib0700: loaded with support for 20 different device-types
-IR LIRC bridge handler initialized
-dvb-usb: found a 'Hauppauge Nova-TD Stick (52009)' in cold state, will
-try to load a firmware
-dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.20.fw'
-dib0700: firmware started successfully.
-dvb-usb: found a 'Hauppauge Nova-TD Stick (52009)' in warm state.
-dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-DVB: registering new adapter (Hauppauge Nova-TD Stick (52009))
---
-SUSPEND
-RESUME
---
-ata1.00: ACPI cmd f5/00:00:00:00:00:a0 (SECURITY FREEZE LOCK) filtered out
-e1000e: eth0 NIC Link is Up 1000 Mbps Full Duplex, Flow Control: None
-ata1.00: ACPI cmd ef/10:03:00:00:00:a0 (SET FEATURES) filtered out
-ata1.00: configured for UDMA/100
-thinkpad_acpi: ACPI backlight control delay disabled
-PM: resume of devices complete after 3537.435 msecs
-dvb-usb: found a 'Hauppauge Nova-TD Stick (52009)' in cold state, will
-try to load a firmware
-thinkpad_acpi: fan watchdog: enabling fan
---
+The varying ratio between dvb_ringbuffer_write and
+dvb_dmx_swfilter_packet, which haven't been modified by the patch, seems
+to indicate that the numbers were influenced by other activities on the
+system or by the data used during the tests. 8,7% for
+dvb_ringbuffer_write in test #2 could also indicate a higher data rate
+than in #1 and #3.
 
+However, adding likely() certainly won't do any harm. Feel free to send
+an incremental patch.
 
->From this discussion:
-
-http://marc.info/?l=linux-kernel&m=130305862617225&w=2
-
-firmware must be kept in memory - and not loaded from disk on resume.
-
-Zdenek
+Regards,
+Andreas
