@@ -1,50 +1,76 @@
 Return-path: <mchehab@pedra>
-Received: from out4.smtp.messagingengine.com ([66.111.4.28]:54526 "EHLO
-	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754510Ab1DZLLb (ORCPT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:56346 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755289Ab1DKThI convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Apr 2011 07:11:31 -0400
-Message-ID: <4DB6A6F0.3080604@ladisch.de>
-Date: Tue, 26 Apr 2011 13:05:20 +0200
-From: Clemens Ladisch <clemens@ladisch.de>
+	Mon, 11 Apr 2011 15:37:08 -0400
+Received: by eyx24 with SMTP id 24so1819738eyx.19
+        for <linux-media@vger.kernel.org>; Mon, 11 Apr 2011 12:37:06 -0700 (PDT)
 MIME-Version: 1.0
-To: Stefan Richter <stefanr@s5r6.in-berlin.de>
-CC: linux1394-devel@lists.sourceforge.net, alsa-devel@alsa-project.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] firewire: octlet AT payloads can be stack-allocated
-References: <4DA2B3DC.7010104@ladisch.de>	<4DA2B482.4060701@ladisch.de>	<20110411142651.638311e0@stein> <20110422151354.59c7ca77@stein>
-In-Reply-To: <20110422151354.59c7ca77@stein>
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20110411192951.GD4324@mgebm.net>
+References: <1301922737.5317.7.camel@morgan.silverblock.net>
+	<BANLkTikqBPdr2M8jyY1zmu4TPLsXo0y5Xw@mail.gmail.com>
+	<BANLkTi=dVYRgUbQ5pRySQLptnzaHOMKTqg@mail.gmail.com>
+	<1302015521.4529.17.camel@morgan.silverblock.net>
+	<BANLkTimQkDHmDsqSsQ9jiYnHWXnc7umeWw@mail.gmail.com>
+	<1302481535.2282.61.camel@localhost>
+	<20110411191252.GB4324@mgebm.net>
+	<BANLkTi=98Ypy+NJ8KDSPm4K9G+h2OfamAQ@mail.gmail.com>
+	<20110411192437.GC4324@mgebm.net>
+	<BANLkTimMcYdx562+dMT4hy+qXCwNg1FSyA@mail.gmail.com>
+	<20110411192951.GD4324@mgebm.net>
+Date: Mon, 11 Apr 2011 15:37:06 -0400
+Message-ID: <BANLkTim7ivS9GdafHgogdwbqKz5R2hLgGA@mail.gmail.com>
+Subject: Re: HVR-1600 (model 74351 rev F1F5) analog Red Screen
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Eric B Munson <emunson@mgebm.net>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Stefan Richter wrote:
-> ...provided that the allocation persists until the packet was sent out
-> to the bus.  But we do not need slab allocations anymore in order to
-> satisfy streaming DMA mapping constraints, thanks to commit da28947e7e36
-> "firewire: ohci: avoid separate DMA mapping for small AT payloads".
-> 
-> (Besides, the slab-allocated buffers that firewire-core, firewire-sbp2,
-> and firedtv used to provide for 8-byte write and lock requests were
-> still not fully portable since they crossed cacheline boundaries or
-> shared a cacheline with unrelated CPU-accessed data.  snd-firewire-lib
-> got this aspect right by using an extra kmalloc/ kfree just for the
-> 8-byte transaction buffer.)
-> 
-> This change replaces kmalloc'ed lock transaction scratch buffers in
-> firewire-core, firedtv, and snd-firewire-lib by local stack allocations.
-> The lifetime requirement of these allocations is fulfilled because the
-> call sites use the blocking fw_run_transaction API.
-> 
-> Perhaps the most notable result of the change is simpler locking because
-> there is no need to serialize usages of preallocated per-device buffers
-> anymore.  Also, allocations and deallocations are simpler.
-> 
-> firewire-sbp2's struct sbp2_orb.pointer buffer for 8-byte block write
-> requests on the other hand needs to remain slab-allocated in order to
-> keep the allocation around until end of AT DMA.
-> 
-> Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
+On Mon, Apr 11, 2011 at 3:29 PM, Eric B Munson <emunson@mgebm.net> wrote:
+> On Mon, 11 Apr 2011, Devin Heitmueller wrote:
+>
+>> On Mon, Apr 11, 2011 at 3:24 PM, Eric B Munson <emunson@mgebm.net> wrote:
+>> > I mean the /usr/bin/scan tool.  Most of the channels seem to be missing the EIT
+>> > information and two channels were missing completely.  The two missing channels
+>> > could be a result of poor signal quality (the wiring here is not the best but
+>> > as it is university housing there isn't much I can do).
+>>
+>> Wait a second:  you're on ClearQAM, right?  You're lucky if you are
+>> receiving any EIT data at all.  Many cable providers strip out the
+>> PSIP info on ClearQAM broadcasts, and non-OTA equivalent stations are
+>> unlikely to have any PSIP data at all (the ATSC A/65c spec provides
+>> the capability, but cable settop boxes typically use an out-of-band
+>> tuner instead).
+>>
+>> Are you comparing the tuning results against some other tuner product?
+>>  Or is this based entirely on what you know "should be there" in terms
+>> of the scan results?
+>>
+>
+> I just must be lucky for the one channel that gets it.  I am comparing the list
+> to what I know should be there, not the output of someother product.
 
-Acked-by: Clemens Ladisch <clemens@ladisch.de>
+Adding linux-media back onto the cc: as I did not intend to remove it
+(and the information could be useful for others participating on the
+thread).
+
+Indeed, it's entirely likely that the channels.conf will contain just
+a frequency and video/audio pids, while not containing any of the
+"identifying information" for the channel such as the callsign.  Also,
+you will likely also get encrypted channels in your results, so you
+will try to tune, it will lock successfully, but then mplayer won't
+show you video on any of the PIDs.
+
+We really should add some additional logic to /usr/bin/scan to filter
+out encrypted channels (or at least put something in the name that
+makes it clear they aren't going to work).
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
