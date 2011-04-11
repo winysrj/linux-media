@@ -1,78 +1,66 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:40217 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754878Ab1DLUTa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Apr 2011 16:19:30 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-input@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Jiri Kosina <jkosina@suse.cz>,
-	Linux Media <linux-media@vger.kernel.org>
-Subject: [RFC PATCH] input: add KEY_IMAGES specifically for AL Image Browser
-Date: Tue, 12 Apr 2011 16:19:17 -0400
-Message-Id: <1302639557-22186-1-git-send-email-jarod@redhat.com>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:46312 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751524Ab1DKQo1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Apr 2011 12:44:27 -0400
+Received: by bwz15 with SMTP id 15so4647512bwz.19
+        for <linux-media@vger.kernel.org>; Mon, 11 Apr 2011 09:44:26 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <BANLkTi=zi-4ZUOuf_H+oikBcPJ4eV3qCPw@mail.gmail.com>
+References: <BANLkTim2MQcHw+T_2g8wSpGkVnOH_OeXzg@mail.gmail.com>
+	<1301922737.5317.7.camel@morgan.silverblock.net>
+	<BANLkTikqBPdr2M8jyY1zmu4TPLsXo0y5Xw@mail.gmail.com>
+	<BANLkTi=dVYRgUbQ5pRySQLptnzaHOMKTqg@mail.gmail.com>
+	<1302015521.4529.17.camel@morgan.silverblock.net>
+	<BANLkTimQkDHmDsqSsQ9jiYnHWXnc7umeWw@mail.gmail.com>
+	<1302481535.2282.61.camel@localhost>
+	<20110411163239.GA4324@mgebm.net>
+	<BANLkTi=zi-4ZUOuf_H+oikBcPJ4eV3qCPw@mail.gmail.com>
+Date: Mon, 11 Apr 2011 12:44:25 -0400
+Message-ID: <BANLkTi=o8m0hGjzMg=v=xmk4vU9RS8T62A@mail.gmail.com>
+Subject: Re: HVR-1600 (model 74351 rev F1F5) analog Red Screen
+From: Eric B Munson <emunson@mgebm.net>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Andy Walls <awalls@md.metrocast.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	mchehab@infradead.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Many media center remotes have buttons intended for jumping straight to
-one type of media browser or another -- commonly, images/photos/pictures,
-audio/music, television, and movies. At present, remotes with an images
-or photos or pictures button use any number of different keycodes which
-sort of maybe fit. I've seen at least KEY_MEDIA, KEY_CAMERA,
-KEY_GRAPHICSEDITOR and KEY_PRESENTATION. None of those seem quite right.
-In my mind, KEY_MEDIA should be something more like a media center
-application launcher (and I'd like to standardize on that for things
-like the windows media center button on the mce remotes). KEY_CAMERA is
-used in a lot of webcams, and typically means "take a picture now".
-KEY_GRAPHICSEDITOR implies an editor, not a browser. KEY_PRESENTATION
-might be the closest fit here, if you think "photo slide show", but it
-may well be more intended for "run application in full-screen
-presentation mode" or to launch something like magicpoint, I dunno.
-And thus, I'd like to have a KEY_IMAGES, which matches the HID Usage AL
-Image Browser, the meaning of which I think is crystal-clear. I believe
-AL Audio Browser is already covered by KEY_AUDIO, and AL Movie Browser
-by KEY_VIDEO, so I'm also adding appropriate comments next to those
-keys.
+On Mon, Apr 11, 2011 at 12:42 PM, Devin Heitmueller
+<dheitmueller@kernellabs.com> wrote:
+> On Mon, Apr 11, 2011 at 12:32 PM, Eric B Munson <emunson@mgebm.net> wrote:
+>>> Can you tune to other known digital channels?
+>>
+>> I will have to see if I can set one up by hand and try it.  I will get back to
+>> you when I am able to do this (should be later today).
+>>
+>>>
+>>> > Let me know if you need anything else.
+>>>
+>>> Are you tuning digital cable (North American QAM) or digital Over The
+>>> Air (ATSC)?
+>>
+>> I am using digital cable (NA QAM).
+>
+> This is going to seem a little nuts, but just as a test could you try
+> sticking the card into a different machine (with a different
+> motherboard)?  I heard something a few months ago about an issue
+> related to the power sequencing that only occurred with a specific
+> motherboard.  Using any other motherboard resulted in success.
+>
+> It would be useful if we could rule that out.
+>
+> Devin
 
-I have follow-on patches for drivers/hid/hid-input.c and for
-drivers/media/rc/* that make use of this new key, if its deemed
-appropriate for addition. To make it simpler to merge the additional
-patches, it would be nice if this could sneak into 2.6.39, and the
-rest can then get queued up for 2.6.40, avoiding any multi-tree
-integration headaches.
+This will be a little more difficult, I should be able to make it
+happen this week though.
 
-CC: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-CC: Jiri Kosina <jkosina@suse.cz>
-CC: Linux Media <linux-media@vger.kernel.org>
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- include/linux/input.h |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/include/linux/input.h b/include/linux/input.h
-index e428382..be082e9 100644
---- a/include/linux/input.h
-+++ b/include/linux/input.h
-@@ -553,8 +553,8 @@ struct input_keymap_entry {
- #define KEY_DVD			0x185	/* Media Select DVD */
- #define KEY_AUX			0x186
- #define KEY_MP3			0x187
--#define KEY_AUDIO		0x188
--#define KEY_VIDEO		0x189
-+#define KEY_AUDIO		0x188	/* AL Audio Browser */
-+#define KEY_VIDEO		0x189	/* AL Movie Browser */
- #define KEY_DIRECTORY		0x18a
- #define KEY_LIST		0x18b
- #define KEY_MEMO		0x18c	/* Media Select Messages */
-@@ -605,6 +605,7 @@ struct input_keymap_entry {
- #define KEY_MEDIA_REPEAT	0x1b7	/* Consumer - transport control */
- #define KEY_10CHANNELSUP        0x1b8   /* 10 channels up (10+) */
- #define KEY_10CHANNELSDOWN      0x1b9   /* 10 channels down (10-) */
-+#define KEY_IMAGES		0x1ba	/* AL Image Browser */
- 
- #define KEY_DEL_EOL		0x1c0
- #define KEY_DEL_EOS		0x1c1
--- 
-1.7.1
-
+>
+> --
+> Devin J. Heitmueller - Kernel Labs
+> http://www.kernellabs.com
+>
