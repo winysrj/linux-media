@@ -1,92 +1,58 @@
-Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.10]:58287 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751609Ab1DKNYK (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:27968 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753707Ab1DKJHw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Apr 2011 09:24:10 -0400
-Date: Mon, 11 Apr 2011 15:23:24 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [PATCH] V4L: soc-camera: regression fix: calculate .sizeimage
- in soc_camera.c
-In-Reply-To: <BANLkTin9gFK+StWvs6D7MeJixQ7E2AB=rA@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1104111518140.20489@axis700.grange>
-References: <Pine.LNX.4.64.1104111054110.18511@axis700.grange>
- <BANLkTin9gFK+StWvs6D7MeJixQ7E2AB=rA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Mon, 11 Apr 2011 05:07:52 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Mon, 11 Apr 2011 11:07:45 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 4/4] s5p-fimc: Add support for the buffer timestamps and
+	sequence
+In-reply-to: <1302512865-20379-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com
+Message-id: <1302512865-20379-5-git-send-email-s.nawrocki@samsung.com>
+References: <1302512865-20379-1-git-send-email-s.nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Mon, 11 Apr 2011, Aguirre, Sergio wrote:
+Add support for buffer timestamps and the sequence number in
+the video capture driver.
 
-> Hi Guennadi,
-> 
-> On Mon, Apr 11, 2011 at 3:58 AM, Guennadi Liakhovetski <
-> g.liakhovetski@gmx.de> wrote:
-> 
-> > A recent patch has given individual soc-camera host drivers a possibility
-> > to calculate .sizeimage and .bytesperline pixel format fields internally,
-> > however, some drivers relied on the core calculating these values for
-> > them, following a default algorithm. This patch restores the default
-> > calculation for such drivers.
-> >
-> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > ---
-> > diff --git a/drivers/media/video/soc_camera.c
-> > b/drivers/media/video/soc_camera.c
-> > index 4628448..0918c48 100644
-> > --- a/drivers/media/video/soc_camera.c
-> > +++ b/drivers/media/video/soc_camera.c
-> > @@ -376,6 +376,9 @@ static int soc_camera_set_fmt(struct soc_camera_device
-> > *icd,
-> >        dev_dbg(&icd->dev, "S_FMT(%c%c%c%c, %ux%u)\n",
-> >                pixfmtstr(pix->pixelformat), pix->width, pix->height);
-> >
-> > +       pix->bytesperline = 0;
-> > +       pix->sizeimage = 0;
-> > +
-> >        /* We always call try_fmt() before set_fmt() or set_crop() */
-> >        ret = ici->ops->try_fmt(icd, f);
-> >        if (ret < 0)
-> > @@ -391,6 +394,17 @@ static int soc_camera_set_fmt(struct soc_camera_device
-> > *icd,
-> >                return -EINVAL;
-> >        }
-> >
-> > +       if (!pix->sizeimage) {
-> > +               if (!pix->bytesperline) {
-> > +                       ret = soc_mbus_bytes_per_line(pix->width,
-> > +
-> > icd->current_fmt->host_fmt);
-> > +                       if (ret > 0)
-> > +                               pix->bytesperline = ret;
-> > +               }
-> > +               if (pix->bytesperline)
-> > +                       pix->sizeimage = pix->bytesperline * pix->height;
-> > +       }
-> > +
-> >
-> 
-> Shouldn't all this be better done in try_fmt?
-
-Not _better_. We might choose to additionally do it for try_fmt too. But
-
-1. we didn't do it before, applications don't seem to care.
-2. you cannot store / reuse those .sizeimage & .bytesperline values - this 
-is just a "try"
-3. it would be a bit difficult to realise - we need a struct 
-soc_mbus_pixelfmt to call soc_mbus_bytes_per_line(), which we don't have, 
-so, we'd need to obtain it using soc_camera_xlate_by_fourcc().
-
-This all would work, but in any case it would be an enhancement, but not a 
-regression fix.
-
-Thanks
-Guennadi
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/video/s5p-fimc/fimc-core.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+index ef4e3f6..dc91a85 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.c
++++ b/drivers/media/video/s5p-fimc/fimc-core.c
+@@ -361,10 +361,20 @@ static void fimc_capture_irq_handler(struct fimc_dev *fimc)
+ {
+ 	struct fimc_vid_cap *cap = &fimc->vid_cap;
+ 	struct fimc_vid_buffer *v_buf;
++	struct timeval *tv;
++	struct timespec ts;
+ 
+ 	if (!list_empty(&cap->active_buf_q) &&
+ 	    test_bit(ST_CAPT_RUN, &fimc->state)) {
++		ktime_get_real_ts(&ts);
++
+ 		v_buf = active_queue_pop(cap);
++
++		tv = &v_buf->vb.v4l2_buf.timestamp;
++		tv->tv_sec = ts.tv_sec;
++		tv->tv_usec = ts.tv_nsec / NSEC_PER_USEC;
++		v_buf->vb.v4l2_buf.sequence = cap->frame_count++;
++
+ 		vb2_buffer_done(&v_buf->vb, VB2_BUF_STATE_DONE);
+ 	}
+ 
+-- 
+1.7.4.3
