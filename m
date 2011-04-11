@@ -1,186 +1,92 @@
-Return-path: <mchehab@pedra>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:37401 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752559Ab1DEDWr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2011 23:22:47 -0400
-Date: Mon, 4 Apr 2011 22:22:39 -0500
-From: Jonathan Nieder <jrnieder@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Huber Andreas <hobrom@corax.at>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-kernel@vger.kernel.org, Ben Hutchings <ben@decadent.org.uk>,
-	Steven Toth <stoth@kernellabs.com>
-Subject: [PATCH 1/7] [media] cx88: protect per-device driver list with device
- lock
-Message-ID: <20110405032239.GB4498@elie>
-References: <20110327150610.4029.95961.reportbug@xen.corax.at>
- <20110327152810.GA32106@elie>
- <20110402093856.GA17015@elie>
- <20110405032014.GA4498@elie>
+Return-path: <mchehab@gaivota>
+Received: from moutng.kundenserver.de ([212.227.126.186]:62129 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754058Ab1DKMQv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Apr 2011 08:16:51 -0400
+Date: Mon, 11 Apr 2011 14:16:49 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: javier Martin <javier.martin@vista-silicon.com>,
+	linux-media@vger.kernel.org
+Subject: Re: mt9t111 sensor on Beagleboard xM
+In-Reply-To: <201104111330.40504.laurent.pinchart@ideasonboard.com>
+Message-ID: <Pine.LNX.4.64.1104111352420.18511@axis700.grange>
+References: <BANLkTin35p+xPHWkf3WsGNPzL9aeUwsazQ@mail.gmail.com>
+ <201104081907.02509.laurent.pinchart@ideasonboard.com>
+ <BANLkTikXGVLG6E9TeQc1PQjiybeZxrNYdw@mail.gmail.com>
+ <201104111330.40504.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20110405032014.GA4498@elie>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-The BKL conversion of this driver seems to have gone wrong.  Opening
-cx88-blackbird will deadlock.  Various other uses of the sub-device
-and driver lists appear to be subject to race conditions.
+On Mon, 11 Apr 2011, Laurent Pinchart wrote:
 
-For example: various functions access drvlist without a relevant lock
-held, which will race against removal of drivers.  Let's start with
-that --- clean up by consistently protecting dev->drvlist with
-dev->core->lock, noting driver functions that require the device lock
-to be held or not to be held.
+> Hi Javier,
+> 
+> On Monday 11 April 2011 11:11:06 javier Martin wrote:
+> > Hi Laurent,
+> > 
+> > > Adding pad-level operations will not break any existing driver, as long
+> > > as you keep the existing operations functional.
+> > 
+> > Is it really possible to have a sensor driver supporting soc-camera,
+> > v4l2-subdev and pad-level operations?
+> 
+> Probably. Guennadi should be able to help you some more with that, he's the 
+> soc-camera expert.
 
-There are still some races --- e.g., cx8802_blackbird_remove can run
-between the time the blackbird driver is acquired and the time it is
-used in mpeg_release, and there's a similar race in cx88_dvb_bus_ctrl.
+I'm afraid, I'm not sufficiently familiar with the (current state of) 
+pad-level ops:-)
 
-The only goal is to make the semantics clearer in preparation for more
-changes.  Later patches will address the remaining known races and the
-deadlock noticed by Andi.
+I don't think, it is a very good idea to support two APIs in sensor 
+drivers: pad-level for reuse with ISP and other compatible drivers and 
+subdev / soc-camera for soc-camera hosts.
 
-Based on a patch by Ben Hutchings <ben@decadent.org.uk>.
+I've tried pad-level ops as I played with the beagleboard-xM and an 
+mt9p031 camera module. At that time to use the OMAP3 camera framework you 
+had to use MC-aware applications. Standard V4L2 applications had no 
+chance. I am not sure, whether this is a limitation of the ISP 
+implementation or of the MC / pad APIs themselves. If this is still the 
+case and if this backwards-compatible V4L2 mode is indeed difficult to 
+implement with MC / pad, then soc-camera cannot migrate to that API atm. 
 
-Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
-Cc: Andi Huber <hobrom@gmx.at>
-Cc: stable@kernel.org
+So, ideally, what should happen, I think, is the following:
+
+1. we make sure, that the new APIs seamlessly support a "classic V4L2" 
+fallback mode.
+
+2. migrate (respective parts of) soc-camera to pad-level
+
+3. enable driver reuse, for which, I think, two more things will have to 
+be done: (a) create and switch to a unified way to pass driver platform 
+data to subdev drivers (soc-camera is currently using struct 
+soc_camera_link for this), (b) solve the bus configuration problem.
+
+> > I've been reviewing the code of mt9t112 and I'm not very sure soc-camera
+> > code can be easily isolated.
+> > 
+> > What is the future of soc-camera anyway? Since it seems v4l2-subdev and
+> > media-controller clearly make it deprecated.
+> 
+> My understanding is that soc-camera will stay, but sensor drivers will likely 
+> not depend on soc-camera anymore. soc-camera will use pad-level operations, as 
+> well as a bus configuration ioctl that has been proposed on the list (but not 
+> finalized yet). Guennadi, can you share some information about this ?
+
+We want to reuse sensor drivers, yes:-)
+
+> > Wouldn't it be more suitable to just develop a separate mt9t112 driver
+> > which includes v4l2-subdev and pad-level operations without soc-camera?
+> 
+> I don't think duplicate drivers will be accepted for mainline.
+
++1
+
+Thanks
+Guennadi
 ---
- drivers/media/video/cx88/cx88-blackbird.c |    3 ++-
- drivers/media/video/cx88/cx88-dvb.c       |    3 +++
- drivers/media/video/cx88/cx88-mpeg.c      |   11 +++++++----
- drivers/media/video/cx88/cx88.h           |    9 ++++++++-
- 4 files changed, 20 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/media/video/cx88/cx88-blackbird.c b/drivers/media/video/cx88/cx88-blackbird.c
-index bca307e..b93fbd3 100644
---- a/drivers/media/video/cx88/cx88-blackbird.c
-+++ b/drivers/media/video/cx88/cx88-blackbird.c
-@@ -1122,10 +1122,11 @@ static int mpeg_release(struct file *file)
- 	mutex_lock(&dev->core->lock);
- 	file->private_data = NULL;
- 	kfree(fh);
--	mutex_unlock(&dev->core->lock);
- 
- 	/* Make sure we release the hardware */
- 	drv = cx8802_get_driver(dev, CX88_MPEG_BLACKBIRD);
-+	mutex_unlock(&dev->core->lock);
-+
- 	if (drv)
- 		drv->request_release(drv);
- 
-diff --git a/drivers/media/video/cx88/cx88-dvb.c b/drivers/media/video/cx88/cx88-dvb.c
-index 7b8c9d3..84002bc 100644
---- a/drivers/media/video/cx88/cx88-dvb.c
-+++ b/drivers/media/video/cx88/cx88-dvb.c
-@@ -133,7 +133,10 @@ static int cx88_dvb_bus_ctrl(struct dvb_frontend* fe, int acquire)
- 		return -EINVAL;
- 	}
- 
-+	mutex_lock(&dev->core->lock);
- 	drv = cx8802_get_driver(dev, CX88_MPEG_DVB);
-+	mutex_unlock(&dev->core->lock);
-+
- 	if (drv) {
- 		if (acquire){
- 			dev->frontends.active_fe_id = fe_id;
-diff --git a/drivers/media/video/cx88/cx88-mpeg.c b/drivers/media/video/cx88/cx88-mpeg.c
-index addf954..918172b 100644
---- a/drivers/media/video/cx88/cx88-mpeg.c
-+++ b/drivers/media/video/cx88/cx88-mpeg.c
-@@ -748,6 +748,8 @@ int cx8802_unregister_driver(struct cx8802_driver *drv)
- 		       dev->pci->subsystem_device, dev->core->board.name,
- 		       dev->core->boardnr);
- 
-+		mutex_lock(&dev->core->lock);
-+
- 		list_for_each_entry_safe(d, dtmp, &dev->drvlist, drvlist) {
- 			/* only unregister the correct driver type */
- 			if (d->type_id != drv->type_id)
-@@ -755,15 +757,14 @@ int cx8802_unregister_driver(struct cx8802_driver *drv)
- 
- 			err = d->remove(d);
- 			if (err == 0) {
--				mutex_lock(&drv->core->lock);
- 				list_del(&d->drvlist);
--				mutex_unlock(&drv->core->lock);
- 				kfree(d);
- 			} else
- 				printk(KERN_ERR "%s/2: cx8802 driver remove "
- 				       "failed (%d)\n", dev->core->name, err);
- 		}
- 
-+		mutex_unlock(&dev->core->lock);
- 	}
- 
- 	return err;
-@@ -827,6 +828,8 @@ static void __devexit cx8802_remove(struct pci_dev *pci_dev)
- 
- 	flush_request_modules(dev);
- 
-+	mutex_lock(&dev->core->lock);
-+
- 	if (!list_empty(&dev->drvlist)) {
- 		struct cx8802_driver *drv, *tmp;
- 		int err;
-@@ -838,9 +841,7 @@ static void __devexit cx8802_remove(struct pci_dev *pci_dev)
- 		list_for_each_entry_safe(drv, tmp, &dev->drvlist, drvlist) {
- 			err = drv->remove(drv);
- 			if (err == 0) {
--				mutex_lock(&drv->core->lock);
- 				list_del(&drv->drvlist);
--				mutex_unlock(&drv->core->lock);
- 			} else
- 				printk(KERN_ERR "%s/2: cx8802 driver remove "
- 				       "failed (%d)\n", dev->core->name, err);
-@@ -848,6 +849,8 @@ static void __devexit cx8802_remove(struct pci_dev *pci_dev)
- 		}
- 	}
- 
-+	mutex_unlock(&dev->core->lock);
-+
- 	/* Destroy any 8802 reference. */
- 	dev->core->dvbdev = NULL;
- 
-diff --git a/drivers/media/video/cx88/cx88.h b/drivers/media/video/cx88/cx88.h
-index 9b3742a..e3d56c2 100644
---- a/drivers/media/video/cx88/cx88.h
-+++ b/drivers/media/video/cx88/cx88.h
-@@ -506,7 +506,11 @@ struct cx8802_driver {
- 	int (*resume)(struct pci_dev *pci_dev);
- 
- 	/* MPEG 8802 -> mini driver - Driver probe and configuration */
-+
-+	/* Caller must _not_ hold core->lock */
- 	int (*probe)(struct cx8802_driver *drv);
-+
-+	/* Caller must hold core->lock */
- 	int (*remove)(struct cx8802_driver *drv);
- 
- 	/* MPEG 8802 -> mini driver - Access for hardware control */
-@@ -561,8 +565,9 @@ struct cx8802_dev {
- 	/* for switching modulation types */
- 	unsigned char              ts_gen_cntrl;
- 
--	/* List of attached drivers */
-+	/* List of attached drivers; must hold core->lock to access */
- 	struct list_head	   drvlist;
-+
- 	struct work_struct	   request_module_wk;
- };
- 
-@@ -685,6 +690,8 @@ int cx88_audio_thread(void *data);
- 
- int cx8802_register_driver(struct cx8802_driver *drv);
- int cx8802_unregister_driver(struct cx8802_driver *drv);
-+
-+/* Caller must hold core->lock */
- struct cx8802_driver * cx8802_get_driver(struct cx8802_dev *dev, enum cx88_board_type btype);
- 
- /* ----------------------------------------------------------- */
--- 
-1.7.5.rc0
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
