@@ -1,77 +1,239 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:49571 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755033Ab1DODBx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Apr 2011 23:01:53 -0400
-Received: by bwz15 with SMTP id 15so1873807bwz.19
-        for <linux-media@vger.kernel.org>; Thu, 14 Apr 2011 20:01:52 -0700 (PDT)
-Date: Fri, 15 Apr 2011 12:04:01 +1000
-From: Dmitri Belimov <d.belimov@gmail.com>
-To: Jarod Wilson <jarod@redhat.com>
-Cc: linux-media@vger.kernel.org, Dan Carpenter <error27@gmail.com>,
-	devel@driverdev.osuosl.org
-Subject: Re: [PATCH v2] tm6000: fix vbuf may be used uninitialized
-Message-ID: <20110415120401.61742c82@glory.local>
-In-Reply-To: <1302634103-9328-1-git-send-email-jarod@redhat.com>
-References: <1300997220-4354-1-git-send-email-jarod@redhat.com>
-	<1302634103-9328-1-git-send-email-jarod@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mx1.redhat.com ([209.132.183.28]:58109 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756053Ab1DKVHo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Apr 2011 17:07:44 -0400
+Message-ID: <4DA36D98.40607@redhat.com>
+Date: Mon, 11 Apr 2011 23:07:36 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Antonio Ospite <ospite@studenti.unina.it>
+CC: linux-media@vger.kernel.org, Steven Toth <stoth@kernellabs.com>
+Subject: Re: [RFC, PATCH] libv4lconvert: Add support for Y10B grey format
+ (V4L2_PIX_FMT_Y10BPACK)
+References: <1302192989-7747-1-git-send-email-ospite@studenti.unina.it>
+In-Reply-To: <1302192989-7747-1-git-send-email-ospite@studenti.unina.it>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi
+Hi,
 
-I think it's good.
-No regression, all works well.
-
-With my best regards, Dmitry.
-
-> In commit 8aff8ba95155df, most of the manipulations to vbuf inside
-> copy_streams were gated on if !dev->radio, but one place that touches
-> vbuf lays outside those gates -- a memcpy of vbuf isn't NULL. If we
-> initialize vbuf to NULL, that memcpy will never happen in the case
-> where we do have dev->radio, and otherwise, in the !dev->radio case,
-> the code behaves exactly like it did prior to 8aff8ba95155df.
-> 
-> While we're at it, also fix an incorrectly indented closing brace for
-> one of the sections touching vbuf that is conditional on !dev->radio.
-> 
-> v2: add a detailed commit log and fix that brace
-> 
-> CC: Dan Carpenter <error27@gmail.com>
-> CC: Dmitri Belimov <d.belimov@gmail.com>
-> CC: devel@driverdev.osuosl.org
-> Signed-off-by: Jarod Wilson <jarod@redhat.com>
+On 04/07/2011 06:16 PM, Antonio Ospite wrote:
+> Y10B is a 10 bits per pixel greyscale format in a bit-packed array
+> representation. Such pixel format is supplied for instance by the Kinect
+> sensor device.
+>
+> Signed-off-by: Antonio Ospite<ospite@studenti.unina.it>
 > ---
->  drivers/staging/tm6000/tm6000-video.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/staging/tm6000/tm6000-video.c
-> b/drivers/staging/tm6000/tm6000-video.c index c80a316..8b971a0 100644
-> --- a/drivers/staging/tm6000/tm6000-video.c
-> +++ b/drivers/staging/tm6000/tm6000-video.c
-> @@ -228,7 +228,7 @@ static int copy_streams(u8 *data, unsigned long
-> len, unsigned long header = 0;
->  	int rc = 0;
->  	unsigned int cmd, cpysize, pktsize, size, field, block,
-> line, pos = 0;
-> -	struct tm6000_buffer *vbuf;
-> +	struct tm6000_buffer *vbuf = NULL;
->  	char *voutp = NULL;
->  	unsigned int linewidth;
->  
-> @@ -318,7 +318,7 @@ static int copy_streams(u8 *data, unsigned long
-> len, if (pos + size > vbuf->vb.size)
->  						cmd =
-> TM6000_URB_MSG_ERR; dev->isoc_ctl.vfield = field;
-> -			}
-> +				}
->  				break;
->  			case TM6000_URB_MSG_VBI:
->  				break;
-> -- 
-> 1.7.1
-> 
+>
+> Hi,
+>
+> this is a very first attempt about supporting Y10B in libv4lconvert, the
+> doubts I have are about the conversion routines which need to unpack a frame
+> before doing the actual pixelformat conversion, and maybe this can be handled
+> in some conversion layer in libv4l.
+>
+> I don't know libv4l yet, so I am asking for advice providing some code to
+> discuss on; looking at the last hunk of the patch: can I allocate a temporary
+> buffer only once per device (and not per frame as I am horribly doing now) and
+> reuse it in the conversion routines?
+
+libv4l has a mechanism for doing this, you can "simply" do:
+
+unpacked_buffer = v4lconvert_alloc_buffer(width * height * sizeof(unsigned short),
+                                           &data->convert_pixfmt_buf,
+                                           &data->convert_pixfmt_buf_size);
+
+v4lconvert_alloc_buffer will remember the buffer (and its size) and return the
+same buffer each call. Freeing it on closing of the device is also taken care
+of. You should still check for a NULL return.
+
+What has me worried more, is how libv4l will decide between asking
+Y10B grey versus raw bayer from the device when an app is asking for say RGB24.
+libv4l normally does this automatically on a best match basis (together with
+preferring compressed formats over uncompressed for high resolutions). But this
+won't work in the kinect case. If we prioritize one over the other we will
+always end up giving the app the one we prioritize.
+
+The only thing I can think of is adding a v4l2 control (like a brightness
+control) for choosing which format to prioritize...
+
+Suggestions ?
+
+Regards,
+
+Hans
+
+
+
+
+
+  Or is the unpacking better be done even
+> before conversion, feeding the conversion routines with already unpacked
+> buffers?
+>
+> Thanks,
+>     Antonio Ospite
+>     http://ao2.it
+>
+>   include/linux/videodev2.h              |    3 +
+>   lib/libv4lconvert/libv4lconvert-priv.h |    6 +++
+>   lib/libv4lconvert/libv4lconvert.c      |   20 ++++++++
+>   lib/libv4lconvert/rgbyuv.c             |   76 ++++++++++++++++++++++++++++++++
+>   4 files changed, 105 insertions(+), 0 deletions(-)
+>
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index 51788a6..559d5f3 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -289,6 +289,9 @@ struct v4l2_pix_format {
+>   #define V4L2_PIX_FMT_Y10     v4l2_fourcc('Y', '1', '0', ' ') /* 10  Greyscale     */
+>   #define V4L2_PIX_FMT_Y16     v4l2_fourcc('Y', '1', '6', ' ') /* 16  Greyscale     */
+>
+> +/* Grey bit-packed formats */
+> +#define V4L2_PIX_FMT_Y10BPACK    v4l2_fourcc('Y', '1', '0', 'B') /* 10  Greyscale bit-packed */
+> +
+>   /* Palette formats */
+>   #define V4L2_PIX_FMT_PAL8    v4l2_fourcc('P', 'A', 'L', '8') /*  8  8-bit palette */
+>
+> diff --git a/lib/libv4lconvert/libv4lconvert-priv.h b/lib/libv4lconvert/libv4lconvert-priv.h
+> index 84c706e..470a869 100644
+> --- a/lib/libv4lconvert/libv4lconvert-priv.h
+> +++ b/lib/libv4lconvert/libv4lconvert-priv.h
+> @@ -133,6 +133,12 @@ void v4lconvert_grey_to_rgb24(const unsigned char *src, unsigned char *dest,
+>   void v4lconvert_grey_to_yuv420(const unsigned char *src, unsigned char *dest,
+>   		const struct v4l2_format *src_fmt);
+>
+> +void v4lconvert_y10b_to_rgb24(const unsigned char *src, unsigned char *dest,
+> +		int width, int height);
+> +
+> +void v4lconvert_y10b_to_yuv420(const unsigned char *src, unsigned char *dest,
+> +		const struct v4l2_format *src_fmt);
+> +
+>   void v4lconvert_rgb565_to_rgb24(const unsigned char *src, unsigned char *dest,
+>   		int width, int height);
+>
+> diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
+> index e4863fd..631d912 100644
+> --- a/lib/libv4lconvert/libv4lconvert.c
+> +++ b/lib/libv4lconvert/libv4lconvert.c
+> @@ -48,6 +48,7 @@ static const struct v4lconvert_pixfmt supported_src_pixfmts[] = {
+>   	{ V4L2_PIX_FMT_YVYU,         0 },
+>   	{ V4L2_PIX_FMT_UYVY,         0 },
+>   	{ V4L2_PIX_FMT_RGB565,       0 },
+> +	{ V4L2_PIX_FMT_Y10BPACK,     0 },
+>   	{ V4L2_PIX_FMT_SN9C20X_I420, V4LCONVERT_NEEDS_CONVERSION },
+>   	{ V4L2_PIX_FMT_SBGGR8,       V4LCONVERT_NEEDS_CONVERSION },
+>   	{ V4L2_PIX_FMT_SGBRG8,       V4LCONVERT_NEEDS_CONVERSION },
+> @@ -862,6 +863,25 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
+>   			result = -1;
+>   		}
+>   		break;
+> +
+> +	case V4L2_PIX_FMT_Y10BPACK:
+> +		switch (dest_pix_fmt) {
+> +		case V4L2_PIX_FMT_RGB24:
+> +	        case V4L2_PIX_FMT_BGR24:
+> +			v4lconvert_y10b_to_rgb24(src, dest, width, height);
+> +			break;
+> +		case V4L2_PIX_FMT_YUV420:
+> +		case V4L2_PIX_FMT_YVU420:
+> +			v4lconvert_y10b_to_yuv420(src, dest, fmt);
+> +			break;
+> +		}
+> +		if (src_size<  (width * height * 10 / 8)) {
+> +			V4LCONVERT_ERR("short y10b data frame\n");
+> +			errno = EPIPE;
+> +			result = -1;
+> +		}
+> +		break;
+> +
+>   	case V4L2_PIX_FMT_RGB565:
+>   		switch (dest_pix_fmt) {
+>   		case V4L2_PIX_FMT_RGB24:
+> diff --git a/lib/libv4lconvert/rgbyuv.c b/lib/libv4lconvert/rgbyuv.c
+> index 2ee7e58..23fe8f3 100644
+> --- a/lib/libv4lconvert/rgbyuv.c
+> +++ b/lib/libv4lconvert/rgbyuv.c
+> @@ -603,3 +603,79 @@ void v4lconvert_grey_to_yuv420(const unsigned char *src, unsigned char *dest,
+>   	/* Clear U/V */
+>   	memset(dest, 0x80, src_fmt->fmt.pix.width * src_fmt->fmt.pix.height / 2);
+>   }
+> +
+> +#include<stdint.h>
+> +#include<stdlib.h>
+> +/* Unpack buffer of (vw bit) data into padded 16bit buffer. */
+> +static inline void convert_packed_to_16bit(uint8_t *raw, uint16_t *unpacked, int vw, int unpacked_len)
+> +{
+> +	int mask = (1<<  vw) - 1;
+> +	uint32_t buffer = 0;
+> +	int bitsIn = 0;
+> +	while (unpacked_len--) {
+> +		while (bitsIn<  vw) {
+> +			buffer = (buffer<<  8) | *(raw++);
+> +			bitsIn += 8;
+> +		}
+> +		bitsIn -= vw;
+> +		*(unpacked++) = (buffer>>  bitsIn)&  mask;
+> +	}
+> +}
+> +
+> +void v4lconvert_y10b_to_rgb24(const unsigned char *src, unsigned char *dest,
+> +		int width, int height)
+> +{
+> +	unsigned short *unpacked_buffer = NULL;
+> +
+> +	/* TODO: check return value or move the allocation out of here */
+> +	unpacked_buffer = malloc(width * height * sizeof(unsigned short));
+> +	convert_packed_to_16bit((uint8_t *)src, unpacked_buffer, 10, width * height);
+> +
+> +	int j;
+> +	unsigned short *tmp = unpacked_buffer;
+> +	while (--height>= 0) {
+> +		for (j = 0; j<  width; j++) {
+> +
+> +			/* Only 10 useful bits, so we discard the LSBs */
+> +			*dest++ = (*tmp&  0x3ff)>>  2;
+> +			*dest++ = (*tmp&  0x3ff)>>  2;
+> +			*dest++ = (*tmp&  0x3ff)>>  2;
+> +
+> +			/* +1 means two bytes as we are dealing with (unsigned short) */
+> +			tmp += 1;
+> +		}
+> +	}
+> +
+> +	free(unpacked_buffer);
+> +}
+> +
+> +void v4lconvert_y10b_to_yuv420(const unsigned char *src, unsigned char *dest,
+> +		const struct v4l2_format *src_fmt)
+> +{
+> +	unsigned short *unpacked_buffer = NULL;
+> +	int width = src_fmt->fmt.pix.width;
+> +	int height = src_fmt->fmt.pix.height;
+> +
+> +	/* TODO: check return value or move the allocation out of here */
+> +	unpacked_buffer = malloc(width * height * sizeof(unsigned short));
+> +	convert_packed_to_16bit((uint8_t *)src, unpacked_buffer, 10, width * height);
+> +
+> +	int x, y;
+> +	unsigned short *tmp = unpacked_buffer;
+> +
+> +	/* Y */
+> +	for (y = 0; y<  src_fmt->fmt.pix.height; y++)
+> +		for (x = 0; x<  src_fmt->fmt.pix.width; x++) {
+> +
+> +			/* Only 10 useful bits, so we discard the LSBs */
+> +			*dest++ = (*tmp&  0x3ff)>>  2;
+> +
+> +			/* +1 means two bytes as we are dealing with (unsigned short) */
+> +			tmp += 1;
+> +		}
+> +
+> +	/* Clear U/V */
+> +	memset(dest, 0x80, src_fmt->fmt.pix.width * src_fmt->fmt.pix.height / 2);
+> +
+> +	free(unpacked_buffer);
+> +}
