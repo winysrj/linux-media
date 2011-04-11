@@ -1,221 +1,175 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:50420 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752604Ab1D3LvD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Apr 2011 07:51:03 -0400
-Received: by wya21 with SMTP id 21so3338888wya.19
-        for <linux-media@vger.kernel.org>; Sat, 30 Apr 2011 04:51:01 -0700 (PDT)
-Message-ID: <4DBBF7A1.5050504@googlemail.com>
-Date: Sat, 30 Apr 2011 12:50:57 +0100
-From: Robert Longbottom <rongblor@googlemail.com>
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:50535 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755751Ab1DKUF6 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Apr 2011 16:05:58 -0400
+Received: by mail-ew0-f54.google.com with SMTP id 1so3779109ewy.27
+        for <linux-media@vger.kernel.org>; Mon, 11 Apr 2011 13:05:57 -0700 (PDT)
 MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: OK szap is looking better, and I feel so close...
-References: <BANLkTimi5Tz2ER=6y93SH3JFXqb-w=7A0g@mail.gmail.com> <4DBBDDBF.4020704@googlemail.com> <4DBBED3F.4040000@read.org.nz>
-In-Reply-To: <4DBBED3F.4040000@read.org.nz>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <201104112040.08077.jkrzyszt@tis.icnet.pl>
+References: <Pine.LNX.4.64.1104111054110.18511@axis700.grange>
+ <BANLkTikQSaUKtNZCexhKeNEPM+id+J_2gw@mail.gmail.com> <Pine.LNX.4.64.1104111829500.20798@axis700.grange>
+ <201104112040.08077.jkrzyszt@tis.icnet.pl>
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+Date: Mon, 11 Apr 2011 15:05:35 -0500
+Message-ID: <BANLkTinv7FxQjR7w4eL2je-s+3NC78GPHw@mail.gmail.com>
+Subject: Re: [PATCH] V4L: soc-camera: regression fix: calculate .sizeimage in soc_camera.c
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 30/04/2011 12:06, Morgan Read wrote:
-> On 30/04/11 22:00, Robert Longbottom wrote:
->> On 30/04/2011 10:37, Morgan Read wrote:
->>> OK, think I might be getting somewhere...
->>>
->> <snip>
+On Mon, Apr 11, 2011 at 1:40 PM, Janusz Krzysztofik
+<jkrzyszt@tis.icnet.pl> wrote:
+> Dnia poniedziałek 11 kwiecień 2011 o 18:58:51 Guennadi Liakhovetski napisał(a):
+>> On Mon, 11 Apr 2011, Aguirre, Sergio wrote:
+>> >
+>> > Ok. And how about the attached patch? Would that work?
 >>
->>> [user@vortexbox ~]$ szap -r TV2
->>> reading channels from file '/home/user/.szap/channels.conf'
+>> Yes, I think, ot would work too, only the call to
+>> soc_camera_xlate_by_fourcc() in the S_FMT case is superfluous, after
+>> ici->ops->set_fmt() we already have it in icd->current_fmt->host_fmt.
+>> Otherwise - yes, we could do it this way too. Janusz, could you test,
+>> please?
 >
-> ...
+> Looks like not based on the current mainline (-rc2) tree:
 >
->>> But, nothing happens at Playing /dev/dvb/adapter0/dvr0. ...  Where
->>> should I see what's playing?
->>
->> I usually do:
->>
->> $ cat /dev/dvb/adapter0/dvr0>  recording.mpg
->>
->> and then in another terminal
->>
->> $ mplayer recording.mpg
->>
->> Though it doesn't look like thats your problem, but at least you can see
->> if any data is being retrieved if the file grows in size.
+>  CHECK   drivers/media/video/soc_camera.c
+> drivers/media/video/soc_camera.c:146:9: error: undefined identifier 'pixfmtstr'
+>  CC      drivers/media/video/soc_camera.o
+> drivers/media/video/soc_camera.c: In function 'soc_camera_try_fmt':
+> drivers/media/video/soc_camera.c:146: error: implicit declaration of function 'pixfmtstr'
+> drivers/media/video/soc_camera.c:146: warning: too few arguments for format
+> drivers/media/video/soc_camera.c: In function 'soc_camera_try_fmt_vid_cap':
+> drivers/media/video/soc_camera.c:180: warning: unused variable 'ici'
 >
-> Robert, thanks for your help!!!
-> Didn't get far with
->
-> $ cat /dev/dvb/adapter0/dvr0>  recording.mpg
-> $ mplayer recording.mpg
-> [vortexbox.lan ~]# cat /dev/dvb/adapter0/dvr0>  recording.mpg
-> ^C
-> [vortexbox.lan ~]# ls -l
-> total 36
-> -rw-rw-r-- 1 user user  368 Apr 30 21:11 channels.conf
-> drwxr-xr-x 2 user user 4096 Apr 30 12:55 Desktop
-> drwxr-xr-x 2 user user 4096 Apr 29 22:22 Documents
-> drwxr-xr-x 2 user user 4096 Apr 29 22:34 Downloads
-> drwxr-xr-x 2 user user 4096 Apr 25 00:06 Music
-> drwxr-xr-x 2 user user 4096 Apr 25 00:06 Pictures
-> drwxr-xr-x 2 user user 4096 Apr 25 00:06 Public
-> -rw-rw-r-- 1 user user    0 Apr 30 22:53 recording.mpg
-> drwxr-xr-x 2 user user 4096 Apr 25 00:06 Templates
-> drwxr-xr-x 2 user user 4096 Apr 25 00:06 Videos
-> [vortexbox.lan ~]#
 
-Yes, I'm not that surpised that made no difference.  The problem it 
-looks like you are having with the szap approach is that szap isn't 
-locking onto a channel for some reason.  You aren't seeing those 
-FE_HAS_LOCK messages in the szap output.  If you can sort that out, then 
-szap + (cat +) mplayer should work.
+Oops, my bad.
 
-> BUT, that gave me an idea...
->
-> [vortexbox.lan ~]# dvbstream -f 1183 -s 22500 -p h -o 512 650>
-> recording.mpg
-> dvbstream v0.5 - (C) Dave Chapman 2001-2004
-> Released under the GPL.
-> Latest version available from http://www.linuxstb.org/
-> Using DVB card "Conexant CX24123/CX24109"
-> tuning DVB-S to L-Band:1, Pol:H Srate=22500000, 22kHz=off
-> ERROR setting tone
-> : Invalid argument
-> polling....
-> Getting frontend event
-> FE_STATUS:
-> polling....
-> Getting frontend event
-> FE_STATUS: FE_HAS_SIGNAL
-> polling....
-> Getting frontend event
-> FE_STATUS: FE_HAS_SIGNAL FE_HAS_LOCK FE_HAS_CARRIER FE_HAS_VITERBI
-> FE_HAS_SYNC
-> Event:  Frequency: 11783000
->          SymbolRate: 22500000
->          FEC_inner:  3
->
-> Bit error rate: 0
-> Signal strength: 61952
-> SNR: 57635
-> FE_STATUS: FE_HAS_SIGNAL FE_HAS_LOCK FE_HAS_CARRIER FE_HAS_VITERBI
-> FE_HAS_SYNC
-> Setting filter for PID 512
-> Setting filter for PID 650
-> Output to stdout
-> Streaming 2 streams
->
-> Which produced this:
->
-> [user@vortexbox ~]$ mplayer recording.mpg
-> MPlayer SVN-r33254-snapshot-4.5.1 (C) 2000-2011 MPlayer Team
-> 162 audio&  360 video codecs
-> Can't open joystick device /dev/input/js0: No such file or directory
-> Can't init input joystick
-> mplayer: could not connect to socket
-> mplayer: No such file or directory
-> Failed to open LIRC support. You will not be able to use your remote
-> control.
->
-> Playing recording.mpg.
-> TS file format detected.
-> VIDEO MPEG2(pid=512) AUDIO MPA(pid=650) NO SUBS (yet)!  PROGRAM N. 0
-> VIDEO:  MPEG2  720x576  (aspect 3)  25.000 fps  15000.0 kbps (1875.0
-> kbyte/s)
-> Load subtitles in ./
-> ==========================================================================
-> Opening video decoder: [ffmpeg] FFmpeg's libavcodec codec family
-> Selected video codec: [ffmpeg2] vfm: ffmpeg (FFmpeg MPEG-2)
-> ==========================================================================
-> ==========================================================================
-> Opening audio decoder: [mp3lib] MPEG layer-2, layer-3
-> AUDIO: 48000 Hz, 2 ch, s16le, 192.0 kbit/12.50% (ratio: 24000->192000)
-> Selected audio codec: [mp3] afm: mp3lib (mp3lib MPEG layer-2, layer-3)
-> ==========================================================================
-> AO: [pulse] 48000Hz 2ch s16le (2 bytes per sample)
-> Starting playback...
-> [VD_FFMPEG] Trying pixfmt=0.
-> Could not find matching colorspace - retrying with -vf scale...
-> Opening video filter: [scale]
-> The selected video_out device is incompatible with this codec.
-> Try appending the scale filter to your filter list,
-> e.g. -vf spp,scale instead of -vf spp.
-> [VD_FFMPEG] Trying pixfmt=1.
-> Could not find matching colorspace - retrying with -vf scale...
-> Opening video filter: [scale]
-> The selected video_out device is incompatible with this codec.
-> Try appending the scale filter to your filter list,
-> e.g. -vf spp,scale instead of -vf spp.
-> [VD_FFMPEG] Trying pixfmt=2.
-> Could not find matching colorspace - retrying with -vf scale...
-> Opening video filter: [scale]
-> The selected video_out device is incompatible with this codec.
-> Try appending the scale filter to your filter list,
-> e.g. -vf spp,scale instead of -vf spp.
-> Movie-Aspect is 1.78:1 - prescaling to correct movie aspect.
-> VO: [xv] 720x576 =>  1024x576 Planar YV12
-> A:90135.5 V:90135.5 A-V:  0.001 ct:  0.093 13786/13786  6%  0%  0.5% 0 0
->
->
-> MPlayer interrupted by signal 2 in module: sleep_timer
-> A:90135.6 V:90135.6 A-V:  0.001 ct:  0.093 13787/13787  6%  0%  0.5% 0 0
->
-> Exiting... (Quit)
-> [user@vortexbox ~]$
->
-> And, moving pictures!!!
+Please find below a refreshed patch, which should be based on mainline commit:
 
-At least you know your hardware is working :-)
-
->
-> BUT what the frig am I watching of all the channels that have been
-> defined...?
-
-I'd say you are watching "U", because you passed arguments "512 650" to 
-dvbstream (I'm not really familiar with dvbstream) and your channel list 
-from when you ran dvsscan earlier listed these channels:
-
- > Network Name 'Freeview'
- > dumping lists (10 services)
- > Maori TV:12483:h:0:22500:514:652:1025
- > TV ONE:12483:h:0:22500:515:653:1035
- > TV2:12483:h:0:22500:516:654:1036
- > TVNZ 7:12483:h:0:22500:518:656:1038
- > U:12483:h:0:22500:512:650:1904
- > TV ONE:12483:h:0:22500:519:657:1908
- > TV ONE:12483:h:0:22500:513:651:1909
- > TV ONE:12483:h:0:22500:517:655:1910
- > TS 22 IEPG DATA SERVICE:12483:h:0:22500:0:0:9022
- > [000-fffe]:12483:h:0:22500:0:0:65534
- > Done.
-
-and the channel "U" is U:12483:h:0:22500:512:650:1904, note the "512" 
-and the "650".
-
-Presumably if you run dvbstream with (eg) "515 653" instead you would 
-get "TV ONE".
+b42282e pci: fix PCI bus allocation alignment handling
 
 
->
-> Thanks very much for your help!!!  Now I just need to work out what's
-> going on!
->
-> Or, is the tuner simply stuck on what ever it was last put on?  And, if
-> so - how to change channels?
 
-As I understand it and based on my experience, if you run szap (and it 
-gets a lock on a channel, which is looks like yours isn't for some 
-reason) and then you stop szap the tuner will remain locked onto the 
-channel for some period of time after you ^C szap.  But the tuner may 
-(and usually does) drift off station and so out of tune.  I don't know 
-what determines how long the tuner stays locked onto channel for and 
-whether this is some specific timeout thats in the drivers, or whether 
-it's just down to the way the electronics work.  This is why you need to 
-keep szap running to keep the tuner locked onto the channel if you are 
-doing this sort of thing with command line tools.  Of course if you use 
-a "tv viewing application" it deals with all of this for you.
 
-Keep trying!
-Robert.
+> Thanks,
+> Janusz
+>
+
+>From f767059c12c755ebe79c4b74de17c23a257007c7 Mon Sep 17 00:00:00 2001
+From: Sergio Aguirre <saaguirre@ti.com>
+Date: Mon, 11 Apr 2011 11:14:33 -0500
+Subject: [PATCH] V4L: soc-camera: regression fix: calculate .sizeimage
+in soc_camera.c
+
+A recent patch has given individual soc-camera host drivers a possibility
+to calculate .sizeimage and .bytesperline pixel format fields internally,
+however, some drivers relied on the core calculating these values for
+them, following a default algorithm. This patch restores the default
+calculation for such drivers.
+
+Based on initial patch by Guennadi Liakhovetski, found here:
+
+http://www.spinics.net/lists/linux-media/msg31282.html
+
+Except that this covers try_fmt aswell.
+
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+---
+ drivers/media/video/soc_camera.c |   48 +++++++++++++++++++++++++++++++++----
+ 1 files changed, 42 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+index 4628448..dcc6623 100644
+--- a/drivers/media/video/soc_camera.c
++++ b/drivers/media/video/soc_camera.c
+@@ -136,11 +136,50 @@ unsigned long
+soc_camera_apply_sensor_flags(struct soc_camera_link *icl,
+ }
+ EXPORT_SYMBOL(soc_camera_apply_sensor_flags);
+
++#define pixfmtstr(x) (x) & 0xff, ((x) >> 8) & 0xff, ((x) >> 16) & 0xff, \
++	((x) >> 24) & 0xff
++
++static int soc_camera_try_fmt(struct soc_camera_device *icd,
++			      struct v4l2_format *f)
++{
++	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
++	struct v4l2_pix_format *pix = &f->fmt.pix;
++	int ret;
++
++	dev_dbg(&icd->dev, "TRY_FMT(%c%c%c%c, %ux%u)\n",
++		pixfmtstr(pix->pixelformat), pix->width, pix->height);
++
++	pix->bytesperline = 0;
++	pix->sizeimage = 0;
++
++	ret = ici->ops->try_fmt(icd, f);
++	if (ret < 0)
++		return ret;
++
++	if (!pix->sizeimage) {
++		if (!pix->bytesperline) {
++			const struct soc_camera_format_xlate *xlate;
++
++			xlate = soc_camera_xlate_by_fourcc(icd, pix->pixelformat);
++			if (!xlate)
++				return -EINVAL;
++
++			ret = soc_mbus_bytes_per_line(pix->width,
++						      xlate->host_fmt);
++			if (ret > 0)
++				pix->bytesperline = ret;
++		}
++		if (pix->bytesperline)
++			pix->sizeimage = pix->bytesperline * pix->height;
++	}
++
++	return 0;
++}
++
+ static int soc_camera_try_fmt_vid_cap(struct file *file, void *priv,
+ 				      struct v4l2_format *f)
+ {
+ 	struct soc_camera_device *icd = file->private_data;
+-	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+
+ 	WARN_ON(priv != file->private_data);
+
+@@ -149,7 +188,7 @@ static int soc_camera_try_fmt_vid_cap(struct file
+*file, void *priv,
+ 		return -EINVAL;
+
+ 	/* limit format to hardware capabilities */
+-	return ici->ops->try_fmt(icd, f);
++	return soc_camera_try_fmt(icd, f);
+ }
+
+ static int soc_camera_enum_input(struct file *file, void *priv,
+@@ -362,9 +401,6 @@ static void soc_camera_free_user_formats(struct
+soc_camera_device *icd)
+ 	icd->user_formats = NULL;
+ }
+
+-#define pixfmtstr(x) (x) & 0xff, ((x) >> 8) & 0xff, ((x) >> 16) & 0xff, \
+-	((x) >> 24) & 0xff
+-
+ /* Called with .vb_lock held, or from the first open(2), see comment there */
+ static int soc_camera_set_fmt(struct soc_camera_device *icd,
+ 			      struct v4l2_format *f)
+@@ -377,7 +413,7 @@ static int soc_camera_set_fmt(struct soc_camera_device *icd,
+ 		pixfmtstr(pix->pixelformat), pix->width, pix->height);
+
+ 	/* We always call try_fmt() before set_fmt() or set_crop() */
+-	ret = ici->ops->try_fmt(icd, f);
++	ret = soc_camera_try_fmt(icd, f);
+ 	if (ret < 0)
+ 		return ret;
+
+-- 
+1.7.0.4
