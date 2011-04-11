@@ -1,88 +1,147 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:57284 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756128Ab1DHMs3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Apr 2011 08:48:29 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: vb2: stop_streaming() callback redesign
-Date: Fri, 8 Apr 2011 14:48:15 +0200
-Cc: "'Pawel Osciak'" <pawel@osciak.com>, linux-media@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	g.liakhovetski@gmx.de
-References: <1301874670-14833-1-git-send-email-pawel@osciak.com> <201104041227.30262.laurent.pinchart@ideasonboard.com> <009f01cbf39d$a9cd7320$fd685960$%szyprowski@samsung.com>
-In-Reply-To: <009f01cbf39d$a9cd7320$fd685960$%szyprowski@samsung.com>
+Received: from d1.icnet.pl ([212.160.220.21]:54617 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756149Ab1DKV6g convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Apr 2011 17:58:36 -0400
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+Subject: Re: [PATCH] V4L: soc-camera: regression fix: calculate .sizeimage in soc_camera.c
+Date: Mon, 11 Apr 2011 23:52:07 +0200
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <Pine.LNX.4.64.1104111054110.18511@axis700.grange> <201104112040.08077.jkrzyszt@tis.icnet.pl> <BANLkTinv7FxQjR7w4eL2je-s+3NC78GPHw@mail.gmail.com>
+In-Reply-To: <BANLkTinv7FxQjR7w4eL2je-s+3NC78GPHw@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201104081448.25924.laurent.pinchart@ideasonboard.com>
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201104112352.07808.jkrzyszt@tis.icnet.pl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Marek,
-
-On Tuesday 05 April 2011 16:27:54 Marek Szyprowski wrote:
-> On Monday, April 04, 2011 12:27 PM Laurent Pinchart wrote:
-> > On Monday 04 April 2011 01:51:05 Pawel Osciak wrote:
-> > > 
-> > > This series implements a slight redesign of the stop_streaming()
-> > > callback in vb2. The callback has been made obligatory. The drivers
-> > > are expected to finish all hardware operations and cede ownership of
-> > > all buffers before returning, but are not required to call
-> > > vb2_buffer_done() for any of them. The return value from this callback
-> > > has also been removed.
-> > 
-> > What's the rationale behind this patch set ? I've always been against vb2
-> > controlling the stream state (vb2 should handle buffer management only in
-> > my opinion) and I'd like to understand why you want to make it required.
+Dnia poniedziałek 11 kwiecień 2011 o 22:05:35 Aguirre, Sergio 
+napisał(a):
 > 
-> Let me remind the rationale behind {start,stop}_streaming. Basically there
-> are more than one place where you should change the DMA streaming state,
-> some of which are quite obvious (like stream_{on,off}), the others are a
-> bit more surprising (like the recently discussed first call to poll()).
+> Please find below a refreshed patch, which should be based on
+> mainline commit:
 
-stream_on and stream_off are not difficult to handle on the driver side, but I 
-agree that it becomes more complex when poll() and read() get involved. I 
-still believe that stream on/off is out of scope of the video buffer 
-management implemementation.
+Hi,
+This version works for me, and fixes the regression.
 
-> Also some of the vb2 operations behaves differently if streaming is
-> enabled or not (like dqbuf), so vb2 needs to be aware of streaming state
-> change.
+Thanks,
+Janusz
 
-I have no issue with vb2 being aware of stream state changes, my issues comes 
-from vb2 managing the stream state itself.
-
-> The idea is also to simplify the drivers and provide a one-to-one functions
-> for all typical v4l2 operations: req_bufs, query_bufs, q_buf, dq_buf,
-> stream_on, stream_off, mmap, read/write, poll, so implementation of all
-> from this list can be a simple 4 lines of code, like the following:
+> >From f767059c12c755ebe79c4b74de17c23a257007c7 Mon Sep 17 00:00:00
+> >2001
 > 
-> static int vidioc_streamon(struct file *file, void *priv, enum
-> v4l2_buf_type i) {
->         struct vivi_dev *dev = video_drvdata(file);
->         return vb2_streamon(&dev->vb_vidq, i);
-> }
-
-All those functions deal with buffer management, except for streamon and 
-streamoff.
-
-> > I plan to use vb2 in the uvcvideo driver (when vb2 will provide a way to
-> > handle device disconnection), and uvcvideo will stop the stream before
-> > calling vb2_queue_release() and vb2_streamoff(). Would will I need a
-> > stop_stream operation ?
+> From: Sergio Aguirre <saaguirre@ti.com>
+> Date: Mon, 11 Apr 2011 11:14:33 -0500
+> Subject: [PATCH] V4L: soc-camera: regression fix: calculate
+> .sizeimage in soc_camera.c
 > 
-> What's prevents you from moving the dma streaming stop call from
-> stop_streaming ioctl and release file operation?
-
-Probably not much. What bothers me is that the vb2 stream on/off callbacks to 
-drivers are not properly documented, so driver authors might implement them 
-without thinking about all possible call paths, and crash in corner cases. I 
-don't like implementing a callback in a driver when I don't know exactly when 
-and how it can be called.
-
--- 
-Regards,
-
-Laurent Pinchart
+> A recent patch has given individual soc-camera host drivers a
+> possibility to calculate .sizeimage and .bytesperline pixel format
+> fields internally, however, some drivers relied on the core
+> calculating these values for them, following a default algorithm.
+> This patch restores the default calculation for such drivers.
+> 
+> Based on initial patch by Guennadi Liakhovetski, found here:
+> 
+> http://www.spinics.net/lists/linux-media/msg31282.html
+> 
+> Except that this covers try_fmt aswell.
+> 
+> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+> ---
+>  drivers/media/video/soc_camera.c |   48
+> +++++++++++++++++++++++++++++++++---- 1 files changed, 42
+> insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/media/video/soc_camera.c
+> b/drivers/media/video/soc_camera.c index 4628448..dcc6623 100644
+> --- a/drivers/media/video/soc_camera.c
+> +++ b/drivers/media/video/soc_camera.c
+> @@ -136,11 +136,50 @@ unsigned long
+> soc_camera_apply_sensor_flags(struct soc_camera_link *icl,
+>  }
+>  EXPORT_SYMBOL(soc_camera_apply_sensor_flags);
+> 
+> +#define pixfmtstr(x) (x) & 0xff, ((x) >> 8) & 0xff, ((x) >> 16) &
+> 0xff, \ +	((x) >> 24) & 0xff
+> +
+> +static int soc_camera_try_fmt(struct soc_camera_device *icd,
+> +			      struct v4l2_format *f)
+> +{
+> +	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+> +	struct v4l2_pix_format *pix = &f->fmt.pix;
+> +	int ret;
+> +
+> +	dev_dbg(&icd->dev, "TRY_FMT(%c%c%c%c, %ux%u)\n",
+> +		pixfmtstr(pix->pixelformat), pix->width, pix->height);
+> +
+> +	pix->bytesperline = 0;
+> +	pix->sizeimage = 0;
+> +
+> +	ret = ici->ops->try_fmt(icd, f);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	if (!pix->sizeimage) {
+> +		if (!pix->bytesperline) {
+> +			const struct soc_camera_format_xlate *xlate;
+> +
+> +			xlate = soc_camera_xlate_by_fourcc(icd, pix->pixelformat);
+> +			if (!xlate)
+> +				return -EINVAL;
+> +
+> +			ret = soc_mbus_bytes_per_line(pix->width,
+> +						      xlate->host_fmt);
+> +			if (ret > 0)
+> +				pix->bytesperline = ret;
+> +		}
+> +		if (pix->bytesperline)
+> +			pix->sizeimage = pix->bytesperline * pix->height;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+>  static int soc_camera_try_fmt_vid_cap(struct file *file, void *priv,
+>  				      struct v4l2_format *f)
+>  {
+>  	struct soc_camera_device *icd = file->private_data;
+> -	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+> 
+>  	WARN_ON(priv != file->private_data);
+> 
+> @@ -149,7 +188,7 @@ static int soc_camera_try_fmt_vid_cap(struct file
+> *file, void *priv,
+>  		return -EINVAL;
+> 
+>  	/* limit format to hardware capabilities */
+> -	return ici->ops->try_fmt(icd, f);
+> +	return soc_camera_try_fmt(icd, f);
+>  }
+> 
+>  static int soc_camera_enum_input(struct file *file, void *priv,
+> @@ -362,9 +401,6 @@ static void soc_camera_free_user_formats(struct
+> soc_camera_device *icd)
+>  	icd->user_formats = NULL;
+>  }
+> 
+> -#define pixfmtstr(x) (x) & 0xff, ((x) >> 8) & 0xff, ((x) >> 16) &
+> 0xff, \ -	((x) >> 24) & 0xff
+> -
+>  /* Called with .vb_lock held, or from the first open(2), see comment
+> there */ static int soc_camera_set_fmt(struct soc_camera_device
+> *icd, struct v4l2_format *f)
+> @@ -377,7 +413,7 @@ static int soc_camera_set_fmt(struct
+> soc_camera_device *icd, pixfmtstr(pix->pixelformat), pix->width,
+> pix->height);
+> 
+>  	/* We always call try_fmt() before set_fmt() or set_crop() */
+> -	ret = ici->ops->try_fmt(icd, f);
+> +	ret = soc_camera_try_fmt(icd, f);
+>  	if (ret < 0)
+>  		return ret;
