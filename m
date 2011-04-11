@@ -1,151 +1,76 @@
 Return-path: <mchehab@pedra>
-Received: from msa106.auone-net.jp ([61.117.18.166]:60681 "EHLO
-	msa106.auone-net.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754587Ab1DSMQb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Apr 2011 08:16:31 -0400
-Date: Tue, 19 Apr 2011 21:16:29 +0900
-From: Akira Tsukamoto <akira-t@s9.dion.ne.jp>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: soc_camera with V4L2 driver 
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.1104181603470.27247@axis700.grange>
-References: <20110418225538.155F.B41FCDD0@s9.dion.ne.jp> <Pine.LNX.4.64.1104181603470.27247@axis700.grange>
-Message-Id: <20110419211626.398E.B41FCDD0@s9.dion.ne.jp>
+Received: from d1.icnet.pl ([212.160.220.21]:40493 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752956Ab1DKQMe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Apr 2011 12:12:34 -0400
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 2.6.39] V4L: videobuf-dma-contig: fix mmap_mapper broken on ARM
+Date: Mon, 11 Apr 2011 18:11:42 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel@lists.infradead.org, Jiri Slaby <jslaby@suse.cz>
+References: <201104110048.08764.jkrzyszt@tis.icnet.pl> <4DA24E65.4060505@infradead.org>
+In-Reply-To: <4DA24E65.4060505@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201104111811.42563.jkrzyszt@tis.icnet.pl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello Guennadi,
+On Mon 11 Apr 2011 at 02:42:13 Mauro Carvalho Chehab wrote:
+> Em 10-04-2011 19:47, Janusz Krzysztofik escreveu:
+> > After switching from mem->dma_handle to virt_to_phys(mem->vaddr)
+> > used for obtaining page frame number passed to remap_pfn_range()
+> > (commit 35d9f510b67b10338161aba6229d4f55b4000f5b),
+> > videobuf-dma-contig stopped working on my ARM based board. The ARM
+> > architecture maintainer, Russell King, confirmed that using
+> > something like
+> > virt_to_phys(dma_alloc_coherent()) is not supported on ARM, and can
+> > be broken on other architectures as well. The author of the
+> > change, Jiri Slaby, also confirmed that his code may not work on
+> > all architectures.
+> > 
+> > The patch takes two different countermeasures against this
+> > regression:
+> > 
+> > 1. On architectures which provide dma_mmap_coherent() function (ARM
+> > for
+> > 
+> >    now), use it instead of just remap_pfn_range(). The code is
+> >    stollen from sound/core/pcm_native.c:snd_pcm_default_mmap().
+> >    Set vma->vm_pgoff to 0 before calling dma_mmap_coherent(), or it
+> >    fails.
+> > 
+> > 2. On other architectures, use
+> > virt_to_phys(bus_to_virt(mem->dma_handle))
+> > 
+> >    instead of problematic virt_to_phys(mem->vaddr). This should
+> >    work even if those translations would occure inaccurate for DMA
+> >    addresses, since possible errors introduced by both
+> >    calculations, performed in opposite directions, should
+> >    compensate.
+> > 
+> > Both solutions tested on ARM OMAP1 based Amstrad Delta board.
+...
+> The code is saying that dma_mmap_coherent should be used only on ARM
+> and PPC architectures, and remap_pfn_range should be used otherwise.
+> Are you sure that this will work on the other architectures? I
+> really prefer to have one standard way for doing it, that would be
+> architecture-independent. Media drivers or core should not have
+> arch-dependent code inside.
 
-*1*
-> I haven't reviewed your sources in detail, just two comments, regarding 
-> something, that caught my eye:
-> > +static struct platform_device rj65na20_camera = {
-> > +	.name	= "soc-camera-pdrv-2M",
-> 
-> This name has to match with what's advertised in 
-> drivers/media/video/soc_camera.c, namely "soc-camera-pdrv"
+More looking at this and making more tests, I found that the 
+dma_mmap_coherent() method, working correctly on OMAP1 which has no 
+countermeasures against unpredictable dma_alloc_coherent() runtime 
+behaviour implemented, may not be compatible with all those 
+dma_declare_coherent_memory() and alike workarounds, still being used,  
+more or less successfully, on other ARM platforms/machines/boards.
 
-*2*
-> >  static struct i2c_board_info i2c0_devices[] = {
-> >  	{
-> >  		I2C_BOARD_INFO("ag5evm_ts", 0x20),
-> >  		.irq	= pint2irq(12),	/* PINTC3 */
-> >  	},
-> > +	/* 2M camera */
-> > +	{
-> > +		I2C_BOARD_INFO("rj65na20", 0x40),
-> > +	},
+Under such circumstances, I'd opt for choosing the depreciated, but 
+hopefully working, bi-directional translation method, ie. 
+virt_to_phys(bus_to_virt(mem->dma_handle)), as the regression fix.
 
-I fixed the both above, thank you.
-And add CEU init in it.
-This is my current patch for temporary start.
-(builds without error at least)
-
-With kind regards,
-
-Akira
-
---- linux_kernel_bsp/arch/arm/mach-shmobile/board-ag5evm.c	2011-03-22 12:30:14.000000000 +0900
-+++ linux_kernel/arch/arm/mach-shmobile/board-ag5evm.c	2011-04-19 16:54:47.000000000 +0900
-@@ -59,6 +59,7 @@
- 
- #include <sound/sh_fsi.h>
- #include <video/sh_mobile_lcdc.h>
-+#include <media/soc_camera.h>
- 
- static struct r8a66597_platdata usb_host_data = {
- 	.on_chip	= 1,
-@@ -317,11 +318,38 @@ static struct platform_device fsi_device
- 	},
- };
- 
-+static struct i2c_board_info rj65na20_info = {
-+	I2C_BOARD_INFO("rj65na20", 0x40),
-+};
-+
-+struct soc_camera_link rj65na20_link = {
-+	.bus_id         = 0,
-+	.board_info     = &rj65na20_info,
-+	.i2c_adapter_id = 0,
-+	.module_name    = "rj65na20",
-+};
-+
-+static struct platform_device rj65na20_camera = {
-+	.name	= "soc-camera-pdrv",
-+	.id	= 0,
-+	.dev	= {
-+		.platform_data = &rj65na20_link,
-+	},
-+};
-+
- static struct i2c_board_info i2c0_devices[] = {
- 	{
- 		I2C_BOARD_INFO("ag5evm_ts", 0x20),
- 		.irq	= pint2irq(12),	/* PINTC3 */
- 	},
- };
- 
- static struct i2c_board_info i2c1_devices[] = {
-@@ -548,6 +576,8 @@ static struct platform_device *ag5evm_de
- 
- 	&usb_mass_storage_device,
- 	&android_usb_device,
-+
-+	&rj65na20_camera,
- };
- 
- static struct map_desc ag5evm_io_desc[] __initdata = {
-@@ -748,6 +778,7 @@ static void __init ag5evm_init(void)
- 	struct clk *sub_clk = clk_get(NULL, "sub_clk");
- 	struct clk *extal2_clk = clk_get(NULL, "extal2");
- 	struct clk *fsia_clk = clk_get(NULL, "fsia_clk");
-+	struct clk *vck1_clk = clk_get(NULL, "vck1_clk");
- 	clk_set_parent(sub_clk, extal2_clk);
- 
- 	__raw_writel(__raw_readl(SUBCKCR) & ~(1<<9), SUBCKCR);
-@@ -853,6 +884,56 @@ static void __init ag5evm_init(void)
- 	__raw_writel(0x2a8b9111, DSI1PHYCR);
- 	clk_enable(clk_get(NULL, "dsi-tx"));
- 
-+	/* CEU */
-+	gpio_request(GPIO_FN_VIO2_CLK2, NULL);
-+	gpio_request(GPIO_FN_VIO2_VD3, NULL);
-+	gpio_request(GPIO_FN_VIO2_HD3, NULL);
-+	gpio_request(GPIO_FN_PORT16_VIO_CKOR, NULL);
-+	gpio_request(GPIO_FN_VIO_D15, NULL);
-+	gpio_request(GPIO_FN_VIO_D14, NULL);
-+	gpio_request(GPIO_FN_VIO_D13, NULL);
-+	gpio_request(GPIO_FN_VIO_D12, NULL);
-+	gpio_request(GPIO_FN_VIO_D11, NULL);
-+	gpio_request(GPIO_FN_VIO_D10, NULL);
-+	gpio_request(GPIO_FN_VIO_D9, NULL);
-+	gpio_request(GPIO_FN_VIO_D8, NULL);
-+
-+	if (!IS_ERR(vck1_clk)) {
-+		clk_set_rate(vck1_clk, clk_round_rate(vck1_clk, 24000000));
-+		clk_enable(vck1_clk);
-+		clk_put(vck1_clk);
-+		udelay(50);
-+	} else {
-+		printk(KERN_ERR "clk_get(vck1_clk) failed.\n");
-+	}
-+
-+	/* 2M camera */
-+	gpio_request(GPIO_PORT44, NULL);
-+	gpio_direction_output(GPIO_PORT44, 0);
-+	udelay(10);
-+	gpio_set_value(GPIO_PORT44, 1);
-+
- 	/* Unreset LCD Panel */
- 	gpio_request(GPIO_PORT217, NULL);
- 	gpio_direction_output(GPIO_PORT217, 0);
-
-
--- 
-Akira Tsukamoto
-
+Thanks,
+Janusz
