@@ -1,90 +1,79 @@
 Return-path: <mchehab@pedra>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:44967 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756571Ab1DFS7N (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:37967 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754507Ab1DKVr4 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Apr 2011 14:59:13 -0400
-Date: Wed, 6 Apr 2011 21:59:02 +0300
-From: Felipe Balbi <balbi@ti.com>
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Greg KH <gregkh@suse.de>, Grant Likely <grant.likely@secretlab.ca>,
-	Andres Salomon <dilinger@queued.net>,
-	linux-kernel@vger.kernel.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	khali@linux-fr.org, ben-linux@fluff.org,
-	Peter Korsgaard <jacmet@sunsite.dk>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	David Brownell <dbrownell@users.sourceforge.net>,
-	linux-i2c@vger.kernel.org, linux-media@vger.kernel.org,
-	netdev@vger.kernel.org, spi-devel-general@lists.sourceforge.net,
-	Mocean Laboratories <info@mocean-labs.com>
-Subject: Re: [PATCH 07/19] timberdale: mfd_cell is now implicitly available
- to drivers
-Message-ID: <20110406185902.GN25654@legolas.emea.dhcp.ti.com>
-Reply-To: balbi@ti.com
-References: <BANLkTi=bCd_+f=EG-O=U5VH_ZNjFhxkziQ@mail.gmail.com>
- <20110401235239.GE29397@sortiz-mobl>
- <BANLkTi=bq=OGzXFp7qiBr7x_BnGOWf=DRQ@mail.gmail.com>
- <20110404100314.GC2751@sortiz-mobl>
- <20110405030428.GB29522@ponder.secretlab.ca>
- <20110406152322.GA2757@sortiz-mobl>
- <20110406155805.GA20095@suse.de>
- <20110406170537.GB2757@sortiz-mobl>
- <20110406175647.GA8048@suse.de>
- <20110406184733.GD2757@sortiz-mobl>
-MIME-Version: 1.0
+	Mon, 11 Apr 2011 17:47:56 -0400
+Received: by wwa36 with SMTP id 36so7172274wwa.1
+        for <linux-media@vger.kernel.org>; Mon, 11 Apr 2011 14:47:54 -0700 (PDT)
+References: <1300997220-4354-1-git-send-email-jarod@redhat.com> <20110324203108.GX2008@bicker> <20110324220523.GB28094@redhat.com>
+In-Reply-To: <20110324220523.GB28094@redhat.com>
+Mime-Version: 1.0 (Apple Message framework v1084)
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20110406184733.GD2757@sortiz-mobl>
+Message-Id: <6FD2AAEC-73BF-414A-BEF2-1C9C20A4F4BB@wilsonet.com>
+Content-Transfer-Encoding: 8BIT
+Cc: Dan Carpenter <error27@gmail.com>,
+	Dmitri Belimov <d.belimov@gmail.com>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+From: Jarod Wilson <jarod@wilsonet.com>
+Subject: Re: [PATCH] tm6000: fix vbuf may be used uninitialized
+Date: Mon, 11 Apr 2011 17:48:02 -0400
+To: Jarod Wilson <jarod@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+On Mar 24, 2011, at 6:05 PM, Jarod Wilson wrote:
 
-On Wed, Apr 06, 2011 at 08:47:34PM +0200, Samuel Ortiz wrote:
-> > > > What is a "MFD cell pointer" and why is it needed in struct device?
-> > > An MFD cell is an MFD instantiated device.
-> > > MFD (Multi Function Device) drivers instantiate platform devices. Those
-> > > devices drivers sometimes need a platform data pointer, sometimes an MFD
-> > > specific pointer, and sometimes both. Also, some of those drivers have been
-> > > implemented as MFD sub drivers, while others know nothing about MFD and just
-> > > expect a plain platform_data pointer.
-> > 
-> > That sounds like a bug in those drivers, why not fix them to properly
-> > pass in the correct pointer?
-> Because they're drivers for generic IPs, not MFD ones. By forcing them to use
-> MFD specific structure and APIs, we make it more difficult for platform code
-> to instantiate them.
+> On Thu, Mar 24, 2011 at 11:31:08PM +0300, Dan Carpenter wrote:
+>> On Thu, Mar 24, 2011 at 04:07:00PM -0400, Jarod Wilson wrote:
+>>> Signed-off-by: Jarod Wilson <jarod@redhat.com>
+>> 
+>> Jarod, there is a lot of information missing from your change log...  :/
+> 
+> Hrm, I'm building the media stack with all warnings fatal, so this was
+> just a quick fix to silence the compiler warning, didn't really look into
+> it at all.
+> 
+>>> CC: devel@driverdev.osuosl.org
+>>> ---
+>>> drivers/staging/tm6000/tm6000-video.c |    2 +-
+>>> 1 files changed, 1 insertions(+), 1 deletions(-)
+>>> 
+>>> diff --git a/drivers/staging/tm6000/tm6000-video.c b/drivers/staging/tm6000/tm6000-video.c
+>>> index c80a316..bfebedd 100644
+>>> --- a/drivers/staging/tm6000/tm6000-video.c
+>>> +++ b/drivers/staging/tm6000/tm6000-video.c
+>>> @@ -228,7 +228,7 @@ static int copy_streams(u8 *data, unsigned long len,
+>>> 	unsigned long header = 0;
+>>> 	int rc = 0;
+>>> 	unsigned int cmd, cpysize, pktsize, size, field, block, line, pos = 0;
+>>> -	struct tm6000_buffer *vbuf;
+>>> +	struct tm6000_buffer *vbuf = NULL;
+>>> 	char *voutp = NULL;
+>>> 	unsigned int linewidth;
+>>> 
+>> 
+>> This looks like a real bug versus just a GCC warning.  It was introduced
+>> in 8aff8ba95155df "[media] tm6000: add radio support to the driver".
+>> I've added Dmitri to the CC list.
+> 
+> Thanks much, will try to pay more attention next time. ;)
 
-I agree. What I do on those cases is to have a simple platform_device
-for the core IP driver and use platform_device_id tables to do runtime
-checks of the small differences. If one platform X doesn't use a
-platform_bus, it uses e.g. PCI, then you make a PCI "bridge" which
-allocates a platform_device with the correct name and adds that to the
-driver model.
+So I was just circling back around on this one, and took some time to read
+the actual code and the radio support addition. After doing so, I don't
+see why the patch I proposed wouldn't do. The buffer is only manipulated
+if !dev->radio or if vbuf is non-NULL (the memcpy call). If its initialized
+to NULL, it only gets used exactly as it did before 8aff8ba9 when
+!dev->radio, and if its not been used or its NULL following manipulations
+protected by !dev->radio, it doesn't get copied. What is the "real bug" I
+am missing there? (Or did I already miss a patch posted to linux-media
+addressing it?)
 
-See [1] (for the core driver) and [2] (for a PCI bridge driver) for an
-example of what I'm talking about.
-
-> The timberdale MFD for example is built with a Xilinx SPI controller, and a
-> Micrel ks8842 ethernet switch IP. Forcing those devices into being MFD devices
-> would mean any platform willing to instantiate them would have to use the MFD
-> APIs. That sounds a bit artificial to me.
-
-do they share any address space ? If they do, then you'd need something
-to synchronize, right ? If they don't, then you just add two separate
-devices, they don't have to be MFD.
-
-> Although there is currently no drivers instantiated by both an MFD driver
-> and some platform code, Grant complaint about the Xilinx SPI driver moving
-> from a platform driver to an MFD one makes sense to me. 
-
-I don't think so. That's not really an MFD device is it ? It's just two
-different IPs instantianted on the same ASIC/FPGA, right ? Unless they
-share the register space, IMHO, there's no need to make them MFD.
-
-[1] http://gitorious.org/usb/usb/blobs/dwc3/drivers/usb/dwc3/core.c
-[2] http://gitorious.org/usb/usb/blobs/dwc3/drivers/usb/dwc3/dwc3-haps.c
+Thanks much,
 
 -- 
-balbi
+Jarod Wilson
+jarod@wilsonet.com
+
+
+
