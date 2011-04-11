@@ -1,42 +1,92 @@
 Return-path: <mchehab@pedra>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:54325 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751567Ab1DQSGQ (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.10]:58287 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751609Ab1DKNYK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Apr 2011 14:06:16 -0400
-Received: by pzk9 with SMTP id 9so1714157pzk.19
-        for <linux-media@vger.kernel.org>; Sun, 17 Apr 2011 11:06:15 -0700 (PDT)
+	Mon, 11 Apr 2011 09:24:10 -0400
+Date: Mon, 11 Apr 2011 15:23:24 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH] V4L: soc-camera: regression fix: calculate .sizeimage
+ in soc_camera.c
+In-Reply-To: <BANLkTin9gFK+StWvs6D7MeJixQ7E2AB=rA@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1104111518140.20489@axis700.grange>
+References: <Pine.LNX.4.64.1104111054110.18511@axis700.grange>
+ <BANLkTin9gFK+StWvs6D7MeJixQ7E2AB=rA@mail.gmail.com>
 MIME-Version: 1.0
-Date: Sun, 17 Apr 2011 14:06:14 -0400
-Message-ID: <BANLkTi=hA5vtGn1hzY1v+3kdbUFC4BDtNA@mail.gmail.com>
-Subject: [GIT PULL] git://sol.kernellabs.com/mk/mercury tveeprom
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Mauro,
+On Mon, 11 Apr 2011, Aguirre, Sergio wrote:
 
-Please pull from the tveeprom branch at git://sol.kernellabs.com/mk/mercury:
+> Hi Guennadi,
+> 
+> On Mon, Apr 11, 2011 at 3:58 AM, Guennadi Liakhovetski <
+> g.liakhovetski@gmx.de> wrote:
+> 
+> > A recent patch has given individual soc-camera host drivers a possibility
+> > to calculate .sizeimage and .bytesperline pixel format fields internally,
+> > however, some drivers relied on the core calculating these values for
+> > them, following a default algorithm. This patch restores the default
+> > calculation for such drivers.
+> >
+> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > ---
+> > diff --git a/drivers/media/video/soc_camera.c
+> > b/drivers/media/video/soc_camera.c
+> > index 4628448..0918c48 100644
+> > --- a/drivers/media/video/soc_camera.c
+> > +++ b/drivers/media/video/soc_camera.c
+> > @@ -376,6 +376,9 @@ static int soc_camera_set_fmt(struct soc_camera_device
+> > *icd,
+> >        dev_dbg(&icd->dev, "S_FMT(%c%c%c%c, %ux%u)\n",
+> >                pixfmtstr(pix->pixelformat), pix->width, pix->height);
+> >
+> > +       pix->bytesperline = 0;
+> > +       pix->sizeimage = 0;
+> > +
+> >        /* We always call try_fmt() before set_fmt() or set_crop() */
+> >        ret = ici->ops->try_fmt(icd, f);
+> >        if (ret < 0)
+> > @@ -391,6 +394,17 @@ static int soc_camera_set_fmt(struct soc_camera_device
+> > *icd,
+> >                return -EINVAL;
+> >        }
+> >
+> > +       if (!pix->sizeimage) {
+> > +               if (!pix->bytesperline) {
+> > +                       ret = soc_mbus_bytes_per_line(pix->width,
+> > +
+> > icd->current_fmt->host_fmt);
+> > +                       if (ret > 0)
+> > +                               pix->bytesperline = ret;
+> > +               }
+> > +               if (pix->bytesperline)
+> > +                       pix->sizeimage = pix->bytesperline * pix->height;
+> > +       }
+> > +
+> >
+> 
+> Shouldn't all this be better done in try_fmt?
 
-The following changes since commit d733ed6c34be3aef0517a04e4103eed6b369ec50:
+Not _better_. We might choose to additionally do it for try_fmt too. But
 
-  Merge branch 'for-linus' of git://git.kernel.dk/linux-2.6-block
-(2011-04-16 10:33:41 -0700)
+1. we didn't do it before, applications don't seem to care.
+2. you cannot store / reuse those .sizeimage & .bytesperline values - this 
+is just a "try"
+3. it would be a bit difficult to realise - we need a struct 
+soc_mbus_pixelfmt to call soc_mbus_bytes_per_line(), which we don't have, 
+so, we'd need to obtain it using soc_camera_xlate_by_fourcc().
 
-are available in the git repository at:
+This all would work, but in any case it would be an enhancement, but not a 
+regression fix.
 
-  git://sol.kernellabs.com/mk/mercury tveeprom
-
-Michael Krufky (2):
-      [media] tveeprom: update hauppauge tuner list thru 169
-      [media] tveeprom: update hauppauge tuner list thru 174
-
- drivers/media/video/tveeprom.c |   32 +++++++++++++++++++-------------
- 1 files changed, 19 insertions(+), 13 deletions(-)
-
-Regards,
-
-Mike
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
