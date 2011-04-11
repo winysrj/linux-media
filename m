@@ -1,85 +1,56 @@
-Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.22]:58244 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754720Ab1DKRsq (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:56890 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751944Ab1DKLab (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Apr 2011 13:48:46 -0400
-Content-Type: text/plain; charset="utf-8"
-Date: Mon, 11 Apr 2011 19:48:41 +0200
-From: handygewinnspiel@gmx.de
-In-Reply-To: <4D9C5C4D.4040709@redhat.com>
-Message-ID: <20110411174841.268990@gmx.net>
+	Mon, 11 Apr 2011 07:30:31 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: javier Martin <javier.martin@vista-silicon.com>
+Subject: Re: mt9t111 sensor on Beagleboard xM
+Date: Mon, 11 Apr 2011 13:30:40 +0200
+Cc: linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+References: <BANLkTin35p+xPHWkf3WsGNPzL9aeUwsazQ@mail.gmail.com> <201104081907.02509.laurent.pinchart@ideasonboard.com> <BANLkTikXGVLG6E9TeQc1PQjiybeZxrNYdw@mail.gmail.com>
+In-Reply-To: <BANLkTikXGVLG6E9TeQc1PQjiybeZxrNYdw@mail.gmail.com>
 MIME-Version: 1.0
-References: <4D9C5C4D.4040709@redhat.com>
-Subject: Re: dvb-apps: charset support
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201104111330.40504.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Mauro,
- 
-> I added some patches to dvb-apps/util/scan.c in order to properly support
-> EN 300 468 charsets.
-> Before the patch, scan were producing invalid UTF-8 codes here, for
-> ISO-8859-15 charsets, as
-> scan were simply filling service/provider name with whatever non-control
-> characters that were
-> there. So, if your computer uses the same character as your service
-> provider, you're lucky.
-> Otherwise, invalid characters will appear at the scan tables.
+Hi Javier,
+
+On Monday 11 April 2011 11:11:06 javier Martin wrote:
+> Hi Laurent,
 > 
-> After the changes, scan gets the locale environment charset, and use it as
-> the output charset
-> on the output files.
+> > Adding pad-level operations will not break any existing driver, as long
+> > as you keep the existing operations functional.
+> 
+> Is it really possible to have a sensor driver supporting soc-camera,
+> v4l2-subdev and pad-level operations?
 
-This implementation in scan expects the environment settings to be 'language_country.encoding', but i think the more general way is 'language_country.encoding@variant'.
+Probably. Guennadi should be able to help you some more with that, he's the 
+soc-camera expert.
 
-i get the following error from scan, because iconv doesnt know 'ISO-8859-15@euro'.
+> I've been reviewing the code of mt9t112 and I'm not very sure soc-camera
+> code can be easily isolated.
+> 
+> What is the future of soc-camera anyway? Since it seems v4l2-subdev and
+> media-controller clearly make it deprecated.
 
-<snip>
-WARNING: Conversion from ISO-8859-9 to ISO-8859-15@euro not supported
-WARNING: Conversion from ISO-8859-9 to ISO-8859-15@euro not supported
-...
-WARNING: Conversion from ISO-8859-15 to ISO-8859-15@euro not supported
-WARNING: Conversion from ISO-8859-15 to ISO-8859-15@euro not supported
-</snap>
+My understanding is that soc-camera will stay, but sensor drivers will likely 
+not depend on soc-camera anymore. soc-camera will use pad-level operations, as 
+well as a bus configuration ioctl that has been proposed on the list (but not 
+finalized yet). Guennadi, can you share some information about this ?
 
-I suggest to change scan.c as follows:
+> Wouldn't it be more suitable to just develop a separate mt9t112 driver
+> which includes v4l2-subdev and pad-level operations without soc-camera?
 
---- dvb-apps-5e68946b0e0d_orig/util/scan/scan.c 2011-04-10 20:22:52.000000000 +0200
-+++ dvb-apps-5e68946b0e0d/util/scan/scan.c      2011-04-11 19:41:21.460000060 +0200
-@@ -2570,14 +2570,14 @@
-        if ((charset = getenv("LC_ALL")) ||
-            (charset = getenv("LC_CTYPE")) ||
-            (charset = getenv ("LANG"))) {
--               while (*charset != '.' && *charset)
--                       charset++;
--               if (*charset == '.')
--                       charset++;
--               if (*charset)
--                       output_charset = charset;
--               else
--                       output_charset = nl_langinfo(CODESET);
-+               // assuming 'language_country.encoding@variant'
-+               char * p;
-+
-+               if ((p = strchr(charset, '.')))
-+                       charset = p + 1;
-+               if ((p = strchr(charset, '@')))
-+                       *p = 0;
-+               output_charset = charset;
-        } else
-                output_charset = nl_langinfo(CODESET);
-
-
-This cuts the '@variant' part from charset, so that iconv will find its way.
-
-cheers,
-Winfried
-
+I don't think duplicate drivers will be accepted for mainline.
 
 -- 
-NEU: FreePhone - kostenlos mobil telefonieren und surfen!			
-Jetzt informieren: http://www.gmx.net/de/go/freephone
+Regards,
+
+Laurent Pinchart
