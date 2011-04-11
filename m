@@ -1,78 +1,58 @@
 Return-path: <mchehab@pedra>
-Received: from bear.ext.ti.com ([192.94.94.41]:55214 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753379Ab1DTNxq convert rfc822-to-8bit (ORCPT
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:50896 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751524Ab1DKQml convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Apr 2011 09:53:46 -0400
-From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-To: "Nori, Sekhar" <nsekhar@ti.com>,
-	LMML <linux-media@vger.kernel.org>,
-	LAK <linux-arm-kernel@lists.infradead.org>
-CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	"Hilman, Kevin" <khilman@ti.com>
-Date: Wed, 20 Apr 2011 19:23:17 +0530
-Subject: RE: [PATCH v18 08/13] davinci: eliminate use of IO_ADDRESS() on
- sysmod
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024BCEF72C@dbde02.ent.ti.com>
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024C75E97E@dbde02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Mon, 11 Apr 2011 12:42:41 -0400
+Received: by ewy4 with SMTP id 4so1771848ewy.19
+        for <linux-media@vger.kernel.org>; Mon, 11 Apr 2011 09:42:39 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <20110411163239.GA4324@mgebm.net>
+References: <BANLkTim2MQcHw+T_2g8wSpGkVnOH_OeXzg@mail.gmail.com>
+	<1301922737.5317.7.camel@morgan.silverblock.net>
+	<BANLkTikqBPdr2M8jyY1zmu4TPLsXo0y5Xw@mail.gmail.com>
+	<BANLkTi=dVYRgUbQ5pRySQLptnzaHOMKTqg@mail.gmail.com>
+	<1302015521.4529.17.camel@morgan.silverblock.net>
+	<BANLkTimQkDHmDsqSsQ9jiYnHWXnc7umeWw@mail.gmail.com>
+	<1302481535.2282.61.camel@localhost>
+	<20110411163239.GA4324@mgebm.net>
+Date: Mon, 11 Apr 2011 12:42:39 -0400
+Message-ID: <BANLkTi=zi-4ZUOuf_H+oikBcPJ4eV3qCPw@mail.gmail.com>
+Subject: Re: HVR-1600 (model 74351 rev F1F5) analog Red Screen
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Eric B Munson <emunson@mgebm.net>
+Cc: Andy Walls <awalls@md.metrocast.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	mchehab@infradead.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, Apr 05, 2011 at 16:28:33, Nori, Sekhar wrote:
-> Hi Manju,
-> 
-> On Sat, Apr 02, 2011 at 15:13:17, Hadli, Manjunath wrote:
-> > Current devices.c file has a number of instances where
-> > IO_ADDRESS() is used for system module register access. Eliminate this 
-> > in favor of a ioremap() based access.
-> > 
-> > Consequent to this, a new global pointer davinci_sysmodbase has been 
-> > introduced which gets initialized during the initialization of each 
-> > relevant SoC
-> > 
-> > Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> > Acked-by: Sekhar Nori <nsekhar@ti.com>
-> > ---
-> 
-> > diff --git a/arch/arm/mach-davinci/include/mach/hardware.h 
-> > b/arch/arm/mach-davinci/include/mach/hardware.h
-> > index 414e0b9..2a6b560 100644
-> > --- a/arch/arm/mach-davinci/include/mach/hardware.h
-> > +++ b/arch/arm/mach-davinci/include/mach/hardware.h
-> > @@ -21,6 +21,12 @@
-> >   */
-> >  #define DAVINCI_SYSTEM_MODULE_BASE        0x01C40000
-> >  
-> > +#ifndef __ASSEMBLER__
-> > +extern void __iomem *davinci_sysmodbase;
-> > +#define DAVINCI_SYSMODULE_VIRT(x)	(davinci_sysmodbase + (x))
-> > +void davinci_map_sysmod(void);
-> > +#endif
-> 
-> Russell has posted[1] that the hardware.h file should not be polluted with platform private stuff like this.
-> 
-> Your patch 7/13 actually helped towards that goal, but this one takes us back. This patch cannot be used in the current form.
-> 
-> Currently there are separate header files for dm644x, dm355, dm646x and dm365. I would like to start by removing unnecessary code from these files and trying to consolidate them into a single file.
-Done. I have consolidated all the headers for DM6446, Dm6467, DM365 and DM355 into a single header as per your suggestion.
-> 
-> Example, the EMAC base address definitions in dm365.h should be moved into dm365.c. Similarly, there is a lot of VPIF specific stuff in dm646x.h which is not really specific to dm646x.h and so should probably be moved to include/media/ or arch/arm/mach-davinci/include/mach/vpif.h
-Done.
-> 
-> Once consolidated into a single file, davinci_sysmodbase can be moved into that file.
-Done.
-> 
-> Also, Russell has said[2] that at least for this merge window only consolidation and bug fixes will go through his tree. This means that as far as mach-davinci is concerned, the clean-up part of this series can go to 2.6.40 - but not the stuff which adds new support.
-> 
-> Thanks,
-> Sekhar
-> 
-> [1] http://www.spinics.net/lists/arm-kernel/msg120410.html
-> [2] http://www.spinics.net/lists/arm-kernel/msg120606.html
-> 
-> 
+On Mon, Apr 11, 2011 at 12:32 PM, Eric B Munson <emunson@mgebm.net> wrote:
+>> Can you tune to other known digital channels?
+>
+> I will have to see if I can set one up by hand and try it.  I will get back to
+> you when I am able to do this (should be later today).
+>
+>>
+>> > Let me know if you need anything else.
+>>
+>> Are you tuning digital cable (North American QAM) or digital Over The
+>> Air (ATSC)?
+>
+> I am using digital cable (NA QAM).
 
+This is going to seem a little nuts, but just as a test could you try
+sticking the card into a different machine (with a different
+motherboard)?  I heard something a few months ago about an issue
+related to the power sequencing that only occurred with a specific
+motherboard.  Using any other motherboard resulted in success.
+
+It would be useful if we could rule that out.
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
