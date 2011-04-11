@@ -1,230 +1,84 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:56646 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754025Ab1DRJ06 (ORCPT
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:42148 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752461Ab1DKTNA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Apr 2011 05:26:58 -0400
-Date: Mon, 18 Apr 2011 11:26:40 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 3/7] v4l: videobuf2: dma-sg: move some generic functions to
-	memops
-In-reply-to: <1303118804-5575-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Andrzej Pietrasiwiecz <andrzej.p@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>
-Message-id: <1303118804-5575-4-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1303118804-5575-1-git-send-email-m.szyprowski@samsung.com>
+	Mon, 11 Apr 2011 15:13:00 -0400
+Received: by vws1 with SMTP id 1so4404406vws.19
+        for <linux-media@vger.kernel.org>; Mon, 11 Apr 2011 12:12:58 -0700 (PDT)
+Date: Mon, 11 Apr 2011 15:12:52 -0400
+From: Eric B Munson <emunson@mgebm.net>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>, mchehab@infradead.org,
+	linux-media@vger.kernel.org
+Subject: Re: HVR-1600 (model 74351 rev F1F5) analog Red Screen
+Message-ID: <20110411191252.GB4324@mgebm.net>
+References: <BANLkTim2MQcHw+T_2g8wSpGkVnOH_OeXzg@mail.gmail.com>
+ <1301922737.5317.7.camel@morgan.silverblock.net>
+ <BANLkTikqBPdr2M8jyY1zmu4TPLsXo0y5Xw@mail.gmail.com>
+ <BANLkTi=dVYRgUbQ5pRySQLptnzaHOMKTqg@mail.gmail.com>
+ <1302015521.4529.17.camel@morgan.silverblock.net>
+ <BANLkTimQkDHmDsqSsQ9jiYnHWXnc7umeWw@mail.gmail.com>
+ <1302481535.2282.61.camel@localhost>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="dTy3Mrz/UPE2dbVg"
+Content-Disposition: inline
+In-Reply-To: <1302481535.2282.61.camel@localhost>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
 
-This patch moves some generic code to videobuf2-memops. This code will
-be later used by the iommu allocator. This patch adds also vma locking
-in user pointer mode.
+--dTy3Mrz/UPE2dbVg
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-CC: Pawel Osciak <pawel@osciak.com>
----
- drivers/media/video/videobuf2-dma-sg.c |   37 +++++----------
- drivers/media/video/videobuf2-memops.c |   76 ++++++++++++++++++++++++++++++++
- include/media/videobuf2-memops.h       |    5 ++
- 3 files changed, 93 insertions(+), 25 deletions(-)
+On Sun, 10 Apr 2011, Andy Walls wrote:
 
-diff --git a/drivers/media/video/videobuf2-dma-sg.c b/drivers/media/video/videobuf2-dma-sg.c
-index b2d9485..240abaa 100644
---- a/drivers/media/video/videobuf2-dma-sg.c
-+++ b/drivers/media/video/videobuf2-dma-sg.c
-@@ -29,6 +29,7 @@ struct vb2_dma_sg_buf {
- 	struct vb2_dma_sg_desc		sg_desc;
- 	atomic_t			refcount;
- 	struct vb2_vmarea_handler	handler;
-+	struct vm_area_struct		*vma;
- };
- 
- static void vb2_dma_sg_put(void *buf_priv);
-@@ -150,15 +151,9 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	if (!buf->pages)
- 		goto userptr_fail_pages_array_alloc;
- 
--	down_read(&current->mm->mmap_sem);
--	num_pages_from_user = get_user_pages(current, current->mm,
--					     vaddr & PAGE_MASK,
--					     buf->sg_desc.num_pages,
--					     write,
--					     1, /* force */
--					     buf->pages,
--					     NULL);
--	up_read(&current->mm->mmap_sem);
-+	num_pages_from_user = vb2_get_user_pages(vaddr, buf->sg_desc.num_pages,
-+					     buf->pages, write, &buf->vma);
-+
- 	if (num_pages_from_user != buf->sg_desc.num_pages)
- 		goto userptr_fail_get_user_pages;
- 
-@@ -177,6 +172,8 @@ userptr_fail_get_user_pages:
- 	       num_pages_from_user, buf->sg_desc.num_pages);
- 	while (--num_pages_from_user >= 0)
- 		put_page(buf->pages[num_pages_from_user]);
-+	if (buf->vma)
-+		vb2_put_vma(buf->vma);
- 	kfree(buf->pages);
- 
- userptr_fail_pages_array_alloc:
-@@ -200,6 +197,8 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
- 	       __func__, buf->sg_desc.num_pages);
- 	if (buf->vaddr)
- 		vm_unmap_ram(buf->vaddr, buf->sg_desc.num_pages);
-+	if (buf->vma)
-+		vb2_put_vma(buf->vma);
- 	while (--i >= 0) {
- 		if (buf->write)
- 			set_page_dirty_lock(buf->pages[i]);
-@@ -236,28 +235,16 @@ static unsigned int vb2_dma_sg_num_users(void *buf_priv)
- static int vb2_dma_sg_mmap(void *buf_priv, struct vm_area_struct *vma)
- {
- 	struct vb2_dma_sg_buf *buf = buf_priv;
--	unsigned long uaddr = vma->vm_start;
--	unsigned long usize = vma->vm_end - vma->vm_start;
--	int i = 0;
-+	int ret;
- 
- 	if (!buf) {
- 		printk(KERN_ERR "No memory to map\n");
- 		return -EINVAL;
- 	}
- 
--	do {
--		int ret;
--
--		ret = vm_insert_page(vma, uaddr, buf->pages[i++]);
--		if (ret) {
--			printk(KERN_ERR "Remapping memory, error: %d\n", ret);
--			return ret;
--		}
--
--		uaddr += PAGE_SIZE;
--		usize -= PAGE_SIZE;
--	} while (usize > 0);
--
-+	ret = vb2_insert_pages(vma, buf->pages);
-+	if (ret)
-+		return ret;
- 
- 	/*
- 	 * Use common vm_area operations to track buffer refcount.
-diff --git a/drivers/media/video/videobuf2-memops.c b/drivers/media/video/videobuf2-memops.c
-index 5370a3a..9d44473 100644
---- a/drivers/media/video/videobuf2-memops.c
-+++ b/drivers/media/video/videobuf2-memops.c
-@@ -185,6 +185,82 @@ int vb2_mmap_pfn_range(struct vm_area_struct *vma, unsigned long paddr,
- EXPORT_SYMBOL_GPL(vb2_mmap_pfn_range);
- 
- /**
-+ * vb2_get_user_pages() - pin user pages
-+ * @vaddr:	virtual address from which to start
-+ * @num_pages:	number of pages to pin
-+ * @pages:	table of pointers to struct pages to pin
-+ * @write:	if 0, the pages must not be written to
-+ * @vma:	output parameter, copy of the vma or NULL
-+ *		if get_user_pages fails
-+ *
-+ * This function just forwards invocation to get_user_pages, but eases using
-+ * the latter in videobuf2 allocators.
-+ */
-+int vb2_get_user_pages(unsigned long vaddr, unsigned int num_pages,
-+		       struct page **pages, int write, struct vm_area_struct **vma)
-+{
-+	struct vm_area_struct *found_vma;
-+	struct mm_struct *mm = current->mm;
-+	int ret = -EFAULT;
-+
-+	down_read(&current->mm->mmap_sem);
-+
-+	found_vma = find_vma(mm, vaddr);
-+	if (NULL == found_vma || found_vma->vm_end < (vaddr + num_pages * PAGE_SIZE))
-+		goto done;
-+
-+	*vma = vb2_get_vma(found_vma);
-+	if (NULL == *vma) {
-+		ret = -ENOMEM;
-+		goto done;
-+	}
-+
-+	ret = get_user_pages(current, current->mm, vaddr & PAGE_MASK, num_pages,
-+			     write, 1 /* force */, pages, NULL);
-+
-+	if (ret != num_pages) {
-+		vb2_put_vma(*vma);
-+		*vma = NULL;
-+	}
-+
-+done:
-+	up_read(&current->mm->mmap_sem);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(vb2_get_user_pages);
-+
-+/**
-+ * vb2_insert_pages - insert pages into user vma
-+ * @vma:	virtual memory region for the mapping
-+ * @pages:	table of pointers to struct pages to be inserted
-+ *
-+ * This function for each page to be inserted performs vm_insert_page.
-+ */
-+int vb2_insert_pages(struct vm_area_struct *vma, struct page **pages)
-+{
-+	unsigned long uaddr = vma->vm_start;
-+	unsigned long usize = vma->vm_end - vma->vm_start;
-+	int i = 0;
-+
-+	do {
-+		int ret;
-+
-+		ret = vm_insert_page(vma, uaddr, pages[i++]);
-+		if (ret) {
-+			printk(KERN_ERR "Remapping memory, error: %d\n", ret);
-+			return ret;
-+		}
-+
-+		uaddr += PAGE_SIZE;
-+		usize -= PAGE_SIZE;
-+	} while (usize > 0);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(vb2_insert_pages);
-+
-+/**
-  * vb2_common_vm_open() - increase refcount of the vma
-  * @vma:	virtual memory region for the mapping
-  *
-diff --git a/include/media/videobuf2-memops.h b/include/media/videobuf2-memops.h
-index 84e1f6c..f8a0886 100644
---- a/include/media/videobuf2-memops.h
-+++ b/include/media/videobuf2-memops.h
-@@ -41,5 +41,10 @@ int vb2_mmap_pfn_range(struct vm_area_struct *vma, unsigned long paddr,
- struct vm_area_struct *vb2_get_vma(struct vm_area_struct *vma);
- void vb2_put_vma(struct vm_area_struct *vma);
- 
-+int vb2_get_user_pages(unsigned long vaddr, unsigned int num_pages,
-+		       struct page **pages, int write,
-+		       struct vm_area_struct **vma);
-+
-+int vb2_insert_pages(struct vm_area_struct *vma, struct page **pages);
- 
- #endif
--- 
-1.7.1.569.g6f426
+> > >
+> > > 3. Please provide the relevant portion of the mythbackend log where
+> > > where the digital scanner starts and then fails.
+> >=20
+> > So the Digital scanner doesn't fail per se, it just doesn't pick up
+> > most of the digital channels available.  The same is true of scan, it
+> > seems to find only 1 channel when I know that I have access to 18.
+>=20
+> Make sure it's not a signal integrity problem:
+>=20
+> 	http://ivtvdriver.org/index.php/Howto:Improve_signal_quality
+>=20
+> wild speculation: If the analog tuner driver init failed, maybe that is
+> having some bad EMI efect on the digital tuner
+>=20
+> I'm assumiong you got more than the 1 channel before trying to enable
+> analog tuning.
+
+I don't think there is a digital problem after all, the scanner doesn't seem
+to be picking up all the channels (meaning there were entries for most, but
+much off the data about the channel was missing in channels.conf).  When I =
+hand
+add the 2 that were missing and fill in the rest of the missing data, all o=
+f it
+works.  I can tune to any of the listed channels and watch them with mplaye=
+r.
+I am going to take the digital TV side up with the MythTV folks.
+
+--dTy3Mrz/UPE2dbVg
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iQEcBAEBAgAGBQJNo1K0AAoJEH65iIruGRnNkQsH/jewFevqAJt2uSElzcD7ok6G
+Tu1ibiHuknb2YfhhkCtHzsXMm2DAC3CtWtxozP3AgDZ/YvXw1g4/zFSJqI7kTYC5
+Jdd58aLmnK91iK0DPRhYQWMWiNW8OZwn4nTY/WYEa7vdoA8WYajhNPB7hUaVIQ6q
+BDmfYhwUY1Mv1YxJ8GbXbz5/6FxdjES9ZaZpbZwJqADJtSwRIl8D3zcmZEZxP3tB
+9+xFeNNtz7bZh9lF7ZHe/HXxEblNcYSoTELNPzlOlZP/lVKf0Ma3g/KAPOOey1R3
+XsB/fC395MzMYfkQ/e9UWK7fvOWxT2d3Q5wfJLobUiDtqU2K28IcyEV774qdAAI=
+=t8Bh
+-----END PGP SIGNATURE-----
+
+--dTy3Mrz/UPE2dbVg--
