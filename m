@@ -1,103 +1,112 @@
 Return-path: <mchehab@pedra>
-Received: from LUNGE.MIT.EDU ([18.54.1.69]:34554 "EHLO lunge.queued.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752849Ab1DBAKP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Apr 2011 20:10:15 -0400
-Date: Fri, 1 Apr 2011 17:10:01 -0700
-From: Andres Salomon <dilinger@queued.net>
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, linux-kernel@vger.kernel.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	khali@linux-fr.org, ben-linux@fluff.org,
-	Peter Korsgaard <jacmet@sunsite.dk>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	David Brownell <dbrownell@users.sourceforge.net>,
-	linux-i2c@vger.kernel.org, linux-media@vger.kernel.org,
-	netdev@vger.kernel.org, spi-devel-general@lists.sourceforge.net,
-	Mocean Laboratories <info@mocean-labs.com>,
-	Greg Kroah-Hartman <gregkh@suse.de>
-Subject: Re: [PATCH 07/19] timberdale: mfd_cell is now implicitly available
- to drivers
-Message-ID: <20110401171001.61283e2d@debxo>
-In-Reply-To: <BANLkTi=bq=OGzXFp7qiBr7x_BnGOWf=DRQ@mail.gmail.com>
-References: <20110202195417.228e2656@queued.net>
-	<20110202200812.3d8d6cba@queued.net>
-	<20110331230522.GI437@ponder.secretlab.ca>
-	<20110401112030.GA3447@sortiz-mobl>
-	<20110401104756.2f5c6f7a@debxo>
-	<BANLkTi=bCd_+f=EG-O=U5VH_ZNjFhxkziQ@mail.gmail.com>
-	<20110401235239.GE29397@sortiz-mobl>
-	<BANLkTi=bq=OGzXFp7qiBr7x_BnGOWf=DRQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from moutng.kundenserver.de ([212.227.17.8]:54996 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754355Ab1DKQ7k convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Apr 2011 12:59:40 -0400
+Date: Mon, 11 Apr 2011 18:58:51 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH] V4L: soc-camera: regression fix: calculate .sizeimage
+ in soc_camera.c
+In-Reply-To: <BANLkTikQSaUKtNZCexhKeNEPM+id+J_2gw@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1104111829500.20798@axis700.grange>
+References: <Pine.LNX.4.64.1104111054110.18511@axis700.grange>
+ <BANLkTin9gFK+StWvs6D7MeJixQ7E2AB=rA@mail.gmail.com>
+ <Pine.LNX.4.64.1104111518140.20489@axis700.grange>
+ <BANLkTikQSaUKtNZCexhKeNEPM+id+J_2gw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
 Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Fri, 1 Apr 2011 17:58:44 -0600
-Grant Likely <grant.likely@secretlab.ca> wrote:
+On Mon, 11 Apr 2011, Aguirre, Sergio wrote:
 
-> On Fri, Apr 1, 2011 at 5:52 PM, Samuel Ortiz <sameo@linux.intel.com>
-> wrote:
-> > On Fri, Apr 01, 2011 at 11:56:35AM -0600, Grant Likely wrote:
-> >> On Fri, Apr 1, 2011 at 11:47 AM, Andres Salomon
-> >> <dilinger@queued.net> wrote:
-> >> > On Fri, 1 Apr 2011 13:20:31 +0200
-> >> > Samuel Ortiz <sameo@linux.intel.com> wrote:
-> >> >
-> >> >> Hi Grant,
-> >> >>
-> >> >> On Thu, Mar 31, 2011 at 05:05:22PM -0600, Grant Likely wrote:
-> >> > [...]
-> >> >> > Gah.  Not all devices instantiated via mfd will be an mfd
-> >> >> > device, which means that the driver may very well expect an
-> >> >> > *entirely different* platform_device pointer; which further
-> >> >> > means a very high potential of incorrectly dereferenced
-> >> >> > structures (as evidenced by a patch series that is not
-> >> >> > bisectable).  For instance, the xilinx ip cores are used by
-> >> >> > more than just mfd.
-> >> >> I agree. Since the vast majority of the MFD subdevices are MFD
-> >> >> specific IPs, I overlooked that part. The impacted drivers are
-> >> >> the timberdale and the DaVinci voice codec ones.
-> >>
-> >> Another option is you could do this for MFD devices:
-> >>
-> >> struct mfd_device {
-> >>         struct platform_devce pdev;
-> >>         struct mfd_cell *cell;
-> >> };
-> >>
-> >> However, that requires that drivers using the mfd_cell will *never*
-> >> get instantiated outside of the mfd infrastructure, and there is no
-> >> way to protect against this so it is probably a bad idea.
-> >>
-> >> Or, mfd_cell could be added to platform_device directly which would
-> >> *by far* be the safest option at the cost of every platform_device
-> >> having a mostly unused mfd_cell pointer.  Not a significant cost
-> >> in my opinion.
-> > I thought about this one, but I had the impression people would
-> > want to kill me for adding an MFD specific pointer to
-> > platform_device. I guess it's worth giving it a try since it would
-> > be a simple and safe solution. I'll look at it later this weekend.
+> Hi Guennadi,
+> 
+> On Mon, Apr 11, 2011 at 8:23 AM, Guennadi Liakhovetski
+> <g.liakhovetski@gmx.de> wrote:
 > >
-> > Thanks for the input.
+> > On Mon, 11 Apr 2011, Aguirre, Sergio wrote:
+> >
+> > > Hi Guennadi,
+> > >
+> > > On Mon, Apr 11, 2011 at 3:58 AM, Guennadi Liakhovetski <
+> > > g.liakhovetski@gmx.de> wrote:
+> > >
+> > > > A recent patch has given individual soc-camera host drivers a possibility
+> > > > to calculate .sizeimage and .bytesperline pixel format fields internally,
+> > > > however, some drivers relied on the core calculating these values for
+> > > > them, following a default algorithm. This patch restores the default
+> > > > calculation for such drivers.
+> > > >
+> > > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > > > ---
+> > > > diff --git a/drivers/media/video/soc_camera.c
+> > > > b/drivers/media/video/soc_camera.c
+> > > > index 4628448..0918c48 100644
+> > > > --- a/drivers/media/video/soc_camera.c
+> > > > +++ b/drivers/media/video/soc_camera.c
+> > > > @@ -376,6 +376,9 @@ static int soc_camera_set_fmt(struct soc_camera_device
+> > > > *icd,
+> > > >        dev_dbg(&icd->dev, "S_FMT(%c%c%c%c, %ux%u)\n",
+> > > >                pixfmtstr(pix->pixelformat), pix->width, pix->height);
+> > > >
+> > > > +       pix->bytesperline = 0;
+> > > > +       pix->sizeimage = 0;
+> > > > +
+> > > >        /* We always call try_fmt() before set_fmt() or set_crop() */
+> > > >        ret = ici->ops->try_fmt(icd, f);
+> > > >        if (ret < 0)
+> > > > @@ -391,6 +394,17 @@ static int soc_camera_set_fmt(struct soc_camera_device
+> > > > *icd,
+> > > >                return -EINVAL;
+> > > >        }
+> > > >
+> > > > +       if (!pix->sizeimage) {
+> > > > +               if (!pix->bytesperline) {
+> > > > +                       ret = soc_mbus_bytes_per_line(pix->width,
+> > > > +
+> > > > icd->current_fmt->host_fmt);
+> > > > +                       if (ret > 0)
+> > > > +                               pix->bytesperline = ret;
+> > > > +               }
+> > > > +               if (pix->bytesperline)
+> > > > +                       pix->sizeimage = pix->bytesperline * pix->height;
+> > > > +       }
+> > > > +
+> > > >
+> > >
+> > > Shouldn't all this be better done in try_fmt?
+> >
+> > Not _better_. We might choose to additionally do it for try_fmt too. But
+> >
+> > 1. we didn't do it before, applications don't seem to care.
+> > 2. you cannot store / reuse those .sizeimage & .bytesperline values - this
+> > is just a "try"
+> > 3. it would be a bit difficult to realise - we need a struct
+> > soc_mbus_pixelfmt to call soc_mbus_bytes_per_line(), which we don't have,
+> > so, we'd need to obtain it using soc_camera_xlate_by_fourcc().
+> >
+> > This all would work, but in any case it would be an enhancement, but not a
+> > regression fix.
 > 
-> [cc'ing gregkh because we're talking about modifying struct
-> platform_device]
-> 
-> I'll back you up on this one.  It is a far better solution than the
-> alternatives.  At least with mfd, it covers a large set of devices.  I
-> think there is a strong argument for doing this.  Or alternatively,
-> the particular interesting fields from mfd_cell could be added to
-> platform_device.  What information do child devices need access to?
-> 
+> Ok. And how about the attached patch? Would that work?
 
-This was one of the things I was originally tempted to do (adding
-mfd fields to platform_device).  I didn't think it would fly.
+Please, post patches inline.
 
-I can look at this stuff or help out once I have a stable internet
-connection and I'm all moved in to my new place (which should be
-Wednesday).
+Yes, I think, ot would work too, only the call to 
+soc_camera_xlate_by_fourcc() in the S_FMT case is superfluous, after 
+ici->ops->set_fmt() we already have it in icd->current_fmt->host_fmt. 
+Otherwise - yes, we could do it this way too. Janusz, could you test, 
+please?
 
-
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
