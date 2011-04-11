@@ -1,173 +1,105 @@
 Return-path: <mchehab@pedra>
-Received: from mga03.intel.com ([143.182.124.21]:40727 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751019Ab1DGPD3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 Apr 2011 11:03:29 -0400
-Date: Thu, 7 Apr 2011 17:03:23 +0200
-From: Samuel Ortiz <sameo@linux.intel.com>
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Felipe Balbi <balbi@ti.com>, Greg KH <gregkh@suse.de>,
-	Andres Salomon <dilinger@queued.net>,
-	linux-kernel@vger.kernel.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	khali@linux-fr.org, ben-linux@fluff.org,
-	Peter Korsgaard <jacmet@sunsite.dk>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	David Brownell <dbrownell@users.sourceforge.net>,
-	linux-i2c@vger.kernel.org, linux-media@vger.kernel.org,
-	netdev@vger.kernel.org, spi-devel-general@lists.sourceforge.net,
-	Mocean Laboratories <info@mocean-labs.com>
-Subject: Re: [PATCH 07/19] timberdale: mfd_cell is now implicitly available
- to drivers
-Message-ID: <20110407150322.GB3923@sortiz-mobl>
-References: <20110404100314.GC2751@sortiz-mobl>
- <20110405030428.GB29522@ponder.secretlab.ca>
- <20110406152322.GA2757@sortiz-mobl>
- <20110406155805.GA20095@suse.de>
- <20110406170537.GB2757@sortiz-mobl>
- <20110406175647.GA8048@suse.de>
- <20110406184733.GD2757@sortiz-mobl>
- <20110406185902.GN25654@legolas.emea.dhcp.ti.com>
- <20110407133717.GA3923@sortiz-mobl>
- <20110407143515.GC26452@angua.secretlab.ca>
+Received: from casper.infradead.org ([85.118.1.10]:41869 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750740Ab1DKAmV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Apr 2011 20:42:21 -0400
+Message-ID: <4DA24E65.4060505@infradead.org>
+Date: Sun, 10 Apr 2011 21:42:13 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20110407143515.GC26452@angua.secretlab.ca>
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel@lists.infradead.org, Jiri Slaby <jslaby@suse.cz>
+Subject: Re: [PATCH 2.6.39] V4L: videobuf-dma-contig: fix mmap_mapper broken
+ on ARM
+References: <201104110048.08764.jkrzyszt@tis.icnet.pl>
+In-Reply-To: <201104110048.08764.jkrzyszt@tis.icnet.pl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, Apr 07, 2011 at 07:35:15AM -0700, Grant Likely wrote:
-> > Below is a patch for the Xilinx SPI example. Although this would fix the
-> > issue, we'd still have to do that on device per device basis. I had a similar
-> > solution where MFD drivers would set a flag for sub drivers that don't need
-> > any of the MFD bits. In that case the MFD core code would just forward the
-> > platform data, instead of embedding it through an MFD cell.
+Em 10-04-2011 19:47, Janusz Krzysztofik escreveu:
+> After switching from mem->dma_handle to virt_to_phys(mem->vaddr) used 
+> for obtaining page frame number passed to remap_pfn_range()
+> (commit 35d9f510b67b10338161aba6229d4f55b4000f5b), videobuf-dma-contig 
+> stopped working on my ARM based board. The ARM architecture maintainer, 
+> Russell King, confirmed that using something like 
+> virt_to_phys(dma_alloc_coherent()) is not supported on ARM, and can be 
+> broken on other architectures as well. The author of the change, Jiri 
+> Slaby, also confirmed that his code may not work on all architectures.
 > 
-> platform_data is already a fiddly bit where you don't know what
-> structure type platform_data points at; it is implicitly known and
-> easy to get wrong.  This solution makes me *very* nervous
-> because it would become even easier to get a mismatch on the
-> platform_data pointer type.
-How would that be more error prone than say a board file instantiating a
-platform device after having set the platform_data pointer to point to an
-implicitely know structure reference ?
+> The patch takes two different countermeasures against this regression:
+> 
+> 1. On architectures which provide dma_mmap_coherent() function (ARM for 
+>    now), use it instead of just remap_pfn_range(). The code is stollen 
+>    from sound/core/pcm_native.c:snd_pcm_default_mmap().
+>    Set vma->vm_pgoff to 0 before calling dma_mmap_coherent(), or it 
+>    fails.
+> 
+> 2. On other architectures, use virt_to_phys(bus_to_virt(mem->dma_handle)) 
+>    instead of problematic virt_to_phys(mem->vaddr). This should work 
+>    even if those translations would occure inaccurate for DMA addresses, 
+>    since possible errors introduced by both calculations, performed in 
+>    opposite directions, should compensate.
+> 
+> Both solutions tested on ARM OMAP1 based Amstrad Delta board.
+> 
+> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> ---
+>  drivers/media/video/videobuf-dma-contig.c |   17 +++++++++++++++--
+>  1 file changed, 15 insertions(+), 2 deletions(-)
+> 
+> --- linux-2.6.39-rc2/drivers/media/video/videobuf-dma-contig.c.orig	2011-04-09 00:38:45.000000000 +0200
+> +++ linux-2.6.39-rc2/drivers/media/video/videobuf-dma-contig.c	2011-04-10 15:00:23.000000000 +0200
+> @@ -295,13 +295,26 @@ static int __videobuf_mmap_mapper(struct
+>  
+>  	/* Try to remap memory */
+>  
+> +#ifndef ARCH_HAS_DMA_MMAP_COHERENT
+> +/* This should be defined / handled globally! */
+> +#ifdef CONFIG_ARM
+> +#define ARCH_HAS_DMA_MMAP_COHERENT
+> +#endif
+> +#endif
+> +
+> +#ifdef ARCH_HAS_DMA_MMAP_COHERENT
 
-Cheers,
-Samuel.
+Hmm... IMHO, this seems too confusing. Why not use just something like:
 
-P.S.: Would you be ok with something like the patch below ?
+#if defined(CONFIG_ARM) || defined(ARCH_HAS_DMA_MMAP_COHERENT)
 
-> > ---
-> >  drivers/mfd/timberdale.c |    8 ++++----
-> >  drivers/spi/xilinx_spi.c |   19 ++++++++++++++++++-
-> >  include/linux/mfd/core.h |    3 +++
-> >  3 files changed, 25 insertions(+), 5 deletions(-)
-> > 
-> > diff --git a/drivers/mfd/timberdale.c b/drivers/mfd/timberdale.c
-> > index 94c6c8a..c9220ce 100644
-> > --- a/drivers/mfd/timberdale.c
-> > +++ b/drivers/mfd/timberdale.c
-> > @@ -416,7 +416,7 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg0[] = {
-> >  		.mfd_data = &timberdale_radio_platform_data,
-> >  	},
-> >  	{
-> > -		.name = "xilinx_spi",
-> > +		.name = "mfd_xilinx_spi",
-> >  		.num_resources = ARRAY_SIZE(timberdale_spi_resources),
-> >  		.resources = timberdale_spi_resources,
-> >  		.mfd_data = &timberdale_xspi_platform_data,
-> > @@ -476,7 +476,7 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg1[] = {
-> >  		.mfd_data = &timberdale_radio_platform_data,
-> >  	},
-> >  	{
-> > -		.name = "xilinx_spi",
-> > +		.name = "mfd_xilinx_spi",
-> >  		.num_resources = ARRAY_SIZE(timberdale_spi_resources),
-> >  		.resources = timberdale_spi_resources,
-> >  		.mfd_data = &timberdale_xspi_platform_data,
-> > @@ -526,7 +526,7 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg2[] = {
-> >  		.mfd_data = &timberdale_radio_platform_data,
-> >  	},
-> >  	{
-> > -		.name = "xilinx_spi",
-> > +		.name = "mfd_xilinx_spi",
-> >  		.num_resources = ARRAY_SIZE(timberdale_spi_resources),
-> >  		.resources = timberdale_spi_resources,
-> >  		.mfd_data = &timberdale_xspi_platform_data,
-> > @@ -570,7 +570,7 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg3[] = {
-> >  		.mfd_data = &timberdale_radio_platform_data,
-> >  	},
-> >  	{
-> > -		.name = "xilinx_spi",
-> > +		.name = "mfd_xilinx_spi",
-> >  		.num_resources = ARRAY_SIZE(timberdale_spi_resources),
-> >  		.resources = timberdale_spi_resources,
-> >  		.mfd_data = &timberdale_xspi_platform_data,
-> > diff --git a/drivers/spi/xilinx_spi.c b/drivers/spi/xilinx_spi.c
-> > index c69c6f2..3287b84 100644
-> > --- a/drivers/spi/xilinx_spi.c
-> > +++ b/drivers/spi/xilinx_spi.c
-> > @@ -471,7 +471,11 @@ static int __devinit xilinx_spi_probe(struct platform_device *dev)
-> >  	struct spi_master *master;
-> >  	u8 i;
-> >  
-> > -	pdata = mfd_get_data(dev);
-> > +	if (platform_get_device_id(dev) &&
-> > +	    platform_get_device_id(dev)->driver_data & MFD_PLATFORM_DEVICE)
-> > +		pdata = mfd_get_data(dev);
-> > +	else
-> > +		pdata = dev->dev.platform_data;
-> >  	if (pdata) {
-> >  		num_cs = pdata->num_chipselect;
-> >  		little_endian = pdata->little_endian;
-> > @@ -530,6 +534,18 @@ static int __devexit xilinx_spi_remove(struct platform_device *dev)
-> >  /* work with hotplug and coldplug */
-> >  MODULE_ALIAS("platform:" XILINX_SPI_NAME);
-> >  
-> > +static const struct platform_device_id xilinx_spi_id_table[] = {
-> > +	{
-> > +		.name	= XILINX_SPI_NAME,
-> > +	},
-> > +	{
-> > +		.name	= "mfd_xilinx_spi",
-> > +		.driver_data = MFD_PLATFORM_DEVICE,
-> > +	},
-> > +	{  },	/* Terminating Entry */
-> > +};
-> > +MODULE_DEVICE_TABLE(platform, xilinx_spi_id_table);
-> > +
-> >  static struct platform_driver xilinx_spi_driver = {
-> >  	.probe = xilinx_spi_probe,
-> >  	.remove = __devexit_p(xilinx_spi_remove),
-> > @@ -538,6 +554,7 @@ static struct platform_driver xilinx_spi_driver = {
-> >  		.owner = THIS_MODULE,
-> >  		.of_match_table = xilinx_spi_of_match,
-> >  	},
-> > +	.id_table	= xilinx_spi_id_table,
-> >  };
-> >  
-> >  static int __init xilinx_spi_pltfm_init(void)
-> > diff --git a/include/linux/mfd/core.h b/include/linux/mfd/core.h
-> > index ad1b19a..13f31f4 100644
-> > --- a/include/linux/mfd/core.h
-> > +++ b/include/linux/mfd/core.h
-> > @@ -89,6 +89,9 @@ static inline const struct mfd_cell *mfd_get_cell(struct platform_device *pdev)
-> >  	return pdev->dev.platform_data;
-> >  }
-> >  
-> > +/* */
-> > +#define MFD_PLATFORM_DEVICE BIT(0)
-> > +
-> >  /*
-> >   * Given a platform device that's been created by mfd_add_devices(), fetch
-> >   * the .mfd_data entry from the mfd_cell that created it.
-> > 
-> > 
-> > -- 
-> > Intel Open Source Technology Centre
-> > http://oss.intel.com/
+Better yet: why should CONFIG_ARM should explicitly be checked here? Is it the
+only architecture where this would fail?dma_mmap_coherent
 
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+Hmm...
+
+$ git grep ARCH_HAS_DMA_MMAP_COHERENT arch
+arch/powerpc/include/asm/dma-mapping.h:#define ARCH_HAS_DMA_MMAP_COHERENT
+
+The code is saying that dma_mmap_coherent should be used only on ARM and PPC architectures,
+and remap_pfn_range should be used otherwise. Are you sure that this will work on the
+other architectures? I really prefer to have one standard way for doing it, that
+would be architecture-independent. Media drivers or core should not have arch-dependent
+code inside.
+
+
+> +	vma->vm_pgoff = 0;
+> +	retval = dma_mmap_coherent(q->dev, vma, mem->vaddr, mem->dma_handle,
+> +			mem->size);
+> +#else
+>  	size = vma->vm_end - vma->vm_start;
+>  	size = (size < mem->size) ? size : mem->size;
+>  
+>  	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+>  	retval = remap_pfn_range(vma, vma->vm_start,
+> -				 PFN_DOWN(virt_to_phys(mem->vaddr)),
+> -				 size, vma->vm_page_prot);
+> +			PFN_DOWN(virt_to_phys(bus_to_virt(mem->dma_handle))),
+> +			size, vma->vm_page_prot);
+> +#endif
+>  	if (retval) {
+>  		dev_err(q->dev, "mmap: remap failed with error %d. ", retval);
+>  		dma_free_coherent(q->dev, mem->size,
+
