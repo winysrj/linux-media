@@ -1,118 +1,42 @@
 Return-path: <mchehab@pedra>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:61673 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751583Ab1DEBQs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2011 21:16:48 -0400
-Date: Mon, 4 Apr 2011 20:16:40 -0500
-From: Jonathan Nieder <jrnieder@gmail.com>
-To: Andreas Huber <hobrom@gmx.at>
-Cc: linux-media@vger.kernel.org, Huber Andreas <hobrom@corax.at>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-kernel@vger.kernel.org, andrew.walker27@ntlworld.com,
-	Ben Hutchings <ben@decadent.org.uk>,
-	Trent Piepho <xyzzy@speakeasy.org>,
-	Roland Stoll <dvb.rs@xindex.de>
-Subject: Re: [PATCH 3/3] [media] cx88: use a mutex to protect cx8802_devlist
-Message-ID: <20110405011640.GB1830@elie>
-References: <20110327150610.4029.95961.reportbug@xen.corax.at>
- <20110327152810.GA32106@elie>
- <20110402093856.GA17015@elie>
- <20110402094451.GD17015@elie>
- <4D971B8D.4040305@corax.at>
- <20110402192902.GD20064@elie>
- <4D978378.7060106@gmx.at>
- <4D992920.4040400@gmx.at>
+Received: from d1.icnet.pl ([212.160.220.21]:51446 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753325Ab1DLQjk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Apr 2011 12:39:40 -0400
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+Subject: Re: [PATCH] V4L: soc-camera: regression fix: calculate .sizeimage in soc_camera.c
+Date: Tue, 12 Apr 2011 18:33:01 +0200
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <Pine.LNX.4.64.1104111054110.18511@axis700.grange> <201104112352.07808.jkrzyszt@tis.icnet.pl> <BANLkTik7YRvvthrSHwMuH_dcDaNzkN96NQ@mail.gmail.com>
+In-Reply-To: <BANLkTik7YRvvthrSHwMuH_dcDaNzkN96NQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4D992920.4040400@gmx.at>
+Message-Id: <201104121833.01789.jkrzyszt@tis.icnet.pl>
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi again,
+Dnia wtorek 12 kwiecieñ 2011 o 17:39:35 Aguirre, Sergio napisa³(a):
+> On Mon, Apr 11, 2011 at 4:52 PM, Janusz Krzysztofik
+> 
+> <jkrzyszt@tis.icnet.pl> wrote:
+> > Dnia poniedzia³ek 11 kwiecieñ 2011 o 22:05:35 Aguirre, Sergio
+> > 
+> > napisa³(a):
+> >> Please find below a refreshed patch, which should be based on
+> > 
+> >> mainline commit:
+> > Hi,
+> > This version works for me, and fixes the regression.
+> 
+> Ok, Thanks for testing.
 
-Andreas Huber wrote:
+I forgot to mention: the patch didn't apply cleanly, I had to unwrap a 
+few lines manually, so you may want to resend it unwrapped.
 
-> [...]
->     /* Make sure we can acquire the hardware */
->     drv = cx8802_get_driver(dev, CX88_MPEG_BLACKBIRD);      // HOW TO DEAL WITH NULL  ??????
->     if (drv) {
-
-Reasonable question.  Could you try this patch?
-
--- 8< -- 
-Subject: [media] cx88: lock device during driver initialization
-
-Reported-by: Andreas Huber <hobrom@gmx.at>
-Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
----
- drivers/media/video/cx88/cx88-blackbird.c |    2 --
- drivers/media/video/cx88/cx88-mpeg.c      |    5 ++---
- drivers/media/video/cx88/cx88.h           |    7 ++-----
- 3 files changed, 4 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/media/video/cx88/cx88-blackbird.c b/drivers/media/video/cx88/cx88-blackbird.c
-index a6f7d53..f637d34 100644
---- a/drivers/media/video/cx88/cx88-blackbird.c
-+++ b/drivers/media/video/cx88/cx88-blackbird.c
-@@ -1335,11 +1335,9 @@ static int cx8802_blackbird_probe(struct cx8802_driver *drv)
- 	blackbird_register_video(dev);
- 
- 	/* initial device configuration: needed ? */
--	mutex_lock(&dev->core->lock);
- //	init_controls(core);
- 	cx88_set_tvnorm(core,core->tvnorm);
- 	cx88_video_mux(core,0);
--	mutex_unlock(&dev->core->lock);
- 
- 	return 0;
- 
-diff --git a/drivers/media/video/cx88/cx88-mpeg.c b/drivers/media/video/cx88/cx88-mpeg.c
-index 6b58647..b18f9fe 100644
---- a/drivers/media/video/cx88/cx88-mpeg.c
-+++ b/drivers/media/video/cx88/cx88-mpeg.c
-@@ -714,18 +714,17 @@ int cx8802_register_driver(struct cx8802_driver *drv)
- 		drv->request_release = cx8802_request_release;
- 		memcpy(driver, drv, sizeof(*driver));
- 
-+		mutex_lock(&drv->core->lock);
- 		err = drv->probe(driver);
- 		if (err == 0) {
- 			i++;
--			mutex_lock(&drv->core->lock);
- 			list_add_tail(&driver->drvlist, &dev->drvlist);
--			mutex_unlock(&drv->core->lock);
- 		} else {
- 			printk(KERN_ERR
- 			       "%s/2: cx8802 probe failed, err = %d\n",
- 			       dev->core->name, err);
- 		}
--
-+		mutex_unlock(&drv->core->lock);
- 	}
- 
- 	err = i ? 0 : -ENODEV;
-diff --git a/drivers/media/video/cx88/cx88.h b/drivers/media/video/cx88/cx88.h
-index 9731daa..3d32f4a 100644
---- a/drivers/media/video/cx88/cx88.h
-+++ b/drivers/media/video/cx88/cx88.h
-@@ -505,13 +505,10 @@ struct cx8802_driver {
- 	int (*suspend)(struct pci_dev *pci_dev, pm_message_t state);
- 	int (*resume)(struct pci_dev *pci_dev);
- 
-+	/* Callers to the following functions must hold core->lock */
-+
- 	/* MPEG 8802 -> mini driver - Driver probe and configuration */
--
--	/* Caller must _not_ hold core->lock */
- 	int (*probe)(struct cx8802_driver *drv);
--
--	/* Callers to the following functions must hold core->lock */
--
- 	int (*remove)(struct cx8802_driver *drv);
- 
- 	/* MPEG 8802 -> mini driver - Access for hardware control */
--- 
-1.7.5.rc0
-
+Thanks,
+Janusz
