@@ -1,97 +1,78 @@
 Return-path: <mchehab@pedra>
-Received: from mail1-out1.atlantis.sk ([80.94.52.55]:37197 "EHLO
-	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754040Ab1DZUk4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Apr 2011 16:40:56 -0400
-From: Ondrej Zary <linux@rainbow-software.org>
-To: "Hans Verkuil" <hverkuil@xs4all.nl>
-Subject: Re: [PATCH] usbvision: remove (broken) image format conversion
-Date: Tue, 26 Apr 2011 22:40:35 +0200
-Cc: "Hans de Goede" <hdegoede@redhat.com>,
-	"Joerg Heckenbach" <joerg@heckenbach-aw.de>,
-	"Dwaine Garden" <dwainegarden@rogers.com>,
-	linux-media@vger.kernel.org,
-	"Kernel development list" <linux-kernel@vger.kernel.org>
-References: <201104252323.20420.linux@rainbow-software.org> <4DB6B28D.5090607@redhat.com> <f2291b622da20d240c4ebe0ae72beb8c.squirrel@webmail.xs4all.nl>
-In-Reply-To: <f2291b622da20d240c4ebe0ae72beb8c.squirrel@webmail.xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201104262240.40497.linux@rainbow-software.org>
+Received: from mx1.redhat.com ([209.132.183.28]:40217 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754878Ab1DLUTa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Apr 2011 16:19:30 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-input@vger.kernel.org
+Cc: Jarod Wilson <jarod@redhat.com>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Jiri Kosina <jkosina@suse.cz>,
+	Linux Media <linux-media@vger.kernel.org>
+Subject: [RFC PATCH] input: add KEY_IMAGES specifically for AL Image Browser
+Date: Tue, 12 Apr 2011 16:19:17 -0400
+Message-Id: <1302639557-22186-1-git-send-email-jarod@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tuesday 26 April 2011 14:33:20 Hans Verkuil wrote:
-> > Hi,
-> >
-> > On 04/26/2011 10:30 AM, Ondrej Zary wrote:
-> >> On Tuesday 26 April 2011, you wrote:
-> >>> On Monday, April 25, 2011 23:23:17 Ondrej Zary wrote:
-> >>>> The YVU420 and YUV422P formats are broken and cause kernel panic on
-> >>>> use.
-> >>>> (YVU420 does not work and sometimes causes "unable to handle paging
-> >>>> request" panic, YUV422P always causes "NULL pointer dereference").
-> >>>>
-> >>>> As V4L2 spec says that drivers shouldn't do any in-kernel image format
-> >>>> conversion, remove it completely (except YUYV).
-> >>>
-> >>> What really should happen is that the conversion is moved to
-> >>> libv4lconvert.
-> >>> I've never had the time to tackle that, but it would improve this
-> >>> driver a
-> >>> lot.
-> >>
-> >> Depending on isoc_mode module parameter, the device uses different image
-> >> formats: YUV 4:2:2 interleaved, YUV 4:2:0 planar or compressed format.
-> >>
-> >> Maybe the parameter should go away and these three formats exposed to
-> >> userspace?
-> >
-> > That sounds right,
-> >
-> >> Hopefully the non-compressed formats could be used directly
-> >> without any conversion. But the compressed format (with new
-> >> V4L2_PIX_FMT_
-> >> assigned?) should be preferred (as it provides much higher frame rates).
-> >> The
-> >> code moved into libv4lconvert would decompress the format and convert
-> >> into
-> >> something standard (YUV420?).
-> >
-> > Correct.
-> >
-> >>> Would you perhaps be interested in doing that work?
-> >>
-> >> I can try it. But the hardware isn't mine so my time is limited.
-> >
-> > If you could give it a shot that would be great. I've some hardware to
-> > test this with (although I've never actually tested that hardware), so
-> > I can hopefully pick things up if you cannot finish things before you
-> > need to return the hardware.
->
-> I can also test this.
+Many media center remotes have buttons intended for jumping straight to
+one type of media browser or another -- commonly, images/photos/pictures,
+audio/music, television, and movies. At present, remotes with an images
+or photos or pictures button use any number of different keycodes which
+sort of maybe fit. I've seen at least KEY_MEDIA, KEY_CAMERA,
+KEY_GRAPHICSEDITOR and KEY_PRESENTATION. None of those seem quite right.
+In my mind, KEY_MEDIA should be something more like a media center
+application launcher (and I'd like to standardize on that for things
+like the windows media center button on the mce remotes). KEY_CAMERA is
+used in a lot of webcams, and typically means "take a picture now".
+KEY_GRAPHICSEDITOR implies an editor, not a browser. KEY_PRESENTATION
+might be the closest fit here, if you think "photo slide show", but it
+may well be more intended for "run application in full-screen
+presentation mode" or to launch something like magicpoint, I dunno.
+And thus, I'd like to have a KEY_IMAGES, which matches the HID Usage AL
+Image Browser, the meaning of which I think is crystal-clear. I believe
+AL Audio Browser is already covered by KEY_AUDIO, and AL Movie Browser
+by KEY_VIDEO, so I'm also adding appropriate comments next to those
+keys.
 
-After digging in the code for hours, I'm giving this up. It's not worth it.
+I have follow-on patches for drivers/hid/hid-input.c and for
+drivers/media/rc/* that make use of this new key, if its deemed
+appropriate for addition. To make it simpler to merge the additional
+patches, it would be nice if this could sneak into 2.6.39, and the
+rest can then get queued up for 2.6.40, avoiding any multi-tree
+integration headaches.
 
-The ISOC_MODE_YUV422 mode works as V4L2_PIX_FMT_YVYU with VLC and 
-mplayer+libv4lconvert, reducing the loop (and dropping strech_*) in 
-usbvision_parse_lines_422() to:
- scratch_get(usbvision, frame->data + (frame->v4l2_linesize * frame->curline),
- 2 * frame->frmwidth);
+CC: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+CC: Jiri Kosina <jkosina@suse.cz>
+CC: Linux Media <linux-media@vger.kernel.org>
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
+---
+ include/linux/input.h |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-The ISOC_MODE_YUV420 is some weird custom format with 64-byte lines of YYUV. 
-usbvision_parse_lines_420() is real mess with that scratch_* crap everywhere.
-
-ISOC_MODE_COMPRESS: There are callbacks to usbvision_request_intra() and also 
-usbvision_adjust_compression(). This is not going to work outside the kernel.
-
-
-So I can redo the conversion removal patch to keep the RGB formats and also 
-provide another one to remove the testpattern (it oopses too). But I'm not 
-going to do any major changes in the driver.
-
+diff --git a/include/linux/input.h b/include/linux/input.h
+index e428382..be082e9 100644
+--- a/include/linux/input.h
++++ b/include/linux/input.h
+@@ -553,8 +553,8 @@ struct input_keymap_entry {
+ #define KEY_DVD			0x185	/* Media Select DVD */
+ #define KEY_AUX			0x186
+ #define KEY_MP3			0x187
+-#define KEY_AUDIO		0x188
+-#define KEY_VIDEO		0x189
++#define KEY_AUDIO		0x188	/* AL Audio Browser */
++#define KEY_VIDEO		0x189	/* AL Movie Browser */
+ #define KEY_DIRECTORY		0x18a
+ #define KEY_LIST		0x18b
+ #define KEY_MEMO		0x18c	/* Media Select Messages */
+@@ -605,6 +605,7 @@ struct input_keymap_entry {
+ #define KEY_MEDIA_REPEAT	0x1b7	/* Consumer - transport control */
+ #define KEY_10CHANNELSUP        0x1b8   /* 10 channels up (10+) */
+ #define KEY_10CHANNELSDOWN      0x1b9   /* 10 channels down (10-) */
++#define KEY_IMAGES		0x1ba	/* AL Image Browser */
+ 
+ #define KEY_DEL_EOL		0x1c0
+ #define KEY_DEL_EOS		0x1c1
 -- 
-Ondrej Zary
+1.7.1
+
