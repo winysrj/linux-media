@@ -1,81 +1,152 @@
 Return-path: <mchehab@pedra>
-Received: from gateway08.websitewelcome.com ([69.41.247.18]:42644 "HELO
-	gateway08.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752834Ab1DSTQE (ORCPT
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:62481 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753684Ab1DLIGw convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Apr 2011 15:16:04 -0400
-From: "Charlie X. Liu" <charlie@sensoray.com>
-To: <video4linux-list@redhat.com>
-Cc: <linux-media@vger.kernel.org>
-References: <BANLkTikqBPdr2M8jyY1zmu4TPLsXo0y5Xw@mail.gmail.com> <BANLkTi=dVYRgUbQ5pRySQLptnzaHOMKTqg@mail.gmail.com> <1302015521.4529.17.camel@morgan.silverblock.net> <BANLkTimQkDHmDsqSsQ9jiYnHWXnc7umeWw@mail.gmail.com> <1302481535.2282.61.camel@localhost> <20110411163239.GA4324@mgebm.net> <20110418141514.GA4611@mgebm.net> <ac791492-7bc5-4a78-92af-503dda599346@email.android.com> <20110418224855.GB4611@mgebm.net> <1303215523.2274.27.camel@localhost> <20110419171220.GA4883@mgebm.net> 
-In-Reply-To: 
-Subject: Sensoray Model 311 Jumper settings for LiPPERT's Cool XpressRunner-GS45 SBC
-Date: Tue, 19 Apr 2011 12:06:53 -0700
-Message-ID: <002e01cbfec4$f5a94f30$e0fbed90$@com>
+	Tue, 12 Apr 2011 04:06:52 -0400
+Received: by qyk7 with SMTP id 7so1810728qyk.19
+        for <linux-media@vger.kernel.org>; Tue, 12 Apr 2011 01:06:51 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Language: en-us
+In-Reply-To: <BANLkTimc_3wcLMP116B+BkGdJaapZSVkpw@mail.gmail.com>
+References: <201104090158.04827.jkrzyszt@tis.icnet.pl>
+	<Pine.LNX.4.64.1104101751380.12697@axis700.grange>
+	<BANLkTimut-G1YXFU+4gqiCij-RLu-Vn4-Q@mail.gmail.com>
+	<Pine.LNX.4.64.1104120820020.23770@axis700.grange>
+	<BANLkTimc_3wcLMP116B+BkGdJaapZSVkpw@mail.gmail.com>
+Date: Tue, 12 Apr 2011 16:06:51 +0800
+Message-ID: <BANLkTim3QnLBDodo=k+4GnVLwfqH6mCpMA@mail.gmail.com>
+Subject: Re: [PATCH 2.6.39] soc_camera: OMAP1: fix missing bytesperline and
+ sizeimage initialization
+From: Kassey Lee <kassey1216@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	qingx@marvell.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Per Sensoray Model 311 ( http://www.sensoray.com/products/311.htm )
-customer's request, we have tested 311 with LiPPERT's Cool XpressRunner-GS45
-( http://www.lippertembedded.com/en/lipperts-cool-xpressrunner-gs45.html )
-SBC (Single Board Computer). 
-
-Per customer's request and for their convenience, here, we list the Model
-311's jumper setting combinations that work with the LiPPERT's Cool
-XpressRunner-GS45 SBC:
-
-     (on Model 311)
-JP-8 -7 -6 -5  JP3B JP3A      Slot # and INT       Verified
-------------------------------------------------------------
-   |  :  :  :    |    |       Slot #0 + INTA#          V
-   :  |  :  :    |    :       Slot #1 + INTB#          V
-   :  :  |  :    :    |       Slot #2 + INTC#          V
-   :  :  :  |    :    :       Slot #3 + INTD#          V
--------------------------------------------------------------
-Note:    | -- close;  : -- open
-
-
-Thanks and Best regards,
-
-Charlie X. Liu @ Sensoray Co.
-
-
------Original Message-----
-From: Charlie X. Liu [mailto:charlie@sensoray.com] 
-Sent: Tuesday, April 19, 2011 11:54 AM
-To: 'video4linux-list@redhat.com'
-Cc: 'linux-media@vger.kernel.org'
-Subject: Sensoray Model 314 DIP Switch setting for LiPPERT's Cool
-XpressRunner-GS45 SBC
-
-Per Sensoray Model 314 ( http://www.sensoray.com/products/314.htm )
-customer's request, we have tested 314 with LiPPERT's Cool XpressRunner-GS45
-( http://www.lippertembedded.com/en/lipperts-cool-xpressrunner-gs45.html )
-SBC (Single Board Computer). 
-
-Per customer's request and for their convenience, here, we list the Model
-314's DIP switch setting combinations that work with the LiPPERT's Cool
-XpressRunner-GS45 SBC:
-
-(on Model 314)
-SW2-1 2 3 4 5 6     Slot # and INT    Verified
-----------------------------------------------
-    D D U U U D     Slot #0 + INTA#      V
-    U D U U D U     Slot #1 + INTB#      V
-    D U U D U U     Slot #2 + INTC#      V
-    U U D U U U     Slot #3 + INTD#      V
-----------------------------------------------
-Note:   D -- Down (ON);   U -- Up (OFF)
-
-
-Best regards,
-
-Charlie X. Liu @ Sensoray Co.
-
-
-
+2011/4/12 Kassey Lee <kassey1216@gmail.com>:
+> Hi, Guennadi;
+>           for sizeimage , I agree with you. that we can overwrite it
+> after a frame is done.
+>
+>    for byteperline: on Marvell soc.
+>    it needs to know the bytesperline before receive frame from sensor.
+>    what we did now is hardcode  in host driver for bytesperline.
+>
+>    since different sensors have different timing for JPEG, and
+> bytesperline is different.
+>    while  soc_mbus_bytes_per_line does not support JPEG.
+>
+>    So, we want that host driver can get byteperline from sensor
+> driver (sub dev) before transfer a frame for JPEG format.
+>    a way to do this:
+>    soc_mbus_bytes_per_line return 0 for JPEG, and host driver will
+> try another API to get bytesperline for JPEG from sensor driver.
+>     the effort is new API or reused other API.
+>
+>    Is that reasonable ?
+>
+>
+>
+> 2011/4/12 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+>> Hi
+>>
+>> On Tue, 12 Apr 2011, Kassey Lee wrote:
+>>
+>>> hi, Guennadi:
+>>>     a lot of sensors support JPEG output.
+>>>     1) bytesperline is defined by sensor timing.
+>>>     2) and sizeimage is unknow for jpeg.
+>>>
+>>>   how about for JPEG
+>>>    1) host driver gets bytesperline from sensor driver.
+>>>    2) sizeimage refilled by host driver after dma transfer done( a
+>>> frame is received)
+>>>   thanks.
+>>
+>> How is this done currently on other V4L2 drivers? To transfer a frame you
+>> usually first do at least one of S_FMT and G_FMT, at which time you
+>> already have to report sizeimage to the user - before any transfer has
+>> taken place. Currently with soc-camera it is already possible to override
+>> sizeimage and bytesperline from the host driver. Just set them to whatever
+>> you need in your try_fmt and they will be kept. Not sure how you want to
+>> do that, if you need to first read in a frame - do you want to perform
+>> some dummy frame transfer? You might not even have any buffers queued yet,
+>> so, it has to be a read without writing to RAM. Don't such compressed
+>> formats just put a value in sizeimage, that is a calculated maximum size?
+>>
+>> Thanks
+>> Guennadi
+>>
+>>> 2011/4/11 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+>>> > Hi Janusz
+>>> >
+>>> > On Sat, 9 Apr 2011, Janusz Krzysztofik wrote:
+>>> >
+>>> >> Since commit 0e4c180d3e2cc11e248f29d4c604b6194739d05a, bytesperline and
+>>> >> sizeimage memebers of v4l2_pix_format structure have no longer been
+>>> >> calculated inside soc_camera_g_fmt_vid_cap(), but rather passed via
+>>> >> soc_camera_device structure from a host driver callback invoked by
+>>> >> soc_camera_set_fmt().
+>>> >>
+>>> >> OMAP1 camera host driver has never been providing these parameters, so
+>>> >> it no longer works correctly. Fix it by adding suitable assignments to
+>>> >> omap1_cam_set_fmt().
+>>> >
+>>> > Thanks for the patch, but now it looks like many soc-camera host drivers
+>>> > are re-implementing this very same calculation in different parts of their
+>>> > code - in try_fmt, set_fmt, get_fmt. Why don't we unify them all,
+>>> > implement this centrally in soc_camera.c and remove all those
+>>> > calculations? Could you cook up a patch or maybe several patches - for
+>>> > soc_camera.c and all drivers?
+>>> >
+>>> > Thanks
+>>> > Guennadi
+>>> >
+>>> >>
+>>> >> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+>>> >> ---
+>>> >>  drivers/media/video/omap1_camera.c |    6 ++++++
+>>> >>  1 file changed, 6 insertions(+)
+>>> >>
+>>> >> --- linux-2.6.39-rc2/drivers/media/video/omap1_camera.c.orig  2011-04-06 14:30:37.000000000 +0200
+>>> >> +++ linux-2.6.39-rc2/drivers/media/video/omap1_camera.c       2011-04-09 00:16:36.000000000 +0200
+>>> >> @@ -1292,6 +1292,12 @@ static int omap1_cam_set_fmt(struct soc_
+>>> >>       pix->colorspace  = mf.colorspace;
+>>> >>       icd->current_fmt = xlate;
+>>> >>
+>>> >> +     pix->bytesperline = soc_mbus_bytes_per_line(pix->width,
+>>> >> +                                                 xlate->host_fmt);
+>>> >> +     if (pix->bytesperline < 0)
+>>> >> +             return pix->bytesperline;
+>>> >> +     pix->sizeimage = pix->height * pix->bytesperline;
+>>> >> +
+>>> >>       return 0;
+>>> >>  }
+>>> >>
+>>> >>
+>>> >
+>>> > ---
+>>> > Guennadi Liakhovetski, Ph.D.
+>>> > Freelance Open-Source Software Developer
+>>> > http://www.open-technology.de/
+>>> > --
+>>> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>> > the body of a message to majordomo@vger.kernel.org
+>>> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>> >
+>>>
+>>
+>> ---
+>> Guennadi Liakhovetski, Ph.D.
+>> Freelance Open-Source Software Developer
+>> http://www.open-technology.de/
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
