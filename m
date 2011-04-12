@@ -1,64 +1,63 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:35699 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:33529 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755888Ab1DSVV3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Apr 2011 17:21:29 -0400
-Message-ID: <4DADFCD2.1090401@redhat.com>
-Date: Tue, 19 Apr 2011 18:21:22 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: stefan.ringel@arcor.de
-CC: linux-media@vger.kernel.org, d.belimov@gmail.com
-Subject: Re: [PATCH 1/5] tm6000: add mts parameter
-References: <1301948324-27186-1-git-send-email-stefan.ringel@arcor.de>
-In-Reply-To: <1301948324-27186-1-git-send-email-stefan.ringel@arcor.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	id S1754305Ab1DLSsr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Apr 2011 14:48:47 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Jarod Wilson <jarod@redhat.com>, Dan Carpenter <error27@gmail.com>,
+	Dmitri Belimov <d.belimov@gmail.com>,
+	devel@driverdev.osuosl.org
+Subject: [PATCH v2] tm6000: fix vbuf may be used uninitialized
+Date: Tue, 12 Apr 2011 14:48:23 -0400
+Message-Id: <1302634103-9328-1-git-send-email-jarod@redhat.com>
+In-Reply-To: <1300997220-4354-1-git-send-email-jarod@redhat.com>
+References: <1300997220-4354-1-git-send-email-jarod@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 04-04-2011 17:18, stefan.ringel@arcor.de escreveu:
-> From: Stefan Ringel <stefan.ringel@arcor.de>
-> 
-> add mts parameter
+In commit 8aff8ba95155df, most of the manipulations to vbuf inside
+copy_streams were gated on if !dev->radio, but one place that touches
+vbuf lays outside those gates -- a memcpy of vbuf isn't NULL. If we
+initialize vbuf to NULL, that memcpy will never happen in the case where
+we do have dev->radio, and otherwise, in the !dev->radio case, the code
+behaves exactly like it did prior to 8aff8ba95155df.
 
-Stefan,
+While we're at it, also fix an incorrectly indented closing brace for
+one of the sections touching vbuf that is conditional on !dev->radio.
 
-The MTS config depends on the specific board design (generally present on
-mono NTSC cards). So, it should be inside the cards struct, and not 
-provided as an userspace parameter.
+v2: add a detailed commit log and fix that brace
 
-Mauro.
-> 
-> 
-> Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
-> ---
->  drivers/staging/tm6000/tm6000-cards.c |    7 +++++++
->  1 files changed, 7 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
-> index 146c7e8..eef58da 100644
-> --- a/drivers/staging/tm6000/tm6000-cards.c
-> +++ b/drivers/staging/tm6000/tm6000-cards.c
-> @@ -61,6 +61,10 @@ module_param_array(card,  int, NULL, 0444);
->  
->  static unsigned long tm6000_devused;
->  
-> +static unsigned int xc2028_mts;
-> +module_param(xc2028_mts, int, 0644);
-> +MODULE_PARM_DESC(xc2028_mts, "enable mts firmware (xc2028/3028 only)");
-> +
->  
->  struct tm6000_board {
->  	char            *name;
-> @@ -685,6 +689,9 @@ static void tm6000_config_tuner(struct tm6000_core *dev)
->  		ctl.demod = XC3028_FE_ZARLINK456;
->  		ctl.vhfbw7 = 1;
->  		ctl.uhfbw8 = 1;
-> +		if (xc2028_mts)
-> +			ctl.mts = 1;
-> +
->  		xc2028_cfg.tuner = TUNER_XC2028;
->  		xc2028_cfg.priv  = &ctl;
->  
+CC: Dan Carpenter <error27@gmail.com>
+CC: Dmitri Belimov <d.belimov@gmail.com>
+CC: devel@driverdev.osuosl.org
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
+---
+ drivers/staging/tm6000/tm6000-video.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/staging/tm6000/tm6000-video.c b/drivers/staging/tm6000/tm6000-video.c
+index c80a316..8b971a0 100644
+--- a/drivers/staging/tm6000/tm6000-video.c
++++ b/drivers/staging/tm6000/tm6000-video.c
+@@ -228,7 +228,7 @@ static int copy_streams(u8 *data, unsigned long len,
+ 	unsigned long header = 0;
+ 	int rc = 0;
+ 	unsigned int cmd, cpysize, pktsize, size, field, block, line, pos = 0;
+-	struct tm6000_buffer *vbuf;
++	struct tm6000_buffer *vbuf = NULL;
+ 	char *voutp = NULL;
+ 	unsigned int linewidth;
+ 
+@@ -318,7 +318,7 @@ static int copy_streams(u8 *data, unsigned long len,
+ 					if (pos + size > vbuf->vb.size)
+ 						cmd = TM6000_URB_MSG_ERR;
+ 					dev->isoc_ctl.vfield = field;
+-			}
++				}
+ 				break;
+ 			case TM6000_URB_MSG_VBI:
+ 				break;
+-- 
+1.7.1
 
