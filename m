@@ -1,102 +1,33 @@
 Return-path: <mchehab@pedra>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:50020 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755296Ab1D1POG (ORCPT
+Received: from forward17.mail.yandex.net ([95.108.253.142]:40309 "EHLO
+	forward17.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932299Ab1DLVwI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Apr 2011 11:14:06 -0400
-Subject: [PATCH 01/10] rc-core: int to bool conversion for winbond-cir
+	Tue, 12 Apr 2011 17:52:08 -0400
+Received: from web14.yandex.ru (web14.yandex.ru [95.108.252.114])
+	by forward17.mail.yandex.net (Yandex) with ESMTP id 988F51061CAE
+	for <linux-media@vger.kernel.org>; Wed, 13 Apr 2011 01:43:08 +0400 (MSD)
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by web14.yandex.ru (Yandex) with ESMTP id 8DD2F830378
+	for <linux-media@vger.kernel.org>; Wed, 13 Apr 2011 01:43:08 +0400 (MSD)
+From: port20031 <port20031@yandex.ru>
 To: linux-media@vger.kernel.org
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-Cc: jarod@wilsonet.com, mchehab@redhat.com
-Date: Thu, 28 Apr 2011 17:13:17 +0200
-Message-ID: <20110428151317.8272.86801.stgit@felix.hardeman.nu>
-In-Reply-To: <20110428151311.8272.17290.stgit@felix.hardeman.nu>
-References: <20110428151311.8272.17290.stgit@felix.hardeman.nu>
+Subject: em28xx: idVendor=eb1a, idProduct=e301
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Message-Id: <247811302644588@web14.yandex.ru>
+Date: Wed, 13 Apr 2011 01:43:08 +0400
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Using bool instead of an int helps readability a bit.
+ Hi, 
 
-Signed-off-by: David Härdeman <david@hardeman.nu>
----
- drivers/media/rc/winbond-cir.c |   16 ++++++++--------
- 1 files changed, 8 insertions(+), 8 deletions(-)
+ I've made tests with my  board:
+ Model: Kaiomy TVnPC U2
+http://www.kaiomy.com/products_feat.aspx?id=56
+ idVendor=eb1a, idProduct=e301
 
-diff --git a/drivers/media/rc/winbond-cir.c b/drivers/media/rc/winbond-cir.c
-index b0a5fdc..cdb5ef4 100644
---- a/drivers/media/rc/winbond-cir.c
-+++ b/drivers/media/rc/winbond-cir.c
-@@ -382,7 +382,7 @@ wbcir_shutdown(struct pnp_dev *device)
- {
- 	struct device *dev = &device->dev;
- 	struct wbcir_data *data = pnp_get_drvdata(device);
--	int do_wake = 1;
-+	bool do_wake = true;
- 	u8 match[11];
- 	u8 mask[11];
- 	u8 rc6_csl = 0;
-@@ -392,14 +392,14 @@ wbcir_shutdown(struct pnp_dev *device)
- 	memset(mask, 0, sizeof(mask));
+uname -r
+2.6.35.12-88.fc14.i686.PAE
  
- 	if (wake_sc == INVALID_SCANCODE || !device_may_wakeup(dev)) {
--		do_wake = 0;
-+		do_wake = false;
- 		goto finish;
- 	}
- 
- 	switch (protocol) {
- 	case IR_PROTOCOL_RC5:
- 		if (wake_sc > 0xFFF) {
--			do_wake = 0;
-+			do_wake = false;
- 			dev_err(dev, "RC5 - Invalid wake scancode\n");
- 			break;
- 		}
-@@ -418,7 +418,7 @@ wbcir_shutdown(struct pnp_dev *device)
- 
- 	case IR_PROTOCOL_NEC:
- 		if (wake_sc > 0xFFFFFF) {
--			do_wake = 0;
-+			do_wake = false;
- 			dev_err(dev, "NEC - Invalid wake scancode\n");
- 			break;
- 		}
-@@ -440,7 +440,7 @@ wbcir_shutdown(struct pnp_dev *device)
- 
- 		if (wake_rc6mode == 0) {
- 			if (wake_sc > 0xFFFF) {
--				do_wake = 0;
-+				do_wake = false;
- 				dev_err(dev, "RC6 - Invalid wake scancode\n");
- 				break;
- 			}
-@@ -496,7 +496,7 @@ wbcir_shutdown(struct pnp_dev *device)
- 			} else if (wake_sc <= 0x007FFFFF) {
- 				rc6_csl = 60;
- 			} else {
--				do_wake = 0;
-+				do_wake = false;
- 				dev_err(dev, "RC6 - Invalid wake scancode\n");
- 				break;
- 			}
-@@ -508,14 +508,14 @@ wbcir_shutdown(struct pnp_dev *device)
- 			mask[i++] = 0x0F;
- 
- 		} else {
--			do_wake = 0;
-+			do_wake = false;
- 			dev_err(dev, "RC6 - Invalid wake mode\n");
- 		}
- 
- 		break;
- 
- 	default:
--		do_wake = 0;
-+		do_wake = false;
- 		break;
- 	}
- 
-
