@@ -1,124 +1,116 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.128.24]:46156 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754780Ab1DIQPX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Apr 2011 12:15:23 -0400
-Message-ID: <4DA0869E.4030505@maxwell.research.nokia.com>
-Date: Sat, 09 Apr 2011 19:17:34 +0300
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Received: from moutng.kundenserver.de ([212.227.17.8]:55704 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754712Ab1DLG2n convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Apr 2011 02:28:43 -0400
+Date: Tue, 12 Apr 2011 08:28:41 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Kassey Lee <kassey1216@gmail.com>
+cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2.6.39] soc_camera: OMAP1: fix missing bytesperline and
+ sizeimage initialization
+In-Reply-To: <BANLkTimut-G1YXFU+4gqiCij-RLu-Vn4-Q@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1104120820020.23770@axis700.grange>
+References: <201104090158.04827.jkrzyszt@tis.icnet.pl>
+ <Pine.LNX.4.64.1104101751380.12697@axis700.grange>
+ <BANLkTimut-G1YXFU+4gqiCij-RLu-Vn4-Q@mail.gmail.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Nayden Kanchev <nkanchev@mm-sol.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Cohen David Abraham <david.cohen@nokia.com>,
-	Kim HeungJun <riverful@gmail.com>
-Subject: Re: [RFC v2] V4L2 API for flash devices
-References: <4D9C2000.9090500@maxwell.research.nokia.com> <4D9C2670.2000603@mm-sol.com> <4D9C31A4.3050705@maxwell.research.nokia.com> <201104061523.19756.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201104061523.19756.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Laurent Pinchart wrote:
-> Hi Sakari,
+Hi
 
-Hi Laurent,
+On Tue, 12 Apr 2011, Kassey Lee wrote:
 
-And thanks for the comments.
-
-> On Wednesday 06 April 2011 11:25:56 Sakari Ailus wrote:
->> Nayden Kanchev wrote:
->>> On 04/06/2011 11:10 AM, Sakari Ailus wrote:
->>>> - Added an open question on a new control:
->>>> V4L2_CID_FLASH_EXTERNAL_STROBE_WHENCE.
->>>
->>> <snip>
->>>
->>>> 2. External strobe edge / level
->>>> -------------------------------
->>>>
->>>> No use is seen currently for this, but it may well appear, and the
->>>> hardware supports this. Level based trigger should be used since it is
->>>> more precise.
->>>>
->>>>     V4L2_CID_FLASH_EXTERNAL_STROBE_WHENCE
->>>>
->>>> Whether the flash controller considers external strobe as edge, when the
->>>> only limit of the strobe is the timeout on flash controller, or level,
->>>> when the flash strobe will last as long as the strobe signal, or as long
->>>> until the timeout expires.
->>>>
->>>> enum v4l2_flash_external_strobe_whence {
->>>>
->>>>     V4L2_CID_FLASH_EXTERNAL_STROBE_LEVEL,
->>>>     V4L2_CID_FLASH_EXTERNAL_STROBE_EDGE,
->>>>
->>>> };
->>
->> Removed "CID_":
->>
->> enum v4l2_flash_external_strobe_whence {
->> 	V4L2_FLASH_EXTERNAL_STROBE_LEVEL,
->> 	V4L2_FLASH_EXTERNAL_STROBE_EDGE,
->> };
->>
->> I guess this should be an rw menu control for LED flash?
->>
->>> I agree that control over the strobe usage (level/edge) is required.
->>> Although we have some bad experience will lack of detailed information
->>> how exactly the flash chip will use those signals.
->>>
->>> For example with AS3645A flash driver strobing by edge produced really
->>> strange flash output - light intensity was changing during the process
->>> and flash was stopped before the HW timeout.
->>>
->>> On the other hand strobing by level didn't cause problems.
->>>
->>> So even if HW supports some functionally we should prevent such
->>> malfunctioning by adding some restrictions in the board code also.
->>
->> I agree.
->>
->> The control should be probably exposed to tell which kind of
->> functionality does the flash chip provide, even if the menu has just one
->> option in it.
->>
->>> I would also rename xxx_STROBE_WHENCE to xxx_STROBE_TYPE but it is just
->>> a suggestion :)
->>
->> Sounds good to me.
->>
->> V4L2_CID_FLASH_STROBE_MODE should be renamed to
->> V4L2_CID_FLASH_STROBE_WHENCE. That proper use of whence IMO. :-)
+> hi, Guennadi:
+>     a lot of sensors support JPEG output.
+>     1) bytesperline is defined by sensor timing.
+>     2) and sizeimage is unknow for jpeg.
 > 
-> Does this really need to be exposed to userspace ? Shouldn't it just be static 
-> information coming from platform data ?
+>   how about for JPEG
+>    1) host driver gets bytesperline from sensor driver.
+>    2) sizeimage refilled by host driver after dma transfer done( a
+> frame is received)
+>   thanks.
 
-If the sensor is expected to set the strobe length, the value needs to
-be programmed to the sensor. The sensor driver should be able to do this
-as it has all the timing related information on the sensor state.
+How is this done currently on other V4L2 drivers? To transfer a frame you 
+usually first do at least one of S_FMT and G_FMT, at which time you 
+already have to report sizeimage to the user - before any transfer has 
+taken place. Currently with soc-camera it is already possible to override 
+sizeimage and bytesperline from the host driver. Just set them to whatever 
+you need in your try_fmt and they will be kept. Not sure how you want to 
+do that, if you need to first read in a frame - do you want to perform 
+some dummy frame transfer? You might not even have any buffers queued yet, 
+so, it has to be a read without writing to RAM. Don't such compressed 
+formats just put a value in sizeimage, that is a calculated maximum size?
 
-What if the user wants to expose more than one frame with flash?
+Thanks
+Guennadi
 
-The sensor should be able to export the total required exposure time of
-the full frame. The exposure of each line begins at different time so
-the exposure time of the full frame exceeds the exposure time of a
-single pixel --- it may be almost double.
+> 2011/4/11 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+> > Hi Janusz
+> >
+> > On Sat, 9 Apr 2011, Janusz Krzysztofik wrote:
+> >
+> >> Since commit 0e4c180d3e2cc11e248f29d4c604b6194739d05a, bytesperline and
+> >> sizeimage memebers of v4l2_pix_format structure have no longer been
+> >> calculated inside soc_camera_g_fmt_vid_cap(), but rather passed via
+> >> soc_camera_device structure from a host driver callback invoked by
+> >> soc_camera_set_fmt().
+> >>
+> >> OMAP1 camera host driver has never been providing these parameters, so
+> >> it no longer works correctly. Fix it by adding suitable assignments to
+> >> omap1_cam_set_fmt().
+> >
+> > Thanks for the patch, but now it looks like many soc-camera host drivers
+> > are re-implementing this very same calculation in different parts of their
+> > code - in try_fmt, set_fmt, get_fmt. Why don't we unify them all,
+> > implement this centrally in soc_camera.c and remove all those
+> > calculations? Could you cook up a patch or maybe several patches - for
+> > soc_camera.c and all drivers?
+> >
+> > Thanks
+> > Guennadi
+> >
+> >>
+> >> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> >> ---
+> >>  drivers/media/video/omap1_camera.c |    6 ++++++
+> >>  1 file changed, 6 insertions(+)
+> >>
+> >> --- linux-2.6.39-rc2/drivers/media/video/omap1_camera.c.orig  2011-04-06 14:30:37.000000000 +0200
+> >> +++ linux-2.6.39-rc2/drivers/media/video/omap1_camera.c       2011-04-09 00:16:36.000000000 +0200
+> >> @@ -1292,6 +1292,12 @@ static int omap1_cam_set_fmt(struct soc_
+> >>       pix->colorspace  = mf.colorspace;
+> >>       icd->current_fmt = xlate;
+> >>
+> >> +     pix->bytesperline = soc_mbus_bytes_per_line(pix->width,
+> >> +                                                 xlate->host_fmt);
+> >> +     if (pix->bytesperline < 0)
+> >> +             return pix->bytesperline;
+> >> +     pix->sizeimage = pix->height * pix->bytesperline;
+> >> +
+> >>       return 0;
+> >>  }
+> >>
+> >>
+> >
+> > ---
+> > Guennadi Liakhovetski, Ph.D.
+> > Freelance Open-Source Software Developer
+> > http://www.open-technology.de/
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> 
 
-The user must be able to know that the exposure time required to expose
-the frame is smaller or equal to the maximum possible exposure time of
-the flash.
-
-To the user there is no significant difference between the two. There
-may be effects on the following frames beyond the one(s) exposed with flash.
-
-I agree we could omit this, at least for now.
-
-Regards,
-
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
