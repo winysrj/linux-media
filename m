@@ -1,116 +1,125 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:38184 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751728Ab1D0S2i convert rfc822-to-8bit (ORCPT
+Received: from connie.slackware.com ([64.57.102.36]:53592 "EHLO
+	connie.slackware.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755440Ab1DLCWM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Apr 2011 14:28:38 -0400
-Received: by wwa36 with SMTP id 36so2205880wwa.1
-        for <linux-media@vger.kernel.org>; Wed, 27 Apr 2011 11:28:37 -0700 (PDT)
-References: <20110423005412.12978e29@darkstar> <20110424163530.2bc1b365@darkstar> <BCCEA9F4-16D7-4E63-B32C-15217AA094F3@wilsonet.com> <20110425201835.0fbb84ee@darkstar> <A4226E90-09BE-45FE-AEEF-0EA7E9414B4B@wilsonet.com> <20110425230658.22551665@darkstar> <59898A0D-573E-46E9-A3B7-9054B24E69DF@wilsonet.com> <20110427151621.5ac73e12@darkstar>
-In-Reply-To: <20110427151621.5ac73e12@darkstar>
-Mime-Version: 1.0 (Apple Message framework v1084)
-Content-Type: text/plain; charset=us-ascii
-Message-Id: <1FB1ED64-0EEC-4E15-8178-D2CCCA915B1D@wilsonet.com>
-Content-Transfer-Encoding: 8BIT
-Cc: "mailing list: lirc" <lirc-list@lists.sourceforge.net>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Jarod Wilson <jarod@wilsonet.com>
-Subject: Re: Terratec Cinergy 1400 DVB-T RC not working anymore
-Date: Wed, 27 Apr 2011 14:28:41 -0400
-To: Heiko Baums <lists@baums-on-web.de>
+	Mon, 11 Apr 2011 22:22:12 -0400
+Date: Mon, 11 Apr 2011 19:10:36 -0700 (PDT)
+From: Robby Workman <rworkman@slackware.com>
+To: linux-media@vger.kernel.org
+cc: Patrick Volkerding <volkerdi@slackware.com>
+Subject: [PATCHES] Misc. trivial fixes
+Message-ID: <alpine.LNX.2.00.1104111908050.32072@connie.slackware.com>
+MIME-Version: 1.0
+Content-Type: MULTIPART/MIXED; BOUNDARY="960504934-521913319-1302574236=:32072"
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Moving this over to linux-media, this stuff is all rc-core and is
-more of what I meant should be discussed over here/there. :)
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-On Apr 27, 2011, at 9:16 AM, Heiko Baums wrote:
+--960504934-521913319-1302574236=:32072
+Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
 
-> Am Wed, 27 Apr 2011 00:28:40 -0400
-> schrieb Jarod Wilson <jarod@wilsonet.com>:
-> 
->> Setting it as the only active protocol decoder when starting lircd
->> makes sense when using the receiver via /dev/lircX. But its rather
->> odd to me that all protocols are disabled on boot.
-> 
-> I added a comment to the Arch Linux feature request.
-> 
->> Okay, dug a bit more... The default map for the 1400 should be NEC
->> proto. I'd enable rc-core debugging (options rc-core debug=1) and it
->> looks like the cx88 IR interrupt handler should spew some relevant
->> interesting data. However, I'm definitely leaning towards this
->> discussion moving over to the linux-media list, as the issue is
->> somewhere in drivers/media/video/cx88/.
-> 
-> Added "options rc-core debug=1" to /etc/modprobe.d/modprobe.conf, but I
-> doubt that this helped.
-> 
-> In /var/log/everything I have several times
-> kernel: [  295.056825] ir_update_mapping: #0: Deleting scan 0x0010
-> and once
-> kernel: [  295.056830] ir_resize_table: Shrinking table to 256 bytes
-> then again several times things like
-> kernel: [  295.056985] ir_update_mapping: #0: New scan 0x1441 with key
-> 0x0066
-> then
-> kernel: [  295.057203] ir_resize_table: Growing table to 512 bytes
-> and then a lot of
-> kernel: [  322.500764] ir_rc5_decode: RC5(x) decode failed at state 1
-> (8361us pulse)
-> kernel: [  322.500775] ir_rc6_decode: RC6 decode failed at state 0
-> (9250us pulse)
-> kernel: [  322.500782] ir_jvc_decode: JVC decode failed at state 0
-> (9250us pulse)
-> kernel: [  322.500789] ir_sony_decode: Sony decode failed at state 0
-> (9250us pulse)
-> 
-> I can't tell you when and by which command these log entries have been
-> created.
-> 
-> Or are the debug outputs saved somewhere else?
+Patch #1 installs udev rules files to /lib/udev/rules.d/ instead
+of /etc/udev/rules.d/ - see commit message for more info.
 
-If your system log is configured to log debug messages, it should all be
-in there...
+Patch #2 allows override of manpage installation directory by
+packagers - see commit message for more info
 
-> Btw., I didn't read exactly enough "... should be NEC proto ..." and
-> set the ir-keytable to nec_terratec_cinergy_xs. With this ir-keytable
-> ir-keytable -t spit out some scancodes, but not with every button and
-> not always.
+-RW
+--960504934-521913319-1302574236=:32072
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name=0001-Install-udev-rules-to-lib-udev-instead-of-etc-udev.patch
+Content-Transfer-Encoding: BASE64
+Content-ID: <alpine.LNX.2.00.1104111910360.32072@connie.slackware.com>
+Content-Description: 
+Content-Disposition: attachment; filename=0001-Install-udev-rules-to-lib-udev-instead-of-etc-udev.patch
 
-Hrm, ok, so *something* is resulting in scancodes... This is progress!
-(I think...) :)
+RnJvbSBkMzM1NmIwY2Y5NjhjNDFiMWQ0NGZjYzY4MmE0NDExMmZmZmY5ZDBi
+IE1vbiBTZXAgMTcgMDA6MDA6MDAgMjAwMQ0KRnJvbTogUm9iYnkgV29ya21h
+biA8cndvcmttYW5Ac2xhY2t3YXJlLmNvbT4NCkRhdGU6IE1vbiwgMTEgQXBy
+IDIwMTEgMjA6NDE6MjggLTA1MDANClN1YmplY3Q6IFtQQVRDSCAxLzJdIElu
+c3RhbGwgdWRldiBydWxlcyB0byAvbGliL3VkZXYvIGluc3RlYWQgb2YgL2V0
+Yy91ZGV2DQoNCkluIG1vZGVyYXRlbHkgcmVjZW50IHZlcnNpb25zIG9mIHVk
+ZXYsIHBhY2thZ2VzIHNob3VsZCBpbnN0YWxsDQpydWxlcyBmaWxlcyB0byAv
+bGliL3VkZXYvcnVsZXMuZC8gaW5zdGVhZCBvZiAvZXRjL3VkZXYvcnVsZXMu
+ZC8sDQphcyAvZXRjL3VkZXYvcnVsZXMuZC8gaXMgbm93IGZvciBnZW5lcmF0
+ZWQgcnVsZXMgYW5kIG92ZXJyaWRlcw0Kb2YgdGhlIHBhY2thZ2VkIHJ1bGVz
+Lg0KLS0tDQogdXRpbHMva2V5dGFibGUvNzAtaW5mcmFyZWQucnVsZXMgfCAg
+ICA0ICstLS0NCiB1dGlscy9rZXl0YWJsZS9NYWtlZmlsZSAgICAgICAgICB8
+ICAgIDQgKystLQ0KIDIgZmlsZXMgY2hhbmdlZCwgMyBpbnNlcnRpb25zKCsp
+LCA1IGRlbGV0aW9ucygtKQ0KDQpkaWZmIC0tZ2l0IGEvdXRpbHMva2V5dGFi
+bGUvNzAtaW5mcmFyZWQucnVsZXMgYi91dGlscy9rZXl0YWJsZS83MC1pbmZy
+YXJlZC5ydWxlcw0KaW5kZXggMzA4YTZkNC4uYWZmZmQ5NSAxMDA2NDQNCi0t
+LSBhL3V0aWxzL2tleXRhYmxlLzcwLWluZnJhcmVkLnJ1bGVzDQorKysgYi91
+dGlscy9rZXl0YWJsZS83MC1pbmZyYXJlZC5ydWxlcw0KQEAgLTEsNiArMSw0
+IEBADQogIyBBdXRvbWF0aWNhbGx5IGxvYWQgdGhlIHByb3BlciBrZXltYXBz
+IGFmdGVyIHRoZSBSZW1vdGUgQ29udHJvbGxlciBkZXZpY2UNCi0jIGNyZWF0
+aW9uLg0KLSMgQ29weSB0aGlzIGZpbGUgYXQgL2V0Yy91ZGV2L3J1bGVzLmQv
+NzAtaW5mcmFyZWQucnVsZXMgaW4gb3JkZXIgdG8gbG9hZCBrZXl0YWJsZXMN
+Ci0jIGR1cmluZyBib290IHRpbWUuIFRoZSBrZXljb2RlIHRhYmxlcyBydWxl
+cyBzaG91bGQgYmUgYXQgL2V0Yy9yY19tYXBzLmNmZw0KKyMgY3JlYXRpb24u
+ICBUaGUga2V5Y29kZSB0YWJsZXMgcnVsZXMgc2hvdWxkIGJlIGF0IC9ldGMv
+cmNfbWFwcy5jZmcNCiANCiBBQ1RJT049PSJhZGQiLCBTVUJTWVNURU09PSJy
+YyIsIFJVTis9Ii91c3IvYmluL2lyLWtleXRhYmxlIC1hIC9ldGMvcmNfbWFw
+cy5jZmcgLXMgJG5hbWUiDQpkaWZmIC0tZ2l0IGEvdXRpbHMva2V5dGFibGUv
+TWFrZWZpbGUgYi91dGlscy9rZXl0YWJsZS9NYWtlZmlsZQ0KaW5kZXggYWEw
+MjBlZi4uMjlhNmFjNCAxMDA2NDQNCi0tLSBhL3V0aWxzL2tleXRhYmxlL01h
+a2VmaWxlDQorKysgYi91dGlscy9rZXl0YWJsZS9NYWtlZmlsZQ0KQEAgLTM3
+LDggKzM3LDggQEAgaW5zdGFsbDogJChUQVJHRVRTKQ0KIAlpbnN0YWxsIC1t
+IDY0NCAtcCByY19tYXBzLmNmZyAkKERFU1RESVIpL2V0Yw0KIAlpbnN0YWxs
+IC1tIDc1NSAtZCAkKERFU1RESVIpL2V0Yy9yY19rZXltYXBzDQogCWluc3Rh
+bGwgLW0gNjQ0IC1wIHJjX2tleW1hcHMvKiAkKERFU1RESVIpL2V0Yy9yY19r
+ZXltYXBzDQotCWluc3RhbGwgLW0gNzU1IC1kICQoREVTVERJUikvZXRjL3Vk
+ZXYvcnVsZXMuZA0KLQlpbnN0YWxsIC1tIDY0NCAtcCA3MC1pbmZyYXJlZC5y
+dWxlcyAkKERFU1RESVIpL2V0Yy91ZGV2L3J1bGVzLmQNCisJaW5zdGFsbCAt
+bSA3NTUgLWQgJChERVNURElSKS9saWIvdWRldi9ydWxlcy5kDQorCWluc3Rh
+bGwgLW0gNjQ0IC1wIDcwLWluZnJhcmVkLnJ1bGVzICQoREVTVERJUikvbGli
+L3VkZXYvcnVsZXMuZA0KIAlpbnN0YWxsIC1tIDc1NSAtZCAkKERFU1RESVIp
+JChQUkVGSVgpL3NoYXJlL21hbi9tYW4xDQogCWluc3RhbGwgLW0gNjQ0IC1w
+IGlyLWtleXRhYmxlLjEgJChERVNURElSKSQoUFJFRklYKS9zaGFyZS9tYW4v
+bWFuMQ0KIA0KLS0gDQoxLjcuNC40DQoNCg==
 
+--960504934-521913319-1302574236=:32072
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name=0002-Allow-override-of-manpage-installation-directory.patch
+Content-Transfer-Encoding: BASE64
+Content-ID: <alpine.LNX.2.00.1104111910361.32072@connie.slackware.com>
+Content-Description: 
+Content-Disposition: attachment; filename=0002-Allow-override-of-manpage-installation-directory.patch
 
-> This is one line of the ir-keytable -t output:
-> 1303909988.799949: event MSC: scancode = 4eb02
+RnJvbSAwYjVmNGJjNTAxYzg5NjE1NTQwMTIyNmIxODg2ODhmZDNiZWYxZjVj
+IE1vbiBTZXAgMTcgMDA6MDA6MDAgMjAwMQ0KRnJvbTogUm9iYnkgV29ya21h
+biA8cndvcmttYW5Ac2xhY2t3YXJlLmNvbT4NCkRhdGU6IE1vbiwgMTEgQXBy
+IDIwMTEgMjA6NTA6MTggLTA1MDANClN1YmplY3Q6IFtQQVRDSCAyLzJdIEFs
+bG93IG92ZXJyaWRlIG9mIG1hbnBhZ2UgaW5zdGFsbGF0aW9uIGRpcmVjdG9y
+eQ0KDQpUaGlzIGNyZWF0ZXMgTUFORElSIGluIE1ha2UucnVsZXMgYW5kIGtl
+ZXBzIHRoZSBwcmVleGlzdGluZw0KZGVmYXVsdCBvZiAvdXNyL3NoYXJlL21h
+biwgYnV0IGFsbG93cyBwYWNrYWdlcnMgdG8gZWFzaWx5DQpvdmVycmlkZSB2
+aWEgZS5nLiAibWFrZSBNQU5ESVI9L3Vzci9tYW4iDQotLS0NCiBNYWtlLnJ1
+bGVzICAgICAgICAgICAgICB8ICAgIDEgKw0KIHV0aWxzL2tleXRhYmxlL01h
+a2VmaWxlIHwgICAgNCArKy0tDQogMiBmaWxlcyBjaGFuZ2VkLCAzIGluc2Vy
+dGlvbnMoKyksIDIgZGVsZXRpb25zKC0pDQoNCmRpZmYgLS1naXQgYS9NYWtl
+LnJ1bGVzIGIvTWFrZS5ydWxlcw0KaW5kZXggMGJiMmViOC4uMTUyOWVmOCAx
+MDA2NDQNCi0tLSBhL01ha2UucnVsZXMNCisrKyBiL01ha2UucnVsZXMNCkBA
+IC0xMSw2ICsxMSw3IEBAIFBSRUZJWCA9IC91c3IvbG9jYWwNCiBMSUJESVIg
+PSAkKFBSRUZJWCkvbGliDQogIyBzdWJkaXIgYmVsb3cgTElCRElSIGluIHdo
+aWNoIHRvIGluc3RhbGwgdGhlIGxpYnY0bHggbGliYyB3cmFwcGVycw0KIExJ
+QlNVQkRJUiA9IGxpYnY0bA0KK01BTkRJUiA9IC91c3Ivc2hhcmUvbWFuDQog
+DQogIyBUaGVzZSBvbmVzIHNob3VsZCBub3QgYmUgb3ZlcnJpZGVuIGZyb20g
+dGhlIGNtZGxpbmUNCiANCmRpZmYgLS1naXQgYS91dGlscy9rZXl0YWJsZS9N
+YWtlZmlsZSBiL3V0aWxzL2tleXRhYmxlL01ha2VmaWxlDQppbmRleCAyOWE2
+YWM0Li5lMDkzMjgwIDEwMDY0NA0KLS0tIGEvdXRpbHMva2V5dGFibGUvTWFr
+ZWZpbGUNCisrKyBiL3V0aWxzL2tleXRhYmxlL01ha2VmaWxlDQpAQCAtMzks
+NyArMzksNyBAQCBpbnN0YWxsOiAkKFRBUkdFVFMpDQogCWluc3RhbGwgLW0g
+NjQ0IC1wIHJjX2tleW1hcHMvKiAkKERFU1RESVIpL2V0Yy9yY19rZXltYXBz
+DQogCWluc3RhbGwgLW0gNzU1IC1kICQoREVTVERJUikvbGliL3VkZXYvcnVs
+ZXMuZA0KIAlpbnN0YWxsIC1tIDY0NCAtcCA3MC1pbmZyYXJlZC5ydWxlcyAk
+KERFU1RESVIpL2xpYi91ZGV2L3J1bGVzLmQNCi0JaW5zdGFsbCAtbSA3NTUg
+LWQgJChERVNURElSKSQoUFJFRklYKS9zaGFyZS9tYW4vbWFuMQ0KLQlpbnN0
+YWxsIC1tIDY0NCAtcCBpci1rZXl0YWJsZS4xICQoREVTVERJUikkKFBSRUZJ
+WCkvc2hhcmUvbWFuL21hbjENCisJaW5zdGFsbCAtbSA3NTUgLWQgJChERVNU
+RElSKSQoTUFORElSKS9tYW4xDQorCWluc3RhbGwgLW0gNjQ0IC1wIGlyLWtl
+eXRhYmxlLjEgJChERVNURElSKSQoTUFORElSKS9tYW4xDQogDQogaW5jbHVk
+ZSAuLi8uLi9NYWtlLnJ1bGVzDQotLSANCjEuNy40LjQNCg0K
 
-With rc-core debugging, there ought to be a line in all that dmesg spew
-that contains that scancode, which would also give us the protocol
-decoder that came up with that scancode. Based on the default protocol
-listed for your board and the length of the scancode, I'd guess that it
-is NEC Extended, but it could also be RC-5X or maybe Sony...
-
-
-> But I'm not the only one who has this issue with a cx88 device. So I
-> guess there's most likely a bug somewhere in the related kernel modules.
-> 
-> See: https://bugs.archlinux.org/task/23894
-
-Yep, seems there's something slightly amiss with the cx88 IR code in
-2.6.38.x. Actually, trying the latest media_tree code probably would
-not be a bad thing, just in case this is already resolved:
-
-http://www.linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
-
-
-> I'll ask on the linux-media list.
-
-This mail I'm replying to was what really what I think needed to go
-there, not the one that started the thread. ;)
-
--- 
-Jarod Wilson
-jarod@wilsonet.com
-
-
-
+--960504934-521913319-1302574236=:32072--
