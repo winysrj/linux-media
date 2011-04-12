@@ -1,184 +1,176 @@
 Return-path: <mchehab@pedra>
-Received: from mga02.intel.com ([134.134.136.20]:31106 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751220Ab1DGNk3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 Apr 2011 09:40:29 -0400
-Date: Thu, 7 Apr 2011 15:40:23 +0200
-From: Samuel Ortiz <sameo@linux.intel.com>
-To: Felipe Balbi <balbi@ti.com>
-Cc: Greg KH <gregkh@suse.de>, Grant Likely <grant.likely@secretlab.ca>,
-	Andres Salomon <dilinger@queued.net>,
-	linux-kernel@vger.kernel.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	khali@linux-fr.org, ben-linux@fluff.org,
-	Peter Korsgaard <jacmet@sunsite.dk>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	David Brownell <dbrownell@users.sourceforge.net>,
-	linux-i2c@vger.kernel.org, linux-media@vger.kernel.org,
-	netdev@vger.kernel.org, spi-devel-general@lists.sourceforge.net,
-	Mocean Laboratories <info@mocean-labs.com>
-Subject: Re: [PATCH 07/19] timberdale: mfd_cell is now implicitly available
- to drivers
-Message-ID: <20110407133717.GA3923@sortiz-mobl>
-References: <20110401235239.GE29397@sortiz-mobl>
- <BANLkTi=bq=OGzXFp7qiBr7x_BnGOWf=DRQ@mail.gmail.com>
- <20110404100314.GC2751@sortiz-mobl>
- <20110405030428.GB29522@ponder.secretlab.ca>
- <20110406152322.GA2757@sortiz-mobl>
- <20110406155805.GA20095@suse.de>
- <20110406170537.GB2757@sortiz-mobl>
- <20110406175647.GA8048@suse.de>
- <20110406184733.GD2757@sortiz-mobl>
- <20110406185902.GN25654@legolas.emea.dhcp.ti.com>
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:43221 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754133Ab1DLIlh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Apr 2011 04:41:37 -0400
+Received: by qyg14 with SMTP id 14so4482382qyg.19
+        for <linux-media@vger.kernel.org>; Tue, 12 Apr 2011 01:41:36 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20110406185902.GN25654@legolas.emea.dhcp.ti.com>
+In-Reply-To: <Pine.LNX.4.64.1104121024200.23770@axis700.grange>
+References: <201104090158.04827.jkrzyszt@tis.icnet.pl>
+	<Pine.LNX.4.64.1104101751380.12697@axis700.grange>
+	<BANLkTimut-G1YXFU+4gqiCij-RLu-Vn4-Q@mail.gmail.com>
+	<Pine.LNX.4.64.1104120820020.23770@axis700.grange>
+	<BANLkTimc_3wcLMP116B+BkGdJaapZSVkpw@mail.gmail.com>
+	<BANLkTim3QnLBDodo=k+4GnVLwfqH6mCpMA@mail.gmail.com>
+	<Pine.LNX.4.64.1104121024200.23770@axis700.grange>
+Date: Tue, 12 Apr 2011 16:41:34 +0800
+Message-ID: <BANLkTinga+tqvx7p2P+hz=AgsrbSGDcrOQ@mail.gmail.com>
+Subject: Re: [PATCH 2.6.39] soc_camera: OMAP1: fix missing bytesperline and
+ sizeimage initialization
+From: Kassey Lee <kassey1216@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	qingx@marvell.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Felipe,
+Yes, thank you very much!
 
-On Wed, Apr 06, 2011 at 09:59:02PM +0300, Felipe Balbi wrote:
-> Hi,
-> 
-> On Wed, Apr 06, 2011 at 08:47:34PM +0200, Samuel Ortiz wrote:
-> > > > > What is a "MFD cell pointer" and why is it needed in struct device?
-> > > > An MFD cell is an MFD instantiated device.
-> > > > MFD (Multi Function Device) drivers instantiate platform devices. Those
-> > > > devices drivers sometimes need a platform data pointer, sometimes an MFD
-> > > > specific pointer, and sometimes both. Also, some of those drivers have been
-> > > > implemented as MFD sub drivers, while others know nothing about MFD and just
-> > > > expect a plain platform_data pointer.
-> > > 
-> > > That sounds like a bug in those drivers, why not fix them to properly
-> > > pass in the correct pointer?
-> > Because they're drivers for generic IPs, not MFD ones. By forcing them to use
-> > MFD specific structure and APIs, we make it more difficult for platform code
-> > to instantiate them.
-> 
-> I agree. What I do on those cases is to have a simple platform_device
-> for the core IP driver and use platform_device_id tables to do runtime
-> checks of the small differences. If one platform X doesn't use a
-> platform_bus, it uses e.g. PCI, then you make a PCI "bridge" which
-> allocates a platform_device with the correct name and adds that to the
-> driver model.
-I see, thanks.
-Below is a patch for the Xilinx SPI example. Although this would fix the
-issue, we'd still have to do that on device per device basis. I had a similar
-solution where MFD drivers would set a flag for sub drivers that don't need
-any of the MFD bits. In that case the MFD core code would just forward the
-platform data, instead of embedding it through an MFD cell.
-
-Cheers,
-Samuel.
-
----
- drivers/mfd/timberdale.c |    8 ++++----
- drivers/spi/xilinx_spi.c |   19 ++++++++++++++++++-
- include/linux/mfd/core.h |    3 +++
- 3 files changed, 25 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/mfd/timberdale.c b/drivers/mfd/timberdale.c
-index 94c6c8a..c9220ce 100644
---- a/drivers/mfd/timberdale.c
-+++ b/drivers/mfd/timberdale.c
-@@ -416,7 +416,7 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg0[] = {
- 		.mfd_data = &timberdale_radio_platform_data,
- 	},
- 	{
--		.name = "xilinx_spi",
-+		.name = "mfd_xilinx_spi",
- 		.num_resources = ARRAY_SIZE(timberdale_spi_resources),
- 		.resources = timberdale_spi_resources,
- 		.mfd_data = &timberdale_xspi_platform_data,
-@@ -476,7 +476,7 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg1[] = {
- 		.mfd_data = &timberdale_radio_platform_data,
- 	},
- 	{
--		.name = "xilinx_spi",
-+		.name = "mfd_xilinx_spi",
- 		.num_resources = ARRAY_SIZE(timberdale_spi_resources),
- 		.resources = timberdale_spi_resources,
- 		.mfd_data = &timberdale_xspi_platform_data,
-@@ -526,7 +526,7 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg2[] = {
- 		.mfd_data = &timberdale_radio_platform_data,
- 	},
- 	{
--		.name = "xilinx_spi",
-+		.name = "mfd_xilinx_spi",
- 		.num_resources = ARRAY_SIZE(timberdale_spi_resources),
- 		.resources = timberdale_spi_resources,
- 		.mfd_data = &timberdale_xspi_platform_data,
-@@ -570,7 +570,7 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg3[] = {
- 		.mfd_data = &timberdale_radio_platform_data,
- 	},
- 	{
--		.name = "xilinx_spi",
-+		.name = "mfd_xilinx_spi",
- 		.num_resources = ARRAY_SIZE(timberdale_spi_resources),
- 		.resources = timberdale_spi_resources,
- 		.mfd_data = &timberdale_xspi_platform_data,
-diff --git a/drivers/spi/xilinx_spi.c b/drivers/spi/xilinx_spi.c
-index c69c6f2..3287b84 100644
---- a/drivers/spi/xilinx_spi.c
-+++ b/drivers/spi/xilinx_spi.c
-@@ -471,7 +471,11 @@ static int __devinit xilinx_spi_probe(struct platform_device *dev)
- 	struct spi_master *master;
- 	u8 i;
- 
--	pdata = mfd_get_data(dev);
-+	if (platform_get_device_id(dev) &&
-+	    platform_get_device_id(dev)->driver_data & MFD_PLATFORM_DEVICE)
-+		pdata = mfd_get_data(dev);
-+	else
-+		pdata = dev->dev.platform_data;
- 	if (pdata) {
- 		num_cs = pdata->num_chipselect;
- 		little_endian = pdata->little_endian;
-@@ -530,6 +534,18 @@ static int __devexit xilinx_spi_remove(struct platform_device *dev)
- /* work with hotplug and coldplug */
- MODULE_ALIAS("platform:" XILINX_SPI_NAME);
- 
-+static const struct platform_device_id xilinx_spi_id_table[] = {
-+	{
-+		.name	= XILINX_SPI_NAME,
-+	},
-+	{
-+		.name	= "mfd_xilinx_spi",
-+		.driver_data = MFD_PLATFORM_DEVICE,
-+	},
-+	{  },	/* Terminating Entry */
-+};
-+MODULE_DEVICE_TABLE(platform, xilinx_spi_id_table);
-+
- static struct platform_driver xilinx_spi_driver = {
- 	.probe = xilinx_spi_probe,
- 	.remove = __devexit_p(xilinx_spi_remove),
-@@ -538,6 +554,7 @@ static struct platform_driver xilinx_spi_driver = {
- 		.owner = THIS_MODULE,
- 		.of_match_table = xilinx_spi_of_match,
- 	},
-+	.id_table	= xilinx_spi_id_table,
- };
- 
- static int __init xilinx_spi_pltfm_init(void)
-diff --git a/include/linux/mfd/core.h b/include/linux/mfd/core.h
-index ad1b19a..13f31f4 100644
---- a/include/linux/mfd/core.h
-+++ b/include/linux/mfd/core.h
-@@ -89,6 +89,9 @@ static inline const struct mfd_cell *mfd_get_cell(struct platform_device *pdev)
- 	return pdev->dev.platform_data;
- }
- 
-+/* */
-+#define MFD_PLATFORM_DEVICE BIT(0)
-+
- /*
-  * Given a platform device that's been created by mfd_add_devices(), fetch
-  * the .mfd_data entry from the mfd_cell that created it.
-
-
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+2011/4/12 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+> On Tue, 12 Apr 2011, Kassey Lee wrote:
+>
+>> 2011/4/12 Kassey Lee <kassey1216@gmail.com>:
+>> > Hi, Guennadi;
+>> >           for sizeimage , I agree with you. that we can overwrite it
+>> > after a frame is done.
+>> >
+>> >    for byteperline: on Marvell soc.
+>> >    it needs to know the bytesperline before receive frame from sensor.
+>> >    what we did now is hardcode  in host driver for bytesperline.
+>> >
+>> >    since different sensors have different timing for JPEG, and
+>> > bytesperline is different.
+>> >    while  soc_mbus_bytes_per_line does not support JPEG.
+>> >
+>> >    So, we want that host driver can get byteperline from sensor
+>> > driver (sub dev) before transfer a frame for JPEG format.
+>> >    a way to do this:
+>> >    soc_mbus_bytes_per_line return 0 for JPEG, and host driver will
+>> > try another API to get bytesperline for JPEG from sensor driver.
+>> >     the effort is new API or reused other API.
+>> >
+>> >    Is that reasonable ?
+>
+> If you mean this your patch
+>
+> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/31323/match=
+>
+> then I've queued it for 2.6.40.
+>
+> Thanks
+> Guennadi
+>
+>> >
+>> >
+>> >
+>> > 2011/4/12 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+>> >> Hi
+>> >>
+>> >> On Tue, 12 Apr 2011, Kassey Lee wrote:
+>> >>
+>> >>> hi, Guennadi:
+>> >>>     a lot of sensors support JPEG output.
+>> >>>     1) bytesperline is defined by sensor timing.
+>> >>>     2) and sizeimage is unknow for jpeg.
+>> >>>
+>> >>>   how about for JPEG
+>> >>>    1) host driver gets bytesperline from sensor driver.
+>> >>>    2) sizeimage refilled by host driver after dma transfer done( a
+>> >>> frame is received)
+>> >>>   thanks.
+>> >>
+>> >> How is this done currently on other V4L2 drivers? To transfer a frame you
+>> >> usually first do at least one of S_FMT and G_FMT, at which time you
+>> >> already have to report sizeimage to the user - before any transfer has
+>> >> taken place. Currently with soc-camera it is already possible to override
+>> >> sizeimage and bytesperline from the host driver. Just set them to whatever
+>> >> you need in your try_fmt and they will be kept. Not sure how you want to
+>> >> do that, if you need to first read in a frame - do you want to perform
+>> >> some dummy frame transfer? You might not even have any buffers queued yet,
+>> >> so, it has to be a read without writing to RAM. Don't such compressed
+>> >> formats just put a value in sizeimage, that is a calculated maximum size?
+>> >>
+>> >> Thanks
+>> >> Guennadi
+>> >>
+>> >>> 2011/4/11 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+>> >>> > Hi Janusz
+>> >>> >
+>> >>> > On Sat, 9 Apr 2011, Janusz Krzysztofik wrote:
+>> >>> >
+>> >>> >> Since commit 0e4c180d3e2cc11e248f29d4c604b6194739d05a, bytesperline and
+>> >>> >> sizeimage memebers of v4l2_pix_format structure have no longer been
+>> >>> >> calculated inside soc_camera_g_fmt_vid_cap(), but rather passed via
+>> >>> >> soc_camera_device structure from a host driver callback invoked by
+>> >>> >> soc_camera_set_fmt().
+>> >>> >>
+>> >>> >> OMAP1 camera host driver has never been providing these parameters, so
+>> >>> >> it no longer works correctly. Fix it by adding suitable assignments to
+>> >>> >> omap1_cam_set_fmt().
+>> >>> >
+>> >>> > Thanks for the patch, but now it looks like many soc-camera host drivers
+>> >>> > are re-implementing this very same calculation in different parts of their
+>> >>> > code - in try_fmt, set_fmt, get_fmt. Why don't we unify them all,
+>> >>> > implement this centrally in soc_camera.c and remove all those
+>> >>> > calculations? Could you cook up a patch or maybe several patches - for
+>> >>> > soc_camera.c and all drivers?
+>> >>> >
+>> >>> > Thanks
+>> >>> > Guennadi
+>> >>> >
+>> >>> >>
+>> >>> >> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+>> >>> >> ---
+>> >>> >>  drivers/media/video/omap1_camera.c |    6 ++++++
+>> >>> >>  1 file changed, 6 insertions(+)
+>> >>> >>
+>> >>> >> --- linux-2.6.39-rc2/drivers/media/video/omap1_camera.c.orig  2011-04-06 14:30:37.000000000 +0200
+>> >>> >> +++ linux-2.6.39-rc2/drivers/media/video/omap1_camera.c       2011-04-09 00:16:36.000000000 +0200
+>> >>> >> @@ -1292,6 +1292,12 @@ static int omap1_cam_set_fmt(struct soc_
+>> >>> >>       pix->colorspace  = mf.colorspace;
+>> >>> >>       icd->current_fmt = xlate;
+>> >>> >>
+>> >>> >> +     pix->bytesperline = soc_mbus_bytes_per_line(pix->width,
+>> >>> >> +                                                 xlate->host_fmt);
+>> >>> >> +     if (pix->bytesperline < 0)
+>> >>> >> +             return pix->bytesperline;
+>> >>> >> +     pix->sizeimage = pix->height * pix->bytesperline;
+>> >>> >> +
+>> >>> >>       return 0;
+>> >>> >>  }
+>> >>> >>
+>> >>> >>
+>> >>> >
+>> >>> > ---
+>> >>> > Guennadi Liakhovetski, Ph.D.
+>> >>> > Freelance Open-Source Software Developer
+>> >>> > http://www.open-technology.de/
+>> >>> > --
+>> >>> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> >>> > the body of a message to majordomo@vger.kernel.org
+>> >>> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> >>> >
+>> >>>
+>> >>
+>> >> ---
+>> >> Guennadi Liakhovetski, Ph.D.
+>> >> Freelance Open-Source Software Developer
+>> >> http://www.open-technology.de/
+>> >> --
+>> >> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> >> the body of a message to majordomo@vger.kernel.org
+>> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> >>
+>> >
+>>
+>
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+>
