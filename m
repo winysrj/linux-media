@@ -1,87 +1,130 @@
 Return-path: <mchehab@pedra>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:37275 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753881Ab1DEPmw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2011 11:42:52 -0400
-Received: by vws1 with SMTP id 1so362632vws.19
-        for <linux-media@vger.kernel.org>; Tue, 05 Apr 2011 08:42:51 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <006401cbf28c$02105880$06310980$%szyprowski@samsung.com>
-References: <1301874670-14833-1-git-send-email-pawel@osciak.com>
- <1301874670-14833-2-git-send-email-pawel@osciak.com> <006401cbf28c$02105880$06310980$%szyprowski@samsung.com>
-From: Pawel Osciak <pawel@osciak.com>
-Date: Tue, 5 Apr 2011 08:42:31 -0700
-Message-ID: <BANLkTi=vESG-0bbyxT_3KdH+5AN9e0VKMQ@mail.gmail.com>
-Subject: Re: [PATCH 1/5] [media] vb2: redesign the stop_streaming() callback
- and make it obligatory
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-media@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	g.liakhovetski@gmx.de
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mx1.redhat.com ([209.132.183.28]:11026 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757015Ab1DLUXe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Apr 2011 16:23:34 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p3CKNY7L018135
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 12 Apr 2011 16:23:34 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Jarod Wilson <jarod@redhat.com>
+Subject: [PATCH 1/2] [media] rc/nuvoton-cir: only warn about unknown chips
+Date: Tue, 12 Apr 2011 16:23:21 -0400
+Message-Id: <1302639802-22723-2-git-send-email-jarod@redhat.com>
+In-Reply-To: <1302639802-22723-1-git-send-email-jarod@redhat.com>
+References: <1302639802-22723-1-git-send-email-jarod@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sun, Apr 3, 2011 at 22:49, Marek Szyprowski <m.szyprowski@samsung.com> wrote:
-> Hello,
->
-> On Monday, April 04, 2011 1:51 AM Pawel Osciak wrote:
->
->> Drivers are now required to implement the stop_streaming() callback
->> to ensure that all ongoing hardware operations are finished and their
->> ownership of buffers is ceded.
->> Drivers do not have to call vb2_buffer_done() for each buffer they own
->> anymore.
->> Also remove the return value from the callback.
->>
->> Signed-off-by: Pawel Osciak <pawel@osciak.com>
->> ---
->>  drivers/media/video/videobuf2-core.c |   16 ++++++++++++++--
->>  include/media/videobuf2-core.h       |   16 +++++++---------
->>  2 files changed, 21 insertions(+), 11 deletions(-)
->>
->> diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
->> index 6e69584..59d5e8b 100644
->> --- a/drivers/media/video/videobuf2-core.c
->> +++ b/drivers/media/video/videobuf2-core.c
->> @@ -640,6 +640,9 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
->>       struct vb2_queue *q = vb->vb2_queue;
->>       unsigned long flags;
->>
->> +     if (atomic_read(&q->queued_count) == 0)
->> +             return;
->> +
->>       if (vb->state != VB2_BUF_STATE_ACTIVE)
->>               return;
->>
->> @@ -1178,12 +1181,20 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
->>       unsigned int i;
->>
->>       /*
->> -      * Tell driver to stop all transactions and release all queued
->> +      * Tell the driver to stop all transactions and release all queued
->>        * buffers.
->>        */
->>       if (q->streaming)
->>               call_qop(q, stop_streaming, q);
->> +
->> +     /*
->> +      * All buffers should now not be in use by the driver anymore, but we
->> +      * have to manually set queued_count to 0, as the driver was not
->> +      * required to call vb2_buffer_done() from stop_streaming() for all
->> +      * buffers it had queued.
->> +      */
->>       q->streaming = 0;
->> +     atomic_set(&q->queued_count, 0);
->
-> If you removed the need to call vb2_buffer_done() then you must also call
-> wake_up_all(&q->done_wq) to wake any other threads/processes that might be
-> sleeping waiting for buffers.
+There are additional chip IDs that report a PNP ID of NTN0530, which we
+were refusing to load on. Instead, lets just warn if we encounter an
+unknown chip, as there's a chance it will work just fine.
 
-True, setting queued_count to 0 is not enough. Hm, I'm wondering why
-tests on vivi and qv4l2 didn't catch this, it uses poll as well...
+Also, expand the list of known hardware to include both an earlier and a
+later generation chip that this driver should function with. Douglas has
+an older w83667hg variant, that with a touch more work, will be
+supported by this driver, and Lutz has a newer w83677hg variant that
+works without any further modifications to the driver.
 
+Reported-by: Douglas Clowes <dclowes1@optusnet.com.au>
+Reported-by: Lutz Sammer <johns98@gmx.net>
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
+---
+ drivers/media/rc/nuvoton-cir.c |   40 ++++++++++++++++++++++++++++++++--------
+ drivers/media/rc/nuvoton-cir.h |   10 +++++++---
+ 2 files changed, 39 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
+index d4d6449..bc5c1e2 100644
+--- a/drivers/media/rc/nuvoton-cir.c
++++ b/drivers/media/rc/nuvoton-cir.c
+@@ -37,8 +37,6 @@
+ 
+ #include "nuvoton-cir.h"
+ 
+-static char *chip_id = "w836x7hg";
+-
+ /* write val to config reg */
+ static inline void nvt_cr_write(struct nvt_dev *nvt, u8 val, u8 reg)
+ {
+@@ -233,6 +231,8 @@ static int nvt_hw_detect(struct nvt_dev *nvt)
+ 	unsigned long flags;
+ 	u8 chip_major, chip_minor;
+ 	int ret = 0;
++	char chip_id[12];
++	bool chip_unknown = false;
+ 
+ 	nvt_efm_enable(nvt);
+ 
+@@ -246,15 +246,39 @@ static int nvt_hw_detect(struct nvt_dev *nvt)
+ 	}
+ 
+ 	chip_minor = nvt_cr_read(nvt, CR_CHIP_ID_LO);
+-	nvt_dbg("%s: chip id: 0x%02x 0x%02x", chip_id, chip_major, chip_minor);
+ 
+-	if (chip_major != CHIP_ID_HIGH ||
+-	    (chip_minor != CHIP_ID_LOW && chip_minor != CHIP_ID_LOW2)) {
+-		nvt_pr(KERN_ERR, "%s: unsupported chip, id: 0x%02x 0x%02x",
+-		       chip_id, chip_major, chip_minor);
+-		ret = -ENODEV;
++	/* these are the known working chip revisions... */
++	switch (chip_major) {
++	case CHIP_ID_HIGH_667:
++		strcpy(chip_id, "w83667hg\0");
++		if (chip_minor != CHIP_ID_LOW_667)
++			chip_unknown = true;
++		break;
++	case CHIP_ID_HIGH_677B:
++		strcpy(chip_id, "w83677hg\0");
++		if (chip_minor != CHIP_ID_LOW_677B2 &&
++		    chip_minor != CHIP_ID_LOW_677B3)
++			chip_unknown = true;
++		break;
++	case CHIP_ID_HIGH_677C:
++		strcpy(chip_id, "w83677hg-c\0");
++		if (chip_minor != CHIP_ID_LOW_677C)
++			chip_unknown = true;
++		break;
++	default:
++		strcpy(chip_id, "w836x7hg\0");
++		chip_unknown = true;
++		break;
+ 	}
+ 
++	/* warn, but still let the driver load, if we don't know this chip */
++	if (chip_unknown)
++		nvt_pr(KERN_WARNING, "%s: unknown chip, id: 0x%02x 0x%02x, "
++		       "it may not work...", chip_id, chip_major, chip_minor);
++	else
++		nvt_dbg("%s: chip id: 0x%02x 0x%02x",
++			chip_id, chip_major, chip_minor);
++
+ 	nvt_efm_disable(nvt);
+ 
+ 	spin_lock_irqsave(&nvt->nvt_lock, flags);
+diff --git a/drivers/media/rc/nuvoton-cir.h b/drivers/media/rc/nuvoton-cir.h
+index 048135e..cc8cee3 100644
+--- a/drivers/media/rc/nuvoton-cir.h
++++ b/drivers/media/rc/nuvoton-cir.h
+@@ -330,9 +330,13 @@ struct nvt_dev {
+ #define EFER_EFM_DISABLE	0xaa
+ 
+ /* Chip IDs found in CR_CHIP_ID_{HI,LO} */
+-#define CHIP_ID_HIGH		0xb4
+-#define CHIP_ID_LOW		0x72
+-#define CHIP_ID_LOW2		0x73
++#define CHIP_ID_HIGH_667	0xa5
++#define CHIP_ID_HIGH_677B	0xb4
++#define CHIP_ID_HIGH_677C	0xc3
++#define CHIP_ID_LOW_667		0x13
++#define CHIP_ID_LOW_677B2	0x72
++#define CHIP_ID_LOW_677B3	0x73
++#define CHIP_ID_LOW_677C	0x33
+ 
+ /* Config regs we need to care about */
+ #define CR_SOFTWARE_RESET	0x02
 -- 
-Best regards,
-Pawel Osciak
+1.7.1
+
