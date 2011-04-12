@@ -1,57 +1,92 @@
 Return-path: <mchehab@pedra>
-Received: from Static-IP-cr1901472914.cable.net.co ([190.147.29.14]:60953 "EHLO
-	ascension.laascension.com" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1751166Ab1DSHPS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Apr 2011 03:15:18 -0400
-Message-ID: <1128.80.87.92.49.1303194307.squirrel@190.147.29.14>
-Date: Tue, 19 Apr 2011 01:25:07 -0500 (COT)
-Subject: Hope to hear from you its very important
-From: "Ian Davies" <iandavies@indiatimes.com>
-Reply-To: iandavies1222@gmail.com
+Received: from smtp.nokia.com ([147.243.128.24]:41873 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755272Ab1DLMdK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Apr 2011 08:33:10 -0400
+Message-ID: <4DA44718.1090501@maxwell.research.nokia.com>
+Date: Tue, 12 Apr 2011 15:35:36 +0300
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-To: undisclosed-recipients:;
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] v4l: Don't register media entities for subdev device
+ nodes
+References: <1302531990-5395-1-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1302531990-5395-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+Laurent Pinchart wrote:
+> Subdevs already have their own entity, don't register as second one when
+> registering the subdev device node.
 
-I am Ian Davies ;an accredited vendor of Alliot Groups, a
-subsidiary firm of Emirates International Holding (EIH); A private
-equity funds holding company that focuses on hedge funds.
+Thanks for the patch!
 
-I have contacted you in the hope that you can be my associate to
-assume the new
-recipient of a Fixed-Income deposit, valued at 25MUSD
+Acked-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 
-Once I file your details as the new recipient to the funds, the funds
-will be approved through the AUTOMATED CLEARING HOUSE (ACH) - A
-facility used by financial institutions to distribute electronic debit
-and
-credit entries to bank accounts and settle such entries. Under the
-automated clearing house system.
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/media/video/v4l2-dev.c |   15 ++++++++++-----
+>  1 files changed, 10 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+> index 498e674..6dc7196 100644
+> --- a/drivers/media/video/v4l2-dev.c
+> +++ b/drivers/media/video/v4l2-dev.c
+> @@ -389,7 +389,8 @@ static int v4l2_open(struct inode *inode, struct file *filp)
+>  	video_get(vdev);
+>  	mutex_unlock(&videodev_lock);
+>  #if defined(CONFIG_MEDIA_CONTROLLER)
+> -	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev) {
+> +	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev &&
+> +	    vdev->vfl_type != VFL_TYPE_SUBDEV) {
+>  		entity = media_entity_get(&vdev->entity);
+>  		if (!entity) {
+>  			ret = -EBUSY;
+> @@ -415,7 +416,8 @@ err:
+>  	/* decrease the refcount in case of an error */
+>  	if (ret) {
+>  #if defined(CONFIG_MEDIA_CONTROLLER)
+> -		if (vdev->v4l2_dev && vdev->v4l2_dev->mdev)
+> +		if (vdev->v4l2_dev && vdev->v4l2_dev->mdev &&
+> +		    vdev->vfl_type != VFL_TYPE_SUBDEV)
+>  			media_entity_put(entity);
+>  #endif
+>  		video_put(vdev);
+> @@ -437,7 +439,8 @@ static int v4l2_release(struct inode *inode, struct file *filp)
+>  			mutex_unlock(vdev->lock);
+>  	}
+>  #if defined(CONFIG_MEDIA_CONTROLLER)
+> -	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev)
+> +	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev &&
+> +	    vdev->vfl_type != VFL_TYPE_SUBDEV)
+>  		media_entity_put(&vdev->entity);
+>  #endif
+>  	/* decrease the refcount unconditionally since the release()
+> @@ -686,7 +689,8 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
+>  
+>  #if defined(CONFIG_MEDIA_CONTROLLER)
+>  	/* Part 5: Register the entity. */
+> -	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev) {
+> +	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev &&
+> +	    vdev->vfl_type != VFL_TYPE_SUBDEV) {
+>  		vdev->entity.type = MEDIA_ENT_T_DEVNODE_V4L;
+>  		vdev->entity.name = vdev->name;
+>  		vdev->entity.v4l.major = VIDEO_MAJOR;
+> @@ -733,7 +737,8 @@ void video_unregister_device(struct video_device *vdev)
+>  		return;
+>  
+>  #if defined(CONFIG_MEDIA_CONTROLLER)
+> -	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev)
+> +	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev &&
+> +	    vdev->vfl_type != VFL_TYPE_SUBDEV)
+>  		media_device_unregister_entity(&vdev->entity);
+>  #endif
+>  
 
-Once your details is approved as the new recipient; a Credit advice
-will be issued in your favor and the funds will clear in your account
-within three banking days. I am willing to give you 40% which is 10MUSD
-as your
-commission out of the 25MUSD for your assistance in providing an
-account
-to
-clear the funds. I am confident you will be honest enough to adhere to
-our
-agreed commissions in spite of the 25MUSD coming through your account.
 
-I will need you to forward me your legal names address and phone to
-file your details on the fund as the new recipient in this first Quarter
-of the
-financial fiscal year 2011
-
-Looking forward to working with you.
-Ian Davies
-Accredited vendor
-Alliot Groups PS
-Awaiting your legal names,address and telephone number
-
-
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
