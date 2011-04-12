@@ -1,57 +1,126 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:28791 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751034Ab1DRJii (ORCPT
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:49058 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932155Ab1DLVJi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Apr 2011 05:38:38 -0400
-MIME-version: 1.0
-Content-type: text/plain; charset=utf-8
-Received: from spt2.w1.samsung.com ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LJU00FRUDGB2070@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 18 Apr 2011 10:38:35 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LJU00HB1DGAQV@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 18 Apr 2011 10:38:34 +0100 (BST)
-Date: Mon, 18 Apr 2011 11:38:33 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [GIT PULL FOR 2.6.39] videobuf2 fixes
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Message-id: <ADF13DA15EB3FE4FBA487CCC7BEFDF3619D1593E27@bssrvexch01>
-Content-language: en-US
-Content-transfer-encoding: base64
+	Tue, 12 Apr 2011 17:09:38 -0400
+Date: Tue, 12 Apr 2011 14:09:31 -0700
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Jarod Wilson <jarod@redhat.com>
+Cc: Andy Walls <awalls@md.metrocast.net>, linux-input@vger.kernel.org,
+	Jiri Kosina <jkosina@suse.cz>,
+	Linux Media <linux-media@vger.kernel.org>
+Subject: Re: [RFC PATCH] input: add KEY_IMAGES specifically for AL Image
+ Browser
+Message-ID: <20110412210931.GA30410@core.coreip.homeip.net>
+References: <1302639557-22186-1-git-send-email-jarod@redhat.com>
+ <8a21a9ac-79dd-4991-a059-693dde77f11c@email.android.com>
+ <4DA4BD85.8010303@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/Plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4DA4BD85.8010303@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-SGkgTWF1cm8sDQoNClRoZSBmb2xsb3dpbmcgY2hhbmdlcyBzaW5jZSBjb21taXQgMGNlNzkwZTdk
-NzM2Y2VkYzU2M2UxZmI0ZTk5OGJhYmY1YTRkYmMzZDoNCg0KICBMaW51eCAyLjYuMzktcmMxICgy
-MDExLTAzLTI5IDEyOjA5OjQ3IC0wNzAwKQ0KDQphcmUgYXZhaWxhYmxlIGluIHRoZSBnaXQgcmVw
-b3NpdG9yeSBhdDoNCiAgZ2l0Oi8vZ2l0LmluZnJhZGVhZC5vcmcvdXNlcnMva21wYXJrL2xpbnV4
-LTIuNi1zYW1zdW5nIHZiMi1mb3ItbWF1cm8NCg0KTWFyZWsgU3p5cHJvd3NraSAoMik6DQogICAg
-ICBtZWRpYTogdmIyOiBmaXggaW5jb3JyZWN0IHY0bDJfYnVmZmVyLT5mbGFncyBoYW5kbGluZw0K
-ICAgICAgbWVkaWE6IHZiMjogY29ycmVjdCBxdWV1ZSBpbml0aWFsaXphdGlvbiBvcmRlcg0KDQog
-ZHJpdmVycy9tZWRpYS92aWRlby92aWRlb2J1ZjItY29yZS5jIHwgICAxNSArKysrKysrKysrKy0t
-LS0NCiAxIGZpbGVzIGNoYW5nZWQsIDExIGluc2VydGlvbnMoKyksIDQgZGVsZXRpb25zKC0pDQoN
-CkJlc3QgcmVnYXJkcw0KLS0NCk1hcmVrIFN6eXByb3dza2kNClNhbXN1bmcgUG9sYW5kIFImRCBD
-ZW50ZXINCg0KDQoNClRoZSBhYm92ZSBtZXNzYWdlIGlzIGludGVuZGVkIHNvbGVseSBmb3IgdGhl
-IG5hbWVkIGFkZHJlc3NlZSBhbmQgbWF5IGNvbnRhaW4gdHJhZGUgc2VjcmV0LCBpbmR1c3RyaWFs
-IHRlY2hub2xvZ3kgb3IgcHJpdmlsZWdlZCBhbmQgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIG90
-aGVyd2lzZSBwcm90ZWN0ZWQgdW5kZXIgYXBwbGljYWJsZSBsYXcuIEFueSB1bmF1dGhvcml6ZWQg
-ZGlzc2VtaW5hdGlvbiwgZGlzdHJpYnV0aW9uLCBjb3B5aW5nIG9yIHVzZSBvZiB0aGUgaW5mb3Jt
-YXRpb24gY29udGFpbmVkIGluIHRoaXMgY29tbXVuaWNhdGlvbiBpcyBzdHJpY3RseSBwcm9oaWJp
-dGVkLiBJZiB5b3UgaGF2ZSByZWNlaXZlZCB0aGlzIGNvbW11bmljYXRpb24gaW4gZXJyb3IsIHBs
-ZWFzZSBub3RpZnkgc2VuZGVyIGJ5IGVtYWlsIGFuZCBkZWxldGUgdGhpcyBjb21tdW5pY2F0aW9u
-IGltbWVkaWF0ZWx5Lg0KDQoNClBvd3nFvHN6YSB3aWFkb21vxZvEhyBwcnplem5hY3pvbmEgamVz
-dCB3ecWCxIVjem5pZSBkbGEgYWRyZXNhdGEgbmluaWVqc3plaiB3aWFkb21vxZtjaSBpIG1vxbxl
-IHphd2llcmHEhyBpbmZvcm1hY2plIGLEmWTEhWNlIHRhamVtbmljxIUgaGFuZGxvd8SFLCB0YWpl
-bW5pY8SFIHByemVkc2nEmWJpb3JzdHdhIG9yYXogaW5mb3JtYWNqZSBvIGNoYXJha3RlcnplIHBv
-dWZueW0gY2hyb25pb25lIG9ib3dpxIV6dWrEhWN5bWkgcHJ6ZXBpc2FtaSBwcmF3YS4gSmFraWVr
-b2x3aWVrIG5pZXVwcmF3bmlvbmUgaWNoIHJvenBvd3N6ZWNobmlhbmllLCBkeXN0cnlidWNqYSwg
-a29waW93YW5pZSBsdWIgdcW8eWNpZSBpbmZvcm1hY2ppIHphd2FydHljaCB3IHBvd3nFvHN6ZWog
-d2lhZG9tb8WbY2kgamVzdCB6YWJyb25pb25lLiBKZcWbbGkgb3RyenltYcWCZcWbIHBvd3nFvHN6
-xIUgd2lhZG9tb8WbxIcgb215xYJrb3dvLCB1cHJ6ZWptaWUgcHJvc3rEmSBwb2luZm9ybXVqIG8g
-dHltIGZha2NpZSBkcm9nxIUgbWFpbG93xIUgbmFkYXdjxJkgdGVqIHdpYWRvbW/Fm2NpIG9yYXog
-bmllenfFgm9jem5pZSB1c3XFhCBwb3d5xbxzesSFIHdpYWRvbW/Fm8SHIHplIHN3b2plZ28ga29t
-cHV0ZXJhLg0K
+On Tuesday, April 12, 2011 02:00:53 PM Jarod Wilson wrote:
+> Andy Walls wrote:
+> > Jarod Wilson<jarod@redhat.com>  wrote:
+> >> Many media center remotes have buttons intended for jumping straight
+> >> to one type of media browser or another -- commonly,
+> >> images/photos/pictures,
+> >> audio/music, television, and movies. At present, remotes with an
+> >> images or photos or pictures button use any number of different
+> >> keycodes which sort of maybe fit. I've seen at least KEY_MEDIA,
+> >> KEY_CAMERA, KEY_GRAPHICSEDITOR and KEY_PRESENTATION. None of those
+> >> seem quite right.
+> >> In my mind, KEY_MEDIA should be something more like a media center
+> >> application launcher (and I'd like to standardize on that for things
+> >> like the windows media center button on the mce remotes). KEY_CAMERA
+> >> is used in a lot of webcams, and typically means "take a picture
+> >> now". KEY_GRAPHICSEDITOR implies an editor, not a browser.
+> >> KEY_PRESENTATION might be the closest fit here, if you think "photo
+> >> slide show", but it may well be more intended for "run application
+> >> in full-screen presentation mode" or to launch something like
+> >> magicpoint, I dunno. And thus, I'd like to have a KEY_IMAGES, which
+> >> matches the HID Usage AL Image Browser, the meaning of which I think
+> >> is crystal-clear. I believe AL Audio Browser is already covered by
+> >> KEY_AUDIO, and AL Movie Browser by KEY_VIDEO, so I'm also adding
+> >> appropriate comments next to those keys.
+> >> 
+> >> I have follow-on patches for drivers/hid/hid-input.c and for
+> >> drivers/media/rc/* that make use of this new key, if its deemed
+> >> appropriate for addition. To make it simpler to merge the additional
+> >> patches, it would be nice if this could sneak into 2.6.39, and the
+> >> rest can then get queued up for 2.6.40, avoiding any multi-tree
+> >> integration headaches.
+> >> 
+> >> CC: Dmitry Torokhov<dmitry.torokhov@gmail.com>
+> >> CC: Jiri Kosina<jkosina@suse.cz>
+> >> CC: Linux Media<linux-media@vger.kernel.org>
+> >> Signed-off-by: Jarod Wilson<jarod@redhat.com>
+> >> ---
+> >> include/linux/input.h |    5 +++--
+> >> 1 files changed, 3 insertions(+), 2 deletions(-)
+> >> 
+> >> diff --git a/include/linux/input.h b/include/linux/input.h
+> >> index e428382..be082e9 100644
+> >> --- a/include/linux/input.h
+> >> +++ b/include/linux/input.h
+> >> @@ -553,8 +553,8 @@ struct input_keymap_entry {
+> >> #define KEY_DVD			0x185	/* Media Select DVD */
+> >> #define KEY_AUX			0x186
+> >> #define KEY_MP3			0x187
+> >> -#define KEY_AUDIO		0x188
+> >> -#define KEY_VIDEO		0x189
+> >> +#define KEY_AUDIO		0x188	/* AL Audio Browser */
+> >> +#define KEY_VIDEO		0x189	/* AL Movie Browser */
+> >> #define KEY_DIRECTORY		0x18a
+> >> #define KEY_LIST		0x18b
+> >> #define KEY_MEMO		0x18c	/* Media Select Messages */
+> >> @@ -605,6 +605,7 @@ struct input_keymap_entry {
+> >> #define KEY_MEDIA_REPEAT	0x1b7	/* Consumer - transport control */
+> >> #define KEY_10CHANNELSUP        0x1b8   /* 10 channels up (10+) */
+> >> #define KEY_10CHANNELSDOWN      0x1b9   /* 10 channels down (10-) */
+> >> +#define KEY_IMAGES		0x1ba	/* AL Image Browser */
+> >> 
+> >> #define KEY_DEL_EOL		0x1c0
+> >> #define KEY_DEL_EOS		0x1c1
+> >> --
+> >> 1.7.1
+> >> 
+> >> --
+> >> To unsubscribe from this list: send the line "unsubscribe
+> >> linux-media" in
+> >> the body of a message to majordomo@vger.kernel.org
+> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> > Maybe "Launch" instead of "AL" in the comments.  It took me a while to
+> > figure out AL even with the email context.
+> 
+> Ah, yes, that's an HID Usage Table-ism, short for "Application Launch".
+> The comment text is taken straight from the HUT's Usage Name column, on
+> page 80 of HUT v1.12, and matches a fair number of other comments in
+> input.h. It wasn't until I started reading the HUT doc that many of the
+> comments next to keys actually started making sense... :)
+> 
+> So I'm fine with either "AL" or "Launch", but if we opt for the latter,
+> it might be good to change the rest of the comments to match.
+
+Somewhere above in input.h we have:
+
+/*
+ * Keys and buttons
+ *
+ * Most of the keys/buttons are modeled after USB HUT 1.12
+ * (see http://www.usb.org/developers/hidpage).
+ * Abbreviations in the comments:
+ * AC - Application Control
+ * AL - Application Launch Button
+ * SC - System Control
+ */
+
+Thanks.
+
+-- 
+Dmitry
