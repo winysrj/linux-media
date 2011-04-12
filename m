@@ -1,45 +1,56 @@
 Return-path: <mchehab@pedra>
-Received: from mail.visioncatalog.com ([217.6.246.34]:45626 "EHLO
-	root.phytec.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755952Ab1DFOGH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Apr 2011 10:06:07 -0400
-Received: from idefix.phytec.de (idefix.phytec.de [172.16.0.10])
-	by root.phytec.de (Postfix) with ESMTP id BDF81BF08A
-	for <linux-media@vger.kernel.org>; Wed,  6 Apr 2011 16:08:03 +0200 (CEST)
-From: =?UTF-8?q?Teresa=20G=C3=A1mez?= <t.gamez@phytec.de>
+Received: from mail-out.m-online.net ([212.18.0.10]:57872 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752850Ab1DLLQh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Apr 2011 07:16:37 -0400
+From: Anatolij Gustschin <agust@denx.de>
 To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Teresa=20G=C3=A1mez?= <t.gamez@phytec.de>
-Subject: [PATCH 1/2] mt9v022: fix pixel clock
-Date: Wed, 6 Apr 2011 16:01:54 +0200
-Message-Id: <1302098515-12176-1-git-send-email-t.gamez@phytec.de>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset=UTF-8
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Detlev Zundel <dzu@denx.de>, Anatolij Gustschin <agust@denx.de>
+Subject: [PATCH] media: fsl_viu: fix bug in streamon routine
+Date: Tue, 12 Apr 2011 13:15:58 +0200
+Message-Id: <1302606958-9301-1-git-send-email-agust@denx.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Measurements show that the setup of the pixel clock is not correct.
-The 'Invert Pixel Clock' bit has to be set to 1 for falling edge
-and not for rising.
+Currently video capturing using streaming I/O method
+doesn't work if capturing to overlay buffer took place
+before.
 
-Signed-off-by: Teresa Gámez <t.gamez@phytec.de>
+When enabling the stream we have to check the overlay
+enable driver flag and reset it so that the interrupt
+handler won't execute the overlay interrupt path after
+enabling DMA in streamon routine. Otherwise the capture
+interrupt won't be handled correctly causing non working
+VIDIOC_DQBUF ioctl.
+
+Signed-off-by: Anatolij Gustschin <agust@denx.de>
 ---
- drivers/media/video/mt9v022.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/media/video/fsl-viu.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/video/mt9v022.c b/drivers/media/video/mt9v022.c
-index 6a784c8..dec2a69 100644
---- a/drivers/media/video/mt9v022.c
-+++ b/drivers/media/video/mt9v022.c
-@@ -228,7 +228,7 @@ static int mt9v022_set_bus_param(struct soc_camera_device *icd,
+diff --git a/drivers/media/video/fsl-viu.c b/drivers/media/video/fsl-viu.c
+index 031af16..4b2bba8 100644
+--- a/drivers/media/video/fsl-viu.c
++++ b/drivers/media/video/fsl-viu.c
+@@ -911,12 +911,16 @@ static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *p)
+ static int vidioc_streamon(struct file *file, void *priv, enum v4l2_buf_type i)
+ {
+ 	struct viu_fh *fh = priv;
++	struct viu_dev *dev = fh->dev;
  
- 	flags = soc_camera_apply_sensor_flags(icl, flags);
+ 	if (fh->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 		return -EINVAL;
+ 	if (fh->type != i)
+ 		return -EINVAL;
  
--	if (flags & SOCAM_PCLK_SAMPLE_RISING)
-+	if (flags & SOCAM_PCLK_SAMPLE_FALLING)
- 		pixclk |= 0x10;
++	if (dev->ovenable)
++		dev->ovenable = 0;
++
+ 	viu_start_dma(fh->dev);
  
- 	if (!(flags & SOCAM_HSYNC_ACTIVE_HIGH))
+ 	return videobuf_streamon(&fh->vb_vidq);
 -- 
-1.7.0.4
+1.7.1
 
