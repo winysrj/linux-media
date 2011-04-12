@@ -1,118 +1,72 @@
-Return-path: <mchehab@gaivota>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:38625 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753190Ab1DKJHu (ORCPT
+Return-path: <mchehab@pedra>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:36917 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757989Ab1DLQ4O convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Apr 2011 05:07:50 -0400
-Date: Mon, 11 Apr 2011 11:07:42 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 1/4] s5p-fimc: Fix FIMC3 pixel limits on Exynos4
-In-reply-to: <1302512865-20379-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com
-Message-id: <1302512865-20379-2-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1302512865-20379-1-git-send-email-s.nawrocki@samsung.com>
+	Tue, 12 Apr 2011 12:56:14 -0400
+Received: by vxi39 with SMTP id 39so5043034vxi.19
+        for <linux-media@vger.kernel.org>; Tue, 12 Apr 2011 09:56:14 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <BANLkTink9O=Gd1o0ytnS2OUot=0tdCTP3g@mail.gmail.com>
+References: <BANLkTink9O=Gd1o0ytnS2OUot=0tdCTP3g@mail.gmail.com>
+From: =?UTF-8?Q?Zden=C4=9Bk_Materna?= <zdenek.materna@gmail.com>
+Date: Tue, 12 Apr 2011 18:55:54 +0200
+Message-ID: <BANLkTim0RgsZ5J5RAiGxVjTTEi8qGf4DCg@mail.gmail.com>
+Subject: Re: Genius webcam problem on ARM
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Correct pixel limits for the fourth FIMC entity on Exynos4 SoCs.
-FIMC3 only supports the writeback input from the LCD mixer.
-Also rename s5pv310 variant to exynos4 which is needed after
-renaming s5pv310 series to Exynos4.
+Hello again,
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-core.c |   30 +++++++++++++++++++-----------
- 1 files changed, 19 insertions(+), 11 deletions(-)
+now I discovered, that it's possible to change module parameters even
+if they are compiled in kernel... So I did:
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index 6c919b3..d54e6d85 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -1750,7 +1750,7 @@ static int __devexit fimc_remove(struct platform_device *pdev)
- }
- 
- /* Image pixel limits, similar across several FIMC HW revisions. */
--static struct fimc_pix_limit s5p_pix_limit[3] = {
-+static struct fimc_pix_limit s5p_pix_limit[4] = {
- 	[0] = {
- 		.scaler_en_w	= 3264,
- 		.scaler_dis_w	= 8192,
-@@ -1775,6 +1775,14 @@ static struct fimc_pix_limit s5p_pix_limit[3] = {
- 		.out_rot_en_w	= 1280,
- 		.out_rot_dis_w	= 1920,
- 	},
-+	[3] = {
-+		.scaler_en_w	= 1920,
-+		.scaler_dis_w	= 8192,
-+		.in_rot_en_h	= 1366,
-+		.in_rot_dis_w	= 8192,
-+		.out_rot_en_w	= 1366,
-+		.out_rot_dis_w	= 1920,
-+	},
- };
- 
- static struct samsung_fimc_variant fimc0_variant_s5p = {
-@@ -1827,7 +1835,7 @@ static struct samsung_fimc_variant fimc2_variant_s5pv210 = {
- 	.pix_limit	 = &s5p_pix_limit[2],
- };
- 
--static struct samsung_fimc_variant fimc0_variant_s5pv310 = {
-+static struct samsung_fimc_variant fimc0_variant_exynos4 = {
- 	.pix_hoff	 = 1,
- 	.has_inp_rot	 = 1,
- 	.has_out_rot	 = 1,
-@@ -1840,7 +1848,7 @@ static struct samsung_fimc_variant fimc0_variant_s5pv310 = {
- 	.pix_limit	 = &s5p_pix_limit[1],
- };
- 
--static struct samsung_fimc_variant fimc2_variant_s5pv310 = {
-+static struct samsung_fimc_variant fimc2_variant_exynos4 = {
- 	.pix_hoff	 = 1,
- 	.has_cistatus2	 = 1,
- 	.has_mainscaler_ext = 1,
-@@ -1848,7 +1856,7 @@ static struct samsung_fimc_variant fimc2_variant_s5pv310 = {
- 	.min_out_pixsize = 16,
- 	.hor_offs_align	 = 1,
- 	.out_buf_count	 = 32,
--	.pix_limit	 = &s5p_pix_limit[2],
-+	.pix_limit	 = &s5p_pix_limit[3],
- };
- 
- /* S5PC100 */
-@@ -1874,12 +1882,12 @@ static struct samsung_fimc_driverdata fimc_drvdata_s5pv210 = {
- };
- 
- /* S5PV310, S5PC210 */
--static struct samsung_fimc_driverdata fimc_drvdata_s5pv310 = {
-+static struct samsung_fimc_driverdata fimc_drvdata_exynos4 = {
- 	.variant = {
--		[0] = &fimc0_variant_s5pv310,
--		[1] = &fimc0_variant_s5pv310,
--		[2] = &fimc0_variant_s5pv310,
--		[3] = &fimc2_variant_s5pv310,
-+		[0] = &fimc0_variant_exynos4,
-+		[1] = &fimc0_variant_exynos4,
-+		[2] = &fimc0_variant_exynos4,
-+		[3] = &fimc2_variant_exynos4,
- 	},
- 	.num_entities = 4,
- 	.lclk_frequency = 166000000UL,
-@@ -1893,8 +1901,8 @@ static struct platform_device_id fimc_driver_ids[] = {
- 		.name		= "s5pv210-fimc",
- 		.driver_data	= (unsigned long)&fimc_drvdata_s5pv210,
- 	}, {
--		.name		= "s5pv310-fimc",
--		.driver_data	= (unsigned long)&fimc_drvdata_s5pv310,
-+		.name		= "exynos4-fimc",
-+		.driver_data	= (unsigned long)&fimc_drvdata_exynos4,
- 	},
- 	{},
- };
--- 
-1.7.4.3
+echo 2 > /sys/module/uvcvideo/parameters/quirks
+
+And v4l example now ends like this:
+
+VIDIOC_S_FMT error 28, No space left on device
+
+Error "No space left" indicates problem with USB bandwidth? How can I
+solve it? I tried to change resolution in v4l example from 640x480 to
+160x120 but it didn't help.
+
+Dne 12. dubna 2011 18:37 Zdeněk Materna <zdenek.materna@gmail.com> napsal(a):
+> Hello,
+>
+> I have problem with UVC webcam. It's Genius Facecam 1000. I would like
+> to use it with mjpg-streamer. Before this model, I had Facecam 1320,
+> but it wasn't mjpeg capable, so mjpg-streamer had to do jpeg
+> compresion and it was quite slow. Facecam 1000 can provide mjpg stream
+> by itself and it works great on x86, but it doesn't work on ARM. To
+> exclude problem in mjpg-streamer I compiled v4l capture example
+> (http://v4l2spec.bytesex.org/spec-single/v4l2.html#CAPTURE-EXAMPLE)
+> and it's same - works on x86 a not on ARM.
+>
+> On embedded platform I'm using AT91SAM9260 (Olimex kit L9260) which
+> has USB2.0, but only full-speed - is it problem? I don't think so -
+> previous webcam works great.
+>
+> On x86 I use kernel 2.6.35 and glibc. On ARM there is kernel
+> 2.6.33.7.2-rt30 and uClibc.
+>
+> v4l example fails with this error: VIDIOC_STREAMON error 5, Input/output error
+>
+> webcam is detected correctly:
+> [ 2042.100000] usb 1-1: new full speed USB device using at91_ohci and address 3
+> [ 2042.290000] usb 1-1: New USB device found, idVendor=0458, idProduct=707e
+> [ 2042.290000] usb 1-1: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+> [ 2042.310000] usb 1-1: Product: FaceCam 1000
+> [ 2042.320000] usb 1-1: Manufacturer: KYE SYSTEMS CORP.
+> [ 2042.400000] uvcvideo: Found UVC 1.00 device FaceCam 1000 (0458:707e)
+> [ 2042.460000] input: FaceCam 1000 as
+> /devices/platform/at91_ohci/usb1/1-1/1-1:1.0/input/input1
+>
+> Thanks for any advice!
+>
+> Best regards
+> Zdenek Materna
+>
