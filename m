@@ -1,54 +1,40 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59182 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751186Ab1DGJR7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Apr 2011 05:17:59 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Hans Verkuil" <hverkuil@xs4all.nl>
-Subject: Re: [PATCH/RFC 1/4] V4L: add three new ioctl()s for multi-size videobuffer management
-Date: Thu, 7 Apr 2011 11:17:59 +0200
-Cc: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
-	"Hans Verkuil" <hansverk@cisco.com>,
-	"Linux Media Mailing List" <linux-media@vger.kernel.org>,
-	"Mauro Carvalho Chehab" <mchehab@infradead.org>
-References: <Pine.LNX.4.64.1104010959470.9530@axis700.grange> <Pine.LNX.4.64.1104070914540.24325@axis700.grange> <058f16a20d747a5ef6b300e119fa69b4.squirrel@webmail.xs4all.nl>
-In-Reply-To: <058f16a20d747a5ef6b300e119fa69b4.squirrel@webmail.xs4all.nl>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:57052 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752673Ab1DLLi3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Apr 2011 07:38:29 -0400
+Received: by bwz15 with SMTP id 15so5277883bwz.19
+        for <linux-media@vger.kernel.org>; Tue, 12 Apr 2011 04:38:27 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201104071117.59995.laurent.pinchart@ideasonboard.com>
+Date: Mon, 11 Apr 2011 23:38:27 -1200
+Message-ID: <BANLkTimfop0KEM=msAGcoZwVm88Qgx_HDA@mail.gmail.com>
+Subject: Re: [PATCH] tm6000: fix vbuf may be used uninitialized (Dmitri please read)
+From: Dan Carpenter <error27@gmail.com>
+To: Jarod Wilson <jarod@wilsonet.com>,
+	Dmitri Belimov <d.belimov@gmail.com>
+Cc: Jarod Wilson <jarod@redhat.com>, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Hans,
+On 4/11/11, Jarod Wilson <jarod@wilsonet.com> wrote:
+> So I was just circling back around on this one, and took some time to read
+> the actual code and the radio support addition. After doing so, I don't
+> see why the patch I proposed wouldn't do. The buffer is only manipulated
+> if !dev->radio or if vbuf is non-NULL (the memcpy call). If its initialized
+> to NULL, it only gets used exactly as it did before 8aff8ba9 when
+> !dev->radio, and if its not been used or its NULL following manipulations
+> protected by !dev->radio, it doesn't get copied. What is the "real bug" I
+> am missing there? (Or did I already miss a patch posted to linux-media
+> addressing it?)
+>
 
-On Thursday 07 April 2011 09:50:13 Hans Verkuil wrote:
-> > On Thu, 7 Apr 2011, Hans Verkuil wrote:
+My laptop was stolen so I can't review code for the next couple weeks.
 
-[snip]
+I remember that I thought your patch looked correct, but I was hoping that
+Dmitri would Ack it.
 
-> >> Regarding DESTROY_BUFS: perhaps we should just skip this for now and wait
-> >> for the first use-case. That way we don't need to care about holes. I
-> >> don't like artificial restrictions like 'no holes'. If someone has a good
-> >> use-case for selectively destroying buffers, then we need to look at this
-> >> again.
-> > 
-> > Sorry, skip what? skip the ioctl completely and rely on REQBUFS(0) /
-> > close()?
-> 
-> Yes.
-
-I don't really like that as it would mix CREATE and REQBUFS calls. 
-Applications should either use the old API (REQBUFS) or the new one, but not 
-mix both.
-
-The fact that freeing arbitrary spans of buffers gives us uneasy feelings 
-might be a sign that the CREATE/DESTROY API is not mature enough. I'd rather 
-try to solve the issue now instead of postponing it for later and discover 
-that our CREATE API should have been different.
-
--- 
-Regards,
-
-Laurent Pinchart
+regards,
+dan carpenter
