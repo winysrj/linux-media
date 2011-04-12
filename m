@@ -1,81 +1,34 @@
 Return-path: <mchehab@pedra>
-Received: from mga01.intel.com ([192.55.52.88]:58950 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751651Ab1DAXwt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Apr 2011 19:52:49 -0400
-Date: Sat, 2 Apr 2011 01:52:39 +0200
-From: Samuel Ortiz <sameo@linux.intel.com>
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Andres Salomon <dilinger@queued.net>, linux-kernel@vger.kernel.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	khali@linux-fr.org, ben-linux@fluff.org,
-	Peter Korsgaard <jacmet@sunsite.dk>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	David Brownell <dbrownell@users.sourceforge.net>,
-	linux-i2c@vger.kernel.org, linux-media@vger.kernel.org,
-	netdev@vger.kernel.org, spi-devel-general@lists.sourceforge.net,
-	Mocean Laboratories <info@mocean-labs.com>
-Subject: Re: [PATCH 07/19] timberdale: mfd_cell is now implicitly available
- to drivers
-Message-ID: <20110401235239.GE29397@sortiz-mobl>
-References: <20110202195417.228e2656@queued.net>
- <20110202200812.3d8d6cba@queued.net>
- <20110331230522.GI437@ponder.secretlab.ca>
- <20110401112030.GA3447@sortiz-mobl>
- <20110401104756.2f5c6f7a@debxo>
- <BANLkTi=bCd_+f=EG-O=U5VH_ZNjFhxkziQ@mail.gmail.com>
+Received: from connie.slackware.com ([64.57.102.36]:53592 "EHLO
+	connie.slackware.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753617Ab1DLCWL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Apr 2011 22:22:11 -0400
+Date: Mon, 11 Apr 2011 19:14:27 -0700 (PDT)
+From: Robby Workman <rworkman@slackware.com>
+To: linux-media@vger.kernel.org
+cc: Patrick Volkerding <volkerdi@slackware.com>
+Subject: Re: [PATCHES] Misc. trivial fixes
+In-Reply-To: <alpine.LNX.2.00.1104111908050.32072@connie.slackware.com>
+Message-ID: <alpine.LNX.2.00.1104111913310.32188@connie.slackware.com>
+References: <alpine.LNX.2.00.1104111908050.32072@connie.slackware.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <BANLkTi=bCd_+f=EG-O=U5VH_ZNjFhxkziQ@mail.gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Fri, Apr 01, 2011 at 11:56:35AM -0600, Grant Likely wrote:
-> On Fri, Apr 1, 2011 at 11:47 AM, Andres Salomon <dilinger@queued.net> wrote:
-> > On Fri, 1 Apr 2011 13:20:31 +0200
-> > Samuel Ortiz <sameo@linux.intel.com> wrote:
-> >
-> >> Hi Grant,
-> >>
-> >> On Thu, Mar 31, 2011 at 05:05:22PM -0600, Grant Likely wrote:
-> > [...]
-> >> > Gah.  Not all devices instantiated via mfd will be an mfd device,
-> >> > which means that the driver may very well expect an *entirely
-> >> > different* platform_device pointer; which further means a very high
-> >> > potential of incorrectly dereferenced structures (as evidenced by a
-> >> > patch series that is not bisectable).  For instance, the xilinx ip
-> >> > cores are used by more than just mfd.
-> >> I agree. Since the vast majority of the MFD subdevices are MFD
-> >> specific IPs, I overlooked that part. The impacted drivers are the
-> >> timberdale and the DaVinci voice codec ones.
-> 
-> Another option is you could do this for MFD devices:
-> 
-> struct mfd_device {
->         struct platform_devce pdev;
->         struct mfd_cell *cell;
-> };
-> 
-> However, that requires that drivers using the mfd_cell will *never*
-> get instantiated outside of the mfd infrastructure, and there is no
-> way to protect against this so it is probably a bad idea.
-> 
-> Or, mfd_cell could be added to platform_device directly which would
-> *by far* be the safest option at the cost of every platform_device
-> having a mostly unused mfd_cell pointer.  Not a significant cost in my
-> opinion.
-I thought about this one, but I had the impression people would want to kill
-me for adding an MFD specific pointer to platform_device. I guess it's worth
-giving it a try since it would be a simple and safe solution.
-I'll look at it later this weekend.
+On Mon, 11 Apr 2011, Robby Workman wrote:
 
-Thanks for the input.
+> Patch #1 installs udev rules files to /lib/udev/rules.d/ instead
+> of /etc/udev/rules.d/ - see commit message for more info.
+>
+> Patch #2 allows override of manpage installation directory by
+> packagers - see commit message for more info
 
-Cheers,
-Samuel.
 
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+EEEK!  It just occurred to me that this mailing list might 
+possibly be used by more than one project (horrors!), so 
+I should probably specify that the patches in the previous
+mail are aimed at v4l-utils.   Sorry for the noise.
+
+-RW
