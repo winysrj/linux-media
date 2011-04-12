@@ -1,98 +1,137 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:43020 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753127Ab1DEH5P (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2011 03:57:15 -0400
-Received: from localhost.localdomain (unknown [91.178.236.143])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 9AB0235B6F
-	for <linux-media@vger.kernel.org>; Tue,  5 Apr 2011 07:57:11 +0000 (UTC)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 08/14] omap3isp: isp: Reset the ISP when the pipeline can't be stopped
-Date: Tue,  5 Apr 2011 09:57:30 +0200
-Message-Id: <1301990256-6963-9-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1301990256-6963-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1301990256-6963-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from smtp.nokia.com ([147.243.128.26]:61644 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753857Ab1DLIJ6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Apr 2011 04:09:58 -0400
+Message-ID: <4DA40969.0@maxwell.research.nokia.com>
+Date: Tue, 12 Apr 2011 11:12:25 +0300
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org
+Subject: Re: [RFCv1 PATCH 4/9] v4l2-ctrls: add per-control events.
+References: <1301917914-27437-1-git-send-email-hans.verkuil@cisco.com>    <54721c1be23beb8c885ef56cdf7f782205c9dfdb.1301916466.git.hans.verkuil@cisco.com>    <4DA2ADE6.2080704@maxwell.research.nokia.com> <de36e47085bf38f0b4e95740ab43b85f.squirrel@webmail.xs4all.nl>
+In-Reply-To: <de36e47085bf38f0b4e95740ab43b85f.squirrel@webmail.xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-When a failure to stop a module in the pipeline is detected, the only
-way to recover is to reset the ISP. However, as other users can be using
-a different pipeline with other modules, the ISP can't be reset
-synchronously with the error detection.
+Hi Hans,
 
-Mark the ISP as needing a reset when a failure to stop a pipeline is
-detected, and reset the ISP when the last user releases the last
-reference to the ISP.
+Hans Verkuil wrote:
+[clip]
+>>> diff --git a/drivers/media/video/v4l2-fh.c
+>>> b/drivers/media/video/v4l2-fh.c
+>>> index 8635011..c6aef84 100644
+>>> --- a/drivers/media/video/v4l2-fh.c
+>>> +++ b/drivers/media/video/v4l2-fh.c
+>>> @@ -93,10 +93,8 @@ void v4l2_fh_exit(struct v4l2_fh *fh)
+>>>  {
+>>>  	if (fh->vdev == NULL)
+>>>  		return;
+>>> -
+>>> -	fh->vdev = NULL;
+>>> -
+>>>  	v4l2_event_free(fh);
+>>> +	fh->vdev = NULL;
+>>
+>> This looks like a bugfix.
+> 
+> But it isn't :-)
+> 
+> v4l2_event_free didn't use fh->vdev in the past, but now it does so the
+> order had to be swapped.
 
-Modify the omap3isp_pipeline_set_stream() function to record the new ISP
-pipeline state only when no error occurs, except when stopping the
-pipeline in which case the pipeline is still marked as stopped.
+Ok.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/omap3isp/isp.c |   14 ++++++++++++--
- drivers/media/video/omap3isp/isp.h |    1 +
- 2 files changed, 13 insertions(+), 2 deletions(-)
+>>
+>>>  }
+>>>  EXPORT_SYMBOL_GPL(v4l2_fh_exit);
+>>>
+>>> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+>>> index 92d2fdd..f7238c1 100644
+>>> --- a/include/linux/videodev2.h
+>>> +++ b/include/linux/videodev2.h
+>>> @@ -1787,6 +1787,7 @@ struct v4l2_streamparm {
+>>>  #define V4L2_EVENT_ALL				0
+>>>  #define V4L2_EVENT_VSYNC			1
+>>>  #define V4L2_EVENT_EOS				2
+>>> +#define V4L2_EVENT_CTRL_CH_VALUE		3
+>>>  #define V4L2_EVENT_PRIVATE_START		0x08000000
+>>>
+>>>  /* Payload for V4L2_EVENT_VSYNC */
+>>> @@ -1795,21 +1796,33 @@ struct v4l2_event_vsync {
+>>>  	__u8 field;
+>>>  } __attribute__ ((packed));
+>>>
+>>> +/* Payload for V4L2_EVENT_CTRL_CH_VALUE */
+>>> +struct v4l2_event_ctrl_ch_value {
+>>> +	__u32 type;
+>>
+>> type is enum v4l2_ctrl_type in struct v4l2_ctrl and struct v4l2_queryctrl.
+> 
+> Yes, but enum's are frowned upon these days in the public API.
 
-diff --git a/drivers/media/video/omap3isp/isp.c b/drivers/media/video/omap3isp/isp.c
-index 7d68b10..f380f09 100644
---- a/drivers/media/video/omap3isp/isp.c
-+++ b/drivers/media/video/omap3isp/isp.c
-@@ -872,6 +872,9 @@ static int isp_pipeline_disable(struct isp_pipeline *pipe)
- 		}
- 	}
- 
-+	if (failure < 0)
-+		isp->needs_reset = true;
-+
- 	return failure;
- }
- 
-@@ -884,7 +887,8 @@ static int isp_pipeline_disable(struct isp_pipeline *pipe)
-  * single-shot or continuous mode.
-  *
-  * Return 0 if successful, or the return value of the failed video::s_stream
-- * operation otherwise.
-+ * operation otherwise. The pipeline state is not updated when the operation
-+ * fails, except when stopping the pipeline.
-  */
- int omap3isp_pipeline_set_stream(struct isp_pipeline *pipe,
- 				 enum isp_pipeline_stream_state state)
-@@ -895,7 +899,9 @@ int omap3isp_pipeline_set_stream(struct isp_pipeline *pipe,
- 		ret = isp_pipeline_disable(pipe);
- 	else
- 		ret = isp_pipeline_enable(pipe, state);
--	pipe->stream_state = state;
-+
-+	if (ret == 0 || state == ISP_PIPELINE_STREAM_STOPPED)
-+		pipe->stream_state = state;
- 
- 	return ret;
- }
-@@ -1481,6 +1487,10 @@ void omap3isp_put(struct isp_device *isp)
- 	if (--isp->ref_count == 0) {
- 		isp_disable_interrupts(isp);
- 		isp_save_ctx(isp);
-+		if (isp->needs_reset) {
-+			isp_reset(isp);
-+			isp->needs_reset = false;
-+		}
- 		isp_disable_clocks(isp);
- 	}
- 	mutex_unlock(&isp->isp_mutex);
-diff --git a/drivers/media/video/omap3isp/isp.h b/drivers/media/video/omap3isp/isp.h
-index cf5214e..5f87645 100644
---- a/drivers/media/video/omap3isp/isp.h
-+++ b/drivers/media/video/omap3isp/isp.h
-@@ -262,6 +262,7 @@ struct isp_device {
- 	/* ISP Obj */
- 	spinlock_t stat_lock;	/* common lock for statistic drivers */
- 	struct mutex isp_mutex;	/* For handling ref_count field */
-+	bool needs_reset;
- 	int has_context;
- 	int ref_count;
- 	unsigned int autoidle;
+Agreed.
+
+>>
+>>> +	union {
+>>> +		__s32 value;
+>>> +		__s64 value64;
+>>> +	};
+>>> +} __attribute__ ((packed));
+>>> +
+>>>  struct v4l2_event {
+>>>  	__u32				type;
+>>>  	union {
+>>>  		struct v4l2_event_vsync vsync;
+>>> +		struct v4l2_event_ctrl_ch_value ctrl_ch_value;
+>>>  		__u8			data[64];
+>>>  	} u;
+>>>  	__u32				pending;
+>>>  	__u32				sequence;
+>>>  	struct timespec			timestamp;
+>>> -	__u32				reserved[9];
+>>> +	__u32				id;
+>>
+>> id is valid only for control related events. Shouldn't it be part of the
+>> control related structures instead, or another union for control related
+>> event types? E.g.
+>>
+>> struct {
+>> 	enum v4l2_ctrl_type	id;
+>> 	union {
+>> 		struct v4l2_event_ctrl_ch_value ch_value;
+>> 	};
+>> } ctrl;
+> 
+> The problem with making this dependent of the type is that the core event
+> code would have to have a switch on the event type when it comes to
+> matching identifiers. By making it a core field it doesn't have to do
+> this. Also, this makes it available for use by private events as well.
+> 
+> It is important to keep the send-event core code as fast as possible since
+> it can be called from interrupt context.
+> 
+> So this is by design.
+
+I understand your point, and agree with it. There would be a few places
+in the v4l2-event.c that one would have to know if the event is
+control-related or not.
+
+As the id field is handled in the v4l2-event.c the way it is, it must be
+zero when the event is not a control-related one. This makes it
+impossible to use it for other purposes, at least for now.
+
+What about renaming the field to ctrl_id? Or do you think we could have
+other use for the field outside the scope of the control-related events?
+
+The benefit of the current name is still that it does not suggest
+anything on the implementation.
+
+Cheers,
+
 -- 
-1.7.3.4
-
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
