@@ -1,154 +1,328 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:64417 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753096Ab1DBJmA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Apr 2011 05:42:00 -0400
-Date: Sat, 2 Apr 2011 04:41:55 -0500
-From: Jonathan Nieder <jrnieder@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Huber Andreas <hobrom@corax.at>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-kernel@vger.kernel.org, andrew.walker27@ntlworld.com,
-	Ben Hutchings <ben@decadent.org.uk>,
-	Trent Piepho <xyzzy@speakeasy.org>
-Subject: [PATCH 2/3] [media] cx88: fix locking of sub-driver operations
-Message-ID: <20110402094155.GC17015@elie>
-References: <20110327150610.4029.95961.reportbug@xen.corax.at>
- <20110327152810.GA32106@elie>
- <20110402093856.GA17015@elie>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:49408 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755659Ab1DLTbr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Apr 2011 15:31:47 -0400
+Received: by bwz15 with SMTP id 15so5647465bwz.19
+        for <linux-media@vger.kernel.org>; Tue, 12 Apr 2011 12:31:46 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20110402093856.GA17015@elie>
+In-Reply-To: <4D90854C.2000802@maxwell.research.nokia.com>
+References: <4D90854C.2000802@maxwell.research.nokia.com>
+Date: Tue, 12 Apr 2011 12:31:45 -0700
+Message-ID: <BANLkTikJrhdj0eJscMSBW4-=aGnDD-6uzg@mail.gmail.com>
+Subject: Re: [RFC] V4L2 API for flash devices
+From: Sung Hee Park <shpark7@stanford.edu>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: andrew.b.adams@gmail.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Ben Hutchings <ben@decadent.org.uk>
-Date: Tue, 29 Mar 2011 03:25:15 +0100
+Here are two more use-cases for flash that might help inform the API
+design. Sakari encouraged me to post these. The person writing this is
+Andrew Adams, but I'm sending this from Sung Hee's account, because I
+only just subscribed to linux-media and can't immediately figure out
+how to reply to messages from before I subscribed. Sung Hee and I are
+both grad students at Stanford who work on FCam
+(http://fcam.garage.maemo.org/)
 
-The BKL conversion of this family of drivers seems to have gone wrong.
-Opening cx88-blackbird will deadlock.  Various other uses of the
-sub-device and driver lists appear to be subject to race conditions.
+Second-curtain-sync:
 
-In particular, mpeg_ops::open in the cx2388x blackbird driver acquires
-the device lock and then calls the drivers' request_acquire, which
-tries to acquire the lock again --- deadlock.  Fix it by clarifying
-the semantics of request_acquire, request_release, advise_acquire, and
-advise_release: all require the caller to hold the device lock now.
+Sometimes you want to fire the flash at the end of a long exposure
+time. It's usually a way to depict motion. Here's an example:
+http://www.flickr.com/photos/latitudes/133206615/.
 
-[jn: split from a larger patch, with new commit message]
+This only really applies to xenon flashes because you can't get a
+crisp image out of a longer duration LED flash. Even then it's
+somewhat problematic on rolling-shutter sensors but still possible
+provided you don't mind a slight shear to the crisp part of the image.
+>From an API perspective, it requires you to be able to specify a
+trigger time at some number of microseconds into the exposure. On the
+N900 we did this with a real-time thread.
 
-Reported-by: Andi Huber <hobrom@gmx.at>
-Fixes: https://bugzilla.kernel.org/show_bug.cgi?id=31962
-Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
-Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
-Cc: stable@kernel.org
----
- drivers/media/video/cx88/cx88-blackbird.c |    9 ++-------
- drivers/media/video/cx88/cx88-dvb.c       |    8 +-------
- drivers/media/video/cx88/cx88-mpeg.c      |    4 ----
- drivers/media/video/cx88/cx88.h           |    3 ++-
- 4 files changed, 5 insertions(+), 19 deletions(-)
+Triggering external hardware:
 
-diff --git a/drivers/media/video/cx88/cx88-blackbird.c b/drivers/media/video/cx88/cx88-blackbird.c
-index 85910c6..a6f7d53 100644
---- a/drivers/media/video/cx88/cx88-blackbird.c
-+++ b/drivers/media/video/cx88/cx88-blackbird.c
-@@ -1125,18 +1125,13 @@ static int mpeg_release(struct file *file)
- 
- 	/* Make sure we release the hardware */
- 	drv = cx8802_get_driver(dev, CX88_MPEG_BLACKBIRD);
--	mutex_unlock(&dev->core->lock);
--
--	/*
--	 * NEEDSWORK: the driver can be yanked from under our feet.
--	 * The following really ought to be protected with core->lock.
--	 */
--
- 	if (drv)
- 		drv->request_release(drv);
- 
- 	atomic_dec(&dev->core->mpeg_users);
- 
-+	mutex_unlock(&dev->core->lock);
-+
- 	return 0;
- }
- 
-diff --git a/drivers/media/video/cx88/cx88-dvb.c b/drivers/media/video/cx88/cx88-dvb.c
-index 5d0f947..c69df7e 100644
---- a/drivers/media/video/cx88/cx88-dvb.c
-+++ b/drivers/media/video/cx88/cx88-dvb.c
-@@ -135,13 +135,6 @@ static int cx88_dvb_bus_ctrl(struct dvb_frontend* fe, int acquire)
- 
- 	mutex_lock(&dev->core->lock);
- 	drv = cx8802_get_driver(dev, CX88_MPEG_DVB);
--	mutex_unlock(&dev->core->lock);
--
--	/*
--	 * NEEDSWORK: The driver can be yanked from under our feet now.
--	 * We ought to keep holding core->lock during the below.
--	 */
--
- 	if (drv) {
- 		if (acquire){
- 			dev->frontends.active_fe_id = fe_id;
-@@ -151,6 +144,7 @@ static int cx88_dvb_bus_ctrl(struct dvb_frontend* fe, int acquire)
- 			dev->frontends.active_fe_id = 0;
- 		}
- 	}
-+	mutex_unlock(&dev->core->lock);
- 
- 	return ret;
- }
-diff --git a/drivers/media/video/cx88/cx88-mpeg.c b/drivers/media/video/cx88/cx88-mpeg.c
-index 918172b..9147c16 100644
---- a/drivers/media/video/cx88/cx88-mpeg.c
-+++ b/drivers/media/video/cx88/cx88-mpeg.c
-@@ -624,13 +624,11 @@ static int cx8802_request_acquire(struct cx8802_driver *drv)
- 
- 	if (drv->advise_acquire)
- 	{
--		mutex_lock(&drv->core->lock);
- 		core->active_ref++;
- 		if (core->active_type_id == CX88_BOARD_NONE) {
- 			core->active_type_id = drv->type_id;
- 			drv->advise_acquire(drv);
- 		}
--		mutex_unlock(&drv->core->lock);
- 
- 		mpeg_dbg(1,"%s() Post acquire GPIO=%x\n", __func__, cx_read(MO_GP0_IO));
- 	}
-@@ -643,14 +641,12 @@ static int cx8802_request_release(struct cx8802_driver *drv)
- {
- 	struct cx88_core *core = drv->core;
- 
--	mutex_lock(&drv->core->lock);
- 	if (drv->advise_release && --core->active_ref == 0)
- 	{
- 		drv->advise_release(drv);
- 		core->active_type_id = CX88_BOARD_NONE;
- 		mpeg_dbg(1,"%s() Post release GPIO=%x\n", __func__, cx_read(MO_GP0_IO));
- 	}
--	mutex_unlock(&drv->core->lock);
- 
- 	return 0;
- }
-diff --git a/drivers/media/video/cx88/cx88.h b/drivers/media/video/cx88/cx88.h
-index e3d56c2..9731daa 100644
---- a/drivers/media/video/cx88/cx88.h
-+++ b/drivers/media/video/cx88/cx88.h
-@@ -510,7 +510,8 @@ struct cx8802_driver {
- 	/* Caller must _not_ hold core->lock */
- 	int (*probe)(struct cx8802_driver *drv);
- 
--	/* Caller must hold core->lock */
-+	/* Callers to the following functions must hold core->lock */
-+
- 	int (*remove)(struct cx8802_driver *drv);
- 
- 	/* MPEG 8802 -> mini driver - Access for hardware control */
--- 
-1.7.5.rc0
+This use-case is a little weirder, but it has the same API
+requirement. Some photographic setups require you to synchronize some
+piece of hardware with the exposure (e.g. an oscilloscope, or an
+external slave flash). On embedded devices this is generally
+difficult. If you can at least fire the flash at a precise delay into
+the exposure, you can attach a photodiode to it, and use the
+flash+photodiode as an opto-isolator to trigger your external
+hardware.
 
+So we're in favor of having user-settable flash duration, and also
+user-settable trigger times (with reference to the start of the
+exposure time). I'm guessing that in a SMIA++ driver the trigger time
+would actually be a control on the sensor device, but it seemed
+relevant to bring up while you guys were talking about the flash API.
+
+- Andrew
+
+On Mon, Mar 28, 2011 at 5:55 AM, Sakari Ailus
+<sakari.ailus@maxwell.research.nokia.com> wrote:
+>
+> Hi,
+>
+> This is a proposal for an interface for controlling flash devices on the
+> V4L2/v4l2_subdev APIs. My plan is to use the interface in the ADP1653
+> driver, the flash controller used in the Nokia N900.
+>
+> Comments and questions are very, very welcome!
+>
+>
+> Scope
+> =====
+>
+> This RFC is focused mostly on the ADP1653 [1] and similar chips [2, 3]
+> which provides following functionality. [2, 3] mostly differ on the
+> available faults --- for example, there are faults also for the
+> indicator LED.
+>
+> - High power LED output (flash or torch modes)
+> - Low power indicator LED output (a.k.a. privacy light)
+> - Programmable flash timeout
+> - Software and hardware strobe
+> - Fault detection
+>        - Overvoltage
+>        - Overtemperature
+>        - Short circuit
+>        - Timeout
+> - Programmable current (both high-power and indicator LEDs)
+>
+> If anyone else is aware of hardware which significantly differs from
+> these and does not get served well under the proposed interface, please
+> tell about it.
+>
+> This RFC does NOT address the synchronisation of the flash to a given
+> frame since this task is typically performed by the sensor through a
+> strobe signal. The host does not have enough information for this ---
+> exact timing information on the exposure of the sensor pixel array. In
+> this case the flash synchronisation is visible to the flash controller
+> as the hardware strobe originating from the sensor.
+>
+> Flash synchronisation requires
+>
+> 1) flash control capability from the sensor including a strobe output,
+> 2) strobe input in the flash controller,
+> 3) (optionally) ability to program sensor parameters at given frame,
+> such as flash strobe, and
+> 4) ability to read back metadata produced by the sensor related to a
+> given frame. This should include whether the frame is exposed with
+> flash, i.e. the sensor's flash strobe output.
+>
+> Since we have little examples of both in terms of hardware support,
+> which is in practice required, it was decided to postpone the interface
+> specification for now. [6]
+>
+> Xenon flash controllers exist but I don't have a specific example of
+> those. Typically the interface is quite simple. Gpio pins for charge and
+> strobe. The length of the strobe signal determines the strength of the
+> flash pulse. The strobe is controlled by the sensor as for LED flash if
+> it is hardware based.
+>
+>
+> Known use cases
+> ===============
+>
+> The use case listed below concentrate on using a flash in a mobile
+> device, for example in a mobile phone. The use cases could be somewhat
+> different in devices the primary use of which is camera.
+>
+> Unsynchronised LED flash (software strobe)
+> ------------------------------------------
+>
+> Unsynchronised LED flash is controlled directly by the host as the
+> sensor. The flash must be enabled by the host before the exposure of the
+> image starts and disabled once it ends. The host is fully responsible
+> for the timing of the flash.
+>
+> Example of such device: Nokia N900.
+>
+>
+> Synchronised LED flash (hardware strobe)
+> ----------------------------------------
+>
+> The synchronised LED flash is pre-programmed by the host (power and
+> timeout) but controlled by the sensor through a strobe signal from the
+> sensor to the flash.
+>
+> The sensor controls the flash duration and timing. This control
+> typically must be programmed to the sensor, and specifying an interface
+> for this is out of scope of this RFC.
+>
+> The LED flash controllers we know of can function in both synchronised
+> and unsynchronised modes.
+>
+>
+> LED flash as torch
+> ------------------
+>
+> LED flash may be used as torch in conjunction with another use case
+> involving camera or individually. [4]
+>
+>
+> Synchronised xenon flash
+> ------------------------
+>
+> The synchronised xenon flash is controlled more closely by the sensor
+> than the LED flash. There is no separate intensity control for the xenon
+> flash as its intensity is determined by the length of the strobe pulse.
+> Several consecutive strobe pluses are possible but this needs to be
+> still controlled by the sensor.
+>
+>
+> Proposed interface
+> ==================
+>
+> The flash, either LED or xenon, does not require large amounts of data
+> to control it. There are parameters to control it but they are
+> independent and assumably some hardware would only support some subsets
+> of the functionality available somewhere else. Thus V4L2 controls seem
+> an ideal way to support flash controllers.
+>
+> A separate control class is reserved for the flash controls. It is
+> called V4L2_CTRL_CLASS_FLASH.
+>
+> Type of the control; type of flash is in parentheses after the control.
+>
+>
+>        V4L2_CID_FLASH_STROBE (button; LED)
+>
+> Strobe the flash using software strobe from the host, typically over I2C
+> or a GPIO. The flash is NOT synchronised to sensor pixel are exposure
+> since the command is given asynchronously. Alternatively, if the flash
+> controller is a master in the system, the sensor exposure may be
+> triggered based on software strobe.
+>
+>
+>        V4L2_CID_FLASH_STROBE_MODE (menu; LED)
+>
+> Use hardware or software strobe. If hardware strobe is selected, the
+> flash controller is a slave in the system where the sensor produces the
+> strobe signal to the flash.
+>
+> In this case the flash controller setup is limited to programming strobe
+> timeout and power (LED flash) and the sensor controls the timing and
+> length of the strobe.
+>
+> enum v4l2_flash_strobe_mode {
+>        V4L2_FLASH_STROBE_MODE_SOFTWARE,
+>        V4L2_FLASH_STROBE_MODE_EXT_STROBE,
+> };
+>
+>
+>        V4L2_CID_FLASH_TIMEOUT (integer; LED)
+>
+> The flash controller provides timeout functionality to shut down the led
+> in case the host fails to do that. For hardware strobe, this is the
+> maximum amount of time the flash should stay on, and the purpose of the
+> setting is to prevent the LED from catching fire.
+>
+> For software strobe, the setting may be used to limit the length of the
+> strobe in case a driver does not implement it itself. The granularity of
+> the timeout in [1, 2, 3] is very coarse. However, the length of a
+> driver-implemented LED strobe shutoff is very dependent on host.
+> Possibly V4L2_CID_FLASH_DURATION should be added, and
+> V4L2_CID_FLASH_TIMEOUT would be read-only so that the user would be able
+> to obtain the actual hardware implemented safety timeout.
+>
+> Likely a standard unit such as ms or 盜 should be used.
+>
+>
+>        V4L2_CID_FLASH_LED_MODE (menu; LED)
+>
+> enum v4l2_flash_led_mode {
+>        V4L2_FLASH_LED_MODE_FLASH = 1,
+>        V4L2_FLASH_LED_MODE_TORCH,
+> };
+>
+>
+>        V4L2_CID_FLASH_INTENSITY (integer; LED)
+>
+> Intensity of the flash in hardware specific units. The LED flash
+> controller provides current to the LED but the actual luminous power is
+> dictated by the LED connected to the controller.
+>
+>
+>        V4L2_CID_FLASH_TORCH_INTENSITY (integer; LED)
+>
+> Intensity of the flash in hardware specific units.
+>
+>
+>        V4L2_CID_FLASH_INDICATOR_INTENSITY (integer; LED)
+>
+> Intensity of the indicator light in hardware specific units.
+>
+>
+>        V4L2_CID_FLASH_FAULT (bit field; LED)
+>
+> This is a bitmask containing the fault information for the flash. This
+> assumes the proposed V4L2 bit mask controls [5]; otherwise this would
+> likely need to be a set of controls.
+>
+> #define V4L2_FLASH_FAULT_OVER_VOLTAGE           0x00000001
+> #define V4L2_FLASH_FAULT_TIMEOUT                0x00000002
+> #define V4L2_FLASH_FAULT_OVER_TEMPERATURE       0x00000004
+> #define V4L2_FLASH_FAULT_SHORT_CIRCUIT          0x00000008
+>
+> Several faults may occur at single occasion. The ADP1653 is able to
+> inform the user a fault has occurred, so a V4L2 control event (proposed
+> earlier) could be used for that.
+>
+> These faults are supported by the ADP1653. More faults may be added as
+> support for more chips require that. In some other hardware faults are
+> available for indicator led as well.
+>
+> Question: should indicator faults be part of the same control, or a
+> different control, e.g. V4L2_CID_FLASH_INDICATOR_FAULT?
+>
+>
+>        V4L2_CID_FLASH_CHARGE (bool; xenon)
+>
+> Charge control for the xenon flash. Enable or disable charging.
+>
+>
+>        V4L2_CID_FLASH_READY (bool; xenon, LED)
+>
+> Flash is ready to strobe. On xenon flash this tells the capacitor has
+> been charged, on LED flash it's that the LED is no longer too hot.
+>
+> The implementation on LED flash may be modelling the temperature
+> behaviour of the LED in the driver (or elsewhere, e.g. library or board
+> code) if the hardware does not provide direct temperature information
+> from the LED.
+>
+> A V4L2 control event should be produced whenever the flash becomes ready.
+>
+>
+> References
+> ==========
+>
+> [1] http://www.analog.com/static/imported-files/data_sheets/ADP1653.pdf
+>
+> [2] http://www.national.com/mpf/LM/LM3555.html#Overview
+>
+> [3]
+> http://www.austriamicrosystems.com/eng/Products/Lighting-Management/Camera-Flash-LED-Drivers/AS3645
+>
+> [4] http://maemo.org/downloads/product/Maemo5/flashlight-applet/
+>
+> [5]
+> http://www.retiisi.org.uk/v4l2/v4l2-brainstorming-warsaw-2011-03/notes/day%202%20(SGz6LU2esk).html
+>
+> [6]
+> http://www.retiisi.org.uk/v4l2/v4l2-brainstorming-warsaw-2011-03/notes/day%203%20(RhoYa0X9D7).html
+>
+>
+> Cheers,
+>
+> --
+> Sakari Ailus
+> sakari.ailus@maxwell.research.nokia.com
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
