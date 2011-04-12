@@ -1,548 +1,123 @@
 Return-path: <mchehab@pedra>
-Received: from mail1-out1.atlantis.sk ([80.94.52.55]:59324 "EHLO
-	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751985Ab1DRUyi (ORCPT
+Received: from mail02.prevas.se ([62.95.78.10]:6220 "EHLO mail02.prevas.se"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756732Ab1DLH0t convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Apr 2011 16:54:38 -0400
-From: Ondrej Zary <linux@rainbow-software.org>
-To: Joerg Heckenbach <joerg@heckenbach-aw.de>
-Subject: usbvision with Nogatech MicroCam (NV3001P)
-Date: Mon, 18 Apr 2011 22:54:22 +0200
-Cc: Dwaine Garden <dwainegarden@rogers.com>,
-	linux-media@vger.kernel.org
+	Tue, 12 Apr 2011 03:26:49 -0400
+Content-class: urn:content-classes:message
 MIME-Version: 1.0
 Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201104182254.26000.linux@rainbow-software.org>
+	charset="US-ASCII"
+Content-Transfer-Encoding: 8BIT
+Subject: Re: OMAP3 isp single-shot
+Date: Tue, 12 Apr 2011 09:16:02 +0200
+Message-ID: <CA7B7D6C54015B459601D68441548157C5A3CA@prevas1.prevas.se>
+In-Reply-To: <201103291709.38515.laurent.pinchart@ideasonboard.com>
+References: <CA7B7D6C54015B459601D68441548157C5A3AE@prevas1.prevas.se> <201103241135.06025.laurent.pinchart@ideasonboard.com> <CA7B7D6C54015B459601D68441548157C5A3B3@prevas1.prevas.se> <201103291709.38515.laurent.pinchart@ideasonboard.com>
+From: "Daniel Lundborg" <Daniel.Lundborg@prevas.se>
+To: "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>
+Cc: "Sakari Ailus" <sakari.ailus@maxwell.research.nokia.com>,
+	<linux-media@vger.kernel.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
-I have a webcam Nogatech MicroCam (NV3001P) which does not work in Linux.
-It's probably based on NT1003 chip. There are 3 small PCBs connected together
-inside, one with sensor, one with RAM and some unknown chip (no packaging,
-epoxy blob only) and one with another unknown chip.
+Hi Laurent,
 
-I've captured some communication in Windows:
-http://www.rainbow-software.org/linux_files/nogatech/usbsnoop-nogatech.log
+> On Friday 25 March 2011 14:10:28 Daniel Lundborg wrote:
+> > > On Thursday 24 March 2011 11:26:01 Daniel Lundborg wrote:
+> 
+> [snip]
+> 
+> > > > I can see on the oscilloscope that the sensor is sending
+something 
+> > > > when I trigger it, but no picture is received..
+> > > 
+> > > "something" is a bit vague, can you check the hsync/vsync signals 
+> > > and make sure they're identical in both modes ?
+> > 
+> > I have now tested this and I can say that I am having problems 
+> > triggering the sensor. I wrongly thought I was triggering the sensor
 
-But matching the control commands to the usbvision driver does not make any
-sense to me. I wonder if support for this camera could be added to the
-usbvision driver. If not, gspca is probably the way to go.
+> > with my other driver correctly, but that was not the case.
+> > 
+> > What I want is to put the Omap ISP to generate a signal (CAM_WEN) to
 
-lsusb -v output:
+> > make the camera sensor take a picture.
+> 
+> That's not possible. The cam_wen signal is an input to the ISP. The
+ISP Timing Control module can generate pulses on the cam_shutter,
+cam_strobe and cam_global_reset signals only.
 
-Bus 002 Device 002: ID 0573:3001 Zoran Co. Personal Media Division (Nogatech) Dazzle MicroCam (PAL)
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               1.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0
-  bDeviceProtocol         0
-  bMaxPacketSize0         8
-  idVendor           0x0573 Zoran Co. Personal Media Division (Nogatech)
-  idProduct          0x3001 Dazzle MicroCam (PAL)
-  bcdDevice            1.00
-  iManufacturer           0
-  iProduct                0
-  iSerial                 0
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength          377
-    bNumInterfaces          1
-    bConfigurationValue     1
-    iConfiguration          0
-    bmAttributes         0x80
-      (Bus Powered)
-    MaxPower              500mA
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       0
-      bNumEndpoints           2
-      bInterfaceClass         0 (Defined at Interface level)
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x01  EP 1 OUT
-        bmAttributes            0
-          Transfer Type            Control
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0008  1x 8 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0000  1x 0 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       1
-      bNumEndpoints           2
-      bInterfaceClass         0 (Defined at Interface level)
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x01  EP 1 OUT
-        bmAttributes            0
-          Transfer Type            Control
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0008  1x 8 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x03bf  1x 959 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       2
-      bNumEndpoints           2
-      bInterfaceClass         0 (Defined at Interface level)
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x01  EP 1 OUT
-        bmAttributes            0
-          Transfer Type            Control
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0008  1x 8 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x037f  1x 895 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       3
-      bNumEndpoints           2
-      bInterfaceClass         0 (Defined at Interface level)
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x01  EP 1 OUT
-        bmAttributes            0
-          Transfer Type            Control
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0008  1x 8 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x033f  1x 831 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       4
-      bNumEndpoints           2
-      bInterfaceClass         0 (Defined at Interface level)
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x01  EP 1 OUT
-        bmAttributes            0
-          Transfer Type            Control
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0008  1x 8 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x02ff  1x 767 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       5
-      bNumEndpoints           2
-      bInterfaceClass         0 (Defined at Interface level)
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x01  EP 1 OUT
-        bmAttributes            0
-          Transfer Type            Control
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0008  1x 8 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x02bf  1x 703 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       6
-      bNumEndpoints           2
-      bInterfaceClass         0 (Defined at Interface level)
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x01  EP 1 OUT
-        bmAttributes            0
-          Transfer Type            Control
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0008  1x 8 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x027f  1x 639 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       7
-      bNumEndpoints           2
-      bInterfaceClass         0 (Defined at Interface level)
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x01  EP 1 OUT
-        bmAttributes            0
-          Transfer Type            Control
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0008  1x 8 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x023f  1x 575 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       8
-      bNumEndpoints           2
-      bInterfaceClass         0 (Defined at Interface level)
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x01  EP 1 OUT
-        bmAttributes            0
-          Transfer Type            Control
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0008  1x 8 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x01ff  1x 511 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       9
-      bNumEndpoints           2
-      bInterfaceClass         0 (Defined at Interface level)
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x01  EP 1 OUT
-        bmAttributes            0
-          Transfer Type            Control
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0008  1x 8 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x01bf  1x 447 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting      10
-      bNumEndpoints           2
-      bInterfaceClass         0 (Defined at Interface level)
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x01  EP 1 OUT
-        bmAttributes            0
-          Transfer Type            Control
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0008  1x 8 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x017f  1x 383 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting      11
-      bNumEndpoints           2
-      bInterfaceClass         0 (Defined at Interface level)
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x01  EP 1 OUT
-        bmAttributes            0
-          Transfer Type            Control
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0008  1x 8 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x013f  1x 319 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting      12
-      bNumEndpoints           2
-      bInterfaceClass         0 (Defined at Interface level)
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x01  EP 1 OUT
-        bmAttributes            0
-          Transfer Type            Control
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0008  1x 8 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x00ff  1x 255 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting      13
-      bNumEndpoints           2
-      bInterfaceClass         0 (Defined at Interface level)
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x01  EP 1 OUT
-        bmAttributes            0
-          Transfer Type            Control
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0008  1x 8 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x00bf  1x 191 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting      14
-      bNumEndpoints           2
-      bInterfaceClass         0 (Defined at Interface level)
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x01  EP 1 OUT
-        bmAttributes            0
-          Transfer Type            Control
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0008  1x 8 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x007f  1x 127 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting      15
-      bNumEndpoints           2
-      bInterfaceClass         0 (Defined at Interface level)
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x01  EP 1 OUT
-        bmAttributes            0
-          Transfer Type            Control
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0008  1x 8 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x003f  1x 63 bytes
-        bInterval               1
-Device Status:     0x0000
-  (Bus Powered)
+I meant the CAM_WEN pin that should be set as CAM_SHUTTER.. :)
+
+> 
+> What you could do is configure the cam_wen pin as a GPIO and control
+it using the GPIO framework (either in kernelspace or userspace).
+> 
+> > In my working mt9v034 driver which is using kernel 2.6.31-rc7 with
+the 
+> > patches from
+<http://gitorious.org/omap3camera/mainline/commits/slave> 
+> > I set the ISP to this on power on:
+> > 
+> >   isp_reg_and_or(vdev->cam->isp, OMAP3_ISP_IOMEM_MAIN,
+ISP_TCTRL_CTRL, 
+> > 0x9a1b63ff, 0x98036000);  // Set CAM_GLOBAL_RESET pin as output, 
+> > enable shutter, set DIVC = 216
+> 
+> What ISP driver version are you using ? isp_reg_and_or has been
+replaced by isp_reg_clr_set a very long time ago. You should really
+upgrade.
+
+That's what I was trying to do :)
+
+> 
+> >   isp_reg_and(vdev->cam->isp, OMAP3_ISP_IOMEM_MAIN, 
+> > ISP_TCTRL_SHUT_DELAY, 0xfe000000);  // Set no shutter delay
+> >   isp_reg_and_or(vdev->cam->isp, OMAP3_ISP_IOMEM_MAIN, 
+> > ISP_TCTRL_SHUT_LENGTH, 0xfe000000, 0x000003e8);  // Set shutter
+signal 
+> > length to 1000 (=> 1000 * 1/216MHz * 216 = 1 ms)
+> >   isp_reg_and_or(vdev->cam->isp, OMAP3_ISP_IOMEM_MAIN, 
+> > ISP_TCTRL_GRESET_LENGTH, 0xfe000000, 0x000003e8);  // Set shutter 
+> > signal length to 1000 (=> 1000 * 1/216MHz * 216 = 1 ms)
+> >   isp_reg_and(isp_ccdc_dev, OMAP3_ISP_IOMEM_CCDC,
+ISPCCDC_LSC_CONFIG, 
+> > ~ISPCCDC_LSC_ENABLE);  // Make sure you disable LSC
+> > 
+> > And when I want to take a picture I do:
+> > 
+> >   isp_reg_or(vdev->cam->isp, OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_CTRL, 
+> > 0x00e00000);  // Enable shutter (SHUTEN bit = 1)
+> >   isp_reg_or(vdev->cam->isp, OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_CTRL, 
+> > 0x20000000);  // Start generation of CAM_GLOBAL_RESET signal
+(GRESETEN 
+> > bit = 1)
+> > 
+> > When I try to do this in the newer driver I manage to generate a
+pulse 
+> > on the CAM_WEN pin, but no VSYNC, HSYNC or data is transmitted.
+> 
+> I fail to see how that code can generate a pulse on the cam_wen
+signal. It should only control the cam_shutter, cam_strobe and
+cam_global_shutter pins.
+> 
+> > Am I missing something?
+> 
+> Is your sensor correctly configured ? Is there a publicly available
+datasheet for the MT9V034 ?
+
+I found where I was misconfiguring the sensor. I missed setting a bit in
+the CHIP_CONTROL register. So now my driver is running. :)
+
+This is how I set the sensor in shutter mode now:
+
+  // Set chip to shutter mode  
+  temp = mt9v034_read(client, MT9V034_CHIP_CONTROL);
+  temp = 0x0198 | (temp & 0xfeff);
+  ret = mt9v034_write(client, MT9V034_CHIP_CONTROL, temp);
 
 
--- 
-Ondrej Zary
+Thank you,
+
+/Daniel
