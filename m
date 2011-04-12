@@ -1,18 +1,18 @@
 Return-path: <mchehab@pedra>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <t.knura@poczta.fm>) id 1QF97s-0004fO-Ns
-	for linux-dvb@linuxtv.org; Wed, 27 Apr 2011 20:06:38 +0200
-Received: from smtpo.poczta.interia.pl ([217.74.65.205])
-	by mail.tu-berlin.de (exim-4.75/mailfrontend-2) with esmtp
+	(envelope-from <sven_herrmann@hotmail.com>) id 1Q9X2z-0004yh-IK
+	for linux-dvb@linuxtv.org; Tue, 12 Apr 2011 08:25:59 +0200
+Received: from bay0-omc3-s5.bay0.hotmail.com ([65.54.190.143])
+	by mail.tu-berlin.de (exim-4.75/mailfrontend-1) with esmtp
 	for <linux-dvb@linuxtv.org>
-	id 1QF97r-0006WE-Im; Wed, 27 Apr 2011 20:06:11 +0200
-Date: Wed, 27 Apr 2011 20:06:06 +0200
-From: Tomasz Knura <t.knura@poczta.fm>
-To: linux-dvb@linuxtv.org
-Message-Id: <treaetfmnnynynfjgxmb@bjec>
+	id 1Q9X2z-0005Ze-KO; Tue, 12 Apr 2011 08:25:57 +0200
+Message-ID: <BAY152-ds187F1CFA874D89B6F07E879FAB0@phx.gbl>
+From: Sven Herrmann <sven_herrmann@hotmail.com>
+To: <linux-dvb@linuxtv.org>
+Date: Tue, 12 Apr 2011 08:25:52 +0200
 MIME-Version: 1.0
-Subject: [linux-dvb] Pach for Pinnacle PCTV 7010iX
+Subject: [linux-dvb] v4l AverMedia M115S Tuner Problem
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -21,20 +21,81 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============0043194995=="
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 Sender: <mchehab@pedra>
 List-ID: <linux-dvb@linuxtv.org>
 
-SGkKUGxlYXNlIGdpdmUgbWUgdGhlIFBhY2ggd2hpY2ggdGhlIGF1dGhvciB1c2VkIG9uIHRoZSBX
-aWtpIHBhZ2UgaHR0cDovL3d3dy5saW51eHR2Lm9yZy93aWtpL2luZGV4LnBocC9QaW5uYWNsZV9Q
-Q1RWXzcwMTBpWCwKb3Igc2hvdyBtZSB3aGVyZSBJIGNhbiBmaW5kIGl0LgoKSSBjb21waWxlIFNB
-QTcxNnhfaGlicmlkIGRyaXZlciBidXQgaXQgbm90IHN1cHBvcnQgbXkgY2FyZC4KCi0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpE
-YXJtb3d5IHByb2dyYW0gZG8gd3lwZcWCbmlhbmlhIFBJVDogaHR0cDovL2xpbmtpbnQucGwvZjI5
-MzEKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51
-eC1kdmIgdXNlcnMgbWFpbGluZyBsaXN0CkZvciBWNEwvRFZCIGRldmVsb3BtZW50LCBwbGVhc2Ug
-dXNlIGluc3RlYWQgbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnCmxpbnV4LWR2YkBsaW51eHR2
-Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51
-eC1kdmI=
+--===============0043194995==
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0013_01CBF8EB.3C6D9A50"
+
+------=_NextPart_000_0013_01CBF8EB.3C6D9A50
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Hello=20
+
+i have a Sony-Vaio VGN-AR31S with a Avermedia M115S ( hybrid-tuner).
+has anyone get this card working ? I have tried many tuners with saa7134 =
+card=3D137 tuner=3DXX.
+
+But no tuner works/loads.=20
+
+The video-capture for Sony VCC4 cam (r5u87x) works perfect. The Vaio can =
+not boot to any other operationg system
+like windows. Ubuntu/OpenSuse only works with kernel-params =
+=E2=80=9Cnolapic=E2=80=9D.
+
+Has anyone a hint or a tip for me?
+
+Best regards=20
+
+Sven
+
+------=_NextPart_000_0013_01CBF8EB.3C6D9A50
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<HTML><HEAD></HEAD>
+<BODY dir=3Dltr>
+<DIV dir=3Dltr>
+<DIV style=3D"FONT-FAMILY: 'Calibri'; COLOR: #000000; FONT-SIZE: 12pt">
+<DIV>Hello </DIV>
+<DIV>&nbsp;</DIV>
+<DIV>i have a Sony-Vaio VGN-AR31S with a Avermedia M115S ( =
+hybrid-tuner).</DIV>
+<DIV>has anyone get this card working ? I have tried many tuners with =
+saa7134=20
+card=3D137 tuner=3DXX.</DIV>
+<DIV>&nbsp;</DIV>
+<DIV>But no tuner works/loads. </DIV>
+<DIV>&nbsp;</DIV>
+<DIV>The video-capture for Sony VCC4 cam (r5u87x) works perfect. The =
+Vaio can=20
+not boot to any other operationg system</DIV>
+<DIV>like windows. Ubuntu/OpenSuse only works with kernel-params=20
+=E2=80=9Cnolapic=E2=80=9D.</DIV>
+<DIV>&nbsp;</DIV>
+<DIV>Has anyone a hint or a tip for me?</DIV>
+<DIV>&nbsp;</DIV>
+<DIV>Best regards </DIV>
+<DIV>&nbsp;</DIV>
+<DIV>Sven</DIV>
+<DIV>&nbsp;</DIV></DIV></DIV></BODY></HTML>
+
+------=_NextPart_000_0013_01CBF8EB.3C6D9A50--
+
+
+--===============0043194995==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0043194995==--
