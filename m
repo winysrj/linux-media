@@ -1,57 +1,92 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.22]:48287 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755106Ab1DWTOz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Apr 2011 15:14:55 -0400
-From: Oliver Endriss <o.endriss@gmx.de>
-Reply-To: linux-media@vger.kernel.org
-To: Issa Gorissen <flop.m@usa.net>
-Subject: Re: ngene CI problems
-Date: Sat, 23 Apr 2011 21:14:29 +0200
-Cc: linux-media@vger.kernel.org
-References: <4D74E28A.6030302@gmail.com> <201104231940.34575@orion.escape-edv.de> <4DB320EF.3080301@usa.net>
-In-Reply-To: <4DB320EF.3080301@usa.net>
+Received: from ffm.saftware.de ([83.141.3.46]:53703 "EHLO ffm.saftware.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752057Ab1DMSUQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Apr 2011 14:20:16 -0400
+Message-ID: <4DA5E957.3020702@linuxtv.org>
+Date: Wed, 13 Apr 2011 20:20:07 +0200
+From: Andreas Oberritter <obi@linuxtv.org>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+To: Robby Workman <rworkman@slackware.com>
+CC: linux-media@vger.kernel.org,
+	Patrick Volkerding <volkerdi@slackware.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCHES] Misc. trivial fixes
+References: <alpine.LNX.2.00.1104111908050.32072@connie.slackware.com> <4DA441D9.2000601@linuxtv.org> <alpine.LNX.2.00.1104120729280.7359@connie.slackware.com>
+In-Reply-To: <alpine.LNX.2.00.1104120729280.7359@connie.slackware.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201104232114.31998@orion.escape-edv.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Saturday 23 April 2011 20:56:47 Issa Gorissen wrote:
-> On 23/04/11 19:40, Oliver Endriss wrote:
-> > On Saturday 23 April 2011 00:16:56 Issa Gorissen wrote:
-> >> Running a bunch of test with gnutv and a DuoFLEX S2.
-> >>
-> >> I saw the same problem concerning the decryption with a CAM.
-> >>
-> >> I'm running kern 2.6.39 rc 4 with the latest patches from Oliver. Also
-> >> applied the patch moving from SEC to CAIO.
-> > If you are running 2.6.39rc4, you must apply patch
-> > http://www.mail-archive.com/linux-media@vger.kernel.org/msg29870.html
-> > Otherwise the data will be garbled.
+On 04/12/2011 04:31 PM, Robby Workman wrote:
+> On Tue, 12 Apr 2011, Andreas Oberritter wrote:
 > 
-> Oliver, this patch was applied already. I'm hacking the ts_read/ts_write
-> method, but so far, haven't manage to get it work.
+>> On 04/12/2011 04:10 AM, Robby Workman wrote:
+>>> --- a/Make.rules
+>>> +++ b/Make.rules
+>>> @@ -11,6 +11,7 @@ PREFIX = /usr/local
+>>>  LIBDIR = $(PREFIX)/lib
+>>>  # subdir below LIBDIR in which to install the libv4lx libc wrappers
+>>>  LIBSUBDIR = libv4l
+>>> +MANDIR = /usr/share/man
+>>
+>> Why did you hardcode /usr instead of keeping $(PREFIX)/share/man?
+> 
+> 
+> Eek.  I'd like to say that I sent the wrong patch, but alas, I
+> simply had a thinko.  See attached (better) patch :-)
 
-Basically you should not have to hack anything.
+Looks good. Mauro, will you pick up this patch?
 
-- Setup the CI as with any conventional device.
-- Write the encrypted stream into sec0.
-- Read the decrypted stream from sec0.
+Regards,
+Andreas
 
-This should work. (Please note that I could do some loopback tests only,
-as I am not watching paytv.)
+> 
+> -RW
+> 
+> 
+> 0002-Allow-override-of-manpage-installation-directory.patch
+> 
+> 
+> From 6ef4a1fecee242be9658528ef7663845d9bd6bc6 Mon Sep 17 00:00:00 2001
+> From: Robby Workman <rworkman@slackware.com>
+> Date: Tue, 12 Apr 2011 09:26:57 -0500
+> Subject: [PATCH] Allow override of manpage installation directory
+> 
+> This creates MANDIR in Make.rules and keeps the preexisting
+> default of $(PREFIX)/share/man, but allows packagers to easily
+> override via e.g. "make MANDIR=/usr/man"
+> ---
+>  Make.rules              |    1 +
+>  utils/keytable/Makefile |    4 ++--
+>  2 files changed, 3 insertions(+), 2 deletions(-)
+> 
+> diff --git a/Make.rules b/Make.rules
+> index 0bb2eb8..875828a 100644
+> --- a/Make.rules
+> +++ b/Make.rules
+> @@ -11,6 +11,7 @@ PREFIX = /usr/local
+>  LIBDIR = $(PREFIX)/lib
+>  # subdir below LIBDIR in which to install the libv4lx libc wrappers
+>  LIBSUBDIR = libv4l
+> +MANDIR = $(PREFIX)/share/man
+>  
+>  # These ones should not be overriden from the cmdline
+>  
+> diff --git a/utils/keytable/Makefile b/utils/keytable/Makefile
+> index 29a6ac4..e093280 100644
+> --- a/utils/keytable/Makefile
+> +++ b/utils/keytable/Makefile
+> @@ -39,7 +39,7 @@ install: $(TARGETS)
+>  	install -m 644 -p rc_keymaps/* $(DESTDIR)/etc/rc_keymaps
+>  	install -m 755 -d $(DESTDIR)/lib/udev/rules.d
+>  	install -m 644 -p 70-infrared.rules $(DESTDIR)/lib/udev/rules.d
+> -	install -m 755 -d $(DESTDIR)$(PREFIX)/share/man/man1
+> -	install -m 644 -p ir-keytable.1 $(DESTDIR)$(PREFIX)/share/man/man1
+> +	install -m 755 -d $(DESTDIR)$(MANDIR)/man1
+> +	install -m 644 -p ir-keytable.1 $(DESTDIR)$(MANDIR)/man1
+>  
+>  include ../../Make.rules
+> -- 1.7.4.4
 
-CU
-Oliver
-
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
-Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
-----------------------------------------------------------------
