@@ -1,92 +1,105 @@
 Return-path: <mchehab@pedra>
-Received: from ffm.saftware.de ([83.141.3.46]:53703 "EHLO ffm.saftware.de"
+Received: from mx1.redhat.com ([209.132.183.28]:8874 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752057Ab1DMSUQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Apr 2011 14:20:16 -0400
-Message-ID: <4DA5E957.3020702@linuxtv.org>
-Date: Wed, 13 Apr 2011 20:20:07 +0200
-From: Andreas Oberritter <obi@linuxtv.org>
+	id S1756985Ab1DMTKs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Apr 2011 15:10:48 -0400
+Date: Wed, 13 Apr 2011 15:10:43 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Douglas Clowes <dclowes1@optusnet.com.au>
+Subject: [PATCH 2/2 v2] [media] rc/nuvoton-cir: enable CIR on w83667hg chip
+ variant
+Message-ID: <20110413191043.GA23183@redhat.com>
+References: <1302639802-22723-1-git-send-email-jarod@redhat.com>
+ <1302639802-22723-3-git-send-email-jarod@redhat.com>
 MIME-Version: 1.0
-To: Robby Workman <rworkman@slackware.com>
-CC: linux-media@vger.kernel.org,
-	Patrick Volkerding <volkerdi@slackware.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCHES] Misc. trivial fixes
-References: <alpine.LNX.2.00.1104111908050.32072@connie.slackware.com> <4DA441D9.2000601@linuxtv.org> <alpine.LNX.2.00.1104120729280.7359@connie.slackware.com>
-In-Reply-To: <alpine.LNX.2.00.1104120729280.7359@connie.slackware.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1302639802-22723-3-git-send-email-jarod@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 04/12/2011 04:31 PM, Robby Workman wrote:
-> On Tue, 12 Apr 2011, Andreas Oberritter wrote:
-> 
->> On 04/12/2011 04:10 AM, Robby Workman wrote:
->>> --- a/Make.rules
->>> +++ b/Make.rules
->>> @@ -11,6 +11,7 @@ PREFIX = /usr/local
->>>  LIBDIR = $(PREFIX)/lib
->>>  # subdir below LIBDIR in which to install the libv4lx libc wrappers
->>>  LIBSUBDIR = libv4l
->>> +MANDIR = /usr/share/man
->>
->> Why did you hardcode /usr instead of keeping $(PREFIX)/share/man?
-> 
-> 
-> Eek.  I'd like to say that I sent the wrong patch, but alas, I
-> simply had a thinko.  See attached (better) patch :-)
+Thanks to some excellent investigative work by Douglas Clowes, it was
+uncovered that the older w83667hg Nuvoton chip functions with this
+driver after actually enabling the CIR function via its multi-function
+chip config register. The CIR and CIR wide-band sensor enable bits are
+just in a different place on this hardware, so we only poke register
+0x27 on 677 hardware now, and we poke register 0x2c on the 667 now.
 
-Looks good. Mauro, will you pick up this patch?
+Reported-by: Douglas Clowes <dclowes1@optusnet.com.au>
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
+---
+ drivers/media/rc/nuvoton-cir.c |   22 ++++++++++++++++------
+ drivers/media/rc/nuvoton-cir.h |    7 +++++++
+ 2 files changed, 23 insertions(+), 6 deletions(-)
 
-Regards,
-Andreas
+diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
+index bc5c1e2..5d93384 100644
+--- a/drivers/media/rc/nuvoton-cir.c
++++ b/drivers/media/rc/nuvoton-cir.c
+@@ -291,13 +291,23 @@ static int nvt_hw_detect(struct nvt_dev *nvt)
+ 
+ static void nvt_cir_ldev_init(struct nvt_dev *nvt)
+ {
+-	u8 val;
++	u8 val, psreg, psmask, psval;
++
++	if (nvt->chip_major == CHIP_ID_HIGH_667) {
++		psreg  = CR_MULTIFUNC_PIN_SEL;
++		psmask = MULTIFUNC_PIN_SEL_MASK;
++		psval  = MULTIFUNC_ENABLE_CIR | MULTIFUNC_ENABLE_CIRWB;
++	} else {
++		psreg  = CR_OUTPUT_PIN_SEL;
++		psmask = OUTPUT_PIN_SEL_MASK;
++		psval  = OUTPUT_ENABLE_CIR | OUTPUT_ENABLE_CIRWB;
++	}
+ 
+-	/* output pin selection (Pin95=CIRRX, Pin96=CIRTX1, WB enabled */
+-	val = nvt_cr_read(nvt, CR_OUTPUT_PIN_SEL);
+-	val &= OUTPUT_PIN_SEL_MASK;
+-	val |= (OUTPUT_ENABLE_CIR | OUTPUT_ENABLE_CIRWB);
+-	nvt_cr_write(nvt, val, CR_OUTPUT_PIN_SEL);
++	/* output pin selection: enable CIR, with WB sensor enabled */
++	val = nvt_cr_read(nvt, psreg);
++	val &= psmask;
++	val |= psval;
++	nvt_cr_write(nvt, val, psreg);
+ 
+ 	/* Select CIR logical device and enable */
+ 	nvt_select_logical_dev(nvt, LOGICAL_DEV_CIR);
+diff --git a/drivers/media/rc/nuvoton-cir.h b/drivers/media/rc/nuvoton-cir.h
+index cc8cee3..379795d 100644
+--- a/drivers/media/rc/nuvoton-cir.h
++++ b/drivers/media/rc/nuvoton-cir.h
+@@ -345,6 +345,7 @@ struct nvt_dev {
+ #define CR_CHIP_ID_LO		0x21
+ #define CR_DEV_POWER_DOWN	0x22 /* bit 2 is CIR power, default power on */
+ #define CR_OUTPUT_PIN_SEL	0x27
++#define CR_MULTIFUNC_PIN_SEL	0x2c
+ #define CR_LOGICAL_DEV_EN	0x30 /* valid for all logical devices */
+ /* next three regs valid for both the CIR and CIR_WAKE logical devices */
+ #define CR_CIR_BASE_ADDR_HI	0x60
+@@ -368,10 +369,16 @@ struct nvt_dev {
+ #define CIR_INTR_MOUSE_IRQ_BIT	0x80
+ #define PME_INTR_CIR_PASS_BIT	0x08
+ 
++/* w83677hg CIR pin config */
+ #define OUTPUT_PIN_SEL_MASK	0xbc
+ #define OUTPUT_ENABLE_CIR	0x01 /* Pin95=CIRRX, Pin96=CIRTX1 */
+ #define OUTPUT_ENABLE_CIRWB	0x40 /* enable wide-band sensor */
+ 
++/* w83667hg CIR pin config */
++#define MULTIFUNC_PIN_SEL_MASK	0x1f
++#define MULTIFUNC_ENABLE_CIR	0x80 /* Pin75=CIRRX, Pin76=CIRTX1 */
++#define MULTIFUNC_ENABLE_CIRWB	0x20 /* enable wide-band sensor */
++
+ /* MCE CIR signal length, related on sample period */
+ 
+ /* MCE CIR controller signal length: about 43ms
+-- 
+1.7.1
 
-> 
-> -RW
-> 
-> 
-> 0002-Allow-override-of-manpage-installation-directory.patch
-> 
-> 
-> From 6ef4a1fecee242be9658528ef7663845d9bd6bc6 Mon Sep 17 00:00:00 2001
-> From: Robby Workman <rworkman@slackware.com>
-> Date: Tue, 12 Apr 2011 09:26:57 -0500
-> Subject: [PATCH] Allow override of manpage installation directory
-> 
-> This creates MANDIR in Make.rules and keeps the preexisting
-> default of $(PREFIX)/share/man, but allows packagers to easily
-> override via e.g. "make MANDIR=/usr/man"
-> ---
->  Make.rules              |    1 +
->  utils/keytable/Makefile |    4 ++--
->  2 files changed, 3 insertions(+), 2 deletions(-)
-> 
-> diff --git a/Make.rules b/Make.rules
-> index 0bb2eb8..875828a 100644
-> --- a/Make.rules
-> +++ b/Make.rules
-> @@ -11,6 +11,7 @@ PREFIX = /usr/local
->  LIBDIR = $(PREFIX)/lib
->  # subdir below LIBDIR in which to install the libv4lx libc wrappers
->  LIBSUBDIR = libv4l
-> +MANDIR = $(PREFIX)/share/man
->  
->  # These ones should not be overriden from the cmdline
->  
-> diff --git a/utils/keytable/Makefile b/utils/keytable/Makefile
-> index 29a6ac4..e093280 100644
-> --- a/utils/keytable/Makefile
-> +++ b/utils/keytable/Makefile
-> @@ -39,7 +39,7 @@ install: $(TARGETS)
->  	install -m 644 -p rc_keymaps/* $(DESTDIR)/etc/rc_keymaps
->  	install -m 755 -d $(DESTDIR)/lib/udev/rules.d
->  	install -m 644 -p 70-infrared.rules $(DESTDIR)/lib/udev/rules.d
-> -	install -m 755 -d $(DESTDIR)$(PREFIX)/share/man/man1
-> -	install -m 644 -p ir-keytable.1 $(DESTDIR)$(PREFIX)/share/man/man1
-> +	install -m 755 -d $(DESTDIR)$(MANDIR)/man1
-> +	install -m 644 -p ir-keytable.1 $(DESTDIR)$(MANDIR)/man1
->  
->  include ../../Make.rules
-> -- 1.7.4.4
+-- 
+Jarod Wilson
+jarod@redhat.com
 
