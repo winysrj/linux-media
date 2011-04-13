@@ -1,52 +1,42 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.22]:33867 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752485Ab1DUKGF (ORCPT
+Received: from d1.icnet.pl ([212.160.220.21]:51204 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752117Ab1DMNMW convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Apr 2011 06:06:05 -0400
-Date: Thu, 21 Apr 2011 12:06:00 +0200
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Bob Liu <lliubbo@gmail.com>
-Cc: linux-media@vger.kernel.org, dhowells@redhat.com,
-	linux-uvc-devel@lists.berlios.de, mchehab@redhat.com,
-	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@maxwell.research.nokia.com, martin_rubli@logitech.com,
-	jarod@redhat.com, tj@kernel.org, arnd@arndb.de, fweisbec@gmail.com,
-	agust@denx.de, gregkh@suse.de, vapier@gentoo.org
-Subject: Re: [PATCH v3] media:uvc_driver: add uvc support on no-mmu arch
-Message-ID: <20110421100600.GA8593@minime.bse>
-References: <1303355862-17507-1-git-send-email-lliubbo@gmail.com>
- <20110421075947.GA8178@minime.bse>
- <BANLkTimHX8aYoeSU1ES0Tw0Swaz9xYLt=Q@mail.gmail.com>
- <20110421094743.GA8503@minime.bse>
- <BANLkTimO-4ubi7qUCncB9Z+wwNx1LURvfQ@mail.gmail.com>
+	Wed, 13 Apr 2011 09:12:22 -0400
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+To: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [PATCH 2.6.39 v2] V4L: videobuf-dma-contig: fix mmap_mapper broken on ARM
+Date: Wed, 13 Apr 2011 15:11:41 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Jiri Slaby <jslaby@suse.cz>,
+	linux-arm-kernel@lists.infradead.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <201104122306.34909.jkrzyszt@tis.icnet.pl> <4DA59120.1070402@ru.mvista.com>
+In-Reply-To: <4DA59120.1070402@ru.mvista.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <BANLkTimO-4ubi7qUCncB9Z+wwNx1LURvfQ@mail.gmail.com>
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201104131511.42171.jkrzyszt@tis.icnet.pl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, Apr 21, 2011 at 05:57:31PM +0800, Bob Liu wrote:
-> On Thu, Apr 21, 2011 at 5:47 PM, Daniel Gl�ckner <daniel-gl@gmx.net> wrote:
-> > On Thu, Apr 21, 2011 at 04:20:36PM +0800, Bob Liu wrote:
-> >> > on mmu systems do_mmap_pgoff contains a len = PAGE_ALIGN(len); line.
-> >> > If we depend on this behavior, why not do it here as well and get rid
-> >> > of the #ifdef?
-> >> >
-> >>
-> >> If do it in do_mmap_pgoff() the whole system will be effected, I am
-> >> not sure whether
-> >> it's correct and needed for other subsystem.
-> >
-> > With "here" I was referring to uvc_queue_mmap.
-> >
+Dnia środa 13 kwiecień 2011 o 14:03:44 Sergei Shtylyov napisał(a):
+> Hello.
 > 
-> I am sorry, I didn't get your idea. You mean using  PAGE_ALIGN() here for both
-> mmu and no-mmu arch ?
+> On 13-04-2011 1:06, Janusz Krzysztofik wrote:
+> > After switching from mem->dma_handle to virt_to_phys(mem->vaddr)
+> > used for obtaining page frame number passed to remap_pfn_range()
+> > (commit 35d9f510b67b10338161aba6229d4f55b4000f5b),
+> > videobuf-dma-contig
+> 
+>     Please specify the commit summary -- for the human readers.
 
-Yes, rounding size to pages also increases the chance of the following
-while loop to end, should mmu do_mmap_pgoff ever have that line removed.
+Hi,
+OK, I'll try to reword the summary using a more human friendly language 
+as soon as I have signs that Mauro (who seemed to understand the message 
+well enough) is willing to accept the code.
 
-  Daniel
+Thanks,
+Janusz
