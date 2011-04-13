@@ -1,70 +1,53 @@
 Return-path: <mchehab@pedra>
-Received: from smtp204.alice.it ([82.57.200.100]:33197 "EHLO smtp204.alice.it"
+Received: from d1.icnet.pl ([212.160.220.21]:34630 "EHLO d1.icnet.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752483Ab1DSTyv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Apr 2011 15:54:51 -0400
-Date: Tue, 19 Apr 2011 21:54:39 +0200
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [GIT PATCHES FOR 2.6.40] gspca for_v2.6.40
-Message-Id: <20110419215439.247343e7.ospite@studenti.unina.it>
-In-Reply-To: <20110419202029.7c9dfd14@tele>
-References: <20110419202029.7c9dfd14@tele>
-Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Tue__19_Apr_2011_21_54_39_+0200_P71c_K0I1.nddqqx"
+	id S1757164Ab1DMKWG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Apr 2011 06:22:06 -0400
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+To: Jiri Slaby <jslaby@suse.cz>
+Subject: Re: V4L/ARM: videobuf-dma-contig no longer works on my ARM machine
+Date: Wed, 13 Apr 2011 12:20:43 +0200
+Cc: "Russell King - ARM Linux" <linux@arm.linux.org.uk>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+References: <201009301335.51643.jkrzyszt@tis.icnet.pl> <201104091711.00191.jkrzyszt@tis.icnet.pl> <4DA08C80.5040205@suse.cz>
+In-Reply-To: <4DA08C80.5040205@suse.cz>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201104131220.44430.jkrzyszt@tis.icnet.pl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
---Signature=_Tue__19_Apr_2011_21_54_39_+0200_P71c_K0I1.nddqqx
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Dnia sobota 09 kwiecień 2011 o 18:42:40 Jiri Slaby napisał(a):
+> On 04/09/2011 05:10 PM, Janusz Krzysztofik wrote:
+> > (CC: Jiri Slaby, the author of the problematic change; truncate
+> > subject)
+> > 
+> > On Sat, 09 Apr 2011, at 09:16:24, Russell King - ARM Linux wrote:
+> >> On Sat, Apr 09, 2011 at 03:33:39AM +0200, Janusz Krzysztofik wrote:
+> >>> Since there were no actual problems reported before, I suppose
+> >>> the old code, which was passing to remap_pfn_range() a physical
+> >>> page number calculated from dma_alloc_coherent() privided
+> >>> dma_handle, worked correctly on all platforms actually using
+> >>> videobud-dma-config.
+> 
+> No, it didn't when IOMMU was used. 
 
-On Tue, 19 Apr 2011 20:20:29 +0200
-Jean-Francois Moine <moinejf@free.fr> wrote:
+Taking into account that I'm just trying to fix a regression, and not 
+invent a new, long term solution: are you able to name a board which a) 
+is already supported in 2.6.39, b) is (or can be) equipped with a device 
+supported by a V4L driver which uses videobuf-dma-config susbsystem, c) 
+uses IOMMU? If there is one, than I agree that reverting the patch is 
+not a good option.
 
-> The following changes since commit
-> d58307d6a1e2441ebaf2d924df4346309ff84c7d:
->=20
->   [media] anysee: add more info about known board configs (2011-04-19 10:=
-35:37 -0300)
->=20
-> are available in the git repository at:
->   git://linuxtv.org/jfrancois/gspca.git for_v2.6.40
->=20
-> Antonio Ospite (2):
->       Add Y10B, a 10 bpp bit-packed greyscale format.
->       gspca - kinect: New subdriver for Microsoft Kinect
->=20
+> Because remap_pfn_range didn't get
+> a physical page address.
 
-Ah glad to see that, so there was no major concern on the code, was
-there?
+If I didn't understand it, I wouldn't try to find a solution other than 
+reverting your patch.
 
-Thanks Jean-Francois,
-   Antonio
-
---=20
-Antonio Ospite
-http://ao2.it
-
-PGP public key ID: 0x4553B001
-
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
-
---Signature=_Tue__19_Apr_2011_21_54_39_+0200_P71c_K0I1.nddqqx
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEARECAAYFAk2t6H8ACgkQ5xr2akVTsAFKTQCZAZ83GlUTK0CU6Ezy3hHqPKE2
-7bYAniB5nIQyV5NW3n1B2xIsyB07al3q
-=7dqF
------END PGP SIGNATURE-----
-
---Signature=_Tue__19_Apr_2011_21_54_39_+0200_P71c_K0I1.nddqqx--
+Thanks,
+Janusz
