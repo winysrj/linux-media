@@ -1,38 +1,50 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:43941 "EHLO
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:45152 "EHLO
 	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756833Ab1DZGhk (ORCPT
+	with ESMTP id S1751138Ab1DMRiR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Apr 2011 02:37:40 -0400
-Received: by bwz15 with SMTP id 15so258961bwz.19
-        for <linux-media@vger.kernel.org>; Mon, 25 Apr 2011 23:37:39 -0700 (PDT)
-Message-ID: <4DB6682F.2010109@gmail.com>
-Date: Tue, 26 Apr 2011 08:37:35 +0200
-From: Vladimir Pantelic <vladoman@gmail.com>
+	Wed, 13 Apr 2011 13:38:17 -0400
+Received: by bwz15 with SMTP id 15so769588bwz.19
+        for <linux-media@vger.kernel.org>; Wed, 13 Apr 2011 10:38:16 -0700 (PDT)
+Message-ID: <4DA5DF1E.1040302@ru.mvista.com>
+Date: Wed, 13 Apr 2011 21:36:30 +0400
+From: Sergei Shtylyov <sshtylyov@mvista.com>
 MIME-Version: 1.0
-To: Manjunath Hadli <manjunath.hadli@ti.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	Kevin Hilman <khilman@deeprootsystems.com>,
-	LAK <linux-arm-kernel@lists.infradead.org>,
-	Sekhar Nori <nsekhar@ti.com>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>
-Subject: Re: [PATCH v16 01/13] davinci vpbe: V4L2 display driver for DM644X
- SoC
-References: <1301737249-4012-1-git-send-email-manjunath.hadli@ti.com>
-In-Reply-To: <1301737249-4012-1-git-send-email-manjunath.hadli@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+CC: Sergei Shtylyov <sshtylyov@mvista.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Jiri Slaby <jslaby@suse.cz>,
+	linux-arm-kernel@lists.infradead.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 2.6.39 v2] V4L: videobuf-dma-contig: fix mmap_mapper broken
+ on ARM
+References: <201104122306.34909.jkrzyszt@tis.icnet.pl> <4DA59120.1070402@ru.mvista.com> <201104131511.42171.jkrzyszt@tis.icnet.pl>
+In-Reply-To: <201104131511.42171.jkrzyszt@tis.icnet.pl>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Manjunath Hadli wrote:
-> This is the display driver for Texas Instruments's DM644X family
-> SoC. This patch contains the main implementation of the driver with the
-> V4L2 interface. The driver implements the streaming model with
-> support for both kernel allocated buffers and user pointers. It also
-> implements all of the necessary IOCTLs necessary and supported by the
-> video display device.
+Hello.
 
-is there any hope/chance to make this share code with the omap v4l2
-driver in drivers/media/video/omap?
+Janusz Krzysztofik wrote:
 
+>>> After switching from mem->dma_handle to virt_to_phys(mem->vaddr)
+>>> used for obtaining page frame number passed to remap_pfn_range()
+>>> (commit 35d9f510b67b10338161aba6229d4f55b4000f5b),
+>>> videobuf-dma-contig
+
+>>     Please specify the commit summary -- for the human readers.
+
+> Hi,
+> OK, I'll try to reword the summary using a more human friendly language 
+> as soon as I have signs that Mauro (who seemed to understand the message 
+> well enough) is willing to accept the code.
+
+    I wasn't asking you to rework your summary but to specify the summary of the 
+commit you've mentioned (in parens).
+
+> Thanks,
+> Janusz
+
+WBR, Sergei
