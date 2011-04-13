@@ -1,81 +1,100 @@
-Return-path: <mchehab@gaivota>
-Received: from moutng.kundenserver.de ([212.227.126.187]:57449 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751339Ab1DKJCT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Apr 2011 05:02:19 -0400
-Date: Mon, 11 Apr 2011 11:02:16 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sergio Aguirre <saaguirre@ti.com>
-Subject: Re: [PATCH 2.6.39] soc_camera: OMAP1: fix missing bytesperline and
- sizeimage initialization
-In-Reply-To: <201104110000.56040.jkrzyszt@tis.icnet.pl>
-Message-ID: <Pine.LNX.4.64.1104111058440.18511@axis700.grange>
-References: <201104090158.04827.jkrzyszt@tis.icnet.pl>
- <Pine.LNX.4.64.1104101751380.12697@axis700.grange> <201104110000.56040.jkrzyszt@tis.icnet.pl>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Return-path: <mchehab@pedra>
+Received: from smtp.nokia.com ([147.243.128.24]:49183 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753404Ab1DMJOk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Apr 2011 05:14:40 -0400
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
+Subject: [RFC 1/1] v4l: Improve error handling in v4l2_device_register_subdev()
+Date: Wed, 13 Apr 2011 12:17:04 +0300
+Message-Id: <1302686224-32616-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On Mon, 11 Apr 2011, Janusz Krzysztofik wrote:
+In some cases v4l2_device_register_subdev() did not module_put() a module
+the user count of which was incremented by try_module_get() earlier.
 
-> Dnia niedziela 10 kwiecień 2011 o 18:00:14 Guennadi Liakhovetski 
-> napisał(a):
-> > Hi Janusz
-> > 
-> > On Sat, 9 Apr 2011, Janusz Krzysztofik wrote:
-> > > Since commit 0e4c180d3e2cc11e248f29d4c604b6194739d05a, bytesperline
-> > > and sizeimage memebers of v4l2_pix_format structure have no longer
-> > > been calculated inside soc_camera_g_fmt_vid_cap(), but rather
-> > > passed via soc_camera_device structure from a host driver callback
-> > > invoked by soc_camera_set_fmt().
-> > > 
-> > > OMAP1 camera host driver has never been providing these parameters,
-> > > so it no longer works correctly. Fix it by adding suitable
-> > > assignments to omap1_cam_set_fmt().
-> > 
-> > Thanks for the patch, but now it looks like many soc-camera host
-> > drivers are re-implementing this very same calculation in different
-> > parts of their code - in try_fmt, set_fmt, get_fmt. Why don't we
-> > unify them all, implement this centrally in soc_camera.c and remove
-> > all those calculations? 
-> 
-> Wasn't it already unified before commit in question?
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+Hi,
 
-Please test the patch, I've sent a minute ago.
+I'm sending this as an RFC since technically this leaves still room for
+improvement.
 
-Thanks
-Guennadi
+v4l2_ctrl_add_handler() error handling is still to be implemented. The
+controls are added to the parent and that needs to be cleaned up ---
+actually, even if v4l2_ctrl_add_handler() fails, the added controls would
+have to be removed from the v4l2_dev parent.
 
-> 
-> > Could you cook up a patch or maybe several
-> > patches - for soc_camera.c and all drivers?
-> 
-> Perhaps I could, as soon as I found some spare time, but first I'd have 
-> to really understand why we need bytesperline or sizeimage handling 
-> being changed from how they worked before commit 
-> 0e4c180d3e2cc11e248f29d4c604b6194739d05a was introduced. I never had a 
-> need to customize bytesperline or sizeimage calculations in my driver. 
-> 
-> But even then, I think these new patches would rather qualify for next 
-> merge window, while the OMAP1 driver case is just a regression, caused 
-> by an alredy applied, unrelated change to the underlying framework, and 
-> requires a fix if that change is not going to be reverted.
-> 
-> Maybe the author of the change, Sergio Aguirre form TI (CCing him), 
-> could rework his patch in a way which wouldn't impose, as a side effect, 
-> the new requirement of those structure members being passed from host 
-> drivers?
-> 
-> Thanks,
-> Janusz
-> 
+I don't see an easy way to do this, except to call v4l2_ctrl_handler_free().
+But that also cleans up the existing controls in the parent, which might not
+be desirable.
+
+As far as I understand, no driver initialises the v4l2_dev->ctrl_handler for
+the moment.
 
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/video/v4l2-device.c |   30 ++++++++++++++++++------------
+ 1 files changed, 18 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
+index 5aeaf87..773146d 100644
+--- a/drivers/media/video/v4l2-device.c
++++ b/drivers/media/video/v4l2-device.c
+@@ -156,27 +156,20 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+ 	if (sd->internal_ops && sd->internal_ops->registered) {
+ 		err = sd->internal_ops->registered(sd);
+ 		if (err)
+-			return err;
++			goto err_registered;
+ 	}
+ 
+ 	/* This just returns 0 if either of the two args is NULL */
+ 	err = v4l2_ctrl_add_handler(v4l2_dev->ctrl_handler, sd->ctrl_handler);
+-	if (err) {
+-		if (sd->internal_ops && sd->internal_ops->unregistered)
+-			sd->internal_ops->unregistered(sd);
+-		return err;
+-	}
++	if (err)
++		goto err_v4l2_ctrl_add_handler;
+ 
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 	/* Register the entity. */
+ 	if (v4l2_dev->mdev) {
+ 		err = media_device_register_entity(v4l2_dev->mdev, entity);
+-		if (err < 0) {
+-			if (sd->internal_ops && sd->internal_ops->unregistered)
+-				sd->internal_ops->unregistered(sd);
+-			module_put(sd->owner);
+-			return err;
+-		}
++		if (err < 0)
++			goto err_media_device_register_entity;
+ 	}
+ #endif
+ 
+@@ -185,6 +178,19 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+ 	spin_unlock(&v4l2_dev->lock);
+ 
+ 	return 0;
++
++#if defined(CONFIG_MEDIA_CONTROLLER)
++err_media_device_register_entity:
++#endif
++err_v4l2_ctrl_add_handler:
++	/* FIXME: v4l2_ctrl_add_handler() error handling. */
++	if (sd->internal_ops && sd->internal_ops->unregistered)
++		sd->internal_ops->unregistered(sd);
++
++err_registered:
++	module_put(sd->owner);
++
++	return err;
+ }
+ EXPORT_SYMBOL_GPL(v4l2_device_register_subdev);
+ 
+-- 
+1.7.2.5
+
