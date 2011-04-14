@@ -1,143 +1,90 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.187]:61588 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755938Ab1DGMlU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Apr 2011 08:41:20 -0400
-Date: Thu, 7 Apr 2011 14:41:18 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Teresa Gamez <T.Gamez@phytec.de>
-cc: linux-media@vger.kernel.org
-Subject: Re: Antwort: Re: [PATCH 1/2] mt9v022: fix pixel clock
-In-Reply-To: <OF0E7310A6.B4F9559D-ONC125786B.003E2F29-C125786B.004202D7@phytec.de>
-Message-ID: <Pine.LNX.4.64.1104071419540.26842@axis700.grange>
-References: <1302098515-12176-1-git-send-email-t.gamez@phytec.de>
- <Pine.LNX.4.64.1104071303001.26842@axis700.grange>
- <OF0E7310A6.B4F9559D-ONC125786B.003E2F29-C125786B.004202D7@phytec.de>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: 8BIT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:34066 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752960Ab1DNH1j (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Apr 2011 03:27:39 -0400
+Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LJM003VLSQ0JW@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 14 Apr 2011 08:27:36 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LJM005H6SPZ9Y@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 14 Apr 2011 08:27:36 +0100 (BST)
+Date: Thu, 14 Apr 2011 09:27:28 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH] media: vb2: fix incorrect v4l2_buffer->flags handling
+To: linux-media@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Jonghun Han <jonghun.han@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>
+Message-id: <1302766048-25305-1-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello Teresa
+Videobuf2 core assumes that driver doesn't set any buffer flags.
+This is correct for buffer state flags that videobuf2 manages,
+but the other flags like V4L2_BUF_FLAG_{KEY,P,B}FRAME,
+V4L2_BUF_FLAG_TIMECODE and V4L2_BUF_FLAG_INPUT should be passed from or to
+the driver.
 
-On Thu, 7 Apr 2011, Teresa Gamez wrote:
-
-> Hello Guennadi,
-> 
-> the datasheet also says (see table 3):
-> 
-> <quote>
-> Pixel clock out. DOUT is valid on rising edge of this
-> clock.
-> </quote>
-> 
-> There is a difference between DOUT beeing vaild and DOUT beeing set up. 
-> So does SOCAM_PCLK_SAMPLE_RISING mean that the data is valid at rising 
-> edge or 
-> does it mean the data is set up at rising edge? 
-
-Hm, yeah, looks like a typical example of a copy-paste datasheet to me:-( 
-And now we don't know which of the two is actually supposed to be true. As 
-for "set up" vs. "valid" - not sure, whether there is indeed a difference 
-between them. To me "set up _TO_ the rising edge" is a short way to set 
-"set up to be valid at the rising edge," however, I might be wrong. Can 
-you tell me in more detail what and where (at the sensor board or on the 
-baseboard) you measured and what it looked like? I think, Figure 7 and the 
-description below it are interesting. From that diagram I would indeed say 
-indeed the DOUT pins are valid and should be sampled at the rising edge by 
-default - when bit 4 in 0x74 is not set. SOCAM_PCLK_SAMPLE_RISING means, 
-that the data should be sampled at the rising of pclkm, i.e., it is valid 
-there.
-
-So, yes, if your measurements agree with figure 7 from the datasheet, we 
-shall assume, that the driver implements the pclk polarity wrongly. But 
-the fix should be more extensive, than what you've submitted: if we invert 
-driver's behaviour, we should also invert board configuration of all 
-driver users: pcm990 and pcm037. Or we have to test them and verify, that 
-the inverted pclk polarity doesn't megatively affect the image quality, or 
-maybe even improves it.
-
-Thanks
-Guennadi
-
-> I have tested this with a pcm038 but I will also make meassurements with 
-> the pcm037.
-> 
-> Teresa
-> 
-> Guennadi Liakhovetski <g.liakhovetski@gmx.de> schrieb am 07.04.2011 
-> 13:08:11:
-> 
-> > Von: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > An: Teresa Gámez <t.gamez@phytec.de>
-> > Kopie: linux-media@vger.kernel.org
-> > Datum: 07.04.2011 13:08
-> > Betreff: Re: [PATCH 1/2] mt9v022: fix pixel clock
-> > 
-> > On Wed, 6 Apr 2011, Teresa Gámez wrote:
-> > 
-> > > Measurements show that the setup of the pixel clock is not correct.
-> > > The 'Invert Pixel Clock' bit has to be set to 1 for falling edge
-> > > and not for rising.
-> > 
-> > Doesn't seem correct to me. The mt9v022 datasheet says:
-> > 
-> > <quote>
-> > Invert pixel clock. When set, LINE_VALID,
-> > FRAME_VALID, and DOUT is set up to the rising edge
-> > of pixel clock, PIXCLK. When clear, they are set up to
-> > the falling edge of PIXCLK.
-> > </quote>
-> > 
-> > and this works for present mt9v022 configurations, which include at 
-> least 
-> > two boards: PXA270-based arch/arm/mach-pxa/pcm990-baseboard.c and i.MX31 
-> 
-> > based arch/arm/mach-mx3/mach-pcm037.c. If this is different for your 
-> > board, maybe you have to set the SOCAM_SENSOR_INVERT_PCLK flag in your 
-> > "struct soc_camera_link" instance.
-> > 
-> > Thanks
-> > Guennadi
-> > 
-> > > Signed-off-by: Teresa Gámez <t.gamez@phytec.de>
-> > > ---
-> > >  drivers/media/video/mt9v022.c |    2 +-
-> > >  1 files changed, 1 insertions(+), 1 deletions(-)
-> > > 
-> > > diff --git a/drivers/media/video/mt9v022.c 
-> b/drivers/media/video/mt9v022.c
-> > > index 6a784c8..dec2a69 100644
-> > > --- a/drivers/media/video/mt9v022.c
-> > > +++ b/drivers/media/video/mt9v022.c
-> > > @@ -228,7 +228,7 @@ static int mt9v022_set_bus_param(struct 
-> > soc_camera_device *icd,
-> > > 
-> > >     flags = soc_camera_apply_sensor_flags(icl, flags);
-> > > 
-> > > -   if (flags & SOCAM_PCLK_SAMPLE_RISING)
-> > > +   if (flags & SOCAM_PCLK_SAMPLE_FALLING)
-> > >        pixclk |= 0x10;
-> > > 
-> > >     if (!(flags & SOCAM_HSYNC_ACTIVE_HIGH))
-> > > -- 
-> > > 1.7.0.4
-> > > 
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe linux-media" 
-> in
-> > > the body of a message to majordomo@vger.kernel.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > > 
-> > 
-> > ---
-> > Guennadi Liakhovetski, Ph.D.
-> > Freelance Open-Source Software Developer
-> > http://www.open-technology.de/
-> 
-
+Reported-by: Jonghun Han <jonghun.han@samsung.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+CC: Pawel Osciak <pawel@osciak.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/video/videobuf2-core.c |   12 ++++++++++--
+ 1 files changed, 10 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
+index 6698c77..3ceacea 100644
+--- a/drivers/media/video/videobuf2-core.c
++++ b/drivers/media/video/videobuf2-core.c
+@@ -37,6 +37,9 @@ module_param(debug, int, 0644);
+ #define call_qop(q, op, args...)					\
+ 	(((q)->ops->op) ? ((q)->ops->op(args)) : 0)
+ 
++#define V4L2_BUFFER_STATE_FLAGS	(V4L2_BUF_FLAG_MAPPED | V4L2_BUF_FLAG_QUEUED | \
++				 V4L2_BUF_FLAG_DONE | V4L2_BUF_FLAG_ERROR)
++
+ /**
+  * __vb2_buf_mem_alloc() - allocate video memory for the given buffer
+  */
+@@ -284,7 +287,7 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
+ 	struct vb2_queue *q = vb->vb2_queue;
+ 	int ret = 0;
+ 
+-	/* Copy back data such as timestamp, input, etc. */
++	/* Copy back data such as timestamp, flags, input, etc. */
+ 	memcpy(b, &vb->v4l2_buf, offsetof(struct v4l2_buffer, m));
+ 	b->input = vb->v4l2_buf.input;
+ 	b->reserved = vb->v4l2_buf.reserved;
+@@ -313,7 +316,10 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
+ 			b->m.userptr = vb->v4l2_planes[0].m.userptr;
+ 	}
+ 
+-	b->flags = 0;
++	/*
++	 * Clear any buffer state related flags.
++	 */
++	b->flags &= ~V4L2_BUFFER_STATE_FLAGS;
+ 
+ 	switch (vb->state) {
+ 	case VB2_BUF_STATE_QUEUED:
+@@ -715,6 +721,8 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b,
+ 
+ 	vb->v4l2_buf.field = b->field;
+ 	vb->v4l2_buf.timestamp = b->timestamp;
++	vb->v4l2_buf.input = b->input;
++	vb->v4l2_buf.flags = b->flags & ~V4L2_BUFFER_STATE_FLAGS;
+ 
+ 	return 0;
+ }
+-- 
+1.7.1.569.g6f426
