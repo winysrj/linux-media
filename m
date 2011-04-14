@@ -1,96 +1,65 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.171]:61228 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750727Ab1DGIxh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Apr 2011 04:53:37 -0400
-Date: Thu, 7 Apr 2011 10:53:32 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Hans Verkuil <hansverk@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH/RFC 1/4] V4L: add three new ioctl()s for multi-size
- videobuffer management
-In-Reply-To: <058f16a20d747a5ef6b300e119fa69b4.squirrel@webmail.xs4all.nl>
-Message-ID: <Pine.LNX.4.64.1104071049150.24325@axis700.grange>
-References: <Pine.LNX.4.64.1104010959470.9530@axis700.grange>   
- <201104051434.57489.hansverk@cisco.com>    <Pine.LNX.4.64.1104061812560.22734@axis700.grange>
-    <201104070906.00265.hverkuil@xs4all.nl>    <Pine.LNX.4.64.1104070914540.24325@axis700.grange>
- <058f16a20d747a5ef6b300e119fa69b4.squirrel@webmail.xs4all.nl>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:50079 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753964Ab1DNKWu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Apr 2011 06:22:50 -0400
+Received: from spt2.w1.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LJN007J70TZ27@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 14 Apr 2011 11:22:47 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LJN00MX30TYFA@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 14 Apr 2011 11:22:46 +0100 (BST)
+Date: Thu, 14 Apr 2011 12:22:40 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH] media: vb2: correct queue initialization order
+To: linux-media@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>
+Message-id: <1302776560-24623-1-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, 7 Apr 2011, Hans Verkuil wrote:
+q->memory entry is initialized to late, so if allocation of memory buffers
+fails, the buffers might not be freed correctly (q->memory is tested in
+__vb2_free_mem, which can be called before setting q->memory).
 
-> > On Thu, 7 Apr 2011, Hans Verkuil wrote:
-> >
-> >> On Wednesday, April 06, 2011 18:19:18 Guennadi Liakhovetski wrote:
-> >> > On Tue, 5 Apr 2011, Hans Verkuil wrote:
-> >> >
-> >> > > On Tuesday, April 05, 2011 14:21:03 Laurent Pinchart wrote:
-> >> > > > On Friday 01 April 2011 10:13:02 Guennadi Liakhovetski wrote:
-> >> >
-> >> > [snip]
-> >> >
-> >> > > > >   *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
-> >> > > > >   *
-> >> > > > > @@ -1937,6 +1957,10 @@ struct v4l2_dbg_chip_ident {
-> >> > > > >  #define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct
-> >> > > > > v4l2_event_subscription) #define	VIDIOC_UNSUBSCRIBE_EVENT
-> >> _IOW('V', 91,
-> >> > > > > struct v4l2_event_subscription)
-> >> > > > >
-> >> > > > > +#define VIDIOC_CREATE_BUFS	_IOWR('V', 92, struct
-> >> v4l2_create_buffers)
-> >> > > > > +#define VIDIOC_DESTROY_BUFS	_IOWR('V', 93, struct
-> >> v4l2_buffer_span)
-> >> > > > > +#define VIDIOC_SUBMIT_BUF	 _IOW('V', 94, int)
-> >> > > > > +
-> >> > > >
-> >> > > > In case we later need to pass other information (such as flags) to
-> >> > > > VIDIOC_SUBMIT_BUF, you should use a structure instead of an int.
-> >> > >
-> >> > > I would just pass struct v4l2_buffer to this ioctl, just like
-> >> QBUF/DQBUF do.
-> >> >
-> >> > As I said, I didn't like this very much, because it involves redundant
-> >> > data, but if we want to call .buf_prepare() from it, then we need
-> >> > v4l2_buffer...
-> >>
-> >> I don't see a problem with this. Applications already *have* the
-> >> v4l2_buffer
-> >> after all. It's not as if they have to fill that structure just for this
-> >> call.
-> >>
-> >> Furthermore, you need all that data anyway because you need to do the
-> >> same
-> >> checks that vb2_qbuf does.
-> >>
-> >> Regarding DESTROY_BUFS: perhaps we should just skip this for now and
-> >> wait for
-> >> the first use-case. That way we don't need to care about holes. I don't
-> >> like
-> >> artificial restrictions like 'no holes'. If someone has a good use-case
-> >> for
-> >> selectively destroying buffers, then we need to look at this again.
-> >
-> > Sorry, skip what? skip the ioctl completely and rely on REQBUFS(0) /
-> > close()?
-> 
-> Yes.
-
-Ok, how about this: I remove the ioctl definition and struct 
-v4l2_ioctl_ops callback for it, but I keep the span struct and the vb2 
-implementation - in case we need it later? The vb2_destroy_bufs() will be 
-used to implement freeing the queue as a particular case of freeing some 
-buffers.
-
-Thanks
-Guennadi
+Reported-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+CC: Pawel Osciak <pawel@osciak.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/video/videobuf2-core.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
+index 6698c77..25feda7 100644
+--- a/drivers/media/video/videobuf2-core.c
++++ b/drivers/media/video/videobuf2-core.c
+@@ -519,6 +519,7 @@ int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
+ 	num_buffers = min_t(unsigned int, req->count, VIDEO_MAX_FRAME);
+ 	memset(plane_sizes, 0, sizeof(plane_sizes));
+ 	memset(q->alloc_ctx, 0, sizeof(q->alloc_ctx));
++	q->memory = req->memory;
+ 
+ 	/*
+ 	 * Ask the driver how many buffers and planes per buffer it requires.
+@@ -560,8 +561,6 @@ int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
+ 		ret = num_buffers;
+ 	}
+ 
+-	q->memory = req->memory;
+-
+ 	/*
+ 	 * Return the number of successfully allocated buffers
+ 	 * to the userspace.
+-- 
+1.7.1.569.g6f426
