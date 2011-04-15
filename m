@@ -1,41 +1,49 @@
 Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:35373 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753516Ab1D3Muk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Apr 2011 08:50:40 -0400
-Message-ID: <4DBC0598.9060101@infradead.org>
-Date: Sat, 30 Apr 2011 09:50:32 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from mailfe02.c2i.net ([212.247.154.34]:54853 "EHLO swip.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752894Ab1DOIsZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Apr 2011 04:48:25 -0400
+From: Hans Petter Selasky <hselasky@c2i.net>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [RFC v3] V4L2 API for flash devices
+Date: Fri, 15 Apr 2011 10:47:19 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Nayden Kanchev <nkanchev@mm-sol.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Cohen David Abraham <david.cohen@nokia.com>,
+	Kim HeungJun <riverful@gmail.com>, andrew.b.adams@gmail.com,
+	Sung Hee Park <shpark7@stanford.edu>
+References: <4DA7F5AD.1050104@maxwell.research.nokia.com>
+In-Reply-To: <4DA7F5AD.1050104@maxwell.research.nokia.com>
 MIME-Version: 1.0
-To: Patrick Boettcher <pboettcher@kernellabs.com>
-CC: Florian Mickler <florian@mickler.org>, oliver@neukum.org,
-	linux-kernel@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [media] dib0700: get rid of on-stack dma buffers
-References: <1301851423-21969-1-git-send-email-florian@mickler.org>	<alpine.LRH.2.00.1104040940000.31158@pub1.ifh.de>	<4DBB2E72.3030800@infradead.org> <20110430114609.53103d67@schatten.dmk.lab>
-In-Reply-To: <20110430114609.53103d67@schatten.dmk.lab>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201104151047.19658.hselasky@c2i.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Patrick,
-
-Em 30-04-2011 06:46, Florian Mickler escreveu:
-> On Fri, 29 Apr 2011 18:32:34 -0300
-> Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
+On Friday 15 April 2011 09:37:17 Sakari Ailus wrote:
+> Hi,
 > 
->> As it is a trivial fix, I'll be picking it directly.
+> This is a third proposal for an interface for controlling flash devices
+> on the V4L2/v4l2_subdev APIs. My plan is to use the interface in the
+> ADP1653 driver, the flash controller used in the Nokia N900.
 > 
-> Zdenek reported in the bug that it doesn't fix all instances of the
-> warning. 
+> Thanks to everyone who commented the previous version of this RFC! I
+> hope I managed to factor in everyone's comments. Please bug me if you
+> think I missed something. :-)
+> 
+> Comments and questions are very, very welcome as always. There are still
+> many open questions which I would like to resolve. I've written my
+> proposal on the two last ones below the question itself.
+> 
 
-Could you please take a look on it?
+Hi,
 
-I'll apply the patch anyway, as at least it will reduce the stack size
-and partially fix the issue, but, as Florian and Zdenek pointed, there
-are still some cases were stack pointers are used to pass data to URB's,
-and this is forbidden (and don't even work on some architectures).
+I looked through your specification and did not find the answer to my 
+question. Do you support more than one flasher per webcam/camera?
 
-Mauro.
+--HPS
