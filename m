@@ -1,139 +1,67 @@
 Return-path: <mchehab@pedra>
-Received: from mail1-out1.atlantis.sk ([80.94.52.55]:43633 "EHLO
-	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1759898Ab1D0UgY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Apr 2011 16:36:24 -0400
-From: Ondrej Zary <linux@rainbow-software.org>
-To: "Hans Verkuil" <hverkuil@xs4all.nl>
-Subject: [PATCH 2/4] usbvision: remove broken YUV format conversion
-Date: Wed, 27 Apr 2011 22:36:13 +0200
-Cc: "Hans de Goede" <hdegoede@redhat.com>,
-	"Joerg Heckenbach" <joerg@heckenbach-aw.de>,
-	"Dwaine Garden" <dwainegarden@rogers.com>,
-	linux-media@vger.kernel.org,
-	"Kernel development list" <linux-kernel@vger.kernel.org>
+Received: from smtp.nokia.com ([147.243.1.47]:20254 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753054Ab1DOJL7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Apr 2011 05:11:59 -0400
+Message-ID: <4DA80BCA.5020708@maxwell.research.nokia.com>
+Date: Fri, 15 Apr 2011 12:11:38 +0300
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+To: Hans Petter Selasky <hselasky@c2i.net>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Nayden Kanchev <nkanchev@mm-sol.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Cohen David Abraham <david.cohen@nokia.com>,
+	Kim HeungJun <riverful@gmail.com>, andrew.b.adams@gmail.com,
+	Sung Hee Park <shpark7@stanford.edu>
+Subject: Re: [RFC v3] V4L2 API for flash devices
+References: <4DA7F5AD.1050104@maxwell.research.nokia.com> <201104151047.19658.hselasky@c2i.net>
+In-Reply-To: <201104151047.19658.hselasky@c2i.net>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201104272236.17852.linux@rainbow-software.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The YVU420 and YUV422P formats are broken and cause kernel panic on use.
-(YVU420 does not work and sometimes causes "unable to handle paging request"
-panic, YUV422P always causes "NULL pointer dereference").
+Hans Petter Selasky wrote:
+> On Friday 15 April 2011 09:37:17 Sakari Ailus wrote:
+>> Hi,
+>>
+>> This is a third proposal for an interface for controlling flash devices
+>> on the V4L2/v4l2_subdev APIs. My plan is to use the interface in the
+>> ADP1653 driver, the flash controller used in the Nokia N900.
+>>
+>> Thanks to everyone who commented the previous version of this RFC! I
+>> hope I managed to factor in everyone's comments. Please bug me if you
+>> think I missed something. :-)
+>>
+>> Comments and questions are very, very welcome as always. There are still
+>> many open questions which I would like to resolve. I've written my
+>> proposal on the two last ones below the question itself.
+>>
+> 
+> Hi,
+> 
+> I looked through your specification and did not find the answer to my 
+> question. Do you support more than one flasher per webcam/camera?
 
-As V4L2 spec says that drivers shouldn't do any in-kernel image format
-conversion, just remove the broken formats.
+Hi Hans,
 
-The removal also reveals an off-by-one bug in enum_fmt ioctl - it misses the
-last format, so this patch fixes it too.
+You probably didn't find it since it's not there. :-)
 
-This allows the driver to work with mplayer without need to manually specify a
-format and also to work with VLC without causing kernel panic.
+When this interface is provided directly by the flash driver (a V4L2
+subdev), it takes no stance to that. (The interface can also be provided
+by the video node, but then it is up to the bridge driver to handle that
+control. That could be the case e.g. for a web camera with flash in it.)
+In case you have multiple flash chips they would be controlled
+separately from each other through a different V4L2 subdev device node.
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+This would allow hardware which e.g. has two flash controllers connected
+to a single sensor with strobe output, for example.
 
-diff -up linux-2.6.39-rc2-/drivers/media/video/usbvision/usbvision-core.c linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision-core.c
---- linux-2.6.39-rc2-/drivers/media/video/usbvision/usbvision-core.c	2011-04-27 22:05:39.000000000 +0200
-+++ linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision-core.c	2011-04-27 22:06:28.000000000 +0200
-@@ -801,12 +801,7 @@ static enum parse_state usbvision_parse_
- 
- 	frame = usbvision->cur_frame;
- 	image_size = frame->frmwidth * frame->frmheight;
--	if ((frame->v4l2_format.format == V4L2_PIX_FMT_YUV422P) ||
--	    (frame->v4l2_format.format == V4L2_PIX_FMT_YVU420)) {       /* this is a planar format */
--		/* ... v4l2_linesize not used here. */
--		f = frame->data + (frame->width * frame->curline);
--	} else
--		f = frame->data + (frame->v4l2_linesize * frame->curline);
-+	f = frame->data + (frame->v4l2_linesize * frame->curline);
- 
- 	if (frame->v4l2_format.format == V4L2_PIX_FMT_YUYV) { /* initialise u and v pointers */
- 		/* get base of u and b planes add halfoffset */
-@@ -814,9 +809,6 @@ static enum parse_state usbvision_parse_
- 			+ image_size
- 			+ (frame->frmwidth >> 1) * frame->curline;
- 		v = u + (image_size >> 1);
--	} else if (frame->v4l2_format.format == V4L2_PIX_FMT_YVU420) {
--		v = frame->data + image_size + ((frame->curline * (frame->width)) >> 2);
--		u = v + (image_size >> 2);
- 	}
- 
- 	if (frame->curline == 0)
-@@ -891,20 +883,6 @@ static enum parse_state usbvision_parse_
- 		if (frame->v4l2_format.format == V4L2_PIX_FMT_YUYV) {
- 			*f++ = Y[idx];
- 			*f++ = idx & 0x01 ? U[idx / 2] : V[idx / 2];
--		} else if (frame->v4l2_format.format == V4L2_PIX_FMT_YUV422P) {
--			*f++ = Y[idx];
--			if (idx & 0x01)
--				*u++ = U[idx >> 1];
--			else
--				*v++ = V[idx >> 1];
--		} else if (frame->v4l2_format.format == V4L2_PIX_FMT_YVU420) {
--			*f++ = Y[idx];
--			if (!((idx & 0x01) | (frame->curline & 0x01))) {
--				/* only need do this for 1 in 4 pixels */
--				/* intraframe buffer is YUV420 format */
--				*u++ = U[idx >> 1];
--				*v++ = V[idx >> 1];
--			}
- 		} else {
- 			YUV_TO_RGB_BY_THE_BOOK(Y[idx], U[idx / 2], V[idx / 2], rv, gv, bv);
- 			switch (frame->v4l2_format.format) {
-@@ -938,11 +916,7 @@ static enum parse_state usbvision_parse_
- 		}
- 		clipmask_index++;
- 	}
--	/* Deal with non-integer no. of bytes for YUV420P */
--	if (frame->v4l2_format.format != V4L2_PIX_FMT_YVU420)
--		*pcopylen += frame->v4l2_linesize;
--	else
--		*pcopylen += frame->curline & 0x01 ? frame->v4l2_linesize : frame->v4l2_linesize << 1;
-+	*pcopylen += frame->v4l2_linesize;
- 
- 	frame->curline += 1;
- 
-diff -up linux-2.6.39-rc2-/drivers/media/video/usbvision/usbvision-video.c linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision-video.c
---- linux-2.6.39-rc2-/drivers/media/video/usbvision/usbvision-video.c	2011-04-27 22:05:39.000000000 +0200
-+++ linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision-video.c	2011-04-27 22:06:28.000000000 +0200
-@@ -118,8 +118,6 @@ static struct usbvision_v4l2_format_st u
- 	{ 1, 4, 32, V4L2_PIX_FMT_RGB32   , "RGB32" },
- 	{ 1, 2, 16, V4L2_PIX_FMT_RGB555  , "RGB555" },
- 	{ 1, 2, 16, V4L2_PIX_FMT_YUYV    , "YUV422" },
--	{ 1, 2, 12, V4L2_PIX_FMT_YVU420  , "YUV420P" }, /* 1.5 ! */
--	{ 1, 2, 16, V4L2_PIX_FMT_YUV422P , "YUV422P" }
- };
- 
- /* Function prototypes */
-@@ -888,7 +886,7 @@ static int vidioc_streamoff(struct file
- static int vidioc_enum_fmt_vid_cap(struct file *file, void  *priv,
- 					struct v4l2_fmtdesc *vfd)
- {
--	if (vfd->index >= USBVISION_SUPPORTED_PALETTES - 1)
-+	if (vfd->index > USBVISION_SUPPORTED_PALETTES - 1)
- 		return -EINVAL;
- 	strcpy(vfd->description, usbvision_v4l2_format[vfd->index].desc);
- 	vfd->pixelformat = usbvision_v4l2_format[vfd->index].format;
-@@ -1659,13 +1657,6 @@ static int __init usbvision_init(void)
- 	PDEBUG(DBG_PROBE, "PROBE   debugging is enabled [video]");
- 	PDEBUG(DBG_MMAP, "MMAP    debugging is enabled [video]");
- 
--	/* disable planar mode support unless compression enabled */
--	if (isoc_mode != ISOC_MODE_COMPRESS) {
--		/* FIXME : not the right way to set supported flag */
--		usbvision_v4l2_format[6].supported = 0; /* V4L2_PIX_FMT_YVU420 */
--		usbvision_v4l2_format[7].supported = 0; /* V4L2_PIX_FMT_YUV422P */
--	}
--
- 	err_code = usb_register(&usbvision_driver);
- 
- 	if (err_code == 0) {
-
+Regards,
 
 -- 
-Ondrej Zary
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
