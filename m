@@ -1,76 +1,68 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:57633 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754081Ab1DDKcA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2011 06:32:00 -0400
-Received: by eyx24 with SMTP id 24so1662640eyx.19
-        for <linux-media@vger.kernel.org>; Mon, 04 Apr 2011 03:31:59 -0700 (PDT)
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:62050 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751205Ab1DOM1Z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Apr 2011 08:27:25 -0400
+Received: by wwa36 with SMTP id 36so3147412wwa.1
+        for <linux-media@vger.kernel.org>; Fri, 15 Apr 2011 05:27:24 -0700 (PDT)
+Message-ID: <4DA8394D.80405@ru.mvista.com>
+Date: Fri, 15 Apr 2011 16:25:49 +0400
+From: Sergei Shtylyov <sshtylyov@mvista.com>
 MIME-Version: 1.0
-In-Reply-To: <SNT124-W658C9CDE54575A79B73D6FACA30@phx.gbl>
-References: <mailman.466.1301890961.26790.linux-dvb@linuxtv.org>
-	<SNT124-W658C9CDE54575A79B73D6FACA30@phx.gbl>
-Date: Mon, 4 Apr 2011 20:31:58 +1000
-Message-ID: <BANLkTimEtbx6HkqBQLBTc7XX_wEYgs7fJg@mail.gmail.com>
-Subject: Re: [linux-dvb] DVICO HDTV Dual Express2
-From: Vincent McIntyre <vincent.mcintyre@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+CC: Sergei Shtylyov <sshtylyov@mvista.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Jiri Slaby <jslaby@suse.cz>,
+	linux-arm-kernel@lists.infradead.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 2.6.39 v2] V4L: videobuf-dma-contig: fix mmap_mapper broken
+ on ARM
+References: <201104122306.34909.jkrzyszt@tis.icnet.pl> <4DA5DF1E.1040302@ru.mvista.com> <201104132301.56210.jkrzyszt@tis.icnet.pl> <201104132316.01922.jkrzyszt@tis.icnet.pl>
+In-Reply-To: <201104132316.01922.jkrzyszt@tis.icnet.pl>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Nick,
+Hello.
 
-Could you post the output of
-  lspci -vvv -nn
-for the device in question - you'll also need to give the -s argument,
-eg -s 02:00.0
-or whatever.
+On 14-04-2011 1:16, Janusz Krzysztofik wrote:
 
-This is so it is clear what chips your example of the card is using -
-a given card may be implemented with different chipsets over time
-depending on how organised the manufacturer is.
+>>> Janusz Krzysztofik wrote:
+>>>>>> After switching from mem->dma_handle to
+>>>>>> virt_to_phys(mem->vaddr) used for obtaining page frame number
+>>>>>> passed to remap_pfn_range() (commit
+>>>>>> 35d9f510b67b10338161aba6229d4f55b4000f5b),
+>>>>>> videobuf-dma-contig
 
-Some kernel output similar to that shown on the wiki page, showing
-what happens at boot time, may be useful as well.
+>>>>>      Please specify the commit summary -- for the human readers.
 
-I have this card, and it is working reasonably well with recent
-media_build code:
+>>>> Hi,
+>>>> OK, I'll try to reword the summary using a more human friendly
+>>>> language as soon as I have signs that Mauro (who seemed to
+>>>> understand the message well enough) is willing to accept the
+>>>> code.
 
-$ sudo lspci -vvv -nn -s 04:00.0
-04:00.0 Multimedia video controller [0400]: Conexant Systems, Inc.
-CX23885 PCideo and Audio Decoder [14f1:8852] (rev 02)
-        Subsystem: DViCO Corporation Device [18ac:db78]
-        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
-ParErr- Sping- SERR- FastB2B- DisINTx+
-        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort-
-<TAbor<MAbort- >SERR- <PERR- INTx-
-        Latency: 0, Cache Line Size: 64 bytes
-        Interrupt: pin A routed to IRQ 32
-        Region 0: Memory at 90000000 (64-bit, non-prefetchable) [size=2M]
-        Capabilities: [40] Express (v1) Endpoint, MSI 00
-                DevCap: MaxPayload 128 bytes, PhantFunc 0, Latency L0s
-<64ns, <1us
-                        ExtTag- AttnBtn- AttnInd- PwrInd- RBE- FLReset-
-                DevCtl: Report errors: Correctable- Non-Fatal- Fatal- Unsuppod-
-                        RlxdOrd+ ExtTag- PhantFunc- AuxPwr- NoSnoop+
-                        MaxPayload 128 bytes, MaxReadReq 512 bytes
-                DevSta: CorrErr- UncorrErr- FatalErr- UnsuppReq- AuxPwr- Trannd-
-                LnkCap: Port #0, Speed 2.5GT/s, Width x1, ASPM L0s L1,
-Latenc0 <2us, L1 <4us
-                        ClockPM- Suprise- LLActRep- BwNot-
-                LnkCtl: ASPM Disabled; RCB 64 bytes Disabled- Retrain- CommCl
-                        ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
-                LnkSta: Speed 2.5GT/s, Width x1, TrErr- Train-
-SlotClk+ DLAct- BWMgmt- ABWMgmt-
-        Capabilities: [80] Power Management version 2
-                Flags: PMEClk- DSI+ D1+ D2+ AuxCurrent=0mA
-PME(D0+,D1+,D2+,D3+,D3cold-)
-                Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-        Capabilities: [90] Vital Product Data <?>
-        Capabilities: [a0] Message Signalled Interrupts: Mask- 64bit+
-Queue=0Enable+
-                Address: 00000000fee0200c  Data: 41c9
-        Capabilities: [100] Advanced Error Reporting <?>
-        Capabilities: [200] Virtual Channel <?>
-        Kernel driver in use: cx23885
-        Kernel modules: cx23885
+>>>      I wasn't asking you to rework your summary but to specify the
+
+>>> summary of the commit you've mentioned (in parens).
+
+>> Ah, I see. How about just reordered wording:
+
+>> After commit 35d9f510b67b10338161aba6229d4f55b4000f5b (switching from
+>> mem->dma_handle to virt_to_phys(mem->vaddr) used for obtaining page
+>> frame number passed to remap_pfn_range()), ....
+
+>> Do you think this would be clear enough?
+
+> Oh no, I probably missed your point again.
+
+> You meant just quoting the commit original summary line, didn't you?
+
+    Yes.
+
+> Thanks,
+> Janusz
+
+WBR, Sergei
