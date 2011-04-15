@@ -1,553 +1,463 @@
-Return-path: <mchehab@gaivota>
-Received: from smtp.nokia.com ([147.243.1.48]:22026 "EHLO mgw-sa02.nokia.com"
+Return-path: <mchehab@pedra>
+Received: from smtp.nokia.com ([147.243.1.48]:59135 "EHLO mgw-sa02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754171Ab1DKH3q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Apr 2011 03:29:46 -0400
-Message-ID: <4DA2ADE6.2080704@maxwell.research.nokia.com>
-Date: Mon, 11 Apr 2011 10:29:42 +0300
+	id S1752765Ab1DOHhm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Apr 2011 03:37:42 -0400
+Message-ID: <4DA7F5AD.1050104@maxwell.research.nokia.com>
+Date: Fri, 15 Apr 2011 10:37:17 +0300
 From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hans.verkuil@cisco.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [RFCv1 PATCH 4/9] v4l2-ctrls: add per-control events.
-References: <1301917914-27437-1-git-send-email-hans.verkuil@cisco.com> <54721c1be23beb8c885ef56cdf7f782205c9dfdb.1301916466.git.hans.verkuil@cisco.com>
-In-Reply-To: <54721c1be23beb8c885ef56cdf7f782205c9dfdb.1301916466.git.hans.verkuil@cisco.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: Nayden Kanchev <nkanchev@mm-sol.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Cohen David Abraham <david.cohen@nokia.com>,
+	Kim HeungJun <riverful@gmail.com>, andrew.b.adams@gmail.com,
+	Sung Hee Park <shpark7@stanford.edu>
+Subject: [RFC v3] V4L2 API for flash devices
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hi Hans,
+Hi,
 
-Thanks for the patchset! This looks really nice!
+This is a third proposal for an interface for controlling flash devices
+on the V4L2/v4l2_subdev APIs. My plan is to use the interface in the
+ADP1653 driver, the flash controller used in the Nokia N900.
 
-Hans Verkuil wrote:
-> Whenever a control changes value an event is sent to anyone that subscribed
-> to it.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/video/v4l2-ctrls.c |   59 ++++++++++++++++++
->  drivers/media/video/v4l2-event.c |  126 +++++++++++++++++++++++++++-----------
->  drivers/media/video/v4l2-fh.c    |    4 +-
->  include/linux/videodev2.h        |   17 +++++-
->  include/media/v4l2-ctrls.h       |    9 +++
->  include/media/v4l2-event.h       |    2 +
->  6 files changed, 177 insertions(+), 40 deletions(-)
-> 
-> diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-> index f75a1d4..163f412 100644
-> --- a/drivers/media/video/v4l2-ctrls.c
-> +++ b/drivers/media/video/v4l2-ctrls.c
-> @@ -23,6 +23,7 @@
->  #include <media/v4l2-ioctl.h>
->  #include <media/v4l2-device.h>
->  #include <media/v4l2-ctrls.h>
-> +#include <media/v4l2-event.h>
->  #include <media/v4l2-dev.h>
->  
->  /* Internal temporary helper struct, one for each v4l2_ext_control */
-> @@ -537,6 +538,16 @@ static bool type_is_int(const struct v4l2_ctrl *ctrl)
->  	}
->  }
->  
-> +static void send_event(struct v4l2_ctrl *ctrl, struct v4l2_event *ev)
-> +{
-> +	struct v4l2_ctrl_fh *pos;
-> +
-> +	ev->id = ctrl->id;
-> +	list_for_each_entry(pos, &ctrl->fhs, node) {
-> +		v4l2_event_queue_fh(pos->fh, ev);
-> +	}
+Thanks to everyone who commented the previous version of this RFC! I
+hope I managed to factor in everyone's comments. Please bug me if you
+think I missed something. :-)
 
-No need for braces here.
+Comments and questions are very, very welcome as always. There are still
+many open questions which I would like to resolve. I've written my
+proposal on the two last ones below the question itself.
 
-> +}
-> +
->  /* Helper function: copy the current control value back to the caller */
->  static int cur_to_user(struct v4l2_ext_control *c,
->  		       struct v4l2_ctrl *ctrl)
-> @@ -626,20 +637,38 @@ static int new_to_user(struct v4l2_ext_control *c,
->  /* Copy the new value to the current value. */
->  static void new_to_cur(struct v4l2_ctrl *ctrl)
->  {
-> +	struct v4l2_event ev;
-> +	bool changed = false;
-> +
->  	if (ctrl == NULL)
->  		return;
->  	switch (ctrl->type) {
-> +	case V4L2_CTRL_TYPE_BUTTON:
-> +		changed = true;
-> +		ev.u.ctrl_ch_value.value = 0;
-> +		break;
->  	case V4L2_CTRL_TYPE_STRING:
->  		/* strings are always 0-terminated */
-> +		changed = strcmp(ctrl->string, ctrl->cur.string);
->  		strcpy(ctrl->cur.string, ctrl->string);
-> +		ev.u.ctrl_ch_value.value64 = 0;
->  		break;
->  	case V4L2_CTRL_TYPE_INTEGER64:
-> +		changed = ctrl->val64 != ctrl->cur.val64;
->  		ctrl->cur.val64 = ctrl->val64;
-> +		ev.u.ctrl_ch_value.value64 = ctrl->val64;
->  		break;
->  	default:
-> +		changed = ctrl->val != ctrl->cur.val;
->  		ctrl->cur.val = ctrl->val;
-> +		ev.u.ctrl_ch_value.value = ctrl->val;
->  		break;
->  	}
-> +	if (changed) {
-> +		ev.type = V4L2_EVENT_CTRL_CH_VALUE;
-> +		ev.u.ctrl_ch_value.type = ctrl->type;
-> +		send_event(ctrl, &ev);
-> +	}
->  }
->  
->  /* Copy the current value to the new value */
-> @@ -784,6 +813,7 @@ void v4l2_ctrl_handler_free(struct v4l2_ctrl_handler *hdl)
->  {
->  	struct v4l2_ctrl_ref *ref, *next_ref;
->  	struct v4l2_ctrl *ctrl, *next_ctrl;
-> +	struct v4l2_ctrl_fh *ctrl_fh, *next_ctrl_fh;
->  
->  	if (hdl == NULL || hdl->buckets == NULL)
->  		return;
-> @@ -797,6 +827,10 @@ void v4l2_ctrl_handler_free(struct v4l2_ctrl_handler *hdl)
->  	/* Free all controls owned by the handler */
->  	list_for_each_entry_safe(ctrl, next_ctrl, &hdl->ctrls, node) {
->  		list_del(&ctrl->node);
-> +		list_for_each_entry_safe(ctrl_fh, next_ctrl_fh, &ctrl->fhs, node) {
-> +			list_del(&ctrl_fh->node);
-> +			kfree(ctrl_fh);
-> +		}
->  		kfree(ctrl);
->  	}
->  	kfree(hdl->buckets);
-> @@ -1003,6 +1037,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
->  	}
->  
->  	INIT_LIST_HEAD(&ctrl->node);
-> +	INIT_LIST_HEAD(&ctrl->fhs);
->  	ctrl->handler = hdl;
->  	ctrl->ops = ops;
->  	ctrl->id = id;
-> @@ -1888,3 +1923,27 @@ int v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val)
->  	return set_ctrl(ctrl, &val);
->  }
->  EXPORT_SYMBOL(v4l2_ctrl_s_ctrl);
-> +
-> +void v4l2_ctrl_add_fh(struct v4l2_ctrl *ctrl, struct v4l2_ctrl_fh *ctrl_fh)
-> +{
-> +	v4l2_ctrl_lock(ctrl);
-> +	list_add_tail(&ctrl_fh->node, &ctrl->fhs);
-> +	v4l2_ctrl_unlock(ctrl);
-> +}
-> +EXPORT_SYMBOL(v4l2_ctrl_add_fh);
-> +
-> +void v4l2_ctrl_del_fh(struct v4l2_ctrl *ctrl, struct v4l2_fh *fh)
-> +{
-> +	struct v4l2_ctrl_fh *pos;
-> +
-> +	v4l2_ctrl_lock(ctrl);
-> +	list_for_each_entry(pos, &ctrl->fhs, node) {
-> +		if (pos->fh == fh) {
-> +			list_del(&pos->node);
-> +			kfree(pos);
-> +			break;
-> +		}
-> +	}
-> +	v4l2_ctrl_unlock(ctrl);
-> +}
-> +EXPORT_SYMBOL(v4l2_ctrl_del_fh);
-> diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
-> index 69fd343..c9251a5 100644
-> --- a/drivers/media/video/v4l2-event.c
-> +++ b/drivers/media/video/v4l2-event.c
-> @@ -25,10 +25,13 @@
->  #include <media/v4l2-dev.h>
->  #include <media/v4l2-fh.h>
->  #include <media/v4l2-event.h>
-> +#include <media/v4l2-ctrls.h>
->  
->  #include <linux/sched.h>
->  #include <linux/slab.h>
->  
-> +static void v4l2_event_unsubscribe_all(struct v4l2_fh *fh);
-> +
->  int v4l2_event_init(struct v4l2_fh *fh)
->  {
->  	fh->events = kzalloc(sizeof(*fh->events), GFP_KERNEL);
-> @@ -91,7 +94,7 @@ void v4l2_event_free(struct v4l2_fh *fh)
->  
->  	list_kfree(&events->free, struct v4l2_kevent, list);
->  	list_kfree(&events->available, struct v4l2_kevent, list);
-> -	list_kfree(&events->subscribed, struct v4l2_subscribed_event, list);
-> +	v4l2_event_unsubscribe_all(fh);
->  
->  	kfree(events);
->  	fh->events = NULL;
-> @@ -154,9 +157,9 @@ int v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event,
->  }
->  EXPORT_SYMBOL_GPL(v4l2_event_dequeue);
->  
-> -/* Caller must hold fh->event->lock! */
-> +/* Caller must hold fh->vdev->fh_lock! */
->  static struct v4l2_subscribed_event *v4l2_event_subscribed(
-> -	struct v4l2_fh *fh, u32 type)
-> +		struct v4l2_fh *fh, u32 type, u32 id)
->  {
->  	struct v4l2_events *events = fh->events;
->  	struct v4l2_subscribed_event *sev;
-> @@ -164,13 +167,46 @@ static struct v4l2_subscribed_event *v4l2_event_subscribed(
->  	assert_spin_locked(&fh->vdev->fh_lock);
->  
->  	list_for_each_entry(sev, &events->subscribed, list) {
-> -		if (sev->type == type)
-> +		if (sev->type == type && sev->id == id)
->  			return sev;
->  	}
->  
->  	return NULL;
->  }
->  
-> +static void __v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *ev,
-> +		const struct timespec *ts)
-> +{
-> +	struct v4l2_events *events = fh->events;
-> +	struct v4l2_subscribed_event *sev;
-> +	struct v4l2_kevent *kev;
-> +
-> +	/* Are we subscribed? */
-> +	sev = v4l2_event_subscribed(fh, ev->type, ev->id);
-> +	if (sev == NULL)
-> +		return;
-> +
-> +	/* Increase event sequence number on fh. */
-> +	events->sequence++;
-> +
-> +	/* Do we have any free events? */
-> +	if (list_empty(&events->free))
-> +		return;
-> +
-> +	/* Take one and fill it. */
-> +	kev = list_first_entry(&events->free, struct v4l2_kevent, list);
-> +	kev->event.type = ev->type;
-> +	kev->event.u = ev->u;
-> +	kev->event.id = ev->id;
-> +	kev->event.timestamp = *ts;
-> +	kev->event.sequence = events->sequence;
-> +	list_move_tail(&kev->list, &events->available);
-> +
-> +	events->navailable++;
-> +
-> +	wake_up_all(&events->wait);
-> +}
-> +
->  void v4l2_event_queue(struct video_device *vdev, const struct v4l2_event *ev)
->  {
->  	struct v4l2_fh *fh;
-> @@ -182,37 +218,26 @@ void v4l2_event_queue(struct video_device *vdev, const struct v4l2_event *ev)
->  	spin_lock_irqsave(&vdev->fh_lock, flags);
->  
->  	list_for_each_entry(fh, &vdev->fh_list, list) {
-> -		struct v4l2_events *events = fh->events;
-> -		struct v4l2_kevent *kev;
-> -
-> -		/* Are we subscribed? */
-> -		if (!v4l2_event_subscribed(fh, ev->type))
-> -			continue;
-> -
-> -		/* Increase event sequence number on fh. */
-> -		events->sequence++;
-> -
-> -		/* Do we have any free events? */
-> -		if (list_empty(&events->free))
-> -			continue;
-> -
-> -		/* Take one and fill it. */
-> -		kev = list_first_entry(&events->free, struct v4l2_kevent, list);
-> -		kev->event.type = ev->type;
-> -		kev->event.u = ev->u;
-> -		kev->event.timestamp = timestamp;
-> -		kev->event.sequence = events->sequence;
-> -		list_move_tail(&kev->list, &events->available);
-> -
-> -		events->navailable++;
-> -
-> -		wake_up_all(&events->wait);
-> +		__v4l2_event_queue_fh(fh, ev, &timestamp);
->  	}
->  
->  	spin_unlock_irqrestore(&vdev->fh_lock, flags);
->  }
->  EXPORT_SYMBOL_GPL(v4l2_event_queue);
->  
-> +void v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *ev)
-> +{
-> +	unsigned long flags;
-> +	struct timespec timestamp;
-> +
-> +	ktime_get_ts(&timestamp);
-> +
-> +	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
-> +	__v4l2_event_queue_fh(fh, ev, &timestamp);
-> +	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
-> +}
-> +EXPORT_SYMBOL_GPL(v4l2_event_queue_fh);
-> +
->  int v4l2_event_pending(struct v4l2_fh *fh)
->  {
->  	return fh->events->navailable;
-> @@ -223,7 +248,9 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
->  			 struct v4l2_event_subscription *sub)
->  {
->  	struct v4l2_events *events = fh->events;
-> -	struct v4l2_subscribed_event *sev;
-> +	struct v4l2_subscribed_event *sev, *found_ev;
-> +	struct v4l2_ctrl *ctrl = NULL;
-> +	struct v4l2_ctrl_fh *ctrl_fh = NULL;
->  	unsigned long flags;
->  
->  	if (fh->events == NULL) {
-> @@ -231,15 +258,31 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
->  		return -ENOMEM;
->  	}
->  
-> +	if (sub->type == V4L2_EVENT_CTRL_CH_VALUE) {
-> +		ctrl = v4l2_ctrl_find(fh->ctrl_handler, sub->id);
-> +		if (ctrl == NULL)
-> +			return -EINVAL;
-> +	}
-> +
->  	sev = kmalloc(sizeof(*sev), GFP_KERNEL);
->  	if (!sev)
->  		return -ENOMEM;
-> +	if (ctrl) {
-> +		ctrl_fh = kzalloc(sizeof(*ctrl_fh), GFP_KERNEL);
-> +		if (!ctrl_fh) {
-> +			kfree(sev);
-> +			return -ENOMEM;
-> +		}
-> +		ctrl_fh->fh = fh;
-> +	}
->  
->  	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
->  
-> -	if (v4l2_event_subscribed(fh, sub->type) == NULL) {
-> +	found_ev = v4l2_event_subscribed(fh, sub->type, sub->id);
-> +	if (!found_ev) {
->  		INIT_LIST_HEAD(&sev->list);
->  		sev->type = sub->type;
-> +		sev->id = sub->id;
->  
->  		list_add(&sev->list, &events->subscribed);
->  		sev = NULL;
-> @@ -247,6 +290,10 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
->  
->  	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
->  
-> +	/* v4l2_ctrl_add_fh uses a mutex, so do this outside the spin lock */
-> +	if (!found_ev && ctrl)
-> +		v4l2_ctrl_add_fh(ctrl, ctrl_fh);
-> +
->  	kfree(sev);
->  
->  	return 0;
-> @@ -256,6 +303,7 @@ EXPORT_SYMBOL_GPL(v4l2_event_subscribe);
->  static void v4l2_event_unsubscribe_all(struct v4l2_fh *fh)
->  {
->  	struct v4l2_events *events = fh->events;
-> +	struct v4l2_event_subscription sub;
->  	struct v4l2_subscribed_event *sev;
->  	unsigned long flags;
->  
-> @@ -265,11 +313,13 @@ static void v4l2_event_unsubscribe_all(struct v4l2_fh *fh)
->  		spin_lock_irqsave(&fh->vdev->fh_lock, flags);
->  		if (!list_empty(&events->subscribed)) {
->  			sev = list_first_entry(&events->subscribed,
-> -				       struct v4l2_subscribed_event, list);
-> -			list_del(&sev->list);
-> +					struct v4l2_subscribed_event, list);
-> +			sub.type = sev->type;
-> +			sub.id = sev->id;
->  		}
->  		spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
-> -		kfree(sev);
-> +		if (sev)
-> +			v4l2_event_unsubscribe(fh, &sub);
->  	} while (sev);
->  }
->  
-> @@ -286,11 +336,17 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
->  
->  	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
->  
-> -	sev = v4l2_event_subscribed(fh, sub->type);
-> +	sev = v4l2_event_subscribed(fh, sub->type, sub->id);
->  	if (sev != NULL)
->  		list_del(&sev->list);
->  
->  	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
-> +	if (sev->type == V4L2_EVENT_CTRL_CH_VALUE) {
-> +		struct v4l2_ctrl *ctrl = v4l2_ctrl_find(fh->ctrl_handler, sev->id);
-> +
-> +		if (ctrl)
-> +			v4l2_ctrl_del_fh(ctrl, fh);
-> +	}
->  
->  	kfree(sev);
->  
-> diff --git a/drivers/media/video/v4l2-fh.c b/drivers/media/video/v4l2-fh.c
-> index 8635011..c6aef84 100644
-> --- a/drivers/media/video/v4l2-fh.c
-> +++ b/drivers/media/video/v4l2-fh.c
-> @@ -93,10 +93,8 @@ void v4l2_fh_exit(struct v4l2_fh *fh)
->  {
->  	if (fh->vdev == NULL)
->  		return;
-> -
-> -	fh->vdev = NULL;
-> -
->  	v4l2_event_free(fh);
-> +	fh->vdev = NULL;
 
-This looks like a bugfix.
+Changes since v2 [9]
+====================
 
->  }
->  EXPORT_SYMBOL_GPL(v4l2_fh_exit);
->  
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index 92d2fdd..f7238c1 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -1787,6 +1787,7 @@ struct v4l2_streamparm {
->  #define V4L2_EVENT_ALL				0
->  #define V4L2_EVENT_VSYNC			1
->  #define V4L2_EVENT_EOS				2
-> +#define V4L2_EVENT_CTRL_CH_VALUE		3
->  #define V4L2_EVENT_PRIVATE_START		0x08000000
->  
->  /* Payload for V4L2_EVENT_VSYNC */
-> @@ -1795,21 +1796,33 @@ struct v4l2_event_vsync {
->  	__u8 field;
->  } __attribute__ ((packed));
->  
-> +/* Payload for V4L2_EVENT_CTRL_CH_VALUE */
-> +struct v4l2_event_ctrl_ch_value {
-> +	__u32 type;
+- Rearranged proposed controls. V4L2_CID_FLASH_LED_MODE is now the first
+control.
 
-type is enum v4l2_ctrl_type in struct v4l2_ctrl and struct v4l2_queryctrl.
+- Added an open question on naming of indicator and torch controls.
 
-> +	union {
-> +		__s32 value;
-> +		__s64 value64;
-> +	};
-> +} __attribute__ ((packed));
-> +
->  struct v4l2_event {
->  	__u32				type;
->  	union {
->  		struct v4l2_event_vsync vsync;
-> +		struct v4l2_event_ctrl_ch_value ctrl_ch_value;
->  		__u8			data[64];
->  	} u;
->  	__u32				pending;
->  	__u32				sequence;
->  	struct timespec			timestamp;
-> -	__u32				reserved[9];
-> +	__u32				id;
+- V4L2_CID_FLASH_STROBE_MODE renamed to V4L2_CID_FLASH_STROBE_WHENCE.
+V4L2_CID_FLASH_EXTERNAL_STROBE_WHENCE renamed to
+V4L2_CID_FLASH_EXTERNAL_STROBE_MODE.
 
-id is valid only for control related events. Shouldn't it be part of the
-control related structures instead, or another union for control related
-event types? E.g.
+- Removed CID_ from V4L2_CID_FLASH_EXTERNAL_STROBE_MODE values.
 
-struct {
-	enum v4l2_ctrl_type	id;
-	union {
-		struct v4l2_event_ctrl_ch_value ch_value;
-	};
-} ctrl;
+- Added a new use case based on [11]: Synchronised LED flash (hardware
+strobe, timed exposure).
 
-> +	__u32				reserved[8];
->  };
->  
->  struct v4l2_event_subscription {
->  	__u32				type;
-> -	__u32				reserved[7];
-> +	__u32				id;
-> +	__u32				reserved[6];
->  };
+- Added section on possible future extensions.
 
-Similar situation here, but no existing union where id would fit in.
+- Complemented the open question on units.
 
->  /*
-> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-> index 97d0638..7ca45a5 100644
-> --- a/include/media/v4l2-ctrls.h
-> +++ b/include/media/v4l2-ctrls.h
-> @@ -30,6 +30,7 @@ struct v4l2_ctrl_handler;
->  struct v4l2_ctrl;
->  struct video_device;
->  struct v4l2_subdev;
-> +struct v4l2_fh;
->  
->  /** struct v4l2_ctrl_ops - The control operations that the driver has to provide.
->    * @g_volatile_ctrl: Get a new value for this control. Generally only relevant
-> @@ -97,6 +98,7 @@ struct v4l2_ctrl_ops {
->  struct v4l2_ctrl {
->  	/* Administrative fields */
->  	struct list_head node;
-> +	struct list_head fhs;
->  	struct v4l2_ctrl_handler *handler;
->  	struct v4l2_ctrl **cluster;
->  	unsigned ncontrols;
-> @@ -168,6 +170,11 @@ struct v4l2_ctrl_handler {
->  	int error;
->  };
->  
-> +struct v4l2_ctrl_fh {
-> +	struct list_head node;
-> +	struct v4l2_fh *fh;
-> +};
-> +
->  /** struct v4l2_ctrl_config - Control configuration structure.
->    * @ops:	The control ops.
->    * @id:	The control ID.
-> @@ -440,6 +447,8 @@ s32 v4l2_ctrl_g_ctrl(struct v4l2_ctrl *ctrl);
->    */
->  int v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val);
->  
-> +void v4l2_ctrl_add_fh(struct v4l2_ctrl *ctrl, struct v4l2_ctrl_fh *ctrl_fh);
-> +void v4l2_ctrl_del_fh(struct v4l2_ctrl *ctrl, struct v4l2_fh *fh);
->  
->  /* Helpers for ioctl_ops. If hdl == NULL then they will all return -EINVAL. */
->  int v4l2_queryctrl(struct v4l2_ctrl_handler *hdl, struct v4l2_queryctrl *qc);
-> diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
-> index 3b86177..45e9c1e 100644
-> --- a/include/media/v4l2-event.h
-> +++ b/include/media/v4l2-event.h
-> @@ -40,6 +40,7 @@ struct v4l2_kevent {
->  struct v4l2_subscribed_event {
->  	struct list_head	list;
->  	u32			type;
-> +	u32			id;
->  };
 
-And here.
+Changes since v1 [7]
+====================
 
->  struct v4l2_events {
-> @@ -58,6 +59,7 @@ void v4l2_event_free(struct v4l2_fh *fh);
->  int v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event,
->  		       int nonblocking);
->  void v4l2_event_queue(struct video_device *vdev, const struct v4l2_event *ev);
-> +void v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *ev);
->  int v4l2_event_pending(struct v4l2_fh *fh);
->  int v4l2_event_subscribe(struct v4l2_fh *fh,
->  			 struct v4l2_event_subscription *sub);
+- V4L2_FLASH_STROBE_MODE_EXT_STROBE renamed to
+V4L2_FLASH_STROBE_MODE_EXTERNAL.
 
-Regards,
+- V4L2_CID_FLASH_STROBE control changed from button to bool.
+
+- Removed suggestion of adding V4L2_CID_FLASH_DURATION.
+V4L2_CID_FLASH_TIMEOUT is used as hardware timeout.
+
+- Added control access info (ro/rw).
+
+- V4L2_FLASH_MODE_NONE added, V4L2_FLASH_LED_MODE_FLASH no longer forced
+as 1 in enum.
+
+- Bits use (1 << x) instead of 0x00... format.
+
+- Added an open question on flash LED mode controls.
+
+- Added an open question on a new control:
+V4L2_CID_FLASH_EXTERNAL_STROBE_WHENCE.
+
+- Added an open question on control units.
+
+
+Scope
+=====
+
+This RFC is focused mostly on the ADP1653 [1] and similar chips [2, 3]
+which provides following functionality. [2, 3] mostly differ on the
+available faults --- for example, there are faults also for the
+indicator LED.
+
+- High power LED output (flash or torch modes)
+- Low power indicator LED output (a.k.a. privacy light)
+- Programmable flash timeout
+- Software and hardware strobe
+- Fault detection
+	- Overvoltage
+	- Overtemperature
+	- Short circuit
+	- Timeout
+- Programmable current (both high-power and indicator LEDs)
+
+If anyone else is aware of hardware which significantly differs from
+these and does not get served well under the proposed interface, please
+tell about it.
+
+This RFC does NOT address the synchronisation of the flash to a given
+frame since this task is typically performed by the sensor through a
+strobe signal. The host does not have enough information for this ---
+exact timing information on the exposure of the sensor pixel array. In
+this case the flash synchronisation is visible to the flash controller
+as the hardware strobe originating from the sensor.
+
+Flash synchronisation requires
+
+1) flash control capability from the sensor including a strobe output,
+2) strobe input in the flash controller,
+3) (optionally) ability to program sensor parameters at given frame,
+such as flash strobe, and
+4) ability to read back metadata produced by the sensor related to a
+given frame. This should include whether the frame is exposed with
+flash, i.e. the sensor's flash strobe output.
+
+Since we have little examples of both in terms of hardware support,
+which is in practice required, it was decided to postpone the interface
+specification for now. [6]
+
+Xenon flash controllers exist but I don't have a specific example of
+those. Typically the interface is quite simple. Gpio pins for charge and
+strobe. The length of the strobe signal determines the strength of the
+flash pulse. The strobe is controlled by the sensor as for LED flash if
+it is hardware based.
+
+See "Possible future extensions" section below for more.
+
+
+Known use cases
+===============
+
+The use case listed below concentrate on using a flash in a mobile
+device, for example in a mobile phone. The use cases could be somewhat
+different in devices the primary use of which is camera.
+
+Unsynchronised LED flash (software strobe)
+------------------------------------------
+
+Unsynchronised LED flash is controlled directly by the host as the
+sensor. The flash must be enabled by the host before the exposure of the
+image starts and disabled once it ends. The host is fully responsible
+for the timing of the flash.
+
+Example of such device: Nokia N900.
+
+Synchronised LED flash (hardware strobe)
+----------------------------------------
+
+The synchronised LED flash is pre-programmed by the host (power and
+timeout) but controlled by the sensor through a strobe signal from the
+sensor to the flash.
+
+The sensor controls the flash duration and timing. This control
+typically must be programmed to the sensor, and specifying an interface
+for this is out of scope of this RFC.
+
+The LED flash controllers we know of can function in both synchronised
+and unsynchronised modes.
+
+LED flash as torch
+------------------
+
+LED flash may be used as torch in conjunction with another use case
+involving camera or individually. [4]
+
+Synchronised xenon flash
+------------------------
+
+The synchronised xenon flash is controlled more closely by the sensor
+than the LED flash. There is no separate intensity control for the xenon
+flash as its intensity is determined by the length of the strobe pulse.
+Several consecutive strobe pluses are possible but this needs to be
+still controlled by the sensor.
+
+Synchronised xenon flash (timed exposure)
+----------------------------------------------------------
+
+The same as above, but the flash is triggered around the end of the
+exposure. [11] This also probably requires a sensor which can do
+synchronous exposure, i.e. can start (and stop) the exposure of all
+lines at the same time.
+
+
+Proposed interface
+==================
+
+The flash, either LED or xenon, does not require large amounts of data
+to control it. There are parameters to control it but they are
+independent and assumably some hardware would only support some subsets
+of the functionality available somewhere else. Thus V4L2 controls seem
+an ideal way to support flash controllers.
+
+A separate control class is reserved for the flash controls. It is
+called V4L2_CTRL_CLASS_FLASH.
+
+Type of the control; type of flash is in parentheses after the control.
+
+
+	V4L2_CID_FLASH_LED_MODE (menu; rw; LED)
+
+enum v4l2_flash_led_mode {
+	V4L2_FLASH_LED_MODE_NONE,
+	V4L2_FLASH_LED_MODE_FLASH,
+	V4L2_FLASH_LED_MODE_TORCH,
+};
+
+
+	V4L2_CID_FLASH_STROBE (boolean; rw; LED)
+
+Strobe the flash using software strobe from the host, typically over I2C
+or a GPIO. The flash is NOT synchronised to sensor pixel are exposure
+since the command is given asynchronously. Alternatively, if the flash
+controller is a master in the system, the sensor exposure may be
+triggered based on software strobe.
+
+This control may also be used to shut down the strobe and query the
+state of the strobe (on/off).
+
+
+	V4L2_CID_FLASH_STROBE_WHENCE (menu; rw; LED)
+
+Use hardware or software strobe. If hardware strobe is selected, the
+flash controller is a slave in the system where the sensor produces the
+strobe signal to the flash.
+
+In this case the flash controller setup is limited to programming strobe
+timeout and power (LED flash) and the sensor controls the timing and
+length of the strobe.
+
+enum v4l2_flash_strobe_whence {
+	V4L2_FLASH_STROBE_WHENCE_SOFTWARE,
+	V4L2_FLASH_STROBE_WHENCE_EXTERNAL,
+};
+
+
+	V4L2_CID_FLASH_TIMEOUT (integer; rw; LED)
+
+The flash controller provides timeout functionality to shut down the led
+in case the host fails to do that. For hardware strobe, this is the
+maximum amount of time the flash should stay on, and the purpose of the
+setting is to prevent the LED from catching fire.
+
+For software strobe, the setting may be used to limit the length of the
+strobe using a hardware watchdog. The granularity of the timeout in [1,
+2, 3] is very coarse.
+
+A standard unit such as ms or µs should be used.
+
+
+	V4L2_CID_FLASH_INTENSITY (integer; rw; LED)
+
+Intensity of the flash in hardware specific units. The LED flash
+controller provides current to the LED but the actual luminous power is
+dictated by the LED connected to the controller.
+
+
+	V4L2_CID_FLASH_TORCH_INTENSITY (integer; rw; LED)
+
+Intensity of the flash in hardware specific units.
+
+
+	V4L2_CID_FLASH_INDICATOR_INTENSITY (integer; rw; LED)
+
+Intensity of the indicator light in hardware specific units.
+
+
+	V4L2_CID_FLASH_FAULT (bit field; ro; LED)
+
+This is a bitmask containing the fault information for the flash. This
+assumes the proposed V4L2 bit mask controls [5]; otherwise this would
+likely need to be a set of controls.
+
+#define V4L2_FLASH_FAULT_OVER_VOLTAGE		(1 << 0)
+#define V4L2_FLASH_FAULT_TIMEOUT		(1 << 1)
+#define V4L2_FLASH_FAULT_OVER_TEMPERATURE	(1 << 2)
+#define V4L2_FLASH_FAULT_SHORT_CIRCUIT		(1 << 3)
+
+Several faults may occur at single occasion. The ADP1653 is able to
+inform the user a fault has occurred, so a V4L2 control event (proposed
+earlier) could be used for that.
+
+These faults are supported by the ADP1653. More faults may be added as
+support for more chips require that. In some other hardware faults are
+available for indicator led as well.
+
+
+	V4L2_CID_FLASH_CHARGE (bool; rw; xenon)
+
+Charge control for the xenon flash. Enable or disable charging.
+
+
+	V4L2_CID_FLASH_READY (bool; ro; xenon, LED)
+
+Flash is ready to strobe. On xenon flash this tells the capacitor has
+been charged, on LED flash it's that the LED is no longer too hot.
+
+The implementation on LED flash may be modelling the temperature
+behaviour of the LED in the driver (or elsewhere, e.g. library or board
+code) if the hardware does not provide direct temperature information
+from the LED.
+
+A V4L2 control event should be produced whenever the flash becomes ready.
+
+
+	V4L2_CID_FLASH_EXTERNAL_STROBE_MODE (bool; rw; xenon, LED)
+
+Whether the flash controller considers external strobe as edge, when the
+only limit of the strobe is the timeout on flash controller, or level,
+when the flash strobe will last as long as the strobe signal, or as long
+until the timeout expires.
+
+enum v4l2_flash_external_strobe_mode {
+	V4L2_FLASH_EXTERNAL_STROBE_MODE_LEVEL,
+	V4L2_FLASH_EXTERNAL_STROBE_MODE_EDGE,
+};
+
+
+Open questions
+==============
+
+1. Flash LED mode control
+-------------------------
+
+Should the flash led mode control be a single control or a set of
+controls? A single control would make it easier for application to
+choose between different modes, but on the other hand limits future
+extensibility if there would have to be further splitting of the modes. [8]
+
+2. Renaming of V4L2_CID_FLASH_EXTERNAL_STROBE_MODE
+--------------------------------------------------
+
+Should V4L2_CID_FLASH_EXTERNAL_STROBE_MODE be renamed? Are _EDGE and
+_LEVEL menu values enough to describe the functionality?
+
+
+3. Units
+--------
+
+Which units should e.g. V4L2_CID_FLASH_TIMEOUT be using? It'd be very
+useful to have standard unit on this control, like ms or µs.
+
+Some controls, like V4L2_CID_FLASH_INTENSITY, can't easily use a
+standard unit. The luminous output depends on the LED connected (you
+could use an incandescent lightbulb too, I suppose?) to the flash
+controller. These controls typically control the current supplied by the
+flash controller.
+
+The timing controls on the sensor could use pixels (or lines) since
+these are the units the sensor uses itself. Converting between pixels
+(or lines) and SI units is trivial since the pixel clock is known in the
+user space.
+
+The flash chip, on the other hand, has no knowledge of sensor pixel
+clock, so it should use SI units. Also, the timing control currently in
+the flash chip itself is very coarse.
+
+PROPOSAL: If the component has internal timing which is known elsewhere,
+such the sensor, the controls should use these units. Otherwise,
+standard SI units should be used. In the sensor's case, this could be µs.
+
+4. Naming of indicator and torch intensity
+------------------------------------------
+
+Should indicator and torch intensity controls have FLASH in them? This
+would make V4L2_CID_FLASH a common prefix for all the flash related
+controls.
+
+On the other hand, there could be a torch or an indicator device without
+a flash, too.
+
+PROPOSAL:
+
+	V4L2_CID_FLASH_TORCH_INTENSITY
+	V4L2_CID_FLASH_INDICATOR_INTENSITY
+
+
+Possible future extensions
+==========================
+
+1. Indicator faults
+-------------------
+
+Some chips do support these. As they are part of the same register (at
+least on some chips [10]), they could be part of V4L2_CID_FLASH_FAULT
+control.
+
+2. Strobe output control on sensor
+----------------------------------
+
+Sensor requires strobe output control to trigger hardware strobe (on
+next possible frame).
+
+3. Sensor metadata on frames
+----------------------------
+
+It'd be useful to be able to read back sensor metadata. If the flash is
+strobed (on sensor hardware) while streaming, it's difficult to know
+otherwise which frame in the stream has been exposed with flash.
+
+4. Timing of strobe
+-------------------
+
+Hardware strobe timing relative to frame start. The length of the strobe
+should be timeable as well.
+
+5. Flash type control
+---------------------
+
+Probably it'd be good to be able to tell which kind of flash we have
+(xenon/LED). This should be added no later than we have a xenon flash
+driver.
+
+
+References
+==========
+
+[1] ADP1653 datasheet.
+http://www.analog.com/static/imported-files/data_sheets/ADP1653.pdf
+
+[2] LM3555. http://www.national.com/mpf/LM/LM3555.html#Overview
+
+[3] AS3645 product brief.
+http://www.austriamicrosystems.com/eng/Products/Lighting-Management/Camera-Flash-LED-Drivers/AS3645
+
+[4] Flashlight applet for the N900.
+http://maemo.org/downloads/product/Maemo5/flashlight-applet/
+
+[5] V4L2 Warszaw brainstorming meeting notes, day 2.
+http://www.retiisi.org.uk/v4l2/v4l2-brainstorming-warsaw-2011-03/notes/day%202%20(SGz6LU2esk).html
+
+[6] V4L2 Warszaw brainstorming meeting notes, day 3.
+http://www.retiisi.org.uk/v4l2/v4l2-brainstorming-warsaw-2011-03/notes/day%203%20(RhoYa0X9D7).html
+
+[7] [RFC] V4L2 flash API for flash devices.
+http://www.spinics.net/lists/linux-media/msg30725.html
+
+[8] http://www.spinics.net/lists/linux-media/msg30794.html
+
+[9] [RFC v2] V4L2 flash API for flash devices.
+http://www.spinics.net/lists/linux-media/msg31135.html
+
+[10] AS3645 datasheet.
+http://www.cdiweb.com/datasheets/austriamicro/AS3645_Datasheet_v1-6.pdf
+
+[11] Andrew's use cases for flash.
+http://www.spinics.net/lists/linux-media/msg31363.html
+
+
+Cheers,
 
 -- 
 Sakari Ailus
