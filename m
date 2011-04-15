@@ -1,58 +1,115 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:50896 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751524Ab1DKQml convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Apr 2011 12:42:41 -0400
-Received: by ewy4 with SMTP id 4so1771848ewy.19
-        for <linux-media@vger.kernel.org>; Mon, 11 Apr 2011 09:42:39 -0700 (PDT)
+Received: from smtp.nokia.com ([147.243.128.24]:22960 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754320Ab1DOFZQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Apr 2011 01:25:16 -0400
+Message-ID: <4DA7D727.2010708@maxwell.research.nokia.com>
+Date: Fri, 15 Apr 2011 08:27:03 +0300
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-In-Reply-To: <20110411163239.GA4324@mgebm.net>
-References: <BANLkTim2MQcHw+T_2g8wSpGkVnOH_OeXzg@mail.gmail.com>
-	<1301922737.5317.7.camel@morgan.silverblock.net>
-	<BANLkTikqBPdr2M8jyY1zmu4TPLsXo0y5Xw@mail.gmail.com>
-	<BANLkTi=dVYRgUbQ5pRySQLptnzaHOMKTqg@mail.gmail.com>
-	<1302015521.4529.17.camel@morgan.silverblock.net>
-	<BANLkTimQkDHmDsqSsQ9jiYnHWXnc7umeWw@mail.gmail.com>
-	<1302481535.2282.61.camel@localhost>
-	<20110411163239.GA4324@mgebm.net>
-Date: Mon, 11 Apr 2011 12:42:39 -0400
-Message-ID: <BANLkTi=zi-4ZUOuf_H+oikBcPJ4eV3qCPw@mail.gmail.com>
-Subject: Re: HVR-1600 (model 74351 rev F1F5) analog Red Screen
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Eric B Munson <emunson@mgebm.net>
-Cc: Andy Walls <awalls@md.metrocast.net>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	mchehab@infradead.org, linux-media@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Sung Hee Park <shpark7@stanford.edu>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Nayden Kanchev <nkanchev@mm-sol.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Cohen David Abraham <david.cohen@nokia.com>,
+	andrew.b.adams@gmail.com
+Subject: Re: [RFC] V4L2 API for flash devices
+References: <4D90854C.2000802@maxwell.research.nokia.com> <BANLkTik+xqCD7uiGUchsehoUy+gwM+Cjdg@mail.gmail.com> <4DA59426.80803@maxwell.research.nokia.com> <201104142138.45541.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201104142138.45541.laurent.pinchart@ideasonboard.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, Apr 11, 2011 at 12:32 PM, Eric B Munson <emunson@mgebm.net> wrote:
->> Can you tune to other known digital channels?
->
-> I will have to see if I can set one up by hand and try it.  I will get back to
-> you when I am able to do this (should be later today).
->
+Laurent Pinchart wrote:
+> Hi Sakari,
+
+Heippa,
+
+> On Wednesday 13 April 2011 14:16:38 Sakari Ailus wrote:
+>> Sung Hee Park wrote:
+>>> Here are two more use-cases for flash that might help inform the API
+>>> design. Sakari encouraged me to post these. The person writing this is
+>>> Andrew Adams, but I'm sending this from Sung Hee's account, because I
+>>> only just subscribed to linux-media and can't immediately figure out how
+>>> to reply to messages from before I subscribed. Sung Hee and I are both
+>>> grad students at Stanford who work on FCam
+>>> (http://fcam.garage.maemo.org/)
 >>
->> > Let me know if you need anything else.
+>> Hi Andrew,
 >>
->> Are you tuning digital cable (North American QAM) or digital Over The
->> Air (ATSC)?
->
-> I am using digital cable (NA QAM).
+>> Many thanks for the comments.
+>>
+>>> Second-curtain-sync:
+>>>
+>>> Sometimes you want to fire the flash at the end of a long exposure time.
+>>> It's usually a way to depict motion. Here's an example:
+>>> http://www.flickr.com/photos/latitudes/133206615/.
+>>>
+>>> This only really applies to xenon flashes because you can't get a crisp
+>>> image out of a longer duration LED flash. Even then it's somewhat
+>>> problematic on rolling-shutter sensors but still possible provided you
+>>> don't mind a slight shear to the crisp part of the image. From an API
+>>> perspective, it requires you to be able to specify a trigger time at
+>>> some number of microseconds into the exposure. On the N900 we did this
+>>> with a real-time thread.
+>>>
+>>> Triggering external hardware:
+>>>
+>>> This use-case is a little weirder, but it has the same API requirement.
+>>> Some photographic setups require you to synchronize some piece of
+>>> hardware with the exposure (e.g. an oscilloscope, or an external slave
+>>> flash). On embedded devices this is generally difficult. If you can at
+>>> least fire the flash at a precise delay into the exposure, you can
+>>> attach a photodiode to it, and use the flash+photodiode as an
+>>> opto-isolator to trigger your external hardware.
+>>>
+>>> So we're in favor of having user-settable flash duration, and also
+>>> user-settable trigger times (with reference to the start of the exposure
+>>> time). I'm guessing that in a SMIA++ driver the trigger time would
+>>> actually be a control on the sensor device, but it seemed relevant to
+>>> bring up while you guys were talking about the flash API.
+>>
+>> From this I reckon that in a general case the handling of the flash
+>> timing cannot be left for the drivers only. There must be a way to
+>> control it.
+>>
+>> So I'd think that also the level/edge trigger for the flash should be
+>> visible. On edge trigger, the only limiting factor for the flash
+>> duration on hardware would be the relatively coarse watchdog timer, and
+>> I'd think the user should be able to know that.
+> 
+> I agree that the user should be able to query the limit. The limit value 
+> should come from platform data.
 
-This is going to seem a little nuts, but just as a test could you try
-sticking the card into a different machine (with a different
-motherboard)?  I heard something a few months ago about an issue
-related to the power sequencing that only occurred with a specific
-motherboard.  Using any other motherboard resulted in success.
+Agreed.
 
-It would be useful if we could rule that out.
+>> The flash timing controls should be exposed by the sensor driver since
+>> the sensor is what actually performs the timing.
+>>
+>> Laurent; what do you think?
+> 
+> As already discussed with you offline, I think we will need flash timing 
+> controls on the sensor when the flash controller is configured with external 
+> strobe in level triggered mode. I'm still not sure if the edge/level-triggered 
+> names are the best option. They confused me in the beginning, so I find them 
+> confusing :-) If we keep them, they will need to be very precisely documented.
 
-Devin
+I'm fine with other naming --- edge/level is from the AS3645
+documentation. ADP1653 does not call it with a name as far as I
+remember. Other similar chips can be found here:
+
+<URL:http://www.austriamicrosystems.com/eng/Products/Lighting-Management/>
+
+I tried to download the datasheets but couldn't. The AS3645 datasheet,
+however, is also available here:
+
+<URL:http://www.cdiweb.com/datasheets/austriamicro/AS3645_Datasheet_v1-6.pdf>
+
+Regards,
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
