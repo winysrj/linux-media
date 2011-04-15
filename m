@@ -1,65 +1,77 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:48721 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757727Ab1DHT1D (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Apr 2011 15:27:03 -0400
-Received: by wya21 with SMTP id 21so3367729wya.19
-        for <linux-media@vger.kernel.org>; Fri, 08 Apr 2011 12:27:02 -0700 (PDT)
-References: <1302267045.1749.38.camel@gagarin> <AFEB19DA-4FD6-4472-9825-F13A112B0E2A@wilsonet.com> <1302276147.1749.46.camel@gagarin> <B9A35B3D-DC47-4D95-88F5-5453DD3F506C@wilsonet.com> <BANLkTimyT98dabuYsrwLrcm2wQFv2uQB9g@mail.gmail.com> <44DC1ED9-2697-4F92-A81A-CD024C913CCB@wilsonet.com> <BANLkTi=3Gq+8kXm40O55y55O6A6Q4-3g-g@mail.gmail.com>
-In-Reply-To: <BANLkTi=3Gq+8kXm40O55y55O6A6Q4-3g-g@mail.gmail.com>
-Mime-Version: 1.0 (Apple Message framework v1084)
-Content-Type: text/plain; charset=us-ascii
-Message-Id: <CDB2A354-8564-447E-99A3-66502E83E4CB@wilsonet.com>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:49571 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755033Ab1DODBx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Apr 2011 23:01:53 -0400
+Received: by bwz15 with SMTP id 15so1873807bwz.19
+        for <linux-media@vger.kernel.org>; Thu, 14 Apr 2011 20:01:52 -0700 (PDT)
+Date: Fri, 15 Apr 2011 12:04:01 +1000
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: Jarod Wilson <jarod@redhat.com>
+Cc: linux-media@vger.kernel.org, Dan Carpenter <error27@gmail.com>,
+	devel@driverdev.osuosl.org
+Subject: Re: [PATCH v2] tm6000: fix vbuf may be used uninitialized
+Message-ID: <20110415120401.61742c82@glory.local>
+In-Reply-To: <1302634103-9328-1-git-send-email-jarod@redhat.com>
+References: <1300997220-4354-1-git-send-email-jarod@redhat.com>
+	<1302634103-9328-1-git-send-email-jarod@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: Lawrence Rust <lawrence@softsystem.co.uk>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Jarod Wilson <jarod@wilsonet.com>
-Subject: Re: [PATCH] Fix cx88 remote control input
-Date: Fri, 8 Apr 2011 15:27:09 -0400
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Apr 8, 2011, at 2:38 PM, Devin Heitmueller wrote:
-...
-> I question the notion of introducing the requirement that all keymap
-> definitions must have system codes without having really thought
-> through the notion that it would result in breaking every existing
-> keymap which hadn't been updated.
+Hi
 
-Speaks the the "too many of us are only hacking on this in their
-limited free time" point I raised. Hack, hack, hack, test with the
-hardware available on hand (which is actually quite a bit in my case,
-I think I have upwards of 35 receivers and even more remotes now),
-see that it works, move on to the next issue. I'm certainly guilty of
-not looking at the bigger picture and thinking about possible
-ramifications more than once. :)
+I think it's good.
+No regression, all works well.
 
-...
->> I have quite a few pieces of Hauppauge hardware, several with IR
->> receivers and remotes, but all of which use ir-kbd-i2c (or
->> lirc_zilog), i.e., none of which pass along raw IR.
+With my best regards, Dmitry.
+
+> In commit 8aff8ba95155df, most of the manipulations to vbuf inside
+> copy_streams were gated on if !dev->radio, but one place that touches
+> vbuf lays outside those gates -- a memcpy of vbuf isn't NULL. If we
+> initialize vbuf to NULL, that memcpy will never happen in the case
+> where we do have dev->radio, and otherwise, in the !dev->radio case,
+> the code behaves exactly like it did prior to 8aff8ba95155df.
 > 
-> You don't have an HVR-950 or some other stick which announces RC5
-> codes?  If not, let me know and I will send you something.  It's kind
-> of silly for someone doing that sort of work to not have at least one
-> product in each category of receiver.
-
-I don't think I even fully realized before today that there was
-Hauppauge hardware shipping with the grey remotes and a raw IR
-receiver. All the Hauppauge stuff I've got is either i2c IR
-(PVR-250, PVR-350, HVR-1950, HD-PVR) or came with a bundled mceusb
-transceiver (HVR-1500Q, HVR-1800, HVR-950Q -- model 72241, iirc),
-and its all working these days (modulo some quirks with the HD-PVR
-that still need sorting, but they're not regressions, its actually
-better now than it used to be).
-
-So yeah, I guess I have a gap in my IR hardware collection here,
-and would be happy to have something to fill it.
-
--- 
-Jarod Wilson
-jarod@wilsonet.com
-
-
-
+> While we're at it, also fix an incorrectly indented closing brace for
+> one of the sections touching vbuf that is conditional on !dev->radio.
+> 
+> v2: add a detailed commit log and fix that brace
+> 
+> CC: Dan Carpenter <error27@gmail.com>
+> CC: Dmitri Belimov <d.belimov@gmail.com>
+> CC: devel@driverdev.osuosl.org
+> Signed-off-by: Jarod Wilson <jarod@redhat.com>
+> ---
+>  drivers/staging/tm6000/tm6000-video.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/staging/tm6000/tm6000-video.c
+> b/drivers/staging/tm6000/tm6000-video.c index c80a316..8b971a0 100644
+> --- a/drivers/staging/tm6000/tm6000-video.c
+> +++ b/drivers/staging/tm6000/tm6000-video.c
+> @@ -228,7 +228,7 @@ static int copy_streams(u8 *data, unsigned long
+> len, unsigned long header = 0;
+>  	int rc = 0;
+>  	unsigned int cmd, cpysize, pktsize, size, field, block,
+> line, pos = 0;
+> -	struct tm6000_buffer *vbuf;
+> +	struct tm6000_buffer *vbuf = NULL;
+>  	char *voutp = NULL;
+>  	unsigned int linewidth;
+>  
+> @@ -318,7 +318,7 @@ static int copy_streams(u8 *data, unsigned long
+> len, if (pos + size > vbuf->vb.size)
+>  						cmd =
+> TM6000_URB_MSG_ERR; dev->isoc_ctl.vfield = field;
+> -			}
+> +				}
+>  				break;
+>  			case TM6000_URB_MSG_VBI:
+>  				break;
+> -- 
+> 1.7.1
+> 
