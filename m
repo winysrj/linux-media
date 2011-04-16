@@ -1,129 +1,119 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:45192 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754143Ab1DRJ06 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Apr 2011 05:26:58 -0400
-Date: Mon, 18 Apr 2011 11:26:42 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 5/7] v4l: s5p-fimc: add pm_runtime support
-In-reply-to: <1303118804-5575-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Andrzej Pietrasiwiecz <andrzej.p@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Kukjin Kim <kgene.kim@samsung.com>
-Message-id: <1303118804-5575-6-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1303118804-5575-1-git-send-email-m.szyprowski@samsung.com>
+Received: from smtp.nokia.com ([147.243.128.26]:35317 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751989Ab1DPIs5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 16 Apr 2011 04:48:57 -0400
+Message-ID: <4DA9588F.6030103@maxwell.research.nokia.com>
+Date: Sat, 16 Apr 2011 11:51:27 +0300
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org
+Subject: Re: [RFCv1 PATCH 4/9] v4l2-ctrls: add per-control events.
+References: <1301917914-27437-1-git-send-email-hans.verkuil@cisco.com>    <54721c1be23beb8c885ef56cdf7f782205c9dfdb.1301916466.git.hans.verkuil@cisco.com>    <4DA82325.1020800@maxwell.research.nokia.com> <7db9a20f6d656cee512dd4a9d3f53061.squirrel@webmail.xs4all.nl>
+In-Reply-To: <7db9a20f6d656cee512dd4a9d3f53061.squirrel@webmail.xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This patch adds basic support for pm_runtime to s5p-fimc driver. PM
-runtime support is required to enable the driver on S5PV310 series with
-power domain driver enabled.
+Hi Hans,
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-capture.c |    5 +++++
- drivers/media/video/s5p-fimc/fimc-core.c    |   14 ++++++++++++++
- 2 files changed, 19 insertions(+), 0 deletions(-)
+Thanks for the reply.
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index 95f8b4e1..f697ed1 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -18,6 +18,7 @@
- #include <linux/interrupt.h>
- #include <linux/device.h>
- #include <linux/platform_device.h>
-+#include <linux/pm_runtime.h>
- #include <linux/list.h>
- #include <linux/slab.h>
- #include <linux/clk.h>
-@@ -398,6 +399,8 @@ static int fimc_capture_open(struct file *file)
- 	if (fimc_m2m_active(fimc))
- 		return -EBUSY;
- 
-+	pm_runtime_get_sync(&fimc->pdev->dev);
-+
- 	if (++fimc->vid_cap.refcnt == 1) {
- 		ret = fimc_isp_subdev_init(fimc, 0);
- 		if (ret) {
-@@ -428,6 +431,8 @@ static int fimc_capture_close(struct file *file)
- 		fimc_subdev_unregister(fimc);
- 	}
- 
-+	pm_runtime_put_sync(&fimc->pdev->dev);
-+
- 	return 0;
- }
- 
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index 6c919b3..ead5c0a 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -20,6 +20,7 @@
- #include <linux/interrupt.h>
- #include <linux/device.h>
- #include <linux/platform_device.h>
-+#include <linux/pm_runtime.h>
- #include <linux/list.h>
- #include <linux/io.h>
- #include <linux/slab.h>
-@@ -1410,6 +1411,8 @@ static int fimc_m2m_open(struct file *file)
- 	if (fimc->vid_cap.refcnt > 0)
- 		return -EBUSY;
- 
-+	pm_runtime_get_sync(&fimc->pdev->dev);
-+
- 	fimc->m2m.refcnt++;
- 	set_bit(ST_OUTDMA_RUN, &fimc->state);
- 
-@@ -1452,6 +1455,8 @@ static int fimc_m2m_release(struct file *file)
- 	if (--fimc->m2m.refcnt <= 0)
- 		clear_bit(ST_OUTDMA_RUN, &fimc->state);
- 
-+	pm_runtime_put_sync(&fimc->pdev->dev);
-+
- 	return 0;
- }
- 
-@@ -1649,6 +1654,11 @@ static int fimc_probe(struct platform_device *pdev)
- 		goto err_req_region;
- 	}
- 
-+	pm_runtime_set_active(&pdev->dev);
-+	pm_runtime_enable(&pdev->dev);
-+
-+	pm_runtime_get_sync(&pdev->dev);
-+
- 	fimc->num_clocks = MAX_FIMC_CLOCKS - 1;
- 
- 	/* Check if a video capture node needs to be registered. */
-@@ -1706,6 +1716,8 @@ static int fimc_probe(struct platform_device *pdev)
- 	dev_dbg(&pdev->dev, "%s(): fimc-%d registered successfully\n",
- 		__func__, fimc->id);
- 
-+	pm_runtime_put_sync(&pdev->dev);
-+
- 	return 0;
- 
- err_m2m:
-@@ -1740,6 +1752,8 @@ static int __devexit fimc_remove(struct platform_device *pdev)
- 
- 	vb2_dma_contig_cleanup_ctx(fimc->alloc_ctx);
- 
-+	pm_runtime_disable(&pdev->dev);
-+
- 	iounmap(fimc->regs);
- 	release_resource(fimc->regs_res);
- 	kfree(fimc->regs_res);
+Hans Verkuil wrote:
+>> Hi Hans,
+>>
+>> I have some more comments below. :-)
+>>
+>> Hans Verkuil wrote:
+>>> Whenever a control changes value an event is sent to anyone that
+>>> subscribed
+>>> to it.
+>>>
+>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>> ---
+>>>  drivers/media/video/v4l2-ctrls.c |   59 ++++++++++++++++++
+>>>  drivers/media/video/v4l2-event.c |  126
+>>> +++++++++++++++++++++++++++-----------
+>>>  drivers/media/video/v4l2-fh.c    |    4 +-
+>>>  include/linux/videodev2.h        |   17 +++++-
+>>>  include/media/v4l2-ctrls.h       |    9 +++
+>>>  include/media/v4l2-event.h       |    2 +
+>>>  6 files changed, 177 insertions(+), 40 deletions(-)
+>>>
+>>> diff --git a/drivers/media/video/v4l2-ctrls.c
+>>> b/drivers/media/video/v4l2-ctrls.c
+>>> index f75a1d4..163f412 100644
+>>> --- a/drivers/media/video/v4l2-ctrls.c
+>>> +++ b/drivers/media/video/v4l2-ctrls.c
+>>> @@ -23,6 +23,7 @@
+>>>  #include <media/v4l2-ioctl.h>
+>>>  #include <media/v4l2-device.h>
+>>>  #include <media/v4l2-ctrls.h>
+>>> +#include <media/v4l2-event.h>
+>>>  #include <media/v4l2-dev.h>
+>>>
+>>>  /* Internal temporary helper struct, one for each v4l2_ext_control */
+>>> @@ -537,6 +538,16 @@ static bool type_is_int(const struct v4l2_ctrl
+>>> *ctrl)
+>>>  	}
+>>>  }
+>>>
+>>> +static void send_event(struct v4l2_ctrl *ctrl, struct v4l2_event *ev)
+>>> +{
+>>> +	struct v4l2_ctrl_fh *pos;
+>>> +
+>>> +	ev->id = ctrl->id;
+>>> +	list_for_each_entry(pos, &ctrl->fhs, node) {
+>>> +		v4l2_event_queue_fh(pos->fh, ev);
+>>> +	}
+>>
+>> Shouldn't we do v4l2_ctrl_lock(ctrl) here? Or does something prevent
+>> changes to the file handle list while we loop over it?
+> 
+> This function is always called with the lock taken.
+
+Yes, you're right.
+
+>> v4l2_ctrl_lock() locks a mutex. Events often arrive from interrupt
+>> context, which would mean the drivers would need to create a work queue
+>> to tell about changes to control values.
+> 
+> I will have to check whether it is possible to make a function that can be
+> called from interrupt context. I have my doubts though whether it is 1)
+> possible and 2) desirable. At least in the area of HDMI
+> receivers/transmitters you will want to have a workqueue anyway.
+
+I wonder if there could be a more generic mechanism than to implement
+this in a driver itself. In some cases it may also be harmful that
+events are lost, and if there's just a single event for the workqueue,
+it happens too easily in my opinion.
+
+What do you think; could/should there be a queue for control events that
+arrive from interrupt context, or should that be implemented in the
+drivers themselves?
+
+Another issue with this is that workqueues require to be scheduled so
+sending the event to user space gets delayed by that. One of the
+important aspects of events is latency and it would be nice to be able
+to minimise that --- that's one reason why events use a spinlock rather
+than a mutex, the other being that they can be easily sent from
+interrupt context where they mostly arrive from.
+
+It would be nice to have the same properties for control events.
+
+There are use cases where a user space control process would run on a
+real time priority to avoid scheduling latencies caused by other
+processes, and such control process receiving control events would be
+affected by the low priority of the work queues.
+
+I agree with all your responses below on locking.
+
+Thanks.
+
+Regards,
+
 -- 
-1.7.1.569.g6f426
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
