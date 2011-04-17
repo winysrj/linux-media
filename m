@@ -1,232 +1,219 @@
 Return-path: <mchehab@pedra>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:50017 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755156Ab1D1POE (ORCPT
+Received: from dilga.instanthosting.com.au ([116.0.23.207]:47194 "EHLO
+	dilga.instanthosting.com.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752439Ab1DQPL2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Apr 2011 11:14:04 -0400
-Subject: [PATCH 00/10] rc-core: my current patchqueue
-To: linux-media@vger.kernel.org
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-Cc: jarod@wilsonet.com, mchehab@redhat.com
-Date: Thu, 28 Apr 2011 17:13:11 +0200
-Message-ID: <20110428151311.8272.17290.stgit@felix.hardeman.nu>
+	Sun, 17 Apr 2011 11:11:28 -0400
+Received: from localhost ([127.0.0.1] helo=www.neatherweb.com)
+	by dilga.instanthosting.com.au with esmtpa (Exim 4.69)
+	(envelope-from <jason@neatherweb.com>)
+	id 1QBT5k-0001kG-Tx
+	for linux-media@vger.kernel.org; Mon, 18 Apr 2011 00:36:48 +1000
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+ charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Date: Mon, 18 Apr 2011 01:36:48 +1100
+From: <jason@neatherweb.com>
+To: <linux-media@vger.kernel.org>
+Subject: HVR-2210 saa7164 driver - subsystem 0070:8953
+Message-ID: <66c6eac24f21982dde80df1db37531ee@neatherweb.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The following series is what's in my current patch queue for rc-core.
+ Hi,
+ I have a Hauppauge HVR-2210 tv tuner card that is not currently 
+ supported by V4L saa7164 driver.
+ The card is recognised but is reported as unsupported
+    CORE saa7164[0]: subsystem: 0070:8953, board: Unknown 
+ [card=0,autodetected]
 
-It only been lightly tested so far and it's based on the "for_v2.6.39" branch,
-but I still wanted to send it to the list so that I can get some feedback while
-I refresh the patches to "for_v2.6.40" and do more testing.
+ I found some support for this subsystem in what I assume to be a old 
+ dev tree at
+    http://kernellabs.com/hg/~stoth/saa7164-dev/
+ So perhaps it was something lost in porting saa7164 module to the v4l 
+ tree, or perhaps there was some issue, I couldn't work out the history 
+ around this.
 
-The most interesting change is that the scancode that is passed to/from
-the EVIOC[GS]KEYCODE_V2 ioctl has been extended so that this struct:
+ I have used that code (without any understanding of it) to patch the 
+ saa7164 driver as below, and this has been successful - I have been 
+ using the card with MythTV happily for about a month now.
+ So my question is how do I ask developers to consider including support 
+ for this card in future releases ?
 
-        struct input_keymap_entry {
-                __u8  flags;
-                __u8  len;
-                __u16 index;
-                __u32 keycode;
-                __u8  scancode[32];
-        };
+ This is my first time reaching out to the Linux community and I am 
+ merely a Linux enthusiast/user (not a programmer) - so apologies if I 
+ have taken the wrong tact for such a request.
 
-Is parsed like this:
+ Appreciate any help.
+ Jason
 
-        struct rc_scancode {
-                __u16 protocol;
-                __u16 reserved[3];
-                __u64 scancode;
-        }
-    
-        struct rc_keymap_entry {
-                __u8  flags;
-                __u8  len;
-                __u16 index;
-                __u32 keycode;
-                union {
-                        struct rc_scancode rc;
-                        __u8 raw[32];
-                };
-        };
+ Two patch files I use ...
 
-Which allows the protocol to be specified along with the scancode.
+ # -------- v4l-dvb-saa7164.patch --------
 
-Some heuristics are in place to guess the correct protocol when it is
-missing (i.e. when the legacy ioctl's are used or when the new ioctl's
-are used but with a shorter len).
+ diff -crB v4l-dvb/linux/drivers/media/video/saa7164/saa7164-cards.c 
+ v4l-dvb-JN/linux/drivers/media/video/saa7164/saa7164-cards.c
+ *** 
+ v4l-dvb/linux/drivers/media/video/saa7164/saa7164-cards.c	2011-01-03 
+ 15:39:28.065355788 +1100
+ --- 
+ v4l-dvb-JN/linux/drivers/media/video/saa7164/saa7164-cards.c	2011-01-03 
+ 16:25:00.377588988 +1100
+ ***************
+ *** 369,374 ****
+ --- 369,430 ----
+   			.i2c_reg_len	= REGLEN_8bit,
+   		} },
+   	},
+ + 	[SAA7164_BOARD_HAUPPAUGE_HVR2200_5] = {
+ + 		.name		= "Hauppauge WinTV-HVR2200",
+ + 		.porta		= SAA7164_MPEG_DVB,
+ + 		.portb		= SAA7164_MPEG_DVB,
+ + 		.chiprev	= SAA7164_CHIP_REV3,
+ + 		.unit		= {{
+ + 			.id		= 0x23,
+ + 			.type		= SAA7164_UNIT_EEPROM,
+ + 			.name		= "4K EEPROM",
+ + 			.i2c_bus_nr	= SAA7164_I2C_BUS_0,
+ + 			.i2c_bus_addr	= 0xa0 >> 1,
+ + 			.i2c_reg_len	= REGLEN_8bit,
+ + 		}, {
+ + 			.id		= 0x04,
+ + 			.type		= SAA7164_UNIT_TUNER,
+ + 			.name		= "TDA18271-1",
+ + 			.i2c_bus_nr	= SAA7164_I2C_BUS_1,
+ + 			.i2c_bus_addr	= 0xc0 >> 1,
+ + 			.i2c_reg_len	= REGLEN_8bit,
+ + 		}, {
+ + 			.id		= 0x05,
+ + 			.type		= SAA7164_UNIT_ANALOG_DEMODULATOR,
+ + 			.name		= "TDA8290-1",
+ + 			.i2c_bus_nr	= SAA7164_I2C_BUS_1,
+ + 			.i2c_bus_addr	= 0x84 >> 1,
+ + 			.i2c_reg_len	= REGLEN_8bit,
+ + 		}, {
+ + 			.id		= 0x21,
+ + 			.type		= SAA7164_UNIT_TUNER,
+ + 			.name		= "TDA18271-2",
+ + 			.i2c_bus_nr	= SAA7164_I2C_BUS_2,
+ + 			.i2c_bus_addr	= 0xc0 >> 1,
+ + 			.i2c_reg_len	= REGLEN_8bit,
+ + 		}, {
+ + 			.id		= 0x22,
+ + 			.type		= SAA7164_UNIT_ANALOG_DEMODULATOR,
+ + 			.name		= "TDA8290-2",
+ + 			.i2c_bus_nr	= SAA7164_I2C_BUS_2,
+ + 			.i2c_bus_addr	= 0x84 >> 1,
+ + 			.i2c_reg_len	= REGLEN_8bit,
+ + 		}, {
+ + 			.id		= 0x24,
+ + 			.type		= SAA7164_UNIT_DIGITAL_DEMODULATOR,
+ + 			.name		= "TDA10048-1",
+ + 			.i2c_bus_nr	= SAA7164_I2C_BUS_1,
+ + 			.i2c_bus_addr	= 0x10 >> 1,
+ + 			.i2c_reg_len	= REGLEN_8bit,
+ + 		}, {
+ + 			.id		= 0x25,
+ + 			.type		= SAA7164_UNIT_DIGITAL_DEMODULATOR,
+ + 			.name		= "TDA10048-2",
+ + 			.i2c_bus_nr	= SAA7164_I2C_BUS_2,
+ + 			.i2c_bus_addr	= 0x12 >> 1,
+ + 			.i2c_reg_len	= REGLEN_8bit,
+ + 		} },
+ + 	},
+   };
+   const unsigned int saa7164_bcount = ARRAY_SIZE(saa7164_boards);
 
-The advantage is that rc-core doesn't throw away its knowledge of
-the protocol used to generate a given scancode. This also means that 
-e.g. merging the rc5 and streamzap decoders is made easier (see one
-of the last patches in this series). In addition, it makes it possible
-to have mixed-protocol keytables, should anyone wish to do that.
+ ***************
+ *** 408,413 ****
+ --- 464,473 ----
+   		.subvendor = 0x0070,
+   		.subdevice = 0x8851,
+   		.card      = SAA7164_BOARD_HAUPPAUGE_HVR2250_2,
+ + 	}, {
+ + 		.subvendor = 0x0070,
+ + 		.subdevice = 0x8953,
+ + 		.card      = SAA7164_BOARD_HAUPPAUGE_HVR2200_5,
+   	},
+   };
+   const unsigned int saa7164_idcount = ARRAY_SIZE(saa7164_subids);
+ ***************
+ *** 463,468 ****
+ --- 523,529 ----
+   	case SAA7164_BOARD_HAUPPAUGE_HVR2200:
+   	case SAA7164_BOARD_HAUPPAUGE_HVR2200_2:
+   	case SAA7164_BOARD_HAUPPAUGE_HVR2200_3:
+ + 	case SAA7164_BOARD_HAUPPAUGE_HVR2200_5:
+   #if 0
+   		/* Disable the DIF */
+   		saa7164_api_dif_write(&dev->i2c_bus[0], 0xc0, 8, &b4[0]);
+ ***************
+ *** 560,565 ****
+ --- 621,627 ----
+   	case SAA7164_BOARD_HAUPPAUGE_HVR2250:
+   	case SAA7164_BOARD_HAUPPAUGE_HVR2250_2:
+   	case SAA7164_BOARD_HAUPPAUGE_HVR2250_3:
+ + 	case SAA7164_BOARD_HAUPPAUGE_HVR2200_5:
+   		hauppauge_eeprom(dev, &eeprom[0]);
+   		break;
+   	}
+ diff -crB v4l-dvb/linux/drivers/media/video/saa7164/saa7164-dvb.c 
+ v4l-dvb-JN/linux/drivers/media/video/saa7164/saa7164-dvb.c
+ *** v4l-dvb/linux/drivers/media/video/saa7164/saa7164-dvb.c	2011-01-03 
+ 15:39:28.067355454 +1100
+ --- 
+ v4l-dvb-JN/linux/drivers/media/video/saa7164/saa7164-dvb.c	2011-01-03 
+ 16:26:53.059795030 +1100
+ ***************
+ *** 522,527 ****
+ --- 522,528 ----
+   	case SAA7164_BOARD_HAUPPAUGE_HVR2200:
+   	case SAA7164_BOARD_HAUPPAUGE_HVR2200_2:
+   	case SAA7164_BOARD_HAUPPAUGE_HVR2200_3:
+ + 	case SAA7164_BOARD_HAUPPAUGE_HVR2200_5:
+   		i2c_bus = &dev->i2c_bus[port->nr + 1];
+   		switch (port->nr) {
+   		case 0:
+ diff -crB v4l-dvb/linux/drivers/media/video/saa7164/saa7164.h 
+ v4l-dvb-JN/linux/drivers/media/video/saa7164/saa7164.h
+ *** v4l-dvb/linux/drivers/media/video/saa7164/saa7164.h	2011-01-03 
+ 15:39:28.069355120 +1100
+ --- v4l-dvb-JN/linux/drivers/media/video/saa7164/saa7164.h	2011-01-03 
+ 16:28:13.055451489 +1100
+ ***************
+ *** 74,79 ****
+ --- 74,81 ----
+   #define SAA7164_BOARD_HAUPPAUGE_HVR2200_3	6
+   #define SAA7164_BOARD_HAUPPAUGE_HVR2250_2	7
+   #define SAA7164_BOARD_HAUPPAUGE_HVR2250_3	8
+ + #define SAA7164_BOARD_HAUPPAUGE_HVR2200_5	10
+ +
 
-This unfortunately means that every keymap had to be changed as well which
-is the reason for the large number of lines changed in the combined diffstat
-(the number of lines changed would probably be in the hundreds rather than
-thousands if keymaps were excluded).
-
-Comments?
-
----
-
-David Härdeman (10):
-      rc-core: int to bool conversion for winbond-cir
-      rc-core: add TX support to the winbond-cir driver
-      rc-core: use ir_raw_event_store_with_filter in winbond-cir
-      rc-core: add trailing silence in rc-loopback tx
-      rc-core: add separate defines for protocol bitmaps and numbers
-      rc-core: don't throw away protocol information
-      rc-core: use the full 32 bits for NEC scancodes
-      rc-core: merge rc5 and streamzap decoders
-      rc-core: lirc use unsigned int
-      rc-core: move timeout and checks to lirc
+   #define SAA7164_MAX_UNITS		8
+   #define SAA7164_TS_NUMBER_OF_LINES	312
 
 
- drivers/media/dvb/dm1105/dm1105.c                  |    3 
- drivers/media/dvb/dvb-usb/af9015.c                 |   34 +-
- drivers/media/dvb/dvb-usb/anysee.c                 |    4 
- drivers/media/dvb/dvb-usb/dib0700_core.c           |   10 
- drivers/media/dvb/dvb-usb/dib0700_devices.c        |  126 +++---
- drivers/media/dvb/dvb-usb/dvb-usb.h                |    2 
- drivers/media/dvb/dvb-usb/lmedm04.c                |    2 
- drivers/media/dvb/dvb-usb/technisat-usb2.c         |    2 
- drivers/media/dvb/dvb-usb/ttusb2.c                 |    4 
- drivers/media/dvb/mantis/mantis_input.c            |  117 +++--
- drivers/media/dvb/siano/smsir.c                    |    2 
- drivers/media/dvb/ttpci/budget-ci.c                |    7 
- drivers/media/rc/Kconfig                           |   12 -
- drivers/media/rc/Makefile                          |    1 
- drivers/media/rc/ene_ir.c                          |    6 
- drivers/media/rc/ene_ir.h                          |    2 
- drivers/media/rc/imon.c                            |   35 +-
- drivers/media/rc/ir-jvc-decoder.c                  |    6 
- drivers/media/rc/ir-lirc-codec.c                   |   46 ++
- drivers/media/rc/ir-nec-decoder.c                  |   32 -
- drivers/media/rc/ir-raw.c                          |    2 
- drivers/media/rc/ir-rc5-decoder.c                  |   62 ++-
- drivers/media/rc/ir-rc5-sz-decoder.c               |  153 -------
- drivers/media/rc/ir-rc6-decoder.c                  |    6 
- drivers/media/rc/ir-sony-decoder.c                 |   17 +
- drivers/media/rc/ite-cir.c                         |    7 
- drivers/media/rc/keymaps/rc-adstech-dvb-t-pci.c    |   89 ++--
- drivers/media/rc/keymaps/rc-alink-dtu-m.c          |   37 +-
- drivers/media/rc/keymaps/rc-anysee.c               |   89 ++--
- drivers/media/rc/keymaps/rc-apac-viewcomp.c        |   65 +--
- drivers/media/rc/keymaps/rc-asus-pc39.c            |   79 ++--
- drivers/media/rc/keymaps/rc-ati-tv-wonder-hd-600.c |   49 +-
- drivers/media/rc/keymaps/rc-avermedia-a16d.c       |   69 ++-
- drivers/media/rc/keymaps/rc-avermedia-cardbus.c    |  109 ++---
- drivers/media/rc/keymaps/rc-avermedia-dvbt.c       |   69 ++-
- drivers/media/rc/keymaps/rc-avermedia-m135a.c      |  187 ++++----
- .../media/rc/keymaps/rc-avermedia-m733a-rm-k6.c    |   89 ++--
- drivers/media/rc/keymaps/rc-avermedia-rm-ks.c      |   55 +-
- drivers/media/rc/keymaps/rc-avermedia.c            |   73 ++-
- drivers/media/rc/keymaps/rc-avertv-303.c           |   73 ++-
- drivers/media/rc/keymaps/rc-azurewave-ad-tu700.c   |  107 ++---
- drivers/media/rc/keymaps/rc-behold-columbus.c      |   73 ++-
- drivers/media/rc/keymaps/rc-behold.c               |   69 ++-
- drivers/media/rc/keymaps/rc-budget-ci-old.c        |   91 ++--
- drivers/media/rc/keymaps/rc-cinergy-1400.c         |   75 ++-
- drivers/media/rc/keymaps/rc-cinergy.c              |   73 ++-
- drivers/media/rc/keymaps/rc-dib0700-nec.c          |  141 +++---
- drivers/media/rc/keymaps/rc-dib0700-rc5.c          |  361 ++++++++--------
- drivers/media/rc/keymaps/rc-digitalnow-tinytwin.c  |   99 ++--
- drivers/media/rc/keymaps/rc-digittrade.c           |   57 +--
- drivers/media/rc/keymaps/rc-dm1105-nec.c           |   63 +--
- drivers/media/rc/keymaps/rc-dntv-live-dvb-t.c      |   65 +--
- drivers/media/rc/keymaps/rc-dntv-live-dvbt-pro.c   |  107 ++---
- drivers/media/rc/keymaps/rc-em-terratec.c          |   57 +--
- drivers/media/rc/keymaps/rc-encore-enltv-fm53.c    |   59 +--
- drivers/media/rc/keymaps/rc-encore-enltv.c         |  131 +++---
- drivers/media/rc/keymaps/rc-encore-enltv2.c        |   79 ++--
- drivers/media/rc/keymaps/rc-evga-indtube.c         |   33 +
- drivers/media/rc/keymaps/rc-eztv.c                 |   89 ++--
- drivers/media/rc/keymaps/rc-flydvb.c               |   65 +--
- drivers/media/rc/keymaps/rc-flyvideo.c             |   53 +-
- drivers/media/rc/keymaps/rc-fusionhdtv-mce.c       |  105 ++---
- drivers/media/rc/keymaps/rc-gadmei-rm008z.c        |   63 +--
- drivers/media/rc/keymaps/rc-genius-tvgo-a11mce.c   |   65 +--
- drivers/media/rc/keymaps/rc-gotview7135.c          |   69 ++-
- drivers/media/rc/keymaps/rc-hauppauge.c            |  287 ++++++-------
- drivers/media/rc/keymaps/rc-imon-mce.c             |  173 ++++----
- drivers/media/rc/keymaps/rc-imon-pad.c             |  215 +++++-----
- drivers/media/rc/keymaps/rc-iodata-bctv7e.c        |   87 ++--
- drivers/media/rc/keymaps/rc-kaiomy.c               |   65 +--
- drivers/media/rc/keymaps/rc-kworld-315u.c          |   65 +--
- .../media/rc/keymaps/rc-kworld-plus-tv-analog.c    |   71 ++-
- drivers/media/rc/keymaps/rc-leadtek-y04g0051.c     |  101 ++---
- drivers/media/rc/keymaps/rc-lirc.c                 |    1 
- drivers/media/rc/keymaps/rc-lme2510.c              |  133 +++---
- drivers/media/rc/keymaps/rc-manli.c                |   97 ++--
- drivers/media/rc/keymaps/rc-msi-digivox-ii.c       |   37 +-
- drivers/media/rc/keymaps/rc-msi-digivox-iii.c      |   65 +--
- drivers/media/rc/keymaps/rc-msi-tvanywhere-plus.c  |   89 ++--
- drivers/media/rc/keymaps/rc-msi-tvanywhere.c       |   49 +-
- drivers/media/rc/keymaps/rc-nebula.c               |  111 ++---
- .../media/rc/keymaps/rc-nec-terratec-cinergy-xs.c  |  121 +++--
- drivers/media/rc/keymaps/rc-norwood.c              |   69 +--
- drivers/media/rc/keymaps/rc-npgtech.c              |   71 ++-
- drivers/media/rc/keymaps/rc-pctv-sedna.c           |   65 +--
- drivers/media/rc/keymaps/rc-pinnacle-color.c       |  107 ++---
- drivers/media/rc/keymaps/rc-pinnacle-grey.c        |   83 ++--
- drivers/media/rc/keymaps/rc-pinnacle-pctv-hd.c     |   51 +-
- drivers/media/rc/keymaps/rc-pixelview-002t.c       |   53 +-
- drivers/media/rc/keymaps/rc-pixelview-mk12.c       |   63 +--
- drivers/media/rc/keymaps/rc-pixelview-new.c        |   63 +--
- drivers/media/rc/keymaps/rc-pixelview.c            |   77 ++-
- .../media/rc/keymaps/rc-powercolor-real-angel.c    |   71 ++-
- drivers/media/rc/keymaps/rc-proteus-2309.c         |   49 +-
- drivers/media/rc/keymaps/rc-purpletv.c             |   71 ++-
- drivers/media/rc/keymaps/rc-pv951.c                |   63 +--
- drivers/media/rc/keymaps/rc-rc6-mce.c              |  151 +++----
- .../media/rc/keymaps/rc-real-audio-220-32-keys.c   |   57 +--
- drivers/media/rc/keymaps/rc-streamzap.c            |   75 ++-
- drivers/media/rc/keymaps/rc-tbs-nec.c              |   69 ++-
- drivers/media/rc/keymaps/rc-technisat-usb2.c       |   67 +--
- drivers/media/rc/keymaps/rc-terratec-cinergy-xs.c  |   95 ++--
- drivers/media/rc/keymaps/rc-terratec-slim-2.c      |   37 +-
- drivers/media/rc/keymaps/rc-terratec-slim.c        |   57 +--
- drivers/media/rc/keymaps/rc-tevii-nec.c            |   95 ++--
- drivers/media/rc/keymaps/rc-total-media-in-hand.c  |   71 ++-
- drivers/media/rc/keymaps/rc-trekstor.c             |   57 +--
- drivers/media/rc/keymaps/rc-tt-1500.c              |   79 ++--
- drivers/media/rc/keymaps/rc-twinhan1027.c          |  107 ++---
- drivers/media/rc/keymaps/rc-videomate-m1f.c        |  103 ++---
- drivers/media/rc/keymaps/rc-videomate-s350.c       |   89 ++--
- drivers/media/rc/keymaps/rc-videomate-tv-pvr.c     |   93 ++--
- drivers/media/rc/keymaps/rc-winfast-usbii-deluxe.c |   57 +--
- drivers/media/rc/keymaps/rc-winfast.c              |  113 +++--
- drivers/media/rc/mceusb.c                          |   30 -
- drivers/media/rc/nuvoton-cir.c                     |   14 -
- drivers/media/rc/rc-core-priv.h                    |    9 
- drivers/media/rc/rc-loopback.c                     |   33 -
- drivers/media/rc/rc-main.c                         |  248 ++++++++---
- drivers/media/rc/streamzap.c                       |   12 -
- drivers/media/rc/winbond-cir.c                     |  442 ++++++++++++++++----
- drivers/media/video/bt8xx/bttv-input.c             |   10 
- drivers/media/video/cx18/cx18-i2c.c                |    2 
- drivers/media/video/cx231xx/cx231xx-input.c        |    2 
- drivers/media/video/cx23885/cx23885-input.c        |    4 
- drivers/media/video/cx88/cx88-input.c              |   18 -
- drivers/media/video/em28xx/em28xx-cards.c          |   17 +
- drivers/media/video/em28xx/em28xx-input.c          |   38 +-
- drivers/media/video/em28xx/em28xx.h                |    1 
- drivers/media/video/hdpvr/hdpvr-i2c.c              |    2 
- drivers/media/video/ir-kbd-i2c.c                   |   26 +
- drivers/media/video/ivtv/ivtv-i2c.c                |    8 
- drivers/media/video/pvrusb2/pvrusb2-i2c-core.c     |    4 
- drivers/media/video/saa7134/saa7134-input.c        |    8 
- drivers/staging/tm6000/tm6000-cards.c              |    2 
- drivers/staging/tm6000/tm6000-input.c              |   46 +-
- include/media/rc-core.h                            |   30 +
- include/media/rc-map.h                             |   62 ++-
- 138 files changed, 4735 insertions(+), 4609 deletions(-)
- delete mode 100644 drivers/media/rc/ir-rc5-sz-decoder.c
 
--- 
-David Härdeman
+ #--------- v4l-dvb-saa7164-cardist.patch ------------
+
+ diff -crB v4l-dvb/linux/Documentation/video4linux/CARDLIST.saa7164 
+ v4l-dvb-JN/linux/Documentation/video4linux/CARDLIST.saa7164
+ *** v4l-dvb/linux/Documentation/video4linux/CARDLIST.saa7164	2011-01-03 
+ 15:39:27.352474772 +1100
+ --- 
+ v4l-dvb-JN/linux/Documentation/video4linux/CARDLIST.saa7164	2011-01-03 
+ 15:48:54.200953545 +1100
+ ***************
+ *** 7,9 ****
+ --- 7,10 ----
+     6 -> Hauppauge WinTV-HVR2200                             
+ [0070:8901]
+     7 -> Hauppauge WinTV-HVR2250                             
+ [0070:8891,0070:8851]
+     8 -> Hauppauge WinTV-HVR2250                             
+ [0070:88A1]
+ +  10 -> Hauppauge WinTV-HVR2200                             
+ [0070:8953]
 
