@@ -1,62 +1,101 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:52468 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756672Ab1DBT3H (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Apr 2011 15:29:07 -0400
-Date: Sat, 2 Apr 2011 14:29:02 -0500
-From: Jonathan Nieder <jrnieder@gmail.com>
-To: Andreas Huber <a.huber@corax.at>
-Cc: linux-media@vger.kernel.org, Huber Andreas <hobrom@corax.at>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-kernel@vger.kernel.org, andrew.walker27@ntlworld.com,
-	Ben Hutchings <ben@decadent.org.uk>,
-	Trent Piepho <xyzzy@speakeasy.org>,
-	Roland Stoll <dvb.rs@xindex.de>
-Subject: Re: [PATCH 3/3] [media] cx88: use a mutex to protect cx8802_devlist
-Message-ID: <20110402192902.GD20064@elie>
-References: <20110327150610.4029.95961.reportbug@xen.corax.at>
- <20110327152810.GA32106@elie>
- <20110402093856.GA17015@elie>
- <20110402094451.GD17015@elie>
- <4D971B8D.4040305@corax.at>
+Received: from mail-px0-f179.google.com ([209.85.212.179]:62874 "EHLO
+	mail-px0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757336Ab1DQMCj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 Apr 2011 08:02:39 -0400
+Received: by pxi2 with SMTP id 2so2633829pxi.10
+        for <linux-media@vger.kernel.org>; Sun, 17 Apr 2011 05:02:38 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4D971B8D.4040305@corax.at>
+In-Reply-To: <BANLkTiksB-XiGyDwkH+ikFto18w+T2J-3g@mail.gmail.com>
+References: <BANLkTimaDxKQno=pjW0rpxYKG82M4jU1xg@mail.gmail.com>
+	<BANLkTiksB-XiGyDwkH+ikFto18w+T2J-3g@mail.gmail.com>
+Date: Sun, 17 Apr 2011 09:02:38 -0300
+Message-ID: <BANLkTimm3E9cLRAiSK5b08p58easCmxffQ@mail.gmail.com>
+Subject: Possibly Bug
+From: Eder Santiago carneiro <eder.carneiro@ig.com.br>
+To: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=000e0cd3284221872c04a11c0de4
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Andreas,
+--000e0cd3284221872c04a11c0de4
+Content-Type: text/plain; charset=ISO-8859-1
 
-(please turn off HTML mail.)
-Andreas Huber wrote:
+Well, at first I'm sorry to not know how to use yours dvb list. But
+since I'm not planning to be a active developer, just let me send some
+problem I got with 'scan' utility.
+First of all, I Live in South America, got a Skystar HD2 wich runs
+perfectly on my other OS..
+I'm planning to get it working on opensuse 11.4 x86_64, kernel version
+2.6.38.2, using mantis driver. I used, as input for scan, the file I'm
+sending attached to this mail. It's from Star One C2 satellite
+(formerly Brasilsat B4) which operates on C band. Unfortunately, when
+I run scan, got error messages like this for every transponder:
 
-> There is a reference count bug in the driver code. The driver's
-> active_ref count may become negative which leads to unpredictable
-> behavior. (mpeg video device inaccessible, etc ...)
+__tune_to_transponder:1912: ERROR: Setting frontend parameters failed:
+22 Invalid argument
+ERROR: initial tuning failed
 
-Hmm, the patchset didn't touch active_ref handling.
+tail -f /var/log/messages said:
 
-active_ref was added by v2.6.25-rc3~132^2~7 (V4L/DVB (7194):
-cx88-mpeg: Allow concurrent access to cx88-mpeg devices, 2008-02-11)
-and relies on three assumptions:
+Apr 17 08:51:13 linux-7gu4 kernel: [ 2446.768781] DVB: adapter 0
+frontend 0 frequency 5137920 out of range (950000..2150000)
+Apr 17 08:51:13 linux-7gu4 kernel: [ 2446.768797] DVB: adapter 0
+frontend 0 frequency 5137920 out of range (950000..2150000)
+Apr 17 08:51:13 linux-7gu4 kernel: [ 2446.768813] DVB: adapter 0
+frontend 0 frequency 5137880 out of range (950000..2150000)
+Apr 17 08:51:13 linux-7gu4 kernel: [ 2446.768829] DVB: adapter 0
+frontend 0 frequency 5137880 out of range (950000..2150000)
+Apr 17 08:51:13 linux-7gu4 kernel: [ 2446.768846] DVB: adapter 0
+frontend 0 frequency 5137835 out of range (950000..2150000)
+Apr 17 08:51:13 linux-7gu4 kernel: [ 2446.768862] DVB: adapter 0
+frontend 0 frequency 5137835 out of range (950000..2150000)
 
- * (successful) calls to cx8802_driver::request_acquire are balanced
-   with calls to cx8802_driver::request_release;
 
- * cx8802_driver::advise_acquire is non-null if and only if
-   cx8802_driver::advise_release is (since both are NULL for
-   blackbird, non-NULL for dvb);
+Which makes me guess that there are some problem which values or
+conversion here. So please let me know whether It's a known bug, and
+how to fix it.
 
- * no data races.
+--000e0cd3284221872c04a11c0de4
+Content-Type: text/plain; charset=US-ASCII; name="2900.1.txt"
+Content-Disposition: attachment; filename="2900.1.txt"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gmlwv84x0
 
-I suppose it would be more idiomatic to use an atomic_t, but access to
-active_ref was previously protected by the BKL and now it is protected
-by core->lock.  So it's not clear to me why this doesn't work.
-
-Any hints?  (e.g., a detailed reproduction recipe, or a log after
-adding a printk to find out when exactly active_ref becomes negative)
-
-Thanks for reporting.
-Jonathan
+UyAzNjI4IEggMzAwMDAwMCAzLzQgQVVUTyBRUFNLClMgMzYzMiBIIDQ2ODgwMDAgMy80IEFVVE8g
+UVBTSwpTIDM2MzcgSCAyNjAwMDAwIDMvNCBBVVRPICA4UFNLClMgMzY0MiBIIDY1MTYwMDAgMy80
+IEFVVE8gUVBTSwpTIDM2NDQgViAzMjE0MDAwIDMvNCBBVVRPIFFQU0sKUyAzNjQ4IFYgMjE3MDAw
+MCAzLzQgQVVUTyBRUFNLClMgMzY1MCBIIDQyODUwMDAgMy80IEFVVE8gUVBTSwpTIDM2NTIgViAy
+NzgwMDAwIDMvNCBBVVRPIFFQU0sKUyAzNjU2IEggMzM5MzAwMCAzLzQgQVVUTyBRUFNLClMgMzY1
+NyBWIDM5MzEwMDAgMy80IEFVVE8gUVBTSwpTIDM2NjIgSCAzMzMzMDAwIDMvNCBBVVRPIFFQU0sK
+UyAzNjYzIFYgNDI4NTAwMCA1LzYgQVVUTyBRUFNLClMgMzY2OCBIIDc1MDAwMDAgMi8zIEFVVE8g
+OFBTSwpTIDM2NjggViAyMjIyMDAwIDMvNCBBVVRPIFFQU0sKUyAzNjcyIEggNDgwMDAwMCA1LzYg
+QVVUTyBRUFNLClMgMzY3NCBWIDY2NjcwMDAgMy80IEFVVE8gUVBTSwpTIDM2ODAgSCA2MDAwMDAw
+IDMvNCBBVVRPIFFQU0sKUyAzNjg1IFYgNTAwMDAwMCAzLzQgQVVUTyA4UFNLClMgMzY4OCBIIDc1
+MDAwMDAgMi8zIEFVVE8gUVBTSwpTIDM2OTAgViAyMjIwMDAwIDMvNCBBVVRPIFFQU0sKUyAzNjk1
+IEggMzU5ODAwMCAzLzQgQVVUTyBRUFNLClMgMzcwMCBWIDE1MDAwMDAwIDUvNiBBVVRPIDhQU0sK
+UyAzNzA0IEggMzc1MDAwMCAzLzQgQVVUTyA4UFNLClMgMzcxNCBWIDQ0MDAwMDAgMy80IEFVVE8g
+UVBTSwpTIDM3NTQgViA2MjIwMDAwIDMvNCBBVVRPIFFQU0sKUyAzODA4IFYgODE1MDAwMCAyLzMg
+QVVUTyA4UFNLClMgMzgyMiBWIDEwMDAwMDAwIDUvNiBBVVRPIDhQU0sKUyAzODMwIFYgMjUwMDAw
+MCAyLzMgQVVUTyA4UFNLClMgMzgzMyBWIDczNTAwMDAgNS82IEFVVE8gUVBTSwpTIDM4NzQgViA1
+OTI2MDAwIDMvNCBBVVRPIFFQU0sKUyAzODg4IFYgODE1MDAwMCAyLzMgQVVUTyA4UFNLClMgMzg5
+OCBWIDc1MDAwMDAgMi8zIEFVVE8gUVBTSwpTIDM5MDQgViAzMjE0MDAwIDMvNCBBVVRPIFFQU0sK
+UyAzOTA5IFYgNDAwMDAwMCA1LzYgQVVUTyBRUFNLClMgMzkxNiBWIDUwMDAwMDAgMi8zIEFVVE8g
+OFBTSwpTIDM5NDAgViAzMDAwMDAwMCAyLzMgQVVUTyA4UFNLClMgMzk0NSBIIDcyMDAwMDAgMi8z
+IEFVVE8gUVBTSwpTIDM5NTUgSCA0NDAwMDAwIDMvNCBBVVRPIFFQU0sKUyAzOTY0IEggMTg3NTAw
+MCAzLzQgQVVUTyBRUFNLClMgMzk2NSBWIDI5MzAwMDAgMi8zIEFVVE8gUVBTSwpTIDM5NjkgViAx
+ODUzMDAwIDUvNiBBVVRPIFFQU0sKUyAzOTczIFYgMzcwMzAwMCAzLzQgQVVUTyBRUFNLClMgMzk3
+OCBWIDM2MTcwMDAgNy84IEFVVE8gUVBTSwpTIDM5ODMgViAzOTI4MDAwIDMvNCBBVVRPIFFQU0sK
+UyAzOTg1IEggMjE3MDAwMCAzLzQgQVVUTyBRUFNLClMgMzk5MCBWIDc0MDAwMDAgMy80IEFVVE8g
+OFBTSwpTIDM5OTYgViAyMzAwMDAwIDMvNCBBVVRPIFFQU0sKUyA0MDAwIEggMjQwMDAwMCAyLzMg
+QVVUTyBRUFNLClMgNDA0NyBWIDcxNDMwMDAgMy80IEFVVE8gUVBTSwpTIDQwNzAgSCAxMzAyMTAw
+MCAzLzQgQVVUTyBRUFNLClMgMTA5NzQgSCAyOTkwMDAwMCAzLzQgQVVUTyBRUFNLClMgMTEwMTQg
+SCAyOTkwMDAwMCAzLzQgQVVUTyBRUFNLClMgMTExMzAgViAyOTkwMDAwMCAzLzQgQVVUTyBRUFNL
+ClMgMTExNzAgViAyOTkwMDAwMCAzLzQgQVVUTyBRUFNLClMgMTE3ODAgSCAyOTkwMDAwMCAzLzQg
+QVVUTyBRUFNLClMgMTE4MjAgSCAyOTkwMDAwMCAzLzQgQVVUTyBRUFNLClMgMTE5NDAgSCAyOTkw
+MDAwMCAzLzQgQVVUTyBRUFNLClMgMTE5NjAgViAyOTkwMDAwMCAzLzQgQVVUTyBRUFNLClMgMTIw
+MjAgViA0MTUwMDAwMCA0LzUgQVVUTyBRUFNLClMgMTIwODAgViAyOTkwMDAwMCAzLzUgQVVUTyA4
+UFNLClMgMTIxMjAgViAyOTkwMDAwMCAzLzQgQVVUTyBRUFNLClMgMTIxNjUgViAyOTkwMDAwMCAz
+LzUgQVVUTyA4UFNLCg==
+--000e0cd3284221872c04a11c0de4--
