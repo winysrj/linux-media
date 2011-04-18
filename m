@@ -1,48 +1,61 @@
 Return-path: <mchehab@pedra>
-Received: from ns.dobnet.cz ([213.151.87.3]:33262 "EHLO ns.dobnet.cz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750942Ab1DQMmv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Apr 2011 08:42:51 -0400
-From: "Willows Finance Company" <info@loan.com>
-Reply-To: terrygfinn213@w.cn
-Subject: Apply For Loan At 3%
-Date: Sun, 17 Apr 2011 14:10:09 +0200
-Message-Id: <20110417114343.M44557@loan.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:35346 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753484Ab1DRIGq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Apr 2011 04:06:46 -0400
+Date: Mon, 18 Apr 2011 10:06:37 +0200
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+	<u.kleine-koenig@pengutronix.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	kernel@pengutronix.de
+Subject: Re: [PATCH] V4L: mx3_camera: select VIDEOBUF2_DMA_CONTIG instead of
+ VIDEOBUF_DMA_CONTIG
+Message-ID: <20110418080637.GA31131@pengutronix.de>
+References: <1302166243-650-1-git-send-email-u.kleine-koenig@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset=iso-8859-2
-To: undisclosed-recipients:;
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1302166243-650-1-git-send-email-u.kleine-koenig@pengutronix.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Dear Sir/Madam,
+Hi Guennadi,
 
-Welcome to Willows Finance Company Limited. We Offer Private, Commercial and 
-Personal Loans with very Minimal annual Interest Rates as Low as 3% within a 
-1 year to 10years repayment duration period to any part of the world. We give 
-out loans within the range of $5,000 to $5,000,000.00 USD. Our loans are well 
-insured for maximum security is our priority.
+On Thu, Apr 07, 2011 at 10:50:43AM +0200, Uwe Kleine-König wrote:
+> Since commit
+> 
+> 	379fa5d ([media] V4L: mx3_camera: convert to videobuf2)
+> 
+> mx3_camera uses videobuf2, but that commit didn't upgrade the select
+> resulting in the following build failure:
+> 
+> 	drivers/built-in.o: In function `mx3_camera_init_videobuf':
+> 	clkdev.c:(.text+0x86580): undefined reference to `vb2_dma_contig_memops'
+> 	drivers/built-in.o: In function `mx3_camera_probe':
+> 	clkdev.c:(.devinit.text+0x3548): undefined reference to `vb2_dma_contig_init_ctx'
+> 	clkdev.c:(.devinit.text+0x3578): undefined reference to `vb2_dma_contig_cleanup_ctx'
+> 	drivers/built-in.o: In function `mx3_camera_remove':
+> 	clkdev.c:(.devexit.text+0x674): undefined reference to `vb2_dma_contig_cleanup_ctx'
+> 	make[2]: *** [.tmp_vmlinux1] Error 1
+> 	make[1]: *** [sub-make] Error 2
+> 	make: *** [all] Error 2
+> 
+> Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+> ---
+I guess the only problem with this is -ENOTIME on your side?
 
-Interested Persons should contact us via E-mail:
+> does someone has a hint how to fix gcc not to believe the undefined
+> references to be in clkdev.c?
+I got a hint that might be related to ccache. Didn't look into it yet,
+though.
 
-Lender's Name: Mr. Terry Griffen
-Lender's Email: terrygfinn213@w.cn 
+Best regards
+Uwe
 
-BORROWERS INFORMATION
-
-Names:
-Country:
-Address:
-Age:
-Fax Number:
-Personal Number:
-Occupation:
-Sex:
-Monthly Income:
-Amount Needed:
-Loan duration:
-
-Best Regards
-Mr. Terry Griffen
-CEO/Willows Finance Company.
-Tel: + 44 702 404 7963
+-- 
+Pengutronix e.K.                           | Uwe Kleine-König            |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
