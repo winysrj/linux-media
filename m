@@ -1,50 +1,106 @@
 Return-path: <mchehab@pedra>
-Received: from chybek.jannau.net ([83.169.20.219]:44873 "EHLO
-	chybek.jannau.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753394Ab1DFHM7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Apr 2011 03:12:59 -0400
-Received: from aniel.jannau.net (p5DDC4991.dip0.t-ipconnect.de [93.220.73.145])
-	by chybek.jannau.net (Postfix) with ESMTPSA id 922325A180BE
-	for <linux-media@vger.kernel.org>; Wed,  6 Apr 2011 09:12:58 +0200 (CEST)
-Date: Wed, 6 Apr 2011 09:15:12 +0200
-From: Janne Grunau <j@jannau.net>
-To: linux-media@vger.kernel.org
-Subject: Re: [PATCH] DVB-APPS: azap gets -p argument
-Message-ID: <20110406071512.GB8115@aniel>
-References: <AANLkTimexhCMBSd7UNr1gizgbnarwS9kucZC0nWSBJxX@mail.gmail.com>
- <201103151450.08708@orion.escape-edv.de>
- <20110404110519.GE24212@aniel>
- <201104060839.08855@orion.escape-edv.de>
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:36328 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753510Ab1DROLi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Apr 2011 10:11:38 -0400
+Received: by gwaa18 with SMTP id a18so1678385gwa.19
+        for <linux-media@vger.kernel.org>; Mon, 18 Apr 2011 07:11:37 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201104060839.08855@orion.escape-edv.de>
+In-Reply-To: <BANLkTinCBYFhpjqanV7U3C2a43MZmXZsqw@mail.gmail.com>
+References: <BANLkTimKhe05sGJPGUrkD5JgwQKV_83bhQ@mail.gmail.com> <BANLkTinCBYFhpjqanV7U3C2a43MZmXZsqw@mail.gmail.com>
+From: Madhur Jajoo <jajoo.madhur@gmail.com>
+Date: Mon, 18 Apr 2011 19:41:17 +0530
+Message-ID: <BANLkTikma80oNCF68FL8uoLY9-uakegnQw@mail.gmail.com>
+Subject: Re: Wrong tv tuner card detedted
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Apr 06, 2011 at 08:39:05AM +0200, Oliver Endriss wrote:
-> On Monday 04 April 2011 13:05:19 Janne Grunau wrote:
-> > On Tue, Mar 15, 2011 at 02:50:05PM +0100, Oliver Endriss wrote:
-> > > The PAT/PMT from the stream does not describe the dvr stream correctly.
-> > > 
-> > > The dvr device provides *some* PIDs of the transponder, while the
-> > > PAT/PMT reference *all* programs of the transponder.
-> > 
-> > True, the PAT references some PMT pids which won't be included. All pids
-> > from the desired program should be included. A transport stream without
-> > PAT/PMT is as invalid as the stream with incorrect PAT/PMT/missing pids
-> > but the second is easier to handle for player software than the first.
-> 
-> A sane player can handle a TS stream without PAT/PMT.
-> Iirc mplayer never had any problems.
+lsusb result is
 
-mplayer with default options has only no problems as long as the video
-codec is mpeg2 and possible mpeg 1 layer 2 audio. Try any H.264 stream
-and see it fail. That was the reason why I want to change the behaviour
-with -r in the first place. http://blog.fefe.de/?ts=b58fb6b1 (german
-content) triggered it.
+madhur@madhur-desktop:~$ lsusb
+Bus 005 Device 003: ID 12d1:140b Huawei Technologies Co., Ltd. EC1260
+Wireless Data Modem HSD USB Card
+Bus 005 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 004 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 003 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 002 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 001 Device 002: ID eb1a:2860 eMPIA Technology, Inc.
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+madhur@madhur-desktop:~$
 
-I don't care too much. Can someone please push Christian's original
-patch adding -p to azap.
+Also when i am doing dmesg then it saying
 
-Janne
+712.469413] em28xx #0: Identified as Unknown EM2750/28xx video grabber (card=1)
+[  712.480166] em28xx #0: found i2c device @ 0x4a [saa7113h]
+[  712.491657] em28xx #0: found i2c device @ 0xa0 [eeprom]
+[  712.496156] em28xx #0: found i2c device @ 0xc0 [tuner (analog)]
+[  712.504280] em28xx #0: Your board has no unique USB ID.
+
+Waiting for your reply
+
+Thanks
+Madhur
+
+
+On Sat, Apr 9, 2011 at 9:51 PM, Another Sillyname
+<anothersname@googlemail.com> wrote:
+> On 09/04/2011, Madhur Jajoo <jajoo.madhur@gmail.com> wrote:
+>> Hi,
+>>
+>>     I am using Ubuntu 10.10. I have Gadmei UTV300 USB TV Tuner card.
+>>
+>>     When i am trying to do "dmesg" it saying card is detected as gadmei
+>> UTV330+
+>>     I have attached full log of the command.
+>>     I am using tvtime software. I see that my tvtuner card is getting
+>> started (through LED) when i start tvtime. But it says "No signal".
+>>  Can you please help me out of this ?
+>>
+>>    Please find attached
+>>
+>> [ 3523.461728] em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0x274ad199
+>> [ 3523.461731] em28xx #0: EEPROM info:
+>> [ 3523.461733] em28xx #0:     No audio on board.
+>> [ 3523.461736] em28xx #0:     500mA max power
+>> [ 3523.461739] em28xx #0:     Table at 0x06, strings=0x226a, 0x108c, 0x0000
+>> [ 3523.472475] em28xx #0: Identified as Unknown EM2750/28xx video
+>> grabber (card=1)
+>> [ 3523.484848] em28xx #0: found i2c device @ 0x4a [saa7113h]
+>> [ 3523.499345] em28xx #0: found i2c device @ 0xa0 [eeprom]
+>> [ 3523.503842] em28xx #0: found i2c device @ 0xc0 [tuner (analog)]
+>> [ 3523.515217] em28xx #0: Your board has no unique USB ID.
+>> [ 3523.515222] em28xx #0: A hint were successfully done, based on i2c
+>> devicelist hash.
+>> [ 3523.515225] em28xx #0: This method is not 100% failproof.
+>> [ 3523.515228] em28xx #0: If the board were missdetected, please email
+>> this log to:
+>> [ 3523.515230] em28xx #0:     V4L Mailing List  <linux-media@vger.kernel.org>
+>> [ 3523.515233] em28xx #0: Board detected as Gadmei UTV330+
+>> [ 3523.876422] saa7115 1-0025: saa7113 found (1f7113d0e100000) @ 0x4a
+>> (em28xx #0)
+>> [ 3524.588691] All bytes are equal. It is not a TEA5767
+>> [ 3524.588904] tuner 1-0060: chip found @ 0xc0 (em28xx #0)
+>> [ 3524.589567] tuner-simple 1-0060: creating new instance
+>> [ 3524.589572] tuner-simple 1-0060: type set to 69 (Tena TNF 5335 and
+>> similar models)
+>> [ 3524.624020] Registered IR keymap rc-gadmei-rm008z
+>> [ 3524.624199] input: em28xx IR (em28xx #0) as
+>> /devices/pci0000:00/0000:00:1d.7/usb1/1-7/rc/rc0/input7
+>> [ 3524.624378] rc0: em28xx IR (em28xx #0) as
+>> /devices/pci0000:00/0000:00:1d.7/usb1/1-7/rc/rc0
+>> [ 3524.636187] em28xx #0: Config register raw data: 0xc0
+>> [ 3524.684030] em28xx #0: v4l2 driver version 0.1.2
+>> [ 3525.176259] em28xx #0: V4L2 video device registered as video0
+>> [ 3525.176266] em28xx #0: V4L2 VBI device registered as vbi0
+>>
+>> Waiting for your reply.
+>>
+>> Thanks
+>> Madhur
+>>
+> Can you do a lsusb and report the results.
+>
