@@ -1,53 +1,129 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1536 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752662Ab1DDGYl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2011 02:24:41 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Pawel Osciak <pawel@osciak.com>
-Subject: Re: [PATCH 3/3] [media] vb2: prevent drivers from requesting too many buffers/planes.
-Date: Mon, 4 Apr 2011 08:24:28 +0200
-Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com
-References: <1301873937-14146-1-git-send-email-pawel@osciak.com> <1301873937-14146-3-git-send-email-pawel@osciak.com>
-In-Reply-To: <1301873937-14146-3-git-send-email-pawel@osciak.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201104040824.28092.hverkuil@xs4all.nl>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:45192 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754143Ab1DRJ06 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Apr 2011 05:26:58 -0400
+Date: Mon, 18 Apr 2011 11:26:42 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 5/7] v4l: s5p-fimc: add pm_runtime support
+In-reply-to: <1303118804-5575-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Andrzej Pietrasiwiecz <andrzej.p@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Kukjin Kim <kgene.kim@samsung.com>
+Message-id: <1303118804-5575-6-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1303118804-5575-1-git-send-email-m.szyprowski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Monday, April 04, 2011 01:38:57 Pawel Osciak wrote:
-> Add a sanity check to make sure drivers do not adjust the number of buffers
-> or planes above the supported limit on reqbufs.
-> 
-> Signed-off-by: Pawel Osciak <pawel@osciak.com>
-> ---
->  drivers/media/video/videobuf2-core.c |    5 +++++
->  1 files changed, 5 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
-> index 6698c77..6e69584 100644
-> --- a/drivers/media/video/videobuf2-core.c
-> +++ b/drivers/media/video/videobuf2-core.c
-> @@ -529,6 +529,11 @@ int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
->  	if (ret)
->  		return ret;
->  
-> +	/*
-> +	 * Make sure driver did not request more buffers/planes than we can handle.
-> +	 */
-> +	BUG_ON (num_buffers > VIDEO_MAX_FRAME || num_planes > VIDEO_MAX_PLANES);
-> +
+This patch adds basic support for pm_runtime to s5p-fimc driver. PM
+runtime support is required to enable the driver on S5PV310 series with
+power domain driver enabled.
 
-I would make this a 'if' with a WARN_ON and error return. More debug-friendly.
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-fimc/fimc-capture.c |    5 +++++
+ drivers/media/video/s5p-fimc/fimc-core.c    |   14 ++++++++++++++
+ 2 files changed, 19 insertions(+), 0 deletions(-)
 
-Regards,
-
-	Hans
-
->  	/* Finally, allocate buffers and video memory */
->  	ret = __vb2_queue_alloc(q, req->memory, num_buffers, num_planes,
->  				plane_sizes);
-> 
+diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+index 95f8b4e1..f697ed1 100644
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c
++++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -18,6 +18,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/device.h>
+ #include <linux/platform_device.h>
++#include <linux/pm_runtime.h>
+ #include <linux/list.h>
+ #include <linux/slab.h>
+ #include <linux/clk.h>
+@@ -398,6 +399,8 @@ static int fimc_capture_open(struct file *file)
+ 	if (fimc_m2m_active(fimc))
+ 		return -EBUSY;
+ 
++	pm_runtime_get_sync(&fimc->pdev->dev);
++
+ 	if (++fimc->vid_cap.refcnt == 1) {
+ 		ret = fimc_isp_subdev_init(fimc, 0);
+ 		if (ret) {
+@@ -428,6 +431,8 @@ static int fimc_capture_close(struct file *file)
+ 		fimc_subdev_unregister(fimc);
+ 	}
+ 
++	pm_runtime_put_sync(&fimc->pdev->dev);
++
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+index 6c919b3..ead5c0a 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.c
++++ b/drivers/media/video/s5p-fimc/fimc-core.c
+@@ -20,6 +20,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/device.h>
+ #include <linux/platform_device.h>
++#include <linux/pm_runtime.h>
+ #include <linux/list.h>
+ #include <linux/io.h>
+ #include <linux/slab.h>
+@@ -1410,6 +1411,8 @@ static int fimc_m2m_open(struct file *file)
+ 	if (fimc->vid_cap.refcnt > 0)
+ 		return -EBUSY;
+ 
++	pm_runtime_get_sync(&fimc->pdev->dev);
++
+ 	fimc->m2m.refcnt++;
+ 	set_bit(ST_OUTDMA_RUN, &fimc->state);
+ 
+@@ -1452,6 +1455,8 @@ static int fimc_m2m_release(struct file *file)
+ 	if (--fimc->m2m.refcnt <= 0)
+ 		clear_bit(ST_OUTDMA_RUN, &fimc->state);
+ 
++	pm_runtime_put_sync(&fimc->pdev->dev);
++
+ 	return 0;
+ }
+ 
+@@ -1649,6 +1654,11 @@ static int fimc_probe(struct platform_device *pdev)
+ 		goto err_req_region;
+ 	}
+ 
++	pm_runtime_set_active(&pdev->dev);
++	pm_runtime_enable(&pdev->dev);
++
++	pm_runtime_get_sync(&pdev->dev);
++
+ 	fimc->num_clocks = MAX_FIMC_CLOCKS - 1;
+ 
+ 	/* Check if a video capture node needs to be registered. */
+@@ -1706,6 +1716,8 @@ static int fimc_probe(struct platform_device *pdev)
+ 	dev_dbg(&pdev->dev, "%s(): fimc-%d registered successfully\n",
+ 		__func__, fimc->id);
+ 
++	pm_runtime_put_sync(&pdev->dev);
++
+ 	return 0;
+ 
+ err_m2m:
+@@ -1740,6 +1752,8 @@ static int __devexit fimc_remove(struct platform_device *pdev)
+ 
+ 	vb2_dma_contig_cleanup_ctx(fimc->alloc_ctx);
+ 
++	pm_runtime_disable(&pdev->dev);
++
+ 	iounmap(fimc->regs);
+ 	release_resource(fimc->regs_res);
+ 	kfree(fimc->regs_res);
+-- 
+1.7.1.569.g6f426
