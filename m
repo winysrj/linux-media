@@ -1,52 +1,41 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59808 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756771Ab1D3Ndm (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.187]:64671 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754517Ab1DROPv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Apr 2011 09:33:42 -0400
-Received: from localhost.localdomain (unknown [91.178.80.7])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 3115135995
-	for <linux-media@vger.kernel.org>; Sat, 30 Apr 2011 13:33:41 +0000 (UTC)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 0/4] uvcvideo: Media controller support
-Date: Sat, 30 Apr 2011 15:34:01 +0200
-Message-Id: <1304170445-11978-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Mon, 18 Apr 2011 10:15:51 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCH 4/7] v4l: videobuf2: add IOMMU based DMA memory allocator
+Date: Mon, 18 Apr 2011 16:15:48 +0200
+Cc: linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Andrzej Pietrasiwiecz <andrzej.p@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kukjin Kim <kgene.kim@samsung.com>
+References: <1303118804-5575-1-git-send-email-m.szyprowski@samsung.com> <1303118804-5575-5-git-send-email-m.szyprowski@samsung.com>
+In-Reply-To: <1303118804-5575-5-git-send-email-m.szyprowski@samsung.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201104181615.49009.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi everybody,
+On Monday 18 April 2011, Marek Szyprowski wrote:
+> From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+> 
+> This patch adds new videobuf2 memory allocator dedicated to devices that
+> supports IOMMU DMA mappings. A device with IOMMU module and a driver
+> with include/iommu.h compatible interface is required. This allocator
+> aquires memory with standard alloc_page() call and doesn't suffer from
+> memory fragmentation issues. The allocator support following page sizes:
+> 4KiB, 64KiB, 1MiB and 16MiB to reduce iommu translation overhead.
 
-These patches implement support for the media controller API in the uvcvideo
-driver. UVC devices report their internal topology to the host through USB
-descriptors, and the topology is then further exported to userspace through
-the MC API.
+My feeling is that this is not the right abstraction. Why can't you
+just implement the regular dma-mapping.h interfaces for your IOMMU
+so that the videobuf code can use the existing allocators?
 
-Note that all links are immutable, as UVC doesn't allow runtime links
-configuration. Furthermore the V4L2 subdev pad-level API isn't used, formats
-are controlled through V4L2 device nodes only. The MC API is thus totally
-optional, non MC-aware applications won't notice any change in the driver
-behaviour.
-
-As the MC API is marked as experimental, should I make MC support conditionally
-compilable, and add a configuration menu entry to enable/disable it ?
-
-Laurent Pinchart (4):
-  uvcvideo: Register a v4l2_device
-  uvcvideo: Register subdevices for each entity
-  uvcvideo: Connect video devices to media entities
-  v4l: Release module if subdev registration fails
-
- drivers/media/video/uvc/Makefile     |    2 +-
- drivers/media/video/uvc/uvc_driver.c |   58 +++++++++++++++--
- drivers/media/video/uvc/uvc_entity.c |  118 ++++++++++++++++++++++++++++++++++
- drivers/media/video/uvc/uvcvideo.h   |   18 +++++
- drivers/media/video/v4l2-device.c    |    5 +-
- 5 files changed, 192 insertions(+), 9 deletions(-)
- create mode 100644 drivers/media/video/uvc/uvc_entity.c
-
--- 
-Regards,
-
-Laurent Pinchart
-
+	Arnd
