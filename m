@@ -1,22 +1,50 @@
 Return-path: <mchehab@pedra>
-Received: from mailhost.tue.nl ([131.155.2.19]:55021 "EHLO mailhost.tue.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758544Ab1DNCtv convert rfc822-to-8bit (ORCPT
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:51483 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751753Ab1DRPPf convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Apr 2011 22:49:51 -0400
-From: "Verheijen, M.A." <m.a.verheijen@tue.nl>
-Date: Thu, 14 Apr 2011 04:40:24 +0200
-Subject: Upgrade Your Mailbox
-Message-ID: <8E85F3178D258343BEFED8F16542934401D2F13D5AE9@EXCHANGE11.campus.tue.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+	Mon, 18 Apr 2011 11:15:35 -0400
+Received: by ewy4 with SMTP id 4so1396079ewy.19
+        for <linux-media@vger.kernel.org>; Mon, 18 Apr 2011 08:15:34 -0700 (PDT)
 MIME-Version: 1.0
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Date: Mon, 18 Apr 2011 08:15:34 -0700
+Message-ID: <BANLkTimoKzWrAyCBM2B9oTEKstPJjpG_MA@mail.gmail.com>
+Subject: Embedded Linux memory management interest group list
+From: Jesse Barker <jesse.barker@linaro.org>
+To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Your mailbox has exceeded the limit of 20 GB, which is as set by your manager, you are currently at 20.9GB, you will not be able to create new e-mail to send or receive again until you validate your mailbox.To re-validate your mailbox, you can click on this CLICK HERE<http://brainmarker.com//ups/account.html>
+Hi all,
 
-Thanks
-System Administrator
+One of the big issues we've been faced with at Linaro is around GPU
+and multimedia device integration, in particular the memory management
+requirements for supporting them on ARM.  This next cycle, we'll be
+focusing on driving consensus around a unified memory management
+solution for embedded systems that support multiple architectures and
+SoCs.  This is listed as part of our working set of requirements for
+the next six-month cycle (in spite of the URL, this is not being
+treated as a graphics-specific topic - we also have participation from
+multimedia and kernel working group folks):
+
+  https://wiki.linaro.org/Cycles/1111/TechnicalTopics/Graphics
+
+I am working on getting the key technical decision makers to provide
+input and participate in the requirements collection and design for a
+unified solution. We had an initial birds-of-a-feather discussion at
+the Embedded Linux Conference in San Francisco this past week to kick
+off the effort in preparation for the first embedded-memory-management
+mini-sprint in Budapest week of May 9th at Linaro@UDS.  One of the
+outcomes of the BoF was the need for a mailing list to coordinate
+ideas, planning, etc.  The subscription management for the list is
+located at http://lists.linaro.org/mailman/listinfo/linaro-mm-sig.
+The mini-summit in Budapest will have live audio and an IRC channel
+for those that want to participate (details to go out on the list).
+We expect to have additional summits over the course of the cycle,
+with the next one likely at Linux Plumbers in September (though, I
+would like to try for one more before then).
+
+cheers,
+Jesse
