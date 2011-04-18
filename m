@@ -1,60 +1,77 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:42824 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751793Ab1DSJ3j (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.10]:60166 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753347Ab1DRIPM convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Apr 2011 05:29:39 -0400
-Received: by iwn34 with SMTP id 34so4620259iwn.19
-        for <linux-media@vger.kernel.org>; Tue, 19 Apr 2011 02:29:38 -0700 (PDT)
+	Mon, 18 Apr 2011 04:15:12 -0400
+Date: Mon, 18 Apr 2011 10:14:56 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+	<u.kleine-koenig@pengutronix.de>
+cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	kernel@pengutronix.de
+Subject: Re: [PATCH] V4L: mx3_camera: select VIDEOBUF2_DMA_CONTIG instead of
+ VIDEOBUF_DMA_CONTIG
+In-Reply-To: <20110418080637.GA31131@pengutronix.de>
+Message-ID: <Pine.LNX.4.64.1104181013250.27247@axis700.grange>
+References: <1302166243-650-1-git-send-email-u.kleine-koenig@pengutronix.de>
+ <20110418080637.GA31131@pengutronix.de>
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1104191118520.16641@axis700.grange>
-References: <BANLkTinpwQtRgVvirgm7NdtaSceNbbVLaw@mail.gmail.com>
-	<Pine.LNX.4.64.1104191118520.16641@axis700.grange>
-Date: Tue, 19 Apr 2011 11:29:38 +0200
-Message-ID: <BANLkTi=GE9dEUY1kiTXEq00yw2imQvm93A@mail.gmail.com>
-Subject: Re: Let's submit mt9p031 to mainline.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 19 April 2011 11:19, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> On Tue, 19 Apr 2011, javier Martin wrote:
->
->> Hi,
->> I finally received my LI-5M03 for the Beagleboard which includes mt9p031 sensor.
->>
->> I know Guennadi has somewhere an outdated version of a driver for it.
->> I would like to help you out on updating the driver so that it can be
->> submitted to mainline.
->> Guennadi please, if you could point me out to that code I could start
->> the job myself.
->>
->> Just one question: what GIT repository + branch should I choose to
->> work on, so that we can seamlessly integrate the changes later?
->
-> I wanted to update the code, but usb is currently broken on beagle-board,
-> so, I cannot work with it. I'm waiting for it to be fixed to continue with
-> that.
->
-> Thanks
-> Guennadi
+On Mon, 18 Apr 2011, Uwe Kleine-König wrote:
 
-So you are planning to do it yourself.
-Is there anything I can do to help?
+> Hi Guennadi,
+> 
+> On Thu, Apr 07, 2011 at 10:50:43AM +0200, Uwe Kleine-König wrote:
+> > Since commit
+> > 
+> > 	379fa5d ([media] V4L: mx3_camera: convert to videobuf2)
+> > 
+> > mx3_camera uses videobuf2, but that commit didn't upgrade the select
+> > resulting in the following build failure:
+> > 
+> > 	drivers/built-in.o: In function `mx3_camera_init_videobuf':
+> > 	clkdev.c:(.text+0x86580): undefined reference to `vb2_dma_contig_memops'
+> > 	drivers/built-in.o: In function `mx3_camera_probe':
+> > 	clkdev.c:(.devinit.text+0x3548): undefined reference to `vb2_dma_contig_init_ctx'
+> > 	clkdev.c:(.devinit.text+0x3578): undefined reference to `vb2_dma_contig_cleanup_ctx'
+> > 	drivers/built-in.o: In function `mx3_camera_remove':
+> > 	clkdev.c:(.devexit.text+0x674): undefined reference to `vb2_dma_contig_cleanup_ctx'
+> > 	make[2]: *** [.tmp_vmlinux1] Error 1
+> > 	make[1]: *** [sub-make] Error 2
+> > 	make: *** [all] Error 2
+> > 
+> > Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+> > ---
+> I guess the only problem with this is -ENOTIME on your side?
 
-What kernel are you using? In 2.6.38 usb works fine for me in the
-Beagleboard xM.
+It's been pushed upstream almost 2 weeks ago:
 
+http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/31352
 
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+Thanks
+Guennadi
+
+> 
+> > does someone has a hint how to fix gcc not to believe the undefined
+> > references to be in clkdev.c?
+> I got a hint that might be related to ccache. Didn't look into it yet,
+> though.
+> 
+> Best regards
+> Uwe
+> 
+> -- 
+> Pengutronix e.K.                           | Uwe Kleine-König            |
+> Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+> 
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
