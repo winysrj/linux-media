@@ -1,107 +1,55 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.1.48]:62562 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750920Ab1DELVR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 Apr 2011 07:21:17 -0400
-Message-ID: <4D9AFB1F.7020107@nokia.com>
-Date: Tue, 05 Apr 2011 14:21:03 +0300
-From: Sakari Ailus <sakari.ailus@nokia.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Nayden Kanchev <nkanchev@mm-sol.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Cohen David Abraham <david.cohen@nokia.com>
-Subject: Re: [RFC] V4L2 API for flash devices
-References: <4D90854C.2000802@maxwell.research.nokia.com> <4D9438AD.7040405@maxwell.research.nokia.com> <4D9AEDB7.8040601@nokia.com> <201104051239.05167.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201104051239.05167.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-in-01.arcor-online.net ([151.189.21.41]:51201 "EHLO
+	mail-in-01.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752884Ab1DRXhT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Apr 2011 19:37:19 -0400
+Subject: Re: [linux-dvb] ndiswrapper for dvb drivers?
+From: hermann pitton <hermann-pitton@arcor.de>
+To: linux-media@vger.kernel.org,
+	"pigeonskiller@libero.it" <pigeonskiller@libero.it>
+Cc: linux-dvb@linuxtv.org
+In-Reply-To: <8294635.2477761302254551855.JavaMail.defaultUser@defaultHost>
+References: <8294635.2477761302254551855.JavaMail.defaultUser@defaultHost>
+Content-Type: text/plain
+Date: Tue, 19 Apr 2011 01:29:49 +0200
+Message-Id: <1303169389.4433.11.camel@pc07.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Laurent Pinchart wrote:
-> Hi Sakari,
+
+Am Freitag, den 08.04.2011, 11:22 +0200 schrieb pigeonskiller@libero.it:
+> Good day to you all.
+>  My question is simple:
+>  it would be possible to write a program like ndiswrapper for dvb drivers?
+>  Just think: only a small initial effort to write a program that can use 
+> hundreds of  DVB drivers taken from the Windows world...
 > 
-> On Tuesday 05 April 2011 12:23:51 Sakari Ailus wrote:
->> Sakari Ailus wrote:
->>> Laurent Pinchart wrote:
->>>> On Wednesday 30 March 2011 13:05:54 Sakari Ailus wrote:
->>>>> Laurent Pinchart wrote:
->>>>>> On Monday 28 March 2011 14:55:40 Sakari Ailus wrote:
->>>>>>
->>>>>> [snip]
->>>>>>
->>>>>>> 	V4L2_CID_FLASH_STROBE_MODE (menu; LED)
->>>>>>>
->>>>>>> Use hardware or software strobe. If hardware strobe is selected, the
->>>>>>> flash controller is a slave in the system where the sensor produces
->>>>>>> the strobe signal to the flash.
->>>>>>>
->>>>>>> In this case the flash controller setup is limited to programming
->>>>>>> strobe timeout and power (LED flash) and the sensor controls the
->>>>>>> timing and length of the strobe.
->>>>>>>
->>>>>>> enum v4l2_flash_strobe_mode {
->>>>>>>
->>>>>>> 	V4L2_FLASH_STROBE_MODE_SOFTWARE,
->>>>>>> 	V4L2_FLASH_STROBE_MODE_EXT_STROBE,
->>>>>>>
->>>>>>> };
->>>>>>
->>>>>> [snip]
->>>>>>
->>>>>>> 	V4L2_CID_FLASH_LED_MODE (menu; LED)
->>>>>>>
->>>>>>> enum v4l2_flash_led_mode {
->>>>>>>
->>>>>>> 	V4L2_FLASH_LED_MODE_FLASH = 1,
->>>>>>> 	V4L2_FLASH_LED_MODE_TORCH,
->>>>>>>
->>>>>>> };
->>>>>>
->>>>>> Thinking about this some more, shouldn't we combine the two controls ?
->>>>>> They are basically used to configure how the flash LED is controlled:
->>>>>> manually (torch mode), automatically by the flash controller (software
->>>>>> strobe mode) or automatically by an external component (external
->>>>>> strobe mode).
->>>>>
->>>>> That's a good question.
->>>>>
->>>>> The adp1653 supports also additional control (not implemented in the
->>>>> driver, though) that affect hardware strobe length. Based on register
->>>>> setting, the led will be on after strobe either until the timeout
->>>>> expires, or until the strobe signal is high.
->>>>>
->>>>> Should this be also part of the same control, or a different one?
->>>>
->>>> That can be controlled by a duration control. If the duration is 0, the
->>>> flash is lit for the duration of the external strobe, otherwise it's
->>>> lit for the programmed duration.
->>>
->>> Sounds good to me.
->>
->> Thinking about this again; there won't be a separate duration control
-> 
-> Why not ? I think we need two timeouts, a watchdog timeout to prevent flash 
-> fire or meltdown, and a normal timeout to lit the flash for a user-selected 
-> duration.
 
-Let's assume that an application wants to expose a frame using flash
-with software strobe.
+Hi,
 
-1. strobe flash
-2. qbuf
-3. streamon
-4. dqbuf
-5. streamoff
-6. ...
+I'm going through mail backlash again.
 
-How does an application know how long is the time between 1 -- 4? I'd
-guess that in 6 the application would like to switch off the flash
-instead of specifying a timeout for it.
+Arrgh, what a not aware of anything major BS.
 
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+Either you have the not yet public driver details, than you can write
+wrappers, please then do so.
+
+Not the preferred solution.
+
+Or you ask people still hacking on some stuff, why the damned hell some
+those idiots still try to hack it ...
+
+Patches are welcome.
+
+Cheers,
+Hermann
+
+
+
+
+
+
+
