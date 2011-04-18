@@ -1,45 +1,112 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:39661 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752366Ab1DCXjK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Apr 2011 19:39:10 -0400
-Received: by mail-iw0-f174.google.com with SMTP id 34so5252053iwn.19
-        for <linux-media@vger.kernel.org>; Sun, 03 Apr 2011 16:39:09 -0700 (PDT)
-From: Pawel Osciak <pawel@osciak.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, Pawel Osciak <pawel@osciak.com>
-Subject: [PATCH 3/3] [media] vb2: prevent drivers from requesting too many buffers/planes.
-Date: Sun,  3 Apr 2011 16:38:57 -0700
-Message-Id: <1301873937-14146-3-git-send-email-pawel@osciak.com>
-In-Reply-To: <1301873937-14146-1-git-send-email-pawel@osciak.com>
-References: <1301873937-14146-1-git-send-email-pawel@osciak.com>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:45192 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754137Ab1DRJ0y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Apr 2011 05:26:54 -0400
+Date: Mon, 18 Apr 2011 11:26:44 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 7/7] ARM: EXYNOS4: enable FIMC on Universal_C210
+In-reply-to: <1303118804-5575-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Andrzej Pietrasiwiecz <andrzej.p@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Kukjin Kim <kgene.kim@samsung.com>
+Message-id: <1303118804-5575-8-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1303118804-5575-1-git-send-email-m.szyprowski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Add a sanity check to make sure drivers do not adjust the number of buffers
-or planes above the supported limit on reqbufs.
+This patch adds definitions to enable support for s5p-fimc driver
+together with required power domains and sysmmu controller on Universal
+C210 board.
 
-Signed-off-by: Pawel Osciak <pawel@osciak.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/video/videobuf2-core.c |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
+ arch/arm/mach-exynos4/Kconfig               |    6 ++++++
+ arch/arm/mach-exynos4/mach-universal_c210.c |   22 ++++++++++++++++++++++
+ 2 files changed, 28 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
-index 6698c77..6e69584 100644
---- a/drivers/media/video/videobuf2-core.c
-+++ b/drivers/media/video/videobuf2-core.c
-@@ -529,6 +529,11 @@ int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
- 	if (ret)
- 		return ret;
+diff --git a/arch/arm/mach-exynos4/Kconfig b/arch/arm/mach-exynos4/Kconfig
+index e849f67..544a594 100644
+--- a/arch/arm/mach-exynos4/Kconfig
++++ b/arch/arm/mach-exynos4/Kconfig
+@@ -148,12 +148,18 @@ config MACH_ARMLEX4210
+ config MACH_UNIVERSAL_C210
+ 	bool "Mobile UNIVERSAL_C210 Board"
+ 	select CPU_EXYNOS4210
++	select S5P_DEV_FIMC0
++	select S5P_DEV_FIMC1
++	select S5P_DEV_FIMC2
++	select S5P_DEV_FIMC3
+ 	select S3C_DEV_HSMMC
+ 	select S3C_DEV_HSMMC2
+ 	select S3C_DEV_HSMMC3
+ 	select S3C_DEV_I2C1
+ 	select S3C_DEV_I2C5
+ 	select S5P_DEV_ONENAND
++	select EXYNOS4_DEV_PD
++	select EXYNOS4_DEV_SYSMMU
+ 	select EXYNOS4_SETUP_I2C1
+ 	select EXYNOS4_SETUP_I2C5
+ 	select EXYNOS4_SETUP_SDHCI
+diff --git a/arch/arm/mach-exynos4/mach-universal_c210.c b/arch/arm/mach-exynos4/mach-universal_c210.c
+index 97d329f..7ff2f5f 100644
+--- a/arch/arm/mach-exynos4/mach-universal_c210.c
++++ b/arch/arm/mach-exynos4/mach-universal_c210.c
+@@ -27,9 +27,12 @@
+ #include <plat/cpu.h>
+ #include <plat/devs.h>
+ #include <plat/iic.h>
++#include <plat/pd.h>
+ #include <plat/sdhci.h>
++#include <plat/sysmmu.h>
  
-+	/*
-+	 * Make sure driver did not request more buffers/planes than we can handle.
-+	 */
-+	BUG_ON (num_buffers > VIDEO_MAX_FRAME || num_planes > VIDEO_MAX_PLANES);
+ #include <mach/map.h>
++#include <mach/regs-clock.h>
+ 
+ /* Following are default values for UCON, ULCON and UFCON UART registers */
+ #define UNIVERSAL_UCON_DEFAULT	(S3C2410_UCON_TXILEVEL |	\
+@@ -613,6 +616,15 @@ static struct platform_device *universal_devices[] __initdata = {
+ 	&s3c_device_hsmmc2,
+ 	&s3c_device_hsmmc3,
+ 	&s3c_device_i2c5,
++	&s5p_device_fimc0,
++	&s5p_device_fimc1,
++	&s5p_device_fimc2,
++	&s5p_device_fimc3,
++	&exynos4_device_pd[PD_CAM],
++	&exynos4_device_sysmmu[S5P_SYSMMU_FIMC0],
++	&exynos4_device_sysmmu[S5P_SYSMMU_FIMC1],
++	&exynos4_device_sysmmu[S5P_SYSMMU_FIMC2],
++	&exynos4_device_sysmmu[S5P_SYSMMU_FIMC3],
+ 
+ 	/* Universal Devices */
+ 	&universal_gpio_keys,
+@@ -638,6 +650,16 @@ static void __init universal_machine_init(void)
+ 
+ 	/* Last */
+ 	platform_add_devices(universal_devices, ARRAY_SIZE(universal_devices));
 +
- 	/* Finally, allocate buffers and video memory */
- 	ret = __vb2_queue_alloc(q, req->memory, num_buffers, num_planes,
- 				plane_sizes);
++	s5p_device_fimc0.dev.parent = &exynos4_device_pd[PD_CAM].dev;
++	s5p_device_fimc1.dev.parent = &exynos4_device_pd[PD_CAM].dev;
++	s5p_device_fimc2.dev.parent = &exynos4_device_pd[PD_CAM].dev;
++	s5p_device_fimc3.dev.parent = &exynos4_device_pd[PD_CAM].dev;
++	exynos4_device_sysmmu[S5P_SYSMMU_FIMC0].dev.parent = &exynos4_device_pd[PD_CAM].dev;
++	exynos4_device_sysmmu[S5P_SYSMMU_FIMC1].dev.parent = &exynos4_device_pd[PD_CAM].dev;
++	exynos4_device_sysmmu[S5P_SYSMMU_FIMC2].dev.parent = &exynos4_device_pd[PD_CAM].dev;
++	exynos4_device_sysmmu[S5P_SYSMMU_FIMC3].dev.parent = &exynos4_device_pd[PD_CAM].dev;
++
+ }
+ 
+ MACHINE_START(UNIVERSAL_C210, "UNIVERSAL_C210")
 -- 
-1.7.4.2
-
+1.7.1.569.g6f426
