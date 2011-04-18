@@ -1,175 +1,548 @@
 Return-path: <mchehab@pedra>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:50535 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755751Ab1DKUF6 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Apr 2011 16:05:58 -0400
-Received: by mail-ew0-f54.google.com with SMTP id 1so3779109ewy.27
-        for <linux-media@vger.kernel.org>; Mon, 11 Apr 2011 13:05:57 -0700 (PDT)
+Received: from mail1-out1.atlantis.sk ([80.94.52.55]:59324 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751985Ab1DRUyi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Apr 2011 16:54:38 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Joerg Heckenbach <joerg@heckenbach-aw.de>
+Subject: usbvision with Nogatech MicroCam (NV3001P)
+Date: Mon, 18 Apr 2011 22:54:22 +0200
+Cc: Dwaine Garden <dwainegarden@rogers.com>,
+	linux-media@vger.kernel.org
 MIME-Version: 1.0
-In-Reply-To: <201104112040.08077.jkrzyszt@tis.icnet.pl>
-References: <Pine.LNX.4.64.1104111054110.18511@axis700.grange>
- <BANLkTikQSaUKtNZCexhKeNEPM+id+J_2gw@mail.gmail.com> <Pine.LNX.4.64.1104111829500.20798@axis700.grange>
- <201104112040.08077.jkrzyszt@tis.icnet.pl>
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-Date: Mon, 11 Apr 2011 15:05:35 -0500
-Message-ID: <BANLkTinv7FxQjR7w4eL2je-s+3NC78GPHw@mail.gmail.com>
-Subject: Re: [PATCH] V4L: soc-camera: regression fix: calculate .sizeimage in soc_camera.c
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201104182254.26000.linux@rainbow-software.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, Apr 11, 2011 at 1:40 PM, Janusz Krzysztofik
-<jkrzyszt@tis.icnet.pl> wrote:
-> Dnia poniedziałek 11 kwiecień 2011 o 18:58:51 Guennadi Liakhovetski napisał(a):
->> On Mon, 11 Apr 2011, Aguirre, Sergio wrote:
->> >
->> > Ok. And how about the attached patch? Would that work?
->>
->> Yes, I think, ot would work too, only the call to
->> soc_camera_xlate_by_fourcc() in the S_FMT case is superfluous, after
->> ici->ops->set_fmt() we already have it in icd->current_fmt->host_fmt.
->> Otherwise - yes, we could do it this way too. Janusz, could you test,
->> please?
->
-> Looks like not based on the current mainline (-rc2) tree:
->
->  CHECK   drivers/media/video/soc_camera.c
-> drivers/media/video/soc_camera.c:146:9: error: undefined identifier 'pixfmtstr'
->  CC      drivers/media/video/soc_camera.o
-> drivers/media/video/soc_camera.c: In function 'soc_camera_try_fmt':
-> drivers/media/video/soc_camera.c:146: error: implicit declaration of function 'pixfmtstr'
-> drivers/media/video/soc_camera.c:146: warning: too few arguments for format
-> drivers/media/video/soc_camera.c: In function 'soc_camera_try_fmt_vid_cap':
-> drivers/media/video/soc_camera.c:180: warning: unused variable 'ici'
->
+Hello,
+I have a webcam Nogatech MicroCam (NV3001P) which does not work in Linux.
+It's probably based on NT1003 chip. There are 3 small PCBs connected together
+inside, one with sensor, one with RAM and some unknown chip (no packaging,
+epoxy blob only) and one with another unknown chip.
 
-Oops, my bad.
+I've captured some communication in Windows:
+http://www.rainbow-software.org/linux_files/nogatech/usbsnoop-nogatech.log
 
-Please find below a refreshed patch, which should be based on mainline commit:
+But matching the control commands to the usbvision driver does not make any
+sense to me. I wonder if support for this camera could be added to the
+usbvision driver. If not, gspca is probably the way to go.
 
-b42282e pci: fix PCI bus allocation alignment handling
+lsusb -v output:
 
+Bus 002 Device 002: ID 0573:3001 Zoran Co. Personal Media Division (Nogatech) Dazzle MicroCam (PAL)
+Device Descriptor:
+  bLength                18
+  bDescriptorType         1
+  bcdUSB               1.00
+  bDeviceClass            0 (Defined at Interface level)
+  bDeviceSubClass         0
+  bDeviceProtocol         0
+  bMaxPacketSize0         8
+  idVendor           0x0573 Zoran Co. Personal Media Division (Nogatech)
+  idProduct          0x3001 Dazzle MicroCam (PAL)
+  bcdDevice            1.00
+  iManufacturer           0
+  iProduct                0
+  iSerial                 0
+  bNumConfigurations      1
+  Configuration Descriptor:
+    bLength                 9
+    bDescriptorType         2
+    wTotalLength          377
+    bNumInterfaces          1
+    bConfigurationValue     1
+    iConfiguration          0
+    bmAttributes         0x80
+      (Bus Powered)
+    MaxPower              500mA
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting       0
+      bNumEndpoints           2
+      bInterfaceClass         0 (Defined at Interface level)
+      bInterfaceSubClass      0
+      bInterfaceProtocol      0
+      iInterface              0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x01  EP 1 OUT
+        bmAttributes            0
+          Transfer Type            Control
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0008  1x 8 bytes
+        bInterval               1
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x82  EP 2 IN
+        bmAttributes            1
+          Transfer Type            Isochronous
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0000  1x 0 bytes
+        bInterval               1
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting       1
+      bNumEndpoints           2
+      bInterfaceClass         0 (Defined at Interface level)
+      bInterfaceSubClass      0
+      bInterfaceProtocol      0
+      iInterface              0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x01  EP 1 OUT
+        bmAttributes            0
+          Transfer Type            Control
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0008  1x 8 bytes
+        bInterval               1
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x82  EP 2 IN
+        bmAttributes            1
+          Transfer Type            Isochronous
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x03bf  1x 959 bytes
+        bInterval               1
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting       2
+      bNumEndpoints           2
+      bInterfaceClass         0 (Defined at Interface level)
+      bInterfaceSubClass      0
+      bInterfaceProtocol      0
+      iInterface              0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x01  EP 1 OUT
+        bmAttributes            0
+          Transfer Type            Control
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0008  1x 8 bytes
+        bInterval               1
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x82  EP 2 IN
+        bmAttributes            1
+          Transfer Type            Isochronous
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x037f  1x 895 bytes
+        bInterval               1
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting       3
+      bNumEndpoints           2
+      bInterfaceClass         0 (Defined at Interface level)
+      bInterfaceSubClass      0
+      bInterfaceProtocol      0
+      iInterface              0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x01  EP 1 OUT
+        bmAttributes            0
+          Transfer Type            Control
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0008  1x 8 bytes
+        bInterval               1
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x82  EP 2 IN
+        bmAttributes            1
+          Transfer Type            Isochronous
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x033f  1x 831 bytes
+        bInterval               1
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting       4
+      bNumEndpoints           2
+      bInterfaceClass         0 (Defined at Interface level)
+      bInterfaceSubClass      0
+      bInterfaceProtocol      0
+      iInterface              0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x01  EP 1 OUT
+        bmAttributes            0
+          Transfer Type            Control
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0008  1x 8 bytes
+        bInterval               1
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x82  EP 2 IN
+        bmAttributes            1
+          Transfer Type            Isochronous
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x02ff  1x 767 bytes
+        bInterval               1
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting       5
+      bNumEndpoints           2
+      bInterfaceClass         0 (Defined at Interface level)
+      bInterfaceSubClass      0
+      bInterfaceProtocol      0
+      iInterface              0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x01  EP 1 OUT
+        bmAttributes            0
+          Transfer Type            Control
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0008  1x 8 bytes
+        bInterval               1
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x82  EP 2 IN
+        bmAttributes            1
+          Transfer Type            Isochronous
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x02bf  1x 703 bytes
+        bInterval               1
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting       6
+      bNumEndpoints           2
+      bInterfaceClass         0 (Defined at Interface level)
+      bInterfaceSubClass      0
+      bInterfaceProtocol      0
+      iInterface              0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x01  EP 1 OUT
+        bmAttributes            0
+          Transfer Type            Control
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0008  1x 8 bytes
+        bInterval               1
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x82  EP 2 IN
+        bmAttributes            1
+          Transfer Type            Isochronous
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x027f  1x 639 bytes
+        bInterval               1
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting       7
+      bNumEndpoints           2
+      bInterfaceClass         0 (Defined at Interface level)
+      bInterfaceSubClass      0
+      bInterfaceProtocol      0
+      iInterface              0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x01  EP 1 OUT
+        bmAttributes            0
+          Transfer Type            Control
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0008  1x 8 bytes
+        bInterval               1
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x82  EP 2 IN
+        bmAttributes            1
+          Transfer Type            Isochronous
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x023f  1x 575 bytes
+        bInterval               1
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting       8
+      bNumEndpoints           2
+      bInterfaceClass         0 (Defined at Interface level)
+      bInterfaceSubClass      0
+      bInterfaceProtocol      0
+      iInterface              0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x01  EP 1 OUT
+        bmAttributes            0
+          Transfer Type            Control
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0008  1x 8 bytes
+        bInterval               1
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x82  EP 2 IN
+        bmAttributes            1
+          Transfer Type            Isochronous
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x01ff  1x 511 bytes
+        bInterval               1
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting       9
+      bNumEndpoints           2
+      bInterfaceClass         0 (Defined at Interface level)
+      bInterfaceSubClass      0
+      bInterfaceProtocol      0
+      iInterface              0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x01  EP 1 OUT
+        bmAttributes            0
+          Transfer Type            Control
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0008  1x 8 bytes
+        bInterval               1
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x82  EP 2 IN
+        bmAttributes            1
+          Transfer Type            Isochronous
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x01bf  1x 447 bytes
+        bInterval               1
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting      10
+      bNumEndpoints           2
+      bInterfaceClass         0 (Defined at Interface level)
+      bInterfaceSubClass      0
+      bInterfaceProtocol      0
+      iInterface              0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x01  EP 1 OUT
+        bmAttributes            0
+          Transfer Type            Control
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0008  1x 8 bytes
+        bInterval               1
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x82  EP 2 IN
+        bmAttributes            1
+          Transfer Type            Isochronous
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x017f  1x 383 bytes
+        bInterval               1
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting      11
+      bNumEndpoints           2
+      bInterfaceClass         0 (Defined at Interface level)
+      bInterfaceSubClass      0
+      bInterfaceProtocol      0
+      iInterface              0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x01  EP 1 OUT
+        bmAttributes            0
+          Transfer Type            Control
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0008  1x 8 bytes
+        bInterval               1
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x82  EP 2 IN
+        bmAttributes            1
+          Transfer Type            Isochronous
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x013f  1x 319 bytes
+        bInterval               1
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting      12
+      bNumEndpoints           2
+      bInterfaceClass         0 (Defined at Interface level)
+      bInterfaceSubClass      0
+      bInterfaceProtocol      0
+      iInterface              0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x01  EP 1 OUT
+        bmAttributes            0
+          Transfer Type            Control
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0008  1x 8 bytes
+        bInterval               1
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x82  EP 2 IN
+        bmAttributes            1
+          Transfer Type            Isochronous
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x00ff  1x 255 bytes
+        bInterval               1
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting      13
+      bNumEndpoints           2
+      bInterfaceClass         0 (Defined at Interface level)
+      bInterfaceSubClass      0
+      bInterfaceProtocol      0
+      iInterface              0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x01  EP 1 OUT
+        bmAttributes            0
+          Transfer Type            Control
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0008  1x 8 bytes
+        bInterval               1
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x82  EP 2 IN
+        bmAttributes            1
+          Transfer Type            Isochronous
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x00bf  1x 191 bytes
+        bInterval               1
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting      14
+      bNumEndpoints           2
+      bInterfaceClass         0 (Defined at Interface level)
+      bInterfaceSubClass      0
+      bInterfaceProtocol      0
+      iInterface              0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x01  EP 1 OUT
+        bmAttributes            0
+          Transfer Type            Control
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0008  1x 8 bytes
+        bInterval               1
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x82  EP 2 IN
+        bmAttributes            1
+          Transfer Type            Isochronous
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x007f  1x 127 bytes
+        bInterval               1
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting      15
+      bNumEndpoints           2
+      bInterfaceClass         0 (Defined at Interface level)
+      bInterfaceSubClass      0
+      bInterfaceProtocol      0
+      iInterface              0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x01  EP 1 OUT
+        bmAttributes            0
+          Transfer Type            Control
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0008  1x 8 bytes
+        bInterval               1
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x82  EP 2 IN
+        bmAttributes            1
+          Transfer Type            Isochronous
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x003f  1x 63 bytes
+        bInterval               1
+Device Status:     0x0000
+  (Bus Powered)
 
-
-
-> Thanks,
-> Janusz
->
-
->From f767059c12c755ebe79c4b74de17c23a257007c7 Mon Sep 17 00:00:00 2001
-From: Sergio Aguirre <saaguirre@ti.com>
-Date: Mon, 11 Apr 2011 11:14:33 -0500
-Subject: [PATCH] V4L: soc-camera: regression fix: calculate .sizeimage
-in soc_camera.c
-
-A recent patch has given individual soc-camera host drivers a possibility
-to calculate .sizeimage and .bytesperline pixel format fields internally,
-however, some drivers relied on the core calculating these values for
-them, following a default algorithm. This patch restores the default
-calculation for such drivers.
-
-Based on initial patch by Guennadi Liakhovetski, found here:
-
-http://www.spinics.net/lists/linux-media/msg31282.html
-
-Except that this covers try_fmt aswell.
-
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
----
- drivers/media/video/soc_camera.c |   48 +++++++++++++++++++++++++++++++++----
- 1 files changed, 42 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-index 4628448..dcc6623 100644
---- a/drivers/media/video/soc_camera.c
-+++ b/drivers/media/video/soc_camera.c
-@@ -136,11 +136,50 @@ unsigned long
-soc_camera_apply_sensor_flags(struct soc_camera_link *icl,
- }
- EXPORT_SYMBOL(soc_camera_apply_sensor_flags);
-
-+#define pixfmtstr(x) (x) & 0xff, ((x) >> 8) & 0xff, ((x) >> 16) & 0xff, \
-+	((x) >> 24) & 0xff
-+
-+static int soc_camera_try_fmt(struct soc_camera_device *icd,
-+			      struct v4l2_format *f)
-+{
-+	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
-+	struct v4l2_pix_format *pix = &f->fmt.pix;
-+	int ret;
-+
-+	dev_dbg(&icd->dev, "TRY_FMT(%c%c%c%c, %ux%u)\n",
-+		pixfmtstr(pix->pixelformat), pix->width, pix->height);
-+
-+	pix->bytesperline = 0;
-+	pix->sizeimage = 0;
-+
-+	ret = ici->ops->try_fmt(icd, f);
-+	if (ret < 0)
-+		return ret;
-+
-+	if (!pix->sizeimage) {
-+		if (!pix->bytesperline) {
-+			const struct soc_camera_format_xlate *xlate;
-+
-+			xlate = soc_camera_xlate_by_fourcc(icd, pix->pixelformat);
-+			if (!xlate)
-+				return -EINVAL;
-+
-+			ret = soc_mbus_bytes_per_line(pix->width,
-+						      xlate->host_fmt);
-+			if (ret > 0)
-+				pix->bytesperline = ret;
-+		}
-+		if (pix->bytesperline)
-+			pix->sizeimage = pix->bytesperline * pix->height;
-+	}
-+
-+	return 0;
-+}
-+
- static int soc_camera_try_fmt_vid_cap(struct file *file, void *priv,
- 				      struct v4l2_format *f)
- {
- 	struct soc_camera_device *icd = file->private_data;
--	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
-
- 	WARN_ON(priv != file->private_data);
-
-@@ -149,7 +188,7 @@ static int soc_camera_try_fmt_vid_cap(struct file
-*file, void *priv,
- 		return -EINVAL;
-
- 	/* limit format to hardware capabilities */
--	return ici->ops->try_fmt(icd, f);
-+	return soc_camera_try_fmt(icd, f);
- }
-
- static int soc_camera_enum_input(struct file *file, void *priv,
-@@ -362,9 +401,6 @@ static void soc_camera_free_user_formats(struct
-soc_camera_device *icd)
- 	icd->user_formats = NULL;
- }
-
--#define pixfmtstr(x) (x) & 0xff, ((x) >> 8) & 0xff, ((x) >> 16) & 0xff, \
--	((x) >> 24) & 0xff
--
- /* Called with .vb_lock held, or from the first open(2), see comment there */
- static int soc_camera_set_fmt(struct soc_camera_device *icd,
- 			      struct v4l2_format *f)
-@@ -377,7 +413,7 @@ static int soc_camera_set_fmt(struct soc_camera_device *icd,
- 		pixfmtstr(pix->pixelformat), pix->width, pix->height);
-
- 	/* We always call try_fmt() before set_fmt() or set_crop() */
--	ret = ici->ops->try_fmt(icd, f);
-+	ret = soc_camera_try_fmt(icd, f);
- 	if (ret < 0)
- 		return ret;
 
 -- 
-1.7.0.4
+Ondrej Zary
