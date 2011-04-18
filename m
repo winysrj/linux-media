@@ -1,48 +1,51 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.10]:54067 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752331Ab1DSPhm (ORCPT
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:34524 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753616Ab1DRI2Y (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Apr 2011 11:37:42 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: "Roedel, Joerg" <Joerg.Roedel@amd.com>
-Subject: Re: [PATCH 2/7] ARM: Samsung: update/rewrite Samsung SYSMMU (IOMMU) driver
-Date: Tue, 19 Apr 2011 17:37:30 +0200
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	"linux-samsung-soc@vger.kernel.org"
-	<linux-samsung-soc@vger.kernel.org>,
-	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
-	"'Kukjin Kim'" <kgene.kim@samsung.com>,
-	"'Sylwester Nawrocki'" <s.nawrocki@samsung.com>,
-	"'Andrzej Pietrasiewicz'" <andrzej.p@samsung.com>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <1303118804-5575-1-git-send-email-m.szyprowski@samsung.com> <000001cbfe9a$8e64cae0$ab2e60a0$%szyprowski@samsung.com> <20110419150018.GV2192@amd.com>
-In-Reply-To: <20110419150018.GV2192@amd.com>
+	Mon, 18 Apr 2011 04:28:24 -0400
+Date: Mon, 18 Apr 2011 09:27:59 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Robert Schwebel <r.schwebel@pengutronix.de>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	kernel@pengutronix.de, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-arm-kernel@lists.infradead.org,
+	Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+	<u.kleine-koenig@pengutronix.de>
+Subject: Re: [PATCH] V4L: mx3_camera: select VIDEOBUF2_DMA_CONTIG instead
+	of VIDEOBUF_DMA_CONTIG
+Message-ID: <20110418082759.GA25671@n2100.arm.linux.org.uk>
+References: <1302166243-650-1-git-send-email-u.kleine-koenig@pengutronix.de> <20110418080637.GA31131@pengutronix.de> <Pine.LNX.4.64.1104181013250.27247@axis700.grange> <20110418082049.GJ3811@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201104191737.30916.arnd@arndb.de>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20110418082049.GJ3811@pengutronix.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tuesday 19 April 2011, Roedel, Joerg wrote:
-> > Getting back to our video codec - it has 2 IOMMU controllers. The codec
-> > hardware is able to address only 256MiB of space. Do you have an idea how
-> > this can be handled with dma-mapping API? The only idea that comes to my
-> > mind is to provide a second, fake 'struct device' and use it for allocations
-> > for the second IOMMU controller.
+On Mon, Apr 18, 2011 at 10:20:49AM +0200, Robert Schwebel wrote:
+> Uwe,
 > 
-> The GPU IOMMUs can probably be handled in the GPU driver if they are
-> that different. Recent PCIe GPUs on x86 have their own IOMMUs too which
-> are very device specific and are handled in the device driver.
+> On Mon, Apr 18, 2011 at 10:14:56AM +0200, Guennadi Liakhovetski wrote:
+> > It's been pushed upstream almost 2 weeks ago:
+> >
+> > http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/31352
+> 
+> As our autobuilder does still trigger, I assume that the configs have to
+> be refreshed and it may be an issue on our side. Can you take care of
+> that?
 
-I tend to disagree with this one, and would suggest that the GPUs should
-actually provide their own iommu_ops, even if they are the only users
-of these.
+Just take a look at what's in mainline:
 
-However, this is a minor point that we don't need to worry about today.
+config VIDEO_MX3
+        tristate "i.MX3x Camera Sensor Interface driver"
+        depends on VIDEO_DEV && MX3_IPU && SOC_CAMERA
+        select VIDEOBUF_DMA_CONTIG
+        select MX3_VIDEO
+        ---help---
+          This is a v4l2 driver for the i.MX3x Camera Sensor Interface
 
-	Arnd
+and you'll see that it hasn't made it there yet.  If I search for
+'linuxtv.org' in the history post 2.6.39-rc2, there's no sign of it.
+
