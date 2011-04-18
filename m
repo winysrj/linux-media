@@ -1,338 +1,287 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.samsung.com ([203.254.224.33]:19750 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754282Ab1DAPij (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Apr 2011 11:38:39 -0400
-Received: from epmmp1 (mailout3.samsung.com [203.254.224.33])
- by mailout3.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LIZ00L0PCS9EKC0@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Sat, 02 Apr 2011 00:38:34 +0900 (KST)
-Received: from AMDN157 ([106.116.48.215])
- by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LIZ00ICNCS52X@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Sat, 02 Apr 2011 00:38:33 +0900 (KST)
-Date: Fri, 01 Apr 2011 17:38:26 +0200
-From: Kamil Debski <k.debski@samsung.com>
-Subject: RE: [RFC] New controls for codec devices
-In-reply-to: <201104011200.51712.laurent.pinchart@ideasonboard.com>
-To: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	jaeryul.oh@samsung.com, hansverk@cisco.com,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <002101cbf082$daa237b0$8fe6a710$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=utf-8
-Content-language: en-gb
-Content-transfer-encoding: 7BIT
-References: <ADF13DA15EB3FE4FBA487CCC7BEFDF3619110DAD1E@bssrvexch01>
- <201104011200.51712.laurent.pinchart@ideasonboard.com>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:51039 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753133Ab1DRWtD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Apr 2011 18:49:03 -0400
+Received: by vxi39 with SMTP id 39so3859273vxi.19
+        for <linux-media@vger.kernel.org>; Mon, 18 Apr 2011 15:49:01 -0700 (PDT)
+Date: Mon, 18 Apr 2011 18:48:55 -0400
+From: Eric B Munson <emunson@mgebm.net>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>, mchehab@infradead.org,
+	linux-media@vger.kernel.org
+Subject: Re: HVR-1600 (model 74351 rev F1F5) analog Red Screen
+Message-ID: <20110418224855.GB4611@mgebm.net>
+References: <BANLkTim2MQcHw+T_2g8wSpGkVnOH_OeXzg@mail.gmail.com>
+ <1301922737.5317.7.camel@morgan.silverblock.net>
+ <BANLkTikqBPdr2M8jyY1zmu4TPLsXo0y5Xw@mail.gmail.com>
+ <BANLkTi=dVYRgUbQ5pRySQLptnzaHOMKTqg@mail.gmail.com>
+ <1302015521.4529.17.camel@morgan.silverblock.net>
+ <BANLkTimQkDHmDsqSsQ9jiYnHWXnc7umeWw@mail.gmail.com>
+ <1302481535.2282.61.camel@localhost>
+ <20110411163239.GA4324@mgebm.net>
+ <20110418141514.GA4611@mgebm.net>
+ <ac791492-7bc5-4a78-92af-503dda599346@email.android.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="kXdP64Ggrk/fb43R"
+Content-Disposition: inline
+In-Reply-To: <ac791492-7bc5-4a78-92af-503dda599346@email.android.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> 
-> Hi Kamil,
 
-Hi Laurent,
+--kXdP64Ggrk/fb43R
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> 
-> Thanks for the RC. Here are some comments (more might come later when I'll
-> get
-> a better understanding of some MPEG4 and H264 concepts :-)).
+On Mon, 18 Apr 2011, Andy Walls wrote:
 
-Thank you for your comments. I have answered them below.
- 
-> On Tuesday 29 March 2011 11:48:03 Kamil Debski wrote:
-> > Hi,
+> Eric B Munson <emunson@mgebm.net> wrote:
+>=20
+> >On Mon, 11 Apr 2011, Eric B Munson wrote:
 > >
-> > I would like to propose a new set of controls for codec devices. By codec
-> > devices I mean hardware that can encode raw video into compressed stream
-> > and can decode compressed streams.
+> >> On Sun, 10 Apr 2011, Andy Walls wrote:
+> >>=20
+> >> > On Wed, 2011-04-06 at 13:28 -0400, Eric B Munson wrote:
+> >> > > On Tue, Apr 5, 2011 at 10:58 AM, Andy Walls
+> ><awalls@md.metrocast.net> wrote:
+> >> > > > On Mon, 2011-04-04 at 14:36 -0400, Eric B Munson wrote:
+> >> > > >> On Mon, Apr 4, 2011 at 11:16 AM, Eric B Munson
+> ><emunson@mgebm.net> wrote:
+> >> > > >> > On Mon, Apr 4, 2011 at 9:12 AM, Andy Walls
+> ><awalls@md.metrocast.net> wrote:
+> >> > > >> >> On Mon, 2011-04-04 at 08:20 -0400, Eric B Munson wrote:
+> >> > > >> >>> I the above mentioned capture card and the digital side of
+> >the card
+> >> > > >> >>> works well.  However, when I try to get video from the
+> >analog side of
+> >> > > >> >>> the card, all I get is a red screen and no sound
+> >regardless of channel
+> >> > > >> >>> requested.  This is a problem I see in 2.6.39-rc1 though I
+> >typically
+> >> > > >> >>> run the ubuntu 10.10 kernel with the newest drivers built
+> >from source.
+> >> > > >> >>>  Is there something in setup or configuration that I may
+> >be missing?
+> >> > > >> >>
+> >> > > >> >> Eric,
+> >> > > >> >>
+> >> > > >> >> You are likely missing the last 3 fixes here:
+> >> > > >> >>
+> >> > > >> >>
+> >http://git.linuxtv.org/awalls/media_tree.git?a=3Dshortlog;h=3Drefs/heads=
+/cx18_39
+> >> > > >> >>
+> >> > > >> >> (one of which is critical for analog to work).
+> >> > > >> >>
+> >> > > >> >> Also check the ivtv-users and ivtv-devel list for past
+> >discussions on
+> >> > > >> >> the "red screen" showing up for known well supported models
+> >and what to
+> >> > > >> >> try.
+> >> > > >> >>
+> >> > > >> > Thanks, I will try hand applying these.
+> >> > > >> >
+> >> > > >>
+> >> > > >> I don't have a red screen anymore, now all get from analog
+> >static and
+> >> > > >> mythtv's digital channel scanner now seems broken.
+> >> > > >
+> >> > > > Hmmm.
+> >> > > >
+> >> > > > 1. Please provide the output of dmesg when the cx18 driver
+> >loads.
+> >> > >=20
+> >>=20
+> >> [332935.115343] cx18:  Start initialization, version 1.4.1
+> >> [332935.115385] cx18-0: Initializing card 0
+> >> [332935.115389] cx18-0: Autodetected Hauppauge card
+> >> [332935.115449] cx18 0000:04:01.0: PCI INT A -> GSI 16 (level, low)
+> >-> IRQ 16
+> >> [332935.127005] cx18-0: cx23418 revision 01010000 (B)
+> >> [332935.342426] tveeprom 0-0050: Hauppauge model 74351, rev F1F5,
+> >serial# 7384278
+> >> [332935.342432] tveeprom 0-0050: MAC address is 00:0d:fe:70:ac:d6
+> >> [332935.342437] tveeprom 0-0050: tuner model is NXP 18271C2 (idx 155,
+> >type 54)
+> >> [332935.342443] tveeprom 0-0050: TV standards PAL(B/G) NTSC(M) PAL(I)
+> >SECAM(L/L') PAL(D/D1/K) ATSC/DVB Digital (eeprom 0xfc)
+> >> [332935.342448] tveeprom 0-0050: audio processor is CX23418 (idx 38)
+> >> [332935.342453] tveeprom 0-0050: decoder processor is CX23418 (idx
+> >31)
+> >> [332935.342457] tveeprom 0-0050: has no radio
+> >> [332935.342460] cx18-0: Autodetected Hauppauge HVR-1600
+> >> [332935.392016] cx18-0: Simultaneous Digital and Analog TV capture
+> >supported
+> >> [332935.497007] tuner 1-0042: Tuner -1 found with type(s) Radio TV.
+> >> [332935.501259] cs5345 0-004c: chip found @ 0x98 (cx18 i2c driver
+> >#0-0)
+> >> [332935.548567] tda829x 1-0042: setting tuner address to 60
+> >> [332935.572554] tda18271 1-0060: creating new instance
+> >> [332935.612568] TDA18271HD/C2 detected @ 1-0060
+> >> [332936.676587] tda18271: performing RF tracking filter calibration
+> >> [332950.816567] tda18271: RF tracking filter calibration complete
+> >> [332950.864571] tda829x 1-0042: type set to tda8295+18271
+> >> [332951.569137] cx18-0: Registered device video0 for encoder MPEG (64
+> >x 32.00 kB)
+> >> [332951.569143] DVB: registering new adapter (cx18)
+> >> [332951.672187] tda18271 0-0060: creating new instance
+> >> [332951.678691] TDA18271HD/C2 detected @ 0-0060
+> >> [332951.737797] cx18-0: loaded v4l-cx23418-cpu.fw firmware (158332
+> >bytes)
+> >> [332951.876157] cx18-0: loaded v4l-cx23418-apu.fw firmware V00120000
+> >(141200 bytes)
+> >> [332951.882195] cx18-0: FW version: 0.0.74.0 (Release 2007/03/12)
+> >> [332951.984040] DVB: registering adapter 0 frontend 0 (Samsung
+> >S5H1411 QAM/8VSB Frontend)...
+> >> [332951.984208] cx18-0: DVB Frontend registered
+> >> [332951.984214] cx18-0: Registered DVB adapter0 for TS (32 x 32.00
+> >kB)
+> >> [332951.984268] cx18-0: Registered device video32 for encoder YUV (20
+> >x 101.25 kB)
+> >> [332951.984320] cx18-0: Registered device vbi0 for encoder VBI (20 x
+> >51984 bytes)
+> >> [332951.984367] cx18-0: Registered device video24 for encoder PCM
+> >audio (256 x 4.00 kB)
+> >> [332951.984372] cx18-0: Initialized card: Hauppauge HVR-1600
+> >> [332951.984415] cx18:  End initialization
+> >> [332951.994916] cx18-alsa: module loading...
+> >> [332952.733994] cx18-0 843: loaded v4l-cx23418-dig.fw firmware (16382
+> >bytes)
+> >> [332952.753703] cx18-0 843: verified load of v4l-cx23418-dig.fw
+> >firmware (16382 bytes)
+> >>=20
+> >> > > > 3. Please provide the relevant portion of the mythbackend log
+> >where
+> >> > > > where the digital scanner starts and then fails.
+> >> > >=20
+> >> > > So the Digital scanner doesn't fail per se, it just doesn't pick
+> >up
+> >> > > most of the digital channels available.  The same is true of
+> >scan, it
+> >> > > seems to find only 1 channel when I know that I have access to
+> >18.
+> >> >=20
+> >> > Make sure it's not a signal integrity problem:
+> >> >=20
+> >> > 	http://ivtvdriver.org/index.php/Howto:Improve_signal_quality
+> >> >=20
+> >> > wild speculation: If the analog tuner driver init failed, maybe
+> >that is
+> >> > having some bad EMI efect on the digital tuner
+> >> >=20
+> >> > I'm assumiong you got more than the 1 channel before trying to
+> >enable
+> >> > analog tuning.A
+> >>=20
+> >> That is true, when I was running the backported drivers on the Ubuntu
+> >10.10
+> >> kernel I was able to see 16 of the 18 available to me.
+> >>=20
+> >> >=20
+> >> > > >
+> >> > > > 4. Does digital tuning still work in MythTV despite the digital
+> >scanner
+> >> > > > not working?
+> >> > >=20
+> >> > > Using the command line tools you linked I am able to tune to the
+> >> > > channel that is found and watch it via mplayer.
+> >> >=20
+> >> > Can you tune to other known digital channels?
+> >>=20
+> >> I will have to see if I can set one up by hand and try it.  I will
+> >get back to
+> >> you when I am able to do this (should be later today).
+> >>=20
+> >> >=20
+> >> > > Let me know if you need anything else.
+> >> >=20
+> >> > Are you tuning digital cable (North American QAM) or digital Over
+> >The
+> >> > Air (ATSC)?
+> >>=20
+> >> I am using digital cable (NA QAM).
+> >>=20
 > >
-> > This topic has been discussed during the v4l2 brainstorming session and
-> > this email contains the propositions that have been made.
-> >
-> > The conclusion was that we should use the existing V4L2_CID_MPEG_CLASS for
-> > controls related do encoding and decoding data. I had to distinguish which
-> > controls should be common for all codecs and which should be specific to
-> > MFC 5.1 (I am working on the driver for this hardware). To do this I
-> > have analysed the options of ffmpeg and x264 software decoders. If the
-> > options was used only in MFC then it should be hardware specific. If it
-> > was also used in ffmpeg or x264 then it would qualify as a common control.
-> > I would welcome comments from other hw codec driver developers.
-> >
-> > I have another question - regarding v4l2_buffer flags. What do you think
-> > about adding a new flag - V4L2_BUF_FLAG_SKIPPED? It would be used in
-> > encoding to indicate that the frame to be encoded should be skipped and
-> > write information that the decoder should display the previous frame
-> > again.
-> >
-> > Please find the table with controls attached below:
-> > - the names have the "V4L2_CID_MPEG_" prefix truncated
-> > - letter in the second column means D for decoder, E for encoder and A for
-> >   both
-> > - last column is MFC if the control should be hw specific, common
-> otherwise
-> >
-> > *** Controls for decoding ***
-> >  1) DECODER_MPEG4_LOOP_FILTER           D   MPEG4           MFC
-> > Deblocking filter on the decoder output for MPEG4.
-> >  2) DECODER_SLICE_INTERFACE             D   all             common
-> > If set the decoder can accept separate picture slices on input, otherwise
-> > it requires a whole frame.
-> 
-> Isn't that a property instead of a settable control ? I'm not sure to
-> understand why applications would need to tell the decoder what it can
-> accept.
-> Or is it supposed to be a read-only control ?
+> >Is there anything else I can provide to help with this?
+>=20
+> Eric,
+>=20
+> Sorry for not getting back sooner (I've been dealing with a personal situ=
+ation and haven't logged into my dev system for a few weeks).
+>=20
+> What rf analog source are you using?
 
-I think I have not described this control properly. It is used by the application
-to set what kind of buffer it will send to the driver.
+Sorry, very new to this, I am not sure what you are asking for here.
 
-A picture can consist of one or more slice. Our hardware can accept two kinds of
-input buffers and its behavior is determined by a register. So it is a read/write
-control.  In the first case, a single input buffer contains a whole picture (one
-or more slices). In the second case, a single input buffer contains a single slice.
+> Have you used v4l2-ctl to ensure the tuner is set to the right tv standar=
+d (my changes default to NTSC-M)?
 
-A nice figure describing pictures and slices can be found here:
-http://goo.gl/info/bnFe2
+emunson@grover:~$ v4l2-ctl -S
+Video Standard =3D 0x0000b000
+	NTSC-M/M-JP/M-KR
+emunson@grover:~$ v4l2-ctl -s ntsc
+Standard set to 0000b000
+emunson@grover:~$ v4l2-ctl -S
+Video Standard =3D 0x0000b000
+	NTSC-M/M-JP/M-KR
 
-> >  3) DECODER_H264_DISPLAY_DELAY          D   H264            MFC
-> > Programmable display delay for H264. MFC will return a decoded frame after
-> > the set number of frames (this may cause that frames are not returned in
-> > display order).
-> >  4) DECODER_H264_DISPLAY_DELAY_ENABLE   D   H264            MFC
-> > Enable display delay for H264.
-> 
-> Can't display delay enable/disable be controlled through the
-> DECODER_H264_DISPLAY_DELAY control ? A zero value would mean no display
-> delay.
+What should the default be?  NTSC-443?  When I set to NTSC-443 I see the sa=
+me
+behaviour as below when I try and change channels.
 
-Firstly I have had the same idea as you have proposed. But in this case zero
-value is meaningful. If display delay is disabled then it is up to the decoder
-to determine how many OUTPUT buffers will it process before a buffer on the CAPTURE
-is dequeued. This is influenced by the number of B frames and how many reference
-frames are used by P and B frames. This ensures that after the CAPTURE buffer is
-dequeued it won't be used by the hardware.
+> Have you used v4l2-ctl or ivtv-tune to tune to the proper tv channel (the=
+ driver defaults to US channel 4)?
 
-If the display delay is enabled then the decoder has to return an
-CAPTURE buffer after processing a certain number of OUTPUT buffers. If this number
-is low, then it may result in buffers not being dequeued in display order. 
-
-Even worse, I have just discovered that the buffer can still be used by the hardware
-as a reference after it has been dequeued in case of low display delay. So I think
-that this feature is very specific to our hardware (thus I think it should be hw specific
-control) and application has to be aware of this.
-
-> What is the display delay used for ?
-
-As described above - it is used to force hardware to return an CAPTURE buffer
-after a set number or OUTPUT buffers was processed.
- 
-> > *** Controls for both decoding and encoding ***
-> >  5) H264_AR_VUI_IDC                     A   H264            common
-> > VUI aspect ratio IDC for H.264 encoding.  The value is defined in VUI
-> Table
-> > E-1 in the standard.
-> >  6) H264_EXT_SAR_WIDTH                  A   H264            common
-> > Extended sample aspect ratio width for H.264 VUI encoding.
-> >  7) H264_EXT_SAR_HEIGHT                 A   H264            common
-> > Extended sample aspect ratio height for H.264 VUI encoding
-> 
-> What are those 3 controls used for when decoding ?
-
-While encoding it is used to set the aspect ratio indicator in the VUI. During decoding
-it is used to read such information.
-
-Maybe a better name would be H264_VUI_(AR_IDC, EXT_SAR_WIDTH, EXT_SAR_HEIGHT).
-
-> >  8) MIN_REQ_BUFS_OUT                    A   all             common
-> > This is the minimum number of buffers required for the output queue. This
-> > option may be useful if the encoding settings require a minimum number of
-> > buffers required as reference and the application would like to have N
-> more
-> > buffers. For example - the encoding options require 3 buffers and the
-> > application wants to have 2 more. One can read this value (3) and supply
-> > (3+2) to the reqbufs call.
-> >  9) MIN_REQ_BUFS_CAP                    A   all             common
-> > This is the minimum number of buffers required for the capture queue. This
-> > option may be useful if the decoder requires a minimum number of buffers
-> > required as reference and the application would like to have N more
-> > buffers. For example - the stream requires 3 buffers and the application
-> > wants to have 2 more. One can read this value (3) and supply (3+2) to the
-> > reqbufs call.
-> 
-> Are these 2 read-only controls ?
-
-Yes they are read only.
- 
-> > *** Controls for encoding ***
-> > 10) GOP_SIZE                            E   all             common
-> > The size of group of pictures. For H264 this is the IDR period.
-> > 11) H264_LEVEL                          E   H264            common
-> > The level information for H264.
-> > 12) MPEG4_LEVEL                         E   MPEG4           common
-> > The level information for MPEG4.
-> 
-> Do those need to be separate controls ?
-
-I've been thinking hard about this for some time. My first thought was to have
-a single control. On second thought I have decided to have them separate.
-
-Level names are pretty similar though there are important differences.
-In case of H264 the level is a number consisting of two digits (such as 1.1 or 4.0) and
-level "1b". In case of MPEG4 we have a single digit 0, 1, 2, 3, 4, 5 and 0b and 3b levels.
-
-> > 13) H264_PROFILE                        E   H264            common
-> > The profile information for H264.
-> > 14) MPEG4_PROFILE                       E   MPEG4           common
-> > The profile information for MPEG4.
-> 
-
-In case of profiles the naming differs quite a lot. For H264 we have a lot
-of profiles to choose from (http://en.wikipedia.org/wiki/H.264/MPEG-4_AVC#Profiles).
-For MPEG4 we have: Simple, Advanced Simple, Core, Simple Scalable and Advanced Coding
-Efficiency.
-
-> 
-> > 15) B_FRAMES                            E   H264, MPEG4     common
-> > The number of B-frames to use between P frames.
-> > 16) MAX_REF_PIC                         E   H264            common
-> > The maximum number of reference pictures used for encoding.
-> > 17) NUM_REF_PIC_FOR_P                   E   H264            MFC
-> > The number of reference pictures used for encoding a P picture.
-> > 18) MULTI_SLICE_MODE                    E   H264, MPEG4     common
-> > Determines how multiple slices are handled.
-> > 19) MULTI_SLICE_MB                      E   H264, MPEG4     common
-> > The upper limit of macroblocks for a slice.
-> 
-> Maybe MULTI_SLICE_MAX_MB ?
-
-I agree.
- 
-> > 20) MULTI_SLICE_BITS                    E   H264, MPEG4     common
-> > The upper limit of size for a slice.
-> 
-> MULTI_SLICE_MAX_BITS ?
-
-Ditto.
- 
-> > 21) H264_LOOP_FILTER_MODE               E   H264            common
-> > Loop filter mode for H264.
-> 
-> There's a DECODER_MPEG4_LOOP_FILTER control. Are they similar ?
-
-The difference is that H264_LOOP_FILTER is a control for encoding. It is used
-during encoding. The encoder set this and a decoder has to obey the setting
-used to encode that stream. In case of MPEG4 the filter is used for post processing.
- 
-> > 22) H264_LOOP_FILTER_ALPHA              E   H264            common
-> > Loop filter alpha coefficient, defined in the standard.
-> > 23) H264_LOOP_FILTER_BETA               E   H264            common
-> > Loop filter alpha coefficient, defined in the standard.
-> 
-> s/alpha/beta/
-
-Thanks, it was a typo.
-
-> > 24) H264_SYMBOL_MODE                    E   H264            common
-> > Symbol mode for H264 - CABAC/CAVALC.
-> > 25) INTERLACE                           E   H264, MPEG4     common
-> > Enable interlace mode.
-> > 26) H264_8X8_TRANSFORM                  E   H264            common
-> > Enable 8X8 transform for H264.
-> > 27) INTRA_REFRESH_MB                    E   all             common
-> > Period of random intra macroblock refresh.
-> > 28) PADDING_ENABLE                      E   all             MFC
-> > Padding enable - use a color instead of repeating border pixels.
-> > 29) PADDING_LUMA                        E   all             MFC
-> > 30) PADDING_CB                          E   all             MFC
-> > 31) PADDING_CR                          E   all             MFC
-> 
-> Do we need 3 controls for that, or can we use a single one (similarly to
-> what
-> we did with the color key control) ?
-
-You mean like the chromakey field here:
-http://v4l2spec.bytesex.org/spec-single/v4l2.html#V4L2-WINDOW ?
-
-For V4L2_PIX_FMT_BGR24 it seems quite reasonable. What about V4L2_PIX_FMT_NV12MT?
-There are two planes which makes it less obvious. Something like 0xYYCbCr?
-
-> > > 32) FRAME_RC_ENABLE                     E   all             common
-> > Frame level rate control enable.
-> > 33) MB_RC_ENABLE                        E   H264            common
-> > Macroblock level rate control enable.
-> > 34) FRAME_RATE                          E   all             common
-> > Frames per second in 1000x scale (e.g., 7500 stands for 7.5 frames/sec).
-> 
-> What is this used for ?
-
-This is used for encoding rate control. If you want to control the bit rate per
-second then you need to know how many frames are there per second.
- 
-> > 35) RC_BITRATE                          E   all             common
-> > Bitrate for rate control.
-> > 36) RC_REACTION_COEFF                   E   all             MFC
-> > Reaction coefficient for MFC rate control.
-> > 37) H264_ADAPTIVE_RC_DARK_DISABLE       E   H264            MFC
-> > Disable adaptive rate control for dark region.
-> > 38) H264_ADAPTIVE_RC_SMOOTH_DISABLE     E   H264            MFC
-> > Disable adaptive rate control for smooth region.
-> > 39) H264_ADAPTIVE_RC_STATIC_DISABLE     E   H264            MFC
-> > Disable adaptive rate control for static region.
-> > 40) H264_ADAPTIVE_RC_ACTIVITY_DISABLE   E   H264            MFC
-> > Disable adaptive rate control for region with activity.
-> > 41) MPEG4_QPEL_DISABLE                  E   MPEG4           common
-> > Disable quarter pixel motion estimation for MPEG4.
-> 
-> Should we remove the _DISABLE suffix and make the controls default to true ?
-
-I agree, thanks.
-
-> > 42) I_FRAME_QP                          E   all             common
-> > Quantization parameter for an I frame.
-> > 43) MIN_QP                              E   all             common
-> > Minimum quantization parameter.
-> > 44) MAX_QP                              E   all             common
-> > Maximum quantization parameter.
-> > 45) P_FRAME_QP                          E   all             common
-> > Quantization parameter for an P frame.
-> > 46) B_FRAME_QP                          E   H264, MPEG4     common
-> > Quantization parameter for an B frame.
-> > 47) VBV_BUF_SIZE                        E   H264, MPEG*     common
-> > VBV buffer size. I think it is valid for all MPEG versions.
-> > 48) FRAME_SKIP_MODE                     E   all             MFC
-> > Mode of skipping frames for VBV compliance.
-> > 49) RC_FIXED_TARGET_BIT                 E   all             MFC
-> > 50) MPEG4_VOP_TIME_RES                  E   MPEG4           MFC
-> > Used to compute vop_time_increment and modulo_time_base in MPEG4.
-> > 51) MPEG4_VOP_FRAME_DELTA               E   MPEG4           MFC
-> > Used to compute vop_time_increment and modulo_time_base in MPEG4.
-> > 52) H264_OPEN_GOP                       E   H264            common
-> > Enable open GOP in H264.
-> > 53) H264_I_PERIOD                       E   H264            common
-> > Period between I frames in open GOP for H264.
-> > 54) H264_AR_VUI_ENABLE                  E   H264            MFC
-> > Enable writing aspect ratio in VUI.
-> > 55) HEADER_MODE                         E   all             common
-> > Determines whether the header is returned as the first buffer or is
-> > it returned together with the first frame.
-> > 56) FORCE_FRAME_TYPE                    E   all             MFC
-> > Force frame type on the encoder - either I-frame or skipped.
-> > I hope that buffer flags could be used instead of this.
-> > 57) FRAME_TAG                           E   all             MFC
-> > Frame tag is assigned to an input buffer passed to hardware, and
-> > the same frame tag is then assigned to the buffer that contains the
-> > result of processing that frame.
-> 
-
-Best regards,
---
-Kamil Debski
-Linux Platform Group
-Samsung Poland R&D Center
+emunson@grover:~$ v4l2-ctl -F
+Frequency: 0 (0.000000 MHz)
+emunson@grover:~$ v4l2-ctl -f 259.250
+Frequency set to 4148 (259.250000 MHz)
+emunson@grover:~$ v4l2-ctl -F
+Frequency: 0 (0.000000 MHz)
 
 
+> Does v4l2-ctl --log-status still show no signal present for the '843 core=
+ in the CX23418?
+
+Yeah,
+   [94465.349721] cx18-0 843: Video signal:              not present
+
+> Does mplayer /dev/videoN -cache 8192 have a tv station when set to the rf=
+ analog input with v4l2-ctl?
+
+emunson@grover:~$ mplayer /dev/video0 -cache 8192
+MPlayer 1.0rc4-4.4.5 (C) 2000-2010 MPlayer Team
+
+Playing /dev/video0.
+Cache fill:  0.00% (0 bytes)
+
+
+Exiting... (End of file)
+
+>=20
+> From what I recall the analog tuner init looked ok.
+> -Andy
+>=20
+
+--kXdP64Ggrk/fb43R
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iQEcBAEBAgAGBQJNrL/XAAoJEH65iIruGRnNPdkIAKHutc1k/TBHD482dA/M5xct
+k7S1575kmI6v1dghoRY3wD7QxfJjhXRVNgh7SVwUYPM4g2YmiiM8UXp5B4+oGGjs
+QuZX4YKMQmxwYxd4m2dZhFsBK6lz+1F+v+utoMwqvgiU8H06w5IwS7w0sQ7PYDxu
+Bt+PQREFeY92zFRnr3zeQOADiTAul4zK6nbDklCd3DJ7iLkxPCXNcl+LgQo4uGcN
+vVIWs/qtWpi3cHmzzFpXWLqFRjoqADLHEQ2TXOQRaFqAZ/r7y/IMSlsMKjnfSb4g
+FnGInBac2Uza7qxqLInvfcN/XSzUI6b/75XWkZPdqPNYvusezLL1sxgQoVhVdiE=
+=7aZp
+-----END PGP SIGNATURE-----
+
+--kXdP64Ggrk/fb43R--
