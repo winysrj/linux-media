@@ -1,45 +1,122 @@
 Return-path: <mchehab@pedra>
-Received: from blu0-omc2-s26.blu0.hotmail.com ([65.55.111.101]:43320 "EHLO
-	blu0-omc2-s26.blu0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750902Ab1DBNp3 (ORCPT
+Received: from va3ehsobe004.messaging.microsoft.com ([216.32.180.14]:16262
+	"EHLO VA3EHSOBE004.bigfish.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751622Ab1DSNwF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 2 Apr 2011 09:45:29 -0400
-Message-ID: <BLU0-SMTP2588D5C8C024CC3D20EE63D8A10@phx.gbl>
-To: linux-media@vger.kernel.org
-Subject: dibusb device with lock problems
-CC: patrick.boettcher@desy.de, pb@linuxtv.org, grafgrimm77@gmx.de,
-	castet.matthieu@free.fr
-From: Mr Tux <tuxoholic@hotmail.de>
+	Tue, 19 Apr 2011 09:52:05 -0400
+Date: Tue, 19 Apr 2011 15:50:03 +0200
+From: "Roedel, Joerg" <Joerg.Roedel@amd.com>
+To: Arnd Bergmann <arnd@arndb.de>
+CC: Marek Szyprowski <m.szyprowski@samsung.com>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-samsung-soc@vger.kernel.org"
+	<linux-samsung-soc@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	'Kukjin Kim' <kgene.kim@samsung.com>
+Subject: Re: [PATCH 2/7] ARM: Samsung: update/rewrite Samsung SYSMMU
+ (IOMMU) driver
+Message-ID: <20110419135003.GR2192@amd.com>
+References: <1303118804-5575-1-git-send-email-m.szyprowski@samsung.com>
+ <201104181612.35833.arnd@arndb.de>
+ <005f01cbfe6b$148a8810$3d9f9830$%szyprowski@samsung.com>
+ <201104191449.50824.arnd@arndb.de>
 MIME-Version: 1.0
-Date: Sat, 2 Apr 2011 15:45:22 +0200
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <201104191449.50824.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi list, hello Patrick,
+On Tue, Apr 19, 2011 at 08:49:50AM -0400, Arnd Bergmann wrote:
+> (adding Joerg to Cc)
+> 
+> On Tuesday 19 April 2011, Marek Szyprowski wrote:
+> 
+> > > * This extends the generic IOMMU API in platform specific ways, don't
+> > >   do that.
 
-A locking problem with specific dib3000mb devices is still present in
-kernel 2.6.38.
+This is certainly not a good idea. Please Cc me on IOMMU-API changes in
+the future to that I can have a look at it. This is also a good way to
+prevent misunderstandings (which I found some in this mail).
 
-Now people upgrading from lenny to squeeze are also affected - see: [1]
+> > Ok, it looks I don't fully get how this iommu.h should be used. It looks
+> > that there can be only one instance of iommu ops registered in the system,
+> > so only one iommu driver can be activated. You are right that the iommu
+> > driver has to be registered on first probe().
+> 
+> That is a limitation of the current implementation. We might want to
+> change that anyway, e.g. to handle the mali IOMMU along with yours.
+> I believe the reason for allowing only one IOMMU type so far has been
+> that nobody required more than one. As I mentioned, the IOMMU API is
+> rather new and has not been ported to much variety of hardware, unlike
+> the dma-mapping API, which does support multiple different IOMMUs
+> in a single system.
 
-Please have a look at my previous post in [2] for a detailed description and 
-links to this bug's history.
+The current IOMMU-API interface is very simple. It delegates the
+selection of the particular IOMMU device to the IOMMU driver. Handle
+this selection above the IOMMU driver is a complex thing to do. We will
+need some kind of generic IOMMU support in the device-core and
+attach IOMMUs to device sub-trees.
 
-I'm sending a cc of this to the people who once where affected by this bug or 
-involved with the code change that introduced it.
+A simpler and less intrusive solution is to implement some wrapper code
+which dispatches the IOMMU-API calls to the IOMMU driver implementation
+required for that device.
 
-Anyone can confirm this is fixed/pending for his device and what dib3000mb 
-device he is using out of the linuxtv wiki list of 14 dib3000mb devices [3]?
+> > I think it might be beneficial to describe a bit more our hardware 
+> > (Exynos4 platform). There are a number of multimedia blocks. Each has it's
+> > own IOMMU controller. Each IOMMU controller has his own set of hardware
+> > registers and irq. There is also a GPU unit (Mali) which has it's own
+> > IOMMU hardware, incompatible with the SYSMMU, so right now it is ignored.
+> > 
+> > The multimedia blocks are modeled as platform devices and are independent
+> > of platform type (same multimedia blocks can be found on other Samsung
+> > machines, like for example s5pv210/s5pc110), see arch/arm/plat-s5p/dev-*.c
+> > and arch/arm/plat-samsung/dev-*.c.
 
-I have 3 devices of the hama usb 1.1 series: [4], that's number 66 in the wiki 
-listing - they all are affected by this bug with kernels > 2.6.31
+Question: Does every platform device has a different type of IOMMU? Or
+are the IOMMUs on all of these platform devices similar enough to be
+handled by a single driver?
 
-Thanks for some feedback. Can we fix this for good for the pending devices?
+> > The domain defined in iommu api are quite straightforward. Each domain 
+> > is just a set of mappings between physical addresses (phys) and io addresses
+> > (iova).
 
+Each domain represents an address space. In the AMD IOMMU this is
+basically a page-table.
 
-[1] http://www.vdr-portal.de/index.php?page=Thread&postID=991041
-[2] http://www.spinics.net/lists/linux-media/msg28817.html
-[3] http://www.linuxtv.org/wiki/index.php/DVB-T_USB_Devices/Full
-[4] http://www.hama.de/bilder/00049/abb/00049021abb.jpg
+> > For the drivers the most important are the following functions:
+> > iommu_{attach,detach}_device(struct iommu_domain *domain, struct device *dev);
+
+Right, and each driver can allocate its own domains.
+
+> > We assumed that they just assign the domain (mapping) to particular instance
+> > of iommu. However the driver need to get somehow the pointer to the iommu 
+> > instance. That's why we added the s5p_sysmmu_{get,put} functions.
+
+The functions attach a specific device to an IOMMU domain (== address
+space). These devices might be behind different IOMMUs and it is the
+responsibility of the IOMMU driver to setup everything correctly.
+
+> It's not quite how the domains are meant to be used. In the AMD IOMMU
+> that the API is based on, any number of devices can share one domain,
+> and devices might be able to have mappings in multiple domains.
+
+Yes, any number of devices can be assigned to one domain, but each
+device only belongs to one domain at each point in time. But it is
+possible to detach a device from one domain and attach it to another.
+
+Regards,
+
+	Joerg
+
+-- 
+AMD Operating System Research Center
+
+Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
+General Managers: Alberto Bozzo, Andrew Bowd
+Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr. 43632
+
