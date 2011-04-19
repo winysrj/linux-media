@@ -1,70 +1,56 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:36541 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752778Ab1D3QJO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Apr 2011 12:09:14 -0400
-Subject: Re: Build Failure
-From: Andy Walls <awalls@md.metrocast.net>
-To: Colin Minihan <colin.minihan@gmail.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <BANLkTim9vtBAE1dbOXAwW2Crh7aiMucD3w@mail.gmail.com>
-References: <BANLkTikBm0gmNd8oQ6CN+cAEbYhWEGvWPA@mail.gmail.com>
-	 <BANLkTim9vtBAE1dbOXAwW2Crh7aiMucD3w@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 30 Apr 2011 12:10:14 -0400
-Message-ID: <1304179815.2434.10.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:37646 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751981Ab1DSUe2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Apr 2011 16:34:28 -0400
+Message-ID: <4DADF1CB.4050504@redhat.com>
+Date: Tue, 19 Apr 2011 17:34:19 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Antonio Ospite <ospite@studenti.unina.it>
+CC: Jean-Francois Moine <moinejf@free.fr>, linux-media@vger.kernel.org
+Subject: Re: [GIT PATCHES FOR 2.6.40] gspca for_v2.6.40
+References: <20110419202029.7c9dfd14@tele> <20110419215439.247343e7.ospite@studenti.unina.it>
+In-Reply-To: <20110419215439.247343e7.ospite@studenti.unina.it>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sat, 2011-04-30 at 10:31 -0400, Colin Minihan wrote:
-> On Ubuntu 10.04 attempting to run
+Em 19-04-2011 16:54, Antonio Ospite escreveu:
+> On Tue, 19 Apr 2011 20:20:29 +0200
+> Jean-Francois Moine <moinejf@free.fr> wrote:
 > 
-> git clone git://linuxtv.org/media_build.git
-> cd media_build
-> ./check_needs.pl
-> make -C linux/ download
-> make -C linux/ untar
-> make stagingconfig
-> make
+>> The following changes since commit
+>> d58307d6a1e2441ebaf2d924df4346309ff84c7d:
+>>
+>>   [media] anysee: add more info about known board configs (2011-04-19 10:35:37 -0300)
+>>
+>> are available in the git repository at:
+>>   git://linuxtv.org/jfrancois/gspca.git for_v2.6.40
+>>
+>> Antonio Ospite (2):
+>>       Add Y10B, a 10 bpp bit-packed greyscale format.
+>>       gspca - kinect: New subdriver for Microsoft Kinect
+>>
 > 
->  results in the following failure
-> ...
->   CC [M]  /home/colm/media_build/v4l/lirc_zilog.o
-> /home/colm/media_build/v4l/lirc_zilog.c: In function 'destroy_rx_kthread':
-> /home/colm/media_build/v4l/lirc_zilog.c:238: error: implicit
-> declaration of function 'IS_ERR_OR_NULL'
+> Ah glad to see that, so there was no major concern on the code, was
+> there?
 
-Well, IS_ERR_OR_NULL() went into the kernel in December 2009:
+There's just a problem that I noticed:
 
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=603c4ba96be998a8dd7a6f9b23681c49acdf4b64
+drivers/media/video/gspca/kinect.c: In function ‘send_cmd.clone.0’:
+drivers/media/video/gspca/kinect.c:202: warning: the frame size of 1548 bytes is larger than 1024 bytes
 
-so it should be in kernel version 2.6.33 and later.
+Please, don't do things like:
 
-If you don't want to generate a patch for the media_build backward
-compatability build system, you can probably just patch your kernel
-header file or trivially hack the function it into 
++ uint8_t obuf[0x400];
++ uint8_t ibuf[0x200];
 
-	drivers/staging/lirc/lirc_zilog.c
+at the stack. Instead, put it into a per-device struct.
 
-to get past your current build error.  But I suspect you'll run into
-more errors.  When I make changes to a module (like lirc_zilog.c), I
-tend to use the latest kernel interfaces at the time of the changes.
+Anyway, I've applied your patches here. Please send us a fix for it
+as soon as possible.
 
-If you don't need lirc_zilog.ko built, then configure the build system
-to not build the module.
-
-Regards,
-Andy
-
-> make[3]: *** [/home/colm/media_build/v4l/lirc_zilog.o] Error 1
-> make[2]: *** [_module_/home/colm/media_build/v4l] Error 2
-> make[2]: Leaving directory `/usr/src/linux-headers-2.6.32-31-generic'
-> make[1]: *** [default] Error 2
-> make[1]: Leaving directory `/home/colm/media_build/v4l'
-> make: *** [all] Error 2
-> --
-
-
+Thanks,
+Mauro
