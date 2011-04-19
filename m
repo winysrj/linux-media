@@ -1,80 +1,89 @@
 Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:50175 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752599Ab1DSMiC (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.10]:64065 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752607Ab1DSO3z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Apr 2011 08:38:02 -0400
-Message-ID: <4DAD821C.7080101@infradead.org>
-Date: Tue, 19 Apr 2011 09:37:48 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+	Tue, 19 Apr 2011 10:29:55 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCH 2/7] ARM: Samsung: update/rewrite Samsung SYSMMU (IOMMU) driver
+Date: Tue, 19 Apr 2011 16:29:49 +0200
+Cc: "'Joerg Roedel'" <joerg.roedel@amd.com>,
+	linux-samsung-soc@vger.kernel.org,
+	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
+	"'Kukjin Kim'" <kgene.kim@samsung.com>,
+	"'Sylwester Nawrocki'" <s.nawrocki@samsung.com>,
+	"'Andrzej Pietrasiewicz'" <andrzej.p@samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+References: <1303118804-5575-1-git-send-email-m.szyprowski@samsung.com> <201104191449.50824.arnd@arndb.de> <000001cbfe9a$8e64cae0$ab2e60a0$%szyprowski@samsung.com>
+In-Reply-To: <000001cbfe9a$8e64cae0$ab2e60a0$%szyprowski@samsung.com>
 MIME-Version: 1.0
-To: Jiri Slaby <jslaby@suse.cz>
-CC: Linus Torvalds <torvalds@linux-foundation.org>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-arm-kernel@lists.infradead.org,
-	Jiri Slaby <jirislaby@gmail.com>
-Subject: Re: [REVERT] Re: V4L: videobuf-dma-contig: fix mmap_mapper	broken
- on ARM
-References: <201104122306.34909.jkrzyszt@tis.icnet.pl> <201104131252.32011.jkrzyszt@tis.icnet.pl> <20110413183231.GA23631@n2100.arm.linux.org.uk> <201104132256.40325.jkrzyszt@tis.icnet.pl> <20110413220008.GA23901@n2100.arm.linux.org.uk> <4DAD26D9.6060906@suse.cz>
-In-Reply-To: <4DAD26D9.6060906@suse.cz>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201104191629.49676.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 19-04-2011 03:08, Jiri Slaby escreveu:
-> On 04/14/2011 12:00 AM, Russell King - ARM Linux wrote:
->> On Wed, Apr 13, 2011 at 10:56:39PM +0200, Janusz Krzysztofik wrote:
->>> Dnia środa 13 kwiecień 2011 o 20:32:31 Russell King - ARM Linux 
->>> napisał(a):
->>>> On Wed, Apr 13, 2011 at 12:52:31PM +0200, Janusz Krzysztofik wrote:
->>>>> Taking into account that I'm just trying to fix a regression, and
->>>>> not invent a new, long term solution: are you able to name an ARM
->>>>> based board which a) is already supported in 2.6.39, b) is (or can
->>>>> be) equipped with a device supported by a V4L driver which uses
->>>>> videobuf- dma-config susbsystem, c) has a bus structure with which
->>>>> virt_to_phys(bus_to_virt(dma_handle)) is not equal dma_handle?
->>>>
->>>> I have no idea - and why should whether someone can name something
->>>> that may break be a justification to allow something which is
->>>> technically wrong?
->>>>
->>>> Surely it should be the other way around - if its technically wrong
->>>> and _may_ break something then it shouldn't be allowed.
->>>
->>> In theory - of course. In practice - couldn't we now, close to -rc3, 
->>> relax the rules a little bit and stop bothering with something that may 
->>> break in the future if it doesn't break on any board supported so far (I 
->>> hope)?
->>
->> If we are worried about closeness to -final, then what should happen is
->> that the original commit is reverted; the "fix" for IOMMUs resulted in
->> a regression for existing users which isn't trivial to resolve without
->> risking possible breakage of other users.
-> 
-> Hi, as -rc4 is out, I think it's time to revert that commit and rethink
-> the mmap behaviour for some of next -rc1s.
-> 
-> Linus, please revert
-> commit 35d9f510b67b10338161aba6229d4f55b4000f5b
-> Author: Jiri Slaby <jslaby@suse.cz>
-> Date:   Mon Feb 28 06:37:02 2011 -0300
+On Tuesday 19 April 2011, Marek Szyprowski wrote:
 
-It seems the better option for now.
-
-Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
+> > 
+> > 1. change the runtime_pm subsystem to allow it to ignore some devices
+> > in an easy way.
+> > 
+> > 2. change the device layout if the sysmmu. If the iommu device is
+> > a child of the device that it is responsible for, I guess you don't
+> > have this problem.
+> > 
+> > 3. Not represent the iommu as a device at all, just as a property
+> > of another device.
 > 
->     [media] V4L: videobuf, don't use dma addr as physical
-> ===
-> 
-> It fixes mmap when IOMMU is used on x86 only, but breaks architectures
-> like ARM or PPC where virt_to_phys(dma_alloc_coherent) doesn't work. We
-> need there dma_mmap_coherent or similar (the trickery what
-> snd_pcm_default_mmap does but in some saner way). But this cannot be
-> done at this phase.
-> 
-> thanks,
+> Ok, we will handle this issue somehow. I consider this a minor issue and I
+> would like to focus on the IOMMU/dma-mapping APIs first.
 
+Yes, agreed.
+
+> > That is a limitation of the current implementation. We might want to
+> > change that anyway, e.g. to handle the mali IOMMU along with yours.
+> > I believe the reason for allowing only one IOMMU type so far has been
+> > that nobody required more than one. As I mentioned, the IOMMU API is
+> > rather new and has not been ported to much variety of hardware, unlike
+> > the dma-mapping API, which does support multiple different IOMMUs
+> > in a single system.
+> 
+> Ok. I understand. IOMMU API is quite nice abstraction of the IOMMU chip.
+> dma-mapping API is something much more complex that creates the actual
+> mapping for various sets of the devices. IMHO the right direction will
+> be to create dma-mapping implementation that will be just a client of
+> the IOMMU API. What's your opinion?
+ 
+Sounds good. I think we should put it into a new drivers/iommu, along
+with your specific iommu implementation, and then we can convert the
+existing ones over to use that.
+
+Note that this also requires using dma-mapping-common.h, which we currently
+don't on ARM.
+
+> > The domain really reflects the user, not the device here, which makes more
+> > sense if you think of virtual machines than of multimedia devices.
+> >
+> > I would suggest that you just use a single iommu_domain globally for
+> > all in-kernel users.
+> 
+> There are cases where having a separate mapping for each device makes sense.
+> It definitely increases the security and helps to find some bugs in
+> the drivers.
+> 
+> Getting back to our video codec - it has 2 IOMMU controllers. The codec
+> hardware is able to address only 256MiB of space. Do you have an idea how
+> this can be handled with dma-mapping API? The only idea that comes to my
+> mind is to provide a second, fake 'struct device' and use it for allocations
+> for the second IOMMU controller.
+
+Good question. 
+
+How do you even decide which controller to use from the driver?
+I would need to understand better what you are trying to do to
+give a good recommendation.
+
+	Arnd
