@@ -1,51 +1,39 @@
 Return-path: <mchehab@pedra>
-Received: from acoma.acyna.com ([72.9.254.68]:33525 "EHLO acoma.acyna.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751188Ab1D2LBo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Apr 2011 07:01:44 -0400
-Received: from acoma ([127.0.0.1] helo=[127.0.0.100])
-	by acoma.acyna.com with esmtpa (Exim 4.69)
-	(envelope-from <hubstar@hubstar.net>)
-	id 1QFgjD-0001jV-FA
-	for linux-media@vger.kernel.org; Fri, 29 Apr 2011 06:58:59 +0100
-Message-ID: <4DBA8BC7.4030108@hubstar.net>
-Date: Fri, 29 Apr 2011 10:58:31 +0100
-From: hubstar <hubstar@hubstar.net>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:54288 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753364Ab1DSJV4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Apr 2011 05:21:56 -0400
+Date: Tue, 19 Apr 2011 10:21:35 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: 'Arnd Bergmann' <arnd@arndb.de>, linux-samsung-soc@vger.kernel.org,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Kukjin Kim' <kgene.kim@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 4/7] v4l: videobuf2: add IOMMU based DMA memory
+	allocator
+Message-ID: <20110419092135.GD22799@n2100.arm.linux.org.uk>
+References: <1303118804-5575-1-git-send-email-m.szyprowski@samsung.com> <1303118804-5575-5-git-send-email-m.szyprowski@samsung.com> <201104181615.49009.arnd@arndb.de> <00ea01cbfe70$860ca900$9225fb00$%szyprowski@samsung.com>
 MIME-Version: 1.0
-To: vger <linux-media@vger.kernel.org>
-Subject: HVR1300 cx88 Blackbird - no audio in mpeg stream at latest level
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <00ea01cbfe70$860ca900$9225fb00$%szyprowski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+On Tue, Apr 19, 2011 at 11:02:34AM +0200, Marek Szyprowski wrote:
+> On Monday, April 18, 2011 4:16 PM Arnd Bergmann wrote:
+> > My feeling is that this is not the right abstraction. Why can't you
+> > just implement the regular dma-mapping.h interfaces for your IOMMU
+> > so that the videobuf code can use the existing allocators?
+> 
+> I'm not really sure which existing videobuf2 allocators might transparently
+> support IOMMU interface yet
+> 
+> Do you think that all iommu operations can be hidden behind dma_map_single 
+> and dma_unmap_single?
 
-
-Hi,
-
-I am using openSuse 11.4 mythtv 0.24 and patched the drivers (attachment
-on the bug) to avoid the locking issue that is in the current kernel
-drivers (cx88)
-
-However I can not get audio recorded on this device at this level. Video
-is fine. (Recording from the hw encoded stream /dev/video1 on composite1)
-
-I did briefly managed to get audio one day using
-v4lctl -c /dev/video1 volume mute off
-But once I tried to set it up to automatically run, I've never got audio
-again.
-
-I know the hardware is all working, as the same box has Suse 11.1 and
-mythtv 0.21 working fine 100% of the time with no hacks. I had to
-upgrade as 11.1 to get updates, so went the whole way.
-
-I also tried pulling older driver levels, but unfortunately I'm not
-really upto speed with all the changes that happened in v4l and so
-drivers at early 2010 I get compilation errors.
-
-Any help / ideas would be great
-
-Thanks
-
-
-
+That is one of the intentions of the DMA API.
