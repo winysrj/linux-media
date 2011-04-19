@@ -1,97 +1,80 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:45864 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753198Ab1DHHBD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Apr 2011 03:01:03 -0400
-Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LJB00IBSNHOV9@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 08 Apr 2011 08:01:00 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LJB00ADENHNVF@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 08 Apr 2011 08:01:00 +0100 (BST)
-Date: Fri, 08 Apr 2011 09:00:55 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [RFCv1 PATCH 5/9] vb2_poll: don't start DMA,
-	leave that to the first read().
-In-reply-to: <aa6ba599252cedcbb977fa151a5af70860384bf1.1301916466.git.hans.verkuil@cisco.com>
-To: 'Hans Verkuil' <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <000601cbf5ba$b499c690$1dcd53b0$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <1301917914-27437-1-git-send-email-hans.verkuil@cisco.com>
- <aa6ba599252cedcbb977fa151a5af70860384bf1.1301916466.git.hans.verkuil@cisco.com>
+Received: from casper.infradead.org ([85.118.1.10]:50175 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752599Ab1DSMiC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Apr 2011 08:38:02 -0400
+Message-ID: <4DAD821C.7080101@infradead.org>
+Date: Tue, 19 Apr 2011 09:37:48 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+MIME-Version: 1.0
+To: Jiri Slaby <jslaby@suse.cz>
+CC: Linus Torvalds <torvalds@linux-foundation.org>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel@lists.infradead.org,
+	Jiri Slaby <jirislaby@gmail.com>
+Subject: Re: [REVERT] Re: V4L: videobuf-dma-contig: fix mmap_mapper	broken
+ on ARM
+References: <201104122306.34909.jkrzyszt@tis.icnet.pl> <201104131252.32011.jkrzyszt@tis.icnet.pl> <20110413183231.GA23631@n2100.arm.linux.org.uk> <201104132256.40325.jkrzyszt@tis.icnet.pl> <20110413220008.GA23901@n2100.arm.linux.org.uk> <4DAD26D9.6060906@suse.cz>
+In-Reply-To: <4DAD26D9.6060906@suse.cz>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
-
-On Monday, April 04, 2011 1:52 PM Hans Verkuil wrote:
-
-> The vb2_poll function would start read DMA if called without any streaming
-> in progress. This unfortunately does not work if the application just wants
-> to poll for exceptions. This information of what the application is polling
-> for is sadly unavailable in the driver.
+Em 19-04-2011 03:08, Jiri Slaby escreveu:
+> On 04/14/2011 12:00 AM, Russell King - ARM Linux wrote:
+>> On Wed, Apr 13, 2011 at 10:56:39PM +0200, Janusz Krzysztofik wrote:
+>>> Dnia środa 13 kwiecień 2011 o 20:32:31 Russell King - ARM Linux 
+>>> napisał(a):
+>>>> On Wed, Apr 13, 2011 at 12:52:31PM +0200, Janusz Krzysztofik wrote:
+>>>>> Taking into account that I'm just trying to fix a regression, and
+>>>>> not invent a new, long term solution: are you able to name an ARM
+>>>>> based board which a) is already supported in 2.6.39, b) is (or can
+>>>>> be) equipped with a device supported by a V4L driver which uses
+>>>>> videobuf- dma-config susbsystem, c) has a bus structure with which
+>>>>> virt_to_phys(bus_to_virt(dma_handle)) is not equal dma_handle?
+>>>>
+>>>> I have no idea - and why should whether someone can name something
+>>>> that may break be a justification to allow something which is
+>>>> technically wrong?
+>>>>
+>>>> Surely it should be the other way around - if its technically wrong
+>>>> and _may_ break something then it shouldn't be allowed.
+>>>
+>>> In theory - of course. In practice - couldn't we now, close to -rc3, 
+>>> relax the rules a little bit and stop bothering with something that may 
+>>> break in the future if it doesn't break on any board supported so far (I 
+>>> hope)?
+>>
+>> If we are worried about closeness to -final, then what should happen is
+>> that the original commit is reverted; the "fix" for IOMMUs resulted in
+>> a regression for existing users which isn't trivial to resolve without
+>> risking possible breakage of other users.
 > 
-> Andy Walls suggested to just return POLLIN | POLLRDNORM and let the first
-> call to read start the DMA. This initial read() call will return EAGAIN
-> since no actual data is available yet, but it does start the DMA.
+> Hi, as -rc4 is out, I think it's time to revert that commit and rethink
+> the mmap behaviour for some of next -rc1s.
+> 
+> Linus, please revert
+> commit 35d9f510b67b10338161aba6229d4f55b4000f5b
+> Author: Jiri Slaby <jslaby@suse.cz>
+> Date:   Mon Feb 28 06:37:02 2011 -0300
 
-The current implementation of vb2_read() will just start streaming on first
-call without returning EAGAIN. Do you think this should be changed?
+It seems the better option for now.
+
+Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
 > 
-> Application are supposed to handle EAGAIN. MythTV does handle this
-> correctly.
+>     [media] V4L: videobuf, don't use dma addr as physical
+> ===
 > 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/video/videobuf2-core.c |   16 +++-------------
->  1 files changed, 3 insertions(+), 13 deletions(-)
+> It fixes mmap when IOMMU is used on x86 only, but breaks architectures
+> like ARM or PPC where virt_to_phys(dma_alloc_coherent) doesn't work. We
+> need there dma_mmap_coherent or similar (the trickery what
+> snd_pcm_default_mmap does but in some saner way). But this cannot be
+> done at this phase.
 > 
-> diff --git a/drivers/media/video/videobuf2-core.c
-> b/drivers/media/video/videobuf2-core.c
-> index 6698c77..2dea57a 100644
-> --- a/drivers/media/video/videobuf2-core.c
-> +++ b/drivers/media/video/videobuf2-core.c
-> @@ -1372,20 +1372,10 @@ unsigned int vb2_poll(struct vb2_queue *q, struct
-> file *file, poll_table *wait)
->  	 * Start file I/O emulator only if streaming API has not been used
-> yet.
->  	 */
->  	if (q->num_buffers == 0 && q->fileio == NULL) {
-> -		if (!V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_READ))
-> {
-> -			ret = __vb2_init_fileio(q, 1);
-> -			if (ret)
-> -				return POLLERR;
-> -		}
-> -		if (V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_WRITE))
-> {
-> -			ret = __vb2_init_fileio(q, 0);
-> -			if (ret)
-> -				return POLLERR;
-> -			/*
-> -			 * Write to OUTPUT queue can be done immediately.
-> -			 */
-> +		if (!V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_READ))
-> +			return POLLIN | POLLRDNORM;
-> +		if (V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_WRITE))
->  			return POLLOUT | POLLWRNORM;
-> -		}
->  	}
-> 
->  	/*
-> --
-
-Best regards
--- 
-Marek Szyprowski
-Samsung Poland R&D Center
+> thanks,
 
