@@ -1,80 +1,56 @@
 Return-path: <mchehab@pedra>
-Received: from d1.icnet.pl ([212.160.220.21]:52180 "EHLO d1.icnet.pl"
+Received: from smtp.nokia.com ([147.243.1.47]:25597 "EHLO mgw-sa01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757750Ab1DJWtw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Apr 2011 18:49:52 -0400
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 2.6.39] V4L: videobuf-dma-contig: fix mmap_mapper broken on ARM
-Date: Mon, 11 Apr 2011 00:47:59 +0200
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-arm-kernel@lists.infradead.org, Jiri Slaby <jslaby@suse.cz>
+	id S1750974Ab1DSH2c (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Apr 2011 03:28:32 -0400
+Message-ID: <4DAD3A39.1030500@maxwell.research.nokia.com>
+Date: Tue, 19 Apr 2011 10:31:05 +0300
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: David Cohen <dacohen@gmail.com>,
+	Bastian Hecht <hechtb@googlemail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: OMAP3 ISP deadlocks on my new arm
+References: <BANLkTikwJ2bJr11U_ETZtU4gYuNyak+Xcw@mail.gmail.com> <BANLkTi==Yeniz_Mm4rD2qnGSR5kBE_XCcg@mail.gmail.com> <BANLkTikLJQitB6ojQ3NaXnJ9op4GGx+YGA@mail.gmail.com> <201104181623.56866.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201104181623.56866.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201104110048.08764.jkrzyszt@tis.icnet.pl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-After switching from mem->dma_handle to virt_to_phys(mem->vaddr) used 
-for obtaining page frame number passed to remap_pfn_range()
-(commit 35d9f510b67b10338161aba6229d4f55b4000f5b), videobuf-dma-contig 
-stopped working on my ARM based board. The ARM architecture maintainer, 
-Russell King, confirmed that using something like 
-virt_to_phys(dma_alloc_coherent()) is not supported on ARM, and can be 
-broken on other architectures as well. The author of the change, Jiri 
-Slaby, also confirmed that his code may not work on all architectures.
+Laurent Pinchart wrote:
+...
+> That's the ideal situation: sensors should not produce any data (or rather any 
+> transition on the VS/HS signals) when they're supposed to be stopped. 
+> Unfortunately that's not always easy, as some dumb sensors (or sensor-like 
+> hardware) can't be stopped. The ISP driver should be able to cope with that in 
+> a way that doesn't kill the system completely.
+> 
+> I've noticed the same issue with a Caspa camera module and an OMAP3503-based 
+> Gumstix. I'll try to come up with a good fix.
 
-The patch takes two different countermeasures against this regression:
+Hi Laurent, others,
 
-1. On architectures which provide dma_mmap_coherent() function (ARM for 
-   now), use it instead of just remap_pfn_range(). The code is stollen 
-   from sound/core/pcm_native.c:snd_pcm_default_mmap().
-   Set vma->vm_pgoff to 0 before calling dma_mmap_coherent(), or it 
-   fails.
+Do you think the cause for this is that the system is jammed in handling
+HS_VS interrupts triggered for every HS?
 
-2. On other architectures, use virt_to_phys(bus_to_virt(mem->dma_handle)) 
-   instead of problematic virt_to_phys(mem->vaddr). This should work 
-   even if those translations would occure inaccurate for DMA addresses, 
-   since possible errors introduced by both calculations, performed in 
-   opposite directions, should compensate.
+A quick fix for this could be just choosing either VS configuration when
+configuring the CCDC. Alternatively, HS_VS interrupts could be just
+disabled until omap3isp_configure_interface().
 
-Both solutions tested on ARM OMAP1 based Amstrad Delta board.
+But as the sensor is sending images all the time, proper VS
+configuration would be needed, or the counting of lines in the CCDC (VD*
+interrupts) is affected as well. The VD0 interrupt, which is used to
+trigger an interrupt near the end of the frame, may be triggered one
+line too early on the first frame, or too late. But this is up to a
+configuration. I don't think it's a real issue to trigger it one line
+too early.
 
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
----
- drivers/media/video/videobuf-dma-contig.c |   17 +++++++++++++++--
- 1 file changed, 15 insertions(+), 2 deletions(-)
+Anything else?
 
---- linux-2.6.39-rc2/drivers/media/video/videobuf-dma-contig.c.orig	2011-04-09 00:38:45.000000000 +0200
-+++ linux-2.6.39-rc2/drivers/media/video/videobuf-dma-contig.c	2011-04-10 15:00:23.000000000 +0200
-@@ -295,13 +295,26 @@ static int __videobuf_mmap_mapper(struct
- 
- 	/* Try to remap memory */
- 
-+#ifndef ARCH_HAS_DMA_MMAP_COHERENT
-+/* This should be defined / handled globally! */
-+#ifdef CONFIG_ARM
-+#define ARCH_HAS_DMA_MMAP_COHERENT
-+#endif
-+#endif
-+
-+#ifdef ARCH_HAS_DMA_MMAP_COHERENT
-+	vma->vm_pgoff = 0;
-+	retval = dma_mmap_coherent(q->dev, vma, mem->vaddr, mem->dma_handle,
-+			mem->size);
-+#else
- 	size = vma->vm_end - vma->vm_start;
- 	size = (size < mem->size) ? size : mem->size;
- 
- 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
- 	retval = remap_pfn_range(vma, vma->vm_start,
--				 PFN_DOWN(virt_to_phys(mem->vaddr)),
--				 size, vma->vm_page_prot);
-+			PFN_DOWN(virt_to_phys(bus_to_virt(mem->dma_handle))),
-+			size, vma->vm_page_prot);
-+#endif
- 	if (retval) {
- 		dev_err(q->dev, "mmap: remap failed with error %d. ", retval);
- 		dma_free_coherent(q->dev, mem->size,
+Cheers,
+
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
