@@ -1,58 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:57236 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756619Ab1D3N1l (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.10]:54067 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752331Ab1DSPhm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Apr 2011 09:27:41 -0400
-Received: from localhost.localdomain (unknown [91.178.80.7])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 9765635995
-	for <linux-media@vger.kernel.org>; Sat, 30 Apr 2011 13:27:40 +0000 (UTC)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 1/2] uvcvideo: Don't report unsupported menu entries
-Date: Sat, 30 Apr 2011 15:28:03 +0200
-Message-Id: <1304170084-11733-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Tue, 19 Apr 2011 11:37:42 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: "Roedel, Joerg" <Joerg.Roedel@amd.com>
+Subject: Re: [PATCH 2/7] ARM: Samsung: update/rewrite Samsung SYSMMU (IOMMU) driver
+Date: Tue, 19 Apr 2011 17:37:30 +0200
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	"linux-samsung-soc@vger.kernel.org"
+	<linux-samsung-soc@vger.kernel.org>,
+	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
+	"'Kukjin Kim'" <kgene.kim@samsung.com>,
+	"'Sylwester Nawrocki'" <s.nawrocki@samsung.com>,
+	"'Andrzej Pietrasiewicz'" <andrzej.p@samsung.com>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <1303118804-5575-1-git-send-email-m.szyprowski@samsung.com> <000001cbfe9a$8e64cae0$ab2e60a0$%szyprowski@samsung.com> <20110419150018.GV2192@amd.com>
+In-Reply-To: <20110419150018.GV2192@amd.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201104191737.30916.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Supported menu entries are reported by the device in response to the
-GET_RES query. Use the information to return -EINVAL to userspace for
-unsupported values when enumerating menu entries.
+On Tuesday 19 April 2011, Roedel, Joerg wrote:
+> > Getting back to our video codec - it has 2 IOMMU controllers. The codec
+> > hardware is able to address only 256MiB of space. Do you have an idea how
+> > this can be handled with dma-mapping API? The only idea that comes to my
+> > mind is to provide a second, fake 'struct device' and use it for allocations
+> > for the second IOMMU controller.
+> 
+> The GPU IOMMUs can probably be handled in the GPU driver if they are
+> that different. Recent PCIe GPUs on x86 have their own IOMMUs too which
+> are very device specific and are handled in the device driver.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/uvc/uvc_ctrl.c |   18 ++++++++++++++++++
- 1 files changed, 18 insertions(+), 0 deletions(-)
+I tend to disagree with this one, and would suggest that the GPUs should
+actually provide their own iommu_ops, even if they are the only users
+of these.
 
-diff --git a/drivers/media/video/uvc/uvc_ctrl.c b/drivers/media/video/uvc/uvc_ctrl.c
-index d6fe13d..0dc2a9f 100644
---- a/drivers/media/video/uvc/uvc_ctrl.c
-+++ b/drivers/media/video/uvc/uvc_ctrl.c
-@@ -1015,6 +1015,24 @@ int uvc_query_v4l2_menu(struct uvc_video_chain *chain,
- 	}
- 
- 	menu_info = &mapping->menu_info[query_menu->index];
-+
-+	if (ctrl->info.flags & UVC_CTRL_FLAG_GET_RES) {
-+		s32 bitmap;
-+
-+		if (!ctrl->cached) {
-+			ret = uvc_ctrl_populate_cache(chain, ctrl);
-+			if (ret < 0)
-+				goto done;
-+		}
-+
-+		bitmap = mapping->get(mapping, UVC_GET_RES,
-+				      uvc_ctrl_data(ctrl, UVC_CTRL_DATA_RES));
-+		if (!(bitmap & menu_info->value)) {
-+			ret = -EINVAL;
-+			goto done;
-+		}
-+	}
-+
- 	strlcpy(query_menu->name, menu_info->name, sizeof query_menu->name);
- 
- done:
--- 
-1.7.3.4
+However, this is a minor point that we don't need to worry about today.
 
+	Arnd
