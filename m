@@ -1,85 +1,120 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:24607 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752890Ab1DTMhZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Apr 2011 08:37:25 -0400
-Message-ID: <4DAED378.308@redhat.com>
-Date: Wed, 20 Apr 2011 09:37:12 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from va3ehsobe006.messaging.microsoft.com ([216.32.180.16]:3728 "EHLO
+	VA3EHSOBE006.bigfish.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751877Ab1DSOwz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Apr 2011 10:52:55 -0400
+Date: Tue, 19 Apr 2011 16:51:49 +0200
+From: "Roedel, Joerg" <Joerg.Roedel@amd.com>
+To: Arnd Bergmann <arnd@arndb.de>
+CC: Marek Szyprowski <m.szyprowski@samsung.com>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-samsung-soc@vger.kernel.org"
+	<linux-samsung-soc@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	'Kukjin Kim' <kgene.kim@samsung.com>
+Subject: Re: [PATCH 2/7] ARM: Samsung: update/rewrite Samsung SYSMMU
+ (IOMMU) driver
+Message-ID: <20110419145149.GU2192@amd.com>
+References: <1303118804-5575-1-git-send-email-m.szyprowski@samsung.com>
+ <201104191449.50824.arnd@arndb.de>
+ <20110419135003.GR2192@amd.com>
+ <201104191628.39446.arnd@arndb.de>
 MIME-Version: 1.0
-To: Stefan Ringel <stefan.ringel@arcor.de>
-CC: linux-media@vger.kernel.org, d.belimov@gmail.com
-Subject: Re: [PATCH 1/5] tm6000: add mts parameter
-References: <1301948324-27186-1-git-send-email-stefan.ringel@arcor.de> <4DADFCD2.1090401@redhat.com> <4DAE95CE.4020705@arcor.de>
-In-Reply-To: <4DAE95CE.4020705@arcor.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <201104191628.39446.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 20-04-2011 05:14, Stefan Ringel escreveu:
-> Am 19.04.2011 23:21, schrieb Mauro Carvalho Chehab:
->> Em 04-04-2011 17:18, stefan.ringel@arcor.de escreveu:
->>> From: Stefan Ringel<stefan.ringel@arcor.de>
->>>
->>> add mts parameter
->> Stefan,
->>
->> The MTS config depends on the specific board design (generally present on
->> mono NTSC cards). So, it should be inside the cards struct, and not
->> provided as an userspace parameter.
->>
->> Mauro.
-> No. It wrong. I think edge board must work under all region and TV standards and if I set MTS, it doesn't work in Germany (PAL_BG and DVB-T). The best is to set outside region specific params.
-
-Stefan,
-
-Not all boards have MTS wired. Also, MTS works only for BTSC and EIAJ,
-e. g. STD M/N. The SIF output works for all standards, depending of the audio
-decoder capabilities, and if the SIF is properly wired. AFAIK, tm5600/6000/tm6010 
-is a worldwide decoder, so if SIF is wired, it should be capable of also decoding
-BTSC, EIAJ and the other sound standards found elsewhere.
-
-In other words, boards shipped outside NTSC or PAL-M Countries use SIF and supports
-worldwide standards. however, most boards shipped in US with xc3028 have only
-MTS wired and won't work outside NTSC/PAL-M/PAL-N area (America, Japan and a few
-other places).
-
->>> .
->>>
->>> Signed-off-by: Stefan Ringel<stefan.ringel@arcor.de>
->>> ---
->>>   drivers/staging/tm6000/tm6000-cards.c |    7 +++++++
->>>   1 files changed, 7 insertions(+), 0 deletions(-)
->>>
->>> diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
->>> index 146c7e8..eef58da 100644
->>> --- a/drivers/staging/tm6000/tm6000-cards.c
->>> +++ b/drivers/staging/tm6000/tm6000-cards.c
->>> @@ -61,6 +61,10 @@ module_param_array(card,  int, NULL, 0444);
->>>
->>>   static unsigned long tm6000_devused;
->>>
->>> +static unsigned int xc2028_mts;
->>> +module_param(xc2028_mts, int, 0644);
->>> +MODULE_PARM_DESC(xc2028_mts, "enable mts firmware (xc2028/3028 only)");
->>> +
->>>
->>>   struct tm6000_board {
->>>       char            *name;
->>> @@ -685,6 +689,9 @@ static void tm6000_config_tuner(struct tm6000_core *dev)
->>>           ctl.demod = XC3028_FE_ZARLINK456;
->>>           ctl.vhfbw7 = 1;
->>>           ctl.uhfbw8 = 1;
->>> +        if (xc2028_mts)
->>> +            ctl.mts = 1;
->>> +
->>>           xc2028_cfg.tuner = TUNER_XC2028;
->>>           xc2028_cfg.priv  =&ctl;
->>>
->> -- 
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Tue, Apr 19, 2011 at 10:28:39AM -0400, Arnd Bergmann wrote:
+> On Tuesday 19 April 2011, Roedel, Joerg wrote:
+> > On Tue, Apr 19, 2011 at 08:49:50AM -0400, Arnd Bergmann wrote:
+> > > > Ok, it looks I don't fully get how this iommu.h should be used. It looks
+> > > > that there can be only one instance of iommu ops registered in the system,
+> > > > so only one iommu driver can be activated. You are right that the iommu
+> > > > driver has to be registered on first probe().
+> > > 
+> > > That is a limitation of the current implementation. We might want to
+> > > change that anyway, e.g. to handle the mali IOMMU along with yours.
+> > > I believe the reason for allowing only one IOMMU type so far has been
+> > > that nobody required more than one. As I mentioned, the IOMMU API is
+> > > rather new and has not been ported to much variety of hardware, unlike
+> > > the dma-mapping API, which does support multiple different IOMMUs
+> > > in a single system.
+> > 
+> > The current IOMMU-API interface is very simple. It delegates the
+> > selection of the particular IOMMU device to the IOMMU driver. Handle
+> > this selection above the IOMMU driver is a complex thing to do. We will
+> > need some kind of generic IOMMU support in the device-core and
+> > attach IOMMUs to device sub-trees.
+> > 
+> > A simpler and less intrusive solution is to implement some wrapper code
+> > which dispatches the IOMMU-API calls to the IOMMU driver implementation
+> > required for that device.
 > 
+> Right. We already do that for the dma-mapping API on some architectures,
+> and I suppose we can consolidate the mechanism here, possibly into
+> something that ends up in the common struct device rather than in
+> the archdata.
+
+The struct device solution is very much what I meant by adding this into
+the device-core code :)
+
+> > Question: Does every platform device has a different type of IOMMU? Or
+> > are the IOMMUs on all of these platform devices similar enough to be
+> > handled by a single driver?
+> 
+> As Marek explained in the thread before you got on Cc, they are all the
+> same, except for the graphics core (Mali) that has a different one but
+> currently disables that.
+
+Then it is no problem at all. The IOMMU driver can find out itself which
+IOMMU needs to be used for which device. The x86 implementations already
+do this.
+
+> > > > For the drivers the most important are the following functions:
+> > > > iommu_{attach,detach}_device(struct iommu_domain *domain, struct device *dev);
+> > 
+> > Right, and each driver can allocate its own domains.
+> 
+> For the cases that use the normal dma-mapping API, I guess there only
+> needs to be one domain to cover the kernel, which can then be hidden
+> in the driver provides the dma_map_ops based on an iommu_ops.
+
+Yes, for dma-api usage one domain is sufficient. But using one domain
+for each device has benefits too. It reduces lock-contention on the
+domain side and also increases security by isolating the devices from
+each other.
+
+> > > It's not quite how the domains are meant to be used. In the AMD IOMMU
+> > > that the API is based on, any number of devices can share one domain,
+> > > and devices might be able to have mappings in multiple domains.
+> > 
+> > Yes, any number of devices can be assigned to one domain, but each
+> > device only belongs to one domain at each point in time. But it is
+> > possible to detach a device from one domain and attach it to another.
+> 
+> I was thinking of the SR-IOV case, where a single hardware device is
+> represented as multiple logical devices. As far as I understand, each
+> logical devices can only belong to one domain, but they don't all have to
+> be the same.
+
+Well, right, the IOMMU-API makes no distinction between PF and VF. Each
+function is just a pci_dev which can independently assigned to a domain.
+So if 'device' means a physical card with virtual functions then yes, a
+device can be attached to multiple domains, one domain per VF.
+
+	Joerg
+
+-- 
+AMD Operating System Research Center
+
+Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
+General Managers: Alberto Bozzo, Andrew Bowd
+Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr. 43632
 
