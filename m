@@ -1,71 +1,63 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.22]:44135 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1758112Ab1DYNZf (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.10]:51227 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751703Ab1DSMAg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Apr 2011 09:25:35 -0400
-Message-ID: <4DB57662.8080705@gmx.net>
-Date: Mon, 25 Apr 2011 15:25:54 +0200
-From: Lutz Sammer <johns98@gmx.net>
+	Tue, 19 Apr 2011 08:00:36 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: "Russell King - ARM Linux" <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 4/7] v4l: videobuf2: add IOMMU based DMA memory allocator
+Date: Tue, 19 Apr 2011 14:00:29 +0200
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-samsung-soc@vger.kernel.org,
+	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
+	"'Kukjin Kim'" <kgene.kim@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+References: <1303118804-5575-1-git-send-email-m.szyprowski@samsung.com> <00ea01cbfe70$860ca900$9225fb00$%szyprowski@samsung.com> <20110419092135.GD22799@n2100.arm.linux.org.uk>
+In-Reply-To: <20110419092135.GD22799@n2100.arm.linux.org.uk>
 MIME-Version: 1.0
-To: Issa Gorissen <flop.m@usa.net>
-CC: linux-media@vger.kernel.org
-Subject: RE: stb0899/stb6100 tuning problems
-Content-Type: multipart/mixed;
- boundary="------------070509050602090201090605"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201104191400.30167.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This is a multi-part message in MIME format.
---------------070509050602090201090605
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+On Tuesday 19 April 2011, Russell King - ARM Linux wrote:
+> On Tue, Apr 19, 2011 at 11:02:34AM +0200, Marek Szyprowski wrote:
+> > On Monday, April 18, 2011 4:16 PM Arnd Bergmann wrote:
+> > > My feeling is that this is not the right abstraction. Why can't you
+> > > just implement the regular dma-mapping.h interfaces for your IOMMU
+> > > so that the videobuf code can use the existing allocators?
+> > 
+> > I'm not really sure which existing videobuf2 allocators might transparently
+> > support IOMMU interface yet
+> > 
+> > Do you think that all iommu operations can be hidden behind dma_map_single 
+> > and dma_unmap_single?
+> 
+> That is one of the intentions of the DMA API.
 
-Hi,
+Exactly.
 
-Have you tried s2-liplianin version of drivers?
-http://mercurial.intuxication.org/hg/s2-liplianin/summary
+All architectures that support IOMMUs today do that, see:
 
-With s2-liplianin + patches I can lock it with the TT-3600-S2
+arch/alpha/kernel/pci_iommu.c
+arch/ia64/hp/common/sba_iommu.c
+arch/powerpc/kernel/dma-iommu.c
+arch/sparc/kernel/iommu.c
+arch/x86/kernel/amd_iommu.c
 
-*** Zapping to 1706 '[012e];':
-Delivery 6, modulation 8PSK
-sat 1, frequency 11681 MHz H, symbolrate 27500000, coderate 3/4, rolloff
-0.35
-vpid 0x0209, apid 0x020a, sid 0x012e
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-status 1b | signal 18437 | noise 38026 | ber       0 | unc -2 | tim    0
-|FE_HAS_LOCK |  0
-status 1b | signal 18437 | noise 37839 | ber 5333333 | unc -2 | tim    0
-|FE_HAS_LOCK |  0
+ARM would be the first one to combine an IOMMU with potentially
+noncoherent DMA, but there is no fundamental reason why we shouldn't
+be able to transparently support an IOMMU.
 
-On DVB-S2 12692000 H 27500000 3/4 20 8PSK I can't get a lock or scan result.
+Ideally, I think we should first find an architecture-independent
+way to define an IOMMU in one place instead of having to do both
+the iommu.h and dma-mapping.h interfaces, but I wouldn't require
+Samsung to do that in order to support their IOMMU. Doing support for
+the dma-mapping.h interface should be sufficient there.
 
-Johns
-
-
-
---------------070509050602090201090605
-Content-Type: text/plain;
- name="stb0899_fec_fix.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="stb0899_fec_fix.diff"
-
-diff -r 7e47ba1d4ae8 linux/drivers/media/dvb/frontends/stb0899_drv.c
---- a/s2-liplianin/linux/drivers/media/dvb/frontends/stb0899_drv.c	Tue Mar 08 13:38:29 2011 +0200
-+++ b/s2-liplianin/linux/drivers/media/dvb/frontends/stb0899_drv.c	Mon Apr 25 15:01:55 2011 +0200
-@@ -1431,9 +1431,9 @@
- 	if (iter_scale > config->ldpc_max_iter)
- 		iter_scale = config->ldpc_max_iter;
- 
--	reg = STB0899_READ_S2REG(STB0899_S2DEMOD, MAX_ITER);
-+	reg = STB0899_READ_S2REG(STB0899_S2FEC, MAX_ITER);
- 	STB0899_SETFIELD_VAL(MAX_ITERATIONS, reg, iter_scale);
--	stb0899_write_s2reg(state, STB0899_S2DEMOD, STB0899_BASE_MAX_ITER, STB0899_OFF0_MAX_ITER, reg);
-+	stb0899_write_s2reg(state, STB0899_S2FEC, STB0899_BASE_MAX_ITER, STB0899_OFF0_MAX_ITER, reg);
- }
- 
- static int stb0899_set_property(struct dvb_frontend *fe, struct dtv_property* tvp)
-
---------------070509050602090201090605--
+	Arnd
