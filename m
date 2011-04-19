@@ -1,178 +1,151 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4285 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752302Ab1D0GkN (ORCPT
+Received: from msa106.auone-net.jp ([61.117.18.166]:60681 "EHLO
+	msa106.auone-net.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754587Ab1DSMQb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Apr 2011 02:40:13 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] v4l: make sure drivers supply a zeroed struct v4l2_subdev
-Date: Wed, 27 Apr 2011 08:39:33 +0200
-Cc: Herton Ronaldo Krzesinski <herton.krzesinski@canonical.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <1301677922-6765-1-git-send-email-herton.krzesinski@canonical.com> <201104021005.57200.hverkuil@xs4all.nl>
-In-Reply-To: <201104021005.57200.hverkuil@xs4all.nl>
+	Tue, 19 Apr 2011 08:16:31 -0400
+Date: Tue, 19 Apr 2011 21:16:29 +0900
+From: Akira Tsukamoto <akira-t@s9.dion.ne.jp>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: soc_camera with V4L2 driver 
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.64.1104181603470.27247@axis700.grange>
+References: <20110418225538.155F.B41FCDD0@s9.dion.ne.jp> <Pine.LNX.4.64.1104181603470.27247@axis700.grange>
+Message-Id: <20110419211626.398E.B41FCDD0@s9.dion.ne.jp>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201104270839.34066.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Saturday, April 02, 2011 10:05:57 Hans Verkuil wrote:
-> On Friday, April 01, 2011 19:12:02 Herton Ronaldo Krzesinski wrote:
-> > Some v4l drivers currently don't initialize their struct v4l2_subdev
-> > with zeros, and this is a problem since some of the v4l2 code expects
-> > this. One example is the addition of internal_ops in commit 45f6f84,
-> > after that we are at risk of random oopses with these drivers when code
-> > in v4l2_device_register_subdev tries to dereference sd->internal_ops->*,
-> > as can be shown by the report at http://bugs.launchpad.net/bugs/745213
-> > and analysis of its crash at https://lkml.org/lkml/2011/4/1/168
-> > 
-> > Use kzalloc within problematic drivers to ensure we have a zeroed struct
-> > v4l2_subdev.
-> > 
-> > BugLink: http://bugs.launchpad.net/bugs/745213
-> > Cc: <stable@kernel.org>
-> > Signed-off-by: Herton Ronaldo Krzesinski <herton.krzesinski@canonical.com>
-> 
-> Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+Hello Guennadi,
 
-Mauro,
+*1*
+> I haven't reviewed your sources in detail, just two comments, regarding 
+> something, that caught my eye:
+> > +static struct platform_device rj65na20_camera = {
+> > +	.name	= "soc-camera-pdrv-2M",
+> 
+> This name has to match with what's advertised in 
+> drivers/media/video/soc_camera.c, namely "soc-camera-pdrv"
 
-Please get this patch upstream! It's a nasty 2.6.38 regression that needs to
-be upstreamed urgently. The fix is simple and solves oopses in several
-drivers. 2.6.38 can't be fixed as long as this fix isn't in 2.6.39.
+*2*
+> >  static struct i2c_board_info i2c0_devices[] = {
+> >  	{
+> >  		I2C_BOARD_INFO("ag5evm_ts", 0x20),
+> >  		.irq	= pint2irq(12),	/* PINTC3 */
+> >  	},
+> > +	/* 2M camera */
+> > +	{
+> > +		I2C_BOARD_INFO("rj65na20", 0x40),
+> > +	},
 
-Thanks,
+I fixed the both above, thank you.
+And add CEU init in it.
+This is my current patch for temporary start.
+(builds without error at least)
 
-	Hans
+With kind regards,
 
-> 
-> Thanks!
-> 
-> 	Hans
-> 
-> > ---
-> >  drivers/media/radio/saa7706h.c  |    2 +-
-> >  drivers/media/radio/tef6862.c   |    2 +-
-> >  drivers/media/video/m52790.c    |    2 +-
-> >  drivers/media/video/tda9840.c   |    2 +-
-> >  drivers/media/video/tea6415c.c  |    2 +-
-> >  drivers/media/video/tea6420.c   |    2 +-
-> >  drivers/media/video/upd64031a.c |    2 +-
-> >  drivers/media/video/upd64083.c  |    2 +-
-> >  8 files changed, 8 insertions(+), 8 deletions(-)
-> > 
-> > diff --git a/drivers/media/radio/saa7706h.c b/drivers/media/radio/saa7706h.c
-> > index 585680f..b1193df 100644
-> > --- a/drivers/media/radio/saa7706h.c
-> > +++ b/drivers/media/radio/saa7706h.c
-> > @@ -376,7 +376,7 @@ static int __devinit saa7706h_probe(struct i2c_client *client,
-> >  	v4l_info(client, "chip found @ 0x%02x (%s)\n",
-> >  			client->addr << 1, client->adapter->name);
-> >  
-> > -	state = kmalloc(sizeof(struct saa7706h_state), GFP_KERNEL);
-> > +	state = kzalloc(sizeof(struct saa7706h_state), GFP_KERNEL);
-> >  	if (state == NULL)
-> >  		return -ENOMEM;
-> >  	sd = &state->sd;
-> > diff --git a/drivers/media/radio/tef6862.c b/drivers/media/radio/tef6862.c
-> > index 7c0d777..0991e19 100644
-> > --- a/drivers/media/radio/tef6862.c
-> > +++ b/drivers/media/radio/tef6862.c
-> > @@ -176,7 +176,7 @@ static int __devinit tef6862_probe(struct i2c_client *client,
-> >  	v4l_info(client, "chip found @ 0x%02x (%s)\n",
-> >  			client->addr << 1, client->adapter->name);
-> >  
-> > -	state = kmalloc(sizeof(struct tef6862_state), GFP_KERNEL);
-> > +	state = kzalloc(sizeof(struct tef6862_state), GFP_KERNEL);
-> >  	if (state == NULL)
-> >  		return -ENOMEM;
-> >  	state->freq = TEF6862_LO_FREQ;
-> > diff --git a/drivers/media/video/m52790.c b/drivers/media/video/m52790.c
-> > index 5e1c9a8..303ffa7 100644
-> > --- a/drivers/media/video/m52790.c
-> > +++ b/drivers/media/video/m52790.c
-> > @@ -174,7 +174,7 @@ static int m52790_probe(struct i2c_client *client,
-> >  	v4l_info(client, "chip found @ 0x%x (%s)\n",
-> >  			client->addr << 1, client->adapter->name);
-> >  
-> > -	state = kmalloc(sizeof(struct m52790_state), GFP_KERNEL);
-> > +	state = kzalloc(sizeof(struct m52790_state), GFP_KERNEL);
-> >  	if (state == NULL)
-> >  		return -ENOMEM;
-> >  
-> > diff --git a/drivers/media/video/tda9840.c b/drivers/media/video/tda9840.c
-> > index 5d4cf3b..22fa820 100644
-> > --- a/drivers/media/video/tda9840.c
-> > +++ b/drivers/media/video/tda9840.c
-> > @@ -171,7 +171,7 @@ static int tda9840_probe(struct i2c_client *client,
-> >  	v4l_info(client, "chip found @ 0x%x (%s)\n",
-> >  			client->addr << 1, client->adapter->name);
-> >  
-> > -	sd = kmalloc(sizeof(struct v4l2_subdev), GFP_KERNEL);
-> > +	sd = kzalloc(sizeof(struct v4l2_subdev), GFP_KERNEL);
-> >  	if (sd == NULL)
-> >  		return -ENOMEM;
-> >  	v4l2_i2c_subdev_init(sd, client, &tda9840_ops);
-> > diff --git a/drivers/media/video/tea6415c.c b/drivers/media/video/tea6415c.c
-> > index 19621ed..827425c 100644
-> > --- a/drivers/media/video/tea6415c.c
-> > +++ b/drivers/media/video/tea6415c.c
-> > @@ -152,7 +152,7 @@ static int tea6415c_probe(struct i2c_client *client,
-> >  
-> >  	v4l_info(client, "chip found @ 0x%x (%s)\n",
-> >  			client->addr << 1, client->adapter->name);
-> > -	sd = kmalloc(sizeof(struct v4l2_subdev), GFP_KERNEL);
-> > +	sd = kzalloc(sizeof(struct v4l2_subdev), GFP_KERNEL);
-> >  	if (sd == NULL)
-> >  		return -ENOMEM;
-> >  	v4l2_i2c_subdev_init(sd, client, &tea6415c_ops);
-> > diff --git a/drivers/media/video/tea6420.c b/drivers/media/video/tea6420.c
-> > index 5ea8404..f350b6c 100644
-> > --- a/drivers/media/video/tea6420.c
-> > +++ b/drivers/media/video/tea6420.c
-> > @@ -125,7 +125,7 @@ static int tea6420_probe(struct i2c_client *client,
-> >  	v4l_info(client, "chip found @ 0x%x (%s)\n",
-> >  			client->addr << 1, client->adapter->name);
-> >  
-> > -	sd = kmalloc(sizeof(struct v4l2_subdev), GFP_KERNEL);
-> > +	sd = kzalloc(sizeof(struct v4l2_subdev), GFP_KERNEL);
-> >  	if (sd == NULL)
-> >  		return -ENOMEM;
-> >  	v4l2_i2c_subdev_init(sd, client, &tea6420_ops);
-> > diff --git a/drivers/media/video/upd64031a.c b/drivers/media/video/upd64031a.c
-> > index f8138c7..1aab96a 100644
-> > --- a/drivers/media/video/upd64031a.c
-> > +++ b/drivers/media/video/upd64031a.c
-> > @@ -230,7 +230,7 @@ static int upd64031a_probe(struct i2c_client *client,
-> >  	v4l_info(client, "chip found @ 0x%x (%s)\n",
-> >  			client->addr << 1, client->adapter->name);
-> >  
-> > -	state = kmalloc(sizeof(struct upd64031a_state), GFP_KERNEL);
-> > +	state = kzalloc(sizeof(struct upd64031a_state), GFP_KERNEL);
-> >  	if (state == NULL)
-> >  		return -ENOMEM;
-> >  	sd = &state->sd;
-> > diff --git a/drivers/media/video/upd64083.c b/drivers/media/video/upd64083.c
-> > index 28e0e6b..9bbe617 100644
-> > --- a/drivers/media/video/upd64083.c
-> > +++ b/drivers/media/video/upd64083.c
-> > @@ -202,7 +202,7 @@ static int upd64083_probe(struct i2c_client *client,
-> >  	v4l_info(client, "chip found @ 0x%x (%s)\n",
-> >  			client->addr << 1, client->adapter->name);
-> >  
-> > -	state = kmalloc(sizeof(struct upd64083_state), GFP_KERNEL);
-> > +	state = kzalloc(sizeof(struct upd64083_state), GFP_KERNEL);
-> >  	if (state == NULL)
-> >  		return -ENOMEM;
-> >  	sd = &state->sd;
-> > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+Akira
+
+--- linux_kernel_bsp/arch/arm/mach-shmobile/board-ag5evm.c	2011-03-22 12:30:14.000000000 +0900
++++ linux_kernel/arch/arm/mach-shmobile/board-ag5evm.c	2011-04-19 16:54:47.000000000 +0900
+@@ -59,6 +59,7 @@
+ 
+ #include <sound/sh_fsi.h>
+ #include <video/sh_mobile_lcdc.h>
++#include <media/soc_camera.h>
+ 
+ static struct r8a66597_platdata usb_host_data = {
+ 	.on_chip	= 1,
+@@ -317,11 +318,38 @@ static struct platform_device fsi_device
+ 	},
+ };
+ 
++static struct i2c_board_info rj65na20_info = {
++	I2C_BOARD_INFO("rj65na20", 0x40),
++};
++
++struct soc_camera_link rj65na20_link = {
++	.bus_id         = 0,
++	.board_info     = &rj65na20_info,
++	.i2c_adapter_id = 0,
++	.module_name    = "rj65na20",
++};
++
++static struct platform_device rj65na20_camera = {
++	.name	= "soc-camera-pdrv",
++	.id	= 0,
++	.dev	= {
++		.platform_data = &rj65na20_link,
++	},
++};
++
+ static struct i2c_board_info i2c0_devices[] = {
+ 	{
+ 		I2C_BOARD_INFO("ag5evm_ts", 0x20),
+ 		.irq	= pint2irq(12),	/* PINTC3 */
+ 	},
+ };
+ 
+ static struct i2c_board_info i2c1_devices[] = {
+@@ -548,6 +576,8 @@ static struct platform_device *ag5evm_de
+ 
+ 	&usb_mass_storage_device,
+ 	&android_usb_device,
++
++	&rj65na20_camera,
+ };
+ 
+ static struct map_desc ag5evm_io_desc[] __initdata = {
+@@ -748,6 +778,7 @@ static void __init ag5evm_init(void)
+ 	struct clk *sub_clk = clk_get(NULL, "sub_clk");
+ 	struct clk *extal2_clk = clk_get(NULL, "extal2");
+ 	struct clk *fsia_clk = clk_get(NULL, "fsia_clk");
++	struct clk *vck1_clk = clk_get(NULL, "vck1_clk");
+ 	clk_set_parent(sub_clk, extal2_clk);
+ 
+ 	__raw_writel(__raw_readl(SUBCKCR) & ~(1<<9), SUBCKCR);
+@@ -853,6 +884,56 @@ static void __init ag5evm_init(void)
+ 	__raw_writel(0x2a8b9111, DSI1PHYCR);
+ 	clk_enable(clk_get(NULL, "dsi-tx"));
+ 
++	/* CEU */
++	gpio_request(GPIO_FN_VIO2_CLK2, NULL);
++	gpio_request(GPIO_FN_VIO2_VD3, NULL);
++	gpio_request(GPIO_FN_VIO2_HD3, NULL);
++	gpio_request(GPIO_FN_PORT16_VIO_CKOR, NULL);
++	gpio_request(GPIO_FN_VIO_D15, NULL);
++	gpio_request(GPIO_FN_VIO_D14, NULL);
++	gpio_request(GPIO_FN_VIO_D13, NULL);
++	gpio_request(GPIO_FN_VIO_D12, NULL);
++	gpio_request(GPIO_FN_VIO_D11, NULL);
++	gpio_request(GPIO_FN_VIO_D10, NULL);
++	gpio_request(GPIO_FN_VIO_D9, NULL);
++	gpio_request(GPIO_FN_VIO_D8, NULL);
++
++	if (!IS_ERR(vck1_clk)) {
++		clk_set_rate(vck1_clk, clk_round_rate(vck1_clk, 24000000));
++		clk_enable(vck1_clk);
++		clk_put(vck1_clk);
++		udelay(50);
++	} else {
++		printk(KERN_ERR "clk_get(vck1_clk) failed.\n");
++	}
++
++	/* 2M camera */
++	gpio_request(GPIO_PORT44, NULL);
++	gpio_direction_output(GPIO_PORT44, 0);
++	udelay(10);
++	gpio_set_value(GPIO_PORT44, 1);
++
+ 	/* Unreset LCD Panel */
+ 	gpio_request(GPIO_PORT217, NULL);
+ 	gpio_direction_output(GPIO_PORT217, 0);
+
+
+-- 
+Akira Tsukamoto
+
