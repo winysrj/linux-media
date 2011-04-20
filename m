@@ -1,92 +1,59 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:23177 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754775Ab1DKSYh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Apr 2011 14:24:37 -0400
-Message-ID: <4DA3475F.50607@redhat.com>
-Date: Mon, 11 Apr 2011 15:24:31 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-in-15.arcor-online.net ([151.189.21.55]:33770 "EHLO
+	mail-in-15.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750839Ab1DTIgS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Apr 2011 04:36:18 -0400
+Message-ID: <4DAE9B00.7050404@arcor.de>
+Date: Wed, 20 Apr 2011 10:36:16 +0200
+From: Stefan Ringel <stefan.ringel@arcor.de>
 MIME-Version: 1.0
-To: handygewinnspiel@gmx.de
-CC: linux-media@vger.kernel.org
-Subject: Re: dvb-apps: charset support
-References: <4D9C5C4D.4040709@redhat.com> <20110411174841.268990@gmx.net>
-In-Reply-To: <20110411174841.268990@gmx.net>
-Content-Type: text/plain; charset=UTF-8
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org, d.belimov@gmail.com
+Subject: Re: [PATCH 3/5] tm6000: add audio mode parameter
+References: <1301948324-27186-1-git-send-email-stefan.ringel@arcor.de> <1301948324-27186-3-git-send-email-stefan.ringel@arcor.de> <4DADFDF1.9020108@redhat.com>
+In-Reply-To: <4DADFDF1.9020108@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 11-04-2011 14:48, handygewinnspiel@gmx.de escreveu:
-> Hi Mauro,
->  
->> I added some patches to dvb-apps/util/scan.c in order to properly support
->> EN 300 468 charsets.
->> Before the patch, scan were producing invalid UTF-8 codes here, for
->> ISO-8859-15 charsets, as
->> scan were simply filling service/provider name with whatever non-control
->> characters that were
->> there. So, if your computer uses the same character as your service
->> provider, you're lucky.
->> Otherwise, invalid characters will appear at the scan tables.
+Am 19.04.2011 23:26, schrieb Mauro Carvalho Chehab:
+> Em 04-04-2011 17:18, stefan.ringel@arcor.de escreveu:
+>> From: Stefan Ringel<stefan.ringel@arcor.de>
 >>
->> After the changes, scan gets the locale environment charset, and use it as
->> the output charset
->> on the output files.
-> 
-> This implementation in scan expects the environment settings to be 'language_country.encoding', but i think the more general way is 'language_country.encoding@variant'.
-> 
-> i get the following error from scan, because iconv doesnt know 'ISO-8859-15@euro'.
-
-Ah, ok. I never saw such syntax. Thanks for pinging me about that!
-
-> 
-> <snip>
-> WARNING: Conversion from ISO-8859-9 to ISO-8859-15@euro not supported
-> WARNING: Conversion from ISO-8859-9 to ISO-8859-15@euro not supported
-> ...
-> WARNING: Conversion from ISO-8859-15 to ISO-8859-15@euro not supported
-> WARNING: Conversion from ISO-8859-15 to ISO-8859-15@euro not supported
-> </snap>
-> 
-> I suggest to change scan.c as follows:
-> 
-> --- dvb-apps-5e68946b0e0d_orig/util/scan/scan.c 2011-04-10 20:22:52.000000000 +0200
-> +++ dvb-apps-5e68946b0e0d/util/scan/scan.c      2011-04-11 19:41:21.460000060 +0200
-> @@ -2570,14 +2570,14 @@
->         if ((charset = getenv("LC_ALL")) ||
->             (charset = getenv("LC_CTYPE")) ||
->             (charset = getenv ("LANG"))) {
-> -               while (*charset != '.' && *charset)
-> -                       charset++;
-> -               if (*charset == '.')
-> -                       charset++;
-> -               if (*charset)
-> -                       output_charset = charset;
-> -               else
-> -                       output_charset = nl_langinfo(CODESET);
-> +               // assuming 'language_country.encoding@variant'
-> +               char * p;
-> +
-> +               if ((p = strchr(charset, '.')))
-> +                       charset = p + 1;
-> +               if ((p = strchr(charset, '@')))
-> +                       *p = 0;
-> +               output_charset = charset;
-
-This will fail if LANG=C
-
-Basically, if charset doesn't contain '.', this block should not set output_charset.
-
-
->         } else
->                 output_charset = nl_langinfo(CODESET);
-> 
-> 
-> This cuts the '@variant' part from charset, so that iconv will find its way.
-> 
-> cheers,
-> Winfried
-> 
-> 
+>> add audio mode parameter
+> Why we need a parameter for it? It should be determined based on
+> the standard.
+>
+tm6010 has a sif decoder, and I think if auto detect doesn't work, use 
+can set the audio standard, which it has in your region. Or it's better 
+if users can see image but can hear audio?
+>> Signed-off-by: Stefan Ringel<stefan.ringel@arcor.de>
+>> ---
+>>   drivers/staging/tm6000/tm6000-stds.c |    5 +++++
+>>   1 files changed, 5 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/drivers/staging/tm6000/tm6000-stds.c b/drivers/staging/tm6000/tm6000-stds.c
+>> index da3e51b..a9e1921 100644
+>> --- a/drivers/staging/tm6000/tm6000-stds.c
+>> +++ b/drivers/staging/tm6000/tm6000-stds.c
+>> @@ -22,12 +22,17 @@
+>>   #include "tm6000.h"
+>>   #include "tm6000-regs.h"
+>>
+>> +static unsigned int tm6010_a_mode;
+>> +module_param(tm6010_a_mode, int, 0644);
+>> +MODULE_PARM_DESC(tm6010_a_mode, "set sif audio mode (tm6010 only)");
+>> +
+>>   struct tm6000_reg_settings {
+>>   	unsigned char req;
+>>   	unsigned char reg;
+>>   	unsigned char value;
+>>   };
+>>
+>> +/* must be updated */
+>>   enum tm6000_audio_std {
+>>   	BG_NICAM,
+>>   	BTSC,
 
