@@ -1,78 +1,97 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:57533 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753978Ab1D3WbH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Apr 2011 18:31:07 -0400
-Message-ID: <4DBC8D9C.2090802@redhat.com>
-Date: Sat, 30 Apr 2011 19:30:52 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-in-05.arcor-online.net ([151.189.21.45]:41522 "EHLO
+	mail-in-05.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753110Ab1DTOTp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Apr 2011 10:19:45 -0400
+Message-ID: <4DAEEB7C.4080608@arcor.de>
+Date: Wed, 20 Apr 2011 16:19:40 +0200
+From: Stefan Ringel <stefan.ringel@arcor.de>
 MIME-Version: 1.0
-To: Florian Mickler <florian@mickler.org>
-CC: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	crope@iki.fi, tvboxspy@gmail.com
-Subject: Re: [PATCH 0/5] get rid of on-stack dma buffers (part1)
-References: <1300657852-29318-1-git-send-email-florian@mickler.org> <20110430205405.4beb7d33@schatten.dmk.lab>
-In-Reply-To: <20110430205405.4beb7d33@schatten.dmk.lab>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org, d.belimov@gmail.com
+Subject: Re: [PATCH 1/5] tm6000: add mts parameter
+References: <1301948324-27186-1-git-send-email-stefan.ringel@arcor.de> <4DADFCD2.1090401@redhat.com> <4DAE95CE.4020705@arcor.de> <4DAED378.308@redhat.com>
+In-Reply-To: <4DAED378.308@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Florian,
+Am 20.04.2011 14:37, schrieb Mauro Carvalho Chehab:
+> Em 20-04-2011 05:14, Stefan Ringel escreveu:
+>> Am 19.04.2011 23:21, schrieb Mauro Carvalho Chehab:
+>>> Em 04-04-2011 17:18, stefan.ringel@arcor.de escreveu:
+>>>> From: Stefan Ringel<stefan.ringel@arcor.de>
+>>>>
+>>>> add mts parameter
+>>> Stefan,
+>>>
+>>> The MTS config depends on the specific board design (generally present on
+>>> mono NTSC cards). So, it should be inside the cards struct, and not
+>>> provided as an userspace parameter.
+>>>
+>>> Mauro.
+>> No. It wrong. I think edge board must work under all region and TV standards and if I set MTS, it doesn't work in Germany (PAL_BG and DVB-T). The best is to set outside region specific params.
+> Stefan,
+>
+> Not all boards have MTS wired.
+standard option that param is not auto.
+MTS = 0 or not set means load firmware without MTS.
+MTS = 1 means load firmware with MTS.
+That means, if you MTS then add a param MTS=1.
+Have you other method to detect norm BTSC and EIAJ and set it? I have 
+not that.
+> Also, MTS works only for BTSC and EIAJ,
+> e. g. STD M/N. The SIF output works for all standards, depending of the audio
+> decoder capabilities, and if the SIF is properly wired. AFAIK, tm5600/6000/tm6010
+> is a worldwide decoder, so if SIF is wired, it should be capable of also decoding
+> BTSC, EIAJ and the other sound standards found elsewhere.
+>
+> In other words, boards shipped outside NTSC or PAL-M Countries use SIF and supports
+> worldwide standards. however, most boards shipped in US with xc3028 have only
+> MTS wired and won't work outside NTSC/PAL-M/PAL-N area (America, Japan and a few
+> other places).
+>
+Which board is only MTS?
 
-Em 30-04-2011 15:54, Florian Mickler escreveu:
-> Hi Mauro!
-> 
-> I just saw that you picked up some patches of mine. What about these?
-> These are actually tested...
+Which board is only no MTS?
 
-I'm still in process of applying the pending patches. Due to patchwork.kernel.org
-troubles (including the loss of about 270 patches from its SQL database only 
-recovered yesterday[1]), I have a long backlog. So, I'm gradually applying the remaing
-stuff. It will take some time though, and it will depend on patchwork mood, but I intend
-to spend some time during this weekend to minimize the backlog.
-
-
-Cheers,
-Mauro
-
-[1] The recover lost the email's body/SOB, so I've wrote a script to use my email
-queue to get the data, using patchwork just to mark what patches were already
-processed. This increses the time I have to spend on each patch, as I need to run
-a script to match the patchwork patch with the patch ID inside my email queue.
-
-> 
-> Regards,
-> Flo
-> 
->  On Sun, 20 Mar 2011 22:50:47 +0100
-> Florian Mickler <florian@mickler.org> wrote:
-> 
->> Hi Mauro!
->>
->> These are the patches which got tested already and 
->> should be good to go. [first batch of patches]
->>
->> I have another batch with updated patches (dib0700, gp8psk, vp702x)
->> where I did some more extensive changes to use preallocated memory.
->> And a small update to the vp7045 patch.
->>
->> Third batch are the patches to opera1, m920x, dw2102, friio,
->> a800 which I left as is, for the time beeing. 
->> Regards,
->> Flo
->>
->> Florian Mickler (5):
->>   [media] ec168: get rid of on-stack dma buffers
->>   [media] ce6230: get rid of on-stack dma buffer
->>   [media] au6610: get rid of on-stack dma buffer
->>   [media] lmedm04: correct indentation
->>   [media] lmedm04: get rid of on-stack dma buffers
->>
->>  drivers/media/dvb/dvb-usb/au6610.c  |   22 ++++++++++++++++------
->>  drivers/media/dvb/dvb-usb/ce6230.c  |   11 +++++++++--
->>  drivers/media/dvb/dvb-usb/ec168.c   |   18 +++++++++++++++---
->>  drivers/media/dvb/dvb-usb/lmedm04.c |   35 +++++++++++++++++++++++------------
->>  4 files changed, 63 insertions(+), 23 deletions(-)
->>
+Which board will both?
+>>>> .
+>>>>
+>>>> Signed-off-by: Stefan Ringel<stefan.ringel@arcor.de>
+>>>> ---
+>>>>    drivers/staging/tm6000/tm6000-cards.c |    7 +++++++
+>>>>    1 files changed, 7 insertions(+), 0 deletions(-)
+>>>>
+>>>> diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
+>>>> index 146c7e8..eef58da 100644
+>>>> --- a/drivers/staging/tm6000/tm6000-cards.c
+>>>> +++ b/drivers/staging/tm6000/tm6000-cards.c
+>>>> @@ -61,6 +61,10 @@ module_param_array(card,  int, NULL, 0444);
+>>>>
+>>>>    static unsigned long tm6000_devused;
+>>>>
+>>>> +static unsigned int xc2028_mts;
+>>>> +module_param(xc2028_mts, int, 0644);
+>>>> +MODULE_PARM_DESC(xc2028_mts, "enable mts firmware (xc2028/3028 only)");
+>>>> +
+>>>>
+>>>>    struct tm6000_board {
+>>>>        char            *name;
+>>>> @@ -685,6 +689,9 @@ static void tm6000_config_tuner(struct tm6000_core *dev)
+>>>>            ctl.demod = XC3028_FE_ZARLINK456;
+>>>>            ctl.vhfbw7 = 1;
+>>>>            ctl.uhfbw8 = 1;
+>>>> +        if (xc2028_mts)
+>>>> +            ctl.mts = 1;
+>>>> +
+>>>>            xc2028_cfg.tuner = TUNER_XC2028;
+>>>>            xc2028_cfg.priv  =&ctl;
+>>>>
+>>> -- 
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
