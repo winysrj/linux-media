@@ -1,167 +1,96 @@
 Return-path: <mchehab@pedra>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:42460 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757637Ab1DLPj5 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Apr 2011 11:39:57 -0400
-Received: by mail-ey0-f173.google.com with SMTP id 6so3203959eyb.18
-        for <linux-media@vger.kernel.org>; Tue, 12 Apr 2011 08:39:55 -0700 (PDT)
+Received: from moutng.kundenserver.de ([212.227.126.171]:64413 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753449Ab1DTQHc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Apr 2011 12:07:32 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCH 2/7] ARM: Samsung: update/rewrite Samsung SYSMMU (IOMMU) driver
+Date: Wed, 20 Apr 2011 18:07:27 +0200
+Cc: "'Joerg Roedel'" <joerg.roedel@amd.com>,
+	linux-samsung-soc@vger.kernel.org,
+	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
+	"'Kukjin Kim'" <kgene.kim@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+References: <1303118804-5575-1-git-send-email-m.szyprowski@samsung.com> <201104191629.49676.arnd@arndb.de> <007301cbff6a$f17a4710$d46ed530$%szyprowski@samsung.com>
+In-Reply-To: <007301cbff6a$f17a4710$d46ed530$%szyprowski@samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <201104112352.07808.jkrzyszt@tis.icnet.pl>
-References: <Pine.LNX.4.64.1104111054110.18511@axis700.grange>
- <201104112040.08077.jkrzyszt@tis.icnet.pl> <BANLkTinv7FxQjR7w4eL2je-s+3NC78GPHw@mail.gmail.com>
- <201104112352.07808.jkrzyszt@tis.icnet.pl>
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-Date: Tue, 12 Apr 2011 10:39:35 -0500
-Message-ID: <BANLkTik7YRvvthrSHwMuH_dcDaNzkN96NQ@mail.gmail.com>
-Subject: Re: [PATCH] V4L: soc-camera: regression fix: calculate .sizeimage in soc_camera.c
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-2
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201104201807.27314.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, Apr 11, 2011 at 4:52 PM, Janusz Krzysztofik
-<jkrzyszt@tis.icnet.pl> wrote:
-> Dnia poniedzia³ek 11 kwiecieñ 2011 o 22:05:35 Aguirre, Sergio
-> napisa³(a):
->>
->> Please find below a refreshed patch, which should be based on
->> mainline commit:
->
-> Hi,
-> This version works for me, and fixes the regression.
+On Wednesday 20 April 2011, Marek Szyprowski wrote:
+> On Tuesday, April 19, 2011 4:30 PM Arnd Bergmann wrote:
 
-Ok, Thanks for testing.
+> > Sounds good. I think we should put it into a new drivers/iommu, along
+> > with your specific iommu implementation, and then we can convert the
+> > existing ones over to use that.
+> 
+> I see, this sounds quite reasonable. I think I finally got how this should
+> be implemented. 
+> 
+> The only question is how a device can allocate a buffer that will be most
+> convenient for IOMMU mapping (i.e. will require least entries to map)?
+> 
+> IOMMU can create a contiguous mapping for ANY set of pages, but it performs
+> much better if the pages are grouped into 64KiB or 1MiB areas.
+> 
+> Can device allocate a buffer without mapping it into kernel space?
 
-Guennadi,
+Not today as far as I know. You can register coherent memory per device
+using dma_declare_coherent_memory(), which will be used to back
+dma_alloc_coherent(), but I believe it is always mapped right now.
 
-It's up to you if you want to take your patch or mine. I guess I just wanted
-to be more complete in my patch, but strictly speaking about a regression
-fix (And based on what the current popular apps do), both do the job.
+This can of course be changed. 
 
-This was just my proposal :).
+> The problem that still left to be resolved is the fact the
+> dma_coherent_alloc() should also be able to use IOMMU. This would however
+> trigger the problem of double mappings with different cache attributes: 
+> dma api might require to create coherent (==non-cached mappings), while 
+> all low-memory is still mapped with (super)sections as cached, what is 
+> against ARM CPU specification and might cause unpredicted behavior
+> especially on CPUs that do speculative prefetch. Right now this problem
+> has been ignored in dma-mappings implementation, but there have been some
+> patches posted to resolve this by reserving some area exclusively for dma
+> coherent mappings: 
+> http://thread.gmane.org/gmane.linux.ports.arm.kernel/100822/focus=100913
+> 
+> Right now I would like to postpone resolving this issue because the Samsung
+> iommu task already became really big.
 
-Regards,
-Sergio
+Agreed.
 
->
-> Thanks,
-> Janusz
->
->> >From f767059c12c755ebe79c4b74de17c23a257007c7 Mon Sep 17 00:00:00
->> >2001
->>
->> From: Sergio Aguirre <saaguirre@ti.com>
->> Date: Mon, 11 Apr 2011 11:14:33 -0500
->> Subject: [PATCH] V4L: soc-camera: regression fix: calculate
->> .sizeimage in soc_camera.c
->>
->> A recent patch has given individual soc-camera host drivers a
->> possibility to calculate .sizeimage and .bytesperline pixel format
->> fields internally, however, some drivers relied on the core
->> calculating these values for them, following a default algorithm.
->> This patch restores the default calculation for such drivers.
->>
->> Based on initial patch by Guennadi Liakhovetski, found here:
->>
->> http://www.spinics.net/lists/linux-media/msg31282.html
->>
->> Except that this covers try_fmt aswell.
->>
->> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
->> ---
->>  drivers/media/video/soc_camera.c |   48
->> +++++++++++++++++++++++++++++++++---- 1 files changed, 42
->> insertions(+), 6 deletions(-)
->>
->> diff --git a/drivers/media/video/soc_camera.c
->> b/drivers/media/video/soc_camera.c index 4628448..dcc6623 100644
->> --- a/drivers/media/video/soc_camera.c
->> +++ b/drivers/media/video/soc_camera.c
->> @@ -136,11 +136,50 @@ unsigned long
->> soc_camera_apply_sensor_flags(struct soc_camera_link *icl,
->>  }
->>  EXPORT_SYMBOL(soc_camera_apply_sensor_flags);
->>
->> +#define pixfmtstr(x) (x) & 0xff, ((x) >> 8) & 0xff, ((x) >> 16) &
->> 0xff, \ +     ((x) >> 24) & 0xff
->> +
->> +static int soc_camera_try_fmt(struct soc_camera_device *icd,
->> +                           struct v4l2_format *f)
->> +{
->> +     struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
->> +     struct v4l2_pix_format *pix = &f->fmt.pix;
->> +     int ret;
->> +
->> +     dev_dbg(&icd->dev, "TRY_FMT(%c%c%c%c, %ux%u)\n",
->> +             pixfmtstr(pix->pixelformat), pix->width, pix->height);
->> +
->> +     pix->bytesperline = 0;
->> +     pix->sizeimage = 0;
->> +
->> +     ret = ici->ops->try_fmt(icd, f);
->> +     if (ret < 0)
->> +             return ret;
->> +
->> +     if (!pix->sizeimage) {
->> +             if (!pix->bytesperline) {
->> +                     const struct soc_camera_format_xlate *xlate;
->> +
->> +                     xlate = soc_camera_xlate_by_fourcc(icd, pix->pixelformat);
->> +                     if (!xlate)
->> +                             return -EINVAL;
->> +
->> +                     ret = soc_mbus_bytes_per_line(pix->width,
->> +                                                   xlate->host_fmt);
->> +                     if (ret > 0)
->> +                             pix->bytesperline = ret;
->> +             }
->> +             if (pix->bytesperline)
->> +                     pix->sizeimage = pix->bytesperline * pix->height;
->> +     }
->> +
->> +     return 0;
->> +}
->> +
->>  static int soc_camera_try_fmt_vid_cap(struct file *file, void *priv,
->>                                     struct v4l2_format *f)
->>  {
->>       struct soc_camera_device *icd = file->private_data;
->> -     struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
->>
->>       WARN_ON(priv != file->private_data);
->>
->> @@ -149,7 +188,7 @@ static int soc_camera_try_fmt_vid_cap(struct file
->> *file, void *priv,
->>               return -EINVAL;
->>
->>       /* limit format to hardware capabilities */
->> -     return ici->ops->try_fmt(icd, f);
->> +     return soc_camera_try_fmt(icd, f);
->>  }
->>
->>  static int soc_camera_enum_input(struct file *file, void *priv,
->> @@ -362,9 +401,6 @@ static void soc_camera_free_user_formats(struct
->> soc_camera_device *icd)
->>       icd->user_formats = NULL;
->>  }
->>
->> -#define pixfmtstr(x) (x) & 0xff, ((x) >> 8) & 0xff, ((x) >> 16) &
->> 0xff, \ -     ((x) >> 24) & 0xff
->> -
->>  /* Called with .vb_lock held, or from the first open(2), see comment
->> there */ static int soc_camera_set_fmt(struct soc_camera_device
->> *icd, struct v4l2_format *f)
->> @@ -377,7 +413,7 @@ static int soc_camera_set_fmt(struct
->> soc_camera_device *icd, pixfmtstr(pix->pixelformat), pix->width,
->> pix->height);
->>
->>       /* We always call try_fmt() before set_fmt() or set_crop() */
->> -     ret = ici->ops->try_fmt(icd, f);
->> +     ret = soc_camera_try_fmt(icd, f);
->>       if (ret < 0)
->>               return ret;
->
+> > > Getting back to our video codec - it has 2 IOMMU controllers. The codec
+> > > hardware is able to address only 256MiB of space. Do you have an idea how
+> > > this can be handled with dma-mapping API? The only idea that comes to my
+> > > mind is to provide a second, fake 'struct device' and use it for
+> > allocations
+> > > for the second IOMMU controller.
+> > 
+> > Good question.
+> > 
+> > How do you even decide which controller to use from the driver?
+> > I would need to understand better what you are trying to do to
+> > give a good recommendation.
+> 
+> Both controllers are used by the hardware depending on the buffer type.
+> For example, buffers with chroma video data are accessed by first (called
+> 'left') memory channel, the others (with luma video data) - by the second
+> channel (called 'right'). Each memory channel is limited to 256MiB address
+> space and best performance is achieved when buffers are allocated in 
+> separate physical memory banks (the boards usually have 2 or more memory banks,
+> memory is not interleaved).
+
+Ok, I see. Having one device per channel as you suggested could probably
+work around this, and it's at least consistent with how you'd represent
+IOMMUs in the device tree. It is not ideal because it makes the video
+driver more complex when it now has to deal with multiple struct device
+that it binds to, but I can't think of any nicer way either.
+
+	Arnd
