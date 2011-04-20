@@ -1,70 +1,76 @@
 Return-path: <mchehab@pedra>
-Received: from sj-iport-6.cisco.com ([171.71.176.117]:56397 "EHLO
-	sj-iport-6.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753629Ab1DDLwV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2011 07:52:21 -0400
-Received: from OSLEXCP11.eu.tandberg.int ([173.38.136.5])
-	by rcdn-core-2.cisco.com (8.14.3/8.14.3) with ESMTP id p34BqDrf001853
-	for <linux-media@vger.kernel.org>; Mon, 4 Apr 2011 11:52:20 GMT
-Received: from cobaltpc1.rd.tandberg.com (cobaltpc1.rd.tandberg.com [10.47.3.155])
-	by ultra.eu.tandberg.int (8.13.1/8.13.1) with ESMTP id p34BqDdL009325
-	for <linux-media@vger.kernel.org>; Mon, 4 Apr 2011 13:52:14 +0200
-From: Hans Verkuil <hans.verkuil@cisco.com>
-To: linux-media@vger.kernel.org
-Subject: [RFCv1 PATCH 5/9] vb2_poll: don't start DMA, leave that to the first read().
-Date: Mon,  4 Apr 2011 13:51:50 +0200
-Message-Id: <aa6ba599252cedcbb977fa151a5af70860384bf1.1301916466.git.hans.verkuil@cisco.com>
-In-Reply-To: <1301917914-27437-1-git-send-email-hans.verkuil@cisco.com>
-References: <1301917914-27437-1-git-send-email-hans.verkuil@cisco.com>
-In-Reply-To: <2fa42294dbc167cae5daf227d072b2284f77b1ab.1301916466.git.hans.verkuil@cisco.com>
-References: <2fa42294dbc167cae5daf227d072b2284f77b1ab.1301916466.git.hans.verkuil@cisco.com>
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:55324 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754853Ab1DTPZ6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Apr 2011 11:25:58 -0400
+Received: by qyg14 with SMTP id 14so482257qyg.19
+        for <linux-media@vger.kernel.org>; Wed, 20 Apr 2011 08:25:58 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <201103301532.16635.laurent.pinchart@ideasonboard.com>
+References: <AANLkTimec2+VyO+iRSx1PYy3btOb6RbHt0j3ytmnykVo@mail.gmail.com>
+	<201103292241.51237.laurent.pinchart@ideasonboard.com>
+	<AANLkTikjDOsx6-A75A510k_BY0bF9qmTKKBw_YVyJgBF@mail.gmail.com>
+	<201103301532.16635.laurent.pinchart@ideasonboard.com>
+Date: Wed, 20 Apr 2011 17:25:58 +0200
+Message-ID: <BANLkTimccZM=ipUUhEBNM+pPhAvQgn=AbQ@mail.gmail.com>
+Subject: Re: OMAP3 ISP and tvp5151 driver.
+From: Raffaele Recalcati <lamiaposta71@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: =?UTF-8?Q?Lo=C3=AFc_Akue?= <akue.loic@gmail.com>,
+	=?UTF-8?Q?Enric_Balletb=C3=B2_i_Serra?= <eballetbo@gmail.com>,
+	linux-media@vger.kernel.org, mchehab@redhat.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The vb2_poll function would start read DMA if called without any streaming
-in progress. This unfortunately does not work if the application just wants
-to poll for exceptions. This information of what the application is polling
-for is sadly unavailable in the driver.
+Hi Laurent,
 
-Andy Walls suggested to just return POLLIN | POLLRDNORM and let the first
-call to read start the DMA. This initial read() call will return EAGAIN
-since no actual data is available yet, but it does start the DMA.
+On Wed, Mar 30, 2011 at 3:32 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Loïc,
+>
+> On Wednesday 30 March 2011 13:05:08 Loïc Akue wrote:
+>> Hi Laurent,
+>>
+>> > The OMAP3 ISP should support interleaving interlaced frames, but that's
+>> > not implemented in the driver. You will need to at least implement
+>> > interlaced frames support in the CCDC module to report field identifiers
+>> > to userspace.
+>>
+>> Are you saying that the OMAP ISP could be configured to provide some full
+>> field frames on the CCDC output? I'm looking at the ISP's TRM but I can't
+>> find anything interesting.
+>
+> Look at the "Line-Output Control" section in the OMAP3 TRM (SWPU177B, page
+> 1201).
+>
+>> Or is it the job of the user space application to recompose the image with
+>> the interleaved frames?
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-Application are supposed to handle EAGAIN. MythTV does handle this correctly.
+I'm using tvp5151 in DaVinci with the drivers/media/video/tvp5150.c
+driver with little modification to enhance v4l2 interface.
+It works.
+Now I'm moving to dm3730 and I see that evm dm3730 uses tvp514x-int.c
+from Arago tree, that is really different from tvp514x.c .
+I'm trying to understand if I need to create a tvp5150-int.c using the
+call v4l2_int_device_register instead of v4l2_i2c_subdev_init.
+The drivers/media/video/omap34xxcam.c driver calls
+v4l2_int_device_register and so it needs v4l2_int_device_register.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/videobuf2-core.c |   16 +++-------------
- 1 files changed, 3 insertions(+), 13 deletions(-)
+Maybe you have done some modifications to
+drivers/media/video/tvp5150.c that I could merge with mines ?
 
-diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
-index 6698c77..2dea57a 100644
---- a/drivers/media/video/videobuf2-core.c
-+++ b/drivers/media/video/videobuf2-core.c
-@@ -1372,20 +1372,10 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
- 	 * Start file I/O emulator only if streaming API has not been used yet.
- 	 */
- 	if (q->num_buffers == 0 && q->fileio == NULL) {
--		if (!V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_READ)) {
--			ret = __vb2_init_fileio(q, 1);
--			if (ret)
--				return POLLERR;
--		}
--		if (V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_WRITE)) {
--			ret = __vb2_init_fileio(q, 0);
--			if (ret)
--				return POLLERR;
--			/*
--			 * Write to OUTPUT queue can be done immediately.
--			 */
-+		if (!V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_READ))
-+			return POLLIN | POLLRDNORM;
-+		if (V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_WRITE))
- 			return POLLOUT | POLLWRNORM;
--		}
- 	}
- 
- 	/*
--- 
-1.7.1
-
+Bye,
+Raffaele
