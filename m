@@ -1,212 +1,232 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:16892 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758700Ab1D0Llz (ORCPT
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:44218 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751337Ab1DTGCm convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Apr 2011 07:41:55 -0400
-Received: from eu_spt1 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LKB00JLF75U1D@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 27 Apr 2011 12:41:54 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LKB00KRP75TSJ@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 27 Apr 2011 12:41:53 +0100 (BST)
-Date: Wed, 27 Apr 2011 13:41:42 +0200
-From: Kamil Debski <k.debski@samsung.com>
-Subject: [RFC/PATCH 1/3 v8] v4l: add fourcc definitions for compressed formats.
-In-reply-to: <1303904504-11610-1-git-send-email-k.debski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	k.debski@samsung.com, jaeryul.oh@samsung.com,
-	kgene.kim@samsung.com, jtp.park@samsung.com
-Message-id: <1303904504-11610-2-git-send-email-k.debski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1303904504-11610-1-git-send-email-k.debski@samsung.com>
+	Wed, 20 Apr 2011 02:02:42 -0400
+Received: by qyk7 with SMTP id 7so2063953qyk.19
+        for <linux-media@vger.kernel.org>; Tue, 19 Apr 2011 23:02:42 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1302261394-25695-1-git-send-email-lliubbo@gmail.com>
+References: <1302261394-25695-1-git-send-email-lliubbo@gmail.com>
+Date: Wed, 20 Apr 2011 14:02:41 +0800
+Message-ID: <BANLkTikGxffMuxWq3P7QxM0213k9oRU4hw@mail.gmail.com>
+Subject: Fwd: [PATCH v2] media: uvc_driver: add NO-MMU arch support
+From: Bob Liu <lliubbo@gmail.com>
+To: linux-media@vger.kernel.org, linux-uvc-devel@lists.berlios.de
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Add fourcc definitions and documentation for the following
-compressed formats: H264, H264 without start codes,
-MPEG1/2/4 ES, DIVX versions 3.11, 4, 5.0-5.0.2, 5.03 and up,
-XVID, VC1 Annex G and Annex L compliant.
+---------- Forwarded message ----------
+From: Bob Liu <lliubbo@gmail.com>
+Date: Fri, Apr 8, 2011 at 7:16 PM
+Subject: [PATCH v2] media: uvc_driver: add NO-MMU arch support
+To: linux-kernel@vger.kernel.org
+Cc: mchehab@redhat.com, hverkuil@xs4all.nl,
+laurent.pinchart@ideasonboard.com,
+sakari.ailus@maxwell.research.nokia.com, martin_rubli@logitech.com,
+jarod@redhat.com, tj@kernel.org, arnd@arndb.de, fweisbec@gmail.com,
+agust@denx.de, gregkh@suse.de, Bob Liu <lliubbo@gmail.com>
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+
+UVC driver used to have partial no-mmu arch support, but it's removed by
+commit c29fcff3daafbf46d64a543c1950bbd206ad8c1c.
+
+This patch added them back and expanded to fully support no-mmu arch, so that
+uvc cameras can be used on no-mmu platforms like Blackfin.
+
+Signed-off-by: Bob Liu <lliubbo@gmail.com>
 ---
- Documentation/DocBook/v4l/controls.xml |    7 ++-
- Documentation/DocBook/v4l/pixfmt.xml   |   67 +++++++++++++++++++++++++++++++-
- include/linux/videodev2.h              |   21 ++++++++--
- 3 files changed, 88 insertions(+), 7 deletions(-)
+ drivers/media/video/uvc/uvc_queue.c |   47 +++++++++++++++++++++++++++++++++++
+ drivers/media/video/uvc/uvc_v4l2.c  |   13 +++++++++
+ drivers/media/video/uvc/uvcvideo.h  |    6 ++++
+ drivers/media/video/v4l2-dev.c      |   18 +++++++++++++
+ include/media/v4l2-dev.h            |    2 +
+ 5 files changed, 86 insertions(+), 0 deletions(-)
 
-diff --git a/Documentation/DocBook/v4l/controls.xml b/Documentation/DocBook/v4l/controls.xml
-index a920ee8..6880798 100644
---- a/Documentation/DocBook/v4l/controls.xml
-+++ b/Documentation/DocBook/v4l/controls.xml
-@@ -670,7 +670,8 @@ caption of a Tab page in a GUI, for example.</entry>
- 	      </row><row><entry spanname="descr">The MPEG-1, -2 or -4
- output stream type. One cannot assume anything here. Each hardware
- MPEG encoder tends to support different subsets of the available MPEG
--stream types. The currently defined stream types are:</entry>
-+stream types. This control is specific to multiplexed MPEG streams.
-+The currently defined stream types are:</entry>
- 	      </row>
- 	      <row>
- 		<entrytbl spanname="descr" cols="2">
-@@ -800,6 +801,7 @@ frequency. Possible values are:</entry>
- 		<entry spanname="id"><constant>V4L2_CID_MPEG_AUDIO_ENCODING</constant>&nbsp;</entry>
- 		<entry>enum&nbsp;v4l2_mpeg_audio_encoding</entry>
- 	      </row><row><entry spanname="descr">MPEG Audio encoding.
-+This control is specific to multiplexed MPEG streams.
- Possible values are:</entry>
- 	      </row>
- 	      <row>
-@@ -1250,7 +1252,8 @@ and reproducible audio bitstream. 0 = unmuted, 1 = muted.</entry>
- 		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_ENCODING</constant>&nbsp;</entry>
- 		<entry>enum&nbsp;v4l2_mpeg_video_encoding</entry>
- 	      </row><row><entry spanname="descr">MPEG Video encoding
--method. Possible values are:</entry>
-+method. This control is specific to multiplexed MPEG streams.
-+Possible values are:</entry>
- 	      </row>
- 	      <row>
- 		<entrytbl spanname="descr" cols="2">
-diff --git a/Documentation/DocBook/v4l/pixfmt.xml b/Documentation/DocBook/v4l/pixfmt.xml
-index c6fdcbb..d19cbae 100644
---- a/Documentation/DocBook/v4l/pixfmt.xml
-+++ b/Documentation/DocBook/v4l/pixfmt.xml
-@@ -737,10 +737,75 @@ information.</para>
- 	  <row id="V4L2-PIX-FMT-MPEG">
- 	    <entry><constant>V4L2_PIX_FMT_MPEG</constant></entry>
- 	    <entry>'MPEG'</entry>
--	    <entry>MPEG stream. The actual format is determined by
-+	    <entry>MPEG multiplexed stream. The actual format is determined by
- extended control <constant>V4L2_CID_MPEG_STREAM_TYPE</constant>, see
- <xref linkend="mpeg-control-id" />.</entry>
- 	  </row>
-+	  <row id="V4L2-PIX-FMT-H264">
-+		<entry><constant>V4L2_PIX_FMT_H264</constant></entry>
-+		<entry>'H264'</entry>
-+		<entry>H264 video elementary stream with start codes.</entry>
-+	  </row>
-+	  <row id="V4L2-PIX-FMT-H264-NO-SC">
-+		<entry><constant>V4L2_PIX_FMT_H264_NO_SC</constant></entry>
-+		<entry>'AVC1'</entry>
-+		<entry>H264 video elementary stream without start codes.</entry>
-+	  </row>
-+	  <row id="V4L2-PIX-FMT-H263">
-+		<entry><constant>V4L2_PIX_FMT_H263</constant></entry>
-+		<entry>'H263'</entry>
-+		<entry>H263 video elementary stream.</entry>
-+	  </row>
-+	  <row id="V4L2-PIX-FMT-MPEG1">
-+		<entry><constant>V4L2_PIX_FMT_MPEG1</constant></entry>
-+		<entry>'MPG1'</entry>
-+		<entry>MPEG1 video elementary stream.</entry>
-+	  </row>
-+	  <row id="V4L2-PIX-FMT-MPEG2">
-+		<entry><constant>V4L2_PIX_FMT_MPEG2</constant></entry>
-+		<entry>'MPG2'</entry>
-+		<entry>MPEG2 video elementary stream.</entry>
-+	  </row>
-+	  <row id="V4L2-PIX-FMT-MPEG4">
-+		<entry><constant>V4L2_PIX_FMT_MPEG4</constant></entry>
-+		<entry>'MPG4'</entry>
-+		<entry>MPEG4 video elementary stream.</entry>
-+	  </row>
-+	  <row id="V4L2-PIX-FMT-DIVX3">
-+		<entry><constant>V4L2_PIX_FMT_DIVX3</constant></entry>
-+		<entry>'DIV3'</entry>
-+		<entry>Divx 3.11 video elementary stream.</entry>
-+	  </row>
-+	  <row id="V4L2-PIX-FMT-DIVX4">
-+		<entry><constant>V4L2_PIX_FMT_DIVX4</constant></entry>
-+		<entry>'DIV4'</entry>
-+		<entry>Divx 4 video elementary stream.</entry>
-+	  </row>
-+	  <row id="V4L2-PIX-FMT-DIVX500">
-+		<entry><constant>V4L2_PIX_FMT_DIVX500</constant></entry>
-+		<entry>'DX50'</entry>
-+		<entry>Divx 5.0-5.0.2 video elementary stream.</entry>
-+	  </row>
-+	  <row id="V4L2-PIX-FMT-DIVX5">
-+		<entry><constant>V4L2_PIX_FMT_DIVX5</constant></entry>
-+		<entry>'DIV5'</entry>
-+		<entry>Divx 5.0.3+ video elementary stream.</entry>
-+	  </row>
-+	  <row id="V4L2-PIX-FMT-XVID">
-+		<entry><constant>V4L2_PIX_FMT_XVID</constant></entry>
-+		<entry>'XVID'</entry>
-+		<entry>Xvid video elementary stream.</entry>
-+	  </row>
-+	  <row id="V4L2-PIX-FMT-VC1">
-+		<entry><constant>V4L2_PIX_FMT_VC1</constant></entry>
-+		<entry>'WMV3'</entry>
-+		<entry>VC1 simple and main profile video elementary stream.</entry>
-+	  </row>
-+	  <row id="V4L2-PIX-FMT-VC1-AP">
-+		<entry><constant>V4L2_PIX_FMT_VC1_AP</constant></entry>
-+		<entry>'WVC1'</entry>
-+		<entry>VC1 advanced profile video elementary stream.</entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index aa6c393..c30981b 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -371,7 +371,20 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_MJPEG    v4l2_fourcc('M', 'J', 'P', 'G') /* Motion-JPEG   */
- #define V4L2_PIX_FMT_JPEG     v4l2_fourcc('J', 'P', 'E', 'G') /* JFIF JPEG     */
- #define V4L2_PIX_FMT_DV       v4l2_fourcc('d', 'v', 's', 'd') /* 1394          */
--#define V4L2_PIX_FMT_MPEG     v4l2_fourcc('M', 'P', 'E', 'G') /* MPEG-1/2/4    */
-+#define V4L2_PIX_FMT_MPEG     v4l2_fourcc('M', 'P', 'E', 'G') /* MPEG-1/2/4 Multiplexed */
-+#define V4L2_PIX_FMT_H264     v4l2_fourcc('H', '2', '6', '4') /* H264 with start codes */
-+#define V4L2_PIX_FMT_H264_NO_SC v4l2_fourcc('A', 'V', 'C', '1') /* H264 without start codes */
-+#define V4L2_PIX_FMT_H263     v4l2_fourcc('H', '2', '6', '3') /* H263          */
-+#define V4L2_PIX_FMT_MPEG1    v4l2_fourcc('M', 'P', 'G', '1') /* MPEG-1 ES     */
-+#define V4L2_PIX_FMT_MPEG2    v4l2_fourcc('M', 'P', 'G', '2') /* MPEG-2 ES     */
-+#define V4L2_PIX_FMT_MPEG4    v4l2_fourcc('M', 'P', 'G', '4') /* MPEG-4 ES     */
-+#define V4L2_PIX_FMT_DIVX3    v4l2_fourcc('D', 'I', 'V', '3') /* DivX 3.11     */
-+#define V4L2_PIX_FMT_DIVX4    v4l2_fourcc('D', 'I', 'V', '4') /* DivX 4.12     */
-+#define V4L2_PIX_FMT_DIVX500  v4l2_fourcc('D', 'X', '5', '0') /* DivX 5.00 - 5.02  */
-+#define V4L2_PIX_FMT_DIVX5    v4l2_fourcc('D', 'I', 'V', '5') /* DivX 5.03 - x  */
-+#define V4L2_PIX_FMT_XVID     v4l2_fourcc('X', 'V', 'I', 'D') /* Xvid           */
-+#define V4L2_PIX_FMT_VC1_ANNEX_G v4l2_fourcc('V', 'C', '1', 'G') /* SMPTE 421M Annex G compliant stream */
-+#define V4L2_PIX_FMT_VC1_ANNEX_L v4l2_fourcc('V', 'C', '1', 'L') /* SMPTE 421M Annex L compliant stream*/
- 
- /*  Vendor-specific formats   */
- #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1 YUV */
-@@ -1146,7 +1159,7 @@ enum v4l2_colorfx {
- #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
- #define V4L2_CID_MPEG_CLASS 			(V4L2_CTRL_CLASS_MPEG | 1)
- 
--/*  MPEG streams */
-+/*  MPEG streams, specific to multiplexed streams */
- #define V4L2_CID_MPEG_STREAM_TYPE 		(V4L2_CID_MPEG_BASE+0)
- enum v4l2_mpeg_stream_type {
- 	V4L2_MPEG_STREAM_TYPE_MPEG2_PS   = 0, /* MPEG-2 program stream */
-@@ -1168,7 +1181,7 @@ enum v4l2_mpeg_stream_vbi_fmt {
- 	V4L2_MPEG_STREAM_VBI_FMT_IVTV = 1,  /* VBI in private packets, IVTV format */
- };
- 
--/*  MPEG audio */
-+/*  MPEG audio controls specific to multiplexed streams  */
- #define V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ 	(V4L2_CID_MPEG_BASE+100)
- enum v4l2_mpeg_audio_sampling_freq {
- 	V4L2_MPEG_AUDIO_SAMPLING_FREQ_44100 = 0,
-@@ -1284,7 +1297,7 @@ enum v4l2_mpeg_audio_ac3_bitrate {
- 	V4L2_MPEG_AUDIO_AC3_BITRATE_640K = 18,
- };
- 
--/*  MPEG video */
-+/*  MPEG video controls specific to multiplexed streams */
- #define V4L2_CID_MPEG_VIDEO_ENCODING 		(V4L2_CID_MPEG_BASE+200)
- enum v4l2_mpeg_video_encoding {
- 	V4L2_MPEG_VIDEO_ENCODING_MPEG_1     = 0,
--- 
+diff --git a/drivers/media/video/uvc/uvc_queue.c
+b/drivers/media/video/uvc/uvc_queue.c
+index f14581b..e505afe 100644
+--- a/drivers/media/video/uvc/uvc_queue.c
++++ b/drivers/media/video/uvc/uvc_queue.c
+@@ -424,6 +424,7 @@ int uvc_queue_mmap(struct uvc_video_queue *queue,
+struct vm_area_struct *vma)
+                       break;
+       }
+
++#ifdef CONFIG_MMU
+       if (i == queue->count || size != queue->buf_size) {
+               ret = -EINVAL;
+               goto done;
+@@ -445,6 +446,20 @@ int uvc_queue_mmap(struct uvc_video_queue *queue,
+struct vm_area_struct *vma)
+               addr += PAGE_SIZE;
+               size -= PAGE_SIZE;
+       }
++#else
++       if (i == queue->count ||
++                       PAGE_ALIGN(size) != queue->buf_size) {
++               ret = -EINVAL;
++               goto done;
++       }
++
++       /* documentation/nommu-mmap.txt */
++       vma->vm_flags |= VM_IO | VM_MAYSHARE;
++
++       addr = (unsigned long)queue->mem + buffer->buf.m.offset;
++       vma->vm_start = addr;
++       vma->vm_end = addr +  queue->buf_size;
++#endif
+
+       vma->vm_ops = &uvc_vm_ops;
+       vma->vm_private_data = buffer;
+@@ -489,6 +504,38 @@ done:
+ }
+
+ /*
++ * Get unmapped area.
++ *
++ * NO-MMU arch need this function to make mmap() work correctly.
++ */
++unsigned long uvc_queue_get_unmapped_area(struct uvc_video_queue *queue,
++               unsigned long addr, unsigned long len, unsigned long pgoff)
++{
++       struct uvc_buffer *buffer;
++       unsigned int i;
++       int ret = 0;
++
++       mutex_lock(&queue->mutex);
++       for (i = 0; i < queue->count; ++i) {
++               buffer = &queue->buffer[i];
++               if ((buffer->buf.m.offset >> PAGE_SHIFT) == pgoff)
++                       break;
++       }
++
++       if (i == queue->count ||
++                       PAGE_ALIGN(len) != queue->buf_size) {
++               ret = -EINVAL;
++               goto done;
++       }
++
++       addr = (unsigned long)queue->mem + buffer->buf.m.offset;
++       ret = addr;
++done:
++       mutex_unlock(&queue->mutex);
++       return ret;
++}
++
++/*
+ * Enable or disable the video buffers queue.
+ *
+ * The queue must be enabled before starting video acquisition and must be
+diff --git a/drivers/media/video/uvc/uvc_v4l2.c
+b/drivers/media/video/uvc/uvc_v4l2.c
+index 9005a8d..9efab61 100644
+--- a/drivers/media/video/uvc/uvc_v4l2.c
++++ b/drivers/media/video/uvc/uvc_v4l2.c
+@@ -1081,6 +1081,18 @@ static unsigned int uvc_v4l2_poll(struct file
+*file, poll_table *wait)
+       return uvc_queue_poll(&stream->queue, file, wait);
+ }
+
++static unsigned long uvc_v4l2_get_unmapped_area(struct file *file,
++               unsigned long addr, unsigned long len, unsigned long pgoff,
++               unsigned long flags)
++{
++       struct uvc_fh *handle = file->private_data;
++       struct uvc_streaming *stream = handle->stream;
++
++       uvc_trace(UVC_TRACE_CALLS, "uvc_v4l2_get_unmapped_area\n");
++
++       return uvc_queue_get_unmapped_area(&stream->queue, addr, len, pgoff);
++}
++
+ const struct v4l2_file_operations uvc_fops = {
+       .owner          = THIS_MODULE,
+       .open           = uvc_v4l2_open,
+@@ -1089,5 +1101,6 @@ const struct v4l2_file_operations uvc_fops = {
+       .read           = uvc_v4l2_read,
+       .mmap           = uvc_v4l2_mmap,
+       .poll           = uvc_v4l2_poll,
++       .get_unmapped_area = uvc_v4l2_get_unmapped_area,
+ };
+
+diff --git a/drivers/media/video/uvc/uvcvideo.h
+b/drivers/media/video/uvc/uvcvideo.h
+index 45f01e7..48a2378 100644
+--- a/drivers/media/video/uvc/uvcvideo.h
++++ b/drivers/media/video/uvc/uvcvideo.h
+@@ -580,6 +580,12 @@ extern int uvc_queue_mmap(struct uvc_video_queue *queue,
+               struct vm_area_struct *vma);
+ extern unsigned int uvc_queue_poll(struct uvc_video_queue *queue,
+               struct file *file, poll_table *wait);
++#ifdef CONFIG_MMU
++#define uvc_queue_get_unmapped_area NULL
++#else
++extern unsigned long uvc_queue_get_unmapped_area(struct uvc_video_queue *queue,
++               unsigned long addr, unsigned long len, unsigned long pgoff);
++#endif
+ extern int uvc_queue_allocated(struct uvc_video_queue *queue);
+ static inline int uvc_queue_streaming(struct uvc_video_queue *queue)
+ {
+diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+index 498e674..221e73f 100644
+--- a/drivers/media/video/v4l2-dev.c
++++ b/drivers/media/video/v4l2-dev.c
+@@ -368,6 +368,23 @@ static int v4l2_mmap(struct file *filp, struct
+vm_area_struct *vm)
+       return ret;
+ }
+
++#ifdef CONFIG_MMU
++#define v4l2_get_unmapped_area NULL
++#else
++static unsigned long v4l2_get_unmapped_area(struct file *filp,
++               unsigned long addr, unsigned long len, unsigned long pgoff,
++               unsigned long flags)
++{
++       struct video_device *vdev = video_devdata(filp);
++
++       if (!vdev->fops->get_unmapped_area)
++               return -ENOSYS;
++       if (!video_is_registered(vdev))
++               return -ENODEV;
++       return vdev->fops->get_unmapped_area(filp, addr, len, pgoff, flags);
++}
++#endif
++
+ /* Override for the open function */
+ static int v4l2_open(struct inode *inode, struct file *filp)
+ {
+@@ -452,6 +469,7 @@ static const struct file_operations v4l2_fops = {
+       .write = v4l2_write,
+       .open = v4l2_open,
+       .mmap = v4l2_mmap,
++       .get_unmapped_area = v4l2_get_unmapped_area,
+       .unlocked_ioctl = v4l2_ioctl,
+ #ifdef CONFIG_COMPAT
+       .compat_ioctl = v4l2_compat_ioctl32,
+diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+index 8266d5a..0616a43 100644
+--- a/include/media/v4l2-dev.h
++++ b/include/media/v4l2-dev.h
+@@ -63,6 +63,8 @@ struct v4l2_file_operations {
+       long (*ioctl) (struct file *, unsigned int, unsigned long);
+       long (*unlocked_ioctl) (struct file *, unsigned int, unsigned long);
+       int (*mmap) (struct file *, struct vm_area_struct *);
++       unsigned long (*get_unmapped_area) (struct file *, unsigned long,
++                       unsigned long, unsigned long, unsigned long);
+       int (*open) (struct file *);
+       int (*release) (struct file *);
+ };
+--
 1.6.3.3
+
+
+
+
+-- 
+Regards,
+--Bob
