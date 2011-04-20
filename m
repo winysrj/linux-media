@@ -1,57 +1,78 @@
 Return-path: <mchehab@pedra>
-Received: from mail.deliver-bd.com ([203.76.124.123]:53218 "EHLO
-	mail.deliver-bd.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752129Ab1DWMm3 (ORCPT
+Received: from bear.ext.ti.com ([192.94.94.41]:55214 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753379Ab1DTNxq convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Apr 2011 08:42:29 -0400
-Message-ID: <55259.88.147.35.232.1303553564.squirrel@mail.deliver-bd.com>
-Date: Sat, 23 Apr 2011 16:12:44 +0600 (BDT)
-Subject: hi
-From: "P. Cha" <eugene@deliver-bd.com>
-Reply-To: patwkkp@yahoo.com.hk
+	Wed, 20 Apr 2011 09:53:46 -0400
+From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
+To: "Nori, Sekhar" <nsekhar@ti.com>,
+	LMML <linux-media@vger.kernel.org>,
+	LAK <linux-arm-kernel@lists.infradead.org>
+CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	"Hilman, Kevin" <khilman@ti.com>
+Date: Wed, 20 Apr 2011 19:23:17 +0530
+Subject: RE: [PATCH v18 08/13] davinci: eliminate use of IO_ADDRESS() on
+ sysmod
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024BCEF72C@dbde02.ent.ti.com>
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024C75E97E@dbde02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+On Tue, Apr 05, 2011 at 16:28:33, Nori, Sekhar wrote:
+> Hi Manju,
+> 
+> On Sat, Apr 02, 2011 at 15:13:17, Hadli, Manjunath wrote:
+> > Current devices.c file has a number of instances where
+> > IO_ADDRESS() is used for system module register access. Eliminate this 
+> > in favor of a ioremap() based access.
+> > 
+> > Consequent to this, a new global pointer davinci_sysmodbase has been 
+> > introduced which gets initialized during the initialization of each 
+> > relevant SoC
+> > 
+> > Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> > Acked-by: Sekhar Nori <nsekhar@ti.com>
+> > ---
+> 
+> > diff --git a/arch/arm/mach-davinci/include/mach/hardware.h 
+> > b/arch/arm/mach-davinci/include/mach/hardware.h
+> > index 414e0b9..2a6b560 100644
+> > --- a/arch/arm/mach-davinci/include/mach/hardware.h
+> > +++ b/arch/arm/mach-davinci/include/mach/hardware.h
+> > @@ -21,6 +21,12 @@
+> >   */
+> >  #define DAVINCI_SYSTEM_MODULE_BASE        0x01C40000
+> >  
+> > +#ifndef __ASSEMBLER__
+> > +extern void __iomem *davinci_sysmodbase;
+> > +#define DAVINCI_SYSMODULE_VIRT(x)	(davinci_sysmodbase + (x))
+> > +void davinci_map_sysmod(void);
+> > +#endif
+> 
+> Russell has posted[1] that the hardware.h file should not be polluted with platform private stuff like this.
+> 
+> Your patch 7/13 actually helped towards that goal, but this one takes us back. This patch cannot be used in the current form.
+> 
+> Currently there are separate header files for dm644x, dm355, dm646x and dm365. I would like to start by removing unnecessary code from these files and trying to consolidate them into a single file.
+Done. I have consolidated all the headers for DM6446, Dm6467, DM365 and DM355 into a single header as per your suggestion.
+> 
+> Example, the EMAC base address definitions in dm365.h should be moved into dm365.c. Similarly, there is a lot of VPIF specific stuff in dm646x.h which is not really specific to dm646x.h and so should probably be moved to include/media/ or arch/arm/mach-davinci/include/mach/vpif.h
+Done.
+> 
+> Once consolidated into a single file, davinci_sysmodbase can be moved into that file.
+Done.
+> 
+> Also, Russell has said[2] that at least for this merge window only consolidation and bug fixes will go through his tree. This means that as far as mach-davinci is concerned, the clean-up part of this series can go to 2.6.40 - but not the stuff which adds new support.
+> 
+> Thanks,
+> Sekhar
+> 
+> [1] http://www.spinics.net/lists/arm-kernel/msg120410.html
+> [2] http://www.spinics.net/lists/arm-kernel/msg120606.html
+> 
+> 
 
-
-
-Greetings of the day to you. It is understandable that you might be a
-little bit apprehensive because you do not know me but I have a lucrative
-business proposal of mutual interest to share with you. . I got your
-reference in my search for someone who suits my proposed business
-relationship.
-
-Let me start by introducing myself. I am Mr. Patrick K. W. Chan Executive
-Director & Chief financial Officer of Hang Seng Bank Ltd. I have an
-obscured business suggestion for you.
-
-I will need you to assist me in executing a business project from Hong
-Kong to your country. It involves the transfer of a large sum of money.
-Everything concerning this transaction shall be legally done without
-hitch. Please endeavour to observe utmost discretion in all matters
-concerning this issue.
-
-Once the funds have been successfully transferred into your account, we
-shall share in the ratio to be agreed by both of us. Should you be
-interested send the following details to kick-start the process;
-
-Full name
-Address, Nationality
-Age, Sex, Occupation Marital Statu,
-Private Phone Number, Private fax number
-
-I will prefer you reach me on my private email
-address(pattkkwchan@yahoo.com.hk) and finally after that I shall
-furnish you with more information’s about this operation.
-Please if you are not interested delete this email and do not hunt me
-because I am putting my career and the life of my family at stake with
-this venture. Although nothing ventured is nothing gained.
-
-Your earliest response to this letter will be appreciated.
-
-Kind Regards,
-Mr. Patrick Chan
