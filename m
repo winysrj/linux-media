@@ -1,58 +1,52 @@
 Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:40982 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753516Ab1D0Oae (ORCPT
+Received: from mailout-de.gmx.net ([213.165.64.22]:33867 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752485Ab1DUKGF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Apr 2011 10:30:34 -0400
-Message-ID: <4DB82884.80706@infradead.org>
-Date: Wed, 27 Apr 2011 11:30:28 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+	Thu, 21 Apr 2011 06:06:05 -0400
+Date: Thu, 21 Apr 2011 12:06:00 +0200
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: Bob Liu <lliubbo@gmail.com>
+Cc: linux-media@vger.kernel.org, dhowells@redhat.com,
+	linux-uvc-devel@lists.berlios.de, mchehab@redhat.com,
+	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@maxwell.research.nokia.com, martin_rubli@logitech.com,
+	jarod@redhat.com, tj@kernel.org, arnd@arndb.de, fweisbec@gmail.com,
+	agust@denx.de, gregkh@suse.de, vapier@gentoo.org
+Subject: Re: [PATCH v3] media:uvc_driver: add uvc support on no-mmu arch
+Message-ID: <20110421100600.GA8593@minime.bse>
+References: <1303355862-17507-1-git-send-email-lliubbo@gmail.com>
+ <20110421075947.GA8178@minime.bse>
+ <BANLkTimHX8aYoeSU1ES0Tw0Swaz9xYLt=Q@mail.gmail.com>
+ <20110421094743.GA8503@minime.bse>
+ <BANLkTimO-4ubi7qUCncB9Z+wwNx1LURvfQ@mail.gmail.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Herton Ronaldo Krzesinski <herton.krzesinski@canonical.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] v4l: make sure drivers supply a zeroed struct v4l2_subdev
-References: <1301677922-6765-1-git-send-email-herton.krzesinski@canonical.com> <201104021005.57200.hverkuil@xs4all.nl> <201104270839.34066.hverkuil@xs4all.nl>
-In-Reply-To: <201104270839.34066.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <BANLkTimO-4ubi7qUCncB9Z+wwNx1LURvfQ@mail.gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 27-04-2011 03:39, Hans Verkuil escreveu:
-> On Saturday, April 02, 2011 10:05:57 Hans Verkuil wrote:
->> On Friday, April 01, 2011 19:12:02 Herton Ronaldo Krzesinski wrote:
->>> Some v4l drivers currently don't initialize their struct v4l2_subdev
->>> with zeros, and this is a problem since some of the v4l2 code expects
->>> this. One example is the addition of internal_ops in commit 45f6f84,
->>> after that we are at risk of random oopses with these drivers when code
->>> in v4l2_device_register_subdev tries to dereference sd->internal_ops->*,
->>> as can be shown by the report at http://bugs.launchpad.net/bugs/745213
->>> and analysis of its crash at https://lkml.org/lkml/2011/4/1/168
->>>
->>> Use kzalloc within problematic drivers to ensure we have a zeroed struct
->>> v4l2_subdev.
->>>
->>> BugLink: http://bugs.launchpad.net/bugs/745213
->>> Cc: <stable@kernel.org>
->>> Signed-off-by: Herton Ronaldo Krzesinski <herton.krzesinski@canonical.com>
->>
->> Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+On Thu, Apr 21, 2011 at 05:57:31PM +0800, Bob Liu wrote:
+> On Thu, Apr 21, 2011 at 5:47 PM, Daniel Glöckner <daniel-gl@gmx.net> wrote:
+> > On Thu, Apr 21, 2011 at 04:20:36PM +0800, Bob Liu wrote:
+> >> > on mmu systems do_mmap_pgoff contains a len = PAGE_ALIGN(len); line.
+> >> > If we depend on this behavior, why not do it here as well and get rid
+> >> > of the #ifdef?
+> >> >
+> >>
+> >> If do it in do_mmap_pgoff() the whole system will be effected, I am
+> >> not sure whether
+> >> it's correct and needed for other subsystem.
+> >
+> > With "here" I was referring to uvc_queue_mmap.
+> >
 > 
-> Mauro,
-> 
-> Please get this patch upstream! It's a nasty 2.6.38 regression that needs to
-> be upstreamed urgently. The fix is simple and solves oopses in several
-> drivers. 2.6.38 can't be fixed as long as this fix isn't in 2.6.39.
+> I am sorry, I didn't get your idea. You mean using  PAGE_ALIGN() here for both
+> mmu and no-mmu arch ?
 
-(11:18:42) hverkuil: mchehab: ping
-(11:21:01) hverkuil: mchehab: please add the 'make sure drivers supply a zeroed struct v4l2_subdev' patch to the 2.6.39 pull request!
-(11:21:53) hverkuil: It fixes a 2.6.38 regression and it really needs to be upstreamed asap.
+Yes, rounding size to pages also increases the chance of the following
+while loop to end, should mmu do_mmap_pgoff ever have that line removed.
 
-
-I intend to add it on the next series. As you know, patches need to go first to -next
-tree before being merged. Unfortunately, patchwork is broken for about one week. A mysql
-replication error damaged the database, and about 270 patches got lost. kernel.org
-maintainer is working on a way to re-add the missing patches.
-
-Mauro.
+  Daniel
