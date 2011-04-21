@@ -1,102 +1,49 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:2267 "EHLO
-	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752636Ab1DHPnt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Apr 2011 11:43:49 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFCv1 PATCH 6/9] vivi: add support for control events.
-Date: Fri, 8 Apr 2011 17:43:34 +0200
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org
-References: <1301917914-27437-1-git-send-email-hans.verkuil@cisco.com> <a2608527646b3a947d8493feaa4f5df81655e571.1301916466.git.hans.verkuil@cisco.com> <201104081719.41063.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201104081719.41063.laurent.pinchart@ideasonboard.com>
+Received: from smtp204.alice.it ([82.57.200.100]:44509 "EHLO smtp204.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751867Ab1DUJvw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Apr 2011 05:51:52 -0400
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: linux-media@vger.kernel.org
+Cc: Antonio Ospite <ospite@studenti.unina.it>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Drew Fisher <drew.m.fisher@gmail.com>
+Subject: [PATCH 0/3] gspca_kinect fixup
+Date: Thu, 21 Apr 2011 11:51:33 +0200
+Message-Id: <1303379496-12899-1-git-send-email-ospite@studenti.unina.it>
+In-Reply-To: <4DADF1CB.4050504@redhat.com>
+References: <4DADF1CB.4050504@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201104081743.34547.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Friday, April 08, 2011 17:19:40 Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> Thanks for the patch.
-> On Monday 04 April 2011 13:51:51 Hans Verkuil wrote:
-> 
-> [snip]
-> 
-> > diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
-> > index 21d8f6a..8790e03 100644
-> > --- a/drivers/media/video/vivi.c
-> > +++ b/drivers/media/video/vivi.c
-> > @@ -998,6 +1007,25 @@ static int vivi_s_ctrl(struct v4l2_ctrl *ctrl)
-> >  	File operations for the device
-> >     ------------------------------------------------------------------*/
-> > 
-> > +static int vivi_open(struct file *filp)
-> > +{
-> > +	int ret = v4l2_fh_open(filp);
-> > +	struct v4l2_fh *fh;
-> > +
-> > +	if (ret)
-> > +		return ret;
-> > +	fh = filp->private_data;
-> > +	ret = v4l2_event_init(fh);
-> > +	if (ret)
-> > +		goto rel_fh;
-> > +	ret = v4l2_event_alloc(fh, 10);
-> > +	if (!ret)
-> > +		return ret;
-> > +rel_fh:
-> > +	v4l2_fh_release(filp);
-> > +	return ret;
-> > +}
-> > +
-> 
-> Should the V4L2 core provide a helper function that does just that ?
+Hi,
 
-Good idea.
+some incremental fixes for the gspca kinect driver, the first patch in 
+the series by Drew Fisher addresses the issue Mauro was pointing out.
 
-> 
-> >  static ssize_t
-> >  vivi_read(struct file *file, char __user *data, size_t count, loff_t
-> > *ppos) {
-> > @@ -1012,10 +1040,17 @@ static unsigned int
-> >  vivi_poll(struct file *file, struct poll_table_struct *wait)
-> >  {
-> >  	struct vivi_dev *dev = video_drvdata(file);
-> > +	struct v4l2_fh *fh = file->private_data;
-> >  	struct vb2_queue *q = &dev->vb_vidq;
-> > +	unsigned int res;
-> > 
-> >  	dprintk(dev, 1, "%s\n", __func__);
-> > -	return vb2_poll(q, file, wait);
-> > +	res = vb2_poll(q, file, wait);
-> > +	if (v4l2_event_pending(fh))
-> > +		res |= POLLPRI;
-> > +	else
-> > +		poll_wait(file, &fh->events->wait, wait);
-> 
-> Don't you need to call poll_wait unconditionally ?
+Thanks,
+   Antonio
 
-No, setting POLLPRI will have poll() exit without waiting.
-On the other hand, it may be more understandable if I do it unconditionally.
-I've been back and forth about this a few times already :-)
+Antonio Ospite (1):
+  gspca - kinect: fix comments referring to color camera
 
-I suspect that auditing the way drivers implement poll() would be a great
-janitorial project. It's not the greatest API in the world...
+Drew Fisher (2):
+  gspca - kinect: move communications buffers out of stack
+  gspca - kinect: fix a typo s/steram/stream/
 
-Regards,
+ drivers/media/video/gspca/kinect.c |   12 +++++++-----
+ 1 files changed, 7 insertions(+), 5 deletions(-)
 
-	Hans
+-- 
+Antonio Ospite
+http://ao2.it
 
-> 
-> > +	return res;
-> >  }
-> > 
-> >  static int vivi_close(struct file *file)
-> 
-> [snip]
-> 
-> 
+PGP public key ID: 0x4553B001
+
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
