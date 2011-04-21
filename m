@@ -1,64 +1,69 @@
 Return-path: <mchehab@pedra>
-Received: from banach.math.auburn.edu ([131.204.45.3]:42716 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932419Ab1DLWNB (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:40828 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754445Ab1DUPVK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Apr 2011 18:13:01 -0400
-Date: Tue, 12 Apr 2011 17:12:43 -0500 (CDT)
-From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jiri Slaby <jslaby@suse.cz>,
-	linux-arm-kernel@lists.infradead.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2.6.39 v2] V4L: videobuf-dma-contig: fix mmap_mapper
- broken on ARM
-In-Reply-To: <20110412214011.GG7806@n2100.arm.linux.org.uk>
-Message-ID: <alpine.LNX.2.00.1104121651250.4240@banach.math.auburn.edu>
-References: <201104122306.34909.jkrzyszt@tis.icnet.pl> <20110412214011.GG7806@n2100.arm.linux.org.uk>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Thu, 21 Apr 2011 11:21:10 -0400
+Date: Thu, 21 Apr 2011 17:21:01 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v4] Add v4l2 subdev driver for S5P MIPI-CSI receivers
+To: linux-media@vger.kernel.org
+Cc: linux-samsung-soc@vger.kernel.org, kyungmin.park@samsung.com,
+	m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	kgene.kim@samsung.com, sungchun.kang@samsung.com,
+	jonghun.han@samsung.com
+Message-id: <1303399264-3849-1-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+Hello,
 
+this is a fourth version of the subdev driver for MIPI-CSI2 receivers
+present on S5PVx10 and EXYNOS4 SoCs.
+This patch set also adds a V4L2_MBUS_FMT_JPEG_1X8 media bus format
+and moves the s5p-fimc driver to Video Capture Devices kconfig group.
 
-On Tue, 12 Apr 2011, Russell King - ARM Linux wrote:
+I don't expect this driver to undergo any major changes and hope to have
+it added in kernel 2.6.40.
+ 
+Any comments are welcome!
 
-> On Tue, Apr 12, 2011 at 11:06:34PM +0200, Janusz Krzysztofik wrote:
-> > The patch tries to solve this regression by using 
-> > virt_to_phys(bus_to_virt(mem->dma_handle)) instead of problematic 
-> > virt_to_phys(mem->vaddr).
-> 
-> Who says that DMA handles are bus addresses in the strictest sense?
-> 
-> DMA handles on ARM are the bus address to program 'dev' with in order
-> for it to access the memory mapped by dma_alloc_coherent().  On some
-> ARM platforms, this bus address is dependent on 'dev' - such as platforms
-> with more than one root PCI bus, and so bus_to_virt() just doesn't
-> hack it.
-> 
-> What is really needed is for this problem - the mapping of DMA coherent
-> memory into userspace - to be solved with a proper arch API rather than
-> all these horrible hacks which subsystems instead invent.  That's
-> something I tried to do with the dma_mmap_coherent() stuff but it was
-> shot down by linux-arch as (iirc) PA-RISC objected to it.
-> 
-> Hence why ARM only implements it.
-> 
-> Maybe the video drivers should try to resurect the idea, maybe only
-> allowing this support for architectures which provide dma_mmap_coherent().
+Changes since v1:
+ - added runtime PM support
+ - conversion to the pad ops
 
+Changes since v2:
+ - added reference counting in s_stream op to allow the mipi-csi subdev
+   to be shared by multiple FIMC instances
+ - added support for TRY format in pad get_fmt op
+ - added pm_runtime* calls in s_stream op to avoid a need for explicit
+   s_power(1) call
+ - corrected locking around the pad ops, minor bug fixes
 
-I do not know how this fits into the present discussion. Perhaps everyone 
-who reads the above message is well aware of what is below. If so my 
-comment below is superfluous. But just in case things are otherwise it 
-might save someone a bit of trouble in trying to write something which 
-will work "everywhere":
+Changes since v3:
+ - slighty reworked the power management part
+ - removed a reference counting in s_stream op as this should be handled
+   on a media device and the pipeline level
+ - s5p_csis_ prefix renamed to s5pcsis_
+ - updated the help text in Kconfig
 
-If one is speaking here of architecture problems, there is the additional 
-problem that some ARM systems might have not two PCI buses, but instead 
-no PCI bus at all.
+ [PATCH 1/3] v4l: Add V4L2_MBUS_FMT_JPEG_1X8 media bus format
+ [PATCH v4 2/3] v4l: Move S5P FIMC driver into Video Capture Devices
+ [PATCH v4 3/3] v4l: Add v4l2 subdev driver for S5P/EXYNOS4 MIPI-CSI Receiver
 
-Theodore Kilgore
+ Documentation/DocBook/v4l/subdev-formats.xml |   46 ++
+  drivers/media/video/Kconfig                  |   28 +-
+  drivers/media/video/s5p-fimc/Makefile        |    6 +-
+  drivers/media/video/s5p-fimc/mipi-csis.c     |  745 ++++++++++++++++++++++++++
+  drivers/media/video/s5p-fimc/mipi-csis.h     |   22 +
+  include/linux/v4l2-mediabus.h                |    3 +
+  6 files changed, 840 insertions(+), 10 deletions(-)
+
+--
+Regards,
+Sylwester Nawrocki
+Samsung Poland R&D Center
+
