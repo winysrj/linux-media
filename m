@@ -1,63 +1,50 @@
 Return-path: <mchehab@pedra>
-Received: from alia.ip-minds.de ([84.201.38.2]:56298 "EHLO alia.ip-minds.de"
+Received: from mx1.redhat.com ([209.132.183.28]:59047 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751899Ab1DTJuP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Apr 2011 05:50:15 -0400
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by alia.ip-minds.de (Postfix) with ESMTP id CDB7FC32091
-	for <linux-media@vger.kernel.org>; Wed, 20 Apr 2011 11:42:49 +0200 (CEST)
-Received: from alia.ip-minds.de ([127.0.0.1])
-	by localhost (alia.ip-minds.de [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id X24s6FzR8NFv for <linux-media@vger.kernel.org>;
-	Wed, 20 Apr 2011 11:42:49 +0200 (CEST)
-Received: from localhost (p5B10D8E1.dip.t-dialin.net [91.16.216.225])
-	by alia.ip-minds.de (Postfix) with ESMTPA id 685ABC32090
-	for <linux-media@vger.kernel.org>; Wed, 20 Apr 2011 11:42:49 +0200 (CEST)
-Date: Wed, 20 Apr 2011 11:42:01 +0200
-From: Jean-Michel Bruenn <jean.bruenn@ip-minds.de>
-To: linux-media@vger.kernel.org
-Subject: Re: WinTV 1400 broken with recent versions?
-Message-Id: <20110420114201.4391088d.jean.bruenn@ip-minds.de>
-In-Reply-To: <loom.20110420T080555-952@post.gmane.org>
-References: <20110309175231.16446e92.jean.bruenn@ip-minds.de>
-	<76A39CFB-2838-4AD7-B353-49971F9F7DFF@wilsonet.com>
-	<ba12e998349efa465be466a4d7f9d43f@localhost>
-	<3AF3951C-11F6-48E4-A0EE-85179B013AFC@wilsonet.com>
-	<81E0AF02-0837-4DF8-BFEA-94A654FFF471@wilsonet.com>
-	<af7d57a1bb478c0edac4cd7afdfd6f41@localhost>
-	<AANLkTimqGxS6OYNarqQwZNxFk+rccPn40UcK+6Oo72SC@mail.gmail.com>
-	<3934d121118af31f8708589189a42b95@localhost>
-	<AANLkTikYjaeXnhA3iP+kxjpA-NU4QQw-_YhRFf4U=30a@mail.gmail.com>
-	<3DAC424F-1318-4E9D-B1E6-949ABE9E3CBB@wilsonet.com>
-	<20110313032208.ab1b6488.jean.bruenn@ip-minds.de>
-	<AANLkTikZ4KFSrzj6cJhbST9DWVcDqgQ6Y8R3we9614Bo@mail.gmail.com>
-	<20110313130426.c3c53baf.jean.bruenn@ip-minds.de>
-	<loom.20110420T080555-952@post.gmane.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	id S1751222Ab1DUNPg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Apr 2011 09:15:36 -0400
+Message-ID: <4DB02E1A.1050207@redhat.com>
+Date: Thu, 21 Apr 2011 15:16:10 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Jon Mason <jdmason@kudzu.us>
+CC: linux-media@vger.kernel.org
+Subject: Re: Driver for r5u870 USB webcams
+References: <BANLkTim79ug6rFJDpdMAi4iaFu8=d3eXTw@mail.gmail.com>
+In-Reply-To: <BANLkTim79ug6rFJDpdMAi4iaFu8=d3eXTw@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello Ryan,
+Hi,
 
-i'm sorry, no. I was trying to revert patches and downgrading the
-kernel, but this was way more work then i thought. 
+On 04/21/2011 03:08 PM, Jon Mason wrote:
+> My laptop has the "Ricoh Co., Ltd Visual Communication Camera VGP-VCC7
+> [R5U870]" webcam.  A quick scan of the kernel does not show the USB ID
+> listed.  `lsusb` has it listed as:
+>
+> Bus 001 Device 005: ID 05ca:183a Ricoh Co., Ltd Visual Communication
+> Camera VGP-VCC7 [R5U870]
+>
+> I managed to find a Linux driver on the internet at
+> http://code.google.com/p/r5u870/
+> The comment on the website seems to imply the driver has been
+> abandoned by it's original writer.
+>
+> I am wondering if there are any plans to provide support for this
+> hardware via extending another driver or if there are any plans to
+> pull this driver into the kernel.
 
-This problem should happen with a few other cards also, it's not
-dedicated to the hvr 1400. 
+r5u87x based cams work with the regular uvcvideo driver, but first they
+need to have firmware loaded into them (at every boot). See here for
+the firmware load tool for linux:
+https://bitbucket.org/ahixon/r5u87x/wiki/Home
 
-Jean
+Note chances are this tool is packaged for your distribution, for example
+for Fedora it is available in rpmfusion nonfree under the package name
+"r5u87x-firmware"
 
-On Wed, 20 Apr 2011
-06:09:40 +0000 (UTC) Ryan <eekrano@eekrano.com> wrote:
+Regards,
 
-> I have a WinTV 1200 card that has this exact issue. Have you made any new
-> discoveries or progress? Thanks.
-> 
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hans
