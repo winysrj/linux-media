@@ -1,60 +1,54 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f42.google.com ([74.125.82.42]:33533 "EHLO
-	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751299Ab1DBNwA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Apr 2011 09:52:00 -0400
-Received: by wwk4 with SMTP id 4so355748wwk.1
-        for <linux-media@vger.kernel.org>; Sat, 02 Apr 2011 06:51:59 -0700 (PDT)
-Subject: [PATCH 2/2] [BUG]STV0288 Register 42 - Incorrect settings
-From: Malcolm Priestley <tvboxspy@gmail.com>
+Received: from smtp206.alice.it ([82.57.200.102]:41541 "EHLO smtp206.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751904Ab1DUJvw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Apr 2011 05:51:52 -0400
+From: Antonio Ospite <ospite@studenti.unina.it>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 02 Apr 2011 14:51:53 +0100
-Message-ID: <1301752313.7763.9.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Cc: Antonio Ospite <ospite@studenti.unina.it>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Drew Fisher <drew.m.fisher@gmail.com>
+Subject: [PATCH 3/3] gspca - kinect: fix comments referring to color camera
+Date: Thu, 21 Apr 2011 11:51:36 +0200
+Message-Id: <1303379496-12899-4-git-send-email-ospite@studenti.unina.it>
+In-Reply-To: <1303379496-12899-1-git-send-email-ospite@studenti.unina.it>
+References: <4DADF1CB.4050504@redhat.com>
+ <1303379496-12899-1-git-send-email-ospite@studenti.unina.it>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Register 42 bits 2,3,6 and 7 should be set to 0.
- This gives difficult locking on some channels and may be compensated
- for by other methods.
+Use the expression "video stream" instead of "color camera" which is
+more correct as the driver supports the RGB and IR image on the same
+endpoint.
 
-This affects any driver using the stv0288 frontend on the default
-or earda inittab.
-
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
 ---
- drivers/media/dvb/frontends/eds1547.h |    2 +-
- drivers/media/dvb/frontends/stv0288.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/video/gspca/kinect.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/dvb/frontends/eds1547.h b/drivers/media/dvb/frontends/eds1547.h
-index fa79b7c..c983f2f 100644
---- a/drivers/media/dvb/frontends/eds1547.h
-+++ b/drivers/media/dvb/frontends/eds1547.h
-@@ -61,7 +61,7 @@ static u8 stv0288_earda_inittab[] = {
- 	0x3d, 0x30,
- 	0x40, 0x63,
- 	0x41, 0x04,
--	0x42, 0x60,
-+	0x42, 0x20,
- 	0x43, 0x00,
- 	0x44, 0x00,
- 	0x45, 0x00,
-diff --git a/drivers/media/dvb/frontends/stv0288.c b/drivers/media/dvb/frontends/stv0288.c
-index e3fe17f..8e0cfad 100644
---- a/drivers/media/dvb/frontends/stv0288.c
-+++ b/drivers/media/dvb/frontends/stv0288.c
-@@ -253,7 +253,7 @@ static u8 stv0288_inittab[] = {
- 	0x3d, 0x30,
- 	0x40, 0x63,
- 	0x41, 0x04,
--	0x42, 0x60,
-+	0x42, 0x20,
- 	0x43, 0x00,
- 	0x44, 0x00,
- 	0x45, 0x00,
+diff --git a/drivers/media/video/gspca/kinect.c b/drivers/media/video/gspca/kinect.c
+index b4f9e2b..2028c64 100644
+--- a/drivers/media/video/gspca/kinect.c
++++ b/drivers/media/video/gspca/kinect.c
+@@ -233,7 +233,7 @@ static int sd_config(struct gspca_dev *gspca_dev,
+ 
+ 	sd->cam_tag = 0;
+ 
+-	/* Only color camera is supported for now,
++	/* Only video stream is supported for now,
+ 	 * which has stream flag = 0x80 */
+ 	sd->stream_flag = 0x80;
+ 
+@@ -243,7 +243,7 @@ static int sd_config(struct gspca_dev *gspca_dev,
+ 	cam->nmodes = ARRAY_SIZE(video_camera_mode);
+ 
+ #if 0
+-	/* Setting those values is not needed for color camera */
++	/* Setting those values is not needed for video stream */
+ 	cam->npkt = 15;
+ 	gspca_dev->pkt_size = 960 * 2;
+ #endif
 -- 
-1.7.4.1
+1.7.4.4
 
