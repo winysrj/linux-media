@@ -1,42 +1,55 @@
 Return-path: <mchehab@pedra>
-Received: from d1.icnet.pl ([212.160.220.21]:51204 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752117Ab1DMNMW convert rfc822-to-8bit (ORCPT
+Received: from mailout-de.gmx.net ([213.165.64.23]:34469 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750893Ab1DUJrt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Apr 2011 09:12:22 -0400
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-To: Sergei Shtylyov <sshtylyov@mvista.com>
-Subject: Re: [PATCH 2.6.39 v2] V4L: videobuf-dma-contig: fix mmap_mapper broken on ARM
-Date: Wed, 13 Apr 2011 15:11:41 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Jiri Slaby <jslaby@suse.cz>,
-	linux-arm-kernel@lists.infradead.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <201104122306.34909.jkrzyszt@tis.icnet.pl> <4DA59120.1070402@ru.mvista.com>
-In-Reply-To: <4DA59120.1070402@ru.mvista.com>
+	Thu, 21 Apr 2011 05:47:49 -0400
+Date: Thu, 21 Apr 2011 11:47:43 +0200
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: Bob Liu <lliubbo@gmail.com>
+Cc: linux-media@vger.kernel.org, dhowells@redhat.com,
+	linux-uvc-devel@lists.berlios.de, mchehab@redhat.com,
+	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@maxwell.research.nokia.com, martin_rubli@logitech.com,
+	jarod@redhat.com, tj@kernel.org, arnd@arndb.de, fweisbec@gmail.com,
+	agust@denx.de, gregkh@suse.de, vapier@gentoo.org
+Subject: Re: [PATCH v3] media:uvc_driver: add uvc support on no-mmu arch
+Message-ID: <20110421094743.GA8503@minime.bse>
+References: <1303355862-17507-1-git-send-email-lliubbo@gmail.com>
+ <20110421075947.GA8178@minime.bse>
+ <BANLkTimHX8aYoeSU1ES0Tw0Swaz9xYLt=Q@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201104131511.42171.jkrzyszt@tis.icnet.pl>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <BANLkTimHX8aYoeSU1ES0Tw0Swaz9xYLt=Q@mail.gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Dnia Å›roda 13 kwiecieÅ„ 2011 o 14:03:44 Sergei Shtylyov napisaÅ‚(a):
-> Hello.
+On Thu, Apr 21, 2011 at 04:20:36PM +0800, Bob Liu wrote:
+> > on mmu systems do_mmap_pgoff contains a len = PAGE_ALIGN(len); line.
+> > If we depend on this behavior, why not do it here as well and get rid
+> > of the #ifdef?
+> >
 > 
-> On 13-04-2011 1:06, Janusz Krzysztofik wrote:
-> > After switching from mem->dma_handle to virt_to_phys(mem->vaddr)
-> > used for obtaining page frame number passed to remap_pfn_range()
-> > (commit 35d9f510b67b10338161aba6229d4f55b4000f5b),
-> > videobuf-dma-contig
+> If do it in do_mmap_pgoff() the whole system will be effected, I am
+> not sure whether
+> it's correct and needed for other subsystem.
+
+With "here" I was referring to uvc_queue_mmap.
+
+> >> +     addr = (unsigned long)queue->mem + buffer->buf.m.offset;
+> >> +     ret = addr;
+> >
+> > Why the intermediate step using addr?
+> >
 > 
->     Please specify the commit summary -- for the human readers.
+> If don't return addr, do_mmap_pgoff() will return failure and we can't
+> setup vma correctly.
+> See mm/nommu.c line 1386(add = file->f_op->get_unmmapped_area() ).
 
-Hi,
-OK, I'll try to reword the summary using a more human friendly language 
-as soon as I have signs that Mauro (who seemed to understand the message 
-well enough) is willing to accept the code.
+I know, but why not do
+	ret = (unsigned long)queue->mem + buffer->buf.m.offset;
+instead?
 
-Thanks,
-Janusz
+  Daniel
