@@ -1,66 +1,54 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:12237 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753912Ab1DFIO6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Apr 2011 04:14:58 -0400
-Date: Wed, 06 Apr 2011 10:14:53 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH 5/7] v4l: s5p-fimc: add pm_runtime support
-In-reply-to: <007c01cbf3f2$c6e7b420$54b71c60$%han@samsung.com>
-To: Jonghun Han <jonghun.han@samsung.com>
-Cc: 'Marek Szyprowski' <m.szyprowski@samsung.com>,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Andrzej Pietrasiwiecz' <andrzej.p@samsung.com>,
-	'Arnd Bergmann' <arnd@arndb.de>,
-	'Kukjin Kim' <kgene.kim@samsung.com>,
-	=?EUC-KR?B?J7DtwOe47Sc=?= <jemings@samsung.com>
-Message-id: <4D9C20FD.2010608@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=EUC-KR
-Content-transfer-encoding: 7BIT
-References: <1302012410-17984-1-git-send-email-m.szyprowski@samsung.com>
- <1302012410-17984-6-git-send-email-m.szyprowski@samsung.com>
- <007c01cbf3f2$c6e7b420$54b71c60$%han@samsung.com>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:47297 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754390Ab1DUVDH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Apr 2011 17:03:07 -0400
+Received: by fxm17 with SMTP id 17so71660fxm.19
+        for <linux-media@vger.kernel.org>; Thu, 21 Apr 2011 14:03:06 -0700 (PDT)
+Date: Thu, 21 Apr 2011 23:02:54 +0200
+From: Steffen Barszus <steffenbpunkt@googlemail.com>
+To: Lutz Sammer <johns98@gmx.net>
+Cc: linux-media@vger.kernel.org, liplianin@me.by,
+	abraham.manu@gmail.com
+Subject: Re: [PATCH] Fixes stb0899 not locking
+Message-ID: <20110421230254.5b01c85e@grobi>
+In-Reply-To: <4D99B357.50804@gmx.net>
+References: <4D99B357.50804@gmx.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Jonghun,
+On Mon, 04 Apr 2011 14:02:31 +0200
+Lutz Sammer <johns98@gmx.net> wrote:
 
-On 04/06/2011 02:37 AM, Jonghun Han wrote:
-...
+> Fixes stb0899 not locking.
+> See http://www.spinics.net/lists/linux-media/msg30486.html ...
 > 
-> Hi Marek,
+> When stb0899_check_data is entered, it could happen, that the data is
+> already locked and the data search looped.  stb0899_check_data fails
+> to lock on a good frequency.  stb0899_search_data uses an extrem big
+> search step and fails to lock.
 > 
-> runtime_pm is used to minimize current.
-> In my opinion, the followings will be better.
-> 1. Adds pm_runtime_get_sync before running of the first job.
->    IMO, dma_run callback function is the best place for calling in case of
-> M2M.
-Yeah, sounds reasonable.
+> The new code checks for lock before starting a new search.
+> The first read ignores the loop bit, for the case that the loop bit is
+> set during the search setup.  I also added the msleep to reduce the
+> traffic on the i2c bus.
 
-> 2. And then in the ISR, call pm_runtime_put_sync in the ISR bottom-half if
-> there is no remained job.
+Any updates on this one, or does this really need to be discussed. Its
+proven now, that here is a bug, there was enough discussion before. 
 
-So you are switching the clocks off in the interrupt context, I'm not sure
-whether this is a good idea. Perhaps we could just use pm_runtime_put()
-in this case?
+Can this PLEASE get applied. 
 
-> 
-> I had already implemented and tested.
-> But it remained code cleanup. I hope I can post it on the next week.
+What proofs are needed, anything wrong with it , at least ANY comment
+on it ? 
 
-The purpose of Marek's simple patch was to just enable the FIMC IP
-to illustrate the IOMMU driver's operation. I have prepared more complete
-patch for runtime PM and system suspend/resume in the mem-to-mem driver
-as well, but I want to consolidate this with the video capture driver before
-sending upstream.
-Anyway I'm looking forward to see your patch so we can work out some common
-version. Also I've got a few patches for this rc period which I intend to post
-this week.
+I'm starting to hate that its hidden trough v4l development causing that
+DVB development is dead. This sucks ...
 
-Regards,
--- 
-Sylwester Nawrocki
-Samsung Poland R&D Center
+Is there any DVB developer on this list ?  Someone who can check and
+comment or approve this patch ? 
+
+Thanks !
