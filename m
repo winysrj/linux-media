@@ -1,90 +1,72 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:57702 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751645Ab1DEMz4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2011 08:55:56 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH/RFC 1/4] V4L: add three new ioctl()s for multi-size videobuffer management
-Date: Tue, 5 Apr 2011 14:56:29 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <Pine.LNX.4.64.1104010959470.9530@axis700.grange> <201104051359.18879.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1104051425030.14419@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1104051425030.14419@axis700.grange>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201104051456.29434.laurent.pinchart@ideasonboard.com>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:24150 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754455Ab1DUPVN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Apr 2011 11:21:13 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Thu, 21 Apr 2011 17:21:03 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v4 2/3] v4l: Move S5P FIMC driver into Video Capture Devices
+In-reply-to: <1303399264-3849-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: linux-samsung-soc@vger.kernel.org, kyungmin.park@samsung.com,
+	m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	kgene.kim@samsung.com, sungchun.kang@samsung.com,
+	jonghun.han@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Message-id: <1303399264-3849-3-git-send-email-s.nawrocki@samsung.com>
+References: <1303399264-3849-1-git-send-email-s.nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Guennadi,
+s5p-fimc now also implements a camera capture video node so move
+it under the "Video capture devices" Kconfig menu. Also update
+the entry to reflect the driver's coverage of EXYNOS4 SoCs.
 
-On Tuesday 05 April 2011 14:39:19 Guennadi Liakhovetski wrote:
-> On Tue, 5 Apr 2011, Laurent Pinchart wrote:
-> > On Friday 01 April 2011 10:13:02 Guennadi Liakhovetski wrote:
-> > > A possibility to preallocate and initialise buffers of different sizes
-> > > in V4L2 is required for an efficient implementation of asnapshot mode.
-> > > This patch adds three new ioctl()s: VIDIOC_CREATE_BUFS,
-> > > VIDIOC_DESTROY_BUFS, and VIDIOC_SUBMIT_BUF and defines respective data
-> > > structures.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/Kconfig |   19 +++++++++++--------
+ 1 files changed, 11 insertions(+), 8 deletions(-)
 
-[snip]
-
-> > > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> > > index aa6c393..b6ef46e 100644
-> > > --- a/include/linux/videodev2.h
-> > > +++ b/include/linux/videodev2.h
-> > > @@ -1847,6 +1847,26 @@ struct v4l2_dbg_chip_ident {
-
-[snip]
-
-> > > +/* struct v4l2_createbuffers::flags */
-> > > +#define V4L2_BUFFER_FLAG_NO_CACHE_INVALIDATE	(1 << 0)
-> > 
-> > Shouldn't cache management be handled at submit/qbuf time instead of
-> > being a buffer property ?
-> 
-> hmm, I'd prefer fixing it at create. Or do you want to be able to create
-> buffers and then submit / queue them with different flags?...
-
-That's the idea, yes. I'm not sure yet how useful that would be though.
-
-[snip]
-
-> > > +
-> > > 
-> > >  /*
-> > >  
-> > >   *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
-> > >   *
-> > > 
-> > > @@ -1937,6 +1957,10 @@ struct v4l2_dbg_chip_ident {
-> > > 
-> > >  #define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct
-> > > 
-> > > v4l2_event_subscription) #define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 91,
-> > > struct v4l2_event_subscription)
-> > > 
-> > > +#define VIDIOC_CREATE_BUFS	_IOWR('V', 92, struct v4l2_create_buffers)
-> > > +#define VIDIOC_DESTROY_BUFS	_IOWR('V', 93, struct v4l2_buffer_span)
-> > 
-> > Just throwing an idea in here, what about using the same structure for
-> > both ioctls ? Or even a single ioctl for both create and destroy, like
-> > we do with REQBUFS ?
-> 
-> Personally, tbh, I don't like either of them. The first one seems an
-> overkill - you don't need all those fields for destroy. The second one is
-> a particular case of the first one, plus it adds confusion by re-using the
-> ioctl:-) Where with REQBUFS we could just set count = 0 to say - release
-> all buffers, with this one we need index and count, so, we'd need one more
-> flag to distinguish between create / destroy...
-
-OK, idea dismissed :-)
-
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 4498b94..4f0ac2d 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -927,6 +927,17 @@ config VIDEO_MX2
+ 	  This is a v4l2 driver for the i.MX27 and the i.MX25 Camera Sensor
+ 	  Interface
+ 
++config  VIDEO_SAMSUNG_S5P_FIMC
++	tristate "S5P and EXYNOS4 camera host interface driver"
++	depends on VIDEO_DEV && VIDEO_V4L2 && PLAT_S5P
++	select VIDEOBUF2_DMA_CONTIG
++	select V4L2_MEM2MEM_DEV
++	help
++	  This is a v4l2 driver for the S5P and EXYNOS4 camera host interface
++	  and video postprocessor.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called s5p-fimc.
+ 
+ #
+ # USB Multimedia device configuration
+@@ -1022,13 +1033,5 @@ config VIDEO_MEM2MEM_TESTDEV
+ 	  This is a virtual test device for the memory-to-memory driver
+ 	  framework.
+ 
+-config  VIDEO_SAMSUNG_S5P_FIMC
+-	tristate "Samsung S5P FIMC (video postprocessor) driver"
+-	depends on VIDEO_DEV && VIDEO_V4L2 && PLAT_S5P
+-	select VIDEOBUF2_DMA_CONTIG
+-	select V4L2_MEM2MEM_DEV
+-	help
+-	  This is a v4l2 driver for the S5P camera interface
+-	  (video postprocessor)
+ 
+ endif # V4L_MEM2MEM_DRIVERS
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.4.5
