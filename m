@@ -1,59 +1,44 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.1.48]:17785 "EHLO mgw-sa02.nokia.com"
+Received: from smtp207.alice.it ([82.57.200.103]:47846 "EHLO smtp207.alice.it"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751473Ab1D1L6s convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Apr 2011 07:58:48 -0400
-From: <kalle.jokiniemi@nokia.com>
-To: <broonie@opensource.wolfsonmicro.com>
-CC: <lrg@slimlogic.co.uk>, <mchehab@infradead.org>,
-	<svarbatov@mm-sol.com>, <saaguirre@ti.com>,
-	<grosikopulos@mm-sol.com>, <vimarsh.zutshi@nokia.com>,
-	<Sakari.Ailus@nokia.com>, <linux-kernel@vger.kernel.org>,
-	<linux-media@vger.kernel.org>
-Subject: RE: [RFC] Regulator state after regulator_get
-Date: Thu, 28 Apr 2011 11:58:26 +0000
-Message-ID: <9D0D31AA57AAF5499AFDC63D6472631B09C8CE@008-AM1MPN1-036.mgdnok.nokia.com>
-References: <9D0D31AA57AAF5499AFDC63D6472631B09C76A@008-AM1MPN1-036.mgdnok.nokia.com>
- <20110428100629.GA14494@opensource.wolfsonmicro.com>
- <9D0D31AA57AAF5499AFDC63D6472631B09C858@008-AM1MPN1-036.mgdnok.nokia.com>
- <20110428111447.GA19484@opensource.wolfsonmicro.com>
-In-Reply-To: <20110428111447.GA19484@opensource.wolfsonmicro.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	id S1751876Ab1DUJvw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Apr 2011 05:51:52 -0400
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: linux-media@vger.kernel.org
+Cc: Drew Fisher <drew.m.fisher@gmail.com>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Antonio Ospite <ospite@studenti.unina.it>
+Subject: [PATCH 2/3] gspca - kinect: fix a typo s/steram/stream/
+Date: Thu, 21 Apr 2011 11:51:35 +0200
+Message-Id: <1303379496-12899-3-git-send-email-ospite@studenti.unina.it>
+In-Reply-To: <1303379496-12899-1-git-send-email-ospite@studenti.unina.it>
+References: <4DADF1CB.4050504@redhat.com>
+ <1303379496-12899-1-git-send-email-ospite@studenti.unina.it>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+From: Drew Fisher <drew.m.fisher@gmail.com>
 
+Signed-off-by: Drew Fisher <drew.m.fisher@gmail.com>
+Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
+---
+ drivers/media/video/gspca/kinect.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
- > -----Original Message-----
- > From: ext Mark Brown [mailto:broonie@opensource.wolfsonmicro.com]
- > Sent: 28. huhtikuuta 2011 14:15
- > To: Jokiniemi Kalle (Nokia-SD/Tampere)
- > Cc: lrg@slimlogic.co.uk; mchehab@infradead.org; svarbatov@mm-sol.com;
- > saaguirre@ti.com; grosikopulos@mm-sol.com; Zutshi Vimarsh (Nokia-
- > SD/Helsinki); Ailus Sakari (Nokia-SD/Helsinki); linux-kernel@vger.kernel.org;
- > linux-media@vger.kernel.org
- > Subject: Re: [RFC] Regulator state after regulator_get
- > 
- > On Thu, Apr 28, 2011 at 11:08:08AM +0000, kalle.jokiniemi@nokia.com wrote:
- > 
- > > I don't have a full set of regulators described, that's why things broke when
- > > I tried the regulator_full_constraints call earlier. But I don't think it would be
- > too
- > > big issue to check the current after boot configuration and define all the
- > > regulators as you suggest. I will try this approach.
- > 
- > As I said in my previous mail if you've got a reagulator you don't know
- > about which is on you can give it an always_on constraint until you
- > figure out what (if anything) should be controlling it.
+diff --git a/drivers/media/video/gspca/kinect.c b/drivers/media/video/gspca/kinect.c
+index 79c4ef5..b4f9e2b 100644
+--- a/drivers/media/video/gspca/kinect.c
++++ b/drivers/media/video/gspca/kinect.c
+@@ -61,7 +61,7 @@ struct cam_hdr {
+ struct sd {
+ 	struct gspca_dev gspca_dev; /* !! must be the first item */
+ 	uint16_t cam_tag;           /* a sequence number for packets */
+-	uint8_t stream_flag;        /* to identify different steram types */
++	uint8_t stream_flag;        /* to identify different stream types */
+ 	uint8_t obuf[0x400];        /* output buffer for control commands */
+ 	uint8_t ibuf[0x200];        /* input buffer for control commands */
+ };
+-- 
+1.7.4.4
 
-Yeps, I plan to check the PMIC for the regulators that are left on after boot
-In the current working setup and then put those "always_on" flags on those
-regulators in the final setup.
-
-Thanks for the help!
-
-- Kalle
