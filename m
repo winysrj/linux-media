@@ -1,158 +1,131 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:23213 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752639Ab1DEOJB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2011 10:09:01 -0400
-Date: Tue, 05 Apr 2011 16:06:43 +0200
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:34952 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752813Ab1DUOEH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Apr 2011 10:04:07 -0400
+Date: Thu, 21 Apr 2011 16:03:59 +0200
 From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [RFC/PATCH v2 0/7] Samsung IOMMU videobuf2 allocator and s5p-fimc
-	update
-To: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Andrzej Pietrasiwiecz <andrzej.p@samsung.com>,
+Subject: RE: [PATCH 2/7] ARM: Samsung: update/rewrite Samsung SYSMMU (IOMMU)
+	driver
+In-reply-to: <201104211400.13289.arnd@arndb.de>
+To: 'Arnd Bergmann' <arnd@arndb.de>
+Cc: 'Joerg Roedel' <joerg.roedel@amd.com>,
+	linux-samsung-soc@vger.kernel.org,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Kukjin Kim' <kgene.kim@samsung.com>,
 	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Kukjin Kim <kgene.kim@samsung.com>
-Message-id: <1302012410-17984-1-git-send-email-m.szyprowski@samsung.com>
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Message-id: <003301cc002c$f67ba0c0$e372e240$%szyprowski@samsung.com>
 MIME-version: 1.0
-Content-type: TEXT/PLAIN
+Content-type: text/plain; charset=us-ascii
+Content-language: pl
 Content-transfer-encoding: 7BIT
+References: <1303118804-5575-1-git-send-email-m.szyprowski@samsung.com>
+ <201104201807.27314.arnd@arndb.de>
+ <003001cc0017$c7fb3a40$57f1aec0$%szyprowski@samsung.com>
+ <201104211400.13289.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
 Hello,
 
-This is a second version of the Samsung IOMMU driver, videobuf2
-allocator for IOMMU mapped memory and FIMC driver update. The main
-change from the previous version is a complete rewrite of the IOMMU
-driver API. As suggested by Arnd Bergmann we decided to drop the custom
-interface and use the kernel wide, common iommu API defined in
-linux/include/iommu.h. This way the videobuf2 iommu allocator become
-much more generic framework, because it is no longer tied to any
-particular iommu implementation.
+On Thursday, April 21, 2011 2:00 PM Arnd Bergmann wrote:
 
-This patch series introduces new type of videbuf2 memory allocator -
-vb2-dma-iommu. This allocator can be used on the platforms that support
-linux/include/iommu.h style IOMMU driver. An IOMMU driver for Samsung
-EXYNOS4 (called SYSMMU) platform is also included. The allocator and
-IOMMU driver is then used by s5p-fimc driver. To make it possible some
-additional changes are required. Mainly the platform support for s5p-fimc
-for EXYNOS4 machines need to be defined. The proposed solution has been
-tested on Universal C210 board (Samsung S5PC210/EXYNOS4 based).
-This IOMMU allocator has no dependences on any external subsystems.
+> On Thursday 21 April 2011, Marek Szyprowski wrote:
+> > On Wednesday, April 20, 2011 6:07 PM Arnd Bergmann wrote:
+> > > On Wednesday 20 April 2011, Marek Szyprowski wrote:
+> > > > The only question is how a device can allocate a buffer that will be
+> most
+> > > > convenient for IOMMU mapping (i.e. will require least entries to
+> map)?
+> > > >
+> > > > IOMMU can create a contiguous mapping for ANY set of pages, but it
+> performs
+> > > > much better if the pages are grouped into 64KiB or 1MiB areas.
+> > > >
+> > > > Can device allocate a buffer without mapping it into kernel space?
+> > >
+> > > Not today as far as I know. You can register coherent memory per device
+> > > using dma_declare_coherent_memory(), which will be used to back
+> > > dma_alloc_coherent(), but I believe it is always mapped right now.
+> >
+> > This is not exactly what I meant.
+> >
+> > As we have IOMMU, the device driver can access any system memory. However
+> > the performance will be better if the buffer is composed of larger
+> contiguous
+> > parts (like 64KiB or 1MiB). I would like to avoid putting logic that
+> manages
+> > buffer allocation into the device drivers. It would be best if such
+> buffers
+> > could be allocated by a single call to dma-mapping API.
+> >
+> > Right now there is dma_alloc_coherent() function, which is used by the
+> > drivers to allocate a contiguous block of memory and map it to DMA
+> addresses.
+> > With IOMMU implementation it is quite easy to provide a replacement for
+> it
+> > that will allocate some set of pages and map into device virtual address
+> > space as a contiguous buffer.
+> >
+> > This will have the advantage that the same multimedia device driver
+> > will work on both systems - Samsung S5PC110 (without IOMMU) and Exynos4
+> > (with IOMMU).
+> 
+> Right.
+> 
+> > However dma_alloc_coherent() besides allocating memory also implies some
+> > particular type of memory mapping for it. IMHO it might be a good idea to
+> > separate these 2 things (allocation and mapping) somewhere in the future.
+> >
+> > On systems with IOMMU the dma_map_sg() can be also used to create a
+> mapping
+> > in device virtual address space, but the driver will still need to
+> allocate
+> > the memory by itself.
+> 
+> Note that dma_map_sg() is the "streaming mapping", which provides a
+> cacheable
+> buffer all the time, while dma_alloc_coherent() and is the "coherent
+> mapping".
 
-We also ported s5p-mfc and s5p-tv drivers to this allocator, they will
-be posted in separate patch series. This will enable to get them working
-on mainline Linux kernel for EXYNOS4 platform. Support for
-S5PV210/S5PC110 platform still depends on CMA allocator that needs more
-discussion on memory management mailing list and further development.
-The patches with updated s5p-mfc and s5p-tv drivers will follow.
+Ok. 
 
-To get FIMC module working on EXYNOS4 platform on UniversalC210 board we
-also added support for power domains and power gating.
+> There is also dma_alloc_noncoherent(), which you can use to allocate a
+> buffer
+> for the streaming mapping. This is currently not implemented on ARM, but if
+> I understand you correctly, adding this would do what you want.
 
-This patch series contains a collection of patches for various platform
-subsystems. Here is a detailed list:
+Ok, I got it. Implementing dma_alloc_noncoherent() as well as dma_map_sg()
+for non-IOMMU cases also makes some sense and will simplify the drivers imho.
 
-[PATCH 1/7] ARM: EXYNOS4: power domains: fixes and code cleanup
-- adds support for block gating in Samsung power domain driver and
-  performs some cleanup
+> > > Ok, I see. Having one device per channel as you suggested could
+> probably
+> > > work around this, and it's at least consistent with how you'd represent
+> > > IOMMUs in the device tree. It is not ideal because it makes the video
+> > > driver more complex when it now has to deal with multiple struct device
+> > > that it binds to, but I can't think of any nicer way either.
+> >
+> > Well, this will definitely complicate the codec driver. I wonder if
+> allowing
+> > the driver to kmalloc(sizeof(struct device))) and copy the relevant data
+> > from the 'proper' struct device will be better idea. It is still hack but
+> > definitely less intrusive for the driver.
+> 
+> No, I think that would be much worse, it definitely destroys all kinds of
+> assumptions that the core code makes about devices. However, I don't think
+> it's much of a problem to just create two child devices and use them
+> from the main driver, you don't really need to create a device_driver
+> to bind to each of them.
 
-[PATCH 2/7] ARM: Samsung: update/rewrite Samsung SYSMMU (IOMMU) driver
-- a complete rewrite of sysmmu driver for Samsung platform, now uses
-  linux/include/iommu.h api
-
-[PATCH 3/7] v4l: videobuf2: dma-sg: move some generic functions to memops
-- a little cleanup and preparations for the dma-iommu allocator
-
-[PATCH 4/7] v4l: videobuf2: add IOMMU based DMA memory allocator
-- introduces new memory allocator for videobuf2 for drivers that support
-  iommu dma memory mappings
-
-[PATCH 5/7] v4l: s5p-fimc: add pm_runtime support
-- adds support for pm_runtime in s5p-fimc driver
-
-[PATCH 6/7] v4l: s5p-fimc: Add support for vb2-dma-iommu allocator
-- adds support for the newly introduces videbuf2-s5p-iommu allocator
-  on EXYNOS4 platform
-
-[PATCH 7/7] ARM: EXYNOS4: enable FIMC on Universal_C210
-- adds all required machine definitions to get FIMC modules working
-  on Universal C210 boards
-
-
-Changelog:
-
-V2:
- - custom SYSMMU interface has been dropped in favour of linux/include/iommu.h
-   and rewritten SYSMMU driver again
- - added support to SYSMMU for mapping pages larger than 4Kb
- - dropped ARM shared mode
- - videobuf2-s5p-iommu allocator has been renamed to videobuf2-dma-iommu,
-   because it has no dependenco on any Samsung platform specific API,
-   the allocator still uses only 4Kb pages, but this will be changed in the
-   next version
- - dropped FIMC platform patch that have been merged mainline
- - rebased all patches onto Linux kernel v2.6.39-rc1
-
-V1: http://www.spinics.net/lists/linux-media/msg29751.html
+I must have missed something. Video codec is a platform device and struct
+device pointer is gathered from it (&pdev->dev). How can I define child
+devices and attach them to the platform device?
 
 Best regards
 -- 
 Marek Szyprowski
 Samsung Poland R&D Center
 
-
-
-Complete patch summary:
-
-Andrzej Pietrasiewicz (3):
-  ARM: Samsung: update/rewrite Samsung SYSMMU (IOMMU) driver
-  v4l: videobuf2: dma-sg: move some generic functions to memops
-  v4l: videobuf2: add IOMMU based DMA memory allocator
-
-Marek Szyprowski (3):
-  v4l: s5p-fimc: add pm_runtime support
-  v4l: s5p-fimc: Add support for vb2-dma-iommu allocator
-  ARM: EXYNOS4: enable FIMC on Universal_C210
-
-Tomasz Stanislawski (1):
-  ARM: EXYNOS4: power domains: fixes and code cleanup
-
- arch/arm/mach-exynos4/Kconfig                   |    6 +
- arch/arm/mach-exynos4/clock.c                   |   68 +-
- arch/arm/mach-exynos4/dev-pd.c                  |   93 ++-
- arch/arm/mach-exynos4/dev-sysmmu.c              |  615 ++++++++-----
- arch/arm/mach-exynos4/include/mach/irqs.h       |   35 +-
- arch/arm/mach-exynos4/include/mach/regs-clock.h |    7 +
- arch/arm/mach-exynos4/include/mach/sysmmu.h     |   46 -
- arch/arm/mach-exynos4/mach-universal_c210.c     |   22 +
- arch/arm/plat-s5p/Kconfig                       |   20 +-
- arch/arm/plat-s5p/include/plat/sysmmu.h         |  165 ++--
- arch/arm/plat-s5p/sysmmu.c                      | 1103 ++++++++++++++++-------
- arch/arm/plat-samsung/include/plat/devs.h       |    2 +-
- arch/arm/plat-samsung/include/plat/pd.h         |    1 +
- drivers/media/video/Kconfig                     |   11 +-
- drivers/media/video/Makefile                    |    1 +
- drivers/media/video/s5p-fimc/fimc-capture.c     |    9 +-
- drivers/media/video/s5p-fimc/fimc-core.c        |   38 +-
- drivers/media/video/s5p-fimc/fimc-core.h        |    1 +
- drivers/media/video/s5p-fimc/fimc-mem.h         |  103 +++
- drivers/media/video/videobuf2-dma-iommu.c       |  469 ++++++++++
- drivers/media/video/videobuf2-dma-sg.c          |   37 +-
- drivers/media/video/videobuf2-memops.c          |   76 ++
- include/media/videobuf2-dma-iommu.h             |   48 +
- include/media/videobuf2-memops.h                |    5 +
- 24 files changed, 2180 insertions(+), 801 deletions(-)
- rewrite arch/arm/mach-exynos4/dev-sysmmu.c (88%)
- delete mode 100644 arch/arm/mach-exynos4/include/mach/sysmmu.h
- rewrite arch/arm/plat-s5p/include/plat/sysmmu.h (83%)
- rewrite arch/arm/plat-s5p/sysmmu.c (87%)
- create mode 100644 drivers/media/video/s5p-fimc/fimc-mem.h
- create mode 100644 drivers/media/video/videobuf2-dma-iommu.c
- create mode 100644 include/media/videobuf2-dma-iommu.h
-
--- 
-1.7.1.569.g6f426
