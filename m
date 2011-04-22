@@ -1,43 +1,76 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:10888 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753756Ab1DKUoV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Apr 2011 16:44:21 -0400
-Message-ID: <4DA3681E.7080700@redhat.com>
-Date: Mon, 11 Apr 2011 22:44:14 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from cmsout01.mbox.net ([165.212.64.31]:36382 "EHLO
+	cmsout01.mbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756780Ab1DVWRV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Apr 2011 18:17:21 -0400
+Message-ID: <4DB1FE58.20006@usa.net>
+Date: Sat, 23 Apr 2011 00:16:56 +0200
+From: Issa Gorissen <flop.m@usa.net>
 MIME-Version: 1.0
-To: Antonio Ospite <ospite@studenti.unina.it>
+To: xtronom@gmail.com
 CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] libv4lconvert-priv.h: indent with tabs, not spaces
-References: <1302191845-7506-1-git-send-email-ospite@studenti.unina.it>
-In-Reply-To: <1302191845-7506-1-git-send-email-ospite@studenti.unina.it>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Subject: ngene CI problems
+References: <4D74E28A.6030302@gmail.com>
+In-Reply-To: <4D74E28A.6030302@gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Thanks, applied.
+> Hi all!
+>
+> I'm trying to make the DVB_DEVICE_SEC approach work, however I'm 
+> experiencing certain problems with the following setup:
+>
+> Software:
+> Linux 2.6.34.8 (vanilla)
+> drivers from http://linuxtv.org/hg/~endriss/v4l-dvb/ <http://linuxtv.org/hg/%7Eendriss/v4l-dvb/>
+>
+> Hardware:
+> Digital Devices CineS2 + CI Module
+>
+> Problems:
+>
+> - Packets get lost in SEC device:
+>
+> I write complete TS to SEC, but when reading from SEC there are 
+> discontinuities on the CC.
+>
+> - SEC device generates NULL packets (ad infinitum):
+>
+> When reading from SEC, NULL packets are read and interleaved with 
+> expected packets. They can be even read with dd(1) when nobody is 
+> writing to SEC and even when CAM is not ready.
+>
+> - SEC device blocks on CAM re-insertion:
+>
+> When CAM is removed from the slot and inserted again, all read() 
+> operations just hang. Rebooting resolves the problem.
+>
+> - SEC device does not respect O_NONBLOCK:
+>
+> In connection to the previous problem, SEC device blocks even if opened 
+> with O_NONBLOCK.
+>
+> Best regards,
+> Martin Vidovic
 
-On 04/07/2011 05:57 PM, Antonio Ospite wrote:
-> Indent wrapped lines with tabs, just like it is done for the other
-> functions in the same file.
->
-> Signed-off-by: Antonio Ospite<ospite@studenti.unina.it>
-> ---
->   lib/libv4lconvert/libv4lconvert-priv.h |    2 +-
->   1 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/lib/libv4lconvert/libv4lconvert-priv.h b/lib/libv4lconvert/libv4lconvert-priv.h
-> index 30d1cfe..84c706e 100644
-> --- a/lib/libv4lconvert/libv4lconvert-priv.h
-> +++ b/lib/libv4lconvert/libv4lconvert-priv.h
-> @@ -131,7 +131,7 @@ void v4lconvert_grey_to_rgb24(const unsigned char *src, unsigned char *dest,
->   		int width, int height);
->
->   void v4lconvert_grey_to_yuv420(const unsigned char *src, unsigned char *dest,
-> -                const struct v4l2_format *src_fmt);
-> +		const struct v4l2_format *src_fmt);
->
->   void v4lconvert_rgb565_to_rgb24(const unsigned char *src, unsigned char *dest,
->   		int width, int height);
+Hi,
+
+Running a bunch of test with gnutv and a DuoFLEX S2.
+
+I saw the same problem concerning the decryption with a CAM.
+
+I'm running kern 2.6.39 rc 4 with the latest patches from Oliver. Also
+applied the patch moving from SEC to CAIO.
+
+I would run gnutv  like 'gnutv -out stdout channelname >
+/dev/dvb/adapter0/caio0' and then 'cat /dev/dvb/adapter0/caio0 | mplayer -'
+Mplayer would complain the file is invalid. Simply running simply 'cat
+/dev/dvb/adapter0/caio0' will show me the same data pattern over and over.
+
+Anyone using ngene based card with a CAM running successfully ?
+
+--
+Issa
