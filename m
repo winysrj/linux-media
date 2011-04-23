@@ -1,168 +1,109 @@
 Return-path: <mchehab@pedra>
-Received: from mail.phytec.co.uk ([217.6.246.34]:37029 "EHLO root.phytec.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752433Ab1DHN1I (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 Apr 2011 09:27:08 -0400
-Subject: Re: Antwort: Re: [PATCH 1/2] mt9v022: fix pixel clock
-From: Teresa Gamez <T.Gamez@phytec.de>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <Pine.LNX.4.64.1104071419540.26842@axis700.grange>
-References: <1302098515-12176-1-git-send-email-t.gamez@phytec.de>
-	 <Pine.LNX.4.64.1104071303001.26842@axis700.grange>
-	 <OF0E7310A6.B4F9559D-ONC125786B.003E2F29-C125786B.004202D7@phytec.de>
-	 <Pine.LNX.4.64.1104071419540.26842@axis700.grange>
-Date: Fri, 08 Apr 2011 15:27:07 +0200
-Message-ID: <1302269227.5045.437.camel@lws-gamez>
-Mime-Version: 1.0
+Received: from cmsout01.mbox.net ([165.212.64.31]:41987 "EHLO
+	cmsout01.mbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753036Ab1DWKUe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 23 Apr 2011 06:20:34 -0400
+Message-ID: <4DB2A7CF.9050700@usa.net>
+Date: Sat, 23 Apr 2011 12:19:59 +0200
+From: Issa Gorissen <flop.m@usa.net>
+MIME-Version: 1.0
+To: Ralph Metzler <rjkm@metzlerbros.de>
+CC: xtronom@gmail.com, linux-media@vger.kernel.org
+Subject: Re: ngene CI problems
+References: <4D74E28A.6030302@gmail.com> <4DB1FE58.20006@usa.net>
+In-Reply-To: <4DB1FE58.20006@usa.net>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="UTF-8"
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello Guennadi,
+On 23/04/11 00:16, Issa Gorissen wrote:
+>> Hi all!
+>>
+>> I'm trying to make the DVB_DEVICE_SEC approach work, however I'm 
+>> experiencing certain problems with the following setup:
+>>
+>> Software:
+>> Linux 2.6.34.8 (vanilla)
+>> drivers from http://linuxtv.org/hg/~endriss/v4l-dvb/ <http://linuxtv.org/hg/%7Eendriss/v4l-dvb/>
+>>
+>> Hardware:
+>> Digital Devices CineS2 + CI Module
+>>
+>> Problems:
+>>
+>> - Packets get lost in SEC device:
+>>
+>> I write complete TS to SEC, but when reading from SEC there are 
+>> discontinuities on the CC.
+>>
+>> - SEC device generates NULL packets (ad infinitum):
+>>
+>> When reading from SEC, NULL packets are read and interleaved with 
+>> expected packets. They can be even read with dd(1) when nobody is 
+>> writing to SEC and even when CAM is not ready.
+>>
+>> - SEC device blocks on CAM re-insertion:
+>>
+>> When CAM is removed from the slot and inserted again, all read() 
+>> operations just hang. Rebooting resolves the problem.
+>>
+>> - SEC device does not respect O_NONBLOCK:
+>>
+>> In connection to the previous problem, SEC device blocks even if opened 
+>> with O_NONBLOCK.
+>>
+>> Best regards,
+>> Martin Vidovic
+>
+> Hi,
+>
+> Running a bunch of test with gnutv and a DuoFLEX S2.
+>
+> I saw the same problem concerning the decryption with a CAM.
+>
+> I'm running kern 2.6.39 rc 4 with the latest patches from Oliver. Also
+> applied the patch moving from SEC to CAIO.
+>
+> I would run gnutv  like 'gnutv -out stdout channelname >
+> /dev/dvb/adapter0/caio0' and then 'cat /dev/dvb/adapter0/caio0 | mplayer -'
+> Mplayer would complain the file is invalid. Simply running simply 'cat
+> /dev/dvb/adapter0/caio0' will show me the same data pattern over and over.
+>
+> Anyone using ngene based card with a CAM running successfully ?
 
-Am Donnerstag, den 07.04.2011, 14:41 +0200 schrieb Guennadi
-Liakhovetski:
-> Hello Teresa
-> 
-> On Thu, 7 Apr 2011, Teresa Gamez wrote:
-> 
-> > Hello Guennadi,
-> > 
-> > the datasheet also says (see table 3):
-> > 
-> > <quote>
-> > Pixel clock out. DOUT is valid on rising edge of this
-> > clock.
-> > </quote>
-> > 
-> > There is a difference between DOUT beeing vaild and DOUT beeing set up. 
-> > So does SOCAM_PCLK_SAMPLE_RISING mean that the data is valid at rising 
-> > edge or 
-> > does it mean the data is set up at rising edge? 
-> 
-> Hm, yeah, looks like a typical example of a copy-paste datasheet to me:-( 
-> And now we don't know which of the two is actually supposed to be true. As 
-> for "set up" vs. "valid" - not sure, whether there is indeed a difference 
-> between them. To me "set up _TO_ the rising edge" is a short way to set 
-> "set up to be valid at the rising edge," however, I might be wrong. Can 
-> you tell me in more detail what and where (at the sensor board or on the 
-> baseboard) you measured and what it looked like? I think, Figure 7 and the 
-> description below it are interesting. From that diagram I would indeed say 
-> indeed the DOUT pins are valid and should be sampled at the rising edge by 
-> default - when bit 4 in 0x74 is not set. SOCAM_PCLK_SAMPLE_RISING means, 
-> that the data should be sampled at the rising of pclkm, i.e., it is valid 
-> there.
+Hi Ralph,
 
-I meassured the outgoing pins from the baseboard to the camera board and
-checked the PCLK and D0 to see at which point the data is valid. I have
-also checked the quality of the image.
-All tests where made with sensor_type=color
+Could you enlighten us on the following matter please ?
 
-My results for pcm038 are with following register settings:
+I took a look inside cxd2099.c and I found that the method I suspect to
+read/write data from/to the CAM are not activated.
 
-mx2_camera
-0x0 CSICR1:		0x10020b92
--> rising edge
+static struct dvb_ca_en50221 en_templ = {
+    .read_attribute_mem  = read_attribute_mem,
+    .write_attribute_mem = write_attribute_mem,
+    .read_cam_control    = read_cam_control,
+    .write_cam_control   = write_cam_control,
+    .slot_reset          = slot_reset,
+    .slot_shutdown       = slot_shutdown,
+    .slot_ts_enable      = slot_ts_enable,
+    .poll_slot_status    = poll_slot_status,
+#ifdef BUFFER_MODE
+    .read_data           = read_data,
+    .write_data          = write_data,
+#endif
 
-mt9v022
-0x74 PIXCLK_FV_LV:      0x00000010
--> rising edge (which I think is falling edge)
+};
 
-meassured: falling edge (ugly image, wrong colors)
+Methods read_data and write_data are both enclosed inside the
+BUFFER_MODE test. Also, current version of struct dvb_ca_en50221 does
+not provide for read_data/write_data methods, right ?
 
-Now I set the SOCAM_SENSOR_INVERT_PCLK flag in the platformcode for the
-mt9v022:
+If I recall right, you once told that you manage to test the CAM
+<http://www.mail-archive.com/linux-media@vger.kernel.org/msg22196.html>,
+how did you do ?
 
-mx2_camera
-0x0 CSICR1		  0x10020b92
--> rising edge 
-
-mt9v022
-0x74 PIXCLK_FV_LV         0x00000000
--> falling edge (which I think is rising edge)
-
-meassured: rising edge (image is OK)
-
-Now changed the PCLK of the mx2_camera:
-
-mx2_camera
-0x0 CSICR1               0x10020b90
--> falling edge 
-
-mt9v022
-0x74 PIXCLK_FV_LV        0x00000010
--> rising edge (which I think is falling edge)
-
-meassured: falling edge (image is OK)
-
-> 
-> So, yes, if your measurements agree with figure 7 from the datasheet, we 
-> shall assume, that the driver implements the pclk polarity wrongly. But 
-> the fix should be more extensive, than what you've submitted: if we invert 
-> driver's behaviour, we should also invert board configuration of all 
-> driver users: pcm990 and pcm037. Or we have to test them and verify, that 
-> the inverted pclk polarity doesn't megatively affect the image quality, or 
-> maybe even improves it.
-> 
-> Thanks
-> Guennadi
-> 
-> > I have tested this with a pcm038 but I will also make meassurements with 
-> > the pcm037.
-> > 
-
-Same results with the pcm037:
-
-mx3_camera
-0x60 CSI_SENS_CONF:		0x00000700
--> rising edge
-
-mt9v022
-0x74 PIXCLK_FV_LV:		0x00000010
--> rising edge (which I think is falling edge)
-
-meassured: falling edge (ulgy image, looks like b/w with pixel errors)
-
-Set SOCAM_SENSOR_INVERT_PCLK flag in the platformcode for the mt9v022:
-mx3_camera
-0x60 CSI_SENS_CONF:		0x00000700
--> rising edge
-
-mt9v022
-0x74 PIXCLK_FV_LV		0x00000000
--> falling edge (which I think is rising edge)
-
-meassured: rising edge (image is OK)
-
-Additionally set MX3_CAMERA_PCP of the mx3_camera flags 
-
-mx3_camera
-0x60 CSI_SENS_CONF:		0x00000708
--> falling edge
-
-mt9v022
-0x74 PIXCLK_FV_LV:       	0x00000010
--> rising edge (which I think is falling edge)
-
-meassured: falling edge (image is OK)
-
-Removed SOCAM_SENSOR_INVERT_PCLK flag for the mt9v022:
-
-mx3_camera
-0x60 CSI_SENS_CONF:		0x00000708
--> falling edge
-
-mt9v022
-0x74 PIXCLK_FV_LV		0x00000000
--> falling edge (which I think is rising edge)
-
-meassured: risging edge (ugly image, looks like the first one)
-
-I have noticed that on our pcm037 BSP the SOCAM_SENSOR_INVERT_PCLK flag
-for the camera was set to "fix" this issue.
-I will continue this test on the pcm990.
-
-Teresa
-
+Thx
+--
+Issa
