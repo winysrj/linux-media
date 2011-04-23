@@ -1,72 +1,107 @@
 Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:58342 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757783Ab1D2Vcl (ORCPT
+Received: from cmsout01.mbox.net ([165.212.64.31]:45688 "EHLO
+	cmsout01.mbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755268Ab1DWTc7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Apr 2011 17:32:41 -0400
-Message-ID: <4DBB2E72.3030800@infradead.org>
-Date: Fri, 29 Apr 2011 18:32:34 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+	Sat, 23 Apr 2011 15:32:59 -0400
+Message-ID: <4DB32946.1080803@usa.net>
+Date: Sat, 23 Apr 2011 21:32:22 +0200
+From: Issa Gorissen <flop.m@usa.net>
 MIME-Version: 1.0
-To: Patrick Boettcher <pboettcher@kernellabs.com>
-CC: Florian Mickler <florian@mickler.org>, oliver@neukum.org,
-	linux-kernel@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [media] dib0700: get rid of on-stack dma buffers
-References: <1301851423-21969-1-git-send-email-florian@mickler.org> <alpine.LRH.2.00.1104040940000.31158@pub1.ifh.de>
-In-Reply-To: <alpine.LRH.2.00.1104040940000.31158@pub1.ifh.de>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Lutz Sammer <johns98@gmx.net>
+CC: linux-media@vger.kernel.org
+Subject: [PATCH] Fixes stb0899 not locking
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 04-04-2011 04:42, Patrick Boettcher escreveu:
-> Hi Florian,
-> 
-> On Sun, 3 Apr 2011, Florian Mickler wrote:
-> 
->> Hi,
->>
->> since I got no reaction[1] on the vp702x driver, I proceed with the
->> dib0700.
->>
->> There are multiple drivers in drivers/media/dvb/dvb-usb/ which use
->> usb_control_msg to perform dma to stack-allocated buffers. This is a bad idea
->> because of cache-coherency issues and on some platforms the stack is mapped
->> virtually and also lib/dma-debug.c warn's about it at runtime.
->>
->> Patches to ec168, ce6230, au6610 and lmedm04 were already tested and reviewed
->> and submitted for inclusion [2]. Patches to a800, vp7045, friio, dw2102, m920x
->> and opera1 are still waiting for for review and testing [3].
->>
->> This patch to dib0700 is a fix for a warning seen and reported by Zdenek
->> Kabalec in Bug #15977 [4].
->>
->> Florian Mickler (2):
->>      [media] dib0700: get rid of on-stack dma buffers
-> 
-> For this one we implemented an alternative. See here:
-> 
-> http://git.linuxtv.org/pb/media_tree.git?a=commit;h=16b54de2d8b46e48c5c8bdf9b350eac04e8f6b46
-> 
-> which I pushed, but obviously forgot to send the pull-request.
-> 
-> This is done now.
+> Fixes stb0899 not locking.
 
-And I obviously forgot to pick ;) Ok, I'm applying Oliver Grenie's version and
-marking Florian's version as superseded at patchwork.
+> See http://www.spinics.net/lists/linux-media/msg30486.html ...
+>
+> When stb0899_check_data is entered, it could happen, that the data is
+> already locked and the data search looped.  stb0899_check_data fails to
+> lock on a good frequency.  stb0899_search_data uses an extrem big search
+> step and fails to lock.
+>
+> The new code checks for lock before starting a new search.
+> The first read ignores the loop bit, for the case that the loop bit is
+> set during the search setup.  I also added the msleep to reduce the
+> traffic on the i2c bus.
+>
+> Johns
+>
+> Signed-off-by: Lutz Sammer <johns98 <at> gmx.net>
+> diff --git a/drivers/media/dvb/frontends/stb0899_algo.c
+> b/drivers/media/dvb/frontends/stb0899_algo.c
+> index 2da55ec..55f0c4e 100644
+> --- a/drivers/media/dvb/frontends/stb0899_algo.c
+> +++ b/drivers/media/dvb/frontends/stb0899_algo.c
+> @@ -338,36 +338,42 @@ static enum stb0899_status
+> stb0899_check_data(struct stb0899_state *state)
+>         int lock = 0, index = 0, dataTime = 500, loop;
+>         u8 reg;
+>
+> -       internal->status = NODATA;
+> +       reg = stb0899_read_reg(state, STB0899_VSTATUS);
+> +       lock = STB0899_GETFIELD(VSTATUS_LOCKEDVIT, reg);
+> +       if ( !lock ) {
+>
+> -       /* RESET FEC    */
+> -       reg = stb0899_read_reg(state, STB0899_TSTRES);
+> -       STB0899_SETFIELD_VAL(FRESACS, reg, 1);
+> -       stb0899_write_reg(state, STB0899_TSTRES, reg);
+> -       msleep(1);
+> -       reg = stb0899_read_reg(state, STB0899_TSTRES);
+> -       STB0899_SETFIELD_VAL(FRESACS, reg, 0);
+> -       stb0899_write_reg(state, STB0899_TSTRES, reg);
+> +               internal->status = NODATA;
+>
+> -       if (params->srate <= 2000000)
+> -               dataTime = 2000;
+> -       else if (params->srate <= 5000000)
+> -               dataTime = 1500;
+> -       else if (params->srate <= 15000000)
+> -               dataTime = 1000;
+> -       else
+> -               dataTime = 500;
+> -
+> -       stb0899_write_reg(state, STB0899_DSTATUS2, 0x00); /* force
+> search loop  */
+> -       while (1) {
+> -               /* WARNING! VIT LOCKED has to be tested before
+> VIT_END_LOOOP    */
+> -               reg = stb0899_read_reg(state, STB0899_VSTATUS);
+> -               lock = STB0899_GETFIELD(VSTATUS_LOCKEDVIT, reg);
+> -               loop = STB0899_GETFIELD(VSTATUS_END_LOOPVIT, reg);
+> +               /* RESET FEC    */
+> +               reg = stb0899_read_reg(state, STB0899_TSTRES);
+> +               STB0899_SETFIELD_VAL(FRESACS, reg, 1);
+> +               stb0899_write_reg(state, STB0899_TSTRES, reg);
+> +               msleep(1);
+> +               reg = stb0899_read_reg(state, STB0899_TSTRES);
+> +               STB0899_SETFIELD_VAL(FRESACS, reg, 0);
+> +               stb0899_write_reg(state, STB0899_TSTRES, reg);
+>
+> -               if (lock || loop || (index > dataTime))
+> -                       break;
+> -               index++;
+> +                       msleep(1);
+> +               }
+>         }
+>
+>         if (lock) {     /* DATA LOCK indicator  */
 
-> For the second patch I will incorperate it as soon as I find the time.
+Hi Johns,
 
-As it is a trivial fix, I'll be picking it directly.
+I've tried your path but I had to remove the last } that you added after
+the msleep(1);
 
-> 
-> best regards,
-> -- 
-> 
-> Patrick
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The patch had not make any better the tuning of transponders on HB13E
+for me.
+
+Thanks anyway.
+--
+Issa
 
