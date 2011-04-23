@@ -1,81 +1,45 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:54424 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751932Ab1DVHeH (ORCPT
+Received: from cmsout02.mbox.net ([165.212.64.32]:56364 "EHLO
+	cmsout02.mbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753848Ab1DWNaP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Apr 2011 03:34:07 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=us-ascii
-Date: Fri, 22 Apr 2011 09:33:56 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [PATCH 2/7] ARM: Samsung: update/rewrite Samsung SYSMMU (IOMMU)
-	driver
-In-reply-to: <201104211618.31418.arnd@arndb.de>
-To: 'Arnd Bergmann' <arnd@arndb.de>
-Cc: 'Joerg Roedel' <joerg.roedel@amd.com>,
-	linux-samsung-soc@vger.kernel.org,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Kukjin Kim' <kgene.kim@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Message-id: <000001cc00bf$a3afc220$eb0f4660$%szyprowski@samsung.com>
-Content-language: pl
-References: <1303118804-5575-1-git-send-email-m.szyprowski@samsung.com>
- <201104211400.13289.arnd@arndb.de>
- <003301cc002c$f67ba0c0$e372e240$%szyprowski@samsung.com>
- <201104211618.31418.arnd@arndb.de>
+	Sat, 23 Apr 2011 09:30:15 -0400
+Message-ID: <4DB2D449.1090605@usa.net>
+Date: Sat, 23 Apr 2011 15:29:45 +0200
+From: Issa Gorissen <flop.m@usa.net>
+MIME-Version: 1.0
+To: Martin Vidovic <xtronom@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: ngene CI problems
+References: <4D74E28A.6030302@gmail.com> <4DB1FE58.20006@usa.net> <4DB2BA0B.20906@gmail.com> <4DB2C20E.1050701@usa.net> <4DB2C88D.1040200@gmail.com>
+In-Reply-To: <4DB2C88D.1040200@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+On 23/04/11 14:39, Martin Vidovic wrote:
+> Hi,
+>> Okay, but have you managed to decode any channel yet ?
+>>   
+> Yes, I managed to descramble programmes without any problem.
+>> I find some code odd, maybe you can take a look as well...
+>>
+>> init_channel in ngene-core.c creates the device sec0/caio0 with the
+>> struct ngene_dvbdev_ci. In ngene-dvb.c you can see that this struct
+>> declares the methods ts_read/ts_write to handle r/w operations on the
+>> device sec0/caio0.
+>>
+>> Now take a look at those methods (ts_read/ts_write). I don't see how
+>> they 'connect' to the file cxd2099.c which contains the methods handling
+>> the i/o to the cam
+> They don't connect explicitly. Transfers are done implicitly
+> through nGene ring-buffers. See demux_tasklet(). CXD code
+> seems to be used only for CAM commands and setup (only) of
+> data transfers.
 
-On Thursday, April 21, 2011 4:19 PM Arnd Bergmann wrote:
+I have taken a look into the ddbrigde module code from
+<http://linuxtv.org/hg/~endriss/ngene-octopus-test/rev/6b400d63c481>
 
-> On Thursday 21 April 2011, Marek Szyprowski wrote:
-> > > No, I think that would be much worse, it definitely destroys all kinds
-> of
-> > > assumptions that the core code makes about devices. However, I don't
-> think
-> > > it's much of a problem to just create two child devices and use them
-> > > from the main driver, you don't really need to create a device_driver
-> > > to bind to each of them.
-> >
-> > I must have missed something. Video codec is a platform device and struct
-> > device pointer is gathered from it (&pdev->dev). How can I define child
-> > devices and attach them to the platform device?
-> 
-> There are a number of ways:
-> 
-> * Do device_create() with &pdev->dev as the parent, inside of the
->   codec driver, with a new class you create for this purpose
-> * Do device_register() for a device, in the same way
-> * Create the additional platform devices in the platform code,
->   with their parents pointing to the code device, then
->   look for them using device_for_each_child in the driver
-
-IMHO this will be the cleanest way. Thanks for the idea.
-
-> * Create two codec devices in parallel and bind to both with your
->   driver, ideally splitting up the resources between the two
->   devices in a meaningful way.
-
-Video codec has only standard 2 resources - ioregs and irq, so there
-is not much left for such splitting.
-
-> None of them are extremely nice, but it's not that hard either.
-> You should probably prototype a few of these approaches to see
-> which one is the least ugly one.
-
-Ok. Today while iterating over the hardware requirements I noticed
-one more thing. Our codec hardware has one more, odd requirement for
-video buffers. The DMA addresses need to be aligned to 8KiB or 16KiB
-(depending on buffer type). Do you have any idea how this can be
-handled in a generic way?
-
-Best regards
--- 
-Marek Szyprowski
-Samsung Poland R&D Center
-
+The ts_read/ts_write methods are different from the ngene module's. So I
+guess were are having entirely different problems.
