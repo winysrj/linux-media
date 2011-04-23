@@ -1,43 +1,43 @@
 Return-path: <mchehab@pedra>
-Received: from mail-px0-f179.google.com ([209.85.212.179]:46379 "EHLO
-	mail-px0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751093Ab1DQR0a (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:61042 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751223Ab1DWLfd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Apr 2011 13:26:30 -0400
-Received: by pxi2 with SMTP id 2so2754715pxi.10
-        for <linux-media@vger.kernel.org>; Sun, 17 Apr 2011 10:26:30 -0700 (PDT)
+	Sat, 23 Apr 2011 07:35:33 -0400
+Received: by mail-ww0-f44.google.com with SMTP id 36so1276502wwa.1
+        for <linux-media@vger.kernel.org>; Sat, 23 Apr 2011 04:35:32 -0700 (PDT)
+Message-ID: <4DB2BA0B.20906@gmail.com>
+Date: Sat, 23 Apr 2011 13:37:47 +0200
+From: Martin Vidovic <xtronom@gmail.com>
 MIME-Version: 1.0
-Date: Sun, 17 Apr 2011 13:26:30 -0400
-Message-ID: <BANLkTinQ19YTwsTNVGfy_OAuXw9x5fVh=w@mail.gmail.com>
-Subject: [HG PULL] http://kernellabs.com/hg/~mkrufky/tda18271-fix
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Issa Gorissen <flop.m@usa.net>
+CC: linux-media@vger.kernel.org
+Subject: Re: ngene CI problems
+References: <4D74E28A.6030302@gmail.com> <4DB1FE58.20006@usa.net>
+In-Reply-To: <4DB1FE58.20006@usa.net>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Mauro,
+Hi Issa,
+> Running a bunch of test with gnutv and a DuoFLEX S2.
+>   
+I have a DuoFlex S2 running with CI, but not nGene based (it's attached 
+to Octopus card - ddbridge module).
 
-Thanks for allowing me to continue sending pull requests via
-mercurial.  These changes should apply cleanly against both hg and the
-git tree.
+> I would run gnutv  like 'gnutv -out stdout channelname >
+> /dev/dvb/adapter0/caio0' and then 'cat /dev/dvb/adapter0/caio0 | mplayer -'
+> Mplayer would complain the file is invalid. Simply running simply 'cat
+> /dev/dvb/adapter0/caio0' will show me the same data pattern over and over.
+>   
+I suspect the problem is that reads/writes are not aligned to 188 bytes 
+with such invocation of commands. Maybe if you tried replacing 'cat' and 
+'>' with 'dd' (bs=188). Other important thing seems to be, to read from 
+the caio0 fast enough or real data is overwritten with null packets 
+(haven't proved it, but it looks this way on nGene).
 
-Please pull from:
+Hope this helps.
 
-http://kernellabs.com/hg/~mkrufky/tda18271-fix
-
-for the following TDA18271c2 RF Calibration fixes & updates:
-
-- tda18271: fix calculation bug in tda18271_rf_tracking_filters_init
-- tda18271: prog_cal and prog_tab variables should be s32, not u8
-- tda18271: fix bad calculation of main post divider byte
-- tda18271: update tda18271_rf_band as per NXP's rev.04 datasheet
-- tda18271: update tda18271c2_rf_cal as per NXP's rev.04 datasheet
-
- tda18271-common.c |   11 +----------
- tda18271-fe.c     |   29 +++++++++++++++--------------
- tda18271-maps.c   |   12 ++++++------
- 3 files changed, 22 insertions(+), 30 deletions(-)
-
-Thanks to Stefan Sibiga for pointing out some of these driver bugs
+Best regards,
+Martin Vidovic
