@@ -1,72 +1,57 @@
 Return-path: <mchehab@pedra>
-Received: from comal.ext.ti.com ([198.47.26.152]:35876 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755493Ab1DBJmG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 2 Apr 2011 05:42:06 -0400
-From: Manjunath Hadli <manjunath.hadli@ti.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Kevin Hilman <khilman@deeprootsystems.com>,
-	LAK <linux-arm-kernel@lists.infradead.org>,
-	Sekhar Nori <nsekhar@ti.com>
-Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: [PATCH v16 05/13] davinci vpbe: Build infrastructure for VPBE driver
-Date: Sat,  2 Apr 2011 15:11:57 +0530
-Message-Id: <1301737317-4201-1-git-send-email-manjunath.hadli@ti.com>
+Received: from mail.deliver-bd.com ([203.76.124.123]:53218 "EHLO
+	mail.deliver-bd.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752129Ab1DWMm3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 23 Apr 2011 08:42:29 -0400
+Message-ID: <55259.88.147.35.232.1303553564.squirrel@mail.deliver-bd.com>
+Date: Sat, 23 Apr 2011 16:12:44 +0600 (BDT)
+Subject: hi
+From: "P. Cha" <eugene@deliver-bd.com>
+Reply-To: patwkkp@yahoo.com.hk
+MIME-Version: 1.0
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This patch adds the build infra-structure for Davinci
-VPBE dislay driver.
 
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/video/davinci/Kconfig  |   22 ++++++++++++++++++++++
- drivers/media/video/davinci/Makefile |    2 ++
- 2 files changed, 24 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/video/davinci/Kconfig b/drivers/media/video/davinci/Kconfig
-index 6b19540..a7f11e7 100644
---- a/drivers/media/video/davinci/Kconfig
-+++ b/drivers/media/video/davinci/Kconfig
-@@ -91,3 +91,25 @@ config VIDEO_ISIF
- 
- 	   To compile this driver as a module, choose M here: the
- 	   module will be called vpfe.
-+
-+config VIDEO_DM644X_VPBE
-+	tristate "DM644X VPBE HW module"
-+	select VIDEO_VPSS_SYSTEM
-+	select VIDEOBUF_DMA_CONTIG
-+	help
-+	    Enables VPBE modules used for display on a DM644x
-+	    SoC.
-+
-+	    To compile this driver as a module, choose M here: the
-+	    module will be called vpbe.
-+
-+
-+config VIDEO_VPBE_DISPLAY
-+	tristate "VPBE V4L2 Display driver"
-+	select VIDEO_DM644X_VPBE
-+	default y
-+	help
-+	    Enables VPBE V4L2 Display driver on a DMXXX device
-+
-+	    To compile this driver as a module, choose M here: the
-+	    module will be called vpbe_display.
-diff --git a/drivers/media/video/davinci/Makefile b/drivers/media/video/davinci/Makefile
-index a379557..ae7dafb 100644
---- a/drivers/media/video/davinci/Makefile
-+++ b/drivers/media/video/davinci/Makefile
-@@ -16,3 +16,5 @@ obj-$(CONFIG_VIDEO_VPFE_CAPTURE) += vpfe_capture.o
- obj-$(CONFIG_VIDEO_DM6446_CCDC) += dm644x_ccdc.o
- obj-$(CONFIG_VIDEO_DM355_CCDC) += dm355_ccdc.o
- obj-$(CONFIG_VIDEO_ISIF) += isif.o
-+obj-$(CONFIG_VIDEO_DM644X_VPBE) += vpbe.o vpbe_osd.o vpbe_venc.o
-+obj-$(CONFIG_VIDEO_VPBE_DISPLAY) += vpbe_display.o
--- 
-1.6.2.4
 
+Greetings of the day to you. It is understandable that you might be a
+little bit apprehensive because you do not know me but I have a lucrative
+business proposal of mutual interest to share with you. . I got your
+reference in my search for someone who suits my proposed business
+relationship.
+
+Let me start by introducing myself. I am Mr. Patrick K. W. Chan Executive
+Director & Chief financial Officer of Hang Seng Bank Ltd. I have an
+obscured business suggestion for you.
+
+I will need you to assist me in executing a business project from Hong
+Kong to your country. It involves the transfer of a large sum of money.
+Everything concerning this transaction shall be legally done without
+hitch. Please endeavour to observe utmost discretion in all matters
+concerning this issue.
+
+Once the funds have been successfully transferred into your account, we
+shall share in the ratio to be agreed by both of us. Should you be
+interested send the following details to kick-start the process;
+
+Full name
+Address, Nationality
+Age, Sex, Occupation Marital Statu,
+Private Phone Number, Private fax number
+
+I will prefer you reach me on my private email
+address(pattkkwchan@yahoo.com.hk) and finally after that I shall
+furnish you with more information’s about this operation.
+Please if you are not interested delete this email and do not hunt me
+because I am putting my career and the life of my family at stake with
+this venture. Although nothing ventured is nothing gained.
+
+Your earliest response to this letter will be appreciated.
+
+Kind Regards,
+Mr. Patrick Chan
