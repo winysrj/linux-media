@@ -1,96 +1,64 @@
 Return-path: <mchehab@pedra>
-Received: from ns.mm-sol.com ([213.240.235.226]:47874 "EHLO extserv.mm-sol.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751510Ab1D2I4R (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Apr 2011 04:56:17 -0400
-Message-ID: <4DBA7D13.2080805@mm-sol.com>
-Date: Fri, 29 Apr 2011 11:55:47 +0300
-From: Yordan Kamenov <ykamenov@mm-sol.com>
+Received: from casper.infradead.org ([85.118.1.10]:47157 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757549Ab1DXM4E (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Apr 2011 08:56:04 -0400
+Message-ID: <4DB41DDF.2@infradead.org>
+Date: Sun, 24 Apr 2011 09:55:59 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-Subject: Re: [PATCH 1/1 v3] libv4l: Add plugin support to libv4l
-References: <cover.1297680043.git.ykamenov@mm-sol.com> <234f9f1fbf05f602d2a079962305e050976f1c58.1297680043.git.ykamenov@mm-sol.com> <4DB961A3.70000@redhat.com>
-In-Reply-To: <4DB961A3.70000@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: linux-media@vger.kernel.org
+CC: Oliver Endriss <o.endriss@gmx.de>
+Subject: Re: [PATCH] ngene: Fix CI data transfer regression
+References: <201103292235.25151@orion.escape-edv.de> <201104231831.06846@orion.escape-edv.de>
+In-Reply-To: <201104231831.06846@orion.escape-edv.de>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hans de Goede wrote:
-> Hi,
->
-Hi Hans,
-
-Thanks for your comments.
-> First of all my apologies for taking so long to get around to
-> reviewing this.
->
-> Over all it looks good, I've put some small remarks inline, if
-> you fix these I can merge this. I wonder though, given the recent
-> limbo around Nokia's change of focus, if there are any plans to
-> actually move forward with a plugin using this... ?
->
-> The reason I'm asking is that adding the plugin framework if nothing
-> is going to use it seems a bit senseless.
-We are working on a "media controller" plugin which allows
-a traditional v4l2 application to work with Media Controller
-framework. The idea is when the application opens /dev/video0, then
-the plugin initializes media controller and creates appropriate pipeline,
-after that the plugin redirects all ioctl's from the application to this
-pipeline and on close call the pipeline is deinitialized.
->
-> Regards,
->
-> Hans
->
->
-> On 02/14/2011 12:02 PM, Yordan Kamenov wrote: 
-[snip]
->
->> diff --git a/lib/libv4l2/v4l2convert.c b/lib/libv4l2/v4l2convert.c
->> index e251085..03f34ad 100644
->> --- a/lib/libv4l2/v4l2convert.c
->> +++ b/lib/libv4l2/v4l2convert.c
->> @@ -46,7 +46,6 @@
->>   LIBV4L_PUBLIC int open(const char *file, int oflag, ...)
->>   {
->>       int fd;
->> -    struct v4l2_capability cap;
->>       int v4l_device = 0;
+Em 23-04-2011 13:31, Oliver Endriss escreveu:
+> On Tuesday 29 March 2011 22:35:24 Oliver Endriss wrote:
+>> Fix CI data transfer regression introduced by previous cleanup.
 >>
->>       /* check if we're opening a video4linux2 device */
->> @@ -76,14 +75,6 @@ LIBV4L_PUBLIC int open(const char *file, int 
->> oflag, ...)
->>       if (fd == -1 || !v4l_device)
->>           return fd;
+>> Signed-off-by: Oliver Endriss <o.endriss@gmx.de>
+>> ---
+>>  drivers/media/dvb/ngene/ngene-core.c |    1 +
+>>  1 files changed, 1 insertions(+), 0 deletions(-)
 >>
->> -    /* check that this is an v4l2 device, libv4l2 only supports v4l2 
->> devices */
->> -    if (SYS_IOCTL(fd, VIDIOC_QUERYCAP,&cap))
->> -        return fd;
->> -
->> -    /* libv4l2 only adds functionality to capture capable devices */
->> -    if (!(cap.capabilities&  V4L2_CAP_VIDEO_CAPTURE))
->> -        return fd;
->> -
->>       /* Try to Register with libv4l2 (in case of failure pass the fd 
->> to the
->>          application as is) */
->>       v4l2_fd_open(fd, 0);
->
-> Hmm, why are you removing this check ?
->
-In case of above example of media controller plugin when the application 
-opens
-/dev/video0, then this plugin should be used. But in media controller 
-framework
-/dev/video0 file might correspond to a subdevice which is not a capture 
-device and
-this fd will not be registered in libv4l2 at all.
+>> diff --git a/drivers/media/dvb/ngene/ngene-core.c b/drivers/media/dvb/ngene/ngene-core.c
+>> index 175a0f6..9630705 100644
+>> --- a/drivers/media/dvb/ngene/ngene-core.c
+>> +++ b/drivers/media/dvb/ngene/ngene-core.c
+>> @@ -1520,6 +1520,7 @@ static int init_channel(struct ngene_channel *chan)
+>>  	if (dev->ci.en && (io & NGENE_IO_TSOUT)) {
+>>  		dvb_ca_en50221_init(adapter, dev->ci.en, 0, 1);
+>>  		set_transfer(chan, 1);
+>> +		chan->dev->channel[2].DataFormatFlags = DF_SWAP32;
+>>  		set_transfer(&chan->dev->channel[2], 1);
+>>  		dvb_register_device(adapter, &chan->ci_dev,
+>>  				    &ngene_dvbdev_ci, (void *) chan,
+>> -- 
+>> 1.6.5.3
+>>
+> 
+> What happened to this patch? I am sure that it was in patchwork, but
+> patchwork apparently lost all patches between February 26th and
+> April 16th.
 
-Regards
-Yordan
+Yes, patchwork seemed to have a problem. They have 2 patchwork instances there,
+on a cluster environment. In the past, we have the same problem when the backup
+instance started with some patches out of sync on their mySQL datababse. After
+I pointed the issue, they fixed it on the next day.
 
+I sent one email last week about it to the kernel.org maintainer asking for his help, 
+but didn't get an answer yet. Maybe he got some PTO days due to Easter. I'm hoping
+that we'll be able to get it recovered next week.
+> 
+> Please note that this patch must go to 2.6.39!
+> 
+> CU
+> Oliver
+> 
 
