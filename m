@@ -1,136 +1,108 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.22]:40692 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754818Ab1DNAFx (ORCPT
+Received: from cmsout02.mbox.net ([165.212.64.32]:37602 "EHLO
+	cmsout02.mbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757446Ab1DXMxF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Apr 2011 20:05:53 -0400
-Message-ID: <4DA63A66.1070300@gmx.net>
-Date: Thu, 14 Apr 2011 02:05:58 +0200
-From: Lutz Sammer <johns98@gmx.net>
+	Sun, 24 Apr 2011 08:53:05 -0400
+Message-ID: <4DB3EDEC.7030804@usa.net>
+Date: Sun, 24 Apr 2011 11:31:24 +0200
+From: Issa Gorissen <flop.m@usa.net>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: TT-budget S2-3200 cannot tune on HB13E DVBS2 transponder
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Ralph Metzler <rjkm@metzlerbros.de>, linux-media@vger.kernel.org,
+	Andreas Oberritter <obi@linuxtv.org>
+Subject: Re: [PATCH] Ngene cam device name
+References: <777PcLohh6368S03.1299940473@web03.cms.usa.net>	<4D7B8A07.70602@linuxtv.org> <19855.55774.192407.326483@morden.metzler> <4D910042.4030100@redhat.com>
+In-Reply-To: <4D910042.4030100@redhat.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-> On 05/04/11 21:07, Steffen Barszus wrote:
->> On Tue, 05 Apr 2011 13:00:14 +0200
->> "Issa Gorissen" <flop.m@xxxxxxx> wrote:
+On 28/03/11 23:40, Mauro Carvalho Chehab wrote:
+> Em 27-03-2011 21:44, Ralph Metzler escreveu:
+>> Hi,
 >>
->>> Hi,
->>>
->>> Eutelsat made a recent migration from DVB-S to DVB-S2 (since
->>> 31/3/2011) on two transponders on HB13E
->>>
->>> - HOT BIRD 6 13° Est TP 159 Freq 11,681 Ghz DVB-S2 FEC 3/4 27500
->>> Msymb/s 0.2 Pilot off Polar H
->>>
->>> - HOT BIRD 9 13° Est TP 99 Freq 12,692 Ghz DVB-S2 FEC 3/4 27500
->>> Msymb/s 0.2 Pilot off Polar H
->>>
->>>
->>> Before those changes, with my TT S2 3200, I was able to watch TV on
->>> those transponders. Now, I cannot even tune on those transponders. I
->>> have tried with scan-s2 and w_scan and the latest drivers from git.
->>> They both find the transponders but cannot tune onto it.
->>>
->>> Something noteworthy is that my other card, a DuoFlex S2 can tune
->>> fine on those transponders.
->>>
->>> My question is; can someone try this as well with a TT S2 3200 and
->>> post the results ?
->> i read something about it lately here (german!): 
->> http://www.vdr-portal.de/board16-video-disk-recorder/board85-hdtv-dvb-s2/p977938-stb0899-fec-3-4-tester-gesucht/#post977938
+>> since I just saw cxd2099 appear in staging in the latest git kernel, a
+>> simple question which has been pointed out to me before:
 >>
->> It says in stb0899_drv.c function:
->> static void stb0899_set_iterations(struct stb0899_state *state) 
->>
->> This:
->> reg = STB0899_READ_S2REG(STB0899_S2DEMOD, MAX_ITER);
->> STB0899_SETFIELD_VAL(MAX_ITERATIONS, reg, iter_scale);
->> stb0899_write_s2reg(state, STB0899_S2DEMOD, STB0899_BASE_MAX_ITER, STB0899_OFF0_MAX_ITER, reg);
->>
->> should be replaced with this:
->>
->> reg = STB0899_READ_S2REG(STB0899_S2FEC, MAX_ITER);
->> STB0899_SETFIELD_VAL(MAX_ITERATIONS, reg, iter_scale);
->> stb0899_write_s2reg(state, STB0899_S2FEC, STB0899_BASE_MAX_ITER, STB0899_OFF0_MAX_ITER, reg);
->>
->> Basically replace STB0899_S2DEMOD with STB0899_S2FEC in this 2 lines
->> affected.
->>
->> Kind Regards 
->>
->> Steffen
-> Hi Steffen,
-> 
-> Unfortunately, it does not help in my case. Thx anyway.
+>> Why is cxd2099.c in staging regarding the device name question?
+>> It has nothing to do with the naming.
+> It is not just because of naming. A NACK was given to it, as is, at:
+>
+> http://www.spinics.net/lists/linux-media/msg28004.html
+>
+> A previous discussion about this subject were started at:
+> 	http://www.mail-archive.com/linux-media@vger.kernel.org/msg22196.html
+>
+> The point is that an interface meant to be used by satellite were
+> used as a ci interface, due to the lack of handling independent CA devices.
+>
+> As there were no final decision about a proper way to address it, Oliver
+> decided to keep it as-is, and I decided to move it to staging while we
+> don't properly address the question, extending the DVB API in order to support
+> independent CA devs.
+>
+> Having the driver at staging allow us to rework at the API and change the
+> driver when API changes are done, without needing to pass through kernel 
+> process of deprecating old API stuff.
+>
+> Cheers,
+> Mauro
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Try my locking fix. With above patch I can lock the
-channels without problem.
+Hello all,
 
-Johns
+Here is the patch for the NGene card family and the new caio device.
+Can cxd2099 be removed from staging as this patch fixes the raised issue.
 
-diff --git a/drivers/media/dvb/frontends/stb0899_algo.c
-b/drivers/media/dvb/frontends/stb0899_algo.c
-index 2da55ec..55f0c4e 100644
---- a/drivers/media/dvb/frontends/stb0899_algo.c
-+++ b/drivers/media/dvb/frontends/stb0899_algo.c
-@@ -338,36 +338,42 @@ static enum stb0899_status
-stb0899_check_data(struct stb0899_state *state)
-        int lock = 0, index = 0, dataTime = 500, loop;
-        u8 reg;
+Signed-off-by: Issa Gorissen <flop.m@usa.net>
+---
+ drivers/media/dvb/dvb-core/dvbdev.c  |    2 +-
+ drivers/media/dvb/dvb-core/dvbdev.h  |    1 +
+ drivers/media/dvb/ngene/ngene-core.c |    2 +-
+ 3 files changed, 3 insertions(+), 2 deletions(-)
 
--       internal->status = NODATA;
-+       reg = stb0899_read_reg(state, STB0899_VSTATUS);
-+       lock = STB0899_GETFIELD(VSTATUS_LOCKEDVIT, reg);
-+       if ( !lock ) {
-
--       /* RESET FEC    */
--       reg = stb0899_read_reg(state, STB0899_TSTRES);
--       STB0899_SETFIELD_VAL(FRESACS, reg, 1);
--       stb0899_write_reg(state, STB0899_TSTRES, reg);
--       msleep(1);
--       reg = stb0899_read_reg(state, STB0899_TSTRES);
--       STB0899_SETFIELD_VAL(FRESACS, reg, 0);
--       stb0899_write_reg(state, STB0899_TSTRES, reg);
-+               internal->status = NODATA;
-
--       if (params->srate <= 2000000)
--               dataTime = 2000;
--       else if (params->srate <= 5000000)
--               dataTime = 1500;
--       else if (params->srate <= 15000000)
--               dataTime = 1000;
--       else
--               dataTime = 500;
--
--       stb0899_write_reg(state, STB0899_DSTATUS2, 0x00); /* force
-search loop  */
--       while (1) {
--               /* WARNING! VIT LOCKED has to be tested before
-VIT_END_LOOOP    */
--               reg = stb0899_read_reg(state, STB0899_VSTATUS);
--               lock = STB0899_GETFIELD(VSTATUS_LOCKEDVIT, reg);
--               loop = STB0899_GETFIELD(VSTATUS_END_LOOPVIT, reg);
-+               /* RESET FEC    */
-+               reg = stb0899_read_reg(state, STB0899_TSTRES);
-+               STB0899_SETFIELD_VAL(FRESACS, reg, 1);
-+               stb0899_write_reg(state, STB0899_TSTRES, reg);
-+               msleep(1);
-+               reg = stb0899_read_reg(state, STB0899_TSTRES);
-+               STB0899_SETFIELD_VAL(FRESACS, reg, 0);
-+               stb0899_write_reg(state, STB0899_TSTRES, reg);
-
--               if (lock || loop || (index > dataTime))
--                       break;
--               index++;
-+                       msleep(1);
-+               }
-        }
-
-        if (lock) {     /* DATA LOCK indicator  */
+diff --git a/drivers/media/dvb/dvb-core/dvbdev.c b/drivers/media/dvb/dvb-core/dvbdev.c
+index f732877..7a64b81 100644
+--- a/drivers/media/dvb/dvb-core/dvbdev.c
++++ b/drivers/media/dvb/dvb-core/dvbdev.c
+@@ -47,7 +47,7 @@ static DEFINE_MUTEX(dvbdev_register_lock);
+ 
+ static const char * const dnames[] = {
+ 	"video", "audio", "sec", "frontend", "demux", "dvr", "ca",
+-	"net", "osd"
++	"net", "osd", "caio"
+ };
+ 
+ #ifdef CONFIG_DVB_DYNAMIC_MINORS
+diff --git a/drivers/media/dvb/dvb-core/dvbdev.h b/drivers/media/dvb/dvb-core/dvbdev.h
+index fcc6ae9..c63c70d 100644
+--- a/drivers/media/dvb/dvb-core/dvbdev.h
++++ b/drivers/media/dvb/dvb-core/dvbdev.h
+@@ -47,6 +47,7 @@
+ #define DVB_DEVICE_CA         6
+ #define DVB_DEVICE_NET        7
+ #define DVB_DEVICE_OSD        8
++#define DVB_DEVICE_CAIO       9
+ 
+ #define DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr) \
+ 	static short adapter_nr[] = \
+diff --git a/drivers/media/dvb/ngene/ngene-core.c b/drivers/media/dvb/ngene/ngene-core.c
+index 175a0f6..17cdd38 100644
+--- a/drivers/media/dvb/ngene/ngene-core.c
++++ b/drivers/media/dvb/ngene/ngene-core.c
+@@ -1523,7 +1523,7 @@ static int init_channel(struct ngene_channel *chan)
+ 		set_transfer(&chan->dev->channel[2], 1);
+ 		dvb_register_device(adapter, &chan->ci_dev,
+ 				    &ngene_dvbdev_ci, (void *) chan,
+-				    DVB_DEVICE_SEC);
++				    DVB_DEVICE_CAIO);
+ 		if (!chan->ci_dev)
+ 			goto err;
+ 	}
 
 
