@@ -1,75 +1,109 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:25336 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753701Ab1DSVZR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Apr 2011 17:25:17 -0400
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p3JLPGdQ029281
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 19 Apr 2011 17:25:16 -0400
-Date: Tue, 19 Apr 2011 17:25:15 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org
-Subject: [GIT PULL REQ] IR additions and misc media fixes for 2.6.40
-Message-ID: <20110419212515.GA25900@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from cmsout01.mbox.net ([165.212.64.31]:49865 "EHLO
+	cmsout01.mbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751439Ab1DXLif convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Apr 2011 07:38:35 -0400
+Date: Sun, 24 Apr 2011 13:38:26 +0200
+From: "Issa Gorissen" <flop.m@usa.net>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH] Ngene cam device name
+CC: Ralph Metzler <rjkm@metzlerbros.de>, <linux-media@vger.kernel.org>,
+	Andreas Oberritter <obi@linuxtv.org>
+Mime-Version: 1.0
+Message-ID: <756PDXLlA1632S04.1303645106@web04.cms.usa.net>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-IR additions and misc minor media_tree fixes for 2.6.40. There's an input.h
-patch included in here, which was merged in 2.6.39-rc4, that the patch
-just after it depends upon, wasn't quite sure how to handle that, since it
-wasn't already in the staging/for_v2.6.40 branch that this is on top of...
+On 28/03/11 23:40, Mauro Carvalho Chehab wrote:
+> Em 27-03-2011 21:44, Ralph Metzler escreveu:
+>> Hi,
+>>
+>> since I just saw cxd2099 appear in staging in the latest git kernel, a
+>> simple question which has been pointed out to me before:
+>>
+>> Why is cxd2099.c in staging regarding the device name question?
+>> It has nothing to do with the naming.
+> It is not just because of naming. A NACK was given to it, as is, at:
+>
+> http://www.spinics.net/lists/linux-media/msg28004.html
+>
+> A previous discussion about this subject were started at:
+> 	http://www.mail-archive.com/linux-media@vger.kernel.org/msg22196.html
+>
+> The point is that an interface meant to be used by satellite were
+> used as a ci interface, due to the lack of handling independent CA devices.
+>
+> As there were no final decision about a proper way to address it, Oliver
+> decided to keep it as-is, and I decided to move it to staging while we
+> don't properly address the question, extending the DVB API in order to
+support
+> independent CA devs.
+>
+> Having the driver at staging allow us to rework at the API and change the
+> driver when API changes are done, without needing to pass through kernel 
+> process of deprecating old API stuff.
+>
+> Cheers,
+> Mauro
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-The main IR additions are the improved support for more variants of the
-Nuvoton Super I/O LPC integrated CIR function in nuvoton-cir and the
-addition of a TiVo keymap which is now used by default with the mceusb
-driven TiVo branded transceiver that ships in the Nero LiquidTV bundle.
+Hello all,
 
-The following changes since commit f2dae48f7f0888fdfb978677ab0d03af468c2218:
+Here is the patch for the NGene card family and the new caio device.
+Can cxd2099 be removed from staging as this patch fixes the raised issue.
 
-  [media] gspca - kinect: New subdriver for Microsoft Kinect (2011-04-19 17:24:56 -0300)
+Signed-off-by: Issa Gorissen <flop.m@usa.net>
+---
+ drivers/media/dvb/dvb-core/dvbdev.c  |    2 +-
+ drivers/media/dvb/dvb-core/dvbdev.h  |    1 +
+ drivers/media/dvb/ngene/ngene-core.c |    2 +-
+ 3 files changed, 3 insertions(+), 2 deletions(-)
 
-are available in the git repository at:
-  git://git.kernel.org/pub/scm/linux/kernel/git/jarod/linux-2.6-ir.git linuxtv-dev
-
-Jarod Wilson (10):
-      rc: add tivo/nero liquidtv keymap
-      mceusb: tivo transceiver should default to tivo keymap
-      Input: add KEY_IMAGES specifically for AL Image Browser
-      [media] rc: further key name standardization
-      [media] rc/nuvoton-cir: only warn about unknown chips
-      [media] rc/nuvoton-cir: enable CIR on w83667hg chip variant
-      [media] mceusb: Formosa e017 device has no tx
-      ttusb-budget: driver has a debug param, use it
-      lirc_sasem: key debug spew off debug modparam
-      tm6000: fix vbuf may be used uninitialized
-
- drivers/media/dvb/dvb-usb/dibusb-common.c          |    2 +-
- drivers/media/dvb/dvb-usb/m920x.c                  |   16 ++--
- drivers/media/dvb/dvb-usb/nova-t-usb2.c            |    2 +-
- drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c  |   60 ++++++-------
- drivers/media/rc/keymaps/Makefile                  |    1 +
- drivers/media/rc/keymaps/rc-avermedia-cardbus.c    |    2 +-
- drivers/media/rc/keymaps/rc-imon-mce.c             |    2 +-
- drivers/media/rc/keymaps/rc-imon-pad.c             |    6 +-
- .../media/rc/keymaps/rc-kworld-plus-tv-analog.c    |    2 +-
- drivers/media/rc/keymaps/rc-rc6-mce.c              |    4 +-
- drivers/media/rc/keymaps/rc-tivo.c                 |   98 ++++++++++++++++++++
- drivers/media/rc/mceusb.c                          |   16 +++-
- drivers/media/rc/nuvoton-cir.c                     |   62 ++++++++++---
- drivers/media/rc/nuvoton-cir.h                     |   17 +++-
- drivers/staging/lirc/lirc_sasem.c                  |   13 ++-
- drivers/staging/tm6000/tm6000-video.c              |    4 +-
- include/linux/input.h                              |    9 +-
- include/media/rc-map.h                             |    1 +
- 18 files changed, 235 insertions(+), 82 deletions(-)
- create mode 100644 drivers/media/rc/keymaps/rc-tivo.c
-
--- 
-Jarod Wilson
-jarod@redhat.com
+diff --git a/drivers/media/dvb/dvb-core/dvbdev.c
+b/drivers/media/dvb/dvb-core/dvbdev.c
+index f732877..7a64b81 100644
+--- a/drivers/media/dvb/dvb-core/dvbdev.c
++++ b/drivers/media/dvb/dvb-core/dvbdev.c
+@@ -47,7 +47,7 @@ static DEFINE_MUTEX(dvbdev_register_lock);
+ 
+ static const char * const dnames[] = {
+ 	"video", "audio", "sec", "frontend", "demux", "dvr", "ca",
+-	"net", "osd"
++	"net", "osd", "caio"
+ };
+ 
+ #ifdef CONFIG_DVB_DYNAMIC_MINORS
+diff --git a/drivers/media/dvb/dvb-core/dvbdev.h
+b/drivers/media/dvb/dvb-core/dvbdev.h
+index fcc6ae9..c63c70d 100644
+--- a/drivers/media/dvb/dvb-core/dvbdev.h
++++ b/drivers/media/dvb/dvb-core/dvbdev.h
+@@ -47,6 +47,7 @@
+ #define DVB_DEVICE_CA         6
+ #define DVB_DEVICE_NET        7
+ #define DVB_DEVICE_OSD        8
++#define DVB_DEVICE_CAIO       9
+ 
+ #define DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr) \
+ 	static short adapter_nr[] = \
+diff --git a/drivers/media/dvb/ngene/ngene-core.c
+b/drivers/media/dvb/ngene/ngene-core.c
+index 175a0f6..17cdd38 100644
+--- a/drivers/media/dvb/ngene/ngene-core.c
++++ b/drivers/media/dvb/ngene/ngene-core.c
+@@ -1523,7 +1523,7 @@ static int init_channel(struct ngene_channel *chan)
+ 		set_transfer(&chan->dev->channel[2], 1);
+ 		dvb_register_device(adapter, &chan->ci_dev,
+ 				    &ngene_dvbdev_ci, (void *) chan,
+-				    DVB_DEVICE_SEC);
++				    DVB_DEVICE_CAIO);
+ 		if (!chan->ci_dev)
+ 			goto err;
+ 	}
 
