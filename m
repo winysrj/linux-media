@@ -1,112 +1,572 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:45192 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754137Ab1DRJ0y (ORCPT
+Received: from mail1-out1.atlantis.sk ([80.94.52.55]:55002 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752885Ab1DYVXe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Apr 2011 05:26:54 -0400
-Date: Mon, 18 Apr 2011 11:26:44 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 7/7] ARM: EXYNOS4: enable FIMC on Universal_C210
-In-reply-to: <1303118804-5575-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Andrzej Pietrasiwiecz <andrzej.p@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Kukjin Kim <kgene.kim@samsung.com>
-Message-id: <1303118804-5575-8-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1303118804-5575-1-git-send-email-m.szyprowski@samsung.com>
+	Mon, 25 Apr 2011 17:23:34 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Joerg Heckenbach <joerg@heckenbach-aw.de>
+Subject: [PATCH] usbvision: remove (broken) image format conversion
+Date: Mon, 25 Apr 2011 23:23:17 +0200
+Cc: Dwaine Garden <dwainegarden@rogers.com>,
+	linux-media@vger.kernel.org,
+	Kernel development list <linux-kernel@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201104252323.20420.linux@rainbow-software.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This patch adds definitions to enable support for s5p-fimc driver
-together with required power domains and sysmmu controller on Universal
-C210 board.
+The YVU420 and YUV422P formats are broken and cause kernel panic on use.
+(YVU420 does not work and sometimes causes "unable to handle paging request"
+panic, YUV422P always causes "NULL pointer dereference").
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- arch/arm/mach-exynos4/Kconfig               |    6 ++++++
- arch/arm/mach-exynos4/mach-universal_c210.c |   22 ++++++++++++++++++++++
- 2 files changed, 28 insertions(+), 0 deletions(-)
+As V4L2 spec says that drivers shouldn't do any in-kernel image format
+conversion, remove it completely (except YUYV).
 
-diff --git a/arch/arm/mach-exynos4/Kconfig b/arch/arm/mach-exynos4/Kconfig
-index e849f67..544a594 100644
---- a/arch/arm/mach-exynos4/Kconfig
-+++ b/arch/arm/mach-exynos4/Kconfig
-@@ -148,12 +148,18 @@ config MACH_ARMLEX4210
- config MACH_UNIVERSAL_C210
- 	bool "Mobile UNIVERSAL_C210 Board"
- 	select CPU_EXYNOS4210
-+	select S5P_DEV_FIMC0
-+	select S5P_DEV_FIMC1
-+	select S5P_DEV_FIMC2
-+	select S5P_DEV_FIMC3
- 	select S3C_DEV_HSMMC
- 	select S3C_DEV_HSMMC2
- 	select S3C_DEV_HSMMC3
- 	select S3C_DEV_I2C1
- 	select S3C_DEV_I2C5
- 	select S5P_DEV_ONENAND
-+	select EXYNOS4_DEV_PD
-+	select EXYNOS4_DEV_SYSMMU
- 	select EXYNOS4_SETUP_I2C1
- 	select EXYNOS4_SETUP_I2C5
- 	select EXYNOS4_SETUP_SDHCI
-diff --git a/arch/arm/mach-exynos4/mach-universal_c210.c b/arch/arm/mach-exynos4/mach-universal_c210.c
-index 97d329f..7ff2f5f 100644
---- a/arch/arm/mach-exynos4/mach-universal_c210.c
-+++ b/arch/arm/mach-exynos4/mach-universal_c210.c
-@@ -27,9 +27,12 @@
- #include <plat/cpu.h>
- #include <plat/devs.h>
- #include <plat/iic.h>
-+#include <plat/pd.h>
- #include <plat/sdhci.h>
-+#include <plat/sysmmu.h>
+The removal also reveals an off-by-one bug in enum_fmt ioctl - it misses the
+last format, so this patch fixes it too.
+
+This allows the driver to work with mplayer without need to manually specify a
+format and also to work with VLC without causing kernel panic.
+
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+
+diff -up linux-2.6.39-rc2-/drivers/media/video/usbvision/usbvision-core.c linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision-core.c
+--- linux-2.6.39-rc2-/drivers/media/video/usbvision/usbvision-core.c	2011-04-25 22:30:09.000000000 +0200
++++ linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision-core.c	2011-04-25 23:07:46.000000000 +0200
+@@ -586,9 +586,8 @@ static enum parse_state usbvision_parse_
+ 	int len;
+ 	int i;
+ 	unsigned char yuyv[4] = { 180, 128, 10, 128 }; /* YUV components */
+-	unsigned char rv, gv, bv;	/* RGB components */
+-	int clipmask_index, bytes_per_pixel;
+-	int stretch_bytes, clipmask_add;
++	int bytes_per_pixel;
++	int stretch_bytes;
  
- #include <mach/map.h>
-+#include <mach/regs-clock.h>
+ 	frame  = usbvision->cur_frame;
+ 	f = frame->data + (frame->v4l2_linesize * frame->curline);
+@@ -605,78 +604,16 @@ static enum parse_state usbvision_parse_
  
- /* Following are default values for UCON, ULCON and UFCON UART registers */
- #define UNIVERSAL_UCON_DEFAULT	(S3C2410_UCON_TXILEVEL |	\
-@@ -613,6 +616,15 @@ static struct platform_device *universal_devices[] __initdata = {
- 	&s3c_device_hsmmc2,
- 	&s3c_device_hsmmc3,
- 	&s3c_device_i2c5,
-+	&s5p_device_fimc0,
-+	&s5p_device_fimc1,
-+	&s5p_device_fimc2,
-+	&s5p_device_fimc3,
-+	&exynos4_device_pd[PD_CAM],
-+	&exynos4_device_sysmmu[S5P_SYSMMU_FIMC0],
-+	&exynos4_device_sysmmu[S5P_SYSMMU_FIMC1],
-+	&exynos4_device_sysmmu[S5P_SYSMMU_FIMC2],
-+	&exynos4_device_sysmmu[S5P_SYSMMU_FIMC3],
+ 	bytes_per_pixel = frame->v4l2_format.bytes_per_pixel;
+ 	stretch_bytes = (usbvision->stretch_width - 1) * bytes_per_pixel;
+-	clipmask_index = frame->curline * MAX_FRAME_WIDTH;
+-	clipmask_add = usbvision->stretch_width;
  
- 	/* Universal Devices */
- 	&universal_gpio_keys,
-@@ -638,6 +650,16 @@ static void __init universal_machine_init(void)
+ 	for (i = 0; i < frame->frmwidth; i += (2 * usbvision->stretch_width)) {
+ 		scratch_get(usbvision, &yuyv[0], 4);
  
- 	/* Last */
- 	platform_add_devices(universal_devices, ARRAY_SIZE(universal_devices));
+-		if (frame->v4l2_format.format == V4L2_PIX_FMT_YUYV) {
+-			*f++ = yuyv[0]; /* Y */
+-			*f++ = yuyv[3]; /* U */
+-		} else {
+-			YUV_TO_RGB_BY_THE_BOOK(yuyv[0], yuyv[1], yuyv[3], rv, gv, bv);
+-			switch (frame->v4l2_format.format) {
+-			case V4L2_PIX_FMT_RGB565:
+-				*f++ = (0x1F & rv) |
+-					(0xE0 & (gv << 5));
+-				*f++ = (0x07 & (gv >> 3)) |
+-					(0xF8 &  bv);
+-				break;
+-			case V4L2_PIX_FMT_RGB24:
+-				*f++ = rv;
+-				*f++ = gv;
+-				*f++ = bv;
+-				break;
+-			case V4L2_PIX_FMT_RGB32:
+-				*f++ = rv;
+-				*f++ = gv;
+-				*f++ = bv;
+-				f++;
+-				break;
+-			case V4L2_PIX_FMT_RGB555:
+-				*f++ = (0x1F & rv) |
+-					(0xE0 & (gv << 5));
+-				*f++ = (0x03 & (gv >> 3)) |
+-					(0x7C & (bv << 2));
+-				break;
+-			}
+-		}
+-		clipmask_index += clipmask_add;
++		*f++ = yuyv[0]; /* Y */
++		*f++ = yuyv[3]; /* U */
+ 		f += stretch_bytes;
+ 
+-		if (frame->v4l2_format.format == V4L2_PIX_FMT_YUYV) {
+-			*f++ = yuyv[2]; /* Y */
+-			*f++ = yuyv[1]; /* V */
+-		} else {
+-			YUV_TO_RGB_BY_THE_BOOK(yuyv[2], yuyv[1], yuyv[3], rv, gv, bv);
+-			switch (frame->v4l2_format.format) {
+-			case V4L2_PIX_FMT_RGB565:
+-				*f++ = (0x1F & rv) |
+-					(0xE0 & (gv << 5));
+-				*f++ = (0x07 & (gv >> 3)) |
+-					(0xF8 &  bv);
+-				break;
+-			case V4L2_PIX_FMT_RGB24:
+-				*f++ = rv;
+-				*f++ = gv;
+-				*f++ = bv;
+-				break;
+-			case V4L2_PIX_FMT_RGB32:
+-				*f++ = rv;
+-				*f++ = gv;
+-				*f++ = bv;
+-				f++;
+-				break;
+-			case V4L2_PIX_FMT_RGB555:
+-				*f++ = (0x1F & rv) |
+-					(0xE0 & (gv << 5));
+-				*f++ = (0x03 & (gv >> 3)) |
+-					(0x7C & (bv << 2));
+-				break;
+-			}
+-		}
+-		clipmask_index += clipmask_add;
++		*f++ = yuyv[2]; /* Y */
++		*f++ = yuyv[1]; /* V */
+ 		f += stretch_bytes;
+ 	}
+ 
+@@ -794,30 +731,20 @@ static enum parse_state usbvision_parse_
+ 	unsigned char strip_data[USBVISION_STRIP_LEN_MAX];
+ 	unsigned char strip_header[USBVISION_STRIP_HEADER_LEN];
+ 	int idx, idx_end, strip_len, strip_ptr, startblock_pos, block_pos, block_type_pos;
+-	int clipmask_index, bytes_per_pixel, rc;
++	int bytes_per_pixel, rc;
+ 	int image_size;
+-	unsigned char rv, gv, bv;
+ 	static unsigned char *Y, *U, *V;
+ 
+ 	frame = usbvision->cur_frame;
+ 	image_size = frame->frmwidth * frame->frmheight;
+-	if ((frame->v4l2_format.format == V4L2_PIX_FMT_YUV422P) ||
+-	    (frame->v4l2_format.format == V4L2_PIX_FMT_YVU420)) {       /* this is a planar format */
+-		/* ... v4l2_linesize not used here. */
+-		f = frame->data + (frame->width * frame->curline);
+-	} else
+-		f = frame->data + (frame->v4l2_linesize * frame->curline);
+-
+-	if (frame->v4l2_format.format == V4L2_PIX_FMT_YUYV) { /* initialise u and v pointers */
+-		/* get base of u and b planes add halfoffset */
+-		u = frame->data
+-			+ image_size
+-			+ (frame->frmwidth >> 1) * frame->curline;
+-		v = u + (image_size >> 1);
+-	} else if (frame->v4l2_format.format == V4L2_PIX_FMT_YVU420) {
+-		v = frame->data + image_size + ((frame->curline * (frame->width)) >> 2);
+-		u = v + (image_size >> 2);
+-	}
++	f = frame->data + (frame->v4l2_linesize * frame->curline);
 +
-+	s5p_device_fimc0.dev.parent = &exynos4_device_pd[PD_CAM].dev;
-+	s5p_device_fimc1.dev.parent = &exynos4_device_pd[PD_CAM].dev;
-+	s5p_device_fimc2.dev.parent = &exynos4_device_pd[PD_CAM].dev;
-+	s5p_device_fimc3.dev.parent = &exynos4_device_pd[PD_CAM].dev;
-+	exynos4_device_sysmmu[S5P_SYSMMU_FIMC0].dev.parent = &exynos4_device_pd[PD_CAM].dev;
-+	exynos4_device_sysmmu[S5P_SYSMMU_FIMC1].dev.parent = &exynos4_device_pd[PD_CAM].dev;
-+	exynos4_device_sysmmu[S5P_SYSMMU_FIMC2].dev.parent = &exynos4_device_pd[PD_CAM].dev;
-+	exynos4_device_sysmmu[S5P_SYSMMU_FIMC3].dev.parent = &exynos4_device_pd[PD_CAM].dev;
-+
- }
++	/* initialise u and v pointers */
++	/* get base of u and b planes add halfoffset */
++	u = frame->data
++		+ image_size
++		+ (frame->frmwidth >> 1) * frame->curline;
++	v = u + (image_size >> 1);
  
- MACHINE_START(UNIVERSAL_C210, "UNIVERSAL_C210")
+ 	if (frame->curline == 0)
+ 		usbvision_adjust_compression(usbvision);
+@@ -862,7 +789,6 @@ static enum parse_state usbvision_parse_
+ 	}
+ 
+ 	bytes_per_pixel = frame->v4l2_format.bytes_per_pixel;
+-	clipmask_index = frame->curline * MAX_FRAME_WIDTH;
+ 
+ 	scratch_get(usbvision, strip_data, strip_len);
+ 
+@@ -888,61 +814,10 @@ static enum parse_state usbvision_parse_
+ 		usbvision->strip_len_errors++;
+ 
+ 	for (idx = 0; idx < idx_end; idx++) {
+-		if (frame->v4l2_format.format == V4L2_PIX_FMT_YUYV) {
+-			*f++ = Y[idx];
+-			*f++ = idx & 0x01 ? U[idx / 2] : V[idx / 2];
+-		} else if (frame->v4l2_format.format == V4L2_PIX_FMT_YUV422P) {
+-			*f++ = Y[idx];
+-			if (idx & 0x01)
+-				*u++ = U[idx >> 1];
+-			else
+-				*v++ = V[idx >> 1];
+-		} else if (frame->v4l2_format.format == V4L2_PIX_FMT_YVU420) {
+-			*f++ = Y[idx];
+-			if (!((idx & 0x01) | (frame->curline & 0x01))) {
+-				/* only need do this for 1 in 4 pixels */
+-				/* intraframe buffer is YUV420 format */
+-				*u++ = U[idx >> 1];
+-				*v++ = V[idx >> 1];
+-			}
+-		} else {
+-			YUV_TO_RGB_BY_THE_BOOK(Y[idx], U[idx / 2], V[idx / 2], rv, gv, bv);
+-			switch (frame->v4l2_format.format) {
+-			case V4L2_PIX_FMT_GREY:
+-				*f++ = Y[idx];
+-				break;
+-			case V4L2_PIX_FMT_RGB555:
+-				*f++ = (0x1F & rv) |
+-					(0xE0 & (gv << 5));
+-				*f++ = (0x03 & (gv >> 3)) |
+-					(0x7C & (bv << 2));
+-				break;
+-			case V4L2_PIX_FMT_RGB565:
+-				*f++ = (0x1F & rv) |
+-					(0xE0 & (gv << 5));
+-				*f++ = (0x07 & (gv >> 3)) |
+-					(0xF8 & bv);
+-				break;
+-			case V4L2_PIX_FMT_RGB24:
+-				*f++ = rv;
+-				*f++ = gv;
+-				*f++ = bv;
+-				break;
+-			case V4L2_PIX_FMT_RGB32:
+-				*f++ = rv;
+-				*f++ = gv;
+-				*f++ = bv;
+-				f++;
+-				break;
+-			}
+-		}
+-		clipmask_index++;
++		*f++ = Y[idx];
++		*f++ = idx & 0x01 ? U[idx / 2] : V[idx / 2];
+ 	}
+-	/* Deal with non-integer no. of bytes for YUV420P */
+-	if (frame->v4l2_format.format != V4L2_PIX_FMT_YVU420)
+-		*pcopylen += frame->v4l2_linesize;
+-	else
+-		*pcopylen += frame->curline & 0x01 ? frame->v4l2_linesize : frame->v4l2_linesize << 1;
++	*pcopylen += frame->v4l2_linesize;
+ 
+ 	frame->curline += 1;
+ 
+@@ -975,11 +850,8 @@ static enum parse_state usbvision_parse_
+ 	const int y_step[] = { 0, 0, 0, 2 }, y_step_size = 4;
+ 	const int uv_step[] = { 0, 0, 0, 4 }, uv_step_size = 4;
+ 	unsigned char y[2], u, v;	/* YUV components */
+-	int y_, u_, v_, vb, uvg, ur;
+-	int r_, g_, b_;			/* RGB components */
+-	unsigned char g;
+-	int clipmask_even_index, clipmask_odd_index, bytes_per_pixel;
+-	int clipmask_add, stretch_bytes;
++	int bytes_per_pixel;
++	int stretch_bytes;
+ 
+ 	frame  = usbvision->cur_frame;
+ 	f_even = frame->data + (frame->v4l2_linesize * frame->curline);
+@@ -990,9 +862,6 @@ static enum parse_state usbvision_parse_
+ 	/* I need two lines to decode the color */
+ 	bytes_per_pixel = frame->v4l2_format.bytes_per_pixel;
+ 	stretch_bytes = (usbvision->stretch_width - 1) * bytes_per_pixel;
+-	clipmask_even_index = frame->curline * MAX_FRAME_WIDTH;
+-	clipmask_odd_index  = clipmask_even_index + MAX_FRAME_WIDTH;
+-	clipmask_add = usbvision->stretch_width;
+ 	pixel_per_line = frame->isoc_header.frame_width;
+ 
+ 	if (scratch_len(usbvision) < (int)pixel_per_line * 3) {
+@@ -1019,185 +888,22 @@ static enum parse_state usbvision_parse_
+ 			scratch_get_extra(usbvision, &u, &u_ptr, 1);
+ 			scratch_get_extra(usbvision, &v, &v_ptr, 1);
+ 
+-			/* I don't use the YUV_TO_RGB macro for better performance */
+-			v_ = v - 128;
+-			u_ = u - 128;
+-			vb = 132252 * v_;
+-			uvg = -53281 * u_ - 25625 * v_;
+-			ur = 104595 * u_;
+-
+-			if (frame->v4l2_format.format == V4L2_PIX_FMT_YUYV) {
+-				*f_even++ = y[0];
+-				*f_even++ = v;
+-			} else {
+-				y_ = 76284 * (y[0] - 16);
+-
+-				b_ = (y_ + vb) >> 16;
+-				g_ = (y_ + uvg) >> 16;
+-				r_ = (y_ + ur) >> 16;
+-
+-				switch (frame->v4l2_format.format) {
+-				case V4L2_PIX_FMT_RGB565:
+-					g = LIMIT_RGB(g_);
+-					*f_even++ =
+-						(0x1F & LIMIT_RGB(r_)) |
+-						(0xE0 & (g << 5));
+-					*f_even++ =
+-						(0x07 & (g >> 3)) |
+-						(0xF8 &  LIMIT_RGB(b_));
+-					break;
+-				case V4L2_PIX_FMT_RGB24:
+-					*f_even++ = LIMIT_RGB(r_);
+-					*f_even++ = LIMIT_RGB(g_);
+-					*f_even++ = LIMIT_RGB(b_);
+-					break;
+-				case V4L2_PIX_FMT_RGB32:
+-					*f_even++ = LIMIT_RGB(r_);
+-					*f_even++ = LIMIT_RGB(g_);
+-					*f_even++ = LIMIT_RGB(b_);
+-					f_even++;
+-					break;
+-				case V4L2_PIX_FMT_RGB555:
+-					g = LIMIT_RGB(g_);
+-					*f_even++ = (0x1F & LIMIT_RGB(r_)) |
+-						(0xE0 & (g << 5));
+-					*f_even++ = (0x03 & (g >> 3)) |
+-						(0x7C & (LIMIT_RGB(b_) << 2));
+-					break;
+-				}
+-			}
+-			clipmask_even_index += clipmask_add;
++			*f_even++ = y[0];
++			*f_even++ = v;
+ 			f_even += stretch_bytes;
+ 
+-			if (frame->v4l2_format.format == V4L2_PIX_FMT_YUYV) {
+-				*f_even++ = y[1];
+-				*f_even++ = u;
+-			} else {
+-				y_ = 76284 * (y[1] - 16);
+-
+-				b_ = (y_ + vb) >> 16;
+-				g_ = (y_ + uvg) >> 16;
+-				r_ = (y_ + ur) >> 16;
+-
+-				switch (frame->v4l2_format.format) {
+-				case V4L2_PIX_FMT_RGB565:
+-					g = LIMIT_RGB(g_);
+-					*f_even++ =
+-						(0x1F & LIMIT_RGB(r_)) |
+-						(0xE0 & (g << 5));
+-					*f_even++ =
+-						(0x07 & (g >> 3)) |
+-						(0xF8 &  LIMIT_RGB(b_));
+-					break;
+-				case V4L2_PIX_FMT_RGB24:
+-					*f_even++ = LIMIT_RGB(r_);
+-					*f_even++ = LIMIT_RGB(g_);
+-					*f_even++ = LIMIT_RGB(b_);
+-					break;
+-				case V4L2_PIX_FMT_RGB32:
+-					*f_even++ = LIMIT_RGB(r_);
+-					*f_even++ = LIMIT_RGB(g_);
+-					*f_even++ = LIMIT_RGB(b_);
+-					f_even++;
+-					break;
+-				case V4L2_PIX_FMT_RGB555:
+-					g = LIMIT_RGB(g_);
+-					*f_even++ = (0x1F & LIMIT_RGB(r_)) |
+-						(0xE0 & (g << 5));
+-					*f_even++ = (0x03 & (g >> 3)) |
+-						(0x7C & (LIMIT_RGB(b_) << 2));
+-					break;
+-				}
+-			}
+-			clipmask_even_index += clipmask_add;
++			*f_even++ = y[1];
++			*f_even++ = u;
+ 			f_even += stretch_bytes;
+ 
+ 			scratch_get_extra(usbvision, &y[0], &y_ptr, 2);
+ 
+-			if (frame->v4l2_format.format == V4L2_PIX_FMT_YUYV) {
+-				*f_odd++ = y[0];
+-				*f_odd++ = v;
+-			} else {
+-				y_ = 76284 * (y[0] - 16);
+-
+-				b_ = (y_ + vb) >> 16;
+-				g_ = (y_ + uvg) >> 16;
+-				r_ = (y_ + ur) >> 16;
+-
+-				switch (frame->v4l2_format.format) {
+-				case V4L2_PIX_FMT_RGB565:
+-					g = LIMIT_RGB(g_);
+-					*f_odd++ =
+-						(0x1F & LIMIT_RGB(r_)) |
+-						(0xE0 & (g << 5));
+-					*f_odd++ =
+-						(0x07 & (g >> 3)) |
+-						(0xF8 &  LIMIT_RGB(b_));
+-					break;
+-				case V4L2_PIX_FMT_RGB24:
+-					*f_odd++ = LIMIT_RGB(r_);
+-					*f_odd++ = LIMIT_RGB(g_);
+-					*f_odd++ = LIMIT_RGB(b_);
+-					break;
+-				case V4L2_PIX_FMT_RGB32:
+-					*f_odd++ = LIMIT_RGB(r_);
+-					*f_odd++ = LIMIT_RGB(g_);
+-					*f_odd++ = LIMIT_RGB(b_);
+-					f_odd++;
+-					break;
+-				case V4L2_PIX_FMT_RGB555:
+-					g = LIMIT_RGB(g_);
+-					*f_odd++ = (0x1F & LIMIT_RGB(r_)) |
+-						(0xE0 & (g << 5));
+-					*f_odd++ = (0x03 & (g >> 3)) |
+-						(0x7C & (LIMIT_RGB(b_) << 2));
+-					break;
+-				}
+-			}
+-			clipmask_odd_index += clipmask_add;
++			*f_odd++ = y[0];
++			*f_odd++ = v;
+ 			f_odd += stretch_bytes;
+ 
+-			if (frame->v4l2_format.format == V4L2_PIX_FMT_YUYV) {
+-				*f_odd++ = y[1];
+-				*f_odd++ = u;
+-			} else {
+-				y_ = 76284 * (y[1] - 16);
+-
+-				b_ = (y_ + vb) >> 16;
+-				g_ = (y_ + uvg) >> 16;
+-				r_ = (y_ + ur) >> 16;
+-
+-				switch (frame->v4l2_format.format) {
+-				case V4L2_PIX_FMT_RGB565:
+-					g = LIMIT_RGB(g_);
+-					*f_odd++ =
+-						(0x1F & LIMIT_RGB(r_)) |
+-						(0xE0 & (g << 5));
+-					*f_odd++ =
+-						(0x07 & (g >> 3)) |
+-						(0xF8 &  LIMIT_RGB(b_));
+-					break;
+-				case V4L2_PIX_FMT_RGB24:
+-					*f_odd++ = LIMIT_RGB(r_);
+-					*f_odd++ = LIMIT_RGB(g_);
+-					*f_odd++ = LIMIT_RGB(b_);
+-					break;
+-				case V4L2_PIX_FMT_RGB32:
+-					*f_odd++ = LIMIT_RGB(r_);
+-					*f_odd++ = LIMIT_RGB(g_);
+-					*f_odd++ = LIMIT_RGB(b_);
+-					f_odd++;
+-					break;
+-				case V4L2_PIX_FMT_RGB555:
+-					g = LIMIT_RGB(g_);
+-					*f_odd++ = (0x1F & LIMIT_RGB(r_)) |
+-						(0xE0 & (g << 5));
+-					*f_odd++ = (0x03 & (g >> 3)) |
+-						(0x7C & (LIMIT_RGB(b_) << 2));
+-					break;
+-				}
+-			}
+-			clipmask_odd_index += clipmask_add;
++			*f_odd++ = y[1];
++			*f_odd++ = u;
+ 			f_odd += stretch_bytes;
+ 		}
+ 
+diff -up linux-2.6.39-rc2-/drivers/media/video/usbvision/usbvision.h linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision.h
+--- linux-2.6.39-rc2-/drivers/media/video/usbvision/usbvision.h	2011-04-25 22:30:09.000000000 +0200
++++ linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision.h	2011-04-25 22:57:49.000000000 +0200
+@@ -165,48 +165,6 @@ enum {
+ 	{ if ((v) < (mi)) (v) = (mi); else if ((v) > (ma)) (v) = (ma); }
+ 
+ /*
+- * We use macros to do YUV -> RGB conversion because this is
+- * very important for speed and totally unimportant for size.
+- *
+- * YUV -> RGB Conversion
+- * ---------------------
+- *
+- * B = 1.164*(Y-16)		    + 2.018*(V-128)
+- * G = 1.164*(Y-16) - 0.813*(U-128) - 0.391*(V-128)
+- * R = 1.164*(Y-16) + 1.596*(U-128)
+- *
+- * If you fancy integer arithmetics (as you should), hear this:
+- *
+- * 65536*B = 76284*(Y-16)		  + 132252*(V-128)
+- * 65536*G = 76284*(Y-16) -  53281*(U-128) -  25625*(V-128)
+- * 65536*R = 76284*(Y-16) + 104595*(U-128)
+- *
+- * Make sure the output values are within [0..255] range.
+- */
+-#define LIMIT_RGB(x) (((x) < 0) ? 0 : (((x) > 255) ? 255 : (x)))
+-#define YUV_TO_RGB_BY_THE_BOOK(my, mu, mv, mr, mg, mb) { \
+-	int mm_y, mm_yc, mm_u, mm_v, mm_r, mm_g, mm_b; \
+-	mm_y = (my) - 16; \
+-	mm_u = (mu) - 128; \
+-	mm_v = (mv) - 128; \
+-	mm_yc = mm_y * 76284; \
+-	mm_b = (mm_yc + 132252 * mm_v) >> 16; \
+-	mm_g = (mm_yc - 53281 * mm_u - 25625 * mm_v) >> 16; \
+-	mm_r = (mm_yc + 104595 * mm_u) >> 16; \
+-	mb = LIMIT_RGB(mm_b); \
+-	mg = LIMIT_RGB(mm_g); \
+-	mr = LIMIT_RGB(mm_r); \
+-}
+-
+-/* Debugging aid */
+-#define USBVISION_SAY_AND_WAIT(what) { \
+-	wait_queue_head_t wq; \
+-	init_waitqueue_head(&wq); \
+-	printk(KERN_INFO "Say: %s\n", what); \
+-	interruptible_sleep_on_timeout(&wq, HZ * 3); \
+-}
+-
+-/*
+  * This macro checks if usbvision is still operational. The 'usbvision'
+  * pointer must be valid, usbvision->dev must be valid, we are not
+  * removing the device and the device has not erred on us.
+diff -up linux-2.6.39-rc2-/drivers/media/video/usbvision/usbvision-video.c linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision-video.c
+--- linux-2.6.39-rc2-/drivers/media/video/usbvision/usbvision-video.c	2011-04-25 22:30:09.000000000 +0200
++++ linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision-video.c	2011-04-25 22:57:21.000000000 +0200
+@@ -112,14 +112,7 @@ USBVISION_DRIVER_VERSION_PATCHLEVEL)
+ static int usbvision_nr;
+ 
+ static struct usbvision_v4l2_format_st usbvision_v4l2_format[] = {
+-	{ 1, 1,  8, V4L2_PIX_FMT_GREY    , "GREY" },
+-	{ 1, 2, 16, V4L2_PIX_FMT_RGB565  , "RGB565" },
+-	{ 1, 3, 24, V4L2_PIX_FMT_RGB24   , "RGB24" },
+-	{ 1, 4, 32, V4L2_PIX_FMT_RGB32   , "RGB32" },
+-	{ 1, 2, 16, V4L2_PIX_FMT_RGB555  , "RGB555" },
+ 	{ 1, 2, 16, V4L2_PIX_FMT_YUYV    , "YUV422" },
+-	{ 1, 2, 12, V4L2_PIX_FMT_YVU420  , "YUV420P" }, /* 1.5 ! */
+-	{ 1, 2, 16, V4L2_PIX_FMT_YUV422P , "YUV422P" }
+ };
+ 
+ /* Function prototypes */
+@@ -888,7 +881,7 @@ static int vidioc_streamoff(struct file
+ static int vidioc_enum_fmt_vid_cap(struct file *file, void  *priv,
+ 					struct v4l2_fmtdesc *vfd)
+ {
+-	if (vfd->index >= USBVISION_SUPPORTED_PALETTES - 1)
++	if (vfd->index > USBVISION_SUPPORTED_PALETTES - 1)
+ 		return -EINVAL;
+ 	strcpy(vfd->description, usbvision_v4l2_format[vfd->index].desc);
+ 	vfd->pixelformat = usbvision_v4l2_format[vfd->index].format;
+@@ -1454,7 +1447,7 @@ static void usbvision_configure_video(st
+ 		return;
+ 
+ 	model = usbvision->dev_model;
+-	usbvision->palette = usbvision_v4l2_format[2]; /* V4L2_PIX_FMT_RGB24; */
++	usbvision->palette = usbvision_v4l2_format[0];
+ 
+ 	if (usbvision_device_data[usbvision->dev_model].vin_reg2_override) {
+ 		usbvision->vin_reg2_preset =
+@@ -1659,13 +1652,6 @@ static int __init usbvision_init(void)
+ 	PDEBUG(DBG_PROBE, "PROBE   debugging is enabled [video]");
+ 	PDEBUG(DBG_MMAP, "MMAP    debugging is enabled [video]");
+ 
+-	/* disable planar mode support unless compression enabled */
+-	if (isoc_mode != ISOC_MODE_COMPRESS) {
+-		/* FIXME : not the right way to set supported flag */
+-		usbvision_v4l2_format[6].supported = 0; /* V4L2_PIX_FMT_YVU420 */
+-		usbvision_v4l2_format[7].supported = 0; /* V4L2_PIX_FMT_YUV422P */
+-	}
+-
+ 	err_code = usb_register(&usbvision_driver);
+ 
+ 	if (err_code == 0) {
+
+
 -- 
-1.7.1.569.g6f426
+Ondrej Zary
