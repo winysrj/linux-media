@@ -1,105 +1,194 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:8874 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756985Ab1DMTKs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Apr 2011 15:10:48 -0400
-Date: Wed, 13 Apr 2011 15:10:43 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Douglas Clowes <dclowes1@optusnet.com.au>
-Subject: [PATCH 2/2 v2] [media] rc/nuvoton-cir: enable CIR on w83667hg chip
- variant
-Message-ID: <20110413191043.GA23183@redhat.com>
-References: <1302639802-22723-1-git-send-email-jarod@redhat.com>
- <1302639802-22723-3-git-send-email-jarod@redhat.com>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:50545 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757882Ab1DYBaz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Apr 2011 21:30:55 -0400
+Received: by bwz15 with SMTP id 15so1351263bwz.19
+        for <linux-media@vger.kernel.org>; Sun, 24 Apr 2011 18:30:54 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1302639802-22723-3-git-send-email-jarod@redhat.com>
+In-Reply-To: <1303258890.2249.84.camel@localhost>
+References: <BANLkTikqBPdr2M8jyY1zmu4TPLsXo0y5Xw@mail.gmail.com>
+	<BANLkTi=dVYRgUbQ5pRySQLptnzaHOMKTqg@mail.gmail.com>
+	<1302015521.4529.17.camel@morgan.silverblock.net>
+	<BANLkTimQkDHmDsqSsQ9jiYnHWXnc7umeWw@mail.gmail.com>
+	<1302481535.2282.61.camel@localhost>
+	<20110411163239.GA4324@mgebm.net>
+	<20110418141514.GA4611@mgebm.net>
+	<ac791492-7bc5-4a78-92af-503dda599346@email.android.com>
+	<20110418224855.GB4611@mgebm.net>
+	<1303215523.2274.27.camel@localhost>
+	<20110419171220.GA4883@mgebm.net>
+	<1303258890.2249.84.camel@localhost>
+Date: Sun, 24 Apr 2011 21:30:53 -0400
+Message-ID: <BANLkTinsn4S52zuwaiTRXwHHHjJcSbCikA@mail.gmail.com>
+Subject: Re: HVR-1600 (model 74351 rev F1F5) analog Red Screen
+From: Eric B Munson <emunson@mgebm.net>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: Michael Krufky <mkrufky@kernellabs.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	mchehab@infradead.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Thanks to some excellent investigative work by Douglas Clowes, it was
-uncovered that the older w83667hg Nuvoton chip functions with this
-driver after actually enabling the CIR function via its multi-function
-chip config register. The CIR and CIR wide-band sensor enable bits are
-just in a different place on this hardware, so we only poke register
-0x27 on 677 hardware now, and we poke register 0x2c on the 667 now.
+On Tue, Apr 19, 2011 at 8:21 PM, Andy Walls <awalls@md.metrocast.net> wrote:
+> On Tue, 2011-04-19 at 13:12 -0400, Eric B Munson wrote:
+>> On Tue, 19 Apr 2011, Andy Walls wrote:
+>>
+>
+>> > > > Have you used v4l2-ctl or ivtv-tune to tune to the proper tv channel
+>> > > (the driver defaults to US channel 4)?
+>> > >
+>> > > emunson@grover:~$ v4l2-ctl -F
+>> > > Frequency: 0 (0.000000 MHz)
+>> > > emunson@grover:~$ v4l2-ctl -f 259.250
+>> > > Frequency set to 4148 (259.250000 MHz)
+>> > > emunson@grover:~$ v4l2-ctl -F
+>> > > Frequency: 0 (0.000000 MHz)
+>> >
+>> > OK, that doesn't look good.  The tda18271 tuner and/or tda8290 demod
+>> > drivers may not be working right.
+>
+> I looked into this.
+>
+> Apparently the tda18271 tuner driver doesn't report back analog
+> frequency setting.  So reading back 0.00000 MHz is OK.
+>
+>> > I'll have to look into that later this week.
+>> >
+>> > BTW, Mike Krufky just submitted some patches that may be relevant:
+>> >
+>> >     http://kernellabs.com/hg/~mkrufky/tda18271-fix
+>> >
+>>
+>> I have applied these patches and I am still seeing the same problem (frequency
+>> still report 0 after being set) and mplayer still closes immediately.
+>
+> I don't have those patches applied.   I just tested my 74351 HVR-1600
+> again tonight, and analog channel 3 works for me.  I don't know what to
+> say....
+>
+>> > >
+>> > > > Does v4l2-ctl --log-status still show no signal present for the '843 core in the CX23418?
+>> > >
+>> > > Yeah,
+>> > >    [94465.349721] cx18-0 843: Video signal:              not present
+>> >
+>> > The tuner or demod isn't tuning to a channel or getting a signal.
+>> >
+>> > Can you try channel 3 (61.250 MHz)?  That one works for me.
+>>
+>> Still shows not present on channel 3.
+>
+> OK.  Tonight was the first time I have *ever* been able to reproduce the
+> "red screen" out of a CX23418.
+>
+> I am fairly sure the red screen happens because of some kernel bug or
+> PCI bus problem that ends up corrupting the CX23418 registers
+> responsible for configuring the CX25843 A/V core inside of the CX23418.
+> The '843 core is responsible for digitizing the analog video, so when it
+> stops functioning, the result is a red screen. I guess the root cause
+> could also happen due to some thermal or power condition causes the '843
+> core to stop, but I think that is less likely.
+>
+> Anyway, when you're going to get a red screen, the '843 core will always
+> indicate "cx18-N 843: Video signal:    not present", even if there is a
+> signal present from the analog tuner and demodulator chips.
+>
+>
+>> > > > Does mplayer /dev/videoN -cache 8192 have a tv station when set to the rf analog input with v4l2-ctl?
+>> > >
+>> > > emunson@grover:~$ mplayer /dev/video0 -cache 8192
+>> > > MPlayer 1.0rc4-4.4.5 (C) 2000-2010 MPlayer Team
+>> > >
+>> > > Playing /dev/video0.
+>> > > Cache fill:  0.00% (0 bytes)
+>> > >
+>> > >
+>> > > Exiting... (End of file)
+>> >
+>> > Hmmm.  I would have expected at least a black picture with snow, if not
+>> > tuned to a channel.
+>> >
+>> > Does analog S-Video or Composite work?
+>>
+>> Unfortunately, I do not have anything I can use to test these.  The card only
+>> takes coaxial or S-Video input and I don't have any sort of S-Video cables or
+>> converters.
+>
+> With new HVR-1600 from Hauppauge, an adapter for plugging a Composite
+> RCA cable  into the S-Video jack is in the box.
+>
+> It looks very much like the one at the end of this thread, but it is
+> grey in color:
+>
+>        http://www.hauppauge.co.uk/board/showthread.php?t=22115
+>
+> If this is a second hand card, or one bought from e-Bay, etc. have you
+> ever tested it in a Windows machine with the Hauppauge Windows drivers?
+> (In other words, are you reasonably confident the card is not defective
+> or broken.)
+>
+>
+> When testing tonight, I unloaded all the drivers, performed the
+> following commands to get verbose debugging, and saved the dmesg:
+>
+>  # modinfo tuner
+>  # modprobe tuner debug=7
+>  # modinfo tda8290
+>  # modprobe tda8290 debug=7
+>  # modinfo tda18271
+>  # modprobe tda18271 debug=31
+>  # modinfo cx18
+>  # modprobe cx18 debug=255
+>
+>  # ivtv-tune -d /dev/video1 -c3
+>  # v4l2-ctl -d /dev/video1 --log-status
+>
+>  # mplayer /dev/video1 -cache 8192
+>
+> I'll send you the 138 kB dmesg file off list, so you can see the
+> messgaes generated by a functioning 73451 HVR-1600 setup.  Note that the
+> card of interest in the dmesg output was 'cx18-1'.
+>
+> You'll want to look to see that the TDA18271 and TDA8290 related
+> messages look the same, to get reasonable assurance that the tuner and
+> demodulator chip are being set up properly and repsonding.
+>
+> If you consistently get "cx18-N 843: Video signal:  not present" in your
+> v4l2-ctl --log-status output but the tuner chip configurations look good
+> (i.e. closely match the debug output from my machine), then you really
+> have a "red screen" problem versus a problem related to the analog
+> tuner/demod chips.
+>
+> The "red screen" will be a tough one to track down.  It's a system level
+> issue, likely involving one or more of:
+>
+> 1. a kernel bug in a driver for some other hardware in your system
+> 2. a hardware problem with your PCI chipset when the PCI bus is heavily
+> loaded
+> 3. a power or thermal condition that causes problems for the HVR-1600
+> hardware
+>
+> I usually start by recommending that all non-critical linux driver
+> modules be blacklisted (or not loaded), and booting the system into
+> run-level 3 or lower (no X windows), when trying to isolate the cause in
+> any one system.
+>
+> Regards,
+> Andy
 
-Reported-by: Douglas Clowes <dclowes1@optusnet.com.au>
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/rc/nuvoton-cir.c |   22 ++++++++++++++++------
- drivers/media/rc/nuvoton-cir.h |    7 +++++++
- 2 files changed, 23 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
-index bc5c1e2..5d93384 100644
---- a/drivers/media/rc/nuvoton-cir.c
-+++ b/drivers/media/rc/nuvoton-cir.c
-@@ -291,13 +291,23 @@ static int nvt_hw_detect(struct nvt_dev *nvt)
- 
- static void nvt_cir_ldev_init(struct nvt_dev *nvt)
- {
--	u8 val;
-+	u8 val, psreg, psmask, psval;
-+
-+	if (nvt->chip_major == CHIP_ID_HIGH_667) {
-+		psreg  = CR_MULTIFUNC_PIN_SEL;
-+		psmask = MULTIFUNC_PIN_SEL_MASK;
-+		psval  = MULTIFUNC_ENABLE_CIR | MULTIFUNC_ENABLE_CIRWB;
-+	} else {
-+		psreg  = CR_OUTPUT_PIN_SEL;
-+		psmask = OUTPUT_PIN_SEL_MASK;
-+		psval  = OUTPUT_ENABLE_CIR | OUTPUT_ENABLE_CIRWB;
-+	}
- 
--	/* output pin selection (Pin95=CIRRX, Pin96=CIRTX1, WB enabled */
--	val = nvt_cr_read(nvt, CR_OUTPUT_PIN_SEL);
--	val &= OUTPUT_PIN_SEL_MASK;
--	val |= (OUTPUT_ENABLE_CIR | OUTPUT_ENABLE_CIRWB);
--	nvt_cr_write(nvt, val, CR_OUTPUT_PIN_SEL);
-+	/* output pin selection: enable CIR, with WB sensor enabled */
-+	val = nvt_cr_read(nvt, psreg);
-+	val &= psmask;
-+	val |= psval;
-+	nvt_cr_write(nvt, val, psreg);
- 
- 	/* Select CIR logical device and enable */
- 	nvt_select_logical_dev(nvt, LOGICAL_DEV_CIR);
-diff --git a/drivers/media/rc/nuvoton-cir.h b/drivers/media/rc/nuvoton-cir.h
-index cc8cee3..379795d 100644
---- a/drivers/media/rc/nuvoton-cir.h
-+++ b/drivers/media/rc/nuvoton-cir.h
-@@ -345,6 +345,7 @@ struct nvt_dev {
- #define CR_CHIP_ID_LO		0x21
- #define CR_DEV_POWER_DOWN	0x22 /* bit 2 is CIR power, default power on */
- #define CR_OUTPUT_PIN_SEL	0x27
-+#define CR_MULTIFUNC_PIN_SEL	0x2c
- #define CR_LOGICAL_DEV_EN	0x30 /* valid for all logical devices */
- /* next three regs valid for both the CIR and CIR_WAKE logical devices */
- #define CR_CIR_BASE_ADDR_HI	0x60
-@@ -368,10 +369,16 @@ struct nvt_dev {
- #define CIR_INTR_MOUSE_IRQ_BIT	0x80
- #define PME_INTR_CIR_PASS_BIT	0x08
- 
-+/* w83677hg CIR pin config */
- #define OUTPUT_PIN_SEL_MASK	0xbc
- #define OUTPUT_ENABLE_CIR	0x01 /* Pin95=CIRRX, Pin96=CIRTX1 */
- #define OUTPUT_ENABLE_CIRWB	0x40 /* enable wide-band sensor */
- 
-+/* w83667hg CIR pin config */
-+#define MULTIFUNC_PIN_SEL_MASK	0x1f
-+#define MULTIFUNC_ENABLE_CIR	0x80 /* Pin75=CIRRX, Pin76=CIRTX1 */
-+#define MULTIFUNC_ENABLE_CIRWB	0x20 /* enable wide-band sensor */
-+
- /* MCE CIR signal length, related on sample period */
- 
- /* MCE CIR controller signal length: about 43ms
--- 
-1.7.1
+Sorry for the long silence here, I must have not mentioned it, but the
+last round of your patches fixed the red screen problem.  The problem
+I have been chasing down since is that the card won't tune into
+anything.  All I ever get from it is static in picture and sound.
+Even when showing the static v4l2-ctl shows Video signal: not present.
+ I bought the card new but no longer have the accessories that came
+with it, I will try and find a converter and try that for input.
+Trying the card on windows will be tough but I will try and have that
+done in a week.  Thanks for all your help and patience. :)
 
--- 
-Jarod Wilson
-jarod@redhat.com
-
+Eric
