@@ -1,321 +1,100 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3045 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756227Ab1DHMxO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Apr 2011 08:53:14 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [PATCH 0/2] V4L: Extended crop/compose API, ver2
-Date: Fri, 8 Apr 2011 14:53:02 +0200
-Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <1302079459-4018-1-git-send-email-t.stanislaws@samsung.com>
-In-Reply-To: <1302079459-4018-1-git-send-email-t.stanislaws@samsung.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:43408 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756005Ab1DZTWB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Apr 2011 15:22:01 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Bastian Hecht <hechtb@googlemail.com>
+Subject: Re: OMAP3 ISP deadlocks on my new arm
+Date: Tue, 26 Apr 2011 21:22:14 +0200
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	David Cohen <dacohen@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <BANLkTikwJ2bJr11U_ETZtU4gYuNyak+Xcw@mail.gmail.com> <201104211129.40889.laurent.pinchart@ideasonboard.com> <BANLkTim=xa+e90Y8UF=SwjFDQ=K1sAKk-Q@mail.gmail.com>
+In-Reply-To: <BANLkTim=xa+e90Y8UF=SwjFDQ=K1sAKk-Q@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201104081453.02965.hverkuil@xs4all.nl>
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201104262122.15126.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Tomasz!
+Hi Bastian,
 
-Some comments below...
+On Tuesday 26 April 2011 17:39:41 Bastian Hecht wrote:
+> 2011/4/21 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> > On Tuesday 19 April 2011 09:31:05 Sakari Ailus wrote:
+> >> Laurent Pinchart wrote:
+> >> ...
+> >> 
+> >> > That's the ideal situation: sensors should not produce any data (or
+> >> > rather any transition on the VS/HS signals) when they're supposed to
+> >> > be stopped. Unfortunately that's not always easy, as some dumb
+> >> > sensors (or sensor-like hardware) can't be stopped. The ISP driver
+> >> > should be able to cope with that in a way that doesn't kill the
+> >> > system completely.
+> >> > 
+> >> > I've noticed the same issue with a Caspa camera module and an
+> >> > OMAP3503-based Gumstix. I'll try to come up with a good fix.
+> >> 
+> >> Hi Laurent, others,
+> >> 
+> >> Do you think the cause for this is that the system is jammed in handling
+> >> HS_VS interrupts triggered for every HS?
+> > 
+> > That was my initial guess, yes.
+> > 
+> >> A quick fix for this could be just choosing either VS configuration when
+> >> configuring the CCDC. Alternatively, HS_VS interrupts could be just
+> >> disabled until omap3isp_configure_interface().
+> >> 
+> >> But as the sensor is sending images all the time, proper VS
+> >> configuration would be needed, or the counting of lines in the CCDC
+> >> (VD* interrupts) is affected as well. The VD0 interrupt, which is used
+> >> to trigger an interrupt near the end of the frame, may be triggered one
+> >> line too early on the first frame, or too late. But this is up to a
+> >> configuration. I don't think it's a real issue to trigger it one line
+> >> too early.
+> >> 
+> >> Anything else?
+> 
+> Hello Laurent,
+> 
+> > I've tried delaying the HS_VS interrupt enable to the CCDC configuration
+> > function, after configuring the bridge (and thus the HS/VS interrupt
+> > source selection). To my surprise it didn't fix the problem, I still get
+> > tons of HS_VS interrupts (100000 in about 2.6 seconds) that kill the
+> > system.
+> > 
+> > I'll need to hook a scope to the HS and VS signals.
+> 
+> have you worked on this problem? Today in my setup I took a longer cable and
+> ran again into the hs/vs interrupt storm (it still works with a short
+> cable).
+> I can tackle this issue too, but to avoid double work I wanted to ask if you
+> worked out something in the meantime.
 
-On Wednesday, April 06, 2011 10:44:17 Tomasz Stanislawski wrote:
-> Hello everyone,
-> 
-> This patch-set introduces new ioctls to V4L2 API. The new method for
-> configuration of cropping and composition is presented.
-> 
-> This is the second version of extcrop RFC. It was enriched with new features
-> like additional hint flags, and a support for auxiliary crop/compose
-> rectangles.
-> 
-> There is some confusion in understanding of a cropping in current version of
-> V4L2. For CAPTURE devices cropping refers to choosing only a part of input
-> data stream and processing it and storing it in a memory buffer. The buffer is
-> fully filled by data. It is not possible to choose only a part of a buffer for
-> being updated by hardware.
-> 
-> In case of OUTPUT devices, the whole content of a buffer is passed by hardware
-> to output display. Cropping means selecting only a part of an output
-> display/signal. It is not possible to choose only a part for a memory buffer
-> to be processed.
-> 
-> The overmentioned flaws in cropping API were discussed in post:
-> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/28945
-> 
-> A solution was proposed during brainstorming session in Warsaw.
-> 
-> 
-> 1. Data structures.
-> 
-> The structure v4l2_crop used by current API lacks any place for further
-> extensions. Therefore new structure is proposed.
-> 
-> struct v4l2_selection {
-> 	u32 type;
-> 	u32 target;
-> 	struct v4l2_rect r;
-> 	u32 flags;
-> 	u32 reserved[9];
-> };
-> 
-> Where,
-> type	 - type of buffer queue: V4L2_BUF_TYPE_VIDEO_CAPTURE,
->            V4L2_BUF_TYPE_VIDEO_OUTPUT, etc.
-> target   - choose one of cropping/composing rectangles
-> r	 - selection rectangle
-> flags	 - control over coordinates adjustments
-> reserved - place for further extensions, adjust struct size to 64 bytes
-> 
-> At first, the distinction between cropping and composing was stated. The
-> cropping operation means choosing only part of input data bounding it by a
-> cropping rectangle. All other data must be discarded. On the other hand,
-> composing means pasting processed data into rectangular part of data sink. The
-> sink may be output device, user buffer, etc.
-> 
-> 
-> 2. Crop/Compose ioctl.
-> Four new ioctls would be added to V4L2.
-> 
-> Name
-> 	VIDIOC_S_EXTCROP - set cropping rectangle on an input of a device
-> 
-> Synopsis
-> 	int ioctl(fd, VIDIOC_S_EXTCROP, struct v4l2_selection *s)
-> 
-> Description:
-> 	The ioctl is used to configure:
-> 	- for input devices, a part of input data that is processed in hardware
-> 	- for output devices, a part of a data buffer to be passed to hardware
-> 	  Drivers may adjust a cropping area. The adjustment can be controlled
->           by v4l2_selection::flags. Please refer to Hints section.
-> 	- an adjusted crop rectangle is returned in v4l2_selection::r
-> 
-> Return value
-> 	On success 0 is returned, on error -1 and the errno variable is set
->         appropriately:
-> 	ERANGE - failed to find a rectangle that satisfy all constraints
-> 	EINVAL - incorrect buffer type, incorrect target, cropping not supported
-> 
-> -----------------------------------------------------------------
-> 
-> Name
-> 	VIDIOC_G_EXTCROP - get cropping rectangle on an input of a device
-> 
-> Synopsis
-> 	int ioctl(fd, VIDIOC_G_EXTCROP, struct v4l2_selection *s)
-> 
-> Description:
-> 	The ioctl is used to query:
-> 	- for input devices, a part of input data that is processed in hardware
-> 	  Other crop rectangles might be examined using this ioctl.
-> 	  Please refer to Targets section.
-> 	- for output devices, a part of data buffer to be passed to hardware
-> 
-> Return value
-> 	On success 0 is returned, on error -1 and the errno variable is set
->         appropriately:
-> 	EINVAL - incorrect buffer type, incorrect target, cropping not supported
-> 
-> -----------------------------------------------------------------
-> 
-> Name
-> 	VIDIOC_S_COMPOSE - set destination rectangle on an output of a device
-> 
-> Synopsis
-> 	int ioctl(fd, VIDIOC_S_COMPOSE, struct v4l2_selection *s)
-> 
-> Description:
-> 	The ioctl is used to configure:
-> 	- for input devices, a part of a data buffer that is filled by hardware
-> 	- for output devices, a area on output device where image is inserted
-> 	Drivers may adjust a composing area. The adjustment can be controlled
->         by v4l2_selection::flags. Please refer to Hints section.
-> 	- an adjusted composing rectangle is returned in v4l2_selection::r
-> 
-> Return value
-> 	On success 0 is returned, on error -1 and the errno variable is set
->         appropriately:
-> 	ERANGE - failed to find a rectangle that satisfy all constraints
-> 	EINVAL - incorrect buffer type, incorrect target, composing not supported
-> 
-> -----------------------------------------------------------------
-> 
-> Name
-> 	VIDIOC_G_COMPOSE - get destination rectangle on an output of a device
-> 
-> Synopsis
-> 	int ioctl(fd, VIDIOC_G_COMPOSE, struct v4l2_selection *s)
-> 
-> Description:
-> 	The ioctl is used to query:
-> 	- for input devices, a part of a data buffer that is filled by hardware
-> 	  Other compose rectangles might be examined using this ioctl.
-> 	  Please refer to Targets section.
-> 	- for output devices, a area on output device where image is inserted
-> 
-> Return value
-> 	On success 0 is returned, on error -1 and the errno variable is set
->         appropriately:
-> 	EINVAL - incorrect buffer type, incorrect target, composing not supported
-> 
-> 
-> 3. Hints
-> 
-> The v4l2_selection::flags field is used to give a driver a hint about
-> coordinate adjustments.  Below one can find the proposition of adjustment
-> flags. The syntax is V4L2_SEL_{name}_{LE/GE}, where {name} refer to a field in
-> struct v4l2_rect. Two additional properties exist 'right' and 'bottom'. The
-> refer to respectively: left + width, and top + height. The LE is abbreviation
-> from "lesser or equal".  It prevents the driver form increasing a parameter. In
-> similar fashion GE means "greater or equal" and it disallows decreasing.
-> Combining LE and GE flags prevents the driver from any adjustments of
-> parameters.  In such a manner, setting flags field to zero would give a driver
-> a free hand in coordinate adjustment.
-> 
-> #define V4L2_SEL_WIDTH_GE	0x00000001
-> #define V4L2_SEL_WIDTH_LE	0x00000002
-> #define V4L2_SEL_HEIGHT_GE	0x00000004
-> #define V4L2_SEL_HEIGHT_LE	0x00000008
-> #define V4L2_SEL_LEFT_GE	0x00000010
-> #define V4L2_SEL_LEFT_LE	0x00000020
-> #define V4L2_SEL_TOP_GE		0x00000040
-> #define V4L2_SEL_TOP_LE		0x00000080
-> #define V4L2_SEL_RIGHT_GE	0x00000100
-> #define V4L2_SEL_RIGHT_LE	0x00000200
-> #define V4L2_SEL_BOTTOM_GE	0x00000400
-> #define V4L2_SEL_BOTTOM_LE	0x00000800
-> 
-> #define V4L2_SEL_WIDTH_FIXED	0x00000003
-> #define V4L2_SEL_HEIGHT_FIXED	0x0000000c
-> #define V4L2_SEL_LEFT_FIXED	0x00000030
-> #define V4L2_SEL_TOP_FIXED	0x000000c0
-> #define V4L2_SEL_RIGHT_FIXED	0x00000300
-> #define V4L2_SEL_BOTTOM_FIXED	0x00000c00
-> 
-> #define V4L2_SEL_FIXED		0x00000fff
-> 
-> The hint flags may be useful in a following scenario.  There is a sensor with a
-> face detection functionality. An application receives information about a
-> position of a face on sensor array. Assume that the camera pipeline is capable
-> of an image scaling. The application is capable of obtaining a location of a
-> face using V4L2 controls. The task it to grab only part of image that contains
-> a face, and store it to a framebuffer at a fixed window. Therefore following
-> constrains have to be satisfied:
-> - the rectangle that contains a face must lay inside cropping area
-> - hardware is allowed only to access area inside window on the framebuffer
-> 
-> Both constraints could be satisfied with two ioctl calls.
-> - VIDIOC_EXTCROP with flags field equal to
->   V4L2_SEL_TOP_LE | V4L2_SEL_LEFT_LE |
->   V4L2_SEL_RIGHT_GE | V4L2_SEL_BOTTOM_GE.
-> - VIDIOC_COMPOSE with flags field equal to
->   V4L2_SEL_TOP_FIXED | V4L2_SEL_LEFT_FIXED |
->   V4L2_SEL_WIDTH_LE | V4L2_SEL_HEIGHT_LE
-> 
-> Feel free to add a new flag if necessary.
+In my case the issue was caused by a combination of two hardware design 
+mistakes. The first one was to use a TXB0801 chip to translate the 3.3V sensor 
+levels to the 1.8V OMAP levels. The TXB0801 4kΩ output impedance, combined 
+with the OMAP3 100µA pull-ups on the HS and VS signals, produces a ~400mV 
+voltage for low logic levels.
 
-While this is very flexible, I am a bit concerned about the complexity this
-would introduce in a driver. I think I would want to see this actually
-implemented in a driver first. I suspect that some utility functions are
-probably needed.
+Then, the XCLKA signal is next to the VS signal on the cable connecting the 
+camera module to the OMAP board. When XCLKA is turned on, cross-talk produces 
+a 400mV peak-to-peak noise on the VS signal.
 
-> 
-> 
-> 4. Targets
-> The cropping/composing subsystem may use auxiliary rectangles other than a
-> normal cropping rectangle. The field v4l2_selection::target is used to choose
-> the rectangle. This functionality was added to simulate VIDIOC_CROPCAP ioctl.
-> All cropcap fields except pixel aspect are supported. I noticed that there was
-> discussion about pixel aspect and I am not convinced that it should be a part
-> of the cropping API. Please refer to the post:
-> http://lists-archives.org/video4linux/22837-need-vidioc_cropcap-clarification.html
-> 
-> Proposed targets are:
-> - active - numerical value 0, an area that is processed by hardware
-> - default - is the suggested active rectangle that covers the "whole picture"
-> - bounds - the limits that active rectangle cannot exceed
-> 
-> V4L2_SEL_TARGET_ACTIVE	= 0
-> V4L2_SEL_TARGET_DEFAULT	= 1
-> V4L2_SEL_TARGET_BOUNDS	= 2
-> 
-> Feel free to add other targets.
-> 
-> Only V4L2_SEL_TARGET_ACTIVE is accepted for VIDIOC_S_EXTCROP/VIDIOC_S_COMPOSE
-> ioctls.  Auxiliary target like DEFAULT and BOUNDS are supported only by 'get'
-> interface.
+The combination of those two effects create a noisy VS signal that crosses the 
+OMAP3 input level detection gap at high frequency, leading to an interrupt 
+storm. The workaround is to disable the pull-ups on the HS and VS signals, the 
+solution is to redesign the hardware to replace the level translators and 
+reorganize signals on the camera module cable.
 
-Sorry, but I really don't like this idea of a target. It doesn't make sense to
-add this when you can only choose a different target for a get.
+Is your situation any similar ?
 
-I think a EXTCROPCAP/COMPOSECAP pair (or a single CROPCOMPOSECAP ioctl, see below)
-makes more sense.
-
-> 
-> 
-> 5. Possible improvements and extensions.
-> - combine composing and cropping ioctl into a single ioctl
-
-I think this could be very interesting. By doing this in a single ioctl you
-should have all the information needed to setup a scaler. And with the hints
-you can tell the driver how the input/output rectangles need to be adjusted.
-
-This would make sense as well on the subdev level.
-
-Laurent, wouldn't this solve the way the omap3 ISP sets up the scaler? By
-fixing the output of the scaler and setting hints to allow changes to the
-input crop rectangle we would fix the scaler setup issues we discussed in
-Warsaw. 
-
-> - add subpixel resolution
->  * hardware is often capable of subpixel processing. The ioctl triple
->    S_EXTCROP, S_SCALE, S_COMPOSE can be converted to S_EXTCROP and S_COMPOSE
->    pair if a subpixel resolution is supported
-
-I'm not sure I understand this. Can you give an example?
-
-> - merge v4l2_selection::target and v4l2_selection::flags into single field
-> - allow using VIDIOC_S_EXTCROP with target type V4L2_SEL_TARGET_BOUNDS to
->   choose a resolution of a sensor
-
-Too obscure IMHO. That said, it would be nice to have a more explicit method
-of selecting a sensor resolution. You can enumerate them, but you choose it
-using VIDIOC_S_FMT, which I've always thought was very dubious. This prevents
-any sensor-built-in scalers from being used. For video you have S_STD and
-S_DV_PRESET that select a particular input resolution, but a similar ioctl is
-missing for sensors. Laurent, what are your thoughts?
-
-> - add TRY flag to ask a driver to adjust a rectangle without applying it
-
-Don't use a flag, use TRY_EXTCROP and TRY_COMPOSE, just like the other try
-ioctls. Otherwise I'm in favor of this.
-
+-- 
 Regards,
 
-	Hans
-
-> 
-> What it your opinion about proposed solutions?
-> 
-> Looking for a reply,
-> 
-> Best regards,
-> Tomasz Stanislawski
-> 
-> 
-> Tomasz Stanislawski (2):
->   v4l: add support for extended crop/compose API
->   v4l: simulate old crop API using extcrop/compose
-> 
->  drivers/media/video/v4l2-compat-ioctl32.c |    4 +
->  drivers/media/video/v4l2-ioctl.c          |  150 ++++++++++++++++++++++++++---
->  include/linux/videodev2.h                 |   44 +++++++++
->  include/media/v4l2-ioctl.h                |    8 ++
->  4 files changed, 194 insertions(+), 12 deletions(-)
-> 
-> 
+Laurent Pinchart
