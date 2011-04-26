@@ -1,59 +1,76 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:56750 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752580Ab1DNCPD convert rfc822-to-8bit (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:55683 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756433Ab1DZOXv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Apr 2011 22:15:03 -0400
-Received: by wwa36 with SMTP id 36so1425393wwa.1
-        for <linux-media@vger.kernel.org>; Wed, 13 Apr 2011 19:15:01 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <BANLkTi=zi-4ZUOuf_H+oikBcPJ4eV3qCPw@mail.gmail.com>
-References: <BANLkTim2MQcHw+T_2g8wSpGkVnOH_OeXzg@mail.gmail.com>
-	<1301922737.5317.7.camel@morgan.silverblock.net>
-	<BANLkTikqBPdr2M8jyY1zmu4TPLsXo0y5Xw@mail.gmail.com>
-	<BANLkTi=dVYRgUbQ5pRySQLptnzaHOMKTqg@mail.gmail.com>
-	<1302015521.4529.17.camel@morgan.silverblock.net>
-	<BANLkTimQkDHmDsqSsQ9jiYnHWXnc7umeWw@mail.gmail.com>
-	<1302481535.2282.61.camel@localhost>
-	<20110411163239.GA4324@mgebm.net>
-	<BANLkTi=zi-4ZUOuf_H+oikBcPJ4eV3qCPw@mail.gmail.com>
-Date: Wed, 13 Apr 2011 22:15:01 -0400
-Message-ID: <BANLkTi=aknDbxqd_xLS2ZJrvHcwDc0MD9w@mail.gmail.com>
-Subject: Re: HVR-1600 (model 74351 rev F1F5) analog Red Screen
-From: Eric B Munson <emunson@mgebm.net>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Andy Walls <awalls@md.metrocast.net>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	mchehab@infradead.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Tue, 26 Apr 2011 10:23:51 -0400
+Date: Tue, 26 Apr 2011 16:23:45 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH 2/7] ARM: Samsung: update/rewrite Samsung SYSMMU (IOMMU)
+	driver
+In-reply-to: <201104261610.15481.arnd@arndb.de>
+To: 'Arnd Bergmann' <arnd@arndb.de>
+Cc: 'Joerg Roedel' <joerg.roedel@amd.com>,
+	linux-samsung-soc@vger.kernel.org,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Kukjin Kim' <kgene.kim@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Message-id: <003e01cc041d$8d3d76c0$a7b86440$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <1303118804-5575-1-git-send-email-m.szyprowski@samsung.com>
+ <201104211618.31418.arnd@arndb.de>
+ <000001cc00bf$a3afc220$eb0f4660$%szyprowski@samsung.com>
+ <201104261610.15481.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, Apr 11, 2011 at 12:42 PM, Devin Heitmueller
-<dheitmueller@kernellabs.com> wrote:
-> On Mon, Apr 11, 2011 at 12:32 PM, Eric B Munson <emunson@mgebm.net> wrote:
->>> Can you tune to other known digital channels?
->>
->> I will have to see if I can set one up by hand and try it.  I will get back to
->> you when I am able to do this (should be later today).
->>
->>>
->>> > Let me know if you need anything else.
->>>
->>> Are you tuning digital cable (North American QAM) or digital Over The
->>> Air (ATSC)?
->>
->> I am using digital cable (NA QAM).
->
-> This is going to seem a little nuts, but just as a test could you try
-> sticking the card into a different machine (with a different
-> motherboard)?  I heard something a few months ago about an issue
-> related to the power sequencing that only occurred with a specific
-> motherboard.  Using any other motherboard resulted in success.
->
-> It would be useful if we could rule that out.
+Hello,
 
-I ruled this out today, my HTPC is using a Biostar G31D-M7 and my
-desktop is using an ASUS P6X58D and I see the same behavior from the
-hauppage card in both machines.
+On Tuesday, April 26, 2011 4:10 PM Arnd Bergmann wrote:
+
+> On Friday 22 April 2011, Marek Szyprowski wrote:
+> > > * Create two codec devices in parallel and bind to both with your
+> > >   driver, ideally splitting up the resources between the two
+> > >   devices in a meaningful way.
+> >
+> > Video codec has only standard 2 resources - ioregs and irq, so there
+> > is not much left for such splitting.
+> 
+> Ok, I see.
+> 
+> > > None of them are extremely nice, but it's not that hard either.
+> > > You should probably prototype a few of these approaches to see
+> > > which one is the least ugly one.
+> >
+> > Ok. Today while iterating over the hardware requirements I noticed
+> > one more thing. Our codec hardware has one more, odd requirement for
+> > video buffers. The DMA addresses need to be aligned to 8KiB or 16KiB
+> > (depending on buffer type). Do you have any idea how this can be
+> > handled in a generic way?
+> 
+> I don't think you can force the mappings to be aligned to that size
+> in the streaming mapping, but you should be able to just align inside
+> of dma_map_single etc and map a larger region.
+> 
+> For the allocation functions (dma_alloc_coherent, dma_alloc_noncoherent),
+> using alloc_pages to allocate multiples of the size you need should
+> always give you aligned buffers because of the way that the underlying
+> buddy allocator works.
+
+Well, I thought about the alignment of the IOVA mapping. I will probably
+handle it with some additional archdata stuff.
+
+I've started hacking ARM dma-mapping interface to get support for 
+dma-mapping-common.h and then to integrate with Samsung IOMMU driver.
+I hope to post the initial version before Linaro meeting in Budapest.
+
+Best regards
+-- 
+Marek Szyprowski
+Samsung Poland R&D Center
+
