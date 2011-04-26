@@ -1,66 +1,89 @@
 Return-path: <mchehab@pedra>
-Received: from d1.icnet.pl ([212.160.220.21]:48530 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933319Ab1DMWoy convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2812 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752519Ab1DZMd3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Apr 2011 18:44:54 -0400
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-To: "Russell King - ARM Linux" <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 2.6.39 v2] V4L: videobuf-dma-contig: fix mmap_mapper broken on ARM
-Date: Thu, 14 Apr 2011 00:43:39 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Jiri Slaby <jslaby@suse.cz>,
-	linux-arm-kernel@lists.infradead.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <201104122306.34909.jkrzyszt@tis.icnet.pl> <201104132256.40325.jkrzyszt@tis.icnet.pl> <20110413220008.GA23901@n2100.arm.linux.org.uk>
-In-Reply-To: <20110413220008.GA23901@n2100.arm.linux.org.uk>
+	Tue, 26 Apr 2011 08:33:29 -0400
+Message-ID: <f2291b622da20d240c4ebe0ae72beb8c.squirrel@webmail.xs4all.nl>
+In-Reply-To: <4DB6B28D.5090607@redhat.com>
+References: <201104252323.20420.linux@rainbow-software.org>
+    <201104260832.11150.hverkuil@xs4all.nl>
+    <201104261030.21681.linux@rainbow-software.org>
+    <4DB6B28D.5090607@redhat.com>
+Date: Tue, 26 Apr 2011 14:33:20 +0200
+Subject: Re: [PATCH] usbvision: remove (broken) image format conversion
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Hans de Goede" <hdegoede@redhat.com>
+Cc: "Ondrej Zary" <linux@rainbow-software.org>,
+	"Joerg Heckenbach" <joerg@heckenbach-aw.de>,
+	"Dwaine Garden" <dwainegarden@rogers.com>,
+	linux-media@vger.kernel.org,
+	"Kernel development list" <linux-kernel@vger.kernel.org>
 MIME-Version: 1.0
-Message-Id: <201104140043.40244.jkrzyszt@tis.icnet.pl>
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Dnia czwartek 14 kwiecień 2011 o 00:00:08 Russell King - ARM Linux 
-napisał(a):
-> On Wed, Apr 13, 2011 at 10:56:39PM +0200, Janusz Krzysztofik wrote:
-> > Dnia środa 13 kwiecień 2011 o 20:32:31 Russell King - ARM Linux
-> > 
-> > napisał(a):
-> > > On Wed, Apr 13, 2011 at 12:52:31PM +0200, Janusz Krzysztofik 
-wrote:
-> > > > Taking into account that I'm just trying to fix a regression,
-> > > > and not invent a new, long term solution: are you able to name
-> > > > an ARM based board which a) is already supported in 2.6.39, b)
-> > > > is (or can be) equipped with a device supported by a V4L
-> > > > driver which uses videobuf- dma-config susbsystem, c) has a
-> > > > bus structure with which virt_to_phys(bus_to_virt(dma_handle))
-> > > > is not equal dma_handle?
-> > > 
-> > > I have no idea - and why should whether someone can name
-> > > something that may break be a justification to allow something
-> > > which is technically wrong?
-> > > 
-> > > Surely it should be the other way around - if its technically
-> > > wrong and _may_ break something then it shouldn't be allowed.
-> > 
-> > In theory - of course. In practice - couldn't we now, close to
-> > -rc3, relax the rules a little bit and stop bothering with
-> > something that may break in the future if it doesn't break on any
-> > board supported so far (I hope)?
-> 
-> If we are worried about closeness to -final, then what should happen
-> is that the original commit is reverted; the "fix" for IOMMUs
-> resulted in a regression for existing users which isn't trivial to
-> resolve without risking possible breakage of other users.
-> 
-> Do we even know whether bus_to_virt(iommu_bus_address) works?  I
-> suspect it doesn't, so by doing so you're already re-breaking the
-> IOMMU case.
+> Hi,
+>
+> On 04/26/2011 10:30 AM, Ondrej Zary wrote:
+>> On Tuesday 26 April 2011, you wrote:
+>>> On Monday, April 25, 2011 23:23:17 Ondrej Zary wrote:
+>>>> The YVU420 and YUV422P formats are broken and cause kernel panic on
+>>>> use.
+>>>> (YVU420 does not work and sometimes causes "unable to handle paging
+>>>> request" panic, YUV422P always causes "NULL pointer dereference").
+>>>>
+>>>> As V4L2 spec says that drivers shouldn't do any in-kernel image format
+>>>> conversion, remove it completely (except YUYV).
+>>>
+>>> What really should happen is that the conversion is moved to
+>>> libv4lconvert.
+>>> I've never had the time to tackle that, but it would improve this
+>>> driver a
+>>> lot.
+>>
+>> Depending on isoc_mode module parameter, the device uses different image
+>> formats: YUV 4:2:2 interleaved, YUV 4:2:0 planar or compressed format.
+>>
+>> Maybe the parameter should go away and these three formats exposed to
+>> userspace?
+>
+> That sounds right,
+>
+>> Hopefully the non-compressed formats could be used directly
+>> without any conversion. But the compressed format (with new
+>> V4L2_PIX_FMT_
+>> assigned?) should be preferred (as it provides much higher frame rates).
+>> The
+>> code moved into libv4lconvert would decompress the format and convert
+>> into
+>> something standard (YUV420?).
+>
+> Correct.
+>
+>>
+>>> Would you perhaps be interested in doing that work?
+>>
+>> I can try it. But the hardware isn't mine so my time is limited.
+>>
+>
+> If you could give it a shot that would be great. I've some hardware to
+> test this with (although I've never actually tested that hardware), so
+> I can hopefully pick things up if you cannot finish things before you
+> need to return the hardware.
 
-Hard to deny with only me having actually tested this dirty hack on one 
-single board :)
+I can also test this.
 
-Thanks for your support,
-Janusz
+Regards,
+
+       Hans
+
+>
+> Thanks & Regards,
+>
+> Hans
+>
+
+
