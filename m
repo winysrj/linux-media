@@ -1,22 +1,23 @@
 Return-path: <mchehab@pedra>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <ltrifonov@gmail.com>) id 1Q73AM-0007H1-CA
-	for linux-dvb@linuxtv.org; Tue, 05 Apr 2011 12:07:19 +0200
-Received: from mail-iy0-f182.google.com ([209.85.210.182])
-	by mail.tu-berlin.de (exim-4.75/mailfrontend-3) with esmtps
+	(envelope-from <lists.pascal.juergens@googlemail.com>)
+	id 1QEorU-0007jV-Si
+	for linux-dvb@linuxtv.org; Tue, 26 Apr 2011 22:27:58 +0200
+Received: from mail-wy0-f182.google.com ([74.125.82.182])
+	by mail.tu-berlin.de (exim-4.75/mailfrontend-2) with esmtps
 	[TLSv1:RC4-SHA:128] for <linux-dvb@linuxtv.org>
-	id 1Q73AL-0001z2-G5; Tue, 05 Apr 2011 12:07:18 +0200
-Received: by iyj12 with SMTP id 12so253714iyj.41
-	for <linux-dvb@linuxtv.org>; Tue, 05 Apr 2011 03:07:16 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <BANLkTi=NyyfvEgho9VhBnP6Vs_gv7TqG3w@mail.gmail.com>
-References: <BANLkTi=NyyfvEgho9VhBnP6Vs_gv7TqG3w@mail.gmail.com>
-Date: Tue, 5 Apr 2011 13:07:15 +0300
-Message-ID: <BANLkTi=6CW8pmyBqedTGkwWcE8zpoQReEg@mail.gmail.com>
-From: Lubomir Trifonov <ltrifonov@gmail.com>
-To: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Technotrend Connect S-1200 STC problem
+	id 1QEorU-00059L-Gk; Tue, 26 Apr 2011 22:27:56 +0200
+Received: by wyf23 with SMTP id 23so1064147wyf.41
+	for <linux-dvb@linuxtv.org>; Tue, 26 Apr 2011 13:27:55 -0700 (PDT)
+References: <BANLkTimGx15EGwbsafJA81m1anbRw+AV2A@mail.gmail.com>
+From: =?utf-8?Q?Pascal_J=C3=BCrgens?= <lists.pascal.juergens@googlemail.com>
+In-Reply-To: <BANLkTimGx15EGwbsafJA81m1anbRw+AV2A@mail.gmail.com>
+Message-Id: <EE21DCB3-587C-465C-B371-CA508CB2DCEC@googlemail.com>
+Date: Tue, 26 Apr 2011 22:28:38 +0200
+Cc: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
+Mime-Version: 1.0 (iPad Mail 8H7)
+Subject: Re: [linux-dvb] analog OTA tuning
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -25,117 +26,92 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1319199998=="
+Content-Type: multipart/mixed; boundary="===============1823627538=="
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 Sender: <mchehab@pedra>
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1319199998==
-Content-Type: multipart/alternative; boundary=002215048b976e9e9e04a0290a35
 
---002215048b976e9e9e04a0290a35
-Content-Type: text/plain; charset=ISO-8859-1
-
-I guess it is too late for this answer, but I had the same problem and I
-managed to get this device working. Although late, it may be useful to
-others.
-Answer can be found here:
-http://www.linuxtv.org/pipermail/linux-dvb/2005-March/000386.html
-
-this is valid only for devices with:
-
-APLS-BSBE1-502A (label on tuner)
+--===============1823627538==
+Content-Type: multipart/alternative;
+	boundary=Apple-Mail-2--874993763
+Content-Transfer-Encoding: 7bit
 
 
-
-
-Gregor Kroesen reported non-working ttusb-budget, which has an Alps
-BSBE1-502A.
-
-The ID is 1003, so it's the same as the BSRU6-Box, but the BSBE1
-requires different parameters in both the stv0299 inittab and the pll
-
-(someone once posted the description into this ML, topic was "
-ALPS-BSRV2-301A tuner problem, would like to use APLS-BSBE1-701A", and
-this modification work)
-
-a patch like:
-dvb-ttusb-budget.c:1295:
-
->>* -  buf[3] = 0xC4;
-*>>* -
-*>>* -  if (params->frequency > 1530000)
-*>>* -    buf[3] = 0xc0;
-*>>* +  buf[3] = 0xE4;
-*>>* +
-*>>* +  if (params->frequency > 1530000)
-*>>* +    buf[3] = 0xE0;
-*>>* dvb-ttusb-budget.c:1243:
-*>>* -  0x0f, 0x52,
-*>>* +  0x0f, 0xD2,
-*fixes it, however hardcodes it to bsbe1.
-
---002215048b976e9e9e04a0290a35
-Content-Type: text/html; charset=ISO-8859-1
+--Apple-Mail-2--874993763
 Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+	charset=us-ascii
 
-<br><div class=3D"gmail_quote"><span lang=3D"en"><span title=3D"Click for a=
-lternate translations">I guess</span> <span title=3D"Click for alternate tr=
-anslations">it is too</span> <span title=3D"Click for alternate translation=
-s">late</span> <span title=3D"Click for alternate translations">for</span> =
-<span title=3D"Click for alternate translations">this</span> <span title=3D=
-"Click for alternate translations">answer</span><span title=3D"Click for al=
-ternate translations">,</span> <span title=3D"Click for alternate translati=
-ons">but</span> <span title=3D"Click for alternate translations">I had the =
-same</span> <span title=3D"Click for alternate translations">problem</span>=
- <span title=3D"Click for alternate translations">and</span> <span title=3D=
-"Click for alternate translations">I managed</span> <span title=3D"Click fo=
-r alternate translations">to</span> <span title=3D"Click for alternate tran=
-slations">get</span> <span title=3D"Click for alternate translations">this<=
-/span> <span title=3D"Click for alternate translations">device</span> <span=
- title=3D"Click for alternate translations">working</span><span title=3D"Cl=
-ick for alternate translations">.</span> <span title=3D"Click for alternate=
- translations">Although</span> <span title=3D"Click for alternate translati=
-ons">late,</span> <span title=3D"Click for alternate translations">it may b=
-e</span> <span title=3D"Click for alternate translations">useful</span> <sp=
-an title=3D"Click for alternate translations">to</span> <span title=3D"Clic=
-k for alternate translations">others.</span><br>
+That info might be stale, but the last time I looked at the v4l device wiki,=
+ it said that the analog tuner of these cards is not yet supported in Linux.=
+=20
 
-<span title=3D"Click for alternate translations">Answer</span> <span title=
-=3D"Click for alternate translations">can be found here</span><span title=
-=3D"Click for alternate translations">: <a href=3D"http://www.linuxtv.org/p=
-ipermail/linux-dvb/2005-March/000386.html" target=3D"_blank">http://www.lin=
-uxtv.org/pipermail/linux-dvb/2005-March/000386.html</a><br>
-<br>this is valid only for devices with:</span></span><br><pre>APLS-BSBE1-5=
-02A (label on tuner)<br><br><br><br></pre><span lang=3D"en"><span title=3D"=
-Click for alternate translations">
-<br></span></span><pre>Gregor Kroesen reported non-working ttusb-budget, wh=
-ich has an Alps<br>BSBE1-502A.<br><br>The ID is 1003, so it&#39;s the same =
-as the BSRU6-Box, but the BSBE1<br>requires different parameters in both th=
-e stv0299 inittab and the pll<br>
+Cheers,
+Pascal
 
-(someone once posted the description into this ML, topic was &quot;<br>ALPS=
--BSRV2-301A tuner problem, would like to use APLS-BSBE1-701A&quot;, and<br>=
-this modification work)<br><br>a patch like:<br>dvb-ttusb-budget.c:1295:<br=
->
+On 26.04.2011, at 22:08, Martin Cole <mjcoogle@gmail.com> wrote:
 
-&gt;&gt;<i> -  buf[3] =3D 0xC4;<br></i>&gt;&gt;<i> -<br></i>&gt;&gt;<i> -  =
-if (params-&gt;frequency &gt; 1530000)<br></i>&gt;&gt;<i> -    buf[3] =3D 0=
-xc0;<br></i>&gt;&gt;<i> +  buf[3] =3D 0xE4;<br></i>&gt;&gt;<i> +<br></i>&gt=
-;&gt;<i> +  if (params-&gt;frequency &gt; 1530000)<br>
+>=20
+> Hi,
+>=20
+> I need to tune analog OTA channels from a pci-e card.  I bought the follow=
+ing card:
+>=20
+> http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-2200  (I actually ha=
+ve the 2250)
+>=20
+> after installing and downloading the firmware etc, this works fine when tu=
+ning the digital OTA signal that I can see locally.
+>=20
+> I am unsure how to change the frontend to attempt to tune analog tv input o=
+r even if this is supported, can someone point me in the right direction to d=
+o this? It looks like I would need to change the tuner type in the driver co=
+de (if analog is supported)
+>=20
+> I am aware that no analog broadcasts exist anymore in the US, but where th=
+is will eventually be used still has analog OTA broadcasts.
+> My test setup for now includes a digital to analog converter, which i woul=
+d like to tune with this card, once this works I would test with the actual O=
+TA signal.
+>=20
+> Looking at the tuner chip on the card, suggests that it is possible. The l=
+ink on the wiki for the chip is outdated it seems, this is what I found on t=
+he nxp site:
+>=20
+> http://www.nxp.com/#/pip/pip=3D[pip=3DTDA18271HD]|pp=3D[t=3Dpip,i=3DTDA182=
+71HD]
+>=20
+> I am happy to dive into the code, but wanted to see if anyone has done thi=
+s already or get any suggestions that you more experienced developers could p=
+rovide.
+>=20
+> Thanks,
+> --mc
+>=20
+>=20
+>=20
+> _______________________________________________
+> linux-dvb users mailing list
+> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
-</i>&gt;&gt;<i> +    buf[3] =3D 0xE0;<br></i>&gt;&gt;<i> dvb-ttusb-budget.c=
-:1243:<br></i>&gt;&gt;<i> -  0x0f, 0x52,<br></i>&gt;&gt;<i> +  0x0f, 0xD2,<=
-br></i>fixes it, however hardcodes it to bsbe1.<br><br></pre><br><span lang=
-=3D"en"><span title=3D"Click for alternate translations"><br>
+--Apple-Mail-2--874993763
+Content-Transfer-Encoding: 7bit
+Content-Type: text/html;
+	charset=utf-8
 
-</span></span>
-</div><br>
+<html><body bgcolor="#FFFFFF"><div><div>That info might be stale, but the last time I looked at the v4l device wiki, it said that the analog tuner of these cards is not yet supported in Linux.&nbsp;<br><br></div><div>Cheers,<br>Pascal</div><div><br>On 26.04.2011, at 22:08, Martin Cole &lt;<a href="mailto:mjcoogle@gmail.com"><a href="mailto:mjcoogle@gmail.com">mjcoogle@gmail.com</a></a>&gt; wrote:<br><br></div><div></div><blockquote type="cite"><div><br>Hi,<br><br>I need to tune analog OTA channels from a pci-e card.&nbsp; I bought the following card:<br><br><a href="http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-2200"></a><a href="http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-2200"><a href="http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-2200">http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-2200</a></a>&nbsp; (I actually have the 2250)<br>
+<br>after installing and downloading the firmware etc, this works fine when tuning the digital OTA signal that I can see locally.<br><br>I am unsure how to change the frontend to attempt to tune analog tv input or even if this is supported, can someone point me in the right direction to do this? It looks like I would need to change the tuner type in the driver code (if analog is supported)<br>
+<br>I am aware that no analog broadcasts exist anymore in the US, but where this will eventually be used still has analog OTA broadcasts.<br>My test setup for now includes a digital to analog converter, which i would like to tune with this card, once this works I would test with the actual OTA signal.<br>
+<br>Looking at the tuner chip on the card, suggests that it is possible. The link on the wiki for the chip is outdated it seems, this is what I found on the nxp site:<br><br><a href="http://www.nxp.com/#/pip/pip=[pip=TDA18271HD]|pp=[t=pip,i=TDA18271HD]"></a><a href="http://www.nxp.com/#/pip/pip=[pip=TDA18271HD]|pp=[t=pip,i=TDA18271HD]"><a href="http://www.nxp.com/#/pip/pip=[pip=TDA18271HD]|pp=[t=pip,i=TDA18271HD]">http://www.nxp.com/#/pip/pip=[pip=TDA18271HD]|pp=[t=pip,i=TDA18271HD]</a></a><br>
+<br>I am happy to dive into the code, but wanted to see if anyone has done this already or get any suggestions that you more experienced developers could provide.<br><br>Thanks,<br>--mc<br><br><br><br>
+</div></blockquote><blockquote type="cite"><div><span>_______________________________________________</span><br><span>linux-dvb users mailing list</span><br><span>For V4L/DVB development, please use instead <a href="mailto:linux-media@vger.kernel.org"></a><a href="mailto:linux-media@vger.kernel.org"><a href="mailto:linux-media@vger.kernel.org">linux-media@vger.kernel.org</a></a></span><br><span><a href="mailto:linux-dvb@linuxtv.org"><a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a></a></span><br><span><a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb"><a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a></a></span></div></blockquote></div></body></html>
+--Apple-Mail-2--874993763--
 
---002215048b976e9e9e04a0290a35--
 
-
---===============1319199998==
+--===============1823627538==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -146,4 +122,4 @@ linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1319199998==--
+--===============1823627538==--
