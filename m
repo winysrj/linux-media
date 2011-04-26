@@ -1,74 +1,101 @@
 Return-path: <mchehab@pedra>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:38730 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751015Ab1DBLPb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Apr 2011 07:15:31 -0400
-Received: by pvg12 with SMTP id 12so855087pvg.19
-        for <linux-media@vger.kernel.org>; Sat, 02 Apr 2011 04:15:31 -0700 (PDT)
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2825 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757264Ab1DZGxl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Apr 2011 02:53:41 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Jesse Allen <the3dfxdude@gmail.com>
+Subject: Re: Regression with suspend from "msp3400: convert to the new control framework"
+Date: Tue, 26 Apr 2011 08:53:03 +0200
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+References: <BANLkTim7AONexeEm-E8iLQA5+TMDRUy36w@mail.gmail.com> <201104231256.25263.hverkuil@xs4all.nl> <BANLkTikneMOMVUQ07mLBZZTDYrKTJ1dfPw@mail.gmail.com>
+In-Reply-To: <BANLkTikneMOMVUQ07mLBZZTDYrKTJ1dfPw@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <BANLkTi=Uq=bLgNo6uNHTast4DRM+ZVLF0g@mail.gmail.com>
-References: <AANLkTi=rcfL_pku9hhx68C_Fb_76KsW2Yy+Oys10a7+4@mail.gmail.com>
-	<4D7163FD.9030604@iki.fi>
-	<AANLkTimjC99zhJ=huHZiGgbENCoyHy5KT87iujjTT8w3@mail.gmail.com>
-	<4D716ECA.4060900@iki.fi>
-	<AANLkTimHa6XFwhvpLbhtRm7Vee-jYPkHpx+D8L2=+vQb@mail.gmail.com>
-	<AANLkTik9cSnAFWNdTUv3NNU3K2SoeECDO2036Htx-OAi@mail.gmail.com>
-	<AANLkTi=e-cAzMWZSHvKR8Yx+0MqcY_Ewf4z1gDyZfCeo@mail.gmail.com>
-	<AANLkTi=YMtTbgwxNA1O6zp03OoeGKJvn8oYDB9kHjti1@mail.gmail.com>
-	<AANLkTimDSwR06nRxNv9x11_dDdaSBzD-En4N8ameDe1Y@mail.gmail.com>
-	<AANLkTimWRDk+iGPzuXarmpr0w9W4aS4Be=xpBPkMipdC@mail.gmail.com>
-	<AANLkTimUAKjx81Z1GF=ceG33zHhLX1r-HfykWWyNpay-@mail.gmail.com>
-	<AANLkTinZVRjZEHDhi1Q0d4jfyTk5E7HhBP2U08ymW=BG@mail.gmail.com>
-	<4D837E4E.7010105@iki.fi>
-	<AANLkTi=Dz-cQ6bUUw7FG=z-6OKSt0a=ytvcimnOXqaMK@mail.gmail.com>
-	<4D96DC3A.8040005@iki.fi>
-	<BANLkTi=Uq=bLgNo6uNHTast4DRM+ZVLF0g@mail.gmail.com>
-Date: Sat, 2 Apr 2011 12:15:31 +0100
-Message-ID: <BANLkTim=qVBd81AwOmZYmFjJGjsTidRPzA@mail.gmail.com>
-Subject: Re: [patch] Fix AF9015 Dual tuner i2c write failures
-From: adq <adq@lidskialf.net>
-To: Antti Palosaari <crope@iki.fi>
-Cc: =?ISO-8859-1?Q?Juan_Jes=FAs_Garc=EDa_de_Soria_Lucena?=
-	<skandalfo@gmail.com>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201104260853.03817.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-2011/4/2 adq <adq@lidskialf.net>:
-> 2011/4/2 Antti Palosaari <crope@iki.fi>:
->> On 04/02/2011 04:24 AM, adq wrote:
->>>
->>> Hi, just been trying it out, with no success. On my test machine, FE0
->>> no longer tunes, but FE1 is still fine, so I've just been testing FE0.
->>
->> You try to say other frontend / tuner is physically dead? Which one?
->
-> No no - I can revive it by simply unplugging and replugging the
-> device, but I was avoiding doing that to see if we could either track
-> down something erroneous, or be able to reset it from software.
->
-> It'd be /really/ handy if they'd connected that reset tuner GPIO :(
-> There isn't a way to completely reset the device from software I take
-> it? Or any other GPIOs hanging about I could test with?
->
-> I have an MXL5005R tuner apparently - id 30 - BTW.
+On Saturday, April 23, 2011 15:34:00 Jesse Allen wrote:
+> On Sat, Apr 23, 2011 at 4:56 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> > On Saturday, April 23, 2011 07:06:58 Jesse Allen wrote:
+> >> On Fri, Apr 22, 2011 at 3:55 PM, Jesse Allen <the3dfxdude@gmail.com> wrote:
+> >> > Hello All,
+> >> >
+> >> > I have finally spent time to figure out what happened to suspending
+> >> > with my bttv card. I have traced it to this patch:
+> >> >
+> >> > msp3400: convert to the new control framework
+> >> > ebc3bba5833e7021336f09767347a52448a60bc5
+> >> >
+> >> > This was done by reverting the patch at the head for v2.6.39-git.
+> >> >
+> >>
+> >> I may be still wrong about this patch being the problem. I will have
+> >> to keep hunting for the real answer.
+> >
+> > It would really surprise me if this patch has anything to do with it. The
+> > error comes from the tuner driver, not from this msp3400 driver (which handles
+> > audio).
+> >
+> > Can you at least provide the dmesg output so I can see which bttv card and tuner
+> > and msp versions you have?
+> >
+> > It would also help to turn on debugging in the bttv, tuner and msp3400 drivers.
+> >
+> > Regards,
+> >
+> >        Hans
+> >
+> 
+> dmesg follows for the bttv driver:
+> 
+> bttv: Bt8xx card found (0).
+> bttv 0000:03:07.0: PCI INT A -> GSI 21 (level, low) -> IRQ 21
+> bttv0: Bt878 (rev 2) at 0000:03:07.0, irq: 21, latency: 32, mmio: 0xfdcff000
+> bttv0: detected: AVerMedia TVPhone98 [card=41], PCI subsystem ID is 1461:0001
+> bttv0: using: AVerMedia TVPhone 98 [card=41,autodetected]
+> bttv0: gpio: en=00000000, out=00000000 in=00fff7c3 [init]
+> bttv0: Avermedia eeprom[0x4802]: tuner=2 radio:yes remote control:no
+> bttv0: tuner type=2
+> i2c-core: driver [msp3400] using legacy suspend method
+> i2c-core: driver [msp3400] using legacy resume method
+> bttv0: audio absent, no audio device found!
 
-Forgot to mention - its the tuner attached to the internal af9013
-(fe0) that is having the problem. The one attached to the external one
-(fe1) is still fine. I don't know if this is always the case though.
+OK, whatever is causing the problems is *not* msp3400 since your card does not
+have one :-)
 
->>> I've tried your suggestions, mainly concentrating on the af9013's
->>> GPIOs, but I also tried your power management suggestion.
->>>
->>> Since I was just using FE0, I've just been setting all the GPIOs at
->>> the start of af9013.c's set_frontend() implementation; I've tried
->>> turning them all off, all on, on->mdelay->off, and also
->>> off->mdelay->on. Nothing works.
->>
->> So GPIOs are blocked out.
->>
->> I wonder if someone can ran similar many day tuning stress test using
->> Windows drivers to see if that happen.
->
-> Might be hard to script under windows I suppose...
->
+This card uses gpio to handle audio.
+
+> i2c-core: driver [tuner] using legacy suspend method
+> i2c-core: driver [tuner] using legacy resume method
+> tuner 0-0061: chip found @ 0xc2 (bt878 #0 [sw])
+> tuner-simple 0-0061: creating new instance
+> tuner-simple 0-0061: type set to 2 (Philips NTSC (FI1236,FM1236 and
+> compatibles))
+
+It is more likely to be the tuner driver. But I would have expected to see
+more bug reports since this is a bog-standard tuner so I have my doubts there
+as well.
+
+Regards,
+
+	Hans
+
+> bttv0: registered device video0
+> bttv0: registered device vbi0
+> bttv0: registered device radio0
+> bttv0: PLL: 28636363 => 35468950 ..
+> 
+> 
+> I believe the regression occurred in early 2.6.37, and not 2.6.36. I
+> will be trying to revert changes in there, but as you can see, it is
+> really hard to reproduce.
+> 
+> Jesse
+> 
+> 
