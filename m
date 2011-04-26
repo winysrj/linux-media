@@ -1,84 +1,102 @@
 Return-path: <mchehab@pedra>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:42148 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752461Ab1DKTNA (ORCPT
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:57867 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751438Ab1DZWGm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Apr 2011 15:13:00 -0400
-Received: by vws1 with SMTP id 1so4404406vws.19
-        for <linux-media@vger.kernel.org>; Mon, 11 Apr 2011 12:12:58 -0700 (PDT)
-Date: Mon, 11 Apr 2011 15:12:52 -0400
-From: Eric B Munson <emunson@mgebm.net>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>, mchehab@infradead.org,
-	linux-media@vger.kernel.org
-Subject: Re: HVR-1600 (model 74351 rev F1F5) analog Red Screen
-Message-ID: <20110411191252.GB4324@mgebm.net>
-References: <BANLkTim2MQcHw+T_2g8wSpGkVnOH_OeXzg@mail.gmail.com>
- <1301922737.5317.7.camel@morgan.silverblock.net>
- <BANLkTikqBPdr2M8jyY1zmu4TPLsXo0y5Xw@mail.gmail.com>
- <BANLkTi=dVYRgUbQ5pRySQLptnzaHOMKTqg@mail.gmail.com>
- <1302015521.4529.17.camel@morgan.silverblock.net>
- <BANLkTimQkDHmDsqSsQ9jiYnHWXnc7umeWw@mail.gmail.com>
- <1302481535.2282.61.camel@localhost>
+	Tue, 26 Apr 2011 18:06:42 -0400
+Received: by ewy4 with SMTP id 4so341416ewy.19
+        for <linux-media@vger.kernel.org>; Tue, 26 Apr 2011 15:06:41 -0700 (PDT)
+Message-ID: <4DB741ED.30700@gmail.com>
+Date: Wed, 27 Apr 2011 00:06:37 +0200
+From: Sylwester Nawrocki <snjw23@gmail.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="dTy3Mrz/UPE2dbVg"
-Content-Disposition: inline
-In-Reply-To: <1302481535.2282.61.camel@localhost>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	'Marek Szyprowski' <m.szyprowski@samsung.com>,
+	linux Media Mailing List <linux-media@vger.kernel.org>,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	Sungchun Kang <sungchun.kang@samsung.com>
+Subject: Re: Dependency troubles with s5p-fimc driver
+References: <4DB72C74.1070305@redhat.com>
+In-Reply-To: <4DB72C74.1070305@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+Hi Mauro,
 
---dTy3Mrz/UPE2dbVg
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 04/26/2011 10:35 PM, Mauro Carvalho Chehab wrote:
+> Hi Sylvester/Marek,
+> 
+> I've changed the kernel configuration in order to compile the media subsystem as a
 
-On Sun, 10 Apr 2011, Andy Walls wrote:
+Which kernel tree is this?
+I assume it's kernel maintained by the System LSI team, so I cced Mr. Kukjin Kim.
 
-> > >
-> > > 3. Please provide the relevant portion of the mythbackend log where
-> > > where the digital scanner starts and then fails.
-> >=20
-> > So the Digital scanner doesn't fail per se, it just doesn't pick up
-> > most of the digital channels available.  The same is true of scan, it
-> > seems to find only 1 channel when I know that I have access to 18.
->=20
-> Make sure it's not a signal integrity problem:
->=20
-> 	http://ivtvdriver.org/index.php/Howto:Improve_signal_quality
->=20
-> wild speculation: If the analog tuner driver init failed, maybe that is
-> having some bad EMI efect on the digital tuner
->=20
-> I'm assumiong you got more than the 1 channel before trying to enable
-> analog tuning.
+> module (in order to allow me to use the media_build tree and compile just the
+> modules I want). The end result is that the arch tree refused to compile with this
+> error:
+> 
+>    CC      arch/arm/mach-s5pv310/mach-smdkc210.o
+> arch/arm/mach-s5pv310/mach-smdkc210.c:1721:18: error: ‘writeback_info’ undeclared here (not in a function)
+> arch/arm/mach-s5pv310/mach-smdkc210.c: In function ‘smdkc210_machine_init’:
+> arch/arm/mach-s5pv310/mach-smdkc210.c:1947:7: warning: "CONFIG_VIDEO_SAMSUNG_S5P_FIMC" is not defined
+> arch/arm/mach-s5pv310/mach-smdkc210.c: At top level:
+> arch/arm/mach-s5pv310/mach-smdkc210.c:1673:33: warning: ‘isp_info’ defined but not used
+> arch/arm/mach-s5pv310/mach-smdkc210.c:1729:20: warning: ‘smdkv310_subdev_config’ defined but not used
+> arch/arm/mach-s5pv310/mach-smdkc210.c:1735:20: warning: ‘smdkv310_camera_config’ defined but not used
+> make[1]: ** [arch/arm/mach-s5pv310/mach-smdkc210.o] Erro 1
+> 
+> By looking at arch/arm/mach-s5pv310/mach-smdkc210.c, it has lots of things like:
+> 
+> #if defined(CONFIG_SND_SOC_WM8994) || defined(CONFIG_SND_SOC_WM8994_MODULE)
+> #include<linux/mfd/wm8994/pdata.h>
+> #endif
+> 
+> Using #if/#endif blocks to include header data is not a good practice. Unfortunately,
+> it seems that all platform data is full of this. The error seems to be here:
 
-I don't think there is a digital problem after all, the scanner doesn't seem
-to be picking up all the channels (meaning there were entries for most, but
-much off the data about the channel was missing in channels.conf).  When I =
-hand
-add the 2 that were missing and fill in the rest of the missing data, all o=
-f it
-works.  I can tune to any of the listed channels and watch them with mplaye=
-r.
-I am going to take the digital TV side up with the MythTV folks.
+Yes, I agree this is not right. However our team maintains only the
+following boards:
 
---dTy3Mrz/UPE2dbVg
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+arch/arm/mach-s5pv210/mach-goni.c
+arch/arm/mach-s5pv210/mach-aquila.c
+arch/arm/mach-exynos4/mach-universal_c210.c
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
+> 
+> /* for mainline fimc interface */
+> #ifdef CONFIG_VIDEO_SAMSUNG_S5P_FIMC
+> #ifdef WRITEBACK_ENABLED
+> struct writeback_mbus_platform_data {
+> 	int id;
+> 	struct v4l2_mbus_framefmt fmt;
+> };
+> 
+> static struct i2c_board_info writeback_info = {
+> 	I2C_BOARD_INFO("writeback", 0x0),
+> };
+> #endif
 
-iQEcBAEBAgAGBQJNo1K0AAoJEH65iIruGRnNkQsH/jewFevqAJt2uSElzcD7ok6G
-Tu1ibiHuknb2YfhhkCtHzsXMm2DAC3CtWtxozP3AgDZ/YvXw1g4/zFSJqI7kTYC5
-Jdd58aLmnK91iK0DPRhYQWMWiNW8OZwn4nTY/WYEa7vdoA8WYajhNPB7hUaVIQ6q
-BDmfYhwUY1Mv1YxJ8GbXbz5/6FxdjES9ZaZpbZwJqADJtSwRIl8D3zcmZEZxP3tB
-9+xFeNNtz7bZh9lF7ZHe/HXxEblNcYSoTELNPzlOlZP/lVKf0Ma3g/KAPOOey1R3
-XsB/fC395MzMYfkQ/e9UWK7fvOWxT2d3Q5wfJLobUiDtqU2K28IcyEV774qdAAI=
-=t8Bh
------END PGP SIGNATURE-----
+Hmm...first time I see this stuff..
 
---dTy3Mrz/UPE2dbVg--
+Kgene, could you please have a look?
+Or please forward this to someone who can take care of these issues.
+
+Thank you,
+Sylwester
+
+> 
+> You should be doing, instead, a check like this one for all symbols that are allowed
+> to be module at the Kconfig:
+> 
+> #if defined(CONFIG_SND_SOC_WM8994) || defined(CONFIG_SND_SOC_WM8994_MODULE)
+> 
+> Cheers,
+> Mauro.
+> 
+> -
+> As reference, I'm enclosing my .config.
+> 
+[snip]
+
