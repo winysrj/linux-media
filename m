@@ -1,219 +1,114 @@
 Return-path: <mchehab@pedra>
-Received: from dilga.instanthosting.com.au ([116.0.23.207]:47194 "EHLO
-	dilga.instanthosting.com.au" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752439Ab1DQPL2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Apr 2011 11:11:28 -0400
-Received: from localhost ([127.0.0.1] helo=www.neatherweb.com)
-	by dilga.instanthosting.com.au with esmtpa (Exim 4.69)
-	(envelope-from <jason@neatherweb.com>)
-	id 1QBT5k-0001kG-Tx
-	for linux-media@vger.kernel.org; Mon, 18 Apr 2011 00:36:48 +1000
+Received: from mail.tu-berlin.de ([130.149.7.33])
+	by www.linuxtv.org with esmtp (Exim 4.69)
+	(envelope-from <mjcoogle@gmail.com>) id 1QEoYl-0006rv-EL
+	for linux-dvb@linuxtv.org; Tue, 26 Apr 2011 22:09:01 +0200
+Received: from mail-qw0-f54.google.com ([209.85.216.54])
+	by mail.tu-berlin.de (exim-4.75/mailfrontend-1) with esmtps
+	[TLSv1:RC4-SHA:128] for <linux-dvb@linuxtv.org>
+	id 1QEoYk-00019y-Lk; Tue, 26 Apr 2011 22:08:35 +0200
+Received: by qwc9 with SMTP id 9so564086qwc.41
+	for <linux-dvb@linuxtv.org>; Tue, 26 Apr 2011 13:08:32 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Date: Mon, 18 Apr 2011 01:36:48 +1100
-From: <jason@neatherweb.com>
-To: <linux-media@vger.kernel.org>
-Subject: HVR-2210 saa7164 driver - subsystem 0070:8953
-Message-ID: <66c6eac24f21982dde80df1db37531ee@neatherweb.com>
-List-ID: <linux-media.vger.kernel.org>
+Date: Tue, 26 Apr 2011 14:08:32 -0600
+Message-ID: <BANLkTimGx15EGwbsafJA81m1anbRw+AV2A@mail.gmail.com>
+From: Martin Cole <mjcoogle@gmail.com>
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] analog OTA tuning
+Reply-To: linux-media@vger.kernel.org
+List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
+List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
+List-Post: <mailto:linux-dvb@linuxtv.org>
+List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
+List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: multipart/mixed; boundary="===============1050781941=="
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 Sender: <mchehab@pedra>
+List-ID: <linux-dvb@linuxtv.org>
 
- Hi,
- I have a Hauppauge HVR-2210 tv tuner card that is not currently 
- supported by V4L saa7164 driver.
- The card is recognised but is reported as unsupported
-    CORE saa7164[0]: subsystem: 0070:8953, board: Unknown 
- [card=0,autodetected]
+--===============1050781941==
+Content-Type: multipart/alternative; boundary=20cf3005dc486ae80104a1d7e30a
 
- I found some support for this subsystem in what I assume to be a old 
- dev tree at
-    http://kernellabs.com/hg/~stoth/saa7164-dev/
- So perhaps it was something lost in porting saa7164 module to the v4l 
- tree, or perhaps there was some issue, I couldn't work out the history 
- around this.
+--20cf3005dc486ae80104a1d7e30a
+Content-Type: text/plain; charset=ISO-8859-1
 
- I have used that code (without any understanding of it) to patch the 
- saa7164 driver as below, and this has been successful - I have been 
- using the card with MythTV happily for about a month now.
- So my question is how do I ask developers to consider including support 
- for this card in future releases ?
+Hi,
 
- This is my first time reaching out to the Linux community and I am 
- merely a Linux enthusiast/user (not a programmer) - so apologies if I 
- have taken the wrong tact for such a request.
+I need to tune analog OTA channels from a pci-e card.  I bought the
+following card:
 
- Appreciate any help.
- Jason
+http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-2200  (I actually have
+the 2250)
 
- Two patch files I use ...
+after installing and downloading the firmware etc, this works fine when
+tuning the digital OTA signal that I can see locally.
 
- # -------- v4l-dvb-saa7164.patch --------
+I am unsure how to change the frontend to attempt to tune analog tv input or
+even if this is supported, can someone point me in the right direction to do
+this? It looks like I would need to change the tuner type in the driver code
+(if analog is supported)
 
- diff -crB v4l-dvb/linux/drivers/media/video/saa7164/saa7164-cards.c 
- v4l-dvb-JN/linux/drivers/media/video/saa7164/saa7164-cards.c
- *** 
- v4l-dvb/linux/drivers/media/video/saa7164/saa7164-cards.c	2011-01-03 
- 15:39:28.065355788 +1100
- --- 
- v4l-dvb-JN/linux/drivers/media/video/saa7164/saa7164-cards.c	2011-01-03 
- 16:25:00.377588988 +1100
- ***************
- *** 369,374 ****
- --- 369,430 ----
-   			.i2c_reg_len	= REGLEN_8bit,
-   		} },
-   	},
- + 	[SAA7164_BOARD_HAUPPAUGE_HVR2200_5] = {
- + 		.name		= "Hauppauge WinTV-HVR2200",
- + 		.porta		= SAA7164_MPEG_DVB,
- + 		.portb		= SAA7164_MPEG_DVB,
- + 		.chiprev	= SAA7164_CHIP_REV3,
- + 		.unit		= {{
- + 			.id		= 0x23,
- + 			.type		= SAA7164_UNIT_EEPROM,
- + 			.name		= "4K EEPROM",
- + 			.i2c_bus_nr	= SAA7164_I2C_BUS_0,
- + 			.i2c_bus_addr	= 0xa0 >> 1,
- + 			.i2c_reg_len	= REGLEN_8bit,
- + 		}, {
- + 			.id		= 0x04,
- + 			.type		= SAA7164_UNIT_TUNER,
- + 			.name		= "TDA18271-1",
- + 			.i2c_bus_nr	= SAA7164_I2C_BUS_1,
- + 			.i2c_bus_addr	= 0xc0 >> 1,
- + 			.i2c_reg_len	= REGLEN_8bit,
- + 		}, {
- + 			.id		= 0x05,
- + 			.type		= SAA7164_UNIT_ANALOG_DEMODULATOR,
- + 			.name		= "TDA8290-1",
- + 			.i2c_bus_nr	= SAA7164_I2C_BUS_1,
- + 			.i2c_bus_addr	= 0x84 >> 1,
- + 			.i2c_reg_len	= REGLEN_8bit,
- + 		}, {
- + 			.id		= 0x21,
- + 			.type		= SAA7164_UNIT_TUNER,
- + 			.name		= "TDA18271-2",
- + 			.i2c_bus_nr	= SAA7164_I2C_BUS_2,
- + 			.i2c_bus_addr	= 0xc0 >> 1,
- + 			.i2c_reg_len	= REGLEN_8bit,
- + 		}, {
- + 			.id		= 0x22,
- + 			.type		= SAA7164_UNIT_ANALOG_DEMODULATOR,
- + 			.name		= "TDA8290-2",
- + 			.i2c_bus_nr	= SAA7164_I2C_BUS_2,
- + 			.i2c_bus_addr	= 0x84 >> 1,
- + 			.i2c_reg_len	= REGLEN_8bit,
- + 		}, {
- + 			.id		= 0x24,
- + 			.type		= SAA7164_UNIT_DIGITAL_DEMODULATOR,
- + 			.name		= "TDA10048-1",
- + 			.i2c_bus_nr	= SAA7164_I2C_BUS_1,
- + 			.i2c_bus_addr	= 0x10 >> 1,
- + 			.i2c_reg_len	= REGLEN_8bit,
- + 		}, {
- + 			.id		= 0x25,
- + 			.type		= SAA7164_UNIT_DIGITAL_DEMODULATOR,
- + 			.name		= "TDA10048-2",
- + 			.i2c_bus_nr	= SAA7164_I2C_BUS_2,
- + 			.i2c_bus_addr	= 0x12 >> 1,
- + 			.i2c_reg_len	= REGLEN_8bit,
- + 		} },
- + 	},
-   };
-   const unsigned int saa7164_bcount = ARRAY_SIZE(saa7164_boards);
+I am aware that no analog broadcasts exist anymore in the US, but where this
+will eventually be used still has analog OTA broadcasts.
+My test setup for now includes a digital to analog converter, which i would
+like to tune with this card, once this works I would test with the actual
+OTA signal.
 
- ***************
- *** 408,413 ****
- --- 464,473 ----
-   		.subvendor = 0x0070,
-   		.subdevice = 0x8851,
-   		.card      = SAA7164_BOARD_HAUPPAUGE_HVR2250_2,
- + 	}, {
- + 		.subvendor = 0x0070,
- + 		.subdevice = 0x8953,
- + 		.card      = SAA7164_BOARD_HAUPPAUGE_HVR2200_5,
-   	},
-   };
-   const unsigned int saa7164_idcount = ARRAY_SIZE(saa7164_subids);
- ***************
- *** 463,468 ****
- --- 523,529 ----
-   	case SAA7164_BOARD_HAUPPAUGE_HVR2200:
-   	case SAA7164_BOARD_HAUPPAUGE_HVR2200_2:
-   	case SAA7164_BOARD_HAUPPAUGE_HVR2200_3:
- + 	case SAA7164_BOARD_HAUPPAUGE_HVR2200_5:
-   #if 0
-   		/* Disable the DIF */
-   		saa7164_api_dif_write(&dev->i2c_bus[0], 0xc0, 8, &b4[0]);
- ***************
- *** 560,565 ****
- --- 621,627 ----
-   	case SAA7164_BOARD_HAUPPAUGE_HVR2250:
-   	case SAA7164_BOARD_HAUPPAUGE_HVR2250_2:
-   	case SAA7164_BOARD_HAUPPAUGE_HVR2250_3:
- + 	case SAA7164_BOARD_HAUPPAUGE_HVR2200_5:
-   		hauppauge_eeprom(dev, &eeprom[0]);
-   		break;
-   	}
- diff -crB v4l-dvb/linux/drivers/media/video/saa7164/saa7164-dvb.c 
- v4l-dvb-JN/linux/drivers/media/video/saa7164/saa7164-dvb.c
- *** v4l-dvb/linux/drivers/media/video/saa7164/saa7164-dvb.c	2011-01-03 
- 15:39:28.067355454 +1100
- --- 
- v4l-dvb-JN/linux/drivers/media/video/saa7164/saa7164-dvb.c	2011-01-03 
- 16:26:53.059795030 +1100
- ***************
- *** 522,527 ****
- --- 522,528 ----
-   	case SAA7164_BOARD_HAUPPAUGE_HVR2200:
-   	case SAA7164_BOARD_HAUPPAUGE_HVR2200_2:
-   	case SAA7164_BOARD_HAUPPAUGE_HVR2200_3:
- + 	case SAA7164_BOARD_HAUPPAUGE_HVR2200_5:
-   		i2c_bus = &dev->i2c_bus[port->nr + 1];
-   		switch (port->nr) {
-   		case 0:
- diff -crB v4l-dvb/linux/drivers/media/video/saa7164/saa7164.h 
- v4l-dvb-JN/linux/drivers/media/video/saa7164/saa7164.h
- *** v4l-dvb/linux/drivers/media/video/saa7164/saa7164.h	2011-01-03 
- 15:39:28.069355120 +1100
- --- v4l-dvb-JN/linux/drivers/media/video/saa7164/saa7164.h	2011-01-03 
- 16:28:13.055451489 +1100
- ***************
- *** 74,79 ****
- --- 74,81 ----
-   #define SAA7164_BOARD_HAUPPAUGE_HVR2200_3	6
-   #define SAA7164_BOARD_HAUPPAUGE_HVR2250_2	7
-   #define SAA7164_BOARD_HAUPPAUGE_HVR2250_3	8
- + #define SAA7164_BOARD_HAUPPAUGE_HVR2200_5	10
- +
+Looking at the tuner chip on the card, suggests that it is possible. The
+link on the wiki for the chip is outdated it seems, this is what I found on
+the nxp site:
 
-   #define SAA7164_MAX_UNITS		8
-   #define SAA7164_TS_NUMBER_OF_LINES	312
+http://www.nxp.com/#/pip/pip=[pip=TDA18271HD]|pp=[t=pip,i=TDA18271HD]
+
+I am happy to dive into the code, but wanted to see if anyone has done this
+already or get any suggestions that you more experienced developers could
+provide.
+
+Thanks,
+--mc
+
+--20cf3005dc486ae80104a1d7e30a
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+<br>Hi,<br><br>I need to tune analog OTA channels from a pci-e card.=A0 I b=
+ought the following card:<br><br><a href=3D"http://linuxtv.org/wiki/index.p=
+hp/Hauppauge_WinTV-HVR-2200">http://linuxtv.org/wiki/index.php/Hauppauge_Wi=
+nTV-HVR-2200</a>=A0 (I actually have the 2250)<br>
+<br>after installing and downloading the firmware etc, this works fine when=
+ tuning the digital OTA signal that I can see locally.<br><br>I am unsure h=
+ow to change the frontend to attempt to tune analog tv input or even if thi=
+s is supported, can someone point me in the right direction to do this? It =
+looks like I would need to change the tuner type in the driver code (if ana=
+log is supported)<br>
+<br>I am aware that no analog broadcasts exist anymore in the US, but where=
+ this will eventually be used still has analog OTA broadcasts.<br>My test s=
+etup for now includes a digital to analog converter, which i would like to =
+tune with this card, once this works I would test with the actual OTA signa=
+l.<br>
+<br>Looking at the tuner chip on the card, suggests that it is possible. Th=
+e link on the wiki for the chip is outdated it seems, this is what I found =
+on the nxp site:<br><br><a href=3D"http://www.nxp.com/#/pip/pip=3D[pip=3DTD=
+A18271HD]|pp=3D[t=3Dpip,i=3DTDA18271HD]">http://www.nxp.com/#/pip/pip=3D[pi=
+p=3DTDA18271HD]|pp=3D[t=3Dpip,i=3DTDA18271HD]</a><br>
+<br>I am happy to dive into the code, but wanted to see if anyone has done =
+this already or get any suggestions that you more experienced developers co=
+uld provide.<br><br>Thanks,<br>--mc<br><br><br><br>
+
+--20cf3005dc486ae80104a1d7e30a--
 
 
+--===============1050781941==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
- #--------- v4l-dvb-saa7164-cardist.patch ------------
-
- diff -crB v4l-dvb/linux/Documentation/video4linux/CARDLIST.saa7164 
- v4l-dvb-JN/linux/Documentation/video4linux/CARDLIST.saa7164
- *** v4l-dvb/linux/Documentation/video4linux/CARDLIST.saa7164	2011-01-03 
- 15:39:27.352474772 +1100
- --- 
- v4l-dvb-JN/linux/Documentation/video4linux/CARDLIST.saa7164	2011-01-03 
- 15:48:54.200953545 +1100
- ***************
- *** 7,9 ****
- --- 7,10 ----
-     6 -> Hauppauge WinTV-HVR2200                             
- [0070:8901]
-     7 -> Hauppauge WinTV-HVR2250                             
- [0070:8891,0070:8851]
-     8 -> Hauppauge WinTV-HVR2250                             
- [0070:88A1]
- +  10 -> Hauppauge WinTV-HVR2200                             
- [0070:8953]
-
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1050781941==--
