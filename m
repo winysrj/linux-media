@@ -1,84 +1,68 @@
 Return-path: <mchehab@pedra>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:59177 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751069Ab1DGIJ2 (ORCPT
+Received: from mail1-out1.atlantis.sk ([80.94.52.55]:38169 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751107Ab1DZIab (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 Apr 2011 04:09:28 -0400
-Date: Thu, 7 Apr 2011 11:09:22 +0300
-From: Felipe Balbi <balbi@ti.com>
-To: Greg KH <gregkh@suse.de>
-Cc: Felipe Balbi <balbi@ti.com>, Samuel Ortiz <sameo@linux.intel.com>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Andres Salomon <dilinger@queued.net>,
-	linux-kernel@vger.kernel.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	khali@linux-fr.org, ben-linux@fluff.org,
-	Peter Korsgaard <jacmet@sunsite.dk>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	David Brownell <dbrownell@users.sourceforge.net>,
-	linux-i2c@vger.kernel.org, linux-media@vger.kernel.org,
-	netdev@vger.kernel.org, spi-devel-general@lists.sourceforge.net,
-	Mocean Laboratories <info@mocean-labs.com>
-Subject: Re: [PATCH 07/19] timberdale: mfd_cell is now implicitly available
- to drivers
-Message-ID: <20110407080921.GD29038@legolas.emea.dhcp.ti.com>
-Reply-To: balbi@ti.com
-References: <BANLkTi=bq=OGzXFp7qiBr7x_BnGOWf=DRQ@mail.gmail.com>
- <20110404100314.GC2751@sortiz-mobl>
- <20110405030428.GB29522@ponder.secretlab.ca>
- <20110406152322.GA2757@sortiz-mobl>
- <20110406155805.GA20095@suse.de>
- <20110406170537.GB2757@sortiz-mobl>
- <20110406175647.GA8048@suse.de>
- <20110406184733.GD2757@sortiz-mobl>
- <20110406185902.GN25654@legolas.emea.dhcp.ti.com>
- <20110406220900.GA16117@suse.de>
+	Tue, 26 Apr 2011 04:30:31 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] usbvision: remove (broken) image format conversion
+Date: Tue, 26 Apr 2011 10:30:21 +0200
+Cc: Joerg Heckenbach <joerg@heckenbach-aw.de>,
+	Dwaine Garden <dwainegarden@rogers.com>,
+	linux-media@vger.kernel.org,
+	Kernel development list <linux-kernel@vger.kernel.org>
+References: <201104252323.20420.linux@rainbow-software.org> <201104260832.11150.hverkuil@xs4all.nl>
+In-Reply-To: <201104260832.11150.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-In-Reply-To: <20110406220900.GA16117@suse.de>
+Message-Id: <201104261030.21681.linux@rainbow-software.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+On Tuesday 26 April 2011, you wrote:
+> On Monday, April 25, 2011 23:23:17 Ondrej Zary wrote:
+> > The YVU420 and YUV422P formats are broken and cause kernel panic on use.
+> > (YVU420 does not work and sometimes causes "unable to handle paging
+> > request" panic, YUV422P always causes "NULL pointer dereference").
+> >
+> > As V4L2 spec says that drivers shouldn't do any in-kernel image format
+> > conversion, remove it completely (except YUYV).
+>
+> What really should happen is that the conversion is moved to libv4lconvert.
+> I've never had the time to tackle that, but it would improve this driver a
+> lot.
 
-On Wed, Apr 06, 2011 at 03:09:00PM -0700, Greg KH wrote:
-> On Wed, Apr 06, 2011 at 09:59:02PM +0300, Felipe Balbi wrote:
-> > Hi,
-> > 
-> > On Wed, Apr 06, 2011 at 08:47:34PM +0200, Samuel Ortiz wrote:
-> > > > > > What is a "MFD cell pointer" and why is it needed in struct device?
-> > > > > An MFD cell is an MFD instantiated device.
-> > > > > MFD (Multi Function Device) drivers instantiate platform devices. Those
-> > > > > devices drivers sometimes need a platform data pointer, sometimes an MFD
-> > > > > specific pointer, and sometimes both. Also, some of those drivers have been
-> > > > > implemented as MFD sub drivers, while others know nothing about MFD and just
-> > > > > expect a plain platform_data pointer.
-> > > > 
-> > > > That sounds like a bug in those drivers, why not fix them to properly
-> > > > pass in the correct pointer?
-> > > Because they're drivers for generic IPs, not MFD ones. By forcing them to use
-> > > MFD specific structure and APIs, we make it more difficult for platform code
-> > > to instantiate them.
-> > 
-> > I agree. What I do on those cases is to have a simple platform_device
-> > for the core IP driver and use platform_device_id tables to do runtime
-> > checks of the small differences. If one platform X doesn't use a
-> > platform_bus, it uses e.g. PCI, then you make a PCI "bridge" which
-> > allocates a platform_device with the correct name and adds that to the
-> > driver model.
-> > 
-> > See [1] (for the core driver) and [2] (for a PCI bridge driver) for an
-> > example of what I'm talking about.
-> 
-> Yes, thanks for providing a real example, this is the best way to handle
-> this.
+Depending on isoc_mode module parameter, the device uses different image 
+formats: YUV 4:2:2 interleaved, YUV 4:2:0 planar or compressed format.
 
-no problem.
+Maybe the parameter should go away and these three formats exposed to 
+userspace? Hopefully the non-compressed formats could be used directly 
+without any conversion. But the compressed format (with new V4L2_PIX_FMT_ 
+assigned?) should be preferred (as it provides much higher frame rates). The 
+code moved into libv4lconvert would decompress the format and convert into 
+something standard (YUV420?).
 
-ps: that's the driver for the USB3 controller which will come on OMAP5.
-Driver being validate on a pre-silicon platform right now :-D In a few
-weeks I'll send the driver for integration.
+> Would you perhaps be interested in doing that work?
+
+I can try it. But the hardware isn't mine so my time is limited.
+
+> > The removal also reveals an off-by-one bug in enum_fmt ioctl - it misses
+> > the last format, so this patch fixes it too.
+>
+> Good. But why are the GREY/RGB formats also removed? Are those broken as
+> well?
+
+GREY, RGB24 and RGB32 seem to work (at least with mplayer). RGB565 and RGB555 
+have wrong colors. GREY is implemented only in compressed mode but can be 
+selected in other modes too. Can't userspace do the conversion better?
+
+> Regards,
+>
+> 	Hans
 
 -- 
-balbi
+Ondrej Zary
