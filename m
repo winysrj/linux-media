@@ -1,59 +1,97 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.186]:55881 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755417Ab1DRQFH (ORCPT
+Received: from mail1-out1.atlantis.sk ([80.94.52.55]:37197 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754040Ab1DZUk4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Apr 2011 12:05:07 -0400
-Date: Mon, 18 Apr 2011 18:05:01 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Akira Tsukamoto <akira-t@s9.dion.ne.jp>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: soc_camera with V4L2 driver 
-In-Reply-To: <20110419005717.E36F.B41FCDD0@s9.dion.ne.jp>
-Message-ID: <Pine.LNX.4.64.1104181803340.27247@axis700.grange>
-References: <Pine.LNX.4.64.1104181603470.27247@axis700.grange>
- <20110419001020.A4B5.B41FCDD0@s9.dion.ne.jp> <20110419005717.E36F.B41FCDD0@s9.dion.ne.jp>
+	Tue, 26 Apr 2011 16:40:56 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: "Hans Verkuil" <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] usbvision: remove (broken) image format conversion
+Date: Tue, 26 Apr 2011 22:40:35 +0200
+Cc: "Hans de Goede" <hdegoede@redhat.com>,
+	"Joerg Heckenbach" <joerg@heckenbach-aw.de>,
+	"Dwaine Garden" <dwainegarden@rogers.com>,
+	linux-media@vger.kernel.org,
+	"Kernel development list" <linux-kernel@vger.kernel.org>
+References: <201104252323.20420.linux@rainbow-software.org> <4DB6B28D.5090607@redhat.com> <f2291b622da20d240c4ebe0ae72beb8c.squirrel@webmail.xs4all.nl>
+In-Reply-To: <f2291b622da20d240c4ebe0ae72beb8c.squirrel@webmail.xs4all.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201104262240.40497.linux@rainbow-software.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, 19 Apr 2011, Akira Tsukamoto wrote:
+On Tuesday 26 April 2011 14:33:20 Hans Verkuil wrote:
+> > Hi,
+> >
+> > On 04/26/2011 10:30 AM, Ondrej Zary wrote:
+> >> On Tuesday 26 April 2011, you wrote:
+> >>> On Monday, April 25, 2011 23:23:17 Ondrej Zary wrote:
+> >>>> The YVU420 and YUV422P formats are broken and cause kernel panic on
+> >>>> use.
+> >>>> (YVU420 does not work and sometimes causes "unable to handle paging
+> >>>> request" panic, YUV422P always causes "NULL pointer dereference").
+> >>>>
+> >>>> As V4L2 spec says that drivers shouldn't do any in-kernel image format
+> >>>> conversion, remove it completely (except YUYV).
+> >>>
+> >>> What really should happen is that the conversion is moved to
+> >>> libv4lconvert.
+> >>> I've never had the time to tackle that, but it would improve this
+> >>> driver a
+> >>> lot.
+> >>
+> >> Depending on isoc_mode module parameter, the device uses different image
+> >> formats: YUV 4:2:2 interleaved, YUV 4:2:0 planar or compressed format.
+> >>
+> >> Maybe the parameter should go away and these three formats exposed to
+> >> userspace?
+> >
+> > That sounds right,
+> >
+> >> Hopefully the non-compressed formats could be used directly
+> >> without any conversion. But the compressed format (with new
+> >> V4L2_PIX_FMT_
+> >> assigned?) should be preferred (as it provides much higher frame rates).
+> >> The
+> >> code moved into libv4lconvert would decompress the format and convert
+> >> into
+> >> something standard (YUV420?).
+> >
+> > Correct.
+> >
+> >>> Would you perhaps be interested in doing that work?
+> >>
+> >> I can try it. But the hardware isn't mine so my time is limited.
+> >
+> > If you could give it a shot that would be great. I've some hardware to
+> > test this with (although I've never actually tested that hardware), so
+> > I can hopefully pick things up if you cannot finish things before you
+> > need to return the hardware.
+>
+> I can also test this.
 
-> Hello Guennadi,
-> 
-> > > >  static struct i2c_board_info i2c0_devices[] = {
-> > > >  	{
-> > > >  		I2C_BOARD_INFO("ag5evm_ts", 0x20),
-> > > >  		.irq	= pint2irq(12),	/* PINTC3 */
-> > > >  	},
-> > > > +	/* 2M camera */
-> > > > +	{
-> > > > +		I2C_BOARD_INFO("rj65na20", 0x40),
-> > > > +	},
-> > > 
-> > > No, you do not have to include this here, the sensor must not be registered 
-> > > automatically during the board initialisation.
-> 
-> I have one more question before sleeping :)
-> 
-> The camera module needs to be initialized by writing values to the registers.
-> Do I need to write init function at the following?
-> 
-> static const struct v4l2_subdev_core_ops rj65na20_core_ops = {
->          .reset = rj65na20_reset,
-> [snip]
-> }
+After digging in the code for hours, I'm giving this up. It's not worth it.
 
-AFAICS neither soc_camera.c, nor sh_mobile_ceu_camera.c call the .reset 
-subdevice core method, so, no, at the moment implementing it wouldn't 
-produce any result. Either you have to choose one of the methods, that are 
-currently called, or you have to add a call to .reset() as required.
+The ISOC_MODE_YUV422 mode works as V4L2_PIX_FMT_YVYU with VLC and 
+mplayer+libv4lconvert, reducing the loop (and dropping strech_*) in 
+usbvision_parse_lines_422() to:
+ scratch_get(usbvision, frame->data + (frame->v4l2_linesize * frame->curline),
+ 2 * frame->frmwidth);
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+The ISOC_MODE_YUV420 is some weird custom format with 64-byte lines of YYUV. 
+usbvision_parse_lines_420() is real mess with that scratch_* crap everywhere.
+
+ISOC_MODE_COMPRESS: There are callbacks to usbvision_request_intra() and also 
+usbvision_adjust_compression(). This is not going to work outside the kernel.
+
+
+So I can redo the conversion removal patch to keep the RGB formats and also 
+provide another one to remove the testpattern (it oopses too). But I'm not 
+going to do any major changes in the driver.
+
+-- 
+Ondrej Zary
