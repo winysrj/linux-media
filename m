@@ -1,106 +1,67 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:58780 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751294Ab1DGQrt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Apr 2011 12:47:49 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Thu, 07 Apr 2011 18:47:33 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 1/3] v4l: Add V4L2_MBUS_FMT_JPEG_1X8 media bus format
-In-reply-to: <1302194855-29205-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: linux-samsung-soc@vger.kernel.org, kyungmin.park@samsung.com,
-	m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	kgene.kim@samsung.com, sungchun.kang@samsung.com,
-	jonghun.han@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <1302194855-29205-2-git-send-email-s.nawrocki@samsung.com>
-References: <1302194855-29205-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:45454 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754982Ab1DZNdT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Apr 2011 09:33:19 -0400
+Received: by iwn34 with SMTP id 34so502947iwn.19
+        for <linux-media@vger.kernel.org>; Tue, 26 Apr 2011 06:33:18 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <201104260853.03817.hverkuil@xs4all.nl>
+References: <BANLkTim7AONexeEm-E8iLQA5+TMDRUy36w@mail.gmail.com>
+	<201104231256.25263.hverkuil@xs4all.nl>
+	<BANLkTikneMOMVUQ07mLBZZTDYrKTJ1dfPw@mail.gmail.com>
+	<201104260853.03817.hverkuil@xs4all.nl>
+Date: Tue, 26 Apr 2011 07:33:18 -0600
+Message-ID: <BANLkTimk=PHkYpOjPk8CLB=DNxRC=5CDAQ@mail.gmail.com>
+Subject: Re: Regression with suspend from "msp3400: convert to the new control framework"
+From: Jesse Allen <the3dfxdude@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Add V4L2_MBUS_FMT_JPEG_1X8 format and the corresponding Docbook
-documentation.
+On Tue, Apr 26, 2011 at 12:53 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+> OK, whatever is causing the problems is *not* msp3400 since your card does not
+> have one :-)
+>
+> This card uses gpio to handle audio.
+>
+>> i2c-core: driver [tuner] using legacy suspend method
+>> i2c-core: driver [tuner] using legacy resume method
+>> tuner 0-0061: chip found @ 0xc2 (bt878 #0 [sw])
+>> tuner-simple 0-0061: creating new instance
+>> tuner-simple 0-0061: type set to 2 (Philips NTSC (FI1236,FM1236 and
+>> compatibles))
+>
+> It is more likely to be the tuner driver. But I would have expected to see
+> more bug reports since this is a bog-standard tuner so I have my doubts there
+> as well.
+>
+> Regards,
+>
+>        Hans
+>
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- Documentation/DocBook/v4l/subdev-formats.xml |   46 ++++++++++++++++++++++++++
- include/linux/v4l2-mediabus.h                |    3 ++
- 2 files changed, 49 insertions(+), 0 deletions(-)
 
-diff --git a/Documentation/DocBook/v4l/subdev-formats.xml b/Documentation/DocBook/v4l/subdev-formats.xml
-index 7041127..df2d7d3 100644
---- a/Documentation/DocBook/v4l/subdev-formats.xml
-+++ b/Documentation/DocBook/v4l/subdev-formats.xml
-@@ -2463,5 +2463,51 @@
- 	</tgroup>
-       </table>
-     </section>
-+
-+    <section>
-+      <title>JPEG Compressed Formats</title>
-+
-+      <para>Those data formats consist of an ordered sequence of 8-bit bytes
-+	obtained from JPEG compression process. Additionally to the
-+	<constant>_JPEG</constant> prefix the format code is made of
-+	the following information.
-+	<itemizedlist>
-+	  <listitem>The number of bus samples per entropy encoded byte.</listitem>
-+	  <listitem>The bus width.</listitem>
-+	</itemizedlist>
-+
-+	<para>For instance, for a JPEG baseline process and an 8-bit bus width
-+	  the format will be named <constant>V4L2_MBUS_FMT_JPEG_1X8</constant>.
-+	</para>
-+      </para>
-+
-+      <para>The following table lists existing JPEG compressed formats.</para>
-+
-+      <table pgwide="0" frame="none" id="v4l2-mbus-pixelcode-jpeg">
-+	<title>JPEG Formats</title>
-+	<tgroup cols="3">
-+	  <colspec colname="id" align="left" />
-+	  <colspec colname="code" align="left"/>
-+	  <colspec colname="remarks" align="left"/>
-+	  <thead>
-+	    <row>
-+	      <entry>Identifier</entry>
-+	      <entry>Code</entry>
-+	      <entry>Remarks</entry>
-+	    </row>
-+	  </thead>
-+	  <tbody valign="top">
-+	    <row id="V4L2-MBUS-FMT-JPEG-1X8">
-+	      <entry>V4L2_MBUS_FMT_JPEG_1X8</entry>
-+	      <entry>0x4001</entry>
-+	      <entry>Besides of its usage for the parallel bus this format is
-+		recommended for transmission of JPEG data over MIPI CSI bus
-+		using the User Defined 8-bit Data types.
-+	      </entry>
-+	    </row>
-+	  </tbody>
-+	</tgroup>
-+      </table>
-+    </section>
-   </section>
- </section>
-diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
-index 7054a7a..15d6cda 100644
---- a/include/linux/v4l2-mediabus.h
-+++ b/include/linux/v4l2-mediabus.h
-@@ -86,6 +86,9 @@ enum v4l2_mbus_pixelcode {
- 	V4L2_MBUS_FMT_SGBRG12_1X12 = 0x3010,
- 	V4L2_MBUS_FMT_SGRBG12_1X12 = 0x3011,
- 	V4L2_MBUS_FMT_SRGGB12_1X12 = 0x3012,
-+
-+	/* JPEG compressed formats - next is 0x4002 */
-+	V4L2_MBUS_FMT_JPEG_1X8 = 0x4001,
- };
- 
- /**
--- 
-1.7.4.3
+OK, then. I will look at the other source file changes during 2.6.37.
+It may be a while before I get more info though. These were on my list
+to check:
+
+i2c-core.c
+tda7432.c
+msp3400-driver.c
+bttv-cards.c
+bttv-driver.c
+bttv-input.c (probably not)
+bttv-risc.c (probably not?)
+
+So we know that msp3400 is a sound chip that I don't have. tda7432
+also looks like one. I understand the audio is fed right off of the
+tuner directly to the phono jack?
+
+Jesse
