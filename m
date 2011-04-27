@@ -1,153 +1,66 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59811 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756878Ab1D3Ndn (ORCPT
+Received: from casper.infradead.org ([85.118.1.10]:48034 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756557Ab1D0POB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Apr 2011 09:33:43 -0400
-Received: from localhost.localdomain (unknown [91.178.80.7])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id C202035B46
-	for <linux-media@vger.kernel.org>; Sat, 30 Apr 2011 13:33:41 +0000 (UTC)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 3/4] uvcvideo: Connect video devices to media entities
-Date: Sat, 30 Apr 2011 15:34:04 +0200
-Message-Id: <1304170445-11978-4-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1304170445-11978-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1304170445-11978-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Wed, 27 Apr 2011 11:14:01 -0400
+Message-ID: <4DB832B4.1060608@infradead.org>
+Date: Wed, 27 Apr 2011 12:13:56 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+MIME-Version: 1.0
+To: a b <mjnhbg1@gmail.com>
+CC: Devin Heitmueller <devin.heitmueller@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: Some major problems of em28xx chip base TV devices in linux
+References: <BANLkTim8fuuOC-56nPY=sJrCaY7kKOydYA@mail.gmail.com>
+In-Reply-To: <BANLkTim8fuuOC-56nPY=sJrCaY7kKOydYA@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The video devices associated to USB streaming terminals must be
-connected to their associated terminal's media entity instead of being
-standalone entities.
+Em 27-04-2011 11:06, a b escreveu:
+> Hello all
+> 
+>   Before anythings, i beg pardon of whom the matter of this e-mail is not related to; please excuse me.
+> ------------------------------------------------------------------
+>   Unfortunately i could not until now, use any DVB hardware on any version of linux; i tested many of them but none of them can be correctly used. :-(
+>   I tired from testing and testing all things about combination of my linuxes and DVBs.
+>   Please help me with all things that you know, and please do not tell the repeated things that i already tested, and please only think about the exact problem.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/uvc/uvc_driver.c |    8 +++++-
- drivers/media/video/uvc/uvc_entity.c |   40 +++++++++++++++++++++++++++------
- drivers/media/video/uvc/uvcvideo.h   |    1 +
- 3 files changed, 39 insertions(+), 10 deletions(-)
+Please, don't mix Kernel driver issues with userspace ones. Different groups of
+developers (and different mailing lists) are used for each userspace tool.
+I won't comment about userspace DVB tools, as I don't maintain them.
 
-diff --git a/drivers/media/video/uvc/uvc_driver.c b/drivers/media/video/uvc/uvc_driver.c
-index 78e0836..b09a81d 100644
---- a/drivers/media/video/uvc/uvc_driver.c
-+++ b/drivers/media/video/uvc/uvc_driver.c
-@@ -1607,6 +1607,10 @@ static void uvc_delete(struct uvc_device *dev)
- 		struct uvc_entity *entity;
- 		entity = list_entry(p, struct uvc_entity, list);
- 		uvc_mc_cleanup_entity(entity);
-+		if (entity->vdev) {
-+			video_device_release(entity->vdev);
-+			entity->vdev = NULL;
-+		}
- 		kfree(entity);
- 	}
- 
-@@ -1629,8 +1633,6 @@ static void uvc_release(struct video_device *vdev)
- 	struct uvc_streaming *stream = video_get_drvdata(vdev);
- 	struct uvc_device *dev = stream->dev;
- 
--	video_device_release(vdev);
--
- 	/* Decrement the registered streams count and delete the device when it
- 	 * reaches zero.
- 	 */
-@@ -1744,6 +1746,8 @@ static int uvc_register_terms(struct uvc_device *dev,
- 		ret = uvc_register_video(dev, stream);
- 		if (ret < 0)
- 			return ret;
-+
-+		term->vdev = stream->vdev;
- 	}
- 
- 	return 0;
-diff --git a/drivers/media/video/uvc/uvc_entity.c b/drivers/media/video/uvc/uvc_entity.c
-index 8e8e7ef..ede7852 100644
---- a/drivers/media/video/uvc/uvc_entity.c
-+++ b/drivers/media/video/uvc/uvc_entity.c
-@@ -33,6 +33,9 @@ static int uvc_mc_register_entity(struct uvc_video_chain *chain,
- 	int ret;
- 
- 	for (i = 0; i < entity->num_pads; ++i) {
-+		struct media_entity *source;
-+		struct media_entity *sink;
-+
- 		if (!(entity->pads[i].flags & MEDIA_PAD_FL_SINK))
- 			continue;
- 
-@@ -40,14 +43,23 @@ static int uvc_mc_register_entity(struct uvc_video_chain *chain,
- 		if (remote == NULL)
- 			return -EINVAL;
- 
-+		source = (UVC_ENTITY_TYPE(remote) == UVC_TT_STREAMING)
-+		       ? &remote->vdev->entity : &remote->subdev.entity;
-+		sink = (UVC_ENTITY_TYPE(entity) == UVC_TT_STREAMING)
-+		     ? &entity->vdev->entity : &entity->subdev.entity;
-+
- 		remote_pad = remote->num_pads - 1;
--		ret = media_entity_create_link(&remote->subdev.entity,
--				remote_pad, &entity->subdev.entity, i, flags);
-+		ret = media_entity_create_link(source, remote_pad,
-+					       sink, i, flags);
- 		if (ret < 0)
- 			return ret;
- 	}
- 
--	return v4l2_device_register_subdev(&chain->dev->vdev, &entity->subdev);
-+	if (UVC_ENTITY_TYPE(entity) != UVC_TT_STREAMING)
-+		ret = v4l2_device_register_subdev(&chain->dev->vdev,
-+						  &entity->subdev);
-+
-+	return ret;
- }
- 
- static struct v4l2_subdev_ops uvc_subdev_ops = {
-@@ -55,16 +67,28 @@ static struct v4l2_subdev_ops uvc_subdev_ops = {
- 
- void uvc_mc_cleanup_entity(struct uvc_entity *entity)
- {
--	media_entity_cleanup(&entity->subdev.entity);
-+	if (UVC_ENTITY_TYPE(entity) != UVC_TT_STREAMING)
-+		media_entity_cleanup(&entity->subdev.entity);
-+	else if (entity->vdev != NULL)
-+		media_entity_cleanup(&entity->vdev->entity);
- }
- 
- static int uvc_mc_init_entity(struct uvc_entity *entity)
- {
--	v4l2_subdev_init(&entity->subdev, &uvc_subdev_ops);
--	strlcpy(entity->subdev.name, entity->name, sizeof(entity->subdev.name));
-+	int ret;
-+
-+	if (UVC_ENTITY_TYPE(entity) != UVC_TT_STREAMING) {
-+		v4l2_subdev_init(&entity->subdev, &uvc_subdev_ops);
-+		strlcpy(entity->subdev.name, entity->name,
-+			sizeof(entity->subdev.name));
-+
-+		ret = media_entity_init(&entity->subdev.entity,
-+					entity->num_pads, entity->pads, 0);
-+	} else
-+		ret = media_entity_init(&entity->vdev->entity,
-+					entity->num_pads, entity->pads, 0);
- 
--	return media_entity_init(&entity->subdev.entity, entity->num_pads,
--				 entity->pads, 0);
-+	return ret;
- }
- 
- int uvc_mc_register_entities(struct uvc_video_chain *chain)
-diff --git a/drivers/media/video/uvc/uvcvideo.h b/drivers/media/video/uvc/uvcvideo.h
-index 87014fb..f4e298c 100644
---- a/drivers/media/video/uvc/uvcvideo.h
-+++ b/drivers/media/video/uvc/uvcvideo.h
-@@ -302,6 +302,7 @@ struct uvc_entity {
- 	char name[64];
- 
- 	/* Media controller-related fields. */
-+	struct video_device *vdev;
- 	struct v4l2_subdev subdev;
- 	unsigned int num_pads;
- 	unsigned int num_links;
--- 
-1.7.3.4
+>   i myself is familiar with unix and linux from about 19 years ago, and have done many low level programming on linux and unix in kernel and user spaces, till now. Thus please don't explain the inexact things and some non important things like options of /etc/syslog.conf or hardware testing of computer main memory!!
+>   Please focuse your mind, only on the problems, thanks.
 
+As you're a developer, the better way to improve is to make patches fixing the 
+issues you noticed and submit them to the mailing lists. You're the only one
+capable of reproducing your environment, in terms of channels, board configuration,
+etc, as almost all work done here are made by volunteer people.
+
+>   I tested this DVB-Stick with 2 linux versions, Debian and Ubuntu. Debian was lenny-i686 with kernel: 2.6.35.10 (that this kernel was compiled by myself from is complete source downloaded from www.kernel.org <http://www.kernel.org> with complete activation of all device drivers as kernel module) and Ubuntu was 10.10-amd64 (with 2 versions of kernel: 2.6.35.22 and 2.6.38.8, both of them was installed from the main ubuntu repository "archive.ubuntu.com <http://archive.ubuntu.com>" )
+>   Both of linuxes were running on one computer, with a brief hardware of 2.8-GHz Intel Core2due E7400 CPU & 1 Giga-Ram & 2 Sata Hard disk & PK5PL Asus motherboard & Nvidia-G9500-GT graphic card.
+
+If you think you have a driver issue, just use the latest development tree, available
+at linuxtv.org. It contains the latest version of the drivers. the media-build.git is
+the best way to get it. If you want to submit patches, you should get also the media-tree.git,
+and generate patches against it.
+
+>   i will explain my testings after this brief writing about my main (big) 7 problems:
+>     1- The only software that could show me some of TV programs, was kaffeine, and no other softwares ( included mythtv & VLC & mplayer & w_scan & scan of dvb-utils ) could show any things.
+
+Clearly, an userspace issue.
+
+>     2- No any software could find any digital (DVB) channels during the scanning ( including even kaffeine).
+
+Had you try w_scan and dvb-apps (from linuxtv.org)? What happens with dvb-apps with -v enabled?
+
+>     3- Some of violations from standard encoding of DVB packets is done in my 25 digital channels, but experienced programmers of Win-Xp softwares find them and make some work around for them and thus we (linux programmers) must do the same things.
+
+If the transmissions in your Country is violating the standard DVB, you'll need to fix the source
+code of the applications. This may explain the problems you're having. No one else at the community 
+can do anything to help you on it, because they don't have access to the same streamings as you have.
+
+Mauro.
