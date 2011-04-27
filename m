@@ -1,106 +1,510 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:42265 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752636Ab1DHQVr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Apr 2011 12:21:47 -0400
-Received: by qyk7 with SMTP id 7so4085694qyk.19
-        for <linux-media@vger.kernel.org>; Fri, 08 Apr 2011 09:21:46 -0700 (PDT)
-References: <1302267045.1749.38.camel@gagarin> <AFEB19DA-4FD6-4472-9825-F13A112B0E2A@wilsonet.com> <1302276147.1749.46.camel@gagarin>
-In-Reply-To: <1302276147.1749.46.camel@gagarin>
-Mime-Version: 1.0 (Apple Message framework v1084)
-Content-Type: text/plain; charset=iso-8859-1
-Message-Id: <B9A35B3D-DC47-4D95-88F5-5453DD3F506C@wilsonet.com>
-Content-Transfer-Encoding: 8BIT
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Jarod Wilson <jarod@wilsonet.com>
-Subject: Re: [PATCH] Fix cx88 remote control input
-Date: Fri, 8 Apr 2011 12:21:54 -0400
-To: Lawrence Rust <lawrence@softsystem.co.uk>
+Received: from mail1-out1.atlantis.sk ([80.94.52.55]:36372 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1759250Ab1D0Ulx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Apr 2011 16:41:53 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: "Hans Verkuil" <hverkuil@xs4all.nl>
+Subject: [PATCH 4/4] usbvision: remove RGB format conversion
+Date: Wed, 27 Apr 2011 22:41:32 +0200
+Cc: "Hans de Goede" <hdegoede@redhat.com>,
+	"Joerg Heckenbach" <joerg@heckenbach-aw.de>,
+	"Dwaine Garden" <dwainegarden@rogers.com>,
+	linux-media@vger.kernel.org,
+	"Kernel development list" <linux-kernel@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201104272241.38457.linux@rainbow-software.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Apr 8, 2011, at 11:22 AM, Lawrence Rust wrote:
+As V4L2 spec says that drivers shouldn't do any in-kernel image format
+conversion, remove it.
 
-> On Fri, 2011-04-08 at 10:41 -0400, Jarod Wilson wrote:
->> On Apr 8, 2011, at 8:50 AM, Lawrence Rust wrote:
->> 
->>> This patch restores remote control input for cx2388x based boards on
->>> Linux kernels >= 2.6.38.
->>> 
->>> After upgrading from Linux 2.6.37 to 2.6.38 I found that the remote
->>> control input of my Hauppauge Nova-S plus was no longer functioning.  
->>> I posted a question on this newsgroup and Mauro Carvalho Chehab gave
->>> some helpful pointers as to the likely cause.
->>> 
->>> Turns out that there are 2 problems:
->> ...
->>> 2. The RC5 decoder appends the system code to the scancode and passes
->>> the combination to rc_keydown().  Unfortunately, the combined value is
->>> then forwarded to input_event() which then fails to recognise a valid
->>> scancode and hence no input events are generated.
->> 
->> Just to clarify on this one, you're missing a step. We get the scancode,
->> and its passed to rc_keydown. rc_keydown then looks for a match in the
->> loaded keytable, then passes the *keycode* that matches the scancode
->> along to input_event. If you fix the keytable to contain system and
->> command, everything should work just fine again. Throwing away data is
->> a no-no though -- take a look at recent changes to ir-kdb-i2c, which
->> actually just recently made it start *including* system. :)
-> 
-> Don't shoot the messenger.
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 
-Wasn't my intention. I was simply trying to explain why your "fix"
-isn't correct.
+---
+Feel free to drop this patch if the functionality is needed.
 
+diff -up linux-2.6.39-rc2-/drivers/media/video/usbvision/usbvision-core.c linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision-core.c
+--- linux-2.6.39-rc2-/drivers/media/video/usbvision/usbvision-core.c	2011-04-27 22:18:52.000000000 +0200
++++ linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision-core.c	2011-04-27 22:18:27.000000000 +0200
+@@ -494,9 +494,8 @@ static enum parse_state usbvision_parse_
+ 	int len;
+ 	int i;
+ 	unsigned char yuyv[4] = { 180, 128, 10, 128 }; /* YUV components */
+-	unsigned char rv, gv, bv;	/* RGB components */
+-	int clipmask_index, bytes_per_pixel;
+-	int stretch_bytes, clipmask_add;
++	int bytes_per_pixel;
++	int stretch_bytes;
+ 
+ 	frame  = usbvision->cur_frame;
+ 	f = frame->data + (frame->v4l2_linesize * frame->curline);
+@@ -513,78 +512,16 @@ static enum parse_state usbvision_parse_
+ 
+ 	bytes_per_pixel = frame->v4l2_format.bytes_per_pixel;
+ 	stretch_bytes = (usbvision->stretch_width - 1) * bytes_per_pixel;
+-	clipmask_index = frame->curline * MAX_FRAME_WIDTH;
+-	clipmask_add = usbvision->stretch_width;
+ 
+ 	for (i = 0; i < frame->frmwidth; i += (2 * usbvision->stretch_width)) {
+ 		scratch_get(usbvision, &yuyv[0], 4);
+ 
+-		if (frame->v4l2_format.format == V4L2_PIX_FMT_YUYV) {
+-			*f++ = yuyv[0]; /* Y */
+-			*f++ = yuyv[3]; /* U */
+-		} else {
+-			YUV_TO_RGB_BY_THE_BOOK(yuyv[0], yuyv[1], yuyv[3], rv, gv, bv);
+-			switch (frame->v4l2_format.format) {
+-			case V4L2_PIX_FMT_RGB565:
+-				*f++ = (0x1F & rv) |
+-					(0xE0 & (gv << 5));
+-				*f++ = (0x07 & (gv >> 3)) |
+-					(0xF8 &  bv);
+-				break;
+-			case V4L2_PIX_FMT_RGB24:
+-				*f++ = rv;
+-				*f++ = gv;
+-				*f++ = bv;
+-				break;
+-			case V4L2_PIX_FMT_RGB32:
+-				*f++ = rv;
+-				*f++ = gv;
+-				*f++ = bv;
+-				f++;
+-				break;
+-			case V4L2_PIX_FMT_RGB555:
+-				*f++ = (0x1F & rv) |
+-					(0xE0 & (gv << 5));
+-				*f++ = (0x03 & (gv >> 3)) |
+-					(0x7C & (bv << 2));
+-				break;
+-			}
+-		}
+-		clipmask_index += clipmask_add;
++		*f++ = yuyv[0]; /* Y */
++		*f++ = yuyv[3]; /* U */
+ 		f += stretch_bytes;
+ 
+-		if (frame->v4l2_format.format == V4L2_PIX_FMT_YUYV) {
+-			*f++ = yuyv[2]; /* Y */
+-			*f++ = yuyv[1]; /* V */
+-		} else {
+-			YUV_TO_RGB_BY_THE_BOOK(yuyv[2], yuyv[1], yuyv[3], rv, gv, bv);
+-			switch (frame->v4l2_format.format) {
+-			case V4L2_PIX_FMT_RGB565:
+-				*f++ = (0x1F & rv) |
+-					(0xE0 & (gv << 5));
+-				*f++ = (0x07 & (gv >> 3)) |
+-					(0xF8 &  bv);
+-				break;
+-			case V4L2_PIX_FMT_RGB24:
+-				*f++ = rv;
+-				*f++ = gv;
+-				*f++ = bv;
+-				break;
+-			case V4L2_PIX_FMT_RGB32:
+-				*f++ = rv;
+-				*f++ = gv;
+-				*f++ = bv;
+-				f++;
+-				break;
+-			case V4L2_PIX_FMT_RGB555:
+-				*f++ = (0x1F & rv) |
+-					(0xE0 & (gv << 5));
+-				*f++ = (0x03 & (gv >> 3)) |
+-					(0x7C & (bv << 2));
+-				break;
+-			}
+-		}
+-		clipmask_index += clipmask_add;
++		*f++ = yuyv[2]; /* Y */
++		*f++ = yuyv[1]; /* V */
+ 		f += stretch_bytes;
+ 	}
+ 
+@@ -702,22 +639,20 @@ static enum parse_state usbvision_parse_
+ 	unsigned char strip_data[USBVISION_STRIP_LEN_MAX];
+ 	unsigned char strip_header[USBVISION_STRIP_HEADER_LEN];
+ 	int idx, idx_end, strip_len, strip_ptr, startblock_pos, block_pos, block_type_pos;
+-	int clipmask_index, bytes_per_pixel, rc;
++	int bytes_per_pixel, rc;
+ 	int image_size;
+-	unsigned char rv, gv, bv;
+ 	static unsigned char *Y, *U, *V;
+ 
+ 	frame = usbvision->cur_frame;
+ 	image_size = frame->frmwidth * frame->frmheight;
+ 	f = frame->data + (frame->v4l2_linesize * frame->curline);
+ 
+-	if (frame->v4l2_format.format == V4L2_PIX_FMT_YUYV) { /* initialise u and v pointers */
+-		/* get base of u and b planes add halfoffset */
+-		u = frame->data
+-			+ image_size
+-			+ (frame->frmwidth >> 1) * frame->curline;
+-		v = u + (image_size >> 1);
+-	}
++	/* initialise u and v pointers */
++	/* get base of u and b planes add halfoffset */
++	u = frame->data
++		+ image_size
++		+ (frame->frmwidth >> 1) * frame->curline;
++	v = u + (image_size >> 1);
+ 
+ 	if (frame->curline == 0)
+ 		usbvision_adjust_compression(usbvision);
+@@ -762,7 +697,6 @@ static enum parse_state usbvision_parse_
+ 	}
+ 
+ 	bytes_per_pixel = frame->v4l2_format.bytes_per_pixel;
+-	clipmask_index = frame->curline * MAX_FRAME_WIDTH;
+ 
+ 	scratch_get(usbvision, strip_data, strip_len);
+ 
+@@ -788,41 +722,8 @@ static enum parse_state usbvision_parse_
+ 		usbvision->strip_len_errors++;
+ 
+ 	for (idx = 0; idx < idx_end; idx++) {
+-		if (frame->v4l2_format.format == V4L2_PIX_FMT_YUYV) {
+-			*f++ = Y[idx];
+-			*f++ = idx & 0x01 ? U[idx / 2] : V[idx / 2];
+-		} else {
+-			YUV_TO_RGB_BY_THE_BOOK(Y[idx], U[idx / 2], V[idx / 2], rv, gv, bv);
+-			switch (frame->v4l2_format.format) {
+-			case V4L2_PIX_FMT_GREY:
+-				*f++ = Y[idx];
+-				break;
+-			case V4L2_PIX_FMT_RGB555:
+-				*f++ = (0x1F & rv) |
+-					(0xE0 & (gv << 5));
+-				*f++ = (0x03 & (gv >> 3)) |
+-					(0x7C & (bv << 2));
+-				break;
+-			case V4L2_PIX_FMT_RGB565:
+-				*f++ = (0x1F & rv) |
+-					(0xE0 & (gv << 5));
+-				*f++ = (0x07 & (gv >> 3)) |
+-					(0xF8 & bv);
+-				break;
+-			case V4L2_PIX_FMT_RGB24:
+-				*f++ = rv;
+-				*f++ = gv;
+-				*f++ = bv;
+-				break;
+-			case V4L2_PIX_FMT_RGB32:
+-				*f++ = rv;
+-				*f++ = gv;
+-				*f++ = bv;
+-				f++;
+-				break;
+-			}
+-		}
+-		clipmask_index++;
++		*f++ = Y[idx];
++		*f++ = idx & 0x01 ? U[idx / 2] : V[idx / 2];
+ 	}
+ 	*pcopylen += frame->v4l2_linesize;
+ 
+@@ -857,11 +758,8 @@ static enum parse_state usbvision_parse_
+ 	const int y_step[] = { 0, 0, 0, 2 }, y_step_size = 4;
+ 	const int uv_step[] = { 0, 0, 0, 4 }, uv_step_size = 4;
+ 	unsigned char y[2], u, v;	/* YUV components */
+-	int y_, u_, v_, vb, uvg, ur;
+-	int r_, g_, b_;			/* RGB components */
+-	unsigned char g;
+-	int clipmask_even_index, clipmask_odd_index, bytes_per_pixel;
+-	int clipmask_add, stretch_bytes;
++	int bytes_per_pixel;
++	int stretch_bytes;
+ 
+ 	frame  = usbvision->cur_frame;
+ 	f_even = frame->data + (frame->v4l2_linesize * frame->curline);
+@@ -872,9 +770,6 @@ static enum parse_state usbvision_parse_
+ 	/* I need two lines to decode the color */
+ 	bytes_per_pixel = frame->v4l2_format.bytes_per_pixel;
+ 	stretch_bytes = (usbvision->stretch_width - 1) * bytes_per_pixel;
+-	clipmask_even_index = frame->curline * MAX_FRAME_WIDTH;
+-	clipmask_odd_index  = clipmask_even_index + MAX_FRAME_WIDTH;
+-	clipmask_add = usbvision->stretch_width;
+ 	pixel_per_line = frame->isoc_header.frame_width;
+ 
+ 	if (scratch_len(usbvision) < (int)pixel_per_line * 3) {
+@@ -901,185 +796,22 @@ static enum parse_state usbvision_parse_
+ 			scratch_get_extra(usbvision, &u, &u_ptr, 1);
+ 			scratch_get_extra(usbvision, &v, &v_ptr, 1);
+ 
+-			/* I don't use the YUV_TO_RGB macro for better performance */
+-			v_ = v - 128;
+-			u_ = u - 128;
+-			vb = 132252 * v_;
+-			uvg = -53281 * u_ - 25625 * v_;
+-			ur = 104595 * u_;
+-
+-			if (frame->v4l2_format.format == V4L2_PIX_FMT_YUYV) {
+-				*f_even++ = y[0];
+-				*f_even++ = v;
+-			} else {
+-				y_ = 76284 * (y[0] - 16);
+-
+-				b_ = (y_ + vb) >> 16;
+-				g_ = (y_ + uvg) >> 16;
+-				r_ = (y_ + ur) >> 16;
+-
+-				switch (frame->v4l2_format.format) {
+-				case V4L2_PIX_FMT_RGB565:
+-					g = LIMIT_RGB(g_);
+-					*f_even++ =
+-						(0x1F & LIMIT_RGB(r_)) |
+-						(0xE0 & (g << 5));
+-					*f_even++ =
+-						(0x07 & (g >> 3)) |
+-						(0xF8 &  LIMIT_RGB(b_));
+-					break;
+-				case V4L2_PIX_FMT_RGB24:
+-					*f_even++ = LIMIT_RGB(r_);
+-					*f_even++ = LIMIT_RGB(g_);
+-					*f_even++ = LIMIT_RGB(b_);
+-					break;
+-				case V4L2_PIX_FMT_RGB32:
+-					*f_even++ = LIMIT_RGB(r_);
+-					*f_even++ = LIMIT_RGB(g_);
+-					*f_even++ = LIMIT_RGB(b_);
+-					f_even++;
+-					break;
+-				case V4L2_PIX_FMT_RGB555:
+-					g = LIMIT_RGB(g_);
+-					*f_even++ = (0x1F & LIMIT_RGB(r_)) |
+-						(0xE0 & (g << 5));
+-					*f_even++ = (0x03 & (g >> 3)) |
+-						(0x7C & (LIMIT_RGB(b_) << 2));
+-					break;
+-				}
+-			}
+-			clipmask_even_index += clipmask_add;
++			*f_even++ = y[0];
++			*f_even++ = v;
+ 			f_even += stretch_bytes;
+ 
+-			if (frame->v4l2_format.format == V4L2_PIX_FMT_YUYV) {
+-				*f_even++ = y[1];
+-				*f_even++ = u;
+-			} else {
+-				y_ = 76284 * (y[1] - 16);
+-
+-				b_ = (y_ + vb) >> 16;
+-				g_ = (y_ + uvg) >> 16;
+-				r_ = (y_ + ur) >> 16;
+-
+-				switch (frame->v4l2_format.format) {
+-				case V4L2_PIX_FMT_RGB565:
+-					g = LIMIT_RGB(g_);
+-					*f_even++ =
+-						(0x1F & LIMIT_RGB(r_)) |
+-						(0xE0 & (g << 5));
+-					*f_even++ =
+-						(0x07 & (g >> 3)) |
+-						(0xF8 &  LIMIT_RGB(b_));
+-					break;
+-				case V4L2_PIX_FMT_RGB24:
+-					*f_even++ = LIMIT_RGB(r_);
+-					*f_even++ = LIMIT_RGB(g_);
+-					*f_even++ = LIMIT_RGB(b_);
+-					break;
+-				case V4L2_PIX_FMT_RGB32:
+-					*f_even++ = LIMIT_RGB(r_);
+-					*f_even++ = LIMIT_RGB(g_);
+-					*f_even++ = LIMIT_RGB(b_);
+-					f_even++;
+-					break;
+-				case V4L2_PIX_FMT_RGB555:
+-					g = LIMIT_RGB(g_);
+-					*f_even++ = (0x1F & LIMIT_RGB(r_)) |
+-						(0xE0 & (g << 5));
+-					*f_even++ = (0x03 & (g >> 3)) |
+-						(0x7C & (LIMIT_RGB(b_) << 2));
+-					break;
+-				}
+-			}
+-			clipmask_even_index += clipmask_add;
++			*f_even++ = y[1];
++			*f_even++ = u;
+ 			f_even += stretch_bytes;
+ 
+ 			scratch_get_extra(usbvision, &y[0], &y_ptr, 2);
+ 
+-			if (frame->v4l2_format.format == V4L2_PIX_FMT_YUYV) {
+-				*f_odd++ = y[0];
+-				*f_odd++ = v;
+-			} else {
+-				y_ = 76284 * (y[0] - 16);
+-
+-				b_ = (y_ + vb) >> 16;
+-				g_ = (y_ + uvg) >> 16;
+-				r_ = (y_ + ur) >> 16;
+-
+-				switch (frame->v4l2_format.format) {
+-				case V4L2_PIX_FMT_RGB565:
+-					g = LIMIT_RGB(g_);
+-					*f_odd++ =
+-						(0x1F & LIMIT_RGB(r_)) |
+-						(0xE0 & (g << 5));
+-					*f_odd++ =
+-						(0x07 & (g >> 3)) |
+-						(0xF8 &  LIMIT_RGB(b_));
+-					break;
+-				case V4L2_PIX_FMT_RGB24:
+-					*f_odd++ = LIMIT_RGB(r_);
+-					*f_odd++ = LIMIT_RGB(g_);
+-					*f_odd++ = LIMIT_RGB(b_);
+-					break;
+-				case V4L2_PIX_FMT_RGB32:
+-					*f_odd++ = LIMIT_RGB(r_);
+-					*f_odd++ = LIMIT_RGB(g_);
+-					*f_odd++ = LIMIT_RGB(b_);
+-					f_odd++;
+-					break;
+-				case V4L2_PIX_FMT_RGB555:
+-					g = LIMIT_RGB(g_);
+-					*f_odd++ = (0x1F & LIMIT_RGB(r_)) |
+-						(0xE0 & (g << 5));
+-					*f_odd++ = (0x03 & (g >> 3)) |
+-						(0x7C & (LIMIT_RGB(b_) << 2));
+-					break;
+-				}
+-			}
+-			clipmask_odd_index += clipmask_add;
++			*f_odd++ = y[0];
++			*f_odd++ = v;
+ 			f_odd += stretch_bytes;
+ 
+-			if (frame->v4l2_format.format == V4L2_PIX_FMT_YUYV) {
+-				*f_odd++ = y[1];
+-				*f_odd++ = u;
+-			} else {
+-				y_ = 76284 * (y[1] - 16);
+-
+-				b_ = (y_ + vb) >> 16;
+-				g_ = (y_ + uvg) >> 16;
+-				r_ = (y_ + ur) >> 16;
+-
+-				switch (frame->v4l2_format.format) {
+-				case V4L2_PIX_FMT_RGB565:
+-					g = LIMIT_RGB(g_);
+-					*f_odd++ =
+-						(0x1F & LIMIT_RGB(r_)) |
+-						(0xE0 & (g << 5));
+-					*f_odd++ =
+-						(0x07 & (g >> 3)) |
+-						(0xF8 &  LIMIT_RGB(b_));
+-					break;
+-				case V4L2_PIX_FMT_RGB24:
+-					*f_odd++ = LIMIT_RGB(r_);
+-					*f_odd++ = LIMIT_RGB(g_);
+-					*f_odd++ = LIMIT_RGB(b_);
+-					break;
+-				case V4L2_PIX_FMT_RGB32:
+-					*f_odd++ = LIMIT_RGB(r_);
+-					*f_odd++ = LIMIT_RGB(g_);
+-					*f_odd++ = LIMIT_RGB(b_);
+-					f_odd++;
+-					break;
+-				case V4L2_PIX_FMT_RGB555:
+-					g = LIMIT_RGB(g_);
+-					*f_odd++ = (0x1F & LIMIT_RGB(r_)) |
+-						(0xE0 & (g << 5));
+-					*f_odd++ = (0x03 & (g >> 3)) |
+-						(0x7C & (LIMIT_RGB(b_) << 2));
+-					break;
+-				}
+-			}
+-			clipmask_odd_index += clipmask_add;
++			*f_odd++ = y[1];
++			*f_odd++ = u;
+ 			f_odd += stretch_bytes;
+ 		}
+ 
+diff -up linux-2.6.39-rc2-/drivers/media/video/usbvision/usbvision.h linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision.h
+--- linux-2.6.39-rc2-/drivers/media/video/usbvision/usbvision.h	2011-04-27 22:05:39.000000000 +0200
++++ linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision.h	2011-04-27 22:18:27.000000000 +0200
+@@ -170,48 +170,6 @@ enum {
+ 	{ if ((v) < (mi)) (v) = (mi); else if ((v) > (ma)) (v) = (ma); }
+ 
+ /*
+- * We use macros to do YUV -> RGB conversion because this is
+- * very important for speed and totally unimportant for size.
+- *
+- * YUV -> RGB Conversion
+- * ---------------------
+- *
+- * B = 1.164*(Y-16)		    + 2.018*(V-128)
+- * G = 1.164*(Y-16) - 0.813*(U-128) - 0.391*(V-128)
+- * R = 1.164*(Y-16) + 1.596*(U-128)
+- *
+- * If you fancy integer arithmetics (as you should), hear this:
+- *
+- * 65536*B = 76284*(Y-16)		  + 132252*(V-128)
+- * 65536*G = 76284*(Y-16) -  53281*(U-128) -  25625*(V-128)
+- * 65536*R = 76284*(Y-16) + 104595*(U-128)
+- *
+- * Make sure the output values are within [0..255] range.
+- */
+-#define LIMIT_RGB(x) (((x) < 0) ? 0 : (((x) > 255) ? 255 : (x)))
+-#define YUV_TO_RGB_BY_THE_BOOK(my, mu, mv, mr, mg, mb) { \
+-	int mm_y, mm_yc, mm_u, mm_v, mm_r, mm_g, mm_b; \
+-	mm_y = (my) - 16; \
+-	mm_u = (mu) - 128; \
+-	mm_v = (mv) - 128; \
+-	mm_yc = mm_y * 76284; \
+-	mm_b = (mm_yc + 132252 * mm_v) >> 16; \
+-	mm_g = (mm_yc - 53281 * mm_u - 25625 * mm_v) >> 16; \
+-	mm_r = (mm_yc + 104595 * mm_u) >> 16; \
+-	mb = LIMIT_RGB(mm_b); \
+-	mg = LIMIT_RGB(mm_g); \
+-	mr = LIMIT_RGB(mm_r); \
+-}
+-
+-/* Debugging aid */
+-#define USBVISION_SAY_AND_WAIT(what) { \
+-	wait_queue_head_t wq; \
+-	init_waitqueue_head(&wq); \
+-	printk(KERN_INFO "Say: %s\n", what); \
+-	interruptible_sleep_on_timeout(&wq, HZ * 3); \
+-}
+-
+-/*
+  * This macro checks if usbvision is still operational. The 'usbvision'
+  * pointer must be valid, usbvision->dev must be valid, we are not
+  * removing the device and the device has not erred on us.
+diff -up linux-2.6.39-rc2-/drivers/media/video/usbvision/usbvision-video.c linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision-video.c
+--- linux-2.6.39-rc2-/drivers/media/video/usbvision/usbvision-video.c	2011-04-27 22:08:32.000000000 +0200
++++ linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision-video.c	2011-04-27 22:18:27.000000000 +0200
+@@ -112,11 +112,6 @@ USBVISION_DRIVER_VERSION_PATCHLEVEL)
+ static int usbvision_nr;
+ 
+ static struct usbvision_v4l2_format_st usbvision_v4l2_format[] = {
+-	{ 1, 1,  8, V4L2_PIX_FMT_GREY    , "GREY" },
+-	{ 1, 2, 16, V4L2_PIX_FMT_RGB565  , "RGB565" },
+-	{ 1, 3, 24, V4L2_PIX_FMT_RGB24   , "RGB24" },
+-	{ 1, 4, 32, V4L2_PIX_FMT_RGB32   , "RGB32" },
+-	{ 1, 2, 16, V4L2_PIX_FMT_RGB555  , "RGB555" },
+ 	{ 1, 2, 16, V4L2_PIX_FMT_YUYV    , "YUV422" },
+ };
+ 
+@@ -1452,7 +1447,7 @@ static void usbvision_configure_video(st
+ 		return;
+ 
+ 	model = usbvision->dev_model;
+-	usbvision->palette = usbvision_v4l2_format[2]; /* V4L2_PIX_FMT_RGB24; */
++	usbvision->palette = usbvision_v4l2_format[0];
+ 
+ 	if (usbvision_device_data[usbvision->dev_model].vin_reg2_override) {
+ 		usbvision->vin_reg2_preset =
 
-> I'm just reporting what I had to do to fix a clumsy hack by someone 6
-> months ago who didn't test their changes.  This patch _restores_ the
-> operation of a subsystem broken by those changes
-> 
-> Perhaps those responsible for commit
-> 2997137be8eba5bf9c07a24d5fda1f4225f9ca7d:
-> 
->    Signed-off-by: David Härdeman <david@hardeman.nu>
->    Acked-by: Jarod Wilson <jarod@redhat.com>
->    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
-> should fix the keytable.  In the meantime (next year) I'll be using this
-> patch.
-
-The entire commit message:
-
-    [media] ir-core: convert drivers/media/video/cx88 to ir-core
-    
-    This patch converts the cx88 driver (for sampling hw) to use the
-    decoders provided by ir-core instead of the separate ones provided
-    by ir-functions (and gets rid of those).
-    
-    The value for MO_DDS_IO had a comment saying it corresponded to
-    a 4kHz samplerate. That comment was unfortunately misleading. The
-    actual samplerate was something like 3250Hz.
-    
-    The current value has been derived by analyzing the elapsed time
-    between interrupts for different values (knowing that each interrupt
-    corresponds to 32 samples).
-    
-    Thanks to Mariusz Bialonczyk <manio@skyboo.net> for testing my patches
-    (about one a day for two weeks!) on actual hardware.
-
-Please note the part about how it *was* tested. And this certainly
-was not a "clumsy hack", I'd actually call it a fairly skilled bit
-of code de-duplication by David. Anyway...
-
-The problem is that there isn't a "the keytable". There are many
-many keytables. And a lot of different hardware. Testing all possible
-combinations of hardware (both receiver side and remote side) is
-next to impossible. We do what we can. Its unfortunate that your
-hardware regressed in functionality. It happens, but it *can* be
-fixed. The fix you provided just wasn't correct. The correct fix is
-trivially updating drivers/media/rc/keymaps/<insert-your-keymap-here>.
 
 -- 
-Jarod Wilson
-jarod@wilsonet.com
-
-
-
+Ondrej Zary
