@@ -1,159 +1,272 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2963 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752690Ab1DBIGM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Apr 2011 04:06:12 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Herton Ronaldo Krzesinski <herton.krzesinski@canonical.com>
-Subject: Re: [PATCH] v4l: make sure drivers supply a zeroed struct v4l2_subdev
-Date: Sat, 2 Apr 2011 10:05:57 +0200
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <1301677922-6765-1-git-send-email-herton.krzesinski@canonical.com>
-In-Reply-To: <1301677922-6765-1-git-send-email-herton.krzesinski@canonical.com>
+Received: from mail1-out1.atlantis.sk ([80.94.52.55]:43168 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1759212Ab1D0UgO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Apr 2011 16:36:14 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: "Hans Verkuil" <hverkuil@xs4all.nl>
+Subject: [PATCH 1/4] usbvision: add Nogatech USB MicroCam
+Date: Wed, 27 Apr 2011 22:36:05 +0200
+Cc: "Hans de Goede" <hdegoede@redhat.com>,
+	"Joerg Heckenbach" <joerg@heckenbach-aw.de>,
+	"Dwaine Garden" <dwainegarden@rogers.com>,
+	linux-media@vger.kernel.org,
+	"Kernel development list" <linux-kernel@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201104021005.57200.hverkuil@xs4all.nl>
+Content-Disposition: inline
+Message-Id: <201104272236.09206.linux@rainbow-software.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Friday, April 01, 2011 19:12:02 Herton Ronaldo Krzesinski wrote:
-> Some v4l drivers currently don't initialize their struct v4l2_subdev
-> with zeros, and this is a problem since some of the v4l2 code expects
-> this. One example is the addition of internal_ops in commit 45f6f84,
-> after that we are at risk of random oopses with these drivers when code
-> in v4l2_device_register_subdev tries to dereference sd->internal_ops->*,
-> as can be shown by the report at http://bugs.launchpad.net/bugs/745213
-> and analysis of its crash at https://lkml.org/lkml/2011/4/1/168
-> 
-> Use kzalloc within problematic drivers to ensure we have a zeroed struct
-> v4l2_subdev.
-> 
-> BugLink: http://bugs.launchpad.net/bugs/745213
-> Cc: <stable@kernel.org>
-> Signed-off-by: Herton Ronaldo Krzesinski <herton.krzesinski@canonical.com>
+Add Nogatech USB MicroCam PAL (NV3001P) and NTSC (NV3000N) support to
+usbvision driver.
+PAL version is tested, NTSC untested.
+Data captured using usbsnoop, init_values are listed in the INF file along
+with image dimensions, offsets and frame rates.
 
-Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 
-Thanks!
+diff -up linux-2.6.39-rc2-orig/drivers/media/video/usbvision/usbvision-cards.c linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision-cards.c
+--- linux-2.6.39-rc2-orig/drivers/media/video/usbvision/usbvision-cards.c	2011-04-06 03:30:43.000000000 +0200
++++ linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision-cards.c	2011-04-27 21:18:57.000000000 +0200
+@@ -1025,6 +1025,34 @@ struct usbvision_device_data_st  usbvisi
+ 		.y_offset       = -1,
+ 		.model_string   = "Hauppauge WinTv-USB",
+ 	},
++	[MICROCAM_NTSC] = {
++		.interface      = -1,
++		.codec          = CODEC_WEBCAM,
++		.video_channels = 1,
++		.video_norm     = V4L2_STD_NTSC,
++		.audio_channels = 0,
++		.radio          = 0,
++		.vbi            = 0,
++		.tuner          = 0,
++		.tuner_type     = 0,
++		.x_offset       = 71,
++		.y_offset       = 15,
++		.model_string   = "Nogatech USB MicroCam NTSC (NV3000N)",
++	},
++	[MICROCAM_PAL] = {
++		.interface      = -1,
++		.codec          = CODEC_WEBCAM,
++		.video_channels = 1,
++		.video_norm     = V4L2_STD_PAL,
++		.audio_channels = 0,
++		.radio          = 0,
++		.vbi            = 0,
++		.tuner          = 0,
++		.tuner_type     = 0,
++		.x_offset       = 71,
++		.y_offset       = 18,
++		.model_string   = "Nogatech USB MicroCam PAL (NV3001P)",
++	},
+ };
+ const int usbvision_device_data_size = ARRAY_SIZE(usbvision_device_data);
+ 
+@@ -1042,6 +1070,8 @@ struct usb_device_id usbvision_table[] =
+ 	{ USB_DEVICE(0x0573, 0x2d00), .driver_info = HPG_WINTV_LIVE_PAL_BG },
+ 	{ USB_DEVICE(0x0573, 0x2d01), .driver_info = HPG_WINTV_LIVE_PRO_NTSC_MN },
+ 	{ USB_DEVICE(0x0573, 0x2101), .driver_info = ZORAN_PMD_NOGATECH },
++	{ USB_DEVICE(0x0573, 0x3000), .driver_info = MICROCAM_NTSC },
++	{ USB_DEVICE(0x0573, 0x3001), .driver_info = MICROCAM_PAL },
+ 	{ USB_DEVICE(0x0573, 0x4100), .driver_info = NOGATECH_USB_TV_NTSC_FM },
+ 	{ USB_DEVICE(0x0573, 0x4110), .driver_info = PNY_USB_TV_NTSC_FM },
+ 	{ USB_DEVICE(0x0573, 0x4450), .driver_info = PV_PLAYTV_USB_PRO_PAL_FM },
+@@ -1088,8 +1118,7 @@ struct usb_device_id usbvision_table[] =
+ 	{ USB_DEVICE(0x2304, 0x0110), .driver_info = PINNA_PCTV_USB_PAL_FM },
+ 	{ USB_DEVICE(0x2304, 0x0111), .driver_info = MIRO_PCTV_USB },
+ 	{ USB_DEVICE(0x2304, 0x0112), .driver_info = PINNA_PCTV_USB_NTSC_FM },
+-	{ USB_DEVICE(0x2304, 0x0113),
+-	  .driver_info = PINNA_PCTV_USB_NTSC_FM_V3 },
++	{ USB_DEVICE(0x2304, 0x0113), .driver_info = PINNA_PCTV_USB_NTSC_FM_V3 },
+ 	{ USB_DEVICE(0x2304, 0x0210), .driver_info = PINNA_PCTV_USB_PAL_FM_V2 },
+ 	{ USB_DEVICE(0x2304, 0x0212), .driver_info = PINNA_PCTV_USB_NTSC_FM_V2 },
+ 	{ USB_DEVICE(0x2304, 0x0214), .driver_info = PINNA_PCTV_USB_PAL_FM_V3 },
+diff -up linux-2.6.39-rc2-orig/drivers/media/video/usbvision/usbvision-cards.h linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision-cards.h
+--- linux-2.6.39-rc2-orig/drivers/media/video/usbvision/usbvision-cards.h	2011-04-06 03:30:43.000000000 +0200
++++ linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision-cards.h	2011-04-27 21:18:57.000000000 +0200
+@@ -63,5 +63,7 @@
+ #define PINNA_PCTV_BUNGEE_PAL_FM                 62
+ #define HPG_WINTV                                63
+ #define PINNA_PCTV_USB_NTSC_FM_V3                64
++#define MICROCAM_NTSC                            65
++#define MICROCAM_PAL                             66
+ 
+ extern const int usbvision_device_data_size;
+diff -up linux-2.6.39-rc2-orig/drivers/media/video/usbvision/usbvision-core.c linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision-core.c
+--- linux-2.6.39-rc2-orig/drivers/media/video/usbvision/usbvision-core.c	2011-04-06 03:30:43.000000000 +0200
++++ linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision-core.c	2011-04-27 21:58:28.000000000 +0200
+@@ -1679,6 +1679,55 @@ int usbvision_power_off(struct usb_usbvi
+ 	return err_code;
+ }
+ 
++/* configure webcam image sensor using the serial port */
++static int usbvision_init_webcam(struct usb_usbvision *usbvision)
++{
++	int rc;
++	int i;
++	static char init_values[38][3] = {
++		{ 0x04, 0x12, 0x08 }, { 0x05, 0xff, 0xc8 }, { 0x06, 0x18, 0x07 }, { 0x07, 0x90, 0x00 },
++		{ 0x09, 0x00, 0x00 }, { 0x0a, 0x00, 0x00 }, { 0x0b, 0x08, 0x00 }, { 0x0d, 0xcc, 0xcc },
++		{ 0x0e, 0x13, 0x14 }, { 0x10, 0x9b, 0x83 }, { 0x11, 0x5a, 0x3f }, { 0x12, 0xe4, 0x73 },
++		{ 0x13, 0x88, 0x84 }, { 0x14, 0x89, 0x80 }, { 0x15, 0x00, 0x20 }, { 0x16, 0x00, 0x00 },
++		{ 0x17, 0xff, 0xa0 }, { 0x18, 0x6b, 0x20 }, { 0x19, 0x22, 0x40 }, { 0x1a, 0x10, 0x07 },
++		{ 0x1b, 0x00, 0x47 }, { 0x1c, 0x03, 0xe0 }, { 0x1d, 0x00, 0x00 }, { 0x1e, 0x00, 0x00 },
++		{ 0x1f, 0x00, 0x00 }, { 0x20, 0x00, 0x00 }, { 0x21, 0x00, 0x00 }, { 0x22, 0x00, 0x00 },
++		{ 0x23, 0x00, 0x00 }, { 0x24, 0x00, 0x00 }, { 0x25, 0x00, 0x00 }, { 0x26, 0x00, 0x00 },
++		{ 0x27, 0x00, 0x00 }, { 0x28, 0x00, 0x00 }, { 0x29, 0x00, 0x00 }, { 0x08, 0x80, 0x60 },
++		{ 0x0f, 0x2d, 0x24 }, { 0x0c, 0x80, 0x80 }
++	};
++	char value[3];
++
++	/* the only difference between PAL and NTSC init_values */
++	if (usbvision_device_data[usbvision->dev_model].video_norm == V4L2_STD_NTSC)
++		init_values[4][1] = 0x34;
++
++	for (i = 0; i < sizeof(init_values) / 3; i++) {
++		usbvision_write_reg(usbvision, USBVISION_SER_MODE, USBVISION_SER_MODE_SOFT);
++		memcpy(value, init_values[i], 3);
++		rc = usb_control_msg(usbvision->dev,
++				     usb_sndctrlpipe(usbvision->dev, 1),
++				     USBVISION_OP_CODE,
++				     USB_DIR_OUT | USB_TYPE_VENDOR |
++				     USB_RECIP_ENDPOINT, 0,
++				     (__u16) USBVISION_SER_DAT1, value,
++				     3, HZ);
++		if (rc < 0)
++			return rc;
++		usbvision_write_reg(usbvision, USBVISION_SER_MODE, USBVISION_SER_MODE_SIO);
++		/* write 3 bytes to the serial port using SIO mode */
++		usbvision_write_reg(usbvision, USBVISION_SER_CONT, 3 | 0x10);
++		usbvision_write_reg(usbvision, USBVISION_IOPIN_REG, 0);
++		usbvision_write_reg(usbvision, USBVISION_SER_MODE, USBVISION_SER_MODE_SOFT);
++		usbvision_write_reg(usbvision, USBVISION_IOPIN_REG, USBVISION_IO_2);
++		usbvision_write_reg(usbvision, USBVISION_SER_MODE, USBVISION_SER_MODE_SOFT | USBVISION_CLK_OUT);
++		usbvision_write_reg(usbvision, USBVISION_SER_MODE, USBVISION_SER_MODE_SOFT | USBVISION_DAT_IO);
++		usbvision_write_reg(usbvision, USBVISION_SER_MODE, USBVISION_SER_MODE_SOFT | USBVISION_CLK_OUT | USBVISION_DAT_IO);
++	}
++
++	return 0;
++}
++
+ /*
+  * usbvision_set_video_format()
+  *
+@@ -1797,6 +1846,13 @@ int usbvision_set_output(struct usb_usbv
+ 
+ 	frame_drop = FRAMERATE_MAX;	/* We can allow the maximum here, because dropping is controlled */
+ 
++	if (usbvision_device_data[usbvision->dev_model].codec == CODEC_WEBCAM) {
++		if (usbvision_device_data[usbvision->dev_model].video_norm == V4L2_STD_PAL)
++			frame_drop = 25;
++		else
++			frame_drop = 30;
++	}
++
+ 	/* frame_drop = 7; => frame_phase = 1, 5, 9, 13, 17, 21, 25, 0, 4, 8, ...
+ 		=> frame_skip = 4;
+ 		=> frame_rate = (7 + 1) * 25 / 32 = 200 / 32 = 6.25;
+@@ -2046,6 +2102,12 @@ int usbvision_set_input(struct usb_usbvi
+ 		value[7] = 0x00;	/* 0x0010 -> 16 Input video v offset */
+ 	}
+ 
++	/* webcam is only 480 pixels wide, both PAL and NTSC version */
++	if (usbvision_device_data[usbvision->dev_model].codec == CODEC_WEBCAM) {
++		value[0] = 0xe0;
++		value[1] = 0x01;	/* 0x01E0 -> 480 Input video line length */
++	}
++
+ 	if (usbvision_device_data[usbvision->dev_model].x_offset >= 0) {
+ 		value[4] = usbvision_device_data[usbvision->dev_model].x_offset & 0xff;
+ 		value[5] = (usbvision_device_data[usbvision->dev_model].x_offset & 0x0300) >> 8;
+@@ -2148,7 +2210,7 @@ static int usbvision_set_dram_settings(s
+ 			     (__u16) USBVISION_DRM_PRM1, value, 8, HZ);
+ 
+ 	if (rc < 0) {
+-		dev_err(&usbvision->dev->dev, "%sERROR=%d\n", __func__, rc);
++		dev_err(&usbvision->dev->dev, "%s: ERROR=%d\n", __func__, rc);
+ 		return rc;
+ 	}
+ 
+@@ -2180,8 +2242,15 @@ int usbvision_power_on(struct usb_usbvis
+ 	usbvision_write_reg(usbvision, USBVISION_PWR_REG,
+ 			USBVISION_SSPND_EN | USBVISION_RES2);
+ 
++	if (usbvision_device_data[usbvision->dev_model].codec == CODEC_WEBCAM) {
++		usbvision_write_reg(usbvision, USBVISION_VIN_REG1,
++				USBVISION_16_422_SYNC | USBVISION_HVALID_PO);
++		usbvision_write_reg(usbvision, USBVISION_VIN_REG2,
++				USBVISION_NOHVALID | USBVISION_KEEP_BLANK);
++	}
+ 	usbvision_write_reg(usbvision, USBVISION_PWR_REG,
+ 			USBVISION_SSPND_EN | USBVISION_PWR_VID);
++	mdelay(10);
+ 	err_code = usbvision_write_reg(usbvision, USBVISION_PWR_REG,
+ 			USBVISION_SSPND_EN | USBVISION_PWR_VID | USBVISION_RES2);
+ 	if (err_code == 1)
+@@ -2310,6 +2379,8 @@ int usbvision_set_audio(struct usb_usbvi
+ 
+ int usbvision_setup(struct usb_usbvision *usbvision, int format)
+ {
++	if (usbvision_device_data[usbvision->dev_model].codec == CODEC_WEBCAM)
++		usbvision_init_webcam(usbvision);
+ 	usbvision_set_video_format(usbvision, format);
+ 	usbvision_set_dram_settings(usbvision);
+ 	usbvision_set_compress_params(usbvision);
+diff -up linux-2.6.39-rc2-orig/drivers/media/video/usbvision/usbvision.h linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision.h
+--- linux-2.6.39-rc2-orig/drivers/media/video/usbvision/usbvision.h	2011-04-06 03:30:43.000000000 +0200
++++ linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision.h	2011-04-27 21:35:51.000000000 +0200
+@@ -59,6 +59,11 @@
+ 	#define USBVISION_AUDIO_RADIO		2
+ 	#define USBVISION_AUDIO_MUTE		3
+ #define USBVISION_SER_MODE		0x07
++	#define USBVISION_CLK_OUT		(1 << 0)
++	#define USBVISION_DAT_IO		(1 << 1)
++	#define USBVISION_SENS_OUT		(1 << 2)
++	#define USBVISION_SER_MODE_SOFT		(0 << 4)
++	#define USBVISION_SER_MODE_SIO		(1 << 4)
+ #define USBVISION_SER_ADRS		0x08
+ #define USBVISION_SER_CONT		0x09
+ #define USBVISION_SER_DAT1		0x0A
+@@ -328,6 +333,7 @@ struct usbvision_frame {
+ 
+ #define CODEC_SAA7113	7113
+ #define CODEC_SAA7111	7111
++#define CODEC_WEBCAM	3000
+ #define BRIDGE_NT1003	1003
+ #define BRIDGE_NT1004	1004
+ #define BRIDGE_NT1005   1005
+diff -up linux-2.6.39-rc2-orig/drivers/media/video/usbvision/usbvision-i2c.c linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision-i2c.c
+--- linux-2.6.39-rc2-orig/drivers/media/video/usbvision/usbvision-i2c.c	2011-04-06 03:30:43.000000000 +0200
++++ linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision-i2c.c	2011-04-27 21:18:57.000000000 +0200
+@@ -222,7 +222,7 @@ int usbvision_i2c_register(struct usb_us
+ 	i2c_set_adapdata(&usbvision->i2c_adap, &usbvision->v4l2_dev);
+ 
+ 	if (usbvision_write_reg(usbvision, USBVISION_SER_MODE, USBVISION_IIC_LRNACK) < 0) {
+-		printk(KERN_ERR "usbvision_register: can't write reg\n");
++		printk(KERN_ERR "usbvision_i2c_register: can't write reg\n");
+ 		return -EBUSY;
+ 	}
+ 
+diff -up linux-2.6.39-rc2-orig/drivers/media/video/usbvision/usbvision-video.c linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision-video.c
+--- linux-2.6.39-rc2-orig/drivers/media/video/usbvision/usbvision-video.c	2011-04-06 03:30:43.000000000 +0200
++++ linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision-video.c	2011-04-27 21:18:57.000000000 +0200
+@@ -1470,7 +1470,8 @@ static void usbvision_configure_video(st
+ 
+ 	/* This should be here to make i2c clients to be able to register */
+ 	/* first switch off audio */
+-	usbvision_audio_off(usbvision);
++	if (usbvision_device_data[model].audio_channels > 0)
++		usbvision_audio_off(usbvision);
+ 	if (!power_on_at_open) {
+ 		/* and then power up the noisy tuner */
+ 		usbvision_power_on(usbvision);
 
-	Hans
 
-> ---
->  drivers/media/radio/saa7706h.c  |    2 +-
->  drivers/media/radio/tef6862.c   |    2 +-
->  drivers/media/video/m52790.c    |    2 +-
->  drivers/media/video/tda9840.c   |    2 +-
->  drivers/media/video/tea6415c.c  |    2 +-
->  drivers/media/video/tea6420.c   |    2 +-
->  drivers/media/video/upd64031a.c |    2 +-
->  drivers/media/video/upd64083.c  |    2 +-
->  8 files changed, 8 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/media/radio/saa7706h.c b/drivers/media/radio/saa7706h.c
-> index 585680f..b1193df 100644
-> --- a/drivers/media/radio/saa7706h.c
-> +++ b/drivers/media/radio/saa7706h.c
-> @@ -376,7 +376,7 @@ static int __devinit saa7706h_probe(struct i2c_client *client,
->  	v4l_info(client, "chip found @ 0x%02x (%s)\n",
->  			client->addr << 1, client->adapter->name);
->  
-> -	state = kmalloc(sizeof(struct saa7706h_state), GFP_KERNEL);
-> +	state = kzalloc(sizeof(struct saa7706h_state), GFP_KERNEL);
->  	if (state == NULL)
->  		return -ENOMEM;
->  	sd = &state->sd;
-> diff --git a/drivers/media/radio/tef6862.c b/drivers/media/radio/tef6862.c
-> index 7c0d777..0991e19 100644
-> --- a/drivers/media/radio/tef6862.c
-> +++ b/drivers/media/radio/tef6862.c
-> @@ -176,7 +176,7 @@ static int __devinit tef6862_probe(struct i2c_client *client,
->  	v4l_info(client, "chip found @ 0x%02x (%s)\n",
->  			client->addr << 1, client->adapter->name);
->  
-> -	state = kmalloc(sizeof(struct tef6862_state), GFP_KERNEL);
-> +	state = kzalloc(sizeof(struct tef6862_state), GFP_KERNEL);
->  	if (state == NULL)
->  		return -ENOMEM;
->  	state->freq = TEF6862_LO_FREQ;
-> diff --git a/drivers/media/video/m52790.c b/drivers/media/video/m52790.c
-> index 5e1c9a8..303ffa7 100644
-> --- a/drivers/media/video/m52790.c
-> +++ b/drivers/media/video/m52790.c
-> @@ -174,7 +174,7 @@ static int m52790_probe(struct i2c_client *client,
->  	v4l_info(client, "chip found @ 0x%x (%s)\n",
->  			client->addr << 1, client->adapter->name);
->  
-> -	state = kmalloc(sizeof(struct m52790_state), GFP_KERNEL);
-> +	state = kzalloc(sizeof(struct m52790_state), GFP_KERNEL);
->  	if (state == NULL)
->  		return -ENOMEM;
->  
-> diff --git a/drivers/media/video/tda9840.c b/drivers/media/video/tda9840.c
-> index 5d4cf3b..22fa820 100644
-> --- a/drivers/media/video/tda9840.c
-> +++ b/drivers/media/video/tda9840.c
-> @@ -171,7 +171,7 @@ static int tda9840_probe(struct i2c_client *client,
->  	v4l_info(client, "chip found @ 0x%x (%s)\n",
->  			client->addr << 1, client->adapter->name);
->  
-> -	sd = kmalloc(sizeof(struct v4l2_subdev), GFP_KERNEL);
-> +	sd = kzalloc(sizeof(struct v4l2_subdev), GFP_KERNEL);
->  	if (sd == NULL)
->  		return -ENOMEM;
->  	v4l2_i2c_subdev_init(sd, client, &tda9840_ops);
-> diff --git a/drivers/media/video/tea6415c.c b/drivers/media/video/tea6415c.c
-> index 19621ed..827425c 100644
-> --- a/drivers/media/video/tea6415c.c
-> +++ b/drivers/media/video/tea6415c.c
-> @@ -152,7 +152,7 @@ static int tea6415c_probe(struct i2c_client *client,
->  
->  	v4l_info(client, "chip found @ 0x%x (%s)\n",
->  			client->addr << 1, client->adapter->name);
-> -	sd = kmalloc(sizeof(struct v4l2_subdev), GFP_KERNEL);
-> +	sd = kzalloc(sizeof(struct v4l2_subdev), GFP_KERNEL);
->  	if (sd == NULL)
->  		return -ENOMEM;
->  	v4l2_i2c_subdev_init(sd, client, &tea6415c_ops);
-> diff --git a/drivers/media/video/tea6420.c b/drivers/media/video/tea6420.c
-> index 5ea8404..f350b6c 100644
-> --- a/drivers/media/video/tea6420.c
-> +++ b/drivers/media/video/tea6420.c
-> @@ -125,7 +125,7 @@ static int tea6420_probe(struct i2c_client *client,
->  	v4l_info(client, "chip found @ 0x%x (%s)\n",
->  			client->addr << 1, client->adapter->name);
->  
-> -	sd = kmalloc(sizeof(struct v4l2_subdev), GFP_KERNEL);
-> +	sd = kzalloc(sizeof(struct v4l2_subdev), GFP_KERNEL);
->  	if (sd == NULL)
->  		return -ENOMEM;
->  	v4l2_i2c_subdev_init(sd, client, &tea6420_ops);
-> diff --git a/drivers/media/video/upd64031a.c b/drivers/media/video/upd64031a.c
-> index f8138c7..1aab96a 100644
-> --- a/drivers/media/video/upd64031a.c
-> +++ b/drivers/media/video/upd64031a.c
-> @@ -230,7 +230,7 @@ static int upd64031a_probe(struct i2c_client *client,
->  	v4l_info(client, "chip found @ 0x%x (%s)\n",
->  			client->addr << 1, client->adapter->name);
->  
-> -	state = kmalloc(sizeof(struct upd64031a_state), GFP_KERNEL);
-> +	state = kzalloc(sizeof(struct upd64031a_state), GFP_KERNEL);
->  	if (state == NULL)
->  		return -ENOMEM;
->  	sd = &state->sd;
-> diff --git a/drivers/media/video/upd64083.c b/drivers/media/video/upd64083.c
-> index 28e0e6b..9bbe617 100644
-> --- a/drivers/media/video/upd64083.c
-> +++ b/drivers/media/video/upd64083.c
-> @@ -202,7 +202,7 @@ static int upd64083_probe(struct i2c_client *client,
->  	v4l_info(client, "chip found @ 0x%x (%s)\n",
->  			client->addr << 1, client->adapter->name);
->  
-> -	state = kmalloc(sizeof(struct upd64083_state), GFP_KERNEL);
-> +	state = kzalloc(sizeof(struct upd64083_state), GFP_KERNEL);
->  	if (state == NULL)
->  		return -ENOMEM;
->  	sd = &state->sd;
-> 
+-- 
+Ondrej Zary
