@@ -1,75 +1,147 @@
 Return-path: <mchehab@pedra>
-Received: from smtp22.services.sfr.fr ([93.17.128.10]:7497 "EHLO
-	smtp22.services.sfr.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932146Ab1DHPWd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Apr 2011 11:22:33 -0400
-Received: from filter.sfr.fr (localhost [127.0.0.1])
-	by msfrf2219.sfr.fr (SMTP Server) with ESMTP id 07E9B7000097
-	for <linux-media@vger.kernel.org>; Fri,  8 Apr 2011 17:22:30 +0200 (CEST)
-Received: from smtp-in.softsystem.co.uk (unknown [93.14.171.92])
-	by msfrf2219.sfr.fr (SMTP Server) with SMTP id B38BF7000093
-	for <linux-media@vger.kernel.org>; Fri,  8 Apr 2011 17:22:29 +0200 (CEST)
-Received: FROM [192.168.1.62] (gagarin [192.168.1.62])
-	BY smtp-in.softsystem.co.uk [93.14.171.92] (SoftMail 1.0.6, www.softsystem.co.uk) WITH ESMTP
-	FOR <linux-media@vger.kernel.org>; Fri, 08 Apr 2011 17:22:28 +0200
-Subject: Re: [PATCH] Fix cx88 remote control input
-From: Lawrence Rust <lawrence@softsystem.co.uk>
-To: Jarod Wilson <jarod@wilsonet.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-In-Reply-To: <AFEB19DA-4FD6-4472-9825-F13A112B0E2A@wilsonet.com>
-References: <1302267045.1749.38.camel@gagarin>
-	 <AFEB19DA-4FD6-4472-9825-F13A112B0E2A@wilsonet.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Fri, 08 Apr 2011 17:22:27 +0200
-Message-ID: <1302276147.1749.46.camel@gagarin>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:62183 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751614Ab1D0Kz0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Apr 2011 06:55:26 -0400
+Received: by qwk3 with SMTP id 3so684715qwk.19
+        for <linux-media@vger.kernel.org>; Wed, 27 Apr 2011 03:55:25 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <BANLkTim9gwZUx+Y-ji72_Jv6mmCUiEDc-Q@mail.gmail.com>
+References: <BANLkTikwJ2bJr11U_ETZtU4gYuNyak+Xcw@mail.gmail.com>
+	<201104211129.40889.laurent.pinchart@ideasonboard.com>
+	<BANLkTim=xa+e90Y8UF=SwjFDQ=K1sAKk-Q@mail.gmail.com>
+	<201104262122.15126.laurent.pinchart@ideasonboard.com>
+	<BANLkTim9gwZUx+Y-ji72_Jv6mmCUiEDc-Q@mail.gmail.com>
+Date: Wed, 27 Apr 2011 12:55:24 +0200
+Message-ID: <BANLkTimtiTxMNDQTZKNpbsVrKvXKdf5NZA@mail.gmail.com>
+Subject: Re: OMAP3 ISP deadlocks on my new arm
+From: Bastian Hecht <hechtb@googlemail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	David Cohen <dacohen@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Fri, 2011-04-08 at 10:41 -0400, Jarod Wilson wrote:
-> On Apr 8, 2011, at 8:50 AM, Lawrence Rust wrote:
-> 
-> > This patch restores remote control input for cx2388x based boards on
-> > Linux kernels >= 2.6.38.
-> > 
-> > After upgrading from Linux 2.6.37 to 2.6.38 I found that the remote
-> > control input of my Hauppauge Nova-S plus was no longer functioning.  
-> > I posted a question on this newsgroup and Mauro Carvalho Chehab gave
-> > some helpful pointers as to the likely cause.
-> > 
-> > Turns out that there are 2 problems:
-> ...
-> > 2. The RC5 decoder appends the system code to the scancode and passes
-> > the combination to rc_keydown().  Unfortunately, the combined value is
-> > then forwarded to input_event() which then fails to recognise a valid
-> > scancode and hence no input events are generated.
-> 
-> Just to clarify on this one, you're missing a step. We get the scancode,
-> and its passed to rc_keydown. rc_keydown then looks for a match in the
-> loaded keytable, then passes the *keycode* that matches the scancode
-> along to input_event. If you fix the keytable to contain system and
-> command, everything should work just fine again. Throwing away data is
-> a no-no though -- take a look at recent changes to ir-kdb-i2c, which
-> actually just recently made it start *including* system. :)
+2011/4/27 Bastian Hecht <hechtb@googlemail.com>:
+> 2011/4/26 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+>> Hi Bastian,
+>>
+>> On Tuesday 26 April 2011 17:39:41 Bastian Hecht wrote:
+>>> 2011/4/21 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+>>> > On Tuesday 19 April 2011 09:31:05 Sakari Ailus wrote:
+>>> >> Laurent Pinchart wrote:
+>>> >> ...
+>>> >>
+>>> >> > That's the ideal situation: sensors should not produce any data (or
+>>> >> > rather any transition on the VS/HS signals) when they're supposed to
+>>> >> > be stopped. Unfortunately that's not always easy, as some dumb
+>>> >> > sensors (or sensor-like hardware) can't be stopped. The ISP driver
+>>> >> > should be able to cope with that in a way that doesn't kill the
+>>> >> > system completely.
+>>> >> >
+>>> >> > I've noticed the same issue with a Caspa camera module and an
+>>> >> > OMAP3503-based Gumstix. I'll try to come up with a good fix.
+>>> >>
+>>> >> Hi Laurent, others,
+>>> >>
+>>> >> Do you think the cause for this is that the system is jammed in handling
+>>> >> HS_VS interrupts triggered for every HS?
+>>> >
+>>> > That was my initial guess, yes.
+>>> >
+>>> >> A quick fix for this could be just choosing either VS configuration when
+>>> >> configuring the CCDC. Alternatively, HS_VS interrupts could be just
+>>> >> disabled until omap3isp_configure_interface().
+>>> >>
+>>> >> But as the sensor is sending images all the time, proper VS
+>>> >> configuration would be needed, or the counting of lines in the CCDC
+>>> >> (VD* interrupts) is affected as well. The VD0 interrupt, which is used
+>>> >> to trigger an interrupt near the end of the frame, may be triggered one
+>>> >> line too early on the first frame, or too late. But this is up to a
+>>> >> configuration. I don't think it's a real issue to trigger it one line
+>>> >> too early.
+>>> >>
+>>> >> Anything else?
+>>>
+>>> Hello Laurent,
+>>>
+>>> > I've tried delaying the HS_VS interrupt enable to the CCDC configuration
+>>> > function, after configuring the bridge (and thus the HS/VS interrupt
+>>> > source selection). To my surprise it didn't fix the problem, I still get
+>>> > tons of HS_VS interrupts (100000 in about 2.6 seconds) that kill the
+>>> > system.
+>>> >
+>>> > I'll need to hook a scope to the HS and VS signals.
+>>>
+>>> have you worked on this problem? Today in my setup I took a longer cable and
+>>> ran again into the hs/vs interrupt storm (it still works with a short
+>>> cable).
+>>> I can tackle this issue too, but to avoid double work I wanted to ask if you
+>>> worked out something in the meantime.
+>
+>
+>> In my case the issue was caused by a combination of two hardware design
+>> mistakes. The first one was to use a TXB0801 chip to translate the 3.3V sensor
+>> levels to the 1.8V OMAP levels. The TXB0801 4kΩ output impedance, combined
+>> with the OMAP3 100µA pull-ups on the HS and VS signals, produces a ~400mV
+>> voltage for low logic levels.
+>>
+>> Then, the XCLKA signal is next to the VS signal on the cable connecting the
+>> camera module to the OMAP board. When XCLKA is turned on, cross-talk produces
+>> a 400mV peak-to-peak noise on the VS signal.
+>>
+>> The combination of those two effects create a noisy VS signal that crosses the
+>> OMAP3 input level detection gap at high frequency, leading to an interrupt
+>> storm. The workaround is to disable the pull-ups on the HS and VS signals, the
+>> solution is to redesign the hardware to replace the level translators and
+>> reorganize signals on the camera module cable.
+>
+> Hi Laurent,
+>
+>> Is your situation any similar ?
+>
+> The long data line (~35cm now at 24MHz) certainly can have an impact
+> but I haven't measured any crosstalk so far. But I'm on another trail
+> now. I found out that on my board the interrupt line is shared with
+>  24:          0        INTC  omap-iommu.0
+>
+> Is the following scenario possible?
+>
+> 1. The omap-iommu isr is registered
+> 2. The isp gets set up (it enables interrupts and disables them again
+> at the end of the probe function)
+> 3. Later I activate the xclk from within my driver
+>  3a. isp_set_xclk() gets the lock omap3isp_get(isp) and so
+> enable_interrupts() is called
+>  3b. The new xclk on my chip makes my hardware create a hs/vs int
+> (either crosstalk, another hardware bug like yours, or simply my chip
+> sends a spurious interrupt for any reason)
+>  3c.  isp_set_xclk() puts the lock omap3isp_put(isp) and so
+> disable_interrupts() is called
+>
+> Can there exist a race condition between the omap3isp raising the
+> interrupt pin before 3c or after 3c?
 
-Don't shoot the messenger.
+Argh... I oversaw that the omap3isp isr handler stays registered all
+time long so the theory is wrong.
 
-I'm just reporting what I had to do to fix a clumsy hack by someone 6
-months ago who didn't test their changes.  This patch _restores_ the
-operation of a subsystem broken by those changes
-
-Perhaps those responsible for commit
-2997137be8eba5bf9c07a24d5fda1f4225f9ca7d:
-
-    Signed-off-by: David Härdeman <david@hardeman.nu>
-    Acked-by: Jarod Wilson <jarod@redhat.com>
-    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-should fix the keytable.  In the meantime (next year) I'll be using this
-patch.
-
--- 
-Lawrence
-
-
+> If after 3c the omap-iommu isr loops forever as the omap3isp int flag
+> is never cleared.
+>
+> I keep debbuging and trying to find further clues.
+>
+> Best regards,
+>
+> Bastian
+>
+>
+>> --
+>> Regards,
+>>
+>> Laurent Pinchart
+>>
+>
