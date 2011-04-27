@@ -1,46 +1,64 @@
 Return-path: <mchehab@pedra>
-Received: from d1.icnet.pl ([212.160.220.21]:36149 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754455Ab1DKTXx convert rfc822-to-8bit (ORCPT
+Received: from smtprelay03.ispgateway.de ([80.67.29.28]:41821 "EHLO
+	smtprelay03.ispgateway.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759093Ab1D0Ui4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Apr 2011 15:23:53 -0400
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH] V4L: soc-camera: regression fix: calculate .sizeimage in soc_camera.c
-Date: Mon, 11 Apr 2011 20:40:07 +0200
-Cc: "Aguirre, Sergio" <saaguirre@ti.com>,
+	Wed, 27 Apr 2011 16:38:56 -0400
+Date: Wed, 27 Apr 2011 22:38:28 +0200
+From: Heiko Baums <lists@baums-on-web.de>
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"mailing list: lirc" <lirc-list@lists.sourceforge.net>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <Pine.LNX.4.64.1104111054110.18511@axis700.grange> <BANLkTikQSaUKtNZCexhKeNEPM+id+J_2gw@mail.gmail.com> <Pine.LNX.4.64.1104111829500.20798@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1104111829500.20798@axis700.grange>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201104112040.08077.jkrzyszt@tis.icnet.pl>
+Subject: Re: Terratec Cinergy 1400 DVB-T RC not working anymore
+Message-ID: <20110427223828.15e0264f@darkstar>
+In-Reply-To: <20110427222855.2e3a3a4d@darkstar>
+References: <20110423005412.12978e29@darkstar>
+ <20110424163530.2bc1b365@darkstar>
+ <BCCEA9F4-16D7-4E63-B32C-15217AA094F3@wilsonet.com>
+ <20110425201835.0fbb84ee@darkstar>
+ <A4226E90-09BE-45FE-AEEF-0EA7E9414B4B@wilsonet.com>
+ <20110425230658.22551665@darkstar>
+ <59898A0D-573E-46E9-A3B7-9054B24E69DF@wilsonet.com>
+ <20110427151621.5ac73e12@darkstar>
+ <1FB1ED64-0EEC-4E15-8178-D2CCCA915B1D@wilsonet.com>
+ <20110427204725.2923ac99@darkstar>
+ <91CD2A5E-418A-4217-8D9F-1B29FC9DD24D@wilsonet.com>
+ <20110427222855.2e3a3a4d@darkstar>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Dnia poniedziałek 11 kwiecień 2011 o 18:58:51 Guennadi Liakhovetski napisał(a):
-> On Mon, 11 Apr 2011, Aguirre, Sergio wrote:
-> > 
-> > Ok. And how about the attached patch? Would that work?
+Am Wed, 27 Apr 2011 22:28:55 +0200
+schrieb Heiko Baums <lists@baums-on-web.de>:
+
+> It already said "type: NEC". But I ran `sed -i
+> "s:x14:x4eb:g" /etc/rc_keymaps/nec_terratec_cinergy_xs` so that it
+> says e.g. 0x4eb02 KEY_1 instead of 0x1402 KEY_1.
 > 
-> Yes, I think, ot would work too, only the call to
-> soc_camera_xlate_by_fourcc() in the S_FMT case is superfluous, after
-> ici->ops->set_fmt() we already have it in icd->current_fmt->host_fmt.
-> Otherwise - yes, we could do it this way too. Janusz, could you test,
-> please?
+> And now it spits out a bit more, but I'm still getting scancodes only
+> very randomly.
+> 
+> When pressing the "1" key, ir-keytable -t now gives me:
+> 
+> Testing events. Please, press CTRL-C to abort.
+> 1303935368.238345: event MSC: scancode = 4eb02
+> 1303935368.238373: event key down: KEY_1 (0x0002)
+> 1303935368.238376: event sync
+> 11303935368.278350: event MSC: scancode = 4eb02
+> 1303935368.294324: event MSC: scancode = 4eb02
+> 1303935368.390373: event MSC: scancode = 4eb02
+> 1303935368.398335: event MSC: scancode = 4eb02
+> 1303935368.648245: event key up: KEY_1 (0x0002)
+> 1303935368.648258: event sync
+> 
+> But, like I said before, it doesn't react always. Let's say, if I
+> press the keys about 10 times I only get 2 or 3 scancodes, if not
+> less.
 
-Looks like not based on the current mainline (-rc2) tree:
+Now I tried to only activate the nec protocol, and the reaction is
+still not good, but slightly better.
 
-  CHECK   drivers/media/video/soc_camera.c
-drivers/media/video/soc_camera.c:146:9: error: undefined identifier 'pixfmtstr'
-  CC      drivers/media/video/soc_camera.o
-drivers/media/video/soc_camera.c: In function 'soc_camera_try_fmt':
-drivers/media/video/soc_camera.c:146: error: implicit declaration of function 'pixfmtstr'
-drivers/media/video/soc_camera.c:146: warning: too few arguments for format
-drivers/media/video/soc_camera.c: In function 'soc_camera_try_fmt_vid_cap':
-drivers/media/video/soc_camera.c:180: warning: unused variable 'ici'
-
-Thanks,
-Janusz
+Heiko
