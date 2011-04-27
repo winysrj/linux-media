@@ -1,104 +1,212 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:37084 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756767Ab1DVVzV (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:16892 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758700Ab1D0Llz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Apr 2011 17:55:21 -0400
-Received: by iwn34 with SMTP id 34so718253iwn.19
-        for <linux-media@vger.kernel.org>; Fri, 22 Apr 2011 14:55:20 -0700 (PDT)
-MIME-Version: 1.0
-Date: Fri, 22 Apr 2011 15:55:20 -0600
-Message-ID: <BANLkTim7AONexeEm-E8iLQA5+TMDRUy36w@mail.gmail.com>
-Subject: Regression with suspend from "msp3400: convert to the new control framework"
-From: Jesse Allen <the3dfxdude@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Wed, 27 Apr 2011 07:41:55 -0400
+Received: from eu_spt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LKB00JLF75U1D@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 27 Apr 2011 12:41:54 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LKB00KRP75TSJ@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 27 Apr 2011 12:41:53 +0100 (BST)
+Date: Wed, 27 Apr 2011 13:41:42 +0200
+From: Kamil Debski <k.debski@samsung.com>
+Subject: [RFC/PATCH 1/3 v8] v4l: add fourcc definitions for compressed formats.
+In-reply-to: <1303904504-11610-1-git-send-email-k.debski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	k.debski@samsung.com, jaeryul.oh@samsung.com,
+	kgene.kim@samsung.com, jtp.park@samsung.com
+Message-id: <1303904504-11610-2-git-send-email-k.debski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1303904504-11610-1-git-send-email-k.debski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello All,
+Add fourcc definitions and documentation for the following
+compressed formats: H264, H264 without start codes,
+MPEG1/2/4 ES, DIVX versions 3.11, 4, 5.0-5.0.2, 5.03 and up,
+XVID, VC1 Annex G and Annex L compliant.
 
-I have finally spent time to figure out what happened to suspending
-with my bttv card. I have traced it to this patch:
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ Documentation/DocBook/v4l/controls.xml |    7 ++-
+ Documentation/DocBook/v4l/pixfmt.xml   |   67 +++++++++++++++++++++++++++++++-
+ include/linux/videodev2.h              |   21 ++++++++--
+ 3 files changed, 88 insertions(+), 7 deletions(-)
 
-msp3400: convert to the new control framework
-ebc3bba5833e7021336f09767347a52448a60bc5
-
-This was done by reverting the patch at the head for v2.6.39-git.
-
-The patch seems to cause intermittent suspend issues. When I suspend
-and come back, I will typically see this message:
-tuner-simple 0-0061: i2c i/o error B: rc == -6 (should be 4)
-
-Roughly means that while trying to set the tuner frequency, the device
-was not found. The radio will not work after this happens.
-
-I could not bisect to this patch. It did not seem to be a problem with
-2.6.36, but for whatever reason after 2.6.36 it happens more. Between
-2.6.36 and 2.6.37rc1 is an oops nightmare. Overall it is intermittent,
-requiring multiple suspends to check for it. Roughly, the best way to
-reproduce is:
-fm on
-fm <select frequency>
-# Leave on for a while
-fm off
-
-Another patch of interest is:
-0310871d8f71da4ad8643687fbc40f219a0dac4d
-
-I have reverted both patches on 2.6.38 and will continue to monitor.
-But I will need help to debug the problem as I do not know what the
-new control framework is supposed to do, nor do I know how this tuner
-actually works.
-
-03:07.0 Multimedia video controller: Brooktree Corporation Bt878 Video
-Capture (rev 02)
-        Subsystem: Avermedia Technologies Inc Device 0001
-        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
-ParErr- Stepping- SERR- FastB2B- DisINTx-
-        Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium
->TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
-        Latency: 32 (4000ns min, 10000ns max)
-        Interrupt: pin A routed to IRQ 21
-        Region 0: Memory at fdcff000 (32-bit, prefetchable) [size=4K]
-        Kernel driver in use: bttv
-        Kernel modules: bttv
-
-03:07.1 Multimedia controller: Brooktree Corporation Bt878 Audio
-Capture (rev 02)
-        Subsystem: Avermedia Technologies Inc Device 0001
-        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
-ParErr- Stepping- SERR- FastB2B- DisINTx-
-        Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium
->TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
-        Latency: 32 (1000ns min, 63750ns max)
-        Interrupt: pin A routed to IRQ 5
-        Region 0: Memory at fdcfe000 (32-bit, prefetchable) [size=4K]
-
-
-tuner_simple           12197  1
-tuner_types             7925  1 tuner_simple
-tuner                  18612  1
-tvaudio                21521  0
-tda7432                 3288  0
-msp3400                24324  0
-bttv                   99134  0
-i2c_algo_bit            4216  2 radeon,bttv
-rtc_cmos                8450  0
-v4l2_common             4823  5 tuner,tvaudio,tda7432,msp3400,bttv
-rtc_core               12257  1 rtc_cmos
-videodev               55859  6 tuner,tvaudio,tda7432,msp3400,bttv,v4l2_common
-i2c_piix4               8436  0
-rtc_lib                 1710  1 rtc_core
-videobuf_dma_sg         6696  1 bttv
-videobuf_core          13063  2 bttv,videobuf_dma_sg
-btcx_risc               2655  1 bttv
-rc_core                12201  1 bttv
-parport                24443  2 ppdev,parport_pc
-tveeprom               10497  1 bttv
-
-
-
-Jesse
+diff --git a/Documentation/DocBook/v4l/controls.xml b/Documentation/DocBook/v4l/controls.xml
+index a920ee8..6880798 100644
+--- a/Documentation/DocBook/v4l/controls.xml
++++ b/Documentation/DocBook/v4l/controls.xml
+@@ -670,7 +670,8 @@ caption of a Tab page in a GUI, for example.</entry>
+ 	      </row><row><entry spanname="descr">The MPEG-1, -2 or -4
+ output stream type. One cannot assume anything here. Each hardware
+ MPEG encoder tends to support different subsets of the available MPEG
+-stream types. The currently defined stream types are:</entry>
++stream types. This control is specific to multiplexed MPEG streams.
++The currently defined stream types are:</entry>
+ 	      </row>
+ 	      <row>
+ 		<entrytbl spanname="descr" cols="2">
+@@ -800,6 +801,7 @@ frequency. Possible values are:</entry>
+ 		<entry spanname="id"><constant>V4L2_CID_MPEG_AUDIO_ENCODING</constant>&nbsp;</entry>
+ 		<entry>enum&nbsp;v4l2_mpeg_audio_encoding</entry>
+ 	      </row><row><entry spanname="descr">MPEG Audio encoding.
++This control is specific to multiplexed MPEG streams.
+ Possible values are:</entry>
+ 	      </row>
+ 	      <row>
+@@ -1250,7 +1252,8 @@ and reproducible audio bitstream. 0 = unmuted, 1 = muted.</entry>
+ 		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_ENCODING</constant>&nbsp;</entry>
+ 		<entry>enum&nbsp;v4l2_mpeg_video_encoding</entry>
+ 	      </row><row><entry spanname="descr">MPEG Video encoding
+-method. Possible values are:</entry>
++method. This control is specific to multiplexed MPEG streams.
++Possible values are:</entry>
+ 	      </row>
+ 	      <row>
+ 		<entrytbl spanname="descr" cols="2">
+diff --git a/Documentation/DocBook/v4l/pixfmt.xml b/Documentation/DocBook/v4l/pixfmt.xml
+index c6fdcbb..d19cbae 100644
+--- a/Documentation/DocBook/v4l/pixfmt.xml
++++ b/Documentation/DocBook/v4l/pixfmt.xml
+@@ -737,10 +737,75 @@ information.</para>
+ 	  <row id="V4L2-PIX-FMT-MPEG">
+ 	    <entry><constant>V4L2_PIX_FMT_MPEG</constant></entry>
+ 	    <entry>'MPEG'</entry>
+-	    <entry>MPEG stream. The actual format is determined by
++	    <entry>MPEG multiplexed stream. The actual format is determined by
+ extended control <constant>V4L2_CID_MPEG_STREAM_TYPE</constant>, see
+ <xref linkend="mpeg-control-id" />.</entry>
+ 	  </row>
++	  <row id="V4L2-PIX-FMT-H264">
++		<entry><constant>V4L2_PIX_FMT_H264</constant></entry>
++		<entry>'H264'</entry>
++		<entry>H264 video elementary stream with start codes.</entry>
++	  </row>
++	  <row id="V4L2-PIX-FMT-H264-NO-SC">
++		<entry><constant>V4L2_PIX_FMT_H264_NO_SC</constant></entry>
++		<entry>'AVC1'</entry>
++		<entry>H264 video elementary stream without start codes.</entry>
++	  </row>
++	  <row id="V4L2-PIX-FMT-H263">
++		<entry><constant>V4L2_PIX_FMT_H263</constant></entry>
++		<entry>'H263'</entry>
++		<entry>H263 video elementary stream.</entry>
++	  </row>
++	  <row id="V4L2-PIX-FMT-MPEG1">
++		<entry><constant>V4L2_PIX_FMT_MPEG1</constant></entry>
++		<entry>'MPG1'</entry>
++		<entry>MPEG1 video elementary stream.</entry>
++	  </row>
++	  <row id="V4L2-PIX-FMT-MPEG2">
++		<entry><constant>V4L2_PIX_FMT_MPEG2</constant></entry>
++		<entry>'MPG2'</entry>
++		<entry>MPEG2 video elementary stream.</entry>
++	  </row>
++	  <row id="V4L2-PIX-FMT-MPEG4">
++		<entry><constant>V4L2_PIX_FMT_MPEG4</constant></entry>
++		<entry>'MPG4'</entry>
++		<entry>MPEG4 video elementary stream.</entry>
++	  </row>
++	  <row id="V4L2-PIX-FMT-DIVX3">
++		<entry><constant>V4L2_PIX_FMT_DIVX3</constant></entry>
++		<entry>'DIV3'</entry>
++		<entry>Divx 3.11 video elementary stream.</entry>
++	  </row>
++	  <row id="V4L2-PIX-FMT-DIVX4">
++		<entry><constant>V4L2_PIX_FMT_DIVX4</constant></entry>
++		<entry>'DIV4'</entry>
++		<entry>Divx 4 video elementary stream.</entry>
++	  </row>
++	  <row id="V4L2-PIX-FMT-DIVX500">
++		<entry><constant>V4L2_PIX_FMT_DIVX500</constant></entry>
++		<entry>'DX50'</entry>
++		<entry>Divx 5.0-5.0.2 video elementary stream.</entry>
++	  </row>
++	  <row id="V4L2-PIX-FMT-DIVX5">
++		<entry><constant>V4L2_PIX_FMT_DIVX5</constant></entry>
++		<entry>'DIV5'</entry>
++		<entry>Divx 5.0.3+ video elementary stream.</entry>
++	  </row>
++	  <row id="V4L2-PIX-FMT-XVID">
++		<entry><constant>V4L2_PIX_FMT_XVID</constant></entry>
++		<entry>'XVID'</entry>
++		<entry>Xvid video elementary stream.</entry>
++	  </row>
++	  <row id="V4L2-PIX-FMT-VC1">
++		<entry><constant>V4L2_PIX_FMT_VC1</constant></entry>
++		<entry>'WMV3'</entry>
++		<entry>VC1 simple and main profile video elementary stream.</entry>
++	  </row>
++	  <row id="V4L2-PIX-FMT-VC1-AP">
++		<entry><constant>V4L2_PIX_FMT_VC1_AP</constant></entry>
++		<entry>'WVC1'</entry>
++		<entry>VC1 advanced profile video elementary stream.</entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index aa6c393..c30981b 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -371,7 +371,20 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_MJPEG    v4l2_fourcc('M', 'J', 'P', 'G') /* Motion-JPEG   */
+ #define V4L2_PIX_FMT_JPEG     v4l2_fourcc('J', 'P', 'E', 'G') /* JFIF JPEG     */
+ #define V4L2_PIX_FMT_DV       v4l2_fourcc('d', 'v', 's', 'd') /* 1394          */
+-#define V4L2_PIX_FMT_MPEG     v4l2_fourcc('M', 'P', 'E', 'G') /* MPEG-1/2/4    */
++#define V4L2_PIX_FMT_MPEG     v4l2_fourcc('M', 'P', 'E', 'G') /* MPEG-1/2/4 Multiplexed */
++#define V4L2_PIX_FMT_H264     v4l2_fourcc('H', '2', '6', '4') /* H264 with start codes */
++#define V4L2_PIX_FMT_H264_NO_SC v4l2_fourcc('A', 'V', 'C', '1') /* H264 without start codes */
++#define V4L2_PIX_FMT_H263     v4l2_fourcc('H', '2', '6', '3') /* H263          */
++#define V4L2_PIX_FMT_MPEG1    v4l2_fourcc('M', 'P', 'G', '1') /* MPEG-1 ES     */
++#define V4L2_PIX_FMT_MPEG2    v4l2_fourcc('M', 'P', 'G', '2') /* MPEG-2 ES     */
++#define V4L2_PIX_FMT_MPEG4    v4l2_fourcc('M', 'P', 'G', '4') /* MPEG-4 ES     */
++#define V4L2_PIX_FMT_DIVX3    v4l2_fourcc('D', 'I', 'V', '3') /* DivX 3.11     */
++#define V4L2_PIX_FMT_DIVX4    v4l2_fourcc('D', 'I', 'V', '4') /* DivX 4.12     */
++#define V4L2_PIX_FMT_DIVX500  v4l2_fourcc('D', 'X', '5', '0') /* DivX 5.00 - 5.02  */
++#define V4L2_PIX_FMT_DIVX5    v4l2_fourcc('D', 'I', 'V', '5') /* DivX 5.03 - x  */
++#define V4L2_PIX_FMT_XVID     v4l2_fourcc('X', 'V', 'I', 'D') /* Xvid           */
++#define V4L2_PIX_FMT_VC1_ANNEX_G v4l2_fourcc('V', 'C', '1', 'G') /* SMPTE 421M Annex G compliant stream */
++#define V4L2_PIX_FMT_VC1_ANNEX_L v4l2_fourcc('V', 'C', '1', 'L') /* SMPTE 421M Annex L compliant stream*/
+ 
+ /*  Vendor-specific formats   */
+ #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1 YUV */
+@@ -1146,7 +1159,7 @@ enum v4l2_colorfx {
+ #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
+ #define V4L2_CID_MPEG_CLASS 			(V4L2_CTRL_CLASS_MPEG | 1)
+ 
+-/*  MPEG streams */
++/*  MPEG streams, specific to multiplexed streams */
+ #define V4L2_CID_MPEG_STREAM_TYPE 		(V4L2_CID_MPEG_BASE+0)
+ enum v4l2_mpeg_stream_type {
+ 	V4L2_MPEG_STREAM_TYPE_MPEG2_PS   = 0, /* MPEG-2 program stream */
+@@ -1168,7 +1181,7 @@ enum v4l2_mpeg_stream_vbi_fmt {
+ 	V4L2_MPEG_STREAM_VBI_FMT_IVTV = 1,  /* VBI in private packets, IVTV format */
+ };
+ 
+-/*  MPEG audio */
++/*  MPEG audio controls specific to multiplexed streams  */
+ #define V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ 	(V4L2_CID_MPEG_BASE+100)
+ enum v4l2_mpeg_audio_sampling_freq {
+ 	V4L2_MPEG_AUDIO_SAMPLING_FREQ_44100 = 0,
+@@ -1284,7 +1297,7 @@ enum v4l2_mpeg_audio_ac3_bitrate {
+ 	V4L2_MPEG_AUDIO_AC3_BITRATE_640K = 18,
+ };
+ 
+-/*  MPEG video */
++/*  MPEG video controls specific to multiplexed streams */
+ #define V4L2_CID_MPEG_VIDEO_ENCODING 		(V4L2_CID_MPEG_BASE+200)
+ enum v4l2_mpeg_video_encoding {
+ 	V4L2_MPEG_VIDEO_ENCODING_MPEG_1     = 0,
+-- 
+1.6.3.3
