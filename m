@@ -1,63 +1,94 @@
 Return-path: <mchehab@pedra>
-Received: from swampdragon.chaosbits.net ([90.184.90.115]:21795 "EHLO
-	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754601Ab1DUVRf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Apr 2011 17:17:35 -0400
-Date: Thu, 21 Apr 2011 23:11:25 +0200 (CEST)
-From: Jesper Juhl <jj@chaosbits.net>
-To: linux-media@vger.kernel.org
-cc: trivial@kernel.org, linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Joe Perches <joe@perches.com>
-Subject: [PATCH][Trivial] Media, DVB, Siano, smsusb: Avoid static analysis
- report about 'use after free'.
-Message-ID: <alpine.LNX.2.00.1104212303220.4159@swampdragon.chaosbits.net>
+Received: from smtp.nokia.com ([147.243.1.47]:31640 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751310Ab1D1JeZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Apr 2011 05:34:25 -0400
+Message-ID: <4DB9348D.7000501@nokia.com>
+Date: Thu, 28 Apr 2011 12:34:05 +0300
+From: Sakari Ailus <sakari.ailus@nokia.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: "Jokiniemi Kalle (Nokia-SD/Tampere)" <kalle.jokiniemi@nokia.com>
+CC: "broonie@opensource.wolfsonmicro.com"
+	<broonie@opensource.wolfsonmicro.com>,
+	"lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>,
+	"mchehab@infradead.org" <mchehab@infradead.org>,
+	"svarbatov@mm-sol.com" <svarbatov@mm-sol.com>,
+	"saaguirre@ti.com" <saaguirre@ti.com>,
+	"grosikopulos@mm-sol.com" <grosikopulos@mm-sol.com>,
+	"Zutshi Vimarsh (Nokia-SD/Helsinki)" <vimarsh.zutshi@nokia.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC] Regulator state after regulator_get
+References: <9D0D31AA57AAF5499AFDC63D6472631B09C76A@008-AM1MPN1-036.mgdnok.nokia.com>
+In-Reply-To: <9D0D31AA57AAF5499AFDC63D6472631B09C76A@008-AM1MPN1-036.mgdnok.nokia.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-In drivers/media/dvb/siano/smsusb.c we have this code:
- ...
-               kfree(dev);
+Hello,
 
-               sms_info("device %p destroyed", dev);
- ...
+Jokiniemi Kalle (Nokia-SD/Tampere) wrote:
+> Hello regulator FW and OMAP3 ISP fellows,
+> 
+> I'm currently optimizing power management for Nokia N900 MeeGo DE release,
+> and found an issue with how regulators are handled at boot.
+> 
+> The N900 uses VAUX2 regulator in OMAP3430 to power the CSIb IO complex
+> that is used by the camera. While implementing regulator FW support to
+> handle this regulator in the camera driver I noticed a problem with the
+> regulator init sequence:
+> 
+> If the device driver using the regulator does not enable and disable the
+> regulator after regulator_get, the regulator is left in the state that it was
+> after bootloader. In case of N900 this is a problem as the regulator is left
+> on to leak current. Of course there is the option to let regulator FW disable
+> all unused regulators, but this will break the N900 functionality, as the
+> regulator handling is not in place for many drivers. 
+> 
+> I found couple of solutions to this:
+> 1. reset all regulators that have users (regulator_get is called on them) with
+> a regulator_enable/disable cycle within the regulator FW.
+> 2. enable/disable the specific vdds_csib regulator in the omap3isp driver
+> to reset this one specific regulator to disabled state.
+> 
+> So, please share comments on which approach is more appropriate to take?
+> Or maybe there is option 3?
+> 
+> Here are example code for the two options (based on .37 kernel, will update
+> on top of appropriate tree once right solution is agreed):
+> 
+> Option1:
+> 
+> If a consumer device of a regulator gets a regulator, but
+> does not enable/disable it during probe, the regulator may
+> be left active from boot, even though it is not needed. If
+> it were needed it would be enabled by the consumer device.
+> 
+> So reset the regulator on first regulator_get call to make
+> sure that any regulator that has users is not left active
+> needlessly.
 
-at least one static analysis tool (Coverity Prevent) complains about this 
-as a use-after-free bug.
-While it's true that we do use the pointer variable after freeing it, the 
-only use is to print the value of the pointer, so there's not actually any 
-problem here. But still, silencing the complaint is trivial by just moving 
-the kfree() call below the sms_info(), so why not just do it?. It doesn't 
-change the workings of the code in any way, but it makes the tool shut up. 
-The patch below also removes a rather pointless blank line.
+I'm not an expert in the regulator framework, but I'd think that one
+should be able to assume a regulator is in a sane state after boot. The
+fact that the regulator is enabled when it has no users should likely be
+fixed in the boot loader. Is that an option?
 
-Signed-off-by: Jesper Juhl <jj@chaosbits.net>
----
- smsusb.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+Does the problem exist in other boards beyond N900?
 
-diff --git a/drivers/media/dvb/siano/smsusb.c b/drivers/media/dvb/siano/smsusb.c
-index 0b8da57..0c8164a 100644
---- a/drivers/media/dvb/siano/smsusb.c
-+++ b/drivers/media/dvb/siano/smsusb.c
-@@ -297,9 +297,8 @@ static void smsusb_term_device(struct usb_interface *intf)
- 		if (dev->coredev)
- 			smscore_unregister_device(dev->coredev);
- 
--		kfree(dev);
--
- 		sms_info("device %p destroyed", dev);
-+		kfree(dev);
- 	}
- 
- 	usb_set_intfdata(intf, NULL);
+Another alternative to the first option you proposed could be to add a
+flags field to regulator_consumer_supply, and use a flag to recognise
+regulators which need to be disabled during initialisation. The flag
+could be set by using a new macro e.g. REGULATOR_SUPPLY_NASTY() when
+defining the regulator.
 
+Just my 0,05 euros. ;-)
+
+Cc Laurent Pinchart.
+
+Regards,
 
 -- 
-Jesper Juhl <jj@chaosbits.net>       http://www.chaosbits.net/
-Don't top-post http://www.catb.org/jargon/html/T/top-post.html
-Plain text mails only, please.
-
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
