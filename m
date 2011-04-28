@@ -1,267 +1,143 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:56767 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752838Ab1DEOJB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2011 10:09:01 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Tue, 05 Apr 2011 16:06:44 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 1/7] ARM: EXYNOS4: power domains: fixes and code cleanup
-In-reply-to: <1302012410-17984-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Andrzej Pietrasiwiecz <andrzej.p@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>
-Message-id: <1302012410-17984-2-git-send-email-m.szyprowski@samsung.com>
-References: <1302012410-17984-1-git-send-email-m.szyprowski@samsung.com>
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:47939 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932936Ab1D1POn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Apr 2011 11:14:43 -0400
+Subject: [PATCH 07/10] rc-core: use the full 32 bits for NEC scancodes
+To: linux-media@vger.kernel.org
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: jarod@wilsonet.com, mchehab@redhat.com
+Date: Thu, 28 Apr 2011 17:13:48 +0200
+Message-ID: <20110428151348.8272.50675.stgit@felix.hardeman.nu>
+In-Reply-To: <20110428151311.8272.17290.stgit@felix.hardeman.nu>
+References: <20110428151311.8272.17290.stgit@felix.hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Using the full 32 bits for all kinds of NEC scancodes simplifies rc-core
+and the nec decoder without any loss of functionality.
 
-This patch extends power domain driver with support for enabling and
-disabling modules in S5P_CLKGATE_BLOCK register. It also performs a
-little code cleanup to avoid confusion between exynos4_device_pd array
-index and power domain id.
-
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: David Härdeman <david@hardeman.nu>
 ---
- arch/arm/mach-exynos4/dev-pd.c                  |   93 +++++++++++++++++------
- arch/arm/mach-exynos4/include/mach/regs-clock.h |    7 ++
- arch/arm/plat-samsung/include/plat/pd.h         |    1 +
- 3 files changed, 79 insertions(+), 22 deletions(-)
+ drivers/media/dvb/dvb-usb/af9015.c |   22 ++++++----------------
+ drivers/media/rc/ir-nec-decoder.c  |   28 ++++------------------------
+ include/media/rc-map.h             |   11 +++++++++--
+ 3 files changed, 19 insertions(+), 42 deletions(-)
 
-diff --git a/arch/arm/mach-exynos4/dev-pd.c b/arch/arm/mach-exynos4/dev-pd.c
-index 3273f25..44c6597 100644
---- a/arch/arm/mach-exynos4/dev-pd.c
-+++ b/arch/arm/mach-exynos4/dev-pd.c
-@@ -16,13 +16,17 @@
- #include <linux/delay.h>
- 
- #include <mach/regs-pmu.h>
-+#include <mach/regs-clock.h>
- 
- #include <plat/pd.h>
- 
-+static DEFINE_SPINLOCK(gate_block_slock);
-+
- static int exynos4_pd_enable(struct device *dev)
- {
- 	struct samsung_pd_info *pdata =  dev->platform_data;
- 	u32 timeout;
-+	int ret = 0;
- 
- 	__raw_writel(S5P_INT_LOCAL_PWR_EN, pdata->base);
- 
-@@ -31,21 +35,39 @@ static int exynos4_pd_enable(struct device *dev)
- 	while ((__raw_readl(pdata->base + 0x4) & S5P_INT_LOCAL_PWR_EN)
- 		!= S5P_INT_LOCAL_PWR_EN) {
- 		if (timeout == 0) {
--			printk(KERN_ERR "Power domain %s enable failed.\n",
--				dev_name(dev));
--			return -ETIMEDOUT;
-+			dev_err(dev, "enable failed\n");
-+			ret = -ETIMEDOUT;
-+			goto done;
- 		}
- 		timeout--;
- 		udelay(100);
+diff --git a/drivers/media/dvb/dvb-usb/af9015.c b/drivers/media/dvb/dvb-usb/af9015.c
+index 08975f3..4ee8bb7 100644
+--- a/drivers/media/dvb/dvb-usb/af9015.c
++++ b/drivers/media/dvb/dvb-usb/af9015.c
+@@ -1034,7 +1034,8 @@ static int af9015_rc_query(struct dvb_usb_device *d)
+ 	if ((priv->rc_repeat != buf[6] || buf[0]) &&
+ 					!memcmp(&buf[12], priv->rc_last, 4)) {
+ 		deb_rc("%s: key repeated\n", __func__);
+-		rc_keydown(d->rc_dev, RC_TYPE_NEC, priv->rc_keycode, 0);
++		rc_keydown(d->rc_dev, RC_TYPE_NEC,
++			   RC_SCANCODE_NEC32(priv->rc_keycode), 0);
+ 		priv->rc_repeat = buf[6];
+ 		return ret;
  	}
+@@ -1051,21 +1052,10 @@ static int af9015_rc_query(struct dvb_usb_device *d)
  
--	return 0;
-+	/* configure clk gate mask if it is present */
-+	if (pdata->gate_mask) {
-+		unsigned long flags;
-+		unsigned long value;
-+
-+		spin_lock_irqsave(&gate_block_slock, flags);
-+
-+		value  = __raw_readl(S5P_CLKGATE_BLOCK);
-+		value |= pdata->gate_mask;
-+		__raw_writel(value, S5P_CLKGATE_BLOCK);
-+
-+		spin_unlock_irqrestore(&gate_block_slock, flags);
-+	}
-+
-+done:
-+	dev_info(dev, "enable finished\n");
-+
-+	return ret;
- }
+ 		/* Remember this key */
+ 		memcpy(priv->rc_last, &buf[12], 4);
+-		if (buf[14] == (u8) ~buf[15]) {
+-			if (buf[12] == (u8) ~buf[13]) {
+-				/* NEC */
+-				priv->rc_keycode = buf[12] << 8 | buf[14];
+-			} else {
+-				/* NEC extended*/
+-				priv->rc_keycode = buf[12] << 16 |
+-					buf[13] << 8 | buf[14];
+-			}
+-		} else {
+-			/* 32 bit NEC */
+-			priv->rc_keycode = buf[12] << 24 | buf[13] << 16 |
+-					buf[14] << 8 | buf[15];
+-		}
+-		rc_keydown(d->rc_dev, RC_TYPE_NEC, priv->rc_keycode, 0);
++		priv->rc_keycode = buf[12] << 24 | buf[13] << 16 |
++				   buf[14] << 8  | buf[15];
++		rc_keydown(d->rc_dev, RC_TYPE_NEC,
++			   RC_SCANCODE_NEC32(priv->rc_keycode), 0);
+ 	} else {
+ 		deb_rc("%s: no key press\n", __func__);
+ 		/* Invalidate last keypress */
+diff --git a/drivers/media/rc/ir-nec-decoder.c b/drivers/media/rc/ir-nec-decoder.c
+index edd8543..0b1eef1 100644
+--- a/drivers/media/rc/ir-nec-decoder.c
++++ b/drivers/media/rc/ir-nec-decoder.c
+@@ -49,7 +49,6 @@ static int ir_nec_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ 	struct nec_dec *data = &dev->raw->nec;
+ 	u32 scancode;
+ 	u8 address, not_address, command, not_command;
+-	bool send_32bits = false;
  
- static int exynos4_pd_disable(struct device *dev)
- {
- 	struct samsung_pd_info *pdata =  dev->platform_data;
- 	u32 timeout;
-+	int ret = 0;
+ 	if (!(dev->enabled_protocols & RC_BIT_NEC))
+ 		return 0;
+@@ -162,33 +161,14 @@ static int ir_nec_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ 		command	    = bitrev8((data->bits >>  8) & 0xff);
+ 		not_command = bitrev8((data->bits >>  0) & 0xff);
  
- 	__raw_writel(0, pdata->base);
+-		if ((command ^ not_command) != 0xff) {
+-			IR_dprintk(1, "NEC checksum error: received 0x%08x\n",
+-				   data->bits);
+-			send_32bits = true;
+-		}
+-
+-		if (send_32bits) {
+-			/* NEC transport, but modified protocol, used by at
+-			 * least Apple and TiVo remotes */
+-			scancode = data->bits;
+-			IR_dprintk(1, "NEC (modified) scancode 0x%08x\n", scancode);
+-		} else if ((address ^ not_address) != 0xff) {
+-			/* Extended NEC */
+-			scancode = address     << 16 |
+-				   not_address <<  8 |
+-				   command;
+-			IR_dprintk(1, "NEC (Ext) scancode 0x%06x\n", scancode);
+-		} else {
+-			/* Normal NEC */
+-			scancode = address << 8 | command;
+-			IR_dprintk(1, "NEC scancode 0x%04x\n", scancode);
+-		}
++		scancode = address << 24 | not_address << 16 |
++			   command << 8  | not_command;
++		IR_dprintk(1, "NEC scancode 0x%08x\n", scancode);
  
-@@ -53,81 +75,108 @@ static int exynos4_pd_disable(struct device *dev)
- 	timeout = 10;
- 	while (__raw_readl(pdata->base + 0x4) & S5P_INT_LOCAL_PWR_EN) {
- 		if (timeout == 0) {
--			printk(KERN_ERR "Power domain %s disable failed.\n",
--				dev_name(dev));
--			return -ETIMEDOUT;
-+			dev_err(dev, "disable failed\n");
-+			ret = -ETIMEDOUT;
-+			goto done;
- 		}
- 		timeout--;
- 		udelay(100);
+ 		if (data->is_nec_x)
+ 			data->necx_repeat = true;
+ 
+-		rc_keydown(dev, RC_TYPE_NEC, scancode, 0);
++		rc_keydown(dev, RC_TYPE_NEC, RC_SCANCODE_NEC32(scancode), 0);
+ 		data->state = STATE_INACTIVE;
+ 		return 0;
  	}
+diff --git a/include/media/rc-map.h b/include/media/rc-map.h
+index 42c8ad9..aa503f0 100644
+--- a/include/media/rc-map.h
++++ b/include/media/rc-map.h
+@@ -44,8 +44,15 @@
  
--	return 0;
-+	if (pdata->gate_mask) {
-+		unsigned long flags;
-+		unsigned long value;
-+
-+		spin_lock_irqsave(&gate_block_slock, flags);
-+
-+		value  = __raw_readl(S5P_CLKGATE_BLOCK);
-+		value &= ~pdata->gate_mask;
-+		__raw_writel(value, S5P_CLKGATE_BLOCK);
-+
-+		spin_unlock_irqrestore(&gate_block_slock, flags);
-+	}
-+done:
-+	dev_info(dev, "disable finished\n");
-+
-+	return ret;
- }
- 
- struct platform_device exynos4_device_pd[] = {
--	{
-+	[PD_MFC] = {
- 		.name		= "samsung-pd",
--		.id		= 0,
-+		.id		= PD_MFC,
- 		.dev = {
- 			.platform_data = &(struct samsung_pd_info) {
- 				.enable		= exynos4_pd_enable,
- 				.disable	= exynos4_pd_disable,
- 				.base		= S5P_PMU_MFC_CONF,
-+				.gate_mask	= S5P_CLKGATE_BLOCK_MFC,
- 			},
- 		},
--	}, {
-+	},
-+	[PD_G3D] = {
- 		.name		= "samsung-pd",
--		.id		= 1,
-+		.id		= PD_G3D,
- 		.dev = {
- 			.platform_data = &(struct samsung_pd_info) {
- 				.enable		= exynos4_pd_enable,
- 				.disable	= exynos4_pd_disable,
- 				.base		= S5P_PMU_G3D_CONF,
-+				.gate_mask	= S5P_CLKGATE_BLOCK_G3D,
- 			},
- 		},
--	}, {
-+	},
-+	[PD_LCD0] = {
- 		.name		= "samsung-pd",
--		.id		= 2,
-+		.id		= PD_LCD0,
- 		.dev = {
- 			.platform_data = &(struct samsung_pd_info) {
- 				.enable		= exynos4_pd_enable,
- 				.disable	= exynos4_pd_disable,
- 				.base		= S5P_PMU_LCD0_CONF,
-+				.gate_mask	= S5P_CLKGATE_BLOCK_LCD0,
- 			},
- 		},
--	}, {
-+	},
-+	[PD_LCD1] = {
- 		.name		= "samsung-pd",
--		.id		= 3,
-+		.id		= PD_LCD1,
- 		.dev = {
- 			.platform_data = &(struct samsung_pd_info) {
- 				.enable		= exynos4_pd_enable,
- 				.disable	= exynos4_pd_disable,
- 				.base		= S5P_PMU_LCD1_CONF,
-+				.gate_mask	= S5P_CLKGATE_BLOCK_LCD1,
- 			},
- 		},
--	}, {
-+	},
-+	[PD_TV] = {
- 		.name		= "samsung-pd",
--		.id		= 4,
-+		.id		= PD_TV,
- 		.dev = {
- 			.platform_data = &(struct samsung_pd_info) {
- 				.enable		= exynos4_pd_enable,
- 				.disable	= exynos4_pd_disable,
- 				.base		= S5P_PMU_TV_CONF,
-+				.gate_mask	= S5P_CLKGATE_BLOCK_TV,
- 			},
- 		},
--	}, {
-+	},
-+	[PD_CAM] = {
- 		.name		= "samsung-pd",
--		.id		= 5,
-+		.id		= PD_CAM,
- 		.dev = {
- 			.platform_data = &(struct samsung_pd_info) {
- 				.enable		= exynos4_pd_enable,
- 				.disable	= exynos4_pd_disable,
- 				.base		= S5P_PMU_CAM_CONF,
-+				.gate_mask	= S5P_CLKGATE_BLOCK_CAM,
- 			},
- 		},
--	}, {
-+	},
-+	[PD_GPS] = {
- 		.name		= "samsung-pd",
--		.id		= 6,
-+		.id		= PD_GPS,
- 		.dev = {
- 			.platform_data = &(struct samsung_pd_info) {
- 				.enable		= exynos4_pd_enable,
-diff --git a/arch/arm/mach-exynos4/include/mach/regs-clock.h b/arch/arm/mach-exynos4/include/mach/regs-clock.h
-index 6e311c1..2c1472b 100644
---- a/arch/arm/mach-exynos4/include/mach/regs-clock.h
-+++ b/arch/arm/mach-exynos4/include/mach/regs-clock.h
-@@ -171,6 +171,13 @@
- #define S5P_CLKDIV_BUS_GPLR_SHIFT	(4)
- #define S5P_CLKDIV_BUS_GPLR_MASK	(0x7 << S5P_CLKDIV_BUS_GPLR_SHIFT)
- 
-+#define S5P_CLKGATE_BLOCK_CAM		(1 << 0)
-+#define S5P_CLKGATE_BLOCK_TV		(1 << 1)
-+#define S5P_CLKGATE_BLOCK_MFC		(1 << 2)
-+#define S5P_CLKGATE_BLOCK_G3D		(1 << 3)
-+#define S5P_CLKGATE_BLOCK_LCD0		(1 << 4)
-+#define S5P_CLKGATE_BLOCK_LCD1		(1 << 5)
-+
- /* Compatibility defines and inclusion */
- 
- #include <mach/regs-pmu.h>
-diff --git a/arch/arm/plat-samsung/include/plat/pd.h b/arch/arm/plat-samsung/include/plat/pd.h
-index abb4bc3..ef545ed 100644
---- a/arch/arm/plat-samsung/include/plat/pd.h
-+++ b/arch/arm/plat-samsung/include/plat/pd.h
-@@ -15,6 +15,7 @@ struct samsung_pd_info {
- 	int (*enable)(struct device *dev);
- 	int (*disable)(struct device *dev);
- 	void __iomem *base;
-+	unsigned long gate_mask;
- };
- 
- enum exynos4_pd_block {
--- 
-1.7.1.569.g6f426
+ #define RC_SCANCODE_UNKNOWN(x) (x)
+ #define RC_SCANCODE_OTHER(x) (x)
+-#define RC_SCANCODE_NEC(addr, cmd) (((addr) << 8) | (cmd))
+-#define RC_SCANCODE_NECX(addr, cmd) (((addr) << 8) | (cmd))
++#define RC_SCANCODE_NEC(addr, cmd)  \
++	((( (addr) & 0xff) << 24) | \
++	 ((~(addr) & 0xff) << 16) | \
++	 (( (cmd)  & 0xff) << 8 ) | \
++	 ((~(cmd)  & 0xff) << 0 ))
++#define RC_SCANCODE_NECX(addr, cmd)   \
++	((( (addr) & 0xffff) << 16) | \
++	 (( (cmd)  & 0x00ff) << 8)  | \
++	 ((~(cmd)  & 0x00ff) << 0))
+ #define RC_SCANCODE_NEC32(data) ((data) & 0xffffffff)
+ #define RC_SCANCODE_RC5(sys, cmd) (((sys) << 8) | (cmd))
+ #define RC_SCANCODE_RC5_SZ(sys, cmd) (((sys) << 8) | (cmd))
+
