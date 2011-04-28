@@ -1,228 +1,232 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:34521 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753696Ab1DUITi (ORCPT
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:50017 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755156Ab1D1POE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Apr 2011 04:19:38 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [PATCH 0/2] V4L: Extended crop/compose API, ver2
-Date: Thu, 21 Apr 2011 10:19:29 +0200
-References: <1302079459-4018-1-git-send-email-t.stanislaws@samsung.com> <201104131507.55171.laurent.pinchart@ideasonboard.com> <4DADB1FF.3090506@samsung.com>
-In-Reply-To: <4DADB1FF.3090506@samsung.com>
+	Thu, 28 Apr 2011 11:14:04 -0400
+Subject: [PATCH 00/10] rc-core: my current patchqueue
+To: linux-media@vger.kernel.org
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: jarod@wilsonet.com, mchehab@redhat.com
+Date: Thu, 28 Apr 2011 17:13:11 +0200
+Message-ID: <20110428151311.8272.17290.stgit@felix.hardeman.nu>
 MIME-Version: 1.0
-Message-Id: <201104211019.31714.laurent.pinchart@ideasonboard.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Tomasz,
+The following series is what's in my current patch queue for rc-core.
 
-On Tuesday 19 April 2011 18:02:07 Tomasz Stanislawski wrote:
-> Hi Laurent,
-> 
-> > I wish it would be that simple. Let me show you an example, taken from
-> > the OMAP3 ISP resizer driver. The following equation comes from the
-> > OMAP3 ISP documentation and describes the relationship between the
-> > resizer input width (after cropping) and output width.
-> 
-> I analyzed your comments. It looks that selection of cropping parameters
-> using hints is an example of integer linear programming. This problem is
-> NP-hard in general. Therefore I think we should allow driver to
-> completely ignore hints.
+It only been lightly tested so far and it's based on the "for_v2.6.39" branch,
+but I still wanted to send it to the list so that I can get some feedback while
+I refresh the patches to "for_v2.6.40" and do more testing.
 
-If we allow drivers to ignore hints, many of them will, and applications won't 
-be able to rely on the hints being correctly handled. Won't that be an issue ?
+The most interesting change is that the scancode that is passed to/from
+the EVIOC[GS]KEYCODE_V2 ioctl has been extended so that this struct:
 
-> > iw = (32 * sph + (ow - 1) * hrsz + 16) >> 8 + 7
-> > 
-> > iw is the input width, ow the output width, hrsz the horizontal scaling
-> > factor, and sph a constant. All variables are integers.
-> > 
-> > The equation must be verified perfectly, otherwise the hardware will
-> > fail. The driver needs to compute the hrsz value based on the iw and ow
-> > values provided by the user. As the equation doesn't accept a solution
-> > for all (iw, ow) tuples, iw (the crop rectangle width) needs to be
-> > adjusted. This is where hints would come into play.
-> > 
-> > The following equation is equivalent to the first one
-> > 
-> > iw - 7 = (32 * sph + (ow - 1) * hrsz + 16) >> 8
-> > 
-> > but this one isn't
-> > 
-> > (iw - 7) << 8 = 32 * sph + (ow - 1) * hrsz + 16
-> > 
-> > as the >> 8 operator looses the 8 least significant bits of it's left
-> > operand, so you can't revert the operation.
-> > 
-> > Try to reverse the equation to compute the hrsz and adjusted iw values
-> > for different hint flags and you will feel my pain. I'm pretty sure some
-> > hardware (will) have even more complex requirements.
-> 
-> I think that the problem of ISP configuration could be solved in
-> following way:
-> 
-> iw - 7 = (32 * sph + (ow - 1) * hrsz + 16) >> 8
-> 
-> is equivalent to:
->     256 * (iw - 7) <=32 * sph + (ow - 1) * hrsz + 16 <= 256 * (iw - 7) +
-> 255 what can be reduced to:
->     256 * iw + A <= (ow - 1) * hrsz <= 256 * iw + B
-> where
->     A = -1808 - 32 * sph
->     B = -1553 - 32 * sph
-> What can written as:
->     L(iw) <= hrsz <= U(iw)
->     L(iw) = ceil( (256 * iw + A) / (ow - 1) )
->     U(iw) = floor((256 * iw + B) / (ow - 1) )
-> 
-> The solution can be computed by linear search assuming that pixel format
-> is fixed and ow cannot change.
-> The hints are used here.
-> 
-> If V4L2_SEL_WIDTH_GE is set
->     iw = v4l2_selection::r::width
->     l = L(iw); // lower bound on hrsz
->     u = U(iw); //upper bound on hrsz
->     while (iw <= iwmax && l <= hrszmax) {
->        if (l <= u && l >= hrszmin)
->           return l; //found solution
->        ++iw;
->        l = L(iw);
->        u = U(iw);
->     }
-> 
-> If V4L2_SEL_WIDTH_LE is set
->     iw = v4l2_selection::r::width
->     l = L(iw); // lower bound on hrsz
->     u = U(iw); //upper bound on hrsz
->     while (iw >= iwmin && u >= hrszmin) {
->        if (l <= u && u <= hrszmax)
->           return u; //found solution
->        --iw;
->        l = L(iw);
->        u = U(iw);
->     }
-> 
-> If both flags are set then try to compute correct hrsz directly.
-> Code above could be optimized a bit by using higher of increase of iw
-> after every loop.
-> The search procedure is relatively slow but it finishes after at most
-> few thousands iterations.
-> If set crop operation is rare then this solution may be acceptable.
-> What is your opinion?
+        struct input_keymap_entry {
+                __u8  flags;
+                __u8  len;
+                __u16 index;
+                __u32 keycode;
+                __u8  scancode[32];
+        };
 
-I've thought about using an iterative approach, but I don't really like it.
+Is parsed like this:
 
-As you correctly found out, reverting the equation leads to an inequality.
+        struct rc_scancode {
+                __u16 protocol;
+                __u16 reserved[3];
+                __u64 scancode;
+        }
+    
+        struct rc_keymap_entry {
+                __u8  flags;
+                __u8  len;
+                __u16 index;
+                __u32 keycode;
+                union {
+                        struct rc_scancode rc;
+                        __u8 raw[32];
+                };
+        };
 
-256 * (iw - 7) <= 32 * sph + (ow - 1) * hrsz + 16 <= 256 * (iw - 7) + 255
+Which allows the protocol to be specified along with the scancode.
 
-We found out that using
+Some heuristics are in place to guess the correct protocol when it is
+missing (i.e. when the legacy ioctl's are used or when the new ioctl's
+are used but with a shorter len).
 
-32 * sph + (ow - 1) * hrsz + 16 = 256 * (iw - 7) + 255
+The advantage is that rc-core doesn't throw away its knowledge of
+the protocol used to generate a given scancode. This also means that 
+e.g. merging the rc5 and streamzap decoders is made easier (see one
+of the last patches in this series). In addition, it makes it possible
+to have mixed-protocol keytables, should anyone wish to do that.
 
-and thus
+This unfortunately means that every keymap had to be changed as well which
+is the reason for the large number of lines changed in the combined diffstat
+(the number of lines changed would probably be in the hundreds rather than
+thousands if keymaps were excluded).
 
-hrsz = floor(((iw - 7) * 256 + 255 - 16 - 32 * sph) / (ow - 1))
+Comments?
 
-gives the hrsz value that produces the highest iw value lower or equal to the 
-requested one. This corresponds to the LE hint. We decided to stop there, as 
-we found no easy way to implement the GE hint.
+---
 
-[snip]
+David Härdeman (10):
+      rc-core: int to bool conversion for winbond-cir
+      rc-core: add TX support to the winbond-cir driver
+      rc-core: use ir_raw_event_store_with_filter in winbond-cir
+      rc-core: add trailing silence in rc-loopback tx
+      rc-core: add separate defines for protocol bitmaps and numbers
+      rc-core: don't throw away protocol information
+      rc-core: use the full 32 bits for NEC scancodes
+      rc-core: merge rc5 and streamzap decoders
+      rc-core: lirc use unsigned int
+      rc-core: move timeout and checks to lirc
 
-> >>>>>> 5. Possible improvements and extensions.
-> >>>>>> - combine composing and cropping ioctl into a single ioctl
-> >>>>> 
-> >>>>> I think this could be very interesting. By doing this in a single
-> >>>>> ioctl you should have all the information needed to setup a scaler.
-> >>>>> And with the hints you can tell the driver how the input/output
-> >>>>> rectangles need to be adjusted.
-> >>> 
-> >>> You would still need S_FMT to define the size of the captured (output)
-> >>> image for capture (output) devices.
-> >> 
-> >> Frankly, I think that there is a general flaw in a purpose of S_FMT.
-> >> In V4l2, there are following entities and associated ioctl used for
-> >> configuration:
-> >> analog TV input/output - VIDIOC_S_STD
-> >> digital TV input/output - VIDIOC_S_DV_PRESET
-> >> audio  input - VIDIOC_S_AUDIO
-> >> memory buffer - VIDIOC_S_FMT
-> >> 
-> >> Now I ask:
-> >> Why S_CROP can change a format in memory buffer (width and size) but it
-> >> is not allowed to change DV preset?
-> >> Why symmetry is broken between these entities?
-> >> 
-> >> In my opinion, a format should stay fixed after successful VIDIOC_S_FMT.
-> >> It would mean that width and height of an image must not be changed by
-> >> CROP/COMPOSE setup.
-> >> For input devices, if an image is too large for desired cropping
-> >> rectangle then a buffer's composing rectangle is adjusted. So data from
-> >> a sensor are blit on a part of an image. If HW did not support buffer
-> >> composing then it would return EINVAL or increase cropping rectangle if
-> >> hints allow this.
-> >> 
-> >> Using this treat CROP/COMPOSE ioctls could be merged. Driver could
-> >> adjust crop/compose rectangle simultaneously  according to its scaling
-> >> capabilities. No adjustment of resolution of input data, output data.
-> >> Moreover no memory management would be involved because a buffer size
-> >> would not change. I think it may greatly simply driver's code.
-> >> 
-> >> BTW: I think that sensors need some dedicated ioctl for configuration
-> >> similar to ioctls available for other entities (like S_DV_PRESET or more
-> >> general S_DV_TIMINGS).
-> > 
-> > What you're proposing is essentially dropping the existing crop/fmt
-> > ioctls, and creating new well-thought ones.
-> > 
-> > Let's keep in mind that we have two classes of hardware. Most consumer
-> > devices can be controlled through a single V4L2 device node. The format
-> > and crop ioctls are used to perform cropping and scalling. If we want a
-> > consistent API for that kind of devices, we need to consider the device
-> > as implementing a simple pre-defined pipeline (similar to input ->
-> > scaler -> devnode), and map the device node ioctls to that pipeline.
-> > Users will then be able to understand what the ioctls do and how they
-> > interact with eachother.
-> 
-> Current definition of configuration of cropping and scaling is difficult
-> to understand.
-> New API for buffer allocation (VIDIOC_CREATEBUF, ...) is comming.
-> Therefore I think it would a good idea to separate memory management from
-> cropping control.
-> Maybe S_FMT should only introduce bounds for composing functionality in
-> case of capture devices?
-> Do you know how many application makes use of CROP ioctls?
 
-I don't know. Probably not many, but still a handful.
-
-> > The second class of devices include all other devices, which don't
-> > conform to that simple virtual pipeline. They should be managed with the
-> > media controller API. I don't think we will ever be able to define a
-> > consistent API at the V4L2 device node level for any kind of arbitrary
-> > device.
-> 
-> In media controller there is still need to configure both compose and
-> crop at the same time.
-
-That's correct, but they will be configured at the subdev level, with subdev 
-ioctls. We still need to define proper crop and compose ioctls there. My point 
-was that the V4L2 devnode crop and compose ioctls don't need to solve all 
-problems, they just need to be able to handle the simple input -> scaler -> 
-devnode pipeline.
-
-> Maybe passing table of v4l2_selection, every one with different targets?
-
-That could work. We would also need a pad number field in the table entries 
-for the subdev crop/compose ioctls.
+ drivers/media/dvb/dm1105/dm1105.c                  |    3 
+ drivers/media/dvb/dvb-usb/af9015.c                 |   34 +-
+ drivers/media/dvb/dvb-usb/anysee.c                 |    4 
+ drivers/media/dvb/dvb-usb/dib0700_core.c           |   10 
+ drivers/media/dvb/dvb-usb/dib0700_devices.c        |  126 +++---
+ drivers/media/dvb/dvb-usb/dvb-usb.h                |    2 
+ drivers/media/dvb/dvb-usb/lmedm04.c                |    2 
+ drivers/media/dvb/dvb-usb/technisat-usb2.c         |    2 
+ drivers/media/dvb/dvb-usb/ttusb2.c                 |    4 
+ drivers/media/dvb/mantis/mantis_input.c            |  117 +++--
+ drivers/media/dvb/siano/smsir.c                    |    2 
+ drivers/media/dvb/ttpci/budget-ci.c                |    7 
+ drivers/media/rc/Kconfig                           |   12 -
+ drivers/media/rc/Makefile                          |    1 
+ drivers/media/rc/ene_ir.c                          |    6 
+ drivers/media/rc/ene_ir.h                          |    2 
+ drivers/media/rc/imon.c                            |   35 +-
+ drivers/media/rc/ir-jvc-decoder.c                  |    6 
+ drivers/media/rc/ir-lirc-codec.c                   |   46 ++
+ drivers/media/rc/ir-nec-decoder.c                  |   32 -
+ drivers/media/rc/ir-raw.c                          |    2 
+ drivers/media/rc/ir-rc5-decoder.c                  |   62 ++-
+ drivers/media/rc/ir-rc5-sz-decoder.c               |  153 -------
+ drivers/media/rc/ir-rc6-decoder.c                  |    6 
+ drivers/media/rc/ir-sony-decoder.c                 |   17 +
+ drivers/media/rc/ite-cir.c                         |    7 
+ drivers/media/rc/keymaps/rc-adstech-dvb-t-pci.c    |   89 ++--
+ drivers/media/rc/keymaps/rc-alink-dtu-m.c          |   37 +-
+ drivers/media/rc/keymaps/rc-anysee.c               |   89 ++--
+ drivers/media/rc/keymaps/rc-apac-viewcomp.c        |   65 +--
+ drivers/media/rc/keymaps/rc-asus-pc39.c            |   79 ++--
+ drivers/media/rc/keymaps/rc-ati-tv-wonder-hd-600.c |   49 +-
+ drivers/media/rc/keymaps/rc-avermedia-a16d.c       |   69 ++-
+ drivers/media/rc/keymaps/rc-avermedia-cardbus.c    |  109 ++---
+ drivers/media/rc/keymaps/rc-avermedia-dvbt.c       |   69 ++-
+ drivers/media/rc/keymaps/rc-avermedia-m135a.c      |  187 ++++----
+ .../media/rc/keymaps/rc-avermedia-m733a-rm-k6.c    |   89 ++--
+ drivers/media/rc/keymaps/rc-avermedia-rm-ks.c      |   55 +-
+ drivers/media/rc/keymaps/rc-avermedia.c            |   73 ++-
+ drivers/media/rc/keymaps/rc-avertv-303.c           |   73 ++-
+ drivers/media/rc/keymaps/rc-azurewave-ad-tu700.c   |  107 ++---
+ drivers/media/rc/keymaps/rc-behold-columbus.c      |   73 ++-
+ drivers/media/rc/keymaps/rc-behold.c               |   69 ++-
+ drivers/media/rc/keymaps/rc-budget-ci-old.c        |   91 ++--
+ drivers/media/rc/keymaps/rc-cinergy-1400.c         |   75 ++-
+ drivers/media/rc/keymaps/rc-cinergy.c              |   73 ++-
+ drivers/media/rc/keymaps/rc-dib0700-nec.c          |  141 +++---
+ drivers/media/rc/keymaps/rc-dib0700-rc5.c          |  361 ++++++++--------
+ drivers/media/rc/keymaps/rc-digitalnow-tinytwin.c  |   99 ++--
+ drivers/media/rc/keymaps/rc-digittrade.c           |   57 +--
+ drivers/media/rc/keymaps/rc-dm1105-nec.c           |   63 +--
+ drivers/media/rc/keymaps/rc-dntv-live-dvb-t.c      |   65 +--
+ drivers/media/rc/keymaps/rc-dntv-live-dvbt-pro.c   |  107 ++---
+ drivers/media/rc/keymaps/rc-em-terratec.c          |   57 +--
+ drivers/media/rc/keymaps/rc-encore-enltv-fm53.c    |   59 +--
+ drivers/media/rc/keymaps/rc-encore-enltv.c         |  131 +++---
+ drivers/media/rc/keymaps/rc-encore-enltv2.c        |   79 ++--
+ drivers/media/rc/keymaps/rc-evga-indtube.c         |   33 +
+ drivers/media/rc/keymaps/rc-eztv.c                 |   89 ++--
+ drivers/media/rc/keymaps/rc-flydvb.c               |   65 +--
+ drivers/media/rc/keymaps/rc-flyvideo.c             |   53 +-
+ drivers/media/rc/keymaps/rc-fusionhdtv-mce.c       |  105 ++---
+ drivers/media/rc/keymaps/rc-gadmei-rm008z.c        |   63 +--
+ drivers/media/rc/keymaps/rc-genius-tvgo-a11mce.c   |   65 +--
+ drivers/media/rc/keymaps/rc-gotview7135.c          |   69 ++-
+ drivers/media/rc/keymaps/rc-hauppauge.c            |  287 ++++++-------
+ drivers/media/rc/keymaps/rc-imon-mce.c             |  173 ++++----
+ drivers/media/rc/keymaps/rc-imon-pad.c             |  215 +++++-----
+ drivers/media/rc/keymaps/rc-iodata-bctv7e.c        |   87 ++--
+ drivers/media/rc/keymaps/rc-kaiomy.c               |   65 +--
+ drivers/media/rc/keymaps/rc-kworld-315u.c          |   65 +--
+ .../media/rc/keymaps/rc-kworld-plus-tv-analog.c    |   71 ++-
+ drivers/media/rc/keymaps/rc-leadtek-y04g0051.c     |  101 ++---
+ drivers/media/rc/keymaps/rc-lirc.c                 |    1 
+ drivers/media/rc/keymaps/rc-lme2510.c              |  133 +++---
+ drivers/media/rc/keymaps/rc-manli.c                |   97 ++--
+ drivers/media/rc/keymaps/rc-msi-digivox-ii.c       |   37 +-
+ drivers/media/rc/keymaps/rc-msi-digivox-iii.c      |   65 +--
+ drivers/media/rc/keymaps/rc-msi-tvanywhere-plus.c  |   89 ++--
+ drivers/media/rc/keymaps/rc-msi-tvanywhere.c       |   49 +-
+ drivers/media/rc/keymaps/rc-nebula.c               |  111 ++---
+ .../media/rc/keymaps/rc-nec-terratec-cinergy-xs.c  |  121 +++--
+ drivers/media/rc/keymaps/rc-norwood.c              |   69 +--
+ drivers/media/rc/keymaps/rc-npgtech.c              |   71 ++-
+ drivers/media/rc/keymaps/rc-pctv-sedna.c           |   65 +--
+ drivers/media/rc/keymaps/rc-pinnacle-color.c       |  107 ++---
+ drivers/media/rc/keymaps/rc-pinnacle-grey.c        |   83 ++--
+ drivers/media/rc/keymaps/rc-pinnacle-pctv-hd.c     |   51 +-
+ drivers/media/rc/keymaps/rc-pixelview-002t.c       |   53 +-
+ drivers/media/rc/keymaps/rc-pixelview-mk12.c       |   63 +--
+ drivers/media/rc/keymaps/rc-pixelview-new.c        |   63 +--
+ drivers/media/rc/keymaps/rc-pixelview.c            |   77 ++-
+ .../media/rc/keymaps/rc-powercolor-real-angel.c    |   71 ++-
+ drivers/media/rc/keymaps/rc-proteus-2309.c         |   49 +-
+ drivers/media/rc/keymaps/rc-purpletv.c             |   71 ++-
+ drivers/media/rc/keymaps/rc-pv951.c                |   63 +--
+ drivers/media/rc/keymaps/rc-rc6-mce.c              |  151 +++----
+ .../media/rc/keymaps/rc-real-audio-220-32-keys.c   |   57 +--
+ drivers/media/rc/keymaps/rc-streamzap.c            |   75 ++-
+ drivers/media/rc/keymaps/rc-tbs-nec.c              |   69 ++-
+ drivers/media/rc/keymaps/rc-technisat-usb2.c       |   67 +--
+ drivers/media/rc/keymaps/rc-terratec-cinergy-xs.c  |   95 ++--
+ drivers/media/rc/keymaps/rc-terratec-slim-2.c      |   37 +-
+ drivers/media/rc/keymaps/rc-terratec-slim.c        |   57 +--
+ drivers/media/rc/keymaps/rc-tevii-nec.c            |   95 ++--
+ drivers/media/rc/keymaps/rc-total-media-in-hand.c  |   71 ++-
+ drivers/media/rc/keymaps/rc-trekstor.c             |   57 +--
+ drivers/media/rc/keymaps/rc-tt-1500.c              |   79 ++--
+ drivers/media/rc/keymaps/rc-twinhan1027.c          |  107 ++---
+ drivers/media/rc/keymaps/rc-videomate-m1f.c        |  103 ++---
+ drivers/media/rc/keymaps/rc-videomate-s350.c       |   89 ++--
+ drivers/media/rc/keymaps/rc-videomate-tv-pvr.c     |   93 ++--
+ drivers/media/rc/keymaps/rc-winfast-usbii-deluxe.c |   57 +--
+ drivers/media/rc/keymaps/rc-winfast.c              |  113 +++--
+ drivers/media/rc/mceusb.c                          |   30 -
+ drivers/media/rc/nuvoton-cir.c                     |   14 -
+ drivers/media/rc/rc-core-priv.h                    |    9 
+ drivers/media/rc/rc-loopback.c                     |   33 -
+ drivers/media/rc/rc-main.c                         |  248 ++++++++---
+ drivers/media/rc/streamzap.c                       |   12 -
+ drivers/media/rc/winbond-cir.c                     |  442 ++++++++++++++++----
+ drivers/media/video/bt8xx/bttv-input.c             |   10 
+ drivers/media/video/cx18/cx18-i2c.c                |    2 
+ drivers/media/video/cx231xx/cx231xx-input.c        |    2 
+ drivers/media/video/cx23885/cx23885-input.c        |    4 
+ drivers/media/video/cx88/cx88-input.c              |   18 -
+ drivers/media/video/em28xx/em28xx-cards.c          |   17 +
+ drivers/media/video/em28xx/em28xx-input.c          |   38 +-
+ drivers/media/video/em28xx/em28xx.h                |    1 
+ drivers/media/video/hdpvr/hdpvr-i2c.c              |    2 
+ drivers/media/video/ir-kbd-i2c.c                   |   26 +
+ drivers/media/video/ivtv/ivtv-i2c.c                |    8 
+ drivers/media/video/pvrusb2/pvrusb2-i2c-core.c     |    4 
+ drivers/media/video/saa7134/saa7134-input.c        |    8 
+ drivers/staging/tm6000/tm6000-cards.c              |    2 
+ drivers/staging/tm6000/tm6000-input.c              |   46 +-
+ include/media/rc-core.h                            |   30 +
+ include/media/rc-map.h                             |   62 ++-
+ 138 files changed, 4735 insertions(+), 4609 deletions(-)
+ delete mode 100644 drivers/media/rc/ir-rc5-sz-decoder.c
 
 -- 
-Regards,
+David Härdeman
 
-Laurent Pinchart
