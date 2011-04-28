@@ -1,54 +1,102 @@
 Return-path: <mchehab@pedra>
-Received: from smtp206.alice.it ([82.57.200.102]:41541 "EHLO smtp206.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751904Ab1DUJvw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Apr 2011 05:51:52 -0400
-From: Antonio Ospite <ospite@studenti.unina.it>
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:50020 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755296Ab1D1POG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Apr 2011 11:14:06 -0400
+Subject: [PATCH 01/10] rc-core: int to bool conversion for winbond-cir
 To: linux-media@vger.kernel.org
-Cc: Antonio Ospite <ospite@studenti.unina.it>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Drew Fisher <drew.m.fisher@gmail.com>
-Subject: [PATCH 3/3] gspca - kinect: fix comments referring to color camera
-Date: Thu, 21 Apr 2011 11:51:36 +0200
-Message-Id: <1303379496-12899-4-git-send-email-ospite@studenti.unina.it>
-In-Reply-To: <1303379496-12899-1-git-send-email-ospite@studenti.unina.it>
-References: <4DADF1CB.4050504@redhat.com>
- <1303379496-12899-1-git-send-email-ospite@studenti.unina.it>
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: jarod@wilsonet.com, mchehab@redhat.com
+Date: Thu, 28 Apr 2011 17:13:17 +0200
+Message-ID: <20110428151317.8272.86801.stgit@felix.hardeman.nu>
+In-Reply-To: <20110428151311.8272.17290.stgit@felix.hardeman.nu>
+References: <20110428151311.8272.17290.stgit@felix.hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Use the expression "video stream" instead of "color camera" which is
-more correct as the driver supports the RGB and IR image on the same
-endpoint.
+Using bool instead of an int helps readability a bit.
 
-Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
+Signed-off-by: David Härdeman <david@hardeman.nu>
 ---
- drivers/media/video/gspca/kinect.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/rc/winbond-cir.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/video/gspca/kinect.c b/drivers/media/video/gspca/kinect.c
-index b4f9e2b..2028c64 100644
---- a/drivers/media/video/gspca/kinect.c
-+++ b/drivers/media/video/gspca/kinect.c
-@@ -233,7 +233,7 @@ static int sd_config(struct gspca_dev *gspca_dev,
+diff --git a/drivers/media/rc/winbond-cir.c b/drivers/media/rc/winbond-cir.c
+index b0a5fdc..cdb5ef4 100644
+--- a/drivers/media/rc/winbond-cir.c
++++ b/drivers/media/rc/winbond-cir.c
+@@ -382,7 +382,7 @@ wbcir_shutdown(struct pnp_dev *device)
+ {
+ 	struct device *dev = &device->dev;
+ 	struct wbcir_data *data = pnp_get_drvdata(device);
+-	int do_wake = 1;
++	bool do_wake = true;
+ 	u8 match[11];
+ 	u8 mask[11];
+ 	u8 rc6_csl = 0;
+@@ -392,14 +392,14 @@ wbcir_shutdown(struct pnp_dev *device)
+ 	memset(mask, 0, sizeof(mask));
  
- 	sd->cam_tag = 0;
+ 	if (wake_sc == INVALID_SCANCODE || !device_may_wakeup(dev)) {
+-		do_wake = 0;
++		do_wake = false;
+ 		goto finish;
+ 	}
  
--	/* Only color camera is supported for now,
-+	/* Only video stream is supported for now,
- 	 * which has stream flag = 0x80 */
- 	sd->stream_flag = 0x80;
+ 	switch (protocol) {
+ 	case IR_PROTOCOL_RC5:
+ 		if (wake_sc > 0xFFF) {
+-			do_wake = 0;
++			do_wake = false;
+ 			dev_err(dev, "RC5 - Invalid wake scancode\n");
+ 			break;
+ 		}
+@@ -418,7 +418,7 @@ wbcir_shutdown(struct pnp_dev *device)
  
-@@ -243,7 +243,7 @@ static int sd_config(struct gspca_dev *gspca_dev,
- 	cam->nmodes = ARRAY_SIZE(video_camera_mode);
+ 	case IR_PROTOCOL_NEC:
+ 		if (wake_sc > 0xFFFFFF) {
+-			do_wake = 0;
++			do_wake = false;
+ 			dev_err(dev, "NEC - Invalid wake scancode\n");
+ 			break;
+ 		}
+@@ -440,7 +440,7 @@ wbcir_shutdown(struct pnp_dev *device)
  
- #if 0
--	/* Setting those values is not needed for color camera */
-+	/* Setting those values is not needed for video stream */
- 	cam->npkt = 15;
- 	gspca_dev->pkt_size = 960 * 2;
- #endif
--- 
-1.7.4.4
+ 		if (wake_rc6mode == 0) {
+ 			if (wake_sc > 0xFFFF) {
+-				do_wake = 0;
++				do_wake = false;
+ 				dev_err(dev, "RC6 - Invalid wake scancode\n");
+ 				break;
+ 			}
+@@ -496,7 +496,7 @@ wbcir_shutdown(struct pnp_dev *device)
+ 			} else if (wake_sc <= 0x007FFFFF) {
+ 				rc6_csl = 60;
+ 			} else {
+-				do_wake = 0;
++				do_wake = false;
+ 				dev_err(dev, "RC6 - Invalid wake scancode\n");
+ 				break;
+ 			}
+@@ -508,14 +508,14 @@ wbcir_shutdown(struct pnp_dev *device)
+ 			mask[i++] = 0x0F;
+ 
+ 		} else {
+-			do_wake = 0;
++			do_wake = false;
+ 			dev_err(dev, "RC6 - Invalid wake mode\n");
+ 		}
+ 
+ 		break;
+ 
+ 	default:
+-		do_wake = 0;
++		do_wake = false;
+ 		break;
+ 	}
+ 
 
