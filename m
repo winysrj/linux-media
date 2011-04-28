@@ -1,46 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.10]:64931 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755350Ab1DGLvY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Apr 2011 07:51:24 -0400
-Date: Thu, 7 Apr 2011 13:51:12 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Willy POISSON <willy.poisson@stericsson.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: v4l: Buffer pools
-In-Reply-To: <201104010150.44097.laurent.pinchart@ideasonboard.com>
-Message-ID: <Pine.LNX.4.64.1104071340420.26842@axis700.grange>
-References: <757395B8DE5A844B80F3F4BE9867DDB652374B2340@EXDCVYMBSTM006.EQ1STM.local>
- <201104010150.44097.laurent.pinchart@ideasonboard.com>
+Received: from smtp.nokia.com ([147.243.1.48]:20418 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759947Ab1D1OSW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Apr 2011 10:18:22 -0400
+Message-ID: <4DB97725.2070501@maxwell.research.nokia.com>
+Date: Thu, 28 Apr 2011 17:18:13 +0300
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Hans de Goede <hdegoede@redhat.com>
+CC: Yordan Kamenov <ykamenov@mm-sol.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/1 v3] libv4l: Add plugin support to libv4l
+References: <cover.1297680043.git.ykamenov@mm-sol.com> <234f9f1fbf05f602d2a079962305e050976f1c58.1297680043.git.ykamenov@mm-sol.com> <4DB961A3.70000@redhat.com>
+In-Reply-To: <4DB961A3.70000@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Laurent
+Hans de Goede wrote:
+> Hi,
 
-On Fri, 1 Apr 2011, Laurent Pinchart wrote:
+Hi Hans, Yordan,
 
-[snip]
-
-> - Cache management (ISP and DSS)
+> First of all my apologies for taking so long to get around to
+> reviewing this.
 > 
-> Cache needs to be synchronized between userspace applications, kernel space 
-> and hardware. Synchronizing the cache is an expensive operation and should be 
-> avoided when possible. Userspace applications don't need to select memory 
-> mapping cache attributes, but should be able to either handle cache 
-> synchronization explicitly, or override the drivers' default behaviour.
+> Over all it looks good, I've put some small remarks inline, if
+> you fix these I can merge this. I wonder though, given the recent
+> limbo around Nokia's change of focus, if there are any plans to
+> actually move forward with a plugin using this... ?
 
-So, what cache attributes are currently used by the driver? Presumably, it 
-is some cacheable variant? And which way should the application be able to 
-override the driver's behaviour? One of these overrides would probably be 
-"skip cache invalidate (input) / flush (output)," right? Anything else?
+Yes, there are. That hasn't changed a bit.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+> The reason I'm asking is that adding the plugin framework if nothing
+> is going to use it seems a bit senseless.
+
+I agree with that. I also hope others would find the plugin framework
+useful as well. :-)
+
+A minor comment on the patch itself: there are a few checkpatch.pl
+warnings from it, mostly lines over 80 characters, but also others.
+
+Cheers,
+
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
