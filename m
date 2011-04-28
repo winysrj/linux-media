@@ -1,77 +1,55 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:50760 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753618Ab1DVJHs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Apr 2011 05:07:48 -0400
-Received: by wya21 with SMTP id 21so319193wya.19
-        for <linux-media@vger.kernel.org>; Fri, 22 Apr 2011 02:07:47 -0700 (PDT)
-Subject: [PATCH 1/2] [BUG]DM04/QQBOX v1.85 usb_buffer and mutex.
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Date: Fri, 22 Apr 2011 10:07:40 +0100
-Message-ID: <1303463260.2525.4.camel@localhost>
-Mime-Version: 1.0
+Received: from smtp.nokia.com ([147.243.128.24]:39861 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754886Ab1D1K2Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Apr 2011 06:28:24 -0400
+Message-ID: <4DB94122.9010203@nokia.com>
+Date: Thu, 28 Apr 2011 13:27:46 +0300
+From: Sakari Ailus <sakari.ailus@nokia.com>
+MIME-Version: 1.0
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+CC: kalle.jokiniemi@nokia.com, lrg@slimlogic.co.uk,
+	mchehab@infradead.org, svarbatov@mm-sol.com, saaguirre@ti.com,
+	grosikopulos@mm-sol.com, vimarsh.zutshi@nokia.com,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	laurent.pinchart@ideasonboard.com
+Subject: Re: [RFC] Regulator state after regulator_get
+References: <9D0D31AA57AAF5499AFDC63D6472631B09C76A@008-AM1MPN1-036.mgdnok.nokia.com> <4DB9348D.7000501@nokia.com> <9D0D31AA57AAF5499AFDC63D6472631B09C7BE@008-AM1MPN1-036.mgdnok.nokia.com> <20110428102009.GB14494@opensource.wolfsonmicro.com>
+In-Reply-To: <20110428102009.GB14494@opensource.wolfsonmicro.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-usb_buffer not inside mutex lock, waiting caller can alter buffer.
- Static added to lme2510_exit and lme2510_exit_int.
- Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+Mark Brown wrote:
+> On Thu, Apr 28, 2011 at 09:44:10AM +0000, kalle.jokiniemi@nokia.com wrote:
+> 
+>>  > Another alternative to the first option you proposed could be to add a
+>>  > flags field to regulator_consumer_supply, and use a flag to recognise
+>>  > regulators which need to be disabled during initialisation. The flag
+>>  > could be set by using a new macro e.g. REGULATOR_SUPPLY_NASTY() when
+>>  > defining the regulator.
+> 
+>> This sounds like a good option actually. Liam, Mark, any opinions?
+> 
+> I'm not sure what "supply_nasty" would mean?  This also doesn't seem
+> like something that we can set up per supply - it's going to affect the
+> whole regulator state, it's not something that only affects a single
+> supply.
 
----
- drivers/media/dvb/dvb-usb/lmedm04.c |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
+supply_nasty() would be used to define a regulator which is enabled by
+the boot loader when it shouldn't be, which is the actual problem.
 
-diff --git a/drivers/media/dvb/dvb-usb/lmedm04.c b/drivers/media/dvb/dvb-usb/lmedm04.c
-index 4e5c521..aa9a6ff 100644
---- a/drivers/media/dvb/dvb-usb/lmedm04.c
-+++ b/drivers/media/dvb/dvb-usb/lmedm04.c
-@@ -169,14 +169,14 @@ static int lme2510_usb_talk(struct dvb_usb_device *d,
- 	}
- 	buff = st->usb_buffer;
- 
--	/* the read/write capped at 512 */
--	memcpy(buff, wbuf, (wlen > 512) ? 512 : wlen);
--
- 	ret = mutex_lock_interruptible(&d->usb_mutex);
- 
- 	if (ret < 0)
- 		return -EAGAIN;
- 
-+	/* the read/write capped at 512 */
-+	memcpy(buff, wbuf, (wlen > 512) ? 512 : wlen);
-+
- 	ret |= usb_clear_halt(d->udev, usb_sndbulkpipe(d->udev, 0x01));
- 
- 	ret |= lme2510_bulk_write(d->udev, buff, wlen , 0x01);
-@@ -1234,7 +1234,7 @@ static struct dvb_usb_device_properties lme2510c_properties = {
- 	}
- };
- 
--void *lme2510_exit_int(struct dvb_usb_device *d)
-+static void *lme2510_exit_int(struct dvb_usb_device *d)
- {
- 	struct lme2510_state *st = d->priv;
- 	struct dvb_usb_adapter *adap = &d->adapter[0];
-@@ -1261,7 +1261,7 @@ void *lme2510_exit_int(struct dvb_usb_device *d)
- 	return buffer;
- }
- 
--void lme2510_exit(struct usb_interface *intf)
-+static void lme2510_exit(struct usb_interface *intf)
- {
- 	struct dvb_usb_device *d = usb_get_intfdata(intf);
- 	void *usb_buffer;
-@@ -1303,5 +1303,5 @@ module_exit(lme2510_module_exit);
- 
- MODULE_AUTHOR("Malcolm Priestley <tvboxspy@gmail.com>");
- MODULE_DESCRIPTION("LME2510(C) DVB-S USB2.0");
--MODULE_VERSION("1.84");
-+MODULE_VERSION("1.85");
- MODULE_LICENSE("GPL");
+We have a regulator which is enabled by the boot loader. However, this
+regulator shouldn't be on at boot since it's not needed by any devices
+--- the drivers for those devices will use proper regulator framework
+calls to use the regulator when it's needed. There's no chance to have
+the boot loader fixed, as stated by Kalle.
+
+How should this regulator be turned off in the boot by the kernel?
+
+Regards,
+
 -- 
-1.7.4.1
-
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
