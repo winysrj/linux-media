@@ -1,79 +1,55 @@
 Return-path: <mchehab@pedra>
-Received: from mail-in-14.arcor-online.net ([151.189.21.54]:35119 "EHLO
-	mail-in-14.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755581Ab1DDUTA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Apr 2011 16:19:00 -0400
-From: stefan.ringel@arcor.de
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, d.belimov@gmail.com,
-	Stefan Ringel <stefan.ringel@arcor.de>
-Subject: [PATCH 4/5] tm6000: add kernel module desciption
-Date: Mon,  4 Apr 2011 22:18:43 +0200
-Message-Id: <1301948324-27186-4-git-send-email-stefan.ringel@arcor.de>
-In-Reply-To: <1301948324-27186-1-git-send-email-stefan.ringel@arcor.de>
-References: <1301948324-27186-1-git-send-email-stefan.ringel@arcor.de>
+Received: from smtp.nokia.com ([147.243.1.47]:20536 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755164Ab1D1LHz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Apr 2011 07:07:55 -0400
+Message-ID: <4DB94A70.3060009@nokia.com>
+Date: Thu, 28 Apr 2011 14:07:28 +0300
+From: Sakari Ailus <sakari.ailus@nokia.com>
+MIME-Version: 1.0
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+CC: kalle.jokiniemi@nokia.com, lrg@slimlogic.co.uk,
+	mchehab@infradead.org, svarbatov@mm-sol.com, saaguirre@ti.com,
+	grosikopulos@mm-sol.com, vimarsh.zutshi@nokia.com,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	laurent.pinchart@ideasonboard.com
+Subject: Re: [RFC] Regulator state after regulator_get
+References: <9D0D31AA57AAF5499AFDC63D6472631B09C76A@008-AM1MPN1-036.mgdnok.nokia.com> <4DB9348D.7000501@nokia.com> <9D0D31AA57AAF5499AFDC63D6472631B09C7BE@008-AM1MPN1-036.mgdnok.nokia.com> <20110428102009.GB14494@opensource.wolfsonmicro.com> <4DB94122.9010203@nokia.com> <20110428104021.GD14494@opensource.wolfsonmicro.com>
+In-Reply-To: <20110428104021.GD14494@opensource.wolfsonmicro.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Stefan Ringel <stefan.ringel@arcor.de>
+Mark Brown wrote:
+> On Thu, Apr 28, 2011 at 01:27:46PM +0300, Sakari Ailus wrote:
+>> Mark Brown wrote:
+> 
+>>> I'm not sure what "supply_nasty" would mean?  This also doesn't seem
+>>> like something that we can set up per supply - it's going to affect the
+>>> whole regulator state, it's not something that only affects a single
+>>> supply.
+> 
+>> supply_nasty() would be used to define a regulator which is enabled by
+>> the boot loader when it shouldn't be, which is the actual problem.
+> 
+> That's *really* not a clear name.
 
-add kernel module desciption
+I agree. It was just meant to imply that there's something wrong in the
+way it behaves. :-)
 
+>> How should this regulator be turned off in the boot by the kernel?
+> 
+> Have you read my previous mail where I described the existing support
+> for doing this when we have a full set of information on the regualtors
+> in the systems?
 
-Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
----
- drivers/staging/tm6000/README |   40 ++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 40 insertions(+), 0 deletions(-)
+Yes, I did read it but I first understood that this use case wasn't
+supported right now. Having read it again, that's clearly the way to go
+with fixing this. Thanks.
 
-diff --git a/drivers/staging/tm6000/README b/drivers/staging/tm6000/README
-index c340ebc..48e8d9b 100644
---- a/drivers/staging/tm6000/README
-+++ b/drivers/staging/tm6000/README
-@@ -1,3 +1,43 @@
-+tm6000
-+======
-+
-+You will only use analogue tv, you must additionally load tm6000_alsa. 
-+You will only use digital tv, you must additionally load tm6000_dvb.
-+For both must load tm6000, tm6000_alsa and tm6000_dvb.
-+
-+Kernel module parameter:
-+
-+tm6000
-+------
-+debug:
-+i2c_debug:
-+ir_debug:
-+card : see CARDLIST
-+enable_ir: enable infrared
-+    0 -> disable
-+    1 -> enable (default)
-+tm6010_a_mode: set audio mode (tm6010 only)
-+    0 -> auto
-+    1 -> A2
-+    2 -> NICAM
-+    3 -> BTSC
-+    etc.
-+xc2028_mts: enable mts firmware (xc2028/3028 only)
-+    0 -> disable (default)
-+    1 -> enable mts firmware
-+xc2028_dtv78: set dualband (xc2028/3028 only)
-+    0 -> singleband/auto (default) i.e. dtv7 only
-+    1 -> dualband
-+
-+tm6000_alsa
-+-----------
-+debug: enable debug information
-+
-+tm6000_dvb
-+----------
-+debug: enable debug information
-+
-+
- Todo:
- 	- Fix the loss of some blocks when receiving the video URB's
- 	- Add a lock at tm6000_read_write_usb() to prevent two simultaneous access to the
+Regards,
+
 -- 
-1.7.3.4
-
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
