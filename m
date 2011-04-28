@@ -1,39 +1,49 @@
 Return-path: <mchehab@pedra>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:54288 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753364Ab1DSJV4 (ORCPT
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:47930 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755296Ab1D1POV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Apr 2011 05:21:56 -0400
-Date: Tue, 19 Apr 2011 10:21:35 +0100
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: 'Arnd Bergmann' <arnd@arndb.de>, linux-samsung-soc@vger.kernel.org,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Kukjin Kim' <kgene.kim@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 4/7] v4l: videobuf2: add IOMMU based DMA memory
-	allocator
-Message-ID: <20110419092135.GD22799@n2100.arm.linux.org.uk>
-References: <1303118804-5575-1-git-send-email-m.szyprowski@samsung.com> <1303118804-5575-5-git-send-email-m.szyprowski@samsung.com> <201104181615.49009.arnd@arndb.de> <00ea01cbfe70$860ca900$9225fb00$%szyprowski@samsung.com>
+	Thu, 28 Apr 2011 11:14:21 -0400
+Subject: [PATCH 04/10] rc-core: add trailing silence in rc-loopback tx
+To: linux-media@vger.kernel.org
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: jarod@wilsonet.com, mchehab@redhat.com
+Date: Thu, 28 Apr 2011 17:13:32 +0200
+Message-ID: <20110428151332.8272.25147.stgit@felix.hardeman.nu>
+In-Reply-To: <20110428151311.8272.17290.stgit@felix.hardeman.nu>
+References: <20110428151311.8272.17290.stgit@felix.hardeman.nu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <00ea01cbfe70$860ca900$9225fb00$%szyprowski@samsung.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, Apr 19, 2011 at 11:02:34AM +0200, Marek Szyprowski wrote:
-> On Monday, April 18, 2011 4:16 PM Arnd Bergmann wrote:
-> > My feeling is that this is not the right abstraction. Why can't you
-> > just implement the regular dma-mapping.h interfaces for your IOMMU
-> > so that the videobuf code can use the existing allocators?
-> 
-> I'm not really sure which existing videobuf2 allocators might transparently
-> support IOMMU interface yet
-> 
-> Do you think that all iommu operations can be hidden behind dma_map_single 
-> and dma_unmap_single?
+If an IR command is sent (using the LIRC userspace) to rc-loopback
+which doesn't include a trailing space, the result is that the message
+won't be completely decoded. In addition, "leftovers" from a previous
+transmission can be left until the next one. Fix this by faking a long
+silence after the end of TX data.
 
-That is one of the intentions of the DMA API.
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/rc/rc-loopback.c |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/rc/rc-loopback.c b/drivers/media/rc/rc-loopback.c
+index 49cee61..cc846b2 100644
+--- a/drivers/media/rc/rc-loopback.c
++++ b/drivers/media/rc/rc-loopback.c
+@@ -146,6 +146,12 @@ static int loop_tx_ir(struct rc_dev *dev, int *txbuf, u32 n)
+ 		if (rawir.duration)
+ 			ir_raw_event_store_with_filter(dev, &rawir);
+ 	}
++
++	/* Fake a silence long enough to cause us to go idle */
++	rawir.pulse = false;
++	rawir.duration = dev->timeout;
++	ir_raw_event_store_with_filter(dev, &rawir);
++
+ 	ir_raw_event_handle(dev);
+ 
+ out:
+
