@@ -1,93 +1,120 @@
 Return-path: <mchehab@pedra>
-Received: from smtp22.services.sfr.fr ([93.17.128.10]:9913 "EHLO
-	smtp22.services.sfr.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756171Ab1DHMuv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Apr 2011 08:50:51 -0400
-Received: from filter.sfr.fr (localhost [127.0.0.1])
-	by msfrf2219.sfr.fr (SMTP Server) with ESMTP id 0BF687000087
-	for <linux-media@vger.kernel.org>; Fri,  8 Apr 2011 14:50:47 +0200 (CEST)
-Received: from smtp-in.softsystem.co.uk (unknown [93.14.171.92])
-	by msfrf2219.sfr.fr (SMTP Server) with SMTP id B69C57000086
-	for <linux-media@vger.kernel.org>; Fri,  8 Apr 2011 14:50:46 +0200 (CEST)
-Received: FROM [192.168.1.62] (gagarin [192.168.1.62])
-	BY smtp-in.softsystem.co.uk [93.14.171.92] (SoftMail 1.0.6, www.softsystem.co.uk) WITH ESMTP
-	FOR <linux-media@vger.kernel.org>; Fri, 08 Apr 2011 14:50:46 +0200
-Subject: [PATCH] Fix cx88 remote control input
-From: Lawrence Rust <lawrence@softsystem.co.uk>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Date: Fri, 08 Apr 2011 14:50:45 +0200
-Message-ID: <1302267045.1749.38.camel@gagarin>
+Received: from oproxy3-pub.bluehost.com ([69.89.21.8]:48173 "HELO
+	oproxy3-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755658Ab1D1Rie (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Apr 2011 13:38:34 -0400
+Date: Thu, 28 Apr 2011 10:38:02 -0700
+From: Randy Dunlap <rdunlap@xenotime.net>
+To: Michal Marek <mmarek@suse.cz>, Arnaud Lacombe <lacombar@gmail.com>
+Cc: linux-kbuild@vger.kernel.org, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH 1/5] kconfig: add an option to determine a menu's
+ visibility
+Message-Id: <20110428103802.24c77ff4.rdunlap@xenotime.net>
+In-Reply-To: <20101126081736.0ba8a90b.rdunlap@xenotime.net>
+References: <4CD300AC.3010708@redhat.com>
+	<1289079027-3037-2-git-send-email-lacombar@gmail.com>
+	<AANLkTi=WS6cveqzxVmwC2wucaCpEJJLHXx0A8XbAChRb@mail.gmail.com>
+	<4CEF8C74.8010600@suse.cz>
+	<20101126161511.GD9418@sepie.suse.cz>
+	<20101126081736.0ba8a90b.rdunlap@xenotime.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This patch restores remote control input for cx2388x based boards on
-Linux kernels >= 2.6.38.
+On Fri, 26 Nov 2010 08:17:36 -0800 Randy Dunlap wrote:
 
-After upgrading from Linux 2.6.37 to 2.6.38 I found that the remote
-control input of my Hauppauge Nova-S plus was no longer functioning.  
-I posted a question on this newsgroup and Mauro Carvalho Chehab gave
-some helpful pointers as to the likely cause.
+> On Fri, 26 Nov 2010 17:15:11 +0100 Michal Marek wrote:
+> 
+> > On Fri, Nov 26, 2010 at 11:31:16AM +0100, Michal Marek wrote:
+> > > On 25.11.2010 18:06, Arnaud Lacombe wrote:
+> > > > Hi folks,
+> > > > 
+> > > > On Sat, Nov 6, 2010 at 5:30 PM, Arnaud Lacombe <lacombar@gmail.com> wrote:
+> > > >> This option is aimed to add the possibility to control a menu's visibility
+> > > >> without adding dependency to the expression to all the submenu.
+> > > >>
+> > > >> Signed-off-by: Arnaud Lacombe <lacombar@gmail.com>
+> > > >> ---
+> > > >>  scripts/kconfig/expr.h      |    1 +
+> > > >>  scripts/kconfig/lkc.h       |    1 +
+> > > >>  scripts/kconfig/menu.c      |   11 +++++++++++
+> > > >>  scripts/kconfig/zconf.gperf |    1 +
+> > > >>  scripts/kconfig/zconf.y     |   21 ++++++++++++++++++---
+> > > >>  5 files changed, 32 insertions(+), 3 deletions(-)
+> > > >>
+> > > > As there seem to be no interested from Michal to either, ACK, NACK, or
+> > > > even comment this series, please let me withdraw these patches. If
+> > > > this mail is not enough to void the patch, I hope to still be able to
+> > > > withdraw my Signed-off-by from this particular series, and thus no
+> > > > longer be able to certify the origin of the patches to prevent their
+> > > > merge.
+> > > 
+> > > Hi Arnaud,
+> > > 
+> > > I'm sorry, I was sick for longer time and am now going through the
+> > > patches that accumulated during that time. I understand your
+> > > frustration, but the fact that I commented / applied some other patches
+> > > yesterday and not this one does not mean that I'm ignoring it. Please
+> > > accept my apologies, I'm looking at your patch right now...
+> > 
+> > So the patches look OK to me, I added your patches to
+> > kbuild-2.6.git#menu-visibility and merged the branch to for-next. The
+> > new syntax should be documented in
+> > Documentation/kbuild/kconfig-language.txt, below is a first attempt at
+> > it. If the patches work fine in linux-next _and_ you give me permission
+> > to push them to Linus, I'll move them to rc-fixes and send a pull
+> > request.
+> > 
+> > Michal
+> > 
+> > 
+> > Subject: [PATCH] kconfig: Document the new "visible if" syntax
 
-Turns out that there are 2 problems:
+Hi,
 
-1. In the IR interrupt handler of cx88-input.c there's a 32-bit multiply
-overflow which causes IR pulse durations to be incorrectly calculated.
-
-2. The RC5 decoder appends the system code to the scancode and passes
-the combination to rc_keydown().  Unfortunately, the combined value is
-then forwarded to input_event() which then fails to recognise a valid
-scancode and hence no input events are generated.
-
-I note that in commit 2997137be8eba5bf9c07a24d5fda1f4225f9ca7d, which
-introduced these changes, David Härdeman changed the IR sample frequency
-to a supposed 4kHz.  However, the registers dealing with IR input are
-undocumented in the cx2388x datasheets and there's no publicly available
-information on them.  I have to ask the question why this change was
-made as it is of no apparent benefit and could have unanticipated
-consequences.  IMHO that change should also be reverted unless there is
-evidence to substantiate it.
-
-Signed off by: Lawrence Rust <lvr at softsystem dot co dot uk>
-
-diff --git a/drivers/media/rc/ir-rc5-decoder.c b/drivers/media/rc/ir-rc5-decoder.c
-index ebdba55..c4052da 100644
---- a/drivers/media/rc/ir-rc5-decoder.c
-+++ b/drivers/media/rc/ir-rc5-decoder.c
-@@ -144,10 +144,15 @@ again:
- 			system   = (data->bits & 0x007C0) >> 6;
- 			toggle   = (data->bits & 0x00800) ? 1 : 0;
- 			command += (data->bits & 0x01000) ? 0 : 0x40;
--			scancode = system << 8 | command;
--
--			IR_dprintk(1, "RC5 scancode 0x%04x (toggle: %u)\n",
--				   scancode, toggle);
-+            /* Notes
-+             * 1. Should filter unknown systems e.g Hauppauge use 0x1e or 0x1f
-+             * 2. Don't include system in the scancode otherwise input_event()
-+             *    doesn't recognise the scancode
-+             */
-+			scancode = command;
-+
-+			IR_dprintk(1, "RC5 scancode 0x%02x (system: 0x%02x toggle: %u)\n",
-+				   scancode, system, toggle);
- 		}
- 
- 		rc_keydown(dev, scancode, toggle);
-diff --git a/drivers/media/video/cx88/cx88-input.c b/drivers/media/video/cx88/cx88-input.c
-index c820e2f..7281db4 100644
---- a/drivers/media/video/cx88/cx88-input.c
-+++ b/drivers/media/video/cx88/cx88-input.c
-@@ -524,7 +524,7 @@ void cx88_ir_irq(struct cx88_core *core)
- 	for (todo = 32; todo > 0; todo -= bits) {
- 		ev.pulse = samples & 0x80000000 ? false : true;
- 		bits = min(todo, 32U - fls(ev.pulse ? samples : ~samples));
--		ev.duration = (bits * NSEC_PER_SEC) / (1000 * ir_samplerate);
-+		ev.duration = bits * (NSEC_PER_SEC / (1000 * ir_samplerate)); /* NB avoid 32-bit overflow */
- 		ir_raw_event_store_with_filter(ir->dev, &ev);
- 		samples <<= bits;
- 	}
+Can we get this kconfig-language.txt patch added to the kernel source tree, please?
 
 
+> > Signed-off-by: Michal Marek <mmarek@suse.cz>
+> > 
+> > diff --git a/Documentation/kbuild/kconfig-language.txt b/Documentation/kbuild/kconfig-language.txt
+> > index 2fe93ca..2522cca 100644
+> > --- a/Documentation/kbuild/kconfig-language.txt
+> > +++ b/Documentation/kbuild/kconfig-language.txt
+> > @@ -114,6 +114,13 @@ applicable everywhere (see syntax).
+> >  	the illegal configurations all over.
+> >  	kconfig should one day warn about such things.
+> >  
+> > +- limiting menu display: "visible if" <expr>
+> > +  This attribute is only applicable to menu blocks, if the condition is
+> > +  false, the menu block is not displayed to the user (the symbols
+> > +  contained there can still be selected by other symbols, though). It is
+> > +  similar to a conditional "prompt" attribude for individual menu
+> > +  entries.
+> > +
+> 
+> Default value of "visible" is true ??
+> 
+> >  - numerical ranges: "range" <symbol> <symbol> ["if" <expr>]
+> >    This allows to limit the range of possible input values for int
+> >    and hex symbols. The user can only input a value which is larger than
+> > @@ -300,7 +307,8 @@ menu:
+> >  	"endmenu"
+> >  
+> >  This defines a menu block, see "Menu structure" above for more
+> > -information. The only possible options are dependencies.
+> > +information. The only possible options are dependencies and "visible"
+> > +attributes.
+> >  
+> >  if:
+> >  
+> > --
+
+
+---
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
