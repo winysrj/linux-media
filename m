@@ -1,74 +1,95 @@
 Return-path: <mchehab@pedra>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:43337 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752416Ab1DEDUY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2011 23:20:24 -0400
-Date: Mon, 4 Apr 2011 22:20:14 -0500
-From: Jonathan Nieder <jrnieder@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Huber Andreas <hobrom@corax.at>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-kernel@vger.kernel.org, Ben Hutchings <ben@decadent.org.uk>,
-	Steven Toth <stoth@kernellabs.com>
-Subject: [RFC/PATCH v2 0/7] locking fixes for cx88
-Message-ID: <20110405032014.GA4498@elie>
-References: <20110327150610.4029.95961.reportbug@xen.corax.at>
- <20110327152810.GA32106@elie>
- <20110402093856.GA17015@elie>
+Received: from smtp-cpk.frontbridge.com ([204.231.192.41]:12740 "EHLO
+	WA2EHSNDR001.bigfish.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751900Ab1D2KIm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Apr 2011 06:08:42 -0400
+Received: from mail158-ch1 (localhost.localdomain [127.0.0.1])	by
+ mail158-ch1-R.bigfish.com (Postfix) with ESMTP id 783313A0255	for
+ <linux-media@vger.kernel.org>; Fri, 29 Apr 2011 09:54:22 +0000 (UTC)
+Received: from CH1EHSMHS035.bigfish.com (snatpool1.int.messaging.microsoft.com
+ [10.43.68.242])	by mail158-ch1.bigfish.com (Postfix) with ESMTP id
+ 4212B164804B	for <linux-media@vger.kernel.org>; Fri, 29 Apr 2011 09:54:22
+ +0000 (UTC)
+From: Bob Liu <lliubbo@gmail.com>
+To: <linux-media@vger.kernel.org>
+CC: <dhowells@redhat.com>, <linux-uvc-devel@lists.berlios.de>,
+	<mchehab@redhat.com>, <hverkuil@xs4all.nl>,
+	<laurent.pinchart@ideasonboard.com>,
+	<sakari.ailus@maxwell.research.nokia.com>,
+	<martin_rubli@logitech.com>, <jarod@redhat.com>, <tj@kernel.org>,
+	<arnd@arndb.de>, <fweisbec@gmail.com>, <agust@denx.de>,
+	<gregkh@suse.de>, <daniel-gl@gmx.net>, <vapier@gentoo.org>,
+	Bob Liu <lliubbo@gmail.com>
+Subject: [PATCH 1/2] V4L/DVB: v4l2-dev: revert commit c29fcff3daafbf46d64a543c1950bbd206ad8c1c
+Date: Fri, 29 Apr 2011 18:11:34 +0800
+Message-ID: <1304071895-27898-1-git-send-email-lliubbo@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20110402093856.GA17015@elie>
+Content-Type: text/plain
+Reply-To: <lliubbo@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi again,
+Revert commit:
+V4L/DVB: v4l2-dev: remove get_unmapped_area(c29fcff3daafbf46d64a543c1950bb)
+to restore NOMMU arch supporting.
 
-Jonathan Nieder wrote:
-> Huber Andreas wrote[1]:
+Signed-off-by: Bob Liu <lliubbo@gmail.com>
+---
+ drivers/media/video/v4l2-dev.c |   18 ++++++++++++++++++
+ include/media/v4l2-dev.h       |    2 ++
+ 2 files changed, 20 insertions(+), 0 deletions(-)
 
->> Processes that try to open a cx88-blackbird driven MPEG device will hang up.
->
-> Here's a possible fix based on a patch by Ben Hutchings and
-> corrections from Andi Huber.  Warning: probably full of mistakes (my
-> fault) since I'm not familiar with any of this stuff.  Untested.
-> Review and testing would be welcome.
+diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+index 6dc7196..19d5ae2 100644
+--- a/drivers/media/video/v4l2-dev.c
++++ b/drivers/media/video/v4l2-dev.c
+@@ -352,6 +352,23 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 	return ret;
+ }
+ 
++#ifdef CONFIG_MMU
++#define v4l2_get_unmapped_area NULL
++#else
++static unsigned long v4l2_get_unmapped_area(struct file *filp,
++		unsigned long addr, unsigned long len, unsigned long pgoff,
++		unsigned long flags)
++{
++	struct video_device *vdev = video_devdata(filp);
++
++	if (!vdev->fops->get_unmapped_area)
++		return -ENOSYS;
++	if (!video_is_registered(vdev))
++		return -ENODEV;
++	return vdev->fops->get_unmapped_area(filp, addr, len, pgoff, flags);
++}
++#endif
++
+ static int v4l2_mmap(struct file *filp, struct vm_area_struct *vm)
+ {
+ 	struct video_device *vdev = video_devdata(filp);
+@@ -454,6 +471,7 @@ static const struct file_operations v4l2_fops = {
+ 	.read = v4l2_read,
+ 	.write = v4l2_write,
+ 	.open = v4l2_open,
++	.get_unmapped_area = v4l2_get_unmapped_area,
+ 	.mmap = v4l2_mmap,
+ 	.unlocked_ioctl = v4l2_ioctl,
+ #ifdef CONFIG_COMPAT
+diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+index 8266d5a..93e96fb 100644
+--- a/include/media/v4l2-dev.h
++++ b/include/media/v4l2-dev.h
+@@ -62,6 +62,8 @@ struct v4l2_file_operations {
+ 	unsigned int (*poll) (struct file *, struct poll_table_struct *);
+ 	long (*ioctl) (struct file *, unsigned int, unsigned long);
+ 	long (*unlocked_ioctl) (struct file *, unsigned int, unsigned long);
++	unsigned long (*get_unmapped_area) (struct file *, unsigned long,
++				unsigned long, unsigned long, unsigned long);
+ 	int (*mmap) (struct file *, struct vm_area_struct *);
+ 	int (*open) (struct file *);
+ 	int (*release) (struct file *);
+-- 
+1.6.3.3
 
-A reroll.  As before, the goals are: (1) eliminate deadlock, (2)
-eliminate races, (3) introduce some clarity.  The same caveats as
-last time apply --- this is only compile-tested.  Thanks again to Andi
-for testing the previous series and for other useful feedback.
 
-Patch 1 is meant to protect dev->drvlist against data races.
-Since v1, I removed some clutter in the patch itself and clarified the
-change description to match.
-
-Patch 2 addresses the original deadlock.  The only changes are the
-description and declared authorship of the patch (at Ben's request).
-
-Patch 3 is new.  It fixes the reference count breakage Andi noticed
-(another race previously protected against by the BKL).
-
-Patch 4 fixes a data race noticed by Ben (also from his patch).  It's
-unchanged.
-
-Patches 5, 6, and 7 are cleanups.
-
-Bugs?  Thoughts?
-Jonathan Nieder (7):
-  [media] cx88: protect per-device driver list with device lock
-  [media] cx88: fix locking of sub-driver operations
-  [media] cx88: hold device lock during sub-driver initialization
-  [media] cx88: use a mutex to protect cx8802_devlist
-  [media] cx88: handle attempts to use unregistered cx88-blackbird
-    driver
-  [media] cx88: don't use atomic_t for core->mpeg_users
-  [media] cx88: don't use atomic_t for core->users
-
- drivers/media/video/cx88/cx88-blackbird.c |   41 +++++++++++++++-------------
- drivers/media/video/cx88/cx88-dvb.c       |    2 +
- drivers/media/video/cx88/cx88-mpeg.c      |   40 ++++++++++++++++++----------
- drivers/media/video/cx88/cx88-video.c     |    5 ++-
- drivers/media/video/cx88/cx88.h           |   11 +++++--
- 5 files changed, 61 insertions(+), 38 deletions(-)
