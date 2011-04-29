@@ -1,98 +1,61 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:46932 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932155Ab1DLUxN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Apr 2011 16:53:13 -0400
-References: <1302639557-22186-1-git-send-email-jarod@redhat.com>
-In-Reply-To: <1302639557-22186-1-git-send-email-jarod@redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:16920 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755941Ab1D2NsT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Apr 2011 09:48:19 -0400
+Message-ID: <4DBAC19F.7010003@redhat.com>
+Date: Fri, 29 Apr 2011 10:48:15 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: [RFC PATCH] input: add KEY_IMAGES specifically for AL Image Browser
-From: Andy Walls <awalls@md.metrocast.net>
-Date: Tue, 12 Apr 2011 16:53:12 -0400
-To: Jarod Wilson <jarod@redhat.com>, linux-input@vger.kernel.org
-CC: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Jiri Kosina <jkosina@suse.cz>,
-	Linux Media <linux-media@vger.kernel.org>
-Message-ID: <8a21a9ac-79dd-4991-a059-693dde77f11c@email.android.com>
+To: Steffen Barszus <steffenbpunkt@googlemail.com>
+CC: linux-media@vger.kernel.org, Manu Abraham <abraham.manu@gmail.com>
+Subject: Re: patches missing in git ? - TT S2 1600
+References: <20110306142020.7fe695ca@grobi>
+In-Reply-To: <20110306142020.7fe695ca@grobi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Jarod Wilson <jarod@redhat.com> wrote:
+Em 06-03-2011 10:20, Steffen Barszus escreveu:
+> I have one patch lying around which will fix a kernel oops if more than
+> one TT S2 1600 is build into the same computer. 
 
->Many media center remotes have buttons intended for jumping straight to
->one type of media browser or another -- commonly,
->images/photos/pictures,
->audio/music, television, and movies. At present, remotes with an images
->or photos or pictures button use any number of different keycodes which
->sort of maybe fit. I've seen at least KEY_MEDIA, KEY_CAMERA,
->KEY_GRAPHICSEDITOR and KEY_PRESENTATION. None of those seem quite
->right.
->In my mind, KEY_MEDIA should be something more like a media center
->application launcher (and I'd like to standardize on that for things
->like the windows media center button on the mce remotes). KEY_CAMERA is
->used in a lot of webcams, and typically means "take a picture now".
->KEY_GRAPHICSEDITOR implies an editor, not a browser. KEY_PRESENTATION
->might be the closest fit here, if you think "photo slide show", but it
->may well be more intended for "run application in full-screen
->presentation mode" or to launch something like magicpoint, I dunno.
->And thus, I'd like to have a KEY_IMAGES, which matches the HID Usage AL
->Image Browser, the meaning of which I think is crystal-clear. I believe
->AL Audio Browser is already covered by KEY_AUDIO, and AL Movie Browser
->by KEY_VIDEO, so I'm also adding appropriate comments next to those
->keys.
->
->I have follow-on patches for drivers/hid/hid-input.c and for
->drivers/media/rc/* that make use of this new key, if its deemed
->appropriate for addition. To make it simpler to merge the additional
->patches, it would be nice if this could sneak into 2.6.39, and the
->rest can then get queued up for 2.6.40, avoiding any multi-tree
->integration headaches.
->
->CC: Dmitry Torokhov <dmitry.torokhov@gmail.com>
->CC: Jiri Kosina <jkosina@suse.cz>
->CC: Linux Media <linux-media@vger.kernel.org>
->Signed-off-by: Jarod Wilson <jarod@redhat.com>
->---
-> include/linux/input.h |    5 +++--
-> 1 files changed, 3 insertions(+), 2 deletions(-)
->
->diff --git a/include/linux/input.h b/include/linux/input.h
->index e428382..be082e9 100644
->--- a/include/linux/input.h
->+++ b/include/linux/input.h
->@@ -553,8 +553,8 @@ struct input_keymap_entry {
-> #define KEY_DVD			0x185	/* Media Select DVD */
-> #define KEY_AUX			0x186
-> #define KEY_MP3			0x187
->-#define KEY_AUDIO		0x188
->-#define KEY_VIDEO		0x189
->+#define KEY_AUDIO		0x188	/* AL Audio Browser */
->+#define KEY_VIDEO		0x189	/* AL Movie Browser */
-> #define KEY_DIRECTORY		0x18a
-> #define KEY_LIST		0x18b
-> #define KEY_MEMO		0x18c	/* Media Select Messages */
->@@ -605,6 +605,7 @@ struct input_keymap_entry {
-> #define KEY_MEDIA_REPEAT	0x1b7	/* Consumer - transport control */
-> #define KEY_10CHANNELSUP        0x1b8   /* 10 channels up (10+) */
-> #define KEY_10CHANNELSDOWN      0x1b9   /* 10 channels down (10-) */
->+#define KEY_IMAGES		0x1ba	/* AL Image Browser */
+I think that the bug with two TT S2 devices at the same computer were fixed,
+but I don't remember what were the adopted solution.
+
+I think that the change were inside tuner_sleep() callback, where tuner_priv
+is actually used.
+
+So, as far as I know, this patch is obsolete. I'll mark it as rejected on
+patchwork. Please test it without this patch and the latest tree, pinging
+us if the error is still there.
+
 > 
-> #define KEY_DEL_EOL		0x1c0
-> #define KEY_DEL_EOS		0x1c1
->-- 
->1.7.1
->
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media"
->in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> It still applies and compiles - does someone know if this has been
+> obsoleted by another patch or if that means it is still missing ? 
+> 
+> Thanks !
+> 
+> Kind Regards 
+> 
+> Steffen
+> 
+> diff -r 7c0b887911cf linux/drivers/media/dvb/frontends/stv090x.c
+> --- a/linux/drivers/media/dvb/frontends/stv090x.c	Mon Apr 05 22:56:43 2010 -0400
+> +++ b/linux/drivers/media/dvb/frontends/stv090x.c	Sun Apr 11 13:46:43 2010 +0200
+> @@ -4664,7 +4664,7 @@ 
+>  	if (stv090x_i2c_gate_ctrl(state, 1) < 0)
+>  		goto err;
+>  
+> -	if (state->config->tuner_sleep) {
+> +	if (fe->tuner_priv && state->config->tuner_sleep) {
+>  		if (state->config->tuner_sleep(fe) < 0)
+>  			goto err_gateoff;
+>  	}
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Maybe "Launch" instead of "AL" in the comments.  It took me a while to figure out AL even with the email context.
-
-Regards,
-Andy
