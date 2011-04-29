@@ -1,68 +1,37 @@
 Return-path: <mchehab@pedra>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:39740 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752601Ab1D2LJZ (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:54797 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932787Ab1D2XGQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Apr 2011 07:09:25 -0400
-Date: Fri, 29 Apr 2011 02:13:37 -0700
-From: Tony Lindgren <tony@atomide.com>
-To: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
-Cc: laurent.pinchart@ideasonboard.com, mchebab@infradead.org,
-	linux-omap@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/2] OMAP3: RX-51: define vdds_csib regulator supply
-Message-ID: <20110429091337.GV3755@atomide.com>
-References: <1304061120-6383-1-git-send-email-kalle.jokiniemi@nokia.com>
- <1304061120-6383-3-git-send-email-kalle.jokiniemi@nokia.com>
+	Fri, 29 Apr 2011 19:06:16 -0400
+Received: by fxm17 with SMTP id 17so2773638fxm.19
+        for <linux-media@vger.kernel.org>; Fri, 29 Apr 2011 16:06:15 -0700 (PDT)
+Message-ID: <4DBB4463.8050407@gmail.com>
+Date: Sat, 30 Apr 2011 01:06:11 +0200
+From: poma <pomidorabelisima@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1304061120-6383-3-git-send-email-kalle.jokiniemi@nokia.com>
+To: linux-media@vger.kernel.org
+Subject: Re: Afatech AF9015 & dual tuner - dual_mode B.R.O.K.E.N.
+References: <4D5B5FE2.5000302@gmail.com> <4D5CE929.4050102@gmail.com> <4D5D9D10.2060709@gmail.com> <4DBAA909.2090102@gmail.com> <4DBAAAA7.30902@iki.fi>
+In-Reply-To: <4DBAAAA7.30902@iki.fi>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-* Kalle Jokiniemi <kalle.jokiniemi@nokia.com> [110429 00:09]:
-> The RX-51 uses the CSIb IO complex for camera operation. The
-> board file is missing definition for the regulator supplying
-> the CSIb complex, so this is added for better power
-> management.
+Antti Palosaari wrote:
+> Moikka Mauro et all,
 > 
-> Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
-
-This looks safe to merge along with the other patch:
-
-Acked-by: Tony Lindgren <tony@atomide.com>
-
-> ---
->  arch/arm/mach-omap2/board-rx51-peripherals.c |    9 +++++++++
->  1 files changed, 9 insertions(+), 0 deletions(-)
+> I will NACK this.
 > 
-> diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-> index bbcb677..1324ba3 100644
-> --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-> +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-> @@ -337,6 +337,13 @@ static struct omap2_hsmmc_info mmc[] __initdata = {
->  static struct regulator_consumer_supply rx51_vmmc1_supply =
->  	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0");
->  
-> +static struct regulator_consumer_supply rx51_vaux2_supplies[] = {
-> +	REGULATOR_SUPPLY("vdds_csib", "omap3isp"),
-> +	{
-> +		.supply = "vaux2",
-> +	},
-> +};
-> +
->  static struct regulator_consumer_supply rx51_vaux3_supply =
->  	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.1");
->  
-> @@ -400,6 +407,8 @@ static struct regulator_init_data rx51_vaux2 = {
->  		.valid_ops_mask		= REGULATOR_CHANGE_MODE
->  					| REGULATOR_CHANGE_STATUS,
->  	},
-> +	.num_consumer_supplies	= ARRAY_SIZE(rx51_vaux2_supplies),
-> +	.consumer_supplies	= rx51_vaux2_supplies,
->  };
->  
->  /* VAUX3 - adds more power to VIO_18 rail */
-> -- 
-> 1.7.1
-> 
+> Surely it is not proper solution. And after all, I haven't got any other 
+> reports there is such problem. AF9015 is probably most common DVB-T USB 
+> hardware today and if there is major problems I am the first person got 
+> reports.
+
+If you are interested, I'm willing to do more testing on this particular 
+device, to clear up ;)
+
+rgds,
+poma
+
