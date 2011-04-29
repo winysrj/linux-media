@@ -1,194 +1,109 @@
 Return-path: <mchehab@pedra>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:36978 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751498Ab1DGOf1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Apr 2011 10:35:27 -0400
-Date: Thu, 7 Apr 2011 07:35:15 -0700
-From: Grant Likely <grant.likely@secretlab.ca>
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Felipe Balbi <balbi@ti.com>, Greg KH <gregkh@suse.de>,
-	Andres Salomon <dilinger@queued.net>,
-	linux-kernel@vger.kernel.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	khali@linux-fr.org, ben-linux@fluff.org,
-	Peter Korsgaard <jacmet@sunsite.dk>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	David Brownell <dbrownell@users.sourceforge.net>,
-	linux-i2c@vger.kernel.org, linux-media@vger.kernel.org,
-	netdev@vger.kernel.org, spi-devel-general@lists.sourceforge.net,
-	Mocean Laboratories <info@mocean-labs.com>
-Subject: Re: [PATCH 07/19] timberdale: mfd_cell is now implicitly available
- to drivers
-Message-ID: <20110407143515.GC26452@angua.secretlab.ca>
-References: <BANLkTi=bq=OGzXFp7qiBr7x_BnGOWf=DRQ@mail.gmail.com>
- <20110404100314.GC2751@sortiz-mobl>
- <20110405030428.GB29522@ponder.secretlab.ca>
- <20110406152322.GA2757@sortiz-mobl>
- <20110406155805.GA20095@suse.de>
- <20110406170537.GB2757@sortiz-mobl>
- <20110406175647.GA8048@suse.de>
- <20110406184733.GD2757@sortiz-mobl>
- <20110406185902.GN25654@legolas.emea.dhcp.ti.com>
- <20110407133717.GA3923@sortiz-mobl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20110407133717.GA3923@sortiz-mobl>
+Received: from smtp.nokia.com ([147.243.128.26]:45922 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755289Ab1D2HMo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Apr 2011 03:12:44 -0400
+From: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
+To: laurent.pinchart@ideasonboard.com, tony@atomide.com,
+	mchebab@infradead.org
+Cc: linux-omap@vger.kernel.org, linux-media@vger.kernel.org,
+	Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
+Subject: [PATCH 1/2] OMAP3: ISP: Add regulator control for omap34xx
+Date: Fri, 29 Apr 2011 10:11:59 +0300
+Message-Id: <1304061120-6383-2-git-send-email-kalle.jokiniemi@nokia.com>
+In-Reply-To: <1304061120-6383-1-git-send-email-kalle.jokiniemi@nokia.com>
+References: <1304061120-6383-1-git-send-email-kalle.jokiniemi@nokia.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, Apr 07, 2011 at 03:40:23PM +0200, Samuel Ortiz wrote:
-> Hi Felipe,
-> 
-> On Wed, Apr 06, 2011 at 09:59:02PM +0300, Felipe Balbi wrote:
-> > Hi,
-> > 
-> > On Wed, Apr 06, 2011 at 08:47:34PM +0200, Samuel Ortiz wrote:
-> > > > > > What is a "MFD cell pointer" and why is it needed in struct device?
-> > > > > An MFD cell is an MFD instantiated device.
-> > > > > MFD (Multi Function Device) drivers instantiate platform devices. Those
-> > > > > devices drivers sometimes need a platform data pointer, sometimes an MFD
-> > > > > specific pointer, and sometimes both. Also, some of those drivers have been
-> > > > > implemented as MFD sub drivers, while others know nothing about MFD and just
-> > > > > expect a plain platform_data pointer.
-> > > > 
-> > > > That sounds like a bug in those drivers, why not fix them to properly
-> > > > pass in the correct pointer?
-> > > Because they're drivers for generic IPs, not MFD ones. By forcing them to use
-> > > MFD specific structure and APIs, we make it more difficult for platform code
-> > > to instantiate them.
-> > 
-> > I agree. What I do on those cases is to have a simple platform_device
-> > for the core IP driver and use platform_device_id tables to do runtime
-> > checks of the small differences. If one platform X doesn't use a
-> > platform_bus, it uses e.g. PCI, then you make a PCI "bridge" which
-> > allocates a platform_device with the correct name and adds that to the
-> > driver model.
-> I see, thanks.
-> Below is a patch for the Xilinx SPI example. Although this would fix the
-> issue, we'd still have to do that on device per device basis. I had a similar
-> solution where MFD drivers would set a flag for sub drivers that don't need
-> any of the MFD bits. In that case the MFD core code would just forward the
-> platform data, instead of embedding it through an MFD cell.
+The current omap3isp driver is missing regulator handling
+for CSIb complex in omap34xx based devices. This patch
+adds a mechanism for this to the omap3isp driver.
 
-platform_data is already a fiddly bit where you don't know what
-structure type platform_data points at; it is implicitly known and
-easy to get wrong.  This solution makes me *very* nervous
-because it would become even easier to get a mismatch on the
-platform_data pointer type.
+Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
+---
+ drivers/media/video/omap3isp/ispccp2.c |   24 +++++++++++++++++++++++-
+ drivers/media/video/omap3isp/ispccp2.h |    1 +
+ 2 files changed, 24 insertions(+), 1 deletions(-)
 
-g.
+diff --git a/drivers/media/video/omap3isp/ispccp2.c b/drivers/media/video/omap3isp/ispccp2.c
+index 0e16cab..3b17b0d 100644
+--- a/drivers/media/video/omap3isp/ispccp2.c
++++ b/drivers/media/video/omap3isp/ispccp2.c
+@@ -30,6 +30,7 @@
+ #include <linux/module.h>
+ #include <linux/mutex.h>
+ #include <linux/uaccess.h>
++#include <linux/regulator/consumer.h>
+ 
+ #include "isp.h"
+ #include "ispreg.h"
+@@ -163,6 +164,9 @@ static void ccp2_if_enable(struct isp_ccp2_device *ccp2, u8 enable)
+ 	struct isp_pipeline *pipe = to_isp_pipeline(&ccp2->subdev.entity);
+ 	int i;
+ 
++	if (enable && ccp2->vdds_csib)
++		regulator_enable(ccp2->vdds_csib);
++
+ 	/* Enable/Disable all the LCx channels */
+ 	for (i = 0; i < CCP2_LCx_CHANS_NUM; i++)
+ 		isp_reg_clr_set(isp, OMAP3_ISP_IOMEM_CCP2, ISPCCP2_LCx_CTRL(i),
+@@ -186,6 +190,8 @@ static void ccp2_if_enable(struct isp_ccp2_device *ccp2, u8 enable)
+ 				    ISPCCP2_LC01_IRQENABLE,
+ 				    ISPCCP2_LC01_IRQSTATUS_LC0_FS_IRQ);
+ 	}
++	if (!enable && ccp2->vdds_csib)
++		regulator_disable(ccp2->vdds_csib);
+ }
+ 
+ /*
+@@ -1137,6 +1143,10 @@ error:
+  */
+ void omap3isp_ccp2_cleanup(struct isp_device *isp)
+ {
++	struct isp_ccp2_device *ccp2 = &isp->isp_ccp2;
++
++	if (isp->revision == ISP_REVISION_2_0)
++		regulator_put(ccp2->vdds_csib);
+ }
+ 
+ /*
+@@ -1155,10 +1165,22 @@ int omap3isp_ccp2_init(struct isp_device *isp)
+ 	 * the CSI2c or CSI2a receivers. The PHY then needs to be explicitly
+ 	 * configured.
+ 	 *
++	 * On the OMAP34xx the CSI1/CCB is operated in the CSIb IO complex,
++	 * which is powered by vdds_csib power rail. Hence the request for
++	 * the regulator.
++	 *
+ 	 * TODO: Don't hardcode the usage of PHY1 (shared with CSI2c).
+ 	 */
+-	if (isp->revision == ISP_REVISION_15_0)
++	if (isp->revision == ISP_REVISION_15_0) {
+ 		ccp2->phy = &isp->isp_csiphy1;
++	} else if (isp->revision == ISP_REVISION_2_0) {
++		ccp2->vdds_csib = regulator_get(isp->dev, "vdds_csib");
++		if (IS_ERR(ccp2->vdds_csib)) {
++			dev_dbg(isp->dev,
++				"Could not get regulator vdds_csib\n");
++			ccp2->vdds_csib = NULL;
++		}
++	}
+ 
+ 	ret = ccp2_init_entities(ccp2);
+ 	if (ret < 0)
+diff --git a/drivers/media/video/omap3isp/ispccp2.h b/drivers/media/video/omap3isp/ispccp2.h
+index 5505a86..6674e9d 100644
+--- a/drivers/media/video/omap3isp/ispccp2.h
++++ b/drivers/media/video/omap3isp/ispccp2.h
+@@ -81,6 +81,7 @@ struct isp_ccp2_device {
+ 	struct isp_interface_mem_config mem_cfg;
+ 	struct isp_video video_in;
+ 	struct isp_csiphy *phy;
++	struct regulator *vdds_csib;
+ 	unsigned int error;
+ 	enum isp_pipeline_stream_state state;
+ 	wait_queue_head_t wait;
+-- 
+1.7.1
 
-> 
-> Cheers,
-> Samuel.
-> 
-> ---
->  drivers/mfd/timberdale.c |    8 ++++----
->  drivers/spi/xilinx_spi.c |   19 ++++++++++++++++++-
->  include/linux/mfd/core.h |    3 +++
->  3 files changed, 25 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/mfd/timberdale.c b/drivers/mfd/timberdale.c
-> index 94c6c8a..c9220ce 100644
-> --- a/drivers/mfd/timberdale.c
-> +++ b/drivers/mfd/timberdale.c
-> @@ -416,7 +416,7 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg0[] = {
->  		.mfd_data = &timberdale_radio_platform_data,
->  	},
->  	{
-> -		.name = "xilinx_spi",
-> +		.name = "mfd_xilinx_spi",
->  		.num_resources = ARRAY_SIZE(timberdale_spi_resources),
->  		.resources = timberdale_spi_resources,
->  		.mfd_data = &timberdale_xspi_platform_data,
-> @@ -476,7 +476,7 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg1[] = {
->  		.mfd_data = &timberdale_radio_platform_data,
->  	},
->  	{
-> -		.name = "xilinx_spi",
-> +		.name = "mfd_xilinx_spi",
->  		.num_resources = ARRAY_SIZE(timberdale_spi_resources),
->  		.resources = timberdale_spi_resources,
->  		.mfd_data = &timberdale_xspi_platform_data,
-> @@ -526,7 +526,7 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg2[] = {
->  		.mfd_data = &timberdale_radio_platform_data,
->  	},
->  	{
-> -		.name = "xilinx_spi",
-> +		.name = "mfd_xilinx_spi",
->  		.num_resources = ARRAY_SIZE(timberdale_spi_resources),
->  		.resources = timberdale_spi_resources,
->  		.mfd_data = &timberdale_xspi_platform_data,
-> @@ -570,7 +570,7 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg3[] = {
->  		.mfd_data = &timberdale_radio_platform_data,
->  	},
->  	{
-> -		.name = "xilinx_spi",
-> +		.name = "mfd_xilinx_spi",
->  		.num_resources = ARRAY_SIZE(timberdale_spi_resources),
->  		.resources = timberdale_spi_resources,
->  		.mfd_data = &timberdale_xspi_platform_data,
-> diff --git a/drivers/spi/xilinx_spi.c b/drivers/spi/xilinx_spi.c
-> index c69c6f2..3287b84 100644
-> --- a/drivers/spi/xilinx_spi.c
-> +++ b/drivers/spi/xilinx_spi.c
-> @@ -471,7 +471,11 @@ static int __devinit xilinx_spi_probe(struct platform_device *dev)
->  	struct spi_master *master;
->  	u8 i;
->  
-> -	pdata = mfd_get_data(dev);
-> +	if (platform_get_device_id(dev) &&
-> +	    platform_get_device_id(dev)->driver_data & MFD_PLATFORM_DEVICE)
-> +		pdata = mfd_get_data(dev);
-> +	else
-> +		pdata = dev->dev.platform_data;
->  	if (pdata) {
->  		num_cs = pdata->num_chipselect;
->  		little_endian = pdata->little_endian;
-> @@ -530,6 +534,18 @@ static int __devexit xilinx_spi_remove(struct platform_device *dev)
->  /* work with hotplug and coldplug */
->  MODULE_ALIAS("platform:" XILINX_SPI_NAME);
->  
-> +static const struct platform_device_id xilinx_spi_id_table[] = {
-> +	{
-> +		.name	= XILINX_SPI_NAME,
-> +	},
-> +	{
-> +		.name	= "mfd_xilinx_spi",
-> +		.driver_data = MFD_PLATFORM_DEVICE,
-> +	},
-> +	{  },	/* Terminating Entry */
-> +};
-> +MODULE_DEVICE_TABLE(platform, xilinx_spi_id_table);
-> +
->  static struct platform_driver xilinx_spi_driver = {
->  	.probe = xilinx_spi_probe,
->  	.remove = __devexit_p(xilinx_spi_remove),
-> @@ -538,6 +554,7 @@ static struct platform_driver xilinx_spi_driver = {
->  		.owner = THIS_MODULE,
->  		.of_match_table = xilinx_spi_of_match,
->  	},
-> +	.id_table	= xilinx_spi_id_table,
->  };
->  
->  static int __init xilinx_spi_pltfm_init(void)
-> diff --git a/include/linux/mfd/core.h b/include/linux/mfd/core.h
-> index ad1b19a..13f31f4 100644
-> --- a/include/linux/mfd/core.h
-> +++ b/include/linux/mfd/core.h
-> @@ -89,6 +89,9 @@ static inline const struct mfd_cell *mfd_get_cell(struct platform_device *pdev)
->  	return pdev->dev.platform_data;
->  }
->  
-> +/* */
-> +#define MFD_PLATFORM_DEVICE BIT(0)
-> +
->  /*
->   * Given a platform device that's been created by mfd_add_devices(), fetch
->   * the .mfd_data entry from the mfd_cell that created it.
-> 
-> 
-> -- 
-> Intel Open Source Technology Centre
-> http://oss.intel.com/
