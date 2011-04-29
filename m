@@ -1,172 +1,68 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.22]:57826 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752810Ab1DTI7O (ORCPT
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:39740 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752601Ab1D2LJZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Apr 2011 04:59:14 -0400
-Date: Wed, 20 Apr 2011 10:59:08 +0200
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Bob Liu <lliubbo@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-uvc-devel@lists.berlios.de,
-	linux-kernel@vger.kernel.org, mchehab@redhat.com,
-	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@maxwell.research.nokia.com, martin_rubli@logitech.com,
-	jarod@redhat.com, tj@kernel.org, arnd@arndb.de, fweisbec@gmail.com,
-	agust@denx.de, gregkh@suse.de
-Subject: Re: Fwd: [PATCH v2] media: uvc_driver: add NO-MMU arch support
-Message-ID: <20110420085908.GA7294@minime.bse>
-References: <1302261394-25695-1-git-send-email-lliubbo@gmail.com>
- <BANLkTikGxffMuxWq3P7QxM0213k9oRU4hw@mail.gmail.com>
+	Fri, 29 Apr 2011 07:09:25 -0400
+Date: Fri, 29 Apr 2011 02:13:37 -0700
+From: Tony Lindgren <tony@atomide.com>
+To: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
+Cc: laurent.pinchart@ideasonboard.com, mchebab@infradead.org,
+	linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/2] OMAP3: RX-51: define vdds_csib regulator supply
+Message-ID: <20110429091337.GV3755@atomide.com>
+References: <1304061120-6383-1-git-send-email-kalle.jokiniemi@nokia.com>
+ <1304061120-6383-3-git-send-email-kalle.jokiniemi@nokia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <BANLkTikGxffMuxWq3P7QxM0213k9oRU4hw@mail.gmail.com>
+In-Reply-To: <1304061120-6383-3-git-send-email-kalle.jokiniemi@nokia.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Apr 20, 2011 at 02:02:41PM +0800, Bob Liu wrote:
-> ---------- Forwarded message ----------
-
-Forwarding broke tabs.
-
-> @@ -445,6 +446,20 @@ int uvc_queue_mmap(struct uvc_video_queue *queue,
-> struct vm_area_struct *vma)
->                addr += PAGE_SIZE;
->                size -= PAGE_SIZE;
->        }
-> +#else
-> +       if (i == queue->count ||
-> +                       PAGE_ALIGN(size) != queue->buf_size) {
-
-Why do you need to round up size on nommu?
-
-> +               ret = -EINVAL;
-> +               goto done;
-> +       }
-> +
-> +       /* documentation/nommu-mmap.txt */
-
-I don't see where Documentation/nommu-mmap.txt provides any information
-on the following line(s).
-
-> +       vma->vm_flags |= VM_IO | VM_MAYSHARE;
-> +
-> +       addr = (unsigned long)queue->mem + buffer->buf.m.offset;
-> +       vma->vm_start = addr;
-> +       vma->vm_end = addr +  queue->buf_size;
-
-You don't need to do this here. vm_start and vm_end have already been
-modified like this by do_mmap_pgoff after get_unmapped_area had been
-called.
-
-> +#endif
+* Kalle Jokiniemi <kalle.jokiniemi@nokia.com> [110429 00:09]:
+> The RX-51 uses the CSIb IO complex for camera operation. The
+> board file is missing definition for the regulator supplying
+> the CSIb complex, so this is added for better power
+> management.
 > 
->        vma->vm_ops = &uvc_vm_ops;
->        vma->vm_private_data = buffer;
-> @@ -489,6 +504,38 @@ done:
->  }
+> Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
+
+This looks safe to merge along with the other patch:
+
+Acked-by: Tony Lindgren <tony@atomide.com>
+
+> ---
+>  arch/arm/mach-omap2/board-rx51-peripherals.c |    9 +++++++++
+>  1 files changed, 9 insertions(+), 0 deletions(-)
 > 
->  /*
-> + * Get unmapped area.
-> + *
-> + * NO-MMU arch need this function to make mmap() work correctly.
-> + */
-> +unsigned long uvc_queue_get_unmapped_area(struct uvc_video_queue *queue,
-> +               unsigned long addr, unsigned long len, unsigned long pgoff)
-> +{
-> +       struct uvc_buffer *buffer;
-> +       unsigned int i;
-> +       int ret = 0;
-
-ret should be an unsigned long. You later try to store a pointer in
-there.
-
+> diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+> index bbcb677..1324ba3 100644
+> --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
+> +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+> @@ -337,6 +337,13 @@ static struct omap2_hsmmc_info mmc[] __initdata = {
+>  static struct regulator_consumer_supply rx51_vmmc1_supply =
+>  	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0");
+>  
+> +static struct regulator_consumer_supply rx51_vaux2_supplies[] = {
+> +	REGULATOR_SUPPLY("vdds_csib", "omap3isp"),
+> +	{
+> +		.supply = "vaux2",
+> +	},
+> +};
 > +
-> +       mutex_lock(&queue->mutex);
-> +       for (i = 0; i < queue->count; ++i) {
-> +               buffer = &queue->buffer[i];
-> +               if ((buffer->buf.m.offset >> PAGE_SHIFT) == pgoff)
-> +                       break;
-> +       }
-> +
-> +       if (i == queue->count ||
-> +                       PAGE_ALIGN(len) != queue->buf_size) {
-> +               ret = -EINVAL;
-> +               goto done;
-> +       }
-> +
-> +       addr = (unsigned long)queue->mem + buffer->buf.m.offset;
-> +       ret = addr;
-> +done:
-> +       mutex_unlock(&queue->mutex);
-> +       return ret;
-> +}
-> +
-> +/*
->  * Enable or disable the video buffers queue.
->  *
->  * The queue must be enabled before starting video acquisition and must be
-> diff --git a/drivers/media/video/uvc/uvc_v4l2.c
-> b/drivers/media/video/uvc/uvc_v4l2.c
-> index 9005a8d..9efab61 100644
-> --- a/drivers/media/video/uvc/uvc_v4l2.c
-> +++ b/drivers/media/video/uvc/uvc_v4l2.c
-> @@ -1081,6 +1081,18 @@ static unsigned int uvc_v4l2_poll(struct file
-> *file, poll_table *wait)
->        return uvc_queue_poll(&stream->queue, file, wait);
->  }
+>  static struct regulator_consumer_supply rx51_vaux3_supply =
+>  	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.1");
+>  
+> @@ -400,6 +407,8 @@ static struct regulator_init_data rx51_vaux2 = {
+>  		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+>  					| REGULATOR_CHANGE_STATUS,
+>  	},
+> +	.num_consumer_supplies	= ARRAY_SIZE(rx51_vaux2_supplies),
+> +	.consumer_supplies	= rx51_vaux2_supplies,
+>  };
+>  
+>  /* VAUX3 - adds more power to VIO_18 rail */
+> -- 
+> 1.7.1
 > 
-> +static unsigned long uvc_v4l2_get_unmapped_area(struct file *file,
-> +               unsigned long addr, unsigned long len, unsigned long pgoff,
-> +               unsigned long flags)
-> +{
-> +       struct uvc_fh *handle = file->private_data;
-> +       struct uvc_streaming *stream = handle->stream;
-> +
-> +       uvc_trace(UVC_TRACE_CALLS, "uvc_v4l2_get_unmapped_area\n");
-> +
-> +       return uvc_queue_get_unmapped_area(&stream->queue, addr, len, pgoff);
-> +}
-> +
->  const struct v4l2_file_operations uvc_fops = {
->        .owner          = THIS_MODULE,
->        .open           = uvc_v4l2_open,
-> @@ -1089,5 +1101,6 @@ const struct v4l2_file_operations uvc_fops = {
->        .read           = uvc_v4l2_read,
->        .mmap           = uvc_v4l2_mmap,
->        .poll           = uvc_v4l2_poll,
-> +       .get_unmapped_area = uvc_v4l2_get_unmapped_area,
->  };
-> 
-> diff --git a/drivers/media/video/uvc/uvcvideo.h
-> b/drivers/media/video/uvc/uvcvideo.h
-> index 45f01e7..48a2378 100644
-> --- a/drivers/media/video/uvc/uvcvideo.h
-> +++ b/drivers/media/video/uvc/uvcvideo.h
-> @@ -580,6 +580,12 @@ extern int uvc_queue_mmap(struct uvc_video_queue *queue,
->                struct vm_area_struct *vma);
->  extern unsigned int uvc_queue_poll(struct uvc_video_queue *queue,
->                struct file *file, poll_table *wait);
-> +#ifdef CONFIG_MMU
-> +#define uvc_queue_get_unmapped_area NULL
-> +#else
-> +extern unsigned long uvc_queue_get_unmapped_area(struct uvc_video_queue *queue,
-> +               unsigned long addr, unsigned long len, unsigned long pgoff);
-> +#endif
->  extern int uvc_queue_allocated(struct uvc_video_queue *queue);
->  static inline int uvc_queue_streaming(struct uvc_video_queue *queue)
->  {
-> diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
-
-Rest looks good.
-Did you change anything in the generic code or is this a plain
-git revert c29fcff3daafbf46d64a543c1950bbd206ad8c1c
-?
-
-Maybe one can unify the mmu and nommu versions of uvc_queue_mmap by using
-remap_vmalloc_range but IMHO the nommu versions of the remap_*_range
-functions are broken and should only validate if the source and destination
-addresses match.
-
-  Daniel
