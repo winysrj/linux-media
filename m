@@ -1,99 +1,148 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:49201 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757324Ab1DHSAE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Apr 2011 14:00:04 -0400
-Received: by wwa36 with SMTP id 36so4534850wwa.1
-        for <linux-media@vger.kernel.org>; Fri, 08 Apr 2011 11:00:02 -0700 (PDT)
-References: <1302267045.1749.38.camel@gagarin> <AFEB19DA-4FD6-4472-9825-F13A112B0E2A@wilsonet.com> <1302276147.1749.46.camel@gagarin> <B9A35B3D-DC47-4D95-88F5-5453DD3F506C@wilsonet.com> <BANLkTimyT98dabuYsrwLrcm2wQFv2uQB9g@mail.gmail.com>
-In-Reply-To: <BANLkTimyT98dabuYsrwLrcm2wQFv2uQB9g@mail.gmail.com>
-Mime-Version: 1.0 (Apple Message framework v1084)
-Content-Type: text/plain; charset=us-ascii
-Message-Id: <44DC1ED9-2697-4F92-A81A-CD024C913CCB@wilsonet.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:37790 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752421Ab1D2Jsl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Apr 2011 05:48:41 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
+Subject: Re: [PATCH 1/2] OMAP3: ISP: Add regulator control for omap34xx
+Date: Fri, 29 Apr 2011 11:48:56 +0200
+Cc: tony@atomide.com, mchebab@infradead.org,
+	linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+References: <1304061120-6383-1-git-send-email-kalle.jokiniemi@nokia.com> <1304061120-6383-2-git-send-email-kalle.jokiniemi@nokia.com>
+In-Reply-To: <1304061120-6383-2-git-send-email-kalle.jokiniemi@nokia.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Cc: Lawrence Rust <lawrence@softsystem.co.uk>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Jarod Wilson <jarod@wilsonet.com>
-Subject: Re: [PATCH] Fix cx88 remote control input
-Date: Fri, 8 Apr 2011 14:00:08 -0400
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Message-Id: <201104291148.57770.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Apr 8, 2011, at 1:07 PM, Devin Heitmueller wrote:
+Hi Kalle,
 
-> On Fri, Apr 8, 2011 at 12:21 PM, Jarod Wilson <jarod@wilsonet.com> wrote:
->> The problem is that there isn't a "the keytable". There are many
->> many keytables. And a lot of different hardware. Testing all possible
->> combinations of hardware (both receiver side and remote side) is
->> next to impossible. We do what we can. Its unfortunate that your
->> hardware regressed in functionality. It happens, but it *can* be
->> fixed. The fix you provided just wasn't correct. The correct fix is
->> trivially updating drivers/media/rc/keymaps/<insert-your-keymap-here>.
+On Friday 29 April 2011 09:11:59 Kalle Jokiniemi wrote:
+> The current omap3isp driver is missing regulator handling
+> for CSIb complex in omap34xx based devices. This patch
+> adds a mechanism for this to the omap3isp driver.
 > 
-> I think the fundamental failure here was avoidable.  We introduced a
-> new requirement that keytables included system codes, knowing full
-> well that the vast majority of them did not meet the requirement.  In
-> fact, a quick scan through the first 20 or so keymaps show that even
-> today only *HALF* of them are populated today.  That means that half
-> of the remote keymaps are also completely broken.
+> Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
 
-Have to admit that I don't think it ever registered in my head that
-we were going to break that many existing keymaps. But something
-to consider: how many of those are *raw* rc-5 scancode keymaps, vs.
-cooked scancodes from drivers that only provide command? It may
-well be that we should have been more discriminating when building
-those keymaps, to distinguish which were truly raw IR scancodes that
-the in-kernel decoders ascertained, and which were just scancodes
-handed to us directly from the IR hardware.
+Thanks for the patch.
 
+The CSIb pins are multiplexed with the parallel interface cam_d[6:9] signals, 
+so the driver might need to handle the vdds_csib regulator for the parallel 
+interface as well. We can leave that out now though, as I'm not sure we'll 
+ever see a platform that will require that.
 
-> This decision was doomed to fail.  It basically said, "Yes, I know
-> full well that I'm breaking most of the keymaps currently supported,
-> but maybe some of those users will eventually report the issue and
-> I'll make them provide an updated keymap which will eventually be
-> merged upstream for others so that their remotes are no longer
-> broken."
-
-Well, ir-keytable -w is also an option, though that does kill the
-"Just Works"-ness when you first have to come up with the new map.
-
-
-> We should have introduced a RC profile property indicating how many
-> bits were "significant".  Then for those remotes which didn't have the
-> system code, we could have continued to match against only the key
-> code.
-
-This was a change in the raw rc-5 IR decoder. There's *always* going
-to be a system code (or at least, a resulting byte), isn't there?
-Otherwise, its simply not an rc-5 signal. The "no system code" case
-should really only apply to hardware decoders that strip it off
-internally.
-
-Speaking of which, something just occurred to me. Functionality of
-Hauppauge receivers and remotes *was* tested. With ir-kbd-i2c. Which
-was stripping off the system code at the time. It just wasn't tested
-with Hauppauge hardware that actually passed along raw IR. In 2.6.39,
-ir-kbd-i2c has been fixed so that it passes along system code and
-the Hauppauge keymaps were updated accordingly, which also happens
-to fix the cx88 raw IR case. 
-
-
-> Then over time, as keymaps improved, those keymaps could be
-> updated and the number of significant bits could be adjusted to
-> indicate that the system code was present.
+> ---
+>  drivers/media/video/omap3isp/ispccp2.c |   24 +++++++++++++++++++++++-
+>  drivers/media/video/omap3isp/ispccp2.h |    1 +
+>  2 files changed, 24 insertions(+), 1 deletions(-)
 > 
-> This was a crappy call, and it was completely foreseeable.
+> diff --git a/drivers/media/video/omap3isp/ispccp2.c
+> b/drivers/media/video/omap3isp/ispccp2.c index 0e16cab..3b17b0d 100644
+> --- a/drivers/media/video/omap3isp/ispccp2.c
+> +++ b/drivers/media/video/omap3isp/ispccp2.c
+> @@ -30,6 +30,7 @@
+>  #include <linux/module.h>
+>  #include <linux/mutex.h>
+>  #include <linux/uaccess.h>
+> +#include <linux/regulator/consumer.h>
+> 
+>  #include "isp.h"
+>  #include "ispreg.h"
+> @@ -163,6 +164,9 @@ static void ccp2_if_enable(struct isp_ccp2_device
+> *ccp2, u8 enable) struct isp_pipeline *pipe =
+> to_isp_pipeline(&ccp2->subdev.entity); int i;
+> 
+> +	if (enable && ccp2->vdds_csib)
+> +		regulator_enable(ccp2->vdds_csib);
+> +
+>  	/* Enable/Disable all the LCx channels */
+>  	for (i = 0; i < CCP2_LCx_CHANS_NUM; i++)
+>  		isp_reg_clr_set(isp, OMAP3_ISP_IOMEM_CCP2, ISPCCP2_LCx_CTRL(i),
+> @@ -186,6 +190,8 @@ static void ccp2_if_enable(struct isp_ccp2_device
+> *ccp2, u8 enable) ISPCCP2_LC01_IRQENABLE,
+>  				    ISPCCP2_LC01_IRQSTATUS_LC0_FS_IRQ);
+>  	}
 
-Possibly. I think too many of us are only hacking on this in their
-limited free time though, so things like this may get overlooked.
-I have quite a few pieces of Hauppauge hardware, several with IR
-receivers and remotes, but all of which use ir-kbd-i2c (or
-lirc_zilog), i.e., none of which pass along raw IR.
+If you resubmit the patch to address the comments below, please add a blank 
+line here.
+
+> +	if (!enable && ccp2->vdds_csib)
+> +		regulator_disable(ccp2->vdds_csib);
+>  }
+> 
+>  /*
+> @@ -1137,6 +1143,10 @@ error:
+>   */
+>  void omap3isp_ccp2_cleanup(struct isp_device *isp)
+>  {
+> +	struct isp_ccp2_device *ccp2 = &isp->isp_ccp2;
+> +
+> +	if (isp->revision == ISP_REVISION_2_0)
+> +		regulator_put(ccp2->vdds_csib);
+
+What about testing ccp2->vdds_csib != NULL here like you do above ? Not all 
+ES2.0 platforms will use a regulator, so you can end up calling 
+regulator_put(NULL). regulator_put() will return immediately, but the API 
+doesn't allow it explictly either.
+
+If regulator_put(NULL) is deemed to be safe, I would remove the revision check 
+here. If it isn't, I would replace it with a ccp2->vdds_csib != NULL check.
+
+>  }
+> 
+>  /*
+> @@ -1155,10 +1165,22 @@ int omap3isp_ccp2_init(struct isp_device *isp)
+>  	 * the CSI2c or CSI2a receivers. The PHY then needs to be explicitly
+>  	 * configured.
+>  	 *
+> +	 * On the OMAP34xx the CSI1/CCB is operated in the CSIb IO complex,
+
+CSI1/CCB ? Do you mean CCP ?
+
+The OMAP34xx has no CCP2 support anyway, so I would s,CSI1/CCB,CSI1 receiver,.
+
+> +	 * which is powered by vdds_csib power rail. Hence the request for
+> +	 * the regulator.
+> +	 *
+>  	 * TODO: Don't hardcode the usage of PHY1 (shared with CSI2c).
+>  	 */
+> -	if (isp->revision == ISP_REVISION_15_0)
+> +	if (isp->revision == ISP_REVISION_15_0) {
+>  		ccp2->phy = &isp->isp_csiphy1;
+> +	} else if (isp->revision == ISP_REVISION_2_0) {
+> +		ccp2->vdds_csib = regulator_get(isp->dev, "vdds_csib");
+> +		if (IS_ERR(ccp2->vdds_csib)) {
+> +			dev_dbg(isp->dev,
+> +				"Could not get regulator vdds_csib\n");
+> +			ccp2->vdds_csib = NULL;
+> +		}
+> +	}
+
+If you resubmit your patch to address the above comments, could you please 
+reorder the code (and the comment) here and put the ES2.0 check before the 
+15.0 ?
+
+>  	ret = ccp2_init_entities(ccp2);
+>  	if (ret < 0)
+> diff --git a/drivers/media/video/omap3isp/ispccp2.h
+> b/drivers/media/video/omap3isp/ispccp2.h index 5505a86..6674e9d 100644
+> --- a/drivers/media/video/omap3isp/ispccp2.h
+> +++ b/drivers/media/video/omap3isp/ispccp2.h
+> @@ -81,6 +81,7 @@ struct isp_ccp2_device {
+>  	struct isp_interface_mem_config mem_cfg;
+>  	struct isp_video video_in;
+>  	struct isp_csiphy *phy;
+> +	struct regulator *vdds_csib;
+>  	unsigned int error;
+>  	enum isp_pipeline_stream_state state;
+>  	wait_queue_head_t wait;
 
 -- 
-Jarod Wilson
-jarod@wilsonet.com
+Regards,
 
-
-
+Laurent Pinchart
