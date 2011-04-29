@@ -1,65 +1,83 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:56590 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751944Ab1DKM3h (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Apr 2011 08:29:37 -0400
-Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LJH008HSMPCJO@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 11 Apr 2011 13:29:36 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LJH0087MMPBIJ@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 11 Apr 2011 13:29:35 +0100 (BST)
-Date: Mon, 11 Apr 2011 14:29:22 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCH 1/3] v4l: add macro for 1080p59_54 preset
-In-reply-to: <1302524964-31407-1-git-send-email-t.stanislaws@samsung.com>
+Received: from smtp205.alice.it ([82.57.200.101]:50913 "EHLO smtp205.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751969Ab1D2P1Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Apr 2011 11:27:24 -0400
+Date: Fri, 29 Apr 2011 17:27:15 +0200
+From: Antonio Ospite <ospite@studenti.unina.it>
 To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, t.stanislaws@samsung.com,
-	kyungmin.park@samsung.com
-Message-id: <1302524964-31407-2-git-send-email-t.stanislaws@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1302524964-31407-1-git-send-email-t.stanislaws@samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linuxtv-commits@linuxtv.org, Drew Fisher <drew.m.fisher@gmail.com>
+Subject: Re: [git:v4l-dvb/for_v2.6.40] [media] gspca - kinect: move
+ communications buffers out of stack
+Message-Id: <20110429172715.4b71dfb6.ospite@studenti.unina.it>
+In-Reply-To: <E1QFowG-0005SZ-7v@www.linuxtv.org>
+References: <E1QFowG-0005SZ-7v@www.linuxtv.org>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Fri__29_Apr_2011_17_27_15_+0200_bSy=Fjiaf2kecq5C"
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The 1080p59_94 is supported in latest Samusng SoC.
+--Signature=_Fri__29_Apr_2011_17_27_15_+0200_bSy=Fjiaf2kecq5C
+Content-Type: text/plain; charset=UTF-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/v4l2-common.c |    1 +
- include/linux/videodev2.h         |    1 +
- 2 files changed, 2 insertions(+), 0 deletions(-)
+On Fri, 29 Apr 2011 16:42:04 +0200
+Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
 
-diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-common.c
-index 06b9f9f..003e648 100644
---- a/drivers/media/video/v4l2-common.c
-+++ b/drivers/media/video/v4l2-common.c
-@@ -582,6 +582,7 @@ int v4l_fill_dv_preset_info(u32 preset, struct v4l2_dv_enum_preset *info)
- 		{ 1920, 1080, "1080p@30" },	/* V4L2_DV_1080P30 */
- 		{ 1920, 1080, "1080p@50" },	/* V4L2_DV_1080P50 */
- 		{ 1920, 1080, "1080p@60" },	/* V4L2_DV_1080P60 */
-+		{ 1920, 1080, "1080p@59.94" },	/* V4L2_DV_1080P59_94 */
- 	};
- 
- 	if (info == NULL || preset >= ARRAY_SIZE(dv_presets))
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index aa6c393..cb0393a 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -867,6 +867,7 @@ struct v4l2_dv_enum_preset {
- #define		V4L2_DV_1080P30		16 /* SMPTE 296M */
- #define		V4L2_DV_1080P50		17 /* BT.1120 */
- #define		V4L2_DV_1080P60		18 /* BT.1120 */
-+#define		V4L2_DV_1080P59_94	19
- 
- /*
-  *	D V 	B T	T I M I N G S
--- 
-1.7.4.3
+> This is an automatic generated email to let you know that the following p=
+atch were queued at the=20
+> http://git.linuxtv.org/media_tree.git tree:
+>=20
+> Subject: [media] gspca - kinect: move communications buffers out of stack
+> Author:  Antonio Ospite <ospite@studenti.unina.it>
+> Date:    Thu Apr 21 06:51:34 2011 -0300
+>
+
+Hi Mauro, actually this one is from Drew Fisher as well, git-am should
+have picked up the additional From header:
+http://www.spinics.net/lists/linux-media/msg31576.html
+
+> Move large communications buffers out of stack and into device
+> structure. This prevents the frame size from being >1kB and fixes a
+> compiler warning when CONFIG_FRAME_WARN=3D1024:
+>=20
+> drivers/media/video/gspca/kinect.c: In function =E2=80=98send_cmd.clone.0=
+=E2=80=99:
+> drivers/media/video/gspca/kinect.c:202: warning: the frame size of 1548 b=
+ytes is larger than 1024 bytes
+>=20
+> Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> Signed-off-by: Drew Fisher <drew.m.fisher@gmail.com>
+> Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>=20
+>  drivers/media/video/gspca/kinect.c |    6 ++++--
+>  1 files changed, 4 insertions(+), 2 deletions(-)
+>=20
+
+--=20
+Antonio Ospite
+http://ao2.it
+
+PGP public key ID: 0x4553B001
+
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
+
+--Signature=_Fri__29_Apr_2011_17_27_15_+0200_bSy=Fjiaf2kecq5C
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEARECAAYFAk262NMACgkQ5xr2akVTsAEgmQCdE9GOdgJXO9Uh1cvcUktBtTdc
+I7gAn2nHFQ78oqQ4NJSEmN7AjaMCxppb
+=txhL
+-----END PGP SIGNATURE-----
+
+--Signature=_Fri__29_Apr_2011_17_27_15_+0200_bSy=Fjiaf2kecq5C--
