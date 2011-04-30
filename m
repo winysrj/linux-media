@@ -1,33 +1,58 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:36672 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753606Ab1DJSYY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Apr 2011 14:24:24 -0400
-Received: by iyb14 with SMTP id 14so4948210iyb.19
-        for <linux-media@vger.kernel.org>; Sun, 10 Apr 2011 11:24:23 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4D9F6341.9020107@iki.fi>
-References: <4D9F6341.9020107@iki.fi>
-Date: Sun, 10 Apr 2011 20:24:21 +0200
-Message-ID: <BANLkTi=TZQEWcoGf3RBaoNfwLGHUmQy3tw@mail.gmail.com>
-Subject: Re: update fi-dna initial tuning file
-From: Christoph Pfister <christophpfister@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from ist.d-labs.de ([213.239.218.44]:44299 "EHLO mx01.d-labs.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751638Ab1D3SyR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 30 Apr 2011 14:54:17 -0400
+Date: Sat, 30 Apr 2011 20:54:05 +0200
+From: Florian Mickler <florian@mickler.org>
+To: mchehab@redhat.com
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	crope@iki.fi, tvboxspy@gmail.com
+Subject: Re: [PATCH 0/5] get rid of on-stack dma buffers (part1)
+Message-ID: <20110430205405.4beb7d33@schatten.dmk.lab>
+In-Reply-To: <1300657852-29318-1-git-send-email-florian@mickler.org>
+References: <1300657852-29318-1-git-send-email-florian@mickler.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-2011/4/8 Antti Palosaari <crope@iki.fi>:
-> Moikka Christoph,
->
-> Merge attached patch.
+Hi Mauro!
 
-Updated, thanks.
+I just saw that you picked up some patches of mine. What about these?
+These are actually tested...
 
-> Antti
-> --
-> http://palosaari.fi/
+Regards,
+Flo
 
-Christoph
+ On Sun, 20 Mar 2011 22:50:47 +0100
+Florian Mickler <florian@mickler.org> wrote:
+
+> Hi Mauro!
+> 
+> These are the patches which got tested already and 
+> should be good to go. [first batch of patches]
+> 
+> I have another batch with updated patches (dib0700, gp8psk, vp702x)
+> where I did some more extensive changes to use preallocated memory.
+> And a small update to the vp7045 patch.
+> 
+> Third batch are the patches to opera1, m920x, dw2102, friio,
+> a800 which I left as is, for the time beeing. 
+> Regards,
+> Flo
+> 
+> Florian Mickler (5):
+>   [media] ec168: get rid of on-stack dma buffers
+>   [media] ce6230: get rid of on-stack dma buffer
+>   [media] au6610: get rid of on-stack dma buffer
+>   [media] lmedm04: correct indentation
+>   [media] lmedm04: get rid of on-stack dma buffers
+> 
+>  drivers/media/dvb/dvb-usb/au6610.c  |   22 ++++++++++++++++------
+>  drivers/media/dvb/dvb-usb/ce6230.c  |   11 +++++++++--
+>  drivers/media/dvb/dvb-usb/ec168.c   |   18 +++++++++++++++---
+>  drivers/media/dvb/dvb-usb/lmedm04.c |   35 +++++++++++++++++++++++------------
+>  4 files changed, 63 insertions(+), 23 deletions(-)
+> 
