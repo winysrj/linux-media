@@ -1,72 +1,221 @@
 Return-path: <mchehab@pedra>
-Received: from mail-in-08.arcor-online.net ([151.189.21.48]:58098 "EHLO
-	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750785Ab1DTIOL (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:50420 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752604Ab1D3LvD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Apr 2011 04:14:11 -0400
-Message-ID: <4DAE95CE.4020705@arcor.de>
-Date: Wed, 20 Apr 2011 10:14:06 +0200
-From: Stefan Ringel <stefan.ringel@arcor.de>
+	Sat, 30 Apr 2011 07:51:03 -0400
+Received: by wya21 with SMTP id 21so3338888wya.19
+        for <linux-media@vger.kernel.org>; Sat, 30 Apr 2011 04:51:01 -0700 (PDT)
+Message-ID: <4DBBF7A1.5050504@googlemail.com>
+Date: Sat, 30 Apr 2011 12:50:57 +0100
+From: Robert Longbottom <rongblor@googlemail.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org, d.belimov@gmail.com
-Subject: Re: [PATCH 1/5] tm6000: add mts parameter
-References: <1301948324-27186-1-git-send-email-stefan.ringel@arcor.de> <4DADFCD2.1090401@redhat.com>
-In-Reply-To: <4DADFCD2.1090401@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: OK szap is looking better, and I feel so close...
+References: <BANLkTimi5Tz2ER=6y93SH3JFXqb-w=7A0g@mail.gmail.com> <4DBBDDBF.4020704@googlemail.com> <4DBBED3F.4040000@read.org.nz>
+In-Reply-To: <4DBBED3F.4040000@read.org.nz>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Am 19.04.2011 23:21, schrieb Mauro Carvalho Chehab:
-> Em 04-04-2011 17:18, stefan.ringel@arcor.de escreveu:
->> From: Stefan Ringel<stefan.ringel@arcor.de>
+On 30/04/2011 12:06, Morgan Read wrote:
+> On 30/04/11 22:00, Robert Longbottom wrote:
+>> On 30/04/2011 10:37, Morgan Read wrote:
+>>> OK, think I might be getting somewhere...
+>>>
+>> <snip>
 >>
->> add mts parameter
-> Stefan,
+>>> [user@vortexbox ~]$ szap -r TV2
+>>> reading channels from file '/home/user/.szap/channels.conf'
 >
-> The MTS config depends on the specific board design (generally present on
-> mono NTSC cards). So, it should be inside the cards struct, and not
-> provided as an userspace parameter.
+> ...
 >
-> Mauro.
-No. It wrong. I think edge board must work under all region and TV 
-standards and if I set MTS, it doesn't work in Germany (PAL_BG and 
-DVB-T). The best is to set outside region specific params.
->> .
+>>> But, nothing happens at Playing /dev/dvb/adapter0/dvr0. ...  Where
+>>> should I see what's playing?
 >>
->> Signed-off-by: Stefan Ringel<stefan.ringel@arcor.de>
->> ---
->>   drivers/staging/tm6000/tm6000-cards.c |    7 +++++++
->>   1 files changed, 7 insertions(+), 0 deletions(-)
+>> I usually do:
 >>
->> diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
->> index 146c7e8..eef58da 100644
->> --- a/drivers/staging/tm6000/tm6000-cards.c
->> +++ b/drivers/staging/tm6000/tm6000-cards.c
->> @@ -61,6 +61,10 @@ module_param_array(card,  int, NULL, 0444);
+>> $ cat /dev/dvb/adapter0/dvr0>  recording.mpg
 >>
->>   static unsigned long tm6000_devused;
+>> and then in another terminal
 >>
->> +static unsigned int xc2028_mts;
->> +module_param(xc2028_mts, int, 0644);
->> +MODULE_PARM_DESC(xc2028_mts, "enable mts firmware (xc2028/3028 only)");
->> +
+>> $ mplayer recording.mpg
 >>
->>   struct tm6000_board {
->>   	char            *name;
->> @@ -685,6 +689,9 @@ static void tm6000_config_tuner(struct tm6000_core *dev)
->>   		ctl.demod = XC3028_FE_ZARLINK456;
->>   		ctl.vhfbw7 = 1;
->>   		ctl.uhfbw8 = 1;
->> +		if (xc2028_mts)
->> +			ctl.mts = 1;
->> +
->>   		xc2028_cfg.tuner = TUNER_XC2028;
->>   		xc2028_cfg.priv  =&ctl;
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> Though it doesn't look like thats your problem, but at least you can see
+>> if any data is being retrieved if the file grows in size.
+>
+> Robert, thanks for your help!!!
+> Didn't get far with
+>
+> $ cat /dev/dvb/adapter0/dvr0>  recording.mpg
+> $ mplayer recording.mpg
+> [vortexbox.lan ~]# cat /dev/dvb/adapter0/dvr0>  recording.mpg
+> ^C
+> [vortexbox.lan ~]# ls -l
+> total 36
+> -rw-rw-r-- 1 user user  368 Apr 30 21:11 channels.conf
+> drwxr-xr-x 2 user user 4096 Apr 30 12:55 Desktop
+> drwxr-xr-x 2 user user 4096 Apr 29 22:22 Documents
+> drwxr-xr-x 2 user user 4096 Apr 29 22:34 Downloads
+> drwxr-xr-x 2 user user 4096 Apr 25 00:06 Music
+> drwxr-xr-x 2 user user 4096 Apr 25 00:06 Pictures
+> drwxr-xr-x 2 user user 4096 Apr 25 00:06 Public
+> -rw-rw-r-- 1 user user    0 Apr 30 22:53 recording.mpg
+> drwxr-xr-x 2 user user 4096 Apr 25 00:06 Templates
+> drwxr-xr-x 2 user user 4096 Apr 25 00:06 Videos
+> [vortexbox.lan ~]#
 
+Yes, I'm not that surpised that made no difference.  The problem it 
+looks like you are having with the szap approach is that szap isn't 
+locking onto a channel for some reason.  You aren't seeing those 
+FE_HAS_LOCK messages in the szap output.  If you can sort that out, then 
+szap + (cat +) mplayer should work.
+
+> BUT, that gave me an idea...
+>
+> [vortexbox.lan ~]# dvbstream -f 1183 -s 22500 -p h -o 512 650>
+> recording.mpg
+> dvbstream v0.5 - (C) Dave Chapman 2001-2004
+> Released under the GPL.
+> Latest version available from http://www.linuxstb.org/
+> Using DVB card "Conexant CX24123/CX24109"
+> tuning DVB-S to L-Band:1, Pol:H Srate=22500000, 22kHz=off
+> ERROR setting tone
+> : Invalid argument
+> polling....
+> Getting frontend event
+> FE_STATUS:
+> polling....
+> Getting frontend event
+> FE_STATUS: FE_HAS_SIGNAL
+> polling....
+> Getting frontend event
+> FE_STATUS: FE_HAS_SIGNAL FE_HAS_LOCK FE_HAS_CARRIER FE_HAS_VITERBI
+> FE_HAS_SYNC
+> Event:  Frequency: 11783000
+>          SymbolRate: 22500000
+>          FEC_inner:  3
+>
+> Bit error rate: 0
+> Signal strength: 61952
+> SNR: 57635
+> FE_STATUS: FE_HAS_SIGNAL FE_HAS_LOCK FE_HAS_CARRIER FE_HAS_VITERBI
+> FE_HAS_SYNC
+> Setting filter for PID 512
+> Setting filter for PID 650
+> Output to stdout
+> Streaming 2 streams
+>
+> Which produced this:
+>
+> [user@vortexbox ~]$ mplayer recording.mpg
+> MPlayer SVN-r33254-snapshot-4.5.1 (C) 2000-2011 MPlayer Team
+> 162 audio&  360 video codecs
+> Can't open joystick device /dev/input/js0: No such file or directory
+> Can't init input joystick
+> mplayer: could not connect to socket
+> mplayer: No such file or directory
+> Failed to open LIRC support. You will not be able to use your remote
+> control.
+>
+> Playing recording.mpg.
+> TS file format detected.
+> VIDEO MPEG2(pid=512) AUDIO MPA(pid=650) NO SUBS (yet)!  PROGRAM N. 0
+> VIDEO:  MPEG2  720x576  (aspect 3)  25.000 fps  15000.0 kbps (1875.0
+> kbyte/s)
+> Load subtitles in ./
+> ==========================================================================
+> Opening video decoder: [ffmpeg] FFmpeg's libavcodec codec family
+> Selected video codec: [ffmpeg2] vfm: ffmpeg (FFmpeg MPEG-2)
+> ==========================================================================
+> ==========================================================================
+> Opening audio decoder: [mp3lib] MPEG layer-2, layer-3
+> AUDIO: 48000 Hz, 2 ch, s16le, 192.0 kbit/12.50% (ratio: 24000->192000)
+> Selected audio codec: [mp3] afm: mp3lib (mp3lib MPEG layer-2, layer-3)
+> ==========================================================================
+> AO: [pulse] 48000Hz 2ch s16le (2 bytes per sample)
+> Starting playback...
+> [VD_FFMPEG] Trying pixfmt=0.
+> Could not find matching colorspace - retrying with -vf scale...
+> Opening video filter: [scale]
+> The selected video_out device is incompatible with this codec.
+> Try appending the scale filter to your filter list,
+> e.g. -vf spp,scale instead of -vf spp.
+> [VD_FFMPEG] Trying pixfmt=1.
+> Could not find matching colorspace - retrying with -vf scale...
+> Opening video filter: [scale]
+> The selected video_out device is incompatible with this codec.
+> Try appending the scale filter to your filter list,
+> e.g. -vf spp,scale instead of -vf spp.
+> [VD_FFMPEG] Trying pixfmt=2.
+> Could not find matching colorspace - retrying with -vf scale...
+> Opening video filter: [scale]
+> The selected video_out device is incompatible with this codec.
+> Try appending the scale filter to your filter list,
+> e.g. -vf spp,scale instead of -vf spp.
+> Movie-Aspect is 1.78:1 - prescaling to correct movie aspect.
+> VO: [xv] 720x576 =>  1024x576 Planar YV12
+> A:90135.5 V:90135.5 A-V:  0.001 ct:  0.093 13786/13786  6%  0%  0.5% 0 0
+>
+>
+> MPlayer interrupted by signal 2 in module: sleep_timer
+> A:90135.6 V:90135.6 A-V:  0.001 ct:  0.093 13787/13787  6%  0%  0.5% 0 0
+>
+> Exiting... (Quit)
+> [user@vortexbox ~]$
+>
+> And, moving pictures!!!
+
+At least you know your hardware is working :-)
+
+>
+> BUT what the frig am I watching of all the channels that have been
+> defined...?
+
+I'd say you are watching "U", because you passed arguments "512 650" to 
+dvbstream (I'm not really familiar with dvbstream) and your channel list 
+from when you ran dvsscan earlier listed these channels:
+
+ > Network Name 'Freeview'
+ > dumping lists (10 services)
+ > Maori TV:12483:h:0:22500:514:652:1025
+ > TV ONE:12483:h:0:22500:515:653:1035
+ > TV2:12483:h:0:22500:516:654:1036
+ > TVNZ 7:12483:h:0:22500:518:656:1038
+ > U:12483:h:0:22500:512:650:1904
+ > TV ONE:12483:h:0:22500:519:657:1908
+ > TV ONE:12483:h:0:22500:513:651:1909
+ > TV ONE:12483:h:0:22500:517:655:1910
+ > TS 22 IEPG DATA SERVICE:12483:h:0:22500:0:0:9022
+ > [000-fffe]:12483:h:0:22500:0:0:65534
+ > Done.
+
+and the channel "U" is U:12483:h:0:22500:512:650:1904, note the "512" 
+and the "650".
+
+Presumably if you run dvbstream with (eg) "515 653" instead you would 
+get "TV ONE".
+
+
+>
+> Thanks very much for your help!!!  Now I just need to work out what's
+> going on!
+>
+> Or, is the tuner simply stuck on what ever it was last put on?  And, if
+> so - how to change channels?
+
+As I understand it and based on my experience, if you run szap (and it 
+gets a lock on a channel, which is looks like yours isn't for some 
+reason) and then you stop szap the tuner will remain locked onto the 
+channel for some period of time after you ^C szap.  But the tuner may 
+(and usually does) drift off station and so out of tune.  I don't know 
+what determines how long the tuner stays locked onto channel for and 
+whether this is some specific timeout thats in the drivers, or whether 
+it's just down to the way the electronics work.  This is why you need to 
+keep szap running to keep the tuner locked onto the channel if you are 
+doing this sort of thing with command line tools.  Of course if you use 
+a "tv viewing application" it deals with all of this for you.
+
+Keep trying!
+Robert.
