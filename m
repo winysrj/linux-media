@@ -1,239 +1,72 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:58109 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756053Ab1DKVHo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Apr 2011 17:07:44 -0400
-Message-ID: <4DA36D98.40607@redhat.com>
-Date: Mon, 11 Apr 2011 23:07:36 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from mailout-de.gmx.net ([213.165.64.22]:46837 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751367Ab1D3CaU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Apr 2011 22:30:20 -0400
+From: Oliver Endriss <o.endriss@gmx.de>
+Reply-To: linux-media@vger.kernel.org
+To: Jan <jan@x34.nl>
+Subject: Re: "new" tt s-1500 diseqc
+Date: Sat, 30 Apr 2011 04:24:50 +0200
+Cc: linux-media@vger.kernel.org
+References: <4DB98AE7.6020404@x34.nl>
+In-Reply-To: <4DB98AE7.6020404@x34.nl>
 MIME-Version: 1.0
-To: Antonio Ospite <ospite@studenti.unina.it>
-CC: linux-media@vger.kernel.org, Steven Toth <stoth@kernellabs.com>
-Subject: Re: [RFC, PATCH] libv4lconvert: Add support for Y10B grey format
- (V4L2_PIX_FMT_Y10BPACK)
-References: <1302192989-7747-1-git-send-email-ospite@studenti.unina.it>
-In-Reply-To: <1302192989-7747-1-git-send-email-ospite@studenti.unina.it>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201104300424.53244@orion.escape-edv.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+On Thursday 28 April 2011 17:42:31 Jan wrote:
+> I try to get the "new" tt-1500 model using the BSBE1-D01A tuner to work with a diseqc switch.
+> 
+> Currently I am working with a Gentoo 2.6.36 kernel patched with this patch 
+> (http://www.mail-archive.com/linux-media@vger.kernel.org/msg29871.html) by Oliver Endriss. This runs 
+> great if the card is directly connected to the dish.
+> 
+> Once connected trough a diseqc switch dvblast-1.2.0 no longer gets a lock. Where this was possible 
+> when using the "old" tt-1500 using the BSBE1-502A tuner.
+> 
+> Does anyone have the "new" tt-1500 working using a diseqc switch?
 
-On 04/07/2011 06:16 PM, Antonio Ospite wrote:
-> Y10B is a 10 bits per pixel greyscale format in a bit-packed array
-> representation. Such pixel format is supplied for instance by the Kinect
-> sensor device.
->
-> Signed-off-by: Antonio Ospite<ospite@studenti.unina.it>
-> ---
->
-> Hi,
->
-> this is a very first attempt about supporting Y10B in libv4lconvert, the
-> doubts I have are about the conversion routines which need to unpack a frame
-> before doing the actual pixelformat conversion, and maybe this can be handled
-> in some conversion layer in libv4l.
->
-> I don't know libv4l yet, so I am asking for advice providing some code to
-> discuss on; looking at the last hunk of the patch: can I allocate a temporary
-> buffer only once per device (and not per frame as I am horribly doing now) and
-> reuse it in the conversion routines?
+Yes, I verified that DiSEqC works with this card,
+before I submitted the patch.
 
-libv4l has a mechanism for doing this, you can "simply" do:
+You need the latest version of the stv0288 frontend driver.
 
-unpacked_buffer = v4lconvert_alloc_buffer(width * height * sizeof(unsigned short),
-                                           &data->convert_pixfmt_buf,
-                                           &data->convert_pixfmt_buf_size);
+The DiSEqC bug was fixed in this commit:
 
-v4lconvert_alloc_buffer will remember the buffer (and its size) and return the
-same buffer each call. Freeing it on closing of the device is also taken care
-of. You should still check for a NULL return.
+commit 352a587ccdd4690b4465e29fef91942d8c94826d
+Author: Malcolm Priestley <tvboxspy@gmail.com>
+Date:   Sun Sep 26 15:16:20 2010 -0300
 
-What has me worried more, is how libv4l will decide between asking
-Y10B grey versus raw bayer from the device when an app is asking for say RGB24.
-libv4l normally does this automatically on a best match basis (together with
-preferring compressed formats over uncompressed for high resolutions). But this
-won't work in the kinect case. If we prioritize one over the other we will
-always end up giving the app the one we prioritize.
+    [media] DiSEqC bug fixed for stv0288 based interfaces
 
-The only thing I can think of is adding a v4l2 control (like a brightness
-control) for choosing which format to prioritize...
+    Fixed problem with DiSEqC communication. The message was wrongly modulated,
+    so the DiSEqC switch was not work.
 
-Suggestions ?
+    This patch fixes DiSEqC messages, simple tone burst and tone on/off.
+    I verified it with osciloscope against the DiSEqC documentation.
 
-Regards,
+    Interface: PCI DVB-S TV tuner TeVii S420
+    Kernel: 2.6.32-24-generic (UBUNTU 10.4)
 
-Hans
+    Signed-off-by: Josef Pavlik <josef@pavlik.it>
+    Tested-by: Malcolm Priestley <tvboxspy@gmail.com>
+    Cc: Igor M. Liplianin <liplianin@me.by>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
 
+HTH,
+Oliver
 
-
-
-  Or is the unpacking better be done even
-> before conversion, feeding the conversion routines with already unpacked
-> buffers?
->
-> Thanks,
->     Antonio Ospite
->     http://ao2.it
->
->   include/linux/videodev2.h              |    3 +
->   lib/libv4lconvert/libv4lconvert-priv.h |    6 +++
->   lib/libv4lconvert/libv4lconvert.c      |   20 ++++++++
->   lib/libv4lconvert/rgbyuv.c             |   76 ++++++++++++++++++++++++++++++++
->   4 files changed, 105 insertions(+), 0 deletions(-)
->
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index 51788a6..559d5f3 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -289,6 +289,9 @@ struct v4l2_pix_format {
->   #define V4L2_PIX_FMT_Y10     v4l2_fourcc('Y', '1', '0', ' ') /* 10  Greyscale     */
->   #define V4L2_PIX_FMT_Y16     v4l2_fourcc('Y', '1', '6', ' ') /* 16  Greyscale     */
->
-> +/* Grey bit-packed formats */
-> +#define V4L2_PIX_FMT_Y10BPACK    v4l2_fourcc('Y', '1', '0', 'B') /* 10  Greyscale bit-packed */
-> +
->   /* Palette formats */
->   #define V4L2_PIX_FMT_PAL8    v4l2_fourcc('P', 'A', 'L', '8') /*  8  8-bit palette */
->
-> diff --git a/lib/libv4lconvert/libv4lconvert-priv.h b/lib/libv4lconvert/libv4lconvert-priv.h
-> index 84c706e..470a869 100644
-> --- a/lib/libv4lconvert/libv4lconvert-priv.h
-> +++ b/lib/libv4lconvert/libv4lconvert-priv.h
-> @@ -133,6 +133,12 @@ void v4lconvert_grey_to_rgb24(const unsigned char *src, unsigned char *dest,
->   void v4lconvert_grey_to_yuv420(const unsigned char *src, unsigned char *dest,
->   		const struct v4l2_format *src_fmt);
->
-> +void v4lconvert_y10b_to_rgb24(const unsigned char *src, unsigned char *dest,
-> +		int width, int height);
-> +
-> +void v4lconvert_y10b_to_yuv420(const unsigned char *src, unsigned char *dest,
-> +		const struct v4l2_format *src_fmt);
-> +
->   void v4lconvert_rgb565_to_rgb24(const unsigned char *src, unsigned char *dest,
->   		int width, int height);
->
-> diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
-> index e4863fd..631d912 100644
-> --- a/lib/libv4lconvert/libv4lconvert.c
-> +++ b/lib/libv4lconvert/libv4lconvert.c
-> @@ -48,6 +48,7 @@ static const struct v4lconvert_pixfmt supported_src_pixfmts[] = {
->   	{ V4L2_PIX_FMT_YVYU,         0 },
->   	{ V4L2_PIX_FMT_UYVY,         0 },
->   	{ V4L2_PIX_FMT_RGB565,       0 },
-> +	{ V4L2_PIX_FMT_Y10BPACK,     0 },
->   	{ V4L2_PIX_FMT_SN9C20X_I420, V4LCONVERT_NEEDS_CONVERSION },
->   	{ V4L2_PIX_FMT_SBGGR8,       V4LCONVERT_NEEDS_CONVERSION },
->   	{ V4L2_PIX_FMT_SGBRG8,       V4LCONVERT_NEEDS_CONVERSION },
-> @@ -862,6 +863,25 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
->   			result = -1;
->   		}
->   		break;
-> +
-> +	case V4L2_PIX_FMT_Y10BPACK:
-> +		switch (dest_pix_fmt) {
-> +		case V4L2_PIX_FMT_RGB24:
-> +	        case V4L2_PIX_FMT_BGR24:
-> +			v4lconvert_y10b_to_rgb24(src, dest, width, height);
-> +			break;
-> +		case V4L2_PIX_FMT_YUV420:
-> +		case V4L2_PIX_FMT_YVU420:
-> +			v4lconvert_y10b_to_yuv420(src, dest, fmt);
-> +			break;
-> +		}
-> +		if (src_size<  (width * height * 10 / 8)) {
-> +			V4LCONVERT_ERR("short y10b data frame\n");
-> +			errno = EPIPE;
-> +			result = -1;
-> +		}
-> +		break;
-> +
->   	case V4L2_PIX_FMT_RGB565:
->   		switch (dest_pix_fmt) {
->   		case V4L2_PIX_FMT_RGB24:
-> diff --git a/lib/libv4lconvert/rgbyuv.c b/lib/libv4lconvert/rgbyuv.c
-> index 2ee7e58..23fe8f3 100644
-> --- a/lib/libv4lconvert/rgbyuv.c
-> +++ b/lib/libv4lconvert/rgbyuv.c
-> @@ -603,3 +603,79 @@ void v4lconvert_grey_to_yuv420(const unsigned char *src, unsigned char *dest,
->   	/* Clear U/V */
->   	memset(dest, 0x80, src_fmt->fmt.pix.width * src_fmt->fmt.pix.height / 2);
->   }
-> +
-> +#include<stdint.h>
-> +#include<stdlib.h>
-> +/* Unpack buffer of (vw bit) data into padded 16bit buffer. */
-> +static inline void convert_packed_to_16bit(uint8_t *raw, uint16_t *unpacked, int vw, int unpacked_len)
-> +{
-> +	int mask = (1<<  vw) - 1;
-> +	uint32_t buffer = 0;
-> +	int bitsIn = 0;
-> +	while (unpacked_len--) {
-> +		while (bitsIn<  vw) {
-> +			buffer = (buffer<<  8) | *(raw++);
-> +			bitsIn += 8;
-> +		}
-> +		bitsIn -= vw;
-> +		*(unpacked++) = (buffer>>  bitsIn)&  mask;
-> +	}
-> +}
-> +
-> +void v4lconvert_y10b_to_rgb24(const unsigned char *src, unsigned char *dest,
-> +		int width, int height)
-> +{
-> +	unsigned short *unpacked_buffer = NULL;
-> +
-> +	/* TODO: check return value or move the allocation out of here */
-> +	unpacked_buffer = malloc(width * height * sizeof(unsigned short));
-> +	convert_packed_to_16bit((uint8_t *)src, unpacked_buffer, 10, width * height);
-> +
-> +	int j;
-> +	unsigned short *tmp = unpacked_buffer;
-> +	while (--height>= 0) {
-> +		for (j = 0; j<  width; j++) {
-> +
-> +			/* Only 10 useful bits, so we discard the LSBs */
-> +			*dest++ = (*tmp&  0x3ff)>>  2;
-> +			*dest++ = (*tmp&  0x3ff)>>  2;
-> +			*dest++ = (*tmp&  0x3ff)>>  2;
-> +
-> +			/* +1 means two bytes as we are dealing with (unsigned short) */
-> +			tmp += 1;
-> +		}
-> +	}
-> +
-> +	free(unpacked_buffer);
-> +}
-> +
-> +void v4lconvert_y10b_to_yuv420(const unsigned char *src, unsigned char *dest,
-> +		const struct v4l2_format *src_fmt)
-> +{
-> +	unsigned short *unpacked_buffer = NULL;
-> +	int width = src_fmt->fmt.pix.width;
-> +	int height = src_fmt->fmt.pix.height;
-> +
-> +	/* TODO: check return value or move the allocation out of here */
-> +	unpacked_buffer = malloc(width * height * sizeof(unsigned short));
-> +	convert_packed_to_16bit((uint8_t *)src, unpacked_buffer, 10, width * height);
-> +
-> +	int x, y;
-> +	unsigned short *tmp = unpacked_buffer;
-> +
-> +	/* Y */
-> +	for (y = 0; y<  src_fmt->fmt.pix.height; y++)
-> +		for (x = 0; x<  src_fmt->fmt.pix.width; x++) {
-> +
-> +			/* Only 10 useful bits, so we discard the LSBs */
-> +			*dest++ = (*tmp&  0x3ff)>>  2;
-> +
-> +			/* +1 means two bytes as we are dealing with (unsigned short) */
-> +			tmp += 1;
-> +		}
-> +
-> +	/* Clear U/V */
-> +	memset(dest, 0x80, src_fmt->fmt.pix.width * src_fmt->fmt.pix.height / 2);
-> +
-> +	free(unpacked_buffer);
-> +}
+-- 
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
+Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
+----------------------------------------------------------------
