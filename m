@@ -1,55 +1,85 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.128.24]:39861 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754886Ab1D1K2Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Apr 2011 06:28:24 -0400
-Message-ID: <4DB94122.9010203@nokia.com>
-Date: Thu, 28 Apr 2011 13:27:46 +0300
-From: Sakari Ailus <sakari.ailus@nokia.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:61926 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754377Ab1D3KAg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 30 Apr 2011 06:00:36 -0400
+Received: by wwa36 with SMTP id 36so4955249wwa.1
+        for <linux-media@vger.kernel.org>; Sat, 30 Apr 2011 03:00:35 -0700 (PDT)
+Message-ID: <4DBBDDBF.4020704@googlemail.com>
+Date: Sat, 30 Apr 2011 11:00:31 +0100
+From: Robert Longbottom <rongblor@googlemail.com>
 MIME-Version: 1.0
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-CC: kalle.jokiniemi@nokia.com, lrg@slimlogic.co.uk,
-	mchehab@infradead.org, svarbatov@mm-sol.com, saaguirre@ti.com,
-	grosikopulos@mm-sol.com, vimarsh.zutshi@nokia.com,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com
-Subject: Re: [RFC] Regulator state after regulator_get
-References: <9D0D31AA57AAF5499AFDC63D6472631B09C76A@008-AM1MPN1-036.mgdnok.nokia.com> <4DB9348D.7000501@nokia.com> <9D0D31AA57AAF5499AFDC63D6472631B09C7BE@008-AM1MPN1-036.mgdnok.nokia.com> <20110428102009.GB14494@opensource.wolfsonmicro.com>
-In-Reply-To: <20110428102009.GB14494@opensource.wolfsonmicro.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: OK szap is looking better, and I feel so close...
+References: <BANLkTimi5Tz2ER=6y93SH3JFXqb-w=7A0g@mail.gmail.com>
+In-Reply-To: <BANLkTimi5Tz2ER=6y93SH3JFXqb-w=7A0g@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Mark Brown wrote:
-> On Thu, Apr 28, 2011 at 09:44:10AM +0000, kalle.jokiniemi@nokia.com wrote:
-> 
->>  > Another alternative to the first option you proposed could be to add a
->>  > flags field to regulator_consumer_supply, and use a flag to recognise
->>  > regulators which need to be disabled during initialisation. The flag
->>  > could be set by using a new macro e.g. REGULATOR_SUPPLY_NASTY() when
->>  > defining the regulator.
-> 
->> This sounds like a good option actually. Liam, Mark, any opinions?
-> 
-> I'm not sure what "supply_nasty" would mean?  This also doesn't seem
-> like something that we can set up per supply - it's going to affect the
-> whole regulator state, it's not something that only affects a single
-> supply.
+On 30/04/2011 10:37, Morgan Read wrote:
+> OK, think I might be getting somewhere...
+>
+<snip>
 
-supply_nasty() would be used to define a regulator which is enabled by
-the boot loader when it shouldn't be, which is the actual problem.
+> [user@vortexbox ~]$ szap -r TV2
+> reading channels from file '/home/user/.szap/channels.conf'
+> zapping to 3 'TV2':
+> sat 0, frequency = 12483 MHz H, symbolrate 22500000, vpid = 0x0204,
+> apid = 0x028e
+> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> status 01 | signal fa00 | snr f772 | ber 00000000 | unc fffffffe |
+> status 01 | signal 0f00 | snr a344 | ber 00000000 | unc fffffffe |
+> status 01 | signal 0f00 | snr a423 | ber 00000000 | unc fffffffe |
+> ... ... ...
+> ^C
 
-We have a regulator which is enabled by the boot loader. However, this
-regulator shouldn't be on at boot since it's not needed by any devices
---- the drivers for those devices will use proper regulator framework
-calls to use the regulator when it's needed. There's no chance to have
-the boot loader fixed, as stated by Kalle.
+I'd expect to see (from memory) FE_HAS_LOCK on the end of those lines, 
+so something more like this:
 
-How should this regulator be turned off in the boot by the kernel?
+status 01 | signal fa00 | snr f772 | ber 00000000 | unc fffffffe | 
+FE_HAS_LOCK
 
-Regards,
+Looks like it hasn't locked on to the channel for some reason.  I think 
+this is probably your problem, though I don't know what you should do to 
+fix it...
 
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+> [user@vortexbox ~]$
+>
+> And, while szap -r TV2 is running, on another console I should be able
+> to run mplayer?  So:
+> [user@vortexbox ~]$ mplayer -vo x11 /dev/dvb/adapter0/dvr0
+> MPlayer SVN-r33254-snapshot-4.5.1 (C) 2000-2011 MPlayer Team
+> 162 audio&  360 video codecs
+> Can't open joystick device /dev/input/js0: No such file or directory
+> Can't init input joystick
+> mplayer: could not connect to socket
+> mplayer: No such file or directory
+> Failed to open LIRC support. You will not be able to use your remote control.
+>
+> Playing /dev/dvb/adapter0/dvr0.
+>
+>
+> MPlayer interrupted by signal 2 in module: demux_open
+>
+>
+> MPlayer interrupted by signal 2 in module: demux_open
+> [user@vortexbox ~]$
+>
+> But, nothing happens at Playing /dev/dvb/adapter0/dvr0. ...  Where
+> should I see what's playing?
+
+I usually do:
+
+$ cat /dev/dvb/adapter0/dvr0 > recording.mpg
+
+and then in another terminal
+
+$ mplayer recording.mpg
+
+Though it doesn't look like thats your problem, but at least you can see 
+if any data is being retrieved if the file grows in size.
+
+Robert.
