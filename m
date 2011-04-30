@@ -1,152 +1,63 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.samsung.com ([203.254.224.25]:32157 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752077Ab1DEFgi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2011 01:36:38 -0400
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Received: from epmmp2 (mailout2.samsung.com [203.254.224.25])
- by mailout2.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LJ500L1QZL0S900@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 05 Apr 2011 14:36:36 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LJ500KRLZL035@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 05 Apr 2011 14:36:36 +0900 (KST)
-Date: Tue, 05 Apr 2011 14:36:32 +0900
-From: "Kim, HeungJun" <riverful.kim@samsung.com>
-Subject: Re: [PATCH] Add support for M-5MOLS 8 Mega Pixel camera
-In-reply-to: <007901cbf2c2$bb240bb0$316c2310$%kang@samsung.com>
-To: sungchun.kang@samsung.com
-Cc: linux-media@vger.kernel.org,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Reply-to: riverful.kim@samsung.com
-Message-id: <4D9AAA60.4070004@samsung.com>
-Content-transfer-encoding: 8BIT
-References: <1300282723-31536-1-git-send-email-riverful.kim@samsung.com>
- <007901cbf2c2$bb240bb0$316c2310$%kang@samsung.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:64066 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758091Ab1D3BTf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Apr 2011 21:19:35 -0400
+Received: by iyb14 with SMTP id 14so3462853iyb.19
+        for <linux-media@vger.kernel.org>; Fri, 29 Apr 2011 18:19:34 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <201104260853.03817.hverkuil@xs4all.nl>
+References: <BANLkTim7AONexeEm-E8iLQA5+TMDRUy36w@mail.gmail.com>
+	<201104231256.25263.hverkuil@xs4all.nl>
+	<BANLkTikneMOMVUQ07mLBZZTDYrKTJ1dfPw@mail.gmail.com>
+	<201104260853.03817.hverkuil@xs4all.nl>
+Date: Fri, 29 Apr 2011 19:19:34 -0600
+Message-ID: <BANLkTikRtZTpDZTe93q08-WFSKRAuv29WQ@mail.gmail.com>
+Subject: Re: Regression with suspend from "msp3400: convert to the new control framework"
+From: Jesse Allen <the3dfxdude@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Sungchun,
+On Tue, Apr 26, 2011 at 12:53 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+> OK, whatever is causing the problems is *not* msp3400 since your card does not
+> have one :-)
+>
+> This card uses gpio to handle audio.
+>
+>> i2c-core: driver [tuner] using legacy suspend method
+>> i2c-core: driver [tuner] using legacy resume method
+>> tuner 0-0061: chip found @ 0xc2 (bt878 #0 [sw])
+>> tuner-simple 0-0061: creating new instance
+>> tuner-simple 0-0061: type set to 2 (Philips NTSC (FI1236,FM1236 and
+>> compatibles))
+>
+> It is more likely to be the tuner driver. But I would have expected to see
+> more bug reports since this is a bog-standard tuner so I have my doubts there
+> as well.
+>
+> Regards,
+>
+>        Hans
+>
 
-The below comments and issues looks the firmware issues.
-I add another comments, so you can check this out.
 
-The first plan of this driver I have, is to merge the basic driver code
-of M-5MOLS. Because, the M-5MOLS has many variation of versions. It makes
-to send the driver to ML or be merged, also respond when the problem issued.
+After today, basically I have proved that the issue only happens if
+both the radeon and the bttv drivers are both loaded at suspend. If I
+boot without radeon, but load bttv, I can suspend and resume the tv
+card just fine. If I load radeon and when going to suspend unload
+bttv, I can then resume and load bttv just fine. This behavior started
+sometime after v2.6.36. It will be hard to pin point a problem in
+either since both have problems in 2.6.37-rc, where bttv has multiple
+issues during that time frame that cause oopses, and in other places
+loading radeon causes a lockup. So I think this will take me a
+different direction now, and it would be nice to know what changed
+related to all this.
 
-The version considered with version, probably will be the next version.
-
-
-2011-04-04 ì˜¤í›„ 9:20, Sungchun Kang ì“´ ê¸€:
-> Hi heungjun,
-> I have tested this version for a few days.
-> 
-> On 03/16/2011 10:30 PM, Kim, Heungjun wrote:
->> -----Original Message-----
->> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
->> owner@vger.kernel.org] On Behalf Of Kim, Heungjun
->> Sent: Wednesday, March 16, 2011 10:39 PM
->> To: linux-media@vger.kernel.org
->> Cc: hverkuil@xs4all.nl; laurent.pinchart@ideasonboard.com; Kim,
->> Heungjun; Sylwester Nawrocki; Kyungmin Park
->> Subject: [PATCH] Add support for M-5MOLS 8 Mega Pixel camera
->>
->> Add I2C/V4L2 subdev driver for M-5MOLS camera sensor with integrated
->> image signal processor.
->>
->> Signed-off-by: Heungjun Kim <riverful.kim@samsung.com>
->> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
->> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
->> ---
->>
->> Hi Hans and everyone,
->>
->> This is sixth version of M-5MOLS 8 Mega Pixel camera sensor. And, if
->> you see
->> previous version, you can find at:
->> http://www.spinics.net/lists/linux-media/msg29350.html
->>
->> This driver patch is fixed several times, and the important issues is
->> almost
->> corrected. And, I hope that this is the last version one merged for
->> 2.6.39.
->> I look forward to be reviewed one more time.
->>
->> The summary of this version's feature is belows:
->>
->> 1. Add focus control
->> 	: I've suggest menu type focus control, but I agreed this
->> version is
->> 	not yet the level accepted. So, I did not use focus control
->> which
->> 	I suggest.
->> 	The M-5MOLS focus routine takes some time to execute. But, the
->> user
->> 	application calling v4l2 control, should not hanged while
->> streaming
->> 	using q/dqbuf. So, I use workqueue. I want to discuss the focus
->> 	subject on mailnglist next time.
->>
-> 
-> I wonder this feature is dependent on this firmware version?
-> 
-> .....snip
-The value can be changable by the firmware, but the usage of focus is not.
-The specific mode can be added too. But, it also maintains same usage.
-
-It's scheduled at the next time to consider the version. But, it's hard to
-consider all cases.
-
-> 
->> +static int m5mols_start_monitor(struct v4l2_subdev *sd)
->> +{
->> +	struct m5mols_info *info = to_m5mols(sd);
->> +	int ret;
->> +
->> +	ret = m5mols_set_mode(sd, MODE_PARAM);
->> +	if (!ret)
->> +		ret = i2c_w8_param(sd, CAT1_MONITOR_SIZE, info-
->>> res_preset);
->> +	if (!ret)
->> +		ret = i2c_w8_param(sd, CAT1_MONITOR_FPS, info->fps_preset);
->> +	if (!ret)
->> +		ret = m5mols_set_mode(sd, MODE_MONITOR);
->> +	if (!ret && info->do_once) {
->> +		/* After probing the driver, this should be callde once.
->> */
->> +		v4l2_ctrl_handler_setup(&info->handle);
-> As test result, When sensor is set monitor mode, if this API is called, 
-> Preview data(get from sensor) is craked. Surely, it is good working if this API is called in paramset mode.
-> That waw no problem in Version 5. Because it is returned before v4l2_ctrl_handler_init()
-> In m5mols_init_controls(version 5) :
-> 	ret = i2c_r16_ae(sd, CAT3_MAX_GAIN_MON, (u32 *)&max_ex_mon);
-> 	if (ret) 
-> 		return ret; // if success, return.
-> 
-> My test case is :
-> S_power->s_fmt->s_stream.
-It's a little tricky to control parameter & monitor mode in the M-5MOLS sensor.
-Any commands or control is specified that it's available in Docunemt, but
-it's just literaly "available", doesn't mean "working well". Especially,
-the version difference between firmware is the biggest source of this problems.
-
-Probably, the sensor you have is a different firmware I think.
-So If there is any other problem, I recommend to use previous version plz.
-
-If you show me the all version strings, I might help you.
-
-> 
-> .....
-> BRs Sungchun.
-> 
-> 
-
-Thanks for comments, and any other issues or opinions, let me know.
-
-Regards,
-Heungjun Kim
+Jesse
