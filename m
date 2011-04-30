@@ -1,100 +1,78 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.128.24]:49183 "EHLO mgw-da01.nokia.com"
+Received: from mx1.redhat.com ([209.132.183.28]:57533 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753404Ab1DMJOk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Apr 2011 05:14:40 -0400
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
-Subject: [RFC 1/1] v4l: Improve error handling in v4l2_device_register_subdev()
-Date: Wed, 13 Apr 2011 12:17:04 +0300
-Message-Id: <1302686224-32616-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+	id S1753978Ab1D3WbH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 30 Apr 2011 18:31:07 -0400
+Message-ID: <4DBC8D9C.2090802@redhat.com>
+Date: Sat, 30 Apr 2011 19:30:52 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Florian Mickler <florian@mickler.org>
+CC: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	crope@iki.fi, tvboxspy@gmail.com
+Subject: Re: [PATCH 0/5] get rid of on-stack dma buffers (part1)
+References: <1300657852-29318-1-git-send-email-florian@mickler.org> <20110430205405.4beb7d33@schatten.dmk.lab>
+In-Reply-To: <20110430205405.4beb7d33@schatten.dmk.lab>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-In some cases v4l2_device_register_subdev() did not module_put() a module
-the user count of which was incremented by try_module_get() earlier.
+Hi Florian,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
----
-Hi,
+Em 30-04-2011 15:54, Florian Mickler escreveu:
+> Hi Mauro!
+> 
+> I just saw that you picked up some patches of mine. What about these?
+> These are actually tested...
 
-I'm sending this as an RFC since technically this leaves still room for
-improvement.
+I'm still in process of applying the pending patches. Due to patchwork.kernel.org
+troubles (including the loss of about 270 patches from its SQL database only 
+recovered yesterday[1]), I have a long backlog. So, I'm gradually applying the remaing
+stuff. It will take some time though, and it will depend on patchwork mood, but I intend
+to spend some time during this weekend to minimize the backlog.
 
-v4l2_ctrl_add_handler() error handling is still to be implemented. The
-controls are added to the parent and that needs to be cleaned up ---
-actually, even if v4l2_ctrl_add_handler() fails, the added controls would
-have to be removed from the v4l2_dev parent.
 
-I don't see an easy way to do this, except to call v4l2_ctrl_handler_free().
-But that also cleans up the existing controls in the parent, which might not
-be desirable.
+Cheers,
+Mauro
 
-As far as I understand, no driver initialises the v4l2_dev->ctrl_handler for
-the moment.
+[1] The recover lost the email's body/SOB, so I've wrote a script to use my email
+queue to get the data, using patchwork just to mark what patches were already
+processed. This increses the time I have to spend on each patch, as I need to run
+a script to match the patchwork patch with the patch ID inside my email queue.
 
----
- drivers/media/video/v4l2-device.c |   30 ++++++++++++++++++------------
- 1 files changed, 18 insertions(+), 12 deletions(-)
-
-diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
-index 5aeaf87..773146d 100644
---- a/drivers/media/video/v4l2-device.c
-+++ b/drivers/media/video/v4l2-device.c
-@@ -156,27 +156,20 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
- 	if (sd->internal_ops && sd->internal_ops->registered) {
- 		err = sd->internal_ops->registered(sd);
- 		if (err)
--			return err;
-+			goto err_registered;
- 	}
- 
- 	/* This just returns 0 if either of the two args is NULL */
- 	err = v4l2_ctrl_add_handler(v4l2_dev->ctrl_handler, sd->ctrl_handler);
--	if (err) {
--		if (sd->internal_ops && sd->internal_ops->unregistered)
--			sd->internal_ops->unregistered(sd);
--		return err;
--	}
-+	if (err)
-+		goto err_v4l2_ctrl_add_handler;
- 
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	/* Register the entity. */
- 	if (v4l2_dev->mdev) {
- 		err = media_device_register_entity(v4l2_dev->mdev, entity);
--		if (err < 0) {
--			if (sd->internal_ops && sd->internal_ops->unregistered)
--				sd->internal_ops->unregistered(sd);
--			module_put(sd->owner);
--			return err;
--		}
-+		if (err < 0)
-+			goto err_media_device_register_entity;
- 	}
- #endif
- 
-@@ -185,6 +178,19 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
- 	spin_unlock(&v4l2_dev->lock);
- 
- 	return 0;
-+
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+err_media_device_register_entity:
-+#endif
-+err_v4l2_ctrl_add_handler:
-+	/* FIXME: v4l2_ctrl_add_handler() error handling. */
-+	if (sd->internal_ops && sd->internal_ops->unregistered)
-+		sd->internal_ops->unregistered(sd);
-+
-+err_registered:
-+	module_put(sd->owner);
-+
-+	return err;
- }
- EXPORT_SYMBOL_GPL(v4l2_device_register_subdev);
- 
--- 
-1.7.2.5
+> 
+> Regards,
+> Flo
+> 
+>  On Sun, 20 Mar 2011 22:50:47 +0100
+> Florian Mickler <florian@mickler.org> wrote:
+> 
+>> Hi Mauro!
+>>
+>> These are the patches which got tested already and 
+>> should be good to go. [first batch of patches]
+>>
+>> I have another batch with updated patches (dib0700, gp8psk, vp702x)
+>> where I did some more extensive changes to use preallocated memory.
+>> And a small update to the vp7045 patch.
+>>
+>> Third batch are the patches to opera1, m920x, dw2102, friio,
+>> a800 which I left as is, for the time beeing. 
+>> Regards,
+>> Flo
+>>
+>> Florian Mickler (5):
+>>   [media] ec168: get rid of on-stack dma buffers
+>>   [media] ce6230: get rid of on-stack dma buffer
+>>   [media] au6610: get rid of on-stack dma buffer
+>>   [media] lmedm04: correct indentation
+>>   [media] lmedm04: get rid of on-stack dma buffers
+>>
+>>  drivers/media/dvb/dvb-usb/au6610.c  |   22 ++++++++++++++++------
+>>  drivers/media/dvb/dvb-usb/ce6230.c  |   11 +++++++++--
+>>  drivers/media/dvb/dvb-usb/ec168.c   |   18 +++++++++++++++---
+>>  drivers/media/dvb/dvb-usb/lmedm04.c |   35 +++++++++++++++++++++++------------
+>>  4 files changed, 63 insertions(+), 23 deletions(-)
+>>
 
