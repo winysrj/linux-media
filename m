@@ -1,131 +1,348 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46995 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753262Ab1EBTcd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 May 2011 15:32:33 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC] V4L2 API for flash devices
-Date: Mon, 2 May 2011 21:32:46 +0200
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Hans Verkuil <hansverk@cisco.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Nayden Kanchev <nkanchev@mm-sol.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Cohen David Abraham <david.cohen@gmail.com>
-References: <4D90854C.2000802@maxwell.research.nokia.com> <4DBED602.2060207@maxwell.research.nokia.com> <201105022113.56088.hverkuil@xs4all.nl>
-In-Reply-To: <201105022113.56088.hverkuil@xs4all.nl>
+Received: from mailout-de.gmx.net ([213.165.64.23]:40777 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755844Ab1EATGG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 May 2011 15:06:06 -0400
+Received: from tobias-t61p.localnet (unknown [10.2.3.10])
+	by mail.lorenz.priv (Postfix) with ESMTPS id CB133141ED
+	for <linux-media@vger.kernel.org>; Sun,  1 May 2011 21:06:02 +0200 (CEST)
+From: Tobias Lorenz <tobias.lorenz@gmx.net>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 6/6] removement of locking mechanisms
+Date: Sun, 1 May 2011 21:03:32 +0200
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201105022132.47900.laurent.pinchart@ideasonboard.com>
+Message-Id: <201105012103.32066.tobias.lorenz@gmx.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Hans,
+This patch minimized the use of locking.
+Basically locking is only required where open/close/disconnect is done.
 
-On Monday 02 May 2011 21:13:56 Hans Verkuil wrote:
-> On Monday, May 02, 2011 18:04:18 Sakari Ailus wrote:
-> > Sakari Ailus wrote:
-> > > Laurent Pinchart wrote:
-> > >> On Tuesday 29 March 2011 13:51:38 Sakari Ailus wrote:
-> > >>> Sakari Ailus wrote:
-> > >>>> Hans Verkuil wrote:
-> > >>>>> On Tuesday, March 29, 2011 11:35:19 Sakari Ailus wrote:
-> > >>>>>> Hi Hans,
-> > >>>>>> 
-> > >>>>>> Many thanks for the comments!
-> > >>>> 
-> > >>>> ...
-> > >>>> 
-> > >>>>>> It occurred to me that an application might want to turn off a
-> > >>>>>> flash which has been strobed on software. That can't be done on a
-> > >>>>>> single button control.
-> > >>>>>> 
-> > >>>>>> V4L2_CID_FLASH_SHUTDOWN?
-> > >>>>>> 
-> > >>>>>> The application would know the flash strobe is ongoing before it
-> > >>>>>> receives a timeout fault. I somehow feel that there should be a
-> > >>>>>> control telling that directly.
-> > >>>>>> 
-> > >>>>>> What about using a bool control for the strobe?
-> > >>>>> 
-> > >>>>> It depends: is the strobe signal just a pulse that kicks off the
-> > >>>>> flash, or is it active throughout the flash duration? In the
-> > >>>>> latter case a bool makes sense, in the first case an extra button
-> > >>>>> control makes sense.
-> > >>>> 
-> > >>>> I like buttons since I associate them with action (like strobing)
-> > >>>> but on the other hand buttons don't allow querying the current
-> > >>>> state. On the other hand, the current state isn't always
-> > >>>> determinable, e.g. in the absence of the interrupt line from the
-> > >>>> flash controller interrupt pin (e.g. N900!).
-> > >>> 
-> > >>> Oh, I need to take my words back a bit.
-> > >>> 
-> > >>> There indeed is a way to get the on/off status for the flash, but
-> > >>> that involves I2C register access --- when you read the fault
-> > >>> registers, you do get the state, even if the interrupt linke is
-> > >>> missing from the device. At least I can't see why this wouldn't
-> > >>> work, at least on this particular chip.
-> > >>> 
-> > >>> What you can't have in this case is the event.
-> > >>> 
-> > >>> So, in my opinion this suggests that a single boolean control is the
-> > >>> way to go.
-> > >> 
-> > >> Why would an application want to turn off a flash that has been
-> > >> strobbed in software ? Applications should set the flash duration and
-> > >> then strobe it.
-> > > 
-> > > The applications won't know beforehand the exact timing of the exposure
-> > > of the frames on the sensor and the latencies of the operating system
-> > > possibly affected by other processes running on the system. Thus it's
-> > > impossible to know exactly how long flash strobe (on software, that
-> > > is!) is required.
-> > > 
-> > > So, as far as I see there should be a way to turn the flash off and the
-> > > timeout would mostly function as a safeguard. This is likely dependent
-> > > on the flash controller as well.
-> > 
-> > Today I was working on the ADP1653 driver and realised that this chip
-> > doesn't actually provide a way to stop the strobe by the user at all.
-> > There's just the timeout. The user may not turn off the strobe, as it
-> > first seemed to me in the spec. If I look at the AS3654A spec, it's
-> > almost equally vague on this topic.
-> > 
-> > This means that there are chips that do not allow explicitly stopping
-> > the strobe and probably those that do (I assume that hardware people
-> > will learn some day that a hard timeout isn't the best you can provide
-> > to software!).
-> > 
-> > There was a discussion on the type of the V4L2_CID_FLASH_STROBE control;
-> > whether that should be a button or boolean control. Buttons cannot be
-> > unpressed, so a button control would work for adp1653 but possibly not
-> > for other similar chips in the future.
-> > 
-> > Even if we have a standard control, can the type of the control change,
-> > depending on the properties of the hardware? This would also allow
-> > providing to user the knowledge on whether the flash may be explicitly
-> > turned off. On the other hand, I don't like the idea of having a
-> > standard control with several possible types (there are none at the
-> > moment, AFAIK). I would side with keeping the type of the control
-> > boolean all the time but I'm not fully certain.
-> > 
-> > Hans, do you have an opinion on this?
-> 
-> Theoretically the type may change depending on the hardware, but I don't
-> think that is something we should support. In particularly, that will make
-> it very hard to programmatically use such controls. There are all sorts of
-> subtle problems you run into when you allow for different types for the
-> same standard control.
+Interfering calls usually happen only to rds read/write operations.
+The code for ring buffer handling is changed in a way that makes locking there 
+unnecessary.
+In case of extensive compiler optimization, the worst that can happen is 
+dropped new data or redundant read of data.
 
-I'm still undecided. If we standardize a boolean control, how will userspace 
-know that, for the adp1653, the control can be written to 1 but can't be 
-written to 0 ?
+The good thing is that the clicking noise problem seems finally resolved with 
+that patch!
 
+Signed-off-by: Tobias Lorenz <tobias.lorenz@gmx.net>
+---
+ drivers/media/radio/si470x/radio-si470x-common.c |   39 +++++----------------
+ drivers/media/radio/si470x/radio-si470x-i2c.c    |   16 ++++++---
+ drivers/media/radio/si470x/radio-si470x-usb.c    |   19 +++++++----
+ drivers/media/radio/si470x/radio-si470x.h        |    2 +-
+ 4 files changed, 34 insertions(+), 42 deletions(-)
+
+diff --git a/drivers/media/radio/si470x/radio-si470x-common.c 
+b/drivers/media/radio/si470x/radio-si470x-common.c
+index 60bd95d..b184292 100644
+--- a/drivers/media/radio/si470x/radio-si470x-common.c
++++ b/drivers/media/radio/si470x/radio-si470x-common.c
+@@ -347,7 +347,8 @@ static ssize_t si470x_fops_read(struct file *file, char 
+__user *buf,
+ {
+ 	struct si470x_device *radio = video_drvdata(file);
+ 	int retval = 0;
+-	unsigned int block_count = 0;
++	size_t copied = 0;
++	unsigned int new_rd_index = 0;
+ 
+ 	/* switch on rds reception */
+ 	if ((radio->registers[SYSCONFIG1] & SYSCONFIG1_RDS) == 0)
+@@ -366,31 +367,28 @@ static ssize_t si470x_fops_read(struct file *file, char 
+__user *buf,
+ 		}
+ 	}
+ 
+-	/* calculate block count from byte count */
+-	count /= 3;
+-
+ 	/* copy RDS block out of internal buffer and to user buffer */
+-	mutex_lock(&radio->lock);
+-	while (block_count < count) {
++	while (copied < count) {
+ 		if (radio->rd_index == radio->wr_index)
+ 			break;
+ 
+-		/* always transfer rds complete blocks */
++		/* always transfer complete rds blocks */
+ 		if (copy_to_user(buf, &radio->buffer[radio->rd_index], 3))
+ 			/* retval = -EFAULT; */
+ 			break;
+ 
+ 		/* increment and wrap read pointer */
+-		radio->rd_index += 3;
+-		if (radio->rd_index >= radio->buf_size)
++		new_rd_index = radio->rd_index + 3;
++		if (new_rd_index < radio->buf_size)
++			radio->rd_index = new_rd_index;
++		else
+ 			radio->rd_index = 0;
+ 
+ 		/* increment counters */
+-		block_count++;
++		copied += 3;
+ 		buf += 3;
+-		retval += 3;
+ 	}
+-	mutex_unlock(&radio->lock);
++	retval = copied;
+ 
+ done:
+ 	return retval;
+@@ -407,11 +405,8 @@ static unsigned int si470x_fops_poll(struct file *file,
+ 	int retval = 0;
+ 
+ 	/* switch on rds reception */
+-
+-	mutex_lock(&radio->lock);
+ 	if ((radio->registers[SYSCONFIG1] & SYSCONFIG1_RDS) == 0)
+ 		si470x_rds_on(radio);
+-	mutex_unlock(&radio->lock);
+ 
+ 	poll_wait(file, &radio->read_queue, pts);
+ 
+@@ -485,7 +480,6 @@ static int si470x_vidioc_g_ctrl(struct file *file, void 
+*priv,
+ 	struct si470x_device *radio = video_drvdata(file);
+ 	int retval = 0;
+ 
+-	mutex_lock(&radio->lock);
+ 	/* safety checks */
+ 	retval = si470x_disconnect_check(radio);
+ 	if (retval)
+@@ -509,7 +503,6 @@ done:
+ 		dev_warn(&radio->videodev->dev,
+ 			"get control failed with %d\n", retval);
+ 
+-	mutex_unlock(&radio->lock);
+ 	return retval;
+ }
+ 
+@@ -523,7 +516,6 @@ static int si470x_vidioc_s_ctrl(struct file *file, void 
+*priv,
+ 	struct si470x_device *radio = video_drvdata(file);
+ 	int retval = 0;
+ 
+-	mutex_lock(&radio->lock);
+ 	/* safety checks */
+ 	retval = si470x_disconnect_check(radio);
+ 	if (retval)
+@@ -550,7 +542,6 @@ done:
+ 	if (retval < 0)
+ 		dev_warn(&radio->videodev->dev,
+ 			"set control failed with %d\n", retval);
+-	mutex_unlock(&radio->lock);
+ 	return retval;
+ }
+ 
+@@ -580,7 +571,6 @@ static int si470x_vidioc_g_tuner(struct file *file, void 
+*priv,
+ 	struct si470x_device *radio = video_drvdata(file);
+ 	int retval = 0;
+ 
+-	mutex_lock(&radio->lock);
+ 	/* safety checks */
+ 	retval = si470x_disconnect_check(radio);
+ 	if (retval)
+@@ -650,7 +640,6 @@ done:
+ 	if (retval < 0)
+ 		dev_warn(&radio->videodev->dev,
+ 			"get tuner failed with %d\n", retval);
+-	mutex_unlock(&radio->lock);
+ 	return retval;
+ }
+ 
+@@ -664,7 +653,6 @@ static int si470x_vidioc_s_tuner(struct file *file, void 
+*priv,
+ 	struct si470x_device *radio = video_drvdata(file);
+ 	int retval = 0;
+ 
+-	mutex_lock(&radio->lock);
+ 	/* safety checks */
+ 	retval = si470x_disconnect_check(radio);
+ 	if (retval)
+@@ -691,7 +679,6 @@ done:
+ 	if (retval < 0)
+ 		dev_warn(&radio->videodev->dev,
+ 			"set tuner failed with %d\n", retval);
+-	mutex_unlock(&radio->lock);
+ 	return retval;
+ }
+ 
+@@ -706,7 +693,6 @@ static int si470x_vidioc_g_frequency(struct file *file, 
+void *priv,
+ 	int retval = 0;
+ 
+ 	/* safety checks */
+-	mutex_lock(&radio->lock);
+ 	retval = si470x_disconnect_check(radio);
+ 	if (retval)
+ 		goto done;
+@@ -723,7 +709,6 @@ done:
+ 	if (retval < 0)
+ 		dev_warn(&radio->videodev->dev,
+ 			"get frequency failed with %d\n", retval);
+-	mutex_unlock(&radio->lock);
+ 	return retval;
+ }
+ 
+@@ -737,7 +722,6 @@ static int si470x_vidioc_s_frequency(struct file *file, 
+void *priv,
+ 	struct si470x_device *radio = video_drvdata(file);
+ 	int retval = 0;
+ 
+-	mutex_lock(&radio->lock);
+ 	/* safety checks */
+ 	retval = si470x_disconnect_check(radio);
+ 	if (retval)
+@@ -754,7 +738,6 @@ done:
+ 	if (retval < 0)
+ 		dev_warn(&radio->videodev->dev,
+ 			"set frequency failed with %d\n", retval);
+-	mutex_unlock(&radio->lock);
+ 	return retval;
+ }
+ 
+@@ -768,7 +751,6 @@ static int si470x_vidioc_s_hw_freq_seek(struct file *file, 
+void *priv,
+ 	struct si470x_device *radio = video_drvdata(file);
+ 	int retval = 0;
+ 
+-	mutex_lock(&radio->lock);
+ 	/* safety checks */
+ 	retval = si470x_disconnect_check(radio);
+ 	if (retval)
+@@ -785,7 +767,6 @@ done:
+ 	if (retval < 0)
+ 		dev_warn(&radio->videodev->dev,
+ 			"set hardware frequency seek failed with %d\n", retval);
+-	mutex_unlock(&radio->lock);
+ 	return retval;
+ }
+ 
+diff --git a/drivers/media/radio/si470x/radio-si470x-i2c.c 
+b/drivers/media/radio/si470x/radio-si470x-i2c.c
+index 4ce541a..e956bcc 100644
+--- a/drivers/media/radio/si470x/radio-si470x-i2c.c
++++ b/drivers/media/radio/si470x/radio-si470x-i2c.c
+@@ -273,6 +273,8 @@ static void si470x_i2c_interrupt_work(struct work_struct 
+*work)
+ 	unsigned short rds;
+ 	unsigned char tmpbuf[3];
+ 	int retval = 0;
++	unsigned int new_wr_index = 0;
++	unsigned int new_rd_index = 0;
+ 
+ 	/* safety checks */
+ 	if ((radio->registers[SYSCONFIG1] & SYSCONFIG1_RDS) == 0)
+@@ -325,17 +327,21 @@ static void si470x_i2c_interrupt_work(struct work_struct 
+*work)
+ 
+ 		/* copy RDS block to internal buffer */
+ 		memcpy(&radio->buffer[radio->wr_index], &tmpbuf, 3);
+-		radio->wr_index += 3;
+ 
+-		/* wrap write pointer */
+-		if (radio->wr_index >= radio->buf_size)
++		/* increment and wrap write pointer */
++		new_wr_index = radio->wr_index + 3;
++		if (radio->wr_index < radio->buf_size)
++			radio->wr_index = new_wr_index;
++		else
+ 			radio->wr_index = 0;
+ 
+ 		/* check for overflow */
+ 		if (radio->wr_index == radio->rd_index) {
+ 			/* increment and wrap read pointer */
+-			radio->rd_index += 3;
+-			if (radio->rd_index >= radio->buf_size)
++			new_rd_index = radio->rd_index + 3;
++			if (radio->rd_index < radio->buf_size)
++				radio->rd_index = new_rd_index;
++			else
+ 				radio->rd_index = 0;
+ 		}
+ 	}
+diff --git a/drivers/media/radio/si470x/radio-si470x-usb.c 
+b/drivers/media/radio/si470x/radio-si470x-usb.c
+index 57462b3..4df6d32e 100644
+--- a/drivers/media/radio/si470x/radio-si470x-usb.c
++++ b/drivers/media/radio/si470x/radio-si470x-usb.c
+@@ -375,8 +375,6 @@ int si470x_disconnect_check(struct si470x_device *radio)
+ 
+ /*
+  * si470x_int_in_callback - rds callback and processing function
+- *
+- * TODO: do we need to use mutex locks in some sections?
+  */
+ static void si470x_int_in_callback(struct urb *urb)
+ {
+@@ -388,6 +386,8 @@ static void si470x_int_in_callback(struct urb *urb)
+ 	unsigned short bler; /* rds block errors */
+ 	unsigned short rds;
+ 	unsigned char tmpbuf[3];
++	unsigned int new_wr_index = 0;
++	unsigned int new_rd_index = 0;
+ 
+ 	if (urb->status) {
+ 		if (urb->status == -ENOENT ||
+@@ -458,20 +458,25 @@ static void si470x_int_in_callback(struct urb *urb)
+ 
+ 			/* copy RDS block to internal buffer */
+ 			memcpy(&radio->buffer[radio->wr_index], &tmpbuf, 3);
+-			radio->wr_index += 3;
+ 
+-			/* wrap write pointer */
+-			if (radio->wr_index >= radio->buf_size)
++			/* increment and wrap write pointer */
++			new_wr_index = radio->wr_index + 3;
++			if (radio->wr_index < radio->buf_size)
++				radio->wr_index = new_wr_index;
++			else
+ 				radio->wr_index = 0;
+ 
+ 			/* check for overflow */
+ 			if (radio->wr_index == radio->rd_index) {
+ 				/* increment and wrap read pointer */
+-				radio->rd_index += 3;
+-				if (radio->rd_index >= radio->buf_size)
++				new_rd_index = radio->rd_index + 3;
++				if (radio->rd_index < radio->buf_size)
++					radio->rd_index = new_rd_index;
++				else
+ 					radio->rd_index = 0;
+ 			}
+ 		}
++
+ 		if (radio->wr_index != radio->rd_index)
+ 			wake_up_interruptible(&radio->read_queue);
+ 	}
+diff --git a/drivers/media/radio/si470x/radio-si470x.h 
+b/drivers/media/radio/si470x/radio-si470x.h
+index 7e1cc47..283275d 100644
+--- a/drivers/media/radio/si470x/radio-si470x.h
++++ b/drivers/media/radio/si470x/radio-si470x.h
+@@ -147,13 +147,13 @@ struct si470x_device {
+ 
+ 	/* driver management */
+ 	unsigned int users;
++	struct mutex lock;
+ 
+ 	/* Silabs internal registers (0..15) */
+ 	unsigned short registers[RADIO_REGISTER_NUM];
+ 
+ 	/* RDS receive buffer */
+ 	wait_queue_head_t read_queue;
+-	struct mutex lock;		/* buffer locking */
+ 	unsigned char *buffer;		/* size is always multiple of three */
+ 	unsigned int buf_size;
+ 	unsigned int rd_index;
 -- 
-Regards,
+1.7.4.1
 
-Laurent Pinchart
