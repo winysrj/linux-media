@@ -1,56 +1,139 @@
-Return-path: <mchehab@gaivota>
-Received: from casper.infradead.org ([85.118.1.10]:41916 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754972Ab1EHQcl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 May 2011 12:32:41 -0400
-Message-ID: <4DC6C5A5.3070409@infradead.org>
-Date: Sun, 08 May 2011 13:32:37 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Return-path: <mchehab@pedra>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:56519 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753185Ab1EAJ3l (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 May 2011 05:29:41 -0400
+Date: Sun, 1 May 2011 04:29:37 -0500
+From: Jonathan Nieder <jrnieder@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Dan Carpenter <error27@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, Andi Huber <hobrom@gmx.at>,
+	Marlon de Boer <marlon@hyves.nl>,
+	Damien Churchill <damoxc@gmail.com>
+Subject: [PATCH 2/7] [media] cx88: fix locking of sub-driver operations
+Message-ID: <20110501092937.GB18380@elie>
+References: <20110501091710.GA18263@elie>
 MIME-Version: 1.0
-To: Manoel PN <pinusdtv@hotmail.com>
-CC: linux-media@vger.kernel.org, Mauro Chehab <mchehab@redhat.com>,
-	mpnbol@bol.com.br
-Subject: Re: [PATCH] Various modifications to MB86A20S driver
-References: <BLU157-w7FFBC4746E77A12455D92D8820@phx.gbl>
-In-Reply-To: <BLU157-w7FFBC4746E77A12455D92D8820@phx.gbl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20110501091710.GA18263@elie>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Em 07-05-2011 04:22, Manoel PN escreveu:
-> Hi everyone,
-> 
-> I made several modifications on the driver for the MB86A20S demodulator and would like to receive comments regarding the modifications.
-> 
-> The modifications were necessary to allow the use of other drivers, as what I'm finishing for the device "TBS Media JH DTB08 USB2.0 ISDB-T".
-> 
-> Thanks for the comments, best regards,
+The BKL conversion of this driver seems to have gone wrong.
+Loading the cx88-blackbird driver deadlocks.
 
-Wow! huge changes! I'm currently travelling abroad without ISDB-T signal
-here. I'll analyze and better comment your patch after my return. Anyway,
-let me popup just two small thinks that come to me on a very quick look
-on your patch:
+The cause: mpeg_ops::open in the cx2388x blackbird driver acquires the
+device lock and calls the sub-driver's request_acquire, which tries to
+acquire the lock again.  Fix it by clarifying the semantics of
+request_acquire, request_release, advise_acquire, and advise_release:
+now all will rely on the caller to acquire the device lock.
 
->  config DVB_MB86A20S
-> -    tristate "Fujitsu mb86a20s"
-> +    tristate "Fujitsu MB86A20S"
+Based on work by Ben Hutchings <ben@decadent.org.uk>.
 
-Why? we generally use lowercase for device codes.
-Please, don't change it.
+Reported-by: Andi Huber <hobrom@gmx.at>
+Fixes: https://bugzilla.kernel.org/show_bug.cgi?id=31962
+Tested-by: Andi Huber <hobrom@gmx.at>
+Tested-by: Marlon de Boer <marlon@hyves.nl>
+Cc: stable@kernel.org
+Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
+---
+ drivers/media/video/cx88/cx88-blackbird.c |    4 ++--
+ drivers/media/video/cx88/cx88-dvb.c       |    3 +--
+ drivers/media/video/cx88/cx88-mpeg.c      |    4 ----
+ drivers/media/video/cx88/cx88.h           |    3 ++-
+ 4 files changed, 5 insertions(+), 9 deletions(-)
 
-> +static struct mb86a20s_config_regs_param mb86a20s_config_default[] = {
-> +    { REG0001, 0x0d },    /* 0x0d */
-> +    { REG0009, 0x3e },    /* 0x1a */
+diff --git a/drivers/media/video/cx88/cx88-blackbird.c b/drivers/media/video/cx88/cx88-blackbird.c
+index b93fbd3..a6f7d53 100644
+--- a/drivers/media/video/cx88/cx88-blackbird.c
++++ b/drivers/media/video/cx88/cx88-blackbird.c
+@@ -1125,13 +1125,13 @@ static int mpeg_release(struct file *file)
+ 
+ 	/* Make sure we release the hardware */
+ 	drv = cx8802_get_driver(dev, CX88_MPEG_BLACKBIRD);
+-	mutex_unlock(&dev->core->lock);
+-
+ 	if (drv)
+ 		drv->request_release(drv);
+ 
+ 	atomic_dec(&dev->core->mpeg_users);
+ 
++	mutex_unlock(&dev->core->lock);
++
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/video/cx88/cx88-dvb.c b/drivers/media/video/cx88/cx88-dvb.c
+index 88a1507..5eccd02 100644
+--- a/drivers/media/video/cx88/cx88-dvb.c
++++ b/drivers/media/video/cx88/cx88-dvb.c
+@@ -134,8 +134,6 @@ static int cx88_dvb_bus_ctrl(struct dvb_frontend* fe, int acquire)
+ 
+ 	mutex_lock(&dev->core->lock);
+ 	drv = cx8802_get_driver(dev, CX88_MPEG_DVB);
+-	mutex_unlock(&dev->core->lock);
+-
+ 	if (drv) {
+ 		if (acquire){
+ 			dev->frontends.active_fe_id = fe_id;
+@@ -145,6 +143,7 @@ static int cx88_dvb_bus_ctrl(struct dvb_frontend* fe, int acquire)
+ 			dev->frontends.active_fe_id = 0;
+ 		}
+ 	}
++	mutex_unlock(&dev->core->lock);
+ 
+ 	return ret;
+ }
+diff --git a/drivers/media/video/cx88/cx88-mpeg.c b/drivers/media/video/cx88/cx88-mpeg.c
+index 918172b..9147c16 100644
+--- a/drivers/media/video/cx88/cx88-mpeg.c
++++ b/drivers/media/video/cx88/cx88-mpeg.c
+@@ -624,13 +624,11 @@ static int cx8802_request_acquire(struct cx8802_driver *drv)
+ 
+ 	if (drv->advise_acquire)
+ 	{
+-		mutex_lock(&drv->core->lock);
+ 		core->active_ref++;
+ 		if (core->active_type_id == CX88_BOARD_NONE) {
+ 			core->active_type_id = drv->type_id;
+ 			drv->advise_acquire(drv);
+ 		}
+-		mutex_unlock(&drv->core->lock);
+ 
+ 		mpeg_dbg(1,"%s() Post acquire GPIO=%x\n", __func__, cx_read(MO_GP0_IO));
+ 	}
+@@ -643,14 +641,12 @@ static int cx8802_request_release(struct cx8802_driver *drv)
+ {
+ 	struct cx88_core *core = drv->core;
+ 
+-	mutex_lock(&drv->core->lock);
+ 	if (drv->advise_release && --core->active_ref == 0)
+ 	{
+ 		drv->advise_release(drv);
+ 		core->active_type_id = CX88_BOARD_NONE;
+ 		mpeg_dbg(1,"%s() Post release GPIO=%x\n", __func__, cx_read(MO_GP0_IO));
+ 	}
+-	mutex_unlock(&drv->core->lock);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/media/video/cx88/cx88.h b/drivers/media/video/cx88/cx88.h
+index 6ff34c7..e912919 100644
+--- a/drivers/media/video/cx88/cx88.h
++++ b/drivers/media/video/cx88/cx88.h
+@@ -500,7 +500,8 @@ struct cx8802_driver {
+ 	/* Caller must _not_ hold core->lock */
+ 	int (*probe)(struct cx8802_driver *drv);
+ 
+-	/* Caller must hold core->lock */
++	/* Callers to the following functions must hold core->lock */
++
+ 	int (*remove)(struct cx8802_driver *drv);
+ 
+ 	/* MPEG 8802 -> mini driver - Access for hardware control */
+-- 
+1.7.5
 
-NACK. 
-
-It makes no sense to rename for something as vague as "REG00001".
-It would be ok if you had renamed, for someting with a meaning. Like, for example,
-renaming reg 0x70 to something like: REG70_RESET_DEVICE
-
-Also, please send renaming patches like that in separate, otherwise it becomes
-really hard to discover what you've changed at the initialization sequence.
-
-Thanks,
-Mauro
