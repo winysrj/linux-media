@@ -1,61 +1,110 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:44526 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752195Ab1E2M6k (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 May 2011 08:58:40 -0400
-Message-ID: <4DE242FA.8010400@redhat.com>
-Date: Sun, 29 May 2011 09:58:34 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:41482 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752883Ab1EAJaA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 May 2011 05:30:00 -0400
+Date: Sun, 1 May 2011 04:29:56 -0500
+From: Jonathan Nieder <jrnieder@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Dan Carpenter <error27@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, Andi Huber <hobrom@gmx.at>,
+	Marlon de Boer <marlon@hyves.nl>,
+	Damien Churchill <damoxc@gmail.com>
+Subject: [PATCH 3/7] [media] cx88: hold device lock during sub-driver
+ initialization
+Message-ID: <20110501092956.GC18380@elie>
+References: <20110501091710.GA18263@elie>
 MIME-Version: 1.0
-To: Andy Walls <awalls@md.metrocast.net>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans De Goede <hdegoede@redhat.com>
-Subject: Re: [RFCv2] Add a library to retrieve associated media devices -
- was: Re: [ANNOUNCE] experimental alsa stream support at xawtv3
-References: <4DDAC0C2.7090508@redhat.com> <4DE120D1.2020805@redhat.com> <4DE19AF7.2000401@redhat.com> <201105291319.47207.hverkuil@xs4all.nl> <bcae2b56-57c0-4936-b4c5-1d57f65125fc@email.android.com>
-In-Reply-To: <bcae2b56-57c0-4936-b4c5-1d57f65125fc@email.android.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20110501091710.GA18263@elie>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 29-05-2011 08:47, Andy Walls escreveu:
-> Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>> Each device type that is known by the API is defined inside enum
->> device_type,
->>> currently defined as:
->>>
->>> 	enum device_type {
->>> 		UNKNOWN = 65535,
->>> 		NONE    = 65534,
->>> 		MEDIA_V4L_VIDEO = 0,
->>
->> Can you add MEDIA_V4L_RADIO as well? And MEDIA_V4L_SUBDEV too.
->>
->>> 		MEDIA_V4L_VBI,
->>> 		MEDIA_DVB_FRONTEND,
->>
->> It might be better to start at a new offset here, e.g.
->> MEDIA_DVB_FRONTEND = 100
->> Ditto for SND. That makes it easier to insert new future device nodes.
->>
->>> 		MEDIA_DVB_DEMUX,
->>> 		MEDIA_DVB_DVR,
->>> 		MEDIA_DVB_NET,
->>> 		MEDIA_DVB_CA,
->>> 		MEDIA_SND_CARD,
->>> 		MEDIA_SND_CAP,
->>> 		MEDIA_SND_OUT,
->>> 		MEDIA_SND_CONTROL,
->>> 		MEDIA_SND_HW,
->>
+cx8802_blackbird_probe makes a device node for the mpeg sub-device
+before it has been added to dev->drvlist.  If the device is opened
+during that time, the open succeeds but request_acquire cannot be
+called, so the reference count remains zero.  Later, when the device
+is closed, the reference count becomes negative --- uh oh.
 
-> Framebuffer devices are missing from the list.  Ivtv provides one at the moment.
+Close the race by holding core->lock during probe and not releasing
+until the device is in drvlist and initialization finished.
+Previously the BKL prevented this race.
 
-Please send us a patch adding it against v4l-utils. I'm not sure how fb devices 
-appear at sysfs.
+Reported-by: Andreas Huber <hobrom@gmx.at>
+Tested-by: Andi Huber <hobrom@gmx.at>
+Tested-by: Marlon de Boer <marlon@hyves.nl>
+Cc: stable@kernel.org
+Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
+---
+ drivers/media/video/cx88/cx88-blackbird.c |    2 --
+ drivers/media/video/cx88/cx88-mpeg.c      |    5 ++---
+ drivers/media/video/cx88/cx88.h           |    7 ++-----
+ 3 files changed, 4 insertions(+), 10 deletions(-)
 
-Thanks,
-Mauro
+diff --git a/drivers/media/video/cx88/cx88-blackbird.c b/drivers/media/video/cx88/cx88-blackbird.c
+index a6f7d53..f637d34 100644
+--- a/drivers/media/video/cx88/cx88-blackbird.c
++++ b/drivers/media/video/cx88/cx88-blackbird.c
+@@ -1335,11 +1335,9 @@ static int cx8802_blackbird_probe(struct cx8802_driver *drv)
+ 	blackbird_register_video(dev);
+ 
+ 	/* initial device configuration: needed ? */
+-	mutex_lock(&dev->core->lock);
+ //	init_controls(core);
+ 	cx88_set_tvnorm(core,core->tvnorm);
+ 	cx88_video_mux(core,0);
+-	mutex_unlock(&dev->core->lock);
+ 
+ 	return 0;
+ 
+diff --git a/drivers/media/video/cx88/cx88-mpeg.c b/drivers/media/video/cx88/cx88-mpeg.c
+index 9147c16..497f26f 100644
+--- a/drivers/media/video/cx88/cx88-mpeg.c
++++ b/drivers/media/video/cx88/cx88-mpeg.c
+@@ -709,18 +709,17 @@ int cx8802_register_driver(struct cx8802_driver *drv)
+ 		drv->request_release = cx8802_request_release;
+ 		memcpy(driver, drv, sizeof(*driver));
+ 
++		mutex_lock(&drv->core->lock);
+ 		err = drv->probe(driver);
+ 		if (err == 0) {
+ 			i++;
+-			mutex_lock(&drv->core->lock);
+ 			list_add_tail(&driver->drvlist, &dev->drvlist);
+-			mutex_unlock(&drv->core->lock);
+ 		} else {
+ 			printk(KERN_ERR
+ 			       "%s/2: cx8802 probe failed, err = %d\n",
+ 			       dev->core->name, err);
+ 		}
+-
++		mutex_unlock(&drv->core->lock);
+ 	}
+ 
+ 	return i ? 0 : -ENODEV;
+diff --git a/drivers/media/video/cx88/cx88.h b/drivers/media/video/cx88/cx88.h
+index e912919..93a94bf 100644
+--- a/drivers/media/video/cx88/cx88.h
++++ b/drivers/media/video/cx88/cx88.h
+@@ -495,13 +495,10 @@ struct cx8802_driver {
+ 	int (*suspend)(struct pci_dev *pci_dev, pm_message_t state);
+ 	int (*resume)(struct pci_dev *pci_dev);
+ 
++	/* Callers to the following functions must hold core->lock */
++
+ 	/* MPEG 8802 -> mini driver - Driver probe and configuration */
+-
+-	/* Caller must _not_ hold core->lock */
+ 	int (*probe)(struct cx8802_driver *drv);
+-
+-	/* Callers to the following functions must hold core->lock */
+-
+ 	int (*remove)(struct cx8802_driver *drv);
+ 
+ 	/* MPEG 8802 -> mini driver - Access for hardware control */
+-- 
+1.7.5
+
