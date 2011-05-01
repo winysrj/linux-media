@@ -1,89 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:33289 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932648Ab1EROKO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 May 2011 10:10:14 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kamil Debski <k.debski@samsung.com>
-Subject: Re: Codec controls question
-Date: Wed, 18 May 2011 16:10:12 +0200
-Cc: linux-media@vger.kernel.org, hansverk@cisco.com,
-	"'Marek Szyprowski'" <m.szyprowski@samsung.com>
-References: <003801cc14ae$be448b90$3acda2b0$%debski@samsung.com>
-In-Reply-To: <003801cc14ae$be448b90$3acda2b0$%debski@samsung.com>
+Received: from mail.wdtv.com ([66.118.69.84]:39037 "EHLO mail.wdtv.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755712Ab1EATCg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 1 May 2011 15:02:36 -0400
+To: linux-media@vger.kernel.org
+Subject: Cannot build dvb-atsc-tools-1.0.7
+From: Gene Heskett <gene.heskett@gmail.com>
+Date: Sun, 1 May 2011 15:02:34 -0400
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201105181610.13231.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Message-Id: <201105011502.34227.gene.heskett@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Kamil,
+Greetings all;
 
-On Tuesday 17 May 2011 18:23:19 Kamil Debski wrote:
-> Hi,
-> 
-> Some time ago we were discussing the set of controls that should be
-> implemented for codec support.
-> 
-> I remember that the result of this discussion was that the controls should
-> be as "integrated" as possible. This included the V4L2_CID_MPEG_LEVEL and
-> all controls related to the quantization parameter.
-> The problem with such approach is that the levels are different for MPEG4,
-> H264 and H263. Same for quantization parameter - it ranges from 1 to 31
-> for MPEG4/H263 and from 0 to 51 for H264.
-> 
-> Having single controls for the more than one codec seemed as a good
-> solution. Unfortunately I don't see a good option to implement it,
-> especially with the control framework. My idea was to have the min/max
-> values for QP set in the S_FMT call on the CAPTURE. For MPEG_LEVEL it
-> would be checked in the S_CTRL callback and if it did not fit the chosen
-> format it failed.
-> 
-> So I see three solutions to this problem and I wanted to ask about your
-> opinion.
-> 
-> 1) Have a separate controls whenever the range or valid value range
-> differs.
-> 
-> This is the simplest and in my opinion the best solution I can think of.
-> This way we'll have different set of controls if the valid values are
-> different (e.g. V4L2_CID_MPEG_MPEG4_LEVEL, V4L2_CID_MPEG_H264_LEVEL).
-> User can set the controls at any time. The only con of this approach is
-> having more controls.
-> 
-> 2) Permit the user to set the control only after running S_FMT on the
-> CAPTURE. This approach would enable us to keep less controls, but would
-> require to set the min/max values for controls in the S_FMT. This could be
-> done by adding controls in S_FMT or by manipulating their range and
-> disabling unused controls. In case of MPEG_LEVEL it would require s_ctrl
-> callback to check whether the requested level is valid for the chosen
-> codec.
-> 
-> This would be somehow against the spec, but if we allow the "codec
-> interface" to have some differences this would be ok.
-> 
-> 3) Let the user set the controls whenever and check them during the
-> STREAMON call.
-> 
-> The controls could be set anytime, and the control range supplied to the
-> control framework would cover values possible for all supported codecs.
-> 
-> This approach is more difficult than first approach. It is worse in case of
-> user space than the second approach - the user is unaware of any mistakes
-> until the STREAMON call. The argument for this approach is the possibility
-> to have a few controls less.
-> 
-> So I would like to hear a comment about the above propositions. Personally
-> I would opt for the first solution.
+Currently running 2.6.38.4 here.
 
-I think the question boils down to whether we want to support controls that 
-have different valid ranges depending on formats, or even other controls. I 
-think the issue isn't specific to codoc controls.
+Along with kernel 2.6.38.4, kaffiene no longer does tv from my pcHDTV-3000 
+card.  And acts like the device is not there.  IIRC it did work with 
+2.6.38.2 but won't swear that on the good book, pclos jumped from 
+2.6.37.something to 2.6.38.2
+
+So to troubleshoot, I go pull dvb-atsc-tools-1.0.7 from my tarball archive.
+Cd'ing to the dir, the README says to type make, which promptly exits, 
+can't find linux/videodev.h, so I cp that from the kernel 2.6.33.7 tree to 
+/usr/include/linux/.  According to locate, that apparently was the only 
+copy of that file on a machine with quite a few newer kernel src trees 
+resident.
+
+Wrong!  Now it exits the make:
+gcc -Wall -D_FILE_OFFSET_BITS=64     chopatscfile.c   -o chopatscfile
+In file included from chopatscfile.c:41:0:
+/usr/include/linux/videodev.h:166:27: error: expected ‘:’, ‘,’, ‘;’, ‘}’ or 
+‘__attribute__’ before ‘*’ token
+make: *** [chopatscfile] Error 1
+
+Can this be fixed?  If so, how?
+
+Thanks for any hints.
+
+PS:  I seem to have found it myself, by editing all the .c files in dvb-
+atsc-tools-1.0.7 to look for linux/videodev2.h instead of 
+/linux/videodev.h, that was the only change, in all .c files.
+
+The tool chain then built, and installed, and at least 'dvtsignal 5' 
+reports a good signal, and all of a sudden kaffiene is working again.
+
+So file that away for good measure.  Its a regression fix.
 
 -- 
-Regards,
+Cheers, Gene
+"There are four boxes to be used in defense of liberty:
+ soap, ballot, jury, and ammo. Please use in that order."
+-Ed Howdershelt (Author)
+New England Life, of course.  Why do you ask?
 
-Laurent Pinchart
