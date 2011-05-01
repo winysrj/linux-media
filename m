@@ -1,82 +1,99 @@
 Return-path: <mchehab@pedra>
-Received: from mail.kapsi.fi ([217.30.184.167]:57728 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750779Ab1EFOf3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 May 2011 10:35:29 -0400
-Message-ID: <28ca5dfb5d4613fd74f7d7bf2f8c2660.squirrel@webmail.kapsi.fi>
-In-Reply-To: <4DC3EB32.7010202@linuxtv.org>
-References: <E1QHwSm-0006hA-A9@www.linuxtv.org>
-    <4DC3C6FA.8070505@linuxtv.org> <1304678539.8670.29.camel@ares>
-    <4DC3E82A.7040202@redhat.com> <4DC3EB32.7010202@linuxtv.org>
-Date: Fri, 6 May 2011 17:35:26 +0300
-Subject: Re: [git:v4l-dvb/for_v2.6.40] [media] Sony CXD2820R DVB-T/T2/C
- demodulator driver
-From: "Antti Palosaari" <crope@iki.fi>
-To: "Andreas Oberritter" <obi@linuxtv.org>
-Cc: "Mauro Carvalho Chehab" <mchehab@redhat.com>,
-	"Steve Kerrison" <steve@stevekerrison.com>,
-	linux-media@vger.kernel.org, "Antti Palosaari" <crope@iki.fi>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:52691 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752883Ab1EAJav (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 May 2011 05:30:51 -0400
+Date: Sun, 1 May 2011 04:30:46 -0500
+From: Jonathan Nieder <jrnieder@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Dan Carpenter <error27@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, Andi Huber <hobrom@gmx.at>,
+	Marlon de Boer <marlon@hyves.nl>,
+	Damien Churchill <damoxc@gmail.com>
+Subject: [PATCH 5/7] [media] cx88: gracefully reject attempts to use
+ unregistered cx88-blackbird driver
+Message-ID: <20110501093046.GE18380@elie>
+References: <20110501091710.GA18263@elie>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20110501091710.GA18263@elie>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-pe 6.5.2011 15:36 Andreas Oberritter kirjoitti:
-> On 05/06/2011 02:23 PM, Mauro Carvalho Chehab wrote:
->> Em 06-05-2011 07:42, Steve Kerrison escreveu:
->>> Hi Andreas,
->>>
->>> From cxd2820r_priv.h:
->>>
->>>> +/*
->>>> + * FIXME: These are totally wrong and must be added properly to the
->>>> API.
->>>> + * Only temporary solution in order to get driver compile.
->>>> + */
->>>> +#define SYS_DVBT2             SYS_DAB
->>>> +#define TRANSMISSION_MODE_1K  0
->>>> +#define TRANSMISSION_MODE_16K 0
->>>> +#define TRANSMISSION_MODE_32K 0
->>>> +#define GUARD_INTERVAL_1_128  0
->>>> +#define GUARD_INTERVAL_19_128 0
->>>> +#define GUARD_INTERVAL_19_256 0
->>>
->>>
->>> I believe Antti didn't want to make frontent.h changes until a
->>> consensus
->>> was reached on how to develop the API for T2 support.
->>
->> Yeah.
->>
->> Andreas/Antti,
->>
->> It seems more appropriate to remove the above hack and add Andreas
->> patch.
->> I've reviewed it and it seemed ok on my eyes, provided that we also
->> update
->> DVB specs to reflect the changes.
->>
->> In special, the new DVB command should be documented:
->> 	+#define DTV_DVBT2_PLP_ID	43
->
-> In addition to the patch, the PLP ID needs to be stored in struct
-> dtv_frontend_properties and used by property cache functions in
-> dvb_frontend.c.
->
-> Antti, could you please complete the patch and test it with your device?
-> This patch was adapted from an older kernel and only compile-tested few
-> weeks ago.
+It should not be possible to enter mpeg_open and acquire core->lock
+without the blackbird driver being registered, so just error out if it
+is not.  This makes the code more readable and should prevent the bug
+fixed by the patch "hold device lock during sub-driver initialization"
+from resurfacing again.
 
-I can test it next week.
+Similarly, if we enter mpeg_release and acquire core->lock then either
+the blackbird driver is registered (since open files keep it loaded)
+or the sysadmin forced the driver's removal.  In the latter case the
+state will be inconsistent and this is worth a loud warning.
 
-I added also those first to the frontend.h but rebased that patch out
-before PULL request just since I didn't have enough time to make proper
-API for 2.6.40 schedule. It can be already found from my old GIT tree.
+Tested-by: Andi Huber <hobrom@gmx.at>
+Tested-by: Marlon de Boer <marlon@hyves.nl>
+Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
+---
+ drivers/media/video/cx88/cx88-blackbird.c |   25 ++++++++++++++-----------
+ 1 files changed, 14 insertions(+), 11 deletions(-)
 
-As I looked DVB-T2 specs it was rather complex and large to learn. For
-example how to handle multiple PLPs (driver does not handle it currently).
-Maybe PLP_ID is enough for that.
-
-Antti
+diff --git a/drivers/media/video/cx88/cx88-blackbird.c b/drivers/media/video/cx88/cx88-blackbird.c
+index f637d34..fa8e347 100644
+--- a/drivers/media/video/cx88/cx88-blackbird.c
++++ b/drivers/media/video/cx88/cx88-blackbird.c
+@@ -1060,18 +1060,21 @@ static int mpeg_open(struct file *file)
+ 
+ 	/* Make sure we can acquire the hardware */
+ 	drv = cx8802_get_driver(dev, CX88_MPEG_BLACKBIRD);
+-	if (drv) {
+-		err = drv->request_acquire(drv);
+-		if(err != 0) {
+-			dprintk(1,"%s: Unable to acquire hardware, %d\n", __func__, err);
+-			mutex_unlock(&dev->core->lock);
+-			return err;
+-		}
++	if (!drv) {
++		dprintk(1, "%s: blackbird driver is not loaded\n", __func__);
++		mutex_unlock(&dev->core->lock);
++		return -ENODEV;
++	}
++
++	err = drv->request_acquire(drv);
++	if (err != 0) {
++		dprintk(1,"%s: Unable to acquire hardware, %d\n", __func__, err);
++		mutex_unlock(&dev->core->lock);
++		return err;
+ 	}
+ 
+ 	if (!atomic_read(&dev->core->mpeg_users) && blackbird_initialize_codec(dev) < 0) {
+-		if (drv)
+-			drv->request_release(drv);
++		drv->request_release(drv);
+ 		mutex_unlock(&dev->core->lock);
+ 		return -EINVAL;
+ 	}
+@@ -1080,8 +1083,7 @@ static int mpeg_open(struct file *file)
+ 	/* allocate + initialize per filehandle data */
+ 	fh = kzalloc(sizeof(*fh),GFP_KERNEL);
+ 	if (NULL == fh) {
+-		if (drv)
+-			drv->request_release(drv);
++		drv->request_release(drv);
+ 		mutex_unlock(&dev->core->lock);
+ 		return -ENOMEM;
+ 	}
+@@ -1125,6 +1127,7 @@ static int mpeg_release(struct file *file)
+ 
+ 	/* Make sure we release the hardware */
+ 	drv = cx8802_get_driver(dev, CX88_MPEG_BLACKBIRD);
++	WARN_ON(!drv);
+ 	if (drv)
+ 		drv->request_release(drv);
+ 
+-- 
+1.7.5
 
