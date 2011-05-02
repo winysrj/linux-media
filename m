@@ -1,45 +1,74 @@
-Return-path: <mchehab@gaivota>
-Received: from stevekez.vm.bytemark.co.uk ([80.68.91.30]:55381 "EHLO
-	stevekerrison.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753225Ab1EHTRg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 May 2011 15:17:36 -0400
-From: Steve Kerrison <steve@stevekerrison.com>
-To: Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Cc: Andreas Oberritter <obi@linuxtv.org>
-Subject: [PATCH v2 0/5] DVB-T2 API updates, documentation and accompanying small fixes
-Date: Sun,  8 May 2011 20:17:15 +0100
-Message-Id: <1304882240-23044-1-git-send-email-steve@stevekerrison.com>
-In-Reply-To: <4DC6BF28.8070006@redhat.com>
-References: <4DC6BF28.8070006@redhat.com>
+Return-path: <mchehab@pedra>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:41728 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750805Ab1EBT3q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 May 2011 15:29:46 -0400
+Received: by ewy4 with SMTP id 4so1850909ewy.19
+        for <linux-media@vger.kernel.org>; Mon, 02 May 2011 12:29:45 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <201105022111.40604.hverkuil@xs4all.nl>
+References: <E1QGwlS-0006ys-15@www.linuxtv.org>
+	<201105022111.40604.hverkuil@xs4all.nl>
+Date: Mon, 2 May 2011 15:21:52 -0400
+Message-ID: <BANLkTi=3n++7w-UOE6HZ8p6P9S6Oa9y9kQ@mail.gmail.com>
+Subject: Re: [git:v4l-dvb/for_v2.6.40] [media] cx18: mmap() support for raw
+ YUV video capture
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org,
+	Simon Farnsworth <simon.farnsworth@onelan.co.uk>,
+	Steven Toth <stoth@kernellabs.com>,
+	Andy Walls <awalls@md.metrocast.net>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Good evening all,
+On Mon, May 2, 2011 at 3:11 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> NACK.
+>
+> For two reasons: first of all it is not signed off by Andy Walls, the cx18
+> maintainer. I know he has had other things on his plate recently which is
+> probably why he hasn't had the chance to review this.
+>
+> Secondly, while doing a quick scan myself I noticed that this code does a
+> conversion from UYVY format to YUYV *in the driver*. Format conversion is
+> not allowed in the kernel, we have libv4lconvert for that. So at the minimum
+> this conversion code must be removed first.
 
-This is the second version of my patch set for DVB-T2 and PCTV nanoStick T2
-290e support.
+Hi Hans,
 
-Changes to cxd2820r_priv.h have been rolled into patch 1 as requested by Mauro.
-I hope I have done this in an appropriate way.
+Cutting the code that does UYVY to YUYV shouldn't be a problem, since
+there are other devices which only support UYVY and thus applications
+do support the format (the HVR-950q for one).  Should just need to
+remove the offending code block and adjust the advertised formats
+list.
 
-I have updated my drxd and mxl5005 patches to include a comment to make clear
-that the default case should fall through into BANDWIDTH_AUTO for bandwidth
-selection.
+That said, Andy hasn't provided any feedback onlist at all, which is a
+bit disconcerting (and probably calls for "why won't Andy comment?"
+instead of an arbitrary NACK).
 
-My other cxd2820r patch is trivial and unchanged from the previous
-submission. I considered also rolling it into the first patch in the set,
-but it's a separate ehancement so I've kept it as it is.
+I did speak to Andy about this patch series several months ago, and he
+was generally not in favor of it because he was planning on converting
+to videobuf2.  While I agree this would be good in the long term, this
+patch provides a great deal of value in the meantime, and I've always
+been a fan of the notion that "perfect is the enemy of good".  Who
+knows when we'll actually see a videobuf2 conversion, and this patch
+doesn't really prevent any of that from happening.
 
-Finally I've made some documentation changes. I've added a section of DVB-T2
-specific parameters, but don't have the knowledge to contribute anything useful
-to this section yet.
+I would hate to see yet another situation where a solution stays
+out-of-tree for years because of some totally awesome better approach
+which might possibly get integrated at some unknown point in the
+future.
 
-Any further feedback welcomed. I won't be likely to act upon it for a few days,
-however. The mailing list could probably do with a break from me bungling my
-way around git. :)
+In other words, let's get this merged in (sans the UYVY/YUYV
+conversion), and if/when Andy eventually does a videobuf2 conversion,
+then we will all rejoice.  Actually, nobody except us driver
+developers will rejoice since it's an internal architecture change
+which provides no user-visible value.
 
-Regards,
-Steve Kerrison.
+Devin
 
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
