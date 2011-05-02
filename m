@@ -1,99 +1,96 @@
 Return-path: <mchehab@pedra>
-Received: from smtp205.alice.it ([82.57.200.101]:50749 "EHLO smtp205.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754475Ab1EZHrk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 May 2011 03:47:40 -0400
-Date: Thu, 26 May 2011 09:47:30 +0200
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] [media] gspca/kinect: wrap gspca_debug with GSPCA_DEBUG
-Message-Id: <20110526094730.bbf9d1e9.ospite@studenti.unina.it>
-In-Reply-To: <20110526084912.1ac3ac37@tele>
-References: <1306305788.2390.4.camel@porites>
-	<1306359272-30792-1-git-send-email-jarod@redhat.com>
-	<20110526084912.1ac3ac37@tele>
-Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Thu__26_May_2011_09_47_30_+0200_ro5L3Ga5A_XO4E9L"
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:47515 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753274Ab1EBU7K convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 May 2011 16:59:10 -0400
+Received: by ewy4 with SMTP id 4so1872474ewy.19
+        for <linux-media@vger.kernel.org>; Mon, 02 May 2011 13:59:09 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <201105022202.57946.hverkuil@xs4all.nl>
+References: <E1QGwlS-0006ys-15@www.linuxtv.org>
+	<201105022111.40604.hverkuil@xs4all.nl>
+	<4DBF0791.5070805@redhat.com>
+	<201105022202.57946.hverkuil@xs4all.nl>
+Date: Mon, 2 May 2011 16:59:09 -0400
+Message-ID: <BANLkTinzrccpQHk1qrDyT6VbfTPVBCGKkQ@mail.gmail.com>
+Subject: Re: [git:v4l-dvb/for_v2.6.40] [media] cx18: mmap() support for raw
+ YUV video capture
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org,
+	Simon Farnsworth <simon.farnsworth@onelan.co.uk>,
+	Steven Toth <stoth@kernellabs.com>,
+	Andy Walls <awalls@md.metrocast.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
---Signature=_Thu__26_May_2011_09_47_30_+0200_ro5L3Ga5A_XO4E9L
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Mon, May 2, 2011 at 4:02 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> It was merged without *asking* Andy. I know he has had some private stuff to
+> deal with this month so I wasn't surprised that he hadn't reviewed it yet.
+>
+> It would have been nice if he was reminded first of this patch. It's a
+> fairly substantial change that also has user-visible implications. The simple
+> fact is that this patch has not been reviewed and as a former cx18 maintainer
+> I think that it needs a review first.
+>
+> If someone had asked and Andy wouldn't have been able to review, then I'd have
+> jumped in and would have reviewed it.
+>
+> Andy, I hope you can look at it, but if not, then let me know and I'll do a
+> more in-depth review rather than just the simple scan I did now.
+>
+>> Now that the patch were committed, I won't revert it without a very good reason.
+>>
+>> With respect to the "conversion from UYVY format to YUYV", a simple patch could
+>> fix it, instead of removing the entire patchset.
+>
+> No, please remove the patchset because I have found two other issues:
+>
+> The patch adds this field:
+>
+>        struct v4l2_framebuffer fbuf;
+>
+> This is not needed, videobuf_iolock can be called with a NULL pointer instead
+> of &fbuf.
+>
+> The patch also adds tvnorm fields, but never sets s->tvnorm. And it's
+> pointless anyway since you can't change tvnorm while streaming.
+>
+> Given that I've found three things now without even trying suggests to me that
+> it is too soon to commit this. Sorry.
+>
+> Regards,
+>
+>        Hans
 
-On Thu, 26 May 2011 08:49:12 +0200
-Jean-Francois Moine <moinejf@free.fr> wrote:
+Indeed comments/review are always welcome, although it would have been
+great if it had happened a month ago.  It's the maintainer's
+responsibility to review patches, and if he has issues to raise them
+in a timely manner.  If he doesn't care enough or is too busy to
+publicly say "hold off on this" for whatever reason, then you can
+hardly blame Mauro for merging it.
 
-> On Wed, 25 May 2011 17:34:32 -0400
-> Jarod Wilson <jarod@redhat.com> wrote:
->=20
-> > diff --git a/drivers/media/video/gspca/kinect.c b/drivers/media/video/g=
-spca/kinect.c
-> > index 66671a4..26fc206 100644
-> > --- a/drivers/media/video/gspca/kinect.c
-> > +++ b/drivers/media/video/gspca/kinect.c
-> > @@ -34,7 +34,7 @@ MODULE_AUTHOR("Antonio Ospite <ospite@studenti.unina.=
-it>");
-> >  MODULE_DESCRIPTION("GSPCA/Kinect Sensor Device USB Camera Driver");
-> >  MODULE_LICENSE("GPL");
-> > =20
-> > -#ifdef DEBUG
-> > +#ifdef GSPCA_DEBUG
-> >  int gspca_debug =3D D_ERR | D_PROBE | D_CONF | D_STREAM | D_FRAM | D_P=
-ACK |
-> >  	D_USBI | D_USBO | D_V4L2;
-> >  #endif
->=20
-> Hi Jarod,
->=20
-> Sorry, it is not the right fix. In fact, the variable gspca_debug must
-> not be defined in gspca subdrivers:
->=20
-> --- a/drivers/media/video/gspca/kinect.c
-> +++ b/drivers/media/video/gspca/kinect.c
-> @@ -34,11 +34,6 @@
->  MODULE_DESCRIPTION("GSPCA/Kinect Sensor Device USB Camera Driver");
->  MODULE_LICENSE("GPL");
-> =20
-> -#ifdef DEBUG
-> -int gspca_debug =3D D_ERR | D_PROBE | D_CONF | D_STREAM | D_FRAM | D_PAC=
-K |
-> -	D_USBI | D_USBO | D_V4L2;
-> -#endif
-> -
->  struct pkt_hdr {
->  	uint8_t magic[2];
->  	uint8_t pad;
->=20
+Likewise, I know there have indeed been cases in the past where code
+got upstream that caused regressions (in fact, you have personally
+been responsible for some of these if I recall).
 
-OK.
+Let's not throw the baby out with the bathwater.  If there are real
+structural issues with the patch, then let's get them fixed.  But if
+we're just talking about a few minor "unused variable" type of
+aesthetic issues, then that shouldn't constitute reverting the commit.
+ Do your review, and if an additional patch is needed with a half
+dozen removals of dead/unused code, then so be it.
 
-Thanks,
-   Antonio
+We're not talking about an untested board profile submitted by some
+random user.  We're talking about a patch written by someone highly
+familiar with the chipset and it's *working code* that has been
+running in production for almost a year.
 
---=20
-Antonio Ospite
-http://ao2.it
+Devin
 
-PGP public key ID: 0x4553B001
-
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
-
---Signature=_Thu__26_May_2011_09_47_30_+0200_ro5L3Ga5A_XO4E9L
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEARECAAYFAk3eBZIACgkQ5xr2akVTsAEuAACfeKV4rMuJt52Hl8OeFvdjXmTM
-rgUAoK8nHMltRxUpKyF5kwjuTgr/ell0
-=8bL+
------END PGP SIGNATURE-----
-
---Signature=_Thu__26_May_2011_09_47_30_+0200_ro5L3Ga5A_XO4E9L--
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
