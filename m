@@ -1,87 +1,501 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.1.47]:38800 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755624Ab1ERR7x (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 May 2011 13:59:53 -0400
-Message-ID: <4DD409CF.4020901@maxwell.research.nokia.com>
-Date: Wed, 18 May 2011 21:02:55 +0300
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58999 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757045Ab1EBJ54 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 May 2011 05:57:56 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Hadli, Manjunath" <manjunath.hadli@ti.com>
+Subject: Re: [PATCH v16 01/13] davinci vpbe: V4L2 display driver for DM644X SoC
+Date: Mon, 2 May 2011 11:58:23 +0200
+Cc: "'davinci-linux-open-source@linux.davincidsp.com'"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	"'LMML'" <linux-media@vger.kernel.org>,
+	"'Kevin Hilman'" <khilman@deeprootsystems.com>,
+	"'LAK'" <linux-arm-kernel@lists.infradead.org>,
+	"Nori, Sekhar" <nsekhar@ti.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB593024BCEF731@dbde02.ent.ti.com>
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024BCEF731@dbde02.ent.ti.com>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH/RFC 1/4] V4L: add three new ioctl()s for multi-size videobuffer
- management
-References: <Pine.LNX.4.64.1104010959470.9530@axis700.grange> <Pine.LNX.4.64.1104011010530.9530@axis700.grange> <Pine.LNX.4.64.1105121835370.24486@axis700.grange> <201105181559.09194.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1105181649590.16324@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1105181649590.16324@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201105021158.23956.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+Hi Manjunath,
 
-Guennadi Liakhovetski wrote:
-> On Wed, 18 May 2011, Laurent Pinchart wrote:
+On Tuesday 26 April 2011 16:47:45 Hadli, Manjunath wrote:
+> Laurent,
+>   Can you please review the patches with your suggestions from :
+> http://git.linuxtv.org/mhadli/v4l-dvb-davinci_devices.git?a=shortlog;h=refs
+> /heads/forkhilman2 and let me know if you think all your suggestions are
+> taken care of?
 > 
->> On Friday 13 May 2011 09:45:51 Guennadi Liakhovetski wrote:
+> The patch you reviewed was :
 > 
-> [snip]
-> 
->>> 2. Both these flags should not be passed with CREATE, but with SUBMIT
->>> (which will be renamed to PREPARE or something similar). It should be
->>> possible to prepare the same buffer with different cacheing attributes
->>> during a running operation. Shall these flags be added to values, taken by
->>> struct v4l2_buffer::flags, since that is the struct, that will be used as
->>> the argument for the new version of the SUBMIT ioctl()?
->>
->> Do you have a use case for per-submit cache handling ?
-> 
-> This was Sakari's idea, I think, ask him;) But I think, he suggested a 
-> case, when not all buffers have to be processed in the user-space. In 
-> principle, I can imagine such a case too. E.g., if most of the buffers you 
-> pass directly to output / further processing, and only some of them you 
-> analyse in software, perhaps, for some WB, exposure, etc.
+> http://git.linuxtv.org/mhadli/v4l-dvb-davinci_devices.git?a=commitdiff;h=69
+> f60ed7577ab9184ceabd7efbe5bb3453bf7ef1;hp=a400604f47c339831880c50eda6f6b032
+> 21579e3
 
-Yes; I think I mentioned this. It's possible that some rather
-CPU-intensive processing is only done on the CPU on every n:th image,
-for example. In this case flushing the cache on images that won't be
-touched by the CPU is not necessary.
+I've reviewed the same patch, here are my comments.
 
->>>> +
->>>> +/* VIDIOC_CREATE_BUFS */
->>>> +struct v4l2_create_buffers {
->>>> +	__u32			index;		/* output: buffers index...index + count - 1 have 
->> been
->>>> created */ +	__u32			count;
->>>> +	__u32			flags;		/* V4L2_BUFFER_FLAG_* */
->>>> +	enum v4l2_memory        memory;
->>>> +	__u32			size;		/* Explicit size, e.g., for compressed streams */
->>>> +	struct v4l2_format	format;		/* "type" is used always, the rest if 
->> size
->>>> == 0 */ +};
->>>
->>> 1. Care must be taken to keep index <= V4L2_MAX_FRAME
->>
->> Does that requirement still make sense ?
-> 
-> Don't know, again, not my idea. videobuf2-core still uses it. At one 
-> location it seems to be pretty arbitrary, at another it is the size of an 
-> array in struct vb2_fileio_data, but maybe we could allocate that one 
-> dynamically too. So, do I understand it right, that this would affect our 
-> case, if we would CREATE our buffers and then the user would decide to do 
-> read() / write() on them?
+> +/*
+> + * vpbe_display_isr()
+> + * ISR function. It changes status of the displayed buffer, takes next 
+buffer
+> + * from the queue and sets its address in VPBE registers
+> + */
+> +static void vpbe_display_isr(unsigned int event, struct vpbe_display 
+*disp_obj)
+> +{
+> +	struct osd_state *osd_device = disp_obj->osd_device;
+> +	struct timespec timevalue;
+> +	struct vpbe_layer *layer;
+> +	unsigned long addr;
+> +	int fid;
+> +	int i;
+> +
+> +	ktime_get_ts(&timevalue);
+> +
+> +	for (i = 0; i < VPBE_DISPLAY_MAX_DEVICES; i++) {
+> +		layer = disp_obj->dev[i];
+> +		/* If streaming is started in this layer */
+> +		if (!layer->started)
+> +			continue;
 
-My issue with this number, as I gave it a little more thought, is that
-it is actually quite low. The devices will have more memory in the
-future and 32 might become a real limitation. I think it would be wise
-to define the API so that the number of simultaneous buffers allocated
-on a device is not limited by this number.
+What about moving everything above to venc_isr(), and having this function
+handle a single layer only ? It will lower the max indentation level. I also
+wonder whether you couldn't share some code between the non-interlaced and
+the interlaced cases by reorganizing the function body (the fid == 1 code
+looks quite similar to the non-interlaced code).
 
-Kind regards,
+[snip]
+
+> +/**
+> + * vpbe_try_format()
+> + * If user application provides width and height, and have bytesperline set
+> + * to zero, driver calculates bytesperline and sizeimage based on hardware
+> + * limits. If application likes to add pads at the end of each line and
+> + * end of the buffer , it can set bytesperline to line size and sizeimage 
+to
+> + * bytesperline * height of the buffer. If driver fills zero for active
+> + * video width and height, and has requested user bytesperline and 
+sizeimage,
+> + * width and height is adjusted to maximum display limit or buffer width
+> + * height which ever is lower
+
+This still sounds a bit cryptic to me.
+
+vpbe_try_format() should return a format closest to what the user requested:
+
+- If the pixel format is invalid, select a default value (done)
+- If the field is invalid or not specified, select a default value (partly
+  done, you don't check for default values)
+- If width and/or height are invalid (including being set to 0), select
+  default values (partly done, you compute width/height based on bytesperline
+  and sizeimage when they're set to 0, and I don't understand why)
+- If bytesperline is invalid (smaller than the minimum value according to the
+  selected width, or larger than the maximum allowable value), fix it
+- If sizeimage is invalid (smaller than the minimum value according the the
+  selected height and bytesperline), fix it
+
+Is there a need to allow sizeimage values different than
+height * bytesperline ?
+
+> + */
+
+[snip]
+
+> +static int vpbe_display_querycap(struct file *file, void  *priv,
+> +			       struct v4l2_capability *cap)
+> +{
+> +	struct vpbe_fh *fh = file->private_data;
+> +	struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
+> +
+> +	cap->version = VPBE_DISPLAY_VERSION_CODE;
+> +	cap->capabilities = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
+> +	strlcpy(cap->driver, VPBE_DISPLAY_DRIVER, sizeof(cap->driver));
+> +	strlcpy(cap->bus_info, "platform", sizeof(cap->bus_info));
+> +	/* check the name of davinci device */
+> +	if (vpbe_dev->cfg->module_name != NULL)
+
+module_name can't be NULL, as it's declared as a char[32].
+
+> +		strlcpy(cap->card, vpbe_dev->cfg->module_name,
+> +			sizeof(cap->card));
+> +
+> +	return 0;
+> +}
+
+[snip]
+
+> +static int vpbe_display_g_fmt(struct file *file, void *priv,
+> +				struct v4l2_format *fmt)
+> +{
+> +	struct vpbe_fh *fh = file->private_data;
+> +	struct vpbe_layer *layer = fh->layer;
+> +	struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
+> +
+> +	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
+> +			"VIDIOC_G_FMT, layer id = %d\n",
+> +			layer->device_id);
+> +
+> +	/* If buffer type is video output */
+> +	if (V4L2_BUF_TYPE_VIDEO_OUTPUT == fmt->type) {
+> +		/* Fill in the information about format */
+> +		fmt->fmt.pix = layer->pix_fmt;
+> +	} else {
+> +		v4l2_err(&vpbe_dev->v4l2_dev, "invalid type\n");
+> +		return -EINVAL;
+> +	}
+
+You should do it the other way around. Return -EINVAL when the type isn't
+OUTPUT, and remove the else. This will increase code readability by decreasing
+the max indentation level in the common case.
+
+> +
+> +	return 0;
+> +}
+
+[snip]
+
+> +/**
+> + * vpbe_display_enum_output - enumerate outputs
+> + *
+> + * Enumerates the outputs available at the vpbe display
+> + * returns the status, -EINVAL if end of output list
+> + */
+> +static int vpbe_display_enum_output(struct file *file, void *priv,
+> +				    struct v4l2_output *output)
+> +{
+> +	struct vpbe_fh *fh = priv;
+> +	struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
+> +	int ret;
+> +
+> +	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,	"VIDIOC_ENUM_OUTPUT\n");
+> +
+> +	/* Enumerate outputs */
+> +
+> +	if (NULL != vpbe_dev->ops.enum_outputs) {
+> +		ret = vpbe_dev->ops.enum_outputs(vpbe_dev, output);
+> +		if (ret) {
+> +			v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
+> +				"Failed to enumerate outputs\n");
+> +			return -EINVAL;
+> +		}
+> +	} else {
+> +		return -EINVAL;
+> +	}
+
+Other way around here too please.
+
+> +
+> +	return 0;
+> +}
+> +
+> +/**
+> + * vpbe_display_s_output - Set output to
+> + * the output specified by the index
+> + */
+> +static int vpbe_display_s_output(struct file *file, void *priv,
+> +				unsigned int i)
+> +{
+> +	struct vpbe_fh *fh = priv;
+> +	struct vpbe_layer *layer = fh->layer;
+> +	struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
+> +	int ret;
+> +
+> +	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,	"VIDIOC_S_OUTPUT\n");
+> +	/* If streaming is started, return error */
+> +	if (layer->started) {
+> +		v4l2_err(&vpbe_dev->v4l2_dev, "Streaming is started\n");
+> +		return -EBUSY;
+> +	}
+> +	if (NULL != vpbe_dev->ops.set_output) {
+> +		ret = vpbe_dev->ops.set_output(vpbe_dev, i);
+> +		if (ret) {
+> +			v4l2_err(&vpbe_dev->v4l2_dev,
+> +				"Failed to set output for sub devices\n");
+> +			return -EINVAL;
+> +		}
+> +	} else {
+> +		return -EINVAL;
+> +	}
+
+And here too.
+
+> +
+> +	return 0;
+> +}
+
+[snip]
+
+> +static __devinit int init_vpbe_layer(int i, struct vpbe_display *disp_dev,
+> +				     struct platform_device *pdev)
+> +{
+> +	struct vpbe_layer *vpbe_display_layer = NULL;
+> +	struct video_device *vbd = NULL;
+> +	int k;
+> +	int err;
+> +
+> +	/* Allocate memory for four plane display objects */
+> +
+> +	disp_dev->dev[i] =
+> +		kmalloc(sizeof(struct vpbe_layer), GFP_KERNEL);
+
+You can use kzalloc() and avoid several initializations to 0 below.
+
+> +
+> +	/* If memory allocation fails, return error */
+> +	if (!disp_dev->dev[i]) {
+> +		printk(KERN_ERR "ran out of memory\n");
+> +		err = -ENOMEM;
+> +		goto free_mem;
+> +	}
+> +	spin_lock_init(&disp_dev->dev[i]->irqlock);
+> +	mutex_init(&disp_dev->dev[i]->opslock);
+> +
+> +	/* Get the pointer to the layer object */
+> +	vpbe_display_layer = disp_dev->dev[i];
+> +	/* Allocate memory for video device */
+> +	vbd = video_device_alloc();
+
+There's no need to allocate the device dynamically, you can embed struct
+video_device into struct vpbe_layer (i.e. replace struct video_device
+*video_dev with struct video_device video_dev inside struct vpbe_layer)
+
+(and feel free to rename video_dev to something shorter if needed)
+
+> +	if (vbd == NULL) {
+> +		v4l2_err(&disp_dev->vpbe_dev->v4l2_dev,
+> +				"ran out of memory\n");
+> +		err = -ENOMEM;
+> +		goto free_mem;
+> +	}
+> +	/* Initialize field of video device */
+> +	vbd->release	= video_device_release;
+
+You should then use video_device_release_empty instead of
+video_device_release.
+
+> +	vbd->fops	= &vpbe_fops;
+> +	vbd->ioctl_ops	= &vpbe_ioctl_ops;
+> +	vbd->minor	= -1;
+> +	vbd->v4l2_dev   = &disp_dev->vpbe_dev->v4l2_dev;
+> +	vbd->lock	= &vpbe_display_layer->opslock;
+> +
+> +	if (disp_dev->vpbe_dev->current_timings.timings_type &
+> +			VPBE_ENC_STD) {
+> +		vbd->tvnorms = (V4L2_STD_525_60 | V4L2_STD_625_50);
+> +		vbd->current_norm =
+> +			disp_dev->vpbe_dev->
+> +			current_timings.timings.std_id;
+> +	} else
+> +		vbd->current_norm = 0;
+> +
+> +	snprintf(vbd->name, sizeof(vbd->name),
+> +			"DaVinci_VPBE Display_DRIVER_V%d.%d.%d",
+> +			(VPBE_DISPLAY_VERSION_CODE >> 16) & 0xff,
+> +			(VPBE_DISPLAY_VERSION_CODE >> 8) & 0xff,
+> +			(VPBE_DISPLAY_VERSION_CODE) & 0xff);
+> +
+> +	/* Set video_dev to the video device */
+> +	vpbe_display_layer->video_dev = vbd;
+> +	vpbe_display_layer->device_id = i;
+> +
+> +	vpbe_display_layer->layer_info.id =
+> +		((i == VPBE_DISPLAY_DEVICE_0) ? WIN_VID0 : WIN_VID1);
+> +
+> +	/* Initialize field of the display layer objects */
+> +	vpbe_display_layer->usrs = 0;
+> +	vpbe_display_layer->io_usrs = 0;
+> +	vpbe_display_layer->started = 0;
+> +
+> +	/* Initialize prio member of layer object */
+> +	v4l2_prio_init(&vpbe_display_layer->prio);
+> +
+> +	return 0;
+> +
+> +free_mem:
+> +	for (k = 0; k < i-1; k++) {
+> +		/* Get the pointer to the layer object */
+> +		vpbe_display_layer = disp_dev->dev[k];
+> +		/* Release video device */
+> +		video_device_release(vpbe_display_layer->video_dev);
+> +		vpbe_display_layer->video_dev = NULL;
+> +		/* free layer memory */
+> +		kfree(disp_dev->dev[k]);
+> +	}
+
+This should be moved to the error cleanup part of vpbe_display_probe(). A
+function that registers a single device shouldn't clean other devices up in
+case of error.
+
+> +
+> +	return -ENODEV;
+> +}
+> +
+> +static __devinit int register_devices(int i, struct vpbe_display *disp_dev,
+> +				      struct platform_device *pdev) {
+
+This registers a single device, so I would call it vpbe_register_device.
+
+> +	struct vpbe_layer *vpbe_display_layer = NULL;
+> +	int err;
+> +	int k;
+> +
+> +	vpbe_display_layer = disp_dev->dev[i];
+
+Please pass disp_dev->dev[i] to the function instead of i.
+
+> +	v4l2_info(&disp_dev->vpbe_dev->v4l2_dev,
+> +		  "Trying to register VPBE display device.\n");
+> +	v4l2_info(&disp_dev->vpbe_dev->v4l2_dev,
+> +		  "layer=%x,layer->video_dev=%x\n",
+> +		  (int)vpbe_display_layer,
+> +		  (int)&vpbe_display_layer->video_dev);
+> +
+> +	err = video_register_device(vpbe_display_layer->video_dev,
+> +				    VFL_TYPE_GRABBER,
+> +				    -1);
+> +	if (err)
+> +		goto video_register_failed;
+> +
+> +	vpbe_display_layer->disp_dev = disp_dev;
+> +	/* set the driver data in platform device */
+> +	platform_set_drvdata(pdev, disp_dev);
+> +	video_set_drvdata(vpbe_display_layer->video_dev,
+> +			  vpbe_display_layer);
+> +
+> +	return 0;
+> +
+> +video_register_failed:
+> +	for (k = 0; k < i-1; k++)
+> +		video_unregister_device(vpbe_display_layer->video_dev);
+> +
+> +	for (k = 0; k < VPBE_DISPLAY_MAX_DEVICES; k++) {
+> +		/* Get the pointer to the layer object */
+> +		vpbe_display_layer = disp_dev->dev[k];
+> +		/* Release video device */
+> +		video_device_release(vpbe_display_layer->video_dev);
+> +		/* Unregister video device */
+> +		video_unregister_device(vpbe_display_layer->video_dev);
+> +		vpbe_display_layer->video_dev = NULL;
+> +		/* free layer memory */
+> +		kfree(disp_dev->dev[k]);
+> +	}
+
+This should be moved to the error cleanup part of vpbe_display_probe() as
+well.
+
+> +	return -ENODEV;
+> +}
+> +
+> +
+> +
+> +/*
+> + * vpbe_display_probe()
+> + * This function creates device entries by register itself to the V4L2 
+driver
+> + * and initializes fields of each layer objects
+> + */
+> +static __devinit int vpbe_display_probe(struct platform_device *pdev)
+> +{
+> +	struct vpbe_display *disp_dev;
+> +	struct resource *res;
+> +	int i;
+> +	int err;
+> +	int irq;
+> +
+> +	printk(KERN_DEBUG "vpbe_display_probe\n");
+> +	/* Allocate memory for vpbe_display */
+> +	disp_dev = kzalloc(sizeof(struct vpbe_display), GFP_KERNEL);
+> +	if (!disp_dev) {
+> +		printk(KERN_ERR "ran out of memory\n");
+> +		return -ENOMEM;
+> +	}
+> +
+> +	spin_lock_init(&disp_dev->dma_queue_lock);
+> +	/*
+> +	 * Scan all the platform devices to find the vpbe
+> +	 * controller device and get the vpbe_dev object
+> +	 */
+> +	err = bus_for_each_dev(&platform_bus_type, NULL, disp_dev,
+> +			vpbe_device_get);
+> +	if (err < 0)
+> +		return err;
+> +	/* Initialize the vpbe display controller */
+> +	if (NULL != disp_dev->vpbe_dev->ops.initialize) {
+> +		err = disp_dev->vpbe_dev->ops.initialize(&pdev->dev,
+> +							 disp_dev->vpbe_dev);
+> +		if (err) {
+> +			v4l2_err(&disp_dev->vpbe_dev->v4l2_dev,
+> +					"Error initing vpbe\n");
+> +			err = -ENOMEM;
+> +			goto probe_out;
+> +		}
+> +	}
+> +
+> +	for (i = 0; i < VPBE_DISPLAY_MAX_DEVICES; i++) {
+> +		if (init_vpbe_layer(i, disp_dev, pdev)) {
+> +			err = -ENODEV;
+> +			goto probe_out;
+> +		}
+> +	}
+> +
+> +	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+> +	if (!res) {
+> +		v4l2_err(&disp_dev->vpbe_dev->v4l2_dev,
+> +			 "Unable to get VENC interrupt resource\n");
+> +		err = -ENODEV;
+> +		goto probe_out;
+> +	}
+> +
+> +	irq = res->start;
+> +	if (request_irq(irq, venc_isr,  IRQF_DISABLED, VPBE_DISPLAY_DRIVER,
+> +		disp_dev)) {
+> +		v4l2_err(&disp_dev->vpbe_dev->v4l2_dev,
+> +				"Unable to request interrupt\n");
+> +		err = -ENODEV;
+> +		goto probe_out;
+> +	}
+> +
+> +	for (i = 0; i < VPBE_DISPLAY_MAX_DEVICES; i++) {
+> +		if (register_devices(i, disp_dev, pdev)) {
+> +			err = -ENODEV;
+> +			goto probe_out;
+> +		}
+> +	}
+> +
+> +	printk(KERN_DEBUG "Successfully completed the probing of vpbe v4l2 
+device\n");
+> +	return 0;
+> +
+> +probe_out:
+
+You need to unregister the IRQ handler (and move the cleanup code from the
+two previous functions here).
+
+> +	kfree(disp_dev);
+> +	return err;
+> +}
+
+[snip]
+
+> +/* Function for module initialization and cleanup */
+> +module_init(vpbe_display_init);
+> +module_exit(vpbe_display_cleanup);
+> +
+> +MODULE_DESCRIPTION("TI DMXXX VPBE Display controller");
+
+What about "TI DM644x/DM355/DM365" then ? DMXXX makes it look like it supports 
+all DaVinci chips.
+
+> +MODULE_LICENSE("GPL");
+> +MODULE_AUTHOR("Texas Instruments");
 
 -- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+Regards,
+
+Laurent Pinchart
