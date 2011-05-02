@@ -1,100 +1,109 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4809 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751324Ab1EZGgj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 May 2011 02:36:39 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: vipul kumar samar <vipulkumar.samar@st.com>
-Subject: Re: About RFC of HDMI-CEC
-Date: Thu, 26 May 2011 08:35:45 +0200
-Cc: "Martin Bugge (marbugge)" <marbugge@cisco.com>,
-	"hdegoede@redhat.com" <hdegoede@redhat.com>,
-	"mchehab@infradead.org" <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <4DDCED60.3080907@st.com> <4DDCF95C.1020705@cisco.com> <4DDDE08A.2090406@st.com>
-In-Reply-To: <4DDDE08A.2090406@st.com>
+Received: from mx1.redhat.com ([209.132.183.28]:31838 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751793Ab1EBQjD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 May 2011 12:39:03 -0400
+Message-ID: <4DBEDE24.2040808@redhat.com>
+Date: Mon, 02 May 2011 13:39:00 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: Sensoray Linux Development <linux-dev@sensoray.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2/2] [media] s2255drv: jpeg enable module parameter
+References: <4D9A0C87.40309@sensoray.com>
+In-Reply-To: <4D9A0C87.40309@sensoray.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201105260835.45559.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thursday, May 26, 2011 07:09:30 vipul kumar samar wrote:
-> Hello,
-> 
-> On 05/25/2011 06:13 PM, Martin Bugge (marbugge) wrote:
-> > Hello
-> >
-> > To be honest I became a bit disengaded after all the discussion.
-> >
-> > What caused me a lot of problems was the request for AV link support
-> > (which is used in SCART connectors).
-> > Something I never plan to implement.
-> >
-> > But after the "v4l2 Warsaw Brainstroming meeting" it was sort of approved.
-> >
-> > It only need to be reworked to be a subdev level api.
-> > (for that I need some help from Hans Verkuil)
-> >
-> > But it is great that someone else also need an API for this.
-> > I include the latest version here so you can see if you agree, and
-> > together we will get it in.
-> >
-> 
-> Yes, sure.
-> 
-> > We currently have two drivers which uses this API for CEC.
-> >
-> > * Analog Devices adv7604
-> >
-> > * TMS320DM8x
-> >
-> 
-> i want to see source code of these two drivers.From where i can get 
-> source code of these drivers??
+Em 04-04-2011 15:23, Sensoray Linux Development escreveu:
+> Adding jpeg enable module parameter.
 
-The adv7604 driver is here:
+This one has also some bad whitespacing.
 
-http://git.linuxtv.org/hverkuil/cisco.git?a=shortlog;h=refs/heads/cobalt
+I've applied both. Please next time, double check it before sending me a patch.
 
-But this tree hasn't been updated in quite some time and doesn't contain the
-CEC support. I need to work on this anyway today so I'll see if I can get
-this tree in sync with our internal tree.
-
-The other driver we can't release as open source. It will eventually become
-available, though.
-
-Regards,
-
-      Hans
-
+Thanks,
+Mauro
 > 
-> Thanks and Regards
-> Vipul Kumar Samar
+> Signed-off-by: Dean Anderson <linux-dev@sensoray.com>
 > 
-> > At least the adv7604 is planned to be upstreamed.
-> >
-> > Best regards
-> > Martin Bugge
-> >
-> >
-> > On 05/25/2011 01:52 PM, vipul kumar samar wrote:
-> >> Hello,
-> >>
-> >> I am working on HDMI-CEC and planning to implement it in v4l2
-> >> framework.I came to know that a RFC is going on for the same driver.
-> >>
-> >> I want to know is their any friezed version of that RFC or discussion
-> >> is still going on?? Is it included in kernel??
-> >>
-> >> Thanks and Regards
-> >> Vipul Kumar Samar
-> >
-> >
+> ---
+>  drivers/media/video/s2255drv.c |   21 ++++++++++++++++-----
+>  1 files changed, 16 insertions(+), 5 deletions(-)
 > 
-> 
-> 
+> diff --git a/drivers/media/video/s2255drv.c b/drivers/media/video/s2255drv.c
+> index 38e5c4b..eb33e1e 100644
+> --- a/drivers/media/video/s2255drv.c
+> +++ b/drivers/media/video/s2255drv.c
+> @@ -389,12 +389,17 @@ static unsigned int vid_limit = 16;    /* Video memory limit, in Mb */
+>  /* start video number */
+>  static int video_nr = -1;    /* /dev/videoN, -1 for autodetect */
+>  
+> +/* Enable jpeg capture. */
+> +static int jpeg_enable = 1;
+> +
+>  module_param(debug, int, 0644);
+>  MODULE_PARM_DESC(debug, "Debug level(0-100) default 0");
+>  module_param(vid_limit, int, 0644);
+>  MODULE_PARM_DESC(vid_limit, "video memory limit(Mb)");
+>  module_param(video_nr, int, 0644);
+>  MODULE_PARM_DESC(video_nr, "start video minor(-1 default autodetect)");
+> +module_param(jpeg_enable, int, 0644);
+> +MODULE_PARM_DESC(jpeg_enable, "Jpeg enable(1-on 0-off) default 1");
+>  
+>  /* USB device table */
+>  #define USB_SENSORAY_VID    0x1943
+> @@ -408,6 +413,7 @@ MODULE_DEVICE_TABLE(usb, s2255_table);
+>  #define BUFFER_TIMEOUT msecs_to_jiffies(400)
+>  
+>  /* image formats.  */
+> +/* JPEG formats must be defined last to support jpeg_enable parameter */
+>  static const struct s2255_fmt formats[] = {
+>      {
+>          .name = "4:2:2, planar, YUV422P",
+> @@ -424,6 +430,10 @@ static const struct s2255_fmt formats[] = {
+>          .fourcc = V4L2_PIX_FMT_UYVY,
+>          .depth = 16
+>      }, {
+> +        .name = "8bpp GREY",
+> +        .fourcc = V4L2_PIX_FMT_GREY,
+> +        .depth = 8
+> +    }, {
+>          .name = "JPG",
+>          .fourcc = V4L2_PIX_FMT_JPEG,
+>          .depth = 24
+> @@ -431,10 +441,6 @@ static const struct s2255_fmt formats[] = {
+>          .name = "MJPG",
+>          .fourcc = V4L2_PIX_FMT_MJPEG,
+>          .depth = 24
+> -    }, {
+> -        .name = "8bpp GREY",
+> -        .fourcc = V4L2_PIX_FMT_GREY,
+> -        .depth = 8
+>      }
+>  };
+>  
+> @@ -609,6 +615,9 @@ static const struct s2255_fmt *format_by_fourcc(int fourcc)
+>      for (i = 0; i < ARRAY_SIZE(formats); i++) {
+>          if (-1 == formats[i].fourcc)
+>              continue;
+> +        if (!jpeg_enable && ((formats[i].fourcc == V4L2_PIX_FMT_JPEG) ||
+> +                     (formats[i].fourcc == V4L2_PIX_FMT_MJPEG)))
+> +            continue;
+>          if (formats[i].fourcc == fourcc)
+>              return formats + i;
+>      }
+> @@ -856,7 +865,9 @@ static int vidioc_enum_fmt_vid_cap(struct file *file, void *priv,
+>  
+>      if (index >= ARRAY_SIZE(formats))
+>          return -EINVAL;
+> -
+> +    if (!jpeg_enable && ((formats[index].fourcc == V4L2_PIX_FMT_JPEG) ||
+> +                 (formats[index].fourcc == V4L2_PIX_FMT_MJPEG)))
+> +        return -EINVAL;
+>      dprintk(4, "name %s\n", formats[index].name);
+>      strlcpy(f->description, formats[index].name, sizeof(f->description));
+>      f->pixelformat = formats[index].fourcc;
+
