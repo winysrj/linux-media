@@ -1,88 +1,59 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:57601 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756545Ab1E3NT0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 May 2011 09:19:26 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: javier Martin <javier.martin@vista-silicon.com>
-Subject: Re: [beagleboard] [PATCH] Second RFC version of mt9p031 sensor with power managament.
-Date: Mon, 30 May 2011 15:19:31 +0200
-Cc: Koen Kooi <koen@beagleboard.org>, beagleboard@googlegroups.com,
-	linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	carlighting@yahoo.co.nz
-References: <1306322212-26879-1-git-send-email-javier.martin@vista-silicon.com> <201105271631.37469.laurent.pinchart@ideasonboard.com> <BANLkTim1U-K1pTav2LsgVGnEsJ4LxKcCGw@mail.gmail.com>
-In-Reply-To: <BANLkTim1U-K1pTav2LsgVGnEsJ4LxKcCGw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:60847 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753274Ab1EBVeV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 May 2011 17:34:21 -0400
+Received: by wya21 with SMTP id 21so4517360wya.19
+        for <linux-media@vger.kernel.org>; Mon, 02 May 2011 14:34:19 -0700 (PDT)
+Subject: Re: [git:v4l-dvb/for_v2.6.40] [media] dvb-usb return device errors
+ to demuxer
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <E1QH07c-0003fV-LJ@www.linuxtv.org>
+References: <E1QH07c-0003fV-LJ@www.linuxtv.org>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 02 May 2011 22:34:05 +0100
+Message-ID: <1304372045.4781.8.camel@localhost>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Message-Id: <201105301519.31559.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Javier,
-
-On Friday 27 May 2011 17:36:24 javier Martin wrote:
-> On 27 May 2011 16:31, Laurent Pinchart wrote:
-> > On Thursday 26 May 2011 13:31:37 javier Martin wrote:
-> >> OK, I think I've found the problem with the power management.
-> >> 
-> >> As it is stated in mt9p031 datasheet [3] p 59, a sequence involving
-> >> [VAA,VAA_PIX,VDD_PLL], [VDD,VDD_IO], [Reset] and [Ext Clk] must be
-> >> followed in order to properly power up or down the sensor.
-> >> 
-> >> If we take a look to the LI-5M031 schematic[1] and Beagleboard xM
-> >> schematic [2] we'll notice that voltages are connected as follows:
-> >> 
-> >> [VDD] (1,8V) <--- V2.8 <--- CAM_CORE <--- VAUX3 TPS65950
-> >> [VDD_IO (VDDQ)] (1,8V) <--- V1.8 <--- CAM_IO <--- VAUX4 TPS65950
-> >> [VAA, VAA_PIX, VDD_PLL] (2,8V) <---| U6 |<-- V3.3VD <-- HUB_3V3 <--|
-> >> U16 | enabled by USBHOST_PWR_EN <-- LEDA TPS65950
-> >> 
-> >> VAUX3 (VDD) and VAUX4 (VDD_IO) are fine, they are only used for
-> >> powering our camera sensor. However, when it comes to the analog part
-> >> (VAA, VAA_PIX...), it is got from HUB_3V3 which is also used for
-> >> powering USB and ethernet.
-> > 
-> > *sigh* Why do hardware designers do things like that, really ?
-> > 
-> >> If we really want to activate/deactivate regulators that power mt9p031
-> >> we need to follow [3] p59. However, for that purpose we need to ensure
-> >> that a call to regulator_enable() or regulator_disable() will really
-> >> power on/off that supply, otherwise the sequence won't be matched and
-> >> the chip will have problems.
-> >> 
-> >> Beagleboard xM is a good example of platform where this happens since
-> >> HUB_3V3 and thus (VAA, VAA_PIX, etc...) cannot be deactivated since it
-> >> is being used by other devices. But there could be others.
-> >> 
-> >> So, as a conclusion, and in order to unblock my work, my purpose for
-> >> power management in mt9p031 would be the following:
-> >> - Drop regulator handling as we cannot guarantee that power on
-> >> sequence will be accomplished.
-> >> - Keep on asserting/de-asserting reset which saves a lot of power.
-> >> - Also activate/deactivate clock when necessary to save some power.
-> >> 
-> >> I'm looking forward to read your comments on this.
-> > 
-> > Even if you keep the sensor powered all the time, how do you ensure that
-> > VAUX3 is available before HUB_3V3 when the system is powered up ?
+On Mon, 2011-05-02 at 22:51 +0200, Mauro Carvalho Chehab wrote:
+> This is an automatic generated email to let you know that the following patch were queued at the 
+> http://git.linuxtv.org/media_tree.git tree:
 > 
-> You can't. And in fact what happens its the opposite. But it works.
-
-I wonder why, as the power supplies are sequenced the wrong way. It seems like 
-the hardware has been designed not to work. Sometimes I wish hardware 
-designers would read the chip specs before shipping boards in the wild and 
-relying on us to fix their mistakes.
-
-> On the other hand, not being able to disable/enable HUB_3V3 can make,
-> as a hardware guy has told me, power on reset internal circuit not to
-> work [1] and thus the power down / power up fails.
+> Subject: [media] dvb-usb return device errors to demuxer
+> Author:  Malcolm Priestley <tvboxspy@gmail.com>
+> Date:    Sat Apr 16 13:30:32 2011 -0300
 > 
-> [1] http://en.wikipedia.org/wiki/Power-on_reset
+> Return device errors to demuxer from on/off streamming and
+>  pid filtering.
+> 
+> Please test this patch with all dvb-usb devices.
+> 
+> Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> 
+>  drivers/media/dvb/dvb-usb/dvb-usb-dvb.c |   32 ++++++++++++++++++++----------
+>  1 files changed, 21 insertions(+), 11 deletions(-)
+> 
 
--- 
-Regards,
+This patch was originally marked Not Applicable on the Patchwork server.
 
-Laurent Pinchart
+It was replaced by dvb-usb return device errors to demuxer v2.
+
+https://patchwork.kernel.org/patch/713651/
+
+
+Regards
+
+
+Malcolm
+
+
+
+
+
+
