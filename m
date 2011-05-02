@@ -1,44 +1,41 @@
 Return-path: <mchehab@pedra>
-Received: from fallbackmx10.syd.optusnet.com.au ([211.29.132.251]:55275 "EHLO
-	fallbackmx10.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932287Ab1ESDiy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 May 2011 23:38:54 -0400
-Message-Id: <201105190333.p4J3Xj7c003952@mail06.syd.optusnet.com.au>
-Content-Type: text/plain
-Content-Disposition: inline
-Content-Transfer-Encoding: binary
-Mime-Version: 1.0
-From: WESTERN UNION MONEY TRANSFER <winners@westi.org>
-Date: Thu, 19 May 2011 13:33:45 +1000
-Reply-To: wu.africadept12@w.cn
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:29773 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754517Ab1EBLTL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 May 2011 07:19:11 -0400
+From: Hans Verkuil <hansverk@cisco.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PATCHES FOR 2.6.39] Fix subdev control enumeration
+Date: Mon, 2 May 2011 13:19:03 +0200
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	sakari.ailus@maxwell.research.nokia.com
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201105021319.03696.hansverk@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+Hi Mauro,
 
+This fix is for 2.6.39. Control enumeration for subdev device nodes is broken. 
+The fix is simple and has been tested by Sakari.
 
-Dear Western Union Customer,
-You have been awarded with the sum of 
-$50,000 USD by our office, as one of our 
-customers who use Western Union in their daily 
-business transaction.
-This award has been selected through the 
-internet, where your e-mail address was 
-indicated and notified.
-Please provide Mr. Gary Epps with the following 
-detailslisted below so that your fund will be 
-remited to you through Western Union.
-1. Name:______
-2. Address________
-3. Country:_______
-4. Phone Number____
-5. Occupation:________
-6. Sex:_________________
-7. Age___________________
-Mr. Gary Epps
-Tel: +393883557681
-E-mail: wu.africadept12@w.cn
-As soon as these details are received and 
-verified,your fund will be transferred to you. 
-Thank you, for using western union.
+Regards,
+
+	Hans
+
+The following changes since commit 28df73703e738d8ae7a958350f74b08b2e9fe9ed:
+  Mauro Carvalho Chehab (1):
+        [media] xc5000: Improve it to work better with 6MHz-spaced channels
+
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/hverkuil/media_tree.git ctrl-fix
+
+Hans Verkuil (1):
+      v4l2-subdev: fix broken subdev control enumeration
+
+ drivers/media/video/v4l2-subdev.c |   14 +++++++-------
+ 1 files changed, 7 insertions(+), 7 deletions(-)
