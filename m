@@ -1,850 +1,246 @@
 Return-path: <mchehab@pedra>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46883 "EHLO arroyo.ext.ti.com"
+Received: from acoma.acyna.com ([72.9.254.68]:54836 "EHLO acoma.acyna.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756117Ab1EXOCx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 May 2011 10:02:53 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p4OE2oKh017948
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 24 May 2011 09:02:52 -0500
-From: Manjunath Hadli <manjunath.hadli@ti.com>
-To: LMML <linux-media@vger.kernel.org>
-CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: [PATCH v18 4/6] davinci vpbe: VENC( Video Encoder) implementation
-Date: Tue, 24 May 2011 19:32:47 +0530
-Message-ID: <1306245767-3418-1-git-send-email-manjunath.hadli@ti.com>
+	id S1751444Ab1EBSkj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 May 2011 14:40:39 -0400
+Message-ID: <4DBEFAA2.7080406@hubstar.net>
+Date: Mon, 02 May 2011 19:40:34 +0100
+From: linuxtv <linuxtv@hubstar.net>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Jonathan Nieder <jrnieder@gmail.com>
+CC: linux-media@vger.kernel.org, Dan Carpenter <error27@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, Andi Huber <hobrom@gmx.at>,
+	Marlon de Boer <marlon@hyves.nl>,
+	Damien Churchill <damoxc@gmail.com>
+Subject: Re: cx88 sound does not always work (Re: [PATCH v2.6.38 resend 0/7]
+ cx88 deadlock and data races)
+References: <20110501091710.GA18263@elie> <4DBD4394.20907@hubstar.net> <20110502081924.GC16077@elie>
+In-Reply-To: <20110502081924.GC16077@elie>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This patch adds the VENC or the Video encoder, which is responsible
-for the blending of all source planes and timing generation for Video
-modes like NTSC, PAL and other digital outputs. the VENC implementation
-currently supports COMPOSITE and COMPONENT outputs and NTSC and PAL
-resolutions through the analog DACs. The venc block is implemented
-as a subdevice, allowing for additional external and internal encoders
-of other kind to plug-in.
+Card Hauppage HVR-1300
+Does it show up - yes
+Does it work - yes.
 
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/video/davinci/vpbe_venc.c      |  566 ++++++++++++++++++++++++++
- drivers/media/video/davinci/vpbe_venc_regs.h |  177 ++++++++
- include/media/davinci/vpbe_venc.h            |   45 ++
- 3 files changed, 788 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/davinci/vpbe_venc.c
- create mode 100644 drivers/media/video/davinci/vpbe_venc_regs.h
- create mode 100644 include/media/davinci/vpbe_venc.h
+However when testing for audio, either via mythbackend or smplayer
+/dev/video1 I get no sound 75% of the time on a first run.
 
-diff --git a/drivers/media/video/davinci/vpbe_venc.c b/drivers/media/video/davinci/vpbe_venc.c
-new file mode 100644
-index 0000000..03a3e5c
---- /dev/null
-+++ b/drivers/media/video/davinci/vpbe_venc.c
-@@ -0,0 +1,566 @@
-+/*
-+ * Copyright (C) 2010 Texas Instruments Inc
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation version 2.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ */
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/ctype.h>
-+#include <linux/delay.h>
-+#include <linux/device.h>
-+#include <linux/interrupt.h>
-+#include <linux/platform_device.h>
-+#include <linux/videodev2.h>
-+#include <linux/slab.h>
-+
-+#include <mach/hardware.h>
-+#include <mach/mux.h>
-+#include <mach/io.h>
-+#include <mach/i2c.h>
-+
-+#include <linux/io.h>
-+
-+#include <media/davinci/vpbe_types.h>
-+#include <media/davinci/vpbe_venc.h>
-+#include <media/davinci/vpss.h>
-+#include <media/v4l2-device.h>
-+
-+#include "vpbe_venc_regs.h"
-+
-+#define MODULE_NAME	VPBE_VENC_SUBDEV_NAME
-+
-+static int debug = 2;
-+module_param(debug, int, 0644);
-+MODULE_PARM_DESC(debug, "Debug level 0-2");
-+
-+struct venc_state {
-+	struct v4l2_subdev sd;
-+	struct venc_callback *callback;
-+	struct venc_platform_data *pdata;
-+	struct device *pdev;
-+	u32 output;
-+	v4l2_std_id std;
-+	spinlock_t lock;
-+	void __iomem *venc_base;
-+	void __iomem *vdaccfg_reg;
-+};
-+
-+static inline struct venc_state *to_state(struct v4l2_subdev *sd)
-+{
-+	return container_of(sd, struct venc_state, sd);
-+}
-+
-+static inline u32 venc_read(struct v4l2_subdev *sd, u32 offset)
-+{
-+	struct venc_state *venc = to_state(sd);
-+
-+	return readl(venc->venc_base + offset);
-+}
-+
-+static inline u32 venc_write(struct v4l2_subdev *sd, u32 offset, u32 val)
-+{
-+	struct venc_state *venc = to_state(sd);
-+
-+	writel(val, (venc->venc_base + offset));
-+
-+	return val;
-+}
-+
-+static inline u32 venc_modify(struct v4l2_subdev *sd, u32 offset,
-+				 u32 val, u32 mask)
-+{
-+	u32 new_val = (venc_read(sd, offset) & ~mask) | (val & mask);
-+
-+	venc_write(sd, offset, new_val);
-+
-+	return new_val;
-+}
-+
-+static inline u32 vdaccfg_write(struct v4l2_subdev *sd, u32 val)
-+{
-+	struct venc_state *venc = to_state(sd);
-+
-+	writel(val, venc->vdaccfg_reg);
-+
-+	val = readl(venc->vdaccfg_reg);
-+
-+	return val;
-+}
-+
-+/* This function sets the dac of the VPBE for various outputs
-+ */
-+static int venc_set_dac(struct v4l2_subdev *sd, u32 out_index)
-+{
-+	switch (out_index) {
-+	case 0:
-+		v4l2_dbg(debug, 1, sd, "Setting output to Composite\n");
-+		venc_write(sd, VENC_DACSEL, 0);
-+		break;
-+	case 1:
-+		v4l2_dbg(debug, 1, sd, "Setting output to S-Video\n");
-+		venc_write(sd, VENC_DACSEL, 0x210);
-+		break;
-+	case  2:
-+		venc_write(sd, VENC_DACSEL, 0x543);
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static void venc_enabledigitaloutput(struct v4l2_subdev *sd, int benable)
-+{
-+	v4l2_dbg(debug, 2, sd, "venc_enabledigitaloutput\n");
-+
-+	if (benable) {
-+		venc_write(sd, VENC_VMOD, 0);
-+		venc_write(sd, VENC_CVBS, 0);
-+		venc_write(sd, VENC_LCDOUT, 0);
-+		venc_write(sd, VENC_HSPLS, 0);
-+		venc_write(sd, VENC_HSTART, 0);
-+		venc_write(sd, VENC_HVALID, 0);
-+		venc_write(sd, VENC_HINT, 0);
-+		venc_write(sd, VENC_VSPLS, 0);
-+		venc_write(sd, VENC_VSTART, 0);
-+		venc_write(sd, VENC_VVALID, 0);
-+		venc_write(sd, VENC_VINT, 0);
-+		venc_write(sd, VENC_YCCCTL, 0);
-+		venc_write(sd, VENC_DACSEL, 0);
-+
-+	} else {
-+		venc_write(sd, VENC_VMOD, 0);
-+		/* disable VCLK output pin enable */
-+		venc_write(sd, VENC_VIDCTL, 0x141);
-+
-+		/* Disable output sync pins */
-+		venc_write(sd, VENC_SYNCCTL, 0);
-+
-+		/* Disable DCLOCK */
-+		venc_write(sd, VENC_DCLKCTL, 0);
-+		venc_write(sd, VENC_DRGBX1, 0x0000057C);
-+
-+		/* Disable LCD output control (accepting default polarity) */
-+		venc_write(sd, VENC_LCDOUT, 0);
-+		venc_write(sd, VENC_CMPNT, 0x100);
-+		venc_write(sd, VENC_HSPLS, 0);
-+		venc_write(sd, VENC_HINT, 0);
-+		venc_write(sd, VENC_HSTART, 0);
-+		venc_write(sd, VENC_HVALID, 0);
-+
-+		venc_write(sd, VENC_VSPLS, 0);
-+		venc_write(sd, VENC_VINT, 0);
-+		venc_write(sd, VENC_VSTART, 0);
-+		venc_write(sd, VENC_VVALID, 0);
-+
-+		venc_write(sd, VENC_HSDLY, 0);
-+		venc_write(sd, VENC_VSDLY, 0);
-+
-+		venc_write(sd, VENC_YCCCTL, 0);
-+		venc_write(sd, VENC_VSTARTA, 0);
-+
-+		/* Set OSD clock and OSD Sync Adavance registers */
-+		venc_write(sd, VENC_OSDCLK0, 1);
-+		venc_write(sd, VENC_OSDCLK1, 2);
-+	}
-+}
-+
-+/*
-+ * setting NTSC mode
-+ */
-+static int venc_set_ntsc(struct v4l2_subdev *sd)
-+{
-+	struct venc_state *venc = to_state(sd);
-+	struct venc_platform_data *pdata = venc->pdata;
-+
-+	v4l2_dbg(debug, 2, sd, "venc_set_ntsc\n");
-+
-+	/* Setup clock at VPSS & VENC for SD */
-+	vpss_enable_clock(VPSS_VENC_CLOCK_SEL, 1);
-+	if (pdata->setup_clock(VPBE_ENC_STD, V4L2_STD_525_60) < 0)
-+		return -EINVAL;
-+
-+	venc_enabledigitaloutput(sd, 0);
-+
-+	/* to set VENC CLK DIV to 1 - final clock is 54 MHz */
-+	venc_modify(sd, VENC_VIDCTL, 0, 1 << 1);
-+	/* Set REC656 Mode */
-+	venc_write(sd, VENC_YCCCTL, 0x1);
-+	venc_modify(sd, VENC_VDPRO, 0, VENC_VDPRO_DAFRQ);
-+	venc_modify(sd, VENC_VDPRO, 0, VENC_VDPRO_DAUPS);
-+
-+	venc_write(sd, VENC_VMOD, 0);
-+	venc_modify(sd, VENC_VMOD, (1 << VENC_VMOD_VIE_SHIFT),
-+			VENC_VMOD_VIE);
-+	venc_modify(sd, VENC_VMOD, (0 << VENC_VMOD_VMD), VENC_VMOD_VMD);
-+	venc_modify(sd, VENC_VMOD, (0 << VENC_VMOD_TVTYP_SHIFT),
-+			VENC_VMOD_TVTYP);
-+	venc_write(sd, VENC_DACTST, 0x0);
-+	venc_modify(sd, VENC_VMOD, VENC_VMOD_VENC, VENC_VMOD_VENC);
-+
-+	return 0;
-+}
-+
-+/*
-+ * setting PAL mode
-+ */
-+static int venc_set_pal(struct v4l2_subdev *sd)
-+{
-+	struct venc_state *venc = to_state(sd);
-+
-+	v4l2_dbg(debug, 2, sd, "venc_set_pal\n");
-+
-+	/* Setup clock at VPSS & VENC for SD */
-+	vpss_enable_clock(VPSS_VENC_CLOCK_SEL, 1);
-+	if (venc->pdata->setup_clock(VPBE_ENC_STD, V4L2_STD_625_50) < 0)
-+		return -EINVAL;
-+
-+	venc_enabledigitaloutput(sd, 0);
-+
-+	/* to set VENC CLK DIV to 1 - final clock is 54 MHz */
-+	venc_modify(sd, VENC_VIDCTL, 0, 1 << 1);
-+	/* Set REC656 Mode */
-+	venc_write(sd, VENC_YCCCTL, 0x1);
-+
-+	venc_modify(sd, VENC_SYNCCTL, 1 << VENC_SYNCCTL_OVD_SHIFT,
-+			VENC_SYNCCTL_OVD);
-+	venc_write(sd, VENC_VMOD, 0);
-+	venc_modify(sd, VENC_VMOD,
-+			(1 << VENC_VMOD_VIE_SHIFT),
-+			VENC_VMOD_VIE);
-+	venc_modify(sd, VENC_VMOD,
-+			(0 << VENC_VMOD_VMD), VENC_VMOD_VMD);
-+	venc_modify(sd, VENC_VMOD,
-+			(1 << VENC_VMOD_TVTYP_SHIFT),
-+			VENC_VMOD_TVTYP);
-+	venc_write(sd, VENC_DACTST, 0x0);
-+	venc_modify(sd, VENC_VMOD, VENC_VMOD_VENC, VENC_VMOD_VENC);
-+
-+	return 0;
-+}
-+
-+/*
-+ * venc_set_480p59_94
-+ *
-+ * This function configures the video encoder to EDTV(525p) component setting.
-+ */
-+static int venc_set_480p59_94(struct v4l2_subdev *sd)
-+{
-+	struct venc_state *venc = to_state(sd);
-+	struct venc_platform_data *pdata = venc->pdata;
-+
-+	v4l2_dbg(debug, 2, sd, "venc_set_480p59_94\n");
-+
-+	/* Setup clock at VPSS & VENC for SD */
-+	if (pdata->setup_clock(VPBE_ENC_DV_PRESET, V4L2_DV_480P59_94) < 0)
-+		return -EINVAL;
-+
-+	venc_enabledigitaloutput(sd, 0);
-+
-+	venc_write(sd, VENC_OSDCLK0, 0);
-+	venc_write(sd, VENC_OSDCLK1, 1);
-+	venc_modify(sd, VENC_VDPRO, VENC_VDPRO_DAFRQ,
-+		    VENC_VDPRO_DAFRQ);
-+	venc_modify(sd, VENC_VDPRO, VENC_VDPRO_DAUPS,
-+		    VENC_VDPRO_DAUPS);
-+	venc_write(sd, VENC_VMOD, 0);
-+	venc_modify(sd, VENC_VMOD, (1 << VENC_VMOD_VIE_SHIFT),
-+		    VENC_VMOD_VIE);
-+	venc_modify(sd, VENC_VMOD, VENC_VMOD_HDMD, VENC_VMOD_HDMD);
-+	venc_modify(sd, VENC_VMOD, (HDTV_525P << VENC_VMOD_TVTYP_SHIFT),
-+		    VENC_VMOD_TVTYP);
-+	venc_modify(sd, VENC_VMOD, VENC_VMOD_VDMD_YCBCR8 <<
-+		    VENC_VMOD_VDMD_SHIFT, VENC_VMOD_VDMD);
-+
-+	venc_modify(sd, VENC_VMOD, VENC_VMOD_VENC, VENC_VMOD_VENC);
-+
-+	return 0;
-+}
-+
-+/*
-+ * venc_set_625p
-+ *
-+ * This function configures the video encoder to HDTV(625p) component setting
-+ */
-+static int venc_set_576p50(struct v4l2_subdev *sd)
-+{
-+	struct venc_state *venc = to_state(sd);
-+	struct venc_platform_data *pdata = venc->pdata;
-+
-+	v4l2_dbg(debug, 2, sd, "venc_set_576p50\n");
-+
-+	/* Setup clock at VPSS & VENC for SD */
-+	if (pdata->setup_clock(VPBE_ENC_DV_PRESET, V4L2_DV_576P50) < 0)
-+		return -EINVAL;
-+
-+	venc_enabledigitaloutput(sd, 0);
-+
-+	venc_write(sd, VENC_OSDCLK0, 0);
-+	venc_write(sd, VENC_OSDCLK1, 1);
-+
-+	venc_modify(sd, VENC_VDPRO, VENC_VDPRO_DAFRQ,
-+		    VENC_VDPRO_DAFRQ);
-+	venc_modify(sd, VENC_VDPRO, VENC_VDPRO_DAUPS,
-+		    VENC_VDPRO_DAUPS);
-+
-+	venc_write(sd, VENC_VMOD, 0);
-+	venc_modify(sd, VENC_VMOD, (1 << VENC_VMOD_VIE_SHIFT),
-+		    VENC_VMOD_VIE);
-+	venc_modify(sd, VENC_VMOD, VENC_VMOD_HDMD, VENC_VMOD_HDMD);
-+	venc_modify(sd, VENC_VMOD, (HDTV_625P << VENC_VMOD_TVTYP_SHIFT),
-+		    VENC_VMOD_TVTYP);
-+
-+	venc_modify(sd, VENC_VMOD, VENC_VMOD_VDMD_YCBCR8 <<
-+		    VENC_VMOD_VDMD_SHIFT, VENC_VMOD_VDMD);
-+	venc_modify(sd, VENC_VMOD, VENC_VMOD_VENC, VENC_VMOD_VENC);
-+
-+	return 0;
-+}
-+
-+static int venc_s_std_output(struct v4l2_subdev *sd, v4l2_std_id norm)
-+{
-+	v4l2_dbg(debug, 1, sd, "venc_s_std_output\n");
-+
-+	if (norm & V4L2_STD_525_60)
-+		return venc_set_ntsc(sd);
-+	else if (norm & V4L2_STD_625_50)
-+		return venc_set_pal(sd);
-+
-+	return -EINVAL;
-+}
-+
-+static int venc_s_dv_preset(struct v4l2_subdev *sd,
-+			    struct v4l2_dv_preset *dv_preset)
-+{
-+	v4l2_dbg(debug, 1, sd, "venc_s_dv_preset\n");
-+
-+	if (dv_preset->preset == V4L2_DV_576P50)
-+		return venc_set_576p50(sd);
-+	else if (dv_preset->preset == V4L2_DV_480P59_94)
-+		return venc_set_480p59_94(sd);
-+
-+	return -EINVAL;
-+}
-+
-+static int venc_s_routing(struct v4l2_subdev *sd, u32 input, u32 output,
-+			  u32 config)
-+{
-+	struct venc_state *venc = to_state(sd);
-+	int ret;
-+
-+	v4l2_dbg(debug, 1, sd, "venc_s_routing\n");
-+
-+	ret = venc_set_dac(sd, output);
-+	if (!ret)
-+		venc->output = output;
-+
-+	return ret;
-+}
-+
-+static long venc_ioctl(struct v4l2_subdev *sd,
-+			unsigned int cmd,
-+			void *arg)
-+{
-+	u32 val;
-+
-+	switch (cmd) {
-+	case VENC_GET_FLD:
-+		val = venc_read(sd, VENC_VSTAT);
-+		*((int *)arg) = ((val & VENC_VSTAT_FIDST) ==
-+		VENC_VSTAT_FIDST);
-+		break;
-+	default:
-+		v4l2_err(sd, "Wrong IOCTL cmd\n");
-+		break;
-+	}
-+
-+	return 0;
-+}
-+
-+static const struct v4l2_subdev_core_ops venc_core_ops = {
-+	.ioctl      = venc_ioctl,
-+};
-+
-+static const struct v4l2_subdev_video_ops venc_video_ops = {
-+	.s_routing = venc_s_routing,
-+	.s_std_output = venc_s_std_output,
-+	.s_dv_preset = venc_s_dv_preset,
-+};
-+
-+static const struct v4l2_subdev_ops venc_ops = {
-+	.core = &venc_core_ops,
-+	.video = &venc_video_ops,
-+};
-+
-+static int venc_initialize(struct v4l2_subdev *sd)
-+{
-+	struct venc_state *venc = to_state(sd);
-+	int ret;
-+
-+	/* Set default to output to composite and std to NTSC */
-+	venc->output = 0;
-+	venc->std = V4L2_STD_525_60;
-+
-+	ret = venc_s_routing(sd, 0, venc->output, 0);
-+	if (ret < 0) {
-+		v4l2_err(sd, "Error setting output during init\n");
-+		return -EINVAL;
-+	}
-+
-+	ret = venc_s_std_output(sd, venc->std);
-+	if (ret < 0) {
-+		v4l2_err(sd, "Error setting std during init\n");
-+		return -EINVAL;
-+	}
-+
-+	return ret;
-+}
-+
-+static int venc_device_get(struct device *dev, void *data)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct venc_state **venc = data;
-+
-+	if (strcmp(MODULE_NAME, pdev->name) == 0)
-+		*venc = platform_get_drvdata(pdev);
-+
-+	return 0;
-+}
-+
-+struct v4l2_subdev *venc_sub_dev_init(struct v4l2_device *v4l2_dev,
-+		const char *venc_name)
-+{
-+	struct venc_state *venc;
-+	int err;
-+
-+	err = bus_for_each_dev(&platform_bus_type, NULL, &venc,
-+			venc_device_get);
-+	if (venc == NULL)
-+		return NULL;
-+
-+	v4l2_subdev_init(&venc->sd, &venc_ops);
-+
-+	strcpy(venc->sd.name, venc_name);
-+	if (v4l2_device_register_subdev(v4l2_dev, &venc->sd) < 0) {
-+		v4l2_err(v4l2_dev,
-+			"vpbe unable to register venc sub device\n");
-+		return NULL;
-+	}
-+	if (venc_initialize(&venc->sd)) {
-+		v4l2_err(v4l2_dev,
-+			"vpbe venc initialization failed\n");
-+		return NULL;
-+	}
-+
-+	return &venc->sd;
-+}
-+EXPORT_SYMBOL(venc_sub_dev_init);
-+
-+static int venc_probe(struct platform_device *pdev)
-+{
-+	struct venc_state *venc;
-+	struct resource *res;
-+	int ret;
-+
-+	venc = kzalloc(sizeof(struct venc_state), GFP_KERNEL);
-+	if (venc == NULL)
-+		return -ENOMEM;
-+
-+	venc->pdev = &pdev->dev;
-+	venc->pdata = pdev->dev.platform_data;
-+	if (NULL == venc->pdata) {
-+		dev_err(venc->pdev, "Unable to get platform data for"
-+			" VENC sub device");
-+		ret = -ENOENT;
-+		goto free_mem;
-+	}
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!res) {
-+		dev_err(venc->pdev,
-+			"Unable to get VENC register address map\n");
-+		ret = -ENODEV;
-+		goto free_mem;
-+	}
-+
-+	if (!request_mem_region(res->start, resource_size(res), "venc")) {
-+		dev_err(venc->pdev, "Unable to reserve VENC MMIO region\n");
-+		ret = -ENODEV;
-+		goto free_mem;
-+	}
-+
-+	venc->venc_base = ioremap_nocache(res->start, resource_size(res));
-+	if (!venc->venc_base) {
-+		dev_err(venc->pdev, "Unable to map VENC IO space\n");
-+		ret = -ENODEV;
-+		goto release_venc_mem_region;
-+	}
-+
-+	spin_lock_init(&venc->lock);
-+	platform_set_drvdata(pdev, venc);
-+	dev_notice(venc->pdev, "VENC sub device probe success\n");
-+	return 0;
-+
-+release_venc_mem_region:
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	release_mem_region(res->start, resource_size(res));
-+free_mem:
-+	kfree(venc);
-+	return ret;
-+}
-+
-+static int venc_remove(struct platform_device *pdev)
-+{
-+	struct venc_state *venc = platform_get_drvdata(pdev);
-+	struct resource *res;
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	iounmap((void *)venc->venc_base);
-+	release_mem_region(res->start, resource_size(res));
-+	kfree(venc);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver venc_driver = {
-+	.probe		= venc_probe,
-+	.remove		= venc_remove,
-+	.driver		= {
-+		.name	= MODULE_NAME,
-+		.owner	= THIS_MODULE,
-+	},
-+};
-+
-+static int venc_init(void)
-+{
-+	if (platform_driver_register(&venc_driver)) {
-+		printk(KERN_ERR "Unable to register venc driver\n");
-+		return -ENODEV;
-+	}
-+	return 0;
-+}
-+
-+static void venc_exit(void)
-+{
-+	platform_driver_unregister(&venc_driver);
-+	return;
-+}
-+
-+module_init(venc_init);
-+module_exit(venc_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("VPBE VENC Driver");
-+MODULE_AUTHOR("Texas Instruments");
-diff --git a/drivers/media/video/davinci/vpbe_venc_regs.h b/drivers/media/video/davinci/vpbe_venc_regs.h
-new file mode 100644
-index 0000000..947cb15
---- /dev/null
-+++ b/drivers/media/video/davinci/vpbe_venc_regs.h
-@@ -0,0 +1,177 @@
-+/*
-+ * Copyright (C) 2006-2010 Texas Instruments Inc
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation version 2..
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-+ */
-+#ifndef _VPBE_VENC_REGS_H
-+#define _VPBE_VENC_REGS_H
-+
-+/* VPBE Video Encoder / Digital LCD Subsystem Registers (VENC) */
-+#define VENC_VMOD				0x00
-+#define VENC_VIDCTL				0x04
-+#define VENC_VDPRO				0x08
-+#define VENC_SYNCCTL				0x0C
-+#define VENC_HSPLS				0x10
-+#define VENC_VSPLS				0x14
-+#define VENC_HINT				0x18
-+#define VENC_HSTART				0x1C
-+#define VENC_HVALID				0x20
-+#define VENC_VINT				0x24
-+#define VENC_VSTART				0x28
-+#define VENC_VVALID				0x2C
-+#define VENC_HSDLY				0x30
-+#define VENC_VSDLY				0x34
-+#define VENC_YCCCTL				0x38
-+#define VENC_RGBCTL				0x3C
-+#define VENC_RGBCLP				0x40
-+#define VENC_LINECTL				0x44
-+#define VENC_CULLLINE				0x48
-+#define VENC_LCDOUT				0x4C
-+#define VENC_BRTS				0x50
-+#define VENC_BRTW				0x54
-+#define VENC_ACCTL				0x58
-+#define VENC_PWMP				0x5C
-+#define VENC_PWMW				0x60
-+#define VENC_DCLKCTL				0x64
-+#define VENC_DCLKPTN0				0x68
-+#define VENC_DCLKPTN1				0x6C
-+#define VENC_DCLKPTN2				0x70
-+#define VENC_DCLKPTN3				0x74
-+#define VENC_DCLKPTN0A				0x78
-+#define VENC_DCLKPTN1A				0x7C
-+#define VENC_DCLKPTN2A				0x80
-+#define VENC_DCLKPTN3A				0x84
-+#define VENC_DCLKHS				0x88
-+#define VENC_DCLKHSA				0x8C
-+#define VENC_DCLKHR				0x90
-+#define VENC_DCLKVS				0x94
-+#define VENC_DCLKVR				0x98
-+#define VENC_CAPCTL				0x9C
-+#define VENC_CAPDO				0xA0
-+#define VENC_CAPDE				0xA4
-+#define VENC_ATR0				0xA8
-+#define VENC_ATR1				0xAC
-+#define VENC_ATR2				0xB0
-+#define VENC_VSTAT				0xB8
-+#define VENC_RAMADR				0xBC
-+#define VENC_RAMPORT				0xC0
-+#define VENC_DACTST				0xC4
-+#define VENC_YCOLVL				0xC8
-+#define VENC_SCPROG				0xCC
-+#define VENC_CVBS				0xDC
-+#define VENC_CMPNT				0xE0
-+#define VENC_ETMG0				0xE4
-+#define VENC_ETMG1				0xE8
-+#define VENC_ETMG2				0xEC
-+#define VENC_ETMG3				0xF0
-+#define VENC_DACSEL				0xF4
-+#define VENC_ARGBX0				0x100
-+#define VENC_ARGBX1				0x104
-+#define VENC_ARGBX2				0x108
-+#define VENC_ARGBX3				0x10C
-+#define VENC_ARGBX4				0x110
-+#define VENC_DRGBX0				0x114
-+#define VENC_DRGBX1				0x118
-+#define VENC_DRGBX2				0x11C
-+#define VENC_DRGBX3				0x120
-+#define VENC_DRGBX4				0x124
-+#define VENC_VSTARTA				0x128
-+#define VENC_OSDCLK0				0x12C
-+#define VENC_OSDCLK1				0x130
-+#define VENC_HVLDCL0				0x134
-+#define VENC_HVLDCL1				0x138
-+#define VENC_OSDHADV				0x13C
-+#define VENC_CLKCTL				0x140
-+#define VENC_GAMCTL				0x144
-+#define VENC_XHINTVL				0x174
-+
-+/* bit definitions */
-+#define VPBE_PCR_VENC_DIV			(1 << 1)
-+#define VPBE_PCR_CLK_OFF			(1 << 0)
-+
-+#define VENC_VMOD_VDMD_SHIFT			12
-+#define VENC_VMOD_VDMD_YCBCR16			0
-+#define VENC_VMOD_VDMD_YCBCR8			1
-+#define VENC_VMOD_VDMD_RGB666			2
-+#define VENC_VMOD_VDMD_RGB8			3
-+#define VENC_VMOD_VDMD_EPSON			4
-+#define VENC_VMOD_VDMD_CASIO			5
-+#define VENC_VMOD_VDMD_UDISPQVGA		6
-+#define VENC_VMOD_VDMD_STNLCD			7
-+#define VENC_VMOD_VIE_SHIFT			1
-+#define VENC_VMOD_VDMD				(7 << 12)
-+#define VENC_VMOD_ITLCL				(1 << 11)
-+#define VENC_VMOD_ITLC				(1 << 10)
-+#define VENC_VMOD_NSIT				(1 << 9)
-+#define VENC_VMOD_HDMD				(1 << 8)
-+#define VENC_VMOD_TVTYP_SHIFT			6
-+#define VENC_VMOD_TVTYP				(3 << 6)
-+#define VENC_VMOD_SLAVE				(1 << 5)
-+#define VENC_VMOD_VMD				(1 << 4)
-+#define VENC_VMOD_BLNK				(1 << 3)
-+#define VENC_VMOD_VIE				(1 << 1)
-+#define VENC_VMOD_VENC				(1 << 0)
-+
-+/* VMOD TVTYP options for HDMD=0 */
-+#define SDTV_NTSC				0
-+#define SDTV_PAL				1
-+/* VMOD TVTYP options for HDMD=1 */
-+#define HDTV_525P				0
-+#define HDTV_625P				1
-+#define HDTV_1080I				2
-+#define HDTV_720P				3
-+
-+#define VENC_VIDCTL_VCLKP			(1 << 14)
-+#define VENC_VIDCTL_VCLKE_SHIFT			13
-+#define VENC_VIDCTL_VCLKE			(1 << 13)
-+#define VENC_VIDCTL_VCLKZ_SHIFT			12
-+#define VENC_VIDCTL_VCLKZ			(1 << 12)
-+#define VENC_VIDCTL_SYDIR_SHIFT			8
-+#define VENC_VIDCTL_SYDIR			(1 << 8)
-+#define VENC_VIDCTL_DOMD_SHIFT			4
-+#define VENC_VIDCTL_DOMD			(3 << 4)
-+#define VENC_VIDCTL_YCDIR_SHIFT			0
-+#define VENC_VIDCTL_YCDIR			(1 << 0)
-+
-+#define VENC_VDPRO_ATYCC_SHIFT			5
-+#define VENC_VDPRO_ATYCC			(1 << 5)
-+#define VENC_VDPRO_ATCOM_SHIFT			4
-+#define VENC_VDPRO_ATCOM			(1 << 4)
-+#define VENC_VDPRO_DAFRQ			(1 << 3)
-+#define VENC_VDPRO_DAUPS			(1 << 2)
-+#define VENC_VDPRO_CUPS				(1 << 1)
-+#define VENC_VDPRO_YUPS				(1 << 0)
-+
-+#define VENC_SYNCCTL_VPL_SHIFT			3
-+#define VENC_SYNCCTL_VPL			(1 << 3)
-+#define VENC_SYNCCTL_HPL_SHIFT			2
-+#define VENC_SYNCCTL_HPL			(1 << 2)
-+#define VENC_SYNCCTL_SYEV_SHIFT			1
-+#define VENC_SYNCCTL_SYEV			(1 << 1)
-+#define VENC_SYNCCTL_SYEH_SHIFT			0
-+#define VENC_SYNCCTL_SYEH			(1 << 0)
-+#define VENC_SYNCCTL_OVD_SHIFT			14
-+#define VENC_SYNCCTL_OVD			(1 << 14)
-+
-+#define VENC_DCLKCTL_DCKEC_SHIFT		11
-+#define VENC_DCLKCTL_DCKEC			(1 << 11)
-+#define VENC_DCLKCTL_DCKPW_SHIFT		0
-+#define VENC_DCLKCTL_DCKPW			(0x3f << 0)
-+
-+#define VENC_VSTAT_FIDST			(1 << 4)
-+
-+#define VENC_CMPNT_MRGB_SHIFT			14
-+#define VENC_CMPNT_MRGB				(1 << 14)
-+
-+#endif				/* _VPBE_VENC_REGS_H */
-diff --git a/include/media/davinci/vpbe_venc.h b/include/media/davinci/vpbe_venc.h
-new file mode 100644
-index 0000000..426c205
---- /dev/null
-+++ b/include/media/davinci/vpbe_venc.h
-@@ -0,0 +1,45 @@
-+/*
-+ * Copyright (C) 2010 Texas Instruments Inc
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation version 2.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-+ */
-+#ifndef _VPBE_VENC_H
-+#define _VPBE_VENC_H
-+
-+#include <media/v4l2-subdev.h>
-+#include <media/davinci/vpbe_types.h>
-+
-+#define VPBE_VENC_SUBDEV_NAME "vpbe-venc"
-+
-+/* venc events */
-+#define VENC_END_OF_FRAME	BIT(0)
-+#define VENC_FIRST_FIELD	BIT(1)
-+#define VENC_SECOND_FIELD	BIT(2)
-+
-+struct venc_platform_data {
-+	enum vpbe_version venc_type;
-+	int (*setup_clock)(enum vpbe_enc_timings_type type,
-+			   unsigned int mode);
-+	/* Number of LCD outputs supported */
-+	int num_lcd_outputs;
-+};
-+
-+enum venc_ioctls {
-+	VENC_GET_FLD = 1,
-+};
-+
-+/* exported functions */
-+struct v4l2_subdev *venc_sub_dev_init(struct v4l2_device *v4l2_dev,
-+		const char *venc_name);
-+#endif
--- 
-1.6.2.4
+Of that, 75% of the time if I run smplayer /dev/video1 a few times sound
+reappears and will stay there until a power off reboot. (Soft reboot
+will keep the sound on).
+25% of the time I cannot get sound started at all. Either via smplayer,
+mplayer, mythbackend or v4lctl changes.
+
+Have I seen this reported ever? I saw something mentioned on a mailing
+list dated Aug 2010. But no resolution.
+
+Is it hardware ? I don't believe so, same hardware I have linux Suse
+11.1 kernel 2.6.27 with custom built drivers from v4l (July 2009). This
+works 100%.
+
+Drivers I was using was the default from the kernel with 11.4 (below). I
+then switched to try the v4l media_build repository (plus your patch).
+Unfortunately I can't build the 2009 drivers to try that level out (too
+much has changed).
+
+Hope the information below is of use.
+
+Drivers used from the default SuSE build and also from the v4l media build.
+
+Linux pvr1 2.6.37.1-1.2-desktop #1 SMP PREEMPT 2011-02-21 10:34:10 +0100
+x86_64 x86_64 x86_64 GNU/Linux (SuSE 11.4)
+
+
+04:01.0 Multimedia video controller [0400]: Conexant Systems, Inc.
+CX23880/1/2/3 PCI Video and Audio Decoder [14f1:8800] (re$
+        Subsystem: Hauppauge computer works Inc. WinTV 88x Video [0070:9600]
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
+ParErr- Stepping- SERR- FastB2B- DisINTx-
+        Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
+<TAbort- <MAbort- >SERR- <PERR- INTx-
+        Latency: 32 (5000ns min, 13750ns max), Cache Line Size: 32 bytes
+        Interrupt: pin A routed to IRQ 19
+        Region 0: Memory at e4000000 (32-bit, non-prefetchable) [size=16M]
+        Capabilities: [44] Vital Product Data
+                Unknown large resource type 04, will not decode more.
+        Capabilities: [4c] Power Management version 2
+                Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA
+PME(D0-,D1-,D2-,D3hot-,D3cold-)
+                Status: D0 NoSoftRst- PME-Enable- DSel=0 DScale=0 PME-
+        Kernel driver in use: cx8800
+
+04:01.1 Multimedia controller [0480]: Conexant Systems, Inc.
+CX23880/1/2/3 PCI Video and Audio Decoder [Audio Port] [14f1:88$
+        Subsystem: Hauppauge computer works Inc. WinTV 88x Audio [0070:9600]
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
+ParErr- Stepping- SERR- FastB2B- DisINTx-
+        Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
+<TAbort- <MAbort- >SERR- <PERR- INTx-
+        Latency: 32 (1000ns min, 63750ns max), Cache Line Size: 32 bytes
+        Interrupt: pin A routed to IRQ 19
+        Region 0: Memory at e5000000 (32-bit, non-prefetchable) [size=16M]
+        Capabilities: [4c] Power Management version 2
+                Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA
+PME(D0-,D1-,D2-,D3hot-,D3cold-)
+                Status: D0 NoSoftRst- PME-Enable- DSel=0 DScale=0 PME-
+        Kernel driver in use: cx88_audio
+
+
+04:01.2 Multimedia controller [0480]: Conexant Systems, Inc.
+CX23880/1/2/3 PCI Video and Audio Decoder [MPEG Port] [14f1:880$
+        Subsystem: Hauppauge computer works Inc. WinTV 88x MPEG Encoder
+[0070:9600]
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
+ParErr- Stepping- SERR- FastB2B- DisINTx-
+        Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
+<TAbort- <MAbort- >SERR- <PERR- INTx-
+        Latency: 32 (1500ns min, 22000ns max), Cache Line Size: 32 bytes
+        Interrupt: pin A routed to IRQ 19
+        Region 0: Memory at e6000000 (32-bit, non-prefetchable) [size=16M]
+        Capabilities: [4c] Power Management version 2
+                Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA
+PME(D0-,D1-,D2-,D3hot-,D3cold-)
+                Status: D0 NoSoftRst- PME-Enable- DSel=0 DScale=0 PME-
+        Kernel driver in use: cx88-mpeg driver manager
+
+
+
+dmesg extract
+[    6.341606] tda9887 1-0043: creating new
+instance                                                                        
+
+[    6.341607] tda9887 1-0043: tda988[5/6/7]
+found                                                                          
+
+[    6.342842] tuner 1-0043: Tuner 74 found with type(s) Radio
+TV.                                                          
+[    6.346330] tuner 1-0061: Tuner -1 found with type(s) Radio
+TV.                                                          
+[    6.386123] tveeprom 1-0050: Hauppauge model 96559, rev C5A0, serial#
+825267                                             
+[    6.386125] tveeprom 1-0050: MAC address is
+00:0d:fe:0c:97:b3                                                            
+
+[    6.386127] tveeprom 1-0050: tuner model is Philips FMD1216ME (idx
+100, type 63)                                         
+[    6.386129] tveeprom 1-0050: TV standards PAL(B/G) PAL(I) SECAM(L/L')
+PAL(D/D1/K) ATSC/DVB Digital (eeprom 0xf4)         
+[    6.386131] tveeprom 1-0050: audio processor is CX882 (idx
+33)                                                           
+[    6.386133] tveeprom 1-0050: decoder processor is CX882 (idx
+25)                                                         
+[    6.386134] tveeprom 1-0050: has
+radio                                                                                   
+
+[    6.386136] cx88[0]: hauppauge eeprom:
+model=96559                                                                       
+
+[    6.407438] tuner-simple 1-0061: creating new
+instance                                                                   
+[    6.407440] tuner-simple 1-0061: type set to 63 (Philips FMD1216ME
+MK3 Hybrid Tuner)                                     
+[    6.413602] cx88[0]/1: CX88x/0: ALSA support for cx2388x
+boards                                                          
+[    6.413710] cx88[0]/2: cx2388x 8802 Driver
+Manager                                                                       
+
+[    6.413720] cx88-mpeg driver manager 0000:04:01.2: PCI INT A -> GSI
+19 (level, low) -> IRQ 19                            
+[    6.413725] cx88[0]/2: found at 0000:04:01.2, rev: 5, irq: 19,
+latency: 32, mmio: 0xe6000000                             
+[    6.413769] cx8800 0000:04:01.0: PCI INT A -> GSI 19 (level, low) ->
+IRQ 19                                              
+[    6.413773] cx88[0]/0: found at 0000:04:01.0, rev: 5, irq: 19,
+latency: 32, mmio: 0xe4000000                             
+[    6.463568] WARNING: You are using an experimental version of the
+media stack.                                           
+[    6.463569]  As the driver is backported to an older kernel, it
+doesn't offer                                            
+[    6.463570]  enough quality for its usage in
+production.                                                                 
+
+[    6.463571]  Use it with
+care.                                                                                           
+
+[    6.463571] Latest git patches (needed if you report a bug to
+linux-media@vger.kernel.org):                              
+[    6.463572]  847aae409344e3c2efcc58e0639e659427447388 [media]
+lmedm04: get rid of on-stack dma buffers                   
+[    6.463573]  d71d07543c9bd2ea6779af91a3dc185bc8710d7c [media] au6610:
+get rid of on-stack dma buffer                     
+[    6.463573]  036d3f3f98f8b4c513bbe0bc8ccf932e5c8a72b6 [media] ce6230:
+get rid of on-stack dma buffer                     
+[    6.473441] wm8775 1-001b: chip found @ 0x36
+(cx88[0])                                                                   
+
+[    6.479106] cx88/2: cx2388x dvb driver version 0.0.8
+loaded                                                              
+[    6.479108] cx88/2: registering cx8802 driver, type: dvb access:
+shared                                                  
+[    6.479110] cx88[0]/2: subsystem: 0070:9600, board: Hauppauge
+WinTV-HVR1300 DVB-T/Hybrid MPEG Encoder [card=56]          
+[    6.479112] cx88[0]/2: cx2388x based DVB/ATSC
+card                                                                       
+[    6.479113] cx8802_alloc_frontends() allocating 1
+frontend(s)                                                            
+[    6.518120] tuner-simple 1-0061: attaching existing
+instance                                                             
+[    6.518123] tuner-simple 1-0061: type set to 63 (Philips FMD1216ME
+MK3 Hybrid Tuner)                                     
+[    6.521942] DVB: registering new adapter
+(cx88[0])                                                                       
+
+[    6.521944] DVB: registering adapter 0 frontend 0 (Conexant CX22702
+DVB-T)...                                            
+[    6.544641] cx88[0]/0: registered device video0
+[v4l2]                                                                   
+[    6.544665] cx88[0]/0: registered device
+vbi0                                                                            
+
+[    6.544686] cx88[0]/0: registered device
+radio0                                                                          
+
+[    6.667451] cx2388x blackbird driver version 0.0.8
+loaded                                                                
+[    6.667453] cx88/2: registering cx8802 driver, type: blackbird
+access: shared                                            
+[    6.667456] cx88[0]/2: subsystem: 0070:9600, board: Hauppauge
+WinTV-HVR1300 DVB-T/Hybrid MPEG Encoder [card=56]          
+[    6.667458] cx88[0]/2: cx23416 based mpeg encoder (blackbird
+reference design)                                           
+[    6.667678] cx88[0]/2-bb: Firmware and/or mailbox pointer not
+initialized or corrupted                                   
+[    9.436018] cx88[0]/2-bb: Firmware upload
+successful.                                                                    
+
+[    9.439795] cx88[0]/2-bb: Firmware version is
+0x02060039                                                                 
+[    9.446678] cx88[0]/2: registered device video1 [mpeg]
+
+
+On 02/05/11 09:19, Jonathan Nieder wrote:
+> Hi,
+>
+> linuxtv wrote:
+>
+>   
+>> FYI I too experienced the problem of hanging and used the patch dated
+>> 6th April to get it working.
+>> However I do have the problem that sound does not always work/come on.
+>> Once it is started it stays, getting it started is not reliable.
+>>     
+> Could you give details?  What card do you use?  Does it show up in
+> lspci -vvnn output (and if so, could you show us)?  What kernel
+> version?  Could you attach your .config and dmesg?  Was this reported
+> on bugzilla before?  How does sound not working manifest itself?  How
+> do you go about getting it to work?
+>
+> See the REPORTING-BUGS file for hints.
+>
+> Thanks and hope that helps,
+> Jonathan
+>   
 
