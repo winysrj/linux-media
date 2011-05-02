@@ -1,47 +1,34 @@
 Return-path: <mchehab@pedra>
-Received: from mail.kapsi.fi ([217.30.184.167]:58279 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754255Ab1EYVno (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 May 2011 17:43:44 -0400
-Message-ID: <4DDD780C.30205@iki.fi>
-Date: Thu, 26 May 2011 00:43:40 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:64792 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752307Ab1EBUVt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 May 2011 16:21:49 -0400
+Received: by wya21 with SMTP id 21so4476694wya.19
+        for <linux-media@vger.kernel.org>; Mon, 02 May 2011 13:21:48 -0700 (PDT)
+Message-ID: <4DBF1257.3040300@gmail.com>
+Date: Mon, 02 May 2011 22:21:43 +0200
+From: "Erik P. Olsen" <epodata@gmail.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR 2.6.40] Anysee
-References: <4DBAEFC5.8080707@iki.fi> <4DC178C8.4040603@redhat.com>
-In-Reply-To: <4DC178C8.4040603@redhat.com>
+To: linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] Support to AverTV Volar Video Capture (H830D)
+References: <1304365056.2794.10.camel@Unknown-00-22-2d-41-33-8f>
+In-Reply-To: <1304365056.2794.10.camel@Unknown-00-22-2d-41-33-8f>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Moikka Mauro,
+On 02/05/11 21:37, Manuel Carona wrote:
+> Hi,
+> How can I help (I'm not pro, It's only a hobby for me..:P) to get AverTV
+> Volar Video Capture (H830D) to work on linux?
+> Or can someone help me make it work? Is it necessary to make a module
+> for it from scratch? I can't find the firmware anywhere, is it
+> necessary? I can't find any .bin file to begin with...Is it even
+> possible for linux to support it?
 
-Two new models and some fixes.
+Have you tried with the driver at 
+http://www.avermedia.com/avertv/Product/ProductDetail.aspx?Id=503&tab=APDriver
 
-
-The following changes since commit 87cf028f3aa1ed51fe29c36df548aa714dc7438f:
-
-   [media] dm1105: GPIO handling added, I2C on GPIO added, LNB control 
-through GPIO reworked (2011-05-21 11:10:28 -0300)
-
-are available in the git repository at:
-   git://linuxtv.org/anttip/media_tree.git anysee
-
-Antti Palosaari (4):
-       anysee: return EOPNOTSUPP for unsupported I2C messages
-       anysee: add support for Anysee E7 PTC
-       anysee: add support for Anysee E7 PS2
-       anysee: style issues, comments, etc.
-
-  drivers/media/dvb/dvb-usb/anysee.c |   86 
-++++++++++++++++++++++++++----------
-  drivers/media/dvb/dvb-usb/anysee.h |   16 ++++---
-  2 files changed, 71 insertions(+), 31 deletions(-)
-
-
-t. Antti
 -- 
-http://palosaari.fi/
+Erik
