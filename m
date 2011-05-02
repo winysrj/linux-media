@@ -1,101 +1,50 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.1.47]:21326 "EHLO mgw-sa01.nokia.com"
+Received: from mx1.redhat.com ([209.132.183.28]:49192 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752946Ab1EQKrg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 May 2011 06:47:36 -0400
-Message-ID: <4DD2523D.1020908@maxwell.research.nokia.com>
-Date: Tue, 17 May 2011 13:47:25 +0300
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+	id S1757596Ab1EBNGJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 May 2011 09:06:09 -0400
+Message-ID: <4DBEAC3D.7040608@redhat.com>
+Date: Mon, 02 May 2011 10:06:05 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, nkanchev@mm-sol.com,
-	g.liakhovetski@gmx.de, hverkuil@xs4all.nl, dacohen@gmail.com,
-	riverful@gmail.com, andrew.b.adams@gmail.com, shpark7@stanford.edu
-Subject: Re: [PATCH 3/3] adp1653: Add driver for LED flash controller
-References: <4DD11FEC.8050308@maxwell.research.nokia.com> <201105162231.06153.laurent.pinchart@ideasonboard.com> <4DD209DE.50909@maxwell.research.nokia.com> <201105170923.34326.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201105170923.34326.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: =?windows-1252?Q?Alfredo_Jes=FAs_Delaiti?=
+	<alfredodelaiti@netscape.net>
+CC: linux-media@vger.kernel.org
+Subject: Re: Help to make a driver. ISDB-Tb
+References: <4DBC422F.10102@netscape.net> <4DBCB4EF.5070104@redhat.com> <4DBE0F74.80602@netscape.net>
+In-Reply-To: <4DBE0F74.80602@netscape.net>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Laurent Pinchart wrote:
-> Hi Sakari,
-
-Hi Laurent,
-
-> On Tuesday 17 May 2011 07:38:38 Sakari Ailus wrote:
-[clip]
->>>
->>> If several applications read controls, only one of them will be notified
->>> of faults. Shouldn't clearing the fault be handled explicitly by writing
->>> to a control ? I know this changes the API :-)
->>
->> This is true.
->>
->> Although I can't imagine right now why two separate processes should be
->> so interested in the faults but it is still entirely possible that
->> someone does that since it's permitted by the interface.
->>
->> Having to write zero to faults to clear them isn't good either since it
->> might mean missing faults that are triggered between reading and writing
->> this control.
->>
->> Perhaps this would make sense as a file handle specific control?
+Em 01-05-2011 22:57, Alfredo Jesús Delaiti escreveu:
+> Hi Mauro
 > 
-> Good question. Control events will help I guess, maybe that's the solution.
 
-They would help, yes, but in the case of N900 we don't have that luxury
-since there's no interrupt line from the adp1653 to OMAP. So if one user
-would read the control, the others would get notified. Yes, that would
-work, too.
-
-The use case is mostly theoretical and that's actually best the hardware
-can offer, so I think this is good. No special arrangements needed then.
-
-So reading the value will reset the faults?
-
->> The control documentation says that the faults are cleared when the
->> register is read, but the adp1653 also clears the faults whenever
->> writing zero to out_sel which happens also in other circumstances, for
->> example when changing mode from flash to torch when the torch intensity
->> is zero, or when indicator intensity is zero in other modes.
->>
->>>> +	/* Restore configuration. */
->>>> +	rval = adp1653_update_hw(flash);
->>>> +	if (IS_ERR_VALUE(rval))
->>>> +		return rval;
->>>
->>> Will that produce expected results ? For instance, if a fault was
->>> detected during flash strobe, won't it try to re-strobe the flash ?
->>> Shouldn't the user
->>
->> No. Flash is strobed using adp1653_strobe().
->>
->>> be required to explicitly re-strobe the flash or turn the torch (or
->>> indicator) on after a fault ? Once again this should be clarified in the
->>> API :-)
->>
->> The mode won't be changed from the flash but to strobe again, the user
->> has to push V4L2_CID_FLASH_STROBE again.
->>
->> The adp1653 doesn't have any torch (as such) or indicator faults; some
->> other chips do have indicator faults at least. Using the torch mode
->> might trigger faults, too, since it's the same LED; just the power isn't
->> that high.
+> I guess the error is in this part of the module mb86a20s.c
 > 
-> When an over-current fault is detected, shouldn't the mode be set back to none 
-> ? If we just clear the fault and reprogram the registers, the torch will be 
-> turned back on, and the fault will likely happen again.
+> /* Check if it is a mb86a20s frontend */
+> rev = mb86a20s_readreg(state, 0);
+> if (rev == 0x13) {
+> ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 
+> printk(KERN_INFO "Detected a Fujitsu mb86a20s frontend\n");
+> } else {
+> printk(KERN_ERR "Frontend revision %d is unknown - aborting.\n",
+> rev);
+> goto error;
+> }
 
-That's a good point.
+>From this message:
+[ 14.288626] Frontend revision 255 is unknown - aborting.
 
-Over-temperature, over-voltage, and short circuit faults should change
-the LED mode to be set to none. This is likely chip independent
-behaviour but on the other hand, not all the chips implement all the faults.
+I suspect that the I2C gate needed to access the frontend is at the wrong state. That's why you're
+getting 0xff (255) value there.
 
-Regards,
+> 
+> I reiterate my gratitude,
+> 
+> Alfredo
+> 
 
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
