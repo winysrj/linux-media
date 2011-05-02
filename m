@@ -1,120 +1,128 @@
-Return-path: <mchehab@gaivota>
-Received: from stevekez.vm.bytemark.co.uk ([80.68.91.30]:39619 "EHLO
-	stevekerrison.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755065Ab1EHPvg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 May 2011 11:51:36 -0400
-From: Steve Kerrison <steve@stevekerrison.com>
-To: Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Cc: Andreas Oberritter <obi@linuxtv.org>,
-	Steve Kerrison <steve@stevekerrison.com>
-Subject: [PATCH 1/6] DVB: Add basic API support for DVB-T2 and bump minor version
-Date: Sun,  8 May 2011 16:51:08 +0100
-Message-Id: <1304869873-9974-2-git-send-email-steve@stevekerrison.com>
-In-Reply-To: <4DC417DA.5030107@redhat.com>
-References: <4DC417DA.5030107@redhat.com>
+Return-path: <mchehab@pedra>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:60574 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757061Ab1EBNsX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 May 2011 09:48:23 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
+Subject: Re: [PATCH v2 1/2] OMAP3: ISP: Add regulator control for omap34xx
+Date: Mon, 2 May 2011 15:48:41 +0200
+Cc: maurochehab@gmail.com, tony@atomide.com,
+	linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+References: <1304327777-31231-1-git-send-email-kalle.jokiniemi@nokia.com> <1304327777-31231-2-git-send-email-kalle.jokiniemi@nokia.com>
+In-Reply-To: <1304327777-31231-2-git-send-email-kalle.jokiniemi@nokia.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201105021548.43076.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-From: Andreas Oberritter <obi@linuxtv.org>
+Hi Kalle,
 
-Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
-Signed-off-by: Steve Kerrison <steve@stevekerrison.com>
----
- drivers/media/dvb/dvb-core/dvb_frontend.c |    7 +++----
- include/linux/dvb/frontend.h              |   20 ++++++++++++++++----
- include/linux/dvb/version.h               |    2 +-
- 3 files changed, 20 insertions(+), 9 deletions(-)
+Thanks for the patch.
 
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-index 31e2c0d..e30beef 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -1148,10 +1148,9 @@ static void dtv_property_adv_params_sync(struct dvb_frontend *fe)
- 		break;
- 	}
- 
--	if(c->delivery_system == SYS_ISDBT) {
--		/* Fake out a generic DVB-T request so we pass validation in the ioctl */
--		p->frequency = c->frequency;
--		p->inversion = c->inversion;
-+	/* Fake out a generic DVB-T request so we pass validation in the ioctl */
-+	if ((c->delivery_system == SYS_ISDBT) ||
-+	    (c->delivery_system == SYS_DVBT2)) {
- 		p->u.ofdm.constellation = QAM_AUTO;
- 		p->u.ofdm.code_rate_HP = FEC_AUTO;
- 		p->u.ofdm.code_rate_LP = FEC_AUTO;
-diff --git a/include/linux/dvb/frontend.h b/include/linux/dvb/frontend.h
-index 493a2bf..36a3ed6 100644
---- a/include/linux/dvb/frontend.h
-+++ b/include/linux/dvb/frontend.h
-@@ -175,14 +175,20 @@ typedef enum fe_transmit_mode {
- 	TRANSMISSION_MODE_2K,
- 	TRANSMISSION_MODE_8K,
- 	TRANSMISSION_MODE_AUTO,
--	TRANSMISSION_MODE_4K
-+	TRANSMISSION_MODE_4K,
-+	TRANSMISSION_MODE_1K,
-+	TRANSMISSION_MODE_16K,
-+	TRANSMISSION_MODE_32K,
- } fe_transmit_mode_t;
- 
- typedef enum fe_bandwidth {
- 	BANDWIDTH_8_MHZ,
- 	BANDWIDTH_7_MHZ,
- 	BANDWIDTH_6_MHZ,
--	BANDWIDTH_AUTO
-+	BANDWIDTH_AUTO,
-+	BANDWIDTH_5_MHZ,
-+	BANDWIDTH_10_MHZ,
-+	BANDWIDTH_1_712_MHZ,
- } fe_bandwidth_t;
- 
- 
-@@ -191,7 +197,10 @@ typedef enum fe_guard_interval {
- 	GUARD_INTERVAL_1_16,
- 	GUARD_INTERVAL_1_8,
- 	GUARD_INTERVAL_1_4,
--	GUARD_INTERVAL_AUTO
-+	GUARD_INTERVAL_AUTO,
-+	GUARD_INTERVAL_1_128,
-+	GUARD_INTERVAL_19_128,
-+	GUARD_INTERVAL_19_256,
- } fe_guard_interval_t;
- 
- 
-@@ -305,7 +314,9 @@ struct dvb_frontend_event {
- 
- #define DTV_ISDBS_TS_ID		42
- 
--#define DTV_MAX_COMMAND				DTV_ISDBS_TS_ID
-+#define DTV_DVBT2_PLP_ID	43
-+
-+#define DTV_MAX_COMMAND				DTV_DVBT2_PLP_ID
- 
- typedef enum fe_pilot {
- 	PILOT_ON,
-@@ -337,6 +348,7 @@ typedef enum fe_delivery_system {
- 	SYS_DMBTH,
- 	SYS_CMMB,
- 	SYS_DAB,
-+	SYS_DVBT2,
- } fe_delivery_system_t;
- 
- struct dtv_cmds_h {
-diff --git a/include/linux/dvb/version.h b/include/linux/dvb/version.h
-index 5a7546c..1421cc8 100644
---- a/include/linux/dvb/version.h
-+++ b/include/linux/dvb/version.h
-@@ -24,6 +24,6 @@
- #define _DVBVERSION_H_
- 
- #define DVB_API_VERSION 5
--#define DVB_API_VERSION_MINOR 2
-+#define DVB_API_VERSION_MINOR 3
- 
- #endif /*_DVBVERSION_H_*/
+On Monday 02 May 2011 11:16:16 Kalle Jokiniemi wrote:
+> The current omap3isp driver is missing regulator handling
+> for CSIb complex in omap34xx based devices. This patch
+> adds a mechanism for this to the omap3isp driver.
+> 
+> Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+>  drivers/media/video/omap3isp/ispccp2.c |   27 +++++++++++++++++++++++++--
+>  drivers/media/video/omap3isp/ispccp2.h |    1 +
+>  2 files changed, 26 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap3isp/ispccp2.c
+> b/drivers/media/video/omap3isp/ispccp2.c index 0e16cab..ec9e395 100644
+> --- a/drivers/media/video/omap3isp/ispccp2.c
+> +++ b/drivers/media/video/omap3isp/ispccp2.c
+> @@ -30,6 +30,7 @@
+>  #include <linux/module.h>
+>  #include <linux/mutex.h>
+>  #include <linux/uaccess.h>
+> +#include <linux/regulator/consumer.h>
+> 
+>  #include "isp.h"
+>  #include "ispreg.h"
+> @@ -163,6 +164,9 @@ static void ccp2_if_enable(struct isp_ccp2_device
+> *ccp2, u8 enable) struct isp_pipeline *pipe =
+> to_isp_pipeline(&ccp2->subdev.entity); int i;
+> 
+> +	if (enable && ccp2->vdds_csib)
+> +		regulator_enable(ccp2->vdds_csib);
+> +
+>  	/* Enable/Disable all the LCx channels */
+>  	for (i = 0; i < CCP2_LCx_CHANS_NUM; i++)
+>  		isp_reg_clr_set(isp, OMAP3_ISP_IOMEM_CCP2, ISPCCP2_LCx_CTRL(i),
+> @@ -186,6 +190,9 @@ static void ccp2_if_enable(struct isp_ccp2_device
+> *ccp2, u8 enable) ISPCCP2_LC01_IRQENABLE,
+>  				    ISPCCP2_LC01_IRQSTATUS_LC0_FS_IRQ);
+>  	}
+> +
+> +	if (!enable && ccp2->vdds_csib)
+> +		regulator_disable(ccp2->vdds_csib);
+>  }
+> 
+>  /*
+> @@ -1137,6 +1144,9 @@ error:
+>   */
+>  void omap3isp_ccp2_cleanup(struct isp_device *isp)
+>  {
+> +	struct isp_ccp2_device *ccp2 = &isp->isp_ccp2;
+> +
+> +	regulator_put(ccp2->vdds_csib);
+>  }
+> 
+>  /*
+> @@ -1151,14 +1161,27 @@ int omap3isp_ccp2_init(struct isp_device *isp)
+> 
+>  	init_waitqueue_head(&ccp2->wait);
+> 
+> -	/* On the OMAP36xx, the CCP2 uses the CSI PHY1 or PHY2, shared with
+> +	/*
+> +	 * On the OMAP34xx the CSI1 receiver is operated in the CSIb IO
+> +	 * complex, which is powered by vdds_csib power rail. Hence the
+> +	 * request for the regulator.
+> +	 *
+> +	 * On the OMAP36xx, the CCP2 uses the CSI PHY1 or PHY2, shared with
+>  	 * the CSI2c or CSI2a receivers. The PHY then needs to be explicitly
+>  	 * configured.
+>  	 *
+>  	 * TODO: Don't hardcode the usage of PHY1 (shared with CSI2c).
+>  	 */
+> -	if (isp->revision == ISP_REVISION_15_0)
+> +	if (isp->revision == ISP_REVISION_2_0) {
+> +		ccp2->vdds_csib = regulator_get(isp->dev, "vdds_csib");
+> +		if (IS_ERR(ccp2->vdds_csib)) {
+> +			dev_dbg(isp->dev,
+> +				"Could not get regulator vdds_csib\n");
+> +			ccp2->vdds_csib = NULL;
+> +		}
+> +	} else if (isp->revision == ISP_REVISION_15_0) {
+>  		ccp2->phy = &isp->isp_csiphy1;
+> +	}
+> 
+>  	ret = ccp2_init_entities(ccp2);
+>  	if (ret < 0)
+> diff --git a/drivers/media/video/omap3isp/ispccp2.h
+> b/drivers/media/video/omap3isp/ispccp2.h index 5505a86..6674e9d 100644
+> --- a/drivers/media/video/omap3isp/ispccp2.h
+> +++ b/drivers/media/video/omap3isp/ispccp2.h
+> @@ -81,6 +81,7 @@ struct isp_ccp2_device {
+>  	struct isp_interface_mem_config mem_cfg;
+>  	struct isp_video video_in;
+>  	struct isp_csiphy *phy;
+> +	struct regulator *vdds_csib;
+>  	unsigned int error;
+>  	enum isp_pipeline_stream_state state;
+>  	wait_queue_head_t wait;
+
 -- 
-1.7.1
+Regards,
 
+Laurent Pinchart
