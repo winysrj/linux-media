@@ -1,64 +1,52 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.1.48]:40676 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760061Ab1EOPeC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 May 2011 11:34:02 -0400
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com
-Subject: [PATCH v2 1/1] v4l: Document EACCES in VIDIOC_[GS]_CTRL and VIDIOC_{G,S,TRY}_EXT_CTRLS
-Date: Sun, 15 May 2011 18:33:58 +0300
-Message-Id: <1305473638-19440-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:61328 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757606Ab1EBNUZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 May 2011 09:20:25 -0400
+From: Hans Verkuil <hansverk@cisco.com>
+To: vipul kumar samar <vipulkumar.samar@st.com>
+Subject: Re: Query: Implementation of overlay on linux
+Date: Mon, 2 May 2011 15:20:22 +0200
+Cc: linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org
+References: <4DBE8FDB.5010506@st.com>
+In-Reply-To: <4DBE8FDB.5010506@st.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201105021520.22842.hansverk@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-VIDIOC_S_CTRL and VIDIOC_S_EXT_CTRLS return EACCES when setting a read-only
-control VIDIOC_TRY_EXT_CTRLS when trying a read-only control and
-VIDIOC_G_CTRL and VIDIOC_G_EXT_CTRLS when getting a write-only control.
-Document this.
+On Monday, May 02, 2011 13:04:59 vipul kumar samar wrote:
+> Hello,
+> 
+> I am working on LCD module and I want to implement two overlay windows
+> on frame buffer. I have some queries related to this:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
----
- Documentation/DocBook/v4l/vidioc-g-ctrl.xml      |    7 +++++++
- Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml |    7 +++++++
- 2 files changed, 14 insertions(+), 0 deletions(-)
+You mean capture overlay windows? E.g. you want to capture from a video input 
+and have the video directly rendered in the framebuffer?
 
-diff --git a/Documentation/DocBook/v4l/vidioc-g-ctrl.xml b/Documentation/DocBook/v4l/vidioc-g-ctrl.xml
-index 8b5e6ff..5146d00 100644
---- a/Documentation/DocBook/v4l/vidioc-g-ctrl.xml
-+++ b/Documentation/DocBook/v4l/vidioc-g-ctrl.xml
-@@ -117,6 +117,13 @@ because another applications took over control of the device function
- this control belongs to.</para>
- 	</listitem>
-       </varlistentry>
-+      <varlistentry>
-+	<term><errorcode>EACCES</errorcode></term>
-+	<listitem>
-+	  <para>Attempt to set a read-only control or to get a
-+	  write-only control.</para>
-+	</listitem>
-+      </varlistentry>
-     </variablelist>
-   </refsect1>
- </refentry>
-diff --git a/Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml
-index 3aa7f8f..5e73517 100644
---- a/Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml
-+++ b/Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml
-@@ -294,6 +294,13 @@ The field <structfield>size</structfield> is set to a value that is enough
- to store the payload and this error code is returned.</para>
- 	</listitem>
-       </varlistentry>
-+      <varlistentry>
-+	<term><errorcode>EACCES</errorcode></term>
-+	<listitem>
-+	  <para>Attempt to try or set a read-only control or to get a
-+	  write-only control.</para>
-+	</listitem>
-+      </varlistentry>
-     </variablelist>
-   </refsect1>
- </refentry>
--- 
-1.7.2.5
+The "Video Overlay Interface" section in the V4L2 specification describes how 
+to do that, but it also depends on whether the V4L2 driver in question 
+supports that feature.
 
+It might be that you mean something else, though.
+
+Regards,
+
+	Hans
+
+> 1. Can any body suggest me how to proceed towards it??
+> 2. Is their any standard way to use frame buffer ioctl calls??
+> 3. If i have to define my own ioctls then how application manage it??
+> 
+> 
+> Thanks and Regards
+> Vipul Samar
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
