@@ -1,100 +1,77 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:33158 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750803Ab1EEEZI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 May 2011 00:25:08 -0400
-Received: by wya21 with SMTP id 21so1315117wya.19
-        for <linux-media@vger.kernel.org>; Wed, 04 May 2011 21:25:07 -0700 (PDT)
+Received: from cantor.suse.de ([195.135.220.2]:36696 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751198Ab1EBPdI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 May 2011 11:33:08 -0400
+Date: Mon, 2 May 2011 17:33:06 +0200
+From: Michal Marek <mmarek@suse.cz>
+To: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Arnaud Lacombe <lacombar@gmail.com>, linux-kbuild@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH 1/5] kconfig: add an option to determine a menu's
+ visibility
+Message-ID: <20110502153305.GB15769@sepie.suse.cz>
+References: <4CD300AC.3010708@redhat.com>
+ <1289079027-3037-2-git-send-email-lacombar@gmail.com>
+ <AANLkTi=WS6cveqzxVmwC2wucaCpEJJLHXx0A8XbAChRb@mail.gmail.com>
+ <4CEF8C74.8010600@suse.cz>
+ <20101126161511.GD9418@sepie.suse.cz>
+ <20101126081736.0ba8a90b.rdunlap@xenotime.net>
+ <20110428103802.24c77ff4.rdunlap@xenotime.net>
 MIME-Version: 1.0
-In-Reply-To: <4DC08CB8.3020105@redhat.com>
-References: <4DA63A66.1070300@gmx.net>
-	<4DC08CB8.3020105@redhat.com>
-Date: Thu, 5 May 2011 08:25:07 +0400
-Message-ID: <BANLkTikxDEr0xo55rqOhjw5NbGTndOsV5w@mail.gmail.com>
-Subject: Re: TT-budget S2-3200 cannot tune on HB13E DVBS2 transponder
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Lutz Sammer <johns98@gmx.net>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20110428103802.24c77ff4.rdunlap@xenotime.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, May 4, 2011 at 3:16 AM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Em 13-04-2011 21:05, Lutz Sammer escreveu:
->>> On 05/04/11 21:07, Steffen Barszus wrote:
->>>> On Tue, 05 Apr 2011 13:00:14 +0200
->>>> "Issa Gorissen" <flop.m@xxxxxxx> wrote:
->>>>
->>>>> Hi,
->>>>>
->>>>> Eutelsat made a recent migration from DVB-S to DVB-S2 (since
->>>>> 31/3/2011) on two transponders on HB13E
->>>>>
->>>>> - HOT BIRD 6 13° Est TP 159 Freq 11,681 Ghz DVB-S2 FEC 3/4 27500
->>>>> Msymb/s 0.2 Pilot off Polar H
->>>>>
->>>>> - HOT BIRD 9 13° Est TP 99 Freq 12,692 Ghz DVB-S2 FEC 3/4 27500
->>>>> Msymb/s 0.2 Pilot off Polar H
->>>>>
->>>>>
->>>>> Before those changes, with my TT S2 3200, I was able to watch TV on
->>>>> those transponders. Now, I cannot even tune on those transponders. I
->>>>> have tried with scan-s2 and w_scan and the latest drivers from git.
->>>>> They both find the transponders but cannot tune onto it.
->>>>>
->>>>> Something noteworthy is that my other card, a DuoFlex S2 can tune
->>>>> fine on those transponders.
->>>>>
->>>>> My question is; can someone try this as well with a TT S2 3200 and
->>>>> post the results ?
->>>> i read something about it lately here (german!):
->>>> http://www.vdr-portal.de/board16-video-disk-recorder/board85-hdtv-dvb-s2/p977938-stb0899-fec-3-4-tester-gesucht/#post977938
->>>>
->>>> It says in stb0899_drv.c function:
->>>> static void stb0899_set_iterations(struct stb0899_state *state)
->>>>
->>>> This:
->>>> reg = STB0899_READ_S2REG(STB0899_S2DEMOD, MAX_ITER);
->>>> STB0899_SETFIELD_VAL(MAX_ITERATIONS, reg, iter_scale);
->>>> stb0899_write_s2reg(state, STB0899_S2DEMOD, STB0899_BASE_MAX_ITER, STB0899_OFF0_MAX_ITER, reg);
->>>>
->>>> should be replaced with this:
->>>>
->>>> reg = STB0899_READ_S2REG(STB0899_S2FEC, MAX_ITER);
->>>> STB0899_SETFIELD_VAL(MAX_ITERATIONS, reg, iter_scale);
->>>> stb0899_write_s2reg(state, STB0899_S2FEC, STB0899_BASE_MAX_ITER, STB0899_OFF0_MAX_ITER, reg);
->>>>
->>>> Basically replace STB0899_S2DEMOD with STB0899_S2FEC in this 2 lines
->>>> affected.
->>>>
->>>> Kind Regards
->>>>
->>>> Steffen
->>> Hi Steffen,
->>>
->>> Unfortunately, it does not help in my case. Thx anyway.
->>
->> Try my locking fix. With above patch I can lock the
->> channels without problem.
->
-> Can someone confirm that such patch would fix the issue? If so, please
-> forward it in a way that it could be applied (patch is currently line-wrapped),
-> and submit with some comments/description and your SOB.
->
-> As the patch is currently broken, I'm just marking it as rejected at patchwork.
->
-> Manu,
->
-> Please take a look on this trouble report.
->
-> Thanks!
-> Mauro.
+On Thu, Apr 28, 2011 at 10:38:02AM -0700, Randy Dunlap wrote:
+> On Fri, 26 Nov 2010 08:17:36 -0800 Randy Dunlap wrote:
+> 
+> > On Fri, 26 Nov 2010 17:15:11 +0100 Michal Marek wrote:
+> > > Subject: [PATCH] kconfig: Document the new "visible if" syntax
+> 
+> Hi,
+> 
+> Can we get this kconfig-language.txt patch added to the kernel source tree, please?
 
+Thanks for the reminder, I pushed it to kbuild-2.6.git#kconfig now.
 
-I am out of station currently. I will take a deeper look at it during
-the weekend or next week.
-
-Best Regards,
-Manu
+Michal
+> 
+> 
+> > > Signed-off-by: Michal Marek <mmarek@suse.cz>
+> > > 
+> > > diff --git a/Documentation/kbuild/kconfig-language.txt b/Documentation/kbuild/kconfig-language.txt
+> > > index 2fe93ca..2522cca 100644
+> > > --- a/Documentation/kbuild/kconfig-language.txt
+> > > +++ b/Documentation/kbuild/kconfig-language.txt
+> > > @@ -114,6 +114,13 @@ applicable everywhere (see syntax).
+> > >  	the illegal configurations all over.
+> > >  	kconfig should one day warn about such things.
+> > >  
+> > > +- limiting menu display: "visible if" <expr>
+> > > +  This attribute is only applicable to menu blocks, if the condition is
+> > > +  false, the menu block is not displayed to the user (the symbols
+> > > +  contained there can still be selected by other symbols, though). It is
+> > > +  similar to a conditional "prompt" attribude for individual menu
+> > > +  entries.
+> > > +
+> > 
+> > Default value of "visible" is true ??
+> > 
+> > >  - numerical ranges: "range" <symbol> <symbol> ["if" <expr>]
+> > >    This allows to limit the range of possible input values for int
+> > >    and hex symbols. The user can only input a value which is larger than
+> > > @@ -300,7 +307,8 @@ menu:
+> > >  	"endmenu"
+> > >  
+> > >  This defines a menu block, see "Menu structure" above for more
+> > > -information. The only possible options are dependencies.
+> > > +information. The only possible options are dependencies and "visible"
+> > > +attributes.
+> > >  
+> > >  if:
+> > >  
+> > > --
