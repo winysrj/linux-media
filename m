@@ -1,93 +1,67 @@
-Return-path: <mchehab@gaivota>
-Received: from mail.kapsi.fi ([217.30.184.167]:51686 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757448Ab1ELRdS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 May 2011 13:33:18 -0400
-Message-ID: <4DCC19DC.2020006@iki.fi>
-Date: Thu, 12 May 2011 20:33:16 +0300
-From: Antti Palosaari <crope@iki.fi>
+Return-path: <mchehab@pedra>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:60663 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751793Ab1EBTkF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 May 2011 15:40:05 -0400
+Received: by ewy4 with SMTP id 4so1853351ewy.19
+        for <linux-media@vger.kernel.org>; Mon, 02 May 2011 12:40:04 -0700 (PDT)
 MIME-Version: 1.0
-To: Per Kofod <per.s.kofod@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Help needed: Anysee E30C Plus (DVB-C Tuner)
-References: <4DCBE059.8030906@gmail.com> <4DCBE9F3.2090209@iki.fi> <4DCBF044.2070504@gmail.com>
-In-Reply-To: <4DCBF044.2070504@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4DBF0791.5070805@redhat.com>
+References: <E1QGwlS-0006ys-15@www.linuxtv.org>
+	<201105022111.40604.hverkuil@xs4all.nl>
+	<4DBF0791.5070805@redhat.com>
+Date: Mon, 2 May 2011 15:40:04 -0400
+Message-ID: <BANLkTikLRwg=Q2wdMZ_O7w7YX40Rni_JyA@mail.gmail.com>
+Subject: Re: [git:v4l-dvb/for_v2.6.40] [media] cx18: mmap() support for raw
+ YUV video capture
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Simon Farnsworth <simon.farnsworth@onelan.co.uk>,
+	Steven Toth <stoth@kernellabs.com>,
+	Andy Walls <awalls@md.metrocast.net>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Thanks for the report. I have now following matrix:
-
-not working:
-OpenSuSE 11.4 Kernel 2.6.37
-Ubuntu 11.4 Kernel 2.6.38
-
-working:
-Fedora 14 Kernel 2.6.35
-
-regards
-Antti
-
-On 05/12/2011 05:35 PM, Per Kofod wrote:
-> Thanks, that worked. Actually I am not running ubuntu on this PC; but
-> OpenSuSE 11.4;
-> but I was planninh using Mythbuntu far my media center.
+On Mon, May 2, 2011 at 3:35 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Em 02-05-2011 16:11, Hans Verkuil escreveu:
+>> NACK.
+>>
+>> For two reasons: first of all it is not signed off by Andy Walls, the cx18
+>> maintainer. I know he has had other things on his plate recently which is
+>> probably why he hasn't had the chance to review this.
+>>
+>> Secondly, while doing a quick scan myself I noticed that this code does a
+>> conversion from UYVY format to YUYV *in the driver*. Format conversion is
+>> not allowed in the kernel, we have libv4lconvert for that. So at the minimum
+>> this conversion code must be removed first.
 >
-> Thanks a lot.
+> Patch is there at the ML since Apr, 6 and nobody acked/nacked it. If you or
+> andy were against it, why none of you commented it there?
 >
-> Cheers Per
+> Now that the patch were committed, I won't revert it without a very good reason.
 >
-> On 05/12/2011 04:08 PM, Antti Palosaari wrote:
->> On 05/12/2011 04:27 PM, Per Kofod wrote:
->>> Hi
->>>
->>> I am new to this mailing list, so bare with me if this have been asked
->>> before.
->>>
->>> I have just bought an Anysee E30C Plus, as I had read, that this device
->>> is supported
->>> in Linux, my plan is building a Mythtv media center, to replace my old
->>> harddisk recorder.
->>>
->>> However I cannot get it to work, and then I read thatt the newest
->>> version might not work,
->>> and that I should join this list.
->>>
->>> I have tried to compile a new kernel with the newest dvb stuff from the
->>> git repository, just
->>> to make sure, that I have the newest drivers. I have alsio blacklistet
->>> the zl10353 module
->>> to avoid the device being loaded as an DVB-T device (which it is not, it
->>> is a cable only version).
->>>
->>> What information do you need me to obtain, or do you have a hint to how
->>> I might get this working?
->>>
->>> The device is reconnized OK as seen here from dmesg:
->>>
->>> [ 11.354973] dvb-usb: found a 'Anysee DVB USB2.0' in warm state.
->>> [ 11.355004] dvb-usb: will pass the complete MPEG2 transport stream to
->>> the software demuxer.
->>> [ 11.355239] DVB: registering new adapter (Anysee DVB USB2.0)
->>> [ 11.356661] anysee: firmware version:0.1.2 hardware id:15
->>
->>
->> For the some reason hardware ID 15 does not work on latest Ubuntu
->> 11.04. That is basically E30 Combo Plus and newer E30 C Plus, which is
->> same device as E30 Combo Plus but without DVB-T demod.
->>
->> Install latest drivers and it will work. And I hope someone have time
->> to examine why it does not work anymore out-of-the-box in Ubuntu 11.04.
->>
->> http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
->>
->>
->>
->> Antti
->>
+> With respect to the "conversion from UYVY format to YUYV", a simple patch could
+> fix it, instead of removing the entire patchset.
 >
+> Steven/Simon,
+> could you please work on such change?
+
+Simon,
+
+If you're willing to do a bit of work to actually prepare the patch
+and test the results, I can walk you through pretty much exactly what
+needs to change (basically you just need to remove one block of code
+and change a #define).
+
+Steven has been really busy with other stuff, so I don't think we
+should count on his participation in this process.
+
+Devin
 
 
 -- 
-http://palosaari.fi/
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
