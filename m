@@ -1,89 +1,57 @@
-Return-path: <mchehab@gaivota>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1895 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752281Ab1EJGOU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 May 2011 02:14:20 -0400
-Message-ID: <76572cb10f933c769617a2c5120a5d25.squirrel@webmail.xs4all.nl>
-In-Reply-To: <E43657A3F2E26048BB0EBCA7C4CB6941B4B52CDFA4@NWD2CMBX1.ad.analog.com>
-References: <E43657A3F2E26048BB0EBCA7C4CB6941B4B52CDE0C@NWD2CMBX1.ad.analog.com>
-    <Pine.LNX.4.64.1105091102320.21938@axis700.grange>
-    <E43657A3F2E26048BB0EBCA7C4CB6941B4B52CDE4D@NWD2CMBX1.ad.analog.com>
-    <201105092342.06166.laurent.pinchart@ideasonboard.com>
-    <E43657A3F2E26048BB0EBCA7C4CB6941B4B52CDFA4@NWD2CMBX1.ad.analog.com>
-Date: Tue, 10 May 2011 08:14:10 +0200
-Subject: RE: why is there no enum_input in v4l2_subdev_video_ops
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Jiang, Scott" <Scott.Jiang@analog.com>
-Cc: "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
-	"Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
-	"uclinux-dist-devel@blackfin.uclinux.org"
-	<uclinux-dist-devel@blackfin.uclinux.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Return-path: <mchehab@pedra>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:56442 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753154Ab1ECPr5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 May 2011 11:47:57 -0400
+Received: by eyx24 with SMTP id 24so66492eyx.19
+        for <linux-media@vger.kernel.org>; Tue, 03 May 2011 08:47:56 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+In-Reply-To: <63E3BF90-BF19-43E3-B8DD-6D6F4896F2E7@wilsonet.com>
+References: <20110423005412.12978e29@darkstar>
+	<20110424163530.2bc1b365@darkstar>
+	<BCCEA9F4-16D7-4E63-B32C-15217AA094F3@wilsonet.com>
+	<20110425201835.0fbb84ee@darkstar>
+	<A4226E90-09BE-45FE-AEEF-0EA7E9414B4B@wilsonet.com>
+	<20110425230658.22551665@darkstar>
+	<59898A0D-573E-46E9-A3B7-9054B24E69DF@wilsonet.com>
+	<20110427151621.5ac73e12@darkstar>
+	<1FB1ED64-0EEC-4E15-8178-D2CCCA915B1D@wilsonet.com>
+	<20110427204725.2923ac99@darkstar>
+	<91CD2A5E-418A-4217-8D9F-1B29FC9DD24D@wilsonet.com>
+	<20110427222855.2e3a3a4d@darkstar>
+	<63E3BF90-BF19-43E3-B8DD-6D6F4896F2E7@wilsonet.com>
+Date: Tue, 3 May 2011 11:47:55 -0400
+Message-ID: <BANLkTik+gYRfhDBy9JWgvo+GWJk5Uz7RMQ@mail.gmail.com>
+Subject: Re: Terratec Cinergy 1400 DVB-T RC not working anymore
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: Heiko Baums <lists@baums-on-web.de>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"mailing list: lirc" <lirc-list@lists.sourceforge.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-> Hi Laurent,
->
-> On Tue, May 10, 2011 at 5:42 AM, Laurent Pinchart
-> <laurent.pinchart@ideasonboard.com> wrote:
->>> >> Why is there no enum_input operation in v4l2_subdev_video_ops?
->>
->> Why do you need one ?
->
-> Because I want to query decoder how many inputs it can support.
-> So the question is where we should store inputs info, board specific data
-> or decoder driver?
-> I appreciate your advice.
+On Tue, May 3, 2011 at 11:40 AM, Jarod Wilson <jarod@wilsonet.com> wrote:
+> So there are really two issues here. First up, the default keymap
+> isn't correct for this device, and second, the behavior of the
+> hardware and/or driver is terrible, as only ~20% of keypresses
+> are getting though. The first is easy enough to remedy. The second
+> probably requires someone with the hardware to dig into its IR
+> handling routines in the kernel. (I haven't got the hardware).
 
-ENUMINPUT as defined by V4L2 enumerates input connectors available on the
-board. Which inputs the board designer hooked up is something that only
-the top-level V4L driver will know. Subdevices do not have that
-information, so enuminputs is not applicable there.
+Jarod,
 
-Of course, subdevices do have input pins and output pins, but these are
-assumed to be fixed. With the s_routing ops the top level driver selects
-which input and output pins are active. Enumeration of those inputs and
-outputs wouldn't gain you anything as far as I can tell since the
-subdevice simply does not know which inputs/outputs are actually hooked
-up. It's the top level driver that has that information (usually passed in
-through board/card info structures).
+If this is something you have an interest in digging into, I can
+probably find some cx88 hardware to loan you.  I don't have the
+Terratec board in question, but I probably have a PCTV 800i which I
+believe also does sampling via GPIO.
 
-Regards,
+Let me know if you're interested,
 
-        Hans
+Devin
 
->>> > Maybe because noone needed it until now?
->>> >
->>> >> I found some drivers put this info in board specific data, but in my
->>> >> opinion this info is sensor or decoder related.
->>> >
->>> > Can you tell which drivers / boards you're referring to?
->>>
->>> I referred to drivers/media/video/davinci files.
->>>
->>> >> So it should be put into the sensor drivers.
->>> >
->>> > Maybe. Also notice, I'm not a maintainer nor a principal v4l2-subdev
->>> > developer. I've added Hans and Laurent to Cc:, will see what they
->>> say, or
->>> > you can just point out which drivers / platforms are doing this wrong
->>> and
->>> > propose a fix.
->>>
->>> Sorry, I only found your mail in MAINTAINERS.
->>
->
-> Regards,
-> Scott
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
-
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
