@@ -1,191 +1,93 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:38881 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751450Ab1EJK1H convert rfc822-to-8bit (ORCPT
+Return-path: <mchehab@pedra>
+Received: from mail-in-06.arcor-online.net ([151.189.21.46]:57072 "EHLO
+	mail-in-06.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753728Ab1ECQhb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 May 2011 06:27:07 -0400
-Received: by iyb14 with SMTP id 14so5055497iyb.19
-        for <linux-media@vger.kernel.org>; Tue, 10 May 2011 03:27:07 -0700 (PDT)
+	Tue, 3 May 2011 12:37:31 -0400
+Message-ID: <4DC02F47.2000603@arcor.de>
+Date: Tue, 03 May 2011 18:37:27 +0200
+From: Stefan Ringel <stefan.ringel@arcor.de>
 MIME-Version: 1.0
-In-Reply-To: <201105101153.04978.laurent.pinchart@ideasonboard.com>
-References: <BANLkTi=pS07RymXLOFsRihd5Jso-y6OsHg@mail.gmail.com>
-	<201105101132.11041.laurent.pinchart@ideasonboard.com>
-	<BANLkTimLhOJstjpbxLSxS-qNPYhbfGxUNw@mail.gmail.com>
-	<201105101153.04978.laurent.pinchart@ideasonboard.com>
-Date: Tue, 10 May 2011 12:27:05 +0200
-Message-ID: <BANLkTinrSz4nULGS729jEhs1O=wvUy19Jg@mail.gmail.com>
-Subject: Re: Current status report of mt9p031.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Chris Rodley <carlighting@yahoo.co.nz>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2/5] tm6000: add dtv78 parameter
+References: <1301948324-27186-1-git-send-email-stefan.ringel@arcor.de> <1301948324-27186-2-git-send-email-stefan.ringel@arcor.de> <4DADFD31.1010200@redhat.com> <4DAE96F8.2070307@arcor.de> <4DAED3E0.2030606@redhat.com> <4DAEEE07.1040306@arcor.de> <4DBFD34A.3030303@redhat.com>
+In-Reply-To: <4DBFD34A.3030303@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On 10 May 2011 11:53, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> On Tuesday 10 May 2011 11:49:10 javier Martin wrote:
->> > Please try replacing the media-ctl -f line with
->> >
->> > ./media-ctl -f '"mt9p031 2-0048":0[SGRBG12 320x240], \
->> >        "OMAP3 ISP CCDC":0[SGRBG8 320x240], \
->> >        "OMAP3 ISP CCDC":1[SGRBG8 320x240]'
->> >
->> > --
->> > Regards,
->> >
->> > Laurent Pinchart
->>
->> Hi Laurent,
->> that didn't work either (Unable to start streaming: 32.)
+Am 03.05.2011 12:04, schrieb Mauro Carvalho Chehab:
+> Em 20-04-2011 11:30, Stefan Ringel escreveu:
+>> Am 20.04.2011 14:38, schrieb Mauro Carvalho Chehab:
+>>> Em 20-04-2011 05:19, Stefan Ringel escreveu:
+>>>> Am 19.04.2011 23:22, schrieb Mauro Carvalho Chehab:
+>>>>> Em 04-04-2011 17:18, stefan.ringel@arcor.de escreveu:
+>>>>>> From: Stefan Ringel<stefan.ringel@arcor.de>
+>>>>>>
+>>>>>> add dtv78 parameter
+>>>>> The dtv78 entry is a hack meant for card usage in Australia, that
+>>>>> speeds up channel detection there. Again, it should be specified
+>>>>> only when needed, and at per-board basis.
+>>>> I have test and auto detect doesn't work right. That is also region
+>>>> specific staff and it's better to set outside. In other words in Germany
+>>>> it must set this param and in other country, which use only 7MHz or 8MHz it doesn't set (i.e. Australia).
+>>> xc3028 has a logic to detect and work on both Australia and Europe.
+>>> If that logic is broken, we should fix it, not adding a manual
+>>> parameter for it.
+>>>
+>> It positively a bug. When I use lower band (7MHz, load DTV7 SCODE) it doesn't work, then I go in the high band (8MHz, load DTV78, DTV8 SCODE) and have channels and can watch TV. If I go now in the lower band (7MHz, don't reload SCODE) it works. This effect is for me a bug.
+> The fix for it should be at xc3028. Please propose a patch for it. Maybe we should add there
+> a parameter for auto-detection, or to force it to use dtv78, if bandwith is>  6MHz.
 >
-> With the latest 2.6.39-rc ? Lane-shifter support has been introduced very
-> recently.
 >
-> Can you post the output of media-ctl -p after configuring formats on your
-> pipeline ?
->
+The last I have scanned and used in auto mode was last year. And now 
+work fine :-) . When have you change the code?
+>>>>>> Signed-off-by: Stefan Ringel<stefan.ringel@arcor.de>
+>>>>>> ---
+>>>>>>     drivers/staging/tm6000/tm6000-cards.c |   11 +++++++++--
+>>>>>>     1 files changed, 9 insertions(+), 2 deletions(-)
+>>>>>>
+>>>>>> diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
+>>>>>> index eef58da..cf2e76c 100644
+>>>>>> --- a/drivers/staging/tm6000/tm6000-cards.c
+>>>>>> +++ b/drivers/staging/tm6000/tm6000-cards.c
+>>>>>> @@ -65,6 +65,9 @@ static unsigned int xc2028_mts;
+>>>>>>     module_param(xc2028_mts, int, 0644);
+>>>>>>     MODULE_PARM_DESC(xc2028_mts, "enable mts firmware (xc2028/3028 only)");
+>>>>>>
+>>>>>> +static unsigned int xc2028_dtv78;
+>>>>>> +module_param(xc2028_dtv78, int, 0644);
+>>>>>> +MODULE_PARM_DESC(xc2028_dtv78, "enable dualband config (xc2028/3028 only)");
+>>>>>>
+>>>>>>     struct tm6000_board {
+>>>>>>         char            *name;
+>>>>>> @@ -687,8 +690,12 @@ static void tm6000_config_tuner(struct tm6000_core *dev)
+>>>>>>             ctl.read_not_reliable = 0;
+>>>>>>             ctl.msleep = 10;
+>>>>>>             ctl.demod = XC3028_FE_ZARLINK456;
+>>>>>> -        ctl.vhfbw7 = 1;
+>>>>>> -        ctl.uhfbw8 = 1;
+>>>>>> +
+>>>>>> +        if (xc2028_dtv78) {
+>>>>>> +            ctl.vhfbw7 = 1;
+>>>>>> +            ctl.uhfbw8 = 1;
+>>>>>> +        }
+>>>>>> +
+>>>>>>             if (xc2028_mts)
+>>>>>>                 ctl.mts = 1;
+>>>>>>
+>>>>> -- 
+>>>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>>>> the body of a message to majordomo@vger.kernel.org
+>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> -- 
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > --
-> Regards,
->
-> Laurent Pinchart
->
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Sure,
-this is the output you requested:
-
-root@beagleboard:~# ./media-ctl -p
-Opening media device /dev/media0
-Enumerating entities
-Found 16 entities
-Enume rating pads and links
-Device topology
-- entity 1: OMAP3 ISP CCP2 (2 pads, 2 links)
-            type V4L2 subdev subtype Unknown
-            device node name /dev/v4l-subdev0
-        pad0: Input [SGRBG10 4096x4096]
-                <- 'OMAP3 ISP CCP2 input':pad0 []
-        pad1: Output [SGRBG10 4096x4096]
-                -> 'OMAP3 ISP CCDC':pad0 []
-
-- entity 2: OMAP3 ISP CCP2 input (1 pad, 1 link)
-            type Node subtype V4L
-            device node name /dev/video0
-        pad0: Output
-                -> 'OMAP3 ISP CCP2':pad0 []
-
-- entity 3: OMAP3 ISP CSI2a (2 pads, 2 links)
-            type V4L2 subdev subtype Unknown
-            device node name /dev/v4l-subdev1
-        pad0: Input [SGRBG10 4096x4096]
-        pad1: Output [SGRBG10 4096x4096]
-                -> 'OMAP3 ISP CSI2a output':pad0 []
-                -> 'OMAP3 ISP CCDC':pad0 []
-
-- entity 4: OMAP3 ISP CSI2a output (1 pad, 1 link)
-            type Node subtype V4L
-            device node name /dev/video1
-        pad0: Input
-                <- 'OMAP3 ISP CSI2a':pad1 []
-
-- entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
-            type V4L2 subdev subtype Unknown
-            device node name /dev/v4l-subdev2
-        pad0: Input [SGRBG8 320x240]
-                <- 'OMAP3 ISP CCP2':pad1 []
-                <- 'OMAP3 ISP CSI2a':pad1 []
-                <- 'mt9p031 2-0048':pad0 [ACTIVE]
-        pad1: Output [SGRBG8 320x240]
-                -> 'OMAP3 ISP CCDC output':pad0 [ACTIVE]
-                -> 'OMAP3 ISP resizer':pad0 []
-        pad2: Output [SGRBG8 320x239]
-                -> 'OMAP3 ISP preview':pad0 []
-                -> 'OMAP3 ISP AEWB':pad0 [IMMUTABLE,ACTIVE]
-                -> 'OMAP3 ISP AF':pad0 [IMMUTABLE,ACTIVE]
-                -> 'OMAP3 ISP histogram':pad0 [IMMUTABLE,ACTIVE]
-
-- entity 6: OMAP3 ISP CCDC output (1 pad, 1 link)
-            type Node subtype V4L
-            device node name /dev/video2
-        pad0: Input
-                <- 'OMAP3 ISP CCDC':pad1 [ACTIVE]
-
-- entity 7: OMAP3 ISP preview (2 pads, 4 links)
-            type V4L2 subdev subtype Unknown
-            device node name /dev/v4l-subdev3
-        pad0: Input [SGRBG10 4096x4096]
-                <- 'OMAP3 ISP CCDC':pad2 []
-                <- 'OMAP3 ISP preview input':pad0 []
-        pad1: Output [YUYV 4082x4088]
-                -> 'OMAP3 ISP preview output':pad0 []
-                -> 'OMAP3 ISP resizer':pad0 []
-
-- entity 8: OMAP3 ISP preview input (1 pad, 1 link)
-            type Node subtype V4L
-            device node name /dev/video3
-        pad0: Output
-                -> 'OMAP3 ISP preview':pad0 []
-
-- entity 9: OMAP3 ISP preview output (1 pad, 1 link)
-            type Node subtype V4L
-            device node name /dev/video4
-        pad0: Input
-                <- 'OMAP3 ISP preview':pad1 []
-
-- entity 10: OMAP3 ISP resizer (2 pads, 4 links)
-             type V4L2 subdev subtype Unknown
-             device node name /dev/v4l-subdev4
-        pad0: Input [YUYV 4095x4095 (4,6)/4086x4082]
-                <- 'OMAP3 ISP CCDC':pad1 []
-                <- 'OMAP3 ISP preview':pad1 []
-                <- 'OMAP3 ISP resizer input':pad0 []
-        pad1: Output [YUYV 4096x4095]
-                -> 'OMAP3 ISP resizer output':pad0 []
-
-- entity 11: OMAP3 ISP resizer input (1 pad, 1 link)
-             type Node subtype V4L
-             device node name /dev/video5
-        pad0: Output
-                -> 'OMAP3 ISP resizer':pad0 []
-
-- entity 12: OMAP3 ISP resizer output (1 pad, 1 link)
-             type Node subtype V4L
-             device node name /dev/video6
-        pad0: Input
-                <- 'OMAP3 ISP resizer':pad1 []
-
-- entity 13: OMAP3 ISP AEWB (1 pad, 1 link)
-             type V4L2 subdev subtype Unknown
-             device node name /dev/v4l-subdev5
-        pad0: Input
-                <- 'OMAP3 ISP CCDC':pad2 [IMMUTABLE,ACTIVE]
-
-- entity 14: OMAP3 ISP AF (1 pad, 1 link)
-             type V4L2 subdev subtype Unknown
-             device node name /dev/v4l-subdev6
-        pad0: Input
-                <- 'OMAP3 ISP CCDC':pad2 [IMMUTABLE,ACTIVE]
-
-- entity 15: OMAP3 ISP histogram (1 pad, 1 link)
-             type V4L2 subdev subtype Unknown
-             device node name /dev/v4l-subdev7
-        pad0: Input
-                <- 'OMAP3 ISP CCDC':pad2 [IMMUTABLE,ACTIVE]
-
-- entity 16: mt9p031 2-0048 (1 pad, 1 link)
-             type V4L2 subdev subtype Unknown
-             device node name /dev/v4l-subdev8
-        pad0: Output [SGRBG12 320x240 (0,0)/2240x1920]
-                -> 'OMAP3 ISP CCDC':pad0 [ACTIVE]
-
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
