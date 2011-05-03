@@ -1,57 +1,47 @@
 Return-path: <mchehab@pedra>
-Received: from devils.ext.ti.com ([198.47.26.153]:54094 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755225Ab1ERQHI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 May 2011 12:07:08 -0400
-From: Sanjeev Premi <premi@ti.com>
-To: <linux-media@vger.kernel.org>
-CC: Sanjeev Premi <premi@ti.com>, <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH] omap3: isp: fix compiler warning
-Date: Wed, 18 May 2011 21:36:51 +0530
-Message-ID: <1305734811-2354-1-git-send-email-premi@ti.com>
+Received: from mx1.redhat.com ([209.132.183.28]:23977 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750740Ab1ECPYA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 May 2011 11:24:00 -0400
+Message-ID: <4DC01E0C.3070205@redhat.com>
+Date: Tue, 03 May 2011 12:23:56 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Tobias Lorenz <tobias.lorenz@gmx.net>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 3/6] remove #ifdef to show rds support by i2c driver.
+References: <201105012101.43801.tobias.lorenz@gmx.net>
+In-Reply-To: <201105012101.43801.tobias.lorenz@gmx.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This patch fixes this compiler warning:
-  drivers/media/video/omap3isp/isp.c: In function 'isp_isr_dbg':
-  drivers/media/video/omap3isp/isp.c:392:2: warning: zero-length
-   gnu_printf format string
+Em 01-05-2011 16:01, Tobias Lorenz escreveu:
+> This removes some #ifdef statements.
+> RDS support is now indicated by I2C driver too.
+> The functionality was already in the driver.
 
-Since printk() is used in next few statements, same was used
-here as well.
+This is also applied.
 
-Signed-off-by: Sanjeev Premi <premi@ti.com>
-Cc: laurent.pinchart@ideasonboard.com
----
+> 
+> Signed-off-by: Tobias Lorenz <tobias.lorenz@gmx.net>
+> ---
+>  drivers/media/radio/si470x/radio-si470x-common.c |    6 ------
+>  1 files changed, 0 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/media/radio/si470x/radio-si470x-common.c 
+> b/drivers/media/radio/si470x/radio-si470x-common.c
+> index f016220..bf58931 100644
+> --- a/drivers/media/radio/si470x/radio-si470x-common.c
+> +++ b/drivers/media/radio/si470x/radio-si470x-common.c
+> @@ -687,12 +687,8 @@ static int si470x_vidioc_g_tuner(struct file *file, void 
+> *priv,
 
- Actually full block can be converted to dev_dbg()
- as well; but i am not sure about original intent
- of the mix.
+Also, your patches are being mangled by your emailer.
 
- Based on comments, i can resubmit with all prints
- converted to dev_dbg.
+Please, rebase your patches against staging/for_v2.6.40, test and re-send
+them with an email software that works.
 
-
-
- drivers/media/video/omap3isp/isp.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/video/omap3isp/isp.c b/drivers/media/video/omap3isp/isp.c
-index 503bd79..1d38d96 100644
---- a/drivers/media/video/omap3isp/isp.c
-+++ b/drivers/media/video/omap3isp/isp.c
-@@ -387,7 +387,7 @@ static inline void isp_isr_dbg(struct isp_device *isp, u32 irqstatus)
- 	};
- 	int i;
- 
--	dev_dbg(isp->dev, "");
-+	printk(KERN_DEBUG "%s:\n", dev_driver_string(isp->dev));
- 
- 	for (i = 0; i < ARRAY_SIZE(name); i++) {
- 		if ((1 << i) & irqstatus)
--- 
-1.7.2.2
-
+Thanks
+Mauro
