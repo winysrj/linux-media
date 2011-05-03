@@ -1,359 +1,87 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:53709 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752933Ab1E2LrG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 May 2011 07:47:06 -0400
-References: <4DDAC0C2.7090508@redhat.com> <4DE120D1.2020805@redhat.com> <4DE19AF7.2000401@redhat.com> <201105291319.47207.hverkuil@xs4all.nl>
-In-Reply-To: <201105291319.47207.hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:50026 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751510Ab1ECKFE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 May 2011 06:05:04 -0400
+Message-ID: <4DBFD34A.3030303@redhat.com>
+Date: Tue, 03 May 2011 07:04:58 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: [RFCv2] Add a library to retrieve associated media devices - was: Re: [ANNOUNCE] experimental alsa stream support at xawtv3
-From: Andy Walls <awalls@md.metrocast.net>
-Date: Sun, 29 May 2011 07:47:11 -0400
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans De Goede <hdegoede@redhat.com>
-Message-ID: <bcae2b56-57c0-4936-b4c5-1d57f65125fc@email.android.com>
+To: Stefan Ringel <stefan.ringel@arcor.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2/5] tm6000: add dtv78 parameter
+References: <1301948324-27186-1-git-send-email-stefan.ringel@arcor.de> <1301948324-27186-2-git-send-email-stefan.ringel@arcor.de> <4DADFD31.1010200@redhat.com> <4DAE96F8.2070307@arcor.de> <4DAED3E0.2030606@redhat.com> <4DAEEE07.1040306@arcor.de>
+In-Reply-To: <4DAEEE07.1040306@arcor.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hans Verkuil <hverkuil@xs4all.nl> wrote:
+Em 20-04-2011 11:30, Stefan Ringel escreveu:
+> Am 20.04.2011 14:38, schrieb Mauro Carvalho Chehab:
+>> Em 20-04-2011 05:19, Stefan Ringel escreveu:
+>>> Am 19.04.2011 23:22, schrieb Mauro Carvalho Chehab:
+>>>> Em 04-04-2011 17:18, stefan.ringel@arcor.de escreveu:
+>>>>> From: Stefan Ringel<stefan.ringel@arcor.de>
+>>>>>
+>>>>> add dtv78 parameter
+>>>> The dtv78 entry is a hack meant for card usage in Australia, that
+>>>> speeds up channel detection there. Again, it should be specified
+>>>> only when needed, and at per-board basis.
+>>> I have test and auto detect doesn't work right. That is also region
+>>> specific staff and it's better to set outside. In other words in Germany
+>>> it must set this param and in other country, which use only 7MHz or 8MHz it doesn't set (i.e. Australia).
+>> xc3028 has a logic to detect and work on both Australia and Europe.
+>> If that logic is broken, we should fix it, not adding a manual
+>> parameter for it.
+>>
+> It positively a bug. When I use lower band (7MHz, load DTV7 SCODE) it doesn't work, then I go in the high band (8MHz, load DTV78, DTV8 SCODE) and have channels and can watch TV. If I go now in the lower band (7MHz, don't reload SCODE) it works. This effect is for me a bug.
 
->Hi Mauro,
->
->Thanks for the RFC! Some initial comments below. I'll hope to do some
->more
->testing and reviewing in the coming week.
->
->On Sunday, May 29, 2011 03:01:43 Mauro Carvalho Chehab wrote:
->> Em 28-05-2011 13:20, Mauro Carvalho Chehab escreveu:
->> > Em 28-05-2011 12:24, Hans Verkuil escreveu:
->> >> But I would really like to see an RFC with a proposal of the API
->and how
->> >> it is to be used. Then after an agreement has been reached the
->library can
->> >> be modified accordingly and we can release it.
->> > 
->> > Ok, that's the RFC for the API. The code is already committed, on a
->separate
->> > library at v4l-utils. So, feel free to test.
->> http://git.linuxtv.org/v4l-utils.gi
->> Just finished a version 2 of the library. I've addressed on it the
->two
->> comments from Hans de Goede: to allow calling the seek method for the
->> associated devices using an open file descriptor, and to allow
->listing
->> all video nodes. The library is at utils/libmedia_dev dir, at 
->> http://git.linuxtv.org/v4l-utils.git. IMO, the proper step is to move
->it
->> to the libv4l, but it is better to wait to the release of the current
->> version. After that, I'll change xawtv3 to link against the new
->library.
->> 
->> Btw, it may be a good idea to also move the alsa thread code from
->xawtv3
->> (and tvtime) to v4l-utils.
->> 
->> -
->> 
->> 1) Why such library is needed
->>    ==========================
->> 
->> Media devices can be very complex. It is not trivial how to detect
->what's the
->> other devices associated with a video node.
->> 
->> This API provides the capabilities of getting the associated devices
->with a
->> video node.
->> 
->> It is currently implemented at http://git.linuxtv.org/v4l-utils.git,
->at the
->> utils/libmedia_dev/. After validating it, it makes sense to move it
->to be
->> part of libv4l.
->> 
->> 2) Provided functions
->>    ==================
->> 
->> The API defines a macro with its current version. Currently, it is:
->> 
->> 	#define GET_MEDIA_DEVICES_VERSION	0x0104
->> 
->> Each device type that is known by the API is defined inside enum
->device_type,
->> currently defined as:
->> 
->> 	enum device_type {
->> 		UNKNOWN = 65535,
->> 		NONE    = 65534,
->> 		MEDIA_V4L_VIDEO = 0,
->
->Can you add MEDIA_V4L_RADIO as well? And MEDIA_V4L_SUBDEV too.
->
->> 		MEDIA_V4L_VBI,
->> 		MEDIA_DVB_FRONTEND,
->
->It might be better to start at a new offset here, e.g.
->MEDIA_DVB_FRONTEND = 100
->Ditto for SND. That makes it easier to insert new future device nodes.
->
->> 		MEDIA_DVB_DEMUX,
->> 		MEDIA_DVB_DVR,
->> 		MEDIA_DVB_NET,
->> 		MEDIA_DVB_CA,
->> 		MEDIA_SND_CARD,
->> 		MEDIA_SND_CAP,
->> 		MEDIA_SND_OUT,
->> 		MEDIA_SND_CONTROL,
->> 		MEDIA_SND_HW,
->
->Should we have IR (input) nodes as well? That would associate a IR
->input with
->a particular card.
->
->> 	};
->> 
->> The first function discovers the media devices and stores the
->information
->> at an internal representation. Such representation should be opaque
->to
->> the userspace applications, as it can change from version to version.
->> 
->> 2.1) Device discover and release functions
->>      =====================================
->> 
->> The device discover is done by calling:
->> 
->> 	void *discover_media_devices(void);
->> 
->> In order to release the opaque structure, a free method is provided:
->> 
->> 	void free_media_devices(void *opaque);
->> 
->> 2.2) Functions to help printing the discovered devices
->>      =================================================
->> 
->> In order to allow printing the device type, a function is provided to
->> convert from enum device_type into string:
->> 
->> 	char *media_device_type(enum device_type type);
->
->const char *?
->
->> 
->> All discovered devices can be displayed by calling:
->> 
->> 	void display_media_devices(void *opaque);
->
->This would be much more useful if a callback is provided.
->
->> 
->> 2.3) Functions to get device associations
->>      ====================================
->> 
->> The API provides 3 methods to get the associated devices:
->> 
->> a) get_associated_device: returns the next device associated with
->another one
->> 
->> 	char *get_associated_device(void *opaque,
->> 				    char *last_seek,
->> 				    enum device_type desired_type,
->> 				    char *seek_device,
->> 				    enum device_type seek_type);
->
->const char *? Ditto elsewhere.
->
->> The parameters are:
->> 
->> 	opaque:		media devices opaque descriptor
->> 	last_seek:	last seek result. Use NULL to get the first result
->> 	desired_type:	type of the desired device
->> 	seek_device:	name of the device with you want to get an association.
->> 	seek_type:	type of the seek device. Using NONE produces the same
->> 			result of using NULL for the seek_device.
->> 
->> This function seeks inside the media_devices struct for the next
->device
->> that it is associated with a seek parameter.
->> It can be used to get an alsa device associated with a video device.
->If
->> the seek_device is NULL or seek_type is NONE, it will just search for
->> devices of the desired_type.
->> 
->> 
->> b) fget_associated_device: returns the next device associated with
->another one
->> 
->> 	char *fget_associated_device(void *opaque,
->> 				    char *last_seek,
->> 				    enum device_type desired_type,
->> 				    int fd_seek_device,
->> 				    enum device_type seek_type);
->> 
->> The parameters are:
->> 
->> 	opaque:		media devices opaque descriptor
->> 	last_seek:	last seek result. Use NULL to get the first result
->> 	desired_type:	type of the desired device
->> 	fd_seek_device:	file handler for the device where the association
->will
->> 			be made
->>  	seek_type:	type of the seek device. Using NONE produces the same
->> 			result of using NULL for the seek_device.
->> 
->> This function seeks inside the media_devices struct for the next
->device
->> that it is associated with a seek parameter.
->> It can be used to get an alsa device associated with an open file
->descriptor
->> 
->> c) get_not_associated_device: Returns the next device not associated
->with
->> 			      an specific device type.
->> 
->> char *get_not_associated_device(void *opaque,
->> 			    char *last_seek,
->> 			    enum device_type desired_type,
->> 			    enum device_type not_desired_type);
->> 
->> The parameters are:
->> 
->> opaque:			media devices opaque descriptor
->> last_seek:		last seek result. Use NULL to get the first result
->> desired_type:		type of the desired device
->> not_desired_type:	type of the seek device
->> 
->> This function seeks inside the media_devices struct for the next
->physical
->> device that doesn't support a non_desired type.
->> This method is useful for example to return the audio devices that
->are
->> provided by the motherboard.
->
->Hmmm. What you really want IMHO is to iterate over 'media hardware',
->and for
->each piece of hardware you can find the associated device nodes.
->
->It's what you expect to see in an application: a list of
->USB/PCI/Platform
->devices to choose from.
->
->> 
->> 3) Examples with typical usecases
->>    ==============================
->> 
->> a) Just displaying all media devices:
->> 
->> 	void *md = discover_media_devices();
->> 	display_media_devices(md);
->> 	free_media_devices(md);
->> 
->> The devices will be shown at the order they appear at the computer
->buses.
->> 
->> b) For video0, prints the associated alsa capture device(s):
->> 
->> 	void *md = discover_media_devices();
->> 	char *devname = NULL, video0 = "/dev/video0";
->> 	do {
->> 		devname = get_associated_device(md, devname, MEDIA_SND_CAP,
->> 						video0, MEDIA_V4L_VIDEO);
->> 		if (devname)
->> 			printf("Alsa capture: %s\n", devname);
->> 	} while (devname);
->> 	free_media_devices(md);
->> 
->> Note: the video0 string can be declarated as "/dev/video0" or as just
->"video0",
->> as the search functions will discard any patch on it.
->> 
->> c) Get the alsa capture device associated with an opened file
->descriptor:
->> 
->> 	int fd = open("/dev/video0", O_RDWR);
->> 	...
->> 	void *md = discover_media_devices();
->> 	vid = fget_associated_device(md, NULL, MEDIA_SND_CAP, fd, 
->> 				     MEDIA_V4L_VIDEO);
->> 	printf("\n\nAlsa device = %s\n", vid);
->> 	close(fd);
->> 	free_media_devices(md);
->> 
->> d) Get the mainboard alsa playback devices:
->> 
->> 	char *devname = NULL;
->> 	void *md = discover_media_devices();
->> 	do {
->> 		devname = get_not_associated_device(md, devname, MEDIA_SND_OUT,
->> 						    MEDIA_V4L_VIDEO);
->> 		if (devname)
->> 			printf("Alsa playback: %s\n", devname);
->> 	} while (devname);
->> 	free_media_devices(md);
->> 
->> e) Get all video devices:
->> 
->> 	md = discover_media_devices();
->> 
->> 	char *vid = NULL;
->> 	do {
->> 		vid = get_associated_device(md, vid, MEDIA_V4L_VIDEO,
->> 					    NULL, NONE);
->> 		if (!vid)
->> 			break;
->> 		printf("Video device: %s\n", vid);
->> 	} while (vid);
->> 	free_media_devices(md);
->> 
->
->I did some testing: vivi video nodes do not show up at all. And since
->there is
->no concept of 'media hardware' in this API the handling of devices with
->multiple
->video nodes (e.g. ivtv) is very poor. One thing that we wanted to do
->with the MC
->is to select default nodes for complex hardware. This gives
->applications a hint
->as to what is the default video node to use for standard
->capture/output. This
->concept can be used here as well. Perhaps we should introduce a
->'V4L2_CAP_DEFAULT'
->capabity that drivers can set?
->
->I think this library would also be more useful if it can filter
->devices: e.g.
->filter on capture devices or output devices. Actually, I can't
->immediately think
->of other useful filters than capture vs output.
->
->We also need some way to tell apps that certain devices are mutually
->exclusive.
->Even if we cannot tell the app that through sysfs at the moment, this
->information
->will become available in the future through the MC, so we should
->prepare the API
->for this.
->
->Did anyone test what happens when the user renames device nodes using
->udev rules?
->I haven't had the chance to test that yet.
->
->Regards,
->
->	Hans
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media"
->in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The fix for it should be at xc3028. Please propose a patch for it. Maybe we should add there
+a parameter for auto-detection, or to force it to use dtv78, if bandwith is > 6MHz.
 
-Framebuffer devices are missing from the list.  Ivtv provides one at the moment.
 
--Andy 
+>>>>> Signed-off-by: Stefan Ringel<stefan.ringel@arcor.de>
+>>>>> ---
+>>>>>    drivers/staging/tm6000/tm6000-cards.c |   11 +++++++++--
+>>>>>    1 files changed, 9 insertions(+), 2 deletions(-)
+>>>>>
+>>>>> diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
+>>>>> index eef58da..cf2e76c 100644
+>>>>> --- a/drivers/staging/tm6000/tm6000-cards.c
+>>>>> +++ b/drivers/staging/tm6000/tm6000-cards.c
+>>>>> @@ -65,6 +65,9 @@ static unsigned int xc2028_mts;
+>>>>>    module_param(xc2028_mts, int, 0644);
+>>>>>    MODULE_PARM_DESC(xc2028_mts, "enable mts firmware (xc2028/3028 only)");
+>>>>>
+>>>>> +static unsigned int xc2028_dtv78;
+>>>>> +module_param(xc2028_dtv78, int, 0644);
+>>>>> +MODULE_PARM_DESC(xc2028_dtv78, "enable dualband config (xc2028/3028 only)");
+>>>>>
+>>>>>    struct tm6000_board {
+>>>>>        char            *name;
+>>>>> @@ -687,8 +690,12 @@ static void tm6000_config_tuner(struct tm6000_core *dev)
+>>>>>            ctl.read_not_reliable = 0;
+>>>>>            ctl.msleep = 10;
+>>>>>            ctl.demod = XC3028_FE_ZARLINK456;
+>>>>> -        ctl.vhfbw7 = 1;
+>>>>> -        ctl.uhfbw8 = 1;
+>>>>> +
+>>>>> +        if (xc2028_dtv78) {
+>>>>> +            ctl.vhfbw7 = 1;
+>>>>> +            ctl.uhfbw8 = 1;
+>>>>> +        }
+>>>>> +
+>>>>>            if (xc2028_mts)
+>>>>>                ctl.mts = 1;
+>>>>>
+>>>> -- 
+>>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>>> the body of a message to majordomo@vger.kernel.org
+>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
