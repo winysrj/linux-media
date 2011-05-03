@@ -1,69 +1,140 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:45330 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756944Ab1EZIyp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 May 2011 04:54:45 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [GIT PATCH FOR 2.6.40] uvcvideo patches
-Date: Thu, 26 May 2011 10:54:59 +0200
-Cc: linux-media@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
-References: <201105150948.24956.laurent.pinchart@ideasonboard.com> <201105260143.35396.laurent.pinchart@ideasonboard.com> <4DDD95AF.4010004@redhat.com>
-In-Reply-To: <4DDD95AF.4010004@redhat.com>
+Received: from sj-iport-3.cisco.com ([171.71.176.72]:42232 "EHLO
+	sj-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751289Ab1ECN7v (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 May 2011 09:59:51 -0400
+From: Hans Verkuil <hansverk@cisco.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: [git:v4l-dvb/for_v2.6.40] [media] cx18: mmap() support for raw YUV video capture
+Date: Tue, 3 May 2011 15:59:52 +0200
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org,
+	Simon Farnsworth <simon.farnsworth@onelan.co.uk>,
+	Steven Toth <stoth@kernellabs.com>,
+	Andy Walls <awalls@md.metrocast.net>
+References: <E1QGwlS-0006ys-15@www.linuxtv.org> <201105022331.29142.hverkuil@xs4all.nl> <BANLkTinjYo0zW56+vEMDciXkdk9gePOZnQ@mail.gmail.com>
+In-Reply-To: <BANLkTinjYo0zW56+vEMDciXkdk9gePOZnQ@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201105261054.59914.laurent.pinchart@ideasonboard.com>
+Message-Id: <201105031559.52492.hansverk@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thursday 26 May 2011 01:50:07 Mauro Carvalho Chehab wrote:
-> Em 25-05-2011 20:43, Laurent Pinchart escreveu:
-> > Issues arise when devices have floating point registers. And yes, that
-> > happens, I've learnt today about an I2C sensor with floating point
-> > registers (in this specific case it should probably be put in the broken
-> > design category, but it exists :-)).
+On Tuesday, May 03, 2011 14:49:43 Devin Heitmueller wrote:
+> On Mon, May 2, 2011 at 5:31 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> > It's also a good idea if the author of a patch pings the list if there
+> > has been no feedback after one or two weeks. It's easy to forget patches,
+> > people can be on vacation, be sick, or in the case of Andy, have a family
+> > emergency.
 > 
-> Huh! Yeah, an I2C sensor with FP registers sound weird. We need more
-> details in order to address those.
-
-Fortunately for the sensor I'm talking about most of those registers are read-
-only and contain large values that can be handled as integers, so all we need 
-to do is convert the 32-bit IEEE float value into an integer. Other hardware 
-might require more complex FP handling.
-
-> >>> There's an industry trend there, and we need to think about solutions
-> >>> now otherwise we will be left without any way forward when too many
-> >>> devices will be impossible to support from kernelspace (OMAP4 is a
-> >>> good example there, some device drivers require communication with
-> >>> other cores, and the communication API is implemented in userspace).
-> >> 
-> >> Needing to go to userspace to allow inter-core communication seems very
-> >> bad. I seriously doubt that this is a trend. It seems more like a
-> >> broken-by-design type of architecture.
-> > 
-> > I'm inclined to agree with you, but we should address these issues now,
-> > while we have relatively few devices impacted by them. I fear that
-> > ignoring the problem and hoping it will go away by itself will bring us
-> > to a difficult position in the future. We should show the industry in
-> > which direction we would like it to go.
+> In principle I agree with you, and I was actually surprised to hear it
+> was merged.  That said, what's done is done so we need to focus on
+> where to go from here.
 > 
-> I'm all about showing the industry in with direction we would like it to
-> go. We want that all Linux-supported architectures/sub-architectures
-> support inter-core communications in kernelspace, in a more efficient way
-> that it would happen if such communication would happen in userspace.
+> >> Likewise, I know there have indeed been cases in the past where code
+> >> got upstream that caused regressions (in fact, you have personally
+> >> been responsible for some of these if I recall).
+> >>
+> >> Let's not throw the baby out with the bathwater.  If there are real
+> >> structural issues with the patch, then let's get them fixed.  But if
+> >> we're just talking about a few minor "unused variable" type of
+> >> aesthetic issues, then that shouldn't constitute reverting the commit.
+> >>  Do your review, and if an additional patch is needed with a half
+> >> dozen removals of dead/unused code, then so be it.
+> >
+> > Well, one structural thing I am not at all happy about (but it is Andy's
+> > call) is that it uses videobuf instead of vb2. Since this patch only deals
+> > with YUV it shouldn't be hard to use vb2. The problem with videobuf is 
+that
+> > it violates the V4L2 spec in several places so I would prefer not to use
+> > videobuf in cx18. If only because converting cx18 to vb2 later will change
+> > the behavior of the stream I/O (VIDIOC_REQBUFS in particular), which is
+> > something I would like to avoid if possible.
+> >
+> > I know that Andy started work on vb2 in cx18 for all stream types (not 
+just
+> > YUV). I have no idea of the current state of that work. But it might be a
+> > good starting point to use this patch and convert it to vb2. Later Andy 
+can
+> > add vb2 support for the other stream types.
+> 
+> Sure Hans.  Let me just dig into my collection of 30+ products and
+> grab one that has already been converted to VB2 which I can use as a
+> reference for porting.  Should be simple enough...
+> 
+> cx88: nope
+> cx23885: nope
+> cx18: nope
+> ivtv: nope
+> em28xx: nope
+> au0828: nope
+> pvrusb2: nope
+> cx231xx: nope
+> saa7134: nope
+> saa7164: nope
+> tm6010: nope
+> dib0700: nope
+> bttv: nope
+> 
+> Oh wait, you mean that there aren't *any* non-embedded drivers that
+> currently implement VB2?  Vivi is the *only* example, and it's not
+> even real hardware so who knows what issues with the architecture we
+> might run into?
+> 
+> And exactly what real-world applications has VB2 been validated
+> against?  Any apps that aren't just a test harness or written by an
+> SOC vendor making it work against their one piece of embedded
+> hardware?  Any consumer apps?  Mplayer?  VLC?  Kaffeine?  tvtime?
+> XawTV?  MeTV?  MythTV?
+> 
+> VB2 may be the future of buffering models and it may actually be
+> better in the long-run, but if you want to see adoption outside of the
+> SOC space then you need to prove that it works against real hardware
+> that isn't an SOC, and demonstrate that it doesn't cause regressions
+> in real-world applications that people are using today.
+> 
+> Let's talk about what's going to happen in the real world:  the first
+> guy who actually ports one of the above drivers to VB2 is going to run
+> into bugs.  He's going to have to work with you to shake out those
+> bugs.  And it wouldn't surprise me if it exposes some bugs in some
+> existing applications, which are going to have to be fixed too.  In
+> the end we'll eventually end up in a better situation, but the cost
+> will be non-trivial and it will be incurred by people who don't really
+> give a damn about VB2 since it has little end-user visible benefit.
+> 
+> If you had ported any of the above drivers to the VB2 framework and
+> demonstrated that it works with existing applications without
+> modifications, then I think everybody here would breathe much easier.
+> But the current state today is "experimental, not implemented in any
+> consumer products or validated in any real-world usage outside of
+> SOC".
+> 
+> Asking us to be the "guinea pig" for this new framework just because
+> cx18 is the most recent driver to get a videobuf related patch just
+> isn't appropriate.
 
-I agree with that. My concern is about things like
+I don't get it.
 
-"Standardizing on the OpenMax media libraries and the GStreamer framework is 
-the direction that Linaro is going." (David Rusling, Linaro CTO, quoted on 
-lwn.net)
+What better non-embedded driver to implement vb2 in than one that doesn't yet 
+do stream I/O? The risks of breaking anything are much smaller and it would be 
+a good 'gentle introduction' to vb2. Also, it prevents the unnecessary 
+overhead of having to replace videobuf in the future in cx18.
 
-We need to address this now, otherwise it will be too late.
+The problem is no doubt different agendas. You want to have your code 
+upstreamed. I want to have code upstreamed that uses the latest frameworks.
+And the only way to prove that vb2 works is to use it. Saying "it's unproven, 
+so let's not use it" is silly. The right approach IMHO is to implement it in 
+new drivers, and ensure that the author(s) of the framework give high priority 
+to fixing any issues that may surface.
 
--- 
+Anyway, converting bttv to vb2 is steadily getting higher on my TODO list. 
+Unfortunately there is still a large number of other items that are also on 
+that list. I'd love to have more time for this, and things actually may 
+improve in the future, but not any time soon :-(
+
 Regards,
 
-Laurent Pinchart
+	Hans
