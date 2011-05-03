@@ -1,77 +1,126 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:63108 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753490Ab1EYLtw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 May 2011 07:49:52 -0400
-Received: from eu_spt1 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LLR00G2Z27377@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 25 May 2011 12:49:51 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LLR00CWF271JJ@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 25 May 2011 12:49:50 +0100 (BST)
-Date: Wed, 25 May 2011 13:49:49 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: v4l2_mbus_framefmt and v4l2_pix_format
-In-reply-to: <Pine.LNX.4.64.1105251202530.13724@axis700.grange>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Scott Jiang <scott.jiang.linux@gmail.com>,
-	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	linux-media@vger.kernel.org
-Message-id: <4DDCECDD.2030304@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7BIT
-References: <BANLkTikPGEgWH-ExjnSuH8-n0f2q54EJGQ@mail.gmail.com>
- <Pine.LNX.4.64.1105251202530.13724@axis700.grange>
+Received: from connie.slackware.com ([64.57.102.36]:60372 "EHLO
+	connie.slackware.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752830Ab1ECCtV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 May 2011 22:49:21 -0400
+Date: Mon, 2 May 2011 19:48:58 -0700 (PDT)
+From: Robby Workman <rworkman@slackware.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+cc: Andreas Oberritter <obi@linuxtv.org>, linux-media@vger.kernel.org,
+	Patrick Volkerding <volkerdi@slackware.com>,
+	Hans De Goede <hdegoede@redhat.com>,
+	linux-hotplug@vger.kernel.org
+Subject: Re: [PATCHES] Misc. trivial fixes
+In-Reply-To: <4DBF126D.6060807@redhat.com>
+Message-ID: <alpine.LNX.2.00.1105021926220.25339@connie.slackware.com>
+References: <alpine.LNX.2.00.1104111908050.32072@connie.slackware.com> <4DA441D9.2000601@linuxtv.org> <alpine.LNX.2.00.1104120729280.7359@connie.slackware.com> <4DA5E957.3020702@linuxtv.org> <4DBF126D.6060807@redhat.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Guennadi,
+On Mon, 2 May 2011, Mauro Carvalho Chehab wrote:
 
-On 05/25/2011 12:11 PM, Guennadi Liakhovetski wrote:
-> Hi Scott
-> 
-> On Wed, 25 May 2011, Scott Jiang wrote:
-> 
->> Hi Hans and Laurent,
+> Not sure what happened, but I lost the original email, so let me quote
+> it from patchwork ID#699151.
+>
+>
+>> Subject: [PATCHES] Misc. trivial fixes
+>> Date: Tue, 12 Apr 2011 02:10:36 -0000
+>> From: Robby Workman <rworkman@slackware.com>
+>> X-Patchwork-Id: 699151
+>> Message-Id: <alpine.LNX.2.00.1104111908050.32072@connie.slackware.com>
+>> To: linux-media@vger.kernel.org
 >>
->> I got fmt info from a video data source subdev, I thought there should
->> be a helper function to convert these two format enums.
->> However, v4l2_fill_pix_format didn't do this, why? Should I do this in
->> bridge driver one by one?
-> 
-> Because various camera hosts (bridges) can produce different pixel formats 
-> in memory from the same mediabus code. However, there is a very common way 
-> to handle such video data in the bridge: store it in RAM in a "natural" 
-> way. This mode is called in soc-camera the pass-through mode and there is 
-> an API to handle this mode in drivers/media/video/soc_mediabus.c. If this 
+>> Patch #1 installs udev rules files to /lib/udev/rules.d/ instead
+>> of /etc/udev/rules.d/ - see commit message for more info.
+>>
+>> Patch #2 allows override of manpage installation directory by
+>> packagers - see commit message for more info
+>
+> Please send each patch in-lined, one patch per email.
 
-Sorry about getting off the topic a bit.
 
-As some media bus formats require different conversion process in the bridge
-to obtain specific format in memory (fourcc) I was wondering whether it would
-be reasonable to indicate the "natural" fourccs for the applications when
-enumerating formats supported by the bridge/DMA with VIDIOC_ENUM_FMT?
-So applications are aware what are the "natural" formats and which require
-lossy conversion. And in this way could choose formats that yield better
-quality. 
+Okay, noted.  Should I resend, or is this for future reference?
 
-Now there are following flags available for struct v4l2_fmtdesc::flags
 
-V4L2_FMT_FLAG_COMPRESSED
-V4L2_FMT_FLAG_EMULATED
+>> This creates MANDIR in Make.rules and keeps the preexisting
+>> default of /usr/share/man, but allows packagers to easily
+>> override via e.g. "make MANDIR=/usr/man"
+>> ... snipped lots ...
+>> +MANDIR = /usr/share/man
+>
+>
+> It would be better to define it as:
+> MANDIR = $(PREFIX)/share/man
+>
+> As suggested by Andreas.
 
-I thought about something like V4L2_FMT_HW_EMULATED or V4L2_FMT_FLAG_LOW_QUALITY.
 
-I not happy with those exact names but I hope that gives a basic idea what
-I am talking about.  
-Possibly I am missing other ways to achieve the same.
+Yes, I sent a fixed patch later - perhaps a resend is better
+regardless now?  :-)
 
-Regards,
--- 
-Sylwester Nawrocki
-Samsung Poland R&D Center
+
+>> ... snipped lots ...
+>> -	install -m 755 -d $(DESTDIR)/etc/udev/rules.d
+>> -	install -m 644 -p 70-infrared.rules $(DESTDIR)/etc/udev/rules.d
+>> +	install -m 755 -d $(DESTDIR)/lib/udev/rules.d
+>
+>
+> Not all distros use /lib for it. In fact, RHEL5/RHEL6/Fedora 15 and Fedora rawhide
+> all use /etc/udev/rules.d.
+
+
+If so, it's only older distros that I wouldn't expect to be packaging newer
+versions of v4l-utils (e.g. RHEL won't as I understand it), and for Fedora,
+if "rawhide" is devel tree, then I'm pretty sure you're mistaken.
+
+
+> In a matter of fact, looking at RHEL6 (udev-147-2.35.el6.x86_64), it has both. I suspect
+> that /lib/udev/rules.d is meant to have the default scripts that are part of the
+> official packages, and /etc/udev/rules.d to be user-defined ones. So, at least on RHEL6,
+> it makes sense that a user-compiled tarball would install stuff into /etc/*, and
+> that a RHEL6 package would change it to install at /lib/*.
+
+
+Every distro (recent) will have both /lib/udev/rules.d/ and /etc/udev/rules.d/ ;
+more on that later...
+
+
+> So, it is better to have some Makefile var with some default, that
+> allows overriding it when doing a make install, for example:
+>
+> UDEVDIR=/etc/udev/rules.d
+
+
+Well, if you *insist* on doing this, sure, but better to do this:
+   UDEVDIR=/lib/udev 
+as the default, and then use $(UDEVDIR)/rules.d/ (and let packagers
+redefine UDEVDIR if desired - though I don't think that will be as
+common as you believe).
+
+
+> The default is a matter of personal taste. I would keep the current way as default,
+> as it avoids breaking for those that are using it on the current way. One alternative
+> would be to add some logic there to change the default to /lib/* if /etc/* doesn't
+> exist.
+
+
+But /etc/udev/rules.d/ should exist regardless, and it's not at all a
+matter of personal taste, as I understand it.  /lib/udev/rules.d/ is
+the location for packaged and general default rules files to be placed,
+and /etc/udev/rules.d/ is where autogenerated rules (such as those that
+create persistent symlinks for optical and network devices) are placed,
+as well as admin- and system-specific override rules (e.g. a file named
+10-blah.rules in /etc/udev/rules.d/ would completely override a file of
+the same name in /lib/udev/rules.d/).
+
+The point I'm trying to make is this: you lose nothing in the way of 
+user customization by defaulting to /lib/udev/rules.d/ - you simply 
+force it to happen the way that upstream udev intends.  The only thing
+you lose is support for older udev releases, and I'm not sure that's
+a big concern :-)
+
+(CC'd udev mail list so that someone can LART me if I'm wrong)  ;-)
+
+-RW
