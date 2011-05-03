@@ -1,105 +1,55 @@
-Return-path: <mchehab@gaivota>
-Received: from mail1-out1.atlantis.sk ([80.94.52.55]:39811 "EHLO
-	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751665Ab1EMS0s (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 May 2011 14:26:48 -0400
-From: Ondrej Zary <linux@rainbow-software.org>
-To: alsa-devel@alsa-project.org
-Subject: [PATCH] fm801: clean-up radio-related Kconfig
-Date: Fri, 13 May 2011 20:26:38 +0200
-Cc: linux-media@vger.kernel.org,
-	"Kernel development list" <linux-kernel@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201105132026.40643.linux@rainbow-software.org>
+Return-path: <mchehab@pedra>
+Received: from smtp.nokia.com ([147.243.128.26]:55606 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750924Ab1ECKmh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 May 2011 06:42:37 -0400
+From: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
+To: maurochehab@gmail.com, tony@atomide.com
+Cc: laurent.pinchart@ideasonboard.com, linux-omap@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
+Subject: [PATCH v3 2/2] OMAP3: RX-51: define vdds_csib regulator supply
+Date: Tue,  3 May 2011 13:41:23 +0300
+Message-Id: <1304419283-4177-3-git-send-email-kalle.jokiniemi@nokia.com>
+In-Reply-To: <1304419283-4177-1-git-send-email-kalle.jokiniemi@nokia.com>
+References: <1304419283-4177-1-git-send-email-kalle.jokiniemi@nokia.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Change the weird SND_FM801_TEA575X_BOOL define in Kconfig to SND_FM801_RADIO
-and remove TEA575X_RADIO define from fm801.c.
-Also update help text to include all supported cards.
+The RX-51 uses the CSIb IO complex for camera operation. The
+board file is missing definition for the regulator supplying
+the CSIb complex, so this is added for better power
+management.
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
+---
+ arch/arm/mach-omap2/board-rx51-peripherals.c |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
 
---- linux-2.6.39-rc2-/sound/pci/Kconfig	2011-05-13 19:36:27.000000000 +0200
-+++ linux-2.6.39-rc2/sound/pci/Kconfig	2011-05-13 19:23:00.000000000 +0200
-@@ -554,18 +554,18 @@ config SND_FM801
- 	  To compile this driver as a module, choose M here: the module
- 	  will be called snd-fm801.
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index bbcb677..2f12425 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -337,6 +337,10 @@ static struct omap2_hsmmc_info mmc[] __initdata = {
+ static struct regulator_consumer_supply rx51_vmmc1_supply =
+ 	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0");
  
--config SND_FM801_TEA575X_BOOL
-+config SND_FM801_RADIO
- 	bool "ForteMedia FM801 + TEA5757 tuner"
- 	depends on SND_FM801
- 	depends on VIDEO_V4L2=y || VIDEO_V4L2=SND_FM801
- 	help
- 	  Say Y here to include support for soundcards based on the ForteMedia
--	  FM801 chip with a TEA5757 tuner connected to GPIO1-3 pins (Media
--	  Forte SF256-PCS-02) into the snd-fm801 driver.
-+	  FM801 chip with a TEA5757 tuner (MediaForte SF256-PCS, SF256-PCP and
-+	  SF64-PCR) into the snd-fm801 driver.
++static struct regulator_consumer_supply rx51_vaux2_supply[] = {
++	REGULATOR_SUPPLY("vdds_csib", "omap3isp"),
++};
++
+ static struct regulator_consumer_supply rx51_vaux3_supply =
+ 	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.1");
  
- config SND_TEA575X
- 	tristate
--	depends on SND_FM801_TEA575X_BOOL || SND_ES1968_RADIO
-+	depends on SND_FM801_RADIO || SND_ES1968_RADIO
- 	default SND_FM801 || SND_ES1968
+@@ -400,6 +404,8 @@ static struct regulator_init_data rx51_vaux2 = {
+ 		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+ 					| REGULATOR_CHANGE_STATUS,
+ 	},
++	.num_consumer_supplies	= 1,
++	.consumer_supplies	= rx51_vaux2_supply,
+ };
  
- source "sound/pci/hda/Kconfig"
---- linux-2.6.39-rc2-/sound/pci/fm801.c	2011-05-13 19:39:23.000000000 +0200
-+++ linux-2.6.39-rc2/sound/pci/fm801.c	2011-05-13 19:22:20.000000000 +0200
-@@ -36,9 +36,8 @@
- 
- #include <asm/io.h>
- 
--#ifdef CONFIG_SND_FM801_TEA575X_BOOL
-+#ifdef CONFIG_SND_FM801_RADIO
- #include <sound/tea575x-tuner.h>
--#define TEA575X_RADIO 1
- #endif
- 
- MODULE_AUTHOR("Jaroslav Kysela <perex@perex.cz>");
-@@ -196,7 +195,7 @@ struct fm801 {
- 	spinlock_t reg_lock;
- 	struct snd_info_entry *proc_entry;
- 
--#ifdef TEA575X_RADIO
-+#ifdef CONFIG_SND_FM801_RADIO
- 	struct snd_tea575x tea;
- #endif
- 
-@@ -715,7 +714,7 @@ static int __devinit snd_fm801_pcm(struc
-  *  TEA5757 radio
-  */
- 
--#ifdef TEA575X_RADIO
-+#ifdef CONFIG_SND_FM801_RADIO
- 
- /* GPIO to TEA575x maps */
- struct snd_fm801_tea575x_gpio {
-@@ -1150,7 +1149,7 @@ static int snd_fm801_free(struct fm801 *
- 	outw(cmdw, FM801_REG(chip, IRQ_MASK));
- 
-       __end_hw:
--#ifdef TEA575X_RADIO
-+#ifdef CONFIG_SND_FM801_RADIO
- 	snd_tea575x_exit(&chip->tea);
- #endif
- 	if (chip->irq >= 0)
-@@ -1229,7 +1228,7 @@ static int __devinit snd_fm801_create(st
- 
- 	snd_card_set_dev(card, &pci->dev);
- 
--#ifdef TEA575X_RADIO
-+#ifdef CONFIG_SND_FM801_RADIO
- 	chip->tea.private_data = chip;
- 	chip->tea.ops = &snd_fm801_tea_ops;
- 	sprintf(chip->tea.bus_info, "PCI:%s", pci_name(pci));
-
-
+ /* VAUX3 - adds more power to VIO_18 rail */
 -- 
-Ondrej Zary
+1.7.1
+
