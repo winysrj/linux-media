@@ -1,65 +1,106 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.171]:61749 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757081Ab1EZJYr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 May 2011 05:24:47 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [GIT PATCH FOR 2.6.40] uvcvideo patches
-Date: Thu, 26 May 2011 11:20:41 +0200
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org,
-	David Rusling <david.rusling@linaro.org>
-References: <201105150948.24956.laurent.pinchart@ideasonboard.com> <4DDD95AF.4010004@redhat.com> <201105261054.59914.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201105261054.59914.laurent.pinchart@ideasonboard.com>
+Received: from smtp.nokia.com ([147.243.1.48]:44269 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752378Ab1ECKwC convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 May 2011 06:52:02 -0400
+From: <kalle.jokiniemi@nokia.com>
+To: <laurent.pinchart@ideasonboard.com>
+CC: <maurochehab@gmail.com>, <tony@atomide.com>,
+	<linux-omap@vger.kernel.org>, <linux-media@vger.kernel.org>
+Subject: RE: [PATCH v3 2/2] OMAP3: RX-51: define vdds_csib regulator supply
+Date: Tue, 3 May 2011 10:51:56 +0000
+Message-ID: <9D0D31AA57AAF5499AFDC63D6472631B09D335@008-AM1MPN1-036.mgdnok.nokia.com>
+References: <1304419283-4177-1-git-send-email-kalle.jokiniemi@nokia.com>
+ <1304419283-4177-3-git-send-email-kalle.jokiniemi@nokia.com>
+ <201105031249.23245.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201105031249.23245.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201105261120.41282.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thursday 26 May 2011, Laurent Pinchart wrote:
-> On Thursday 26 May 2011 01:50:07 Mauro Carvalho Chehab wrote:
-> > Em 25-05-2011 20:43, Laurent Pinchart escreveu:
-> > > Issues arise when devices have floating point registers. And yes, that
-> > > happens, I've learnt today about an I2C sensor with floating point
-> > > registers (in this specific case it should probably be put in the broken
-> > > design category, but it exists :-)).
-> > 
-> > Huh! Yeah, an I2C sensor with FP registers sound weird. We need more
-> > details in order to address those.
-> 
-> Fortunately for the sensor I'm talking about most of those registers are read-
-> only and contain large values that can be handled as integers, so all we need 
-> to do is convert the 32-bit IEEE float value into an integer. Other hardware 
-> might require more complex FP handling.
+Hi,
 
-As an additional remark here, most architectures can handle float in the
-kernel in some way, but they all do it differently, so it's basically
-impossible to do in a cross-architecture device driver.
- 
-> > I'm all about showing the industry in with direction we would like it to
-> > go. We want that all Linux-supported architectures/sub-architectures
-> > support inter-core communications in kernelspace, in a more efficient way
-> > that it would happen if such communication would happen in userspace.
-> 
-> I agree with that. My concern is about things like
-> 
-> "Standardizing on the OpenMax media libraries and the GStreamer framework is 
-> the direction that Linaro is going." (David Rusling, Linaro CTO, quoted on 
-> lwn.net)
-> 
-> We need to address this now, otherwise it will be too late.
+ > -----Original Message-----
+ > From: ext Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
+ > Sent: 3. toukokuuta 2011 13:49
+ > To: Jokiniemi Kalle (Nokia-SD/Tampere)
+ > Cc: maurochehab@gmail.com; tony@atomide.com; linux-
+ > omap@vger.kernel.org; linux-media@vger.kernel.org
+ > Subject: Re: [PATCH v3 2/2] OMAP3: RX-51: define vdds_csib regulator supply
+ > 
+ > Hi Kalle,
+ > 
+ > Thanks for the patch.
+ > 
+ > On Tuesday 03 May 2011 12:41:23 Kalle Jokiniemi wrote:
+ > > The RX-51 uses the CSIb IO complex for camera operation. The
+ > > board file is missing definition for the regulator supplying
+ > > the CSIb complex, so this is added for better power
+ > > management.
+ > >
+ > > Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
+ > > ---
+ > >  arch/arm/mach-omap2/board-rx51-peripherals.c |    6 ++++++
+ > >  1 files changed, 6 insertions(+), 0 deletions(-)
+ > >
+ > > diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c
+ > > b/arch/arm/mach-omap2/board-rx51-peripherals.c index bbcb677..2f12425
+ > > 100644
+ > > --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
+ > > +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+ > > @@ -337,6 +337,10 @@ static struct omap2_hsmmc_info mmc[] __initdata =
+ > {
+ > >  static struct regulator_consumer_supply rx51_vmmc1_supply =
+ > >  	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0");
+ > >
+ > > +static struct regulator_consumer_supply rx51_vaux2_supply[] = {
+ > > +	REGULATOR_SUPPLY("vdds_csib", "omap3isp"),
+ > > +};
+ > > +
+ > 
+ > What about
+ > 
+ > static struct regulator_consumer_supply rx51_vaux2_supply =
+ > 	REGULATOR_SUPPLY("vdds_csib", "omap3isp");
+ > 
+ > instead ? :-) It would be in line with the other vaux supply definitions.
+ > 
+ > >  static struct regulator_consumer_supply rx51_vaux3_supply =
+ > >  	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.1");
+ > >
+ > > @@ -400,6 +404,8 @@ static struct regulator_init_data rx51_vaux2 = {
+ > >  		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+ > >
+ > >  					| REGULATOR_CHANGE_STATUS,
+ > >
+ > >  	},
+ > > +	.num_consumer_supplies	= 1,
+ > > +	.consumer_supplies	= rx51_vaux2_supply,
+ > 
+ > and
+ > 
+ > .consumer_supplies	= &rx51_vaux2_supply,
+ > 
+ > here.
+ > 
+ > If you're fine with that, there's no need to resubmit, I'll modify this patch
+ > and push the set through my tree (let me know if I can keep your SoB line with
+ > that change).
 
-Absolutely agreed. OpenMAX needs to die as an interface abstraction layer.
+Perfectly fine with me, you can keep the SoB line. 
 
-IIRC, the last time we discussed this in Linaro, the outcome was basically
-that we want to have an OpenMAX compatible library on top of V4L, so that the
-Linaro members can have a checkmark in their product specs that lists them
-as compatible, but we wouldn't do anything hardware specific in there, or
-advocate the use of OpenMAX over v4l2 or gstreamer.
+Thanks,
+Kalle
 
-	Arnd
+ > 
+ > >  };
+ > >
+ > >  /* VAUX3 - adds more power to VIO_18 rail */
+ > 
+ > --
+ > Regards,
+ > 
+ > Laurent Pinchart
