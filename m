@@ -1,85 +1,156 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.187]:56287 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752847Ab1EaOJF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 May 2011 10:09:05 -0400
-Date: Tue, 31 May 2011 16:09:02 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Koen Kooi <koen@beagleboard.org>
-cc: javier Martin <javier.martin@vista-silicon.com>,
-	beagleboard@googlegroups.com, linux-media@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com, carlighting@yahoo.co.nz,
-	mch_kot@yahoo.com.cn
-Subject: Re: [beagleboard] [PATCH v5 2/2] Add support for mt9p031 (LI-5M03
- module) in Beagleboard xM.
-In-Reply-To: <6BEF1726-768F-45DC-BB9D-7D63127833B9@beagleboard.org>
-Message-ID: <Pine.LNX.4.64.1105311607100.10863@axis700.grange>
-References: <1306835210-1345-1-git-send-email-javier.martin@vista-silicon.com>
- <1306835210-1345-2-git-send-email-javier.martin@vista-silicon.com>
- <3F25E36F-2420-4D9A-BF5E-77278EB3E238@beagleboard.org>
- <BANLkTimNe8C73PEiP+LC+4tQhjJuixwdvQ@mail.gmail.com>
- <6BEF1726-768F-45DC-BB9D-7D63127833B9@beagleboard.org>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:57416 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754208Ab1ECRTn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 May 2011 13:19:43 -0400
+Received: by gxk21 with SMTP id 21so109541gxk.19
+        for <linux-media@vger.kernel.org>; Tue, 03 May 2011 10:19:42 -0700 (PDT)
+References: <1302267045.1749.38.camel@gagarin>  <4DBEFD02.70906@redhat.com> <1304407514.1739.22.camel@gagarin>
+In-Reply-To: <1304407514.1739.22.camel@gagarin>
+Mime-Version: 1.0 (Apple Message framework v1084)
+Content-Type: text/plain; charset=iso-8859-1
+Message-Id: <D7FAB30A-E204-47B9-A7A0-E3BF50EE7FBD@wilsonet.com>
+Content-Transfer-Encoding: 8BIT
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Jarod Wilson <jarod@wilsonet.com>
+Subject: Re: [PATCH] Fix cx88 remote control input
+Date: Tue, 3 May 2011 13:19:49 -0400
+To: Lawrence Rust <lawrence@softsystem.co.uk>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, 31 May 2011, Koen Kooi wrote:
+On May 3, 2011, at 3:25 AM, Lawrence Rust wrote:
 
+> On Mon, 2011-05-02 at 15:50 -0300, Mauro Carvalho Chehab wrote:
+>> Em 08-04-2011 09:50, Lawrence Rust escreveu:
+>>> This patch restores remote control input for cx2388x based boards on
+>>> Linux kernels >= 2.6.38.
+>>> 
+>>> After upgrading from Linux 2.6.37 to 2.6.38 I found that the remote
+>>> control input of my Hauppauge Nova-S plus was no longer functioning.  
+>>> I posted a question on this newsgroup and Mauro Carvalho Chehab gave
+>>> some helpful pointers as to the likely cause.
+>>> 
+>>> Turns out that there are 2 problems:
+>>> 
+>>> 1. In the IR interrupt handler of cx88-input.c there's a 32-bit multiply
+>>> overflow which causes IR pulse durations to be incorrectly calculated.
+>>> 
+>>> 2. The RC5 decoder appends the system code to the scancode and passes
+>>> the combination to rc_keydown().  Unfortunately, the combined value is
+>>> then forwarded to input_event() which then fails to recognise a valid
+>>> scancode and hence no input events are generated.
+>>> 
+>>> I note that in commit 2997137be8eba5bf9c07a24d5fda1f4225f9ca7d, which
+>>> introduced these changes, David Härdeman changed the IR sample frequency
+>>> to a supposed 4kHz.  However, the registers dealing with IR input are
+>>> undocumented in the cx2388x datasheets and there's no publicly available
+>>> information on them.  I have to ask the question why this change was
+>>> made as it is of no apparent benefit and could have unanticipated
+>>> consequences.  IMHO that change should also be reverted unless there is
+>>> evidence to substantiate it.
+>>> 
+>>> Signed off by: Lawrence Rust <lvr at softsystem dot co dot uk>
+>>> 
+>>> diff --git a/drivers/media/rc/ir-rc5-decoder.c b/drivers/media/rc/ir-rc5-decoder.c
+>>> index ebdba55..c4052da 100644
+>>> --- a/drivers/media/rc/ir-rc5-decoder.c
+>>> +++ b/drivers/media/rc/ir-rc5-decoder.c
+>>> @@ -144,10 +144,15 @@ again:
+>>> 			system   = (data->bits & 0x007C0) >> 6;
+>>> 			toggle   = (data->bits & 0x00800) ? 1 : 0;
+>>> 			command += (data->bits & 0x01000) ? 0 : 0x40;
+>>> -			scancode = system << 8 | command;
+>>> -
+>>> -			IR_dprintk(1, "RC5 scancode 0x%04x (toggle: %u)\n",
+>>> -				   scancode, toggle);
+>>> +            /* Notes
+>>> +             * 1. Should filter unknown systems e.g Hauppauge use 0x1e or 0x1f
+>>> +             * 2. Don't include system in the scancode otherwise input_event()
+>>> +             *    doesn't recognise the scancode
+>>> +             */
+>>> +			scancode = command;
+>>> +
+>>> +			IR_dprintk(1, "RC5 scancode 0x%02x (system: 0x%02x toggle: %u)\n",
+>>> +				   scancode, system, toggle);
+>>> 		}
+>>> 
+>>> 		rc_keydown(dev, scancode, toggle);
+>> 
+>> I agree with Jarod: The above hunk shouldn't go upstream, or else it would break _lots_ of
+>> remotes.
+>> 
+>>> diff --git a/drivers/media/video/cx88/cx88-input.c b/drivers/media/video/cx88/cx88-input.c
+>>> index c820e2f..7281db4 100644
+>>> --- a/drivers/media/video/cx88/cx88-input.c
+>>> +++ b/drivers/media/video/cx88/cx88-input.c
+>>> @@ -524,7 +524,7 @@ void cx88_ir_irq(struct cx88_core *core)
+>>> 	for (todo = 32; todo > 0; todo -= bits) {
+>>> 		ev.pulse = samples & 0x80000000 ? false : true;
+>>> 		bits = min(todo, 32U - fls(ev.pulse ? samples : ~samples));
+>>> -		ev.duration = (bits * NSEC_PER_SEC) / (1000 * ir_samplerate);
+>>> +		ev.duration = bits * (NSEC_PER_SEC / (1000 * ir_samplerate)); /* NB avoid 32-bit overflow */
+>>> 		ir_raw_event_store_with_filter(ir->dev, &ev);
+>>> 		samples <<= bits;
+>>> 	}
+>> 
+>> This change is OK, though. Yet. due to precision issues, it is better to do a 64-bit
+>> multiplication and use do_div for the division. This is compatible with 32 bits and 64
+>> bits systems, and will reduce error noise at the duration.
+>> 
+>> I've reworked that part of the patch, as follows.
 > 
-> Op 31 mei 2011, om 15:42 heeft javier Martin het volgende geschreven:
+> The following is a much simpler change that maintains precision and
+> avoids 64-bit arithmetic.  Moving the division by 1000 and grouping it
+> with (NSEC_PER_SEC / 1000), an exact integer, avoids the 32-bit overflow
+> and allows the compiler to optimise the division without losing any
+> precision.
 > 
-> > On 31 May 2011 15:34, Koen Kooi <koen@beagleboard.org> wrote:
-> >> root@beagleboardxMC:~# yavta -f SGRBG8 -s 320x240 -n 4 --capture=10 --skip 3 -F `media-ctl -e "OMAP3 ISP CCDC output"`
-> >> Device /dev/video2 opened.
-> >> Device `OMAP3 ISP CCDC output' on `media' is a video capture device.
-> >> Video format set: SGRBG8 (47425247) 320x240 buffer size 76800
-> >> Video format: SGRBG8 (47425247) 320x240 buffer size 76800
-> >> 4 buffers requested.
-> >> length: 76800 offset: 0
-> >> Buffer 0 mapped at address 0x402cf000.
-> >> length: 76800 offset: 77824
-> >> Buffer 1 mapped at address 0x402fe000.
-> >> length: 76800 offset: 155648
-> >> Buffer 2 mapped at address 0x40362000.
-> >> length: 76800 offset: 233472
-> >> Buffer 3 mapped at address 0x40416000.
-> >> 0 (0) [-] 4294967295 76800 bytes 167.403289 1306829219.931121 0.002 fps
-> >> 1 (1) [-] 4294967295 76800 bytes 167.633148 1306829220.160980 4.350 fps
-> >> 2 (2) [-] 4294967295 76800 bytes 167.744506 1306829220.272308 8.980 fps
-> >> 3 (3) [-] 4294967295 76800 bytes 167.855865 1306829220.383667 8.980 fps
-> >> 4 (0) [-] 4294967295 76800 bytes 167.967193 1306829220.495025 8.982 fps
-> >> 5 (1) [-] 4294967295 76800 bytes 168.078552 1306829220.606384 8.980 fps
-> >> 6 (2) [-] 4294967295 76800 bytes 168.189910 1306829220.717742 8.980 fps
-> >> 7 (3) [-] 4294967295 76800 bytes 168.301269 1306829220.829071 8.980 fps
-> >> 8 (0) [-] 4294967295 76800 bytes 168.412597 1306829220.940429 8.982 fps
-> >> 9 (1) [-] 4294967295 76800 bytes 168.523956 1306829221.051788 8.980 fps
-> >> Captured 10 frames in 1.254212 seconds (7.973134 fps, 612336.670356 B/s).
-> >> 4 buffers released.
-> >> 
-> >> So that seems to be working! I haven't checked the frames yet, but is isn't throwing ISP errors anymore.
-> > 
-> > Great!
-> > Do you have a monochrome version of the same sensor?
+> diff --git a/drivers/media/video/cx88/cx88-input.c b/drivers/media/video/cx88/cx88-input.c
+> index 06f7d1d..67a2b08 100644
+> --- a/drivers/media/video/cx88/cx88-input.c
+> +++ b/drivers/media/video/cx88/cx88-input.c
+> @@ -523,7 +523,7 @@ void cx88_ir_irq(struct cx88_core *core)
+> 	for (todo = 32; todo > 0; todo -= bits) {
+> 		ev.pulse = samples & 0x80000000 ? false : true;
+> 		bits = min(todo, 32U - fls(ev.pulse ? samples : ~samples));
+> -		ev.duration = (bits * NSEC_PER_SEC) / (1000 * ir_samplerate);
+> +		ev.duration = (bits * (NSEC_PER_SEC / 1000)) / ir_samplerate;
+> 		ir_raw_event_store_with_filter(ir->dev, &ev);
+> 		samples <<= bits;
+> 	}
+
+ACK on this part for the devel tree.
+
+
+> And, FWIW the following patch fixes RC key input for Nova-S plus,
+> HVR1100, HVR3000 and HVR4000 in the 2.6.38 kernel.  Apparently a
+> Hauppauge keymap with system ID code was added in this release but the
+> cx88 code was not updated when the RC5 decoder changes were made:
 > 
-> I think I only have the colour version, I got it with my leopard355 board way back. 
+> diff --git a/drivers/media/video/cx88/cx88-input.c b/drivers/media/video/cx88/cx88-input.c
+> index 06f7d1d..67a2b08 100644
+> --- a/drivers/media/video/cx88/cx88-input.c
+> +++ b/drivers/media/video/cx88/cx88-input.c
+> @@ -283,7 +283,7 @@ int cx88_ir_init(struct cx88_core *core, struct pci_dev *pci)
+> 	case CX88_BOARD_PCHDTV_HD3000:
+> 	case CX88_BOARD_PCHDTV_HD5500:
+> 	case CX88_BOARD_HAUPPAUGE_IRONLY:
+> -		ir_codes = RC_MAP_HAUPPAUGE_NEW;
+> +		ir_codes = RC_MAP_RC5_HAUPPAUGE_NEW;
+> 		ir->sampling = 1;
+> 		break;
+> 	case CX88_BOARD_WINFAST_DTV2000H:
 > 
-> So what can I do with an unpatched mediactl and unpatched yavta? Is it 
-> already possible to point something like mplayer or gstreamer to a v4l2 
-> node and see something? I lost the track of which patch goes where :)
+> Signed off by: Lawrence Rust < lvr at softsystem dot co dot uk >
 
-If you're a lucky owner of an LCD on your bb-xM;) you might be able to do 
-something similar, to what's described here
+ACK on this part for the 2.6.38.y stable tree.
 
-http://download.open-technology.de/BeagleBoard_xM-MT9P031/BBxM-MT9P031.txt
 
-but both yavta and mplayer on the board, while short-circuiting the 
-network;) I.e., pipe yavta output directly to mplayer.
+-- 
+Jarod Wilson
+jarod@wilsonet.com
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+
+
