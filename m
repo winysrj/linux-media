@@ -1,302 +1,608 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4329 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751550Ab1E2LTz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 May 2011 07:19:55 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [RFCv2] Add a library to retrieve associated media devices - was: Re: [ANNOUNCE] experimental alsa stream support at xawtv3
-Date: Sun, 29 May 2011 13:19:47 +0200
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans De Goede <hdegoede@redhat.com>
-References: <4DDAC0C2.7090508@redhat.com> <4DE120D1.2020805@redhat.com> <4DE19AF7.2000401@redhat.com>
-In-Reply-To: <4DE19AF7.2000401@redhat.com>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:53211 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753800Ab1ECSHy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 May 2011 14:07:54 -0400
+Message-ID: <4DC0446F.7020500@gmail.com>
+Date: Tue, 03 May 2011 20:07:43 +0200
+From: Sylwester Nawrocki <snjw23@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Heungjun Kim <riverful.kim@samsung.com>,
+	Sungchun Kang <sungchun.kang@samsung.com>,
+	Jonghun Han <jonghun.han@samsung.com>
+Subject: Re: [PATCH v4 3/3] v4l: Add v4l2 subdev driver for S5P/EXYNOS4 MIPI-CSI
+ receivers
+References: <1303399264-3849-1-git-send-email-s.nawrocki@samsung.com> <1303399264-3849-4-git-send-email-s.nawrocki@samsung.com> <201105031116.04467.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201105031116.04467.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <201105291319.47207.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
+Hi Laurent,
 
-Thanks for the RFC! Some initial comments below. I'll hope to do some more
-testing and reviewing in the coming week.
+thank you for the review. 
 
-On Sunday, May 29, 2011 03:01:43 Mauro Carvalho Chehab wrote:
-> Em 28-05-2011 13:20, Mauro Carvalho Chehab escreveu:
-> > Em 28-05-2011 12:24, Hans Verkuil escreveu:
-> >> But I would really like to see an RFC with a proposal of the API and how
-> >> it is to be used. Then after an agreement has been reached the library can
-> >> be modified accordingly and we can release it.
-> > 
-> > Ok, that's the RFC for the API. The code is already committed, on a separate
-> > library at v4l-utils. So, feel free to test.
-> http://git.linuxtv.org/v4l-utils.gi
-> Just finished a version 2 of the library. I've addressed on it the two
-> comments from Hans de Goede: to allow calling the seek method for the
-> associated devices using an open file descriptor, and to allow listing
-> all video nodes. The library is at utils/libmedia_dev dir, at 
-> http://git.linuxtv.org/v4l-utils.git. IMO, the proper step is to move it
-> to the libv4l, but it is better to wait to the release of the current
-> version. After that, I'll change xawtv3 to link against the new library.
+On 05/03/2011 11:16 AM, Laurent Pinchart wrote:
+> Hi Sylwester,
 > 
-> Btw, it may be a good idea to also move the alsa thread code from xawtv3
-> (and tvtime) to v4l-utils.
+> Thanks for the patch.
 > 
-> -
+> On Thursday 21 April 2011 17:21:04 Sylwester Nawrocki wrote:
+>> Add the subdev driver for the MIPI CSIS units available in
+>> S5P and Exynos4 SoC series. This driver supports both CSIS0
+>> and CSIS1 MIPI-CSI2 receivers.
+>> The driver requires Runtime PM to be enabled for proper operation.
 > 
-> 1) Why such library is needed
->    ==========================
-> 
-> Media devices can be very complex. It is not trivial how to detect what's the
-> other devices associated with a video node.
-> 
-> This API provides the capabilities of getting the associated devices with a
-> video node.
-> 
-> It is currently implemented at http://git.linuxtv.org/v4l-utils.git, at the
-> utils/libmedia_dev/. After validating it, it makes sense to move it to be
-> part of libv4l.
-> 
-> 2) Provided functions
->    ==================
-> 
-> The API defines a macro with its current version. Currently, it is:
-> 
-> 	#define GET_MEDIA_DEVICES_VERSION	0x0104
-> 
-> Each device type that is known by the API is defined inside enum device_type,
-> currently defined as:
-> 
-> 	enum device_type {
-> 		UNKNOWN = 65535,
-> 		NONE    = 65534,
-> 		MEDIA_V4L_VIDEO = 0,
+> Then maybe it should depend on runtime PM ?
 
-Can you add MEDIA_V4L_RADIO as well? And MEDIA_V4L_SUBDEV too.
-
-> 		MEDIA_V4L_VBI,
-> 		MEDIA_DVB_FRONTEND,
-
-It might be better to start at a new offset here, e.g. MEDIA_DVB_FRONTEND = 100
-Ditto for SND. That makes it easier to insert new future device nodes.
-
-> 		MEDIA_DVB_DEMUX,
-> 		MEDIA_DVB_DVR,
-> 		MEDIA_DVB_NET,
-> 		MEDIA_DVB_CA,
-> 		MEDIA_SND_CARD,
-> 		MEDIA_SND_CAP,
-> 		MEDIA_SND_OUT,
-> 		MEDIA_SND_CONTROL,
-> 		MEDIA_SND_HW,
-
-Should we have IR (input) nodes as well? That would associate a IR input with
-a particular card.
-
-> 	};
-> 
-> The first function discovers the media devices and stores the information
-> at an internal representation. Such representation should be opaque to
-> the userspace applications, as it can change from version to version.
-> 
-> 2.1) Device discover and release functions
->      =====================================
-> 
-> The device discover is done by calling:
-> 
-> 	void *discover_media_devices(void);
-> 
-> In order to release the opaque structure, a free method is provided:
-> 
-> 	void free_media_devices(void *opaque);
-> 
-> 2.2) Functions to help printing the discovered devices
->      =================================================
-> 
-> In order to allow printing the device type, a function is provided to
-> convert from enum device_type into string:
-> 
-> 	char *media_device_type(enum device_type type);
-
-const char *?
+Yes, it seem the right thing to do. I hesitated to do this, not sure now why.
 
 > 
-> All discovered devices can be displayed by calling:
+>> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
+>> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
 > 
-> 	void display_media_devices(void *opaque);
+> [snip]
+> 
+>> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+>> index 4f0ac2d..1da961a 100644
+>> --- a/drivers/media/video/Kconfig
+>> +++ b/drivers/media/video/Kconfig
+>> @@ -939,6 +939,15 @@ config  VIDEO_SAMSUNG_S5P_FIMC
+>>   	  To compile this driver as a module, choose M here: the
+>>   	  module will be called s5p-fimc.
+>>
+>> +config VIDEO_S5P_MIPI_CSIS
+>> +	tristate "S5P and EXYNOS4 MIPI CSI Receiver driver"
+> 
+> Maybe "Samsung S5P and EXYNOS4" as well ?
 
-This would be much more useful if a callback is provided.
-
-> 
-> 2.3) Functions to get device associations
->      ====================================
-> 
-> The API provides 3 methods to get the associated devices:
-> 
-> a) get_associated_device: returns the next device associated with another one
-> 
-> 	char *get_associated_device(void *opaque,
-> 				    char *last_seek,
-> 				    enum device_type desired_type,
-> 				    char *seek_device,
-> 				    enum device_type seek_type);
-
-const char *? Ditto elsewhere.
-
-> The parameters are:
-> 
-> 	opaque:		media devices opaque descriptor
-> 	last_seek:	last seek result. Use NULL to get the first result
-> 	desired_type:	type of the desired device
-> 	seek_device:	name of the device with you want to get an association.
-> 	seek_type:	type of the seek device. Using NONE produces the same
-> 			result of using NULL for the seek_device.
-> 
-> This function seeks inside the media_devices struct for the next device
-> that it is associated with a seek parameter.
-> It can be used to get an alsa device associated with a video device. If
-> the seek_device is NULL or seek_type is NONE, it will just search for
-> devices of the desired_type.
-> 
-> 
-> b) fget_associated_device: returns the next device associated with another one
-> 
-> 	char *fget_associated_device(void *opaque,
-> 				    char *last_seek,
-> 				    enum device_type desired_type,
-> 				    int fd_seek_device,
-> 				    enum device_type seek_type);
-> 
-> The parameters are:
-> 
-> 	opaque:		media devices opaque descriptor
-> 	last_seek:	last seek result. Use NULL to get the first result
-> 	desired_type:	type of the desired device
-> 	fd_seek_device:	file handler for the device where the association will
-> 			be made
->  	seek_type:	type of the seek device. Using NONE produces the same
-> 			result of using NULL for the seek_device.
-> 
-> This function seeks inside the media_devices struct for the next device
-> that it is associated with a seek parameter.
-> It can be used to get an alsa device associated with an open file descriptor
-> 
-> c) get_not_associated_device: Returns the next device not associated with
-> 			      an specific device type.
-> 
-> char *get_not_associated_device(void *opaque,
-> 			    char *last_seek,
-> 			    enum device_type desired_type,
-> 			    enum device_type not_desired_type);
-> 
-> The parameters are:
-> 
-> opaque:			media devices opaque descriptor
-> last_seek:		last seek result. Use NULL to get the first result
-> desired_type:		type of the desired device
-> not_desired_type:	type of the seek device
-> 
-> This function seeks inside the media_devices struct for the next physical
-> device that doesn't support a non_desired type.
-> This method is useful for example to return the audio devices that are
-> provided by the motherboard.
-
-Hmmm. What you really want IMHO is to iterate over 'media hardware', and for
-each piece of hardware you can find the associated device nodes.
-
-It's what you expect to see in an application: a list of USB/PCI/Platform
-devices to choose from.
+Agreed. I'll change it in the patch 2/3 as well.
 
 > 
-> 3) Examples with typical usecases
->    ==============================
+>> +	depends on VIDEO_V4L2&&  VIDEO_SAMSUNG_S5P_FIMC&&  MEDIA_CONTROLLER
+>> +	---help---
+>> +	  This is a v4l2 driver for the S5P/EXYNOS4 MIPI-CSI Receiver.
+>> +
+>> +	  To compile this driver as a module, choose M here: the
+>> +	  module will be called s5p-csis.
+>> +
 > 
-> a) Just displaying all media devices:
+> [snip]
 > 
-> 	void *md = discover_media_devices();
-> 	display_media_devices(md);
-> 	free_media_devices(md);
+>> diff --git a/drivers/media/video/s5p-fimc/mipi-csis.c
+>> b/drivers/media/video/s5p-fimc/mipi-csis.c new file mode 100644
+>> index 0000000..6219754
+>> --- /dev/null
+>> +++ b/drivers/media/video/s5p-fimc/mipi-csis.c
 > 
-> The devices will be shown at the order they appear at the computer buses.
+> [snip]
 > 
-> b) For video0, prints the associated alsa capture device(s):
+>> +enum {
+>> +	CSIS_FMT_TRY,
+>> +	CSIS_FMT_ACTIVE,
+>> +	CSIS_NUM_FMTS
+>> +}
 > 
-> 	void *md = discover_media_devices();
-> 	char *devname = NULL, video0 = "/dev/video0";
-> 	do {
-> 		devname = get_associated_device(md, devname, MEDIA_SND_CAP,
-> 						video0, MEDIA_V4L_VIDEO);
-> 		if (devname)
-> 			printf("Alsa capture: %s\n", devname);
-> 	} while (devname);
-> 	free_media_devices(md);
+> There's no need to define new TRY/ACTIVE constants, use the existing
+> V4L2_SUBDEV_FORMAT_TRY and V4L2_SUBDEV_FORMAT_ACTIVE values.
 > 
-> Note: the video0 string can be declarated as "/dev/video0" or as just "video0",
-> as the search functions will discard any patch on it.
+>> +struct csis_state {
+>> +	struct mutex lock;
 > 
-> c) Get the alsa capture device associated with an opened file descriptor:
-> 
-> 	int fd = open("/dev/video0", O_RDWR);
-> 	...
-> 	void *md = discover_media_devices();
-> 	vid = fget_associated_device(md, NULL, MEDIA_SND_CAP, fd, 
-> 				     MEDIA_V4L_VIDEO);
-> 	printf("\n\nAlsa device = %s\n", vid);
-> 	close(fd);
-> 	free_media_devices(md);
-> 
-> d) Get the mainboard alsa playback devices:
-> 
-> 	char *devname = NULL;
-> 	void *md = discover_media_devices();
-> 	do {
-> 		devname = get_not_associated_device(md, devname, MEDIA_SND_OUT,
-> 						    MEDIA_V4L_VIDEO);
-> 		if (devname)
-> 			printf("Alsa playback: %s\n", devname);
-> 	} while (devname);
-> 	free_media_devices(md);
-> 
-> e) Get all video devices:
-> 
-> 	md = discover_media_devices();
-> 
-> 	char *vid = NULL;
-> 	do {
-> 		vid = get_associated_device(md, vid, MEDIA_V4L_VIDEO,
-> 					    NULL, NONE);
-> 		if (!vid)
-> 			break;
-> 		printf("Video device: %s\n", vid);
-> 	} while (vid);
-> 	free_media_devices(md);
-> 
+> checkpatch.pl requires mutexes to be documented. You should add a comment
+> (here, or even better, before the structure, with the documentation of all
+> members) that explains what the mutex protects.
 
-I did some testing: vivi video nodes do not show up at all. And since there is
-no concept of 'media hardware' in this API the handling of devices with multiple
-video nodes (e.g. ivtv) is very poor. One thing that we wanted to do with the MC
-is to select default nodes for complex hardware. This gives applications a hint
-as to what is the default video node to use for standard capture/output. This
-concept can be used here as well. Perhaps we should introduce a 'V4L2_CAP_DEFAULT'
-capabity that drivers can set?
+Didn't know about that.. I'll add a full description of all the structure's
+members.
 
-I think this library would also be more useful if it can filter devices: e.g.
-filter on capture devices or output devices. Actually, I can't immediately think
-of other useful filters than capture vs output.
+> 
+>> +	struct media_pad pads[CSIS_PADS_NUM];
+>> +	struct v4l2_subdev sd;
+>> +	struct platform_device *pdev;
+>> +	struct resource *regs_res;
+>> +	void __iomem *regs;
+>> +	struct clk *clock[NUM_CSIS_CLOCKS];
+>> +	int irq;
+>> +	struct regulator *supply;
+>> +	u32 flags;
+>> +	/* Common format for the source and sink pad. */
+>> +	const struct csis_pix_format *csis_fmt;
+>> +	struct v4l2_mbus_framefmt mf[CSIS_NUM_FMTS];
+> 
+> As try formats are stored in the file handle, and as the formats on the sink
+> and source pads are identical, a single v4l2_mbus_framefmt will do here.
 
-We also need some way to tell apps that certain devices are mutually exclusive.
-Even if we cannot tell the app that through sysfs at the moment, this information
-will become available in the future through the MC, so we should prepare the API
-for this.
+Ok. How about a situation when the caller never provides a file handle?
+Is it not supposed to happen?
 
-Did anyone test what happens when the user renames device nodes using udev rules?
-I haven't had the chance to test that yet.
+For V4L2_SUBDEV_FORMAT_TRY, should set_fmt just abandon storing the format
+and should get_fmt just return -EINVAL when passed fh == NULL ?
 
+Or should the host driver allocate the file handle just for the sake of
+set_fmt/get_fmt calls (assuming that cropping ops are not supported
+by the subdev) ?
+
+It's not my intention to create a broken implementation but it would
+be nice to be able to drop functionality which would never be used.
+
+As a note, I wanted to avoid bothering user space with setting up the MIPI CSI
+receiver sub-device. There wouldn't be any gain from it, just more things to
+care about for the applications.
+Moreover I don't see a good usage for the stored TRY format (yet).
+So I originally thought this subdev could be configurable by the host
+driver which wouldn't provide a file handle.
+
+> 
+>> +};
+> 
+> [snip]
+> 
+>> +struct csis_pix_format {
+>> +	enum v4l2_mbus_pixelcode code;
+>> +	u32 fmt_reg;
+>> +	u16 pix_hor_align;
+> 
+> You won't save memory by using a 16-bit integer here, and the code might be
+> slower. I would go for a regular unsigned int.
+
+Agreed.
+> 
+>> +};
+>> +
+>> +static const struct csis_pix_format s5pcsis_formats[] = {
+>> +	{
+>> +		.code		= V4L2_MBUS_FMT_VYUY8_2X8,
+>> +		.fmt_reg	= S5PCSIS_CFG_FMT_YCBCR422_8BIT,
+>> +		.pix_hor_align	= 1,
+>> +	},
+>> +	{
+>> +		.code		= V4L2_MBUS_FMT_JPEG_1X8,
+>> +		.fmt_reg	= S5PCSIS_CFG_FMT_USER(1),
+>> +		.pix_hor_align	= 1,
+>> +	},
+>> +};
+> 
+> Do you plan to add formats with pix_hor_align != 1 ? If not you could remove
+> the field completely.
+
+Yes, there is more formats that need different alignment, like RAW10, RAW12.
+
+The documentation for s5pc110, for instance, can be downloaded after registration
+from http://www.aesop.or.kr/?mid=PageMain_Documents_Tips
+
+Actually it is supposed to be 2^pix_hor_align pixel width alignment.
+I need to amend the usage of this alignment property in s5pcsis_set_fmt().
+
+> 
+>> +#define csis_pad_valid(pad) (pad == CSIS_PAD_SOURCE || pad ==
+>> CSIS_PAD_SINK) +
+>> +static struct csis_state *sd_to_csis_state(struct v4l2_subdev *sdev)
+>> +{
+>> +	return container_of(sdev, struct csis_state, sd);
+>> +}
+>> +
+>> +static const struct csis_pix_format *find_csis_format(
+>> +	struct v4l2_mbus_framefmt *mf)
+>> +{
+>> +	int i = ARRAY_SIZE(s5pcsis_formats);
+>> +
+>> +	while (--i>= 0)
+> 
+> I'm curious, why do you search backward instead of doing the usual
+> 
+> for (i = 0; i<  ARRAY_SIZE(s5pcsis_formats); ++i)
+> 
+> (in that case 'i' could be unsigned) ?
+
+Perhaps doing it either way does not make any difference with the toolchains
+we use, but the loops with test for 0 are supposed to be faster on ARM.
+
+> 
+>> +		if (mf->code == s5pcsis_formats[i].code)
+>> +			return&s5pcsis_formats[i];
+>> +
+>> +	return NULL;
+>> +}
+>> +
+>> +static void s5pcsis_enable_interrupts(struct csis_state *state, bool on)
+>> +{
+>> +	u32 reg = readl(state->regs + S5PCSIS_CTRL);
+> 
+> I haven't read the hardware spec, but shouldn't the register be S5PCSIS_INTMSK
+> here ?
+
+That for sure wasn't deliberate. I just wonder how it went unnoticed
+for so long :|
+
+> 
+>> +
+>> +	if (on)
+>> +		reg |= S5PCSIS_INTMSK_EN_ALL;
+>> +	else
+>> +		reg&= ~S5PCSIS_INTMSK_EN_ALL;
+>> +	writel(reg, state->regs + S5PCSIS_INTMSK);
+>> +}
+>> +
+>> +static void s5pcsis_reset(struct csis_state *state)
+>> +{
+>> +	u32 reg = readl(state->regs + S5PCSIS_CTRL);
+>> +
+>> +	writel(reg | S5PCSIS_CTRL_RESET, state->regs + S5PCSIS_CTRL);
+> 
+> Would the code be more readable if you defined macros or inline functions for
+> the read, write and read-modify-write register operations ? Something like
+> 
+> s5pcsis_read(struct csis_state *state, u32 reg);
+> s5pcsis_write(struct csis_state *state, u32 reg, u32 value);
+> s5pcsis_clr(struct csis_state *state, u32 reg, u32 clr);
+> s5pcsis_set(struct csis_state *state, u32 reg, u32 set);
+> s5pcsis_clr_set(struct csis_state *state, u32 reg, u32 clr, u32 set);
+
+Yes, I suppose so. However there is only 9 control/status registers
+and those functions touching the registers are really small. They touch
+2 registers at most so IMHO it was not worth to create such utility
+macro/inline functions.
+Nevertheless I'll try and see how it goes.
+
+> 
+>> +	udelay(10);
+>> +}
+>> +
+>> +static void s5pcsis_system_enable(struct csis_state *state, int on)
+> 
+> s/int on/bool on/ ? I have no preference for int or bool in this case, it's
+> just for consistency reasons as you use bool in s5pcsis_enable_interrupts().
+
+All right, I'm going to use bool. Maybe it's because I wasn't really convinced
+whether to use int or bool.... :)
+
+> 
+>> +{
+>> +	u32 reg;
+>> +
+>> +	reg = readl(state->regs + S5PCSIS_CTRL);
+>> +	if (on)
+>> +		reg |= S5PCSIS_CTRL_ENABLE;
+>> +	else
+>> +		reg&= ~S5PCSIS_CTRL_ENABLE;
+>> +	writel(reg, state->regs + S5PCSIS_CTRL);
+>> +
+>> +	reg = readl(state->regs + S5PCSIS_DPHYCTRL);
+>> +	if (on)
+>> +		reg |= S5PCSIS_DPHYCTRL_ENABLE;
+>> +	else
+>> +		reg&= ~S5PCSIS_DPHYCTRL_ENABLE;
+>> +	writel(reg, state->regs + S5PCSIS_DPHYCTRL);
+>> +}
+>> +
+>> +static int __s5pcsis_set_format(struct csis_state *state)
+>> +{
+>> +	struct v4l2_mbus_framefmt *mf =&state->mf[CSIS_FMT_ACTIVE];
+>> +	u32 reg;
+>> +
+>> +	v4l2_dbg(1, debug,&state->sd, "fmt: %d, %d x %d\n",
+>> +		 mf->code, mf->width, mf->height);
+>> +
+>> +	if (WARN_ON(state->csis_fmt == NULL))
+>> +		return -EINVAL;
+> 
+> This will happen if __s5pcsis_set_format() is called before s5pcsis_set_fmt().
+> You should set state->csis_fmt to a default value at initialization time and
+> remove the check.
+
+So s_stream before set_fmt. This would never happen in my setup, nevertheless I'll
+get rid of the check, this way whole function could be converted to return void.
+
+> 
+>> +	/* Color format */
+>> +	reg = readl(state->regs + S5PCSIS_CONFIG);
+>> +	reg = (reg&  ~S5PCSIS_CFG_FMT_MASK) | state->csis_fmt->fmt_reg;
+>> +	writel(reg, state->regs + S5PCSIS_CONFIG);
+>> +
+>> +	/* Pixel resolution */
+> 
+> Do you need to protect read access to state->mf, or do you guarantee that the
+> functions that read and write it will be serialized by the caller ?
+
+This function is guaranteed to be called with the state->lock mutex held.
+I'll add relevant comment.
+
+> 
+>> +	reg = (mf->width<<  16) | mf->height;
+>> +	writel(reg, state->regs + S5PCSIS_RESOL);
+>> +
+>> +	return 0;
+>> +}
+> 
+> [snip]
+> 
+>> +static int s5pcsis_set_params(struct csis_state *state)
+>> +{
+>> +	struct s5p_platform_mipi_csis *pdata = state->pdev->dev.platform_data;
+>> +	u32 reg, tmp;
+>> +	int ret;
+>> +
+>> +	reg = readl(state->regs + S5PCSIS_CONFIG);
+>> +	reg&= ~S5PCSIS_CFG_NR_LANE_MASK;
+>> +	tmp = (pdata->lanes - 1)&  0x3;
+> 
+> tmp is a bad name, you could do
+> 
+> reg |= (pdata->lanes - 1)&  S5PCSIS_CFG_NR_LANE_MASK;
+> 
+> and get rid of tmp completely.
+
+Thanks, looks much better that way. I'm not a fan of variable names like 'tmp'
+either, but CodingStyle does not condemn them. 
+
+> 
+>> +	writel(reg | tmp, state->regs + S5PCSIS_CONFIG);
+>> +
+>> +	ret = __s5pcsis_set_format(state);
+>> +	if (ret)
+>> +		return ret;
+>> +
+>> +	s5pcsis_set_hsync_settle(state, pdata->hs_settle);
+>> +
+>> +	reg = readl(state->regs + S5PCSIS_CTRL);
+>> +
+>> +	if (pdata->alignment == 32)
+>> +		reg |= S5PCSIS_CTRL_ALIGN_32BIT;
+>> +	else /* 24-bits */
+>> +		reg&= ~S5PCSIS_CTRL_ALIGN_32BIT;
+>> +
+>> +	/* Not using external clock. */
+>> +	reg&= ~S5PCSIS_CTRL_WCLK_EXTCLK;
+>> +
+>> +	writel(reg, state->regs + S5PCSIS_CTRL);
+>> +
+>> +	/* Update the shadow register. */
+>> +	reg = readl(state->regs + S5PCSIS_CTRL);
+>> +	writel(reg | S5PCSIS_CTRL_UPDATE_SHADOW,
+>> +	       state->regs + S5PCSIS_CTRL);
+>> +
+>> +	return 0;
+>> +}
+> 
+> [snip]
+> 
+>> +static void s5pcsis_clk_put(struct csis_state *state)
+>> +{
+>> +	int i;
+>> +
+>> +	for (i = 0; i<  NUM_CSIS_CLOCKS; i++)
+>> +		if (!IS_ERR(state->clock[i]))
+>> +			clk_put(state->clock[i]);
+>> +}
+>> +
+>> +static int s5pcsis_clk_get(struct csis_state *state)
+>> +{
+>> +	struct device *dev =&state->pdev->dev;
+>> +	int i;
+>> +
+>> +	for (i = 0; i<  NUM_CSIS_CLOCKS; i++) {
+>> +		state->clock[i] = clk_get(dev, csi_clock_name[i]);
+>> +
+>> +		if (IS_ERR(state->clock[i])) {
+>> +			s5pcsis_clk_put(state);
+> 
+> If an error occurs here, some clock will be equal to NULL. This won't be
+> caught by the IS_ERR check in s5pcsis_clk_put(), so clk_put() will be called
+> with a NULL argument. Is that guaranteed to be safe ?
+
+Thanks, good catch!
+No, the clk_put routine will just offhand dereference what is passed to it. 
+Then IS_ERR_OR_NULL should be used instead in s5pcsis_clk_put().
+
+> 
+>> +			dev_err(dev, "failed to get clock: %s\n",
+>> +				csi_clock_name[i]);
+>> +			return -ENXIO;
+>> +		}
+>> +	}
+>> +	return 0;
+>> +}
+> 
+> [snip]
+> 
+>> +static void s5pcsis_try_format(struct v4l2_mbus_framefmt *mf)
+>> +{
+>> +	struct csis_pix_format const *csis_fmt;
+>> +
+>> +	csis_fmt = find_csis_format(mf);
+>> +	if (csis_fmt == NULL)
+>> +		csis_fmt =&s5pcsis_formats[0];
+>> +
+>> +	mf->code = csis_fmt->code;
+>> +	v4l_bound_align_image(&mf->width, 1, CSIS_MAX_PIX_WIDTH,
+>> +			      csis_fmt->pix_hor_align,
+>> +			&mf->height, 1, CSIS_MAX_PIX_HEIGHT, 1,
+>> +			      0);
+>> +}
+>> +
+>> +static int s5pcsis_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh
+>> *fh, +			    struct v4l2_subdev_format *fmt)
+>> +{
+>> +	struct csis_state *state = sd_to_csis_state(sd);
+>> +	struct v4l2_mbus_framefmt *mf =&fmt->format;
+>> +	struct csis_pix_format const *csis_fmt = find_csis_format(mf);
+>> +
+>> +	v4l2_dbg(1, debug, sd, "%s: %dx%d, code: %x, csis_fmt: %p\n",
+>> +		 __func__, mf->width, mf->height, mf->code, csis_fmt);
+>> +
+>> +	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
+>> +		s5pcsis_try_format(mf);
+> 
+> You need to take the pad into account here. As you mention below, source and
+> sink formats are identical. When the user tries to set the source format, the
+> driver should just return the sink format without performing any modification.
+> 
+>> +		state->mf[CSIS_FMT_TRY] = *mf;
+>> +		return 0;
+>> +	}
+>> +
+>> +	/* Both source and sink pad have always same format. */
+>> +	if (!csis_pad_valid(fmt->pad) ||
+>> +	    csis_fmt == NULL ||
+>> +	    mf->width>  CSIS_MAX_PIX_WIDTH  ||
+>> +	    mf->height>  CSIS_MAX_PIX_HEIGHT ||
+>> +	    mf->width&  (u32)(csis_fmt->pix_hor_align - 1))
+>> +		return -EINVAL;
+> 
+> Don't return an error, adjust the user supplied format instead.
+> 
+>> +
+>> +	mutex_lock(&state->lock);
+>> +	state->mf[CSIS_FMT_ACTIVE] = *mf;
+>> +	state->csis_fmt = csis_fmt;
+>> +	mutex_unlock(&state->lock);
+> 
+> The logic in this function is not correct. First of all, you need to adjust
+> the user-supplied format in all cases, regardless of the format type
+> (try/active). Then, as the formats on the sink and source pads are always
+> identical, you should return the sink pad format when the user tries to set
+> the source pad format. Setting the source pad format will have no effect.
+> Finally, you should store try formats in the subdev file handle, not in the
+> csis_state structure (see ccp2_set_format() in
+> drivers/media/video/omap3isp/ispccp2.c for an example, in your case you don't
+> need to propagate the format change from sink to source, as the source always
+> has the same format as the sink).
+
+Thanks, that's all very useful. The only thing I am concerned is what should be
+done when the file handle is null? Is it not allowed by design?
+
+I've initially reworked s5pcsis_set_fmt to something like this:
+
+static int s5pcsis_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+			   struct v4l2_subdev_format *fmt)
+{
+	struct csis_state *state = sd_to_csis_state(sd);
+	struct v4l2_mbus_framefmt *mf = &fmt->format;
+	struct csis_pix_format const *csis_fmt;
+
+	v4l2_dbg(1, debug, sd, "%s: %dx%d, code: %x\n",
+		 __func__, mf->width, mf->height, mf->code);
+
+	if (!csis_pad_valid(fmt->pad))
+		return -EINVAL;
+
+	mutex_lock(&state->lock);
+	if (fmt->pad == CSIS_PAD_SOURCE) {
+		fmt->format = state->format;
+		goto unlock;
+	}
+	csis_fmt = s5pcsis_try_format(&fmt->format);
+
+	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
+		/* TODO: store format in *fh */
+		goto unlock;
+	}
+
+	/* Common format for the source and the sink pad */
+	state->format = fmt->format;
+	state->csis_fmt = csis_fmt;
+ unlock:
+	mutex_unlock(&state->lock);
+	return 0;
+}
+
+> 
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static int s5pcsis_get_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh
+>> *fh, +			   struct v4l2_subdev_format *fmt)
+>> +{
+>> +	struct csis_state *state = sd_to_csis_state(sd);
+>> +	int index = fmt->which == V4L2_SUBDEV_FORMAT_TRY ?
+>> +				CSIS_FMT_TRY : CSIS_FMT_ACTIVE;
+>> +
+>> +	if (!csis_pad_valid(fmt->pad))
+>> +		return -EINVAL;
+>> +
+>> +	mutex_lock(&state->lock);
+>> +	fmt->format = state->mf[index];
+>> +	mutex_unlock(&state->lock);
+> 
+> Try formats should be stored in the subdev file handle.
+> 
+> If your caller guarantees that get/set format calls are serialized, you don't
+> need to use a mutex.
+
+No, there is no guarantee the pad operations are serialized. The MIPI CSIS
+subdev is a member of two pipelines each of which is terminated by a different
+FIMC entity (video capture node). 
+
+                       x--- FIMC_0 (/dev/video1)
+SENSOR -> MIPI_CSIS  --|
+                       x--- FIMC_1 (/dev/video3)
+
+So MIPI CSIS ops can be called from both host drivers. Of course at any time
+either FIMC_0 or FIMC_1 is streaming. S Not sure how I could get rid of the mutex...
+  
+> 
+>> +
+>> +	return 0;
+>> +}
+> 
+> [snip]
+> 
+>> +/* Media operations */
+>> +static int csis_link_setup(struct media_entity *entity,
+>> +			   const struct media_pad *local,
+>> +			   const struct media_pad *remote, u32 flags)
+>> +{
+>> +	v4l2_dbg(1, debug, entity, "%s: entity: %s, flags: 0x%x\n",
+>> +		 __func__, entity->name, flags);
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static const struct media_entity_operations csis_media_ops = {
+>> +	.link_setup = csis_link_setup,
+>> +};
+> 
+> If you define the link as immutable, the link_setup operation isn't required.
+
+OK, thanks for the hint. I've got one immutable link (from sensor subdev to the
+SINK pad) but the other ones aren't immutable (from SOURCE pad there are 4 links
+to FIMC entities, of which any number can potentially be active at any time).
+I assume the link_setup could be omitted in that case too, as it would really
+do nothing.
+
+> 
+>> +static irqreturn_t s5pcsis_irq_handler(int irq, void *dev_id)
+>> +{
+>> +	struct csis_state *state = dev_id;
+>> +	u32 reg;
+>> +
+>> +	/* Just clear the interrupt pending bits. */
+> 
+> What is the IRQ for then ?
+
+It's for reporting various MIPI CSI bus errors, like CRC, FIFO overflows,
+packet's fragment loss etc. I plan to support this in the future even though
+it is not clear from the specs what could be done with all those error events
+except of printing them in the log.
+
+> 
+>> +	reg = readl(state->regs + S5PCSIS_INTSRC);
+>> +	writel(reg, state->regs + S5PCSIS_INTSRC);
+>> +
+>> +	return IRQ_HANDLED;
+>> +}
+> 
+> [snip]
+
+--
 Regards,
-
-	Hans
+Sylwester Nawrocki
