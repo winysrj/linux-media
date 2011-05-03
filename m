@@ -1,47 +1,91 @@
 Return-path: <mchehab@pedra>
-Received: from smtprelay03.ispgateway.de ([80.67.31.26]:53798 "EHLO
-	smtprelay03.ispgateway.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755018Ab1ECUWA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 May 2011 16:22:00 -0400
-Date: Tue, 3 May 2011 22:16:44 +0200
-From: Heiko Baums <lists@baums-on-web.de>
-To: Jarod Wilson <jarod@wilsonet.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"mailing list: lirc" <lirc-list@lists.sourceforge.net>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Terratec Cinergy 1400 DVB-T RC not working anymore
-Message-ID: <20110503221644.1b5f3490@darkstar>
-In-Reply-To: <63E3BF90-BF19-43E3-B8DD-6D6F4896F2E7@wilsonet.com>
-References: <20110423005412.12978e29@darkstar>
-	<20110424163530.2bc1b365@darkstar>
-	<BCCEA9F4-16D7-4E63-B32C-15217AA094F3@wilsonet.com>
-	<20110425201835.0fbb84ee@darkstar>
-	<A4226E90-09BE-45FE-AEEF-0EA7E9414B4B@wilsonet.com>
-	<20110425230658.22551665@darkstar>
-	<59898A0D-573E-46E9-A3B7-9054B24E69DF@wilsonet.com>
-	<20110427151621.5ac73e12@darkstar>
-	<1FB1ED64-0EEC-4E15-8178-D2CCCA915B1D@wilsonet.com>
-	<20110427204725.2923ac99@darkstar>
-	<91CD2A5E-418A-4217-8D9F-1B29FC9DD24D@wilsonet.com>
-	<20110427222855.2e3a3a4d@darkstar>
-	<63E3BF90-BF19-43E3-B8DD-6D6F4896F2E7@wilsonet.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from smtp.nokia.com ([147.243.128.26]:26005 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751196Ab1ECFP5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 May 2011 01:15:57 -0400
+From: <kalle.jokiniemi@nokia.com>
+To: <laurent.pinchart@ideasonboard.com>
+CC: <maurochehab@gmail.com>, <tony@atomide.com>,
+	<linux-omap@vger.kernel.org>, <linux-media@vger.kernel.org>
+Subject: RE: [PATCH v2 2/2] OMAP3: RX-51: define vdds_csib regulator supply
+Date: Tue, 3 May 2011 05:15:38 +0000
+Message-ID: <9D0D31AA57AAF5499AFDC63D6472631B09D1C0@008-AM1MPN1-036.mgdnok.nokia.com>
+References: <1304327777-31231-1-git-send-email-kalle.jokiniemi@nokia.com>
+ <1304327777-31231-3-git-send-email-kalle.jokiniemi@nokia.com>
+ <201105021549.49728.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201105021549.49728.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Am Tue, 3 May 2011 11:40:06 -0400
-schrieb Jarod Wilson <jarod@wilsonet.com>:
+Hi,
 
-> So there are really two issues here. First up, the default keymap
-> isn't correct for this device, and second, the behavior of the
-> hardware and/or driver is terrible, as only ~20% of keypresses
-> are getting though. The first is easy enough to remedy. The second
-> probably requires someone with the hardware to dig into its IR
-> handling routines in the kernel. (I haven't got the hardware).
+ > -----Original Message-----
+ > From: ext Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
+ > Sent: 2. toukokuuta 2011 16:50
+ > To: Jokiniemi Kalle (Nokia-SD/Tampere)
+ > Cc: maurochehab@gmail.com; tony@atomide.com; linux-
+ > omap@vger.kernel.org; linux-media@vger.kernel.org
+ > Subject: Re: [PATCH v2 2/2] OMAP3: RX-51: define vdds_csib regulator supply
+ > 
+ > Hi Kalle,
+ > 
+ > On Monday 02 May 2011 11:16:17 Kalle Jokiniemi wrote:
+ > > The RX-51 uses the CSIb IO complex for camera operation. The
+ > > board file is missing definition for the regulator supplying
+ > > the CSIb complex, so this is added for better power
+ > > management.
+ > >
+ > > Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
+ > > ---
+ > >  arch/arm/mach-omap2/board-rx51-peripherals.c |    9 +++++++++
+ > >  1 files changed, 9 insertions(+), 0 deletions(-)
+ > >
+ > > diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c
+ > > b/arch/arm/mach-omap2/board-rx51-peripherals.c index bbcb677..1324ba3
+ > > 100644
+ > > --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
+ > > +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+ > > @@ -337,6 +337,13 @@ static struct omap2_hsmmc_info mmc[] __initdata =
+ > {
+ > >  static struct regulator_consumer_supply rx51_vmmc1_supply =
+ > >  	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0");
+ > >
+ > > +static struct regulator_consumer_supply rx51_vaux2_supplies[] = {
+ > > +	REGULATOR_SUPPLY("vdds_csib", "omap3isp"),
+ > > +	{
+ > > +		.supply = "vaux2",
+ > > +	},
+ > 
+ > Just for my curiosity, what is the the second consumer supply ("vaux2") for ?
 
-It's most likely the driver or the cx88xx kernel module, because the
-remote control has worked perfectly for many years.
+I must admit, that I just copied the format from the other regulator definitions.
+No idea really. Maybe those could be removed from the others as well?
 
-Heiko
+- Kalle
+
+ > 
+ > > +};
+ > > +
+ > >  static struct regulator_consumer_supply rx51_vaux3_supply =
+ > >  	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.1");
+ > >
+ > > @@ -400,6 +407,8 @@ static struct regulator_init_data rx51_vaux2 = {
+ > >  		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+ > >
+ > >  					| REGULATOR_CHANGE_STATUS,
+ > >
+ > >  	},
+ > > +	.num_consumer_supplies	= ARRAY_SIZE(rx51_vaux2_supplies),
+ > > +	.consumer_supplies	= rx51_vaux2_supplies,
+ > >  };
+ > >
+ > >  /* VAUX3 - adds more power to VIO_18 rail */
+ > 
+ > --
+ > Regards,
+ > 
+ > Laurent Pinchart
