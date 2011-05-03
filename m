@@ -1,116 +1,179 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4942 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753665Ab1E1PYc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 May 2011 11:24:32 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [ANNOUNCE] experimental alsa stream support at xawtv3
-Date: Sat, 28 May 2011 17:24:25 +0200
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <4DDAC0C2.7090508@redhat.com> <201105260853.31065.hverkuil@xs4all.nl> <4DE0E7D5.9070000@redhat.com>
-In-Reply-To: <4DE0E7D5.9070000@redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:3150 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751778Ab1ECD2O (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 May 2011 23:28:14 -0400
+Message-ID: <4DBF7642.8000101@redhat.com>
+Date: Tue, 03 May 2011 00:28:02 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Andy Walls <awalls@md.metrocast.net>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org,
+	Simon Farnsworth <simon.farnsworth@onelan.co.uk>,
+	Steven Toth <stoth@kernellabs.com>
+Subject: Re: [git:v4l-dvb/for_v2.6.40] [media] cx18: mmap() support for raw
+ YUV video capture
+References: <E1QGwlS-0006ys-15@www.linuxtv.org>	 <201105022202.57946.hverkuil@xs4all.nl>	 <BANLkTinzrccpQHk1qrDyT6VbfTPVBCGKkQ@mail.gmail.com>	 <201105022331.29142.hverkuil@xs4all.nl> <1304390415.2461.126.camel@localhost>
+In-Reply-To: <1304390415.2461.126.camel@localhost>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <201105281724.25433.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Saturday, May 28, 2011 14:17:25 Mauro Carvalho Chehab wrote:
-> Em 26-05-2011 03:53, Hans Verkuil escreveu:
-> > On Tuesday, May 24, 2011 16:57:22 Devin Heitmueller wrote:
-> >> On Tue, May 24, 2011 at 2:50 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> >>> On Monday, May 23, 2011 22:17:06 Mauro Carvalho Chehab wrote:
-> >>>> Due to the alsa detection code that I've added at libv4l2util (at v4l2-utils)
-> >>>> during the weekend, I decided to add alsa support also on xawtv3, basically
-> >>>> to provide a real usecase example. Of course, for it to work, it needs the
-> >>>> very latest v4l2-utils version from the git tree.
-> >>>
-> >>> Please, please add at the very least some very big disclaimer in libv4l2util
-> >>> that the API/ABI is likely to change. As mentioned earlier, this library is
-> >>> undocumented, has not gone through any peer-review, and I am very unhappy with
-> >>> it and with the decision (without discussion it seems) to install it.
-> >>>
-> >>> Once you install it on systems it becomes much harder to change.
-> > 
-> > I wanted to do a review of this library, but Devin did it for me in his
-> > comments below.
-> > 
-> > I completely agree with his comments.
-> > 
-> > Once I have all the control framework stuff that is in my queue done, then
-> > I want to go through as many drivers as I can and bring them all up to
-> > the latest V4L2 standards (using v4l2-compliance to verify correctness).
-> > 
-> > It is my intention to create some helper functions to implement a MC node for
-> > these simple legacy drivers. Eventually all V4L drivers should have a MC node.
+Em 02-05-2011 23:40, Andy Walls escreveu:
+> Hi All,
 > 
-> Converting all devices to use MC won't help, as the alsa device is implemented
-> on some cases by independent drivers (snd-usb-alsa). As I said before, forcing
-> all drivers to implement MC is silly. They just don't need it. Let's focus the MC
-> stuff where it really belongs: SoC designs and very complex devices, were you
-> should need to know and to change the internal routes and V4L2 API is not enough
-> for it.
-
-In general I hate inconsistent behavior between drivers (frankly, it's always
-been a significant problem within V4L in particular). So I don't think it is
-silly at all to roll out the MC with the V4L subsystem.
-
-> > Writing a library like the one proposed here would then be much easier and
-> > it would function as a front-end for the MC.
+> Ah crud, what a mess.  Where to begin...?
 > 
-> The design of the library methods should be independent of MC or sysfs.
-> That's what I did: the methods there provide the basic information about
-> the media devices without exporting sysfs struct to it.
+> Where have I been:
 > 
-> Once we have the library stable, it can be extended to also implement
-> device discovery via MC (or even using both).
-
-Good.
-
-> Yet, MC is an optional feature, and still not ready to handle inter-subsystem 
-> dependencies. 
+> On 30 March 2011, my 8-year-old son was diagnosed with Necrotizing
+> Fasciitis caused by Invasive Group A Streptococcous - otherwise known as
+> "Flesh-eating bacteria":
 > 
-> As there isn't even a single patch adding MC API for sound or dvb, it is
-> clear that it will take at least 2 development kernel cycles (e. g. about
-> 6 months) for this to start happening.
+> http://en.wikipedia.org/wiki/Necrotizing_fasciitis
+> http://www.ncbi.nlm.nih.gov/pubmedhealth/PMH0002415/
+
+Sorry to hear about that!
+
+> By the grace of God, my son was diagnosed very early.  He only lost the
+> fascia on his left side and one lymph node - damage essentially
+> unnoticable to anyone, including my son himself.  His recovery progress
+> is excellent and he is now back to his normal life. Yay! \O/
+
+Good! I hope him to fully recover from the disease. All the best for you
+and your wife. Our hearts are with you.
+
+> Naturally, Linux driver development disappeared from my mind during the
+> extended hospital stay, multiple surgeries, and post-hospitalization
+> recovery.
 > 
-> In other words, you're arguing against using what's currently provided by
-> the Kernel, on a standard way, in favour of something that will take at
-> least 6 months having the basic API added for the other subsystems to be able
-> to report their device trees, plus the time to port all drivers to use it.
-> This doesn't sound like a good plan to me.
-
-I agree with that.
-
-But I would really like to see an RFC with a proposal of the API and how
-it is to be used. Then after an agreement has been reached the library can
-be modified accordingly and we can release it.
-
-We want the same thing, but this needs a proper design review if we want
-to have applications use this effectively and if it is to be extended to use
-the MC.
-
-Regards,
-
-	Hans
-
-> Once having MC completed, an optional extension to the library may allow
-> its usage also for MC device info methods, where available at the driver(s).
+> As always; yard-work, house-work, work-work, choir practice, kids'
+> sports, kids' after school clubs, and kids' instrument lessons also
+> consume my time.
 > 
-> > The last few months I wasn't able to really spend the time on V4L that I
-> > wanted, but that is changing for the better.
-> > 
-> > Regards,
-> > 
-> > 	Hans
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Completely understandable.
+
+> History of this patch:
+> 
+> 1. Steven wrote the bulk of it 10 months ago:
+> 
+> 	http://www.kernellabs.com/hg/~stoth/cx18-videobuf/
+> 
+> 2. At Steven's request, I took a day and reviewed it on July 10 2010 and
+> provide comments off-list.  (I will provide them in a follow up to Mauro
+> Devin and Hans).
+
+Thanks! 
+
+Next time, please answer it publicly, or if the patch author submitted
+it in priv for a good reason, please c/c me on the review, in order to
+warn me that you have some restrictions about a patch.
+
+> 3. The patch languished as Steven didn't have time to make the fixes and
+> neither did I.
+> 
+> 4. Videobuf2 came along as did good documentation on the deficiencies of
+> videobuf1:
+> 
+> http://linuxtv.org/downloads/presentations/summit_jun_2010/20100614-v4l2_summit-videobuf.pdf
+> http://linuxtv.org/downloads/presentations/summit_jun_2010/Videobuf_Helsinki_June2010.pdf
+> http://lwn.net/Articles/415883/
+> 
+> 5. I started independent work to implement videobuf2 for YUV and
+> actually using zero-copy.  My progress is very slow.
+> 
+> http://git.linuxtv.org/awalls/media_tree.git?a=shortlog;h=refs/heads/cx18-vb2-proto
+> http://git.linuxtv.org/awalls/media_tree.git?a=shortlog;h=refs/heads/cx18_39
+> 
+> 6. Simon submits the patches to the list as one big patch.
+> 
+> 7. Off-list I forward the same 5 emails of comments to Simon as I
+> provided in #2 to Steven.
+
+In this case, as Simon had opened the source code already for the patch,
+the better would be if you had made a public statement about your nack.
+I always review the ML before applying a patch.
+
+> 8. Simon addresses most of the comments and provides a revised patch
+> off-list asking for review.  I haven't had time to look at it.
+> 
+> 9. Mauro commits the original patch that Simon submitted to the list.
 > 
 > 
+> My thoughts:
+> 
+> 1. I don't want to stop progress, so I did not NACK this patch.  I don't
+> exactly like the patch either, so I didn't ACK it.
+> 
+> 2. At a minimum someone needs to review Simon's revised patch that tried
+> to address my comments.  That patch has to be better than this one.
+> Hans has already noticed a few of the bugs I pointed out to Steven and
+> Simon.
+> 
+> 3. I value that this patch has been tested, but I am guessing the
+> use-case was limited.  The toughest cx18 use-cases involve a lot of
+> concurrency - multiple stream captures (MPEG, VBI, YUV, PCM) on multiple
+> boards (3 or 4).  I had to do a lot of work with the driver to get that
+> concurrency reliable and performing well.  Has this been tested post-BKL
+> removal?  Have screen sizes other than the full-screen size been tested?
+> 
+> 4. I do not like using videobuf(1) for this.  Videobuf(1) is a buggy
+> dead-end IMO.  I will NACK any patch that tries to fix anything due to
+> videobuf(1) related problems introduced into cx18 by this patch.
+> There's no point in throwing too much effort into fixing what would
+> likely be unfixable.
+> 
+> 5. When I am done with my videobuf2 stuff for cx18, I will essentially
+> revert this one and add in my new implementation after sufficient
+> testing.  Though given the amount of time I have for this, maybe the
+> last HVR-1600 will be dead before then.
+> 
+> 
+> Summary:
+> 
+> 1. I'm not going to fix any YUV related problems merging this patch
+> causes.  It's the YUV stream of an MPEG capture card that's more
+> expensive than a simple frame grabber.  (I've only heard of it being
+> used for live play of video games and of course for Simon's
+> application.)
+> 
+> 2. I'd at least like Simon's revised patch to be merged instead, to fix
+> the known deficincies in this one.
+
+IMO, the proper workflow would be that Simon should send his changes, as
+a diff patch against the current one. We can all review it, based on the
+comments you sent in priv and fix it.
+
+As it seems that that the patch offers a subset of the desired features
+that you're planning with your approach, maybe the better would be to add
+a CONFIG var to enable YUV support, stating that such feature is experimental.
+
+> 3. If merging this patch, means a change to videobuf2 in the future is
+> not allowed, than I'd prefer to NACK the patch that introduces
+> videobuf(1) into cx18.
+
+The addition of VB1 first doesn't imply that VB2 would be acked or nacked.
+
+In any case, the first non-embedded VB2 driver will need a very careful
+review, to be sure that they won't break any userspace applications. 
+
+On embedded hardware, only a limited set of applications are supported, and they
+are patched and bundled together with the hardware, so there's not much concern
+about userspace apps breakage.
+
+However, on non-embedded hardware, we should be sure that no regressions to
+existing applications will happen. So, the better would be if the first VB2 
+non-embedded driver to be a full-featured V4L2 board (e. g. saa7134 or bttv, 
+as they support all types of video buffer userspace API's, including overlay
+mode), allowing us to test if VB2 is really following the specs (both the
+"de facto" and "de jure" specs).
+
+After having one full-featured driver ported to VB2, the other driver conversions
+and usages of VB2 will depend mostly on driver maintainer's desire and enough tests.
+
+Cheers,
+Mauro.
