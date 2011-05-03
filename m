@@ -1,44 +1,98 @@
-Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42474 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755293Ab1EMOmo (ORCPT
+Return-path: <mchehab@pedra>
+Received: from mail-in-06.arcor-online.net ([151.189.21.46]:43911 "EHLO
+	mail-in-06.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751124Ab1ECPC4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 May 2011 10:42:44 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCHv2] v4l: Add M420 format definition
-Date: Fri, 13 May 2011 16:43:40 +0200
-Cc: linux-media@vger.kernel.org
-References: <1305277915-8383-1-git-send-email-laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1105131356410.26356@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1105131356410.26356@axis700.grange>
+	Tue, 3 May 2011 11:02:56 -0400
+Message-ID: <4DC0191E.50404@arcor.de>
+Date: Tue, 03 May 2011 17:02:54 +0200
+From: Stefan Ringel <stefan.ringel@arcor.de>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org, d.belimov@gmail.com
+Subject: Re: [PATCH 3/5] tm6000: add audio mode parameter
+References: <1301948324-27186-1-git-send-email-stefan.ringel@arcor.de> <1301948324-27186-3-git-send-email-stefan.ringel@arcor.de> <4DADFDF1.9020108@redhat.com> <4DAE9B00.7050404@arcor.de> <4DBFD3CD.9070008@redhat.com> <4DC01043.6090309@arcor.de> <4DC01442.2060207@redhat.com> <4DC016B7.3030506@arcor.de>
+In-Reply-To: <4DC016B7.3030506@arcor.de>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201105131643.41364.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hi Guennadi,
+Am 03.05.2011 16:52, schrieb Stefan Ringel:
+> Am 03.05.2011 16:42, schrieb Mauro Carvalho Chehab:
+>> Em 03-05-2011 11:25, Stefan Ringel arcor escreveu:
+>>> Am 03.05.2011 12:07, schrieb Mauro Carvalho Chehab:
+>>>> Em 20-04-2011 05:36, Stefan Ringel escreveu:
+>>>>> Am 19.04.2011 23:26, schrieb Mauro Carvalho Chehab:
+>>>>>> Em 04-04-2011 17:18, stefan.ringel@arcor.de escreveu:
+>>>>>>> From: Stefan Ringel<stefan.ringel@arcor.de>
+>>>>>>>
+>>>>>>> add audio mode parameter
+>>>>>> Why we need a parameter for it? It should be determined based on
+>>>>>> the standard.
+>>>>>>
+>>>>> tm6010 has a sif decoder, and I think if auto detect doesn't work, 
+>>>>> use can set the audio standard, which it has in your region. Or 
+>>>>> it's better if users can see image but can hear audio?
+>>>> I did some tests with SIF and MTS here. None of them were capable 
+>>>> of working with BTSC signals with
+>>>> my devices. Adding a parameter won't help it at all. What we need 
+>>>> to do is to fix the audio
+>>>> decoding.
+>>>>
+>>> In the next patch I will send it. A preview I have send to be test (
+>>> https://patchwork.kernel.org/patch/722021/ ).
+>> I tested your preview. Didn't make any difference.
+> Has you test with all setting variants? (BG_A2 works auto and A2 audio 
+> mode).
+I use mplayer, and have in the first use the wrong parameter. Now I know 
+the right parameter for mplayer:
 
-On Friday 13 May 2011 14:01:32 Guennadi Liakhovetski wrote:
-> Couldn't spot any problems with the patch except:
-> 
-> On Fri, 13 May 2011, Laurent Pinchart wrote:
-> > From: Hans de Goede <hdegoede@redhat.com>
-> > 
-> > M420 is an hybrid YUV 4:2:2 packet/planar format. Two Y lines are
-> 
-> Didn't you mean "4:2:0"?
+mplayer -vc rawyuy2 -ac pcm -ao alsa:device=hw=0.0 -tv 
+driver=v4l2:device=/dev/video2:input=0:outfmt=yv12:freq=210.25:normid=3:alsa:adevice=hw.2,0:amode=1:immediatemode=0 
+-fs tv://
+>>>>>>> Signed-off-by: Stefan Ringel<stefan.ringel@arcor.de>
+>>>>>>> ---
+>>>>>>>    drivers/staging/tm6000/tm6000-stds.c |    5 +++++
+>>>>>>>    1 files changed, 5 insertions(+), 0 deletions(-)
+>>>>>>>
+>>>>>>> diff --git a/drivers/staging/tm6000/tm6000-stds.c 
+>>>>>>> b/drivers/staging/tm6000/tm6000-stds.c
+>>>>>>> index da3e51b..a9e1921 100644
+>>>>>>> --- a/drivers/staging/tm6000/tm6000-stds.c
+>>>>>>> +++ b/drivers/staging/tm6000/tm6000-stds.c
+>>>>>>> @@ -22,12 +22,17 @@
+>>>>>>>    #include "tm6000.h"
+>>>>>>>    #include "tm6000-regs.h"
+>>>>>>>
+>>>>>>> +static unsigned int tm6010_a_mode;
+>>>>>>> +module_param(tm6010_a_mode, int, 0644);
+>>>>>>> +MODULE_PARM_DESC(tm6010_a_mode, "set sif audio mode (tm6010 
+>>>>>>> only)");
+>>>>>>> +
+>>>>>>>    struct tm6000_reg_settings {
+>>>>>>>        unsigned char req;
+>>>>>>>        unsigned char reg;
+>>>>>>>        unsigned char value;
+>>>>>>>    };
+>>>>>>>
+>>>>>>> +/* must be updated */
+>>>>>>>    enum tm6000_audio_std {
+>>>>>>>        BG_NICAM,
+>>>>>>>        BTSC,
+>>>>> -- 
+>>>>> To unsubscribe from this list: send the line "unsubscribe 
+>>>>> linux-media" in
+>>>>> the body of a message to majordomo@vger.kernel.org
+>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> -- 
+>> To unsubscribe from this list: send the line "unsubscribe 
+>> linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Yep. I'll fix that. Thanks for the review.
-
-> And if I wanted to nit-pick, I think, it should be "a hybrid," I'm not a
-> native-speaker though;)
-
-I'll fix that too :-)
-
--- 
-Regards,
-
-Laurent Pinchart
