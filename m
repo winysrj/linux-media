@@ -1,52 +1,72 @@
-Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:20631 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750707Ab1EIJZo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 May 2011 05:25:44 -0400
-Message-ID: <4DC7B308.5000206@redhat.com>
-Date: Mon, 09 May 2011 11:25:28 +0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Return-path: <mchehab@pedra>
+Received: from casper.infradead.org ([85.118.1.10]:53421 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755133Ab1ECVeA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 May 2011 17:34:00 -0400
+Message-ID: <4DC074BF.3000508@infradead.org>
+Date: Tue, 03 May 2011 18:33:51 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-To: Steve Kerrison <steve@stevekerrison.com>
-CC: Andreas Oberritter <obi@linuxtv.org>,
-	Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 2/5] drxd: Fix warning caused by new entries in an
- enum
-References: <4DC6BF28.8070006@redhat.com>	 <1304882240-23044-3-git-send-email-steve@stevekerrison.com>	 <4DC714EC.2060606@linuxtv.org> <1304932548.2920.33.camel@ares>
-In-Reply-To: <1304932548.2920.33.camel@ares>
+To: "Igor M. Liplianin" <liplianin@me.by>
+CC: Hendrik Skarpeid <skarp@online.no>, linux-media@vger.kernel.org,
+	Nameer Kazzaz <nameer.kazzaz@gmail.com>
+Subject: Re: DM1105: could not attach frontend 195d:1105
+References: <4B7D83B2.4030709@online.no> <201003032105.06263.liplianin@me.by> <4B978D75.5080501@online.no> <201010231220.51387.liplianin@me.by>
+In-Reply-To: <201010231220.51387.liplianin@me.by>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Em 09-05-2011 11:15, Steve Kerrison escreveu:
-> Hi Andreas,
-> 
->> I'd prefer returning -EINVAL for unsupported parameters.
+Hi Igor,
+
+Em 23-10-2010 07:20, Igor M. Liplianin escreveu:
+> В сообщении от 10 марта 2010 14:15:49 автор Hendrik Skarpeid написал:
+>> Igor M. Liplianin skrev:
+>>> On 3 марта 2010 18:42:42 Hendrik Skarpeid wrote:
+>>>> Igor M. Liplianin wrote:
+>>>>> Now to find GPIO's for LNB power control and ... watch TV :)
+>>>>
+>>>> Yep. No succesful tuning at the moment. There might also be an issue
+>>>> with the reset signal and writing to GPIOCTR, as the module at the
+>>>> moment loads succesfully only once.
+>>>> As far as I can make out, the LNB power control is probably GPIO 16 and
+>>>> 17, not sure which is which, and how they work.
+>>>> GPIO15 is wired to tuner #reset
+>>>
+>>> New patch to test
 >>
->> [snip]
->>
->> I already had a patch for this, but forgot to submit it together with
->> the frontend.h bits.
+>> I think the LNB voltage may be a little to high on my card, 14.5V and
+>> 20V. I would be a little more happy if they were 14 and 19, 13 and 18
+>> would be perfect.
+>> Anyways, as Igor pointet out, I don't have any signal from the LNB,
+>> checked with another tuner card. It's a quad LNB, and the other outputs
+>> are fine. Maybe it's' toasted from to high supply voltage! I little word
+>> of warning then.
+>> Anyways, here's my tweaked driver.
 > 
-> That seems reasonable. Do I need to do anything with this? I'm happy for
-> Mauro to scrub my drxd and mxl patches and use yours instead.
+> Here is reworked patch for clear GPIO's handling.
+> It allows to support I2C on GPIO's and per board LNB control through GPIO's.
+> Also incuded support for Hendrik's card.
+> I think it is clear how to change and test GPIO's for LNB and other stuff now.
+> To Hendrik:
+> 	Not shure, but there is maybe GPIO for raise/down LNB voltage a little (~1v).
+> 	It is used for long coaxial lines to compensate voltage dropping.
 > 
->> Btw., "status = status;" looks odd.
-> 
-> Heh, yes it does. I wonder if that was put in to deal with an "unused
-> variable" compiler warning before the switch statement had a default
-> case? Otherwise, perhaps it's from the department of redundancy
-> department.
+> Signed-off-by: Igor M. Liplianin <liplianin@me.by>
 
-Yes, there is. Linux defines a macro for it:
-	uninitialized_var()
+I'm not sure if this patch is still valid or not, and if it should or not be
+applied, as there were several discussions around it. As a reference, it is stored
+at patchwork with:
+	X-Patchwork-Id: 279091
 
-(it basically will do status = status internally with newer gcc versions,
-but it helps to document what's happening there)
+And still applies fine (yet, patchwork lost patch history/comments and SOB).
 
-it is sometimes better to initialize the var, as the warning may help
-to detect troubles after some changes. 
+Igor, could you please update me if I should apply this patch or if the patch got
+rejected/superseeded?
 
-Cheers,
+Thanks!
 Mauro.
+
+
+
