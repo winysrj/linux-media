@@ -1,74 +1,55 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:35396 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933931Ab1ETPcv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 May 2011 11:32:51 -0400
-Message-ID: <4DD6899D.5020004@redhat.com>
-Date: Fri, 20 May 2011 12:32:45 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4113 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752625Ab1ECQYc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 May 2011 12:24:32 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
+Subject: Re: [PATCH] cx18: Clean up mmap() support for raw YUV
+Date: Tue, 3 May 2011 18:24:21 +0200
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, Steven Toth <stoth@kernellabs.com>,
+	Andy Walls <awalls@md.metrocast.net>
+References: <4DBFDF71.5090705@redhat.com> <1304423860-12785-1-git-send-email-simon.farnsworth@onelan.co.uk>
+In-Reply-To: <1304423860-12785-1-git-send-email-simon.farnsworth@onelan.co.uk>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PATCH FOR 2.6.40] uvcvideo patches
-References: <201105150948.24956.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201105150948.24956.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201105031824.21586.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 15-05-2011 04:48, Laurent Pinchart escreveu:
-> Hi Mauro,
+Hi Simon,
+
+On Tuesday, May 03, 2011 13:57:40 Simon Farnsworth wrote:
+> The initial version of this patch (commit
+> d5976931639176bb6777755d96b9f8d959f79e9e) had some issues:
 > 
-> The following changes since commit f9b51477fe540fb4c65a05027fdd6f2ecce4db3b:
+>  * It didn't correctly calculate the size of the YUV buffer for 4:2:2,
+>    resulting in capture sometimes being offset by 1/3rd of a picture.
 > 
->   [media] DVB: return meaningful error codes in dvb_frontend (2011-05-09 05:47:20 +0200)
+>  * There were a lot of variables duplicating information the driver
+>    already knew, which have been removed.
 > 
-> are available in the git repository at:
->   git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo-next
+>  * There was an in-kernel format conversion - libv4l can do this one,
+>    and is the right place to do format conversions anyway.
 > 
-> They replace the git pull request I've sent on Thursday with the same subject.
+>  * Some magic numbers weren't properly explained.
 > 
-> Bob Liu (2):
->       Revert "V4L/DVB: v4l2-dev: remove get_unmapped_area"
->       uvcvideo: Add support for NOMMU arch
+> Fix all these issues, leaving just the move from videobuf to videobuf2
+> to do.
+> 
+> Signed-off-by: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
 
-IMO, such fixes should happen inside the arch bits, and not on each driver. If this fix
-is needed for uvc video, the same fix should probably needed to all other USB drivers, in
-order to work on NOMMU arch.
+I just wanted to thank you for your work. I hope I never gave the impression
+that the whole discussion had anything to do with you. You were just unlucky
+enough to trigger a 'to merge or not to merge' and a 'to vb2 or not to vb2'
+discussion through no fault of your own.
 
-For now, I'm accepting this as a workaround, but please work on a generic solution
-for it.
+Just thought I should mention that. I would definitely like to see cx18
+working with tvtime and it is valuable work you are doing.
 
-> Hans de Goede (2):
->       v4l: Add M420 format definition
->       uvcvideo: Add M420 format support
+Regards,
 
-OK.
-
-> Laurent Pinchart (4):
->       v4l: Release module if subdev registration fails
->       uvcvideo: Register a v4l2_device
->       uvcvideo: Register subdevices for each entity
->       uvcvideo: Connect video devices to media entities   
-
-
-We've discussed already about using the media controller for uvcvideo, but I can't remember
-anymore what where your aguments in favor of merging it (and, even if I've remembered it right
-now, the #irc channel log is not the proper way to document the rationale to apply a patch).
-
-The thing is: it is clear that SoC embedded devices need the media controller, as they have
-IP blocks that do weird things, and userspace may need to access those, as it is not possible
-to control such IP blocks using the V4L2 API.
-
-However, I have serious concerns about media_controller API usage on generic drivers, as 
-it is required that all drivers should be fully configurable via V4L2 API alone, otherwise
-we'll have regressions, as no generic applications use the media_controller.
-
-In other words, if you have enough arguments about why we should add media_controller support
-at the uvcvideo, please clearly provide them at the patch descriptions, as this is not obvious.
-It would equally important do document, at the uvcvideo doc, what kind of information is
-provided via the media_controller and why an userspace application should care to use it.
-
-Thanks,
-Mauro.
+	Hans
