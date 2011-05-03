@@ -1,39 +1,56 @@
-Return-path: <mchehab@gaivota>
-Received: from lo.gmane.org ([80.91.229.12]:45666 "EHLO lo.gmane.org"
+Return-path: <mchehab@pedra>
+Received: from mx1.redhat.com ([209.132.183.28]:64105 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754412Ab1EKTqq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 May 2011 15:46:46 -0400
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1QKFMq-0005RF-PZ
-	for linux-media@vger.kernel.org; Wed, 11 May 2011 21:46:45 +0200
-Received: from 213.137.58.124 ([213.137.58.124])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 11 May 2011 21:46:44 +0200
-Received: from root by 213.137.58.124 with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 11 May 2011 21:46:44 +0200
-To: linux-media@vger.kernel.org
-From: Doychin Dokov <root@net1.cc>
-Subject: Re: TT S2-3650CI problems with high-SR DVB-S2 transponders
-Date: Wed, 11 May 2011 22:45:55 +0300
-Message-ID: <iqep2o$vdh$1@dough.gmane.org>
-References: <iqchgm$os9$1@dough.gmane.org> <iqci85$s6t$1@dough.gmane.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1251; format=flowed
+	id S1752179Ab1ECKaE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 May 2011 06:30:04 -0400
+Message-ID: <4DBFD919.3090409@redhat.com>
+Date: Tue, 03 May 2011 07:29:45 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Ondrej Zary <linux@rainbow-software.org>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Joerg Heckenbach <joerg@heckenbach-aw.de>,
+	Dwaine Garden <dwainegarden@rogers.com>,
+	linux-media@vger.kernel.org,
+	Kernel development list <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] usbvision: remove (broken) image format conversion
+References: <201104252323.20420.linux@rainbow-software.org> <4DB6B28D.5090607@redhat.com> <f2291b622da20d240c4ebe0ae72beb8c.squirrel@webmail.xs4all.nl> <201104262240.40497.linux@rainbow-software.org>
+In-Reply-To: <201104262240.40497.linux@rainbow-software.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <iqci85$s6t$1@dough.gmane.org>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-I've just tried with the 2.6.38 kernel from the backports, and the lock 
-fix only - result is the same, unusable output from device - too many 
-discontinuities.
+Em 26-04-2011 17:40, Ondrej Zary escreveu:
+> On Tuesday 26 April 2011 14:33:20 Hans Verkuil wrote:
 
-Noone using the S2-3600 / 3650 on high-rate transponders?
+> After digging in the code for hours, I'm giving this up. It's not worth it.
+> 
+> The ISOC_MODE_YUV422 mode works as V4L2_PIX_FMT_YVYU with VLC and 
+> mplayer+libv4lconvert, reducing the loop (and dropping strech_*) in 
+> usbvision_parse_lines_422() to:
+>  scratch_get(usbvision, frame->data + (frame->v4l2_linesize * frame->curline),
+>  2 * frame->frmwidth);
+> 
+> The ISOC_MODE_YUV420 is some weird custom format with 64-byte lines of YYUV. 
+> usbvision_parse_lines_420() is real mess with that scratch_* crap everywhere.
+> 
+> ISOC_MODE_COMPRESS: There are callbacks to usbvision_request_intra() and also 
+> usbvision_adjust_compression(). This is not going to work outside the kernel.
+> 
+> 
+> So I can redo the conversion removal patch to keep the RGB formats and also 
+> provide another one to remove the testpattern (it oopses too). But I'm not 
+> going to do any major changes in the driver.
 
-Any other Linux-supported USB DVB-S2 device with CI and high SR support?
+While in a perfect world, this should be moved to userspace, I'm ok on keeping
+it there, but the OOPS/Panic conditions should be fixed.
 
+Could you please work on a patch fixing the broken stuff, without removing the
+conversions?
 
+Thanks,
+Mauro
+ 
 
