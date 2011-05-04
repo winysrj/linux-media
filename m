@@ -1,299 +1,159 @@
 Return-path: <mchehab@pedra>
-Received: from mailfe01.c2i.net ([212.247.154.2]:51740 "EHLO swip.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751116Ab1EWK7W (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 May 2011 06:59:22 -0400
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: [PATCH] The info and err macros are already defined by the USB stack. Rename these macros to avoid macro redefinition warnings.
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-From: Hans Petter Selasky <hselasky@c2i.net>
-Date: Mon, 23 May 2011 12:58:07 +0200
+Received: from mx1.redhat.com ([209.132.183.28]:7345 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754070Ab1EDPQW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 May 2011 11:16:22 -0400
+Message-ID: <4DC16DC1.1060109@redhat.com>
+Date: Wed, 04 May 2011 12:16:17 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_/2j2NFSzRbAXRyf"
-Message-Id: <201105231258.07403.hselasky@c2i.net>
+To: =?UTF-8?B?RGF2aWQgSMOkcmRlbWFu?= <david@hardeman.nu>
+CC: linux-media@vger.kernel.org, jarod@wilsonet.com
+Subject: Re: [PATCH 07/10] rc-core: use the full 32 bits for NEC scancodes
+References: <20110428151311.8272.17290.stgit@felix.hardeman.nu> <20110428151348.8272.50675.stgit@felix.hardeman.nu>
+In-Reply-To: <20110428151348.8272.50675.stgit@felix.hardeman.nu>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
---Boundary-00=_/2j2NFSzRbAXRyf
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-
---HPS
-
---Boundary-00=_/2j2NFSzRbAXRyf
-Content-Type: text/x-patch;
-  charset="ISO-8859-1";
-  name="dvb-usb-0003.patch"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment;
-	filename="dvb-usb-0003.patch"
-
-=46rom 83b2408914b9c02600c8288459ed869037efd1dd Mon Sep 17 00:00:00 2001
-=46rom: Hans Petter Selasky <hselasky@c2i.net>
-Date: Mon, 23 May 2011 12:54:21 +0200
-Subject: [PATCH] The info and err macros are already defined by the USB sta=
-ck. Rename these macros to avoid macro redefinition warnings.
-
-Signed-off-by: Hans Petter Selasky <hselasky@c2i.net>
-=2D--
- drivers/media/dvb/frontends/cx24123.c        |   34 +++++++++++++---------=
-=2D---
- drivers/media/dvb/frontends/dib3000mb.c      |   12 ++++----
- drivers/media/dvb/frontends/dib3000mb_priv.h |   10 +++----
- 3 files changed, 27 insertions(+), 29 deletions(-)
-
-diff --git a/drivers/media/dvb/frontends/cx24123.c b/drivers/media/dvb/fron=
-tends/cx24123.c
-index b1dd8ac..b73fb90 100644
-=2D-- a/drivers/media/dvb/frontends/cx24123.c
-+++ b/drivers/media/dvb/frontends/cx24123.c
-@@ -41,8 +41,8 @@ static int debug;
- module_param(debug, int, 0644);
- MODULE_PARM_DESC(debug, "Activates frontend debugging (default:0)");
-=20
-=2D#define info(args...) do { printk(KERN_INFO "CX24123: " args); } while (=
-0)
-=2D#define err(args...)  do { printk(KERN_ERR  "CX24123: " args); } while (=
-0)
-+#define cx_info(args...) do { printk(KERN_INFO "CX24123: " args); } while =
-(0)
-+#define cx_err(args...)  do { printk(KERN_ERR  "CX24123: " args); } while =
-(0)
-=20
- #define dprintk(args...) \
- 	do { \
-@@ -274,7 +274,7 @@ static int cx24123_i2c_readreg(struct cx24123_state *st=
-ate, u8 i2c_addr, u8 reg)
- 	ret =3D i2c_transfer(state->i2c, msg, 2);
-=20
- 	if (ret !=3D 2) {
-=2D		err("%s: reg=3D0x%x (error=3D%d)\n", __func__, reg, ret);
-+		cx_err("%s: reg=3D0x%x (error=3D%d)\n", __func__, reg, ret);
- 		return ret;
- 	}
-=20
-@@ -620,7 +620,7 @@ static int cx24123_pll_writereg(struct dvb_frontend *fe,
- 	cx24123_writereg(state, 0x22, (data >> 16) & 0xff);
- 	while ((cx24123_readreg(state, 0x20) & 0x40) =3D=3D 0) {
- 		if (time_after(jiffies, timeout)) {
-=2D			err("%s:  demodulator is not responding, "\
-+			cx_err("%s:  demodulator is not responding, "\
- 				"possibly hung, aborting.\n", __func__);
- 			return -EREMOTEIO;
- 		}
-@@ -632,7 +632,7 @@ static int cx24123_pll_writereg(struct dvb_frontend *fe,
- 	cx24123_writereg(state, 0x22, (data >> 8) & 0xff);
- 	while ((cx24123_readreg(state, 0x20) & 0x40) =3D=3D 0) {
- 		if (time_after(jiffies, timeout)) {
-=2D			err("%s:  demodulator is not responding, "\
-+			cx_err("%s:  demodulator is not responding, "\
- 				"possibly hung, aborting.\n", __func__);
- 			return -EREMOTEIO;
- 		}
-@@ -645,7 +645,7 @@ static int cx24123_pll_writereg(struct dvb_frontend *fe,
- 	cx24123_writereg(state, 0x22, (data) & 0xff);
- 	while ((cx24123_readreg(state, 0x20) & 0x80)) {
- 		if (time_after(jiffies, timeout)) {
-=2D			err("%s:  demodulator is not responding," \
-+			cx_err("%s:  demodulator is not responding," \
- 				"possibly hung, aborting.\n", __func__);
- 			return -EREMOTEIO;
- 		}
-@@ -668,7 +668,7 @@ static int cx24123_pll_tune(struct dvb_frontend *fe,
- 	dprintk("frequency=3D%i\n", p->frequency);
-=20
- 	if (cx24123_pll_calculate(fe, p) !=3D 0) {
-=2D		err("%s: cx24123_pll_calcutate failed\n", __func__);
-+		cx_err("%s: cx24123_pll_calcutate failed\n", __func__);
- 		return -EINVAL;
- 	}
-=20
-@@ -765,7 +765,7 @@ static void cx24123_wait_for_diseqc(struct cx24123_stat=
-e *state)
- 	unsigned long timeout =3D jiffies + msecs_to_jiffies(200);
- 	while (!(cx24123_readreg(state, 0x29) & 0x40)) {
- 		if (time_after(jiffies, timeout)) {
-=2D			err("%s: diseqc queue not ready, " \
-+			cx_err("%s: diseqc queue not ready, " \
- 				"command may be lost.\n", __func__);
- 			break;
- 		}
-@@ -947,7 +947,7 @@ static int cx24123_set_frontend(struct dvb_frontend *fe,
- 	else if (fe->ops.tuner_ops.set_params)
- 		fe->ops.tuner_ops.set_params(fe, p);
- 	else
-=2D		err("it seems I don't have a tuner...");
-+		cx_err("it seems I don't have a tuner...");
-=20
- 	/* Enable automatic acquisition and reset cycle */
- 	cx24123_writereg(state, 0x03, (cx24123_readreg(state, 0x03) | 0x07));
-@@ -968,11 +968,11 @@ static int cx24123_get_frontend(struct dvb_frontend *=
-fe,
- 	dprintk("\n");
-=20
- 	if (cx24123_get_inversion(state, &p->inversion) !=3D 0) {
-=2D		err("%s: Failed to get inversion status\n", __func__);
-+		cx_err("%s: Failed to get inversion status\n", __func__);
- 		return -EREMOTEIO;
- 	}
- 	if (cx24123_get_fec(state, &p->u.qpsk.fec_inner) !=3D 0) {
-=2D		err("%s: Failed to get fec status\n", __func__);
-+		cx_err("%s: Failed to get fec status\n", __func__);
- 		return -EREMOTEIO;
- 	}
- 	p->frequency =3D state->currentfreq;
-@@ -999,7 +999,7 @@ static int cx24123_set_tone(struct dvb_frontend *fe, fe=
-_sec_tone_mode_t tone)
- 		dprintk("setting tone off\n");
- 		return cx24123_writereg(state, 0x29, val & 0xef);
- 	default:
-=2D		err("CASE reached default with tone=3D%d\n", tone);
-+		cx_err("CASE reached default with tone=3D%d\n", tone);
- 		return -EINVAL;
- 	}
-=20
-@@ -1075,7 +1075,7 @@ struct dvb_frontend *cx24123_attach(const struct cx24=
-123_config *config,
-=20
- 	dprintk("\n");
- 	if (state =3D=3D NULL) {
-=2D		err("Unable to kzalloc\n");
-+		cx_err("Unable to kzalloc\n");
- 		goto error;
- 	}
-=20
-@@ -1087,13 +1087,13 @@ struct dvb_frontend *cx24123_attach(const struct cx=
-24123_config *config,
- 	state->demod_rev =3D cx24123_readreg(state, 0x00);
- 	switch (state->demod_rev) {
- 	case 0xe1:
-=2D		info("detected CX24123C\n");
-+		cx_info("detected CX24123C\n");
- 		break;
- 	case 0xd1:
-=2D		info("detected CX24123\n");
-+		cx_info("detected CX24123\n");
- 		break;
- 	default:
-=2D		err("wrong demod revision: %x\n", state->demod_rev);
-+		cx_err("wrong demod revision: %x\n", state->demod_rev);
- 		goto error;
- 	}
-=20
-@@ -1112,7 +1112,7 @@ struct dvb_frontend *cx24123_attach(const struct cx24=
-123_config *config,
- 	state->tuner_i2c_adapter.algo_data =3D NULL;
- 	i2c_set_adapdata(&state->tuner_i2c_adapter, state);
- 	if (i2c_add_adapter(&state->tuner_i2c_adapter) < 0) {
-=2D		err("tuner i2c bus could not be initialized\n");
-+		cx_err("tuner i2c bus could not be initialized\n");
- 		goto error;
- 	}
-=20
-diff --git a/drivers/media/dvb/frontends/dib3000mb.c b/drivers/media/dvb/fr=
-ontends/dib3000mb.c
-index e80c597..b0a795a 100644
-=2D-- a/drivers/media/dvb/frontends/dib3000mb.c
-+++ b/drivers/media/dvb/frontends/dib3000mb.c
-@@ -147,7 +147,7 @@ static int dib3000mb_set_frontend(struct dvb_frontend* =
-fe,
- 			case BANDWIDTH_AUTO:
- 				return -EOPNOTSUPP;
- 			default:
-=2D				err("unknown bandwidth value.");
-+				dib_err("unknown bandwidth value.");
- 				return -EINVAL;
- 		}
- 	}
-@@ -505,7 +505,7 @@ static int dib3000mb_get_frontend(struct dvb_frontend* =
-fe,
- 			ofdm->constellation =3D QAM_64;
- 			break;
- 		default:
-=2D			err("Unexpected constellation returned by TPS (%d)", tps_val);
-+			dib_err("Unexpected constellation returned by TPS (%d)", tps_val);
- 			break;
- 	}
- 	deb_getf("TPS: %d\n", tps_val);
-@@ -532,7 +532,7 @@ static int dib3000mb_get_frontend(struct dvb_frontend* =
-fe,
- 				ofdm->hierarchy_information =3D HIERARCHY_4;
- 				break;
- 			default:
-=2D				err("Unexpected ALPHA value returned by TPS (%d)", tps_val);
-+				dib_err("Unexpected ALPHA value returned by TPS (%d)", tps_val);
- 				break;
- 		}
- 		deb_getf("TPS: %d\n", tps_val);
-@@ -569,7 +569,7 @@ static int dib3000mb_get_frontend(struct dvb_frontend* =
-fe,
- 			*cr =3D FEC_7_8;
- 			break;
- 		default:
-=2D			err("Unexpected FEC returned by TPS (%d)", tps_val);
-+			dib_err("Unexpected FEC returned by TPS (%d)", tps_val);
- 			break;
- 	}
- 	deb_getf("TPS: %d\n",tps_val);
-@@ -592,7 +592,7 @@ static int dib3000mb_get_frontend(struct dvb_frontend* =
-fe,
- 			ofdm->guard_interval =3D GUARD_INTERVAL_1_4;
- 			break;
- 		default:
-=2D			err("Unexpected Guard Time returned by TPS (%d)", tps_val);
-+			dib_err("Unexpected Guard Time returned by TPS (%d)", tps_val);
- 			break;
- 	}
- 	deb_getf("TPS: %d\n", tps_val);
-@@ -607,7 +607,7 @@ static int dib3000mb_get_frontend(struct dvb_frontend* =
-fe,
- 			ofdm->transmission_mode =3D TRANSMISSION_MODE_8K;
- 			break;
- 		default:
-=2D			err("unexpected transmission mode return by TPS (%d)", tps_val);
-+			dib_err("unexpected transmission mode return by TPS (%d)", tps_val);
- 			break;
- 	}
- 	deb_getf("TPS: %d\n", tps_val);
-diff --git a/drivers/media/dvb/frontends/dib3000mb_priv.h b/drivers/media/d=
-vb/frontends/dib3000mb_priv.h
-index 16c5265..c9c36ce 100644
-=2D-- a/drivers/media/dvb/frontends/dib3000mb_priv.h
-+++ b/drivers/media/dvb/frontends/dib3000mb_priv.h
-@@ -13,20 +13,18 @@
- #ifndef __DIB3000MB_PRIV_H_INCLUDED__
- #define __DIB3000MB_PRIV_H_INCLUDED__
-=20
-=2D/* info and err, taken from usb.h, if there is anything available like b=
-y default. */
-=2D#define err(format, arg...)  printk(KERN_ERR     "dib3000: " format "\n"=
- , ## arg)
-=2D#define info(format, arg...) printk(KERN_INFO    "dib3000: " format "\n"=
- , ## arg)
-=2D#define warn(format, arg...) printk(KERN_WARNING "dib3000: " format "\n"=
- , ## arg)
-+/* dib_err - error printout wrapper */
-+#define dib_err(format, arg...) printk(KERN_ERR     "dib3000: " format "\n=
-" , ## arg)
-=20
- /* handy shortcuts */
- #define rd(reg) dib3000_read_reg(state,reg)
-=20
- #define wr(reg,val) if (dib3000_write_reg(state,reg,val)) \
-=2D	{ err("while sending 0x%04x to 0x%04x.",val,reg); return -EREMOTEIO; }
-+	{ dib_err("while sending 0x%04x to 0x%04x.",val,reg); return -EREMOTEIO; }
-=20
- #define wr_foreach(a,v) { int i; \
- 	if (sizeof(a) !=3D sizeof(v)) \
-=2D		err("sizeof: %zu %zu is different",sizeof(a),sizeof(v));\
-+		dib_err("sizeof: %zu %zu is different",sizeof(a),sizeof(v));\
- 	for (i=3D0; i < sizeof(a)/sizeof(u16); i++) \
- 		wr(a[i],v[i]); \
- 	}
-=2D-=20
-1.7.1.1
+Em 28-04-2011 12:13, David Härdeman escreveu:
+> Using the full 32 bits for all kinds of NEC scancodes simplifies rc-core
+> and the nec decoder without any loss of functionality.
 
 
---Boundary-00=_/2j2NFSzRbAXRyf--
+This seems to be a good strategy. However, it breaks the existing NEC keymap
+tables (/me is not considering patch 6/10 macros), and changes those keytables
+on userspace. Not sure how to address this.
+
+Comments?
+
+Thanks,
+Mauro.
+
+> 
+> Signed-off-by: David Härdeman <david@hardeman.nu>
+> ---
+>  drivers/media/dvb/dvb-usb/af9015.c |   22 ++++++----------------
+>  drivers/media/rc/ir-nec-decoder.c  |   28 ++++------------------------
+>  include/media/rc-map.h             |   11 +++++++++--
+>  3 files changed, 19 insertions(+), 42 deletions(-)
+> 
+> diff --git a/drivers/media/dvb/dvb-usb/af9015.c b/drivers/media/dvb/dvb-usb/af9015.c
+> index 08975f3..4ee8bb7 100644
+> --- a/drivers/media/dvb/dvb-usb/af9015.c
+> +++ b/drivers/media/dvb/dvb-usb/af9015.c
+> @@ -1034,7 +1034,8 @@ static int af9015_rc_query(struct dvb_usb_device *d)
+>  	if ((priv->rc_repeat != buf[6] || buf[0]) &&
+>  					!memcmp(&buf[12], priv->rc_last, 4)) {
+>  		deb_rc("%s: key repeated\n", __func__);
+> -		rc_keydown(d->rc_dev, RC_TYPE_NEC, priv->rc_keycode, 0);
+> +		rc_keydown(d->rc_dev, RC_TYPE_NEC,
+> +			   RC_SCANCODE_NEC32(priv->rc_keycode), 0);
+>  		priv->rc_repeat = buf[6];
+>  		return ret;
+>  	}
+> @@ -1051,21 +1052,10 @@ static int af9015_rc_query(struct dvb_usb_device *d)
+>  
+>  		/* Remember this key */
+>  		memcpy(priv->rc_last, &buf[12], 4);
+> -		if (buf[14] == (u8) ~buf[15]) {
+> -			if (buf[12] == (u8) ~buf[13]) {
+> -				/* NEC */
+> -				priv->rc_keycode = buf[12] << 8 | buf[14];
+> -			} else {
+> -				/* NEC extended*/
+> -				priv->rc_keycode = buf[12] << 16 |
+> -					buf[13] << 8 | buf[14];
+> -			}
+> -		} else {
+> -			/* 32 bit NEC */
+> -			priv->rc_keycode = buf[12] << 24 | buf[13] << 16 |
+> -					buf[14] << 8 | buf[15];
+> -		}
+> -		rc_keydown(d->rc_dev, RC_TYPE_NEC, priv->rc_keycode, 0);
+> +		priv->rc_keycode = buf[12] << 24 | buf[13] << 16 |
+> +				   buf[14] << 8  | buf[15];
+> +		rc_keydown(d->rc_dev, RC_TYPE_NEC,
+> +			   RC_SCANCODE_NEC32(priv->rc_keycode), 0);
+>  	} else {
+>  		deb_rc("%s: no key press\n", __func__);
+>  		/* Invalidate last keypress */
+> diff --git a/drivers/media/rc/ir-nec-decoder.c b/drivers/media/rc/ir-nec-decoder.c
+> index edd8543..0b1eef1 100644
+> --- a/drivers/media/rc/ir-nec-decoder.c
+> +++ b/drivers/media/rc/ir-nec-decoder.c
+> @@ -49,7 +49,6 @@ static int ir_nec_decode(struct rc_dev *dev, struct ir_raw_event ev)
+>  	struct nec_dec *data = &dev->raw->nec;
+>  	u32 scancode;
+>  	u8 address, not_address, command, not_command;
+> -	bool send_32bits = false;
+>  
+>  	if (!(dev->enabled_protocols & RC_BIT_NEC))
+>  		return 0;
+> @@ -162,33 +161,14 @@ static int ir_nec_decode(struct rc_dev *dev, struct ir_raw_event ev)
+>  		command	    = bitrev8((data->bits >>  8) & 0xff);
+>  		not_command = bitrev8((data->bits >>  0) & 0xff);
+>  
+> -		if ((command ^ not_command) != 0xff) {
+> -			IR_dprintk(1, "NEC checksum error: received 0x%08x\n",
+> -				   data->bits);
+> -			send_32bits = true;
+> -		}
+> -
+> -		if (send_32bits) {
+> -			/* NEC transport, but modified protocol, used by at
+> -			 * least Apple and TiVo remotes */
+> -			scancode = data->bits;
+> -			IR_dprintk(1, "NEC (modified) scancode 0x%08x\n", scancode);
+> -		} else if ((address ^ not_address) != 0xff) {
+> -			/* Extended NEC */
+> -			scancode = address     << 16 |
+> -				   not_address <<  8 |
+> -				   command;
+> -			IR_dprintk(1, "NEC (Ext) scancode 0x%06x\n", scancode);
+> -		} else {
+> -			/* Normal NEC */
+> -			scancode = address << 8 | command;
+> -			IR_dprintk(1, "NEC scancode 0x%04x\n", scancode);
+> -		}
+> +		scancode = address << 24 | not_address << 16 |
+> +			   command << 8  | not_command;
+> +		IR_dprintk(1, "NEC scancode 0x%08x\n", scancode);
+>  
+>  		if (data->is_nec_x)
+>  			data->necx_repeat = true;
+>  
+> -		rc_keydown(dev, RC_TYPE_NEC, scancode, 0);
+> +		rc_keydown(dev, RC_TYPE_NEC, RC_SCANCODE_NEC32(scancode), 0);
+>  		data->state = STATE_INACTIVE;
+>  		return 0;
+>  	}
+> diff --git a/include/media/rc-map.h b/include/media/rc-map.h
+> index 42c8ad9..aa503f0 100644
+> --- a/include/media/rc-map.h
+> +++ b/include/media/rc-map.h
+> @@ -44,8 +44,15 @@
+>  
+>  #define RC_SCANCODE_UNKNOWN(x) (x)
+>  #define RC_SCANCODE_OTHER(x) (x)
+> -#define RC_SCANCODE_NEC(addr, cmd) (((addr) << 8) | (cmd))
+> -#define RC_SCANCODE_NECX(addr, cmd) (((addr) << 8) | (cmd))
+> +#define RC_SCANCODE_NEC(addr, cmd)  \
+> +	((( (addr) & 0xff) << 24) | \
+> +	 ((~(addr) & 0xff) << 16) | \
+> +	 (( (cmd)  & 0xff) << 8 ) | \
+> +	 ((~(cmd)  & 0xff) << 0 ))
+> +#define RC_SCANCODE_NECX(addr, cmd)   \
+> +	((( (addr) & 0xffff) << 16) | \
+> +	 (( (cmd)  & 0x00ff) << 8)  | \
+> +	 ((~(cmd)  & 0x00ff) << 0))
+>  #define RC_SCANCODE_NEC32(data) ((data) & 0xffffffff)
+>  #define RC_SCANCODE_RC5(sys, cmd) (((sys) << 8) | (cmd))
+>  #define RC_SCANCODE_RC5_SZ(sys, cmd) (((sys) << 8) | (cmd))
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
