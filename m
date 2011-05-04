@@ -1,49 +1,45 @@
 Return-path: <mchehab@pedra>
-Received: from ns.mm-sol.com ([213.240.235.226]:32977 "EHLO extserv.mm-sol.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932622Ab1ESMgY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 May 2011 08:36:24 -0400
-From: Yordan Kamenov <ykamenov@mm-sol.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:56243 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752048Ab1EDSnj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 May 2011 14:43:39 -0400
+Received: from octopus.hi.pengutronix.de ([2001:6f8:1178:2:215:17ff:fe12:23b0])
+	by metis.ext.pengutronix.de with esmtp (Exim 4.72)
+	(envelope-from <ukl@pengutronix.de>)
+	id 1QHh2w-0003Un-Jt
+	for linux-media@vger.kernel.org; Wed, 04 May 2011 20:43:38 +0200
+Received: from ukl by octopus.hi.pengutronix.de with local (Exim 4.75)
+	(envelope-from <ukl@pengutronix.de>)
+	id 1QHh2w-0003wL-H6
+	for linux-media@vger.kernel.org; Wed, 04 May 2011 20:43:38 +0200
+Date: Wed, 4 May 2011 20:43:38 +0200
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+	<u.kleine-koenig@pengutronix.de>
 To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com,
-	Yordan Kamenov <ykamenov@mm-sol.com>
-Subject: [libv4l-mcplugin PATCH 0/3] Media controller plugin for libv4l2
-Date: Thu, 19 May 2011 15:36:09 +0300
-Message-Id: <cover.1305804894.git.ykamenov@mm-sol.com>
+Subject: Re: [git:v4l-dvb/for_v2.6.40] [media] V4L: mx3_camera: select
+ VIDEOBUF2_DMA_CONTIG instead of VIDEOBUF_DMA_CONTIG
+Message-ID: <20110504184338.GL11574@pengutronix.de>
+References: <E1QHgRh-0005bA-Jq@www.linuxtv.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <E1QHgRh-0005bA-Jq@www.linuxtv.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+Hello,
 
-This is the Media Controller plugin for libv4l. It uses libv4l2 plugin support
-which is accepted by Hans De Goede, but not yet included in mainline libv4l2:
-http://www.spinics.net/lists/linux-media/msg32017.html
+On Wed, Apr 13, 2011 at 02:56:54PM +0200, Mauro Carvalho Chehab wrote:
+> This is an automatic generated email to let you know that the following patch were queued at the 
+> http://git.linuxtv.org/media_tree.git tree:
+> 
+> Subject: [media] V4L: mx3_camera: select VIDEOBUF2_DMA_CONTIG instead of VIDEOBUF_DMA_CONTIG
+I don't understand why I get that mail now, the corresponding commit
+(122af366015abc) is already in Linux' tree??
 
-The plugin allows a traditional v4l2 applications to work with Media Controller
-framework. The plugin is loaded when application opens /dev/video0 and it
-configures the media controller and then all ioctl's by the applicatin are
-handled by the plugin.
+Uwe
 
-The plugin implements init, close and ioctl callbacks. The init callback
-checks it's input file descriptor and if it coresponds to /dev/video0, then
-the media controller is initialized and appropriate pipeline is created.
-The close callback deinitializes the pipeline, and closes the media device.
-The ioctl callback is responsible to handle ioctl calls from application by
-using the media controller pipeline.
-
-The plugin uses media-ctl library for media controller operations:
-http://git.ideasonboard.org/?p=media-ctl.git;a=summary
-
-The plugin is divided in three separate patches:
- * Media Controller pipelines initialization, configuration and destruction
- * v4l operations - uses some functionality from the first one
- * Plugin interface operations (init, close and ioctl) - uses functionality
-   from first two
-
-
-
-Yordan Kamenov (3):
-  Add files for media controller pipelines
-  Add files for v4l operations
-  Add libv4l2 media controller plugin interface files
-
+-- 
+Pengutronix e.K.                           | Uwe Kleine-König            |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
