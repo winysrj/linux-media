@@ -1,36 +1,123 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:55372 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751901Ab1EaBpE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 May 2011 21:45:04 -0400
-Received: by bwz15 with SMTP id 15so3246399bwz.19
-        for <linux-media@vger.kernel.org>; Mon, 30 May 2011 18:45:03 -0700 (PDT)
-Date: Tue, 31 May 2011 12:48:43 +1000
-From: Dmitri Belimov <d.belimov@gmail.com>
+Received: from mailout-de.gmx.net ([213.165.64.23]:43047 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753576Ab1EDLRn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 May 2011 07:17:43 -0400
+Message-ID: <4DC135E5.40805@gmx.net>
+Date: Wed, 04 May 2011 13:17:57 +0200
+From: Lutz Sammer <johns98@gmx.net>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Cc: thunder.m@email.cz, "istvan_v@mailbox.hu" <istvan_v@mailbox.hu>,
-	linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] XC4000 patches for kernel 2.6.37.2
-Message-ID: <20110531124843.377a2a80@glory.local>
-In-Reply-To: <4D764337.6050109@email.cz>
-References: <4D764337.6050109@email.cz>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+CC: mchehab@redhat.com
+Subject: [PATCH] stb0899: Fix not locking DVB-S transponder
+Content-Type: multipart/mixed;
+ boundary="------------060306030505080506020806"
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi
+This is a multi-part message in MIME format.
+--------------060306030505080506020806
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-> Hi Istvan
-> 
-> 	I am sending you modified patches for kernel 2.6.37.2, they
-> works as expected.
-> 
-> First apply kernel_xc4000.diff (your patch) then kernel_dtv3200h.diff 
-> for Leadtek DTV3200 XC4000 support.
+stb0899: Fix not locking DVB-S transponder
 
-Can you resend your patches with right Signed-Off string for commit into kernel?
+When stb0899_check_data is entered, it could happen, that the data is
+already locked and the data search looped.  stb0899_check_data fails to
+lock on a good frequency.  stb0899_search_data uses an extrem big search
+step and fails to lock.
 
-With my best regards, Dmitry.
+The new code checks for lock before starting a new search.
+The first read ignores the loop bit, for the case that the loop bit is
+set during the search setup.  I also added the msleep to reduce the
+traffic on the i2c bus.
+
+Resend, last version seems to be broken by email-client.
+
+Johns
+
+Signed-off-by: Lutz Sammer <johns98@gmx.net>
+
+--------------060306030505080506020806
+Content-Type: text/plain;
+ name="stb0899_not_locking_fix.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="stb0899_not_locking_fix.diff"
+
+diff --git a/drivers/media/dvb/frontends/stb0899_algo.c b/drivers/media/dvb/frontends/stb0899_algo.c
+index 2da55ec..55f0c4e 100644
+--- a/drivers/media/dvb/frontends/stb0899_algo.c
++++ b/drivers/media/dvb/frontends/stb0899_algo.c
+@@ -338,36 +338,42 @@ static enum stb0899_status stb0899_check_data(struct stb0899_state *state)
+ 	int lock = 0, index = 0, dataTime = 500, loop;
+ 	u8 reg;
+ 
+-	internal->status = NODATA;
++	reg = stb0899_read_reg(state, STB0899_VSTATUS);
++	lock = STB0899_GETFIELD(VSTATUS_LOCKEDVIT, reg);
++	if ( !lock ) {
+ 
+-	/* RESET FEC	*/
+-	reg = stb0899_read_reg(state, STB0899_TSTRES);
+-	STB0899_SETFIELD_VAL(FRESACS, reg, 1);
+-	stb0899_write_reg(state, STB0899_TSTRES, reg);
+-	msleep(1);
+-	reg = stb0899_read_reg(state, STB0899_TSTRES);
+-	STB0899_SETFIELD_VAL(FRESACS, reg, 0);
+-	stb0899_write_reg(state, STB0899_TSTRES, reg);
++		internal->status = NODATA;
+ 
+-	if (params->srate <= 2000000)
+-		dataTime = 2000;
+-	else if (params->srate <= 5000000)
+-		dataTime = 1500;
+-	else if (params->srate <= 15000000)
+-		dataTime = 1000;
+-	else
+-		dataTime = 500;
+-
+-	stb0899_write_reg(state, STB0899_DSTATUS2, 0x00); /* force search loop	*/
+-	while (1) {
+-		/* WARNING! VIT LOCKED has to be tested before VIT_END_LOOOP	*/
+-		reg = stb0899_read_reg(state, STB0899_VSTATUS);
+-		lock = STB0899_GETFIELD(VSTATUS_LOCKEDVIT, reg);
+-		loop = STB0899_GETFIELD(VSTATUS_END_LOOPVIT, reg);
++		/* RESET FEC	*/
++		reg = stb0899_read_reg(state, STB0899_TSTRES);
++		STB0899_SETFIELD_VAL(FRESACS, reg, 1);
++		stb0899_write_reg(state, STB0899_TSTRES, reg);
++		msleep(1);
++		reg = stb0899_read_reg(state, STB0899_TSTRES);
++		STB0899_SETFIELD_VAL(FRESACS, reg, 0);
++		stb0899_write_reg(state, STB0899_TSTRES, reg);
+ 
+-		if (lock || loop || (index > dataTime))
+-			break;
+-		index++;
++		if (params->srate <= 2000000)
++			dataTime = 2000;
++		else if (params->srate <= 5000000)
++			dataTime = 1500;
++		else if (params->srate <= 15000000)
++			dataTime = 1000;
++		else
++			dataTime = 500;
++
++		stb0899_write_reg(state, STB0899_DSTATUS2, 0x00); /* force search loop	*/
++		while (1) {
++			/* WARNING! VIT LOCKED has to be tested before VIT_END_LOOOP	*/
++			reg = stb0899_read_reg(state, STB0899_VSTATUS);
++			lock = STB0899_GETFIELD(VSTATUS_LOCKEDVIT, reg);
++			loop = STB0899_GETFIELD(VSTATUS_END_LOOPVIT, reg);
++	
++			if (lock || (loop && index) || (index > dataTime))
++				break;
++			index++;
++			msleep(1);
++		}
+ 	}
+ 
+ 	if (lock) {	/* DATA LOCK indicator	*/
+
+--------------060306030505080506020806--
