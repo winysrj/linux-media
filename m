@@ -1,63 +1,49 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:11219 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751198Ab1EBQgb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 May 2011 12:36:31 -0400
-Message-ID: <4DBEDD8B.7000905@redhat.com>
-Date: Mon, 02 May 2011 13:36:27 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from claranet-outbound-smtp04.uk.clara.net ([195.8.89.37]:57343 "EHLO
+	claranet-outbound-smtp04.uk.clara.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752778Ab1EDJcd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 May 2011 05:32:33 -0400
+From: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
+To: Andy Walls <awalls@md.metrocast.net>
+Subject: Re: [PATCH] cx18: Clean up mmap() support for raw YUV
+Date: Wed, 4 May 2011 10:32:23 +0100
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Steven Toth <stoth@kernellabs.com>
+References: <4DBFDF71.5090705@redhat.com> <1304423860-12785-1-git-send-email-simon.farnsworth@onelan.co.uk> <b418b252-4152-4666-9c83-85e91613b493@email.android.com>
+In-Reply-To: <b418b252-4152-4666-9c83-85e91613b493@email.android.com>
 MIME-Version: 1.0
-To: Sensoray Linux Development <linux-dev@sensoray.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/2][media] s2255drv: adding MJPEG format
-References: <4D9A0AFA.7090202@sensoray.com>
-In-Reply-To: <4D9A0AFA.7090202@sensoray.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201105041032.24644.simon.farnsworth@onelan.co.uk>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 04-04-2011 15:16, Sensoray Linux Development escreveu:
-> adding MJPEG format
+On Tuesday 3 May 2011, Andy Walls <awalls@md.metrocast.net> wrote:
+> Simon,
+> 
+> If these two changes are going in, please also bump the driver version to
+> 1.5.0 in cx18-version.c.  These changes are significant enough
+> perturbation.
+> 
+> End users are going to look to driver version 1.4.1 as the first version
+> for proper analog tuner support of the HVR1600 model 74351.
+> 
+> Mauro,
+> 
+> Is cx18 v1.4.1 with HVR1600 model 74351 analog tuner support, without these
+> mmap() changes going to be visible in kernel version .39 ?
 > 
 
-Please be careful when sending patches. I had to manually apply the hunks,
-as whitespaces were completely wrong on this patchset.
+Mauro,
 
-> Signed-off-by: Dean Anderson <linux-dev@sensoray.com>
-> ---
->  drivers/media/video/s2255drv.c |    6 ++++++
->  1 files changed, 6 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/video/s2255drv.c b/drivers/media/video/s2255drv.c
-> index b12e28e..38e5c4b 100644
-> --- a/drivers/media/video/s2255drv.c
-> +++ b/drivers/media/video/s2255drv.c
-> @@ -428,6 +428,10 @@ static const struct s2255_fmt formats[] = {
->          .fourcc = V4L2_PIX_FMT_JPEG,
->          .depth = 24
->      }, {
-> +        .name = "MJPG",
-> +        .fourcc = V4L2_PIX_FMT_MJPEG,
-> +        .depth = 24
-> +    }, {
->          .name = "8bpp GREY",
->          .fourcc = V4L2_PIX_FMT_GREY,
->          .depth = 8
-> @@ -648,6 +652,7 @@ static void s2255_fillbuff(struct s2255_channel *channel,
->              memcpy(vbuf, tmpbuf, buf->vb.width * buf->vb.height);
->              break;
->          case V4L2_PIX_FMT_JPEG:
-> +        case V4L2_PIX_FMT_MJPEG:
->              buf->vb.size = jpgsize;
->              memcpy(vbuf, tmpbuf, buf->vb.size);
->              break;
-> @@ -1032,6 +1037,7 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
->          mode.color |= COLOR_Y8;
->          break;
->      case V4L2_PIX_FMT_JPEG:
-> +    case V4L2_PIX_FMT_MJPEG:
->          mode.color &= ~MASK_COLOR;
->          mode.color |= COLOR_JPG;
->          mode.color |= (channel->jc.quality << 8);
-
+If you're going to accept these two patches, would you mind bumping the 
+version in cx18-version.c for me as you apply them, or would you prefer me to 
+provide either an incremental patch or a new patch with the bump added?
+-- 
+Simon Farnsworth
+Software Engineer
+ONELAN Limited
+http://www.onelan.com/
