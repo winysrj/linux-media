@@ -1,77 +1,26 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52162 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751980Ab1E0Obm (ORCPT
+Received: from mail-in-06.arcor-online.net ([151.189.21.46]:50029 "EHLO
+	mail-in-06.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753217Ab1EDQSt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 May 2011 10:31:42 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: javier Martin <javier.martin@vista-silicon.com>
-Subject: Re: [beagleboard] [PATCH] Second RFC version of mt9p031 sensor with power managament.
-Date: Fri, 27 May 2011 16:31:36 +0200
-Cc: Koen Kooi <koen@beagleboard.org>, beagleboard@googlegroups.com,
-	linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	carlighting@yahoo.co.nz
-References: <1306322212-26879-1-git-send-email-javier.martin@vista-silicon.com> <D9AEF5C4-C0FE-4CBA-B124-0C3C0EC4F5EA@beagleboard.org> <BANLkTimCLVfvuVEPuEeYH_T3BCV-1EB5hw@mail.gmail.com>
-In-Reply-To: <BANLkTimCLVfvuVEPuEeYH_T3BCV-1EB5hw@mail.gmail.com>
+	Wed, 4 May 2011 12:18:49 -0400
+Message-ID: <4DC17C66.3070006@arcor.de>
+Date: Wed, 04 May 2011 18:18:46 +0200
+From: Stefan Ringel <stefan.ringel@arcor.de>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Dmitri Belimov <d.belimov@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v1] tm6000: rework standards
+References: <4CAD5A78.3070803@redhat.com> <4CB492D4.1000609@arcor.de> <20101129174412.08f2001c@glory.local> <4CF51C9E.6040600@arcor.de> <20101201144704.43b58f2c@glory.local> <4CF67AB9.6020006@arcor.de> <20101202134128.615bbfa0@glory.local> <4CF71CF6.7080603@redhat.com> <20101206010934.55d07569@glory.local> <4CFBF62D.7010301@arcor.de> <20101206190230.2259d7ab@glory.local> <4CFEA3D2.4050309@arcor.de> <20101208125539.739e2ed2@glory.local> <4CFFAD1E.7040004@arcor.de> <20101214122325.5cdea67e@glory.local> <4D079ADF.2000705@arcor.de> <20101215164634.44846128@glory.local> <4D08E43C.8080002@arcor.de> <20101216183844.6258734e@glory.local> <4D0A4883.20804@arcor.de> <20101217104633.7c9d10d7@glory.local> <4D0AF2A7.6080100@arcor.de> <20101217160854.16a1f754@glory.local> <4D0BFF4B.3060001@redhat.com> <20110120150508.53c9b55e@glory.local> <4D388C44.7040500@arcor.de> <20110217141257.6d1b578b@glory.local> <4D5D8BFB.4070802@redhat.com> <20110419152937.1ea64fb3@glory.local> <4DAD2EBE.3060000@ar
+ cor.de>
+In-Reply-To: <4DAD2EBE.3060000@arcor.de>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201105271631.37469.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Javier,
+Dmitri,
 
-On Thursday 26 May 2011 13:31:37 javier Martin wrote:
-> OK, I think I've found the problem with the power management.
-> 
-> As it is stated in mt9p031 datasheet [3] p 59, a sequence involving
-> [VAA,VAA_PIX,VDD_PLL], [VDD,VDD_IO], [Reset] and [Ext Clk] must be
-> followed in order to properly power up or down the sensor.
-> 
-> If we take a look to the LI-5M031 schematic[1] and Beagleboard xM
-> schematic [2] we'll notice that voltages are connected as follows:
-> 
-> [VDD] (1,8V) <--- V2.8 <--- CAM_CORE <--- VAUX3 TPS65950
-> [VDD_IO (VDDQ)] (1,8V) <--- V1.8 <--- CAM_IO <--- VAUX4 TPS65950
-> [VAA, VAA_PIX, VDD_PLL] (2,8V) <---| U6 |<-- V3.3VD <-- HUB_3V3 <--|
-> U16 | enabled by USBHOST_PWR_EN <-- LEDA TPS65950
-> 
-> VAUX3 (VDD) and VAUX4 (VDD_IO) are fine, they are only used for
-> powering our camera sensor. However, when it comes to the analog part
-> (VAA, VAA_PIX...), it is got from HUB_3V3 which is also used for
-> powering USB and ethernet.
-
-*sigh* Why do hardware designers do things like that, really ?
-
-> If we really want to activate/deactivate regulators that power mt9p031
-> we need to follow [3] p59. However, for that purpose we need to ensure
-> that a call to regulator_enable() or regulator_disable() will really
-> power on/off that supply, otherwise the sequence won't be matched and
-> the chip will have problems.
-> 
-> Beagleboard xM is a good example of platform where this happens since
-> HUB_3V3 and thus (VAA, VAA_PIX, etc...) cannot be deactivated since it
-> is being used by other devices. But there could be others.
-> 
-> So, as a conclusion, and in order to unblock my work, my purpose for
-> power management in mt9p031 would be the following:
-> - Drop regulator handling as we cannot guarantee that power on
-> sequence will be accomplished.
-> - Keep on asserting/de-asserting reset which saves a lot of power.
-> - Also activate/deactivate clock when necessary to save some power.
-> 
-> I'm looking forward to read your comments on this.
-
-Even if you keep the sensor powered all the time, how do you ensure that VAUX3 
-is available before HUB_3V3 when the system is powered up ?
-
-> [1] https://www.leopardimaging.com/uploads/li-5m03_camera_board_v2.pdf
-> [2] http://beagle.s3.amazonaws.com/design/xM-A3/BB-xM_Schematic_REVA3.pdf
-> [3] http://www.aptina.com/products/image_sensors/mt9p031i12stc/
-
--- 
-Regards,
-
-Laurent Pinchart
+I have tested your patch, but is doesn't work (big crash -> long, long, 
+long beep).
