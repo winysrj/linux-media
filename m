@@ -1,46 +1,53 @@
 Return-path: <mchehab@pedra>
-Received: from lo.gmane.org ([80.91.229.12]:36397 "EHLO lo.gmane.org"
+Received: from mx1.redhat.com ([209.132.183.28]:23787 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752990Ab1E0Lgu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 May 2011 07:36:50 -0400
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1QPvLV-0000Xe-9g
-	for linux-media@vger.kernel.org; Fri, 27 May 2011 13:36:49 +0200
-Received: from 193.160.199.2 ([193.160.199.2])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Fri, 27 May 2011 13:36:49 +0200
-Received: from bjorn by 193.160.199.2 with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Fri, 27 May 2011 13:36:49 +0200
-To: linux-media@vger.kernel.org
-From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
-Subject: Re: PCTV nanoStick T2 290e support - Thank you!
-Date: Fri, 27 May 2011 13:36:37 +0200
-Message-ID: <8739k0tlx6.fsf@nemi.mork.no>
-References: <1306445141.14462.0.camel@porites> <4DDEDB0E.30108@iki.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+	id S1751760Ab1EDQDa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 May 2011 12:03:30 -0400
+Message-ID: <4DC178C8.4040603@redhat.com>
+Date: Wed, 04 May 2011 13:03:20 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media@vger.kernel.org
+Subject: Re: [GIT PULL FOR 2.6.40] Anysee
+References: <4DBAEFC5.8080707@iki.fi>
+In-Reply-To: <4DBAEFC5.8080707@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Antti Palosaari <crope@iki.fi> writes:
-> On 05/27/2011 12:25 AM, Nicolas WILL wrote:
->> Just installed mine for MythTV.
->>
->> Works great on the first try!
->>
->> Many, many thanks!
->
-> Thank you for the feedback!
+Em 29-04-2011 14:05, Antti Palosaari escreveu:
+> Moikka Mauro,
+> 
+> PULL following patches for the 2.6.40.
+> 
+> This basically adds support for two Anysee satellite models:
+> 1. E30 S2 Plus
+> 2. E7 S2
+> 
+> 
+> t. Antti
+> 
+> The following changes since commit f5bc5d1d4730bce69fbfdc8949ff50b49c70d934:
+> 
+>   anysee: add more info about known board configs (2011-04-13 02:17:11 +0300)
+> 
+> are available in the git repository at:
+>   git://linuxtv.org/anttip/media_tree.git anysee
+> 
+> Antti Palosaari (3):
+>       cx24116: add config option to split firmware download
+>       anysee: add support for Anysee E30 S2 Plus
+>       anysee: add support for Anysee E7 S2
 
-I'm a bit curious about this device.  It seems to only be marketed as a
-DVB-T2 device in areas where that spec is used.  But looking at your
-driver, it seems that the device also supports DVB-C.  Is that correct?
+As I said you on irc, at cx24116, please add a logic to explicitly check if
+I2C size is equal to zero. While your logic works, it is tricky, and having
+a more readable code at the expense of something like:
+	if (i2c_max == 0)
+		i2c_max = 65535;
 
+seems to be the right thing to do.
 
-
-Bjørn
-
+Thanks,
+Mauro.
