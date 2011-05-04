@@ -1,108 +1,53 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:1321 "EHLO
-	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754085Ab1ERG0o (ORCPT
+Received: from claranet-outbound-smtp05.uk.clara.net ([195.8.89.38]:60823 "EHLO
+	claranet-outbound-smtp05.uk.clara.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753722Ab1EDLjR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 May 2011 02:26:44 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Ondrej Zary <linux@rainbow-software.org>
-Subject: Re: [PATCH RFC v2] radio-sf16fmr2: convert to generic TEA575x interface
-Date: Wed, 18 May 2011 08:26:19 +0200
-Cc: linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	"Kernel development list" <linux-kernel@vger.kernel.org>
-References: <201105140017.26968.linux@rainbow-software.org> <201105172133.14835.hverkuil@xs4all.nl> <201105172205.28899.linux@rainbow-software.org>
-In-Reply-To: <201105172205.28899.linux@rainbow-software.org>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201105180826.19361.hverkuil@xs4all.nl>
+	Wed, 4 May 2011 07:39:17 -0400
+From: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Andy Walls <awalls@md.metrocast.net>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Steven Toth <stoth@kernellabs.com>,
+	Simon Farnsworth <simon.farnsworth@onelan.co.uk>
+Subject: [PATCH] cx18: Bump driver version to 1.5.0
+Date: Wed,  4 May 2011 12:39:07 +0100
+Message-Id: <1304509147-28058-1-git-send-email-simon.farnsworth@onelan.co.uk>
+In-Reply-To: <4DC138F7.5050400@infradead.org>
+References: <4DC138F7.5050400@infradead.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tuesday, May 17, 2011 22:05:26 Ondrej Zary wrote:
-> On Tuesday 17 May 2011 21:33:14 Hans Verkuil wrote:
-> > Hi Ondrej!
-> >
-> > On Sunday, May 15, 2011 23:26:33 Hans Verkuil wrote:
-> > > On Sunday, May 15, 2011 22:18:21 Ondrej Zary wrote:
-> > > > Thanks, it's much simpler with the new control framework.
-> > > > Do the negative volume control values make sense? The TC9154A chip can
-> > > > attenuate the volume from 0 to -68dB in 2dB steps.
-> > >
-> > > It does make sense, but I think I would offset the values so they start
-> > > at 0. Mostly because there might be some old apps that set the volume to
-> > > 0 when they want to mute, which in this case is full volume.
-> > >
-> > > I am not aware of any driver where a volume of 0 isn't the same as the
-> > > lowest volume possible, so in this particular case I would apply an
-> > > offset.
-> > >
-> > > I will have to do a closer review tomorrow or the day after. I think
-> > > there are a few subtleties that I need to look at. Ping me if you haven't
-> > > heard from me by Wednesday. I would really like to get these drivers up
-> > > to spec now that I have someone who can test them, and once that's done I
-> > > hope that I never have to look at them again :-) (Unlikely, but one can
-> > > dream...)
-> >
-> > OK, I looked at it a bit more and it needs to be changed a little bit. The
-> > problem is that the VOLUME control is added after snd_tea575x_init, i.e.
-> > after the video_register_device call. The video_register_device call should
-> > be the last thing done before the init sequence returns. There may be
-> > applications (dbus/hal) that open devices as soon as they appear, so doing
-> > more initialization after the video node is registered is not a good idea
-> > (many older V4L drivers make this mistake).
-> >
-> > Perhaps creating a snd_tea575x_register function doing just the
-> > registration may be a good idea. Or a callback before doing the
-> > video_register_device.
-> 
-> OK, I'll reorder the lines in snd_tea575x_init function and add a callback 
-> that radio-sf16fmr2 can use.
-> 
-> Also upgraded my card with TC9154AP chip so I can actually test the volume 
-> control code (and it was broken in my previous patch...). The left and right 
-> channels can be separately controlled - is there a way to provide separate 
-> left and right volume controls? Or do I need to fake up a balance control?
+To simplify maintainer support of this driver, bump the version to
+1.5.0 - this will be the first version that is expected to support
+mmap() for raw video frames.
 
-A fake balance control would be the way to go. There are other drivers that
-do it like that.
+Signed-off-by: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
+---
+Mauro,
 
-> > Another thing: the tea->mute field shouldn't be needed anymore. And the
-> > 'mute on init' bit in snd_tea575x_init can be removed as well since that
-> > is automatically performed by v4l2_ctrl_handler_setup.
-> 
-> Thought about this too but the snd_tea575x_write() and snd_tea575x_read() 
-> functions need to know the mute status. And these functions are also used to 
-> detect the tuner presence before initializing the controls. I don't see any 
-> elegant solution.
+This is an incremental patch to apply on top of my cleanup patch - if
+you would prefer a complete new patch with this squashed into the
+cleanup patch, just ask and it will be done.
 
-What typically is done is that the mute v4l2_ctrl pointer is stored and
-dereferenced to get the value. But in a simple case like this backing up
-the value works just as well.
+ drivers/media/video/cx18/cx18-version.h |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-Regards,
+diff --git a/drivers/media/video/cx18/cx18-version.h b/drivers/media/video/cx18/cx18-version.h
+index 62c6ca2..cd189b6 100644
+--- a/drivers/media/video/cx18/cx18-version.h
++++ b/drivers/media/video/cx18/cx18-version.h
+@@ -24,8 +24,8 @@
+ 
+ #define CX18_DRIVER_NAME "cx18"
+ #define CX18_DRIVER_VERSION_MAJOR 1
+-#define CX18_DRIVER_VERSION_MINOR 4
+-#define CX18_DRIVER_VERSION_PATCHLEVEL 1
++#define CX18_DRIVER_VERSION_MINOR 5
++#define CX18_DRIVER_VERSION_PATCHLEVEL 0
+ 
+ #define CX18_VERSION __stringify(CX18_DRIVER_VERSION_MAJOR) "." __stringify(CX18_DRIVER_VERSION_MINOR) "." __stringify(CX18_DRIVER_VERSION_PATCHLEVEL)
+ #define CX18_DRIVER_VERSION KERNEL_VERSION(CX18_DRIVER_VERSION_MAJOR, \
+-- 
+1.7.4
 
-	Hans
-
-> > In addition, the .ioctl field in tea575x_fops can be replaced by
-> > .unlocked_ioctl. The whole exclusive open stuff and the in_use field can be
-> > removed. The only thing needed is a struct mutex in struct snd_tea575x,
-> > initialize it and set tea575x_radio_inst->lock to the mutex. This will
-> > serialize all access safely.
-> 
-> I'll do this as a separate patch later.
-> 
-> > To do this really right you should add struct v4l2_device to struct
-> > snd_tea575x (the radio-sf16fmr2 driver has one, so you can use that as an
-> > example). With that in place you can also add support for 'priority'
-> > handling. I'd say see what you can do, and if it takes too much time then
-> > mail me the tea575x code and the radio-sf16frm2 code and I'll finish it.
-> >
-> > Regards,
-> >
-> > 	Hans
-> 
-> 
-> 
-> 
