@@ -1,28 +1,98 @@
-Return-path: <mchehab@gaivota>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:52609 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753425Ab1ELHrl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 May 2011 03:47:41 -0400
-Date: Thu, 12 May 2011 08:47:25 +0100
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Josh Wu <josh.wu@atmel.com>
-Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
-	lars.haring@atmel.com, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, g.liakhovetski@gmx.de
-Subject: Re: [PATCH] [media] at91: add Atmel Image Sensor Interface (ISI)
-	support
-Message-ID: <20110512074725.GA1356@n2100.arm.linux.org.uk>
-References: <1305186138-5656-1-git-send-email-josh.wu@atmel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1305186138-5656-1-git-send-email-josh.wu@atmel.com>
+Return-path: <mchehab@pedra>
+Received: from mail-out.m-online.net ([212.18.0.9]:40719 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754411Ab1EDUTY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 May 2011 16:19:24 -0400
+From: Anatolij Gustschin <agust@denx.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] fsl_viu: add VIDIOC_OVERLAY ioctl
+Date: Wed,  4 May 2011 22:19:28 +0200
+Message-Id: <1304540368-6818-1-git-send-email-agust@denx.de>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On Thu, May 12, 2011 at 03:42:18PM +0800, Josh Wu wrote:
-> +err_alloc_isi:
-> +	clk_disable(pclk);
+Currently the driver enables overlay when running
+VIDIOC_S_FMT ioctl with fmt type V4L2_BUF_TYPE_VIDEO_OVERLAY.
+Actually, this is wrong. Add proper VIDIOC_OVERLAY support
+instead of using VIDIOC_S_FMT for overlay enable.
 
-clk_put() ?
+Signed-off-by: Anatolij Gustschin <agust@denx.de>
+---
+ drivers/media/video/fsl-viu.c |   32 +++++++++++++++++++++++++-------
+ 1 files changed, 25 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/media/video/fsl-viu.c b/drivers/media/video/fsl-viu.c
+index ab05a09..908d701 100644
+--- a/drivers/media/video/fsl-viu.c
++++ b/drivers/media/video/fsl-viu.c
+@@ -766,7 +766,7 @@ inline void viu_activate_overlay(struct viu_reg *viu_reg)
+ 	out_be32(&vr->picture_count, reg_val.picture_count);
+ }
+ 
+-static int viu_start_preview(struct viu_dev *dev, struct viu_fh *fh)
++static int viu_setup_preview(struct viu_dev *dev, struct viu_fh *fh)
+ {
+ 	int bpp;
+ 
+@@ -805,11 +805,6 @@ static int viu_start_preview(struct viu_dev *dev, struct viu_fh *fh)
+ 	/* setup the base address of the overlay buffer */
+ 	reg_val.field_base_addr = (u32)dev->ovbuf.base;
+ 
+-	dev->ovenable = 1;
+-	viu_activate_overlay(dev->vr);
+-
+-	/* start dma */
+-	viu_start_dma(dev);
+ 	return 0;
+ }
+ 
+@@ -828,7 +823,7 @@ static int vidioc_s_fmt_overlay(struct file *file, void *priv,
+ 	fh->win = f->fmt.win;
+ 
+ 	spin_lock_irqsave(&dev->slock, flags);
+-	viu_start_preview(dev, fh);
++	viu_setup_preview(dev, fh);
+ 	spin_unlock_irqrestore(&dev->slock, flags);
+ 	return 0;
+ }
+@@ -839,6 +834,28 @@ static int vidioc_try_fmt_overlay(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
++static int vidioc_overlay(struct file *file, void *priv, unsigned int on)
++{
++	struct viu_fh  *fh  = priv;
++	struct viu_dev *dev = (struct viu_dev *)fh->dev;
++	unsigned long  flags;
++
++	if (on) {
++		spin_lock_irqsave(&dev->slock, flags);
++		viu_activate_overlay(dev->vr);
++		dev->ovenable = 1;
++
++		/* start dma */
++		viu_start_dma(dev);
++		spin_unlock_irqrestore(&dev->slock, flags);
++	} else {
++		viu_stop_dma(dev);
++		dev->ovenable = 0;
++	}
++
++	return 0;
++}
++
+ int vidioc_g_fbuf(struct file *file, void *priv, struct v4l2_framebuffer *arg)
+ {
+ 	struct viu_fh  *fh = priv;
+@@ -1418,6 +1435,7 @@ static const struct v4l2_ioctl_ops viu_ioctl_ops = {
+ 	.vidioc_g_fmt_vid_overlay = vidioc_g_fmt_overlay,
+ 	.vidioc_try_fmt_vid_overlay = vidioc_try_fmt_overlay,
+ 	.vidioc_s_fmt_vid_overlay = vidioc_s_fmt_overlay,
++	.vidioc_overlay	      = vidioc_overlay,
+ 	.vidioc_g_fbuf	      = vidioc_g_fbuf,
+ 	.vidioc_s_fbuf	      = vidioc_s_fbuf,
+ 	.vidioc_reqbufs       = vidioc_reqbufs,
+-- 
+1.7.1
+
