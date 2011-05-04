@@ -1,45 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:43054 "EHLO smtp5-g21.free.fr"
+Received: from mx1.redhat.com ([209.132.183.28]:58560 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752539Ab1EVIQF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 May 2011 04:16:05 -0400
-Received: from tele (unknown [82.245.201.222])
-	by smtp5-g21.free.fr (Postfix) with ESMTP id F197AD4821B
-	for <linux-media@vger.kernel.org>; Sun, 22 May 2011 10:15:58 +0200 (CEST)
-Date: Sun, 22 May 2011 10:16:34 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: linux-media@vger.kernel.org
-Subject: [PATCH FOR 2.6.39] gspca - ov519: Fix a regression for ovfx2
- webcams
-Message-ID: <20110522101634.33e10357@tele>
-Mime-Version: 1.0
+	id S1755034Ab1EDTTx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 May 2011 15:19:53 -0400
+Message-ID: <4DC1A6D2.6010603@redhat.com>
+Date: Wed, 04 May 2011 16:19:46 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Linus Torvalds <torvalds@linux-foundation.org>
+CC: Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for 2.6.39-rc7] V4L/DVB updates
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-By git commit c42cedbb658b, the bulk transfer size was changed to a lower
-value for resolutions != 1600x1200, but the image extraction routine still
-worked with the previous value, giving bad truncated images.
+Hi Linus,
 
-Signed-off-by: Jean-François Moine <moinejf@free.fr>
----
- drivers/media/video/gspca/ov519.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Please pull from:
+	ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
 
-diff --git a/drivers/media/video/gspca/ov519.c b/drivers/media/video/gspca/ov519.c
-index 36a46fc..5ac2f3c 100644
---- a/drivers/media/video/gspca/ov519.c
-+++ b/drivers/media/video/gspca/ov519.c
-@@ -4478,7 +4478,7 @@ static void ovfx2_pkt_scan(struct gspca_dev *gspca_dev,
- 	gspca_frame_add(gspca_dev, INTER_PACKET, data, len);
- 
- 	/* A short read signals EOF */
--	if (len < OVFX2_BULK_SIZE) {
-+	if (len < gspca_dev->cam.bulk_size) {
- 		/* If the frame is short, and it is one of the first ones
- 		   the sensor and bridge are still syncing, so drop it. */
- 		if (sd->first_frame) {
--- 
-1.7.5.1
+For one regression at v4l2 sub-devices, a few remote controler driver fixes, one Kconfig
+missing dependency and one regression at ngene driver.
+
+Thanks!
+Mauro.
+
+-
+
+
+The following changes since commit 0ee5623f9a6e52df90a78bd21179f8ab370e102e:
+
+  Linux 2.6.39-rc6 (2011-05-03 19:59:13 -0700)
+
+are available in the git repository at:
+  ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
+
+Herton Ronaldo Krzesinski (1):
+      [media] v4l: make sure drivers supply a zeroed struct v4l2_subdev
+
+Hussam Al-Tayeb (1):
+      [media] rc_core: avoid kernel oops when rmmod saa7134
+
+Jarod Wilson (4):
+      [media] mceusb: add Dell transceiver ID
+      [media] ite-cir: modular build on ppc requires delay.h include
+      [media] rc: show RC_TYPE_OTHER in sysfs
+      [media] imon: add conditional locking in change_protocol
+
+Malcolm Priestley (1):
+      [media] Missing frontend config for LME DM04/QQBOX
+
+Oliver Endriss (1):
+      [media] ngene: Fix CI data transfer regression     Fix CI data transfer regression introduced by previous cleanup.
+
+ drivers/media/dvb/dvb-usb/Kconfig    |    2 ++
+ drivers/media/dvb/ngene/ngene-core.c |    1 +
+ drivers/media/radio/saa7706h.c       |    2 +-
+ drivers/media/radio/tef6862.c        |    2 +-
+ drivers/media/rc/imon.c              |   31 +++++++++++++++++++++++++++----
+ drivers/media/rc/ite-cir.c           |    1 +
+ drivers/media/rc/mceusb.c            |    2 ++
+ drivers/media/rc/rc-main.c           |    4 +++-
+ drivers/media/video/m52790.c         |    2 +-
+ drivers/media/video/tda9840.c        |    2 +-
+ drivers/media/video/tea6415c.c       |    2 +-
+ drivers/media/video/tea6420.c        |    2 +-
+ drivers/media/video/upd64031a.c      |    2 +-
+ drivers/media/video/upd64083.c       |    2 +-
+ 14 files changed, 44 insertions(+), 13 deletions(-)
+
