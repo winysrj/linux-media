@@ -1,91 +1,84 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40387 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752355Ab1E3VrW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 May 2011 17:47:22 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Bastian Hecht <hechtb@googlemail.com>
-Subject: Re: Capabilities of the Omap3 ISP driver
-Date: Mon, 30 May 2011 23:47:23 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	"Felix v. Hundelshausen" <felix.v.hundelshausen@live.de>
-References: <BANLkTineUffG1yd3Ey30wr0xzAj3_Zd1KQ@mail.gmail.com> <201105301045.24326.laurent.pinchart@ideasonboard.com> <BANLkTi=t99QM93psfrOK+t2cRtpmtwzu6w@mail.gmail.com>
-In-Reply-To: <BANLkTi=t99QM93psfrOK+t2cRtpmtwzu6w@mail.gmail.com>
+Received: from ffm.saftware.de ([83.141.3.46]:55706 "EHLO ffm.saftware.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753669Ab1EDO2A (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 May 2011 10:28:00 -0400
+Message-ID: <4DC1626C.1020206@linuxtv.org>
+Date: Wed, 04 May 2011 16:27:56 +0200
+From: Andreas Oberritter <obi@linuxtv.org>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Issa Gorissen <flop.m@usa.net>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Ngene cam device name
+References: <208PeDoec2016S01.1304517902@web01.cms.usa.net>
+In-Reply-To: <208PeDoec2016S01.1304517902@web01.cms.usa.net>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201105302347.24554.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Bastian,
-
-On Monday 30 May 2011 23:39:13 Bastian Hecht wrote:
-> 2011/5/30 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> > On Sunday 29 May 2011 15:27:23 Bastian Hecht wrote:
-> >> Hello Laurent,
-> >> 
-> >> I'm on to a project that needs two synced separate small cameras for
-> >> stereovision.
-> >> 
-> >> I was thinking about realizing this on an DM3730 with 2 aptina csi2
-> >> cameras that are used in snapshot mode.
-> > 
-> > As far as I know, the DM3730 doesn't have CSI2 interfaces.
+On 05/04/2011 04:05 PM, Issa Gorissen wrote:
+> From: Andreas Oberritter <obi@linuxtv.org>
+>> It wouldn't have multiple adapters numbers either.
 > 
-> If I don't mix up datasheets, it is stated very clearly that 2 csi2
-> interfaces are supported. I took the datasheet at
-> http://www.ti.com/litv/pdf/sprugn4k declared as AM/DM37x Multimedia
-> Device Technical Reference Manual (Silicon Revision 1.x) (Rev. K)
-> (PDF  26851 KB).
-> "The camera ISP implements three receivers which are named CSI2A,
-> CSI1/CCP2B, and CSI2C. The CSI2A and CSI2C are MIPI D-PHY CSI2
-> compatible." on page 1070.
+> What do you mean by they shouldn't have mulitple adapters numbers ? Multiple
+> WinTV-CI devices should have distinct node parents, ie
+> /dev/dvb/adapter[01]/<node>
 
-Chapter 6 starts with the following disclaimer:
+I wrote "wouldn't", not "shouldn't". I'm fine with it.
 
-"NOTE: This chapter gives information about all modules and features in the 
-high-tier device. To check availability of modules and features, see Section 
-1.5, AM/DM37x Family, and the device-specific data manual. In unavailable 
-modules and features, the memory area is reserved, read is undefined, and 
-write can lead to unpredictable behavior."
-
-And if you look at table 1-3 on page 195, the CSI2 receivers are not 
-supported.
-
-> >> The questions that arise are:
-> >> 
-> >> - is the ISP driver capable of running 2 concurrent cameras?
-> > 
-> > Yes it can, but only one of them can use the CCDC, preview engine and
-> > resizer. The other will be captured directly to memory as raw data. You
-> > could capture both raw streams to memory, and then feed them
-> > alternatively through the rest of the pipeline. Whether this can work
-> > will depend on the image size and frame rate.
+>>> With the transmitted keys changed frequently (at least for viaccess),
+> what's
+>>> the point in supporting offline descrambling when it will not work
+> reliably
+>>> for all ?
+>>
+>> The reliability of offline descrambling depends on the network operators
+>> policy. So while it won't be useful for everybody in the world, it might
+>> well be useful to all customers of certain operators.
+>>
+>>> As for descrambling multiple tv channels from different transponders with
+> only
+>>> one cam, this is already possible. An example is what Digital Devices
+> calls
+>>> MTD (Multi Transponder Decrypting). But this is CAM dependent, some do
+> not
+>>> support it.
+>>
+>> What's the point if it doesn't work reliably for everybody? ;-)
 > 
-> Ok I will check if it is sufficient to do any conversions on the cpu.
 > 
-> >> - is it possible to simulate a kind of video stream that is externally
-> >> triggered (I would use a gpio line that simply triggers 10 times a
-> >> sec) or would there arise problems with the csi2 protocoll (timeouts
-> >> or similar)?
-> > 
-> > I don't think there will be CSI2 issues (although I'm not an expert
-> > there) if you trigger the sensors externally.
+> Well, isn't it easier to change a CAM than an operator ? For many of us in
+> France/Belgium, you might even have no choice at all for the operator.
+
+Again it depends on the operator, whether getting a working CAM at all
+is possible, putting aside that there's no guarantee that it would work
+with "MTD". But I really don't mind. See the smiley. I was just
+referring to your similar question. I wasn't going to tell that foo was
+better than or even related to bar, but just that foo is a good feature
+for many people. I also consider bar a good feature.
+
+>>>> Why don't you just create a new device, e.g. ciX, deprecate the use of
+>>>> caX for CI devices, inherit CI-related existing ioctls from the CA API,
+>>>> translate the existing read and write funtions to ioctls and then use
+>>>> read and write for TS I/O? IIRC, Ralph suggested something similar. I'm
+>>>> pretty sure this can be done without too much code and in a backwards
+>>>> compatible way.
+>>>
+>>>
+>>> I'm open to this idea, but is there a consensus on this big API change ?
+>>> (deprecating ca device) If yes, I will try to prepare something.
+>>
+>> The existing API could be copied to linux/dvb/ci.h and then simplified
+>> and reviewed.
+>>
 > 
-> Nice, when the ISP side is probably no problem - do you have any
-> experience with snapshot mode and know if cameras are capable of doing
-> it at framerates about 10fps? It is just because snapshot mode sounds
-> like taking 1 frame every now and then... can't they call it "trigger
-> mode"? :)
+> As I said, if you can create a consensus behind your idea, then I will try to
+> prepare something.
 
-I haven't personally tried it, but 10fps doesn't sound impossible to reach 
-with external triggers.
+I don't think this is going to happen, as nobody really seems to care
+(me included). I was just pointing out ways that I consider more likely
+to succeed.
 
--- 
 Regards,
-
-Laurent Pinchart
+Andreas
