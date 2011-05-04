@@ -1,69 +1,106 @@
 Return-path: <mchehab@pedra>
-Received: from mail-in-02.arcor-online.net ([151.189.21.42]:53103 "EHLO
-	mail-in-02.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751073Ab1ECO0p (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 May 2011 10:26:45 -0400
-Message-ID: <4DC01043.6090309@arcor.de>
-Date: Tue, 03 May 2011 16:25:07 +0200
-From: Stefan Ringel arcor <stefan.ringel@arcor.de>
+Received: from ffm.saftware.de ([83.141.3.46]:40991 "EHLO ffm.saftware.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752969Ab1EDNvI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 May 2011 09:51:08 -0400
+Message-ID: <4DC159C7.1070201@linuxtv.org>
+Date: Wed, 04 May 2011 15:51:03 +0200
+From: Andreas Oberritter <obi@linuxtv.org>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org, d.belimov@gmail.com
-Subject: Re: [PATCH 3/5] tm6000: add audio mode parameter
-References: <1301948324-27186-1-git-send-email-stefan.ringel@arcor.de> <1301948324-27186-3-git-send-email-stefan.ringel@arcor.de> <4DADFDF1.9020108@redhat.com> <4DAE9B00.7050404@arcor.de> <4DBFD3CD.9070008@redhat.com>
-In-Reply-To: <4DBFD3CD.9070008@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-15
+To: Issa Gorissen <flop.m@usa.net>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] Ngene cam device name
+References: <889PeDLgF4624S03.1304507225@web03.cms.usa.net>
+In-Reply-To: <889PeDLgF4624S03.1304507225@web03.cms.usa.net>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Am 03.05.2011 12:07, schrieb Mauro Carvalho Chehab:
-> Em 20-04-2011 05:36, Stefan Ringel escreveu:
->> Am 19.04.2011 23:26, schrieb Mauro Carvalho Chehab:
->>> Em 04-04-2011 17:18, stefan.ringel@arcor.de escreveu:
->>>> From: Stefan Ringel<stefan.ringel@arcor.de>
->>>>
->>>> add audio mode parameter
->>> Why we need a parameter for it? It should be determined based on
->>> the standard.
->>>
->> tm6010 has a sif decoder, and I think if auto detect doesn't work, use can set the audio standard, which it has in your region. Or it's better if users can see image but can hear audio?
-> I did some tests with SIF and MTS here. None of them were capable of working with BTSC signals with
-> my devices. Adding a parameter won't help it at all. What we need to do is to fix the audio
-> decoding.
->
-In the next patch I will send it. A preview I have send to be test (
-https://patchwork.kernel.org/patch/722021/ ).
->>>> Signed-off-by: Stefan Ringel<stefan.ringel@arcor.de>
->>>> ---
->>>>   drivers/staging/tm6000/tm6000-stds.c |    5 +++++
->>>>   1 files changed, 5 insertions(+), 0 deletions(-)
->>>>
->>>> diff --git a/drivers/staging/tm6000/tm6000-stds.c b/drivers/staging/tm6000/tm6000-stds.c
->>>> index da3e51b..a9e1921 100644
->>>> --- a/drivers/staging/tm6000/tm6000-stds.c
->>>> +++ b/drivers/staging/tm6000/tm6000-stds.c
->>>> @@ -22,12 +22,17 @@
->>>>   #include "tm6000.h"
->>>>   #include "tm6000-regs.h"
->>>>
->>>> +static unsigned int tm6010_a_mode;
->>>> +module_param(tm6010_a_mode, int, 0644);
->>>> +MODULE_PARM_DESC(tm6010_a_mode, "set sif audio mode (tm6010 only)");
->>>> +
->>>>   struct tm6000_reg_settings {
->>>>       unsigned char req;
->>>>       unsigned char reg;
->>>>       unsigned char value;
->>>>   };
->>>>
->>>> +/* must be updated */
->>>>   enum tm6000_audio_std {
->>>>       BG_NICAM,
->>>>       BTSC,
->> -- 
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On 05/04/2011 01:07 PM, Issa Gorissen wrote:
+> From: Andreas Oberritter <obi@linuxtv.org>
+>>
+>> Of course I'm referring to devices connected to the same physical
+>> adapter. Otherwise they would all be called ca0. Device enumeration
+>> always starts at 0, for each adapter. What you're describing just
+>> doesn't make sense.
+> 
+> 
+> Yes indeed you're right, I answered too quickly.
+> 
+> 
+>> Last but not least, using a different adapter number wouldn't fit
+>> either, because a DVB adapter is supposed to
+>> - be one independent piece of hardware
+>> - provide at least a frontend and a demux device
+> 
+> 
+> How would you support device like the Hauppauge WinTV-CI ? This one comes on a
+> USB port and does not provide any frontend and demux device.
 
+Yes, as an exception, this device indeed wouldn't have a frontend,
+because it doesn't exist physycally.
+
+It wouldn't have multiple adapters numbers either.
+
+>> At least on embedded devices, it simply isn't feasible to copy a TS to
+>> userspace from a demux, just to copy it back to the kernel and again
+>> back to userspace through a caio device, when live streaming. But you
+>> may want to provide a way to use the caio device for
+>> offline-descrambling. Unless you want to force users to buy multiple
+>> modules and multiple subscriptions for a single receiver, which in turn
+>> would need multiple CI slots, you need a way to make sure caio can not
+>> be used during live streaming. If this dependency is between different
+>> adapters, then something is really, really wrong.
+> 
+> 
+> With the transmitted keys changed frequently (at least for viaccess), what's
+> the point in supporting offline descrambling when it will not work reliably
+> for all ?
+
+The reliability of offline descrambling depends on the network operators
+policy. So while it won't be useful for everybody in the world, it might
+well be useful to all customers of certain operators.
+
+> As for descrambling multiple tv channels from different transponders with only
+> one cam, this is already possible. An example is what Digital Devices calls
+> MTD (Multi Transponder Decrypting). But this is CAM dependent, some do not
+> support it.
+
+What's the point if it doesn't work reliably for everybody? ;-)
+
+> Question is, where does this belong ? kernel or userspace ?
+
+I guess it depends on whether the remultiplexing takes place in hardware
+or software (remapping of PIDs and generation of the joined SI data).
+
+>> Why don't you just create a new device, e.g. ciX, deprecate the use of
+>> caX for CI devices, inherit CI-related existing ioctls from the CA API,
+>> translate the existing read and write funtions to ioctls and then use
+>> read and write for TS I/O? IIRC, Ralph suggested something similar. I'm
+>> pretty sure this can be done without too much code and in a backwards
+>> compatible way.
+> 
+> 
+> I'm open to this idea, but is there a consensus on this big API change ?
+> (deprecating ca device) If yes, I will try to prepare something.
+
+The existing API could be copied to linux/dvb/ci.h and then simplified
+and reviewed.
+
+- There's no need for a slot number. Just assign a device node to every
+CI slot.
+- CA_CI_PHYS is unused.
+- ci.h doesn't need CA_DESCR, CA_SC, ca_descr_info_t, ca_caps_t,
+ca_descr_t, ca_pid_t and accompanying ioctls.
+- ca_slot_info.type should be an enum instead of a bitmask.
+- ca_msg.index and ca_msg.type are probably unused
+- Instead of a fixed length array, ca_msg.msg might as well just be a
+pointer to a user allocated buffer
+- Then, CA_GET_MSG should use _IOWR, because the maximum length must be
+read inside the kernel.
+
+Btw., does the av7110 really support two distinct CI slots?
+
+Regards,
+Andreas
