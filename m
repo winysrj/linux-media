@@ -1,93 +1,47 @@
 Return-path: <mchehab@pedra>
-Received: from mail.kapsi.fi ([217.30.184.167]:39693 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:27956 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755981Ab1EDUyT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 May 2011 16:54:19 -0400
-Message-ID: <4DC1BCF9.4040302@iki.fi>
-Date: Wed, 04 May 2011 23:54:17 +0300
-From: Antti Palosaari <crope@iki.fi>
+	id S1753528Ab1EELJW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 May 2011 07:09:22 -0400
+Message-ID: <4DC28555.4080301@redhat.com>
+Date: Thu, 05 May 2011 08:09:09 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org,
-	Steve Kerrison <steve@stevekerrison.com>
-Subject: [GIT PULL FOR 2.6.40] PCTV nanoStick T2 290e (Sony CXD2820R DVB-T/T2/C)
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: LMML <linux-media@vger.kernel.org>,
+	Manu Abraham <abraham.manu@gmail.com>, tomekbu@op.pl,
+	Steven Stoth <stoth@kernellabs.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	=?UTF-8?B?SGVybsOhbiBPcmRpYWxlcw==?= <h.ordiales@gmail.com>,
+	Hans Verkuil <hansverk@cisco.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	"Igor M. Liplianin" <liplianin@me.by>
+Subject: Re: Patches still pending at linux-media queue (18 patches)
+References: <4DC2207B.5030700@redhat.com> <201105050824.36310.hverkuil@xs4all.nl>
+In-Reply-To: <201105050824.36310.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Moikka Mauro,
+Em 05-05-2011 03:24, Hans Verkuil escreveu:
+> On Thursday, May 05, 2011 05:58:51 Mauro Carvalho Chehab wrote:
+>> Hans,
+>> 	I believe that want to replace this patch by something else, but better to keep it at the list while you don't
+>> send us a replacement.
+>>
+>> Mar,26 2011: [media] cpia2: fix typo in variable initialisation                     http://patchwork.kernel.org/patch/665951  Mariusz Kozlowski <mk@lab.zgora.pl>
+> 
+> Feel free to merge this. It makes a broken driver slightly less broken.
+> 
+> I don't know when I will have time to create a proper patch that fixes this
+> driver. I need to get the work I'm doing on the control framework done first,
+> and that is taking a lot longer than I would like. But there is no sense in
+> keeping this patch back.
+> 
+> While working on the control framework I found a few bugs. I'll try to make
+> a pull request fixing them today or tomorrow at the latest.
 
-PULL following patches for the 2.6.40. I want these master as soon as 
-possible to get some test reports before Kernel 2.6.40 merge.
+Ok, thanks for acking on merging this.
 
-This patch series add support PCTV nanoStick T2 290e stick, which is 
-first DVB-T2 capable computer receiver.
-
-Main part of this patch series is new demod driver for Sony CXD2820R. 
-Other big part is multi frontend (MFE) support for em28xx driver. I 
-don't have any other MFE device, so I cannot say if it is implemented 
-correctly or not. At least it seems to work. MFE locking is done in 
-demod driver. If there is some problems let me know and I will try to 
-fix those - I think there is no such big major problems still.
-
-I didn't implemented proper DVB-T2 support for DVB API, since it seems 
-to be rather complex and needs some learning. Thus, I made it working 
-automatically something like try DVB-T, if no lock, fall-back to DVB-T2. 
-Error and trial. And some abuse :i
-
-Special thanks to Steve Kerrison for his help, testing, talking, 
-reviewing code and improving driver!
-
-t. Antti
-
-
-The following changes since commit d9954d8547181f9a6a23f835cc1413732700b785:
-
-   Merge branch 'linus' into staging/for_v2.6.40 (2011-04-04 16:04:30 -0300)
-
-are available in the git repository at:
-
-   git://linuxtv.org/anttip/media_tree.git pctv_290e_new
-
-Antti Palosaari (7):
-       tda18271: add DVB-C support
-       em28xx: Multi Frontend (MFE) support
-       em28xx: add support for EM28174 chip
-       Sony CXD2820R DVB-T/T2/C demodulator driver
-       Add support for PCTV nanoStick T2 290e [2013:024f]
-       cxd2820r: whitespace fix
-       cxd2820r: switch automatically between DVB-T and DVB-T2
-
-Steve Kerrison (2):
-       cxd2820r: make C, T, T2 and core components as linked objects
-       em28xx: Disable audio for EM28174
-
-  drivers/media/common/tuners/tda18271-fe.c   |    4 +
-  drivers/media/dvb/frontends/Kconfig         |    7 +
-  drivers/media/dvb/frontends/Makefile        |    3 +
-  drivers/media/dvb/frontends/cxd2820r.h      |  118 ++++
-  drivers/media/dvb/frontends/cxd2820r_c.c    |  338 ++++++++++
-  drivers/media/dvb/frontends/cxd2820r_core.c |  914 
-+++++++++++++++++++++++++++
-  drivers/media/dvb/frontends/cxd2820r_priv.h |  178 ++++++
-  drivers/media/dvb/frontends/cxd2820r_t.c    |  449 +++++++++++++
-  drivers/media/dvb/frontends/cxd2820r_t2.c   |  423 +++++++++++++
-  drivers/media/video/em28xx/Kconfig          |    1 +
-  drivers/media/video/em28xx/em28xx-cards.c   |   28 +
-  drivers/media/video/em28xx/em28xx-core.c    |    9 +-
-  drivers/media/video/em28xx/em28xx-dvb.c     |  140 +++-
-  drivers/media/video/em28xx/em28xx-i2c.c     |    2 +-
-  drivers/media/video/em28xx/em28xx-reg.h     |    1 +
-  drivers/media/video/em28xx/em28xx.h         |    1 +
-  16 files changed, 2578 insertions(+), 38 deletions(-)
-  create mode 100644 drivers/media/dvb/frontends/cxd2820r.h
-  create mode 100644 drivers/media/dvb/frontends/cxd2820r_c.c
-  create mode 100644 drivers/media/dvb/frontends/cxd2820r_core.c
-  create mode 100644 drivers/media/dvb/frontends/cxd2820r_priv.h
-  create mode 100644 drivers/media/dvb/frontends/cxd2820r_t.c
-  create mode 100644 drivers/media/dvb/frontends/cxd2820r_t2.c
-
-
--- 
-http://palosaari.fi/
+Mauro.
