@@ -1,74 +1,163 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.8]:49570 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754636Ab1EYMLy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 May 2011 08:11:54 -0400
-Date: Wed, 25 May 2011 14:11:48 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-cc: Scott Jiang <scott.jiang.linux@gmail.com>,
-	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	linux-media@vger.kernel.org
-Subject: Re: v4l2_mbus_framefmt and v4l2_pix_format
-In-Reply-To: <4DDCECDD.2030304@samsung.com>
-Message-ID: <Pine.LNX.4.64.1105251355280.13724@axis700.grange>
-References: <BANLkTikPGEgWH-ExjnSuH8-n0f2q54EJGQ@mail.gmail.com>
- <Pine.LNX.4.64.1105251202530.13724@axis700.grange> <4DDCECDD.2030304@samsung.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:38796 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752691Ab1EEJkP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 May 2011 05:40:15 -0400
+Received: from eu_spt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LKP00AZLUV1IG@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 05 May 2011 10:40:14 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LKP00MX3UUZU9@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 05 May 2011 10:40:12 +0100 (BST)
+Date: Thu, 05 May 2011 11:39:55 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCH 1/2] v4l: add support for extended crop/compose API
+In-reply-to: <1304588396-7557-1-git-send-email-t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@maxwell.research.nokia.com,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>
+Message-id: <1304588396-7557-2-git-send-email-t.stanislaws@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1304588396-7557-1-git-send-email-t.stanislaws@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 25 May 2011, Sylwester Nawrocki wrote:
+New ioctl for a precise control of cropping and composing:
+VIDIOC_S_SELECTION
+VIDIOC_G_SELECTION
 
-> Hi Guennadi,
-> 
-> On 05/25/2011 12:11 PM, Guennadi Liakhovetski wrote:
-> > Hi Scott
-> > 
-> > On Wed, 25 May 2011, Scott Jiang wrote:
-> > 
-> >> Hi Hans and Laurent,
-> >>
-> >> I got fmt info from a video data source subdev, I thought there should
-> >> be a helper function to convert these two format enums.
-> >> However, v4l2_fill_pix_format didn't do this, why? Should I do this in
-> >> bridge driver one by one?
-> > 
-> > Because various camera hosts (bridges) can produce different pixel formats 
-> > in memory from the same mediabus code. However, there is a very common way 
-> > to handle such video data in the bridge: store it in RAM in a "natural" 
-> > way. This mode is called in soc-camera the pass-through mode and there is 
-> > an API to handle this mode in drivers/media/video/soc_mediabus.c. If this 
-> 
-> Sorry about getting off the topic a bit.
-> 
-> As some media bus formats require different conversion process in the bridge
-> to obtain specific format in memory (fourcc) I was wondering whether it would
-> be reasonable to indicate the "natural" fourccs for the applications when
-> enumerating formats supported by the bridge/DMA with VIDIOC_ENUM_FMT?
-> So applications are aware what are the "natural" formats and which require
-> lossy conversion. And in this way could choose formats that yield better
-> quality. 
-
-Yes, in principle this seems like a good idea to me. Of course, somebody 
-will have to teach the user-space to use this information:)
-
-> Now there are following flags available for struct v4l2_fmtdesc::flags
-> 
-> V4L2_FMT_FLAG_COMPRESSED
-> V4L2_FMT_FLAG_EMULATED
-> 
-> I thought about something like V4L2_FMT_HW_EMULATED or V4L2_FMT_FLAG_LOW_QUALITY.
-> 
-> I not happy with those exact names but I hope that gives a basic idea what
-> I am talking about.  
-> Possibly I am missing other ways to achieve the same.
-
-Thanks
-Guennadi
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/video/v4l2-compat-ioctl32.c |    2 ++
+ drivers/media/video/v4l2-ioctl.c          |   28 ++++++++++++++++++++++++++++
+ include/linux/videodev2.h                 |   26 ++++++++++++++++++++++++++
+ include/media/v4l2-ioctl.h                |    4 ++++
+ 4 files changed, 60 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
+index 7c26947..de108d4 100644
+--- a/drivers/media/video/v4l2-compat-ioctl32.c
++++ b/drivers/media/video/v4l2-compat-ioctl32.c
+@@ -891,6 +891,8 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
+ 	case VIDIOC_CROPCAP:
+ 	case VIDIOC_G_CROP:
+ 	case VIDIOC_S_CROP:
++	case VIDIOC_G_SELECTION:
++	case VIDIOC_S_SELECTION:
+ 	case VIDIOC_G_JPEGCOMP:
+ 	case VIDIOC_S_JPEGCOMP:
+ 	case VIDIOC_QUERYSTD:
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index 7a72074..aeef966 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -223,6 +223,8 @@ static const char *v4l2_ioctls[] = {
+ 	[_IOC_NR(VIDIOC_CROPCAP)]          = "VIDIOC_CROPCAP",
+ 	[_IOC_NR(VIDIOC_G_CROP)]           = "VIDIOC_G_CROP",
+ 	[_IOC_NR(VIDIOC_S_CROP)]           = "VIDIOC_S_CROP",
++	[_IOC_NR(VIDIOC_G_SELECTION)]      = "VIDIOC_G_SELECTION",
++	[_IOC_NR(VIDIOC_S_SELECTION)]      = "VIDIOC_S_SELECTION",
+ 	[_IOC_NR(VIDIOC_G_JPEGCOMP)]       = "VIDIOC_G_JPEGCOMP",
+ 	[_IOC_NR(VIDIOC_S_JPEGCOMP)]       = "VIDIOC_S_JPEGCOMP",
+ 	[_IOC_NR(VIDIOC_QUERYSTD)]         = "VIDIOC_QUERYSTD",
+@@ -1741,6 +1743,32 @@ static long __video_do_ioctl(struct file *file,
+ 		ret = ops->vidioc_s_crop(file, fh, p);
+ 		break;
+ 	}
++	case VIDIOC_G_SELECTION:
++	{
++		struct v4l2_selection *p = arg;
++
++		if (!ops->vidioc_g_selection)
++			break;
++
++		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
++
++		ret = ops->vidioc_g_selection(file, fh, p);
++		if (!ret)
++			dbgrect(vfd, "", &p->r);
++		break;
++	}
++	case VIDIOC_S_SELECTION:
++	{
++		struct v4l2_selection *p = arg;
++
++		if (!ops->vidioc_s_selection)
++			break;
++		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
++		dbgrect(vfd, "", &p->r);
++
++		ret = ops->vidioc_s_selection(file, fh, p);
++		break;
++	}
+ 	case VIDIOC_CROPCAP:
+ 	{
+ 		struct v4l2_cropcap *p = arg;
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index a94c4d5..e044311 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -718,6 +718,28 @@ struct v4l2_crop {
+ 	struct v4l2_rect        c;
+ };
+ 
++/* Hints for adjustments of selection rectangle */
++#define V4L2_SEL_SIZE_GE	0x00000001
++#define V4L2_SEL_SIZE_LE	0x00000002
++
++enum v4l2_sel_target {
++	V4L2_SEL_CROP_ACTIVE  = 0,
++	V4L2_SEL_CROP_DEFAULT = 1,
++	V4L2_SEL_CROP_BOUNDS  = 2,
++	V4L2_SEL_COMPOSE_ACTIVE  = 16 + 0,
++	V4L2_SEL_COMPOSE_DEFAULT = 16 + 1,
++	V4L2_SEL_COMPOSE_BOUNDS  = 16 + 2,
++};
++
++struct v4l2_selection {
++	enum v4l2_buf_type      type;
++	enum v4l2_sel_target	target;
++	__u32                   flags;
++	struct v4l2_rect        r;
++	__u32                   reserved[9];
++};
++
++
+ /*
+  *      A N A L O G   V I D E O   S T A N D A R D
+  */
+@@ -1932,6 +1954,10 @@ struct v4l2_dbg_chip_ident {
+ #define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct v4l2_event_subscription)
+ #define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 91, struct v4l2_event_subscription)
+ 
++/* Experimental crop/compose API */
++#define VIDIOC_G_SELECTION	_IOWR('V', 92, struct v4l2_selection)
++#define VIDIOC_S_SELECTION	_IOWR('V', 93, struct v4l2_selection)
++
+ /* Reminder: when adding new ioctls please add support for them to
+    drivers/media/video/v4l2-compat-ioctl32.c as well! */
+ 
+diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+index 1572c7f..e2ccef2 100644
+--- a/include/media/v4l2-ioctl.h
++++ b/include/media/v4l2-ioctl.h
+@@ -194,6 +194,10 @@ struct v4l2_ioctl_ops {
+ 					struct v4l2_crop *a);
+ 	int (*vidioc_s_crop)           (struct file *file, void *fh,
+ 					struct v4l2_crop *a);
++	int (*vidioc_g_selection)      (struct file *file, void *fh,
++					struct v4l2_selection *a);
++	int (*vidioc_s_selection)      (struct file *file, void *fh,
++					struct v4l2_selection *a);
+ 	/* Compression ioctls */
+ 	int (*vidioc_g_jpegcomp)       (struct file *file, void *fh,
+ 					struct v4l2_jpegcompression *a);
+-- 
+1.7.5
