@@ -1,68 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:34182 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753317Ab1EYJng (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 May 2011 05:43:36 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: javier Martin <javier.martin@vista-silicon.com>
-Subject: Re: [PATCH][RFC] Add mt9p031 sensor support.
-Date: Wed, 25 May 2011 11:43:51 +0200
-Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	carlighting@yahoo.co.nz, beagleboard@googlegroups.com,
-	linux-arm-kernel@lists.infradead.org
-References: <1306247443-2191-1-git-send-email-javier.martin@vista-silicon.com> <201105251005.28691.laurent.pinchart@ideasonboard.com> <BANLkTikvLEG55vqpLmNJJsvsvz1eLsGoHw@mail.gmail.com>
-In-Reply-To: <BANLkTikvLEG55vqpLmNJJsvsvz1eLsGoHw@mail.gmail.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:35739 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753528Ab1EEKKU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 May 2011 06:10:20 -0400
+Received: by iwn34 with SMTP id 34so1694512iwn.19
+        for <linux-media@vger.kernel.org>; Thu, 05 May 2011 03:10:20 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201105251143.52302.laurent.pinchart@ideasonboard.com>
+Date: Thu, 5 May 2011 12:10:19 +0200
+Message-ID: <BANLkTinRqcFj5doua4r6d-vwPAym=JGvDw@mail.gmail.com>
+Subject: omap3isp clock problems on Beagleboard xM.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: multipart/mixed; boundary=20cf301d446ca3185a04a28494d6
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Javier,
+--20cf301d446ca3185a04a28494d6
+Content-Type: text/plain; charset=ISO-8859-1
 
-On Wednesday 25 May 2011 11:41:42 javier Martin wrote:
-> Hi,
-> thank you for the review, I agree with you on all the suggested
-> changes except on this one:
-> 
-> On 25 May 2011 10:05, Laurent Pinchart wrote:
-> > On Tuesday 24 May 2011 16:30:43 Javier Martin wrote:
-> >> This RFC includes a power management implementation that causes
-> >> the sensor to show images with horizontal artifacts (usually
-> >> monochrome lines that appear on the image randomly).
-> >> 
-> >> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
-> > 
-> > [snip]
-> > 
-> >> diff --git a/drivers/media/video/mt9p031.c
-> >> b/drivers/media/video/mt9p031.c new file mode 100644
-> >> index 0000000..04d8812
-> >> --- /dev/null
-> >> +++ b/drivers/media/video/mt9p031.c
-> > 
-> > [snip]
-> > 
-> >> +#define MT9P031_WINDOW_HEIGHT_MAX            1944
-> >> +#define MT9P031_WINDOW_WIDTH_MAX             2592
-> >> +#define MT9P031_WINDOW_HEIGHT_MIN            2
-> >> +#define MT9P031_WINDOW_WIDTH_MIN             18
-> > 
-> > Can you move those 4 constants right below MT9P031_WINDOW_HEIGHT and
-> > MT9P031_WINDOW_WIDTH ? The max values are not correct, according to the
-> > datasheet they should be 2005 and 2751.
-> 
-> In figure 4, it says active image size is 2592 x 1944
-> Why should I include active boundary and dark pixels?
+Hi,
+as you know I'm currently working on submitting mt9p031 driver to
+mainline, testing it with my Beagleboard xM.
+While I was trying to clean Guennadi's patches I ran into the attached
+patch which changes a call to "omap3isp_get(isp);" into
+"isp_enable_clocks(isp);".
 
-Users might want to get the dark pixels for black level compensation purpose. 
-As the chip allows for that, it should be supported. The default should of 
-course be the active area of 2592 x 1944 pixels.
+I don't think this is clean since it would unbalance the number of
+omap3isp_get() vs omap3isp_put() and we probably don't want that.
+What seems clear is if we don't apply this patch the clock is not
+actually enabled.
+
+According to my debugging results "isp_disable_clocks()" is never
+called, so, after the first call to "isp_enable_clocks()" there
+shouldn't be any need to enable the clocks again.
+
+Guennadi, do you know what is the cause of the problem?
+
 
 -- 
-Regards,
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
 
-Laurent Pinchart
+--20cf301d446ca3185a04a28494d6
+Content-Type: text/x-patch; charset=US-ASCII; name="isp.patch"
+Content-Disposition: attachment; filename="isp.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gnbis4e80
+
+ZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vb21hcDNpc3AvaXNwLmMgYi9kcml2ZXJz
+L21lZGlhL3ZpZGVvL29tYXAzaXNwL2lzcC5jCmluZGV4IDQ3MmE2OTMuLjZhNmVhODYgMTAwNjQ0
+Ci0tLSBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vb21hcDNpc3AvaXNwLmMKKysrIGIvZHJpdmVycy9t
+ZWRpYS92aWRlby9vbWFwM2lzcC9pc3AuYwpAQCAtMTc3LDYgKzE3Nyw4IEBAIHN0YXRpYyB2b2lk
+IGlzcF9kaXNhYmxlX2ludGVycnVwdHMoc3RydWN0IGlzcF9kZXZpY2UgKmlzcCkKICAgICAgICBp
+c3BfcmVnX3dyaXRlbChpc3AsIDAsIE9NQVAzX0lTUF9JT01FTV9NQUlOLCBJU1BfSVJRMEVOQUJM
+RSk7CiB9CiAKK3N0YXRpYyBpbnQgaXNwX2VuYWJsZV9jbG9ja3Moc3RydWN0IGlzcF9kZXZpY2Ug
+KmlzcCk7CisKIC8qKgogICogaXNwX3NldF94Y2xrIC0gQ29uZmlndXJlcyB0aGUgc3BlY2lmaWVk
+IGNhbV94Y2xrIHRvIHRoZSBkZXNpcmVkIGZyZXF1ZW5jeS4KICAqIEBpc3A6IE9NQVAzIElTUCBk
+ZXZpY2UKQEAgLTIzOSw3ICsyNDEsNyBAQCBzdGF0aWMgdTMyIGlzcF9zZXRfeGNsayhzdHJ1Y3Qg
+aXNwX2RldmljZSAqaXNwLCB1MzIgeGNsaywgdTggeGNsa3NlbCkKIAogICAgICAgIC8qIERvIHdl
+IGdvIGZyb20gc3RhYmxlIHdoYXRldmVyIHRvIGNsb2NrPyAqLwogICAgICAgIGlmIChkaXZpc29y
+ID49IDIgJiYgaXNwLT54Y2xrX2Rpdmlzb3JbeGNsa3NlbCAtIDFdIDwgMikKLSAgICAgICAgICAg
+ICAgIG9tYXAzaXNwX2dldChpc3ApOworICAgICAgICAgICAgICAgaXNwX2VuYWJsZV9jbG9ja3Mo
+aXNwKTsKICAgICAgICAvKiBTdG9wcGluZyB0aGUgY2xvY2suICovCiAgICAgICAgZWxzZSBpZiAo
+ZGl2aXNvciA8IDIgJiYgaXNwLT54Y2xrX2Rpdmlzb3JbeGNsa3NlbCAtIDFdID49IDIpCiAgICAg
+ICAgICAgICAgICBvbWFwM2lzcF9wdXQoaXNwKTsK
+--20cf301d446ca3185a04a28494d6--
