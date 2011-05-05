@@ -1,79 +1,100 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47425 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751458Ab1EWJO3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 May 2011 05:14:29 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Koen Kooi <koen@beagleboard.org>
-Subject: Re: [beagleboard] [PATCH v2 2/2] OMAP3BEAGLE: Add support for mt9p031 sensor driver.
-Date: Mon, 23 May 2011 11:14:40 +0200
-Cc: javier Martin <javier.martin@vista-silicon.com>,
-	"beagleboard@googlegroups.com Board" <beagleboard@googlegroups.com>,
-	Jason Kridner <jkridner@beagleboard.org>,
-	linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	carlighting@yahoo.co.nz, linux-arm-kernel@lists.infradead.org
-References: <1305899272-31839-1-git-send-email-javier.martin@vista-silicon.com> <201105231000.32194.laurent.pinchart@ideasonboard.com> <5C643F76-F34A-4921-A406-B5123CC391A3@beagleboard.org>
-In-Reply-To: <5C643F76-F34A-4921-A406-B5123CC391A3@beagleboard.org>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:33158 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750803Ab1EEEZI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 May 2011 00:25:08 -0400
+Received: by wya21 with SMTP id 21so1315117wya.19
+        for <linux-media@vger.kernel.org>; Wed, 04 May 2011 21:25:07 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201105231114.41247.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <4DC08CB8.3020105@redhat.com>
+References: <4DA63A66.1070300@gmx.net>
+	<4DC08CB8.3020105@redhat.com>
+Date: Thu, 5 May 2011 08:25:07 +0400
+Message-ID: <BANLkTikxDEr0xo55rqOhjw5NbGTndOsV5w@mail.gmail.com>
+Subject: Re: TT-budget S2-3200 cannot tune on HB13E DVBS2 transponder
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Lutz Sammer <johns98@gmx.net>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Koen,
+On Wed, May 4, 2011 at 3:16 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Em 13-04-2011 21:05, Lutz Sammer escreveu:
+>>> On 05/04/11 21:07, Steffen Barszus wrote:
+>>>> On Tue, 05 Apr 2011 13:00:14 +0200
+>>>> "Issa Gorissen" <flop.m@xxxxxxx> wrote:
+>>>>
+>>>>> Hi,
+>>>>>
+>>>>> Eutelsat made a recent migration from DVB-S to DVB-S2 (since
+>>>>> 31/3/2011) on two transponders on HB13E
+>>>>>
+>>>>> - HOT BIRD 6 13° Est TP 159 Freq 11,681 Ghz DVB-S2 FEC 3/4 27500
+>>>>> Msymb/s 0.2 Pilot off Polar H
+>>>>>
+>>>>> - HOT BIRD 9 13° Est TP 99 Freq 12,692 Ghz DVB-S2 FEC 3/4 27500
+>>>>> Msymb/s 0.2 Pilot off Polar H
+>>>>>
+>>>>>
+>>>>> Before those changes, with my TT S2 3200, I was able to watch TV on
+>>>>> those transponders. Now, I cannot even tune on those transponders. I
+>>>>> have tried with scan-s2 and w_scan and the latest drivers from git.
+>>>>> They both find the transponders but cannot tune onto it.
+>>>>>
+>>>>> Something noteworthy is that my other card, a DuoFlex S2 can tune
+>>>>> fine on those transponders.
+>>>>>
+>>>>> My question is; can someone try this as well with a TT S2 3200 and
+>>>>> post the results ?
+>>>> i read something about it lately here (german!):
+>>>> http://www.vdr-portal.de/board16-video-disk-recorder/board85-hdtv-dvb-s2/p977938-stb0899-fec-3-4-tester-gesucht/#post977938
+>>>>
+>>>> It says in stb0899_drv.c function:
+>>>> static void stb0899_set_iterations(struct stb0899_state *state)
+>>>>
+>>>> This:
+>>>> reg = STB0899_READ_S2REG(STB0899_S2DEMOD, MAX_ITER);
+>>>> STB0899_SETFIELD_VAL(MAX_ITERATIONS, reg, iter_scale);
+>>>> stb0899_write_s2reg(state, STB0899_S2DEMOD, STB0899_BASE_MAX_ITER, STB0899_OFF0_MAX_ITER, reg);
+>>>>
+>>>> should be replaced with this:
+>>>>
+>>>> reg = STB0899_READ_S2REG(STB0899_S2FEC, MAX_ITER);
+>>>> STB0899_SETFIELD_VAL(MAX_ITERATIONS, reg, iter_scale);
+>>>> stb0899_write_s2reg(state, STB0899_S2FEC, STB0899_BASE_MAX_ITER, STB0899_OFF0_MAX_ITER, reg);
+>>>>
+>>>> Basically replace STB0899_S2DEMOD with STB0899_S2FEC in this 2 lines
+>>>> affected.
+>>>>
+>>>> Kind Regards
+>>>>
+>>>> Steffen
+>>> Hi Steffen,
+>>>
+>>> Unfortunately, it does not help in my case. Thx anyway.
+>>
+>> Try my locking fix. With above patch I can lock the
+>> channels without problem.
+>
+> Can someone confirm that such patch would fix the issue? If so, please
+> forward it in a way that it could be applied (patch is currently line-wrapped),
+> and submit with some comments/description and your SOB.
+>
+> As the patch is currently broken, I'm just marking it as rejected at patchwork.
+>
+> Manu,
+>
+> Please take a look on this trouble report.
+>
+> Thanks!
+> Mauro.
 
-On Monday 23 May 2011 10:55:53 Koen Kooi wrote:
-> Op 23 mei 2011, om 10:00 heeft Laurent Pinchart het volgende geschreven:
-> > On Monday 23 May 2011 09:01:07 javier Martin wrote:
-> >> On 20 May 2011 17:57, Koen Kooi <koen@beagleboard.org> wrote:
-> >>> In previous patch sets we put that in a seperate file
-> >>> (omap3beagle-camera.c) so we don't clutter up the board file with all
-> >>> the different sensor drivers. Would it make sense to do the same with
-> >>> the current patches? It looks like MCF cuts down a lot on the
-> >>> boilerplace needed already.
-> >> 
-> >> I sent my first patch using that approach but I was told to move it to
-> >> the board code.
-> >> Please, don't make undo the changes. Or at least, let's discuss this
-> >> seriously so that we all agree on what is the best way of doing it and
-> >> I don't have to change it every time.
-> > 
-> > What we really need here is a modular way to support sensors on pluggable
-> > expansion boards. Not all Beagleboard users will have an MT9P031
-> > connected to the OMAP3 ISP, so that must not be hardcoded in board code.
-> > As the sensor boards are not runtime detectable
-> 
-> Well, they are runtime detectable, you just need to read the ID register on
-> the sensor and they all share the same I2C address. Once you have the
-> sensor ID you can (re)setup the I2C.
 
-I don't think we can guarantee that all sensor boards that will ever be 
-plugged into the Beagleboard will have a sensor ID register readable from a 
-single I2C address at a single register offset.
+I am out of station currently. I will take a deeper look at it during
+the weekend or next week.
 
-> But doing that in linux seems to be impossible with the current I2C
-> infrastructure.
-> 
-> What we (beagleboard.org) are doing now:
-> 
-> 1) set a bootarg in uboot e.g. camera=llbcm5mp
-> 2) read bootarg in linux boardfile and setup i2c
-> 
-> What we are going to do medium term:
-> 
-> 1) read ID in uboot, set bootarg
-> 2) read bootarg in linux boardfile
-> 
-> Long term 1) will probably do some devicetree magic. The goal is to plug in
-> a sensor and boot, no manual modprobing, it just works.
-
-Device tree is definitely the way to go. using the camera parameter in board 
-code to register the correct camera sounds good to me.
-
--- 
-Regards,
-
-Laurent Pinchart
+Best Regards,
+Manu
