@@ -1,78 +1,93 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.186]:62723 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751291Ab1EDIRL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 May 2011 04:17:11 -0400
-Date: Wed, 4 May 2011 10:17:06 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: =?UTF-8?q?Teresa=20G=C3=A1mez?= <t.gamez@phytec.de>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] mt9v022: fix pixel clock
-In-Reply-To: <1302791997-12679-1-git-send-email-t.gamez@phytec.de>
-Message-ID: <Pine.LNX.4.64.1105040959130.23196@axis700.grange>
-References: <1302791997-12679-1-git-send-email-t.gamez@phytec.de>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47074 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751599Ab1EEM0a (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 May 2011 08:26:30 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [GIT PATCHES FOR 2.6.40] Make the UVC API public (and minor enhancements)
+Date: Thu, 5 May 2011 14:27:06 +0200
+Cc: linux-media@vger.kernel.org
+References: <201104271238.03887.laurent.pinchart@ideasonboard.com> <201105051340.26661.laurent.pinchart@ideasonboard.com> <4DC29563.10007@redhat.com>
+In-Reply-To: <4DC29563.10007@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201105051427.06556.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Teresa
+Hi Mauro,
 
-I'm adding Mauro to CC, because we were discussing adding these (this one 
-and mt9m111) patches to .39.
-
-On Thu, 14 Apr 2011, Teresa Gámez wrote:
-
-> The setup of the pixel clock is done wrong in the mt9v022 driver.
-> The 'Invert Pixel Clock' bit has to be set to 1 for falling edge
-> and not for rising. This is not clearly described in the data
-> sheet.
-
-I finally got round to test your patch on pcm037. But sorry, I cannot 
-reproduce your success. What's even worth, your patch, if applied to the 
-stock kernel, really messes up Bayer colours for me. With your patch alone 
-I cannot select the Bayer filter starting pixel parameter to produce 
-correct colours. Without your patch colours do not look very clean, that's 
-true, but I always attributed it to some sensor fine-tuning issues. But at 
-least they are correct. An easy way to test colours is to point the camera 
-at the LED pair on the board - blinking red and constant green next to the 
-ethernet port. You once mentioned, that in your BSP you have the 
-SOCAM_SENSOR_INVERT_PCLK flag set in your platform data. Maybe you were 
-testing with that one? Then yes, of course, you'd have to compensate it by 
-inverting the bit in the sensor. In any case, your patch if applied alone, 
-seems to break camera on pcm037. Am I missing something?
-
-Thanks
-Guennadi
-
+On Thursday 05 May 2011 14:17:39 Mauro Carvalho Chehab wrote:
+> Em 05-05-2011 08:40, Laurent Pinchart escreveu:
+> > On Thursday 05 May 2011 13:33:20 Mauro Carvalho Chehab wrote:
+> >> Em 27-04-2011 07:38, Laurent Pinchart escreveu:
+> >>> These patches move the uvcvideo.h header file from
+> >>> drivers/media/video/uvc to include/linux, making the UVC API public.
+> >>> Support for the old API is kept and will be removed in 2.6.42.
+> >>> 
+> >>> The following changes since commit
+> > 
+> > a4761a092fd3b6bf8b5f9cfe361670c86cdcc8ca:
+> >>>   [media] tm6000: fix vbuf may be used uninitialized (2011-04-19
+> >>>   21:13:59 -0300)
+> >>> 
+> >>> are available in the git repository at:
+> >>>   git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo-next
+> >>> 
+> >>> Laurent Pinchart (5):
+> >>>       uvcvideo: Deprecate UVCIOC_CTRL_{ADD,MAP_OLD,GET,SET}
+> >>>       uvcvideo: Rename UVC_CONTROL_* flags to UVC_CTRL_FLAG_*
+> >>>       uvcvideo: Make the API public
+> >> 
+> >> Why are you declaring this twice:
+> >> 
+> >> Index: patchwork/drivers/media/video/uvc/uvcvideo.h
+> >> 
+> >> ...
+> >> 
+> >> +#ifndef __KERNEL__
+> >> #define UVCIOC_CTRL_ADD     _IOW('U', 1, struct uvc_xu_control_info)
+> >> #define UVCIOC_CTRL_MAP_OLD _IOWR('U', 2, struct
+> >> uvc_xu_control_mapping_old) #define UVCIOC_CTRL_MAP     _IOWR('U', 2,
+> >> struct uvc_xu_control_mapping) #define UVCIOC_CTRL_GET     _IOWR('U',
+> >> 3, struct uvc_xu_control) #define UVCIOC_CTRL_SET     _IOW('U', 4,
+> >> struct uvc_xu_control) -#define UVCIOC_CTRL_QUERY   _IOWR('U', 5,
+> >> struct uvc_xu_control_query) +#else
+> >> +#define __UVCIOC_CTRL_ADD   _IOW('U', 1, struct uvc_xu_control_info)
+> >> +#define __UVCIOC_CTRL_MAP_OLD _IOWR('U', 2, struct
+> > 
+> > uvc_xu_control_mapping_old)
+> > 
+> >> +#define __UVCIOC_CTRL_MAP   _IOWR('U', 2, struct
+> >> uvc_xu_control_mapping) +#define __UVCIOC_CTRL_GET   _IOWR('U', 3,
+> >> struct uvc_xu_control) +#define __UVCIOC_CTRL_SET   _IOW('U', 4, struct
+> >> uvc_xu_control) +#endif
+> > 
+> > For compatibility with existing applications. Applications should now
+> > include linux/uvcvideo.h instead of drivers/media/video/uvc/uvcvideo.h,
+> > but existing applications include the later. I want to make sure they
+> > will still compile. A warning will be printed, and this will be removed
+> > in 2.6.42.
+> > 
+> >> You shouldn't need to do that. In fact, the better would be to have two
+> >> separate headers: one with just the public API under include/linux, and
+> >> another with the extra uvc-internal bits, as we did in the past with
+> >> videobuf2.h.
+> > 
+> > That's how linux/uvcvideo.h and drivers/media/video/uvc/uvcvideo.h are
+> > partitioned by this patch set, except that the private header still
+> > contains userspace API to avoid breaking applications during the
+> > transition period.
 > 
-> Tested on pcm037 and pcm027/pcm990.
-> 
-> Signed-off-by: Teresa Gámez <t.gamez@phytec.de>
-> ---
->  drivers/media/video/mt9v022.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/mt9v022.c b/drivers/media/video/mt9v022.c
-> index 6a784c8..dec2a69 100644
-> --- a/drivers/media/video/mt9v022.c
-> +++ b/drivers/media/video/mt9v022.c
-> @@ -228,7 +228,7 @@ static int mt9v022_set_bus_param(struct soc_camera_device *icd,
->  
->  	flags = soc_camera_apply_sensor_flags(icl, flags);
->  
-> -	if (flags & SOCAM_PCLK_SAMPLE_RISING)
-> +	if (flags & SOCAM_PCLK_SAMPLE_FALLING)
->  		pixclk |= 0x10;
->  
->  	if (!(flags & SOCAM_HSYNC_ACTIVE_HIGH))
-> -- 
-> 1.7.0.4
-> 
+> Ok, so I'm understanding that, on 2.6.42, you'll be removing the checks for
+> __KERNEL__ from uvcvideo.h, right?
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Yes, and I will remove all ioctl definitions from the private header.
+
+-- 
+Regards,
+
+Laurent Pinchart
