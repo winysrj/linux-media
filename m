@@ -1,45 +1,141 @@
 Return-path: <mchehab@pedra>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:56243 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752048Ab1EDSnj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 May 2011 14:43:39 -0400
-Received: from octopus.hi.pengutronix.de ([2001:6f8:1178:2:215:17ff:fe12:23b0])
-	by metis.ext.pengutronix.de with esmtp (Exim 4.72)
-	(envelope-from <ukl@pengutronix.de>)
-	id 1QHh2w-0003Un-Jt
-	for linux-media@vger.kernel.org; Wed, 04 May 2011 20:43:38 +0200
-Received: from ukl by octopus.hi.pengutronix.de with local (Exim 4.75)
-	(envelope-from <ukl@pengutronix.de>)
-	id 1QHh2w-0003wL-H6
-	for linux-media@vger.kernel.org; Wed, 04 May 2011 20:43:38 +0200
-Date: Wed, 4 May 2011 20:43:38 +0200
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
-To: linux-media@vger.kernel.org
-Subject: Re: [git:v4l-dvb/for_v2.6.40] [media] V4L: mx3_camera: select
- VIDEOBUF2_DMA_CONTIG instead of VIDEOBUF_DMA_CONTIG
-Message-ID: <20110504184338.GL11574@pengutronix.de>
-References: <E1QHgRh-0005bA-Jq@www.linuxtv.org>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:45727 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751338Ab1EETy4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 May 2011 15:54:56 -0400
+Received: by wwa36 with SMTP id 36so2739198wwa.1
+        for <linux-media@vger.kernel.org>; Thu, 05 May 2011 12:54:54 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <E1QHgRh-0005bA-Jq@www.linuxtv.org>
+In-Reply-To: <1908281867.20110505213806@a-j.ru>
+References: <1908281867.20110505213806@a-j.ru>
+Date: Thu, 5 May 2011 21:54:53 +0200
+Message-ID: <BANLkTikuAF13K0hQ-or87x-AsEMTz4YOOA@mail.gmail.com>
+Subject: Re: [linux-dvb] TeVii S470 (cx23885 / ds3000) makes the machine unstable
+From: Josu Lazkano <josu.lazkano@gmail.com>
+To: linux-media@vger.kernel.org, Andrew Junev <a-j@a-j.ru>
+Cc: linux-dvb@linuxtv.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+2011/5/5 Andrew Junev <a-j@a-j.ru>:
+> Hello All,
+>
+>  I'm  trying  to set up a TeVii S470 DVB-S2 card for use in my MythTV
+>  system  running  on  Fedora 13. I already have a couple of TT S-1401
+>  cards in that machine, and it works fine.
+>
+>  I  copied   the  firmware for my S470 as described on the Wiki page.
+>  The  card is detected  and seem to work. I am able to watch existing
+>  channels, and even found some DVB-S2 transponders.
+>
+>  But  the  machine  is  very  unstable. After a while, I get a lot of
+>  errors in my /var/log/messages , like:
+>
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xb2(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_writereg: writereg error(err == -5, reg == 0x03, value == 0x11)
+> May  3 22:35:51 localhost kernel: ds3000_tuner_writereg: writereg error(err == -5, reg == 0x42, value == 0x73)
+> May  3 22:35:51 localhost kernel: ds3000_writereg: writereg error(err == -5, reg == 0x03, value == 0x11)
+> May  3 22:35:51 localhost kernel: ds3000_tuner_writereg: writereg error(err == -5, reg == 0x05, value == 0x01)
+> May  3 22:35:51 localhost kernel: ds3000_writereg: writereg error(err == -5, reg == 0x03, value == 0x11)
+> May  3 22:35:51 localhost kernel: ds3000_tuner_writereg: writereg error(err == -5, reg == 0x62, value == 0xf5)
+>
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+>
+>
+> There   are   a  lot  of  lines  like  these  in the log (tens or even
+> hundreds  per  second).  And  at some point the machine just freezes -
+> stops  responding  completely.  It  happens  even  if I'm not watching
+> anything.
+>
+> If I take the S470 out, my machine works just fine again.
+>
+>
+> Some more info from the log - perhaps something could be useful:
+>
+> May  2 20:39:15 localhost kernel: Linux video capture interface: v2.00
+> May  2 20:39:15 localhost kernel: cx23885 driver version 0.0.2 loaded
+> May  2 20:39:15 localhost kernel: cx23885 0000:04:00.0: PCI INT A -> GSI 18 (level, low) -> IRQ 18
+> May  2 20:39:15 localhost kernel: LNBx2x attached on addr=8
+> May  2 20:39:15 localhost kernel: DVB: registering adapter 0 frontend 0 (Philips TDA10086 DVB-S)...
+> May  2 20:39:15 localhost kernel: budget dvb 0000:06:02.0: PCI INT A -> GSI 18 (level, low) -> IRQ 18
+> May  2 20:39:15 localhost kernel: CORE cx23885[0]: subsystem: d470:9022, board: TeVii S470 [card=15,autodetected]
+> May  2 20:39:15 localhost kernel: IRQ 18/: IRQF_DISABLED is not guaranteed on shared IRQs
+> May  2 20:39:15 localhost kernel: saa7146: found saa7146 @ mem fb3f4800 (revision 1, irq 18) (0x13c2,0x1018).
+> May  2 20:39:15 localhost kernel: saa7146 (1): dma buffer size 192512
+> May  2 20:39:15 localhost kernel: DVB: registering new adapter (TT-Budget-S-1401 PCI)
+> May  2 20:39:15 localhost kernel: adapter has MAC addr = 00:d0:5c:0b:01:2d
+> May  2 20:39:15 localhost kernel: LNBx2x attached on addr=8
+> May  2 20:39:15 localhost kernel: DVB: registering adapter 1 frontend 0 (Philips TDA10086 DVB-S)...
+> May  2 20:39:15 localhost kernel: cx23885_dvb_register() allocating 1 frontend(s)
+> May  2 20:39:15 localhost kernel: cx23885[0]: cx23885 based dvb card
+> May  2 20:39:15 localhost kernel: DS3000 chip version: 0.192 attached.
+> May  2 20:39:15 localhost kernel: DVB: registering new adapter (cx23885[0])
+> May  2 20:39:15 localhost kernel: DVB: registering adapter 2 frontend 0 (Montage Technology DS3000/TS2020)...
+> May  2 20:39:15 localhost kernel: cx23885_dev_checkrevision() Hardware revision = 0xb0
+> May  2 20:39:15 localhost kernel: cx23885[0]/0: found at 0000:04:00.0, rev: 2, irq: 18, latency: 0, mmio: 0xfe800000
+> May  2 20:39:15 localhost kernel: IRQ 18/cx23885[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+>
+>
+> # uname -a
+> Linux mythbackend 2.6.34.8-68.fc13.i686.PAE #1 SMP Thu Feb 17 14:54:10 UTC 2011 i686 i686 i386 GNU/Linux
+> #
+>
+>
+> I searched the Net and found a similar question that was raised some time
+> ago, but there was not even a discussion on this topic...
+>
+> If  someone  else  has  the  same  DVB-S  card  -  please  share  your
+> experience! I'd appreciate any ideas!
+>
+> --
+> Best regards,
+>  Andrew
+>
+>
 
-On Wed, Apr 13, 2011 at 02:56:54PM +0200, Mauro Carvalho Chehab wrote:
-> This is an automatic generated email to let you know that the following patch were queued at the 
-> http://git.linuxtv.org/media_tree.git tree:
-> 
-> Subject: [media] V4L: mx3_camera: select VIDEOBUF2_DMA_CONTIG instead of VIDEOBUF_DMA_CONTIG
-I don't understand why I get that mail now, the corresponding commit
-(122af366015abc) is already in Linux' tree??
+Hello Andrew, I have same DVB-S2 card on a Debian Squeeze system, I
+have installed this way:
 
-Uwe
+mkdir /usr/local/src/dvb
+cd /usr/local/src/dvb
+wget http://tevii.com/100315_Beta_linux_tevii_ds3000.rar
+unrar x 100315_Beta_linux_tevii_ds3000.rar
+cp dvb-fe-ds3000.fw /lib/firmware/
+tar xjvf linux-tevii-ds3000.tar.bz2
+cd linux-tevii-ds3000
+make && make install
+
+It works for me, sometimes I have those message on /var/log/messages:
+
+May  4 13:43:14 htpc kernel: [11575.306168] ds3000_firmware_ondemand:
+Waiting for firmware upload (dvb-fe-ds3000.fw)...
+May  4 13:43:14 htpc kernel: [11575.306181] cx23885 0000:05:00.0:
+firmware: requesting dvb-fe-ds3000.fw
+May  4 13:43:14 htpc kernel: [11575.358334] ds3000_firmware_ondemand:
+Waiting for firmware upload(2)...
+
+But it works well, I use it with MythTV, SD and HD channels.
+
+Let me know if you need some test.
+
+Kind regards.
 
 -- 
-Pengutronix e.K.                           | Uwe Kleine-König            |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Josu Lazkano
