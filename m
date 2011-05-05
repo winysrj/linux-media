@@ -1,72 +1,52 @@
 Return-path: <mchehab@pedra>
-Received: from mailfe07.c2i.net ([212.247.154.194]:55318 "EHLO swip.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752469Ab1EWLC6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 May 2011 07:02:58 -0400
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: [PATCH] Fix warning about invalid trigraph sequence.
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-From: Hans Petter Selasky <hselasky@c2i.net>
-Date: Mon, 23 May 2011 13:01:45 +0200
+Received: from mx1.redhat.com ([209.132.183.28]:22260 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753714Ab1EELE4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 May 2011 07:04:56 -0400
+Message-ID: <4DC28445.8050003@redhat.com>
+Date: Thu, 05 May 2011 08:04:37 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_Z6j2NojnDW7N/IQ"
-Message-Id: <201105231301.45428.hselasky@c2i.net>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	Manu Abraham <abraham.manu@gmail.com>, tomekbu@op.pl,
+	Steven Stoth <stoth@kernellabs.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	=?ISO-8859-1?Q?Hern=E1n_Ordiales?= <h.ordiales@gmail.com>,
+	Hans Verkuil <hansverk@cisco.com>,
+	"Igor M. Liplianin" <liplianin@me.by>,
+	David Cohen <dacohen@gmail.com>
+Subject: Re: Patches still pending at linux-media queue (18 patches)
+References: <4DC2207B.5030700@redhat.com> <4DC26024.2080809@maxwell.research.nokia.com>
+In-Reply-To: <4DC26024.2080809@maxwell.research.nokia.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
---Boundary-00=_Z6j2NojnDW7N/IQ
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Em 05-05-2011 05:30, Sakari Ailus escreveu:
+> Mauro Carvalho Chehab wrote:
+>> 		== waiting for Sakari Ailus <sakari.ailus@maxwell.research.nokia.com> submission == 
+>>
+>> Sakari,
+>>
+>> 	I'm understanding that you'll be handling this one.
+>>
+>> Feb,19 2011: [RFC/PATCH,1/1] tcm825x: convert driver to V4L2 sub device interface   http://patchwork.kernel.org/patch/574931  David Cohen <dacohen@gmail.com>
+> 
+> Hi Mauro,
+> 
+> This is mine and David's long term task. :-)
+> 
+> The tcm825x is the other user of the old v4l2-int-device framework, the
+> one being omap24xxcam. Both are used on the N8[01]0.
+> 
+> Conversion of both of the drivers should go in at the same time. Then
+> the v4l2-int-device framework can be removed. I'll work with David on
+> this. (Cc David.)
 
---HPS
+Thanks! I'll mark this as RFC at patchwork, as you may probably need to
+do another round on it.
 
---Boundary-00=_Z6j2NojnDW7N/IQ
-Content-Type: text/x-patch;
-  charset="us-ascii";
-  name="dvb-usb-0004.patch"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline;
-	filename="dvb-usb-0004.patch"
-
-=46rom e3b824b49f3d853ba16d9cdda836bd2fe81c7775 Mon Sep 17 00:00:00 2001
-=46rom: Hans Petter Selasky <hselasky@c2i.net>
-Date: Mon, 23 May 2011 12:59:37 +0200
-Subject: [PATCH] Fix warning about invalid trigraph sequence.
-
-Signed-off-by: Hans Petter Selasky <hselasky@c2i.net>
-=2D--
- drivers/media/video/cpia2/cpia2_v4l.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/video/cpia2/cpia2_v4l.c b/drivers/media/video/cp=
-ia2/cpia2_v4l.c
-index 5111bbc..e909838 100644
-=2D-- a/drivers/media/video/cpia2/cpia2_v4l.c
-+++ b/drivers/media/video/cpia2/cpia2_v4l.c
-@@ -438,7 +438,7 @@ static int cpia2_querycap(struct file *file, void *fh, =
-struct v4l2_capability *v
- 		strcat(vc->card, " (676/");
- 		break;
- 	default:
-=2D		strcat(vc->card, " (???/");
-+		strcat(vc->card, " (XXX/");
- 		break;
- 	}
- 	switch (cam->params.version.sensor_flags) {
-@@ -458,7 +458,7 @@ static int cpia2_querycap(struct file *file, void *fh, =
-struct v4l2_capability *v
- 		strcat(vc->card, "500)");
- 		break;
- 	default:
-=2D		strcat(vc->card, "???)");
-+		strcat(vc->card, "XXX)");
- 		break;
- 	}
-=20
-=2D-=20
-1.7.1.1
-
-
---Boundary-00=_Z6j2NojnDW7N/IQ--
+Thanks,
+Mauro
