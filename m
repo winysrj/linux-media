@@ -1,54 +1,89 @@
 Return-path: <mchehab@pedra>
-Received: from comal.ext.ti.com ([198.47.26.152]:51966 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756393Ab1EWQif convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 May 2011 12:38:35 -0400
-From: "Nori, Sekhar" <nsekhar@ti.com>
-To: "Hadli, Manjunath" <manjunath.hadli@ti.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Kevin Hilman <khilman@deeprootsystems.com>,
-	LAK <linux-arm-kernel@lists.infradead.org>
-CC: dlos <davinci-linux-open-source@linux.davincidsp.com>
-Date: Mon, 23 May 2011 22:08:20 +0530
-Subject: RE: [PATCH v18 07/13] davinci: move DM64XX_VDD3P3V_PWDN to devices.c
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024D09B416@dbde02.ent.ti.com>
-References: <1301737380-4288-1-git-send-email-manjunath.hadli@ti.com>
-In-Reply-To: <1301737380-4288-1-git-send-email-manjunath.hadli@ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39444 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754280Ab1EEOCQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 May 2011 10:02:16 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Javier Martin <javier.martin@vista-silicon.com>
+Subject: Re: [PATCH] OMAP3: ISP: Fix unbalanced use of omap3isp_get().
+Date: Thu, 5 May 2011 16:02:49 +0200
+Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de
+References: <1304603588-3178-1-git-send-email-javier.martin@vista-silicon.com>
+In-Reply-To: <1304603588-3178-1-git-send-email-javier.martin@vista-silicon.com>
 MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201105051602.49814.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sat, Apr 02, 2011 at 15:13:00, Hadli, Manjunath wrote:
-> Move the definition of DM64XX_VDD3P3V_PWDN from hardware.h
-> to devices.c since it is used only there.
+Hi Javier,
+
+On Thursday 05 May 2011 15:53:08 Javier Martin wrote:
+> Do not use omap3isp_get() when what we really want to do is just
+> enable clocks, since omap3isp_get() has additional, unwanted, side
+> effects as an increase of the counter.
 > 
-> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> Acked-by: Sekhar Nori <nsekhar@ti.com>
-
-Applying this after updating the patch description to
-point out that this also helps rid hardware.h of platform
-private stuff..
-
+> This prevented omap3isp of working with Beagleboard xM and it has
+> been tested only with that platform + mt9p031 sensor.
+> 
+> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
 > ---
->  arch/arm/mach-davinci/devices.c               |    1 +
->  arch/arm/mach-davinci/include/mach/hardware.h |    3 ---
->  2 files changed, 1 insertions(+), 3 deletions(-)
+>  drivers/media/video/omap3isp/isp.c |    8 +++++---
+>  1 files changed, 5 insertions(+), 3 deletions(-)
 > 
-> diff --git a/arch/arm/mach-davinci/devices.c b/arch/arm/mach-davinci/devices.c
-> index 22ebc64..4e1b663 100644
-> --- a/arch/arm/mach-davinci/devices.c
-> +++ b/arch/arm/mach-davinci/devices.c
-> @@ -182,6 +182,7 @@ static struct platform_device davinci_mmcsd1_device = {
->  	.resource = mmcsd1_resources,
->  };
->  
-> +#define DM64XX_VDD3P3V_PWDN	0x48
+> diff --git a/drivers/media/video/omap3isp/isp.c
+> b/drivers/media/video/omap3isp/isp.c index 472a693..ca0831f 100644
+> --- a/drivers/media/video/omap3isp/isp.c
+> +++ b/drivers/media/video/omap3isp/isp.c
+> @@ -85,9 +85,11 @@ module_param(autoidle, int, 0444);
+>  MODULE_PARM_DESC(autoidle, "Enable OMAP3ISP AUTOIDLE support");
+> 
+>  static void isp_save_ctx(struct isp_device *isp);
+> -
+>  static void isp_restore_ctx(struct isp_device *isp);
+> 
+> +static int isp_enable_clocks(struct isp_device *isp);
+> +static void isp_disable_clocks(struct isp_device *isp);
+> +
+>  static const struct isp_res_mapping isp_res_maps[] = {
+>  	{
+>  		.isp_rev = ISP_REVISION_2_0,
+> @@ -239,10 +241,10 @@ static u32 isp_set_xclk(struct isp_device *isp, u32
+> xclk, u8 xclksel)
+> 
+>  	/* Do we go from stable whatever to clock? */
+>  	if (divisor >= 2 && isp->xclk_divisor[xclksel - 1] < 2)
+> -		omap3isp_get(isp);
+> +		isp_enable_clocks(isp);
 
-.. and moving this to the top of the file.
+This won't work. Let's assume the following sequence of events:
 
-Thanks,
-Sekhar
+- Userspace opens the sensor subdev device node
+- The sensor driver calls to board code to turn the sensor clock on
+- Board code calls to the ISP driver to turn XCLK on
+- The ISP driver calls isp_enable_clocks()
+...
+- Userspace opens an ISP video device node
+- The ISP driver calls isp_get(), incrementing the reference count
+- Userspace closes the ISP video device node
+- The ISP driver calls isp_put(), decrementing the reference count
+- The reference count reaches 0, the ISP driver calls isp_disable_clocks()
+
+The sensor will then loose its clock, even though the sensor subdev device 
+node is still opened.
+
+Could you please explain why the existing code doesn't work on your hardware ?
+
+>  	/* Stopping the clock. */
+>  	else if (divisor < 2 && isp->xclk_divisor[xclksel - 1] >= 2)
+> -		omap3isp_put(isp);
+> +		isp_disable_clocks(isp);
+> 
+>  	isp->xclk_divisor[xclksel - 1] = divisor;
+
+-- 
+Regards,
+
+Laurent Pinchart
