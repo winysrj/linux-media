@@ -1,76 +1,55 @@
 Return-path: <mchehab@pedra>
-Received: from eu1sys200aog101.obsmtp.com ([207.126.144.111]:52578 "EHLO
-	eu1sys200aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752448Ab1ECMCW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 May 2011 08:02:22 -0400
-Message-ID: <4DBFEEBA.4010005@st.com>
-Date: Tue, 3 May 2011 17:32:02 +0530
-From: vipul kumar samar <vipulkumar.samar@st.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:34190 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753560Ab1EEKWm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 May 2011 06:22:42 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: omap3isp clock problems on Beagleboard xM.
+Date: Thu, 5 May 2011 12:23:17 +0200
+Cc: javier Martin <javier.martin@vista-silicon.com>,
+	linux-media@vger.kernel.org
+References: <BANLkTinRqcFj5doua4r6d-vwPAym=JGvDw@mail.gmail.com> <Pine.LNX.4.64.1105051215340.29735@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1105051215340.29735@axis700.grange>
 MIME-Version: 1.0
-To: Hans Verkuil <hansverk@cisco.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	<laurent.pinchart@ideasonboard.com>, <m.szyprowski@samsung.com>
-Subject: Re: Query: Implementation of overlay on linux
-References: <4DBE8FDB.5010506@st.com> <201105021520.22842.hansverk@cisco.com>
-In-Reply-To: <201105021520.22842.hansverk@cisco.com>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201105051223.17801.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
-On 05/02/2011 06:50 PM, Hans Verkuil wrote:
-> On Monday, May 02, 2011 13:04:59 vipul kumar samar wrote:
->> Hello,
->>
->> I am working on LCD module and I want to implement two overlay windows
->> on frame buffer. I have some queries related to this:
->
-> You mean capture overlay windows? E.g. you want to capture from a video input
-> and have the video directly rendered in the framebuffer?
->
+Hi Javier,
 
-Our LCD driver is developed on frame buffer interface.Now i want to 
-implement 2 overlay window support on the same driver.I saw the solution 
-of frame buffer emulator provided on mailing list. But i am little bit 
-confused.
+On Thursday 05 May 2011 12:17:12 Guennadi Liakhovetski wrote:
+> On Thu, 5 May 2011, javier Martin wrote:
+> > Hi,
+> > as you know I'm currently working on submitting mt9p031 driver to
+> > mainline, testing it with my Beagleboard xM.
+> > While I was trying to clean Guennadi's patches I ran into the attached
+> > patch which changes a call to "omap3isp_get(isp);" into
+> > "isp_enable_clocks(isp);".
+> > 
+> > I don't think this is clean since it would unbalance the number of
+> > omap3isp_get() vs omap3isp_put() and we probably don't want that.
+> > What seems clear is if we don't apply this patch the clock is not
+> > actually enabled.
+> > 
+> > According to my debugging results "isp_disable_clocks()" is never
+> > called, so, after the first call to "isp_enable_clocks()" there
+> > shouldn't be any need to enable the clocks again.
+> > 
+> > Guennadi, do you know what is the cause of the problem?
+> 
+> I don't remember exactly, but it didn't work without this patch. I know it
+> is not clean and shouldn't be needed, so, if now it works also without it
+> - perfect! You can start, stop, and restart streaming without this patch
+> and it all works? Then certainly it should be dropped.
 
-My understanding is Frame buffer emulator provides a wrapper over V4L2 
-framework based driver and provide a single buffer solution.But my 
-condition is reverse i want to use V4L2 over frame buffer.
+And otherwise you can work on a fix ;-) I unfortunately have no sensor module 
+for the Beagleboard xM so I can't really test this.
 
-Is it fruit full to rearrange frame buffer based driver in v4l2 
-framework and then implement overlay support over it??
-Is there any simple way to use V4L2 frame work over frame buffer??
+-- 
+Regards,
 
-Thanks and Regards
-Vipul Samar
-
-
-> The "Video Overlay Interface" section in the V4L2 specification describes how
-> to do that, but it also depends on whether the V4L2 driver in question
-> supports that feature.
->
-> It might be that you mean something else, though.
->
-> Regards,
->
-> 	Hans
->
->> 1. Can any body suggest me how to proceed towards it??
->> 2. Is their any standard way to use frame buffer ioctl calls??
->> 3. If i have to define my own ioctls then how application manage it??
->>
->>
->> Thanks and Regards
->> Vipul Samar
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->>
-> .
->
-
+Laurent Pinchart
