@@ -1,122 +1,126 @@
 Return-path: <mchehab@pedra>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:53466 "EHLO
-	relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751124Ab1ECK7a (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 May 2011 06:59:30 -0400
-Received: from mfilter8-d.gandi.net (mfilter8-d.gandi.net [217.70.178.137])
-	by relay4-d.mail.gandi.net (Postfix) with ESMTP id DF30F1720A2
-	for <linux-media@vger.kernel.org>; Tue,  3 May 2011 12:59:28 +0200 (CEST)
-Received: from relay4-d.mail.gandi.net ([217.70.183.196])
-	by mfilter8-d.gandi.net (mfilter8-d.gandi.net [10.0.15.180]) (amavisd-new, port 10024)
-	with ESMTP id G1EHbWyh4nCw for <linux-media@vger.kernel.org>;
-	Tue,  3 May 2011 12:59:27 +0200 (CEST)
-Received: from WIN7PC (ALyon-157-1-16-136.w81-251.abo.wanadoo.fr [81.251.55.136])
-	(Authenticated sender: sr@coexsi.fr)
-	by relay4-d.mail.gandi.net (Postfix) with ESMTPSA id 1F646172088
-	for <linux-media@vger.kernel.org>; Tue,  3 May 2011 12:59:27 +0200 (CEST)
-From: =?iso-8859-1?Q?S=E9bastien_RAILLARD_=28COEXSI=29?= <sr@coexsi.fr>
-To: "Linux Media Mailing List" <linux-media@vger.kernel.org>
-Subject: DVB nGene CI : TS Discontinuities issues
-Date: Tue, 3 May 2011 12:59:29 +0200
-Message-ID: <004f01cc0981$2d371ec0$87a55c40$@coexsi.fr>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:48203 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751062Ab1EESyf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 May 2011 14:54:35 -0400
+Received: by eyx24 with SMTP id 24so762625eyx.19
+        for <linux-media@vger.kernel.org>; Thu, 05 May 2011 11:54:34 -0700 (PDT)
+From: "Igor M. Liplianin" <liplianin@me.by>
+To: Andrew Junev <a-j@a-j.ru>
+Subject: Re: [linux-dvb] TeVii S470 (cx23885 / ds3000) makes the machine unstable
+Date: Thu, 5 May 2011 21:55:14 +0300
+References: <1908281867.20110505213806@a-j.ru>
+In-Reply-To: <1908281867.20110505213806@a-j.ru>
+Cc: linux-dvb@linuxtv.org, linux-media@vger.kernel.org
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Language: fr
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201105052155.14753.liplianin@me.by>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Dear all,
+В сообщении от 5 мая 2011 20:38:06 автор Andrew Junev написал:
+> Hello All,
+> 
+>   I'm  trying  to set up a TeVii S470 DVB-S2 card for use in my MythTV
+>   system  running  on  Fedora 13. I already have a couple of TT S-1401
+>   cards in that machine, and it works fine.
+> 
+>   I  copied   the  firmware for my S470 as described on the Wiki page.
+>   The  card is detected  and seem to work. I am able to watch existing
+>   channels, and even found some DVB-S2 transponders.
+> 
+>   But  the  machine  is  very  unstable. After a while, I get a lot of
+>   errors in my /var/log/messages , like:
+> 
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xb2(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_writereg: writereg error(err ==
+> -5, reg == 0x03, value == 0x11) May  3 22:35:51 localhost kernel:
+> ds3000_tuner_writereg: writereg error(err == -5, reg == 0x42, value ==
+> 0x73) May  3 22:35:51 localhost kernel: ds3000_writereg: writereg
+> error(err == -5, reg == 0x03, value == 0x11) May  3 22:35:51 localhost
+> kernel: ds3000_tuner_writereg: writereg error(err == -5, reg == 0x05,
+> value == 0x01) May  3 22:35:51 localhost kernel: ds3000_writereg: writereg
+> error(err == -5, reg == 0x03, value == 0x11) May  3 22:35:51 localhost
+> kernel: ds3000_tuner_writereg: writereg error(err == -5, reg == 0x62,
+> value == 0xf5)
+> 
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> 
+> 
+> There   are   a  lot  of  lines  like  these  in the log (tens or even
+> hundreds  per  second).  And  at some point the machine just freezes -
+> stops  responding  completely.  It  happens  even  if I'm not watching
+> anything.
+> 
+> If I take the S470 out, my machine works just fine again.
+> 
+> 
+> Some more info from the log - perhaps something could be useful:
+> 
+> May  2 20:39:15 localhost kernel: Linux video capture interface: v2.00
+> May  2 20:39:15 localhost kernel: cx23885 driver version 0.0.2 loaded
+> May  2 20:39:15 localhost kernel: cx23885 0000:04:00.0: PCI INT A -> GSI 18
+> (level, low) -> IRQ 18 May  2 20:39:15 localhost kernel: LNBx2x attached
+> on addr=8
+> May  2 20:39:15 localhost kernel: DVB: registering adapter 0 frontend 0
+> (Philips TDA10086 DVB-S)... May  2 20:39:15 localhost kernel: budget dvb
+> 0000:06:02.0: PCI INT A -> GSI 18 (level, low) -> IRQ 18 May  2 20:39:15
+> localhost kernel: CORE cx23885[0]: subsystem: d470:9022, board: TeVii S470
+> [card=15,autodetected] May  2 20:39:15 localhost kernel: IRQ 18/:
+> IRQF_DISABLED is not guaranteed on shared IRQs May  2 20:39:15 localhost
+> kernel: saa7146: found saa7146 @ mem fb3f4800 (revision 1, irq 18)
+> (0x13c2,0x1018). May  2 20:39:15 localhost kernel: saa7146 (1): dma buffer
+> size 192512 May  2 20:39:15 localhost kernel: DVB: registering new adapter
+> (TT-Budget-S-1401 PCI) May  2 20:39:15 localhost kernel: adapter has MAC
+> addr = 00:d0:5c:0b:01:2d May  2 20:39:15 localhost kernel: LNBx2x attached
+> on addr=8
+> May  2 20:39:15 localhost kernel: DVB: registering adapter 1 frontend 0
+> (Philips TDA10086 DVB-S)... May  2 20:39:15 localhost kernel:
+> cx23885_dvb_register() allocating 1 frontend(s) May  2 20:39:15 localhost
+> kernel: cx23885[0]: cx23885 based dvb card May  2 20:39:15 localhost
+> kernel: DS3000 chip version: 0.192 attached. May  2 20:39:15 localhost
+> kernel: DVB: registering new adapter (cx23885[0]) May  2 20:39:15
+> localhost kernel: DVB: registering adapter 2 frontend 0 (Montage
+> Technology DS3000/TS2020)... May  2 20:39:15 localhost kernel:
+> cx23885_dev_checkrevision() Hardware revision = 0xb0 May  2 20:39:15
+> localhost kernel: cx23885[0]/0: found at 0000:04:00.0, rev: 2, irq: 18,
+> latency: 0, mmio: 0xfe800000 May  2 20:39:15 localhost kernel: IRQ
+> 18/cx23885[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+> 
+> 
+> # uname -a
+> Linux mythbackend 2.6.34.8-68.fc13.i686.PAE #1 SMP Thu Feb 17 14:54:10 UTC
+> 2011 i686 i686 i386 GNU/Linux #
+> 
+> 
+> I searched the Net and found a similar question that was raised some time
+> ago, but there was not even a discussion on this topic...
+> 
+> If  someone  else  has  the  same  DVB-S  card  -  please  share  your
+> experience! I'd appreciate any ideas!
+Hello,
 
-I'm doing some tests with the CI interface of the "Linux4Media cineS2 DVB-S2
-Twin Tuner (v5)" card.
-I notice some TS discontinuities during my tests.
+Your kernel seems necessary to update...
 
-My setup:
-- Aston Viaccess Pro CAM
-- Linux4Media cineS2 DVB-S2 Twin Tuner (v5) card
-- Latest git media_build source with DF_SWAP32 patch
-- DVB-S source from ASTRA 19.2E / 12285.00-V-27500
-
-Test #1: (idle)
-Reading from sec0 (without CI init or sec0 input stream) using "dd" give me
-a stream of NULL TS packets of roughly 62mbps or 7.8MB/s (seems normal
-behavior)
-Command line: dd if=/dev/dvb/adapter14/sec0 of=/root/test.ts bs=18800
-count=10000
-
-Test #2: (CAM removal)
-After CAM initialization and some tests, if CAM is removed, the output sec0
-bandwidth isn't anymore 62mbps of NULL TS packets
-Same command line as Test #1 is used.
-It seems that the CI is badly reacting after hot remove of CAM.
-After rebooting, everything is fine again.
-
-Test #3: (Test dvr0 stream)
-- Setting up the DVB-S reception: gnutv -adapter 14 -channels channels.conf
--out dvr CHAINE
-- Channel configuration: CHAINE:12285:v:0:27500:170:120:17030
-- Dumping the dvr0 output: dd if=/dev/dvb/adapter14/dvr0 of=/root/test.ts
-bs=1880 count=1000
-=> The dvr0 output bandwidth is roughly 300kB/s (normal for one filtered
-channel)
-=> The resulting TS file is correct (no sync missing, no continuity error)
-
-Test #4: (Loop mode - No CAM inserted)
-- Sending all TS packets from dvr0 to sec0: dd if=/dev/dvb/adapter14/dvr0
-of=/dev/dvb/adapter14/sec0 bs=1880
-- Setting up the DVB-S reception: gnutv -adapter 14 -channels channels.conf
--out dvr CHAINE
-- Channel configuration: CHAINE:12285:v:0:27500:170:120:17030
-- Dumping the sec0 output: dd if=/dev/dvb/adapter14/sec0 of=/root/test.ts
-bs=18800 count=10000
-=> The sec0 output bandwidth is roughly 7.8MB/s (normal as the CI output is
-always 62mbps)
-=> The resulting TS file is filled at 96% by NULL TS packets (normal,
-regarding the input stream bandwidth of 300kB/S)
-=> All the input PID seem to present in the output file
-=> But, there are some discontinuities in the TS packets (a lot and for all
-the PID)
-
-Test #5: (Trough CAM - CAM is inserted)
-- Sending all TS packets from dvr0 to sec0: dd if=/dev/dvb/adapter14/dvr0
-of=/dev/dvb/adapter14/sec0 bs=1880
-- Setting up the DVB-S reception: gnutv -adapter 14 -channels channels.conf
--out dvr CHAINE
-- Channel configuration: CHAINE:12285:v:0:27500:170:120:17030
-- Waiting for CAM initialization (the CAM is correctly initialized and the
-PMT packet is send to the CAM)
-- Dumping the sec0 output: dd if=/dev/dvb/adapter14/sec0 of=/root/test.ts
-bs=18800 count=10000
-=> The sec0 output bandwidth is roughly 7.8MB/s (normal as the CI output is
-always 62mbps)
-=> The resulting TS file is filled at 96% by NULL TS packets (normal,
-regarding the input stream bandwidth of 300kB/S)
-=> All the input PID seem to present in the output file
-=> The stream isn't decoded (normal as the CAT table isn't outputted by
-gnutv)
-=> But, there are some discontinuities in the TS packets (a lot and for all
-the PID)
-
-So, in summary, I'm observing discontinues when stream is going through the
-sec0 device, if CAM is present or not.
-Also, the CI adapter doesn't seem to react correctly when the CAM is hot
-removed.
-I can provide the TS files (from dvr0, from sec0 with CAM and without CAM)
-if someone is interested.
-
-Does someone has a setup that show no discontinuities when a TS stream is
-going through sec0? (with an input TS file)
-I would like to test it as for me the CI interface doesn't seem to work for
-the nGene cards.
-
-Best regards,
-Sebastien.
-
-
-
-
-
-
-
+Best Regards
+Igor
+-- 
+Igor M. Liplianin
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
