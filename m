@@ -1,90 +1,58 @@
 Return-path: <mchehab@pedra>
-Received: from ns.mm-sol.com ([213.240.235.226]:36886 "EHLO extserv.mm-sol.com"
+Received: from mx1.redhat.com ([209.132.183.28]:26636 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750960Ab1ECP1C (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 May 2011 11:27:02 -0400
-From: Yordan Kamenov <ykamenov@mm-sol.com>
-To: hdegoede@redhat.com
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-Subject: Froe 1678f1f41284ad9665de8717b7b8be117ddf9596 Mon Sep 17 00:00:00 2001
-Date: Tue,  3 May 2011 18:26:35 +0300
-Message-Id: <1304436396-10501-1-git-send-email-ykamenov@mm-sol.com>
+	id S1751106Ab1EELln (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 May 2011 07:41:43 -0400
+Message-ID: <4DC28CEE.1080304@redhat.com>
+Date: Thu, 05 May 2011 08:41:34 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
+CC: Andy Walls <awalls@md.metrocast.net>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Steven Toth <stoth@kernellabs.com>
+Subject: Re: [PATCH] cx18: Clean up mmap() support for raw YUV
+References: <4DBFDF71.5090705@redhat.com> <1304423860-12785-1-git-send-email-simon.farnsworth@onelan.co.uk> <b418b252-4152-4666-9c83-85e91613b493@email.android.com> <201105041032.24644.simon.farnsworth@onelan.co.uk>
+In-Reply-To: <201105041032.24644.simon.farnsworth@onelan.co.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Hans,
+Hi Simon,
 
-here is the fourth version of plugin support for libv4l2.
+Em 04-05-2011 06:32, Simon Farnsworth escreveu:
+> On Tuesday 3 May 2011, Andy Walls <awalls@md.metrocast.net> wrote:
+>> Simon,
+>>
+>> If these two changes are going in, please also bump the driver version to
+>> 1.5.0 in cx18-version.c.  These changes are significant enough
+>> perturbation.
+>>
+>> End users are going to look to driver version 1.4.1 as the first version
+>> for proper analog tuner support of the HVR1600 model 74351.
+>>
+>> Mauro,
+>>
+>> Is cx18 v1.4.1 with HVR1600 model 74351 analog tuner support, without these
+>> mmap() changes going to be visible in kernel version .39 ?
+>>
+> 
+> Mauro,
+> 
+> If you're going to accept these two patches, would you mind bumping the 
+> version in cx18-version.c for me as you apply them, or would you prefer me to 
+> provide either an incremental patch or a new patch with the bump added?
 
-Changes in v4:
+There are a few new warnings with your code:
 
-* Make close() callback void
-* Move plugin clean up where the actual fd gets closed
-* Use SYS_FOO in default device operations instead of syscall()
+drivers/media/video/cx18/cx18-mailbox.c: In function ‘cx18_mdl_send_to_videobuf’:
+drivers/media/video/cx18/cx18-mailbox.c:206: warning: passing argument 1 of ‘ktime_get_ts’ from incompatible pointer type
+include/linux/ktime.h:331: note: expected ‘struct timespec *’ but argument is of type ‘struct timeval *’
+drivers/media/video/cx18/cx18-mailbox.c:170: warning: unused variable ‘i’
+drivers/media/video/cx18/cx18-mailbox.c:167: warning: unused variable ‘u’
 
+Could you please fix them?
 
---------------------------------------------------------------------------
-Changes in v3:
-
-* Pass opened fd to the plugin instead of filename
-* Plugin private data is returned by init call and is passed as argument
-  in ioctl/read/close (remove libv4l2_set/get_plugindata functions)
-* Plugin do not handle mmap/munmap
-
-
-
---------------------------------------------------------------------------
-Changes in v2:
-
-* Remove calls of v4l2_plugin_foo functions in the beginning of coresponding
-  v4l2_foo functions and instead replace SYS_FOO calls.
-* Add to v4l2_dev_info device operation structure which can hold plugin
-  callbacks or dyrect syscall(SYS_foo, ...) calls.
-* Under libv4lconvert also replace SYS_FOO cals with device operations. This
-  required also to add dev_ops field to v4lconvert_data and v4lcontrol_data.
-
----------------------------------------------------------------------------
-v1:
-
-Here is initial version of plugin support for libv4l, based on your RFC.
-
-It is provided by functions v4l2_plugin_[open,close,etc]. When open() is
-called libv4l dlopens files in /usr/lib/libv4l/plugins 1 at a time and call
-open() callback passing through the applications parameters unmodified.
-If a plugin is relevant for the specified device node, it can indicate so by
-returning a value other then -1 (the actual file descriptor).
-
-As soon as a plugin returns another value then -1 plugin loading stops and
-information about it (fd and corresponding library handle) is stored.
-For each function v4l2_[ioctl,read,close,etc] is called corresponding
-v4l2_plugin_* function which looks if there is loaded plugin for that file
-and call it's callbacks. v4l2_plugin_* functions indicate by their first
-argument if plugin was used, and if it was not then v4l2_* functions proceed
-
-
-
-Yordan Kamenov (1):
-  Add plugin support to libv4l
-
- lib/include/libv4l2-plugin.h                   |   36 ++++++
- lib/include/libv4lconvert.h                    |    5 +-
- lib/libv4l2/Makefile                           |    6 +-
- lib/libv4l2/libv4l2-priv.h                     |   10 ++
- lib/libv4l2/libv4l2.c                          |   88 ++++++++++----
- lib/libv4l2/v4l2-plugin.c                      |  158 ++++++++++++++++++++++++
- lib/libv4l2/v4l2convert.c                      |    9 --
- lib/libv4lconvert/control/libv4lcontrol-priv.h |    4 +
- lib/libv4lconvert/control/libv4lcontrol.c      |   35 ++++--
- lib/libv4lconvert/control/libv4lcontrol.h      |    5 +-
- lib/libv4lconvert/libv4lconvert-priv.h         |    2 +
- lib/libv4lconvert/libv4lconvert.c              |   34 ++++--
- utils/qv4l2/qv4l2.cpp                          |   17 +++-
- utils/qv4l2/qv4l2.h                            |    1 +
- 14 files changed, 347 insertions(+), 63 deletions(-)
- create mode 100644 lib/include/libv4l2-plugin.h
- create mode 100644 lib/libv4l2/v4l2-plugin.c
-
--- 
-1.7.3.1
-
+Thanks,
+Mauro
