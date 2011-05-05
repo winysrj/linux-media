@@ -1,32 +1,39 @@
 Return-path: <mchehab@pedra>
-Received: from rouge.crans.org ([138.231.136.3]:52773 "EHLO rouge.crans.org"
+Received: from tex.lwn.net ([70.33.254.29]:35283 "EHLO vena.lwn.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755420Ab1EQPwG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 May 2011 11:52:06 -0400
-Message-ID: <4DD29848.6030901@braice.net>
-Date: Tue, 17 May 2011 17:46:16 +0200
-From: Brice DUBOST <braice@braice.net>
-MIME-Version: 1.0
-To: Tomer Barletz <barletz@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [libdvben50221] [PATCH] Assign same resource_id in open_session_response
- when "resource non-existent"
-References: <AANLkTinT9oPT9ob3W6pzuvbxr502gAC5N02TOLGr_pLC@mail.gmail.com>
-In-Reply-To: <AANLkTinT9oPT9ob3W6pzuvbxr502gAC5N02TOLGr_pLC@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+	id S932115Ab1EESvu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 May 2011 14:51:50 -0400
+Date: Thu, 5 May 2011 12:51:48 -0600
+From: Jonathan Corbet <corbet@lwn.net>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Manu Abraham <abraham.manu@gmail.com>, tomekbu@op.pl,
+	Steven Stoth <stoth@kernellabs.com>,
+	=?ISO-8859-1?B?SGVybuFu?= Ordiales <h.ordiales@gmail.com>,
+	Hans Verkuil <hansverk@cisco.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	"Igor M. Liplianin" <liplianin@me.by>
+Subject: Re: Patches still pending at linux-media queue (18 patches)
+Message-ID: <20110505125148.66e1e64c@bike.lwn.net>
+In-Reply-To: <4DC2207B.5030700@redhat.com>
+References: <4DC2207B.5030700@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 18/01/2011 15:42, Tomer Barletz wrote:
-> Attached a patch for a bug in the lookup_callback function, were in
-> case of a non-existent resource, the connected_resource_id is not
-> initialized and then used in the open_session_response call of the
-> session layer.
+On Thu, 05 May 2011 00:58:51 -0300
+Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+
+> Jon,
+> 	One patch for your ack ;)
 > 
+> Apr,29 2011: [media] via-camera: add MODULE_ALIAS                                   http://patchwork.kernel.org/patch/742581  Daniel Drake <dsd@laptop.org>
 
-Hello
+Sorry...it's just a module alias, figured nobody would worry about it.
+It's fine, feel free to toss my Acked-by onto it.
 
-Can you explain what kind of bug it fixes ?
+Thanks,
 
-Thanks
+jon
