@@ -1,108 +1,68 @@
 Return-path: <mchehab@pedra>
-Received: from [212.227.17.10] ([212.227.17.10]:57115 "EHLO
-	moutng.kundenserver.de" rhost-flags-FAIL-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1751301Ab1E2KVg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 May 2011 06:21:36 -0400
-Date: Sun, 29 May 2011 12:21:27 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Andrew Chew <achew@nvidia.com>
-cc: mchehab@redhat.com, olof@lixom.net, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 3/5 v2] [media] ov9740: Fixed some settings
-In-Reply-To: <1306368272-28279-3-git-send-email-achew@nvidia.com>
-Message-ID: <Pine.LNX.4.64.1105291218250.18788@axis700.grange>
-References: <1306368272-28279-1-git-send-email-achew@nvidia.com>
- <1306368272-28279-3-git-send-email-achew@nvidia.com>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:50099 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755212Ab1EEPZb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 May 2011 11:25:31 -0400
+Received: by ewy4 with SMTP id 4so708378ewy.19
+        for <linux-media@vger.kernel.org>; Thu, 05 May 2011 08:25:30 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <BANLkTikNjQXhfTMkA+zXmWqXU1htqQFTHA@mail.gmail.com>
+References: <BANLkTikNjQXhfTMkA+zXmWqXU1htqQFTHA@mail.gmail.com>
+Date: Thu, 5 May 2011 11:25:29 -0400
+Message-ID: <BANLkTimiA1k-pbwuri1vAFgsfSwkdTJWAA@mail.gmail.com>
+Subject: Re: CX24116 i2c patch
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Steven Toth <stoth@kernellabs.com>
+Cc: Linux-Media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 25 May 2011, achew@nvidia.com wrote:
+On Thu, May 5, 2011 at 8:28 AM, Steven Toth <stoth@kernellabs.com> wrote:
+> Mauro,
+>
+>> Subject: [media] cx24116: add config option to split firmware download
+>> Author:  Antti Palosaari <crope@iki.fi>
+>> Date:    Wed Apr 27 21:03:07 2011 -0300
+>>
+>> It is very rare I2C adapter hardware which can provide 32kB I2C write
+>> as one write. Add .i2c_wr_max option to set desired max packet size.
+>> Split transaction to smaller pieces according to that option.
+>
+> This is none-sense. I'm naking this patch, please unqueue, regress or whatever.
+>
+> The entire point of the i2c message send is that the i2c drivers know
+> nothing about the host i2c implementation, and they should not need
+> to. I2C SEND and RECEIVE are abstract and require no knowledge of the
+> hardware. This is dangerous and generates non-atomic register writes.
+> You cannot guarantee that another thread isn't reading/writing to
+> other registers in the part - breaking the driver.
+>
+> Please fix the host controller to split the i2c messages accordingly
+> (and thus keeping the entire transaction atomic).
+>
+> This is the second time I've seen the 'fix' to a problem by patching
+> the i2c driver. Fix the i2c bridge else we'll see this behavior
+> spreading to multiple i2c driver. It's just wrong.
 
-> From: Andrew Chew <achew@nvidia.com>
-> 
-> Based on vendor feedback, should issue a software reset at start of day.
-> 
-> Also, OV9740_ANALOG_CTRL15 needs to be changed so the sensor does not begin
-> streaming until it is ready (otherwise, results in a nonsense frame for the
-> initial frame).
-> 
-> For discontinuous clocks, need to change OV9740_MIPI_CTRL00.
-> 
-> Finally, OV9740_ISP_CTRL19 needs to be changed to really use YUYV ordering
-> (the previous value was for VYUY).
-> 
-> Signed-off-by: Andrew Chew <achew@nvidia.com>
-> ---
->  drivers/media/video/ov9740.c |   10 +++++++++-
->  1 files changed, 9 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/ov9740.c b/drivers/media/video/ov9740.c
-> index d5c9061..9d7c74d 100644
-> --- a/drivers/media/video/ov9740.c
-> +++ b/drivers/media/video/ov9740.c
-> @@ -68,6 +68,7 @@
->  #define OV9740_ANALOG_CTRL04		0x3604
->  #define OV9740_ANALOG_CTRL10		0x3610
->  #define OV9740_ANALOG_CTRL12		0x3612
-> +#define OV9740_ANALOG_CTRL15		0x3615
->  #define OV9740_ANALOG_CTRL20		0x3620
->  #define OV9740_ANALOG_CTRL21		0x3621
->  #define OV9740_ANALOG_CTRL22		0x3622
-> @@ -222,6 +223,9 @@ struct ov9740_priv {
->  };
->  
->  static const struct ov9740_reg ov9740_defaults[] = {
-> +	/* Software Reset */
-> +	{ OV9740_SOFTWARE_RESET,	0x01 },
-> +
->  	/* Banding Filter */
->  	{ OV9740_AEC_B50_STEP_HI,	0x00 },
->  	{ OV9740_AEC_B50_STEP_LO,	0xe8 },
-> @@ -333,6 +337,7 @@ static const struct ov9740_reg ov9740_defaults[] = {
->  	{ OV9740_ANALOG_CTRL10,		0xa1 },
->  	{ OV9740_ANALOG_CTRL12,		0x24 },
->  	{ OV9740_ANALOG_CTRL22,		0x9f },
-> +	{ OV9740_ANALOG_CTRL15,		0xf0 },
->  
->  	/* Sensor Control */
->  	{ OV9740_SENSOR_CTRL03,		0x42 },
-> @@ -385,7 +390,7 @@ static const struct ov9740_reg ov9740_defaults[] = {
->  	{ OV9740_LN_LENGTH_PCK_LO,	0x62 },
->  
->  	/* MIPI Control */
-> -	{ OV9740_MIPI_CTRL00,		0x44 },
-> +	{ OV9740_MIPI_CTRL00,		0x64 }, /* 0x44 for continuous clock */
+I tend to agree with Steven on this one.  That said, these sorts of
+things usually get introduced in cases where the i2c master is not
+well enough understood to know how to split the transactions and still
+preserve the repeat start (common with reverse engineered drivers).
+It can also occur in cases where there really is a hardware limitation
+that prevents the caller from making multiple requests to the chip
+while not sending the stop bit (although this is less common).
 
-I think, the choice between continuous and discontinuous CSI-2 clock 
-should become configurable. You can only use discontinuous clock with 
-hosts, that support it, right? Whereas all hosts must support continuous 
-clock. So, I'm not sure we should unconditionally switch to discontinuous 
-clock here... Maybe it's better to keep it continuous until we make it 
-configurable?
+Do we know this to be the case with the anysee bridge?  Is this a
+reverse engineered device?  Is there documentation/datasheets to
+reference?
 
->  	{ OV9740_MIPI_3837,		0x01 },
->  	{ OV9740_MIPI_CTRL01,		0x0f },
->  	{ OV9740_MIPI_CTRL03,		0x05 },
-> @@ -393,6 +398,9 @@ static const struct ov9740_reg ov9740_defaults[] = {
->  	{ OV9740_VFIFO_RD_CTRL,		0x16 },
->  	{ OV9740_MIPI_CTRL_3012,	0x70 },
->  	{ OV9740_SC_CMMM_MIPI_CTR,	0x01 },
-> +
-> +	/* YUYV order */
-> +	{ OV9740_ISP_CTRL19,		0x02 },
->  };
->  
->  static const struct ov9740_reg ov9740_regs_vga[] = {
-> -- 
-> 1.7.5.2
-> 
+Do we know if this is an issue with the i2c master driver not being
+fully baked, or if it's a hardware limitation?
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
