@@ -1,56 +1,52 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:36105 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752322Ab1EFMXX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 May 2011 08:23:23 -0400
-Message-ID: <4DC3E82A.7040202@redhat.com>
-Date: Fri, 06 May 2011 09:23:06 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from claranet-outbound-smtp00.uk.clara.net ([195.8.89.33]:53675 "EHLO
+	claranet-outbound-smtp00.uk.clara.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753284Ab1EENoj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 May 2011 09:44:39 -0400
+From: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] cx18: Fix warnings introduced during cleanup
+Date: Thu, 5 May 2011 14:44:32 +0100
+Cc: Andy Walls <awalls@md.metrocast.net>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Steven Toth <stoth@kernellabs.com>
+References: <4DC138F7.5050400@infradead.org> <1304599356-21951-1-git-send-email-simon.farnsworth@onelan.co.uk> <4DC2A8FD.4010902@infradead.org>
+In-Reply-To: <4DC2A8FD.4010902@infradead.org>
 MIME-Version: 1.0
-To: Steve Kerrison <steve@stevekerrison.com>
-CC: Andreas Oberritter <obi@linuxtv.org>, linux-media@vger.kernel.org,
-	Antti Palosaari <crope@iki.fi>
-Subject: Re: [git:v4l-dvb/for_v2.6.40] [media] Sony CXD2820R DVB-T/T2/C demodulator
- driver
-References: <E1QHwSm-0006hA-A9@www.linuxtv.org>	 <4DC3C6FA.8070505@linuxtv.org> <1304678539.8670.29.camel@ares>
-In-Reply-To: <1304678539.8670.29.camel@ares>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201105051444.33707.simon.farnsworth@onelan.co.uk>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 06-05-2011 07:42, Steve Kerrison escreveu:
-> Hi Andreas,
+On Thursday 5 May 2011, Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
+> Em 05-05-2011 09:42, Simon Farnsworth escreveu:
+> > I misused the ktime API, and failed to remove some traces of the
+> > in-kernel format conversion. Fix these, so the the driver builds
+> > without warnings.
+> > 
+> > Signed-off-by: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
+> > ---
+> > Mauro,
+> > 
+> > You may want to squash this in with the cleanup patch itself - it's
+> > plain and simple oversight on my part (I should have seen the compiler
+> > warnings), and I should not have sent the cleanup patch to you without
+> > fixing these errors.
 > 
-> From cxd2820r_priv.h:
+> It will all depend on how much time I'll have during the next merge window.
+> I can't do it at the already-applied patches, as other people use it as
+> basis, and a rebase there would break its clones.
 > 
->> +/*
->> + * FIXME: These are totally wrong and must be added properly to the API.
->> + * Only temporary solution in order to get driver compile.
->> + */
->> +#define SYS_DVBT2             SYS_DAB
->> +#define TRANSMISSION_MODE_1K  0
->> +#define TRANSMISSION_MODE_16K 0
->> +#define TRANSMISSION_MODE_32K 0
->> +#define GUARD_INTERVAL_1_128  0
->> +#define GUARD_INTERVAL_19_128 0
->> +#define GUARD_INTERVAL_19_256 0
-> 
-> 
-> I believe Antti didn't want to make frontent.h changes until a consensus
-> was reached on how to develop the API for T2 support.
+> Mauro.
 
-Yeah.
-
-Andreas/Antti,
-
-It seems more appropriate to remove the above hack and add Andreas patch.
-I've reviewed it and it seemed ok on my eyes, provided that we also update
-DVB specs to reflect the changes.
-
-In special, the new DVB command should be documented:
-	+#define DTV_DVBT2_PLP_ID	43
-
-
-Thanks,
-Mauro
+No problem; if it ends up as a separate patch in the tree, it's not going to 
+hurt, as the version with warnings functions adequately enough to not break 
+bisection.
+-- 
+Simon Farnsworth
+Software Engineer
+ONELAN Limited
+http://www.onelan.com/
