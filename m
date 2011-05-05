@@ -1,56 +1,50 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52371 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753359Ab1E3O5a (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 May 2011 10:57:30 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Ohad Ben-Cohen" <ohad@wizery.com>
-Subject: Re: [PATCH] media: omap3isp: fix format string warning
-Date: Mon, 30 May 2011 16:57:36 +0200
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
-References: <1306652691-21102-1-git-send-email-ohad@wizery.com>
-In-Reply-To: <1306652691-21102-1-git-send-email-ohad@wizery.com>
+Received: from moutng.kundenserver.de ([212.227.126.187]:52941 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753631Ab1EEKRO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 May 2011 06:17:14 -0400
+Date: Thu, 5 May 2011 12:17:12 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: javier Martin <javier.martin@vista-silicon.com>
+cc: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: omap3isp clock problems on Beagleboard xM.
+In-Reply-To: <BANLkTinRqcFj5doua4r6d-vwPAym=JGvDw@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1105051215340.29735@axis700.grange>
+References: <BANLkTinRqcFj5doua4r6d-vwPAym=JGvDw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201105301657.36320.laurent.pinchart@ideasonboard.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Ohad,
+On Thu, 5 May 2011, javier Martin wrote:
 
-On Sunday 29 May 2011 09:04:51 Ohad Ben-Cohen wrote:
-> Trivially fix this:
+> Hi,
+> as you know I'm currently working on submitting mt9p031 driver to
+> mainline, testing it with my Beagleboard xM.
+> While I was trying to clean Guennadi's patches I ran into the attached
+> patch which changes a call to "omap3isp_get(isp);" into
+> "isp_enable_clocks(isp);".
 > 
-> drivers/media/video/omap3isp/isp.c: In function 'isp_isr_dbg':
-> drivers/media/video/omap3isp/isp.c:394: warning: zero-length gnu_printf
-> format string
-
-Thanks for the patch, but I've already applied something similar to my tree. 
-Sorry :-)
-
-> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
-> ---
->  drivers/media/video/omap3isp/isp.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
+> I don't think this is clean since it would unbalance the number of
+> omap3isp_get() vs omap3isp_put() and we probably don't want that.
+> What seems clear is if we don't apply this patch the clock is not
+> actually enabled.
 > 
-> diff --git a/drivers/media/video/omap3isp/isp.c
-> b/drivers/media/video/omap3isp/isp.c index 472a693..a0d5e69 100644
-> --- a/drivers/media/video/omap3isp/isp.c
-> +++ b/drivers/media/video/omap3isp/isp.c
-> @@ -391,7 +391,7 @@ static inline void isp_isr_dbg(struct isp_device *isp,
-> u32 irqstatus) };
->  	int i;
+> According to my debugging results "isp_disable_clocks()" is never
+> called, so, after the first call to "isp_enable_clocks()" there
+> shouldn't be any need to enable the clocks again.
 > 
-> -	dev_dbg(isp->dev, "");
-> +	dev_dbg(isp->dev, "%s\n", __func__);
-> 
->  	for (i = 0; i < ARRAY_SIZE(name); i++) {
->  		if ((1 << i) & irqstatus)
+> Guennadi, do you know what is the cause of the problem?
 
--- 
-Regards,
+I don't remember exactly, but it didn't work without this patch. I know it 
+is not clean and shouldn't be needed, so, if now it works also without it 
+- perfect! You can start, stop, and restart streaming without this patch 
+and it all works? Then certainly it should be dropped.
 
-Laurent Pinchart
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
