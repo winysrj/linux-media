@@ -1,196 +1,141 @@
-Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:35488 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757329Ab1EKQR1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 May 2011 12:17:27 -0400
-Message-ID: <4DCA1496.20304@redhat.com>
-Date: Wed, 11 May 2011 06:46:14 +0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Return-path: <mchehab@pedra>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:49274 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752563Ab1EETxz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 May 2011 15:53:55 -0400
+Received: by iyb14 with SMTP id 14so2102218iyb.19
+        for <linux-media@vger.kernel.org>; Thu, 05 May 2011 12:53:54 -0700 (PDT)
 MIME-Version: 1.0
-To: Anssi Hannula <anssi.hannula@iki.fi>
-CC: Peter Hutterer <peter.hutterer@who-t.net>,
-	linux-media@vger.kernel.org,
-	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
-	xorg-devel@lists.freedesktop.org
-Subject: Re: IR remote control autorepeat / evdev
-References: <4DC61E28.4090301@iki.fi> <20110510041107.GA32552@barra.redhat.com> <4DC8C9B6.5000501@iki.fi> <20110510053038.GA5808@barra.redhat.com> <4DC940E5.2070902@iki.fi>
-In-Reply-To: <4DC940E5.2070902@iki.fi>
+In-Reply-To: <1908281867.20110505213806@a-j.ru>
+References: <1908281867.20110505213806@a-j.ru>
+Date: Thu, 5 May 2011 21:53:54 +0200
+Message-ID: <BANLkTinc9pz9X3x8Q1AQwavzoX4T4n4UwQ@mail.gmail.com>
+Subject: Re: [linux-dvb] TeVii S470 (cx23885 / ds3000) makes the machine unstable
+From: Josu Lazkano <josu.lazkano@gmail.com>
+To: linux-media@vger.kernel.org, Andrew Junev <a-j@a-j.ru>
+Cc: linux-dvb@linuxtv.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hi Anssi/Peter,
+2011/5/5 Andrew Junev <a-j@a-j.ru>:
+> Hello All,
+>
+>  I'm  trying  to set up a TeVii S470 DVB-S2 card for use in my MythTV
+>  system  running  on  Fedora 13. I already have a couple of TT S-1401
+>  cards in that machine, and it works fine.
+>
+>  I  copied   the  firmware for my S470 as described on the Wiki page.
+>  The  card is detected  and seem to work. I am able to watch existing
+>  channels, and even found some DVB-S2 transponders.
+>
+>  But  the  machine  is  very  unstable. After a while, I get a lot of
+>  errors in my /var/log/messages , like:
+>
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xb2(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_writereg: writereg error(err == -5, reg == 0x03, value == 0x11)
+> May  3 22:35:51 localhost kernel: ds3000_tuner_writereg: writereg error(err == -5, reg == 0x42, value == 0x73)
+> May  3 22:35:51 localhost kernel: ds3000_writereg: writereg error(err == -5, reg == 0x03, value == 0x11)
+> May  3 22:35:51 localhost kernel: ds3000_tuner_writereg: writereg error(err == -5, reg == 0x05, value == 0x01)
+> May  3 22:35:51 localhost kernel: ds3000_writereg: writereg error(err == -5, reg == 0x03, value == 0x11)
+> May  3 22:35:51 localhost kernel: ds3000_tuner_writereg: writereg error(err == -5, reg == 0x62, value == 0xf5)
+>
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+>
+>
+> There   are   a  lot  of  lines  like  these  in the log (tens or even
+> hundreds  per  second).  And  at some point the machine just freezes -
+> stops  responding  completely.  It  happens  even  if I'm not watching
+> anything.
+>
+> If I take the S470 out, my machine works just fine again.
+>
+>
+> Some more info from the log - perhaps something could be useful:
+>
+> May  2 20:39:15 localhost kernel: Linux video capture interface: v2.00
+> May  2 20:39:15 localhost kernel: cx23885 driver version 0.0.2 loaded
+> May  2 20:39:15 localhost kernel: cx23885 0000:04:00.0: PCI INT A -> GSI 18 (level, low) -> IRQ 18
+> May  2 20:39:15 localhost kernel: LNBx2x attached on addr=8
+> May  2 20:39:15 localhost kernel: DVB: registering adapter 0 frontend 0 (Philips TDA10086 DVB-S)...
+> May  2 20:39:15 localhost kernel: budget dvb 0000:06:02.0: PCI INT A -> GSI 18 (level, low) -> IRQ 18
+> May  2 20:39:15 localhost kernel: CORE cx23885[0]: subsystem: d470:9022, board: TeVii S470 [card=15,autodetected]
+> May  2 20:39:15 localhost kernel: IRQ 18/: IRQF_DISABLED is not guaranteed on shared IRQs
+> May  2 20:39:15 localhost kernel: saa7146: found saa7146 @ mem fb3f4800 (revision 1, irq 18) (0x13c2,0x1018).
+> May  2 20:39:15 localhost kernel: saa7146 (1): dma buffer size 192512
+> May  2 20:39:15 localhost kernel: DVB: registering new adapter (TT-Budget-S-1401 PCI)
+> May  2 20:39:15 localhost kernel: adapter has MAC addr = 00:d0:5c:0b:01:2d
+> May  2 20:39:15 localhost kernel: LNBx2x attached on addr=8
+> May  2 20:39:15 localhost kernel: DVB: registering adapter 1 frontend 0 (Philips TDA10086 DVB-S)...
+> May  2 20:39:15 localhost kernel: cx23885_dvb_register() allocating 1 frontend(s)
+> May  2 20:39:15 localhost kernel: cx23885[0]: cx23885 based dvb card
+> May  2 20:39:15 localhost kernel: DS3000 chip version: 0.192 attached.
+> May  2 20:39:15 localhost kernel: DVB: registering new adapter (cx23885[0])
+> May  2 20:39:15 localhost kernel: DVB: registering adapter 2 frontend 0 (Montage Technology DS3000/TS2020)...
+> May  2 20:39:15 localhost kernel: cx23885_dev_checkrevision() Hardware revision = 0xb0
+> May  2 20:39:15 localhost kernel: cx23885[0]/0: found at 0000:04:00.0, rev: 2, irq: 18, latency: 0, mmio: 0xfe800000
+> May  2 20:39:15 localhost kernel: IRQ 18/cx23885[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+>
+>
+> # uname -a
+> Linux mythbackend 2.6.34.8-68.fc13.i686.PAE #1 SMP Thu Feb 17 14:54:10 UTC 2011 i686 i686 i386 GNU/Linux
+> #
+>
+>
+> I searched the Net and found a similar question that was raised some time
+> ago, but there was not even a discussion on this topic...
+>
+> If  someone  else  has  the  same  DVB-S  card  -  please  share  your
+> experience! I'd appreciate any ideas!
+>
+> --
+> Best regards,
+>  Andrew
+>
+>
 
-Em 10-05-2011 15:43, Anssi Hannula escreveu:
-> On 10.05.2011 08:30, Peter Hutterer wrote:
->> On Tue, May 10, 2011 at 08:14:30AM +0300, Anssi Hannula wrote:
->>> On 10.05.2011 07:11, Peter Hutterer wrote:
->>>> On Sun, May 08, 2011 at 07:38:00AM +0300, Anssi Hannula wrote:
->>>>> Hi all!
->>>>>
->>>>> Most IR/RF remotes differ from normal keyboards in that they don't
->>>>> provide release events. They do provide native repeat events, though.
->>>>>
->>>>> Currently the Linux kernel RC/input subsystems provide a simulated
->>>>> autorepeat for remote controls (default delay 500ms, period 33ms), and
->>>>> X.org server ignores these events and generates its own autorepeat for them.
->>>>>
->>>>> The kernel RC subsystem provides a simulated release event when 250ms
->>>>> has passed since the last native event (repeat or non-repeat) was
->>>>> received from the device.
->>>>>
->>>>> This is problematic, since it causes lots of extra repeat events to be
->>>>> always sent (for up to 250ms) after the user has released the remote
->>>>> control button, which makes the remote quite uncomfortable to use.
->>>>
->>>> I got a bit confused reading this description. Does this mean that remotes
->>>> usually send:
->>>>     key press - repeat - repeat - ... - repeat - <silence>
->>>> where the silence indicates that the key has been released? Which the kernel
->>>> after 250ms translates into a release event.
->>>> And the kernel discards the repeats and generates it's own on 500/33?
->>>> Do I get this right so far?
->>>
->>> Yes.
->>>
->>>> If so, I'm not sure how to avoid the 250ms delay since we have no indication
->>>> from the hardware when the silence will stop, right?
->>>
->>> Yes.
->>> AFAICS what we need is to not use softrepeat for these devices and
->>> instead use the native repeats. The 250ms release delay could then be
->>> kept (as it wouldn't cause unwanted repeats anymore) or it could be made
->>> 0ms if that is deemed better.
->>>
->>> I listed some ways to do that below in my original post.
->>>
->>>> Note that the repeat delay and ratio are configurable per-device using XKB,
->>>> so you could set up the 500/33 in X too.
+Hello Andrew, I have same DVB-S2 card on a Debian Squeeze system, I
+have installed this way:
 
-While 500/33 is good for keyboards, this is generally not good for remote controllers.
-The bit rate for IR transmissions are slow. So, one keypress can last up to about
-110 ms[1]. That means that the maximum repeat rate for IR devices with such
-protocol should be bellow than 10 keystrokes/sec.
+mkdir /usr/local/src/dvb
+cd /usr/local/src/dvb
+wget http://tevii.com/100315_Beta_linux_tevii_ds3000.rar
+unrar x 100315_Beta_linux_tevii_ds3000.rar
+cp dvb-fe-ds3000.fw /lib/firmware/
+tar xjvf linux-tevii-ds3000.tar.bz2
+cd linux-tevii-ds3000
+make && make install
 
-Also, the minimum initial delay for IR needs to be different on a few hardware that
-have a broken IR implementation. We default it to 500ms, but a few drivers change it
-to fit into some hardware constraits. So, a few kernel driver have some tweaks of 
-repeat times, to be sure that the device will work properly.
+It works for me, sometimes I have those message on /var/log/messages:
 
-[1] http://www.sbprojects.com/knowledge/ir/nec.htm
+May  4 13:43:14 htpc kernel: [11575.306168] ds3000_firmware_ondemand:
+Waiting for firmware upload (dvb-fe-ds3000.fw)...
+May  4 13:43:14 htpc kernel: [11575.306181] cx23885 0000:05:00.0:
+firmware: requesting dvb-fe-ds3000.fw
+May  4 13:43:14 htpc kernel: [11575.358334] ds3000_firmware_ondemand:
+Waiting for firmware upload(2)...
 
->>> It wouldn't make any difference with the actual issue which is
->>> "autorepeat happening after physical key released".
->>>
->>> I guess the reason this hasn't come up earlier is that the unified IR/RC
->>> subsystem in the linux kernel is still quite new. It definitely needs to
->>> be improved regarding this issue - just trying to figure out the best
->>> way to do it.
+But it works well, I use it with MythTV, SD and HD channels.
 
-The repeat events always generated troubles, as it basically depends on how
-the hardware actually handles it. Some hardware decoders and some protocols 
-support repeat events, while others don't. There are even some remote controllers
-that, instead of generating repeat codes, they just generate multiple keypresses.
+Let me know if you need some test.
 
-With the rc-core, we've unified the repeat treatment (yet, there are some 
-exceptions to the default way, for some devices where that uses broken hardware
-decoders).
+Kind regards.
 
->> right. we used to have hardware repeats in X a few releases back. I think
->> 1.6 was the first one that shifted to pure software autorepeat. One of the
->> results we saw in the transition period was the clash of hw autorepeat (in
->> X's input system, anything that comes out of the kernel counts as "hw") and
->> software repeat. 
->>
->> Integrating them back in is going to be a bit iffy, especially since you
->> need the integration with XKB on each device, essentially disallowing the
->> clients from enabling autorepeat. Not 100% what's required there.
->> The evtev part is going to be the simplest part of all that.
-> 
-> I suspected it might be tricky. So maybe (at least for the time being)
-> remote controls in X should simply get KeyRelease immediately after
-> every KeyPress?
-
-This will probably cause some hurt. Things like volume control only work
-nice on userspace if repeat events are properly handled. I think we should
-try to fix XKB/evdev to not use software events on remote controllers. It
-is easy to detect that an input device is a remote controller on evdev.
-I wrote a patch for it some time ago (unfortunately, hadn't time to finish
-it, as I got some jobs with higher priority). Peter, is that a way to pass
-a flag to XKB to say that a hw input device is not a keyboard, and need
-a different treatment for repeat events?
-
-> Meaning that either a) kernel does it (while maybe providing some new
-> extra info for those evdev users that want to distinguish repeats from
-> new keypresses - original suggestion 4), or b) kernel provides a flag
-> which causes the X evdev driver to follow-up every keydown/repeat event
-> with an immediate release event. (both of these include kernel changed
-> to use native repeats instead of softrepeats, which is trivial)
-
-The issue seems to be X-specific, so, I think that the solution should be
-there, and not at the kernel level. X should not use software autorepeat
-for remote controllers, at this won't work properly.
-
-> 
-> 
->>>>> Now, IMO something should be done to fix this. But what exactly?
->>>>>
->>>>> Here are two ideas that would remove these ghost repeats:
->>>>>
->>>>> 1. Do not provide any repeat/release simulation in the kernel for RC
->>>>> devices (by default?), just provide both keydown and immediate release
->>>>> events for every native keypress or repeat received from the device.
->>>>> + Very simple to implement
->>>>> - We lose the ability to track repeats, i.e. if a new event was a repeat
->>>>>   or a new keypress; "holding down" a key becomes impossible
->>>>>
->>>>> or
->>>>> 2. Replace kernel autorepeat simulation by passing through the native
->>>>> repeat events (probably filtering them according to REP_DELAY and
->>>>> REP_PERIOD), and have a device property bit (fetchable via EVIOCGPROP)
->>>>> indicating that the keyrelease is simulated, and have the X server use
->>>>> the native repeats instead of softrepeats for such a device.
->>>>> + The userspace correctly gets repeat events tagged as repeats and
->>>>>   release events when appropriate (albeit a little late)
->>>>> - Adds complexity. Also, while the kernel part is quite easy to
->>>>>   implement, I'm not sure if the X server part is.
->>>>>
->>>>> or
->>>>> 3. Same as 1., but indicate the repeatness of an event with a new
->>>>>    additional special event before EV_SYN (sync event).
->>>>> + Simple to implement
->>>>> - Quite hacky, and userspace still can't guess from initial
->>>>>   keypress/release if the key is still pressed down or not.
->>>>>
->>>>> 4. Same as 1., but have a new EV_RC with RC_KEYDOWN and RC_KEYUP events,
->>>>>    with RC_KEYDOWN sent when a key is pressed down a first time along
->>>>>    with the normal EV_KEY event, and RC_KEYUP sent when the key is
->>>>>    surely released (e.g. 250ms without native repeat events or another
->>>>>    key got pressed, i.e. like the simulated keyup now).
->>>>> + Simple to implement, works as expected with most userspace apps with
->>>>>   no changes to them; and if an app wants to know the repeatness of an
->>>>>   event or held-down-ness of a key, it can do that.
->>>>> - Repeatness of the event is hidden behind a new API.
->>>>>
->>>>> What do you think? Or any other ideas?
->>>>>
->>>>> 2 and 4 seem nicest to me.
->>>>> (I don't know how feasible 2 would be on X server side, though)
->>>>>
->>>>> -- 
->>>>> Anssi Hannula
->>>>> _______________________________________________
->>>>> xorg-devel@lists.x.org: X.Org development
->>>>> Archives: http://lists.x.org/archives/xorg-devel
->>>>> Info: http://lists.x.org/mailman/listinfo/xorg-devel
->>>>>
->>>>
->>>
->>>
->>> -- 
->>> Anssi Hannula
->>
-> 
-> 
-
+-- 
+Josu Lazkano
