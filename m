@@ -1,54 +1,48 @@
-Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:33710 "EHLO mx1.redhat.com"
+Return-path: <mchehab@pedra>
+Received: from kroah.org ([198.145.64.141]:38645 "EHLO coco.kroah.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752016Ab1EIS20 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 May 2011 14:28:26 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>,
-	=?UTF-8?q?Juan=20Jes=C3=BAs=20Garc=C3=ADa=20de=20Soria?=
-	<skandalfo@gmail.com>
-Subject: [PATCH v2] [media] ite-cir: make IR receive work after resume
-Date: Mon,  9 May 2011 14:28:21 -0400
-Message-Id: <1304965701-24912-1-git-send-email-jarod@redhat.com>
-In-Reply-To: <1304953686-21805-1-git-send-email-jarod@redhat.com>
-References: <1304953686-21805-1-git-send-email-jarod@redhat.com>
+	id S1750853Ab1EEVJT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 May 2011 17:09:19 -0400
+Date: Thu, 5 May 2011 13:35:45 -0700
+From: Greg KH <greg@kroah.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Jarod Wilson <jarod@wilsonet.com>,
+	Lawrence Rust <lawrence@softsystem.co.uk>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Fix cx88 remote control input
+Message-ID: <20110505203545.GA13006@kroah.com>
+References: <1302267045.1749.38.camel@gagarin>
+ <4DBEFD02.70906@redhat.com>
+ <1304407514.1739.22.camel@gagarin>
+ <D7FAB30A-E204-47B9-A7A0-E3BF50EE7FBD@wilsonet.com>
+ <4DC1B41D.9090200@redhat.com>
+ <20110504203613.GA1091@kroah.com>
+ <4DC20A86.7010509@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4DC20A86.7010509@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Just recently acquired an Asus Eee Box PC with an onboard IR receiver
-driven by ite-cir (ITE8713 sub-variant). Works out of the box with the
-ite-cir driver in 2.6.39, but stops working after a suspend/resume
-cycle. Its fixed by simply reinitializing registers after resume,
-similar to what's done in the nuvoton-cir driver. I've not tested with
-any other ITE variant, but code inspection suggests this should be safe
-on all variants.
+On Wed, May 04, 2011 at 11:25:10PM -0300, Mauro Carvalho Chehab wrote:
+> Em 04-05-2011 17:36, Greg KH escreveu:
+> > Yes, as long as .39 is working properly.  We take patches in -stable for
+> > stuff like this at times, it just needs to be specified exactly like you
+> > did above.
+> 
+> OK.
+> 
+> > Want me to take this patch as-is for .38-stable?
+> 
+> Yes, please. I'm forwarding you bellow with the proper authorship/SOB/ack.
+> 
+> This patch fixes RC for 64 bits kernels. The extra fix for 32 bits kernels,
+> (solves a calculus overflow), were sent today to -next. I generally wait 
+> for a couple days before asking Linus to pull from it.
 
-Reported-by: Stephan Raue <sraue@openelec.tv>
-CC: Juan Jesús García de Soria <skandalfo@gmail.com>
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
-v2: fix copy/paste thinko
+Now queued up.
 
- drivers/media/rc/ite-cir.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+thanks,
 
-diff --git a/drivers/media/rc/ite-cir.c b/drivers/media/rc/ite-cir.c
-index 43908a7..253837e 100644
---- a/drivers/media/rc/ite-cir.c
-+++ b/drivers/media/rc/ite-cir.c
-@@ -1684,6 +1684,8 @@ static int ite_resume(struct pnp_dev *pdev)
- 		/* wake up the transmitter */
- 		wake_up_interruptible(&dev->tx_queue);
- 	} else {
-+		/* reinitialize hardware config registers */
-+		dev->params.init_hardware(dev);
- 		/* enable the receiver */
- 		dev->params.enable_rx(dev);
- 	}
--- 
-1.7.1
-
+greg k-h
