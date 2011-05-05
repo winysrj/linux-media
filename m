@@ -1,129 +1,65 @@
-Return-path: <mchehab@gaivota>
-Received: from ffm.saftware.de ([83.141.3.46]:42554 "EHLO ffm.saftware.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755866Ab1EHWi0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 8 May 2011 18:38:26 -0400
-Message-ID: <4DC71B5E.7000902@linuxtv.org>
-Date: Mon, 09 May 2011 00:38:22 +0200
-From: Andreas Oberritter <obi@linuxtv.org>
+Return-path: <mchehab@pedra>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:58493 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754335Ab1EEPe4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 May 2011 11:34:56 -0400
+Received: by eyx24 with SMTP id 24so712858eyx.19
+        for <linux-media@vger.kernel.org>; Thu, 05 May 2011 08:34:55 -0700 (PDT)
 MIME-Version: 1.0
-To: Steve Kerrison <steve@stevekerrison.com>
-CC: Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 1/5] DVB: Add basic API support for DVB-T2 and bump
- minor version
-References: <4DC6BF28.8070006@redhat.com> <1304882240-23044-2-git-send-email-steve@stevekerrison.com> <4DC717AD.8030609@linuxtv.org>
-In-Reply-To: <4DC717AD.8030609@linuxtv.org>
+In-Reply-To: <4DC2A2D8.9060507@redhat.com>
+References: <BANLkTikNjQXhfTMkA+zXmWqXU1htqQFTHA@mail.gmail.com>
+	<4DC2A2D8.9060507@redhat.com>
+Date: Thu, 5 May 2011 11:34:54 -0400
+Message-ID: <BANLkTimDy7Z3Y6ZWR_GjCNZmxAzRaKveoA@mail.gmail.com>
+Subject: Re: CX24116 i2c patch
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Steven Toth <stoth@kernellabs.com>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	Jean Delvare <khali@linux-fr.org>,
+	Antti Palosaari <crope@iki.fi>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On 05/09/2011 12:22 AM, Andreas Oberritter wrote:
-> 
-> Please also include the following (only compile-tested) lines within this commit:
-> 
-> From 4329b836a6590421b178710160fcca3b39f64e18 Mon Sep 17 00:00:00 2001
-> From: Andreas Oberritter <obi@linuxtv.org>
-> Date: Sun, 8 May 2011 22:14:07 +0000
-> Subject: [PATCH] DVB: dvb_frontend: add PLP ID to property cache
-> 
-> Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
-> ---
->  drivers/media/dvb/dvb-core/dvb_frontend.c |    6 ++++++
->  drivers/media/dvb/dvb-core/dvb_frontend.h |    3 +++
->  2 files changed, 9 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-> index dc3457c..5af1d67 100644
-> --- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-> @@ -1323,6 +1323,9 @@ static int dtv_property_process_get(struct dvb_frontend *fe,
->  	case DTV_ISDBS_TS_ID:
->  		tvp->u.data = fe->dtv_property_cache.isdbs_ts_id;
->  		break;
-> +	case DTV_DVBT2_PLP_ID:
-> +		tvp->u.data = c->dvbt2_plp_id;
-> +		break;
+On Thu, May 5, 2011 at 9:15 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> So, the I2C adapter xfer code will end by being something like:
+>
+> switch(i2c_device) {
+>        case FOO:
+>                use_split_code_foo();
+>                break;
+>        case BAR:
+>                use_splic_code_bar();
+>                break;
+>        ...
+> }
+>
+>
+> (if you want to see one example of the above, take a look at drivers/media/video/cx231xx/cx231xx-i2c.c).
 
-Sorry, this depends on a changeset I haven't submitted yet and thus won't compile
-inside your tree. See below for a fixed patch.
+The cx231xx is actually an example of a poor implementation rather
+than a deficiency in the chip.  The device does support sending
+arbitrarily long sequences, but because of a lack of support for i2c
+clock stretching they hacked in their own GPIO based bitbang
+implementation which only gets used in certain cases.  If somebody
+wanted to clean it up I believe it could be done much more cleanly.
+That said, it hasn't happened because the code as-is "works" and in
+reality I don't think there are any shipping products which use
+cx231xx and xc5000 (they are all Conexant reference designs).
 
->  	default:
->  		r = -1;
->  	}
-> @@ -1478,6 +1481,9 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
->  	case DTV_ISDBS_TS_ID:
->  		fe->dtv_property_cache.isdbs_ts_id = tvp->u.data;
->  		break;
-> +	case DTV_DVBT2_PLP_ID:
-> +		c->dvbt2_plp_id = tvp->u.data;
-> +		break;
->  	default:
->  		r = -1;
->  	}
-> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.h b/drivers/media/dvb/dvb-core/dvb_frontend.h
-> index 3b86050..fb2b13f 100644
-> --- a/drivers/media/dvb/dvb-core/dvb_frontend.h
-> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.h
-> @@ -358,6 +358,9 @@ struct dtv_frontend_properties {
->  
->  	/* ISDB-T specifics */
->  	u32			isdbs_ts_id;
-> +
-> +	/* DVB-T2 specifics */
-> +	u32			dvbt2_plp_id;
->  };
->  
->  struct dvb_frontend {
+If somebody really wants to clean this up, they should have a board
+profile field which indicates whether to create an i2c adapter which
+uses the onboard i2c controller, or alternatively to setup an i2c
+adapter which uses the real Linux i2c-bitbang implementation.  That
+would make the implementation much easier to understand as well as
+eliminating all the crap code which makes decisions based on the
+destination i2c address.
 
->From 6e7abb85241e7aef5783f9c216e829de5fe90cb7 Mon Sep 17 00:00:00 2001
-From: Andreas Oberritter <obi@linuxtv.org>
-Date: Sun, 8 May 2011 22:14:07 +0000
-Subject: [PATCH] DVB: dvb_frontend: add PLP ID to property cache
+Devin
 
-Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
----
- drivers/media/dvb/dvb-core/dvb_frontend.c |    6 ++++++
- drivers/media/dvb/dvb-core/dvb_frontend.h |    3 +++
- 2 files changed, 9 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-index dc3457c..d04ef09 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -1323,6 +1323,9 @@ static int dtv_property_process_get(struct dvb_frontend *fe,
- 	case DTV_ISDBS_TS_ID:
- 		tvp->u.data = fe->dtv_property_cache.isdbs_ts_id;
- 		break;
-+	case DTV_DVBT2_PLP_ID:
-+		tvp->u.data = fe->dtv_property_cache.dvbt2_plp_id;
-+		break;
- 	default:
- 		r = -1;
- 	}
-@@ -1478,6 +1481,9 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
- 	case DTV_ISDBS_TS_ID:
- 		fe->dtv_property_cache.isdbs_ts_id = tvp->u.data;
- 		break;
-+	case DTV_DVBT2_PLP_ID:
-+		fe->dtv_property_cache.dvbt2_plp_id = tvp->u.data;
-+		break;
- 	default:
- 		r = -1;
- 	}
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.h b/drivers/media/dvb/dvb-core/dvb_frontend.h
-index 3b86050..fb2b13f 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.h
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.h
-@@ -358,6 +358,9 @@ struct dtv_frontend_properties {
- 
- 	/* ISDB-T specifics */
- 	u32			isdbs_ts_id;
-+
-+	/* DVB-T2 specifics */
-+	u32			dvbt2_plp_id;
- };
- 
- struct dvb_frontend {
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
