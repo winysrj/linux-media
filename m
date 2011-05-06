@@ -1,71 +1,45 @@
-Return-path: <mchehab@gaivota>
-Received: from mail.dream-property.net ([82.149.226.172]:52924 "EHLO
-	mail.dream-property.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754757Ab1EHXNW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 May 2011 19:13:22 -0400
-From: Andreas Oberritter <obi@linuxtv.org>
-To: linux-media@vger.kernel.org
-Cc: Thierry LELEGARD <tlelegard@logiways.com>
-Subject: [PATCH 8/8] DVB: allow to read back of detected parameters through S2API
-Date: Sun,  8 May 2011 23:03:41 +0000
-Message-Id: <1304895821-21642-9-git-send-email-obi@linuxtv.org>
-In-Reply-To: <1304895821-21642-1-git-send-email-obi@linuxtv.org>
-References: <1304895821-21642-1-git-send-email-obi@linuxtv.org>
+Return-path: <mchehab@pedra>
+Received: from cmsout02.mbox.net ([165.212.64.32]:59223 "EHLO
+	cmsout02.mbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756473Ab1EFNsE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 May 2011 09:48:04 -0400
+Date: Fri, 06 May 2011 15:47:59 +0200
+From: "Issa Gorissen" <flop.m@usa.net>
+To: Andreas Oberritter <obi@linuxtv.org>,
+	Martin Vidovic <xtronom@gmail.com>
+Subject: Re: [PATCH] Ngene cam device name
+CC: Ralph Metzler <rjkm@metzlerbros.de>, <linux-media@vger.kernel.org>
+Mime-Version: 1.0
+Message-ID: <724PeFNU87648S03.1304689679@web03.cms.usa.net>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
----
- drivers/media/dvb/dvb-core/dvb_frontend.c |   19 +++++++++++++++----
- 1 files changed, 15 insertions(+), 4 deletions(-)
+From: Andreas Oberritter <obi@linuxtv.org>
+> > The best would be to create independent adapters for each independent CA
+> > device (ca0/caio0 pair) - they are independent after all (physically and
+> > in the way they're used).
+> 
+> Physically, it's a general purpose TS I/O interface of the nGene
+> chipset. It just happens to be connected to a CI slot. On another board,
+> it might be connected to a modulator or just to some kind of socket.
+> 
+> If the next version gets a connector for two switchable CI modules, then
+> the physical independence is gone. You'd have two ca nodes but only one
+> caio node. Or two caio nodes, that can't be used concurrently.
+> 
+> Maybe the next version gets the ability to directly connect the TS input
+> from the frontend to the TS output to the CI slot to save copying around
+> the data, by using some kind of pin mux. Not physically independent either.
+> 
+> It just looks physically independent in the one configuration
+> implemented now.
 
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-index b41e5dc..a0f0458 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -1023,10 +1023,9 @@ static int is_legacy_delivery_system(fe_delivery_system_t s)
-  * it's being used for the legacy or new API, reducing code and complexity.
-  */
- static void dtv_property_cache_sync(struct dvb_frontend *fe,
--				    struct dvb_frontend_parameters *p)
-+				    struct dtv_frontend_properties *c,
-+				    const struct dvb_frontend_parameters *p)
- {
--	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
--
- 	c->frequency = p->frequency;
- 	c->inversion = p->inversion;
- 
-@@ -1200,8 +1199,20 @@ static int dtv_property_process_get(struct dvb_frontend *fe,
- 				    struct file *file)
- {
- 	const struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+	struct dvb_frontend_private *fepriv = fe->frontend_priv;
-+	struct dtv_frontend_properties cdetected;
- 	int r;
- 
-+	/*
-+	 * If the driver implements a get_frontend function, then convert
-+	 * detected parameters to S2API properties.
-+	 */
-+	if (fe->ops.get_frontend) {
-+		cdetected = *c;
-+		dtv_property_cache_sync(fe, &cdetected, &fepriv->parameters_out);
-+		c = &cdetected;
-+	}
-+
- 	switch(tvp->cmd) {
- 	case DTV_FREQUENCY:
- 		tvp->u.data = c->frequency;
-@@ -1812,7 +1823,7 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
- 
- 			memcpy (&fepriv->parameters_in, parg,
- 				sizeof (struct dvb_frontend_parameters));
--			dtv_property_cache_sync(fe, &fepriv->parameters_in);
-+			dtv_property_cache_sync(fe, c, &fepriv->parameters_in);
- 		}
- 
- 		memset(&fetunesettings, 0, sizeof(struct dvb_frontend_tune_settings));
--- 
-1.7.2.5
+
+When I read the cxd2099ar datasheet, I can see that in dual slot
+configuration, there is still one communication channel for the TS and one for
+the control.
+Also, it seems linux en50221 stack provides for the slot selection. So, why
+would you need two ca nodes ?
 
