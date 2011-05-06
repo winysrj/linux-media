@@ -1,65 +1,58 @@
-Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:43295 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757253Ab1EKQO5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 May 2011 12:14:57 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: javier Martin <javier.martin@vista-silicon.com>
-Subject: Re: Current status report of mt9p031.
-Date: Wed, 11 May 2011 11:41:54 +0200
-Cc: Chris Rodley <carlighting@yahoo.co.nz>,
-	linux-media@vger.kernel.org, g.liakhovetski@gmx.de
-References: <928748.83563.qm@web112012.mail.gq1.yahoo.com> <BANLkTimrE0gLBQg1bdfSR32miNp5Q-BiRg@mail.gmail.com>
-In-Reply-To: <BANLkTimrE0gLBQg1bdfSR32miNp5Q-BiRg@mail.gmail.com>
+Return-path: <mchehab@pedra>
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:55482 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753826Ab1EFJqz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 May 2011 05:46:55 -0400
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201105111141.54830.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Date: Fri, 06 May 2011 11:46:53 +0200
+From: =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: <linux-media@vger.kernel.org>, <jarod@wilsonet.com>
+Subject: Re: [PATCH 09/10] rc-core: lirc use unsigned int
+In-Reply-To: <4DC16F57.4030304@redhat.com>
+References: <20110428151311.8272.17290.stgit@felix.hardeman.nu> <20110428151358.8272.94634.stgit@felix.hardeman.nu> <4DC16F57.4030304@redhat.com>
+Message-ID: <c8ca8a9312f5bb8cd04b7f465e66d268@hardeman.nu>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hi Javier,
+On Wed, 04 May 2011 12:23:03 -0300, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Em 28-04-2011 12:13, David Härdeman escreveu:
+>> Durations can never be negative, so it makes sense to consistently use
+>> unsigned int for LIRC transmission. Contrary to the initial impression,
+>> this shouldn't actually change the userspace API.
+> 
+> Patch looked ok to me (except for one small issue - see bellow). 
+> 
+...
+>> diff --git a/drivers/media/rc/ene_ir.c b/drivers/media/rc/ene_ir.c
+>> index 569b07b..2b1d2df 100644
+>> --- a/drivers/media/rc/ene_ir.c
+>> +++ b/drivers/media/rc/ene_ir.c
+>> @@ -953,13 +953,13 @@ static void ene_set_idle(struct rc_dev *rdev,
+bool
+>> idle)
+>>  }
+>>  
+>>  /* outside interface: transmit */
+>> -static int ene_transmit(struct rc_dev *rdev, int *buf, u32 n)
+>> +static int ene_transmit(struct rc_dev *rdev, unsigned *buf, unsigned
+n)
+>>  {
+>>  	struct ene_device *dev = rdev->priv;
+>>  	unsigned long flags;
+>>  
+>>  	dev->tx_buffer = buf;
+>> -	dev->tx_len = n / sizeof(int);
+>> +	dev->tx_len = n;
+> 
+> That hunk seems wrong to me. Or is it a bug fix that you're solving?
 
-On Wednesday 11 May 2011 09:15:29 javier Martin wrote:
-> On 11 May 2011 06:54, Chris Rodley <carlighting@yahoo.co.nz> wrote:
-> > I am having a problem with these commands:
-> > 
-> > root@chris:/home# ./media-ctl -r -l '"mt9p031 2-0048":0->"OMAP3 ISP CC
-> > 
-> > DC":0[1], "OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
-> > Resetting all links to inactive
-> > Setting up link 16:0 -> 5:0 [1]
-> > Setting up link 5:1 -> 6:0 [1]
-> > root@chris:/home# ./media-ctl -f '"mt9p031 2-0048":0[SGRBG8 320x240],
-> > "OMAP3 ISP CCDC":1[SGRBG8 320x240]'
-> > Unable to parse format
-> 
-> Hi Chris,
-> you have to add SGRBG8 and SGRBG12 formats to media-ctl with the following
-> patch:
-> 
-> diff --git a/src/main.c b/src/main.c
-> index 461dae1..fb1bfbe 100644
-> --- a/src/main.c
-> +++ b/src/main.c
-> @@ -52,8 +52,10 @@ static struct {
->         { "Y8", V4L2_MBUS_FMT_Y8_1X8},
->         { "YUYV", V4L2_MBUS_FMT_YUYV8_1X16 },
->         { "UYVY", V4L2_MBUS_FMT_UYVY8_1X16 },
-> +       { "SGRBG8", V4L2_MBUS_FMT_SGRBG8_1X8 },
->         { "SGRBG10", V4L2_MBUS_FMT_SGRBG10_1X10 },
->         { "SGRBG10_DPCM8", V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8 },
-> +       { "SGRBG12", V4L2_MBUS_FMT_SGRBG12_1X12 },
->  };
-> 
->  static const char *pixelcode_to_string(enum v4l2_mbus_pixelcode code)
-
-Thanks for the patch. I've committed it to the media-ctl repository (with 
-additional Bayer formats).
+My fault, I didn't mention in the patch description that the third
+argument of the tx function is also changed to mean array size rather
+than size in number of bytes.
 
 -- 
-Regards,
-
-Laurent Pinchart
+David Härdeman
