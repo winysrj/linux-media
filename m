@@ -1,39 +1,56 @@
 Return-path: <mchehab@pedra>
-Received: from mail2.cablestogo-oem.com ([64.129.117.9]:50751 "EHLO
-	mail.lastar.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753938Ab1EVDRd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 May 2011 23:17:33 -0400
-From: Jason Gauthier <jgauthier@lastar.com>
-To: Andy Walls <awalls@md.metrocast.net>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: RE: [SOLVED] Enable IR on hdpvr
-Date: Sun, 22 May 2011 03:17:31 +0000
-Message-ID: <65DE7931C559BF4DBEE42C3F8246249A2AB15124@V-EXMAILBOX.ctg.com>
-References: <65DE7931C559BF4DBEE42C3F8246249A0B686EB0@V-EXMAILBOX.ctg.com>
- <8AFBEFD7-69E3-4E71-B155-EA773C2FED43@wilsonet.com>
- <65DE7931C559BF4DBEE42C3F8246249A0B69B014@V-ALBEXCHANGE.ctg.com>
- <EC37FC85-82B2-48AE-BB94-64ED00E7647D@wilsonet.com>
- <93CE8497-D6AB-43BA-A239-EE32D51582FC@wilsonet.com>
- <65DE7931C559BF4DBEE42C3F8246249A0B6A54C7@V-ALBEXCHANGE.ctg.com>,<1294875902.2485.19.camel@morgan.silverblock.net>
- <65DE7931C559BF4DBEE42C3F8246249A0B6A9B4A@V-ALBEXCHANGE.ctg.com>
- <65DE7931C559BF4DBEE42C3F8246249A2AB1230E@V-EXMAILBOX.ctg.com>
- <65DE7931C559BF4DBEE42C3F8246249A2AB13455@V-EXMAILBOX.ctg.com>
- <65DE7931C559BF4DBEE42C3F8246249A2AB1470A@V-EXMAILBOX.ctg.com>
- <8a8e1761-e060-4e3f-84bb-b04fdf5e55c5@email.android.com>
-In-Reply-To: <8a8e1761-e060-4e3f-84bb-b04fdf5e55c5@email.android.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from mx1.redhat.com ([209.132.183.28]:36105 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752322Ab1EFMXX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 6 May 2011 08:23:23 -0400
+Message-ID: <4DC3E82A.7040202@redhat.com>
+Date: Fri, 06 May 2011 09:23:06 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
+To: Steve Kerrison <steve@stevekerrison.com>
+CC: Andreas Oberritter <obi@linuxtv.org>, linux-media@vger.kernel.org,
+	Antti Palosaari <crope@iki.fi>
+Subject: Re: [git:v4l-dvb/for_v2.6.40] [media] Sony CXD2820R DVB-T/T2/C demodulator
+ driver
+References: <E1QHwSm-0006hA-A9@www.linuxtv.org>	 <4DC3C6FA.8070505@linuxtv.org> <1304678539.8670.29.camel@ares>
+In-Reply-To: <1304678539.8670.29.camel@ares>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-PkkgdGhpbmsgeW91J3JlIHVzaW5nIGEgYm9ya2VuIHZlcnNpb24uICBBcmUgeW91IHVzaW5nIHRo
-aXMgb25lIHdpdGggYWxsIHRoZSByZWYgY291bnRpbmcgZml4ZXM/DQoNCj5odHRwOi8vZ2l0Lmxp
-bnV4dHYub3JnL21lZGlhX3RyZWUuZ2l0P2E9YmxvYjtmPWRyaXZlcnMvc3RhZ2luZy9saXJjL2xp
-cmNfemlsb2cuYztoPWRkNmE1N2MzYzNhMzE0OWJhYzUzZWIzNmZkNGRkZWFiZWQ4MDQwNTA7aGI9
-SEVBRA0KDQpXZWxsLCB5b3Ugd2VyZSByaWdodC4gSSB3YXMgdXNpbmcgdGhlIG9uZSByaWdodCBv
-dXQgb2YgMi42LjM4LiAgVGhpcyBvbmUgY29tcGlsZWQgY2xlYW5seSBpbnRvIHRoZSB0cmVlLCBh
-bmQgd29ya2VkIHBlcmZlY3RseS4NCg0KVGhhbmtzIGZvciBwb2ludGluZyBpdCBvdXQuDQoNCkph
-c29uDQo=
+Em 06-05-2011 07:42, Steve Kerrison escreveu:
+> Hi Andreas,
+> 
+> From cxd2820r_priv.h:
+> 
+>> +/*
+>> + * FIXME: These are totally wrong and must be added properly to the API.
+>> + * Only temporary solution in order to get driver compile.
+>> + */
+>> +#define SYS_DVBT2             SYS_DAB
+>> +#define TRANSMISSION_MODE_1K  0
+>> +#define TRANSMISSION_MODE_16K 0
+>> +#define TRANSMISSION_MODE_32K 0
+>> +#define GUARD_INTERVAL_1_128  0
+>> +#define GUARD_INTERVAL_19_128 0
+>> +#define GUARD_INTERVAL_19_256 0
+> 
+> 
+> I believe Antti didn't want to make frontent.h changes until a consensus
+> was reached on how to develop the API for T2 support.
+
+Yeah.
+
+Andreas/Antti,
+
+It seems more appropriate to remove the above hack and add Andreas patch.
+I've reviewed it and it seemed ok on my eyes, provided that we also update
+DVB specs to reflect the changes.
+
+In special, the new DVB command should be documented:
+	+#define DTV_DVBT2_PLP_ID	43
+
+
+Thanks,
+Mauro
