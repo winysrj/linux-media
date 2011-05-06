@@ -1,67 +1,47 @@
 Return-path: <mchehab@pedra>
-Received: from connie.slackware.com ([64.57.102.36]:54402 "EHLO
-	connie.slackware.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750862Ab1ECEdF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 May 2011 00:33:05 -0400
-From: Robby Workman <rworkman@slackware.com>
-Message-Id: <201105030432.p434Wpxi026783@connie.slackware.com>
-Date: Mon, 02 May 2011 21:32:51 -0700
-To: linux-media@vger.kernel.org
-Cc: <volkerdi@slackware.com>, Volkerding@connie.slackware.com,
-	Patrick@connie.slackware.com, <hdegoede@redhat.com>,
-	Goede@connie.slackware.com, De@connie.slackware.com,
-	Hans@connie.slackware.com, <obi@linuxtv.org>,
-	Oberritter@connie.slackware.com, Andreas@connie.slackware.com,
-	<mchehab@redhat.com>, Chehab@connie.slackware.com,
-	Carvalho@connie.slackware.com, Mauro@connie.slackware.com
-Subject: [PATCH 1/2] Install udev rules to /lib/udev/ instead of /etc/udev
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:51828 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751792Ab1EFGEU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 May 2011 02:04:20 -0400
+Received: by bwz15 with SMTP id 15so2396624bwz.19
+        for <linux-media@vger.kernel.org>; Thu, 05 May 2011 23:04:19 -0700 (PDT)
+Message-ID: <4DC38F61.9030506@gmail.com>
+Date: Fri, 06 May 2011 08:04:17 +0200
+From: =?ISO-8859-15?Q?Stefan_L=F6ffler?= <st.loeffler@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+CC: =?ISO-8859-15?Q?Stefan_L=F6ffler?= <st.loeffler@gmail.com>
+Subject: [libv4l] [PATCH] Webcam image upside down on Asus Eee PC T101MT (13d3:5122)
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
->From bb5b3e288b3f13ad586498ebd1cba7b2651649b1 Mon Sep 17 00:00:00 2001
-From: Robby Workman <rworkman@slackware.com>
-Date: Mon, 2 May 2011 23:28:37 -0500
-Subject: [PATCH 1/2] Install udev rules to /lib/udev/ instead of /etc/udev
+The caption pretty much says it all. Owing to different IDs, the flags
+for similar Asus products don't cut in.
+Originally reported for Ubuntu at
+https://bugs.launchpad.net/ubuntu/+source/libv4l/+bug/774123.
 
-In moderately recent versions of udev (since 125 in 7/2008),
-packages should install rules files to /lib/udev/rules.d/
-instead of /etc/udev/rules.d/, as /etc/udev/rules.d/ is now
-for generated rules and overrides of the packaged rules.
----
- utils/keytable/70-infrared.rules |    4 +---
- utils/keytable/Makefile          |    4 ++--
- 2 files changed, 3 insertions(+), 5 deletions(-)
+Regards,
+Stefan
 
-diff --git a/utils/keytable/70-infrared.rules b/utils/keytable/70-infrared.rules
-index 308a6d4..afffd95 100644
---- a/utils/keytable/70-infrared.rules
-+++ b/utils/keytable/70-infrared.rules
-@@ -1,6 +1,4 @@
- # Automatically load the proper keymaps after the Remote Controller device
--# creation.
--# Copy this file at /etc/udev/rules.d/70-infrared.rules in order to load keytables
--# during boot time. The keycode tables rules should be at /etc/rc_maps.cfg
-+# creation.  The keycode tables rules should be at /etc/rc_maps.cfg
- 
- ACTION=="add", SUBSYSTEM=="rc", RUN+="/usr/bin/ir-keytable -a /etc/rc_maps.cfg -s $name"
-diff --git a/utils/keytable/Makefile b/utils/keytable/Makefile
-index aa020ef..29a6ac4 100644
---- a/utils/keytable/Makefile
-+++ b/utils/keytable/Makefile
-@@ -37,8 +37,8 @@ install: $(TARGETS)
- 	install -m 644 -p rc_maps.cfg $(DESTDIR)/etc
- 	install -m 755 -d $(DESTDIR)/etc/rc_keymaps
- 	install -m 644 -p rc_keymaps/* $(DESTDIR)/etc/rc_keymaps
--	install -m 755 -d $(DESTDIR)/etc/udev/rules.d
--	install -m 644 -p 70-infrared.rules $(DESTDIR)/etc/udev/rules.d
-+	install -m 755 -d $(DESTDIR)/lib/udev/rules.d
-+	install -m 644 -p 70-infrared.rules $(DESTDIR)/lib/udev/rules.d
- 	install -m 755 -d $(DESTDIR)$(PREFIX)/share/man/man1
- 	install -m 644 -p ir-keytable.1 $(DESTDIR)$(PREFIX)/share/man/man1
- 
--- 
-1.7.4.4
+Signed-off-by: Stefan Löffler <st.loeffler@gmail.com>
+
+
+diff --git a/lib/libv4lconvert/control/libv4lcontrol.c
+b/lib/libv4lconvert/control/libv4lcontrol.c
+index 116bef5..6b3be9b 100644
+--- a/lib/libv4lconvert/control/libv4lcontrol.c
++++ b/lib/libv4lconvert/control/libv4lcontrol.c
+@@ -424,6 +424,8 @@ static const struct v4lcontrol_flags_info
+v4lcontrol_flags[] = {
+                V4LCONTROL_HFLIPPED | V4LCONTROL_VFLIPPED },
+        { 0x13d3, 0x5122, 0, "ASUSTeK Computer Inc.        ", "U53Jc",
+                V4LCONTROL_HFLIPPED | V4LCONTROL_VFLIPPED },
++       { 0x13d3, 0x5126, 0, "ASUSTeK Computer INC.", "T101MT",
++               V4LCONTROL_HFLIPPED | V4LCONTROL_VFLIPPED },
+        { 0x13d3, 0x5130, 0, "ASUSTeK Computer INC.", "K40AE",
+                V4LCONTROL_HFLIPPED | V4LCONTROL_VFLIPPED },
+        { 0x13d3, 0x5130, 0, "ASUSTeK Computer INC.", "K40AF",
+
 
