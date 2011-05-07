@@ -1,40 +1,51 @@
 Return-path: <mchehab@gaivota>
-Received: from ffm.saftware.de ([83.141.3.46]:37186 "EHLO ffm.saftware.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753890Ab1EKUR0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 May 2011 16:17:26 -0400
-Message-ID: <4DCAEED2.6040906@linuxtv.org>
-Date: Wed, 11 May 2011 22:17:22 +0200
-From: Andreas Oberritter <obi@linuxtv.org>
+Received: from smtp1.hathway.com ([202.88.130.23]:48261 "EHLO
+	smtp1.hathway.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753948Ab1EGJ4g (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 May 2011 05:56:36 -0400
+Received: from ieema.org ([125.99.126.90])
+	by smtp1.hathway.com (8.11.6/8.11.6) with ESMTP id p478lnv27292
+	for <linux-media@vger.kernel.org>; Sat, 7 May 2011 14:17:49 +0530
 MIME-Version: 1.0
-To: =?UTF-8?B?QmrDuHJuIE1vcms=?= <bjorn@mork.no>
-CC: linux-media@vger.kernel.org
-Subject: Re: dvb-core/dvb_frontend.c: Synchronizing legacy and new tuning
- API
-References: <87sjslaxwz.fsf@nemi.mork.no>
-In-Reply-To: <87sjslaxwz.fsf@nemi.mork.no>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Subject: Alert From AntiVirus For PME Mail
+Date: Sat, 7 May 2011 14:28:02 +0530 (GMT+05:30)
+Message-ID: <17302799.01304758682218.JavaMail.Administrator@samir1>
+From: <mailer-deamon@ieema.org>
+To: Bhartu Smita <smita.bhartu@ieema.org>,
+	Smita Bhartu <smita@ieema.org>, linux-media@vger.kernel.org,
+	Administrator <admin@ieema.org>
+content-type: text/plain; charset=us-ascii
+content-transfer-encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On 05/11/2011 08:34 PM, Bjørn Mork wrote:
-> I see in drivers/media/dvb/dvb-core/dvb_frontend.c that there is some
-> synchronization between the old and the new API.
-> 
-> But it is incomplete: The new FE_GET_PROPERTY will report only cached
-> values, which is whatever the application has written and not the
-> actual tuned values like FE_GET_FRONTEND will.  The problem is that 
-> FE_GET_PROPERTY only will call fe->ops.get_property even for legacy
-> drivers.  It could have fallen back to calling fe->ops.get_frontend
-> followed by a cache synchronization.
-> 
-> Is this difference intentional (because it costs too much, doesn't
-> matter, or whatever)?  Or should I prepare a patch for dvb_frontend.c?
+===========================================================
+System Generated Message - DO NOT REPLY TO THIS !
+===========================================================
+AntiVirus for PME Mail has processed the mail detailed below
+and has generated this alert for your reference.
 
-Please try the patches submitted for testing:
+Message Details:
+-----------------------------------------------------------------------------------
+Message ID        : <20110507085919.63B646970116@prm-mx.qlc.co.in>
+Message From      : linux-media@vger.kernel.org
+Message To        : Smita Bhartu <smita@ieema.org>
+Message Subject   : Returned mail: Data format error
+Message Rcvd Date : Sat May 07 14:28:01 GMT+05:30 2011
+-----------------------------------------------------------------------------------
+AntiVirus for PME Mail has found that the following file(s) / attachment(s)
+have infected or malicious content :
+----------------------------------------------------------------------------------
+File Scanned : attachment.zip  Virus Found : Suspected Virus
 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg31194.html
+AntiVirus for PME Mail is configured to delete file(s) / attachment(s) if attempt
+at cleaning infection fails. Accordingly the following action has been taken :
+----------------------------------------------------------------------------------
+File Deleted : attachment.zip  Virus Found : Suspected Virus
 
-Regards,
-Andreas
+
+--------------------
+IEEMA, Mumbai, India
+
+
+
