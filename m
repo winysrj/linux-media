@@ -1,53 +1,81 @@
-Return-path: <mchehab@pedra>
-Received: from comal.ext.ti.com ([198.47.26.152]:44251 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752960Ab1E0Gzp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 May 2011 02:55:45 -0400
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p4R6tisK021503
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 27 May 2011 01:55:44 -0500
-Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
-	by dlep33.itg.ti.com (8.13.7/8.13.8) with ESMTP id p4R6tiR7003270
-	for <linux-media@vger.kernel.org>; Fri, 27 May 2011 01:55:44 -0500 (CDT)
-Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p4R6tiS1007385
-	for <linux-media@vger.kernel.org>; Fri, 27 May 2011 01:55:44 -0500 (CDT)
-From: Archit Taneja <archit@ti.com>
-To: <linux-media@vger.kernel.org>
-CC: hvaibhav@ti.com, Archit Taneja <archit@ti.com>
-Subject: [PATCH 0/2] OMAP_VOUT: Allow omap_vout to build without VRFB
-Date: Fri, 27 May 2011 12:31:15 +0530
-Message-ID: <1306479677-23540-1-git-send-email-archit@ti.com>
+Return-path: <mchehab@gaivota>
+Received: from sypressi.dnainternet.net ([83.102.40.135]:59023 "EHLO
+	sypressi.dnainternet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750768Ab1EHEoG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 May 2011 00:44:06 -0400
+Message-ID: <4DC61E28.4090301@iki.fi>
+Date: Sun, 08 May 2011 07:38:00 +0300
+From: Anssi Hannula <anssi.hannula@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: linux-media@vger.kernel.org,
+	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
+	xorg-devel@lists.freedesktop.org
+Subject: IR remote control autorepeat / evdev
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Introduce omap_vout_vrfb.c and omap_vout_vrfb.h, for all VRFB related API's,
-making OMAP_VOUT driver independent from VRFB. This is required for OMAP4 DSS,
-since OMAP4 doesn't have VRFB block.
+Hi all!
 
-A new enum called vout_rotation_type is introduced to differentiate between no
-rotation and vrfb rotation. A member rotation_type is introduced in
-omapvideo_info, this allows to call vrfb specific functions only if the rotation
-type is VOUT_ROT_VRFB. When the rotation_type is set to VOUT_ROT_NONE, the
-S_CTRL ioctl prevents the user setting a non zero rotation or non zero mirror
-value.
+Most IR/RF remotes differ from normal keyboards in that they don't
+provide release events. They do provide native repeat events, though.
 
-Archit Taneja (2):
-  OMAP_VOUT: CLEANUP: Move some functions and macros from omap_vout
-  OMAP_VOUT: Create separate file for VRFB related API's
+Currently the Linux kernel RC/input subsystems provide a simulated
+autorepeat for remote controls (default delay 500ms, period 33ms), and
+X.org server ignores these events and generates its own autorepeat for them.
 
- drivers/media/video/omap/Kconfig          |    7 +-
- drivers/media/video/omap/Makefile         |    1 +
- drivers/media/video/omap/omap_vout.c      |  562 +++++------------------------
- drivers/media/video/omap/omap_vout_vrfb.c |  390 ++++++++++++++++++++
- drivers/media/video/omap/omap_vout_vrfb.h |   40 ++
- drivers/media/video/omap/omap_voutdef.h   |   78 ++++
- drivers/media/video/omap/omap_voutlib.c   |   44 +++
- drivers/media/video/omap/omap_voutlib.h   |    2 +
- 8 files changed, 644 insertions(+), 480 deletions(-)
- create mode 100644 drivers/media/video/omap/omap_vout_vrfb.c
- create mode 100644 drivers/media/video/omap/omap_vout_vrfb.h
+The kernel RC subsystem provides a simulated release event when 250ms
+has passed since the last native event (repeat or non-repeat) was
+received from the device.
 
+This is problematic, since it causes lots of extra repeat events to be
+always sent (for up to 250ms) after the user has released the remote
+control button, which makes the remote quite uncomfortable to use.
+
+Now, IMO something should be done to fix this. But what exactly?
+
+Here are two ideas that would remove these ghost repeats:
+
+1. Do not provide any repeat/release simulation in the kernel for RC
+devices (by default?), just provide both keydown and immediate release
+events for every native keypress or repeat received from the device.
++ Very simple to implement
+- We lose the ability to track repeats, i.e. if a new event was a repeat
+  or a new keypress; "holding down" a key becomes impossible
+
+or
+2. Replace kernel autorepeat simulation by passing through the native
+repeat events (probably filtering them according to REP_DELAY and
+REP_PERIOD), and have a device property bit (fetchable via EVIOCGPROP)
+indicating that the keyrelease is simulated, and have the X server use
+the native repeats instead of softrepeats for such a device.
++ The userspace correctly gets repeat events tagged as repeats and
+  release events when appropriate (albeit a little late)
+- Adds complexity. Also, while the kernel part is quite easy to
+  implement, I'm not sure if the X server part is.
+
+or
+3. Same as 1., but indicate the repeatness of an event with a new
+   additional special event before EV_SYN (sync event).
++ Simple to implement
+- Quite hacky, and userspace still can't guess from initial
+  keypress/release if the key is still pressed down or not.
+
+4. Same as 1., but have a new EV_RC with RC_KEYDOWN and RC_KEYUP events,
+   with RC_KEYDOWN sent when a key is pressed down a first time along
+   with the normal EV_KEY event, and RC_KEYUP sent when the key is
+   surely released (e.g. 250ms without native repeat events or another
+   key got pressed, i.e. like the simulated keyup now).
++ Simple to implement, works as expected with most userspace apps with
+  no changes to them; and if an app wants to know the repeatness of an
+  event or held-down-ness of a key, it can do that.
+- Repeatness of the event is hidden behind a new API.
+
+What do you think? Or any other ideas?
+
+2 and 4 seem nicest to me.
+(I don't know how feasible 2 would be on X server side, though)
+
+-- 
+Anssi Hannula
