@@ -1,166 +1,74 @@
 Return-path: <mchehab@gaivota>
-Received: from stevekez.vm.bytemark.co.uk ([80.68.91.30]:39659 "EHLO
-	stevekerrison.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754879Ab1EHPvl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 May 2011 11:51:41 -0400
-From: Steve Kerrison <steve@stevekerrison.com>
-To: Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
+Received: from cmsout01.mbox.net ([165.212.64.31]:37571 "EHLO
+	cmsout01.mbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752027Ab1EHKat (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 May 2011 06:30:49 -0400
+Message-ID: <4DC670AE.2070607@usa.net>
+Date: Sun, 08 May 2011 12:30:06 +0200
+From: Issa Gorissen <flop.m@usa.net>
+MIME-Version: 1.0
+To: Andreas Oberritter <obi@linuxtv.org>
+CC: Martin Vidovic <xtronom@gmail.com>,
+	Ralph Metzler <rjkm@metzlerbros.de>,
 	linux-media@vger.kernel.org
-Cc: Andreas Oberritter <obi@linuxtv.org>,
-	Steve Kerrison <steve@stevekerrison.com>
-Subject: [PATCH 6/6] Documentation: Update to include DVB-T2 additions
-Date: Sun,  8 May 2011 16:51:13 +0100
-Message-Id: <1304869873-9974-7-git-send-email-steve@stevekerrison.com>
-In-Reply-To: <4DC417DA.5030107@redhat.com>
-References: <4DC417DA.5030107@redhat.com>
+Subject: Re: [PATCH] Ngene cam device name
+References: <494PeFsCj8960S01.1304706575@web01.cms.usa.net> <4DC6682C.4060907@linuxtv.org>
+In-Reply-To: <4DC6682C.4060907@linuxtv.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-A few new capabilities added to frontend.h for DVB-T2. Added these
-to the documentation plus some notes explaining that they are
-used by the T2 delivery system.
+On 08/05/11 11:53, Andreas Oberritter wrote:
+> Hello Issa,
+>
+> On 05/06/2011 08:29 PM, Issa Gorissen wrote:
+>> From: Andreas Oberritter <obi@linuxtv.org>
+>>> On 05/06/2011 03:47 PM, Issa Gorissen wrote:
+>>>> Also, it seems linux en50221 stack provides for the slot selection. So,
+>> why
+>>>> would you need two ca nodes ?
+>>> Because it's the most obvious way to use it. And more importantly
+>>> because the API sucks, if you have more than one device per node. You
+>>> can have only one reader, one writer, one poll function per node. For
+>>> example, you can't use one instance of mplayer to watch one channel with
+>>> fe0+dmx0+ca0 and a second instance of mplayer to watch or record another
+>>> channel with fe1+dmx1+ca0. You won't know which device has an event if
+>>> you use poll. The API even allows mixing multiple CI slots and built-in
+>>> descramblers in the same node. But try calling CA_RESET on a specific
+>>> slot or on a descrambler. It won't work. It's broken by design.
+>>
+>> You need to write a userspace soft which will handle the concurrent access of
+>> your ca device...
+> ... to gain what exactly over using two distinct nodes?
+>
+> How do you propose solving the problem with CA_RESET with a userspace soft?
 
-Signed-off-by: Steve Kerrison <steve@stevekerrison.com>
----
- Documentation/DocBook/dvb/dvbproperty.xml |   21 ++++++++++++++++++---
- Documentation/DocBook/dvb/frontend.h.xml  |   20 ++++++++++++++++----
- 2 files changed, 34 insertions(+), 7 deletions(-)
+Well, solving your problem of having two mplayer instances!
 
-diff --git a/Documentation/DocBook/dvb/dvbproperty.xml b/Documentation/DocBook/dvb/dvbproperty.xml
-index 05ce603..afe204c 100644
---- a/Documentation/DocBook/dvb/dvbproperty.xml
-+++ b/Documentation/DocBook/dvb/dvbproperty.xml
-@@ -217,9 +217,12 @@ get/set up to 64 properties. The actual meaning of each property is described on
- 		<para>Bandwidth for the channel, in HZ.</para>
- 
- 		<para>Possible values:
-+			<constant>1712000</constant>,
-+			<constant>5000000</constant>,
- 			<constant>6000000</constant>,
- 			<constant>7000000</constant>,
--			<constant>8000000</constant>.
-+			<constant>8000000</constant>,
-+			<constant>10000000</constant>.
- 		</para>
- 
- 		<para>Notes:</para>
-@@ -231,6 +234,8 @@ get/set up to 64 properties. The actual meaning of each property is described on
- 		<para>4) Bandwidth in ISDB-T is fixed (6MHz) or can be easily derived from
- 			other parameters (DTV_ISDBT_SB_SEGMENT_IDX,
- 			DTV_ISDBT_SB_SEGMENT_COUNT).</para>
-+		<para>5) DVB-T supports 6, 7 and 8MHz.</para>
-+		<para>6) In addition, DVB-T2 supports 1.172, 5 and 10MHz.</para>
- 	</section>
- 
- 	<section id="DTV_DELIVERY_SYSTEM">
-@@ -257,6 +262,7 @@ typedef enum fe_delivery_system {
- 	SYS_DMBTH,
- 	SYS_CMMB,
- 	SYS_DAB,
-+	SYS_DVBT2,
- } fe_delivery_system_t;
- </programlisting>
- 
-@@ -273,7 +279,10 @@ typedef enum fe_transmit_mode {
- 	TRANSMISSION_MODE_2K,
- 	TRANSMISSION_MODE_8K,
- 	TRANSMISSION_MODE_AUTO,
--	TRANSMISSION_MODE_4K
-+	TRANSMISSION_MODE_4K,
-+	TRANSMISSION_MODE_1K,
-+	TRANSMISSION_MODE_16K,
-+	TRANSMISSION_MODE_32K,
- } fe_transmit_mode_t;
- </programlisting>
- 
-@@ -284,6 +293,8 @@ typedef enum fe_transmit_mode {
- 		<para>2) If <constant>DTV_TRANSMISSION_MODE</constant> is set the <constant>TRANSMISSION_MODE_AUTO</constant> the
- 			hardware will try to find the correct FFT-size (if capable) and will
- 			use TMCC to fill in the missing parameters.</para>
-+		<para>3) DVB-T specifies 2K and 8K as valid sizes.</para>
-+		<para>4) DVB-T2 specifies 1K, 2K, 4K, 8K, 16K and 32K.</para>
- 	</section>
- 
- 	<section id="DTV_GUARD_INTERVAL">
-@@ -296,7 +307,10 @@ typedef enum fe_guard_interval {
- 	GUARD_INTERVAL_1_16,
- 	GUARD_INTERVAL_1_8,
- 	GUARD_INTERVAL_1_4,
--	GUARD_INTERVAL_AUTO
-+	GUARD_INTERVAL_AUTO,
-+	GUARD_INTERVAL_1_128,
-+	GUARD_INTERVAL_19_128,
-+	GUARD_INTERVAL_19_256,
- } fe_guard_interval_t;
- </programlisting>
- 
-@@ -304,6 +318,7 @@ typedef enum fe_guard_interval {
- 		<para>1) If <constant>DTV_GUARD_INTERVAL</constant> is set the <constant>GUARD_INTERVAL_AUTO</constant> the hardware will
- 			try to find the correct guard interval (if capable) and will use TMCC to fill
- 			in the missing parameters.</para>
-+		<para>2) Intervals 1/128, 19/128 and 19/256 are used only for DVB-T2 at present</para>
- 	</section>
- </section>
- 
-diff --git a/Documentation/DocBook/dvb/frontend.h.xml b/Documentation/DocBook/dvb/frontend.h.xml
-index d08e0d4..d792f78 100644
---- a/Documentation/DocBook/dvb/frontend.h.xml
-+++ b/Documentation/DocBook/dvb/frontend.h.xml
-@@ -176,14 +176,20 @@ typedef enum fe_transmit_mode {
-         TRANSMISSION_MODE_2K,
-         TRANSMISSION_MODE_8K,
-         TRANSMISSION_MODE_AUTO,
--        TRANSMISSION_MODE_4K
-+        TRANSMISSION_MODE_4K,
-+        TRANSMISSION_MODE_1K,
-+        TRANSMISSION_MODE_16K,
-+        TRANSMISSION_MODE_32K,
- } fe_transmit_mode_t;
- 
- typedef enum fe_bandwidth {
-         BANDWIDTH_8_MHZ,
-         BANDWIDTH_7_MHZ,
-         BANDWIDTH_6_MHZ,
--        BANDWIDTH_AUTO
-+        BANDWIDTH_AUTO,
-+        BANDWIDTH_5_MHZ,
-+        BANDWIDTH_10_MHZ,
-+        BANDWIDTH_1_712_MHZ,
- } fe_bandwidth_t;
- 
- 
-@@ -192,7 +198,10 @@ typedef enum fe_guard_interval {
-         GUARD_INTERVAL_1_16,
-         GUARD_INTERVAL_1_8,
-         GUARD_INTERVAL_1_4,
--        GUARD_INTERVAL_AUTO
-+        GUARD_INTERVAL_AUTO,
-+        GUARD_INTERVAL_1_128,
-+        GUARD_INTERVAL_19_128,
-+        GUARD_INTERVAL_19_256,
- } fe_guard_interval_t;
- 
- 
-@@ -306,7 +315,9 @@ struct dvb_frontend_event {
- 
- #define DTV_ISDBS_TS_ID         42
- 
--#define DTV_MAX_COMMAND                         DTV_ISDBS_TS_ID
-+#define DTV_DVBT2_PLP_ID	43
-+
-+#define DTV_MAX_COMMAND                         DTV_DVBT2_PLP_ID
- 
- typedef enum fe_pilot {
-         PILOT_ON,
-@@ -338,6 +349,7 @@ typedef enum fe_delivery_system {
-         SYS_DMBTH,
-         SYS_CMMB,
-         SYS_DAB,
-+        SYS_DVBT2,
- } fe_delivery_system_t;
- 
- struct dtv_cmds_h {
--- 
-1.7.1
+The CA_RESET ioctl will not reset one slot at a time obviously. But you
+can do an interface reset via the control register, no ? In cases when
+you remove/add a second/third/... module from one of the slot of a CI
+device, then I guess the CA_RESET is broken because it will reset
+everything... Have you got patches for that ?
 
+
+>> But for your given example, is there any card allowing you to do that (one ci
+>> slot, two tuners) ?
+> You don't seem to have understood my example. I was explaining some
+> drawbacks of having more than one CI slot, but only one node, answering
+> your prior question.
+>
+> Besides that, it's highly probable that such a card exists. It wouldn't
+> make much sense to hardwire CI slots to tuners, if multiple tuners exist
+> on a board.
+>
+> Disregarding the term "cards", there are variants of the Dreambox with
+> 1, 2 or 4 CI slots combined with 1 to 4 tuners.
+>
+> Regards,
+> Andreas
+
+
+I guess your point is valid, maybe the improvement you would like to see
+will pop up when the need will be created...
