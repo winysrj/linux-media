@@ -1,252 +1,60 @@
-Return-path: <mchehab@pedra>
-Received: from mail-ww0-f42.google.com ([74.125.82.42]:63931 "EHLO
-	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750818Ab1EaJra (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 May 2011 05:47:30 -0400
-Received: by wwk4 with SMTP id 4so2238397wwk.1
-        for <linux-media@vger.kernel.org>; Tue, 31 May 2011 02:47:29 -0700 (PDT)
-From: Javier Martin <javier.martin@vista-silicon.com>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, laurent.pinchart@ideasonboard.com,
-	carlighting@yahoo.co.nz, beagleboard@googlegroups.com,
-	mch_kot@yahoo.com.cn,
-	Javier Martin <javier.martin@vista-silicon.com>
-Subject: [PATCH v5 2/2] Add support for mt9p031 (LI-5M03 module) in Beagleboard xM.
-Date: Tue, 31 May 2011 11:46:50 +0200
-Message-Id: <1306835210-1345-2-git-send-email-javier.martin@vista-silicon.com>
-In-Reply-To: <1306835210-1345-1-git-send-email-javier.martin@vista-silicon.com>
-References: <1306835210-1345-1-git-send-email-javier.martin@vista-silicon.com>
+Return-path: <mchehab@gaivota>
+Received: from ffm.saftware.de ([83.141.3.46]:48101 "EHLO ffm.saftware.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751617Ab1EHWFJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 8 May 2011 18:05:09 -0400
+Message-ID: <4DC71390.404@linuxtv.org>
+Date: Mon, 09 May 2011 00:05:04 +0200
+From: Andreas Oberritter <obi@linuxtv.org>
+MIME-Version: 1.0
+To: Steve Kerrison <steve@stevekerrison.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 6/6] Documentation: Update to include DVB-T2 additions
+References: <4DC417DA.5030107@redhat.com>	 <1304869873-9974-7-git-send-email-steve@stevekerrison.com>	 <4DC6C2DC.9010102@redhat.com> <1304881988.2920.18.camel@ares>
+In-Reply-To: <1304881988.2920.18.camel@ares>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Since isp clocks have not been exposed yet, this patch
-includes a temporal solution for testing mt9p031 driver
-in Beagleboard xM.
+On 05/08/2011 09:13 PM, Steve Kerrison wrote:
+> Hi Mauro
+> 
+>> +		<para>3) DVB-T specifies 2K and 8K as valid sizes.</para>
+>>> +		<para>4) DVB-T2 specifies 1K, 2K, 4K, 8K, 16K and 32K.</para>
+>>
+>> It makes sense to add here that ISDB-T specifies 2K, 4K and 8K.
+>> (yeah, sorry, it is my fault that I didn't notice it before ;) )
+> 
+> Actually note 1) in that list declares the sizes supported by ISDB-T;
+> but the patch doesn't show it. So there is no blame to assign :)
+> 
+>> -#define DTV_MAX_COMMAND                         DTV_ISDBS_TS_ID
+>>> +#define DTV_DVBT2_PLP_ID	43
+>>> +
+>>
+>> Please document the PLP_ID as well. Just like ISDB-T, the best seems to
+>> create a section with DVB-T2 specific parameters, and add this one there,
+>> explaining its meaning.
+> 
+> I have created a section for DVB-T2 parameters. It's within the main
+> ISDB-T section. If that's not appropriate I guess it can be hauled out
+> as it grows. However, much like Antti, I don't know much about PLP or
+> the other features of the T2 specification, so cannot contribute a great
+> deal yet. PLP_ID isn't used by the cxd2820r driver - it's simply
+> specified in Andreas' API patch.
 
-Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
----
- arch/arm/mach-omap2/Makefile                   |    1 +
- arch/arm/mach-omap2/board-omap3beagle-camera.c |   90 ++++++++++++++++++++++++
- arch/arm/mach-omap2/board-omap3beagle.c        |   55 ++++++++++++++
- 3 files changed, 146 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/board-omap3beagle-camera.c
+In DVB-T2, each TS is contained in a 'Physical Layer Pipe' (PLP).
+Multiple PLPs with individual tuning parameters may be combined on a
+single transmitter frequency.
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 512b152..05cd983 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -179,6 +179,7 @@ obj-$(CONFIG_MACH_OMAP_2430SDP)		+= board-2430sdp.o \
- 					   hsmmc.o
- obj-$(CONFIG_MACH_OMAP_APOLLON)		+= board-apollon.o
- obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o \
-+					   board-omap3beagle-camera.o \
- 					   hsmmc.o
- obj-$(CONFIG_MACH_DEVKIT8000)     	+= board-devkit8000.o \
-                                            hsmmc.o
-diff --git a/arch/arm/mach-omap2/board-omap3beagle-camera.c b/arch/arm/mach-omap2/board-omap3beagle-camera.c
-new file mode 100644
-index 0000000..04365b2
---- /dev/null
-+++ b/arch/arm/mach-omap2/board-omap3beagle-camera.c
-@@ -0,0 +1,90 @@
-+#include <linux/gpio.h>
-+#include <linux/regulator/machine.h>
-+
-+#include <plat/i2c.h>
-+
-+#include <media/mt9p031.h>
-+
-+#include "devices.h"
-+#include "../../../drivers/media/video/omap3isp/isp.h"
-+
-+#define MT9P031_RESET_GPIO	98
-+#define MT9P031_XCLK		ISP_XCLK_A
-+
-+static struct regulator *reg_1v8, *reg_2v8;
-+
-+static int beagle_cam_set_xclk(struct v4l2_subdev *subdev, int hz)
-+{
-+	struct isp_device *isp = v4l2_dev_to_isp_device(subdev->v4l2_dev);
-+	int ret;
-+
-+	ret = isp->platform_cb.set_xclk(isp, hz, MT9P031_XCLK);
-+	return 0;
-+}
-+
-+static int beagle_cam_reset(struct v4l2_subdev *subdev, int active)
-+{
-+	/* Set RESET_BAR to !active */
-+	gpio_set_value(MT9P031_RESET_GPIO, !active);
-+
-+	return 0;
-+}
-+
-+static struct mt9p031_platform_data beagle_mt9p031_platform_data = {
-+	.set_xclk               = beagle_cam_set_xclk,
-+	.reset                  = beagle_cam_reset,
-+};
-+
-+static struct i2c_board_info mt9p031_camera_i2c_device = {
-+	I2C_BOARD_INFO("mt9p031", 0x48),
-+	.platform_data = &beagle_mt9p031_platform_data,
-+};
-+
-+static struct isp_subdev_i2c_board_info mt9p031_camera_subdevs[] = {
-+	{
-+		.board_info = &mt9p031_camera_i2c_device,
-+		.i2c_adapter_id = 2,
-+	},
-+	{ NULL, 0, },
-+};
-+
-+static struct isp_v4l2_subdevs_group beagle_camera_subdevs[] = {
-+	{
-+		.subdevs = mt9p031_camera_subdevs,
-+		.interface = ISP_INTERFACE_PARALLEL,
-+		.bus = {
-+				.parallel = {
-+					.data_lane_shift = 0,
-+					.clk_pol = 1,
-+					.bridge = ISPCTRL_PAR_BRIDGE_DISABLE,
-+				}
-+		},
-+	},
-+	{ },
-+};
-+
-+static struct isp_platform_data beagle_isp_platform_data = {
-+	.subdevs = beagle_camera_subdevs,
-+};
-+
-+static int __init beagle_camera_init(void)
-+{
-+	reg_1v8 = regulator_get(NULL, "cam_1v8");
-+	if (IS_ERR(reg_1v8))
-+		pr_err("%s: cannot get cam_1v8 regulator\n", __func__);
-+	else
-+		regulator_enable(reg_1v8);
-+
-+	reg_2v8 = regulator_get(NULL, "cam_2v8");
-+	if (IS_ERR(reg_2v8))
-+		pr_err("%s: cannot get cam_2v8 regulator\n", __func__);
-+	else
-+		regulator_enable(reg_2v8);
-+
-+	omap_register_i2c_bus(2, 100, NULL, 0);
-+	gpio_request(MT9P031_RESET_GPIO, "cam_rst");
-+	gpio_direction_output(MT9P031_RESET_GPIO, 0);
-+	omap3_init_camera(&beagle_isp_platform_data);
-+	return 0;
-+}
-+late_initcall(beagle_camera_init);
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 33007fd..c18d21c 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -24,12 +24,16 @@
- #include <linux/input.h>
- #include <linux/gpio_keys.h>
- #include <linux/opp.h>
-+#include <linux/i2c.h>
-+#include <linux/mm.h>
-+#include <linux/videodev2.h>
- 
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/partitions.h>
- #include <linux/mtd/nand.h>
- #include <linux/mmc/host.h>
- 
-+#include <linux/gpio.h>
- #include <linux/regulator/machine.h>
- #include <linux/i2c/twl.h>
- 
-@@ -47,6 +51,7 @@
- #include <plat/nand.h>
- #include <plat/usb.h>
- #include <plat/omap_device.h>
-+#include <plat/i2c.h>
- 
- #include "mux.h"
- #include "hsmmc.h"
-@@ -273,6 +278,44 @@ static struct regulator_consumer_supply beagle_vsim_supply = {
- 
- static struct gpio_led gpio_leds[];
- 
-+static struct regulator_consumer_supply beagle_vaux3_supply = {
-+	.supply         = "cam_1v8",
-+};
-+
-+static struct regulator_consumer_supply beagle_vaux4_supply = {
-+	.supply         = "cam_2v8",
-+};
-+
-+/* VAUX3 for CAM_1V8 */
-+static struct regulator_init_data beagle_vaux3 = {
-+	.constraints = {
-+		.min_uV			= 1800000,
-+		.max_uV			= 1800000,
-+		.apply_uV		= true,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask		= REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies		= 1,
-+	.consumer_supplies		= &beagle_vaux3_supply,
-+};
-+
-+/* VAUX4 for CAM_2V8 */
-+static struct regulator_init_data beagle_vaux4 = {
-+	.constraints = {
-+		.min_uV			= 1800000,
-+		.max_uV			= 1800000,
-+		.apply_uV		= true,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask		= REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies  = 1,
-+	.consumer_supplies      = &beagle_vaux4_supply,
-+};
-+
- static int beagle_twl_gpio_setup(struct device *dev,
- 		unsigned gpio, unsigned ngpio)
- {
-@@ -309,6 +352,15 @@ static int beagle_twl_gpio_setup(struct device *dev,
- 			pr_err("%s: unable to configure EHCI_nOC\n", __func__);
- 	}
- 
-+	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
-+		/*
-+		 * Power on camera interface - only on pre-production, not
-+		 * needed on production boards
-+		 */
-+		gpio_request(gpio + 2, "CAM_EN");
-+		gpio_direction_output(gpio + 2, 1);
-+	}
-+
- 	/*
- 	 * TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, XM active
- 	 * high / others active low)
-@@ -451,6 +503,8 @@ static struct twl4030_platform_data beagle_twldata = {
- 	.vsim		= &beagle_vsim,
- 	.vdac		= &beagle_vdac,
- 	.vpll2		= &beagle_vpll2,
-+	.vaux3          = &beagle_vaux3,
-+	.vaux4          = &beagle_vaux4,
- };
- 
- static struct i2c_board_info __initdata beagle_i2c_boardinfo[] = {
-@@ -658,6 +712,7 @@ static void __init omap3_beagle_init(void)
- {
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
- 	omap3_beagle_init_rev();
-+
- 	omap3_beagle_i2c_init();
- 	platform_add_devices(omap3_beagle_devices,
- 			ARRAY_SIZE(omap3_beagle_devices));
--- 
-1.7.0.4
+I don't know whether multiple PLP mode is or will be used in any
+country. If no PLP ID or an invalid PLP ID is specified, the behaviour
+of a demod may be undefined, i.e. it may select a random PLP or fail to
+tune.
 
+In DVB-SI, the PLP ID is carried within the T2 delivery system descriptor.
+
+Regards,
+Andreas
