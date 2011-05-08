@@ -1,49 +1,64 @@
 Return-path: <mchehab@gaivota>
-Received: from lo.gmane.org ([80.91.229.12]:56265 "EHLO lo.gmane.org"
+Received: from ffm.saftware.de ([83.141.3.46]:49495 "EHLO ffm.saftware.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753428Ab1EJXaH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 May 2011 19:30:07 -0400
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1QJwNR-0003Oc-6o
-	for linux-media@vger.kernel.org; Wed, 11 May 2011 01:30:05 +0200
-Received: from 213.137.58.124 ([213.137.58.124])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 11 May 2011 01:30:05 +0200
-Received: from root by 213.137.58.124 with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 11 May 2011 01:30:05 +0200
-To: linux-media@vger.kernel.org
-From: Doychin Dokov <root@net1.cc>
-Subject: TT S2-3650CI problems with high-SR DVB-S2 transponders
-Date: Wed, 11 May 2011 02:24:43 +0300
-Message-ID: <iqchgm$os9$1@dough.gmane.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1251; format=flowed
+	id S1752057Ab1EHJxw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 8 May 2011 05:53:52 -0400
+Message-ID: <4DC6682C.4060907@linuxtv.org>
+Date: Sun, 08 May 2011 11:53:48 +0200
+From: Andreas Oberritter <obi@linuxtv.org>
+MIME-Version: 1.0
+To: Issa Gorissen <flop.m@usa.net>
+CC: Martin Vidovic <xtronom@gmail.com>,
+	Ralph Metzler <rjkm@metzlerbros.de>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] Ngene cam device name
+References: <494PeFsCj8960S01.1304706575@web01.cms.usa.net>
+In-Reply-To: <494PeFsCj8960S01.1304706575@web01.cms.usa.net>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-I've been trying to get TechnoTrend S2-3650CI running with DVB-S2 
-transponder with SR of 30000. I'm using stock Debian 6 kernel 
-2.6.32-5-amd64 and s2-liplianin tree.
+Hello Issa,
 
-Initially, the device couldn't lock the 30K transponders at all. After 
-applying patch [1], it locks without any problems, and does so very fast:
-sat 0, frequency 11632 MHz V, symbolrate 30000000, coderate auto, 
-rolloff 0.35
-vpid 0x1fff, apid 0x1fff, sid 0x0000
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-status 00 | signal 0000 | snr 0004 | ber 00000000 | unc fffffffe |
-status 1b | signal 05aa | snr 0023 | ber 00516155 | unc fffffffe | 
-FE_HAS_LOCK
-This happens each and every time I try. So far, so good, but when I'm 
-trying to stream a PID with dvblast, I get lots of TS discontinuities. 
-It does read the NIT and PAT fine, but nothing else is nearly-usable.
+On 05/06/2011 08:29 PM, Issa Gorissen wrote:
+> From: Andreas Oberritter <obi@linuxtv.org>
+>> On 05/06/2011 03:47 PM, Issa Gorissen wrote:
+>>> Also, it seems linux en50221 stack provides for the slot selection. So,
+> why
+>>> would you need two ca nodes ?
+>>
+>> Because it's the most obvious way to use it. And more importantly
+>> because the API sucks, if you have more than one device per node. You
+>> can have only one reader, one writer, one poll function per node. For
+>> example, you can't use one instance of mplayer to watch one channel with
+>> fe0+dmx0+ca0 and a second instance of mplayer to watch or record another
+>> channel with fe1+dmx1+ca0. You won't know which device has an event if
+>> you use poll. The API even allows mixing multiple CI slots and built-in
+>> descramblers in the same node. But try calling CA_RESET on a specific
+>> slot or on a descrambler. It won't work. It's broken by design.
+> 
+> 
+> You need to write a userspace soft which will handle the concurrent access of
+> your ca device...
 
-I've then tried the STB6100 patch [2], but it does not seem to do any 
-help in this case.
+... to gain what exactly over using two distinct nodes?
 
-Any ideas?
+How do you propose solving the problem with CA_RESET with a userspace soft?
 
+> But for your given example, is there any card allowing you to do that (one ci
+> slot, two tuners) ?
+
+You don't seem to have understood my example. I was explaining some
+drawbacks of having more than one CI slot, but only one node, answering
+your prior question.
+
+Besides that, it's highly probable that such a card exists. It wouldn't
+make much sense to hardwire CI slots to tuners, if multiple tuners exist
+on a board.
+
+Disregarding the term "cards", there are variants of the Dreambox with
+1, 2 or 4 CI slots combined with 1 to 4 tuners.
+
+Regards,
+Andreas
