@@ -1,46 +1,40 @@
 Return-path: <mchehab@gaivota>
-Received: from newsmtp5.atmel.com ([204.2.163.5]:33381 "EHLO
-	sjogate2.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756857Ab1ELJ5H convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 May 2011 05:57:07 -0400
-Content-class: urn:content-classes:message
+Received: from mx1.redhat.com ([209.132.183.28]:59777 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752289Ab1EHKPq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 8 May 2011 06:15:46 -0400
+Message-ID: <4DC66DD7.9050008@redhat.com>
+Date: Sun, 08 May 2011 12:17:59 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Subject: RE: [PATCH] [media] at91: add Atmel Image Sensor Interface (ISI)support
-Date: Thu, 12 May 2011 17:56:39 +0800
-Message-ID: <4C79549CB6F772498162A641D92D532801AC291A@penmb01.corp.atmel.com>
-In-Reply-To: <Pine.LNX.4.64.1105121131040.24486@axis700.grange>
-References: <1305186138-5656-1-git-send-email-josh.wu@atmel.com> <20110512074725.GA1356@n2100.arm.linux.org.uk> <4C79549CB6F772498162A641D92D532801AC28CD@penmb01.corp.atmel.com> <Pine.LNX.4.64.1105121131040.24486@axis700.grange>
-From: "Wu, Josh" <Josh.wu@atmel.com>
-To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
-Cc: "Russell King - ARM Linux" <linux@arm.linux.org.uk>,
-	<mchehab@redhat.com>, <linux-media@vger.kernel.org>,
-	"Haring, Lars" <Lars.Haring@atmel.com>,
-	<linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>
+To: =?ISO-8859-15?Q?Stefan_L=F6ffler?= <st.loeffler@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [libv4l] [PATCH] Webcam image upside down on Asus Eee PC T101MT
+ (13d3:5122)
+References: <4DC38F61.9030506@gmail.com>
+In-Reply-To: <4DC38F61.9030506@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de] Sent: Thursday, May 12, 2011 5:32 PM
+Hi,
 
-> On Thu, 12 May 2011, Wu, Josh wrote:
->> Hi, Russell
->> 
->> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk] Sent: Thursday, May 12, 2011 3:47 PM
->> > On Thu, May 12, 2011 at 03:42:18PM +0800, Josh Wu wrote:
->> >> +err_alloc_isi:
->> >> +	clk_disable(pclk);
->> > clk_put() ?
->> Ok, will be fixed in V2 patch. Thanks.
+Thanks, applied.
 
-> You might wait with v2 until I find time to review your patch. Will take a 
-> couple of days, I think. A general question, though: how compatible is 
-> this driver with the AVR32?
-That is ok. 
-For AVR32, I think I need time to check with AVR team. I will update the status when I got more information.
+Regards,
 
-Best Regards,
-Josh Wu
+Hans
+
+
+On 05/06/2011 08:04 AM, Stefan Löffler wrote:
+> The caption pretty much says it all. Owing to different IDs, the flags
+> for similar Asus products don't cut in.
+> Originally reported for Ubuntu at
+> https://bugs.launchpad.net/ubuntu/+source/libv4l/+bug/774123.
+>
+> Regards,
+> Stefan
+>
+> Signed-off-by: Stefan Löffler<st.loeffler@gmail.com>
+>
