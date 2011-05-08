@@ -1,67 +1,76 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp1.mtw.ru ([93.95.97.34]:50977 "EHLO smtp1.mtw.ru"
+Received: from ffm.saftware.de ([83.141.3.46]:51403 "EHLO ffm.saftware.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756953Ab1ELJ5m convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 May 2011 05:57:42 -0400
-Date: Thu, 12 May 2011 13:57:36 +0400
-From: Andrew Junev <a-j@a-j.ru>
-Reply-To: Andrew Junev <a-j@a-j.ru>
-Message-ID: <89519611.20110512135736@a-j.ru>
-To: linux-media@vger.kernel.org
-CC: Josu Lazkano <josu.lazkano@gmail.com>
-Subject: Re: [linux-dvb] TeVii S470 (cx23885 / ds3000) makes the machine unstable
-In-Reply-To: <925086505.20110509193909@a-j.ru>
-References: <1908281867.20110505213806@a-j.ru> <BANLkTimL7qhNpXr8xBBcU4MccZKAAFURYw@mail.gmail.com> <16110382789.20110506010009@a-j.ru> <BANLkTimGEL4YvXRJsFM10NfyHPOn-JsA_g@mail.gmail.com> <157285607.20110508122321@a-j.ru> <925086505.20110509193909@a-j.ru>
+	id S1754431Ab1EHWLo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 8 May 2011 18:11:44 -0400
+Message-ID: <4DC7151E.1060606@linuxtv.org>
+Date: Mon, 09 May 2011 00:11:42 +0200
+From: Andreas Oberritter <obi@linuxtv.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=windows-1251
-Content-Transfer-Encoding: 8BIT
+To: Steve Kerrison <steve@stevekerrison.com>
+CC: Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 3/5] mxl5005: Fix warning caused by new entries in
+ an enum
+References: <4DC6BF28.8070006@redhat.com> <1304882240-23044-4-git-send-email-steve@stevekerrison.com>
+In-Reply-To: <1304882240-23044-4-git-send-email-steve@stevekerrison.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Monday, May 9, 2011, 7:39:09 PM, you wrote:
+On 05/08/2011 09:17 PM, Steve Kerrison wrote:
+> Additional bandwidth modes have been added in frontend.h
+> mxl5005s.c had no default case so the compiler was warning about
+> a non-exhausive switch statement.
+> 
+> Signed-off-by: Steve Kerrison <steve@stevekerrison.com>
+> ---
+>  drivers/media/common/tuners/mxl5005s.c |    4 ++++
+>  1 files changed, 4 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/common/tuners/mxl5005s.c b/drivers/media/common/tuners/mxl5005s.c
+> index 0d6e094..d80e6f3 100644
+> --- a/drivers/media/common/tuners/mxl5005s.c
+> +++ b/drivers/media/common/tuners/mxl5005s.c
+> @@ -4020,6 +4020,10 @@ static int mxl5005s_set_params(struct dvb_frontend *fe,
+>  			case BANDWIDTH_7_MHZ:
+>  				req_bw  = MXL5005S_BANDWIDTH_7MHZ;
+>  				break;
+> +			default:
+> +				dprintk(1,"%s: Unsupported bandwidth mode %u, reverting to default\n",
+> +					__func__,params->u.ofdm.bandwidth);
+> +				/* Fall back to auto */
+>  			case BANDWIDTH_AUTO:
+>  			case BANDWIDTH_8_MHZ:
+>  				req_bw  = MXL5005S_BANDWIDTH_8MHZ;
 
-> I still have this very annoying issue. I see no obvious reason, but
-> my DVB-S card just stops locking the signal, I get really a lot of
-> these errors in my syslog:
+Same as in 2/5.
 
-> May  9 19:04:33 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  9 19:04:33 localhost kernel: ds3000_writereg: writereg
-> error(err == -5, reg == 0x03, value == 0x12)
-> May  9 19:04:33 localhost kernel: ds3000_tuner_readreg: reg=0x3d(error=-5)
-> May  9 19:04:33 localhost kernel: ds3000_writereg: writereg
-> error(err == -5, reg == 0x03, value == 0x12)
-> May  9 19:04:33 localhost kernel: ds3000_tuner_readreg: reg=0x21(error=-5)
-> May  9 19:04:33 localhost kernel: ds3000_readreg: reg=0x8c(error=-5)
-> May  9 19:04:33 localhost kernel: ds3000_readreg: reg=0x8d(error=-5)
+>From 9492d6c7665bf8b55ec3a42577794cea3e87ee15 Mon Sep 17 00:00:00 2001
+From: Andreas Oberritter <obi@linuxtv.org>
+Date: Fri, 8 Apr 2011 16:37:57 +0000
+Subject: [PATCH 1/2] DVB: mxl5005s: handle new bandwidths by returning -EINVAL
 
-> and then the machine just freezes. Could it be some buffer overflow?
+Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
+---
+ drivers/media/common/tuners/mxl5005s.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-> How could I track it?
-
-
-> The machine is perfectly stable when S470 card is out...
-
-
-Sorry for replying to my own's post, as I just want to make this
-information available in case someone would find this mail thread
-later.
-
-The issue appear to be related to S470 overheating. I discovered that
-my S470 became very-very hot right after I power the machine up, and
-recently it started to freeze right after the boot. So the board was
-shipped to the dealer for tests / exchange, and my machine is back to
-normal operation (without a DVB-S2 card, temporarily).
-
-My friend's board is slightly cooler - so putting a fan blowing
-directly on the board seem to solve the problem for him completely
-(no freezes for three days now).
-
-So it's very likely to be hardware-related, and not a driver /
-configuration issue.
-
-
+diff --git a/drivers/media/common/tuners/mxl5005s.c b/drivers/media/common/tuners/mxl5005s.c
+index 605e28b..5618b35 100644
+--- a/drivers/media/common/tuners/mxl5005s.c
++++ b/drivers/media/common/tuners/mxl5005s.c
+@@ -4024,6 +4024,8 @@ static int mxl5005s_set_params(struct dvb_frontend *fe,
+ 			case BANDWIDTH_8_MHZ:
+ 				req_bw  = MXL5005S_BANDWIDTH_8MHZ;
+ 				break;
++			default:
++				return -EINVAL;
+ 			}
+ 		}
+ 
 -- 
-Best regards,
- Andrew             
+1.7.2.5
 
