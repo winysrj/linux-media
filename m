@@ -1,61 +1,129 @@
-Return-path: <mchehab@pedra>
-Received: from mailfe03.c2i.net ([212.247.154.66]:43186 "EHLO swip.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752363Ab1EWOI0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 May 2011 10:08:26 -0400
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: [PATCH] Inlined functions should be static.
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-From: Hans Petter Selasky <hselasky@c2i.net>
-Date: Mon, 23 May 2011 16:07:13 +0200
+Return-path: <mchehab@gaivota>
+Received: from ffm.saftware.de ([83.141.3.46]:42554 "EHLO ffm.saftware.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755866Ab1EHWi0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 8 May 2011 18:38:26 -0400
+Message-ID: <4DC71B5E.7000902@linuxtv.org>
+Date: Mon, 09 May 2011 00:38:22 +0200
+From: Andreas Oberritter <obi@linuxtv.org>
 MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_Rom2NzMace1mZk2"
-Message-Id: <201105231607.13668.hselasky@c2i.net>
-List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
-
---Boundary-00=_Rom2NzMace1mZk2
-Content-Type: text/plain;
-  charset="us-ascii"
+To: Steve Kerrison <steve@stevekerrison.com>
+CC: Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 1/5] DVB: Add basic API support for DVB-T2 and bump
+ minor version
+References: <4DC6BF28.8070006@redhat.com> <1304882240-23044-2-git-send-email-steve@stevekerrison.com> <4DC717AD.8030609@linuxtv.org>
+In-Reply-To: <4DC717AD.8030609@linuxtv.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
+List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
---HPS
+On 05/09/2011 12:22 AM, Andreas Oberritter wrote:
+> 
+> Please also include the following (only compile-tested) lines within this commit:
+> 
+> From 4329b836a6590421b178710160fcca3b39f64e18 Mon Sep 17 00:00:00 2001
+> From: Andreas Oberritter <obi@linuxtv.org>
+> Date: Sun, 8 May 2011 22:14:07 +0000
+> Subject: [PATCH] DVB: dvb_frontend: add PLP ID to property cache
+> 
+> Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
+> ---
+>  drivers/media/dvb/dvb-core/dvb_frontend.c |    6 ++++++
+>  drivers/media/dvb/dvb-core/dvb_frontend.h |    3 +++
+>  2 files changed, 9 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+> index dc3457c..5af1d67 100644
+> --- a/drivers/media/dvb/dvb-core/dvb_frontend.c
+> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+> @@ -1323,6 +1323,9 @@ static int dtv_property_process_get(struct dvb_frontend *fe,
+>  	case DTV_ISDBS_TS_ID:
+>  		tvp->u.data = fe->dtv_property_cache.isdbs_ts_id;
+>  		break;
+> +	case DTV_DVBT2_PLP_ID:
+> +		tvp->u.data = c->dvbt2_plp_id;
+> +		break;
 
---Boundary-00=_Rom2NzMace1mZk2
-Content-Type: text/x-patch;
-  charset="us-ascii";
-  name="dvb-usb-0014.patch"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline;
-	filename="dvb-usb-0014.patch"
+Sorry, this depends on a changeset I haven't submitted yet and thus won't compile
+inside your tree. See below for a fixed patch.
 
-=46rom 446037f0f999759b4b801b6512d18bae769465bb Mon Sep 17 00:00:00 2001
-=46rom: Hans Petter Selasky <hselasky@c2i.net>
-Date: Mon, 23 May 2011 16:06:22 +0200
-Subject: [PATCH] Inlined functions should be static.
+>  	default:
+>  		r = -1;
+>  	}
+> @@ -1478,6 +1481,9 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
+>  	case DTV_ISDBS_TS_ID:
+>  		fe->dtv_property_cache.isdbs_ts_id = tvp->u.data;
+>  		break;
+> +	case DTV_DVBT2_PLP_ID:
+> +		c->dvbt2_plp_id = tvp->u.data;
+> +		break;
+>  	default:
+>  		r = -1;
+>  	}
+> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.h b/drivers/media/dvb/dvb-core/dvb_frontend.h
+> index 3b86050..fb2b13f 100644
+> --- a/drivers/media/dvb/dvb-core/dvb_frontend.h
+> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.h
+> @@ -358,6 +358,9 @@ struct dtv_frontend_properties {
+>  
+>  	/* ISDB-T specifics */
+>  	u32			isdbs_ts_id;
+> +
+> +	/* DVB-T2 specifics */
+> +	u32			dvbt2_plp_id;
+>  };
+>  
+>  struct dvb_frontend {
 
-Signed-off-by: Hans Petter Selasky <hselasky@c2i.net>
-=2D--
- drivers/media/dvb/frontends/stb0899_algo.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+>From 6e7abb85241e7aef5783f9c216e829de5fe90cb7 Mon Sep 17 00:00:00 2001
+From: Andreas Oberritter <obi@linuxtv.org>
+Date: Sun, 8 May 2011 22:14:07 +0000
+Subject: [PATCH] DVB: dvb_frontend: add PLP ID to property cache
 
-diff --git a/drivers/media/dvb/frontends/stb0899_algo.c b/drivers/media/dvb=
-/frontends/stb0899_algo.c
-index 2da55ec..d70eee0 100644
-=2D-- a/drivers/media/dvb/frontends/stb0899_algo.c
-+++ b/drivers/media/dvb/frontends/stb0899_algo.c
-@@ -23,7 +23,7 @@
- #include "stb0899_priv.h"
- #include "stb0899_reg.h"
-=20
-=2Dinline u32 stb0899_do_div(u64 n, u32 d)
-+static inline u32 stb0899_do_div(u64 n, u32 d)
- {
- 	/* wrap do_div() for ease of use */
-=20
-=2D-=20
-1.7.1.1
+Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
+---
+ drivers/media/dvb/dvb-core/dvb_frontend.c |    6 ++++++
+ drivers/media/dvb/dvb-core/dvb_frontend.h |    3 +++
+ 2 files changed, 9 insertions(+), 0 deletions(-)
 
-
---Boundary-00=_Rom2NzMace1mZk2--
+diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+index dc3457c..d04ef09 100644
+--- a/drivers/media/dvb/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+@@ -1323,6 +1323,9 @@ static int dtv_property_process_get(struct dvb_frontend *fe,
+ 	case DTV_ISDBS_TS_ID:
+ 		tvp->u.data = fe->dtv_property_cache.isdbs_ts_id;
+ 		break;
++	case DTV_DVBT2_PLP_ID:
++		tvp->u.data = fe->dtv_property_cache.dvbt2_plp_id;
++		break;
+ 	default:
+ 		r = -1;
+ 	}
+@@ -1478,6 +1481,9 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
+ 	case DTV_ISDBS_TS_ID:
+ 		fe->dtv_property_cache.isdbs_ts_id = tvp->u.data;
+ 		break;
++	case DTV_DVBT2_PLP_ID:
++		fe->dtv_property_cache.dvbt2_plp_id = tvp->u.data;
++		break;
+ 	default:
+ 		r = -1;
+ 	}
+diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.h b/drivers/media/dvb/dvb-core/dvb_frontend.h
+index 3b86050..fb2b13f 100644
+--- a/drivers/media/dvb/dvb-core/dvb_frontend.h
++++ b/drivers/media/dvb/dvb-core/dvb_frontend.h
+@@ -358,6 +358,9 @@ struct dtv_frontend_properties {
+ 
+ 	/* ISDB-T specifics */
+ 	u32			isdbs_ts_id;
++
++	/* DVB-T2 specifics */
++	u32			dvbt2_plp_id;
+ };
+ 
+ struct dvb_frontend {
