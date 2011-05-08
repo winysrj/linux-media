@@ -1,40 +1,43 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:59777 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752289Ab1EHKPq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 8 May 2011 06:15:46 -0400
-Message-ID: <4DC66DD7.9050008@redhat.com>
-Date: Sun, 08 May 2011 12:17:59 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: =?ISO-8859-15?Q?Stefan_L=F6ffler?= <st.loeffler@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [libv4l] [PATCH] Webcam image upside down on Asus Eee PC T101MT
- (13d3:5122)
-References: <4DC38F61.9030506@gmail.com>
-In-Reply-To: <4DC38F61.9030506@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from stevekez.vm.bytemark.co.uk ([80.68.91.30]:55418 "EHLO
+	stevekerrison.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754663Ab1EHTRn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 May 2011 15:17:43 -0400
+From: Steve Kerrison <steve@stevekerrison.com>
+To: Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Cc: Andreas Oberritter <obi@linuxtv.org>,
+	Steve Kerrison <steve@stevekerrison.com>
+Subject: [PATCH v2 4/5] cxd2820r: Update frontend capabilities to advertise QAM-256
+Date: Sun,  8 May 2011 20:17:19 +0100
+Message-Id: <1304882240-23044-5-git-send-email-steve@stevekerrison.com>
+In-Reply-To: <4DC6BF28.8070006@redhat.com>
+References: <4DC6BF28.8070006@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi,
+This is supported in DVB-T2 mode, so added to the T/T2 frontend.
 
-Thanks, applied.
+Signed-off-by: Steve Kerrison <steve@stevekerrison.com>
+---
+ drivers/media/dvb/frontends/cxd2820r_core.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-Regards,
+diff --git a/drivers/media/dvb/frontends/cxd2820r_core.c b/drivers/media/dvb/frontends/cxd2820r_core.c
+index e900c4c..0779f69 100644
+--- a/drivers/media/dvb/frontends/cxd2820r_core.c
++++ b/drivers/media/dvb/frontends/cxd2820r_core.c
+@@ -855,7 +855,8 @@ static struct dvb_frontend_ops cxd2820r_ops[2] = {
+ 				FE_CAN_FEC_3_4 | FE_CAN_FEC_5_6 |
+ 				FE_CAN_FEC_7_8 | FE_CAN_FEC_AUTO |
+ 				FE_CAN_QPSK | FE_CAN_QAM_16 |
+-				FE_CAN_QAM_64 | FE_CAN_QAM_AUTO |
++				FE_CAN_QAM_64 | FE_CAN_QAM_256 |
++				FE_CAN_QAM_AUTO |
+ 				FE_CAN_TRANSMISSION_MODE_AUTO |
+ 				FE_CAN_GUARD_INTERVAL_AUTO |
+ 				FE_CAN_HIERARCHY_AUTO |
+-- 
+1.7.1
 
-Hans
-
-
-On 05/06/2011 08:04 AM, Stefan Löffler wrote:
-> The caption pretty much says it all. Owing to different IDs, the flags
-> for similar Asus products don't cut in.
-> Originally reported for Ubuntu at
-> https://bugs.launchpad.net/ubuntu/+source/libv4l/+bug/774123.
->
-> Regards,
-> Stefan
->
-> Signed-off-by: Stefan Löffler<st.loeffler@gmail.com>
->
