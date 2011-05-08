@@ -1,45 +1,71 @@
 Return-path: <mchehab@gaivota>
-Received: from stevekez.vm.bytemark.co.uk ([80.68.91.30]:39645 "EHLO
-	stevekerrison.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755188Ab1EHPvi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 May 2011 11:51:38 -0400
-From: Steve Kerrison <steve@stevekerrison.com>
-To: Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Cc: Andreas Oberritter <obi@linuxtv.org>,
-	Steve Kerrison <steve@stevekerrison.com>
-Subject: [PATCH 4/6] mxl5005: Fix warning caused by new entries in an enum
-Date: Sun,  8 May 2011 16:51:11 +0100
-Message-Id: <1304869873-9974-5-git-send-email-steve@stevekerrison.com>
-In-Reply-To: <4DC417DA.5030107@redhat.com>
-References: <4DC417DA.5030107@redhat.com>
+Received: from mail.dream-property.net ([82.149.226.172]:52924 "EHLO
+	mail.dream-property.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754757Ab1EHXNW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 May 2011 19:13:22 -0400
+From: Andreas Oberritter <obi@linuxtv.org>
+To: linux-media@vger.kernel.org
+Cc: Thierry LELEGARD <tlelegard@logiways.com>
+Subject: [PATCH 8/8] DVB: allow to read back of detected parameters through S2API
+Date: Sun,  8 May 2011 23:03:41 +0000
+Message-Id: <1304895821-21642-9-git-send-email-obi@linuxtv.org>
+In-Reply-To: <1304895821-21642-1-git-send-email-obi@linuxtv.org>
+References: <1304895821-21642-1-git-send-email-obi@linuxtv.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Additional bandwidth modes have been added in frontend.h
-mxl5005s.c had no default case so the compiler was warning about
-a non-exhausive switch statement.
-
-Signed-off-by: Steve Kerrison <steve@stevekerrison.com>
+Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
 ---
- drivers/media/common/tuners/mxl5005s.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+ drivers/media/dvb/dvb-core/dvb_frontend.c |   19 +++++++++++++++----
+ 1 files changed, 15 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/common/tuners/mxl5005s.c b/drivers/media/common/tuners/mxl5005s.c
-index 0d6e094..667e216 100644
---- a/drivers/media/common/tuners/mxl5005s.c
-+++ b/drivers/media/common/tuners/mxl5005s.c
-@@ -4020,6 +4020,9 @@ static int mxl5005s_set_params(struct dvb_frontend *fe,
- 			case BANDWIDTH_7_MHZ:
- 				req_bw  = MXL5005S_BANDWIDTH_7MHZ;
- 				break;
-+			default:
-+				dprintk(1,"%s: Unsupported bandwidth mode %u, reverting to default\n",
-+					__func__,params->u.ofdm.bandwidth);
- 			case BANDWIDTH_AUTO:
- 			case BANDWIDTH_8_MHZ:
- 				req_bw  = MXL5005S_BANDWIDTH_8MHZ;
+diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+index b41e5dc..a0f0458 100644
+--- a/drivers/media/dvb/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+@@ -1023,10 +1023,9 @@ static int is_legacy_delivery_system(fe_delivery_system_t s)
+  * it's being used for the legacy or new API, reducing code and complexity.
+  */
+ static void dtv_property_cache_sync(struct dvb_frontend *fe,
+-				    struct dvb_frontend_parameters *p)
++				    struct dtv_frontend_properties *c,
++				    const struct dvb_frontend_parameters *p)
+ {
+-	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+-
+ 	c->frequency = p->frequency;
+ 	c->inversion = p->inversion;
+ 
+@@ -1200,8 +1199,20 @@ static int dtv_property_process_get(struct dvb_frontend *fe,
+ 				    struct file *file)
+ {
+ 	const struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	struct dvb_frontend_private *fepriv = fe->frontend_priv;
++	struct dtv_frontend_properties cdetected;
+ 	int r;
+ 
++	/*
++	 * If the driver implements a get_frontend function, then convert
++	 * detected parameters to S2API properties.
++	 */
++	if (fe->ops.get_frontend) {
++		cdetected = *c;
++		dtv_property_cache_sync(fe, &cdetected, &fepriv->parameters_out);
++		c = &cdetected;
++	}
++
+ 	switch(tvp->cmd) {
+ 	case DTV_FREQUENCY:
+ 		tvp->u.data = c->frequency;
+@@ -1812,7 +1823,7 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
+ 
+ 			memcpy (&fepriv->parameters_in, parg,
+ 				sizeof (struct dvb_frontend_parameters));
+-			dtv_property_cache_sync(fe, &fepriv->parameters_in);
++			dtv_property_cache_sync(fe, c, &fepriv->parameters_in);
+ 		}
+ 
+ 		memset(&fetunesettings, 0, sizeof(struct dvb_frontend_tune_settings));
 -- 
-1.7.1
+1.7.2.5
 
