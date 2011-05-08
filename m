@@ -1,92 +1,61 @@
 Return-path: <mchehab@gaivota>
-Received: from mail1-out1.atlantis.sk ([80.94.52.55]:37687 "EHLO
-	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753184Ab1ENUvK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 May 2011 16:51:10 -0400
-From: Ondrej Zary <linux@rainbow-software.org>
-To: Takashi Iwai <tiwai@suse.de>
-Subject: [PATCH v2] fm801: clean-up radio-related Kconfig
-Date: Sat, 14 May 2011 22:51:01 +0200
-Cc: alsa-devel@alsa-project.org,
-	Kernel development list <linux-kernel@vger.kernel.org>,
-	linux-media@vger.kernel.org
-References: <201105132026.40643.linux@rainbow-software.org> <s5hiptd4nrp.wl%tiwai@suse.de>
-In-Reply-To: <s5hiptd4nrp.wl%tiwai@suse.de>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201105142251.03823.linux@rainbow-software.org>
+Received: from mail.dream-property.net ([82.149.226.172]:52920 "EHLO
+	mail.dream-property.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754184Ab1EHXNV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 May 2011 19:13:21 -0400
+From: Andreas Oberritter <obi@linuxtv.org>
+To: linux-media@vger.kernel.org
+Cc: Thierry LELEGARD <tlelegard@logiways.com>
+Subject: [PATCH 3/8] DVB: call get_property at the end of dtv_property_process_get
+Date: Sun,  8 May 2011 23:03:36 +0000
+Message-Id: <1304895821-21642-4-git-send-email-obi@linuxtv.org>
+In-Reply-To: <1304895821-21642-1-git-send-email-obi@linuxtv.org>
+References: <1304895821-21642-1-git-send-email-obi@linuxtv.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Remove TEA575X_RADIO define from fm801.c.
-Also update Kconfig help text to include all supported cards.
+- Drivers should be able to override properties returned to the user.
+- The default values get prefilled from the cache.
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
+---
+ drivers/media/dvb/dvb-core/dvb_frontend.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
 
---- linux-2.6.39-rc2-/sound/pci/Kconfig	2011-05-14 22:22:11.000000000 +0200
-+++ linux-2.6.39-rc2/sound/pci/Kconfig	2011-05-14 22:24:29.000000000 +0200
-@@ -560,8 +560,8 @@ config SND_FM801_TEA575X_BOOL
- 	depends on VIDEO_V4L2=y || VIDEO_V4L2=SND_FM801
- 	help
- 	  Say Y here to include support for soundcards based on the ForteMedia
--	  FM801 chip with a TEA5757 tuner connected to GPIO1-3 pins (Media
--	  Forte SF256-PCS-02) into the snd-fm801 driver.
-+	  FM801 chip with a TEA5757 tuner (MediaForte SF256-PCS, SF256-PCP and
-+	  SF64-PCR) into the snd-fm801 driver.
+diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+index 1ac7633..bcb4186 100644
+--- a/drivers/media/dvb/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+@@ -1196,14 +1196,7 @@ static int dtv_property_process_get(struct dvb_frontend *fe,
+ 				    struct dtv_property *tvp,
+ 				    struct file *file)
+ {
+-	int r = 0;
+-
+-	/* Allow the frontend to validate incoming properties */
+-	if (fe->ops.get_property)
+-		r = fe->ops.get_property(fe, tvp);
+-
+-	if (r < 0)
+-		return r;
++	int r;
  
- config SND_TEA575X
- 	tristate
---- linux-2.6.39-rc2-/sound/pci/fm801.c	2011-05-14 22:22:11.000000000 +0200
-+++ linux-2.6.39-rc2/sound/pci/fm801.c	2011-05-14 22:26:01.000000000 +0200
-@@ -38,7 +38,6 @@
+ 	switch(tvp->cmd) {
+ 	case DTV_FREQUENCY:
+@@ -1323,6 +1316,13 @@ static int dtv_property_process_get(struct dvb_frontend *fe,
+ 		return -EINVAL;
+ 	}
  
- #ifdef CONFIG_SND_FM801_TEA575X_BOOL
- #include <sound/tea575x-tuner.h>
--#define TEA575X_RADIO 1
- #endif
++	/* Allow the frontend to override outgoing properties */
++	if (fe->ops.get_property) {
++		r = fe->ops.get_property(fe, tvp);
++		if (r < 0)
++			return r;
++	}
++
+ 	dtv_property_dump(tvp);
  
- MODULE_AUTHOR("Jaroslav Kysela <perex@perex.cz>");
-@@ -196,7 +195,7 @@ struct fm801 {
- 	spinlock_t reg_lock;
- 	struct snd_info_entry *proc_entry;
- 
--#ifdef TEA575X_RADIO
-+#ifdef CONFIG_SND_FM801_TEA575X_BOOL
- 	struct snd_tea575x tea;
- #endif
- 
-@@ -715,7 +714,7 @@ static int __devinit snd_fm801_pcm(struc
-  *  TEA5757 radio
-  */
- 
--#ifdef TEA575X_RADIO
-+#ifdef CONFIG_SND_FM801_TEA575X_BOOL
- 
- /* GPIO to TEA575x maps */
- struct snd_fm801_tea575x_gpio {
-@@ -1150,7 +1149,7 @@ static int snd_fm801_free(struct fm801 *
- 	outw(cmdw, FM801_REG(chip, IRQ_MASK));
- 
-       __end_hw:
--#ifdef TEA575X_RADIO
-+#ifdef CONFIG_SND_FM801_TEA575X_BOOL
- 	snd_tea575x_exit(&chip->tea);
- #endif
- 	if (chip->irq >= 0)
-@@ -1229,7 +1228,7 @@ static int __devinit snd_fm801_create(st
- 
- 	snd_card_set_dev(card, &pci->dev);
- 
--#ifdef TEA575X_RADIO
-+#ifdef CONFIG_SND_FM801_TEA575X_BOOL
- 	chip->tea.private_data = chip;
- 	chip->tea.ops = &snd_fm801_tea_ops;
- 	sprintf(chip->tea.bus_info, "PCI:%s", pci_name(pci));
-
-
+ 	return 0;
 -- 
-Ondrej Zary
+1.7.2.5
+
