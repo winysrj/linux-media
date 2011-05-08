@@ -1,47 +1,45 @@
-Return-path: <mchehab@pedra>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:60663 "EHLO smtp5-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751487Ab1EZGrm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 May 2011 02:47:42 -0400
-Date: Thu, 26 May 2011 08:48:15 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Hans Petter Selasky <hselasky@c2i.net>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Make nchg variable signed because the code compares
- this variable against negative values.
-Message-ID: <20110526084815.48a35684@tele>
-In-Reply-To: <4DDD99B5.2050105@redhat.com>
-References: <201105231309.54265.hselasky@c2i.net>
-	<4DDD99B5.2050105@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Return-path: <mchehab@gaivota>
+Received: from stevekez.vm.bytemark.co.uk ([80.68.91.30]:39645 "EHLO
+	stevekerrison.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755188Ab1EHPvi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 May 2011 11:51:38 -0400
+From: Steve Kerrison <steve@stevekerrison.com>
+To: Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Cc: Andreas Oberritter <obi@linuxtv.org>,
+	Steve Kerrison <steve@stevekerrison.com>
+Subject: [PATCH 4/6] mxl5005: Fix warning caused by new entries in an enum
+Date: Sun,  8 May 2011 16:51:11 +0100
+Message-Id: <1304869873-9974-5-git-send-email-steve@stevekerrison.com>
+In-Reply-To: <4DC417DA.5030107@redhat.com>
+References: <4DC417DA.5030107@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Wed, 25 May 2011 21:07:17 -0300
-Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+Additional bandwidth modes have been added in frontend.h
+mxl5005s.c had no default case so the compiler was warning about
+a non-exhausive switch statement.
 
-> This patch looks ok to me, although the description is not 100%. 
-> 
-> The sonixj driver compares the value for nchg with
-> 		if (sd->nchg < -6 || sd->nchg >= 12) {
-> 
-> With u8, negative values won't work.
-> 
-> Please check.
+Signed-off-by: Steve Kerrison <steve@stevekerrison.com>
+---
+ drivers/media/common/tuners/mxl5005s.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-Hi Mauro and Hans Petter,
-
-With all the messages in the list, I did not noticed this patch.
-
-Indeed, the fix is correct. I was wondering why there were still
-problems with the image size in sonixj. They should disappear now.
-
-Thanks.
-
+diff --git a/drivers/media/common/tuners/mxl5005s.c b/drivers/media/common/tuners/mxl5005s.c
+index 0d6e094..667e216 100644
+--- a/drivers/media/common/tuners/mxl5005s.c
++++ b/drivers/media/common/tuners/mxl5005s.c
+@@ -4020,6 +4020,9 @@ static int mxl5005s_set_params(struct dvb_frontend *fe,
+ 			case BANDWIDTH_7_MHZ:
+ 				req_bw  = MXL5005S_BANDWIDTH_7MHZ;
+ 				break;
++			default:
++				dprintk(1,"%s: Unsupported bandwidth mode %u, reverting to default\n",
++					__func__,params->u.ofdm.bandwidth);
+ 			case BANDWIDTH_AUTO:
+ 			case BANDWIDTH_8_MHZ:
+ 				req_bw  = MXL5005S_BANDWIDTH_8MHZ;
 -- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+1.7.1
+
