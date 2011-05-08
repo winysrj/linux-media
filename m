@@ -1,94 +1,90 @@
-Return-path: <mchehab@pedra>
-Received: from nm10-vm1.bullet.mail.sp2.yahoo.com ([98.139.91.199]:29256 "HELO
-	nm10-vm1.bullet.mail.sp2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1758637Ab1E0Cqw convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 May 2011 22:46:52 -0400
-Message-ID: <514198.1853.qm@web112012.mail.gq1.yahoo.com>
-Date: Thu, 26 May 2011 19:46:51 -0700 (PDT)
-From: Chris Rodley <carlighting@yahoo.co.nz>
-Subject: Re: [beagleboard] [PATCH] Second RFC version of mt9p031 sensor with power managament.
-To: javier Martin <javier.martin@vista-silicon.com>
-Cc: beagleboard@googlegroups.com, linux-media@vger.kernel.org,
-	koen@beagleboard.org, g.liakhovetski@gmx.de,
-	laurent.pinchart@ideasonboard.com
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Return-path: <mchehab@gaivota>
+Received: from mail.dream-property.net ([82.149.226.172]:52922 "EHLO
+	mail.dream-property.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754605Ab1EHXNV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 May 2011 19:13:21 -0400
+From: Andreas Oberritter <obi@linuxtv.org>
+To: linux-media@vger.kernel.org
+Cc: Thierry LELEGARD <tlelegard@logiways.com>
+Subject: [PATCH 2/8] DVB: dtv_property_cache_submit shouldn't modifiy the cache
+Date: Sun,  8 May 2011 23:03:35 +0000
+Message-Id: <1304895821-21642-3-git-send-email-obi@linuxtv.org>
+In-Reply-To: <1304895821-21642-1-git-send-email-obi@linuxtv.org>
+References: <1304895821-21642-1-git-send-email-obi@linuxtv.org>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On 26/05/11 19:24, javier Martin wrote:
+- Use const pointers and remove assignments.
+- delivery_system already gets assigned by DTV_DELIVERY_SYSTEM
+  and dtv_property_cache_sync.
 
-> On 25 May 2011 15:38, Koen Kooi <koen@beagleboard.org> wrote:
->> >
->> > Op 25 mei 2011, om 13:16 heeft Javier Martin het volgende geschreven:
->> >
->>> >> It includes several fixes pointed out by Laurent Pinchart. However,
->>> >> the BUG which shows artifacts in the image (horizontal lines) still
->>> >> persists. It won't happen if 1v8 regulator is not disabled (i.e.
->>> >> comment line where it is disabled in function "mt9p031_power_off").
->>> >> I know there can be some other details to fix but I would like someone
->>> >> could help in the power management issue.
->> >
->> > I tried this + your beagle patch on 2.6.39 and both ISP and sensor being builtin to the kernel, I get the following:
->> >
->> > root@beagleboardxMC:~# media-ctl -r -l '"mt9p031 2-0048":0->"OMAP3 ISP CCDC":0[1 ], "OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
->> > Resetting all links to inactive
->> > Setting up link 16:0 -> 5:0 [1]
->> > Setting up link 5:1 -> 6:0 [1]
->> >
->> > root@beagleboardxMC:~# media-ctl -f '"mt9p031 2-0048":0[SGRBG12 320x240], "OMAP3  ISP CCDC":0[SGRBG8 320x240], "OMAP3 ISP CCDC":1[SGRBG8 320x240]'
->> > Setting up format SGRBG12 320x240 on pad mt9p031 2-0048/0
->> > Format set: SGRBG12 320x240
->> > Setting up format SGRBG12 320x240 on pad OMAP3 ISP CCDC/0
->> > Format set: SGRBG12 320x240
->> > Setting up format SGRBG8 320x240 on pad OMAP3 ISP CCDC/0
->> > Format set: SGRBG8 320x240
->> > Setting up format SGRBG8 320x240 on pad OMAP3 ISP CCDC/1
->> > Format set: SGRBG8 320x240
->> >
->> > oot@beagleboardxMC:~# yavta -f SGRBG8 -s 320x240 -n 4 --capture=10 --skip 3 -F  `media-ctl -e "OMAP3 ISP CCDC output"`
->> > Device /dev/video2 opened.
->> > Device `OMAP3 ISP CCDC output' on `media' is a video capture device.
->> > Video format set: SGRBG8 (47425247) 320x240 buffer size 76800
->> > Video format: SGRBG8 (47425247) 320x240 buffer size 76800
->> > 4 buffers requested.
->> > length: 76800 offset: 0
->> > Buffer 0 mapped at address 0x4030d000.
->> > length: 76800 offset: 77824
->> > Buffer 1 mapped at address 0x40330000.
->> > length: 76800 offset: 155648
->> > Buffer 2 mapped at address 0x4042d000.
->> > length: 76800 offset: 233472
->> > Buffer 3 mapped at address 0x40502000.
->> > [ 4131.459930] omap3isp omap3isp: CCDC won't become idle!
-> Please, test it again using new RFC v3 I've just submitted.
-> I have personally tested it against kernel 2.6.39 with the following
-> .config file:
+Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
+---
+ drivers/media/dvb/dvb-core/dvb_frontend.c |   13 +++----------
+ 1 files changed, 3 insertions(+), 10 deletions(-)
 
-Hi,
-
-No improvements here for me with v3.
-Still:
-
-# yavta --stdout -f SGRBG8 -s 320x240 -n 4 --capture=100 --skip 3 -F `media-ctl -e "OMAP3 ISP CCDC output"` | nc 10.1.1.16 3000
-Device /dev/video2 opened.
-Device `OMAP3 ISP CCDC output' on `media' is a video capture device.
-Video format set: width: 320 height: 240 buffer size: 76800
-Video format: GRBG (47425247) 320x240
-4 buffers requested.
-length: 76800 offset: 0
-Buffer 0 mapped at address 0x400d8000.
-length: 76800 offset: 77824
-Buffer 1 mapped at address 0x40292000.
-length: 76800 offset: 155648
-Buffer 2 mapped at address 0x40345000.
-length: 76800 offset: 233472
-Buffer 3 mapped at address 0x40377000.
-
-Will wait and see if Koen finds anything.
-
-Cheers,
-Chris
+diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+index be0f631..1ac7633 100644
+--- a/drivers/media/dvb/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+@@ -1074,7 +1074,7 @@ static void dtv_property_cache_sync(struct dvb_frontend *fe,
+  */
+ static void dtv_property_legacy_params_sync(struct dvb_frontend *fe)
+ {
+-	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	const struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
+ 	struct dvb_frontend_parameters *p = &fepriv->parameters;
+ 
+@@ -1086,14 +1086,12 @@ static void dtv_property_legacy_params_sync(struct dvb_frontend *fe)
+ 		dprintk("%s() Preparing QPSK req\n", __func__);
+ 		p->u.qpsk.symbol_rate = c->symbol_rate;
+ 		p->u.qpsk.fec_inner = c->fec_inner;
+-		c->delivery_system = SYS_DVBS;
+ 		break;
+ 	case FE_QAM:
+ 		dprintk("%s() Preparing QAM req\n", __func__);
+ 		p->u.qam.symbol_rate = c->symbol_rate;
+ 		p->u.qam.fec_inner = c->fec_inner;
+ 		p->u.qam.modulation = c->modulation;
+-		c->delivery_system = SYS_DVBC_ANNEX_AC;
+ 		break;
+ 	case FE_OFDM:
+ 		dprintk("%s() Preparing OFDM req\n", __func__);
+@@ -1111,15 +1109,10 @@ static void dtv_property_legacy_params_sync(struct dvb_frontend *fe)
+ 		p->u.ofdm.transmission_mode = c->transmission_mode;
+ 		p->u.ofdm.guard_interval = c->guard_interval;
+ 		p->u.ofdm.hierarchy_information = c->hierarchy;
+-		c->delivery_system = SYS_DVBT;
+ 		break;
+ 	case FE_ATSC:
+ 		dprintk("%s() Preparing VSB req\n", __func__);
+ 		p->u.vsb.modulation = c->modulation;
+-		if ((c->modulation == VSB_8) || (c->modulation == VSB_16))
+-			c->delivery_system = SYS_ATSC;
+-		else
+-			c->delivery_system = SYS_DVBC_ANNEX_B;
+ 		break;
+ 	}
+ }
+@@ -1129,7 +1122,7 @@ static void dtv_property_legacy_params_sync(struct dvb_frontend *fe)
+  */
+ static void dtv_property_adv_params_sync(struct dvb_frontend *fe)
+ {
+-	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	const struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
+ 	struct dvb_frontend_parameters *p = &fepriv->parameters;
+ 
+@@ -1170,7 +1163,7 @@ static void dtv_property_adv_params_sync(struct dvb_frontend *fe)
+ 
+ static void dtv_property_cache_submit(struct dvb_frontend *fe)
+ {
+-	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	const struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 
+ 	/* For legacy delivery systems we don't need the delivery_system to
+ 	 * be specified, but we populate the older structures from the cache
+-- 
+1.7.2.5
 
