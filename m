@@ -1,45 +1,85 @@
-Return-path: <mchehab@pedra>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41997 "EHLO arroyo.ext.ti.com"
+Return-path: <mchehab@gaivota>
+Received: from ffm.saftware.de ([83.141.3.46]:51431 "EHLO ffm.saftware.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755722Ab1EWRSF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 May 2011 13:18:05 -0400
-From: "Nori, Sekhar" <nsekhar@ti.com>
-To: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-CC: LAK <linux-arm-kernel@lists.infradead.org>,
-	LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>
-Date: Mon, 23 May 2011 22:47:53 +0530
-Subject: RE: [PATCH 1/1] davinci: dm646x: move vpif related code to driver
- core	header from platform
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024D09B435@dbde02.ent.ti.com>
-References: <1305899929-2509-1-git-send-email-manjunath.hadli@ti.com>
-In-Reply-To: <1305899929-2509-1-git-send-email-manjunath.hadli@ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	id S1751617Ab1EHWK4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 8 May 2011 18:10:56 -0400
+Message-ID: <4DC714EC.2060606@linuxtv.org>
+Date: Mon, 09 May 2011 00:10:52 +0200
+From: Andreas Oberritter <obi@linuxtv.org>
 MIME-Version: 1.0
+To: Steve Kerrison <steve@stevekerrison.com>
+CC: Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 2/5] drxd: Fix warning caused by new entries in an
+ enum
+References: <4DC6BF28.8070006@redhat.com> <1304882240-23044-3-git-send-email-steve@stevekerrison.com>
+In-Reply-To: <1304882240-23044-3-git-send-email-steve@stevekerrison.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Fri, May 20, 2011 at 19:28:49, Hadli, Manjunath wrote:
-> move vpif related code for capture and display drivers
-> from dm646x platform header file to vpif.h as these definitions
-> are related to driver code more than the platform or board.
+On 05/08/2011 09:17 PM, Steve Kerrison wrote:
+> Additional bandwidth modes have been added in frontend.h
+> drxd_hard.c had no default case so the compiler was warning about
+> a non-exhausive switch statement.
 > 
-> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> This has been fixed by making the default behaviour the same as
+> BANDWIDTH_AUTO, with the addition of a printk to notify if this
+> ever happens.
+> 
+> Signed-off-by: Steve Kerrison <steve@stevekerrison.com>
+> ---
+>  drivers/media/dvb/frontends/drxd_hard.c |    4 ++++
+>  1 files changed, 4 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/dvb/frontends/drxd_hard.c b/drivers/media/dvb/frontends/drxd_hard.c
+> index 30a78af..b3b0704 100644
+> --- a/drivers/media/dvb/frontends/drxd_hard.c
+> +++ b/drivers/media/dvb/frontends/drxd_hard.c
+> @@ -2325,6 +2325,10 @@ static int DRX_Start(struct drxd_state *state, s32 off)
+>  		   InitEC and ResetEC
+>  		   functions */
+>  		switch (p->bandwidth) {
+> +		default:
+> +			printk(KERN_INFO "drxd: Unsupported bandwidth mode %u, reverting to default\n",
+> +				p->bandwidth);
+> +			/* Fall back to auto */
 
-> diff --git a/drivers/media/video/davinci/vpif.h b/drivers/media/video/davinci/vpif.h
-> index 10550bd..e76dded 100644
-> --- a/drivers/media/video/davinci/vpif.h
-> +++ b/drivers/media/video/davinci/vpif.h
-> @@ -20,6 +20,7 @@
->  #include <linux/videodev2.h>
->  #include <mach/hardware.h>
->  #include <mach/dm646x.h>
-> +#include <media/davinci/vpif.h>
+I'd prefer returning -EINVAL for unsupported parameters.
 
-mach/hardware.h and mach/dm646x.h can now be dropped.
+>  		case BANDWIDTH_AUTO:
+>  		case BANDWIDTH_8_MHZ:
+>  			/* (64/7)*(8/8)*1000000 */
 
-Thanks,
-Sekhar
+I already had a patch for this, but forgot to submit it together with the frontend.h bits.
+
+>From 73d630b57f584d7e35cac5e27149cbc564aedde2 Mon Sep 17 00:00:00 2001
+From: Andreas Oberritter <obi@linuxtv.org>
+Date: Fri, 8 Apr 2011 16:39:20 +0000
+Subject: [PATCH 2/2] DVB: drxd_hard: handle new bandwidths by returning -EINVAL
+
+Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
+---
+ drivers/media/dvb/frontends/drxd_hard.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/dvb/frontends/drxd_hard.c b/drivers/media/dvb/frontends/drxd_hard.c
+index 30a78af..53319f4 100644
+--- a/drivers/media/dvb/frontends/drxd_hard.c
++++ b/drivers/media/dvb/frontends/drxd_hard.c
+@@ -2348,6 +2348,9 @@ static int DRX_Start(struct drxd_state *state, s32 off)
+ 			status = Write16(state,
+ 					 FE_AG_REG_IND_DEL__A, 71, 0x0000);
+ 			break;
++		default:
++			status = -EINVAL;
++			break;
+ 		}
+ 		status = status;
+ 		if (status < 0)
+-- 
+1.7.2.5
+
+Btw., "status = status;" looks odd.
