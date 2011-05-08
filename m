@@ -1,75 +1,187 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3549 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932540Ab1EYNeN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 May 2011 09:34:13 -0400
-Received: from tschai (64-103-25-233.cisco.com [64.103.25.233])
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id p4PDYARU007307
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 25 May 2011 15:34:11 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [RFCv2 PATCH 00/11] Control Event
-Date: Wed, 25 May 2011 15:33:44 +0200
-Message-Id: <1306330435-11799-1-git-send-email-hverkuil@xs4all.nl>
+Return-path: <mchehab@gaivota>
+Received: from stevekez.vm.bytemark.co.uk ([80.68.91.30]:55423 "EHLO
+	stevekerrison.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754663Ab1EHTRp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 May 2011 15:17:45 -0400
+From: Steve Kerrison <steve@stevekerrison.com>
+To: Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Cc: Andreas Oberritter <obi@linuxtv.org>,
+	Steve Kerrison <steve@stevekerrison.com>
+Subject: [PATCH v2 5/5] Documentation: Update to include DVB-T2 additions
+Date: Sun,  8 May 2011 20:17:20 +0100
+Message-Id: <1304882240-23044-6-git-send-email-steve@stevekerrison.com>
+In-Reply-To: <4DC6BF28.8070006@redhat.com>
+References: <4DC6BF28.8070006@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-This is the second version of the patch series introducing a new event that
-is triggered when a control's value or state changes.
+A few new capabilities added to frontend.h for DVB-T2. Added these
+to the documentation plus some notes explaining that they are
+used by the T2 delivery system.
 
-It incorporates the comments made since version 1.
+Signed-off-by: Steve Kerrison <steve@stevekerrison.com>
+---
+ Documentation/DocBook/dvb/dvbproperty.xml |   36 ++++++++++++++++++++++++++--
+ Documentation/DocBook/dvb/frontend.h.xml  |   20 +++++++++++++---
+ 2 files changed, 49 insertions(+), 7 deletions(-)
 
-Most of these patches are relatively minor infrastructure changes. The real
-work is done in patch 7.
-
-This patch series builds on the bitmask patch series.
-
-The main changes since version 1 are:
-
-- The patches that add the bitmask control type are split off since these
-  are needed sooner than the control events and they are indepedent of one
-  another.
-
-- Instead of having separate CTRL_CH_VALUE and CTRL_CH_STATE events, there
-  is now just one V4L2_EVENT_CTRL event which has a bitmask telling what was
-  changed since the last event. In addition, the event payload gives all the
-  relevant control data (type, value, min, max, step, def, flags). This greatly
-  simplifies the applications that need to use this as it prevents having
-  to do additional calls to VIDIOC_G_CTRL or VIDIOC_QUERYCTRL.
-
-- If you call VIDIOC_S_CTRL or VIDIOC_S_EXT_CTRLS, then the filehandle passed
-  to the ioctl function will be skipped when the events for the new value
-  are generated. This prevents nasty feedback loops.
-
-- Documentation was added.
-
-The vivi driver has been updated to support control events.
-
-The qv4l2 application has also been updated to test control events.
-You can find it here:
-
-http://git.linuxtv.org/hverkuil/v4l-utils.git?a=shortlog;h=refs/heads/core
-
-Please review! I'd like to get this in for 2.6.41.
-
-Still on my TODO list (will be done as separate patch series):
-
-- Change the way volatile controls are handled.
-
-- Add autofoo/foo support.
-
-- Make it possible to update control values from interrupt context. This will
-  only be possible for a certain subset of controls.
-
-- I need to figure out how to handle the case where there are two inputs, each
-  with its own subdev and set of controls. Switching inputs would imply switching
-  controls as well. I've tried several things, but it's all very awkward.
-
-Regards,
-
-	Hans
+diff --git a/Documentation/DocBook/dvb/dvbproperty.xml b/Documentation/DocBook/dvb/dvbproperty.xml
+index 05ce603..52d5e3c 100644
+--- a/Documentation/DocBook/dvb/dvbproperty.xml
++++ b/Documentation/DocBook/dvb/dvbproperty.xml
+@@ -217,9 +217,12 @@ get/set up to 64 properties. The actual meaning of each property is described on
+ 		<para>Bandwidth for the channel, in HZ.</para>
+ 
+ 		<para>Possible values:
++			<constant>1712000</constant>,
++			<constant>5000000</constant>,
+ 			<constant>6000000</constant>,
+ 			<constant>7000000</constant>,
+-			<constant>8000000</constant>.
++			<constant>8000000</constant>,
++			<constant>10000000</constant>.
+ 		</para>
+ 
+ 		<para>Notes:</para>
+@@ -231,6 +234,8 @@ get/set up to 64 properties. The actual meaning of each property is described on
+ 		<para>4) Bandwidth in ISDB-T is fixed (6MHz) or can be easily derived from
+ 			other parameters (DTV_ISDBT_SB_SEGMENT_IDX,
+ 			DTV_ISDBT_SB_SEGMENT_COUNT).</para>
++		<para>5) DVB-T supports 6, 7 and 8MHz.</para>
++		<para>6) In addition, DVB-T2 supports 1.172, 5 and 10MHz.</para>
+ 	</section>
+ 
+ 	<section id="DTV_DELIVERY_SYSTEM">
+@@ -257,6 +262,7 @@ typedef enum fe_delivery_system {
+ 	SYS_DMBTH,
+ 	SYS_CMMB,
+ 	SYS_DAB,
++	SYS_DVBT2,
+ } fe_delivery_system_t;
+ </programlisting>
+ 
+@@ -273,7 +279,10 @@ typedef enum fe_transmit_mode {
+ 	TRANSMISSION_MODE_2K,
+ 	TRANSMISSION_MODE_8K,
+ 	TRANSMISSION_MODE_AUTO,
+-	TRANSMISSION_MODE_4K
++	TRANSMISSION_MODE_4K,
++	TRANSMISSION_MODE_1K,
++	TRANSMISSION_MODE_16K,
++	TRANSMISSION_MODE_32K,
+ } fe_transmit_mode_t;
+ </programlisting>
+ 
+@@ -284,6 +293,8 @@ typedef enum fe_transmit_mode {
+ 		<para>2) If <constant>DTV_TRANSMISSION_MODE</constant> is set the <constant>TRANSMISSION_MODE_AUTO</constant> the
+ 			hardware will try to find the correct FFT-size (if capable) and will
+ 			use TMCC to fill in the missing parameters.</para>
++		<para>3) DVB-T specifies 2K and 8K as valid sizes.</para>
++		<para>4) DVB-T2 specifies 1K, 2K, 4K, 8K, 16K and 32K.</para>
+ 	</section>
+ 
+ 	<section id="DTV_GUARD_INTERVAL">
+@@ -296,7 +307,10 @@ typedef enum fe_guard_interval {
+ 	GUARD_INTERVAL_1_16,
+ 	GUARD_INTERVAL_1_8,
+ 	GUARD_INTERVAL_1_4,
+-	GUARD_INTERVAL_AUTO
++	GUARD_INTERVAL_AUTO,
++	GUARD_INTERVAL_1_128,
++	GUARD_INTERVAL_19_128,
++	GUARD_INTERVAL_19_256,
+ } fe_guard_interval_t;
+ </programlisting>
+ 
+@@ -304,6 +318,7 @@ typedef enum fe_guard_interval {
+ 		<para>1) If <constant>DTV_GUARD_INTERVAL</constant> is set the <constant>GUARD_INTERVAL_AUTO</constant> the hardware will
+ 			try to find the correct guard interval (if capable) and will use TMCC to fill
+ 			in the missing parameters.</para>
++		<para>2) Intervals 1/128, 19/128 and 19/256 are used only for DVB-T2 at present</para>
+ 	</section>
+ </section>
+ 
+@@ -553,5 +568,20 @@ typedef enum fe_guard_interval {
+ 			</section>
+ 		</section>
+ 	</section>
++	<section id="dvbt2-params">
++		<title>DVB-T2 parameters</title>
++		
++		<para>This section covers parameters that apply only to the DVB-T2 delivery method. DVB-T2
++			support is currently in the early stages development so expect this section to grow
++			and become more detailed with time.</para>
++
++		<section id="dvbt2-plp-id">
++			<title><constant>DTV_DVBT2_PLP_ID</constant></title>
++
++			<para>DVB-T2 supports Physical Layer Pipes (PLP) to allow transmission of
++				many data types via a single multiplex. The API will soon support this
++				at which point this section will be expanded.</para>
++		</section>
++	</section>
+ </section>
+ </section>
+diff --git a/Documentation/DocBook/dvb/frontend.h.xml b/Documentation/DocBook/dvb/frontend.h.xml
+index d08e0d4..d792f78 100644
+--- a/Documentation/DocBook/dvb/frontend.h.xml
++++ b/Documentation/DocBook/dvb/frontend.h.xml
+@@ -176,14 +176,20 @@ typedef enum fe_transmit_mode {
+         TRANSMISSION_MODE_2K,
+         TRANSMISSION_MODE_8K,
+         TRANSMISSION_MODE_AUTO,
+-        TRANSMISSION_MODE_4K
++        TRANSMISSION_MODE_4K,
++        TRANSMISSION_MODE_1K,
++        TRANSMISSION_MODE_16K,
++        TRANSMISSION_MODE_32K,
+ } fe_transmit_mode_t;
+ 
+ typedef enum fe_bandwidth {
+         BANDWIDTH_8_MHZ,
+         BANDWIDTH_7_MHZ,
+         BANDWIDTH_6_MHZ,
+-        BANDWIDTH_AUTO
++        BANDWIDTH_AUTO,
++        BANDWIDTH_5_MHZ,
++        BANDWIDTH_10_MHZ,
++        BANDWIDTH_1_712_MHZ,
+ } fe_bandwidth_t;
+ 
+ 
+@@ -192,7 +198,10 @@ typedef enum fe_guard_interval {
+         GUARD_INTERVAL_1_16,
+         GUARD_INTERVAL_1_8,
+         GUARD_INTERVAL_1_4,
+-        GUARD_INTERVAL_AUTO
++        GUARD_INTERVAL_AUTO,
++        GUARD_INTERVAL_1_128,
++        GUARD_INTERVAL_19_128,
++        GUARD_INTERVAL_19_256,
+ } fe_guard_interval_t;
+ 
+ 
+@@ -306,7 +315,9 @@ struct dvb_frontend_event {
+ 
+ #define DTV_ISDBS_TS_ID         42
+ 
+-#define DTV_MAX_COMMAND                         DTV_ISDBS_TS_ID
++#define DTV_DVBT2_PLP_ID	43
++
++#define DTV_MAX_COMMAND                         DTV_DVBT2_PLP_ID
+ 
+ typedef enum fe_pilot {
+         PILOT_ON,
+@@ -338,6 +349,7 @@ typedef enum fe_delivery_system {
+         SYS_DMBTH,
+         SYS_CMMB,
+         SYS_DAB,
++        SYS_DVBT2,
+ } fe_delivery_system_t;
+ 
+ struct dtv_cmds_h {
+-- 
+1.7.1
 
