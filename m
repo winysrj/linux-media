@@ -1,56 +1,102 @@
-Return-path: <mchehab@pedra>
-Received: from mailfe04.c2i.net ([212.247.154.98]:55226 "EHLO swip.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755479Ab1EWOxJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 May 2011 10:53:09 -0400
-From: Hans Petter Selasky <hselasky@c2i.net>
-To: Andreas Oberritter <obi@linuxtv.org>
-Subject: Re: [PATCH] FE_GET_PROPERTY should be _IOW, because the associated structure is transferred from userspace to kernelspace. Keep the old ioctl around for compatibility so that existing code is not broken.
-Date: Mon, 23 May 2011 16:51:55 +0200
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-References: <201105231558.13084.hselasky@c2i.net> <4DDA711E.3030301@linuxtv.org>
-In-Reply-To: <4DDA711E.3030301@linuxtv.org>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201105231651.55945.hselasky@c2i.net>
+Return-path: <mchehab@gaivota>
+Received: from mail.dream-property.net ([82.149.226.172]:52921 "EHLO
+	mail.dream-property.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754016Ab1EHXNV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 May 2011 19:13:21 -0400
+From: Andreas Oberritter <obi@linuxtv.org>
+To: linux-media@vger.kernel.org
+Cc: Thierry LELEGARD <tlelegard@logiways.com>
+Subject: [PATCH 7/8] DVB: dvb_frontend: add parameters_out
+Date: Sun,  8 May 2011 23:03:40 +0000
+Message-Id: <1304895821-21642-8-git-send-email-obi@linuxtv.org>
+In-Reply-To: <1304895821-21642-1-git-send-email-obi@linuxtv.org>
+References: <1304895821-21642-1-git-send-email-obi@linuxtv.org>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Monday 23 May 2011 16:37:18 Andreas Oberritter wrote:
-> On 05/23/2011 03:58 PM, Hans Petter Selasky wrote:
-> > From be7d0f72ebf4d945cfb2a5c9cc871707f72e1e3c Mon Sep 17 00:00:00 2001
-> > From: Hans Petter Selasky <hselasky@c2i.net>
-> > Date: Mon, 23 May 2011 15:56:31 +0200
-> > Subject: [PATCH] FE_GET_PROPERTY should be _IOW, because the associated
-> > structure is transferred from userspace to kernelspace. Keep the old
-> > ioctl around for compatibility so that existing code is not broken.
-> 
+- Holds the parameters detected by the demod.
+- Updated on every call to get_frontend, either through ioctl or when
+  a frontend event occurs.
+- Reset to input parameters after every call to set_frontend, tune or
+  search/track.
 
-Hi,
+Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
+---
+ drivers/media/dvb/dvb-core/dvb_frontend.c |   17 +++++++++++------
+ 1 files changed, 11 insertions(+), 6 deletions(-)
 
-> Good catch, but I think _IOWR would be right, because the result gets
-> copied from kernelspace to userspace.
+diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+index d4485c8..b41e5dc 100644
+--- a/drivers/media/dvb/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+@@ -106,6 +106,7 @@ struct dvb_frontend_private {
+ 	/* thread/frontend values */
+ 	struct dvb_device *dvbdev;
+ 	struct dvb_frontend_parameters parameters_in;
++	struct dvb_frontend_parameters parameters_out;
+ 	struct dvb_fe_events events;
+ 	struct semaphore sem;
+ 	struct list_head list_head;
+@@ -160,12 +161,11 @@ static void dvb_frontend_add_event(struct dvb_frontend *fe, fe_status_t status)
+ 
+ 	e = &events->events[events->eventw];
+ 
+-	memcpy (&e->parameters, &fepriv->parameters_in,
+-		sizeof (struct dvb_frontend_parameters));
+-
+ 	if (status & FE_HAS_LOCK)
+ 		if (fe->ops.get_frontend)
+-			fe->ops.get_frontend(fe, &e->parameters);
++			fe->ops.get_frontend(fe, &fepriv->parameters_out);
++
++	e->parameters = fepriv->parameters_out;
+ 
+ 	events->eventw = wp;
+ 
+@@ -353,6 +353,7 @@ static int dvb_frontend_swzigzag_autotune(struct dvb_frontend *fe, int check_wra
+ 		fepriv->parameters_in.inversion = fepriv->inversion;
+ 	if (fe->ops.set_frontend)
+ 		fe_set_err = fe->ops.set_frontend(fe, &fepriv->parameters_in);
++	fepriv->parameters_out = fepriv->parameters_in;
+ 	if (fe_set_err < 0) {
+ 		fepriv->state = FESTATE_ERROR;
+ 		return fe_set_err;
+@@ -384,6 +385,7 @@ static void dvb_frontend_swzigzag(struct dvb_frontend *fe)
+ 			if (fe->ops.set_frontend)
+ 				retval = fe->ops.set_frontend(fe,
+ 							&fepriv->parameters_in);
++			fepriv->parameters_out = fepriv->parameters_in;
+ 			if (retval < 0)
+ 				fepriv->state = FESTATE_ERROR;
+ 			else
+@@ -600,6 +602,8 @@ restart:
+ 
+ 				if (fe->ops.tune)
+ 					fe->ops.tune(fe, params, fepriv->tune_mode_flags, &fepriv->delay, &s);
++				if (params)
++					fepriv->parameters_out = *params;
+ 
+ 				if (s != fepriv->status && !(fepriv->tune_mode_flags & FE_TUNE_MODE_ONESHOT)) {
+ 					dprintk("%s: state changed, adding current state\n", __func__);
+@@ -639,6 +643,7 @@ restart:
+ 					fepriv->algo_status |= DVBFE_ALGO_SEARCH_AGAIN;
+ 					fepriv->delay = HZ / 2;
+ 				}
++				fepriv->parameters_out = fepriv->parameters_in;
+ 				fe->ops.read_status(fe, &s);
+ 				if (s != fepriv->status) {
+ 					dvb_frontend_add_event(fe, s); /* update event list */
+@@ -1880,8 +1885,8 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
+ 
+ 	case FE_GET_FRONTEND:
+ 		if (fe->ops.get_frontend) {
+-			memcpy (parg, &fepriv->parameters_in, sizeof (struct dvb_frontend_parameters));
+-			err = fe->ops.get_frontend(fe, (struct dvb_frontend_parameters*) parg);
++			err = fe->ops.get_frontend(fe, &fepriv->parameters_out);
++			memcpy(parg, &fepriv->parameters_out, sizeof(struct dvb_frontend_parameters));
+ 		}
+ 		break;
+ 
+-- 
+1.7.2.5
 
-Those flags are only for the IOCTL associated structure itself. The V4L DVB 
-kernel only reads the dtv_properties structure in either case and does not 
-write any data back to it. That's why only _IOW is required.
-
-I checked somewhat and the R/W bits in the IOCTL command does not appear do be 
-matched to the R/W permissions you have on the file handle? Or am I mistaken?
-
-In other words the IOCTL R/W (_IOC_READ, _IOC_WRITE) bits should not reflect 
-what the IOCTL actually does, like modifying indirect data?
-
-> 
-> It would be nice if you could send future patches inline rather than
-> attached. I'd suggest using git format-patch and git send-email.
-
-I will try to have a look at that. I'm waiting for the 16 patches I've 
-submitted today to get reviewed and committed, before I start the next batch.
-
-Thank you!
-
---HPS
