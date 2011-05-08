@@ -1,82 +1,120 @@
-Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:39872 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753208Ab1E3HIo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 May 2011 03:08:44 -0400
-Received: by ewy4 with SMTP id 4so1230172ewy.19
-        for <linux-media@vger.kernel.org>; Mon, 30 May 2011 00:08:43 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <E74B8A99-B35F-4A98-AA25-AF0D4DDA37BC@beagleboard.org>
-References: <290776.52536.qm@web112005.mail.gq1.yahoo.com>
-	<E74B8A99-B35F-4A98-AA25-AF0D4DDA37BC@beagleboard.org>
-Date: Mon, 30 May 2011 09:08:42 +0200
-Message-ID: <BANLkTimFqgRJRRS+ejDkWO0-io9fSgvnQw@mail.gmail.com>
-Subject: Re: [beagleboard] [PATCH] Second RFC version of mt9p031 sensor with
- power managament.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Koen Kooi <koen@beagleboard.org>
-Cc: Chris Rodley <carlighting@yahoo.co.nz>, g.liakhovetski@gmx.de,
-	beagleboard@googlegroups.com, linux-media@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com
-Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <mchehab@gaivota>
+Received: from stevekez.vm.bytemark.co.uk ([80.68.91.30]:39619 "EHLO
+	stevekerrison.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755065Ab1EHPvg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 May 2011 11:51:36 -0400
+From: Steve Kerrison <steve@stevekerrison.com>
+To: Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Cc: Andreas Oberritter <obi@linuxtv.org>,
+	Steve Kerrison <steve@stevekerrison.com>
+Subject: [PATCH 1/6] DVB: Add basic API support for DVB-T2 and bump minor version
+Date: Sun,  8 May 2011 16:51:08 +0100
+Message-Id: <1304869873-9974-2-git-send-email-steve@stevekerrison.com>
+In-Reply-To: <4DC417DA.5030107@redhat.com>
+References: <4DC417DA.5030107@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On 30 May 2011 08:48, Koen Kooi <koen@beagleboard.org> wrote:
->
-> Op 30 mei 2011, om 04:13 heeft Chris Rodley het volgende geschreven:
->
->> On 29/05/11 03:04, Guennadi Liakhovetski wrote:
->>> On Sat, 28 May 2011, Guennadi Liakhovetski wrote:
->>>
->>>> Hi Javier
->>>>
->>>> On Thu, 26 May 2011, javier Martin wrote:
->>>>
->>>>> I use a patched version of yavta and Mplayer to see video
->>>>> (http://download.open-technology.de/BeagleBoard_xM-MT9P031/)
->>>>
->>>> Are you really using those versions and patches, as described in
->>>> BBxM-MT9P031.txt? I don't think those versions still work with 2.6.39,
->>>> they don't even compile for me. Whereas if I take current HEAD, it builds
->>>> and media-ctl seems to run error-free, but yavta produces no output.
->>>
->>> Ok, sorry for the noise. It works with current media-ctl with no patches,
->>> so, we better don't try to confuse our users / testers:)
->>>
->>> Thanks
->>> Guennadi
->>
->> Hi,
->>
->> Still no luck getting the v3 patch working.
->> I did go back and re-test the first v1 patch that Javier released.
->> This works fine with the same version of media-ctl and yavta.
->> So it isn't either of those programs that is causing the problem.
->>
->> Must be something else.
->>
->> Will wait and see how Koen goes.
->
-> I'm still stuck in "isp did no go idle" land, so even if yavta works, I can't get any output. It did output 3 frames to disk a few days ago, but that got deleted on reboot :(
+From: Andreas Oberritter <obi@linuxtv.org>
 
-I don't know guys what to tell you.
-I use kernel 2.6.39 + last version of my patches + old patched yavta
-version (http://download.open-technology.de/BeagleBoard_xM-MT9P031/).
+Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
+Signed-off-by: Steve Kerrison <steve@stevekerrison.com>
+---
+ drivers/media/dvb/dvb-core/dvb_frontend.c |    7 +++----
+ include/linux/dvb/frontend.h              |   20 ++++++++++++++++----
+ include/linux/dvb/version.h               |    2 +-
+ 3 files changed, 20 insertions(+), 9 deletions(-)
 
-Guennadi, did you manage to get it working?
-I'm preparing new patches for kernel 2.6.39 which I think should be
-ready for submission. I'll send them during the morning.
-
-Thank you.
-
-
+diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+index 31e2c0d..e30beef 100644
+--- a/drivers/media/dvb/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+@@ -1148,10 +1148,9 @@ static void dtv_property_adv_params_sync(struct dvb_frontend *fe)
+ 		break;
+ 	}
+ 
+-	if(c->delivery_system == SYS_ISDBT) {
+-		/* Fake out a generic DVB-T request so we pass validation in the ioctl */
+-		p->frequency = c->frequency;
+-		p->inversion = c->inversion;
++	/* Fake out a generic DVB-T request so we pass validation in the ioctl */
++	if ((c->delivery_system == SYS_ISDBT) ||
++	    (c->delivery_system == SYS_DVBT2)) {
+ 		p->u.ofdm.constellation = QAM_AUTO;
+ 		p->u.ofdm.code_rate_HP = FEC_AUTO;
+ 		p->u.ofdm.code_rate_LP = FEC_AUTO;
+diff --git a/include/linux/dvb/frontend.h b/include/linux/dvb/frontend.h
+index 493a2bf..36a3ed6 100644
+--- a/include/linux/dvb/frontend.h
++++ b/include/linux/dvb/frontend.h
+@@ -175,14 +175,20 @@ typedef enum fe_transmit_mode {
+ 	TRANSMISSION_MODE_2K,
+ 	TRANSMISSION_MODE_8K,
+ 	TRANSMISSION_MODE_AUTO,
+-	TRANSMISSION_MODE_4K
++	TRANSMISSION_MODE_4K,
++	TRANSMISSION_MODE_1K,
++	TRANSMISSION_MODE_16K,
++	TRANSMISSION_MODE_32K,
+ } fe_transmit_mode_t;
+ 
+ typedef enum fe_bandwidth {
+ 	BANDWIDTH_8_MHZ,
+ 	BANDWIDTH_7_MHZ,
+ 	BANDWIDTH_6_MHZ,
+-	BANDWIDTH_AUTO
++	BANDWIDTH_AUTO,
++	BANDWIDTH_5_MHZ,
++	BANDWIDTH_10_MHZ,
++	BANDWIDTH_1_712_MHZ,
+ } fe_bandwidth_t;
+ 
+ 
+@@ -191,7 +197,10 @@ typedef enum fe_guard_interval {
+ 	GUARD_INTERVAL_1_16,
+ 	GUARD_INTERVAL_1_8,
+ 	GUARD_INTERVAL_1_4,
+-	GUARD_INTERVAL_AUTO
++	GUARD_INTERVAL_AUTO,
++	GUARD_INTERVAL_1_128,
++	GUARD_INTERVAL_19_128,
++	GUARD_INTERVAL_19_256,
+ } fe_guard_interval_t;
+ 
+ 
+@@ -305,7 +314,9 @@ struct dvb_frontend_event {
+ 
+ #define DTV_ISDBS_TS_ID		42
+ 
+-#define DTV_MAX_COMMAND				DTV_ISDBS_TS_ID
++#define DTV_DVBT2_PLP_ID	43
++
++#define DTV_MAX_COMMAND				DTV_DVBT2_PLP_ID
+ 
+ typedef enum fe_pilot {
+ 	PILOT_ON,
+@@ -337,6 +348,7 @@ typedef enum fe_delivery_system {
+ 	SYS_DMBTH,
+ 	SYS_CMMB,
+ 	SYS_DAB,
++	SYS_DVBT2,
+ } fe_delivery_system_t;
+ 
+ struct dtv_cmds_h {
+diff --git a/include/linux/dvb/version.h b/include/linux/dvb/version.h
+index 5a7546c..1421cc8 100644
+--- a/include/linux/dvb/version.h
++++ b/include/linux/dvb/version.h
+@@ -24,6 +24,6 @@
+ #define _DVBVERSION_H_
+ 
+ #define DVB_API_VERSION 5
+-#define DVB_API_VERSION_MINOR 2
++#define DVB_API_VERSION_MINOR 3
+ 
+ #endif /*_DVBVERSION_H_*/
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+1.7.1
+
