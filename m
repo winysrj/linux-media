@@ -1,50 +1,59 @@
-Return-path: <mchehab@pedra>
-Received: from mail.kapsi.fi ([217.30.184.167]:53142 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933194Ab1ESVuL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 May 2011 17:50:11 -0400
-Message-ID: <4DD59090.3020900@iki.fi>
-Date: Fri, 20 May 2011 00:50:08 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: wallak@free.fr
-CC: linux-media@vger.kernel.org
-Subject: Re: AverMedia A306 (cx23385, xc3028, af9013) (A577 too ?)
-References: <S932606Ab1ESVJJ/20110519210909Z+86@vger.kernel.org> <1305839612.4dd587fc20a03@imp.free.fr>
-In-Reply-To: <1305839612.4dd587fc20a03@imp.free.fr>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Return-path: <mchehab@gaivota>
+Received: from mail-in-05.arcor-online.net ([151.189.21.45]:51308 "EHLO
+	mail-in-05.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754550Ab1EITyQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 May 2011 15:54:16 -0400
+From: stefan.ringel@arcor.de
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, d.belimov@gmail.com,
+	Stefan Ringel <stefan.ringel@arcor.de>
+Subject: [PATCH 15/16] tm6000: remove unsued exports
+Date: Mon,  9 May 2011 21:54:03 +0200
+Message-Id: <1304970844-20955-15-git-send-email-stefan.ringel@arcor.de>
+In-Reply-To: <1304970844-20955-1-git-send-email-stefan.ringel@arcor.de>
+References: <1304970844-20955-1-git-send-email-stefan.ringel@arcor.de>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On 05/20/2011 12:13 AM, wallak@free.fr wrote:
-> I've tried to use my A306 board on my system. All the main chips are fully
-> supported by linux.
->
-> At this stage the CX23385 and the tuner: xc3028 seem to respond properly. But
-> the DVB-T chip (af9013) is silent. Nevertheless both chips are visible on the
-> I2C bus.
+From: Stefan Ringel <stefan.ringel@arcor.de>
 
-You should get I2C connection to chip and after that load firmware.
+remove unsued exports
 
-> I've no full datasheet of theses chips. with exception of the af9013 where this
-> information is available:
-> http://wenku.baidu.com/view/42240f72f242336c1eb95e08.html
 
-Those documents are rather useless. There is few versions of Linux 
-AF9015 driver around the net, which are rather near sample SDK code. Try 
-to find one.
+Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+---
+ drivers/staging/tm6000/tm6000-core.c |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
 
-> At this stage the CLK signal of the DVB-T chip may be missing or something is
-> wrong elsewhere.
->
-> If you have the datasheets... Any help will be appreciated.
->
->
-> Best Regards,
-> Wallak.
->
-
-Antti
+diff --git a/drivers/staging/tm6000/tm6000-core.c b/drivers/staging/tm6000/tm6000-core.c
+index 57fd874..d7eb2e2 100644
+--- a/drivers/staging/tm6000/tm6000-core.c
++++ b/drivers/staging/tm6000/tm6000-core.c
+@@ -686,7 +686,6 @@ int tm6000_set_audio_rinput(struct tm6000_core *dev)
+ 	}
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(tm6000_set_audio_input);
+ 
+ void tm6010_set_mute_sif(struct tm6000_core *dev, u8 mute)
+ {
+@@ -749,7 +748,6 @@ int tm6000_tvaudio_set_mute(struct tm6000_core *dev, u8 mute)
+ 	}
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(tm6000_tvaudio_set_mute);
+ 
+ void tm6010_set_volume_sif(struct tm6000_core *dev, int vol)
+ {
+@@ -807,7 +805,6 @@ void tm6000_set_volume(struct tm6000_core *dev, int vol)
+ 		break;
+ 	}
+ }
+-EXPORT_SYMBOL_GPL(tm6000_set_volume);
+ 
+ static LIST_HEAD(tm6000_devlist);
+ static DEFINE_MUTEX(tm6000_devlist_mutex);
 -- 
-http://palosaari.fi/
+1.7.4.2
+
