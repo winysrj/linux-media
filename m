@@ -1,74 +1,74 @@
 Return-path: <mchehab@gaivota>
-Received: from oproxy8-pub.bluehost.com ([69.89.22.20]:41091 "HELO
-	oproxy8-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750911Ab1ENBDI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 May 2011 21:03:08 -0400
-Date: Fri, 13 May 2011 18:02:56 -0700
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-To: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: dri-devel@lists.freedesktop.org, "Clark, Rob" <rob@ti.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: [RFC] drm: add overlays as first class KMS objects
-Message-ID: <20110513180256.773ec8aa@jbarnes-desktop>
-In-Reply-To: <BANLkTimSrSgxcS2khHvAQPK+-vdfxo7VGg@mail.gmail.com>
-References: <20110425151220.2f5dc17a@jbarnes-desktop>
-	<BANLkTimSrSgxcS2khHvAQPK+-vdfxo7VGg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from smtp1.mtw.ru ([93.95.97.34]:47660 "EHLO smtp1.mtw.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752610Ab1EIPjP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 May 2011 11:39:15 -0400
+Received: from 8MYHG4J.512bytes.com (unknown [81.200.112.228])
+	(Authenticated sender: aj-a-j)
+	by smtp1.mtw.ru (Postfix) with ESMTPA id 8894044BD33
+	for <linux-media@vger.kernel.org>; Mon,  9 May 2011 19:35:07 +0400 (MSD)
+Date: Mon, 9 May 2011 19:39:09 +0400
+From: Andrew Junev <a-j@a-j.ru>
+Reply-To: Andrew Junev <a-j@a-j.ru>
+Message-ID: <925086505.20110509193909@a-j.ru>
+To: linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] TeVii S470 (cx23885 / ds3000) makes the machine unstable
+In-Reply-To: <157285607.20110508122321@a-j.ru>
+References: <1908281867.20110505213806@a-j.ru> <BANLkTimL7qhNpXr8xBBcU4MccZKAAFURYw@mail.gmail.com> <16110382789.20110506010009@a-j.ru> <BANLkTimGEL4YvXRJsFM10NfyHPOn-JsA_g@mail.gmail.com> <157285607.20110508122321@a-j.ru>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=windows-1251
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Fri, 13 May 2011 18:16:30 +0200
-Daniel Vetter <daniel.vetter@ffwll.ch> wrote:
+Sunday, May 8, 2011, 12:23:21 PM, you wrote:
 
-> Hi Jesse,
-> 
-> Discussion here in Budapest with v4l and embedded graphics folks was
-> extremely fruitful. A few quick things to take away - I'll try to dig
-> through all
-> the stuff I've learned more in-depth later (probably in a blog post or two):
-> 
-> - embedded graphics is insane. The output routing/blending/whatever
->   currently shipping hw can do is crazy and kms as-is is nowhere near up
->   to snuff to support this. We've discussed omap4 and a ti chip targeted at
->   video surveillance as use cases. I'll post block diagrams and explanations
->   some when later.
+> I installed the latest s2-liplianin drivers, but I still seem to have
+> the same issue. The card works fine for some time after reboot, then I
+> am starting to get the following errors in the system log:
 
-Yeah I expected that; even just TVs can have really funky restrictions
-about z order and blend capability.
+> May  8 11:11:38 localhost kernel: ds3000_readreg: reg=0xa1(error=-5)
+> May  8 11:11:38 localhost kernel: ds3000_readreg: reg=0xa1(error=-5)
+> May  8 11:11:38 localhost kernel: ds3000_readreg: reg=0xa1(error=-5)
+> May  8 11:11:38 localhost kernel: ds3000_writereg: writereg
+> error(err == -5, reg == 0xa1, value == 0x7b)
+> May  8 11:11:38 localhost kernel: ds3000_readreg: reg=0xa2(error=-5)
+> May  8 11:11:38 localhost kernel: ds3000_writereg: writereg
+> error(err == -5, reg == 0xa2, value == 0xbb)
 
-> - we should immediately stop to call anything an overlay. It's a confusing
->   concept that has a different meaning in every subsystem and for every hw
->   manufacturer. More sensible names are dma fifo engines for things that slurp
->   in planes and make them available to the display subsystem. Blend engines
->   for blocks that take multiple input pipes and overlay/underlay/blend them
->   together. Display subsytem/controller for the aggregate thing including
->   encoders/resizers/outputs and especially the crazy routing network that
->   connects everything.
+> And then my machine just stops responding - even on the ssh sessions.
 
-How about just "display plane" then?  Specifically in the context of
-display output hardware...
 
-> 1) Splitting the crtc object into two objects: crtc with associated output mode
-> (pixel clock, encoders/connectors) and dma engines (possibly multiple) that
-> feed it. omap 4 has essentially just 4 dma engines that can be freely assigned
-> to the available outputs, so a distinction between normal crtcs and overlay
-> engines just does not make sense. There's the major open question of where
-> to put the various attributes to set up the output pipeline. Also some of these
-> attributes might need to be changed atomicly together with pageflips on
-> a bunch of dma engines all associated with the same crtc on the next vsync,
-> e.g. output position of an overlaid video buffer.
+> A friend of mine installed the same S470 card a few days ago. He's
+> using Fedora 14 (kernel 2.6.35) and he says his machine started to
+> 'hang' sporadically, too... I guess he might have a similar issue...
 
-Yeah, that's a good goal, and pretty much what I had in mind here.
-However, breaking the existing interface is a non-starter, so either we
-need a new CRTC object altogether, or we preserve the idea of a
-"primary" plane (whatever that means for a given platform) that's tied
-to each CRTC, which each additional plane described in a separate
-structure.  Z order and blend restrictions will have to be communicated
-separately I think...
+> How could I track what is going on?
 
-Thanks,
+
+Dear All,
+
+I still have this very annoying issue. I see no obvious reason, but
+my DVB-S card just stops locking the signal, I get really a lot of
+these errors in my syslog:
+
+May  9 19:04:33 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
+May  9 19:04:33 localhost kernel: ds3000_writereg: writereg error(err == -5, reg == 0x03, value == 0x12)
+May  9 19:04:33 localhost kernel: ds3000_tuner_readreg: reg=0x3d(error=-5)
+May  9 19:04:33 localhost kernel: ds3000_writereg: writereg error(err == -5, reg == 0x03, value == 0x12)
+May  9 19:04:33 localhost kernel: ds3000_tuner_readreg: reg=0x21(error=-5)
+May  9 19:04:33 localhost kernel: ds3000_readreg: reg=0x8c(error=-5)
+May  9 19:04:33 localhost kernel: ds3000_readreg: reg=0x8d(error=-5)
+
+and then the machine just freezes. Could it be some buffer overflow?
+
+How could I track it?
+
+
+The machine is perfectly stable when S470 card is out...
+
+
 -- 
-Jesse Barnes, Intel Open Source Technology Center
+Best regards,
+ Andrew             
+
