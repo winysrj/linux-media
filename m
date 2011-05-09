@@ -1,102 +1,413 @@
-Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:49516 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754084Ab1EXPzw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 May 2011 11:55:52 -0400
-Message-ID: <4DDBD504.5020109@redhat.com>
-Date: Tue, 24 May 2011 17:55:48 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Return-path: <mchehab@gaivota>
+Received: from mail1-out1.atlantis.sk ([80.94.52.55]:47432 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754957Ab1EIVj7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 May 2011 17:39:59 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: alsa-devel@alsa-project.org
+Subject: [PATCH 3/3] fm801: convert TEA575x support to new interface
+Date: Mon, 9 May 2011 23:39:51 +0200
+Cc: linux-media@vger.kernel.org,
+	"Kernel development list" <linux-kernel@vger.kernel.org>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: [ANNOUNCE] experimental alsa stream support at xawtv3
-References: <4DDAC0C2.7090508@redhat.com> <201105240850.35032.hverkuil@xs4all.nl> <4DDB5C6B.6000608@redhat.com> <4DDBBC29.80009@infradead.org>
-In-Reply-To: <4DDBBC29.80009@infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201105092339.54051.linux@rainbow-software.org>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi,
+Use common functions to access TEA575x tuner - remove original read/write
+functions and provide new pin manipulation functions instead.
 
-On 05/24/2011 04:09 PM, Mauro Carvalho Chehab wrote:
-> Em 24-05-2011 04:21, Hans de Goede escreveu:
->> Hi,
->
->> My I suggest that we instead just copy over the single get_media_devices.c
->> file to xawtv, and not install the not so much a lib lib ?
->
-> If we do that, then all other places where the association between an alsa device
-> and a video4linux node is needed will need to copy it, and we'll have a fork.
-> Also, we'll keep needing it at v4l-utils, as it is now needed by the new version
-> of v4l2-sysfs-path tool.
->
-> Btw, this lib were created due to a request from the vlc maintainer that something
-> like that would be needed. After finishing it, I decided to add it at xawtv in order
-> to have an example about how to use it.
->
+Also convert the original triple implementation to a simple GPIO pin map.
 
-I'm not saying that this is not useful to have, I'm just worried about
-exporting the API before it has had any chance to stabilize, and about
-also throwing in the other random libv4l2util bits.
+Tested with SF256-PCP and SF64-PCR (added the GPIO pin for MO/ST signal
+for them).
+SF256-PCS untested (pin for MO/ST signal is a guess).
 
->> Mauro, I plan to do a new v4l-utils release soon (*), maybe even today. I
->> consider it unpolite to revert other peoples commits, so I would prefer for you
->> to revert the install libv4l2util.a patch yourself. But if you don't (or don't
->> get around to doing it before I do the release), I will revert it, as this
->> clearly needs more discussion before making it into an official release
->> tarbal (we can always re-introduce the patch after the release).
->
-> I'm not a big fan or exporting the rest of stuff at libv4l2util.a either
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 
-Glad we agree on that :)
+--- linux-2.6.39-rc2-/sound/pci/fm801.c	2011-05-06 22:44:22.000000000 +0200
++++ linux-2.6.39-rc2/sound/pci/fm801.c	2011-05-09 22:59:16.000000000 +0200
+@@ -717,308 +717,86 @@ static int __devinit snd_fm801_pcm(struc
+ 
+ #ifdef TEA575X_RADIO
+ 
+-/* 256PCS GPIO numbers */
+-#define TEA_256PCS_DATA			1
+-#define TEA_256PCS_WRITE_ENABLE		2	/* inverted */
+-#define TEA_256PCS_BUS_CLOCK		3
+-
+-static void snd_fm801_tea575x_256pcs_write(struct snd_tea575x *tea, unsigned int val)
+-{
+-	struct fm801 *chip = tea->private_data;
+-	unsigned short reg;
+-	int i = 25;
+-
+-	spin_lock_irq(&chip->reg_lock);
+-	reg = inw(FM801_REG(chip, GPIO_CTRL));
+-	/* use GPIO lines and set write enable bit */
+-	reg |= FM801_GPIO_GS(TEA_256PCS_DATA) |
+-	       FM801_GPIO_GS(TEA_256PCS_WRITE_ENABLE) |
+-	       FM801_GPIO_GS(TEA_256PCS_BUS_CLOCK);
+-	/* all of lines are in the write direction */
+-	/* clear data and clock lines */
+-	reg &= ~(FM801_GPIO_GD(TEA_256PCS_DATA) |
+-	         FM801_GPIO_GD(TEA_256PCS_WRITE_ENABLE) |
+-	         FM801_GPIO_GD(TEA_256PCS_BUS_CLOCK) |
+-	         FM801_GPIO_GP(TEA_256PCS_DATA) |
+-	         FM801_GPIO_GP(TEA_256PCS_BUS_CLOCK) |
+-		 FM801_GPIO_GP(TEA_256PCS_WRITE_ENABLE));
+-	outw(reg, FM801_REG(chip, GPIO_CTRL));
+-	udelay(1);
+-
+-	while (i--) {
+-		if (val & (1 << i))
+-			reg |= FM801_GPIO_GP(TEA_256PCS_DATA);
+-		else
+-			reg &= ~FM801_GPIO_GP(TEA_256PCS_DATA);
+-		outw(reg, FM801_REG(chip, GPIO_CTRL));
+-		udelay(1);
+-		reg |= FM801_GPIO_GP(TEA_256PCS_BUS_CLOCK);
+-		outw(reg, FM801_REG(chip, GPIO_CTRL));
+-		reg &= ~FM801_GPIO_GP(TEA_256PCS_BUS_CLOCK);
+-		outw(reg, FM801_REG(chip, GPIO_CTRL));
+-		udelay(1);
+-	}
+-
+-	/* and reset the write enable bit */
+-	reg |= FM801_GPIO_GP(TEA_256PCS_WRITE_ENABLE) |
+-	       FM801_GPIO_GP(TEA_256PCS_DATA);
+-	outw(reg, FM801_REG(chip, GPIO_CTRL));
+-	spin_unlock_irq(&chip->reg_lock);
+-}
+-
+-static unsigned int snd_fm801_tea575x_256pcs_read(struct snd_tea575x *tea)
+-{
+-	struct fm801 *chip = tea->private_data;
+-	unsigned short reg;
+-	unsigned int val = 0;
+-	int i;
+-	
+-	spin_lock_irq(&chip->reg_lock);
+-	reg = inw(FM801_REG(chip, GPIO_CTRL));
+-	/* use GPIO lines, set data direction to input */
+-	reg |= FM801_GPIO_GS(TEA_256PCS_DATA) |
+-	       FM801_GPIO_GS(TEA_256PCS_WRITE_ENABLE) |
+-	       FM801_GPIO_GS(TEA_256PCS_BUS_CLOCK) |
+-	       FM801_GPIO_GD(TEA_256PCS_DATA) |
+-	       FM801_GPIO_GP(TEA_256PCS_DATA) |
+-	       FM801_GPIO_GP(TEA_256PCS_WRITE_ENABLE);
+-	/* all of lines are in the write direction, except data */
+-	/* clear data, write enable and clock lines */
+-	reg &= ~(FM801_GPIO_GD(TEA_256PCS_WRITE_ENABLE) |
+-	         FM801_GPIO_GD(TEA_256PCS_BUS_CLOCK) |
+-	         FM801_GPIO_GP(TEA_256PCS_BUS_CLOCK));
+-
+-	for (i = 0; i < 24; i++) {
+-		reg &= ~FM801_GPIO_GP(TEA_256PCS_BUS_CLOCK);
+-		outw(reg, FM801_REG(chip, GPIO_CTRL));
+-		udelay(1);
+-		reg |= FM801_GPIO_GP(TEA_256PCS_BUS_CLOCK);
+-		outw(reg, FM801_REG(chip, GPIO_CTRL));
+-		udelay(1);
+-		val <<= 1;
+-		if (inw(FM801_REG(chip, GPIO_CTRL)) & FM801_GPIO_GP(TEA_256PCS_DATA))
+-			val |= 1;
+-	}
+-
+-	spin_unlock_irq(&chip->reg_lock);
+-
+-	return val;
+-}
++/* GPIO to TEA575x maps */
++struct snd_fm801_tea575x_gpio {
++	u8 data, clk, wren, most;
++};
+ 
+-/* 256PCPR GPIO numbers */
+-#define TEA_256PCPR_BUS_CLOCK		0
+-#define TEA_256PCPR_DATA		1
+-#define TEA_256PCPR_WRITE_ENABLE	2	/* inverted */
++static struct snd_fm801_tea575x_gpio snd_fm801_tea575x_gpios[] = {
++	{ .data = 1, .clk = 3, .wren = 2, .most = 0 },	/* SF256-PCS */
++	{ .data = 1, .clk = 0, .wren = 2, .most = 3 },	/* SF256-PCP */
++	{ .data = 2, .clk = 0, .wren = 1, .most = 3 },	/* SF64-PCR */
++};
+ 
+-static void snd_fm801_tea575x_256pcpr_write(struct snd_tea575x *tea, unsigned int val)
++static void snd_fm801_tea575x_set_pins(struct snd_tea575x *tea, u8 pins)
+ {
+ 	struct fm801 *chip = tea->private_data;
+-	unsigned short reg;
+-	int i = 25;
++	unsigned short reg = inw(FM801_REG(chip, GPIO_CTRL));
++	struct snd_fm801_tea575x_gpio gpio = snd_fm801_tea575x_gpios[(chip->tea575x_tuner & TUNER_TYPE_MASK) - 1];
+ 
+-	spin_lock_irq(&chip->reg_lock);
+-	reg = inw(FM801_REG(chip, GPIO_CTRL));
+-	/* use GPIO lines and set write enable bit */
+-	reg |= FM801_GPIO_GS(TEA_256PCPR_DATA) |
+-	       FM801_GPIO_GS(TEA_256PCPR_WRITE_ENABLE) |
+-	       FM801_GPIO_GS(TEA_256PCPR_BUS_CLOCK);
+-	/* all of lines are in the write direction */
+-	/* clear data and clock lines */
+-	reg &= ~(FM801_GPIO_GD(TEA_256PCPR_DATA) |
+-	         FM801_GPIO_GD(TEA_256PCPR_WRITE_ENABLE) |
+-	         FM801_GPIO_GD(TEA_256PCPR_BUS_CLOCK) |
+-	         FM801_GPIO_GP(TEA_256PCPR_DATA) |
+-	         FM801_GPIO_GP(TEA_256PCPR_BUS_CLOCK) |
+-		 FM801_GPIO_GP(TEA_256PCPR_WRITE_ENABLE));
+-	outw(reg, FM801_REG(chip, GPIO_CTRL));
+-	udelay(1);
++	reg &= ~(FM801_GPIO_GP(gpio.data) |
++		 FM801_GPIO_GP(gpio.clk) |
++		 FM801_GPIO_GP(gpio.wren));
++
++	reg |= (pins & TEA575X_DATA) ? FM801_GPIO_GP(gpio.data) : 0;
++	reg |= (pins & TEA575X_CLK)  ? FM801_GPIO_GP(gpio.clk) : 0;
++	/* WRITE_ENABLE is inverted */
++	reg |= (pins & TEA575X_WREN) ? 0 : FM801_GPIO_GP(gpio.wren);
+ 
+-	while (i--) {
+-		if (val & (1 << i))
+-			reg |= FM801_GPIO_GP(TEA_256PCPR_DATA);
+-		else
+-			reg &= ~FM801_GPIO_GP(TEA_256PCPR_DATA);
+-		outw(reg, FM801_REG(chip, GPIO_CTRL));
+-		udelay(1);
+-		reg |= FM801_GPIO_GP(TEA_256PCPR_BUS_CLOCK);
+-		outw(reg, FM801_REG(chip, GPIO_CTRL));
+-		reg &= ~FM801_GPIO_GP(TEA_256PCPR_BUS_CLOCK);
+-		outw(reg, FM801_REG(chip, GPIO_CTRL));
+-		udelay(1);
+-	}
+-
+-	/* and reset the write enable bit */
+-	reg |= FM801_GPIO_GP(TEA_256PCPR_WRITE_ENABLE) |
+-	       FM801_GPIO_GP(TEA_256PCPR_DATA);
+ 	outw(reg, FM801_REG(chip, GPIO_CTRL));
+-	spin_unlock_irq(&chip->reg_lock);
+ }
+ 
+-static unsigned int snd_fm801_tea575x_256pcpr_read(struct snd_tea575x *tea)
++static u8 snd_fm801_tea575x_get_pins(struct snd_tea575x *tea)
+ {
+ 	struct fm801 *chip = tea->private_data;
+-	unsigned short reg;
+-	unsigned int val = 0;
+-	int i;
+-	
+-	spin_lock_irq(&chip->reg_lock);
+-	reg = inw(FM801_REG(chip, GPIO_CTRL));
+-	/* use GPIO lines, set data direction to input */
+-	reg |= FM801_GPIO_GS(TEA_256PCPR_DATA) |
+-	       FM801_GPIO_GS(TEA_256PCPR_WRITE_ENABLE) |
+-	       FM801_GPIO_GS(TEA_256PCPR_BUS_CLOCK) |
+-	       FM801_GPIO_GD(TEA_256PCPR_DATA) |
+-	       FM801_GPIO_GP(TEA_256PCPR_DATA) |
+-	       FM801_GPIO_GP(TEA_256PCPR_WRITE_ENABLE);
+-	/* all of lines are in the write direction, except data */
+-	/* clear data, write enable and clock lines */
+-	reg &= ~(FM801_GPIO_GD(TEA_256PCPR_WRITE_ENABLE) |
+-	         FM801_GPIO_GD(TEA_256PCPR_BUS_CLOCK) |
+-	         FM801_GPIO_GP(TEA_256PCPR_BUS_CLOCK));
+-
+-	for (i = 0; i < 24; i++) {
+-		reg &= ~FM801_GPIO_GP(TEA_256PCPR_BUS_CLOCK);
+-		outw(reg, FM801_REG(chip, GPIO_CTRL));
+-		udelay(1);
+-		reg |= FM801_GPIO_GP(TEA_256PCPR_BUS_CLOCK);
+-		outw(reg, FM801_REG(chip, GPIO_CTRL));
+-		udelay(1);
+-		val <<= 1;
+-		if (inw(FM801_REG(chip, GPIO_CTRL)) & FM801_GPIO_GP(TEA_256PCPR_DATA))
+-			val |= 1;
+-	}
++	unsigned short reg = inw(FM801_REG(chip, GPIO_CTRL));
++	struct snd_fm801_tea575x_gpio gpio = snd_fm801_tea575x_gpios[(chip->tea575x_tuner & TUNER_TYPE_MASK) - 1];
+ 
+-	spin_unlock_irq(&chip->reg_lock);
+-
+-	return val;
++	return  (reg & FM801_GPIO_GP(gpio.data)) ? TEA575X_DATA : 0 |
++		(reg & FM801_GPIO_GP(gpio.most)) ? TEA575X_MOST : 0;
+ }
+ 
+-/* 64PCR GPIO numbers */
+-#define TEA_64PCR_BUS_CLOCK		0
+-#define TEA_64PCR_WRITE_ENABLE		1	/* inverted */
+-#define TEA_64PCR_DATA			2
+-
+-static void snd_fm801_tea575x_64pcr_write(struct snd_tea575x *tea, unsigned int val)
++static void snd_fm801_tea575x_set_direction(struct snd_tea575x *tea, bool output)
+ {
+ 	struct fm801 *chip = tea->private_data;
+-	unsigned short reg;
+-	int i = 25;
++	unsigned short reg = inw(FM801_REG(chip, GPIO_CTRL));
++	struct snd_fm801_tea575x_gpio gpio = snd_fm801_tea575x_gpios[(chip->tea575x_tuner & TUNER_TYPE_MASK) - 1];
+ 
+-	spin_lock_irq(&chip->reg_lock);
+-	reg = inw(FM801_REG(chip, GPIO_CTRL));
+ 	/* use GPIO lines and set write enable bit */
+-	reg |= FM801_GPIO_GS(TEA_64PCR_DATA) |
+-	       FM801_GPIO_GS(TEA_64PCR_WRITE_ENABLE) |
+-	       FM801_GPIO_GS(TEA_64PCR_BUS_CLOCK);
+-	/* all of lines are in the write direction */
+-	/* clear data and clock lines */
+-	reg &= ~(FM801_GPIO_GD(TEA_64PCR_DATA) |
+-	         FM801_GPIO_GD(TEA_64PCR_WRITE_ENABLE) |
+-	         FM801_GPIO_GD(TEA_64PCR_BUS_CLOCK) |
+-	         FM801_GPIO_GP(TEA_64PCR_DATA) |
+-	         FM801_GPIO_GP(TEA_64PCR_BUS_CLOCK) |
+-		 FM801_GPIO_GP(TEA_64PCR_WRITE_ENABLE));
+-	outw(reg, FM801_REG(chip, GPIO_CTRL));
+-	udelay(1);
+-
+-	while (i--) {
+-		if (val & (1 << i))
+-			reg |= FM801_GPIO_GP(TEA_64PCR_DATA);
+-		else
+-			reg &= ~FM801_GPIO_GP(TEA_64PCR_DATA);
+-		outw(reg, FM801_REG(chip, GPIO_CTRL));
+-		udelay(1);
+-		reg |= FM801_GPIO_GP(TEA_64PCR_BUS_CLOCK);
+-		outw(reg, FM801_REG(chip, GPIO_CTRL));
+-		reg &= ~FM801_GPIO_GP(TEA_64PCR_BUS_CLOCK);
+-		outw(reg, FM801_REG(chip, GPIO_CTRL));
+-		udelay(1);
+-	}
+-
+-	/* and reset the write enable bit */
+-	reg |= FM801_GPIO_GP(TEA_64PCR_WRITE_ENABLE) |
+-	       FM801_GPIO_GP(TEA_64PCR_DATA);
+-	outw(reg, FM801_REG(chip, GPIO_CTRL));
+-	spin_unlock_irq(&chip->reg_lock);
+-}
+-
+-static unsigned int snd_fm801_tea575x_64pcr_read(struct snd_tea575x *tea)
+-{
+-	struct fm801 *chip = tea->private_data;
+-	unsigned short reg;
+-	unsigned int val = 0;
+-	int i;
+-	
+-	spin_lock_irq(&chip->reg_lock);
+-	reg = inw(FM801_REG(chip, GPIO_CTRL));
+-	/* use GPIO lines, set data direction to input */
+-	reg |= FM801_GPIO_GS(TEA_64PCR_DATA) |
+-	       FM801_GPIO_GS(TEA_64PCR_WRITE_ENABLE) |
+-	       FM801_GPIO_GS(TEA_64PCR_BUS_CLOCK) |
+-	       FM801_GPIO_GD(TEA_64PCR_DATA) |
+-	       FM801_GPIO_GP(TEA_64PCR_DATA) |
+-	       FM801_GPIO_GP(TEA_64PCR_WRITE_ENABLE);
+-	/* all of lines are in the write direction, except data */
+-	/* clear data, write enable and clock lines */
+-	reg &= ~(FM801_GPIO_GD(TEA_64PCR_WRITE_ENABLE) |
+-	         FM801_GPIO_GD(TEA_64PCR_BUS_CLOCK) |
+-	         FM801_GPIO_GP(TEA_64PCR_BUS_CLOCK));
+-
+-	for (i = 0; i < 24; i++) {
+-		reg &= ~FM801_GPIO_GP(TEA_64PCR_BUS_CLOCK);
+-		outw(reg, FM801_REG(chip, GPIO_CTRL));
+-		udelay(1);
+-		reg |= FM801_GPIO_GP(TEA_64PCR_BUS_CLOCK);
+-		outw(reg, FM801_REG(chip, GPIO_CTRL));
+-		udelay(1);
+-		val <<= 1;
+-		if (inw(FM801_REG(chip, GPIO_CTRL)) & FM801_GPIO_GP(TEA_64PCR_DATA))
+-			val |= 1;
++	reg |= FM801_GPIO_GS(gpio.data) |
++	       FM801_GPIO_GS(gpio.wren) |
++	       FM801_GPIO_GS(gpio.clk) |
++	       FM801_GPIO_GS(gpio.most);
++	if (output) {
++		/* all of lines are in the write direction */
++		/* clear data and clock lines */
++		reg &= ~(FM801_GPIO_GD(gpio.data) |
++			 FM801_GPIO_GD(gpio.wren) |
++			 FM801_GPIO_GD(gpio.clk) |
++			 FM801_GPIO_GP(gpio.data) |
++			 FM801_GPIO_GP(gpio.clk) |
++			 FM801_GPIO_GP(gpio.wren));
++	} else {
++		/* use GPIO lines, set data direction to input */
++		reg |= FM801_GPIO_GD(gpio.data) |
++		       FM801_GPIO_GD(gpio.most) |
++		       FM801_GPIO_GP(gpio.data) |
++		       FM801_GPIO_GP(gpio.most) |
++		       FM801_GPIO_GP(gpio.wren);
++		/* all of lines are in the write direction, except data */
++		/* clear data, write enable and clock lines */
++		reg &= ~(FM801_GPIO_GD(gpio.wren) |
++			 FM801_GPIO_GD(gpio.clk) |
++			 FM801_GPIO_GP(gpio.clk));
+ 	}
+ 
+-	spin_unlock_irq(&chip->reg_lock);
+-
+-	return val;
+-}
+-
+-static void snd_fm801_tea575x_64pcr_mute(struct snd_tea575x *tea,
+-					  unsigned int mute)
+-{
+-	struct fm801 *chip = tea->private_data;
+-	unsigned short reg;
+-
+-	spin_lock_irq(&chip->reg_lock);
+-
+-	reg = inw(FM801_REG(chip, GPIO_CTRL));
+-	if (mute)
+-		/* 0xf800 (mute) */
+-		reg &= ~FM801_GPIO_GP(TEA_64PCR_WRITE_ENABLE);
+-	else
+-		/* 0xf802 (unmute) */
+-		reg |= FM801_GPIO_GP(TEA_64PCR_WRITE_ENABLE);
+ 	outw(reg, FM801_REG(chip, GPIO_CTRL));
+-	udelay(1);
+-
+-	spin_unlock_irq(&chip->reg_lock);
+ }
+ 
+-static struct snd_tea575x_ops snd_fm801_tea_ops[3] = {
+-	{
+-		/* 1 = MediaForte 256-PCS */
+-		.write = snd_fm801_tea575x_256pcs_write,
+-		.read = snd_fm801_tea575x_256pcs_read,
+-	},
+-	{
+-		/* 2 = MediaForte 256-PCPR */
+-		.write = snd_fm801_tea575x_256pcpr_write,
+-		.read = snd_fm801_tea575x_256pcpr_read,
+-	},
+-	{
+-		/* 3 = MediaForte 64-PCR */
+-		.write = snd_fm801_tea575x_64pcr_write,
+-		.read = snd_fm801_tea575x_64pcr_read,
+-		.mute = snd_fm801_tea575x_64pcr_mute,
+-	}
++static struct snd_tea575x_ops snd_fm801_tea_ops = {
++	.set_pins = snd_fm801_tea575x_set_pins,
++	.get_pins = snd_fm801_tea575x_get_pins,
++	.set_direction = snd_fm801_tea575x_set_direction,
+ };
+ #endif
+ 
+@@ -1456,7 +1234,7 @@ static int __devinit snd_fm801_create(st
+ 		chip->tea.card = card;
+ 		chip->tea.freq_fixup = 10700;
+ 		chip->tea.private_data = chip;
+-		chip->tea.ops = &snd_fm801_tea_ops[(tea575x_tuner & TUNER_TYPE_MASK) - 1];
++		chip->tea.ops = &snd_fm801_tea_ops;
+ 		snd_tea575x_init(&chip->tea);
+ 	}
+ #endif
 
-> but I
-> think that at least the get_media_devices stuff should be exported somewhere,
 
-Agreed.
 
-> maybe as part of libv4l.
-
-That would be a logical place to put it, otoh currently libv4l mostly mimics the
-raw /dev/video# node API, so adding this API is not a logical fit there ...
-
-It may make more sense to have something in libv4l2 like:
-
-enum libv4l2_associated_device_types {
-     libv4l2_alsa_input,
-     libv4l2_alsa_output,
-     libv4l2_vbi
-};
-
-int libv4l2_get_associated_devive(int fd, enum libv4l2_associated_device_types type, ...);
-
-Where fd is the fd of an open /dev/video node, and ... is a param through
-which the device gets returned (I guess a char * to a buffer of MAX_PATH
-length where the device name gets stored, this could
-be an also identifier like hw:0.0 or in case of vbi a /dev/vbi# path, etc.
-
-Note that an API for enumerating available /dev/video nodes would also
-be a welcome addition to libv4l2. Anyways I think we're are currently
-doing this the wrong way up. We should first discuss what such an API
-should look like and then implement it. Hopefully we can re-use a lot
-of the existing code when we do this, but I think it is better
-to first design the API and then write code to the API, the current
-API at least to me feels somewhat like an API written around existing
-code rather then the other way around.
-
-> Anyway, as you're releasing today a new v4l-utils, I agree that it is too early
-> to add such library, as it is still experimental. I'm not considering make any
-> new xawtv release those days, so I'm OK to postpone it.
->
-> I'll commit a few patches commenting the install procedure for now, re-adding it
-> after the release, for those that want to experiment it with xawtv with the new
-> support.
-
-Thanks!
-
-Regards,
-
-Hans
+-- 
+Ondrej Zary
