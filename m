@@ -1,27 +1,50 @@
-Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:48983 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752449Ab1E3PFh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 May 2011 11:05:37 -0400
+Return-path: <mchehab@gaivota>
+Received: from cmsout01.mbox.net ([165.212.64.31]:36058 "EHLO
+	cmsout01.mbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752404Ab1EIUke (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 May 2011 16:40:34 -0400
+Message-ID: <4DC85115.6020604@usa.net>
+Date: Mon, 09 May 2011 22:39:49 +0200
+From: Issa Gorissen <flop.m@usa.net>
 MIME-Version: 1.0
-In-Reply-To: <201105301657.36320.laurent.pinchart@ideasonboard.com>
-References: <1306652691-21102-1-git-send-email-ohad@wizery.com> <201105301657.36320.laurent.pinchart@ideasonboard.com>
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Date: Mon, 30 May 2011 18:05:16 +0300
-Message-ID: <BANLkTinzU=vq6d_OnER9=B4N_t48doL2cA@mail.gmail.com>
-Subject: Re: [PATCH] media: omap3isp: fix format string warning
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
+To: =?ISO-8859-1?Q?=22S=E9bastien_RAILLARD_=28COEXSI=29=22?=
+	<sr@coexsi.fr>
+CC: 'Ralph Metzler' <rjkm@metzlerbros.de>,
+	'Linux Media Mailing List' <linux-media@vger.kernel.org>,
+	'Oliver Endriss' <o.endriss@gmx.de>,
+	'Martin Vidovic' <xtronom@gmail.com>
+Subject: Re: DVB nGene CI : TS Discontinuities issues
+References: <004f01cc0981$2d371ec0$87a55c40$@coexsi.fr>	<4DC5622A.9040403@usa.net> <19909.47855.351946.831380@morden.metzler> <4DC73854.7090104@usa.net> <000901cc0e17$65fc4510$31f4cf30$@coexsi.fr>
+In-Reply-To: <000901cc0e17$65fc4510$31f4cf30$@coexsi.fr>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Mon, May 30, 2011 at 5:57 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Thanks for the patch, but I've already applied something similar to my tree.
-> Sorry :-)
+On 09/05/11 09:04, Sébastien RAILLARD (COEXSI) wrote:
+>> I don't know if CAT needs to be in the stream passed through sec0 as
+>> Sebastien mentioned, so I modified gnutv to add it to dvr.
+>>
+> Yes, the CAT table is mandatory, it must be sent to the CAM, as well as :
+> * the EMM PID referenced in the CAT
+> * all the private descriptors (binary blobs) in the PMT and, of course
+> * the ECM PID referenced in the PMT
+>
+> Of course, the CAM must be initialized, all the necessary CAM resources must
+> be initialized and a CA_PMT object must be sent through the CAM command
+> channel to ask for unscrambling of needed channels.
+>
+> That why it's better to send directly the raw TS output of the demodulator
+> directly in the CAM.
+> And then doing the demux filtering stuff on the TS stream coming from the
+> CAM (once unscrambled).
 
-np, thanks. I'm just playing with omap3isp a bit and wanted to get rid
-of that "hey what did I do wrong this time" feeling every time I
-recompiled it :)
+Thx Sebastien,
+
+Will check this out with gnutv and report.
+
+I think gnutv does all the init stuff you mentioned about the CAM. I
+will check for the possibly missing PSI packets gnutv might exclude.
+
+--
+Issa
