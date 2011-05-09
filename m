@@ -1,65 +1,52 @@
-Return-path: <mchehab@pedra>
-Received: from connie.slackware.com ([64.57.102.36]:37093 "EHLO
-	connie.slackware.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750862Ab1ECEiT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 May 2011 00:38:19 -0400
-From: Robby Workman <rworkman@slackware.com>
-Message-Id: <201105030438.p434c7jn026979@connie.slackware.com>
-Date: Mon, 02 May 2011 21:38:07 -0700
+Return-path: <mchehab@gaivota>
+Received: from mail-in-11.arcor-online.net ([151.189.21.51]:44024 "EHLO
+	mail-in-11.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754477Ab1EITyR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 May 2011 15:54:17 -0400
+From: stefan.ringel@arcor.de
 To: linux-media@vger.kernel.org
-Cc: <volkerdi@slackware.com>, Volkerding@connie.slackware.com,
-	Patrick@connie.slackware.com, <hdegoede@redhat.com>,
-	Goede@connie.slackware.com, De@connie.slackware.com,
-	Hans@connie.slackware.com, <obi@linuxtv.org>,
-	Oberritter@connie.slackware.com, Andreas@connie.slackware.com,
-	<mchehab@redhat.com>, Chehab@connie.slackware.com,
-	Carvalho@connie.slackware.com, Mauro@connie.slackware.com
-Subject: [PATCH 2/2] Allow override of manpage installation directory
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Cc: mchehab@redhat.com, d.belimov@gmail.com,
+	Stefan Ringel <stefan.ringel@arcor.de>
+Subject: [PATCH 16/16] tm6000: remove tm6010 sif audio start and stop
+Date: Mon,  9 May 2011 21:54:04 +0200
+Message-Id: <1304970844-20955-16-git-send-email-stefan.ringel@arcor.de>
+In-Reply-To: <1304970844-20955-1-git-send-email-stefan.ringel@arcor.de>
+References: <1304970844-20955-1-git-send-email-stefan.ringel@arcor.de>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
->From dc79c6a5e20d8e3ceaa3763e68761556de8e16a7 Mon Sep 17 00:00:00 2001
-From: Robby Workman <rworkman@slackware.com>
-Date: Tue, 12 Apr 2011 09:26:57 -0500
-Subject: [PATCH 2/2] Allow override of manpage installation directory
+From: Stefan Ringel <stefan.ringel@arcor.de>
 
-This creates MANDIR in Make.rules and keeps the preexisting
-default of $(PREFIX)/share/man, but allows packagers to easily
-override via e.g. "make MANDIR=/usr/man"
+remove tm6010 sif audio start and stop
+
+
+Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
 ---
- Make.rules              |    1 +
- utils/keytable/Makefile |    4 ++--
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/staging/tm6000/tm6000-alsa.c |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
 
-diff --git a/Make.rules b/Make.rules
-index 0bb2eb8..875828a 100644
---- a/Make.rules
-+++ b/Make.rules
-@@ -11,6 +11,7 @@ PREFIX = /usr/local
- LIBDIR = $(PREFIX)/lib
- # subdir below LIBDIR in which to install the libv4lx libc wrappers
- LIBSUBDIR = libv4l
-+MANDIR = $(PREFIX)/share/man
+diff --git a/drivers/staging/tm6000/tm6000-alsa.c b/drivers/staging/tm6000/tm6000-alsa.c
+index acb0317..2b96047 100644
+--- a/drivers/staging/tm6000/tm6000-alsa.c
++++ b/drivers/staging/tm6000/tm6000-alsa.c
+@@ -84,7 +84,6 @@ static int _tm6000_start_audio_dma(struct snd_tm6000_card *chip)
  
- # These ones should not be overriden from the cmdline
+ 	tm6000_set_audio_bitrate(core, 48000);
  
-diff --git a/utils/keytable/Makefile b/utils/keytable/Makefile
-index 29a6ac4..e093280 100644
---- a/utils/keytable/Makefile
-+++ b/utils/keytable/Makefile
-@@ -39,7 +39,7 @@ install: $(TARGETS)
- 	install -m 644 -p rc_keymaps/* $(DESTDIR)/etc/rc_keymaps
- 	install -m 755 -d $(DESTDIR)/lib/udev/rules.d
- 	install -m 644 -p 70-infrared.rules $(DESTDIR)/lib/udev/rules.d
--	install -m 755 -d $(DESTDIR)$(PREFIX)/share/man/man1
--	install -m 644 -p ir-keytable.1 $(DESTDIR)$(PREFIX)/share/man/man1
-+	install -m 755 -d $(DESTDIR)$(MANDIR)/man1
-+	install -m 644 -p ir-keytable.1 $(DESTDIR)$(MANDIR)/man1
+-	tm6000_set_reg(core, TM6010_REQ08_R01_A_INIT, 0x80);
  
- include ../../Make.rules
+ 	return 0;
+ }
+@@ -101,8 +100,6 @@ static int _tm6000_stop_audio_dma(struct snd_tm6000_card *chip)
+ 	/* Disables audio */
+ 	tm6000_set_reg_mask(core, TM6010_REQ07_RCC_ACTIVE_VIDEO_IF, 0x00, 0x40);
+ 
+-	tm6000_set_reg(core, TM6010_REQ08_R01_A_INIT, 0);
+-
+ 	return 0;
+ }
+ 
 -- 
-1.7.4.4
+1.7.4.2
 
