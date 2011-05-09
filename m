@@ -1,49 +1,49 @@
-Return-path: <mchehab@pedra>
-Received: from claranet-outbound-smtp04.uk.clara.net ([195.8.89.37]:57343 "EHLO
-	claranet-outbound-smtp04.uk.clara.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752778Ab1EDJcd (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from mail-in-05.arcor-online.net ([151.189.21.45]:51277 "EHLO
+	mail-in-05.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754512Ab1EITyO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 May 2011 05:32:33 -0400
-From: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
-To: Andy Walls <awalls@md.metrocast.net>
-Subject: Re: [PATCH] cx18: Clean up mmap() support for raw YUV
-Date: Wed, 4 May 2011 10:32:23 +0100
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Steven Toth <stoth@kernellabs.com>
-References: <4DBFDF71.5090705@redhat.com> <1304423860-12785-1-git-send-email-simon.farnsworth@onelan.co.uk> <b418b252-4152-4666-9c83-85e91613b493@email.android.com>
-In-Reply-To: <b418b252-4152-4666-9c83-85e91613b493@email.android.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201105041032.24644.simon.farnsworth@onelan.co.uk>
+	Mon, 9 May 2011 15:54:14 -0400
+From: stefan.ringel@arcor.de
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, d.belimov@gmail.com,
+	Stefan Ringel <stefan.ringel@arcor.de>
+Subject: [PATCH 08/16] tm6000: remove old tuner params
+Date: Mon,  9 May 2011 21:53:56 +0200
+Message-Id: <1304970844-20955-8-git-send-email-stefan.ringel@arcor.de>
+In-Reply-To: <1304970844-20955-1-git-send-email-stefan.ringel@arcor.de>
+References: <1304970844-20955-1-git-send-email-stefan.ringel@arcor.de>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Tuesday 3 May 2011, Andy Walls <awalls@md.metrocast.net> wrote:
-> Simon,
-> 
-> If these two changes are going in, please also bump the driver version to
-> 1.5.0 in cx18-version.c.  These changes are significant enough
-> perturbation.
-> 
-> End users are going to look to driver version 1.4.1 as the first version
-> for proper analog tuner support of the HVR1600 model 74351.
-> 
-> Mauro,
-> 
-> Is cx18 v1.4.1 with HVR1600 model 74351 analog tuner support, without these
-> mmap() changes going to be visible in kernel version .39 ?
-> 
+From: Stefan Ringel <stefan.ringel@arcor.de>
 
-Mauro,
+remove old tuner params
 
-If you're going to accept these two patches, would you mind bumping the 
-version in cx18-version.c for me as you apply them, or would you prefer me to 
-provide either an incremental patch or a new patch with the bump added?
+
+Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+---
+ drivers/staging/tm6000/tm6000-cards.c |    6 +-----
+ 1 files changed, 1 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
+index 19120ed..8ca8727 100644
+--- a/drivers/staging/tm6000/tm6000-cards.c
++++ b/drivers/staging/tm6000/tm6000-cards.c
+@@ -922,12 +922,8 @@ static void tm6000_config_tuner(struct tm6000_core *dev)
+ 		memset(&xc2028_cfg, 0, sizeof(xc2028_cfg));
+ 		memset(&ctl, 0, sizeof(ctl));
+ 
+-		ctl.input1 = 1;
+-		ctl.read_not_reliable = 0;
+-		ctl.msleep = 10;
+ 		ctl.demod = XC3028_FE_ZARLINK456;
+-		ctl.vhfbw7 = 1;
+-		ctl.uhfbw8 = 1;
++
+ 		xc2028_cfg.tuner = TUNER_XC2028;
+ 		xc2028_cfg.priv  = &ctl;
+ 
 -- 
-Simon Farnsworth
-Software Engineer
-ONELAN Limited
-http://www.onelan.com/
+1.7.4.2
+
