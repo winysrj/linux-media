@@ -1,182 +1,233 @@
-Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.128.26]:21684 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752488Ab1EBLJ5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 May 2011 07:09:57 -0400
-From: <kalle.jokiniemi@nokia.com>
-To: <laurent.pinchart@ideasonboard.com>
-CC: <tony@atomide.com>, <mchebab@infradead.org>,
-	<linux-omap@vger.kernel.org>, <linux-media@vger.kernel.org>
-Subject: RE: [PATCH 1/2] OMAP3: ISP: Add regulator control for omap34xx
-Date: Mon, 2 May 2011 11:09:39 +0000
-Message-ID: <9D0D31AA57AAF5499AFDC63D6472631B09D008@008-AM1MPN1-036.mgdnok.nokia.com>
-References: <1304061120-6383-1-git-send-email-kalle.jokiniemi@nokia.com>
- <1304061120-6383-2-git-send-email-kalle.jokiniemi@nokia.com>
- <201104291148.57770.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201104291148.57770.laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Return-path: <mchehab@gaivota>
+Received: from mail1-out1.atlantis.sk ([80.94.52.55]:42198 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754704Ab1EIVju (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 May 2011 17:39:50 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: alsa-devel@alsa-project.org
+Subject: [PATCH 1/3] tea575x: unify read/write functions
+Date: Mon, 9 May 2011 23:39:26 +0200
+Cc: linux-media@vger.kernel.org,
+	"Kernel development list" <linux-kernel@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201105092339.29143.linux@rainbow-software.org>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi,
+Implement generic read/write functions to access TEA575x tuners. They're now
+implemented 4 times (once in es1968 and 3 times in fm801).
+This also allows mute to work on all cards.
+Also improve tuner detection/initialization.
 
- > -----Original Message-----
- > From: ext Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
- > Sent: 29. huhtikuuta 2011 12:49
- > To: Jokiniemi Kalle (Nokia-SD/Tampere)
- > Cc: tony@atomide.com; mchebab@infradead.org; linux-
- > omap@vger.kernel.org; linux-media@vger.kernel.org
- > Subject: Re: [PATCH 1/2] OMAP3: ISP: Add regulator control for omap34xx
- > 
- > Hi Kalle,
- > 
- > On Friday 29 April 2011 09:11:59 Kalle Jokiniemi wrote:
- > > The current omap3isp driver is missing regulator handling
- > > for CSIb complex in omap34xx based devices. This patch
- > > adds a mechanism for this to the omap3isp driver.
- > >
- > > Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
- > 
- > Thanks for the patch.
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 
-Sent an updated one, comments on what was done below.
+--- linux-2.6.39-rc2-/include/sound/tea575x-tuner.h	2011-04-29 22:48:34.000000000 +0200
++++ linux-2.6.39-rc2/include/sound/tea575x-tuner.h	2011-05-06 22:20:46.000000000 +0200
+@@ -26,12 +26,17 @@
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-ioctl.h>
+ 
++#define TEA575X_DATA	(1 << 0)
++#define TEA575X_CLK	(1 << 1)
++#define TEA575X_WREN	(1 << 2)
++#define TEA575X_MOST	(1 << 3)
++
+ struct snd_tea575x;
+ 
+ struct snd_tea575x_ops {
+-	void (*write)(struct snd_tea575x *tea, unsigned int val);
+-	unsigned int (*read)(struct snd_tea575x *tea);
+-	void (*mute)(struct snd_tea575x *tea, unsigned int mute);
++	void (*set_pins)(struct snd_tea575x *tea, u8 pins);
++	u8 (*get_pins)(struct snd_tea575x *tea);
++	void (*set_direction)(struct snd_tea575x *tea, bool output);
+ };
+ 
+ struct snd_tea575x {
+@@ -49,7 +54,7 @@ struct snd_tea575x {
+ 	void *private_data;
+ };
+ 
+-void snd_tea575x_init(struct snd_tea575x *tea);
++int snd_tea575x_init(struct snd_tea575x *tea);
+ void snd_tea575x_exit(struct snd_tea575x *tea);
+ 
+ #endif /* __SOUND_TEA575X_TUNER_H */
+--- linux-2.6.39-rc2-/sound/i2c/other/tea575x-tuner.c	2011-05-06 22:44:14.000000000 +0200
++++ linux-2.6.39-rc2/sound/i2c/other/tea575x-tuner.c	2011-05-06 22:21:09.000000000 +0200
+@@ -77,11 +77,65 @@ static struct v4l2_queryctrl radio_qctrl
+  * lowlevel part
+  */
+ 
++static void snd_tea575x_write(struct snd_tea575x *tea, unsigned int val)
++{
++	u16 l;
++	u8 data;
++
++	tea->ops->set_direction(tea, 1);
++	udelay(16);
++
++	for (l = 25; l > 0; l--) {
++		data = (val >> 24) & TEA575X_DATA;
++		val <<= 1;			/* shift data */
++		tea->ops->set_pins(tea, data | TEA575X_WREN);
++		udelay(2);
++		tea->ops->set_pins(tea, data | TEA575X_WREN | TEA575X_CLK);
++		udelay(2);
++		tea->ops->set_pins(tea, data | TEA575X_WREN);
++		udelay(2);
++	}
++
++	if (!tea->mute)
++		tea->ops->set_pins(tea, 0);
++}
++
++static unsigned int snd_tea575x_read(struct snd_tea575x *tea)
++{
++	u16 l, rdata;
++	u32 data = 0;
++
++	tea->ops->set_direction(tea, 0);
++	tea->ops->set_pins(tea, 0);
++	udelay(16);
++
++	for (l = 24; l--;) {
++		tea->ops->set_pins(tea, TEA575X_CLK);
++		udelay(2);
++		if (!l)
++			tea->tuned = tea->ops->get_pins(tea) & TEA575X_MOST ? 0 : 1;
++		tea->ops->set_pins(tea, 0);
++		udelay(2);
++		data <<= 1;			/* shift data */
++		rdata = tea->ops->get_pins(tea);
++		if (!l)
++			tea->stereo = (rdata & TEA575X_MOST) ?  0 : 1;
++		if (rdata & TEA575X_DATA)
++			data++;
++		udelay(2);
++	}
++
++	if (tea->mute)
++		tea->ops->set_pins(tea, TEA575X_WREN);
++
++	return data;
++}
++
+ static void snd_tea575x_get_freq(struct snd_tea575x *tea)
+ {
+ 	unsigned long freq;
+ 
+-	freq = tea->ops->read(tea) & TEA575X_BIT_FREQ_MASK;
++	freq = snd_tea575x_read(tea) & TEA575X_BIT_FREQ_MASK;
+ 	/* freq *= 12.5 */
+ 	freq *= 125;
+ 	freq /= 10;
+@@ -111,7 +165,7 @@ static void snd_tea575x_set_freq(struct
+ 
+ 	tea->val &= ~TEA575X_BIT_FREQ_MASK;
+ 	tea->val |= freq & TEA575X_BIT_FREQ_MASK;
+-	tea->ops->write(tea, tea->val);
++	snd_tea575x_write(tea, tea->val);
+ }
+ 
+ /*
+@@ -139,7 +193,7 @@ static int vidioc_g_tuner(struct file *f
+ 	if (v->index > 0)
+ 		return -EINVAL;
+ 
+-	tea->ops->read(tea);
++	snd_tea575x_read(tea);
+ 
+ 	strcpy(v->name, "FM");
+ 	v->type = V4L2_TUNER_RADIO;
+@@ -233,10 +287,8 @@ static int vidioc_g_ctrl(struct file *fi
+ 
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_AUDIO_MUTE:
+-		if (tea->ops->mute) {
+-			ctrl->value = tea->mute;
+-			return 0;
+-		}
++		ctrl->value = tea->mute;
++		return 0;
+ 	}
+ 	return -EINVAL;
+ }
+@@ -248,11 +300,11 @@ static int vidioc_s_ctrl(struct file *fi
+ 
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_AUDIO_MUTE:
+-		if (tea->ops->mute) {
+-			tea->ops->mute(tea, ctrl->value);
++		if (tea->mute != ctrl->value) {
+ 			tea->mute = ctrl->value;
+-			return 0;
++			snd_tea575x_set_freq(tea);
+ 		}
++		return 0;
+ 	}
+ 	return -EINVAL;
+ }
+@@ -317,18 +369,16 @@ static struct video_device tea575x_radio
+ /*
+  * initialize all the tea575x chips
+  */
+-void snd_tea575x_init(struct snd_tea575x *tea)
++int snd_tea575x_init(struct snd_tea575x *tea)
+ {
+ 	int retval;
+-	unsigned int val;
+ 	struct video_device *tea575x_radio_inst;
+ 
+-	val = tea->ops->read(tea);
+-	if (val == 0x1ffffff || val == 0) {
+-		snd_printk(KERN_ERR
+-			   "tea575x-tuner: Cannot find TEA575x chip\n");
+-		return;
+-	}
++	tea->mute = 1;
++
++	snd_tea575x_write(tea, 0x55AA);
++	if (snd_tea575x_read(tea) != 0x55AA)
++		return -ENODEV;
+ 
+ 	tea->in_use = 0;
+ 	tea->val = TEA575X_BIT_BAND_FM | TEA575X_BIT_SEARCH_10_40;
+@@ -337,7 +387,7 @@ void snd_tea575x_init(struct snd_tea575x
+ 	tea575x_radio_inst = video_device_alloc();
+ 	if (tea575x_radio_inst == NULL) {
+ 		printk(KERN_ERR "tea575x-tuner: not enough memory\n");
+-		return;
++		return -ENOMEM;
+ 	}
+ 
+ 	memcpy(tea575x_radio_inst, &tea575x_radio, sizeof(tea575x_radio));
+@@ -352,17 +402,13 @@ void snd_tea575x_init(struct snd_tea575x
+ 	if (retval) {
+ 		printk(KERN_ERR "tea575x-tuner: can't register video device!\n");
+ 		kfree(tea575x_radio_inst);
+-		return;
++		return retval;
+ 	}
+ 
+ 	snd_tea575x_set_freq(tea);
+-
+-	/* mute on init */
+-	if (tea->ops->mute) {
+-		tea->ops->mute(tea, 1);
+-		tea->mute = 1;
+-	}
+ 	tea->vd = tea575x_radio_inst;
++
++	return 0;
+ }
+ 
+ void snd_tea575x_exit(struct snd_tea575x *tea)
 
- > 
- > The CSIb pins are multiplexed with the parallel interface cam_d[6:9] signals,
- > so the driver might need to handle the vdds_csib regulator for the parallel
- > interface as well. We can leave that out now though, as I'm not sure we'll
- > ever see a platform that will require that.
- > 
- > > ---
- > >  drivers/media/video/omap3isp/ispccp2.c |   24
- > +++++++++++++++++++++++-
- > >  drivers/media/video/omap3isp/ispccp2.h |    1 +
- > >  2 files changed, 24 insertions(+), 1 deletions(-)
- > >
- > > diff --git a/drivers/media/video/omap3isp/ispccp2.c
- > > b/drivers/media/video/omap3isp/ispccp2.c index 0e16cab..3b17b0d 100644
- > > --- a/drivers/media/video/omap3isp/ispccp2.c
- > > +++ b/drivers/media/video/omap3isp/ispccp2.c
- > > @@ -30,6 +30,7 @@
- > >  #include <linux/module.h>
- > >  #include <linux/mutex.h>
- > >  #include <linux/uaccess.h>
- > > +#include <linux/regulator/consumer.h>
- > >
- > >  #include "isp.h"
- > >  #include "ispreg.h"
- > > @@ -163,6 +164,9 @@ static void ccp2_if_enable(struct isp_ccp2_device
- > > *ccp2, u8 enable) struct isp_pipeline *pipe =
- > > to_isp_pipeline(&ccp2->subdev.entity); int i;
- > >
- > > +	if (enable && ccp2->vdds_csib)
- > > +		regulator_enable(ccp2->vdds_csib);
- > > +
- > >  	/* Enable/Disable all the LCx channels */
- > >  	for (i = 0; i < CCP2_LCx_CHANS_NUM; i++)
- > >  		isp_reg_clr_set(isp, OMAP3_ISP_IOMEM_CCP2,
- > ISPCCP2_LCx_CTRL(i),
- > > @@ -186,6 +190,8 @@ static void ccp2_if_enable(struct isp_ccp2_device
- > > *ccp2, u8 enable) ISPCCP2_LC01_IRQENABLE,
- > >  				    ISPCCP2_LC01_IRQSTATUS_LC0_FS_IRQ);
- > >  	}
- > 
- > If you resubmit the patch to address the comments below, please add a blank
- > line here.
 
-Done.
-
-
- > 
- > > +	if (!enable && ccp2->vdds_csib)
- > > +		regulator_disable(ccp2->vdds_csib);
- > >  }
- > >
- > >  /*
- > > @@ -1137,6 +1143,10 @@ error:
- > >   */
- > >  void omap3isp_ccp2_cleanup(struct isp_device *isp)
- > >  {
- > > +	struct isp_ccp2_device *ccp2 = &isp->isp_ccp2;
- > > +
- > > +	if (isp->revision == ISP_REVISION_2_0)
- > > +		regulator_put(ccp2->vdds_csib);
- > 
- > What about testing ccp2->vdds_csib != NULL here like you do above ? Not all
- > ES2.0 platforms will use a regulator, so you can end up calling
- > regulator_put(NULL). regulator_put() will return immediately, but the API
- > doesn't allow it explictly either.
- > 
- > If regulator_put(NULL) is deemed to be safe, I would remove the revision
- > check
- > here. If it isn't, I would replace it with a ccp2->vdds_csib != NULL check.
-
-Regulator_put checks for NULL, so it's safe to call always.
-
-
- > 
- > >  }
- > >
- > >  /*
- > > @@ -1155,10 +1165,22 @@ int omap3isp_ccp2_init(struct isp_device *isp)
- > >  	 * the CSI2c or CSI2a receivers. The PHY then needs to be explicitly
- > >  	 * configured.
- > >  	 *
- > > +	 * On the OMAP34xx the CSI1/CCB is operated in the CSIb IO complex,
- > 
- > CSI1/CCB ? Do you mean CCP ?
- > 
- > The OMAP34xx has no CCP2 support anyway, so I would s,CSI1/CCB,CSI1
- > receiver,.
-
-Done.
-
- > 
- > > +	 * which is powered by vdds_csib power rail. Hence the request for
- > > +	 * the regulator.
- > > +	 *
- > >  	 * TODO: Don't hardcode the usage of PHY1 (shared with CSI2c).
- > >  	 */
- > > -	if (isp->revision == ISP_REVISION_15_0)
- > > +	if (isp->revision == ISP_REVISION_15_0) {
- > >  		ccp2->phy = &isp->isp_csiphy1;
- > > +	} else if (isp->revision == ISP_REVISION_2_0) {
- > > +		ccp2->vdds_csib = regulator_get(isp->dev, "vdds_csib");
- > > +		if (IS_ERR(ccp2->vdds_csib)) {
- > > +			dev_dbg(isp->dev,
- > > +				"Could not get regulator vdds_csib\n");
- > > +			ccp2->vdds_csib = NULL;
- > > +		}
- > > +	}
- > 
- > If you resubmit your patch to address the above comments, could you please
- > reorder the code (and the comment) here and put the ES2.0 check before the
- > 15.0 ?
-
-Done for both the code and comments.
-
-- Kalle
-
- > 
- > >  	ret = ccp2_init_entities(ccp2);
- > >  	if (ret < 0)
- > > diff --git a/drivers/media/video/omap3isp/ispccp2.h
- > > b/drivers/media/video/omap3isp/ispccp2.h index 5505a86..6674e9d 100644
- > > --- a/drivers/media/video/omap3isp/ispccp2.h
- > > +++ b/drivers/media/video/omap3isp/ispccp2.h
- > > @@ -81,6 +81,7 @@ struct isp_ccp2_device {
- > >  	struct isp_interface_mem_config mem_cfg;
- > >  	struct isp_video video_in;
- > >  	struct isp_csiphy *phy;
- > > +	struct regulator *vdds_csib;
- > >  	unsigned int error;
- > >  	enum isp_pipeline_stream_state state;
- > >  	wait_queue_head_t wait;
- > 
- > --
- > Regards,
- > 
- > Laurent Pinchart
+-- 
+Ondrej Zary
