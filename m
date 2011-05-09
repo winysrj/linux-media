@@ -1,34 +1,60 @@
-Return-path: <mchehab@pedra>
-Received: from luna.schedom-europe.net ([193.109.184.86]:37479 "EHLO
-	luna.schedom-europe.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754455Ab1EXQTj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 May 2011 12:19:39 -0400
-Date: Tue, 24 May 2011 18:18:17 +0200
-From: Guy Martin <gmsoft@tuxicoman.be>
-To: <abraham.manu@gmail.com>
-Cc: <linux-media@vger.kernel.org>
-Subject: STV6110 FE_READ_STATUS implementation
-Message-ID: <20110524181817.34097929@borg.bxl.tuxicoman.be>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Return-path: <mchehab@gaivota>
+Received: from mx1.redhat.com ([209.132.183.28]:52800 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752000Ab1EISZf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 May 2011 14:25:35 -0400
+Message-ID: <4DC831A6.7090408@redhat.com>
+Date: Mon, 09 May 2011 14:25:42 -0400
+From: Jarod Wilson <jarod@redhat.com>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+CC: =?UTF-8?B?SnVhbiBKZXPDunMgR2FyY8OtYSBkZSBTb3JpYQ==?=
+	<skandalfo@gmail.com>
+Subject: Re: [PATCH] [media] ite-cir: make IR receive work after resume
+References: <1304953686-21805-1-git-send-email-jarod@redhat.com>
+In-Reply-To: <1304953686-21805-1-git-send-email-jarod@redhat.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+
+Jarod Wilson wrote:
+> Just recently acquired an Asus Eee Box PC with an onboard IR receiver
+> driven by ite-cir (ITE8713 sub-variant). Works out of the box with the
+> ite-cir driver in 2.6.39, but stops working after a suspend/resume
+> cycle. Its fixed by simply reinitializing registers after resume,
+> similar to what's done in the nuvoton-cir driver. I've not tested with
+> any other ITE variant, but code inspection suggests this should be safe
+> on all variants.
+>
+> Reported-by: Stephan Raue<sraue@openelec.tv>
+> CC: Juan Jesús García de Soria<skandalfo@gmail.com>
+> Signed-off-by: Jarod Wilson<jarod@redhat.com>
+> ---
+>   drivers/media/rc/ite-cir.c |    2 ++
+>   1 files changed, 2 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/media/rc/ite-cir.c b/drivers/media/rc/ite-cir.c
+> index 43908a7..8488e53 100644
+> --- a/drivers/media/rc/ite-cir.c
+> +++ b/drivers/media/rc/ite-cir.c
+> @@ -1684,6 +1684,8 @@ static int ite_resume(struct pnp_dev *pdev)
+>   		/* wake up the transmitter */
+>   		wake_up_interruptible(&dev->tx_queue);
+>   	} else {
+> +		/* reinitialize hardware config registers */
+> +		itdev->params.init_hardware(itdev);
+>   		/* enable the receiver */
+>   		dev->params.enable_rx(dev);
 
 
-Hi Manu,
+Gah. I've obviously screwed this one up. Tested a locally built version 
+of the module on the machine itself, then did a copy/paste of the 
+init_hardware line from elsewhere in the driver where struct ite_dev was 
+called itdev instead of just dev. v2 momentarily.
 
-I'm currently writing an application that needs to know the detailed
-frontend status when there is no lock.
-As far as I can see from the sources, the code will only set the right
-status when there is a lock in stv6110x_get_status().
+-- 
+Jarod Wilson
+jarod@redhat.com
 
-Does the STV6110 supports reporting of signal, carrier, viterbi and
-sync ?
 
-I'd be happy to implement that if it does but I wasn't able to find the
-datasheet. Do you have that available ?
-
-Regards,
-  Guy
