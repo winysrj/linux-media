@@ -1,74 +1,51 @@
-Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:16338 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753181Ab1E2LyK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 May 2011 07:54:10 -0400
-Message-ID: <4DE233EA.2000400@redhat.com>
-Date: Sun, 29 May 2011 13:54:18 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Return-path: <mchehab@gaivota>
+Received: from mail2.matrix-vision.com ([85.214.244.251]:37592 "EHLO
+	mail2.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751342Ab1EIMis (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 May 2011 08:38:48 -0400
+Message-ID: <4DC7DEC9.1000400@matrix-vision.de>
+Date: Mon, 09 May 2011 14:32:09 +0200
+From: Michael Jones <michael.jones@matrix-vision.de>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [RFCv2] Add a library to retrieve associated media devices -
- was: Re: [ANNOUNCE] experimental alsa stream support at xawtv3
-References: <4DDAC0C2.7090508@redhat.com> <4DE120D1.2020805@redhat.com> <4DE19AF7.2000401@redhat.com> <201105291319.47207.hverkuil@xs4all.nl>
-In-Reply-To: <201105291319.47207.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: locking in OMAP ISP subdevs
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi,
+Hi Laurent,
 
-On 05/29/2011 01:19 PM, Hans Verkuil wrote:
-> Hi Mauro,
->
-> Thanks for the RFC! Some initial comments below. I'll hope to do some more
-> testing and reviewing in the coming week.
->
+I can't find where the locking is handled for ISP subdev standard ioctls
+like ccdc_v4l2_pad_ops.set_fmt().  Using the CCDC as an example, it
+looks to me like the following sequence happens when e.g. format is set
+on CCDC pad 0:
 
-<Snip>
+1. # media-ctl --set-format '"OMAP3 ISP CCDC":0 [Y8 640x480]'
 
->> c) get_not_associated_device: Returns the next device not associated with
->> 			      an specific device type.
->>
->> char *get_not_associated_device(void *opaque,
->> 			    char *last_seek,
->> 			    enum device_type desired_type,
->> 			    enum device_type not_desired_type);
->>
->> The parameters are:
->>
->> opaque:			media devices opaque descriptor
->> last_seek:		last seek result. Use NULL to get the first result
->> desired_type:		type of the desired device
->> not_desired_type:	type of the seek device
->>
->> This function seeks inside the media_devices struct for the next physical
->> device that doesn't support a non_desired type.
->> This method is useful for example to return the audio devices that are
->> provided by the motherboard.
->
-> Hmmm. What you really want IMHO is to iterate over 'media hardware', and for
-> each piece of hardware you can find the associated device nodes.
->
-> It's what you expect to see in an application: a list of USB/PCI/Platform
-> devices to choose from.
+2. v4l2-dev.c:v4l2_ioctl()
 
-This is exactly what I was thinking, I was think along the lines of making
-the device_type enum bitmasks instead, and have a list devices functions,
-which lists all the "physical" media devices as "describing string",
-capabilities pairs, where capabilities would include things like sound
-in / sound out, etc.
+this calls vdev->fops->unlocked_ioctl, which was set to
+v4l2-subdev.c:subdev_ioctl() in "v4l2_subdev_fops" in
+v4l2-device.c:v4l2_device_register_subdev_nodes()
 
-And then a function to get a device string (be it a device node
-or an alsa device string, whatever is appropriate) for each capability
-of a device.
+3. v4l2-subdev.c:subdev_ioctl()
+4. video_usercopy()
+5. v4l2-ioctl.c:__video_usercopy()
+6. v4l2-subdev.c:subdev_do_ioctl()
+7. ispccdc.c:ccdc_set_format()
 
-This does need some more thought for more complex devices though ...
+ccdc_set_format() sets ccdc->formats[pad], access to which should be
+serialized, but I don't see how this happens.  In the call sequence
+above, the only opportunity I see is in (2), but only then if
+ccdc->subdev.devnode.lock is set, which doesn't seem to be done.
 
-Regards,
+Can you clarify this for me?  What mutex is held during a call to
+ccdc_set_format()?
 
-Hans
+-Michael
+
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
