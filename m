@@ -1,45 +1,86 @@
-Return-path: <mchehab@pedra>
-Received: from amber.schedom-europe.net ([193.109.184.92]:45417 "EHLO
-	amber.schedom-europe.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753834Ab1E0UHT (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from mail-in-05.arcor-online.net ([151.189.21.45]:51274 "EHLO
+	mail-in-05.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754496Ab1EITyO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 May 2011 16:07:19 -0400
-Message-ID: <4DE002DB.8000304@dommel.be>
-Date: Fri, 27 May 2011 22:00:27 +0200
-From: Marc Coevoet <marcc@dommel.be>
-Reply-To: marcc@dommel.be
-MIME-Version: 1.0
+	Mon, 9 May 2011 15:54:14 -0400
+From: stefan.ringel@arcor.de
 To: linux-media@vger.kernel.org
-CC: Willem van Asperen <willem@ereprijs.demon.nl>,
-	linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Terratec Cinergy C HD - CAM support.... Need help?
-References: <201105272148.04347.willem@ereprijs.demon.nl>
-In-Reply-To: <201105272148.04347.willem@ereprijs.demon.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Cc: mchehab@redhat.com, d.belimov@gmail.com,
+	Stefan Ringel <stefan.ringel@arcor.de>
+Subject: [PATCH 07/16] tm6000: remove unused capabilities
+Date: Mon,  9 May 2011 21:53:55 +0200
+Message-Id: <1304970844-20955-7-git-send-email-stefan.ringel@arcor.de>
+In-Reply-To: <1304970844-20955-1-git-send-email-stefan.ringel@arcor.de>
+References: <1304970844-20955-1-git-send-email-stefan.ringel@arcor.de>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Op 27-05-11 21:48, Willem van Asperen schreef:
->
-> a) CAM support is currently not implemented for terratec HD
+From: Stefan Ringel <stefan.ringel@arcor.de>
 
-For all cards?
-
-I use TNT/dvb sticks, and you should be able to decode HD video with a 
-so called "no hd" usb stick.
-
-Because it is a question of software, not hardware.
-
-Maybe, if one CAM card works, you should look for it ...
+remove unused capabilities
 
 
-Marc
 
+Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+---
+ drivers/staging/tm6000/tm6000-cards.c |    8 --------
+ drivers/staging/tm6000/tm6000.h       |    2 --
+ 2 files changed, 0 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
+index 199cc86..19120ed 100644
+--- a/drivers/staging/tm6000/tm6000-cards.c
++++ b/drivers/staging/tm6000/tm6000-cards.c
+@@ -396,8 +396,6 @@ struct tm6000_board tm6000_boards[] = {
+ 			.has_eeprom     = 1,
+ 			.has_remote     = 1,
+ 			.has_radio	= 1.
+-			.has_input_comp = 1,
+-			.has_input_svid = 1,
+ 		},
+ 		.gpio = {
+ 			.tuner_reset	= TM6010_GPIO_0,
+@@ -435,8 +433,6 @@ struct tm6000_board tm6000_boards[] = {
+ 			.has_eeprom     = 1,
+ 			.has_remote     = 1,
+ 			.has_radio	= 1,
+-			.has_input_comp = 1,
+-			.has_input_svid = 1,
+ 		},
+ 		.gpio = {
+ 			.tuner_reset	= TM6010_GPIO_0,
+@@ -568,8 +564,6 @@ struct tm6000_board tm6000_boards[] = {
+ 			.has_eeprom     = 1,
+ 			.has_remote     = 0,
+ 			.has_radio	= 1,
+-			.has_input_comp = 0,
+-			.has_input_svid = 0,
+ 		},
+ 		.gpio = {
+ 			.tuner_reset	= TM6010_GPIO_0,
+@@ -599,8 +593,6 @@ struct tm6000_board tm6000_boards[] = {
+ 			.has_eeprom     = 1,
+ 			.has_remote     = 0,
+ 			.has_radio	= 1,
+-			.has_input_comp = 0,
+-			.has_input_svid = 0,
+ 		},
+ 		.gpio = {
+ 			.tuner_reset	= TM6010_GPIO_0,
+diff --git a/drivers/staging/tm6000/tm6000.h b/drivers/staging/tm6000/tm6000.h
+index e4ca896..ae6369b 100644
+--- a/drivers/staging/tm6000/tm6000.h
++++ b/drivers/staging/tm6000/tm6000.h
+@@ -143,8 +143,6 @@ struct tm6000_capabilities {
+ 	unsigned int    has_eeprom:1;
+ 	unsigned int    has_remote:1;
+ 	unsigned int    has_radio:1;
+-	unsigned int    has_input_comp:1;
+-	unsigned int    has_input_svid:1;
+ };
+ 
+ struct tm6000_dvb {
 -- 
-The "Penguin" has arrived - and he's not going away - ever.
-What's on Shortwave guide: choose an hour, go!
-http://shortwave.tk
-700+ Radio Stations on SW http://swstations.tk
-300+ languages on SW http://radiolanguages.tk
+1.7.4.2
 
