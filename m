@@ -1,61 +1,126 @@
-Return-path: <mchehab@pedra>
-Received: from mail01.prevas.se ([62.95.78.3]:8023 "EHLO mail01.prevas.se"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754293Ab1EYP54 convert rfc822-to-8bit (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from mail-in-08.arcor-online.net ([151.189.21.48]:44904 "EHLO
+	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754102Ab1EITyK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 May 2011 11:57:56 -0400
-Content-class: urn:content-classes:message
-MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Subject: omap3isp - H3A auto white balance
-Date: Wed, 25 May 2011 17:47:51 +0200
-Message-ID: <CA7B7D6C54015B459601D68441548157C5A3F8@prevas1.prevas.se>
-In-Reply-To: <CA7B7D6C54015B459601D68441548157C5A3B3@prevas1.prevas.se>
-References: <CA7B7D6C54015B459601D68441548157C5A3AE@prevas1.prevas.se> <201103241135.06025.laurent.pinchart@ideasonboard.com> <CA7B7D6C54015B459601D68441548157C5A3B3@prevas1.prevas.se>
-From: "Daniel Lundborg" <Daniel.Lundborg@prevas.se>
-To: <linux-media@vger.kernel.org>
+	Mon, 9 May 2011 15:54:10 -0400
+From: stefan.ringel@arcor.de
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, d.belimov@gmail.com,
+	Stefan Ringel <stefan.ringel@arcor.de>
+Subject: [PATCH 01/16] tm6000: add radio capabilities
+Date: Mon,  9 May 2011 21:53:49 +0200
+Message-Id: <1304970844-20955-1-git-send-email-stefan.ringel@arcor.de>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hello,
+From: Stefan Ringel <stefan.ringel@arcor.de>
 
-I am developing a camera sensor driver for the Aptina MT9V034. I am only
-using it in snapshot mode and I can successfully trigger the sensor and
-receive pictures using the latest omap3isp driver from
-git://linuxtv.org/pinchartl/media.git branch omap3isp-next-sensors with
-kernel 2.6.38.
-
-I configure the sensor with media-ctl:
-
-media-ctl -r -l '"mt9v034 3-0048":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP
-CCDC":1->"OMAP3 ISP CCDC output":0[1]'
-media-ctl -f '"mt9v034 3-0048":0[SGRBG10 752x480], "OMAP3 ISP
-CCDC":1[SGRBG10 752x480]'
-
-And take pictures with yavta:
-
-./yavta -f SGRBG10 -s 752x480 -n 6 --capture=6 -F /dev/video2
-
-My trouble is that I am always receiving whiter pictures when I wait a
-moment before triggering the sensor to take a picture. If I take several
-pictures in a row with for instance 20 ms between them, they all look
-ok. But if I wait for 100 ms the picture will get much whiter.
-
-I have turned off auto exposure and auto gain in the sensor and the
-LED_OUT signal always have the same length (in this case 8 msec).
-
-Why would the pictures become whiter if I wait a moment before taking a
-picture?
-
-If I set the sensor in streaming mode all pictures look like they
-should.
-
-Could there be something with the H3A auto white balance or auto
-exposure?
+add radio capabilities
 
 
-Regards,
+Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+---
+ drivers/staging/tm6000/tm6000-cards.c |    4 +++
+ drivers/staging/tm6000/tm6000-video.c |   34 +++++++++++++++++---------------
+ drivers/staging/tm6000/tm6000.h       |    1 +
+ 3 files changed, 23 insertions(+), 16 deletions(-)
 
-Daniel Lundborg
+diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
+index 6e51486..31ccd2f 100644
+--- a/drivers/staging/tm6000/tm6000-cards.c
++++ b/drivers/staging/tm6000/tm6000-cards.c
+@@ -254,6 +254,7 @@ struct tm6000_board tm6000_boards[] = {
+ 			.has_zl10353    = 1,
+ 			.has_eeprom     = 1,
+ 			.has_remote     = 1,
++			.has_radio	= 1.
+ 			.has_input_comp = 1,
+ 			.has_input_svid = 1,
+ 		},
+@@ -276,6 +277,7 @@ struct tm6000_board tm6000_boards[] = {
+ 			.has_zl10353    = 0,
+ 			.has_eeprom     = 1,
+ 			.has_remote     = 1,
++			.has_radio	= 1,
+ 			.has_input_comp = 1,
+ 			.has_input_svid = 1,
+ 		},
+@@ -350,6 +352,7 @@ struct tm6000_board tm6000_boards[] = {
+ 			.has_zl10353    = 1,
+ 			.has_eeprom     = 1,
+ 			.has_remote     = 0,
++			.has_radio	= 1,
+ 			.has_input_comp = 0,
+ 			.has_input_svid = 0,
+ 		},
+@@ -372,6 +375,7 @@ struct tm6000_board tm6000_boards[] = {
+ 			.has_zl10353    = 0,
+ 			.has_eeprom     = 1,
+ 			.has_remote     = 0,
++			.has_radio	= 1,
+ 			.has_input_comp = 0,
+ 			.has_input_svid = 0,
+ 		},
+diff --git a/drivers/staging/tm6000/tm6000-video.c b/drivers/staging/tm6000/tm6000-video.c
+index f82edfa..a434a32 100644
+--- a/drivers/staging/tm6000/tm6000-video.c
++++ b/drivers/staging/tm6000/tm6000-video.c
+@@ -1730,24 +1730,26 @@ int tm6000_v4l2_register(struct tm6000_core *dev)
+ 	printk(KERN_INFO "%s: registered device %s\n",
+ 	       dev->name, video_device_node_name(dev->vfd));
+ 
+-	dev->radio_dev = vdev_init(dev, &tm6000_radio_template,
+-						   "radio");
+-	if (!dev->radio_dev) {
+-		printk(KERN_INFO "%s: can't register radio device\n",
+-		       dev->name);
+-		return ret; /* FIXME release resource */
+-	}
++	if (dev->caps.has_radio) {
++		dev->radio_dev = vdev_init(dev, &tm6000_radio_template,
++							   "radio");
++		if (!dev->radio_dev) {
++			printk(KERN_INFO "%s: can't register radio device\n",
++			       dev->name);
++			return ret; /* FIXME release resource */
++		}
+ 
+-	ret = video_register_device(dev->radio_dev, VFL_TYPE_RADIO,
+-				    radio_nr);
+-	if (ret < 0) {
+-		printk(KERN_INFO "%s: can't register radio device\n",
+-		       dev->name);
+-		return ret; /* FIXME release resource */
+-	}
++		ret = video_register_device(dev->radio_dev, VFL_TYPE_RADIO,
++					    radio_nr);
++		if (ret < 0) {
++			printk(KERN_INFO "%s: can't register radio device\n",
++			       dev->name);
++			return ret; /* FIXME release resource */
++		}
+ 
+-	printk(KERN_INFO "%s: registered device %s\n",
+-	       dev->name, video_device_node_name(dev->radio_dev));
++		printk(KERN_INFO "%s: registered device %s\n",
++		       dev->name, video_device_node_name(dev->radio_dev));
++	}
+ 
+ 	printk(KERN_INFO "Trident TVMaster TM5600/TM6000/TM6010 USB2 board (Load status: %d)\n", ret);
+ 	return ret;
+diff --git a/drivers/staging/tm6000/tm6000.h b/drivers/staging/tm6000/tm6000.h
+index fdd6d30..8cdc992 100644
+--- a/drivers/staging/tm6000/tm6000.h
++++ b/drivers/staging/tm6000/tm6000.h
+@@ -129,6 +129,7 @@ struct tm6000_capabilities {
+ 	unsigned int    has_zl10353:1;
+ 	unsigned int    has_eeprom:1;
+ 	unsigned int    has_remote:1;
++	unsigned int    has_radio:1;
+ 	unsigned int    has_input_comp:1;
+ 	unsigned int    has_input_svid:1;
+ };
+-- 
+1.7.4.2
+
