@@ -1,71 +1,51 @@
-Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:41666 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934618Ab1ETOeF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 May 2011 10:34:05 -0400
-Received: by bwz15 with SMTP id 15so3011947bwz.19
-        for <linux-media@vger.kernel.org>; Fri, 20 May 2011 07:34:02 -0700 (PDT)
-Message-ID: <4DD67B68.7070704@mvista.com>
-Date: Fri, 20 May 2011 18:32:08 +0400
-From: Sergei Shtylyov <sshtylyov@mvista.com>
+Return-path: <mchehab@gaivota>
+Received: from tx2ehsobe001.messaging.microsoft.com ([65.55.88.11]:36713 "EHLO
+	TX2EHSOBE002.bigfish.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751185Ab1EIJxa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 May 2011 05:53:30 -0400
+From: "Jiang, Scott" <Scott.Jiang@analog.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: "uclinux-dist-devel@blackfin.uclinux.org"
+	<uclinux-dist-devel@blackfin.uclinux.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+	"laurent.pinchart@ideasonboard.com"
+	<laurent.pinchart@ideasonboard.com>
+Date: Mon, 9 May 2011 05:53:18 -0400
+Subject: RE: why is there no enum_input in v4l2_subdev_video_ops
+Message-ID: <E43657A3F2E26048BB0EBCA7C4CB6941B4B52CDE4D@NWD2CMBX1.ad.analog.com>
+References: <E43657A3F2E26048BB0EBCA7C4CB6941B4B52CDE0C@NWD2CMBX1.ad.analog.com>
+ <Pine.LNX.4.64.1105091102320.21938@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1105091102320.21938@axis700.grange>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Manjunath Hadli <manjunath.hadli@ti.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>
-Subject: Re: [PATCH v17 5/6] davinci vpbe: Build infrastructure for VPBE driver
-References: <1305899324-2118-1-git-send-email-manjunath.hadli@ti.com>
-In-Reply-To: <1305899324-2118-1-git-send-email-manjunath.hadli@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hello.
+Hi all,
 
-Manjunath Hadli wrote:
+>> Why is there no enum_input operation in v4l2_subdev_video_ops?
 
-> This patch adds the build infra-structure for Davinci
-> VPBE dislay driver.
+> Maybe because noone needed it until now?
 
-> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-> Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
-[...]
+>> I found some drivers put this info in board specific data, but in my
+>> opinion this info is sensor or decoder related.
 
-> diff --git a/drivers/media/video/davinci/Kconfig b/drivers/media/video/davinci/Kconfig
-> index 6b19540..a7f11e7 100644
-> --- a/drivers/media/video/davinci/Kconfig
-> +++ b/drivers/media/video/davinci/Kconfig
-> @@ -91,3 +91,25 @@ config VIDEO_ISIF
->  
->  	   To compile this driver as a module, choose M here: the
->  	   module will be called vpfe.
-> +
-> +config VIDEO_DM644X_VPBE
-> +	tristate "DM644X VPBE HW module"
+> Can you tell which drivers / boards you're referring to?
 
-    BTW, as this seems DM644x specific, shouldn't this depend on 
-CONFIG_ARCH_DAVINCI_DM644x?
+I referred to drivers/media/video/davinci files.
 
-> +	select VIDEO_VPSS_SYSTEM
-> +	select VIDEOBUF_DMA_CONTIG
-> +	help
-> +	    Enables VPBE modules used for display on a DM644x
-> +	    SoC.
-> +
-> +	    To compile this driver as a module, choose M here: the
-> +	    module will be called vpbe.
-> +
-> +
-> +config VIDEO_VPBE_DISPLAY
-> +	tristate "VPBE V4L2 Display driver"
-> +	select VIDEO_DM644X_VPBE
+>> So it should be put into the sensor drivers.
 
-    Or this one, if it selects VIDEO_DM644X_VPBE?
+> Maybe. Also notice, I'm not a maintainer nor a principal v4l2-subdev
+> developer. I've added Hans and Laurent to Cc:, will see what they say, or
+> you can just point out which drivers / platforms are doing this wrong and
+> propose a fix.
 
-> +	default y
+Sorry, I only found your mail in MAINTAINERS.
 
-    Hm, "y" shouldn't be the default.
+Regards,
+Scott
 
-WBR, Sergei
