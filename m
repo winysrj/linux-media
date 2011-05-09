@@ -1,59 +1,74 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1975 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933993Ab1ESU5E (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 May 2011 16:57:04 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Ondrej Zary <linux@rainbow-software.org>
-Subject: Re: [PATCH v5] radio-sf16fmr2: convert to generic TEA575x interface
-Date: Thu, 19 May 2011 22:56:44 +0200
-Cc: linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	"Kernel development list" <linux-kernel@vger.kernel.org>
-References: <201105140017.26968.linux@rainbow-software.org> <201105190845.38194.hverkuil@xs4all.nl> <201105191815.46658.linux@rainbow-software.org>
-In-Reply-To: <201105191815.46658.linux@rainbow-software.org>
+Return-path: <mchehab@gaivota>
+Received: from ffm.saftware.de ([83.141.3.46]:59168 "EHLO ffm.saftware.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751114Ab1EIKMM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 May 2011 06:12:12 -0400
+Message-ID: <4DC7BDF7.1020706@linuxtv.org>
+Date: Mon, 09 May 2011 12:12:07 +0200
+From: Andreas Oberritter <obi@linuxtv.org>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org,
+	Thierry LELEGARD <tlelegard@logiways.com>
+Subject: Re: [PATCH 2/8] DVB: dtv_property_cache_submit shouldn't modifiy
+ the cache
+References: <1304895821-21642-1-git-send-email-obi@linuxtv.org> <1304895821-21642-3-git-send-email-obi@linuxtv.org> <4DC7665E.5000202@redhat.com> <4DC769A6.1090100@redhat.com>
+In-Reply-To: <4DC769A6.1090100@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201105192256.44127.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Thursday, May 19, 2011 18:15:43 Ondrej Zary wrote:
-> Convert radio-sf16fmr2 to use generic TEA575x implementation. Most of the
-> driver code goes away as SF16-FMR2 is basically just a TEA5757 tuner
-> connected to ISA bus.
-> The card can optionally be equipped with PT2254A volume control (equivalent
-> of TC9154AP) - the volume setting is completely reworked (with balance control
-> added) and tested.
+On 05/09/2011 06:12 AM, Mauro Carvalho Chehab wrote:
+> Em 09-05-2011 05:58, Mauro Carvalho Chehab escreveu:
+>> Em 09-05-2011 01:03, Andreas Oberritter escreveu:
+>>> - Use const pointers and remove assignments.
+>>
+>> That's OK.
+>>
+>>> - delivery_system already gets assigned by DTV_DELIVERY_SYSTEM
+>>>   and dtv_property_cache_sync.
+>>
+>> The logic for those legacy params is too complex. It is easy that
+>> a latter patch to break the implicit set via dtv_property_cache_sync().
+>>
+>> Do you actually see a bug caused by the extra set for the delivery system?
+>> If not, I prefer to keep this extra re-assignment.
+
+No, but I was suprised to see the dtv_frontend_properties getting
+modified in this function. There are three functions converting between
+old and new structures:
+
+dtv_property_cache_sync:
+  converts from dvb_frontend_parameters to dtv_frontend_properties
+
+dtv_property_legacy_params_sync and dtv_property_adv_params_sync:
+  convert from dtv_frontend_properties to dvb_frontend_parameters
+
+Assigning to fields of a source structure indicates a logical error. I
+haven't found any comment on why this should be needed in the Git
+history or in the mailing list archives.
+
+Btw., I think that two functions should be enough. Any reason for not
+merging dtv_property_adv_params_sync into
+dtv_property_legacy_params_sync and calling the latter unconditionally?
+
+> Hmm... after applying all patches the logic change, and patch 2 may actually
+> make sense. I'll need to re-examine the patch series. 
 > 
-> Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+> On a quick look, if applied as-is, I suspect that git bisect
+> will break dvb in the middle of the patch series.
 
-Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+Patches 6 and 8 depend on the patches mentioned in the cover letter. All
+other patches should apply and compile cleanly. Which patch do you
+suspect to break bisectability?
 
-Except for one tiny little typo:
+> Anyway, patch 1/8 is OK. For now, I'll apply only this patch. I'll delay the
+> others until I have more time. I'm currently traveling abroad, due to Linaro
+> Development Summit, so, I don't have much time for review (and I'm also suffering
+> for a 5 hours jet-leg).
 
-> --- linux-2.6.39-rc2-/drivers/media/radio/radio-sf16fmr2.c	2011-04-06 03:30:43.000000000 +0200
-> +++ linux-2.6.39-rc2/drivers/media/radio/radio-sf16fmr2.c	2011-05-19 17:56:08.000000000 +0200
-> +static int fmr2_tea_ext_init(struct snd_tea575x *tea)
->  {
-> -	return a->index ? -EINVAL : 0;
-> -}
-> +	struct fmr2 *fmr2 = tea->private_data;
->  
-> -static const struct v4l2_file_operations fmr2_fops = {
-> -	.owner          = THIS_MODULE,
-> -	.unlocked_ioctl = video_ioctl2,
-> -};
-> +	if (inb(fmr2->io) & FMR2_HASVOL) {
-> +		fmr2->volume = v4l2_ctrl_new_std(&tea->ctrl_handler, &fmr2_ctrl_ops, V4L2_CID_AUDIO_VOLUME, 0, 68, 2, 56);
-> +		fmr2->balance = v4l2_ctrl_new_std(&tea->ctrl_handler, &fmr2_ctrl_ops, V4L2_CID_AUDIO_BALANCE, -68, 68, 2, 0);
-> +		if (tea->ctrl_handler.error) {
-> +			printk(KERN_ERR "radio-sf16fmr2: can't initialize contrls\n");
+OK, there's no hurry.
 
-contrls -> controls
-
-> +			return tea->ctrl_handler.error;
-> +		}
-> +	}
+Regards,
+Andreas
