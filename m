@@ -1,193 +1,191 @@
-Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:44044 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751535Ab1EPWZb (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:38881 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751450Ab1EJK1H convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 May 2011 18:25:31 -0400
-Received: by wya21 with SMTP id 21so3797871wya.19
-        for <linux-media@vger.kernel.org>; Mon, 16 May 2011 15:25:30 -0700 (PDT)
-Subject: [PATCH ] v1.87 DM04/QQBOX provide error frontend detach/memory
- release.
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 16 May 2011 23:25:23 +0100
-Message-ID: <1305584723.2481.13.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Tue, 10 May 2011 06:27:07 -0400
+Received: by iyb14 with SMTP id 14so5055497iyb.19
+        for <linux-media@vger.kernel.org>; Tue, 10 May 2011 03:27:07 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <201105101153.04978.laurent.pinchart@ideasonboard.com>
+References: <BANLkTi=pS07RymXLOFsRihd5Jso-y6OsHg@mail.gmail.com>
+	<201105101132.11041.laurent.pinchart@ideasonboard.com>
+	<BANLkTimLhOJstjpbxLSxS-qNPYhbfGxUNw@mail.gmail.com>
+	<201105101153.04978.laurent.pinchart@ideasonboard.com>
+Date: Tue, 10 May 2011 12:27:05 +0200
+Message-ID: <BANLkTinrSz4nULGS729jEhs1O=wvUy19Jg@mail.gmail.com>
+Subject: Re: Current status report of mt9p031.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Chris Rodley <carlighting@yahoo.co.nz>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Remove and free any unused frontend attach on firmware change
- and provide memory release using priv_exit callback.
+On 10 May 2011 11:53, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> On Tuesday 10 May 2011 11:49:10 javier Martin wrote:
+>> > Please try replacing the media-ctl -f line with
+>> >
+>> > ./media-ctl -f '"mt9p031 2-0048":0[SGRBG12 320x240], \
+>> >        "OMAP3 ISP CCDC":0[SGRBG8 320x240], \
+>> >        "OMAP3 ISP CCDC":1[SGRBG8 320x240]'
+>> >
+>> > --
+>> > Regards,
+>> >
+>> > Laurent Pinchart
+>>
+>> Hi Laurent,
+>> that didn't work either (Unable to start streaming: 32.)
+>
+> With the latest 2.6.39-rc ? Lane-shifter support has been introduced very
+> recently.
+>
+> Can you post the output of media-ctl -p after configuring formats on your
+> pipeline ?
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
 
-Other minor changes
-fix le16 warning.
-remove unnecessary lme2510_kill_urb.
+Sure,
+this is the output you requested:
 
-Moving of rc_core is still on TODO list.
+root@beagleboard:~# ./media-ctl -p
+Opening media device /dev/media0
+Enumerating entities
+Found 16 entities
+Enume rating pads and links
+Device topology
+- entity 1: OMAP3 ISP CCP2 (2 pads, 2 links)
+            type V4L2 subdev subtype Unknown
+            device node name /dev/v4l-subdev0
+        pad0: Input [SGRBG10 4096x4096]
+                <- 'OMAP3 ISP CCP2 input':pad0 []
+        pad1: Output [SGRBG10 4096x4096]
+                -> 'OMAP3 ISP CCDC':pad0 []
 
-Requires Patch: dvb-usb provide exit any structure inside priv.
+- entity 2: OMAP3 ISP CCP2 input (1 pad, 1 link)
+            type Node subtype V4L
+            device node name /dev/video0
+        pad0: Output
+                -> 'OMAP3 ISP CCP2':pad0 []
 
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
----
- drivers/media/dvb/dvb-usb/lmedm04.c |   93 +++++++++++++----------------------
- 1 files changed, 34 insertions(+), 59 deletions(-)
+- entity 3: OMAP3 ISP CSI2a (2 pads, 2 links)
+            type V4L2 subdev subtype Unknown
+            device node name /dev/v4l-subdev1
+        pad0: Input [SGRBG10 4096x4096]
+        pad1: Output [SGRBG10 4096x4096]
+                -> 'OMAP3 ISP CSI2a output':pad0 []
+                -> 'OMAP3 ISP CCDC':pad0 []
 
-diff --git a/drivers/media/dvb/dvb-usb/lmedm04.c b/drivers/media/dvb/dvb-usb/lmedm04.c
-index f36f471..c636149 100644
---- a/drivers/media/dvb/dvb-usb/lmedm04.c
-+++ b/drivers/media/dvb/dvb-usb/lmedm04.c
-@@ -831,7 +831,7 @@ static int lme_firmware_switch(struct usb_device *udev, int cold)
- 
- 	cold_fw = !cold;
- 
--	if (udev->descriptor.idProduct == 0x1122) {
-+	if (le16_to_cpu(udev->descriptor.idProduct) == 0x1122) {
- 		switch (dvb_usb_lme2510_firmware) {
- 		default:
- 			dvb_usb_lme2510_firmware = TUNER_S0194;
-@@ -901,20 +901,6 @@ static int lme_firmware_switch(struct usb_device *udev, int cold)
- 	return ret;
- }
- 
--static int lme2510_kill_urb(struct usb_data_stream *stream)
--{
--	int i;
--
--	for (i = 0; i < stream->urbs_submitted; i++) {
--		deb_info(3, "killing URB no. %d.", i);
--		/* stop the URB */
--		usb_kill_urb(stream->urb_list[i]);
--	}
--	stream->urbs_submitted = 0;
--
--	return 0;
--}
--
- static struct tda10086_config tda10086_config = {
- 	.demod_address = 0x1c,
- 	.invert = 0,
-@@ -1052,9 +1038,11 @@ static int dm04_lme2510_frontend_attach(struct dvb_usb_adapter *adap)
- 	}
- 
- 
--end:	if (ret) {
--		kfree(adap->fe);
--		adap->fe = NULL;
-+end:	if (ret < 0) {
-+		if (adap->fe) {
-+			dvb_frontend_detach(adap->fe);
-+			adap->fe = NULL;
-+		}
- 		return -ENODEV;
- 	}
- 
-@@ -1126,6 +1114,30 @@ static int lme2510_powerup(struct dvb_usb_device *d, int onoff)
- 	return ret;
- }
- 
-+static int lme2510_priv_exit(struct dvb_usb_device *d)
-+{
-+	struct lme2510_state *st = d->priv;
-+
-+	if (st->usb_buffer != NULL) {
-+		st->i2c_talk_onoff = 1;
-+		st->signal_lock = 0;
-+		st->signal_level = 0;
-+		st->signal_sn = 0;
-+		kfree(st->usb_buffer);
-+	}
-+
-+	if (st->lme_urb != NULL) {
-+		usb_kill_urb(st->lme_urb);
-+		usb_free_coherent(d->udev, 5000, st->buffer,
-+				  st->lme_urb->transfer_dma);
-+		info("Interrupt Service Stopped");
-+		rc_unregister_device(d->rc_dev);
-+		info("Remote Stopped");
-+	}
-+
-+	return 0;
-+}
-+
- /* DVB USB Driver stuff */
- static struct dvb_usb_device_properties lme2510_properties;
- static struct dvb_usb_device_properties lme2510c_properties;
-@@ -1178,6 +1190,7 @@ MODULE_DEVICE_TABLE(usb, lme2510_table);
- static struct dvb_usb_device_properties lme2510_properties = {
- 	.caps = DVB_USB_IS_AN_I2C_ADAPTER,
- 	.size_of_priv = sizeof(struct lme2510_state),
-+	.priv_exit = lme2510_priv_exit,
- 	.num_adapters = 1,
- 	.adapter = {
- 		{
-@@ -1220,6 +1233,7 @@ static struct dvb_usb_device_properties lme2510_properties = {
- static struct dvb_usb_device_properties lme2510c_properties = {
- 	.caps = DVB_USB_IS_AN_I2C_ADAPTER,
- 	.size_of_priv = sizeof(struct lme2510_state),
-+	.priv_exit = lme2510_priv_exit,
- 	.num_adapters = 1,
- 	.adapter = {
- 		{
-@@ -1258,49 +1272,10 @@ static struct dvb_usb_device_properties lme2510c_properties = {
- 	}
- };
- 
--static void *lme2510_exit_int(struct dvb_usb_device *d)
--{
--	struct lme2510_state *st = d->priv;
--	struct dvb_usb_adapter *adap = &d->adapter[0];
--	void *buffer = NULL;
--
--	if (adap != NULL) {
--		lme2510_kill_urb(&adap->stream);
--		adap->feedcount = 0;
--	}
--
--	if (st->lme_urb != NULL) {
--		st->i2c_talk_onoff = 1;
--		st->signal_lock = 0;
--		st->signal_level = 0;
--		st->signal_sn = 0;
--		buffer = st->usb_buffer;
--		usb_kill_urb(st->lme_urb);
--		usb_free_coherent(d->udev, 5000, st->buffer,
--				  st->lme_urb->transfer_dma);
--		info("Interrupt Service Stopped");
--		rc_unregister_device(d->rc_dev);
--		info("Remote Stopped");
--	}
--	return buffer;
--}
--
--static void lme2510_exit(struct usb_interface *intf)
--{
--	struct dvb_usb_device *d = usb_get_intfdata(intf);
--	void *usb_buffer;
--
--	if (d != NULL) {
--		usb_buffer = lme2510_exit_int(d);
--		dvb_usb_device_exit(intf);
--		kfree(usb_buffer);
--	}
--}
--
- static struct usb_driver lme2510_driver = {
- 	.name		= "LME2510C_DVB-S",
- 	.probe		= lme2510_probe,
--	.disconnect	= lme2510_exit,
-+	.disconnect	= dvb_usb_device_exit,
- 	.id_table	= lme2510_table,
- };
- 
-@@ -1327,5 +1302,5 @@ module_exit(lme2510_module_exit);
- 
- MODULE_AUTHOR("Malcolm Priestley <tvboxspy@gmail.com>");
- MODULE_DESCRIPTION("LME2510(C) DVB-S USB2.0");
--MODULE_VERSION("1.86");
-+MODULE_VERSION("1.87");
- MODULE_LICENSE("GPL");
+- entity 4: OMAP3 ISP CSI2a output (1 pad, 1 link)
+            type Node subtype V4L
+            device node name /dev/video1
+        pad0: Input
+                <- 'OMAP3 ISP CSI2a':pad1 []
+
+- entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
+            type V4L2 subdev subtype Unknown
+            device node name /dev/v4l-subdev2
+        pad0: Input [SGRBG8 320x240]
+                <- 'OMAP3 ISP CCP2':pad1 []
+                <- 'OMAP3 ISP CSI2a':pad1 []
+                <- 'mt9p031 2-0048':pad0 [ACTIVE]
+        pad1: Output [SGRBG8 320x240]
+                -> 'OMAP3 ISP CCDC output':pad0 [ACTIVE]
+                -> 'OMAP3 ISP resizer':pad0 []
+        pad2: Output [SGRBG8 320x239]
+                -> 'OMAP3 ISP preview':pad0 []
+                -> 'OMAP3 ISP AEWB':pad0 [IMMUTABLE,ACTIVE]
+                -> 'OMAP3 ISP AF':pad0 [IMMUTABLE,ACTIVE]
+                -> 'OMAP3 ISP histogram':pad0 [IMMUTABLE,ACTIVE]
+
+- entity 6: OMAP3 ISP CCDC output (1 pad, 1 link)
+            type Node subtype V4L
+            device node name /dev/video2
+        pad0: Input
+                <- 'OMAP3 ISP CCDC':pad1 [ACTIVE]
+
+- entity 7: OMAP3 ISP preview (2 pads, 4 links)
+            type V4L2 subdev subtype Unknown
+            device node name /dev/v4l-subdev3
+        pad0: Input [SGRBG10 4096x4096]
+                <- 'OMAP3 ISP CCDC':pad2 []
+                <- 'OMAP3 ISP preview input':pad0 []
+        pad1: Output [YUYV 4082x4088]
+                -> 'OMAP3 ISP preview output':pad0 []
+                -> 'OMAP3 ISP resizer':pad0 []
+
+- entity 8: OMAP3 ISP preview input (1 pad, 1 link)
+            type Node subtype V4L
+            device node name /dev/video3
+        pad0: Output
+                -> 'OMAP3 ISP preview':pad0 []
+
+- entity 9: OMAP3 ISP preview output (1 pad, 1 link)
+            type Node subtype V4L
+            device node name /dev/video4
+        pad0: Input
+                <- 'OMAP3 ISP preview':pad1 []
+
+- entity 10: OMAP3 ISP resizer (2 pads, 4 links)
+             type V4L2 subdev subtype Unknown
+             device node name /dev/v4l-subdev4
+        pad0: Input [YUYV 4095x4095 (4,6)/4086x4082]
+                <- 'OMAP3 ISP CCDC':pad1 []
+                <- 'OMAP3 ISP preview':pad1 []
+                <- 'OMAP3 ISP resizer input':pad0 []
+        pad1: Output [YUYV 4096x4095]
+                -> 'OMAP3 ISP resizer output':pad0 []
+
+- entity 11: OMAP3 ISP resizer input (1 pad, 1 link)
+             type Node subtype V4L
+             device node name /dev/video5
+        pad0: Output
+                -> 'OMAP3 ISP resizer':pad0 []
+
+- entity 12: OMAP3 ISP resizer output (1 pad, 1 link)
+             type Node subtype V4L
+             device node name /dev/video6
+        pad0: Input
+                <- 'OMAP3 ISP resizer':pad1 []
+
+- entity 13: OMAP3 ISP AEWB (1 pad, 1 link)
+             type V4L2 subdev subtype Unknown
+             device node name /dev/v4l-subdev5
+        pad0: Input
+                <- 'OMAP3 ISP CCDC':pad2 [IMMUTABLE,ACTIVE]
+
+- entity 14: OMAP3 ISP AF (1 pad, 1 link)
+             type V4L2 subdev subtype Unknown
+             device node name /dev/v4l-subdev6
+        pad0: Input
+                <- 'OMAP3 ISP CCDC':pad2 [IMMUTABLE,ACTIVE]
+
+- entity 15: OMAP3 ISP histogram (1 pad, 1 link)
+             type V4L2 subdev subtype Unknown
+             device node name /dev/v4l-subdev7
+        pad0: Input
+                <- 'OMAP3 ISP CCDC':pad2 [IMMUTABLE,ACTIVE]
+
+- entity 16: mt9p031 2-0048 (1 pad, 1 link)
+             type V4L2 subdev subtype Unknown
+             device node name /dev/v4l-subdev8
+        pad0: Output [SGRBG12 320x240 (0,0)/2240x1920]
+                -> 'OMAP3 ISP CCDC':pad0 [ACTIVE]
+
 -- 
-1.7.4.1
-
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
