@@ -1,106 +1,133 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1096 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750753Ab1EZGxm (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from tulikuusama.dnainternet.net ([83.102.40.132]:36510 "EHLO
+	tulikuusama.dnainternet.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751003Ab1EJFOi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 May 2011 02:53:42 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: [ANNOUNCE] experimental alsa stream support at xawtv3
-Date: Thu, 26 May 2011 08:53:31 +0200
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <4DDAC0C2.7090508@redhat.com> <201105240850.35032.hverkuil@xs4all.nl> <BANLkTikFROSj8LBeCs=Ep1R-HFEEFGOYZw@mail.gmail.com>
-In-Reply-To: <BANLkTikFROSj8LBeCs=Ep1R-HFEEFGOYZw@mail.gmail.com>
+	Tue, 10 May 2011 01:14:38 -0400
+Message-ID: <4DC8C9B6.5000501@iki.fi>
+Date: Tue, 10 May 2011 08:14:30 +0300
+From: Anssi Hannula <anssi.hannula@iki.fi>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Peter Hutterer <peter.hutterer@who-t.net>
+CC: linux-media@vger.kernel.org,
+	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
+	xorg-devel@lists.freedesktop.org
+Subject: Re: IR remote control autorepeat / evdev
+References: <4DC61E28.4090301@iki.fi> <20110510041107.GA32552@barra.redhat.com>
+In-Reply-To: <20110510041107.GA32552@barra.redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201105260853.31065.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Tuesday, May 24, 2011 16:57:22 Devin Heitmueller wrote:
-> On Tue, May 24, 2011 at 2:50 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > On Monday, May 23, 2011 22:17:06 Mauro Carvalho Chehab wrote:
-> >> Due to the alsa detection code that I've added at libv4l2util (at v4l2-utils)
-> >> during the weekend, I decided to add alsa support also on xawtv3, basically
-> >> to provide a real usecase example. Of course, for it to work, it needs the
-> >> very latest v4l2-utils version from the git tree.
-> >
-> > Please, please add at the very least some very big disclaimer in libv4l2util
-> > that the API/ABI is likely to change. As mentioned earlier, this library is
-> > undocumented, has not gone through any peer-review, and I am very unhappy with
-> > it and with the decision (without discussion it seems) to install it.
-> >
-> > Once you install it on systems it becomes much harder to change.
-
-I wanted to do a review of this library, but Devin did it for me in his
-comments below.
-
-I completely agree with his comments.
-
-Once I have all the control framework stuff that is in my queue done, then
-I want to go through as many drivers as I can and bring them all up to
-the latest V4L2 standards (using v4l2-compliance to verify correctness).
-
-It is my intention to create some helper functions to implement a MC node for
-these simple legacy drivers. Eventually all V4L drivers should have a MC node.
-
-Writing a library like the one proposed here would then be much easier and
-it would function as a front-end for the MC.
-
-The last few months I wasn't able to really spend the time on V4L that I
-wanted, but that is changing for the better.
-
-Regards,
-
-	Hans
-
-> I share Hans' concern on this.  This is an API that seems pretty
-> immature, and I worry that it's adoption will cause lots of problems
-> as people expect it to work with a wide variety of tuners.
+On 10.05.2011 07:11, Peter Hutterer wrote:
+> On Sun, May 08, 2011 at 07:38:00AM +0300, Anssi Hannula wrote:
+>> Hi all!
+>>
+>> Most IR/RF remotes differ from normal keyboards in that they don't
+>> provide release events. They do provide native repeat events, though.
+>>
+>> Currently the Linux kernel RC/input subsystems provide a simulated
+>> autorepeat for remote controls (default delay 500ms, period 33ms), and
+>> X.org server ignores these events and generates its own autorepeat for them.
+>>
+>> The kernel RC subsystem provides a simulated release event when 250ms
+>> has passed since the last native event (repeat or non-repeat) was
+>> received from the device.
+>>
+>> This is problematic, since it causes lots of extra repeat events to be
+>> always sent (for up to 250ms) after the user has released the remote
+>> control button, which makes the remote quite uncomfortable to use.
 > 
-> For example, how does the sysfs approach handle PCI boards that have
-> multiple video and audio devices?  The sysfs layout will effectively
-> be:
+> I got a bit confused reading this description. Does this mean that remotes
+> usually send:
+>     key press - repeat - repeat - ... - repeat - <silence>
+> where the silence indicates that the key has been released? Which the kernel
+> after 250ms translates into a release event.
+> And the kernel discards the repeats and generates it's own on 500/33?
+> Do I get this right so far?
+
+Yes.
+
+> If so, I'm not sure how to avoid the 250ms delay since we have no indication
+> from the hardware when the silence will stop, right?
+
+Yes.
+AFAICS what we need is to not use softrepeat for these devices and
+instead use the native repeats. The 250ms release delay could then be
+kept (as it wouldn't cause unwanted repeats anymore) or it could be made
+0ms if that is deemed better.
+
+I listed some ways to do that below in my original post.
+
+> Note that the repeat delay and ratio are configurable per-device using XKB,
+> so you could set up the 500/33 in X too.
+
+It wouldn't make any difference with the actual issue which is
+"autorepeat happening after physical key released".
+
+I guess the reason this hasn't come up earlier is that the unified IR/RC
+subsystem in the linux kernel is still quite new. It definitely needs to
+be improved regarding this issue - just trying to figure out the best
+way to do it.
+
+
+> Cheers,
+>   Peter
 > 
-> PCI DEVICE
-> -> video0
-> -> video1
-> -> alsa hw:1,0
-> -> alsa hw:1,1
+>> Now, IMO something should be done to fix this. But what exactly?
+>>
+>> Here are two ideas that would remove these ghost repeats:
+>>
+>> 1. Do not provide any repeat/release simulation in the kernel for RC
+>> devices (by default?), just provide both keydown and immediate release
+>> events for every native keypress or repeat received from the device.
+>> + Very simple to implement
+>> - We lose the ability to track repeats, i.e. if a new event was a repeat
+>>   or a new keypress; "holding down" a key becomes impossible
+>>
+>> or
+>> 2. Replace kernel autorepeat simulation by passing through the native
+>> repeat events (probably filtering them according to REP_DELAY and
+>> REP_PERIOD), and have a device property bit (fetchable via EVIOCGPROP)
+>> indicating that the keyrelease is simulated, and have the X server use
+>> the native repeats instead of softrepeats for such a device.
+>> + The userspace correctly gets repeat events tagged as repeats and
+>>   release events when appropriate (albeit a little late)
+>> - Adds complexity. Also, while the kernel part is quite easy to
+>>   implement, I'm not sure if the X server part is.
+>>
+>> or
+>> 3. Same as 1., but indicate the repeatness of an event with a new
+>>    additional special event before EV_SYN (sync event).
+>> + Simple to implement
+>> - Quite hacky, and userspace still can't guess from initial
+>>   keypress/release if the key is still pressed down or not.
+>>
+>> 4. Same as 1., but have a new EV_RC with RC_KEYDOWN and RC_KEYUP events,
+>>    with RC_KEYDOWN sent when a key is pressed down a first time along
+>>    with the normal EV_KEY event, and RC_KEYUP sent when the key is
+>>    surely released (e.g. 250ms without native repeat events or another
+>>    key got pressed, i.e. like the simulated keyup now).
+>> + Simple to implement, works as expected with most userspace apps with
+>>   no changes to them; and if an app wants to know the repeatness of an
+>>   event or held-down-ness of a key, it can do that.
+>> - Repeatness of the event is hidden behind a new API.
+>>
+>> What do you think? Or any other ideas?
+>>
+>> 2 and 4 seem nicest to me.
+>> (I don't know how feasible 2 would be on X server side, though)
+>>
+>> -- 
+>> Anssi Hannula
+>> _______________________________________________
+>> xorg-devel@lists.x.org: X.Org development
+>> Archives: http://lists.x.org/archives/xorg-devel
+>> Info: http://lists.x.org/mailman/listinfo/xorg-devel
+>>
 > 
-> The approach taken in this library will probably help with the simple
-> cases such as a USB tuner that only has a single video device, audio
-> device, and VBI device.  But it's going to fall flat on its face when
-> it comes to devices that have multiple capture sources (since sysfs
-> will represent this as a tree with all the nodes on the same level).
-> 
-> Oh, and how is it expected to handle informing the application about
-> device contention between DVB and V4L?  Some devices share the tuner
-> and therefore you cannot use both the V4L and DVB device at the same
-> time.  Other products have two independent input paths on the same
-> board, allowing both to be used simultaneously (the HVR-1600 is a
-> popular example of this).  Sysfs isn't going to tell you this
-> information, which is why in the MC API we explicitly added the notion
-> of device groups (so the driver author can explicitly state the
-> relationships).
-> 
-> Today MythTV users accomplish this by manually specifying "Input
-> Groups".  I say that's what they do, but in reality they don't realize
-> that they need to configure MythTV this way until they complain that
-> MythTV recordings fail when trying to record programs on both inputs,
-> at which point an advanced user points it out to them.  End users
-> shouldn't have to understand the internal architecture of their
-> capture card just to avoid weird crashy behavior (which is what often
-> happens if you try to use both devices simultaneously since almost no
-> hybrid drivers do proper locking).
-> 
-> I am in favor of this finally getting some attention, but the reality
-> is that sysfs isn't going to cut it.  It just doesn't expose enough
-> information about the underlying hardware layout.
-> 
-> Devin
-> 
-> 
+
+
+-- 
+Anssi Hannula
