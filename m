@@ -1,195 +1,49 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:53982 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754152Ab1ENUU4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 May 2011 16:20:56 -0400
-Received: by iwn34 with SMTP id 34so3038008iwn.19
-        for <linux-media@vger.kernel.org>; Sat, 14 May 2011 13:20:56 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <BANLkTikfy1sWV5Hf6sn-rSAqkyRsEX_VVw@mail.gmail.com>
-References: <BANLkTikfy1sWV5Hf6sn-rSAqkyRsEX_VVw@mail.gmail.com>
-Date: Sat, 14 May 2011 22:20:55 +0200
-Message-ID: <BANLkTi=Aa3aujFnGmOCQ-F+Y6x_sFgm_Ng@mail.gmail.com>
-Subject: Re: adding dvb-t scan files for New Zealand
-From: Christoph Pfister <christophpfister@gmail.com>
-To: Jodi the Tigger <jodi.the.tigger@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from lo.gmane.org ([80.91.229.12]:56265 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753428Ab1EJXaH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 May 2011 19:30:07 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1QJwNR-0003Oc-6o
+	for linux-media@vger.kernel.org; Wed, 11 May 2011 01:30:05 +0200
+Received: from 213.137.58.124 ([213.137.58.124])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Wed, 11 May 2011 01:30:05 +0200
+Received: from root by 213.137.58.124 with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Wed, 11 May 2011 01:30:05 +0200
+To: linux-media@vger.kernel.org
+From: Doychin Dokov <root@net1.cc>
+Subject: TT S2-3650CI problems with high-SR DVB-S2 transponders
+Date: Wed, 11 May 2011 02:24:43 +0300
+Message-ID: <iqchgm$os9$1@dough.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1251; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Can you please attach the files as files?
+I've been trying to get TechnoTrend S2-3650CI running with DVB-S2 
+transponder with SR of 30000. I'm using stock Debian 6 kernel 
+2.6.32-5-amd64 and s2-liplianin tree.
 
-Christoph
+Initially, the device couldn't lock the 30K transponders at all. After 
+applying patch [1], it locks without any problems, and does so very fast:
+sat 0, frequency 11632 MHz V, symbolrate 30000000, coderate auto, 
+rolloff 0.35
+vpid 0x1fff, apid 0x1fff, sid 0x0000
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+status 00 | signal 0000 | snr 0004 | ber 00000000 | unc fffffffe |
+status 1b | signal 05aa | snr 0023 | ber 00516155 | unc fffffffe | 
+FE_HAS_LOCK
+This happens each and every time I try. So far, so good, but when I'm 
+trying to stream a PID with dvblast, I get lots of TS discontinuities. 
+It does read the NIT and PAT fine, but nothing else is nearly-usable.
 
+I've then tried the STB6100 patch [2], but it does not seem to do any 
+help in this case.
 
-2011/5/13 Jodi the Tigger <jodi.the.tigger@gmail.com>:
-> Hello all,
->
-> I want to add dvb-t scan files for New Zealand, as there only seems to
-> be one (For Waiatarua, Auckland, NZ).
-> However I have no idea how to actually get the files I created added
-> to the linux tv project.
->
-> So if someone could either:
-> 1) point me to a faq / wiki / web site explaining how I can update
-> dvb-t scan files.
-> or
-> 2) Kindly add the files for me.
->
-> I would be most grateful.
->
-> I have pasted the contents of the files below (each comment block is a
-> new file).
->
-> -Richard Maxwell
->
-> # Waiatarua, Auckland NZ
-> #
-> # Channel allocation details for NZ can be found at
-> # http://en.wikipedia.org/wiki/Freeview_(New_Zealand)
-> #
-> # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
->
-> T 538000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
-> T 570000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
-> T 666000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
->
-> # Pinehill, Remuera, Sky Tower, Auckland Infill, Auckland NZ
-> #
-> # Channel allocation details for NZ can be found at
-> # http://en.wikipedia.org/wiki/Freeview_(New_Zealand)
-> #
-> # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
->
-> T 530000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
-> T 562000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
-> T 626000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
->
-> # Te Aroha, Waikato NZ
-> #
-> # Channel allocation details for NZ can be found at
-> # http://en.wikipedia.org/wiki/Freeview_(New_Zealand)
-> #
-> # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
->
-> T 674000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
-> T 690000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
-> T 706000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
->
-> # Hamilton Infill, Waikato NZ
-> #
-> # Channel allocation details for NZ can be found at
-> # http://en.wikipedia.org/wiki/Freeview_(New_Zealand)
-> #
-> # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
->
-> T 698000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
-> T 714000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
-> T 682000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
->
-> # Kopukairua, Tauranga NZ
-> #
-> # Channel allocation details for NZ can be found at
-> # http://en.wikipedia.org/wiki/Freeview_(New_Zealand)
-> #
-> # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
->
-> T 698000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
-> T 714000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
-> T 642000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
->
-> # Mt. Erin, Hawkes Bay NZ
-> #
-> # Channel allocation details for NZ can be found at
-> # http://en.wikipedia.org/wiki/Freeview_(New_Zealand)
-> #
-> # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
->
-> T 522000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
-> T 554000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
-> T 650000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
->
-> # Napier Infill, Hawkes Bay NZ
-> #
-> # Channel allocation details for NZ can be found at
-> # http://en.wikipedia.org/wiki/Freeview_(New_Zealand)
-> #
-> # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
->
-> T 690000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
-> T 706000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
-> T 778000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
->
-> # Wharite, Manawatu NZ
-> #
-> # Channel allocation details for NZ can be found at
-> # http://en.wikipedia.org/wiki/Freeview_(New_Zealand)
-> #
-> # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
->
-> T 690000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
-> T 706000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
-> T 778000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
->
->
-> # Kaukau, Wellington NZ
-> #
-> # Channel allocation details for NZ can be found at
-> # http://en.wikipedia.org/wiki/Freeview_(New_Zealand)
-> #
-> # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
->
-> T 690000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
-> T 706000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
-> T 778000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
->
-> # Fitzherbert, Baxters Knob, Wellington infill, Wellington NZ
-> #
-> # Channel allocation details for NZ can be found at
-> # http://en.wikipedia.org/wiki/Freeview_(New_Zealand)
-> #
-> # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
->
-> T 714000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
-> T 730000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
-> T 762000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
->
-> # Ngarara, Wellington NZ
-> #
-> # Channel allocation details for NZ can be found at
-> # http://en.wikipedia.org/wiki/Freeview_(New_Zealand)
-> #
-> # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
->
-> T 666000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
-> T 730000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
-> T 762000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
->
-> # Sugarloaf, Christchurch NZ
-> #
-> # Channel allocation details for NZ can be found at
-> # http://en.wikipedia.org/wiki/Freeview_(New_Zealand)
-> #
-> # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
->
-> T 682000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
-> T 698000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
-> T 706000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
->
-> # Mt Cargill, Dunedin NZ
-> #
-> # Channel allocation details for NZ can be found at
-> # http://en.wikipedia.org/wiki/Freeview_(New_Zealand)
-> #
-> # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
->
-> T 650000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
-> T 666000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
-> T 730000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Any ideas?
+
