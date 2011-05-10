@@ -1,123 +1,50 @@
-Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.23]:43047 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753576Ab1EDLRn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 May 2011 07:17:43 -0400
-Message-ID: <4DC135E5.40805@gmx.net>
-Date: Wed, 04 May 2011 13:17:57 +0200
-From: Lutz Sammer <johns98@gmx.net>
+Return-path: <mchehab@gaivota>
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:43854 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752777Ab1EJJtL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 May 2011 05:49:11 -0400
+Received: by gwaa18 with SMTP id a18so2071444gwa.19
+        for <linux-media@vger.kernel.org>; Tue, 10 May 2011 02:49:10 -0700 (PDT)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: mchehab@redhat.com
-Subject: [PATCH] stb0899: Fix not locking DVB-S transponder
-Content-Type: multipart/mixed;
- boundary="------------060306030505080506020806"
-List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
-
-This is a multi-part message in MIME format.
---------------060306030505080506020806
+In-Reply-To: <201105101132.11041.laurent.pinchart@ideasonboard.com>
+References: <BANLkTi=pS07RymXLOFsRihd5Jso-y6OsHg@mail.gmail.com>
+	<201105051855.32405.laurent.pinchart@ideasonboard.com>
+	<BANLkTimhvxzn0cfZdAMYq=3Eg72eKgFx8Q@mail.gmail.com>
+	<201105101132.11041.laurent.pinchart@ideasonboard.com>
+Date: Tue, 10 May 2011 11:49:10 +0200
+Message-ID: <BANLkTimLhOJstjpbxLSxS-qNPYhbfGxUNw@mail.gmail.com>
+Subject: Re: Current status report of mt9p031.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Chris Rodley <carlighting@yahoo.co.nz>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
+List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-stb0899: Fix not locking DVB-S transponder
+> Please try replacing the media-ctl -f line with
+>
+> ./media-ctl -f '"mt9p031 2-0048":0[SGRBG12 320x240], \
+>        "OMAP3 ISP CCDC":0[SGRBG8 320x240], \
+>        "OMAP3 ISP CCDC":1[SGRBG8 320x240]'
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
 
-When stb0899_check_data is entered, it could happen, that the data is
-already locked and the data search looped.  stb0899_check_data fails to
-lock on a good frequency.  stb0899_search_data uses an extrem big search
-step and fails to lock.
+Hi Laurent,
+that didn't work either (Unable to start streaming: 32.)
 
-The new code checks for lock before starting a new search.
-The first read ignores the loop bit, for the case that the loop bit is
-set during the search setup.  I also added the msleep to reduce the
-traffic on the i2c bus.
-
-Resend, last version seems to be broken by email-client.
-
-Johns
-
-Signed-off-by: Lutz Sammer <johns98@gmx.net>
-
---------------060306030505080506020806
-Content-Type: text/plain;
- name="stb0899_not_locking_fix.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="stb0899_not_locking_fix.diff"
-
-diff --git a/drivers/media/dvb/frontends/stb0899_algo.c b/drivers/media/dvb/frontends/stb0899_algo.c
-index 2da55ec..55f0c4e 100644
---- a/drivers/media/dvb/frontends/stb0899_algo.c
-+++ b/drivers/media/dvb/frontends/stb0899_algo.c
-@@ -338,36 +338,42 @@ static enum stb0899_status stb0899_check_data(struct stb0899_state *state)
- 	int lock = 0, index = 0, dataTime = 500, loop;
- 	u8 reg;
- 
--	internal->status = NODATA;
-+	reg = stb0899_read_reg(state, STB0899_VSTATUS);
-+	lock = STB0899_GETFIELD(VSTATUS_LOCKEDVIT, reg);
-+	if ( !lock ) {
- 
--	/* RESET FEC	*/
--	reg = stb0899_read_reg(state, STB0899_TSTRES);
--	STB0899_SETFIELD_VAL(FRESACS, reg, 1);
--	stb0899_write_reg(state, STB0899_TSTRES, reg);
--	msleep(1);
--	reg = stb0899_read_reg(state, STB0899_TSTRES);
--	STB0899_SETFIELD_VAL(FRESACS, reg, 0);
--	stb0899_write_reg(state, STB0899_TSTRES, reg);
-+		internal->status = NODATA;
- 
--	if (params->srate <= 2000000)
--		dataTime = 2000;
--	else if (params->srate <= 5000000)
--		dataTime = 1500;
--	else if (params->srate <= 15000000)
--		dataTime = 1000;
--	else
--		dataTime = 500;
--
--	stb0899_write_reg(state, STB0899_DSTATUS2, 0x00); /* force search loop	*/
--	while (1) {
--		/* WARNING! VIT LOCKED has to be tested before VIT_END_LOOOP	*/
--		reg = stb0899_read_reg(state, STB0899_VSTATUS);
--		lock = STB0899_GETFIELD(VSTATUS_LOCKEDVIT, reg);
--		loop = STB0899_GETFIELD(VSTATUS_END_LOOPVIT, reg);
-+		/* RESET FEC	*/
-+		reg = stb0899_read_reg(state, STB0899_TSTRES);
-+		STB0899_SETFIELD_VAL(FRESACS, reg, 1);
-+		stb0899_write_reg(state, STB0899_TSTRES, reg);
-+		msleep(1);
-+		reg = stb0899_read_reg(state, STB0899_TSTRES);
-+		STB0899_SETFIELD_VAL(FRESACS, reg, 0);
-+		stb0899_write_reg(state, STB0899_TSTRES, reg);
- 
--		if (lock || loop || (index > dataTime))
--			break;
--		index++;
-+		if (params->srate <= 2000000)
-+			dataTime = 2000;
-+		else if (params->srate <= 5000000)
-+			dataTime = 1500;
-+		else if (params->srate <= 15000000)
-+			dataTime = 1000;
-+		else
-+			dataTime = 500;
-+
-+		stb0899_write_reg(state, STB0899_DSTATUS2, 0x00); /* force search loop	*/
-+		while (1) {
-+			/* WARNING! VIT LOCKED has to be tested before VIT_END_LOOOP	*/
-+			reg = stb0899_read_reg(state, STB0899_VSTATUS);
-+			lock = STB0899_GETFIELD(VSTATUS_LOCKEDVIT, reg);
-+			loop = STB0899_GETFIELD(VSTATUS_END_LOOPVIT, reg);
-+	
-+			if (lock || (loop && index) || (index > dataTime))
-+				break;
-+			index++;
-+			msleep(1);
-+		}
- 	}
- 
- 	if (lock) {	/* DATA LOCK indicator	*/
-
---------------060306030505080506020806--
+-- 
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
