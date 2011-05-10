@@ -1,40 +1,65 @@
-Return-path: <mchehab@pedra>
-Received: from nm15-vm1.bullet.mail.sp2.yahoo.com ([98.139.91.209]:39490 "HELO
-	nm15-vm1.bullet.mail.sp2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751935Ab1EXFDm convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 May 2011 01:03:42 -0400
-Message-ID: <534527.68662.qm@web112007.mail.gq1.yahoo.com>
-Date: Mon, 23 May 2011 22:03:41 -0700 (PDT)
-From: Chris Rodley <carlighting@yahoo.co.nz>
-Subject: Re: [PATCH v2 1/2] MT9P031: Add support for Aptina mt9p031 sensor.
-To: javier Martin <javier.martin@vista-silicon.com>
-Cc: linux-media@vger.kernel.org
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Return-path: <mchehab@gaivota>
+Received: from lo.gmane.org ([80.91.229.12]:33557 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752980Ab1EJXhy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 May 2011 19:37:54 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1QJwUy-0006Ho-SM
+	for linux-media@vger.kernel.org; Wed, 11 May 2011 01:37:53 +0200
+Received: from 213.137.58.124 ([213.137.58.124])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Wed, 11 May 2011 01:37:52 +0200
+Received: from root by 213.137.58.124 with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Wed, 11 May 2011 01:37:52 +0200
+To: linux-media@vger.kernel.org
+From: Doychin Dokov <root@net1.cc>
+Subject: Re: TT S2-3650CI problems with high-SR DVB-S2 transponders
+Date: Wed, 11 May 2011 02:37:13 +0300
+Message-ID: <iqci85$s6t$1@dough.gmane.org>
+References: <iqchgm$os9$1@dough.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1251; format=flowed
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <iqchgm$os9$1@dough.gmane.org>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On 23/05/11 18:54, javier Martin wrote:
-> On 23 May 2011 05:01, Chris Rodley <carlighting@yahoo.co.nz> wrote:
->> Error when using media-ctl as below with v2 mt9p031 driver from Javier and latest media-ctl version.
->> Is there a patch I missed to add different formats - or maybe my command is wrong?
-> Please, try the following:
+На 11.5.2011 г. 02:24 ч., Doychin Dokov написа:
+> I've been trying to get TechnoTrend S2-3650CI running with DVB-S2
+> transponder with SR of 30000. I'm using stock Debian 6 kernel
+> 2.6.32-5-amd64 and s2-liplianin tree.
 >
-> ./media-ctl -r -l '"mt9p031 2-0048":0->"OMAP3 ISP CCDC":0[1], "OMAP3
-> ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
-> ./media-ctl -f '"mt9p031 2-0048":0[SGRBG12 320x240], "OMAP3 ISP
-> CCDC":0[SGRBG8 320x240], "OMAP3 ISP CCDC":1[SGRBG8 320x240]'
+> Initially, the device couldn't lock the 30K transponders at all. After
+> applying patch [1], it locks without any problems, and does so very fast:
+> sat 0, frequency 11632 MHz V, symbolrate 30000000, coderate auto,
+> rolloff 0.35
+> vpid 0x1fff, apid 0x1fff, sid 0x0000
+> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> status 00 | signal 0000 | snr 0004 | ber 00000000 | unc fffffffe |
+> status 1b | signal 05aa | snr 0023 | ber 00516155 | unc fffffffe |
+> FE_HAS_LOCK
+> This happens each and every time I try. So far, so good, but when I'm
+> trying to stream a PID with dvblast, I get lots of TS discontinuities.
+> It does read the NIT and PAT fine, but nothing else is nearly-usable.
 >
-> Thanks.
+> I've then tried the STB6100 patch [2], but it does not seem to do any
+> help in this case.
+>
+> Any ideas?
+>
 
-Thanks Javier! That worked.
+Sorry, missed some info:
+[1] http://dev.net1.cc/dvb-s23650/patch-01-lock-fix.diff
+[2] http://dev.net1.cc/dvb-s23650/patch-02-noise-filter.diff
 
-The command below used to work but no output to stdout any more:
-./yavta --stdout -f SGRBG8 -s 320x240 -n 4 --capture=100 -F `./media-ctl -e "OMAP3 ISP CCDC output"` | nc 10.1.1.99 3000
+Also, the same device on the same machine, but under Windows OS, works 
+fine and decodes the very same transponder with no artefacts at all.
+The firmware of the device is updated with the latest one from the TT 
+web site.
 
-I have played around with this but have been unable to get a result. Something to do with the media-ctl part of the command?
+Thanks very much for any help!
 
-Thanks again!
-Chris
+
