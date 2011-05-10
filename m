@@ -1,244 +1,89 @@
-Return-path: <mchehab@pedra>
-Received: from mail1-out1.atlantis.sk ([80.94.52.55]:60742 "EHLO
-	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754825Ab1EWMRY (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1895 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752281Ab1EJGOU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 May 2011 08:17:24 -0400
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH v5] [resend] tea575x: convert to control framework
-Cc: linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	"Kernel development list" <linux-kernel@vger.kernel.org>
-Content-Disposition: inline
-From: Ondrej Zary <linux@rainbow-software.org>
-Date: Mon, 23 May 2011 14:17:19 +0200
+	Tue, 10 May 2011 02:14:20 -0400
+Message-ID: <76572cb10f933c769617a2c5120a5d25.squirrel@webmail.xs4all.nl>
+In-Reply-To: <E43657A3F2E26048BB0EBCA7C4CB6941B4B52CDFA4@NWD2CMBX1.ad.analog.com>
+References: <E43657A3F2E26048BB0EBCA7C4CB6941B4B52CDE0C@NWD2CMBX1.ad.analog.com>
+    <Pine.LNX.4.64.1105091102320.21938@axis700.grange>
+    <E43657A3F2E26048BB0EBCA7C4CB6941B4B52CDE4D@NWD2CMBX1.ad.analog.com>
+    <201105092342.06166.laurent.pinchart@ideasonboard.com>
+    <E43657A3F2E26048BB0EBCA7C4CB6941B4B52CDFA4@NWD2CMBX1.ad.analog.com>
+Date: Tue, 10 May 2011 08:14:10 +0200
+Subject: RE: why is there no enum_input in v4l2_subdev_video_ops
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Jiang, Scott" <Scott.Jiang@analog.com>
+Cc: "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
+	"Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
+	"uclinux-dist-devel@blackfin.uclinux.org"
+	<uclinux-dist-devel@blackfin.uclinux.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201105231417.19882.linux@rainbow-software.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Convert tea575x-tuner to use the new V4L2 control framework. Also add
-ext_init() callback that can be used by a card driver for additional
-initialization right before registering the video device (for SF16-FMR2).
+> Hi Laurent,
+>
+> On Tue, May 10, 2011 at 5:42 AM, Laurent Pinchart
+> <laurent.pinchart@ideasonboard.com> wrote:
+>>> >> Why is there no enum_input operation in v4l2_subdev_video_ops?
+>>
+>> Why do you need one ?
+>
+> Because I want to query decoder how many inputs it can support.
+> So the question is where we should store inputs info, board specific data
+> or decoder driver?
+> I appreciate your advice.
 
-Also embed struct video_device to struct snd_tea575x to simplify the code.
+ENUMINPUT as defined by V4L2 enumerates input connectors available on the
+board. Which inputs the board designer hooked up is something that only
+the top-level V4L driver will know. Subdevices do not have that
+information, so enuminputs is not applicable there.
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+Of course, subdevices do have input pins and output pins, but these are
+assumed to be fixed. With the s_routing ops the top level driver selects
+which input and output pins are active. Enumeration of those inputs and
+outputs wouldn't gain you anything as far as I can tell since the
+subdevice simply does not know which inputs/outputs are actually hooked
+up. It's the top level driver that has that information (usually passed in
+through board/card info structures).
 
---- linux-2.6.39-rc2-/include/sound/tea575x-tuner.h	2011-05-13 19:39:23.000000000 +0200
-+++ linux-2.6.39-rc2/include/sound/tea575x-tuner.h	2011-05-19 17:27:45.000000000 +0200
-@@ -23,8 +23,8 @@
-  */
- 
- #include <linux/videodev2.h>
-+#include <media/v4l2-ctrls.h>
- #include <media/v4l2-dev.h>
--#include <media/v4l2-ioctl.h>
- 
- #define TEA575X_FMIF	10700
- 
-@@ -42,7 +42,7 @@ struct snd_tea575x_ops {
- };
- 
- struct snd_tea575x {
--	struct video_device *vd;	/* video device */
-+	struct video_device vd;		/* video device */
- 	bool tea5759;			/* 5759 chip is present */
- 	bool mute;			/* Device is muted? */
- 	bool stereo;			/* receiving stereo */
-@@ -54,6 +54,8 @@ struct snd_tea575x {
- 	void *private_data;
- 	u8 card[32];
- 	u8 bus_info[32];
-+	struct v4l2_ctrl_handler ctrl_handler;
-+	int (*ext_init)(struct snd_tea575x *tea);
- };
- 
- int snd_tea575x_init(struct snd_tea575x *tea);
---- linux-2.6.39-rc2-/sound/i2c/other/tea575x-tuner.c	2011-05-13 19:39:23.000000000 +0200
-+++ linux-2.6.39-rc2/sound/i2c/other/tea575x-tuner.c	2011-05-19 17:31:45.000000000 +0200
-@@ -22,11 +22,11 @@
- 
- #include <asm/io.h>
- #include <linux/delay.h>
--#include <linux/interrupt.h>
- #include <linux/init.h>
- #include <linux/slab.h>
- #include <linux/version.h>
--#include <sound/core.h>
-+#include <media/v4l2-dev.h>
-+#include <media/v4l2-ioctl.h>
- #include <sound/tea575x-tuner.h>
- 
- MODULE_AUTHOR("Jaroslav Kysela <perex@perex.cz>");
-@@ -62,17 +62,6 @@ module_param(radio_nr, int, 0);
- #define TEA575X_BIT_DUMMY	(1<<15)		/* buffer */
- #define TEA575X_BIT_FREQ_MASK	0x7fff
- 
--static struct v4l2_queryctrl radio_qctrl[] = {
--	{
--		.id            = V4L2_CID_AUDIO_MUTE,
--		.name          = "Mute",
--		.minimum       = 0,
--		.maximum       = 1,
--		.default_value = 1,
--		.type          = V4L2_CTRL_TYPE_BOOLEAN,
--	}
--};
--
- /*
-  * lowlevel part
-  */
-@@ -266,47 +255,17 @@ static int vidioc_s_audio(struct file *f
- 	return 0;
- }
- 
--static int vidioc_queryctrl(struct file *file, void *priv,
--					struct v4l2_queryctrl *qc)
-+static int tea575x_s_ctrl(struct v4l2_ctrl *ctrl)
- {
--	int i;
--
--	for (i = 0; i < ARRAY_SIZE(radio_qctrl); i++) {
--		if (qc->id && qc->id == radio_qctrl[i].id) {
--			memcpy(qc, &(radio_qctrl[i]),
--						sizeof(*qc));
--			return 0;
--		}
--	}
--	return -EINVAL;
--}
--
--static int vidioc_g_ctrl(struct file *file, void *priv,
--					struct v4l2_control *ctrl)
--{
--	struct snd_tea575x *tea = video_drvdata(file);
-+	struct snd_tea575x *tea = container_of(ctrl->handler, struct snd_tea575x, ctrl_handler);
- 
- 	switch (ctrl->id) {
- 	case V4L2_CID_AUDIO_MUTE:
--		ctrl->value = tea->mute;
-+		tea->mute = ctrl->val;
-+		snd_tea575x_set_freq(tea);
- 		return 0;
- 	}
--	return -EINVAL;
--}
- 
--static int vidioc_s_ctrl(struct file *file, void *priv,
--					struct v4l2_control *ctrl)
--{
--	struct snd_tea575x *tea = video_drvdata(file);
--
--	switch (ctrl->id) {
--	case V4L2_CID_AUDIO_MUTE:
--		if (tea->mute != ctrl->value) {
--			tea->mute = ctrl->value;
--			snd_tea575x_set_freq(tea);
--		}
--		return 0;
--	}
- 	return -EINVAL;
- }
- 
-@@ -355,16 +314,17 @@ static const struct v4l2_ioctl_ops tea57
- 	.vidioc_s_input     = vidioc_s_input,
- 	.vidioc_g_frequency = vidioc_g_frequency,
- 	.vidioc_s_frequency = vidioc_s_frequency,
--	.vidioc_queryctrl   = vidioc_queryctrl,
--	.vidioc_g_ctrl      = vidioc_g_ctrl,
--	.vidioc_s_ctrl      = vidioc_s_ctrl,
- };
- 
- static struct video_device tea575x_radio = {
- 	.name           = "tea575x-tuner",
- 	.fops           = &tea575x_fops,
- 	.ioctl_ops 	= &tea575x_ioctl_ops,
--	.release	= video_device_release,
-+	.release	= video_device_release_empty,
-+};
-+
-+static const struct v4l2_ctrl_ops tea575x_ctrl_ops = {
-+	.s_ctrl = tea575x_s_ctrl,
- };
- 
- /*
-@@ -373,7 +333,6 @@ static struct video_device tea575x_radio
- int snd_tea575x_init(struct snd_tea575x *tea)
- {
- 	int retval;
--	struct video_device *tea575x_radio_inst;
- 
- 	tea->mute = 1;
- 
-@@ -384,40 +343,45 @@ int snd_tea575x_init(struct snd_tea575x
- 	tea->in_use = 0;
- 	tea->val = TEA575X_BIT_BAND_FM | TEA575X_BIT_SEARCH_10_40;
- 	tea->freq = 90500 * 16;		/* 90.5Mhz default */
-+	snd_tea575x_set_freq(tea);
- 
--	tea575x_radio_inst = video_device_alloc();
--	if (tea575x_radio_inst == NULL) {
--		printk(KERN_ERR "tea575x-tuner: not enough memory\n");
--		return -ENOMEM;
--	}
-+	tea->vd = tea575x_radio;
-+	video_set_drvdata(&tea->vd, tea);
- 
--	memcpy(tea575x_radio_inst, &tea575x_radio, sizeof(tea575x_radio));
-+	v4l2_ctrl_handler_init(&tea->ctrl_handler, 1);
-+	tea->vd.ctrl_handler = &tea->ctrl_handler;
-+	v4l2_ctrl_new_std(&tea->ctrl_handler, &tea575x_ctrl_ops, V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
-+	retval = tea->ctrl_handler.error;
-+	if (retval) {
-+		printk(KERN_ERR "tea575x-tuner: can't initialize controls\n");
-+		v4l2_ctrl_handler_free(&tea->ctrl_handler);
-+		return retval;
-+	}
- 
--	strcpy(tea575x_radio.name, tea->tea5759 ?
--				   "TEA5759 radio" : "TEA5757 radio");
-+	if (tea->ext_init) {
-+		retval = tea->ext_init(tea);
-+		if (retval) {
-+			v4l2_ctrl_handler_free(&tea->ctrl_handler);
-+			return retval;
-+		}
-+	}
- 
--	video_set_drvdata(tea575x_radio_inst, tea);
-+	v4l2_ctrl_handler_setup(&tea->ctrl_handler);
- 
--	retval = video_register_device(tea575x_radio_inst,
--				       VFL_TYPE_RADIO, radio_nr);
-+	retval = video_register_device(&tea->vd, VFL_TYPE_RADIO, radio_nr);
- 	if (retval) {
- 		printk(KERN_ERR "tea575x-tuner: can't register video device!\n");
--		kfree(tea575x_radio_inst);
-+		v4l2_ctrl_handler_free(&tea->ctrl_handler);
- 		return retval;
- 	}
- 
--	snd_tea575x_set_freq(tea);
--	tea->vd = tea575x_radio_inst;
--
- 	return 0;
- }
- 
- void snd_tea575x_exit(struct snd_tea575x *tea)
- {
--	if (tea->vd) {
--		video_unregister_device(tea->vd);
--		tea->vd = NULL;
--	}
-+	video_unregister_device(&tea->vd);
-+	v4l2_ctrl_handler_free(&tea->ctrl_handler);
- }
- 
- static int __init alsa_tea575x_module_init(void)
+Regards,
+
+        Hans
+
+>>> > Maybe because noone needed it until now?
+>>> >
+>>> >> I found some drivers put this info in board specific data, but in my
+>>> >> opinion this info is sensor or decoder related.
+>>> >
+>>> > Can you tell which drivers / boards you're referring to?
+>>>
+>>> I referred to drivers/media/video/davinci files.
+>>>
+>>> >> So it should be put into the sensor drivers.
+>>> >
+>>> > Maybe. Also notice, I'm not a maintainer nor a principal v4l2-subdev
+>>> > developer. I've added Hans and Laurent to Cc:, will see what they
+>>> say, or
+>>> > you can just point out which drivers / platforms are doing this wrong
+>>> and
+>>> > propose a fix.
+>>>
+>>> Sorry, I only found your mail in MAINTAINERS.
+>>
+>
+> Regards,
+> Scott
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
 
--- 
-Ondrej Zary
