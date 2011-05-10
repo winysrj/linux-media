@@ -1,129 +1,65 @@
-Return-path: <mchehab@pedra>
-Received: from eu1sys200aog117.obsmtp.com ([207.126.144.143]:38760 "EHLO
-	eu1sys200aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751226Ab1EREMh convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 May 2011 00:12:37 -0400
-From: Bhupesh SHARMA <bhupesh.sharma@st.com>
-To: "Charlie X. Liu" <charlie@sensoray.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>,
-	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>
-Date: Wed, 18 May 2011 12:10:43 +0800
-Subject: RE: Audio Video synchronization for data received from a HDMI
- receiver chip
-Message-ID: <D5ECB3C7A6F99444980976A8C6D896384DF11B5D98@EAPEX1MAIL1.st.com>
-References: <D5ECB3C7A6F99444980976A8C6D896384DF1137013@EAPEX1MAIL1.st.com>
-	<004b01cc10c5$f85bf6c0$e913e440$@com>
-	<201105122229.56642.hverkuil@xs4all.nl>
- <BANLkTi=rpQEkroia3kUqp6zUHTQk3k220Q@mail.gmail.com>
-In-Reply-To: <BANLkTi=rpQEkroia3kUqp6zUHTQk3k220Q@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
+Return-path: <mchehab@gaivota>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:49044 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753838Ab1EJJvJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 May 2011 05:51:09 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Hans Verkuil" <hverkuil@xs4all.nl>
+Subject: Re: why is there no enum_input in v4l2_subdev_video_ops
+Date: Tue, 10 May 2011 11:51:55 +0200
+Cc: "Jiang, Scott" <Scott.Jiang@analog.com>,
+	"Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
+	"uclinux-dist-devel@blackfin.uclinux.org"
+	<uclinux-dist-devel@blackfin.uclinux.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <E43657A3F2E26048BB0EBCA7C4CB6941B4B52CDE0C@NWD2CMBX1.ad.analog.com> <E43657A3F2E26048BB0EBCA7C4CB6941B4B52CDFA4@NWD2CMBX1.ad.analog.com> <76572cb10f933c769617a2c5120a5d25.squirrel@webmail.xs4all.nl>
+In-Reply-To: <76572cb10f933c769617a2c5120a5d25.squirrel@webmail.xs4all.nl>
 MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201105101151.56086.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
 Hi,
 
-(adding alsa mailing list in cc)
-
-> On Thursday, May 12, 2011 18:59:33 Charlie X. Liu wrote:
-> > Which HDMI receiver chip?
+On Tuesday 10 May 2011 08:14:10 Hans Verkuil wrote:
+> > On Tue, May 10, 2011 at 5:42 AM, Laurent Pinchart wrote:
+> >>> >> Why is there no enum_input operation in v4l2_subdev_video_ops?
+> >> 
+> >> Why do you need one ?
+> > 
+> > Because I want to query decoder how many inputs it can support.
+> > So the question is where we should store inputs info, board specific data
+> > or decoder driver?
+> > I appreciate your advice.
 > 
-> Indeed, that's my question as well :-)
+> ENUMINPUT as defined by V4L2 enumerates input connectors available on the
+> board. Which inputs the board designer hooked up is something that only
+> the top-level V4L driver will know. Subdevices do not have that
+> information, so enuminputs is not applicable there.
+> 
+> Of course, subdevices do have input pins and output pins, but these are
+> assumed to be fixed. With the s_routing ops the top level driver selects
+> which input and output pins are active. Enumeration of those inputs and
+> outputs wouldn't gain you anything as far as I can tell since the
+> subdevice simply does not know which inputs/outputs are actually hooked
+> up. It's the top level driver that has that information (usually passed in
+> through board/card info structures).
 
-We use Sil 9135 receiver chip which is provided by Silicon Image.
-Please see details here: http://www.siliconimage.com/products/product.aspx?pid=109
- 
-> Anyway, this question comes up regularly. V4L2 provides timestamps for
-> each
-> frame, so that's no problem. But my understanding is that ALSA does not
-> give
-> you timestamps, so if there are processing delays between audio and
-> video, then
-> you have no way of knowing. The obvious solution is to talk to the ALSA
-> people
-> to see if some sort of timestamping is possible, but nobody has done
-> that.
+I agree. Subdevs don't have enough knowledge of their surroundings to make 
+input enumeration really useful. They could enumerate their input pins, but 
+not the inputs that are actually hooked up on board.
 
-I am aware of the time stamping feature provided by V4L2, but I am also
-not sure whether the same feature is supported by ALSA. I have included
-alsa-mailing list also in copy of this mail. Let's see if we can get
-some sort of confirmation on this from them.
- 
-> This is either because everyone that needs it hacks around it instead
-> of trying
-> to really solve it, or because it is never a problem in practice.
+The media controller framework is one way of solving this issue. It can report 
+links for every input pad.
 
-What should be the proper solution according to you to solve this issue.
-Do we require a Audio-Video Bridge kind of utility/mechanism?
+Scott, can you tell us a bit more about the decoder you're working with ? What 
+kind of system is it used in ?
 
+-- 
 Regards,
-Bhupesh
 
-> 
-> >
-> > -----Original Message-----
-> > From: linux-media-owner@vger.kernel.org
-> > [mailto:linux-media-owner@vger.kernel.org] On Behalf Of Bhupesh
-> SHARMA
-> > Sent: Wednesday, May 11, 2011 10:49 PM
-> > To: linux-media@vger.kernel.org
-> > Cc: Laurent Pinchart; Guennadi Liakhovetski; Hans Verkuil
-> > Subject: Audio Video synchronization for data received from a HDMI
-> receiver
-> > chip
-> >
-> > Hi Linux media folks,
-> >
-> > We are considering putting an advanced HDMI receiver chip on our SoC,
-> > to allow reception of HDMI audio and video. The chip receives HDMI
-> data
-> > from a host like a set-up box or DVD player. It provides a video data
-> > interface
-> > and SPDIF/I2S audio data interface.
-> >
-> > We plan to support the HDMI video using the V4L2 framework and the
-> HDMI
-> > audio using ALSA framework.
-> >
-> > Now, what seems to be intriguing us is how the audio-video
-> synchronization
-> > will be maintained? Will a separate bridging entity required to
-> ensure the
-> > same
-> > or whether this can be left upon a user space application like
-> mplayer or
-> > gstreamer.
-> >
-> > Also is there a existing interface between the V4L2 and ALSA
-> frameworks and
-> > the same
-> > can be used in our design?
-> >
-> > Regards,
-> > Bhupesh
-> > ST Microelectronics
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-
-> media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-> >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media"
-> in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
-> 
-> --
-> regards
-> Shiraz Hashim
+Laurent Pinchart
