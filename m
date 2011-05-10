@@ -1,326 +1,146 @@
-Return-path: <mchehab@pedra>
-Received: from [212.227.17.10] ([212.227.17.10]:56620 "EHLO
-	moutng.kundenserver.de" rhost-flags-FAIL-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1750731Ab1E2KhF (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from leo.clearchain.com ([199.73.29.74]:48822 "EHLO
+	mail.clearchain.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751581Ab1EJFa5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 May 2011 06:37:05 -0400
-Date: Sun, 29 May 2011 12:36:58 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Andrew Chew <achew@nvidia.com>
-cc: mchehab@redhat.com, olof@lixom.net, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 4/5 v2] [media] ov9740: Remove hardcoded resolution regs
-In-Reply-To: <1306368272-28279-4-git-send-email-achew@nvidia.com>
-Message-ID: <Pine.LNX.4.64.1105291221450.18788@axis700.grange>
-References: <1306368272-28279-1-git-send-email-achew@nvidia.com>
- <1306368272-28279-4-git-send-email-achew@nvidia.com>
+	Tue, 10 May 2011 01:30:57 -0400
+Date: Tue, 10 May 2011 15:30:38 +1000
+From: Peter Hutterer <peter.hutterer@who-t.net>
+To: Anssi Hannula <anssi.hannula@iki.fi>
+Cc: linux-media@vger.kernel.org,
+	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
+	xorg-devel@lists.freedesktop.org
+Subject: Re: IR remote control autorepeat / evdev
+Message-ID: <20110510053038.GA5808@barra.redhat.com>
+References: <4DC61E28.4090301@iki.fi>
+ <20110510041107.GA32552@barra.redhat.com>
+ <4DC8C9B6.5000501@iki.fi>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4DC8C9B6.5000501@iki.fi>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Now, this is really the direction I like! Now it's becoming a real 
-driver;) Thanks for doing this!
-
-On Wed, 25 May 2011, achew@nvidia.com wrote:
-
-> From: Andrew Chew <achew@nvidia.com>
+On Tue, May 10, 2011 at 08:14:30AM +0300, Anssi Hannula wrote:
+> On 10.05.2011 07:11, Peter Hutterer wrote:
+> > On Sun, May 08, 2011 at 07:38:00AM +0300, Anssi Hannula wrote:
+> >> Hi all!
+> >>
+> >> Most IR/RF remotes differ from normal keyboards in that they don't
+> >> provide release events. They do provide native repeat events, though.
+> >>
+> >> Currently the Linux kernel RC/input subsystems provide a simulated
+> >> autorepeat for remote controls (default delay 500ms, period 33ms), and
+> >> X.org server ignores these events and generates its own autorepeat for them.
+> >>
+> >> The kernel RC subsystem provides a simulated release event when 250ms
+> >> has passed since the last native event (repeat or non-repeat) was
+> >> received from the device.
+> >>
+> >> This is problematic, since it causes lots of extra repeat events to be
+> >> always sent (for up to 250ms) after the user has released the remote
+> >> control button, which makes the remote quite uncomfortable to use.
+> > 
+> > I got a bit confused reading this description. Does this mean that remotes
+> > usually send:
+> >     key press - repeat - repeat - ... - repeat - <silence>
+> > where the silence indicates that the key has been released? Which the kernel
+> > after 250ms translates into a release event.
+> > And the kernel discards the repeats and generates it's own on 500/33?
+> > Do I get this right so far?
 > 
-> Derive resolution-dependent register settings programmatically.
+> Yes.
 > 
-> Signed-off-by: Andrew Chew <achew@nvidia.com>
-> ---
->  drivers/media/video/ov9740.c |  210 +++++++++++++++++++++++-------------------
->  1 files changed, 114 insertions(+), 96 deletions(-)
+> > If so, I'm not sure how to avoid the 250ms delay since we have no indication
+> > from the hardware when the silence will stop, right?
 > 
-> diff --git a/drivers/media/video/ov9740.c b/drivers/media/video/ov9740.c
-> index 9d7c74d..6c28ae8 100644
-> --- a/drivers/media/video/ov9740.c
-> +++ b/drivers/media/video/ov9740.c
-> @@ -181,27 +181,8 @@
->  #define OV9740_MIPI_CTRL_3012		0x3012
->  #define OV9740_SC_CMMM_MIPI_CTR		0x3014
->  
-> -/* supported resolutions */
-> -enum {
-> -	OV9740_VGA,
-> -	OV9740_720P,
-> -};
-> -
-> -struct ov9740_resolution {
-> -	unsigned int width;
-> -	unsigned int height;
-> -};
-> -
-> -static struct ov9740_resolution ov9740_resolutions[] = {
-> -	[OV9740_VGA] = {
-> -		.width	= 640,
-> -		.height	= 480,
-> -	},
-> -	[OV9740_720P] = {
-> -		.width	= 1280,
-> -		.height	= 720,
-> -	},
-> -};
-> +#define OV9740_MAX_WIDTH		1280
-> +#define OV9740_MAX_HEIGHT		720
->  
->  /* Misc. structures */
->  struct ov9740_reg {
-> @@ -403,54 +384,6 @@ static const struct ov9740_reg ov9740_defaults[] = {
->  	{ OV9740_ISP_CTRL19,		0x02 },
->  };
->  
-> -static const struct ov9740_reg ov9740_regs_vga[] = {
-> -	{ OV9740_X_ADDR_START_HI,	0x00 },
-> -	{ OV9740_X_ADDR_START_LO,	0xa0 },
-> -	{ OV9740_Y_ADDR_START_HI,	0x00 },
-> -	{ OV9740_Y_ADDR_START_LO,	0x00 },
-> -	{ OV9740_X_ADDR_END_HI,		0x04 },
-> -	{ OV9740_X_ADDR_END_LO,		0x63 },
-> -	{ OV9740_Y_ADDR_END_HI,		0x02 },
-> -	{ OV9740_Y_ADDR_END_LO,		0xd3 },
-> -	{ OV9740_X_OUTPUT_SIZE_HI,	0x02 },
-> -	{ OV9740_X_OUTPUT_SIZE_LO,	0x80 },
-> -	{ OV9740_Y_OUTPUT_SIZE_HI,	0x01 },
-> -	{ OV9740_Y_OUTPUT_SIZE_LO,	0xe0 },
-> -	{ OV9740_ISP_CTRL1E,		0x03 },
-> -	{ OV9740_ISP_CTRL1F,		0xc0 },
-> -	{ OV9740_ISP_CTRL20,		0x02 },
-> -	{ OV9740_ISP_CTRL21,		0xd0 },
-> -	{ OV9740_VFIFO_READ_START_HI,	0x01 },
-> -	{ OV9740_VFIFO_READ_START_LO,	0x40 },
-> -	{ OV9740_ISP_CTRL00,		0xff },
-> -	{ OV9740_ISP_CTRL01,		0xff },
-> -	{ OV9740_ISP_CTRL03,		0xff },
-> -};
-> -
-> -static const struct ov9740_reg ov9740_regs_720p[] = {
-> -	{ OV9740_X_ADDR_START_HI,	0x00 },
-> -	{ OV9740_X_ADDR_START_LO,	0x00 },
-> -	{ OV9740_Y_ADDR_START_HI,	0x00 },
-> -	{ OV9740_Y_ADDR_START_LO,	0x00 },
-> -	{ OV9740_X_ADDR_END_HI,		0x05 },
-> -	{ OV9740_X_ADDR_END_LO,		0x03 },
-> -	{ OV9740_Y_ADDR_END_HI,		0x02 },
-> -	{ OV9740_Y_ADDR_END_LO,		0xd3 },
-> -	{ OV9740_X_OUTPUT_SIZE_HI,	0x05 },
-> -	{ OV9740_X_OUTPUT_SIZE_LO,	0x00 },
-> -	{ OV9740_Y_OUTPUT_SIZE_HI,	0x02 },
-> -	{ OV9740_Y_OUTPUT_SIZE_LO,	0xd0 },
-> -	{ OV9740_ISP_CTRL1E,		0x05 },
-> -	{ OV9740_ISP_CTRL1F,		0x00 },
-> -	{ OV9740_ISP_CTRL20,		0x02 },
-> -	{ OV9740_ISP_CTRL21,		0xd0 },
-> -	{ OV9740_VFIFO_READ_START_HI,	0x02 },
-> -	{ OV9740_VFIFO_READ_START_LO,	0x30 },
-> -	{ OV9740_ISP_CTRL00,		0xff },
-> -	{ OV9740_ISP_CTRL01,		0xef },
-> -	{ OV9740_ISP_CTRL03,		0xff },
-> -};
-> -
->  static enum v4l2_mbus_pixelcode ov9740_codes[] = {
->  	V4L2_MBUS_FMT_YUYV8_2X8,
->  };
-> @@ -727,39 +660,124 @@ static int ov9740_set_register(struct v4l2_subdev *sd,
->  /* select nearest higher resolution for capture */
->  static void ov9740_res_roundup(u32 *width, u32 *height)
->  {
-> -	int i;
-> +	/* Width must be a multiple of 4 pixels. */
-> +	*width += *width % 4;
+> Yes.
+> AFAICS what we need is to not use softrepeat for these devices and
+> instead use the native repeats. The 250ms release delay could then be
+> kept (as it wouldn't cause unwanted repeats anymore) or it could be made
+> 0ms if that is deemed better.
+> 
+> I listed some ways to do that below in my original post.
+> 
+> > Note that the repeat delay and ratio are configurable per-device using XKB,
+> > so you could set up the 500/33 in X too.
+> 
+> It wouldn't make any difference with the actual issue which is
+> "autorepeat happening after physical key released".
+> 
+> I guess the reason this hasn't come up earlier is that the unified IR/RC
+> subsystem in the linux kernel is still quite new. It definitely needs to
+> be improved regarding this issue - just trying to figure out the best
+> way to do it.
 
-No, this doesn't make it a multiple of 4, unless it was even;) Just take 5 
-as an example. What you really want here is
+right. we used to have hardware repeats in X a few releases back. I think
+1.6 was the first one that shifted to pure software autorepeat. One of the
+results we saw in the transition period was the clash of hw autorepeat (in
+X's input system, anything that comes out of the kernel counts as "hw") and
+software repeat. 
 
-	*width = ALIGN(*width, 4);
+Integrating them back in is going to be a bit iffy, especially since you
+need the integration with XKB on each device, essentially disallowing the
+clients from enabling autorepeat. Not 100% what's required there.
+The evtev part is going to be the simplest part of all that.
 
->  
-> -	for (i = 0; i < ARRAY_SIZE(ov9740_resolutions); i++)
-> -		if ((ov9740_resolutions[i].width >= *width) &&
-> -		    (ov9740_resolutions[i].height >= *height)) {
-> -			*width = ov9740_resolutions[i].width;
-> -			*height = ov9740_resolutions[i].height;
-> -			return;
-> -		}
-> +	/* Max resolution is 1280x720 (720p). */
-> +	if (*width > OV9740_MAX_WIDTH)
-> +		*width = OV9740_MAX_WIDTH;
->  
-> -	*width = ov9740_resolutions[OV9740_720P].width;
-> -	*height = ov9740_resolutions[OV9740_720P].height;
-> +	if (*height > OV9740_MAX_HEIGHT)
-> +		*height = OV9740_MAX_HEIGHT;
->  }
->  
->  /* Setup registers according to resolution and color encoding */
-> -static int ov9740_set_res(struct i2c_client *client, u32 width)
-> +static int ov9740_set_res(struct i2c_client *client, u32 width, u32 height)
->  {
-> +	u32 x_start;
-> +	u32 y_start;
-> +	u32 x_end;
-> +	u32 y_end;
-> +	bool scaling = 0;
-> +	u32 scale_input_x;
-> +	u32 scale_input_y;
->  	int ret;
->  
-> -	/* select register configuration for given resolution */
-> -	if (width == ov9740_resolutions[OV9740_VGA].width) {
-> -		dev_dbg(&client->dev, "Setting image size to 640x480\n");
-> -		ret = ov9740_reg_write_array(client, ov9740_regs_vga,
-> -					     ARRAY_SIZE(ov9740_regs_vga));
-> -	} else if (width == ov9740_resolutions[OV9740_720P].width) {
-> -		dev_dbg(&client->dev, "Setting image size to 1280x720\n");
-> -		ret = ov9740_reg_write_array(client, ov9740_regs_720p,
-> -					     ARRAY_SIZE(ov9740_regs_720p));
-> +	if ((width != OV9740_MAX_WIDTH) || (height != OV9740_MAX_HEIGHT))
-> +		scaling = 1;
-> +
-> +	/*
-> +	 * Try to use as much of the sensor area as possible when supporting
-> +	 * smaller resolutions.  Depending on the aspect ratio of the
-> +	 * chosen resolution, we can either use the full width of the sensor,
-> +	 * or the full height of the sensor (or both if the aspect ratio is
-> +	 * the same as 1280x720.
-> +	 */
-> +	if ((OV9740_MAX_WIDTH * height) > (OV9740_MAX_HEIGHT * width)) {
-> +		scale_input_x = (OV9740_MAX_HEIGHT * width) / height;
-> +		scale_input_y = OV9740_MAX_HEIGHT;
->  	} else {
-> -		dev_err(&client->dev, "Failed to select resolution!\n");
-> -		return -EINVAL;
-> +		scale_input_x = OV9740_MAX_WIDTH;
-> +		scale_input_y = (OV9740_MAX_WIDTH * height) / width;
->  	}
+Cheers,
+  Peter
 
-I don'z know how this sensor works, but the above two divisions round 
-down. And these are input sizes. Cannot it possibly lead to the output 
-window being smaller, than required? Maybe you have to round up (hint: 
-use DIV_ROUND_UP())?
-
->  
-> +	/* These describe the area of the sensor to use. */
-> +	x_start = (OV9740_MAX_WIDTH - scale_input_x) / 2;
-> +	y_start = (OV9740_MAX_HEIGHT - scale_input_y) / 2;
-> +	x_end = x_start + scale_input_x - 1;
-> +	y_end = y_start + scale_input_y - 1;
-> +
-> +	ret = ov9740_reg_write(client, OV9740_X_ADDR_START_HI, x_start >> 8);
-> +	if (ret)
-> +		goto done;
-> +	ret = ov9740_reg_write(client, OV9740_X_ADDR_START_LO, x_start & 0xff);
-> +	if (ret)
-> +		goto done;
-> +	ret = ov9740_reg_write(client, OV9740_Y_ADDR_START_HI, y_start >> 8);
-> +	if (ret)
-> +		goto done;
-> +	ret = ov9740_reg_write(client, OV9740_Y_ADDR_START_LO, y_start & 0xff);
-> +	if (ret)
-> +		goto done;
-> +
-> +	ret = ov9740_reg_write(client, OV9740_X_ADDR_END_HI, x_end >> 8);
-> +	if (ret)
-> +		goto done;
-> +	ret = ov9740_reg_write(client, OV9740_X_ADDR_END_LO, x_end & 0xff);
-> +	if (ret)
-> +		goto done;
-> +	ret = ov9740_reg_write(client, OV9740_Y_ADDR_END_HI, y_end >> 8);
-> +	if (ret)
-> +		goto done;
-> +	ret = ov9740_reg_write(client, OV9740_Y_ADDR_END_LO, y_end & 0xff);
-> +	if (ret)
-> +		goto done;
-> +
-> +	ret = ov9740_reg_write(client, OV9740_X_OUTPUT_SIZE_HI, width >> 8);
-> +	if (ret)
-> +		goto done;
-> +	ret = ov9740_reg_write(client, OV9740_X_OUTPUT_SIZE_LO, width & 0xff);
-> +	if (ret)
-> +		goto done;
-> +	ret = ov9740_reg_write(client, OV9740_Y_OUTPUT_SIZE_HI, height >> 8);
-> +	if (ret)
-> +		goto done;
-> +	ret = ov9740_reg_write(client, OV9740_Y_OUTPUT_SIZE_LO, height & 0xff);
-> +	if (ret)
-> +		goto done;
-> +
-> +	ret = ov9740_reg_write(client, OV9740_ISP_CTRL1E, scale_input_x >> 8);
-> +	if (ret)
-> +		goto done;
-> +	ret = ov9740_reg_write(client, OV9740_ISP_CTRL1F, scale_input_x & 0xff);
-> +	if (ret)
-> +		goto done;
-> +	ret = ov9740_reg_write(client, OV9740_ISP_CTRL20, scale_input_y >> 8);
-> +	if (ret)
-> +		goto done;
-> +	ret = ov9740_reg_write(client, OV9740_ISP_CTRL21, scale_input_y & 0xff);
-> +	if (ret)
-> +		goto done;
-> +
-> +	ret = ov9740_reg_write(client, OV9740_VFIFO_READ_START_HI,
-> +			       (scale_input_x - width) >> 8);
-> +	if (ret)
-> +		goto done;
-> +	ret = ov9740_reg_write(client, OV9740_VFIFO_READ_START_LO,
-> +			       (scale_input_x - width) & 0xff);
-> +	if (ret)
-> +		goto done;
-> +
-> +	ret = ov9740_reg_write(client, OV9740_ISP_CTRL00, 0xff);
-> +	if (ret)
-> +		goto done;
-> +	ret = ov9740_reg_write(client, OV9740_ISP_CTRL01, 0xef |
-> +							  (scaling << 4));
-> +	if (ret)
-> +		goto done;
-> +	ret = ov9740_reg_write(client, OV9740_ISP_CTRL03, 0xff);
-> +
-> +done:
->  	return ret;
->  }
->  
-> @@ -787,7 +805,7 @@ static int ov9740_s_fmt(struct v4l2_subdev *sd,
->  	if (ret < 0)
->  		return ret;
->  
-> -	ret = ov9740_set_res(client, mf->width);
-> +	ret = ov9740_set_res(client, mf->width, mf->height);
->  	if (ret < 0)
->  		return ret;
->  
-> @@ -824,8 +842,8 @@ static int ov9740_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *a)
->  {
->  	a->bounds.left		= 0;
->  	a->bounds.top		= 0;
-> -	a->bounds.width		= ov9740_resolutions[OV9740_720P].width;
-> -	a->bounds.height	= ov9740_resolutions[OV9740_720P].height;
-> +	a->bounds.width		= OV9740_MAX_WIDTH;
-> +	a->bounds.height	= OV9740_MAX_HEIGHT;
->  	a->defrect		= a->bounds;
->  	a->type			= V4L2_BUF_TYPE_VIDEO_CAPTURE;
->  	a->pixelaspect.numerator	= 1;
-> @@ -838,8 +856,8 @@ static int ov9740_g_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
->  {
->  	a->c.left		= 0;
->  	a->c.top		= 0;
-> -	a->c.width		= ov9740_resolutions[OV9740_720P].width;
-> -	a->c.height		= ov9740_resolutions[OV9740_720P].height;
-> +	a->c.width		= OV9740_MAX_WIDTH;
-> +	a->c.height		= OV9740_MAX_HEIGHT;
->  	a->type			= V4L2_BUF_TYPE_VIDEO_CAPTURE;
->  
->  	return 0;
+> >> Now, IMO something should be done to fix this. But what exactly?
+> >>
+> >> Here are two ideas that would remove these ghost repeats:
+> >>
+> >> 1. Do not provide any repeat/release simulation in the kernel for RC
+> >> devices (by default?), just provide both keydown and immediate release
+> >> events for every native keypress or repeat received from the device.
+> >> + Very simple to implement
+> >> - We lose the ability to track repeats, i.e. if a new event was a repeat
+> >>   or a new keypress; "holding down" a key becomes impossible
+> >>
+> >> or
+> >> 2. Replace kernel autorepeat simulation by passing through the native
+> >> repeat events (probably filtering them according to REP_DELAY and
+> >> REP_PERIOD), and have a device property bit (fetchable via EVIOCGPROP)
+> >> indicating that the keyrelease is simulated, and have the X server use
+> >> the native repeats instead of softrepeats for such a device.
+> >> + The userspace correctly gets repeat events tagged as repeats and
+> >>   release events when appropriate (albeit a little late)
+> >> - Adds complexity. Also, while the kernel part is quite easy to
+> >>   implement, I'm not sure if the X server part is.
+> >>
+> >> or
+> >> 3. Same as 1., but indicate the repeatness of an event with a new
+> >>    additional special event before EV_SYN (sync event).
+> >> + Simple to implement
+> >> - Quite hacky, and userspace still can't guess from initial
+> >>   keypress/release if the key is still pressed down or not.
+> >>
+> >> 4. Same as 1., but have a new EV_RC with RC_KEYDOWN and RC_KEYUP events,
+> >>    with RC_KEYDOWN sent when a key is pressed down a first time along
+> >>    with the normal EV_KEY event, and RC_KEYUP sent when the key is
+> >>    surely released (e.g. 250ms without native repeat events or another
+> >>    key got pressed, i.e. like the simulated keyup now).
+> >> + Simple to implement, works as expected with most userspace apps with
+> >>   no changes to them; and if an app wants to know the repeatness of an
+> >>   event or held-down-ness of a key, it can do that.
+> >> - Repeatness of the event is hidden behind a new API.
+> >>
+> >> What do you think? Or any other ideas?
+> >>
+> >> 2 and 4 seem nicest to me.
+> >> (I don't know how feasible 2 would be on X server side, though)
+> >>
+> >> -- 
+> >> Anssi Hannula
+> >> _______________________________________________
+> >> xorg-devel@lists.x.org: X.Org development
+> >> Archives: http://lists.x.org/archives/xorg-devel
+> >> Info: http://lists.x.org/mailman/listinfo/xorg-devel
+> >>
+> > 
+> 
+> 
 > -- 
-> 1.7.5.2
-> 
-
-Very nice!
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+> Anssi Hannula
