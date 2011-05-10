@@ -1,73 +1,102 @@
-Return-path: <mchehab@pedra>
-Received: from hqemgate03.nvidia.com ([216.228.121.140]:2819 "EHLO
-	hqemgate03.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753014Ab1FAB6h convert rfc822-to-8bit (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from mail1-out1.atlantis.sk ([80.94.52.55]:57261 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752749Ab1EJVY3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 May 2011 21:58:37 -0400
-From: Andrew Chew <AChew@nvidia.com>
-To: 'Guennadi Liakhovetski' <g.liakhovetski@gmx.de>
-CC: "mchehab@redhat.com" <mchehab@redhat.com>,
-	"olof@lixom.net" <olof@lixom.net>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Date: Tue, 31 May 2011 18:58:29 -0700
-Subject: RE: [PATCH 5/5 v2] [media] ov9740: Add suspend/resume
-Message-ID: <643E69AA4436674C8F39DCC2C05F76382A75BF37C4@HQMAIL03.nvidia.com>
-References: <1306368272-28279-1-git-send-email-achew@nvidia.com>
- <1306368272-28279-5-git-send-email-achew@nvidia.com>
- <Pine.LNX.4.64.1105291249220.18788@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1105291249220.18788@axis700.grange>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Tue, 10 May 2011 17:24:29 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: alsa-devel@alsa-project.org
+Subject: fm801: implement TEA575x tuner autodetection
+Date: Tue, 10 May 2011 23:24:15 +0200
+Cc: linux-media@vger.kernel.org,
+	"Kernel development list" <linux-kernel@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201105102324.18562.linux@rainbow-software.org>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-> > +	/* For suspend/resume. */
-> > +	struct v4l2_mbus_framefmt	current_mf;
-> > +	int				current_enable;
-> 
-> bool?
+Autodetect TEA575x tuner connection type during init. This allows tuner to
+work out-of-the box.
 
-Are you sure you want this to be a bool?  This thing is trying to shadow the "enable" parameter of the s_stream() callback, and that enable parameter is int.
+tea575x_tuner module parameter remains functional to force tuner type.
+
+Tested with SF256-PCP and SF64-PCR.
+
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+
+--- linux-2.6.39-rc2-/sound/pci/fm801.c	2011-05-10 22:31:45.000000000 +0200
++++ linux-2.6.39-rc2/sound/pci/fm801.c	2011-05-10 23:21:42.000000000 +0200
+@@ -53,7 +53,7 @@ static int enable[SNDRV_CARDS] = SNDRV_D
+ /*
+  *  Enable TEA575x tuner
+  *    1 = MediaForte 256-PCS
+- *    2 = MediaForte 256-PCPR
++ *    2 = MediaForte 256-PCP
+  *    3 = MediaForte 64-PCR
+  *   16 = setup tuner only (this is additional bit), i.e. SF64-PCR FM card
+  *  High 16-bits are video (radio) device number + 1
+@@ -67,7 +67,7 @@ MODULE_PARM_DESC(id, "ID string for the
+ module_param_array(enable, bool, NULL, 0444);
+ MODULE_PARM_DESC(enable, "Enable FM801 soundcard.");
+ module_param_array(tea575x_tuner, int, NULL, 0444);
+-MODULE_PARM_DESC(tea575x_tuner, "TEA575x tuner access method (1 = SF256-PCS, 2=SF256-PCPR, 3=SF64-PCR, +16=tuner-only).");
++MODULE_PARM_DESC(tea575x_tuner, "TEA575x tuner access method (0 = auto, 1 = SF256-PCS, 2=SF256-PCP, 3=SF64-PCR, 8=disable, +16=tuner-only).");
+ 
+ #define TUNER_ONLY		(1<<4)
+ #define TUNER_TYPE_MASK		(~TUNER_ONLY & 0xFFFF)
+@@ -720,12 +720,13 @@ static int __devinit snd_fm801_pcm(struc
+ /* GPIO to TEA575x maps */
+ struct snd_fm801_tea575x_gpio {
+ 	u8 data, clk, wren, most;
++	char *name;
+ };
+ 
+ static struct snd_fm801_tea575x_gpio snd_fm801_tea575x_gpios[] = {
+-	{ .data = 1, .clk = 3, .wren = 2, .most = 0 },	/* SF256-PCS */
+-	{ .data = 1, .clk = 0, .wren = 2, .most = 3 },	/* SF256-PCP */
+-	{ .data = 2, .clk = 0, .wren = 1, .most = 3 },	/* SF64-PCR */
++	{ .data = 1, .clk = 3, .wren = 2, .most = 0, .name = "SF256-PCS" },
++	{ .data = 1, .clk = 0, .wren = 2, .most = 3, .name = "SF256-PCP" },
++	{ .data = 2, .clk = 0, .wren = 1, .most = 3, .name = "SF64-PCR" },
+ };
+ 
+ static void snd_fm801_tea575x_set_pins(struct snd_tea575x *tea, u8 pins)
+@@ -1229,14 +1230,24 @@ static int __devinit snd_fm801_create(st
+ 	snd_card_set_dev(card, &pci->dev);
+ 
+ #ifdef TEA575X_RADIO
++	chip->tea.card = card;
++	chip->tea.freq_fixup = 10700;
++	chip->tea.private_data = chip;
++	chip->tea.ops = &snd_fm801_tea_ops;
+ 	if ((tea575x_tuner & TUNER_TYPE_MASK) > 0 &&
+ 	    (tea575x_tuner & TUNER_TYPE_MASK) < 4) {
+-		chip->tea.card = card;
+-		chip->tea.freq_fixup = 10700;
+-		chip->tea.private_data = chip;
+-		chip->tea.ops = &snd_fm801_tea_ops;
+-		snd_tea575x_init(&chip->tea);
+-	}
++		if (snd_tea575x_init(&chip->tea))
++			snd_printk(KERN_ERR "TEA575x radio not found\n");
++	} else if ((tea575x_tuner & TUNER_TYPE_MASK) == 0)
++		/* autodetect tuner connection */
++		for (tea575x_tuner = 1; tea575x_tuner <= 3; tea575x_tuner++) {
++			chip->tea575x_tuner = tea575x_tuner;
++			if (!snd_tea575x_init(&chip->tea)) {
++				snd_printk(KERN_INFO "detected TEA575x radio type %s\n",
++					snd_fm801_tea575x_gpios[tea575x_tuner - 1].name);
++				break;
++			}
++		}
+ #endif
+ 
+ 	*rchip = chip;
 
 
-> > +static int ov9740_suspend(struct soc_camera_device *icd, 
-> pm_message_t state)
-> > +{
-> > +	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
-> > +	struct ov9740_priv *priv = to_ov9740(sd);
-> > +
-> > +	if (priv->current_enable) {
-> > +		int current_enable = priv->current_enable;
-> > +
-> > +		ov9740_s_stream(sd, 0);
-> > +		priv->current_enable = current_enable;
-> 
-> You don't need the local variable, just set
-> 
-> 	priv->current_enable = true;
-
-I think I do need that local variable, the way the code is arranged now.  I'm trying to save the state of enablement inside of priv->current_enable, at the time we are suspending, so it won't necessarily be true.  And one of the side effects of calling ov9740_s_stream(sd, 0) is that priv->current_enable will be set to false, which is why I save off the value of priv->current_enable, and then restore it after the call to ov9740_s_stream().
-
-
-> >  static struct soc_camera_ops ov9740_ops = {
-> > +	.suspend		= ov9740_suspend,
-> > +	.resume			= ov9740_resume,
-> 
-> No, we don't want to use these, whey should disappear some 
-> time... Please, 
-> use .s_power() from struct v4l2_subdev_core_ops, you can check 
-> http://article.gmane.org/gmane.linux.drivers.video-input-infra
-> structure/33105 
-> for an example. If your host is not using these ops, it has 
-> to be fixed. 
-> So far in the mainline only one soc-camera host driver is using these 
-> callbacks: pxa_camera.c, which, looking at your email 
-> address, I doubt is 
-> the driver, that you're using;)
-
-Okay, will do.  Thanks for pointing that out :)
-
-Is the camera host driver expected to directly call the sensor driver's s_power (via v4l2_subdev_call(sd, core, s_power, <some value>)?  Or does the v4l2 framework do this for you?  I didn't see an example of this in my last pull of linux-next.
+-- 
+Ondrej Zary
