@@ -1,60 +1,159 @@
 Return-path: <mchehab@gaivota>
-Received: from mail1-out1.atlantis.sk ([80.94.52.55]:49419 "EHLO
-	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757573Ab1ELUSR (ORCPT
+Received: from sypressi.dnainternet.net ([83.102.40.135]:39203 "EHLO
+	sypressi.dnainternet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752434Ab1EJNnI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 May 2011 16:18:17 -0400
-From: Ondrej Zary <linux@rainbow-software.org>
-To: alsa-devel@alsa-project.org
-Subject: [PATCH 2/3] tea575x: remove unused card from struct
-Date: Thu, 12 May 2011 22:18:09 +0200
-Cc: linux-media@vger.kernel.org,
-	"Kernel development list" <linux-kernel@vger.kernel.org>
+	Tue, 10 May 2011 09:43:08 -0400
+Message-ID: <4DC940E5.2070902@iki.fi>
+Date: Tue, 10 May 2011 16:43:01 +0300
+From: Anssi Hannula <anssi.hannula@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+To: Peter Hutterer <peter.hutterer@who-t.net>
+CC: linux-media@vger.kernel.org,
+	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
+	xorg-devel@lists.freedesktop.org
+Subject: Re: IR remote control autorepeat / evdev
+References: <4DC61E28.4090301@iki.fi> <20110510041107.GA32552@barra.redhat.com> <4DC8C9B6.5000501@iki.fi> <20110510053038.GA5808@barra.redhat.com>
+In-Reply-To: <20110510053038.GA5808@barra.redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201105122218.11969.linux@rainbow-software.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-struct snd_card *card is present in struct snd_tea575x but never used.
-Remove it.
+On 10.05.2011 08:30, Peter Hutterer wrote:
+> On Tue, May 10, 2011 at 08:14:30AM +0300, Anssi Hannula wrote:
+>> On 10.05.2011 07:11, Peter Hutterer wrote:
+>>> On Sun, May 08, 2011 at 07:38:00AM +0300, Anssi Hannula wrote:
+>>>> Hi all!
+>>>>
+>>>> Most IR/RF remotes differ from normal keyboards in that they don't
+>>>> provide release events. They do provide native repeat events, though.
+>>>>
+>>>> Currently the Linux kernel RC/input subsystems provide a simulated
+>>>> autorepeat for remote controls (default delay 500ms, period 33ms), and
+>>>> X.org server ignores these events and generates its own autorepeat for them.
+>>>>
+>>>> The kernel RC subsystem provides a simulated release event when 250ms
+>>>> has passed since the last native event (repeat or non-repeat) was
+>>>> received from the device.
+>>>>
+>>>> This is problematic, since it causes lots of extra repeat events to be
+>>>> always sent (for up to 250ms) after the user has released the remote
+>>>> control button, which makes the remote quite uncomfortable to use.
+>>>
+>>> I got a bit confused reading this description. Does this mean that remotes
+>>> usually send:
+>>>     key press - repeat - repeat - ... - repeat - <silence>
+>>> where the silence indicates that the key has been released? Which the kernel
+>>> after 250ms translates into a release event.
+>>> And the kernel discards the repeats and generates it's own on 500/33?
+>>> Do I get this right so far?
+>>
+>> Yes.
+>>
+>>> If so, I'm not sure how to avoid the 250ms delay since we have no indication
+>>> from the hardware when the silence will stop, right?
+>>
+>> Yes.
+>> AFAICS what we need is to not use softrepeat for these devices and
+>> instead use the native repeats. The 250ms release delay could then be
+>> kept (as it wouldn't cause unwanted repeats anymore) or it could be made
+>> 0ms if that is deemed better.
+>>
+>> I listed some ways to do that below in my original post.
+>>
+>>> Note that the repeat delay and ratio are configurable per-device using XKB,
+>>> so you could set up the 500/33 in X too.
+>>
+>> It wouldn't make any difference with the actual issue which is
+>> "autorepeat happening after physical key released".
+>>
+>> I guess the reason this hasn't come up earlier is that the unified IR/RC
+>> subsystem in the linux kernel is still quite new. It definitely needs to
+>> be improved regarding this issue - just trying to figure out the best
+>> way to do it.
+> 
+> right. we used to have hardware repeats in X a few releases back. I think
+> 1.6 was the first one that shifted to pure software autorepeat. One of the
+> results we saw in the transition period was the clash of hw autorepeat (in
+> X's input system, anything that comes out of the kernel counts as "hw") and
+> software repeat. 
+> 
+> Integrating them back in is going to be a bit iffy, especially since you
+> need the integration with XKB on each device, essentially disallowing the
+> clients from enabling autorepeat. Not 100% what's required there.
+> The evtev part is going to be the simplest part of all that.
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+I suspected it might be tricky. So maybe (at least for the time being)
+remote controls in X should simply get KeyRelease immediately after
+every KeyPress?
 
---- linux-2.6.39-rc2-/include/sound/tea575x-tuner.h	2011-05-12 21:22:35.000000000 +0200
-+++ linux-2.6.39-rc2/include/sound/tea575x-tuner.h	2011-05-12 21:21:37.000000000 +0200
-@@ -42,7 +42,6 @@ struct snd_tea575x_ops {
- };
- 
- struct snd_tea575x {
--	struct snd_card *card;
- 	struct video_device *vd;	/* video device */
- 	bool tea5759;			/* 5759 chip is present */
- 	bool mute;			/* Device is muted? */
---- linux-2.6.39-rc2-/sound/pci/es1968.c	2011-05-12 21:22:35.000000000 +0200
-+++ linux-2.6.39-rc2/sound/pci/es1968.c	2011-05-12 21:22:09.000000000 +0200
-@@ -2793,7 +2793,6 @@ static int __devinit snd_es1968_create(s
- 	snd_card_set_dev(card, &pci->dev);
- 
- #ifdef CONFIG_SND_ES1968_RADIO
--	chip->tea.card = card;
- 	chip->tea.private_data = chip;
- 	chip->tea.ops = &snd_es1968_tea_ops;
- 	if (!snd_tea575x_init(&chip->tea))
---- linux-2.6.39-rc2-/sound/pci/fm801.c	2011-05-12 21:22:35.000000000 +0200
-+++ linux-2.6.39-rc2/sound/pci/fm801.c	2011-05-12 21:22:05.000000000 +0200
-@@ -1230,7 +1230,6 @@ static int __devinit snd_fm801_create(st
- 	snd_card_set_dev(card, &pci->dev);
- 
- #ifdef TEA575X_RADIO
--	chip->tea.card = card;
- 	chip->tea.private_data = chip;
- 	chip->tea.ops = &snd_fm801_tea_ops;
- 	if ((tea575x_tuner & TUNER_TYPE_MASK) > 0 &&
+Meaning that either a) kernel does it (while maybe providing some new
+extra info for those evdev users that want to distinguish repeats from
+new keypresses - original suggestion 4), or b) kernel provides a flag
+which causes the X evdev driver to follow-up every keydown/repeat event
+with an immediate release event. (both of these include kernel changed
+to use native repeats instead of softrepeats, which is trivial)
+
+
+>>>> Now, IMO something should be done to fix this. But what exactly?
+>>>>
+>>>> Here are two ideas that would remove these ghost repeats:
+>>>>
+>>>> 1. Do not provide any repeat/release simulation in the kernel for RC
+>>>> devices (by default?), just provide both keydown and immediate release
+>>>> events for every native keypress or repeat received from the device.
+>>>> + Very simple to implement
+>>>> - We lose the ability to track repeats, i.e. if a new event was a repeat
+>>>>   or a new keypress; "holding down" a key becomes impossible
+>>>>
+>>>> or
+>>>> 2. Replace kernel autorepeat simulation by passing through the native
+>>>> repeat events (probably filtering them according to REP_DELAY and
+>>>> REP_PERIOD), and have a device property bit (fetchable via EVIOCGPROP)
+>>>> indicating that the keyrelease is simulated, and have the X server use
+>>>> the native repeats instead of softrepeats for such a device.
+>>>> + The userspace correctly gets repeat events tagged as repeats and
+>>>>   release events when appropriate (albeit a little late)
+>>>> - Adds complexity. Also, while the kernel part is quite easy to
+>>>>   implement, I'm not sure if the X server part is.
+>>>>
+>>>> or
+>>>> 3. Same as 1., but indicate the repeatness of an event with a new
+>>>>    additional special event before EV_SYN (sync event).
+>>>> + Simple to implement
+>>>> - Quite hacky, and userspace still can't guess from initial
+>>>>   keypress/release if the key is still pressed down or not.
+>>>>
+>>>> 4. Same as 1., but have a new EV_RC with RC_KEYDOWN and RC_KEYUP events,
+>>>>    with RC_KEYDOWN sent when a key is pressed down a first time along
+>>>>    with the normal EV_KEY event, and RC_KEYUP sent when the key is
+>>>>    surely released (e.g. 250ms without native repeat events or another
+>>>>    key got pressed, i.e. like the simulated keyup now).
+>>>> + Simple to implement, works as expected with most userspace apps with
+>>>>   no changes to them; and if an app wants to know the repeatness of an
+>>>>   event or held-down-ness of a key, it can do that.
+>>>> - Repeatness of the event is hidden behind a new API.
+>>>>
+>>>> What do you think? Or any other ideas?
+>>>>
+>>>> 2 and 4 seem nicest to me.
+>>>> (I don't know how feasible 2 would be on X server side, though)
+>>>>
+>>>> -- 
+>>>> Anssi Hannula
+>>>> _______________________________________________
+>>>> xorg-devel@lists.x.org: X.Org development
+>>>> Archives: http://lists.x.org/archives/xorg-devel
+>>>> Info: http://lists.x.org/mailman/listinfo/xorg-devel
+>>>>
+>>>
+>>
+>>
+>> -- 
+>> Anssi Hannula
+> 
 
 
 -- 
-Ondrej Zary
+Anssi Hannula
