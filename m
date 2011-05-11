@@ -1,54 +1,76 @@
-Return-path: <mchehab@pedra>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:63560 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755945Ab1EQROl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 May 2011 13:14:41 -0400
-Received: by yxs7 with SMTP id 7so231106yxs.19
-        for <linux-media@vger.kernel.org>; Tue, 17 May 2011 10:14:41 -0700 (PDT)
-From: Ivan Nazarenko <ivan.nazarenko@gmail.com>
-To: javier Martin <javier.martin@vista-silicon.com>,
-	linux-media@vger.kernel.org, beagleboard@googlegroups.com
-Subject: Re: [PATCH 1/2] mt9p031: Add mt9p031 sensor driver.
-Date: Tue, 17 May 2011 14:14:33 -0300
-Cc: linux-arm-kernel@lists.infradead.org
-References: <1305624528-5595-1-git-send-email-javier.martin@vista-silicon.com> <Pine.LNX.4.64.1105171345580.5582@axis700.grange> <BANLkTinR3g7DcXLqOngw8kkNc-LLysFX=w@mail.gmail.com>
-In-Reply-To: <BANLkTinR3g7DcXLqOngw8kkNc-LLysFX=w@mail.gmail.com>
+Return-path: <mchehab@gaivota>
+Received: from ch1ehsobe005.messaging.microsoft.com ([216.32.181.185]:46898
+	"EHLO ch1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752172Ab1EKPpE convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 May 2011 11:45:04 -0400
+From: "Jiang, Scott" <Scott.Jiang@analog.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	"uclinux-dist-devel@blackfin.uclinux.org"
+	<uclinux-dist-devel@blackfin.uclinux.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Wed, 11 May 2011 04:43:30 -0400
+Subject: RE: why is there no enum_input in v4l2_subdev_video_ops
+Message-ID: <E43657A3F2E26048BB0EBCA7C4CB6941B4B52CE3A5@NWD2CMBX1.ad.analog.com>
+References: <E43657A3F2E26048BB0EBCA7C4CB6941B4B52CDE0C@NWD2CMBX1.ad.analog.com>
+ <E43657A3F2E26048BB0EBCA7C4CB6941B4B52CDFA4@NWD2CMBX1.ad.analog.com>
+ <76572cb10f933c769617a2c5120a5d25.squirrel@webmail.xs4all.nl>
+ <201105101151.56086.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201105101151.56086.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201105171414.34179.ivan.nazarenko@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Javier,
+Hi Laurent,
 
-I have been using the aptina patch (https://github.com/Aptina/BeagleBoard-xM) on beagleboard while waiting linux-media solve this mt9p031 issue. Now that you have something working, I would like to try it - but I would like to know what is the clock rate you actually drove the sensor.
+On Tue, May 10, 2011 at 5:51 PM, Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
+> Hi,
+>
+> On Tuesday 10 May 2011 08:14:10 Hans Verkuil wrote:
+>> > On Tue, May 10, 2011 at 5:42 AM, Laurent Pinchart wrote:
+>> >>> >> Why is there no enum_input operation in v4l2_subdev_video_ops?
+>> >>
+>> >> Why do you need one ?
+>> >
+>> > Because I want to query decoder how many inputs it can support.
+>> > So the question is where we should store inputs info, board specific data
+>> > or decoder driver?
+>> > I appreciate your advice.
+>>
+>> ENUMINPUT as defined by V4L2 enumerates input connectors available on the
+>> board. Which inputs the board designer hooked up is something that only
+>> the top-level V4L driver will know. Subdevices do not have that
+>> information, so enuminputs is not applicable there.
+>>
+>> Of course, subdevices do have input pins and output pins, but these are
+>> assumed to be fixed. With the s_routing ops the top level driver selects
+>> which input and output pins are active. Enumeration of those inputs and
+>> outputs wouldn't gain you anything as far as I can tell since the
+>> subdevice simply does not know which inputs/outputs are actually hooked
+>> up. It's the top level driver that has that information (usually passed in
+>> through board/card info structures).
+>
+> I agree. Subdevs don't have enough knowledge of their surroundings to make
+> input enumeration really useful. They could enumerate their input pins, but
+> not the inputs that are actually hooked up on board.
+>
+> The media controller framework is one way of solving this issue. It can report
+> links for every input pad.
+>
+> Scott, can you tell us a bit more about the decoder you're working with ? What
+> kind of system is it used in ?
 
-Reviewing your path, I suppose it is 54MHz, so you would be achieving some 10 full 5MPix frames/s from the sensor. Is that correct? (the aptina patch delivers less than 4 fps).
+I'm working on ADV7183 and VS6624 connecting with blackfin through ppi.
+By the way, ppi is a generic parallel interface, that means it can't know the fmt supported itself.
+Should I use enum_mbus_fmt to ask decoder for this info?
+I found it in v4l2_subdev_video_ops, but didn't know its usage exactly.
 
 Regards,
+Scott
 
-Ivan
 
-On Tuesday, May 17, 2011 08:59:04 javier Martin wrote:
-> On 17 May 2011 13:47, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> > Hi Laurent
-> >
-> > Thanks for your review! Javier, if you like, you can wait a couple of days
-> > until I find some time to review the driver, or you can submit a version,
-> > addressing Laurent's points, but be prepared to have to do another one;)
-> >
-> > Thanks
-> > Guennadi
-> > ---
-> > Guennadi Liakhovetski, Ph.D.
-> > Freelance Open-Source Software Developer
-> > http://www.open-technology.de/
-> >
-> 
-> OK, I think I'll wait to have Guennadi's review too.
-> Thank you both.
-> 
-> 
