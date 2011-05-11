@@ -1,116 +1,239 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2901 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752426Ab1EWMKL (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from cmsout01.mbox.net ([165.212.64.31]:34180 "EHLO
+	cmsout01.mbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757328Ab1EKQRD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 May 2011 08:10:11 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [RFC] Standardize YUV support in the fbdev API
-Date: Mon, 23 May 2011 14:09:59 +0200
-Cc: "'Felipe Contreras'" <felipe.contreras@gmail.com>,
-	"'Laurent Pinchart'" <laurent.pinchart@ideasonboard.com>,
-	linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org
-References: <201105180007.21173.laurent.pinchart@ideasonboard.com> <201105180853.33850.hverkuil@xs4all.nl> <000601cc1940$4b2e2b20$e18a8160$%szyprowski@samsung.com>
-In-Reply-To: <000601cc1940$4b2e2b20$e18a8160$%szyprowski@samsung.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201105231409.59876.hverkuil@xs4all.nl>
+	Wed, 11 May 2011 12:17:03 -0400
+Date: Wed, 11 May 2011 15:12:37 +0200
+From: "Issa Gorissen" <flop.m@usa.net>
+To: Ralph Metzler <rjkm@metzlerbros.de>
+Subject: Re: DVB nGene CI : TS Discontinuities issues
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"S-bastien RAILLARD" <sr@coexsi.fr>,
+	Oliver Endriss <o.endriss@gmx.de>
+Mime-Version: 1.0
+Message-ID: <501PekNLl1856S04.1305119557@web04.cms.usa.net>
+Content-Type: multipart/mixed;
+	boundary="----NetAddressPart-00--=_kNLl1856S046f972b92"
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Monday, May 23, 2011 13:55:21 Marek Szyprowski wrote:
-> Hello,
-> 
-> On Wednesday, May 18, 2011 8:54 AM Hans Verkuil wrote:
-> 
-> > On Wednesday, May 18, 2011 00:44:26 Felipe Contreras wrote:
-> > > On Wed, May 18, 2011 at 1:07 AM, Laurent Pinchart
-> > > <laurent.pinchart@ideasonboard.com> wrote:
-> > > > I need to implement support for a YUV frame buffer in an fbdev driver.
-> > As the
-> > > > fbdev API doesn't support this out of the box, I've spent a couple of
-> > days
-> > > > reading fbdev (and KMS) code and thinking about how we could cleanly
-> > add YUV
-> > > > support to the API. I'd like to share my findings and thoughts, and
-> > hopefully
-> > > > receive some comments back.
-> > > >
-> > > > The terms 'format', 'pixel format', 'frame buffer format' and 'data
-> > format'
-> > > > will be used interchangeably in this e-mail. They all refer to the way
-> > pixels
-> > > > are stored in memory, including both the representation of a pixel as
-> > integer
-> > > > values and the layout of those integer values in memory.
-> > >
-> > > This is a great proposal. It was about time!
-> > >
-> > > > The third solution has my preference. Comments and feedback will be
-> > > > appreciated. I will then work on a proof of concept and submit patches.
-> > >
-> > > I also would prefer the third solution. I don't think there's much
-> > > difference from the user-space point of view, and a new ioctl would be
-> > > cleaner. Also the v4l2 fourcc's should do.
-> > 
-> > I agree with this.
-> > 
-> > We might want to take the opportunity to fix this section of the V4L2 Spec:
-> > 
-> > http://www.xs4all.nl/~hverkuil/spec/media.html#pixfmt-rgb
-> > 
-> > There are two tables, 2.6 and 2.7. But 2.6 is almost certainly wrong and
-> > should be removed.
-> 
-> That's definitely true. I was confused at the beginning when I saw 2
-> different tables describing the same pixel formats.
-> 
->  I suspect many if not all V4L2 drivers are badly broken for
-> > big-endian systems and report the wrong pixel formats.
-> > 
-> > Officially the pixel formats reflect the contents of the memory. But
-> > everything is swapped on a big endian system, so you are supposed to 
-> > report a different pix format.
-> 
-> I always thought that pix_format describes the layout of video data in
-> memory on byte level, which is exactly the same on both little- and big-
-> endian systems.
+This is a multi-part message in MIME format.
 
-Correct.
+------NetAddressPart-00--=_kNLl1856S046f972b92
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-> You can notice swapped data only if you access memory
-> by units larger than byte, like 16bit or 32bit integers. BTW - I would
-> really like to avoid little- and big- endian flame, but your statement
-> about 'everything is swapped on a big endian system' is completely
-> wrong. It is rather the characteristic of little-endian system not big
-> endian one if you display the content of the same memory first using
-> byte access and then using word/long access.
+From: Ralph Metzler <rjkm@metzlerbros.de>
+> Issa Gorissen writes:
+>  > Could you please take a look at the cxd2099 issues ?
+>  > =
 
-You are correct, I wasn't thinking it through.
- 
-> > I can't remember seeing any driver do that. Some have built-in swapping,
-> > though, and turn that on if needed.
-> 
-> The drivers shouldn't do ANY byte swapping at all. Only tools that
-> extract pixel data with some 'accelerated' methods (like 32bit integer
-> casting and bit-level shifting) should be aware of endianess.
-> 
-> > I really need to run some tests, but I've been telling myself this for
-> > years now :-(
-> 
-> I've checked the BTTV board in my PowerMac/G4 and the display was
-> correct with xawtv. It is just a matter of selecting correct pix format
-> basing on the information returned by xsever. 
-> 
-> Best regards
-> 
+>  > I have attached a version with my changes. I have tested a lot of
+>  > different settings with the help of the chip datasheet.
+>  > =
 
-Just forget my post (except for the part of cleaning up the tables :-) ).
+>  > Scrambled programs are not handled correctly. I don't know if it is =
+the
+>  > TICLK/MCLKI which is too high or something, or the sync detector ? A=
+lso,
+>  > as we have to set the TOCLK to max of 72MHz, there are way too much =
+null
+>  > packets added. Is there a way to solve this ?
+> =
 
-Regards,
+> I do not have any cxd2099 issues.
+> I have a simple test program which includes a 32bit counter as payload =
 
-	Hans
+> and can pump data through the CI with full speed and have no packet
+> loss. I only tested decoding with an ORF stream and an Alphacrypt CAM
+> but also had no problems with this.
+> =
+
+> Please take care not to write data faster than it is read. Starting two=
+
+> dds will not guarantee this. To be certain you could write a small
+> program which never writes more packets than input buffer size minus
+> the number of read packets (and minus the stuffing null packets on ngen=
+e).
+> =
+
+> Before blaming packet loss on the CI data path also please make
+> certain that you have no buffer overflows in the input part of =
+
+> the sec device.
+> In the ngene driver you can e.g. add a printk in tsin_exchange():
+> =
+
+> if (dvb_ringbuffer_free(&dev->tsin_rbuf) > len) {
+> ...
+> } else
+>     printk ("buffer overflow !!!!\n");
+> =
+
+> =
+
+> Regards,
+> Ralph
+
+
+Ralph,
+
+Please find my testing tool for the decryption attached. The idea is to w=
+rite
+5 packets and read them back from the CAM.
+
+My input is a raw ts captured with a gnutv I modified with a demux filter=
+ of
+0x2000. Gnutv outputs at dvr and dvbloop reads from it, process via sec0 =
+and
+writes output to a file.
+
+The channel I selected has been decrypted. Only problem is I have artifac=
+ts in
+the image and the sound.
+
+Do you have any idea of what I should improve from my test tool to fix th=
+at
+issue ?
+
+
+Thx,
+--
+Issa
+
+
+------NetAddressPart-00--=_kNLl1856S046f972b92
+Content-Type: text/x-csrc; name="dvbloop.c"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline; filename="dvbloop.c"
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <signal.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <time.h>
+
+static void signal_handler(int _signal);
+static int quit_app =3D 0;
+
+int main(int argc, char *argv[])
+{
+	signal(SIGINT, signal_handler);
+
+	if (argc <=3D 3)
+		exit(1);	=
+
+
+	int in_fd =3D open(argv[1], O_RDONLY);
+	int out_fd =3D open(argv[2], O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_I=
+WUSR);
+	int tsi_fd =3D open(argv[3], O_RDWR);
+
+	int rlen =3D 0;
+	int wlen =3D 0;
+	int rtsilen =3D 0;
+	int wtsilen =3D 0;
+
+	int BUFFY =3D 188 * 5;
+	unsigned char buf[BUFFY];
+	struct timespec sl[1];
+	sl[0].tv_nsec =3D 250000;
+	=
+
+	while (!quit_app)
+	{
+		// read from input (DVR or other)
+		rlen =3D 0;
+		while (rlen < BUFFY) {
+			int i =3D read(in_fd, buf + rlen, BUFFY - rlen);
+			if (!i) {
+				quit_app =3D 1;
+				continue;
+			}
+			rlen +=3D i;
+		}
+		=
+
+		// write data to caio device
+		wlen =3D write(tsi_fd, buf, rlen);
+		if (wlen !=3D rlen)
+		{
+			perror("Did not write same amount of data from input to caio!!!");
+			exit(1);
+		}/* else
+			printf("written %d bytes in tsi\n", wlen);
+	*/
+
+		// read data from caio device - should be decrypted
+		// finding sync byte
+		do {
+			buf[0] =3D 0;
+			while (buf[0] !=3D 0x47) {
+				rtsilen =3D read(tsi_fd, buf, 1);
+			}
+			=
+
+			if (buf[0] =3D=3D 0x47) {
+				do {
+					int i =3D read(tsi_fd, buf + rtsilen, 188 - rtsilen);
+					rtsilen +=3D i;
+//					printf("reading %d bytes from tsi\n", i);
+				} while (rtsilen < 188);
+
+				break;
+			}
+		} while (1);
+
+//printf("sync byte found: %02x \n", buf[0]);
+
+		wtsilen =3D 0;
+		int nulls =3D 0;
+		do {
+			if (buf[0] =3D=3D 0x47 && buf[1] =3D=3D 0x1F && buf[2] =3D=3D 0xFF) {
+				++nulls;
+				if (nulls > 100)
+					break;
+
+//				printf("null packet ");
+				// DVB null packet, discard
+			} else {
+//			printf("\nfrom tsi out: %x %x %x \n", buf[0], buf[1], buf[2]);
+				// write packet to output
+				int i =3D write(out_fd, buf, 188);
+				if (i < 188) {
+					perror("Did not write 188 bytes to output file!!!");
+				}
+				wtsilen +=3D i;
+			}
+
+			if (rlen =3D=3D wtsilen || quit_app)
+				break;
+
+			rtsilen =3D 0;
+			do {
+				rtsilen +=3D read(tsi_fd, buf + rtsilen, 188 - rtsilen);
+			} while (rtsilen < 188);
+		} while (1);
+	}
+
+	close(in_fd);
+	close(out_fd);
+	close(tsi_fd);
+
+	exit(0);
+}
+
+
+static void signal_handler(int _signal)
+{
+	if (!quit_app)
+	{
+		quit_app =3D 1;
+	}
+}
+
+------NetAddressPart-00--=_kNLl1856S046f972b92--
