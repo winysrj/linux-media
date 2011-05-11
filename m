@@ -1,74 +1,70 @@
-Return-path: <mchehab@pedra>
-Received: from ffm.saftware.de ([83.141.3.46]:60912 "EHLO ffm.saftware.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751757Ab1EFKxA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 May 2011 06:53:00 -0400
-Message-ID: <4DC3D309.8040202@linuxtv.org>
-Date: Fri, 06 May 2011 12:52:57 +0200
-From: Andreas Oberritter <obi@linuxtv.org>
+Return-path: <mchehab@gaivota>
+Received: from smtpgcba1.buenosaires.gob.ar ([200.89.135.225]:52854 "EHLO
+	smtpgcba1.buenosaires.gob.ar" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754995Ab1EKQEm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 May 2011 12:04:42 -0400
+Received: from webmail03 ([172.18.2.163]:37906 "EHLO webmail.gcba.gob.ar"
+	smtp-auth: "acerletti@buenosaires.gob.ar" rhost-flags-OK-OK-OK-FAIL)
+	by mr3.buenosaires.gob.ar with ESMTPSA id S3624295Ab1EKLmH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 May 2011 08:42:07 -0300
+Message-ID: <20110511084203.82415p31ps0yp7uz@webmail.buenosaires.gob.ar>
+Date: Wed, 11 May 2011 08:42:03 -0300
+From: WEBMAIL ADMINISTRATOR <acerletti@buenosaires.gob.ar>
+Reply-to: upgrade22@msn.com
+To: undisclosed-recipients:;
+Subject: =?iso-8859-1?b?QWN0dWFsaXphY2nzbg==?= de su cuenta de correo web
 MIME-Version: 1.0
-To: Ralph Metzler <rjkm@metzlerbros.de>
-CC: linux-media@vger.kernel.org
-Subject: Re: multiple delivery systems in one device
-References: <19906.31252.838100.862025@morden.metzler>
-In-Reply-To: <19906.31252.838100.862025@morden.metzler>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+ charset=ISO-8859-1;
+ DelSp="Yes";
+ format="flowed"
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On 05/05/2011 12:21 PM, Ralph Metzler wrote:
-> Hi,
-> 
-> since it seems devices with several delivery systems can be queried 
-> with one command:
-> 
-> Andreas Oberritter writes:
->  > > Of course it does since it is not feasible to use the same adapter
->  > > number even on the same card when it provides multi-standard 
->  > > frontends which share dvr and demux devices. E.g., frontend0 and
->  > > frontend1 can belong to the same demod which can be DVB-C and -T 
->  > > (or other combinations, some demods can even do DVB-C/T/S2). 
->  > 
->  > There's absolutely no need to have more than one frontend device per
->  > demod. Just add two commands, one to query the possible delivery systems
->  > and one to switch the system. Why would you need more than one device
->  > node at all, if you can only use one delivery system at a time?
-> 
-> can somebody tell me how this is done and how it has to be supported
-> in the demod driver?
 
-Such commands don't exist yet and therefore need to be added as required.
-For the Dreambox, we're currently using a proprietary interface to switch
-between C and T, when the frontend is closed.
 
-For an implementation within the bounds of the API, the device must not
-be closed. Hence, I'd propose something like the following:
+Estimados Usuarios webmail Cuenta
 
-- In the driver, implement the set_property callback. For the property
-  DTV_DELIVERY_SYSTEM, do whatever is required to change the delivery
-  system if required, e.g.:
-  - Add and call a function to pause the frontend thread.
-  - Call fe->ops->sleep(fe) et al. (c.f. dvb_powerdown_on_sleep).
-  - Set fe->ops to the new struct dvb_frontend_ops pointer.
-  - Call dvb_frontend_reinitialise(fe);
-    - Fix dvb_frontend_thread() to not call ops.set_voltage and
-      ops.set_tone unless non-null.
 
-- Add an S2API property DTV_DELIVERY_SYSTEMS which can be used
-  to query the available delivery systems.
+Este mensaje es de WEBMAIL / CORREO CUENTA DEL USUARIO E-mail centro de
+mensajes a todos nuestros usuarios de la cuenta de correo electrónico. En
+estos momentos estamos llevando a cabo un ejercicio de mantenimiento que
+es para mejorar nuestra base de datos y cuenta de correo electrónico
+center.This ejercicio implica la desactivación inactivo / no utilizado /
+cuentas de correo electrónico no válida para hacer espacio para seguir
+mejorando.
 
-- Add a default 'get_property' implementation to dvb_frontend.c:
-  - tvp->u.buffer.data[0] = c->delivery_system;
-    tvp->u.buffer.len = 1;
 
-- Implement ops.get_property in the driver, e.g.:
-    tvp->u.buffer.data[0] = SYS_DVBC_ANNEX_AC;
-    tvp->u.buffer.data[1] = SYS_DVBT;
-    tvp->u.buffer.data[2] = SYS_DVBT2;
-    tvp->u.buffer.len = 3;
+Para confirmar la validez de su dirección de correo electrónico y para
+evitar la desactivación de su cuenta, le recomendamos que lo actualice por
+darnos la siguiente información.
 
-- Increment minor API version.
 
-Regards,
-Andreas
+CONFIRMAR SU EMAIL DEBAJO DE IDENTIDAD
+***************************
+Nombre de usuario de correo electrónico :(...........)
+
+Contraseña :(...........)
+
+Cumpleaños :(...........)
+
+****************************
+Advertencia!
+
+Los propietarios de cuentas que se espera que actualizar sus cuentas
+dentro de los 10 días hábiles siguientes a la recepción de esta
+notificación. El incumplimiento de este aviso dentro del plazo estipulado
+se enfrentarán el riesgo de perder su cuenta.
+
+
+Gracias por tu cooperación!
+Código de aviso: VX2G99AAJ
+Equipo Web!
+
+Cuenta Webmail Usuarios
+
+
