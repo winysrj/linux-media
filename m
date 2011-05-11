@@ -1,90 +1,40 @@
 Return-path: <mchehab@gaivota>
-Received: from mail.dream-property.net ([82.149.226.172]:52922 "EHLO
-	mail.dream-property.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754605Ab1EHXNV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 May 2011 19:13:21 -0400
+Received: from ffm.saftware.de ([83.141.3.46]:37186 "EHLO ffm.saftware.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753890Ab1EKUR0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 May 2011 16:17:26 -0400
+Message-ID: <4DCAEED2.6040906@linuxtv.org>
+Date: Wed, 11 May 2011 22:17:22 +0200
 From: Andreas Oberritter <obi@linuxtv.org>
-To: linux-media@vger.kernel.org
-Cc: Thierry LELEGARD <tlelegard@logiways.com>
-Subject: [PATCH 2/8] DVB: dtv_property_cache_submit shouldn't modifiy the cache
-Date: Sun,  8 May 2011 23:03:35 +0000
-Message-Id: <1304895821-21642-3-git-send-email-obi@linuxtv.org>
-In-Reply-To: <1304895821-21642-1-git-send-email-obi@linuxtv.org>
-References: <1304895821-21642-1-git-send-email-obi@linuxtv.org>
+MIME-Version: 1.0
+To: =?UTF-8?B?QmrDuHJuIE1vcms=?= <bjorn@mork.no>
+CC: linux-media@vger.kernel.org
+Subject: Re: dvb-core/dvb_frontend.c: Synchronizing legacy and new tuning
+ API
+References: <87sjslaxwz.fsf@nemi.mork.no>
+In-Reply-To: <87sjslaxwz.fsf@nemi.mork.no>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-- Use const pointers and remove assignments.
-- delivery_system already gets assigned by DTV_DELIVERY_SYSTEM
-  and dtv_property_cache_sync.
+On 05/11/2011 08:34 PM, Bjørn Mork wrote:
+> I see in drivers/media/dvb/dvb-core/dvb_frontend.c that there is some
+> synchronization between the old and the new API.
+> 
+> But it is incomplete: The new FE_GET_PROPERTY will report only cached
+> values, which is whatever the application has written and not the
+> actual tuned values like FE_GET_FRONTEND will.  The problem is that 
+> FE_GET_PROPERTY only will call fe->ops.get_property even for legacy
+> drivers.  It could have fallen back to calling fe->ops.get_frontend
+> followed by a cache synchronization.
+> 
+> Is this difference intentional (because it costs too much, doesn't
+> matter, or whatever)?  Or should I prepare a patch for dvb_frontend.c?
 
-Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
----
- drivers/media/dvb/dvb-core/dvb_frontend.c |   13 +++----------
- 1 files changed, 3 insertions(+), 10 deletions(-)
+Please try the patches submitted for testing:
 
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-index be0f631..1ac7633 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -1074,7 +1074,7 @@ static void dtv_property_cache_sync(struct dvb_frontend *fe,
-  */
- static void dtv_property_legacy_params_sync(struct dvb_frontend *fe)
- {
--	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+	const struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
- 	struct dvb_frontend_parameters *p = &fepriv->parameters;
- 
-@@ -1086,14 +1086,12 @@ static void dtv_property_legacy_params_sync(struct dvb_frontend *fe)
- 		dprintk("%s() Preparing QPSK req\n", __func__);
- 		p->u.qpsk.symbol_rate = c->symbol_rate;
- 		p->u.qpsk.fec_inner = c->fec_inner;
--		c->delivery_system = SYS_DVBS;
- 		break;
- 	case FE_QAM:
- 		dprintk("%s() Preparing QAM req\n", __func__);
- 		p->u.qam.symbol_rate = c->symbol_rate;
- 		p->u.qam.fec_inner = c->fec_inner;
- 		p->u.qam.modulation = c->modulation;
--		c->delivery_system = SYS_DVBC_ANNEX_AC;
- 		break;
- 	case FE_OFDM:
- 		dprintk("%s() Preparing OFDM req\n", __func__);
-@@ -1111,15 +1109,10 @@ static void dtv_property_legacy_params_sync(struct dvb_frontend *fe)
- 		p->u.ofdm.transmission_mode = c->transmission_mode;
- 		p->u.ofdm.guard_interval = c->guard_interval;
- 		p->u.ofdm.hierarchy_information = c->hierarchy;
--		c->delivery_system = SYS_DVBT;
- 		break;
- 	case FE_ATSC:
- 		dprintk("%s() Preparing VSB req\n", __func__);
- 		p->u.vsb.modulation = c->modulation;
--		if ((c->modulation == VSB_8) || (c->modulation == VSB_16))
--			c->delivery_system = SYS_ATSC;
--		else
--			c->delivery_system = SYS_DVBC_ANNEX_B;
- 		break;
- 	}
- }
-@@ -1129,7 +1122,7 @@ static void dtv_property_legacy_params_sync(struct dvb_frontend *fe)
-  */
- static void dtv_property_adv_params_sync(struct dvb_frontend *fe)
- {
--	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+	const struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
- 	struct dvb_frontend_parameters *p = &fepriv->parameters;
- 
-@@ -1170,7 +1163,7 @@ static void dtv_property_adv_params_sync(struct dvb_frontend *fe)
- 
- static void dtv_property_cache_submit(struct dvb_frontend *fe)
- {
--	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+	const struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 
- 	/* For legacy delivery systems we don't need the delivery_system to
- 	 * be specified, but we populate the older structures from the cache
--- 
-1.7.2.5
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg31194.html
 
+Regards,
+Andreas
