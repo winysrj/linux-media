@@ -1,84 +1,40 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2238 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932683Ab1ELUaF (ORCPT
+Received: from cmsout02.mbox.net ([165.212.64.32]:48661 "EHLO
+	cmsout02.mbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756988Ab1EKQNE convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 May 2011 16:30:05 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Charlie X. Liu" <charlie@sensoray.com>
-Subject: Re: Audio Video synchronization for data received from a HDMI receiver chip
-Date: Thu, 12 May 2011 22:29:56 +0200
-Cc: "'Bhupesh SHARMA'" <bhupesh.sharma@st.com>,
-	linux-media@vger.kernel.org,
-	"'Laurent Pinchart'" <laurent.pinchart@ideasonboard.com>,
-	"'Guennadi Liakhovetski'" <g.liakhovetski@gmx.de>
-References: <D5ECB3C7A6F99444980976A8C6D896384DF1137013@EAPEX1MAIL1.st.com> <004b01cc10c5$f85bf6c0$e913e440$@com>
-In-Reply-To: <004b01cc10c5$f85bf6c0$e913e440$@com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201105122229.56642.hverkuil@xs4all.nl>
+	Wed, 11 May 2011 12:13:04 -0400
+Received: from cmsout02.mbox.net (co02-lo [127.0.0.1])
+	by cmsout02.mbox.net (Postfix) with ESMTP id 51F0C134584
+	for <linux-media@vger.kernel.org>; Wed, 11 May 2011 13:22:08 +0000 (GMT)
+Date: Wed, 11 May 2011 15:22:04 +0200
+From: "Issa Gorissen" <flop.m@usa.net>
+To: <linux-media@vger.kernel.org>
+Subject: dvb demux: isolating the pids related to a scrambled channel
+Mime-Version: 1.0
+Message-ID: <677PekNVe3040S04.1305120124@web04.cms.usa.net>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Thursday, May 12, 2011 18:59:33 Charlie X. Liu wrote:
-> Which HDMI receiver chip?
+Hi,
 
-Indeed, that's my question as well :-)
+To decramble a channel with a ngene based card, you either need to:
 
-Anyway, this question comes up regularly. V4L2 provides timestamps for each
-frame, so that's no problem. But my understanding is that ALSA does not give
-you timestamps, so if there are processing delays between audio and video, then
-you have no way of knowing. The obvious solution is to talk to the ALSA people
-to see if some sort of timestamping is possible, but nobody has done that.
+1) send the full ts to sec0;
 
-This is either because everyone that needs it hacks around it instead of trying
-to really solve it, or because it is never a problem in practice.
+2) send a filtered ts to sec0.
 
-Hope this helps!
+The latter case shall permit the descrambling of 2 channels transmitted from 2
+different ts/tuners.
 
-Regards,
+I'm interested in knowing how to do this: filter a ts so that I only keep the
+needed pids for the cam.
 
-	Hans
+Can anyone help ?
 
-> 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org
-> [mailto:linux-media-owner@vger.kernel.org] On Behalf Of Bhupesh SHARMA
-> Sent: Wednesday, May 11, 2011 10:49 PM
-> To: linux-media@vger.kernel.org
-> Cc: Laurent Pinchart; Guennadi Liakhovetski; Hans Verkuil
-> Subject: Audio Video synchronization for data received from a HDMI receiver
-> chip
-> 
-> Hi Linux media folks,
-> 
-> We are considering putting an advanced HDMI receiver chip on our SoC,
-> to allow reception of HDMI audio and video. The chip receives HDMI data
-> from a host like a set-up box or DVD player. It provides a video data
-> interface
-> and SPDIF/I2S audio data interface.
-> 
-> We plan to support the HDMI video using the V4L2 framework and the HDMI
-> audio using ALSA framework.
-> 
-> Now, what seems to be intriguing us is how the audio-video synchronization
-> will be maintained? Will a separate bridging entity required to ensure the
-> same
-> or whether this can be left upon a user space application like mplayer or
-> gstreamer.
-> 
-> Also is there a existing interface between the V4L2 and ALSA frameworks and
-> the same
-> can be used in our design?
-> 
-> Regards,
-> Bhupesh
-> ST Microelectronics
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+Thx
+--
+Issa
+
