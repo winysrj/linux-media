@@ -1,73 +1,73 @@
-Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:34684 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752818Ab1EDMU2 (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:47550 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755142Ab1EKPrm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 May 2011 08:20:28 -0400
-References: <4DC138F7.5050400@infradead.org> <1304509147-28058-1-git-send-email-simon.farnsworth@onelan.co.uk>
-In-Reply-To: <1304509147-28058-1-git-send-email-simon.farnsworth@onelan.co.uk>
-MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH] cx18: Bump driver version to 1.5.0
-From: Andy Walls <awalls@md.metrocast.net>
-Date: Wed, 04 May 2011 08:20:23 -0400
-To: Simon Farnsworth <simon.farnsworth@onelan.co.uk>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Steven Toth <stoth@kernellabs.com>
-Message-ID: <1d34e674-1494-4bfd-8929-0837fb7c4ae5@email.android.com>
+	Wed, 11 May 2011 11:47:42 -0400
+Date: Wed, 11 May 2011 17:17:09 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 2/3 v5] v4l: Move s5p-fimc driver into Video capture devices
+In-reply-to: <1305127030-30162-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: linux-samsung-soc@vger.kernel.org,
+	laurent.pinchart@ideasonboard.com, kyungmin.park@samsung.com,
+	m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	kgene.kim@samsung.com, sungchun.kang@samsung.com,
+	jonghun.han@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Message-id: <1305127030-30162-3-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1305127030-30162-1-git-send-email-s.nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Simon Farnsworth <simon.farnsworth@onelan.co.uk> wrote:
+s5p-fimc now also implements a camera capture video node so move
+it under the "Video capture devices" kernel config menu. Also
+update the entry to reflect the driver's coverage of EXYNOS4 SoCs.
 
->To simplify maintainer support of this driver, bump the version to
->1.5.0 - this will be the first version that is expected to support
->mmap() for raw video frames.
->
->Signed-off-by: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
->---
->Mauro,
->
->This is an incremental patch to apply on top of my cleanup patch - if
->you would prefer a complete new patch with this squashed into the
->cleanup patch, just ask and it will be done.
->
-> drivers/media/video/cx18/cx18-version.h |    4 ++--
-> 1 files changed, 2 insertions(+), 2 deletions(-)
->
->diff --git a/drivers/media/video/cx18/cx18-version.h
->b/drivers/media/video/cx18/cx18-version.h
->index 62c6ca2..cd189b6 100644
->--- a/drivers/media/video/cx18/cx18-version.h
->+++ b/drivers/media/video/cx18/cx18-version.h
->@@ -24,8 +24,8 @@
-> 
-> #define CX18_DRIVER_NAME "cx18"
-> #define CX18_DRIVER_VERSION_MAJOR 1
->-#define CX18_DRIVER_VERSION_MINOR 4
->-#define CX18_DRIVER_VERSION_PATCHLEVEL 1
->+#define CX18_DRIVER_VERSION_MINOR 5
->+#define CX18_DRIVER_VERSION_PATCHLEVEL 0
-> 
->#define CX18_VERSION __stringify(CX18_DRIVER_VERSION_MAJOR) "."
->__stringify(CX18_DRIVER_VERSION_MINOR) "."
->__stringify(CX18_DRIVER_VERSION_PATCHLEVEL)
->#define CX18_DRIVER_VERSION KERNEL_VERSION(CX18_DRIVER_VERSION_MAJOR, \
->-- 
->1.7.4
->
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media"
->in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/Kconfig |   19 +++++++++++--------
+ 1 files changed, 11 insertions(+), 8 deletions(-)
 
-Thanks Simon.
-
-Acked-by: Andy Walls <awalls@md.metrocast.net>
-
-Regards,
-Andy
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index d61414e..a705493 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -934,6 +934,17 @@ config VIDEO_MX2
+ 	  This is a v4l2 driver for the i.MX27 and the i.MX25 Camera Sensor
+ 	  Interface
+ 
++config  VIDEO_SAMSUNG_S5P_FIMC
++	tristate "Samsung S5P and EXYNOS4 camera host interface driver"
++	depends on VIDEO_DEV && VIDEO_V4L2 && PLAT_S5P
++	select VIDEOBUF2_DMA_CONTIG
++	select V4L2_MEM2MEM_DEV
++	---help---
++	  This is a v4l2 driver for Samsung S5P and EXYNOS4 camera
++	  host interface and video postprocessor.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called s5p-fimc.
+ 
+ #
+ # USB Multimedia device configuration
+@@ -1029,13 +1040,5 @@ config VIDEO_MEM2MEM_TESTDEV
+ 	  This is a virtual test device for the memory-to-memory driver
+ 	  framework.
+ 
+-config  VIDEO_SAMSUNG_S5P_FIMC
+-	tristate "Samsung S5P FIMC (video postprocessor) driver"
+-	depends on VIDEO_DEV && VIDEO_V4L2 && PLAT_S5P
+-	select VIDEOBUF2_DMA_CONTIG
+-	select V4L2_MEM2MEM_DEV
+-	help
+-	  This is a v4l2 driver for the S5P camera interface
+-	  (video postprocessor)
+ 
+ endif # V4L_MEM2MEM_DRIVERS
+-- 
+1.7.5
