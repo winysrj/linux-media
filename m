@@ -1,45 +1,108 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2709 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752227Ab1E0Jgb (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:47550 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754209Ab1EKPrl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 May 2011 05:36:31 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: h.264 web cam
-Date: Fri, 27 May 2011 11:35:28 +0200
-Cc: Jerry Geis <geisj@messagenetsystems.com>,
-	linux-media@vger.kernel.org
-References: <4DDD5C3B.6060706@MessageNetSystems.com> <201105252206.39243.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201105252206.39243.laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201105271135.28965.hverkuil@xs4all.nl>
+	Wed, 11 May 2011 11:47:41 -0400
+Date: Wed, 11 May 2011 17:17:08 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 1/3 v5] v4l: Add V4L2_MBUS_FMT_JPEG_1X8 media bus format
+In-reply-to: <1305127030-30162-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: linux-samsung-soc@vger.kernel.org,
+	laurent.pinchart@ideasonboard.com, kyungmin.park@samsung.com,
+	m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	kgene.kim@samsung.com, sungchun.kang@samsung.com,
+	jonghun.han@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Message-id: <1305127030-30162-2-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1305127030-30162-1-git-send-email-s.nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Wednesday, May 25, 2011 22:06:38 Laurent Pinchart wrote:
-> Hi Jerry,
-> 
-> On Wednesday 25 May 2011 21:44:59 Jerry Geis wrote:
-> > I am trying to find the code for h.264 mentioned
-> >  http://www.spinics.net/lists/linux-media/msg29129.html
-> > 
-> > I downloaded the linux-media-2011-05.24 and it is not part of uvc_driver.c
-> > 
-> > Where can I get the code?
-> 
-> That code only exists in the patches you've found. They haven't been applied 
-> to the uvcvideo driver, because we haven't decided yet how H.264 should be 
-> exposed to applications by the V4L2 API.
-> 
-> We now have a better understanding of H.264. Hans, could you review the H.264 
-> patch at the link above and tell me what you now think about the new fourcc ?
+Add V4L2_MBUS_FMT_JPEG_1X8 format and the corresponding Docbook
+documentation.
 
-Yes, that's fine. It matches the proposals from Kamil Debski, so this can go ahead.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ Documentation/DocBook/v4l/subdev-formats.xml |   46 ++++++++++++++++++++++++++
+ include/linux/v4l2-mediabus.h                |    3 ++
+ 2 files changed, 49 insertions(+), 0 deletions(-)
 
-Regards,
-
-	Hans
+diff --git a/Documentation/DocBook/v4l/subdev-formats.xml b/Documentation/DocBook/v4l/subdev-formats.xml
+index d7ccd25..a26b10c 100644
+--- a/Documentation/DocBook/v4l/subdev-formats.xml
++++ b/Documentation/DocBook/v4l/subdev-formats.xml
+@@ -2522,5 +2522,51 @@
+ 	</tgroup>
+       </table>
+     </section>
++
++    <section>
++      <title>JPEG Compressed Formats</title>
++
++      <para>Those data formats consist of an ordered sequence of 8-bit bytes
++	obtained from JPEG compression process. Additionally to the
++	<constant>_JPEG</constant> prefix the format code is made of
++	the following information.
++	<itemizedlist>
++	  <listitem>The number of bus samples per entropy encoded byte.</listitem>
++	  <listitem>The bus width.</listitem>
++	</itemizedlist>
++
++	<para>For instance, for a JPEG baseline process and an 8-bit bus width
++	  the format will be named <constant>V4L2_MBUS_FMT_JPEG_1X8</constant>.
++	</para>
++      </para>
++
++      <para>The following table lists existing JPEG compressed formats.</para>
++
++      <table pgwide="0" frame="none" id="v4l2-mbus-pixelcode-jpeg">
++	<title>JPEG Formats</title>
++	<tgroup cols="3">
++	  <colspec colname="id" align="left" />
++	  <colspec colname="code" align="left"/>
++	  <colspec colname="remarks" align="left"/>
++	  <thead>
++	    <row>
++	      <entry>Identifier</entry>
++	      <entry>Code</entry>
++	      <entry>Remarks</entry>
++	    </row>
++	  </thead>
++	  <tbody valign="top">
++	    <row id="V4L2-MBUS-FMT-JPEG-1X8">
++	      <entry>V4L2_MBUS_FMT_JPEG_1X8</entry>
++	      <entry>0x4001</entry>
++	      <entry>Besides of its usage for the parallel bus this format is
++		recommended for transmission of JPEG data over MIPI CSI bus
++		using the User Defined 8-bit Data types.
++	      </entry>
++	    </row>
++	  </tbody>
++	</tgroup>
++      </table>
++    </section>
+   </section>
+ </section>
+diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
+index de5c159..5ea7f75 100644
+--- a/include/linux/v4l2-mediabus.h
++++ b/include/linux/v4l2-mediabus.h
+@@ -89,6 +89,9 @@ enum v4l2_mbus_pixelcode {
+ 	V4L2_MBUS_FMT_SGBRG12_1X12 = 0x3010,
+ 	V4L2_MBUS_FMT_SGRBG12_1X12 = 0x3011,
+ 	V4L2_MBUS_FMT_SRGGB12_1X12 = 0x3012,
++
++	/* JPEG compressed formats - next is 0x4002 */
++	V4L2_MBUS_FMT_JPEG_1X8 = 0x4001,
+ };
+ 
+ /**
+-- 
+1.7.5
