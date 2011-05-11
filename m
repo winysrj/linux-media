@@ -1,58 +1,43 @@
-Return-path: <mchehab@pedra>
-Received: from barcelona.uem.br ([200.201.11.21]:38974 "EHLO Barcelona.uem.br"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755212Ab1EDSRP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 May 2011 14:17:15 -0400
-Message-ID: <61583.178.229.211.150.1304522706.squirrel@www.dfi.uem.br>
-Date: Wed, 4 May 2011 12:25:06 -0300 (BRT)
-Subject: FIRMA PARTHAVER SKULLE BRUGE
-From: "L. CHINH" <chi.cong@yahoo.com.vn>
-Reply-To: chcongle83@yahoo.com.vn
+Return-path: <mchehab@gaivota>
+Received: from mailout-de.gmx.net ([213.165.64.22]:56581 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751134Ab1EKTBl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 May 2011 15:01:41 -0400
+From: Oliver Endriss <o.endriss@gmx.de>
+Reply-To: linux-media@vger.kernel.org
+To: linux-media@vger.kernel.org
+Subject: Re: ngene CI problems
+Date: Wed, 11 May 2011 20:59:20 +0200
+References: <4D74E28A.6030302@gmail.com>
+In-Reply-To: <4D74E28A.6030302@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-To: undisclosed-recipients:;
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201105112059.21083@orion.escape-edv.de>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
+On Monday 07 March 2011 14:50:02 Martin Vidovic wrote:
+> ...
+> - SEC device generates NULL packets (ad infinitum):
+> 
+> When reading from SEC, NULL packets are read and interleaved with 
+> expected packets. They can be even read with dd(1) when nobody is 
+> writing to SEC and even when CAM is not ready.
+> ...
 
+I reworked the driver to strip those null packets. Please try
+http://linuxtv.org/hg/~endriss/ngene-octopus-test/raw-rev/f0dc4237ad08
 
-
-FIRMA PARTHAVER SKULLE BRUGE
-
-Allerkærest firma parthaver,
-
-Behage benåde mig stavemåde , dansk er ikke mig først sprog
-
-Jeg er Mr. Chinh, ex-arbejder henne ved SACOMBANK (VIETNAM), en firma
-parthaver og selv nyde en vældig pengebeløb anvendelig nemlig investering
-formål og jeres erfaring og firma venskab er krævede hen til skabe sig en
-lykke.
-
-Den er nok så betydelig nemlig jer hen til henvende sig til mig igennem
-Email : chcongle83@yahoo.com.vn
-
-Jeres fuld Benævne :
-Telephone/Fax:
-Firma erfaring ( livsstilling ):
-Alder:
-E-mail address:
-
-Hermed information JEG kunne levere jer hos flere detaljer og akter med
-henblik på selv , indeværende handel og hvor vi vil foretage den
-fremgangsmåde straks. Undersøge i jeres landskab hos jer repræsenterer os
-vil være værdsat selv om jeres firma ideer er artig , anfør venligst jeres
-firma ideer i jeres replik , selv om jer lad være nyde hvilken som helst ,
-jer vil lade sig råde oven på hvor hen til gå i stykker omkring sig under
-den fremgangsmåde. Den er betydelig at jer opbevare den indhold i den
-indlevere hen til dig selv skyldig den vældig beløb involveret og den den
-omstændighed, at indeværende handel gør ikke savn unødvendig opmærksomhed.
-
-Mange tak.
-Regards,
-Mr. Chinh
+CU
+Oliver
 
 -- 
-Esta mensagem foi verificada pelo sistema de antivirus e
- acredita-se estar livre de perigo.
-
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
+Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
+----------------------------------------------------------------
