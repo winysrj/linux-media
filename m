@@ -1,44 +1,60 @@
-Return-path: <mchehab@pedra>
-Received: from fallbackmx10.syd.optusnet.com.au ([211.29.132.251]:55293 "EHLO
-	fallbackmx10.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932287Ab1ESDjl (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from mail1-out1.atlantis.sk ([80.94.52.55]:49419 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757573Ab1ELUSR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 May 2011 23:39:41 -0400
-Message-Id: <201105190332.p4J3WeiI002907@mail06.syd.optusnet.com.au>
-Content-Type: text/plain
+	Thu, 12 May 2011 16:18:17 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: alsa-devel@alsa-project.org
+Subject: [PATCH 2/3] tea575x: remove unused card from struct
+Date: Thu, 12 May 2011 22:18:09 +0200
+Cc: linux-media@vger.kernel.org,
+	"Kernel development list" <linux-kernel@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Content-Transfer-Encoding: binary
-Mime-Version: 1.0
-From: WESTERN UNION MONEY TRANSFER <winners@westi.org>
-Date: Thu, 19 May 2011 13:32:40 +1000
-Reply-To: wu.africadept12@w.cn
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Message-Id: <201105122218.11969.linux@rainbow-software.org>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+
+struct snd_card *card is present in struct snd_tea575x but never used.
+Remove it.
+
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+
+--- linux-2.6.39-rc2-/include/sound/tea575x-tuner.h	2011-05-12 21:22:35.000000000 +0200
++++ linux-2.6.39-rc2/include/sound/tea575x-tuner.h	2011-05-12 21:21:37.000000000 +0200
+@@ -42,7 +42,6 @@ struct snd_tea575x_ops {
+ };
+ 
+ struct snd_tea575x {
+-	struct snd_card *card;
+ 	struct video_device *vd;	/* video device */
+ 	bool tea5759;			/* 5759 chip is present */
+ 	bool mute;			/* Device is muted? */
+--- linux-2.6.39-rc2-/sound/pci/es1968.c	2011-05-12 21:22:35.000000000 +0200
++++ linux-2.6.39-rc2/sound/pci/es1968.c	2011-05-12 21:22:09.000000000 +0200
+@@ -2793,7 +2793,6 @@ static int __devinit snd_es1968_create(s
+ 	snd_card_set_dev(card, &pci->dev);
+ 
+ #ifdef CONFIG_SND_ES1968_RADIO
+-	chip->tea.card = card;
+ 	chip->tea.private_data = chip;
+ 	chip->tea.ops = &snd_es1968_tea_ops;
+ 	if (!snd_tea575x_init(&chip->tea))
+--- linux-2.6.39-rc2-/sound/pci/fm801.c	2011-05-12 21:22:35.000000000 +0200
++++ linux-2.6.39-rc2/sound/pci/fm801.c	2011-05-12 21:22:05.000000000 +0200
+@@ -1230,7 +1230,6 @@ static int __devinit snd_fm801_create(st
+ 	snd_card_set_dev(card, &pci->dev);
+ 
+ #ifdef TEA575X_RADIO
+-	chip->tea.card = card;
+ 	chip->tea.private_data = chip;
+ 	chip->tea.ops = &snd_fm801_tea_ops;
+ 	if ((tea575x_tuner & TUNER_TYPE_MASK) > 0 &&
 
 
-
-Dear Western Union Customer,
-You have been awarded with the sum of 
-$50,000 USD by our office, as one of our 
-customers who use Western Union in their daily 
-business transaction.
-This award has been selected through the 
-internet, where your e-mail address was 
-indicated and notified.
-Please provide Mr. Gary Epps with the following 
-detailslisted below so that your fund will be 
-remited to you through Western Union.
-1. Name:______
-2. Address________
-3. Country:_______
-4. Phone Number____
-5. Occupation:________
-6. Sex:_________________
-7. Age___________________
-Mr. Gary Epps
-Tel: +393883557681
-E-mail: wu.africadept12@w.cn
-As soon as these details are received and 
-verified,your fund will be transferred to you. 
-Thank you, for using western union.
+-- 
+Ondrej Zary
