@@ -1,41 +1,39 @@
 Return-path: <mchehab@gaivota>
-Received: from moutng.kundenserver.de ([212.227.17.9]:50606 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750998Ab1EMMBe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 May 2011 08:01:34 -0400
-Date: Fri, 13 May 2011 14:01:32 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: linux-media@vger.kernel.org
-Subject: Re: [PATCHv2] v4l: Add M420 format definition
-In-Reply-To: <1305277915-8383-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Message-ID: <Pine.LNX.4.64.1105131356410.26356@axis700.grange>
-References: <1305277915-8383-1-git-send-email-laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from lo.gmane.org ([80.91.229.12]:60114 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753103Ab1ELHEg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 May 2011 03:04:36 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1QKPwp-00054f-6r
+	for linux-media@vger.kernel.org; Thu, 12 May 2011 09:04:35 +0200
+Received: from 193.160.199.2 ([193.160.199.2])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 12 May 2011 09:04:35 +0200
+Received: from bjorn by 193.160.199.2 with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 12 May 2011 09:04:35 +0200
+To: linux-media@vger.kernel.org
+From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
+Subject: Re: dvb-core/dvb_frontend.c: Synchronizing legacy and new tuning API
+Date: Thu, 12 May 2011 09:04:16 +0200
+Message-ID: <87oc38bdsf.fsf@nemi.mork.no>
+References: <87sjslaxwz.fsf@nemi.mork.no> <4DCAEED2.6040906@linuxtv.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Couldn't spot any problems with the patch except:
+Andreas Oberritter <obi@linuxtv.org> writes:
 
-On Fri, 13 May 2011, Laurent Pinchart wrote:
+> Please try the patches submitted for testing:
+>
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg31194.html
 
-> From: Hans de Goede <hdegoede@redhat.com>
-> 
-> M420 is an hybrid YUV 4:2:2 packet/planar format. Two Y lines are
+Ah, great! Thanks.  Nothing better than a problem already solved.
 
-Didn't you mean "4:2:0"? And if I wanted to nit-pick, I think, it should 
-be "a hybrid," I'm not a native-speaker though;)
 
-Thanks
-Guennadi
+Bjørn
 
-> followed by an interleaved U/V line.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
