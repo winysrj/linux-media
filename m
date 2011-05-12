@@ -1,64 +1,83 @@
-Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:50166 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754768Ab1ECUes (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 May 2011 16:34:48 -0400
-Received: by eyx24 with SMTP id 24so151325eyx.19
-        for <linux-media@vger.kernel.org>; Tue, 03 May 2011 13:34:47 -0700 (PDT)
+Return-path: <mchehab@gaivota>
+Received: from mail1-out1.atlantis.sk ([80.94.52.55]:49928 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1758581Ab1ELUSc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 May 2011 16:18:32 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: alsa-devel@alsa-project.org
+Subject: [PATCH 3/3] tea575x: use better card and bus names
+Date: Thu, 12 May 2011 22:18:22 +0200
+Cc: linux-media@vger.kernel.org,
+	"Kernel development list" <linux-kernel@vger.kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <20110503222149.1ce726d9@darkstar>
-References: <20110423005412.12978e29@darkstar>
-	<20110424163530.2bc1b365@darkstar>
-	<BCCEA9F4-16D7-4E63-B32C-15217AA094F3@wilsonet.com>
-	<20110425201835.0fbb84ee@darkstar>
-	<A4226E90-09BE-45FE-AEEF-0EA7E9414B4B@wilsonet.com>
-	<20110425230658.22551665@darkstar>
-	<59898A0D-573E-46E9-A3B7-9054B24E69DF@wilsonet.com>
-	<20110427151621.5ac73e12@darkstar>
-	<1FB1ED64-0EEC-4E15-8178-D2CCCA915B1D@wilsonet.com>
-	<20110427204725.2923ac99@darkstar>
-	<91CD2A5E-418A-4217-8D9F-1B29FC9DD24D@wilsonet.com>
-	<20110427222855.2e3a3a4d@darkstar>
-	<63E3BF90-BF19-43E3-B8DD-6D6F4896F2E7@wilsonet.com>
-	<BANLkTik+gYRfhDBy9JWgvo+GWJk5Uz7RMQ@mail.gmail.com>
-	<14961B2E-36D9-4CD2-87E7-629F115055F2@wilsonet.com>
-	<20110503222149.1ce726d9@darkstar>
-Date: Tue, 3 May 2011 16:34:47 -0400
-Message-ID: <BANLkTin7i871oBseKwg2BmumzvUEb+wHTg@mail.gmail.com>
-Subject: Re: Terratec Cinergy 1400 DVB-T RC not working anymore
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Heiko Baums <lists@baums-on-web.de>
-Cc: Jarod Wilson <jarod@wilsonet.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"mailing list: lirc" <lirc-list@lists.sourceforge.net>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201105122218.24910.linux@rainbow-software.org>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Tue, May 3, 2011 at 4:21 PM, Heiko Baums <lists@baums-on-web.de> wrote:
-> Am Tue, 3 May 2011 13:16:57 -0400
-> schrieb Jarod Wilson <jarod@wilsonet.com>:
->
->> A quick look at the code suggests the 800i should indeed behave
->> more or less the same, barring any hardware-specific implementation
->> differences. Sure, might as well send one my way and I'll see what
->> I can see.
->
-> This RC indeed has the same issue.
->
-> See this forums posting:
-> https://bbs.archlinux.org/viewtopic.php?pid=924385#p924385
-> And this bug report:
-> https://bugs.archlinux.org/task/23894
+Provide real card and bus_info instead of hardcoded values.
 
-Ah, good to know.
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 
-Jarod, send me your mailing address off-list, and I'll get a package
-into the mail this week.
+--- linux-2.6.39-rc2-/include/sound/tea575x-tuner.h	2011-05-12 21:53:43.000000000 +0200
++++ linux-2.6.39-rc2/include/sound/tea575x-tuner.h	2011-05-12 21:37:40.000000000 +0200
+@@ -52,6 +52,8 @@ struct snd_tea575x {
+ 	unsigned long in_use;		/* set if the device is in use */
+ 	struct snd_tea575x_ops *ops;
+ 	void *private_data;
++	u8 card[32];
++	u8 bus_info[32];
+ };
+ 
+ int snd_tea575x_init(struct snd_tea575x *tea);
+--- linux-2.6.39-rc2-/sound/i2c/other/tea575x-tuner.c	2011-05-12 21:22:35.000000000 +0200
++++ linux-2.6.39-rc2/sound/i2c/other/tea575x-tuner.c	2011-05-12 21:41:11.000000000 +0200
+@@ -178,8 +178,9 @@ static int vidioc_querycap(struct file *
+ 	struct snd_tea575x *tea = video_drvdata(file);
+ 
+ 	strlcpy(v->driver, "tea575x-tuner", sizeof(v->driver));
+-	strlcpy(v->card, tea->tea5759 ? "TEA5759" : "TEA5757", sizeof(v->card));
+-	sprintf(v->bus_info, "PCI");
++	strlcpy(v->card, tea->card, sizeof(v->card));
++	strlcat(v->card, tea->tea5759 ? " TEA5759" : " TEA5757", sizeof(v->card));
++	strlcpy(v->bus_info, tea->bus_info, sizeof(v->bus_info));
+ 	v->version = RADIO_VERSION;
+ 	v->capabilities = V4L2_CAP_TUNER | V4L2_CAP_RADIO;
+ 	return 0;
+--- linux-2.6.39-rc2-/sound/pci/es1968.c	2011-05-12 21:53:43.000000000 +0200
++++ linux-2.6.39-rc2/sound/pci/es1968.c	2011-05-12 21:45:59.000000000 +0200
+@@ -2795,6 +2795,8 @@ static int __devinit snd_es1968_create(s
+ #ifdef CONFIG_SND_ES1968_RADIO
+ 	chip->tea.private_data = chip;
+ 	chip->tea.ops = &snd_es1968_tea_ops;
++	strlcpy(chip->tea.card, "SF64-PCE2", sizeof(chip->tea.card));
++	sprintf(chip->tea.bus_info, "PCI:%s", pci_name(pci));
+ 	if (!snd_tea575x_init(&chip->tea))
+ 		printk(KERN_INFO "es1968: detected TEA575x radio\n");
+ #endif
+--- linux-2.6.39-rc2-/sound/pci/fm801.c	2011-05-12 21:53:43.000000000 +0200
++++ linux-2.6.39-rc2/sound/pci/fm801.c	2011-05-12 21:50:19.000000000 +0200
+@@ -1232,6 +1232,7 @@ static int __devinit snd_fm801_create(st
+ #ifdef TEA575X_RADIO
+ 	chip->tea.private_data = chip;
+ 	chip->tea.ops = &snd_fm801_tea_ops;
++	sprintf(chip->tea.bus_info, "PCI:%s", pci_name(pci));
+ 	if ((tea575x_tuner & TUNER_TYPE_MASK) > 0 &&
+ 	    (tea575x_tuner & TUNER_TYPE_MASK) < 4) {
+ 		if (snd_tea575x_init(&chip->tea))
+@@ -1246,6 +1247,7 @@ static int __devinit snd_fm801_create(st
+ 				break;
+ 			}
+ 		}
++	strlcpy(chip->tea.card, snd_fm801_tea575x_gpios[(tea575x_tuner & TUNER_TYPE_MASK) - 1].name, sizeof(chip->tea.card));
+ #endif
+ 
+ 	*rchip = chip;
 
-Devin
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Ondrej Zary
