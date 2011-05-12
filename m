@@ -1,133 +1,412 @@
 Return-path: <mchehab@gaivota>
-Received: from tulikuusama.dnainternet.net ([83.102.40.132]:36510 "EHLO
-	tulikuusama.dnainternet.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751003Ab1EJFOi (ORCPT
+Received: from 64.mail-out.ovh.net ([91.121.185.65]:43088 "HELO
+	64.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753196Ab1ELMDF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 May 2011 01:14:38 -0400
-Message-ID: <4DC8C9B6.5000501@iki.fi>
-Date: Tue, 10 May 2011 08:14:30 +0300
-From: Anssi Hannula <anssi.hannula@iki.fi>
+	Thu, 12 May 2011 08:03:05 -0400
+Date: Thu, 12 May 2011 13:45:30 +0200
+From: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
+To: Josh Wu <josh.wu@atmel.com>
+Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
+	lars.haring@atmel.com, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, g.liakhovetski@gmx.de
+Subject: Re: [PATCH] [media] at91: add Atmel Image Sensor Interface (ISI)
+ support
+Message-ID: <20110512114530.GE18952@game.jcrosoft.org>
+References: <1305186138-5656-1-git-send-email-josh.wu@atmel.com>
 MIME-Version: 1.0
-To: Peter Hutterer <peter.hutterer@who-t.net>
-CC: linux-media@vger.kernel.org,
-	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
-	xorg-devel@lists.freedesktop.org
-Subject: Re: IR remote control autorepeat / evdev
-References: <4DC61E28.4090301@iki.fi> <20110510041107.GA32552@barra.redhat.com>
-In-Reply-To: <20110510041107.GA32552@barra.redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1305186138-5656-1-git-send-email-josh.wu@atmel.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On 10.05.2011 07:11, Peter Hutterer wrote:
-> On Sun, May 08, 2011 at 07:38:00AM +0300, Anssi Hannula wrote:
->> Hi all!
->>
->> Most IR/RF remotes differ from normal keyboards in that they don't
->> provide release events. They do provide native repeat events, though.
->>
->> Currently the Linux kernel RC/input subsystems provide a simulated
->> autorepeat for remote controls (default delay 500ms, period 33ms), and
->> X.org server ignores these events and generates its own autorepeat for them.
->>
->> The kernel RC subsystem provides a simulated release event when 250ms
->> has passed since the last native event (repeat or non-repeat) was
->> received from the device.
->>
->> This is problematic, since it causes lots of extra repeat events to be
->> always sent (for up to 250ms) after the user has released the remote
->> control button, which makes the remote quite uncomfortable to use.
-> 
-> I got a bit confused reading this description. Does this mean that remotes
-> usually send:
->     key press - repeat - repeat - ... - repeat - <silence>
-> where the silence indicates that the key has been released? Which the kernel
-> after 250ms translates into a release event.
-> And the kernel discards the repeats and generates it's own on 500/33?
-> Do I get this right so far?
+> +struct atmel_isi;
+do we really this here?
+> +
+> +enum atmel_isi_pixfmt {
+> +	ATMEL_ISI_PIXFMT_GREY,		/* Greyscale */
+> +	ATMEL_ISI_PIXFMT_CbYCrY,
+> +	ATMEL_ISI_PIXFMT_CrYCbY,
+> +	ATMEL_ISI_PIXFMT_YCbYCr,
+> +	ATMEL_ISI_PIXFMT_YCrYCb,
+> +	ATMEL_ISI_PIXFMT_RGB24,
+> +	ATMEL_ISI_PIXFMT_BGR24,
+> +	ATMEL_ISI_PIXFMT_RGB16,
+> +	ATMEL_ISI_PIXFMT_BGR16,
+> +	ATMEL_ISI_PIXFMT_GRB16,		/* G[2:0] R[4:0]/B[4:0] G[5:3] */
+> +	ATMEL_ISI_PIXFMT_GBR16,		/* G[2:0] B[4:0]/R[4:0] G[5:3] */
+> +	ATMEL_ISI_PIXFMT_RGB24_REV,
+> +	ATMEL_ISI_PIXFMT_BGR24_REV,
+> +	ATMEL_ISI_PIXFMT_RGB16_REV,
+> +	ATMEL_ISI_PIXFMT_BGR16_REV,
+> +	ATMEL_ISI_PIXFMT_GRB16_REV,	/* G[2:0] R[4:0]/B[4:0] G[5:3] */
+> +	ATMEL_ISI_PIXFMT_GBR16_REV,	/* G[2:0] B[4:0]/R[4:0] G[5:3] */
+> +};
+> +
+> +struct isi_platform_data {
+> +	u8 has_emb_sync;
+> +	u8 emb_crc_sync;
+> +	u8 hsync_act_low;
+> +	u8 vsync_act_low;
+> +	u8 pclk_act_falling;
+> +	u8 isi_full_mode;
+> +#define ISI_HSYNC_ACT_LOW	0x01
+> +#define ISI_VSYNC_ACT_LOW	0x02
+> +#define ISI_PXCLK_ACT_FALLING	0x04
+> +#define ISI_EMB_SYNC		0x08
+> +#define ISI_CRC_SYNC		0x10
+> +#define ISI_FULL		0x20
+> +#define ISI_DATAWIDTH_8		0x40
+> +#define ISI_DATAWIDTH_10	0x80
+> +	u32 flags;
+> +	u8 gs_mode;
+> +#define ISI_GS_2PIX_PER_WORD	0x00
+> +#define ISI_GS_1PIX_PER_WORD	0x01
+> +	u8 pixfmt;
+> +	u8 sfd;
+> +	u8 sld;
+> +	u8 thmask;
+> +#define ISI_BURST_4_8_16	0x00
+> +#define ISI_BURST_8_16		0x01
+> +#define ISI_BURST_16		0x02
+> +	u8 frate;
+> +#define ISI_FRATE_DIV_2		0x01
+> +#define ISI_FRATE_DIV_3		0x02
+> +#define ISI_FRATE_DIV_4		0x03
+> +#define ISI_FRATE_DIV_5		0x04
+> +#define ISI_FRATE_DIV_6		0x05
+> +#define ISI_FRATE_DIV_7		0x06
+> +#define ISI_FRATE_DIV_8		0x07
+> +};
+> +
+> +#endif /* __AT91_ISI_H__ */
+> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+> index d61414e..eae6005 100644
+> --- a/drivers/media/video/Kconfig
+> +++ b/drivers/media/video/Kconfig
+> @@ -80,6 +80,16 @@ menuconfig VIDEO_CAPTURE_DRIVERS
+>  	  Some of those devices also supports FM radio.
+>  
+>  if VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2
+> +config VIDEO_ATMEL_ISI
+> +	tristate "ATMEL Image Sensor Interface (ISI) support"
+> +	depends on VIDEO_DEV && SOC_CAMERA
+depends on AT91 if the drivers is at91 specific or avr32 otherwise
+> +	select VIDEOBUF2_DMA_CONTIG
+> +	default n
+it's n by default  please remove
+> +	---help---
+> +	  This module makes the ATMEL Image Sensor Interface available
+> +	  as a v4l2 device.
+> +	  Say Y here to enable selecting the Image Sensor Interface.
+> +	  When in doubt, say N.
+>  
+>  config VIDEO_ADV_DEBUG
+>  	bool "Enable advanced debug functionality"
+> diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+> index a10e4c3..f734a65 100644
+> --- a/drivers/media/video/Makefile
+> +++ b/drivers/media/video/Makefile
+> @@ -166,6 +166,7 @@ obj-$(CONFIG_VIDEO_SH_MOBILE_CSI2)	+= sh_mobile_csi2.o
+>  obj-$(CONFIG_VIDEO_SH_MOBILE_CEU)	+= sh_mobile_ceu_camera.o
+>  obj-$(CONFIG_VIDEO_OMAP1)		+= omap1_camera.o
+>  obj-$(CONFIG_VIDEO_SAMSUNG_S5P_FIMC) 	+= s5p-fimc/
+> +obj-$(CONFIG_VIDEO_ATMEL_ISI)		+= atmel-isi.o
+>  
+>  obj-$(CONFIG_ARCH_DAVINCI)		+= davinci/
+>  
+> diff --git a/drivers/media/video/atmel-isi.c b/drivers/media/video/atmel-isi.c
+> new file mode 100644
+> index 0000000..33d0b83
+> --- /dev/null
+> +++ b/drivers/media/video/atmel-isi.c
+> @@ -0,0 +1,1089 @@
+> +/*
+> + * Copyright (c) 2011 Atmel Corporation
+> + *
+> + * Based on previous work by Lars Haring and Sedji Gaouaou
+> + *
+> + * Based on the bttv driver for Bt848 with respective copyright holders
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/clk.h>
+> +#include <linux/completion.h>
+> +#include <linux/fs.h>
+> +#include <linux/init.h>
+> +#include <linux/interrupt.h>
+> +#include <linux/kernel.h>
+> +#include <linux/module.h>
+> +#include <linux/moduleparam.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/slab.h>
+> +#include <linux/version.h>
+> +#include <linux/kfifo.h>
+> +
+> +#include <mach/board.h>
+> +#include <mach/cpu.h>
+> +#include <mach/at91_isi.h>
+> +
+> +#include <media/videobuf2-dma-contig.h>
+> +#include <media/soc_camera.h>
+> +#include <media/soc_mediabus.h>
+> +
+> +#define ATMEL_ISI_VERSION	KERNEL_VERSION(1, 0, 0)
+> +#define MAX_BUFFER_NUMS		32
+> +#define MAX_SUPPORT_WIDTH	2048
+> +#define MAX_SUPPORT_HEIGHT	2048
+> +
+> +static unsigned int vid_limit = 16;
+> +
+> +enum isi_buffer_state {
+> +	ISI_BUF_NEEDS_INIT,
+> +	ISI_BUF_PREPARED,
+> +};
+> +
+> +/* Single frame capturing states */
+> +enum {
+> +	STATE_IDLE = 0,
+> +	STATE_CAPTURE_READY,
+> +	STATE_CAPTURE_WAIT_SOF,
+> +	STATE_CAPTURE_IN_PROGRESS,
+> +	STATE_CAPTURE_DONE,
+> +	STATE_CAPTURE_ERROR,
+> +};
+> +
+> +/* Frame buffer descriptor
+> + *  Used by the ISI module as a linked list for the DMA controller.
+> + */
+> +struct fbd {
+> +	/* Physical address of the frame buffer */
+> +	u32 fb_address;
+> +#if defined(CONFIG_ARCH_AT91SAM9G45) ||\
+> +	defined(CONFIG_ARCH_AT91SAM9X5)
+> +	/* DMA Control Register(only in HISI2) */
+> +	u32 dma_ctrl;
+> +#endif
+no ifdef in the struct
+> +	/* Physical address of the next fbd */
+> +	u32 next_fbd_address;
+> +};
+> +
+> +#if defined(CONFIG_ARCH_AT91SAM9G45) ||\
+> +	defined(CONFIG_ARCH_AT91SAM9X5)
+> +static void set_dma_ctrl(struct fbd *fb_desc, u32 ctrl)
+> +{
+> +	fb_desc->dma_ctrl = ctrl;
+> +}
+> +#else
+> +static void set_dma_ctrl(struct fbd *fb_desc, u32 ctrl) { }
+> +#endif
+no ifdef here also as we want to have multi soc support
+> +
+> +/* Frame buffer data
+> + */
+> +struct frame_buffer {
+> +	struct vb2_buffer vb;
+> +	struct fbd fb_desc;
+> +	/* Frame number of the frame  */
+> +	unsigned long sequence;
+> +
+> +	enum isi_buffer_state dma_desc_status;
+> +	struct list_head list;
+> +};
+> +
+> +struct atmel_isi {
+> +	/* ISI module spin lock. Protects against concurrent access of variables
+> +	 * that are shared with the ISR */
+> +	spinlock_t			lock;
+> +	void __iomem			*regs;
+> +
+> +	/*  If set ISI is in still capture mode */
+> +	int				still_capture;
+> +	int				sequence;
+> +	/* State of the ISI module in capturing mode */
+> +	int				state;
+> +
+> +	/* Capture/streaming wait queue for waiting for SOF */
+> +	wait_queue_head_t		capture_wq;
+> +
+> +	struct v4l2_device		v4l2_dev;
+> +
+> +	struct vb2_alloc_ctx		*alloc_ctx;
+> +
+> +	struct clk			*pclk;
+> +	struct platform_device		*pdev;
+do you really need to store the pdev?
+> +	unsigned int			irq;
+> +
+> +	struct isi_platform_data	*pdata;
+> +	unsigned long			platform_flags;
+> +
+> +	struct list_head		video_buffer_list;
+> +	struct frame_buffer		*active;
+> +
+> +	struct soc_camera_device	*icd;
+> +	struct soc_camera_host		soc_host;
+> +};
+> +
+> +static int configure_geometry(struct atmel_isi *isi, u32 width,
+> +			u32 height, enum v4l2_mbus_pixelcode code)
+> +{
+> +	u32 cfg2, cr, ctrl;
+> +
+> +	cr = 0;
+please move this in default
+> +	switch (code) {
+> +	/* YUV, including grey */
+> +	case V4L2_MBUS_FMT_Y8_1X8:
+> +		cr = ISI_BIT(GRAYSCALE);
+> +		break;
+> +	case V4L2_MBUS_FMT_UYVY8_2X8:
+> +		cr = ISI_BF(V2_YCC_SWAP, 3);
+> +		break;
+> +	case V4L2_MBUS_FMT_VYUY8_2X8:
+> +		cr = ISI_BF(V2_YCC_SWAP, 2);
+> +		break;
+> +	case V4L2_MBUS_FMT_YUYV8_2X8:
+> +		cr = ISI_BF(V2_YCC_SWAP, 1);
+> +		break;
+> +	case V4L2_MBUS_FMT_YVYU8_2X8:
+> +		cr = ISI_BF(V2_YCC_SWAP, 0);
+> +		break;
+> +	/* RGB, TODO */
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +
+> +	ctrl = ISI_BIT(DIS);
+> +	isi_writel(isi, V2_CTRL, ctrl);
+> +	/* Check if module properly disable */
+> +	while (isi_readl(isi, V2_STATUS) & ISI_BIT(V2_DIS_DONE))
+> +		cpu_relax();
+> +
+> +	cfg2 = isi_readl(isi, V2_CFG2);
+> +	cfg2 |= cr;
+> +	cfg2 = ISI_BFINS(V2_IM_VSIZE, height - 1, cfg2);
+> +	cfg2 = ISI_BFINS(V2_IM_HSIZE, width - 1, cfg2);
+> +	isi_writel(isi, V2_CFG2, cfg2);
+> +
+> +	return 0;
+> +}
+> +
 
-Yes.
+> +
+> +	size = bytes_per_line * icd->user_height;
+> +
+> +	if (0 == *nbuffers)
+please invert the test
+> +		*nbuffers = MAX_BUFFER_NUMS;
+> +	if (*nbuffers > MAX_BUFFER_NUMS)
+> +		*nbuffers = MAX_BUFFER_NUMS;
+> +
+> +	while (size * *nbuffers > vid_limit * 1024 * 1024)
+> +		(*nbuffers)--;
+> +
+> +	*nplanes = 1;
+> +	sizes[0] = size;
+> +	alloc_ctxs[0] = dev->alloc_ctx;
+> +
+> +	dev->sequence = 0;
+> +	dev->active = NULL;
+> +
+> +	dev_dbg(icd->dev.parent, "%s, count=%d, size=%ld\n", __func__,
+> +		*nbuffers, size);
+> +
+> +	return 0;
+> +}
+> +
+> +
+> +static void start_dma(struct atmel_isi *isi, struct frame_buffer *buffer)
+> +{
+> +	u32 ctrl, cfg1;
+please add ine ligne here
+> +	ctrl = isi_readl(isi, V2_CTRL);
+> +	cfg1 = isi_readl(isi, V2_CFG1);
+> +	/* Enable irq: cxfr for the codec path, pxfr for the preview path */
+> +	isi_writel(isi, V2_INTEN,
+> +			ISI_BIT(V2_CXFR_DONE) | ISI_BIT(V2_PXFR_DONE));
+> +
+> +	/* Enable codec path */
+> +	ctrl |= ISI_BIT(V2_CDC);
+> +	/* Check if already in a frame */
+> +	while (isi_readl(isi, V2_STATUS) & ISI_BIT(V2_CDC))
+> +		cpu_relax();
+no timeout?
+> +
+> +	/* Write the address of the first frame buffer in the C_ADDR reg
+> +	* write the address of the first descriptor(link list of buffer)
+> +	* in the C_DSCR reg, and enable dma channel.
+> +	*/
+> +	isi_writel(isi, V2_DMA_C_DSCR, (__pa(&(buffer->fb_desc))));
+> +	isi_writel(isi, V2_DMA_C_CTRL,
+> +			ISI_BIT(V2_DMA_FETCH) | ISI_BIT(V2_DMA_DONE));
+> +	isi_writel(isi, V2_DMA_CHER, ISI_BIT(V2_DMA_C_CH_EN));
+> +
+> +	/* Enable linked list */
+> +	cfg1 |= ISI_BF(V2_FRATE, isi->pdata->frate) | ISI_BIT(V2_DISCR);
+> +
+> +	/* Enable ISI module*/
+> +	ctrl |= ISI_BIT(V2_ENABLE);
+> +	isi_writel(isi, V2_CTRL, ctrl);
+> +	isi_writel(isi, V2_CFG1, cfg1);
+> +}
+> +
+> +
+> +/* abort streaming and wait for last buffer */
+> +static int stop_streaming(struct vb2_queue *vq)
+> +{
+> +	struct soc_camera_device *icd = soc_camera_from_vb2q(vq);
+> +	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+> +	struct atmel_isi *isi = ici->priv;
+> +
+> +	spin_lock_irq(&isi->lock);
+> +	isi->still_capture = 0;
+> +	isi->active = NULL;
+> +
+> +	while (isi_readl(isi, V2_STATUS) & ISI_BIT(V2_CDC))
+> +		cpu_relax();
+ditto
+> +
+> +	/* Disble codec path */
+> +	isi_writel(isi, V2_CTRL, isi_readl(isi, V2_CTRL) & (~ISI_BIT(V2_CDC)));
+> +	/* Disable interrupts */
+> +	isi_writel(isi, V2_INTDIS,
+> +			ISI_BIT(V2_CXFR_DONE) | ISI_BIT(V2_PXFR_DONE));
+> +	/* Disable ISI module*/
+> +	isi_writel(isi, V2_CTRL, isi_readl(isi, V2_CTRL) | ISI_BIT(V2_DIS));
+> +
 
-> If so, I'm not sure how to avoid the 250ms delay since we have no indication
-> from the hardware when the silence will stop, right?
-
-Yes.
-AFAICS what we need is to not use softrepeat for these devices and
-instead use the native repeats. The 250ms release delay could then be
-kept (as it wouldn't cause unwanted repeats anymore) or it could be made
-0ms if that is deemed better.
-
-I listed some ways to do that below in my original post.
-
-> Note that the repeat delay and ratio are configurable per-device using XKB,
-> so you could set up the 500/33 in X too.
-
-It wouldn't make any difference with the actual issue which is
-"autorepeat happening after physical key released".
-
-I guess the reason this hasn't come up earlier is that the unified IR/RC
-subsystem in the linux kernel is still quite new. It definitely needs to
-be improved regarding this issue - just trying to figure out the best
-way to do it.
-
-
-> Cheers,
->   Peter
-> 
->> Now, IMO something should be done to fix this. But what exactly?
->>
->> Here are two ideas that would remove these ghost repeats:
->>
->> 1. Do not provide any repeat/release simulation in the kernel for RC
->> devices (by default?), just provide both keydown and immediate release
->> events for every native keypress or repeat received from the device.
->> + Very simple to implement
->> - We lose the ability to track repeats, i.e. if a new event was a repeat
->>   or a new keypress; "holding down" a key becomes impossible
->>
->> or
->> 2. Replace kernel autorepeat simulation by passing through the native
->> repeat events (probably filtering them according to REP_DELAY and
->> REP_PERIOD), and have a device property bit (fetchable via EVIOCGPROP)
->> indicating that the keyrelease is simulated, and have the X server use
->> the native repeats instead of softrepeats for such a device.
->> + The userspace correctly gets repeat events tagged as repeats and
->>   release events when appropriate (albeit a little late)
->> - Adds complexity. Also, while the kernel part is quite easy to
->>   implement, I'm not sure if the X server part is.
->>
->> or
->> 3. Same as 1., but indicate the repeatness of an event with a new
->>    additional special event before EV_SYN (sync event).
->> + Simple to implement
->> - Quite hacky, and userspace still can't guess from initial
->>   keypress/release if the key is still pressed down or not.
->>
->> 4. Same as 1., but have a new EV_RC with RC_KEYDOWN and RC_KEYUP events,
->>    with RC_KEYDOWN sent when a key is pressed down a first time along
->>    with the normal EV_KEY event, and RC_KEYUP sent when the key is
->>    surely released (e.g. 250ms without native repeat events or another
->>    key got pressed, i.e. like the simulated keyup now).
->> + Simple to implement, works as expected with most userspace apps with
->>   no changes to them; and if an app wants to know the repeatness of an
->>   event or held-down-ness of a key, it can do that.
->> - Repeatness of the event is hidden behind a new API.
->>
->> What do you think? Or any other ideas?
->>
->> 2 and 4 seem nicest to me.
->> (I don't know how feasible 2 would be on X server side, though)
->>
->> -- 
->> Anssi Hannula
->> _______________________________________________
->> xorg-devel@lists.x.org: X.Org development
->> Archives: http://lists.x.org/archives/xorg-devel
->> Info: http://lists.x.org/mailman/listinfo/xorg-devel
->>
-> 
+> +
+> +static int __init atmel_isi_probe(struct platform_device *pdev)
+> +{
+> +	unsigned int irq;
+> +	struct atmel_isi *isi;
+> +	struct clk *pclk;
+> +	struct resource *regs;
+> +	int ret;
+> +	struct device *dev = &pdev->dev;
+> +	struct isi_platform_data *pdata;
+> +	struct soc_camera_host *soc_host;
+> +
+> +	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> +	if (!regs)
+> +		return -ENXIO;
+> +
+> +	pclk = clk_get(&pdev->dev, "isi_clk");
+> +	if (IS_ERR(pclk))
+> +		return PTR_ERR(pclk);
+> +
+> +	clk_enable(pclk);
+do we really need to always enable the clock?
+normally we need to enable it just when we use the device and disable asap
 
 
--- 
-Anssi Hannula
+do you plane toadd the pm?
+
+Best Regards,
+J.
