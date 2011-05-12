@@ -1,44 +1,46 @@
-Return-path: <mchehab@pedra>
-Received: from lo.gmane.org ([80.91.229.12]:49226 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753181Ab1E0L67 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 May 2011 07:58:59 -0400
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1QPvgv-0005fC-NK
-	for linux-media@vger.kernel.org; Fri, 27 May 2011 13:58:57 +0200
-Received: from 193.160.199.2 ([193.160.199.2])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Fri, 27 May 2011 13:58:57 +0200
-Received: from bjorn by 193.160.199.2 with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Fri, 27 May 2011 13:58:57 +0200
-To: linux-media@vger.kernel.org
-From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
-Subject: Re: PCTV nanoStick T2 290e support - Thank you!
-Date: Fri, 27 May 2011 13:58:46 +0200
-Message-ID: <87y61ss6bt.fsf@nemi.mork.no>
-References: <1306445141.14462.0.camel@porites> <4DDEDB0E.30108@iki.fi>
-	<8739k0tlx6.fsf@nemi.mork.no>
-	<ac07f3b673133d44f388843769c5f233@chewa.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Return-path: <mchehab@gaivota>
+Received: from newsmtp5.atmel.com ([204.2.163.5]:33381 "EHLO
+	sjogate2.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756857Ab1ELJ5H convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 May 2011 05:57:07 -0400
+Content-class: urn:content-classes:message
+MIME-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Subject: RE: [PATCH] [media] at91: add Atmel Image Sensor Interface (ISI)support
+Date: Thu, 12 May 2011 17:56:39 +0800
+Message-ID: <4C79549CB6F772498162A641D92D532801AC291A@penmb01.corp.atmel.com>
+In-Reply-To: <Pine.LNX.4.64.1105121131040.24486@axis700.grange>
+References: <1305186138-5656-1-git-send-email-josh.wu@atmel.com> <20110512074725.GA1356@n2100.arm.linux.org.uk> <4C79549CB6F772498162A641D92D532801AC28CD@penmb01.corp.atmel.com> <Pine.LNX.4.64.1105121131040.24486@axis700.grange>
+From: "Wu, Josh" <Josh.wu@atmel.com>
+To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
+Cc: "Russell King - ARM Linux" <linux@arm.linux.org.uk>,
+	<mchehab@redhat.com>, <linux-media@vger.kernel.org>,
+	"Haring, Lars" <Lars.Haring@atmel.com>,
+	<linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Rémi Denis-Courmont <remi@remlab.net> writes:
-> On Fri, 27 May 2011 13:36:37 +0200, Bjørn Mork <bjorn@mork.no> wrote:
->
->> I'm a bit curious about this device.  It seems to only be marketed as a
->> DVB-T2 device in areas where that spec is used.  But looking at your
->> driver, it seems that the device also supports DVB-C.  Is that correct?
-> 
-> At least, DVB-C worked for me.
+From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de] Sent: Thursday, May 12, 2011 5:32 PM
 
-Thanks.  Then I've ordered one of these :-)
+> On Thu, 12 May 2011, Wu, Josh wrote:
+>> Hi, Russell
+>> 
+>> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk] Sent: Thursday, May 12, 2011 3:47 PM
+>> > On Thu, May 12, 2011 at 03:42:18PM +0800, Josh Wu wrote:
+>> >> +err_alloc_isi:
+>> >> +	clk_disable(pclk);
+>> > clk_put() ?
+>> Ok, will be fixed in V2 patch. Thanks.
 
+> You might wait with v2 until I find time to review your patch. Will take a 
+> couple of days, I think. A general question, though: how compatible is 
+> this driver with the AVR32?
+That is ok. 
+For AVR32, I think I need time to check with AVR team. I will update the status when I got more information.
 
-Bjørn
-
+Best Regards,
+Josh Wu
