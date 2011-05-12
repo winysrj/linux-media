@@ -1,47 +1,84 @@
-Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:61859 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752185Ab1EDNeM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 May 2011 09:34:12 -0400
-Received: by bwz15 with SMTP id 15so970510bwz.19
-        for <linux-media@vger.kernel.org>; Wed, 04 May 2011 06:34:11 -0700 (PDT)
-Message-ID: <4DC15633.3030300@gmail.com>
-Date: Wed, 04 May 2011 15:35:47 +0200
-From: Martin Vidovic <xtronom@gmail.com>
+Return-path: <mchehab@gaivota>
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2238 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932683Ab1ELUaF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 May 2011 16:30:05 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Charlie X. Liu" <charlie@sensoray.com>
+Subject: Re: Audio Video synchronization for data received from a HDMI receiver chip
+Date: Thu, 12 May 2011 22:29:56 +0200
+Cc: "'Bhupesh SHARMA'" <bhupesh.sharma@st.com>,
+	linux-media@vger.kernel.org,
+	"'Laurent Pinchart'" <laurent.pinchart@ideasonboard.com>,
+	"'Guennadi Liakhovetski'" <g.liakhovetski@gmx.de>
+References: <D5ECB3C7A6F99444980976A8C6D896384DF1137013@EAPEX1MAIL1.st.com> <004b01cc10c5$f85bf6c0$e913e440$@com>
+In-Reply-To: <004b01cc10c5$f85bf6c0$e913e440$@com>
 MIME-Version: 1.0
-To: Andreas Oberritter <obi@linuxtv.org>
-CC: Ralph Metzler <rjkm@metzlerbros.de>,
-	Issa Gorissen <flop.m@usa.net>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] Ngene cam device name
-References: <148PeDiAM3760S04.1304497658@web04.cms.usa.net>	<4DC1236C.3000006@linuxtv.org> <19905.13923.40846.342434@morden.metzler> <4DC146E1.3000103@linuxtv.org>
-In-Reply-To: <4DC146E1.3000103@linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201105122229.56642.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+
+On Thursday, May 12, 2011 18:59:33 Charlie X. Liu wrote:
+> Which HDMI receiver chip?
+
+Indeed, that's my question as well :-)
+
+Anyway, this question comes up regularly. V4L2 provides timestamps for each
+frame, so that's no problem. But my understanding is that ALSA does not give
+you timestamps, so if there are processing delays between audio and video, then
+you have no way of knowing. The obvious solution is to talk to the ALSA people
+to see if some sort of timestamping is possible, but nobody has done that.
+
+This is either because everyone that needs it hacks around it instead of trying
+to really solve it, or because it is never a problem in practice.
+
+Hope this helps!
+
+Regards,
+
+	Hans
 
 > 
->> Or is there a standard way this is supposed to be handled?
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org
+> [mailto:linux-media-owner@vger.kernel.org] On Behalf Of Bhupesh SHARMA
+> Sent: Wednesday, May 11, 2011 10:49 PM
+> To: linux-media@vger.kernel.org
+> Cc: Laurent Pinchart; Guennadi Liakhovetski; Hans Verkuil
+> Subject: Audio Video synchronization for data received from a HDMI receiver
+> chip
 > 
-> Yes. Since ages. The ioctl is called DMX_SET_SOURCE.
-
-DMX_SET_SOURCE seems to not be implemented anywhere, all it does is 
-return EINVAL. I also fail to find any useful documentation about what 
-it is supposed to do.
-
+> Hi Linux media folks,
 > 
->> There are no mechanism to connect a frontend with specific dvr or
->> demux devices in the current API. But you demand it for the caio device.
+> We are considering putting an advanced HDMI receiver chip on our SoC,
+> to allow reception of HDMI audio and video. The chip receives HDMI data
+> from a host like a set-up box or DVD player. It provides a video data
+> interface
+> and SPDIF/I2S audio data interface.
 > 
-
-I think there is currently no useful API to connect devices. Every few 
-months there comes a new device which deprecates how I enumerate devices 
-and determine types of FE's.
-
-The most useful way to query devices seems to be using HAL, and I think 
-this is the correct way in Linux, but DVB-API may be lacking with 
-providing the necessary information. Maybe this is the direction we 
-should consider? Device names under /dev seem to be irrelevant nowadays.
-
-Best regards,
-Martin Vidovic
+> We plan to support the HDMI video using the V4L2 framework and the HDMI
+> audio using ALSA framework.
+> 
+> Now, what seems to be intriguing us is how the audio-video synchronization
+> will be maintained? Will a separate bridging entity required to ensure the
+> same
+> or whether this can be left upon a user space application like mplayer or
+> gstreamer.
+> 
+> Also is there a existing interface between the V4L2 and ALSA frameworks and
+> the same
+> can be used in our design?
+> 
+> Regards,
+> Bhupesh
+> ST Microelectronics
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
