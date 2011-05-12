@@ -1,58 +1,70 @@
-Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:34837 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932466Ab1EXOKh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 May 2011 10:10:37 -0400
-Message-ID: <4DDBBC29.80009@infradead.org>
-Date: Tue, 24 May 2011 11:09:45 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Return-path: <mchehab@gaivota>
+Received: from mail.kapsi.fi ([217.30.184.167]:56031 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752679Ab1ELWl1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 May 2011 18:41:27 -0400
+Message-ID: <4DCC59F5.6060306@iki.fi>
+Date: Fri, 13 May 2011 01:06:45 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: [ANNOUNCE] experimental alsa stream support at xawtv3
-References: <4DDAC0C2.7090508@redhat.com> <201105240850.35032.hverkuil@xs4all.nl> <4DDB5C6B.6000608@redhat.com>
-In-Reply-To: <4DDB5C6B.6000608@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: Steve Kerrison <steve@stevekerrison.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, Andreas Oberritter <obi@linuxtv.org>,
+	=?ISO-8859-1?Q?R=E9mi_Denis-Courmont?= <remi@remlab.net>
+Subject: Re: [PATCH 0/6] DVB-T2 API updates, documentation and accompanying
+ small fixes
+References: <4DC417DA.5030107@redhat.com> <1304869873-9974-1-git-send-email-steve@stevekerrison.com>
+In-Reply-To: <1304869873-9974-1-git-send-email-steve@stevekerrison.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 24-05-2011 04:21, Hans de Goede escreveu:
-> Hi,
- 
-> My I suggest that we instead just copy over the single get_media_devices.c
-> file to xawtv, and not install the not so much a lib lib ?
+Hello all,
 
-If we do that, then all other places where the association between an alsa device
-and a video4linux node is needed will need to copy it, and we'll have a fork.
-Also, we'll keep needing it at v4l-utils, as it is now needed by the new version
-of v4l2-sysfs-path tool.
+Rémi informed he have added this new API and DVB-T2 support for VLC 
+media player Git tree [1]. I didn't test it yet, mostly due to lack of 
+time :i I will test that sooner or later, feel free to test!
 
-Btw, this lib were created due to a request from the vlc maintainer that something
-like that would be needed. After finishing it, I decided to add it at xawtv in order
-to have an example about how to use it.
+[1] http://git.videolan.org/?p=vlc.git
 
-> Mauro, I plan to do a new v4l-utils release soon (*), maybe even today. I
-> consider it unpolite to revert other peoples commits, so I would prefer for you
-> to revert the install libv4l2util.a patch yourself. But if you don't (or don't
-> get around to doing it before I do the release), I will revert it, as this
-> clearly needs more discussion before making it into an official release
-> tarbal (we can always re-introduce the patch after the release).
 
-I'm not a big fan or exporting the rest of stuff at libv4l2util.a either, but I
-think that at least the get_media_devices stuff should be exported somewhere,
-maybe as part of libv4l.
+regards
+Antti
 
-Anyway, as you're releasing today a new v4l-utils, I agree that it is too early
-to add such library, as it is still experimental. I'm not considering make any
-new xawtv release those days, so I'm OK to postpone it.
 
-I'll commit a few patches commenting the install procedure for now, re-adding it
-after the release, for those that want to experiment it with xawtv with the new
-support.
 
-Cheers,
-Mauro
+On 05/08/2011 06:51 PM, Steve Kerrison wrote:
+> Hi Mauro, Antti, Andreas,
+>
+> I hope this patch set is formed appropriately - it is my first patch
+> submission direct to the linux-media group.
+>
+> Following the pull of Antti's work on support for the cxd2820r and PCTV
+> nanoStick T2 290e, this patch set implements Andreas' modifications to the API
+> to give provisional DVB-T2 support and the removal of a workaround for this
+> in the cxd2820r module.
+>
+> In addition, there are some minor fixes to compiler warnings as a result
+> of the expanded enums. I cannot test these myself but they treat unrecognized
+> values as *_AUTO and I can't see where a problem would be created.
+>
+> I have updated the documentation a little. If I've done the right thing then
+> I guess there is incentive there for me continue to expand DVB related
+> elements of the API docs.
+>
+> This patch set has been tested by me on two systems, with one running a MythTV
+> backend utilising a long-supported DVB tuner. MythTV works fine with the old
+> tuner and the nanoStick T2 290e works in VLC. I've yet to test the 290e in
+> MythTV - I was more intent on making sure the patches hadn't broken userland
+> or older devices.
+>
+> Feedback, testing  and discussion of where to go next is welcomed!
+>
+> Regards,
+> Steve Kerrison.
+>
+
+
+-- 
+http://palosaari.fi/
