@@ -1,89 +1,173 @@
-Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39444 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754280Ab1EEOCQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 May 2011 10:02:16 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Javier Martin <javier.martin@vista-silicon.com>
-Subject: Re: [PATCH] OMAP3: ISP: Fix unbalanced use of omap3isp_get().
-Date: Thu, 5 May 2011 16:02:49 +0200
-Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de
-References: <1304603588-3178-1-git-send-email-javier.martin@vista-silicon.com>
-In-Reply-To: <1304603588-3178-1-git-send-email-javier.martin@vista-silicon.com>
+Return-path: <mchehab@gaivota>
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:2590 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932122Ab1ELUX4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 May 2011 16:23:56 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Tomoya MORINAGA <tomoya-linux@dsn.okisemi.com>
+Subject: Re: [PATCH] Add VIDEO IN driver for OKI SEMICONDUCTOR ML7213/ML7223 IOHs
+Date: Thu, 12 May 2011 22:23:01 +0200
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	qi.wang@intel.com, yong.y.wang@intel.com, joel.clark@intel.com,
+	kok.howg.ewe@intel.com, toshiharu-linux@dsn.okisemi.com
+References: <1305188164-6372-1-git-send-email-tomoya-linux@dsn.okisemi.com>
+In-Reply-To: <1305188164-6372-1-git-send-email-tomoya-linux@dsn.okisemi.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201105051602.49814.laurent.pinchart@ideasonboard.com>
+Message-Id: <201105122223.01369.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Javier,
+Hi Tomoya,
 
-On Thursday 05 May 2011 15:53:08 Javier Martin wrote:
-> Do not use omap3isp_get() when what we really want to do is just
-> enable clocks, since omap3isp_get() has additional, unwanted, side
-> effects as an increase of the counter.
-> 
-> This prevented omap3isp of working with Beagleboard xM and it has
-> been tested only with that platform + mt9p031 sensor.
-> 
-> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
-> ---
->  drivers/media/video/omap3isp/isp.c |    8 +++++---
->  1 files changed, 5 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/video/omap3isp/isp.c
-> b/drivers/media/video/omap3isp/isp.c index 472a693..ca0831f 100644
-> --- a/drivers/media/video/omap3isp/isp.c
-> +++ b/drivers/media/video/omap3isp/isp.c
-> @@ -85,9 +85,11 @@ module_param(autoidle, int, 0444);
->  MODULE_PARM_DESC(autoidle, "Enable OMAP3ISP AUTOIDLE support");
-> 
->  static void isp_save_ctx(struct isp_device *isp);
-> -
->  static void isp_restore_ctx(struct isp_device *isp);
-> 
-> +static int isp_enable_clocks(struct isp_device *isp);
-> +static void isp_disable_clocks(struct isp_device *isp);
-> +
->  static const struct isp_res_mapping isp_res_maps[] = {
->  	{
->  		.isp_rev = ISP_REVISION_2_0,
-> @@ -239,10 +241,10 @@ static u32 isp_set_xclk(struct isp_device *isp, u32
-> xclk, u8 xclksel)
-> 
->  	/* Do we go from stable whatever to clock? */
->  	if (divisor >= 2 && isp->xclk_divisor[xclksel - 1] < 2)
-> -		omap3isp_get(isp);
-> +		isp_enable_clocks(isp);
+This is a pretty big patch and it will take some time to review properly.
+However, I can give some high-level comments already based on an initial
+scan of the code.
 
-This won't work. Let's assume the following sequence of events:
+1) New drivers that use controls (G/S_CTRL et al) must use the new control
+framework. See Documentation/video4linux/v4l2-controls.txt. We are slowly
+converting existing drivers to this framework, and I don't want to add to that
+workload :-)
 
-- Userspace opens the sensor subdev device node
-- The sensor driver calls to board code to turn the sensor clock on
-- Board code calls to the ISP driver to turn XCLK on
-- The ISP driver calls isp_enable_clocks()
-...
-- Userspace opens an ISP video device node
-- The ISP driver calls isp_get(), incrementing the reference count
-- Userspace closes the ISP video device node
-- The ISP driver calls isp_put(), decrementing the reference count
-- The reference count reaches 0, the ISP driver calls isp_disable_clocks()
+2) The sensor drivers should be named 'ov7620', 'ncm13j', etc. and be
+independent of (and not refer to) the IOH driver. After all, these sensor
+drivers can be used in other devices as well.
 
-The sensor will then loose its clock, even though the sensor subdev device 
-node is still opened.
+3) ioh_video_in.c is definitely too large with 4704 lines. I would strongly
+suggest splitting it in multiple files.
 
-Could you please explain why the existing code doesn't work on your hardware ?
+4) There are a bunch of IOH_VIDEO_ private ioctls. I haven't had time to analyse
+them, but it would help a lot if you could write some sort of overview of what
+they do and why you need them. I suspect that some can be replaced by private
+controls, some might already be available in V4L2 and some might need extensions
+to V4L2 (I hope not, though).
 
->  	/* Stopping the clock. */
->  	else if (divisor < 2 && isp->xclk_divisor[xclksel - 1] >= 2)
-> -		omap3isp_put(isp);
-> +		isp_disable_clocks(isp);
-> 
->  	isp->xclk_divisor[xclksel - 1] = divisor;
+5) The OH_VIDEO_IN_DMA_CONTIG define makes a mess of the code. Why do you need it?
+I have never seen a driver that can support either DMA_CONTIG or VMALLOC and I would
+like to know some background information here. BTW, 2.6.39 merges the new videobuf2
+framework (the successor to videobuf), which I would recommend that you use. It is
+much easier to work with and understand than videobuf.
 
--- 
 Regards,
 
-Laurent Pinchart
+	Hans
+
+On Thursday, May 12, 2011 10:16:04 Tomoya MORINAGA wrote:
+> This patch is for Video IN driver of OKI SEMICONDUCTOR ML7213/ML7223 IOHs
+> (Input/Output Hub).
+> These ML7213/ML7223 IOHs are companion chip for Intel Atom E6xx series.
+> ML7213 IOH is for IVI(In-Vehicle Infotainment) use and ML7223 IOH is for
+> MP(Media Phone) use.
+> 
+> Signed-off-by: Tomoya MORINAGA <tomoya-linux@dsn.okisemi.com>
+> ---
+>  drivers/media/video/Kconfig                   |   79 +
+>  drivers/media/video/Makefile                  |   15 +
+>  drivers/media/video/ioh_video_in.c            | 4704 +++++++++++++++++++++++++
+>  drivers/media/video/ioh_video_in_main.h       | 1058 ++++++
+>  drivers/media/video/ioh_video_in_ml86v76651.c |  620 ++++
+>  drivers/media/video/ioh_video_in_ncm13j.c     |  584 +++
+>  drivers/media/video/ioh_video_in_ov7620.c     |  637 ++++
+>  drivers/media/video/ioh_video_in_ov9653.c     |  818 +++++
+>  8 files changed, 8515 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/media/video/ioh_video_in.c
+>  create mode 100644 drivers/media/video/ioh_video_in_main.h
+>  create mode 100644 drivers/media/video/ioh_video_in_ml86v76651.c
+>  create mode 100644 drivers/media/video/ioh_video_in_ncm13j.c
+>  create mode 100644 drivers/media/video/ioh_video_in_ov7620.c
+>  create mode 100644 drivers/media/video/ioh_video_in_ov9653.c
+> 
+> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+> index 00f51dd..11a96a8 100644
+> --- a/drivers/media/video/Kconfig
+> +++ b/drivers/media/video/Kconfig
+> @@ -928,6 +928,85 @@ config VIDEO_MX2
+>  	  Interface
+>  
+>  
+> +config IOH_VIDEOIN
+> +        tristate "OKI SEMICONDUCTOR ML7213/ML7223 IOH VIDEO IN"
+> +        depends on PCI && DMADEVICES
+> +	select PCH_DMA
+> +        help
+> +	  This driver is for Video IN of OKI SEMICONDUCTOR ML7213/ML7223 IOHs
+> +	  (Input/Output Hub).
+> +	  These ML7213/ML7223 IOHs are companion chip for Intel Atom E6xx
+> +	  series.
+> +	  ML7213 IOH is for IVI(In-Vehicle Infotainment) use and ML7223 IOH is
+> +	  for MP(Media Phone) use.
+> +
+> +config  IOH_VIDEO_DEVICE_SELECT
+> +        boolean
+> +
+> +choice
+> +        prompt "Select IOH VIDEO IN Device"
+> +        depends on IOH_VIDEOIN
+> +        help
+> +           This is a selection of used device of the IOH VIDEO.
+> +
+> +config IOH_ML86V76651
+> +        boolean "IOH VIDEO IN(ML86V76651)"
+> +        depends on PCI && IOH_VIDEOIN && I2C_EG20T
+> +        help
+> +          If you say yes to this option, support will be included for the
+> +          IOH VIDEO ON Driver(ML86V76651).
+> +
+> +config IOH_ML86V76653
+> +        boolean "IOH VIDEO IN(ML86V76653)"
+> +        depends on PCI && IOH_VIDEOIN && I2C_EG20T
+> +        help
+> +          If you say yes to this option, support will be included for the
+> +          IOH VIDEO ON Driver(ML86V76653).
+> +
+> +config IOH_OV7620
+> +        boolean "IOH VIDEO IN(OV7620)"
+> +        depends on PCI && IOH_VIDEOIN && I2C_EG20T
+> +        help
+> +          If you say yes to this option, support will be included for the
+> +          IOH VIDEO ON Driver(OV7620).
+> +
+> +config IOH_OV9653
+> +        boolean "IOH VIDEO IN(OV9653)"
+> +        depends on PCI && IOH_VIDEOIN && I2C_EG20T
+> +        help
+> +          If you say yes to this option, support will be included for the
+> +          IOH VIDEO ON Driver(OV9653).
+> +
+> +config IOH_NCM13J
+> +        boolean "IOH VIDEO IN(NCM13-J)"
+> +        depends on PCI && IOH_VIDEOIN && I2C_EG20T
+> +        help
+> +          If you say yes to this option, support will be included for the
+> +          IOH VIDEO ON Driver(NCM13-J).
+> +endchoice
+> +
+> +config  IOH_VIDEO_FRAMEWORK_SELECT
+> +        boolean
+> +
+> +choice
+> +        prompt "Select IOH VIDEO IN Videobuf Freamework"
+> +        depends on IOH_VIDEOIN
+> +        help
+> +           This is a selection of used the method of video buffer framework.
+> +
+> +config IOH_VIDEO_IN_VMALLOC
+> +        boolean "VMALLOC Framework"
+> +	select VIDEOBUF_VMALLOC
+> +        help
+> +          If you say yes to this option, VMALLOC framework is used.
+> +
+> +config IOH_VIDEO_IN_DMA_CONTIG
+> +        boolean "DMA-CONTIG Framework"
+> +	select VIDEOBUF_DMA_CONTIG
+> +        help
+> +          If you say yes to this option, DMA-CONTIG framework is used.
+> +endchoice
+> +
