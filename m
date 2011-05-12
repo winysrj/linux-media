@@ -1,74 +1,67 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:22645 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:37900 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754667Ab1EIT7U (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 May 2011 15:59:20 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>,
-	=?UTF-8?q?Juan=20Jes=C3=BAs=20Garc=C3=ADa=20de=20Soria?=
-	<skandalfo@gmail.com>
-Subject: [PATCH] [media] ite-cir: finish tx before suspending
-Date: Mon,  9 May 2011 15:59:16 -0400
-Message-Id: <1304971156-26650-1-git-send-email-jarod@redhat.com>
-In-Reply-To: <4DC84470.7060603@redhat.com>
-References: <4DC84470.7060603@redhat.com>
+	id S1755077Ab1ELBg7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 May 2011 21:36:59 -0400
+Message-ID: <4DCB39AF.2000807@redhat.com>
+Date: Thu, 12 May 2011 03:36:47 +0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Anssi Hannula <anssi.hannula@iki.fi>
+CC: Peter Hutterer <peter.hutterer@who-t.net>,
+	linux-media@vger.kernel.org,
+	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
+	xorg-devel@lists.freedesktop.org
+Subject: Re: IR remote control autorepeat / evdev
+References: <4DC61E28.4090301@iki.fi> <20110510041107.GA32552@barra.redhat.com> <4DC8C9B6.5000501@iki.fi> <20110510053038.GA5808@barra.redhat.com> <4DC940E5.2070902@iki.fi> <4DCA1496.20304@redhat.com> <4DCABA42.30505@iki.fi> <4DCABEAE.4080607@redhat.com> <4DCACE74.6050601@iki.fi> <4DCB213A.8040306@redhat.com> <4DCB2BD9.6090105@iki.fi> <4DCB336B.2090303@redhat.com>
+In-Reply-To: <4DCB336B.2090303@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Continuing with IR transmit after resuming from suspend seems fairly
-useless, given that the only place we can actually end up suspending is
-after IR has been send and we're simply mdelay'ing. Lets simplify the
-resume path by just waiting on tx to complete in the suspend path, then
-we know we can't be transmitting on resume, and reinitialization of the
-hardware registers becomes more straight-forward.
+Em 12-05-2011 03:10, Mauro Carvalho Chehab escreveu:
+> Em 12-05-2011 02:37, Anssi Hannula escreveu:
 
-CC: Juan Jesús García de Soria <skandalfo@gmail.com>
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
-Nb: this patch relies upon my earlier patch to add the init_hardware
-calls to the resume path in the first place.
+>> I don't see any other places:
+>> $ git grep 'REP_PERIOD' .
+>> dvb/dvb-usb/dvb-usb-remote.c:   input_dev->rep[REP_PERIOD] =
+>> d->props.rc.legacy.rc_interval;
+> 
+> Indeed, the REP_PERIOD is not adjusted on other drivers. I agree that we
+> should change it to something like 125ms, for example, as 33ms is too 
+> short, as it takes up to 114ms for a repeat event to arrive.
+> 
+IMO, the enclosed patch should do a better job with repeat events, without
+needing to change rc-core/input/event logic.
 
- drivers/media/rc/ite-cir.c |   16 +++++++---------
- 1 files changed, 7 insertions(+), 9 deletions(-)
+-
 
-diff --git a/drivers/media/rc/ite-cir.c b/drivers/media/rc/ite-cir.c
-index d1dec5c..e716b93 100644
---- a/drivers/media/rc/ite-cir.c
-+++ b/drivers/media/rc/ite-cir.c
-@@ -1650,6 +1650,9 @@ static int ite_suspend(struct pnp_dev *pdev, pm_message_t state)
+Subject: Use a more consistent value for RC repeat period
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+The default REP_PERIOD is 33 ms. This doesn't make sense for IR's,
+as, in general, an IR repeat scancode is provided at every 110/115ms,
+depending on the RC protocol. So, increase its default, to do a
+better job avoiding ghost repeat events.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index f53f9c6..ee67169 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -1044,6 +1044,13 @@ int rc_register_device(struct rc_dev *dev)
+ 	 */
+ 	dev->input_dev->rep[REP_DELAY] = 500;
  
- 	ite_dbg("%s called", __func__);
- 
-+	/* wait for any transmission to end */
-+	wait_event_interruptible(dev->tx_ended, !dev->transmitting);
++	/*
++	 * As a repeat event on protocols like RC-5 and NEC take as long as
++	 * 110/114ms, using 33ms as a repeat period is not the right thing
++	 * to do.
++	 */
++	dev->input_dev->rep[REP_PERIOD] = 125;
 +
- 	spin_lock_irqsave(&dev->lock, flags);
- 
- 	/* disable all interrupts */
-@@ -1670,15 +1673,10 @@ static int ite_resume(struct pnp_dev *pdev)
- 
- 	spin_lock_irqsave(&dev->lock, flags);
- 
--	if (dev->transmitting) {
--		/* wake up the transmitter */
--		wake_up_interruptible(&dev->tx_queue);
--	} else {
--		/* reinitialize hardware config registers */
--		dev->params.init_hardware(dev);
--		/* enable the receiver */
--		dev->params.enable_rx(dev);
--	}
-+	/* reinitialize hardware config registers */
-+	dev->params.init_hardware(dev);
-+	/* enable the receiver */
-+	dev->params.enable_rx(dev);
- 
- 	spin_unlock_irqrestore(&dev->lock, flags);
- 
--- 
-1.7.1
-
+ 	path = kobject_get_path(&dev->dev.kobj, GFP_KERNEL);
+ 	printk(KERN_INFO "%s: %s as %s\n",
+ 		dev_name(&dev->dev),
