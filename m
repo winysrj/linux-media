@@ -1,68 +1,110 @@
-Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:35607 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755356Ab1ECB1V (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 May 2011 21:27:21 -0400
-Message-ID: <4DBF59D7.5030707@redhat.com>
-Date: Mon, 02 May 2011 22:26:47 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Return-path: <mchehab@gaivota>
+Received: from cmsout02.mbox.net ([165.212.64.32]:35214 "EHLO
+	cmsout02.mbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753216Ab1ELMYR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 May 2011 08:24:17 -0400
+Message-ID: <4DCBD154.5060904@usa.net>
+Date: Thu, 12 May 2011 14:23:48 +0200
+From: Issa Gorissen <flop.m@usa.net>
 MIME-Version: 1.0
-To: Malcolm Priestley <tvboxspy@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [git:v4l-dvb/for_v2.6.40] [media] dvb-usb return device errors
- to demuxer
-References: <E1QH07c-0003fV-LJ@www.linuxtv.org> <1304372045.4781.8.camel@localhost>
-In-Reply-To: <1304372045.4781.8.camel@localhost>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Manu Abraham <abraham.manu@gmail.com>
+Subject: Re: TT-budget S2-3200 cannot tune on HB13E DVBS2 transponder
+References: <4DA63A66.1070300@gmx.net> <4DC08CB8.3020105@redhat.com> <4DC13823.7000700@gmx.net>
+In-Reply-To: <4DC13823.7000700@gmx.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 02-05-2011 18:34, Malcolm Priestley escreveu:
-> On Mon, 2011-05-02 at 22:51 +0200, Mauro Carvalho Chehab wrote:
->> This is an automatic generated email to let you know that the following patch were queued at the 
->> http://git.linuxtv.org/media_tree.git tree:
+On 04/05/2011 13:27, Lutz Sammer wrote:
+> On 05/04/11 01:16, Mauro Carvalho Chehab wrote:
+>> Em 13-04-2011 21:05, Lutz Sammer escreveu:
+>>>> On 05/04/11 21:07, Steffen Barszus wrote:
+>>>>> On Tue, 05 Apr 2011 13:00:14 +0200
+>>>>> "Issa Gorissen" <flop.m@xxxxxxx> wrote:
+>>>>>
+>>>>>> Hi,
+>>>>>>
+>>>>>> Eutelsat made a recent migration from DVB-S to DVB-S2 (since
+>>>>>> 31/3/2011) on two transponders on HB13E
+>>>>>>
+>>>>>> - HOT BIRD 6 13° Est TP 159 Freq 11,681 Ghz DVB-S2 FEC 3/4 27500
+>>>>>> Msymb/s 0.2 Pilot off Polar H
+>>>>>>
+>>>>>> - HOT BIRD 9 13° Est TP 99 Freq 12,692 Ghz DVB-S2 FEC 3/4 27500
+>>>>>> Msymb/s 0.2 Pilot off Polar H
+>>>>>>
+>>>>>>
+>>>>>> Before those changes, with my TT S2 3200, I was able to watch TV on
+>>>>>> those transponders. Now, I cannot even tune on those transponders. I
+>>>>>> have tried with scan-s2 and w_scan and the latest drivers from git.
+>>>>>> They both find the transponders but cannot tune onto it.
+>>>>>>
+>>>>>> Something noteworthy is that my other card, a DuoFlex S2 can tune
+>>>>>> fine on those transponders.
+>>>>>>
+>>>>>> My question is; can someone try this as well with a TT S2 3200 and
+>>>>>> post the results ?
+>>>>> i read something about it lately here (german!): 
+>>>>> http://www.vdr-portal.de/board16-video-disk-recorder/board85-hdtv-dvb-s2/p977938-stb0899-fec-3-4-tester-gesucht/#post977938
+>>>>>
+>>>>> It says in stb0899_drv.c function:
+>>>>> static void stb0899_set_iterations(struct stb0899_state *state) 
+>>>>>
+>>>>> This:
+>>>>> reg = STB0899_READ_S2REG(STB0899_S2DEMOD, MAX_ITER);
+>>>>> STB0899_SETFIELD_VAL(MAX_ITERATIONS, reg, iter_scale);
+>>>>> stb0899_write_s2reg(state, STB0899_S2DEMOD, STB0899_BASE_MAX_ITER, STB0899_OFF0_MAX_ITER, reg);
+>>>>>
+>>>>> should be replaced with this:
+>>>>>
+>>>>> reg = STB0899_READ_S2REG(STB0899_S2FEC, MAX_ITER);
+>>>>> STB0899_SETFIELD_VAL(MAX_ITERATIONS, reg, iter_scale);
+>>>>> stb0899_write_s2reg(state, STB0899_S2FEC, STB0899_BASE_MAX_ITER, STB0899_OFF0_MAX_ITER, reg);
+>>>>>
+>>>>> Basically replace STB0899_S2DEMOD with STB0899_S2FEC in this 2 lines
+>>>>> affected.
+>>>>>
+>>>>> Kind Regards 
+>>>>>
+>>>>> Steffen
+>>>> Hi Steffen,
+>>>>
+>>>> Unfortunately, it does not help in my case. Thx anyway.
+>>> Try my locking fix. With above patch I can lock the
+>>> channels without problem.
+>> Can someone confirm that such patch would fix the issue? If so, please
+>> forward it in a way that it could be applied (patch is currently line-wrapped),
+>> and submit with some comments/description and your SOB.
 >>
->> Subject: [media] dvb-usb return device errors to demuxer
->> Author:  Malcolm Priestley <tvboxspy@gmail.com>
->> Date:    Sat Apr 16 13:30:32 2011 -0300
+>> As the patch is currently broken, I'm just marking it as rejected at patchwork.
 >>
->> Return device errors to demuxer from on/off streamming and
->>  pid filtering.
+>> Manu,
 >>
->> Please test this patch with all dvb-usb devices.
->>
->> Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
->> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->>
->>  drivers/media/dvb/dvb-usb/dvb-usb-dvb.c |   32 ++++++++++++++++++++----------
->>  1 files changed, 21 insertions(+), 11 deletions(-)
->>
-> 
-> This patch was originally marked Not Applicable on the Patchwork server.
+>> Please take a look on this trouble report.
 
-Patchwork is not reliable, unfortunately. Over the last weeks, we've
-found several troubles with it, like:
-	- patches applied there got lost due to mysql corruption;
-	- patches not caught by patchwork;
-	- patchwork on a read-only status;
-	- patchwork loosing status changes;
-	- patchwork lack of availability;
-	- patches body/SOB/From: lost.
+Hi,
 
-So, I'm needing to recover manually some patches. That's why I ended to
-recover v1 of your patch.
-> 
-> It was replaced by dvb-usb return device errors to demuxer v2.
-> https://patchwork.kernel.org/patch/713651/
+Just to report that I can lock on those problematic transponders with
+kernel 2.6.37 (and with an amp on the coax of 40m long), but not with
+2.6.39-rc6.
 
-Thanks for pointing it to me. 
+I figured the patch which might cause my problem is the following
 
-I noticed it after applying the first version, but I had to take a break.
+[media] stb6100: Improve tuner performance
+[http://git.linuxtv.org/media_tree.git?a=commitdiff;h=f14bfe94e459cb070a489e1786f26d54e9e7b5de]
 
-Anyway, I've just applied the diff between v1 and v2 as a new patch. 
-I'll try to remember about that when submitting upstream, in order 
-to merge both.
 
-Thanks,
-Mauro
+I recall that in this thread
+[http://www.mail-archive.com/linux-media@vger.kernel.org/msg29712.html],
+there were concerns about the above patch.
+
+Is it possible to remove it from 2.6.39 release and do further research
+or is it too late ?
+
+Thx,
+--
+Issa
