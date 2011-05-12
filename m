@@ -1,129 +1,118 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3775 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753486Ab1E1O6c (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 May 2011 10:58:32 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [RFCv2 PATCH 07/11] v4l2-ctrls: add control events.
-Date: Sat, 28 May 2011 16:58:20 +0200
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-References: <6cea502820c1684f34b9e862a64be2972afb718f.1306329390.git.hans.verkuil@cisco.com> <2c6e1531f7f9ab33b60e8c7f972f58a0dd6fbbd1.1306329390.git.hans.verkuil@cisco.com> <20110528103421.GA4991@valkosipuli.localdomain>
-In-Reply-To: <20110528103421.GA4991@valkosipuli.localdomain>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201105281658.20086.hverkuil@xs4all.nl>
+Return-path: <mchehab@gaivota>
+Received: from lo.gmane.org ([80.91.229.12]:44522 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751366Ab1ELLNh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 May 2011 07:13:37 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1QKTpm-00006H-Kh
+	for linux-media@vger.kernel.org; Thu, 12 May 2011 13:13:34 +0200
+Received: from 193.160.199.2 ([193.160.199.2])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 12 May 2011 13:13:34 +0200
+Received: from bjorn by 193.160.199.2 with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 12 May 2011 13:13:34 +0200
+To: linux-media@vger.kernel.org
+From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
+Subject: Re: dvb-core/dvb_frontend.c: Synchronizing legacy and new tuning API
+Date: Thu, 12 May 2011 13:13:21 +0200
+Message-ID: <87aaesb29a.fsf@nemi.mork.no>
+References: <87sjslaxwz.fsf@nemi.mork.no> <4DCAEED2.6040906@linuxtv.org>
+	<87oc38bdsf.fsf@nemi.mork.no>
+	<BANLkTinqjMYEkZc4-+rAgfb952_NnCNYkQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Saturday, May 28, 2011 12:34:21 Sakari Ailus wrote:
-> Hi Hans,
-> 
-> On Wed, May 25, 2011 at 03:33:51PM +0200, Hans Verkuil wrote:
-> > From: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > Whenever a control changes value or state an event is sent to anyone
-> > that subscribed to it.
-> > 
-> > This functionality is useful for control panels but also for applications
-> > that need to wait for (usually status) controls to change value.
-> 
-> Thanks for the patch!
-> 
-> I agree that it's good to pass more information of the control (min, max
-> etc.) to the user space with the event. However, to support events arriving
-> from interrupt context which we've discussed in the past, such information
-> must be also accessible in those situations.
-> 
-> What do you think about more fine-grained locking of controls, say, spinlock
-> for each control (cluster) as an idea?
+HoP <jpetrous@gmail.com> writes:
+> 2011/5/12 Bjørn Mork <bjorn@mork.no>:
+>> Andreas Oberritter <obi@linuxtv.org> writes:
+>>
+>>> Please try the patches submitted for testing:
+>>>
+>>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg31194.html
+>>
+>> Ah, great! Thanks.  Nothing better than a problem already solved.
+>
+> Not solved. Andreas did an attempt to solve it (at least as far as I know
+> patches not get accepted yet), so please report your result of testing.
 
-It's on my TODO list, but I need to think carefully on how to do it.
-One thing at a time :-)
+Sure. 
 
-> 
-> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > ---
-> >  drivers/media/video/v4l2-ctrls.c |  101 ++++++++++++++++++++++++++++++
-> >  drivers/media/video/v4l2-event.c |  126 +++++++++++++++++++++++++++-----------
-> >  drivers/media/video/v4l2-fh.c    |    4 +-
-> >  include/linux/videodev2.h        |   29 ++++++++-
-> >  include/media/v4l2-ctrls.h       |   16 +++++-
-> >  include/media/v4l2-event.h       |    2 +
-> >  6 files changed, 237 insertions(+), 41 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-> > index 3e0d8ab..e2a7ac7 100644
-> > --- a/drivers/media/video/v4l2-ctrls.c
-> > +++ b/drivers/media/video/v4l2-ctrls.c
-> > @@ -23,6 +23,7 @@
-> >  #include <media/v4l2-ioctl.h>
-> >  #include <media/v4l2-device.h>
-> >  #include <media/v4l2-ctrls.h>
-> > +#include <media/v4l2-event.h>
-> >  #include <media/v4l2-dev.h>
-> >  
-> >  #define call_op(master, op) \
-> > @@ -540,6 +541,44 @@ static bool type_is_int(const struct v4l2_ctrl *ctrl)
-> >  	}
-> >  }
-> >  
-> > +static void fill_event(struct v4l2_event *ev, struct v4l2_ctrl *ctrl, u32 changes)
-> > +{
-> > +	memset(ev->reserved, 0, sizeof(ev->reserved));
-> > +	ev->type = V4L2_EVENT_CTRL;
-> > +	ev->id = ctrl->id;
-> > +	ev->u.ctrl.changes = changes;
-> > +	ev->u.ctrl.type = ctrl->type;
-> > +	ev->u.ctrl.flags = ctrl->flags;
-> > +	if (ctrl->type == V4L2_CTRL_TYPE_STRING)
-> > +		ev->u.ctrl.value64 = 0;
-> > +	else
-> > +		ev->u.ctrl.value64 = ctrl->cur.val64;
-> > +	ev->u.ctrl.minimum = ctrl->minimum;
-> > +	ev->u.ctrl.maximum = ctrl->maximum;
-> > +	if (ctrl->type == V4L2_CTRL_TYPE_MENU)
-> > +		ev->u.ctrl.step = 1;
-> > +	else
-> > +		ev->u.ctrl.step = ctrl->step;
-> > +	ev->u.ctrl.default_value = ctrl->default_value;
-> > +}
-> > +
-> > +static void send_event(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 changes)
-> > +{
-> > +	struct v4l2_event ev;
-> > +	struct v4l2_ctrl_fh *pos;
-> > +
-> > +	if (list_empty(&ctrl->fhs))
-> > +			return;
-> > +	fill_event(&ev, ctrl, changes);
-> > +
-> > +	list_for_each_entry(pos, &ctrl->fhs, node) {
-> > +		if (pos->fh == fh)
-> > +			continue;
-> > +		ev.u.ctrl.flags = ctrl->flags;
-> 
-> What's the purpose of setting flags here as well? fill_event() above already
-> does it.
+Now, the only machine I've got with DVB cards is running a stock Debian
+2.6.32 kernel and I prefer not to mess with that.  But I did a
+quick-n-dirty "backport" of the API changes to 2.6.32, built a new
+dvb_core module and loaded that.  And the results are good, as
+expected.  All parameters are now in sync.  
 
-Oops, that's a left-over from a previous version. I'll remove it.
+Both these adapters have been tuned by VDR (which uses the new API):
 
-Regards,
 
-	Hans
+bjorn@canardo:/usr/local/src/git/linux-2.6$ /tmp/dvb_fe_test /dev/dvb/adapter0/frontend0 
+== /dev/dvb/adapter0/frontend0 ==
+name: Philips TDA10023 DVB-C
+type: FE_QAM
 
-> 
-> > +		v4l2_event_queue_fh(pos->fh, &ev);
-> > +	}
-> > +}
-> > +
-> >  /* Helper function: copy the current control value back to the caller */
-> >  static int cur_to_user(struct v4l2_ext_control *c,
-> >  		       struct v4l2_ctrl *ctrl)
-> 
-> Regards,
-> 
-> 
+== FE_GET_FRONTEND ==
+frequency     : 264006739
+inversion     : off (0)
+symbol_rate   : 6900000
+fec_inner     : FEC_NONE (0)
+modulation    : QAM_256 (5)
+
+== FE_GET_PROPERTY ==
+[17] DTV_DELIVERY_SYSTEM : SYS_DVBC_ANNEX_AC (1)
+[03] DTV_FREQUENCY       : 264006739
+[06] DTV_INVERSION       : off (0)
+[08] DTV_SYMBOL_RATE     : 6900000
+[09] DTV_INNER_FEC       : FEC_NONE (0)
+[04] DTV_MODULATION      : QAM_256 (5)
+[35] DTV_API_VERSION     : 5.1
+[05] DTV_BANDWIDTH_HZ    : BANDWIDTH_AUTO (3)
+
+bjorn@canardo:/usr/local/src/git/linux-2.6$ /tmp/dvb_fe_test /dev/dvb/adapter1/frontend0 
+== /dev/dvb/adapter1/frontend0 ==
+name: Philips TDA10023 DVB-C
+type: FE_QAM
+
+== FE_GET_FRONTEND ==
+frequency     : 272006739
+inversion     : off (0)
+symbol_rate   : 6900000
+fec_inner     : FEC_NONE (0)
+modulation    : QAM_256 (5)
+
+== FE_GET_PROPERTY ==
+[17] DTV_DELIVERY_SYSTEM : SYS_DVBC_ANNEX_AC (1)
+[03] DTV_FREQUENCY       : 272006739
+[06] DTV_INVERSION       : off (0)
+[08] DTV_SYMBOL_RATE     : 6900000
+[09] DTV_INNER_FEC       : FEC_NONE (0)
+[04] DTV_MODULATION      : QAM_256 (5)
+[35] DTV_API_VERSION     : 5.1
+[05] DTV_BANDWIDTH_HZ    : BANDWIDTH_AUTO (3)
+
+
+
+
+I've obviously messed up the API_VERSION, so this is probably more
+dirty than quick....  But all the important values, like frequency,
+inversion and inner_fec, are now in sync.
+
+Thanks a lot.  Feel free to add 
+
+   Tested-by: Bjørn Mork <bjorn@mork.no>
+
+to the whole patch series if that matters to anyone.  I'd really like
+this to go into 2.6.40 if that is possible. It would have been nice to
+see it in 2.6.32-longerm was well, but I guess that's out of the
+question since it builds on top of other API changes (DVBT2).
+
+
+
+Bjørn
+
