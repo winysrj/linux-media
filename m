@@ -1,60 +1,31 @@
-Return-path: <mchehab@pedra>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:45819
-	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932161Ab1EWRDz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 May 2011 13:03:55 -0400
-Message-ID: <4DDA9372.5060200@compulab.co.il>
-Date: Mon, 23 May 2011 20:03:46 +0300
-From: Igor Grinberg <grinberg@compulab.co.il>
+Return-path: <mchehab@gaivota>
+Received: from smtp.nexicom.net ([216.168.96.13]:56427 "EHLO smtp.nexicom.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758524Ab1ELT5I (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 May 2011 15:57:08 -0400
+Received: from mail.lockie.ca (dyn-dsl-mb-216-168-124-14.nexicom.net [216.168.124.14])
+	by smtp.nexicom.net (8.13.6/8.13.4) with ESMTP id p4CJmqlc012035
+	for <linux-media@vger.kernel.org>; Thu, 12 May 2011 15:48:52 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by mail.lockie.ca (Postfix) with ESMTP id 7D6021E00C2
+	for <linux-media@vger.kernel.org>; Thu, 12 May 2011 15:48:51 -0400 (EDT)
+Message-ID: <4DCC39C6.30802@lockie.ca>
+Date: Thu, 12 May 2011 15:49:26 -0400
+From: James <bjlockie@lockie.ca>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: javier Martin <javier.martin@vista-silicon.com>,
-	linux-media@vger.kernel.org, beagleboard@googlegroups.com,
-	carlighting@yahoo.co.nz, g.liakhovetski@gmx.de,
-	linux-arm-kernel@lists.infradead.org,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Subject: Re: [PATCH v2 2/2] OMAP3BEAGLE: Add support for mt9p031 sensor driver.
-References: <1305899272-31839-1-git-send-email-javier.martin@vista-silicon.com> <4DD9146B.2050408@compulab.co.il> <BANLkTi=sqZpAKFxeCbwqpU_7+WZABGa4=w@mail.gmail.com> <201105230947.15775.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201105230947.15775.laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: digital tuner
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
-
-On 05/23/11 10:47, Laurent Pinchart wrote:
-> Hi Javier,
->
-> On Monday 23 May 2011 09:25:01 javier Martin wrote:
->> On 22 May 2011 15:49, Igor Grinberg <grinberg@compulab.co.il> wrote:
-> [snip]
->
->>>> @@ -309,6 +357,15 @@ static int beagle_twl_gpio_setup(struct device
->>>> *dev, pr_err("%s: unable to configure EHCI_nOC\n", __func__); }
->>>>
->>>> +     if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
->>>> +             /*
->>>> +              * Power on camera interface - only on pre-production, not
->>>> +              * needed on production boards
->>>> +              */
->>>> +             gpio_request(gpio + 2, "CAM_EN");
->>>> +             gpio_direction_output(gpio + 2, 1);
->>> Why not gpio_request_one()?
->> Just to follow the same approach as in the rest of the code.
->> Maybe a further patch could change all "gpio_request()" uses to
->> "gpio_request_one()".
-> Please do it the other way around. Replace calls to gpio_request() + 
-> gpio_direction_output() with a call to gpio_request_one(), and then modify 
-> this patch to use gpio_request_one().
-
-Well, this is done already, you need to follow Tony's linux-next branch...
-So, just changing this patch would do...
-Also, good practice is to base patches on maintainer's appropriate branch,
-so it would be easier to apply.
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
 
+I have an analog: Hauppauge WinTV-Go PLUS which has a lineout.
 
--- 
-Regards,
-Igor.
+I'm considering a digital card.
+The Hauppauge WinTV-HVR-1250 does NOT have a lineout so how does it do
+sound?
+Does PCIe pass through the sound to the OS sound system?
+I read on the linuxtv wiki that only the digital works on this card.
 
