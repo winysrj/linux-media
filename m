@@ -1,182 +1,251 @@
 Return-path: <mchehab@gaivota>
-Received: from stevekez.vm.bytemark.co.uk ([80.68.91.30]:51900 "EHLO
-	stevekerrison.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758660Ab1ELVMc (ORCPT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:45902 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756792Ab1ELN17 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 May 2011 17:12:32 -0400
-From: Steve Kerrison <steve@stevekerrison.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>,
-	Andreas Oberritter <obi@linuxtv.org>,
-	Steve Kerrison <steve@stevekerrison.com>
-Subject: [PATCH v3] DVB: Add basic API support for DVB-T2 and bump minor version
-Date: Thu, 12 May 2011 22:11:06 +0100
-Message-Id: <1305234666-7045-1-git-send-email-steve@stevekerrison.com>
-In-Reply-To: <4DC71B5E.7000902@linuxtv.org>
-References: <4DC71B5E.7000902@linuxtv.org>
+	Thu, 12 May 2011 09:27:59 -0400
+Received: by eyx24 with SMTP id 24so422326eyx.19
+        for <linux-media@vger.kernel.org>; Thu, 12 May 2011 06:27:58 -0700 (PDT)
+Message-ID: <4DCBE059.8030906@gmail.com>
+Date: Thu, 12 May 2011 15:27:53 +0200
+From: Per Kofod <per.s.kofod@gmail.com>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Help needed: Anysee E30C Plus (DVB-C Tuner)
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-From: Andreas Oberritter <obi@linuxtv.org>
+Hi
 
-steve@stevekerrison.com: Remove private definitions from cxd2820r that existed before API was defined
+I am new to this mailing list, so bare with me if this have been asked 
+before.
 
-Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
-Signed-off-by: Steve Kerrison <steve@stevekerrison.com>
----
- drivers/media/dvb/dvb-core/dvb_frontend.c   |   13 +++++++++----
- drivers/media/dvb/dvb-core/dvb_frontend.h   |    3 +++
- drivers/media/dvb/frontends/cxd2820r_priv.h |   12 ------------
- include/linux/dvb/frontend.h                |   20 ++++++++++++++++----
- include/linux/dvb/version.h                 |    2 +-
- 5 files changed, 29 insertions(+), 21 deletions(-)
+I have just bought an Anysee E30C Plus, as I had read, that this device 
+is supported
+in Linux, my plan is building a Mythtv media center, to replace my old 
+harddisk recorder.
 
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-index 31e2c0d..8c9ff8a 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -1148,10 +1148,9 @@ static void dtv_property_adv_params_sync(struct dvb_frontend *fe)
- 		break;
- 	}
- 
--	if(c->delivery_system == SYS_ISDBT) {
--		/* Fake out a generic DVB-T request so we pass validation in the ioctl */
--		p->frequency = c->frequency;
--		p->inversion = c->inversion;
-+	/* Fake out a generic DVB-T request so we pass validation in the ioctl */
-+	if ((c->delivery_system == SYS_ISDBT) ||
-+	    (c->delivery_system == SYS_DVBT2)) {
- 		p->u.ofdm.constellation = QAM_AUTO;
- 		p->u.ofdm.code_rate_HP = FEC_AUTO;
- 		p->u.ofdm.code_rate_LP = FEC_AUTO;
-@@ -1324,6 +1323,9 @@ static int dtv_property_process_get(struct dvb_frontend *fe,
- 	case DTV_ISDBS_TS_ID:
- 		tvp->u.data = fe->dtv_property_cache.isdbs_ts_id;
- 		break;
-+	case DTV_DVBT2_PLP_ID:
-+		tvp->u.data = fe->dtv_property_cache.dvbt2_plp_id;
-+		break;
- 	default:
- 		r = -1;
- 	}
-@@ -1479,6 +1481,9 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
- 	case DTV_ISDBS_TS_ID:
- 		fe->dtv_property_cache.isdbs_ts_id = tvp->u.data;
- 		break;
-+	case DTV_DVBT2_PLP_ID:
-+		fe->dtv_property_cache.dvbt2_plp_id = tvp->u.data;
-+		break;
- 	default:
- 		r = -1;
- 	}
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.h b/drivers/media/dvb/dvb-core/dvb_frontend.h
-index 3b86050..5590eb6 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.h
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.h
-@@ -358,6 +358,9 @@ struct dtv_frontend_properties {
- 
- 	/* ISDB-T specifics */
- 	u32			isdbs_ts_id;
-+
-+	/* DVB-T2 specifics */
-+	u32                     dvbt2_plp_id;
- };
- 
- struct dvb_frontend {
-diff --git a/drivers/media/dvb/frontends/cxd2820r_priv.h b/drivers/media/dvb/frontends/cxd2820r_priv.h
-index d4e2e0b..25adbee 100644
---- a/drivers/media/dvb/frontends/cxd2820r_priv.h
-+++ b/drivers/media/dvb/frontends/cxd2820r_priv.h
-@@ -40,18 +40,6 @@
- #undef warn
- #define warn(f, arg...) printk(KERN_WARNING LOG_PREFIX": " f "\n" , ## arg)
- 
--/*
-- * FIXME: These are totally wrong and must be added properly to the API.
-- * Only temporary solution in order to get driver compile.
-- */
--#define SYS_DVBT2             SYS_DAB
--#define TRANSMISSION_MODE_1K  0
--#define TRANSMISSION_MODE_16K 0
--#define TRANSMISSION_MODE_32K 0
--#define GUARD_INTERVAL_1_128  0
--#define GUARD_INTERVAL_19_128 0
--#define GUARD_INTERVAL_19_256 0
--
- struct reg_val_mask {
- 	u32 reg;
- 	u8  val;
-diff --git a/include/linux/dvb/frontend.h b/include/linux/dvb/frontend.h
-index 493a2bf..36a3ed6 100644
---- a/include/linux/dvb/frontend.h
-+++ b/include/linux/dvb/frontend.h
-@@ -175,14 +175,20 @@ typedef enum fe_transmit_mode {
- 	TRANSMISSION_MODE_2K,
- 	TRANSMISSION_MODE_8K,
- 	TRANSMISSION_MODE_AUTO,
--	TRANSMISSION_MODE_4K
-+	TRANSMISSION_MODE_4K,
-+	TRANSMISSION_MODE_1K,
-+	TRANSMISSION_MODE_16K,
-+	TRANSMISSION_MODE_32K,
- } fe_transmit_mode_t;
- 
- typedef enum fe_bandwidth {
- 	BANDWIDTH_8_MHZ,
- 	BANDWIDTH_7_MHZ,
- 	BANDWIDTH_6_MHZ,
--	BANDWIDTH_AUTO
-+	BANDWIDTH_AUTO,
-+	BANDWIDTH_5_MHZ,
-+	BANDWIDTH_10_MHZ,
-+	BANDWIDTH_1_712_MHZ,
- } fe_bandwidth_t;
- 
- 
-@@ -191,7 +197,10 @@ typedef enum fe_guard_interval {
- 	GUARD_INTERVAL_1_16,
- 	GUARD_INTERVAL_1_8,
- 	GUARD_INTERVAL_1_4,
--	GUARD_INTERVAL_AUTO
-+	GUARD_INTERVAL_AUTO,
-+	GUARD_INTERVAL_1_128,
-+	GUARD_INTERVAL_19_128,
-+	GUARD_INTERVAL_19_256,
- } fe_guard_interval_t;
- 
- 
-@@ -305,7 +314,9 @@ struct dvb_frontend_event {
- 
- #define DTV_ISDBS_TS_ID		42
- 
--#define DTV_MAX_COMMAND				DTV_ISDBS_TS_ID
-+#define DTV_DVBT2_PLP_ID	43
-+
-+#define DTV_MAX_COMMAND				DTV_DVBT2_PLP_ID
- 
- typedef enum fe_pilot {
- 	PILOT_ON,
-@@ -337,6 +348,7 @@ typedef enum fe_delivery_system {
- 	SYS_DMBTH,
- 	SYS_CMMB,
- 	SYS_DAB,
-+	SYS_DVBT2,
- } fe_delivery_system_t;
- 
- struct dtv_cmds_h {
-diff --git a/include/linux/dvb/version.h b/include/linux/dvb/version.h
-index 5a7546c..1421cc8 100644
---- a/include/linux/dvb/version.h
-+++ b/include/linux/dvb/version.h
-@@ -24,6 +24,6 @@
- #define _DVBVERSION_H_
- 
- #define DVB_API_VERSION 5
--#define DVB_API_VERSION_MINOR 2
-+#define DVB_API_VERSION_MINOR 3
- 
- #endif /*_DVBVERSION_H_*/
--- 
-1.7.1
+However I cannot get it to work, and then I read thatt the newest 
+version might not work,
+and that I should join this list.
+
+I have tried to compile a new kernel with the newest dvb stuff from the 
+git repository, just
+to make sure, that I have the newest drivers.  I have alsio blacklistet 
+the zl10353 module
+to avoid the device being loaded as an DVB-T device (which it is not, it 
+is a cable only version).
+
+What information do you need me to obtain, or do you have a hint to how 
+I might get this working?
+
+The device is reconnized OK as seen here from dmesg:
+
+[   11.354973] dvb-usb: found a 'Anysee DVB USB2.0' in warm state.
+[   11.355004] dvb-usb: will pass the complete MPEG2 transport stream to 
+the software demuxer.
+[   11.355239] DVB: registering new adapter (Anysee DVB USB2.0)
+[   11.356661] anysee: firmware version:0.1.2 hardware id:15
+[   11.391192] IR NEC protocol handler initialized
+[   11.412221] IR RC5(x) protocol handler initialized
+[   11.412611] DVB: Unable to find symbol zl10353_attach()
+[   11.414527] DVB: Unable to find symbol zl10353_attach()
+[   11.417536] DVB: registering adapter 1 frontend 0 (Philips TDA10023 
+DVB-C)...
+[   11.430950] IR RC6 protocol handler initialized
+[   11.553821] IR JVC protocol handler initialized
+[   11.555642] input: IR-receiver inside an USB DVB receiver as 
+/devices/pci0000:00/0000:00:1d.7/usb2/2-5/input/input6
+[   11.555682] dvb-usb: schedule remote query interval to 200 msecs.
+[   11.555689] dvb-usb: Anysee DVB USB2.0 successfully initialized and 
+connected.
+[   11.557207] usbcore: registered new interface driver dvb_usb_anysee
+[   11.569445] IR Sony protocol handler initialized
+[   11.584259] lirc_dev: IR Remote Control driver registered, major 251
+[   11.586747] IR LIRC bridge handler initialized
+
+but lsusb reports this as an DVB-T Device:
+
+tux3:~ # lsusb -s 002:002 -v
+
+Bus 002 Device 002: ID 1c73:861f AMT Anysee E30 USB 2.0 DVB-T Receiver
+Device Descriptor:
+   bLength                18
+   bDescriptorType         1
+   bcdUSB               2.00
+   bDeviceClass            0 (Defined at Interface level)
+   bDeviceSubClass         0
+   bDeviceProtocol         0
+   bMaxPacketSize0        64
+   idVendor           0x1c73 AMT
+   idProduct          0x861f Anysee E30 USB 2.0 DVB-T Receiver
+   bcdDevice            1.00
+   iManufacturer           1 AMT.CO.KR
+   iProduct                2 anysee-FA(LP)
+   iSerial                 0
+   bNumConfigurations      1
+   Configuration Descriptor:
+     bLength                 9
+     bDescriptorType         2
+     wTotalLength           83
+     bNumInterfaces          1
+     bConfigurationValue     1
+     iConfiguration          0
+     bmAttributes         0x80
+       (Bus Powered)
+     MaxPower              500mA
+     Interface Descriptor:
+       bLength                 9
+       bDescriptorType         4
+       bInterfaceNumber        0
+       bAlternateSetting       0
+       bNumEndpoints           4
+       bInterfaceClass       255 Vendor Specific Class
+       bInterfaceSubClass      0
+       bInterfaceProtocol      0
+       iInterface              0
+       Endpoint Descriptor:
+         bLength                 7
+         bDescriptorType         5
+         bEndpointAddress     0x01  EP 1 OUT
+         bmAttributes            2
+           Transfer Type            Bulk
+           Synch Type               None
+           Usage Type               Data
+         wMaxPacketSize     0x0040  1x 64 bytes
+         bInterval               0
+       Endpoint Descriptor:
+         bLength                 7
+         bDescriptorType         5
+         bEndpointAddress     0x81  EP 1 IN
+         bmAttributes            2
+           Transfer Type            Bulk
+           Synch Type               None
+           Usage Type               Data
+         wMaxPacketSize     0x0040  1x 64 bytes
+         bInterval               0
+       Endpoint Descriptor:
+         bLength                 7
+         bDescriptorType         5
+         bEndpointAddress     0x82  EP 2 IN
+         bmAttributes            2
+           Transfer Type            Bulk
+           Synch Type               None
+           Usage Type               Data
+         wMaxPacketSize     0x0200  1x 512 bytes
+         bInterval               0
+       Endpoint Descriptor:
+         bLength                 7
+         bDescriptorType         5
+         bEndpointAddress     0x02  EP 2 OUT
+         bmAttributes            2
+           Transfer Type            Bulk
+           Synch Type               None
+           Usage Type               Data
+         wMaxPacketSize     0x0200  1x 512 bytes
+         bInterval               0
+     Interface Descriptor:
+       bLength                 9
+       bDescriptorType         4
+       bInterfaceNumber        0
+       bAlternateSetting       1
+       bNumEndpoints           4
+       bInterfaceClass       255 Vendor Specific Class
+       bInterfaceSubClass      0
+       bInterfaceProtocol      0
+       iInterface              0
+       Endpoint Descriptor:
+         bLength                 7
+         bDescriptorType         5
+         bEndpointAddress     0x01  EP 1 OUT
+         bmAttributes            2
+           Transfer Type            Bulk
+           Synch Type               None
+           Usage Type               Data
+         wMaxPacketSize     0x0040  1x 64 bytes
+         bInterval               0
+       Endpoint Descriptor:
+         bLength                 7
+         bDescriptorType         5
+         bEndpointAddress     0x81  EP 1 IN
+         bmAttributes            2
+           Transfer Type            Bulk
+           Synch Type               None
+           Usage Type               Data
+         wMaxPacketSize     0x0040  1x 64 bytes
+         bInterval               0
+       Endpoint Descriptor:
+         bLength                 7
+         bDescriptorType         5
+         bEndpointAddress     0x82  EP 2 IN
+         bmAttributes            1
+           Transfer Type            Isochronous
+           Synch Type               None
+           Usage Type               Data
+         wMaxPacketSize     0x1400  3x 1024 bytes
+         bInterval               1
+       Endpoint Descriptor:
+         bLength                 7
+         bDescriptorType         5
+         bEndpointAddress     0x02  EP 2 OUT
+         bmAttributes            1
+           Transfer Type            Isochronous
+           Synch Type               None
+           Usage Type               Data
+         wMaxPacketSize     0x1400  3x 1024 bytes
+         bInterval               1
+Device Qualifier (for other device speed):
+   bLength                10
+   bDescriptorType         6
+   bcdUSB               2.00
+   bDeviceClass            0 (Defined at Interface level)
+   bDeviceSubClass         0
+   bDeviceProtocol         0
+   bMaxPacketSize0        64
+   bNumConfigurations      1
+Device Status:     0x0002
+   (Bus Powered)
+   Remote Wakeup Enabled
+
+The problem is, that I cannot get it to tune into any frequency:
+
+using '/dev/dvb/adapter1/frontend0' and '/dev/dvb/adapter1/demux0'
+initial transponder 143000000 6875000 0 3
+initial transponder 156000000 6875000 0 3
+initial transponder 378000000 6875000 0 3
+initial transponder 394000000 6875000 0 3
+initial transponder 442000000 6875000 0 3
+initial transponder 490000000 6875000 0 3
+initial transponder 498000000 6875000 0 3
+initial transponder 514000000 6875000 0 3
+initial transponder 530000000 6875000 0 3
+initial transponder 538000000 6875000 0 3
+initial transponder 554000000 6875000 0 3
+initial transponder 570000000 6875000 0 3
+initial transponder 578000000 6875000 0 3
+initial transponder 618000000 6875000 0 3
+initial transponder 626000000 6875000 0 3
+initial transponder 714000000 6875000 0 3
+initial transponder 730000000 6875000 0 3
+initial transponder 770000000 6875000 0 3
+initial transponder 786000000 6875000 0 3
+initial transponder 794000000 6875000 0 3
+ >>> tune to: 143000000:INVERSION_AUTO:6875000:FEC_NONE:QAM_64
+WARNING: >>> tuning failed!!!
+ >>> tune to: 143000000:INVERSION_AUTO:6875000:FEC_NONE:QAM_64 (tuning 
+failed)
+WARNING: >>> tuning failed!!!
+ >>> tune to: 156000000:INVERSION_AUTO:6875000:FEC_NONE:QAM_64
+WARNING: >>> tuning failed!!!
+ >>> tune to: 156000000:INVERSION_AUTO:6875000:FEC_NONE:QAM_64 (tuning 
+failed)
+WARNING: >>> tuning failed!!!
+ >>> tune to: 378000000:INVERSION_AUTO:6875000:FEC_NONE:QAM_64
+WARNING: >>> tuning failed!!!
+ETC
+
+
+Rgds Per
 
