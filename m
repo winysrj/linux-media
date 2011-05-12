@@ -1,59 +1,28 @@
-Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:45742 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750968Ab1E0Pwz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 May 2011 11:52:55 -0400
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p4RFqtPT013444
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 27 May 2011 11:52:55 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>
-Subject: [PATCH] [media] nuvoton-cir: in_use isn't actually in use, remove it
-Date: Fri, 27 May 2011 11:52:51 -0400
-Message-Id: <1306511571-342-1-git-send-email-jarod@redhat.com>
+Return-path: <mchehab@gaivota>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:52609 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753425Ab1ELHrl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 May 2011 03:47:41 -0400
+Date: Thu, 12 May 2011 08:47:25 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Josh Wu <josh.wu@atmel.com>
+Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
+	lars.haring@atmel.com, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, g.liakhovetski@gmx.de
+Subject: Re: [PATCH] [media] at91: add Atmel Image Sensor Interface (ISI)
+	support
+Message-ID: <20110512074725.GA1356@n2100.arm.linux.org.uk>
+References: <1305186138-5656-1-git-send-email-josh.wu@atmel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1305186138-5656-1-git-send-email-josh.wu@atmel.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/rc/nuvoton-cir.c |    2 --
- drivers/media/rc/nuvoton-cir.h |    1 -
- 2 files changed, 0 insertions(+), 3 deletions(-)
+On Thu, May 12, 2011 at 03:42:18PM +0800, Josh Wu wrote:
+> +err_alloc_isi:
+> +	clk_disable(pclk);
 
-diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
-index bf3060e..565f24c 100644
---- a/drivers/media/rc/nuvoton-cir.c
-+++ b/drivers/media/rc/nuvoton-cir.c
-@@ -991,7 +991,6 @@ static int nvt_open(struct rc_dev *dev)
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&nvt->nvt_lock, flags);
--	nvt->in_use = true;
- 	nvt_enable_cir(nvt);
- 	spin_unlock_irqrestore(&nvt->nvt_lock, flags);
- 
-@@ -1004,7 +1003,6 @@ static void nvt_close(struct rc_dev *dev)
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&nvt->nvt_lock, flags);
--	nvt->in_use = false;
- 	nvt_disable_cir(nvt);
- 	spin_unlock_irqrestore(&nvt->nvt_lock, flags);
- }
-diff --git a/drivers/media/rc/nuvoton-cir.h b/drivers/media/rc/nuvoton-cir.h
-index 379795d..1241fc8 100644
---- a/drivers/media/rc/nuvoton-cir.h
-+++ b/drivers/media/rc/nuvoton-cir.h
-@@ -70,7 +70,6 @@ struct nvt_dev {
- 	struct ir_raw_event rawir;
- 
- 	spinlock_t nvt_lock;
--	bool in_use;
- 
- 	/* for rx */
- 	u8 buf[RX_BUF_LEN];
--- 
-1.7.1
-
+clk_put() ?
