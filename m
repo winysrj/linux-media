@@ -1,38 +1,39 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:34947 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751377Ab1EJLFg (ORCPT
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:34633 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1757854Ab1ELXap (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 May 2011 07:05:36 -0400
-Received: by iwn34 with SMTP id 34so5099967iwn.19
-        for <linux-media@vger.kernel.org>; Tue, 10 May 2011 04:05:35 -0700 (PDT)
+	Thu, 12 May 2011 19:30:45 -0400
+Received: by yxk8 with SMTP id 8so892759yxk.32
+        for <linux-media@vger.kernel.org>; Thu, 12 May 2011 16:30:44 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <BANLkTinrSz4nULGS729jEhs1O=wvUy19Jg@mail.gmail.com>
-References: <BANLkTi=pS07RymXLOFsRihd5Jso-y6OsHg@mail.gmail.com>
-	<201105101132.11041.laurent.pinchart@ideasonboard.com>
-	<BANLkTimLhOJstjpbxLSxS-qNPYhbfGxUNw@mail.gmail.com>
-	<201105101153.04978.laurent.pinchart@ideasonboard.com>
-	<BANLkTinrSz4nULGS729jEhs1O=wvUy19Jg@mail.gmail.com>
-Date: Tue, 10 May 2011 13:05:35 +0200
-Message-ID: <BANLkTincAieXM+DNbkaHiRVxEA6nh6O0Tw@mail.gmail.com>
-Subject: Re: Current status report of mt9p031.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Chris Rodley <carlighting@yahoo.co.nz>
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+Date: Thu, 12 May 2011 18:30:24 -0500
+Message-ID: <BANLkTi=RVE0zk83K0hn89H3S6CKEmKSj2A@mail.gmail.com>
+Subject: [ANNOUNCE] New OMAP4 V4L2 Camera Project started
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: laurent.pinchart@ideasonboard.com,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hansverk@cisco.com>, Rob Clark <rob@ti.com>
 Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-I almost forget,
-I am using 2.6.39-rc  commit bd99337e95b6bba976e41a5f3cf65c1f04069156
+Hi all,
 
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+Just to let you know that I've just officially registered for a new
+project in the Pandaboard.org portal for OMAP4 v4l2 camera support.
+
+You can find it here:
+
+http://omiio.org/content/omap4-v4l2-camera
+
+And also, you can find the actual Gitorious project with the code here:
+
+https://www.gitorious.org/omap4-v4l2-camera
+
+If anyone is interested in contributing for this project, please let
+me know, so I can add you as a contributor to the project.
+
+Regards,
+Sergio
