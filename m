@@ -1,133 +1,182 @@
-Return-path: <mchehab@pedra>
-Received: from mailfe02.c2i.net ([212.247.154.34]:40537 "EHLO swip.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S932894Ab1EWTSg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 May 2011 15:18:36 -0400
-From: Hans Petter Selasky <hselasky@c2i.net>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH] Alternate setting 1 must be selected for interface 0 on the model that I received. Else the rest is identical.
-Date: Mon, 23 May 2011 21:17:22 +0200
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <201105231637.39053.hselasky@c2i.net> <201105232048.47280.hselasky@c2i.net> <4DDAB038.2060801@redhat.com>
-In-Reply-To: <4DDAB038.2060801@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201105232117.22890.hselasky@c2i.net>
+Return-path: <mchehab@gaivota>
+Received: from stevekez.vm.bytemark.co.uk ([80.68.91.30]:51900 "EHLO
+	stevekerrison.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758660Ab1ELVMc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 May 2011 17:12:32 -0400
+From: Steve Kerrison <steve@stevekerrison.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>,
+	Andreas Oberritter <obi@linuxtv.org>,
+	Steve Kerrison <steve@stevekerrison.com>
+Subject: [PATCH v3] DVB: Add basic API support for DVB-T2 and bump minor version
+Date: Thu, 12 May 2011 22:11:06 +0100
+Message-Id: <1305234666-7045-1-git-send-email-steve@stevekerrison.com>
+In-Reply-To: <4DC71B5E.7000902@linuxtv.org>
+References: <4DC71B5E.7000902@linuxtv.org>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Monday 23 May 2011 21:06:32 Mauro Carvalho Chehab wrote:
-> Em 23-05-2011 15:48, Hans Petter Selasky escreveu:
-> > On Monday 23 May 2011 20:14:45 Mauro Carvalho Chehab wrote:
-> >> Em 23-05-2011 11:37, Hans Petter Selasky escreveu:
-> >> 
-> >> I don't have any ttusb device here, but I doubt that this would work.
-> > 
-> > Hi,
-> > 
-> > It is already tested and works fine.
-> 
-> This will work for you, but it will likely break for the others. Your patch
-> is assuming that returning an error if selecting alt 1 is enough to know
-> that alt 0 should be used.
-> 
-> > What I see is that interface 1 does not have an alternate setting like
-> > the driver code expects, while interface 0 does. So it is the opposite
-> > of what the driver expects. Maybe the manufacturer changed something.
-> > Endpoints are still the same.
-> 
-> That sometimes happen. Or maybe you just need a different size.
-> 
-> > Please find attached an USB descriptor dump from this device.
-> 
-> Int 0, endpoint 0:
-> 
->     Interface 0
->       bLength = 0x0009
->       bDescriptorType = 0x0004
->       bInterfaceNumber = 0x0000
->       bAlternateSetting = 0x0000
->       bNumEndpoints = 0x0003
->       bInterfaceClass = 0x0000
->       bInterfaceSubClass = 0x0000
->       bInterfaceProtocol = 0x0000
->       iInterface = 0x0000  <no string>
-> 
-> ...
-> 
->      Endpoint 2
->         bLength = 0x0007
->         bDescriptorType = 0x0005
->         bEndpointAddress = 0x0082  <IN>
->         bmAttributes = 0x0001  <ISOCHRONOUS>
->         wMaxPacketSize = 0x0000
->         bInterval = 0x0001
->         bRefresh = 0x0000
->         bSynchAddress = 0x0000
-> 
-> ...
-> 
->     Interface 0 Alt 1
->       bLength = 0x0009
->       bDescriptorType = 0x0004
->       bInterfaceNumber = 0x0000
->       bAlternateSetting = 0x0001
->       bNumEndpoints = 0x0003
->       bInterfaceClass = 0x0000
->       bInterfaceSubClass = 0x0000
->       bInterfaceProtocol = 0x0000
->       iInterface = 0x0000  <no string>
-> 
-> ...
->      Endpoint 2
->         bLength = 0x0007
->         bDescriptorType = 0x0005
->         bEndpointAddress = 0x0082  <IN>
->         bmAttributes = 0x0001  <ISOCHRONOUS>
->         wMaxPacketSize = 0x0390
->         bInterval = 0x0001
->         bRefresh = 0x0000
->         bSynchAddress = 0x0000
-> 
+From: Andreas Oberritter <obi@linuxtv.org>
 
-Hi,
+steve@stevekerrison.com: Remove private definitions from cxd2820r that existed before API was defined
 
-> Hmm... assuming that the driver is using ISOC transfers, the difference
-> between alt 0 and alt 1 is that, on alt0, the mwMaxPacketSize is 0 (so,
-> you can't use it for isoc transfers), while, on alt 1, wMaxPacketSize is
-> 0x390.
-> 
-> What the driver should be doing is to select an alt mode where the
-> wMaxPacketSize is big enough to handle the transfer.
+Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
+Signed-off-by: Steve Kerrison <steve@stevekerrison.com>
+---
+ drivers/media/dvb/dvb-core/dvb_frontend.c   |   13 +++++++++----
+ drivers/media/dvb/dvb-core/dvb_frontend.h   |    3 +++
+ drivers/media/dvb/frontends/cxd2820r_priv.h |   12 ------------
+ include/linux/dvb/frontend.h                |   20 ++++++++++++++++----
+ include/linux/dvb/version.h                 |    2 +-
+ 5 files changed, 29 insertions(+), 21 deletions(-)
 
-I can write the code to do that. Summed up:
-
-1) Search interface 0, for alternate settings that have an ISOC-IN and 
-wMaxPacket != 0. Select this alternate setting.
-
-2) Search interface 1, for alternate settings that have an ISOC-IN and 
-wMaxPacket != 0. Select this alternate setting.
+diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+index 31e2c0d..8c9ff8a 100644
+--- a/drivers/media/dvb/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+@@ -1148,10 +1148,9 @@ static void dtv_property_adv_params_sync(struct dvb_frontend *fe)
+ 		break;
+ 	}
  
-3) Done.
+-	if(c->delivery_system == SYS_ISDBT) {
+-		/* Fake out a generic DVB-T request so we pass validation in the ioctl */
+-		p->frequency = c->frequency;
+-		p->inversion = c->inversion;
++	/* Fake out a generic DVB-T request so we pass validation in the ioctl */
++	if ((c->delivery_system == SYS_ISDBT) ||
++	    (c->delivery_system == SYS_DVBT2)) {
+ 		p->u.ofdm.constellation = QAM_AUTO;
+ 		p->u.ofdm.code_rate_HP = FEC_AUTO;
+ 		p->u.ofdm.code_rate_LP = FEC_AUTO;
+@@ -1324,6 +1323,9 @@ static int dtv_property_process_get(struct dvb_frontend *fe,
+ 	case DTV_ISDBS_TS_ID:
+ 		tvp->u.data = fe->dtv_property_cache.isdbs_ts_id;
+ 		break;
++	case DTV_DVBT2_PLP_ID:
++		tvp->u.data = fe->dtv_property_cache.dvbt2_plp_id;
++		break;
+ 	default:
+ 		r = -1;
+ 	}
+@@ -1479,6 +1481,9 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
+ 	case DTV_ISDBS_TS_ID:
+ 		fe->dtv_property_cache.isdbs_ts_id = tvp->u.data;
+ 		break;
++	case DTV_DVBT2_PLP_ID:
++		fe->dtv_property_cache.dvbt2_plp_id = tvp->u.data;
++		break;
+ 	default:
+ 		r = -1;
+ 	}
+diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.h b/drivers/media/dvb/dvb-core/dvb_frontend.h
+index 3b86050..5590eb6 100644
+--- a/drivers/media/dvb/dvb-core/dvb_frontend.h
++++ b/drivers/media/dvb/dvb-core/dvb_frontend.h
+@@ -358,6 +358,9 @@ struct dtv_frontend_properties {
+ 
+ 	/* ISDB-T specifics */
+ 	u32			isdbs_ts_id;
++
++	/* DVB-T2 specifics */
++	u32                     dvbt2_plp_id;
+ };
+ 
+ struct dvb_frontend {
+diff --git a/drivers/media/dvb/frontends/cxd2820r_priv.h b/drivers/media/dvb/frontends/cxd2820r_priv.h
+index d4e2e0b..25adbee 100644
+--- a/drivers/media/dvb/frontends/cxd2820r_priv.h
++++ b/drivers/media/dvb/frontends/cxd2820r_priv.h
+@@ -40,18 +40,6 @@
+ #undef warn
+ #define warn(f, arg...) printk(KERN_WARNING LOG_PREFIX": " f "\n" , ## arg)
+ 
+-/*
+- * FIXME: These are totally wrong and must be added properly to the API.
+- * Only temporary solution in order to get driver compile.
+- */
+-#define SYS_DVBT2             SYS_DAB
+-#define TRANSMISSION_MODE_1K  0
+-#define TRANSMISSION_MODE_16K 0
+-#define TRANSMISSION_MODE_32K 0
+-#define GUARD_INTERVAL_1_128  0
+-#define GUARD_INTERVAL_19_128 0
+-#define GUARD_INTERVAL_19_256 0
+-
+ struct reg_val_mask {
+ 	u32 reg;
+ 	u8  val;
+diff --git a/include/linux/dvb/frontend.h b/include/linux/dvb/frontend.h
+index 493a2bf..36a3ed6 100644
+--- a/include/linux/dvb/frontend.h
++++ b/include/linux/dvb/frontend.h
+@@ -175,14 +175,20 @@ typedef enum fe_transmit_mode {
+ 	TRANSMISSION_MODE_2K,
+ 	TRANSMISSION_MODE_8K,
+ 	TRANSMISSION_MODE_AUTO,
+-	TRANSMISSION_MODE_4K
++	TRANSMISSION_MODE_4K,
++	TRANSMISSION_MODE_1K,
++	TRANSMISSION_MODE_16K,
++	TRANSMISSION_MODE_32K,
+ } fe_transmit_mode_t;
+ 
+ typedef enum fe_bandwidth {
+ 	BANDWIDTH_8_MHZ,
+ 	BANDWIDTH_7_MHZ,
+ 	BANDWIDTH_6_MHZ,
+-	BANDWIDTH_AUTO
++	BANDWIDTH_AUTO,
++	BANDWIDTH_5_MHZ,
++	BANDWIDTH_10_MHZ,
++	BANDWIDTH_1_712_MHZ,
+ } fe_bandwidth_t;
+ 
+ 
+@@ -191,7 +197,10 @@ typedef enum fe_guard_interval {
+ 	GUARD_INTERVAL_1_16,
+ 	GUARD_INTERVAL_1_8,
+ 	GUARD_INTERVAL_1_4,
+-	GUARD_INTERVAL_AUTO
++	GUARD_INTERVAL_AUTO,
++	GUARD_INTERVAL_1_128,
++	GUARD_INTERVAL_19_128,
++	GUARD_INTERVAL_19_256,
+ } fe_guard_interval_t;
+ 
+ 
+@@ -305,7 +314,9 @@ struct dvb_frontend_event {
+ 
+ #define DTV_ISDBS_TS_ID		42
+ 
+-#define DTV_MAX_COMMAND				DTV_ISDBS_TS_ID
++#define DTV_DVBT2_PLP_ID	43
++
++#define DTV_MAX_COMMAND				DTV_DVBT2_PLP_ID
+ 
+ typedef enum fe_pilot {
+ 	PILOT_ON,
+@@ -337,6 +348,7 @@ typedef enum fe_delivery_system {
+ 	SYS_DMBTH,
+ 	SYS_CMMB,
+ 	SYS_DAB,
++	SYS_DVBT2,
+ } fe_delivery_system_t;
+ 
+ struct dtv_cmds_h {
+diff --git a/include/linux/dvb/version.h b/include/linux/dvb/version.h
+index 5a7546c..1421cc8 100644
+--- a/include/linux/dvb/version.h
++++ b/include/linux/dvb/version.h
+@@ -24,6 +24,6 @@
+ #define _DVBVERSION_H_
+ 
+ #define DVB_API_VERSION 5
+-#define DVB_API_VERSION_MINOR 2
++#define DVB_API_VERSION_MINOR 3
+ 
+ #endif /*_DVBVERSION_H_*/
+-- 
+1.7.1
 
-Do you think this will work better?
-
-> Calculating what "big enough"   is device-dependent, but, basically, a 480
-> Mbps USB bus is capable of providing 800 isoc slots per interval. If the
-> packets are bigger, the max bandwidth is bigger.
-
-This is a FULL speed device, max 10MBit/second.
-
-> You're able to see the amount of packets per interval by doing a cat
-> /proc/bus/usb/devices:
-> 
-> T:  Bus=01 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=480  MxCh= 8
-> B:  Alloc=  0/800 us ( 0%), #Int=  0, #Iso=  0
-> 
-> The "B:" line above shows the USB bandwidth usage.
-
-Do you need this information to proceed with the patch?
-
---HPS
