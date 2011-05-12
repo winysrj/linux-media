@@ -1,94 +1,161 @@
-Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:52979 "EHLO mx1.redhat.com"
+Return-path: <mchehab@gaivota>
+Received: from mx1.redhat.com ([209.132.183.28]:17823 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753741Ab1EZADl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 May 2011 20:03:41 -0400
-Message-ID: <4DDD98D2.4000402@redhat.com>
-Date: Wed, 25 May 2011 21:03:30 -0300
+	id S1751157Ab1ELBKS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 May 2011 21:10:18 -0400
+Message-ID: <4DCB336B.2090303@redhat.com>
+Date: Thu, 12 May 2011 03:10:03 +0200
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Hans Petter Selasky <hselasky@c2i.net>
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Make code more readable by not using the return value
- of the WARN() macro. Set ret variable in an undefined case.
-References: <201105231307.53836.hselasky@c2i.net> <Pine.LNX.4.64.1105232019560.30305@axis700.grange> <201105232104.08895.hselasky@c2i.net>
-In-Reply-To: <201105232104.08895.hselasky@c2i.net>
+To: Anssi Hannula <anssi.hannula@iki.fi>
+CC: Peter Hutterer <peter.hutterer@who-t.net>,
+	linux-media@vger.kernel.org,
+	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
+	xorg-devel@lists.freedesktop.org
+Subject: Re: IR remote control autorepeat / evdev
+References: <4DC61E28.4090301@iki.fi> <20110510041107.GA32552@barra.redhat.com> <4DC8C9B6.5000501@iki.fi> <20110510053038.GA5808@barra.redhat.com> <4DC940E5.2070902@iki.fi> <4DCA1496.20304@redhat.com> <4DCABA42.30505@iki.fi> <4DCABEAE.4080607@redhat.com> <4DCACE74.6050601@iki.fi> <4DCB213A.8040306@redhat.com> <4DCB2BD9.6090105@iki.fi>
+In-Reply-To: <4DCB2BD9.6090105@iki.fi>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 23-05-2011 16:04, Hans Petter Selasky escreveu:
-> On Monday 23 May 2011 20:22:02 Guennadi Liakhovetski wrote:
->> Please, inline patches. Otherwise, this is what one gets, when replying.
+Em 12-05-2011 02:37, Anssi Hannula escreveu:
+> On 12.05.2011 02:52, Mauro Carvalho Chehab wrote:
+>> Em 11-05-2011 19:59, Anssi Hannula escreveu:
+>>>> No. It actually depends on what driver you're using. For example, for most dvb-usb
+>>>> devices, this is given by the logic bellow:
+>>>>
+>>>> 	if (d->props.rc.legacy.rc_interval < 40)
+>>>> 		d->props.rc.legacy.rc_interval = 100; /* default */
+>>>>
+>>>> 	input_dev->rep[REP_PERIOD] = d->props.rc.legacy.rc_interval;
+>>>> 	input_dev->rep[REP_DELAY]  = d->props.rc.legacy.rc_interval + 150;
+>>>>
+>>>> where the rc_interval defined by device entry at the dvb usb drivers.
+>>>
+>>> Isn't that function only called for DVB_RC_LEGACY mode?
 >>
->> On Mon, 23 May 2011, Hans Petter Selasky wrote:
->>> --HPS
+>> I just picked one random piece of the code that covers several RC remotes (most
+>> dvb-usb drivers are still using the legacy mode). Similar code are there for
+>> other devices.
+> 
+> I don't see any other places:
+> $ git grep 'REP_PERIOD' .
+> dvb/dvb-usb/dvb-usb-remote.c:   input_dev->rep[REP_PERIOD] =
+> d->props.rc.legacy.rc_interval;
+
+Indeed, the REP_PERIOD is not adjusted on other drivers. I agree that we
+should change it to something like 125ms, for example, as 33ms is too 
+short, as it takes up to 114ms for a repeat event to arrive.
+
+The REP_PERIOD is adjusted, however, on several drivers. Also, RC core changes
+its default to 500ms, to avoid ghost keystrokes:
+	dev->input_dev->rep[REP_DELAY] = 500;
+
+> 
+>>> Maybe I wasn't clear, but I'm talking only about the devices handled by
+>>> rc-core.
 >>
->> In any case, just throwing in my 2 cents - no idea how not using the
->> return value of WARN() makes code more readable. On the contrary, using it
->> is a standard practice. This patch doesn't seem like an improvement to me.
+>> With just a few exceptions, the repeat period/delay that were there before
+>> porting to rc-core were maintained. There are space for adjustments, as we
+>> did on a few cases.
 > 
-> There is no strong reason for the WARN() part, you may ignore that, but the 
-> ret = 0, part is still valid. Should I generate a new patch or can you handle 
-> this?
-Em 23-05-2011 08:07, Hans Petter Selasky escreveu:
-> --HPS
+> The above is the only place where the repeat period is set in the
+> drivers/media tree, and it is not an rc-core device. Other devices
+> therefore use the 33ms kernel default.
 > 
+> Maybe I am missing something?
 > 
-> dvb-usb-0005.patch
+>> Em 11-05-2011 22:53, Dmitry Torokhov escreveu:
+>>> On Wed, May 11, 2011 at 08:59:16PM +0300, Anssi Hannula wrote:
+>>>>
+>>>> I meant replacing the softrepeat with native repeat for such devices
+>>>> that have native repeats but no native release events:
+>>>>
+>>>> - keypress from device => keydown + keyup
+>>>> - repeat from device => keydown + keyup
+>>>> - repeat from device => keydown + keyup
+>>>>
+>>>> This is what e.g. ati_remote driver now does.
+>>>>
+>>>> Or alternatively
+>>>>
+>>>> - keypress from device => keydown
+>>>> - repeat from device => repeat
+>>>> - repeat from device => repeat
+>>>> - nothing for 250ms => keyup
+>>>> (doing it this way requires some extra handling in X server to stop its
+>>>> softrepeat from triggering, though, as previously noted)
+>>>>
+>>>> With either of these, if one holds down volumeup, the repeat works, and
+>>>> stops volumeup'ing immediately when user releases the button (as it is
+>>>> supposed to).
+>>>>
+>>>
+>>> Unfortunately this does not work for devices that do not have hardware
+>>> autorepeat and also stops users from adjusting autorepeat parameters to
+>>> their liking.
+>>
+>> Yes. A solution like the above would limit the usage. There are some remotes
+>> (like for example, the Hauppauge Grey remotes I have here) that a simple
+>> keypress generates, in general, up to 3 scancodes (the normal keypress and
+>> up to two "bounced" repeat keycodes). So, the software key delay also serves
+>> as a way to de-bounce the keypress.
 > 
+> I probably forgot to mention it, but I'm not suggesting removal of the
+> repetition delay (500ms), it can stay for this reason exactly.
 > 
-> From 94b88b92763f9309018ba04c200a8842ce1ff0ed Mon Sep 17 00:00:00 2001
-> From: Hans Petter Selasky <hselasky@c2i.net>
-> Date: Mon, 23 May 2011 13:07:08 +0200
-> Subject: [PATCH] Make code more readable by not using the return value of the WARN() macro. Set ret variable in an undefined case.
+>>> It appears that the delay to check whether the key has been released is
+>>> too long (almost order of magnitude longer than our typical autorepeat
+>>> period).
+>>
+>> Yes, because, for example, with NEC and RC-5 protocols, one keystroke or one
+>> repeat event takes 110/114 ms to be transmitted. The delay actually varies 
+>> from protocol to protocol, so it is possible to do some adjustments, based on
+>> the protocol type, but it is an order of magnitude longer than a keyboard or
+>> mouse.
+>>
+>>> I think we should increase the period for remotes (both in
+>>> kernel and in X, and also see if the release check delay can be made
+>>> shorter, like 50-100 ms.
+>>
+>> Some adjustments like that can be made, but they are device-driver specific.
+>>
+>> For example, some in-hardware IR decoders with KS007 micro-controller just
+>> removes all repeat keycodes and replace them with new keystrokes. There are
+>> some shipped remotes that don't support the RC-5 or NEC key repeat event. So,
+>> on those, if you keep a key pressed, you just receive the same scancode several
+>> times.
+>>
+>> The last time I double checked all remotes I have here, on all cases the auto-repeat
+>> logic were doing the right job, but I won't doubt that we need to add some additional
+>> adjustments for some boards/devices.
 > 
-> Signed-off-by: Hans Petter Selasky <hselasky@c2i.net>
-> ---
->  drivers/media/video/sr030pc30.c |    5 ++++-
->  1 files changed, 4 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/sr030pc30.c b/drivers/media/video/sr030pc30.c
-> index c901721..6cc64c9 100644
-> --- a/drivers/media/video/sr030pc30.c
-> +++ b/drivers/media/video/sr030pc30.c
-> @@ -726,8 +726,10 @@ static int sr030pc30_s_power(struct v4l2_subdev *sd, int on)
->  	const struct sr030pc30_platform_data *pdata = info->pdata;
->  	int ret;
->  
-> -	if (WARN(pdata == NULL, "No platform data!\n"))
-> +	if (pdata == NULL) {
-> +		WARN(1, "No platform data!\n");
->  		return -ENOMEM;
-> +	}
->  
->  	/*
->  	 * Put sensor into power sleep mode before switching off
-> @@ -746,6 +748,7 @@ static int sr030pc30_s_power(struct v4l2_subdev *sd, int on)
->  	if (on) {
->  		ret = sr030pc30_base_config(sd);
->  	} else {
-> +		ret = 0;
->  		info->curr_win = NULL;
->  		info->curr_fmt = NULL;
->  	}
-> -- 1.7.1.1
+> Does "doing the right job" mean that you are getting zero repeat (2)
+> events after releasing a remote button?
 
-IMHO, both hunks make sense, as, on the first hunk, it is returning an error condition.
-Yet, -ENOMEM seems to be the wrong return code. -EINVAL is probably more appropriate.
+I mean that the logic is ok. The timings may be not. The timings were not
+touched when we've ported the already supported IR's to the rc-core, except
+when we noticed some troubles with them.
 
-However, the patch is badly described. It is not about making the code cleaner, but
-about avoiding to run s_power if no platform data is found, and to avoid having
-ret undefined. Eventually, it should be broken into two different patches, as they
-fix different things.
+> Because that is what I expect to happen, and that is what e.g. LIRC
+> (which most people seem to still use with HTPC software - like XBMC
+> which I'm a developer of) does.
 
-Please, when sending us patches, provide a proper description with "what" information
-at the first line, and why and how at the patch descriptions. Please, also avoid to
-have any line bigger than 74 characters, otherwise they'll look weird when seeing the
-patch history.
+That's what we all expect to happen.
 
-Thanks,
-Mauro.
-information a
+>> Anssi, what's the hardware that you're using?
+> 
+> I'm using ati_remote ported to rc-core (don't know yet if it makes any
+> sense, though).
+> 
+> However, as noted, reading ir-main.c I fail to see why this wouldn't
+> happen with all rc-core devices, as all devices seem to use same
+> IR_KEYPRESS_TIMEOUT and REP_PERIOD (though you seem to suggest otherwise
+> above, maybe you can show me wrong? :) ).
+
+They share the same logic, but hardware decoders behave different than
+software ones.
+
+Mauro
