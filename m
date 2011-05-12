@@ -1,52 +1,44 @@
-Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:45596 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751082Ab1EWIAT (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from mailout-de.gmx.net ([213.165.64.23]:57272 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1756127Ab1ELWfD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 May 2011 04:00:19 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: javier Martin <javier.martin@vista-silicon.com>
-Subject: Re: [beagleboard] [PATCH v2 2/2] OMAP3BEAGLE: Add support for mt9p031 sensor driver.
-Date: Mon, 23 May 2011 10:00:31 +0200
-Cc: Koen Kooi <koen@beagleboard.org>,
-	"beagleboard@googlegroups.com Board" <beagleboard@googlegroups.com>,
-	Jason Kridner <jkridner@beagleboard.org>,
-	linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	carlighting@yahoo.co.nz, linux-arm-kernel@lists.infradead.org
-References: <1305899272-31839-1-git-send-email-javier.martin@vista-silicon.com> <DDCBBAA2-C49C-4952-9D1B-519D8A3AB41E@beagleboard.org> <BANLkTi=ZHyk1+otf2i0qp47Zvvo4nfYk6A@mail.gmail.com>
-In-Reply-To: <BANLkTi=ZHyk1+otf2i0qp47Zvvo4nfYk6A@mail.gmail.com>
+	Thu, 12 May 2011 18:35:03 -0400
+From: Oliver Endriss <o.endriss@gmx.de>
+Reply-To: linux-media@vger.kernel.org
+To: Issa Gorissen <flop.m@usa.net>
+Subject: Re: ngene CI problems
+Date: Fri, 13 May 2011 00:34:23 +0200
+Cc: linux-media@vger.kernel.org
+References: <4D74E28A.6030302@gmail.com> <201105112059.21083@orion.escape-edv.de> <4DCC4304.2020205@usa.net>
+In-Reply-To: <4DCC4304.2020205@usa.net>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201105231000.32194.laurent.pinchart@ideasonboard.com>
+Content-Disposition: inline
+Message-Id: <201105130034.24038@orion.escape-edv.de>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Javier,
-
-On Monday 23 May 2011 09:01:07 javier Martin wrote:
-> On 20 May 2011 17:57, Koen Kooi <koen@beagleboard.org> wrote:
-> > In previous patch sets we put that in a seperate file
-> > (omap3beagle-camera.c) so we don't clutter up the board file with all
-> > the different sensor drivers. Would it make sense to do the same with
-> > the current patches? It looks like MCF cuts down a lot on the
-> > boilerplace needed already.
+On Thursday 12 May 2011 22:28:52 Issa Gorissen wrote:
+> On 11/05/11 20:59, Oliver Endriss wrote:
+> >
+> > I reworked the driver to strip those null packets. Please try
+> > http://linuxtv.org/hg/~endriss/ngene-octopus-test/raw-rev/f0dc4237ad08
 > 
-> I sent my first patch using that approach but I was told to move it to
-> the board code.
-> Please, don't make undo the changes. Or at least, let's discuss this
-> seriously so that we all agree on what is the best way of doing it and
-> I don't have to change it every time.
+> Tried your patch, but FFs have been replaced by 6Fs in null packets.
+> Other than that, no improvement for me.
 
-What we really need here is a modular way to support sensors on pluggable 
-expansion boards. Not all Beagleboard users will have an MT9P031 connected to 
-the OMAP3 ISP, so that must not be hardcoded in board code. As the sensor 
-boards are not runtime detectable, one solution would be to compile part of 
-the code as a module. Regulator definitions and I2C2 bus registration (and 
-possibly GPIO initialization) can be left in board code.
+Please double check that the patch applied cleanly.
+The 0x6F NULL packets should never be passed to userspace.
+
+CU
+Oliver
 
 -- 
-Regards,
-
-Laurent Pinchart
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
+Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
+----------------------------------------------------------------
