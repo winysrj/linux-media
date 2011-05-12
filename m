@@ -1,60 +1,93 @@
-Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:50676 "EHLO mx1.redhat.com"
+Return-path: <mchehab@gaivota>
+Received: from mail.kapsi.fi ([217.30.184.167]:51686 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752500Ab1EZAaS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 May 2011 20:30:18 -0400
-Message-ID: <4DDD9F11.20903@redhat.com>
-Date: Wed, 25 May 2011 21:30:09 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1757448Ab1ELRdS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 May 2011 13:33:18 -0400
+Message-ID: <4DCC19DC.2020006@iki.fi>
+Date: Thu, 12 May 2011 20:33:16 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Hans Petter Selasky <hselasky@c2i.net>
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Inlined functions should be static.
-References: <201105231607.13668.hselasky@c2i.net> <Pine.LNX.4.64.1105232022460.30305@axis700.grange> <4DDAA788.80908@redhat.com> <201105232050.55676.hselasky@c2i.net>
-In-Reply-To: <201105232050.55676.hselasky@c2i.net>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Per Kofod <per.s.kofod@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Help needed: Anysee E30C Plus (DVB-C Tuner)
+References: <4DCBE059.8030906@gmail.com> <4DCBE9F3.2090209@iki.fi> <4DCBF044.2070504@gmail.com>
+In-Reply-To: <4DCBF044.2070504@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Em 23-05-2011 15:50, Hans Petter Selasky escreveu:
-> On Monday 23 May 2011 20:29:28 Mauro Carvalho Chehab wrote:
->> Em 23-05-2011 15:23, Guennadi Liakhovetski escreveu:
->>> On Mon, 23 May 2011, Hans Petter Selasky wrote:
->>>> --HPS
+Thanks for the report. I have now following matrix:
+
+not working:
+OpenSuSE 11.4 Kernel 2.6.37
+Ubuntu 11.4 Kernel 2.6.38
+
+working:
+Fedora 14 Kernel 2.6.35
+
+regards
+Antti
+
+On 05/12/2011 05:35 PM, Per Kofod wrote:
+> Thanks, that worked. Actually I am not running ubuntu on this PC; but
+> OpenSuSE 11.4;
+> but I was planninh using Mythbuntu far my media center.
+>
+> Thanks a lot.
+>
+> Cheers Per
+>
+> On 05/12/2011 04:08 PM, Antti Palosaari wrote:
+>> On 05/12/2011 04:27 PM, Per Kofod wrote:
+>>> Hi
 >>>
->>> (again, inlining would save me copy-pasting)
->>
->> Yeah... hard to comment not-inlined patches...
->>
->>>> -inline u32 stb0899_do_div(u64 n, u32 d)
->>>> +static inline u32 stb0899_do_div(u64 n, u32 d)
+>>> I am new to this mailing list, so bare with me if this have been asked
+>>> before.
 >>>
->>> while at it you could as well remove the unneeded in a C file "inline"
->>> attribute.
+>>> I have just bought an Anysee E30C Plus, as I had read, that this device
+>>> is supported
+>>> in Linux, my plan is building a Mythtv media center, to replace my old
+>>> harddisk recorder.
+>>>
+>>> However I cannot get it to work, and then I read thatt the newest
+>>> version might not work,
+>>> and that I should join this list.
+>>>
+>>> I have tried to compile a new kernel with the newest dvb stuff from the
+>>> git repository, just
+>>> to make sure, that I have the newest drivers. I have alsio blacklistet
+>>> the zl10353 module
+>>> to avoid the device being loaded as an DVB-T device (which it is not, it
+>>> is a cable only version).
+>>>
+>>> What information do you need me to obtain, or do you have a hint to how
+>>> I might get this working?
+>>>
+>>> The device is reconnized OK as seen here from dmesg:
+>>>
+>>> [ 11.354973] dvb-usb: found a 'Anysee DVB USB2.0' in warm state.
+>>> [ 11.355004] dvb-usb: will pass the complete MPEG2 transport stream to
+>>> the software demuxer.
+>>> [ 11.355239] DVB: registering new adapter (Anysee DVB USB2.0)
+>>> [ 11.356661] anysee: firmware version:0.1.2 hardware id:15
 >>
->> hmm... foo_do_div()... it seems to be yet-another-implementation
->> of asm/div64.h. If so, it is better to just remove this thing
->> and use the existing function.
 >>
-> 
-> The reason for this patch is that some version of GCC generated some garbage 
-> code on this function under certain conditions. Removing inline completly on 
-> this static function in a C file is fine by me. Do I need to create another 
-> patch?
+>> For the some reason hardware ID 15 does not work on latest Ubuntu
+>> 11.04. That is basically E30 Combo Plus and newer E30 C Plus, which is
+>> same device as E30 Combo Plus but without DVB-T demod.
+>>
+>> Install latest drivers and it will work. And I hope someone have time
+>> to examine why it does not work anymore out-of-the-box in Ubuntu 11.04.
+>>
+>> http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
+>>
+>>
+>>
+>> Antti
+>>
+>
 
-Just looked inside the code: it is not re-implementing the wheel. I don't like
-such macros, but it should not hurt. 
 
-So, I just applied your patch.
-
-Thanks,
-Mauro.
-> 
-> --HPS
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+-- 
+http://palosaari.fi/
