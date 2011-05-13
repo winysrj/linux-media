@@ -1,46 +1,105 @@
-Return-path: <mchehab@pedra>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:58866 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753680Ab1EFJ6c (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 May 2011 05:58:32 -0400
+Return-path: <mchehab@gaivota>
+Received: from mail1-out1.atlantis.sk ([80.94.52.55]:39811 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751665Ab1EMS0s (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 May 2011 14:26:48 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: alsa-devel@alsa-project.org
+Subject: [PATCH] fm801: clean-up radio-related Kconfig
+Date: Fri, 13 May 2011 20:26:38 +0200
+Cc: linux-media@vger.kernel.org,
+	"Kernel development list" <linux-kernel@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Date: Fri, 06 May 2011 11:58:31 +0200
-From: =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: <linux-media@vger.kernel.org>, <jarod@wilsonet.com>
-Subject: Re: [PATCH 07/10] rc-core: use the full 32 bits for NEC scancodes
-In-Reply-To: <4DC16DC1.1060109@redhat.com>
-References: <20110428151311.8272.17290.stgit@felix.hardeman.nu> <20110428151348.8272.50675.stgit@felix.hardeman.nu> <4DC16DC1.1060109@redhat.com>
-Message-ID: <764334f74e35d3f677c84d01143340ab@hardeman.nu>
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201105132026.40643.linux@rainbow-software.org>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Wed, 04 May 2011 12:16:17 -0300, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Em 28-04-2011 12:13, David Härdeman escreveu:
->> Using the full 32 bits for all kinds of NEC scancodes simplifies
-rc-core
->> and the nec decoder without any loss of functionality.
-> 
-> This seems to be a good strategy. However, it breaks the existing NEC
-> keymap tables (/me is not considering patch 6/10 macros), and changes
-> those keytables on userspace. Not sure how to address this.
+Change the weird SND_FM801_TEA575X_BOOL define in Kconfig to SND_FM801_RADIO
+and remove TEA575X_RADIO define from fm801.c.
+Also update help text to include all supported cards.
 
-The in-kernel keymaps is not a problem, they can always be updated in the
-same patch. Keytables provided from userspace are a bigger problem.
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 
-Perhaps we could check if the set/get ioctl is done with the new
-rc-specific
-struct (that includes protocol) and assume that the scancode will be in
-nec32
-if the protocol has been explicitly provided.
+--- linux-2.6.39-rc2-/sound/pci/Kconfig	2011-05-13 19:36:27.000000000 +0200
++++ linux-2.6.39-rc2/sound/pci/Kconfig	2011-05-13 19:23:00.000000000 +0200
+@@ -554,18 +554,18 @@ config SND_FM801
+ 	  To compile this driver as a module, choose M here: the module
+ 	  will be called snd-fm801.
+ 
+-config SND_FM801_TEA575X_BOOL
++config SND_FM801_RADIO
+ 	bool "ForteMedia FM801 + TEA5757 tuner"
+ 	depends on SND_FM801
+ 	depends on VIDEO_V4L2=y || VIDEO_V4L2=SND_FM801
+ 	help
+ 	  Say Y here to include support for soundcards based on the ForteMedia
+-	  FM801 chip with a TEA5757 tuner connected to GPIO1-3 pins (Media
+-	  Forte SF256-PCS-02) into the snd-fm801 driver.
++	  FM801 chip with a TEA5757 tuner (MediaForte SF256-PCS, SF256-PCP and
++	  SF64-PCR) into the snd-fm801 driver.
+ 
+ config SND_TEA575X
+ 	tristate
+-	depends on SND_FM801_TEA575X_BOOL || SND_ES1968_RADIO
++	depends on SND_FM801_RADIO || SND_ES1968_RADIO
+ 	default SND_FM801 || SND_ES1968
+ 
+ source "sound/pci/hda/Kconfig"
+--- linux-2.6.39-rc2-/sound/pci/fm801.c	2011-05-13 19:39:23.000000000 +0200
++++ linux-2.6.39-rc2/sound/pci/fm801.c	2011-05-13 19:22:20.000000000 +0200
+@@ -36,9 +36,8 @@
+ 
+ #include <asm/io.h>
+ 
+-#ifdef CONFIG_SND_FM801_TEA575X_BOOL
++#ifdef CONFIG_SND_FM801_RADIO
+ #include <sound/tea575x-tuner.h>
+-#define TEA575X_RADIO 1
+ #endif
+ 
+ MODULE_AUTHOR("Jaroslav Kysela <perex@perex.cz>");
+@@ -196,7 +195,7 @@ struct fm801 {
+ 	spinlock_t reg_lock;
+ 	struct snd_info_entry *proc_entry;
+ 
+-#ifdef TEA575X_RADIO
++#ifdef CONFIG_SND_FM801_RADIO
+ 	struct snd_tea575x tea;
+ #endif
+ 
+@@ -715,7 +714,7 @@ static int __devinit snd_fm801_pcm(struc
+  *  TEA5757 radio
+  */
+ 
+-#ifdef TEA575X_RADIO
++#ifdef CONFIG_SND_FM801_RADIO
+ 
+ /* GPIO to TEA575x maps */
+ struct snd_fm801_tea575x_gpio {
+@@ -1150,7 +1149,7 @@ static int snd_fm801_free(struct fm801 *
+ 	outw(cmdw, FM801_REG(chip, IRQ_MASK));
+ 
+       __end_hw:
+-#ifdef TEA575X_RADIO
++#ifdef CONFIG_SND_FM801_RADIO
+ 	snd_tea575x_exit(&chip->tea);
+ #endif
+ 	if (chip->irq >= 0)
+@@ -1229,7 +1228,7 @@ static int __devinit snd_fm801_create(st
+ 
+ 	snd_card_set_dev(card, &pci->dev);
+ 
+-#ifdef TEA575X_RADIO
++#ifdef CONFIG_SND_FM801_RADIO
+ 	chip->tea.private_data = chip;
+ 	chip->tea.ops = &snd_fm801_tea_ops;
+ 	sprintf(chip->tea.bus_info, "PCI:%s", pci_name(pci));
 
-This might seem like we're adding a lot of guesswork into rc-core, but I
-think
-we should/could phase out the use of legacy ioctls over a couple of kernel
-versions and the heuristics can then be removed at the same time.
 
 -- 
-David Härdeman
+Ondrej Zary
