@@ -1,48 +1,68 @@
-Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.1.47]:35106 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751316Ab1EPQqA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 May 2011 12:46:00 -0400
-Message-ID: <4DD15579.2080005@maxwell.research.nokia.com>
-Date: Mon, 16 May 2011 19:48:57 +0300
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Return-path: <mchehab@gaivota>
+Received: from casper.infradead.org ([85.118.1.10]:37010 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757109Ab1EMHkH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 May 2011 03:40:07 -0400
+Message-ID: <4DCCE051.2060707@infradead.org>
+Date: Fri, 13 May 2011 09:40:01 +0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: Nayden Kanchev <nkanchev@mm-sol.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Hans Verkuil <hansverk@cisco.com>, linux-media@vger.kernel.org,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	David Cohen <dacohen@gmail.com>,
-	Kim HeungJun <riverful@gmail.com>, andrew.b.adams@gmail.com,
-	Sung Hee Park <shpark7@stanford.edu>
-Subject: Re: [RFC 0/3] V4L2 API for flash devices and the adp1653 flash controller
- driver
-References: <4DD11FEC.8050308@maxwell.research.nokia.com>
-In-Reply-To: <4DD11FEC.8050308@maxwell.research.nokia.com>
+	sakari.ailus@maxwell.research.nokia.com
+Subject: Re: [GIT PATCHES FOR 2.6.39] Fix subdev control enumeration
+References: <201105021319.03696.hansverk@cisco.com> <201105122200.18449.hverkuil@xs4all.nl>
+In-Reply-To: <201105122200.18449.hverkuil@xs4all.nl>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Sakari Ailus wrote:
-> Hi,
+Em 12-05-2011 22:00, Hans Verkuil escreveu:
+> Hi Mauro,
 > 
-> This is a patchset which implements RFC v4 of V4L2 API for flash devices
-> [1], with minor modifications, and adds the adp1653 flash controller driver.
+> I haven't seen this fix appearing upstream, did it slip through the cracks?
 
-Replying to myself, the associated board code for the N900 isn't part of
-this patchset. It's are available here with the rest of the drivers:
+I need to check it on my main machine. I'll probably be capable of doing it only
+after my return back.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> On Monday, May 02, 2011 13:19:03 Hans Verkuil wrote:
+>> Hi Mauro,
+>>
+>> This fix is for 2.6.39. Control enumeration for subdev device nodes is broken. 
+>> The fix is simple and has been tested by Sakari.
+>>
+>> Regards,
+>>
+>> 	Hans
+>>
+>> The following changes since commit 28df73703e738d8ae7a958350f74b08b2e9fe9ed:
+>>   Mauro Carvalho Chehab (1):
+>>         [media] xc5000: Improve it to work better with 6MHz-spaced channels
+>>
+>> are available in the git repository at:
+>>
+>>   ssh://linuxtv.org/git/hverkuil/media_tree.git ctrl-fix
+>>
+>> Hans Verkuil (1):
+>>       v4l2-subdev: fix broken subdev control enumeration
+>>
+>>  drivers/media/video/v4l2-subdev.c |   14 +++++++-------
+>>  1 files changed, 7 insertions(+), 7 deletions(-)
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-<URL:https://www.gitorious.org/omap3camera/pages/Home>
-
-My current intention is to fix the board code in the future with the
-rest of the drivers as I don't see very much use for the flash driver
-before the et8ek8 image sensor driver.
-
-The patches in the patchset itself are in the rx51-002-upstream branch.
-
-Regards,
-
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
