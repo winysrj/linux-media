@@ -1,78 +1,68 @@
-Return-path: <mchehab@pedra>
-Received: from mail-in-05.arcor-online.net ([151.189.21.45]:54677 "EHLO
-	mail-in-05.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752757Ab1ECOwm (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:53327 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757619Ab1EMQPp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 May 2011 10:52:42 -0400
-Message-ID: <4DC016B7.3030506@arcor.de>
-Date: Tue, 03 May 2011 16:52:39 +0200
-From: Stefan Ringel <stefan.ringel@arcor.de>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org, d.belimov@gmail.com
-Subject: Re: [PATCH 3/5] tm6000: add audio mode parameter
-References: <1301948324-27186-1-git-send-email-stefan.ringel@arcor.de> <1301948324-27186-3-git-send-email-stefan.ringel@arcor.de> <4DADFDF1.9020108@redhat.com> <4DAE9B00.7050404@arcor.de> <4DBFD3CD.9070008@redhat.com> <4DC01043.6090309@arcor.de> <4DC01442.2060207@redhat.com>
-In-Reply-To: <4DC01442.2060207@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+	Fri, 13 May 2011 12:15:45 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=ISO-8859-1
+Received: from eu_spt1 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LL5000116I71O40@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 13 May 2011 17:15:43 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LL5008Q66I6IU@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 13 May 2011 17:15:43 +0100 (BST)
+Date: Fri, 13 May 2011 18:15:42 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [GIT PULL FOR 2.6.40] v4l2 subdev driver for Samsung S5P MIPI CSI
+	receiver
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Message-id: <4DCD592E.8060302@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Am 03.05.2011 16:42, schrieb Mauro Carvalho Chehab:
-> Em 03-05-2011 11:25, Stefan Ringel arcor escreveu:
->> Am 03.05.2011 12:07, schrieb Mauro Carvalho Chehab:
->>> Em 20-04-2011 05:36, Stefan Ringel escreveu:
->>>> Am 19.04.2011 23:26, schrieb Mauro Carvalho Chehab:
->>>>> Em 04-04-2011 17:18, stefan.ringel@arcor.de escreveu:
->>>>>> From: Stefan Ringel<stefan.ringel@arcor.de>
->>>>>>
->>>>>> add audio mode parameter
->>>>> Why we need a parameter for it? It should be determined based on
->>>>> the standard.
->>>>>
->>>> tm6010 has a sif decoder, and I think if auto detect doesn't work, use can set the audio standard, which it has in your region. Or it's better if users can see image but can hear audio?
->>> I did some tests with SIF and MTS here. None of them were capable of working with BTSC signals with
->>> my devices. Adding a parameter won't help it at all. What we need to do is to fix the audio
->>> decoding.
->>>
->> In the next patch I will send it. A preview I have send to be test (
->> https://patchwork.kernel.org/patch/722021/ ).
-> I tested your preview. Didn't make any difference.
-Has you test with all setting variants? (BG_A2 works auto and A2 audio 
-mode).
->>>>>> Signed-off-by: Stefan Ringel<stefan.ringel@arcor.de>
->>>>>> ---
->>>>>>    drivers/staging/tm6000/tm6000-stds.c |    5 +++++
->>>>>>    1 files changed, 5 insertions(+), 0 deletions(-)
->>>>>>
->>>>>> diff --git a/drivers/staging/tm6000/tm6000-stds.c b/drivers/staging/tm6000/tm6000-stds.c
->>>>>> index da3e51b..a9e1921 100644
->>>>>> --- a/drivers/staging/tm6000/tm6000-stds.c
->>>>>> +++ b/drivers/staging/tm6000/tm6000-stds.c
->>>>>> @@ -22,12 +22,17 @@
->>>>>>    #include "tm6000.h"
->>>>>>    #include "tm6000-regs.h"
->>>>>>
->>>>>> +static unsigned int tm6010_a_mode;
->>>>>> +module_param(tm6010_a_mode, int, 0644);
->>>>>> +MODULE_PARM_DESC(tm6010_a_mode, "set sif audio mode (tm6010 only)");
->>>>>> +
->>>>>>    struct tm6000_reg_settings {
->>>>>>        unsigned char req;
->>>>>>        unsigned char reg;
->>>>>>        unsigned char value;
->>>>>>    };
->>>>>>
->>>>>> +/* must be updated */
->>>>>>    enum tm6000_audio_std {
->>>>>>        BG_NICAM,
->>>>>>        BTSC,
->>>> -- 
->>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->>>> the body of a message to majordomo@vger.kernel.org
->>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi Mauro,
 
+The following changes since commit f9b51477fe540fb4c65a05027fdd6f2ecce4db3b:
+
+  [media] DVB: return meaningful error codes in dvb_frontend (2011-05-09 05:47:20 +0200)
+
+are available in the git repository at:
+  git://git.infradead.org/users/kmpark/linux-2.6-samsung s5p-csis
+
+Sylwester Nawrocki (3):
+      v4l: Add V4L2_MBUS_FMT_JPEG_1X8 media bus format
+      v4l: Move s5p-fimc driver into Video capture devices
+      v4l: Add v4l2 subdev driver for S5P/EXYNOS4 MIPI-CSI receivers
+
+It's a new driver for MIPI CSI receiver available in S5PVxxx/EXYNOS4 SoCs.
+The first patch adds definition of a media bus code for JPEG format.
+ 
+I've done three further driver amendments comparing to the last (v5) version 
+posted on the mailing lists, i.e.:
+ - slightly improved description of struct csis_state
+ - moved the pad number check from __s5pcsis_get_format directly to set_fmt/get_fmt
+   pad level operation handlers
+ - replaced __init attribute of s5pcsis_probe() with __devinit and added
+   __devexit for s5pcsis_remove()
+
+Gitweb: http://git.infradead.org/users/kmpark/linux-2.6-samsung/shortlog/refs/heads/s5p-csis
+
+ Documentation/DocBook/v4l/subdev-formats.xml |   46 ++
+ drivers/media/video/Kconfig                  |   28 +-
+ drivers/media/video/s5p-fimc/Makefile        |    6 +-
+ drivers/media/video/s5p-fimc/mipi-csis.c     |  725 ++++++++++++++++++++++++++
+ drivers/media/video/s5p-fimc/mipi-csis.h     |   22 +
+ include/linux/v4l2-mediabus.h                |    3 +
+ 6 files changed, 820 insertions(+), 10 deletions(-)
+ create mode 100644 drivers/media/video/s5p-fimc/mipi-csis.c
+ create mode 100644 drivers/media/video/s5p-fimc/mipi-csis.h
+
+--
+Regards, 
+Sylwester Nawrocki
+Samsung Poland R&D Center
