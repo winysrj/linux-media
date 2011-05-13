@@ -1,108 +1,66 @@
-Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:34423 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934400Ab1ESSel (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from blu0-omc2-s32.blu0.hotmail.com ([65.55.111.107]:26395 "EHLO
+	blu0-omc2-s32.blu0.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932353Ab1EMCN7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 May 2011 14:34:41 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi, michael.jones@matrix-vision.de
-Subject: [RFC/PATCH 2/2] omap3isp: Use generic subdev registration function
-Date: Thu, 19 May 2011 20:34:40 +0200
-Message-Id: <1305830080-18211-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1305830080-18211-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1305830080-18211-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Thu, 12 May 2011 22:13:59 -0400
+Message-ID: <BLU157-w51A0D0CDE5F2B0061ACA23D8880@phx.gbl>
+Content-Type: multipart/mixed;
+	boundary="_ce9c3536-9dc7-415a-95ea-3e6177f3851f_"
+From: Manoel PN <pinusdtv@hotmail.com>
+To: <linux-media@vger.kernel.org>,
+	Mauro Chehab <mchehab@infradead.org>, <lgspn@hotmail.com>
+Subject: =?windows-1256?Q?[PATCH_4/4?= =?windows-1256?Q?]_Modifica?=
+ =?windows-1256?Q?tions_to_t?= =?windows-1256?Q?he_driver_?=
+ =?windows-1256?Q?mb86a20s=FE=FE?=
+Date: Fri, 13 May 2011 05:13:58 +0300
+MIME-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Replace custom subdev registration with a call to
-v4l2_new_subdev_board().
+--_ce9c3536-9dc7-415a-95ea-3e6177f3851f_
+Content-Type: text/plain; charset="windows-1256"
+Content-Transfer-Encoding: 8bit
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/omap3isp/isp.c |   32 +++++++++-----------------------
- drivers/media/video/omap3isp/isp.h |    7 +------
- 2 files changed, 10 insertions(+), 29 deletions(-)
 
-diff --git a/drivers/media/video/omap3isp/isp.c b/drivers/media/video/omap3isp/isp.c
-index 472a693..8280165 100644
---- a/drivers/media/video/omap3isp/isp.c
-+++ b/drivers/media/video/omap3isp/isp.c
-@@ -1642,9 +1642,9 @@ static void isp_unregister_entities(struct isp_device *isp)
- /*
-  * isp_register_subdev_group - Register a group of subdevices
-  * @isp: OMAP3 ISP device
-- * @board_info: I2C subdevs board information array
-+ * @board_info: V4L2 subdevs board information array
-  *
-- * Register all I2C subdevices in the board_info array. The array must be
-+ * Register all V4L2 subdevices in the board_info array. The array must be
-  * terminated by a NULL entry, and the first entry must be the sensor.
-  *
-  * Return a pointer to the sensor media entity if it has been successfully
-@@ -1652,36 +1652,22 @@ static void isp_unregister_entities(struct isp_device *isp)
-  */
- static struct v4l2_subdev *
- isp_register_subdev_group(struct isp_device *isp,
--		     struct isp_subdev_i2c_board_info *board_info)
-+		     struct v4l2_subdev_board_info *board_info)
- {
- 	struct v4l2_subdev *sensor = NULL;
--	unsigned int first;
--
--	if (board_info->board_info == NULL)
--		return NULL;
-+	unsigned int i;
- 
--	for (first = 1; board_info->board_info; ++board_info, first = 0) {
-+	for (i = 0; board_info; ++board_info, ++i) {
- 		struct v4l2_subdev *subdev;
--		struct i2c_adapter *adapter;
--
--		adapter = i2c_get_adapter(board_info->i2c_adapter_id);
--		if (adapter == NULL) {
--			printk(KERN_ERR "%s: Unable to get I2C adapter %d for "
--				"device %s\n", __func__,
--				board_info->i2c_adapter_id,
--				board_info->board_info->type);
--			continue;
--		}
- 
--		subdev = v4l2_i2c_new_subdev_board(&isp->v4l2_dev, adapter,
--				board_info->board_info, NULL);
-+		subdev = v4l2_new_subdev_board(&isp->v4l2_dev, board_info);
- 		if (subdev == NULL) {
--			printk(KERN_ERR "%s: Unable to register subdev %s\n",
--				__func__, board_info->board_info->type);
-+			printk(KERN_ERR "%s: Unable to register subdev %u\n",
-+				__func__, i);
- 			continue;
- 		}
- 
--		if (first)
-+		if (i == 0)
- 			sensor = subdev;
- 	}
- 
-diff --git a/drivers/media/video/omap3isp/isp.h b/drivers/media/video/omap3isp/isp.h
-index 2620c40..c3ecc36 100644
---- a/drivers/media/video/omap3isp/isp.h
-+++ b/drivers/media/video/omap3isp/isp.h
-@@ -180,13 +180,8 @@ struct isp_csi2_platform_data {
- 	unsigned vpclk_div:2;
- };
- 
--struct isp_subdev_i2c_board_info {
--	struct i2c_board_info *board_info;
--	int i2c_adapter_id;
--};
--
- struct isp_v4l2_subdevs_group {
--	struct isp_subdev_i2c_board_info *subdevs;
-+	struct v4l2_subdev_board_info *subdevs;
- 	enum isp_interface_type interface;
- 	union {
- 		struct isp_parallel_platform_data parallel;
--- 
-1.7.3.4
 
+This patch implement changes to the function mb86a20s_read_signal_strength.
+
+The original function, binary search, does not work with device dtb08.
+
+I would like to know if this function works.
+
+
+Signed-off-by: Manoel Pinheiro <pinusdtv@hotmail.com>
+
+
+ 		 	   		  
+--_ce9c3536-9dc7-415a-95ea-3e6177f3851f_
+Content-Type: application/octet-stream
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="signal_strength.patch"
+
+ZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvZHZiL2Zyb250ZW5kcy9tYjg2YTIwcy5jIGIvZHJp
+dmVycy9tZWRpYS9kdmIvZnJvbnRlbmRzL21iODZhMjBzLmMKaW5kZXggMGY4NjdhNS4uOGYzOWRh
+NSAxMDA2NDQKLS0tIGEvZHJpdmVycy9tZWRpYS9kdmIvZnJvbnRlbmRzL21iODZhMjBzLmMKKysr
+IGIvZHJpdmVycy9tZWRpYS9kdmIvZnJvbnRlbmRzL21iODZhMjBzLmMKQEAgLTQxNCw2ICs0MTQs
+MTIgQEAgZXJyOgogc3RhdGljIGludCBtYjg2YTIwc19yZWFkX3NpZ25hbF9zdHJlbmd0aChzdHJ1
+Y3QgZHZiX2Zyb250ZW5kICpmZSwgdTE2ICpzdHJlbmd0aCkKIHsKIAlzdHJ1Y3QgbWI4NmEyMHNf
+c3RhdGUgKnN0YXRlID0gZmUtPmRlbW9kdWxhdG9yX3ByaXY7CisJaW50IGksIHZhbCwgdmFsMjsK
+KworI2lmIDAKKwkvKgorCSAqIEJpbmFyeSBzZWFyY2ggZG9uJ3Qgd29yayB3aXRoIERUQjA4CisJ
+ICovCiAJdW5zaWduZWQgcmZfbWF4LCByZl9taW4sIHJmOwogCXU4CSB2YWw7CiAKQEAgLTQ0Nyw2
+ICs0NTMsMzAgQEAgc3RhdGljIGludCBtYjg2YTIwc19yZWFkX3NpZ25hbF9zdHJlbmd0aChzdHJ1
+Y3QgZHZiX2Zyb250ZW5kICpmZSwgdTE2ICpzdHJlbmd0aCkKIAogCWlmIChmZS0+b3BzLmkyY19n
+YXRlX2N0cmwpCiAJCWZlLT5vcHMuaTJjX2dhdGVfY3RybChmZSwgMSk7CisjZW5kaWYKKworCWRw
+cmludGsoIlxuIik7CisKKwkqc3RyZW5ndGggPSAwOworCisJZm9yIChpID0gMDsgaSA8IDEwOyBp
+KyspCisJeworCQl2YWwgPSBtYjg2YTIwc19yZWFkcmVnKHN0YXRlLCAweDBhKTsKKwkJaWYgKHZh
+bCA+PSAyKSB7CisJCQltYjg2YTIwc193cml0ZXJlZyhzdGF0ZSwgMHgwNCwgMHgyNSk7CisJCQl2
+YWwyID0gbWI4NmEyMHNfcmVhZHJlZyhzdGF0ZSwgMHgwNSk7CisJCQltYjg2YTIwc193cml0ZXJl
+ZyhzdGF0ZSwgMHgwNCwgMHgyNik7CisJCQl2YWwgPSBtYjg2YTIwc19yZWFkcmVnKHN0YXRlLCAw
+eDA1KTsKKwkJCWlmICh2YWwgPj0gMCAmJiB2YWwyID49IDApIHsKKwkJCQl2YWwgPSAodmFsMiA8
+PCA4KSB8IHZhbDsKKwkJCQl2YWwyID0gKHZhbCAqIDB4MTAwMTAwKSA+PiAxNjsKKwkJCQlkcHJp
+bnRrKCJzaWduYWwgc3RyZW5ndGggPSAlaVxuIiwgdmFsMik7CisJCQkJKnN0cmVuZ3RoID0gKHUx
+Nil2YWwyOworCQkJCXJldHVybiAwOworCQkJfQorCQl9CisJCW1zbGVlcCgxMCk7CisJfQogCiAJ
+cmV0dXJuIDA7CiB9Cg==
+
+--_ce9c3536-9dc7-415a-95ea-3e6177f3851f_--
