@@ -1,74 +1,75 @@
 Return-path: <mchehab@gaivota>
-Received: from claranet-outbound-smtp00.uk.clara.net ([195.8.89.33]:55351 "EHLO
-	claranet-outbound-smtp00.uk.clara.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755258Ab1EJNuA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 May 2011 09:50:00 -0400
-From: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Andy Walls <awalls@md.metrocast.net>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Steven Toth <stoth@kernellabs.com>,
-	Simon Farnsworth <simon.farnsworth@onelan.co.uk>
-Subject: [PATCH] cx18: Move spinlock and vb_type initialisation into stream_init
-Date: Tue, 10 May 2011 14:49:50 +0100
-Message-Id: <1305035390-31439-1-git-send-email-simon.farnsworth@onelan.co.uk>
-In-Reply-To: <4DC2A8FD.4010902@infradead.org>
-References: <4DC2A8FD.4010902@infradead.org>
+Received: from smtp.nokia.com ([147.243.1.47]:19307 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758072Ab1EMW6b (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 May 2011 18:58:31 -0400
+Message-ID: <4DCDB846.1010204@iki.fi>
+Date: Sat, 14 May 2011 02:01:26 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+MIME-Version: 1.0
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hansverk@cisco.com>, Rob Clark <rob@ti.com>
+Subject: Re: [ANNOUNCE] New OMAP4 V4L2 Camera Project started
+References: <BANLkTi=RVE0zk83K0hn89H3S6CKEmKSj2A@mail.gmail.com>
+In-Reply-To: <BANLkTi=RVE0zk83K0hn89H3S6CKEmKSj2A@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-The initialisation of vb_type in serialized_open was preventing
-REQBUFS from working reliably. Remove it, and move the spinlock into
-stream_init for good measure - it's only used when we have a stream
-that supports videobuf anyway.
+Aguirre, Sergio wrote:
+> Hi all,
 
-Signed-off-by: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
----
-Mauro,
+Hi, Sergio!
 
-This fixes a bug I introduced, and noticed while trying to work out
-how videobuf works and interacts with the rest of the driver, in
-preparation for working out how to port this code to videobuf2.
+> Just to let you know that I've just officially registered for a new
+> project in the Pandaboard.org portal for OMAP4 v4l2 camera support.
+> 
+> You can find it here:
+> 
+> http://omiio.org/content/omap4-v4l2-camera
+> 
+> And also, you can find the actual Gitorious project with the code here:
+> 
+> https://www.gitorious.org/omap4-v4l2-camera
+> 
+> If anyone is interested in contributing for this project, please let
+> me know, so I can add you as a contributor to the project.
 
-Briefly, if you open a device node at the wrong time, you lose
-videobuf support forever.
+I'm very, very happy to see a project to start implementing V4L2 support
+for the OMAP 4 ISS!! Thanks, Sergio!
 
-Please consider this for 2.6.40,
+A few comments:
 
-Simon
 
- drivers/media/video/cx18/cx18-fileops.c |    3 ---
- drivers/media/video/cx18/cx18-streams.c |    2 ++
- 2 files changed, 2 insertions(+), 3 deletions(-)
+- The driver is using videobuf. I wonder if the driver would benefit
+more from videobuf2.
 
-diff --git a/drivers/media/video/cx18/cx18-fileops.c b/drivers/media/video/cx18/cx18-fileops.c
-index 6609222..07411f3 100644
---- a/drivers/media/video/cx18/cx18-fileops.c
-+++ b/drivers/media/video/cx18/cx18-fileops.c
-@@ -810,9 +810,6 @@ static int cx18_serialized_open(struct cx18_stream *s, struct file *filp)
- 	item->cx = cx;
- 	item->type = s->type;
- 
--	spin_lock_init(&s->vbuf_q_lock);
--	s->vb_type = 0;
--
- 	item->open_id = cx->open_id++;
- 	filp->private_data = &item->fh;
- 
-diff --git a/drivers/media/video/cx18/cx18-streams.c b/drivers/media/video/cx18/cx18-streams.c
-index 24c9688..4282ff5 100644
---- a/drivers/media/video/cx18/cx18-streams.c
-+++ b/drivers/media/video/cx18/cx18-streams.c
-@@ -275,6 +275,8 @@ static void cx18_stream_init(struct cx18 *cx, int type)
- 	init_timer(&s->vb_timeout);
- 	spin_lock_init(&s->vb_lock);
- 	if (type == CX18_ENC_STREAM_TYPE_YUV) {
-+		spin_lock_init(&s->vbuf_q_lock);
-+
- 		s->vb_type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
- 		videobuf_queue_vmalloc_init(&s->vbuf_q, &cx18_videobuf_qops,
- 			&cx->pci_dev->dev, &s->vbuf_q_lock,
+
+- As far as I understand, the OMAP 4 ISS is partially similar to the
+OMAP 3 one in design --- it has a hardware pipeline, that is. Fitting
+the bus receivers and the ISP under an Media controller graph looks
+relatively straightforward. The same might apply to SIMCOP, but then the
+question is: what kind of interface should the SIMCOP have?
+
+Being familiar with the history of the OMAP 3 ISP driver, I know this is
+not a small project. Still, starting to use the Media controller in an
+early phase would benefit the project in long run since the conversion
+can be avoided later.
+
+
+Which parts of the ISS require regular attention from the M3s? Is it the
+whole ISS or just the SIMCOP, for example?
+
+Kind regards,
+Sakari Ailus
+
+Ps. I have nothing against SoC camera, but when I look at the ISS
+overview diagram (section 8.1 in my TRM) I can't avoid thinking that
+this is exactly what the Media controller was created for. :-)
+
 -- 
-1.7.4
-
+Sakari Ailus
+sakari.ailus@iki.fi
