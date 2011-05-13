@@ -1,36 +1,42 @@
-Return-path: <mchehab@pedra>
-Received: from mailfe08.c2i.net ([212.247.154.226]:57673 "EHLO swip.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751531Ab1E1NSN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 May 2011 09:18:13 -0400
-From: Hans Petter Selasky <hselasky@c2i.net>
-To: Mariusz Bialonczyk <manio@skyboo.net>
-Subject: Re: [PATCH v3] Fix the derot zig-zag to work with TT-USB2.0 TechnoTrend.
-Date: Sat, 28 May 2011 15:16:55 +0200
-Cc: linux-media@vger.kernel.org
-References: <201105252351.01888.hselasky@c2i.net> <4DE0CEB9.9030204@skyboo.net>
-In-Reply-To: <4DE0CEB9.9030204@skyboo.net>
+Return-path: <mchehab@gaivota>
+Received: from casper.infradead.org ([85.118.1.10]:60434 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755258Ab1EMG5t (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 May 2011 02:57:49 -0400
+Message-ID: <4DCCD66C.5000600@infradead.org>
+Date: Fri, 13 May 2011 08:57:48 +0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Manoel PN <pinusdtv@hotmail.com>
+CC: linux-media@vger.kernel.org, lgspn@hotmail.com
+Subject: Re: [PATCH 2/4] Modifications to the driver mb86a20s
+References: <BLU157-w550E2F1986AB3A248199C0D8880@phx.gbl>
+In-Reply-To: <BLU157-w550E2F1986AB3A248199C0D8880@phx.gbl>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201105281516.55835.hselasky@c2i.net>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Saturday 28 May 2011 12:30:17 Mariusz Bialonczyk wrote:
-> Hello
-> I don't know what mailer you're using but your patches
-> to the ML are malformed (word wrapped).
+Em 13-05-2011 04:05, Manoel PN escreveu:
 > 
-> Please have a look:
-> http://www.kernel.org/doc/Documentation/email-clients.txt
-> 
-> I don't know for sure but you may need to send them
-> again (all those malformed)...
-> 
-> regards,
+> This patch implements mb86a20s_read_snr and adds mb86a20s_read_ber and mb86a20s_read_ucblocks both without practical utility but that programs as dvbsnoop need.
 
-I tried to resend the e-mail w/o word wrapping. I'm using KMail.
+Please try to align comments into up to 75 columns. It looks nicer
+when people look it into git. Also, please avoid using "This patch",
+as it provides no information.
 
---HPS
+I suggest you to take a look at those kernel guides (there are more 
+good stuff for developers at the kernel trees, but those are the 
+minimal stuff that a developer should know when submitting a patch):
+
+http://git.linuxtv.org/media_tree.git?a=blob;f=Documentation/SubmittingPatches;h=689e2371095cc5dfea9927120009341f369159aa;hb=HEAD
+http://git.linuxtv.org/media_tree.git?a=blob_plain;f=Documentation/CodingStyle;hb=HEAD
+
+> 
+> 
+> Signed-off-by: Manoel Pinheiro <pinusdtv@hotmail.com>
+> 
+> 
+>  		 	   		  
+You forgot to attach the patch.
