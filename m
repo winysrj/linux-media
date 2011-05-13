@@ -1,109 +1,239 @@
-Return-path: <mchehab@pedra>
-Received: from cmsout01.mbox.net ([165.212.64.31]:49767 "EHLO
-	cmsout01.mbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750725Ab1EDNWc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 May 2011 09:22:32 -0400
-Date: Wed, 04 May 2011 15:22:27 +0200
-From: "Issa Gorissen" <flop.m@usa.net>
-To: Lutz Sammer <johns98@gmx.net>
-Subject: Re: TT-budget S2-3200 cannot tune on HB13E DVBS2 transponder
-CC: <linux-media@vger.kernel.org>
-Mime-Version: 1.0
-Message-ID: <229PeDNVb2848S04.1304515347@web04.cms.usa.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Return-path: <mchehab@gaivota>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50488 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932983Ab1EMJK7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 May 2011 05:10:59 -0400
+Received: from localhost.localdomain (150.165-65-87.adsl-dyn.isp.belgacom.be [87.65.165.150])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 07356359A1
+	for <linux-media@vger.kernel.org>; Fri, 13 May 2011 09:10:57 +0000 (UTC)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCHv2] v4l: Add M420 format definition
+Date: Fri, 13 May 2011 11:11:55 +0200
+Message-Id: <1305277915-8383-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-From: Lutz Sammer <johns98@gmx.net>
-> On 05/04/11 01:16, Mauro Carvalho Chehab wrote:
-> > Em 13-04-2011 21:05, Lutz Sammer escreveu:
-> >>> On 05/04/11 21:07, Steffen Barszus wrote:
-> >>>> On Tue, 05 Apr 2011 13:00:14 +0200
-> >>>> "Issa Gorissen" <flop.m@xxxxxxx> wrote:
-> >>>>
-> >>>>> Hi,
-> >>>>>
-> >>>>> Eutelsat made a recent migration from DVB-S to DVB-S2 (since
-> >>>>> 31/3/2011) on two transponders on HB13E
-> >>>>>
-> >>>>> - HOT BIRD 6 13° Est TP 159 Freq 11,681 Ghz DVB-S2 FEC 3/4 27500
-> >>>>> Msymb/s 0.2 Pilot off Polar H
-> >>>>>
-> >>>>> - HOT BIRD 9 13° Est TP 99 Freq 12,692 Ghz DVB-S2 FEC 3/4 27500
-> >>>>> Msymb/s 0.2 Pilot off Polar H
-> >>>>>
-> >>>>>
-> >>>>> Before those changes, with my TT S2 3200, I was able to watch TV on
-> >>>>> those transponders. Now, I cannot even tune on those transponders. I
-> >>>>> have tried with scan-s2 and w_scan and the latest drivers from git.
-> >>>>> They both find the transponders but cannot tune onto it.
-> >>>>>
-> >>>>> Something noteworthy is that my other card, a DuoFlex S2 can tune
-> >>>>> fine on those transponders.
-> >>>>>
-> >>>>> My question is; can someone try this as well with a TT S2 3200 and
-> >>>>> post the results ?
-> >>>> i read something about it lately here (german!): 
-> >>>>
-http://www.vdr-portal.de/board16-video-disk-recorder/board85-hdtv-dvb-s2/p977938-stb0899-fec-3-4-tester-gesucht/#post977938
-> >>>>
-> >>>> It says in stb0899_drv.c function:
-> >>>> static void stb0899_set_iterations(struct stb0899_state *state) 
-> >>>>
-> >>>> This:
-> >>>> reg = STB0899_READ_S2REG(STB0899_S2DEMOD, MAX_ITER);
-> >>>> STB0899_SETFIELD_VAL(MAX_ITERATIONS, reg, iter_scale);
-> >>>> stb0899_write_s2reg(state, STB0899_S2DEMOD, STB0899_BASE_MAX_ITER,
-STB0899_OFF0_MAX_ITER, reg);
-> >>>>
-> >>>> should be replaced with this:
-> >>>>
-> >>>> reg = STB0899_READ_S2REG(STB0899_S2FEC, MAX_ITER);
-> >>>> STB0899_SETFIELD_VAL(MAX_ITERATIONS, reg, iter_scale);
-> >>>> stb0899_write_s2reg(state, STB0899_S2FEC, STB0899_BASE_MAX_ITER,
-STB0899_OFF0_MAX_ITER, reg);
-> >>>>
-> >>>> Basically replace STB0899_S2DEMOD with STB0899_S2FEC in this 2 lines
-> >>>> affected.
-> >>>>
-> >>>> Kind Regards 
-> >>>>
-> >>>> Steffen
-> >>> Hi Steffen,
-> >>>
-> >>> Unfortunately, it does not help in my case. Thx anyway.
-> >>
-> >> Try my locking fix. With above patch I can lock the
-> >> channels without problem.
-> > 
-> > Can someone confirm that such patch would fix the issue? If so, please
-> > forward it in a way that it could be applied (patch is currently
-line-wrapped),
-> > and submit with some comments/description and your SOB.
-> > 
-> > As the patch is currently broken, I'm just marking it as rejected at
-patchwork.
-> > 
-> > Manu,
-> > 
-> > Please take a look on this trouble report.
-> > 
-> 
-> Sorry, the things are mixed here. My patch (resend and hopefully this
-> time not broken) handles only DVB-S transponders.
-> 
-> The FEC fix patch fixed locking on 11,681 Ghz, but not on 12,692 Ghz for
-> me.  But I have very weak receiption,
-> 
-> Johns
+From: Hans de Goede <hdegoede@redhat.com>
 
-Thank you Johns,
+M420 is an hybrid YUV 4:2:2 packet/planar format. Two Y lines are
+followed by an interleaved U/V line.
 
-I got out of patience and reverted back to kernel 2.6.37. Added an amplifier
-on the line and repositionned my dish. It works now. But very difficult to get
-both Hotbird 6 and 9 sats! Maybe they transmit a weak signal ???
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+[laurent.pinchart@ideasonboard.com: split into v4l/uvcvideo patches]
+[laurent.pinchart@ideasonboard.com: add documentation]
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ Documentation/DocBook/media-entities.tmpl |    1 +
+ Documentation/DocBook/v4l/pixfmt-m420.xml |  147 +++++++++++++++++++++++++++++
+ Documentation/DocBook/v4l/pixfmt.xml      |    1 +
+ Documentation/DocBook/v4l/videodev2.h.xml |    1 +
+ include/linux/videodev2.h                 |    1 +
+ 5 files changed, 151 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/DocBook/v4l/pixfmt-m420.xml
 
---
-Issa
+diff --git a/Documentation/DocBook/media-entities.tmpl b/Documentation/DocBook/media-entities.tmpl
+index 7a95708..c8abb23 100644
+--- a/Documentation/DocBook/media-entities.tmpl
++++ b/Documentation/DocBook/media-entities.tmpl
+@@ -270,6 +270,7 @@
+ <!ENTITY sub-write SYSTEM "v4l/func-write.xml">
+ <!ENTITY sub-io SYSTEM "v4l/io.xml">
+ <!ENTITY sub-grey SYSTEM "v4l/pixfmt-grey.xml">
++<!ENTITY sub-m420 SYSTEM "v4l/pixfmt-m420.xml">
+ <!ENTITY sub-nv12 SYSTEM "v4l/pixfmt-nv12.xml">
+ <!ENTITY sub-nv12m SYSTEM "v4l/pixfmt-nv12m.xml">
+ <!ENTITY sub-nv12mt SYSTEM "v4l/pixfmt-nv12mt.xml">
+diff --git a/Documentation/DocBook/v4l/pixfmt-m420.xml b/Documentation/DocBook/v4l/pixfmt-m420.xml
+new file mode 100644
+index 0000000..ce4bc01
+--- /dev/null
++++ b/Documentation/DocBook/v4l/pixfmt-m420.xml
+@@ -0,0 +1,147 @@
++    <refentry id="V4L2-PIX-FMT-M420">
++      <refmeta>
++	<refentrytitle>V4L2_PIX_FMT_M420 ('M420')</refentrytitle>
++	&manvol;
++      </refmeta>
++      <refnamediv>
++	<refname><constant>V4L2_PIX_FMT_M420</constant></refname>
++	<refpurpose>Format with &frac12; horizontal and vertical chroma
++	resolution, also known as YUV 4:2:0. Hybrid plane line-interleaved
++	layout.</refpurpose>
++      </refnamediv>
++      <refsect1>
++	<title>Description</title>
++
++	<para>M420 is a YUV format with &frac12; horizontal and vertical chroma
++	subsampling (YUV 4:2:0). Pixels are organized as interleaved luma and
++	chroma planes. Two lines of luma data are followed by one line of chroma
++	data.</para>
++	<para>The luma plane has one byte per pixel. The chroma plane contains
++	interleaved CbCr pixels subsampled by &frac12; in the horizontal and
++	vertical directions. Each CbCr pair belongs to four pixels. For example,
++Cb<subscript>0</subscript>/Cr<subscript>0</subscript> belongs to
++Y'<subscript>00</subscript>, Y'<subscript>01</subscript>,
++Y'<subscript>10</subscript>, Y'<subscript>11</subscript>.</para>
++
++	<para>All line lengths are identical: if the Y lines include pad bytes
++	so do the CbCr lines.</para>
++
++	<example>
++	  <title><constant>V4L2_PIX_FMT_M420</constant> 4 &times; 4
++pixel image</title>
++
++	  <formalpara>
++	    <title>Byte Order.</title>
++	    <para>Each cell is one byte.
++		<informaltable frame="none">
++		<tgroup cols="5" align="center">
++		  <colspec align="left" colwidth="2*" />
++		  <tbody valign="top">
++		    <row>
++		      <entry>start&nbsp;+&nbsp;0:</entry>
++		      <entry>Y'<subscript>00</subscript></entry>
++		      <entry>Y'<subscript>01</subscript></entry>
++		      <entry>Y'<subscript>02</subscript></entry>
++		      <entry>Y'<subscript>03</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start&nbsp;+&nbsp;4:</entry>
++		      <entry>Y'<subscript>10</subscript></entry>
++		      <entry>Y'<subscript>11</subscript></entry>
++		      <entry>Y'<subscript>12</subscript></entry>
++		      <entry>Y'<subscript>13</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start&nbsp;+&nbsp;8:</entry>
++		      <entry>Cb<subscript>00</subscript></entry>
++		      <entry>Cr<subscript>00</subscript></entry>
++		      <entry>Cb<subscript>01</subscript></entry>
++		      <entry>Cr<subscript>01</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start&nbsp;+&nbsp;16:</entry>
++		      <entry>Y'<subscript>20</subscript></entry>
++		      <entry>Y'<subscript>21</subscript></entry>
++		      <entry>Y'<subscript>22</subscript></entry>
++		      <entry>Y'<subscript>23</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start&nbsp;+&nbsp;20:</entry>
++		      <entry>Y'<subscript>30</subscript></entry>
++		      <entry>Y'<subscript>31</subscript></entry>
++		      <entry>Y'<subscript>32</subscript></entry>
++		      <entry>Y'<subscript>33</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start&nbsp;+&nbsp;24:</entry>
++		      <entry>Cb<subscript>10</subscript></entry>
++		      <entry>Cr<subscript>10</subscript></entry>
++		      <entry>Cb<subscript>11</subscript></entry>
++		      <entry>Cr<subscript>11</subscript></entry>
++		    </row>
++		  </tbody>
++		</tgroup>
++		</informaltable>
++	      </para>
++	  </formalpara>
++
++	  <formalpara>
++	    <title>Color Sample Location.</title>
++	    <para>
++		<informaltable frame="none">
++		<tgroup cols="7" align="center">
++		  <tbody valign="top">
++		    <row>
++		      <entry></entry>
++		      <entry>0</entry><entry></entry><entry>1</entry><entry></entry>
++		      <entry>2</entry><entry></entry><entry>3</entry>
++		    </row>
++		    <row>
++		      <entry>0</entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry>
++		    </row>
++		    <row>
++		      <entry></entry>
++		      <entry></entry><entry>C</entry><entry></entry><entry></entry>
++		      <entry></entry><entry>C</entry><entry></entry>
++		    </row>
++		    <row>
++		      <entry>1</entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry>
++		    </row>
++		    <row>
++		      <entry></entry>
++		    </row>
++		    <row>
++		      <entry>2</entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry>
++		    </row>
++		    <row>
++		      <entry></entry>
++		      <entry></entry><entry>C</entry><entry></entry><entry></entry>
++		      <entry></entry><entry>C</entry><entry></entry>
++		    </row>
++		    <row>
++		      <entry>3</entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry></entry><entry>Y</entry>
++		    </row>
++		  </tbody>
++		</tgroup>
++		</informaltable>
++	      </para>
++	  </formalpara>
++	</example>
++      </refsect1>
++    </refentry>
++
++  <!--
++Local Variables:
++mode: sgml
++sgml-parent-document: "pixfmt.sgml"
++indent-tabs-mode: nil
++End:
++  -->
+diff --git a/Documentation/DocBook/v4l/pixfmt.xml b/Documentation/DocBook/v4l/pixfmt.xml
+index 3486a06..dbfe3b0 100644
+--- a/Documentation/DocBook/v4l/pixfmt.xml
++++ b/Documentation/DocBook/v4l/pixfmt.xml
+@@ -713,6 +713,7 @@ information.</para>
+     &sub-nv12m;
+     &sub-nv12mt;
+     &sub-nv16;
++    &sub-m420;
+   </section>
+ 
+   <section>
+diff --git a/Documentation/DocBook/v4l/videodev2.h.xml b/Documentation/DocBook/v4l/videodev2.h.xml
+index 937acf5..c50536a 100644
+--- a/Documentation/DocBook/v4l/videodev2.h.xml
++++ b/Documentation/DocBook/v4l/videodev2.h.xml
+@@ -336,6 +336,7 @@ struct <link linkend="v4l2-pix-format">v4l2_pix_format</link> {
+ #define <link linkend="V4L2-PIX-FMT-YUV420">V4L2_PIX_FMT_YUV420</link>  v4l2_fourcc('Y', 'U', '1', '2') /* 12  YUV 4:2:0     */
+ #define <link linkend="V4L2-PIX-FMT-HI240">V4L2_PIX_FMT_HI240</link>   v4l2_fourcc('H', 'I', '2', '4') /*  8  8-bit color   */
+ #define <link linkend="V4L2-PIX-FMT-HM12">V4L2_PIX_FMT_HM12</link>    v4l2_fourcc('H', 'M', '1', '2') /*  8  YUV 4:2:0 16x16 macroblocks */
++#define <link linkend="V4L2-PIX-FMT-M420">V4L2_PIX_FMT_M420</link>    v4l2_fourcc('M', '4', '2', '0') /* 12  YUV 4:2:0 2 lines y, 1 line uv interleaved */
+ 
+ /* two planes -- one Y, one Cr + Cb interleaved  */
+ #define <link linkend="V4L2-PIX-FMT-NV12">V4L2_PIX_FMT_NV12</link>    v4l2_fourcc('N', 'V', '1', '2') /* 12  Y/CbCr 4:2:0  */
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index a417270..8a4c309 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -336,6 +336,7 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_YUV420  v4l2_fourcc('Y', 'U', '1', '2') /* 12  YUV 4:2:0     */
+ #define V4L2_PIX_FMT_HI240   v4l2_fourcc('H', 'I', '2', '4') /*  8  8-bit color   */
+ #define V4L2_PIX_FMT_HM12    v4l2_fourcc('H', 'M', '1', '2') /*  8  YUV 4:2:0 16x16 macroblocks */
++#define V4L2_PIX_FMT_M420    v4l2_fourcc('M', '4', '2', '0') /* 12  YUV 4:2:0 2 lines y, 1 line uv interleaved */
+ 
+ /* two planes -- one Y, one Cr + Cb interleaved  */
+ #define V4L2_PIX_FMT_NV12    v4l2_fourcc('N', 'V', '1', '2') /* 12  Y/CbCr 4:2:0  */
+-- 
+1.7.3.4
 
