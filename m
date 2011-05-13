@@ -1,131 +1,77 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:32969 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752680Ab1EINdX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 May 2011 09:33:23 -0400
-Received: by qyk7 with SMTP id 7so929076qyk.19
-        for <linux-media@vger.kernel.org>; Mon, 09 May 2011 06:33:22 -0700 (PDT)
-Message-ID: <4DC7ED1F.7040306@laptop.org>
-Date: Mon, 09 May 2011 09:33:19 -0400
-From: "Richard A. Smith" <richard@laptop.org>
+Received: from blu0-omc2-s24.blu0.hotmail.com ([65.55.111.99]:4925 "EHLO
+	blu0-omc2-s24.blu0.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1759175Ab1EMCIi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 May 2011 22:08:38 -0400
+Message-ID: <BLU157-w5E482944CB2AA4A90A5E5D8880@phx.gbl>
+Content-Type: multipart/mixed;
+	boundary="_817f8ab8-5abf-4c04-a8ac-a5087675b283_"
+From: Manoel PN <pinusdtv@hotmail.com>
+To: <linux-media@vger.kernel.org>,
+	Mauro Chehab <mchehab@infradead.org>, <lgspn@hotmail.com>
+Subject: [PATCH 2/4] Modifications to the driver mb86a20s
+Date: Fri, 13 May 2011 05:08:36 +0300
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: hdpvr flakyness. (complete this time)
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-My apologies on the last message.  It somehow slipped out of my drafts 
-folder before I was finished.
-
-I've been tyring to use the hdpvr to digitize some old VHS tapes to and 
-I'm having a few issues that I'd like to get some more information on. 
-Perhaps there are workarounds.
-
-I'm running the a recent media-build on a 2.6.38.4 kernel.  I've not 
-been able to run the latest media-build for the last week or so due to 
-compile errors.  But looking at the repository I don't see any changes 
-to hdpvr so I believe I'm running the latest driver and the hdpvr device 
-has been upgraded to the latest firmware.
-
-The first item is that if there is not a video signal present at the 
-current active input then the driver returns an open error.  This trips 
-up pretty much every application that I've tried to use with the hdpvr. 
-  They all want to open the device first and then set the information. 
-So they complain that the device isn't valid.  Is this intentional?
-
-The only thing I've found that works is setting the parameters with 
-v4l2-ctl and then using 'cat /dev/video1' to get the output.  This seems 
-to work fine as long as the video source never stops.  If for some 
-reason the analog input stops (Say if I hit stop on the VCR) without 
-doing a ctrl-c to stop the cat from running then the hardware seems to 
-lock up requiring a power cycle of the dhpvr to recover.
-
-The kernel log below shows the debug output for the loss-of-signal-gack 
-scenario.
-
-I'll be happy to provide more debug output on request and I can try out 
-patches.
-
-Thanks.
-
-===============================================
-May  5 10:48:11 engine36 kernel: [389385.964042] usb 1-5: new high speed 
-USB device using ehci_hcd and address 24
-May  5 10:48:12 engine36 kernel: [389386.326958] hdpvr 1-5:1.0: firmware 
-version 0x15 dated Jun 17 2010 09:26:53
-May  5 10:48:12 engine36 kernel: [389386.513242] hdpvr 1-5:1.0: device 
-now attached to video1
-....
-
-[ Start recording with 'cat /dev/video1' and  video signal stops ]
-
-May  5 10:56:13 engine36 kernel: [389867.803740] hdpvr 1-5:1.0: 
-hdpvr_submit_buffers:210 buffer stat: 0 free, 64 proc
-May  5 10:56:13 engine36 kernel: [389867.905290] hdpvr 1-5:1.0: 
-hdpvr_read:502 buffer stat: 1 free, 63 proc
-May  5 10:56:13 engine36 kernel: [389867.905330] hdpvr 1-5:1.0: 
-hdpvr_submit_buffers:210 buffer stat: 0 free, 64 proc
-May  5 10:56:19 engine36 kernel: [389874.120097] hdpvr 1-5:1.0: config 
-call request for value 0x800 returned 1
-May  5 10:56:19 engine36 kernel: [389874.120124] hdpvr 1-5:1.0: transmit 
-worker exited
-May  5 10:56:20 engine36 kernel: [389874.296177] hdpvr 1-5:1.0: used 0 
-urbs to empty device buffers
-May  5 10:56:31 engine36 kernel: [389885.588728] hdpvr 1-5:1.0: video 
-signal: 720x480@30hz
-May  5 10:56:31 engine36 kernel: [389885.592116] hdpvr 1-5:1.0: encoder 
-start control request returned 0
-May  5 10:56:41 engine36 kernel: [389895.592192] hdpvr 1-5:1.0: config 
-call request for value 0x700 returned -110
-May  5 10:56:41 engine36 kernel: [389895.592208] hdpvr 1-5:1.0: 
-streaming started
-May  5 10:56:41 engine36 kernel: [389895.592225] hdpvr 1-5:1.0: 
-hdpvr_read:442 buffer stat: 64 free, 0 proc
-May  5 10:56:41 engine36 kernel: [389895.592312] hdpvr 1-5:1.0: 
-hdpvr_submit_buffers:210 buffer stat: 0 free, 64 proc
-May  5 10:57:18 engine36 kernel: [389932.736086] hdpvr 1-5:1.0: config 
-call request for value 0x800 returned -110
-May  5 10:57:18 engine36 kernel: [389932.736114] hdpvr 1-5:1.0: transmit 
-worker exited
-May  5 10:57:18 engine36 kernel: [389932.932162] hdpvr 1-5:1.0: used 0 
-urbs to empty device buffers
-
-[ Device is now gacked.]
-
-May  5 11:00:47 engine36 kernel: [390141.316026] hdpvr 1-5:1.0: no video 
-signal at input 2
-May  5 11:00:47 engine36 kernel: [390141.316034] hdpvr 1-5:1.0: 
-start_streaming failed
-May  5 11:00:52 engine36 kernel: [390147.120024] hdpvr 1-5:1.0: no video 
-signal at input 2
-May  5 11:00:52 engine36 kernel: [390147.120031] hdpvr 1-5:1.0: 
-start_streaming failed
-May  5 11:01:46 engine36 kernel: [390201.152026] hdpvr 1-5:1.0: no video 
-signal at input 2
-May  5 11:01:46 engine36 kernel: [390201.152033] hdpvr 1-5:1.0: 
-start_streaming failed
-
-[ Unloading and reloading the module has no effect. Nor does a USB plug 
-unplug.  You have to power cycle the hdpvr ]
-
-May  5 11:06:16 engine36 kernel: [390470.360051] usbcore: deregistering 
-interface driver hdpvr
-May  5 11:06:33 engine36 kernel: [390487.543294] hdpvr 1-5:1.0: Non-NULL 
-drvdata on register
-May  5 11:06:43 engine36 kernel: [390497.540144] hdpvr 1-5:1.0: 
-unexpected answer of status request, len -110
-May  5 11:06:43 engine36 kernel: [390497.540152] hdpvr 1-5:1.0: device 
-init failed
-May  5 11:06:43 engine36 kernel: [390497.540214] hdpvr: probe of 1-5:1.0 
-failed with error -12
-May  5 11:06:43 engine36 kernel: [390497.540294] usbcore: registered new 
-interface driver hdpvr
+--_817f8ab8-5abf-4c04-a8ac-a5087675b283_
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
 
--- 
-Richard A. Smith
-One Laptop per Child
+This patch implements mb86a20s_read_snr and adds mb86a20s_read_ber and mb86=
+a20s_read_ucblocks both without practical utility but that programs as dvbs=
+noop need.
 
 
+Signed-off-by: Manoel Pinheiro <pinusdtv@hotmail.com>
+
+
+
+ 		 	   		  =
+
+--_817f8ab8-5abf-4c04-a8ac-a5087675b283_
+Content-Type: application/octet-stream
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="read_snr.patch"
+
+ZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvZHZiL2Zyb250ZW5kcy9tYjg2YTIwcy5jIGIvZHJp
+dmVycy9tZWRpYS9kdmIvZnJvbnRlbmRzL21iODZhMjBzLmMKaW5kZXggMGY4NjdhNS4uMGRlNGFi
+ZiAxMDA2NDQKLS0tIGEvZHJpdmVycy9tZWRpYS9kdmIvZnJvbnRlbmRzL21iODZhMjBzLmMKKysr
+IGIvZHJpdmVycy9tZWRpYS9kdmIvZnJvbnRlbmRzL21iODZhMjBzLmMKQEAgLTQxMSw2ICs0MTEs
+NTYgQEAgZXJyOgogCXJldHVybiByYzsKIH0KIAorc3RhdGljIGludCBtYjg2YTIwc19yZWFkX3Nu
+cihzdHJ1Y3QgZHZiX2Zyb250ZW5kICpmZSwgdTE2ICpzbnIpCit7CisJc3RydWN0IG1iODZhMjBz
+X3N0YXRlICpzdGF0ZSA9IGZlLT5kZW1vZHVsYXRvcl9wcml2OworCWludCBpLCBjbnIsIHZhbCwg
+dmFsMjsKKworCWZvciAoaSA9IDA7IGkgPCAzMDsgaSsrKSB7CisJCWlmIChtYjg2YTIwc19yZWFk
+cmVnKHN0YXRlLCAweDBhKSA+PSAyKQorCQkJdmFsID0gbWI4NmEyMHNfcmVhZHJlZyhzdGF0ZSwg
+MHg0NSk7IC8qIHJlYWQgY25yX2ZsYWcgKi8KKwkJZWxzZQorCQkJdmFsID0gLTE7CisJCWlmICh2
+YWwgPiAwICYmICgodmFsID4+IDYpICYgMSkgIT0gMCkgeworCQkJdmFsMiA9IG1iODZhMjBzX3Jl
+YWRyZWcoc3RhdGUsIDB4NDYpOworCQkJdmFsID0gbWI4NmEyMHNfcmVhZHJlZyhzdGF0ZSwgMHg0
+Nyk7CisJCQlpZiAodmFsMiA+PTAgJiYgdmFsID49IDApIHsKKwkJCQljbnIgPSAodmFsMiA8PCAw
+eDA4KSB8IHZhbDsKKwkJCQlpZiAoY25yID4gMHg0Y2MwKSBjbnIgPSAweDRjYzA7CisJCQkJdmFs
+ID0gKCgweDRjYzAgLSBjbnIpICogMTAwMDApIC8gMHg0Y2MwOworCQkJCXZhbDIgPSAoNjU1MzUg
+KiB2YWwpIC8gMTAwMDA7CisJCQkJKnNuciA9ICh1MTYpdmFsMjsKKwkJCQlkcHJpbnRrKCJzbnI9
+JWksIGNucj0laSwgdmFsPSVpXG4iLCB2YWwyLCBjbnIsIHZhbCk7CisJCQkJLyogcmVzZXQgY25y
+X2NvdW50ZXIgKi8KKwkJCQl2YWwgPSBtYjg2YTIwc19yZWFkcmVnKHN0YXRlLCAweDQ1KTsKKwkJ
+CQlpZiAodmFsID49IDApCisJCQkJeworCQkJCQltYjg2YTIwc193cml0ZXJlZyhzdGF0ZSwgMHg0
+NSwgdmFsIHwgMHgxMCk7CisJCQkJCW1zbGVlcCg1KTsKKwkJCQkJbWI4NmEyMHNfd3JpdGVyZWco
+c3RhdGUsIDB4NDUsIHZhbCAmIDB4NmYpOyAvKiBGSVhNRTogb3IgMHhlZiA/ICovCisJCQkJfQor
+CQkJCXJldHVybiAwOworCQkJfQorCQl9CisJCW1zbGVlcCgzMCk7CisJfQorCSpzbnIgPSAwOwor
+CWRwcmludGsoIm5vIHNpZ25hbCFcbiIpOworCXJldHVybiAwOworfQorCitzdGF0aWMgaW50IG1i
+ODZhMjBzX3JlYWRfYmVyKHN0cnVjdCBkdmJfZnJvbnRlbmQgKmZlLCB1MzIgKmJlcikKK3sKKwkq
+YmVyID0gMDsKKwlyZXR1cm4gMDsKK30KKworc3RhdGljIGludCBtYjg2YTIwc19yZWFkX3VjYmxv
+Y2tzKHN0cnVjdCBkdmJfZnJvbnRlbmQgKmZlLCB1MzIgKnVjYmxvY2tzKQoreworCSp1Y2Jsb2Nr
+cyA9IDA7CisJcmV0dXJuIDA7Cit9CisKIHN0YXRpYyBpbnQgbWI4NmEyMHNfcmVhZF9zaWduYWxf
+c3RyZW5ndGgoc3RydWN0IGR2Yl9mcm9udGVuZCAqZmUsIHUxNiAqc3RyZW5ndGgpCiB7CiAJc3Ry
+dWN0IG1iODZhMjBzX3N0YXRlICpzdGF0ZSA9IGZlLT5kZW1vZHVsYXRvcl9wcml2OwpAQCAtNjI3
+LDYgKzY3Nyw5IEBAIHN0YXRpYyBzdHJ1Y3QgZHZiX2Zyb250ZW5kX29wcyBtYjg2YTIwc19vcHMg
+PSB7CiAJLnJlbGVhc2UgPSBtYjg2YTIwc19yZWxlYXNlLAogCiAJLmluaXQgPSBtYjg2YTIwc19p
+bml0ZmUsCisJLnJlYWRfc25yID0gbWI4NmEyMHNfcmVhZF9zbnIsCisJLnJlYWRfYmVyID0gbWI4
+NmEyMHNfcmVhZF9iZXIsCisJLnJlYWRfdWNibG9ja3MgPSBtYjg2YTIwc19yZWFkX3VjYmxvY2tz
+LAogCS5zZXRfZnJvbnRlbmQgPSBtYjg2YTIwc19zZXRfZnJvbnRlbmQsCiAJLmdldF9mcm9udGVu
+ZCA9IG1iODZhMjBzX2dldF9mcm9udGVuZCwKIAkucmVhZF9zdGF0dXMgPSBtYjg2YTIwc19yZWFk
+X3N0YXR1cywK
+
+--_817f8ab8-5abf-4c04-a8ac-a5087675b283_--
