@@ -1,70 +1,62 @@
-Return-path: <mchehab@pedra>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:41879 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757612Ab1EZNsm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 May 2011 09:48:42 -0400
-Received: by qwk3 with SMTP id 3so364667qwk.19
-        for <linux-media@vger.kernel.org>; Thu, 26 May 2011 06:48:41 -0700 (PDT)
-References: <1306305788.2390.4.camel@porites> <1306359272-30792-1-git-send-email-jarod@redhat.com> <20110526084912.1ac3ac37@tele>
-In-Reply-To: <20110526084912.1ac3ac37@tele>
-Mime-Version: 1.0 (Apple Message framework v1084)
-Content-Type: text/plain; charset=us-ascii
-Message-Id: <367523C9-4560-4E50-A186-B20674AD081D@wilsonet.com>
-Content-Transfer-Encoding: 8BIT
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-From: Jarod Wilson <jarod@wilsonet.com>
-Subject: Re: [PATCH] [media] gspca/kinect: wrap gspca_debug with GSPCA_DEBUG
-Date: Thu, 26 May 2011 09:48:48 -0400
-To: jean-francois Moine <moinejf@free.fr>
+Return-path: <mchehab@gaivota>
+Received: from smtp.nokia.com ([147.243.128.24]:56105 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932618Ab1EMNYP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 May 2011 09:24:15 -0400
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl
+Subject: [PATCH 1/1] v4l: Document EACCES in VIDIOC_G_CTRL and VIDIOC_G_EXT_CTRLS
+Date: Fri, 13 May 2011 16:24:13 +0300
+Message-Id: <1305293053-16448-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On May 26, 2011, at 2:49 AM, jean-francois Moine wrote:
+VIDIOC_G_CTRL and VIDIOC_G_EXT_CTRLS return EACCES when setting a read-only
+control or getting a write-only control.  Document this.
 
-> On Wed, 25 May 2011 17:34:32 -0400
-> Jarod Wilson <jarod@redhat.com> wrote:
-> 
->> diff --git a/drivers/media/video/gspca/kinect.c b/drivers/media/video/gspca/kinect.c
->> index 66671a4..26fc206 100644
->> --- a/drivers/media/video/gspca/kinect.c
->> +++ b/drivers/media/video/gspca/kinect.c
->> @@ -34,7 +34,7 @@ MODULE_AUTHOR("Antonio Ospite <ospite@studenti.unina.it>");
->> MODULE_DESCRIPTION("GSPCA/Kinect Sensor Device USB Camera Driver");
->> MODULE_LICENSE("GPL");
->> 
->> -#ifdef DEBUG
->> +#ifdef GSPCA_DEBUG
->> int gspca_debug = D_ERR | D_PROBE | D_CONF | D_STREAM | D_FRAM | D_PACK |
->> 	D_USBI | D_USBO | D_V4L2;
->> #endif
-> 
-> Hi Jarod,
-> 
-> Sorry, it is not the right fix. In fact, the variable gspca_debug must
-> not be defined in gspca subdrivers:
-> 
-> --- a/drivers/media/video/gspca/kinect.c
-> +++ b/drivers/media/video/gspca/kinect.c
-> @@ -34,11 +34,6 @@
-> MODULE_DESCRIPTION("GSPCA/Kinect Sensor Device USB Camera Driver");
-> MODULE_LICENSE("GPL");
-> 
-> -#ifdef DEBUG
-> -int gspca_debug = D_ERR | D_PROBE | D_CONF | D_STREAM | D_FRAM | D_PACK |
-> -	D_USBI | D_USBO | D_V4L2;
-> -#endif
-> -
-> struct pkt_hdr {
-> 	uint8_t magic[2];
-> 	uint8_t pad;
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ Documentation/DocBook/v4l/vidioc-g-ctrl.xml      |    7 +++++++
+ Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml |    7 +++++++
+ 2 files changed, 14 insertions(+), 0 deletions(-)
 
-Ah, ok, that works just as well for me, since I don't have the hardware,
-was just looking to make sure things still complied. ;)
-
+diff --git a/Documentation/DocBook/v4l/vidioc-g-ctrl.xml b/Documentation/DocBook/v4l/vidioc-g-ctrl.xml
+index 8b5e6ff..5146d00 100644
+--- a/Documentation/DocBook/v4l/vidioc-g-ctrl.xml
++++ b/Documentation/DocBook/v4l/vidioc-g-ctrl.xml
+@@ -117,6 +117,13 @@ because another applications took over control of the device function
+ this control belongs to.</para>
+ 	</listitem>
+       </varlistentry>
++      <varlistentry>
++	<term><errorcode>EACCES</errorcode></term>
++	<listitem>
++	  <para>Attempt to set a read-only control or to get a
++	  write-only control.</para>
++	</listitem>
++      </varlistentry>
+     </variablelist>
+   </refsect1>
+ </refentry>
+diff --git a/Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml
+index 3aa7f8f..5e73517 100644
+--- a/Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml
++++ b/Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml
+@@ -294,6 +294,13 @@ The field <structfield>size</structfield> is set to a value that is enough
+ to store the payload and this error code is returned.</para>
+ 	</listitem>
+       </varlistentry>
++      <varlistentry>
++	<term><errorcode>EACCES</errorcode></term>
++	<listitem>
++	  <para>Attempt to try or set a read-only control or to get a
++	  write-only control.</para>
++	</listitem>
++      </varlistentry>
+     </variablelist>
+   </refsect1>
+ </refentry>
 -- 
-Jarod Wilson
-jarod@wilsonet.com
-
-
+1.7.2.5
 
