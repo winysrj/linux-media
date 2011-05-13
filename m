@@ -1,144 +1,184 @@
 Return-path: <mchehab@gaivota>
-Received: from tulikuusama.dnainternet.net ([83.102.40.132]:37584 "EHLO
-	tulikuusama.dnainternet.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755389Ab1ELAhx (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.9]:62693 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754588Ab1ENUeF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 May 2011 20:37:53 -0400
-Message-ID: <4DCB2BD9.6090105@iki.fi>
-Date: Thu, 12 May 2011 03:37:45 +0300
-From: Anssi Hannula <anssi.hannula@iki.fi>
+	Sat, 14 May 2011 16:34:05 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH] [media] at91: add Atmel Image Sensor Interface (ISI) support
+Date: Fri, 13 May 2011 21:18:32 +0200
+Cc: Josh Wu <josh.wu@atmel.com>, mchehab@redhat.com,
+	linux-media@vger.kernel.org, lars.haring@atmel.com,
+	linux-kernel@vger.kernel.org, g.liakhovetski@gmx.de
+References: <1305186138-5656-1-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1305186138-5656-1-git-send-email-josh.wu@atmel.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Peter Hutterer <peter.hutterer@who-t.net>,
-	linux-media@vger.kernel.org,
-	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
-	xorg-devel@lists.freedesktop.org
-Subject: Re: IR remote control autorepeat / evdev
-References: <4DC61E28.4090301@iki.fi> <20110510041107.GA32552@barra.redhat.com> <4DC8C9B6.5000501@iki.fi> <20110510053038.GA5808@barra.redhat.com> <4DC940E5.2070902@iki.fi> <4DCA1496.20304@redhat.com> <4DCABA42.30505@iki.fi> <4DCABEAE.4080607@redhat.com> <4DCACE74.6050601@iki.fi> <4DCB213A.8040306@redhat.com>
-In-Reply-To: <4DCB213A.8040306@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201105132118.32590.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On 12.05.2011 02:52, Mauro Carvalho Chehab wrote:
-> Em 11-05-2011 19:59, Anssi Hannula escreveu:
->>> No. It actually depends on what driver you're using. For example, for most dvb-usb
->>> devices, this is given by the logic bellow:
->>>
->>> 	if (d->props.rc.legacy.rc_interval < 40)
->>> 		d->props.rc.legacy.rc_interval = 100; /* default */
->>>
->>> 	input_dev->rep[REP_PERIOD] = d->props.rc.legacy.rc_interval;
->>> 	input_dev->rep[REP_DELAY]  = d->props.rc.legacy.rc_interval + 150;
->>>
->>> where the rc_interval defined by device entry at the dvb usb drivers.
->>
->> Isn't that function only called for DVB_RC_LEGACY mode?
-> 
-> I just picked one random piece of the code that covers several RC remotes (most
-> dvb-usb drivers are still using the legacy mode). Similar code are there for
-> other devices.
+On Thursday 12 May 2011, Josh Wu wrote:
+> This patch is to enable Atmel Image Sensor Interface (ISI) driver support. 
+> - Using soc-camera framework with videobuf2 dma-contig allocator
+> - Supporting video streaming of YUV packed format
+> - Tested on AT91SAM9M10G45-EK with OV2640
+>
+> Signed-off-by: Josh Wu <josh.wu@atmel.com>
 
-I don't see any other places:
-$ git grep 'REP_PERIOD' .
-dvb/dvb-usb/dvb-usb-remote.c:   input_dev->rep[REP_PERIOD] =
-d->props.rc.legacy.rc_interval;
+This looks like a very well written driver for the most part. I have a few
+comments, mainly regarding maintainability that you should probably look
+into.
+ 
+>  arch/arm/mach-at91/include/mach/at91_isi.h |  454 ++++++++++++
+>  drivers/media/video/Kconfig                |   10 +
+>  drivers/media/video/Makefile               |    1 +
+>  drivers/media/video/atmel-isi.c            | 1089 ++++++++++++++++++++++++++++
 
->> Maybe I wasn't clear, but I'm talking only about the devices handled by
->> rc-core.
-> 
-> With just a few exceptions, the repeat period/delay that were there before
-> porting to rc-core were maintained. There are space for adjustments, as we
-> did on a few cases.
+So you have a mach specific header file that is used by a single driver?
+That does not lean itself it code reuse. Better move the header file into
+the same directory as the driver, or (better) merge its contents into the
+same file.
 
-The above is the only place where the repeat period is set in the
-drivers/media tree, and it is not an rc-core device. Other devices
-therefore use the 33ms kernel default.
+This is especially important if the driver is possibly shared with avr32
+socs.
 
-Maybe I am missing something?
+> +/* Constants for RGB_CFG */
+> +#define ISI_RGB_CFG_DEFAULT			0
+> +#define ISI_RGB_CFG_MODE_1			1
+> +#define ISI_RGB_CFG_MODE_2			2
+> +#define ISI_RGB_CFG_MODE_3			3
+> +
+> +/* Constants for RGB_CFG(ISI_V2) */
+> +#define ISI_V2_RGB_CFG_DEFAULT			0
+> +#define ISI_V2_RGB_CFG_MODE_1			1
+> +#define ISI_V2_RGB_CFG_MODE_2			2
+> +#define ISI_V2_RGB_CFG_MODE_3			3
+> +
+> +/* Bit manipulation macros */
+> +#define ISI_BIT(name)					\
+> +	(1 << ISI_##name##_OFFSET)
+> +#define ISI_BF(name, value)				\
+> +	(((value) & ((1 << ISI_##name##_SIZE) - 1))	\
+> +	 << ISI_##name##_OFFSET)
+> +#define ISI_BFEXT(name, value)				\
+> +	(((value) >> ISI_##name##_OFFSET)		\
+> +	 & ((1 << ISI_##name##_SIZE) - 1))
+> +#define ISI_BFINS(name, value, old)			\
+> +	(((old) & ~(((1 << ISI_##name##_SIZE) - 1)	\
+> +		    << ISI_##name##_OFFSET))\
+> +	 | ISI_BF(name, value))
 
-> Em 11-05-2011 22:53, Dmitry Torokhov escreveu:
->> On Wed, May 11, 2011 at 08:59:16PM +0300, Anssi Hannula wrote:
->>>
->>> I meant replacing the softrepeat with native repeat for such devices
->>> that have native repeats but no native release events:
->>>
->>> - keypress from device => keydown + keyup
->>> - repeat from device => keydown + keyup
->>> - repeat from device => keydown + keyup
->>>
->>> This is what e.g. ati_remote driver now does.
->>>
->>> Or alternatively
->>>
->>> - keypress from device => keydown
->>> - repeat from device => repeat
->>> - repeat from device => repeat
->>> - nothing for 250ms => keyup
->>> (doing it this way requires some extra handling in X server to stop its
->>> softrepeat from triggering, though, as previously noted)
->>>
->>> With either of these, if one holds down volumeup, the repeat works, and
->>> stops volumeup'ing immediately when user releases the button (as it is
->>> supposed to).
->>>
->>
->> Unfortunately this does not work for devices that do not have hardware
->> autorepeat and also stops users from adjusting autorepeat parameters to
->> their liking.
-> 
-> Yes. A solution like the above would limit the usage. There are some remotes
-> (like for example, the Hauppauge Grey remotes I have here) that a simple
-> keypress generates, in general, up to 3 scancodes (the normal keypress and
-> up to two "bounced" repeat keycodes). So, the software key delay also serves
-> as a way to de-bounce the keypress.
+A much better way to express the above would be to define the constants as
+mask values rather than using the macros with bit numbers. There are
+conflicting views on how bits are counted, plus the use of macros
+makes it harder to grep for the idenfiers.
 
-I probably forgot to mention it, but I'm not suggesting removal of the
-repetition delay (500ms), it can stay for this reason exactly.
+For example, do
 
->> It appears that the delay to check whether the key has been released is
->> too long (almost order of magnitude longer than our typical autorepeat
->> period).
-> 
-> Yes, because, for example, with NEC and RC-5 protocols, one keystroke or one
-> repeat event takes 110/114 ms to be transmitted. The delay actually varies 
-> from protocol to protocol, so it is possible to do some adjustments, based on
-> the protocol type, but it is an order of magnitude longer than a keyboard or
-> mouse.
-> 
->> I think we should increase the period for remotes (both in
->> kernel and in X, and also see if the release check delay can be made
->> shorter, like 50-100 ms.
-> 
-> Some adjustments like that can be made, but they are device-driver specific.
-> 
-> For example, some in-hardware IR decoders with KS007 micro-controller just
-> removes all repeat keycodes and replace them with new keystrokes. There are
-> some shipped remotes that don't support the RC-5 or NEC key repeat event. So,
-> on those, if you keep a key pressed, you just receive the same scancode several
-> times.
-> 
-> The last time I double checked all remotes I have here, on all cases the auto-repeat
-> logic were doing the right job, but I won't doubt that we need to add some additional
-> adjustments for some boards/devices.
+#define ISI_RGB_CFG_DEFAULT	0x0001
+#define ISI_RGB_CFG_MODE_1	0x0002
+#define ISI_RGB_CFG_MODE_2	0x0004
+#define ISI_RGB_CFG_MODE_3	0x0008
 
-Does "doing the right job" mean that you are getting zero repeat (2)
-events after releasing a remote button?
+For the two examples I quoted, the values are actually the same,
+so you might also want to name them so that you don't have to
+define multiple versions but can simply reuse the same macros.
 
-Because that is what I expect to happen, and that is what e.g. LIRC
-(which most people seem to still use with HTPC software - like XBMC
-which I'm a developer of) does.
+Some people also prefer the use of enum over #define, but I
+leave that to your judgement
 
-> Anssi, what's the hardware that you're using?
+> +/* Register access macros */
+> +#define isi_readl(port, reg)				\
+> +	__raw_readl((port)->regs + ISI_##reg)
+> +#define isi_writel(port, reg, value)			\
+> +	__raw_writel((value), (port)->regs + ISI_##reg)
 
-I'm using ati_remote ported to rc-core (don't know yet if it makes any
-sense, though).
+Please explain why you use __raw_* instead of the proper
+accessors in the comment. Normal drivers should always
+use readl/writel.
 
-However, as noted, reading ir-main.c I fail to see why this wouldn't
-happen with all rc-core devices, as all devices seem to use same
-IR_KEYPRESS_TIMEOUT and REP_PERIOD (though you seem to suggest otherwise
-above, maybe you can show me wrong? :) ).
+Better don't concatenate identifiers, in order to make
+grep and ctags work on the arguments.
 
--- 
-Anssi Hannula
+> +
+> +#define ATMEL_ISI_VERSION	KERNEL_VERSION(1, 0, 0)
+
+Don't use KERNEL_VERSION() here, it means something else.
+
+Better yet, don't define a version at all. It is not acceptable
+to make any user space interface depend on specific versions,
+this is a compatibility nightmare.
+
+> +/* Frame buffer descriptor
+> + *  Used by the ISI module as a linked list for the DMA controller.
+> + */
+> +struct fbd {
+> +	/* Physical address of the frame buffer */
+> +	u32 fb_address;
+> +#if defined(CONFIG_ARCH_AT91SAM9G45) ||\
+> +	defined(CONFIG_ARCH_AT91SAM9X5)
+> +	/* DMA Control Register(only in HISI2) */
+> +	u32 dma_ctrl;
+> +#endif
+> +	/* Physical address of the next fbd */
+> +	u32 next_fbd_address;
+> +};
+> +
+> +#if defined(CONFIG_ARCH_AT91SAM9G45) ||\
+> +	defined(CONFIG_ARCH_AT91SAM9X5)
+> +static void set_dma_ctrl(struct fbd *fb_desc, u32 ctrl)
+> +{
+> +	fb_desc->dma_ctrl = ctrl;
+> +}
+> +#else
+> +static void set_dma_ctrl(struct fbd *fb_desc, u32 ctrl) { }
+> +#endif
+
+Make these runtime checks, not compile-time. Best define different
+identifiers for the platform device, then key the differences off
+the device, not the platform.
+
+> +struct atmel_isi {
+> +	/* ISI module spin lock. Protects against concurrent access of variables
+> +	 * that are shared with the ISR */
+> +	spinlock_t			lock;
+> +	void __iomem			*regs;
+> +
+> +	/*  If set ISI is in still capture mode */
+> +	int				still_capture;
+> +	int				sequence;
+> +	/* State of the ISI module in capturing mode */
+> +	int				state;
+> +
+> +	/* Capture/streaming wait queue for waiting for SOF */
+> +	wait_queue_head_t		capture_wq;
+> +
+> +	struct v4l2_device		v4l2_dev;
+> +
+> +	struct vb2_alloc_ctx		*alloc_ctx;
+> +
+> +	struct clk			*pclk;
+> +	struct platform_device		*pdev;
+
+pdev is unused?
+
+> +	spin_lock_irq(&isi->lock);
+> +	isi->still_capture = 0;
+> +	isi->active = NULL;
+> +
+> +	while (isi_readl(isi, V2_STATUS) & ISI_BIT(V2_CDC))
+> +		cpu_relax();
+
+A busy loop with interrupts disabled is rather nasty.
+Is there a guaranteed upper bound on how long this can take?
+
+You have the same loop in other places, maybe you can move
+it into a separate function with a comment explaining what
+you wait for and how long it can take.
+
+	Arnd
+
