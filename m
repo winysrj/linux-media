@@ -1,52 +1,181 @@
-Return-path: <mchehab@pedra>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:61328 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757606Ab1EBNUZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 May 2011 09:20:25 -0400
-From: Hans Verkuil <hansverk@cisco.com>
-To: vipul kumar samar <vipulkumar.samar@st.com>
-Subject: Re: Query: Implementation of overlay on linux
-Date: Mon, 2 May 2011 15:20:22 +0200
-Cc: linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org
-References: <4DBE8FDB.5010506@st.com>
-In-Reply-To: <4DBE8FDB.5010506@st.com>
+Return-path: <mchehab@gaivota>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:49279 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751026Ab1EMCeM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 May 2011 22:34:12 -0400
+Received: by iyb14 with SMTP id 14so1742993iyb.19
+        for <linux-media@vger.kernel.org>; Thu, 12 May 2011 19:34:12 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201105021520.22842.hansverk@cisco.com>
+From: Jodi the Tigger <jodi.the.tigger@gmail.com>
+Date: Fri, 13 May 2011 14:33:51 +1200
+Message-ID: <BANLkTikfy1sWV5Hf6sn-rSAqkyRsEX_VVw@mail.gmail.com>
+Subject: adding dvb-t scan files for New Zealand
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Monday, May 02, 2011 13:04:59 vipul kumar samar wrote:
-> Hello,
-> 
-> I am working on LCD module and I want to implement two overlay windows
-> on frame buffer. I have some queries related to this:
+Hello all,
 
-You mean capture overlay windows? E.g. you want to capture from a video input 
-and have the video directly rendered in the framebuffer?
+I want to add dvb-t scan files for New Zealand, as there only seems to
+be one (For Waiatarua, Auckland, NZ).
+However I have no idea how to actually get the files I created added
+to the linux tv project.
 
-The "Video Overlay Interface" section in the V4L2 specification describes how 
-to do that, but it also depends on whether the V4L2 driver in question 
-supports that feature.
+So if someone could either:
+1) point me to a faq / wiki / web site explaining how I can update
+dvb-t scan files.
+or
+2) Kindly add the files for me.
 
-It might be that you mean something else, though.
+I would be most grateful.
 
-Regards,
+I have pasted the contents of the files below (each comment block is a
+new file).
 
-	Hans
+-Richard Maxwell
 
-> 1. Can any body suggest me how to proceed towards it??
-> 2. Is their any standard way to use frame buffer ioctl calls??
-> 3. If i have to define my own ioctls then how application manage it??
-> 
-> 
-> Thanks and Regards
-> Vipul Samar
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+# Waiatarua, Auckland NZ
+#
+# Channel allocation details for NZ can be found at
+# http://en.wikipedia.org/wiki/Freeview_(New_Zealand)
+#
+# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+
+T 538000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
+T 570000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
+T 666000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
+
+# Pinehill, Remuera, Sky Tower, Auckland Infill, Auckland NZ
+#
+# Channel allocation details for NZ can be found at
+# http://en.wikipedia.org/wiki/Freeview_(New_Zealand)
+#
+# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+
+T 530000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
+T 562000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
+T 626000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
+
+# Te Aroha, Waikato NZ
+#
+# Channel allocation details for NZ can be found at
+# http://en.wikipedia.org/wiki/Freeview_(New_Zealand)
+#
+# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+
+T 674000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
+T 690000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
+T 706000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
+
+# Hamilton Infill, Waikato NZ
+#
+# Channel allocation details for NZ can be found at
+# http://en.wikipedia.org/wiki/Freeview_(New_Zealand)
+#
+# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+
+T 698000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
+T 714000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
+T 682000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
+
+# Kopukairua, Tauranga NZ
+#
+# Channel allocation details for NZ can be found at
+# http://en.wikipedia.org/wiki/Freeview_(New_Zealand)
+#
+# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+
+T 698000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
+T 714000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
+T 642000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
+
+# Mt. Erin, Hawkes Bay NZ
+#
+# Channel allocation details for NZ can be found at
+# http://en.wikipedia.org/wiki/Freeview_(New_Zealand)
+#
+# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+
+T 522000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
+T 554000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
+T 650000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
+
+# Napier Infill, Hawkes Bay NZ
+#
+# Channel allocation details for NZ can be found at
+# http://en.wikipedia.org/wiki/Freeview_(New_Zealand)
+#
+# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+
+T 690000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
+T 706000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
+T 778000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
+
+# Wharite, Manawatu NZ
+#
+# Channel allocation details for NZ can be found at
+# http://en.wikipedia.org/wiki/Freeview_(New_Zealand)
+#
+# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+
+T 690000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
+T 706000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
+T 778000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
+
+
+# Kaukau, Wellington NZ
+#
+# Channel allocation details for NZ can be found at
+# http://en.wikipedia.org/wiki/Freeview_(New_Zealand)
+#
+# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+
+T 690000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
+T 706000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
+T 778000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
+
+# Fitzherbert, Baxters Knob, Wellington infill, Wellington NZ
+#
+# Channel allocation details for NZ can be found at
+# http://en.wikipedia.org/wiki/Freeview_(New_Zealand)
+#
+# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+
+T 714000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
+T 730000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
+T 762000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
+
+# Ngarara, Wellington NZ
+#
+# Channel allocation details for NZ can be found at
+# http://en.wikipedia.org/wiki/Freeview_(New_Zealand)
+#
+# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+
+T 666000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
+T 730000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
+T 762000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
+
+# Sugarloaf, Christchurch NZ
+#
+# Channel allocation details for NZ can be found at
+# http://en.wikipedia.org/wiki/Freeview_(New_Zealand)
+#
+# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+
+T 682000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
+T 698000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
+T 706000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
+
+# Mt Cargill, Dunedin NZ
+#
+# Channel allocation details for NZ can be found at
+# http://en.wikipedia.org/wiki/Freeview_(New_Zealand)
+#
+# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+
+T 650000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
+T 666000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
+T 730000000 8MHz 3/4 NONE QAM64 8k 1/16 NONE
