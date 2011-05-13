@@ -1,58 +1,58 @@
-Return-path: <mchehab@pedra>
-Received: from mail.perches.com ([173.55.12.10]:2214 "EHLO mail.perches.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755395Ab1E1RhJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 May 2011 13:37:09 -0400
-From: Joe Perches <joe@perches.com>
-To: Jiri Kosina <trivial@kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [TRIVIAL PATCH next 08/15] media: Convert vmalloc/memset to vzalloc
-Date: Sat, 28 May 2011 10:36:28 -0700
-Message-Id: <9fdb8894cfb8778948dd9cf15711ec2ca68eb9b6.1306603968.git.joe@perches.com>
-In-Reply-To: <cover.1306603968.git.joe@perches.com>
-References: <cover.1306603968.git.joe@perches.com>
+Return-path: <mchehab@gaivota>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:55886 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759155Ab1EMUfh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 May 2011 16:35:37 -0400
+Message-ID: <4DCD960E.3020504@gmail.com>
+Date: Fri, 13 May 2011 22:35:26 +0200
+From: Sylwester Nawrocki <snjw23@gmail.com>
+MIME-Version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Josh Wu <josh.wu@atmel.com>, mchehab@redhat.com,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, lars.haring@atmel.com
+Subject: Re: [PATCH] [media] at91: add Atmel Image Sensor Interface (ISI)
+ support
+References: <1305186138-5656-1-git-send-email-josh.wu@atmel.com> <Pine.LNX.4.64.1105130956090.26356@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1105130956090.26356@axis700.grange>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Signed-off-by: Joe Perches <joe@perches.com>
----
- drivers/media/video/videobuf2-dma-sg.c |    8 ++------
- 1 files changed, 2 insertions(+), 6 deletions(-)
+On 05/13/2011 03:50 PM, Guennadi Liakhovetski wrote:
+> On Thu, 12 May 2011, Josh Wu wrote:
+> 
+>> This patch is to enable Atmel Image Sensor Interface (ISI) driver support.
+>> - Using soc-camera framework with videobuf2 dma-contig allocator
+>> - Supporting video streaming of YUV packed format
+>> - Tested on AT91SAM9M10G45-EK with OV2640
+>>
+>> Signed-off-by: Josh Wu<josh.wu@atmel.com>
+>> ---
+...
+>> diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+>> index a10e4c3..f734a65 100644
+>> --- a/drivers/media/video/Makefile
+>> +++ b/drivers/media/video/Makefile
+>> @@ -166,6 +166,7 @@ obj-$(CONFIG_VIDEO_SH_MOBILE_CSI2)	+= sh_mobile_csi2.o
+>>   obj-$(CONFIG_VIDEO_SH_MOBILE_CEU)	+= sh_mobile_ceu_camera.o
+>>   obj-$(CONFIG_VIDEO_OMAP1)		+= omap1_camera.o
+>>   obj-$(CONFIG_VIDEO_SAMSUNG_S5P_FIMC) 	+= s5p-fimc/
+> 
+> [OT] hm, wow, who has decided to put a generic V4L driver (set) in the
+> Makefile together with other soc-camera drivers? It has to be converted now;)
 
-diff --git a/drivers/media/video/videobuf2-dma-sg.c b/drivers/media/video/videobuf2-dma-sg.c
-index b2d9485..15d79a8 100644
---- a/drivers/media/video/videobuf2-dma-sg.c
-+++ b/drivers/media/video/videobuf2-dma-sg.c
-@@ -48,12 +48,10 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size)
- 	buf->sg_desc.size = size;
- 	buf->sg_desc.num_pages = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 
--	buf->sg_desc.sglist = vmalloc(buf->sg_desc.num_pages *
-+	buf->sg_desc.sglist = vzalloc(buf->sg_desc.num_pages *
- 				      sizeof(*buf->sg_desc.sglist));
- 	if (!buf->sg_desc.sglist)
- 		goto fail_sglist_alloc;
--	memset(buf->sg_desc.sglist, 0, buf->sg_desc.num_pages *
--	       sizeof(*buf->sg_desc.sglist));
- 	sg_init_table(buf->sg_desc.sglist, buf->sg_desc.num_pages);
- 
- 	buf->pages = kzalloc(buf->sg_desc.num_pages * sizeof(struct page *),
-@@ -136,13 +134,11 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	last  = ((vaddr + size - 1) & PAGE_MASK) >> PAGE_SHIFT;
- 	buf->sg_desc.num_pages = last - first + 1;
- 
--	buf->sg_desc.sglist = vmalloc(
-+	buf->sg_desc.sglist = vzalloc(
- 		buf->sg_desc.num_pages * sizeof(*buf->sg_desc.sglist));
- 	if (!buf->sg_desc.sglist)
- 		goto userptr_fail_sglist_alloc;
- 
--	memset(buf->sg_desc.sglist, 0,
--		buf->sg_desc.num_pages * sizeof(*buf->sg_desc.sglist));
- 	sg_init_table(buf->sg_desc.sglist, buf->sg_desc.num_pages);
- 
- 	buf->pages = kzalloc(buf->sg_desc.num_pages * sizeof(struct page *),
--- 
-1.7.5.rc3.dirty
+In fact I've already converted that driver, but soc-camera wasn't unfortunately
+my choice, just the media controller ;-) I'll probably move the entry when 
+preparing upstream patches, it just doesn't feel safe here;)
 
+> 
+>> +obj-$(CONFIG_VIDEO_ATMEL_ISI)		+= atmel-isi.o
+>>
+>>   obj-$(CONFIG_ARCH_DAVINCI)		+= davinci/
+
+--
+Regards,
+Sylwester Nawrocki
