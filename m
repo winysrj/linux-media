@@ -1,110 +1,70 @@
-Return-path: <mchehab@pedra>
-Received: from omr-d33.mx.aol.com ([205.188.249.131]:41274 "EHLO
-	omr-d33.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754311Ab1EBB6Q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 May 2011 21:58:16 -0400
-Message-ID: <4DBE0F74.80602@netscape.net>
-Date: Sun, 01 May 2011 22:57:08 -0300
-From: =?windows-1252?Q?Alfredo_Jes=FAs_Delaiti?=
-	<alfredodelaiti@netscape.net>
+Return-path: <mchehab@gaivota>
+Received: from mx1.redhat.com ([209.132.183.28]:46937 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754630Ab1EMWkA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 May 2011 18:40:00 -0400
+Message-ID: <4DCDB333.8000801@redhat.com>
+Date: Sat, 14 May 2011 00:39:47 +0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Help to make a driver. ISDB-Tb
-References: <4DBC422F.10102@netscape.net> <4DBCB4EF.5070104@redhat.com>
-In-Reply-To: <4DBCB4EF.5070104@redhat.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 8bit
+To: Anssi Hannula <anssi.hannula@iki.fi>
+CC: Peter Hutterer <peter.hutterer@who-t.net>,
+	linux-media@vger.kernel.org,
+	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
+	xorg-devel@lists.freedesktop.org
+Subject: Re: IR remote control autorepeat / evdev
+References: <4DC61E28.4090301@iki.fi> <20110510041107.GA32552@barra.redhat.com> <4DC8C9B6.5000501@iki.fi> <20110510053038.GA5808@barra.redhat.com> <4DC940E5.2070902@iki.fi> <4DCA1496.20304@redhat.com> <4DCABA42.30505@iki.fi> <4DCABEAE.4080607@redhat.com> <4DCACE74.6050601@iki.fi> <4DCB213A.8040306@redhat.com> <4DCB2BD9.6090105@iki.fi> <4DCB336B.2090303@redhat.com> <4DCB39AF.2000807@redhat.com> <4DCC71B5.8080306@iki.fi>
+In-Reply-To: <4DCC71B5.8080306@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Mauro
+Em 13-05-2011 01:48, Anssi Hannula escreveu:
+> On 12.05.2011 04:36, Mauro Carvalho Chehab wrote:
+>> Em 12-05-2011 03:10, Mauro Carvalho Chehab escreveu:
+>>> Em 12-05-2011 02:37, Anssi Hannula escreveu:
+>>
+>>>> I don't see any other places:
+>>>> $ git grep 'REP_PERIOD' .
+>>>> dvb/dvb-usb/dvb-usb-remote.c:   input_dev->rep[REP_PERIOD] =
+>>>> d->props.rc.legacy.rc_interval;
+>>>
+>>> Indeed, the REP_PERIOD is not adjusted on other drivers. I agree that we
+>>> should change it to something like 125ms, for example, as 33ms is too 
+>>> short, as it takes up to 114ms for a repeat event to arrive.
+>>>
+>> IMO, the enclosed patch should do a better job with repeat events, without
+>> needing to change rc-core/input/event logic.
+> 
+> It will indeed reduce the amount of ghost events so it brings us in the
+> right direction.
+> 
+> I'd still like to get rid of the ghost repeats entirely, or at least
+> some way for users to do it if we don't do it by default.
 
-Thank you very much for your time and answer
+> Maybe we could replace the kernel softrepeat with native repeats (for
+> those protocols/drivers that have them), while making sure that repeat
+> events before REP_DELAY are ignored and repeat events less than
+> REP_PERIOD since the previous event are ignored, so the users can still
+> configure them as they like? 
+> 
 
-El 30/04/11 22:18, Mauro Carvalho Chehab escribió:
->> drivers/media/video/cx23885/cx23885-cards.c:240:3: error: ‘CX23885_BOARD_MYGICA_X8507’ undeclared here (not in a function)
-> You forgot to declare this constant somewhere with #define.
-I found it. I had written CX23885_BOARD_MYGICA_X507 rather than 
-CX23885_BOARD_MYGICA_X8507 in cx23885.h
+This doesn't seem to be the right thing to do. If the kernel will
+accept 33 ms as the value or REP_PERIOD, but it will internally 
+set the maximum repeat rate is 115 ms (no matter what logic it would
+use for that), Kernel (or X) shouldn't allow the user to set a smaller value. 
 
-> It is not that simple. You need to setup the GPIO pins of your device, and
-> set the DVB frontend according to how this is wired inside the board,
-> and providing the information about the used frontend. I think that your
-> device is based on mb86a20s demod.
-Yes.
-If I compare to the X8506 images taken from 
-http://www.mingo-hmw.com/forum/viewthread.php?tid=85682 and 
-http://www.dcfever.com/trading/view.php?itemID=436551, with the X8507 
-taken from 
-http://www.linuxtv.org/wiki/index.php/File:MyGica_X8507_1.png; I see 
-that the difference is on the plate added to the main board. Best viewed 
-with the image of the X8507 and corresponds to the frontend.
-For this last reason is that I risk trying to do something.
+The thing is that writing a logic to block a small value is not easy, since 
+the max value is protocol-dependent (worse than that, on some cases, it is 
+device-specific). It seems better to add a warning at the userspace tools 
+that delays lower than 115 ms can produce ghost events on IR's.
 
-> It requires you some knowledge about Engineering
-At this point I have no problems, but still need to read a lot.
-> , as well as C programming
-> experience.
-At this point yes. The last time I programmed anything was more than 
-twenty years and was in pascal or qbasic, I do not remember.
+> Or maybe just a module option that causes rc-core to use native repeat
+> events, for those of us that want accurate repeat events without ghosting?
 
-I modify the following files: cx23885-cards.c, cx23885-dvb.c, 
-cx23885-video.c, cx23885.h
+If the user already knows about the possibility to generate ghost effects,
+with low delays, he can simply not pass a bad value to the kernel, instead 
+of forcing a modprobe parameter that will limit the minimal value.
 
-Then compile and install. The result when loading was as follows:
-
-
-[ 10.461192] cx23885 driver version 0.0.2 loaded
-[ 10.461288] cx23885 0000:02:00.0: PCI INT A -> GSI 19 (level, low) -> 
-IRQ 19
-[ 10.461487] CORE cx23885[0]: subsystem: 14f1:8502, board: Mygica X8507 
-[card=30,insmod option]
-[ 11.027607] cx25840 5-0044: cx23885 A/V decoder found @ 0x88 (cx23885[0])
-[ 12.193826] cx25840 5-0044: loaded v4l-cx23885-avcore-01.fw firmware 
-(16382 bytes)
-[ 12.202863] tuner 4-0061: chip found @ 0xc2 (cx23885[0])
-[ 12.235023] xc5000 4-0061: creating new instance
-[ 12.235719] xc5000: Successfully identified at address 0x61
-[ 12.235721] xc5000: Firmware has not been loaded previously
-[ 12.235802] cx23885[0]/0: registered device video1 [v4l2]
-[ 12.241230] xc5000: waiting for firmware upload 
-(dvb-fe-xc5000-1.6.114.fw)...
-[ 12.262115] xc5000: firmware read 12401 bytes.
-[ 12.262117] xc5000: firmware uploading...
-[ 13.637009] xc5000: firmware upload complete...
-[ 14.250077] cx23885_dvb_register() allocating 1 frontend(s)
-[ 14.250081] cx23885[0]: cx23885 based dvb card
-[ 14.288344] mb86a20s: mb86a20s_attach:
-[ 14.288626] Frontend revision 255 is unknown - aborting.
-[ 14.288705] cx23885[0]: frontend initialization failed
-[ 14.288710] cx23885_dvb_register() dvb_register failed err = -1
-[ 14.288714] cx23885_dev_setup() Failed to register dvb adapters on VID_B
-[ 14.288721] cx23885_dev_checkrevision() Hardware revision = 0xb0
-[ 14.288729] cx23885[0]/0: found at 0000:02:00.0, rev: 2, irq: 19, 
-latency: 0, mmio: 0xfd600000
-[ 14.288737] cx23885 0000:02:00.0: setting latency timer to 64
-[ 14.288828] cx23885 0000:02:00.0: irq 44 for MSI/MSI-X
-
-I guess the error is in this part of the module mb86a20s.c
-
-/* Check if it is a mb86a20s frontend */
-rev = mb86a20s_readreg(state, 0);
-if (rev == 0x13) {
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-printk(KERN_INFO "Detected a Fujitsu mb86a20s frontend\n");
-} else {
-printk(KERN_ERR "Frontend revision %d is unknown - aborting.\n",
-rev);
-goto error;
-}
-
-I reiterate my gratitude,
-
-Alfredo
-
--- 
-Dona tu voz
-http://www.voxforge.org/es
-
+Mauro. 
