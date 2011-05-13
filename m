@@ -1,107 +1,71 @@
-Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.128.26]:52113 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751661Ab1ERTzX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 May 2011 15:55:23 -0400
-Message-ID: <4DD424DD.2070508@maxwell.research.nokia.com>
-Date: Wed, 18 May 2011 22:58:21 +0300
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Return-path: <mchehab@gaivota>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:39259 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758007Ab1EMI3o (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 May 2011 04:29:44 -0400
+Received: by qwk3 with SMTP id 3so1170984qwk.19
+        for <linux-media@vger.kernel.org>; Fri, 13 May 2011 01:29:44 -0700 (PDT)
+Message-ID: <4DCCEBF4.9060902@gmail.com>
+Date: Fri, 13 May 2011 10:29:40 +0200
+From: Mauro Carvalho Chehab <maurochehab@gmail.com>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH/RFC 1/4] V4L: add three new ioctl()s for multi-size videobuffer
- management
-References: <Pine.LNX.4.64.1104010959470.9530@axis700.grange> <Pine.LNX.4.64.1105162144200.29373@axis700.grange> <4DD20D1C.4020808@maxwell.research.nokia.com> <201105181601.23093.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1105181642510.16324@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1105181642510.16324@axis700.grange>
+To: a baffian <mjnhbg1@gmail.com>
+CC: linux-media@vger.kernel.org,
+	Devin Heitmueller <devin.heitmueller@gmail.com>
+Subject: Re: Problems of Pinnacle PCTV Hybrid pro stick in linux
+References: <BANLkTi=ag15jZyxV216gLLi-MSVfX8N14w@mail.gmail.com> <BANLkTikAJpUDjR6K1gzfULcaBq97JYKcpg@mail.gmail.com>
+In-Reply-To: <BANLkTikAJpUDjR6K1gzfULcaBq97JYKcpg@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Guennadi and Laurent,
+Em 12-05-2011 11:12, a baffian escreveu:
+> Hello all
+> Is there anyone could find the source of problems described below?
+> http://daftar.minidns.net/pctv/problem.html
 
-Guennadi Liakhovetski wrote:
-> On Wed, 18 May 2011, Laurent Pinchart wrote:
+Most of the comments and logs there provide not much help. As I told
+you before, you're mixing clearly userspace issues or limitations with
+kernel-related ones. For example, there's nothing we can do at driver
+level to make kaffeine to perform better when decoding an MPEG-2 stream
+at full screen mode. This is probably either a performance issue with
+your GPU card or it is just that you're using a software decoder for it,
+on a slow CPU. Some applications allow, with a few GPU types, to run the
+MPEG-2 decoder inside the GPU.
+
+Yet, there's one relevant information there:
+
+3- And even with kaffeine, the only way that i could watch some TV, was in this manner: Before this DVB-stick i inserted another DVB-USB stick in another linux computer and scan the channels with kaffeine and after finding the channels, quit the kaffeine and copy its database files ( $HOME/.kde/share/apps/kaffeine/* ) into the testing computer for pinnacle DVB-USB hybrid stick. After that copying, i could run kaffeine on the pinnacle DVB and without scanning, thus i had a table of channels and in its main window and when i clicked on a channel, that channel was shown.
+
+You mentioned that you did another dvb stick worked, but on another computer.
+Why such dvb stick didn't work at the computer you tested your Pinnacle
+device?
+
+Also, does the working stick is capable of getting the dvb channels using the
+scan tool provided at http://linuxtv.org/hg/dvb-apps? If so, please provide us
+the dmesg produced with the working card and the scan results (with -v, in order
+to put dvb scan into verbose mode), and the same info with the broken card.
+
+Thanks,
+Mauro
+
 > 
->> On Tuesday 17 May 2011 07:52:28 Sakari Ailus wrote:
->>> Guennadi Liakhovetski wrote:
-> 
-> [snip]
-> 
->>>>> What about making it possible to pass an array of buffer indices to the
->>>>> user, just like VIDIOC_S_EXT_CTRLS does? I'm not sure if this would be
->>>>> perfect, but it would avoid the problem of requiring continuous ranges
->>>>> of buffer ids.
->>>>>
->>>>> struct v4l2_create_buffers {
->>>>>
->>>>> 	__u32			*index;
->>>>> 	__u32			count;
->>>>> 	__u32			flags;
->>>>> 	enum v4l2_memory        memory;
->>>>> 	__u32			size;
->>>>> 	struct v4l2_format	format;
->>>>>
->>>>> };
->>>>>
->>>>> Index would be a pointer to an array of buffer indices and its length
->>>>> would be count.
->>>>
->>>> I don't understand this. We do _not_ want to allow holes in indices. For
->>>> now we decide to not implement DESTROY at all. In this case indices just
->>>> increment contiguously.
->>>>
->>>> The next stage is to implement DESTROY, but only in strict reverse order
->>>> - without holes and in the same ranges, as buffers have been CREATEd
->>>> before. So, I really don't understand why we need arrays, sorry.
->>>
->>> Well, now that we're defining a second interface to make new buffer
->>> objects, I just thought it should be made as future-proof as we can.
+> On Mon, May 9, 2011 at 3:08 PM, a baffian <mjnhbg1@gmail.com> wrote:
+>> Hello all,
 >>
->> I second that. I don't like rushing new APIs to find out we need something 
->> else after 6 months.
-> 
-> Ok, so, we pass an array from user-space with CREATE of size count. The 
-> kernel fills it with as many buffers entries as it has allocated. But 
-> currently drivers are also allowed to allocate more buffers, than the 
-> user-space has requested. What do we do in such a case?
+>> Can anyone help to solve the problems of linux driver of "Pinnacle
+>> PCTV Hybrid pro stick" ?
+>> It is an em28xx based hybride (digital and analog TV) USB adapter.
+>>
+>> i wrote the complete story of my experiences with it, and its problems
+>> in http://daftar.minidns.net/pctv/problem.html
+>>
+>> Good Luck
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-That's a good point.
-
-But even if there was no array, shouldn't the user be allowed to create
-the buffers using a number of separate CREATE_BUF calls? The result
-would be still the same n buffers as with a single call allocating the n
-buffers at once.
-
-Also, consider the (hopefully!) forthcoming DMA buffer management API
-patches. It looks like that those buffers will be referred to by file
-handles. To associate several DMA buffer objects to V4L2 buffers at
-once, there would have to be an array of those objects.
-
-<URL:http://www.spinics.net/lists/linux-media/msg32448.html>
-
-(See the links, too!)
-
-Thus, I would think that CREATE_BUF can be used to create buffers but
-not to enforce how many of them are required by a device on a single
-CREATE_BUF call.
-
-I don't have a good answer for the stated problem, but these ones
-crossed my mind:
-
-- Have a new ioctl to tell the minimum number of buffers to make
-streaming possible.
-
-- Add a field for the minimum number of buffers to CREATE_BUF.
-
-- Use the old REQBUFS to tell the number. It didn't do much other work
-in the past either, right?
-
-Regards,
-
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
