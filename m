@@ -1,107 +1,91 @@
 Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:37745 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751030Ab1EIPJP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 May 2011 11:09:15 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>,
-	=?UTF-8?q?Juan=20Jes=C3=BAs=20Garc=C3=ADa=20de=20Soria?=
-	<skandalfo@gmail.com>
-Subject: [PATCH] [media] ite-cir: clean up odd spacing in ite8709 bits
-Date: Mon,  9 May 2011 11:09:10 -0400
-Message-Id: <1304953750-21910-1-git-send-email-jarod@redhat.com>
+Received: from casper.infradead.org ([85.118.1.10]:57998 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757100Ab1EMHUs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 May 2011 03:20:48 -0400
+Message-ID: <4DCCDBCE.3070208@infradead.org>
+Date: Fri, 13 May 2011 09:20:46 +0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Manoel PN <pinusdtv@hotmail.com>
+CC: linux-media@vger.kernel.org, lgspn@hotmail.com
+Subject: =?windows-1256?Q?Re=3A_=5BPATCH_3/4=5D_Modifications_to_?=
+ =?windows-1256?Q?the_driver_mb86a20s=FE?=
+References: <blu157-w124182C4A0D5D602B90768D8880@phx.gbl>
+In-Reply-To: <blu157-w124182C4A0D5D602B90768D8880@phx.gbl>
+Content-Type: text/plain; charset=windows-1256
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-There was some rather odd spacing in a few of the ite8709-specific
-functions that made it hard to read those sections of code. This is just
-a simple reformatting.
+Em 13-05-2011 04:11, Manoel PN escreveu:
+> This patch implements some modifications in the function
+> 
+> This patch implements some modifications in the initialization function of the mb86a20s.
+> 
+> Explanation:
+> 
+> Several registers of mb86a20s can be programmed and to simplify this task and due to lack of technical literature to elaborate the necessary calculations was opted by the sending of values already ready for the registers, eliminating the process of calculations.
 
-CC: Juan Jesús García de Soria <skandalfo@gmail.com>
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/rc/ite-cir.c |   46 +++++++++++++++++--------------------------
- 1 files changed, 18 insertions(+), 28 deletions(-)
+Please, don't assume that because you don't have the specs that the driver needs
+to be changed. Other people might have the specs.
 
-diff --git a/drivers/media/rc/ite-cir.c b/drivers/media/rc/ite-cir.c
-index 8488e53..71ba9da 100644
---- a/drivers/media/rc/ite-cir.c
-+++ b/drivers/media/rc/ite-cir.c
-@@ -1250,11 +1250,9 @@ static void it8709_disable(struct ite_dev *dev)
- 	ite_dbg("%s called", __func__);
- 
- 	/* clear out all interrupt enable flags */
--	it8709_wr(dev,
--			    it8709_rr(dev,
--				      IT85_C0IER) & ~(IT85_IEC | IT85_RFOIE |
--						      IT85_RDAIE |
--						      IT85_TLDLIE), IT85_C0IER);
-+	it8709_wr(dev, it8709_rr(dev, IT85_C0IER) &
-+			~(IT85_IEC | IT85_RFOIE | IT85_RDAIE | IT85_TLDLIE),
-+		  IT85_C0IER);
- 
- 	/* disable the receiver */
- 	it8709_disable_rx(dev);
-@@ -1270,11 +1268,9 @@ static void it8709_init_hardware(struct ite_dev *dev)
- 	ite_dbg("%s called", __func__);
- 
- 	/* disable all the interrupts */
--	it8709_wr(dev,
--			    it8709_rr(dev,
--				      IT85_C0IER) & ~(IT85_IEC | IT85_RFOIE |
--						      IT85_RDAIE |
--						      IT85_TLDLIE), IT85_C0IER);
-+	it8709_wr(dev, it8709_rr(dev, IT85_C0IER) &
-+			~(IT85_IEC | IT85_RFOIE | IT85_RDAIE | IT85_TLDLIE),
-+		  IT85_C0IER);
- 
- 	/* program the baud rate divisor */
- 	it8709_wr(dev, ITE_BAUDRATE_DIVISOR & 0xff, IT85_C0BDLR);
-@@ -1282,28 +1278,22 @@ static void it8709_init_hardware(struct ite_dev *dev)
- 			IT85_C0BDHR);
- 
- 	/* program the C0MSTCR register defaults */
--	it8709_wr(dev, (it8709_rr(dev, IT85_C0MSTCR) & ~(IT85_ILSEL |
--								   IT85_ILE
--								   | IT85_FIFOTL
--								   |
--								   IT85_FIFOCLR
--								   |
--								   IT85_RESET))
--			    | IT85_FIFOTL_DEFAULT, IT85_C0MSTCR);
-+	it8709_wr(dev, (it8709_rr(dev, IT85_C0MSTCR) &
-+			~(IT85_ILSEL | IT85_ILE | IT85_FIFOTL
-+			  | IT85_FIFOCLR | IT85_RESET)) | IT85_FIFOTL_DEFAULT,
-+		  IT85_C0MSTCR);
- 
- 	/* program the C0RCR register defaults */
--	it8709_wr(dev,
--			    (it8709_rr(dev, IT85_C0RCR) &
--			     ~(IT85_RXEN | IT85_RDWOS | IT85_RXEND
--			       | IT85_RXACT | IT85_RXDCR)) |
--			    ITE_RXDCR_DEFAULT, IT85_C0RCR);
-+	it8709_wr(dev, (it8709_rr(dev, IT85_C0RCR) &
-+			~(IT85_RXEN | IT85_RDWOS | IT85_RXEND | IT85_RXACT
-+			  | IT85_RXDCR)) | ITE_RXDCR_DEFAULT,
-+		  IT85_C0RCR);
- 
- 	/* program the C0TCR register defaults */
--	it8709_wr(dev, (it8709_rr(dev, IT85_C0TCR)
--				  &~(IT85_TXMPM | IT85_TXMPW))
--			    |IT85_TXRLE | IT85_TXENDF |
--			    IT85_TXMPM_DEFAULT |
--			    IT85_TXMPW_DEFAULT, IT85_C0TCR);
-+	it8709_wr(dev, (it8709_rr(dev, IT85_C0TCR) & ~(IT85_TXMPM | IT85_TXMPW))
-+			| IT85_TXRLE | IT85_TXENDF | IT85_TXMPM_DEFAULT
-+			| IT85_TXMPW_DEFAULT,
-+		  IT85_C0TCR);
- 
- 	/* program the carrier parameters */
- 	ite_set_carrier_params(dev);
--- 
-1.7.1
+Also, on several cases, the datasheets describe a common init sequence that 
+should be done in order to initialize the device, that is on several cases fixed.
 
+So, on most cases, the better approach is to just put the init sequence into a
+table. This also helps to easily fix the init sequence, if the vendor (or new
+rev. engineering dumps) find that such default init sequence changed for whatever
+reason (sometimes, vendors add some new init sequences on some errata, to fix some
+hardware bug).
+
+
+> The technique is quite simple: to each register that can be modified an identification (REGxxxx_IDCFG) was attributed and those that do not need modification was attributed REG_IDCFG_NONE.
+> 
+> The device that uses the demodulator mb86a20s simply informs the registers to be modified through the configuration parameter of the function frontend_attach.
+> 
+> Like in the example:
+> 
+> static struct mb86a20s_config_regs_val mb86a20s_config_regs[] = {
+>     { REG2820_IDCFG, 0x33ddcd },
+>     { REG50D5_IDCFG, 0x00 },    /* use output TS parallel */
+>     { REG50D6_IDCFG, 0x17 }
+> };
+> 
+> static struct mb86a20s_config mb86a20s_cfg = {
+>     .demod_address = DEMOD_I2C_ADDR,
+>     .config_regs_size = ARRAY_SIZE(mb86a20s_config_regs),
+>     .config_regs = mb86a20s_config_regs,
+> };
+> 
+> If there are no registers to be modified to do just this:
+> 
+> static struct mb86a20s_config mb86a20s_cfg = {
+>     .demod_address = DEMOD_I2C_ADDR,
+> };
+> 
+> static int tbs_dtb08_frontend_attach(struct dvb_usb_adapter *adap)
+> {
+>     adap->fe = dvb_attach(mb86a20s_attach, &mb86a20s_cfg, &adap->dev->i2c_adap);
+>     if (adap->fe) {
+>         frontend_tuner_attach(adap);
+>     }
+> }
+> 
+> 
+> 
+> Signed-off-by: Manoel Pinheiro <pinusdtv@hotmail.com>
+
+In this specific case, I think you're adding a more complex logic without a good
+reason for it. Keep the code simple.
+
+NACK.
+
+
+> regs_init.patch
+
+Commenting attached patches is harder, as emails don't like to reply for it.
+The better is to always send patches inlined.
+
+Mauro,
