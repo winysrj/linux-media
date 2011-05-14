@@ -1,102 +1,73 @@
-Return-path: <mchehab@pedra>
-Received: from ns.mm-sol.com ([213.240.235.226]:36256 "EHLO extserv.mm-sol.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934797Ab1ETImR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 May 2011 04:42:17 -0400
-Message-ID: <4DD6295D.9070105@mm-sol.com>
-Date: Fri, 20 May 2011 11:42:05 +0300
-From: Yordan Kamenov <ykamenov@mm-sol.com>
+Return-path: <mchehab@gaivota>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47316 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753521Ab1ENTat (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 May 2011 15:30:49 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Andy Walls <awalls@md.metrocast.net>
+Subject: Re: [PATCHv2] v4l: Add M420 format definition
+Date: Sat, 14 May 2011 21:31:46 +0200
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org
+References: <1305277915-8383-1-git-send-email-laurent.pinchart@ideasonboard.com> <201105131643.41364.laurent.pinchart@ideasonboard.com> <1305379915.2434.35.camel@localhost>
+In-Reply-To: <1305379915.2434.35.camel@localhost>
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-Subject: Re: [libv4l-mcplugin PATCH 0/3] Media controller plugin for libv4l2
-References: <cover.1305804894.git.ykamenov@mm-sol.com> <4DD6141A.8030907@redhat.com>
-In-Reply-To: <4DD6141A.8030907@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201105142131.47200.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hans de Goede wrote:
-> Hi,
-Hi Hans,
->
-> So judging from the directory layout, this is supposed to be a separate
-> project, and not part of v4l-utils / libv4l, right?
->
-It is separate now, but I guess that at some point it would be good to have
-'plugins' directory containing some generic plugins as part of libv4l.
+Hi Andy,
 
-Regards
-Yordan
-> WRT my merging plans for libv4l. I've recently done some much needed
-> work to better support high-res usb cameras. I plan to do a 0.8.4 release
-> with that work included real soon. Once that is done I'll change the 
-> version
-> in the Make.rules to 0.9.0-test and merge the plugin. Then we'll have
-> some 0.9.x releases followed by some 0.9.9x release (all testing 
-> releases)
-> followed by a 0.10.0 which should be the first stable release with plugin
-> support.
->
-> Regards,
->
-> Hans
->
->
-> On 05/19/2011 02:36 PM, Yordan Kamenov wrote:
->> Hi,
->>
->> This is the Media Controller plugin for libv4l. It uses libv4l2 
->> plugin support
->> which is accepted by Hans De Goede, but not yet included in mainline 
->> libv4l2:
->> http://www.spinics.net/lists/linux-media/msg32017.html
->>
->> The plugin allows a traditional v4l2 applications to work with Media 
->> Controller
->> framework. The plugin is loaded when application opens /dev/video0 
->> and it
->> configures the media controller and then all ioctl's by the 
->> applicatin are
->> handled by the plugin.
->>
->> The plugin implements init, close and ioctl callbacks. The init callback
->> checks it's input file descriptor and if it coresponds to 
->> /dev/video0, then
->> the media controller is initialized and appropriate pipeline is created.
->> The close callback deinitializes the pipeline, and closes the media 
->> device.
->> The ioctl callback is responsible to handle ioctl calls from 
->> application by
->> using the media controller pipeline.
->>
->> The plugin uses media-ctl library for media controller operations:
->> http://git.ideasonboard.org/?p=media-ctl.git;a=summary
->>
->> The plugin is divided in three separate patches:
->>   * Media Controller pipelines initialization, configuration and 
->> destruction
->>   * v4l operations - uses some functionality from the first one
->>   * Plugin interface operations (init, close and ioctl) - uses 
->> functionality
->>     from first two
->>
->>
->>
->> Yordan Kamenov (3):
->>    Add files for media controller pipelines
->>    Add files for v4l operations
->>    Add libv4l2 media controller plugin interface files
->>
->> -- 
->> To unsubscribe from this list: send the line "unsubscribe 
->> linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Saturday 14 May 2011 15:31:55 Andy Walls wrote:
+> On Fri, 2011-05-13 at 16:43 +0200, Laurent Pinchart wrote:
+> > On Friday 13 May 2011 14:01:32 Guennadi Liakhovetski wrote:
+> > > Couldn't spot any problems with the patch except:
+> > > 
+> > > On Fri, 13 May 2011, Laurent Pinchart wrote:
+> > > > From: Hans de Goede <hdegoede@redhat.com>
+> > > > 
+> > > > M420 is an hybrid YUV 4:2:2 packet/planar format. Two Y lines are
+> > > 
+> > > Didn't you mean "4:2:0"?
+> > 
+> > Yep. I'll fix that. Thanks for the review.
+> > 
+> > > And if I wanted to nit-pick, I think, it should be "a hybrid," I'm not
+> > > a native-speaker though;)
+> 
+> Yes, "a hybrid" is the correct form.
+> 
+> <digression>
+> The use of "a" or "an" is a speech rule; not a spelling rule.  If the
+> word begins with a consonant sound, "a" is used; if the word begins with
+> a vowel sound, "-n" is appended, so "an" is used.
+> 
+> The initial sounds of English words that begin with "h", "u", and "y"
+> can't be determined by the inital letter alone.  One has to know how to
+> pronounce the word to choose the correct form:
+> 
+> 	a hint
+> 	a unit
+> 	a yard
+> 
+> 	an hour
+> 	an umbrella
+> 	an yttrium atom
+> 
+> The rule for appending "-n" to "a" before a vowel sound allows faster
+> speech.  Without the "-n" before a vowel sound, an English speaker is
+> going to pronounce the "a" either as a dipthong or with a trailing
+> glottal stop.  Either will slow down speech ever so slightly.
+> </digression>
 
+I love your digressions about the English language, please keep them coming 
+:-)
+
+-- 
+Regards,
+
+Laurent Pinchart
