@@ -1,197 +1,263 @@
-Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.128.24]:26093 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754088Ab1ESKlk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 May 2011 06:41:40 -0400
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, nkanchev@mm-sol.com,
-	g.liakhovetski@gmx.de, hverkuil@xs4all.nl, dacohen@gmail.com,
-	riverful@gmail.com, andrew.b.adams@gmail.com, shpark7@stanford.edu
-Subject: [PATCH 1/3] v4l: Add a class and a set of controls for flash devices.
-Date: Thu, 19 May 2011 13:41:24 +0300
-Message-Id: <1305801686-32360-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <4DD4F3CA.3040300@maxwell.research.nokia.com>
-References: <4DD4F3CA.3040300@maxwell.research.nokia.com>
+Return-path: <mchehab@gaivota>
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:3931 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755410Ab1ENLNj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 May 2011 07:13:39 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH/RFC 1/4] V4L: add three new ioctl()s for multi-size videobuffer management
+Date: Sat, 14 May 2011 13:12:58 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+References: <Pine.LNX.4.64.1104010959470.9530@axis700.grange> <Pine.LNX.4.64.1104011010530.9530@axis700.grange> <Pine.LNX.4.64.1105121835370.24486@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1105121835370.24486@axis700.grange>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201105141312.58768.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-From: Sakari Ailus <sakari.ailus@iki.fi>
+On Friday, May 13, 2011 09:45:51 Guennadi Liakhovetski wrote:
+> I've found some more time to get back to this. Let me try to recap, what 
+> has been discussed. I've looked through all replies again (thanks to 
+> all!), so, I'll present a summary. Any mistakes and misinterpretations are 
+> mine;) If I misunderstand someone or forget anything - please, shout!
+> 
+> On Fri, 1 Apr 2011, Guennadi Liakhovetski wrote:
+> 
+> > A possibility to preallocate and initialise buffers of different sizes
+> > in V4L2 is required for an efficient implementation of asnapshot mode.
+> > This patch adds three new ioctl()s: VIDIOC_CREATE_BUFS,
+> > VIDIOC_DESTROY_BUFS, and VIDIOC_SUBMIT_BUF and defines respective data
+> > structures.
+> > 
+> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > ---
+> >  drivers/media/video/v4l2-compat-ioctl32.c |    3 ++
+> >  drivers/media/video/v4l2-ioctl.c          |   43 +++++++++++++++++++++++++++++
+> >  include/linux/videodev2.h                 |   24 ++++++++++++++++
+> >  include/media/v4l2-ioctl.h                |    3 ++
+> >  4 files changed, 73 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
+> > index 7c26947..d71b289 100644
+> > --- a/drivers/media/video/v4l2-compat-ioctl32.c
+> > +++ b/drivers/media/video/v4l2-compat-ioctl32.c
+> > @@ -922,6 +922,9 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
+> >  	case VIDIOC_DQEVENT:
+> >  	case VIDIOC_SUBSCRIBE_EVENT:
+> >  	case VIDIOC_UNSUBSCRIBE_EVENT:
+> > +	case VIDIOC_CREATE_BUFS:
+> > +	case VIDIOC_DESTROY_BUFS:
+> > +	case VIDIOC_SUBMIT_BUF:
+> >  		ret = do_video_ioctl(file, cmd, arg);
+> >  		break;
+> >  
+> > diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+> > index a01ed39..b80a211 100644
+> > --- a/drivers/media/video/v4l2-ioctl.c
+> > +++ b/drivers/media/video/v4l2-ioctl.c
+> > @@ -259,6 +259,9 @@ static const char *v4l2_ioctls[] = {
+> >  	[_IOC_NR(VIDIOC_DQEVENT)]	   = "VIDIOC_DQEVENT",
+> >  	[_IOC_NR(VIDIOC_SUBSCRIBE_EVENT)]  = "VIDIOC_SUBSCRIBE_EVENT",
+> >  	[_IOC_NR(VIDIOC_UNSUBSCRIBE_EVENT)] = "VIDIOC_UNSUBSCRIBE_EVENT",
+> > +	[_IOC_NR(VIDIOC_CREATE_BUFS)]      = "VIDIOC_CREATE_BUFS",
+> > +	[_IOC_NR(VIDIOC_DESTROY_BUFS)]     = "VIDIOC_DESTROY_BUFS",
+> > +	[_IOC_NR(VIDIOC_SUBMIT_BUF)]       = "VIDIOC_SUBMIT_BUF",
+> >  };
+> >  #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
+> >  
+> > @@ -2184,6 +2187,46 @@ static long __video_do_ioctl(struct file *file,
+> >  		dbgarg(cmd, "type=0x%8.8x", sub->type);
+> >  		break;
+> >  	}
+> > +	case VIDIOC_CREATE_BUFS:
+> > +	{
+> > +		struct v4l2_create_buffers *create = arg;
+> > +
+> > +		if (!ops->vidioc_create_bufs)
+> > +			break;
+> > +		ret = check_fmt(ops, create->format.type);
+> > +		if (ret)
+> > +			break;
+> > +
+> > +		if (create->size)
+> > +			CLEAR_AFTER_FIELD(create, count);
+> > +
+> > +		ret = ops->vidioc_create_bufs(file, fh, create);
+> > +
+> > +		dbgarg(cmd, "count=%d\n", create->count);
+> > +		break;
+> > +	}
+> > +	case VIDIOC_DESTROY_BUFS:
+> > +	{
+> > +		struct v4l2_buffer_span *span = arg;
+> > +
+> > +		if (!ops->vidioc_destroy_bufs)
+> > +			break;
+> > +
+> > +		ret = ops->vidioc_destroy_bufs(file, fh, span);
+> > +
+> > +		dbgarg(cmd, "count=%d", span->count);
+> > +		break;
+> > +	}
+> > +	case VIDIOC_SUBMIT_BUF:
+> > +	{
+> > +		unsigned int *i = arg;
+> > +
+> > +		if (!ops->vidioc_submit_buf)
+> > +			break;
+> > +		ret = ops->vidioc_submit_buf(file, fh, *i);
+> > +		dbgarg(cmd, "index=%d", *i);
+> > +		break;
+> > +	}
+> >  	default:
+> >  	{
+> >  		bool valid_prio = true;
+> > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> > index aa6c393..b6ef46e 100644
+> > --- a/include/linux/videodev2.h
+> > +++ b/include/linux/videodev2.h
+> > @@ -1847,6 +1847,26 @@ struct v4l2_dbg_chip_ident {
+> >  	__u32 revision;    /* chip revision, chip specific */
+> >  } __attribute__ ((packed));
+> >  
+> > +/* VIDIOC_DESTROY_BUFS */
+> > +struct v4l2_buffer_span {
+> > +	__u32			index;	/* output: buffers index...index + count - 1 have been created */
+> > +	__u32			count;
+> > +	__u32			reserved[2];
+> > +};
+> > +
+> > +/* struct v4l2_createbuffers::flags */
+> > +#define V4L2_BUFFER_FLAG_NO_CACHE_INVALIDATE	(1 << 0)
+> 
+> 1. An additional flag FLAG_NO_CACHE_FLUSH is needed for output devices.
+> 
+> 2. Both these flags should not be passed with CREATE, but with SUBMIT 
+> (which will be renamed to PREPARE or something similar). It should be 
+> possible to prepare the same buffer with different cacheing attributes 
+> during a running operation. Shall these flags be added to values, taken by 
+> struct v4l2_buffer::flags, since that is the struct, that will be used as 
+> the argument for the new version of the SUBMIT ioctl()?
 
-Add a control class and a set of controls to support LED and Xenon flash
-devices. An example of such a device is the adp1653.
+Yes. You may want to give these flags to QBUF as well, so they belong in
+v4l2_buffer.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
----
- drivers/media/video/v4l2-ctrls.c |   45 ++++++++++++++++++++++++++++++++++++++
- include/linux/videodev2.h        |   36 ++++++++++++++++++++++++++++++
- 2 files changed, 81 insertions(+), 0 deletions(-)
+> 
+> > +
+> > +/* VIDIOC_CREATE_BUFS */
+> > +struct v4l2_create_buffers {
+> > +	__u32			index;		/* output: buffers index...index + count - 1 have been created */
+> > +	__u32			count;
+> > +	__u32			flags;		/* V4L2_BUFFER_FLAG_* */
+> > +	enum v4l2_memory        memory;
+> > +	__u32			size;		/* Explicit size, e.g., for compressed streams */
+> > +	struct v4l2_format	format;		/* "type" is used always, the rest if size == 0 */
+> > +};
+> 
+> 1. Care must be taken to keep index <= V4L2_MAX_FRAME
+> 
+> 2. A reserved field is needed.
+> 
+> > +
+> >  /*
+> >   *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
+> >   *
+> > @@ -1937,6 +1957,10 @@ struct v4l2_dbg_chip_ident {
+> >  #define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct v4l2_event_subscription)
+> >  #define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 91, struct v4l2_event_subscription)
+> >  
+> > +#define VIDIOC_CREATE_BUFS	_IOWR('V', 92, struct v4l2_create_buffers)
+> > +#define VIDIOC_DESTROY_BUFS	_IOWR('V', 93, struct v4l2_buffer_span)
+> > +#define VIDIOC_SUBMIT_BUF	 _IOW('V', 94, int)
+> 
+> This has become the hottest point for discussion.
+> 
+> 1. VIDIOC_CREATE_BUFS: should the REQBUFS and CREATE/DESTROY APIs be 
+> allowed to be mixed? REQBUFS is compulsory, CREATE/DESTROY will be 
+> optional. But shall applications be allowed to mix them? No consensus has 
+> been riched. This will also depend on whether DESTROY will be implemented 
+> at all (see below).
 
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 2412f08..74aae36 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -216,6 +216,17 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		"75 useconds",
- 		NULL,
- 	};
-+	static const char * const flash_led_mode[] = {
-+		"Off",
-+		"Flash",
-+		"Torch",
-+		NULL,
-+	};
-+	static const char * const flash_strobe_source[] = {
-+		"Software",
-+		"External",
-+		NULL,
-+	};
+As I mentioned before I see no technical reason whatsoever why REQBUFS and
+CREATE/DESTROY_BUFS can't live in perfect harmony. Requiring apps to use one
+or the other only will lead to massive confusion (I made that mistake once with
+the extended controls API, which I've corrected later).
+
+> 2. VIDIOC_DESTROY_BUFS: has been discussed a lot
+> 
+> (a) shall it be allowed to create holes in indices? agreement was: not at 
+> this stage, but in the future this might be needed.
+> 
+> (b) ioctl() argument: shall it take a span or an array of indices? I don't 
+> think arrays make any sense here: on CREATE you always get contiguous 
+> index sequences, and you are only allowed to DESTROY the same index sets. 
+> 
+> (c) shall it be implemented at all, now that we don't know, how to handle 
+> holes, or shall we just continue using REQBUFS(0) or close() to release 
+> all buffers at once? Not implementing DESTROY now has the disadvantage, 
+> that if you allocate 2 buffer sets of sizes A (small) and B (big), and 
+> then don't need B any more, but instead need C != B (big), you cannot do 
+> this. But this is just one of hypothetical use-cases. No consensus 
+> reached.
+
+I go for (c). Note that one fall-out from the whole GPU/V4L buffer sharing
+discussion might be that we need it after all. But at least then we have a
+specific use-case.
+
+> 3. VIDIOC_SUBMIT_BUF:
+> 
+> (a) shall be renamed to something with prepare or pre-queue in the name 
+> and call the .buf_prepare() videobuf2 method. This hasn't raised any 
+> objections, has been implemented in v2 (has not been posted yet). Name 
+> will be changed to VIDIOC_PREPARE_BUF
+> 
+> (b) Proposed to use struct v4l2_buffer as the argument. Applications 
+> anyway need those structs for other ioctl()s and the information is needed 
+> for .buf_prepare(). This is done in v2.
+
+Great! Looking forward to v2.
  
- 	switch (id) {
- 	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
-@@ -256,6 +267,10 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		return colorfx;
- 	case V4L2_CID_TUNE_PREEMPHASIS:
- 		return tune_preemphasis;
-+	case V4L2_CID_FLASH_LED_MODE:
-+		return flash_led_mode;
-+	case V4L2_CID_FLASH_STROBE_SOURCE:
-+		return flash_strobe_source;
- 	default:
- 		return NULL;
- 	}
-@@ -389,6 +404,21 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_TUNE_POWER_LEVEL:		return "Tune Power Level";
- 	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:	return "Tune Antenna Capacitor";
- 
-+	/* Flash controls */
-+	case V4L2_CID_FLASH_CLASS:		return "Flash controls";
-+	case V4L2_CID_FLASH_LED_MODE:		return "LED mode";
-+	case V4L2_CID_FLASH_STROBE_SOURCE:	return "Strobe source";
-+	case V4L2_CID_FLASH_STROBE:		return "Strobe";
-+	case V4L2_CID_FLASH_STROBE_STOP:	return "Stop strobe";
-+	case V4L2_CID_FLASH_STROBE_STATUS:	return "Strobe status";
-+	case V4L2_CID_FLASH_TIMEOUT:		return "Strobe timeout";
-+	case V4L2_CID_FLASH_INTENSITY:		return "Intensity, flash mode";
-+	case V4L2_CID_FLASH_TORCH_INTENSITY:	return "Intensity, torch mode";
-+	case V4L2_CID_FLASH_INDICATOR_INTENSITY: return "Intensity, indicator";
-+	case V4L2_CID_FLASH_FAULT:		return "Faults";
-+	case V4L2_CID_FLASH_CHARGE:		return "Charge";
-+	case V4L2_CID_FLASH_READY:		return "Ready to strobe";
-+
- 	default:
- 		return NULL;
- 	}
-@@ -423,12 +453,17 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_PILOT_TONE_ENABLED:
- 	case V4L2_CID_ILLUMINATORS_1:
- 	case V4L2_CID_ILLUMINATORS_2:
-+	case V4L2_CID_FLASH_STROBE_STATUS:
-+	case V4L2_CID_FLASH_CHARGE:
-+	case V4L2_CID_FLASH_READY:
- 		*type = V4L2_CTRL_TYPE_BOOLEAN;
- 		*min = 0;
- 		*max = *step = 1;
- 		break;
- 	case V4L2_CID_PAN_RESET:
- 	case V4L2_CID_TILT_RESET:
-+	case V4L2_CID_FLASH_STROBE:
-+	case V4L2_CID_FLASH_STROBE_STOP:
- 		*type = V4L2_CTRL_TYPE_BUTTON;
- 		*flags |= V4L2_CTRL_FLAG_WRITE_ONLY;
- 		*min = *max = *step = *def = 0;
-@@ -452,6 +487,8 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_EXPOSURE_AUTO:
- 	case V4L2_CID_COLORFX:
- 	case V4L2_CID_TUNE_PREEMPHASIS:
-+	case V4L2_CID_FLASH_LED_MODE:
-+	case V4L2_CID_FLASH_STROBE_SOURCE:
- 		*type = V4L2_CTRL_TYPE_MENU;
- 		break;
- 	case V4L2_CID_RDS_TX_PS_NAME:
-@@ -462,6 +499,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_CAMERA_CLASS:
- 	case V4L2_CID_MPEG_CLASS:
- 	case V4L2_CID_FM_TX_CLASS:
-+	case V4L2_CID_FLASH_CLASS:
- 		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
- 		/* You can neither read not write these */
- 		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
-@@ -474,6 +512,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 		/* Max is calculated as RGB888 that is 2^24 */
- 		*max = 0xFFFFFF;
- 		break;
-+	case V4L2_CID_FLASH_FAULT:
-+		*type = V4L2_CTRL_TYPE_BITMASK;
-+		break;
- 	default:
- 		*type = V4L2_CTRL_TYPE_INTEGER;
- 		break;
-@@ -519,6 +560,10 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_ZOOM_RELATIVE:
- 		*flags |= V4L2_CTRL_FLAG_WRITE_ONLY;
- 		break;
-+	case V4L2_CID_FLASH_STROBE_STATUS:
-+	case V4L2_CID_FLASH_READY:
-+		*flags |= V4L2_CTRL_FLAG_READ_ONLY;
-+		break;
- 	}
- }
- EXPORT_SYMBOL(v4l2_ctrl_fill);
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index be82c8e..e364350 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1022,6 +1022,7 @@ struct v4l2_ext_controls {
- #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls */
- #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
- #define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
-+#define V4L2_CTRL_CLASS_FLASH 0x009c0000	/* Camera flash controls */
- 
- #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
- #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
-@@ -1423,6 +1424,41 @@ enum v4l2_preemphasis {
- #define V4L2_CID_TUNE_POWER_LEVEL		(V4L2_CID_FM_TX_CLASS_BASE + 113)
- #define V4L2_CID_TUNE_ANTENNA_CAPACITOR		(V4L2_CID_FM_TX_CLASS_BASE + 114)
- 
-+/* Flash and privacy (indicator) light controls */
-+#define V4L2_CID_FLASH_CLASS_BASE		(V4L2_CTRL_CLASS_FLASH | 0x900)
-+#define V4L2_CID_FLASH_CLASS			(V4L2_CTRL_CLASS_FLASH | 1)
-+
-+#define V4L2_CID_FLASH_LED_MODE			(V4L2_CID_FLASH_CLASS_BASE + 1)
-+enum v4l2_flash_led_mode {
-+	V4L2_FLASH_LED_MODE_NONE,
-+	V4L2_FLASH_LED_MODE_FLASH,
-+	V4L2_FLASH_LED_MODE_TORCH,
-+};
-+
-+#define V4L2_CID_FLASH_STROBE_SOURCE		(V4L2_CID_FLASH_CLASS_BASE + 2)
-+enum v4l2_flash_strobe_source {
-+	V4L2_FLASH_STROBE_SOURCE_SOFTWARE,
-+	V4L2_FLASH_STROBE_SOURCE_EXTERNAL,
-+};
-+
-+#define V4L2_CID_FLASH_STROBE			(V4L2_CID_FLASH_CLASS_BASE + 3)
-+#define V4L2_CID_FLASH_STROBE_STOP		(V4L2_CID_FLASH_CLASS_BASE + 4)
-+#define V4L2_CID_FLASH_STROBE_STATUS		(V4L2_CID_FLASH_CLASS_BASE + 5)
-+
-+#define V4L2_CID_FLASH_TIMEOUT			(V4L2_CID_FLASH_CLASS_BASE + 6)
-+#define V4L2_CID_FLASH_INTENSITY		(V4L2_CID_FLASH_CLASS_BASE + 7)
-+#define V4L2_CID_FLASH_TORCH_INTENSITY		(V4L2_CID_FLASH_CLASS_BASE + 8)
-+#define V4L2_CID_FLASH_INDICATOR_INTENSITY	(V4L2_CID_FLASH_CLASS_BASE + 9)
-+
-+#define V4L2_CID_FLASH_FAULT			(V4L2_CID_FLASH_CLASS_BASE + 10)
-+#define V4L2_FLASH_FAULT_OVER_VOLTAGE		(1 << 0)
-+#define V4L2_FLASH_FAULT_TIMEOUT		(1 << 1)
-+#define V4L2_FLASH_FAULT_OVER_TEMPERATURE	(1 << 2)
-+#define V4L2_FLASH_FAULT_SHORT_CIRCUIT		(1 << 3)
-+
-+#define V4L2_CID_FLASH_CHARGE			(V4L2_CID_FLASH_CLASS_BASE + 11)
-+#define V4L2_CID_FLASH_READY			(V4L2_CID_FLASH_CLASS_BASE + 12)
-+
- /*
-  *	T U N I N G
-  */
--- 
-1.7.2.5
+> 4. It has been proposed to create wrappers to allow drivers to only 
+> implement CREATE/DESTROY and have those wrappers also provide REQBUFS, 
+> using them.
+> 
+> > +
+> >  /* Reminder: when adding new ioctls please add support for them to
+> >     drivers/media/video/v4l2-compat-ioctl32.c as well! */
+> 
+> 1. 'enum memory' and struct v4l2_format need special handling. Fixed in 
+> v2, untested.
+> 
+> >  
+> > diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+> > index dd9f1e7..00962c6 100644
+> > --- a/include/media/v4l2-ioctl.h
+> > +++ b/include/media/v4l2-ioctl.h
+> > @@ -122,6 +122,9 @@ struct v4l2_ioctl_ops {
+> >  	int (*vidioc_qbuf)    (struct file *file, void *fh, struct v4l2_buffer *b);
+> >  	int (*vidioc_dqbuf)   (struct file *file, void *fh, struct v4l2_buffer *b);
+> >  
+> > +	int (*vidioc_create_bufs) (struct file *file, void *fh, struct v4l2_create_buffers *b);
+> > +	int (*vidioc_destroy_bufs)(struct file *file, void *fh, struct v4l2_buffer_span *b);
+> > +	int (*vidioc_submit_buf)  (struct file *file, void *fh, unsigned int i);
+> >  
+> >  	int (*vidioc_overlay) (struct file *file, void *fh, unsigned int i);
+> >  	int (*vidioc_g_fbuf)   (struct file *file, void *fh,
+> 
+> Personally, I think, one of viable solutions for now would be to implement
+> 
+> > +#define VIDIOC_CREATE_BUFS	_IOWR('V', 92, struct v4l2_create_buffers)
+> > +#define VIDIOC_PREPARE_BUF	 _IOW('V', 93, struct v4l2_buffer)
 
+Agreed.
+
+Regards,
+
+	Hans
