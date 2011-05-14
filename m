@@ -1,126 +1,64 @@
-Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:48203 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751062Ab1EESyf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 May 2011 14:54:35 -0400
-Received: by eyx24 with SMTP id 24so762625eyx.19
-        for <linux-media@vger.kernel.org>; Thu, 05 May 2011 11:54:34 -0700 (PDT)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: Andrew Junev <a-j@a-j.ru>
-Subject: Re: [linux-dvb] TeVii S470 (cx23885 / ds3000) makes the machine unstable
-Date: Thu, 5 May 2011 21:55:14 +0300
-References: <1908281867.20110505213806@a-j.ru>
-In-Reply-To: <1908281867.20110505213806@a-j.ru>
-Cc: linux-dvb@linuxtv.org, linux-media@vger.kernel.org
+Return-path: <mchehab@gaivota>
+Received: from mx1.redhat.com ([209.132.183.28]:28497 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755981Ab1ENLqK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 May 2011 07:46:10 -0400
+Message-ID: <4DCE6B7B.1080907@redhat.com>
+Date: Sat, 14 May 2011 13:46:03 +0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201105052155.14753.liplianin@me.by>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	Jesse Barker <jesse.barker@linaro.org>
+Subject: Re: Summary of the V4L2 discussions during LDS - was: Re: Embedded
+ Linux memory management interest group list
+References: <BANLkTimoKzWrAyCBM2B9oTEKstPJjpG_MA@mail.gmail.com> <4DCE5726.1030705@redhat.com> <201105141302.55100.hverkuil@xs4all.nl>
+In-Reply-To: <201105141302.55100.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-В сообщении от 5 мая 2011 20:38:06 автор Andrew Junev написал:
-> Hello All,
-> 
->   I'm  trying  to set up a TeVii S470 DVB-S2 card for use in my MythTV
->   system  running  on  Fedora 13. I already have a couple of TT S-1401
->   cards in that machine, and it works fine.
-> 
->   I  copied   the  firmware for my S470 as described on the Wiki page.
->   The  card is detected  and seem to work. I am able to watch existing
->   channels, and even found some DVB-S2 transponders.
-> 
->   But  the  machine  is  very  unstable. After a while, I get a lot of
->   errors in my /var/log/messages , like:
-> 
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xb2(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_writereg: writereg error(err ==
-> -5, reg == 0x03, value == 0x11) May  3 22:35:51 localhost kernel:
-> ds3000_tuner_writereg: writereg error(err == -5, reg == 0x42, value ==
-> 0x73) May  3 22:35:51 localhost kernel: ds3000_writereg: writereg
-> error(err == -5, reg == 0x03, value == 0x11) May  3 22:35:51 localhost
-> kernel: ds3000_tuner_writereg: writereg error(err == -5, reg == 0x05,
-> value == 0x01) May  3 22:35:51 localhost kernel: ds3000_writereg: writereg
-> error(err == -5, reg == 0x03, value == 0x11) May  3 22:35:51 localhost
-> kernel: ds3000_tuner_writereg: writereg error(err == -5, reg == 0x62,
-> value == 0xf5)
-> 
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> 
-> 
-> There   are   a  lot  of  lines  like  these  in the log (tens or even
-> hundreds  per  second).  And  at some point the machine just freezes -
-> stops  responding  completely.  It  happens  even  if I'm not watching
-> anything.
-> 
-> If I take the S470 out, my machine works just fine again.
-> 
-> 
-> Some more info from the log - perhaps something could be useful:
-> 
-> May  2 20:39:15 localhost kernel: Linux video capture interface: v2.00
-> May  2 20:39:15 localhost kernel: cx23885 driver version 0.0.2 loaded
-> May  2 20:39:15 localhost kernel: cx23885 0000:04:00.0: PCI INT A -> GSI 18
-> (level, low) -> IRQ 18 May  2 20:39:15 localhost kernel: LNBx2x attached
-> on addr=8
-> May  2 20:39:15 localhost kernel: DVB: registering adapter 0 frontend 0
-> (Philips TDA10086 DVB-S)... May  2 20:39:15 localhost kernel: budget dvb
-> 0000:06:02.0: PCI INT A -> GSI 18 (level, low) -> IRQ 18 May  2 20:39:15
-> localhost kernel: CORE cx23885[0]: subsystem: d470:9022, board: TeVii S470
-> [card=15,autodetected] May  2 20:39:15 localhost kernel: IRQ 18/:
-> IRQF_DISABLED is not guaranteed on shared IRQs May  2 20:39:15 localhost
-> kernel: saa7146: found saa7146 @ mem fb3f4800 (revision 1, irq 18)
-> (0x13c2,0x1018). May  2 20:39:15 localhost kernel: saa7146 (1): dma buffer
-> size 192512 May  2 20:39:15 localhost kernel: DVB: registering new adapter
-> (TT-Budget-S-1401 PCI) May  2 20:39:15 localhost kernel: adapter has MAC
-> addr = 00:d0:5c:0b:01:2d May  2 20:39:15 localhost kernel: LNBx2x attached
-> on addr=8
-> May  2 20:39:15 localhost kernel: DVB: registering adapter 1 frontend 0
-> (Philips TDA10086 DVB-S)... May  2 20:39:15 localhost kernel:
-> cx23885_dvb_register() allocating 1 frontend(s) May  2 20:39:15 localhost
-> kernel: cx23885[0]: cx23885 based dvb card May  2 20:39:15 localhost
-> kernel: DS3000 chip version: 0.192 attached. May  2 20:39:15 localhost
-> kernel: DVB: registering new adapter (cx23885[0]) May  2 20:39:15
-> localhost kernel: DVB: registering adapter 2 frontend 0 (Montage
-> Technology DS3000/TS2020)... May  2 20:39:15 localhost kernel:
-> cx23885_dev_checkrevision() Hardware revision = 0xb0 May  2 20:39:15
-> localhost kernel: cx23885[0]/0: found at 0000:04:00.0, rev: 2, irq: 18,
-> latency: 0, mmio: 0xfe800000 May  2 20:39:15 localhost kernel: IRQ
-> 18/cx23885[0]: IRQF_DISABLED is not guaranteed on shared IRQs
-> 
-> 
-> # uname -a
-> Linux mythbackend 2.6.34.8-68.fc13.i686.PAE #1 SMP Thu Feb 17 14:54:10 UTC
-> 2011 i686 i686 i386 GNU/Linux #
-> 
-> 
-> I searched the Net and found a similar question that was raised some time
-> ago, but there was not even a discussion on this topic...
-> 
-> If  someone  else  has  the  same  DVB-S  card  -  please  share  your
-> experience! I'd appreciate any ideas!
-Hello,
+Em 14-05-2011 13:02, Hans Verkuil escreveu:
+> On Saturday, May 14, 2011 12:19:18 Mauro Carvalho Chehab wrote:
 
-Your kernel seems necessary to update...
+>> So, based at all I've seen, I'm pretty much convinced that the normal MMAP
+>> way of streaming (VIDIOC_[REQBUF|STREAMON|STREAMOFF|QBUF|DQBUF ioctl's)
+>> are not the best way to share data with framebuffers.
+> 
+> I agree with that, but it is a different story between two V4L2 devices. There
+> you obviously want to use the streaming ioctls and still share buffers.
 
-Best Regards
-Igor
--- 
-Igor M. Liplianin
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+I don't think so. the requirement for syncing the framebuffer between the two
+V4L2 devices is pretty much the same as we have with one V4L2 device and one GPU.
+
+On both cases, the requirement is to pass a framebuffer between two entities, 
+and not a video stream.
+
+For example, imagine something like:
+
+	V4L2 camera =====> V4L2 encoder t MPEG2
+		     ||
+		     LL==> GPU
+
+Both GPU and the V4L2 encoder should use the same logic to be sure that they will
+use a buffer that were filled already by the camera. Also, the V4L2 camera
+driver can't re-use such framebuffer before being sure that both consumers 
+has already stopped using it.
+
+So, it is the same requirement as having four displays receiving such framebuffer.
+
+Of course, a GPU endpoint may require some extra information for the blending,
+but also a V4L node may require some other type of extra information.
+
+>> We probably need
+>> something that it will be an enhanced version of the VIDIOC_FBUF/VIDIOC_OVERLAY
+>> ioctls. Unfortunately, we can't just add more stuff there, as there's no
+>> reserved space. So, we'll probably add some VIDIOC_FBUF2 series of ioctl's.
+> 
+> That will be useful as well to add better support for blending and Z-ordering
+> between overlays. The old API for that is very limited in that respect.
+
+Agreed.
+
+Mauro.
