@@ -1,100 +1,98 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2098 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757382Ab1EYI15 (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:65454 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755223Ab1ENWjq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 May 2011 04:27:57 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [GIT PATCHES FOR 2.6.40] Fixes
-Date: Wed, 25 May 2011 10:27:48 +0200
-Cc: "linux-media" <linux-media@vger.kernel.org>,
-	Manjunatha Halli <manjunatha_halli@ti.com>,
-	"Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-References: <201105231306.56050.hverkuil@xs4all.nl> <4DDB0D08.2000503@redhat.com> <201105240828.32866.hverkuil@xs4all.nl>
-In-Reply-To: <201105240828.32866.hverkuil@xs4all.nl>
+	Sat, 14 May 2011 18:39:46 -0400
+Received: by vws1 with SMTP id 1so2487231vws.19
+        for <linux-media@vger.kernel.org>; Sat, 14 May 2011 15:39:45 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201105251027.48424.hverkuil@xs4all.nl>
+In-Reply-To: <AANLkTikgwQbrETmX7pOcBnsM2w+ipnMczCJBSa8LwEeQ@mail.gmail.com>
+References: <AANLkTi=_LHucekW21KeGt3yWMNYHntQ5nVvHUO2EVHAO@mail.gmail.com>
+	<AANLkTimDK7kwV3AeZm5+56W3V_yp+nghq67qYP2r4DWq@mail.gmail.com>
+	<AANLkTimDVfv-SGv8d0TVPPQD+eU8yUQ08MrCGXrXhMtz@mail.gmail.com>
+	<AANLkTi=wotgd2JQ5b65rh5ExoU=+c4cAOZNFAg-NzJwr@mail.gmail.com>
+	<AANLkTin6LyzVV=xw7mPOx3TupmX0YjQ38Q2Jzzpve+nS@mail.gmail.com>
+	<87oc73muul.fsf@nemi.mork.no>
+	<AANLkTikgwQbrETmX7pOcBnsM2w+ipnMczCJBSa8LwEeQ@mail.gmail.com>
+Date: Sun, 15 May 2011 00:39:44 +0200
+Message-ID: <BANLkTims3znowDKpsFHHcO2BjBxAcbz5=A@mail.gmail.com>
+Subject: Re: DVB driver for TerraTec H7 - how do I install them?
+From: Torfinn Ingolfsen <tingox@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Tuesday, May 24, 2011 08:28:32 Hans Verkuil wrote:
-> On Tuesday, May 24, 2011 03:42:32 Mauro Carvalho Chehab wrote:
-> > Em 23-05-2011 08:06, Hans Verkuil escreveu:
-> > > Hi Mauro,
-> > > 
-> > > Here are a few fixes: the first fixes a bug in the wl12xx drivers (I hope Matti's
-> > > email is still correct). The second fixes a few DocBook validation errors, and
-> > > the last fixes READ_ONLY and GRABBED handling in the control framework.
-> > > 
-> > > Regards,
-> > > 
-> > > 	Hans
-> > > 
-> > > The following changes since commit 87cf028f3aa1ed51fe29c36df548aa714dc7438f:
-> > > 
-> > >   [media] dm1105: GPIO handling added, I2C on GPIO added, LNB control through GPIO reworked (2011-05-21 11:10:28 -0300)
-> > > 
-> > > are available in the git repository at:
-> > >   ssh://linuxtv.org/git/hverkuil/media_tree.git fixes
-> > > 
-> > > Hans Verkuil (3):
-> > >       wl12xx: g_volatile_ctrl fix: wrong field set.
-> > >       Media DocBook: fix validation errors.
-> > 
-> > The two above are fixes...
-> > 
-> > >       v4l2-ctrls: drivers should be able to ignore READ_ONLY and GRABBED flags
-> > 
-> > But this one is a change at the behaviour. I need to analyse it better. The idea
-> > of a "read only" control that it is not read only seems too weird on my tired eyes.
-> 
-> It's read-only for *applications*. But if you have a read-only control that
-> reflects a driver state, then it should be possible for a *driver* to change
-> it. It's something that is needed for the upcoming Flash and HDMI APIs.
-> 
-> The userspace behavior does not change.
-> 
-> BTW, if you prefer to move this last patch to 2.6.41, then that's OK by me.
-> It's not really necessary for 2.6.40.
+Update:
+There is a new / updated driver for the H7 over at TerraTec's site:
+http://linux.terratec.de/files/TERRATEC_H7/20110323_TERRATEC_H7_Linux.tar.gz
 
-I'm going to move this patch to 2.6.41, so there is no need for you to review this.
-I'll include it in another patch series I'm working on.
+and this time, it includes instructions. Using these instructions and
+Xubuntu 10.10 with this kernel:
+tingo@vm:~$ uname -a
+Linux vm 2.6.35-28-generic-pae #50-Ubuntu SMP Fri Mar 18 20:43:15 UTC
+2011 i686 GNU/Linux
 
+I was able to get the H7 recognized. From /var/log/messages:
+May 14 23:59:26 vm kernel: [ 4226.560048] usb 1-2: new high speed USB
+device using ehci_hcd and address 3
+May 14 23:59:27 vm kernel: [ 4227.007366] az6007: henry :: az6007 usb
+module init
+May 14 23:59:27 vm kernel: [ 4227.007551] az6007: usb in operation failed. (-32)
+May 14 23:59:27 vm kernel: [ 4227.007795] az6007: FW GET_VERSION length: -32
+May 14 23:59:27 vm kernel: [ 4227.007796]
+May 14 23:59:27 vm kernel: [ 4227.007798] az6007: cold: 1
+May 14 23:59:27 vm kernel: [ 4227.007798]
+May 14 23:59:27 vm kernel: [ 4227.007800] dvb-usb: found a 'TerraTec
+DTV StarBox DVB-T/C USB2.0 (az6007)' in cold state, will try to load a
+firmware
+May 14 23:59:27 vm kernel: [ 4227.009825] dvb-usb: downloading
+firmware from file 'dvb-usb-az6007-03.fw'
+May 14 23:59:27 vm kernel: [ 4227.084577] dvb-usb: found a 'TerraTec
+DTV StarBox DVB-T/C USB2.0 (az6007)' in warm state.
+May 14 23:59:27 vm kernel: [ 4227.084674] dvb-usb: will pass the
+complete MPEG2 transport stream to the software demuxer.
+May 14 23:59:27 vm kernel: [ 4227.302655] DVB: registering new adapter
+(TerraTec DTV StarBox DVB-T/C USB2.0 (az6007))
+May 14 23:59:27 vm kernel: [ 4227.311991] dvb-usb: MAC address:
+c2:cd:0c:a3:10:00
+May 14 23:59:27 vm kernel: [ 4227.312475] az6007:
+az6007_frontend_poweron adap=f34ee88c adap->dev=f34ee000
+May 14 23:59:27 vm kernel: [ 4227.312478]
+May 14 23:59:28 vm kernel: [ 4227.720338] az6007: az6007_frontend_poweron
+May 14 23:59:28 vm kernel: [ 4227.720343]
+May 14 23:59:28 vm kernel: [ 4227.720349] az6007:
+az6007_frontend_reset adap=f34ee88c adap->dev=f34ee000
+May 14 23:59:28 vm kernel: [ 4227.720352]
+May 14 23:59:28 vm kernel: [ 4228.332027] az6007: reset az6007 frontend
+May 14 23:59:28 vm kernel: [ 4228.332032]
+May 14 23:59:28 vm kernel: [ 4228.332036] az6007: az6007_frontend_attach
+May 14 23:59:28 vm kernel: [ 4228.332038]
+May 14 23:59:28 vm kernel: [ 4228.332040] az6007: az6007_drxk3913_config_DVBT
+May 14 23:59:28 vm kernel: [ 4228.332042]
+May 14 23:59:28 vm kernel: [ 4228.332046] state->frontend.ops =
+drxk3913_ops_dvbt
+May 14 23:59:28 vm kernel: [ 4228.332053] mt2063_attach: Attaching MT2063
+May 14 23:59:28 vm kernel: [ 4228.332057] az6007: found STB6100
+DVB-C/DVB-T frontend @0xc0
+May 14 23:59:28 vm kernel: [ 4228.332059]
+May 14 23:59:28 vm kernel: [ 4228.332066] DVB: registering adapter 0
+frontend 0 (DRXK3913 Multistandard DVB_T)...
+May 14 23:59:28 vm kernel: [ 4228.332278] input: IR-receiver inside an
+USB DVB receiver as
+/devices/pci0000:00/0000:00:13.5/usb1/1-2/input/input4
+May 14 23:59:28 vm kernel: [ 4228.332335] dvb-usb: schedule remote
+query interval to 400 msecs.
+May 14 23:59:28 vm kernel: [ 4228.332341] dvb-usb: TerraTec DTV
+StarBox DVB-T/C USB2.0 (az6007) successfully initialized and
+connected.
+May 14 23:59:28 vm kernel: [ 4228.332385] usbcore: registered new
+interface driver dvb_usb_az6007
+
+Unfortunately, I am not able to test if the driver works just now,
+because currently the driver only supports DVB-T, and I only have
+DVB-C.
+-- 
 Regards,
-
-	Hans
-
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> > 
-> > I'll take a more careful look on it tomorrow.
-> > 
-> > Thanks,
-> > Mauro.
-> > 
-> > > 
-> > >  Documentation/DocBook/dvb/dvbproperty.xml    |    5 ++-
-> > >  Documentation/DocBook/v4l/subdev-formats.xml |   10 ++--
-> > >  drivers/media/radio/radio-wl1273.c           |    2 +-
-> > >  drivers/media/radio/wl128x/fmdrv_v4l2.c      |    2 +-
-> > >  drivers/media/video/v4l2-ctrls.c             |   59 +++++++++++++++++---------
-> > >  5 files changed, 50 insertions(+), 28 deletions(-)
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > > the body of a message to majordomo@vger.kernel.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
-> > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+Torfinn Ingolfsen
