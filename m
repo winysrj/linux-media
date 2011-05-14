@@ -1,112 +1,73 @@
-Return-path: <mchehab@pedra>
-Received: from hqemgate03.nvidia.com ([216.228.121.140]:5907 "EHLO
-	hqemgate03.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756741Ab1EZAGl (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:46746 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757168Ab1ENMar (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 May 2011 20:06:41 -0400
-From: <achew@nvidia.com>
-To: <g.liakhovetski@gmx.de>, <mchehab@redhat.com>, <olof@lixom.net>
-CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	Andrew Chew <achew@nvidia.com>
-Subject: [PATCH 5/5 v2] [media] ov9740: Add suspend/resume
-Date: Wed, 25 May 2011 17:04:32 -0700
-Message-ID: <1306368272-28279-5-git-send-email-achew@nvidia.com>
-In-Reply-To: <1306368272-28279-1-git-send-email-achew@nvidia.com>
-References: <1306368272-28279-1-git-send-email-achew@nvidia.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	Sat, 14 May 2011 08:30:47 -0400
+Subject: Re: [PATCHv2] v4l: Add M420 format definition
+From: Andy Walls <awalls@md.metrocast.net>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org
+In-Reply-To: <201105131643.41364.laurent.pinchart@ideasonboard.com>
+References: <1305277915-8383-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	 <Pine.LNX.4.64.1105131356410.26356@axis700.grange>
+	 <201105131643.41364.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sat, 14 May 2011 09:31:55 -0400
+Message-ID: <1305379915.2434.35.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-From: Andrew Chew <achew@nvidia.com>
+On Fri, 2011-05-13 at 16:43 +0200, Laurent Pinchart wrote:
+> Hi Guennadi,
+> 
+> On Friday 13 May 2011 14:01:32 Guennadi Liakhovetski wrote:
+> > Couldn't spot any problems with the patch except:
+> > 
+> > On Fri, 13 May 2011, Laurent Pinchart wrote:
+> > > From: Hans de Goede <hdegoede@redhat.com>
+> > > 
+> > > M420 is an hybrid YUV 4:2:2 packet/planar format. Two Y lines are
+> > 
+> > Didn't you mean "4:2:0"?
+> 
+> Yep. I'll fix that. Thanks for the review.
+> 
+> > And if I wanted to nit-pick, I think, it should be "a hybrid," I'm not a
+> > native-speaker though;)
 
-On suspend, remember whether we are streaming or not, and at what frame format,
-so that on resume, we can start streaming again.
+Yes, "a hybrid" is the correct form.
 
-Signed-off-by: Andrew Chew <achew@nvidia.com>
----
- drivers/media/video/ov9740.c |   39 +++++++++++++++++++++++++++++++++++++++
- 1 files changed, 39 insertions(+), 0 deletions(-)
+<digression>
+The use of "a" or "an" is a speech rule; not a spelling rule.  If the
+word begins with a consonant sound, "a" is used; if the word begins with
+a vowel sound, "-n" is appended, so "an" is used.
 
-diff --git a/drivers/media/video/ov9740.c b/drivers/media/video/ov9740.c
-index 6c28ae8..4abe943 100644
---- a/drivers/media/video/ov9740.c
-+++ b/drivers/media/video/ov9740.c
-@@ -201,6 +201,10 @@ struct ov9740_priv {
- 
- 	bool				flag_vflip;
- 	bool				flag_hflip;
-+
-+	/* For suspend/resume. */
-+	struct v4l2_mbus_framefmt	current_mf;
-+	int				current_enable;
- };
- 
- static const struct ov9740_reg ov9740_defaults[] = {
-@@ -551,6 +555,8 @@ static int ov9740_s_stream(struct v4l2_subdev *sd, int enable)
- 					       0x00);
- 	}
- 
-+	priv->current_enable = enable;
-+
- 	return ret;
- }
- 
-@@ -786,6 +792,7 @@ static int ov9740_s_fmt(struct v4l2_subdev *sd,
- 			struct v4l2_mbus_framefmt *mf)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct ov9740_priv *priv = to_ov9740(sd);
- 	enum v4l2_colorspace cspace;
- 	enum v4l2_mbus_pixelcode code = mf->code;
- 	int ret;
-@@ -812,6 +819,8 @@ static int ov9740_s_fmt(struct v4l2_subdev *sd,
- 	mf->code	= code;
- 	mf->colorspace	= cspace;
- 
-+	memcpy(&priv->current_mf, mf, sizeof(struct v4l2_mbus_framefmt));
-+
- 	return ret;
- }
- 
-@@ -922,7 +931,37 @@ err:
- 	return ret;
- }
- 
-+static int ov9740_suspend(struct soc_camera_device *icd, pm_message_t state)
-+{
-+	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
-+	struct ov9740_priv *priv = to_ov9740(sd);
-+
-+	if (priv->current_enable) {
-+		int current_enable = priv->current_enable;
-+
-+		ov9740_s_stream(sd, 0);
-+		priv->current_enable = current_enable;
-+	}
-+
-+	return 0;
-+}
-+
-+static int ov9740_resume(struct soc_camera_device *icd)
-+{
-+	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
-+	struct ov9740_priv *priv = to_ov9740(sd);
-+
-+	if (priv->current_enable) {
-+		ov9740_s_fmt(sd, &priv->current_mf);
-+		ov9740_s_stream(sd, priv->current_enable);
-+	}
-+
-+	return 0;
-+}
-+
- static struct soc_camera_ops ov9740_ops = {
-+	.suspend		= ov9740_suspend,
-+	.resume			= ov9740_resume,
- 	.set_bus_param		= ov9740_set_bus_param,
- 	.query_bus_param	= ov9740_query_bus_param,
- 	.controls		= ov9740_controls,
--- 
-1.7.5.2
+The initial sounds of English words that begin with "h", "u", and "y"
+can't be determined by the inital letter alone.  One has to know how to
+pronounce the word to choose the correct form:
+
+	a hint
+	a unit
+	a yard
+
+	an hour
+	an umbrella
+	an yttrium atom
+
+The rule for appending "-n" to "a" before a vowel sound allows faster
+speech.  Without the "-n" before a vowel sound, an English speaker is
+going to pronounce the "a" either as a dipthong or with a trailing
+glottal stop.  Either will slow down speech ever so slightly.
+</digression>
+
+Regards,
+Andy
+
+> I'll fix that too :-)
+> 
+
 
