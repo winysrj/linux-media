@@ -1,198 +1,145 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:44470 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752289Ab1EHKDg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 May 2011 06:03:36 -0400
-Received: by wwa36 with SMTP id 36so4831763wwa.1
-        for <linux-media@vger.kernel.org>; Sun, 08 May 2011 03:03:35 -0700 (PDT)
-Message-ID: <4DC66B03.5080709@gmail.com>
-Date: Sun, 08 May 2011 12:05:55 +0200
-From: Martin Vidovic <xtronom@gmail.com>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1301 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755045Ab1ENLDH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 May 2011 07:03:07 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: Summary of the V4L2 discussions during LDS - was: Re: Embedded Linux memory management interest group list
+Date: Sat, 14 May 2011 13:02:54 +0200
+Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	Jesse Barker <jesse.barker@linaro.org>
+References: <BANLkTimoKzWrAyCBM2B9oTEKstPJjpG_MA@mail.gmail.com> <4DCE5726.1030705@redhat.com>
+In-Reply-To: <4DCE5726.1030705@redhat.com>
 MIME-Version: 1.0
-To: Andreas Oberritter <obi@linuxtv.org>
-CC: Ralph Metzler <rjkm@metzlerbros.de>,
-	Issa Gorissen <flop.m@usa.net>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] Ngene cam device name
-References: <148PeDiAM3760S04.1304497658@web04.cms.usa.net>	<4DC1236C.3000006@linuxtv.org> <19905.13923.40846.342434@morden.metzler> <4DC146E1.3000103@linuxtv.org> <4DC15633.3030300@gmail.com> <4DC166D4.4090408@linuxtv.org> <4DC2B797.3040202@gmail.com> <4DC3E6C7.8040109@linuxtv.org>
-In-Reply-To: <4DC3E6C7.8040109@linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201105141302.55100.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Andreas Oberritter wrote:
-> On 05/05/2011 04:43 PM, Martin Vidovic wrote:
->> 
->> a) Plug two TerraTec Cinergy T RC MKII and try to distinguish between them.
+On Saturday, May 14, 2011 12:19:18 Mauro Carvalho Chehab wrote:
+> Em 18-04-2011 17:15, Jesse Barker escreveu:
+> > One of the big issues we've been faced with at Linaro is around GPU
+> > and multimedia device integration, in particular the memory management
+> > requirements for supporting them on ARM.  This next cycle, we'll be
+> > focusing on driving consensus around a unified memory management
+> > solution for embedded systems that support multiple architectures and
+> > SoCs.  This is listed as part of our working set of requirements for
+> > the next six-month cycle (in spite of the URL, this is not being
+> > treated as a graphics-specific topic - we also have participation from
+> > multimedia and kernel working group folks):
+> > 
+> >   https://wiki.linaro.org/Cycles/1111/TechnicalTopics/Graphics
 > 
-> I don't have any USB or PCI hardware within reach, but if udev is able
-> to create the devices, there should be some way to connect adapters to
-> the bus id through sysfs. I guess that's how it's done with other
-> subsystems, too.
+> As part of the memory management needs, Linaro organized several discussions
+> during Linaro Development Summit (LDS), at Budapest, and invited me and other
+> members of the V4L and DRI community to discuss about the requirements.
+> I wish to thank Linaro for its initiative.
 > 
-> If this information is missing from sysfs, would adding it help to solve
-> this problem?
+> Basically, on several SoC designs, the GPU and the CPU are integrated into
+> the same chipset and they can share the same memory for a framebuffer. Also,
+> they may have some IP blocks that allow processing the framebuffer internally,
+> to do things like enhancing the image and converting it into an mpeg stream.
 > 
-
-Binding to bus id is not a problem. However, especially for USB devices,
-it may be useful to have adapter MAC address in sysfs.
-
->> b) Take a Hybrid terrestrial TV tuner. V4L and DVB APIs (may) use shared
->> resources, how does one find this out?
+> The desire, from the SoC developers, is that those operations should be
+> done using zero-copy transfers.
 > 
-> That's a good question and the same question must be asked for video and
-> audio decoders, which can be controlled by V4L, DVB, ALSA etc.
+> This resembles somewhat the idea of the VIDIOC_OVERLAY/VIDIOC_FBUF API, 
+> that was used in the old days where CPUs weren't fast enough to process
+> video without generating a huge load on it. So the overlay mode were created
+> to allow direct PCI2PCI transfers from the video capture board into the
+> display adapter, using XVideo extension, and removing the overload at the
+> CPU due to a video stream. It were designed as a Kernel API for it, and an
+> userspace X11 driver, that passes a framebuffer reference to the V4L driver,
+> where it is used to program the DMA transfers to happen inside the framebuffer.
 > 
-> How does V4L integrate with ALSA?
+> At the LDS, we had a 3-day discussions about how the buffer sharing should
+> be handled, and Linaro is producing a blueprint plan to address the needs.
+> We had also a discussion about V4L and KMS, allowing both communities to better
+> understand how things are supposed to work on the other side.
 > 
-
-I don't know.
-
->> c.1) How does one know which frontend device can be used with which
->> demux device?
+> From V4L2 perspective, what is needed is to create a way to somehow allow
+> passing a framebuffer between two V4L2 devices and between a V4L2 device
+> and GPU. The V4L2 device can either be an input or an output one.
+> The original idea were to add yet-another-mmap-mode at the VIDIOC streaming
+> ioctls, and keep using QBUF/DQBUF to handle it. However, as I've pointed
+> there, this would leed into sync issues on a shared buffer, causing flip
+> effects. Also, as the API is generic, it can be used also on generic computers,
+> like desktops, notebooks and tablets (even on arm-based designs), and it
+> may end to be actually implemented as a PCI2PCI transfer.
 > 
-> I'd say by default (i.e. without DMX_SET_SOURCE, whether implemented or
-> not) frontendX is connected to demuxX on the same adapter. You have
-> probably faced other situations. Can you describe any?
+> So, based at all I've seen, I'm pretty much convinced that the normal MMAP
+> way of streaming (VIDIOC_[REQBUF|STREAMON|STREAMOFF|QBUF|DQBUF ioctl's)
+> are not the best way to share data with framebuffers.
+
+I agree with that, but it is a different story between two V4L2 devices. There
+you obviously want to use the streaming ioctls and still share buffers.
+
+> We probably need
+> something that it will be an enhanced version of the VIDIOC_FBUF/VIDIOC_OVERLAY
+> ioctls. Unfortunately, we can't just add more stuff there, as there's no
+> reserved space. So, we'll probably add some VIDIOC_FBUF2 series of ioctl's.
+
+That will be useful as well to add better support for blending and Z-ordering
+between overlays. The old API for that is very limited in that respect.
+
+Regards,
+
+	Hans
+
+> It seems to me that the proper way to develop such API is to start working
+> with Xorg V4L driver, changing it to work with KMS and with the new API
+> (probably porting some parts of the Xorg driver to kernelspace).
 > 
-
-I thought we were discussing how to connect frontendX to demuxY on
-different adapters, since this would be needed for nGene CI.
-
->> c.2) Which CA device can be used with which frontend device?
+> One of the problems with a shared framebuffer is that an overlayed V4L stream
+> may, at the worse case, be sent to up to 4 different GPU's and/or displays.
 > 
-> For built-in descramblers, I'd say each caX is always connected to
-> (built into) demuxX.
+> Imagine a scenario like:
 > 
-> For CI slots, this might be different and on the Dreambox we're using a
-> proprietary API to connect CI slots between frontends and demuxes.
+> 	===================+===================
+> 	|                  |                  |
+> 	|      D1     +----|---+     D2       |
+> 	|             | V4L|   |              |
+> 	+-------------|----+---|--------------|
+> 	|             |    |   |              |
+> 	|      D3     +----+---+     D4       |
+> 	|                  |                  |
+> 	=======================================
 > 
-> Is there any in-tree supported hardware, that has more than one CI slot
-> *and* more than one frontend (usable at the same time)?
 > 
-
-NetUP Dual DVB S2 CI
-
->> 
->> The best would be to create independent adapters for each independent CA
->> device (ca0/caio0 pair) - they are independent after all (physically and
->> in the way they're used).
+> Where D1, D2, D3 and D4 are 4 different displays, and the same V4L framebuffer is
+> partially shared between them (the above is an example of a V4L input, although
+> the reverse scenario of having one frame buffer divided into 4 V4L outputs
+> also seems to be possible).
 > 
-> Physically, it's a general purpose TS I/O interface of the nGene
-> chipset. It just happens to be connected to a CI slot. On another board,
-> it might be connected to a modulator or just to some kind of socket.
+> As the same image may be divided into 4 monitors, the buffer filling should be
+> synced with all of them, in order to avoid flipping effects. Also, the shared
+> buffer can't be re-used until all displays finish reading. From what I understood 
+> from the discussions with DRI people, the display API's currently has similar issues
+> of needing to wait for a buffer to be completely used before allowing it to be
+> re-used. According to them, this were solved there by dynamically allocating buffers. 
+> We may need to do something similar to that also at V4L.
 > 
-
-I agree, but I look at it like at any other general purpose interface
-(e.g. USB, PCI).
-
-Maybe nGene is not a good case for such analysis, but there is other
-hardware which would hit this problem again.
-
-I'm aware of two such examples:
-
-1) Hauppauge WinTV-CI (USB attached CI - I think Issa mentioned this one 
-already);
-2) DigitalDevices Octopus (PCI bridge with 4 general purpose ports - Ralph
-mentioned this one and I'm using these cards myself);
-
-> If the next version gets a connector for two switchable CI modules, then
-> the physical independence is gone. You'd have two ca nodes but only one
-> caio node. Or two caio nodes, that can't be used concurrently.
+> Btw, the need of managing buffers is currently being covered by the proposal
+> for new ioctl()s to support multi-sized video-buffers [1].
 > 
-
-What is a switchable CI module?
-
-> Maybe the next version gets the ability to directly connect the TS input
-> from the frontend to the TS output to the CI slot to save copying around
-> the data, by using some kind of pin mux. Not physically independent either.
+> [1] http://www.spinics.net/lists/linux-media/msg30869.html
 > 
-
-When this feature would be in action, opening caioX could return EBUSY and 
-vice versa. This sounds similar to V4L <-> DVB interaction for hybrid
-devices. API can't change the fact a resource is shared.
-
-> It just looks physically independent in the one configuration
-> implemented now.
+> It makes sense to me to discuss such proposal together with the above discussions, 
+> in order to keep the API consistent.
 > 
-
-I don't believe it's an accident how nGene cards interface with CI. To
-me it rather looks like a very good feature.
-
-Imagine a use case like this:
-
-There's a machine with:
-- DigitalDevices CineS2
-- CI-Module attached to CineS2;
-- TechniSat SkyStar2 (has no CI);
-
-A user wants to stream two DVB-S2 transponders using CineS2. They are
-both clear, so CI-Module is not needed.
-
-At the same time, the user wants to stream one DVB-S transponder but it is
-scrambled. Since CI-Module attached to CineS2 is not in use, it can be made 
-to work with SkyStar2 using a few lines of code in user space.
-
->> What I understand you would like to see, is the ability to do direct
->> transfers between independent devices or parts of devices. Is this correct?
+> On my understanding, the SoC people that are driving those changes will
+> be working on providing the API proposals for it. They should also be
+> providing the needed patches, open source drivers and userspace application(s) 
+> that allows testing and validating the GPU <==> V4L transfers using the newly API.
 > 
-> Yes, between parts of devices, where the CI input can be fed by both the
-> TS output of the frontend and from memory (e.g. userspace).
+> Thanks,
+> Mauro
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
-
-I don't know Demux API so well to be able to tell for sure, but it looks
-like it could be used (with a few extensions) instead of caioX.
-
-One benefit of using Demux API would probably be the ability to have PID
-filtering (in software or hardware), I think you've mentioned this already.
-It is also similar to the way on-board decoder can be used on full-featured
-cards.
-
-This way both cases (nGene and your configurable design) could be covered.
-
-On the other hand, using Demux API for nGene looks like an overkill, and
-switching of TS route in your case could be done in some other way.
-Specific HW design related problems seem to be common to both approaches.
-
-Nevertheless, Demux API approach looks cleaner. But on the other hand, it
-hides the fact that CI can be used in this particular way (sysfs could
-help).
-
-I imagine there would still be a difference between the two cases:
-
-- nGene (CineS2 with CI-Module)
-
-Device nodes would be:
-
-/dev/dvb/adapter0/frontend0
-/dev/dvb/adapter0/demux0
-/dev/dvb/adapter0/dvr0
-
-/dev/dvb/adapter1/frontend0
-/dev/dvb/adapter1/demux0
-/dev/dvb/adapter1/dvr0
-
-/dev/dvb/adapter2/ca0
-/dev/dvb/adapter2/demux0
-/dev/dvb/adapter2/dvr0
-
-- Configurable Design (dual card similar to NetUP)
-
-Device nodes would be:
-
-/dev/dvb/adapter0/frontend0
-/dev/dvb/adapter0/demux0
-/dev/dvb/adapter0/dvr0
-/dev/dvb/adapter0/ca0
-
-/dev/dvb/adapter1/frontend0
-/dev/dvb/adapter1/demux0
-/dev/dvb/adapter1/dvr0
-/dev/dvb/adapter1/ca0
-
-What do you say about this difference?
-
-
-Best regards,
-Martin Vidovic
-
