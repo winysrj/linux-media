@@ -1,115 +1,125 @@
 Return-path: <mchehab@gaivota>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:48772 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756197Ab1ELJey (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 May 2011 05:34:54 -0400
-Date: Thu, 12 May 2011 10:34:34 +0100
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Josh Wu <josh.wu@atmel.com>
-Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
-	lars.haring@atmel.com, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, g.liakhovetski@gmx.de
-Subject: Re: [PATCH] [media] at91: add Atmel Image Sensor Interface (ISI)
-	support
-Message-ID: <20110512093433.GD1356@n2100.arm.linux.org.uk>
-References: <1305186138-5656-1-git-send-email-josh.wu@atmel.com>
+Received: from mx1.redhat.com ([209.132.183.28]:24295 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753462Ab1ENKTY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 May 2011 06:19:24 -0400
+Message-ID: <4DCE5726.1030705@redhat.com>
+Date: Sat, 14 May 2011 12:19:18 +0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1305186138-5656-1-git-send-email-josh.wu@atmel.com>
+To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+CC: Jesse Barker <jesse.barker@linaro.org>
+Subject: Summary of the V4L2 discussions during LDS - was: Re: Embedded Linux
+ memory management interest group list
+References: <BANLkTimoKzWrAyCBM2B9oTEKstPJjpG_MA@mail.gmail.com>
+In-Reply-To: <BANLkTimoKzWrAyCBM2B9oTEKstPJjpG_MA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Thu, May 12, 2011 at 03:42:18PM +0800, Josh Wu wrote:
-> This patch is to enable Atmel Image Sensor Interface (ISI) driver support. 
-> - Using soc-camera framework with videobuf2 dma-contig allocator
-> - Supporting video streaming of YUV packed format
-> - Tested on AT91SAM9M10G45-EK with OV2640
+Em 18-04-2011 17:15, Jesse Barker escreveu:
+> One of the big issues we've been faced with at Linaro is around GPU
+> and multimedia device integration, in particular the memory management
+> requirements for supporting them on ARM.  This next cycle, we'll be
+> focusing on driving consensus around a unified memory management
+> solution for embedded systems that support multiple architectures and
+> SoCs.  This is listed as part of our working set of requirements for
+> the next six-month cycle (in spite of the URL, this is not being
+> treated as a graphics-specific topic - we also have participation from
+> multimedia and kernel working group folks):
+> 
+>   https://wiki.linaro.org/Cycles/1111/TechnicalTopics/Graphics
 
-A few more points...
+As part of the memory management needs, Linaro organized several discussions
+during Linaro Development Summit (LDS), at Budapest, and invited me and other
+members of the V4L and DRI community to discuss about the requirements.
+I wish to thank Linaro for its initiative.
 
-> +static int __init atmel_isi_probe(struct platform_device *pdev)
+Basically, on several SoC designs, the GPU and the CPU are integrated into
+the same chipset and they can share the same memory for a framebuffer. Also,
+they may have some IP blocks that allow processing the framebuffer internally,
+to do things like enhancing the image and converting it into an mpeg stream.
 
-Should be __devinit otherwise you'll have section errors.
+The desire, from the SoC developers, is that those operations should be
+done using zero-copy transfers.
 
-> +{
-> +	unsigned int irq;
-> +	struct atmel_isi *isi;
-> +	struct clk *pclk;
-> +	struct resource *regs;
-> +	int ret;
-> +	struct device *dev = &pdev->dev;
-> +	struct isi_platform_data *pdata;
-> +	struct soc_camera_host *soc_host;
-> +
-> +	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +	if (!regs)
-> +		return -ENXIO;
-> +
-> +	pclk = clk_get(&pdev->dev, "isi_clk");
-> +	if (IS_ERR(pclk))
-> +		return PTR_ERR(pclk);
-> +
-> +	clk_enable(pclk);
+This resembles somewhat the idea of the VIDIOC_OVERLAY/VIDIOC_FBUF API, 
+that was used in the old days where CPUs weren't fast enough to process
+video without generating a huge load on it. So the overlay mode were created
+to allow direct PCI2PCI transfers from the video capture board into the
+display adapter, using XVideo extension, and removing the overload at the
+CPU due to a video stream. It were designed as a Kernel API for it, and an
+userspace X11 driver, that passes a framebuffer reference to the V4L driver,
+where it is used to program the DMA transfers to happen inside the framebuffer.
 
-Return value of clk_enable() should be checked.
+At the LDS, we had a 3-day discussions about how the buffer sharing should
+be handled, and Linaro is producing a blueprint plan to address the needs.
+We had also a discussion about V4L and KMS, allowing both communities to better
+understand how things are supposed to work on the other side.
 
-> +
-> +	isi = kzalloc(sizeof(struct atmel_isi), GFP_KERNEL);
-> +	if (!isi) {
-> +		ret = -ENOMEM;
-> +		dev_err(&pdev->dev, "can't allocate interface!\n");
-> +		goto err_alloc_isi;
-> +	}
-> +
-> +	isi->pclk = pclk;
-> +
-> +	spin_lock_init(&isi->lock);
-> +	init_waitqueue_head(&isi->capture_wq);
-> +
-> +	isi->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
-> +	if (IS_ERR(isi->alloc_ctx)) {
-> +		ret = PTR_ERR(isi->alloc_ctx);
-> +		goto err_alloc_isi;
-> +	}
-> +
-> +	isi->regs = ioremap(regs->start, resource_size(regs));
-> +	if (!isi->regs) {
-> +		ret = -ENOMEM;
-> +		goto err_ioremap;
-> +	}
-> +
-> +	if (dev->platform_data)
-> +		pdata = (struct isi_platform_data *) dev->platform_data;
-> +	else {
-> +		static struct isi_platform_data isi_default_data = {
-> +			.frate		= 0,
-> +			.has_emb_sync	= 0,
-> +			.emb_crc_sync	= 0,
-> +			.hsync_act_low	= 0,
-> +			.vsync_act_low	= 0,
-> +			.pclk_act_falling = 0,
-> +			.isi_full_mode	= 1,
-> +			/* to use codec and preview path simultaneously */
-> +			.flags = ISI_DATAWIDTH_8 |
-> +				ISI_DATAWIDTH_10,
-> +		};
-> +		dev_info(&pdev->dev,
-> +			"No config available using default values\n");
-> +		pdata = &isi_default_data;
-> +	}
-> +
-> +	isi->pdata = pdata;
-> +	isi->platform_flags = pdata->flags;
-> +	if (isi->platform_flags == 0)
-> +		isi->platform_flags = ISI_DATAWIDTH_8;
-> +
-> +	isi_writel(isi, V2_CTRL, ISI_BIT(V2_DIS));
-> +	/* Check if module disable */
-> +	while (isi_readl(isi, V2_STATUS) & ISI_BIT(V2_DIS))
-> +		cpu_relax();
-> +
-> +	irq = platform_get_irq(pdev, 0);
+>From V4L2 perspective, what is needed is to create a way to somehow allow
+passing a framebuffer between two V4L2 devices and between a V4L2 device
+and GPU. The V4L2 device can either be an input or an output one.
+The original idea were to add yet-another-mmap-mode at the VIDIOC streaming
+ioctls, and keep using QBUF/DQBUF to handle it. However, as I've pointed
+there, this would leed into sync issues on a shared buffer, causing flip
+effects. Also, as the API is generic, it can be used also on generic computers,
+like desktops, notebooks and tablets (even on arm-based designs), and it
+may end to be actually implemented as a PCI2PCI transfer.
 
-This should also be checked.
+So, based at all I've seen, I'm pretty much convinced that the normal MMAP
+way of streaming (VIDIOC_[REQBUF|STREAMON|STREAMOFF|QBUF|DQBUF ioctl's)
+are not the best way to share data with framebuffers. We probably need
+something that it will be an enhanced version of the VIDIOC_FBUF/VIDIOC_OVERLAY
+ioctls. Unfortunately, we can't just add more stuff there, as there's no
+reserved space. So, we'll probably add some VIDIOC_FBUF2 series of ioctl's.
+
+It seems to me that the proper way to develop such API is to start working
+with Xorg V4L driver, changing it to work with KMS and with the new API
+(probably porting some parts of the Xorg driver to kernelspace).
+
+One of the problems with a shared framebuffer is that an overlayed V4L stream
+may, at the worse case, be sent to up to 4 different GPU's and/or displays.
+
+Imagine a scenario like:
+
+	===================+===================
+	|                  |                  |
+	|      D1     +----|---+     D2       |
+	|             | V4L|   |              |
+	+-------------|----+---|--------------|
+	|             |    |   |              |
+	|      D3     +----+---+     D4       |
+	|                  |                  |
+	=======================================
+
+
+Where D1, D2, D3 and D4 are 4 different displays, and the same V4L framebuffer is
+partially shared between them (the above is an example of a V4L input, although
+the reverse scenario of having one frame buffer divided into 4 V4L outputs
+also seems to be possible).
+
+As the same image may be divided into 4 monitors, the buffer filling should be
+synced with all of them, in order to avoid flipping effects. Also, the shared
+buffer can't be re-used until all displays finish reading. From what I understood 
+from the discussions with DRI people, the display API's currently has similar issues
+of needing to wait for a buffer to be completely used before allowing it to be
+re-used. According to them, this were solved there by dynamically allocating buffers. 
+We may need to do something similar to that also at V4L.
+
+Btw, the need of managing buffers is currently being covered by the proposal
+for new ioctl()s to support multi-sized video-buffers [1].
+
+[1] http://www.spinics.net/lists/linux-media/msg30869.html
+
+It makes sense to me to discuss such proposal together with the above discussions, 
+in order to keep the API consistent.
+
+On my understanding, the SoC people that are driving those changes will
+be working on providing the API proposals for it. They should also be
+providing the needed patches, open source drivers and userspace application(s) 
+that allows testing and validating the GPU <==> V4L transfers using the newly API.
+
+Thanks,
+Mauro
