@@ -1,47 +1,59 @@
-Return-path: <mchehab@pedra>
-Received: from visualpaging.com ([24.123.23.170]:54430 "EHLO
-	unifiedpaging.messagenetsystems.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754568Ab1EYUea (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39277 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752826Ab1ENOVr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 May 2011 16:34:30 -0400
-Message-ID: <4DDD67D4.5070802@MessageNetSystems.com>
-Date: Wed, 25 May 2011 16:34:28 -0400
-From: Jerry Geis <geisj@MessageNetSystems.com>
+	Sat, 14 May 2011 10:21:47 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: javier Martin <javier.martin@vista-silicon.com>
+Subject: Re: Current status report of mt9p031.
+Date: Sat, 14 May 2011 16:22:39 +0200
+Cc: Chris Rodley <carlighting@yahoo.co.nz>,
+	linux-media@vger.kernel.org, g.liakhovetski@gmx.de
+References: <935308.40531.qm@web112020.mail.gq1.yahoo.com> <BANLkTimvXHxmZ0io=9ZdCeLzTUQi0+S0bg@mail.gmail.com>
+In-Reply-To: <BANLkTimvXHxmZ0io=9ZdCeLzTUQi0+S0bg@mail.gmail.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: h.264 web cam
-References: <4DDD5C3B.6060706@MessageNetSystems.com> <201105252206.39243.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201105252206.39243.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201105141622.39671.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Laurent Pinchart wrote:
-> Hi Jerry,
->
-> On Wednesday 25 May 2011 21:44:59 Jerry Geis wrote:
->   
->> I am trying to find the code for h.264 mentioned
->>  http://www.spinics.net/lists/linux-media/msg29129.html
->>
->> I downloaded the linux-media-2011-05.24 and it is not part of uvc_driver.c
->>
->> Where can I get the code?
->>     
->
-> That code only exists in the patches you've found. They haven't been applied 
-> to the uvcvideo driver, because we haven't decided yet how H.264 should be 
-> exposed to applications by the V4L2 API.
->
-> We now have a better understanding of H.264. Hans, could you review the H.264 
-> patch at the link above and tell me what you now think about the new fourcc ?
->
->   
+Hi Javier,
 
-Thanks I am trying to get an H.264 hardware encoded web cam from 
-Facevsion E1 to work on linux.
-Its far superior to the the other web cams I was using.
+On Friday 13 May 2011 08:45:28 javier Martin wrote:
+> On 13 May 2011 07:02, Chris Rodley <carlighting@yahoo.co.nz> wrote:
+> > On 11/05/11 19:15, javier Martin wrote:
+> > 
+> > On 11 May 2011 06:54, Chris Rodley <carlighting@yahoo.co.nz> wrote:
+> >>  Thanks, sorry I should have spotted that.
+> > 
+> > Got some shots today. So I have caught up to where you were. Had a bit of
+> > messing around to do as my board connects power via gpio switches and I
+> > was porting other drivers from 2.6.32.
+> > 
+> > How are you progressing Javier?
+> 
+> I'm just waiting for Laurent to clarify an issue about  format matching
+> between mt9p031 and omap3isp.
+> He claimed to help me this weekend or next week.
 
-Jerry
+I have no mt9p031 here, so I've tried an mt9v032 (752x480 10-bit raw bayer) 
+with the latest OMAP3 ISP driver. I had to patch yavta to support 8-bit 
+formats, the patch has been pushed to the repository.
+
+Running the following commands captured 4 frames successfully.
+
+./media-ctl -r -l '"mt9v032 3-005c":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP 
+CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+./media-ctl -f '"mt9v032 3-005c":0[SGRBG10 752x480 (1,5)/752x480], "OMAP3 ISP 
+CCDC":0[SGRBG8 752x480], "OMAP3 ISP CCDC":1[SGRBG8 752x480]'
+
+./yavta -p -f SGRBG8 -s 752x480 -n 4 --capture=4 --skip 3 -F `./media-ctl -e 
+"OMAP3 ISP CCDC output"`
+
+-- 
+Regards,
+
+Laurent Pinchart
