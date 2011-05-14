@@ -1,71 +1,92 @@
-Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:47077 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753940Ab1EVDB4 (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from mail1-out1.atlantis.sk ([80.94.52.55]:37687 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753184Ab1ENUvK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 May 2011 23:01:56 -0400
-References: <65DE7931C559BF4DBEE42C3F8246249A0B686EB0@V-EXMAILBOX.ctg.com> <8AFBEFD7-69E3-4E71-B155-EA773C2FED43@wilsonet.com> <65DE7931C559BF4DBEE42C3F8246249A0B69B014@V-ALBEXCHANGE.ctg.com> <EC37FC85-82B2-48AE-BB94-64ED00E7647D@wilsonet.com> <93CE8497-D6AB-43BA-A239-EE32D51582FC@wilsonet.com> <65DE7931C559BF4DBEE42C3F8246249A0B6A54C7@V-ALBEXCHANGE.ctg.com>,<1294875902.2485.19.camel@morgan.silverblock.net> <65DE7931C559BF4DBEE42C3F8246249A0B6A9B4A@V-ALBEXCHANGE.ctg.com> <65DE7931C559BF4DBEE42C3F8246249A2AB1230E@V-EXMAILBOX.ctg.com> <65DE7931C559BF4DBEE42C3F8246249A2AB13455@V-EXMAILBOX.ctg.com> <65DE7931C559BF4DBEE42C3F8246249A2AB1470A@V-EXMAILBOX.ctg.com>
-In-Reply-To: <65DE7931C559BF4DBEE42C3F8246249A2AB1470A@V-EXMAILBOX.ctg.com>
+	Sat, 14 May 2011 16:51:10 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Takashi Iwai <tiwai@suse.de>
+Subject: [PATCH v2] fm801: clean-up radio-related Kconfig
+Date: Sat, 14 May 2011 22:51:01 +0200
+Cc: alsa-devel@alsa-project.org,
+	Kernel development list <linux-kernel@vger.kernel.org>,
+	linux-media@vger.kernel.org
+References: <201105132026.40643.linux@rainbow-software.org> <s5hiptd4nrp.wl%tiwai@suse.de>
+In-Reply-To: <s5hiptd4nrp.wl%tiwai@suse.de>
 MIME-Version: 1.0
 Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: RE: [SOLVED] Enable IR on hdpvr
-From: Andy Walls <awalls@md.metrocast.net>
-Date: Sat, 21 May 2011 23:02:03 -0400
-To: Jason Gauthier <jgauthier@lastar.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Message-ID: <8a8e1761-e060-4e3f-84bb-b04fdf5e55c5@email.android.com>
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201105142251.03823.linux@rainbow-software.org>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Jason Gauthier <jgauthier@lastar.com> wrote:
+Remove TEA575X_RADIO define from fm801.c.
+Also update Kconfig help text to include all supported cards.
 
->All,
->
->
->>Okay, so I emailed a little too quickly.  The messages above got me
->thinking.  One of them is successful the other is not.
->>I verified with irsend.  So, this may be an issue with multiple
->hdpvrs.
->
->I believe I've tracked this down.  
->
->In lirc_zilog.c:
->
-> At 1307:
->                ret = add_ir_device(ir);
->                if (ret)
->                        goto out_free_ir;
->
->Looking at add_ir_device:
->  It returns:
->
->	 return i == MAX_IRCTL_DEVICES ? -ENOMEM : i;
->
->Meaning, that with a single device, it will generally return 0. 
->However, if there are multiple devices it will return a positive. This
->causes the return check to succeeed, and the goto out_free_ir, and
->basically doesn't continue.
->
->So, simply changing the check to if (ret<0) seems to resolve this. 
->Then if -ENOMEM is returned it will fail, and otherwise succeed.
->
->Sorry, this is not an official patch.  The maintainer (Jarod?) should
->be able to see what I am talking about and correct this.
->
->Thanks!
->
->Jasoin
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media"
->in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 
-I think you're using a borken version.  Are you using this one with all the ref counting fixes?
+--- linux-2.6.39-rc2-/sound/pci/Kconfig	2011-05-14 22:22:11.000000000 +0200
++++ linux-2.6.39-rc2/sound/pci/Kconfig	2011-05-14 22:24:29.000000000 +0200
+@@ -560,8 +560,8 @@ config SND_FM801_TEA575X_BOOL
+ 	depends on VIDEO_V4L2=y || VIDEO_V4L2=SND_FM801
+ 	help
+ 	  Say Y here to include support for soundcards based on the ForteMedia
+-	  FM801 chip with a TEA5757 tuner connected to GPIO1-3 pins (Media
+-	  Forte SF256-PCS-02) into the snd-fm801 driver.
++	  FM801 chip with a TEA5757 tuner (MediaForte SF256-PCS, SF256-PCP and
++	  SF64-PCR) into the snd-fm801 driver.
+ 
+ config SND_TEA575X
+ 	tristate
+--- linux-2.6.39-rc2-/sound/pci/fm801.c	2011-05-14 22:22:11.000000000 +0200
++++ linux-2.6.39-rc2/sound/pci/fm801.c	2011-05-14 22:26:01.000000000 +0200
+@@ -38,7 +38,6 @@
+ 
+ #ifdef CONFIG_SND_FM801_TEA575X_BOOL
+ #include <sound/tea575x-tuner.h>
+-#define TEA575X_RADIO 1
+ #endif
+ 
+ MODULE_AUTHOR("Jaroslav Kysela <perex@perex.cz>");
+@@ -196,7 +195,7 @@ struct fm801 {
+ 	spinlock_t reg_lock;
+ 	struct snd_info_entry *proc_entry;
+ 
+-#ifdef TEA575X_RADIO
++#ifdef CONFIG_SND_FM801_TEA575X_BOOL
+ 	struct snd_tea575x tea;
+ #endif
+ 
+@@ -715,7 +714,7 @@ static int __devinit snd_fm801_pcm(struc
+  *  TEA5757 radio
+  */
+ 
+-#ifdef TEA575X_RADIO
++#ifdef CONFIG_SND_FM801_TEA575X_BOOL
+ 
+ /* GPIO to TEA575x maps */
+ struct snd_fm801_tea575x_gpio {
+@@ -1150,7 +1149,7 @@ static int snd_fm801_free(struct fm801 *
+ 	outw(cmdw, FM801_REG(chip, IRQ_MASK));
+ 
+       __end_hw:
+-#ifdef TEA575X_RADIO
++#ifdef CONFIG_SND_FM801_TEA575X_BOOL
+ 	snd_tea575x_exit(&chip->tea);
+ #endif
+ 	if (chip->irq >= 0)
+@@ -1229,7 +1228,7 @@ static int __devinit snd_fm801_create(st
+ 
+ 	snd_card_set_dev(card, &pci->dev);
+ 
+-#ifdef TEA575X_RADIO
++#ifdef CONFIG_SND_FM801_TEA575X_BOOL
+ 	chip->tea.private_data = chip;
+ 	chip->tea.ops = &snd_fm801_tea_ops;
+ 	sprintf(chip->tea.bus_info, "PCI:%s", pci_name(pci));
 
-http://git.linuxtv.org/media_tree.git?a=blob;f=drivers/staging/lirc/lirc_zilog.c;h=dd6a57c3c3a3149bac53eb36fd4ddeabed804050;hb=HEAD
 
-Regards,
-Andy
+-- 
+Ondrej Zary
