@@ -1,93 +1,69 @@
-Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40309 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754433Ab1ETVbd (ORCPT
+Return-path: <mchehab@gaivota>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:63625 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759632Ab1EOCPk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 May 2011 17:31:33 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [GIT PATCH FOR 2.6.40] uvcvideo patches
-Date: Fri, 20 May 2011 23:29:38 +0200
-Cc: linux-media@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
-References: <201105150948.24956.laurent.pinchart@ideasonboard.com> <201105202147.22435.laurent.pinchart@ideasonboard.com> <4DD6D69E.2050701@redhat.com>
-In-Reply-To: <4DD6D69E.2050701@redhat.com>
+	Sat, 14 May 2011 22:15:40 -0400
+Received: by ywj3 with SMTP id 3so1233732ywj.19
+        for <linux-media@vger.kernel.org>; Sat, 14 May 2011 19:15:40 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201105202329.38977.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <4DCEBFE6.5050400@gmail.com>
+References: <BANLkTi=ag15jZyxV216gLLi-MSVfX8N14w@mail.gmail.com>
+	<BANLkTikAJpUDjR6K1gzfULcaBq97JYKcpg@mail.gmail.com>
+	<4DCCEBF4.9060902@gmail.com>
+	<BANLkTind6OQBT2F9Gje9XVM31zBmTSpfZQ@mail.gmail.com>
+	<4DCEBFE6.5050400@gmail.com>
+Date: Sun, 15 May 2011 06:45:38 +0430
+Message-ID: <BANLkTimvcxtMWPNmVO9NYSohpJT30os7ow@mail.gmail.com>
+Subject: Re: Problems of Pinnacle PCTV Hybrid pro stick in linux
+From: a baffian <mjnhbg1@gmail.com>
+To: Mauro Carvalho Chehab <maurochehab@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Mauro,
+Hello and thanks
 
-On Friday 20 May 2011 23:01:18 Mauro Carvalho Chehab wrote:
-> Em 20-05-2011 16:47, Laurent Pinchart escreveu:
-> > On Friday 20 May 2011 21:16:49 Mauro Carvalho Chehab wrote:
-> >> Em 20-05-2011 12:49, Laurent Pinchart escreveu:
-> >>> On Friday 20 May 2011 17:32:45 Mauro Carvalho Chehab wrote:
-> >>>> Em 15-05-2011 04:48, Laurent Pinchart escreveu:
-> >>>>> Hi Mauro,
-> >>>>> 
-> >>>>> The following changes since commit
-> >>> 
-> >>> f9b51477fe540fb4c65a05027fdd6f2ecce4db3b:
-> >>>>>   [media] DVB: return meaningful error codes in dvb_frontend
-> >>>>>   (2011-05-09 05:47:20 +0200)
-> >>>>> 
-> >>>>> are available in the git repository at:
-> >>>>>   git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo-next
-> >>>>> 
-> >>>>> They replace the git pull request I've sent on Thursday with the same
-> >>>>> subject.
-> >>>>> 
-> >>>>> Bob Liu (2):
-> >>>>>       Revert "V4L/DVB: v4l2-dev: remove get_unmapped_area"
-> >>>>>       uvcvideo: Add support for NOMMU arch
-> >>>> 
-> >>>> IMO, such fixes should happen inside the arch bits, and not on each
-> >>>> driver. If this fix is needed for uvc video, the same fix should
-> >>>> probably needed to all other USB drivers, in order to work on NOMMU
-> >>>> arch.
-> >>>> 
-> >>>> For now, I'm accepting this as a workaround, but please work on a
-> >>>> generic solution for it.
-> >>> 
-> >>> A fix at the arch/ level isn't possible, as drivers need to implement
-> >>> the get_unmapped_area file operation in order to support NOMMU
-> >>> architectures. The proper fix is of course to port uvcvideo to
-> >>> videobuf2, and implement support for NOMMU in videobuf2. Modifications
-> >>> to individual drivers will still be needed to fill the
-> >>> get_unmapped_area operation pointer with a videobuf2 handler though.
-> >> 
-> >> This doesn't sound nice, as most people test their drivers only on an
-> >> specific architecture. If the driver can work on more then one
-> >> architecture (e. g. if it is not part of the IP block of some SoC chip,
-> >> but, instead, uses some generic bus like USB or PCI), the driver itself
-> >> shouldn't contain any arch-specific bits. IMO, the proper fix should be
-> >> either at the DMA stuff or somewhere inside the bus driver
-> >> implementation.
-> > 
-> > It might not sound nice, but that's how NOMMU works. It needs
-> > get_unmapped_area. If you can get rid of that requirement I'll be happy
-> > to remove NOMMU-specific support from the driver :-)
-> 
-> As I said, the patches were added, but we need to work on a better solution
-> than polluting every driver with
-> 
-> #if CONFIG_NOMMU
-> 
-> just because arm arch is crappy.
+On Sat, May 14, 2011 at 10:16 PM, Mauro Carvalho Chehab
+<maurochehab@gmail.com> wrote:
+> Em 14-05-2011 13:19, a baffian escreveu:
+>> Hello Mauro and thanks for your sentences
+>> But:
+>>
+>> 1- For such experienced programmer as you, it is obvious from
+>
+> First of all, if you need some help, please change your tone, as it
+> seems a little offensive. We all are volunteers, and, while we spend
+> some of our spare time to help people, we expect that the people
+> to be nice and answer with technical information that will allow us
+> to help,.
+>
+>> http://daftar.minidns.net/pctv/problem.html#problem2 , that when no
+>> any software could scan the channels, thus at least one important
+>> problem is in the kernel side, isn't it?
+>
+i excuse you for the first sentence, but i still don't know what was
+bad during my above paragraph, and i excuse you again. ( i thought
+that the experienced programmer is a good adjective. )
 
-There might be some misunderstanding here (not that ARM doesn't bring its 
-share of issues, we both agree on that :-)). NOMMU has nothing to do with ARM, 
-it's for architectures that have no system MMU. Everything lives in the same 
-address space, so some support is needed from drivers when "mapping" memory to 
-"userspace".
+i provided some of logs you told: the log of dmesg during inserting
+the Pinnacle's DVB-Stick and output of "scan -v" and some others here:
+http://daftar.minidns.net/pctv/some-log1.zip . This file has a file
+named readme-first.txt containing description of its contents.
 
-I'll answer the MC part over the weekend, I need to sleep now :-)
+i will try to provide again the afatech-9015 based DVB-stick to find
+the logs you want about it.
 
--- 
-Regards,
+>> At end i again tell that, i am in the #linux-tv chat room as dast53
+>> for speaking to solving those problems.
+>
+> I'm traveling abroad this entire week, and next week I'll be handling
+> the pending work. Also, as the merge window will probably be opened next
+> week, I'll be busy submitting the patches we have upstream. So,
+> unfortunately, it is unlikely that I'll have time soon to help debugging
+> a driver via irc.
+>
+i can wait to you to return from your traveling.
 
-Laurent Pinchart
+thanks
