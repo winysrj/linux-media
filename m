@@ -1,59 +1,80 @@
 Return-path: <mchehab@pedra>
-Received: from mailfe02.c2i.net ([212.247.154.34]:39674 "EHLO swip.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755787Ab1EZHxv convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51758 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751593Ab1EOVN3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 May 2011 03:53:51 -0400
-Received: from [188.126.198.129] (account mc467741@c2i.net HELO laptop002.hselasky.homeunix.org)
-  by mailfe02.swip.net (CommuniGate Pro SMTP 5.2.19)
-  with ESMTPA id 131997512 for linux-media@vger.kernel.org; Thu, 26 May 2011 09:53:49 +0200
-From: Hans Petter Selasky <hselasky@c2i.net>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: [PATCH v2] Correct error code from -ENOMEM to -EINVAL. Make sure the return value is set in all cases.
-Date: Thu, 26 May 2011 09:52:33 +0200
+	Sun, 15 May 2011 17:13:29 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [PATCH v2 1/1] v4l: Document EACCES in VIDIOC_[GS]_CTRL and VIDIOC_{G,S,TRY}_EXT_CTRLS
+Date: Sun, 15 May 2011 23:14:34 +0200
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+References: <1305473638-19440-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <1305473638-19440-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201105260952.33551.hselasky@c2i.net>
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201105152314.34321.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
->From 9b38a5c9878b5e4be2899ae291c4524f5f5fc218 Mon Sep 17 00:00:00 2001
-From: Hans Petter Selasky <hselasky@c2i.net>
-Date: Thu, 26 May 2011 09:49:52 +0200
-Subject: [PATCH] Correct error code from -ENOMEM to -EINVAL. Make sure the return value is set in all cases.
+On Sunday 15 May 2011 17:33:58 Sakari Ailus wrote:
+> VIDIOC_S_CTRL and VIDIOC_S_EXT_CTRLS return EACCES when setting a read-only
+> control VIDIOC_TRY_EXT_CTRLS when trying a read-only control and
+> VIDIOC_G_CTRL and VIDIOC_G_EXT_CTRLS when getting a write-only control.
+> Document this.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 
-Signed-off-by: Hans Petter Selasky <hselasky@c2i.net>
----
- drivers/media/video/sr030pc30.c |    7 +++++--
- 1 files changed, 5 insertions(+), 2 deletions(-)
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-diff --git a/drivers/media/video/sr030pc30.c b/drivers/media/video/sr030pc30.c
-index c901721..8afb0e8 100644
---- a/drivers/media/video/sr030pc30.c
-+++ b/drivers/media/video/sr030pc30.c
-@@ -726,8 +726,10 @@ static int sr030pc30_s_power(struct v4l2_subdev *sd, int on)
- 	const struct sr030pc30_platform_data *pdata = info->pdata;
- 	int ret;
- 
--	if (WARN(pdata == NULL, "No platform data!\n"))
--		return -ENOMEM;
-+	if (pdata == NULL) {
-+		WARN(1, "No platform data!\n");
-+		return -EINVAL;
-+	}
- 
- 	/*
- 	 * Put sensor into power sleep mode before switching off
-@@ -746,6 +748,7 @@ static int sr030pc30_s_power(struct v4l2_subdev *sd, int on)
- 	if (on) {
- 		ret = sr030pc30_base_config(sd);
- 	} else {
-+		ret = 0;
- 		info->curr_win = NULL;
- 		info->curr_fmt = NULL;
- 	}
+> ---
+>  Documentation/DocBook/v4l/vidioc-g-ctrl.xml      |    7 +++++++
+>  Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml |    7 +++++++
+>  2 files changed, 14 insertions(+), 0 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/v4l/vidioc-g-ctrl.xml
+> b/Documentation/DocBook/v4l/vidioc-g-ctrl.xml index 8b5e6ff..5146d00
+> 100644
+> --- a/Documentation/DocBook/v4l/vidioc-g-ctrl.xml
+> +++ b/Documentation/DocBook/v4l/vidioc-g-ctrl.xml
+> @@ -117,6 +117,13 @@ because another applications took over control of the
+> device function this control belongs to.</para>
+>  	</listitem>
+>        </varlistentry>
+> +      <varlistentry>
+> +	<term><errorcode>EACCES</errorcode></term>
+> +	<listitem>
+> +	  <para>Attempt to set a read-only control or to get a
+> +	  write-only control.</para>
+> +	</listitem>
+> +      </varlistentry>
+>      </variablelist>
+>    </refsect1>
+>  </refentry>
+> diff --git a/Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml
+> b/Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml index 3aa7f8f..5e73517
+> 100644
+> --- a/Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml
+> +++ b/Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml
+> @@ -294,6 +294,13 @@ The field <structfield>size</structfield> is set to a
+> value that is enough to store the payload and this error code is
+> returned.</para>
+>  	</listitem>
+>        </varlistentry>
+> +      <varlistentry>
+> +	<term><errorcode>EACCES</errorcode></term>
+> +	<listitem>
+> +	  <para>Attempt to try or set a read-only control or to get a
+> +	  write-only control.</para>
+> +	</listitem>
+> +      </varlistentry>
+>      </variablelist>
+>    </refsect1>
+>  </refentry>
+
 -- 
-1.7.1.1
+Regards,
 
+Laurent Pinchart
