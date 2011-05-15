@@ -1,136 +1,43 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3228 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754327Ab1ERGd2 (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3033 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752061Ab1EOV1D (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 May 2011 02:33:28 -0400
+	Sun, 15 May 2011 17:27:03 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Bhupesh SHARMA <bhupesh.sharma@st.com>
-Subject: Re: Audio Video synchronization for data received from a HDMI receiver chip
-Date: Wed, 18 May 2011 08:32:52 +0200
-Cc: "Charlie X. Liu" <charlie@sensoray.com>,
-	"laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>,
-	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>
-References: <D5ECB3C7A6F99444980976A8C6D896384DF1137013@EAPEX1MAIL1.st.com> <BANLkTi=rpQEkroia3kUqp6zUHTQk3k220Q@mail.gmail.com> <D5ECB3C7A6F99444980976A8C6D896384DF11B5D98@EAPEX1MAIL1.st.com>
-In-Reply-To: <D5ECB3C7A6F99444980976A8C6D896384DF11B5D98@EAPEX1MAIL1.st.com>
+To: Ondrej Zary <linux@rainbow-software.org>
+Subject: Re: [PATCH RFC v2] radio-sf16fmr2: convert to generic TEA575x interface
+Date: Sun, 15 May 2011 23:26:33 +0200
+Cc: linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	"Kernel development list" <linux-kernel@vger.kernel.org>
+References: <201105140017.26968.linux@rainbow-software.org> <201105141206.51832.hverkuil@xs4all.nl> <201105152218.24041.linux@rainbow-software.org>
+In-Reply-To: <201105152218.24041.linux@rainbow-software.org>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201105180832.52333.hverkuil@xs4all.nl>
+Message-Id: <201105152326.33925.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wednesday, May 18, 2011 06:10:43 Bhupesh SHARMA wrote:
-> Hi,
-> 
-> (adding alsa mailing list in cc)
-> 
-> > On Thursday, May 12, 2011 18:59:33 Charlie X. Liu wrote:
-> > > Which HDMI receiver chip?
-> > 
-> > Indeed, that's my question as well :-)
-> 
-> We use Sil 9135 receiver chip which is provided by Silicon Image.
-> Please see details here: http://www.siliconimage.com/products/product.aspx?pid=109
->  
-> > Anyway, this question comes up regularly. V4L2 provides timestamps for
-> > each
-> > frame, so that's no problem. But my understanding is that ALSA does not
-> > give
-> > you timestamps, so if there are processing delays between audio and
-> > video, then
-> > you have no way of knowing. The obvious solution is to talk to the ALSA
-> > people
-> > to see if some sort of timestamping is possible, but nobody has done
-> > that.
-> 
-> I am aware of the time stamping feature provided by V4L2, but I am also
-> not sure whether the same feature is supported by ALSA. I have included
-> alsa-mailing list also in copy of this mail. Let's see if we can get
-> some sort of confirmation on this from them.
->  
-> > This is either because everyone that needs it hacks around it instead
-> > of trying
-> > to really solve it, or because it is never a problem in practice.
-> 
-> What should be the proper solution according to you to solve this issue.
-> Do we require a Audio-Video Bridge kind of utility/mechanism?
+On Sunday, May 15, 2011 22:18:21 Ondrej Zary wrote:
+> Thanks, it's much simpler with the new control framework.
+> Do the negative volume control values make sense? The TC9154A chip can
+> attenuate the volume from 0 to -68dB in 2dB steps.
 
-I don't believe so. All you need is reliable time stamping for your audio
-and video streams. That's enough for userspace to detect AV sync issues.
+It does make sense, but I think I would offset the values so they start at 0.
+Mostly because there might be some old apps that set the volume to 0 when they
+want to mute, which in this case is full volume.
+
+I am not aware of any driver where a volume of 0 isn't the same as the lowest
+volume possible, so in this particular case I would apply an offset.
+
+I will have to do a closer review tomorrow or the day after. I think there are
+a few subtleties that I need to look at. Ping me if you haven't heard from me
+by Wednesday. I would really like to get these drivers up to spec now that I
+have someone who can test them, and once that's done I hope that I never have
+to look at them again :-) (Unlikely, but one can dream...)
 
 Regards,
 
 	Hans
-
-> 
-> Regards,
-> Bhupesh
-> 
-> > 
-> > >
-> > > -----Original Message-----
-> > > From: linux-media-owner@vger.kernel.org
-> > > [mailto:linux-media-owner@vger.kernel.org] On Behalf Of Bhupesh
-> > SHARMA
-> > > Sent: Wednesday, May 11, 2011 10:49 PM
-> > > To: linux-media@vger.kernel.org
-> > > Cc: Laurent Pinchart; Guennadi Liakhovetski; Hans Verkuil
-> > > Subject: Audio Video synchronization for data received from a HDMI
-> > receiver
-> > > chip
-> > >
-> > > Hi Linux media folks,
-> > >
-> > > We are considering putting an advanced HDMI receiver chip on our SoC,
-> > > to allow reception of HDMI audio and video. The chip receives HDMI
-> > data
-> > > from a host like a set-up box or DVD player. It provides a video data
-> > > interface
-> > > and SPDIF/I2S audio data interface.
-> > >
-> > > We plan to support the HDMI video using the V4L2 framework and the
-> > HDMI
-> > > audio using ALSA framework.
-> > >
-> > > Now, what seems to be intriguing us is how the audio-video
-> > synchronization
-> > > will be maintained? Will a separate bridging entity required to
-> > ensure the
-> > > same
-> > > or whether this can be left upon a user space application like
-> > mplayer or
-> > > gstreamer.
-> > >
-> > > Also is there a existing interface between the V4L2 and ALSA
-> > frameworks and
-> > > the same
-> > > can be used in our design?
-> > >
-> > > Regards,
-> > > Bhupesh
-> > > ST Microelectronics
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe linux-
-> > media" in
-> > > the body of a message to majordomo@vger.kernel.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > >
-> > >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media"
-> > in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
-> > 
-> > 
-> > --
-> > regards
-> > Shiraz Hashim
-> 
-> 
