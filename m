@@ -1,52 +1,94 @@
 Return-path: <mchehab@pedra>
-Received: from smtprelay03.ispgateway.de ([80.67.29.7]:60119 "EHLO
-	smtprelay03.ispgateway.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755080Ab1ECUWA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 May 2011 16:22:00 -0400
-Date: Tue, 3 May 2011 22:21:49 +0200
-From: Heiko Baums <lists@baums-on-web.de>
-To: Jarod Wilson <jarod@wilsonet.com>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"mailing list: lirc" <lirc-list@lists.sourceforge.net>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Terratec Cinergy 1400 DVB-T RC not working anymore
-Message-ID: <20110503222149.1ce726d9@darkstar>
-In-Reply-To: <14961B2E-36D9-4CD2-87E7-629F115055F2@wilsonet.com>
-References: <20110423005412.12978e29@darkstar>
-	<20110424163530.2bc1b365@darkstar>
-	<BCCEA9F4-16D7-4E63-B32C-15217AA094F3@wilsonet.com>
-	<20110425201835.0fbb84ee@darkstar>
-	<A4226E90-09BE-45FE-AEEF-0EA7E9414B4B@wilsonet.com>
-	<20110425230658.22551665@darkstar>
-	<59898A0D-573E-46E9-A3B7-9054B24E69DF@wilsonet.com>
-	<20110427151621.5ac73e12@darkstar>
-	<1FB1ED64-0EEC-4E15-8178-D2CCCA915B1D@wilsonet.com>
-	<20110427204725.2923ac99@darkstar>
-	<91CD2A5E-418A-4217-8D9F-1B29FC9DD24D@wilsonet.com>
-	<20110427222855.2e3a3a4d@darkstar>
-	<63E3BF90-BF19-43E3-B8DD-6D6F4896F2E7@wilsonet.com>
-	<BANLkTik+gYRfhDBy9JWgvo+GWJk5Uz7RMQ@mail.gmail.com>
-	<14961B2E-36D9-4CD2-87E7-629F115055F2@wilsonet.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from smtp.nokia.com ([147.243.128.26]:30009 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754686Ab1EOPT7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 May 2011 11:19:59 -0400
+Message-ID: <4DCFEFD2.3090704@maxwell.research.nokia.com>
+Date: Sun, 15 May 2011 18:22:58 +0300
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Subject: Re: [PATCH 1/1] v4l: Document EACCES in VIDIOC_G_CTRL and VIDIOC_G_EXT_CTRLS
+References: <1305293053-16448-1-git-send-email-sakari.ailus@maxwell.research.nokia.com> <201105150950.37107.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201105150950.37107.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Am Tue, 3 May 2011 13:16:57 -0400
-schrieb Jarod Wilson <jarod@wilsonet.com>:
+Laurent Pinchart wrote:
+> Hi Sakari,
 
-> A quick look at the code suggests the 800i should indeed behave
-> more or less the same, barring any hardware-specific implementation
-> differences. Sure, might as well send one my way and I'll see what
-> I can see.
+Hi, Laurent!
 
-This RC indeed has the same issue.
+Thanks for the comments!
 
-See this forums posting:
-https://bbs.archlinux.org/viewtopic.php?pid=924385#p924385
-And this bug report:
-https://bugs.archlinux.org/task/23894
+> On Friday 13 May 2011 15:24:13 Sakari Ailus wrote:
+>> VIDIOC_G_CTRL and VIDIOC_G_EXT_CTRLS return EACCES when setting a read-only
+>> control or getting a write-only control.  Document this.
+> 
+> You might want to modify the commit message to include VIDIOC_S_CTRL and 
+> VIDIOC_S_EXT_CTRLS. Setting a control with the VIDIOC_G_(EXT_)CTRL(S) ioctls 
+> is a bit difficult :-)
 
-Heiko
+I'll do that. I was thinking of the documentation when reading this, not
+the actual ioctls. ;-)
+
+>> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+>> ---
+>>  Documentation/DocBook/v4l/vidioc-g-ctrl.xml      |    7 +++++++
+>>  Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml |    7 +++++++
+>>  2 files changed, 14 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/Documentation/DocBook/v4l/vidioc-g-ctrl.xml
+>> b/Documentation/DocBook/v4l/vidioc-g-ctrl.xml index 8b5e6ff..5146d00
+>> 100644
+>> --- a/Documentation/DocBook/v4l/vidioc-g-ctrl.xml
+>> +++ b/Documentation/DocBook/v4l/vidioc-g-ctrl.xml
+>> @@ -117,6 +117,13 @@ because another applications took over control of the
+>> device function this control belongs to.</para>
+>>  	</listitem>
+>>        </varlistentry>
+>> +      <varlistentry>
+>> +	<term><errorcode>EACCES</errorcode></term>
+>> +	<listitem>
+>> +	  <para>Attempt to set a read-only control or to get a
+>> +	  write-only control.</para>
+> 
+> Should you s/set/try or set/ ?
+
+No, since you can only try controls using the TRY_EXT_CTRLS. There is no
+VIDIOC_TRY_CTRL.
+
+>> +	</listitem>
+>> +      </varlistentry>
+>>      </variablelist>
+>>    </refsect1>
+>>  </refentry>
+>> diff --git a/Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml
+>> b/Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml index 3aa7f8f..5e73517
+>> 100644
+>> --- a/Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml
+>> +++ b/Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml
+>> @@ -294,6 +294,13 @@ The field <structfield>size</structfield> is set to a
+>> value that is enough to store the payload and this error code is
+>> returned.</para>
+>>  	</listitem>
+>>        </varlistentry>
+>> +      <varlistentry>
+>> +	<term><errorcode>EACCES</errorcode></term>
+>> +	<listitem>
+>> +	  <para>Attempt to try or set a read-only control or to get a
+>> +	  write-only control.</para>
+>> +	</listitem>
+>> +      </varlistentry>
+>>      </variablelist>
+>>    </refsect1>
+>>  </refentry>
+> 
+
+
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
