@@ -1,243 +1,185 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40991 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754482Ab1EDL74 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 May 2011 07:59:56 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Subject: Re: [PATCH v4 3/3] v4l: Add v4l2 subdev driver for S5P/EXYNOS4 MIPI-CSI receivers
-Date: Wed, 4 May 2011 14:00:28 +0200
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"linux-media" <linux-media@vger.kernel.org>,
-	"linux-samsung-soc" <linux-samsung-soc@vger.kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Heungjun Kim <riverful.kim@samsung.com>,
-	Sungchun Kang <sungchun.kang@samsung.com>,
-	Jonghun Han <jonghun.han@samsung.com>
-References: <1303399264-3849-1-git-send-email-s.nawrocki@samsung.com> <201105031116.04467.laurent.pinchart@ideasonboard.com> <4DC0446F.7020500@gmail.com>
-In-Reply-To: <4DC0446F.7020500@gmail.com>
+Received: from mail1-out1.atlantis.sk ([80.94.52.55]:58457 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751388Ab1EOTlR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 May 2011 15:41:17 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH RFC] tea575x: convert to control framework
+Date: Sun, 15 May 2011 21:41:01 +0200
+Cc: linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	"Kernel development list" <linux-kernel@vger.kernel.org>
+References: <201105140017.26968.linux@rainbow-software.org> <201105141206.51832.hverkuil@xs4all.nl>
+In-Reply-To: <201105141206.51832.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201105041400.29090.laurent.pinchart@ideasonboard.com>
+Content-Disposition: inline
+Message-Id: <201105152141.05415.linux@rainbow-software.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Sylwester,
+Convert tea575x-tuner to use the new V4L2 control framework.
 
-On Tuesday 03 May 2011 20:07:43 Sylwester Nawrocki wrote:
-> On 05/03/2011 11:16 AM, Laurent Pinchart wrote:
-> > On Thursday 21 April 2011 17:21:04 Sylwester Nawrocki wrote:
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 
-[snip]
+--- linux-2.6.39-rc2-/include/sound/tea575x-tuner.h	2011-05-13 19:39:23.000000000 +0200
++++ linux-2.6.39-rc2/include/sound/tea575x-tuner.h	2011-05-15 20:34:54.000000000 +0200
+@@ -23,8 +23,7 @@
+  */
+ 
+ #include <linux/videodev2.h>
+-#include <media/v4l2-dev.h>
+-#include <media/v4l2-ioctl.h>
++#include <media/v4l2-ctrls.h>
+ 
+ #define TEA575X_FMIF	10700
+ 
+@@ -54,6 +53,7 @@ struct snd_tea575x {
+ 	void *private_data;
+ 	u8 card[32];
+ 	u8 bus_info[32];
++	struct v4l2_ctrl_handler ctrl_handler;
+ };
+ 
+ int snd_tea575x_init(struct snd_tea575x *tea);
+--- linux-2.6.39-rc2-/sound/i2c/other/tea575x-tuner.c	2011-05-13 19:39:23.000000000 +0200
++++ linux-2.6.39-rc2/sound/i2c/other/tea575x-tuner.c	2011-05-15 20:34:23.000000000 +0200
+@@ -22,11 +22,11 @@
+ 
+ #include <asm/io.h>
+ #include <linux/delay.h>
+-#include <linux/interrupt.h>
+ #include <linux/init.h>
+ #include <linux/slab.h>
+ #include <linux/version.h>
+-#include <sound/core.h>
++#include <media/v4l2-dev.h>
++#include <media/v4l2-ioctl.h>
+ #include <sound/tea575x-tuner.h>
+ 
+ MODULE_AUTHOR("Jaroslav Kysela <perex@perex.cz>");
+@@ -62,17 +62,6 @@ module_param(radio_nr, int, 0);
+ #define TEA575X_BIT_DUMMY	(1<<15)		/* buffer */
+ #define TEA575X_BIT_FREQ_MASK	0x7fff
+ 
+-static struct v4l2_queryctrl radio_qctrl[] = {
+-	{
+-		.id            = V4L2_CID_AUDIO_MUTE,
+-		.name          = "Mute",
+-		.minimum       = 0,
+-		.maximum       = 1,
+-		.default_value = 1,
+-		.type          = V4L2_CTRL_TYPE_BOOLEAN,
+-	}
+-};
+-
+ /*
+  * lowlevel part
+  */
+@@ -266,47 +255,19 @@ static int vidioc_s_audio(struct file *f
+ 	return 0;
+ }
+ 
+-static int vidioc_queryctrl(struct file *file, void *priv,
+-					struct v4l2_queryctrl *qc)
++static int tea575x_s_ctrl(struct v4l2_ctrl *ctrl)
+ {
+-	int i;
+-
+-	for (i = 0; i < ARRAY_SIZE(radio_qctrl); i++) {
+-		if (qc->id && qc->id == radio_qctrl[i].id) {
+-			memcpy(qc, &(radio_qctrl[i]),
+-						sizeof(*qc));
+-			return 0;
+-		}
+-	}
+-	return -EINVAL;
+-}
+-
+-static int vidioc_g_ctrl(struct file *file, void *priv,
+-					struct v4l2_control *ctrl)
+-{
+-	struct snd_tea575x *tea = video_drvdata(file);
++	struct snd_tea575x *tea = container_of(ctrl->handler, struct snd_tea575x, ctrl_handler);
+ 
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_AUDIO_MUTE:
+-		ctrl->value = tea->mute;
+-		return 0;
+-	}
+-	return -EINVAL;
+-}
+-
+-static int vidioc_s_ctrl(struct file *file, void *priv,
+-					struct v4l2_control *ctrl)
+-{
+-	struct snd_tea575x *tea = video_drvdata(file);
+-
+-	switch (ctrl->id) {
+-	case V4L2_CID_AUDIO_MUTE:
+-		if (tea->mute != ctrl->value) {
+-			tea->mute = ctrl->value;
++		if (tea->mute != ctrl->val) {
++			tea->mute = ctrl->val;
+ 			snd_tea575x_set_freq(tea);
+ 		}
+ 		return 0;
+ 	}
++
+ 	return -EINVAL;
+ }
+ 
+@@ -355,9 +316,6 @@ static const struct v4l2_ioctl_ops tea57
+ 	.vidioc_s_input     = vidioc_s_input,
+ 	.vidioc_g_frequency = vidioc_g_frequency,
+ 	.vidioc_s_frequency = vidioc_s_frequency,
+-	.vidioc_queryctrl   = vidioc_queryctrl,
+-	.vidioc_g_ctrl      = vidioc_g_ctrl,
+-	.vidioc_s_ctrl      = vidioc_s_ctrl,
+ };
+ 
+ static struct video_device tea575x_radio = {
+@@ -367,6 +325,10 @@ static struct video_device tea575x_radio
+ 	.release	= video_device_release,
+ };
+ 
++static const struct v4l2_ctrl_ops tea575x_ctrl_ops = {
++	.s_ctrl = tea575x_s_ctrl,
++};
++
+ /*
+  * initialize all the tea575x chips
+  */
+@@ -406,6 +368,17 @@ int snd_tea575x_init(struct snd_tea575x
+ 		return retval;
+ 	}
+ 
++	v4l2_ctrl_handler_init(&tea->ctrl_handler, 1);
++	tea575x_radio_inst->ctrl_handler = &tea->ctrl_handler;
++	v4l2_ctrl_new_std(&tea->ctrl_handler, &tea575x_ctrl_ops, V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
++	retval = tea->ctrl_handler.error;
++	if (retval) {
++		v4l2_ctrl_handler_free(&tea->ctrl_handler);
++		kfree(tea575x_radio_inst);
++		return retval;
++	}
++	v4l2_ctrl_handler_setup(&tea->ctrl_handler);
++
+ 	snd_tea575x_set_freq(tea);
+ 	tea->vd = tea575x_radio_inst;
+ 
+@@ -415,6 +388,7 @@ int snd_tea575x_init(struct snd_tea575x
+ void snd_tea575x_exit(struct snd_tea575x *tea)
+ {
+ 	if (tea->vd) {
++		v4l2_ctrl_handler_free(&tea->ctrl_handler);
+ 		video_unregister_device(tea->vd);
+ 		tea->vd = NULL;
+ 	}
 
-> >> +	struct media_pad pads[CSIS_PADS_NUM];
-> >> +	struct v4l2_subdev sd;
-> >> +	struct platform_device *pdev;
-> >> +	struct resource *regs_res;
-> >> +	void __iomem *regs;
-> >> +	struct clk *clock[NUM_CSIS_CLOCKS];
-> >> +	int irq;
-> >> +	struct regulator *supply;
-> >> +	u32 flags;
-> >> +	/* Common format for the source and sink pad. */
-> >> +	const struct csis_pix_format *csis_fmt;
-> >> +	struct v4l2_mbus_framefmt mf[CSIS_NUM_FMTS];
-> > 
-> > As try formats are stored in the file handle, and as the formats on the
-> > sink and source pads are identical, a single v4l2_mbus_framefmt will do
-> > here.
-> 
-> Ok. How about a situation when the caller never provides a file handle?
-> Is it not supposed to happen?
-
-Good question :-) The subdev pad-level operations have been designed with a 
-userspace interface in mind, so they require a file handle to store try the 
-formats (and crop rectangles).
-
-> For V4L2_SUBDEV_FORMAT_TRY, should set_fmt just abandon storing the format
-> and should get_fmt just return -EINVAL when passed fh == NULL ?
-
-For such a simple subdev, that should work as a workaround, yes. You can use 
-it as a temporary solution at least.
-
-> Or should the host driver allocate the file handle just for the sake of
-> set_fmt/get_fmt calls (assuming that cropping ops are not supported
-> by the subdev) ?
-
-That's another solution. We could also pass an internal structure that 
-contains formats and crop rectangles to the pad operations handlers, instead 
-of passing the whole file handle. Do you think that would be better ?
-
-> It's not my intention to create a broken implementation but it would
-> be nice to be able to drop functionality which would never be used.
-> 
-> As a note, I wanted to avoid bothering user space with setting up the MIPI
-> CSI receiver sub-device. There wouldn't be any gain from it, just more
-> things to care about for the applications.
-
-Quoting one of your comments below,
-
-                        x--- FIMC_0 (/dev/video1)
- SENSOR -> MIPI_CSIS  --|
-                        x--- FIMC_1 (/dev/video3)
-
-How do you expect to configure the MIPI_CSIS block from the FIMC_0 and FIMC_1 
-blocks, without any help from userspace ? Conflicts will need to be handled, 
-and the best way to handle them is to have userspace configuring the MIPI_CSIS 
-explicitly.
-
-> Moreover I don't see a good usage for the stored TRY format (yet). So I
-> originally thought this subdev could be configurable by the host driver
-> which wouldn't provide a file handle.
-
-[snip]
-
-> >> +#define csis_pad_valid(pad) (pad == CSIS_PAD_SOURCE || pad ==
-> >> CSIS_PAD_SINK) +
-> >> +static struct csis_state *sd_to_csis_state(struct v4l2_subdev *sdev)
-> >> +{
-> >> +	return container_of(sdev, struct csis_state, sd);
-> >> +}
-> >> +
-> >> +static const struct csis_pix_format *find_csis_format(
-> >> +	struct v4l2_mbus_framefmt *mf)
-> >> +{
-> >> +	int i = ARRAY_SIZE(s5pcsis_formats);
-> >> +
-> >> +	while (--i>= 0)
-> > 
-> > I'm curious, why do you search backward instead of doing the usual
-> > 
-> > for (i = 0; i<  ARRAY_SIZE(s5pcsis_formats); ++i)
-> > 
-> > (in that case 'i' could be unsigned) ?
-> 
-> Perhaps doing it either way does not make any difference with the
-> toolchains we use, but the loops with test for 0 are supposed to be faster
-> on ARM.
-
-I didn't know that. I wonder if it makes a real difference with gcc.
-
-[snip]
-
-> >> +static void s5pcsis_try_format(struct v4l2_mbus_framefmt *mf)
-> >> +{
-> >> +	struct csis_pix_format const *csis_fmt;
-> >> +
-> >> +	csis_fmt = find_csis_format(mf);
-> >> +	if (csis_fmt == NULL)
-> >> +		csis_fmt =&s5pcsis_formats[0];
-> >> +
-> >> +	mf->code = csis_fmt->code;
-> >> +	v4l_bound_align_image(&mf->width, 1, CSIS_MAX_PIX_WIDTH,
-> >> +			      csis_fmt->pix_hor_align,
-> >> +			&mf->height, 1, CSIS_MAX_PIX_HEIGHT, 1,
-> >> +			      0);
-> >> +}
-> >> +
-> >> +static int s5pcsis_set_fmt(struct v4l2_subdev *sd, struct
-> >> v4l2_subdev_fh *fh, +			    struct v4l2_subdev_format *fmt)
-> >> +{
-> >> +	struct csis_state *state = sd_to_csis_state(sd);
-> >> +	struct v4l2_mbus_framefmt *mf =&fmt->format;
-> >> +	struct csis_pix_format const *csis_fmt = find_csis_format(mf);
-> >> +
-> >> +	v4l2_dbg(1, debug, sd, "%s: %dx%d, code: %x, csis_fmt: %p\n",
-> >> +		 __func__, mf->width, mf->height, mf->code, csis_fmt);
-> >> +
-> >> +	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
-> >> +		s5pcsis_try_format(mf);
-> > 
-> > You need to take the pad into account here. As you mention below, source
-> > and sink formats are identical. When the user tries to set the source
-> > format, the driver should just return the sink format without performing
-> > any modification.
-> > 
-> >> +		state->mf[CSIS_FMT_TRY] = *mf;
-> >> +		return 0;
-> >> +	}
-> >> +
-> >> +	/* Both source and sink pad have always same format. */
-> >> +	if (!csis_pad_valid(fmt->pad) ||
-> >> +	    csis_fmt == NULL ||
-> >> +	    mf->width>  CSIS_MAX_PIX_WIDTH  ||
-> >> +	    mf->height>  CSIS_MAX_PIX_HEIGHT ||
-> >> +	    mf->width&  (u32)(csis_fmt->pix_hor_align - 1))
-> >> +		return -EINVAL;
-> > 
-> > Don't return an error, adjust the user supplied format instead.
-> > 
-> >> +
-> >> +	mutex_lock(&state->lock);
-> >> +	state->mf[CSIS_FMT_ACTIVE] = *mf;
-> >> +	state->csis_fmt = csis_fmt;
-> >> +	mutex_unlock(&state->lock);
-> > 
-> > The logic in this function is not correct. First of all, you need to
-> > adjust the user-supplied format in all cases, regardless of the format
-> > type (try/active). Then, as the formats on the sink and source pads are
-> > always identical, you should return the sink pad format when the user
-> > tries to set the source pad format. Setting the source pad format will
-> > have no effect. Finally, you should store try formats in the subdev file
-> > handle, not in the csis_state structure (see ccp2_set_format() in
-> > drivers/media/video/omap3isp/ispccp2.c for an example, in your case you
-> > don't need to propagate the format change from sink to source, as the
-> > source always has the same format as the sink).
-> 
-> Thanks, that's all very useful. The only thing I am concerned is what
-> should be done when the file handle is null? Is it not allowed by design?
-
-It wasn't allowed by design. As explained above, we could replace the file 
-handle with another structure, and have the caller allocate it. In your case 
-you could just skip storing try formats. This needs to be thought about some 
-more.
-
-> I've initially reworked s5pcsis_set_fmt to something like this:
-> 
-> static int s5pcsis_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh
-> *fh, struct v4l2_subdev_format *fmt)
-> {
-> 	struct csis_state *state = sd_to_csis_state(sd);
-> 	struct v4l2_mbus_framefmt *mf = &fmt->format;
-> 	struct csis_pix_format const *csis_fmt;
-> 
-> 	v4l2_dbg(1, debug, sd, "%s: %dx%d, code: %x\n",
-> 		 __func__, mf->width, mf->height, mf->code);
-> 
-> 	if (!csis_pad_valid(fmt->pad))
-> 		return -EINVAL;
-> 
-> 	mutex_lock(&state->lock);
-> 	if (fmt->pad == CSIS_PAD_SOURCE) {
-> 		fmt->format = state->format;
-> 		goto unlock;
-> 	}
-> 	csis_fmt = s5pcsis_try_format(&fmt->format);
-
-Try try_format call doesn't require the mutex to be locked. You can 
-lock/unlock the mutex around fmt->format = state->format; above, and 
-lock/unlock it around state->formt = fmt->format; state->csis_fmt = csis_fmt; 
-below.
-
-> 	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
-> 		/* TODO: store format in *fh */
-> 		goto unlock;
-> 	}
-> 
-> 	/* Common format for the source and the sink pad */
-> 	state->format = fmt->format;
-> 	state->csis_fmt = csis_fmt;
->  unlock:
-> 	mutex_unlock(&state->lock);
-> 	return 0;
-> }
-
-[snip]
 
 -- 
-Regards,
-
-Laurent Pinchart
+Ondrej Zary
