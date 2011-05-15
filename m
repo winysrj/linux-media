@@ -1,45 +1,75 @@
-Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:1083 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751431Ab1EIKc3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 May 2011 06:32:29 -0400
-From: Huzaifa Sidhpurwala <huzaifas@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, hverkuil@xs4all.nl, hdegoede@redhat.com,
-	joe@perches.com, Huzaifa Sidhpurwala <huzaifas@redhat.com>
-Subject: [PATCH] Prevent null pointer derefernce of pdev
-Date: Mon,  9 May 2011 16:02:24 +0530
-Message-Id: <1304937144-15806-1-git-send-email-huzaifas@redhat.com>
+Return-path: <mchehab@pedra>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41970 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751016Ab1EOHpJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 May 2011 03:45:09 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [GIT PULL FOR 2.6.40] v4l2 subdev driver for Samsung S5P MIPI CSI receiver
+Date: Sun, 15 May 2011 09:46:05 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+References: <4DCD592E.8060302@samsung.com>
+In-Reply-To: <4DCD592E.8060302@samsung.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201105150946.05466.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Make sure pdev is not dereferenced when it is null
+Hi Sylwester,
 
-Signed-off-by: Huzaifa Sidhpurwala <huzaifas@redhat.com>
----
- drivers/media/video/pwc/pwc-if.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+On Friday 13 May 2011 18:15:42 Sylwester Nawrocki wrote:
+> Hi Mauro,
+> 
+> The following changes since commit
+> f9b51477fe540fb4c65a05027fdd6f2ecce4db3b:
+> 
+>   [media] DVB: return meaningful error codes in dvb_frontend (2011-05-09
+> 05:47:20 +0200)
+> 
+> are available in the git repository at:
+>   git://git.infradead.org/users/kmpark/linux-2.6-samsung s5p-csis
+> 
+> Sylwester Nawrocki (3):
+>       v4l: Add V4L2_MBUS_FMT_JPEG_1X8 media bus format
+>       v4l: Move s5p-fimc driver into Video capture devices
+>       v4l: Add v4l2 subdev driver for S5P/EXYNOS4 MIPI-CSI receivers
+> 
+> It's a new driver for MIPI CSI receiver available in S5PVxxx/EXYNOS4 SoCs.
+> The first patch adds definition of a media bus code for JPEG format.
+> 
+> I've done three further driver amendments comparing to the last (v5)
+> version posted on the mailing lists, i.e.:
+>  - slightly improved description of struct csis_state
+>  - moved the pad number check from __s5pcsis_get_format directly to
+> set_fmt/get_fmt pad level operation handlers
+>  - replaced __init attribute of s5pcsis_probe() with __devinit and added
+>    __devexit for s5pcsis_remove()
 
-diff --git a/drivers/media/video/pwc/pwc-if.c b/drivers/media/video/pwc/pwc-if.c
-index 780af5f..356cd42 100644
---- a/drivers/media/video/pwc/pwc-if.c
-+++ b/drivers/media/video/pwc/pwc-if.c
-@@ -1850,7 +1850,6 @@ static void usb_pwc_disconnect(struct usb_interface *intf)
- 	} else {
- 		/* Device is closed, so we can safely unregister it */
- 		PWC_DEBUG_PROBE("Unregistering video device in disconnect().\n");
--		pwc_cleanup(pdev);
- 
- disconnect_out:
- 		/* search device_hint[] table if we occupy a slot, by any chance */
-@@ -1860,6 +1859,7 @@ disconnect_out:
- 	}
- 
- 	mutex_unlock(&pdev->modlock);
-+	pwc_cleanup(pdev);
- }
- 
- 
+I've reviewed the patches yesterday, I think there's still a couple of small 
+issues you might want to address.
+
+> 
+> Gitweb:
+> http://git.infradead.org/users/kmpark/linux-2.6-samsung/shortlog/refs/head
+> s/s5p-csis
+> 
+>  Documentation/DocBook/v4l/subdev-formats.xml |   46 ++
+>  drivers/media/video/Kconfig                  |   28 +-
+>  drivers/media/video/s5p-fimc/Makefile        |    6 +-
+>  drivers/media/video/s5p-fimc/mipi-csis.c     |  725
+> ++++++++++++++++++++++++++ drivers/media/video/s5p-fimc/mipi-csis.h     | 
+>  22 +
+>  include/linux/v4l2-mediabus.h                |    3 +
+>  6 files changed, 820 insertions(+), 10 deletions(-)
+>  create mode 100644 drivers/media/video/s5p-fimc/mipi-csis.c
+>  create mode 100644 drivers/media/video/s5p-fimc/mipi-csis.h
+
 -- 
-1.7.1
+Regards,
 
+Laurent Pinchart
