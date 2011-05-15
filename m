@@ -1,73 +1,64 @@
-Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47316 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753521Ab1ENTat (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 May 2011 15:30:49 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Andy Walls <awalls@md.metrocast.net>
-Subject: Re: [PATCHv2] v4l: Add M420 format definition
-Date: Sat, 14 May 2011 21:31:46 +0200
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org
-References: <1305277915-8383-1-git-send-email-laurent.pinchart@ideasonboard.com> <201105131643.41364.laurent.pinchart@ideasonboard.com> <1305379915.2434.35.camel@localhost>
-In-Reply-To: <1305379915.2434.35.camel@localhost>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201105142131.47200.laurent.pinchart@ideasonboard.com>
+Return-path: <mchehab@pedra>
+Received: from smtp.nokia.com ([147.243.1.48]:40676 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760061Ab1EOPeC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 May 2011 11:34:02 -0400
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com
+Subject: [PATCH v2 1/1] v4l: Document EACCES in VIDIOC_[GS]_CTRL and VIDIOC_{G,S,TRY}_EXT_CTRLS
+Date: Sun, 15 May 2011 18:33:58 +0300
+Message-Id: <1305473638-19440-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hi Andy,
+VIDIOC_S_CTRL and VIDIOC_S_EXT_CTRLS return EACCES when setting a read-only
+control VIDIOC_TRY_EXT_CTRLS when trying a read-only control and
+VIDIOC_G_CTRL and VIDIOC_G_EXT_CTRLS when getting a write-only control.
+Document this.
 
-On Saturday 14 May 2011 15:31:55 Andy Walls wrote:
-> On Fri, 2011-05-13 at 16:43 +0200, Laurent Pinchart wrote:
-> > On Friday 13 May 2011 14:01:32 Guennadi Liakhovetski wrote:
-> > > Couldn't spot any problems with the patch except:
-> > > 
-> > > On Fri, 13 May 2011, Laurent Pinchart wrote:
-> > > > From: Hans de Goede <hdegoede@redhat.com>
-> > > > 
-> > > > M420 is an hybrid YUV 4:2:2 packet/planar format. Two Y lines are
-> > > 
-> > > Didn't you mean "4:2:0"?
-> > 
-> > Yep. I'll fix that. Thanks for the review.
-> > 
-> > > And if I wanted to nit-pick, I think, it should be "a hybrid," I'm not
-> > > a native-speaker though;)
-> 
-> Yes, "a hybrid" is the correct form.
-> 
-> <digression>
-> The use of "a" or "an" is a speech rule; not a spelling rule.  If the
-> word begins with a consonant sound, "a" is used; if the word begins with
-> a vowel sound, "-n" is appended, so "an" is used.
-> 
-> The initial sounds of English words that begin with "h", "u", and "y"
-> can't be determined by the inital letter alone.  One has to know how to
-> pronounce the word to choose the correct form:
-> 
-> 	a hint
-> 	a unit
-> 	a yard
-> 
-> 	an hour
-> 	an umbrella
-> 	an yttrium atom
-> 
-> The rule for appending "-n" to "a" before a vowel sound allows faster
-> speech.  Without the "-n" before a vowel sound, an English speaker is
-> going to pronounce the "a" either as a dipthong or with a trailing
-> glottal stop.  Either will slow down speech ever so slightly.
-> </digression>
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ Documentation/DocBook/v4l/vidioc-g-ctrl.xml      |    7 +++++++
+ Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml |    7 +++++++
+ 2 files changed, 14 insertions(+), 0 deletions(-)
 
-I love your digressions about the English language, please keep them coming 
-:-)
-
+diff --git a/Documentation/DocBook/v4l/vidioc-g-ctrl.xml b/Documentation/DocBook/v4l/vidioc-g-ctrl.xml
+index 8b5e6ff..5146d00 100644
+--- a/Documentation/DocBook/v4l/vidioc-g-ctrl.xml
++++ b/Documentation/DocBook/v4l/vidioc-g-ctrl.xml
+@@ -117,6 +117,13 @@ because another applications took over control of the device function
+ this control belongs to.</para>
+ 	</listitem>
+       </varlistentry>
++      <varlistentry>
++	<term><errorcode>EACCES</errorcode></term>
++	<listitem>
++	  <para>Attempt to set a read-only control or to get a
++	  write-only control.</para>
++	</listitem>
++      </varlistentry>
+     </variablelist>
+   </refsect1>
+ </refentry>
+diff --git a/Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml
+index 3aa7f8f..5e73517 100644
+--- a/Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml
++++ b/Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml
+@@ -294,6 +294,13 @@ The field <structfield>size</structfield> is set to a value that is enough
+ to store the payload and this error code is returned.</para>
+ 	</listitem>
+       </varlistentry>
++      <varlistentry>
++	<term><errorcode>EACCES</errorcode></term>
++	<listitem>
++	  <para>Attempt to try or set a read-only control or to get a
++	  write-only control.</para>
++	</listitem>
++      </varlistentry>
+     </variablelist>
+   </refsect1>
+ </refentry>
 -- 
-Regards,
+1.7.2.5
 
-Laurent Pinchart
