@@ -1,54 +1,84 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:62399 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751426Ab1EJMhe convert rfc822-to-8bit (ORCPT
+Return-path: <mchehab@pedra>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52955 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753638Ab1EOHte (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 May 2011 08:37:34 -0400
-Received: by iwn34 with SMTP id 34so5158030iwn.19
-        for <linux-media@vger.kernel.org>; Tue, 10 May 2011 05:37:34 -0700 (PDT)
+	Sun, 15 May 2011 03:49:34 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [PATCH 1/1] v4l: Document EACCES in VIDIOC_G_CTRL and VIDIOC_G_EXT_CTRLS
+Date: Sun, 15 May 2011 09:50:36 +0200
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+References: <1305293053-16448-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <1305293053-16448-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-In-Reply-To: <201105101425.40631.laurent.pinchart@ideasonboard.com>
-References: <BANLkTi=pS07RymXLOFsRihd5Jso-y6OsHg@mail.gmail.com>
-	<BANLkTinrSz4nULGS729jEhs1O=wvUy19Jg@mail.gmail.com>
-	<BANLkTincAieXM+DNbkaHiRVxEA6nh6O0Tw@mail.gmail.com>
-	<201105101425.40631.laurent.pinchart@ideasonboard.com>
-Date: Tue, 10 May 2011 14:37:33 +0200
-Message-ID: <BANLkTinBmoeuPBfwNL2z62xLhzZK_owM1Q@mail.gmail.com>
-Subject: Re: Current status report of mt9p031.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Chris Rodley <carlighting@yahoo.co.nz>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201105150950.37107.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On 10 May 2011 14:25, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Javier,
->
-> On Tuesday 10 May 2011 13:05:35 javier Martin wrote:
->> I almost forget,
->> I am using 2.6.39-rc  commit bd99337e95b6bba976e41a5f3cf65c1f04069156
->
-> There's no such commit in mainline.
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
+Hi Sakari,
 
-Sorry Laurent,
-the commit is  5895198c56d131cc696556a45f7ff0ea99ac297b
+On Friday 13 May 2011 15:24:13 Sakari Ailus wrote:
+> VIDIOC_G_CTRL and VIDIOC_G_EXT_CTRLS return EACCES when setting a read-only
+> control or getting a write-only control.  Document this.
+
+You might want to modify the commit message to include VIDIOC_S_CTRL and 
+VIDIOC_S_EXT_CTRLS. Setting a control with the VIDIOC_G_(EXT_)CTRL(S) ioctls 
+is a bit difficult :-)
+
+> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+> ---
+>  Documentation/DocBook/v4l/vidioc-g-ctrl.xml      |    7 +++++++
+>  Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml |    7 +++++++
+>  2 files changed, 14 insertions(+), 0 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/v4l/vidioc-g-ctrl.xml
+> b/Documentation/DocBook/v4l/vidioc-g-ctrl.xml index 8b5e6ff..5146d00
+> 100644
+> --- a/Documentation/DocBook/v4l/vidioc-g-ctrl.xml
+> +++ b/Documentation/DocBook/v4l/vidioc-g-ctrl.xml
+> @@ -117,6 +117,13 @@ because another applications took over control of the
+> device function this control belongs to.</para>
+>  	</listitem>
+>        </varlistentry>
+> +      <varlistentry>
+> +	<term><errorcode>EACCES</errorcode></term>
+> +	<listitem>
+> +	  <para>Attempt to set a read-only control or to get a
+> +	  write-only control.</para>
+
+Should you s/set/try or set/ ?
+
+> +	</listitem>
+> +      </varlistentry>
+>      </variablelist>
+>    </refsect1>
+>  </refentry>
+> diff --git a/Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml
+> b/Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml index 3aa7f8f..5e73517
+> 100644
+> --- a/Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml
+> +++ b/Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml
+> @@ -294,6 +294,13 @@ The field <structfield>size</structfield> is set to a
+> value that is enough to store the payload and this error code is
+> returned.</para>
+>  	</listitem>
+>        </varlistentry>
+> +      <varlistentry>
+> +	<term><errorcode>EACCES</errorcode></term>
+> +	<listitem>
+> +	  <para>Attempt to try or set a read-only control or to get a
+> +	  write-only control.</para>
+> +	</listitem>
+> +      </varlistentry>
+>      </variablelist>
+>    </refsect1>
+>  </refentry>
 
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+Regards,
+
+Laurent Pinchart
