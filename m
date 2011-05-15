@@ -1,65 +1,61 @@
-Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:49044 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753838Ab1EJJvJ (ORCPT
+Return-path: <mchehab@pedra>
+Received: from earthlight.etchedpixels.co.uk ([81.2.110.250]:57039 "EHLO
+	www.etchedpixels.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751166Ab1EOV0E (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 May 2011 05:51:09 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Hans Verkuil" <hverkuil@xs4all.nl>
-Subject: Re: why is there no enum_input in v4l2_subdev_video_ops
-Date: Tue, 10 May 2011 11:51:55 +0200
-Cc: "Jiang, Scott" <Scott.Jiang@analog.com>,
-	"Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
-	"uclinux-dist-devel@blackfin.uclinux.org"
-	<uclinux-dist-devel@blackfin.uclinux.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <E43657A3F2E26048BB0EBCA7C4CB6941B4B52CDE0C@NWD2CMBX1.ad.analog.com> <E43657A3F2E26048BB0EBCA7C4CB6941B4B52CDFA4@NWD2CMBX1.ad.analog.com> <76572cb10f933c769617a2c5120a5d25.squirrel@webmail.xs4all.nl>
-In-Reply-To: <76572cb10f933c769617a2c5120a5d25.squirrel@webmail.xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+	Sun, 15 May 2011 17:26:04 -0400
+Date: Sun, 15 May 2011 22:27:27 +0100
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Subject: Re: Summary of the V4L2 discussions during LDS - was: Re: Embedded
+ Linux memory management interest group list
+Message-ID: <20110515222727.75b05a0c@lxorguk.ukuu.org.uk>
+In-Reply-To: <201105152310.31678.hverkuil@xs4all.nl>
+References: <BANLkTimoKzWrAyCBM2B9oTEKstPJjpG_MA@mail.gmail.com>
+	<201105141302.55100.hverkuil@xs4all.nl>
+	<4DCE6B7B.1080907@redhat.com>
+	<201105152310.31678.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201105101151.56086.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hi,
+> > On both cases, the requirement is to pass a framebuffer between two entities, 
+> > and not a video stream.
 
-On Tuesday 10 May 2011 08:14:10 Hans Verkuil wrote:
-> > On Tue, May 10, 2011 at 5:42 AM, Laurent Pinchart wrote:
-> >>> >> Why is there no enum_input operation in v4l2_subdev_video_ops?
-> >> 
-> >> Why do you need one ?
-> > 
-> > Because I want to query decoder how many inputs it can support.
-> > So the question is where we should store inputs info, board specific data
-> > or decoder driver?
-> > I appreciate your advice.
-> 
-> ENUMINPUT as defined by V4L2 enumerates input connectors available on the
-> board. Which inputs the board designer hooked up is something that only
-> the top-level V4L driver will know. Subdevices do not have that
-> information, so enuminputs is not applicable there.
-> 
-> Of course, subdevices do have input pins and output pins, but these are
-> assumed to be fixed. With the s_routing ops the top level driver selects
-> which input and output pins are active. Enumeration of those inputs and
-> outputs wouldn't gain you anything as far as I can tell since the
-> subdevice simply does not know which inputs/outputs are actually hooked
-> up. It's the top level driver that has that information (usually passed in
-> through board/card info structures).
+It may not even be a framebuffer. In many cases you'll pass a framebuffer
+or some memory target (in DRI think probably a GEM handle), in fact in
+theory you can do much of this now.
 
-I agree. Subdevs don't have enough knowledge of their surroundings to make 
-input enumeration really useful. They could enumerate their input pins, but 
-not the inputs that are actually hooked up on board.
+> > use a buffer that were filled already by the camera. Also, the V4L2 camera
+> > driver can't re-use such framebuffer before being sure that both consumers 
+> > has already stopped using it.
 
-The media controller framework is one way of solving this issue. It can report 
-links for every input pad.
+You also potentially need fences which complicates the interface
+somewhat.
 
-Scott, can you tell us a bit more about the decoder you're working with ? What 
-kind of system is it used in ?
+> The use case above isn't even possible without copying. At least, I don't see a
+> way, unless the GPU buffer is non-destructive. In that case you can give the
+> frame to the GPU, and when the GPU is finished you can give it to the encoder.
+> I suspect that might become quite complex though.
 
--- 
-Regards,
+It's actually no different to giving a buffer to the GPU some of the time
+and the CPU other bits. In those cases you often need to ensure private
+ownership each side and do fencing/cache flushing as needed.
 
-Laurent Pinchart
+> Note that many video receivers cannot stall. You can't tell them to wait until
+> the last buffer finished processing. This is different from some/most? sensors.
+
+A lot of video receivers also keep the bits away from the CPU as part of
+the general DRM delusion TV operators work under. That means you've got
+an object that has a handle, has operations (alpha, fade, scale, etc) but
+you can never touch the bits. In the TV/Video world not unsurprisingly
+that is often seen as the 'primary' frame buffer as well. You've got a
+set of mappable framebuffers the CPU can touch plus other video sources
+that can be mixed and placed but the CPU can only touch the mappable
+objects that form part of the picture.
+
+Alan
