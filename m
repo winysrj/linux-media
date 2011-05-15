@@ -1,144 +1,67 @@
-Return-path: <mchehab@gaivota>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3842 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754723Ab1ELGJN (ORCPT
+Return-path: <mchehab@pedra>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:62402 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752989Ab1EOJnd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 May 2011 02:09:13 -0400
-Message-ID: <7f6cc8cb96e27d683e67f9f88edce3da.squirrel@webmail.xs4all.nl>
-In-Reply-To: <201105111128.03704.laurent.pinchart@ideasonboard.com>
-References: <E43657A3F2E26048BB0EBCA7C4CB6941B4B52CDE0C@NWD2CMBX1.ad.analog.com>
-    <201105101151.56086.laurent.pinchart@ideasonboard.com>
-    <E43657A3F2E26048BB0EBCA7C4CB6941B4B52CE3A5@NWD2CMBX1.ad.analog.com>
-    <201105111128.03704.laurent.pinchart@ideasonboard.com>
-Date: Thu, 12 May 2011 08:09:03 +0200
-Subject: Re: why is there no enum_input in v4l2_subdev_video_ops
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>
-Cc: "Jiang, Scott" <scott.jiang@analog.com>,
-	"Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
-	"uclinux-dist-devel@blackfin.uclinux.org"
-	<uclinux-dist-devel@blackfin.uclinux.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+	Sun, 15 May 2011 05:43:33 -0400
+Received: by ewy4 with SMTP id 4so1024148ewy.19
+        for <linux-media@vger.kernel.org>; Sun, 15 May 2011 02:43:32 -0700 (PDT)
+Message-ID: <4DCFA040.20209@gmail.com>
+Date: Sun, 15 May 2011 11:43:28 +0200
+From: Sylwester Nawrocki <snjw23@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [GIT PULL FOR 2.6.40] v4l2 subdev driver for Samsung S5P MIPI
+ CSI receiver
+References: <4DCD592E.8060302@samsung.com> <201105150946.05466.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201105150946.05466.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-> Hi Scott,
->
-> On Wednesday 11 May 2011 10:43:30 Jiang, Scott wrote:
->> On Tue, May 10, 2011 at 5:51 PM, Laurent Pinchart wrote: > > On Tuesday
->> 10
-> May 2011 08:14:10 Hans Verkuil wrote:
->> >> > On Tue, May 10, 2011 at 5:42 AM, Laurent Pinchart wrote:
->> >> >>> >> Why is there no enum_input operation in v4l2_subdev_video_ops?
->> >> >>
->> >> >> Why do you need one ?
->> >> >
->> >> > Because I want to query decoder how many inputs it can support.
->> >> > So the question is where we should store inputs info, board
->> specific
->> >> > data or decoder driver?
->> >> > I appreciate your advice.
->> >>
->> >> ENUMINPUT as defined by V4L2 enumerates input connectors available on
->> >> the board. Which inputs the board designer hooked up is something
->> that
->> >> only the top-level V4L driver will know. Subdevices do not have that
->> >> information, so enuminputs is not applicable there.
->> >>
->> >> Of course, subdevices do have input pins and output pins, but these
->> are
->> >> assumed to be fixed. With the s_routing ops the top level driver
->> selects
->> >> which input and output pins are active. Enumeration of those inputs
->> and
->> >> outputs wouldn't gain you anything as far as I can tell since the
->> >> subdevice simply does not know which inputs/outputs are actually
->> hooked
->> >> up. It's the top level driver that has that information (usually
->> passed
->> >> in through board/card info structures).
->> >
->> > I agree. Subdevs don't have enough knowledge of their surroundings to
->> > make input enumeration really useful. They could enumerate their input
->> > pins, but not the inputs that are actually hooked up on board.
->> >
->> > The media controller framework is one way of solving this issue. It
->> can
->> > report links for every input pad.
->> >
->> > Scott, can you tell us a bit more about the decoder you're working
->> with ?
->> > What kind of system is it used in ?
+Hi Laurent,
+
+On 05/15/2011 09:46 AM, Laurent Pinchart wrote:
+> On Friday 13 May 2011 18:15:42 Sylwester Nawrocki wrote:
+>> Hi Mauro,
 >>
->> I'm working on ADV7183 and VS6624 connecting with blackfin through ppi.
->
-> Enumerating inputs only matters for the ADV7183. The issue is that the
-> adv7183
-> driver doesn't know how its inputs are routed on the board. I see several
-> solutions to fix this issue.
->
-> - Create an adv7183 platform data structure, and fill it in board code
-> with
-> input routing information. The adv7183 driver can use that information to
-> implement a (to be added) enum_input operation. I don't really like this
-> solution, as the adv7183 really shouldn't care about how video signals are
-> routed on the board.
+>> The following changes since commit
+>> f9b51477fe540fb4c65a05027fdd6f2ecce4db3b:
+>>
+>>    [media] DVB: return meaningful error codes in dvb_frontend (2011-05-09
+>> 05:47:20 +0200)
+>>
+>> are available in the git repository at:
+>>    git://git.infradead.org/users/kmpark/linux-2.6-samsung s5p-csis
+>>
+>> Sylwester Nawrocki (3):
+>>        v4l: Add V4L2_MBUS_FMT_JPEG_1X8 media bus format
+>>        v4l: Move s5p-fimc driver into Video capture devices
+>>        v4l: Add v4l2 subdev driver for S5P/EXYNOS4 MIPI-CSI receivers
+>>
+>> It's a new driver for MIPI CSI receiver available in S5PVxxx/EXYNOS4 SoCs.
+>> The first patch adds definition of a media bus code for JPEG format.
+>>
+>> I've done three further driver amendments comparing to the last (v5)
+>> version posted on the mailing lists, i.e.:
+>>   - slightly improved description of struct csis_state
+>>   - moved the pad number check from __s5pcsis_get_format directly to
+>> set_fmt/get_fmt pad level operation handlers
+>>   - replaced __init attribute of s5pcsis_probe() with __devinit and added
+>>     __devexit for s5pcsis_remove()
+> 
+> I've reviewed the patches yesterday, I think there's still a couple of small
+> issues you might want to address.
 
-Definitely not.
+Yeah, I've noticed that ;-) Thanks for getting back to this.
 
-> - Pass the same information to the master v4l2_device driver that
-> instantiates
-> the adv7183. The information can then be used to implement the G_INPUT
-> ioctl,
-> or for internal purpose. You won't need any enum_input subdev operation in
-> that case.
+Mauro, please ignore this pull request, my apologies for he noise.
 
-This is the way to do it. The TI davinci drivers do this, for example.
-
-> - Use the media controller API to expose routing information to userspace.
-> Like in the previous solution, board code would pass input routing
-> information
-> to the v4l2_device driver that would use use to create links. Links will
-> then
-> be enumerable and configurable by userspace.
-
-This does not work (yet), since this would require the MC to have
-connector entities which we do not have (yet). We will need them for ALSA,
-and I think we also need them for V4L, but for V4L we need to figure out
-the relationship between the _INPUT and _OUTPUT V4L2 ioctls and a MC with
-connector entities first.
-
+--
 Regards,
-
-       Hans
-
->> By the way, ppi is a generic parallel interface, that means it can't
->> know
->> the fmt supported itself. Should I use enum_mbus_fmt to ask decoder for
->> this info?
->> I found it in v4l2_subdev_video_ops, but didn't know its usage exactly.
->
-> The enum_mbus_fmt can be used for that purpose, yes. You can use it to
-> query
-> the ADV7183 and VS6624 for their supported formats. You can also query the
-> current format with g_mbus_fmt.
->
-> If you want to implement the media controller API, you should go for the
-> pad-
-> level operations instead of enum_mbus_fmt/g_mbus_fmt (available in
-> 2.6.39).
->
-> --
-> Regards,
->
-> Laurent Pinchart
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
+Sylwester Nawrocki
 
