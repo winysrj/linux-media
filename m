@@ -1,85 +1,102 @@
-Return-path: <mchehab@gaivota>
-Received: from ffm.saftware.de ([83.141.3.46]:51431 "EHLO ffm.saftware.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751617Ab1EHWK4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 8 May 2011 18:10:56 -0400
-Message-ID: <4DC714EC.2060606@linuxtv.org>
-Date: Mon, 09 May 2011 00:10:52 +0200
-From: Andreas Oberritter <obi@linuxtv.org>
+Return-path: <mchehab@pedra>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:45681 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751645Ab1EPGph (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 May 2011 02:45:37 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+Subject: Re: [ANNOUNCE] New OMAP4 V4L2 Camera Project started
+Date: Mon, 16 May 2011 08:46:41 +0200
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hansverk@cisco.com>, Rob Clark <rob@ti.com>
+References: <BANLkTi=RVE0zk83K0hn89H3S6CKEmKSj2A@mail.gmail.com> <4DCDB846.1010204@iki.fi> <BANLkTikswdgo+z0dngcAXBiUH+8EgBEE3Q@mail.gmail.com>
+In-Reply-To: <BANLkTikswdgo+z0dngcAXBiUH+8EgBEE3Q@mail.gmail.com>
 MIME-Version: 1.0
-To: Steve Kerrison <steve@stevekerrison.com>
-CC: Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 2/5] drxd: Fix warning caused by new entries in an
- enum
-References: <4DC6BF28.8070006@redhat.com> <1304882240-23044-3-git-send-email-steve@stevekerrison.com>
-In-Reply-To: <1304882240-23044-3-git-send-email-steve@stevekerrison.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201105160846.42464.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On 05/08/2011 09:17 PM, Steve Kerrison wrote:
-> Additional bandwidth modes have been added in frontend.h
-> drxd_hard.c had no default case so the compiler was warning about
-> a non-exhausive switch statement.
+Hi,
+
+On Saturday 14 May 2011 01:23:34 Aguirre, Sergio wrote:
+> On Fri, May 13, 2011 at 6:01 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> > Aguirre, Sergio wrote:
+
+[snip]
+
+> > - As far as I understand, the OMAP 4 ISS is partially similar to the
+> > OMAP 3 one in design --- it has a hardware pipeline, that is. Fitting
+> > the bus receivers and the ISP under an Media controller graph looks
+> > relatively straightforward. The same might apply to SIMCOP, but then the
+> > question is: what kind of interface should the SIMCOP have?
 > 
-> This has been fixed by making the default behaviour the same as
-> BANDWIDTH_AUTO, with the addition of a printk to notify if this
-> ever happens.
+> That's a big question :) And I'm yet not sure on that. I'll certainly need
+> to think about it, and probably start planning for RFCs.
 > 
-> Signed-off-by: Steve Kerrison <steve@stevekerrison.com>
-> ---
->  drivers/media/dvb/frontends/drxd_hard.c |    4 ++++
->  1 files changed, 4 insertions(+), 0 deletions(-)
+> BTW, this driver is just implementing a super simple CSI2-A Rx -> MEM
+> pipeline so far. I started with this because i wanted to avoid wasting my
+> time on developing somethign huge, and having to do heavy rework after
+> reviews take place.
 > 
-> diff --git a/drivers/media/dvb/frontends/drxd_hard.c b/drivers/media/dvb/frontends/drxd_hard.c
-> index 30a78af..b3b0704 100644
-> --- a/drivers/media/dvb/frontends/drxd_hard.c
-> +++ b/drivers/media/dvb/frontends/drxd_hard.c
-> @@ -2325,6 +2325,10 @@ static int DRX_Start(struct drxd_state *state, s32 off)
->  		   InitEC and ResetEC
->  		   functions */
->  		switch (p->bandwidth) {
-> +		default:
-> +			printk(KERN_INFO "drxd: Unsupported bandwidth mode %u, reverting to default\n",
-> +				p->bandwidth);
-> +			/* Fall back to auto */
+> > Being familiar with the history of the OMAP 3 ISP driver, I know this is
+> > not a small project. Still, starting to use the Media controller in an
+> > early phase would benefit the project in long run since the conversion
+> > can be avoided later.
+> 
+> Agreed.
+> 
+> > Which parts of the ISS require regular attention from the M3s? Is it the
+> > whole ISS or just the SIMCOP, for example?
+> 
+> In theory, the whole ISS, which includes SIMCOP, cna be driven from either
+> A9 or M3 cores.
+> 
+> Architecturally, it's better to keep the dedicated M3 cores for driving ISS,
+> and to save some considerable cycles from A9. Problem is, we have to deal
+> with IPC communication channels, and that might make the driver much more
+> complex and requiring much more software layers to be in place for that.
 
-I'd prefer returning -EINVAL for unsupported parameters.
+The current syslink implementation includes a mandatory userspace layer and 
+makes it impossible for drivers to communicate with the M3. I've heard rumour 
+that this might change. Do you have more information ?
 
->  		case BANDWIDTH_AUTO:
->  		case BANDWIDTH_8_MHZ:
->  			/* (64/7)*(8/8)*1000000 */
+> The long term vision about this is that, it might be good ot see how easy
+> is to keep a Media Controller device, which sends the pipeline and subdevice
+> configuration to M3 software, and just keep the Board specific and Usecases
+> in A9 side.
+> 
+> Immediate problems are how to approach this with purely open source tools.
+> (As far as I know, it's so far only possible with TI proprietary compilers)
 
-I already had a patch for this, but forgot to submit it together with the frontend.h bits.
+gcc supports Cortex M3, doesn't it ? Is the limitation specific to your M3 
+software that uses TI proprietary compiler (not based on gcc I assume ?), or 
+are there gcc-specific issues as well ?
 
->From 73d630b57f584d7e35cac5e27149cbc564aedde2 Mon Sep 17 00:00:00 2001
-From: Andreas Oberritter <obi@linuxtv.org>
-Date: Fri, 8 Apr 2011 16:39:20 +0000
-Subject: [PATCH 2/2] DVB: drxd_hard: handle new bandwidths by returning -EINVAL
+> So, it might definitely take this discussion to a much more complex level
+> and more complete analysis. Hopefully we can have a good discussion about
+> the long term future of this.
+> 
+> So far, I'm just starting with the simple stuff, ISS CSI2 Rx interface :)
+>
+> > Ps. I have nothing against SoC camera, but when I look at the ISS
+> > overview diagram (section 8.1 in my TRM) I can't avoid thinking that
+> > this is exactly what the Media controller was created for. :-)
+> 
+> The main reason why it started as a soc_camera is because I started this
+> driver in a 2.6.35 android kernel, and refused to backport all the Media
+> Controller patches to it :)
+> 
+> But now being based in mainline, that's a different story. ;)
 
-Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
----
- drivers/media/dvb/frontends/drxd_hard.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+As I've already mentioned, I believe the next step is to port the driver from 
+soc_camera to the media controller.
 
-diff --git a/drivers/media/dvb/frontends/drxd_hard.c b/drivers/media/dvb/frontends/drxd_hard.c
-index 30a78af..53319f4 100644
---- a/drivers/media/dvb/frontends/drxd_hard.c
-+++ b/drivers/media/dvb/frontends/drxd_hard.c
-@@ -2348,6 +2348,9 @@ static int DRX_Start(struct drxd_state *state, s32 off)
- 			status = Write16(state,
- 					 FE_AG_REG_IND_DEL__A, 71, 0x0000);
- 			break;
-+		default:
-+			status = -EINVAL;
-+			break;
- 		}
- 		status = status;
- 		if (status < 0)
 -- 
-1.7.2.5
+Regards,
 
-Btw., "status = status;" looks odd.
+Laurent Pinchart
