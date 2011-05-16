@@ -1,154 +1,132 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:52935 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756086Ab1EXM3k (ORCPT
+Received: from leo.clearchain.com ([199.73.29.74]:27273 "EHLO
+	mail.clearchain.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752295Ab1EPBgE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 May 2011 08:29:40 -0400
-Date: Tue, 24 May 2011 15:29:33 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Sun, 15 May 2011 21:36:04 -0400
+Date: Mon, 16 May 2011 11:35:44 +1000
+From: Peter Hutterer <peter.hutterer@who-t.net>
 To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PATCH FOR 2.6.40] uvcvideo patches
-Message-ID: <20110524122933.GC1768@valkosipuli.localdomain>
-References: <201105150948.24956.laurent.pinchart@ideasonboard.com>
- <201105201749.27977.laurent.pinchart@ideasonboard.com>
- <4DD6BE21.30605@redhat.com>
- <201105202147.22435.laurent.pinchart@ideasonboard.com>
- <4DD6D69E.2050701@redhat.com>
+Cc: Anssi Hannula <anssi.hannula@iki.fi>, linux-media@vger.kernel.org,
+	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
+	xorg-devel@lists.freedesktop.org
+Subject: Re: IR remote control autorepeat / evdev
+Message-ID: <20110516013544.GC11578@barra.bne.redhat.com>
+References: <4DCA1496.20304@redhat.com>
+ <4DCABA42.30505@iki.fi>
+ <4DCABEAE.4080607@redhat.com>
+ <4DCACE74.6050601@iki.fi>
+ <4DCB213A.8040306@redhat.com>
+ <4DCB2BD9.6090105@iki.fi>
+ <4DCB336B.2090303@redhat.com>
+ <4DCB39AF.2000807@redhat.com>
+ <20110512060529.GA14710@barra.bne.redhat.com>
+ <4DCCE2E6.3070703@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <4DD6D69E.2050701@redhat.com>
+In-Reply-To: <4DCCE2E6.3070703@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro and Laurent,
-
-On Fri, May 20, 2011 at 06:01:18PM -0300, Mauro Carvalho Chehab wrote:
-> Em 20-05-2011 16:47, Laurent Pinchart escreveu:
-[clip]
-> >> By allowing access to those undocumented XU controls an Evil
-> >> Manufacturer(tm) could try to sell its own proprietary software that will
-> >> work on Linux where all other software will deadly fail or will produce
-> >> very bad results. We've seen that history before.
-> 
-> As you're putting some names, let me be clearer. In the past we had bad stuff
-> like this one:
-> 	http://kerneltrap.org/node/3729
-> 
-> that ended by the need of somebody to rewrite the entire pwc driver, because
-> the only way to get a decent image using a Philips camera, with the 
-> "open source" driver were to run a closed-source binary.
-> 
-> undocumented controls that can do everything, as you said, can create a
-> similar situation to what we had in the past.
-> 
-> > We have several alternatives. One of them, that is being shipped in some 
-> > systems, is a uvcvideo driver patched by the Evil Manufacturer(tm), 
-> > incompatible with the mainline version. Another one is a closed-source 
-> > userspace driver based on libusb shipped by the Evil Manufacturer(tm). Yet 
-> > another one is webcams that work on Windows only. Which one do you prefer ?
-> 
-> I prefer to ask the vendor about the XU controls that he needs and add a proper
-> interface for them.
-
-As the UVC standard allows implementing custom functionality in a standard
-way (UVC), I wouldn't necessarily prevent using that. I definitely agree
-that the XU functionality should be properly documented by vendors, and what
-can be supported using a standardised interface must be.
-
-[clip]
-
-> > Why "something else" ? The XU interface has been designed by the USB-IF to be 
-> > a kernelspace to userspace API. That's how Microsoft, and I think Apple, 
-> > implemented it (it might not be a reference though).
+On Fri, May 13, 2011 at 09:51:02AM +0200, Mauro Carvalho Chehab wrote:
+> Em 12-05-2011 08:05, Peter Hutterer escreveu:
+> > On Thu, May 12, 2011 at 03:36:47AM +0200, Mauro Carvalho Chehab wrote:
+> >> Em 12-05-2011 03:10, Mauro Carvalho Chehab escreveu:
+> >>> Em 12-05-2011 02:37, Anssi Hannula escreveu:
+> >>
+> >>>> I don't see any other places:
+> >>>> $ git grep 'REP_PERIOD' .
+> >>>> dvb/dvb-usb/dvb-usb-remote.c:   input_dev->rep[REP_PERIOD] =
+> >>>> d->props.rc.legacy.rc_interval;
+> >>>
+> >>> Indeed, the REP_PERIOD is not adjusted on other drivers. I agree that we
+> >>> should change it to something like 125ms, for example, as 33ms is too 
+> >>> short, as it takes up to 114ms for a repeat event to arrive.
+> >>>
+> >> IMO, the enclosed patch should do a better job with repeat events, without
+> >> needing to change rc-core/input/event logic.
+> >>
+> >> -
+> >>
+> >> Subject: Use a more consistent value for RC repeat period
+> >> From: Mauro Carvalho Chehab <mchehab@redhat.com>
+> >>
+> >> The default REP_PERIOD is 33 ms. This doesn't make sense for IR's,
+> >> as, in general, an IR repeat scancode is provided at every 110/115ms,
+> >> depending on the RC protocol. So, increase its default, to do a
+> >> better job avoiding ghost repeat events.
+> >>
+> >> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> >>
+> >> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+> >> index f53f9c6..ee67169 100644
+> >> --- a/drivers/media/rc/rc-main.c
+> >> +++ b/drivers/media/rc/rc-main.c
+> >> @@ -1044,6 +1044,13 @@ int rc_register_device(struct rc_dev *dev)
+> >>  	 */
+> >>  	dev->input_dev->rep[REP_DELAY] = 500;
+> >>  
+> >> +	/*
+> >> +	 * As a repeat event on protocols like RC-5 and NEC take as long as
+> >> +	 * 110/114ms, using 33ms as a repeat period is not the right thing
+> >> +	 * to do.
+> >> +	 */
+> >> +	dev->input_dev->rep[REP_PERIOD] = 125;
+> >> +
+> >>  	path = kobject_get_path(&dev->dev.kobj, GFP_KERNEL);
+> >>  	printk(KERN_INFO "%s: %s as %s\n",
+> >>  		dev_name(&dev->dev),
 > > 
-> >> In the latter case, the developer that did the reverse engineering can just
-> >> send us a patch adding the new V4L control/firmware upgrade logic/whatever
-> >> to us.
-> > 
-> > UVC is a class specification. I don't want to cripple the driver with tons of 
-> > device-specific code. We already have Apple iSight- and Logitech-specific code 
-> > and way too many quirks for my taste.
+> > so if I get this right, a XkbSetControls(.. XkbRepeatKeysMask ...) by a
+> > client to set the repeat rate would provide the same solution - for those
+> > clients/devices affected. 
 > 
-> Unfortunately, by being a generic driver for an USB class, and with vendors not
-> quite following the specs, there's no way to avoid having device-specific stuff
-> there. Other similar drivers like snd-usb-audio and sound hda driver has lots
-> of quirks. In particular, the hda driver contains more lines to the patch-*.c
-> drivers (with the device-specific stuff) than the driver core:
+> Yes, if we preserve the same logic. The above will probably still generate
+> ghost repeats if the user keeps the IR pressed for a long time, as we're using
+> a separate timer at the rc-core logic than the one used inside evdev.
 > 
-> $ wc -l sound/pci/hda/*.c
->     267 sound/pci/hda/hda_beep.c
->    5072 sound/pci/hda/hda_codec.c
->     637 sound/pci/hda/hda_eld.c
->    1084 sound/pci/hda/hda_generic.c
->     818 sound/pci/hda/hda_hwdep.c
->    2854 sound/pci/hda/hda_intel.c
->     727 sound/pci/hda/hda_proc.c
->    4988 sound/pci/hda/patch_analog.c
->     572 sound/pci/hda/patch_ca0110.c
->    1314 sound/pci/hda/patch_cirrus.c
->     776 sound/pci/hda/patch_cmedia.c
->    3905 sound/pci/hda/patch_conexant.c
->    1749 sound/pci/hda/patch_hdmi.c
->   20167 sound/pci/hda/patch_realtek.c
->     335 sound/pci/hda/patch_si3054.c
->    6434 sound/pci/hda/patch_sigmatel.c
->    6107 sound/pci/hda/patch_via.c
->   57806 total
+> > The interesting question is how clients would identify the devices that are
+> > affected by this (other than trial and error).
 > 
-> Yeah, device-specific stuff sucks, but sometimes there's no way to properly
-> support a device.
+> That is easy. I've added a logic that detects it on Xorg evdev on some RFC patches
+> I've prepared in the past to allow using a keycode with more than 247 for IR's.
+> I'll work on a new version for it and submit again when I have some time.
+> Anyway, I'm enclosing a patch with the old version. 
 
-In this case the functionality the hardware provides is rather well defined
---- audio streams and a set of mixer controls. It's just the implementation
-which varies, but that can still be made fit behind a standard interface
-which provides standardised functionality for the applications.
+Note that "clients" refers to X clients, i.e. applications. While it's
+usually trivial to add new functionality to evdev or other drivers, exposing
+information to the actual client requires some protocol extension or
+additions to existing extensions. While we have mechanisms in place for
+devices to be labelled, we don't have anyone to actually read this
+information (or even some standard on how to apply the labels).
 
-In the case of the UVC hardware, there's a standard which is mostly followed
-relatively well by vendors. What likely cannot be standardised is, for
-example, the firmware update for Logitech webcams mentioned above, which the
-UVC standard still allows. This will stay specific to Logitech devices
-probably forever.
+>From the implementation-side, we not only need to flag the devices in the
+driver (like you've outlined in the patch below), we then need to get this
+information into the X server so that the server doesn't repeat. XKB has a
+per-key-repeat flag which we may be able to use but we need to also override
+client-side key repeat setting (for this device only). XKB doesn't allow for
+a repeat rate change request to fail, so we have to essentially tell client
+they have succeeded in setting their repeat rate while using a completely
+different one.
+Technically, you can override the repeat setting requested by the client
+if you simply send out an event when you change it back to the hardware
+setting. This then looks like some other client has changed it but the
+danger is that it may send stubborn clients into an infinite loop.
 
-As far as I understand, this discussion isn't really even related to the
-patchset. The XU access is still provided to user space without the
-patchset.
+How much that really matters I don't know.
 
-> >> So, I'm yet not convinced ;) In fact, I think we should just deprecate the
-> >> XU private ioctls.
-> > 
-> > http://www.quickcamteam.net/uvc-h264/USB_Video_Payload_H.264_0.87.pdf
-> > 
-> > That's a brain-dead proposal for a new H.264 payload format pushed by Logitech 
-> > and Microsoft. The document is a bit outdated, but the final version will 
-> > likely be close. It requires direct XU access from applications. I don't like 
-> > it either, and the alternative will be to not support H.264 UVC cameras at all 
-> > (something I might consider, by blacklisting the product completely). Are you 
-> > ready to refuse supporting large classes of USB hardware ?
-> 
-> What's the difference between:
-> 	1) exposing XU access to userspace and having no applications using it;
-> 	2) just blacklisting them.
-> 
-> The end result is the same.
+Letting clients know which device is an RC control at least means that the
+overriding should be expected, but that brings us back to the labelling
+issue.
 
-I think that in this case it wouldn't be a choice between the two, but 1)
-being "exposing XU access to user space and requiring applications to
-support that". This case is documented, unlike the firmware update, and does
-not have anything to do with the XU ioctl interface --- the only connection
-to XUs is that the user needs to know that an XU is there to interpret the
-image data in a certain way. The "user" in this case could be libv4l, so
-that the applications wouldn't need to care.
+But either way, to even get this to the "override" stage you need three
+patches:
+- evdev: recognise and flag the devices
+- X server: introduce an API to pass this information on to the server
+- X server: fixes to the XKB system to disable autorepeat for devices
+  flagged accordingly and override requests to change the repeat rate.
 
-This is a class of UVC hardware as far as I understand, and Logitech being a
-major vendor there will likely be a bunch of those devices. My wish is still
-that a proper spec will be written before anyone starts manufacturing those
-in large quantities. :-)
+Cheers,
+  Peter
 
-Regards,
-
--- 
-Sakari Ailus
-sakari dot ailus at iki dot fi
