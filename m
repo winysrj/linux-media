@@ -1,237 +1,197 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:51327 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755371Ab1ECCjY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 May 2011 22:39:24 -0400
-Subject: Re: [git:v4l-dvb/for_v2.6.40] [media] cx18: mmap() support for raw
- YUV video capture
-From: Andy Walls <awalls@md.metrocast.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org,
-	Simon Farnsworth <simon.farnsworth@onelan.co.uk>,
-	Steven Toth <stoth@kernellabs.com>
-In-Reply-To: <201105022331.29142.hverkuil@xs4all.nl>
-References: <E1QGwlS-0006ys-15@www.linuxtv.org>
-	 <201105022202.57946.hverkuil@xs4all.nl>
-	 <BANLkTinzrccpQHk1qrDyT6VbfTPVBCGKkQ@mail.gmail.com>
-	 <201105022331.29142.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 02 May 2011 22:40:15 -0400
-Message-ID: <1304390415.2461.126.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from smtp.nokia.com ([147.243.128.26]:19208 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751868Ab1EPNAs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 May 2011 09:00:48 -0400
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, nkanchev@mm-sol.com,
+	g.liakhovetski@gmx.de, hverkuil@xs4all.nl, dacohen@gmail.com,
+	riverful@gmail.com, andrew.b.adams@gmail.com, shpark7@stanford.edu
+Subject: [PATCH 1/3] v4l: Add a class and a set of controls for flash devices.
+Date: Mon, 16 May 2011 16:00:37 +0300
+Message-Id: <1305550839-16724-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <4DD11FEC.8050308@maxwell.research.nokia.com>
+References: <4DD11FEC.8050308@maxwell.research.nokia.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi All,
+From: Sakari Ailus <sakari.ailus@iki.fi>
 
-Ah crud, what a mess.  Where to begin...?
+Add a control class and a set of controls to support LED and Xenon flash
+devices. An example of such a device is the adp1653.
 
-Where have I been:
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ drivers/media/video/v4l2-ctrls.c |   45 ++++++++++++++++++++++++++++++++++++++
+ include/linux/videodev2.h        |   36 ++++++++++++++++++++++++++++++
+ 2 files changed, 81 insertions(+), 0 deletions(-)
 
-On 30 March 2011, my 8-year-old son was diagnosed with Necrotizing
-Fasciitis caused by Invasive Group A Streptococcous - otherwise known as
-"Flesh-eating bacteria":
-
-http://en.wikipedia.org/wiki/Necrotizing_fasciitis
-http://www.ncbi.nlm.nih.gov/pubmedhealth/PMH0002415/
-
-By the grace of God, my son was diagnosed very early.  He only lost the
-fascia on his left side and one lymph node - damage essentially
-unnoticable to anyone, including my son himself.  His recovery progress
-is excellent and he is now back to his normal life. Yay! \O/
-
-Naturally, Linux driver development disappeared from my mind during the
-extended hospital stay, multiple surgeries, and post-hospitalization
-recovery.
-
-As always; yard-work, house-work, work-work, choir practice, kids'
-sports, kids' after school clubs, and kids' instrument lessons also
-consume my time.
-
-
-
-
-History of this patch:
-
-1. Steven wrote the bulk of it 10 months ago:
-
-	http://www.kernellabs.com/hg/~stoth/cx18-videobuf/
-
-2. At Steven's request, I took a day and reviewed it on July 10 2010 and
-provide comments off-list.  (I will provide them in a follow up to Mauro
-Devin and Hans).
-
-3. The patch languished as Steven didn't have time to make the fixes and
-neither did I.
-
-4. Videobuf2 came along as did good documentation on the deficiencies of
-videobuf1:
-
-http://linuxtv.org/downloads/presentations/summit_jun_2010/20100614-v4l2_summit-videobuf.pdf
-http://linuxtv.org/downloads/presentations/summit_jun_2010/Videobuf_Helsinki_June2010.pdf
-http://lwn.net/Articles/415883/
-
-5. I started independent work to implement videobuf2 for YUV and
-actually using zero-copy.  My progress is very slow.
-
-http://git.linuxtv.org/awalls/media_tree.git?a=shortlog;h=refs/heads/cx18-vb2-proto
-http://git.linuxtv.org/awalls/media_tree.git?a=shortlog;h=refs/heads/cx18_39
-
-6. Simon submits the patches to the list as one big patch.
-
-7. Off-list I forward the same 5 emails of comments to Simon as I
-provided in #2 to Steven.
-
-8. Simon addresses most of the comments and provides a revised patch
-off-list asking for review.  I haven't had time to look at it.
-
-9. Mauro commits the original patch that Simon submitted to the list.
-
-
-My thoughts:
-
-1. I don't want to stop progress, so I did not NACK this patch.  I don't
-exactly like the patch either, so I didn't ACK it.
-
-2. At a minimum someone needs to review Simon's revised patch that tried
-to address my comments.  That patch has to be better than this one.
-Hans has already noticed a few of the bugs I pointed out to Steven and
-Simon.
-
-3. I value that this patch has been tested, but I am guessing the
-use-case was limited.  The toughest cx18 use-cases involve a lot of
-concurrency - multiple stream captures (MPEG, VBI, YUV, PCM) on multiple
-boards (3 or 4).  I had to do a lot of work with the driver to get that
-concurrency reliable and performing well.  Has this been tested post-BKL
-removal?  Have screen sizes other than the full-screen size been tested?
-
-4. I do not like using videobuf(1) for this.  Videobuf(1) is a buggy
-dead-end IMO.  I will NACK any patch that tries to fix anything due to
-videobuf(1) related problems introduced into cx18 by this patch.
-There's no point in throwing too much effort into fixing what would
-likely be unfixable.
-
-5. When I am done with my videobuf2 stuff for cx18, I will essentially
-revert this one and add in my new implementation after sufficient
-testing.  Though given the amount of time I have for this, maybe the
-last HVR-1600 will be dead before then.
-
-
-Summary:
-
-1. I'm not going to fix any YUV related problems merging this patch
-causes.  It's the YUV stream of an MPEG capture card that's more
-expensive than a simple frame grabber.  (I've only heard of it being
-used for live play of video games and of course for Simon's
-application.)
-
-2. I'd at least like Simon's revised patch to be merged instead, to fix
-the known deficincies in this one.
-
-3. If merging this patch, means a change to videobuf2 in the future is
-not allowed, than I'd prefer to NACK the patch that introduces
-videobuf(1) into cx18.
-
-
-Regards,
-Andy
-
-
-
-On Mon, 2011-05-02 at 23:31 +0200, Hans Verkuil wrote:
-> On Monday, May 02, 2011 22:59:09 Devin Heitmueller wrote:
-> > On Mon, May 2, 2011 at 4:02 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > > It was merged without *asking* Andy. I know he has had some private stuff to
-> > > deal with this month so I wasn't surprised that he hadn't reviewed it yet.
-> > >
-> > > It would have been nice if he was reminded first of this patch. It's a
-> > > fairly substantial change that also has user-visible implications. The simple
-> > > fact is that this patch has not been reviewed and as a former cx18 maintainer
-> > > I think that it needs a review first.
-> > >
-> > > If someone had asked and Andy wouldn't have been able to review, then I'd have
-> > > jumped in and would have reviewed it.
-> > >
-> > > Andy, I hope you can look at it, but if not, then let me know and I'll do a
-> > > more in-depth review rather than just the simple scan I did now.
-> > >
-> > >> Now that the patch were committed, I won't revert it without a very good reason.
-> > >>
-> > >> With respect to the "conversion from UYVY format to YUYV", a simple patch could
-> > >> fix it, instead of removing the entire patchset.
-> > >
-> > > No, please remove the patchset because I have found two other issues:
-> > >
-> > > The patch adds this field:
-> > >
-> > >        struct v4l2_framebuffer fbuf;
-> > >
-> > > This is not needed, videobuf_iolock can be called with a NULL pointer instead
-> > > of &fbuf.
-> > >
-> > > The patch also adds tvnorm fields, but never sets s->tvnorm. And it's
-> > > pointless anyway since you can't change tvnorm while streaming.
-> > >
-> > > Given that I've found three things now without even trying suggests to me that
-> > > it is too soon to commit this. Sorry.
-> > >
-> > > Regards,
-> > >
-> > >        Hans
-> > 
-> > Indeed comments/review are always welcome, although it would have been
-> > great if it had happened a month ago.  It's the maintainer's
-> > responsibility to review patches, and if he has issues to raise them
-> > in a timely manner.  If he doesn't care enough or is too busy to
-> > publicly say "hold off on this" for whatever reason, then you can
-> > hardly blame Mauro for merging it.
-> 
-> It's also a good idea if the author of a patch pings the list if there
-> has been no feedback after one or two weeks. It's easy to forget patches,
-> people can be on vacation, be sick, or in the case of Andy, have a family
-> emergency.
-> 
-> > Likewise, I know there have indeed been cases in the past where code
-> > got upstream that caused regressions (in fact, you have personally
-> > been responsible for some of these if I recall).
-> > 
-> > Let's not throw the baby out with the bathwater.  If there are real
-> > structural issues with the patch, then let's get them fixed.  But if
-> > we're just talking about a few minor "unused variable" type of
-> > aesthetic issues, then that shouldn't constitute reverting the commit.
-> >  Do your review, and if an additional patch is needed with a half
-> > dozen removals of dead/unused code, then so be it.
-> 
-> Well, one structural thing I am not at all happy about (but it is Andy's
-> call) is that it uses videobuf instead of vb2. Since this patch only deals
-> with YUV it shouldn't be hard to use vb2. The problem with videobuf is that
-> it violates the V4L2 spec in several places so I would prefer not to use
-> videobuf in cx18. If only because converting cx18 to vb2 later will change
-> the behavior of the stream I/O (VIDIOC_REQBUFS in particular), which is
-> something I would like to avoid if possible.
-> 
-> I know that Andy started work on vb2 in cx18 for all stream types (not just
-> YUV). I have no idea of the current state of that work. But it might be a
-> good starting point to use this patch and convert it to vb2. Later Andy can
-> add vb2 support for the other stream types.
-> 
-> > We're not talking about an untested board profile submitted by some
-> > random user.  We're talking about a patch written by someone highly
-> > familiar with the chipset and it's *working code* that has been
-> > running in production for almost a year.
-> 
-> It's not about that, it's about merging something substantial without the SoB
-> of the maintainer and without asking the maintainer.
-> 
-> I'm not blaming anyone, it's just a miscommunication. What should happen with
-> this patch is up to Andy.
-> 
-> Regards,
-> 
-> 	Hans
-
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index 2412f08..74aae36 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -216,6 +216,17 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		"75 useconds",
+ 		NULL,
+ 	};
++	static const char * const flash_led_mode[] = {
++		"Off",
++		"Flash",
++		"Torch",
++		NULL,
++	};
++	static const char * const flash_strobe_source[] = {
++		"Software",
++		"External",
++		NULL,
++	};
+ 
+ 	switch (id) {
+ 	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
+@@ -256,6 +267,10 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		return colorfx;
+ 	case V4L2_CID_TUNE_PREEMPHASIS:
+ 		return tune_preemphasis;
++	case V4L2_CID_FLASH_LED_MODE:
++		return flash_led_mode;
++	case V4L2_CID_FLASH_STROBE_SOURCE:
++		return flash_strobe_source;
+ 	default:
+ 		return NULL;
+ 	}
+@@ -389,6 +404,21 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_TUNE_POWER_LEVEL:		return "Tune Power Level";
+ 	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:	return "Tune Antenna Capacitor";
+ 
++	/* Flash controls */
++	case V4L2_CID_FLASH_CLASS:		return "Flash controls";
++	case V4L2_CID_FLASH_LED_MODE:		return "LED mode";
++	case V4L2_CID_FLASH_STROBE_SOURCE:	return "Strobe source";
++	case V4L2_CID_FLASH_STROBE:		return "Strobe";
++	case V4L2_CID_FLASH_STROBE_STOP:	return "Stop strobe";
++	case V4L2_CID_FLASH_STROBE_STATUS:	return "Strobe status";
++	case V4L2_CID_FLASH_TIMEOUT:		return "Strobe timeout";
++	case V4L2_CID_FLASH_INTENSITY:		return "Intensity, flash mode";
++	case V4L2_CID_FLASH_TORCH_INTENSITY:	return "Intensity, torch mode";
++	case V4L2_CID_FLASH_INDICATOR_INTENSITY: return "Intensity, indicator";
++	case V4L2_CID_FLASH_FAULT:		return "Faults";
++	case V4L2_CID_FLASH_CHARGE:		return "Charge";
++	case V4L2_CID_FLASH_READY:		return "Ready to strobe";
++
+ 	default:
+ 		return NULL;
+ 	}
+@@ -423,12 +453,17 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_PILOT_TONE_ENABLED:
+ 	case V4L2_CID_ILLUMINATORS_1:
+ 	case V4L2_CID_ILLUMINATORS_2:
++	case V4L2_CID_FLASH_STROBE_STATUS:
++	case V4L2_CID_FLASH_CHARGE:
++	case V4L2_CID_FLASH_READY:
+ 		*type = V4L2_CTRL_TYPE_BOOLEAN;
+ 		*min = 0;
+ 		*max = *step = 1;
+ 		break;
+ 	case V4L2_CID_PAN_RESET:
+ 	case V4L2_CID_TILT_RESET:
++	case V4L2_CID_FLASH_STROBE:
++	case V4L2_CID_FLASH_STROBE_STOP:
+ 		*type = V4L2_CTRL_TYPE_BUTTON;
+ 		*flags |= V4L2_CTRL_FLAG_WRITE_ONLY;
+ 		*min = *max = *step = *def = 0;
+@@ -452,6 +487,8 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_EXPOSURE_AUTO:
+ 	case V4L2_CID_COLORFX:
+ 	case V4L2_CID_TUNE_PREEMPHASIS:
++	case V4L2_CID_FLASH_LED_MODE:
++	case V4L2_CID_FLASH_STROBE_SOURCE:
+ 		*type = V4L2_CTRL_TYPE_MENU;
+ 		break;
+ 	case V4L2_CID_RDS_TX_PS_NAME:
+@@ -462,6 +499,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_CAMERA_CLASS:
+ 	case V4L2_CID_MPEG_CLASS:
+ 	case V4L2_CID_FM_TX_CLASS:
++	case V4L2_CID_FLASH_CLASS:
+ 		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
+ 		/* You can neither read not write these */
+ 		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
+@@ -474,6 +512,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 		/* Max is calculated as RGB888 that is 2^24 */
+ 		*max = 0xFFFFFF;
+ 		break;
++	case V4L2_CID_FLASH_FAULT:
++		*type = V4L2_CTRL_TYPE_BITMASK;
++		break;
+ 	default:
+ 		*type = V4L2_CTRL_TYPE_INTEGER;
+ 		break;
+@@ -519,6 +560,10 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_ZOOM_RELATIVE:
+ 		*flags |= V4L2_CTRL_FLAG_WRITE_ONLY;
+ 		break;
++	case V4L2_CID_FLASH_STROBE_STATUS:
++	case V4L2_CID_FLASH_READY:
++		*flags |= V4L2_CTRL_FLAG_READ_ONLY;
++		break;
+ 	}
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_fill);
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index be82c8e..e364350 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1022,6 +1022,7 @@ struct v4l2_ext_controls {
+ #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls */
+ #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
+ #define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
++#define V4L2_CTRL_CLASS_FLASH 0x009c0000	/* Camera flash controls */
+ 
+ #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
+ #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
+@@ -1423,6 +1424,41 @@ enum v4l2_preemphasis {
+ #define V4L2_CID_TUNE_POWER_LEVEL		(V4L2_CID_FM_TX_CLASS_BASE + 113)
+ #define V4L2_CID_TUNE_ANTENNA_CAPACITOR		(V4L2_CID_FM_TX_CLASS_BASE + 114)
+ 
++/* Flash and privacy (indicator) light controls */
++#define V4L2_CID_FLASH_CLASS_BASE		(V4L2_CTRL_CLASS_FLASH | 0x900)
++#define V4L2_CID_FLASH_CLASS			(V4L2_CTRL_CLASS_FLASH | 1)
++
++#define V4L2_CID_FLASH_LED_MODE			(V4L2_CID_FLASH_CLASS_BASE + 1)
++enum v4l2_flash_led_mode {
++	V4L2_FLASH_LED_MODE_NONE,
++	V4L2_FLASH_LED_MODE_FLASH,
++	V4L2_FLASH_LED_MODE_TORCH,
++};
++
++#define V4L2_CID_FLASH_STROBE_SOURCE		(V4L2_CID_FLASH_CLASS_BASE + 2)
++enum v4l2_flash_strobe_source {
++	V4L2_FLASH_STROBE_SOURCE_SOFTWARE,
++	V4L2_FLASH_STROBE_SOURCE_EXTERNAL,
++};
++
++#define V4L2_CID_FLASH_STROBE			(V4L2_CID_FLASH_CLASS_BASE + 3)
++#define V4L2_CID_FLASH_STROBE_STOP		(V4L2_CID_FLASH_CLASS_BASE + 4)
++#define V4L2_CID_FLASH_STROBE_STATUS		(V4L2_CID_FLASH_CLASS_BASE + 5)
++
++#define V4L2_CID_FLASH_TIMEOUT			(V4L2_CID_FLASH_CLASS_BASE + 6)
++#define V4L2_CID_FLASH_INTENSITY		(V4L2_CID_FLASH_CLASS_BASE + 7)
++#define V4L2_CID_FLASH_TORCH_INTENSITY		(V4L2_CID_FLASH_CLASS_BASE + 8)
++#define V4L2_CID_FLASH_INDICATOR_INTENSITY	(V4L2_CID_FLASH_CLASS_BASE + 9)
++
++#define V4L2_CID_FLASH_FAULT			(V4L2_CID_FLASH_CLASS_BASE + 10)
++#define V4L2_FLASH_FAULT_OVER_VOLTAGE		(1 << 0)
++#define V4L2_FLASH_FAULT_TIMEOUT		(1 << 1)
++#define V4L2_FLASH_FAULT_OVER_TEMPERATURE	(1 << 2)
++#define V4L2_FLASH_FAULT_SHORT_CIRCUIT		(1 << 3)
++
++#define V4L2_CID_FLASH_CHARGE			(V4L2_CID_FLASH_CLASS_BASE + 11)
++#define V4L2_CID_FLASH_READY			(V4L2_CID_FLASH_CLASS_BASE + 12)
++
+ /*
+  *	T U N I N G
+  */
+-- 
+1.7.2.5
 
