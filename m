@@ -1,69 +1,65 @@
 Return-path: <mchehab@pedra>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:44414 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757054Ab1ESOHs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 May 2011 10:07:48 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Received: from eu_spt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LLG009RT4KXZW80@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 19 May 2011 15:07:45 +0100 (BST)
-Received: from [106.116.48.223] by spt1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LLG00F4C4KSYX@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 19 May 2011 15:07:44 +0100 (BST)
-Date: Thu, 19 May 2011 16:06:12 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [PATCH 0/2] V4L: Extended crop/compose API
-In-reply-to: <201105191547.50175.laurent.pinchart@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans Verkuil <hansverk@cisco.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	sakari.ailus@maxwell.research.nokia.com
-Message-id: <4DD523D4.8060807@samsung.com>
-References: <1304588396-7557-1-git-send-email-t.stanislaws@samsung.com>
- <201105181431.59580.hansverk@cisco.com> <4DD3C391.3060407@samsung.com>
- <201105191547.50175.laurent.pinchart@ideasonboard.com>
+Received: from smtp.nokia.com ([147.243.1.48]:22443 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752527Ab1EPJXT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 May 2011 05:23:19 -0400
+Message-ID: <4DD0ECFA.9070605@maxwell.research.nokia.com>
+Date: Mon, 16 May 2011 12:23:06 +0300
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+MIME-Version: 1.0
+To: Andy Walls <awalls@md.metrocast.net>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Nayden Kanchev <nkanchev@mm-sol.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	David Cohen <dacohen@gmail.com>,
+	Kim HeungJun <riverful@gmail.com>, andrew.b.adams@gmail.com,
+	Sung Hee Park <shpark7@stanford.edu>
+Subject: Re: [RFC v4] V4L2 API for flash devices
+References: <4DC2F131.6090407@maxwell.research.nokia.com>	 <201105071446.56843.hverkuil@xs4all.nl> <1305378780.2434.18.camel@localhost>
+In-Reply-To: <1305378780.2434.18.camel@localhost>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Laurent Pinchart wrote:
-> On Wednesday 18 May 2011 15:03:13 Sylwester Nawrocki wrote:
->> On 05/18/2011 02:31 PM, Hans Verkuil wrote:
->>> On Wednesday, May 18, 2011 14:06:21 Sylwester Nawrocki wrote:
->>>> On 05/16/2011 09:21 AM, Laurent Pinchart wrote:
->>>>> On Saturday 14 May 2011 12:50:32 Hans Verkuil wrote:
->>>>>> On Friday, May 13, 2011 14:43:08 Laurent Pinchart wrote:
->>>>>>> Thinking some more about it, does it make sense to set both crop and
->>>>>>> compose on a single video device node (not talking about mem-to-mem,
->>>>>>> where you use the type to multiplex input/output devices on the same
->>>>>>> node) ? If so, what would the use cases be ?
->>>> I can't think of any, one either use crop or compose.
->>> I can: you crop in the video receiver and compose it into a larger
->>> buffer.
+Andy Walls wrote:
+> On Sat, 2011-05-07 at 14:46 +0200, Hans Verkuil wrote:
+>> On Thursday, May 05, 2011 20:49:21 Sakari Ailus wrote:
 >>>
->>> Actually quite a desirable feature.
->> Yes, right. Don't know why I imagined something different.
->> And we need it in Samsung capture capture interfaces as well. The H/W
->> is capable of cropping and composing with camera interface as a data source
->> similarly as it is done with memory buffers.
+>>>
+>>> enum v4l2_flash_strobe_whence {
+>>> 	V4L2_FLASH_STROBE_WHENCE_SOFTWARE,
+>>> 	V4L2_FLASH_STROBE_WHENCE_EXTERNAL,
+>>> };
+>>
+>> Perhaps use 'type' instead of 'whence'? English isn't my native language,
+>> but it sounds pretty archaic to me.
 > 
-> The same result could be achieved by adding an offset to the buffer address 
-> and setting the bytesperline field accordingly, but that would only work with 
-> userptr buffers. As we're working on an API to share buffers between 
-> subsystems, I agree that composing into a larger buffer is desirable and 
-> shouldn't be implemented using offset/stride.
+> "SOURCE" is better than "WHENCE" here.
 > 
-Hi,
-Simulation of cropping on a data source using offset/bytesperline is not 
-possible for compressed formats like JPEG. I could not find any good 
-definition of bytesperline for macroblock and planar formats.
-These problems were the reason of proposing extcrop (aka selection) API.
+> 
+> "whence" is certainly very formal and used very little.  "whence" likely
+> still gets some use in English, simply because a terse synonym doesn't
+> exist.
+> 
+> The problem with using whence is that many English speakers won't know
+> its correct definition.
+> 
+> 	"whence" means "from what source, origin, or place"
+> 
+> In your use here, the implicit "from" in the definition of whence is
+> essential.  However, most (American) English speakers that I know think
+> "whence" simply means "where".
 
-Bye
-TS
+Thanks for the feedback, Andy!
+
+WHENCE has since changed to MODE (or at least should have been), but I
+think SOURCE is even better. I'll switch to that.
+
+Regards,
+
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
