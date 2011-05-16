@@ -1,117 +1,193 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:45179 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752713Ab1EVLVp (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:44044 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751535Ab1EPWZb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 May 2011 07:21:45 -0400
-References: <BANLkTin=Fs-ugm13yT89PtT4bds4WobszA@mail.gmail.com> <BANLkTi=poXh2q+4N6Q9iMJxoW=9txLjt4w@mail.gmail.com> <BANLkTimQGYqS=PRNJSEtL5Wu0rP3YdEOVg@mail.gmail.com> <BANLkTimOUFgBKx5Y4VE+v08SMVB+Ms5RBg@mail.gmail.com> <BANLkTimcqrz3ExwT_TH_AG0zue7YRfTDeg@mail.gmail.com>
-In-Reply-To: <BANLkTimcqrz3ExwT_TH_AG0zue7YRfTDeg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: Connexant cx25821 help
-From: Andy Walls <awalls@md.metrocast.net>
-Date: Sun, 22 May 2011 07:21:55 -0400
-To: Roman Gaufman <hackeron@gmail.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: linux-media@vger.kernel.org
-Message-ID: <82ec0fb3-fa3d-49f2-b679-90e5b2d26aeb@email.android.com>
+	Mon, 16 May 2011 18:25:31 -0400
+Received: by wya21 with SMTP id 21so3797871wya.19
+        for <linux-media@vger.kernel.org>; Mon, 16 May 2011 15:25:30 -0700 (PDT)
+Subject: [PATCH ] v1.87 DM04/QQBOX provide error frontend detach/memory
+ release.
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 16 May 2011 23:25:23 +0100
+Message-ID: <1305584723.2481.13.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Roman Gaufman <hackeron@gmail.com> wrote:
+Remove and free any unused frontend attach on firmware change
+ and provide memory release using priv_exit callback.
 
->On 22 May 2011 04:11, Devin Heitmueller <dheitmueller@kernellabs.com>
->wrote:
->> On Sat, May 21, 2011 at 10:25 PM, Roman Gaufman <hackeron@gmail.com>
->wrote:
->>> I figured as much, but what can I do now?
->>
->> Your options at this point are:
->>
->> 1.  Find some developer who cares enough to take a free board just
->for
->> the fun of making it work.
->
->Any suggestions where?
->
->> 2.  If you're a commercial entity, hire somebody to do the work
->> (Kernel Labs does this sort of work)
->
->I have a small company that consists of just me and I'm broke, heh,
->but I'll check out kernel labs thanks!
->
->> 3.  Learn enough about driver development to add the support
->yourself.
->
->Any suggestions where/how to start? - are there any guides/tutorials
->that show how to go from start to finish getting a board to work?
->
->>
->> The reality is that the LinuxTV project is grossly understaffed
->> already, and if you're a regular user who wants a working product,
->> your best bet is to just buy something that is already supported.
-> All
->> other options require either a considerable investment in money (to
->> pay someone to do the work), or time (to learn how to do it
->yourself).
->
->Do you have any recommendations for a DVR card that has 8 or 16
->audio+video inputs that's already supported by linux available for
->sale?
->
->The problem is I can't find anything that's already supported, so I'm
->just trying random cards. I bought one with SAA7134 chips that
->happened to work, but they stopped making it.
->
->The problem is I can't find anything supported that's available for
->sale. It seems quite the opposite, only rare obscure cards that are no
->longer sold are supported :/
->
->>
->> Developers who care enough to contribute to the project typically
->have
->> no shortage of boards at their disposal, and they tend to focus their
->> energy on where you get the most bang for the buck.  This tends to
->> favor products that are more popular, which is why the cx25821 driver
->> has gotten almost zero attention (since there are almost no actual
->> products using it other than Conexant reference designs).
->>
->>> Should I take some high resolution pictures of the board?
->>> Any other details I can provide to help developers add support for
->this board?
->>> Is there anyone in particularly I should contact?
->>> Anywhere I can post any information I collect on this board?
->>
->> You can create an entry on the LinuxTV wiki with the board details.
->> Of course no guarantee that anybody will do anything with it (in
->fact,
->> the less popular the board, the less likely for this to be the case).
->
->This is a board from http://securitycamera2000.com and is one of the
->few boards that pop up when looking for a DVR card on google and ebay.
->
->I will create an entry on the LinuxTV wiki, thanks!
->
->>
->> Devin
->>
->> --
->> Devin J. Heitmueller - Kernel Labs
->> http://www.kernellabs.com
->>
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media"
->in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Other minor changes
+fix le16 warning.
+remove unnecessary lme2510_kill_urb.
 
-Bluecherry might have a product that meet your needs:
+Moving of rc_core is still on TODO list.
 
-http://store.bluecherry.net/products/PV%252d155-%252d-16-port-video-capture-card-%28120FPS%29.html
+Requires Patch: dvb-usb provide exit any structure inside priv.
 
-I have no actual experience with their products myself.
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+---
+ drivers/media/dvb/dvb-usb/lmedm04.c |   93 +++++++++++++----------------------
+ 1 files changed, 34 insertions(+), 59 deletions(-)
 
-Regards,
-Andy
+diff --git a/drivers/media/dvb/dvb-usb/lmedm04.c b/drivers/media/dvb/dvb-usb/lmedm04.c
+index f36f471..c636149 100644
+--- a/drivers/media/dvb/dvb-usb/lmedm04.c
++++ b/drivers/media/dvb/dvb-usb/lmedm04.c
+@@ -831,7 +831,7 @@ static int lme_firmware_switch(struct usb_device *udev, int cold)
+ 
+ 	cold_fw = !cold;
+ 
+-	if (udev->descriptor.idProduct == 0x1122) {
++	if (le16_to_cpu(udev->descriptor.idProduct) == 0x1122) {
+ 		switch (dvb_usb_lme2510_firmware) {
+ 		default:
+ 			dvb_usb_lme2510_firmware = TUNER_S0194;
+@@ -901,20 +901,6 @@ static int lme_firmware_switch(struct usb_device *udev, int cold)
+ 	return ret;
+ }
+ 
+-static int lme2510_kill_urb(struct usb_data_stream *stream)
+-{
+-	int i;
+-
+-	for (i = 0; i < stream->urbs_submitted; i++) {
+-		deb_info(3, "killing URB no. %d.", i);
+-		/* stop the URB */
+-		usb_kill_urb(stream->urb_list[i]);
+-	}
+-	stream->urbs_submitted = 0;
+-
+-	return 0;
+-}
+-
+ static struct tda10086_config tda10086_config = {
+ 	.demod_address = 0x1c,
+ 	.invert = 0,
+@@ -1052,9 +1038,11 @@ static int dm04_lme2510_frontend_attach(struct dvb_usb_adapter *adap)
+ 	}
+ 
+ 
+-end:	if (ret) {
+-		kfree(adap->fe);
+-		adap->fe = NULL;
++end:	if (ret < 0) {
++		if (adap->fe) {
++			dvb_frontend_detach(adap->fe);
++			adap->fe = NULL;
++		}
+ 		return -ENODEV;
+ 	}
+ 
+@@ -1126,6 +1114,30 @@ static int lme2510_powerup(struct dvb_usb_device *d, int onoff)
+ 	return ret;
+ }
+ 
++static int lme2510_priv_exit(struct dvb_usb_device *d)
++{
++	struct lme2510_state *st = d->priv;
++
++	if (st->usb_buffer != NULL) {
++		st->i2c_talk_onoff = 1;
++		st->signal_lock = 0;
++		st->signal_level = 0;
++		st->signal_sn = 0;
++		kfree(st->usb_buffer);
++	}
++
++	if (st->lme_urb != NULL) {
++		usb_kill_urb(st->lme_urb);
++		usb_free_coherent(d->udev, 5000, st->buffer,
++				  st->lme_urb->transfer_dma);
++		info("Interrupt Service Stopped");
++		rc_unregister_device(d->rc_dev);
++		info("Remote Stopped");
++	}
++
++	return 0;
++}
++
+ /* DVB USB Driver stuff */
+ static struct dvb_usb_device_properties lme2510_properties;
+ static struct dvb_usb_device_properties lme2510c_properties;
+@@ -1178,6 +1190,7 @@ MODULE_DEVICE_TABLE(usb, lme2510_table);
+ static struct dvb_usb_device_properties lme2510_properties = {
+ 	.caps = DVB_USB_IS_AN_I2C_ADAPTER,
+ 	.size_of_priv = sizeof(struct lme2510_state),
++	.priv_exit = lme2510_priv_exit,
+ 	.num_adapters = 1,
+ 	.adapter = {
+ 		{
+@@ -1220,6 +1233,7 @@ static struct dvb_usb_device_properties lme2510_properties = {
+ static struct dvb_usb_device_properties lme2510c_properties = {
+ 	.caps = DVB_USB_IS_AN_I2C_ADAPTER,
+ 	.size_of_priv = sizeof(struct lme2510_state),
++	.priv_exit = lme2510_priv_exit,
+ 	.num_adapters = 1,
+ 	.adapter = {
+ 		{
+@@ -1258,49 +1272,10 @@ static struct dvb_usb_device_properties lme2510c_properties = {
+ 	}
+ };
+ 
+-static void *lme2510_exit_int(struct dvb_usb_device *d)
+-{
+-	struct lme2510_state *st = d->priv;
+-	struct dvb_usb_adapter *adap = &d->adapter[0];
+-	void *buffer = NULL;
+-
+-	if (adap != NULL) {
+-		lme2510_kill_urb(&adap->stream);
+-		adap->feedcount = 0;
+-	}
+-
+-	if (st->lme_urb != NULL) {
+-		st->i2c_talk_onoff = 1;
+-		st->signal_lock = 0;
+-		st->signal_level = 0;
+-		st->signal_sn = 0;
+-		buffer = st->usb_buffer;
+-		usb_kill_urb(st->lme_urb);
+-		usb_free_coherent(d->udev, 5000, st->buffer,
+-				  st->lme_urb->transfer_dma);
+-		info("Interrupt Service Stopped");
+-		rc_unregister_device(d->rc_dev);
+-		info("Remote Stopped");
+-	}
+-	return buffer;
+-}
+-
+-static void lme2510_exit(struct usb_interface *intf)
+-{
+-	struct dvb_usb_device *d = usb_get_intfdata(intf);
+-	void *usb_buffer;
+-
+-	if (d != NULL) {
+-		usb_buffer = lme2510_exit_int(d);
+-		dvb_usb_device_exit(intf);
+-		kfree(usb_buffer);
+-	}
+-}
+-
+ static struct usb_driver lme2510_driver = {
+ 	.name		= "LME2510C_DVB-S",
+ 	.probe		= lme2510_probe,
+-	.disconnect	= lme2510_exit,
++	.disconnect	= dvb_usb_device_exit,
+ 	.id_table	= lme2510_table,
+ };
+ 
+@@ -1327,5 +1302,5 @@ module_exit(lme2510_module_exit);
+ 
+ MODULE_AUTHOR("Malcolm Priestley <tvboxspy@gmail.com>");
+ MODULE_DESCRIPTION("LME2510(C) DVB-S USB2.0");
+-MODULE_VERSION("1.86");
++MODULE_VERSION("1.87");
+ MODULE_LICENSE("GPL");
+-- 
+1.7.4.1
+
