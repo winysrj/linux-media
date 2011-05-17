@@ -1,130 +1,86 @@
 Return-path: <mchehab@pedra>
-Received: from devils.ext.ti.com ([198.47.26.153]:35208 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753071Ab1EaOXI convert rfc822-to-8bit (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:57844 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751582Ab1EQDUc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 May 2011 10:23:08 -0400
-From: "JAIN, AMBER" <amber@ti.com>
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "sakari.ailus@iki.fi" <sakari.ailus@iki.fi>
-Date: Tue, 31 May 2011 19:52:54 +0530
-Subject: RE: [PATCH] OMAP: V4L2: Remove GFP_DMA allocation as ZONE_DMA is
- not configured on OMAP
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037B65864C@dbde02.ent.ti.com>
-References: <1306835503-24631-1-git-send-email-amber@ti.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB037B65850E@dbde02.ent.ti.com>
- <19F8576C6E063C45BE387C64729E739404E2DC73EC@dbde02.ent.ti.com>
-In-Reply-To: <19F8576C6E063C45BE387C64729E739404E2DC73EC@dbde02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	Mon, 16 May 2011 23:20:32 -0400
+Received: by bwz15 with SMTP id 15so155766bwz.19
+        for <linux-media@vger.kernel.org>; Mon, 16 May 2011 20:20:31 -0700 (PDT)
+Date: Tue, 17 May 2011 14:23:52 +1000
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH] xc5000, fix fw upload crash
+Message-ID: <20110517142352.7d311ee8@glory.local>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="MP_/DWJrqv6m2ILFCKbd7TmcmJ3"
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+--MP_/DWJrqv6m2ILFCKbd7TmcmJ3
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
+Hi
 
-> -----Original Message-----
-> From: Hiremath, Vaibhav
-> Sent: Tuesday, May 31, 2011 5:07 PM
-> To: JAIN, AMBER; linux-media@vger.kernel.org
-> Cc: sakari.ailus@iki.fi
-> Subject: RE: [PATCH] OMAP: V4L2: Remove GFP_DMA allocation as ZONE_DMA is
-> not configured on OMAP
-> 
-> 
-> > -----Original Message-----
-> > From: JAIN, AMBER
-> > Sent: Tuesday, May 31, 2011 3:59 PM
-> > To: linux-media@vger.kernel.org
-> > Cc: Hiremath, Vaibhav; sakari.ailus@iki.fi
-> > Subject: RE: [PATCH] OMAP: V4L2: Remove GFP_DMA allocation as ZONE_DMA
-> is
-> > not configured on OMAP
-> >
-> > I have tested it on OMAP4430 blaze and OMAP3430 SDP platforms.
-> >
-> > I do not have the hardware to test omap24xxcam change. Can someone
-> please
-> > help me on this?
-> >
-> [Hiremath, Vaibhav] I would suggest splitting this patch into 2, it would
-> be easier to handle.
-> 
-> I am validating the patch on OMAP3EVM as well; will update you shortly.
-> Pulling in the latest commits, git-fetch is taking huge time.
+Fix crash when init tuner and upload twice the firmware into xc5000 at the some time.
 
-Do you mean I should have it as a patch-set, or 2 different patches all together.
+diff --git a/drivers/media/common/tuners/xc5000.c b/drivers/media/common/tuners/xc5000.c
+index aa1b2e8..a491a5b 100644
+--- a/drivers/media/common/tuners/xc5000.c
++++ b/drivers/media/common/tuners/xc5000.c
+@@ -996,6 +996,8 @@ static int xc_load_fw_and_init_tuner(struct dvb_frontend *fe)
+ 	struct xc5000_priv *priv = fe->tuner_priv;
+ 	int ret = 0;
+ 
++	mutex_lock(&xc5000_list_mutex);
++
+ 	if (xc5000_is_firmware_loaded(fe) != XC_RESULT_SUCCESS) {
+ 		ret = xc5000_fwupload(fe);
+ 		if (ret != XC_RESULT_SUCCESS)
+@@ -1015,6 +1017,8 @@ static int xc_load_fw_and_init_tuner(struct dvb_frontend *fe)
+ 	/* Default to "CABLE" mode */
+ 	ret |= xc_write_reg(priv, XREG_SIGNALSOURCE, XC_RF_MODE_CABLE);
+ 
++	mutex_unlock(&xc5000_list_mutex);
++
+ 	return ret;
+ }
+ 
 
-~Amber
-> 
-> Thanks,
-> Vaibhav
-> 
-> > Thanks,
-> > Amber
-> >
-> > > -----Original Message-----
-> > > From: JAIN, AMBER
-> > > Sent: Tuesday, May 31, 2011 3:22 PM
-> > > To: linux-media@vger.kernel.org
-> > > Cc: Hiremath, Vaibhav; sakari.ailus@iki.fi; JAIN, AMBER
-> > > Subject: [PATCH] OMAP: V4L2: Remove GFP_DMA allocation as ZONE_DMA is
-> > not
-> > > configured on OMAP
-> > >
-> > > Remove GFP_DMA from the __get_free_pages() call as ZONE_DMA is not
-> > > configured
-> > > on OMAP. Earlier the page allocator used to return a page from
-> > ZONE_NORMAL
-> > > even when GFP_DMA is passed and CONFIG_ZONE_DMA is disabled.
-> > > As a result of commit a197b59ae6e8bee56fcef37ea2482dc08414e2ac, page
-> > > allocator
-> > > returns null in such a scenario with a warning emitted to kernel log.
-> > >
-> > > Signed-off-by: Amber Jain <amber@ti.com>
-> > > ---
-> > >  drivers/media/video/omap/omap_vout.c |    2 +-
-> > >  drivers/media/video/omap24xxcam.c    |    4 ++--
-> > >  2 files changed, 3 insertions(+), 3 deletions(-)
-> > >
-> > > diff --git a/drivers/media/video/omap/omap_vout.c
-> > > b/drivers/media/video/omap/omap_vout.c
-> > > index 4ada9be..8cac624 100644
-> > > --- a/drivers/media/video/omap/omap_vout.c
-> > > +++ b/drivers/media/video/omap/omap_vout.c
-> > > @@ -181,7 +181,7 @@ static unsigned long omap_vout_alloc_buffer(u32
-> > > buf_size, u32 *phys_addr)
-> > >
-> > >  	size = PAGE_ALIGN(buf_size);
-> > >  	order = get_order(size);
-> > > -	virt_addr = __get_free_pages(GFP_KERNEL | GFP_DMA, order);
-> > > +	virt_addr = __get_free_pages(GFP_KERNEL , order);
-> > >  	addr = virt_addr;
-> > >
-> > >  	if (virt_addr) {
-> > > diff --git a/drivers/media/video/omap24xxcam.c
-> > > b/drivers/media/video/omap24xxcam.c
-> > > index f6626e8..ade9262 100644
-> > > --- a/drivers/media/video/omap24xxcam.c
-> > > +++ b/drivers/media/video/omap24xxcam.c
-> > > @@ -309,11 +309,11 @@ static int
-> > omap24xxcam_vbq_alloc_mmap_buffer(struct
-> > > videobuf_buffer *vb)
-> > >  			order--;
-> > >
-> > >  		/* try to allocate as many contiguous pages as possible */
-> > > -		page = alloc_pages(GFP_KERNEL | GFP_DMA, order);
-> > > +		page = alloc_pages(GFP_KERNEL , order);
-> > >  		/* if allocation fails, try to allocate smaller amount */
-> > >  		while (page == NULL) {
-> > >  			order--;
-> > > -			page = alloc_pages(GFP_KERNEL | GFP_DMA, order);
-> > > +			page = alloc_pages(GFP_KERNEL , order);
-> > >  			if (page == NULL && !order) {
-> > >  				err = -ENOMEM;
-> > >  				goto out;
-> > > --
-> > > 1.7.1
+Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
 
+With my best regards, Dmitry.
+
+--MP_/DWJrqv6m2ILFCKbd7TmcmJ3
+Content-Type: text/x-patch
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=xc5000_load_firmware_fix.diff
+
+diff --git a/drivers/media/common/tuners/xc5000.c b/drivers/media/common/tuners/xc5000.c
+index aa1b2e8..a491a5b 100644
+--- a/drivers/media/common/tuners/xc5000.c
++++ b/drivers/media/common/tuners/xc5000.c
+@@ -996,6 +996,8 @@ static int xc_load_fw_and_init_tuner(struct dvb_frontend *fe)
+ 	struct xc5000_priv *priv = fe->tuner_priv;
+ 	int ret = 0;
+ 
++	mutex_lock(&xc5000_list_mutex);
++
+ 	if (xc5000_is_firmware_loaded(fe) != XC_RESULT_SUCCESS) {
+ 		ret = xc5000_fwupload(fe);
+ 		if (ret != XC_RESULT_SUCCESS)
+@@ -1015,6 +1017,8 @@ static int xc_load_fw_and_init_tuner(struct dvb_frontend *fe)
+ 	/* Default to "CABLE" mode */
+ 	ret |= xc_write_reg(priv, XREG_SIGNALSOURCE, XC_RF_MODE_CABLE);
+ 
++	mutex_unlock(&xc5000_list_mutex);
++
+ 	return ret;
+ }
+ 
+
+Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+
+--MP_/DWJrqv6m2ILFCKbd7TmcmJ3--
