@@ -1,77 +1,84 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:47396 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757817Ab1EZN5m convert rfc822-to-8bit (ORCPT
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:36479 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932561Ab1EQXSl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 May 2011 09:57:42 -0400
-Received: by qwk3 with SMTP id 3so369098qwk.19
-        for <linux-media@vger.kernel.org>; Thu, 26 May 2011 06:57:41 -0700 (PDT)
-References: <4DDE5168.1090805@MessageNetSystems.com>
-In-Reply-To: <4DDE5168.1090805@MessageNetSystems.com>
-Mime-Version: 1.0 (Apple Message framework v1084)
+	Tue, 17 May 2011 19:18:41 -0400
+Date: Wed, 18 May 2011 00:18:21 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Javier Martin <javier.martin@vista-silicon.com>,
+	beagleboard@googlegroups.com, carlighting@yahoo.co.nz,
+	g.liakhovetski@gmx.de, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/2] mt9p031: Add mt9p031 sensor driver.
+Message-ID: <20110517231821.GB5913@n2100.arm.linux.org.uk>
+References: <1305624528-5595-1-git-send-email-javier.martin@vista-silicon.com> <1305624528-5595-2-git-send-email-javier.martin@vista-silicon.com> <201105171334.01607.laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Message-Id: <89C9F515-ECF8-48DD-8DB9-EEA58A78CAD3@wilsonet.com>
-Content-Transfer-Encoding: 8BIT
-Cc: linux-media@vger.kernel.org
-From: Jarod Wilson <jarod@wilsonet.com>
-Subject: Re: use compile uvc_video
-Date: Thu, 26 May 2011 09:57:47 -0400
-To: Jerry Geis <geisj@MessageNetSystems.com>
+Content-Disposition: inline
+In-Reply-To: <201105171334.01607.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On May 26, 2011, at 9:11 AM, Jerry Geis wrote:
-
-> I am using centos 5.6 (older kernel) and I get compile errors when I grabbed
-> the latest from http://linuxtv.org/hg/v4l-dvb (which I expect as I have an older 2.6.18 kernel)
-
-Okay, but do realize that it hasn't been updated in ages, and its
-completely unmaintained.
-
-
-> All I need is uvc so I thought I would do "make menuconfig" and turn everything off
-> but v4l/UVC stuff.
+On Tue, May 17, 2011 at 01:33:52PM +0200, Laurent Pinchart wrote:
+> Hi Javier,
 > 
-> when I do make I get an error:
-> Kernel build directory is /lib/modules/2.6.18-194.32.1.el5/build
+> Thanks for the patch.
 
-That's not a 5.6 kernel, its a 5.5 kernel. (5.6 is 2.6.18-238.x.y.el5).
-Doesn't really make a difference, but felt compelled to point it out. :)
+Sorry, but this laziness is getting beyond a joke...  And the fact that
+apparantly no one is picking up on it other than me is also a joke.
 
+> > +static int mt9p031_power_on(struct mt9p031 *mt9p031)
+> > +{
+> > +	int ret;
+> > +
+> > +	if (mt9p031->pdata->set_xclk)
+> > +		mt9p031->pdata->set_xclk(&mt9p031->subdev, 54000000);
+> > +	/* turn on VDD_IO */
+> > +	ret = regulator_enable(mt9p031->reg_2v8);
+> > +	if (ret) {
+> > +		pr_err("Failed to enable 2.8v regulator: %d\n", ret);
+> > +		return -1;
 
-> make -C /lib/modules/2.6.18-194.32.1.el5/build SUBDIRS=/home/silentm/MessageNet/v4l/new/v4l-dvb-3724e93f7af5/v4l  modules
-> make[2]: Entering directory `/usr/src/kernels/2.6.18-194.32.1.el5-x86_64'
-> CC [M]  /home/silentm/MessageNet/v4l/new/v4l-dvb-3724e93f7af5/v4l/tuner-xc2028.o
-> In file included from /home/silentm/MessageNet/v4l/new/v4l-dvb-3724e93f7af5/v4l/tuner-xc2028.c:19:
-> /home/silentm/MessageNet/v4l/new/v4l-dvb-3724e93f7af5/v4l/compat.h:133: error: static declaration of 'strict_strtoul' follows non-static declaration
-> include/linux/kernel.h:141: error: previous declaration of 'strict_strtoul' was here
+And why all these 'return -1's?  My guess is that this is plain laziness
+on the authors part.
 
-The above lines tell you exactly what the failure was, and its easily
-worked around by removing the extraneous definition from v4l/compat.h.
+> > +static int mt9p031_set_params(struct i2c_client *client,
+> > +			      struct v4l2_rect *rect, u16 xskip, u16 yskip)
+> 
+> set_params should apply the parameters, not change them. They should have 
+> already been validated by the callers.
+> 
+> > +{
+...
+> > +err:
+> > +	return -1;
 
+And again...
 
-> Is there a way I can just compile the linux/drivers/media/video/uvc ?
+> > +}
+> > +
+> > +static int mt9p031_set_crop(struct v4l2_subdev *sd,
+> > +				struct v4l2_subdev_fh *fh,
+> > +				struct v4l2_subdev_crop *crop)
+> > +{
+...
 
-Edit the .config file, disable anything you don't want to build.
+> > +	if (crop->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
+> > +		ret = mt9p031_set_params(client, &rect, xskip, yskip);
+> > +		if (ret < 0)
+> > +			return ret;
 
+So this propagates the lazy 'return -1' all the way back to userspace.
+This is utter crap - really it is, and I'm getting sick and tired of
+telling people that they should not use 'return -1'.  It's down right
+lazy and sloppy programming.
 
-> thats all I need. How do I do that?
+I wish people would stop doing it.  I wish people would review their own
+stuff for this _before_ posting it onto a mailing list, so I don't have
+to keep complaining about it.  And I wish people reviewing drivers would
+also look for this as well and complain about it.
 
-Another option you can try is something along the lines of this:
-
-cd linux/drivers/media/video/uvc
-make -C /lib/modules/2.6.18-194.32.1.el5/build M=$PWD modules
-
-No guarantees that won't fail miserably though.
-
-Backporting newer drivers to older kernels often takes a fair bit of
-effort and subject matter expertise -- especially when the kernel base
-is as ancient as the one you're targeting. There's a reason media_build
-doesn't support anything that old. :)
-
--- 
-Jarod Wilson
-jarod@wilsonet.com
-
-
-
+'return -1' is generally a big fat warning sign that the author is doing
+something wrong, and should _always_ be investigated and complained about.
