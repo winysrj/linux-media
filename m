@@ -1,41 +1,54 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.1.48]:42924 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751922Ab1ERTnh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 May 2011 15:43:37 -0400
-Message-ID: <4DD42218.7000302@maxwell.research.nokia.com>
-Date: Wed, 18 May 2011 22:46:32 +0300
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:63560 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755945Ab1EQROl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 May 2011 13:14:41 -0400
+Received: by yxs7 with SMTP id 7so231106yxs.19
+        for <linux-media@vger.kernel.org>; Tue, 17 May 2011 10:14:41 -0700 (PDT)
+From: Ivan Nazarenko <ivan.nazarenko@gmail.com>
+To: javier Martin <javier.martin@vista-silicon.com>,
+	linux-media@vger.kernel.org, beagleboard@googlegroups.com
+Subject: Re: [PATCH 1/2] mt9p031: Add mt9p031 sensor driver.
+Date: Tue, 17 May 2011 14:14:33 -0300
+Cc: linux-arm-kernel@lists.infradead.org
+References: <1305624528-5595-1-git-send-email-javier.martin@vista-silicon.com> <Pine.LNX.4.64.1105171345580.5582@axis700.grange> <BANLkTinR3g7DcXLqOngw8kkNc-LLysFX=w@mail.gmail.com>
+In-Reply-To: <BANLkTinR3g7DcXLqOngw8kkNc-LLysFX=w@mail.gmail.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-	Jesse Barker <jesse.barker@linaro.org>
-Subject: Re: Summary of the V4L2 discussions during LDS - was: Re: Embedded
- Linux memory management interest group list
-References: <BANLkTimoKzWrAyCBM2B9oTEKstPJjpG_MA@mail.gmail.com> <201105141302.55100.hverkuil@xs4all.nl> <4DCE6B7B.1080907@redhat.com> <201105152310.31678.hverkuil@xs4all.nl>
-In-Reply-To: <201105152310.31678.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201105171414.34179.ivan.nazarenko@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hans Verkuil wrote:
-> Note that many video receivers cannot stall. You can't tell them to wait until
-> the last buffer finished processing. This is different from some/most? sensors.
+Javier,
 
-Not even image sensors. They just output the frame data; if the receiver
-runs out of buffers the data is just lost. And if any part of the frame
-is lost, there's no use for other parts of it either. But that's
-something the receiver must handle, i.e. discard the data and increment
-frame number (field_count in v4l2_buffer).
+I have been using the aptina patch (https://github.com/Aptina/BeagleBoard-xM) on beagleboard while waiting linux-media solve this mt9p031 issue. Now that you have something working, I would like to try it - but I would like to know what is the clock rate you actually drove the sensor.
 
-The interfaces used by image sensors, be they parallel or serial, do not
-provide means to inform the sensor that the receiver has run out of
-buffer space. These interfaces are just unidirectional.
+Reviewing your path, I suppose it is 54MHz, so you would be achieving some 10 full 5MPix frames/s from the sensor. Is that correct? (the aptina patch delivers less than 4 fps).
 
 Regards,
 
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+Ivan
+
+On Tuesday, May 17, 2011 08:59:04 javier Martin wrote:
+> On 17 May 2011 13:47, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> > Hi Laurent
+> >
+> > Thanks for your review! Javier, if you like, you can wait a couple of days
+> > until I find some time to review the driver, or you can submit a version,
+> > addressing Laurent's points, but be prepared to have to do another one;)
+> >
+> > Thanks
+> > Guennadi
+> > ---
+> > Guennadi Liakhovetski, Ph.D.
+> > Freelance Open-Source Software Developer
+> > http://www.open-technology.de/
+> >
+> 
+> OK, I think I'll wait to have Guennadi's review too.
+> Thank you both.
+> 
+> 
