@@ -1,53 +1,107 @@
-Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:45872 "EHLO
+Return-path: <mchehab@pedra>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48356 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754881Ab1EIVlV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 May 2011 17:41:21 -0400
+	with ESMTP id S1752439Ab1EQHCp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 May 2011 03:02:45 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Jiang, Scott" <Scott.Jiang@analog.com>
-Subject: Re: why is there no enum_input in v4l2_subdev_video_ops
-Date: Mon, 9 May 2011 23:42:05 +0200
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	"uclinux-dist-devel@blackfin.uclinux.org"
-	<uclinux-dist-devel@blackfin.uclinux.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>
-References: <E43657A3F2E26048BB0EBCA7C4CB6941B4B52CDE0C@NWD2CMBX1.ad.analog.com> <Pine.LNX.4.64.1105091102320.21938@axis700.grange> <E43657A3F2E26048BB0EBCA7C4CB6941B4B52CDE4D@NWD2CMBX1.ad.analog.com>
-In-Reply-To: <E43657A3F2E26048BB0EBCA7C4CB6941B4B52CDE4D@NWD2CMBX1.ad.analog.com>
+To: linaro-mm-sig@lists.linaro.org
+Subject: Re: [Linaro-mm-sig] Video4Linux API for shared buffers
+Date: Tue, 17 May 2011 09:03:47 +0200
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+References: <4DCE4935.2050205@infradead.org>
+In-Reply-To: <4DCE4935.2050205@infradead.org>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201105092342.06166.laurent.pinchart@ideasonboard.com>
+Message-Id: <201105170903.47943.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hi Scott,
+Hi Mauro,
 
-On Monday 09 May 2011 11:53:18 Jiang, Scott wrote:
-> Hi all,
-> 
-> >> Why is there no enum_input operation in v4l2_subdev_video_ops?
+CC'ing linux-media, as the topic is of interest for the V4L2 developers.
 
-Why do you need one ?
+On Saturday 14 May 2011 11:19:49 Mauro Carvalho Chehab wrote:
+> After the mm panels, I had a few discussions with Hans, Rob and Daniel,
+> among others, during the V4L and KMS discussions and after that. Based
+> on those discussions, I'm pretty much convinced that the normal MMAP
+> way of streaming (VIDIOC_[REQBUF|STREAMON|STREAMOFF|QBUF|DQBUF ioctl's)
+> are not the best way to share data with framebuffers. We probably need
+> something that it is close to VIDIOC_FBUF/VIDIOC_OVERLAY, but it is
+> still not the same thing.
 
-> > Maybe because noone needed it until now?
-> > 
-> >> I found some drivers put this info in board specific data, but in my
-> >> opinion this info is sensor or decoder related.
-> > 
-> > Can you tell which drivers / boards you're referring to?
+Why do you think so ? Can you explain what serious limitations you see in the 
+current buffer-based API that would prevent sharing data with frame buffers 
+(I'm talking about both fbdev and KMS) ?
+
+> I suspect that working on such API is somewhat orthogonal to the decision
+> of using a file pointer based or a bufer ID based based kABI for passing
+> the buffer parameters to the newly V4L calls,
+
+Userspace won't pass a file pointer to the kernel, it will pass a file 
+descriptor number.
+
+> but we cannot decide about the type of buffer ID that we'll use if we not
+> finish working at an initial RFC for the V4L API, as the way the buffers
+> will be passed into it will depend on how we design such API.
+
+Shouldn't it be the other way around ? On the kernel side the dma buffer API 
+will offer a function that converts a buffer ID, whatever it is, to a dma 
+buffer structure pointer, so I don't think it matters much for drivers.
+
+> It should be also noticed that, while in the shared buffers some
+> definitions can be postponed to happen later (as it is basically
+> a Kernelspace-only ABI - at least initially), the V4L API should be
+> designed to consider all possible scenarios, as "diamonds and userspace
+> API's are forever"(tm).
 > 
-> I referred to drivers/media/video/davinci files.
+> It seems to me that the proper way to develop such API is starting working
+> with Xorg V4L driver, changing it to work with KMS and with the new API
+> (probably porting some parts of it to kernelspace).
+
+I'm not sure to follow you here. Please remember that X is not a requirement, 
+we definitely want to share buffers between fbdev and V4L2 in X-less systems.
+
+> One of the problems with a shared framebuffer is that an overlayed V4L
+> stream may, at the worse case, be sent to up to 4 different GPU's and/or
+> displays, like:
 > 
-> >> So it should be put into the sensor drivers.
-> > 
-> > Maybe. Also notice, I'm not a maintainer nor a principal v4l2-subdev
-> > developer. I've added Hans and Laurent to Cc:, will see what they say, or
-> > you can just point out which drivers / platforms are doing this wrong and
-> > propose a fix.
+> 	===================+===================
 > 
-> Sorry, I only found your mail in MAINTAINERS.
+> 	|      D1     +----|---+     D2       |
+> 	|      
+> 	|             | V4L|   |              |
+> 
+> 	+-------------|----+---|--------------|
+> 
+> 	|      D3     +----+---+     D4       |
+> 
+> 	=======================================
+> 
+> 
+> Where D1, D2, D3 and D4 are 4 different displays, and the same V4L
+> framebuffer is partially shared between them (the above is an example of a
+> V4L input, although the reverse scenario of having one frame buffer
+> divided into 4 V4L outputs also seems to be possible).
+> 
+> As the same image may be divided into 4 monitors, the buffer filling should
+> be synced with all of them, in order to avoid flipping effects. Also, the
+> buffer can't be re-used until all displays finish reading.
+> 
+> Display API's currently has similar issues.  From what I understood from
+> Rob and Daniel, this is solved there by dynamically allocating buffers.
+> So, we may need to do something similar to that also at V4L (in a matter
+> of fact, there's currently a proposal to hack REQBUF's, in order to extend
+> V4L API to allow dynamically creating more buffers than used by a stream).
+> It makes sense to me to discuss such proposal together with the above
+> discussions, in order to keep the API consistent.
+> 
+> From my side, I'm expecting that the responsible(s) for the API proposals
+> to also provide with open source drivers and userspace application(s),
+> that allows to test and validate such API RFC.
 
 -- 
 Regards,
