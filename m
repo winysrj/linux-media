@@ -1,179 +1,169 @@
 Return-path: <mchehab@pedra>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:40861 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752206Ab1EFMXU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 May 2011 08:23:20 -0400
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59799 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752565Ab1EQHW0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 May 2011 03:22:26 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [PATCH 3/3] adp1653: Add driver for LED flash controller
+Date: Tue, 17 May 2011 09:23:33 +0200
+Cc: linux-media@vger.kernel.org, nkanchev@mm-sol.com,
+	g.liakhovetski@gmx.de, hverkuil@xs4all.nl, dacohen@gmail.com,
+	riverful@gmail.com, andrew.b.adams@gmail.com, shpark7@stanford.edu
+References: <4DD11FEC.8050308@maxwell.research.nokia.com> <201105162231.06153.laurent.pinchart@ideasonboard.com> <4DD209DE.50909@maxwell.research.nokia.com>
+In-Reply-To: <4DD209DE.50909@maxwell.research.nokia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Date: Fri, 06 May 2011 14:23:18 +0200
-From: =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: <linux-media@vger.kernel.org>, <jarod@wilsonet.com>
-Subject: Re: [PATCH 05/10] rc-core: add separate defines for protocol bitmaps
- =?UTF-8?Q?and=09numbers?=
-In-Reply-To: <4DC16911.6080309@redhat.com>
-References: <20110428151311.8272.17290.stgit@felix.hardeman.nu> <20110428151337.8272.78812.stgit@felix.hardeman.nu> <4DC16911.6080309@redhat.com>
-Message-ID: <978f947abf9cba7fa38a702c3c0efb32@hardeman.nu>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201105170923.34326.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 04 May 2011 11:56:17 -0300, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Em 28-04-2011 12:13, David Härdeman escreveu:
->> The RC_TYPE_* defines are currently used both where a single protocol
-is
->> expected and where a bitmap of protocols is expected. This patch tries
->> to separate the two in preparation for the following patches.
->> 
->> Signed-off-by: David Härdeman <david@hardeman.nu>
+Hi Sakari,
+
+On Tuesday 17 May 2011 07:38:38 Sakari Ailus wrote:
+> Laurent Pinchart wrote:
+> > On Monday 16 May 2011 15:00:39 Sakari Ailus wrote:
+> >> This patch adds the driver for the adp1653 LED flash controller. This
+> >> controller supports a high power led in flash and torch modes and an
+> >> indicator light, sometimes also called privacy light.
+> >> 
+> >> The adp1653 is used on the Nokia N900.
+> >> 
+> >> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+> >> Signed-off-by: Tuukka Toivonen <tuukkat76@gmail.com>
+> >> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> >> Signed-off-by: David Cohen <dacohen@gmail.com>
+> > 
+> > [snip]
+> > 
+> >> diff --git a/drivers/media/video/adp1653.c
+> >> b/drivers/media/video/adp1653.c new file mode 100644
+> >> index 0000000..92ea38b
+> >> --- /dev/null
+> >> +++ b/drivers/media/video/adp1653.c
+> > 
+> > [snip]
+> > 
+> >> +/* Write values into ADP1653 registers. */
+> >> +static int adp1653_update_hw(struct adp1653_flash *flash)
+> >> +{
+> >> +	struct i2c_client *client = v4l2_get_subdevdata(&flash->subdev);
+> >> +	u8 out_sel;
+> >> +	u8 config = 0;
+> >> +	int rval;
+> >> +
+> >> +	out_sel = flash->indicator_intensity->val
+> >> +		<< ADP1653_REG_OUT_SEL_ILED_SHIFT;
+> >> +
+> >> +	switch (flash->led_mode->val) {
+> >> +	case V4L2_FLASH_LED_MODE_NONE:
+> >> +		break;
+> >> +	case V4L2_FLASH_LED_MODE_FLASH:
+> >> +		/* Flash mode, light on with strobe, duration from timer */
+> >> +		config = ADP1653_REG_CONFIG_TMR_CFG;
+> >> +		config |= TIMEOUT_US_TO_CODE(flash->flash_timeout->val)
+> >> +			  << ADP1653_REG_CONFIG_TMR_SET_SHIFT;
+> >> +		break;
+> >> +	case V4L2_FLASH_LED_MODE_TORCH:
+> >> +		/* Torch mode, light immediately on, duration indefinite */
+> >> +		out_sel |= flash->torch_intensity->val
+> >> +			   << ADP1653_REG_OUT_SEL_HPLED_SHIFT;
+> >> +		break;
+> >> +	}
+> >> +
+> >> +	rval = i2c_smbus_write_byte_data(client, ADP1653_REG_OUT_SEL,
+> >> out_sel);
+> > 
+> > out_sel can be used uninitialized here.
 > 
-> Most of the patch is just renaming stuff. So, I'm commenting just the
-> rc-main.c/rc-map.h changes.
+> I don't think so. It's assigned a value in the beginning of the function.
+
+My bad, I missed that. Sorry.
+
+> >> +	if (rval < 0)
+> >> +		return rval;
+> >> +
+> >> +	rval = i2c_smbus_write_byte_data(client, ADP1653_REG_CONFIG, config);
+> >> +	if (rval < 0)
+> >> +		return rval;
+> >> +
+> >> +	return 0;
+> >> +}
+> > 
+> > [snip]
+> > 
+> >> +static int adp1653_get_ctrl(struct v4l2_ctrl *ctrl)
+> >> +{
+> >> +	struct adp1653_flash *flash =
+> >> +		container_of(ctrl->handler, struct adp1653_flash, ctrls);
+> >> +	struct i2c_client *client = v4l2_get_subdevdata(&flash->subdev);
+> >> +	int fault;
+> >> +	int rval;
+> >> +
+> >> +	fault = i2c_smbus_read_byte_data(client, ADP1653_REG_FAULT);
+> >> +	if (IS_ERR_VALUE(fault))
+> >> +		return fault;
+> >> +
+> >> +	/* Clear faults. */
+> >> +	rval = i2c_smbus_write_byte_data(client, ADP1653_REG_OUT_SEL, 0);
+> >> +	if (IS_ERR_VALUE(rval))
+> >> +		return rval;
+> > 
+> > If several applications read controls, only one of them will be notified
+> > of faults. Shouldn't clearing the fault be handled explicitly by writing
+> > to a control ? I know this changes the API :-)
 > 
->> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
->> index 5b4422e..5a182b2 100644
->> --- a/drivers/media/rc/rc-main.c
->> +++ b/drivers/media/rc/rc-main.c
->> @@ -102,7 +102,7 @@ static struct rc_map_list empty_map = {
->>  	.map = {
->>  		.scan    = empty,
->>  		.size    = ARRAY_SIZE(empty),
->> -		.rc_type = RC_TYPE_UNKNOWN,	/* Legacy IR type */
->> +		.rc_type = RC_BIT_UNKNOWN,	/* Legacy IR type */
->>  		.name    = RC_MAP_EMPTY,
->>  	}
->>  };
->> @@ -725,14 +725,17 @@ static struct {
->>  	u64	type;
->>  	char	*name;
->>  } proto_names[] = {
->> -	{ RC_TYPE_UNKNOWN,	"unknown"	},
->> -	{ RC_TYPE_RC5,		"rc-5"		},
->> -	{ RC_TYPE_NEC,		"nec"		},
->> -	{ RC_TYPE_RC6,		"rc-6"		},
->> -	{ RC_TYPE_JVC,		"jvc"		},
->> -	{ RC_TYPE_SONY,		"sony"		},
->> -	{ RC_TYPE_RC5_SZ,	"rc-5-sz"	},
->> -	{ RC_TYPE_LIRC,		"lirc"		},
->> +	{ RC_BIT_OTHER,		"other"		},
->> +	{ RC_BIT_RC5,		"rc-5"		},
->> +	{ RC_BIT_RC5X,		"rc-5-x"	},
->> +	{ RC_BIT_RC5_SZ,	"rc-5-sz"	},
->> +	{ RC_BIT_RC6,		"rc-6"		},
->> +	{ RC_BIT_JVC,		"jvc"		},
->> +	{ RC_BIT_SONY12,	"sony12"	},
->> +	{ RC_BIT_SONY15,	"sony15"	},
->> +	{ RC_BIT_SONY20,	"sony20"	},
->> +	{ RC_BIT_NEC,		"nec"		},
->> +	{ RC_BIT_LIRC,		"lirc"		},
->>  };
+> This is true.
 > 
-> There are some API breakages on the above. We shouln't do it, except
-> if strictly required, and, if we'll do it, we need to do it via
-> 	Documentation/feature-removal-schedule.txt.
+> Although I can't imagine right now why two separate processes should be
+> so interested in the faults but it is still entirely possible that
+> someone does that since it's permitted by the interface.
 > 
-> There are two types of breakages on the above: 
-> 	1) the removal of "unknown" and "sony" types;
-
-We could just keep "unknown" and (optionally) also map "other" to it.
-
-> 	2) the behaviour change of "rc-5" (that, currently, means
-> both rc-5 and rc-5x.
-
-That's a change but I don't think it'll actually break user-space 
-since "rc-5" will still be accepted.
-
-> Also, while you've mapped rc5/sony variants, nec variants weren't
-mapped.
-
-"nec" needs no mapping with the nec 32-bit scancode change.
-
-> IMO, what we should do on the above is:
-> 	1) preserve the "unknown";
+> Having to write zero to faults to clear them isn't good either since it
+> might mean missing faults that are triggered between reading and writing
+> this control.
 > 
-> 	2) use "rc-5", "sony", "nec" with the meaning that they will
-> enable all variants of those protocols;
+> Perhaps this would make sense as a file handle specific control?
+
+Good question. Control events will help I guess, maybe that's the solution.
+
+> The control documentation says that the faults are cleared when the
+> register is read, but the adp1653 also clears the faults whenever
+> writing zero to out_sel which happens also in other circumstances, for
+> example when changing mode from flash to torch when the torch intensity
+> is zero, or when indicator intensity is zero in other modes.
 > 
-> 	3) add a new set of protocols to indicate subsets, like "sony:20",
-> "rc-5:normal", "rc5:x", etc.
-
-I can look into it...
-
-> 	4) if you're changing the interface, please submit a patch also
-> to v4l-utils, adding a logic there to handle the changes.
-
-I'll look into it when redoing the patches.
-
->>  
->>  #define PROTO_NONE	"none"
->> diff --git a/include/media/rc-map.h b/include/media/rc-map.h
->> index 9184751..2c68ca6 100644
->> --- a/include/media/rc-map.h
->> +++ b/include/media/rc-map.h
->> @@ -11,19 +11,36 @@
->>  
->>  #include <linux/input.h>
->>  
->> -#define RC_TYPE_UNKNOWN	0
->> -#define RC_TYPE_RC5	(1  << 0)	/* Philips RC5 protocol */
->> -#define RC_TYPE_NEC	(1  << 1)
->> -#define RC_TYPE_RC6	(1  << 2)	/* Philips RC6 protocol */
->> -#define RC_TYPE_JVC	(1  << 3)	/* JVC protocol */
->> -#define RC_TYPE_SONY	(1  << 4)	/* Sony12/15/20 protocol */
->> -#define RC_TYPE_RC5_SZ	(1  << 5)	/* RC5 variant used by Streamzap */
->> -#define RC_TYPE_LIRC	(1  << 30)	/* Pass raw IR to lirc userspace */
->> -#define RC_TYPE_OTHER	(1u << 31)
+> >> +	/* Restore configuration. */
+> >> +	rval = adp1653_update_hw(flash);
+> >> +	if (IS_ERR_VALUE(rval))
+> >> +		return rval;
+> > 
+> > Will that produce expected results ? For instance, if a fault was
+> > detected during flash strobe, won't it try to re-strobe the flash ?
+> > Shouldn't the user
 > 
->> +#define RC_TYPE_UNKNOWN		0	/* Protocol not known */
->> +#define RC_TYPE_OTHER		0	/* Protocol known but proprietary */
+> No. Flash is strobed using adp1653_strobe().
 > 
-> This change doesn't make sense: we should either remove other or use
-> different bits for different meanings.
-
-I think that it's not necessary. Unknown and other have a
-meaningful difference to the programmer but not from a code
-point of view. Both mean that whatever scancode we get, we
-have to accept as-is and we don't know anything about it.
-
-For e.g. a RC5 scancode we could (though we're not doing it yet)
-do sanity-checks on the scancode and set a proper timeout value
-based on protocol characteristics. With other and unknown we can't.
-
-That's the reason I merged them - we can't do anything meaningful
-with the difference from a code point of view and long term 
-"unknown" should die (might not happen but...).
-
-> This is somewhat a mess currently, as there
-> are, in
-> fact, 3 types of "protocols":
-> 	1) reverse-engineered drivers, where developer didn't care to check
-> 	   what was the used protocol. It is there due to legacy IR handlers,
-> 	   added before rc-core. The better is to not accept this type anymore
-> 	   for new devices;
-> 	2) Other protocols that don't match at the list of supported protocols.
-> 	   Reserved for the cases were the developer took the care to check if
-> 	   the protocol is not NEC/RC-5/... and didn't find any protocol that
-> 	   matches;
-> 	3) Standard protocols with broken hardware. In general, keycode tables
-> 	   with just 8 bits for RC-5 or NEC, because the hardware uses a cheap
-> 	   uC (generally KS007 or similar) that only decodes the last 8 bits of
-> 	   the protocol. As the developer didn't have a full IR decoder, he was
-> 	   not able to fill the RC/NEC table with the IR address.
+> > be required to explicitly re-strobe the flash or turn the torch (or
+> > indicator) on after a fault ? Once again this should be clarified in the
+> > API :-)
 > 
-> The problem with (2) is that it may reflect a temporary state where the
-> protocol
-> is not yet known. After adding a protocol decoder for it, case (2) turns
-> into
-> case (1).
+> The mode won't be changed from the flash but to strobe again, the user
+> has to push V4L2_CID_FLASH_STROBE again.
 > 
-> So, maybe we can just merge (1) and (2) into the same case: "unknown".
-> Maybe we
-> should map (3) with a different option, internally (even exporting it as
-> "unknown"
-> to userspace), as it helps us to identify such cases and fix it later.
+> The adp1653 doesn't have any torch (as such) or indicator faults; some
+> other chips do have indicator faults at least. Using the torch mode
+> might trigger faults, too, since it's the same LED; just the power isn't
+> that high.
 
-I think we should keep the distinction internal.
+When an over-current fault is detected, shouldn't the mode be set back to none 
+? If we just clear the fault and reprogram the registers, the torch will be 
+turned back on, and the fault will likely happen again.
 
 -- 
-David Härdeman
+Regards,
+
+Laurent Pinchart
