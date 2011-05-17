@@ -1,60 +1,101 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:36980 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752070Ab1EALu0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 May 2011 07:50:26 -0400
-Received: by eyx24 with SMTP id 24so1515371eyx.19
-        for <linux-media@vger.kernel.org>; Sun, 01 May 2011 04:50:24 -0700 (PDT)
+Received: from smtp.nokia.com ([147.243.1.47]:21326 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752946Ab1EQKrg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 May 2011 06:47:36 -0400
+Message-ID: <4DD2523D.1020908@maxwell.research.nokia.com>
+Date: Tue, 17 May 2011 13:47:25 +0300
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-In-Reply-To: <BANLkTim9vtBAE1dbOXAwW2Crh7aiMucD3w@mail.gmail.com>
-References: <BANLkTikBm0gmNd8oQ6CN+cAEbYhWEGvWPA@mail.gmail.com>
-	<BANLkTim9vtBAE1dbOXAwW2Crh7aiMucD3w@mail.gmail.com>
-Date: Sun, 1 May 2011 21:50:23 +1000
-Message-ID: <BANLkTin65u2oGhJczSkwNxnRDovWOw4X+A@mail.gmail.com>
-Subject: Re: Build Failure
-From: Vincent McIntyre <vincent.mcintyre@gmail.com>
-To: Colin Minihan <colin.minihan@gmail.com>
-Cc: linux-media@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, nkanchev@mm-sol.com,
+	g.liakhovetski@gmx.de, hverkuil@xs4all.nl, dacohen@gmail.com,
+	riverful@gmail.com, andrew.b.adams@gmail.com, shpark7@stanford.edu
+Subject: Re: [PATCH 3/3] adp1653: Add driver for LED flash controller
+References: <4DD11FEC.8050308@maxwell.research.nokia.com> <201105162231.06153.laurent.pinchart@ideasonboard.com> <4DD209DE.50909@maxwell.research.nokia.com> <201105170923.34326.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201105170923.34326.laurent.pinchart@ideasonboard.com>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 5/1/11, Colin Minihan <colin.minihan@gmail.com> wrote:
-> On Ubuntu 10.04 attempting to run
->
-> git clone git://linuxtv.org/media_build.git
-> cd media_build
-> ./check_needs.pl
-> make -C linux/ download
-> make -C linux/ untar
-> make stagingconfig
-> make
->
->  results in the following failure
-> ...
+Laurent Pinchart wrote:
+> Hi Sakari,
 
-I see this too (platform details below) but only if I do the 'make
-stagingconfig' step
-which I don't usually need to. The patch Mauro supplied worked for me;
-I just edited
-the two files involved and reran 'make' at the point at which the
-build had failed.
-v4l/config-compat.h had the expected extra #define in it and the build
-completed ok.
-I haven't tested the resulting module as I don't have the relevant hardware.
+Hi Laurent,
 
-Cheers
-Vince
+> On Tuesday 17 May 2011 07:38:38 Sakari Ailus wrote:
+[clip]
+>>>
+>>> If several applications read controls, only one of them will be notified
+>>> of faults. Shouldn't clearing the fault be handled explicitly by writing
+>>> to a control ? I know this changes the API :-)
+>>
+>> This is true.
+>>
+>> Although I can't imagine right now why two separate processes should be
+>> so interested in the faults but it is still entirely possible that
+>> someone does that since it's permitted by the interface.
+>>
+>> Having to write zero to faults to clear them isn't good either since it
+>> might mean missing faults that are triggered between reading and writing
+>> this control.
+>>
+>> Perhaps this would make sense as a file handle specific control?
+> 
+> Good question. Control events will help I guess, maybe that's the solution.
 
-platform details:
+They would help, yes, but in the case of N900 we don't have that luxury
+since there's no interrupt line from the adp1653 to OMAP. So if one user
+would read the control, the others would get notified. Yes, that would
+work, too.
 
-$ cat /etc/issue
-Ubuntu 10.04.2 LTS \n \l
-$ uname -a
-Linux ubuntu 2.6.32-31-generic #61-Ubuntu SMP Fri Apr 8 18:24:35 UTC
-2011 i686 GNU/Linux
-$ cat v4l/.version
-VERSION=2
-PATCHLEVEL:=6
-SUBLEVEL:=32
-KERNELRELEASE:=2.6.32-31-generic
+The use case is mostly theoretical and that's actually best the hardware
+can offer, so I think this is good. No special arrangements needed then.
+
+So reading the value will reset the faults?
+
+>> The control documentation says that the faults are cleared when the
+>> register is read, but the adp1653 also clears the faults whenever
+>> writing zero to out_sel which happens also in other circumstances, for
+>> example when changing mode from flash to torch when the torch intensity
+>> is zero, or when indicator intensity is zero in other modes.
+>>
+>>>> +	/* Restore configuration. */
+>>>> +	rval = adp1653_update_hw(flash);
+>>>> +	if (IS_ERR_VALUE(rval))
+>>>> +		return rval;
+>>>
+>>> Will that produce expected results ? For instance, if a fault was
+>>> detected during flash strobe, won't it try to re-strobe the flash ?
+>>> Shouldn't the user
+>>
+>> No. Flash is strobed using adp1653_strobe().
+>>
+>>> be required to explicitly re-strobe the flash or turn the torch (or
+>>> indicator) on after a fault ? Once again this should be clarified in the
+>>> API :-)
+>>
+>> The mode won't be changed from the flash but to strobe again, the user
+>> has to push V4L2_CID_FLASH_STROBE again.
+>>
+>> The adp1653 doesn't have any torch (as such) or indicator faults; some
+>> other chips do have indicator faults at least. Using the torch mode
+>> might trigger faults, too, since it's the same LED; just the power isn't
+>> that high.
+> 
+> When an over-current fault is detected, shouldn't the mode be set back to none 
+> ? If we just clear the fault and reprogram the registers, the torch will be 
+> turned back on, and the fault will likely happen again.
+
+That's a good point.
+
+Over-temperature, over-voltage, and short circuit faults should change
+the LED mode to be set to none. This is likely chip independent
+behaviour but on the other hand, not all the chips implement all the faults.
+
+Regards,
+
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
