@@ -1,52 +1,62 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:13810 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753571Ab1EYXuP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 May 2011 19:50:15 -0400
-Message-ID: <4DDD95AF.4010004@redhat.com>
-Date: Wed, 25 May 2011 20:50:07 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PATCH FOR 2.6.40] uvcvideo patches
-References: <201105150948.24956.laurent.pinchart@ideasonboard.com> <201105260120.54392.laurent.pinchart@ideasonboard.com> <4DDD91F2.5070801@redhat.com> <201105260143.35396.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201105260143.35396.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:43040 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755409Ab1EQRFi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 May 2011 13:05:38 -0400
+Received: from spt2.w1.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LLC00E4BNHDUN@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 17 May 2011 18:05:37 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LLC00LUPNHCUN@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 17 May 2011 18:05:36 +0100 (BST)
+Date: Tue, 17 May 2011 19:05:36 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [GIT PATCHES FOR 2.6.40] v4l2 subdev driver for Samsung S5P MIPI	CSI
+ receiver
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Message-id: <4DD2AAE0.1010700@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 25-05-2011 20:43, Laurent Pinchart escreveu:
+Hi Mauro,
 
-> Issues arise when devices have floating point registers. And yes, that 
-> happens, I've learnt today about an I2C sensor with floating point registers 
-> (in this specific case it should probably be put in the broken design 
-> category, but it exists :-)).
+The following changes since commit f9b51477fe540fb4c65a05027fdd6f2ecce4db3b:
 
-Huh! Yeah, an I2C sensor with FP registers sound weird. We need more details
-in order to address those.
+  [media] DVB: return meaningful error codes in dvb_frontend (2011-05-09 05:47:20 +0200)
 
->>> There's an industry trend there, and we need to think about solutions now
->>> otherwise we will be left without any way forward when too many devices
->>> will be impossible to support from kernelspace (OMAP4 is a good example
->>> there, some device drivers require communication with other cores, and
->>> the communication API is implemented in userspace).
->>
->> Needing to go to userspace to allow inter-core communication seems very
->> bad. I seriously doubt that this is a trend. It seems more like a
->> broken-by-design type of architecture.
-> 
-> I'm inclined to agree with you, but we should address these issues now, while 
-> we have relatively few devices impacted by them. I fear that ignoring the 
-> problem and hoping it will go away by itself will bring us to a difficult 
-> position in the future. We should show the industry in which direction we 
-> would like it to go.
+are available in the git repository at:
+  git://git.infradead.org/users/kmpark/linux-2.6-samsung s5p-csis
 
-I'm all about showing the industry in with direction we would like it to go.
-We want that all Linux-supported architectures/sub-architectures support 
-inter-core communications in kernelspace, in a more efficient way
-that it would happen if such communication would happen in userspace.
+It's a new driver for MIPI CSI receiver available in S5PVxxx/EXYNOS4 SoCs.
+The first patch adds a definition of media bus code for JPEG format.
+ 
+Gitweb: http://git.infradead.org/users/kmpark/linux-2.6-samsung/shortlog/refs/heads/s5p-csis
 
-Thanks,
-Mauro.
+Sylwester Nawrocki (3):
+      v4l: Add V4L2_MBUS_FMT_JPEG_1X8 media bus format
+      v4l: Move s5p-fimc driver into Video capture devices
+      v4l: Add v4l2 subdev driver for S5P/EXYNOS4 MIPI-CSI receivers
+
+ Documentation/DocBook/v4l/subdev-formats.xml |   46 ++
+ drivers/media/video/Kconfig                  |   28 +-
+ drivers/media/video/Makefile                 |    1 +
+ drivers/media/video/s5p-fimc/Makefile        |    6 +-
+ drivers/media/video/s5p-fimc/mipi-csis.c     |  724 ++++++++++++++++++++++++++
+ drivers/media/video/s5p-fimc/mipi-csis.h     |   22 +
+ include/linux/v4l2-mediabus.h                |    3 +
+ 7 files changed, 820 insertions(+), 10 deletions(-)
+ create mode 100644 drivers/media/video/s5p-fimc/mipi-csis.c
+ create mode 100644 drivers/media/video/s5p-fimc/mipi-csis.h
+
+Regards,
+-- 
+Sylwester Nawrocki
+Samsung Poland R&D Center
