@@ -1,64 +1,72 @@
-Return-path: <mchehab@gaivota>
-Received: from mail.kapulan.hu ([213.16.89.155]:52163 "EHLO kapulan.hu"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754134Ab1EKD6t (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 May 2011 23:58:49 -0400
-To: undisclosed-recipients:;
-Subject: Can You Be =?UTF-8?Q?Trusted=3F?=
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3027 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932086Ab1EQTdc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 May 2011 15:33:32 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Ondrej Zary <linux@rainbow-software.org>
+Subject: Re: [PATCH RFC v2] radio-sf16fmr2: convert to generic TEA575x interface
+Date: Tue, 17 May 2011 21:33:14 +0200
+Cc: linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	"Kernel development list" <linux-kernel@vger.kernel.org>
+References: <201105140017.26968.linux@rainbow-software.org> <201105152218.24041.linux@rainbow-software.org> <201105152326.33925.hverkuil@xs4all.nl>
+In-Reply-To: <201105152326.33925.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
- format=flowed
-Content-Transfer-Encoding: 8bit
-Date: Wed, 11 May 2011 04:39:11 +0100
-From: Paul Bowen <paulbowen@msnzone.cn>
-Reply-To: <doughty_chamber@hotmail.co.uk>
-Message-ID: <3c86188be0702dea3f72afe689121f02@kapulan.hu>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201105172133.14835.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
- WILL EXECUTION!
+Hi Ondrej!
 
- I wish to intimate you with a request that would be of immense benefit 
- to
- both of us. Being an executor of WILL, it is possible that we may be
- tempted to make fortune out of my client situation, when we cannot help
- it, or left with no better option.
+On Sunday, May 15, 2011 23:26:33 Hans Verkuil wrote:
+> On Sunday, May 15, 2011 22:18:21 Ondrej Zary wrote:
+> > Thanks, it's much simpler with the new control framework.
+> > Do the negative volume control values make sense? The TC9154A chip can
+> > attenuate the volume from 0 to -68dB in 2dB steps.
+> 
+> It does make sense, but I think I would offset the values so they start at 0.
+> Mostly because there might be some old apps that set the volume to 0 when they
+> want to mute, which in this case is full volume.
+> 
+> I am not aware of any driver where a volume of 0 isn't the same as the lowest
+> volume possible, so in this particular case I would apply an offset.
+> 
+> I will have to do a closer review tomorrow or the day after. I think there are
+> a few subtleties that I need to look at. Ping me if you haven't heard from me
+> by Wednesday. I would really like to get these drivers up to spec now that I
+> have someone who can test them, and once that's done I hope that I never have
+> to look at them again :-) (Unlikely, but one can dream...)
 
- The issue I am presenting to you is about my client who WILLED a 
- fortune
- to his next-of-kin. It was most unfortunate that he and his next-of-kin
- died on the same day in the sharja plane crash of Tuesday 10 February
- 2004. I am now faced with confusion of who to pass the fortune to.
- According to the English law, the fortune is supposed to be bequeathed 
- to
- the government. However, I don’t belong to that school of thought which
- proposes that the fortune of unlucky people be given to the government.
- I seek your assistance to act as the beneficiary of the inheritance, 
- and
- lay claim to the legacy(12.4million pounds sterling),which this my
- unfortunate client bequeathed to his next-of-kin. For now, it is
- only known to me, as my client has great confidence in me. Everything 
- will
- be left between you and I. The share would be 40% for you and 60% for
- me. All I have to do is to amend the WILL stating you as the 
- beneficiary
- to the 12.4million pounds sterling.
+OK, I looked at it a bit more and it needs to be changed a little bit. The
+problem is that the VOLUME control is added after snd_tea575x_init, i.e.
+after the video_register_device call. The video_register_device call should
+be the last thing done before the init sequence returns. There may be applications
+(dbus/hal) that open devices as soon as they appear, so doing more initialization
+after the video node is registered is not a good idea (many older V4L drivers
+make this mistake).
 
- I prefer not to divulge my full identity so as not to risk being 
- disbarred.
- The English Bar considers it a breach of the oath of the English Bar
- Council. I need not emphasize to you that the sensitivity of this issue
- need not be toyed with by neglecting its confidentiality. At this point 
- I
- want to assure you that your true consent, full cooperation and
- confidentiality are all that are required for us to take full advantage 
- of
- this great opportunity.
+Perhaps creating a snd_tea575x_register function doing just the registration
+may be a good idea. Or a callback before doing the video_register_device.
 
- This is an opportunity that people rarely have.
+Another thing: the tea->mute field shouldn't be needed anymore. And the
+'mute on init' bit in snd_tea575x_init can be removed as well since that
+is automatically performed by v4l2_ctrl_handler_setup.
 
- I look forward to hearing from you soon.
+In addition, the .ioctl field in tea575x_fops can be replaced by .unlocked_ioctl.
+The whole exclusive open stuff and the in_use field can be removed. The only
+thing needed is a struct mutex in struct snd_tea575x, initialize it and set
+tea575x_radio_inst->lock to the mutex. This will serialize all access safely.
 
- Yours truly,
- Barr. Paul Bowen
- Email: doughty-chamber@hotmail.co.uk
+To do this really right you should add struct v4l2_device to struct snd_tea575x
+(the radio-sf16fmr2 driver has one, so you can use that as an example). With
+that in place you can also add support for 'priority' handling. I'd say see
+what you can do, and if it takes too much time then mail me the tea575x code
+and the radio-sf16frm2 code and I'll finish it.
+
+Regards,
+
+	Hans
