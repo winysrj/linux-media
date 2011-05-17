@@ -1,58 +1,172 @@
-Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:42105 "EHLO mx1.redhat.com"
+Return-path: <mchehab@pedra>
+Received: from mx1.redhat.com ([209.132.183.28]:37161 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754475Ab1EHQHE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 8 May 2011 12:07:04 -0400
-Message-ID: <4DC6BF99.4030408@redhat.com>
-Date: Sun, 08 May 2011 13:06:49 -0300
+	id S1754282Ab1EQM5z (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 May 2011 08:57:55 -0400
+Message-ID: <4DD270CE.2080406@redhat.com>
+Date: Tue, 17 May 2011 09:57:50 -0300
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Steve Kerrison <steve@stevekerrison.com>
-CC: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org,
-	Andreas Oberritter <obi@linuxtv.org>
-Subject: Re: [PATCH 2/6] cxd2820r: Remove temporary T2 API hack
-References: <4DC417DA.5030107@redhat.com> <1304869873-9974-3-git-send-email-steve@stevekerrison.com>
-In-Reply-To: <1304869873-9974-3-git-send-email-steve@stevekerrison.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	Jesse Barker <jesse.barker@linaro.org>
+Subject: Re: Summary of the V4L2 discussions during LDS - was: Re: Embedded
+ Linux memory management interest group list
+References: <BANLkTimoKzWrAyCBM2B9oTEKstPJjpG_MA@mail.gmail.com> <201105141302.55100.hverkuil@xs4all.nl> <4DCE6B7B.1080907@redhat.com> <201105152310.31678.hverkuil@xs4all.nl> <4DD26EBC.9040804@redhat.com>
+In-Reply-To: <4DD26EBC.9040804@redhat.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Em 08-05-2011 12:51, Steve Kerrison escreveu:
-> Unimplemented delivery system and modes were #define'd to
-> arbitrary values for internal use. API now includes these values
-> so we can remove this hack.
+Em 17-05-2011 09:49, Mauro Carvalho Chehab escreveu:
+> Em 15-05-2011 18:10, Hans Verkuil escreveu:
+>> On Saturday, May 14, 2011 13:46:03 Mauro Carvalho Chehab wrote:
+>>> Em 14-05-2011 13:02, Hans Verkuil escreveu:
+>>>> On Saturday, May 14, 2011 12:19:18 Mauro Carvalho Chehab wrote:
+>>>
+>>>>> So, based at all I've seen, I'm pretty much convinced that the normal MMAP
+>>>>> way of streaming (VIDIOC_[REQBUF|STREAMON|STREAMOFF|QBUF|DQBUF ioctl's)
+>>>>> are not the best way to share data with framebuffers.
+>>>>
+>>>> I agree with that, but it is a different story between two V4L2 devices. There
+>>>> you obviously want to use the streaming ioctls and still share buffers.
+>>>
+>>> I don't think so. the requirement for syncing the framebuffer between the two
+>>> V4L2 devices is pretty much the same as we have with one V4L2 device and one GPU.
+>>>
+>>> On both cases, the requirement is to pass a framebuffer between two entities, 
+>>> and not a video stream.
+>>>
+>>> For example, imagine something like:
+>>>
+>>> 	V4L2 camera =====> V4L2 encoder t MPEG2
+>>> 		     ||
+>>> 		     LL==> GPU
 > 
-> Signed-off-by: Steve Kerrison <steve@stevekerrison.com>
-> ---
->  drivers/media/dvb/frontends/cxd2820r_priv.h |   12 ------------
->  1 files changed, 0 insertions(+), 12 deletions(-)
+> For the sake of clarity on my next comments, I'm naming the "V4L2 camera" buffer
+> write endpoint as "producer" and the 2 buffer read endpoints as "consumers". 
+>>>
+>>> Both GPU and the V4L2 encoder should use the same logic to be sure that they will
+>>> use a buffer that were filled already by the camera. Also, the V4L2 camera
+>>> driver can't re-use such framebuffer before being sure that both consumers 
+>>> has already stopped using it.
+>>
+>> No. A camera whose output is sent to a resizer and then to a SW/FW/HW encoder
+>> is a typical example where you want to queue/dequeue buffers.
 > 
-> diff --git a/drivers/media/dvb/frontends/cxd2820r_priv.h b/drivers/media/dvb/frontends/cxd2820r_priv.h
-> index d4e2e0b..25adbee 100644
-> --- a/drivers/media/dvb/frontends/cxd2820r_priv.h
-> +++ b/drivers/media/dvb/frontends/cxd2820r_priv.h
-> @@ -40,18 +40,6 @@
->  #undef warn
->  #define warn(f, arg...) printk(KERN_WARNING LOG_PREFIX": " f "\n" , ## arg)
->  
-> -/*
-> - * FIXME: These are totally wrong and must be added properly to the API.
-> - * Only temporary solution in order to get driver compile.
-> - */
-> -#define SYS_DVBT2             SYS_DAB
-> -#define TRANSMISSION_MODE_1K  0
-> -#define TRANSMISSION_MODE_16K 0
-> -#define TRANSMISSION_MODE_32K 0
-> -#define GUARD_INTERVAL_1_128  0
-> -#define GUARD_INTERVAL_19_128 0
-> -#define GUARD_INTERVAL_19_256 0
-> -
+> Why? On a framebuffer-oriented set of ioctl's, some kernel internal calls will
+> need to take care of the buffer usage, in order to be sure when a buffer can
+> be rewritten, as userspace has no way to know when a buffer needs to be queued/dequeued.
+> 
+> In other words, the framebuffer kernel API will probably be using a kernel structure like:
+> 
+> struct v4l2_fb_handler {
+> 	bool has_finished;				/* Marks when a handler finishes to handle the buffer */
+> 	bool is_producer;				/* Used by the handler that writes data into the buffer */
+> 
+> 	struct list_head *handlers;			/* List with all handlers */
+> 
+> 	void (*qbuf)(struct v4l2_fb_handler *handler);	/* qbuf-like callback, called after having a buffer filled */
+> 
+> 	v4l2_buffer_ID	buf;				/* Buffer ID (or filehandler?) - In practice, it will probably be a list with the available buffers */
+> 
+> 	void *priv;					/* handler priv data */
+> }
+> 
+> While stream is on, a kernel logic will run a loop, doing basically the steps bellow:
+> 
+> 	1) Wait for the producer to rise the has_finished flag;
+> 
+> 	2) call qbuf() for all consumers. The qbuf() call shouldn't block; it just calls 
+> 	   a per-handler logic to start using that buffer;
+> 
+> 	3) When each fb handler finishes using its buffer, it will rise has_finished flag;
+> 
+> 	4) After having all buffer handlers marked as has_finished, cleans the has_finished
+> 	  flags and re-queue the buffer.
+> 
+> Step (2) is equivalent to VIDIOC_QBUF, and step (4) is equivalent to VIDIOC_DQBUF.
+> 
+> PS.: The above is just a simplified view of such handler. We'll probably need more steps. For
+> example, between (1) and (2) it may probably need some logic to check if is there an available
+> empty buffer. If not, create a new one and use it.
+> 
+> What happens with REQBUF/QBUF/DQBUF is that:
+> 	- with those calls, there's just one buffer consumer, and just one buffer producer;
+> 	- either the producer or the consumer is on userspace, and the other pair is
+> 	  at kernelspace;
+> 	- buffers are allocated before the start of a process, via an explicit call;
+> 	- buffers need to be mmapped, in order to be visible at userspace.
+> 
+> None of the above applies to a framebuffer-oriented API:
+> 	- more than one buffer consumer is allowed;
+> 	- consumers and producers are on kernelspace (it might be needed to have an
+> an API for handling such buffers also on userspace, although it doesn't sound a good
+> idea to me, IMHO);
 
-Please, just fold this patch with Andreas one, adding a small note like:
-[steve@...: removed the priv definitions from cxd2820r]
+A side note: in the specific case of X server and display drivers, such kernelspace-userspace
+API  for buffers already exists. I don't know DRI/GEM/KMS enough to tell exactly how this work 
+or if it will require some changes or not, in order to work like the above, but it seems that
+the right approach is to try to use or extend the existing API's, instead of creating 
+something new.
 
-Otherwise, you'll be breaking git disect.
+The main point is: DQBUF/QBUF API assumes that userspace has full control at the buffer usage,
+and buffer is handled at userspace (so, they should be mmapped there). This is not the general
+case where another IP block at the chip is re-using the buffer, or if is there another DMA engine
+doing direct transfers on it.
 
-Thanks,
-Mauro
+> 	- buffers can be dynamically allocated/de-allocated;
+> 	- buffers don't need to be mmapped to userspace.
+> 
+>> Especially since
+>> the various parts of the pipeline may stall for a bit so you don't want to lose
+>> frames. That's not what the overlay API is for, that's what our streaming API
+>> gives us.
+>>
+>> The use case above isn't even possible without copying. At least, I don't see a
+>> way, unless the GPU buffer is non-destructive. In that case you can give the
+>> frame to the GPU, and when the GPU is finished you can give it to the encoder.
+>> I suspect that might become quite complex though.
+> 
+> Well, if some fb consumers would also be rewriting the buffers, serializing them is
+> needed, as you can't allow another process to access a memory that CPU is destroying 
+> at the same time, as you'll have unpredicted images being produced. The easiest
+> way is to make qbuf() callback block until the end of buffer rewrite, but I
+> don't think that this is a good idea.
+> 
+> On such situations, it is probably faster and cleaner to just copy data into a
+> second buffer, keeping the original one preserved.
+> 
+>> Note that many video receivers cannot stall. You can't tell them to wait until
+>> the last buffer finished processing. This is different from some/most? sensors.
+>>
+>> So if you try to send the input of a video receiver to some device that requires
+>> syncing which can cause stalls, then that will not work without losing frames.
+>> Which especially for video encoding is not desirable.
+> 
+> If you're sharing a buffer, kernel should be sure that the shared buffer won't
+> be rewritten before every shared-buffer consumer doesn't finish handling it.
+> 
+> So, assuming that the producer is generating frames at a rate of, let's say, 30
+> fps, the slowest consumer should be faster than 1/30 s, otherwise, it will loose
+> frames.
+> 
+> Yet, if, under certain circumstances (like, for example, input switch from one
+> source to another, requiring an mpeg2 encoder to re-encode the new scena),
+> one of the consumer is needing more than 1/30 s, but, at most of the time it runs
+> bellow the 1/30 s, by using dynamic buffer allocation it is still possible of
+> using shared buffers without loosing frames, if the machine has enough memory
+> to handle the worse case.
+> 
+> There's one problem with dynamic buffers, however: audio and video sync becomes 
+> a more complex task. So, we'll end by needing to add audio timestamps at 
+> kernelspace, at the alsa driver.
+> 
+> Cheers,
+> Mauro.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
