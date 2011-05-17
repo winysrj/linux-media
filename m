@@ -1,169 +1,197 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35639 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753944Ab1EXI6T (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 May 2011 04:58:19 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: javier Martin <javier.martin@vista-silicon.com>
-Subject: Re: [PATCH v2 1/2] MT9P031: Add support for Aptina mt9p031 sensor.
-Date: Tue, 24 May 2011 10:58:33 +0200
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	carlighting@yahoo.co.nz, beagleboard@googlegroups.com,
-	linux-arm-kernel@lists.infradead.org
-References: <1305899272-31839-1-git-send-email-javier.martin@vista-silicon.com> <201105241039.58428.laurent.pinchart@ideasonboard.com> <BANLkTimFd2dcGooY5+FnuJ6inAmO0iBvJA@mail.gmail.com>
-In-Reply-To: <BANLkTimFd2dcGooY5+FnuJ6inAmO0iBvJA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201105241058.33683.laurent.pinchart@ideasonboard.com>
+Received: from smtp.nokia.com ([147.243.1.48]:45305 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752687Ab1EQPOM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 May 2011 11:14:12 -0400
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, nkanchev@mm-sol.com,
+	g.liakhovetski@gmx.de, hverkuil@xs4all.nl, dacohen@gmail.com,
+	riverful@gmail.com, andrew.b.adams@gmail.com, shpark7@stanford.edu
+Subject: [RFC v2 1/3] v4l: Add a class and a set of controls for flash devices.
+Date: Tue, 17 May 2011 18:14:02 +0300
+Message-Id: <1305645244-11878-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <4DD29088.1060703@maxwell.research.nokia.com>
+References: <4DD29088.1060703@maxwell.research.nokia.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Javier,
+From: Sakari Ailus <sakari.ailus@iki.fi>
 
-On Tuesday 24 May 2011 10:56:22 javier Martin wrote:
-> On 24 May 2011 10:39, Laurent Pinchart wrote:
-> > On Tuesday 24 May 2011 10:31:46 javier Martin wrote:
-> >> On 23 May 2011 11:03, Laurent Pinchart wrote:
-> >> > On Saturday 21 May 2011 17:29:18 Guennadi Liakhovetski wrote:
-> >> >> On Fri, 20 May 2011, Javier Martin wrote:
-> >> > [snip]
-> >> > 
-> >> >> > diff --git a/drivers/media/video/mt9p031.c
-> >> >> > b/drivers/media/video/mt9p031.c new file mode 100644
-> >> >> > index 0000000..e406b64
-> >> >> > --- /dev/null
-> >> >> > +++ b/drivers/media/video/mt9p031.c
-> >> > 
-> >> > [snip]
-> >> > 
-> >> >> > +}
-> >> >> > +
-> >> >> > +static int mt9p031_power_on(struct mt9p031 *mt9p031)
-> >> >> > +{
-> >> >> > +   int ret;
-> >> >> > +
-> >> >> > +   /* turn on VDD_IO */
-> >> >> > +   ret = regulator_enable(mt9p031->reg_2v8);
-> >> >> > +   if (ret) {
-> >> >> > +           pr_err("Failed to enable 2.8v regulator: %d\n", ret);
-> >> >> 
-> >> >> dev_err()
-> >> >> 
-> >> >> > +           return ret;
-> >> >> > +   }
-> >> >> > +   if (mt9p031->pdata->set_xclk)
-> >> >> > +           mt9p031->pdata->set_xclk(&mt9p031->subdev, 54000000);
-> >> > 
-> >> > Can you make 54000000 a #define at the beginning of the file ?
-> >> > 
-> >> > You should soft-reset the chip here by calling mt9p031_reset().
-> >> 
-> >> If I do this, I would be force to cache some registers and restart
-> >> them. I've tried to do this but I don't know what is failing that
-> >> there are some artifacts consisting on horizontal black lines in the
-> >> image.
-> > 
-> > You need to cache registers anyway, as the chip will be reset to default
-> > values by the core power cycling. And as I'm writing those lines I
-> > realize that you don't power cycle reg_1v8. This needs to be done to
-> > save power.
-> > 
-> >> Please, let me push this to mainline without this feature as a first
-> >> step, since I'll have to spend some assigned to another project.
-> > 
-> > Power handling is an important feature. I don't think the driver is ready
-> > without it.
-> > 
-> >> [snip]
-> >> 
-> >> >> > + */
-> >> >> > +static int mt9p031_video_probe(struct i2c_client *client)
-> >> >> > +{
-> >> >> > +   s32 data;
-> >> >> > +   int ret;
-> >> >> > +
-> >> >> > +   /* Read out the chip version register */
-> >> >> > +   data = reg_read(client, MT9P031_CHIP_VERSION);
-> >> >> > +   if (data != MT9P031_CHIP_VERSION_VALUE) {
-> >> >> > +           dev_err(&client->dev,
-> >> >> > +                   "No MT9P031 chip detected, register read %x\n",
-> >> >> > data); +           return -ENODEV;
-> >> >> > +   }
-> >> >> > +
-> >> >> > +   dev_info(&client->dev, "Detected a MT9P031 chip ID %x\n",
-> >> >> > data); +
-> >> >> > +   ret = mt9p031_reset(client);
-> >> >> > +   if (ret < 0)
-> >> >> > +           dev_err(&client->dev, "Failed to initialise the
-> >> >> > camera\n");
-> >> > 
-> >> > If you move the soft-reset operation to mt9p031_power_on(), you don't
-> >> > need to call it here.
-> >> 
-> >> The reason for this is the same as before. I haven't still been able
-> >> to success on restarting registers and getting everything to work
-> >> fine.
-> >> It would be great if you allowed me to push this as it is as an
-> >> intermediate step.
-> > 
-> > Sorry, but I'd like to see power management properly implemented before
-> > the driver hits mainline. Other less important features (such as
-> > exposure/gain controls for instance) can be missing, but proper power
-> > management is important.
-> 
-> OK, I'll focus on this feature from now on. However, I can't guarantee
-> that I won't be removed from the project in the process. If that
-> happens I will send my current patches to the community and someone
-> else will have to complete the job.
+Add a control class and a set of controls to support LED and Xenon flash
+devices. An example of such a device is the adp1653.
 
-I understand. I could take over but I don't have an MT9P031 hardware :-S
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ drivers/media/video/v4l2-ctrls.c |   45 ++++++++++++++++++++++++++++++++++++++
+ include/linux/videodev2.h        |   36 ++++++++++++++++++++++++++++++
+ 2 files changed, 81 insertions(+), 0 deletions(-)
 
-> >> [snip]
-> >> 
-> >> >> > +   mt9p031->rect.width     = MT9P031_MAX_WIDTH;
-> >> >> > +   mt9p031->rect.height    = MT9P031_MAX_HEIGHT;
-> >> >> > +
-> >> >> > +   mt9p031->format.code = V4L2_MBUS_FMT_SGRBG12_1X12;
-> >> >> > +
-> >> >> > +   mt9p031->format.width = MT9P031_MAX_WIDTH;
-> >> >> > +   mt9p031->format.height = MT9P031_MAX_HEIGHT;
-> >> >> > +   mt9p031->format.field = V4L2_FIELD_NONE;
-> >> >> > +   mt9p031->format.colorspace = V4L2_COLORSPACE_SRGB;
-> >> >> > +
-> >> >> > +   mt9p031->xskip = 1;
-> >> >> > +   mt9p031->yskip = 1;
-> >> >> > +
-> >> >> > +   mt9p031->reg_1v8 = regulator_get(NULL, "cam_1v8");
-> >> >> > +   if (IS_ERR(mt9p031->reg_1v8)) {
-> >> >> > +           ret = PTR_ERR(mt9p031->reg_1v8);
-> >> >> > +           pr_err("Failed 1.8v regulator: %d\n", ret);
-> >> >> 
-> >> >> dev_err()
-> >> >> 
-> >> >> > +           goto e1v8;
-> >> >> > +   }
-> >> > 
-> >> > The driver can be used with boards where either or both of the 1.8V
-> >> > and 2.8V supplies are always on, thus not connected to any regulator.
-> >> > I'm not sure how that's usually handled, if board code should define
-> >> > an "always-on" power supply, or if the driver shouldn't fail when no
-> >> > regulator is present. In any case, this must be handled.
-> >> 
-> >> I think board code should define an "always-on" power supply.
-> > 
-> > Fine with me. How is that done BTW ?
-> 
-> You can use a fixed regulator for that purpose:
-> http://lxr.linux.no/#linux+v2.6.37.2/include/linux/regulator/fixed.h
-
-struct fixed_voltage_config is meant to be passed to drivers through platform 
-data. It doesn't declare an "always-on" regulator.
-
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index 2412f08..74aae36 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -216,6 +216,17 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		"75 useconds",
+ 		NULL,
+ 	};
++	static const char * const flash_led_mode[] = {
++		"Off",
++		"Flash",
++		"Torch",
++		NULL,
++	};
++	static const char * const flash_strobe_source[] = {
++		"Software",
++		"External",
++		NULL,
++	};
+ 
+ 	switch (id) {
+ 	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
+@@ -256,6 +267,10 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		return colorfx;
+ 	case V4L2_CID_TUNE_PREEMPHASIS:
+ 		return tune_preemphasis;
++	case V4L2_CID_FLASH_LED_MODE:
++		return flash_led_mode;
++	case V4L2_CID_FLASH_STROBE_SOURCE:
++		return flash_strobe_source;
+ 	default:
+ 		return NULL;
+ 	}
+@@ -389,6 +404,21 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_TUNE_POWER_LEVEL:		return "Tune Power Level";
+ 	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:	return "Tune Antenna Capacitor";
+ 
++	/* Flash controls */
++	case V4L2_CID_FLASH_CLASS:		return "Flash controls";
++	case V4L2_CID_FLASH_LED_MODE:		return "LED mode";
++	case V4L2_CID_FLASH_STROBE_SOURCE:	return "Strobe source";
++	case V4L2_CID_FLASH_STROBE:		return "Strobe";
++	case V4L2_CID_FLASH_STROBE_STOP:	return "Stop strobe";
++	case V4L2_CID_FLASH_STROBE_STATUS:	return "Strobe status";
++	case V4L2_CID_FLASH_TIMEOUT:		return "Strobe timeout";
++	case V4L2_CID_FLASH_INTENSITY:		return "Intensity, flash mode";
++	case V4L2_CID_FLASH_TORCH_INTENSITY:	return "Intensity, torch mode";
++	case V4L2_CID_FLASH_INDICATOR_INTENSITY: return "Intensity, indicator";
++	case V4L2_CID_FLASH_FAULT:		return "Faults";
++	case V4L2_CID_FLASH_CHARGE:		return "Charge";
++	case V4L2_CID_FLASH_READY:		return "Ready to strobe";
++
+ 	default:
+ 		return NULL;
+ 	}
+@@ -423,12 +453,17 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_PILOT_TONE_ENABLED:
+ 	case V4L2_CID_ILLUMINATORS_1:
+ 	case V4L2_CID_ILLUMINATORS_2:
++	case V4L2_CID_FLASH_STROBE_STATUS:
++	case V4L2_CID_FLASH_CHARGE:
++	case V4L2_CID_FLASH_READY:
+ 		*type = V4L2_CTRL_TYPE_BOOLEAN;
+ 		*min = 0;
+ 		*max = *step = 1;
+ 		break;
+ 	case V4L2_CID_PAN_RESET:
+ 	case V4L2_CID_TILT_RESET:
++	case V4L2_CID_FLASH_STROBE:
++	case V4L2_CID_FLASH_STROBE_STOP:
+ 		*type = V4L2_CTRL_TYPE_BUTTON;
+ 		*flags |= V4L2_CTRL_FLAG_WRITE_ONLY;
+ 		*min = *max = *step = *def = 0;
+@@ -452,6 +487,8 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_EXPOSURE_AUTO:
+ 	case V4L2_CID_COLORFX:
+ 	case V4L2_CID_TUNE_PREEMPHASIS:
++	case V4L2_CID_FLASH_LED_MODE:
++	case V4L2_CID_FLASH_STROBE_SOURCE:
+ 		*type = V4L2_CTRL_TYPE_MENU;
+ 		break;
+ 	case V4L2_CID_RDS_TX_PS_NAME:
+@@ -462,6 +499,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_CAMERA_CLASS:
+ 	case V4L2_CID_MPEG_CLASS:
+ 	case V4L2_CID_FM_TX_CLASS:
++	case V4L2_CID_FLASH_CLASS:
+ 		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
+ 		/* You can neither read not write these */
+ 		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
+@@ -474,6 +512,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 		/* Max is calculated as RGB888 that is 2^24 */
+ 		*max = 0xFFFFFF;
+ 		break;
++	case V4L2_CID_FLASH_FAULT:
++		*type = V4L2_CTRL_TYPE_BITMASK;
++		break;
+ 	default:
+ 		*type = V4L2_CTRL_TYPE_INTEGER;
+ 		break;
+@@ -519,6 +560,10 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_ZOOM_RELATIVE:
+ 		*flags |= V4L2_CTRL_FLAG_WRITE_ONLY;
+ 		break;
++	case V4L2_CID_FLASH_STROBE_STATUS:
++	case V4L2_CID_FLASH_READY:
++		*flags |= V4L2_CTRL_FLAG_READ_ONLY;
++		break;
+ 	}
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_fill);
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index be82c8e..e364350 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1022,6 +1022,7 @@ struct v4l2_ext_controls {
+ #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls */
+ #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
+ #define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
++#define V4L2_CTRL_CLASS_FLASH 0x009c0000	/* Camera flash controls */
+ 
+ #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
+ #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
+@@ -1423,6 +1424,41 @@ enum v4l2_preemphasis {
+ #define V4L2_CID_TUNE_POWER_LEVEL		(V4L2_CID_FM_TX_CLASS_BASE + 113)
+ #define V4L2_CID_TUNE_ANTENNA_CAPACITOR		(V4L2_CID_FM_TX_CLASS_BASE + 114)
+ 
++/* Flash and privacy (indicator) light controls */
++#define V4L2_CID_FLASH_CLASS_BASE		(V4L2_CTRL_CLASS_FLASH | 0x900)
++#define V4L2_CID_FLASH_CLASS			(V4L2_CTRL_CLASS_FLASH | 1)
++
++#define V4L2_CID_FLASH_LED_MODE			(V4L2_CID_FLASH_CLASS_BASE + 1)
++enum v4l2_flash_led_mode {
++	V4L2_FLASH_LED_MODE_NONE,
++	V4L2_FLASH_LED_MODE_FLASH,
++	V4L2_FLASH_LED_MODE_TORCH,
++};
++
++#define V4L2_CID_FLASH_STROBE_SOURCE		(V4L2_CID_FLASH_CLASS_BASE + 2)
++enum v4l2_flash_strobe_source {
++	V4L2_FLASH_STROBE_SOURCE_SOFTWARE,
++	V4L2_FLASH_STROBE_SOURCE_EXTERNAL,
++};
++
++#define V4L2_CID_FLASH_STROBE			(V4L2_CID_FLASH_CLASS_BASE + 3)
++#define V4L2_CID_FLASH_STROBE_STOP		(V4L2_CID_FLASH_CLASS_BASE + 4)
++#define V4L2_CID_FLASH_STROBE_STATUS		(V4L2_CID_FLASH_CLASS_BASE + 5)
++
++#define V4L2_CID_FLASH_TIMEOUT			(V4L2_CID_FLASH_CLASS_BASE + 6)
++#define V4L2_CID_FLASH_INTENSITY		(V4L2_CID_FLASH_CLASS_BASE + 7)
++#define V4L2_CID_FLASH_TORCH_INTENSITY		(V4L2_CID_FLASH_CLASS_BASE + 8)
++#define V4L2_CID_FLASH_INDICATOR_INTENSITY	(V4L2_CID_FLASH_CLASS_BASE + 9)
++
++#define V4L2_CID_FLASH_FAULT			(V4L2_CID_FLASH_CLASS_BASE + 10)
++#define V4L2_FLASH_FAULT_OVER_VOLTAGE		(1 << 0)
++#define V4L2_FLASH_FAULT_TIMEOUT		(1 << 1)
++#define V4L2_FLASH_FAULT_OVER_TEMPERATURE	(1 << 2)
++#define V4L2_FLASH_FAULT_SHORT_CIRCUIT		(1 << 3)
++
++#define V4L2_CID_FLASH_CHARGE			(V4L2_CID_FLASH_CLASS_BASE + 11)
++#define V4L2_CID_FLASH_READY			(V4L2_CID_FLASH_CLASS_BASE + 12)
++
+ /*
+  *	T U N I N G
+  */
 -- 
-Regards,
+1.7.2.5
 
-Laurent Pinchart
