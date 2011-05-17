@@ -1,68 +1,90 @@
 Return-path: <mchehab@pedra>
-Received: from lo.gmane.org ([80.91.229.12]:58376 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750886Ab1E0Ml3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 May 2011 08:41:29 -0400
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1QPwM4-0008MR-M6
-	for linux-media@vger.kernel.org; Fri, 27 May 2011 14:41:28 +0200
-Received: from 193.160.199.2 ([193.160.199.2])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Fri, 27 May 2011 14:41:28 +0200
-Received: from bjorn by 193.160.199.2 with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Fri, 27 May 2011 14:41:28 +0200
+Received: from mailout2.samsung.com ([203.254.224.25]:48111 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755659Ab1EQQXh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 May 2011 12:23:37 -0400
+Received: from epcpsbgm1.samsung.com (mailout2.samsung.com [203.254.224.25])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LLC00GCXLJ6UV60@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 18 May 2011 01:23:35 +0900 (KST)
+Received: from AMDN157 ([106.116.48.215])
+ by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LLC005PULJ829@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 18 May 2011 01:23:35 +0900 (KST)
+Date: Tue, 17 May 2011 18:23:19 +0200
+From: Kamil Debski <k.debski@samsung.com>
+Subject: Codec controls question
 To: linux-media@vger.kernel.org
-From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
-Subject: Re: PCTV nanoStick T2 290e support - Thank you!
-Date: Fri, 27 May 2011 14:41:14 +0200
-Message-ID: <87ipsws4d1.fsf@nemi.mork.no>
-References: <1306445141.14462.0.camel@porites> <4DDEDB0E.30108@iki.fi>
-	<8739k0tlx6.fsf@nemi.mork.no> <1306498221.4412.179.camel@ares>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Cc: hansverk@cisco.com,
+	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
+	'Marek Szyprowski' <m.szyprowski@samsung.com>
+Message-id: <003801cc14ae$be448b90$3acda2b0$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: en-gb
+Content-transfer-encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Steve Kerrison <steve@stevekerrison.com> writes:
+Hi,
 
-> The demodulator chip supports T,T2 and C.
->
-> Here in the UK you're not really allowed to attach cable receivers that
-> aren't supplied by the cable company (Virgin Media). That and the fact
-> that it has no access module for obvious reasons, I guess PCTV Systems
-> didn't see the benefit in marketing the C functionality.
+Some time ago we were discussing the set of controls that should be implemented
+for codec support.
 
-Well, I found it a bit weird that they do announce DVB-T + DVB-C support
-for the "PCTV QuatroStick nano" (which has the exact same form factor
-and look, and therefore obviously no CA slot either):
-http://www.pctvsystems.com/Products/ProductsEuropeAsia/Hybridproducts/PCTVQuatroSticknano/tabid/254/language/en-GB/Default.aspx
+I remember that the result of this discussion was that the controls should be as
+"integrated" as possible. This included the V4L2_CID_MPEG_LEVEL and all controls
+related to the quantization parameter.
+The problem with such approach is that the levels are different for MPEG4, H264
+and H263. Same for quantization parameter - it ranges from 1 to 31 for MPEG4/H263
+and from 0 to 51 for H264.
 
-While the "PCTV nanoStick T2" is announced as only DVB-T2 + DVB-T:
-http://www.pctvsystems.com/Products/ProductsEuropeAsia/Digitalproducts/PCTVnanoStickT2/tabid/248/language/en-GB/Default.aspx
+Having single controls for the more than one codec seemed as a good solution.
+Unfortunately I don't see a good option to implement it, especially with the
+control framework. My idea was to have the min/max values for QP set in the S_FMT
+call on the CAPTURE. For MPEG_LEVEL it would be checked in the S_CTRL callback
+and if it did not fit the chosen format it failed.
 
-That's why I asked, even though the driver clearly supports DVB-C.  But
-you may be right that this is because the "nanoStick T2" currently is
-targeted for the UK.
+So I see three solutions to this problem and I wanted to ask about your opinion.
 
-Around here, we've actually got some cable companies supporting TV sets
-with integrated receivers.  Of course requiring their CAM.  They
-probably still don't like the thought of PC based receivers, but there
-is some hope...
+1) Have a separate controls whenever the range or valid value range differs.
+
+This is the simplest and in my opinion the best solution I can think of. This way
+we'll have different set of controls if the valid values are different (e.g.
+V4L2_CID_MPEG_MPEG4_LEVEL, V4L2_CID_MPEG_H264_LEVEL).
+User can set the controls at any time. The only con of this approach is having
+more controls.
+
+2) Permit the user to set the control only after running S_FMT on the CAPTURE.
+This approach would enable us to keep less controls, but would require to set the
+min/max values for controls in the S_FMT. This could be done by adding controls
+in S_FMT or by manipulating their range and disabling unused controls. In case of
+MPEG_LEVEL it would require s_ctrl callback to check whether the requested level
+is valid for the chosen codec.
+
+This would be somehow against the spec, but if we allow the "codec interface" to
+have some differences this would be ok.
+
+3) Let the user set the controls whenever and check them during the STREAMON
+call. 
+
+The controls could be set anytime, and the control range supplied to the control
+framework would cover values possible for all supported codecs.
+
+This approach is more difficult than first approach. It is worse in case of user
+space than the second approach - the user is unaware of any mistakes until the
+STREAMON call. The argument for this approach is the possibility to have a few
+controls less.
+
+So I would like to hear a comment about the above propositions. Personally I
+would opt for the first solution.
+
+Best regards,
+--
+Kamil Debski
+Linux Platform Group
+Samsung Poland R&D Center
 
 
-> I don't actually know if the windows driver supports C mode, it would be
-> amusing if we deliver more functionality with the Linux driver :)
-
-I thought downloading the Windows driver would tell, but
-a) I cannot seem to find the Windows driver for this device, and
-b) this info isn't easily found in the drivers I looked at
-
-So who knows?  It would certainly be amusing.
-
-
-Bjørn
 
